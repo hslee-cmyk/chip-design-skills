@@ -59,6 +59,26 @@ MEASURES = {
     "supply_current_A": ("rel", "supply_current_A_rel"),
     "ratio_db": ("abs", "ratio_db_abs"),
     "rout_ohm": ("rel", "rout_ohm_rel"),
+    # [신규 U6] .noise 대조, 오프셋 Monte-Carlo, 스윙·ICMR 스윕 (sim.noise / sim.offset_mc / sim.swing_icmr)
+    "noise_th_in_v2hz": ("rel", "noise_th_in_v2hz_rel"),
+    "noise_fc_in_hz": ("rel", "noise_fc_in_hz_rel"),
+    "noise_excess_th": ("rel", "noise_excess_th_rel"),
+    "noise_out_int_vrms": ("rel", "noise_out_int_vrms_rel"),
+    "offset_in_sigma_mv": ("rel", "offset_in_sigma_mv_rel"),
+    "swing_out_v": ("abs", "swing_out_v_abs"),
+    "icmr_v": ("abs", "icmr_v_abs"),
+    "icm_margin_v": ("abs", "icm_margin_v_abs"),
+}
+# measure -> (sim 블록, 그 블록 안 경로) . 값이 None 이면 측정 안 됨; 이유는 U6_UNDEFINED 가 준다
+U6_MEASURES = {
+    "noise_th_in_v2hz": ("noise", ("open_loop", "th_in_v2hz")),
+    "noise_fc_in_hz": ("noise", ("open_loop", "fc_in_hz")),
+    "noise_excess_th": ("noise", ("open_loop", "excess_th")),
+    "noise_out_int_vrms": ("noise", ("closed_loop", "out_int_vrms")),
+    "offset_in_sigma_mv": ("offset_mc", ("sigma_in_mV",)),
+    "swing_out_v": ("swing_icmr", ("swing_out_v",)),
+    "icmr_v": ("swing_icmr", ("icmr_v",)),
+    "icm_margin_v": ("swing_icmr", ("icm_margin_v",)),
 }
 NA_TOL = "N/A(tol 미설정)"
 # C25: 기록 전용 과도 measure -- SPICE 정의가 계약에 없어 재지 않는다(추측 금지). 정의가 정해지면 측정으로 바꾼다.
@@ -127,6 +147,12 @@ def measure_value(measure, sim, item):
         return None if r is None else r.get("rout_ohm")
     if measure in TRANSIENT_MEASURES:  # C25: 재지 않음
         return None
+    if measure in U6_MEASURES:
+        blk, path = U6_MEASURES[measure]
+        cur = sim.get(blk)
+        for k in path:
+            cur = None if not isinstance(cur, dict) else cur.get(k)
+        return cur
     if measure == "cm_pm_deg":  # CM 루프(cm_output_loop): sim.cm_loop 의 PM(정의 불가면 None)
         return (sim.get("cm_loop") or {}).get("pm_deg")
     return ac.get(measure)
@@ -151,10 +177,37 @@ def measure_undefined(measure, sim, item):
     if measure == "cm_pm_deg":
         cl = sim.get("cm_loop")
         return None if cl is None else cl.get("pm_undefined")
+    if measure in U6_MEASURES and measure_value(measure, sim, item) is None:
+        return u6_undefined(measure, sim)
     if measure == "rout_ohm":
         r = _rout_entry(sim, item)
         if r is not None and r.get("rout_ohm") is None and r.get("undefined") not in (None, "no_data"):
             return r["undefined"]
+    return None
+
+
+def u6_undefined(measure, sim):
+    """[신규 U6] 값이 None 인 U6 measure 의 이유(측정 실패가 아니라 정의 밖일 때). 블록이 없으면 None(입력에 측정 블록이 없다 = 'SPICE 값 없음')."""
+    blk = U6_MEASURES[measure][0]
+    b = sim.get(blk)
+    if not b:
+        return None
+    if blk == "noise":
+        part = b.get(U6_MEASURES[measure][1][0]) or {}
+        if measure == "noise_fc_in_hz" and part.get("fc_reason"):
+            return f"noise_fc_{part['fc_reason']}"
+        if measure == "noise_excess_th" and part.get("excess_reason"):
+            if part.get("input_cell_missing"):
+                return "noise_excess_input_cell_missing"
+            return "noise_excess_input_cell_undeclared"
+        return (part.get("reason") or "")[:80] or None
+    if blk == "offset_mc":
+        return (b.get("reason") or "")[:80] or None
+    if blk == "swing_icmr":
+        if measure == "icm_margin_v" and ((b.get("icmr") or {}).get("icm_margin_reason") == "input_dc_pending"):
+            return "input_dc_pending"
+        sub_ = b.get("swing") if measure == "swing_out_v" else b.get("icmr")
+        return ((sub_ or {}).get("reason") or b.get("reason") or "")[:80] or None
     return None
 
 
@@ -340,6 +393,10 @@ def compare(inp, meta, sim, judge):
                                          if r["sat_margin_spice_V"] is None or r["sat_margin_spice_V"] < margin]
     cons_fail = [c.get("name") or c["measure"] for c in cons if c["judge"] == "FAIL"]
     cons_na = [c.get("name") or c["measure"] for c in cons if c["judge"] not in ("PASS", "FAIL")]
+    # [신규 U6, 사용자 결정 B·Q10] 폐루프 불안정(Nyquist Z = N + P >= 1 또는 폐루프 과도 unstable -- limit_cycle 포함)은 pm 제약이 있든
+    # 없든 FAIL 이다. 둘 다 결론을 못 낸 경우(verdict undetermined)만 이 항으로 FAIL 을 만들지 않는다(pm 제약이 N/A -> INCOMPLETE).
+    stab_sum = _stability_summary(sim.get("ac") or {})
+    stab_fail = bool(stab_sum and stab_sum.get("verdict") == "unstable")
     # C23: 엔진 예측 전도 소자가 SPICE 에서 꺼짐 -> FAIL, 판정 못 함 -> PASS 불가(엔진 예측 off 는 대상 밖)
     off_spice = [r["name"] for r in rows if r["conduction_check"] == "FAIL"]
     cond_na = {r["name"]: r["conduction_check"] for r in rows
@@ -357,11 +414,13 @@ def compare(inp, meta, sim, judge):
         verdict, why = "INCOMPLETE", f"{meta['bias']} 는 진단 모드 -- 합격 판정은 free 모드에서만 한다"
     elif z1:
         verdict, why = "INCOMPLETE", f"Z1 제거법 진단 실행(회로 변경 omit={z1['omit']} short={z1['short']}) -- 합격 판정 안 함"
-    elif cons_fail or unsat or off_spice:
+    elif cons_fail or unsat or off_spice or stab_fail:
         verdict = "FAIL"
         why = "; ".join(x for x in (f"선언 제약 불만족 {cons_fail}" if cons_fail else "",
                                      f"포화 아닌 전도 MOS {unsat}" if unsat else "",
-                                     f"엔진 예측 전도인데 SPICE 에서 꺼진 MOS {off_spice}" if off_spice else "") if x)
+                                     f"엔진 예측 전도인데 SPICE 에서 꺼진 MOS {off_spice}" if off_spice else "",
+                                     (f"폐루프 불안정(Z = {stab_sum.get('Z')}, 과도 {stab_sum.get('transient_status')}, "
+                                      f"근거 {stab_sum.get('verdict_basis')})" if stab_fail else "")) if x)
     elif margin is None or cons_na or cond_na:
         verdict = "INCOMPLETE"
         why = "; ".join(x for x in ("sat_margin_V 미설정 -- 포화 조건 판정 불가" if margin is None else "",
@@ -372,7 +431,10 @@ def compare(inp, meta, sim, judge):
     geo = meta.get("geometry") or {}
     jsrc = [((g.get("diffusion") or {}).get("source")) for g in geo.values()]
     summary = {"verdict": verdict, "verdict_reason": why, "warnings": warnings,
+               # [사용자 결정 4] 한계 사이클 FAIL 이 '고Q 안정 회로와 구별 불가'라는 판정 한계에서 나왔을 수 있다는 표시(보고 맨 앞)
+               "limit_cycle_vs_slow_decay_unresolved": (stab_sum or {}).get("limit_cycle_vs_slow_decay_unresolved"),
                "acceptance": {"constraints_failed": cons_fail, "constraints_unmeasured": cons_na,
+                              "closed_loop_unstable": stab_fail,
                               "conducting_devices": len(conducting), "unsaturated_conducting": unsat,
                               "sat_margin_V": margin, "off_current_A": off_i,
                               "off_in_spice": off_spice, "conduction_not_evaluated": cond_na},
@@ -397,8 +459,9 @@ def compare(inp, meta, sim, judge):
                            "feedback_passives_basis": inp.get("feedback_passives_basis"),
                            "loop_break_nets": (sim.get("ac") or {}).get("loop_break_nets"),
                            "loop_weights": (sim.get("ac") or {}).get("loop_weights")},
-               "stability": _stability_summary((sim.get("ac") or {})),
+               "stability": stab_sum,
                "cm_loop": _cm_loop_summary(sim.get("cm_loop")),
+               "u6": {k: sim.get(k) for k in ("noise", "offset_mc", "swing_icmr") if sim.get(k) is not None} or None,
                "rail_current_A": sim.get("rail_current_A")}
     ti = meta.get("topology_identity") or {"status": "unverified", "diffs": [], "notes": ["넷리스트 meta 에 C15 결과 없음"]}
     summary["topology_identity"] = {"status": ti.get("status"), "required": ti.get("required", False),
@@ -432,12 +495,21 @@ def _stability_summary(ac):
     if not st:
         return None
     ny, tr = st.get("nyquist") or {}, st.get("transient") or {}
+    pz = st.get("pz") or {}
     return {"pm_valid": st.get("pm_valid"), "pm_undefined": st.get("pm_undefined"), "pm_deg_raw": ac.get("pm_deg_raw"),
             "loop": st.get("loop"), "closed_loop": st.get("closed_loop"),
             "open_loop_rhp_poles": st.get("open_loop_rhp_poles"),
             "open_loop_rhp_poles_bound": st.get("open_loop_rhp_poles_bound"),
             "nyquist_encirclements_cw": ny.get("encirclements_cw"), "nyquist_reason": ny.get("reason"),
+            "nyquist_refinement_rounds": (ny.get("refinement") or {}).get("rounds"),
+            "pz_status": pz.get("status"), "pz_P": pz.get("P"), "pz_reason": pz.get("reason"),
+            "pz_validated": pz.get("validated"), "pz_conflict": st.get("pz_conflict"),
+            "Z": st.get("Z"), "verdict": st.get("verdict"), "verdict_basis": st.get("verdict_basis"),
+            "conditionally_stable": st.get("conditionally_stable"),
+            "low_side_gain_margin_db": st.get("low_side_gain_margin_db"),
             "transient_status": tr.get("status"), "transient_reason": tr.get("reason"),
+            "early_stop": tr.get("early_stop"),
+            "limit_cycle_vs_slow_decay_unresolved": st.get("limit_cycle_vs_slow_decay_unresolved"),
             "reason": st.get("reason")}
 
 
@@ -546,6 +618,10 @@ def _f(v, f="{:.4g}"):
 def to_markdown(res):
     s = res["summary"]
     L = [f"### {res['circuit']} -- 엔진 예측 vs SPICE (bias={res['bias']})"]
+    lcu = (s.get("stability") or {}).get("limit_cycle_vs_slow_decay_unresolved")
+    if lcu:   # 보고 맨 앞(사용자 결정 4): FAIL 이 판정 한계에서 나왔을 수 있다는 표시
+        L.append(f"- **limit_cycle_vs_slow_decay_unresolved**: 창 최댓값 M = {[_f(x) for x in lcu.get('M') or []]}, "
+                 f"창당 변화비 = {[_f(x) for x in lcu.get('window_ratios') or []]} -- {lcu.get('reason')}")
     for w in s.get("warnings") or []:
         L.append(f"- **경고(forced)**: {w}")
     rc = s["record_counts"]
@@ -603,7 +679,34 @@ def to_markdown(res):
                  f" (Bode 식 원값 {_f(sb.get('pm_deg_raw'))} deg) -- Nyquist 시계 방향 감은 수 N = {_f(sb.get('nyquist_encirclements_cw'))}"
                  + (f"({sb['nyquist_reason']})" if sb.get("nyquist_reason") else "")
                  + f", 폐루프 과도 {sb.get('transient_status')}, 개루프 RHP 극 {_f(sb.get('open_loop_rhp_poles'))}"
-                 + (f" ({sb['open_loop_rhp_poles_bound']})" if sb.get("open_loop_rhp_poles_bound") else ""))
+                 + (f" ({sb['open_loop_rhp_poles_bound']})" if sb.get("open_loop_rhp_poles_bound") else "")
+                 + f"; .pz P = {_f(sb.get('pz_P'))}({sb.get('pz_status')}{', 개루프 과도 확인 ' + str(sb['pz_validated']) if sb.get('pz_validated') is not None else ''}), Z = N + P = {_f(sb.get('Z'))}"
+                 + (f" [.pz 무시: {sb['pz_conflict']}]" if sb.get("pz_conflict") else "")
+                 + f" -> 안정성 판정 **{sb.get('verdict')}**({sb.get('verdict_basis')})"
+                 + (" [조건부 안정" + (f", 하측 이득 여유 {_f(sb.get('low_side_gain_margin_db'))} dB" if sb.get("low_side_gain_margin_db") is not None else "") + "]"
+                    if sb.get("conditionally_stable") else "")
+                 + (f", 조기 종결 창 {sb['early_stop']['window']}({sb['early_stop'].get('kind')})" if sb.get("early_stop") else ""))
+    u6 = s.get("u6") or {}
+    nzr = u6.get("noise")
+    if nzr:
+        ol, cl_ = nzr.get("open_loop") or {}, nzr.get("closed_loop") or {}
+        L.append(f"- U6 .noise 개루프: {ol.get('status')} -- 열잡음 입력환산 {_f(ol.get('th_in_v2hz'))} V²/Hz (f = {_f(ol.get('f_eval_hz'))} Hz), "
+                 f"flicker 코너 {_f(ol.get('fc_in_hz'))} Hz{('(' + ol['fc_reason'] + ')') if ol.get('fc_reason') else ''}, "
+                 f"excess {_f(ol.get('excess_th'))}" + (f" -- {ol['reason']}" if ol.get("reason") else ""))
+        if nzr.get("closed_loop") is not None:
+            L.append(f"- U6 .noise 폐루프 적분 출력 잡음: {_f(cl_.get('out_int_vrms'))} Vrms ([{_f(cl_.get('f_lo_hz'))}, {_f(cl_.get('f_hi_hz'))}] Hz, "
+                     f"꼬리 수렴 {cl_.get('converged')}, 스위치 kT/C {((cl_.get('ktc_sampling') or {}).get('status'))})"
+                     + (f" -- {cl_['reason']}" if cl_.get("reason") else ""))
+    mc = u6.get("offset_mc")
+    if mc:
+        L.append(f"- U6 offset Monte-Carlo: {mc.get('status')} -- σ_in = {_f(mc.get('sigma_in_mV'))} mV (표본 {mc.get('n_samples')}, "
+                 f"목표 상대 표준오차 {_f(mc.get('rel_resolution'))}, 평균 {_f(mc.get('mean_in_mV'))} mV, 시드 {mc.get('seed')})"
+                 + (f" -- {mc['reason']}" if mc.get("reason") else ""))
+    sw = u6.get("swing_icmr")
+    if sw:
+        L.append(f"- U6 스윙·ICMR: {sw.get('status')} -- swing_out_v {_f(sw.get('swing_out_v'))} V, icmr_v {_f(sw.get('icmr_v'))} V, "
+                 f"icm_margin_v {_f(sw.get('icm_margin_v'))} V (포화 여유 {_f(sw.get('margin_V'))} V, ngspice {sw.get('ngspice_runs')} 회)"
+                 + (f" -- {sw['reason']}" if sw.get("reason") else ""))
     tr = s.get("transient") or {}
     if tr:
         L.append(f"- C25 슬루·정착: {tr.get('status')} -- {tr.get('reason')}")

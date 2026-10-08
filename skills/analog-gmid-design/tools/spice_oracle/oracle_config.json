@@ -1,0 +1,293 @@
+{
+ "stability_transient": {
+  "wall_s_per_window": 306.1,
+  "safety_factor": 2.205,
+  "c_worst_s_per_window": 138.828,
+  "justification": "계약 docs/03-analysis/oracle-c10-early-termination.contract.md 1(c): 창 하나를 끝내는 ngspice 실행 시간 상한 = safety_factor × 창당 비용 최댓값. 창당 비용 c = (.stab.cir 단독 실행 시간)/(끝낸 창 수), 케이스별 반복 실행의 중앙값 c_median 의 최댓값 = c_worst_s_per_window (138.8 s/창, 지속 진동 fixture sustained_rb1e6). safety_factor = 모든 케이스의 같은 케이스 반복 실행 max/median 중 최댓값(부하 변동 실측; 2.205 = lowpm_ext, 지속 진동 fixture 자체는 1.858). 따라서 wall_s_per_window = c_worst × safety = 306.1 s 이고, 이는 측정된 가장 느린 실행의 창당 비용 257.9 s(지속 진동 fixture, 6 창 1547.5 s) 이상이다. 측정은 다른 에이전트들의 ngspice 가 겹친 공유 머신에서 했고(같은 .stab.cir 가 81.5 s ~ 1547.5 s 로 달랐다 -- 부하 변동이 크다) 그 변동폭이 safety_factor 에 들어 있다. GHz 로 진동하는 불안정 회로(test_rhp_variants_never_pass[rb1e7])는 이 상한(× 계획 창 수)이 끊는다.",
+  "measured_method": "tools/spice_oracle/smoke/measure_wall_s_per_window.py (ngspice -b 로 .stab.cir 를 캐시 없이 반복 실행, STABWIN 줄 수로 끝낸 창 수 셈)",
+  "measured_date": "2026-10-08",
+  "measured_machine_note": "Windows 11, 18 논리 코어, ngspice-46; 측정 중 다른 에이전트의 ngspice 프로세스가 동시에 6~20 개 돌았다",
+  "measured_corpus": {
+   "cs": {
+    "runs": [
+     {
+      "wall_s": 11.72,
+      "windows": 6
+     },
+     {
+      "wall_s": 9.96,
+      "windows": 6
+     },
+     {
+      "wall_s": 18.49,
+      "windows": 6
+     }
+    ],
+    "c_s_per_window": [
+     1.954,
+     1.661,
+     3.082
+    ],
+    "c_median": 1.954,
+    "c_max": 3.082,
+    "max_over_median": 1.577,
+    "note": "tcs_nmos_rload β=1 (안정) -- smoke/measure_wall_s_per_window.py, repeat 3"
+   },
+   "fb_loop": {
+    "runs": [
+     {
+      "wall_s": 12.56,
+      "windows": 6
+     },
+     {
+      "wall_s": 8.39,
+      "windows": 6
+     },
+     {
+      "wall_s": 16.69,
+      "windows": 6
+     }
+    ],
+    "c_s_per_window": [
+     2.093,
+     1.398,
+     2.782
+    ],
+    "c_median": 2.093,
+    "c_max": 2.782,
+    "max_over_median": 1.329,
+    "note": "tfb_cs_rfeedback β 루프 (안정) -- smoke/measure_wall_s_per_window.py, repeat 3"
+   },
+   "lowpm": {
+    "runs": [
+     {
+      "wall_s": 8.21,
+      "windows": 6
+     },
+     {
+      "wall_s": 6.37,
+      "windows": 6
+     },
+     {
+      "wall_s": 3.17,
+      "windows": 6
+     }
+    ],
+    "c_s_per_window": [
+     1.369,
+     1.062,
+     0.529
+    ],
+    "c_median": 1.062,
+    "c_max": 1.369,
+    "max_over_median": 1.289,
+    "note": "3단 CS 저PM (안정, decaying->stable 첫 실행) -- smoke/measure_wall_s_per_window.py, repeat 3"
+   },
+   "lowpm_ext": {
+    "runs": [
+     {
+      "wall_s": 2.86,
+      "windows": 9
+     },
+     {
+      "wall_s": 6.3,
+      "windows": 9
+     },
+     {
+      "wall_s": 1.56,
+      "windows": 9
+     }
+    ],
+    "c_s_per_window": [
+     0.317,
+     0.7,
+     0.173
+    ],
+    "c_median": 0.317,
+    "c_max": 0.7,
+    "max_over_median": 2.205,
+    "note": "3단 CS 저PM 연장 실행(.stab2.cir) -- smoke/measure_wall_s_per_window.py, repeat 3"
+   },
+   "notch": {
+    "runs": [
+     {
+      "wall_s": 3.24,
+      "windows": 6
+     },
+     {
+      "wall_s": 18.15,
+      "windows": 6
+     },
+     {
+      "wall_s": 28.72,
+      "windows": 6
+     }
+    ],
+    "c_s_per_window": [
+     0.54,
+     3.025,
+     4.787
+    ],
+    "c_median": 3.025,
+    "c_max": 4.787,
+    "max_over_median": 1.583,
+    "note": "쌍T 노치 (안정) -- smoke/measure_wall_s_per_window.py, repeat 3"
+   },
+   "notch_ext": {
+    "runs": [
+     {
+      "wall_s": 26.51,
+      "windows": 7
+     },
+     {
+      "wall_s": 20.33,
+      "windows": 7
+     },
+     {
+      "wall_s": 22.63,
+      "windows": 7
+     }
+    ],
+    "c_s_per_window": [
+     3.787,
+     2.905,
+     3.233
+    ],
+    "c_median": 3.233,
+    "c_max": 3.787,
+    "max_over_median": 1.172,
+    "note": "쌍T 노치 연장 실행 -- smoke/measure_wall_s_per_window.py, repeat 3"
+   },
+   "classic": {
+    "runs": [
+     {
+      "wall_s": 7.74,
+      "windows": 3
+     },
+     {
+      "wall_s": 9.13,
+      "windows": 3
+     },
+     {
+      "wall_s": 8.38,
+      "windows": 3
+     }
+    ],
+    "c_s_per_window": [
+     2.579,
+     3.045,
+     2.793
+    ],
+    "c_median": 2.793,
+    "c_max": 3.045,
+    "max_over_median": 1.09,
+    "note": "고전적 불안정 3단 (조기 종결 창 3) -- smoke/measure_wall_s_per_window.py, repeat 3"
+   },
+   "rhp_rb1e5": {
+    "runs": [
+     {
+      "wall_s": 280.49,
+      "windows": 4
+     },
+     {
+      "wall_s": 184.05,
+      "windows": 4
+     },
+     {
+      "wall_s": 184.28,
+      "windows": 4
+     }
+    ],
+    "c_s_per_window": [
+     70.121,
+     46.012,
+     46.071
+    ],
+    "c_median": 46.071,
+    "c_max": 70.121,
+    "max_over_median": 1.522,
+    "note": "손 RHP 회로 Rb 100 kΩ (한계 사이클 조기 종결 창 4) -- smoke/measure_wall_s_per_window.py, repeat 3"
+   },
+   "smoke_sizing_forced": {
+    "runs": [
+     {
+      "wall_s": 4.6,
+      "windows": 5
+     },
+     {
+      "wall_s": 4.01,
+      "windows": 5
+     },
+     {
+      "wall_s": 5.53,
+      "windows": 5
+     }
+    ],
+    "c_s_per_window": [
+     0.919,
+     0.802,
+     1.105
+    ],
+    "c_median": 0.919,
+    "c_max": 1.105,
+    "max_over_median": 1.202,
+    "note": "smoke current_reuse_telescopic_ota forced sizing.engine (안정, 51 소자) -- repeat 3"
+   },
+   "smoke_layout_forced": {
+    "runs": [
+     {
+      "wall_s": 3.12,
+      "windows": 5
+     },
+     {
+      "wall_s": 4.01,
+      "windows": 5
+     },
+     {
+      "wall_s": 4.23,
+      "windows": 5
+     }
+    ],
+    "c_s_per_window": [
+     0.624,
+     0.802,
+     0.846
+    ],
+    "c_median": 0.802,
+    "c_max": 0.846,
+    "max_over_median": 1.056,
+    "note": "smoke current_reuse_telescopic_ota forced layout.engine (안정, 51 소자) -- repeat 3"
+   },
+   "sustained_rb1e6": {
+    "runs": [
+     {
+      "wall_s": 81.5,
+      "windows": 6
+     },
+     {
+      "wall_s": 1547.51,
+      "windows": 6
+     },
+     {
+      "wall_s": 882.57,
+      "windows": 6
+     },
+     {
+      "wall_s": 783.37,
+      "windows": 6
+     }
+    ],
+    "c_s_per_window": [
+     13.583,
+     257.919,
+     147.095,
+     130.561
+    ],
+    "c_median": 138.828,
+    "c_max": 257.919,
+    "max_over_median": 1.858,
+    "note": "손 RHP 회로 Rb 1 MΩ 지속 진동 fixture(6 창 끝까지; 단독 실행은 부하 변동이 가장 크다): 첫 값 81.5 s = 통과한 test 실행의 .stab.cir->.stab.txt 파일 시각 차(부하 낮음), 나머지 셋 = measure_wall_s_per_window.py repeat 2 + repeat 1 (같은 .stab.cir, 다른 시각의 부하)"
+   }
+  }
+ }
+}

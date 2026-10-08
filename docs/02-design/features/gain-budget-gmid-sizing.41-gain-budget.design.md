@@ -379,7 +379,7 @@ DEC-17 순서(`E/graph/l_classes.py`)의 3번째에 규칙 하나를 넣는다.
 2. `current_source_member`: diode 기준(1.12.1의 복합 diode 포함)
 3. **신규 `main_path_signal`**: 멤버 중 gain 제약 전달 뷰(없으면 첫 전달 뷰)의 **주경로 stage 시작 셀**(1.12.2)인 것. FF 묶음 멤버보다 우선한다. 여럿이면 가장 앞 stage 것이다.
    - 근거: FF 셀은 주경로 전류를 복사하는 쪽이다. 따라서 주경로 소자가 L 기준이 되는 것이 회로 원리에 맞다.
-4. `name_order`: 남은 동률만 해당한다. `review_needed`(`l_owner_name_order`)로 올린다. **예외**(2026-10-09 오케스트레이터 결정): 동률 후보가 모두 같은 자기동형 궤도(U2 `automorphism_orbits`)에 들면 어느 쪽을 주인으로 골라도 구조상 같은 결과라 review를 올리지 않는다(nmcnr {M104, M105}처럼 L 주인을 사실로 풀 수 없는 영구 review를 막는다).
+4. `name_order`: 남은 동률만 해당한다. `review_needed`(`l_owner_name_order`)로 올린다. **예외**(2026-10-09 오케스트레이터 결정): 동률 후보가 모두 같은 자기동형 궤도(U2 `automorphism_orbits`)에 들면 어느 쪽을 주인으로 골라도 구조상 같은 결과라 review를 올리지 않는다(정정 2026-10-09: nmcnr {M104, M105}는 단일 종단 미러 M108(diode)·M109(출력) 때문에 같은 궤도가 아니어서 이 예외에 들지 않는다 -- 독립 test·엔진 궤도 계산 확인).
 
 #### 1.12.6 뷰 한정 교류접지 예외 (J-C)
 

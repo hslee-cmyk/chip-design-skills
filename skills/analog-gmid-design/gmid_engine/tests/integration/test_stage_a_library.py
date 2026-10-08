@@ -74,7 +74,13 @@ def test_l_classes_reach_theta_schema(real_lut, tmp_path):
     expected = tuple(sorted((m, c.owner) for c in result.s1v.l_classes if c.status == STATUS_DERIVED for m in c.members if m != c.owner))
     assert plain.l_ties == ()
     assert tied.l_ties == expected and expected
-    assert plain.schema.components == tied.schema.components
+    # oracle (d) D-GB7a(40 §3.7·§11 U4): θ 는 동치류마다 주인 L 하나 -- 멤버 ("L", m) 성분만 빠지고 나머지·순서는 그대로.
+    # 기대는 단계 A 의 l_classes(derived) 멤버에서 독립으로 센다(U1 시절 '성분 불변' 단언은 D-GB7a 와 모순이라 교체).
+    members = {("L", m) for m, _ in expected}
+    owners = {("L", o) for _, o in expected}
+    assert members <= set(plain.schema.components)
+    assert tied.schema.components == tuple(c for c in plain.schema.components if c not in members)
+    assert owners <= set(tied.schema.components)
 
 
 def _structure_file(path, topology_hash, rule_hash, stage_a, stage_b):
