@@ -8,8 +8,12 @@
   (출처 4.3, 축 같을 때). Richardson 환산 없음. 같은 bin 의 중점은 한 MidpointRow 로(k 마다 최댓값, 개수 합), rows = model 정렬.
 - 기대값: conftest `midpoint_ref`(npz 직접 -- 5.1 식의 독립 구현), 중점 toy 의 닫힌 식(VDSAT 오차 = 0.05·(Lu_m − Lu0)(Lu1 − Lu_m)·(1 + d)).
 """
+import hashlib
 import json
 import math
+import os
+import subprocess
+import sys
 
 import numpy as np
 import pytest
@@ -377,3 +381,35 @@ def test_real_declared_midpoints_follow_derivation_rule(ngspice_bins, real_paths
         b_old = ngspice_bins.query(device, [(w, 6.0), (w, 14.0)])
         b_anc = ngspice_bins.query(device, [(w, round(x, 6)) for x in L_um])
         assert [sum(same_bounds(a, b) for a in b_anc) for b in b_old] == [1, 1], device
+
+
+SWEEP_SCRIPT = SKILL_DIR / "assets" / "sky130_lut_sweep.py"
+
+
+@pytest.mark.lut_realdata
+def test_real_sweep_candidates_emits_derived_midpoints(ngspice_bins, real_paths, raw_mid, tmp_path):
+    """생성기 공개 진입점 `sky130_lut_sweep.py candidates`(승인 L 파일 provenance 의 명령 그대로: --l-max-um 20 --discontinuous-um
+    0.18,0.25)를 실제로 돌려, 산출 JSON 의 2점 bin 중점 = 위 독립 유도(showmod 소속 + 모델 파일 경계 + tlef 격자) = 선언 목록,
+    후보 L = 승인 18점 격자, 소속 model = showmod 독립 조회와 같다.
+    oracle: (a) `_derive_midpoints_um`(생성기 코드 미사용) + (d) 승인 L 파일. 실행 시간 실측 2026-10-08: CLI 단독 1092 s, 이 test 651 s --
+    ngspice 경계 탐침 sweep 이 대부분이다(보고 대상)."""
+    per_dev, mids = _derive_midpoints_um(ngspice_bins, real_paths["tlef"], float(raw_mid["w_ref_m"]))
+    declared = _declared_l_grid()
+    exe = os.environ.get("GMID_NGSPICE", r"C:\ngspice\Spice64\bin\ngspice_con.exe")
+    env = dict(os.environ)
+    env["PATH"] = os.path.dirname(exe) + os.pathsep + env.get("PATH", "")
+    out = tmp_path / "candidates.json"
+    r = subprocess.run([sys.executable, str(SWEEP_SCRIPT), "candidates", "--l-max-um", "20", "--discontinuous-um", "0.18,0.25",
+                        "--work", str(tmp_path / "work"), "--out", str(out)],
+                       cwd=str(SKILL_DIR), env=env, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                       timeout=3 * 3600)
+    assert r.returncode == 0, (r.returncode, r.stdout[-2000:], r.stderr[-4000:])
+    got = json.loads(out.read_text(encoding="utf-8"))
+    assert got["verification_midpoints_um_two_point_bins"] == mids == declared["verification_midpoints_um"]
+    assert got["candidates_um"] == declared["L_um"]
+    assert got["compare"]["L_um_equal"] is True and got["compare"]["midpoints_equal"] is True
+    assert got["compare"]["sha256"] == hashlib.sha256(L_GRID_FILE.read_bytes()).hexdigest()
+    for device, rows in per_dev.items():
+        for model, xs, _ in rows:
+            for x in xs:
+                assert got["bins_at_w_ref"][device]["%g" % x]["model"] == model, (device, x)
