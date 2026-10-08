@@ -378,6 +378,11 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 | `well_spacing_m` | `max(nwell.2a + 2 * difftap.8, difftap.9 + difftap.8)`(121·329·330행) | 1.63e-6 |
 | `min_finger_w_m` [2026-10-08 추가] | `difftap.2`(321행 0.420 µm, areaid.sc 밖 FET 최소 채널 폭) | 4.2e-7 |
 
+| `mim_cap_density_f_per_m2` [2026-10-08 추가, 사용자 결정 11] | `camimc`(`models/r+c/res_typical__cap_typical__lin.spice` 의 `.param` 줄, `spice_instance_line`, 원본 F/µm² x units_m 1e12) | 2.0e-3 |
+
+`mim_cap_density_f_per_m2` 는 MIM 커패시터 단위 면적 용량(sky130 typical 모서리, 공개 문서 ~2 fF/µm² 와 일치)이다. cap_mim_m3 셀 모델
+원본이 로컬에 없어 이 모서리 파라미터가 유일한 로컬 출처다. 소비자 `search.passive_area_decl`(수동 커패시터 면적 = 값 / 이 값).
+
 `min_finger_w_m` 은 MOD6 설계 개정 S-18(search W ≥ W_min 제약, 소비자 `search.build_search_context`)로 더한 quantity 다. 선언 형식·
 읽기 규칙은 9.1~9.3 그대로이고 엔진 코드 변경은 없다(선언 파일 sha256 은 바뀐다).
 

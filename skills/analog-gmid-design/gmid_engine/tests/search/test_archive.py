@@ -52,7 +52,10 @@ def test_runs_and_snapshot_files(tmp_path, lut_sealed, short_root):
         for k in POINT_KEYS:
             assert k in entry, k
         assert entry["point_id"] == p.point_id
-        assert entry["passives_in_area"] is False
+        # [결정 11] 6절: passives_in_area = sctx.area_decl 이 있으면 True(수동 커패시터 면적이 area_search_m2 에 든다). build_search_context
+        # 는 PDK 선언과 spec 으로 늘 area_decl 을 만든다(3.22) -> True. oracle (d) 계약 6절 문장.
+        assert s.area_decl is not None
+        assert entry["passives_in_area"] is True
         assert entry["power_dc_w"] == p.result.objectives.power_w
         assert entry["area_search_m2"] == p.result.objectives.area_m2
         assert [tuple(k) for k, _ in entry["theta_hex"]] == [k for k, _ in p.result.theta]
