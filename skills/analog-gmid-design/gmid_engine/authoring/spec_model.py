@@ -62,6 +62,7 @@ class ElementValue:
     value: object = None
     source: object = None
     decision: object = None
+    measurement_load: bool = False      # [결정 11] 측정 부하 표지 -- 설계 면적(area_search_m2)에서 뺀다(spec_elements)
 
 
 @dataclasses.dataclass(frozen=True)

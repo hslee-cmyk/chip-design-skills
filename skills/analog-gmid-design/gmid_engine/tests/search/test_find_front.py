@@ -9,6 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 
 from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED, SearchFront, find_front
 
@@ -232,3 +233,43 @@ def test_eval_result_warnings_equal_ss_evaluate_i22(tmp_path, lut_sealed, short_
     if failed:
         r2 = evaluate(case.sctx, {tuple(k): v for k, v in failed[0]["theta"]}, tuple(failed[0]["cells"]))
         assert tuple(r2.warnings) == ()
+
+
+# ---------------------------------------------------------------- [r11, 사용자 결정 11] 면적 예산 선언 spec (S-3b 닫힘, 3.22)
+# oracle (d) 계약 S-3b 문장: 예산 선언 spec -> notes {"verdict": "closed", "rule": "S-3b"}, 층 0 meaning_reason = w_bounded_by_area_budget,
+# 예산 없는 spec -> {"verdict": "provisional", "rule": "S-3b"}. oracle (a) 물리 불변식: front 점은 판정 제약 면적 행 c ≥ 0 ⇔ 면적 ≤ A,
+# 면적 = Σ W·L(회로 C 는 수동소자 없음) ≥ 어느 소자 하나의 W·L. 행 c = (A − 면적)/b_A 는 원 값(SLSQP 척도 배 없음).
+
+A_BUDGET = 1e-10        # 회로 C 시작점(theta_r4c) Σ W·L ≈ 6.7e-11 m² 보다 크게 고른 구성 입력 -- 시작점이 예산 안
+
+
+def test_budget_closes_s3b_note_and_layer0_reason(tmp_path, lut_sealed):
+    _, fr = _run(tmp_path, lut_sealed, eval_budget=30, constraints=(("area_search_m2", "<=", A_BUDGET, None),))
+    notes = _notes(fr)
+    s3b = [n for n in notes if n.get("rule") == "S-3b"]
+    assert len(s3b) == 1 and s3b[0]["verdict"] == "closed"
+    assert not any(n.get("rule") == "S-3b" and n.get("verdict") == "provisional" for n in notes)
+    (l0,) = [n for n in notes if n.get("reason") == "seal_margin_maxmin_centre"]
+    assert l0["meaning_reason"] == "w_bounded_by_area_budget"
+
+
+def test_no_budget_keeps_s3b_provisional(tmp_path, lut_sealed):
+    _, fr = _run(tmp_path, lut_sealed, eval_budget=30)
+    s3b = [n for n in _notes(fr) if n.get("rule") == "S-3b"]
+    assert len(s3b) == 1 and s3b[0]["verdict"] == "provisional"
+
+
+def test_front_points_inside_area_budget(tmp_path, lut_sealed):
+    case, fr = _run(tmp_path, lut_sealed, eval_budget=40, constraints=(("area_search_m2", "<=", A_BUDGET, None),))
+    b_a = case.sctx.domain.area_resolution_m2
+    assert len(fr.front) >= 1
+    for p in fr.front:
+        area = p.result.objectives.area_m2
+        ops = dict(p.result.evaluation.snapshot.column("device", "dc_op"))
+        wl = [op.W * op.L for op in ops.values()]
+        (row,) = [c for c in p.result.constraints if c.name == "spec:area_search_m2<="]
+        assert row.c >= 0, p.point_id
+        assert area <= A_BUDGET
+        assert row.c == pytest.approx((A_BUDGET - area) / b_a, rel=1e-9)
+        assert area == pytest.approx(sum(wl), rel=1e-12)
+        assert area >= max(wl)

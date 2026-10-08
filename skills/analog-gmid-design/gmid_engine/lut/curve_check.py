@@ -48,4 +48,5 @@ def curve_report(memo):
             rows.extend(_rows_of(lut.slice_map[key]))
         return CurveReport(lut.fp, tuple(rows))
 
-    return memo.lookup("derived", "curve_report", (), compute)
+    return memo.lookup_persistent("derived", "curve_report", (), compute,
+                                  tuple(lut.slice_map[key] for key in sorted(lut.slice_map)))

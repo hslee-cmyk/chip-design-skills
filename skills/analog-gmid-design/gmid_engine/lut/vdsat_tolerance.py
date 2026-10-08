@@ -120,4 +120,5 @@ def tol_vdsat_table(memo, kind, w_key, l_bin_checks=None):
         return TolVdsatTable(kind, w_key, src.origin, src.grids[0], src.grids[2], cells, src.l_bins, l_loo, l_loo_bins,
                              orders, checks)
 
-    return memo.lookup("derived", "tol_vdsat_table", (kind, w_key, checks), compute)
+    return memo.lookup_persistent("derived", "tol_vdsat_table", (kind, w_key, checks), compute, src,
+                                  (LOO_ORDERS, TOL_VDSAT_METRICS, AXES))

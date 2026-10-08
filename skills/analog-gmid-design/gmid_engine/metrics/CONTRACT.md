@@ -587,7 +587,11 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
   `supply_currents(op, counted)`: counted = 그 이름들의 노드 인덱스, 비면 모든 레일을 넘기고 합만 버린다. entries 순서 `power_dc_w`,
   `supply_current_dc`, `area_search_m2`(view None). `counted_rails == ()` 이면 `supply_current_dc` = `MetricResult("supply_current_dc",
   None, (Undefined("supply_current_dc", "counted_rails_undeclared", "definitional"),))` -- 그 `Undefined.detail == ()`(빈 tuple).
-- 면적: `area_search(GateArea(op.W, op.L) MOS 마다, PassiveArea(이름, 값) 값 있는 수동소자 -- 단위 면적 None)`.
+- 면적: `area_search(GateArea(op.W, op.L) MOS 마다, PassiveArea(이름, 값, 단위 면적) 값 있는 수동소자)`. [결정 11, 2026-10-08] 단위 면적과
+  제외 소자는 선택 네 번째 extra `area_decl`(`PassiveAreaDecl(unit_area=((이름, m²/값 단위), ...), excluded=(이름, ...))`)가 준다.
+  `excluded`(측정 부하 -- spec `measurement_load`)는 면적 항에서도 `passive_area_undeclared` 에서도 빠진다. `area_decl` 이 없으면(기본)
+  단위 면적 선언 없음·제외 없음 -- 값 있는 수동소자 전부 `passive_area_undeclared`(종전 동작). `ss_evaluate(..., *, junction,
+  area_decl=None)` 가 그대로 넘긴다. `PassiveAreaDecl` 은 `unit_area` 와 `excluded` 가 겹치면 ValueError, 단위 면적은 양의 유한 수.
 - `detail` = counted_rails, kcl_residual_amp, passive_area_undeclared, passive_value_missing, per_rail_amp((레일 넷, A), ...) 키 정렬.
 - [9절] 전력·면적 결과의 `resolution` 은 None(LUT 소신호 불확실성 전파 대상이 아니다 -- 전력 축 분해능 b_P 는 search 쪽 유도값).
 

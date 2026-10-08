@@ -294,6 +294,22 @@ class GateArea:
 
 
 @dataclasses.dataclass(frozen=True)
+class PassiveAreaDecl:
+    """수동소자 면적 선언(사용자 결정 11): `unit_area` = ((수동소자 이름, m²/값 단위), ...) -- PDK 단위 면적이 선언된 소자만,
+    `excluded` = 면적에서 빼는 소자 이름(측정 부하 -- spec `measurement_load`). 둘 다 이름순 tuple, 겹치지 않는다."""
+
+    unit_area: tuple = ()
+    excluded: tuple = ()
+
+    def __post_init__(self):
+        names = [n for n, _a in self.unit_area]
+        if len(set(names)) != len(names) or set(names) & set(self.excluded):
+            raise ValueError("PassiveAreaDecl: 이름이 겹친다")
+        for _n, a in self.unit_area:
+            _finite(a, "PassiveAreaDecl.unit_area", positive=True)
+
+
+@dataclasses.dataclass(frozen=True)
 class PassiveArea:
     """수동소자 하나의 면적 항: 값(F 또는 Ω)과 PDK 선언 단위 면적(m²/값 단위, U-36). 선언이 없으면 None."""
 

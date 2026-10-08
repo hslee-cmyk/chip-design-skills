@@ -38,18 +38,36 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
 # 5절 표: 회로 -> (제약 수, 판정 수, pending 표지 수). 파일럿 pending 은 SP-10 해소(사용자 2026-10-07 "파일럿 CL1·CL2가
 # 각각 1 pF", 커밋 0bc22fe) 뒤 13, CI-10 해소(사용자 2026-10-08 "5번도 네 의견에 동의해", 커밋 3a38275 -- feedback 표지 CI-10
 # 1 과 pm_ss_deg 뷰 표지 MOD5 1 삭제) 뒤 11 = JSON 표지 직접 집계(MOD5 5 + SP-2·CI-15·CI-18·PA-1·PA-2·AC-3 각 1) = 5절 표 11.
+# [사용자 결정 11, 2026-10-08] 회로마다 면적 예산 제약 `area_search_m2 <= v`(user_spec -> 판정) 1개씩 추가 -> 제약 수·판정 수 각 +1,
+# pending 수 불변(예산은 결정 대기 표지가 아니다). 옛 표 = (0,0)·(8,5)·(0,0)·(3,2)·(2,2)·(1,1)·(3,3)·(2,1)·(3,2).
 TABLE = {
-    "common_gate_amplifier": (0, 0, 6),
-    # [CM 2026-10-08] 5절 표 그대로 9(6) / 11: pm_cm_ss_deg >= 60 user_spec 1건 추가, pending 13 -> 11 = CI-10 해소(feedback {Cf1, Cf2},
-    # 사용자 2026-10-08 "5번은 네 의견에 동의해", 커밋 3a38275) + pm_ss_deg 의 view MOD5 표지 삭제(loop 뷰 유도) -- JSON 직접 집계와 같음.
-    "current_reuse_telescopic_ota": (9, 6, 11),
-    "folded_cascode": (0, 0, 7),
-    "ngcc_3stage_ff": (3, 2, 7),
-    "nmcnr_amplifier": (2, 2, 6),
-    "pushpull_follower_buffer": (1, 1, 5),
-    "sf_pushpull_output_opamp": (3, 3, 6),
-    "two_stage_ota": (2, 1, 7),
-    "two_stage_ota_sf": (3, 2, 6),
+    "common_gate_amplifier": (1, 1, 6),
+    # 파일럿 10(7)/11: 결정 11 면적 예산 1건 + [CM 2026-10-08] pm_cm_ss_deg >= 60(user_spec) 1건 -- 둘 다 판정, JSON 직접 집계 10개.
+    # (SPEC_CONTRACT 5절 표는 두 갈래가 각각 9(6) 으로 적어 병합 뒤 10(7) 을 반영하지 않음 -- 계약 갱신 대상)
+    "current_reuse_telescopic_ota": (10, 7, 11),
+    "folded_cascode": (1, 1, 7),
+    "ngcc_3stage_ff": (4, 3, 7),
+    "nmcnr_amplifier": (3, 3, 6),
+    "pushpull_follower_buffer": (2, 2, 5),
+    "sf_pushpull_output_opamp": (4, 4, 6),
+    "two_stage_ota": (3, 2, 7),
+    "two_stage_ota_sf": (4, 3, 6),
+}
+# oracle (d) 사용자 결정 11 문장(_drafts/user_decisions.md 2026-10-08 "B으로 표의 값을 그대로 써. Cl을 빼는 것에 동의해")의 표 값 [mm²].
+# m² 환산은 1 mm² = 1e-6 m² (단위 정의, 피검 식 아님).
+DEC11_BUDGET_MM2 = {
+    "common_gate_amplifier": 0.005, "pushpull_follower_buffer": 0.005, "folded_cascode": 0.01, "two_stage_ota": 0.015,
+    "two_stage_ota_sf": 0.015, "sf_pushpull_output_opamp": 0.02, "ngcc_3stage_ff": 0.025, "nmcnr_amplifier": 0.025,
+    "current_reuse_telescopic_ota": 0.04,
+}
+MM2_TO_M2 = 1e-6
+# 측정 부하(measurement_load) -- oracle (d) 결정 11 "CL(측정 부하)은 면적에서 제외" + 회로 해석: 각 회로의 출력 부하 커패시터(파일럿은
+# 두 출력 CL1·CL2), nmcnr 은 출력 부하 RL(25 kΩ)도 측정 부하다. common_gate 는 수동소자 없음. RL 포함은 SPEC_CONTRACT('CL·nmcnr RL')
+# 의 회로 해석이고 결정 11 문장은 CL 만 명시한다(지금은 저항 면적이 미선언이라 면적 값에 영향 없음 -- Q9 저항 면적 포함 때 의미가 생긴다).
+MEASUREMENT_LOADS = {
+    "common_gate_amplifier": set(), "current_reuse_telescopic_ota": {"CL1", "CL2"}, "folded_cascode": {"CL"},
+    "ngcc_3stage_ff": {"CL"}, "nmcnr_amplifier": {"CL", "RL"}, "pushpull_follower_buffer": {"CL"},
+    "sf_pushpull_output_opamp": {"CL"}, "two_stage_ota": {"CL"}, "two_stage_ota_sf": {"CL"},
 }
 # 5절 ID 합계: SP-10 2 가 빠지고(65 -> 63), CI-10 해소로 CI-10 1·MOD5 1(파일럿 pm_ss_deg 뷰)이 빠진다(63 -> 61, MOD5 7 -> 6 =
 # 파일럿 뷰 4·metric 1 + ngcc metric 1). 5절 문장 '남은 표지 61개' 와 JSON 직접 집계가 같음.
@@ -430,3 +448,39 @@ def test_cm_pm_constraint_only_in_pilot():
         assert c.view.mode == "cm_output" and tuple(c.view.weights) == (("Vom", 0.5), ("Vop", 0.5))
         # [6a6e4c7] 구동자 = 손 분류(M15·M16 -> Vom, M25·M26 -> Vop: 다른 channel 단자가 레일)
         assert set(c.view.cuts) == {("M15", "Vom"), ("M16", "Vom"), ("M25", "Vop"), ("M26", "Vop")}
+
+
+# ---------------------------------------------------------------- [사용자 결정 11, 2026-10-08] 면적 예산·측정 부하
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_area_budget_constraint_follows_decision11(name):
+    """회로마다 `area_search_m2 <= 결정 11 표 값(m²)` 판정 제약이 정확히 하나(JSON 과 로드 결과 둘 다), user_spec 2026-10-08."""
+    raw = [c for c in _spec(name)["human"]["constraints"] if c.get("metric") == "area_search_m2"]
+    assert len(raw) == 1, name
+    (c,) = raw
+    assert (c["op"], c["source"]["kind"], c["source"]["decided"]) == ("<=", "user_spec", "2026-10-08")
+    assert "view" not in c
+    want = DEC11_BUDGET_MM2[name] * MM2_TO_M2
+    assert math.isclose(c["value"], want, rel_tol=1e-12), (c["value"], want)
+    doc = _load(name)
+    got = [x for x in doc.constraints if x.metric == "area_search_m2"]
+    assert len(got) == 1 and got[0].op == "<=" and got[0].judged is True
+    assert got[0].view is None or got[0].view.mode == "none"           # SPEC_CONTRACT: view 없음(판정 축)
+    assert math.isclose(got[0].value, want, rel_tol=1e-12)
+    assert len([x for x in doc.judged_constraints if x.metric == "area_search_m2"]) == 1
+
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_measurement_loads_declared_per_circuit(name):
+    """측정 부하 표지: JSON 의 measurement_load 집합 = MEASUREMENT_LOADS(값 true), 모두 커패시터·저항(topology kind 직접),
+    로드 결과 ElementValue.measurement_load 가 같은 집합(나머지 False)."""
+    ev = _spec(name)["human"]["element_values"]
+    topo = json.loads((LIBRARY / (name + ".topology.json")).read_text(encoding="utf-8"))
+    kinds = {e["name"]: e["kind"] for e in topo.get("passive_elements", [])}
+    marked = {k for k, v in ev.items() if isinstance(v, dict) and "measurement_load" in v}
+    assert marked == MEASUREMENT_LOADS[name]
+    for k in marked:
+        assert ev[k]["measurement_load"] is True
+        assert kinds[k] in ("capacitor", "resistor"), (name, k)
+    doc = _load(name)
+    assert {e.name for e in doc.element_values if e.measurement_load} == MEASUREMENT_LOADS[name]
