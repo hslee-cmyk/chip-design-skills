@@ -21,8 +21,8 @@
   (ln ID, 기울기 GDS/ID)의 Fritsch–Carlson 단조 조건을 한 번 계산해 `DcSlice.fc_ok_vgs`·`fc_ok_vds` 에 두고 칸 수·위반 수를
   `hermite_fc` 에 기록한다(로드는 거부하지 않는다 -- 위반 칸은 조회에서 그 축 선형, 역산은 그 칸의 근을 내지 않는다, 4.2).
 * [r7] VS 축 Hermite(DEC-87): GMBS 열이 있는 슬라이스는 VS 축 칸(ln ID, 기울기 −GMBS/ID)도 같은 단조 검사를 하고
-  (`DcSlice.vs_slope_ok`·`fc_ok_vs`, `hermite_fc` 의 "VS" 항), 슬라이스마다 기울기 열 2개(GM/ID·GDS/ID)가 ln ID 격자 차분과
-  십진 단위로 맞는지 보고(`_check_units`) 어긋나면 `lut_unit_mismatch` 로 거부한다(41 §4.1 단위 불일치). 잡음 r1·mismatch 감도 r1 파일은
+  (`DcSlice.vs_slope_ok`·`fc_ok_vs`, `hermite_fc` 의 "VS" 항), 슬라이스마다 기울기 열 3개(GM/ID·GDS/ID·GMBS/ID)가 ln ID 격자 차분(현)과
+  칸 안 기울기 범위로 맞는지(과반 칸이 모순이면, CONTRACT 1.4) 보고(`_check_units`) 어긋나면 `lut_unit_mismatch` 로 거부한다(41 §4.1 단위 불일치). 잡음 r1·mismatch 감도 r1 파일은
   `noise_set`·`mismatch_set` 이 읽는다.
 * [r6] 선택 열(LUT v2): 기준 LUT 의 `CAP_TABLE_COLUMNS`(GMBS·VTH·VDSAT·CDD·CSS·SVG2_1HZ·SVG2_HF·ID·GM·GDS)와 슬라이스의
   `SLICE_OPTIONAL_COLUMNS` 는 있으면 읽고 없으면 비워 둔다(옛 12-L 세트도 그대로 로드 -- 그 열을 쓰는 조회가 구조화된
@@ -153,23 +153,30 @@ def _fc_ok(log_id, slope, slope_ok, grid, axis):
 
 
 def _check_units(path, grids, log_id, pairs):
-    """단위 불일치 검사(41 §4.1 '단위 불일치 -> 로드 거부'): 저장된 기울기 열(GM/ID·GDS/ID)이 ln ID 의 격자 차분(같은 축)과
-    십진 단위로 어긋나면 거부한다. 단위 오류(A/mA 등)는 십진 배수이고, 같은 열의 정상 차분 대 두 마디 평균 기울기 비는 1 근처이므로
-    비의 십진 로그가 한 십진 단위(로그 1) 이상 벗어나면 단위 오류로 본다(SI 접두어 오류는 로그 3 의 배수라 더 크다). 비 = 두 마디 평균 기울기 /
-    격자 차분 기울기의 중앙값(`pairs` = (축, 열 이름, 기울기 배열, 정의 마스크, 차분 부호)). GM/ID·GDS/ID 만 검사한다 -- GMBS/ID 는 toy 슬라이스
-    의 GMBS 가 ln ID 의 VS 기울기와 무관한 임의 값이라 검사 대상이 아니다(실데이터는 같은 비교가 통과: 최대 |로그| 2.9e-4, 계약 1.4)."""
-    for axis, name, slope, ok, sign in pairs:
-        lower = tuple(slice(None, -1) if d == axis else slice(None) for d in range(log_id.ndim))
-        upper = tuple(slice(1, None) if d == axis else slice(None) for d in range(log_id.ndim))
-        h = np.diff(np.asarray(grids[axis], dtype=float)).reshape(tuple(-1 if d == axis else 1 for d in range(log_id.ndim)))
-        fd = sign * np.diff(log_id, axis=axis) / h
-        use = ok[lower] & ok[upper] & (fd > 0)
-        if not use.any():
+    """단위 불일치 검사(41 §4.1 '단위 불일치 -> 로드 거부'). 기울기 열(GM/ID·GDS/ID·GMBS/ID) 모두를 같은 규칙으로 검사한다.
+    기준은 선택한 십진 수가 아니라 평균값 정리에서 나온다: 격자 칸 [x0, x1] 에서 ln ID 의 현(chord) 기울기 Δln ID/Δx 는 칸 안 어떤 점의 미분이고,
+    칸 안에서 미분이 단조이면 두 끝 기울기 m0·m1(저장된 열, 부호 규약 적용) 사이에 든다. 단위·척도가 k 배 틀린 열은 k 가 1 에서 멀수록
+    (k − 1 이 칸 안 기울기 변화비보다 크면) 현이 [min(m0,m1), max(m0,m1)] 밖으로 나간다. 그래서 '현이 두 끝 기울기 사이에 들지 않는 칸'
+    (부동소수 허용분 eps·(|ln ID| 두 값)/Δx + eps·(|m0| + |m1|) 안은 든 것으로 본다)의 비율을 열마다 재고, **절반을 넘으면**(칸 비율의 중앙값 판정 --
+    과반 칸이 모순이면 열 전체의 척도가 틀린 것이다) 거부한다. 검출 한계 = 그 열의 칸 안 기울기 변화(보간 해상도) 그 자체라 상수가 없다.
+    정의 마스크가 두 끝에서 참인 칸만 센다. `pairs` = (축, 열 이름, GM/ID 류 양수 비, 정의 마스크, d ln ID/d 축 의 부호)."""
+    eps = np.finfo(float).eps
+    for axis, name, ratio, ok, sign in pairs:
+        nd = log_id.ndim
+        lower = tuple(slice(None, -1) if d == axis else slice(None) for d in range(nd))
+        upper = tuple(slice(1, None) if d == axis else slice(None) for d in range(nd))
+        h = np.diff(np.asarray(grids[axis], dtype=float)).reshape(tuple(-1 if d == axis else 1 for d in range(nd)))
+        use = ok[lower] & ok[upper]
+        n_use = int(use.sum())
+        if n_use == 0:
             continue
-        node = (slope[lower] + slope[upper])[use] / 2
-        decades = float(np.log10(np.median(node / fd[use])))
-        if abs(decades) >= 1:
-            raise schema_rejected("lut_unit_mismatch", path=path, column=name, decades=decades)
+        chord = np.diff(log_id, axis=axis) / h
+        m0, m1 = sign * ratio[lower], sign * ratio[upper]
+        slack = eps * (np.abs(log_id[lower]) + np.abs(log_id[upper])) / h + eps * (np.abs(m0) + np.abs(m1))
+        outside = use & ((chord < np.minimum(m0, m1) - slack) | (chord > np.maximum(m0, m1) + slack))
+        n_out = int(outside.sum())
+        if 2 * n_out > n_use:
+            raise schema_rejected("lut_unit_mismatch", path=path, column=name, cells_outside=n_out, cells=n_use)
 
 
 def _build_slice(src, grids, parsed):
@@ -199,7 +206,8 @@ def _build_slice(src, grids, parsed):
     vs_slope_ok.setflags(write=False)
     vs_slope = np.zeros(shape) if ratio is None else -np.where(vs_slope_ok, ratio, 0.0)   # d ln ID / d VS = -GMBS/ID
     _check_units(src.path, grids, log_id, ((AXES.index("VGS"), "GM", gm_id, on_mask, 1),
-                                           (AXES.index("VDS"), "GDS", gds_id, vds_slope_ok, 1)))
+                                           (AXES.index("VDS"), "GDS", gds_id, vds_slope_ok, 1),
+                                           (AXES.index("VS"), "GMBS", np.zeros(shape) if ratio is None else np.where(vs_slope_ok, ratio, 0.0), vs_slope_ok, -1)))
     fc_vgs, n_vgs, bad_vgs = _fc_ok(log_id, gm_id, on_mask, grids[1], AXES.index("VGS"))
     fc_vds, n_vds, bad_vds = _fc_ok(log_id, gds_id, vds_slope_ok, grids[2], AXES.index("VDS"))
     fc_vs, n_vs, bad_vs = _fc_ok(log_id, vs_slope, vs_slope_ok, grids[3], AXES.index("VS"))

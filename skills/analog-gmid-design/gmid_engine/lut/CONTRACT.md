@@ -202,10 +202,14 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   전부 거짓), `fc_ok_vs` 모양 `[nL, nVGS, nVDS, nVS − 1]`(VGS·VDS 와 같은 단조 조건, Hermite 칸이 아니면 참), `hermite_fc` 에 세 번째 항 `("VS", Hermite 칸 수, 위반 칸 수)`.
   기울기 부호 근거: 실측 `−GMBS/ID` 는 ln ID 의 VS 격자 차분과 부호·크기가 맞는다(w_key 1000, 중앙 상대차 6e-4~8e-4, p99 3e-3~5e-3).
   [r7 실측 2026-10-08, 생성 슬라이스 32개] VS Hermite 칸 nmos 7,620,480개 중 단조 위반 353(슬라이스당 최대 243), pmos 4,572,288개 중 3,934(슬라이스당 최대 1,009); 같은 32개 슬라이스에서 VDS·VGS 위반은 0. (측정: `load_lut_set` 실데이터 로드 뒤 슬라이스마다 `DcSlice.hermite_fc` 의 "VS" 항을 kind 별로 합산.)
-- [r7] **기울기 열 단위 검사**(41 §4.1 '단위 불일치 -> 로드 거부'): 슬라이스마다 GM/ID 대 VGS, GDS/ID 대 VDS 격자 차분(ln ID 의 같은 축 차분)에서 (두 마디 평균 기울기)/(격자 차분 기울기)의 중앙값의
-  십진 로그가 ±1(한 십진 단위) 이상 벗어나면 `lut_unit_mismatch`(detail `path, column, decades`). 정상은 1 근처(로그 0), 단위 오류(A/mA/µA 등 SI 접두어)는 십진 배수(로그 3 의 배수)라 로그 1 이 경계다.
-  실데이터 32개 모두 통과(최대 |로그| GM 1.9e-4·GDS 8.0e-5; 참고로 GMBS/ID 대 VS 도 2.9e-4). **GMBS/ID 는 검사하지 않는다** -- 기존 test 의 toy 슬라이스는 GMBS 열을 ln ID 의 VS 기울기와 무관한 임의 값으로
-  가져(검사하면 -0.58~-1.33 로그로 로드 거부, test 100여 개) 검사 대상이 아니다. GMBS 열의 부호·크기는 실데이터에서 −GMBS/ID 가 ln ID 의 VS 격자 차분과 일치함(중앙 상대차 6e-4~8e-4)으로 확인했다.
+- [r7, 2026-10-09 2차 follow-up 개정] **기울기 열 단위 검사**(41 §4.1 '단위 불일치 -> 로드 거부'): 기울기 열 **전부**(GM/ID 대 VGS, GDS/ID 대 VDS, GMBS/ID 대 VS)를 같은 규칙으로 검사한다
+  (1차 구현이 GMBS 를 뺐고 임계를 한 십진 단위로 올린 것은 철회 -- GMBS×1000 이 로드되고 ×ln10 류 척도 오류가 통과해 ID 가 약 8 % 틀렸다). 임계는 고른 수가 아니라 **그 열 자신의 보간 해상도**에서 유도한다:
+  격자 칸 [x0, x1] 에서 ln ID 의 현 기울기 Δln ID/Δx 는 평균값 정리로 칸 안 어떤 점의 미분이고, 칸 안에서 미분이 단조이면 두 끝 기울기 m0·m1(저장된 열, 부호 규약 적용: GM/ID·GDS/ID 는 +,
+  GMBS/ID 는 −) 사이에 든다. 현이 [min(m0,m1), max(m0,m1)] 밖(부동소수 허용분 eps·(|ln ID| 두 값)/Δx + eps·(|m0| + |m1|) 밖)인 칸의 비율을 열마다 재고, 정의 마스크가 두 끝에서 참인 칸의 **과반**(칸 비율의 중앙값 판정)이
+  모순이면 `lut_unit_mismatch`(detail `path, column, cells_outside, cells`). 검출 한계는 그 열의 칸 안 기울기 변화비(보간 해상도)와 같다 -- 척도 오류가 그보다 작으면 그 열을 쓰는 보간 결과가 이미 해상도 안이다.
+  실데이터(LUT v2, 슬라이스 32개) 실측: 모든 슬라이스 위반 칸 비율 GM 최대 0.0213·GDS 최대 1e-4·GMBS 0.0093~0.0246(과반의 1/20 이하), 같은 데이터의 GMBS 에 ×2·×1000·×2π·×ln10 을 곱하면 0.9978~1.0, GM ×2 는 1.0, GDS ×2 는 0.983~0.992 라
+  모두 거부된다(`test_unit_mismatch_rejected_gmbs`). 과반이라는 판정선 하나만 쓰고(중앙값), 십진 수·배수 상수는 없다. 이 규칙을 만족하지 않는 toy 슬라이스(GM·GMBS 가 ln ID 와 무관한 임의 값인 것)는 로드가 거부된다 --
+  그 toy 의 일관성은 test 쪽에서 고친다(검사를 풀지 않는다).
 - [r7] `load_lut_set(..., noise_npz=None, mismatch_npz=None)`: 선택 두 파일(9.1·10.1)을 읽어 `LutSet.noise`·`LutSet.mismatch`(둘 다 {kind: 표}, 파일이 없으면 빈 매핑)에 둔다.
   `lut_provenance` 는 두 파일의 경로·sha256 을 `LutProvenance.noise_*`·`mismatch_*` 에 싣는다(파일 없음 -> `lut_noise_missing`·`lut_mismatch_missing`).
 - `fp == lut_fingerprint(provenance, ((kind, w_ref_m, basis), ...))`.
