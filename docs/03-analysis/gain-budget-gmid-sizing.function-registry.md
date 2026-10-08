@@ -609,3 +609,16 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 1변수 노드 근 찾기 | `gmid_engine.sizing.bracket_root`(Brent, 수렴 판정 = bisection 과 같음: 근과 거리 ≤ tol/2) | `solve_self` 가 부른다. 새 근 찾기 함수를 만들지 않는다 |
 | 1변수 풀이 재사용 | `solve_self` 안 LUT memo `root` 영역(함수 이름 `solve_self`) | 키 = 소자 종류·L·ln IDu·writer 관계·known·VDS/VSB 1차식 계수·구간·tol |
 | tol_V 셀 조회 한 평가 안 재사용 | `_Circuit.tolerance` 의 `tol_cells` | `tol_v_cell` 자체는 상태 없음 |
+
+
+## 10. 새 엔진(`gmid_engine.graph`) J 구조 규칙 정본 (2026-10-09, 단위 U1b -- 새로 만들기 전에 여기 먼저)
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| 복합 diode(DC 가지 걷기로 자기 gate 에 닿는 MOS)·묶음·기준/캐스코드 기준 | `graph.composite_diode.composite_diodes` | DC 역할 규칙 1c 가 부르고, `net_model` 이 evidence 에서 `diode_nodes`·`composite_mos`·`composite_bundles`·`composite_internal` 을 만든다. 다른 곳에서 복합 diode 를 다시 찾지 않는다 |
+| 주경로(D_max·slack)·feedforward 묶음 | `graph.feedforward_cells.feedforward_cells` | 비용 정의는 `stage_bfs` 의 `StageResult.edges` 하나. 주경로 블록 재구성은 `view_analysis._without` |
+| 루프 역할(루프 뷰 \| 중첩 Miller 내부 \| 복합 diode 내부 \| 바이어스 SCC) | `graph.loop_roles.loop_roles` | 복합 diode 내부 분류는 `loop_classify`(1.6), 중첩 Miller 판정은 이 함수 |
+| 사이클 극성(DC)·`ac_only` | `graph.polarity.loop_polarity`, 루프 뷰 극성은 `s1v_build._polarity` | 커패시터 경유 = 0 = `ac_only` |
+| `structure.json` 어휘·값 범위·거부 | `graph.structure_load.load_structure_facts` | concept 7개, 소비 방식 override/confirm 은 `graph/CONTRACT.md` 10.6 |
+| `structure.json` stale 지문 | `graph.s1v_key.structure_rule_fp` | S1v 파일 + composite_diode·dc_roles·gs_groups·matching_groups |
+| 안정도 루프 뷰 선언의 끊는 넷 | `pipeline.stage_a._declared_loop_cuts` | spec 제약 `pm_*` 의 `ViewDecl` mode loop `cuts` |

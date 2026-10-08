@@ -13,6 +13,8 @@ stage 시작 셀(`stage_bfs`)마다 블록 하나를 열고 **소유 관계**를
 항상), 입력 = 시작 셀의 입력 넷). 블록 키 = 출력노드 이름 정렬 tuple(JSON 에서는 배열, 40·41 §1.7-3).
 소자 역할: input(시작 CS·CG), cascode(CG), mirror(미러 입력을 gate 로 읽는 CS), diode_load(소유 노드의 diode 소자), pass, tail(DC 역할이
 바이어스 전류원이고 drain 이 블록 안 둘 이상 멤버 source 인 소자), load(그 밖에 블록 소유 노드에 단자가 닿는 MOS·수동소자).
+복합 diode 묶음(41 §1.12.1)의 MOS 멤버는 묶음의 gate 넷(미러 입력)을 소유한 블록의 `diode_load` 멤버이고(`_composite_members`) 소유 넷은 늘리지 않는다 -- 묶음 내부 넷까지 소유하면 그 gate 를 읽는
+측면 주입 미러 출력(K8)이 블록으로 딸려 들어온다. feedforward 묶음 소자는 호출자가 모형에서 뺀 뒤 부른다(`view_analysis`, 41 §1.12.2).
 규칙 9 (c): 출력노드 임피던스 등급이 낮으면 `cs_output_low_impedance`(기록만, 항상 DEC-59 정지) -- 순방향 위 출력노드에만 건다.
 """
 import dataclasses
@@ -132,6 +134,18 @@ def _grow(model, ground, cells, drive, owners, members, starts):
     return members
 
 
+def _composite_members(model, owners, members):
+    """복합 diode 묶음(41 §1.12.1)의 MOS 멤버는 묶음의 gate 넷(미러 입력)을 소유한 블록의 `diode_load` 멤버다. 소유 넷은 늘리지 않는다 -- 묶음 내부 넷이 블록 노드로 들어오면
+    그 gate 를 읽는 미러 출력(측면 주입 K8 포함)까지 따라 들어오기 때문이다."""
+    for bundle in model.composite_bundles:
+        mos = [model.mos_by_name[name] for name in sorted(bundle) if name in model.mos_by_name]
+        anchor = next((owners.owner[m.g] for m in mos if m.g in owners.owner), None)
+        for m in mos:
+            if anchor is not None and m.name not in members:
+                members[m.name] = (anchor, ROLE_DIODE_LOAD)
+    return members
+
+
 def _through_pass(net, bid, members, bundles, inputs):
     """출력 후보 넷이 같은 블록 pass 묶음의 한 끝이면 반대 끝으로 따라간다(41 §1.7-1, 계획 N3.2-6 'CD·pass 로 끝나면 그 소자의 출력 단자
     노드'). 입력 넷이거나 이미 지난 넷으로 되돌아가지는 않는다."""
@@ -212,6 +226,7 @@ def build_blocks(model, ground, cells, drive, stage, impedance, sense, view_id):
         if info[name].kind == CELL_CS and m.s not in ground:
             owners.claim(m.s, name)
     members = _grow(model, ground, cells, drive, owners, members, starts)
+    members = _composite_members(model, owners, members)
     members = {name: (owners.find(bid), role) for name, (bid, role) in members.items()}
     nodes = {owners.find(bid): set() for bid in stage_of}
     for net, bid in owners.owner.items():

@@ -4,7 +4,7 @@
 진입점: `s1_matching_groups` -- core `@compute_block`(writer `S1_MATCHING_GROUPS_WRITER`, reads `MATCHING_GROUPS_READS`,
 writes `graph.rel_matching_offset`·`graph.matching_groups`·`graph.matching_dispositions`).
 
-    snapshot = s1_matching_groups(snapshot)
+    snapshot = s1_matching_groups(snapshot, pair_facts)
 
 규칙은 S1 필드(가지·DC 역할·교류접지 분류·포트 방향·pins·dc_nets)만 쓴다. 소자·넷 이름은 결정론적 순서에만 쓴다.
 
@@ -66,6 +66,7 @@ from .s1_values import (
     SIBLING_RULE_ROLE,
     STATUS_DERIVED,
     STATUS_PROPOSED,
+    STATUS_RATIFIED,
     STATUS_REVIEW_NEEDED,
     Evidence,
     MatchingDisposition,
@@ -76,6 +77,7 @@ from .s1_values import (
 
 @compute_block(S1_MATCHING_GROUPS_WRITER, reads=MATCHING_GROUPS_READS, writes=MATCHING_GROUPS_WRITES)
 def s1_matching_groups(projection):
+    pair_facts = projection.extras[0] if projection.extras else ()      # extras 없이 부르면(옛 호출) 사실 0
     rails = frozenset(net for net, flag in projection.column("node", "is_rail") if flag)
     grounded = frozenset(net for net, cls in projection.column("node", "ac_ground_class") if cls is not None)
     inputs = frozenset(net for net, direction in projection.column("node", "port_direction")
@@ -105,9 +107,27 @@ def s1_matching_groups(projection):
     groups.extend(MatchingGroup(MATCH_DIFF_PAIR, r.members, r.status,
                                 Evidence(MATCH_DIFF_PAIR, r.evidence.nets, (), (J_DIFF_PAIR,))) for r in offset)
     groups.extend(_branch_symmetric(groups, mos, kind, pins, rails))
+    groups = _with_pair_facts(groups, pair_facts, frozenset(name for name, _ in element_class))
     return {("graph", "rel_matching_offset"): {GRAPH_KEY: offset},
             ("graph", "matching_groups"): {GRAPH_KEY: tuple(groups)},
             ("graph", "matching_dispositions"): {GRAPH_KEY: tuple(dispositions)}}
+
+
+def _with_pair_facts(groups, pair_facts, known):
+    """ratified `matching_pair` 사실을 branch_symmetric 레코드로 반영한 그룹 list(override)."""
+    out = list(groups)
+    for members, approval, nets in pair_facts:
+        members = tuple(sorted(members))
+        if not all(name in known for name in members):
+            continue
+        record = MatchingGroup(MATCH_BRANCH_SYMMETRIC, members, STATUS_RATIFIED,
+                               Evidence(MATCH_BRANCH_SYMMETRIC, tuple(nets), (), (approval,)))
+        same = [i for i, g in enumerate(out) if g.kind == MATCH_BRANCH_SYMMETRIC and g.members == members]
+        if same:
+            out[same[0]] = record
+        else:
+            out.append(record)
+    return out
 
 
 def _dc_places(branches, rails):
