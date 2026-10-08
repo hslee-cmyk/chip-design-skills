@@ -6,7 +6,8 @@
 - 2 전류 중심: minimax |ln(I/I_c)| 의 닫힌 해(행이 단일항이면 z* = (ln I_c 최소 + 최대)/2, u* = 반폭), I_c = √(I_off·I_max)
   (conftest `expect_box`).
 - 3 Halton·hit-and-run: 이 파일의 근기 역순 `phi`·소수 열과 선형 전류 좌표의 열린 현 걸음을 S3 evals 줄(origin probe k)과 대조.
-  ln_idu 시험 하한 = 칸 정점 하한(conftest `peak_floor`, 모든 쓰기 소자).
+  ln_idu 시험 하한 = [r9] max(칸 전도 하한, 칸 정점 하한)(conftest `conduction_floor`·`peak_floor`, 모든 쓰기 소자 -- 3.21 3 r8 의
+  `ln_idu_floors` 위임 + 3.22 r9 전도 하한).
 - 3b 수리: 디스크 실패 줄(3.10 3 -- 같은 schema·code 의 ok 아닌 줄은 커널 0 실패)로 위반 크기·h 를 정한 `no_root_in_window` 를 시험
   점에 심고, ⌈log2(|끝 − x|/res)⌉ bisection 의 평가 좌표를 계산한다(res = tol_V·gm/ID 최대, tol_V = 끝 |h| 최솟값/margin).
 - 4·5 최대-최소: t = 출발점 봉인 보고 항목 중 margin 유한한 i 의 min(1 − margin_i), 경성 행 ≥ 0.
@@ -38,12 +39,15 @@ from .conftest import (
     R4_VS,
     build_case,
     circuit_c,
+    conduction_floor,
     expect_box,
     expect_ln_idu_bounds,
+    expected_floor,
     mos,
     on_mask,
     peak_floor,
     r4_arrays,
+    tol_v_at,
     topo,
     write_r4_lut,
 )
@@ -221,8 +225,15 @@ def test_same_kind_single_term_cone_centre_is_box_centre(tmp_path, lut4, roots):
 
 # ---------------------------------------------------------------- 3 Halton·hit-and-run (I-17·I-18)
 
-def _expected_probes(case, centre_line, ks):
-    """3 의 시험 점 독립 계산: 변수 i 는 i 번째 소수, 마지막 소수 = 걸음 비율. ln_idu 하한 = 칸 정점 하한(모든 쓰기 소자)."""
+def cell_floor_of(case, lut, kind, cell):
+    """[r9] 층 0 시험·수리의 ln_idu 하한(모든 쓰기 소자, start 없음) = max(칸 전도 하한, 칸 정점 하한) -- 3.21 3(r8 `ln_idu_floors`
+    위임) + 3.22 r9. 둘 다 없으면 None. tol 입력 = lut 공개 `tol_v_table`(conftest `tol_v_at`)."""
+    tol_at = tol_v_at(lut, kind, dict(case.acc.w_keys)[kind])
+    return expected_floor(conduction_floor(arrays(kind), cell[0], cell[1], tol_at), peak_floor(arrays(kind), *cell))
+
+
+def _expected_probes(case, centre_line, ks, lut):
+    """3 의 시험 점 독립 계산: 변수 i 는 i 번째 소수, 마지막 소수 = 걸음 비율. ln_idu 하한 = [r9] max(전도, 정점)(모든 쓰기 소자)."""
     s = case.sctx
     V = s.domain.variables
     P = primes(len(V) + 1)
@@ -234,6 +245,11 @@ def _expected_probes(case, centre_line, ks):
     lcell = dict(s.domain.l_cells)
     kinds = {e["name"]: e["kind"] for e in json.loads(json.dumps(case.td_netlist))}
     p = [centre[V[i].component] for i in cidx]
+    floors = {}
+    for v in V:
+        if v.component[0] == "ln_idu":
+            key = v.component[1]
+            floors[key] = cell_floor_of(case, lut, kinds[key], lcell[key][cells[key]])
     out = {}
     for k in ks:
         d = [2 * phi(P[i], k) - 1 for i in cidx]
@@ -260,8 +276,8 @@ def _expected_probes(case, centre_line, ks):
             if t == "current":
                 th[v.component] = p[cidx.index(i)]
             elif t == "ln_idu":
-                lo2 = peak_floor(arrays(kinds[key]), *lcell[key][cells[key]])
-                lo2 = lo2 if v.lo < lo2 < v.hi else v.lo
+                lo2 = floors[key]
+                lo2 = lo2 if lo2 is not None and v.lo < lo2 < v.hi else v.lo
                 th[v.component] = lo2 + phi(P[i], k) * (v.hi - lo2)
             else:
                 th[v.component] = v.lo + phi(P[i], k) * (v.hi - v.lo)
@@ -291,7 +307,9 @@ def test_halton_hit_and_run_probe_points(tmp_path, lut4, roots):
     assert cnt["kernel_calls"] == eb and cnt["outside_domain"] == 0 and cnt["recompute_same_key"] == 0
     assert len({tuple(x["theta_hex"]) for x in lines}) == len(lines)            # 커널 수 = 고유 키
     assert [x["origin"] for x in lines] == [{"stage": "layer0"}] + [{"stage": "layer0", "probe": k} for k in range(1, eb)]
-    exp = _expected_probes(case, lines[0], range(1, eb))
+    exp = _expected_probes(case, lines[0], range(1, eb), lut4)
+    mc_cell = dict(s.domain.l_cells)["MC"][lines[0]["cells"][[m for m, _ in s.domain.l_cells].index("MC")]]
+    assert cell_floor_of(case, lut4, "nmos", mc_cell) > peak_floor(arrays("nmos"), *mc_cell)   # [r9] 비공허: 전도 하한이 이긴다
     for ln in lines[1:]:
         k = ln["origin"]["probe"]
         got = th_of(ln)
@@ -346,7 +364,7 @@ def _window_with_probe_failures(tmp_path, lut4, roots, fails):
 
 def test_repair_bisection_count_and_points(tmp_path, lut4, roots):
     """묶음 = n + 1 = 5 시험. 수리 가능 실패 둘(시험 2 margin 3, 시험 4 margin 2) 중 margin 최소 = 시험 4 에서 MC 좌표 수리:
-    끝 = 칸 정점 하한(빈 창 실패 = 'MC 의 같은 실패' 아님 -> 통과 끝), 이어 ⌈log2(|끝 − x|/res)⌉ 번 bisection, 중점은 모두
+    끝 = 칸 하한([r9] max(전도, 정점) -- 빈 창 실패 = 'MC 의 같은 실패' 아님 -> 통과 끝), 이어 ⌈log2(|끝 − x|/res)⌉ 번 bisection, 중점은 모두
     통과 쪽(빈 창)이라 좌표 = x + (끝 − x)/2^j. 마지막 점도 빈 창 실패(위반 크기 없음) -> 사슬 끝, 시험 6 으로 이어진다."""
     h_lo, h_hi, margin = -0.004, 0.01, 2.0
     fails = {2: no_root("MC", "inp", 3.0, -0.003, 0.02), 4: no_root("MC", "inp", margin, h_lo, h_hi)}
@@ -359,7 +377,8 @@ def test_repair_bisection_count_and_points(tmp_path, lut4, roots):
     comp = ("ln_idu", "MC")
     x = x_th[comp]
     lcell = dict(s.domain.l_cells)["MC"][by_k[4]["cells"][[m for m, _ in s.domain.l_cells].index("MC")]]
-    end = peak_floor(arrays("nmos"), *lcell)
+    end = cell_floor_of(case, lut4, "nmos", lcell)
+    assert end > peak_floor(arrays("nmos"), *lcell)           # [r9] 비공허: 이 LUT 에서는 전도 하한이 끝을 정한다
     v = [vv for vv in s.domain.variables if vv.component == comp][0]
     assert v.lo < end < v.hi and end < x
     a = arrays("nmos")
