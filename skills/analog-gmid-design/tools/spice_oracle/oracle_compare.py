@@ -197,6 +197,8 @@ def u6_undefined(measure, sim):
         if measure == "noise_fc_in_hz" and part.get("fc_reason"):
             return f"noise_fc_{part['fc_reason']}"
         if measure == "noise_excess_th" and part.get("excess_reason"):
+            if part.get("input_cell_missing"):
+                return "noise_excess_input_cell_missing"
             return "noise_excess_input_cell_undeclared"
         return (part.get("reason") or "")[:80] or None
     if blk == "offset_mc":
