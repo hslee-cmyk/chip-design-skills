@@ -14,7 +14,7 @@
           ratio_measure(run, folder), rout_measure(run, folder), loop_choke_ratio(i_file, nets, weights, choke_H),
           simulate(cir_path, meta, exe, timeout_s, cache_dir),
           [신규 C10] nyquist_count(freq, L), nyquist_adaptive(freq, L, sample_fn), gain_crossings(freq, L), thermal_voltage(temp_c),
-          solver_floor(options, v_ops), reltol_of(options), n_pp_of(reltol), band_f_crit(freq, L), stability_config(),
+          low_side_gain_margin(freq, L), solver_floor(options, v_ops), reltol_of(options), n_pp_of(reltol), band_f_crit(freq, L), stability_config(),
           tran_plan(crossings, temp_c, floor, file, f_crit_hz, reltol, wall_s_per_window), transient_decision(path, plan),
           early_unstable(M, floor2, reltol), limit_cycle_early(M, floor2, reltol), early_window(M, floor2, reltol),
           pz_poles(log), pz_rhp_count(poles, reltol, f_stop_hz), pz_check(...), stability_judgement(nyq, status, pm_raw, pz),
@@ -459,6 +459,27 @@ def gain_crossings(freq, L):
     return out
 
 
+def low_side_gain_margin(freq, L):
+    """하측 이득 여유(설계 40 §4 C10 8, 같은 `.ac`): 루프 곡선 L(jω)(양의 주파수, 음되먹임으로 닫는 부호를 곱한 것)가 음의 실축을 -1 보다 바깥(x < -1,
+    즉 |L| > 1 인 구간에서 위상이 -180° 를 넘는 곳)에서 지나는 점들의 실수값 x(표본 사이 선형 보간). 루프 이득을 1/|x| 배로 줄이면 -1 이 그 점에 놓여 감김
+    수가 바뀌므로 low_side_gain_margin_db = 20·log10(min|x|)(가장 먼저 닿는 점). 없으면 None.
+    반환 {low_side_gain_margin_db, low_side_crossings(x 목록, 주파수 오름차순), low_side_crossing_hz, conditional_band(bool)}."""
+    import numpy as np
+    f = np.asarray(freq, float)
+    L = np.asarray(L, complex)
+    xs, fs = [], []
+    for i in range(len(L) - 1):
+        a, b = L[i], L[i + 1]
+        if (a.imag > 0) != (b.imag > 0):
+            t = a.imag / (a.imag - b.imag)
+            x = a.real + t * (b.real - a.real)
+            if x < -1:
+                xs.append(float(x))
+                fs.append(float(10 ** (math.log10(f[i]) + t * (math.log10(f[i + 1]) - math.log10(f[i])))))
+    return {"low_side_gain_margin_db": 20 * math.log10(min(abs(x) for x in xs)) if xs else None,
+            "low_side_crossings": xs, "low_side_crossing_hz": fs, "conditional_band": bool(xs)}
+
+
 def thermal_voltage(temp_c):
     """V_T = k_B*T/q [V] (T = temp_c + 273.15 K)."""
     return _K_B * (float(temp_c) + _T0_K) / _Q_E
@@ -561,9 +582,10 @@ def g_down(a, b, fl, reltol):
 
 
 def _flat(a, b, fl, reltol):
-    """창 b(직전 창 a)가 일정 진폭 진동 창이다(사용자 결정 4): 바닥보다 분해능 넘게 크고(b(1−reltol) > floor') 직전 창과의 변화가
-    분해능 안(|b − a| <= (a+b)·reltol + floor' <=> g↑ 도 g↓ 도 아님)."""
-    return b * (1 - reltol) > fl and not g_up(a, b, fl, reltol) and not g_down(a, b, fl, reltol)
+    """창 b(직전 창 a)가 '감쇠하지 않음'(설계 40 §4 C10 8, 사용자 결정 2026-10-09 -- 2 의 '분해능 안에서 일정'을 대체): 바닥보다 분해능 넘게 크고
+    (b(1−reltol) > floor', 2 의 첫 항은 유지 -- 해 분해능 바닥에 붙은 안정 회로의 창은 진동이 아니다) 직전 창보다 분해능 이상 줄지 않았다(g↓(a, b) 아님).
+    일정 진폭뿐 아니라 출렁이는 지속 진동(rb1e6형)·증가도 포함한다."""
+    return b * (1 - reltol) > fl and not g_down(a, b, fl, reltol)
 
 
 def growth_window(M, fl, reltol):
@@ -575,8 +597,7 @@ def growth_window(M, fl, reltol):
 
 
 def limit_cycle_window(M, fl, reltol):
-    """한계 사이클 조기 기준(사용자 결정 4): j >= 3 인 첫 창에서 창 j−1 과 창 j 가 둘 다 일정 진폭(_flat). 창 번호 또는 None.
-    일정 진폭 진동은 분해능 안에서 줄지도 늘지도 않는 지속 진동이다."""
+    """한계 사이클 조기 기준(설계 40 §4 C10 8): j >= 3 인 첫 창에서 최근 두 창 j−1, j 가 둘 다 '감쇠하지 않음'(_flat). 창 번호 또는 None."""
     for j in range(3, len(M) + 1):
         if _flat(M[j - 3], M[j - 2], fl, reltol) and _flat(M[j - 2], M[j - 1], fl, reltol):
             return j
@@ -600,7 +621,7 @@ def early_unstable(M, floor2, reltol):
 
 
 def limit_cycle_early(M, floor2, reltol):
-    """한계 사이클 조기 기준의 순수 함수: 연속 두 창이 일정 진폭이면 True(사용자 결정 4)."""
+    """한계 사이클 조기 기준의 순수 함수: 최근 두 창이 앞 창보다 분해능 이상 줄지 않았으면 True(설계 40 §4 C10 8)."""
     return limit_cycle_window(list(M), floor2, reltol) is not None
 
 
@@ -613,7 +634,7 @@ def transient_decision(path, plan):
     """폐루프 과도 판정(계약 1(b), 사용자 결정 4). e(t) = H(t) - H(0)(H(0) = 동작점), 킥이 끝난 뒤 창 j = 1..K 의 M_j = max|e| (창 끝까지
     표본이 닿은 창만 센다 -- 조기 종결·중간 사망 파일은 앞쪽 창만 있다). floor' = plan.floor_V + (데이터 파일 반올림 u*max|H|).
     분해능 인식형 g↑/g↓(reltol = plan.reltol):
-      조기(끝난 창들에서 첫 j): growth(엄격 증가 연속) 또는 limit_cycle(연속 두 창이 일정 진폭)   -> unstable + early_stop
+      조기(끝난 창들에서 첫 j): growth(엄격 증가 연속) 또는 limit_cycle(최근 두 창이 앞 창보다 분해능 이상 줄지 않음)   -> unstable + early_stop
       마지막 시각이 tstop 에 못 닿음(조기 아님)                                                -> failed
       M_K <= floor'                                  -> stable(해 분해능 아래로 감쇠)
       g↑(M_1, M_K)                                   -> unstable(분해능 넘는 증가)
@@ -664,11 +685,11 @@ def transient_decision(path, plan):
             why = (f"창 {j} 에서 분해능을 넘는 연속 증가(g↑(M_{j - 2},M_{j - 1})·g↑(M_{j - 1},M_{j})·g↑(M_1,M_{j}), "
                    f"reltol {reltol:g}, floor' {floor:.3g})")
         else:
-            why = (f"limit_cycle: 창 {j - 1}·{j} 가 일정 진폭 지속 진동(바닥 {floor:.3g} 보다 분해능 넘게 크고 직전 창과의 변화가 "
-                   f"reltol {reltol:g} 안)")
+            why = (f"limit_cycle: 창 {j - 1}·{j} 가 감쇠하지 않는 지속 진동(바닥 {floor:.3g} 보다 분해능 넘게 크고 앞 창보다 "
+                   f"reltol {reltol:g} 이상 줄지 않음)")
             out["limit_cycle_vs_slow_decay_unresolved"] = {
                 "M": M[:j], "window_ratios": window_ratios(M[:j]), "floor_V": floor, "reltol": reltol,
-                "reason": ("분해능 안에서 일정한 창 진폭 -- 지속 진동(한계 사이클)이거나 창당 감쇠가 분해능보다 작은 고Q 안정 회로다. "
+                "reason": ("창 진폭이 앞 창보다 분해능 이상 줄지 않음 -- 지속 진동(한계 사이클)이거나 창당 감쇠가 분해능보다 작은 고Q 안정 회로다. "
                            "K 창 안에서는 둘을 구별할 수 없어 보수적으로 unstable(limit_cycle) -> FAIL 로 판정했다.")}
         out["early_stop"] = {"window": j, "M": M[:j], "reason": why, "kind": kind}
         out["reason"] = why
@@ -921,7 +942,7 @@ def stability_judgement(nyq, tran_status, pm_raw=None, pz=None):
     """최종 안정성 판정(사용자 결정 Q10): Nyquist Z = N + P(P = 독립 `.pz`, N = 위상 펼침 .ac 표본) 와 폐루프 과도를 함께 본다.
     **`.pz` 신뢰 규칙** (ngspice `.pz` 는 큰 BSIM4 회로에서 근을 놓치거나 가짜 RHP 근을 낸다 -- smoke 파일럿 forced 에서 RHP 극 23 개를 냈지만 개루프 과도는
     증가가 없다):
-      * 폐루프 과도가 stable 로 정해졌으면 Z = 0 이므로 P = -N 이 **정확**하다(Nyquist) -- `.pz` 는 참고(어긋나면 `pz_conflict` 에 기록하고 무시);
+      * 폐루프 과도가 stable 로 정해졌으면 Z = 0, P_eff = -N 이 **정확**하다(Nyquist) -- `.pz` 는 판정에 쓰지 않는다(어긋나면 `pz_conflict` 에만 기록, Z·P_eff 는 비우지 않는다);
       * 폐루프 과도가 unstable 이면 FAIL 은 이미 정해졌고 P 는 이름 붙이기용으로만 쓴다;
       * 폐루프 과도가 정해지지 않았으면(undetermined·failed·not_run) `.pz` 의 P >= 1 은 **개루프 과도가 증가를 보일 때만**(`pz.validated` is True) 쓴다.
     verdict = 'unstable'    폐루프 과도 unstable(limit_cycle 포함) / N >= 1 (P >= 0 이라 Z >= N >= 1) / Z >= 1 이고 P 가 검증됨
@@ -940,15 +961,17 @@ def stability_judgement(nyq, tran_status, pm_raw=None, pz=None):
     S = tran_status if tran_status in ("stable", "unstable") else None
     Z = None if N is None or P is None else N + P
     r = _judgement_legacy(nyq, tran_status, pm_raw)
-    P_eff, conflict = None, None
-    if P is not None:
-        if S == "stable":
-            if Z == 0:
-                P_eff = P
-            else:
-                conflict = (f".pz P = {P} 인데 폐루프 과도는 stable(Nyquist 로는 P = -N = {None if N is None else -N}) -- "
-                            f".pz 근 찾기가 믿을 수 없는 회로로 보고 무시한다")
-        elif S == "unstable":
+    P_eff, conflict, from_nyq = None, None, False
+    if S == "stable":
+        # 설계 40 §4 C10 8 `.pz` 신뢰 규칙: 폐루프 과도가 stable 이면 Z = 0 이라 P_eff = −N(Nyquist 로 정해짐) -- `.pz` 는 판정에 쓰지 않는다.
+        # 어긋나면 pz_conflict 만 기록(Z·P_eff 를 비우지 않는다). N >= 1 이면 P_eff < 0 이라 증거 충돌 -- 아래 분기가 N >= 1 로 unstable 을 정한다.
+        if N is not None and N <= 0:
+            P_eff, from_nyq = -N, True
+            if P is not None and P != P_eff:
+                conflict = (f".pz P = {P} 인데 폐루프 과도는 stable(Z = 0 -> Nyquist 로 P = -N = {P_eff}) -- "
+                            f".pz 는 큰 BSIM4 회로에서 거짓 RHP 극을 내므로 판정에 쓰지 않는다")
+    elif P is not None:
+        if S == "unstable":
             P_eff = P
         elif pz.get("validated") is True:
             P_eff = P
@@ -975,7 +998,8 @@ def stability_judgement(nyq, tran_status, pm_raw=None, pz=None):
         return r
     # ---- P_eff 를 안다: 독립 .pz 로 개루프 RHP 극 수가 정해졌다 (legacy 추론 대신)
     neg = pm_raw is not None and pm_raw < 0
-    r.update(open_loop_rhp_poles=P_eff, open_loop_rhp_poles_bound="== (.pz)", pm_valid=False, pm_undefined=None)
+    r.update(open_loop_rhp_poles=P_eff, open_loop_rhp_poles_bound="== (Nyquist: 과도 stable -> Z = 0)" if from_nyq else "== (.pz)",
+             pm_valid=False, pm_undefined=None)
     if Zeff is not None and Zeff < 0:
         r["pm_undefined"] = PM_UNDEFINED_INCONSISTENT
     elif P_eff == 0:
@@ -1008,7 +1032,9 @@ def pz_validate(d, stem, text, meta, input_nodes, node_V, choke_I, plan, kind, e
     if None in vo:
         return {"validated": None, "status": "not_run", "reason": "출력 동작점 전압이 없다"}
     pl = dict(plan)
-    pl.update(t_kick_end=0.0, tstop=plan["windows"] * plan["window_s"], file=f"{stem}.pzv.txt", h_ref=vo[0] - vo[1])
+    pl.pop("observe", None)     # 개루프 과도 확인은 출력 노드를 본다(입력이 전압원에 묶여 끊는 점에는 신호가 없다) -- floor 도 출력 노드 기준
+    pl.update(t_kick_end=0.0, tstop=plan["windows"] * plan["window_s"], file=f"{stem}.pzv.txt", h_ref=vo[0] - vo[1],
+              floor_V=solver_floor(meta.get("tb_options"), vo))
     lm = meta.get("loop") or {}
     try:
         t = openloop_tran_netlist(text, list(input_nodes.keys()), list(input_nodes.values()), outs, node_V, choke_I, kind,
@@ -1099,14 +1125,19 @@ def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=No
     out["pz"] = pz
     cr = gain_crossings(f, L)
     temp = (meta.get("lut_meta") or {}).get("temp_c")
-    nodes = (op or {}).get("nodes") or {}
-    v_ops = [nodes.get(n) for n in outs]
+    # 자극·관측 위치(설계 40 §4 C10 8): 루프 끊는 점. β=1 은 루프를 닫는 입력 넷의 노드(Ecl 이 구동), β 루프는 절단 넷의 증폭기 쪽 노드(Vlb 직렬원 옆).
+    # 여러 넷이면 가중치 부호로 합친다. floor 는 관측 노드마다 reltol·|V_op| + vntol(동작점 패스 값; 관측 노드 동작점이 없으면 계획을 못 만든다).
+    wmap = dict(zip(lm["break_nets"], lm["weights"])) if lm else dict(meta.get("input_ac_weights") or {})
+    obs = [[sn[n], 1 if w > 0 else -1] for n, w in wmap.items() if w and n in sn]
+    v_ops = [node_V.get(nd.lower()) for nd, _ in obs]
     if not sign:
         tr["reason"] = "닫기 부호 없음"
     elif not outs or not meta.get("output_nodes"):
         tr["reason"] = "넷리스트 meta 에 출력 노드 없음"
+    elif not obs or len(obs) != len([w for w in wmap.values() if w]):
+        tr["reason"] = "루프 끊는 점(관측 노드)을 정할 수 없다 -- 가중이 있는 넷의 SPICE 노드 없음"
     elif not cr or temp is None or any(v is None for v in v_ops):
-        tr["reason"] = "|L|=1 교차·.temp·출력 동작점 중 없는 것이 있다"
+        tr["reason"] = "|L|=1 교차·.temp·끊는 점 동작점 전압 중 없는 것이 있다"
     else:
         wps = stability_config()["wall_s_per_window"]
         plan = tran_plan(cr, temp, solver_floor(meta.get("tb_options"), v_ops), f"{stem}.stab.txt",
@@ -1116,6 +1147,7 @@ def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=No
             tr["reason"] = "킥 V_T 가 해 분해능에 비해 작아 비교 창을 만들 수 없다"
         else:
             plan["sign"] = sign
+            plan["observe"] = obs
             plan["input_nodes"] = input_nodes
             plan["choke_I"], plan["node_V"] = choke_I, node_V
             tr["op_pass"] = op_rec
@@ -1183,6 +1215,15 @@ def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=No
     if lc:
         out["limit_cycle_vs_slow_decay_unresolved"] = lc
     out.update(stability_judgement(nyq, tr.get("status"), pm_raw, pz))
+    # 조건부 안정(설계 40 §4 C10 8): 교차 아래 |T| > 1 구간에서 위상이 −180° 를 넘는 곡선은 P = 0 이어도 표시하고 하측 이득 여유를 보고한다
+    # (보고일 뿐 제약이 아니다). 안정(Z = 0)으로 정해진 회로에서만 -- 불안정 회로는 이득 여유 개념이 아니라 N·과도로 FAIL.
+    if sign:
+        lsm = low_side_gain_margin(f, sign * L)
+        out["low_side_gain_margin_db"] = lsm["low_side_gain_margin_db"] if out.get("verdict") == "stable" else None
+        out["low_side_crossings"] = lsm["low_side_crossings"]
+        out["low_side_crossing_hz"] = lsm["low_side_crossing_hz"]
+        if out.get("verdict") == "stable" and lsm["conditional_band"]:
+            out["conditionally_stable"] = True
     out["gain_crossings_hz"] = cr
     return out
 

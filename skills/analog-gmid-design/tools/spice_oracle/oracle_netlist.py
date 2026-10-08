@@ -729,6 +729,7 @@ WRDATA_NUMDGT = 8
 
 def stability_control(output_nodes, plan):
     """[신규 C10 조기 종결 계약 (b)(d)] 폐루프 과도 `.save` 카드 + `.control` 블록 줄 목록.
+    * H(관측) = plan.observe 가 있으면 그 노드들(루프 끊는 점)의 부호 합, 없으면 출력 노드 차(개루프 과도 확인).
     * `.save`: H 식의 피연산자 v(..) 와 time 만 저장(메모리 오류 완화; 전체 벡터 저장 안 함).
     * 창 단위 실행: ngspice 가 `stop when time > <창 j 끝>` / `resume` 으로 창 j = 1..K 를 차례로 끝내며(마지막 창은 tstop 에서
       저절로 끝난다), 창마다 로그에 `STABWIN j M_j`(M_j = 창 [t_end+(j-1)W, t_end+jW] 안 max|H - H(0)|) 한 줄을 쓴다. 경계 조건이
@@ -736,7 +737,7 @@ def stability_control(output_nodes, plan):
       멈출 때마다 `delete all`(끝난 조건을 지우지 않으면 resume 이 같은 조건에서 곧바로 다시 멈춘다 -- 실측).
     * 조기 종결: 파이썬 oracle_simulate.early_window 와 같은 식을 창마다 스크립트로 평가한다.
         growth      : j >= 3, g↑(M_{j-2}, M_{j-1}), g↑(M_{j-1}, M_j), g↑(M_1, M_j)
-        limit_cycle : j >= 3, 창 j-1 과 j 에서 flat 이다. flat(j) := M_j(1-reltol) > floor' 이고 g↑(M_{j-1},M_j)·g↓(M_{j-1},M_j) 둘 다 아님
+        limit_cycle : j >= 3, 창 j-1 과 j 에서 flat 이다(설계 40 §4 C10 8 '감쇠하지 않음'). flat(j) := M_j(1-reltol) > floor' 이고 g↓(M_{j-1},M_j) 아님
       g↑(a,b) := b(1-reltol) > a(1+reltol) + floor', g↓(a,b) := a(1-reltol) > b(1+reltol) + floor'.
       (ngspice 명령 줄의 `>`·`<` 는 출력/입력 리다이렉션으로 읽혀 `let x = (a > b)` 가 조용히 틀리거나 실패한다 -- 실측. 비교는 `>=`·`<=`
       만 쓰고(`>=` 는 정상 비교), 한 줄에 하나씩 `let x = (a >= b)` 로 계산해 곱은 그 변수로 한다. 엄격 부등식(`>`)과 `>=` 는 값이
@@ -744,9 +745,15 @@ def stability_control(output_nodes, plan):
       floor' = plan.floor_V + u·max|H|(지금까지 표본; u = 0.5·10^-numdgt). 충족하면 즉시 데이터 파일을 쓰고 끝낸다
       (파이썬은 파일에서 같은 기준을 다시 계산해 증명한다 -- ngspice 는 멈출 시점만 정한다).
     * 마지막 시각이 창 끝에 못 닿으면(ngspice 가 중간에 죽음) 더 돌리지 않고 파일만 쓴다(파이썬이 failed 로 판정)."""
-    a, b = output_nodes[0], output_nodes[1]
-    hst = f"v({a})" + ("" if b == "0" else f" - v({b})")
-    save = f".save v({a})" + ("" if b == "0" else f" v({b})")
+    obs = plan.get("observe")
+    if obs:   # 폐루프 과도: 관측 = 루프 끊는 점의 노드 전압(설계 40 §4 C10 8 '자극 위치') -- [[노드, 부호], ...]; 전체 부호는 abs() 라 무관
+        s0 = 1 if obs[0][1] >= 0 else -1
+        hst = f"v({obs[0][0]})" + "".join(f" {'+' if s0 * sg >= 0 else '-'} v({nd})" for nd, sg in obs[1:])
+        save = ".save " + " ".join(f"v({nd})" for nd, _ in obs)
+    else:     # 개루프 과도 확인(pz_validate): 관측 = 출력 노드(입력이 전압원에 묶여 끊는 점 신호가 없다)
+        a, b = output_nodes[0], output_nodes[1]
+        hst = f"v({a})" + ("" if b == "0" else f" - v({b})")
+        save = f".save v({a})" + ("" if b == "0" else f" v({b})")
     u = 0.5 * 10.0 ** (-WRDATA_NUMDGT)
     tke, W, K = plan["t_kick_end"], plan["window_s"], int(plan["windows"])
     c = [save, ".control", "set noaskquit", f"set numdgt={WRDATA_NUMDGT}", "set wr_singlescale",
@@ -776,8 +783,8 @@ def stability_control(output_nodes, plan):
           "    let sw_upf = (sw_m * (1 - sw_rt) >= sw_m1 * (1 + sw_rt) + sw_fl)",
           "    let sw_ab1 = (sw_m * (1 - sw_rt) >= sw_fl)",
           "    let sw_ab0 = (sw_p1 * (1 - sw_rt) >= sw_fl)",
-          "    let sw_fl1 = sw_ab1 * (1 - sw_up) * (1 - sw_dn)",
-          "    let sw_fl0f = sw_ab0 * (1 - sw_up0) * (1 - sw_dn0)",
+          "    let sw_fl1 = sw_ab1 * (1 - sw_dn)",
+          "    let sw_fl0f = sw_ab0 * (1 - sw_dn0)",
           "    let sw_gr = sw_up0 * sw_up * sw_upf",
           "    let sw_lc = sw_fl0f * sw_fl1",
           "    if sw_j >= 3",

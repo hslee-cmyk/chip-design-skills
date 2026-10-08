@@ -450,8 +450,8 @@ FAIL, Z = 0 이고 과도가 unstable 이 아니면 안정, 둘 다 결론을 �
   그래도 **`.pz` 는 큰 BSIM4 회로에서 근을 놓치거나 가짜 RHP 근을 낸다**(smoke 파일럿 forced, 소자 51 개: 경고 없이 RHP 극 23 개 -- 포트를 바꿔도 같은 값이 반복되는
   결정적 오답이고, 같은 회로의 400 ns 개루프 과도 `.tran` 에는 지수 증가가 없다). 그래서 **신뢰 규칙**을 둔다: (a) `.pz` 가 반복 한도·오류를 내거나 극을 못 내면 P = None('알 수 없음',
   0 으로 두지 않는다), (b) RHP 후보 극이 `.ac` 스윕 상한(2π·fstop) 밖이면(가짜 +5.9e13 형) P = None + `beyond_sweep` 기록, (c) 실수부는
-  극 자신의 크기에 대한 상대 reltol 로 판정(`Re p > reltol·|p|`; 0 근처 극을 양으로 세지 않는다), (d) **폐루프 과도가 stable 로 정해졌으면 Z = 0 이라 P = −N 이 정확하다(Nyquist)** --
-  `.pz` 는 참고이고 어긋나면 `pz_conflict` 에 적고 무시한다, (e) 폐루프 과도가 정해지지 않았으면(undetermined·failed) `.pz` 의 P >= 1 은 **개루프 과도 `.tran` 이 변위의 증가를
+  극 자신의 크기에 대한 상대 reltol 로 판정(`Re p > reltol·|p|`; 0 근처 극을 양으로 세지 않는다), (d) **폐루프 과도가 stable 로 정해졌으면 Z = 0, P_eff = −N 이 정확하다(Nyquist)** --
+  `.pz` 는 판정에 쓰지 않고(설계 40 §4 C10 8), 어긋나면 `pz_conflict` 에만 적는다(Z·P_eff 를 비우지 않는다), (e) 폐루프 과도가 정해지지 않았으면(undetermined·failed) `.pz` 의 P >= 1 은 **개루프 과도 `.tran` 이 변위의 증가를
   보일 때만**(`pz.validated`, 절차 7) 판정에 쓴다 -- 확인 못 하면 INCOMPLETE. (정직한 한계: 이 규칙은 사용자 결정 Q10 의 'Z >= 1 이면 FAIL' 에서 `.pz` 오답이 안정 회로를 FAIL 시키는 것을
   막으려고 둔 것이다. 폐루프 과도가 stable 인데 실제로는 불안정한 회로(킥이 그 모드를 못 들뜨게 함)는 FAIL 이 아니라 stable 로 남는다.)
 * **측정 L(jω) 만으로는 P 를 셀 수 없다**: 편각 원리로 얻는 것은 차(Z − P, 또는 RHP 극 − RHP 영점)뿐이다. 그래서 P 는 `.pz`, N 은 `.ac`.
@@ -473,6 +473,9 @@ FAIL, Z = 0 이고 과도가 unstable 이 아니면 안정, 둘 다 결론을 �
    기록 `ac.stability.nyquist = {encirclements_cw, reason, max_step_deg, max_step_hz, bad_intervals_hz, closing_step_deg, f_first_hz,
    f_last_hz, L_first, L_last, refinement{rounds, samples_added, k_max, history}}`. 플랜·f_crit 은 **세분화 전** 원래 스윕 표본으로 정한다.
 3. **폐루프 과도 넷리스트** `<stem>.stab.cir`(`oracle_netlist.stability_netlist`, 원 넷리스트의 .control 앞 본문에서 만든다):
+   - **자극·관측 위치 = 루프 끊는 점**(설계 40 §4 C10 8 '자극 위치'): 킥도 관측 H 도 끊는 점에 둔다(출력 노드 관측 아님 -- 그 루프의 폐루프 극이 끊는 점에서 들뜨고 관측된다).
+     관측 H = 가중이 있는 끊는 점 노드 전압의 가중치 부호 합(`plan.observe = [[노드, 부호], ...]`; 노드 하나면 `v(노드)`): β=1 은 루프를 닫는 입력 넷의 노드(`Ecl_` 이 구동), β 루프는 절단 넷의 증폭기 쪽 노드(`Vlb_` 직렬원 옆).
+     개루프 과도 확인(절차 7, 입력이 전압원에 묶임)만 출력 노드를 본다.
    - β 루프: 루프 넷리스트 그대로(Vlb = 0 이면 실제 폐루프), 끊은 넷 k 의 `Vlb_<넷>` 을 `DC 0 PULSE(0 w_k·kick ...)` 로.
    - β=1: 본 넷리스트에서 입력 넷마다 그 넷의 테스트벤치 원(`Cac_ Vac_ Vdc_ Ldc_ Efb_ Vofs_ Lfb_`)을 빼고
      `Ecl_<넷> <넷> ecl_<넷> <출력 p> <출력 n 또는 0> g` + `Vcl_<넷> ecl_<넷> 0 PULSE(V0 V0+w_k·kick ...)`,
@@ -501,9 +504,9 @@ FAIL, Z = 0 이고 과도가 unstable 이 아니면 안정, 둘 다 결론을 �
      유도: 표본 간격 Δ = 주기/n 일 때 정현파 봉우리를 놓치는 최대 상대 오차 1 − cos(π/n) 가 reltol 이하인 최소 n.
    * f_hi 는 계획에 쓰지 않는다(기록만). 옛 tmax = 1/(2π f_hi) 는 교차가 많은 L 에서 끝나지 않았다(two_stage_ota_sf 시작점 59 교차 0.48 Hz ~ 9.5 GHz,
      tmax 1.7e-11 s·tstop 14.9 s, ~8.8e11 걸음). f_crit 이 f_lo 근처면 tmax 는 옛 값과 같다(min 이 f_lo 항).
-   창 수 K = ceil(ln(kick/floor)), floor(해 분해능) = 출력 노드마다 reltol·|V_op| + vntol 의 합(ngspice 기본 reltol 1e-3·vntol 1e-6),
+   창 수 K = ceil(ln(kick/floor)), floor(해 분해능) = **관측 노드(루프 끊는 점)**마다 reltol·|V_op| + vntol 의 합(V_op = 동작점 패스 값)(ngspice 기본 reltol 1e-3·vntol 1e-6),
    tstop = t_end + K·W. kick <= floor 이거나 K < 2 면 계획 없음(과도 `not_run`). 기록 `ac.stability.transient.plan` = {kick_V, td, tr, pw, tmax,
-   window_s, windows, **windows_planned**, t_kick_end, tstop, f_lo_hz, f_hi_hz, **f_crit_hz, n_pp, reltol, wall_cap_s**, floor_V, sign}.
+   window_s, windows, **windows_planned**, t_kick_end, tstop, f_lo_hz, f_hi_hz, **f_crit_hz, n_pp, reltol, wall_cap_s**, floor_V, sign, observe}.
    **[개정 계약 1(c)] 기본 시간 상한**: 설정 `oracle_config.json` 의 `stability_transient.wall_s_per_window`(창 하나를 끝내는 ngspice 실행 시간 상한) x 창 수.
    `plan.wall_cap_s` = wall_s_per_window × K, 연장 실행은 `extension.wall_cap_s` = wall_s_per_window × (K + n)(n = extension_windows; 연장은 K+n 창을 처음부터
    다시 돌린다). 적용 상한 `transient.wall_cap_s` = `--timeout-s` 가 있으면 그것(사용자 지정 우선), 없으면 `plan.wall_cap_s`. 동작점 패스·`.pz`에는 이 상한을 쓰지
@@ -516,12 +519,13 @@ FAIL, Z = 0 이고 과도가 unstable 이 아니면 안정, 둘 다 결론을 �
    g↑(a,b) := b(1 − reltol) > a(1 + reltol) + floor' (b 가 a 보다 측정 분해능을 넘게 큼), g↓(a,b) := a(1 − reltol) > b(1 + reltol) + floor'. (M_j 는 표본
    봉우리라 상대 오차 <= reltol, 절대 분해능 floor' -- 두 창의 측정 불확실 구간이 겹치지 않을 때만 커졌다/작아졌다고 인정.) 순서대로:
    * **조기 종결**(끝난 창들에서 첫 j >= 3): (growth) g↑(M_{j−2},M_{j−1}) 그리고 g↑(M_{j−1},M_j) 그리고 g↑(M_1,M_j) -- 엄격한 연속 증가;
-     (**limit_cycle, 사용자 결정 4**) 창 j−1 과 창 j 가 둘 다 **일정 진폭**: flat(j) := M_j(1−reltol) > floor' 이고 g↑(M_{j−1},M_j)·g↓(M_{j−1},M_j) 둘 다
-     아님(= |M_j − M_{j−1}| <= (M_j+M_{j−1})·reltol + floor'). 충족하면 `status = unstable`, `early_stop = {window, M[1..j], reason, kind}`, `windows_run = j`, 연장 없음.
-     순수 함수: `early_unstable(M, floor', reltol)` = growth 만(일정 진폭은 False), `limit_cycle_early(...)` = limit_cycle 만, `early_window` = 둘 중 첫 창.
+     (**limit_cycle = 감쇠하지 않음, 사용자 결정 2026-10-09**, 설계 40 §4 C10 8 이 2 의 '분해능 안 일정'을 대체) 창 j−1 과 창 j 가 둘 다 **감쇠하지 않음**:
+     nd(j) := M_j(1−reltol) > floor'(바닥 위; 해 분해능 바닥에 붙은 안정 회로의 창은 진동이 아니다) 이고 g↓(M_{j−1},M_j) 아님(앞 창보다 분해능 이상 줄지 않음).
+     출렁이는 지속 진동(rb1e6형)·증가도 포함한다. 창마다 분해능 이상 계속 줄면(slow decay) 이 기준에 걸리지 않고 판정을 이어 간다. 충족하면 `status = unstable`, `early_stop = {window, M[1..j], reason, kind}`, `windows_run = j`, 연장 없음.
+     순수 함수: `early_unstable(M, floor', reltol)` = growth 만(엄격 증가가 아닌 감쇠하지 않음은 False), `limit_cycle_early(...)` = limit_cycle 만, `early_window` = 둘 중 첫 창.
    * 조기가 아니고 마지막 시각이 tstop·(1 − 2u) 보다 이르면 `failed`.
    * M_K <= floor' -> `stable`; g↑(M_1, M_K) -> `unstable`; 모든 연속 창 g↓ -> `decaying`; 그 밖(분해능 안의 같음 포함) -> `undetermined`.
-   **일정 진폭 지속 진동 = 불안정(한계 사이클)이다**(사용자 결정 4, 2026-10-08; 개정 전에는 undetermined). 이 판정은 고Q 로 창당 감쇠가 분해능보다 작은 **안정** 회로와
+   **감쇠하지 않는 지속 진동 = 불안정(한계 사이클)이다**(사용자 결정 4, 2026-10-08; 2026-10-09 에 '일정 진폭'에서 '감쇠하지 않음'으로 넓혔다). 이 판정은 고Q 로 창당 감쇠가 분해능보다 작은 **안정** 회로와
    K 창 안에서 구별되지 않는다 -> 보수적으로 `unstable(limit_cycle)` -> FAIL 이고, 대신 `transient.limit_cycle_vs_slow_decay_unresolved = {M[1..j], window_ratios, floor_V,
    reltol, reason}` 를 `ac.stability` 에 올리고 비교표 맨 앞에 찍는다(사용자가 이 FAIL 이 판정 한계에서 나왔을 수 있음을 알아보도록).
    **안정 판정 불변 조건**: 안정(`stable`/`decaying` -> `stable`)인 모든 test 회로·fixture 에서 조기 기준(growth·limit_cycle)이 한 번도 충족되지 않는다
@@ -568,16 +572,20 @@ FAIL, Z = 0 이고 과도가 unstable 이 아니면 안정, 둘 다 결론을 �
 8. **최종 안정성 판정**(`stability_judgement`, 사용자 결정 Q10 + 결정 B·4): `verdict` =
    * `unstable`: 폐루프 과도 unstable(limit_cycle 포함) **또는** N >= 1 (P >= 0 이라 Z >= N >= 1) **또는** Z = N + P >= 1 이고 P 가 쓸 수 있음(위 신뢰 규칙: 과도 unstable 이거나
      `pz.validated`);
-   * `stable`: 폐루프 과도 stable (`verdict_basis` = transient 또는 transient+nyquist(Z = 0 이 `.pz` 와 일치));
+   * `stable`: 폐루프 과도 stable (`verdict_basis` = transient+nyquist: Z = 0, P_eff = −N. `.pz` 는 쓰지 않고 −N 과 다르면 `pz_conflict` 만 기록);
    * `undetermined`: 그 밖 -- 둘 다 결론을 못 낸 경우(INCOMPLETE). Z = 0 이라도 과도가 안 정해졌으면 Nyquist 만으로는 안정이라 하지 않는다(P = 0 은 `.pz` 가 근을 놓치지
      않았다는 가정에 기댄다).
    P_eff(쓸 수 있는 P)가 정수면 PM 유효성은 옛 추론표 대신: P_eff = 0 이고 verdict stable -> PM 값; P_eff = 0 이고 unstable -> N >= 1 & pm_raw < 0 만 값(Z = N 과 일치), 그 밖
    `stability_evidence_inconsistent`; P_eff >= 1 이고 Z = 0 이고 안정 -> **조건부 안정**(`conditionally_stable`, PM 원값을 값으로 둠 -- 개루프 RHP 극이 있어도 폐루프 안정이면
    합격 가능; 단 이 PM 은 Bode 식 원값이라 안정 여유의 의미는 N + P 로 확인한 것); P_eff >= 1 그 밖 -> `open_loop_rhp_poles`; Z < 0 -> `stability_evidence_inconsistent`.
    P_eff 를 모르면 옛 추론표(절차 6).
+   **조건부 안정과 하측 이득 여유**(설계 40 §4 C10 8): verdict stable 인데 교차 주파수 아래 |T| > 1 구간에서 위상이 −180° 를 넘는 곡선(L 이 음의 실축을 x < −1 에서 지남)은 P = 0 이어도
+   `conditionally_stable = True` 로 표시하고(`pm_valid` 유지, PM = 모든 |T| = 1 교차의 최솟값), **`low_side_gain_margin_db`** = 20·log10(min|x|)(루프 이득을 이만큼 줄이면 −1 이 그 교차에 놓여
+   감김 수가 바뀐다; 같은 `.ac` 표본에서 `low_side_gain_margin(freq, L)`, 표본 사이 선형 보간) 을 `ac.stability` 와 `summary.stability` 에 보고한다(`low_side_crossings`·`low_side_crossing_hz` 포함).
+   spec 값이 없으므로 제약이 아니라 보고다(verdict 는 PASS 그대로).
    `pm_valid` = (pm_undefined 가 None). 정의 불가면: `ac.pm_deg = None`, `ac.pm_undefined = <이유>`, `ac.pm_deg_raw` = 원값(유효해도 `pm_deg_raw` = `pm_deg`), β=1 이면
    `ac.pm_open_loop_deg = None`(같은 양), C20 교차 측정은 PM 이 아니라 `pm_crosscheck_deg = None`(원값 `_raw`).
-   기록 `ac.stability.{closed_loop, open_loop_rhp_poles(_bound), pm_valid, pm_undefined, verdict, verdict_basis, Z, P_pz, P_eff, pz_conflict, conditionally_stable}`.
+   기록 `ac.stability.{closed_loop, open_loop_rhp_poles(_bound), pm_valid, pm_undefined, verdict, verdict_basis, Z, P_pz, P_eff, pz_conflict, conditionally_stable, low_side_gain_margin_db}`.
 9. compare: pm_deg 제약·metric 판정 칸 `N/A(정의 불가: <pm_undefined>)`, 제약 행 `undefined` 칸 = 같은 이유(C26 rout 과 같은 경로 `measure_undefined`).
    **[신규 U6] `verdict == unstable` 이면 pm 제약이 있든 없든 free verdict = FAIL**(사유 '폐루프 불안정(Z, 과도, 근거)'; `summary.acceptance.closed_loop_unstable`).
    `summary.stability = {pm_valid, pm_undefined, pm_deg_raw, loop, closed_loop, open_loop_rhp_poles(_bound), nyquist_encirclements_cw, nyquist_reason,
@@ -588,12 +596,12 @@ FAIL, Z = 0 이고 과도가 unstable 이 아니면 안정, 둘 다 결론을 �
 ### 한계(판정 안에서 드러나는 것은 fail-closed)
 
 * 스윕 밖: f < fstart 의 L(기준점을 DC 로 보는 오라클 관례)과 f > fstop 꼬리(|L(fstop)| < 1 만 확인)는 보지 않는다.
-* 과도는 킥 넷(β 루프 절단 넷 / β=1 입력)에서 들뜨는 모드만 본다. 킥이 거의 안 들뜨게 하는 불안정 모드는 과도에서 놓칠 수 있다 -- `.pz` P 가 별도로 본다.
+* 과도는 끊는 점(β 루프 절단 넷 / β=1 입력)에서 자극하고 관측한다 -- 그 루프의 폐루프 극은 끊는 점에서 들뜨고 관측되지만, 다른 루프 뷰(예: DM 루프 과도로 CM 모드)의 불안정은 그 루프 뷰가 따로 본다. 킥이 거의 안 들뜨게 하는 모드는 놓칠 수 있다 -- `.pz` P 는 판정에 쓸 수 있을 때만 별도 증거다.
 * `.pz` 는 큰 BSIM4 회로에서 근을 놓치거나 가짜 극을 낼 수 있다(위 방법 선택). 가짜 극은 (b)로 거르고, 놓친 극은 Z 를 낮게 보이게 하므로 **Z = 0 은 과도와 함께** 읽는다.
   P 를 못 믿으면 P = None 이라 옛 표로 돌아가 N + 과도로만 판정한다.
 * 'unstable' 은 Z >= 1 만 안다(Z 의 개수는 모름). P 를 못 쓸 때 P 는 하한(`>=`)만 낸다.
-* 일정 진폭 지속 진동의 한계 사이클 판정은 고Q 안정 회로와 구별되지 않는다(위 `limit_cycle_vs_slow_decay_unresolved`). 창 진폭이 분해능 밖으로 출렁이는 이완 진동·맥놀이는
-  여전히 `undetermined` 이다 -- 이때 `.pz` P >= 1 이면 Z >= 1 로 FAIL, P = 0 이면 INCOMPLETE.
+* 감쇠하지 않는 지속 진동의 한계 사이클 판정은 고Q 안정 회로와 구별되지 않는다(위 `limit_cycle_vs_slow_decay_unresolved`). 창 진폭이 분해능 밖으로 출렁이는 이완 진동(rb1e6형)은
+  2026-10-09 부터 한계 사이클이다. 앞 창보다 줄었다가 늘어나는 맥놀이([1, 0.5, 1.2])처럼 최근 두 창이 연속으로 '줄지 않음'이 아닌 경우는 여전히 `undetermined` 이다 -- 이때 `.pz` P >= 1 이 개루프 과도로 확인되면 FAIL, 아니면 INCOMPLETE.
 * 고전적 불안정(P = 0, PM < 0, 예 nmcnr_amplifier 프로브 PM −49.4 deg)은 PM 값이 남고 pm 제약은 이전처럼 FAIL 이며 안정성 판정도 FAIL 이다.
 
 ### 확인(2026-10-08, ngspice-46 sky130 tt, 기록 -- test 아님)
@@ -646,7 +654,8 @@ swing_out_v, icmr_v, icm_margin_v`), 제약은 `>=`/`<=` 로 판정하며 값이
   * `noise_th_in_v2hz` = 열 성분 입력 환산 합의 f_lo 값(저주파 평탄 영역 -- 엔진 정의 Σ|Z_k/H|² gm_k² B_k 와 같은 양).
   * `noise_fc_in_hz` = 입력 환산 flicker 합이 `noise_th_in_v2hz` 와 같아지는 주파수: f_lo 부터 격자를 올려 첫 교차를 로그-로그 보간. f_lo 에서 이미 아래면 None +
     `fc_reason = below_f_lo`, `testbench.ac.fstop_hz` 까지 못 만나면 None + `above_cap`.
-  * `noise_excess_th` = `noise_th_in_v2hz` / (`input_cell_devices` 소자만의 열 성분 합). 입력 셀이 없으면 None + `excess_reason`.
+  * `noise_excess_th` = `noise_th_in_v2hz` / (`input_cell_devices` 소자만의 열 성분 합). 입력 셀이 없으면 None + `excess_reason`. 소자 이름은 오라클 넷리스트 이름으로 사상해 찾는다
+    (`oracle_noise.oracle_element_names`: MOS `M1a` -> `m1a`, 수동소자 `RL` -> `rp_rl`·`cp_rl`·`isrc_rl`·`vsrc_rl` -- `oracle_netlist.CIRCUIT_PREFIXES` 접두; 못 찾은 이름은 `input_cell_missing`).
   * `noise_contrib` = 소자·저항별 `{element, thermal_in_v2hz, flicker_in_v2hz, share_thermal}` (f_lo).
 * **폐루프**(`noise_out_int_vrms`, `noise.closed_loop = true`, feedback_passives 필요): 루프 넷리스트를 닫은 채(Vlb DC 0) `noise v(out) Vlb_<넷> dec ppd f_lo f_top` 의
   `onoise_spectrum` 을 로그 격자 사다리꼴로 적분한다. 격자 밀도를 두 배씩 올려(최대 4 회) 같은 구간 적분이 reltol 안에 일치하면 멈춘다. f_top 은 `fstop_hz` 에서 시작해
@@ -677,7 +686,7 @@ swing_out_v, icmr_v, icm_margin_v`), 제약은 `>=`/`<=` 로 판정하며 값이
   (출력은 servo 로 예측 DC 에 묶인 채); 단일 출력 목표 Vt = `Vofs_<servo 입력>` 에 (Vt − Vo,pred) 를 더한다; 차동 출력 목표 D = V(op) − V(on) = 두 servo 기준을 ∓k·D 만큼 민다(k = `diff_feedback_gain`).
   servo 가 없는 쪽은 `status = unavailable` + 이유.
 * 창 = 공칭점에서 이어지는 연속 구간. 거친 격자(간격 V_T = kT/q) 한 번의 ngspice 실행 -> 경계 괄호([마지막 통과, 첫 실패])를 7 점 부분 격자로 좁혀 간다(최대 8 라운드, 목표 분해능 reltol·레일 폭).
-* `swing_out_v`: 단일 출력 2·min(V_hi − Vo, Vo − V_lo), 차동 출력 2·min(D_hi, −D_lo) (설계 40 §3.8-8 '출력마다 반폭의 최솟값 × 4' 와 같다). `icmr_v` = [Vin,min, Vin,max] ∩ [rail_lo, rail_hi] 의 폭,
+* `swing_out_v`: 단일 출력 2·min(V_hi − Vo, Vo − V_lo), 차동 출력 2·min(D_hi, −D_lo) (설계 40 §3.8-8 '출력마다 반폭의 최솟값 × 4' 와 같다). `icmr_v` = [Vin,min, Vin,max] ∩ [rail_lo, rail_hi] 의 폭(좌표 = 점마다 **실제 입력 공통모드** (V_inp + V_inn)/2 -- 엔진 `icmr_v` 와 같은 정의; 차동 입력 `input_p`·`input_n` 이 없는 회로의 ICMR 은 `unavailable`),
   `icm_margin_v` = min(V_icm − Vin,min, Vin,max − V_icm). 공칭점이 이미 포화 조건을 어기면 창이 비어 있다: `swing_out_v`·`icmr_v` 는 음수(−최대 부족량 [V]).
 * 점검(`smoke/u6_selfchecks.py swing_5t`, 5T OTA 입력 DC 0.9 V): 스윙 1.2065 V (출력 창 0.2967 ~ 1.6142 V), ICMR 0.6289 V (입력 창 0.6701 ~ 1.2990 V, 하한은 꼬리 노드 ≥ 0 에 의한 것), icm_margin 0.2299 V.
 

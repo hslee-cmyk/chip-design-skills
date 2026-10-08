@@ -25,7 +25,9 @@
     목표 분해능 = reltol·레일 폭) 경계를 구한다. 점이 수렴하지 않으면 그 점은 포화 아님으로 센다(fail-closed).
   * swing_out_v: 단일 출력 2·min(V_hi - Vo, Vo - V_lo), 차동 출력 2·min(D_hi, -D_lo) (D 는 측정된 V(op)-V(on); 설계 40 §3.8-8: 출력마다
     반폭 min × 4 와 같다). 공칭점이 이미 포화 조건을 어기면 음수(= -(최대 부족량 vdsat + margin - vds))를 낸다.
-  * icmr_v: 입력 CM 창 [Vin,min, Vin,max] ∩ [rail_lo, rail_hi] 의 폭; 공칭점이 어기면 음수 부족량.
+  * icmr_v: 입력 CM 창 [Vin,min, Vin,max] ∩ [rail_lo, rail_hi] 의 폭; 공칭점이 어기면 음수 부족량. 좌표 = 점마다 **실제 입력 공통모드**
+    (V_inp + V_inn)/2(풀이의 두 입력 노드 전압; 설계 40 §4 C10 8 후속 (ii), 엔진 icmr_v 와 같은 정의). 차동 입력(input_p·input_n)이 없는 회로의
+    ICMR 은 unavailable(후속 (iii)).
   * icm_margin_v: 선언 입력 DC 와 창 경계의 최소 거리 min(V_icm - Vin,min, Vin,max - V_icm) (창 밖이면 음수).
 """
 import argparse
@@ -150,7 +152,7 @@ def _window(sw, make_point, measure, lo, hi, p0, step, margin, off_i, res_target
         s, w, nc = sat_violation(r, margin, off_i, rails)
         ok.append((p, s, w, measure(r, p) if r else None))
     i0 = grid.index(p0)
-    out = {"status": "ok", "n_points": len(grid), "nominal_ok": ok[i0][1],
+    out = {"status": "ok", "n_points": len(grid), "nominal_ok": ok[i0][1], "nominal_measured": ok[i0][3],
            "shortage": None if ok[i0][2] is None else max(0.0, ok[i0][2])}
     if not ok[i0][1]:
         out.update(lo=None, hi=None, worst_at_nominal=ok[i0][2])
@@ -224,12 +226,21 @@ def swing_icmr_measure(inp, cir_path, meta, exe, timeout_s=None, cache_dir=None,
             for n, s in dcs.items():
                 pt[s] = base[s] + delta
             return pt
-        v_in = [pred[n] for n in in_nets if n in pred]
-        vcm = sum(v_in) / len(v_in) if v_in else None
-        if vcm is None:
+        diff_in = [ports.get("input_p"), ports.get("input_n")]
+        v_in = [pred[n] for n in diff_in if n in pred]
+        vcm = sum(v_in) / len(v_in) if len(v_in) == 2 else None
+        if not all(diff_in):
+            res["icmr"] = {"status": "unavailable", "reason": "차동 입력(input_p·input_n)이 없다 -- 입력 공통모드가 정의되지 않는다"}
+        elif vcm is None:
             res["icmr"] = {"status": "unavailable", "reason": "입력 넷의 예측 DC 가 없다"}
         else:
-            w = _window(sw, mk_icm, lambda r, p: vcm + p, rail_lo - vcm, rail_hi - vcm, 0.0, step, margin, off_current, res_target, "icm", rails)
+            def cm_actual(r, p):
+                nd = (r or {}).get("nodes") or {}
+                v = [nd.get(n) for n in diff_in]
+                return None if any(x is None for x in v) else (v[0] + v[1]) / 2   # 실제 입력 공통모드 (V_inp + V_inn)/2
+            w = _window(sw, mk_icm, cm_actual, rail_lo - vcm, rail_hi - vcm, 0.0, step, margin, off_current, res_target, "icm", rails)
+            if w.get("nominal_measured") is not None:
+                vcm = w["nominal_measured"]
             w["v_cm_nominal"] = vcm
             if w.get("status") == "ok" and w.get("lo") is not None:
                 lo, hi = max(w["lo"], rail_lo), min(w["hi"], rail_hi)

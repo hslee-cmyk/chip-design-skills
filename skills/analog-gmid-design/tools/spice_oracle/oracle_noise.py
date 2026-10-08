@@ -49,6 +49,14 @@ _MOS = re.compile(r"^[io]noise_total\.m\.x?(?P<inst>[^.]+)\.m[^.]*?(?:\.(?P<src>
 _RES = re.compile(r"^[io]noise_total_(?P<el>.+?)(?:_(?P<src>thermal|1overf))?$")
 
 
+def oracle_element_names(name):
+    """입력 JSON 소자 이름 -> 오라클 넷리스트의 .noise 요소 이름 후보(소문자). MOS(X<이름>)는 이름 자체, 수동·이상원 소자는 CIRCUIT_PREFIXES 의
+    접두(Rp_·Cp_·Isrc_·Vsrc_) 붙은 이름. 이미 접두가 붙은 이름은 그대로도 후보다."""
+    from oracle_netlist import CIRCUIT_PREFIXES
+    n = str(name).lower()
+    return [n] + [pre.lower() + n for pre in CIRCUIT_PREFIXES if pre != "X"]
+
+
 def _out_spec(output_nodes):
     a, b = output_nodes[0], output_nodes[1]
     return f"v({a})" if b == "0" else f"v({a},{b})"
@@ -179,12 +187,15 @@ def noise_open_loop(cir_path, meta, inp, exe, timeout_s=None, cache_dir=None):
     out["contrib"] = sorted(contrib, key=lambda c: -(c["thermal_in_v2hz"] or 0))
     # excess
     if nz.get("input_cell_devices"):
-        # 소자 이름: 입력 이름 M1a -> ngspice 인스턴스 XM1a -> 벡터 이름 'm1a'
-        want = {n.lower() for n in nz["input_cell_devices"]}
-        cell_el = {el for el in els if el.lower() in want}
+        # 입력 셀 소자 이름 -> 오라클 넷리스트 이름(설계 40 §4 C10 8 후속 (v)): MOS 는 X<이름> 인스턴스의 벡터 이름 '<이름>'(소문자), 수동소자는
+        # 접두 붙은 요소(Rp_<이름> 저항 등 -- oracle_netlist.CIRCUIT_PREFIXES 표) 의 '<접두><이름>'(소문자). 선언 이름마다 후보를 모두 찾는다.
+        cand = {n: oracle_element_names(n) for n in nz["input_cell_devices"]}
+        low = {el.lower(): el for el in els}
+        cell_el = {low[c] for cs in cand.values() for c in cs if c in low}
+        want = {n for n, cs in cand.items() if not any(c in low for c in cs)}
         t_cell, _ = split(s0, h20, cell_el)
         out["input_cell_matched"] = sorted(cell_el)
-        out["input_cell_missing"] = sorted(want - cell_el)
+        out["input_cell_missing"] = sorted(want)
         out["excess_th"] = (th_in / t_cell) if t_cell else None
         if not t_cell:
             out["excess_reason"] = "입력 셀 소자의 열 성분이 0 이다(이름이 안 맞거나 꺼진 소자)"

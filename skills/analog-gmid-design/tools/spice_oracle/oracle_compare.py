@@ -504,6 +504,7 @@ def _stability_summary(ac):
             "pz_validated": pz.get("validated"), "pz_conflict": st.get("pz_conflict"),
             "Z": st.get("Z"), "verdict": st.get("verdict"), "verdict_basis": st.get("verdict_basis"),
             "conditionally_stable": st.get("conditionally_stable"),
+            "low_side_gain_margin_db": st.get("low_side_gain_margin_db"),
             "transient_status": tr.get("status"), "transient_reason": tr.get("reason"),
             "early_stop": tr.get("early_stop"),
             "limit_cycle_vs_slow_decay_unresolved": st.get("limit_cycle_vs_slow_decay_unresolved"),
@@ -680,7 +681,8 @@ def to_markdown(res):
                  + f"; .pz P = {_f(sb.get('pz_P'))}({sb.get('pz_status')}{', 개루프 과도 확인 ' + str(sb['pz_validated']) if sb.get('pz_validated') is not None else ''}), Z = N + P = {_f(sb.get('Z'))}"
                  + (f" [.pz 무시: {sb['pz_conflict']}]" if sb.get("pz_conflict") else "")
                  + f" -> 안정성 판정 **{sb.get('verdict')}**({sb.get('verdict_basis')})"
-                 + (" [조건부 안정]" if sb.get("conditionally_stable") else "")
+                 + (" [조건부 안정" + (f", 하측 이득 여유 {_f(sb.get('low_side_gain_margin_db'))} dB" if sb.get("low_side_gain_margin_db") is not None else "") + "]"
+                    if sb.get("conditionally_stable") else "")
                  + (f", 조기 종결 창 {sb['early_stop']['window']}({sb['early_stop'].get('kind')})" if sb.get("early_stop") else ""))
     u6 = s.get("u6") or {}
     nzr = u6.get("noise")
