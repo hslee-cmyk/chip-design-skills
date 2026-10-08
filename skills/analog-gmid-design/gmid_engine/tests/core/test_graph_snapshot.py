@@ -345,3 +345,159 @@ def test_mutable_value_rejected(value):
     with pytest.raises(TypeError):
         s.write("bias", "i9", {("node", "v"): {"a": value}})
     assert _reads(s) == before
+
+
+# =====================================================================================================================
+# 2026-10-08 개정(사용자 승인 1, sizing O7) -- CONTRACT §5.6 `column_fields`, `extend_writers`.
+# oracle 종류: 전부 (a) 구성으로 정답이 정해진 합성 입력 -- 기대값(key 집합·write_count·writer·input_version)은 이 test 가
+# 넣은 write 순서로 정해지고(§5.6 write 메타 규칙), 피검 함수 출력으로 만들지 않는다.
+# =====================================================================================================================
+
+from gmid_engine.core import fp_of  # noqa: E402  (§5.4 value_fp == fp_of(value) 확인용; 피검 함수 아님)
+
+TABLE_TRIPLES = (
+    ("node", "v", "bias"),
+    ("node", "u", "other"),
+    ("device", "w", "sizer"),
+    ("device", "l", "sizer"),
+    ("graph", "theta", "search"),
+)
+WIDE = WriterTable(list(TABLE_TRIPLES) + [("node", "vb", "s2"), ("device", "gm", "s2"), ("edge", "i", "s2")])
+
+
+def _populated():
+    """메타가 구성으로 정해진 스냅샷: node a 의 v 는 같은 값·새 input_version 으로 두 번 써서 write_count 2(§5.6 '이전 + 1'),
+    node b 의 v 는 값이 바뀌어 write_count 2, node c 는 v 없이 u 만, device m1 은 w·l."""
+    s = _empty().write("bias", "i1", {("node", "v"): {"a": 1.0, "b": 2.0}})
+    s = s.write("bias", "i2", {("node", "v"): {"a": 1.0, "b": 3.0}})
+    s = s.write("other", "o1", {("node", "u"): {"a": 5.0, "c": 6.0}})
+    s = s.write("sizer", "z1", {("device", "w"): {"m1": 0.5}, ("device", "l"): {"m1": 1e-6}})
+    s = s.write("search", "t1", {("graph", "theta"): {"g": (1.0, 2.0)}})
+    return s
+
+
+# ---------- column_fields ----------
+
+def test_column_fields_same_keys_and_order_as_column_with_fieldvalues():
+    s = _populated()
+    for kind, field, expected_keys in (("node", "v", ("a", "b")), ("node", "u", ("a", "c")),
+                                       ("device", "w", ("m1",)), ("graph", "theta", ("g",))):
+        cf = s.column_fields(kind, field)
+        col = s.column(kind, field)
+        assert isinstance(cf, tuple)
+        assert tuple(k for k, _ in cf) == tuple(k for k, _ in col) == expected_keys
+        for (key, fv), (_, val) in zip(cf, col):
+            assert isinstance(fv, FieldValue)
+            assert fv.value == val
+            assert fv.value_fp == fp_of(val)
+            ref = s.field(kind, key, field)
+            assert (fv.value, fv.writer, fv.input_version, fv.write_count) == (
+                ref.value, ref.writer, ref.input_version, ref.write_count)
+
+
+def test_column_fields_meta_from_construction():
+    # oracle (a): _populated 의 write 순서로 정해진 메타.
+    cf = dict(_populated().column_fields("node", "v"))
+    assert (cf["a"].writer, cf["a"].input_version, cf["a"].write_count) == ("bias", "i2", 2)
+    assert (cf["b"].writer, cf["b"].input_version, cf["b"].write_count, cf["b"].value) == ("bias", "i2", 2, 3.0)
+
+
+def test_column_fields_omits_records_lacking_field():
+    s = _populated()
+    assert "c" not in dict(s.column_fields("node", "v"))      # node c 는 u 만 있다
+    assert "b" not in dict(s.column_fields("node", "u"))      # node b 는 v 만 있다
+    assert s.column_fields("edge", "i") == ()
+    assert s.column_fields("node", "nobody_writes_this") == ()
+    assert _empty().column_fields("node", "v") == ()
+
+
+# ---------- extend_writers ----------
+
+def test_extend_writers_new_table_shared_records_and_meta():
+    s = _populated()
+    before = _reads(s)
+    e = s.extend_writers(WIDE)
+    assert isinstance(e, GraphSnapshot)
+    assert e is not s
+    assert e.writers == WIDE
+    assert s.writers == TABLE                                  # 원본 불변
+    assert _reads(s) == before
+    assert e.kinds() == s.kinds()
+    n = 0
+    for kind in s.kinds():
+        assert e.keys(kind) == s.keys(kind)
+        for key in s.keys(kind):
+            assert e.record(kind, key) is s.record(kind, key)  # 같은 객체
+            n += 1
+    assert n == 5                                              # 구성: node a·b·c + device m1 + graph g
+    assert e.fp == s.fp
+    assert _reads(e) == before                                 # 값·메타(writer·input_version·write_count)·block_version 같음
+    for w in ("bias", "other", "sizer", "search"):
+        assert e.block_version(w) == s.block_version(w)
+    assert e.block_version("s2") is None
+    assert dict(e.block_versions) == dict(s.block_versions)
+    # 구성으로 정해진 메타가 그대로
+    fa = e.field("node", "a", "v")
+    assert (fa.writer, fa.input_version, fa.write_count) == ("bias", "i2", 2)
+
+
+def test_extend_writers_then_write_uses_new_table_and_carried_meta():
+    s = _populated()
+    e = s.extend_writers(WIDE)
+    # 새 표의 열은 확장된 스냅샷에서만 쓸 수 있다
+    e2 = e.write("s2", "x1", {("node", "vb"): {"a": 0.3}})
+    assert e2.value("node", "a", "vb") == 0.3
+    with pytest.raises(WriterPermissionError):
+        s.write("s2", "x1", {("node", "vb"): {"a": 0.3}})
+    # 옮겨진 메타 위에서 write_count 가 이어진다(§5.6 '이전 + 1'): a 는 2 였다 -> 3
+    e3 = e.write("bias", "i3", {("node", "v"): {"a": 1.0, "b": 3.0}})
+    assert e3.field("node", "a", "v").write_count == 3
+    # 확장된 스냅샷에 같은 값·같은 input_version 을 다시 쓰면 self(메타가 원본 그대로이므로)
+    assert e.write("bias", "i2", {("node", "v"): {"a": 1.0, "b": 3.0}}) is e
+
+
+def test_extend_writers_equal_table_returns_self():
+    s = _populated()
+    same = WriterTable(list(reversed(TABLE_TRIPLES)))         # 선언 순서만 다른 같은 표(§5.3 '==')
+    assert s.extend_writers(same) is s
+    assert s.extend_writers(TABLE) is s
+    empty = _empty()
+    assert empty.extend_writers(same) is empty
+
+
+def test_extend_writers_on_empty_snapshot():
+    empty = _empty()
+    e = empty.extend_writers(WIDE)
+    assert e.writers == WIDE
+    assert e.kinds() == ()
+    assert e.fp == empty.fp
+    assert empty.writers == TABLE
+
+
+@pytest.mark.parametrize("bad", [None, "table", TABLE_TRIPLES, list(TABLE_TRIPLES), (((("node", "v"), "bias"),),)],
+                         ids=["none", "str", "triples_tuple", "triples_list", "entries_like"])
+def test_extend_writers_requires_writer_table(bad):
+    # 거부(§5.6 'WriterTable 아님 -> TypeError').
+    s = _populated()
+    before = _reads(s)
+    with pytest.raises(TypeError):
+        s.extend_writers(bad)
+    assert _reads(s) == before
+    assert s.writers == TABLE
+
+
+@pytest.mark.parametrize("triples", [
+    [t for t in TABLE_TRIPLES if t != ("graph", "theta", "search")] + [("node", "vb", "s2")],   # 항목 빠짐(데이터 있음)
+    [t for t in TABLE_TRIPLES if t != ("device", "l", "sizer")],                               # 항목 빠짐
+    [t for t in TABLE_TRIPLES if t != ("node", "v", "bias")] + [("node", "v", "s2")],          # 같은 열 다른 writer
+    [("node", "vb", "s2")],                                                                    # 원본 항목 전부 빠짐
+], ids=["missing_theta", "missing_l", "other_writer", "disjoint"])
+def test_extend_writers_rejects_non_superset(triples):
+    # 거부(§5.6 '원본 표의 항목이 빠졌거나 다른 writer -> WriterPermissionError(원본 불변)').
+    table = WriterTable(triples)
+    for s in (_populated(), _empty()):
+        before = _reads(s)
+        with pytest.raises(WriterPermissionError):
+            s.extend_writers(table)
+        assert _reads(s) == before
+        assert s.writers == TABLE
