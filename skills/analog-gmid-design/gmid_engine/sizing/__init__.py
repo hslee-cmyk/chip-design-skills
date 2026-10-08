@@ -143,7 +143,6 @@ from .seal_versions import seal_versions
 from .seal_vgs_match import dc_seal_vgs_match
 from .seal_writers import seal_writers
 from .size_and_seal import size_and_seal
-from .struct_canon import canonical_labeling
 from .struct_colour import dc_struct_colour
 from .theta_check import check_theta
 from .theta_schema import dc_theta_schema
@@ -278,7 +277,6 @@ __all__ = (
     "dc_seal_report",
     "dc_seal_saturation",
     "dc_seal_vgs_match",
-    "canonical_labeling",
     "dc_struct_colour",
     "dc_theta_schema",
     "dc_tolerances",

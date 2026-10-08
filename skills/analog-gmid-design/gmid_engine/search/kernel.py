@@ -76,7 +76,8 @@ def _record(sctx, result, origin):
 
 def evaluate(sctx, theta, cells, parent=None, origin=()):
     sctx.counters["requests"] += 1
-    theta = expand_ties(sctx.domain.ties, theta if isinstance(theta, Mapping) else dict(theta))    # [r12] 묶인 성분은 대표 값
+    theta = expand_ties(sctx.domain.ties, theta if isinstance(theta, Mapping) else dict(theta),
+                         sctx.domain.negated, sctx.domain.zeros)    # [r12] 묶인 성분은 대표 값
     pairs = tuple(sorted(theta.items()))
     key = eval_key(sctx.context_fp, sctx.schema_fp, pairs, cells, None)
     hit = sctx.cache.get(key)
