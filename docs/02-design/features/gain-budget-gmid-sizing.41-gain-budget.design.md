@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.2
+version: 1.3
 plan_version: 6.0
 ---
 
@@ -14,7 +14,7 @@ plan_version: 6.0
 > - 스펙에서 gm/ID·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-10-08 · **Status**: v1.2. 이번 판의 변경은 셋이다.
+> **Date**: 2026-10-08 · **Status**: v1.3. 사용자 결정 2026-10-08 "Q1~Q11 모두 네 의견대로 진행해"를 반영했다(R29 knee 추가 후보, Q2 Pelgrom 출처, Q5b 판정 보류 탐색, Q11 잡음 값과 metric). v1.2의 변경은 다음 셋이다.
 > - 재검증 지적 N1~N9와 Low 항목 반영
 > - 잡음 경로 추가(§7, 사용자 결정 2026-10-08)
 > - v1.1에서 반영한 C1~C4·H1~H8·M1~M14·L1~L8 유지
@@ -220,10 +220,10 @@ P N3.1의 'GB0~GB4는 S0 지문마다 한 번'에 맞춘 순서다. 앞 단계�
 ### 1.10 declared 대조와 발동표
 
 - **declared 대조**: declared stage(`compensation.stage_devices`, `gain_stages_sum.stages`, `vertical_stack_id`)는 `declared` 엣지로만 싣고 유도 결과와 대조한다. 불일치면 `review_needed`다. 유도 입력으로는 쓰지 않는다(U-50).
-- **발동표**: `runs/<run_id>/rule_branch_coverage.json`이다.
-  - 행: 뷰 × 분기.
-  - 열: 발동 회로, 검증 발동 회로, 속성, 순방향 밖 셀.
-  - 검증 발동이 0인 분기를 타면 탐색 전에 exit 2로 정지한다.
+- **발동표**(R7, 축소 유지 승인 2026-10-08): `rule_branch_coverage.json` 파일은 만들지 않는다. 대신 다음은 유지한다.
+  - `기록만` 분기를 탈 때의 `unsupported_rule_branch` 정지(exit 2).
+  - J ratify 전에 걸리는 `review_needed` 정지(DEC-59 안전망).
+  - 분기 발동 사실을 S1v `review_needed[]`와 결과 JSON에 기록하는 일.
 
 ### 1.11 6a 열린 항목 결정
 
@@ -411,8 +411,11 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 
 **gain 제약도 rout 제약도 없는 경우**(H2):
 - 문제: 국소 문제에 AC 제약이 없어 해가 최소 크기로 자명해진다.
-- 계획 충돌: DEC-71 (3)은 이런 회로를 '층 0 무동작'으로 보고하고 **사이징 대상에서 뺀다**고 정한다. 이는 DEC-85(9회로 전부 합격)와 충돌한다. 사용자 질문으로 올린다(40 §9 Q5b).
-- 결정 전 처리: 층 0을 끄고 '층 0 무동작'으로 보고한다. 시작점은 출발 구간(§6)에서 만들고, 결과는 '성능 판정 보류'로 보고한다.
+- **처리**(사용자 결정 2026-10-08 Q5b. DEC-71 (3)의 '사이징 대상에서 뺀다' 대신 적용):
+  - 층 0을 끄고 '층 0 무동작'으로 보고한다.
+  - 시작점은 출발 구간(§6)에서 만든다.
+  - 탐색 결과는 **'성능 판정 보류'**로 표시해 보고한다. 회로를 사이징에서 빼지 않는다.
+  - 현재 해당 회로: common_gate_amplifier, folded_cascode(40 §9 Q5 표). 잡음 가드 `noise_excess_th` 행만 있는 경우도 gain 예산은 동작하지 않는다.
 
 ### 5.2 bin
 
@@ -456,7 +459,10 @@ def size_and_seal_local(ctx: KernelContext, theta_block: Mapping[str, float],
 - 반환값은 `LocalSeal{ok, failures[FailureRecord], snapshot_fragment, gain_db, power_w, area_m2}`이다.
 - 필드 캐시 키는 (블록 키, θ_block, fixed 지문)이다.
 
-**고정 입력**(K1·K3·K8, 블록을 가로지르는 L 동치류): 첫 회차에는 §6 출발값을 쓰고, 이후 회차에는 직전 조립점 값을 쓴다. DEC-71 (3)의 'LR5 knee 앵커'와 다르므로 40 §8 R29에 올렸다.
+**고정 입력**(K1·K3·K8, 블록을 가로지르는 L 동치류):
+- 첫 회차에는 §6 출발값을 쓴다. LR5 knee 앵커는 **추가 후보**로 L 축에 넣는다.
+- 이후 회차에는 직전 조립점 값을 쓴다.
+- 근거: 사용자 결정 2026-10-08 Q1, R29 수용.
 
 **후보 수 상한과 종료**:
 - 블록 후보 수 Π가 블록 몫 평가 예산 N_T,i(§5.8)를 넘으면 강결합 그룹 단위 좌표 훑기로 바꾼다. 강결합 그룹은 같은 직렬 전류 경로를 공유하는 셀이다(P N3.7).
@@ -607,14 +613,21 @@ VDSAT_j,min은 LUT 최대 gm/ID에서의 VDSAT를 L 점 전체에서 최소로 �
    - 블록 목표 g_i = G·A_i,max / Σ A_max로 둔다.
    - 블록 국소 모델 gain ≥ g_i를 만족하는 최소 L을 찾는다. bin은 오름차순으로 훑고, bin 안에서는 bisection한다.
    - A_max가 미상이거나 gain 제약이 없으면 비활성이다(H3).
-2. **matching 하한**(Q2·Q3 선행):
+2. **matching 하한**: 오프셋·미러비 스펙 값이 있는 회로에서만 활성이다(Q3, 값 대기).
    - A_min = (A_VT² + A_β²/(gm/ID)²) / σ_target²
    - L ≥ √(A_min · IDu / I)
-   - 계수가 없으면 비활성('계수 미확보')이다.
-3. **flicker 잡음 하한**(사용자 결정 2026-10-08: 잡음 경로 구현). 1/f 영역 잡음 제약(§7.1)이 선언된 회로에서만 활성이다.
-   - 입력 환산 1/f 밀도 예산 S_target(f₁)를 정한다. 출발 단계에서는 신호 경로 소자 수로 균등 분배한다. 정확한 판정은 §7.3이 한다.
-   - 소자마다 1/f 기여 S_k(f₁) = KF_eff,k(L, gm/ID, VDS) / (W·L·f₁) × (gm_k/gm_in)²를 쓴다. KF_eff는 §7.2 LUT 열이다.
-   - 위 식을 풀면 W·L ≥ A_min,k = KF_eff·(gm_k/gm_in)² / (f₁·S_target,k)가 된다. W·L = I·L²/IDu를 대입하면 **L ≥ √(A_min,k·IDu/I)**다(matching 하한과 같은 꼴).
+   - **계수 출처**(사용자 결정 2026-10-08 Q2): PDK `C:/pdk/sky130_fd_pr/cells/{nfet,pfet}_01v8/sky130_fd_pr__*_01v8__mismatch.corner.spice`.
+     - 모델 카드는 파라미터를 `p = p0 + p_slope/√(l·w·mult)` 꼴로 흔든다.
+     - 쌍의 차이 표준편차가 σ(Δp) = √2·p_slope/√(W·L)이므로 A_VT = √2·`vth0_slope`이다.
+     - A_β는 `toxe_slope`에서 구한다. β ∝ Cox ∝ 1/toxe이므로 A_β = √2·`toxe_slope`/toxe0이다.
+     - 나머지 `*_slope`(`voff_slope` 등)는 이 식에 넣지 않고 '미반영'으로 기록한다. 그 크기는 아래 MC 대조로 확인한다.
+   - **단위**: 모델 식의 l·w 단위(µm인지 m인지, scale 적용 여부)를 구현 첫 커밋에서 확인한다.
+     - 방법: ngspice `mc_mm_switch = 1` 소자 쌍 Monte Carlo(오라클 측, 엔진 비의존)로 σ(ΔVth)·σ(Δβ/β)를 재고 식과 비교한다.
+     - 그 비교를 test로 고정하고, 확인한 단위와 출처(sha256·행)를 `core` PDK 선언에 기록한다.
+3. **flicker 잡음 하한**(사용자 결정 2026-10-08, 파일럿 `noise_out_int_vrms` 제약에서 활성):
+   - 출발 단계에서는 §7.5에 따라 (총 예산 − 스위치 kT/C 항)의 절반을 flicker 몫으로 보고, 이를 출력 적분 예산으로 둔다.
+   - 입력 소자의 flicker 출력 적분은 Σ_in (K_k/(W_k·L_k))·∫ f^−EF_k·|폐루프 잡음 이득|² df이다. K는 §7.2의 A·W·L이고 W에 무관하다. 적분은 매크로 모델 폐루프 응답으로 계산한다.
+   - 위 식에서 입력 소자 면적 하한 A_min = W·L이 나온다. W·L = I·L²/IDu에서 **L ≥ √(A_min·IDu/I)**이다(matching 하한과 같은 꼴).
 4. **속도 상한**: f_T(gm/ID_lo, L) ≥ f_np에서 L의 최댓값.
 5. **면적 상한**(결정 11):
    - L ≤ √(A_budget · IDu / I)
@@ -683,58 +696,87 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 
 ## 7. 잡음 경로 (사용자 결정 2026-10-08: "노이즈 spec을 추가해서 코드를 만들어야지.")
 
-잡음 경로를 범위 안에 넣는다. 이 결정으로 P N1.2의 '잡음은 제약 metric으로 먼저 들어온다' 항목과 DEC-96 (3)의 '잡음·왜곡 미검증'은 잡음에 한해 바뀐다(계획서 정정 필요). 설계는 topology와 무관하다. 잡음원은 소자마다 붙고, 출력까지의 전달은 MNA adjoint로 계산하며, 회로별 식은 두지 않는다.
+잡음 경로를 범위 안에 넣는다. 회로별 값은 사용자 결정 2026-10-08 Q11을 따른다(§7.1). 이 결정에 따라 P N1.2의 잡음 항목과 DEC-96 (3)의 '잡음·왜곡 미검증'은 잡음에 한해 바뀐다(계획서 DEC-96 정정 필요, 사용자 지시). 설계는 topology와 무관하다. 잡음원은 소자마다 붙고, 출력까지의 전달은 MNA adjoint로 계산하며, 회로별 식은 두지 않는다.
 
 ### 7.1 spec -- 잡음 제약 metric (닫힌 어휘)
 
-| metric | 뜻 | 단위 | 선언 인자 |
-|---|---|---|---|
-| `noise_in_density_ss_v_rthz` | 입력 환산 잡음 전압 밀도, 지정 주파수 한 점 | V/√Hz | `freq_hz`, 전달 뷰(`ac_excite`, `sense`) |
-| `noise_in_integrated_ss_v` | 입력 환산 적분 잡음 전압(RMS), 지정 대역 | V | `band_hz: [f_lo, f_hi]`, 전달 뷰 |
+metric 이름은 주파수를 숫자로 고르지 않도록 '평탄값'과 'corner'로 정의한다(근거: `_drafts/engine/noise_spec_proposal.md` §1).
 
-- 열잡음 영역 제약과 1/f 영역 제약은 둘 다 `noise_in_density_ss_v_rthz`를 쓰고 `freq_hz`로 구분한다. 이름을 따로 만들지 않는다(DEC-68: 개념 하나에 이름 하나).
-- 제약 형식은 다른 제약과 같다: `{metric, op: "<=", value, source}`. `source`는 필수이고 `user_spec`이다.
-- 회로별 값은 사용자가 정한다(40 §9 Q11). 값을 지어내지 않는다.
-- 이 metric은 MOD5 레지스트리에 `MetricSignature{unit, domain: ss, view_kind: transfer, objective_axis: None}`로 등록한다. 단위 어휘에 `v_rthz`와 `v`를 추가한다(`core/units`).
-- 레지스트리 밖의 잡음 이름은 `metric_unknown`으로 거부한다(as-built 규칙 그대로).
+| metric | 정의 | 단위 | 쓰임 |
+|---|---|---|---|
+| `noise_th_in_v2hz` | 입력 환산 **열잡음 평탄값**. 소자별 열잡음 성분을 전달 뷰의 MNA로 입력에 환산해 더한 값 | V²/Hz | 보고(모든 회로) |
+| `noise_fc_in_hz` | 입력 환산 **1/f corner**. 입력 환산 flicker 성분이 열잡음 평탄값과 같아지는 주파수 | Hz | 보고(모든 회로) |
+| `noise_excess_th` | `noise_th_in_v2hz` ÷ 입력 소자만의 열잡음 하한(같은 LUT γ). 입력 소자는 S1v에서 gain 제약 전달 뷰의 첫 이득 블록 input 셀로 구조적으로 정한다 | 무차원 | 구조 가드 제약 |
+| `noise_out_int_vrms` | **폐루프** 출력 적분 잡음(rms). 선언된 되먹임 β로 루프를 닫은 테스트벤치(§7.3 폐루프 모드)에서 [f_lo, f_hi]를 적분한다 | V | 파일럿 제약 |
+
+**회로별 선언**(사용자 결정 2026-10-08 Q11):
+
+| 회로 | 잡음 선언 |
+|---|---|
+| current_reuse_telescopic_ota(파일럿) | `noise_out_int_vrms <= 300e-6`. 출처: `user_spec`(논문 Xie & Chen Table I 값 채택, 사용자 결정) |
+| two_stage_ota, two_stage_ota_sf, folded_cascode, ngcc_3stage_ff, nmcnr_amplifier, sf_pushpull_output_opamp, common_gate_amplifier | `noise_excess_th <= 2`(가드: 부하 잡음 ≤ 입력 잡음, `user_spec`). 그리고 `noise_th_in_v2hz`·`noise_fc_in_hz` 보고 |
+| pushpull_follower_buffer | 제약 없음, 보고만(이득 ~1 버퍼라 잡음 스펙이 의미가 없음) |
+
+**파일럿 적분 범위**:
+- 하한 f_lo = LUT가 실측한 가장 낮은 잡음 주파수 점이다(외삽하지 않는다. 현재 1 Hz).
+- 상한 f_hi는 유도한다. 폐루프 최고 극점보다 위에서 로그 격자로 올라가며, 꼬리 상계 PSD(f)·f(1극 이상 감쇠에서 성립)가 분해능²(이 metric의 resolution²) 이하가 되는 첫 주파수에서 멈춘다. 상한은 K_max번 두 배 확장이다.
+
+**공통 규칙**:
+- 제약 형식은 `{metric, op: "<=", value, source}`이다. `source`는 필수다.
+- MOD5 레지스트리에 `MetricSignature`로 등록한다(`domain: ss`, `view_kind: transfer`).
+- 단위 어휘 `v2_per_hz`, `hz`(기존), `ratio`, `v`를 `core/units`에 넣는다.
+- 레지스트리 밖의 잡음 이름은 `metric_unknown`으로 거부한다.
+- 옛 topology `sizing_roles.metrics.noise_v_rthz`(주파수가 없어 판정할 수 없음)는 새 로더가 읽지 않는다.
 - 왜곡은 여전히 범위 밖이다.
 
 ### 7.2 LUT -- 소자 잡음 데이터 (PDK BSIM4 잡음 모델에서 특성화)
 
-**열**(DC 슬라이스와 같은 축 (kind, w_key, L, VGS, VDS, VS)):
+**모델 사실**(`noise_spec_proposal.md` §0, sky130 모델 카드를 bin 전수로 확인한 값):
+- `fnoimod = 1`(unified flicker: NOIA/NOIB/NOIC, EF). 그래서 KF·AF는 쓰지 않는다(카드 값 kf = 0).
+- `tnoimod = 1`(holistic thermal). γ는 모델 파라미터가 아니라 바이어스 함수다.
+- `ef`: nfet 0.84, pfet 1.0.
+- 따라서 γ·K를 상수로 가정하지 않는다. **LUT에서 칸마다 읽는다.**
+- EF는 상수를 박지 않고 PDK 모델 카드에서 파싱해 `core` PDK 선언(출처: 파일·sha256·행)에 둔다.
 
-| 열 | 뜻 | 단위 |
-|---|---|---|
-| `SID_TH` | 열잡음 드레인 전류 PSD 계수 = S_id,thermal / gm | A²/Hz/S |
-| `SID_FL1` | 1 Hz에서의 1/f 드레인 전류 PSD × f | A² |
-| `FL_EXP` | 1/f 기울기 지수 af_eff. 두 주파수 측정에서 계산한다 | 무차원 |
+**이미 있는 열**: LUT v2 r2(`lut_v2_location.json`이 sha256으로 고정)에 `SVG2_1HZ`, `SVG2_HF`가 있다. 게이트 환산 V²/Hz이고 각각 1 Hz, 100 MHz 값이다.
 
-**파생량**(읽는 쪽에서 계산하며 열로 저장하지 않는다):
-- 열잡음 γ_eff = SID_TH / (4kT).
-- 입력 환산 1/f 계수 KF_eff = SID_FL1·W·L / gm²(§6.4-3에서 사용).
+**추가 특성화**(사용자 결정 Q11: 저주파 점 추가):
+- 100 MHz 점은 fT가 충분하지 않은 칸(긴 L, 약반전)에서 Cgd 피드스루 때문에 게이트 환산값이 작게 나온다. 그래서 중간 주파수 점을 더 잰다.
+- 점 위치를 상수로 박지 않는다. 기존 두 점 사이를 로그로 이분해 점을 추가한다. 각 칸에서 아래 '열잡음 평탄값 B 추정' 조건을 만족하는 점이 하나 이상 생길 때까지 반복하고, 상한은 K_max다.
+- 측정은 ngspice `.noise`로 한다. 단일 소자 DUT 줄과 include는 생성기와 같다.
+- 축 격자는 DC LUT의 (L, VGS, VDS, VS)와 W 슬라이스를 그대로 쓴다.
 
-**스윕**:
-- ngspice `.noise` 해석을 쓴다. 단일 소자를 DC 바이어스한 뒤 drain 전류 잡음을 출력으로 하고, 출력 잡음 PSD를 읽는다.
-- 축 격자는 기존 DC LUT와 같은 (L, VGS, VDS, VS) 격자이고, 폭은 DC 슬라이스 키와 같다.
-- 주파수 두 점: f_th(1/f 성분이 열잡음보다 충분히 작은 높은 주파수)와 f_fl(1/f 우세 낮은 주파수). 두 값 모두 상수로 박지 않는다.
-  - 각 소자 칸에서 1/f와 열잡음의 교차 주파수 f_c를 먼저 잰다(예비 스윕은 `.noise` dec 스윕).
-  - f_th = 스윕 상단, f_fl = 스윕 하단으로 정한다. 스윕 범위는 PDK 모델 유효 범위와 LUT 생성 메타에 기록한다.
-- 생성기는 `assets/sky130_lut_sweep.py`에 `.noise` 모드로 추가한다(U-27 (f) 공유 생성기).
+**분해 규칙**: S_vg(f) = A/f^EF + B로 둔다.
+- A = S_vg(1 Hz) − B.
+- B(열잡음 평탄값)는 특성화 점 중 피드스루 오차 (ω·Cgd/gm)²가 그 칸의 tol 이하인 **가장 높은 주파수 점**에서 A/f^EF를 빼서 구한다. Cgd와 gm은 같은 LUT 칸에서 읽으므로 새 상수가 없다.
+- 조건을 만족하는 점이 없으면 그 칸의 B는 '미상'이다. 그 칸을 쓰는 잡음 metric의 resolution을 무한대로 두고 판정을 보류한다.
 
-**출처와 저장**:
-- **새 버전 파일**로 쓴다. 이름은 `..._noise_r1.npz`이고 sha256, 생성 메타(모델 파일 경로·sha, ngspice 버전, 온도, 코너, 주파수 점)를 함께 둔다.
-- 기존 공유 LUT 파일은 고치지 않는다. `lut_v2_location.json`에 새 항목으로 추가한다.
-- 로더 `load_lut_set`은 잡음 파일이 있을 때만 잡음 열을 노출한다. 없는데 잡음 제약이 선언되면 `SchemaRejectedError(noise_lut_missing)`이다.
-- tol은 다른 열과 같은 leave-one-out 방식으로 셀별 `tol_noise`를 계산한다(DEC-87 방법). 디스크 캐시 대상에 넣는다.
+**파생량**(읽는 쪽에서 계산하고 열로 저장하지 않는다):
+- γ_eff = B·gm / (4kT)
+- K = A·W·L(V²·m²): §6.4-3의 1/f L 하한에 쓴다.
 
-**LUT 조회 API**(신규): `noise_params(kind, w_key, L, VGS, VDS, VS) -> NoiseParams{sid_th, sid_fl1, fl_exp}`. as-built `CapTable.columns`의 옛 `SID_1F` 열은 단위가 틀렸으므로 읽지 않는다.
+**저장**:
+- 추가 주파수 점은 **새 버전 파일** `..._noise_r1.npz`에 둔다. sha256과 생성 메타(모델 경로·sha, ngspice 버전, 온도, 코너, 주파수 점)를 함께 기록한다.
+- 기존 v2 r2 파일은 고치지 않는다. `lut_v2_location.json`에 새 항목으로 더한다.
+- 로더는 v2의 `SVG2_*`와 새 파일의 점을 합쳐 노출한다.
+- 잡음 데이터가 없는데 잡음 제약이 선언되면 `SchemaRejectedError(noise_lut_missing)`이다.
+
+**tol**: 칸별 `tol_noise`를 LOO로 계산한다(DEC-87 방법). 디스크 캐시 대상이다.
+
+**API**(신규): `noise_params(kind, w_key, L, VGS, VDS, VS) -> NoiseParams{A, B, ef, b_status}`. 옛 `SID_1F`는 단위가 잘못되어 있으므로 읽지 않는다.
 
 ### 7.3 metrics -- 봉인 스냅샷 잡음 해석 (MOD5)
 
-**잡음원**: 소자마다 drain–source 사이 전류 잡음원 하나를 둔다.
-- S_id(f) = sid_th·gm + sid_fl1/f^{fl_exp}.
-- 저항은 4kT/R을 둔다.
-- 값은 봉인 스냅샷 `ss`의 동작점에서 LUT로 읽고, W 배율을 적용한다.
+**잡음원**:
+- MOS: gate–source 사이에 게이트 환산 전압 잡음원을 하나 둔다. 값은 S_vg(f) = A/f^EF + B다. 이것을 드레인 전류 잡음 gm²·S_vg로 바꿔 drain–source에 스탬프하는데, 두 방식은 같은 양이다.
+- 저항: 4kT/R.
+- 값은 봉인 스냅샷 `ss`의 동작점에서 LUT로 읽고 W 배율을 적용한다.
+- **포함 범위**(사용자 결정 Q11: CMFB·바이어스·스위치 포함): 회로의 모든 MOS와 저항이다. 파일럿 폐루프 모드에는 아래 스위치 kT/C 항을 더한다.
+
+**폐루프 모드**(`noise_out_int_vrms`, 파일럿):
+- 선언된 되먹임 요소(feedback {Cf1, Cf2}, spec)로 루프를 닫는다. Cs는 입력 부하로 남긴다(CI-10 결정). 이 상태에서 증폭 위상의 출력 잡음 PSD를 구한다.
+- **스위치**: 스위치 on-저항의 열잡음이 샘플링 커패시터에 남기는 값은 R과 무관하게 kT/C다. 그래서 spec 테스트벤치 선언 `noise_testbench.sampling_caps[]`(요소 이름과 출력 전달 이득 출처)마다 kT/C_s × (그 커패시터에서 출력까지의 저주파 전달 이득)²를 출력 적분에 더한다.
+- 이 항을 따로 기록해, 엔진(소자 잡음)과 오라클(스위치 포함 실제 SC 테스트벤치)의 구성 차이가 드러나게 한다.
 
 **전달**: as-built MNA(같은 (G, C) 조립)의 adjoint를 쓴다.
 - 출력 감지 노드에서 단위 전류를 주입해 adjoint 해를 한 번 구한다. 그러면 모든 잡음원의 전달 함수 Z_k(jω)를 한 번에 얻는다.
@@ -743,9 +785,11 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 **입력 환산**: S_in(f) = Σ_k |Z_k|²·S_k(f) / |H(jω)|². H는 선언된 전달 뷰의 전달함수(gain metric과 같은 뷰)다.
 
 **산출**:
-- `noise_in_density_ss_v_rthz` = √S_in(freq_hz).
-- `noise_in_integrated_ss_v` = √∫S_in df. 적분은 대역 안 로그 격자의 사다리꼴 적분이다. 격자 간격은 오차가 분해능 이하가 될 때까지 이분 세분한다(상한 K_max).
-- 소자별 기여 표 `noise_contrib[{device|element, share}]`.
+- `noise_th_in_v2hz` = Σ_k |Z_k/H|²·gm_k²·B_k이다(열잡음 성분만).
+- `noise_fc_in_hz`는 입력 환산 flicker 합 Σ|Z_k/H|²·gm_k²·A_k/f^EF_k가 열잡음 평탄값과 같아지는 f다. 1-D 근(`bracket_root`)으로 구한다.
+- `noise_excess_th` = `noise_th_in_v2hz` / (input 셀 소자만의 같은 합)이다.
+- `noise_out_int_vrms` = √(∫_{f_lo}^{f_hi} S_out df + 스위치 항)이다. 적분은 로그 격자 사다리꼴로 하고, 오차가 분해능 이하가 될 때까지 이분 세분한다(상한 K_max).
+- 소자별 기여 표 `noise_contrib[{device|element, thermal, flicker, share}]`를 낸다.
 
 **분해능**: metrics §9와 같은 방식이다. LUT 잡음 열의 tol_noise와 소신호 파라미터 tol이 adjoint 감도를 거쳐 전파된 값을 `MetricResult.resolution`으로 둔다.
 
@@ -755,21 +799,28 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 
 다른 ss 제약과 같은 형식이다. 판정 단위는 c = (value − metric)/resolution이고, 풀이 척도는 40 §7.2를 따른다. 외층 전회로 판정 위치(DEC-74)도 그대로다.
 
-### 7.5 출발 구간 -- 열잡음 gm 하한
+### 7.5 출발 구간 -- 잡음
 
-열잡음 밀도 제약이 선언되면 입력 소자 gm 하한을 둔다.
-- S_in,th ≈ Σ_k sid_th,k·gm_k / gm_in² ≤ S_target이다.
-- 입력 소자만 고려하면 gm_in ≥ (Σ_input sid_th) / S_target이다. 매크로 모델(§6.5)의 비를 써서 나머지 소자의 gm/gm_in을 넣으면 gm_in ≥ (Σ_k sid_th,k·(gm_k/gm_in)) / S_target이 된다.
-- §6.5에서 구한 gm_1이 이 하한보다 작으면 하한으로 올린다. 그다음 전류를 다시 전파한다.
-- 1/f 하한은 §6.4-3이다.
+**`noise_excess_th ≤ 2` 가드**:
+- 부하 소자 k의 열잡음 비는 (γ_k·gm_k)/(γ_in·gm_in)이다. 이 비의 합이 1 이하가 되도록 부하 gm/ID를 상한으로 둔다(강반전 쪽).
+- 매크로 모델(§6.5)의 전류 비로 gm_k/gm_in = ((gm/ID)_k / (gm/ID)_in)·r_k이다. 여기에 LUT γ를 넣어 부하 gm/ID 상한을 역산하고, 그 결과를 §6.3 속도 상한과 교집합한다.
+- 헤드룸 하한(§6.2)과 충돌하면 충돌 레코드로 남긴다.
+
+**파일럿 `noise_out_int_vrms`**:
+- 폐루프 열잡음 적분은 매크로 근사로 v²_th ≈ 2·γ_avg·kT/(β·C_eff)·(1 + 부하 비)이다(`noise_spec_proposal.md` §2.2와 같은 꼴, C_eff는 §6.5의 보상 소자). gm이 소거되므로, 이 항은 보상 커패시터의 하한으로 작용한다. 하한 = 예산 중 열잡음 몫이 남도록 하는 최소 C_eff다.
+- 예산은 나누지 않는다. 총 예산에서 kT/C 스위치 항을 뺀 나머지를 열잡음과 flicker가 함께 쓴다.
+- 출발 단계에서는 둘을 같은 몫으로 시작하고, 판정은 §7.3 전회로 계산이 한다.
+- flicker 몫은 §6.4-3 1/f L 하한(입력 소자 W·L)으로 간다.
+
+**1/f L 하한**: §6.4-3.
 
 ### 7.6 오라클 -- ngspice `.noise` 대조
 
 - 오라클은 엔진을 import하지 않는다.
-- 같은 테스트벤치(free 모드 동작점)에서 `.noise v(sense) <입력원> dec ...`로 입력 환산 밀도와 대역 적분을 잰다. 엔진과 같은 정의다(같은 감지 노드, 같은 여기원).
-- 비교 허용오차는 다른 metric과 같다. 엔진 metric의 resolution과 `model_error_noise_*`(DEC-72)로 판정하고, 모델 오차가 미측정이면 '판정 보류'다.
-- 합격 T5에 잡음 제약을 넣는다(사용자 결정으로 범위 안이 되었으므로).
-- 오라클 측정 항목 `ORACLE_MEASURES`에 두 metric을 더한다.
+- **개루프 metric**(`noise_th_in_v2hz`, `noise_fc_in_hz`, `noise_excess_th`): 같은 free 모드 동작점 테스트벤치에서 `.noise v(sense) <입력원> dec ...`로 잰다. excess는 입력 소자별 기여(`.noise` 소자별 출력)로 계산한다.
+- **폐루프 metric**(파일럿 `noise_out_int_vrms`): 스위치·CMFB·바이어스를 모두 넣은 실제 SC 테스트벤치를 증폭 위상으로 두고 `.noise`로 출력 PSD를 얻는다. 적분 범위는 엔진과 같은 [f_lo, f_hi] 유도 규칙을 따른다(오라클이 독립적으로 계산한다). 샘플링 kT/C는 과도 기반으로 따로 잰다.
+- **비교 허용오차**: 다른 metric과 같다. resolution과 `model_error_noise_*`(DEC-72)를 쓰고, 미측정이면 '판정 보류'다.
+- **합격**: T5에 잡음 제약을 넣는다. `ORACLE_MEASURES`에 네 metric을 더한다.
 
 ### 7.7 상태
 
@@ -806,7 +857,7 @@ def noise_analysis(snap: GraphSnapshot, view_key: str, spec_item) -> NoiseResult
 | 블록 gain·잔차 | (a) CS·캐스코드 손계산, (b) 단일 블록 회로에서 MNA와 비교 | `tests/metrics/test_block_model.py` | 단일 블록 잔차 ≤ 수치 분해능 |
 | GB4 | (b) 작은 toy에서 격자 직접 전수, (a) 불가능한 gain 픽스처 | `test_block_gain_bound.py`, `test_achievability.py` | exit 3. 상한 미상이면 판정 없음. 저항이 있으면 전류 축 포함 |
 | 면적 하한 | (a) | `test_area_lower_bound.py` | 인증되지 않은 전류 = 0 |
-| DOF(IC6) | (a) 사고19 픽스처 | `tests/contracts/test_ic6_dof.py` | over/under 판정 |
+| DOF(IC6) | (a) 사고19 픽스처 | `tests/metrics/test_ic6_dof.py` | over/under 판정 |
 | 층 0 | (a) 2블록 toy에서 전수 조합과 비교 | `tests/search/test_combo_dp.py`, `test_layer0_budget.py` | DP front = 전수 front. `gain_budget_db` 출력. override 반영 |
 | 출발 구간 | (a) 손계산 | `tests/search/test_start_intervals.py` | 필요조건 성질 |
 | 매크로 모델 | (a) 이상 VCCS 2·3극점, 캐스코드 노드 포함 | `tests/search/test_macro_poles.py` | UGF·PM 근, 근 없음 기록, 바퀴 수렴 |
@@ -820,12 +871,12 @@ def noise_analysis(snap: GraphSnapshot, view_key: str, spec_item) -> NoiseResult
 
 ```
 $PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q -m "not slow"
-$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/regression/test_structure_tables.py -q   # 9회로 S1v·발동표·A_max 표
+$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_structure_tables.py -q  # 9회로 S1v·A_max·Π·인증 비율 표
 $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_layer0_pilot.py -q      # front 점마다 allocated·realized·잔차
 ```
 
 `test_structure_tables.py`는 `runs/<run_id>/structure_tables/`에 다음을 쓰고, 9회로 전부 표가 있는지 단언한다(N7).
-- 9회로 S1v 표와 규칙 분기 발동표
+- 9회로 S1v 표와 분기 발동 기록. 전용 coverage 파일은 만들지 않는다(R7).
 - 블록별 GB4 표(블록 키, 격자 곱 Π, N_S, 인증/미상, A_max, b_GB4)
 - 회로별 인증 비율(인증 블록 수 / 블록 수)
 

@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.2
+version: 1.3
 plan_version: 6.0
 ---
 
@@ -9,7 +9,7 @@ plan_version: 6.0
 > **Summary**: 새 gm/ID 사이징 엔진(`skills/analog-gmid-design/gmid_engine/`)의 설계 정본이다. 계획서 N3.1 흐름 GB0~GB9를 패키지·파일에 대응시키고, 단계마다 알고리즘·입출력·불변식·실패 코드·as-built 상태를 적는다. 계획서가 요구하고 실행 로드맵에서 빠졌던 gain-budget 흐름(FR-1·FR-2·FR-4·FR-8)은 `41-gain-budget`에서 전부 설계한다. gap 분석 기준표는 `42-gap-checklist`다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Date**: 2026-10-08 · **Status**: v1.2. 이번 판은 다음을 반영했다.
+> **Date**: 2026-10-08 · **Status**: v1.3. 사용자 결정 2026-10-08 "Q1~Q11 모두 네 의견대로 진행해"(§8·§9 확정)를 반영하고, §11 구현 단위를 추가했다. 아래는 v1.2에서 반영한 내용이다.
 > - 재검증 지적 N1~N9와 Low 항목
 > - 잡음 경로를 범위 안으로 넣기로 한 사용자 결정(2026-10-08)
 > - `[ng-layer0-canon]` 49283c6 대칭 실측
@@ -23,7 +23,7 @@ plan_version: 6.0
 
 | 파일 | 내용 |
 |---|---|
-| `40-engine`(이 문서) | §1 범위·원칙 / §2 아키텍처(흐름·상태 층·패키지 API) / §3 단계별 설계 GB0~GB9(gain-budget 외) / §4 SPICE 오라클 / §5 CM(CMFB) 루프 / §6 대칭 / §7 면적 예산·성능 / §8 승인 없이 축소된 범위와 계획 이탈 / §9 사용자 결정이 필요한 질문 / §10 신규 API·검증(오라클·DoD·IC test) |
+| `40-engine`(이 문서) | §1 범위·원칙 / §2 아키텍처(흐름·상태 층·패키지 API) / §3 단계별 설계 GB0~GB9(gain-budget 외) / §4 SPICE 오라클 / §5 CM(CMFB) 루프 / §6 대칭 / §7 면적 예산·성능 / §8 승인 없이 축소된 범위와 계획 이탈 / §9 사용자 결정(2026-10-08 확정, 값 대기는 Q3·Q4) / §10 신규 API·검증(오라클·DoD·IC test) / §11 구현 단위(병렬 배분) |
 | `41-gain-budget` | FR-1(SP1 stage 유도), FR-2(블록 gain 모델과 MNA 잔차), FR-3 연계, FR-8(탐색 전 달성 불가), FR-4(층 0 gain 예산 조합 front와 `gain_budget_db`), 스펙에서 gm/ID·L 출발값 유도 |
 | `42-gap-checklist` | FR·NFR·DEC·설계 항목마다 한 행: 설계 절, as-built 상태, 증거 위치 |
 
@@ -320,7 +320,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 4. **보고 metric**:
    - `nqs_ratio` = `ugf_ss_hz` / 신호 경로 소자 최소 f_T. f_T는 봉인 `ss`의 gm/(2π·cgg)이다.
    - `mismatch_sigma_v`는 Pelgrom 식으로 계산한다. 계수는 §8 R17 선행 조건이 풀린 뒤에 쓸 수 있다.
-5. **전력 축**: DEC-78은 '레일 공급 전류의 합'이고, as-built는 Σ V·I(`power_dc_w`)다. 두 값은 레일 전압이 다르면 front 순서가 달라질 수 있다. 어느 쪽을 쓸지는 §8 R24(사용자). 어느 쪽이든 '기둥마다 전류를 한 번' 센 값과의 대조를 매 실행 기록하고, 어긋나면 `review_needed`로 둔다.
+5. **전력 축 = Σ V·I**(`power_dc_w`, 사용자 결정 2026-10-08 Q6. U-10 변경, DEC-78 문구 정정 대상): 레일마다 전압 × 공급 전류를 계산해 더한다. '기둥마다 전류를 한 번 센' 값과의 대조는 매 실행 기록하고, 둘이 어긋나면 `review_needed`로 올린다.
 6. **`verified_by`·모델 오차**: 레지스트리 항목에 `verified_by`·`model_error_ref`를 두고, 오라클 대조 결과(DEC-72)를 `derived.model_error_<metric>`에 쓴다.
 7. **잡음**(사용자 결정 2026-10-08, 범위 안): 다음 넷을 둔다. 설계는 41 §7이다.
    - 입력 환산 잡음 밀도와 적분 잡음 metric
@@ -335,7 +335,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 | `rout_ss_ohm` | PART(블록 테브난 잔차 없음) | `metrics/CONTRACT.md:205-213` |
 | 블록 국소 모델·잔차, 감도 게이트 | MISS | `metrics/CONTRACT.md:13-14` |
 | `ls`·스윙·ICMR·nqs·mismatch | MISS | `metrics/CONTRACT.md:14` |
-| 전력 축 | DEV(Σ V·I, 기둥 대조 없음) | `E/search/objectives.py:9` |
+| 전력 축 | PART: Σ V·I는 OK(결정 Q6). 기둥 대조 없음 | `E/search/objectives.py:9` |
 | 면적 탐색 축 | PART(master는 수동소자 단위 면적 None. MIM·측정 부하 제외는 `[ng-area-budget]`) | `E/metrics/dc_metrics.py:18-19,80-83` |
 | `verified_by`, `spice_unverifiable` | MISS | `metrics/CONTRACT.md:246,424` |
 | 잡음 metric·LUT 잡음 열·adjoint 해석 | MISS | `grep -rn "noise" E/metrics E/lut` 결과에 해석 코드 없음 |
@@ -480,7 +480,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 | 9 library 회로에서 묶기 활성 | DEV: **9회로 모두에서 비활성**이다. 수동소자를 방향 있는 것으로 다루기 때문이며, 아래 7의 확정 규칙으로 고친다 | -- |
 | 위치 | DEV: 설계의 `E/graph/canonical_form.py`·`automorphism_orbits.py` 대신 `sizing`·`search`에 있다. 다음 변경에서 정준형·궤도는 S1 구조 사실이므로 `graph`(MOD3)로 옮긴다(EP-3, 개념당 파일 하나) | -- |
 
-6. **실측 회귀 기록**: canonical 시작점 변경 뒤 folded_cascode와 two_stage_ota가 하나뿐이던 front 점을 잃었다. 원인은 시작점 운이다. 대응은 41 §5(층 0 gain 예산 조합점)와 41 §6(스펙 기반 출발 구간)으로 시작점을 여러 개, 근거 있게 만드는 것이다. 이 두 회로를 회귀 추적 대상으로 `tests/regression`에 둔다.
+6. **실측 회귀 기록**: canonical 시작점 변경 뒤 folded_cascode와 two_stage_ota가 하나뿐이던 front 점을 잃었다. 원인은 시작점 운이다. 대응은 41 §5(층 0 gain 예산 조합점)와 41 §6(스펙 기반 출발 구간)으로 시작점을 여러 개, 근거 있게 만드는 것이다. 이 두 회로를 회귀 추적 대상으로 `tests/integration`에 둔다.
 7. **2단자 수동소자는 방향 없이 다룬다**(사용자 결정 2026-10-08 "대칭 묶음 방식: b", 확정 규칙):
    - **배경**: as-built 브랜치 실측에서 묶기가 9회로 모두 비활성이었다. 원인은 DC 전류가 흐르는 저항을 방향 있는 것으로 보아 방향 보존 자기동형만 허용한 데 있다. 파일럿 R1/R2는 단자 순서가 반대로 그려져 있어 거울 대칭이 잡히지 않았다.
    - **라벨링**: 정준 라벨링에서 R·C 같은 2단자 수동소자는 무향 엣지다. 단자 순서는 색에 넣지 않는다.
@@ -505,7 +505,11 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 - 저항 단위 면적은 선언이 없으면 `passive_area_undeclared`로 보고한다. 이 처리에는 두 결정이 걸린다(M3).
   - DEC-79: 보상·부하 수동소자가 있는 회로에서 수동소자 면적 선언이 없으면 front는 `review_needed`다.
   - 사용자 결정 11: 면적 = MOS 게이트 면적 + 커패시터 면적이고, 저항은 언급하지 않는다.
-  - 저항 면적을 넣을지(단위 면적 PDK 선언 필요), 결정 11대로 뺄지는 사용자에게 묻는다(§9 Q9). 그 결정 전에는 저항을 뺀 값을 쓰고, front에 '저항 면적 미포함'을 표시한다(`review_needed`로 정지하지 않음).
+  - **결정**(Q9, 2026-10-08): 저항 면적을 포함한다.
+    - **단위 면적 유도**: 폭 W_R, 시트 저항 R_□인 poly 저항의 면적은 R·W_R²/R_□ + 두 끝 접촉 머리 면적이다. 그러므로 Ω당 면적 = W_R,min²/R_□이고, 머리 면적은 저항마다 한 번 더한다.
+    - **입력값**: R_□는 PDK 저항 모델 파일(`C:/pdk/sky130_fd_pr/models/r+c/res_typical__cap_typical__lin.spice`의 poly 저항 시트 파라미터)에서 읽는다. 최소 폭과 머리 길이는 PDK 규칙(periphery rules의 poly 저항 항목)에서 읽는다. 셋 다 `core` PDK 선언 양 `poly_res_sheet_ohm_per_sq`, `poly_res_min_w_m`, `poly_res_head_area_m2`로 두고 출처(sha256, 행·규칙 번호)를 함께 기록한다.
+    - **저항 종류 선택**: PDK에 선언된 poly 저항 종류 중 Ω당 면적이 가장 작은 것을 쓴다. 고정 상수가 아니라 규칙이다.
+    - **측정 부하 제외**: 측정 부하(`measurement_load`, 예: nmcnr RL)는 커패시터와 마찬가지로 면적에서 뺀다.
 - 제약 행은 c = (v − A)/b_A다(판정 단위).
 
 **S-3b 잠정 상한과 그 닫힘**:
@@ -565,7 +569,15 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 - R1~R28: 로드맵(`_drafts/engine/ROADMAP.md`, 이하 R), 초안, CONTRACT가 계획 요구를 줄이거나 미룬 곳.
 - R29~R33: **이 design 자체가 계획 문구와 다르게 정한 곳**.
 
-**결정은 사용자 몫이다.** 권고는 이 design의 의견이다. 'D18 철회'(사용자 2026-10-08)로 이미 되돌리기로 정해진 항목은 그렇게 표시했다.
+**결정(사용자 2026-10-08, "Q1~Q11 모두 네 의견대로 진행해")**: 아래 목록이 정본이다. 표의 '상태' 열은 결정 이전 상태를 남겨 둔 것이다.
+
+| 결정 | 해당 행 |
+|---|---|
+| **복원** | R2, R3, R4(U-49를 복원으로 닫음, 계획서 정정), R5, R6, R8, R9, R10, R11, R12, R13, R14, R15, R16, R20, R21, R22, R23, R25(LR3은 실측 bin 규칙으로 계획 정정) |
+| **축소 유지 승인** | R7: `rule_branch_coverage.json`을 만들지 않는다. `기록만` 분기와 S1 지원 밖 분기의 `unsupported_rule_branch` 정지는 그대로 둔다(DEC-59 안전망). R26: test 폴더 체계는 현행 그대로 쓴다. 패키지별 `tests/<패키지>/`, `structure/`, `integration/`, `generality/`이고 §10.3·10.4 경로가 이를 따른다 |
+| **수용** | R29: 층 0 첫 회차 = spec 출발 구간. knee 앵커는 추가 후보로 쓴다. R30: U-12를 구조 매크로 모델로 대체한다. R31: U-24에 CM 루프 예외를 둔다 |
+| **다른 질문에서 결정** | R17 → Q2, R19 → Q10, R24 → Q6(전력 축 = Σ V·I, U-10 변경), R27 → 잡음 범위 안(Q11), R32 → Q5b |
+| **이미 결정됨** | R1(사용자 철회), R18·R33(결정 4번), R28(계획 승인) |
 
 | # | 축소 내용 | 출처 | 계획 근거 | 상태 | 권고 |
 |---|---|---|---|---|---|
@@ -605,11 +617,44 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 
 ---
 
-## 9. 사용자 결정이 필요한 질문
+## 9. 사용자 결정
 
-spec 값, 회로 해석, 범위에 관한 질문만 남긴다. 알고리즘 선택은 이 design에서 정했다.
+**결정일 2026-10-08**. 사용자 원문은 "Q1~Q11 모두 네 의견대로 진행해"이며, 전문은 `_drafts/user_decisions.md`의 마지막 항목에 있다. 계획서 N7.2에 U id로 올리는 일은 계획서 정정 커밋에서 한다.
 
-계획서 N7.2에 올릴 때 쓸 U id 후보도 함께 적는다. 계획서 개정 문안으로만 쓰며, 이 커밋은 계획서를 고치지 않는다.
+| # | U | 결정 |
+|---|---|---|
+| Q1 | U-53 | §8 결정 목록대로 |
+| Q2 | U-54 | Pelgrom 계수는 PDK `*__mismatch.corner.spice`에서 가져온다. 유도식과 단위는 41 §6.4-2에 기록하고, MC 대조 test로 확정한다 |
+| Q3 | U-17 확장 | **값 대기**. offset·미러비 matching 하한은 값이 있는 회로에서만 동작한다. 구조 분석에서 낸 제안값을 사용자에게 따로 검토받는다(설계는 막지 않는다) |
+| Q4 | U-55 | **값 대기**. 스윙·ICMR 몫은 값이 있는 회로에서만 동작한다(지금은 ngcc ICMR ≥ 0.6 V 하나). 제안값은 따로 검토받는다 |
+| Q5 | U-44 | topology `_declared_target_spec`(2026-09-21 확정)의 성능 목표를 제약으로 올린다. 회로별 현황은 아래 표 |
+| Q5b | U-56 | 제약이 남지 않는 회로도 사이징에서 빼지 않는다. '성능 판정 보류'로 탐색하고 보고한다(41 §5.1) |
+| Q6 | U-10 변경 | 전력 축 = Σ V·I(as-built `power_dc_w`). DEC-78 문구를 고친다. 기둥 대조 기록은 유지한다 |
+| Q7 | U-06 | J 공동분석은 SP1 구현 뒤에 한다 |
+| Q8 | U-57 | 면적 예산은 그대로 둔다. 진단(§7.1-4) 결과를 보고 다시 논의한다 |
+| Q9 | U-36 확장 | 저항 면적을 면적 축에 넣는다. 저항 단위 면적은 PDK에서 유도한다(§7.1) |
+| Q10 | U-58 | 오라클 최종 판정은 Nyquist Z = N + P(`.pz`로 독립 측정)와 폐루프 과도로 한다. 둘 다 판정할 수 없을 때만 INCOMPLETE다. 탐색은 결정 A의 보수 규칙을 유지한다(§4-5~7) |
+| Q11 | U-59 | 잡음: 파일럿은 `noise_out_int_vrms ≤ 300 µVrms`(CMFB·바이어스·스위치 포함, 하한 1 Hz, 상한은 유도값)이다. 나머지 7회로는 `noise_excess_th ≤ 2`에 열잡음 평탄값·1/f corner 보고를 더한다. pushpull_follower는 보고만 한다. LUT에 저주파 점을 추가한다. DEC-96을 고친다(41 §7) |
+
+**Q5 회로별 성능 제약 현황**(spec `constraints` + `_declared_target_spec`):
+
+| 회로 | 이미 제약에 있는 것 | 이번에 올리는 것 | 아직 없는 값 |
+|---|---|---|---|
+| current_reuse(파일럿) | gain ≥ 54, PM ≥ 70, CMRR·PSRR ≥ 60, mismatch ≤ 5(대기) | 잡음 ≤ 300 µVrms | -- |
+| two_stage_ota | gain ≥ 57, mismatch ≤ 5 | GBW ≥ 7 MHz(보상 목표 `user_spec`을 제약으로) | PM(SP-3) |
+| two_stage_ota_sf | rout ≤ 1 kΩ, gain·mismatch는 two_stage_ota를 참조 | GBW는 두 회로 상속 | PM |
+| ngcc_3stage_ff | GBW ≥ 10 MHz, PM ≥ 63.4 | ICMR ≥ 0.6 V(`ls` 입력 범위 metric 구현과 함께) | gain |
+| nmcnr_amplifier | GBW ≥ 816 kHz, PM ≥ 70 | -- | gain(논문 > 100 dB는 채택하지 않음) |
+| sf_pushpull_output_opamp | gain ≥ 65, GBW ≥ 60 MHz, rout ≤ 1 kΩ | -- | PM(SP-3) |
+| pushpull_follower_buffer | rout ≤ 1 kΩ | -- | (버퍼, 다른 값 불필요) |
+| folded_cascode | 없음 | -- | gain·GBW·PM 모두 → Q5b 판정 보류 |
+| common_gate_amplifier | 없음 | -- | gain·GBW 모두 → Q5b 판정 보류 |
+
+모든 회로에 공통으로 잡음 가드와 면적 예산 제약(결정 11)을 함께 둔다.
+
+### 9.1 (기록) 결정 전 질문 원문
+
+결정 이전의 질문 표다. 기록용으로 남긴다.
 
 | # | U 후보 | 질문 | 왜 사용자 몫인가 | 막는 것 |
 |---|---|---|---|---|
@@ -652,14 +697,18 @@ def run_gmid_design_pipeline(spec_path, *, search=None, output_dir=None, instrum
 
 | 항목 | 오라클 | test(신규) | 단언 |
 |---|---|---|---|
-| 대칭 궤도·θ 묶기 | (a) 5T·캐스코드 toy, (b) 전수 순열 자기동형(소자 ≤ 8 toy) | `tests/graph/test_canonical_form.py`, `test_automorphism_orbits.py` | 궤도 ⊆ matching 그룹. 이름 전단사 후 front 해시 동일 |
+| 대칭 궤도·θ 묶기 | (a) 5T·캐스코드 toy, (b) 전수 순열 자기동형(소자 ≤ 8 toy) | `tests/graph/test_canonical_form.py`, `test_automorphism_orbits.py` | diff_pair 두 멤버가 같은 궤도에 든다. crosstab을 생성한다. 이름 전단사나 수동소자 단자 순서를 바꿔도 front 해시가 같다. 파일럿 R1/R2가 한 궤도로 묶이고 전류 부호는 −1이다 |
 | MOD8 수렴·재필터 | (a) W_request 합성 픽스처 | `tests/convergence/test_converge.py` | 레이아웃 안 재시도에서 커널 호출 0. 결과마다 재평가 1회. K_max에 닿으면 NONCONVERGENT |
 | C10 한계 사이클·Nyquist | (c) 지속 진동 fixture, 조건부 안정 fixture | `tools/spice_oracle/tests/test_oracle_c10_stability.py` | 지속 진동 → unstable(limit_cycle) FAIL. 개루프 RHP이면서 Z = 0이고 과도 안정 → 합격 |
 | 척도화 | (a) 1e6 규모 행 픽스처 | `tests/search/test_slsqp_scaling.py` | status 4 없음. 척도화 전후 활성 집합 동일 |
 | 아카이브 타입 | (a) 왕복 | `tests/search/test_archive_records.py` | float 왕복 비트 동일. 문자열 숫자는 거부 |
 | CM 감지 저항 | (a) R 부하 손계산 | `tests/search/test_cm_sense_r.py` | 최소 R에서 ΔG ≤ b_gain |
 
-### 10.3 IC1~IC11 계약 test (P N4.1, 경로 `E/tests/contracts/`)
+### 10.3 IC1~IC11 계약 test (P N4.1)
+
+R26(축소 유지)에 따라 test 경로는 현행 체계를 따른다. 별도의 `contracts/` 폴더는 만들지 않는다.
+- 각 IC test는 담당 패키지 폴더 `E/tests/<패키지>/test_ic<n>_<이름>.py`에 둔다.
+- 9회로를 실행하는 test(IC7·IC11)는 `E/tests/integration/`에 둔다.
 
 | IC | test | 입력 | 단언 | 단위 |
 |---|---|---|---|---|
@@ -682,7 +731,61 @@ def run_gmid_design_pipeline(spec_path, *, search=None, output_dir=None, instrum
 | 범위 | 명령 |
 |---|---|
 | 전체(slow 제외) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q -m "not slow"` |
-| 계약 | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/contracts -q` |
-| 9회로 구조 표(S1v·발동표·A_max) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/regression/test_structure_tables.py -q` |
-| 9회로 E2E(T9) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/regression -q` |
+| IC 계약 | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q -k "test_ic"` |
+| 9회로 구조 표(S1v·A_max·Π·인증 비율) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_structure_tables.py -q` |
+| 9회로 E2E(T9) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration -q` |
 | 오라클 | `$PY -m pytest skills/analog-gmid-design/tools/spice_oracle/tests -q` |
+
+---
+
+## 11. 구현 단위 (병렬 배분용)
+
+**목적**: 오케스트레이터가 code agent를 최대 6개까지 동시에 돌릴 수 있도록 구현을 독립 단위로 나눈다.
+
+**배분 규칙**
+- **파일 소유**: 한 단위가 고치는 파일은 그 단위만 고친다. 아래 '범위' 열이 파일 소유권이다.
+- **공유 파일**
+  - `E/_module_map.py`: 각 단위는 자기 행만 추가한다. 병합할 때 오케스트레이터가 합친다.
+  - `E/<패키지>/__init__.py`의 `__all__`: 그 패키지를 소유한 단위만 고친다. 다른 단위의 새 API가 필요하면 아래 '선행' 열의 단위가 먼저 공개한다.
+- **선행 단위가 끝나기 전**: 그 인터페이스(41 §8, 40 §10.1 서명)를 기준으로 toy 입력 test부터 쓴다. 실제 회로 test는 선행 단위가 병합된 뒤에 활성화한다.
+- **완료 조건**(PDCA 구현 단계, 각 단위 공통)
+  - 아래 '확인 행'의 42 기준표 행이 OK가 된다.
+  - 그 단위의 test가 통과한다.
+  - 전체 suite(`not slow`)가 통과한다.
+  - 코드 작성 주체와 test 작성 주체가 다르다(WP-13).
+
+**U0 -- 선행 병합**(오케스트레이터, code agent 아님)
+- 대상 브랜치: `ng-cmfb-pm`, `ng-oracle-early`(계약), `ng-tolv-cache`, `ng-layer0-canon`, `ng-area-budget`, `worktree-agent-a90dfb25fa6fe9f04`(LUT r2), `ng-bridge`.
+- 이 브랜치들을 병합하고, 병합할 때마다 전체 suite를 돌린다(사용자 결정 3).
+- 이후 단위들은 병합된 master를 출발점으로 쓴다.
+
+| 단위 | 범위(소유 파일·패키지) | 설계 절 | 선행 | 웨이브 | 확인 행(42) | test 계획 |
+|---|---|---|---|---|---|---|
+| **U1 SP1 구조** | `E/graph/` 신규 파일: `views`, `ac_ground_view`, `signal_reach`, `cells`, `drive_kind`, `stage_bfs`, `blocks`, `pole_nodes`, `loops`, `loop_classify`, `loop_cuts`, `polarity`, `buffer_bundles`, `output_direction`, `composite_blocks`, `declared_compare`, `s1v_build`. `structure.json` 로더. L 동치류 `derived` 처리와 주인 결정 | 41 §1, 40 §3.2 | U0 | 1 | FR-1, DEC-17·29·43·57·63·65·81, D-GB1a, D-GB2a~j | 41 §9 SP1·루프 행. toy 2~4소자(a), 9회로 표(d), 이름 전단사 |
+| **U2 대칭** | `ng-layer0-canon`의 정준 라벨링·궤도를 `E/graph/canonical_form.py`·`automorphism_orbits.py`로 옮긴다. 수동소자 무향 처리와 부호 −1 묶기. `orbit_matching_crosstab`. `E/search/orbit_ties.py`·`tie_expand.py` 갱신 | 40 §6 | U0 | 1 | D-SYa~d, R16 | 40 §10.2 대칭 행. 파일럿 R1/R2 궤도, 단자 순서 뒤집기 metamorphic |
+| **U3 LUT·PDK 확장** | `E/lut/`: `vgs_for_current_density`, VS Hermite, FC 정책, `ft_curve`·`intrinsic_gain_curve`·`vdsat_curve`·`idu_curve`, `noise_params`, 잡음 LUT r1 로더, `LutMemo.from_sweep` 배선 도우미. `assets/sky130_lut_sweep.py`에 `.noise` 모드 추가. `E/core/pdk_decl.py`와 PDK 선언 json에 EF, Pelgrom, poly 저항 양 추가 | 41 §4.1, §7.2, 40 §7.1, R25 | U0 | 1 | DEC-87·88, D-LUTc, D-NZ2, D-PF1·2, D-GB4a(분류 쪽) | 격자점·칸 중앙 ngspice 대조(c), Pelgrom MC 대조(c), Ω당 면적 손계산(a) |
+| **U4 sizing 보강** | `E/sizing/`: L 동치류 L 공유(θ 스키마), 미러 비 강제, S2p 기반 tol_I, DEC-95 (3) 전체 순서, W_request 고정 W, `size_and_seal_local` | 40 §3.7, 41 §5.3 | U0(② 순서 항목은 U1 인터페이스 필요) | 1 | DEC-17(θ 쪽)·32·70·95, D-GB7a~d, D-LS | IC1·IC2·IC10 test, 국소 봉인 toy |
+| **U5 authoring·spec** | `E/authoring/`: `gain_budget_db_override`(배열 키), `driving_spec`, `structure_count_budget`, 잡음 metric 어휘, `noise_testbench`, 옛 이름 표 수정(`input_dc_net`·`topology_hash`·`derived`), `spice_unverifiable[]`. `E/core/units.py` 잡음 단위. `assets/library/*.sizing_spec.json`에 Q5 승격·Q11 잡음 제약 반영 | 40 §3.1, §9, 41 §7.1 | U0 | 1 | FR-9, DEC-68·69·90(3), D-GB0a, D-NZ1 | 거부 test(옛 이름·출처 없음·`metric_unknown`), 9회로 로드 |
+| **U6 오라클** | `tools/spice_oracle/`: C10 한계 사이클과 안정 fixture 불변, 고Q 표시, `.pz` P, 위상 펼침 N과 Z 판정, `.noise` 개루프·폐루프 SC 테스트벤치, `ORACLE_MEASURES` 추가 | 40 §4, 41 §7.6 | U0 | 1 | D-OR1~4, D-NZ6 | 40 §10.2 C10 행. 조건부 안정 fixture, `.noise` 손계산 저항 분압 |
+| **U7 metrics 이득·보고** | `E/metrics/`: `block_model`, `block_residual`, 결합 잔차 측정, `sensitivity_gate`, `ls_fields`(슬루·방향별 전류·스윙·ICMR), `nqs_ratio`, `mismatch_sigma_v`, `verified_by`·모델 오차 레지스트리 | 41 §2, 40 §3.8 | U1(블록 정의), U3(Pelgrom) | 2 | FR-2, DEC-05·23·58·66·72·96, D-BM, D-SG, D-GB8a~c | CS·캐스코드 손계산, 단일 블록 잔차 0, ICMR ngcc |
+| **U8 metrics 잡음** | `E/metrics/noise_sources.py`, `noise_analysis.py`, 잡음 제약 행 연결 | 41 §7.3·7.4 | U3, U5 | 2 | D-NZ3·4 | 4kTR·4kTγgm 손계산(a), ngspice `.noise`(c) |
+| **U9 GB4 달성가능성** | `E/metrics/achievability.py`, `curve_checks.py`, `block_gain_bound.py`, `dof_report.py`, `area_lower_bound.py`, `E/search/count_budget.py` | 41 §0, §4 | U1, U3 | 2 | FR-8, D-GB4a~e, D-NS, D-NM | 격자 직접 전수 toy(b), 불가능 스펙 exit 3, IC6 사고19, 계수 예산 결정론 |
+| **U10 GB3 결합** | `E/graph/coupling_vars.py`, `column_block_map` | 40 §3.3 | U1 | 2 | D-GB3, DEC-71 (2)(7) | 9회로 매핑표, 귀속 안 된 소자 정지 |
+| **U11 search 정비** | `E/search/`: SLSQP 척도화, 타입 있는 아카이브 레코드, 예산 점 풀이, `n_starts`·L-c 분지, ε 간격과 점 예산, CM 감지 저항 최소화, CM 1 dB 대체 제거, 면적 예산 출발점과 W 타당성 | 40 §3.6, §5-4, §7.1·7.2, §3.5 | U0 | 2 | D-SC, D-AC, D-BP, D-ST, D-EPS, D-CM4, D-CMR, D-AR2·3 | 1e6 행 픽스처, 왕복 비트 동일, 예산 점 1개 |
+| **U12 layout 정비** | `E/layout/`: ΔA_tie, LY5 즉시 완화 제거, `matching_L_mismatch`, `ly.diffusion`, 그룹 경계 tap, 판정 축 면적에 수동소자(MIM·poly 저항) 포함 | 40 §3.9 | U3(저항 PDK 양) | 2 | D-LY1~4, R20~22 | 해시 대조, 면적 손계산 |
+| **U13 출발 구간·매크로 모델** | `E/search/start_intervals.py`, `iv_*`, `macro_poles.py`, `dominant_node.py`, `eval_budget.py` | 41 §6, §7.5, §5.8 | U1, U3, U9 | 3 | D-SIa~f, D-DN, D-NZ5 | 손계산 toy, 이상 VCCS 2·3극점 |
+| **U14 MOD8 수렴** | `E/convergence/`: `converge`(W_request 루프, LY7 재평가, 판정 축 재필터, K_max) | 40 §3.9 | U4, U12 | 3 | D-M8, R12 | W_request 합성 픽스처, 커널 호출 계수 |
+| **U15 층 0 gain 예산** | `E/search/`: `layer0_budget`, `gain_bins`, `local_candidates`, `local_front`, `combo_dp`, `assembly`, `budget_override`. `layer0_center`는 대체되어 초기점 생성 전용이 된다 | 41 §5 | U4, U7, U9, U10, U13 | 4 | FR-4, DEC-03·10·71·73, D-L0a~i | 2블록 toy DP = 전수, 파일럿 `gain_budget_db` 출력 |
+| **U16 보고·진입점·통합** | `E/report/`, `E/pipeline/`(`ng-bridge` 흡수), `tests/integration/`의 9회로 E2E·구조 표·IC7·IC11·회귀 추적 | 40 §3.9, §10 | U14, U15, U6 | 5 | D-M9·M10, D-IC, D-T, T1~T9 | 9회로 E2E, 오라클 대조 |
+
+**웨이브 계획**(동시 6개 이하)
+
+| 웨이브 | 단위 | 비고 |
+|---|---|---|
+| 1 | U1, U2, U3, U4, U5, U6 | 서로 소유 파일이 겹치지 않는다 |
+| 2 | U7, U8, U9, U10, U11, U12 | 각 단위는 자기 선행 단위가 병합되는 대로 시작한다 |
+| 3 | U13, U14 | -- |
+| 4 | U15 | -- |
+| 5 | U16, 그 뒤 gap 분석(`42` 기준표 재측정) | J 공동분석(Q7)은 U1이 병합된 뒤 9회로 표로 바로 시작할 수 있다. 엔진 단위와 병렬로 진행한다 |
+
+**임계 경로**: U1 → U9 → U13 → U15 → U16. U1(SP1)이 가장 크므로, 하위 파일 단위로 나눠 같은 웨이브 안에서 순차로 커밋한다.

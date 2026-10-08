@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.2
+version: 1.3
 plan_version: 6.0
 ---
 
@@ -38,7 +38,7 @@ plan_version: 6.0
 | FR-9 명명 규칙, 옛 이름 거부 | 40 §3.1 | DEV | `E/authoring/_spec_fields.py:28-33`가 정본 이름 `input_dc_net`·`topology_hash`·`derived`를 거부한다. topology가 `direction`을 필수로 받는다(`authoring/CONTRACT.md:151-152`) |
 | NFR-1 조용한 실패 불가 | 전체 | PART | `E/core/failure_errors.py:20-60`. 아카이브 문자열 복원 결함 |
 | NFR-2 같은 키 재계산 0, LUT memo 상한 | 40 §7.3 | PART | `E/core/compute_block.py:77`. `rg "from_sweep\("` 호출부 0(`E/lut/lut_memo.py:34`) |
-| NFR-3 IC1~IC11 강제 test | 40 §10.3 | MISS | `E/tests/contracts/` 디렉터리 없음 |
+| NFR-3 IC1~IC11 강제 test | 40 §10.3 | MISS | 패키지별 test 폴더(R26 현행 체계 유지)에서 `rg "def test_ic"` 0 |
 | NFR-4 결정론 | 전체 | OK | `E/core/determinism.py`. 구조 규칙 test `tests/structure/test_structure_rules.py` |
 | NFR-5 스펙 맞춤, 여유 바닥 | 40 §3.6 | PART | 분해능은 있다(`E/metrics/sensitivity.py:1-15`, `MetricResult.resolution`). 모델 오차와 예산 점이 없다 |
 | NFR-6 기능별 파일 | 40 §1.2 EP-3 | OK | `E/tests/structure/structure_checks.py:312-1114`(규칙 A~I) |
@@ -98,7 +98,7 @@ plan_version: 6.0
 | 56 L5c 픽스처 | -- | N/A | 옛 엔진 전용(P N2.1 '새 엔진에는 해당하지 않는다') |
 | 57 전압 이득 stage | 41 §1.6 | MISS | FR-1 |
 | 58 블록 속성, 출력 구동 | 41 §1.7, 40 §3.8 | MISS | `rg "c_slew_farad\|i_out_max"` 0 |
-| 59 발동표와 정지 | 41 §1.10 | MISS | `rg "rule_branch_coverage"` 0 |
+| 59 발동표와 정지 | 41 §1.10 | PART | coverage 파일은 R7 축소 유지로 승인됨(2026-10-08). S1 지원 밖 정지는 있다(`E/graph/CONTRACT.md:352-362`). SP1 `기록만` 분기 정지는 FR-1과 함께 MISS |
 | 60 레일 선언 | 40 §3.1 | OK | `E/authoring/rails.py`, `E/authoring/hidden_rails.py:16` |
 | 61 벌크 기본값 | -- | OK | `E/graph/bulk_default.py` |
 | 62 데이터만으로 토폴로지 추가 | 40 §1.2 | PART | 구조 규칙 E·I는 OK. 이름 전단사 metamorphic test가 없다(`tests/generality/` 6개는 일부만 다룸) |
@@ -113,7 +113,7 @@ plan_version: 6.0
 | 74 외층 전회로 판정 | 40 §3.8 | PART | `E/search/search_context.py:84-105`(레지스트리 밖 metric은 notes에만 남는다) |
 | 75 선언으로 켜는 기능 | -- | OK | `E/authoring/spec_settings.py:34` |
 | 77 (전력, 면적) front | 40 §3.6 | PART | front는 OK(`E/search/find_front.py:72-120`). 예산 점 MISS |
-| 78 전력 축 | 40 §3.8 | DEV | `E/search/objectives.py:9`(Σ V·I). 기둥 대조 MISS |
+| 78 전력 축 | 40 §3.8 | PART | Σ V·I는 결정 Q6(2026-10-08)과 일치한다(`E/search/objectives.py:9`). 기둥 대조 MISS. DEC-78 문구 정정 필요 |
 | 79 면적 탐색 축·판정 축 | 40 §7.1, §3.9 | PART | `E/metrics/dc_metrics.py:18-19,80-83`. MIM은 `[ng-area-budget]`에만 있다. 판정 축의 수동소자와 재필터 MISS |
 | 80 면적 눈금, bin | 41 §5.2, 40 §3.6 | PART | b_A = grid × W_min(`E/search/eps_sweep.py`). 모델 오차 항 MISS |
 | 81 복합 블록 | 41 §1.9 | MISS | `rg "composite"` 0 |
@@ -177,13 +177,16 @@ plan_version: 6.0
 | D-SYa | 완전 정준 라벨링 | 40 §6 | PART(브랜치) | `[ng-layer0-canon]` 49283c6 `E/sizing/struct_canon.py`. master에는 1-WL만 있다(`E/sizing/struct_colour.py:1-15`). 위치를 `graph`로 옮겨야 한다 |
 | D-SYb | 궤도 θ 묶기와 해제, `orbit_matching_crosstab`, diff_pair 궤도 검사 | 40 §6 | PART(브랜치) | `[ng-layer0-canon]` `E/search/orbit_ties.py`, `tie_expand.py`, `human.search.untie_orbits`. 대조 표는 MISS |
 | D-SYc | 수동소자를 방향 없이 다루는 라벨링과 부호 있는 전류 묶기(사용자 결정 2026-10-08 'b') | 40 §6-7 | DEV | 브랜치 실측에서 9회로 모두 묶기가 비활성이다(수동소자를 방향 있는 것으로 다룸) |
-| D-SYd | folded_cascode·two_stage_ota front 회귀 추적 | 40 §6-6 | MISS | `tests/regression` 없음 |
+| D-SYd | folded_cascode·two_stage_ota front 회귀 추적 | 40 §6-6 | MISS | `tests/integration`에 없음 |
 | D-NS | 시간과 무관한 계수 예산 N_S, `structure_count_budget` | 41 §0 | MISS | `rg "count_budget"` 0 |
 | D-NM | 비단조 축 세분(미러 비·전류 배율·저항), 저항 컨덕턴스 격자 | 41 §4.2 | MISS | -- |
 | D-LS | `size_and_seal_local` 국소 봉인 인터페이스 | 41 §5.3 | MISS | `rg "size_and_seal_local"` 0 |
 | D-DN | 주극점 노드를 구조로 판정 | 41 §6.3 | MISS | -- |
-| D-NZ1 | 잡음 spec 제약 어휘(`noise_in_density_ss_v_rthz`, `noise_in_integrated_ss_v`), 단위 `v_rthz`·`v` | 41 §7.1 | MISS | `E/core/units.py`에 없음 |
-| D-NZ2 | LUT 잡음 열(`SID_TH`, `SID_FL1`, `FL_EXP`)의 새 버전 파일, 생성기 `.noise` 모드, `noise_params` | 41 §7.2 | MISS | `rg "noise_params"` 0. 옛 `SID_1F`는 읽지 않는다 |
+| D-NZ1 | 잡음 metric 어휘(`noise_th_in_v2hz`, `noise_fc_in_hz`, `noise_excess_th`, `noise_out_int_vrms`), 단위, 회로별 선언(Q11), `noise_testbench` | 41 §7.1 | MISS | `E/core/units.py`에 없음 |
+| D-NZ2 | LUT 잡음: v2 `SVG2_*` + 저주파 점 r1 새 파일, A/B/EF 분해, `noise_params`, 생성기 `.noise` 모드 | 41 §7.2 | MISS | `rg "noise_params"` 0. 옛 `SID_1F`는 읽지 않는다 |
+| D-PG | Pelgrom A_VT·A_β를 PDK mismatch 파일에서 유도하고 MC로 단위 확인 | 41 §6.4-2 | MISS | `E/core/pdk_decl.py`에 없음 |
+| D-RA | 저항 면적: poly 시트·최소 폭·머리를 PDK 선언에 두고 Ω당 면적 계산 | 40 §7.1 | MISS | `rg "poly_res_sheet"` 0 |
+| D-Q5 | Q5 승격(two_stage GBW 제약, ngcc ICMR)과 Q5b 판정 보류 표시 | 40 §9 | MISS | `assets/library/*.sizing_spec.json` |
 | D-NZ3 | adjoint 잡음 해석, 소자별 기여, 분해능 | 41 §7.3 | MISS | `rg -i "noise" E/metrics` 0 |
 | D-NZ4 | 잡음 제약 행 | 41 §7.4 | MISS | -- |
 | D-NZ5 | 열잡음 gm 하한, 1/f L 하한 | 41 §7.5, §6.4-3 | MISS | -- |
@@ -212,8 +215,8 @@ plan_version: 6.0
 | D-GB8a | `ls`, 스윙, ICMR | 40 §3.8 | MISS | -- |
 | D-GB8b | nqs, mismatch 보고 | 40 §3.8 | MISS | Pelgrom 계수가 선행되어야 한다 |
 | D-GB8c | `verified_by`, 모델 오차, `spice_unverifiable` | 40 §3.8 | MISS | -- |
-| D-IC | IC1~IC11 계약 test | 40 §10.3 | MISS | `E/tests/contracts/` 없음 |
-| D-T | test 폴더 regression, oracles, perf | 40 §8 R26 | MISS | `E/tests/` |
+| D-IC | IC1~IC11 계약 test(패키지별 폴더) | 40 §10.3 | MISS | `rg "def test_ic"` 0 |
+| D-T | test 폴더 체계 | 40 §8 R26 | N/A | 축소 유지 승인(2026-10-08). 현행 체계를 쓴다 |
 
 ## 4. 상태 집계
 
@@ -222,9 +225,9 @@ plan_version: 6.0
 | 구분 | 행 수 | OK | DEV | PART | MISS | N/A |
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 3 | 1 | 6 | 5 | 0 |
-| DEC | 81 | 24 | 7 | 26 | 16 | 8 |
-| 설계 항목 | 84 | 0 | 9 | 12 | 63 | 0 |
-| **합계** | 180 | 27 | 17 | 44 | 84 | 8 |
+| DEC | 81 | 24 | 6 | 28 | 15 | 8 |
+| 설계 항목 | 87 | 0 | 9 | 12 | 65 | 1 |
+| **합계** | 183 | 27 | 16 | 46 | 85 | 9 |
 
 센 방법:
 - D-SIa~f는 6행으로 센다.
