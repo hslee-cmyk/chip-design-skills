@@ -174,6 +174,10 @@ def solve_eps(sctx, start, minimize, eps, origin):
     resolved = [int(math.ceil(math.log2((hi[i] - lo[i]) / h[i]))) for i in range(n) if h[i] > 0]
     maxiter = max(1, sum(max(r, 1) for r in resolved))
     cap = max(1, int(math.ceil(math.log2(float(np.max(radius)) / float(np.min(h[h > 0])))))) if np.any(h > 0) else 1
+    # [결정 11] SLSQP 입력 행 척도: 행마다 1 / max(1, |시작점 c|) -- 양의 상수 배라 feasible 집합·`best` 판정(원 c ≥ 0)은 그대로고, 면적 예산
+    # 행(c ~ 1e6, 분모 b_A)처럼 크기가 몇 자릿수 다른 행이 QP 부분문제를 '제약 비호환'(status 4)으로 만드는 것을 막는다.
+    row_w = 1.0 / np.maximum(1.0, np.abs(first["c"]))
+    f_w = 1.0 / max(1.0, abs(first["f"]))           # 목적도 같은 이유로 SLSQP 입력만 척도(best 비교는 원 f); ftol 도 f_w 배 = 목적 분해능 1 단위(종전 ftol = 1)
     restarts, iterations, stop, aborts, frozen_log = 0, 0, "converged", [], []
     centre = first["x"]
     while True:
@@ -182,11 +186,11 @@ def solve_eps(sctx, start, minimize, eps, origin):
         box_hi = np.minimum(hi, centre + radius / shrink) if restarts else hi.copy()
         for i in state["frozen"]:
             box_lo[i] = box_hi[i] = centre[i]
-        cons = {"type": "ineq", "fun": lambda x: point(x)["c"], "jac": lambda x: jac_of(x)[1]}
+        cons = {"type": "ineq", "fun": lambda x: point(x)["c"] * row_w, "jac": lambda x: jac_of(x)[1] * row_w[:, None]}
         try:
-            out = scipy_minimize(lambda x: point(x)["f"], np.array(centre, copy=True), jac=lambda x: jac_of(x)[0], method="SLSQP",
+            out = scipy_minimize(lambda x: point(x)["f"] * f_w, np.array(centre, copy=True), jac=lambda x: jac_of(x)[0] * f_w, method="SLSQP",
                                  bounds=list(zip(box_lo, box_hi)), constraints=[cons], callback=accept,
-                                 options={"ftol": 1, "maxiter": maxiter})
+                                 options={"ftol": f_w, "maxiter": maxiter})
             iterations += int(out.nit)
             point(out.x)
             accept(out.x)

@@ -38,8 +38,10 @@ def test_classification_and_initial_state(tmp_path, lut_sealed):
     assert s.eval_budget == 40
     assert s.deadline is None
     assert s.archive is None
-    d = search_domain(case.dc, case.settings, case.pdk)
-    assert s.domain == d
+    # [결정 11] 3.14: CONS 의 판정 제약 area_search_m2 <= 1e-9 가 면적 예산 -> 정의역 = search_domain(..., area_budget_m2=1e-9)
+    # (옛 기대 search_domain(dc, settings, pdk) 는 예산 없는 정의역 -- 계약 3.14 r11 로 기대 변경).
+    d = search_domain(case.dc, case.settings, case.pdk, (), 1e-9)
+    assert s.domain == d and s.domain.area_budget_m2 == 1e-9
     assert re.fullmatch(r"[0-9a-f]{64}", s.code_fp)
     assert tuple(s.spec_passive_values) == ()
 

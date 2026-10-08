@@ -182,3 +182,52 @@ def test_cross_checks_skipped_on_fp_mismatch(sc):
     sc.human["feedback"]["elements"] = ["Rzz"]
     d = sc.reject()
     assert "element_undeclared" not in sc.rules(d) and "feedback_element_unknown" not in sc.rules(d)
+
+
+# ---------------------------------------------------------------- [사용자 결정 11, 2026-10-08] 측정 부하 표지 measurement_load
+# oracle (d): SPEC_CONTRACT '측정 부하 표지' 문단(결정 11 "Cl을 빼는 것에 동의해") -- 커패시터·저항 요소 항목(값 또는 engine)에 선택 키
+# "measurement_load": true, ElementValue.measurement_load(기본 False). true 가 아닌 값·커패시터/저항이 아닌 요소는 `type`.
+# 기대값은 이 test 가 JSON 에 적은 선언(구성으로 정해진 합성 입력)이다 -- 피검 로더 출력으로 만들지 않는다.
+
+def test_measurement_load_default_false(sc):
+    """선언하지 않으면 모든 요소의 measurement_load 는 False(기본)."""
+    doc = sc.load()
+    assert [(e.name, e.measurement_load) for e in doc.element_values] == [
+        (n, False) for n in sorted(sc.human["element_values"])]
+
+
+@pytest.mark.parametrize("name", ["Cld", "Rfb", "Cfb"])
+def test_measurement_load_true_on_rc_value_or_engine(sc, name):
+    """커패시터(값 Cld·engine Cfb)·저항(값 Rfb) 항목의 true 는 그 요소만 True 로 싣는다. 값·mode 는 그대로."""
+    before = {e.name: (e.mode, e.value_key, e.value) for e in sc.load().element_values}
+    sc.human["element_values"][name]["measurement_load"] = True
+    got = {e.name: e for e in sc.load().element_values}
+    assert {n: e.measurement_load for n, e in got.items()} == {n: n == name for n in got}
+    assert {n: (e.mode, e.value_key, e.value) for n, e in got.items()} == before
+
+
+@pytest.mark.parametrize("name,key", [("Ibs", "value_dc_amp"), ("Vcm", "value_dc_v")])
+def test_measurement_load_on_source_rejected(sc, name, key):
+    """전류원·전압원(커패시터/저항이 아닌 요소)의 measurement_load -> `type`(gate elements)."""
+    sc.human["element_values"][name] = {key: 0.5, "source": SRC, "measurement_load": True}
+    d = sc.reject()
+    assert sc.rules(d) == ["type"], sc.rules(d)
+    assert d["rejected_gates"] == ("elements",)
+
+
+@pytest.mark.parametrize("bad", [False, 1, 1.0, "true", None, [True], {"v": True}],
+                         ids=["false", "int", "float", "str", "null", "list", "obj"])
+def test_measurement_load_non_true_rejected(sc, bad):
+    """true 가 아닌 값 -> `type`(gate elements). SPEC_CONTRACT 문장 그대로 false 도 거부(표지는 '있으면 true' 하나), bool 아닌
+    1·"true"·null 등도 거부 -- 1 == True 혼동을 받지 않는다."""
+    sc.human["element_values"]["Cld"]["measurement_load"] = bad
+    d = sc.reject()
+    assert sc.rules(d) == ["type"], sc.rules(d)
+    assert d["rejected_gates"] == ("elements",)
+
+
+def test_measurement_load_changes_spec_fp(sc):
+    """선언은 spec 내용이다 -- 같은 spec 에 표지만 더하면 spec_fp 가 바뀐다(조용히 버리지 않는다)."""
+    a = sc.load().spec_fp
+    sc.human["element_values"]["Cld"]["measurement_load"] = True
+    assert sc.load().spec_fp != a

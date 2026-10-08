@@ -178,3 +178,119 @@ def test_same_content_other_folder_same_fp(toy_build, tmp_path):
     assert lut1.fp == lut2.fp
     m1, m2 = new_memo(lut1), new_memo(lut2)
     assert op_point(m1, "nmos", 100, 1e-6, 0.5, 0.5, 0.0) == op_point(m2, "nmos", 100, 1e-6, 0.5, 0.5, 0.0)
+
+
+# ---------------------------------------------------------------------------
+# [2026-10-08] 2.1 lookup_persistent + table_cache 인자 (디스크 캐시는 짧은 임시 폴더에서만 -- 실제 캐시 폴더 불변)
+# ---------------------------------------------------------------------------
+
+_ENV = "GMID_LUT_TABLE_CACHE_DIR"          # (d) 2.1 설정 table_cache.env
+
+
+@pytest.fixture
+def short_dir():
+    """칸 파일 이름이 약 150자라 깊은 tmp_path 에선 MAX_PATH 를 넘는다 -- 시스템 임시 폴더 바로 아래 짧은 폴더."""
+    import shutil
+    import tempfile
+    from pathlib import Path
+    d = tempfile.mkdtemp(prefix="gtm")
+    yield Path(d)
+    shutil.rmtree(d, ignore_errors=True)
+
+
+@pytest.fixture
+def cache_cls(toy, monkeypatch, short_dir):
+    """TableCache 클래스(공개 이름이 없으면 공개 객체 `LutMemo(...).table_cache` 의 형 -- default() 는 임시 폴더로)."""
+    import gmid_engine.lut as lut_pkg
+    cls = getattr(lut_pkg, "TableCache", None)
+    if cls is None:
+        monkeypatch.setenv(_ENV, str(short_dir / "_probe"))
+        cls = type(LutMemo(toy, point=1, curve=1, root=1).table_cache)
+    return cls
+
+
+def _tbl(d):
+    import os
+    return sorted(n for n in os.listdir(d) if n.endswith(".tbl")) if d.exists() else []
+
+
+def test_table_cache_argument_and_default(toy, cache_cls, short_dir, monkeypatch):
+    """(d) 2.1: table_cache 를 넘기면 memo.table_cache 가 그 객체, 생략하면 default()(저장소 설정 + os.environ -> 환경 변수 폴더)."""
+    import os
+    off = cache_cls(None)
+    assert LutMemo(toy, point=1, curve=1, root=1, table_cache=off).table_cache is off
+    envd = short_dir / "envd"
+    monkeypatch.setenv(_ENV, str(envd))
+    t = LutMemo(toy, point=1, curve=1, root=1).table_cache
+    assert isinstance(t, cache_cls)
+    p = t.path_of(toy.fp, cache_cls.data_id(toy.provenance), "probe", (1,))
+    assert os.path.normcase(os.path.dirname(p)) == os.path.normcase(str(envd))
+
+
+def test_lookup_persistent_memory_then_disk(toy, cache_cls, short_dir):
+    """(a) 2.1 불변식 (7): 같은 memo 두 번째 = 메모리 적중(`is`, 디스크 이벤트 불변, derived hits +1, compute 0);
+    새 memo(같은 폴더) = 디스크 적중(compute 0, 같은 값); 파일 이름은 fn_name 으로 시작."""
+    import numpy as np
+    d = short_dir / "c"
+    tc = cache_cls(str(d))
+    m = LutMemo(toy, point=4, curve=4, root=4, table_cache=tc)
+    calls = []
+
+    def compute():
+        calls.append(1)
+        return ("table", 1.5, (2.0,))
+    inputs = (np.arange(3.0),)
+    v1 = m.lookup_persistent("derived", "probe_table", ("nmos", 100), compute, inputs, ("s",))
+    ev = tc.events
+    st = _stats(m)["derived"]
+    v2 = m.lookup_persistent("derived", "probe_table", ("nmos", 100), compute, inputs, ("s",))
+    assert v2 is v1 and len(calls) == 1
+    assert tc.events == ev
+    assert _stats(m)["derived"].hits == st.hits + 1
+    assert [n.split("-")[0] for n in _tbl(d)] == ["probe_table"]
+    tc2 = cache_cls(str(d))
+    m2 = LutMemo(toy, point=4, curve=4, root=4, table_cache=tc2)
+    assert m2.lookup_persistent("derived", "probe_table", ("nmos", 100), compute, inputs, ("s",)) == v1
+    assert len(calls) == 1 and tc2.events == (("hit", "probe_table"),)
+
+
+def test_lookup_persistent_errors_and_failed_compute_not_stored(toy, cache_cls, short_dir):
+    """(d) 2절·2.1: lookup 과 같은 키 규칙(가변 키 TypeError, 모르는 영역 KeyError), 실패한 compute 는 저장되지 않는다(파일 0,
+    다시 부르면 다시 compute)."""
+    d = short_dir / "c"
+    m = LutMemo(toy, point=4, curve=4, root=4, table_cache=cache_cls(str(d)))
+    with pytest.raises(TypeError):
+        m.lookup_persistent("derived", "probe", ([1, 2],), lambda: 1, ())
+    with pytest.raises(KeyError):
+        m.lookup_persistent("nowhere", "probe", (1,), lambda: 1, ())
+    n = []
+
+    def boom():
+        n.append(1)
+        raise RuntimeError("x")
+    for _ in range(2):
+        with pytest.raises(RuntimeError):
+            m.lookup_persistent("derived", "probe", (1,), boom, ())
+    assert len(n) == 2 and _tbl(d) == []
+
+
+@pytest.mark.parametrize("fn,call", [
+    ("tol_v_table", lambda m: tol_v_table(m, "nmos", 100)),
+    ("tol_vdsat_table", lambda m: tol_vdsat_table(m, "nmos", 100)),
+    ("curve_report", lambda m: curve_report(m)),
+])
+def test_derived_tables_go_through_disk_cache(mid_toy_build, cache_cls, short_dir, fn, call):
+    """(d) 2.1 '쓰는 곳': tol_v_table·tol_vdsat_table·curve_report 는 lookup_persistent 로 디스크 캐시를 거친다 -- 첫 memo 는
+    그 fn_name 의 칸 파일을 쓰고(miss·write), 새 memo 는 디스크 적중(hit), 값은 같다. midpoint_l_bin_checks 는 대상 아님(파일 없음)."""
+    from .conftest import MID_L_SOURCE, mid_point_arrays
+    lut = mid_toy_build("dc", mid=mid_point_arrays((3.5e-6,), l_source=MID_L_SOURCE)).load()
+    d = short_dir / "c"
+    t1 = cache_cls(str(d))
+    a = call(LutMemo(lut, point=64, curve=64, root=64, table_cache=t1))
+    assert (("miss", fn) in t1.events) and (("write", fn) in t1.events)
+    assert {n.split("-")[0] for n in _tbl(d)} == {fn}
+    t2 = cache_cls(str(d))
+    b = call(LutMemo(lut, point=64, curve=64, root=64, table_cache=t2))
+    assert t2.events == (("hit", fn),)
+    from .test_table_cache import assert_bit_identical      # (b) 디스크 적중 값 = 처음 계산 값(비트 동일)
+    assert_bit_identical(a, b, fn)

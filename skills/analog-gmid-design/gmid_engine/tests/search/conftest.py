@@ -89,6 +89,30 @@ def write_pdk(root, **kw):
     return write_decls(root, **kw)[0]
 
 
+# [결정 11, 2026-10-08] toy MIM 단위 면적 원본 -- core 9.1 `spice_instance_line` 형식(sky130 선언의 mim_cap_params 와 같은 모양:
+# `.param` 다음 줄 `+ camimc= <F/µm²>  $ 주석`, units_m "" = 1e12 (µm² -> m²)). 값은 test 가 고르는 구성 입력.
+TOY_CAMIMC_F_PER_UM2 = "4.0e-15"
+TOY_MIM_DENSITY = 4.0e-3                # F/m² = 4.0e-15 F/µm² x 1e12 µm²/m² (단위 환산, 구성 값)
+
+
+def write_decls_mim(root, camimc=TOY_CAMIMC_F_PER_UM2, **kw):
+    """write_decls + PDK 선언에 원본 `toy_rc` 와 quantity `mim_cap_density_f_per_m2`(식 `camimc`) 추가. -> (PdkDecl, 규칙 PdkDecl)."""
+    from gmid_engine.core import BoundedLRU, read_pdk_decl
+    pp, rp = _decl_paths(root, **kw)
+    root = Path(root)
+    rc = root / "toy_rc.spice"
+    rc.write_text("* toy r+c\n.param\n+ camimc=  %s  $ Units: farad/micrometer^2\n+ cpwell=  1.0e-15\n" % camimc,
+                  encoding="utf-8")
+    decl = json.loads(Path(pp).read_text(encoding="utf-8"))
+    decl["sources"]["toy_rc"] = {"path": "toy_rc.spice", "sha256": hashlib.sha256(rc.read_bytes()).hexdigest(),
+                                 "format": "spice_instance_line", "encoding": "utf-8",
+                                 "line_pattern": r"^\+\s*(camimc\s*=\s*[^\s$]+)", "units_m": {"": 1e12}}
+    decl["quantities"]["mim_cap_density_f_per_m2"] = {"source": "toy_rc", "expression": "camimc", "basis": "toy MIM"}
+    Path(pp).write_text(json.dumps(decl), encoding="utf-8")
+    memo = BoundedLRU(8)
+    return read_pdk_decl(pp, memo), read_pdk_decl(rp, memo)
+
+
 # ---------------------------------------------------------------- LUT
 
 @pytest.fixture(scope="session")
@@ -320,8 +344,9 @@ def circuit_diode():
 PENDING = "pending"     # elements 값 자리 표지: spec 에 {"pending": "SP-1"} (값 없음·engine 아님 -> 수동소자 값 미선언)
 
 
-def load_spec(tmp, topo_doc, elements=(), constraints=()):
-    """metrics conftest `spec_json` 으로 spec 을 만들고 PENDING 원소만 결정 대기 표지로 바꿔 authoring 로더로 읽는다."""
+def load_spec(tmp, topo_doc, elements=(), constraints=(), measurement_loads=()):
+    """metrics conftest `spec_json` 으로 spec 을 만들고 PENDING 원소만 결정 대기 표지로 바꿔 authoring 로더로 읽는다.
+    [결정 11] measurement_loads = 그 원소 항목에 `"measurement_load": true` 를 적는다(SPEC_CONTRACT 측정 부하 표지)."""
     from gmid_engine.authoring import load_sizing_spec, load_topology
     from gmid_engine.metrics import metric_catalog
     tmp = Path(tmp)
@@ -334,13 +359,15 @@ def load_spec(tmp, topo_doc, elements=(), constraints=()):
     for n, _, v in elements:
         if v == PENDING:
             doc["human"]["element_values"][n] = {"pending": "SP-1"}
+    for n in measurement_loads:
+        doc["human"]["element_values"][n]["measurement_load"] = True
     sp = tmp / (topo_doc["topology_name"] + ".sizing_spec.json")
     sp.write_text(json.dumps(doc, indent=1), encoding="utf-8")
     return td, load_sizing_spec(str(sp), td, metric_catalog())
 
 
 def build_case(tmp, topo_doc, lut, constraints=(), elements=(), budget_s=600.0, eval_budget=40, rbounds=None,
-               archive_root=None, pdk=None, sources=SRC, cbounds=None, rule=None):
+               archive_root=None, pdk=None, sources=SRC, cbounds=None, rule=None, measurement_loads=()):
     """topology·spec -> KernelContext -> SearchContext([r6] PDK 선언 + LUT 규칙 선언).
     반환 SimpleNamespace(td, spec, dc, acc, pdk, rule, settings, sctx)."""
     from gmid_engine.graph import build_s1
@@ -348,7 +375,8 @@ def build_case(tmp, topo_doc, lut, constraints=(), elements=(), budget_s=600.0, 
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
     tmp = Path(tmp)
     acc = new_access(lut)
-    td, spec = load_spec(tmp / "case", topo_doc, elements=elements, constraints=constraints)
+    td, spec = load_spec(tmp / "case", topo_doc, elements=elements, constraints=constraints,
+                         measurement_loads=measurement_loads)
     inputs = dc_inputs_from_spec(spec)
     s1 = build_s1(td, dict(inputs.supplies_v))
     dc = build_kernel_context(s1, inputs, acc)
