@@ -2,7 +2,7 @@
 (design_mod7_layout.md 3절 4~6단계, LY1·LY6, 사용자 결정 2026-10-07 Q8 (v)~(viii)).
 
 진입점: `compose_rows` -- core `@compute_block`(writer `ly_rows`, reads device `ly_device`·`ly_finger`, graph `ly_groups`·
-`ly_groups_in`·`ly_row_groups`·`ly_pdk`, writes graph `ly_rows`·`ly_floorplan`).
+`ly_groups_in`·`ly_row_groups`·`ly_pdk`·`ly_passives`, writes graph `ly_rows`·`ly_floorplan`·`ly_diffusion`).
 
 1. 행 그룹(행 그룹 id 순)마다: 패턴으로 배치된 matching 그룹의 패턴 행은 그대로 물리 행(`<행그룹>/<그룹>/<i>`)이 되고
    `check_walk_sequence` 로 segment 마다 검산한다. 나머지 소자는 finger_w 폭 키별로 한 물리 행(`<행그룹>/w<폭 키>`)이 되어
@@ -19,7 +19,8 @@
      walk 실패이거나 무게중심이 나빠지면(max(dx, dy) 증가) 거부, 나머지는 면적으로 같은 규칙. interdigitation 행·패턴 없는
      matching 행은 자동으로 접지 않는다(기록).
    모든 시도는 `FoldAttempt` 로 남는다. 행 폭 비는 `box_verdict` 로 기록만 한다.
-4. floorplan = 최종 행의 `floorplan_of`(면적 계산은 행 집합 내용으로 memo -- 같은 행 집합은 다시 패킹하지 않는다).
+4. floorplan = 최종 행의 `floorplan_of`(수동소자 블록 포함 -- 판정 축 면적, 면적 계산은 행 집합 내용으로 memo -- 같은 행 집합은
+   다시 패킹하지 않는다). `ly.diffusion` = 최종 행의 `diffusion_geometry`(LY8).
 """
 import dataclasses
 from collections import Counter
@@ -30,10 +31,12 @@ from ._helpers_pattern import offsets, orient, pattern_rows
 from ._ly_fields import (
     DEVICE,
     F_DEVICE,
+    F_DIFFUSION,
     F_FINGER,
     F_FLOORPLAN,
     F_GROUPS,
     F_GROUPS_IN,
+    F_PASSIVES,
     F_PDK,
     F_ROW_GROUPS,
     F_ROWS,
@@ -44,6 +47,7 @@ from ._ly_fields import (
 from .box_shape import box_verdict
 from .contract_input import LAYOUT_ROLES, PATTERN_COMMON_CENTROID, ROLE_BRANCH_SYMMETRIC, ROLE_DIFF_PAIR
 from .contract_output import MERGE_NOISE_NOTE, FoldAttempt, GroupRebuild, MergeDecision, RowLayout, RowsLayout
+from .diffusion import diffusion_geometry
 from .floorplan import floorplan_of
 from .hub_candidates import find_hub_merge_candidates
 from .mirror_trail import check_walk_sequence
@@ -61,8 +65,9 @@ _MERGE_SEP = "+"
 class _Rows:
     """블록 호출 하나의 행 구성 상태(같은 행 내용의 Euler·같은 행 집합의 면적은 한 번만)."""
 
-    def __init__(self, devices, fingers, groups_in, row_groups, pdk):
+    def __init__(self, devices, fingers, groups_in, row_groups, pdk, passives=()):
         self.devices = devices
+        self.passives = passives
         self.fingers = fingers
         self.pdk = pdk
         self.overhead = pdk.finger_pitch_overhead_m
@@ -116,7 +121,7 @@ class _Rows:
         """판정 축 외곽 면적(m^2) -- 같은 행 집합 내용이면 memo."""
         key = tuple(sorted((r.row_id, r.row_group, r.width_m, r.finger_w_m, r.transistor_sequence) for r in rows))
         if key not in self.areas:
-            self.areas[key] = floorplan_of(rows, self.bodies, self.pdk)
+            self.areas[key] = floorplan_of(rows, self.bodies, self.pdk, self.passives)
         return self.areas[key]
 
 
@@ -268,17 +273,17 @@ def _improve(state, rows, placed):
 @compute_block(
     WRITER_ROWS,
     reads=((DEVICE, F_DEVICE), (DEVICE, F_FINGER), (GRAPH, F_GROUPS), (GRAPH, F_GROUPS_IN), (GRAPH, F_ROW_GROUPS),
-           (GRAPH, F_PDK)),
-    writes=((GRAPH, F_ROWS), (GRAPH, F_FLOORPLAN)),
+           (GRAPH, F_PDK), (GRAPH, F_PASSIVES)),
+    writes=((GRAPH, F_ROWS), (GRAPH, F_FLOORPLAN), (GRAPH, F_DIFFUSION)),
 )
 def compose_rows(projection):
-    """물리 행 전부(행 id 정렬)·행 폭 비 기록·시도 기록 = `RowsLayout`, 최종 행의 `FloorplanSummary`."""
+    """물리 행 전부(행 id 정렬)·행 폭 비 기록·시도 기록 = `RowsLayout`, 최종 행의 `FloorplanSummary`, 최종 행의 `ly.diffusion`."""
     devices = dict(projection.column(DEVICE, F_DEVICE))
     fingers = dict(projection.column(DEVICE, F_FINGER))
     placed = [g for g in projection.value(GRAPH, GRAPH_KEY, F_GROUPS) if g.pattern is not None]
     row_groups = projection.value(GRAPH, GRAPH_KEY, F_ROW_GROUPS)
     state = _Rows(devices, fingers, projection.value(GRAPH, GRAPH_KEY, F_GROUPS_IN), row_groups,
-                  projection.value(GRAPH, GRAPH_KEY, F_PDK))
+                  projection.value(GRAPH, GRAPH_KEY, F_PDK), projection.value(GRAPH, GRAPH_KEY, F_PASSIVES))
     rows = _initial_rows(state, row_groups, placed, fingers)
     if not rows:
         raise ValueError("compose_rows: 배치할 소자가 없다(모든 소자에 사용 가능한 폭 슬라이스가 없음 -- ly_slices 사유 참조)")
@@ -287,4 +292,5 @@ def compose_rows(projection):
     rows = tuple(sorted(rows, key=lambda r: r.row_id))
     box = box_verdict([(r.row_id, r.width_m, r.finger_w_m) for r in rows], folds)
     return {(GRAPH, F_ROWS): {GRAPH_KEY: RowsLayout(rows, box, attempts, merges, rebuilds)},
-            (GRAPH, F_FLOORPLAN): {GRAPH_KEY: state.area(rows)}}
+            (GRAPH, F_FLOORPLAN): {GRAPH_KEY: state.area(rows)},
+            (GRAPH, F_DIFFUSION): {GRAPH_KEY: diffusion_geometry(rows, devices, state.pdk)}}

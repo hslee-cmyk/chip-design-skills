@@ -18,7 +18,8 @@ REVALIDATION_PENDING_REASON = ("evaluation kernel (MOD5 metrics / sizing blocks)
                                "yet -- MOD8 convergence must consume this request before freeze")
 # 판정 축 면적 포함 항목(Q8 (vii)) -- FloorplanSummary.included 의 항목 이름.
 AREA_ITEM_ROW_END_DUMMY = "row_end_dummy_x2_per_row"
-AREA_ITEM_TAP = "body_tap_per_row"
+AREA_ITEM_TAP = "body_tap_per_group"
+AREA_ITEM_PASSIVES = "passive_blocks_mim_poly_resistor"
 AREA_ITEM_WELL_SPACING = "well_spacing_between_bodies"
 AREA_ITEM_ROW_GAP = "row_gap"
 AREA_ITEM_FINGER_OVERHEAD = "finger_pitch_overhead"
@@ -111,7 +112,10 @@ class PatternRow:
 @dataclasses.dataclass(frozen=True)
 class GroupLayout:
     """matching 그룹 결과. `ok` = 멤버 무게중심 일치(dx = dy = 0, finger 피치 단위). `pending` = W_request 를 내고 MOD8
-    응답 대기(배치는 `provisional`). `relaxed` = 차동쌍·branch_symmetric 이 완화됨(LY5 (iii), Q8 (ii))."""
+    응답 대기(배치는 `provisional`). LY5: W_request 를 낼 수 없거나(조정 불가·거부·사용 가능 폭 없음) 무게중심이 안 맞아도
+    레이아웃은 즉시 완화하지 않는다 -- pattern None + 사유로 두고 판정을 MOD8 에 맡긴다(`review_needed`).
+    `l_mismatch` = LY4 `matching_L_mismatch` 기록: 멤버 L 이 서로 다르면 ((멤버 이름, L_m), ...) (멤버 순서), 같으면 ()
+    -- 기록만이고 거부 사유가 아니다(L 통일은 LR2 소관)."""
 
     gid: str
     role: str
@@ -128,12 +132,12 @@ class GroupLayout:
     dx: object
     dy: object
     ok: bool
-    relaxed: bool
     pending: bool
     provisional: bool
     reason: str
     attempts: tuple
     w_requests: tuple
+    l_mismatch: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -258,17 +262,36 @@ class RowsLayout:
 @dataclasses.dataclass(frozen=True)
 class FloorplanSummary:
     """floorplan 결과. `outline_area_m2` = 외곽(bbox) 면적(판정 축 면적, 사용자 확정 12번 (나)),
-    `area_tie_m2` = 격자 한 칸 면적(재필터 동률 해상도). `placements` = ((행 id, x, y, 폭, 높이), ...) m(폭은 dummy·tap 포함).
+    `grid_m` = 제조 격자(재필터 동률 폭 ΔA_tie = grid_m x max(두 점 bbox 변 4개)의 재료 -- `area_tie.area_tie_m2(a, b)`, DEC-79·DEC-95 (2)).
+    `placements` = ((블록 이름, x, y, 폭, 높이), ...) m: 행 id(폭은 dummy 포함), `tap:<행 그룹>`(그룹 경계 tap 띠, LY10),
+    `passive:<이름>`(수동소자 블록). `passive_area_m2` = 수동소자 블록 면적 합(외곽 면적 `outline_area_m2` 에 포함).
     `included` = ((항목, 값 m, PDK 규칙 번호), ...) -- 판정 축 면적에 넣은 항목(Q8 (vii), front 표 '포함 항목' 열)."""
 
     bbox_width_m: float
     bbox_height_m: float
     outline_area_m2: float
-    area_tie_m2: float
+    grid_m: float
     aspect_ratio: float
     packing_density: float
     placements: tuple
     included: tuple
+    passive_area_m2: float = 0.0
+
+
+@dataclasses.dataclass(frozen=True)
+class DeviceDiffusion:
+    """`ly.diffusion[dev]`(LY8, DEC-89 (5)·DEC-91 (2)): 소자 finger 하나 평균 확산 기하와 finger 수. Euler 행의 공유 확산 통계 --
+    엔진 접합 용량(`metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, m = n_fingers)`)과 오라클 입력
+    (`devices[].diffusion{ad_m2, as_m2, pd_m, ps_m}`)이 같은 값을 쓴다. 길이 m, 면적 m^2. pd·ps 는 BSIM4 perMod=1 둘레
+    (게이트 쪽 변 finger_w 를 포함 -- 접합 용량이 `pd - Weffcj` 를 STI 측벽으로 쓴다)."""
+
+    name: str
+    finger_w_m: float
+    n_fingers: int
+    ad_m2: float
+    as_m2: float
+    pd_m: float
+    ps_m: float
 
 
 @dataclasses.dataclass(frozen=True)
@@ -322,6 +345,7 @@ class RealizedDevice:
     vsb_V: float
     recalibrate_id: bool
     recompute_node_voltages: bool
+    diffusion: object = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -352,6 +376,7 @@ class LayoutResult:
     fold_attempts: tuple
     merge_decisions: tuple
     floorplan: FloorplanSummary
+    diffusion: tuple
     coverage_ok: bool
     coverage_missing: tuple
     w_requests: tuple

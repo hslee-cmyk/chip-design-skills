@@ -4,13 +4,15 @@
 (`LY_WRITERS`), 값과 함께 그 값을 만든 입력 버전이 기록된다(core `compute_block`). 같은 입력 버전이면 다시 계산하지 않는다.
 
 입력 필드(writer `WRITER_INPUT`, `run.run_layout` 이 계약 `LayoutInput` 을 풀어 쓴다):
-  device `F_DEVICE` (소자별 `LayoutDevice`), graph `F_PDK`·`F_GROUPS_IN`·`F_ROW_GROUPS`·`F_REJECTED`.
+  device `F_DEVICE` (소자별 `LayoutDevice`), graph `F_PDK`·`F_GROUPS_IN`·`F_ROW_GROUPS`·`F_REJECTED`·`F_PASSIVES`(판정 축 면적의
+  수동소자 블록 `LayoutPassive` tuple, U12).
 LUT 슬라이스 필드(writer `WRITER_SLICES`, `run.run_layout` 이 `slice_density` 로 채운다 -- LUT memo 는 가변이라 계산 블록
   인자가 될 수 없어 블록 밖에서 쓰고, 입력 버전 = (LUT 지문, 소자 보존량·동작점, 폭 키)):
   device `F_SLICES`.
 계산 필드(writer = 계산 블록 이름):
   device `F_FW_CAND`(finger_candidates), graph `F_GROUPS`·`F_DISPOSITIONS`(pattern_select), device `F_FINGER`(finger_geometry),
-  graph `F_ROWS`·`F_FLOORPLAN`(rows -- 행 구성이 판정 축 면적을 목적으로 쓰므로 floorplan 을 같은 블록에서 낸다).
+  graph `F_ROWS`·`F_FLOORPLAN`·`F_DIFFUSION`(rows -- 행 구성이 판정 축 면적을 목적으로 쓰므로 floorplan 을 같은 블록에서 내고,
+  `ly.diffusion`(LY8)은 최종 행의 공유 확산 통계라 같은 블록에서 낸다).
 graph kind 필드의 key 는 `GRAPH_KEY` 하나다.
 """
 from gmid_engine.core import WriterTable
@@ -24,6 +26,7 @@ F_PDK = "ly_pdk"
 F_GROUPS_IN = "ly_groups_in"
 F_ROW_GROUPS = "ly_row_groups"
 F_REJECTED = "ly_rejected"
+F_PASSIVES = "ly_passives"
 F_SLICES = "ly_slices"
 F_FW_CAND = "ly_fw_cand"
 F_GROUPS = "ly_groups"
@@ -31,6 +34,7 @@ F_DISPOSITIONS = "ly_dispositions"
 F_FINGER = "ly_finger"
 F_ROWS = "ly_rows"
 F_FLOORPLAN = "ly_floorplan"
+F_DIFFUSION = "ly_diffusion"
 
 WRITER_INPUT = "ly_input"
 WRITER_SLICES = "ly_slice_density"
@@ -45,6 +49,7 @@ INPUT_FIELDS = (
     (GRAPH, F_GROUPS_IN),
     (GRAPH, F_ROW_GROUPS),
     (GRAPH, F_REJECTED),
+    (GRAPH, F_PASSIVES),
 )
 
 LY_WRITERS = WriterTable(
@@ -57,6 +62,7 @@ LY_WRITERS = WriterTable(
         (DEVICE, F_FINGER, WRITER_FINGER),
         (GRAPH, F_ROWS, WRITER_ROWS),
         (GRAPH, F_FLOORPLAN, WRITER_ROWS),
+        (GRAPH, F_DIFFUSION, WRITER_ROWS),
     )
 )
 

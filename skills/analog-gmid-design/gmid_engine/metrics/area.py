@@ -20,7 +20,7 @@ def area_search(gates, passives):
         if not isinstance(p, PassiveArea):
             raise TypeError("area_search: passives 원소는 PassiveArea 여야 한다: %r" % (p,))
     gate_area = sum(g.w_m * g.l_m for g in gates)
-    passive_area = sum(p.value * p.area_per_unit_m2 + p.head_area_m2 for p in passives if p.area_per_unit_m2 is not None)
+    passive_area = sum(p.area_m2 for p in passives if p.area_per_unit_m2 is not None)
     undeclared = tuple(sorted(p.label for p in passives if p.area_per_unit_m2 is None))
     return AreaSearch(
         area_search_m2=gate_area + passive_area,
