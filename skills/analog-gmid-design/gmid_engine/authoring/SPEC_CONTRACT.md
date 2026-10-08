@@ -58,9 +58,12 @@
 
 human 키: 필수 = supplies_v, input_dc, element_values, feedback, constraints, node_voltage_targets_v, intended_region,
 objective, search, spice_check, front_refilter. 선택 = pending_constraints, compensation_targets, [U5 2026-10-08]
-gain_budget_db_override, driving_spec, structure_count_budget(스키마 버전 `"5"` 그대로 -- 선택 키 추가).
+gain_budget_db_override, driving_spec, structure_count_budget, [U5 후속 2026-10-09] noise_testbench(스키마 버전 `"5"` 그대로 -- 선택 키 추가).
 
-[U5 2026-10-08, 설계 40 §3.1] 선택 섹션 3개(모두 `source` 필수, kind `user_spec` 만, 결정 대기 표지는 받지 않는다):
+[U5 2026-10-08, 설계 40 §3.1] 선택 섹션 3개(모두 `source` 필수, kind `user_spec` 만). **결정 대기 표지는 받지 않는다 -- 실제 거부**:
+`driving_spec`·`structure_count_budget` 에 `{"pending": "<ID>"}` 를 쓰면 객체로 읽혀 `pending` 키가 `unknown_key`, 출처가 없어 `source_missing`
+(두 hit; `driving_spec` 은 값 칸도 없어 `driving_spec_empty` 는 키 위반이 있으면 내지 않는다), `gain_budget_db_override` 는 list 가 아니라 `type`,
+`noise_testbench` 는 `pending` 키 `unknown_key` + `sampling_caps` 없음 `type`:
 * `gain_budget_db_override`: `[{"block": [<출력노드 넷>…], "value_db": 수, "source"}, …]`. `block` = **사전순 엄격 증가**로 정렬된 넷 이름
   배열(41 §1.7-3 블록 키 -- 정렬·중복 없음, 위반 `block_not_sorted`), topology 단자에 있는 넷(`block_net_unknown`), 같은 키 두 번
   `block_duplicate`. 결과 `GainOverrideDecl(block, value_db, source)` 블록 키순 tuple(없으면 `()`). 블록 키가 S1v 블록과 맞는지
@@ -68,6 +71,10 @@ gain_budget_db_override, driving_spec, structure_count_budget(스키마 버전 `
 * `driving_spec`: `{"slew_rate_v_per_s"?, "load_peak_amp"?, "load_dc_amp"?, "source"}`. 값 칸은 양의 유한 수(`type`), 하나 이상
   (`driving_spec_empty`). 결과 `DrivingDecl`(없는 칸 None) 또는 `None`.
 * `structure_count_budget`: `{"value": 양의 정수(bool·실수 아님), "source"}`. 결과 `CountBudgetDecl` 또는 `None`(없으면 41 §0 의 LUT 격자 유도값).
+* [U5 후속 2026-10-09] `noise_testbench`(41 §7.1 폐루프 모드 '스위치' kT/C): `{"sampling_caps": [{"element": <커패시터 이름>, "source"}, …]}`. `sampling_caps` 는
+  비어 있지 않은 list(`type`), 항목 키는 {element, source}(그 밖 `unknown_key`), `element` 는 topology 수동소자 중 kind `capacitor`(`noise_cap_unknown`),
+  같은 이름 둘 `noise_cap_duplicate`. 결과 `NoiseTestbenchDecl(sampling_caps=SamplingCapDecl(element, source)… 이름순)` 또는 `None`. 섹션 지문 `noise_testbench_fp`.
+  소비자는 잡음 계산 단위(U8)이고 그 전에는 로드·지문만 한다.
 
 [2026-10-08] `search` 의 선택 칸 `untie_orbits` = `{"<원소>": {"source": {...}}, ...}`(사용자 결정 '정준 라벨링 + 대칭 변수 묶음, 기본값 묶음', search
 CONTRACT r12 3.24). 기본은 **자기동형 궤도 원소의 같은 종류 θ 성분을 한 변수로 묶는다**(대칭 사이징). 이 칸은 그 원소가 속한 궤도의 묶음을 풀어
@@ -144,7 +151,8 @@ search CONTRACT r10). 원소별 θ 수동소자 탐색 상자. 단위 = 원소 k
 | `legacy_name`(정합 metric, U5) | 제약 metric 또는 `value_from_constraint`·`value_from_file` 문자열이 `mismatch_sigma_mv`·`mirror_ratio_error_mv`·`mismatch_sigma_v`(및 대문자 V 판) -- 메시지가 새 이름을 안내(`_spec_fields.LEGACY_REPLACEMENT`: offset_in_sigma_mv / offset_excess / offset_sys_mv / mirror_ratio_sigma_pct). `input_dc_net`·`topology_hash`·`derived` 는 정본 이름이라 옛 이름 표에서 뺐다(키로 오면 어휘 밖이라 `unknown_key`) | constraints, 해당 섹션 |
 | `block_not_sorted` / `block_net_unknown` / `block_duplicate` | gain override 블록 키가 사전순 엄격 증가 배열이 아님(중복 넷 포함) / 넷이 어느 단자에도 없음 / 같은 블록 키 두 항목 | gain_budget_db_override |
 | `driving_spec_empty` | driving_spec 값 칸 3개 중 하나도 없음 | driving_spec |
-| `type`(U5 섹션) | override 항목·block 이 모양 밖, value_db 비유한 수, driving 값이 양의 유한 수 아님, count budget 이 양의 정수 아님(bool·실수·0·음수) | gain_budget_db_override, driving_spec, structure_count_budget |
+| `noise_cap_unknown` / `noise_cap_duplicate` | noise_testbench 샘플링 커패시터가 topology 의 capacitor 수동소자가 아님(없는 이름·저항 등) / 같은 이름 두 항목 | noise_testbench |
+| `type`(U5 섹션) | override 항목·block 이 모양 밖, driving 값이 양의 유한 수 아님, noise_testbench·sampling_caps·항목·element 가 모양 밖, count budget 이 양의 정수 아님(bool·실수·0·음수). `value_db` 가 `NaN`·`Infinity`·`1e999` 면 이 게이트에 오기 전에 `json_read` 가 `non_finite` 로 거부한다(`SchemaRejectedError`, `type` 이 아니다; 파싱된 값이 문자열·bool 등 비수면 `type`) | gain_budget_db_override, driving_spec, structure_count_budget, noise_testbench |
 | `type`(untie_orbits) | `untie_orbits` 가 객체 아님 / 원소 칸이 객체 아님 | settings |
 | `unknown_key`·`source_*`(untie_orbits) | 원소 칸 키가 {source} 밖 / 출처 없음(`source_missing`)·kind 가 user_spec 아님(`source_kind_not_allowed_here`)·record/decided 없음 | settings |
 | `untie_element` | untie_orbits 원소가 topology MOS·수동소자 이름이 아님 | untie_orbits |
@@ -164,7 +172,7 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
   (`ObjectiveBudget` tuple 또는 `PendingMark`), `search`(`SettingValue` tuple -- [2026-10-08] `theta_bounds` 가 있으면 맨 앞에
   `SettingValue("theta_bounds", (ThetaBound(element, kind, lo, hi, source), ...) 원소 이름순)`, 공개 상수 `THETA_BOUNDS`; [2026-10-08] `untie_orbits` 가 있으면 그 다음 `SettingValue("untie_orbits", ((원소, source), ...) 이름순)`, 공개 상수 `UNTIE_ORBITS`),
   `spice_check`·`front_refilter`(`RuleChoice`), [U5] `gain_budget_db_override`(`GainOverrideDecl` 블록 키순 tuple, 없으면 `()`),
-  `driving_spec`(`DrivingDecl` 또는 `None`), `structure_count_budget`(`CountBudgetDecl` 또는 `None`),
+  `driving_spec`(`DrivingDecl` 또는 `None`), `structure_count_budget`(`CountBudgetDecl` 또는 `None`), `noise_testbench`(`NoiseTestbenchDecl` 또는 `None`),
   `pending`(`PendingMark` (경로, ID) 정렬), `section_fps`, `spec_fp`, `file_sha256`. 속성 `judged_constraints`.
 - `ConstraintDecl`: 참조는 해석된 `value`, `judged` = user_spec True / pending_spice False / reference 는 대상의 judged,
   metric 결정 대기면 `metric` None·`metric_decision`·`judged` False·`view` None. 참조 대상이 결정 대기면 `value` None +
@@ -196,7 +204,7 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
   해석된 값으로. 제약은 내용 지문 정렬(순서만 바꾼 spec 은 같은 지문). 섹션 지문(`SECTION_GROUPS`):
   supplies_fp(supplies_v), operating_fp(input_dc·node_voltage_targets_v·intended_region), elements_fp, feedback_fp,
   constraints_fp(constraints·pending_constraints), compensation_fp, objective_fp, search_fp, spice_check_fp, refilter_fp,
-  [U5] gain_override_fp(gain_budget_db_override), driving_fp(driving_spec), count_budget_fp(structure_count_budget).
+  [U5] gain_override_fp(gain_budget_db_override), driving_fp(driving_spec), count_budget_fp(structure_count_budget), noise_testbench_fp(noise_testbench).
   `spec_fp` = `fp_of(section_fps)`. spice_check 만 바꾸면 spice_check_fp·spec_fp 만 바뀐다. `theta_bounds`(원소·kind·min·max·
   출처 kind)는 `search_fp` 에 든다 -- 상자만 바꾸면 search_fp·spec_fp 만 바뀐다.
 - **실행 전 정지(MOD10 몫, 이 로더 밖)**: 사이징 실행이 읽는 필드에 `pending` 이 하나라도 있으면 전부 모아
@@ -213,7 +221,7 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
 - loop·output_port 뷰는 7a design(`_drafts/engine/design_7a_loop_output_views.md`)에서 정의되어 판정한다 -- 결정 대기 표지
   전용이던 제한(옛 `view_not_defined_yet`)은 해제됐다.
 - 이름표 정본은 MOD5 레지스트리(core 에 이름 없음). `metrics.metric_catalog()` = 레지스트리 서명 + [U5] **계산 대기 서명**
-  (`metrics/pending_metrics.py`: offset_in_sigma_mv·offset_excess·offset_sys_mv·mirror_ratio_sigma_pct·swing_out_v·icmr_v·icm_margin_v·
+  (`metrics/pending_metrics.py`: offset_in_sigma_mv·offset_excess·offset_sys_mv·mirror_ratio_sigma_pct·swing_out_v·icmr_v·icm_margin_v·ff_gm_ratio(ratio, ss, transfer)·
   noise_th_in_v2hz·noise_fc_in_hz·noise_excess_th·noise_out_int_vrms -- 서명만, 계산은 U7·U8). 로더는 이 이름의 제약을 받는다.
   카탈로그에 있고 레지스트리에 없는 이름이 계산 대기이며, 탐색 문맥이 `constraint_notes` 에 `unmeasured`/`metric_computation_pending` 으로 남긴다.
 

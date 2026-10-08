@@ -10,7 +10,7 @@
 * 순서: `load_json_checked`(JSON 수준 위반은 그 예외 그대로) -> `check_spec_schema` -> `meta_cross_check` ->
   `supplies_declaration` -> `input_dc_declaration` -> `element_value_declaration` -> `constraint_declaration` ->
   `compensation_target_declaration` -> `node_target_declaration` -> `intended_region_declaration` ->
-  `gain_override_declaration`·`driving_declaration`·`count_budget_declaration`([U5] 선택 섹션 3개, gate = 키 이름) ->
+  `gain_override_declaration`·`driving_declaration`·`count_budget_declaration`·`noise_testbench_declaration`([U5] 선택 섹션 4개, gate = 키 이름) ->
   `settings_declaration` -> [2026-10-08] `theta_bound_declaration`(gate `theta_bounds`) -> `resolve_spec_references`.
 * 위반이 하나라도 있으면 `SchemaRejectedError` 한 번(개수로 자르지 않음): detail = {"gate": "spec_load", "where": 경로,
   "hits", "rejected_gates", "not_evaluated"}. `not_evaluated`: `all_sections`(최상위·meta·human 이 객체가 아님),
@@ -39,6 +39,7 @@ from .spec_input_dc import input_dc_declaration
 from .spec_meta import SPEC_SUFFIX, meta_cross_check
 from .spec_model import SizingSpecDoc
 from .spec_node_targets import node_target_declaration
+from .spec_noise_testbench import noise_testbench_declaration
 from .spec_refs import resolve_spec_references
 from .spec_regions import intended_region_declaration
 from .spec_schema import HUMAN_REQUIRED, check_spec_schema
@@ -117,6 +118,7 @@ def _load(path, topology, catalog, chain):
     gain_override = section("gain_budget_db_override", "gain_budget_db_override", gain_override_declaration, topo)
     driving = section("driving_spec", "driving_spec", driving_declaration)
     count_budget = section("structure_count_budget", "structure_count_budget", count_budget_declaration)
+    noise_testbench = section("noise_testbench", "noise_testbench", noise_testbench_declaration, topo)
     settings, found = settings_declaration(human, catalog)
     run("settings", found)
     if settings is not None and elements is not None:
@@ -148,6 +150,7 @@ def _load(path, topology, catalog, chain):
         "node_voltage_targets_v": node_targets, "intended_region": regions, "objective": objective,
         "search": search, "spice_check": spice_check, "front_refilter": front_refilter,
         "gain_budget_db_override": gain_override, "driving_spec": driving, "structure_count_budget": count_budget,
+        "noise_testbench": noise_testbench,
     }
     return SizingSpecDoc.from_sections(meta["circuit"], meta["topology_fp"], meta["origin"], sections,
                                        marks + ref_marks, doc.sha256)

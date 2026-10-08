@@ -192,6 +192,14 @@ def _view(raw, signature, where, nets, views, hits, source=None):
     return ViewDecl(VIEW_MODE_TRANSFER, transfer=transfer) if transfer is not None else None
 
 
+def _legacy_metric_hit(metric, where):
+    """metric 이름 자리의 옛 이름이면 `legacy_name` hit(새 이름 안내 포함), 아니면 None. 제약 metric·pending_constraints metric 이 같이 쓴다."""
+    if isinstance(metric, str) and metric in LEGACY_NAMES:
+        new = LEGACY_REPLACEMENT.get(metric)
+        return SchemaHit("legacy_name", where, "옛 metric 이름 " + repr(metric) + " (N3.16)" + ("" if new is None else " -> 새 이름: " + new))
+    return None
+
+
 def _item(raw, where, nets, views, catalog, hits):
     if not isinstance(raw, dict):
         hits.append(SchemaHit("type", where, "제약 항목은 객체여야 한다: " + type(raw).__name__))
@@ -207,10 +215,9 @@ def _item(raw, where, nets, views, catalog, hits):
         metric_decision = pending_decision(metric)
         metric = None
     else:
-        if isinstance(metric, str) and metric in LEGACY_NAMES:
-            new = LEGACY_REPLACEMENT.get(metric)
-            hits.append(SchemaHit("legacy_name", at(where, "metric"), "옛 metric 이름 " + repr(metric) + " (N3.16)"
-                                  + ("" if new is None else " -> 새 이름: " + new)))
+        legacy = _legacy_metric_hit(metric, at(where, "metric"))
+        if legacy is not None:
+            hits.append(legacy)
         elif not isinstance(metric, str) or metric not in catalog:
             hits.append(SchemaHit("metric_unknown", at(where, "metric"),
                                   "metric " + repr(metric) + " 이 metric 레지스트리 이름표에 없다"))
@@ -251,7 +258,10 @@ def _pending_list(raw, catalog, hits):
         hits.extend(key_hits(item, ("metric", "decision"), where))
         metric = item.get("metric")
         decision = item.get("decision")
-        if not isinstance(metric, str) or metric not in catalog:
+        legacy = _legacy_metric_hit(metric, at(where, "metric"))
+        if legacy is not None:
+            hits.append(legacy)
+        elif not isinstance(metric, str) or metric not in catalog:
             hits.append(SchemaHit("metric_unknown", at(where, "metric"), "metric " + repr(metric) + " 이 이름표에 없다"))
         if not isinstance(decision, str) or PENDING_ID_PATTERN.fullmatch(decision) is None:
             hits.append(SchemaHit("pending_id_format", at(where, "decision"), "결정 ID 형식 밖: " + repr(decision)))

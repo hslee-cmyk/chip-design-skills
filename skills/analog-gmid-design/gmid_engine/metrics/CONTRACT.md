@@ -41,7 +41,7 @@
 | 1 | `registry.py` | `metric_registry` | 이름 → `RegisteredMetric` |
 | 2 | `mna_build.py` | `build_mna` | 조립 1회 |
 | 2 | `point_solve.py` | `solve_point` | ω 한 점 풀이 + 사후 오차 |
-| 0 | `pending_metrics.py` | (상수 표) | [U5] 계산 대기 metric 서명 11행(3.15) |
+| 0 | `pending_metrics.py` | (상수 표) | [U5] 계산 대기 metric 서명 12행(3.15) |
 | 2 | `catalog.py` | `metric_catalog` | {이름: MetricSignature} (레지스트리 + 계산 대기 서명) |
 | 2 | `evaluate.py` | `metric_value` | 이름으로 값 읽기 → `MetricResult` |
 | 2 | `lut_parameters.py` | `lut_parameters` | LUT 파라미터 Δp = ε·|p|·단위 스탬프(9.1) |
@@ -243,7 +243,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | `area_search_m2` | AreaSearch.area_search_m2 | m2 | geom | -- | -- |
 
 - `metric_catalog()` = {이름: MetricSignature} 읽기 전용(spec 로더 `metric_catalog` 인자). [U5 2026-10-08] = 레지스트리 서명(11개) + **계산 대기
-  서명 11개**(`pending_metrics.PENDING_METRIC_ROWS`, 총 22개): offset_in_sigma_mv(mv, ss, transfer)·offset_excess(ratio, ss, transfer)·
+  서명 12개**(`pending_metrics.PENDING_METRIC_ROWS`, 총 23개; [U5 후속] `ff_gm_ratio`(ratio, ss, transfer) 추가 -- 계산은 U7): offset_in_sigma_mv(mv, ss, transfer)·offset_excess(ratio, ss, transfer)·
   offset_sys_mv(mv, ss, transfer)·mirror_ratio_sigma_pct(pct, ss, None)·swing_out_v·icmr_v·icm_margin_v(v, ls, None)·noise_th_in_v2hz(v2_per_hz,
   ss, transfer)·noise_fc_in_hz(hz, ss, transfer)·noise_excess_th(ratio, ss, transfer)·noise_out_int_vrms(v, ss, transfer). 이 이름은 레지스트리에
   없다(결과 형식·필드 없음) -- `metric_value` 는 KeyError. 서명만이며 계산은 U7(offset·스윙)·U8(잡음)이 레지스트리로 옮긴다(`ValueError`:

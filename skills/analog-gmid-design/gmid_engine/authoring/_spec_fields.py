@@ -33,7 +33,7 @@ LEGACY_NAMES = frozenset((
     "node_voltage_targets", "input_dc_v", "input_common_mode", "pm_deg", "gain_db", "dc_gain_db",
     "rout_ohm", "parasitic_pm_deg", "mismatch_sigma_mV", "mirror_ratio_error_mV", "power_uA",
     "ports", "pending_7a", "value_from_spec",
-    "mismatch_sigma_mv", "mirror_ratio_error_mv", "mismatch_sigma_v",
+    "mismatch_sigma_mv", "mirror_ratio_error_mv", "mismatch_sigma_v", "mismatch_sigma_V",
 ))
 
 # 옛 정합 metric 이름 -> 새 이름 안내(설계 40 §3.8-8). 거부 메시지에만 쓴다(판정은 `LEGACY_NAMES` 원소 여부).
@@ -41,6 +41,7 @@ LEGACY_REPLACEMENT = MappingProxyType({
     "mismatch_sigma_mv": "offset_in_sigma_mv (제약) 또는 구조 가드 offset_excess <= 값",
     "mirror_ratio_error_mv": "offset_sys_mv (value_from_constraint: offset_in_sigma_mv)",
     "mismatch_sigma_v": "offset_in_sigma_mv 와 mirror_ratio_sigma_pct (보고)",
+    "mismatch_sigma_V": "offset_in_sigma_mv 와 mirror_ratio_sigma_pct (보고)",
     "mismatch_sigma_mV": "offset_in_sigma_mv (제약) 또는 구조 가드 offset_excess <= 값",
     "mirror_ratio_error_mV": "offset_sys_mv (value_from_constraint: offset_in_sigma_mv)",
 })
@@ -104,9 +105,12 @@ def key_hits(obj, allowed, where, elements=()):
 
 
 def _legacy_value_hit(value, where):
-    """참조 문자열 값 안의 옛 이름(N3.16 끝 문단 -- 값 안 이름도 검사)."""
-    if isinstance(value, str) and value in LEGACY_NAMES:
-        return SchemaHit("legacy_name", where, "참조 값 안의 옛 이름 " + repr(value) + " (N3.16)" + _replacement_note(value))
+    """참조 문자열 값 안의 옛 이름(N3.16 끝 문단 -- 값 안 이름도 검사). `value_from_file` 은 '<회로>#<이름>' 의 이름 부분도 본다."""
+    if isinstance(value, str):
+        for candidate in (value, value.partition("#")[2]):
+            if candidate in LEGACY_NAMES:
+                return SchemaHit("legacy_name", where, "참조 값 안의 옛 이름 " + repr(candidate) + " (N3.16)"
+                                 + _replacement_note(candidate))
     return None
 
 

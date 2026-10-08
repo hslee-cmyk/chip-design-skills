@@ -7,7 +7,7 @@
   바꾸므로 kind 는 지문에 든다.
 * `PendingMark` -- 결정 대기 표지 하나(문서 경로, 결정 ID). `SizingSpecDoc.pending` 에 모인다(설계 1.5).
 * `InputDc`·`ElementValue`·`ExciteSense`·`SenseDecl`·`ViewDecl`·`ConstraintDecl`·`TargetDecl`·`SettlingDecl`·`SettingValue`·
-  `RuleChoice`·`ObjectiveBudget`·`RegionDecl`·`GainOverrideDecl`·`DrivingDecl`·`CountBudgetDecl` -- 검증을 통과한 선언의 투영. `mode` 가 `pending` 이면 `decision` 에
+  `RuleChoice`·`ObjectiveBudget`·`RegionDecl`·`GainOverrideDecl`·`DrivingDecl`·`CountBudgetDecl`·`NoiseTestbenchDecl`·`SamplingCapDecl` -- 검증을 통과한 선언의 투영. `mode` 가 `pending` 이면 `decision` 에
   결정 ID 가 있고 값 필드는 None 이다.
 * `SizingSpecDoc` -- spec 전체 투영과 섹션 지문. 직접 만들지 말고 `SizingSpecDoc.from_sections` 로 만든다(지문 계산).
   섹션 지문 = 그 섹션 소비자만 무효화하는 캐시 키(필드가 곧 캐시). `spec_fp` = 섹션 지문들의 지문(S0 'spec 전체 해시').
@@ -238,6 +238,21 @@ class CountBudgetDecl:
 
 
 @dataclasses.dataclass(frozen=True)
+class SamplingCapDecl:
+    """잡음 테스트벤치의 샘플링 커패시터 하나(`noise_testbench.sampling_caps[]`, 41 §7.1): topology capacitor 이름 `element`, `source` 출처."""
+
+    element: str
+    source: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class NoiseTestbenchDecl:
+    """잡음 테스트벤치 선언(`noise_testbench`, 41 §7.1 폐루프 모드 스위치 kT/C 항): `sampling_caps` = SamplingCapDecl tuple(이름순, 비어 있지 않다)."""
+
+    sampling_caps: tuple
+
+
+@dataclasses.dataclass(frozen=True)
 class SizingSpecDoc:
     """검증을 통과한 회로 사이징 spec. 모든 모음 필드는 tuple(이름순 또는 문서 순서), 결정 대기 섹션은 PendingMark."""
 
@@ -260,6 +275,7 @@ class SizingSpecDoc:
     gain_budget_db_override: tuple
     driving_spec: object
     structure_count_budget: object
+    noise_testbench: object
     pending: tuple
     section_fps: tuple
     spec_fp: str
@@ -283,7 +299,7 @@ class SizingSpecDoc:
                    sections["node_voltage_targets_v"], sections["intended_region"], sections["objective"],
                    sections["search"], sections["spice_check"], sections["front_refilter"],
                    sections["gain_budget_db_override"], sections["driving_spec"], sections["structure_count_budget"],
-                   sorted_items(pending, key=lambda m: (m.path, m.decision)), fps, fp_of(fps), file_sha256)
+                   sections["noise_testbench"], sorted_items(pending, key=lambda m: (m.path, m.decision)), fps, fp_of(fps), file_sha256)
 
 
 # 섹션 지문 묶음: (지문 이름, 그 지문에 드는 섹션들). 소비자가 같은 섹션끼리 묶는다(설계 3.4).
@@ -301,6 +317,7 @@ SECTION_GROUPS = (
     ("gain_override_fp", ("gain_budget_db_override",)),
     ("driving_fp", ("driving_spec",)),
     ("count_budget_fp", ("structure_count_budget",)),
+    ("noise_testbench_fp", ("noise_testbench",)),
 )
 
 

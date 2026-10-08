@@ -49,6 +49,8 @@ from .spec_model import (
     ElementValue,
     ExciteSense,
     GainOverrideDecl,
+    NoiseTestbenchDecl,
+    SamplingCapDecl,
     InputDc,
     ObjectiveBudget,
     PendingMark,
@@ -72,6 +74,7 @@ from .spec_views import (
     DefaultViews,
     default_views,
 )
+from .spec_noise_testbench import noise_testbench_declaration
 from .spec_node_targets import node_target_declaration
 from .spec_refs import resolve_spec_references
 from .spec_regions import REGION_TRIODE, intended_region_declaration
@@ -110,6 +113,9 @@ __all__ = (
     "ElementValue",
     "ExciteSense",
     "GainOverrideDecl",
+    "NoiseTestbenchDecl",
+    "SamplingCapDecl",
+    "noise_testbench_declaration",
     "IGNORED_TAG_KEYS",
     "INPUT_DIRECTION",
     "InputDc",
