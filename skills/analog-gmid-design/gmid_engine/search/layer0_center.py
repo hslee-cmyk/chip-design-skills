@@ -586,11 +586,18 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
             best = (info[1], res)          # 묶음 안 위반 크기(margin) 최소 시험 점 -- 묶음이 끝나면 1단계 출발점
 
 
+def centre_start(sctx):
+    """layer0 가 처음 평가하는 점 `(variables, theta, cells, centre_u)` -- 상자 중심 + 전류 중심. `build_search_context` 가 LUT memo 상한을 정하는
+    첫 평가(설계 40 §7.3)도 이 점을 쓴다(`variables` 길이 = n_θ)."""
+    variables, theta, cells = _box_centre(sctx)
+    theta, centre_u = _current_centre(sctx, variables, theta)
+    return variables, theta, cells, centre_u
+
+
 def layer0_start(sctx, origin=()):
     calls0 = sctx.counters["kernel_calls"]
     tag = origin + (("stage", STAGE_LAYER0),)
-    variables, theta, cells = _box_centre(sctx)
-    theta, centre_u = _current_centre(sctx, variables, theta)
+    variables, theta, cells, centre_u = centre_start(sctx)
     failure, probes, source, repairs = None, 0, "centre", ()
     if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(_expanded(sctx, theta).items())))):
         start_status = "centre_outside_cone"

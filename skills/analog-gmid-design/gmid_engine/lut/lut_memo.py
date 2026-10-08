@@ -12,7 +12,7 @@
   퇴출이 없도록 개수 그대로.
 * [2026-10-08] 비싼 파생 표는 `lookup_persistent` 로 디스크 캐시(`TableCache`, CONTRACT 2.1)를 거친다. memo(메모리)는 그대로다.
 """
-from gmid_engine.core import BoundedLRU
+from gmid_engine.core import BoundedLRU, LruStats
 
 from .table_cache import TableCache
 
@@ -22,27 +22,40 @@ DERIVED_TABLES = ("curve_report", "midpoint_l_bin_checks", "noise_planes", "tol_
 SWEEP_REGIONS = ("curve", "point", "root")
 
 
+class _Unmemoized:
+    """상한 0 영역(`from_sweep` 에서 첫 평가가 한 번도 안 쓴 영역): 저장 없이 매번 계산한다. 같은 키를 다시 부르면 다시 계산(CONTRACT 2.2)."""
+
+    def __init__(self):
+        self._misses = 0
+
+    def lookup(self, key, compute):
+        self._misses += 1
+        return compute()
+
+    def stats(self):
+        return LruStats(0, 0, 0, self._misses, 0, 0)
+
+
 class LutMemo:
     """`LutMemo(lut, point=, curve=, root=, table_cache=None)`: `lut`(LutSet) 조회 memo. 상한 인자는 1 이상 정수.
     `table_cache`: 디스크 캐시(`TableCache`) -- None = 저장소 설정·환경 변수로 정한 기본 캐시(`TableCache.default()`),
     끄려면 `TableCache(None)`."""
 
-    def __init__(self, lut, *, point, curve, root, table_cache=None):
+    def __init__(self, lut, *, point, curve, root, table_cache=None, _zero_ok=False):
         self.lut = lut
         self.table_cache = TableCache.default() if table_cache is None else table_cache
+        bounds = {"point": point, "curve": curve, "root": root}
         self._lru = {
-            "point": BoundedLRU(point),
-            "curve": BoundedLRU(curve),
-            "root": BoundedLRU(root),
+            **{r: (_Unmemoized() if _zero_ok and v == 0 and type(v) is int else BoundedLRU(v)) for r, v in bounds.items()},
             "derived": BoundedLRU(len(lut.slice_map) * len(DERIVED_TABLES)),
         }
 
     @classmethod
     def from_sweep(cls, lut, n_theta, unique_keys_per_eval, table_cache=None):
-        """sweep 상계로 만든다: 영역 r 의 상한 = `(n_theta + 1) * unique_keys_per_eval[r]`(r = point·curve·root). 첫 평가가 센 키 수를
+        """sweep 상계로 만든다: 영역 r 의 상한 = `(n_theta + 1) * unique_keys_per_eval[r]`(r = point·curve·root; 0 이면 그 영역은 memo 하지 않는다). 첫 평가가 센 키 수를
         넣는 배선은 `sweep_memo`(sweep_memo.py)."""
         per = dict(unique_keys_per_eval)
-        return cls(lut, table_cache=table_cache, **{r: (n_theta + 1) * per[r] for r in SWEEP_REGIONS})
+        return cls(lut, table_cache=table_cache, _zero_ok=True, **{r: (n_theta + 1) * per[r] for r in SWEEP_REGIONS})
 
     def lookup(self, region, fn_name, key, compute):
         """영역 `region` 에서 키 `(lut.fp, fn_name) + key` 의 값. 없으면 `compute()` 결과를 저장해 돌려준다."""

@@ -201,7 +201,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - [r7] **VS 축 Hermite 보조(DEC-87)**: `DcSlice.vs_slope_ok` = 파생 열 `GMBS_PER_ID` 가 있고 유한·양수인 격자점(VS 기울기 d ln ID/d VS = −GMBS/ID 정의 -- GMBS 열이 없으면
   전부 거짓), `fc_ok_vs` 모양 `[nL, nVGS, nVDS, nVS − 1]`(VGS·VDS 와 같은 단조 조건, Hermite 칸이 아니면 참), `hermite_fc` 에 세 번째 항 `("VS", Hermite 칸 수, 위반 칸 수)`.
   기울기 부호 근거: 실측 `−GMBS/ID` 는 ln ID 의 VS 격자 차분과 부호·크기가 맞는다(w_key 1000, 중앙 상대차 6e-4~8e-4, p99 3e-3~5e-3).
-  [r7 실측 2026-10-08, 생성 슬라이스 32개] @@VS_FC@@
+  [r7 실측 2026-10-08, 생성 슬라이스 32개] VS Hermite 칸 nmos 7,620,480개 중 단조 위반 353(슬라이스당 최대 243), pmos 4,572,288개 중 3,934(슬라이스당 최대 1,009); 같은 32개 슬라이스에서 VDS·VGS 위반은 0. (측정: `load_lut_set` 실데이터 로드 뒤 슬라이스마다 `DcSlice.hermite_fc` 의 "VS" 항을 kind 별로 합산.)
 - [r7] **기울기 열 단위 검사**(41 §4.1 '단위 불일치 -> 로드 거부'): 슬라이스마다 GM/ID 대 VGS, GDS/ID 대 VDS 격자 차분(ln ID 의 같은 축 차분)에서 (두 마디 평균 기울기)/(격자 차분 기울기)의 중앙값의
   십진 로그가 ±1(한 십진 단위) 이상 벗어나면 `lut_unit_mismatch`(detail `path, column, decades`). 정상은 1 근처(로그 0), 단위 오류(A/mA/µA 등 SI 접두어)는 십진 배수(로그 3 의 배수)라 로그 1 이 경계다.
   실데이터 32개 모두 통과(최대 |로그| GM 1.9e-4·GDS 8.0e-5; 참고로 GMBS/ID 대 VS 도 2.9e-4). **GMBS/ID 는 검사하지 않는다** -- 기존 test 의 toy 슬라이스는 GMBS 열을 ln ID 의 VS 기울기와 무관한 임의 값으로
@@ -274,7 +274,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 
 ## 2. memo `LutMemo(lut, *, point, curve, root)`
 
-- 상한 인자: 1 이상 int(아니면 core `BoundedLRU` 의 `ValueError`). `derived` 영역 상한 = `len(lut.slice_map) * len(DERIVED_TABLES)`.
+- 상한 인자: 1 이상 int(아니면 core `BoundedLRU` 의 `ValueError`). 예외: `from_sweep` 이 만든 memo 에서 첫 평가가 안 쓴 영역의 상한은 0 = 그 영역은 memo 하지 않는다(2.2). `derived` 영역 상한 = `len(lut.slice_map) * len(DERIVED_TABLES)`.
 - `LutMemo.from_sweep(lut, n_theta, unique_keys_per_eval, table_cache=None)`: 영역 r ∈ {point, curve, root} 상한 = `(n_theta + 1) * unique_keys_per_eval[r]`
   (`unique_keys_per_eval` 은 Mapping 또는 (영역, int) 쌍; [r7] `table_cache` 인자 추가). 첫 평가가 센 키 수를 넣는 배선은 2.2.
 - `lookup(region, fn_name, key, compute)`: 키 = `(lut.fp, fn_name) + tuple(key)`. 적중이면 저장 값 그대로(`is`), 아니면 compute 1회.
@@ -296,9 +296,12 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 ### 2.2 [r7] `sweep_memo(lut, n_theta, first_eval, table_cache=None) -> LutMemo` (`sweep_memo.py`, 층 2; 설계 40 §7.3 'LUT memo 상한')
 - U_eval = **첫 평가가 센 서로 다른 키 수**(영역 point·curve·root 마다). `first_eval(memo)` 를 계수용 memo 에서 한 번 돌린다: 그 memo 는 같은 (영역, 키)를 한 번만 계산해 값을 모으고
   (평가 한 번 분량이라 유한) 서로 다른 키 수를 센 뒤 버려진다. 반환 = `LutMemo.from_sweep(lut, n_theta, 센 수, table_cache)` -- 새 memo(계수용 값은 넘기지 않음), 상한 = `(n_θ + 1)·U_eval`.
+  **[2026-10-09 결정] 첫 평가가 한 번도 안 쓴 영역(예: root)의 U_eval = 0 -> 그 영역 상한 0 = memo 하지 않음**(오류 아님): `lookup` 은 저장 없이 매번 `compute()` 를 부르고 `stats()` 의 그 영역은
+  `capacity 0, size 0, hits 0, misses = 조회 수`. 이 영역을 이후 평가가 쓰면 값은 맞고(같은 compute) 느릴 뿐이다. `LutMemo(...)` 직접 생성자의 0 은 여전히 `ValueError`.
   `first_eval` 은 LUT 조회 함수에 memo 를 첫 인자로 주는 평가(예: 첫 θ 의 커널 평가). 테스트의 상수 4096 대신 이 값을 쓴다.
-- **소비처**: 평가 커널 컨텍스트를 만드는 단위 -- search `build_search_context`(설계 40 §11 U11)와 pipeline 진입점(U16). 이 브랜치(U3)에는 `LutMemo` 를 만드는 운영 코드가 없어(`grep -rn "LutMemo(" gmid_engine` 은
-  lut·tests 뿐) 배선할 호출부가 아직 없다. 도우미를 공개하고 소비처를 여기 기록한다(만들었으면 배선한다는 원칙 -- 호출부가 생기는 U11·U16 에서 test 의 4096 을 지운다).
+- **소비처 [2026-10-09 배선]**: search `build_search_context`(`search_context.py::_wire_sweep_memo`)가 S0 당 1회 부른다. 첫 평가 = layer0 첫 점(`layer0_center.centre_start`: 상자 중심 + 전류 중심, n_θ = 그 `variables` 수)을
+  임시 컨텍스트(archive 없음·빈 캐시)에서 `evaluate` 한 번. 결과 memo 가 `dc_ctx.lut`(`LutAccess`)의 memo 를 바꾼다 -- 호출자가 넘긴 memo 는 domain 등 S0 준비 조회에만 쓰이고 그 상한 상수는 탐색에 영향이 없다
+  (옛 호출자 고정 상한 경로는 탐색에서 삭제). 첫 점이 정의역 밖이라 LUT 를 안 부르면 세 영역 모두 0(memo 없음)이 된다 -- 값은 맞다.
 
 ### 2.1 [2026-10-08, 사용자 승인 "tol_V표를 파일로 캐시해"] 파생 표 디스크 캐시 `TableCache` (`table_cache.py`, 층 0) + `LutMemo.lookup_persistent`
 
@@ -478,13 +481,14 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
        `vds_slope_ok` 가 (b = k, k+1) 모두 참이고 `fc_ok_vds[·, a', k, ·]` 가 모두 참일 때만, 아니면 VDS 선형 y_k + t_d·(y_k+1 − y_k).
      - S_a' = Σ_{L, VDS, VS 모서리(가중치 ≠ 0)} w·(GM/ID) -- 그 모서리 중 `on_mask` 거짓이 있으면 NaN.
   3. **VGS Hermite 칸** = S_a·S_a+1 이 둘 다 유한이고 `fc_ok_vgs[·, a, ·, ·]` 가 가중치 ≠ 0 인 (L, VDS, VS) 모서리에서 모두 참.
+     **예외 [2026-10-09, 격자 마디 우선]**: 조회 VGS 가 격자점(t ∈ {0, 1})이면 그 마디의 S 만 유한하면 되고(이웃 칸의 FC 위반은 이 점과 무관) 마디 V·S 그대로 -- 이때 `fallbacks` 에 "VGS" 를 남기지 않는다("VGS" 폴백은 S 가 정의되지 않았을 때만). 4.1 [r7] 'Hermite 가 가능한 칸'은 칸 안쪽 점에만 해당한다.
      Hermite 칸이면 lnID = p(vgs), gm/ID = p'(vgs) (VGS 가 격자점 t ∈ {0, 1} 이면 그 마디의 V·S 그대로 -- 반올림 없음),
      아니면 lnID = V_a + t·(V_a+1 − V_a), gm/ID = (V_a+1 − V_a)/h (그 직선의 미분 -- 정의 유지).
 - 결과: 격자점(네 축 모두 격자 위, L 앵커)에서 lnID·gm/ID·lnGDS·VTH 는 저장값 그대로(r4·옛 다선형과 같은 값, gm_gds 만 식이
   `gm/ID·exp(lnID − lnGDS)` 라 몇 ulp 차). 마디 사이에서 gm/ID 는 ln ID 의 VGS 미분과 **같다**(같은 곡면).
 - [r7] VS 축 Hermite(GMBS 열 -- 기울기 −GMBS/ID): r6 에서 보류했던 변경을 U3 가 했다(운영 보간·tol_V LOO·FC 검사·로드 기록이 함께 바뀜). GMBS 열이 없는 슬라이스(옛 12-L 세트·toy)는 VS 선형 그대로다.
   gm/ID 의 마디 기울기 S_a 는 VS 방향도 선형(저장 GM/ID 의 L·VDS·VS 선형 가중, VDS 와 같은 규칙).
-  [r7 실측 2026-10-08, 소자 W = 5 µm(w_key 1000)·L 0.35 µm 칸 중앙 점 -- 선형 대비] @@VS_ACC@@
+  [r7 실측 2026-10-08, 소자 W = 5 µm(w_key 1000)·L 0.35 µm 칸 중앙 점 -- 선형 대비] VS 칸 중앙(VS = 칸 두 격자점의 중점 9개) × VGS 격자 49 × VDS 격자 index 2·6·…·46(12개), ngspice-46 `.op` 직접 대조(소자 `DUT_LINE` 과 같은 W 5 µm, bulk = −VS, 표본 nmos·pmos 각 5,292점), 지표 |Δln ID|/(gm/ID) [V]: nmos Hermite p50 0.13 µV·p99 2.6 µV·max 6.5 µV 대 선형(두 VS 격자점 op_point ln IDu 평균) p50 0.176 mV·p99 0.775 mV·max 0.987 mV; pmos Hermite p50 0.30 µV·p99 5.1 µV·max 12.3 µV 대 선형 p50 0.190 mV·p99 0.950 mV·max 1.074 mV. (gm/ID ≤ 25 부분집합도 같은 자릿수: nmos Hermite p99 3.2 µV 대 선형 0.605 mV, pmos 5.6 µV 대 0.655 mV.)
 - [r5 실측 2026-10-07, ngspice-46 새 점 -- code author 측정, 소자 W = 5 µm(w_key 1000), L 0.15·0.35·1·4 µm, VS 0·0.4 V, 강반전 분지
   (VGS ≥ 그 곡선 정점) · VDS ≥ 2 격자칸] 칸 중앙 오차(엔진 op_point 대 ngspice, `|Δln ID|/(gm/ID)` V 단위 / gm/ID 상대):
   - VGS 칸 중앙(VDS 격자점) nmos: r4 p50 0.286 mV·p99 0.904 mV / gm/ID p99 0.53 % → r5 p50 0.13 µV·p99 2.5 µV / p99 0.0012 %
@@ -549,7 +553,7 @@ memo 에 저장 안 됨)·4.0·4.1 사유.
 - 셀 = (kind, w_key, L 앵커 i, VDS 격자 k) -- `cells[i][k]` = `TolVCell`. **셀별 값만** 낸다(전역 최댓값으로 줄이지 않음).
 - [r7] VS 축 id_equivalent LOO 도 같은 방법(Hermite, 기울기 −GMBS/ID, 두 이웃의 `vs_slope_ok` 가 다 있는 점)이다 -- 차수 p = 4(없는 점·GMBS 열 없는 슬라이스는 선형 p = 2). `loo_orders` 의
   (id_equivalent, VS) 행이 `("id_equivalent", "VS", "hermite", 4, 2^-4)`. gm_id_inverse 의 VS 축은 그대로(곡선 ln ID 는 두 이웃의 VS Hermite, gm/ID 는 선형). 이 변경으로 tol_V 값이 바뀐다(캐시 키의 코드
-  버전이 달라 옛 표는 재사용되지 않는다). @@TOLV_SHIFT@@
+  버전이 달라 옛 표는 재사용되지 않는다). 실측(w_key 1000 두 슬라이스, 격자 셀 864개씩, `tol_v_table` 을 디스크 캐시 없이 계산, 'VS 선형' = 같은 코드에서 `vs_slope_ok` 를 전부 거짓으로 둔 엔진의 선형 경로): `id_equivalent_v` 는 nmos·pmos 모두 변하지 않았다(nmos 중앙값 2.41 mV·p99 39.5 mV·최대 44.6 mV, pmos 3.70·21.4·22.7 mV -- 셀 최댓값은 VGS·VDS 축이 정한다). `gm_id_inverse_v` 는 nmos 중앙값만 81.2 mV → 76.4 mV(p99 517.6 mV·최대 518.1 mV 불변), pmos 는 중앙값 118.5 mV·p99 640.3 mV·최대 648.2 mV 불변.
 - [r5] **LOO 추정 = 운영 보간과 같은 방법**(DEC-87, 4.2): 축 a, 내부 격자점 x_j(0 < j < n_a − 1), 이웃 x_{j−1}·x_{j+1},
   H = x_{j+1} − x_{j−1}, t = (x_j − x_{j−1})/H.
   - ln ID 추정: VGS 축 = Hermite(lnID_{j−1}, lnID_{j+1}, (GM/ID)_{j−1}, (GM/ID)_{j+1}, H, t), 두 이웃 `on_mask` 가 참일 때(아니면 선형);

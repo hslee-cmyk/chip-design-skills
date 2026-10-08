@@ -5,7 +5,8 @@
 `LutMemo.from_sweep(lut, n_theta, unique_keys_per_eval)` 의 상한 = (n_θ + 1)·U_eval 에서 U_eval 은 **첫 평가가 센 서로 다른 키 수**다(영역 point·curve·root 마다).
 이 도우미가 그 첫 평가를 계수용 memo 에서 한 번 돌려 U_eval 을 재고 운영 memo 를 만든다. 계수용 memo 는 그 평가 안에서만 값을 모아 두고(같은 키 재계산 없음)
 평가가 끝나면 버려진다 -- 장수 memo 는 항상 상한 LRU(`LutMemo`)다.
-호출부(소비자)는 평가 커널 컨텍스트를 만드는 단위(search `build_search_context`·pipeline 진입점, 설계 40 §11 U11·U16)다.
+첫 평가가 어떤 영역을 한 번도 안 쓰면 그 영역 상한은 0 = memo 하지 않음(오류 아님, CONTRACT 2.2).
+호출부(소비자): search `build_search_context`(`_wire_sweep_memo`, layer0 첫 점의 첫 평가) -- 설계 40 §7.3.
 """
 from .lut_memo import REGIONS, SWEEP_REGIONS, LutMemo
 

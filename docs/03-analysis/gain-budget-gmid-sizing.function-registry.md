@@ -629,6 +629,6 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | mismatch 식 l·w 단위(µm) | PDK 양 `mismatch_slope_geometry_unit_m`(= all.spice `.option scale`) | 쌍 MC 확인: `assets/sky130_pair_mc.py`, 기록 `docs/03-analysis/gain-budget-gmid-sizing.u3-lut-pdk-record.md` |
 | 1/f 지수 EF | PDK 양 `noise_ef_nmos`·`noise_ef_pmos`(모델 카드 `ef`) -> `LutSpec.noise_ef` | 상수를 코드에 쓰지 않는다 |
 | poly 저항 시트 R□·최소 폭·접촉 머리 면적 | PDK 양 `poly_res_sheet_ohm_per_sq`·`poly_res_min_w_m`·`poly_res_head_area_m2`(`resistor_types` 규칙: Ω당 면적이 가장 작은 종류) | `search.passive_area_decl` 이 저항 단위 면적 W_min²/R□ 와 머리를 `PassiveAreaDecl` 로 낸다 -> `metrics.area_search`. `passive_area_undeclared` 는 PDK 양이 없을 때만 |
-| LUT memo 상한 배선 | `lut.sweep_memo`(첫 평가 키 수 -> `LutMemo.from_sweep`) | 소비처 U11(search 컨텍스트)·U16(pipeline) -- 테스트의 4096 대체 |
+| LUT memo 상한 배선 | `lut.sweep_memo`(첫 평가 키 수 -> `LutMemo.from_sweep`) | 배선됨(2026-10-09): `search.search_context._wire_sweep_memo`(첫 평가 = `layer0_center.centre_start` 점), pipeline(U16)은 아직 memo 를 만들지 않음. 첫 평가가 안 쓴 영역은 상한 0 = memo 없음 |
 | 잡음·mismatch 특성화(ngspice) | `assets/sky130_lut_sweep.py noise`·`mismatch` 부명령 | 산출은 새 버전 파일 `..._noise_r1.npz`·`..._mismatch_r1.npz`(기존 r2 불변). 다른 생성기를 만들지 않는다 |
 | mismatch 단위·합성 확인 | `assets/sky130_pair_mc.py` | 오라클 쪽 도구(엔진 비의존) |

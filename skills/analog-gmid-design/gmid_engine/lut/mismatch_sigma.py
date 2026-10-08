@@ -32,7 +32,7 @@ def _block_of(model, W, L):
 
 
 def mismatch_sigma_vgs(memo, model, kind, w_key, L, vgs, vds, vsb, W):
-    """폭 `W`(m)·길이 `L`(m) 소자의 `MismatchSigma`(σ_VGS V, 변수별 기여 V). `model` = `core.PdkMismatchModel`(kind 의 것). memo 영역 point."""
+    """폭 `W`(m)·길이 `L`(m) 소자의 `MismatchSigma`(σ_VGS V, 변수별 기여 V). `model` = `core.PdkMismatchModel`(kind 의 것). memo 영역 point. memo 키에 소자 bin 의 변수별 slope 를 넣는다(같은 LUT 에 다른 PDK 선언 -> 다른 값)."""
     W = float(W)
     if not W > 0:
         raise ValueError("mismatch_sigma_vgs: W 는 양수여야 한다")
@@ -57,4 +57,5 @@ def mismatch_sigma_vgs(memo, model, kind, w_key, L, vgs, vds, vsb, W):
         scale = math.sqrt(sens.w_m / W)
         return MismatchSigma(scale * math.sqrt(sum(v * v for _p, v in parts)), tuple((p, scale * v) for p, v in parts), block.model)
 
-    return memo.lookup("point", "mismatch_sigma_vgs", (kind, w_key, L, float(vgs), float(vds), float(vsb), W, block.model), compute)
+    return memo.lookup("point", "mismatch_sigma_vgs", (kind, w_key, L, float(vgs), float(vds), float(vsb), W, block.model,
+                                                            tuple(sorted(actual.items()))), compute)

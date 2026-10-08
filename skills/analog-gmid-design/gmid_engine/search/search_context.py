@@ -14,16 +14,22 @@
   `ss_constraint_rows` 가 재거나 '미측정'으로 남긴다(S-1, 빠뜨리지 않음).
 * 예산: `eval_budget`(커널 평가 수 E_B, 선언 또는 find_front 가 한 번 유도), `deadline`(벽시계 바깥 정지).
 """
+import copy
+import dataclasses
 import hashlib
 from pathlib import Path
 
 from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 from gmid_engine.core import FailureRecord, PdkDecl, fp_of
 from gmid_engine.graph import ELEMENT_PASSIVE
+from gmid_engine.lut import sweep_memo
 from gmid_engine.metrics import JunctionSource, metric_registry
+from gmid_engine.sizing import LutAccess
 
 from .archive import S3Archive
 from .area_decl import passive_area_decl
+from .layer0_center import centre_start
+from .kernel import evaluate
 from .search_domain import search_domain
 from .search_values import AXES, AXIS_AREA, EvalKey
 
@@ -83,6 +89,25 @@ def _disk_failures(archive, context_fp, schema_fp):
     return out
 
 
+def _wire_sweep_memo(ctx):
+    """[설계 40 §7.3, D-PF1] 평가 sweep LUT memo 를 만들어 `ctx.dc` 의 것으로 바꾼다. 상한 = (n_θ + 1)·U_eval, U_eval = layer0 첫 점의
+    첫 평가가 센 서로 다른 키 수(`sweep_memo`). 호출자가 준 memo 는 S0 준비(domain 등) 조회에만 쓰이고 상한 상수는 탐색에 영향이 없다.
+    첫 평가는 임시 컨텍스트(archive 없음·빈 캐시)에서 돈다 -- 본 컨텍스트의 캐시·계수·S3 기록은 건드리지 않는다."""
+    variables, theta, cells, _centre_u = centre_start(ctx)
+    old = ctx.dc.lut
+
+    def first_eval(probe):
+        tmp = copy.copy(ctx)
+        tmp.dc = dataclasses.replace(ctx.dc, lut=LutAccess(probe, old.w_keys))
+        tmp.cache, tmp.disk_failures, tmp.computed_keys = {}, {}, set()
+        tmp.counters = dict(ctx.counters)
+        tmp.eval_times, tmp.archive, tmp.eval_budget = [], None, ctx.eval_budget
+        evaluate(tmp, theta, cells)
+
+    memo = sweep_memo(old.memo.lut, len(variables), first_eval, table_cache=old.memo.table_cache)
+    ctx.dc = dataclasses.replace(ctx.dc, lut=LutAccess(memo, old.w_keys))
+
+
 def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl):
     """[r6] `lut_rule_decl` = core `read_pdk_decl(<LUT 생성 규칙 선언>)`(sky130 = assets/sky130_lut_rule_decl.json). 여기서 S0 당
     1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)`(metrics 7.6 필수 junction)를 만든다."""
@@ -126,4 +151,5 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
                                            if v is not None and classes.get(n) == ELEMENT_PASSIVE))
     if archive is not None:
         ctx.disk_failures = _disk_failures(archive, context_fp, schema_fp)
+    _wire_sweep_memo(ctx)
     return ctx
