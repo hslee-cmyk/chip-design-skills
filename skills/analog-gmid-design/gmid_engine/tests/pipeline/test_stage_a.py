@@ -156,3 +156,11 @@ def test_library_stopping_circuits(tmp_path, real_lut, circuit, expected):
     codes = {s.split("|")[1] for s in r.report["stop_reasons"]}
     assert codes <= RECORD_ONLY
     assert expected <= codes
+
+
+def test_non_json_structure_file_still_writes_report(tmp_path, real_lut):
+    # 계약 1절 'structure 거부 -> 7 또는 2', 4절 '보고서 파일은 항상 쓰인다'
+    (tmp_path / "cs.structure.json").write_text("{not json", encoding="utf-8")
+    r = _run(tmp_path, real_lut, H.CS)
+    assert r.exit_code in (2, 7) and r.status == "stopped"
+    assert all(Path(p).is_file() for p in r.report_paths)

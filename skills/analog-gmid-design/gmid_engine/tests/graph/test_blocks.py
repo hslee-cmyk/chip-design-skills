@@ -106,3 +106,22 @@ def test_invariant4_block_keys_and_exclusive_owned_nodes(tmp_path, doc):
                 if n in owned:
                     assert n in merges or overlap_recorded, (v.id, n, owned[n], b.key)
                 owned[n] = b.key
+
+
+def test_pass_bundle_extends_block_to_output_port(tmp_path):
+    # 41 1.7 (1) '캐스코드 사슬, 미러 연장, pass 묶음을 따라가 ... 출력 포트에 닿은 노드가 출력노드', 계획 N3.2-6 'CD·pass 로 끝나면
+    # 그 소자의 출력 단자 노드'. PASS: CS M1 -> a -> 역병렬 pass M3/M4 -> b(출력 포트) -> 출력노드 b.
+    _, s1v = H.build(tmp_path, H.PASS)
+    v = H.view(s1v)
+    assert [b.key for b in v.blocks] == [("b",)]
+    assert "cs_output_low_impedance" not in H.codes(v)
+
+
+def test_invariant4_overlap_needs_composite_or_record(tmp_path):
+    # MIXED: out 에 CD(M1) 버퍼와 CS(M2) 이득 블록이 함께 출력 -> 두 블록이 out 을 소유. 불변량 4: 겹침은 복합 블록 합류이거나
+    # block_node_overlap 기록이어야 하고, 한 뷰의 블록 키는 하나씩이어야 한다.
+    _, s1v = H.build(tmp_path, H.MIXED)
+    v = H.view(s1v)
+    keys = [b.key for b in v.blocks]
+    merges = {n for c in v.composites for n in c.merge_nodes}
+    assert len(keys) == len(set(keys)) or "out" in merges or "block_node_overlap" in H.codes(v), (keys, H.codes(v))

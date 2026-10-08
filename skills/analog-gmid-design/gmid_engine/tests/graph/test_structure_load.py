@@ -82,3 +82,12 @@ def test_stale_fact_is_not_applied_by_build(tmp_path):
     assert s1v.facts_applied == ()
     assert {i.net: i.kind for i in H.view(s1v).drive_kind}["out"] == "current"      # 고정되지 않았다
     assert "structure_fact_stale" in [f.code for f in s1v.findings]
+
+
+def test_non_json_file_is_schema_rejected(tmp_path):
+    # 계약 10.1: 형식 위반 = SchemaRejectedError gate structure_json -- JSON 이 아닌 파일도 형식 위반이다
+    p = tmp_path / "broken.json"
+    p.write_text("{not json", encoding="utf-8")
+    with pytest.raises(SchemaRejectedError) as ei:
+        load_structure_facts(str(p), TOPO_FP, s1v_rule_fp())
+    assert dict(ei.value.record.detail)["gate"] == "structure_json"

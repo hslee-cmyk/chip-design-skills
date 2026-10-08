@@ -33,3 +33,16 @@ def test_resistor_without_low_terminal_is_value_dependent(tmp_path):
 
 def test_diode_on_output_is_low(tmp_path):
     assert _imp(tmp_path, H.CSDIODE, ("out",)) == (("out", "low"),)
+
+
+def test_block_and_pole_node_agree_on_output_grade(tmp_path):
+    # 41 1.7 (4)(5): 등급은 뷰별 노드 속성 하나다 -- 블록 출력노드 등급과 그 넷의 극점 노드 등급이 같아야 한다.
+    # 손 유도(FOLLOWER out): 단자 = M1 source(gate in 은 이 뷰에서 여기 넷 -> 교류접지 아님) + M2 drain -> 낮음 단자 없음 -> high.
+    for doc in (H.FOLLOWER, H.PUSHPULL, H.BMULTI, H.CS, H.OTA5, H.MILLER, H.FOLDED, H.CMFB, H.CSDIODE):
+        _, s1v = H.build(tmp_path, doc)
+        for v in s1v.views:
+            poles = H.poles(v)
+            for b in v.blocks:
+                for net, grade in b.impedance:
+                    assert grade == poles[net].impedance, (doc["topology_name"], v.id, b.key, net, grade,
+                                                           poles[net].impedance)
