@@ -1,6 +1,8 @@
 """봉인 게이트 -- 9항목을 모두 재고 봉인 스냅샷으로 승격하거나 구조화 실패를 낸다 (계획 N3.6, DEC-67, N3.14, 설계 3.6).
 
-진입점: `seal_dc(snapshot, calls, lut, resistances, linear_devices) -> DcEvaluation`.
+진입점: `seal_dc(snapshot, calls, lut, resistances, linear_devices, gm_id_prev=(), raise_on_violation=True) -> DcEvaluation`.
+`gm_id_prev` = `dc_tolerances` 의 S2p gm/ID 표(tol_I). `raise_on_violation=False` 면 violated 도 예외 없이 `DcEvaluation(sealed=None)` 으로 낸다
+(`size_and_seal_local` 이 항목별 위반 대상을 읽는다 -- 판정 식은 같다).
 
 1. `dc_tolerances` -> 봉인 1·2·3·6·7·8·[r8] 9(전도 여유) 계산 블록(필드마다 기록, 첫 실패에서 멈추지 않는다).
 2. 봉인 4(`seal_versions`, 이번 평가의 모든 dc 블록 호출 `calls` + 1 의 블록) · 봉인 5(`seal_writers`).
@@ -27,9 +29,9 @@ from .seal_vgs_match import dc_seal_vgs_match
 from .seal_writers import seal_writers
 
 
-def seal_dc(snapshot, calls, lut, resistances, linear_devices):
+def seal_dc(snapshot, calls, lut, resistances, linear_devices, gm_id_prev=(), raise_on_violation=True):
     steps = (
-        (dc_tolerances, (lut,)),
+        (dc_tolerances, (lut, gm_id_prev) if gm_id_prev else (lut,)),
         (dc_seal_node_conflict, ()),
         (dc_seal_vgs_match, ()),
         (dc_seal_kcl, (resistances,)),
@@ -46,7 +48,7 @@ def seal_dc(snapshot, calls, lut, resistances, linear_devices):
     item5 = seal_writers(snapshot)
     snapshot = dc_seal_report(snapshot, item4, item5)
     report = snapshot.value("graph", DC_KEY, "dc_seal_report")
-    if report.status == REPORT_VIOLATED:
+    if report.status == REPORT_VIOLATED and raise_on_violation:
         failed = [item for item in report.items if item.status == SEAL_FAIL]
         worst = max(failed, key=lambda item: (math.inf if item.margin is None else item.margin, item.item))
         summary = tuple((item.item, item.status, item.margin) for item in report.items)

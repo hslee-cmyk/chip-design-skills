@@ -191,6 +191,12 @@ def test_cm_constraint_judged_with_value(cmfb_run):
 def test_engine_mna_matches_ngspice_cm_pm(cmfb_run):
     """엔진 대 ngspice: 같은 gm·gds·명시 용량을 엔진 MNA 에 넣고 출력 구동자 channel 단자를 LoopCut("mos") 로 끊은 probe_factor·
     analyze_loop 의 PM = 오라클 PM(위 허용 안), 엔진 T(0) = 손유도(상대 1e-12)."""
+    # 이 test 만 엔진을 import 한다(엔진 대 ngspice 대조가 목적; 오라클 소스의 C1 '엔진 import 금지'와 무관).
+    # `python -P` 는 cwd 를 sys.path 에서 빼므로 skills/analog-gmid-design(이 파일의 위 3 단계)을 명시해 넣는다.
+    import sys
+    skill_dir = str(Path(__file__).resolve().parents[3])
+    if skill_dir not in sys.path:
+        sys.path.insert(0, skill_dir)
     from gmid_engine.metrics import (Capacitor, LoopCut, MosSmallSignal, Resistor, SmallSignalCircuit, analyze_loop, build_mna,
                                      cut_circuit, probe_factor, solve_responses)
     _, _, sim, d = cmfb_run

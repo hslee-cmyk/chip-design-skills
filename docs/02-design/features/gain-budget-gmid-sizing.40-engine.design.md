@@ -239,7 +239,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
    | current_reuse(파일럿) | `ac_ground_exception` | Vbias2 | `loop:M37a:Voc` | override | C.6 |
    | current_reuse(파일럿) | `dc_role` | M58, M63 | `diode_reference_composite` | confirm | C.6 |
    | sf_pushpull_output_opamp | `dc_role` | M6, M8, M14 / M5, M7, M13 / M9, M17, M11, M16, M20 | `diode_reference_composite` / `diode_reference_composite_cascode` / `bias_current_source` | confirm | D.6 |
-   | sf_pushpull_output_opamp | `loop_role` | 복합 diode 내부 사이클 9개 | `composite_diode_internal` | confirm | D.6 |
+   | sf_pushpull_output_opamp | `loop_role` | 복합 diode 내부 사이클 3개({N1,N5}, {N2,N7}, {N12,N13}; U1b 실측) | `composite_diode_internal` | confirm | D.6 |
    | sf_pushpull_output_opamp | `matching_pair` | `["M6","M8"]`, `["M5","M7"]`, `["R1a","R1b"]` | `branch_symmetric` | override | D.5 |
    | sf_pushpull_output_opamp | `drive_kind` | N17, N20 / N910, N1112, N1516 | `voltage` / `current` | override -- **U1b 뒤에도 엔진이 못 가르는 넷만** | D.6, J12-b |
 
@@ -260,6 +260,15 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 **불변식**:
 - 어느 블록에도, 어느 바이어스 기둥에도 속하지 않는 소자가 있으면 정지한다(`StructureUnresolvedError`, 사유 `column_unassigned`, DEC-71 (2)).
 
+**U10 as-built 보완**(2026-10-09 오케스트레이터 결정, 모두 이름 없는 구조 규칙):
+- **바이어스 기둥 = 의사 블록**: 어느 블록에도 속하지 않는 소자만으로 된 기둥(바이어스 기둥)을 K1·K2·K4 판정에서 의사 블록 `bias:<기둥>`으로 센다. 기준 diode(바이어스 기둥)와 블록 소자 사이 미러·`equal_vgs`도 층 0 조립이 지켜야 하는 관계이기 때문이다(예: sf M3↔M4, ngcc M6A↔M7).
+- **K3 정의**: 비레일 넷에서 MOS e의 drain과 MOS d의 source가 만나고 둘의 블록이 다르면 `stacked_vsb`(d의 VSB가 e의 VDS에 묶임). 9회로 0건.
+- **K1 부하 역할 집합**: {load, mirror, diode_load, tail_source}. 다른 블록·바이어스 의사 블록에서 미러로 전류를 받는 꼬리 전류원도 K1이다(실제 블록과 의사 블록에 같게 적용). 표현은 `BlockRef(view, ("bias:<기둥 id>",))`.
+- **K7 범위**: 동작점이 있는 소자(MOS)만 센다. 커패시터·저항은 값이 뷰마다 같아 나눌 것이 없다.
+- 레코드에 `nets`(관계가 걸린 넷), 매핑표 행에 `basis`(`block_member`·`column_mate`·`bias_column`)를 더한다.
+- `column_unassigned` 범위 = DC 가지에 든 원소. 커패시터·가지치기된 저항은 KVL이 없어 제외한다.
+- 소비자는 U15 층 0 조립이며, 그 전에는 단계 A 보고서 `coupling`이 유일한 출구다.
+- 관찰(U7로 넘김): 버퍼 블록은 부하 수동소자를 블록에 붙이지 않는다(출력 CL이 블록 멤버가 아님). 이득 블록과 규칙이 다르다.
 **상태**: MISS. as-built의 y는 W4 창 위치 [0, 1]로만 있다(`E/search/search_domain.py:97`).
 
 ### 3.4 GB4 -- 달성가능성 (MOD5) → 41 §4
@@ -296,7 +305,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 
 **CM 감지 소자**(사용자 결정 2026-10-07 'R1·R2 = (b)', 일반화 2026-10-08 "동의", M4): 감지 소자는 출력을 측정 가능하게 부하하지 않아야 하고, 값이 동작점과 무관한 감지 쪽 수동소자는 엔진이 값을 계산한다.
 
-**대상**: CM 분할(§5 `authoring.cm_partition`, `cm_sense_elements` 선언을 반영한 결과 하나만 쓴다 -- 같은 도달 규칙을 다른 모듈에 복사하지 않는다)이 감지(소비) 쪽으로 분류한 소자에 닿은 **자유 수동소자 전부(R·C)**. 자유 = θ 성분이고 DC 전류 기저에서 가지치기되어 값이 동작점을 바꾸지 않는다. 출력 넷에 직접 닿는지는 보지 않는다.
+**대상**: CM 분할(§5 `authoring.cm_partition`, `cm_sense_elements` 선언을 반영한 결과 하나만 쓴다 -- 같은 도달 규칙을 다른 모듈에 복사하지 않는다)이 감지(소비) 쪽으로 분류한 소자에 닿은 **자유 수동소자 전부(R·C)**. 자유 = θ 성분이고 값이 DC 동작점을 바꾸지 않는다: DC 전류 기저에서 가지치기되었거나, U2 `current_symmetry`가 **구조적 전류 0**으로 판정한 소자(예: 대칭 출력 사이 직렬 감지 저항 -- CM 동작점에서 양끝 전위가 같다). 2026-10-09 정정: 가지치기만으로 정의하면 결정 (b)의 대상(파일럿 R1·R2)이 빠져 형태 표와 충돌했다. 출력 넷에 직접 닿는지는 보지 않는다.
 
 | CMFB 형태 | 대상 | 값을 정하는 기준이 되는 metric(예) |
 |---|---|---|
@@ -314,7 +323,14 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 5. 재판정에서 이전에 만족하던 행이 하나라도 위반되거나 미측정이 늘면 원래 값을 유지하고 사유를 기록한다.
 6. **적용 범위**: 1~5는 front 점마다 한 번씩 따로 적용한다(M4). 모든 점에 적용한 뒤 front를 비지배 필터에 한 번 더 통과시킨다(수동소자 면적이 면적 축에 들어가므로, §9 Q9). 필터에서 빠진 점과 사유는 기록한다.
 
-상수는 새로 두지 않는다. 허용 손실은 각 metric의 분해능이다. 선언된 제약이 없어 분해능이 없으면 건드리지 않고 사유를 기록한다.
+상수는 새로 두지 않는다. 허용 손실은 각 metric의 분해능이다.
+
+**U11 test 후속 정의**(2026-10-09 오케스트레이터, 결정 (b)의 목적 = 출력 부하 최소화에서 유도):
+- **감지 쪽 범위**: 감지 넷 = 레일·출력이 아니고 MOS gate만 걸리며 MOS channel이 닿지 않는 넷. 대상 = 감지 넷을 포함하는 **수동소자만으로 이어진 연결 성분**(channel이 닿는 넷에서 멈춤)에 든 자유 수동소자 전부. 그래서 출력과 감지 넷 사이 수동소자 중간 넷을 거치는 평균망(Ra·Rb·Rc)이 모두 대상이고, channel이 닿는 오차증폭 내부 넷의 커패시터는 대상이 아니다.
+- **제거 극한에서 정의되지 않는 metric**: 소자를 없앴을 때 정의가 사라지는 metric(감지 넷이 DC로 떠서 PM·GBW가 미정, CM 루프가 끊겨 PM_cm 미정)은 그 소자의 손실 행에서 **그 metric만 뺀다**(소자 전체를 건너뛰지 않는다). 그 metric의 제약 만족은 4번 재판정이 지킨다. 남은 손실 행이 하나도 없으면 사유를 기록하고 원래 값을 둔다.
+- **최소 면적 값**: 손실 경계의 근을 분해능 수준(그 소자 θ의 소신호 상대 분해능)까지 찾고, 근 위쪽 한 칸을 넘지 않는다. 소자 제거는 R → ∞·C → 0 극한으로 구현해도 되나, 그 값은 유도해 주석에 남긴다(as-built: R = √(float max)).
+
+**면적 예산 출발점(as-built U11, 잠정)**: `fit_to_area_budget`이 예산을 넘는 시작점의 ln IDu를 모두 같은 Δ만큼 옮겨 예산 안으로 넣는다. 설계 정본은 41 §6.4 면적 상한으로 출발 구간을 자르는 것(U13)이며, U13이 들어오는 커밋에서 이 이동 방식을 지운다. 선언된 제약이 없어 분해능이 없으면 건드리지 않고 사유를 기록한다.
 
 | 항목 | 상태 | 증거 |
 |---|---|---|
@@ -372,7 +388,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 **이 설계가 바꾸는 것**:
 1. **L 동치류 공유**: §3.2-1을 따른다.
 2. **미러 비율 강제**: `matching_ratio`(그룹의 W/L 비)를 전류 기저의 강제 관계로 넣는다(DEC-70). 비율의 출처는 θ 변수이며, 대칭 묶음(§6)이 같은 비율 1을 준다.
-3. **tol_I**: 직전 봉인 스냅샷(S2p)의 `ss` gm으로 계산하고, 첫 평가만 격자 최대 gm을 쓴다(P N3.6).
+3. **tol_I**: 직전 봉인 스냅샷(S2p)의 `ss` gm으로 계산하고, 첫 평가만 격자 최대 gm을 쓴다(P N3.6). as-built(U4, 2026-10-09): gm 상계 = (S2p gm/ID, 정규형 `canonical_gm_id`) × 이번 후보 ID. DC 동작점이 parent와 같은 자식(수동소자 θ만 바뀐 FD 등)은 parent가 실제로 쓴 입력을 그대로 이어받아 DC 블록을 비트 동일로 재사용한다(DEC-92가 N3.6 문언보다 우선). parent에서 격자 최대 상계를 쓴 소자는 그대로 격자 최대다.
 4. **종속 소자 선택 DEC-95 (3)**: ratified 선택(`structure.json`)과 ② 'GB5 gm 요구·뒤 stage 독립'을 Kruskal 엣지 키 앞에 둔다. ②의 입력은 S1v stage 번호다.
 5. **W4 초기값**: 층 0이 배분한 기둥 VDS를 쓴다(41 §5.3 (c)).
 
@@ -513,6 +529,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
    - **`.pz` 신뢰 규칙**: 큰 BSIM4 회로에서 `.pz`가 경고 없이 거짓 RHP 극점을 낸다(파일럿 23개, 개루프 `.tran`에 증가 없음). 그래서 폐루프 과도가 stable이면 `.pz`를 쓰지 않는다(Z = 0, P = −N). 과도 unstable이면 FAIL. 과도 미정이면 N ≥ 1 → FAIL, N = 0이면 **개루프 과도가 증가를 확인할 때만** `.pz` P를 쓰고 아니면 INCOMPLETE다. 과도 stable인데 `.pz`가 −N과 다르면 `pz_conflict`를 기록한다.
    - **자극 위치**: 폐루프 과도의 자극과 관측은 루프 끊는 점에 둔다. 그 루프의 폐루프 극점은 끊는 점에서 들뜨고 관측되므로, '자극이 모드를 못 들뜨게 해서 안정으로 남는' 위험을 그 루프 뷰 범위에서 닫는다. 남는 한계는 보고서에 적는다.
    - **조건부 안정**: Z = 0이고 과도 stable이면 `pm_valid`를 유지한다. PM은 모든 |T| = 1 교차의 최솟값이다. P ≥ 1이거나, 교차 주파수 아래 |T| > 1 구간에서 위상이 −180°를 넘으면 `conditionally_stable`을 표시하고 **하측 이득 여유**(루프 이득이 몇 dB 줄면 감김 수가 바뀌는지, 같은 `.ac`에서 읽음)를 보고한다. spec 값이 없으므로 제약이 아니라 보고다.
+   - **U6 test 후속 정의**(2026-10-09 오케스트레이터): (i) 창 판정의 floor는 **관측 노드(루프 끊는 점)** 기준 reltol·|V_op| + vntol이다. (ii) 오라클 ICMR 좌표는 창 끝에서의 **실제 입력 공통모드 (V_inp + V_inn)/2**다(엔진 `icmr_v`와 같은 정의). (iii) 차동 입력이 없는 회로의 ICMR은 `unavailable`이다. (iv) 하측 이득 여유 필드 이름은 `low_side_gain_margin_db`. (v) `noise_excess_th`의 입력 셀 소자 이름은 오라클 넷리스트 이름으로 사상해 찾는다(수동소자 접두 포함).
 
 | 항목 | 상태 | 증거 |
 |---|---|---|

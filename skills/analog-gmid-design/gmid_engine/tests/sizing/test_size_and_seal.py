@@ -375,3 +375,131 @@ def test_determinism_hashseed_and_netlist_order(tmp_path):
     for tag in ("C", "A"):
         fps = {tuple(v) for k, v in results[0].items() if k.startswith(tag)}
         assert len(fps) == 1, "netlist 순서에 따라 결과가 달라짐: %s" % tag
+
+
+# ===========================================================================
+# [U4] L 동치류 L 공유의 평가 (D-GB7a, 설계 40 §3.7-1, CONTRACT 14.1 'size_and_seal: 멤버 L = 주인 θ L')
+# ===========================================================================
+
+import math as _math                                                                       # noqa: E402
+
+from gmid_engine.sizing import OrderHints                                                  # noqa: E402
+
+from .conftest import (B as _B, C as _C, LClassStub, build_ctx_u4, circuit_mirror, mos_table, node_voltages,  # noqa: E402
+                       r4_ln_idu, rel_close, terminal_mag, theta_mirror, theta_r4c, with_hand_ss)
+
+
+@pytest.fixture(scope="module")
+def mir_tied(tmp_path_factory, r4_access):
+    return build_ctx_u4(tmp_path_factory.mktemp("ss_tied"), circuit_mirror(), r4_access,
+                        l_classes=(LClassStub("M1", ("M1", "M2")),), element_values=(("I1", 1e-5),))[1]
+
+
+def _tied_theta(l_owner, l3=1e-6):
+    th = theta_mirror(l=(l_owner, l_owner, l3))
+    del th[("L", "M2")]
+    return th
+
+
+@pytest.mark.parametrize("l_owner", [1e-6, 2e-6])
+def test_member_l_is_owner_theta_l(mir_tied, l_owner):
+    """멤버 M2 의 dc_L·DeviceOp.L = 주인 M1 의 θ L(정확히). M2 의 W = ID·L_owner / IDu_forward(V(nb), 0.9)(닫힌 식) -- L 이 W 계산
+    까지 실제로 쓰였다. M3(동치류 밖)는 자기 θ L."""
+    ev = size_and_seal(mir_tied, _tied_theta(l_owner))
+    ops = dict(ev.snapshot.column("device", "dc_op"))
+    assert dict(ev.snapshot.column("device", "dc_L")) == {"M1": l_owner, "M2": l_owner, "M3": 1e-6}
+    assert ops["M2"].L == ops["M1"].L == l_owner and ops["M3"].L == 1e-6
+    V = node_voltages(ev.snapshot)
+    w2 = 1e-5 * l_owner / _math.exp(r4_ln_idu("nmos", V["nb"], 0.9, 0.0))
+    assert rel_close(ops["M2"].W, w2, 1e-9)
+
+
+def test_owner_l_perturbation_moves_member(mir_tied):
+    """FD 관점: 주인 L 성분 하나만 바꾸면 멤버 L 도 따라 바뀐다(동치류당 변수 하나, 설계 41 §5.3 'L 동치류별 L' 축)."""
+    a = size_and_seal(mir_tied, _tied_theta(1e-6))
+    b = size_and_seal(mir_tied, _tied_theta(2e-6), parent=a)
+    la, lb = dict(a.snapshot.column("device", "dc_L")), dict(b.snapshot.column("device", "dc_L"))
+    assert (la["M2"], lb["M2"]) == (1e-6, 2e-6)
+
+
+# ===========================================================================
+# [U4] IC1 -- 모든 소자 VGS 정합 (설계 40 §10.3 IC1, 계획 N3.6 봉인 2·'tol_V 를 IC1 test 의 허용오차로')
+# ===========================================================================
+# 9회로 봉인 해는 탐색(U15/U16)이 만든다 -- 이 단위의 IC1 은 U4 경로(L 동치류·W_request·S2p·입력 창·OrderHints)로 봉인된 toy
+# 점 전부에 같은 단언을 건다. oracle (a): 노드전압에서 다시 만든 VGS·VDS·VSB 로 r4 닫힌 식 ln IDu 를 계산하고, 쓰기 소자의 좌표
+# (θ ln_idu, W 요청이 있으면 ln(ID·L/W_req) -- CONTRACT 14.3)와의 차를 gm/ID = B − C·VGS 로 나눈 값이 tol_V(그 소자 dc_tol_v) 이하.
+# 종속 소자는 DeviceOp.ln_idu 가 같은 닫힌 식의 순방향 값과 tol_V 안에서 같다.
+
+
+def _ic1_points(ctx_r4c, mir_tied, mir_plain, mir_hint):
+    pts = []
+    e0 = size_and_seal(ctx_r4c, theta_r4c())
+    pts.append((ctx_r4c, theta_r4c(), {}, e0))
+    th = theta_r4c(v1=0.62)
+    pts.append((ctx_r4c, th, {}, size_and_seal(ctx_r4c, th, parent=with_hand_ss(e0))))
+    th = _tied_theta(2e-6)
+    pts.append((mir_tied, th, {}, size_and_seal(mir_tied, th)))
+    th = theta_mirror()
+    for wr in ({"M3": 1e-5}, {"M1": 2e-5}, {"M2": 3e-5}):
+        pts.append((mir_plain, th, wr, size_and_seal(mir_plain, th, w_request=wr)))
+    th = theta_mirror()
+    th[("ln_idu", "M2")] = th.pop(("ln_idu", "M1"))
+    pts.append((mir_hint, th, {}, size_and_seal(mir_hint, th)))
+    return pts
+
+
+@pytest.fixture(scope="module")
+def mir_plain(tmp_path_factory, r4_access):
+    return build_ctx_u4(tmp_path_factory.mktemp("ss_plain"), circuit_mirror(), r4_access, element_values=(("I1", 1e-5),))[1]
+
+
+@pytest.fixture(scope="module")
+def mir_hint(tmp_path_factory, r4_access):
+    return build_ctx_u4(tmp_path_factory.mktemp("ss_hint"), circuit_mirror(), r4_access,
+                        order_hints=OrderHints(independent=("M2",)), element_values=(("I1", 1e-5),))[1]
+
+
+def test_ic1_vgs_consistency_all_devices(ctx_r4c, mir_tied, mir_plain, mir_hint):
+    n = 0
+    for ctx, th, wr, ev in _ic1_points(ctx_r4c, mir_tied, mir_plain, mir_hint):
+        assert ev.sealed is not None
+        snap = ev.snapshot
+        V = node_voltages(snap)
+        ops = dict(snap.column("device", "dc_op"))
+        tolv = dict(snap.column("device", "dc_tol_v"))
+        for m, (kind, d, g, s, b) in mos_table(snap).items():
+            vgs, vds, vsb = terminal_mag(kind, V, d, g, s, b)
+            fwd = r4_ln_idu(kind, vgs, vds, vsb)
+            role = snap.value("device", m, "dc_coord").role
+            if role == "writer":
+                coord = _math.log(ops[m].current * ops[m].L / wr[m]) if m in wr else th[("ln_idu", m)]
+            else:
+                coord = ops[m].ln_idu
+            assert abs(fwd - coord) / (_B - _C * vgs) <= tolv[m], (m, role, fwd, coord)
+            n += 1
+    assert n == 2 * 2 + 5 * 3                                          # 회로 C 점 2개 × 2 + 거울 점 5개 × 3
+
+
+# ===========================================================================
+# [U4] IC2 -- 순서 섞기 불변 (설계 40 §10.3 IC2, 계획 N3.5 SC-a)
+# ===========================================================================
+
+def test_ic2_order_shuffle_invariance(tmp_path, r4_access):
+    """netlist 순서·L 동치류 목록/멤버 순서·OrderHints tuple 순서·W_request 순서를 섞은 두 입력 -> 계획·평가 스냅샷 지문 같음
+    (이산 필드 동일, 연속 필드 비트 동일)."""
+    import random as _random
+    doc_a = circuit_mirror()
+    doc_b = json.loads(json.dumps(doc_a))
+    _random.Random(7).shuffle(doc_b["netlist"])
+    assert [e["name"] for e in doc_b["netlist"]] != [e["name"] for e in doc_a["netlist"]]
+    lc_a = (LClassStub("M1", ("M1", "M2")), LClassStub("M3", ("M3",)))
+    lc_b = (LClassStub("M3", ("M3",)), LClassStub("M1", ("M2", "M1")))
+    h_a = OrderHints(gm_required=("M2", "M3"), stage=(("M1", 1), ("M2", 2)))
+    h_b = OrderHints(gm_required=("M3", "M2"), stage=(("M2", 2), ("M1", 1)))
+    _, a = build_ctx_u4(tmp_path / "a", doc_a, r4_access, l_classes=lc_a, order_hints=h_a, element_values=(("I1", 1e-5),))
+    _, b = build_ctx_u4(tmp_path / "b", doc_b, r4_access, l_classes=lc_b, order_hints=h_b, element_values=(("I1", 1e-5),))
+    assert a.base.fp == b.base.fp and a.schema == b.schema and a.l_ties == b.l_ties
+    th = _tied_theta(2e-6)
+    ea = size_and_seal(a, th, w_request={"M3": 1e-5, "M2": 3e-5})
+    eb = size_and_seal(b, th, w_request=(("M2", 3e-5), ("M3", 1e-5)))
+    assert ea.snapshot.fp == eb.snapshot.fp and ea.report == eb.report

@@ -33,14 +33,15 @@ from ._terminal_nets import two_terminal_nets
 from .cm_partition import cm_partition
 from .ports import (INPUT_DIRECTION, OUTPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_N, ROLE_DIFFERENTIAL_INPUT_P,
                     ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P, ROLE_SINGLE_ENDED_INPUT)
-from .spec_model import PendingMark, SenseDecl, ViewDecl
+from .spec_model import (VIEW_MODE_CM_OUTPUT, VIEW_MODE_LOOP, VIEW_MODE_PENDING, VIEW_MODE_PORT, VIEW_MODE_SENSE,
+                         PendingMark, SenseDecl, ViewDecl)
 
 SENSE_DIFFERENTIAL = "differential"
 SENSE_SINGLE_ENDED = "single_ended"
 SENSE_MODES = (SENSE_DIFFERENTIAL, SENSE_SINGLE_ENDED)
 BETA_DECLARED = "declared"
 BETA_UNITY = "unity"
-CM_OUTPUT_MODE = "cm_output"           # ViewDecl.mode: 출력 포트 쌍 동일 부호(공통 모드) Middlebrook 주입 루프
+CM_OUTPUT_MODE = VIEW_MODE_CM_OUTPUT         # ViewDecl.mode: 출력 포트 쌍 동일 부호(공통 모드) Middlebrook 주입 루프
 
 
 @dataclasses.dataclass(frozen=True)
@@ -83,30 +84,30 @@ def _port_view(inputs, outputs, weights):
     else:
         return ("출력 포트가 1개 또는 차동 출력쌍(role " + ROLE_DIFFERENTIAL_OUTPUT_P + "/" + ROLE_DIFFERENTIAL_OUTPUT_N
                 + ")이 아니라 기본 포트 뷰의 관측이 정해지지 않는다: " + repr(sorted(p.net for p in outputs)))
-    return ViewDecl("port", weights=tuple(sorted((p.net, weights[p.net]) for p in inputs)), sense=sense)
+    return ViewDecl(VIEW_MODE_PORT, weights=tuple(sorted((p.net, weights[p.net]) for p in inputs)), sense=sense)
 
 
 def _loop_view(feedback, port, weights, topology):
     if feedback is None:
-        return ViewDecl("loop")
+        return ViewDecl(VIEW_MODE_LOOP)
     if isinstance(feedback, PendingMark):
-        return ViewDecl("pending", decision=feedback.decision)
+        return ViewDecl(VIEW_MODE_PENDING, decision=feedback.decision)
     if not feedback:
         if isinstance(port, str):
             return "β = 1(feedback 빈 list) 루프 뷰는 포트 뷰와 같다 -- " + port
-        return ViewDecl("loop", beta=BETA_UNITY, weights=port.weights, sense=port.sense)
+        return ViewDecl(VIEW_MODE_LOOP, beta=BETA_UNITY, weights=port.weights, sense=port.sense)
     cuts = []
     for name in feedback:
         nets = input_terminal_nets(name, topology)
         if nets is None or len(nets) != 1:
-            return ViewDecl("loop")
+            return ViewDecl(VIEW_MODE_LOOP)
         cuts.append((name, nets[0]))
     cut_nets = sorted({net for _, net in cuts})
     missing = [net for net in cut_nets if net not in weights]
     if missing:
         return ("절단 넷 " + repr(missing) + " 의 입력 포트 role 이 가중 어휘(" + ROLE_DIFFERENTIAL_INPUT_P + ", "
                 + ROLE_DIFFERENTIAL_INPUT_N + ", " + ROLE_SINGLE_ENDED_INPUT + ") 밖이라 루프 가중이 정해지지 않는다")
-    return ViewDecl("loop", beta=BETA_DECLARED, cuts=tuple(cuts), weights=tuple((net, weights[net]) for net in cut_nets))
+    return ViewDecl(VIEW_MODE_LOOP, beta=BETA_DECLARED, cuts=tuple(cuts), weights=tuple((net, weights[net]) for net in cut_nets))
 
 
 SWITCHED_KINDS = ("switch", "clock")          # 스위치드 커패시터(이산시간) 선언 어휘 -- 수동소자·이상원 kind 로 선언된 것
@@ -173,7 +174,7 @@ def default_views(topology, feedback):
     weights = _role_weights(inputs)
     port = _port_view(inputs, outputs, weights)
     if len(outputs) == 1:
-        sense = ViewDecl("sense", sense=SenseDecl(outputs[0].net, None, SENSE_SINGLE_ENDED))
+        sense = ViewDecl(VIEW_MODE_SENSE, sense=SenseDecl(outputs[0].net, None, SENSE_SINGLE_ENDED))
     else:
         sense = ("output 포트가 하나가 아니라 출력 포트 뷰의 감지 넷이 정해지지 않는다 -- view(sense_p·sense_n·sense_mode)를 "
                  "선언한다: " + repr(sorted(p.net for p in outputs)))

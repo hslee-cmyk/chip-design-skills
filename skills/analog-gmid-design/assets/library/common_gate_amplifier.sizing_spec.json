@@ -33,6 +33,16 @@
     },
     "constraints": [
       {
+        "metric": "noise_excess_th",
+        "op": "<=",
+        "value": 2,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"Q1~Q11 모두 네 의견대로 진행해\" 결정 Q11 -- 잡음 구조 가드 noise_excess_th <= 2(부하 잡음 <= 입력 잡음, design 41 §7.1)",
+          "decided": "2026-10-08"
+        }
+      },
+      {
         "metric": "area_search_m2",
         "op": "<=",
         "value": 5e-09,

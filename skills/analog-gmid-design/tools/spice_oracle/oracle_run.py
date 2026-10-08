@@ -23,6 +23,9 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from oracle_netlist import BIASES, load_input, resolve_topology_path, validate_input, write_netlists  # noqa: E402
 from oracle_simulate import simulate  # noqa: E402
+from oracle_noise import noise_measure  # noqa: E402
+from oracle_offset_mc import offset_mc_measure  # noqa: E402
+from oracle_swing import swing_icmr_measure  # noqa: E402
 from oracle_compare import compare, diagnose, merge_judge, to_markdown  # noqa: E402
 
 
@@ -39,6 +42,15 @@ def run_one(inp, out_dir, bias, judge, exe, timeout_s=None, tag="", topology_pat
     cir = os.path.join(out_dir, stem + ".cir")
     meta = write_netlists(inp, bias, cir, topology_path, require_topology, omit, short)
     sim = simulate(cir, meta, exe, timeout_s, cache_dir)
+    if bias == "free" and not sim.get("skipped"):
+        # [신규 U6] 선택 측정(입력 블록이 있을 때만): .noise 대조, 오프셋 Monte-Carlo, 스윙·ICMR .op 스윕 (README "U6")
+        for key, fn in (("noise", lambda: noise_measure(inp, cir, meta, exe, timeout_s, cache_dir)),
+                        ("offset_mc", lambda: offset_mc_measure(inp, cir, meta, exe, timeout_s, cache_dir)),
+                        ("swing_icmr", lambda: swing_icmr_measure(inp, cir, meta, exe, timeout_s, cache_dir,
+                                                                  (judge or {}).get("sat_margin_V"),
+                                                                  (judge or {}).get("off_current_A")))):
+            if inp.get(key):          # 입력에 그 측정 블록이 있을 때만(없으면 sim 에 키를 만들지 않는다)
+                sim[key] = fn()
     with open(os.path.join(out_dir, stem + ".sim.json"), "w", encoding="utf-8") as f:
         json.dump(sim, f, ensure_ascii=False, indent=1)
     res = compare(inp, meta, sim, judge)

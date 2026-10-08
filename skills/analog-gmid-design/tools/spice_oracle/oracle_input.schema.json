@@ -129,6 +129,7 @@
      "items": {"type": "object", "required": ["measure", "value"], "properties": {
       "name": {"type": "string", "description": "엔진 쪽 metric 이름(표시용)"},
       "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "cm_pm_deg", "f3db_hz", "supply_current_A", "ratio_db", "rout_ohm",
+                           "noise_th_in_v2hz", "noise_fc_in_hz", "noise_excess_th", "noise_out_int_vrms", "offset_in_sigma_mv", "swing_out_v", "icmr_v", "icm_margin_v",
                            "slew_rate_v_per_s", "settle_s"],
                   "description": "[신규] ratio_db = 엔진 ratio_ss_db(CMRR·PSRR 일반형, view 필수, C24). [신규 C26] rout_ohm = 엔진 rout_ss_ohm(출력 포트 뷰, 감지 전용 view 필수). slew_rate_v_per_s·settle_s = 기록 전용(C25: 지금은 SPICE 정의 미정이라 not_measured)."},
       "value": {"type": "number"},
@@ -147,7 +148,7 @@
    "properties": {
     "constraints": {"type": "array", "items": {"type": "object", "required": ["measure", "op", "limit"], "properties": {
      "name": {"type": "string"}, "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "cm_pm_deg", "f3db_hz", "supply_current_A", "ratio_db",
-                                                      "rout_ohm"],
+                                                      "rout_ohm", "noise_th_in_v2hz", "noise_fc_in_hz", "noise_excess_th", "noise_out_int_vrms", "offset_in_sigma_mv", "swing_out_v", "icmr_v", "icm_margin_v"],
                                               "description": "[신규] ratio_db(CMRR·PSRR, view 필수) 는 판정 대상(Q5 (ii), C24). [신규 C26] rout_ohm(출력 저항, 감지 전용 view 필수)도 판정 대상. slew·settling 은 판정 대상이 아니라 여기 없다(C25)."},
      "op": {"enum": [">=", "<="]}, "limit": {"type": "number"}, "rail": {"type": "string"},
      "view": {"anyOf": [{"$ref": "#/$defs/ratio_view"}, {"$ref": "#/$defs/sense_view"}]}, "basis": {"type": "string"}},
@@ -186,7 +187,38 @@
      "node_abs_V": {"type": "number"}, "W_rel": {"type": "number"}, "kcl_abs_A": {"type": "number"},
      "dc_gain_db_abs": {"type": "number"}, "pm_deg_abs": {"type": "number"}, "ugf_hz_rel": {"type": "number"},
      "f3db_hz_rel": {"type": "number"}, "supply_current_A_rel": {"type": "number"}, "ratio_db_abs": {"type": "number"},
-     "rout_ohm_rel": {"type": "number", "description": "[신규 C26] rout_ohm metric 기록의 상대 허용오차(기록 전용)"}}}
+     "rout_ohm_rel": {"type": "number", "description": "[신규 C26] rout_ohm metric 기록의 상대 허용오차(기록 전용)"},
+     "noise_th_in_v2hz_rel": {"type": "number"}, "noise_fc_in_hz_rel": {"type": "number"}, "noise_excess_th_rel": {"type": "number"},
+     "noise_out_int_vrms_rel": {"type": "number"}, "offset_in_sigma_mv_rel": {"type": "number"},
+     "swing_out_v_abs": {"type": "number"}, "icmr_v_abs": {"type": "number"}, "icm_margin_v_abs": {"type": "number"}}}
+   }
+  },
+  "noise": {
+   "type": "object", "required": ["f_lo_hz"],
+   "description": "[신규 U6] 선택. ngspice .noise 대조(README U6). f_lo_hz = 열잡음 평탄값 평가·적분 하한(엔진 LUT 가 실측한 가장 낮은 잡음 점). 개루프 metric(noise_th_in_v2hz·noise_fc_in_hz·noise_excess_th)은 free 본 넷리스트, 폐루프 noise_out_int_vrms 는 closed_loop 가 true 일 때 feedback_passives 로 닫은 루프 넷리스트.",
+   "properties": {
+    "f_lo_hz": {"type": "number", "exclusiveMinimum": 0},
+    "points_per_decade": {"type": "integer", "minimum": 1},
+    "input_cell_devices": {"type": "array", "items": {"type": "string"}, "description": "noise_excess_th 의 분모(입력 셀) 소자 이름"},
+    "closed_loop": {"type": "boolean"},
+    "rel_resolution": {"type": "number", "exclusiveMinimum": 0, "description": "폐루프 적분 꼬리 판정의 상대 분해능 r(기본 = ngspice reltol)"}
+   }
+  },
+  "offset_mc": {
+   "type": "object", "required": ["rel_resolution"],
+   "description": "[신규 U6] 선택. 입력 환산 랜덤 offset 1σ 의 ngspice Monte-Carlo(소자별 독립 mismatch 변수). 표본 수 N = ceil(1 + 1/(2 r²)), r = rel_resolution(엔진 resolution).",
+   "properties": {
+    "rel_resolution": {"type": "number", "exclusiveMinimum": 0},
+    "seed": {"type": "integer"},
+    "max_samples": {"type": "integer", "minimum": 2}
+   }
+  },
+  "swing_icmr": {
+   "type": "object",
+   "description": "[신규 U6] 선택. 출력 스윙(swing)·입력 공통모드 범위(icmr)를 free 넷리스트 DC servo 기준원 스윕(.op)으로 잰다. input_dc_V = icm_margin 용 선언 입력 DC(없으면 예측 입력 DC), input_dc_pending = true 면 icm_margin 을 내지 않는다(SP-2 대기).",
+   "properties": {
+    "swing": {"type": "boolean"}, "icmr": {"type": "boolean"},
+    "input_dc_V": {"type": "number"}, "input_dc_pending": {"type": "boolean"}
    }
   },
   "topology": {

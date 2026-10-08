@@ -24,7 +24,7 @@ def test_value_from_constraint_resolved(sc):
     got = {c.metric: c for c in doc.constraints if c.metric}
     raw = {c["metric"]: c for c in sc.human["constraints"] if isinstance(c["metric"], str)}
     assert got["parasitic_pm_ss_deg"].value == raw["pm_ss_deg"]["value"]
-    assert got["mirror_ratio_error_mv"].value == raw["mismatch_sigma_mv"]["value"]
+    assert got["icmr_v"].value == raw["swing_out_v"]["value"]
 
 
 def test_value_from_file_resolved(sc):
@@ -43,10 +43,10 @@ def test_value_from_file_judged_follows_pending_spice_target(sc):
 
 
 def test_chain_of_value_from_constraint(sc):
-    """대상이 다시 참조면 따라간다: power_dc_w -> mirror_ratio_error_mv -> mismatch_sigma_mv."""
-    _add(sc, metric="power_dc_w", op="<=", value_from_constraint="mirror_ratio_error_mv", source=dict(REF))
+    """대상이 다시 참조면 따라간다: power_dc_w -> icmr_v -> swing_out_v."""
+    _add(sc, metric="power_dc_w", op="<=", value_from_constraint="icmr_v", source=dict(REF))
     got = [c for c in sc.load().constraints if c.metric == "power_dc_w"][0]
-    assert got.value == sc.constraint("mismatch_sigma_mv")["value"]
+    assert got.value == sc.constraint("swing_out_v")["value"]
 
 
 def test_ref_to_pending_target_becomes_pending(sc):
@@ -70,7 +70,7 @@ def test_constraint_ref_to_pending_metric_target_value(sc):
 
 
 def test_ref_unresolved_constraint_name(sc):
-    sc.constraint("mirror_ratio_error_mv")["value_from_constraint"] = "gbw_ss_hz"  # pending_constraints 에만 있음
+    sc.constraint("icmr_v")["value_from_constraint"] = "gbw_ss_hz"  # pending_constraints 에만 있음
     _ref_only(sc, "ref_unresolved")
 
 
@@ -90,7 +90,7 @@ def test_ref_unresolved_name_not_in_target(sc):
 
 
 def test_ref_ambiguous(sc):
-    _add(sc, metric="mismatch_sigma_mv", op=">=", value=0.5, source=dict(US))
+    _add(sc, metric="swing_out_v", op=">=", value=0.5, source=dict(US))
     _ref_only(sc, "ref_ambiguous")
 
 
