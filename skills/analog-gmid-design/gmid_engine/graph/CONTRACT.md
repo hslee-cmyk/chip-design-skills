@@ -707,6 +707,9 @@ confirm 이 일치한 유도 레코드는 status 를 올린다: `dc_role` -> `Dc
 
 ### 11.1 값 형식
 * `BlockRef(view, key)` -- 뷰 id 와 블록 키(출력노드 이름 정렬 tuple). 같은 키의 블록도 뷰가 다르면 다른 블록. 정렬 가능(frozen order).
+  **의사 블록(바이어스 기둥)**: 어느 블록에도 속하지 않는 소자만으로 된 기둥(`bias_columns`)은 K1·K2·K4 판정에서 블록 하나로 센다. 표현 = `BlockRef(view, ("bias:<기둥 id>",))` (`coupling_values.BIAS_PREFIX`) --
+  판정이 뷰 단위라 의사 블록은 모든 뷰에 기둥마다 하나씩 놓이고, 바이어스 기둥 소자는 모든 뷰에서 그 키를 갖는다. `repr` 에 `bias:<기둥 id>` 가 든다. 기둥 id 는 열거 순서에 따르므로
+  이름 전단사 불변은 '기둥 소자 집합'으로 대응시켜 본다(레코드의 members·nets 는 이름만으로 정해져 영향 없음). 매핑표 행의 `block` 은 계속 None(`bias_column`).
 * `ColumnBlockRow(column, block, device, shared, basis)` -- `column` = S1 기둥 id 또는 None(어느 기둥에도 안 든 블록 멤버, 예: 커패시터), `block` = BlockRef 또는 None(바이어스 기둥),
   `basis` ∈ `block_member | column_mate | bias_column`. `ColumnBlockMap(rows, bias_columns)` -- rows 는 (column(None 먼저), block, device) 순.
 * `CouplingVar(kind, members, blocks, domain, init_rule, nets)` -- 40 §3.3 레코드에 `nets` 를 더했다. `Coupling(vars, column_block_map)` -- vars 는 (kind, members, nets, domain) 순, 같은 키 중복 없음.
@@ -721,10 +724,10 @@ confirm 이 일치한 유도 레코드는 status 를 올린다: `dc_role` -> `Dc
 ### 11.3 결합 종류와 판정 (모두 '한 뷰 안에서 소자들의 블록 키 합집합 != 교집합'을 블록 경계 횡단으로 본다; 블록이 있는 소자가 그 뷰에 둘 이상 있어야 한다)
 | kind | 만드는 조건 | members | nets | domain | init_rule |
 |---|---|---|---|---|---|
-| K1 | S1 mirror matching 그룹 또는 S1v L 동치류가 블록을 가로지르고 멤버 중 부하 역할(load·mirror·diode_load)이 횡단 블록에 있음 | 류 멤버 | () | dc(mirror)·geom(L 동치류) | class_owner_value |
+| K1 | S1 mirror matching 그룹 또는 S1v L 동치류가 블록을 가로지르고 멤버 중 부하 역할(load·mirror·diode_load·tail_source)이 횡단 블록에 있음 -- 실제 블록·의사 블록에 똑같이 적용(오케스트레이터 결정 2026-10-09: 다른 블록·바이어스 의사 블록에서 전류를 정하는 tail 로 미러하는 것도 K1) | 류 멤버 | () | dc(mirror)·geom(L 동치류) | class_owner_value |
 | K2 | S1 `equal_vgs` 엣지가 블록을 가로지름 | 엣지 멤버 | 엣지 evidence 넷 | dc | common_vgs_candidates |
 | K3 | 비레일 넷에 MOS e 의 drain 과 MOS d 의 source 가 만나고 둘의 블록이 다름(`stacked_vsb`) | (e, d) | (그 넷,) | dc | stack_node_kvl |
 | K4 | 한 가지를 지나는 모든 기둥의 소자가 블록을 가로지름 | 가지의 소자 | 가지 양 끝 | dc | shared_node_kvl_kcl |
-| K7 | 소자가 둘 이상 뷰의 블록 멤버 | (소자,) | () | dc | view_shared_split |
+| K7 | MOS(동작점이 있는 소자)가 둘 이상 뷰의 블록 멤버. 커패시터·저항은 값이 뷰마다 같아 제외 | (소자,) | () | dc | view_shared_split |
 | K8 | DC 역할 바이어스 전류원 + 셀 CS(gate 가 신호 넷) + drain 노드에 신호 CD 의 source + c 의 gate 가 그 CD 입력에서 CD 엣지로 안 닿음 + drain 노드가 이득 블록 출력 아님 | (c, CD 셀들) | (drain 노드,) | dc | side_injection_current |
-`blocks` = 횡단이 일어난 뷰들의 횡단 블록(K7·K8 은 소자의 모든 블록). 바이어스 기둥은 블록이 아니므로 바이어스 기둥 소자와 블록 소자 사이의 미러(예: 기준 diode)는 K1·K2 가 되지 않는다(열린 질문).
+`blocks` = 횡단이 일어난 뷰들의 횡단 블록(K7·K8 은 소자의 모든 블록). 바이어스 기둥 소자와 블록 소자 사이의 미러·`equal_vgs`(예: 기준 diode)도 의사 블록 횡단으로 K1·K2 가 된다(blocks 에 의사 블록이 든다).

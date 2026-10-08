@@ -4,13 +4,13 @@
 
 블록 경계를 넘는 관계를 S1 관계 엣지·S1v 블록·기둥↔블록 매핑표를 대조해 `CouplingVar` 로 모은다. '블록 경계를 넘는다'는 **한 뷰 안에서** 관계에 든 소자들의 블록이 서로 다르다는 뜻이다
 (`_crosses`: 그 뷰에 블록이 있는 소자가 둘 이상이고 그 소자들의 블록 키 합집합이 교집합과 다를 때) -- 같은 키 블록도 뷰가 다르면 다른 블록이라 `BlockRef` 가 뷰 id 를 가진다.
-블록을 갖지 않은 소자의 블록은 매핑표의 기둥 이웃 귀속(`column_mate`)을 쓴다.
+블록을 갖지 않은 소자의 블록은 매핑표의 기둥 이웃 귀속(`column_mate`)을 쓴다. 바이어스 기둥(블록 소자가 없는 기둥)은 의사 블록 `bias:<기둥 id>`(`BlockRef(뷰, ("bias:<id>",))`, 모든 뷰에 놓임)로 센다.
 
-* K1: S1 mirror matching 그룹 또는 S1v L 동치류의 멤버 중 부하 소자(블록 AC 역할 load·mirror·diode_load)가 있고 그 류가 블록을 가로지른다. 영역 dc(mirror)·geom(L 동치류).
+* K1: S1 mirror matching 그룹 또는 S1v L 동치류의 멤버 중 부하 소자(블록 AC 역할 load·mirror·diode_load·tail_source)가 있고 그 류가 블록을 가로지른다. 영역 dc(mirror)·geom(L 동치류).
 * K2: S1 `equal_vgs` 관계 엣지가 블록을 가로지른다(공유 VGS). 영역 dc.
 * K3: 비레일 넷에서 MOS e 의 drain 과 MOS d 의 source 가 만나고(d 의 vsb 가 e 가 정한 노드전압에 종속 = `stacked_vsb`) 둘의 블록이 다르다. members = (e, d), nets = (그 넷). 영역 dc.
 * K4: 한 가지(S1 branch)가 지나가는 기둥들의 소자가 블록을 가로지른다(블록이 공유하는 가지·기둥의 노드전압). members = 가지의 소자, nets = 가지 양 끝. 영역 dc.
-* K7: 소자가 둘 이상 뷰의 블록 멤버다(블록 멤버 행 기준). 영역 dc.
+* K7: MOS(동작점이 있는 소자)가 둘 이상 뷰의 블록 멤버다(블록 멤버 행 기준, R·C 제외). 영역 dc.
 * K8: 셀 c 의 DC 역할이 바이어스 전류원이고 AC 셀이 gate 로 신호를 받는 CS 이며, drain 노드 k 에 신호 CD 셀의 source 가 붙고, c 의 gate 가 그 CD 입력 넷에서 CD 엣지로 닿지
   않고, k 가 이득 블록의 출력노드가 아니다(40 §3.3 K8 정의). members = (c, 그 CD 셀들), nets = (k). 영역 dc.
 
@@ -19,6 +19,7 @@
 """
 from .column_block_map import column_block_map
 from .coupling_values import (
+    BIAS_PREFIX,
     BASIS_BLOCK_MEMBER,
     INIT_CLASS_OWNER,
     INIT_COMMON_VGS,
@@ -38,17 +39,22 @@ from .coupling_values import (
 )
 from .net_model import net_model
 from .s1_values import DOMAIN_DC, DOMAIN_GEOM, GRAPH_KEY, MATCH_MIRROR, REL_EQUAL_VGS, ROLE_BIAS
-from .s1v_values import BLOCK_GAIN, CELL_CD, CELL_CS, ROLE_DIODE_LOAD, ROLE_LOAD, ROLE_MIRROR
+from .s1v_values import BLOCK_GAIN, CELL_CD, CELL_CS, ROLE_DIODE_LOAD, ROLE_LOAD, ROLE_MIRROR, ROLE_TAIL
 
-LOAD_ROLES = (ROLE_LOAD, ROLE_MIRROR, ROLE_DIODE_LOAD)
+LOAD_ROLES = (ROLE_LOAD, ROLE_MIRROR, ROLE_DIODE_LOAD, ROLE_TAIL)
 
 
-def _keys_by_view(cbm):
-    """{소자: {뷰 id: 블록 키 frozenset}} -- 매핑표의 블록 귀속(멤버 + 기둥 이웃)."""
+def _keys_by_view(cbm, s1v):
+    """{소자: {뷰 id: 블록 키 frozenset}} -- 매핑표의 블록 귀속(멤버 + 기둥 이웃) + 바이어스 기둥 의사 블록.
+
+    바이어스 기둥(행 block 이 None)의 소자는 모든 뷰에서 의사 블록 키 `(bias:<기둥 id>,)` 를 갖는다(판정이 뷰 단위라 블록 소자와 같은 뷰에서 비교된다)."""
     table = {}
     for row in cbm.rows:
         if row.block is not None:
             table.setdefault(row.device, {}).setdefault(row.block.view, set()).add(row.block.key)
+        else:
+            for view in s1v.views:
+                table.setdefault(row.device, {}).setdefault(view.id, set()).add((BIAS_PREFIX + str(row.column),))
     return table
 
 
@@ -116,10 +122,10 @@ def _k4(s1, keys):
     return out
 
 
-def _k7(cbm):
+def _k7(cbm, model):
     refs = {}
     for row in cbm.rows:
-        if row.basis == BASIS_BLOCK_MEMBER:
+        if row.basis == BASIS_BLOCK_MEMBER and row.device in model.mos_by_name:
             refs.setdefault(row.device, set()).add(row.block)
     return [CouplingVar(KIND_K7, (name,), tuple(sorted(found)), DOMAIN_DC, INIT_VIEW_SPLIT)
             for name, found in sorted(refs.items()) if len({ref.view for ref in found}) > 1]
@@ -160,7 +166,7 @@ def _k8(model, s1v, keys):
 def coupling_vars(s1, s1v):
     cbm = column_block_map(s1, s1v)
     model = net_model(s1)
-    keys = _keys_by_view(cbm)
-    found = _k1_k2(s1, s1v, keys, _roles(s1v)) + _k3(model, keys) + _k4(s1, keys) + _k7(cbm) + _k8(model, s1v, keys)
+    keys = _keys_by_view(cbm, s1v)
+    found = _k1_k2(s1, s1v, keys, _roles(s1v)) + _k3(model, keys) + _k4(s1, keys) + _k7(cbm, model) + _k8(model, s1v, keys)
     unique = {(v.kind, v.members, v.nets, v.domain): v for v in found}
     return Coupling(tuple(unique[k] for k in sorted(unique)), cbm)

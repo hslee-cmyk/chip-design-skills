@@ -31,13 +31,18 @@ INIT_SIDE_INJECTION = "side_injection_current"  # 측면 주입 셀의 바이어
 BASIS_BLOCK_MEMBER = "block_member"             # 소자가 그 블록의 멤버다
 BASIS_COLUMN_MATE = "column_mate"               # 블록 멤버가 아니지만 같은 기둥에 그 블록 소자가 있다 -> 그 블록 국소 문제 범위에 넣고 공유 소자로 표시(DEC-71 (2))
 BASIS_BIAS_COLUMN = "bias_column"               # 기둥의 모든 소자가 블록 밖 -> 바이어스 기둥으로 등록
+# ---- 바이어스 기둥 의사 블록 키 접두 (설계 40 §3.3 as-built)
+BIAS_PREFIX = "bias:"
 # ---- 정지 이유 (core StructureUnresolvedError detail reason)
 REASON_COLUMN_UNASSIGNED = "column_unassigned"
 
 
 @dataclasses.dataclass(frozen=True, order=True)
 class BlockRef:
-    """블록 참조: `view` = 뷰 id, `key` = 블록 키(출력노드 이름 정렬 tuple)."""
+    """블록 참조: `view` = 뷰 id, `key` = 블록 키(출력노드 이름 정렬 tuple).
+
+    의사 블록(바이어스 기둥): `key` 가 `(BIAS_PREFIX + <기둥 id>,)` 한 원소 tuple 이다. `view` 는 그 의사 블록이 놓인 뷰 id 다
+    (판정이 뷰 단위라 모든 뷰에 같은 기둥 의사 블록이 하나씩 있다). repr 에 `bias:<기둥 id>` 가 든다."""
 
     view: str
     key: tuple
