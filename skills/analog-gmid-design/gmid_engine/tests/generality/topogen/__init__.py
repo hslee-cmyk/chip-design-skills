@@ -11,6 +11,8 @@ from .polarity import flip_polarity
 from .random_renaming import random_renaming
 from .rename import rename
 from .shuffle import shuffle_order
+from .spec_rename import rename_spec
+from .spec_template import synthetic_spec
 from .tag_noise import add_tag_noise
 
 __all__ = (
@@ -21,6 +23,8 @@ __all__ = (
     "inject_violation",
     "random_renaming",
     "rename",
+    "rename_spec",
     "shuffle_order",
+    "synthetic_spec",
     "synthetic_topologies",
 )
