@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.1
+version: 1.2
 plan_version: 6.0
 ---
 
@@ -129,7 +129,7 @@ plan_version: 6.0
 | 93 matching 분류 | 40 §3.2 | PART | `E/graph/matching_groups.py:78`. 신호 gate 2개 조건이 빠졌다(`E/graph/CONTRACT.md:538`) |
 | 94 MOD2 입력 게이트 | 40 §3.1 | DEV | `E/authoring/bias_inputs.py:20`(최상위 키, 사용자 승인. 계획 문구 갱신 필요) |
 | 95 탐색 방법 묶음 | 40 §3.7, §3.9 | PART | ΔA_tie가 grid²다(`E/layout/floorplan.py:83`). DEC-95 (3)은 일부만(`E/sizing/writer_plan.py:13-17`) |
-| 96 nqs·mismatch 보고 | 40 §3.8 | MISS | `rg "nqs_ratio\|mismatch_sigma_v"` 0 |
+| 96 nqs·mismatch 보고와 범위(잡음은 사용자 결정 2026-10-08로 범위 안) | 40 §3.8, 41 §7 | MISS | `rg "nqs_ratio\|mismatch_sigma_v"` 0. 잡음은 D-NZ1~6 |
 
 ## 3. 설계 항목 (40·41에서 새로 정한 것)
 
@@ -165,15 +165,29 @@ plan_version: 6.0
 | D-L0g | 출력, override | 41 §5.7 | MISS | -- |
 | D-L0h | 평가 예산 `EvalBudget` | 41 §5.8 | MISS | -- |
 | D-L0i | 외층 인계, 근방 반경 | 41 §5.9 | MISS | -- |
-| D-SIa~f | 출발 구간 6.1~6.6(잡음은 '발동 없음'이라 파일을 만들지 않음) | 41 §6 | MISS | `rg "start_intervals"` 0 |
+| D-SIa~f | 출발 구간 6.1~6.6(1/f L 하한 `iv_noise.py` 포함, 잡음은 범위 안) | 41 §6 | MISS | `rg "start_intervals"` 0 |
 | D-LUTc | LUT 곡선 `ft_curve` 등 | 40 §2.3 | MISS | `rg "def ft_curve"` 0 |
 | D-OR1 | C10 한계 사이클 = unstable FAIL | 40 §4 | DEV | `[ng-oracle-early]` 계약 L42-54, `tools/spice_oracle/tests/test_oracle_c10_stability.py:710` |
-| D-OR2 | 개루프 RHP: Nyquist Z와 과도로 판정 | 40 §4 | DEV | `tools/spice_oracle/README.md:516` |
+| D-OR2 | 개루프 RHP: Nyquist Z와 과도로 판정(Z 구현 전에는 과도만) | 40 §4-5·7 | DEV | `tools/spice_oracle/README.md:516` |
+| D-OR3 | `.pz` P 계수, 1+L 위상 펼침 N, 표본 세분 | 40 §4-6 | MISS | `rg "\.pz" tools/spice_oracle` 0 |
+| D-OR4 | 한계 사이클의 안정 fixture 불변 확인, 고Q 표시 | 40 §4-2 | MISS | -- |
 | D-CM | CM 루프 1·2·3·5 | 40 §5 | PART(브랜치) | `[ng-cmfb-pm]` |
 | D-CM4 | 결정 A는 척도와 무관하게 위반, 1 dB 대체 제거 | 40 §5 | DEV | `[ng-cmfb-pm] E/search/ss_constraints.py` `_cm_level_violation` |
 | D-CMR | CM 감지 저항 최소 R(사용자 결정 R1·R2 (b)) | 40 §3.5 | MISS | -- |
-| D-SYa | 완전 정준 라벨링 | 40 §6 | MISS | 1-WL만 있다(`E/sizing/struct_colour.py:1-15`) |
-| D-SYb | 궤도 θ 묶기와 해제, 궤도 ⊆ matching 검사 | 40 §6 | MISS | -- |
+| D-SYa | 완전 정준 라벨링 | 40 §6 | PART(브랜치) | `[ng-layer0-canon]` 49283c6 `E/sizing/struct_canon.py`. master에는 1-WL만 있다(`E/sizing/struct_colour.py:1-15`). 위치를 `graph`로 옮겨야 한다 |
+| D-SYb | 궤도 θ 묶기와 해제, `orbit_matching_crosstab`, diff_pair 궤도 검사 | 40 §6 | PART(브랜치) | `[ng-layer0-canon]` `E/search/orbit_ties.py`, `tie_expand.py`, `human.search.untie_orbits`. 대조 표는 MISS |
+| D-SYc | 수동소자를 방향 없이 다루는 라벨링과 부호 있는 전류 묶기 | 40 §6-7 | DEV | 브랜치 실측에서 9회로 모두 묶기가 비활성이다. 사용자 결정 Q12 대기 |
+| D-SYd | folded_cascode·two_stage_ota front 회귀 추적 | 40 §6-6 | MISS | `tests/regression` 없음 |
+| D-NS | 시간과 무관한 계수 예산 N_S, `structure_count_budget` | 41 §0 | MISS | `rg "count_budget"` 0 |
+| D-NM | 비단조 축 세분(미러 비·전류 배율·저항), 저항 컨덕턴스 격자 | 41 §4.2 | MISS | -- |
+| D-LS | `size_and_seal_local` 국소 봉인 인터페이스 | 41 §5.3 | MISS | `rg "size_and_seal_local"` 0 |
+| D-DN | 주극점 노드를 구조로 판정 | 41 §6.3 | MISS | -- |
+| D-NZ1 | 잡음 spec 제약 어휘(`noise_in_density_ss_v_rthz`, `noise_in_integrated_ss_v`), 단위 `v_rthz`·`v` | 41 §7.1 | MISS | `E/core/units.py`에 없음 |
+| D-NZ2 | LUT 잡음 열(`SID_TH`, `SID_FL1`, `FL_EXP`)의 새 버전 파일, 생성기 `.noise` 모드, `noise_params` | 41 §7.2 | MISS | `rg "noise_params"` 0. 옛 `SID_1F`는 읽지 않는다 |
+| D-NZ3 | adjoint 잡음 해석, 소자별 기여, 분해능 | 41 §7.3 | MISS | `rg -i "noise" E/metrics` 0 |
+| D-NZ4 | 잡음 제약 행 | 41 §7.4 | MISS | -- |
+| D-NZ5 | 열잡음 gm 하한, 1/f L 하한 | 41 §7.5, §6.4-3 | MISS | -- |
+| D-NZ6 | 오라클 `.noise` 대조 | 41 §7.6 | MISS | `rg "\.noise" tools/spice_oracle` 0 |
 | D-AR1 | 면적 예산 행, MIM, 측정 부하 제외, S-3b 닫힘 | 40 §7.1 | PART(브랜치) | `[ng-area-budget]` 538eeab `E/search/area_decl.py` |
 | D-AR2 | 예산을 지키는 출발점, W 타당성 | 40 §7.1 | MISS | -- |
 | D-AR3 | front가 없는 회로의 원인 보고 | 40 §7.1 | MISS | -- |
@@ -209,8 +223,8 @@ plan_version: 6.0
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 3 | 1 | 6 | 5 | 0 |
 | DEC | 81 | 24 | 7 | 26 | 16 | 8 |
-| 설계 항목 | 70 | 0 | 8 | 10 | 52 | 0 |
-| **합계** | 166 | 27 | 16 | 42 | 73 | 8 |
+| 설계 항목 | 84 | 0 | 9 | 12 | 63 | 0 |
+| **합계** | 180 | 27 | 17 | 44 | 84 | 8 |
 
 센 방법:
 - D-SIa~f는 6행으로 센다.

@@ -1,19 +1,25 @@
 ---
 template: design
-version: 1.1
+version: 1.2
 plan_version: 6.0
 ---
 
 # gain-budget-gmid-sizing -- 41-gain-budget Design Document
 
-> **Summary**: gain-budget-first 흐름을 설계한다(계획 N1.1, FR-1·FR-2·FR-4·FR-8, DEC-03·05·43·57·59·63·65·71·73·77·81). 다루는 범위는 다섯 가지다.
+> **Summary**: gain-budget-first 흐름을 설계한다(계획 N1.1, FR-1·FR-2·FR-4·FR-8, DEC-03·05·43·57·59·63·65·71·73·77·81). 다루는 범위는 여섯 가지다.
 > - connectivity에서 signal stage를 유도한다(SP1).
 > - 블록 국소 소신호 모델로 stage gain을 정의하고, 평가마다 전회로 MNA와의 잔차를 기록한다.
 > - LUT 격자 상한으로 탐색 전에 달성 가능성을 판정한다.
 > - 층 0에서 블록 gain bin별 (전력, 면적) 비지배 점을 만들고, 조합 DP로 예산 조합 front와 `gain_budget_db`를 낸다. 이 결과를 외층 SLSQP와 잇는다.
 > - 스펙에서 gm/ID·L·전류 출발 구간을 topology와 무관하게 유도한다.
+> - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-10-08 · **Status**: v1.1 -- design-validator 지적 C1~C4·H1~H8·M1~M14·L1~L8 반영. 색인과 표기는 [40-engine](gain-budget-gmid-sizing.40-engine.design.md)을 따른다(`E/`, OK/DEV/PART/MISS). as-built 기준은 master `004b7d2`다.
+> **Date**: 2026-10-08 · **Status**: v1.2. 이번 판의 변경은 셋이다.
+> - 재검증 지적 N1~N9와 Low 항목 반영
+> - 잡음 경로 추가(§7, 사용자 결정 2026-10-08)
+> - v1.1에서 반영한 C1~C4·H1~H8·M1~M14·L1~L8 유지
+>
+> 색인과 표기는 [40-engine](gain-budget-gmid-sizing.40-engine.design.md)을 따른다(`E/`, OK/DEV/PART/MISS). as-built 기준은 master `004b7d2`다.
 
 **as-built 요약**: 이 문서의 설계 항목은 모두 MISS다. 쓸 수 있는 재료는 다음이 전부다.
 - LUT 곡선 표의 격자 최대 gm/gds: `CurveRow.gm_gds_max`(`E/lut/lut_types.py:384,396`)
@@ -54,6 +60,20 @@ P N3.1의 'GB0~GB4는 S0 지문마다 한 번'에 맞춘 순서다. 앞 단계�
 - 단계 B의 결과는 단계 A로 되돌아가지 않는다.
 
 **미측정 값의 처리 규칙(하나로 통일)**: 모델 오차, r̂, 분해능처럼 아직 재지 않은 값은 '보류'로 둔다. 보류 값을 쓰는 결정은 거부·정지를 하지 않는다. 그 값을 거친 산출물(front, 순서, bin)에는 '추정'을 표시한다(DEC-72·77).
+
+**예산은 두 종류이고 서로 섞지 않는다**(N1·N4):
+
+- **계수 예산 N_S**(단계 A와 DP 상태 수에 씀)
+  - 시간에 의존하지 않고 S0에서 계산한다. 같은 S0이면 결과가 늘 같다(결정론).
+  - **기본값**: N_S = 이 회로에 쓰이는 kind들의 LUT 격자점 수 합 = Σ_kind |VGS|·|VDS|·|VS|·|L|·|W 슬라이스|. 근거는 "상한 계산 한 번이 LUT 전체를 한 번 훑는 양을 넘지 않는다"이다. LUT 파일에서 정해지므로 새 상수가 아니다.
+  - **선언값**: spec human `structure_count_budget{value, source}`가 선언되면 기본값 대신 그 값을 쓴다. 이 값은 S0 지문에 들어간다.
+  - **적용 대상**:
+    - GB4 블록 격자 곱 Π(§4.2), 복합 블록 Π(§1.9): N_S를 넘으면 그 상한은 '미상'이다.
+    - 사이클 열거(§1.8): N_S를 넘으면 정지한다.
+    - 조합 DP 상태 수(§5.6): N_S를 넘으면 DEC-80 게이트로 bin 폭을 넓힌다.
+- **시간 예산 N_T**(단계 B·C의 평가 커널 호출 수에 씀)
+  - DEC-34 식으로 정한다(§5.8).
+  - 단계 A는 커널을 부르지 않으므로 N_T를 쓰지 않는다.
 
 ---
 
@@ -156,10 +176,9 @@ P N3.1의 'GB0~GB4는 S0 지문마다 한 번'에 맞춘 순서다. 앞 단계�
 1. **블록 열기**: 시작 셀마다 블록을 연다. 캐스코드 사슬, 미러 연장, pass 묶음을 따라가 다음 시작 셀 입력이나 출력 포트에 닿은 노드가 출력노드다.
 2. **병렬 합류**: P N3.7의 ①②③ 순서로 판정한다. 세 갈래 이상이면 입력 쌍마다 ①을 적용하고 union-find로 묶는다(⑪).
 3. **차동 블록**(⑩·M5): 같은 stage 번호의 반쪽 블록 둘이 넷을 공유하면 하나로 합친다.
-   - 블록 키: 두 출력노드 넷 이름을 정렬해 `|`로 잇는다.
+   - 블록 키: 출력노드 넷 이름의 정렬된 배열이다. 단일 출력 블록은 원소 1개, 차동 블록은 원소 2개다. 구분자로 이은 문자열을 쓰지 않는 이유는 넷 이름에 어떤 문자가 들어 있어도 키가 모호해지지 않게 하기 위해서다. JSON에서는 배열로 쓴다.
    - 여기: 두 입력 넷에 ±½를 건다.
    - 출력: 두 출력노드 전압 차다.
-   - 단일 출력 블록의 키는 출력노드 넷 이름이다.
    - 노드 배타성은 합친 뒤에 검사한다.
 4. **임피던스 등급**:
    - 낮음: gate가 교류접지인 source 단자나 diode가 붙은 노드.
@@ -173,7 +192,7 @@ P N3.1의 'GB0~GB4는 S0 지문마다 한 번'에 맞춘 순서다. 앞 단계�
 
 **탐지**: P N3.2-2 방향 그래프에서 단순 사이클을 전수 열거한다(Johnson, 정렬된 노드 순서). 세지 않는 것은 수동소자 왕복, pass 묶음 내부 왕복, 자기 엣지다.
 
-**열거 상한**: 단계 A 예산 N_A(§5.8)다. 넘으면 `StructureUnresolvedError(unsupported_rule_branch, reason=cycle_enumeration_over_budget)`로 정지한다(M14).
+**열거 상한**: 계수 예산 N_S다(§0). 시간과 무관하다. 넘으면 `StructureUnresolvedError(unsupported_rule_branch, reason=cycle_enumeration_over_budget)`로 정지한다(M14).
 
 **분류**: (1.5) 바이어스 SCC → (2) Miller → (3-a) → (3-b) → (4) 순서로 판정한다. 정의는 P N3.2-2를 따른다. (2)와 (3-b)를 함께 만족하면 두 분류를 모두 단다. (3-b)는 배타 조건 (가)·(나)를 적용한다.
 
@@ -195,7 +214,7 @@ P N3.1의 'GB0~GB4는 S0 지문마다 한 번'에 맞춘 순서다. 앞 단계�
 - **R(u)**(DEC-63): CD 병렬 합류(②)에서는 §1.7의 ①보다 먼저 판정한다.
 - **출력 방향**(DEC-65): β/σ/κ와 push-pull·class-A 구분은 MOD3에서 구조로 판정한다. 값은 40 §3.8 `ls`가 낸다.
 - **복합 블록**(DEC-81): ②의 합류 노드가 전류 구동이거나 블록 출력노드면 묶는다. 묶은 결과 DAG는 사슬이어야 한다.
-  - 묶음 크기 Π가 N_A를 넘으면 `unsupported_rule_branch`다.
+  - 묶음 크기 Π가 N_S를 넘으면 `unsupported_rule_branch`다. Π는 §4.2의 축 정의로 센 격자 곱이다.
   - 경로별 기여는 §2에서 계산한다(⑭).
 
 ### 1.10 declared 대조와 발동표
@@ -308,17 +327,22 @@ as-built `curve_report`와 `hermite_fc`의 칸 분류를 소비해, 칸마다 �
 | 소자 그룹별 gm/ID | LUT gm/ID 격자 |
 | L 동치류별 L | LUT L 점, 그리고 bin 안 L 구간의 내부 극값. 내부 극값이 양끝을 넘으면 그 점을 추가한다 |
 | 기둥 VDS | W4 창 안의 LUT VDS 격자 |
-| y | K1~K4 이산 격자 |
-| 블록 안 저항값 | spec θ 범위의 양끝과, LUT 격자 간격으로 만든 로그 격자 |
-| 미러 비 θ | 범위 양끝 |
-| 전류 배율 | 블록에 저항이 있을 때만 둔다. 저항이 있으면 gain이 전류에 대해 0차 동차가 아니기 때문이다. 격자는 전류 상자 [I_off, I_max] 위에서 LUT ID 격자를 w_m으로 환산한 것이다 |
+| y (K1~K4) | 따로 새 격자를 만들지 않고 해당 LUT 축 격자를 쓴다. K1(부하 소자가 다른 블록의 미러·L 동치류에 속함): 그 소자의 gm/ID·L 축에 이미 포함. K2(공유 VGS): 노드 창 안의 LUT VGS 격자. K3(`stacked_vsb`): LUT VS 격자. K4(공유 노드 전압): W4 창 안의 LUT VDS 격자 |
+| 블록 안 저항값 | 컨덕턴스 G = 1/R 기준 격자. 후보 G는 그 저항이 닿는 노드에 붙은 소자들의 LUT 격자 gds·W/w_m 값(축 격자에서 나오는 값)과, spec θ 범위 양끝의 1/R이다. 근거: 국소 모델에서 저항은 같은 노드의 소자 컨덕턴스와 더해지거나 직렬로만 영향을 주므로, 영향이 달라지는 지점은 그 컨덕턴스들과 비교되는 크기다. θ 범위 밖 후보는 버린다 |
+| 미러 비 θ | 범위 양끝 + 내부 세분(아래 '비단조 축 처리') |
+| 전류 배율 | 블록에 저항이 있을 때만 둔다(저항이 있으면 gain이 전류에 대해 0차 동차가 아니다). 격자는 전류 상자 [I_off, I_max] 위의 LUT ID 격자를 w_m으로 환산한 것. 같은 비단조 축 처리를 적용한다 |
+
+**비단조 축 처리**(미러 비, 전류 배율, 저항, N5): 최대 행에서 그 축을 따라 양쪽 이웃 행의 gain을 본다.
+- **이웃이 둘 다 작다**: 그 축에서 내부 최대다. 이웃 사이 구간을 이분해 세분하고, 이웃 간 gain 차가 b_GB4 이하가 되면 멈춘다. 상한은 K_max다.
+- **최대 행이 축 끝점이고 그 방향으로 단조다**: 그대로 인증한다.
+- **세분해도 이웃 차가 b_GB4 아래로 내려가지 않는다**: '미상'으로 둔다.
 
 **계산**:
 - 행마다 봉인 없이 블록 국소 모델을 풀어 gain을 구한다.
 - 행 조건 (gm, ID, L, VDS, R, 비)과 함께 S0 지문 필드에 저장한다(행 단위 memo).
 - 소자 파라미터는 LUT memo에서 한 번만 조회한다.
 
-**예산 게이트**: 격자 곱 Π가 단계 A 예산 N_A(§5.8)를 넘으면 상한을 **'미상'**으로 두고 판정에 쓰지 않는다. 격자를 줄이지 않는 이유는, 줄인 격자의 최댓값은 상한이 아니기 때문이다. 이 처리는 P N3.7의 "LUT·구조만으로 상한을 계산할 수 없는 제약은 상한 미상"과 같다.
+**예산 게이트**: 격자 곱 Π가 계수 예산 N_S(§0)를 넘으면(시간 무관, 결정론) 상한을 **'미상'**으로 두고 판정에 쓰지 않는다. 격자를 줄이지 않는 이유는, 줄인 격자의 최댓값은 상한이 아니기 때문이다. 이 처리는 P N3.7의 "LUT·구조만으로 상한을 계산할 수 없는 제약은 상한 미상"과 같다.
 
 **분해능**: b_GB4,i = 최대 행과 그 격자 이웃 행들 사이 gain 차의 최댓값이다.
 
@@ -407,30 +431,44 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 | 축 | 후보 |
 |---|---|
 | 소자 그룹별 gm/ID | §6 출발 구간 안의 LUT gm/ID 격자점. 구간이 충돌이면 양 끝점 |
-| L 동치류별 L | §6 L 구간 안의 LUT L 점(bin 선택). bin 안 값은 아래 (b)의 역산이 정한다 |
+| L 동치류별 L | §6 L 구간 안의 LUT L 점(bin 선택). bin 안 연속값은 (b) 다듬기 단계에서만 정한다 |
 | VDS | 축이 아니다. 아래 (c)가 정한다 |
 | 전류 | 저항이 없는 블록에서는 축이 아니다. 전류 = max(블록 gm 요구 / gm/ID(§6.5), 봉인 9 전도 하한). 저항이 있으면 §4.2처럼 전류 배율 축을 둔다 |
 
+**gain bin은 출력이다**(N6): 후보는 bin 목표 없이 만든다. 평가한 gain이 그 후보가 속할 bin을 정한다.
+
 **후보 하나의 처리**(역산 우선):
 - (a) 전류와 gm/ID에서 ln IDu를 정한다.
-- (b) bin이 요구하는 gm/gds를 만족하는 bin 안 L을 bisection으로 찾는다. 반복 상한은 K_max다. §4.1에서 격자 전용으로 분류된 칸이면 L 점만 쓴다.
-- (c) VDS를 배분한다. 모든 소자를 VDSAT + tol_VDsat로 먼저 채우고, 남는 헤드룸은 ∂(gm/gds)/∂VDS가 큰 소자부터 준다.
+- (c) VDS를 배분한다. 먼저 모든 소자를 VDSAT + tol_VDsat로 채우고, 남는 헤드룸은 ∂(gm/gds)/∂VDS가 큰 소자부터 준다.
 - (d) 기생 용량 고정점을 푼다. 상한은 K_max이고, 넘으면 NONCONVERGENT 레코드를 남긴다.
+- 국소 봉인과 국소 모델 gain을 평가해 bin을 정한다.
 
-**국소 봉인**: 봉인 1·2·6·7과 기둥 KVL·KCL을 검사한다. as-built 평가 커널을 블록 변수에만 적용하고, 나머지 변수는 고정 입력으로 둔다.
+**(b) bin 안 L 다듬기**(차지된 칸에만): 국소 front(§5.4)의 각 칸 대표 점에서 L 동치류마다 bin 안 L을 줄여 면적을 낮춘다. 조건은 같은 gain bin 유지와 봉인 통과이고, LUT bin 안 선형 보간에서 bisection으로 푼다(상한 K_max). §4.1이 '격자 전용'으로 분류한 칸이면 다듬지 않는다.
+
+**국소 봉인 인터페이스**(신규 `E/sizing/size_and_seal_local.py`):
+
+```python
+def size_and_seal_local(ctx: KernelContext, theta_block: Mapping[str, float],
+                        fixed: Mapping[str, float], columns: frozenset[str]) -> LocalSeal
+```
+- 계산 블록 ②~⑤를 `columns`에 속한 소자·노드에만 적용한다. 그 밖의 값은 `fixed`에서 읽는다.
+- 봉인 1·2·6·7과 덮는 기둥의 KVL·KCL만 검사한다.
+- 반환값은 `LocalSeal{ok, failures[FailureRecord], snapshot_fragment, gain_db, power_w, area_m2}`이다.
+- 필드 캐시 키는 (블록 키, θ_block, fixed 지문)이다.
 
 **고정 입력**(K1·K3·K8, 블록을 가로지르는 L 동치류): 첫 회차에는 §6 출발값을 쓰고, 이후 회차에는 직전 조립점 값을 쓴다. DEC-71 (3)의 'LR5 knee 앵커'와 다르므로 40 §8 R29에 올렸다.
 
 **후보 수 상한과 종료**:
-- 블록 후보 수 Π가 블록 몫 예산 N_B,i(§5.8)를 넘으면 강결합 그룹 단위 좌표 훑기로 바꾼다. 강결합 그룹은 같은 직렬 전류 경로를 공유하는 셀이다(P N3.7).
-- 한 바퀴 동안 국소 front가 바뀌지 않으면 종료한다.
-- N_B,i에 도달해도 종료하고 '예산 소진'을 기록한다.
+- 블록 후보 수 Π가 블록 몫 평가 예산 N_T,i(§5.8)를 넘으면 강결합 그룹 단위 좌표 훑기로 바꾼다. 강결합 그룹은 같은 직렬 전류 경로를 공유하는 셀이다(P N3.7).
+- **한 바퀴**의 정의: 그룹을 정준 순서(40 §6)로 하나씩 고른다. 고른 그룹의 후보 점을 모두 평가하고, 나머지 그룹은 '현재 국소 front에서 전력이 가장 작은 점'의 값으로 고정한다. 모든 그룹을 한 번씩 거치면 한 바퀴다. 첫 바퀴의 고정값은 §6 출발값이다.
+- 한 바퀴를 돌아도 국소 front의 (gain bin, 면적 bin) 칸 집합과 칸별 전력 값이 바뀌지 않으면 종료한다. 칸은 유한하고 칸별 값은 줄어들기만 하므로 반드시 끝난다.
+- N_T,i에 닿아도 종료하고 '예산 소진'을 기록한다.
 
 ### 5.4 블록 국소 front
 
 - 블록마다 `{gain bin → (전력, 면적) 비지배 점}`을 만든다.
 - (gain bin, 면적 bin) 칸 하나에는 전력이 가장 작은 점 하나만 남긴다. 전력이 같으면 포화 여유가 큰 점을 남긴다.
-- 점 수가 상한을 넘으면 DEC-80 예산 게이트대로 bin 폭을 2배로 넓히고 배수를 기록한다.
+- 칸 수(gain bin 수 × 면적 bin 수)가 계수 예산 N_S를 넘으면 DEC-80 예산 게이트를 적용한다. bin 폭을 2배로 넓히고 그 배수를 기록한다.
 
 ### 5.5 조립 (M6)
 
@@ -439,13 +477,13 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 **풀이**: 별도 솔버를 두지 않는다. 블록 점의 θ와 출발값을 합친 θ로 as-built GB7 커널(`size_and_seal`)을 돌린다. 이 등식들은 writer plan의 등식으로 풀린다.
 
 **공유 VGS 선택**(DEC-10):
-- 그룹을 공유하는 블록 수를 m이라 하면, 각 블록의 국소 값 m개를 후보로 커널을 m번 돌린다.
-- 봉인을 통과한 후보 중 전회로 `gain_ss_db`가 가장 큰 것을 고른다.
-- gain 차가 b_gain 이하면 전력이 작은 쪽을 고른다(U-14 기본안).
+- 그룹 g를 공유하는 블록 수를 m_g라 하면, 각 블록의 국소 값 m_g개를 후보로 커널을 m_g번 돌린다.
+- 봉인을 통과한 후보 중 전회로 `gain_ss_db`가 가장 큰 것을 고른다. gain 차가 b_gain 이하면 전력이 작은 쪽을 고른다(U-14 기본안).
+- **그룹이 여럿이면**(M6): 정준 순서로 한 그룹씩 고른다(좌표별). 앞 그룹에서 고른 값은 뒤 그룹을 평가할 때 고정한다. 커널 호출 수는 Π m_g가 아니라 Σ m_g다.
 
 **기록**: 국소 값과 전역 값의 차(ΔVGS, Δ노드전압, Δgm_id, Δ블록 gain)를 남긴다.
 
-**시도 상한**: 조합 front 크기와 N_B,0 중 작은 쪽이다. 조립이 실패하면 다음 조합으로 간다.
+**시도 상한**: 조립 커널 호출 수는 조합 front 크기와 N_T,0(§5.8)의 남은 몫 중 작은 쪽이다. 조립이 실패하면 다음 조합으로 간다.
 
 ### 5.6 조합 DP와 front
 
@@ -454,38 +492,43 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 - **r̂의 쓰임**: 측정되어 있으면 '누적 gain + r̂'가 큰 순서로 조립에 넘긴다. 종료 조건에는 넣지 않는다.
 - **출력**: 종료 상태 중 (전력, 면적) 비지배인 조합 front와, 조합마다 `gain_budget_db.allocated`를 낸다.
 - **동률**: 전력, 활성 여유 합, 이름 정렬 순으로 가른다.
-- **상태 수 상한**: N_B,0이다.
+- **상태 수 상한**: 계수 예산 N_S(§0)다. DP는 커널을 부르지 않으므로 평가 예산과 섞지 않는다(N4). 넘으면 DEC-80 게이트를 쓴다.
 
 ### 5.7 출력과 override
 
 **front 점마다 내는 값**: `gain_budget_db.allocated`, `gain_budget_db.realized`(최종 봉인 스냅샷의 블록 gain), 두 값의 차, `gain_residual_db`.
 
-**`gain_budget_db_override{block_key: {value_db, source}}`**:
+**`gain_budget_db_override: [{block: [<출력노드 넷 이름>...], value_db, source}]`**(블록 키는 §1.7-3의 정렬 배열):
 - 그 블록의 bin을 value_db로 고정한다.
 - 블록 키가 없으면 `SchemaRejectedError(override_block_unknown)`이다.
 - A_i,max가 인증되어 있고 value_db > A_i,max + b_GB4,i이면 INFEASIBLE_TARGET이다.
 - A_i,max가 미상이면 받아들인다. 그 bin에 봉인을 통과한 후보가 없으면 `local_infeasible`을 보고한다(H3).
 - `override_source`를 기록한다.
 
-### 5.8 평가 예산 (DEC-34 식, M10)
+### 5.8 평가 예산 N_T (DEC-34 식, 단계 B·C 전용, M10·N4)
 
-**식**: N = floor((B − T_fixed) / t_eval)
+**정의**: 커널 평가 횟수 예산.
+
+N_T = floor((B − T_used − T_reserve) / t_eval)
 
 | 기호 | 뜻 |
 |---|---|
 | B | `wall_clock_budget_s` |
-| t_eval | 그 실행에서 잰 warm 평가 시간의 중앙값. 첫 평가가 끝나기 전에는 정의되지 않는다 |
-| T_fixed | 이미 쓴 시간 + 외층 예약 시간 |
-| 외층 예약 시간 | 끝점 2개 × as-built `slsqp_outer` maxiter 식 Σ⌈log2(폭/h)⌉ × t_eval |
+| T_used | 지금까지 쓴 시간 |
+| t_eval | warm 평가 시간의 중앙값. 첫 평가가 끝나기 전에는 정의되지 않는다 |
+| T_reserve | 외층 최소 비용 = 끝점 2개 × (as-built `slsqp_outer` maxiter 식 Σ⌈log2(폭/h)⌉) × t_eval |
 
-**t_eval 첫 측정**: as-built `layer0_center` 시작점 하나를 먼저 평가해서 잰다. 이후 평가마다 중앙값을 갱신한다.
+외층 예약분은 T_reserve로 **한 번만** 뺀다. N_T는 그렇게 뺀 뒤의 층 0 몫이므로, N_T에서 다시 빼지 않는다(N4).
 
-**예산 나누기**:
-- **단계 A 예산 N_A**: 단위 비용을 단계 A 첫 국소 모델 행들의 실측 중앙값으로 두고 같은 식을 쓴다.
-- **층 0 예산**: N_B,0 = N − 외층 예약 평가 수다.
-- **블록 몫**: N_B,i = N_B,0 × (블록 i 후보 수 / Σ 후보 수)다.
+**t_eval 첫 측정**: as-built `layer0_center` 시작점 하나를 먼저 평가해 잰다. 그 뒤로 평가할 때마다 중앙값을 갱신하고 N_T를 다시 계산한다.
 
-N, t_eval, 배분, 소진 여부를 `perf`에 기록한다.
+**층 0 안 배분**:
+- 블록 몫: N_T,i = N_T × (블록 i 후보 수 / Σ 후보 수).
+- 조립 몫 N_T,0 = N_T − Σ_i (블록 i가 실제로 쓴 평가 수).
+
+**외층 ε 점 수**(40 §3.6-5): 층 0이 끝난 시점의 시간으로 같은 식을 다시 계산한다(T_reserve 없이).
+
+**기록**: `perf`에 N_T, t_eval, 배분, 소진 여부를 쓴다. 계수 예산 N_S는 §0의 정의를 따른다.
 
 ### 5.9 외층 인계 (M7)
 
@@ -505,9 +548,9 @@ N, t_eval, 배분, 소진 여부를 `perf`에 기록한다.
 
 **쓰임**: 출발값과 보고에만 쓴다(EP-7). 입력은 S1/S1v, spec, LUT 곡선, A6 상한표다.
 
-**파일**: `E/search/start_intervals.py`, `iv_headroom.py`, `iv_speed.py`, `iv_gain_l.py`, `iv_matching_l.py`, `iv_area.py`, `iv_currents.py`, `macro_poles.py`.
+**파일**: `E/search/start_intervals.py`, `iv_headroom.py`, `iv_speed.py`, `iv_gain_l.py`, `iv_matching_l.py`, `iv_noise.py`, `iv_area.py`, `iv_currents.py`, `macro_poles.py`, `dominant_node.py`.
 
-**잡음 경로**: 설계 문장만 두고 파일은 만들지 않는다. 발동하는 회로가 없어 미구현이다(DEC-76, M9).
+**잡음 경로**: 범위 안이다(사용자 결정 2026-10-08, §7). 1/f 제약이 있으면 1/f L 하한(§6.4-3)을, 열잡음 제약이 있으면 열잡음 gm 하한(§7.5)을 계산한다.
 
 **LUT 곡선 API(신규)**: `ft_curve`, `intrinsic_gain_curve`, `vdsat_curve`, `idu_curve`.
 
@@ -515,14 +558,17 @@ N, t_eval, 배분, 소진 여부를 `perf`에 기록한다.
 
 궤도마다 대표 소자로 계산하고, L 동치류는 구간의 교집합을 쓴다. 순서는 다음과 같다.
 
+0. 주극점 노드를 구조로 정한다(§6.3). 이 단계는 매크로 모델을 쓰지 않는다(N3).
 1. 헤드룸 gm/ID 하한(§6.2).
 2. 이득 L 하한(§6.4-1). [gm/ID_lo, LUT 최대] 구간에서 intrinsic gain이 가장 큰 gm/ID를 쓴다.
 3. 속도 L 상한(§6.4-4). gm/ID_lo를 쓴다.
-4. matching·면적 L 경계(§6.4-2, -5).
+4. matching·잡음·면적 L 경계(§6.4-2, -3, -5). 이 단계에 필요한 전류는 1차 전류 추정(§6.5 1회차)에서 가져온다.
 5. L 선택(§6.4-6).
 6. 그 L에서 속도 gm/ID 상한(§6.3).
 7. gm/ID 선택: 구간 안의 최댓값.
-8. 전류(§6.5).
+8. 전류 확정(§6.5 2회차). 열잡음 gm 하한(§7.5)을 함께 적용한다.
+
+**4의 전류를 정하는 방법**: 4는 전류 I가 필요하다. 그 값은 §6.5 매크로 모델을 **1회차**로 돌려 얻는다. 1회차에서는 gm/ID를 gm/ID_lo로 두고 L을 2의 하한으로 둔다. 확정 전류는 8에서 다시 계산한다. 4→8 사이에는 되먹임이 없으므로(8의 결과가 4로 돌아가지 않는다) 순환이 생기지 않는다.
 
 ### 6.2 gm/ID 하한 -- 헤드룸
 
@@ -547,7 +593,11 @@ VDSAT_j,min은 LUT 최대 gm/ID에서의 VDSAT를 L 점 전체에서 최소로 �
 
 - **전제**: `gbw_target_hz`와 `pm_target_deg`가 있어야 한다. 없으면 비활성이다.
 - **비주극점 조건**: f_np ≥ GBW / tan(90° − PM)(2극점 근사).
-- **대상 노드**: 극점 노드 중 주극점 노드를 뺀 노드다. 주극점 노드는 §6.5 매크로 모델에서 가장 낮은 극점의 고유벡터 성분이 가장 큰 노드다.
+- **주극점 노드(구조로 결정, N3)**: gain 제약 전달 뷰에서 정한다.
+  - Miller (2) 루프가 있으면, 그 수동소자 구간이 잇는 두 노드 중 앞 노드(BFS 거리가 작은 쪽)가 주극점 노드다. Miller 증배가 걸리는 노드이기 때문이다. 루프가 여럿이면 블록 순서상 가장 앞 블록의 출력노드인 것을 쓴다.
+  - Miller 루프가 없으면 출력 포트 노드가 주극점 노드다. 부하가 걸리는 노드다.
+  - 등급이 '높음'이 아닌 노드는 주극점 노드 후보에서 뺀다.
+- **대상 노드**: 극점 노드에서 주극점 노드를 뺀 나머지 전부다.
 - **조건**: 그 노드에 낮은 등급 단자를 주는 소자는 f_T(gm/ID, L) ≥ f_np를 만족해야 한다.
 - **산출**: `ft_curve`를 역산해 gm/ID_k,hi를 얻는다.
 
@@ -561,30 +611,51 @@ VDSAT_j,min은 LUT 최대 gm/ID에서의 VDSAT를 L 점 전체에서 최소로 �
    - A_min = (A_VT² + A_β²/(gm/ID)²) / σ_target²
    - L ≥ √(A_min · IDu / I)
    - 계수가 없으면 비활성('계수 미확보')이다.
-3. **잡음 하한**: S·w_ref/W ≤ S_target이고 W = I·L/IDu다. 미구현(발동 없음).
+3. **flicker 잡음 하한**(사용자 결정 2026-10-08: 잡음 경로 구현). 1/f 영역 잡음 제약(§7.1)이 선언된 회로에서만 활성이다.
+   - 입력 환산 1/f 밀도 예산 S_target(f₁)를 정한다. 출발 단계에서는 신호 경로 소자 수로 균등 분배한다. 정확한 판정은 §7.3이 한다.
+   - 소자마다 1/f 기여 S_k(f₁) = KF_eff,k(L, gm/ID, VDS) / (W·L·f₁) × (gm_k/gm_in)²를 쓴다. KF_eff는 §7.2 LUT 열이다.
+   - 위 식을 풀면 W·L ≥ A_min,k = KF_eff·(gm_k/gm_in)² / (f₁·S_target,k)가 된다. W·L = I·L²/IDu를 대입하면 **L ≥ √(A_min,k·IDu/I)**다(matching 하한과 같은 꼴).
 4. **속도 상한**: f_T(gm/ID_lo, L) ≥ f_np에서 L의 최댓값.
 5. **면적 상한**(결정 11):
    - L ≤ √(A_budget · IDu / I)
    - W ≤ A_budget / L
-6. **선택**: L = max(1, 2의 하한)이다. LUT L 점이나 bin 안 값으로 맞춘다(LR3). 구간 끝이 다른 bin에 있으면 bin마다 후보를 하나씩 둔다.
+6. **선택**: L = max(1, 2, 3의 하한)이다. LUT L 점이나 bin 안 값으로 맞춘다(LR3). 구간 끝이 다른 bin에 있으면 bin마다 후보를 하나씩 둔다.
 
 ### 6.5 전류 출발값 -- S1v 매크로 모델 (H4)
 
 DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔다.
 
 **망 구성**:
-- 노드: 극점 노드.
-- 이득 블록마다 VCCS gm_i를 두고, 출력 컨덕턴스 G_i = gm_i / 10^{g_i/20}로 둔다. g_i가 없으면 A_i,max를 쓴다.
-- 노드 용량: 부하 + 소자 cgg 추정(gm / (2π f_T)) + 보상 수동소자.
-- 보상 수동소자 값: 선언값이 있으면 그것, 없으면 θ 범위의 기하 중점.
-- feedforward·복합 블록은 경로별 VCCS로 둔다.
+- **노드**: gain 제약 전달 뷰의 극점 노드.
+- **이득 블록 출력노드 컨덕턴스**: 블록마다 VCCS gm_i를 둔다. 출력노드 컨덕턴스는 G_i = gm_i / 10^{g_i/20}이다.
+  - g_i가 없으면 A_i,max를 쓴다.
+  - 둘 다 없으면 G_i = gm_i / A_intr,i로 둔다. A_intr,i는 블록 입력 소자의 LUT gm/gds(출발 gm/ID, L)이다. 캐스코드가 없다고 가정한 값이므로 보수적이다.
+- **출력노드가 아닌 극점 노드**(캐스코드 source 노드 등, N9): 낮은 등급 단자를 주는 소자 c의 gm_c + gmb_c를 컨덕턴스로 둔다.
+  - 이 값은 블록 gm에 비례하게 표현한다: gm_c = gm_i · ((gm/ID)_c / (gm/ID)_in) · r_c.
+  - r_c는 KCL·미러 비로 정해진 전류 비다. 같은 가지에 있으면 1이다.
+  - gmb/gm 비는 LUT에서 읽는다.
+  - 높은 등급 노드는 붙은 drain 단자들의 gds 합을 쓴다. 이것도 같은 방식으로 gm_i에 비례한다.
+- **노드 용량**: 부하 + 소자 cgg 추정(gm/(2π f_T)) + 보상 수동소자.
+- **feedforward·복합 블록**: 경로마다 VCCS를 하나씩 둔다.
 
-**풀이**:
-- 극점과 영점은 pencil 고유값으로 구한다(`pencil_roots`).
-- gm_1은 UGF = `gbw_target_hz` 조건에서 1-D 근으로 구한다(`bracket_root`).
-- 뒤 블록 gm_k와 보상 값은 PM ≥ `pm_target_deg`를 만족하는 최소값을 같은 방법으로 구한다.
-- 근이 없으면 중점을 그대로 두고 '근 없음'을 기록한다.
-- 단일 블록이고 Miller 루프가 없는 회로에서는 gm_1 = 2π·GBW·C_out이 된다. U-12 기본안과 같은 값이지만, 태그(`compensation: null`)가 아니라 구조로 정해진다.
+**보상 수동소자 값 규칙(하나만 쓴다, N9)**:
+- 선언값이 있으면 그 값을 쓴다.
+- 선언값이 없으면 **PM ≥ `pm_target_deg`를 만족하는 최소값**을 쓴다.
+- θ 범위의 기하 중점은 1-D 근 찾기의 **첫 구간 분할점**으로만 쓴다.
+
+**풀이 순서와 실패 처리**:
+1. 극점과 영점은 pencil 고유값으로 구한다(`pencil_roots`).
+2. 한 바퀴는 다음 세 단계를 차례로 수행한다.
+   - (i) gm_1: UGF = `gbw_target_hz`의 1-D 근(`bracket_root`). 이때 나머지 값은 현재 값으로 둔다.
+   - (ii) k = 2..n 블록 순서로 gm_k: PM ≥ 목표인 최소값.
+   - (iii) 보상 수동소자: 정준 순서로 PM ≥ 목표인 최소값.
+3. 한 바퀴의 모든 값 변화가 각자의 1-D 근 허용오차 안에 들면 수렴이다. 상한은 K_max 바퀴이고, 닿으면 마지막 값을 쓰고 `macro_nonconvergent`를 기록한다(보고만, 정지 아님).
+4. 어떤 1-D 근이 그 변수의 범위(전류 상자 × gm/ID, θ 범위)에서 괄호가 잡히지 않으면 다음과 같이 처리한다.
+   - 그 변수는 현재 값을 유지한다.
+   - `macro_root_missing{variable, condition}`을 기록하고 다음 변수로 넘어간다.
+   - 모든 변수가 근 없이 끝나면 매크로 출발값을 버리고 상자 기하 중심을 쓴다.
+
+**특수 경우**: 단일 블록이고 Miller 루프가 없는 회로에서는 gm_1 = 2π·GBW·C_out이 나온다. U-12 기본안과 같은 값이지만, `compensation: null` 태그가 아니라 구조에서 나온다.
 
 **전류**:
 - I = gm / (gm/ID).
@@ -610,21 +681,121 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 
 ---
 
-## 7. 신규 공개 API
+## 7. 잡음 경로 (사용자 결정 2026-10-08: "노이즈 spec을 추가해서 코드를 만들어야지.")
+
+잡음 경로를 범위 안에 넣는다. 이 결정으로 P N1.2의 '잡음은 제약 metric으로 먼저 들어온다' 항목과 DEC-96 (3)의 '잡음·왜곡 미검증'은 잡음에 한해 바뀐다(계획서 정정 필요). 설계는 topology와 무관하다. 잡음원은 소자마다 붙고, 출력까지의 전달은 MNA adjoint로 계산하며, 회로별 식은 두지 않는다.
+
+### 7.1 spec -- 잡음 제약 metric (닫힌 어휘)
+
+| metric | 뜻 | 단위 | 선언 인자 |
+|---|---|---|---|
+| `noise_in_density_ss_v_rthz` | 입력 환산 잡음 전압 밀도, 지정 주파수 한 점 | V/√Hz | `freq_hz`, 전달 뷰(`ac_excite`, `sense`) |
+| `noise_in_integrated_ss_v` | 입력 환산 적분 잡음 전압(RMS), 지정 대역 | V | `band_hz: [f_lo, f_hi]`, 전달 뷰 |
+
+- 열잡음 영역 제약과 1/f 영역 제약은 둘 다 `noise_in_density_ss_v_rthz`를 쓰고 `freq_hz`로 구분한다. 이름을 따로 만들지 않는다(DEC-68: 개념 하나에 이름 하나).
+- 제약 형식은 다른 제약과 같다: `{metric, op: "<=", value, source}`. `source`는 필수이고 `user_spec`이다.
+- 회로별 값은 사용자가 정한다(40 §9 Q11). 값을 지어내지 않는다.
+- 이 metric은 MOD5 레지스트리에 `MetricSignature{unit, domain: ss, view_kind: transfer, objective_axis: None}`로 등록한다. 단위 어휘에 `v_rthz`와 `v`를 추가한다(`core/units`).
+- 레지스트리 밖의 잡음 이름은 `metric_unknown`으로 거부한다(as-built 규칙 그대로).
+- 왜곡은 여전히 범위 밖이다.
+
+### 7.2 LUT -- 소자 잡음 데이터 (PDK BSIM4 잡음 모델에서 특성화)
+
+**열**(DC 슬라이스와 같은 축 (kind, w_key, L, VGS, VDS, VS)):
+
+| 열 | 뜻 | 단위 |
+|---|---|---|
+| `SID_TH` | 열잡음 드레인 전류 PSD 계수 = S_id,thermal / gm | A²/Hz/S |
+| `SID_FL1` | 1 Hz에서의 1/f 드레인 전류 PSD × f | A² |
+| `FL_EXP` | 1/f 기울기 지수 af_eff. 두 주파수 측정에서 계산한다 | 무차원 |
+
+**파생량**(읽는 쪽에서 계산하며 열로 저장하지 않는다):
+- 열잡음 γ_eff = SID_TH / (4kT).
+- 입력 환산 1/f 계수 KF_eff = SID_FL1·W·L / gm²(§6.4-3에서 사용).
+
+**스윕**:
+- ngspice `.noise` 해석을 쓴다. 단일 소자를 DC 바이어스한 뒤 drain 전류 잡음을 출력으로 하고, 출력 잡음 PSD를 읽는다.
+- 축 격자는 기존 DC LUT와 같은 (L, VGS, VDS, VS) 격자이고, 폭은 DC 슬라이스 키와 같다.
+- 주파수 두 점: f_th(1/f 성분이 열잡음보다 충분히 작은 높은 주파수)와 f_fl(1/f 우세 낮은 주파수). 두 값 모두 상수로 박지 않는다.
+  - 각 소자 칸에서 1/f와 열잡음의 교차 주파수 f_c를 먼저 잰다(예비 스윕은 `.noise` dec 스윕).
+  - f_th = 스윕 상단, f_fl = 스윕 하단으로 정한다. 스윕 범위는 PDK 모델 유효 범위와 LUT 생성 메타에 기록한다.
+- 생성기는 `assets/sky130_lut_sweep.py`에 `.noise` 모드로 추가한다(U-27 (f) 공유 생성기).
+
+**출처와 저장**:
+- **새 버전 파일**로 쓴다. 이름은 `..._noise_r1.npz`이고 sha256, 생성 메타(모델 파일 경로·sha, ngspice 버전, 온도, 코너, 주파수 점)를 함께 둔다.
+- 기존 공유 LUT 파일은 고치지 않는다. `lut_v2_location.json`에 새 항목으로 추가한다.
+- 로더 `load_lut_set`은 잡음 파일이 있을 때만 잡음 열을 노출한다. 없는데 잡음 제약이 선언되면 `SchemaRejectedError(noise_lut_missing)`이다.
+- tol은 다른 열과 같은 leave-one-out 방식으로 셀별 `tol_noise`를 계산한다(DEC-87 방법). 디스크 캐시 대상에 넣는다.
+
+**LUT 조회 API**(신규): `noise_params(kind, w_key, L, VGS, VDS, VS) -> NoiseParams{sid_th, sid_fl1, fl_exp}`. as-built `CapTable.columns`의 옛 `SID_1F` 열은 단위가 틀렸으므로 읽지 않는다.
+
+### 7.3 metrics -- 봉인 스냅샷 잡음 해석 (MOD5)
+
+**잡음원**: 소자마다 drain–source 사이 전류 잡음원 하나를 둔다.
+- S_id(f) = sid_th·gm + sid_fl1/f^{fl_exp}.
+- 저항은 4kT/R을 둔다.
+- 값은 봉인 스냅샷 `ss`의 동작점에서 LUT로 읽고, W 배율을 적용한다.
+
+**전달**: as-built MNA(같은 (G, C) 조립)의 adjoint를 쓴다.
+- 출력 감지 노드에서 단위 전류를 주입해 adjoint 해를 한 번 구한다. 그러면 모든 잡음원의 전달 함수 Z_k(jω)를 한 번에 얻는다.
+- ω마다 풀이 1회이며, 조립은 다시 하지 않는다(WP-23).
+
+**입력 환산**: S_in(f) = Σ_k |Z_k|²·S_k(f) / |H(jω)|². H는 선언된 전달 뷰의 전달함수(gain metric과 같은 뷰)다.
+
+**산출**:
+- `noise_in_density_ss_v_rthz` = √S_in(freq_hz).
+- `noise_in_integrated_ss_v` = √∫S_in df. 적분은 대역 안 로그 격자의 사다리꼴 적분이다. 격자 간격은 오차가 분해능 이하가 될 때까지 이분 세분한다(상한 K_max).
+- 소자별 기여 표 `noise_contrib[{device|element, share}]`.
+
+**분해능**: metrics §9와 같은 방식이다. LUT 잡음 열의 tol_noise와 소신호 파라미터 tol이 adjoint 감도를 거쳐 전파된 값을 `MetricResult.resolution`으로 둔다.
+
+**파일**: `E/metrics/noise_sources.py`, `E/metrics/noise_analysis.py`.
+
+### 7.4 search -- 제약 행
+
+다른 ss 제약과 같은 형식이다. 판정 단위는 c = (value − metric)/resolution이고, 풀이 척도는 40 §7.2를 따른다. 외층 전회로 판정 위치(DEC-74)도 그대로다.
+
+### 7.5 출발 구간 -- 열잡음 gm 하한
+
+열잡음 밀도 제약이 선언되면 입력 소자 gm 하한을 둔다.
+- S_in,th ≈ Σ_k sid_th,k·gm_k / gm_in² ≤ S_target이다.
+- 입력 소자만 고려하면 gm_in ≥ (Σ_input sid_th) / S_target이다. 매크로 모델(§6.5)의 비를 써서 나머지 소자의 gm/gm_in을 넣으면 gm_in ≥ (Σ_k sid_th,k·(gm_k/gm_in)) / S_target이 된다.
+- §6.5에서 구한 gm_1이 이 하한보다 작으면 하한으로 올린다. 그다음 전류를 다시 전파한다.
+- 1/f 하한은 §6.4-3이다.
+
+### 7.6 오라클 -- ngspice `.noise` 대조
+
+- 오라클은 엔진을 import하지 않는다.
+- 같은 테스트벤치(free 모드 동작점)에서 `.noise v(sense) <입력원> dec ...`로 입력 환산 밀도와 대역 적분을 잰다. 엔진과 같은 정의다(같은 감지 노드, 같은 여기원).
+- 비교 허용오차는 다른 metric과 같다. 엔진 metric의 resolution과 `model_error_noise_*`(DEC-72)로 판정하고, 모델 오차가 미측정이면 '판정 보류'다.
+- 합격 T5에 잡음 제약을 넣는다(사용자 결정으로 범위 안이 되었으므로).
+- 오라클 측정 항목 `ORACLE_MEASURES`에 두 metric을 더한다.
+
+### 7.7 상태
+
+7.1~7.6 모두 MISS다. as-built 잡음 관련 코드는 `noise_1f_density`(옛 엔진)가 전부이고, 새 엔진에는 해당 코드가 없다.
+
+---
+
+## 8. 신규 공개 API
 
 ```python
-def build_s1v(s1: S1, spec: SizingSpec, *, budget: EvalBudget) -> S1v                                  # E/graph/s1v_build.py
-def block_local_gain(snap: GraphSnapshot, s1v: S1v, view_key: str, block_key: str) -> BlockGain       # E/metrics/block_model.py
-def achievability(s1: S1, s1v: S1v, lut: LutSet, spec: SizingSpec, pdk: PdkDecl, *, budget: EvalBudget) -> Achievability  # raise InfeasibleTargetError
+def build_s1v(s1: S1, spec: SizingSpec, *, count_budget: int) -> S1v                                   # E/graph/s1v_build.py
+def block_local_gain(snap: GraphSnapshot, s1v: S1v, view_key: str, block_key: tuple[str, ...]) -> BlockGain  # E/metrics/block_model.py
+def achievability(s1: S1, s1v: S1v, lut: LutSet, spec: SizingSpec, pdk: PdkDecl, *, count_budget: int) -> Achievability  # raise InfeasibleTargetError
 def start_intervals(s1: S1, s1v: S1v, ach: Achievability, lut: LutSet, spec: SizingSpec, pdk: PdkDecl) -> StartIntervals  # E/search/start_intervals.py
-def layer0_budget(ctx: SearchContext, ach: Achievability, iv: StartIntervals, residual: ResidualProbe | None, *, budget: EvalBudget) -> BudgetFront
-class EvalBudget:                                                                                      # E/search/eval_budget.py
-    def remaining(self) -> int: ...      # N = floor((B - T_fixed) / t_eval), 온라인 갱신
+def layer0_budget(ctx: SearchContext, ach: Achievability, iv: StartIntervals, residual: ResidualProbe | None, *, count_budget: int, eval_budget: EvalBudget) -> BudgetFront
+def size_and_seal_local(ctx: KernelContext, theta_block, fixed, columns: frozenset[str]) -> LocalSeal    # E/sizing/size_and_seal_local.py
+def count_budget(lut: LutSet, kinds: frozenset[str], spec: SizingSpec) -> int                           # E/search/count_budget.py  (N_S, §0)
+class EvalBudget:                                                                                       # E/search/eval_budget.py  (N_T, §5.8)
+    def remaining(self) -> int: ...
+def noise_params(kind, w_key, L, VGS, VDS, VS) -> NoiseParams                                            # E/lut/noise_query.py
+def noise_analysis(snap: GraphSnapshot, view_key: str, spec_item) -> NoiseResult                         # E/metrics/noise_analysis.py
 ```
 
 ---
 
-## 8. 검증 -- 오라클, test, DoD 명령
+## 9. 검증 -- 오라클, test, DoD 명령
 
 오라클 종류(P N0.4): (a) 손계산·불변식, (b) 다른 방법의 참조구현, (c) SPICE, (d) 사용자 선언.
 
@@ -638,7 +809,12 @@ class EvalBudget:                                                               
 | DOF(IC6) | (a) 사고19 픽스처 | `tests/contracts/test_ic6_dof.py` | over/under 판정 |
 | 층 0 | (a) 2블록 toy에서 전수 조합과 비교 | `tests/search/test_combo_dp.py`, `test_layer0_budget.py` | DP front = 전수 front. `gain_budget_db` 출력. override 반영 |
 | 출발 구간 | (a) 손계산 | `tests/search/test_start_intervals.py` | 필요조건 성질 |
-| 매크로 모델 | (a) 이상 VCCS 2·3극점 | `tests/search/test_macro_poles.py` | UGF·PM 근 |
+| 매크로 모델 | (a) 이상 VCCS 2·3극점, 캐스코드 노드 포함 | `tests/search/test_macro_poles.py` | UGF·PM 근, 근 없음 기록, 바퀴 수렴 |
+| 계수 예산 결정론 | (a) 같은 S0 두 번 | `tests/search/test_count_budget.py` | N_S가 시간과 무관하다. 사이클·Π 결과가 실행 간 같다 |
+| 비단조 축 처리 | (a) 비율에 대해 내부 최대가 있는 toy | `test_block_gain_bound.py` | 세분 후 인증, 실패 시 미상 |
+| 잡음 LUT | (c) 단일 소자 ngspice `.noise` 칸 중앙 대조 | `tests/lut/test_noise_query.py` | 칸 중앙 오차 ≤ tol_noise |
+| 잡음 해석 | (a) 저항 분압·CS 한 단 손계산(4kTR, 4kTγgm), (c) ngspice `.noise` | `tests/metrics/test_noise_analysis.py` | 입력 환산 밀도·적분이 resolution 안 |
+| 잡음 출발 구간 | (a) 손계산 | `tests/search/test_start_intervals.py` | 열잡음 gm 하한, 1/f L 하한 |
 
 **DoD 명령**(`$PY` = `C:\Python314\python.exe`):
 
@@ -648,9 +824,14 @@ $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/regression/test_struct
 $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_layer0_pilot.py -q      # front 점마다 allocated·realized·잔차
 ```
 
+`test_structure_tables.py`는 `runs/<run_id>/structure_tables/`에 다음을 쓰고, 9회로 전부 표가 있는지 단언한다(N7).
+- 9회로 S1v 표와 규칙 분기 발동표
+- 블록별 GB4 표(블록 키, 격자 곱 Π, N_S, 인증/미상, A_max, b_GB4)
+- 회로별 인증 비율(인증 블록 수 / 블록 수)
+
 ---
 
-## 9. 상태 요약
+## 10. 상태 요약
 
 | 절 | 항목 | OK | DEV | PART | MISS |
 |---|---|---|---|---|---|
@@ -659,3 +840,4 @@ $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_layer
 | §4 GB4 | 5 | 0 | 0 | 1(4.1 곡선 분류) | 4 |
 | §5 층 0 | 9 | 0 | 0 | 0 | 9 |
 | §6 출발 구간 | 6 | 0 | 0 | 0 | 6 |
+| §7 잡음 | 6 | 0 | 0 | 0 | 6 |
