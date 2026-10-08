@@ -127,3 +127,28 @@ def test_real_offgrid_curves_match_independent_hermite(real_memo, raw_slice):
             assert np.array_equal(np.isfinite(np.asarray(c.gm_id_vals)), fin)
             np.testing.assert_allclose(np.asarray(c.gm_id_vals)[fin], S[fin], rtol=1e-12)
             assert tuple(bool(x) for x in c.cell_ok) == ok
+
+
+# ---------------------------------------------------------------- [r7] 칸 분류 `Curve.cell_class` (설계 41 §4.1 해법 매핑, CONTRACT 4.1 [r7])
+
+from gmid_engine.lut import CLASS_HERMITE  # noqa: E402
+
+
+def test_cell_class_r5_toy_all_hermite(toy_memo):
+    c = gm_id_curve(toy_memo, "nmos", 100, 1e-6, 0.5, 0.0)
+    assert tuple(c.cell_class) == (CLASS_HERMITE, CLASS_HERMITE) == ("hermite", "hermite")
+
+
+def test_cell_class_r4_toy_fc_violation(r4toy_memo):
+    """CONTRACT 7.2 손계산: VGS 칸 0 위반(b1² = 65.5 > 50), 칸 1 단조 -> ('fc_violation', 'hermite'), cell_ok 와 일치."""
+    c = gm_id_curve(r4toy_memo, "nmos", 100, 1e-6, 0.5, 0.0)
+    assert tuple(c.cell_class) == ("fc_violation", "hermite")
+    assert tuple(bool(x) for x in c.cell_ok) == (False, True)
+
+
+def test_cell_class_slope_undefined(curve_lut):
+    """마디 2 의 GM = 0(gm/ID 정의 안 됨) -> 칸 1 은 끝 기울기가 없어 'slope_undefined'(선형 칸), 칸 0 은 단조 Hermite.
+    칸 0: 마디 gm/ID (8, 5), h 0.5, Δln ID = ln10 -> b0 = 4, b2 = 2.5, b1 = 0.41 ≥ 0 (CONTRACT 1.4 조건 손계산)."""
+    memo, _ = curve_lut((0.0, 0.5, 1.0), (1e-6, 1e-5, 1e-4), (8.0, 5.0, 0.0))
+    c = gm_id_curve(memo, "nmos", 100, 1e-6, 0.5, 0.0)
+    assert tuple(c.cell_class) == ("hermite", "slope_undefined")

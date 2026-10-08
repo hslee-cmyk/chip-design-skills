@@ -20,15 +20,18 @@ def _stats(m):
 def test_constants():
     assert REGIONS == ("curve", "derived", "point", "root")
     # [r6] 2절: derived 표 4개(r5 는 curve_report·tol_v_table 2개)
-    assert DERIVED_TABLES == ("curve_report", "midpoint_l_bin_checks", "tol_v_table", "tol_vdsat_table")
+    # [r7] 2절: + noise_planes·tol_mismatch_table·tol_noise_table = 7개 -- 설계 41 §7.2 'tol_noise ... 디스크 캐시 대상',
+    #      §6.4-2b 'tol_mismatch ... 디스크 캐시 대상'(파생 표라 derived 영역)
+    assert DERIVED_TABLES == ("curve_report", "midpoint_l_bin_checks", "noise_planes", "tol_mismatch_table", "tol_noise_table",
+                              "tol_v_table", "tol_vdsat_table")
 
 
 def test_capacities(toy):
     m = LutMemo(toy, point=3, curve=5, root=7)
     st = _stats(m)
     assert (st["point"].capacity, st["curve"].capacity, st["root"].capacity) == (3, 5, 7)
-    # [r6] derived 상한 = 슬라이스 수 × 4 (toy 슬라이스 2장 -> 8; r5 는 × 2 = 4)
-    assert st["derived"].capacity == len(toy.slice_map) * len(DERIVED_TABLES) == 2 * 4
+    # [r6] derived 상한 = 슬라이스 수 × 4 (toy 슬라이스 2장 -> 8; r5 는 × 2 = 4) -- [r7] × 7 -> 14
+    assert st["derived"].capacity == len(toy.slice_map) * len(DERIVED_TABLES) == 2 * 7
 
 
 @pytest.mark.parametrize("bad", [0, -1, 1.5, True, None, "3"])
@@ -44,7 +47,7 @@ def test_from_sweep_capacity(toy):
     m2 = LutMemo.from_sweep(toy, 0, (("point", 1), ("curve", 4), ("root", 2)))
     st2 = _stats(m2)
     assert (st2["point"].capacity, st2["curve"].capacity, st2["root"].capacity) == (1, 4, 2)
-    assert st2["derived"].capacity == 2 * 4                  # [r6] 슬라이스 2 × DERIVED_TABLES 4 (from_sweep 도 같은 식)
+    assert st2["derived"].capacity == 2 * 7                  # [r7] 슬라이스 2 × DERIVED_TABLES 7 (from_sweep 도 같은 식)
 
 
 def test_lookup_computes_once_principle(toy_memo):
@@ -146,7 +149,7 @@ def test_r6_derived_capacity_holds_all_tables(mid_toy_build):
         tol_v_table(m, "nmos", wk)
         tol_vdsat_table(m, "nmos", wk)
     st = _stats(m)["derived"]
-    assert st.capacity == 8 and st.evictions == 0 and st.size == 7      # curve_report 는 LUT 전체 1개
+    assert st.capacity == 14 and st.evictions == 0 and st.size == 7     # curve_report 는 LUT 전체 1개; [r7] 상한 2 × 7
 
 
 def test_distinct_fp_luts_do_not_share(toy_build):

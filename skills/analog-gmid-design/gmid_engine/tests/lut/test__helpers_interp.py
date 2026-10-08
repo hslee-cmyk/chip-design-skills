@@ -258,3 +258,93 @@ def test_grid_curve_nodes_bit_equal_to_legacy(real_memo, raw_slice):
             assert np.array_equal(np.asarray(c.id_vals), np.exp(log_id))
             assert np.array_equal(np.asarray(c.gm_id_vals)[on], np.exp(log_gm - log_id)[on])
             assert np.all(np.isnan(np.asarray(c.gm_id_vals)[~on])), "on_mask 거짓 마디의 gm/ID 는 NaN(4.1 표·4.2)"
+
+
+# ---------------------------------------------------------------------------
+# [r7] VS 축 Hermite (계획 DEC-87 'VS 축 = 선형(GMBS 열이 생기면 기울기 −GMBS/ID 의 Hermite)', CONTRACT 4.2 [r7])
+#   oracle (a): conftest `vs_toy_*` -- ln ID 가 VS 의 2차식이고 GMBS = 정확한 기울기 -> Hermite 는 2차식을 정확히 재현(닫힌 식),
+#   선형은 칸 중앙에서 ln 으로 (0.5)²/4 = 0.0625 낮다. 폴백 사유는 CONTRACT 4.1 `OpPoint.fallbacks`.
+# ---------------------------------------------------------------------------
+
+from .conftest import vs_toy_lnid, vs_toy_slices  # noqa: E402
+
+
+@pytest.fixture
+def vs_memo(toy_build):
+    from .conftest import new_memo
+    return new_memo(toy_build("vs", slices=vs_toy_slices()).load())
+
+
+@pytest.mark.parametrize("v,d,s", [(0.5, 0.5, 0.25), (0.25, 0.75, 0.1), (0.9, 1.0, 0.4), (0.0, 0.6, 0.33)])
+def test_vs_hermite_reproduces_quadratic_in_vs(vs_memo, v, d, s):
+    op = op_point(vs_memo, "nmos", 100, 1e-6, v, d, s)
+    assert abs(math.log(op.IDu) - vs_toy_lnid(v, d, s)) <= 1e-12
+    assert op.fallbacks == ()
+    assert abs(op.gm_over_id - (R5_A - 2 * R5_B * v)) <= 1e-12          # gm/ID 의 VS 방향은 마디 기울기 선형(정확: VS 무관)
+
+
+def test_vs_hermite_differs_from_linear(vs_memo):
+    """판별: 같은 점의 VS 선형 값(두 VS 마디 ln ID 의 평균)과 0.0625 차이(2차식 −s² 의 칸 중앙 오차)."""
+    op = op_point(vs_memo, "nmos", 100, 1e-6, 0.5, 0.5, 0.25)
+    lin = 0.5 * (vs_toy_lnid(0.5, 0.5, 0.0) + vs_toy_lnid(0.5, 0.5, 0.5))
+    assert abs(math.log(op.IDu) - lin - 0.0625) <= 1e-12
+
+
+def test_vs_on_grid_has_no_vs_fallback(toy_build):
+    """VS 가 격자점이면 VS 보간이 없다 -> 폴백 기록도 없다(기울기가 정의 안 된 자료여도)."""
+    from .conftest import new_memo
+    m = new_memo(toy_build("vsneg0", slices=vs_toy_slices(gmbs_mutate=lambda g: -g)).load())
+    assert op_point(m, "nmos", 100, 1e-6, 0.5, 0.5, 0.5).fallbacks == ()
+
+
+def test_vs_slope_undefined_falls_back_to_linear(toy_build):
+    """GMBS ≤ 0(기울기 정의 안 됨) -> VS 선형, `fallbacks` = (("VS", "slope_undefined"),)."""
+    from .conftest import new_memo
+    m = new_memo(toy_build("vsneg", slices=vs_toy_slices(gmbs_mutate=lambda g: -g)).load())
+    op = op_point(m, "nmos", 100, 1e-6, 0.5, 0.5, 0.25)
+    assert op.fallbacks == (("VS", "slope_undefined"),)
+    lin = 0.5 * (vs_toy_lnid(0.5, 0.5, 0.0) + vs_toy_lnid(0.5, 0.5, 0.5))
+    assert abs(math.log(op.IDu) - lin) <= 1e-12
+
+
+def test_vs_fc_violation_falls_back_to_linear(toy_build):
+    """기울기 1000 배(Δln ID = −0.75 인데 끝 기울기 −1000·(1, 2)): b0 = −500, b2 = −1000, b1 = 3·(−0.75) + 1500 = 1497.75 > 0,
+    b1² = 2.2e6 > b0·b2 = 5e5 -> FC 위반(CONTRACT 1.4 식, 손계산) -> VS 선형, 사유 'fc_violation'."""
+    from .conftest import new_memo
+    m = new_memo(toy_build("vsfc", slices=vs_toy_slices(gmbs_mult=1000.0)).load())
+    op = op_point(m, "nmos", 100, 1e-6, 0.5, 0.5, 0.25)
+    assert op.fallbacks == (("VS", "fc_violation"),)
+    lin = 0.5 * (vs_toy_lnid(0.5, 0.5, 0.0) + vs_toy_lnid(0.5, 0.5, 0.5))
+    assert abs(math.log(op.IDu) - lin) <= 1e-12
+
+
+def test_vgs_linear_cell_fallback_recorded(r4toy_memo):
+    """CONTRACT 4.1 [r7]: Hermite 가 가능한 칸인데 선형으로 간 축은 조용하지 않다 -- r4 toy VGS 칸 0(FC 위반)·VDS 칸(위반)."""
+    op = op_point(r4toy_memo, "nmos", 100, 1e-6, 0.25, 0.75, 0.0)
+    assert dict(op.fallbacks) == {"VDS": "fc_violation", "VGS": "fc_violation"}
+    assert list(op.fallbacks) == sorted(op.fallbacks)
+
+
+@pytest.mark.lut_realdata
+def test_real_vs_offgrid_matches_independent_hermite(real_memo, raw_slice):
+    """(b) 실데이터(GMBS 열 있음): VS 칸 중앙 조회의 IDu·gm/ID 가 conftest 독립 Hermite(VS 축 Hermite 포함, 기저 함수 경로)와 상대 1e-11,
+    폴백 사유도 독립 판정과 같다. nmos w_key 72 L 0.15 µm 는 VS FC 위반 칸(243개)이 있는 슬라이스 -- 그 칸은 선형·'fc_violation'."""
+    rng = np.random.default_rng(20261008)
+    for kind, w_key in (("nmos", 1000), ("pmos", 1000), ("nmos", 72), ("pmos", 400)):
+        z = raw_slice(kind, w_key)
+        rs = RefSlice(z)
+        n_fb = 0
+        for _ in range(60):
+            i = int(rng.integers(0, 2)) if w_key in (72, 400) else int(rng.integers(len(z["L"])))
+            g, k, s = int(rng.integers(1, len(z["VGS"]) - 1)), int(rng.integers(2, len(z["VDS"]) - 1)), int(rng.integers(len(z["VS"]) - 1))
+            vgs = float(z["VGS"][g])
+            vds = float(z["VDS"][k])
+            vsb = 0.5 * float(z["VS"][s] + z["VS"][s + 1])
+            L = float(z["L"][i])
+            op = op_point(real_memo, kind, w_key, L, vgs, vds, vsb)
+            exp = rs.op(anchor_w(i), L, vgs, vds, vsb)
+            assert rel_close(op.IDu, exp["IDu"], 1e-11), (kind, w_key, i, g, k, s)
+            assert rel_close(op.gm_over_id, exp["gm_over_id"], 1e-11)
+            fb = rs.vs_fallback(anchor_w(i), vgs, vds, vsb)
+            assert dict(op.fallbacks).get("VS") == fb
+            n_fb += fb is not None

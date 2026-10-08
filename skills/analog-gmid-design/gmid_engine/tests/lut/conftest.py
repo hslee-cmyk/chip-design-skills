@@ -500,10 +500,53 @@ class RefSlice:
         self.herm_vds = self.vds_ok[:, :, :-1] & self.vds_ok[:, :, 1:]
         self.fc_vds = np.where(self.herm_vds, fc_ok(self.lI[:, :, :-1], self.lI[:, :, 1:], self.gdsid[:, :, :-1],
                                                     self.gdsid[:, :, 1:], hd), True)
+        # [r7] VS 축 Hermite 보조(CONTRACT 1.4 [r7], 계획 DEC-87 'GMBS 열이 생기면 기울기 −GMBS/ID 의 Hermite'):
+        # vs_ok = GMBS/ID 가 유한·양수인 격자점(GMBS 열이 없으면 전부 거짓), 기울기 d lnID/dVS = −GMBS/ID.
+        self.has_gmbs = "GMBS" in z
+        if self.has_gmbs:
+            GMBS = np.asarray(z["GMBS"], dtype=float)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                r = np.where(ID > 0, GMBS / np.where(ID > 0, ID, 1.0), np.nan)
+            self.vs_ok = np.isfinite(r) & (r > 0)
+            self.vsslope = np.where(self.vs_ok, -r, 0.0)
+        else:
+            self.vs_ok = np.zeros(ID.shape, dtype=bool)
+            self.vsslope = np.zeros(ID.shape)
+        hs = np.diff(np.asarray(self.grids[3]))[None, None, None, :]
+        self.herm_vs = self.vs_ok[..., :-1] & self.vs_ok[..., 1:]
+        self.fc_vs = np.where(self.herm_vs, fc_ok(self.lI[..., :-1], self.lI[..., 1:], self.vsslope[..., :-1],
+                                                  self.vsslope[..., 1:], hs), True)
 
     def hermite_fc(self):
+        """CONTRACT 1.4 `hermite_fc`([r7] 세 번째 항 VS -- GMBS 열이 없으면 ("VS", 0, 0))."""
         return (("VDS", int(self.herm_vds.sum()), int((~self.fc_vds).sum())),
-                ("VGS", int(self.herm_vgs.sum()), int((~self.fc_vgs).sum())))
+                ("VGS", int(self.herm_vgs.sum()), int((~self.fc_vgs).sum())),
+                ("VS", int(self.herm_vs.sum()), int((~self.fc_vs).sum())))
+
+    def vs_y(self, Lw, a, nodes_b, vsb):
+        """[r7] CONTRACT 4.2 2단계 VS 축: VDS 마디 b(nodes_b)마다 L 선형 가중 후 VS 칸 Hermite(끝 값 lnID, 끝 기울기
+        −GMBS/ID)로 y_b. 조건(가중치 ≠ 0 인 L 모서리·VDS 마디 모두에서 두 VS 끝 vs_ok 이고 fc_vs 참)이 거짓이면 L·VS 선형.
+        반환 ({b: y_b}, VS Hermite 여부 또는 None(VS 격자점 -- 보간 없음))."""
+        VS = self.grids[3]
+        s0, ts = axis_cell_r5(VS, vsb)
+        lI = self.lI
+        if ts == 0.0 or ts == 1.0:
+            s = s0 if ts == 0.0 else s0 + 1
+            return {b: sum(wl * lI[iL, a, b, s] for iL, wl in Lw) for b in nodes_b}, None
+        herm = all(bool(self.vs_ok[iL, a, b, s0] and self.vs_ok[iL, a, b, s0 + 1] and self.fc_vs[iL, a, b, s0])
+                   for iL, _ in Lw for b in nodes_b)
+        hs = VS[s0 + 1] - VS[s0]
+        out = {}
+        for b in nodes_b:
+            y0 = sum(wl * lI[iL, a, b, s0] for iL, wl in Lw)
+            y1 = sum(wl * lI[iL, a, b, s0 + 1] for iL, wl in Lw)
+            if herm:
+                m0 = sum(wl * self.vsslope[iL, a, b, s0] for iL, wl in Lw)
+                m1 = sum(wl * self.vsslope[iL, a, b, s0 + 1] for iL, wl in Lw)
+                out[b] = hermite_val(y0, y1, m0, m1, hs, ts)
+            else:
+                out[b] = y0 + ts * (y1 - y0)
+        return out, herm
 
     # --- 4.2 마디 값·기울기 -------------------------------------------------
     def node(self, Lw, a, vds, vsb):
@@ -512,21 +555,18 @@ class RefSlice:
         k, td = axis_cell_r5(VDS, vds)
         Sw = axis_weights(self.grids[3], vsb)
         Dw = axis_weights(VDS, vds)
-        lI, on = self.lI, self.on
+        on = self.on
         if td == 0.0 or td == 1.0:
             b = k if td == 0.0 else k + 1
-            V = 0.0
-            for iL, wl in Lw:
-                for s, ws in Sw:
-                    V += wl * ws * lI[iL, a, b, s]
+            V = self.vs_y(Lw, a, (b,), vsb)[0][b]
         else:
-            yk = yk1 = mk = mk1 = 0.0
+            ys, _ = self.vs_y(Lw, a, (k, k + 1), vsb)
+            yk, yk1 = ys[k], ys[k + 1]
+            mk = mk1 = 0.0
             herm = True
             for iL, wl in Lw:
                 for s, ws in Sw:
                     w = wl * ws
-                    yk += w * lI[iL, a, k, s]
-                    yk1 += w * lI[iL, a, k + 1, s]
                     mk += w * self.gdsid[iL, a, k, s]
                     mk1 += w * self.gdsid[iL, a, k + 1, s]
                     herm = herm and bool(self.vds_ok[iL, a, k, s] and self.vds_ok[iL, a, k + 1, s]
@@ -575,6 +615,24 @@ class RefSlice:
             return hermite_val(V0, V1, S0, S1, h, tg), hermite_der(V0, V1, S0, S1, h, tg), True
         return V0 + tg * (V1 - V0), (V1 - V0) / h, False
 
+    def vs_fallback(self, Lw, vgs, vds, vsb):
+        """[r7] CONTRACT 4.1 `OpPoint.fallbacks` 의 VS 항 독립 판정: VS 가 격자점 사이이고 Hermite 조건이 거짓이면 사유
+        ('slope_undefined' = 두 VS 끝 기울기 중 정의 안 된 것이 있음, 아니면 'fc_violation'), 아니면 None."""
+        VS = self.grids[3]
+        s0, ts = axis_cell_r5(VS, vsb)
+        if ts in (0.0, 1.0):
+            return None
+        a, tg = axis_cell_r5(self.grids[1], vgs)
+        nodes_a = (a,) if tg == 0.0 else (a + 1,) if tg == 1.0 else (a, a + 1)
+        k, td = axis_cell_r5(self.grids[2], vds)
+        nodes_b = (k,) if td == 0.0 else (k + 1,) if td == 1.0 else (k, k + 1)
+        corners = [(iL, aa, b) for iL, _ in Lw for aa in nodes_a for b in nodes_b]
+        if not all(bool(self.vs_ok[iL, aa, b, s0] and self.vs_ok[iL, aa, b, s0 + 1]) for iL, aa, b in corners):
+            return "slope_undefined"
+        if not all(bool(self.fc_vs[iL, aa, b, s0]) for iL, aa, b in corners):
+            return "fc_violation"
+        return None
+
     def op(self, Lw, Lval, vgs, vds, vsb):
         """op_point 기대값 dict(CONTRACT 4.1 표 [r5])."""
         lnid, gmid, herm = self.lnid_gmid(Lw, vgs, vds, vsb)
@@ -595,6 +653,10 @@ class RefSlice:
             return dV, dS
         k, td = axis_cell_r5(self.grids[2], vds)
         hd = self.grids[2][k + 1] - self.grids[2][k]
+        s0, ts = axis_cell_r5(self.grids[3], vsb)
+        hs = self.grids[3][s0 + 1] - self.grids[3][s0]
+        vs_off = ts not in (0.0, 1.0)
+        nodes_b = (k if td == 0.0 else k + 1,) if td in (0.0, 1.0) else (k, k + 1)
         for a in range(n):
             A = 0.0
             for iL, wl in Lw:
@@ -605,6 +667,10 @@ class RefSlice:
                     else:
                         A += w * (abs(self.lI[iL, a, k, s]) + abs(self.lI[iL, a, k + 1, s])
                                   + hd * abs(self.gdsid[iL, a, k, s]) + hd * abs(self.gdsid[iL, a, k + 1, s]))
+                # [r7] VS Hermite 기울기 항의 크기(VS 격자 밖일 때) -- 같은 γ_n 상한에 더한다
+                if vs_off:
+                    A += abs(wl) * sum(hs * (abs(self.vsslope[iL, a, b, s0]) + abs(self.vsslope[iL, a, b, s0 + 1]))
+                                       for b in nodes_b)
             B = sum(abs(wl * wd * ws) * self.gmid[iL, a, b, s] for iL, wl in Lw for b, wd in Dw for s, ws in Sw)
             dV[a], dS[a] = g2 * A, g2 * B
         return dV, dS
@@ -831,11 +897,19 @@ def tol_cell_ref(rs, i, k, anchor_bin=None, with_roots=True):
         err = np.abs(est - c) / gm
         add(err, A, c, gm, cond, np.where(herm, 2.0 ** 4, 2.0 ** 2))
     if nS > 2:
+        # [r7] CONTRACT 5절: VS 축 id_equivalent LOO 도 운영 보간과 같은 방법 -- 두 이웃 vs_ok 이면 Hermite(기울기 −GMBS/ID,
+        # p = 4), 아니면 선형(p = 2). GMBS 열이 없으면 vs_ok 전부 거짓 -> r6 와 같은 선형.
+        H = (VS[2:] - VS[:-2])[None, :]
         t = ((VS[1:-1] - VS[:-2]) / (VS[2:] - VS[:-2]))[None, :]
-        est = c[:, :-2] + t * (c[:, 2:] - c[:, :-2])
+        vsl, vok = rs.vsslope[i, :, k, :], rs.vs_ok[i, :, k, :]
+        herm = vok[:, :-2] & vok[:, 2:]
+        est = np.where(herm, hermite_val(c[:, :-2], c[:, 2:], vsl[:, :-2], vsl[:, 2:], H, t),
+                       c[:, :-2] + t * (c[:, 2:] - c[:, :-2]))
+        A = np.where(herm, hermite_val_absterms(c[:, :-2], c[:, 2:], vsl[:, :-2], vsl[:, 2:], H, t),
+                     lin_abs(c[:, :-2], c[:, 2:], t))
         cond = o[:, :-2] & o[:, 1:-1] & o[:, 2:]
         err = np.abs(est - c[:, 1:-1]) / gm[:, 1:-1]
-        add(err, lin_abs(c[:, :-2], c[:, 2:], t), c[:, 1:-1], gm[:, 1:-1], cond, 2.0 ** 2)
+        add(err, A, c[:, 1:-1], gm[:, 1:-1], cond, np.where(herm, 2.0 ** 4, 2.0 ** 2))
     if l_int:
         t = (Lg[i] - Lg[i - 1]) / (Lg[i + 1] - Lg[i - 1])
         lo_, hi_ = lI[i - 1, :, k, :], lI[i + 1, :, k, :]
@@ -864,10 +938,17 @@ def tol_cell_ref(rs, i, k, anchor_bin=None, with_roots=True):
             dV = g2 * np.where(herm, hermite_val_absterms(lo_, hi_, m0_, m1_, H, t), lin_abs(lo_, hi_, t))
             side.append((Vl, Sl, 2.0 ** 2, dV, g2 * lin_abs(g0_, g1_, t)))
         if 0 < s < nS - 1 and o[:, s - 1].all() and o[:, s + 1].all():
-            t = (VS[s] - VS[s - 1]) / (VS[s + 1] - VS[s - 1])
-            side.append((c[:, s - 1] + t * (c[:, s + 1] - c[:, s - 1]),
-                         gm[:, s - 1] + t * (gm[:, s + 1] - gm[:, s - 1]), 2.0 ** 2,
-                         g2 * lin_abs(c[:, s - 1], c[:, s + 1], t), g2 * lin_abs(gm[:, s - 1], gm[:, s + 1], t)))
+            # [r7] CONTRACT 5절: gm_id_inverse VS 축 곡선 -- ln ID 는 두 이웃의 VS Hermite(두 이웃 vs_ok 인 마디), gm/ID 는 선형,
+            # 환산 차수 p = 2(표 'gm_id_inverse VS linear p 2').
+            H = VS[s + 1] - VS[s - 1]
+            t = (VS[s] - VS[s - 1]) / H
+            lo_, hi_ = c[:, s - 1], c[:, s + 1]
+            m0_, m1_ = rs.vsslope[i, :, k, s - 1], rs.vsslope[i, :, k, s + 1]
+            herm = rs.vs_ok[i, :, k, s - 1] & rs.vs_ok[i, :, k, s + 1]
+            Vl = np.where(herm, hermite_val(lo_, hi_, m0_, m1_, H, t), lo_ + t * (hi_ - lo_))
+            dV = g2 * np.where(herm, hermite_val_absterms(lo_, hi_, m0_, m1_, H, t), lin_abs(lo_, hi_, t))
+            side.append((Vl, gm[:, s - 1] + t * (gm[:, s + 1] - gm[:, s - 1]), 2.0 ** 2,
+                         dV, g2 * lin_abs(gm[:, s - 1], gm[:, s + 1], t)))
         if l_int and on[i - 1, :, k, s].all() and on[i + 1, :, k, s].all():
             t = (Lg[i] - Lg[i - 1]) / (Lg[i + 1] - Lg[i - 1])
             lo_, hi_ = lI[i - 1, :, k, s], lI[i + 1, :, k, s]
@@ -1803,3 +1884,176 @@ def vdsat_loo_cell_ref(grids, V, on, i, k, l_int):
     if not vals:
         return None, None, None
     return float(max(vals)), float(max(vals)) / 4.0, float(max(bnds))
+
+
+# ---------------------------------------------------------------------------
+# [r7] 잡음·mismatch toy (CONTRACT 9.1·9.6·10.1·10.4) -- 입력은 이 파일이 닫힌 식으로 만든다(피검 함수 미사용).
+#   기준 LUT = r5 toy 기준 LUT(축 TOY_*, w_ref_m 1e-6 -> 폭 키 100) + 잡음에 필요한 열(GM·SVG2_1HZ·SVG2_HF, CGD 는 인자).
+#   잡음 r1 = 이분 점 f_hz 마다 SVG2_F<접미사>[f, L, VGS, VDS, VS]. meta 는 cap_npz_sha256 + base_frequencies_hz.
+# ---------------------------------------------------------------------------
+
+# [r7] VS 축 Hermite toy (계획 DEC-87 'VS 축 = GMBS 열이 생기면 기울기 −GMBS/ID 의 Hermite', CONTRACT 4.2 [r7]):
+#   ln ID = r5 toy 의 VGS·VDS 부분 − s − s² (VS 의 2차식) -> d lnID/dVS = −(1 + 2s), GMBS = ID·(1 + 2s)(정확한 기울기 자료).
+#   VS 격자 (0, 0.5) 한 칸이라 Hermite 가 2차식을 정확히 재현하고 선형은 칸 중앙에서 ln 으로 0.0625 어긋난다(판별력).
+
+def vs_toy_lnid(v, d, s, L=1e-6):
+    return math.log(1e-6 / L) + math.log(1e-7) + R5_A * v - R5_B * v * v + R5_C * d - s - s * s
+
+
+def vs_toy_slice_arrays(W, scale=1.0, gmbs_mult=1.0, gmbs_mutate=None):
+    L, v, d, s = (np.asarray(TOY_L)[:, None, None, None], np.asarray(TOY_VGS)[None, :, None, None],
+                  np.asarray(TOY_VDS)[None, None, :, None], np.asarray(TOY_VS)[None, None, None, :])
+    ID = scale * np.exp(np.log(1e-6 / L) + math.log(1e-7) + R5_A * v - R5_B * v * v + R5_C * d - s - s * s)
+    out = _toy_dict(W, ID, ID * (R5_A - 2 * R5_B * v), ID * R5_C)
+    G = ID * (1.0 + 2.0 * s) * gmbs_mult
+    out["GMBS"] = gmbs_mutate(G) if gmbs_mutate else G
+    return out
+
+
+def vs_toy_slices(**kw):
+    return [("vs_w100.npz", "toyn", vs_toy_slice_arrays(1e-6, 1.0, **kw)),
+            ("vs_w200.npz", "toyn", vs_toy_slice_arrays(2e-6, 2.0, **kw))]
+
+
+NOISE_F_LO = 1.0
+NOISE_F_HI = 1e4
+NOISE_F_MID = (10.0, 100.0, 1000.0)
+TOY_SHAPE = (len(TOY_L), len(TOY_VGS), len(TOY_VDS), len(TOY_VS))
+TOY_NOISE_SPEC = LutSpec(1e-8, (("nmos", 1.5e-6),), (("toyn", "nmos"),), (("nmos", "_n"),), noise_ef=(("nmos", 1.0),))
+
+
+def toy_grid_mesh():
+    """(L, VGS, VDS, VS) broadcast 격자(모양 TOY_SHAPE)."""
+    return np.meshgrid(np.asarray(TOY_L), np.asarray(TOY_VGS), np.asarray(TOY_VDS), np.asarray(TOY_VS), indexing="ij")
+
+
+def noise_spectrum(A, B, f, ef=1.0, cgd=0.0, gm=1e-3):
+    """측정 모형(합성 입력): S_vg(f) = A/f^EF + B/(1 + (2π f Cgd/gm)²) -- 피드스루가 열잡음 평탄값을 깎는 물리 모형
+    (CONTRACT 9.2 괄호: '측정값이 B/(1 + (ωCgd/gm)²) 로 작아진다'). cgd = 0 이면 정확히 A/f^EF + B."""
+    return A / f ** ef + B / (1.0 + (2.0 * math.pi * f * cgd / gm) ** 2)
+
+
+class NoiseToy:
+    """잡음 toy 를 폴더에 쓴다. A·B: TOY_SHAPE 배열(점마다 A0·B0), cgd·gm: 상수, f_mid: 이분 점."""
+
+    def __init__(self, root, A, B, cgd=0.0, gm=1e-3, f_mid=NOISE_F_MID, f_hi=NOISE_F_HI, ef=1.0,
+                 cap_mutate=None, noise_mutate=None, meta_mutate=None, write_noise=True):
+        self.root = Path(root)
+        cap = toy_cap_arrays()
+        cap["CGD_n"] = np.full(TOY_SHAPE, float(cgd))
+        cap["GM_n"] = np.full(TOY_SHAPE, float(gm))
+        cap["SVG2_1HZ_n"] = noise_spectrum(A, B, NOISE_F_LO, ef, cgd, gm)
+        cap["SVG2_HF_n"] = noise_spectrum(A, B, f_hi, ef, cgd, gm)
+        if cap_mutate:
+            cap_mutate(cap)
+        self.build = ToyBuild(self.root, standard_toy_slices(), cap)
+        self.cap_arrays = cap
+        self.path = self.root / "noise_r1.npz"
+        S = np.stack([noise_spectrum(A, B, f, ef, cgd, gm) for f in f_mid])
+        meta = {"cap_npz_sha256": sha256_file(self.build.cap),
+                "base_frequencies_hz": {"NOISE_F_PROBE": NOISE_F_LO, "F_TEST": f_hi}}
+        if meta_mutate:
+            meta_mutate(meta)
+        arrays = {"L": np.asarray(TOY_L), "VGS": np.asarray(TOY_VGS), "VDS": np.asarray(TOY_VDS),
+                  "VS": np.asarray(TOY_VS), "w_ref_m": np.float64(1e-6), "corner": np.str_("tt"),
+                  "temp_c": np.float64(27.0), "f_hz": np.asarray(f_mid, dtype=float), "SVG2_F_n": S,
+                  "meta_json": np.str_(json.dumps(meta))}
+        if noise_mutate:
+            noise_mutate(arrays)
+        if write_noise:
+            np.savez(self.path, **arrays)
+
+    def load(self, spec=TOY_NOISE_SPEC, **kw):
+        return load_lut_set(str(self.build.manifest), str(self.build.cap), spec, noise_npz=str(self.path), **kw)
+
+
+MISMATCH_PARAMS = ("toxe", "voff", "vth0")
+MISMATCH_SLOPE_REF = {"vth0": 3e-3, "toxe": 2e-3, "voff": 1e-3}
+
+
+def mismatch_slope_ref_meta(values=None, model="toy_model.1"):
+    vals = dict(MISMATCH_SLOPE_REF if values is None else values)
+    rec = {"model": model}
+    for p, v in vals.items():
+        rec[p] = None if v is None else {"slope": "toy_%s_slope" % p, "value": v}
+    return {"toyn": {"%g" % (L * 1e6): dict(rec) for L in TOY_L}}
+
+
+class MismatchToy:
+    """mismatch toy 를 폴더에 쓴다. dvgs = {변수: TOY_SHAPE 배열(V)}."""
+
+    def __init__(self, root, dvgs, slope_ref=None, cap_mutate=None, mm_mutate=None, meta_mutate=None):
+        self.root = Path(root)
+        cap = toy_cap_arrays()
+        if cap_mutate:
+            cap_mutate(cap)
+        self.build = ToyBuild(self.root, standard_toy_slices(), cap)
+        self.path = self.root / "mismatch_r1.npz"
+        meta = {"cap_npz_sha256": sha256_file(self.build.cap), "sigma_unit": 1e-6,
+                "variables": {"toyn": sorted(dvgs)},
+                "slope_ref": mismatch_slope_ref_meta(slope_ref)}
+        if meta_mutate:
+            meta_mutate(meta)
+        arrays = {"L": np.asarray(TOY_L), "VGS": np.asarray(TOY_VGS), "VDS": np.asarray(TOY_VDS),
+                  "VS": np.asarray(TOY_VS), "w_ref_m": np.float64(1e-6), "corner": np.str_("tt"),
+                  "temp_c": np.float64(27.0), "meta_json": np.str_(json.dumps(meta))}
+        for p, arr in dvgs.items():
+            arrays["DVGS_%s_n" % p] = np.asarray(arr, dtype=float)
+        if mm_mutate:
+            mm_mutate(arrays)
+        np.savez(self.path, **arrays)
+
+    def load(self, spec=TOY_SPEC, **kw):
+        return load_lut_set(str(self.build.manifest), str(self.build.cap), spec, mismatch_npz=str(self.path), **kw)
+
+
+# --- [r7] 실데이터 잡음·mismatch (CONTRACT 1.8 설정 `files.noise`·`files.mismatch`, EF = PDK 선언 noise_ef_*) ----------
+
+PDK_DECL_PATH = SKILL_DIR / "assets" / "sky130_pdk_decl.json"
+
+
+@pytest.fixture(scope="session")
+def real_pdk_decl():
+    from gmid_engine.core import BoundedLRU, read_pdk_decl
+    if not PDK_DECL_PATH.is_file():
+        pytest.fail("PDK 선언 없음: %s" % PDK_DECL_PATH, pytrace=False)
+    return read_pdk_decl(str(PDK_DECL_PATH), BoundedLRU(4))
+
+
+@pytest.fixture(scope="session")
+def real_nm_paths(real_location, real_paths):
+    loc = real_location
+    if not loc.noise_path or not loc.mismatch_path:
+        pytest.fail("설정에 noise·mismatch 항목이 없다: %s" % LOCATION_CONFIG, pytrace=False)
+    return dict(real_paths, noise=loc.noise_path, mismatch=loc.mismatch_path)
+
+
+@pytest.fixture(scope="session")
+def real_nm_spec(real_spec, real_pdk_decl):
+    """LutSpec.noise_ef = PDK 선언 noise_ef_nmos·noise_ef_pmos(CONTRACT 9 '부르는 쪽이 PDK 선언에서 채운다')."""
+    q = dict(real_pdk_decl.quantities)
+    return LutSpec(real_spec.manufacturing_grid_m, real_spec.min_finger_w_m, real_spec.device_kinds,
+                   real_spec.cap_column_suffix,
+                   noise_ef=(("nmos", q["noise_ef_nmos"].value_m), ("pmos", q["noise_ef_pmos"].value_m)))
+
+
+@pytest.fixture(scope="session")
+def real_nm_lut(real_nm_paths, real_nm_spec):
+    return load_real(real_nm_paths, real_nm_spec, noise_npz=real_nm_paths["noise"],
+                     mismatch_npz=real_nm_paths["mismatch"])
+
+
+@pytest.fixture
+def real_nm_memo(real_nm_lut):
+    from gmid_engine.lut import TableCache
+    return LutMemo(real_nm_lut, point=4096, curve=512, root=512, table_cache=TableCache(None))
+
+
+@pytest.fixture(scope="session")
+def raw_noise(real_nm_paths):
+    return _load_raw(real_nm_paths["noise"])
+
+
+@pytest.fixture(scope="session")
+def raw_mismatch(real_nm_paths):
+    return _load_raw(real_nm_paths["mismatch"])

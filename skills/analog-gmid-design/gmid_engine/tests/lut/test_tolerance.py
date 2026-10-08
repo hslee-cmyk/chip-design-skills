@@ -34,7 +34,7 @@ LOO_ORDERS_EXPECTED = (
     ("id_equivalent", "L", "linear", 2, 0.25),
     ("id_equivalent", "VDS", "hermite", 4, 0.0625),
     ("id_equivalent", "VGS", "hermite", 4, 0.0625),
-    ("id_equivalent", "VS", "linear", 2, 0.25),
+    ("id_equivalent", "VS", "hermite", 4, 0.0625),     # [r7] VS 축 Hermite(DEC-87 'GMBS 열이 생기면', 5절 'LOO = 운영 보간과 같은 방법')
 )
 FIELDS = (("gm_id_inverse_v", "inv"), ("id_equivalent_v", "eq"),
           ("gm_id_inverse_loo_v", "inv_loo"), ("id_equivalent_loo_v", "eq_loo"))
@@ -97,11 +97,13 @@ def test_contract_toy_at(toy_memo):
 
 
 def test_loo_orders(toy_memo):
-    """CONTRACT 5절 표·7.1 행: 8줄, 환산 배수 0.25·0.25·0.125·0.25·0.25·0.0625·0.0625·0.25 (지표·축 이름순)."""
+    """CONTRACT 5절 표·7.1 행: 8줄, 환산 배수 0.25·0.25·0.125·0.25·0.25·0.0625·0.0625·0.0625 (지표·축 이름순).
+    [r7] (id_equivalent, VS) 행이 hermite p 4 -- 운영 보간이 VS Hermite 이므로 LOO 도 같은 방법(계획 DEC-87 tol_V 연동). 기울기가 없는 점
+    (toy 처럼 GMBS 열이 없는 슬라이스 포함)은 선형 p 2 로 잰다(5절) -- 표는 방법·차수 선언이다."""
     t = tol_v_table(toy_memo, "nmos", 100)
     lo = tuple(tuple(r) for r in t.loo_orders)
     assert lo == LOO_ORDERS_EXPECTED
-    assert [r[4] for r in lo] == [0.25, 0.25, 0.125, 0.25, 0.25, 0.0625, 0.0625, 0.25]
+    assert [r[4] for r in lo] == [0.25, 0.25, 0.125, 0.25, 0.25, 0.0625, 0.0625, 0.0625]
     assert all(r[4] == 2.0 ** -r[3] for r in lo)
 
 

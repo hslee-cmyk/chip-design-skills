@@ -232,7 +232,11 @@ def test_sky130_decl_record_shape(sky_decl):
     exp_sources = tuple(sorted((n, _src_path(SKY, n), _sha256(_src_path(SKY, n))) for n in SKY["sources"]))
     assert tuple(tuple(s) for s in sky_decl.sources) == exp_sources
     names = tuple(n for n, _ in sky_decl.quantities)
-    assert names == tuple(sorted(SKY["quantities"]))
+    # [U3, 계약 9.7·설계 40 §7.1 Q9] resistor_types 규칙이 고른 후보의 세 양을 `<selected_as>_*` 이름으로 quantities 에 더한다
+    sel = SKY["resistor_types"]["selected_as"]
+    derived = {sel + "_" + a for a in ("sheet_ohm_per_sq", "min_w_m", "head_area_m2")}
+    assert not derived & set(SKY["quantities"])
+    assert names == tuple(sorted(set(SKY["quantities"]) | derived))
     for n, q in sky_decl.quantities:
         assert q == sky_decl.quantity(n)
     require_immutable(sky_decl)
@@ -1104,8 +1108,11 @@ def test_base_decl_dir_missing_file_and_explicit_pdk_root(tmp_path):
 def test_two_decls_share_one_memo_five_sources():
     # 9.5: 두 선언을 같은 memo 로 읽으면 원본 n 개 -- 상한 n 이상이면 두 번째부터 파싱 0. n = 두 선언 JSON sources 수 직접 집계.
     # [결정 11, 2026-10-08] PDK 선언에 mim_cap_params 원본 추가 -> n = 5 + 1 = 6 (test 이름의 'five' 는 옛 값 -- id 유지).
+    # [U3, 설계 41 §6.4-2 'slope 출처: mismatch.corner.spice 파싱'·§6.4-2 단위 확인(all.spice scale)·40 §7.1 Q9 'R□ 는 PDK 저항 모델 파일']
+    # 원본 4개 추가(nfet·pfet mismatch slope, scale_option, poly_res_params) -> n = 9 + 1 = 10.
     n = len(SKY["sources"]) + len(_load_json(LUT_RULE_DECL)["sources"])
-    assert n == 6                           # 손 집계: tech_lef·periphery_rules·nfet/pfet 모델 카드·mim_cap_params + lut_generator
+    assert n == 10                          # 손 집계: tech_lef·periphery_rules·nfet/pfet 모델 카드·mim_cap_params·nfet/pfet mismatch slope·
+    #                                         scale_option·poly_res_params + lut_generator
     memo = BoundedLRU(n)
     a1 = read_pdk_decl(str(SKY130_DECL), memo)
     b1 = read_pdk_decl(str(LUT_RULE_DECL), memo)
@@ -1371,3 +1378,268 @@ def test_base_and_newline_allowed_on_older_formats(tmp_path):
     decl["sources"]["table"]["newline"] = "lf"
     d = read_pdk_decl(_dump(tmp_path, decl), BoundedLRU(2))
     assert math.isclose(d.value("a_m"), 0.12e-6, rel_tol=REL)
+
+
+# ======================================================================================================================
+# [U3] 잡음·mismatch·저항 PDK 양 (계약 9.4b·9.6·9.7, 설계 41 §6.4-2 'slope 출처'·§7.2 'EF 는 PDK 모델 카드에서 파싱', 40 §7.1 Q9)
+#   oracle (a): PDK 원본을 이 파일이 정규식으로 직접 읽은 값(`ef`·`fnoimod`·`.option scale`·`rp1`·periphery 규칙·`.model` 블록 경계와
+#   변수 식의 slope 이름·`.param` 값), 저항 Ω당 면적은 손계산 W_min²/R□(40 §7.1 '단위 면적 유도').
+# ======================================================================================================================
+
+from gmid_engine.core import PdkMismatchBlock, PdkMismatchModel  # noqa: E402
+
+
+def _card_text(dev):
+    return open(_src_path(SKY, "%s_tt_model_card" % dev), encoding="utf-8").read()
+
+
+def _card_blocks(text):
+    """`.model` 블록마다 (이름, lmin, lmax, wmin, wmax, {변수: slope 이름}) -- 독립 정규식."""
+    out = []
+    for part in re.split(r"(?im)^\.model\s+", text)[1:]:
+        name = part.split()[0]
+
+        def num(k):
+            m = re.search(r"(?i)\b%s\s*=\s*([-+0-9.eE]+)" % k, part)
+            return float(m.group(1)) if m else None
+        sl = {}
+        for var in ("vth0", "toxe", "voff", "nfactor"):
+            m = re.search(r"(?i)^\+\s*%s\s*=\s*\{[^}]*?([A-Za-z_]\w*_slope\d*)\s*/\s*sqrt" % var, part, re.M)
+            if m:
+                sl[var] = m.group(1)
+        if num("lmin") is not None:
+            out.append((name, num("lmin"), num("lmax"), num("wmin"), num("wmax"), sl))
+    return out
+
+
+def _slope_values(dev):
+    vals = {}
+    with open(_src_path(SKY, "%s_mismatch_slopes" % dev), encoding="utf-8") as f:
+        for line in f:
+            m = re.match(r"\s*\.param\s+(\S+)\s*=\s*(\S+)", line)
+            if m:
+                vals[m.group(1)] = float(m.group(2))
+    return vals
+
+
+@needs_sky130
+@pytest.mark.parametrize("kind,dev,n_blocks", [("nmos", "nfet_01v8", 180), ("pmos", "pfet_01v8", 108)])
+def test_sky130_mismatch_blocks_match_independent_parse(sky_decl, kind, dev, n_blocks):
+    """9.6: 블록마다 경계·변수별 slope 이름·값이 원본과 같다(bin 마다 이름이 다르다 -- 설계 41 §6.4-2)."""
+    mm = sky_decl.mismatch_model(kind)
+    assert isinstance(mm, PdkMismatchModel) and mm.kind == kind
+    exp = {b[0]: b for b in _card_blocks(_card_text(dev))}
+    vals = _slope_values(dev)
+    assert len(mm.blocks) == len(exp) == n_blocks
+    for b in mm.blocks:
+        assert isinstance(b, PdkMismatchBlock)
+        e = exp[b.model]
+        assert (b.lmin_m, b.lmax_m, b.wmin_m, b.wmax_m) == e[1:5]
+        got = {p: (name, val) for p, name, val, _line in b.slopes}
+        assert set(got) == set(mm.parameters)
+        for p in mm.parameters:
+            if p in e[5]:
+                assert got[p] == (e[5][p], vals[e[5][p]]), (b.model, p)
+            else:
+                assert got[p] == (None, None), (b.model, p)
+    keys = [(b.wmin_m, b.wmax_m, b.lmin_m, b.lmax_m, b.model) for b in mm.blocks]
+    assert keys == sorted(keys)
+
+
+@needs_sky130
+def test_sky130_mismatch_parameters_are_all_spectre_variables(sky_decl):
+    """설계 41 §6.4-2 'k 는 mismatch 블록의 *_slope_spectre 변수 전수' -- 선언 parameters = 카드에 나오는 spectre 변수 집합."""
+    for kind, dev in (("nmos", "nfet_01v8"), ("pmos", "pfet_01v8")):
+        spectre = {m.lower() for m in re.findall(r"_01v8__(\w+?)_slope_spectre\b", _card_text(dev))}
+        assert set(sky_decl.mismatch_model(kind).parameters) == spectre
+
+
+@needs_sky130
+def test_sky130_pfet_short_l_uses_slope1(sky_decl):
+    """설계 41 §6.4-2 예: pfet L < 0.5 µm 36 bin 은 vth0_slope1 = 7.356e-3, L ≥ 0.5 µm(아래 bin 경계 포함 규칙) 은 5.856e-3;
+    nfet 은 L 4–8 µm·좁은 W 4 bin 만 vth0_slope1."""
+    def vth0(b):
+        return dict((p, v) for p, _, v, _ in b.slopes)["vth0"]
+    p = sky_decl.mismatch_model("pmos").blocks
+    short = [b for b in p if b.lmax_m <= 0.5e-6 + 1e-18]
+    assert len(short) == 36 and all(vth0(b) == 7.356e-3 for b in short)
+    assert all(vth0(b) == 5.856e-3 for b in p if b.lmin_m >= 0.5e-6 - 1e-18)
+    n = [b for b in sky_decl.mismatch_model("nmos").blocks if vth0(b) == 7.356e-3]
+    assert len(n) == 4 and all(b.lmin_m == 4e-6 and b.lmax_m == 8e-6 for b in n)
+
+
+@needs_sky130
+def test_sky130_noise_and_scale_quantities(sky_decl):
+    q = dict(sky_decl.quantities)
+    for kind, dev in (("nmos", "nfet_01v8"), ("pmos", "pfet_01v8")):
+        text = _card_text(dev)
+        for key, name in (("ef", "noise_ef_"), ("fnoimod", "noise_fnoimod_"), ("tnoimod", "noise_tnoimod_")):
+            vals = {float(x) for x in re.findall(r"(?im)^\+\s*%s\s*=\s*([-+0-9.eE]+)" % key, text)}
+            assert len(vals) == 1, (dev, key, vals)
+            assert q[name + kind].value_m == vals.pop()
+    assert q["noise_ef_nmos"].value_m == 0.84 and q["noise_ef_pmos"].value_m == 1.0        # 설계 41 §7.2 모델 사실
+    allsp = open(_src_path(SKY, "scale_option"), encoding="utf-8").read()
+    m = re.search(r"(?im)^\.option\s+scale\s*=\s*([0-9.]+)u\s*$", allsp)
+    assert q["mismatch_slope_geometry_unit_m"].value_m == pytest.approx(float(m.group(1)) * 1e-6, rel=1e-15)
+
+
+@needs_sky130
+def test_sky130_poly_resistor_quantities_and_area_per_ohm(sky_decl):
+    """40 §7.1 Q9: R□ = rp1, W_min = poly.3, 머리 = 2·poly.3·(licon.1 + 2·licon.8a), Ω당 면적 W_min²/R□ (손계산 2.2593e-15 m²/Ω)."""
+    q = dict(sky_decl.quantities)
+    text = open(_src_path(SKY, "poly_res_params"), encoding="utf-8").read()
+    rp1 = float(re.search(r"(?m)^\+\s*rp1\s*=\s*([0-9.eE+-]+)", text).group(1))
+    w = my_rule_m(SKY, "periphery_rules", "poly.3")[0]
+    l1 = my_rule_m(SKY, "periphery_rules", "licon.1")[0]
+    l8 = my_rule_m(SKY, "periphery_rules", "licon.8a")[0]
+    assert q["poly_generic_sheet_ohm_per_sq"].value_m == rp1 == 48.2
+    assert q["poly_generic_min_w_m"].value_m == pytest.approx(w, rel=REL)
+    assert q["poly_generic_head_area_m2"].value_m == pytest.approx(2 * w * (l1 + 2 * l8), rel=REL)
+    for a in ("sheet_ohm_per_sq", "min_w_m", "head_area_m2"):                  # 후보 하나 -> 그 후보가 선택
+        assert q["poly_res_" + a].value_m == q["poly_generic_" + a].value_m
+    assert q["poly_res_min_w_m"].value_m ** 2 / q["poly_res_sheet_ohm_per_sq"].value_m == pytest.approx(2.2593e-15, rel=1e-4)
+    assert q["poly_res_head_area_m2"].value_m == pytest.approx(0.2178e-12, rel=1e-9)
+
+
+# --------------------------------------------------------------------- toy: resistor_types (9.7)
+
+RES_Q = {
+    "a_sheet": ("table", "met.s"), "a_w": ("table", "met.w"), "a_head": ("table", "via.w"),       # W²/R = (5e-8)²/7e-8 = 3.6e-8
+    "b_sheet": ("table", "met.x"), "b_w": ("table", "via.enc"), "b_head": ("table", "met.e"),     # (2e-8)²/9e-8 = 4.4e-9 (최소)
+}
+
+
+def _res_decl(root, candidates, extra_q=None, selected_as="res"):
+    q = dict(RES_Q, **(extra_q or {}))
+    decl = _toy_decl(root, q)
+    decl["resistor_types"] = {"selected_as": selected_as, "candidates": {
+        n: {"sheet_ohm_per_sq": p + "_sheet", "min_w_m": p + "_w", "head_area_m2": p + "_head"} for n, p in candidates.items()}}
+    return decl
+
+
+def test_resistor_selection_min_area_per_ohm(tmp_path):
+    d = read_pdk_decl(_dump(tmp_path, _res_decl(tmp_path / "pdk", {"alpha": "a", "beta": "b"})), BoundedLRU(2))
+    q = dict(d.quantities)
+    assert q["res_sheet_ohm_per_sq"].value_m == q["b_sheet"].value_m
+    assert q["res_min_w_m"].value_m == q["b_w"].value_m
+    assert q["res_head_area_m2"].value_m == q["b_head"].value_m
+
+
+def test_resistor_selection_tie_breaks_by_name(tmp_path):
+    """동률이면 이름 순(9.7): 같은 양을 가리키는 두 후보 'zeta'·'eta' -> 'eta'. 값이 같아 이름은 expression 으로 확인."""
+    decl = _res_decl(tmp_path / "pdk", {"zeta": "a", "eta": "a"})
+    q = dict(read_pdk_decl(_dump(tmp_path, decl), BoundedLRU(2)).quantities)
+    assert "eta" in q["res_sheet_ohm_per_sq"].expression and "zeta" not in q["res_sheet_ohm_per_sq"].expression
+
+
+def test_resistor_undeclared_quantity_rejected(tmp_path):
+    decl = _res_decl(tmp_path / "pdk", {"alpha": "a", "ghost": "g"})
+    with pytest.raises(SchemaRejectedError) as ei:
+        read_pdk_decl(_dump(tmp_path, decl), BoundedLRU(2))
+    assert reason(ei) == "pdk_quantity_undeclared"
+
+
+def test_resistor_nonpositive_sheet_rejected(tmp_path):
+    decl = _res_decl(tmp_path / "pdk", {"zero": "z"}, extra_q={"z_sheet": ("table", "met.w - met.w"), "z_w": ("table", "met.w"),
+                                                             "z_head": ("table", "met.w")})
+    with pytest.raises(SchemaRejectedError) as ei:
+        read_pdk_decl(_dump(tmp_path, decl), BoundedLRU(2))
+    assert reason(ei) == "pdk_quantity_invalid"
+
+
+def test_resistor_duplicate_name_rejected(tmp_path):
+    decl = _res_decl(tmp_path / "pdk", {"alpha": "a"}, extra_q={"res_min_w_m": ("table", "met.w")})
+    with pytest.raises(SchemaRejectedError) as ei:
+        read_pdk_decl(_dump(tmp_path, decl), BoundedLRU(2))
+    assert reason(ei) == "pdk_quantity_duplicate"
+
+
+@pytest.mark.parametrize("mutate", [lambda r: r.update(extra=1), lambda r: r.pop("selected_as")])
+def test_resistor_types_keys_rejected(tmp_path, mutate):
+    decl = _res_decl(tmp_path / "pdk", {"alpha": "a"})
+    mutate(decl["resistor_types"])
+    with pytest.raises(SchemaRejectedError) as ei:
+        read_pdk_decl(_dump(tmp_path, decl), BoundedLRU(2))
+    assert reason(ei) in ("pdk_decl_keys", "pdk_decl_shape")
+
+
+# --------------------------------------------------------------------- toy: mismatch_models (9.6)
+
+MM_TOY_CARD = (
+    "* toy model card\n"
+    ".param toy__vth0_slope_spectre = 0.0 toy__toxe_slope_spectre = 0.0\n"
+    ".model toy__model.0 nmos\n"
+    "+ lmin = 1e-06 lmax = 2e-06 wmin = 1e-06 wmax = 5e-06\n"
+    "+ vth0 = {0.4+toy__vth0_slope_spectre*(toy__vth0_slope/sqrt(l*w*mult))}\n"
+    "+ toxe = {4e-09+toy__toxe_slope_spectre*(4e-09*(toy__toxe_slope/sqrt(l*w*mult)))}\n"
+    ".model toy__model.1 nmos\n"
+    "+ lmin = 2e-06 lmax = 4e-06 wmin = 1e-06 wmax = 5e-06\n"
+    "+ vth0 = {0.4+toy__vth0_slope_spectre*(toy__vth0_slope1/sqrt(l*w*mult))}\n"
+    "+ toxe = 4e-09\n"
+)
+MM_TOY_SLOPES = ".param toy__vth0_slope = 3.0e-03\n.param toy__vth0_slope1 = 7.0e-03\n.param toy__toxe_slope = 2.0e-03\n"
+
+
+def _mm_decl(root, card=MM_TOY_CARD, slopes=MM_TOY_SLOPES, params=("vth0", "toxe"), kind="nmos"):
+    decl = _toy_decl(root, {"grid_m": ("lef", "GRID")})
+    _write_text(root / "models" / "toy.pm3.spice", card)
+    _write_text(root / "models" / "toy.mismatch.spice", slopes)
+    decl["sources"]["card"] = {"path": "models/toy.pm3.spice", "sha256": _sha256(root / "models" / "toy.pm3.spice"),
+                               "format": "spice_model_card", "encoding": "utf-8", "model_pattern": r"toy__model\.[0-9]+",
+                               "units_m": {"": 1.0}}
+    decl["sources"]["slopes"] = {"path": "models/toy.mismatch.spice", "sha256": _sha256(root / "models" / "toy.mismatch.spice"),
+                                 "format": "spice_instance_line", "encoding": "utf-8", "line_pattern": r"^\.param\s+(.*)$",
+                                 "units_m": {"": 1.0}}
+    decl["mismatch_models"] = {kind: {"model_source": "card", "slope_source": "slopes", "parameters": list(params)}}
+    return decl
+
+
+def test_toy_mismatch_model_blocks(tmp_path):
+    d = read_pdk_decl(_dump(tmp_path, _mm_decl(tmp_path / "pdk")), BoundedLRU(2))
+    mm = d.mismatch_model("nmos")
+    assert [b.model for b in mm.blocks] == ["toy__model.0", "toy__model.1"]
+    b0, b1 = mm.blocks
+    assert (b0.lmin_m, b0.lmax_m, b0.wmin_m, b0.wmax_m) == (1e-6, 2e-6, 1e-6, 5e-6)
+    s0 = {p: (n, v) for p, n, v, _ in b0.slopes}
+    s1 = {p: (n, v) for p, n, v, _ in b1.slopes}
+    assert s0 == {"vth0": ("toy__vth0_slope", 3e-3), "toxe": ("toy__toxe_slope", 2e-3)}
+    assert s1 == {"vth0": ("toy__vth0_slope1", 7e-3), "toxe": (None, None)}       # bin 마다 slope 이름이 다르다, 식 없음 -> None
+    assert [p for p, *_ in b0.slopes] == ["vth0", "toxe"]                           # 선언 순서
+    assert mm.model_sha256 == _sha256(tmp_path / "pdk" / "models" / "toy.pm3.spice")
+
+
+def test_toy_mismatch_undeclared_kind(tmp_path):
+    d = read_pdk_decl(_dump(tmp_path, _mm_decl(tmp_path / "pdk")), BoundedLRU(2))
+    with pytest.raises(SchemaRejectedError) as ei:
+        d.mismatch_model("pmos")
+    assert reason(ei) == "pdk_mismatch_undeclared"
+
+
+@pytest.mark.parametrize("kw,why", [
+    (dict(card="* nothing\n.model toy__model.0 nmos\n+ vth0 = 0.4\n"), "pdk_mismatch_no_blocks"),
+    (dict(params=("vth0", "voff")), "pdk_mismatch_parameter_unused"),
+    (dict(slopes=".param toy__vth0_slope = 3.0e-03\n.param toy__toxe_slope = 2.0e-03\n"), "pdk_rule_missing"),
+    (dict(slopes=MM_TOY_SLOPES + ".param toy__vth0_slope = 4.0e-03\n"), "pdk_rule_ambiguous"),
+])
+def test_toy_mismatch_rejections(tmp_path, kw, why):
+    with pytest.raises(SchemaRejectedError) as ei:
+        read_pdk_decl(_dump(tmp_path, _mm_decl(tmp_path / "pdk", **kw)), BoundedLRU(2))
+    assert reason(ei) == why
+
+
+def test_toy_mismatch_source_undeclared(tmp_path):
+    decl = _mm_decl(tmp_path / "pdk")
+    decl["mismatch_models"]["nmos"]["slope_source"] = "nope"
+    with pytest.raises(SchemaRejectedError) as ei:
+        read_pdk_decl(_dump(tmp_path, decl), BoundedLRU(2))
+    assert reason(ei) == "pdk_source_undeclared"
+
+
+@pytest.mark.parametrize("mutate", [lambda m: m.update(extra=1), lambda m: m.pop("parameters"),
+                                    lambda m: m.update(parameters="vth0"), lambda m: m.update(parameters=[])])
+def test_toy_mismatch_entry_shape(tmp_path, mutate):
+    decl = _mm_decl(tmp_path / "pdk")
+    mutate(decl["mismatch_models"]["nmos"])
+    with pytest.raises(SchemaRejectedError) as ei:
+        read_pdk_decl(_dump(tmp_path, decl), BoundedLRU(2))
+    assert reason(ei) in ("pdk_decl_keys", "pdk_decl_shape")
