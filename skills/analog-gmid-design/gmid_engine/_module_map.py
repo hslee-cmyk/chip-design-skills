@@ -126,7 +126,7 @@ LAYERS = (
         "search",
         (
             ("search_values.py",),
-            ("archive.py", "cell_floor.py", "cone_rows.py", "current_box.py", "eval_key.py", "l_cells.py", "objectives.py", "pareto.py",
+            ("archive.py", "canonical_order.py", "cell_floor.py", "cone_rows.py", "current_box.py", "eval_key.py", "l_cells.py", "objectives.py", "pareto.py",
              "seal7_pending.py", "ss_constraints.py"),
             ("constraints.py", "search_domain.py"),
             ("search_context.py",),
@@ -538,6 +538,8 @@ MODULES = (
                 "S3 설계점 단위 append-only 기록(evals·runs·front 스냅샷 파일), 디스크 실패 캐시 원천", ("N3.3", "WP-11")),
     ModuleEntry("search/cell_floor.py", "entry", "ln_idu_floors",
                 "L 칸 정점 하한(쓰기 소자 ln IDu 의 칸별 상자 하한, 1변수 writer 선택·시작 좌표 예외)", ("DEC-88", "LR10")),
+    ModuleEntry("search/canonical_order.py", "entry", "canonical_order",
+                "θ 변수의 이름 없는 정준 순서·Halton 차원(구조 색 키, 이름은 같은 키 안 tie-break 만)", ("N3.5", "DEC-95")),
     ModuleEntry("search/cone_rows.py", "entry", "cone_rows",
                 "θ 전류 원뿔 정규화 제약 행(정의역 판정, 커널 전)", ("DEC-70", "GB7")),
     ModuleEntry("search/current_box.py", "entry", "current_box",

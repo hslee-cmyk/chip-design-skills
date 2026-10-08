@@ -155,6 +155,7 @@
 |---|---|---|
 | 0 | `search_values.py` | 데이터 선언 모듈(상태·단계·축·제약 접두 어휘, 2절 형식) |
 | 1 | `archive.py` | `S3Archive` |
+| 1 | `canonical_order.py` [r11] | `canonical_order` |
 | 1 | `cell_floor.py` [r8] | `ln_idu_floors` |
 | 1 | `cone_rows.py` | `cone_rows` |
 | 1 | `current_box.py` [r2] | `current_box` |
@@ -303,7 +304,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
    bounds = 변수 bounds·u ∈ [0, ∞), 출발 z = 1 의 값, u = 양의 q 중 max |ln q|(없으면 0). 결과 z 를 bounds 로 자른 값으로 θ 전류를
    바꾸고 `centre_u` = 해 u. 해의 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 커널 없이 3 의 시험으로 간다(`start_status`
    "centre_outside_cone").
-3a. **[r11] 정준 변수 순서·Halton 차원**: 변수 목록(정의역 변수 + 칸이 구간인 L)을 (L 인가, 성분 종류, 키 구조 색) 오름차순으로 정렬한
+3a. **[r11] 정준 변수 순서·Halton 차원**(구현 = 3.23 `canonical_order`): 변수 목록(정의역 변수 + 칸이 구간인 L)을 (L 인가, 성분 종류, 키 구조 색) 오름차순으로 정렬한
    뒤 이름은 같은 키 안에서만 tie-break 로 쓴다. 키 구조 색 = sizing `dc_struct_colour`(3.0, 이름을 읽지 않는 1-WL 색)의 원소
    `device.dc_colour`(`y` 성분의 키가 넷이면 `node.dc_colour`, 둘 다 아니면 -1). **Halton 차원 = 서로 다른 (성분 종류, 구조 색) 키의
    순위**(L 키는 맨 뒤 -- 종래 'L 은 변수 목록 끝'과 같은 자리): 차원 d 에 (d+1) 번째 소수 기저, **같은 키의 변수는 같은 차원 =
@@ -487,6 +488,24 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   ((소자, 단자들, ((vgs, vds, vsb, current, gm_id, W, L) 쌍))). 커널 호출 0.
 
 ### 3.18 `S3Archive(root, context_fp, code_fp)` -- 8절.
+
+### 3.23 [r11] `canonical_order(sctx, variables) -> (정렬된 변수 tuple, 변수별 차원 index list, 차원 수)` (`canonical_order.py`)
+이름을 읽지 않는 θ 변수 순서. `variables` = `Variable` 열(정의역 변수 + 칸이 구간인 L 변수, 순서 무관). 호출부: `layer0_center`
+(`_box_centre`·`_halton_probe`), `slsqp_outer` (`_layout`). `fd_jacobian`·`ln_idu_floors`·`eps_sweep`·`find_front` 는 호출부가 넘긴 변수
+순서를 따를 뿐 스스로 정하지 않는다.
+1. 키 = (성분 종류 == L, 성분 종류, 구조 색). 구조 색 = `device.dc_colour`(성분 키가 원소일 때), 아니면 `node.dc_colour`(`y` 의 넷), 둘 다
+   없으면 -1. 정렬 = (키, 이름) -- 이름은 같은 키 안 tie-break 만.
+2. 차원 = 서로 다른 키의 오름차순 순위(0 부터). 변수의 차원 = 자기 키의 순위. 차원 수 = 서로 다른 키 수.
+3. 불변식(test 가 확인할 성질): (a) 이름 전단사 σ·원소 순서 섞기에 대해 정렬된 변수의 (종류, 키, 차원) 열이 같다(이름만 σ 로 옮겨짐);
+   (b) 같은 키 ⇔ 같은 차원; (c) 입력 순서에 결과가 불변(순열에 대해 같은 출력); (d) L 키는 모든 비-L 키 뒤; (e) 같은 입력이면 같은 출력
+   (결정론); (f) 반환 변수 집합 = 입력 집합, 개수 보존; (g) 차원 index 는 0 .. 차원 수 − 1 을 빠짐없이 쓴다.
+4. **궤도 안 순서의 영향과 한계**: 같은 키 안 변수(자기동형 궤도 후보)의 상대 순서는 이름을 따르므로 이름 치환이 그 순서를 바꿀 수 있다.
+   Halton 시험 점은 같은 키가 같은 좌표라 영향이 없다(3.21 3a). SLSQP(층 0 최대-최소·`solve_eps`) 반복은 변수 순서에 따라 부동소수
+   합산 순서만 달라져 **끝자리 잡음**(관측 상대 ~1e-9)이 생긴다. 정해진 상한: 두 실행의 목적 차이는 SLSQP 종료 판정 `ftol` = 1(목적의
+   단위 = 층 0 은 t 의 허용오차 한 칸, `solve_eps` 는 축 분해능 한 칸; 커널 봉인 판정도 같은 허용오차)을 넘지 않는다 -- 반복 경로가 갈려
+   종료 칸이 하나 다를 수 있다는 보장 범위. 따라서 이름 치환 test 의 기대는 '비트 일치'가 아니라 (i) 시작점 출처·시험 번호(`origin_point`)
+   일치와 (ii) 목적·θ 가 위 상한 안(관측 잡음은 θ 상대 1e-6 이하)이다. 궤도 안 순서에 완전 불변이어야 하면 궤도 구성원을 한 변수로
+   묶는 별도 변경이 필요하다(열린 항목).
 
 ## 4. ★ 봉인 7 대기 스위치 (`seal7_pending.seal_status`, sizing O1)
 

@@ -43,6 +43,7 @@ from scipy.optimize import minimize as scipy_minimize
 
 from gmid_engine.sizing import REASON_NO_ROOT, THETA_CURRENT, THETA_L, THETA_LN_IDU
 
+from .canonical_order import canonical_order
 from .cell_floor import ln_idu_floors
 from .cone_rows import cone_rows
 from .fd_jacobian import fd_jacobian
@@ -114,36 +115,8 @@ def _box_centre(sctx):
         theta[(THETA_L, mos)] = (lo + hi) / 2
         if lo < hi:
             variables.append(Variable((THETA_L, mos), False, lo, hi))
-    colour = _colours(sctx)
-    # [r11] 변수 순서 = 이름 없는 정준 순서 (성분 종류, 원소 구조 색) -- 이름은 같은 키(= 1-WL 로 구별 안 되는 궤도) 안에서만 tie-break
-    variables.sort(key=lambda v: _canon_key(colour, v))
+    variables, _dim, _n = canonical_order(sctx, variables)      # [r11] 이름 없는 정준 순서 (CONTRACT 3.23)
     return tuple(variables), theta, tuple(cells)
-
-
-def _colours(sctx):
-    """{(성분 종류 쪽 표, 이름): 구조 색}: 원소 색(device.dc_colour)과 넷 색(node.dc_colour). `y` 성분의 키는 넷 이름이거나(입력 공통모드
-    등) 표 밖 이름이라 색이 없으면 -1(구별 안 함)."""
-    base = sctx.dc.base
-    return dict(base.column("device", "dc_colour")), dict(base.column("node", "dc_colour"))
-
-
-def _canon_key(colour, var):
-    kind, element = var.component
-    devices, nodes = colour
-    c = devices.get(element)
-    if c is None:
-        c = nodes.get(element, -1)
-    return (kind == THETA_L, kind, c), element      # L 은 칸이 정해진 뒤 붙는 변수라 맨 뒤(종래 순서와 같은 자리)
-
-
-def _dimensions(sctx, variables):
-    """[r11] Halton 차원 배정: 변수마다 정준 키 (성분 종류, 원소 구조 색) 의 순위 -- 같은 키(자기동형 궤도 후보)의 변수는 같은 차원
-    (같은 소수 기저·같은 좌표)을 쓴다. 키 순위는 이름을 읽지 않는 정수라 이름 치환·원소 순서 섞기에 대해 불변이고, 궤도 안 변수에
-    같은 좌표를 줘 시작점이 자기동형으로 대응한다."""
-    colour = _colours(sctx)
-    keys = [_canon_key(colour, v)[0] for v in variables]
-    rank = {k: i for i, k in enumerate(sorted(set(keys)))}
-    return [rank[k] for k in keys], len(rank)
 
 
 def _current_centre(sctx, variables, theta):
@@ -499,7 +472,7 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     cur = [i for i, v in enumerate(variables) if v.component[0] == THETA_CURRENT]
     inside = bool(cur) and bool(schema.current_cone) and all(
         r.c > 0 for r in cone_rows(schema, tuple(sorted(theta0.items()))))
-    dim, n_dim = _dimensions(sctx, variables)
+    _ordered, dim, n_dim = canonical_order(sctx, variables)
     bases = _primes(n_dim + (1 if inside else 0))
     floors = ln_idu_floors(sctx, variables, cells)
     gmid_max = _gmid_max(sctx)
