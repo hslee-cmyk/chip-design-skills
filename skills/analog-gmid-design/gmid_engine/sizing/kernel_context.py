@@ -1,7 +1,7 @@
 """평가 커널 컨텍스트 -- S0 당 1회: S1 을 S2 권한표로 옮기고 θ 무관 계획 블록을 돌린다 (계획 N3.5 평가 커널 컨텍스트,
 WP-23 (3) 루프 불변 입력은 컨텍스트에, 설계 3.1).
 
-진입점: `build_kernel_context(s1graph, inputs, lut) -> KernelContext`.
+진입점: `build_kernel_context(s1graph, inputs, lut, l_classes=()) -> KernelContext`. `l_classes` = `graph.build_s1v` 의 `S1v.l_classes`(derived 만 L 공유로 쓴다).
 
 순서: 인자 검사 -> `supplies_declaration`(graph, 레일 집합과 대조) + S1 키의 supplies 지문 대조 -> `lift_s1` ->
 `dc_rails` -> `dc_struct_colour`(구조 색) -> `dc_current_basis`(값 선언 이상 전류원) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부) -> `dc_scc_order` ->
@@ -13,7 +13,8 @@ WP-23 (3) 루프 불변 입력은 컨텍스트에, 설계 3.1).
 """
 from gmid_engine.authoring import INPUT_DIRECTION
 from gmid_engine.core import fp_of
-from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE, GRAPH_KEY, S1Graph, supplies_declaration
+from gmid_engine.graph import (ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE, GRAPH_KEY, STATUS_DERIVED, S1Graph,
+                               supplies_declaration)
 
 from .current_basis import dc_current_basis
 from .s2_lift import lift_s1
@@ -41,7 +42,33 @@ PLAN_WRITERS = (DC_RAILS_WRITER, DC_STRUCT_COLOUR_WRITER, DC_CURRENT_BASIS_WRITE
                 DC_THETA_SCHEMA_WRITER)
 
 
-def build_kernel_context(s1graph, inputs, lut):
+def _pack(table):
+    return tuple((n, tuple(sorted(marks))) for n, marks in sorted(table.items()))
+
+
+def _declaration_marks(base, inputs, targets):
+    """자기동형이 보존해야 하는 선언 표시 -- 레일 전위·노드 목표·입력 DC·값 선언 원소·engine 값 원소·선형 영역 소자(struct_colour)."""
+    nodes, elements = {}, {}
+    for net, volts in base.column("node", "dc_rail_v"):
+        if volts is not None:
+            nodes.setdefault(net, []).append(("rail_v", float(volts)))
+    for net, volts in targets.items():
+        nodes.setdefault(net, []).append(("target_v", float(volts)))
+    if inputs.input_dc_v is not None:
+        for net, direction in base.column("node", "port_direction"):
+            if direction == INPUT_DIRECTION:
+                nodes.setdefault(net, []).append(("input_dc_v", float(inputs.input_dc_v)))
+    for name, value in inputs.element_values:
+        if value is not None:
+            elements.setdefault(name, []).append(("value", float(value)))
+    for name in inputs.engine_elements:
+        elements.setdefault(name, []).append(("engine", 0.0))
+    for name in inputs.linear_devices:
+        elements.setdefault(name, []).append(("linear", 0.0))
+    return _pack(elements), _pack(nodes)
+
+
+def build_kernel_context(s1graph, inputs, lut, l_classes=()):
     if not isinstance(s1graph, S1Graph):
         raise TypeError("build_kernel_context: s1graph 는 graph.build_s1 결과 S1Graph 여야 한다")
     if not isinstance(inputs, DcInputs) or not isinstance(lut, LutAccess):
@@ -73,11 +100,16 @@ def build_kernel_context(s1graph, inputs, lut):
                       and values.get(n) is not None)
     base = lift_s1(s1graph)
     base = dc_rails(base, supplies)
-    base = dc_struct_colour(base)
+    element_marks, node_marks = _declaration_marks(base, inputs, targets)
+    base = dc_struct_colour(base, element_marks, node_marks)
     base = dc_current_basis(base, sources)
     base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None)
     base = dc_scc_order(base)
     engine_passives = tuple(n for n in sorted(inputs.engine_elements) if classes[n] == ELEMENT_PASSIVE)
+    classes_of_l = tuple((m, c.owner) for c in l_classes if c.status == STATUS_DERIVED for m in c.members if m != c.owner)
+    stray_l = sorted({n for pair in classes_of_l for n in pair} - set(classes))
+    if stray_l:
+        raise ValueError("build_kernel_context: L 동치류 멤버가 S1 원소가 아니다 " + repr(stray_l))
     base = dc_theta_schema(base, tuple(n for n, _v in resistors), engine_passives)
     fixed = dict(targets)
     if inputs.input_dc_v is not None:
@@ -86,4 +118,4 @@ def build_kernel_context(s1graph, inputs, lut):
                 fixed[net] = float(inputs.input_dc_v)
     schema = base.value("graph", DC_KEY, "dc_theta_schema")
     versions = tuple((w, base.block_version(w)) for w in PLAN_WRITERS)
-    return KernelContext(base, inputs, lut, schema, tuple(sorted(fixed.items())), resistors, versions)
+    return KernelContext(base, inputs, lut, schema, tuple(sorted(fixed.items())), resistors, versions, tuple(sorted(classes_of_l)))

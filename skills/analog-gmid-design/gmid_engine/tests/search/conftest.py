@@ -584,7 +584,8 @@ def expected_objectives(snap):
             bp += abs(v) * max(cands)
     return {
         "power": sum(rails[k] * cur_in[k] for k in rails),
-        "per_rail": tuple(sorted(cur_in.items())),
+        # [r12] metrics CONTRACT 7.x: 레일 나열 순서 = (dc_colour, 이름)(종래 이름순) -- 색은 스냅샷 입력 열
+        "per_rail": tuple(sorted(cur_in.items(), key=lambda kv: (col(snap, "node", "dc_colour").get(kv[0], -1), kv[0]))),
         "kcl": sum(cur_in.values()),
         "gate_area": sum(o.W * o.L for o in ops.values()),
         "bp": bp if rows and bp != 0 else None,

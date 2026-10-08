@@ -27,6 +27,8 @@ from gmid_engine.sizing import (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA
 
 from .current_box import current_box
 from .l_cells import l_cells
+from .current_symmetry import current_symmetry
+from .orbit_ties import orbit_ties
 from .search_values import SearchDomain, SearchSettings, Variable
 
 _PDK_QUANTITIES = ("manufacturing_grid_m", "min_finger_w_m")   # PDK 선언 이름(core CONTRACT 9.4) -- 값은 선언 파일이 계산
@@ -71,7 +73,7 @@ def _budget_i_max(lut_access, kind, l_lo_m, area_budget_m2):
     return math.exp(hi) * area_budget_m2 / (l_lo_m * l_lo_m)
 
 
-def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=None):
+def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=None, untie=()):
     if not isinstance(settings, SearchSettings):
         raise TypeError("search_domain: settings 는 SearchSettings 여야 한다(기본값 없음)")
     if not isinstance(pdk_decl, PdkDecl):
@@ -122,8 +124,24 @@ def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=Non
     for var in variables:
         if not var.lo < var.hi:
             raise ValueError("search_domain: 빈 bounds " + repr(var))
+    # [r12] 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 변수 하나로 묶는다(3.24) -- 묶인 구성원은 같은 bounds 여야 한다
+    symmetry = current_symmetry(dc_ctx, tuple(untie))
+    reps, ties = orbit_ties(dc_ctx, tuple(dc_ctx.schema.components), tuple(untie), symmetry)
+    by_component = {v.component: v for v in variables}
+    negated = frozenset(symmetry.negated)
+    for rep, members in ties:
+        if rep in by_component:
+            # 부호 −1 로 묶인 구성원은 대표와 상자가 같을 필요가 없다(값 = −대표). 나머지는 같은 (log, lo, hi) 여야 한다
+            odd = tuple(m for m in members if m not in negated and (by_component[m].log, by_component[m].lo, by_component[m].hi)
+                        != (by_component[rep].log, by_component[rep].lo, by_component[rep].hi))
+            if odd:
+                raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "tied_orbit_bounds_differ",
+                                                  "elements": (rep,) + odd})
+    tied = {m for _rep, members in ties for m in members} | set(symmetry.zeros)
+    variables = [v for v in variables if v.component not in tied]
+    mos = [m for m in mos if (THETA_L, m) not in tied]
     cells = {}
     table = tuple((m, cells.setdefault(kinds[m], l_cells(dc_ctx.lut, kinds[m]))) for m in sorted(mos))
     grid, w_min = pdk_decl.values(_PDK_QUANTITIES)
     return SearchDomain(tuple(variables), table, float(grid * w_min), tuple(sorted(boxes.items())), float(w_min),
-                        float(grid), area_budget_m2)
+                        float(grid), area_budget_m2, ties, symmetry.negated, symmetry.zeros)

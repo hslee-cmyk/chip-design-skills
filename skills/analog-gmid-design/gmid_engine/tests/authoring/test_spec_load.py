@@ -134,7 +134,7 @@ def test_not_evaluated_topology_cross_checks_on_fp_mismatch(sc):
 
 
 def test_references_evaluated_when_only_reference_violation(sc):
-    sc.constraint("mirror_ratio_error_mv")["value_from_constraint"] = "power_dc_w"
+    sc.constraint("icmr_v")["value_from_constraint"] = "power_dc_w"
     d = sc.reject()
     sc.only(d, "ref_unresolved", "references", not_evaluated=())
 

@@ -43,8 +43,13 @@ ALLOWED_KINDS = MappingProxyType({
     "intended_region": (USER_SPEC,),
     "objective": (USER_SPEC,),
     "search": (USER_SPEC, PLAN_RULE),
+    "search_untie": (USER_SPEC,),
     "spice_check": (USER_SPEC, PLAN_RULE),
     "front_refilter": (USER_SPEC, PLAN_RULE),
+    "gain_budget_db_override": (USER_SPEC,),
+    "driving_spec": (USER_SPEC,),
+    "structure_count_budget": (USER_SPEC,),
+    "noise_testbench": (USER_SPEC,),
 })
 
 
