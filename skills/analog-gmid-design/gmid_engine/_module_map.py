@@ -67,7 +67,7 @@ LAYERS = (
     (
         "authoring",
         (
-            ("topology_model.py", "_terminal_nets.py", "spec_model.py"),
+            ("topology_model.py", "_terminal_nets.py", "spec_model.py", "cm_partition.py"),
             ("_rejection.py", "_two_terminal.py", "dc_edges.py", "linked_files.py", "name_uniqueness.py",
              "topology_schema.py", "_spec_fields.py", "spec_meta.py", "spec_refs.py"),
             ("devices.py", "hidden_rails.py", "ideal_sources.py", "json_read.py", "passives.py", "ports.py",
@@ -326,12 +326,14 @@ MODULES = (
                 "supplies_v 레일 전압(넷 집합 = supply_nets, 최고 레일 유일)", ("DEC-60", "SP-1")),
     ModuleEntry("authoring/spec_input_dc.py", "entry", "input_dc_declaration",
                 "입력 DC(net·value_v·engine·pending)", ("SP-2", "N3.16")),
+    ModuleEntry("authoring/cm_partition.py", "entry", "cm_partition",
+                "공통 모드 루프 절단 분할: 출력 넷 channel 소자를 구동자(x)·소비자(n)로 구조 분류·선언 덮어쓰기·절단 교차 검사", ("U-48", "7a")),
     ModuleEntry("authoring/_feedback_cuts.py", "helper", None,
                 "되먹임 수동소자의 입력 포트 넷 쪽 단자(절단 단자) 판정(spec_elements·spec_views 공용)", ("U-48", "7a")),
     ModuleEntry("authoring/spec_elements.py", "entry", "element_value_declaration",
                 "요소 값 전수 선언(정본 = spec, F5)·kind 값 키·feedback(절단 단자 규칙 L2)", ("N3.16", "U-31", "U-48", "7a")),
     ModuleEntry("authoring/spec_views.py", "entry", "default_views",
-                "view 미기재 제약의 기본 뷰 유도: 포트 뷰·루프 뷰(β 루프 절단·role 가중 / β = 1)·출력 포트 감지 뷰·고정 넷",
+                "view 미기재 제약의 기본 뷰 유도: 포트 뷰·루프 뷰(β 루프 절단·role 가중 / β = 1)·공통 모드 루프 뷰(차동 출력 포트 쌍 CM 주입)·출력 포트 감지 뷰·고정 넷",
                 ("U-48", "DEC-66", "7a")),
     ModuleEntry("authoring/spec_constraints.py", "entry", "constraint_declaration",
                 "성능 제약(metric 이름표·op·값/참조·뷰·중복)과 결정 대기 제약", ("U-35", "DEC-20", "N3.8", "7a")),
@@ -529,7 +531,7 @@ MODULES = (
     ModuleEntry("metrics/junction_source.py", "entry", "JunctionSource",
                 "접합 용량 입력 묶음(PDK 선언 파라미터·LUT 생성 규칙 선언·LUT 측정 온도) -- ss_dev 블록 extras", ("DEC-91",)),
     ModuleEntry("metrics/_helpers_pencil.py", "helper", None,
-                "pencil 유한 고유값(QZ 동차 좌표 유한·원점 판정, pencil_roots·probe_loop 공용)", ("MOD5", "7a")),
+                "pencil 유한 고유값(QZ 동차 좌표 유한·원점 판정, pencil_roots·probe_loop 공용) + 루프 이득 T 의 증강 pencil·T(0)(섞인 절단 극한)", ("MOD5", "7a")),
     ModuleEntry("metrics/_helpers_probe.py", "helper", None,
                 "Middlebrook 이중 주입 T = (Tv·Ti − 1)/(Tv + Ti + 2) 한 점 평가·사후 오차·∂T/∂V(probe_loop·_helpers_product·"
                 "resolution 공용)", ("U-48", "7a", "NFR-5")),

@@ -12,7 +12,8 @@ from pathlib import Path
 
 import pytest
 
-from gmid_engine.authoring import BETA_DECLARED, BETA_UNITY, SenseDecl, load_sizing_spec, load_topology
+from gmid_engine.authoring import BETA_DECLARED, BETA_UNITY, SenseDecl, ViewDecl, load_sizing_spec, load_topology
+
 from gmid_engine.core import MetricSignature as M
 
 LIBRARY = Path(__file__).resolve().parents[3] / "assets" / "library"
@@ -22,6 +23,7 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
     "ugf_ss_hz": M("hz", "ss", "transfer"),
     "gbw_ss_hz": M("hz", "ss", "transfer"),
     "pm_ss_deg": M("deg", "ss", "loop"),
+    "pm_cm_ss_deg": M("deg", "ss", "cm_loop"),  # [CM 2026-10-08] SPEC_CONTRACT 5절 픽스처 이름표 갱신
     "parasitic_pm_ss_deg": M("deg", "ss", "transfer"),
     "rout_ss_ohm": M("ohm", "ss", "output_port"),
     "ratio_ss_db": M("db", "ss", "ratio"),
@@ -40,7 +42,9 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
 # pending 수 불변(예산은 결정 대기 표지가 아니다). 옛 표 = (0,0)·(8,5)·(0,0)·(3,2)·(2,2)·(1,1)·(3,3)·(2,1)·(3,2).
 TABLE = {
     "common_gate_amplifier": (1, 1, 6),
-    "current_reuse_telescopic_ota": (9, 6, 11),
+    # 파일럿 10(7)/11: 결정 11 면적 예산 1건 + [CM 2026-10-08] pm_cm_ss_deg >= 60(user_spec) 1건 -- 둘 다 판정, JSON 직접 집계 10개.
+    # (SPEC_CONTRACT 5절 표는 두 갈래가 각각 9(6) 으로 적어 병합 뒤 10(7) 을 반영하지 않음 -- 계약 갱신 대상)
+    "current_reuse_telescopic_ota": (10, 7, 11),
     "folded_cascode": (1, 1, 7),
     "ngcc_3stage_ff": (4, 3, 7),
     "nmcnr_amplifier": (3, 3, 6),
@@ -424,6 +428,26 @@ def test_other_circuits_have_no_loop_view(name):
     """loop 뷰는 pm_ss_deg 기본뿐(3절) -- JSON 에 pm_ss_deg 제약이 없는 6회로는 loop 뷰가 없다."""
     assert not [c for c in _spec(name)["human"]["constraints"] if c.get("metric") == "pm_ss_deg"]
     assert all(c.view is None or c.view.mode != "loop" for c in _load(name).constraints)
+
+
+def test_cm_pm_constraint_only_in_pilot():
+    """[CM 2026-10-08] 사용자 결정(user_decisions.md 2026-10-08 "6번도 네 의견에 동의하고 제안한 값을 사용해" -- CMFB 루프 PM 하한
+    60 deg, 완전 차동 회로에만): 파일럿에 pm_cm_ss_deg >= 60(user_spec, 판정) 한 건, 나머지 8회로에는 없다(JSON 직접 집계 + 로드)."""
+    for name in TABLE:
+        raw = [c for c in _spec(name)["human"]["constraints"] if c.get("metric") == "pm_cm_ss_deg"]
+        got = [c for c in _load(name).constraints if c.metric == "pm_cm_ss_deg"]
+        if name != PILOT:
+            assert raw == [] and got == [], name
+            continue
+        assert len(raw) == 1 and len(got) == 1
+        assert (raw[0]["op"], raw[0]["value"], raw[0]["source"]["kind"]) == (">=", 60, "user_spec")
+        assert "view" not in raw[0]                                    # 3절: view 를 적지 않는다
+        c = got[0]
+        assert (c.op, c.value, c.judged) == (">=", 60.0, True)
+        # [CM 0e487b3] SPEC_CONTRACT 3절 cm_loop: 차동 출력쌍(Vop = _p, Vom = _n, 손으로 읽은 ports) -> cm_output, 넷순 각 1/2
+        assert c.view.mode == "cm_output" and tuple(c.view.weights) == (("Vom", 0.5), ("Vop", 0.5))
+        # [6a6e4c7] 구동자 = 손 분류(M15·M16 -> Vom, M25·M26 -> Vop: 다른 channel 단자가 레일)
+        assert set(c.view.cuts) == {("M15", "Vom"), ("M16", "Vom"), ("M25", "Vop"), ("M26", "Vop")}
 
 
 # ---------------------------------------------------------------- [사용자 결정 11, 2026-10-08] 면적 예산·측정 부하

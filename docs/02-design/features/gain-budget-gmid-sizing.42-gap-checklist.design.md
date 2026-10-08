@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.3
-plan_version: 6.0
+version: 1.5
+plan_version: 6.3
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
@@ -68,9 +68,9 @@ plan_version: 6.0
 | 18 role 배수 없음 | -- | OK | 구조 규칙 E·I(`structure_checks.py`) |
 | 19 warm start L | 41 §5 | PART | 층 0 흡수가 MISS다 |
 | 20 `value_from_constraint` | 40 §3.1 | OK | `E/authoring/spec_refs.py` |
-| 21 mismatch 5 mV 출처 | 40 §9 Q3 | N/A | U-17 착수 조건 |
+| 21 mismatch 5 mV 출처 | 40 §9 Q3, §9.2 | MISS | 사용자 결정 2026-10-08 Q3로 닫힘: 파일럿 5 mV → `offset_in_sigma_mv <= 3.3`(`user_spec`), two_stage·two_stage_sf 5 mV 폐기 → 가드. spec 미반영: `assets/library/current_reuse_telescopic_ota.sizing_spec.json:215`, `two_stage_ota.sizing_spec.json:71`, `two_stage_ota_sf.sizing_spec.json:62`에 옛 `mismatch_sigma_mv`가 남아 있다 |
 | 22 bisection(기본 비활성) | -- | N/A | 비활성 |
-| 23 입력환산 오프셋 | 40 §3.8 | MISS | `rg "input_referred_offset"` 0 |
+| 23 입력환산 오프셋 | 40 §3.8-8 | MISS | Q3(2026-10-08)로 정의 대체: 입력쌍 gm 가중 RSS → 모든 MOS의 MNA 전달(`offset_in_sigma_mv`). `rg "offset_in_sigma\|input_referred_offset"` 0 |
 | 24 보상 소자 값을 엔진이 결정 | 40 §3.5 | OK | θ `capacitance`, `ss_resistance`(`E/metrics/CONTRACT.md:555-567`) |
 | 25 `parasitic_pm_ss_deg` | 40 §3.8 | OK | `E/metrics/CONTRACT.md:235` |
 | 26 spec 파일이 정본 | 40 §3.1 | OK | `E/authoring/spec_load.py` |
@@ -129,7 +129,7 @@ plan_version: 6.0
 | 93 matching 분류 | 40 §3.2 | PART | `E/graph/matching_groups.py:78`. 신호 gate 2개 조건이 빠졌다(`E/graph/CONTRACT.md:538`) |
 | 94 MOD2 입력 게이트 | 40 §3.1 | DEV | `E/authoring/bias_inputs.py:20`(최상위 키, 사용자 승인. 계획 문구 갱신 필요) |
 | 95 탐색 방법 묶음 | 40 §3.7, §3.9 | PART | ΔA_tie가 grid²다(`E/layout/floorplan.py:83`). DEC-95 (3)은 일부만(`E/sizing/writer_plan.py:13-17`) |
-| 96 nqs·mismatch 보고와 범위(잡음은 사용자 결정 2026-10-08로 범위 안) | 40 §3.8, 41 §7 | MISS | `rg "nqs_ratio\|mismatch_sigma_v"` 0. 잡음은 D-NZ1~6 |
+| 96 nqs·mismatch 보고와 범위(잡음은 사용자 결정 2026-10-08로 범위 안, (2)는 Q3로 A_eff·offset metric) | 40 §3.8, 41 §6.4-2, §7 | MISS | `rg "nqs_ratio\|offset_in_sigma\|mirror_ratio_sigma"` 0. 잡음은 D-NZ1~6, 미스매치는 D-MM1·2, D-OF1~3, D-MR |
 
 ## 3. 설계 항목 (40·41에서 새로 정한 것)
 
@@ -184,7 +184,27 @@ plan_version: 6.0
 | D-DN | 주극점 노드를 구조로 판정 | 41 §6.3 | MISS | -- |
 | D-NZ1 | 잡음 metric 어휘(`noise_th_in_v2hz`, `noise_fc_in_hz`, `noise_excess_th`, `noise_out_int_vrms`), 단위, 회로별 선언(Q11), `noise_testbench` | 41 §7.1 | MISS | `E/core/units.py`에 없음 |
 | D-NZ2 | LUT 잡음: v2 `SVG2_*` + 저주파 점 r1 새 파일, A/B/EF 분해, `noise_params`, 생성기 `.noise` 모드 | 41 §7.2 | MISS | `rg "noise_params"` 0. 옛 `SID_1F`는 읽지 않는다 |
-| D-PG | Pelgrom A_VT·A_β를 PDK mismatch 파일에서 유도하고 MC로 단위 확인 | 41 §6.4-2 | MISS | `E/core/pdk_decl.py`에 없음 |
+| D-PG | Pelgrom slope를 PDK mismatch 파일에서 읽고(bin별 slope 이름, pfet L < 0.5 µm `vth0_slope1` 7.356e-3 보정) ngspice 소자 쌍 MC로 단위 확인 | 41 §6.4-2 | MISS | `E/core/pdk_decl.py`에 없음. `rg "vth0_slope" E/`는 spec 옛 키 거부 표 한 줄뿐(`E/authoring/_spec_fields.py:39`) |
+| D-MM1 | 유효 mismatch 계수 A_eff(전 `*_slope_spectre` 변수 RSS, toxe→Vth·약반전 voff 포함, 같은 ID에서의 ΔVGS), 옛 vth0·β 두 항 식 대체 | 41 §6.4-2 | MISS | `rg "A_eff\|mismatch_dvgs" E/` 0 |
+| D-MM2 | LUT mismatch 감도 열 DVGS_k: 생성기 mismatch 모드, 새 버전 파일 `..._mismatch_r1.npz`(공유 데이터 무변경), `lut_v2_location.json` 새 항목, `tol_mismatch` LOO, `mismatch_lut_missing` 거부 | 41 §6.4-2b | MISS | `assets/sky130_lut_sweep.py:227`은 mismatch 파일을 include만 한다. 섭동 모드·감도 열 없음 |
+| D-OF1 | `offset_in_sigma_mv`: 모든 MOS 게이트 오차원 → MNA adjoint 출력 전달 → 입력 환산, `offset_contrib` 표(matching 레코드는 해석용) | 40 §3.8-8 | MISS | `rg "offset_in_sigma" E/` 0 |
+| D-OF2 | `offset_excess` 구조 가드(`<= √2`, 입력 셀 = S1v 첫 이득 블록 input 셀)와 출발 단계 부하 gm/ID 상한 | 40 §3.8-8, 41 §6.4-2a | MISS | `rg "offset_excess" E/` 0 |
+| D-OF3 | `offset_sys_mv`(차동 = Vop − Vom, 단일 = 선언 기준, 없으면 `reference_undeclared`), 상한 = `value_from_constraint: offset_in_sigma_mv` | 40 §3.8-8 | MISS | `rg "offset_sys" E/` 0 |
+| D-MR | `mirror_ratio_sigma_pct` 보고(mirror 계열 matching 그룹마다), 단위 `pct` | 40 §3.8-8 | MISS | `E/core/units.py:13`에 `pct` 없음 |
+| D-SW | `swing_out_v`: 포화 기준(VDS ≥ VDSAT + tol_vdsat), 대칭 p-p, 차동 = 출력별 반폭 최솟값 × 4, 구간 레코드 | 40 §3.8-8 | MISS | `rg "swing_out" E/` 0 |
+| D-ICM | `icmr_v`(레일로 자른 창 폭, 빈 창 음수)와 `icm_margin_v`(선언 입력 DC와 창 경계 거리, SP-2 대기면 `input_dc_pending`), ICMR 제약 = 폭 + 포함 | 40 §3.8-8 | MISS | `rg "icmr_v\|icm_margin" E/` 0. ngcc spec은 `{metric: pending MOD5}`(`assets/library/ngcc_3stage_ff.sizing_spec.json:87`) |
+| D-Q34 | §9.2 회로별 선언(파일럿 3.3 mV·스윙 2.4 V·icm_margin, 6회로 가드, ngcc `icmr_v >= 0.6`, nmcnr `icmr_v`·`swing_out_v >= 0.5`)과 옛 이름 거부(`mismatch_sigma_mv`, `mirror_ratio_error_mv`, `mismatch_sigma_v`) | 40 §9.2, §3.1 | MISS | `assets/library/*.sizing_spec.json`(옛 이름 3개 회로), `E/authoring/SPEC_CONTRACT.md:261` S2 |
+| D-GB4f | 헤드룸 달성가능성: 출력·입력·버퍼 창 상한(LUT 격자 전수, 인증/미상), 선언 제약 인증 불가 → exit 3 `headroom_unattainable`, 제약 없는 창·입력 DC 대기는 보고, 유도 기록 | 41 §4.6 | MISS | `rg "headroom_bound\|headroom_unattainable" E/` 0 |
+| D-SIg | 출발 구간 Q3·Q4: 스윙·ICMR·입력 DC 예산 분할(41 §6.2), A_eff matching L 하한(절대 offset 회로만, 41 §6.4-2) | 41 §6.2, §6.4-2 | MISS | `rg "start_intervals"` 0 |
+| D-OR5 | 오라클 offset Monte-Carlo(표본 수 유도, `model_error_offset_in_sigma_mv`)와 스윙·ICMR `.dc` 스윕 | 40 §10.2 | MISS | `rg "mc_mm_switch\|offset_mc" tools/spice_oracle` 0 |
+| D-J34 | J 공동분석 목록 추가: 입력 DC 값(nmcnr 0 V, SP-2), sf_pushpull M6↔M8·M5↔M7 matching, 4-팔로워 버퍼 헤드룸 | 40 §9 Q7, §9.3 | MISS | 해석은 2026-10-08 결정으로 닫혔다(40 §9.3 J-D·J-E). 구현 확인은 D-J1·D-J5·D-J7 행에서 한다 |
+| D-J1 | 복합 diode D1: DC 가지 걷기 정의, 묶음·기준/캐스코드 구분, 소비 셋(DC 역할 규칙 1c, 미러 입력 확장·`diode_load`, 루프 (1.6) `composite_diode_internal`). 9회로 발동 = 41 §1.13 실측 집합, 나머지 7회로 무동작 | 41 §1.12.1, §1.13 | MISS | `rg "composite_diode" E/` 0. `[u1-sp1] E/graph/drive_kind.py` `_mirror_inputs`는 단순 diode만 본다 |
+| D-J2 | feedforward 셀: 주경로(D_max·slack), FF 묶음·탭·merge·B_b, 블록 분해(FF 합류는 복합 블록 아님), gain 예산은 주경로만, 경로 기여·A_decomp 잔차, `ff_ratio_candidates`·`ff_gm_ratio`, Σ 판정 FF 상한, FF 출발값 | 41 §1.12.2, §2, §4.3, §5.1, §6.5, 40 §3.8-8 | MISS | `rg "feedforward\|ff_gm_ratio" E/` 0. `[u1-sp1]`은 ngcc Vout을 복합 블록 하나로 묶는다(`composite_block_pending_ratify`) |
+| D-J3 | 중첩 Miller 보상 내부 루프: 조건 (a)(b), 루프 뷰 미생성, `pm_ss_deg` 미선언이면 `undeclared_loop_constraint`(사유 `compensation_internal_needs_overall_pm`), 전체 PM 판정의 P = 0 확인 | 41 §1.12.3 | MISS | `rg "compensation_internal" E/` 0. `[u1-sp1]` ngcc·nmcnr에서 `undeclared_loop_constraint` 정지 |
+| D-J4 | 루프 극성 = 뷰의 DC 사이클 극성, 커패시터 사이클 `ac_only`, `loop_polarity_conflict`. L 동치류 주인 규칙 `main_path_signal`, name_order는 review | 41 §1.12.4·5 | MISS | `[u1-sp1] E/graph/polarity.py`(커패시터 사이클 → 0 → review), `l_classes.py`(주인 순서 3단계) |
+| D-J5 | 입력 DC 정책: SP-2 (c) y_icm 창 범위, `required_input_cm_v`, sf `icm_margin_v >= 0` 제약, `buffer_window_report`, `icmr_window_short_l_bin` 경고 | 41 §4.6, 40 §3.8-8, §9.2 | MISS | `rg "required_input_cm\|short_l_bin" E/` 0. `assets/library/sf_pushpull_output_opamp.sizing_spec.json`에 `icm_margin_v` 제약 없음 |
+| D-J6 | `structure.json` concept 어휘 7개(신규 5), override/confirm/고아/불일치 전이, `structure_rule_fp`, 단계 A의 사실 로드 순서·`build_s1(structure=)`·`declared_loop_cuts` 전달, 뷰 한정 `ac_ground_exception` 소비 | 40 §3.2-3, 41 §1.12.6 | MISS | `[u1-sp1] E/graph/structure_load.py`는 `drive_kind`만 소비한다. `[u1-sp1] E/pipeline/stage_a.py` `run_stage_a`는 `declared_loop_cuts`를 넘기지 않는다 |
+| D-J7 | 회로별 사실 파일(`assets/library/<name>.structure.json`) 작성: U1b 병합 뒤, confirm 사실은 실측 일치 시만, rule_hash = 병합 코드의 `structure_rule_fp` | 40 §3.2-3 표 | MISS | 사실 파일 0개(작성 순서상 U1b 뒤) |
 | D-RA | 저항 면적: poly 시트·최소 폭·머리를 PDK 선언에 두고 Ω당 면적 계산 | 40 §7.1 | MISS | `rg "poly_res_sheet"` 0 |
 | D-Q5 | Q5 승격(two_stage GBW 제약, ngcc ICMR)과 Q5b 판정 보류 표시 | 40 §9 | MISS | `assets/library/*.sizing_spec.json` |
 | D-NZ3 | adjoint 잡음 해석, 소자별 기여, 분해능 | 41 §7.3 | MISS | `rg -i "noise" E/metrics` 0 |
@@ -212,8 +232,8 @@ plan_version: 6.0
 | D-GB7b | 미러 비율 강제 | 40 §3.7 | MISS | `E/sizing/CONTRACT.md:276` |
 | D-GB7c | DEC-95 (3) 전체 순서 | 40 §3.7 | PART | `E/sizing/writer_plan.py:13-17` |
 | D-GB7d | W_request 고정 W | 40 §3.7 | MISS | `E/sizing/block_widths.py:9` |
-| D-GB8a | `ls`, 스윙, ICMR | 40 §3.8 | MISS | -- |
-| D-GB8b | nqs, mismatch 보고 | 40 §3.8 | MISS | Pelgrom 계수가 선행되어야 한다 |
+| D-GB8a | `ls`(슬루·방향별 전류), 스윙·ICMR은 D-SW·D-ICM | 40 §3.8 | MISS | -- |
+| D-GB8b | nqs 보고(미스매치 보고는 D-OF1·D-MR로 대체) | 40 §3.8 | MISS | -- |
 | D-GB8c | `verified_by`, 모델 오차, `spice_unverifiable` | 40 §3.8 | MISS | -- |
 | D-IC | IC1~IC11 계약 test(패키지별 폴더) | 40 §10.3 | MISS | `rg "def test_ic"` 0 |
 | D-T | test 폴더 체계 | 40 §8 R26 | N/A | 축소 유지 승인(2026-10-08). 현행 체계를 쓴다 |
@@ -225,9 +245,13 @@ plan_version: 6.0
 | 구분 | 행 수 | OK | DEV | PART | MISS | N/A |
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 3 | 1 | 6 | 5 | 0 |
-| DEC | 81 | 24 | 6 | 28 | 15 | 8 |
-| 설계 항목 | 87 | 0 | 9 | 12 | 65 | 1 |
-| **합계** | 183 | 27 | 16 | 46 | 85 | 9 |
+| DEC | 81 | 24 | 6 | 28 | 16 | 7 |
+| 설계 항목 | 107 | 0 | 9 | 12 | 85 | 1 |
+| **합계** | 203 | 27 | 16 | 46 | 106 | 8 |
+
+v1.5(2026-10-08, 사용자 결정 "j해석은 네의견에 모두 동의해."): 설계 항목 7행 추가(D-J1~D-J7, 모두 MISS, 구현 단위 U1b와 40 §11 'J 추가 범위'). D-J34 문구 갱신(해석 닫힘).
+
+v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, D-OF1~3, D-MR, D-SW, D-ICM, D-Q34, D-GB4f, D-SIg, D-OR5, D-J34, 모두 MISS), DEC-21을 N/A에서 MISS로(결정으로 닫혔고 spec 미반영), D-PG·D-GB8a·b·DEC-23·96 문구 갱신.
 
 센 방법:
 - D-SIa~f는 6행으로 센다.
