@@ -9,10 +9,13 @@ from .branches import s1_branches
 from .bulk_default import s1_bulk
 from .canonical_form import Canonical, canonical_form
 from .columns import s1_columns
+from .composite_diode import CompositeDiode, composite_diodes
 from .dc_conduction import s1_dc_conduction
 from .dc_roles import s1_dc_roles
+from .feedforward_cells import FeedforwardResult, feedforward_cells
 from .gs_groups import s1_gs_groups
 from .gvgs_cycles import s1_gvgs
+from .loop_roles import loop_roles
 from .matching_groups import s1_matching_groups
 from .rel_kcl import s1_rel_kcl
 from .rel_matching import s1_rel_matching
@@ -23,7 +26,7 @@ from .s1_key import s1_key
 from .s1_model import S1Graph
 from .s1_structure import s1_structure
 from .s1v_build import build_s1v
-from .s1v_key import s1v_rule_fp
+from .s1v_key import s1v_rule_fp, structure_rule_fp
 from .s1_values import (
     AC_GROUND_GATE_ONLY,
     AC_GROUND_RAIL,
@@ -85,7 +88,11 @@ from .s1_values import (
     REL_VDS_SATURATION,
     ROLE_BIAS,
     ROLE_DIODE,
+    ROLE_DIODE_COMPOSITE,
+    ROLE_DIODE_COMPOSITE_CASCODE,
+    ROLE_RULE_COMPOSITE,
     ROLE_RULE_DIODE,
+    ROLE_RULE_FACT,
     ROLE_RULE_GATE_GROUND,
     ROLE_RULE_GS_GROUP,
     ROLE_RULE_REST,
@@ -109,6 +116,7 @@ from .s1_values import (
     SIBLING_RULE_ROLE,
     STATUS_DERIVED,
     STATUS_PROPOSED,
+    STATUS_RATIFIED,
     STATUS_REVIEW_NEEDED,
     UNSUPPORTED_BRANCHES,
     UNSUPPORTED_RULE_BRANCH,
@@ -129,6 +137,7 @@ from .s1_values import (
 )
 from .s1v_values import (
     S1V_RULE_FILES,
+    SPEC_VIEW_LOOP,
     S1v,
     ViewS1v,
     ViewSeed,
@@ -143,6 +152,9 @@ from .s1v_values import (
     PoleNode,
     PassBundle,
     OutputDirection,
+    LoopRole,
+    FeedforwardCell,
+    FfRatioCandidate,
 )
 from .structure_load import StructureFacts, load_structure_facts
 from .structure_tables import structure_tables
@@ -220,7 +232,11 @@ __all__ = (
     "REL_VDS_SATURATION",
     "ROLE_BIAS",
     "ROLE_DIODE",
+    "ROLE_DIODE_COMPOSITE",
+    "ROLE_DIODE_COMPOSITE_CASCODE",
+    "ROLE_RULE_COMPOSITE",
     "ROLE_RULE_DIODE",
+    "ROLE_RULE_FACT",
     "ROLE_RULE_GATE_GROUND",
     "ROLE_RULE_GS_GROUP",
     "ROLE_RULE_REST",
@@ -248,6 +264,7 @@ __all__ = (
     "SIBLING_RULE_ROLE",
     "STATUS_DERIVED",
     "STATUS_PROPOSED",
+    "STATUS_RATIFIED",
     "STATUS_REVIEW_NEEDED",
     "Segment",
     "UNSUPPORTED_BRANCHES",
@@ -258,8 +275,18 @@ __all__ = (
     "build_s1v",
     "load_structure_facts",
     "s1v_rule_fp",
+    "structure_rule_fp",
+    "CompositeDiode",
+    "composite_diodes",
+    "FeedforwardResult",
+    "feedforward_cells",
+    "loop_roles",
+    "LoopRole",
+    "FeedforwardCell",
+    "FfRatioCandidate",
     "structure_tables",
     "S1V_RULE_FILES",
+    "SPEC_VIEW_LOOP",
     "S1v",
     "ViewS1v",
     "ViewSeed",

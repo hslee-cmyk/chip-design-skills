@@ -21,13 +21,15 @@ from .s1v_values import (
     SPEC_VIEW_PORT,
     SPEC_VIEW_RATIO,
     SPEC_VIEW_TRANSFER,
+    VIEW_SOURCE_DECLARED,
+    VIEW_SOURCE_DEFAULT,
     VIEW_TRANSFER,
     Finding,
     ViewSeed,
 )
 
-_DEFAULT_SOURCE = "default_port_view"
-_DECLARED_SOURCE = "spec_constraint_view"
+_DEFAULT_SOURCE = VIEW_SOURCE_DEFAULT
+_DECLARED_SOURCE = VIEW_SOURCE_DECLARED
 
 
 def _seed(excite, sense, source):
