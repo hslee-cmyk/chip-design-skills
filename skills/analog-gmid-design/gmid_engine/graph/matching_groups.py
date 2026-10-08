@@ -301,8 +301,7 @@ def _classify_mirror(g, is_diode, block_of, bias, loop, dispositions, pins, spli
         by_block.setdefault(block_of[m], []).append(m)
     tails = []
     for members in sorted_items(tuple(ms) for ms in by_block.values()):
-        tail, rest = _split_consumer_block(members, nets, diodes, pins, split, out,
-                                           excluded == DISPOSITION_BIAS_DISTRIBUTION)
+        tail, rest = _split_consumer_block(members, nets, diodes, pins, split, out)
         tails.extend(tail)
         if len(rest) > 1:
             out.append(MatchingGroup(MATCH_MIRROR, rest, STATUS_DERIVED,
@@ -317,12 +316,12 @@ def _classify_mirror(g, is_diode, block_of, bias, loop, dispositions, pins, spli
     return tuple(out)
 
 
-def _split_consumer_block(members, nets, diodes, pins, split, out, tail_allowed):
+def _split_consumer_block(members, nets, diodes, pins, split, out):
     """같은 블록 소비 소자 세분(J14 1번·판단 7, CONTRACT 4.5a): 꼬리(drain = derived 차동쌍 공통 source) -> 돌려줌(블록에
-    혼자여도) -- bias_distribution 묶음(gate ∈ B, tail_allowed)에서만; feedback_shared 묶음의 꼬리는 그대로 제외 기록. 블록에 소비 소자가 2개 이상이면 더: diode 넷 drain -> 그룹 없음(제외 기록만), drain 이 대응 넷 쌍인 두 소자 ->
+    혼자여도, bias_distribution·feedback_shared 묶음 모두). 블록에 소비 소자가 2개 이상이면 더: diode 넷 drain -> 그룹 없음(제외 기록만), drain 이 대응 넷 쌍인 두 소자 ->
     대칭쌍 그룹(out 에 추가), 하나도 해당 없으면 묶음 그대로(옛 consumer_block). (꼬리 tuple, consumer_block 으로 남길 tuple) 반환."""
     tail_nets, diode_nets, partner = split
-    tails = tuple(m for m in members if tail_allowed and pins[m][MOS_DRAIN] in tail_nets)
+    tails = tuple(m for m in members if pins[m][MOS_DRAIN] in tail_nets)
     if not members[1:]:
         return tails, ()
     fed = tuple(m for m in members if m not in tails and pins[m][MOS_DRAIN] in diode_nets)

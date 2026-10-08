@@ -281,14 +281,14 @@ domain 어휘 `DOMAIN_DC`(`"dc"`)·`DOMAIN_DC_TO_SS`(`"dc_to_ss"`)·`DOMAIN_GEOM
 | mirror | 소비 소자가 있고 gate ∉ B, gate ∉ L | 묶음 멤버 전부 | derived | (`mirror_signal_cross_block`, (gate, source), diode 멤버, (J-U4-d,)) |
 | mirror | 소비 소자가 있고 gate ∈ B 또는 L, 소비 소자 아닌 멤버(diode 쪽)가 2개 이상 | 그 멤버 | derived | (`mirror_diode_block`, (gate, source), diode 멤버, (J-U4-d,)) |
 | mirror | 같은 경우, 같은 블록에 모인 소비 소자가 2개 이상인 블록(블록마다, 아래 '소비 소자 세분') 중 drain 이 대응 넷 짝 (a, b) 인 소비 소자 둘(각 drain 에 열린 소비 소자가 정확히 하나) | 그 둘 | derived | (`mirror_consumer_symmetric`, (gate, source, a, b) -- a < b, diode 멤버, (J-U4-d,)) |
-| mirror | gate ∈ B 인 묶음에서 꼬리 소비 소자가 하나 이상(블록 크기 무관, 묶음 전체에서 모음) | diode 멤버 + 꼬리 소비 소자, 이름순 | derived | (`mirror_tail_ratio`, (gate, source), diode 멤버, (J-U4-d,)) -- 꼬리는 disposition 에서 빠진다 |
+| mirror | gate ∈ B 또는 L 인 묶음에서 꼬리 소비 소자가 하나 이상(블록 크기 무관, 묶음 전체에서 모음) | diode 멤버 + 꼬리 소비 소자, 이름순 | derived | (`mirror_tail_ratio`, (gate, source), diode 멤버, (J-U4-d,)) -- 꼬리는 disposition 에서 빠진다 |
 | mirror | 같은 블록 세분 뒤 남은 소비 소자가 2개 이상(블록마다) | 그 소자 | derived | (`mirror_consumer_block`, (gate, source), diode 멤버, (J-U4-d,)) -- 블록별 그룹 순서 = members 순 |
 | diff_pair | `rel_matching_offset` RelEdge 마다 | 그 members | 그 status | (`diff_pair`, 그 evidence.nets, (), (J-U4-b,)) |
 | branch_symmetric | 아래 stack 전파 | 위 소자들 | derived | (`branch_symmetric`, (gate,) + source 넷 정렬, seed 그룹 members, (J-U4-c,)) |
 
-**소비 소자 세분**(사용자 ratify 2026-10-08 J14 1번·판단 7): bias_distribution 묶음(gate ∈ B)의 소비 소자 중 drain ∈ 꼬리 넷인
-것은 블록에 혼자여도 **꼬리**(`mirror_tail_ratio`, disposition 에서 빠짐). feedback_shared 묶음(gate ∈ L)의 소비 소자는 꼬리여도
-꼬리로 보지 않는다(파일럿 M7 은 feedback_shared 그대로). 이어서 같은 블록에 소비 소자가 2개 이상인 블록에서만, 꼬리가 아닌 소비
+**소비 소자 세분**(사용자 ratify 2026-10-08 J14 1번·판단 7·M7 결정): bias_distribution 묶음(gate ∈ B)과 feedback_shared 묶음
+(gate ∉ B, gate ∈ L) 모두에서 소비 소자 중 drain ∈ 꼬리 넷인 것은 블록에 혼자여도 **꼬리**(`mirror_tail_ratio`, disposition 에서
+빠짐 -- 루프 신호 gate 로 구동되는 CMFB 꼬리도 diode 와 비율 미러). 이어서 같은 블록에 소비 소자가 2개 이상인 블록에서만, 꼬리가 아닌 소비
 소자를 (2) drain ∈ diode 넷 -> **diode 공급**(그룹 없음, disposition 에만 남음) (3) 나머지 = 열린 소자로 나눈다. 열린 소자 중 drain 이
 대응 넷 짝인 둘(그 두 drain 에 열린 소자가 하나씩)은 `mirror_consumer_symmetric`. 그 블록에 꼬리·diode 공급·대칭쌍이 하나도 없으면
 옛 규칙 그대로 블록 전체가 `mirror_consumer_block`, 하나라도 있으면 남은 열린 소자가 2개 이상일 때만 `mirror_consumer_block`.
@@ -320,7 +320,7 @@ ratified)만 쓰고, review_needed 그룹·`matching_dispositions` 는 matching 
 | 회로 | mirror | diff_pair | branch_symmetric | bias_distribution | feedback_shared | bias_sibling |
 |---|---|---|---|---|---|---|
 | common_gate_amplifier | 0 | 0 | 0 | 0 | 0 | 0 |
-| current_reuse_telescopic_ota | 4 ({M10, M19}·{M17, M8} consumer_symmetric, {M38, M5, M66}·{M18_bg, M6} tail_ratio -- **ratified 2026-10-08 J14 1번·판단 7**) | 3 ({M37a, M37b}, {M4a, M4b}, {M1a, M1b}) | 2 ({M3a, M3b}, {M2a, M2b}) | 2 (Vbias4: M10, M12, M19, M21, M68 / Vbias1: M13, M17, M22, M60, M61, M8) | 1 (Vcmfb: M7) | 2 (M63, M58 -- own_branch_gate) |
+| current_reuse_telescopic_ota | 5 ({M10, M19}·{M17, M8} consumer_symmetric, {M38, M5, M66}·{M18_bg, M6}·{M36a, M7} tail_ratio -- **ratified 2026-10-08 J14 1번·판단 7**) | 3 ({M37a, M37b}, {M4a, M4b}, {M1a, M1b}) | 2 ({M3a, M3b}, {M2a, M2b}) | 2 (Vbias4: M10, M12, M19, M21, M68 / Vbias1: M13, M17, M22, M60, M61, M8) | 0 (Vcmfb 묶음의 유일한 소비 소자 M7 이 꼬리 -> tail_ratio) | 2 (M63, M58 -- own_branch_gate) |
 | folded_cascode | 3 ({M10, M9} whole, {M3, M4} consumer_symmetric, {M11, MN} tail_ratio -- 판단 7) | 1 | 2 ({M7, M8}, {M5, M6}) | 1 (vb1: M3, M4) | 0 | 0 |
 | ngcc_3stage_ff | 5 (ND {M3, M4, M6B}·NX {M6A, M7}·NP {M10, M9} signal_cross_block, {M14, M8}·{M0, M12, M5} whole -- {M14, M8} 은 **ratified 2026-10-08 J14**(NGCC gm14 = gm8 비율 matching)) | 1 | 0 | 0 | 0 | 0 |
 | nmcnr_amplifier | 3 ({M203, M204} signal_cross_block, {M104, M105}·{M108, M109} whole) | 1 | 1 ({M106, M107}) | 0 | 0 | 0 |
@@ -336,7 +336,8 @@ Vcmfb·Vx·Vom1·Vop1·Vom·Vop·Voc·Vbias2 등 16넷), 나머지 8회로 ∅. 
 대응 넷 사상(작성자 실행값): current_reuse {N1a2a↔N1b2b, N3a4a↔N3b4b, Vom1↔Vop1, Vg15↔Vg25, Vcmfb↔N36b}, folded {X↔Y, Vg9↔Vg10,
 Vg7↔out}, ngcc {ND↔V1}, nmcnr {NodeF1↔NodeF2, NodeM1↔NodeM2}, sf {N1↔N2, N5↔N7, N56↔N78}, two_stage·two_stage_sf {D3↔O1},
 common_gate·pushpull ∅. 세분 발동: 파일럿 Vbias4·Vbias1 묶음, folded vb1(멤버 같고 rule 만 consumer_symmetric)·vb2(꼬리 M11),
-sf NB(꼬리 M3). 나머지 6회로 불변.
+sf NB(꼬리 M3), 파일럿 Vcmfb(꼬리 M7, feedback_shared 묶음). 나머지 6회로 불변. 그 결과 9회로에서 feedback_shared 기록은 0건이다
+(L 은 파일럿에만 있고, 그 묶음의 소비 소자가 꼬리뿐). feedback_shared 는 꼬리가 아닌 소비 소자가 루프 신호 gate 를 읽을 때만 남는다.
 
 **일반성**(작성자 측 측정, `tests/generality/topogen` 합성 회로): syn_cs_load·syn_diffpair5·syn_follower 는 diode 기준 바이어스
 블록 -> 다른 블록 전류원이라 bias_distribution 1건씩, branch_symmetric·feedback_shared·bias_sibling 0(그 구조 없음, 무동작).
@@ -532,6 +533,6 @@ design_mod3_structure_u2_u5(DU) 대비:
     (`mirror_consumer_block`)로 남겼다 -- 빼면 folded M3/M4 같은 대칭 전류원과 그 위 캐스코드쌍 seed 가 사라진다(J-U4 확인 대상).
     -> 2026-10-08 사용자 ratify(J14 1번)로 '소비 블록 세분'(꼬리 -> diode 와 비율 미러, diode 넷 drain -> bias_distribution 만,
     drain 대응 짝 -> 대칭쌍)을 더했다. 판단 7(2026-10-08 ratify): 꼬리는 블록에 혼자여도 tail_ratio. 단 feedback_shared 묶음의
-    꼬리(파일럿 M7, Vcmfb)는 꼬리 규칙을 걸지 않았다 -- ratify 범위는 bias_distribution 꼬리 3개(M38·M11·sf M3)였다. 대응 넷은 U5 `graph.symmetry` 가 없어 derived 차동쌍 drain seed 의 가지 서명 전파로 정의했다.
+    꼬리(파일럿 M7, Vcmfb)도 2026-10-08 사용자 결정("꼬리 비율 미러 {M36a, M7}로 분류")으로 같은 꼬리 규칙(gate ∈ L 묶음 포함). 대응 넷은 U5 `graph.symmetry` 가 없어 derived 차동쌍 drain seed 의 가지 서명 전파로 정의했다.
     (e) branch_symmetric seed 에 mirror 도 넣었다(folded M7/M8·nmcnr M106/M107·sf 3쌍은 mirror 위에 쌓임). (f) 차동쌍 후보의
     '신호 넷 gate(입력 포트 또는 graph.symmetry 대응) 정확히 2' 조건(G5-03)은 U5 가 없어 넣지 않았다 -- 바이어스 형제 제외만.
