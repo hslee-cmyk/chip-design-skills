@@ -133,12 +133,11 @@ def test_cm_dc_not_above_level_is_violation_row_i19(m, s):
 
 
 def test_cm_contract_example_m_s_i19():
-    """계약 I-19 예의 입력(m = 0.01075805, s = 3.2)을 식으로 계산: 20·log10(0.01075805)/3.2 = −12.30167 (손계산).
-    [계약 결함 보고] I-19 표의 'c = −12.3037 (실측 −12.303697098427348)' 은 이 m·s 와 맞지 않는다(m 을 반올림해 적은 것으로 보임) --
-    숫자 리터럴 대조는 하지 않고 식만 확인한다."""
+    """계약 I-19 예(bea18e0 정정): m = 0.01075805, s = 3.2 -> c = 20·log10(m)/s = −12.301665259916554(손계산 = 계약 숫자)."""
     decl = _cm_decl()
     rows, _ = ss_constraint_rows(_cm_bundle(decl, _dna(0.01075805), 3.2), decl)
-    assert rows[0].c == pytest.approx(-12.30167, abs=5e-6)
+    assert 20.0 * math.log10(0.01075805) / 3.2 == pytest.approx(-12.301665259916554, rel=1e-15)
+    assert rows[0].c == pytest.approx(-12.301665259916554, rel=1e-15)
 
 
 
@@ -165,14 +164,49 @@ def test_cm_valued_pm_row_unchanged_i21():
     assert rows[0].name == "ss:0:pm_cm_ss_deg>=" and rows[0].c == pytest.approx((65.0 - 60.0) / 0.5, rel=1e-15)
 
 
-def test_cm_rhp_stays_unmeasured_i20():
-    """I-20: cm_loop 의 loop_open_rhp_poles 는 기존대로 unmeasured(행 0)."""
+def _rhp(poles):
+    return (Undefined("phase_margin_deg", "loop_open_rhp_poles", "definitional",
+                      (("rhp_pole_count", len(poles)), ("rhp_poles", tuple(poles)))),)
+
+
+@pytest.mark.parametrize("poles,want", [
+    (((3.0, 4.0),), -0.6),                                   # 계약 예: Re/|p| = 3/5
+    (((2.0, 0.0),), -1.0),                                   # 계약 예: 실근 -> −1
+    (((3.0, -4.0), (3.0, 4.0)), -0.6),                       # 켤레쌍 두 원소 -> 같은 비
+    (((1.0, 1.0), (1.0, -1.0), (3.0, 4.0)), -1.0 / math.sqrt(2.0)),   # max Re/|p| = 1/√2 > 0.6 (손계산)
+    (((1.0, 7.0), (5.0, 0.0)), -1.0),                        # 실근이 최악
+], ids=["c34", "real2", "conj34", "max_of_three", "real_worst"])
+def test_cm_rhp_poles_violation_row_i20(poles, want):
+    """I-20(bea18e0): cm_loop 의 loop_open_rhp_poles -> 위반 행 c = −max_{Re p > 0} Re(p)/|p| ∈ [−1, 0) (손계산), unmeasured 0."""
     decl = _cm_decl()
-    und = (Undefined("phase_margin_deg", "loop_open_rhp_poles", "definitional",
-                     (("rhp_pole_count", 1), ("rhp_poles", ((1.0, 0.0),)))),)
-    rows, un = ss_constraint_rows(_cm_bundle(decl, und, 0.5), decl)
+    rows, un = ss_constraint_rows(_cm_bundle(decl, _rhp(poles), 0.5), decl)
+    assert tuple(un) == ()
+    assert len(rows) == 1 and rows[0].name == "ss:0:pm_cm_ss_deg>="
+    assert rows[0].c == pytest.approx(want, rel=1e-15)
+    assert -1.0 <= rows[0].c < 0.0
+
+
+def test_cm_rhp_detail_without_positive_real_part_gives_no_row_i20():
+    """I-20 '(Re ≤ 0 인 항목만 있으면 행 없음)'."""
+    decl = _cm_decl()
+    rows, _ = ss_constraint_rows(_cm_bundle(decl, _rhp(((-1.0, 2.0), (0.0, 3.0))), 0.5), decl)
     assert tuple(rows) == ()
-    assert tuple(tuple(u) for u in un) == (("pm_cm_ss_deg", ">=", "loop_open_rhp_poles"),)
+
+
+def test_cm_rhp_violation_grows_with_damping_i20():
+    """c 는 최악 극점의 Re/|p| 가 작을수록(우반면 쪽으로 덜 기울수록) 0 에 가까워진다 -- 단조(손계산)."""
+    decl = _cm_decl()
+    cs = [ss_constraint_rows(_cm_bundle(decl, _rhp(((re, 1.0),)), 0.5), decl)[0][0].c for re in (5.0, 1.0, 0.2, 0.01)]
+    assert cs == sorted(cs)
+
+
+def test_differential_pm_rhp_stays_unmeasured_i20():
+    """차동 pm_ss_deg(view_kind loop)의 loop_open_rhp_poles 는 unmeasured 그대로."""
+    decl = _cm_decl("pm_ss_deg", 60.0, ViewDecl("loop", beta="declared", cuts=(("Cf", "in"),), weights=(("in", 1.0),)))
+    rows, un = ss_constraint_rows(_cm_bundle(decl, _rhp(((3.0, 4.0),)), 0.5), decl)
+    assert tuple(rows) == ()
+    assert tuple(tuple(u) for u in un) == (("pm_ss_deg", ">=", "loop_open_rhp_poles"),)
+
 
 
 def test_differential_pm_dc_not_above_level_stays_unmeasured_i20():

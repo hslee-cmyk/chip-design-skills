@@ -218,3 +218,13 @@ def test_no_cmfb_is_cm_loop_ineffective(tmp_path):
     (c,) = [c for c in cmp["constraints"] if c["measure"] == "cm_pm_deg"]
     assert c["judge"] == "FAIL" and c["undefined"] == "cm_loop_ineffective"
     assert cmp["summary"]["verdict"] == "FAIL"
+
+
+def test_schema_rejects_old_cm_loop_passives(tmp_path):
+    """스키마(bea18e0): 삭제된 옛 입력 cm_loop_passives 는 false 스키마로 명시 거부 -> C13: 산출물 없음, 반환 2. 값 모양과 무관."""
+    for val in (["R1", "R2"], []):
+        d = tmp_path / ("v%d" % len(val))
+        inp = cm_input(make_lut(tmp_path / "lut.npz"), cm_output_loop=True, constraint=False)
+        inp["cm_loop_passives"] = val
+        p, text, meta = run_netlist(inp, d)
+        assert p.returncode == 2 and text is None and meta is None, (p.stdout + p.stderr)[-600:]

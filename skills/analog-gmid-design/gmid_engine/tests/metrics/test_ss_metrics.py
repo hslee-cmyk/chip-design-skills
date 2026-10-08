@@ -726,3 +726,12 @@ def test_cm_net_rename_invariance(tmp_path, cm_direct):
     _, _, bd = _cm_run(cm_direct)
     assert rel_close(bundle_map(b)["pm_cm_ss_deg"].value, bundle_map(bd)["pm_cm_ss_deg"].value, 1e-12)
     assert _report(b)["break_nets"] == ("aa", "zp")
+
+
+def test_cm_report_only_adds_one_system_s28(tmp_path):
+    """S-28(bea18e0): 선언 pm_cm_ss_deg 가 없고 보고 전용 T_cm 이 계산되면 cm_output 계 1개 추가 -- gain_ss_db 하나 + 차동 출력 회로
+    -> systems = 2(포트 계 + cm 계); pm_cm_ss_deg 하나 -> 1(test_cm_reuse_and_shared_system_s28); 둘 다 -> 2(공유, S-24 test)."""
+    case = cm_case(tmp_path, "direct", (("gain_ss_db", ">=", 0.0, GAIN_DIFF),))
+    _, _, b = _cm_run(case)
+    assert dict(b.detail)["systems"] == 2
+    assert len(b.reports) == 1

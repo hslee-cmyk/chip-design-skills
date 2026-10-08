@@ -42,7 +42,7 @@ def test_field_names_and_order():
     assert dataclasses.replace(_dev(), lut_rel_tol=0.02).lut_rel_tol == 0.02
     assert _fields(SsCircuit) == ["nodes", "circuit", "resistors", "capacitors", "ground_nets", "input_nets", "missing"]
     assert _fields(MetricRequest) == ["metric", "view"]
-    # [CM 2026-10-08] 7.4 "결과 묶음에 reports·warnings 가 있다", S-26·S-27 (순서는 7.1 이 아직 적지 않음 -- 계약 결함 보고, 생성자 순서로 둠)
+    # [CM 2026-10-08] 7.4 "결과 묶음에 reports·warnings 가 있다", S-26·S-27 (7.1 bea18e0: 필드 순서 entries, approximations, detail, reports, warnings)
     assert _fields(MetricBundle) == ["entries", "approximations", "detail", "reports", "warnings"]
     assert _fields(SsEvaluation) == ["snapshot", "ss", "dc", "lineage"]
 
