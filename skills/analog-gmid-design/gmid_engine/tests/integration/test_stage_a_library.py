@@ -2,6 +2,9 @@
 
 기대값 없이 불변량만 본다: 보고서 파일이 쓰이고, exit code 가 상태와 맞고(ok = 0, 그 밖 = 2 또는 로드 거부 7), 같은 입력이면 보고서 구조 표가 같고,
 정지 사유가 `기록만` 코드이며, structure.json 이 없으면 declared 대조를 하지 않았다고 적힌다. 실 LUT 데이터가 없으면 FAIL(skip 아님).
+
+[U1b 2026-10-09] 설계 40 3.2-3 rule_hash: 단계 A 의 사실 stale 판정 지문은 `structure_rule_fp()`(s1v_rule_fp 대신) -- 사실 파일은 그
+지문으로 쓴다.
 """
 import json
 import os
@@ -10,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from gmid_engine.authoring import load_topology
-from gmid_engine.graph import STATUS_DERIVED, build_s1, s1v_rule_fp
+from gmid_engine.graph import STATUS_DERIVED, build_s1, structure_rule_fp
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a
 from gmid_engine.sizing import DcInputs, LutAccess, build_kernel_context
@@ -87,9 +90,9 @@ def test_structure_json_declared_comparison(real_lut, tmp_path):
     topology = LIBRARY / (circuit + ".topology.json")
     s1 = build_s1(load_topology(str(topology)), _supplies(circuit))
     good, bad, stale = tmp_path / "g.json", tmp_path / "b.json", tmp_path / "s.json"
-    _structure_file(good, s1.key.topology_fp, s1v_rule_fp(), "M1 M2", "M6")
-    _structure_file(bad, s1.key.topology_fp, s1v_rule_fp(), "M1 M6", "M2")
-    _structure_file(stale, "0" * 64, s1v_rule_fp(), "M1 M2", "M6")
+    _structure_file(good, s1.key.topology_fp, structure_rule_fp(), "M1 M2", "M6")
+    _structure_file(bad, s1.key.topology_fp, structure_rule_fp(), "M1 M6", "M2")
+    _structure_file(stale, "0" * 64, structure_rule_fp(), "M1 M2", "M6")
     kw = {"supplies_v": _supplies(circuit)}
     ok = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "o1", structure_path=good, **kw)
     assert ok.report["declared_comparison"] == "performed" and ok.status == "ok"

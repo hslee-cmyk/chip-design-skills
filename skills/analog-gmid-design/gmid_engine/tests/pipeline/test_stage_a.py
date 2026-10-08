@@ -8,6 +8,13 @@ oracle (b): N_S 는 test_stage_a_budget 의 직접 집계와 같은 정의 -- �
 nmos·pmos 를 쓰는 CS).
 oracle (d): structure.json `stage_members` 사실(값 = 공백으로 이은 소자 이름)로 declared 대조 -- MILLER 유도 stage 와 맞는 선언은
 performed·ok, 섞인 선언은 declared_stage_mismatch(review_needed), 해시 불일치는 structure_fact_stale + not_performed.
+
+[U1b 2026-10-09] 설계 40 3.2-3 파이프라인 수정: (1) 순서 A1 로드 -> 사실 로드(topology 지문 = doc.connectivity_fp, rule_hash =
+`structure_rule_fp()`) -> build_s1(structure=) -> build_s1v(structure=, declared_loop_cuts=), (2) cuts = spec 루프 뷰 선언의 끊는 넷 중
+`pm_*` 제약이 가리키는 것, (4) 보고서 applied_facts·ff_ratio_candidates. 그래서 structure.json 의 rule_hash 는 structure_rule_fp 로
+쓴다. review_needed 만 내는 손 회로는 FF(이제 feedforward, 41 1.12.2) 대신 FOLDED(l_owner_name_order, 41 1.12.5-4). library 정지 표는
+41 1.13 으로 바뀐다: sf 는 정지 없음, ngcc·nmcnr 는 spec 없이 돌리면 compensation_internal 의 전체 PM 미선언 정지, 파일럿은
+cs_output_low_impedance(1.12.6 '사실 없이 남는다').
 """
 from __future__ import annotations
 
@@ -16,9 +23,12 @@ from pathlib import Path
 
 import pytest
 
-from gmid_engine.graph import s1v_rule_fp
+from gmid_engine.authoring import load_sizing_spec, load_topology
+from gmid_engine.graph import build_s1, build_s1v, s1v_rule_fp, structure_rule_fp
+from gmid_engine.metrics import metric_catalog
 from gmid_engine.pipeline import StageAResult, run_stage_a, structure_count_budget
 
+import jrules_hand as J
 import s1v_hand as H
 
 
@@ -41,10 +51,16 @@ def test_clean_circuit_is_ok_exit_0(tmp_path, real_lut):
 
 
 def test_review_needed_only_is_exit_2(tmp_path, real_lut):
-    r = _run(tmp_path, real_lut, H.FF)
+    r = _run(tmp_path, real_lut, H.FOLDED)
     assert (r.exit_code, r.status) == (2, "review_needed")
     assert r.report["stop_reasons"] == []
-    assert any("composite_block_pending_ratify" in x for x in r.report["review_needed"])
+    assert any("l_owner_name_order" in x for x in r.report["review_needed"])
+
+
+def test_feedforward_toy_is_ok(tmp_path, real_lut):
+    # [U1b] s1v_hand.FF 는 feedforward 묶음(41 1.12.2) -- 복합 블록 review 가 없다
+    r = _run(tmp_path, real_lut, H.FF)
+    assert (r.exit_code, r.status) == (0, "ok")
 
 
 def test_record_only_branch_stops_exit_2(tmp_path, real_lut):
@@ -83,7 +99,7 @@ def test_same_input_same_tables_and_budget(tmp_path, real_lut):
 def _structure(path, s1_fp, facts, topology_hash=None):
     path.write_text(json.dumps({
         "schema_version": "1", "topology_hash": s1_fp if topology_hash is None else topology_hash,
-        "rule_hash": s1v_rule_fp(),
+        "rule_hash": structure_rule_fp(),
         "facts": [{"concept": "stage_members", "subject": name, "value": value, "status": "ratified",
                    "evidence": {"rule": "hand", "nets": []}, "approval_id": "T-%d" % i}
                   for i, (name, value) in enumerate(facts)]}), encoding="utf-8")
@@ -111,7 +127,7 @@ def test_declared_comparison_states(tmp_path, real_lut):
     assert any("structure_fact_stale" in x for x in stale.report["review_needed"])
     assert stale.report["declared_comparison"].startswith("not_performed")
 
-    other.write_text(json.dumps({"schema_version": "1", "topology_hash": s1_fp, "rule_hash": s1v_rule_fp(),
+    other.write_text(json.dumps({"schema_version": "1", "topology_hash": s1_fp, "rule_hash": structure_rule_fp(),
                                  "facts": [{"concept": "drive_kind", "subject": "out", "value": "current",
                                             "status": "ratified", "evidence": {"rule": "h", "nets": ["out"]},
                                             "approval_id": "T-9"}]}), encoding="utf-8")
@@ -130,7 +146,7 @@ def test_malformed_structure_file_is_rejected(tmp_path, real_lut):
 
 
 @pytest.mark.parametrize("circuit", ["two_stage_ota", "two_stage_ota_sf", "folded_cascode", "common_gate_amplifier",
-                                     "pushpull_follower_buffer"])
+                                     "pushpull_follower_buffer", "sf_pushpull_output_opamp"])     # [U1b] sf: 41 1.13 sf 행
 def test_library_circuits_without_stop(tmp_path, real_lut, circuit):
     # oracle (a)·(d): 아래 회로의 구조 유도 손 요약은 tests/integration/test_sp1_library_summary.py -- 정지 분기·review_needed 없음
     r = run_stage_a(H.LIBRARY / (circuit + ".topology.json"), None, real_lut, output_dir=tmp_path,
@@ -144,10 +160,11 @@ RECORD_ONLY = {"cell_ambiguous", "pass_group_unsupported", "gate_on_current_node
 
 
 @pytest.mark.parametrize("circuit,expected", [
-    ("ngcc_3stage_ff", {"undeclared_loop_constraint"}),           # 루프 뷰 + 차동 출력 포트쌍 없음(출력 Vout 하나)
-    ("nmcnr_amplifier", {"undeclared_loop_constraint"}),          # 같은 이유
-    ("sf_pushpull_output_opamp", {"loop_record_only"}),           # 계획 N3.2-2: 복합 diode 3건이 (나)로 `기록만`
-    ("current_reuse_telescopic_ota", set()),                      # 정지 코드 손 유도 불가(파일럿 -- J ratify 대상), 정지만 확인
+    # [U1b] 41 1.12.3: 중첩 Miller 내부 루프는 루프 뷰가 아니고, spec 없이(전체 pm_ss_deg 미선언) 돌리면 정지가 남는다
+    ("ngcc_3stage_ff", {"undeclared_loop_constraint"}),
+    ("nmcnr_amplifier", {"undeclared_loop_constraint"}),
+    # [U1b] 41 1.12.6: 루프 뷰 loop:M37a:Voc 의 cs_output_low_impedance 는 ac_ground_exception 사실 없이는 남는다
+    ("current_reuse_telescopic_ota", {"cs_output_low_impedance"}),
 ])
 def test_library_stopping_circuits(tmp_path, real_lut, circuit, expected):
     r = run_stage_a(H.LIBRARY / (circuit + ".topology.json"), None, real_lut, output_dir=tmp_path,
@@ -163,4 +180,102 @@ def test_non_json_structure_file_still_writes_report(tmp_path, real_lut):
     (tmp_path / "cs.structure.json").write_text("{not json", encoding="utf-8")
     r = _run(tmp_path, real_lut, H.CS)
     assert r.exit_code in (2, 7) and r.status == "stopped"
+    assert all(Path(p).is_file() for p in r.report_paths)
+
+
+# ------------------------------------------------------------------ [U1b] 40 3.2-3 파이프라인 수정
+def test_declared_loop_cuts_reach_build_s1v(tmp_path, real_lut):
+    # red-first(40 3.2-3 파이프라인 2, 41 1.8): spec 루프 뷰 선언(feedback [Rf] -> pm_ss_deg 루프 뷰 cuts ((Rf, inn),))의 끊는 넷
+    # inn 을 단계 A 가 build_s1v(declared_loop_cuts=) 로 넘긴다. S1v 키의 마지막 원소가 declared_loop_cuts 지문(graph 계약 10.5)이므로
+    # 단계 A 의 S1v 키 = 같은 입력에 ("inn",) 을 준 build_s1v 키, != 넘기지 않은 키. [u1-sp1] 단계 A(넘기지 않음)에서는 실패한다.
+    # oracle (a) 구성: 인자 하나만 다른 두 build_s1v 호출의 키가 정답 후보 둘이다(값을 다시 계산하지 않고 어느 쪽인지만 본다).
+    # 기능 효과(정지 해제)는 이 경로로 보일 수 없다 -- spec 의 루프 끊는 넷은 입력 포트 넷인데 엔진 루프 뷰의 끊는 gate 는 입력
+    # 포트가 될 수 없다(여기 포트는 이상 전압원이라 그 넷을 지나는 신호 사이클이 없다). 보고서의 설계 공백 항목.
+    tp, sp = J.write_pair(tmp_path, J.UGB, feedback=("Rf",))
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    assert r.s1v is not None
+    topo = load_topology(str(tp))
+    spec = load_sizing_spec(str(sp), topo, metric_catalog())
+    s1 = build_s1(topo, H.SUPPLIES)
+    kw = {"count_budget": r.report["count_budget"], "stop_on_unsupported": False}
+    with_cut = build_s1v(s1, spec, declared_loop_cuts=("inn",), **kw)
+    without = build_s1v(s1, spec, **kw)
+    assert with_cut.key[-1] != without.key[-1]                    # 전제: 인자가 키를 바꾼다
+    assert r.s1v.key[-1] == with_cut.key[-1]
+
+
+def test_cuts_only_from_pm_constraints(tmp_path, real_lut):
+    # 40 3.2-3 파이프라인 2: cuts 는 안정도 제약(pm_*) 행이 가리키는 루프 뷰의 끊는 넷만. pm 제약이 없으면(feedback 선언만) 넘기지 않는다
+    tp, sp = J.write_pair(tmp_path, J.UGB, feedback=("Rf",), pm=False)
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    topo = load_topology(str(tp))
+    spec = load_sizing_spec(str(sp), topo, metric_catalog())
+    s1 = build_s1(topo, H.SUPPLIES)
+    kw = {"count_budget": r.report["count_budget"], "stop_on_unsupported": False}
+    without = build_s1v(s1, spec, **kw)
+    with_cut = build_s1v(s1, spec, declared_loop_cuts=("inn",), **kw)
+    assert r.s1v.key[-1] == without.key[-1] != with_cut.key[-1]
+
+
+def _lib_copy(tmp_path, circuit, spec=True):
+    import shutil
+    d = tmp_path / circuit
+    d.mkdir()
+    shutil.copy(H.LIBRARY / (circuit + ".topology.json"), d)
+    if spec:
+        shutil.copy(H.LIBRARY / (circuit + ".sizing_spec.json"), d)
+    return d / (circuit + ".topology.json"), (d / (circuit + ".sizing_spec.json")) if spec else None
+
+
+def test_dc_role_facts_are_loaded_before_build_s1(tmp_path, real_lut):
+    # 40 3.2-3 파이프라인 1·3 + 사실 표: ngcc 에 spec(pm_ss_deg 선언 -> compensation_internal 정지 없음) + dc_role override 사실
+    # M8·M14 = signal 을 주면 남은 review(dc_role_unresolved_group)가 사라져 ok/0. 사실이 build_s1 전에 로드되지 않으면 S1 DC 역할이
+    # 그대로라 review 가 남는다. 사실 없이 같은 입력이면 review_needed/2.
+    tp, sp = _lib_copy(tmp_path, "ngcc_3stage_ff")
+    plain = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    assert (plain.exit_code, plain.status) == (2, "review_needed")
+    assert [x.split("|")[1] for x in plain.report["review_needed"]] == ["dc_role_unresolved_group"]
+    topo_fp = plain.s1v.key[0].topology_fp
+    J.write_structure(tp.parent / "ngcc_3stage_ff.structure.json", topo_fp, structure_rule_fp(),
+                      [J.fact_dict("dc_role", "M8", "signal", "F-3"), J.fact_dict("dc_role", "M14", "signal", "F-3")])
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
+    assert sorted(map(tuple, r.report["applied_facts"])) == [("dc_role", "M14"), ("dc_role", "M8")]
+    assert r.s1v.key[0].facts_fp != "none"                        # 40 3.2-3 파이프라인 3: S1 키에 사실 지문
+
+
+def test_view_scoped_ground_fact_clears_pilot_stop(tmp_path, real_lut):
+    # 40 3.2-3 사실 표 파일럿 ac_ground_exception Vbias2 @ loop:M37a:Voc -> 41 1.12.6 정지·혼재 해소 -> ok/0(spec 없이)
+    tp, _ = _lib_copy(tmp_path, "current_reuse_telescopic_ota", spec=False)
+    plain = run_stage_a(tp, None, real_lut, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("current_reuse_telescopic_ota"))
+    J.write_structure(tp.parent / "current_reuse_telescopic_ota.structure.json", plain.s1v.key[0].topology_fp, structure_rule_fp(),
+                      [J.fact_dict("ac_ground_exception", "Vbias2", "loop:M37a:Voc", "C-6")])
+    r = run_stage_a(tp, None, real_lut, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("current_reuse_telescopic_ota"))
+    assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
+    assert [tuple(x) for x in r.report["applied_facts"]] == [("ac_ground_exception", "Vbias2")]
+
+
+def test_fact_file_written_with_old_s1v_rule_fp_is_stale(tmp_path, real_lut):
+    # 40 3.2-3 rule_hash: 단계 A 는 structure_rule_fp 로 stale 을 판정한다 -- s1v_rule_fp 로 쓴 파일은 적용하지 않고 stale(review)
+    tp, sp = _lib_copy(tmp_path, "ngcc_3stage_ff")
+    first = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    J.write_structure(tp.parent / "ngcc_3stage_ff.structure.json", first.s1v.key[0].topology_fp, s1v_rule_fp(),
+                      [J.fact_dict("dc_role", "M8", "signal", "F-3"), J.fact_dict("dc_role", "M14", "signal", "F-3")])
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    assert r.status == "review_needed"
+    codes = [x.split("|")[1] for x in r.report["review_needed"]]
+    assert "structure_fact_stale" in codes and "dc_role_unresolved_group" in codes
+    assert r.report["applied_facts"] == []
+
+
+def test_structure_rejection_stops_before_build_s1(tmp_path, real_lut):
+    # 40 3.2-3 파이프라인 1: 사실 로드가 build_s1 앞 -> 거부(알 수 없는 concept)면 S1·S1v 를 만들지 않고 exit 7, 보고서는 쓴다
+    side = tmp_path / "cs.structure.json"
+    J.write_structure(side, "0" * 64, structure_rule_fp(), [J.fact_dict("l_owner", "M1", "M1")])
+    r = _run(tmp_path, real_lut, H.CS)
+    assert (r.exit_code, r.status) == (7, "stopped")
+    assert r.s1v is None and r.report["tables"] is None
+    assert len(r.report["stop_reasons"]) == 1
+    assert "structure_concept_unknown" in r.report["stop_reasons"][0]
+    assert r.report["stop_reasons"][0].startswith("A2_structure_json")     # pipeline 계약 1절 [U1b] 단계 이름
     assert all(Path(p).is_file() for p in r.report_paths)

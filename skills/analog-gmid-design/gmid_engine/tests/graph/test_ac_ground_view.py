@@ -85,3 +85,51 @@ def test_invariant3_ground_superset_of_static_and_excludes_excite_and_sense(tmp_
         assert not ({n for n, _ in v.excite} & ground), v.id
         assert not (set(v.sense) & ground), v.id
         assert list(v.ac_ground) == sorted(v.ac_ground)
+
+
+# ---------------------------------------------------------------- [U1b] 41 1.12.6 뷰 한정 교류접지 예외(J-C)
+import jrules_hand as J  # noqa: E402
+
+
+def _pilot(*rows):
+    from gmid_engine.authoring import load_topology
+    from gmid_engine.graph import build_s1, build_s1v
+    st = J.facts(*rows)
+    name = "current_reuse_telescopic_ota"
+    s1 = build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), structure=st)
+    return build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=st)
+
+
+def test_view_scoped_exception_grounds_net_only_in_that_view():
+    # oracle (d) 40 3.2-3 사실 표: 파일럿 `ac_ground_exception` Vbias2 @ loop:M37a:Voc(override, 그 뷰 한정).
+    # 사실이 없으면 루프 뷰에서 Vbias2 는 접지가 아니다(1.2 (4) 술어: 레플리카 사슬 출발이 그 뷰에서 움직인다 -> drive_inherit_cycle).
+    plain = _pilot()
+    assert "Vbias2" not in H.view(plain, "loop:M37a:Voc").ac_ground
+    fixed = _pilot(("ac_ground_exception", "Vbias2", "loop:M37a:Voc", "C-6"))
+    loop = H.view(fixed, "loop:M37a:Voc")
+    assert "Vbias2" in loop.ac_ground
+    assert loop.ac_ground_exceptions == ("Vbias2",)
+    # 다른 뷰는 J1 판정 그대로(전달 뷰는 기모드 여기에서 원래 접지 -- 사실과 무관하게 같은 값, 예외 목록은 비어 있다)
+    assert H.view(fixed, "transfer:0").ac_ground == H.view(plain, "transfer:0").ac_ground
+    assert H.view(fixed, "transfer:0").ac_ground_exceptions == ()
+    assert ("ac_ground_exception", "Vbias2") in fixed.facts_applied
+
+
+def test_view_scoped_exception_clears_the_pilot_loop_view_stops():
+    # 41 1.12.6·1.13 교류접지 예외 행(패킷 C.4: 정지·혼재 3건 해소): 루프 뷰에서 Vbias2 가 접지면 캐스코드 M2a/M2b gate 가 접지라
+    # N1a2a/N1b2b 는 CG 사슬 내부 노드 -> cs_output_low_impedance(N1a2a, N1b2b)·mixed_drive_signal_drain·drive_inherit_cycle 이 없다
+    plain = _pilot()
+    before = H.codes(H.view(plain, "loop:M37a:Voc"))
+    assert "cs_output_low_impedance" in before
+    fixed = _pilot(("ac_ground_exception", "Vbias2", "loop:M37a:Voc", "C-6"))
+    after = H.codes(H.view(fixed, "loop:M37a:Voc"))
+    for gone in ("cs_output_low_impedance", "mixed_drive_signal_drain", "drive_inherit_cycle"):
+        assert gone not in after
+    assert fixed.unsupported == () and fixed.review_needed == ()
+
+
+def test_exception_naming_another_view_does_not_apply_here():
+    # 사실이 가리킨 뷰가 엔진 뷰 목록에 없으면 적용하지 않고 고아(40 3.2-3 '대상이 없음')
+    s1v = _pilot(("ac_ground_exception", "Vbias2", "loop:M99:Voc", "C-7"))
+    assert "Vbias2" not in H.view(s1v, "loop:M37a:Voc").ac_ground
+    assert [f.code for f in s1v.findings if f.code == "structure_fact_orphan"] == ["structure_fact_orphan"]

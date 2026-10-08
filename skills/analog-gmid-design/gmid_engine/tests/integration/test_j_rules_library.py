@@ -1,0 +1,210 @@
+"""U1b J 구조 규칙 -- library 9회로 발동표와 이름 전단사 불변(설계 41 1.12·1.13, 40 3.2-3·11 U1b 행, 체크리스트 D-J1~D-J6).
+
+발동표(oracle (a) 손 유도 -- 각 회로 topology JSON 에 41 1.12 규칙을 손으로 적용, 41 1.13 기대 행은 기준값이 아니라 대조 대상):
+| 회로 | 복합 diode(1.12.1) | feedforward(1.12.2) 탭->merge | 루프 역할(1.12.1-3·1.12.3) | 루프 뷰·극성(1.12.4) | 단계 A(spec 없음) |
+|---|---|---|---|---|---|
+| common_gate_amplifier | 0 | 0 | 없음 | 없음 | ok |
+| two_stage_ota | 0 | 0 | 없음(Miller 사이클만) | 없음 | ok |
+| two_stage_ota_sf | 0 | 0 | 없음 | 없음 | ok |
+| folded_cascode | 0 | 0 | 없음 | 없음 | ok |
+| pushpull_follower_buffer | 0 | 0(병렬 버퍼 가지, FF 후보 없음 -> 모호 판정 안 함) | 없음 | 없음 | ok |
+| sf_pushpull_output_opamp | M5·M6·M7·M8·M13·M14 | 0(M17·M20 은 K8) | composite_diode_internal 3({N1,N5},{N2,N7},{N12,N13}) | 없음 | ok |
+| current_reuse_telescopic_ota | M58·M63 | 0 | loop_view loop:M37a:Voc | loop:M37a:Voc, 극성 -1 | stopped: cs_output_low_impedance |
+| ngcc_3stage_ff | 0 | ND->Vout, V1->Vout | compensation_internal loop:M8:V1 | 없음 | stopped: undeclared_loop_constraint (+ review dc_role_unresolved_group) |
+| nmcnr_amplifier | 0 | 0 | compensation_internal loop:M201:NodeM2 | 없음 | stopped: undeclared_loop_constraint (+ review l_owner_name_order) |
+손 유도 요지: 복합 diode 걷기는 `tests/graph/jrules_hand.py` LIB_COMPOSITE 주석. FF 는 ngcc 만 -- 주경로 V1 -> V2 -> Vout 에서 M14(V1 ->
+Vout)는 2단 블록을, M6B -> NX -> M7 가지는 1·2단 블록을 우회해 블록 출력노드 Vout 으로 들어온다. 나머지 회로는 비주경로 신호 셀이
+블록 출력노드로 들어오는 우회 경로가 없다. ngcc·nmcnr 의 3단 중첩 Miller 내부 루프는 사이클 위 능동 셀이 모두 순방향 셀이라
+compensation_internal(1.12.3 (a)(b)). 파일럿 CM 루프는 M37a·M7 이 순방향 밖이라 루프 뷰가 남고, DC 사이클 4개가 모두 -1
+(CS 셋의 곱), Cc–Rz 경유 2개는 ac_only. nmcnr {M104, M105} 는 tail·diode 기준·stage 시작 셀이 없는 name_order 동률이고 단일 종단
+미러 부하 때문에 한 자기동형 궤도가 아니라 edb5ee0 예외에 들지 않는다.
+41 1.13 과 다른 점(보고 대상): sf composite_diode_internal 은 9 가 아니라 3(묶음 내부 혼재 넷을 판정하지 않아 그 넷을 지나는 사이클이
+없다 -- tests/graph/test_loop_roles.py 주석), 파일럿 레플리카 루프는 신호 사이클이 없어 0.
+spec 있는 단계 A(ngcc·nmcnr spec 은 pm_ss_deg 선언): compensation_internal 정지가 풀려 ngcc = review_needed(dc_role 그룹),
+nmcnr = review_needed(l_owner_name_order).
+"""
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+GRAPH_TESTS = Path(__file__).resolve().parents[1] / "graph"
+if str(GRAPH_TESTS) not in sys.path:
+    sys.path.insert(0, str(GRAPH_TESTS))
+
+from gmid_engine.authoring import load_topology  # noqa: E402
+from gmid_engine.core import Projection  # noqa: E402
+from gmid_engine.graph import build_s1, build_s1v, composite_diodes, s1_dc_roles  # noqa: E402
+from gmid_engine.pipeline import run_stage_a  # noqa: E402
+
+import jrules_hand as J  # noqa: E402
+import s1v_hand as H  # noqa: E402
+
+NINE = ("common_gate_amplifier", "current_reuse_telescopic_ota", "folded_cascode", "ngcc_3stage_ff", "nmcnr_amplifier",
+        "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota", "two_stage_ota_sf")
+
+# 위 표의 리터럴(손 유도). loop_roles: 루프 뷰 id 또는 사이클 노드 집합 -> 역할
+TABLE = {
+    "common_gate_amplifier": dict(composite=set(), ff=set(), roles={}, loop_views={}, stage_a=("ok", set(), set())),
+    "two_stage_ota": dict(composite=set(), ff=set(), roles={}, loop_views={}, stage_a=("ok", set(), set())),
+    "two_stage_ota_sf": dict(composite=set(), ff=set(), roles={}, loop_views={}, stage_a=("ok", set(), set())),
+    "folded_cascode": dict(composite=set(), ff=set(), roles={}, loop_views={}, stage_a=("ok", set(), set())),
+    "pushpull_follower_buffer": dict(composite=set(), ff=set(), roles={}, loop_views={}, stage_a=("ok", set(), set())),
+    "sf_pushpull_output_opamp": dict(
+        composite={"M5", "M6", "M7", "M8", "M13", "M14"}, ff=set(),
+        roles={frozenset({"N1", "N5"}): "composite_diode_internal", frozenset({"N2", "N7"}): "composite_diode_internal",
+               frozenset({"N12", "N13"}): "composite_diode_internal"},
+        loop_views={}, stage_a=("ok", set(), set())),
+    "current_reuse_telescopic_ota": dict(
+        composite={"M58", "M63"}, ff=set(), roles={"loop:M37a:Voc": "loop_view"}, loop_views={"loop:M37a:Voc": -1},
+        stage_a=("stopped", {"cs_output_low_impedance"}, None)),
+    "ngcc_3stage_ff": dict(
+        composite=set(), ff={("ND", "Vout"), ("V1", "Vout")}, roles={"loop:M8:V1": "compensation_internal"}, loop_views={},
+        stage_a=("stopped", {"undeclared_loop_constraint"}, {"dc_role_unresolved_group"})),
+    "nmcnr_amplifier": dict(
+        composite=set(), ff=set(), roles={"loop:M201:NodeM2": "compensation_internal"}, loop_views={},
+        stage_a=("stopped", {"undeclared_loop_constraint"}, {"l_owner_name_order"})),
+}
+
+
+def _role_key(loop_id):
+    return loop_id if loop_id.startswith("loop:") else frozenset(json.loads(loop_id))
+
+
+def _s1(name):
+    return build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name))
+
+
+@pytest.mark.parametrize("name", NINE)
+def test_firing_table_structure(name):
+    row = TABLE[name]
+    s1 = _s1(name)
+    s1v = build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False)
+    cds = composite_diodes(Projection.from_snapshot(s1.snapshot, s1_dc_roles.reads))
+    assert {m for c in cds for m in c.reference + c.cascode_members} == row["composite"]
+    assert {(c.tap, c.merge) for v in s1v.views for c in v.feedforward} == row["ff"]
+    assert {_role_key(r.loop_id): r.role for v in s1v.views for r in v.loop_roles} == row["roles"]
+    assert {v.id: v.polarity for v in s1v.views if v.kind == "loop"} == row["loop_views"]
+    assert sum(1 for v in s1v.views if v.kind == "transfer") == 1
+
+
+def test_firing_table_totals():
+    # D-J1: 복합 diode 발동 = sf 6 + 파일럿 2, 나머지 7회로 0. D-J2: FF 는 ngcc 만(2묶음). D-J3: compensation_internal 2(ngcc·nmcnr)
+    assert sum(len(TABLE[n]["composite"]) for n in NINE) == 8
+    assert [n for n in NINE if TABLE[n]["composite"]] == ["current_reuse_telescopic_ota", "sf_pushpull_output_opamp"]
+    assert [n for n in NINE if TABLE[n]["ff"]] == ["ngcc_3stage_ff"]
+    assert sorted(n for n in NINE if "compensation_internal" in TABLE[n]["roles"].values()) == ["ngcc_3stage_ff", "nmcnr_amplifier"]
+
+
+@pytest.mark.parametrize("name", NINE)
+def test_firing_table_stage_a_without_spec(name, real_lut, tmp_path):
+    status, stops, reviews = TABLE[name]["stage_a"]
+    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), None, real_lut, output_dir=tmp_path, supplies_v=H.lib_supplies(name))
+    assert r.status == status
+    assert r.exit_code == (0 if status == "ok" else 2)
+    assert {x.split("|")[1] for x in r.report["stop_reasons"]} == stops
+    if reviews is not None:
+        assert {x.split("|")[1] for x in r.report["review_needed"]} == reviews
+
+
+@pytest.mark.parametrize("name,status,reviews", [
+    ("ngcc_3stage_ff", "review_needed", {"dc_role_unresolved_group"}),
+    ("nmcnr_amplifier", "review_needed", {"l_owner_name_order"}),
+    ("folded_cascode", "ok", set()),
+    ("common_gate_amplifier", "ok", set()),
+    ("pushpull_follower_buffer", "ok", set()),
+    ("sf_pushpull_output_opamp", "ok", set()),
+])
+def test_stage_a_with_library_spec(name, status, reviews, real_lut, tmp_path):
+    # spec 이 실 metric 카탈로그로 로드되는 회로만(파일럿·two_stage 두 회로 spec 은 metric 이름 문제로 A1 거부 -- U1b 범위 밖).
+    # ngcc·nmcnr spec 에 pm_ss_deg 가 있어 compensation_internal 정지가 풀린다(41 1.12.3)
+    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), H.LIBRARY / (name + ".sizing_spec.json"), real_lut, output_dir=tmp_path,
+                    supplies_v=H.lib_supplies(name))
+    assert r.status == status, r.report["stop_reasons"]
+    assert r.report["stop_reasons"] == []
+    assert {x.split("|")[1] for x in r.report["review_needed"]} == reviews
+
+
+@pytest.fixture(scope="module")
+def real_lut():
+    import os
+    from gmid_engine.lut import LutSpec, load_lut_set, resolve_lut_location
+    skill = Path(__file__).resolve().parents[3]
+    loc = resolve_lut_location(str(skill / "assets" / "lut_v2_location.json"), os.environ)
+    manifest = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
+    kinds = {"nfet_01v8": "nmos", "pfet_01v8": "pmos"}
+    mins = {}
+    for entry in manifest["slices"]:
+        kind = kinds[entry["device"]]
+        mins[kind] = min(entry["w_um"] * 1e-6, mins.get(kind, float("inf")))
+    spec = LutSpec(float(manifest.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), tuple(kinds.items()),
+                   (("nmos", "_n"), ("pmos", "_p")))
+    return load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path)
+
+
+# ------------------------------------------------------------------ 이름 전단사 불변(41 1.11 불변식, 9회로 전부)
+def _canon(s1, s1v, nm, dm):
+    """구조 결과를 사상(nm 넷, dm 원소)으로 옮긴 비교용 표현. 이름 tie-break 하나에만 기대는 L 주인(owner_rule name_order)은 주인 이름을
+    비교하지 않는다(불변식 예외 -- test_s1v_build 불변량 2 와 같다)."""
+    n = lambda x: nm.get(x, x)  # noqa: E731
+    d = lambda x: dm.get(x, x)  # noqa: E731
+    a = lambda x: nm.get(x, dm.get(x, x))  # noqa: E731   기록 대상은 넷 또는 원소
+
+    def vid(v):
+        if v.kind == "loop":
+            _, dev, net = v.id.split(":")
+            return ("loop", d(dev), n(net))
+        return ("transfer", frozenset(n(x) for x, _ in v.excite))
+
+    def rid(loop_id):
+        if loop_id.startswith("loop:"):
+            _, dev, net = loop_id.split(":")
+            return ("loop", d(dev), n(net))
+        return frozenset(map(n, json.loads(loop_id)))
+
+    out = {"dc": {d(k): (v.role, v.status, v.evidence.rule, frozenset(map(d, v.evidence.group)), v.evidence.basis)
+                  for k, v in s1.column("device", "dc_role")}}
+    cds = composite_diodes(Projection.from_snapshot(s1.snapshot, s1_dc_roles.reads))
+    out["composite"] = {(frozenset(map(d, c.members)), frozenset(map(d, c.reference)), frozenset(map(d, c.cascode_members)))
+                        for c in cds}
+    for v in s1v.views:
+        out[vid(v)] = {
+            "ground": frozenset(map(n, v.ac_ground)),
+            "cells": frozenset((d(c.dev), c.kind) for c in v.cells),
+            "drive": frozenset((n(i.net), i.kind) for i in v.drive_kind),
+            "starts": frozenset(map(d, v.stage_starts)),
+            "mirror": frozenset(map(n, v.mirror_inputs)),
+            "blocks": frozenset((frozenset(map(n, b.key)), b.kind, b.stage, frozenset((d(x), r) for x, r in b.roles))
+                                for b in v.blocks),
+            "loops": frozenset((frozenset(map(n, lp.nodes)), lp.classes, (d(lp.cut[0]), n(lp.cut[1])) if lp.cut else (),
+                                lp.polarity, lp.ac_only) for lp in v.loops),
+            "main": frozenset(map(d, v.main_path)),
+            "ff": frozenset((n(c.tap), n(c.merge), frozenset(map(d, c.cells)), frozenset(map(d, c.bias_cells)),
+                             frozenset(map(d, c.load_cells)), tuple(frozenset(map(n, k)) for k in c.bypassed_blocks), c.sign)
+                            for c in v.feedforward),
+            "roles": frozenset((rid(r.loop_id), r.role, r.reason) for r in v.loop_roles),
+            "polarity": v.polarity,
+            "findings": sorted((f.code, f.severity, tuple(sorted(map(a, f.subject)))) for f in v.findings),
+        }
+    out["s1v_findings"] = sorted((f.code, f.severity, tuple(sorted(map(a, f.subject)))) for f in s1v.findings)
+    out["l"] = {frozenset(map(d, lc.members)): ((None if lc.owner_rule == "name_order" else d(lc.owner)), lc.owner_rule, lc.status)
+                for lc in s1v.l_classes}
+    return out
+
+
+@pytest.mark.parametrize("name", NINE)
+def test_name_bijection_invariance(name, tmp_path):
+    raw = json.loads((H.LIBRARY / (name + ".topology.json")).read_text(encoding="utf-8"))
+    nm, dm = J.reverse_order_maps(raw)
+    moved_raw = J.rename_library(raw, nm, dm, seed=17)
+    p = tmp_path / (name + ".topology.json")
+    p.write_text(json.dumps(moved_raw), encoding="utf-8")
+    sup = H.lib_supplies(name)
+    base_s1 = _s1(name)
+    base = build_s1v(base_s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False)
+    moved_s1 = build_s1(load_topology(str(p)), {nm[k]: v for k, v in sup.items()})
+    moved = build_s1v(moved_s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False)
+    assert _canon(base_s1, base, nm, dm) == _canon(moved_s1, moved, {}, {})
