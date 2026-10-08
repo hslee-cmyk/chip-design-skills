@@ -9,6 +9,11 @@
 예외: 사용자가 2026-10-08 ratify 한 행(J14 파일럿 분리·판단 7·M7 꼬리·ngcc {M8, M14})은 oracle (d) 로 `RATIFIED` 에 고정한다.
 `MatchOracle(split=True)` 는 2026-10-08 '소비 소자 세분'(꼬리·diode 공급·대칭쌍, 대응 넷 사상)까지 담은 현재 정의,
 `split=False` 는 그 이전 정의(세분이 걸리지 않는 회로의 무동작 대조용)다.
+
+[U1b 2026-10-09] 설계 41 1.12.1 소비 1: 복합 diode 소자는 DC 역할 diode 기준(규칙 1c)이라, 형제 판정(계약 4.5a, dc_role 이 먼저)에서
+`bias_sibling_dc_role` 로 간다. MatchOracle 은 걷기를 다시 구현하지 않고 손 걷기 표(`composite=`)를 U2Oracle 에 넘긴다 --
+library 는 `jrules_hand.LIB_COMPOSITE`, 손 회로는 `CASE_COMPOSITE`. 바뀐 칸: siblings3 의 Mo(복합 diode, 아래 손 걷기),
+파일럿 M63(복합 diode). 40 3.2-3 `matching_pair` 사실 override(레코드 추가·ratified)는 파일 끝 test.
 """
 from __future__ import annotations
 
@@ -57,6 +62,8 @@ from gmid_engine.graph import (
     s1_rel_matching,
 )
 from graph_u2_oracle import U2Oracle
+
+import jrules_hand as J
 
 NINE = tuple(sorted((
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff", "pushpull_follower_buffer",
@@ -159,9 +166,10 @@ def canon(fields, netmap=None, elmap=None):
 class MatchOracle:
     """계약 4.5a 표·문장을 그대로 다시 구현(엔진 미사용). 값은 plain tuple(엔진 출력의 plain_fields 와 같은 모양)."""
 
-    def __init__(self, raw, split=True):
+    def __init__(self, raw, split=True, composite=None):
         # split=False: 2026-10-08 세분(꼬리·diode 공급·대칭쌍) 이전 정의 -- '세분이 걸리지 않는 회로는 불변' 대조용
-        o = U2Oracle(raw)
+        # composite: [U1b] 손 걷기 복합 diode 표(U2Oracle 규칙 1c 입력)
+        o = U2Oracle(raw, composite=composite)
         self.o = o
         mos, rails, G = o.mos, o.rails, o.ground
         diodes = set(o.diodes)
@@ -495,6 +503,8 @@ CASES["cascode2"] = (
 
 # C. 바이어스 형제 셋(같은 source CS): Md diode(dc_role) / Mg gate vb(G) / Mo gate P(자기 가지 vdd-Rq-P-Mq-Q-Mo-CS 안).
 #    후보 (nmos, CS) 멤버 이름순 M1, M2, Md, Mg, Mo -> 형제 Md, Mg, Mo 빼고 {M1, M2} derived.
+#    [U1b] Mo 는 복합 diode(41 1.12.1 손 걷기: Mo drain Q 의 DC 단자 {Mo.d, Mq.s} 둘 -> Mq(source->drain) -> P = Mo gate, 지나간
+#    단순 diode Mq) -> DC 역할 diode 기준 -> 형제 규칙 첫 판정 dc_role(옛 own_branch_gate).
 CASES["siblings3"] = (
     ota5(extra=(("Md", "nmos", "Yd", "Yd", "CS"), ("Mg", "nmos", "Z", "vb", "CS"),
                 ("Mq", "nmos", "P", "P", "Q"), ("Mo", "nmos", "Q", "P", "CS")),
@@ -503,7 +513,8 @@ CASES["siblings3"] = (
     ((OFF_M1M2,), (MIRROR_M3M4, DIFF_M1M2),
      (("bias_sibling", ("Md",), P, ("bias_sibling_dc_role", ("CS", "Yd"), ("M1", "M2"), (JB, JD))),
       ("bias_sibling", ("Mg",), P, ("bias_sibling_ground_gate", ("CS", "vb"), ("M1", "M2"), (JB, JD))),
-      ("bias_sibling", ("Mo",), P, ("bias_sibling_own_branch_gate", ("CS", "P"), ("M1", "M2"), (JB, JD))))))
+      ("bias_sibling", ("Mo",), P, ("bias_sibling_dc_role", ("CS", "P"), ("M1", "M2"), (JB, JD))))))
+CASE_COMPOSITE = {"siblings3": {"Mo": (("Mo", "Mq"), J.COMPOSITE)}}     # [U1b] 위 손 걷기
 
 # C2. 검사 순서: gate 가 G(vb) 이고 같은 gs 묶음(nmos, vb, CS)인 Mg/Mh 는 dc_role(2)=bias 라 rule 은 dc_role(ground_gate 아님).
 CASES["sibling_order"] = (
@@ -815,7 +826,7 @@ def test_case_explicit_expected(gh, tmp_path, case):
 def test_case_oracle_agrees_with_explicit(case):
     # test 쪽 두 기대값(손 유도와 oracle 재구현)이 서로 맞는지 -- 기대값 자체의 자기 점검
     raw, expected = CASES[case]
-    assert MatchOracle(raw).fields() == expected
+    assert MatchOracle(raw, composite=CASE_COMPOSITE.get(case)).fields() == expected
 
 
 def test_oracle_intermediates_on_hand_cases():
@@ -1054,7 +1065,7 @@ def test_library_matches_definition_oracle(gh, name):
     raw = gh.raw(name)
     s1 = build_s1(gh.load_lib(name), gh.supplies_for(name))
     got = plain_fields(gh, s1)
-    exp = MatchOracle(raw).fields()
+    exp = MatchOracle(raw, composite=J.LIB_COMPOSITE.get(name)).fields()
     assert got[0] == exp[0], "rel_matching_offset"
     assert got[1] == exp[1], "matching_groups"
     assert got[2] == exp[2], "matching_dispositions"
@@ -1210,3 +1221,37 @@ def test_deterministic_across_hash_seeds(gh, tmp_path):
                            capture_output=True, text=True, env=env, check=True)
         res.append(json.loads(r.stdout))
     assert res[0] == res[1] == res[2]
+
+
+# ---------------------------------------------------------------- [U1b] 40 3.2-3 `matching_pair` 사실(override)
+def _s1_pair(gh, name, *rows):
+    from gmid_engine.graph import StructureFact, StructureFacts
+    st = StructureFacts(facts=tuple(StructureFact("matching_pair", subj, "branch_symmetric", appr, ()) for subj, appr in rows),
+                        findings=())
+    return build_s1(gh.load_lib(name), gh.supplies_for(name), structure=st)
+
+
+def test_matching_pair_fact_adds_ratified_branch_symmetric_record(gh):
+    # oracle (d) 40 3.2-3 사실 표 sf `matching_pair` ["M5","M7"] = branch_symmetric(override): 같은 멤버 레코드가 없으면 더하고
+    # status ratified, evidence.basis = (approval_id,)(graph 계약 4.5a [U1b] 문장). 사실 없는 빌드에는 그 레코드가 없다.
+    plain = build_s1(gh.load_lib("sf_pushpull_output_opamp"), gh.supplies_for("sf_pushpull_output_opamp"))
+    s1 = _s1_pair(gh, "sf_pushpull_output_opamp", ('["M5","M7"]', "P-57"))
+
+    def rows(x):
+        return [(g.kind, g.members, g.status, g.evidence.basis) for g in gh.gval(x, "matching_groups") if g.members == ("M5", "M7")]
+
+    assert rows(plain) == []
+    assert rows(s1) == [(MATCH_BRANCH_SYMMETRIC, ("M5", "M7"), "ratified", ("P-57",))]
+    assert s1.key != plain.key                                   # S1 키에 사실 지문(40 3.2-3 파이프라인 3, 계약 3절 facts_fp)
+
+
+def test_matching_pair_fact_ratifies_existing_record(gh):
+    # 같은 멤버의 branch_symmetric 이 이미 유도돼 있으면 레코드를 더하지 않고 그 레코드 status 를 ratified 로 올린다(4.5a [U1b])
+    plain = build_s1(gh.load_lib("folded_cascode"), gh.supplies_for("folded_cascode"))
+    derived = [g for g in gh.gval(plain, "matching_groups") if g.kind == MATCH_BRANCH_SYMMETRIC]
+    assert derived                                                # 전제: folded 에 유도된 branch_symmetric 이 있다
+    g0 = derived[0]
+    s1 = _s1_pair(gh, "folded_cascode", (json.dumps(list(g0.members)), "P-1"))
+    same = [g for g in gh.gval(s1, "matching_groups") if g.kind == MATCH_BRANCH_SYMMETRIC and g.members == g0.members]
+    assert [(g.status, g.evidence.basis) for g in same] == [("ratified", ("P-1",))]
+    assert len(gh.gval(s1, "matching_groups")) == len(gh.gval(plain, "matching_groups"))

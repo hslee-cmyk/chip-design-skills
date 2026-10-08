@@ -2,7 +2,7 @@
 
 공개 정의는 데이터 클래스와 예외뿐이다(규칙 A 데이터 선언 모듈):
 
-* `S1Key` -- S1 지문 {topology_fp, rule_fp, supplies_v_fp}(설계 5.1).
+* `S1Key` -- S1 지문 {topology_fp, rule_fp, supplies_v_fp, facts_fp}(설계 5.1, 40 §3.2-3).
 * `BulkResult` -- 소자 하나의 bulk 넷과 그 출처(DEC-61, 사용자 확정 2026-10-07 6번).
 * `FieldNotComputed` -- 권한표에 있으나 그 writer 가 아직 돌지 않은 필드를 질의함(조용한 빈 값 금지, WP-02).
 
@@ -59,13 +59,19 @@ GRAPH_KEY = "s1"                                       # graph 레코드(스냅�
 STATUS_DERIVED = "derived"                             # 계획 N3.3 전이표: 엔진 규칙만으로 확정
 STATUS_PROPOSED = "proposed"                           # 엔진 제안(선언·ratify 대조 전)
 STATUS_REVIEW_NEEDED = "review_needed"                 # 구조로 못 가름(정지 아님, 기록)
+STATUS_RATIFIED = "ratified"                           # structure.json 사실이 유도 값을 확인(confirm)했거나 정했다(override, 40 §3.2-3)
 ROLE_DIODE = "diode_reference"
 ROLE_BIAS = "bias_current_source"
 ROLE_SIGNAL = "signal"
-ROLE_RULE_DIODE = "1"                                  # 용어집 91행 (1)(2)(3)(5) -- (4) 상속은 ratified 사실 0 이라 발동 0
+ROLE_DIODE_COMPOSITE = "diode_reference_composite"             # `dc_role` 사실 어휘: 복합 diode 기준(41 §1.12.1). 유도 레코드의 role 은 ROLE_DIODE
+ROLE_DIODE_COMPOSITE_CASCODE = "diode_reference_composite_cascode"   # 복합 diode 묶음의 캐스코드 기준 멤버
+ROLE_RULE_DIODE = "1"                                  # 용어집 91행 (1)(2)(3)(5)
 ROLE_RULE_GS_GROUP = "2"
 ROLE_RULE_GATE_GROUND = "3"
+ROLE_RULE_FACT = "4"                                   # ratified `dc_role` 사실(override: 구조로 못 가르는 그룹, 40 §3.2-3)
 ROLE_RULE_REST = "5"
+ROLE_RULE_COMPOSITE = "1c"                             # 복합 diode 소자(41 §1.12.1). evidence.group = 묶음 멤버, basis[0] = composite | composite_cascode
+BASIS_FACT_MISMATCH = "structure_fact_mismatch"        # evidence.basis: 사실과 유도 값이 달라 review_needed 로 돌린 소자(basis[1] = 유도 값)
 REL_EQUAL_VGS = "equal_vgs"
 REL_VDS_EQ_VGS = "vds_eq_vgs"
 REL_KCL_GROUP = "kcl_group"
@@ -153,7 +159,7 @@ GS_GROUPS_READS = (("device", "element_class"), ("device", "kind"), ("device", "
 GS_GROUPS_WRITES = (("graph", "gs_groups"),)
 DC_ROLES_READS = (
     ("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
-    ("node", "ac_ground_class"), ("node", "is_rail"), ("graph", "gs_groups"),
+    ("node", "ac_ground_class"), ("node", "is_rail"), ("node", "port_direction"), ("graph", "gs_groups"),
 )
 DC_ROLES_WRITES = (("device", "dc_role"),)
 REL_VGS_READS = (("graph", "gs_groups"), ("device", "is_diode"), ("device", "pins"))
@@ -189,21 +195,23 @@ S1_WRITERS = WriterTable(
 )
 
 # ---- rule_fp 대상: S1 필드 값을 정하는 graph 파일(이 패키지 안 basename). s1_key 가 파일 바이트로 지문한다.
-S1_RULE_FILES = ("ac_ground_static.py", "branches.py", "bulk_default.py", "columns.py", "dc_conduction.py",
-                 "dc_roles.py", "gs_groups.py", "gvgs_cycles.py", "matching_groups.py", "rel_kcl.py",
+S1_RULE_FILES = ("ac_ground_static.py", "branches.py", "bulk_default.py", "columns.py", "composite_diode.py",
+                 "dc_conduction.py", "dc_roles.py", "gs_groups.py", "gvgs_cycles.py", "matching_groups.py", "rel_kcl.py",
                  "rel_matching.py", "rel_vgs.py", "s1_build.py", "s1_index.py", "s1_structure.py", "s1_values.py",
                  "supplies.py")
 NO_SUPPLIES_FP = "none"
+NO_FACTS_FP = "none"                                   # S1 에 적용되는 ratified 사실(`dc_role`·`matching_pair`)이 없을 때의 지문
 
 
 @dataclasses.dataclass(frozen=True)
 class S1Key:
     """S1 지문. `topology_fp` = TopologyDoc.connectivity_fp, `rule_fp` = `S1_RULE_FILES` 코드 지문,
-    `supplies_v_fp` = 정규화한 supplies_v 지문(없으면 `NO_SUPPLIES_FP`)."""
+    `supplies_v_fp` = 정규화한 supplies_v 지문(없으면 `NO_SUPPLIES_FP`), `facts_fp` = S1 이 소비하는 ratified 사실의 지문(없으면 `NO_FACTS_FP`)."""
 
     topology_fp: str
     rule_fp: str
     supplies_v_fp: str
+    facts_fp: str = NO_FACTS_FP
 
 
 @dataclasses.dataclass(frozen=True)

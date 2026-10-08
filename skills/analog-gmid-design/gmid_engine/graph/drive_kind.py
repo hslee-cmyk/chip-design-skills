@@ -16,7 +16,8 @@
   아님). 커패시터는 구동 종류를 정하지 않는다.
   상속이 모순이거나 근거가 없는 순환이면 `drive_inherit_cycle`(review_needed).
 * ratified 사실(`ratified` = {넷: 종류})이 있으면 그 넷은 그 값을 쓴다(근거 `ratified_fact`).
-`mirror_inputs` = diode 연결 단자이고 그 넷을 gate 로 읽는 다른 순방향 셀이 있는 넷(미러 입력, 블록 내부 노드 -- 규칙 9 (c)·⑧).
+`mirror_inputs` = diode 연결 단자(단순 diode 의 gate 넷 또는 복합 diode 소자의 gate 넷 -- `NetModel.diode_nodes`, 41 §1.12.1-2)이고 그 넷을 gate 로 읽는 다른 순방향
+셀이 있는 넷(미러 입력, 블록 내부 노드 -- 규칙 9 (c)·⑧). 복합 diode 묶음 내부 넷은 구동 종류 판정(혼재 포함) 대상이 아니다(묶음의 MOS 멤버는 `diode_load` 이고 진입을 만들지 않는다).
 """
 import dataclasses
 
@@ -83,7 +84,7 @@ def _entries(model, ground, reach, cells, excite):
             at(m.s)["source"].append(m.name)
         elif cell.kind == CELL_CG and cell.forward:
             at(m.d)["drain"].append(m.name)
-        elif cell.kind == CELL_DIODE_LOAD:
+        elif cell.kind == CELL_DIODE_LOAD and m.name not in model.composite_mos:
             if m.s not in ground:
                 at(m.s)["source"].append(m.name)
             if m.s in reach.signal and m.d in reach.forward and m.name not in at(m.d)["source"]:
@@ -163,7 +164,7 @@ def _inherit(model, ground, reach, cells, kinds, view_id):
         links.setdefault(b.nodes[0], []).append((b.nodes[1], BASIS_INHERIT_PASS))
         links.setdefault(b.nodes[1], []).append((b.nodes[0], BASIS_INHERIT_PASS))
     findings = []
-    pending = sorted(net for net in reach.forward if net not in kinds)
+    pending = sorted(net for net in reach.forward if net not in kinds and net not in model.composite_internal)
     progressed = True
     while pending and progressed:
         progressed = False

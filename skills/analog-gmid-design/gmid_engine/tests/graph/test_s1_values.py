@@ -169,9 +169,11 @@ def test_unsupported_branches_per_element_class():
 
 
 def test_rule_files_are_contract_list():
-    # 계약 3절: graph 파일 17개(s1_key.py·s1_model.py 제외)
+    # 계약 3절: graph 파일 18개(s1_key.py·s1_model.py 제외). [U1b] composite_diode.py 가 S1 필드(device.dc_role 규칙 1c)를 정하므로
+    # 들어간다(설계 41 1.12.1 소비 1, 40 3.2-3 rule_hash 대상 파일 목록에도 있다)
     assert tuple(S1_RULE_FILES) == (
-        "ac_ground_static.py", "branches.py", "bulk_default.py", "columns.py", "dc_conduction.py", "dc_roles.py",
+        "ac_ground_static.py", "branches.py", "bulk_default.py", "columns.py", "composite_diode.py", "dc_conduction.py",
+        "dc_roles.py",
         "gs_groups.py", "gvgs_cycles.py", "matching_groups.py", "rel_kcl.py", "rel_matching.py", "rel_vgs.py",
         "s1_build.py",
         "s1_index.py", "s1_structure.py", "s1_values.py", "supplies.py",
@@ -225,15 +227,18 @@ def test_column_orphan_is_frozen():
     assert len(dataclasses.fields(ColumnOrphan)) == 2
 
 
-def test_s1key_frozen_and_equality_by_three_values():
+def test_s1key_frozen_and_equality_by_four_values():
+    # [U1b] 40 3.2-3 파이프라인 3: S1 키에 적용된 dc_role(·matching_pair) 사실 지문 -> 네 번째 값 facts_fp(기본 "none", 계약 3절)
     a = S1Key("t" * 64, "r" * 64, "none")
     b = S1Key("t" * 64, "r" * 64, "none")
     assert dataclasses.is_dataclass(S1Key)
-    assert [f.name for f in dataclasses.fields(S1Key)] == ["topology_fp", "rule_fp", "supplies_v_fp"]
+    assert [f.name for f in dataclasses.fields(S1Key)] == ["topology_fp", "rule_fp", "supplies_v_fp", "facts_fp"]
+    assert a.facts_fp == "none"
     assert a == b and a is not b
     assert a != S1Key("t" * 64, "r" * 64, "x" * 64)
     assert a != S1Key("t" * 64, "q" * 64, "none")
     assert a != S1Key("u" * 64, "r" * 64, "none")
+    assert a != S1Key("t" * 64, "r" * 64, "none", "f" * 64)
     with pytest.raises(dataclasses.FrozenInstanceError):
         a.rule_fp = "x"  # type: ignore[misc]
     require_immutable(a)

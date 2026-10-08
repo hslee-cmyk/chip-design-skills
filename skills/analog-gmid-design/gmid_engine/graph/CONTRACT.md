@@ -41,19 +41,25 @@
 | columns.py | 4 | `s1_columns`(`@compute_block`) | U2 기둥·쌍 요약·orphan·열거 상한 |
 | matching_groups.py | 4 | `s1_matching_groups`(`@compute_block`) | U4 matching_offset(바이어스 형제 제외)·레이아웃 matching 그룹·제외 기록(4.5a) |
 | rel_kcl.py | 4 | `s1_rel_kcl`(`@compute_block`) | U4 kcl_group |
+| composite_diode.py [U1b] | 1 | `composite_diodes` | 복합 diode(DC 가지 걷기) 묶음·기준·캐스코드 기준(10.6) |
+| feedforward_cells.py [U1b] | 1 | `feedforward_cells` | 주경로(D_max·slack)·feedforward 묶음(10.6) |
+| loop_roles.py [U1b] | 1 | `loop_roles` | 루프 역할(루프 뷰 \| 중첩 Miller 내부 \| 복합 diode 내부 \| 바이어스 SCC, 10.6) |
 | canonical_form.py [r11] | 1 | `canonical_form` | 완전 정준 라벨링·자기동형 생성자(4.7) |
 | automorphism_orbits.py [r11] | 1 | `automorphism_orbits` | 생성자 -> 정점 궤도(4.7) |
 | s1_build.py | 5 | `build_s1` | 공개 진입점(빌드 순서·재사용) |
 
 U2~U4 블록 10개는 서로 import 하지 않는다(값은 graph 필드로만 전달). 어느 것도 `device.bulk`·supplies 를 읽지 않는다.
 
-## 1. `build_s1(doc, supplies_v=None, previous=None, column_limit=None) -> S1Graph`
+## 1. `build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None) -> S1Graph`
+
+- `structure` [U1b] = `load_structure_facts` 결과 또는 None. S1 이 소비하는 ratified 사실만(`dc_role` -> `s1_dc_roles` 규칙 4, `matching_pair` -> `s1_matching_groups` 레코드 추가)
+  뽑아 두 블록의 extras 로 넘기고 그 지문을 `S1Key.facts_fp` 에 넣는다(사실이 다르면 S1 이 다르다). `drive_kind`·`ac_ground_exception`·`loop_role`·`feedforward_cell`·`stage_members` 는 S1v 쪽.
 
 - 인자 검사: `doc` 이 `TopologyDoc` 아님 -> `TypeError`. `previous` 가 S1Graph 가 아니거나 권한표가 `S1_WRITERS` 와 다름 ->
   `TypeError`. `column_limit` 가 None 도 0 이상 int 도 아님(bool 포함) -> `TypeError`.
 - 순서(고정): `supplies_declaration(supplies_v, doc.rails)` -> `s1_key(doc, supplies)` -> 재사용 판정 -> `s1_structure(base,
   doc.devices, doc.passives, doc.sources, 정렬 레일 tuple, doc.ports)` -> `s1_bulk(·, supplies)` -> `s1_dc_conduction` ->
-  `s1_gs_groups` -> `s1_branches` -> `s1_dc_roles` -> `s1_rel_vgs` -> `s1_rel_matching` -> `s1_matching_groups` -> `s1_gvgs` ->
+  `s1_gs_groups` -> `s1_branches` -> `s1_dc_roles(·, dc 사실)` -> `s1_rel_vgs` -> `s1_rel_matching` -> `s1_matching_groups(·, matching_pair 사실)` -> `s1_gvgs` ->
   `s1_columns(·, column_limit)`
   -> `s1_rel_kcl` -> `S1Graph(key, snapshot)`. `base` = `previous.snapshot`(있으면) 또는 `GraphSnapshot.empty(S1_WRITERS)`.
 - 재사용 판정: `previous.key == key` 이고 (`column_limit` 가 None 이거나 `previous` 의 기둥 수 ≤ `column_limit`)이면
@@ -85,17 +91,18 @@ U2~U4 블록 10개는 서로 import 하지 않는다(값은 graph 필드로만 �
 | `supplies_value` | `supplies_v.<넷>` | (넷,) | 값이 bool, 비실수, NaN·Inf |
 | `supplies_missing_rail` | `supplies_v.<넷>` | (넷,) | 레일 선언 넷의 전위 없음 |
 
-## 3. `s1_key(doc, supplies) -> S1Key(topology_fp, rule_fp, supplies_v_fp)`
+## 3. `s1_key(doc, supplies) -> S1Key(topology_fp, rule_fp, supplies_v_fp, facts_fp)`
 
 - `topology_fp == doc.connectivity_fp`.
 - `rule_fp` = `fp_of`(((basename, 파일 바이트(CRLF -> LF 정규화) sha256), ...) basename 정렬) over `S1_RULE_FILES`
-  = (ac_ground_static, branches, bulk_default, columns, dc_conduction, dc_roles, gs_groups, gvgs_cycles,
+  = (ac_ground_static, branches, bulk_default, columns, composite_diode [U1b], dc_conduction, dc_roles, gs_groups, gvgs_cycles,
   matching_groups, rel_kcl, rel_matching, rel_vgs, s1_build, s1_index, s1_structure, s1_values, supplies).py -- S1 필드 값을
-  정하는 graph 파일 17개
+  정하는 graph 파일 18개
   (s1_key.py·s1_model.py 제외). 같은 소스면 프로세스·`PYTHONHASHSEED` 와 무관하게 같다.
 - `supplies_v_fp` = `fp_of(supplies)`, supplies None 이면 `NO_SUPPLIES_FP`(`"none"`). 전위 하나라도 다르면 다르다.
 - `column_limit` 는 키에 들어가지 않는다(열린 결정 O1 기본안 -- 예산은 S1 키 밖).
-- `S1Key` 는 frozen dataclass(`==` 는 세 값 비교).
+- `facts_fp` [U1b] = S1 이 소비하는 ratified 사실(`dc_role`·`matching_pair`)의 `fp_of`, 사실이 없으면 `NO_FACTS_FP`(`"none"`). `s1_key(doc, supplies)` 는 이 값을 `NO_FACTS_FP` 로 두고 `build_s1` 이 덮어쓴다.
+- `S1Key` 는 frozen dataclass(`==` 는 네 값 비교).
 
 ## 4. 필드 정의 (core GraphSnapshot, 권한표 `S1_WRITERS`)
 
@@ -204,8 +211,14 @@ writes `device.dc_role`) -- MOS 레코드에만 `DcRole(role, status, evidence)`
 | (2) | 묶음 gate ∈ G(diode 멤버 없음) -> 멤버 전부 | bias_current_source | derived | ("2", (gate, source), 멤버, (J-U3-a,)) |
 | (2) | 위 둘 다 아님 -> 멤버 전부 | signal | **review_needed** | ("2", (gate, source), 멤버, (J-U3-c,)) |
 | (3) | 남은 소자, gate ∈ G 이고 source 가 레일 | bias_current_source | derived | ("3", (gate, source), (), (J-U3-a,)) |
-| (4) | ratified `structure.json` 상속 | -- | -- | ratified 사실 0(로더 없음) -> 발동 0, 구현 안 함(J-U3-b) |
+| (1c) [U1b] | 복합 diode 소자(`composite_diodes`, 10.6) | diode_reference | derived | ("1c", (gate, source), 묶음 멤버, (`diode_reference_composite`(기준) \| `diode_reference_composite_cascode`,)) |
 | (5) | 나머지 | signal | derived | ("5", (gate, source), (), ()) |
+| (4) [U1b] | ratified `dc_role` 사실(5) 뒤에 적용: 유도 status 가 review_needed(J-U3-c 그룹)면 override | 사실 값(복합 값은 diode_reference) | **ratified** | ("4", 유도 nets, 유도 group, (approval_id, 값)) |
+| (4) [U1b] | 그 밖 소자: 사실 값 == 유도 값(복합은 기준·캐스코드 구분 포함) -> confirm | 유도 role 그대로 | **ratified** | 유도 evidence, basis + (approval_id,) |
+| (4) [U1b] | 사실 값 != 유도 값 | 유도 role 그대로 | **review_needed** | 유도 evidence, basis + (`structure_fact_mismatch`, 유도 값) |
+
+(1c) 는 (2) 보다 먼저 돈다 -- 같은 gate·source 묶음에 복합 diode 소자가 있으면 '기준이 있는 묶음'이라 나머지 멤버가 bias_current_source(rule 2)로 갈린다. `dc_role` 사실의 소자가 없으면(고아)
+S1 에는 기록이 없고 `build_s1v` 가 `structure_fact_orphan` 을 올린다. `s1_dc_roles` 는 reads 에 `node.port_direction` 를 더한다(복합 diode 걷기가 포트 넷에서 멈춘다).
 
 ### 4.5 U4 -- 관계 엣지·G_vgs (DU 3절, 계획 N3.3·DEC-64)
 
@@ -250,6 +263,8 @@ domain 어휘 `DOMAIN_DC`(`"dc"`)·`DOMAIN_DC_TO_SS`(`"dc_to_ss"`)·`DOMAIN_GEOM
 `node.{ac_ground_class, is_rail, port_direction}`; writes `graph.rel_matching_offset`, `graph.matching_groups`,
 `graph.matching_dispositions`). 정지 분기 없음(기록만). 9회로 결과는 회로 해석이라 사용자 J-U4 대조표
 (`_drafts/engine/J_U4_matching_table.md`)로 확인받는다 -- 그 전까지 아래 수치는 기대값이 아니라 작성자 실행값이다.
+[U1b] extras = ratified `matching_pair` 사실 ((멤버 이름 tuple, approval_id, 근거 넷), ...) -- override: 같은 멤버의 `branch_symmetric` 그룹이 이미 유도돼 있으면 그 레코드를 status `ratified`
+(evidence.basis = (approval_id,))로 바꾸고, 없으면 레코드를 더한다. 멤버가 소자 이름이 아닌 사실은 S1 에 기록하지 않고(`build_s1v` 가 `structure_fact_orphan`). extras 없이 부르면 사실 0.
 
 **구조 정의**(모두 기존 S1 필드만으로 정한다. 소자·넷 이름은 결정론적 순서에만 쓴다):
 
@@ -572,9 +587,12 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 |---|---|
 | `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), previous=None, stop_on_unsupported=True) -> S1v` | 진입점. `s1` = `build_s1` 결과, `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`) |
 | `S1v`, `ViewS1v`, `ViewSeed`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `Finding`, `StructureFact`, `CellInfo`, `DriveInfo`, `PoleNode`, `PassBundle`, `OutputDirection` | frozen dataclass(`fp_of` 가능). 필드 뜻과 어휘(`Block.kind`·AC 역할·`DriveInfo.basis`·`LClass.owner_rule`·`OutputDirection.topology`·`unreduced_diff` 형식)는 `s1v_values.py` docstring 이 정본이고 10.5 에 요약한다 |
-| `load_structure_facts(path, topology_fp, rule_fp) -> StructureFacts` | `structure.json` ratified 사실 로더(파일 없음 = 사실 0, 형식 위반 = `SchemaRejectedError` gate `structure_json`, 해시 불일치 = 사실 미적용 + `structure_fact_stale` review_needed) |
+| `load_structure_facts(path, topology_fp, rule_fp, net_names=()) -> StructureFacts` | `structure.json` ratified 사실 로더(파일 없음 = 사실 0, 형식 위반 = `SchemaRejectedError` gate `structure_json`, 해시 불일치 = 사실 미적용 + `structure_fact_stale` review_needed). [U1b] `schema_version`·concept 어휘·값 범위·`->` 모호 거부는 10.6 |
 | `structure_tables(s1v) -> dict` | JSON 으로 쓸 수 있는 구조 표(뷰·셀·구동 종류·블록·극점 노드·루프·L 동치류·기록) |
-| `s1v_rule_fp() -> str` | S1v 규칙 코드 지문(`S1V_RULE_FILES` 바이트). `structure.json` 의 `rule_hash` 와 재사용 키가 쓴다 |
+| `s1v_rule_fp() -> str` | S1v 규칙 코드 지문(`S1V_RULE_FILES` 바이트). `build_s1v` 의 재사용 키가 쓴다 |
+| `structure_rule_fp() -> str` [U1b] | `s1v_rule_fp()` + S1 쪽 소비 파일(`STRUCTURE_RULE_EXTRA_FILES` = composite_diode·dc_roles·gs_groups·matching_groups) 지문. `structure.json` 의 `rule_hash` |
+| `composite_diodes(projection)`, `feedforward_cells(model, view, blocks, cells, stage)`, `loop_roles(view_loops, transfer_views, declared_pm_views)` [U1b] | J 구조 규칙(10.6). 모두 단계 A 경로(`build_s1` -> `s1_dc_roles`, `analyze_view`)에서 불린다 |
+| `LoopRole`, `FeedforwardCell`, `FfRatioCandidate`, `CompositeDiode`, `FeedforwardResult` [U1b] | frozen dataclass |
 
 ### 10.2 동작
 
@@ -598,10 +616,12 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
   합류 노드를 공유하면 복합 블록 후보. 출력노드 임피던스가 낮으면 `cs_output_low_impedance`(기록만). 버퍼 블록 = CD 묶음 R(u)(싱크 하나). 이득 블록과 버퍼 블록이 합류 노드가 아닌 넷을 공유하면 `block_node_overlap`(review_needed, 불변량 4).
 * **루프**: 방향 신호 그래프(gate->drain/source, CG 또는 전류 진입 source->drain, 수동소자·pass 양방향)의 단순 사이클 전수, 시작 = 사이클 최소 노드. 수동소자만의 사이클 제외.
   개수·걸음 수가 `count_budget` 초과 -> `cycle_enumeration_over_budget`(기록만). 분류 (1.5) `bias_scc` / (2) `miller` / (3) `loop_view`((3-a)·(3-b)) / (4) `record_only`.
-  끊는 점 = 복귀 구간 다음 첫 CS gate 후보 중 뷰 안 루프에서 가장 많이 나타나는 것(이름 전단사 불변). 극성 = CS gate->drain 반전 곱, 커패시터 경유 0.
+  끊는 점 = 복귀 구간 다음 첫 CS gate 후보 중 뷰 안 루프에서 가장 많이 나타나는 것(이름 전단사 불변). 극성 = CS gate->drain 반전 곱, 커패시터 경유 0(`ac_only`, [U1b] 10.6).
   포트쌍 CM 루프 대응(R31): 루프 뷰의 루프 노드가 차동 출력 포트쌍 두 넷을 모두 포함하면 `cm_pair`, 기록은 `cm_loop_unconstrained`(info). 그 밖의 루프 뷰는
   `declared_loop_cuts` 에 gate 넷이 없으면 `undeclared_loop_constraint`(기록만).
-* **L 동치류**: `S1v.l_classes` = S1 `rel_l_class` 마다 주인(DEC-17: tail -> 첫 전달 뷰 최전단 stage tail -> diode 기준 -> 이름 순)과 규칙 이름. 멤버 DC 역할 미확정이면 status
+  **선언 끊는 넷 = 엔진 루프 뷰의 끊는 gate 넷**(U1b-jrules 결정): spec 루프 뷰 선언의 `cuts` 는 입력 포트가 아니라 엔진 루프 뷰 `cuts[*][1]`(단계 A 보고서 `views[]` 에 나오는 끊는 gate 넷)를 가리켜야 한다.
+  단계 A(`pipeline.stage_a`)는 spec `feedback` 소자에서 유도된 β 루프 선언(`ViewDecl.beta == declared`; 입력 포트 절단)을 `declared_loop_cuts` 와 이 대조에서 제외한다(내부 루프 뷰가 아니다). 나머지 `declared_loop_cuts` 를 엔진 루프 뷰 끊는 넷 집합과 대조해 어느 뷰에도 맞지 않은 선언 넷마다 `loop_cut_unmatched`(review_needed, 뷰 "", subject = 그 넷)를 보고서 `review_needed` 에 올린다(`build_s1v` 결과 `S1v` 에는 넣지 않는다) -- 맞지 않는 선언이 조용히 무동작이 되지 않게 한다.
+* **L 동치류**: `S1v.l_classes` = S1 `rel_l_class` 마다 주인(DEC-17: tail -> 첫 전달 뷰 최전단 stage tail -> diode 기준(복합 diode 포함) -> [U1b] `main_path_signal` -> 이름 순)과 규칙 이름. 멤버 DC 역할 미확정이면 status
   review_needed. S1 의 `rel_l_class` 필드는 proposed 그대로다(소비자는 S1v 를 읽는다).
 * **declared 대조**: `declared` = ((출처, (소자 이름 tuple, ...)), ...) 를 첫 전달 뷰 블록과 대조해 불일치를 `declared_stage_mismatch`(review_needed). 유도의 입력이 아니다(U-50).
 * **기록과 정지**: `Finding.severity` ∈ review_needed / unsupported_rule_branch / info. `S1v.unsupported`(기록만)가 하나라도 있고 `stop_on_unsupported` 이면
@@ -625,27 +645,58 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 ### 10.4 설계와 다르게 정한 점 / 위임한 점
 
 * `structure_count_budget(lut, kinds)` 는 합이 1 미만(kinds 가 비었거나 LUT 슬라이스 없음)이면 `ValueError` -- N_S 는 1 이상 int 여야 하므로 정의역 밖이다. `run_stage_a` 는 이를 잡아 `count_budget_undefined`(StructureUnresolvedError, exit 2)로 보고서에 쓴다.
-* **U1b 로 미룬 것**: `structure.json` 의 `schema_version` 값 검사·알 수 없는 개념 거부(어휘는 U1b), `drive_kind` 사실 값 범위(voltage|current) 검사, 판정 규칙 J1~ 구현.
+* **U1b 로 미룬 것 -> 닫힘**: `schema_version` 값 검사·알 수 없는 개념 거부·`drive_kind` 값 범위·J 판정 규칙은 U1b 가 구현했다(10.6).
 * S1v 저장은 core `GraphSnapshot` 이 아니라 frozen dataclass 트리(`S1v`)이고 재사용은 키(`S1v.key`) 일치로 한다.
 * 입력 포트 role 문자열(`differential_input_p/n`, `differential_output_p/n`)과 spec 뷰 mode 문자열은 `s1v_values.py` 에 같은 값으로 복제했다(authoring 이 `__all__` 로 내보내지 않는다 -- U5 요청).
 * declared stage 의 생산자(topology 의 `compensation.stage_devices` 등 태그 읽기)는 엔진 안에 없다(태그 키는 규칙 I·IC4 로 읽기 금지). `declared` 인자로만 받는다.
-* 복합 블록은 묶음 경계를 J12 ratify 전 `composite_block_pending_ratify`(review_needed)로 남기고 격자 곱 Π 는 LUT 축이 필요해 U9 몫이다(`CompositeBlock.cells` = 밑).
+* 복합 블록은 묶음 경계를 J12 ratify 전 `composite_block_pending_ratify`(review_needed)로 남기고 격자 곱 Π 는 LUT 축이 필요해 U9 몫이다(`CompositeBlock.cells` = 밑). [U1b] feedforward 합류는 복합 블록이 아니다(10.6).
 * `virtual_ground` 는 U2 정준 라벨링·궤도가 들어오면 그 궤도로 대체한다.
 
 ### 10.5 어휘 요약과 library 9회로 정지 코드 (2026-10-08 U1 수정 뒤 실측)
 
 * `Block.kind` ∈ {gain, buffer, composite}. AC 역할 ∈ {input, cascode, mirror, diode_load, pass, follower, tail_source, load}(계획 N3.2-6 의 input·cascode·follower·pass·load·tail 에
   mirror·diode_load 를 load 의 세분으로 더함. 계획의 `tail` 은 값 `tail_source` 로 쓴다 -- 문자열 `tail` 은 library 넷 이름과 같아 구조 규칙 E 가 코드 리터럴로 거부한다).
-* `LClass.owner_rule` ∈ {tail_owner, tail_first_gain_stage, current_source_member, name_order}. `OutputDirection.topology` ∈ {push_pull, class_a, none}(none = 어느 방향도 σ 셀 없음).
+* [U1b-jrules] 블록 구성: 복합 diode 묶음 내부 gate 넷(미러 입력)을 읽는 셀은 묶음 진입 넷을 소유한 블록의 멤버로 이어지고(`blocks._owner_of`), 그 미러 출력 넷이 낮은 임피던스(다른 셀이 구동하는 팔로워 출력 등)이면 측면 주입(K8)이라 이어지지 않는다. 다른 stage 블록이 겹친 넷을 한 블록 멤버가 입력으로 읽으면 내부 노드 측면 주입이라 읽는 블록에 합친다(`_absorb_side_injections`). FF 합류 노드는 주경로 셀을 멤버로 가진 블록의 출력노드만이다. L 주인 `name_order` 동률이 한 자기동형 궤도(`automorphism_orbits`, S1 구조만)이면 review 를 올리지 않는다(status derived).
+* `LClass.owner_rule` ∈ {tail_owner, tail_first_gain_stage, current_source_member, main_path_signal [U1b], name_order}. `OutputDirection.topology` ∈ {push_pull, class_a, none}(none = 어느 방향도 σ 셀 없음).
   `DriveInfo.basis` 13종은 `s1v_values.py` `BASIS_*`. `ViewS1v.unreduced_diff` = ((소자, (축약 kind, forward), (비축약 kind, forward)), ...). `S1v.key` 는 7원소(마지막 = declared_loop_cuts 지문).
   `S1v.views` 순서 = 전달 뷰(순번 순) 다음 루프 뷰(끊는 점 정렬 순).
 
 | 회로 | status / exit | 정지 코드(`unsupported_rule_branch`) | review_needed 코드 |
 |---|---|---|---|
 | two_stage_ota, two_stage_ota_sf, folded_cascode, common_gate_amplifier, pushpull_follower_buffer | ok / 0 | 없음 | 없음 |
-| current_reuse_telescopic_ota | stopped / 2 | `cs_output_low_impedance` -- 루프 뷰 `loop:M37a:Voc` 의 N1a2a, N1b2b, Vx(출력노드가 다른 소자의 source) | loop_polarity_undefined, mixed_drive_signal_drain |
-| ngcc_3stage_ff | stopped / 2 | `undeclared_loop_constraint` -- 루프 뷰 `loop:M8:V1`(차동 출력 포트쌍 없음, 안정도 제약 미선언) | composite_block_pending_ratify, loop_polarity_undefined |
-| nmcnr_amplifier | stopped / 2 | `undeclared_loop_constraint` -- 루프 뷰 `loop:M201:NodeM2` | loop_polarity_undefined |
-| sf_pushpull_output_opamp | stopped / 2 | `loop_record_only`(transfer:0 복합 diode 루프 9건), `composite_dag_not_chain`(N1112,N12 / N1516,N910,Y), `cs_output_low_impedance`(N1112, N1314, N1516, N17, N20, N56, N78, N910 -- 정정된 §1.7-4 로 새로 생김) | block_node_overlap(N17, N20: 버퍼 사슬 중간 노드와 부하 블록), composite_block_pending_ratify, mixed_drive_unresolved_group |
+| current_reuse_telescopic_ota | stopped / 2 | `cs_output_low_impedance` -- 루프 뷰 `loop:M37a:Voc` 의 N1a2a, N1b2b | drive_inherit_cycle(Vbias2), mixed_drive_signal_drain(M1a/N1a2a, M1b/N1b2b) -- 뷰 한정 `ac_ground_exception`(Vbias2) 사실이 닫는다 (U1b 뒤) |
+| ngcc_3stage_ff [U1b] | stopped / 2 (spec 에 `pm_ss_deg` 가 있으면 ok / 0) | `undeclared_loop_constraint`(사유 `compensation_internal_needs_overall_pm`: 전체 `pm_ss_deg` 미선언) | 없음 (feedforward 2묶음, 루프 뷰 0, 복합 블록 0) |
+| nmcnr_amplifier [U1b] | stopped / 2 (spec 에 `pm_ss_deg` 가 있으면 review_needed / 2) | `undeclared_loop_constraint`(같은 사유) | `l_owner_name_order`({M104, M105} -- 대칭 쌍이라 규칙으로 못 가르는 동률) |
+| sf_pushpull_output_opamp [U1b] | ok / 0 | 없음 (복합 diode 6소자 -> 이득 블록 {Y} + 버퍼 블록 {vout}, 루프 3개 `composite_diode_internal`) | 없음 |
 
-정지 4회로의 정지 사유는 J 규칙(U1b)이 닿기 전까지 의도된 `기록만` 정지다.
+정지 회로의 정지 사유는 사실(`structure.json`)이나 spec 선언이 닿기 전까지 의도된 `기록만` 정지다(U1 시점의 sf 정지 `loop_record_only`·`composite_dag_not_chain` 등은 10.6 으로 닫혔다).
+
+### 10.6 [U1b] J 공동분석 구조 규칙과 structure.json 사실 소비 (설계 41 §1.12·§1.13, 40 §3.2-3, 사용자 결정 2026-10-08)
+
+모든 규칙은 connectivity 만 읽는다(회로·소자·넷 이름 없음). 사실 파일은 이 단위가 쓰지 않는다(코드 병합 뒤 `structure_rule_fp()` 로 쓴다).
+
+| 규칙 | 파일 / 호출 | 산출 | 소비처 |
+|---|---|---|---|
+| 복합 diode D1 (§1.12.1) | `composite_diode.composite_diodes(projection)` <- `s1_dc_roles` | `CompositeDiode(members, reference, cascode_members, walk)` | `device.dc_role` rule `1c`(evidence.group = 묶음, basis[0] = `diode_reference_composite` 또는 `diode_reference_composite_cascode`); `net_model`: `diode_nodes`(복합 gate 넷 포함)·`composite_mos`·`composite_bundles`·`composite_internal`; `cells`(묶음 MOS = `diode_load`); `drive_kind`(미러 입력·묶음 내부 넷은 구동 판정 제외); `stage_bfs`(diode 단자 비용 0); `blocks`(묶음 MOS = `diode_load` 멤버, 소유 넷은 늘리지 않음); `loop_classify`(1.6) |
+| feedforward (§1.12.2) | `feedforward_cells.feedforward_cells(model, view, blocks, cells, stage)` <- `analyze_view`(전달 뷰만, 이득 블록 구성 뒤) | `FeedforwardResult(main_path, cells[FeedforwardCell], ratio_candidates[FfRatioCandidate], findings)`. 비용 정의의 단일 출처 = `StageResult.edges` | 묶음이 있으면 `analyze_view` 가 그 소자(cells + bias_cells + load_cells)를 뺀 모형(`_without`)에서 셀 이하를 다시 구한다(주경로 블록 사슬, 복합 블록 0). `ViewS1v.main_path`·`feedforward`·`ff_ratio_candidates`. `main_path_ambiguous`(review_needed)는 feedforward 후보가 있을 때만, 입력마다 센다 |
+| 중첩 Miller 내부 (§1.12.3) | `loop_roles.loop_roles(view_loops, transfer_views, declared_pm_views)` <- `analyze_view`(전달 뷰) | `LoopRole(loop_id, role, view, reason)`, role ∈ `LOOP_ROLES`. `compensation_internal` 의 reason = `overall_pm_declared` 또는 `compensation_internal_needs_overall_pm` | 해당 사이클 classes 의 `loop_view` 를 `compensation_internal` 로 바꾸고 끊는 점을 루프 뷰 후보에서 뺀다. 전체 `pm_ss_deg` 미선언이면 기존 `undeclared_loop_constraint`(기록만)를 그 reason 으로 전달 뷰에 유지. `ViewS1v.loop_roles`, `S1v.loop_roles` |
+| 루프 극성 (§1.12.4) | `polarity.loop_polarity`, `view_analysis._loops`(루프 뷰 후보별 DC 극성 모음), `s1v_build._polarity` | `Loop.ac_only`(커패시터 경유, 극성 0), `ViewS1v.polarity`(루프 뷰: DC 사이클 극성; 갈리면 0 + `loop_polarity_conflict`, DC 사이클이 없으면 0 + `loop_polarity_undefined`), info `loop_polarity_ac_only`, `ViewS1v.compensation_candidates` | 극성 기록은 루프 뷰에만 붙는다 |
+| L 주인 `main_path_signal` (§1.12.5) | `l_classes.l_equivalence_classes(s1, model, views, gain_views)` | `LClass.owner_rule == "main_path_signal"`. `name_order` 는 status review_needed + `l_owner_name_order` | gain 제약(`gain_ss_db`) 전달 뷰(없으면 첫 전달 뷰)의 stage 시작 셀(feedforward 묶음 제외) |
+| 뷰 한정 교류접지 (§1.12.6) | `ac_ground_view.view_ac_ground(..., exceptions)` <- `analyze_view(exceptions=)` | `AcGround.exceptions` -> `ViewS1v.ac_ground_exceptions` | `ac_ground_exception` 사실(대상 넷, 값 뷰 id)이 가리킨 뷰에서만 |
+
+**structure.json 사실 소비**(40 §3.2-3): concept 7개 -- `drive_kind`(override) · `stage_members`(declared 대조) · `dc_role`(override: 유도 status 가 review_needed 인 소자, 그 밖은 confirm) · `loop_role`(confirm) ·
+`feedforward_cell`(confirm; 값 `ff|ff_bias|ff_load:<탭>-><merge>`, 대상 = 소자) · `ac_ground_exception`(override, 그 뷰만) · `matching_pair`(대상 = 이름 둘 이상의 정렬 JSON 배열, 값 `branch_symmetric`, override:
+같은 멤버의 `branch_symmetric` 그룹을 status ratified 로 올리거나 레코드를 더한다). `dc_role`·`matching_pair` 는 `build_s1(structure=)` 가 S1 안에서 적용하고(`S1Key.facts_fp`), 나머지는 `build_s1v` 가 쓴다.
+대조(`build_s1v._fact_findings`): 적용·일치 -> `S1v.facts_applied` 의 (concept, subject); 유도 값과 다름 -> `structure_fact_mismatch`(review_needed, detail = concept·subject·derived·ratified);
+대상이 없음(소자·넷·루프·뷰·feedforward 소자를 엔진이 만들지 않음) -> `structure_fact_orphan`(review_needed). `drive_kind` 는 넷이 topology 에 없을 때만 orphan.
+confirm 이 일치한 유도 레코드는 status 를 올린다: `dc_role` -> `DcRole.status == "ratified"`(+ evidence.basis 에 approval_id), `loop_role` -> `LoopRole.status/approval_id`, `feedforward_cell` -> 묶음의 모든 소자에
+일치하는 사실이 있을 때 `FeedforwardCell.status/approval_id`(`build_s1v._ratify_derived`). 구조로 못 가르는 DC 역할 그룹(J-U3-c)은 사실이 없으면 `dc_role_unresolved_group`(review_needed, 그룹 단위)을 올린다.
+
+**로더 거부**(`SchemaRejectedError`, gate `structure_json`, hit rule): `structure_schema_version`(값이 `STRUCTURE_SCHEMA_VERSION` = `"1"` 이 아님), `structure_concept_unknown`(닫힌 어휘 `CONCEPTS` 밖),
+`structure_value_range`(concept 별 값·대상 어휘 위반), `structure_value_ambiguous`(`feedforward_cell` 사실이 있는데 `net_names` 중 `->` 를 품은 넷이 있음) + 기존 키·status·evidence 위반. stale 판정은 `structure_rule_fp()`.
+
+**단계 A**(pipeline CONTRACT 1): `load_structure_facts(path, doc.connectivity_fp, structure_rule_fp(), net_names)` -> `build_s1(structure=)` -> `build_s1v(structure=, declared_loop_cuts=)`.
+
+**불변량 [U1b]**: (a) 복합 diode 소자의 gate 넷은 `diode_nodes` 에 있고 묶음의 MOS 멤버 셀은 항상 `diode_load`. (b) feedforward 묶음 소자는 `ViewS1v.blocks` 의 어느 역할에도 없고 `cells` 에는 있다.
+(c) `compensation_internal` 루프의 끊는 점은 `ViewS1v.cuts` 에 없고 루프 뷰가 생기지 않는다. (d) `Loop.ac_only` 이면 `polarity == 0`. (e) 사실이 없을 때 library 9회로의 D1 발동 = sf {M5, M6, M7, M8, M13, M14},
+파일럿 {M58, M63}, 나머지 0; feedforward = ngcc 2묶음, 나머지 0.
