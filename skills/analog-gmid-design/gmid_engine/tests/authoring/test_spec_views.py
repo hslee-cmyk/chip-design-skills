@@ -133,6 +133,8 @@ def _gate_only_net(sc):
     """레일·입력 포트가 아니고 단자가 전부 MOS gate 인 넷 n_gx 를 만든다(Q6 gate)."""
     t = sc.read_topo("fx_spec_amp")
     t["netlist"].append({"name": "Q6", "kind": "nmos", "drain": "n_outp", "gate": "n_gx", "source": "rail_lo"})
+    # gate 전용 넷은 bias_inputs 선언이 필요하다(authoring CONTRACT 9절 gate_only_undeclared, 2026-10-08 Q6).
+    t["bias_inputs"] = ["n_gx"]
     sc.write_topo(t)
     sc.resync_fp()
 

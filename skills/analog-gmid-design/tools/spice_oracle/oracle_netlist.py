@@ -8,7 +8,7 @@
   넷리스트(.cir)와 그 메타(<out.cir>.meta.json: 소자 probe 이름, 넷 목록, 고정한 넷, 경고/막힘)를 쓴다.
   ngspice 는 부르지 않는다(oracle_simulate.py 몫).
 
-공개 함수: build_netlist(inp, bias, ac_file, loop=False|True|CM_LOOP) -> (text, meta), cm_loop_break_net(inp), write_netlists(inp, bias, out_cir, ...) -> meta,
+공개 함수: build_netlist(inp, bias, ac_file, loop=False|True|CM_LOOP) -> (text, meta), cm_loop_break_nets(inp), cm_loop_moved(inp, breaks), write_netlists(inp, bias, out_cir, ...) -> meta,
           validate_input(inp) -> [위반], loop_break_nets(inp), load_input(path), read_lut_meta(npz_path),
           parse_netlist_elements(text, inp), topology_elements(topo), topology_identity(inp, text, path),
           resolve_topology_path(inp, input_path, override), apply_z1(inp, omit, short),
@@ -253,29 +253,29 @@ def loop_break_nets(inp):
     return nets, blockers
 
 
-CM_LOOP = "cm"      # build_netlist(loop=CM_LOOP): 공통 모드(CMFB) 루프 넷리스트
-CM_LOOP_WEIGHT = 1  # 절단 넷 하나의 스칼라 루프 -- 가중은 정의값 1(엔진 cm_loop 뷰 weights ((감지 넷, 1.0),)와 같다)
-
-
-def cm_loop_break_net(inp):
-    """공통 모드(CMFB) 루프를 끊을 넷 = 선언된 평균 수동소자(cm_loop_passives)가 모두 물린 넷 하나(입력·출력 포트 넷·레일 아님).
-    엔진 cm_loop 뷰(spec_views._cm_loop_view)의 절단(수동소자의 감지 넷 쪽 단자를 떼고 gate 쪽은 그대로)과 같은 위치다.
-    (넷 또는 None, 막힘 목록)."""
-    names = inp.get("cm_loop_passives") or []
-    if not names:
-        return None, []
-    by = {p["name"]: p for p in inp.get("passives") or []}
-    blockers = [f"cm_loop_passives 의 {n} 이 passives 에 없다" for n in names if n not in by]
-    if blockers:
-        return None, blockers
-    common = set.intersection(*(set(by[n]["terminals"]) for n in names))
+CM_LOOP = "cm"      # build_netlist(loop=CM_LOOP): 공통 모드 루프(출력 포트 CM 주입) 넷리스트
+def cm_loop_break_nets(inp):
+    """[CM] 공통 모드 루프를 끊는 곳 = 선언된 차동 출력 포트 쌍(ports.output_p·output_n) -- 두 출력 넷에 동일 부호 Middlebrook 주입(엔진
+    cm_loop 뷰 `cm_output` 과 같은 정의, CM 감지 구현 방식은 보지 않는다). 입력 `cm_output_loop` 가 true 일 때만. (넷 목록, 막힘 목록)."""
+    if not inp.get("cm_output_loop"):
+        return [], []
     ports = inp["ports"]
-    barred = {ports[k] for k in ("input_p", "input_n", "input", "output_p", "output_n", "output") if ports.get(k)}
-    barred |= {r["net"] for r in inp["rails"]}
-    common -= barred
-    if len(common) != 1:
-        return None, [f"cm_loop_passives {names} 에 공통인 (포트·레일 아닌) 넷이 정확히 하나가 아니다: {sorted(common)}"]
-    return next(iter(common)), []
+    if not (ports.get("output_p") and ports.get("output_n")):
+        return [], ["cm_output_loop: ports 에 차동 출력 output_p/output_n 이 없다"]
+    return [ports["output_p"], ports["output_n"]], []
+
+
+def cm_loop_moved(inp, breaks):
+    """[CM] 출력 넷에서 새 노드 lbx 로 옮길 **구동자** 단자: 그 넷에 drain 또는 source 가 (정확히 한쪽만) 물린 MOS 의 그 channel 단자.
+    {소자 이름: "drain" | "source"}. 수동소자·MOS gate(루프 신호를 받는 소비자)는 n 쪽에 남는다(Middlebrook 관례 n = 받는 쪽, x = 되돌림을 내는 쪽;
+    엔진 `cm_cuts` 와 같은 규칙). drain·source 가 모두 절단 넷인 MOS 는 옮기지 않는다."""
+    b = set(breaks)
+    out = {}
+    for d in inp["devices"]:
+        ends = [t for t in ("drain", "source") if d[t] in b]
+        if len(ends) == 1:
+            out[d["name"]] = ends[0]
+    return out
 
 
 def build_netlist(inp, bias, ac_file, loop=False):
@@ -295,6 +295,7 @@ def build_netlist(inp, bias, ac_file, loop=False):
             blockers.append(f"LUT npz 에 {k} 메타가 없다: {process['lut_npz']}")
     blockers += excitation_weight_check(inp)
     cm = loop == CM_LOOP
+    cm_moved = cm_loop_moved(inp, cm_loop_break_nets(inp)[0]) if cm else {}
     N = _Nets(inp["rails"])
     devs = inp["devices"]
     kinds = {d["kind"] for d in devs}
@@ -318,6 +319,9 @@ def build_netlist(inp, bias, ac_file, loop=False):
     driven, dev_nets, geometry, probes = set(), [], {}, {}
     for d in devs:
         nodes = [N(d[t]) for t in ("drain", "gate", "source", "bulk")]
+        if cm and d["name"] in cm_moved:      # [CM] 출력 넷에 channel 단자가 물린 MOS 는 그 단자를 구동자 쪽(lbx)에 둔다
+            slot = 0 if cm_moved[d["name"]] == "drain" else 2
+            nodes[slot] = f"lbx_{d[cm_moved[d['name']]]}"
         L.append(device_line(process, d, nodes))
         driven.update([d["drain"], d["source"]])
         for t in ("drain", "gate", "source", "bulk"):
@@ -343,11 +347,10 @@ def build_netlist(inp, bias, ac_file, loop=False):
         L.append(f"{letter}src_{s['name']} {N(a)} {N(b)} DC {_num(s['value'])}")
         notes.append(f"{s['kind']} source {s['name']}={_num(s['value'])} ({s.get('value_basis', '근거 미기재')})")
 
-    if cm:      # 공통 모드 루프: 끊는 곳은 입력 포트가 아니라 평균 감지 넷 -- 입력은 전부 AC 접지(Vac AC 0)
-        cm_net, bb = cm_loop_break_net(inp)
-        breaks = [] if cm_net is None else [cm_net]
-        fbp = set(inp.get("cm_loop_passives") or [])
-        driven.update(breaks)   # gate 쪽이 N(net) 으로 남아 있고 Vlb 가 lbx 쪽과 DC 로 잇는다
+    if cm:      # 공통 모드 루프: 끊는 곳은 차동 출력 포트 쌍 -- 입력은 전부 AC 접지(Vac AC 0)
+        breaks, bb = cm_loop_break_nets(inp)
+        fbp = set()                       # [CM] 수동소자는 옮기지 않는다
+        driven.update(breaks)
     else:
         breaks, bb = loop_break_nets(inp) if loop else ([], [])
         fbp = set(inp.get("feedback_passives") or [])
@@ -444,10 +447,11 @@ def build_netlist(inp, bias, ac_file, loop=False):
             L.append(f"Vac_{net} acs_{net} 0 DC 0 AC {_num(0 if loop else ac_mag.get(net, 0))}")
             ac_src[net] = f"Vac_{net}"
 
-    if cm and breaks:   # 절단 직렬 전압원(증폭기 쪽 +)과 증폭기 쪽 주입 전류원 -- DM 루프와 같은 Middlebrook 이중 주입
-        ac_mag = {breaks[0]: CM_LOOP_WEIGHT}
-        L.append(f"Vlb_{breaks[0]} {N(breaks[0])} lbx_{breaks[0]} DC 0 AC {_num(CM_LOOP_WEIGHT)}")
-        L.append(f"Ilb_{breaks[0]} 0 {N(breaks[0])} DC 0 AC 0")
+    if cm and breaks:   # 절단 직렬 전압원(구동자 쪽 +)과 구동자 쪽 주입 전류원 -- DM 루프와 같은 Middlebrook 이중 주입, 두 출력에 동일 부호 가중
+        ac_mag = {net: 1 / len(breaks) for net in breaks}
+        for net in breaks:
+            L.append(f"Vlb_{net} {N(net)} lbx_{net} DC 0 AC {_num(ac_mag[net])}")
+            L.append(f"Ilb_{net} 0 {N(net)} DC 0 AC 0")
 
     # 게이트 전용 넷
     declared_bias = {b["net"]: float(b["value"]) for b in inp.get("bias_voltages") or []}
@@ -868,8 +872,6 @@ def apply_z1(inp, omit=(), short=()):
     blockers += [f"Z1 --omit/--short {n}: 같은 원소를 두 번 바꿀 수 없다" for n in set(omit) & set(short)]
     fbp = set(x.get("feedback_passives") or [])
     blockers += [f"Z1 변경 대상 {n} 이 feedback_passives 에 있다(β 루프 정의가 바뀐다)" for n in (set(omit) | set(short)) & fbp]
-    cmp_ = set(x.get("cm_loop_passives") or [])
-    blockers += [f"Z1 변경 대상 {n} 이 cm_loop_passives 에 있다(CM 루프 정의가 바뀐다)" for n in (set(omit) | set(short)) & cmp_]
     om = set(omit)
     x["devices"] = [d for d in x["devices"] if d["name"] not in om]
     x["sources"] = [s for s in x.get("sources") or [] if s["name"] not in om]
@@ -1040,6 +1042,19 @@ def topology_identity(inp, text, topology_path):
             res["bulk_compared"].append(n)
         if not same:
             diffs.append(f"{n}: 단자 넷 topology {list(wt)} != 넷리스트 {list(gt[:len(wt)]) if len(gt) == 4 else list(gt)}")
+    # [Q6] 외부 바이어스 입력 대조(엄격): 입력 bias_voltages 의 넷 집합 == topology bias_inputs. 키가 없으면 빈 집합과 대조한다.
+    # (authoring 게이트가 bias_inputs = gate 전용 넷 전부임을 보장하므로, 같다 = 구동 소자 없는 게이트 넷마다 전압이 선언됨.
+    #  키가 없으면 authoring 게이트를 통과한 topology 는 gate 전용 넷이 없으므로 bias_voltages 도 비어 있어야 한다.)
+    bi = topo.get("bias_inputs", [])
+    if not isinstance(bi, list) or not all(isinstance(x, str) for x in bi):
+        diffs.append(f"topology bias_inputs 가 문자열 list 가 아니다: {bi!r}")
+    else:
+        want_b = set(bi)
+        got_b = {b["net"] for b in inp.get("bias_voltages") or []}
+        res["bias_inputs"] = sorted(want_b)
+        if want_b != got_b:
+            diffs.append(f"bias_voltages 넷 {sorted(got_b)} != topology bias_inputs {sorted(want_b)} "
+                         f"(topology 에만 {sorted(want_b - got_b)}, 입력에만 {sorted(got_b - want_b)})")
     res["diffs"] = diffs
     res["status"] = "mismatch" if diffs else "verified"
     return res
@@ -1070,7 +1085,7 @@ def write_netlists(inp, bias, out_cir, topology_path=None, require_topology=Fals
     ti["required"] = bool(require_topology)
     meta["topology_identity"] = ti
     meta["cm_loop"] = None
-    if work.get("cm_loop_passives") and bias != "iso":
+    if work.get("cm_output_loop") and bias != "iso":
         ctext, cmeta = build_netlist(work, bias, f"{stem}.cmloop", loop=CM_LOOP)
         ccir = os.path.join(os.path.dirname(os.path.abspath(out_cir)), f"{stem}.cmloop.cir")
         with open(ccir, "w", encoding="utf-8") as f:

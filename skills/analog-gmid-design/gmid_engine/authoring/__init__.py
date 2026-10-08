@@ -2,6 +2,7 @@
 
 다른 패키지와 test 는 이 `__all__` 만 쓴다. 계약: `CONTRACT.md`.
 """
+from .bias_inputs import bias_input_declaration
 from .dc_edges import DC_CONDUCTING_PASSIVE_KINDS, dc_edges_unpruned
 from .devices import device_declaration
 from .hidden_rails import check_hidden_rails
@@ -10,8 +11,9 @@ from .json_read import CheckedJson, load_json_checked
 from .linked_files import check_linked_files
 from .name_uniqueness import check_name_uniqueness
 from .passives import passive_declaration
-from .ports import INPUT_DIRECTION, port_declaration
+from .ports import INPUT_DIRECTION, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P, port_declaration
 from .rails import rail_declaration
+from .source_manifest import check_source_manifest
 from .spec_constraints import constraint_declaration
 from .spec_elements import element_value_declaration
 from .spec_input_dc import input_dc_declaration
@@ -95,11 +97,15 @@ __all__ = (
     "TargetDecl",
     "TopologyDoc",
     "ViewDecl",
+    "ROLE_DIFFERENTIAL_OUTPUT_N",
+    "ROLE_DIFFERENTIAL_OUTPUT_P",
     "check_hidden_rails",
     "check_linked_files",
     "check_name_uniqueness",
+    "check_source_manifest",
     "check_spec_schema",
     "check_topology_schema",
+    "bias_input_declaration",
     "compensation_target_declaration",
     "constraint_declaration",
     "dc_edges_unpruned",

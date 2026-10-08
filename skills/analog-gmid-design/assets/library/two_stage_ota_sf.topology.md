@@ -1,11 +1,20 @@
 # two_stage_ota_sf -- topology connectivity table
 
-소스: `library/two_stage_ota_sf.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
+소스: `assets/library/two_stage_ota_sf.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
 
 ## ⚠️ 자동 플래그 (사람 재확인 필요)
 
-- **구동 소자 없는 net(gate로만 참조됨)**: bias, vin_n, vin_p
+- **구동 소자 없는 net(gate로만 참조됨)**: vin_n, vin_p
   이 net을 source/drain으로 쓰는 소자가 topology.json에 없습니다 -- 외부 입력 핀이면 정상이지만, 내부에서 생성돼야 하는 신호라면 그걸 만드는 소자/감지망이 누락된 것일 수 있습니다.
+
+## 📄 출처 매니페스트 (`source_manifest`)
+
+- 그림/쪽: Allen Lecture 26, Page 26-5
+- 소자 9개, 수동소자 2개 (로더가 netlist·passive_elements 개수와 대조)
+
+## 🔌 외부 바이어스 입력 (`bias_inputs` -- gate 전용 선언 net, connectivity 불변)
+
+`bias`
 
 ## Net별 연결 표 (이 net에 물린 모든 단자)
 
@@ -15,7 +24,7 @@
 | `D3` | M1.drain, M3.drain, M3.gate, M4.gate | 4 |
 | `O1` | Cc.t0, M2.drain, M4.drain, M6.gate | 4 |
 | `OUT` | Cc.t1, M6.drain, M7.drain, M8.gate | 4 |
-| `bias` ⚠️ | M5.gate, M7.gate, M9.gate | 3 |
+| `bias` ℹ️ | M5.gate, M7.gate, M9.gate | 3 |
 | `gnd` | CL.t1, M5.source, M7.source, M9.source | 4 |
 | `vdd` | M3.source, M4.source, M6.source, M8.drain | 4 |
 | `vin_n` ⚠️ | M1.gate | 1 |

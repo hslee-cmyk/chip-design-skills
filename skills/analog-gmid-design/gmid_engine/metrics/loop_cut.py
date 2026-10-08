@@ -14,7 +14,7 @@
 import dataclasses
 
 from .mna_types import CutCircuit
-from .records import LOOP_CUT_KINDS, Excitation, LoopCut, Sense, SmallSignalCircuit
+from .records import LOOP_CUT_KINDS, LOOP_CUT_MOS, Excitation, LoopCut, Sense, SmallSignalCircuit
 
 _UNIT = 1.0
 
@@ -30,7 +30,7 @@ def _nodes(circuit):
 
 def _pools(circuit):
     # LoopCut.kind 어휘(records.LOOP_CUT_KINDS) -> 그 원소 tuple
-    return dict(zip(LOOP_CUT_KINDS, (circuit.resistors, circuit.capacitors)))
+    return dict(zip(LOOP_CUT_KINDS + (LOOP_CUT_MOS,), (circuit.resistors, circuit.capacitors, circuit.mos)))
 
 
 def _check(circuit, cuts):
@@ -73,8 +73,8 @@ def cut_circuit(circuit, cuts):
     for cut, node in zip(cuts, origin):
         element = pools[cut.kind][cut.index]
         pools[cut.kind][cut.index] = dataclasses.replace(element, **{cut.terminal: new_node[node]})
-    resistors, capacitors = (tuple(pools[kind]) for kind in LOOP_CUT_KINDS)
-    cut = dataclasses.replace(circuit, resistors=resistors, capacitors=capacitors)
+    resistors, capacitors, mos = (tuple(pools[kind]) for kind in LOOP_CUT_KINDS + (LOOP_CUT_MOS,))
+    cut = dataclasses.replace(circuit, resistors=resistors, capacitors=capacitors, mos=mos)
     pairs = tuple((n, new_node[n]) for n in cut_nodes)
     excitations, senses = _probe_columns(pairs)
     return CutCircuit(circuit=cut, cuts=cuts, pairs=pairs, excitations=excitations, senses=senses)

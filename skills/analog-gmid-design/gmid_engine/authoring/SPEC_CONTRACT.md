@@ -131,12 +131,11 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
     `cuts` = (되먹임 소자, 절단 넷) 소자 이름순 -- 절단 넷 = 소자의 입력 포트 넷 쪽 단자 넷, `weights` = 절단 넷 (넷, 가중)
     넷순, `sense` None. unity(feedback 빈 list): `weights`·`sense` 가 `port` 와 같다. feedback 이 결정 대기 표지면 view =
     `pending`(decision = feedback 의 ID -- 새 표지를 `pending` 에 더하지 않는다, 이미 `human.feedback` 표지로 들어 있다).
-  - `cm_loop`(pm_cm_ss_deg, [CM 2026-10-08] 공통 모드 CMFB 루프 PM, 사용자 결정 2026-10-08): view 를 적지 않는다(결정 대기 표지만 허용). 구조 유도 --
-    차동 출력쌍(role differential_output_p·_n) p, n 을 수동소자(kind resistor·capacitor)로 평균해 MOS gate 에 먹이는 감지 넷 s: s 는 레일·포트
-    넷이 아니고, s 에 물린 MOS 단자는 전부 gate, 이상원 단자 없음, 물린 수동소자는 1개 이상이며 각각 s 를 단자 하나로만 갖고 반대 단자
-    집합이 정확히 {p, n}. 정확히 하나면 `ViewDecl("loop", beta="declared", cuts=((평균 수동소자, s) 이름순), weights=((s, 1.0),))`
-    (절단 = 수동소자의 s 쪽 단자, gate 쪽은 그대로). 후보 없음·둘 이상이면 `view_required` 사유 문자열(`DefaultViews.cm_loop` 가 문자열). 이름·
-    숫자 리터럴 없음(가중 1.0 = 스칼라 루프의 정의값).
+  - `cm_loop`(pm_cm_ss_deg, [CM 2026-10-08] 공통 모드 루프 PM -- 출력 포트 CM 주입, 사용자 결정 2026-10-08): view 를 적지 않는다(결정 대기 표지만 허용). 선언된 차동 출력 포트 쌍(role
+    differential_output_p·_n 각 하나, 다른 출력 없음)이 있으면 `ViewDecl("cm_output", weights=((p, 1/2), (n, 1/2)))`(두 출력 넷 동일 부호 Middlebrook 주입, 입력 교류접지; 절단 원소는 metrics 가
+    소신호 회로에서 구조로 정한다 -- CM 감지 구현 방식은 보지 않는다, 이름·구조 리터럴 없음). 차동 출력쌍이 없으면 `view_required` 사유(`DefaultViews.cm_loop` 가 문자열); 수동소자·이상원 kind ∈
+    `SWITCHED_KINDS`("switch", "clock", 스위치드 커패시터 CMFB 선언)이 있으면 명시적 정지 사유 `view_required`(연속시간 소신호 MNA 로 표현할 수 없다). 제약이 선언돼야 판정하고, 선언이 없으면
+    metrics 가 보고 전용으로만 계산한다(metrics CONTRACT 7.11).
   - `sense`(rout_ss_ohm): `sense` = `SenseDecl`(기본 = 출력 포트 1개면 그 넷 single_ended, 선언이면 그 감지 칸).
   - topology 교차 검사를 못 한 로드(meta 불일치 -- 어차피 거부)나 feedback 이 거부된 로드에서는 유도하지 않은 mode 만 담는다.
 - 유도된 내용이 `ViewDecl` 에 들어가므로 `constraints_fp` 가 feedback·ports 변경을 따라간다(feedback 만 바꿔도 loop 제약이
@@ -200,10 +199,9 @@ CL1·CL2 각각 1 pF(사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF", u
   Vip–Vim 커패시터 추가), `view_excite_not_allowed`·`view_sense_fixed_net`(pushpull rout 에 ac_excite / sense_p = 입력 vin),
   `view_shape_not_supported`·`view_not_applicable`(nmcnr pm 에 cut_weights / 감지 모양 view) -- 전부 그 규칙 하나만 냈다.
 
-[CM 2026-10-08] 공통 모드 루프 제약: 파일럿에 `pm_cm_ss_deg >= 60`(source user_spec, decided 2026-10-08, 사용자 "6번도 네 의견에 동의하고 제안한 값을
-사용해") 한 건을 더했다(제약 8(5) → 9(6), view 는 적지 않음). library 9회로에 `default_views().cm_loop` 를 전수 실행: 파일럿만 유도 성공(cuts
-(R1, Voc)·(R2, Voc), 가중 ((Voc, 1.0),)), 나머지 8회로는 차동 출력쌍이 없어 view_required 사유(제약을 적지 않는다). 그 8회로 중 하나에 이 제약을 적으면
-`view_required`. 픽스처 이름표 갱신 대상: `pm_cm_ss_deg`(deg, ss, cm_loop) 추가(레지스트리 이름 11개).
+[CM 2026-10-08] 공통 모드 루프 제약: 파일럿에 `pm_cm_ss_deg >= 60`(source user_spec, decided 2026-10-08, 사용자 "6번도 네 의견에 동의하고 제안한 값을 사용해") 한 건을 더했다(제약 8(5) → 9(6), view 는
+적지 않음; pending 표지 수 11·총 61 은 그대로 -- 이 계약 표가 정본). library 9회로에 `default_views().cm_loop` 를 전수 실행: 파일럿만 `cm_output`(가중 ((Vom, 1/2), (Vop, 1/2))), 나머지 8회로는 차동 출력쌍이
+없어 view_required 사유. 그 8회로 중 하나에 이 제약을 적으면 `view_required`. 픽스처 이름표 갱신 대상: `pm_cm_ss_deg`(deg, ss, cm_loop) 추가(레지스트리 이름 11개). 옛 평균 수동소자 감지 넷 구조 규칙은 삭제.
 
 ## 6. 설계(design_spec_format)와 다르게 정한 점
 

@@ -8,6 +8,8 @@
     "vdd",
     "gnd"
   ],
+  "source_manifest": {"figure": "Lee et al., JSTS 2007, Fig. 3", "device_count": 16, "passive_count": 3},
+  "bias_inputs": ["VBP", "VBN"],
   "_supply_nets_comment": "계획 DEC-60(레일 넷 선언). 전압은 사이징 스펙 `supplies_v`로 선언한다(논문 VDD=1.2V, sky130 재설계 전압은 별도 결정).",
   "compensation": null,
   "_compensation_status": "pending_topology_fn",

@@ -14,7 +14,7 @@ from .units import DOMAINS, METRIC_UNITS
 # 뷰 종류 어휘(MOD5 레지스트리 어휘의 정본, 이 한 곳). 뷰를 쓰지 않는 metric 은 문자열이 아니라 None 이다.
 #   transfer    -- 선언 전달 뷰 하나(ac_excite -> sense)
 #   loop        -- β 루프(선언 되먹임 수동소자, 없으면 β = 1 -- 계획 N3.8 PM)
-#   cm_loop     -- 공통 모드(CMFB) 루프: 차동 출력 평균 감지 넷에서 끊은 Middlebrook 루프(구조에서 유도 -- 되먹임 선언 없음)
+#   cm_loop     -- 공통 모드 루프: 선언된 차동 출력 포트 쌍에 동일 부호 Middlebrook 주입(되먹임 선언 없음, 입력 교류접지)
 #   output_port -- 출력 포트 전류 주입 열(여기원 전부 교류접지)
 #   ratio       -- 같은 계의 num·den 두 여기 열
 VIEW_KINDS = ("transfer", "loop", "cm_loop", "output_port", "ratio")

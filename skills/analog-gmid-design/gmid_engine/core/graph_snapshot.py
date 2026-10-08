@@ -16,6 +16,7 @@ from .determinism import sorted_items
 from .field_value import FieldValue
 from .fingerprint import fp_of
 from .graph_record import GraphRecord
+from .writer_error import WriterPermissionError
 from .writer_table import WriterTable
 
 
@@ -99,6 +100,30 @@ class GraphSnapshot:
         """`kind` 레코드 중 `field` 가 있는 것의 ((key, value), ...) -- key 정렬."""
         records = self.tables.get(kind, {})
         return tuple((key, records[key].get(field).value) for key in _column_keys(records, field))
+
+    def column_fields(self, kind, field):
+        """`column` 과 같은 순서의 ((key, FieldValue), ...) -- 값과 함께 value_fp·writer·입력 버전을 읽을 때(투영 지문)."""
+        records = self.tables.get(kind, {})
+        return tuple((key, records[key].get(field)) for key in _column_keys(records, field))
+
+    def extend_writers(self, writers):
+        """같은 레코드·block_version 을 더 넓은 권한표 `writers` 아래로 옮긴 새 스냅샷(sizing O7, 2026-10-08 사용자 승인).
+
+        * `writers` 는 이 스냅샷 권한표의 모든 ((kind, field), writer) 를 같은 writer 로 포함해야 한다 -- 빠진 항목이나 다른
+          writer 는 `WriterPermissionError`(이미 쓴 필드의 출처가 표와 어긋나게 되므로). WriterTable 아니면 `TypeError`.
+        * 레코드 객체는 그대로 공유한다(`is`, 구조 공유), `fp`·값·필드 메타·`block_version` 이 이 스냅샷과 같다.
+        * 이 스냅샷은 바뀌지 않는다. 표가 같으면 `self` 그대로.
+        """
+        if not isinstance(writers, WriterTable):
+            raise TypeError("extend_writers: writers 는 WriterTable 이어야 한다")
+        if writers == self.writers:
+            return self
+        for (kind, field), writer in self.writers.entries:
+            if writers.writer_of(kind, field) != writer:
+                raise WriterPermissionError(
+                    "extend_writers: 새 권한표가 " + repr((kind, field)) + " 의 writer " + repr(writer) + " 를 유지하지 않는다"
+                )
+        return GraphSnapshot(writers, self.tables, self.block_versions)
 
     def block_version(self, writer):
         """`writer` 의 마지막 쓰기 입력 버전, 쓴 적 없으면 None."""

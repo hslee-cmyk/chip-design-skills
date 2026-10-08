@@ -250,5 +250,35 @@ SYNTHESIS T15 (1)은 '비차단 `authoring_anomalies`(dangling 넷, 대칭 미�
 3. **소비자가 없다.** 비차단 보고를 받아 출력할 MOD9 `topology_review` 가 아직 없어(SYNTHESIS: MOD9 design 은 Q11 (iv) 뒤)
    지금 만들면 배선되지 않는 결과가 된다.
 - 결정 필요: (a) dangling 정의(G4-08 채널 1개 / TEC 참조 1), (b) 레일·포트 제외 여부, (c) 결과를 어디에 담을지
-  (`TopologyDoc` 필드 / 별도 함수) -- (c)는 MOD9 설계와 함께. `bias_inputs` 게이트는 Q9 (i) 대기라 하지 않았다.
+  (`TopologyDoc` 필드 / 별도 함수) -- (c)는 MOD9 설계와 함께. `bias_inputs` 게이트는 9절에서 구현했다(2026-10-08).
 
+
+## 9. [신규] `bias_inputs` -- gate 전용 외부 바이어스 넷 선언과 게이트 (2026-10-08, 브랜치 ng-q6-bias, 정정 대기열 Q6)
+
+- 근거: 사용자 2026-10-07 "B는 추천대로 해."(SYNTHESIS Q9 (i)), 2026-10-08 "Q6는 반영해".
+- 선택 최상위 키 `bias_inputs`: 넷 이름 문자열 list. connectivity 불변 선언이라 `connectivity_fp` 에 넣지 않는다.
+  `TopologyDoc.bias_inputs`(정렬 tuple, 기본 `()`)로 노출. 코드: `bias_inputs.py`(`bias_input_declaration`), 이름 하드코딩 없음.
+- gate 전용 넷 = MOS gate 에만 나타나고 drain/source/선언 bulk·수동소자·이상원 terminals·레일·포트 어디에도 없는 넷.
+- 거부(gate `bias_inputs`): `gate_only_undeclared`(gate 전용인데 미선언), `bias_input_not_gate_only`(선언했는데 gate 전용 아님 --
+  레일·포트·drain/source/bulk/2단자 단자, gate 에도 없는 넷 포함), `bias_inputs_type`, `bias_input_entry`, `bias_input_duplicate`.
+  소자·수동·이상원·레일·포트 선언이 모두 통과했을 때만 돈다. 거부된 문서에서는 건너뛰며 `not_evaluated` 이름은 늘리지 않는다
+  (기존 test 가 그 집합을 정확히 고정한다).
+- 라이브러리 선언(재실측 = 제안 목록과 일치): common_gate {VNBias1, VNBias2, VPBias1}, folded {bias3}, ngcc {VBN, VBP},
+  nmcnr {VB1..VB5}, pushpull {VNB1, VPB1}, two_stage {bias}, two_stage_sf {bias}. current_reuse·sf_pushpull 은 내부 바이어스라 선언 없음(통과).
+- `bias_inputs: null` 이나 list 가 아닌 값은 `bias_inputs_type` 하나만 낸다(그 경우 선언 집합이 없어 `gate_only_undeclared` 는 같이 나오지 않는다).
+  `bias_input_entry`·`bias_input_duplicate` 는 `gate_only_undeclared`·`bias_input_not_gate_only` 와 한 번에 같이 나올 수 있다.
+  hit 의 `where` = `bias_inputs`(집합 위반) 또는 `bias_inputs[i]`(형식·중복). 공개 이름: `bias_input_declaration`(`gmid_engine.authoring.__all__`).
+- 소비처: SPICE 오라클 C15, 키가 없으면 빈 집합과 엄격 대조 (`tools/spice_oracle/oracle_netlist.py::topology_identity`)가 입력 `bias_voltages` 넷 집합 == topology `bias_inputs` 를 대조한다.
+
+## 10. [신규] `source_manifest` -- 출처 개수 대조 (2026-10-08, 브랜치 ng-q6-bias, 정정 대기열 Q7)
+
+- 근거: 사용자 2026-10-08 "Q7도 모두 맞아"(SYNTHESIS Q9 (iii)). 선택 최상위 키 `source_manifest{figure, device_count, passive_count}`,
+  코드 `source_manifest.py::check_source_manifest`(`connectivity_fp` 불변, 키 없으면 검사 안 함).
+- 대조: device_count == netlist MOS 수, passive_count == `passive_elements` 수(이상원 제외). 위반 gate `source_manifest`:
+  `source_manifest_mismatch`(선언·실제 개수 둘 다 메시지에), `source_manifest_type`·`_key`·`_figure`·`_count`(형식).
+  소자·수동 선언이 거부된 문서에서는 이 검사를 건너뛴다(`not_evaluated` 이름은 늘리지 않는다).
+- `source_manifest` 안의 `_` 접두 아닌 알 수 없는 키, 빠진 키, `null`(객체 아님 -> `source_manifest_type`)은 거부한다(닫힌 어휘).
+  `source_manifest_mismatch` 의 `where` = `source_manifest.device_count` 또는 `source_manifest.passive_count`(메시지에 선언·실제 개수).
+  공개 이름: `check_source_manifest`(`gmid_engine.authoring.__all__`).
+- 9회로 값(사용자 확인): common_gate 3/0, current_reuse 51/12, folded 13/1, ngcc 16/3, nmcnr 15/5, pushpull 6/1, sf_pushpull 22/5,
+  two_stage 7/3, two_stage_sf 9/2 -- 9회로 전부 로드 통과(실제 개수와 일치).

@@ -155,6 +155,9 @@ C5. free: 차동 입력+차동 출력이면 `Efb_<in>` 이 (Vo-Vo') 차동 성�
     forced: 레일·입력·게이트 전용 바이어스 넷을 뺀 모든 소자 단자 넷(예측 있음)에 `Vhold_<net>` + choke, free 모드 `.nodeset` 없음.
 C6. 게이트 전용 넷(드레인/소스/전원/수동소자/입력 어디에도 안 물림): `bias_voltages` 값, 없으면 `predictions.nodes` 값의
     `Vbias_<net>` 과 notes 경고, 둘 다 없으면 막힘.
+    **[신규 Q6]** topology 가 연결 동일성(C15) 대상일 때 `bias_voltages` 의 넷 집합은 topology `bias_inputs`(키가 없으면 빈 집합과 대조 -- 엄격,
+    authoring 게이트 `gate_only_undeclared`/`bias_input_not_gate_only` 가 gate 전용 넷 전부임을 보장)와 **같아야** 한다.
+    다르면 C15 diffs 에 들어가 막힘. 옛 어댑터는 `bias_inputs` 넷마다 엔진 예측 노드전압을 `bias_voltages` 로 선언한다.
 C7. **[변경]** 기록: 오차 = SPICE - 예측(abs) 또는 (SPICE - 예측)/|예측|(rel). 허용오차가 있으면 기록 칸 `judge` 에 `|오차| <= tol`
     PASS / 밖 FAIL, 없으면 `N/A(tol 미설정)` -- **verdict 와 무관**. 영역: `sat_margin_V` 없으면 `None`(+`N/A(sat_margin 미설정)`),
     있으면 VDS - VDSAT >= margin 이 `sat`, 아니면 `triode`; 그 소자 문턱(**[변경]** `predictions.devices[].off_current_A`,
@@ -558,18 +561,19 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
 
 ## [신규] CM 루프 PM -- 공통 모드(CMFB) 루프 위상여유 (2026-10-08, 사용자 결정 "6번도 네 의견에 동의하고 제안한 값을 사용해": 완전 차동 회로의 CMFB 루프 PM 하한 60 deg)
 
-엔진 `pm_cm_ss_deg`(metrics CONTRACT 7.11)와 같은 정의를 재는 측정. DM β 루프(`feedback_passives`)와 독립이다(둘이 함께 있어도 된다).
+엔진 `pm_cm_ss_deg`(metrics CONTRACT 7.11, 출력 포트 CM 주입)와 같은 정의를 재는 측정. DM β 루프(`feedback_passives`)와 독립이다(둘이 함께 있어도 된다).
 
 ### 입력 스키마 추가(선택 필드)
-* `cm_loop_passives`: 공통 모드 루프를 끊는 평균 수동소자 이름 배열(차동 출력쌍을 평균해 MOS gate 에 먹이는 감지 넷에 물린 소자 전부). 소자들의
-  **공통인 (포트·레일 아닌) 넷이 정확히 하나**여야 한다 -- 그 넷이 절단 넷이고, 아니면 막힘. 엔진 쪽 이름 규칙은 엔진 `cm_loop` 뷰의 `cuts` 소자 이름.
+* `cm_output_loop`(boolean): true 면 공통 모드 루프를 **선언된 차동 출력 포트 쌍(ports.output_p·output_n)** 에서 끊는다(output_p·output_n 이 없으면 막힘).
+  CM 감지가 평균 저항이든 DDA 든 버퍼든 보지 않는다. (옛 `cm_loop_passives` 입력은 삭제.)
 * measure `cm_pm_deg`(predictions.metrics, acceptance.constraints): 허용오차 키는 `pm_deg_abs`.
 
 ### 동작 계약
-* 넷리스트: `cm_loop_passives` 가 있으면 `<stem>.cmloop.cir`(+ `meta.cm_loop`)를 더 쓴다 -- 감지 넷 s 의 수동소자 쪽 단자를 `lbx_<s>` 로 떼고(게이트 쪽은
-  그대로) 직렬 전압원 `Vlb_<s>`(gate 쪽 +, AC 1, DC 0)과 gate 쪽 주입 전류원 `Ilb_<s>` 를 넣는다. 입력 포트는 **전부 AC 접지**(`Vac_*` AC 0, 끊기지 않으므로
-  `loop_dc_choke_H` 불필요 -- DC 는 Vlb 0 V 가 이어 준다). `.ac` 2회(전압·전류 주입) + `loop_gain`(DM 과 같은 Middlebrook 식). 가중 = 정의값 1.
-  `feedback_passives`·`cm_loop_passives` 가 없는 입력은 이 파일들을 만들지 않는다(기존 출력 비트 동일).
+* 넷리스트: `cm_output_loop` 가 true 이면 `<stem>.cmloop.cir`(+ `meta.cm_loop`)를 더 쓴다 -- 두 출력 넷 각각에서 **구동자 쪽 단자**를 `lbx_<넷>` 으로 뗀다: 그 넷에
+  drain 또는 source 가 (정확히 한쪽만) 물린 MOS 의 그 channel 단자. 수동소자·MOS gate(루프 신호를 받는 소비자: 감지 회로·부하·버퍼 gate)는 원래 넷(n 쪽)에 남는다
+  (Middlebrook 관례 n = 받는 쪽, x = 되돌림을 내는 쪽; 엔진 `cm_cuts` 와 같은 규칙; drain·source 가 모두 출력 넷인 MOS 는 옮기지 않는다). 넷마다 직렬 전압원
+  `Vlb_<넷>`(수신 쪽 +, AC 1/2, DC 0)과 수신 쪽 주입 전류원 `Ilb_<넷>` 을 넣어 두 출력에 **동일 부호** 가중(1/2, 1/2)으로 Middlebrook 이중 주입한다. 입력 포트는 **전부 AC 접지**(`Vac_*` AC 0, DC 는 Vlb 0 V 가 이어 준다). `.ac` 2회 + `loop_gain`
+  (DM 과 같은 식). `feedback_passives`·`cm_output_loop` 가 없는 입력은 이 파일들을 만들지 않는다(기존 출력 비트 동일).
 * 시뮬레이션: `sim.cm_loop` = {ngspice_rc, break_nets, weights, measures(`ac_measures`), singular, pm_deg, pm_deg_raw, pm_undefined, stability,
   stability_cache}. PM 값이 있으면 DM 과 같은 C10 안정성 근거(Nyquist 감은 수 + 폐루프 .tran `<stem>.cmloop.stab*.cir/txt`)를 건다: P = 0 이 증명되지 않으면
   `pm_deg = None` + `pm_undefined`(이유), 원값 `pm_deg_raw`. Middlebrook 분모 0 은 `loop_probe_singular`(정의 불가, 막힘 아님).
@@ -577,10 +581,12 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
   `summary.cm_loop`(break_nets, pm_deg, pm_deg_raw, pm_undefined, loop_gain_dc_db, loop_ugf_hz, singular, stability 요약), 비교표에 'CM 루프(공통 모드 CMFB) PM' 줄.
   루프 측정 결과가 없고 singular 도 아니면 막힘('CM 루프 측정 결과 없음').
 * 한계: 루프 이득 T_cm 이 전 대역에서 1 보다 작으면 UGF 가 없어 PM 값이 없다(`ac_measures` 의 pm_deg None -> 'PM 값 없음 -- 검사 대상 아님').
+* **판정(사용자 결정 2026-10-08 A, 엔진과 같은 평결)**: acceptance 제약 `cm_pm_deg` 는 `sim.cm_loop` 의 기준점 |T_cm| ≤ 1(`measures.gain_dc` ≤ 1)이고 UGF·`pm_undefined` 모두 없으면 **FAIL**(`undefined = cm_loop_ineffective`, SPICE PM 값 None 이어도) -- CMFB 무효 = 위반. `pm_undefined`(RHP 극·불안정)는 기존 N/A. DM `pm_deg` 는 불변.
 
 ### 확인(2026-10-08, ngspice-46 sky130 tt, 기록 -- test 아님)
-* 파일럿 옛 엔진 사이징 점(forced, R1 = R2 = 1 MΩ, fstart 100 Hz): `cm_loop` 측정이 끝까지 돈다(T_cm(100 Hz) = −38.39 dB, UGF 없음 -> PM 값 없음).
-  엔진과의 대조: `smoke/cm_loop_engine_vs_ngspice.py`, 결과 `smoke/current_reuse_telescopic_ota.cm_loop_engine_vs_ngspice.json`·`…cm_loop.forced.compare.md`.
+* 파일럿 옛 엔진 사이징 점(forced, R1 = R2 = 1 MΩ, fstart 100 Hz): `cm_loop` 측정이 끝까지 돈다(T_cm(100 Hz) = −39.38 dB, UGF 없음 -> PM 값 없음; acceptance `cm_pm_deg >= 60` 은 FAIL `cm_loop_ineffective`).
+  엔진과의 대조: `smoke/cm_loop_engine_vs_ngspice.py`(엔진 T_cm(0) −39.365 dB, 엔진 대 ngspice 선형 3.3e-7 dB), 결과 `smoke/current_reuse_telescopic_ota.cm_loop_engine_vs_ngspice.json`·`…cm_loop.forced.compare.md`.
+* 연속시간 CMFB 변형 5종(합성 소신호): `smoke/cm_loop_variants.py`(결과 `…result.json`) -- metrics CONTRACT 7.11 표.
 * 섞인 절단 폐형식 예(CS + Rf, gate 쪽 용량 전용 n): `smoke/cm_loop_mixed_cut_example.py` -- 엔진 PM 17.144891°, 폐형식 같음, 오라클 `loop_gain` 17.14966°.
 * 전체 test 스위트에서 C10 `test_rhp_fixture_closed_loop_oscillates_and_n_is_zero[rb1e5]` 가 master 에서도 실패한다(이 변경 밖 -- ngspice 출력 파싱).
 

@@ -184,26 +184,30 @@ class SmallSignalCircuit:
 
 LOOP_CUT_KINDS = ("resistor", "capacitor")
 LOOP_CUT_TERMINALS = ("a", "b")
+LOOP_CUT_MOS = "mos"            # [CM] 출력 포트 절단: MOS 의 gate 단자(소비자 쪽)도 새 노드로 옮길 수 있다
+LOOP_CUT_MOS_TERMINALS = ("d", "s", "g")
 
 
 @dataclasses.dataclass(frozen=True)
 class LoopCut:
     """루프 절단 하나: `SmallSignalCircuit` 의 `kind`(resistor | capacitor) 원소 `index` 번째의 단자 `terminal`(a | b)을
-    새 노드로 옮긴다(`cut_circuit`). 어느 단자를 끊을지는 선언(spec `feedback` 소자의 입력 포트 넷 쪽 단자)이 정한다."""
+    새 노드로 옮긴다(`cut_circuit`). 어느 단자를 끊을지는 선언(spec `feedback` 소자의 입력 포트 넷 쪽 단자)이 정한다.
+    [CM] kind `mos`(`LOOP_CUT_MOS`) 는 `mos` 튜플의 `index` 번째 MOS 의 단자(`terminal` ∈ `LOOP_CUT_MOS_TERMINALS` = d | s | g)를 옮긴다."""
 
     kind: str
     index: int
     terminal: str
 
     def __post_init__(self):
-        if self.kind not in LOOP_CUT_KINDS:
-            raise ValueError("LoopCut.kind 는 %r 중 하나여야 한다: %r" % (LOOP_CUT_KINDS, self.kind))
+        if self.kind not in LOOP_CUT_KINDS + (LOOP_CUT_MOS,):
+            raise ValueError("LoopCut.kind 는 %r 중 하나여야 한다: %r" % (LOOP_CUT_KINDS + (LOOP_CUT_MOS,), self.kind))
         if isinstance(self.index, bool) or not isinstance(self.index, int):
             raise TypeError("LoopCut.index 는 정수여야 한다: %r" % (self.index,))
         if self.index < 0:
             raise ValueError("LoopCut.index 는 0 이상이어야 한다: %r" % (self.index,))
-        if self.terminal not in LOOP_CUT_TERMINALS:
-            raise ValueError("LoopCut.terminal 은 %r 중 하나여야 한다: %r" % (LOOP_CUT_TERMINALS, self.terminal))
+        allowed = LOOP_CUT_MOS_TERMINALS if self.kind == LOOP_CUT_MOS else LOOP_CUT_TERMINALS
+        if self.terminal not in allowed:
+            raise ValueError("LoopCut.terminal 은 %r 중 하나여야 한다: %r" % (allowed, self.terminal))
 
 
 @dataclasses.dataclass(frozen=True)

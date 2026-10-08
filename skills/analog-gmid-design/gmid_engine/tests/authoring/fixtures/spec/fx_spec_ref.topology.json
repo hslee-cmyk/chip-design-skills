@@ -9,6 +9,7 @@
     {"name": "Q2", "kind": "pmos", "drain": "n_o", "gate": "n_b", "source": "rail_hi"}
   ],
   "passive_elements": [],
+  "bias_inputs": ["n_b"],
   "ports": {
     "n_i": {"direction": "input", "role": "single_ended_input"},
     "n_o": {"direction": "output", "role": "single_ended_output"}

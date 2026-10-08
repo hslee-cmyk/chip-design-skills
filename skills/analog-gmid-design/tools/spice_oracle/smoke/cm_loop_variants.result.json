@@ -1,0 +1,87 @@
+[
+ {
+  "variant": "1 R평균->오차증폭",
+  "cuts": 4,
+  "dc_db": 20.19775179496702,
+  "ugf_hz": 14002755.015759977,
+  "pm_deg": 63.73658550025559,
+  "undefined": [],
+  "warn": [
+   "cm_loop_unconstrained"
+  ],
+  "ng_dc_db": 20.197751801922642,
+  "ng_ugf": 14002063.310026819,
+  "ng_pm": 63.73426384250162,
+  "max_db": 7.682683759949116e-07,
+  "max_deg": 2.208544604891302e-06,
+  "poles_rhp": []
+ },
+ {
+  "variant": "2 SF버퍼->R평균",
+  "cuts": 4,
+  "dc_db": 20.111324319314164,
+  "ugf_hz": 14173516.19472016,
+  "pm_deg": 62.4614805433392,
+  "undefined": [],
+  "warn": [
+   "cm_loop_unconstrained"
+  ],
+  "ng_dc_db": 20.111324316884822,
+  "ng_ugf": 14173183.239768194,
+  "ng_pm": 62.460556309678395,
+  "max_db": 1.0090062134666459e-06,
+  "max_deg": 1.7986647235128508e-06,
+  "poles_rhp": []
+ },
+ {
+  "variant": "3 DDA",
+  "cuts": 4,
+  "dc_db": 19.992365713423244,
+  "ugf_hz": 14374683.326670136,
+  "pm_deg": 81.99503053013731,
+  "undefined": [],
+  "warn": [
+   "cm_loop_unconstrained"
+  ],
+  "ng_dc_db": 19.992365716981087,
+  "ng_ugf": 14374397.613927037,
+  "ng_pm": 81.99268421994157,
+  "max_db": 9.076048369916412e-07,
+  "max_deg": 2.0741151786849815e-06,
+  "poles_rhp": []
+ },
+ {
+  "variant": "4 triode평균",
+  "cuts": 6,
+  "dc_db": null,
+  "ugf_hz": null,
+  "pm_deg": null,
+  "undefined": [
+   "dc_not_above_level"
+  ],
+  "warn": [],
+  "ng_dc_db": -301.72106867464106,
+  "ng_ugf": null,
+  "ng_pm": null,
+  "max_db": NaN,
+  "max_deg": NaN,
+  "poles_rhp": []
+ },
+ {
+  "variant": "5 감지넷 기준R·C",
+  "cuts": 4,
+  "dc_db": 19.373732075373088,
+  "ugf_hz": 11705899.730864575,
+  "pm_deg": 55.812651990448224,
+  "undefined": [],
+  "warn": [
+   "cm_loop_unconstrained"
+  ],
+  "ng_dc_db": 19.37373206954971,
+  "ng_ugf": 11704586.01002363,
+  "ng_pm": 55.81254909983605,
+  "max_db": 4.386399485553091e-07,
+  "max_deg": 1.1247481397187331e-06,
+  "poles_rhp": []
+ }
+]

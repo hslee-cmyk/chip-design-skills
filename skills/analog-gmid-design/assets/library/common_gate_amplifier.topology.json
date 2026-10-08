@@ -5,6 +5,8 @@
   "_note": "2026-09-17 추가(U-37 첫 후보, 사용자 확정). **목적은 '전압 구동 CG stage 시작' 규칙 분기의 검증 발동 회로 확보**다 -- 계획서가 그 분기를 '검증 발동 0'으로 적어 두어 DEC-59가 해당 회로를 탐색 전에 정지시키던 상태였고, 이 회로는 **새 규칙 없이 데이터만으로** 그 분기를 발동시킨다(DEC-62, 절차 N9.3). 구조: 입력 전압원이 `vin` 노드를 직접 구동하고, 그 노드는 공통게이트 소자 M2의 **source**이자 바이어스 전류원 M1의 drain이다. M2가 신호를 source에서 받아 drain(`vout`)으로 넘기고, M3(pmos 전류원)가 부하다. 기존 library의 CG 셀은 전부 캐스코드(= 앞 소자의 drain이 source를 구동하는 **전류 구동** CG)라 전압 구동 CG는 이 회로가 처음이다. 같은 강의 Page 20-4에 부하 변형 3종(부하에 따라 Rin이 1/gm2 -> 2/gm2 -> rds로 바뀐다)이 있으나 **기본형 하나만 추가한다**(사용자 결정). 벌크는 기본 규칙(nmos = 최저 전위 레일, pmos = 최고 전위 레일)이라 bulk 필드를 두지 않는다(DEC-61). 대칭 쌍이 없는 회로다.",
   "linked_topology_files": [],
   "supply_nets": ["vdd", "gnd"],
+  "source_manifest": {"figure": "Allen Lecture 20, Page 20-2", "device_count": 3, "passive_count": 0},
+  "bias_inputs": ["VNBias1", "VNBias2", "VPBias1"],
   "_supply_nets_comment": "계획 DEC-60(레일 넷 선언). 레일 전압 `supplies_v`는 사이징 스펙 쪽 선언이라 여기 두지 않는다(U-26 (a)).",
   "compensation": null,
   "_compensation_status": "not_applicable",
