@@ -239,7 +239,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
    | current_reuse(파일럿) | `ac_ground_exception` | Vbias2 | `loop:M37a:Voc` | override | C.6 |
    | current_reuse(파일럿) | `dc_role` | M58, M63 | `diode_reference_composite` | confirm | C.6 |
    | sf_pushpull_output_opamp | `dc_role` | M6, M8, M14 / M5, M7, M13 / M9, M17, M11, M16, M20 | `diode_reference_composite` / `diode_reference_composite_cascode` / `bias_current_source` | confirm | D.6 |
-   | sf_pushpull_output_opamp | `loop_role` | 복합 diode 내부 사이클 9개 | `composite_diode_internal` | confirm | D.6 |
+   | sf_pushpull_output_opamp | `loop_role` | 복합 diode 내부 사이클 3개({N1,N5}, {N2,N7}, {N12,N13}; U1b 실측) | `composite_diode_internal` | confirm | D.6 |
    | sf_pushpull_output_opamp | `matching_pair` | `["M6","M8"]`, `["M5","M7"]`, `["R1a","R1b"]` | `branch_symmetric` | override | D.5 |
    | sf_pushpull_output_opamp | `drive_kind` | N17, N20 / N910, N1112, N1516 | `voltage` / `current` | override -- **U1b 뒤에도 엔진이 못 가르는 넷만** | D.6, J12-b |
 
