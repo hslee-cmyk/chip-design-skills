@@ -24,7 +24,7 @@ from .graph_snapshot import GraphSnapshot
 from .immutability import require_immutable
 from .margin import normalized_margin
 from .metric_signature import OBJECTIVE_AXES, VIEW_KINDS, MetricSignature
-from .pdk_decl import PdkDecl, PdkQuantity, PdkRule, read_pdk_decl
+from .pdk_decl import PdkDecl, PdkMismatchBlock, PdkMismatchModel, PdkQuantity, PdkRule, read_pdk_decl
 from .projection import Projection
 from .units import AMPLITUDE_DB_PER_DECADE, DOMAINS, METRIC_UNITS
 from .writer_error import WriterPermissionError
@@ -53,6 +53,8 @@ __all__ = (
     "NonconvergentError",
     "OBJECTIVE_AXES",
     "PdkDecl",
+    "PdkMismatchBlock",
+    "PdkMismatchModel",
     "PdkQuantity",
     "PdkRule",
     "Projection",

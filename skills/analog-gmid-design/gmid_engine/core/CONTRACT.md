@@ -55,7 +55,7 @@
 | graph_record.py | 2 | `GraphRecord` |
 | failure_classes.py | 3 | (데이터 선언 모듈) `FailureClass` + 상수 `FAILURE_CLASSES`·`CANDIDATE_FAILURE_CLASSES`·`UNEXPECTED_EXIT_CODE` |
 | graph_snapshot.py | 3 | `GraphSnapshot` |
-| pdk_decl.py | 3 | `read_pdk_decl` (`PdkDecl`·`PdkQuantity`·`PdkRule` 는 비진입 공개 이름, 9절) |
+| pdk_decl.py | 3 | `read_pdk_decl` (`PdkDecl`·`PdkQuantity`·`PdkRule`·[U3] `PdkMismatchModel`·`PdkMismatchBlock` 는 비진입 공개 이름, 9절) |
 | canon_pointer.py | 4 | `CanonPointer` |
 | exit_code.py | 4 | `exit_code_for` |
 | (`gmid_engine/_module_map.py`) | -- | (데이터 선언 모듈) `ModuleEntry` + 상수 `PACKAGE_ORDER`·`LAYERS`·`MODULES` |
@@ -295,7 +295,8 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 
 ### 9.1 선언 파일 (JSON, UTF-8) -- PDK 마다 데이터 하나 (sky130 = `skills/analog-gmid-design/assets/sky130_pdk_decl.json`)
 - 최상위는 JSON 객체(배열·수·문자열이면 `pdk_decl_shape`). 키 정확히 `schema`(= `"gmid_pdk_decl/1"`), `pdk`(비지 않은 문자열),
-  `pdk_root`(비지 않은 문자열), `sources`(비지 않은 객체), `quantities`(비지 않은 객체) + 선택 `note`. 그 밖 키·빠진 키 -> `pdk_decl_keys`;
+  `pdk_root`(비지 않은 문자열), `sources`(비지 않은 객체), `quantities`(비지 않은 객체) + 선택 `note`·[U3] `mismatch_models`·`resistor_types`
+  (9.6·9.7). 그 밖 키·빠진 키 -> `pdk_decl_keys`;
   `pdk`·`pdk_root`·`sources`·`quantities`·`sources.<이름>`·`quantities.<이름>` 의 타입·빈 값 위반 -> `pdk_decl_shape`.
 - `sources.<이름>`: 경로는 `pdk_root + "/" + path`(선택 `base` 가 `"decl_dir"` 이면 `선언 파일 폴더(절대 경로) + "/" + path`). 공통 키
   `path`(비지 않은 문자열), `sha256`(정확히 64자 **소문자** hex 문자열 -- 아니면
@@ -340,7 +341,8 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
   (layout `LayoutPdk` 길이는 >= 0).
 
 ### 9.2 결과
-- `PdkDecl(pdk, decl_path, decl_sha256, sources, quantities)` -- frozen, `require_immutable` 통과, `fp_of` 결정론.
+- `PdkDecl(pdk, decl_path, decl_sha256, sources, quantities, mismatch_models=())` -- frozen, `require_immutable` 통과, `fp_of` 결정론.
+  [U3] `mismatch_models` = ((kind, `PdkMismatchModel`), ...) kind 정렬; `decl.mismatch_model(kind)` (선언에 없으면 `pdk_mismatch_undeclared`).
   `sources` = ((원본 이름, 경로, sha256), ...) 이름 정렬, `quantities` = ((이름, `PdkQuantity`), ...) 이름 정렬.
 - `PdkQuantity(name, value_m, expression, rules, basis)`: `value_m` = 식에 규칙 값(m)을 넣은 float, `expression` = 선언 글 그대로,
   `rules` = 식에 나온 규칙 `PdkRule` 들(첫 등장 순, 중복 없음).
@@ -363,6 +365,8 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 | `pdk_rule_not_numeric` / `pdk_rule_unit_unknown` | 값 글자가 수가 아님(`N/A`, `0.170 *L` 등) / 단위 글자가 `units_m` 에 없음 |
 | `pdk_expression_invalid` | 공백뿐인 식·규칙 이름 없는 식·문법 오류·허용 밖 노드(다른 함수, 키워드 인자, 문자열 상수, `**` 등 -- 규칙 이름 조회보다 먼저, 9.1 순서)·0 나누기 |
 | `pdk_quantity_invalid` | 결과가 유한하지 않거나 음수(정확히 0 은 허용) |
+| [U3] `pdk_mismatch_no_blocks` / `pdk_mismatch_parameter_unused` / `pdk_mismatch_undeclared` | mismatch 모델 원본에 `lmin` 블록이 없음 / 선언한 변수를 쓰는 블록이 하나도 없음 / `decl.mismatch_model(kind)` 인데 선언 없음 |
+| [U3] `pdk_quantity_duplicate` | `resistor_types` 가 낸 이름이 `quantities` 에 이미 있음 |
 
 ### 9.4 sky130 실값 (2026-10-07, 선언 sha256 은 커밋본 기준으로 재야 한다)
 원본: tlef `C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef`(sha256 `c8351e32...`), 공식 periphery 규칙표
@@ -415,7 +419,7 @@ tnom 38, permod 69). 거부 실례: 식 `vth0`(bin 마다 값이 다름) -> `pdk
 `{...}` 식) -> `pdk_rule_not_numeric`, `dwj` -> `pdk_rule_missing`, `sky130_fd_pr__nfet_01v8__model.26.cjs` -> 0.001339749237(행 7199).
 
 **LUT 생성 규칙 선언** `skills/analog-gmid-design/assets/sky130_lut_rule_decl.json`(같은 스키마, 2026-10-08): 원본 `lut_generator` =
-`base: "decl_dir"` + `sky130_lut_sweep.py`(LUT 생성기), `newline: "lf"`, sha256 `419fe1e1...`(git blob), `spice_instance_line`,
+`base: "decl_dir"` + `sky130_lut_sweep.py`(LUT 생성기), `newline: "lf"`, sha256 `735220532101...`(git blob -- [U3] 생성기에 `.noise`·mismatch 모드를 더해 바뀜; DUT 줄은 그대로 90행), `spice_instance_line`,
 `line_pattern` `^DUT_LINE\s*=\s*"([^"]*)"`(90행, 글자 `xdut d g s b sky130_fd_pr__{devcell} l={L_um}u w=5u ad=2.5p as=2.5p pd=7u ps=7u`),
 `units_m` `{"u": 1e-6, "p": 1e-12}`.
 
@@ -427,6 +431,47 @@ tnom 38, permod 69). 거부 실례: 식 `vth0`(bin 마다 값이 다름) -> `pdk
 | `lut_diffusion_ps_extra_m` | `ps - w` | 2.0000000000000003e-06 |
 
 (규칙 `l` 의 값 글자는 `{L_um}` -> 쓰이면 `pdk_rule_not_numeric`.)
+
+### 9.4b [U3, 2026-10-08] 잡음·mismatch·저항 PDK 양 (`sky130_pdk_decl.json` 추가분, 설계 41 §6.4-2·§7.2, 40 §7.1 Q9)
+새 원본 4개(전부 `pdk_root` 기준, sha256 고정): `nfet_01v8_mismatch_slopes`·`pfet_01v8_mismatch_slopes`(= 모델 카드가 include 하는 `*__mismatch.corner.spice`,
+형식 `spice_instance_line`, `line_pattern` `^\.param\s+(.*)$` -> 규칙 이름 = `.param` 이름 소문자, 값은 수), `scale_option`(`models/all.spice` 2행 `.option scale=1.0u`,
+`units_m` `{"u": 1e-6}`), `poly_res_params`(`models/r+c/res_typical__cap_typical.spice` 21행 `rp1 = 48.2`).
+
+| 이름 | 식(원본) | 값 | 쓰임 |
+|---|---|---|---|
+| `noise_ef_nmos` / `noise_ef_pmos` | `ef`(모델 카드 bin 공통 키, nfet 201행·pfet 223행) | 0.84 / 1.0 | 잡음 LUT 의 1/f 지수 EF -- `LutSpec.noise_ef` 의 출처(lut CONTRACT 9) |
+| `noise_fnoimod_*` / `noise_tnoimod_*` | `fnoimod` / `tnoimod` | 1.0 | unified flicker·holistic thermal 전제 -- 소비자가 1 인지 확인 |
+| `mismatch_slope_geometry_unit_m` | `scale`(all.spice 2행) | 1e-6 | mismatch 식 `sqrt(l*w*mult)` 의 l·w 가 µm 수치로 읽히는 배율(아래 단위 확인) |
+| `poly_generic_sheet_ohm_per_sq` | `rp1` | 48.2 | poly 저항 R□ [Ω/□] |
+| `poly_generic_min_w_m` | `poly.3` | 3.3e-07 | poly 저항 최소 폭 |
+| `poly_generic_head_area_m2` | `2 * poly.3 * (licon.1 + 2 * licon.8a)` | 2.178e-13 | 저항마다 한 번 더하는 접촉 머리 면적(레이아웃 기하 해석 -- 사용자 ratify 대상) |
+| `poly_res_sheet_ohm_per_sq` / `poly_res_min_w_m` / `poly_res_head_area_m2` | `resistor_types` 규칙이 고른 후보의 양(9.7) | 48.2 / 3.3e-07 / 2.178e-13 | search `passive_area_decl`(저항 단위 면적 W_min²/R□ = 2.2593e-15 m²/Ω + 머리) |
+
+**단위 확인(41 §6.4-2 '구현 첫 커밋에서 ngspice 소자 쌍 MC')**: 모델 카드는 `p = p0 + p_slope_spectre·(p_slope/sqrt(l·w·mult))` 로 변수를 흔들고, 모델 파일 최상위
+`.option scale=1.0u` 아래에서 소자 줄의 l·w 숫자(단위 글자 없음)는 µm 이다. 그래서 spectre std = 1.0 일 때 vth0 의 1σ = `vth0_slope`/√(l·w[µm²])(V), 즉 slope 의 길이
+단위는 µm 다(`vth0_slope` 3.356e-3 V·µm 등). LUT 생성기 DUT 줄처럼 l·w 를 `0.5u` 로 m 로 직접 주면 같은 1σ 가 `*_slope_spectre` = `scale` = 1e-6 이다. 두 표기가 같은 1σ 임을
+ngspice 쌍 MC(`assets/sky130_pair_mc.py`, 같은 난수·같은 전류에서 σ(ΔVGS) 비트 동일)로 확인했고, 쌍 σ·√(W·L) = √2·slope(vth0 만 흔들 때)와 일치함도 확인했다 -- 결과 표와 표본 수·재현 명령은
+`docs/03-analysis/gain-budget-gmid-sizing.u3-lut-pdk-record.md`. 출처: 파일 sha256·행 = `PdkRule.sha256`·`line` (`scale` 2행, `vth0_slope` 등 mismatch 파일 행).
+
+### 9.6 [U3] `mismatch_models` -- bin 별 mismatch slope 지도
+`"mismatch_models": {<kind>: {"model_source": <원본 이름>, "slope_source": <원본 이름>, "parameters": [<BSIM4 변수 이름>, ...]}}`. `model_source` = `spice_model_card` 원본,
+`slope_source` = `.param 이름=값` 줄을 규칙으로 읽는 `spice_instance_line` 원본. 결과 `PdkMismatchModel(kind, parameters, blocks, model_path, model_sha256, slope_path, slope_sha256)`,
+`blocks` = `PdkMismatchBlock(model, lmin_m, lmax_m, wmin_m, wmax_m, slopes, line)` ((wmin, wmax, lmin, lmax, 이름) 정렬; `.model` 블록마다 하나).
+`slopes` = ((변수, slope 이름, slope 값, slope 원본 행), ...) 선언 순서 -- 블록의 변수 식 `{p0 + <..._slope_spectre>*(<slope 이름>/sqrt(l*w*mult))}` 에서 slope 이름을
+정규식 `([A-Za-z_]\w*_slope\d*)\s*/\s*sqrt` 로 읽고(이름은 bin 마다 `slope`·`slope1` 로 다르다), 식이 없으면 (변수, None, None, None). 경계 `lmin·lmax·wmin·wmax` 는 모델 카드 값(단위 표 `""`).
+거부: 4 키 위반 `pdk_decl_keys`, `parameters` 모양 `pdk_decl_shape`, 원본 이름 없음 `pdk_source_undeclared`, `lmin` 블록 없음 `pdk_mismatch_no_blocks`, 선언 변수를 쓰는 블록이 없음
+`pdk_mismatch_parameter_unused`, slope 이름이 slope 원본에 없음/모호/비수 -> `pdk_rule_missing`·`pdk_rule_ambiguous`·`pdk_rule_not_numeric`.
+sky130 실측: nmos 180 블록 -- `vth0_slope1`(7.356e-3) 4 블록(L 4–8 µm·좁은 W), 나머지 `vth0_slope`(3.356e-3); pmos 108 블록 -- L < 0.5 µm 36 블록 `vth0_slope1`(7.356e-3),
+L ≥ 0.5 µm `vth0_slope`(5.856e-3). 옛 `legacy/sizing_recipe.py:3073` 은 pfet 에 5.856e-3 하나만 썼다(결함, 대조 기준선으로만 기록).
+bin 소속 판정(`bin_index`, 양끝 닫힘·경계 공유 시 아래 bin)은 lut `mismatch_sigma_vgs` 가 한다(core 는 지도만 준다).
+
+### 9.7 [U3] `resistor_types` -- Ω당 면적이 가장 작은 저항 종류
+`"resistor_types": {"selected_as": <접두>, "candidates": {<이름>: {"sheet_ohm_per_sq": <quantity 이름>, "min_w_m": <quantity 이름>, "head_area_m2": <quantity 이름>}}}`.
+후보마다 본체 Ω당 면적 W_min²/R□ [m²/Ω]를 계산해 가장 작은 후보(동률은 이름 순)의 세 양을 `<접두>_sheet_ohm_per_sq`·`<접두>_min_w_m`·`<접두>_head_area_m2` 이름의
+`PdkQuantity`(식 = `select_min_area_per_ohm(<후보>.<양>)`, `rules` = 그 후보 양의 규칙, `basis` = 선택 규칙 + 후보별 m²/Ω)로 `quantities` 에 더한다 -- **고정 상수가 아니라 규칙**(사용자 결정 Q9).
+거부: 키 위반 `pdk_decl_keys`/`pdk_decl_shape`, 후보가 가리키는 양이 없음 `pdk_quantity_undeclared`, R□ <= 0 `pdk_quantity_invalid`, 이름이 이미 있음 `pdk_quantity_duplicate`.
+sky130 로컬 PDK(sparse checkout)에는 `cells/` 에 nfet_01v8·pfet_01v8 만 있어 정밀 poly 저항(res_high_po·res_xhigh_po)의 시트 저항을 읽을 수 없다 -- 후보는 `poly_generic`(res_generic_po) 하나뿐이고,
+다른 후보는 선언만 더하면 같은 규칙이 고른다(모델 파일 확보 뒤 사용자 결정).
 
 ### 9.5 소비자 호출 (layout 브랜치 병합 시 `LayoutPdk` 를 만드는 쪽)
 ```python

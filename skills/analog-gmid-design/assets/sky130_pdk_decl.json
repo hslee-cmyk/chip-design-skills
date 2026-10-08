@@ -51,13 +51,49 @@
       "line_pattern": "^\\+\\s*(camimc\\s*=\\s*[^\\s$]+)",
       "units_m": {"": 1e12},
       "note": "sky130 typical 모서리 R+C 기생 파라미터 .param 파일(sky130.lib.spice 의 tt 절이 include 하는 바로 그 파일)의 `camimc` 줄 -- MIM 커패시터(cap_mim_m3_1) 단위 면적 용량, 원본 단위 F/µm² (줄 주석 '$ Units: farad/micrometer^2'). units_m 의 1e12 = µm² -> m² 환산(F/µm² x 1e12 = F/m²). cap_mim_m3 셀 모델 원본(cells/cap_mim_m3/*.model.spice)은 로컬에 없어 면적 용량은 이 모서리 파라미터가 유일한 로컬 출처다(2026-10-08 사용자 결정 11, 공개 문서 ~2 fF/µm² 와 일치). high/low 모서리 파일은 camimc 가 1.778e-15 ~ 2.231e-15 로 다르지만 LUT 가 tt 모델이라 typical 을 쓴다."
+    },
+    "nfet_01v8_mismatch_slopes": {
+      "path": "sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+      "sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+      "format": "spice_instance_line",
+      "encoding": "utf-8",
+      "line_pattern": "^\\.param\\s+(.*)$",
+      "units_m": {"": 1.0},
+      "note": "sky130 nfet_01v8 mismatch 계수 파일 -- 모델 카드(tt.pm3)가 include 하는 바로 그 파일(LUT meta model_files_sha256 와 같은 sha256). `.param <소자>__<변수>_slope[N] = 값` 줄이 mismatch 변수 slope(vth0: V·µm, toxe: 무차원·µm 상대값, voff 등)다. 단위: 카드가 p0 + p_slope_spectre·(slope/sqrt(l·w·mult)) 로 흔들고 models/all.spice `.option scale=1.0u` 아래 l·w 는 µm² 라서 slope 의 길이 단위는 µm(2026-10-08 ngspice 소자 쌍 Monte Carlo 로 확인, assets/sky130_pair_mc.py·mc 기록)."
+    },
+    "pfet_01v8_mismatch_slopes": {
+      "path": "sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+      "sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+      "format": "spice_instance_line",
+      "encoding": "utf-8",
+      "line_pattern": "^\\.param\\s+(.*)$",
+      "units_m": {"": 1.0},
+      "note": "sky130 pfet_01v8 mismatch 계수 파일(nfet 와 같은 구조). bin 마다 쓰는 slope 이름이 다르다 -- L < 0.5 µm 36 bin 은 vth0_slope1(7.356e-3), L ≥ 0.5 µm 는 vth0_slope(5.856e-3)."
+    },
+    "scale_option": {
+      "path": "sky130_fd_pr/models/all.spice",
+      "sha256": "63a430b91d8936a3b0eb80a1b9421c7482572da055f6b7ef00ead36dad0fe498",
+      "format": "spice_instance_line",
+      "encoding": "utf-8",
+      "line_pattern": "^\\.option\\s+(scale\\s*=\\s*\\S+)\\s*$",
+      "units_m": {"u": 1e-6},
+      "note": "sky130 SPICE 최상위 모델 파일 2행 `.option scale=1.0u` -- 소자 줄의 l·w 숫자(단위 글자 없음)가 µm 로 읽히는 배율. 이 배율 아래 mismatch 식의 sqrt(l*w*mult) 는 µm 단위 면적이다(위 mismatch 파일 note)."
+    },
+    "poly_res_params": {
+      "path": "sky130_fd_pr/models/r+c/res_typical__cap_typical.spice",
+      "sha256": "4066516f0d2bfbcee08b14d4a701e7b7278138c00464203a2e881ab3192f0d19",
+      "format": "spice_instance_line",
+      "encoding": "utf-8",
+      "line_pattern": "^\\+\\s*(rp1\\s*=\\s*[^\\s$]+)",
+      "units_m": {"": 1.0},
+      "note": "sky130 typical 모서리 R+C .param 파일(sky130.lib.spice 의 tt 절이 include) 의 `rp1 = 48.2`: 모델 `sky130_fd_pr__res_generic_po`(models/sky130_fd_pr__model__r+c.model.spice 의 `rsh = rp1`)의 시트 저항, 단위 Ω/□. 정밀 poly 저항 셀(res_high_po·res_xhigh_po) 모델 파일은 로컬 sparse checkout 에 없어(cells/ 에 nfet_01v8·pfet_01v8 만) 시트 저항을 읽을 수 없다 -- 그 후보는 선언하지 않는다."
     }
   },
   "quantities": {
     "mim_cap_density_f_per_m2": {
       "source": "mim_cap_params",
       "expression": "camimc",
-      "basis": "MIM 커패시터 단위 면적 용량 [F/m²] = camimc(typical 모서리) -- 수동 커패시터 면적 = 값 / 이 값(search 면적 축 area_search_m2 의 수동소자 항, 사용자 결정 11, 2026-10-08). 저항은 단위 면적 선언이 없어 면적에 넣지 않고 passive_area_undeclared 로 보고한다."
+      "basis": "MIM 커패시터 단위 면적 용량 [F/m²] = camimc(typical 모서리) -- 수동 커패시터 면적 = 값 / 이 값(search 면적 축 area_search_m2 의 수동소자 항, 사용자 결정 11, 2026-10-08). 저항은 poly_res_* 양(resistor_types 규칙으로 고른 poly 저항 종류)으로 면적에 넣는다(사용자 결정 Q9, 2026-10-08)."
     },
     "min_finger_w_m": {
       "source": "periphery_rules",
@@ -363,6 +399,78 @@
       "source": "pfet_01v8_tt_model_card",
       "expression": "dwc - xw / 2",
       "basis": "접합 유효 폭 Weffcj = finger_w + xw − 2·dwj(BSIM4, nf 당) 를 finger_w − 2·(이 값)으로 쓰는 축소량. 모델 카드에 dwj 가 없어 BSIM4 기본값 dwj = dwc, 그리고 xw 를 반으로 나눠 뺀다. wlc·wwc·wwlc(L·W 의존 항)는 모든 bin 에서 0 이라(2026-10-08 확인) 식에 없다 -- 0 이 아닌 PDK 는 이 식을 쓸 수 없다."
+    },
+    "noise_ef_nmos": {
+      "source": "nfet_01v8_tt_model_card",
+      "expression": "ef",
+      "basis": "BSIM4 ef: nfet 의 1/f 지수 EF -- unified flicker 모델(fnoimod = 1, NOIA/NOIB/NOIC·EF)의 S ∝ 1/f^EF. 모델 카드 값 그대로(bin 180개 전수에서 같은 값, 2026-10-08 확인). LutSpec.noise_ef 의 출처."
+    },
+    "noise_ef_pmos": {
+      "source": "pfet_01v8_tt_model_card",
+      "expression": "ef",
+      "basis": "BSIM4 ef: pfet 의 1/f 지수 EF (bin 108개 전수에서 같은 값). LutSpec.noise_ef 의 출처."
+    },
+    "noise_fnoimod_nmos": {
+      "source": "nfet_01v8_tt_model_card",
+      "expression": "fnoimod",
+      "basis": "BSIM4 fnoimod: 1 = unified flicker(NOIA/NOIB/NOIC·EF, KF·AF 미사용). 잡음 LUT 분해 S_vg = A/f^EF + B 가 성립하는 전제 -- 소비자가 1 인지 확인한다."
+    },
+    "noise_fnoimod_pmos": {
+      "source": "pfet_01v8_tt_model_card",
+      "expression": "fnoimod",
+      "basis": "BSIM4 fnoimod (pfet) -- 위와 같다."
+    },
+    "noise_tnoimod_nmos": {
+      "source": "nfet_01v8_tt_model_card",
+      "expression": "tnoimod",
+      "basis": "BSIM4 tnoimod: 1 = holistic thermal(TNOIA/TNOIB, RNOIA/RNOIB) -- γ 는 모델 파라미터가 아니라 바이어스 함수라 LUT 칸마다 읽는다."
+    },
+    "noise_tnoimod_pmos": {
+      "source": "pfet_01v8_tt_model_card",
+      "expression": "tnoimod",
+      "basis": "BSIM4 tnoimod (pfet) -- 위와 같다."
+    },
+    "mismatch_slope_geometry_unit_m": {
+      "source": "scale_option",
+      "expression": "scale",
+      "basis": "models/all.spice `.option scale=1.0u` = 1e-6 m: mismatch 식 sqrt(l·w·mult) 의 l·w 가 µm 수치로 읽히는 배율. DUT 줄에 l·w 를 단위 글자(0.5u)로 m 로 주면 같은 1σ 는 `*_slope_spectre` = 이 값이다(LUT 생성기 mismatch 모드의 섭동 크기, assets/sky130_pair_mc.py 소자 쌍 MC 로 확인)."
+    },
+    "poly_generic_sheet_ohm_per_sq": {
+      "source": "poly_res_params",
+      "expression": "rp1",
+      "basis": "poly 저항(res_generic_po) 시트 저항 R□ [Ω/□] -- models/r+c/res_typical__cap_typical.spice `rp1`(typical 모서리, 사용자 결정 Q9 2026-10-08)."
+    },
+    "poly_generic_min_w_m": {
+      "source": "periphery_rules",
+      "expression": "poly.3",
+      "basis": "poly 저항 최소 폭 [m] = poly.3 'Min poly resistor width'."
+    },
+    "poly_generic_head_area_m2": {
+      "source": "periphery_rules",
+      "expression": "2 * poly.3 * (licon.1 + 2 * licon.8a)",
+      "basis": "poly 저항 접촉 머리 면적 [m²] (저항마다 한 번): 양 끝 두 곳 x (폭 poly.3) x (머리 길이 = licon.1 + 2·licon.8a: licon 하나와 그 양쪽 poly 감쌈). 머리 기하 해석은 레이아웃 기하 해석이라 사용자 ratify 대상(2026-10-08 작성)."
+    }
+  },
+  "mismatch_models": {
+    "nmos": {
+      "model_source": "nfet_01v8_tt_model_card",
+      "slope_source": "nfet_01v8_mismatch_slopes",
+      "parameters": ["toxe", "vth0", "voff"]
+    },
+    "pmos": {
+      "model_source": "pfet_01v8_tt_model_card",
+      "slope_source": "pfet_01v8_mismatch_slopes",
+      "parameters": ["toxe", "vth0", "voff", "nfactor"]
+    }
+  },
+  "resistor_types": {
+    "selected_as": "poly_res",
+    "candidates": {
+      "poly_generic": {
+        "sheet_ohm_per_sq": "poly_generic_sheet_ohm_per_sq",
+        "min_w_m": "poly_generic_min_w_m",
+        "head_area_m2": "poly_generic_head_area_m2"
+      }
     }
   }
 }

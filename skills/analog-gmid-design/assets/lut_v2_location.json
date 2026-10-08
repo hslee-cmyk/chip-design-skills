@@ -1,12 +1,14 @@
 {
  "schema": "gmid_lut_location/1",
- "description": "sky130 LUT v2 (2026-10-07 재생성, 18 L x VS 0~1.8 V, 14열) 데이터 위치. 데이터는 git 밖, 이 파일이 sha256 으로 고정한다. 읽는 함수: gmid_engine.lut.resolve_lut_location (lut/CONTRACT.md 1.8). table_cache = 파생 표(tol_V 등) 디스크 캐시 폴더(lut/CONTRACT.md 2.1, 데이터가 아니라 sha256 고정 없음, 없으면 만든다). 출처 기록: <root>/REGEN_REPORT.md, <root>/verification/. 2026-10-08: 폭 슬라이스 32개를 GMBS·VDSAT 포함으로 재생성(기존 4열 비트 동일, <root>/verification/slices_vdsat/).",
+ "description": "sky130 LUT v2 (2026-10-07 재생성, 18 L x VS 0~1.8 V, 14열) 데이터 위치. 데이터는 git 밖, 이 파일이 sha256 으로 고정한다. 읽는 함수: gmid_engine.lut.resolve_lut_location (lut/CONTRACT.md 1.8). table_cache = 파생 표(tol_V 등) 디스크 캐시 폴더(lut/CONTRACT.md 2.1, 데이터가 아니라 sha256 고정 없음, 없으면 만든다). 출처 기록: <root>/REGEN_REPORT.md, <root>/verification/. 2026-10-08: 폭 슬라이스 32개를 GMBS·VDSAT 포함으로 재생성(기존 4열 비트 동일, <root>/verification/slices_vdsat/). 2026-10-08 U3: noise(잡음 r1, 기준 LUT 에 묶인 로그 이분 주파수 점 7개)·mismatch(변수별 DVGS 감도 r1) 항목을 새 버전 파일로 더했다 -- 기존 r2 파일은 고치지 않았다(생성기 sky130_lut_sweep.py noise/mismatch, lut/CONTRACT.md 9·10절).",
  "root": {"env": "GMID_LUT_V2_ROOT", "default": "C:/Users/HSLEE/Documents/Todoc/fpga/lut_data/sky130_lut_v2"},
  "table_cache": {"env": "GMID_LUT_TABLE_CACHE_DIR", "default": "C:/Users/HSLEE/Documents/Todoc/fpga/lut_table_cache"},
  "pdk_root": {"env": "GMID_PDK_ROOT", "default": "C:/pdk/sky130_fd_pr"},
  "files": {
   "manifest": {"path": "manifest.json", "sha256": "a25b903657bfe6725b6d0f0d3f11435288fdfb37b0912d176638861c804cb2d2"},
   "cap_npz": {"path": "sky130_nfet_pfet_lut_v2_r2.npz", "sha256": "938e95b9b101d45140720c0655ecebed96e62c664de7121dbf399f6b1aa1efe2"},
-  "verify_midpoints": {"path": "sky130_nfet_pfet_lut_v2_verify_midpoints_r2.npz", "sha256": "afda374c07eb18cbd00b9ee0c997e399fd1e4e051d3a6a0ef64beb7a392d0f99"}
+  "verify_midpoints": {"path": "sky130_nfet_pfet_lut_v2_verify_midpoints_r2.npz", "sha256": "afda374c07eb18cbd00b9ee0c997e399fd1e4e051d3a6a0ef64beb7a392d0f99"},
+  "noise": {"path": "sky130_nfet_pfet_lut_v2_noise_r1.npz", "sha256": "f5ecfdf14958e03a2c99a9647e8df589a2d7040d1b7858761065eb2668ae32a1"},
+  "mismatch": {"path": "sky130_nfet_pfet_lut_v2_mismatch_r1.npz", "sha256": "dfec7bbf9714861162de8da77ee8c65c7ac3c1f46a73b5f50b0aad730c93bf4e"}
  }
 }
