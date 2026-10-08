@@ -42,9 +42,23 @@
       "model_pattern": "sky130_fd_pr__pfet_01v8__model\\.[0-9]+",
       "units_m": {"": 1.0},
       "note": "sky130 pfet_01v8 tt BSIM4(level 54, version 4.5) 모델 카드 -- LUT v2 생성에 쓴 바로 그 파일(LUT meta model_files_sha256 와 같은 sha256). 값은 SI 그대로(단위 표 \"\" = 1). 접합 파라미터는 .model bin 108개 전부에서 같은 값(2026-10-08 전수 확인) -- bin 공통 키. 함께 include 하는 mismatch.corner.spice·models/parameters/lod.spice 에는 접합 파라미터가 없다(확인)."
+    },
+    "mim_cap_params": {
+      "path": "sky130_fd_pr/models/r+c/res_typical__cap_typical__lin.spice",
+      "sha256": "dc4243210bb6bf59d31a1cdc935b6116cfcb1c6e4d6213d7bbc0c7ebaa5f0848",
+      "format": "spice_instance_line",
+      "encoding": "utf-8",
+      "line_pattern": "^\\+\\s*(camimc\\s*=\\s*[^\\s$]+)",
+      "units_m": {"": 1e12},
+      "note": "sky130 typical 모서리 R+C 기생 파라미터 .param 파일(sky130.lib.spice 의 tt 절이 include 하는 바로 그 파일)의 `camimc` 줄 -- MIM 커패시터(cap_mim_m3_1) 단위 면적 용량, 원본 단위 F/µm² (줄 주석 '$ Units: farad/micrometer^2'). units_m 의 1e12 = µm² -> m² 환산(F/µm² x 1e12 = F/m²). cap_mim_m3 셀 모델 원본(cells/cap_mim_m3/*.model.spice)은 로컬에 없어 면적 용량은 이 모서리 파라미터가 유일한 로컬 출처다(2026-10-08 사용자 결정 11, 공개 문서 ~2 fF/µm² 와 일치). high/low 모서리 파일은 camimc 가 1.778e-15 ~ 2.231e-15 로 다르지만 LUT 가 tt 모델이라 typical 을 쓴다."
     }
   },
   "quantities": {
+    "mim_cap_density_f_per_m2": {
+      "source": "mim_cap_params",
+      "expression": "camimc",
+      "basis": "MIM 커패시터 단위 면적 용량 [F/m²] = camimc(typical 모서리) -- 수동 커패시터 면적 = 값 / 이 값(search 면적 축 area_search_m2 의 수동소자 항, 사용자 결정 11, 2026-10-08). 저항은 단위 면적 선언이 없어 면적에 넣지 않고 passive_area_undeclared 로 보고한다."
+    },
     "min_finger_w_m": {
       "source": "periphery_rules",
       "expression": "difftap.2",

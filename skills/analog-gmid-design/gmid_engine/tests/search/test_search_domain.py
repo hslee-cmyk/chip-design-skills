@@ -372,3 +372,67 @@ def test_spec_box_change_keeps_context_fp(tmp_path, lut_sealed):
     assert dict(a[0].section_fps)["search_fp"] != dict(b[0].section_fps)["search_fp"]
     assert sa.context_fp == sb_.context_fp and sa.schema_fp == sb_.schema_fp
     assert _bounds(sa.domain)[("resistance", "R1")] != _bounds(sb_.domain)[("resistance", "R1")]
+
+
+# ---------------------------------------------------------------- [r11, 사용자 결정 11] 면적 예산 -> S-3b 전류 상한 (3.14·3.7)
+# oracle (a)·(b): 소자 하나의 W·L ≤ A 이고 L ≥ L_lo 이므로 W ≤ A/L_lo, ID = IDu·W/L ≤ IDu_max·A/L_lo² (IDu = ID·L/w_slice 정의 그대로 --
+# 물리 부등식). IDu_max = npz 배열 on_mask 점의 ln(ID·L/w_m) 최대를 exp(conftest `expect_ln_idu_bounds`, 피검 함수 아님),
+# L_lo = toy LUT 의 최소 L 앵커(R4_L 직접). I_off 는 예산과 무관(3.19 그대로, conftest `expect_box`).
+
+def _budget_box(kind, A):
+    arr = r4_arrays(kind)
+    i_off, _ = expect_box(arr, [arr])
+    _, hi = expect_ln_idu_bounds(arr)
+    return i_off, math.exp(hi) * A / min(R4_L) ** 2
+
+
+@pytest.mark.parametrize("A", [1e-9, 1e-11])
+def test_area_budget_sets_current_upper_bound(tmp_path, lut_sealed, A):
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    d = search_domain(case.dc, _settings(), case.pdk, (), A)
+    assert d.area_budget_m2 == A
+    assert [k for k, _ in d.current_box] == ["nmos", "pmos"]
+    for k, box in d.current_box:
+        assert tuple(box) == pytest.approx(_budget_box(k, A), rel=1e-12), k
+    (cur,) = [v for v in d.variables if v.component[0] == "current"]      # 기저 M2 = pmos 상자
+    i_off, i_max = _budget_box("pmos", A)
+    assert cur.log is True
+    assert (cur.lo, cur.hi) == (pytest.approx(math.log(i_off), rel=1e-12), pytest.approx(math.log(i_max), rel=1e-12))
+
+
+def test_area_budget_scales_upper_bound_linearly(tmp_path, lut_sealed):
+    """I_max ∝ A (같은 IDu_max·L_lo): 예산 두 배 -> I_max 두 배, I_off 불변."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    a = dict(search_domain(case.dc, _settings(), case.pdk, (), 1e-10).current_box)
+    b = dict(search_domain(case.dc, _settings(), case.pdk, (), 2e-10).current_box)
+    for k in a:
+        assert b[k][0] == a[k][0]
+        assert b[k][1] == pytest.approx(2 * a[k][1], rel=1e-12)
+
+
+def test_no_budget_keeps_provisional_box(tmp_path, lut_sealed):
+    """예산 없음(None, 기본) -> area_budget_m2 None, current_box 는 종전 단일 finger 슬라이스 값(3.19) -- 예산 인자 없이 부른 것과 같다."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    d0 = search_domain(case.dc, _settings(), case.pdk)
+    d1 = search_domain(case.dc, _settings(), case.pdk, (), None)
+    assert d0 == d1 and d0.area_budget_m2 is None
+    for k, box in d0.current_box:
+        arr = r4_arrays(k)
+        assert tuple(box) == pytest.approx(expect_box(arr, [arr]), rel=1e-12)
+
+
+def test_context_budget_from_spec_area_constraint(tmp_path, lut_sealed):
+    """build_search_context: area_budget_m2 = spec 판정 제약 area_search_m2 <= v 의 v(같은 (metric, op) 두 개는 spec 로더가
+    constraint_duplicate 로 거부하므로 '최솟값' 은 한 개의 값), 정의역은 그 예산으로 만든 것과 같다."""
+    cons = (("area_search_m2", "<=", 2e-10, None), ("power_dc_w", "<=", 1e-3, None))
+    case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=cons)
+    assert case.sctx.domain.area_budget_m2 == 2e-10
+    assert case.sctx.domain == search_domain(case.dc, case.settings, case.pdk, (), 2e-10)
+    for k, box in case.sctx.domain.current_box:
+        assert tuple(box) == pytest.approx(_budget_box(k, 2e-10), rel=1e-12)
+
+
+def test_context_without_area_constraint_has_no_budget(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=(("power_dc_w", "<=", 1e-3, None),))
+    assert case.sctx.domain.area_budget_m2 is None
+    assert case.sctx.domain == search_domain(case.dc, case.settings, case.pdk)

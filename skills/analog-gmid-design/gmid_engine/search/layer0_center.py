@@ -130,9 +130,22 @@ def _cone_canonical(sctx):
     return tuple((m, tuple(sorted(terms, key=lambda t: key(CON_CONE + ":" + t.source)))) for m, terms in rows)
 
 
+def _expanded(sctx, theta):
+    return expand_ties(sctx.domain.ties, theta, sctx.domain.negated, sctx.domain.zeros)
+
+
 def _current_alias(sctx):
-    """{묶인 θ 전류 원소: 대표 원소}: 원뿔 행의 항이 묶인 전류를 읽으면 대표 변수의 항으로 센다(3.24)."""
-    return {m[1]: rep[1] for rep, members in sctx.domain.ties if rep[0] == THETA_CURRENT for m in members}
+    """{묶인 θ 전류 원소: (대표 원소, 부호)}: 원뿔 행의 항이 묶인 전류를 읽으면 대표 변수의 항(부호만큼 곱함)으로 센다(3.24)."""
+    flipped = set(sctx.domain.negated)
+    return {m[1]: (rep[1], -1.0 if m in flipped else 1.0) for rep, members in sctx.domain.ties if rep[0] == THETA_CURRENT
+            for m in members}
+
+
+def _current_fixed(sctx):
+    """고정 전류원 값 ∪ 구조적 0 θ 전류(값 0): 원뿔 행에서 변수가 아닌 상수로 읽히는 항."""
+    out = {name: float(v) for name, v in sctx.dc.schema.fixed}
+    out.update({component[1]: 0.0 for component in sctx.domain.zeros if component[0] == THETA_CURRENT})
+    return out
 
 
 def _current_centre(sctx, variables, theta):
@@ -144,12 +157,13 @@ def _current_centre(sctx, variables, theta):
     box = dict(sctx.domain.current_box)
     ref = {m: math.sqrt(box[kinds[m]][0] * box[kinds[m]][1]) for m, _t in schema.current_cone}
     pos = {variables[i].component[1]: k for k, i in enumerate(index)}
-    fixed = {name: float(v) for name, v in schema.fixed}
+    fixed = _current_fixed(sctx)
     # θ 전류를 하나도 읽지 않는 행(값 선언 이상원만으로 정해지는 MOS 전류)은 움직일 수 없으므로 편차 경쟁에서 뺀다 -- 넣으면
     # u 가 그 고정 편차로 정해져 나머지 행이 느슨해진다(원뿔 경계까지 허용).
     alias = _current_alias(sctx)
-    rows = tuple((m, tuple((float(t.num) / t.den, alias.get(t.source, t.source)) for t in terms))
-                 for m, terms in _cone_canonical(sctx) if any(alias.get(t.source, t.source) in pos for t in terms))
+    rows = tuple((m, tuple((float(t.num) / t.den * alias.get(t.source, (t.source, 1.0))[1], alias.get(t.source, (t.source, 1.0))[0])
+                           for t in terms))
+                 for m, terms in _cone_canonical(sctx) if any(alias.get(t.source, (t.source, 1.0))[0] in pos for t in terms))
     n = len(index)
 
     def currents(z):
@@ -492,7 +506,7 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     schema = sctx.dc.schema
     cur = [i for i, v in enumerate(variables) if v.component[0] == THETA_CURRENT]
     inside = bool(cur) and bool(schema.current_cone) and all(
-        r.c > 0 for r in cone_rows(schema, tuple(sorted(expand_ties(sctx.domain.ties, theta0).items()))))
+        r.c > 0 for r in cone_rows(schema, tuple(sorted(_expanded(sctx, theta0).items()))))
     _ordered, dim, n_dim = canonical_order(sctx, variables)
     bases = _primes(n_dim + (1 if inside else 0))
     floors = ln_idu_floors(sctx, variables, cells)
@@ -504,14 +518,15 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
         names = [variables[i].component[1] for i in cur]
         col = {name: j for j, name in enumerate(names)}
         alias = _current_alias(sctx)
-        fixed = {name: float(v) for name, v in schema.fixed}
+        fixed = _current_fixed(sctx)
         rows_a, rows_f = [], []
         for _m, terms in _cone_canonical(sctx):
             a = np.zeros(len(cur))
             f = 0.0
             for t in terms:
-                if alias.get(t.source, t.source) in col:
-                    a[col[alias.get(t.source, t.source)]] += float(t.num) / t.den
+                target, sign = alias.get(t.source, (t.source, 1.0))
+                if target in col:
+                    a[col[target]] += float(t.num) / t.den * sign
                 else:
                     f += float(t.num) / t.den * fixed[t.source]
             rows_a.append(a)
@@ -577,7 +592,7 @@ def layer0_start(sctx, origin=()):
     variables, theta, cells = _box_centre(sctx)
     theta, centre_u = _current_centre(sctx, variables, theta)
     failure, probes, source, repairs = None, 0, "centre", ()
-    if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(expand_ties(sctx.domain.ties, theta).items())))):
+    if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(_expanded(sctx, theta).items())))):
         start_status = "centre_outside_cone"
         first = None
     else:

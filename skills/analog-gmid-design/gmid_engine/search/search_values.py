@@ -74,10 +74,11 @@ class Variable:
 class SearchDomain:
     """S0·고정 W 집합마다 1개(설계 4.1). `variables` = 연속 변수(θ 성분 순), `l_cells` = ((MOS, ((lo, hi), ...)), ...)
     L 칸(PDK 모델 bin 안 LUT L 점 구간; 앵커 하나뿐인 칸은 lo == hi). `area_resolution_m2` = b_A = 제조 격자 × 최소 finger 폭
-    (DEC-80 (i), 모델 오차 미측정이라 (ii) = (i) -- '추정'). [r12] `ties` = ((대표 성분, (묶인 성분, ...)), ...) -- 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 변수 하나(대표)로 묶는다(`variables`·`l_cells` 에서 묶인 쪽은 빠진다, 3.24). `current_box` = ((kind, (I_off, I_max)), ...) θ 전류 상자의
+    (DEC-80 (i), 모델 오차 미측정이라 (ii) = (i) -- '추정'). [r12] `ties` = ((대표 성분, (묶인 성분, ...)), ...)(`negated` = 부호 −1 로 묶인 θ 전류 구성원, `zeros` = 구조적 0 으로 고정된 θ 전류 성분 -- 3.24) -- 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 변수 하나(대표)로 묶는다(`variables`·`l_cells` 에서 묶인 쪽은 빠진다, 3.24). `current_box` = ((kind, (I_off, I_max)), ...) θ 전류 상자의
     근거(`current_box.py`; I_max 는 잠정 -- 단일 finger 최대 슬라이스, S-3b). 전력 분해능 b_P 는 점마다 다르다
     (`Objectives.power_resolution_w`). `w_min_m`·`grid_m` = PDK 선언 `min_finger_w_m`(difftap.2)·`manufacturing_grid_m`
-    (W 하한 제약 S-18 과 b_A = grid_m × w_min_m)."""
+    (W 하한 제약 S-18 과 b_A = grid_m × w_min_m). `area_budget_m2` = spec 면적 예산(`area_search_m2 <= 값`, 사용자 결정 11) 또는
+    None -- 있으면 `current_box` 의 I_max 는 예산이 정하는 참 상한이다(S-3b 닫힘, `search_domain`)."""
 
     variables: tuple
     l_cells: tuple
@@ -85,7 +86,10 @@ class SearchDomain:
     current_box: tuple
     w_min_m: float
     grid_m: float
+    area_budget_m2: object = None
     ties: tuple = ()
+    negated: tuple = ()
+    zeros: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)

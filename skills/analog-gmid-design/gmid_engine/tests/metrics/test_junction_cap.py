@@ -40,6 +40,7 @@ def _sha256(path):
 
 
 _PDK = _load_json(PDK_DECL)
+N_DECL_SOURCES = len(_PDK["sources"]) + len(_load_json(LUT_RULE_DECL)["sources"])   # JSON 직접 집계(원본 하나 = memo 항목 하나, core 9.2)
 _SKY_PRESENT = all(os.path.isfile(_PDK["pdk_root"] + "/" + s["path"]) for s in _PDK["sources"].values())
 NGSPICE = Path(r"C:\ngspice\Spice64\bin\ngspice_con.exe")
 needs_ngspice = pytest.mark.skipif(not (_SKY_PRESENT and NGSPICE.is_file()), reason="ngspice-46 또는 sky130 없음")
@@ -313,7 +314,7 @@ def sky_ref_params(kind):
 def decls():
     if not _SKY_PRESENT:
         pytest.skip("sky130 원본 없음")
-    memo = BoundedLRU(5)
+    memo = BoundedLRU(N_DECL_SOURCES)
     return read_pdk_decl(str(PDK_DECL), memo), read_pdk_decl(str(LUT_RULE_DECL), memo)
 
 
@@ -373,10 +374,12 @@ def test_contract_84_examples(decls, kind, v_db, v_sb, cdb, csb):
 
 
 def test_consumer_call_85_chain_and_memo():
-    # 8.5 소비자 호출 그대로: 두 선언 같은 memo(원본 5개) -> kind 마다 params, 첫 사이징점 기하 -> junction_caps
+    # 8.5 소비자 호출 그대로: 두 선언 같은 memo(원본 수 = 두 선언 JSON 의 sources 수 직접 집계 -- core 9.5 'memo = 원본 수 이상')
+    # -> kind 마다 params, 첫 사이징점 기하 -> junction_caps. [결정 11, 2026-10-08] PDK 선언에 mim_cap_params 원본이 더해져 5 -> 6.
     if not _SKY_PRESENT:
         pytest.skip("sky130 원본 없음")
-    memo = BoundedLRU(5)
+    assert N_DECL_SOURCES == 6             # 손 집계: pdk 5(tech_lef·periphery_rules·nfet/pfet 모델 카드·mim_cap_params) + 규칙 1
+    memo = BoundedLRU(N_DECL_SOURCES)
     w_m, W, vds, vsb = 5e-6, 17.5e-6, 0.6, 0.25   # 슬라이스 폭·소자 폭(m = W / w_m = 3.5)
     for _ in range(2):
         pdk = read_pdk_decl(str(PDK_DECL), memo)
@@ -389,7 +392,7 @@ def test_consumer_call_85_chain_and_memo():
             exp = ref_caps(sky_ref_params(kind), (w_m, ad, ad, w_m + 2e-6, w_m + 2e-6, W / w_m), vds + vsb, vsb, 27.0)
             assert rel_close(jc.cdb, exp[0], 1e-12) and rel_close(jc.csb, exp[1], 1e-12)
             assert fp_of(params) == fp_of(JunctionParams.from_pdk_decl(pdk, kind))
-    assert (memo.stats().misses, memo.stats().hits) == (5, 5)
+    assert (memo.stats().misses, memo.stats().hits) == (N_DECL_SOURCES, N_DECL_SOURCES)
 
 
 # ---------------------------------------------------------------- 8.4 격자 vs 독립 기준 식 (ngspice 없이)

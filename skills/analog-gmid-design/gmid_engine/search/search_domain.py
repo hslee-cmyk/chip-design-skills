@@ -27,6 +27,7 @@ from gmid_engine.sizing import (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA
 
 from .current_box import current_box
 from .l_cells import l_cells
+from .current_symmetry import current_symmetry
 from .orbit_ties import orbit_ties
 from .search_values import SearchDomain, SearchSettings, Variable
 
@@ -65,7 +66,14 @@ def _passive_box(override, spec_bounds, key):
     return spec_bounds.get(key)
 
 
-def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), untie=()):
+def _budget_i_max(lut_access, kind, l_lo_m, area_budget_m2):
+    """면적 예산이 정하는 θ 전류 상한(S-3b 닫힘): 소자 하나의 W·L 은 총 면적 A 를 넘을 수 없으므로 W ≤ A / L, 전류는
+    ID = IDu · W / L(IDu = 전류 밀도 좌표, 포락선 최댓값 `exp(hi)`)이라 ID ≤ IDu_max · A / L² -- L 은 kind 의 최소 L 앵커(가장 큰 값)."""
+    _lo, hi = _ln_idu_envelope(lut_access, kind)
+    return math.exp(hi) * area_budget_m2 / (l_lo_m * l_lo_m)
+
+
+def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=None, untie=()):
     if not isinstance(settings, SearchSettings):
         raise TypeError("search_domain: settings 는 SearchSettings 여야 한다(기본값 없음)")
     if not isinstance(pdk_decl, PdkDecl):
@@ -75,6 +83,9 @@ def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), untie=()):
     classes = dict(dc_ctx.base.column("device", "element_class"))
     mos_kinds = sorted({kinds[m] for m, c in classes.items() if c == ELEMENT_MOS})
     boxes = {k: current_box(dc_ctx.lut, k) for k in mos_kinds}
+    if area_budget_m2 is not None:
+        boxes = {k: (lo, _budget_i_max(dc_ctx.lut, k, l_cells(dc_ctx.lut, k)[0][0], area_budget_m2))
+                 for k, (lo, _peak) in boxes.items()}
     envelopes = {}
     variables, mos = [], []
     resistors = [key for kind, key in dc_ctx.schema.components if kind in (THETA_RESISTANCE, THETA_SS_RESISTANCE)]
@@ -114,20 +125,23 @@ def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), untie=()):
         if not var.lo < var.hi:
             raise ValueError("search_domain: 빈 bounds " + repr(var))
     # [r12] 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 변수 하나로 묶는다(3.24) -- 묶인 구성원은 같은 bounds 여야 한다
-    reps, ties = orbit_ties(dc_ctx, tuple(dc_ctx.schema.components), tuple(untie))
+    symmetry = current_symmetry(dc_ctx, tuple(untie))
+    reps, ties = orbit_ties(dc_ctx, tuple(dc_ctx.schema.components), tuple(untie), symmetry)
     by_component = {v.component: v for v in variables}
+    negated = frozenset(symmetry.negated)
     for rep, members in ties:
         if rep in by_component:
-            odd = tuple(m for m in members if (by_component[m].log, by_component[m].lo, by_component[m].hi)
+            # 부호 −1 로 묶인 구성원은 대표와 상자가 같을 필요가 없다(값 = −대표). 나머지는 같은 (log, lo, hi) 여야 한다
+            odd = tuple(m for m in members if m not in negated and (by_component[m].log, by_component[m].lo, by_component[m].hi)
                         != (by_component[rep].log, by_component[rep].lo, by_component[rep].hi))
             if odd:
                 raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "tied_orbit_bounds_differ",
                                                   "elements": (rep,) + odd})
-    tied = {m for _rep, members in ties for m in members}
+    tied = {m for _rep, members in ties for m in members} | set(symmetry.zeros)
     variables = [v for v in variables if v.component not in tied]
     mos = [m for m in mos if (THETA_L, m) not in tied]
     cells = {}
     table = tuple((m, cells.setdefault(kinds[m], l_cells(dc_ctx.lut, kinds[m]))) for m in sorted(mos))
     grid, w_min = pdk_decl.values(_PDK_QUANTITIES)
     return SearchDomain(tuple(variables), table, float(grid * w_min), tuple(sorted(boxes.items())), float(w_min),
-                        float(grid), ties)
+                        float(grid), area_budget_m2, ties, symmetry.negated, symmetry.zeros)

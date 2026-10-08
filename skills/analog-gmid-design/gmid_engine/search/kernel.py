@@ -76,7 +76,8 @@ def _record(sctx, result, origin):
 
 def evaluate(sctx, theta, cells, parent=None, origin=()):
     sctx.counters["requests"] += 1
-    theta = expand_ties(sctx.domain.ties, theta if isinstance(theta, Mapping) else dict(theta))    # [r12] 묶인 성분은 대표 값
+    theta = expand_ties(sctx.domain.ties, theta if isinstance(theta, Mapping) else dict(theta),
+                         sctx.domain.negated, sctx.domain.zeros)    # [r12] 묶인 성분은 대표 값
     pairs = tuple(sorted(theta.items()))
     key = eval_key(sctx.context_fp, sctx.schema_fp, pairs, cells, None)
     hit = sctx.cache.get(key)
@@ -116,7 +117,8 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
             # 봉인 점: ss_dev -> metrics_ss -> metrics_dc(metrics CONTRACT 7.6). lineage(ss 필드를 담은 DcEvaluation)를 이 점의
             # evaluation 으로 둔다 -- 다음 평가의 parent 가 그 필드를 재사용한다.
             try:
-                ssev = ss_evaluate(evaluation.sealed, sctx.dc, pairs, sctx.ss_constraints, (), junction=sctx.junction)
+                ssev = ss_evaluate(evaluation.sealed, sctx.dc, pairs, sctx.ss_constraints, (), junction=sctx.junction,
+                                area_decl=sctx.area_decl)
                 evaluation, bundle = ssev.lineage, ssev.ss
             except CANDIDATE_FAILURE_CLASSES as exc:
                 evaluation, failure, status = None, exc.record, STATUS_FAILED
@@ -124,7 +126,7 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
             # 수동소자 값 = spec 값 ∪ θ 저항·커패시터·ss 저항(DEC-92) -- ss_evaluate 와 같은 규칙. 영점 상쇄 구조 규칙 저항(1/Σgm)은
             # ss_dev(봉인 점 전용)가 있어야 정해져 봉인 아닌 점에서는 값 없음(passive_value_missing -- 면적 단위 선언이 없어 면적 값은 같다)
             values = sctx.spec_passive_values + tuple((k[1], v) for k, v in pairs if k[0] in _THETA_PASSIVES)
-            snap = metrics_dc(evaluation.snapshot, tuple(sorted(values)), ())
+            snap = metrics_dc(evaluation.snapshot, tuple(sorted(values)), (), sctx.area_decl)
             evaluation = DcEvaluation(snap, evaluation.report, evaluation.sealed)
     if evaluation is not None:
         objectives = objective_values(evaluation.snapshot)

@@ -10,6 +10,7 @@ from .cone_rows import cone_rows
 from .canonical_order import canonical_order
 from .canonical_rows import canonical_row_key
 from .constraints import constraint_rows
+from .current_symmetry import CurrentSymmetry, current_symmetry
 from .current_box import current_box
 from .eps_sweep import sweep_front
 from .eval_key import eval_key
@@ -105,7 +106,9 @@ __all__ = (
     "build_search_context",
     "canonical_order",
     "canonical_row_key",
+    "CurrentSymmetry",
     "cone_rows",
+    "current_symmetry",
     "expand_ties",
     "orbit_ties",
     "constraint_rows",

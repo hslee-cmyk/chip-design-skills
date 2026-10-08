@@ -4,8 +4,10 @@ design_mod3_structure_u2_u5). 계약: `CONTRACT.md`.
 다른 패키지와 test 는 이 `__all__` 만 쓴다. 공개 진입점은 `build_s1(load_topology(path), supplies_v)`.
 """
 from .ac_ground_static import static_ac_ground
+from .automorphism_orbits import automorphism_orbits
 from .branches import s1_branches
 from .bulk_default import s1_bulk
+from .canonical_form import Canonical, canonical_form
 from .columns import s1_columns
 from .dc_conduction import s1_dc_conduction
 from .dc_roles import s1_dc_roles
@@ -203,6 +205,7 @@ __all__ = (
     "ROLE_RULE_REST",
     "ROLE_SIGNAL",
     "RelEdge",
+    "Canonical",
     "S1Graph",
     "S1Key",
     "S1_BRANCHES_WRITER",
@@ -229,6 +232,8 @@ __all__ = (
     "UNSUPPORTED_BRANCHES",
     "UNSUPPORTED_RULE_BRANCH",
     "build_s1",
+    "automorphism_orbits",
+    "canonical_form",
     "s1_branches",
     "s1_bulk",
     "s1_columns",
