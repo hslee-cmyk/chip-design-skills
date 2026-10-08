@@ -969,3 +969,15 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
   SLSQP 에 넘기는 행·목적에만 양의 상수 배(행: 1/max(1,|시작점 c|), 목적: 1/max(1,|시작점 f|), ftol 도 같은 배)를 곱한다 -- 가능 집합·`best`
   판정(원 c ≥ 0)·`SolveResult` 값은 그대로.
 - 남은 한계: 예산 때문에 시작점이 예산을 약간 넘는 회로(folded 등)는 120 s 안에 가능 점을 못 찾는다(front 0). 저항 면적은 PDK 단위 면적 선언이 없어 미포함.
+
+## 11. 잡음 제약 배선 (구현 단위 U8, 2026-10-09 -- 설계 41 §7.4, metrics CONTRACT 10절)
+
+- `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None)`: 끝에 선택 인자 `s1v`(`graph.build_s1v` 결과). 기존 호출(6인자)은 그대로 동작한다.
+  - 값이 있는 판정 제약 중 잡음 metric(레지스트리 결과 형식 `NoiseAnalysis`)이 있으면 `search_domain` 뒤·`JunctionSource` 앞에서 `lut.require_lut_data(lut, MOS kind 들, noise=True)`:
+    잡음 r1 데이터(`LutSet.noise`)가 없으면 `SchemaRejectedError(noise_lut_missing)`. (잡음 r1 없이 만든 LUT 로 library spec 의 잡음 제약을 올리면 이제 거부된다 -- test 입력은 `load_lut_set(noise_npz=)`
+    와 `LutSpec.noise_ef` 로 잡음 데이터를 실어야 한다: **독립 test 갱신 필요**, test 작성자 몫.)
+  - `SearchContext.noise_decl` = `noise_decl(spec, s1v)`(metrics `NoiseDecl`): spec feedback 소자·`noise_testbench.sampling_caps`·S1v 전달 뷰의 첫 이득 블록 input 셀. `s1v=None` 이면 input 셀이 없어
+    `noise_excess_th` 는 정의 불가(`noise_input_cell_undefined`) -- 미측정으로 보고된다(조용히 통과하지 않는다).
+- `kernel.evaluate`: 봉인 점 `ss_evaluate(..., area_decl=, noise_decl=sctx.noise_decl)`. 잡음 metric 은 이제 `search_context` 가 `ss_constraints` 로 분류한다(레지스트리에 있고 view_kind 가 있다) --
+  `constraint_notes` 의 `metric_computation_pending` 에서 빠지고 점마다 `ss:<k>:<metric><op>` 행(c = (목표 − 값)/분해능 등 기존 `ss_constraint_rows` 규칙)이나 `unmeasured` 사유(예
+  `noise_thermal_unknown`, `resolution_undefined`)가 된다.

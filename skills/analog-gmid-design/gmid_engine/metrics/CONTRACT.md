@@ -245,7 +245,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - `metric_catalog()` = {이름: MetricSignature} 읽기 전용(spec 로더 `metric_catalog` 인자). [U5 2026-10-08] = 레지스트리 서명(11개) + **계산 대기
   서명 12개**(`pending_metrics.PENDING_METRIC_ROWS`, 총 23개; [U5 후속] `ff_gm_ratio`(ratio, ss, transfer) 추가 -- 계산은 U7): offset_in_sigma_mv(mv, ss, transfer)·offset_excess(ratio, ss, transfer)·
   offset_sys_mv(mv, ss, transfer)·mirror_ratio_sigma_pct(pct, ss, None)·swing_out_v·icmr_v·icm_margin_v(v, ls, None)·noise_th_in_v2hz(v2_per_hz,
-  ss, transfer)·noise_fc_in_hz(hz, ss, transfer)·noise_excess_th(ratio, ss, transfer)·noise_out_int_vrms(v, ss, transfer). 이 이름은 레지스트리에
+  ss, transfer)·noise_fc_in_hz(hz, ss, transfer)·noise_excess_th(ratio, ss, transfer)·noise_out_int_vrms(v, ss, transfer). [U8 2026-10-09] 잡음 4개는 계산이 들어와 레지스트리로 옮겨졌다(10절; 레지스트리 15개, 계산 대기 8개, 카탈로그 23개 그대로). 나머지 계산 대기 이름은 레지스트리에
   없다(결과 형식·필드 없음) -- `metric_value` 는 KeyError. 서명만이며 계산은 U7(offset·스윙)·U8(잡음)이 레지스트리로 옮긴다(`ValueError`:
   카탈로그가 레지스트리와 겹치면). 탐색 문맥(`build_search_context`)은 판정 제약 중 카탈로그에만 있는 이름을 `constraint_notes` 에
   `unmeasured`/`metric_computation_pending` 으로 남긴다.
@@ -1006,3 +1006,69 @@ LUT v2(`resolve_lut_location`), sizing CONTRACT 10절 탐침 θ(seed 0, 회로�
 | R3 | 파라미터 오차 상관 | 독립(최악 선형)으로 둔다. 상관 근거(같은 격자 점의 오차 부호 관계 측정)가 생기면 결합 규칙 재검토 |
 | R4 | 레이아웃 기하 접합 용량 | 접합은 폐형식이라 이 절 대상 아님(8절) |
 
+## 10. 잡음 metric (설계 41 §7.1·7.3·7.4, 체크리스트 D-NZ3·4, 구현 단위 U8, 2026-10-09)
+
+레지스트리 11개 -> **15개**: `noise_th_in_v2hz`(v2_per_hz)·`noise_fc_in_hz`(hz)·`noise_excess_th`(ratio)·`noise_out_int_vrms`(v) -- 서명(ss, transfer 뷰, 목적 축 없음)은 U5 계산 대기
+서명과 같고 `pending_metrics.PENDING_METRIC_ROWS` 에서 지워 `registry._ROWS` 로 옮겼다(카탈로그 총 23개 그대로, 계산 대기 8개). 결과 형식은 `NoiseAnalysis`(필드 `th_in_v2hz`·`fc_in_hz`·`excess_th`·
+`out_int_vrms` 중 요청한 하나만 채움 + `undefined`·`resolution`·`contrib`·`detail`), `metric_value` 가 그대로 읽는다.
+
+### 10.0 파일·층 (모두 `metrics/`, 각 파일 진입점 1개)
+
+| 층 | 파일 | 진입점 |
+|---|---|---|
+| 0 | `noise_types.py`(데이터) | `NoiseDecl`·`NoiseDevice`·`NoiseInput`·`NoiseSources`·`NoisePlan`·`NoiseTransfer`·`NoiseSetup`·`NoiseAnalysis` |
+| 0 | `_helpers_noise.py` | `weights`(W_k = abs(Z_k)^2/abs(H)^2), `source_gradient`(∂Q/∂p) |
+| 1 | `noise_devices.py` | `noise_devices(snapshot, lut, junction, decl) -> NoiseInput` |
+| 1 | `noise_plan.py` | `noise_plan(ss, decl) -> NoisePlan` |
+| 1 | `noise_sources.py` | `noise_sources(ss, noise, parameters) -> NoiseSources` |
+| 1 | `noise_transfer.py` | `noise_transfer(system, row, a_nodes, b_nodes, omegas, *, column=None, parameters=None, with_omega=False) -> NoiseTransfer` |
+| 2 | `noise_integral.py` | `noise_integral(setup) -> NoiseAnalysis`(`out_int_vrms`) |
+| 3 | `noise_analysis.py` | `noise_analysis(field, setup, memo) -> NoiseAnalysis`(`th_in_v2hz`·`fc_in_hz`·`excess_th` + 출력 적분 분기) |
+| search | `search/noise_decl.py` | `noise_decl(spec, s1v) -> NoiseDecl` |
+
+### 10.1 식 (출처 41 §7.3)
+
+* 잡음원: MOS = drain-source 전류 잡음 gm^2·S_vg(f), S_vg = A/f^EF + B(LUT `noise_params` 의 기준 폭 값에 w_m/W 배, gm = 스탬프된 소신호 gm). 저항 = 단측 4kT/R. 커패시터·이상 전류원 = 없음.
+  kT = scipy.constants.k × (`JunctionSource.temp_c` + zero_Celsius) -- LUT 측정 온도 = ngspice 온도.
+* 전달: as-built MNA 의 수반. y = (G + jωC)^-T·s^T(관측 행 s), 잡음원 k(b_k -> a_k) 의 Z_k = y[a_k] − y[b_k]. 전달 뷰 열 j 의 H = y^T(BG_j + jω·BC_j) + sense_direct.
+  ω 마다 풀이 1회(격자는 한 번의 묶음 풀이). 조립을 다시 하지 않는다(`MnaSystem` 재사용: 개루프 세 metric 은 gain metric 과 같은 계 키·같은 열).
+* `noise_th_in_v2hz` = Σ_k abs(Z_k/H)^2·gm_k^2·B_k (ω = 2π·f_lo, f_lo = LUT 가 실측한 가장 낮은 잡음 주파수, `NoiseInput.f_lo`).
+* `noise_fc_in_hz`: Q_fl(f) = Σ_k abs(Z_k/H)^2·gm_k^2·A_k/f^EF_k = Q_th 의 근. f_lo 에서 Q_fl < Q_th 면 `noise_fc_below_f_lo`, flicker 합 0 이면 `noise_flicker_zero`(오라클 below_f_lo 와 같은 사실),
+  위쪽은 f_lo·2^j 격자(상한 `k_max((Q_fl(f_lo)/Q_th)^(1/EF_min), 1)`)에서 첫 부호 변화를 잡아 ln f 의 `bracket_root`. 못 찾으면 `noise_fc_not_found`.
+* `noise_excess_th` = Q_th / Q_in,th. Q_in,th = 입력 셀 MOS(S1v 전달 뷰의 첫 이득 블록 input 소자 -- `NoiseDecl.input_cells`)만의 같은 합.
+* `noise_out_int_vrms` = sqrt(∫_{f_lo}^{f_hi} S_out df + Σ_s kT/C_s·abs(T_s)^2). 모드: spec feedback 이 비지 않으면 **폐루프**(되먹임 소자의 입력 포트 쪽 넷 = 자유 노드로 푼 계 -- 되먹임이
+  아닌 입력 부하 Cs 는 그대로, CI-10), 빈 tuple 이면 **개루프 출력 잡음**(입력 고정), None(대기)이면 `noise_feedback_undeclared`. f_hi 는 가장 높은 극점에서 두 배씩 올리며 꼬리 상계 f·S(f) <= 분해능^2
+  (상한 `k_max(f_top·S_peak, 분해능^2)`), 못 맞추면 `noise_tail_not_converged`(값 없음). 적분 = 구간 로그-로그(멱법칙) 적분 + Richardson 구간 이분(상한 `k_max(오차/예산, 1)`).
+  스위치 kT/C: `noise_testbench.sampling_caps` 커패시터마다 kT/C_s × abs(jω_ref·C_s·Z_cap)^2, **`detail.ktc_v2` 로 따로** 기록(선언 없으면 None -- 선언 여부는 사용자 결정 대기, spec 에 선언을 추가하지 않았다).
+* 소자별 기여: `MetricBundle.reports` 의 `noise_contrib:<metric>` = ((소자 이름, (("flicker", ...), ("share", 몫), ("thermal", ...))), ...), 상세 `noise_detail:<metric>`, 개루프 뷰가 있으면
+  보고 전용 `noise_report`(th_in·fc 값/정의 불가 사유 -- 41 §7.1 '보고(모든 회로)').
+
+### 10.2 분해능 (MetricResult.resolution, 9절과 같은 방식)
+
+값 q 의 LUT 몫 = Σ_p abs(∂q/∂p)·Δp(Δp = `ParameterSet.delta`, ∂q/∂p = `noise_transfer` 의 파라미터 미분 -- 수반 y 와 정방향 X = A^-1·E 로 −y^T(∂A/∂p)X 를 한 번의 축약 -- 과 S_k 의 gm 직접 의존
+2·S_k/gm_k 를 같은 파라미터에 부호째 합친 `source_gradient`) + LUT 잡음 칸 허용오차 Σ_k tol_k·(그 성분)(열 성분 `tol_noise.thermal`(ln B 면), flicker `tol_noise.flicker`). excess 는 ln(Q_th/Q_in) 의 미분·몫 차,
+corner 는 암시적 미분(δ ln f = (Σ abs(∂g/∂p)Δp + 허용오차 몫)/abs(∂ln Q_fl/∂ln f), g = ln Q_fl − ln Q_th), 출력 적분은 구간 규칙의 해석 미분(∂I/∂S1, ∂I/∂S2)을 적분하고 δv = δI/2v 로 옮긴 뒤
+max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미정이면(`ParameterSet.undetermined`·허용오차 칸 NaN) None. 출력 적분은 분해능이 없으면 이분을 한 번만 하고 `resolution` None
+(값의 수치 오차 추정은 `detail.numeric_v`).
+
+### 10.3 정의 불가 사유 (`Undefined`, 예외 없음)
+
+`noise_inputs_missing`(extras 에 NoiseInput 없음)·`noise_view_unsupported`(port·transfer 뷰 아님)·`noise_thermal_unknown`(LUT B 미상 -- 설계는 'resolution 무한대로 판정 보류'라 했으나 무한대를 값으로 싣지 않고
+값 없음 + 소자 이름으로 보류한다)·`noise_lut_query_failed`·`noise_device_missing`·`noise_f_lo_undefined`·`noise_input_cell_undefined`·`noise_input_cell_not_in_circuit`·`noise_input_cell_noise_zero`·
+`noise_transfer_view_missing`·`noise_transfer_zero`·`noise_feedback_undeclared`·`noise_feedback_element_unknown`·`noise_feedback_cut_ambiguous`·`noise_sampling_cap_unknown`·`noise_sense_on_fixed_node`·
+`noise_fc_below_f_lo`·`noise_flicker_zero`·`noise_thermal_zero`·`noise_fc_not_found`·`noise_tail_not_converged`·`noise_psd_not_positive`·`noise_nonfinite_*`·`singular_mna`.
+
+### 10.4 배선
+
+* `ss_evaluate(..., noise_decl=None)`: 잡음 요청이 있을 때만 `noise_devices` 로 `NoiseInput` 을 만들어 `metrics_ss` 의 세 번째 extras 로 넘긴다(블록 입력 버전에 든다 -- 같은 입력이면 재사용).
+* `metrics_ss`: 잡음 요청의 계 키를 `_Ledger` 에 올린다(개루프 = `_plan` 과 같은 키 -> gain 과 한 계, 폐루프/개루프 출력 = `ledger.full((), free)`), 한 번의 `solve_responses` 뒤 `noise_analysis`. `READS` 는 늘리지 않았다.
+* `search.build_search_context(..., s1v=None)`: `noise_decl(spec, s1v)` 를 `SearchContext.noise_decl` 에 두고 `kernel.evaluate` 가 `ss_evaluate(..., noise_decl=)` 로 넘긴다. 잡음 제약(값 있는 판정 제약)이 있으면
+  시작 때 `lut.require_lut_data(noise=True)` 로 `noise_lut_missing` 거부. 판정 행은 기존 `ss_constraint_rows` 가 그대로 만든다(c = (값 − 목표)/분해능).
+
+### 10.5 손계산·오라클 대조 (2026-10-09, 작성자 측 실측 -- 정본 아님)
+
+* 손 RC(오라클 conftest RC: Ra = Rb = 2 kΩ, C = 1 nF, 27 °C): 엔진 th_in = 6.630429e-17 = 4kT(Ra‖Rb)/H0^2 (상대 0.0), 오라클 `.noise` 6.630426e-17(−4.6e-7). fc: 엔진 `noise_flicker_zero`, 오라클 None(`below_f_lo`).
+* 평행 RC 출력 적분(R = 10 kΩ, C = 1 pF): 해석 kT/C 대비 −8.2e-4(허용 1 % -> 분해능 3.2e-7 V 안), −4.5e-8(허용 1e-6).
+* two_stage_ota 봉인 점(ln_idu = −13, 50 µA): 엔진 대 오라클(같은 소자 크기·바이어스, 오라클은 ngspice 자체 동작점) th_in 1.29359e-16 대 1.29531e-16(−0.13 %), excess 1.2565 대 1.2584(−0.15 %), fc 477.4 kHz 대 470.5 kHz(+1.5 %),
+  소자별 열 기여 M1 5.1442e-17 대 5.1444e-17, M2 5.1510e-17 대 5.1491e-17, M3 1.2809e-17 대 1.2905e-17, M4 1.3529e-17 대 1.3623e-17.
+* CS + Rf + Cin 폐루프(오라클 conftest FB, 같은 gm·gds): 엔진 3.8283e-4 V(수치 목표 sqrt(eps)·v) 대 오라클 3.8314e-4 V(−0.08 %). LUT 동작점(ID 10.2 µA 대 ngspice 8.7 µA)을 쓰면 4.193e-4 V(+9.4 %).

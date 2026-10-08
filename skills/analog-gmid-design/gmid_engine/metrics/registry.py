@@ -21,6 +21,7 @@ import types
 from gmid_engine.core import MetricSignature
 
 from .mna_types import AreaSearch, LoopAnalysis, OutputResistance, ResponseRatio, SupplyCurrents
+from .noise_types import NoiseAnalysis
 
 
 @dataclasses.dataclass(frozen=True)
@@ -45,6 +46,11 @@ _ROWS = (
     ("supply_current_dc", "amp", "dc", None, "power", SupplyCurrents, "supply_current_dc"),
     ("power_dc_w", "w", "dc", None, None, SupplyCurrents, "power_dc_w"),
     ("area_search_m2", "m2", "geom", None, None, AreaSearch, "area_search_m2"),
+    # [U8] 잡음 4개(설계 41 §7.1): 서명은 U5 의 계산 대기 서명과 같다(pending_metrics 에서 옮겼다). 결과 형식 NoiseAnalysis
+    ("noise_th_in_v2hz", "v2_per_hz", "ss", "transfer", None, NoiseAnalysis, "th_in_v2hz"),
+    ("noise_fc_in_hz", "hz", "ss", "transfer", None, NoiseAnalysis, "fc_in_hz"),
+    ("noise_excess_th", "ratio", "ss", "transfer", None, NoiseAnalysis, "excess_th"),
+    ("noise_out_int_vrms", "v", "ss", "transfer", None, NoiseAnalysis, "out_int_vrms"),
 )
 
 
