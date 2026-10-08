@@ -11,7 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from gmid_engine.authoring import BETA_DECLARED, BETA_UNITY, SenseDecl, load_sizing_spec, load_topology
+from gmid_engine.authoring import BETA_DECLARED, BETA_UNITY, SenseDecl, ViewDecl, load_sizing_spec, load_topology
+
 from gmid_engine.core import MetricSignature as M
 
 LIBRARY = Path(__file__).resolve().parents[3] / "assets" / "library"
@@ -310,4 +311,5 @@ def test_cm_pm_constraint_only_in_pilot():
         assert "view" not in raw[0]                                    # 3절: view 를 적지 않는다
         c = got[0]
         assert (c.op, c.value, c.judged) == (">=", 60.0, True)
-        assert c.view is not None and c.view.mode != "pending"          # 유도 뷰(모양은 유도 규칙 몫 -- 여기서 고정하지 않음)
+        # [CM 0e487b3] SPEC_CONTRACT 3절 cm_loop: 차동 출력쌍(Vop = _p, Vom = _n, 손으로 읽은 ports) -> cm_output, 넷순 각 1/2
+        assert c.view == ViewDecl("cm_output", weights=(("Vom", 0.5), ("Vop", 0.5)))

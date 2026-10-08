@@ -391,3 +391,141 @@ def test_cm_loop_pending_view_accepted(sc):
     v = _view(sc.load(), "pm_cm_ss_deg")
     assert v.mode == "pending" and v.decision == "MOD5"
 
+
+# =====================================================================================================================
+# [CM 2026-10-08 개정, 0e487b3] cm_loop 유도 = 선언된 차동 출력 포트 쌍의 출력 CM 주입 (SPEC_CONTRACT 3절 cm_loop, metrics 7.11, S-21)
+# 기대값(oracle (d)): 3절 문장 'ViewDecl("cm_output", weights=((p, 1/2), (n, 1/2)))(넷순)' 을 손으로 읽은 파일럿 ports role(Vop = _p,
+# Vom = _n)에 적용한 리터럴, 차동 출력쌍 없음·SWITCHED_KINDS("switch", "clock") 는 view_required 사유 문자열.
+# 입력: library 파일럿 topology 의 연결 키만 옮긴 최소 사본(태그·주석 키는 유도 입력이 아님 -- authoring CONTRACT) 을 test 가 고친다.
+# =====================================================================================================================
+
+import json as _json  # noqa: E402
+from pathlib import Path as _Path  # noqa: E402
+
+from gmid_engine.authoring import load_topology as _load_topology  # noqa: E402
+
+_LIB = _Path(__file__).resolve().parents[3] / "assets" / "library"
+_LIB9 = ("common_gate_amplifier", "current_reuse_telescopic_ota", "folded_cascode", "ngcc_3stage_ff", "nmcnr_amplifier",
+         "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota", "two_stage_ota_sf")
+_PILOT = "current_reuse_telescopic_ota"
+_PILOT_CM = ViewDecl("cm_output", weights=(("Vom", 0.5), ("Vop", 0.5)))        # 넷순 "Vom" < "Vop", 각 1/2
+_CONN_KEYS = ("schema_version", "topology_name", "netlist", "supply_nets", "ports", "passive_elements", "ideal_sources",
+              "bias_inputs")
+
+
+def _pilot_mini():
+    t = _json.loads((_LIB / (_PILOT + ".topology.json")).read_text(encoding="utf-8"))
+    d = {k: copy.deepcopy(t[k]) for k in _CONN_KEYS if k in t}
+    d["ports"] = {k: v for k, v in d["ports"].items() if not k.startswith("_")}
+    for e in d["passive_elements"] + d.get("ideal_sources", []) + d["netlist"]:
+        for k in [k for k in e if k.startswith("_")]:
+            del e[k]
+    return d
+
+
+def _dv(tmp_path, doc, name="cmv"):
+    p = tmp_path / (name + ".topology.json")
+    p.write_text(_json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+    return default_views(_load_topology(str(p)), ()).cm_loop
+
+
+def _pas(doc, name):
+    return next(e for e in doc["passive_elements"] if e["name"] == name)
+
+
+def _single_ended(d):
+    d["ports"]["Vop"] = {"direction": "output", "role": "single_ended_output"}
+    del d["ports"]["Vom"]
+    return d
+
+
+def test_cm_view_library_pilot_and_eight_without_pair():
+    """S-21: library 9회로 -- 파일럿만 cm_output(Vom 1/2, Vop 1/2), 나머지 8회로는 사유 문자열(차동 출력쌍 없음)."""
+    for name in _LIB9:
+        v = default_views(_load_topology(str(_LIB / (name + ".topology.json"))), ()).cm_loop
+        if name == _PILOT:
+            assert v == _PILOT_CM, v
+        else:
+            assert isinstance(v, str) and v, (name, v)
+
+
+def test_cm_view_pilot_minimal_copy_same(tmp_path):
+    """입력 확인: 연결 키만 옮긴 사본도 같은 뷰(태그 키를 읽지 않는다)."""
+    assert _dv(tmp_path, _pilot_mini()) == _PILOT_CM
+
+
+@pytest.mark.parametrize("variant", ["drop_R2", "R2_as_capacitor", "ref_resistor_on_sense", "ref_cap_on_sense",
+                                     "sense_mos_drain", "triode_mos_average"])
+def test_cm_view_independent_of_sense_structure(tmp_path, variant):
+    """S-21 '평균 구조가 바뀌어도 뷰는 같다(감지 구조를 보지 않는다)': 감지 넷(Voc) 쪽을 하나씩 고친 사본 -> 같은 cm_output 뷰."""
+    d = _pilot_mini()
+    if variant == "drop_R2":
+        d["passive_elements"] = [e for e in d["passive_elements"] if e["name"] != "R2"]
+    elif variant == "R2_as_capacitor":
+        _pas(d, "R2")["kind"] = "capacitor"
+    elif variant == "ref_resistor_on_sense":
+        d["passive_elements"].append({"name": "Rref_t", "kind": "resistor", "terminals": ["Voc", "gnd"]})
+    elif variant == "ref_cap_on_sense":
+        d["passive_elements"].append({"name": "Cref_t", "kind": "capacitor", "terminals": ["Voc", "gnd"]})
+    elif variant == "sense_mos_drain":
+        d["netlist"].append({"name": "Mt_x", "kind": "nmos", "drain": "Voc", "gate": "vdd", "source": "gnd"})
+    else:   # 평균 저항 둘을 triode MOS 둘로(gate = vdd 레일, channel 이 출력 -> Voc)
+        d["passive_elements"] = [e for e in d["passive_elements"] if e["name"] not in ("R1", "R2")]
+        d["netlist"] += [{"name": "Mtri1", "kind": "nmos", "drain": "Vom", "gate": "vdd", "source": "Voc"},
+                         {"name": "Mtri2", "kind": "nmos", "drain": "Vop", "gate": "vdd", "source": "Voc"}]
+    assert _dv(tmp_path, d) == _PILOT_CM
+
+
+def test_cm_view_name_bijection(tmp_path):
+    """S-21 이름 전단사: 모든 넷·소자 이름을 바꾼 사본 -> 출력 두 넷이 새 이름으로 옮겨진 같은 뷰(가중은 새 이름의 넷순)."""
+    d = _pilot_mini()
+    nets = set(d["supply_nets"]) | set(d["ports"]) | set(d.get("bias_inputs", ()))
+    for e in d["netlist"]:
+        nets |= {e[k] for k in ("drain", "gate", "source", "bulk") if k in e}
+    for e in d["passive_elements"] + d.get("ideal_sources", []):
+        nets |= set(e["terminals"])
+    order = sorted(nets)
+    nm = {n: "z%03d" % (len(order) - i) for i, n in enumerate(order)}     # 원래 이름순을 뒤집는 새 이름
+    dev = {e["name"]: "q%03d" % i
+           for i, e in enumerate(d["netlist"] + d["passive_elements"] + d.get("ideal_sources", []))}
+    for e in d["netlist"]:
+        e["name"] = dev[e["name"]]
+        for k in ("drain", "gate", "source", "bulk"):
+            if k in e:
+                e[k] = nm[e[k]]
+    for e in d["passive_elements"] + d.get("ideal_sources", []):
+        e["name"] = dev[e["name"]]
+        e["terminals"] = [nm[t] for t in e["terminals"]]
+    d["supply_nets"] = [nm[n] for n in d["supply_nets"]]
+    d["ports"] = {nm[k]: v for k, v in d["ports"].items()}
+    if "bias_inputs" in d:
+        d["bias_inputs"] = [nm[n] for n in d["bias_inputs"]]
+    assert nm["Vop"] < nm["Vom"]                                   # 넷순이 원래와 뒤집힌 경우
+    want = ViewDecl("cm_output", weights=((nm["Vop"], 0.5), (nm["Vom"], 0.5)))
+    assert _dv(tmp_path, d) == want
+
+
+@pytest.mark.parametrize("where,kind", [("passive_elements", "switch"), ("ideal_sources", "clock"),
+                                        ("ideal_sources", "switch")])
+def test_cm_view_switched_capacitor_explicit_stop(tmp_path, where, kind):
+    """S-21·SPEC_CONTRACT 3절: 차동 출력 회로에 kind ∈ SWITCHED_KINDS 선언 -> 명시적 정지 사유(문자열, 차동 출력쌍 없음 사유와 다름)."""
+    d = _pilot_mini()
+    d.setdefault(where, []).append({"name": "Ksw_t", "kind": kind, "terminals": ["Voc", "gnd"]})
+    v = _dv(tmp_path, d)
+    assert isinstance(v, str) and v
+    single = _dv(tmp_path, _single_ended(_pilot_mini()), "se")
+    assert isinstance(single, str) and v != single
+
+
+@pytest.mark.parametrize("variant", ["single_ended", "only_p", "extra_output"])
+def test_cm_view_requires_exactly_one_declared_pair(tmp_path, variant):
+    """3절 '차동 출력 포트 쌍(role _p·_n 각 하나, 다른 출력 없음)' 밖 -> 사유 문자열(뷰 없음)."""
+    d = _pilot_mini()
+    if variant == "single_ended":
+        _single_ended(d)
+    elif variant == "only_p":
+        del d["ports"]["Vom"]
+    else:
+        d["ports"]["Voc"] = {"direction": "output", "role": "single_ended_output"}
+    v = _dv(tmp_path, d)
+    assert isinstance(v, str) and v

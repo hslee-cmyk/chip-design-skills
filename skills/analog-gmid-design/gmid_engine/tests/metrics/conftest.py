@@ -1334,3 +1334,197 @@ def i20_cases():
 
 
 I20_MIXED = ("ex7c", "ex7d", "ex7e")        # 섞인 절단(n 과 x 중 하나만 용량 전용) -- ω = 0 한 점이 NaN -> 값
+
+
+# =====================================================================================================================
+# [CM 0e487b3] 출력 포트 CM 주입(metrics CONTRACT 7.11, S-21~S-28) -- 합성 CMFB 변형 회로(test 작성자 설계)와 독립 기준.
+# 코어: 입력쌍 M1 (op, ip, gnd)·M2 (om, im, gnd), PMOS 부하 M3 (op, c, vdd)·M4 (om, c, vdd), CL1·CL2. CM 제어 넷 c 를 만드는 CMFB
+# 변형만 바꾼다. 기대값 출처:
+#   (a) 변형마다 손유도 T_cm(0) (아래 CM_VARIANTS 의 "t0" -- 식은 각 항목 주석), 출력 노드 KCL: Go·v = −gmp·v_c (Go = gds1 + gdsp,
+#       CM 에서 평균망 전류 0), v_c = A·v -> T_cm(0) = gmp·A/Go.
+#   (b) 독립 Middlebrook(ref_cm_output): 이 파일이 직접 세운 노드 어드미턴스(MOS 3.1 식·용량 5개)에 7.11 절단 규칙(출력 넷에 d 또는 s 가
+#       정확히 한쪽만 물린 MOS 의 그 단자 -> x)을 test 가 따로 적용하고 두 출력에 (1/2, 1/2) 이중 주입. PM 은 |T| = 1 교차(brentq)와
+#       저주파부터 언랩한 위상으로 test 가 계산.
+# 소자 이름·넷 이름은 test 가 지은 것이고(library 이름과 겹치지 않음), 엔진에는 topology/spec JSON 으로만 들어간다.
+# =====================================================================================================================
+
+CM_SUPPLIES = {"gnd": 0.0, "vdd": 1.8}
+CM_PORTS = {"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),
+            "op": ("output", "differential_output_p"), "om": ("output", "differential_output_n")}
+CM_GDS1, CM_GDSP, CM_CL, CM_CG, CM_R = 1e-6, 1e-6, 1e-12, 0.2e-12, 1e6
+CM_GO = CM_GDS1 + CM_GDSP
+
+
+def _core(gmp):
+    """(mos, passives): mos = (이름, kind, d, g, s, b, gm, gds, cgs), passives = (이름, kind, a, b, 값)."""
+    mos = [("M1", "nmos", "op", "ip", "gnd", "gnd", 1e-4, CM_GDS1, 0.0),
+           ("M2", "nmos", "om", "im", "gnd", "gnd", 1e-4, CM_GDS1, 0.0),
+           ("M3", "pmos", "op", "c", "vdd", "vdd", gmp, CM_GDSP, CM_CG),
+           ("M4", "pmos", "om", "c", "vdd", "vdd", gmp, CM_GDSP, CM_CG)]
+    pas = [("CL1", "capacitor", "op", "gnd", CM_CL), ("CL2", "capacitor", "om", "gnd", CM_CL)]
+    return mos, pas
+
+
+def cm_variant(name):
+    """반환 dict(mos, passives, sources((이름, kind, a, b, 값)), bias_inputs, t0(손유도), outputs)."""
+    src, bias = [], []
+    if name in ("direct", "ref_rc", "low_gain"):
+        # V0: 저항 평균 R1(op, c)·R2(c, om) 이 바로 PMOS gate(c) -- 예 7e 의 PMOS 판. A = 1 -> T0 = gmp/Go.
+        gmp = {"direct": 1e-4, "ref_rc": 1e-4, "low_gain": 1e-6}[name]
+        mos, pas = _core(gmp)
+        pas += [("R1", "resistor", "op", "c", CM_R), ("R2", "resistor", "c", "om", CM_R)]
+        t0 = gmp / CM_GO
+        if name == "ref_rc":
+            # 감지 넷 기준 Rref(c, gnd)·Cref(c, gnd): CM 에서 평균망에 DC 전류가 흐른다. 반환비(gmp 제어 전압 v_c 를 1 로 떼고):
+            # 감지 넷 KCL 2(v_c − v)/R + v_c/Rref = 0 -> v_c = k·v, k = 2Rref/(2Rref + R); 출력 KCL (Go + (1 − k)/R)·v = −gmp
+            # -> T0 = gmp·k/(Go + (1 − k)/R) = 1e-4·(2/3)/(2e-6 + 1/3e-6) = 200/7.
+            rref = 1e6
+            pas += [("Rref", "resistor", "c", "gnd", rref), ("Cref", "capacitor", "c", "gnd", 0.1e-12)]
+            kk = 2.0 * rref / (2.0 * rref + CM_R)
+            t0 = gmp * kk / (CM_GO + (1.0 - kk) / CM_R)
+    elif name == "err_amp":
+        # V1: 저항 평균 s -> CS Me1(e, s, gnd)+Re1(vdd, e) -> CS Me2(c, e, gnd)+Re2(vdd, c) (반전 2, gds 0) -> PMOS 부하(반전 1).
+        # A = gme1·Re1·gme2·Re2 = 100 -> T0 = gmp·A/Go = 2e-7·100/2e-6 = 10. 평균 저항 1e4(감지 넷 극점을 높게 -- 3극 루프가
+        # 안정하도록; CM 에서 평균망 전류 0 이라 T0 와 무관).
+        gmp = 2e-7
+        mos, pas = _core(gmp)
+        mos += [("Me1", "nmos", "e", "s", "gnd", "gnd", 1e-4, 0.0, CM_CG), ("Me2", "nmos", "c", "e", "gnd", "gnd", 1e-4, 0.0, 0.0)]
+        pas += [("R1", "resistor", "op", "s", 1e4), ("R2", "resistor", "s", "om", 1e4),
+                ("Re1", "resistor", "vdd", "e", 1e5), ("Re2", "resistor", "vdd", "c", 1e5)]
+        t0 = gmp * 100.0 / CM_GO
+    elif name == "sf_buffer":
+        # V2: 소스 팔로어 Ms1(vdd, op, bp)·Ms2(vdd, om, bm)(gds 0, gmb 0, 이상 전류원 바이어스 -> 이득 gms/gms = 1) -> 저항 평균 c ->
+        # PMOS gate. T0 = gmp/Go.
+        gmp = 1e-4
+        mos, pas = _core(gmp)
+        mos += [("Ms1", "nmos", "vdd", "op", "bp", "bp", 1e-4, 0.0, 0.0), ("Ms2", "nmos", "vdd", "om", "bm", "bm", 1e-4, 0.0, 0.0)]
+        pas += [("R1", "resistor", "bp", "c", CM_R), ("R2", "resistor", "c", "bm", CM_R)]
+        src += [("Ib1", "current_source", "bp", "gnd", 1e-6), ("Ib2", "current_source", "bm", "gnd", 1e-6)]
+        t0 = gmp / CM_GO
+    elif name == "dda":
+        # V3: DDA -- 쌍 A: Ma(e, op, ta)·Mb(f, vref, ta), 쌍 B: Mc(e, om, tb)·Md(f, vref, tb), 꼬리 이상 전류원(교류 개방), 쌍 gds 0.
+        # CM v: v_ta = v_tb = v/2 -> e 에서 빠지는 전류 gm·v -> v_e = −gm·Re·v; Mx(c, e, gnd)+Rc: v_c = gm·gmx·Re·Rc·v.
+        # T0 = gmp·gm·gmx·Re·Rc/Go = 2e-6·1e-4·1e-4·1e5·1e5/2e-6 = 100.
+        gmp = 2e-6
+        mos, pas = _core(gmp)
+        mos += [("Ma", "nmos", "e", "op", "ta", "gnd", 1e-4, 0.0, 0.0), ("Mb", "nmos", "f", "vref", "ta", "gnd", 1e-4, 0.0, 0.0),
+                ("Mc", "nmos", "e", "om", "tb", "gnd", 1e-4, 0.0, 0.0), ("Md", "nmos", "f", "vref", "tb", "gnd", 1e-4, 0.0, 0.0),
+                ("Mx", "nmos", "c", "e", "gnd", "gnd", 1e-4, 0.0, 0.0)]
+        pas += [("Re", "resistor", "vdd", "e", 1e5), ("Rf", "resistor", "vdd", "f", 1e5), ("Rc", "resistor", "vdd", "c", 1e5)]
+        src += [("It1", "current_source", "ta", "gnd", 1e-6), ("It2", "current_source", "tb", "gnd", 1e-6)]
+        bias = ["vref"]
+        t0 = gmp * 1e-4 * 1e-4 * 1e5 * 1e5 / CM_GO
+    elif name == "triode":
+        # V4: 평균 저항 R1·R2 를 triode MOS 로(gate = vdd 레일, Vds ≈ 0 이라 gm = 0, gds = 1/R): 전기적으로 "direct" 와 같은 회로
+        # (물리 CM 루프 이득 = gmp/Go = 50). 7.11 규칙상 Mt 의 channel 단자가 출력에 물려 구동자(x)로 옮겨진다.
+        gmp = 1e-4
+        mos, pas = _core(gmp)
+        mos += [("Mt1", "nmos", "op", "vdd", "c", "gnd", 0.0, 1.0 / CM_R, 0.0),
+                ("Mt2", "nmos", "om", "vdd", "c", "gnd", 0.0, 1.0 / CM_R, 0.0)]
+        t0 = gmp / CM_GO          # 물리 루프 이득(정의 밖 참고값) -- 엔진 정의로는 0(7.11 변형 4)
+    else:
+        raise KeyError(name)
+    return dict(mos=mos, passives=pas, sources=src, bias_inputs=bias, t0=t0)
+
+
+def cm_topology(name, variant, names=None):
+    nm = (lambda n: n) if names is None else (lambda n: names.get(n, n))
+    v = cm_variant(variant)
+    d = topo_doc(name, mos=[(nm(a), k, nm(dd), nm(g), nm(s), nm(b)) for a, k, dd, g, s, b, *_ in v["mos"]],
+                 passives=[(nm(a), k, nm(x), nm(y)) for a, k, x, y, _ in v["passives"]],
+                 sources=[(nm(a), k, nm(x), nm(y)) for a, k, x, y, _ in v["sources"]],
+                 ports={nm(k): p for k, p in CM_PORTS.items()}, rails=(nm("gnd"), nm("vdd")))
+    if v["bias_inputs"]:
+        d["bias_inputs"] = [nm(n) for n in v["bias_inputs"]]
+    return d, v
+
+
+def cm_case(tmp_path, variant, constraints, names=None, ss_scale=None):
+    """(TopologyDoc, spec, 손 S2 스냅샷, passive_values, variant dict). 원소 값은 spec 에도 쓰고 passive_values 로도 넘긴다(7.4)."""
+    nm = (lambda n: n) if names is None else (lambda n: names.get(n, n))
+    topo, v = cm_topology("cmv_%s%s" % (variant, "" if names is None else "_r"), variant, names)
+    kinds = {e["name"]: e["kind"] for e in topo["passive_elements"] + topo.get("ideal_sources", [])}
+    els = tuple((nm(a), kinds[nm(a)], val) for a, _, _, _, val in v["passives"] + v["sources"])
+    sup = {nm(k): x for k, x in CM_SUPPLIES.items()}
+    td, spec = load_case(tmp_path, topo, sup, els, (), constraints, input_dc_v=0.9)
+    ss = {nm(a): hand_ss(gm, gds, cgs=cg) for a, _, _, _, _, _, gm, gds, cg in v["mos"]}
+    snap = with_ss(s2_of(td, sup), ss)
+    pv = tuple(sorted((nm(a), val) for a, _, _, _, val in v["passives"]))
+    return td, spec, snap, pv, v
+
+
+def ref_cm_output(variant, omega):
+    """(b) 독립 Middlebrook: 출력 op·om 에서 7.11 절단(출력 넷에 d 또는 s 가 정확히 한쪽만 물린 MOS 의 그 단자 -> x_넷), 가중 (½, ½),
+    교류접지 = 레일 ∪ 입력 포트 ∪ gate 전용 넷(bias_inputs). 이상 전류원 = 개방. 반환 T(jω)."""
+    v = cm_variant(variant)
+    fixed = {"gnd", "vdd", "ip", "im"} | set(v["bias_inputs"])
+    outs = ("om", "op")
+    mos = [list(m) for m in v["mos"]]
+    for m in mos:
+        for o in outs:
+            hit = [i for i in (2, 4) if m[i] == o]
+            if len(hit) == 1 and m[2] != m[4]:
+                m[hit[0]] = "x_" + o
+    nets = set()
+    for m in mos:
+        nets |= set(m[2:6])
+    for p in v["passives"]:
+        nets |= {p[2], p[3]}
+    nets |= {"x_om", "x_op"}
+    unk = sorted(n for n in nets if n not in fixed)
+    ix = {n: i for i, n in enumerate(unk)}
+    nu, k = len(unk), 2
+    s = 1j * omega
+    a = np.zeros((nu + k, nu + k), dtype=complex)
+
+    def two(p, q, y):
+        for r_, c_, sg in ((p, p, 1.0), (q, q, 1.0), (p, q, -1.0), (q, p, -1.0)):
+            if r_ in ix and c_ in ix:
+                a[ix[r_], ix[c_]] += sg * y
+
+    for _, kind, x, y, val in v["passives"]:
+        two(x, y, 1.0 / val if kind == "resistor" else s * val)
+    for _, _, d, g, so, b, gm, gds, cgs in mos:
+        for row, sg in ((d, 1.0), (so, -1.0)):
+            if row in ix:
+                for col, val in ((g, gm), (d, gds), (so, -(gm + gds))):
+                    if col in ix:
+                        a[ix[row], ix[col]] += sg * val
+        two(g, so, s * cgs)
+    pairs = [(o, "x_" + o) for o in outs]
+    for j, (n, x) in enumerate(pairs):
+        a[ix[n], nu + j] += 1.0
+        a[ix[x], nu + j] -= 1.0
+        a[nu + j, ix[n]] += 1.0
+        a[nu + j, ix[x]] -= 1.0
+    w = np.array([0.5, 0.5])
+    rhs = np.zeros(nu + k, dtype=complex)
+    rhs[nu:] = w
+    sol = np.linalg.solve(a, rhs)
+    vn = np.array([sol[ix[n]] for n, _ in pairs])
+    vx = np.array([sol[ix[x]] for _, x in pairs])
+    tv = -(w @ vx) / (w @ vn)
+    rhs = np.zeros(nu + k, dtype=complex)
+    for j, (n, _) in enumerate(pairs):
+        rhs[ix[n]] += w[j]
+    sol = np.linalg.solve(a, rhs)
+    i_ = sol[nu:]
+    ti = (w @ i_) / (w @ (w - i_))
+    return (tv * ti - 1.0) / (tv + ti + 2.0)
+
+
+def ref_pm(tfun, w_lo=1.0, w_hi=1e13, n=4000):
+    """|T| = 1 첫 하강 교차(brentq, log ω)와 w_lo 부터 언랩한 위상 -> (ugf_hz, pm_deg). 교차 없으면 (None, None)."""
+    ws = np.geomspace(w_lo, w_hi, n)
+    ts = np.array([tfun(w) for w in ws])
+    mag = np.abs(ts)
+    ph = np.unwrap(np.angle(ts))
+    for i in range(n - 1):
+        if mag[i] >= 1.0 > mag[i + 1]:
+            lw = brentq(lambda lw_: abs(tfun(math.exp(lw_))) - 1.0, math.log(ws[i]), math.log(ws[i + 1]), xtol=1e-14, rtol=1e-15)
+            wu = math.exp(lw)
+            p = cmath.phase(tfun(wu))
+            p += 2.0 * math.pi * round((ph[i] - p) / (2.0 * math.pi))     # 같은 가지로
+            assert abs(ph[0]) < 1e-3, ph[0]                                # T(0) 은 양의 실수(음되먹임) -- 위상 기준 0
+            return wu / TWO_PI, 180.0 + math.degrees(p)
+    return None, None
