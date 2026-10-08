@@ -194,23 +194,46 @@ def test_noise_excess_th_maps_passive_and_mos_names(tmp_path):
                                 [{"name": "ex", "measure": "noise_excess_th", "op": "<=", "limit": 2.5}])
     assert ol["excess_th"] == pytest.approx(2.0, rel=RELTOL), ol
     assert not ol.get("input_cell_missing"), ol.get("input_cell_missing")
+    # fail-closed 규칙(설계 40 §4-8 (v)) 의 반대쪽: 누락이 없으면 값이 있으므로 excess_reason 도 없다(oracle (d) 규칙 문장)
+    assert not ol.get("excess_reason"), ol
     k = conftest.by_name(cmp["constraints"], "name", "ex")
     assert k["judge"] == "PASS" and k["spice"] == pytest.approx(2.0, rel=RELTOL), k
 
 
-def test_noise_excess_th_reports_missing_name(tmp_path):
-    """(v) README '못 찾은 이름은 input_cell_missing': 넷리스트에 없는 이름 `Rzz` 는 input_cell_missing 에 그대로 남는다. 찾은 `Ra` 는
-    누락 목록에 없다."""
-    ol, cmp, p = _rc_excess_run(tmp_path, ["Ra", "Rzz"])
-    assert "Rzz" in ol["input_cell_missing"] and "Ra" not in ol["input_cell_missing"], ol
+MISSING_CODE = "noise_excess_input_cell_missing"   # oracle (d): 오케스트레이터 결정(설계 40 §4-8 (v) fail-closed)의 reason code
+_EX = [{"name": "ex", "measure": "noise_excess_th", "op": "<=", "limit": 2.5}]
 
 
-def test_noise_excess_th_none_when_no_input_cell_found(tmp_path):
-    """README '입력 셀이 없으면 None + excess_reason': 이름이 하나도 사상되지 않으면(`Rzz` 만) 값 없음 + 이유 + 누락 목록, 그
-    metric 의 제약은 값 없음 판정(N/A) -> PASS 불가(README '값이 없으면 N/A -> INCOMPLETE')."""
-    ol, cmp, p = _rc_excess_run(tmp_path, ["Rzz"], [{"name": "ex", "measure": "noise_excess_th", "op": "<=", "limit": 2.5}])
-    assert ol["excess_th"] is None and ol.get("excess_reason"), ol
-    assert ol["input_cell_missing"] == ["Rzz"], ol
+def _assert_fail_closed(ol, cmp, missing):
+    """fail-closed 규칙(oracle (d), 설계 40 §4-8 (v) + README): input_cell_missing 이 비어 있지 않으면 찾은 부분집합으로 계산하지 않는다 ->
+    excess_th = None, excess_reason 에 누락 이름 전부, 제약 칸은 README 관례 `N/A(정의 불가: <code>)`(code = noise_excess_input_cell_missing,
+    선언 자체가 없을 때의 noise_excess_input_cell_undeclared 와 구별), summary 는 PASS 불가(C8: N/A -> INCOMPLETE)."""
+    assert ol["excess_th"] is None, ol
+    assert isinstance(ol.get("excess_reason"), str) and ol["excess_reason"], ol
+    for nm in missing:
+        assert nm in ol["input_cell_missing"], ol
+        assert nm in ol["excess_reason"], ol["excess_reason"]
     k = conftest.by_name(cmp["constraints"], "name", "ex")
     assert k["spice"] is None and str(k["judge"]).startswith("N/A"), k
+    assert k["judge"] == f"N/A(정의 불가: {MISSING_CODE})" and k["undefined"] == MISSING_CODE, k
+    assert "noise_excess_input_cell_undeclared" not in str(k["judge"]), k
     assert cmp["summary"]["verdict"] != "PASS", cmp["summary"]
+
+
+def test_noise_excess_th_reports_missing_name(tmp_path):
+    """(v) README '못 찾은 이름은 input_cell_missing': 넷리스트에 없는 이름 `Rzz` 는 input_cell_missing 에 그대로 남는다. 찾은 `Ra` 는
+    누락 목록에 없다. fail-closed(설계 40 §4-8 (v), oracle (d)): 하나라도 못 찾았으므로 찾은 `Ra` 만으로 값을 내지 않는다 -- 부분
+    집합 값(Ra 몫 0.5 -> 2)이 나오면 안 되고 None + excess_reason(`Rzz` 명시), 제약 N/A, PASS 불가."""
+    ol, cmp, p = _rc_excess_run(tmp_path, ["Ra", "Rzz"], _EX)
+    assert "Rzz" in ol["input_cell_missing"] and "Ra" not in ol["input_cell_missing"], ol
+    _assert_fail_closed(ol, cmp, ["Rzz"])
+
+
+@pytest.mark.parametrize("cells", [["Rzz"], ["Rzz", "Qyy"]])
+def test_noise_excess_th_none_when_no_input_cell_found(tmp_path, cells):
+    """README '입력 셀이 없으면 None + excess_reason': 이름이 하나도 사상되지 않으면(`Rzz` 만, 또는 `Rzz`·`Qyy` 둘 다) 값 없음 + 이유 +
+    누락 목록(선언 이름 그대로 전부), 그 metric 의 제약은 값 없음 판정(N/A) -> PASS 불가(README '값이 없으면 N/A -> INCOMPLETE').
+    선언은 있으므로 reason code 는 undeclared 가 아니라 noise_excess_input_cell_missing(oracle (d))."""
+    ol, cmp, p = _rc_excess_run(tmp_path, cells, _EX)
+    assert sorted(ol["input_cell_missing"]) == sorted(cells), ol
+    _assert_fail_closed(ol, cmp, cells)
