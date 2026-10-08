@@ -123,7 +123,8 @@ def test_ideal_source_term(tmp_path, toy_access):
     doc = topo("hand_two_src_kcl",
                [mos("M1", "nmos", "n", "in", "gnd"), mos("M2", "nmos", "n", "b2", "gnd")],
                {"in": ("input", "x"), "n": ("output", "y")},
-               sources=[two("I1", "current_source", "vdd", "n"), two("I2", "current_source", "vdd", "n")])
+               sources=[two("I1", "current_source", "vdd", "n"), two("I2", "current_source", "vdd", "n")],
+               bias=["b2"])                                                                  # b2: M2 gate 에만
     from .conftest import Oracle
     ctx = build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 1e-5), ("I2", 2e-5)))[2]
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("y", "n"): 0.5,

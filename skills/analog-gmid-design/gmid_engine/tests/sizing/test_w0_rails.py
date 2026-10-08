@@ -30,7 +30,8 @@ def test_three_rails(tmp_path):
     doc = topo("hand_three_rail",
                [mos("M1", "nmos", "out", "in", "vss"), mos("M2", "pmos", "out", "pb", "vdd")],
                {"in": ("input", "x"), "out": ("output", "y")}, rails=("vdd", "vss", "agnd"),
-               passives=[{"name": "CL", "kind": "capacitor", "terminals": ["out", "agnd"]}])
+               passives=[{"name": "CL", "kind": "capacitor", "terminals": ["out", "agnd"]}],
+               bias=["pb"])                                                                  # pb: M2 gate 에만
     sup = {"vdd": 1.8, "vss": 0.0, "agnd": 0.9}
     out = dc_rails(_lifted(tmp_path, doc, sup), tuple(sorted(sup.items())))
     assert dict(out.column("node", "dc_rail_v")) == sup

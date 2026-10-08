@@ -91,7 +91,8 @@ def test_fixed_values_w3_and_input_dc(tmp_path, toy_access):
                [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "out", "inn", "t"),
                 mos("M3", "pmos", "o1", "o1", "vdd"), mos("M4", "pmos", "out", "o1", "vdd"),
                 mos("M5", "nmos", "t", "vb", "gnd")],
-               {"inp": ("input", "a"), "inn": ("input", "b"), "out": ("output", "c")})
+               {"inp": ("input", "a"), "inn": ("input", "b"), "out": ("output", "c")},
+               bias=["vb"])                                                                  # vb: M5 gate 에만(o1 은 M3 drain)
     # input_dc 만
     _, _, ctx = build_ctx(tmp_path, doc, toy_access, input_dc_v=0.9)
     assert ctx.fixed_values == (("inn", 0.9), ("inp", 0.9))
@@ -132,7 +133,8 @@ def test_kcl_conflict_propagates(tmp_path, toy_access):
     doc = topo("hand_kcl_conflict2",
                [mos("M1", "nmos", "out", "in", "gnd"), mos("M2", "pmos", "out", "pb", "vdd")],
                {"in": ("input", "x"), "out": ("output", "y")},
-               sources=[two("I1", "current_source", "vdd", "m"), two("I2", "current_source", "m", "gnd")])
+               sources=[two("I1", "current_source", "vdd", "m"), two("I2", "current_source", "m", "gnd")],
+               bias=["pb"])                                                                  # pb: M2 gate 에만
     with pytest.raises(InfeasibleTargetError):
         build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 3e-6), ("I2", 1e-6)))
 

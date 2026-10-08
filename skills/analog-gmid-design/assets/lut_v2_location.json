@@ -6,7 +6,7 @@
  "pdk_root": {"env": "GMID_PDK_ROOT", "default": "C:/pdk/sky130_fd_pr"},
  "files": {
   "manifest": {"path": "manifest.json", "sha256": "a25b903657bfe6725b6d0f0d3f11435288fdfb37b0912d176638861c804cb2d2"},
-  "cap_npz": {"path": "sky130_nfet_pfet_lut_v2.npz", "sha256": "337bd058cda4001d608dd0eeb261920da7a7656028c1a8d276484541d74b1da0"},
-  "verify_midpoints": {"path": "sky130_nfet_pfet_lut_v2_verify_midpoints.npz", "sha256": "d243f38073e682b894e56edf2afe40360a3f35049a126485d4935e81cd04990f"}
+  "cap_npz": {"path": "sky130_nfet_pfet_lut_v2_r2.npz", "sha256": "938e95b9b101d45140720c0655ecebed96e62c664de7121dbf399f6b1aa1efe2"},
+  "verify_midpoints": {"path": "sky130_nfet_pfet_lut_v2_verify_midpoints_r2.npz", "sha256": "afda374c07eb18cbd00b9ee0c997e399fd1e4e051d3a6a0ef64beb7a392d0f99"}
  }
 }
