@@ -12,7 +12,7 @@
 - C27 기록(판정 아님) β 루프 절단 넷 Vip: |jωL|/|Z_node| = 1.097e+16 @ 100 Hz
 - C27 기록(판정 아님) β 루프 절단 넷 Vim: |jωL|/|Z_node| = 1.097e+16 @ 100 Hz
 - PM 루프: beta_loop, feedback_passives ['Cf1', 'Cf2'] (규칙 spec_feedback_elements), 절단 넷 ['Vip', 'Vim'], 가중 {'Vip': 0.5, 'Vim': -0.5}
-- CM 루프(공통 모드 CMFB) PM: - deg, 절단 넷 ['Voc'], T_cm(0) -38.39 dB, UGF - Hz, Nyquist N = -, 폐루프 과도 None
+- CM 루프(공통 모드 CMFB) PM: - deg, 절단 넷 ['Vop', 'Vom'], T_cm(0) -39.38 dB, UGF - Hz, Nyquist N = -, 폐루프 과도 None
 - C10 PM 안정성 근거: PM 유효 (Bode 식 원값 90.34 deg) -- Nyquist 시계 방향 감은 수 N = 0, 폐루프 과도 stable, 개루프 RHP 극 0 (==)
 - C25 슬루·정착: not_measured -- β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)
 - current source Iref=1.992901379e-07 (엔진 ID(M18_bg) (--isrc engine))
@@ -44,7 +44,7 @@
 | (참고) PM 교차 측정(폐루프 peaking 역산, 기록만) deg / peaking dB | | - / - | - | peaking 없음(Mp-1 = 0, 데이터 분해능 1.2e-07 이하) -- 2차 근사로 PM >= 65.53 deg |
 | 제약 gain_db: dc_gain_db >= 54 | | 54.84 | | PASS |
 | 제약 parasitic_pm_deg: pm_deg >= 70 | | 90.34 | | PASS |
-| 제약 pm_cm_ss_deg: cm_pm_deg >= 60 | | - | | N/A(SPICE 값 없음) |
+| 제약 pm_cm_ss_deg: cm_pm_deg >= 60 | | - | | FAIL |
 
 | forced 고정원 전류(KCL 잔차) 넷 | uA | 판정 |
 |---|---|---|

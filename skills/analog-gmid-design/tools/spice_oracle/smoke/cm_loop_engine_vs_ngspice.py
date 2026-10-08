@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """공통 모드(CMFB) 루프 PM -- 엔진 대 ngspice 대조 (스모크 실행기, 2026-10-08).
 
-입력: 오라클 입력 JSON(`cm_loop_passives` 포함, 소자 기하·수동소자 값·바이어스 예측) 과 `oracle_run.py --bias forced` 가 쓴 산출물.
+입력: 오라클 입력 JSON(`cm_output_loop` true, 소자 기하·수동소자 값·바이어스 예측) 과 `oracle_run.py --bias forced` 가 쓴 산출물.
 하는 일
   1. 오라클 forced 넷리스트의 .op 에서 MOS 마다 소신호 값을 ngspice 에서 직접 뽑는다(gm, gmbs, gds, 단자 용량 행렬, 접합 용량).
      엔진 `SsDevice` 의 정의에 맞춘다: cgs = -∂Qg/∂Vs, cgd = -∂Qg/∂Vd, cgb = -∂Qg/∂Vb (ngspice `[cgs]` 등은 ∂Qg/∂V 라 부호 반전),
@@ -108,27 +108,43 @@ def ngspice_T(out_dir, stem, key):
     return numpy.asarray(f), numpy.asarray(re_) + 1j * numpy.asarray(im)
 
 
-def linear_reference(topo, inp, ng, exe, work, cut, breaks, weights, tag):
+def linear_reference(topo, inp, ng, exe, work, kind):
     """엔진과 같은 소신호 값(VCCS gm·gmb·gds + 5용량 + 수동소자)을 ngspice 선형 넷리스트로 옮기고 같은 Middlebrook 이중 주입
-    (오라클 `loop_gain`)을 건다 -- BSIM 모형 차이를 뺀 '엔진 MNA 대 ngspice' 대조 기준. 반환 (f, T)."""
+    (오라클 `loop_gain`)을 건다 -- BSIM 모형 차이를 뺀 '엔진 MNA 대 ngspice' 대조 기준. kind = "cm"(차동 출력 쌍 동일 부호 주입, 소비자 쪽
+    단자를 lbx 로) | "dm"(입력 포트 β 루프, feedback_passives). 반환 (f, T)."""
     from oracle_simulate import loop_gain
     bulk = {d["name"]: d["bulk"] for d in inp["devices"]}
     values = {p["name"]: p["value"] for p in inp["passives"]}
+    ports = {pt.net: pt for pt in topo.ports}
+    if kind == "cm":
+        breaks = sorted(pt.net for pt in topo.ports if pt.direction == "output")
+        weights = [1 / len(breaks)] * len(breaks)
+        moved = set()
+        drv_moved = {d.name: [t for t in ("d", "s") if getattr(d, t) in breaks] for d in topo.devices}
+        drv_moved = {n: t[0] for n, t in drv_moved.items() if len(t) == 1}        # 구동자 channel 단자를 x(lbx)로
+    else:
+        breaks = sorted(pt.net for pt in topo.ports if pt.direction == "input")
+        weights = [-0.5 if pt.role.endswith("_n") else 0.5 for pt in (ports[n] for n in breaks)]
+        moved, drv_moved = set(inp["feedback_passives"]), {}
 
     def net(n):
         return "0" if n == "gnd" else n
     lines = ["* linear small-signal model of the engine (same values as the engine MNA)"]
     for d in topo.devices:
         v = ng[d.name]
-        dd, g, s, b = net(d.d), net(d.g), net(d.s), net(bulk[d.name])
-        lines += [f"Gm_{d.name} {dd} {s} {g} {s} {abs(v['gm'])}", f"Gb_{d.name} {dd} {s} {b} {s} {abs(v['gmbs'])}",
-                  f"Gd_{d.name} {dd} {s} {dd} {s} {abs(v['gds'])}"]
-        for nm, x, y, val in (("gs", g, s, -v["cgs"]), ("gd", g, dd, -v["cgd"]), ("gb", g, b, -v["cgb"]),
-                              ("db", dd, b, v["capbd"]), ("sb", s, b, v["capbs"])):
+        dd, g, s_, b = net(d.d), net(d.g), net(d.s), net(bulk[d.name])
+        if drv_moved.get(d.name) == "d":
+            dd = "lbx_" + dd
+        elif drv_moved.get(d.name) == "s":
+            s_ = "lbx_" + s_
+        lines += [f"Gm_{d.name} {dd} {s_} {g} {s_} {abs(v['gm'])}", f"Gb_{d.name} {dd} {s_} {b} {s_} {abs(v['gmbs'])}",
+                  f"Gd_{d.name} {dd} {s_} {dd} {s_} {abs(v['gds'])}"]
+        for nm, x, y, val in (("gs", g, s_, -v["cgs"]), ("gd", g, dd, -v["cgd"]), ("gb", g, b, -v["cgb"]),
+                              ("db", dd, b, v["capbd"]), ("sb", s_, b, v["capbs"])):
             lines.append(f"C{nm}_{d.name} {x} {y} {val}")
     for p in topo.passives:
         a, b = (net(t) for t in p.terminals)
-        if p.name in cut:
+        if p.name in moved:
             a = "lbx_" + a if p.terminals[0] in breaks else a
             b = "lbx_" + b if p.terminals[1] in breaks else b
         lines.append(f"{'R' if p.kind == 'resistor' else 'C'}{p.name} {a} {b} {values[p.name]}")
@@ -136,7 +152,7 @@ def linear_reference(topo, inp, ng, exe, work, cut, breaks, weights, tag):
     lines += [f"Vin_{pt.net} {pt.net} 0 0" for pt in topo.ports if pt.direction == "input" and pt.net not in breaks]
     for n, w in zip(breaks, weights):
         lines += [f"Vlb_{n} {n} lbx_{n} DC 0 AC {w}", f"Ilb_{n} 0 {n} DC 0 AC 0"]
-    pre = os.path.join(work, "lin_" + tag)
+    pre = os.path.join(work, "lin_" + kind)
     ac = "ac dec 20 100 1e10"
     lines += [".control", "set noaskquit", "set wr_singlescale", ac,
               f"wrdata {pre}.v.txt " + " ".join(f"v(lbx_{n}) v({n})" for n in breaks)]
@@ -193,9 +209,8 @@ def main(argv=None):
                     "ngspice_pm_deg": ac.get("pm_deg"), "ngspice_pm_undefined": ac.get("pm_undefined"),
                     "ngspice_pm_deg_raw": ac.get("pm_deg_raw"), "ngspice_ugf_hz": ac.get("loop_ugf_hz"),
                     "ngspice_dc_db": ac.get("loop_gain_dc_db"), "curve": compare_curves(eng["pm_ss_deg"], f, T)}
-    for key, name, cut, breaks, weights in (("cm", "pm_cm_ss_deg", ["R1", "R2"], ["Voc"], [1]),
-                                            ("dm", "pm_ss_deg", list(inp["feedback_passives"]), [p.net for p in topo.ports if p.direction == "input"], [0.5, -0.5])):
-        f_lin, T_lin = linear_reference(topo, inp, ng, a.ngspice, a.out_dir, cut, sorted(breaks), weights if key == "cm" else [-0.5, 0.5], key)
+    for key, name in (("cm", "pm_cm_ss_deg"), ("dm", "pm_ss_deg")):
+        f_lin, T_lin = linear_reference(topo, inp, ng, a.ngspice, a.out_dir, key)
         report[key]["curve_vs_ngspice_linear"] = compare_curves(eng[name], f_lin, T_lin)
     report["cm_view"] = repr(eng["views"]["cm_loop"])
     with open(a.out_json, "w", encoding="utf-8") as fh:

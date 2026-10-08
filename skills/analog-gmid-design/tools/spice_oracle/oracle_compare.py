@@ -127,7 +127,7 @@ def measure_value(measure, sim, item):
         return None if r is None else r.get("rout_ohm")
     if measure in TRANSIENT_MEASURES:  # C25: 재지 않음
         return None
-    if measure == "cm_pm_deg":  # CM 루프(cm_loop_passives): sim.cm_loop 의 PM(정의 불가면 None)
+    if measure == "cm_pm_deg":  # CM 루프(cm_output_loop): sim.cm_loop 의 PM(정의 불가면 None)
         return (sim.get("cm_loop") or {}).get("pm_deg")
     return ac.get(measure)
 
@@ -156,6 +156,18 @@ def measure_undefined(measure, sim, item):
         if r is not None and r.get("rout_ohm") is None and r.get("undefined") not in (None, "no_data"):
             return r["undefined"]
     return None
+
+
+CM_INEFFECTIVE = "cm_loop_ineffective"
+
+
+def cm_loop_ineffective(sim):
+    """[CM 사용자 결정 2026-10-08 A] 공통 모드 루프 |T_cm| 이 기준점(fstart)에서 1 이하라 0 dB 교차가 없다 = CMFB 무효 -> cm_pm_deg 제약 위반
+    (엔진 search.ss_constraint_rows 의 dc_not_above_level 위반 행과 같은 판정). 개루프 RHP 극점 등 pm_undefined 가 있으면 해당 없음.
+    측정이 없으면 False. 반환 bool."""
+    cl = sim.get("cm_loop") or {}
+    m = cl.get("measures") or {}
+    return bool(m) and cl.get("pm_deg") is None and cl.get("pm_undefined") is None and m.get("ugf_hz") is None         and m.get("gain_dc", 0) <= 1
 
 
 def signed_id(op_id, op_vds):
@@ -283,7 +295,9 @@ def compare(inp, meta, sim, judge):
     for c in (inp.get("acceptance") or {}).get("constraints") or []:
         sv = measure_value(c["measure"], sim, c)
         und = measure_undefined(c["measure"], sim, c)
-        if und:
+        if c["measure"] == "cm_pm_deg" and cm_loop_ineffective(sim):
+            ok, und = "FAIL", CM_INEFFECTIVE      # CMFB 무효 = 위반 (PM 값과 무관)
+        elif und:
             ok = f"N/A(정의 불가: {und})"
         elif sv is None or c.get("limit") is None:
             ok = "N/A(SPICE 값 없음)"

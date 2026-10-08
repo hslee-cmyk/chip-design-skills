@@ -139,7 +139,8 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
         # 비용이 중앙값을 끌지 않게. 이후 모든 한도는 평가 수(결정론). 값·근거는 기록되고 settings.eval_budget 으로 재현한다.
         sctx.eval_budget = int(sctx.settings.front_budget_s / statistics.median(sctx.eval_times))
         sctx.eval_budget_source = "derived_once:floor(B/median_t_eval)@n_evals=" + str(len(sctx.eval_times))
-    result = EvalResult(key, pairs, status, evaluation, objectives, rows, cone, failure, sctx.seq, unmeasured)
+    result = EvalResult(key, pairs, status, evaluation, objectives, rows, cone, failure, sctx.seq, unmeasured,
+                        () if bundle is None else bundle.warnings)
     sctx.cache[key] = result
     _record(sctx, result, origin)
     return result

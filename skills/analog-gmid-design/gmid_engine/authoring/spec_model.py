@@ -85,12 +85,13 @@ class SenseDecl:
 
 @dataclasses.dataclass(frozen=True)
 class ViewDecl:
-    """제약의 뷰. `mode` ∈ none(뷰 없는 metric) / port(포트 전달 뷰) / transfer / ratio / pending / loop / sense.
+    """제약의 뷰. `mode` ∈ none(뷰 없는 metric) / port(포트 전달 뷰) / transfer / ratio / pending / loop / sense / cm_output.
 
     * port: `weights` = 입력 포트 (넷, 가중) 넷순(role 가중 -- 차동 ±1/|D|, 단일 1), `sense` = 출력 포트 `SenseDecl`
       (topology 교차 검사를 못 한 로드에서는 둘 다 None).
     * loop(7a design 2.2·2.3·2.5): `beta` ∈ declared(spec feedback 비지 않음) / unity(빈 list). declared 면 `cuts` =
       (되먹임 소자, 절단 넷) 소자 이름순, `weights` = 절단 넷의 (넷, 가중) 넷순. unity 면 `weights`·`sense` 가 포트 전달 뷰와 같다.
+    * cm_output([CM] 출력 포트 CM 주입 루프): `weights` = 차동 출력 포트 (넷, 1/2) 넷순 -- 두 출력 넷에 동일 부호 주입, 절단 원소는 metrics 가 구조로 정한다.
     * sense(출력 포트 뷰, 7a design 3.1): `sense` = 감지 `SenseDecl`(여기 없음).
     * pending: `decision` = 결정 ID(선언 표지, 또는 loop 의 feedback 결정 대기 전파).
     유도된 내용이 여기에 들어가므로 `constraints_fp` 가 feedback·ports 변경을 따라간다."""

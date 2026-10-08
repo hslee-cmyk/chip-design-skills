@@ -315,7 +315,7 @@ MODULES = (
     ModuleEntry("authoring/spec_elements.py", "entry", "element_value_declaration",
                 "요소 값 전수 선언(정본 = spec, F5)·kind 값 키·feedback(절단 단자 규칙 L2)", ("N3.16", "U-31", "U-48", "7a")),
     ModuleEntry("authoring/spec_views.py", "entry", "default_views",
-                "view 미기재 제약의 기본 뷰 유도: 포트 뷰·루프 뷰(β 루프 절단·role 가중 / β = 1)·공통 모드 CMFB 루프 뷰(차동 출력 평균 감지 넷 구조 유도)·출력 포트 감지 뷰·고정 넷",
+                "view 미기재 제약의 기본 뷰 유도: 포트 뷰·루프 뷰(β 루프 절단·role 가중 / β = 1)·공통 모드 루프 뷰(차동 출력 포트 쌍 CM 주입)·출력 포트 감지 뷰·고정 넷",
                 ("U-48", "DEC-66", "7a")),
     ModuleEntry("authoring/spec_constraints.py", "entry", "constraint_declaration",
                 "성능 제약(metric 이름표·op·값/참조·뷰·중복)과 결정 대기 제약", ("U-35", "DEC-20", "N3.8", "7a")),

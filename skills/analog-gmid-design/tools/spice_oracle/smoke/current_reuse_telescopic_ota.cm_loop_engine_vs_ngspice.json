@@ -9,26 +9,26 @@
     "dc_not_above_level"
    ]
   ],
-  "engine_dc_db": -39.3653295127552,
+  "engine_dc_db": -39.36532951275475,
   "engine_ugf_hz": null,
   "ngspice_pm_deg": null,
   "ngspice_pm_undefined": null,
   "ngspice_pm_deg_raw": null,
-  "ngspice_dc_db": -38.38917471254427,
+  "ngspice_dc_db": -39.376158057173825,
   "ngspice_ugf_hz": null,
   "curve": {
-   "points": 142,
-   "max_abs_db_diff": 48.206366635315035,
-   "max_abs_deg_diff": 179.98437133709368,
+   "points": 161,
+   "max_abs_db_diff": 28.999573347934838,
+   "max_abs_deg_diff": 178.07364912725296,
    "band_hz": [
     100.0,
     10000000000.0
    ]
   },
   "curve_vs_ngspice_linear": {
-   "points": 138,
-   "max_abs_db_diff": 0.0011289217704380918,
-   "max_abs_deg_diff": 0.013843370382792956,
+   "points": 161,
+   "max_abs_db_diff": 3.282085461703311e-07,
+   "max_abs_deg_diff": 2.242682144406224e-06,
    "band_hz": [
     100.0,
     10000000000.0
@@ -44,7 +44,7 @@
    ]
   ],
   "engine_dc_db": 47.76702266517109,
-  "engine_ugf_hz": 4437821.563400848,
+  "engine_ugf_hz": 4437821.563400845,
   "ngspice_pm_deg": 90.33694401752875,
   "ngspice_pm_undefined": null,
   "ngspice_pm_deg_raw": 90.33694401752875,
@@ -69,5 +69,5 @@
    ]
   }
  },
- "cm_view": "ViewDecl(mode='loop', transfer=None, num=None, den=None, decision=None, beta='declared', cuts=(('R1', 'Voc'), ('R2', 'Voc')), weights=(('Voc', 1.0),), sense=None)"
+ "cm_view": "ViewDecl(mode='cm_output', transfer=None, num=None, den=None, decision=None, beta=None, cuts=(), weights=(('Vom', 0.5), ('Vop', 0.5)), sense=None)"
 }

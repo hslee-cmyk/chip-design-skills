@@ -16,6 +16,8 @@ s = [w; 0].
 (`_helpers_pencil.probe_dc_value` -- 용량 전용 행을 s 로 나누고 프로브 결합을 s 쪽에 둔 식이 선두 차수를 정확히 푼다)으로 낸다.
 이 값에는 사후 오차·∂T/∂V 가 없다(오차 0 -- ω = 0 극한 규약, ∂T/∂V None). 극한이 없으면(T(0) 이 원점 극점) 정의 불가
 `loop_cut_mixed_charge`.
+[CM] 같은 경로가 절단 계의 ω = 0 DC 극한이 특이(`singular_dc_limit` -- 출력 포트 절단처럼 소비자 쪽 전도 섬이 절단 뒤 DC 경로 없이 떠 있음)일 때도 쓰인다:
+증강 pencil 은 프로브 전압원 제약이 그 섬을 묶어 s = 0 에서 정칙이다.
 M 이 특이(영 피벗)면 `loop_probe_singular`(numeric), Tv·Ti·T 분모 0 은 `den_zero`(definitional).
 사후 오차: Z 원소 오차 e(관측 반복 개선 보정량 / 주입 크기)의 1차 전파 Σ|∂T/∂Z|·e. ∂T/∂Z 는 항등식 1/(1 + T) = Q,
 Q·wᵀw = wᵀV_n + wᵀ(w − I) 의 해석 미분(dM⁻¹ = −M⁻¹·dM·M⁻¹)이다 -- 상수 없음.
@@ -29,6 +31,7 @@ from ._helpers_pencil import probe_dc_value
 from .mna_types import Undefined
 
 _INJECTION_CODE = "dc_charge_injection"
+_SINGULAR_CODE = "singular_dc_limit"
 
 
 def _column_of(cause):
@@ -55,6 +58,8 @@ def _columns(probe, omega, causes):
     """(열 번호 tuple, 주입 크기 tuple) 또는 섞인 절단 표지 (None, 용량 전용 열 tuple)."""
     if omega > 0:
         return probe.current_columns, probe.current_scales
+    if any(c.code == _SINGULAR_CODE for c in causes):       # 절단 계의 DC 극한이 특이(절단 뒤 떠 있는 전도 섬 등) -- 증강 pencil 값으로
+        return None, ()
     injected = {_column_of(c) for c in causes if c.code == _INJECTION_CODE}
     flags = tuple(j in injected for j in probe.current_columns)
     if not any(flags):
@@ -75,6 +80,16 @@ def probe_value(probe, omega, values, errors, causes):
         if value is None:
             return nan, math.nan, (_undefined("loop_cut_mixed_charge", "definitional", omega, charge_only_columns=picked[1]),), None
         return value, 0.0, (), None
+    result = _standard_value(probe, omega, picked, errors, values, causes, nan)
+    if omega == 0 and not numpy.isfinite(result[0]):
+        # [CM] ω = 0 에서 열 선택 방식이 값을 못 내면(절단 뒤 DC 경로 없는 전도 섬 -> Z 특이로 den_zero 등) 증강 pencil 의 s = 0 값으로 대신한다.
+        value = probe_dc_value(probe.response.system, probe.pairs, probe.weights)
+        if value is not None:
+            return value, 0.0, (), None
+    return result
+
+
+def _standard_value(probe, omega, picked, errors, values, causes, nan):
     columns, scales = picked
     scale = numpy.array(scales, dtype=float)
     z = numpy.asarray(values)[numpy.ix_(probe.rows, columns)] / scale[None, :]
