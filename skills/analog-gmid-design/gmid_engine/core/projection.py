@@ -5,7 +5,7 @@
 블록 함수는 GraphSnapshot 이 아니라 이 투영만 받는다. 선언하지 않은 열은 투영에 없어 읽을 수 없다
 (`KeyError`) -- 그래서 '선언 = 실제 read' 가 구성상 참이고, 입력 버전(투영 지문)이 블록이 읽는 상태 전부를 덮는다.
 
-투영 지문(2026-10-08 사용자 승인 '값 지문 합성', sizing O9): `fp = fp_of(((((kind, field), 열 지문), ...), extras))`, 열 지문 = sha256(자기 구분 인코딩된 ((key, fp_of(value)), ...))` -- 값 자리에 값 대신 값 지문을 넣는다. `from_snapshot` 은 스냅샷 필드가 이미 든 `FieldValue.value_fp`(= fp_of(value),
+투영 지문(2026-10-08 사용자 승인 '값 지문 합성', sizing O9): `fp = fp_of((행 지문, extras))`, 행 지문 = sha256(열마다 `(kind, field)` 자기 구분 텍스트 + 열 지문), 열 지문 = sha256(자기 구분 인코딩된 ((key, fp_of(value)), ...))` -- 값 자리에 값 대신 값 지문을 넣는다. `from_snapshot` 은 스냅샷 필드가 이미 든 `FieldValue.value_fp`(= fp_of(value),
 쓸 때 한 번 계산)를 그대로 쓰므로 블록 호출마다 값을 다시 직렬화하지 않는다. 모든 값을 똑같이 지문으로 바꾸므로 같은 열 값·
 extras -> 같은 fp, 어느 값 하나라도 다르면 다른 fp(sha256 충돌을 빼면 값 직렬화 지문과 같은 동치 관계). 직접 생성도 같은 식이라
 같은 내용이면 `from_snapshot` 과 fp 가 같다.
@@ -31,9 +31,18 @@ def _column_fp(pairs):
     return hashlib.sha256("".join(parts).encode("utf-8")).hexdigest()
 
 
+def _row_text(kind_field):
+    """(kind, field) 의 자기 구분 텍스트 -- 원소가 모두 str 인 tuple 이면 `원소 수#` + 원소마다 `길이:내용`, 아니면 `x` + fp_of."""
+    if type(kind_field) is tuple and all(type(part) is str for part in kind_field):
+        return str(len(kind_field)) + "#" + "".join([str(len(part)) + ":" + part for part in kind_field])
+    return "x" + fp_of(kind_field)
+
+
 def _projection_fp(rows, extras):
-    """rows = 정렬된 ((kind, field), ((key, 값 지문), ...)) 들."""
-    return fp_of((tuple((kind_field, _column_fp(pairs)) for kind_field, pairs in rows), extras))
+    """rows = 정렬된 ((kind, field), ((key, 값 지문), ...)) 들. 열마다 (`(kind, field)` 텍스트 + 열 지문)을 이어 sha256 한 번,
+    그 digest 와 extras 만 fp_of 로 직렬화한다 -- 열 수에 비례하던 fp_of 재귀 직렬화가 없다."""
+    parts = [_row_text(kind_field) + _column_fp(pairs) for kind_field, pairs in rows]
+    return fp_of((hashlib.sha256("".join(parts).encode("utf-8")).hexdigest(), extras))
 
 
 @dataclasses.dataclass(frozen=True)
