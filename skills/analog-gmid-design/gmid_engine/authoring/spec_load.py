@@ -10,7 +10,7 @@
 * 순서: `load_json_checked`(JSON 수준 위반은 그 예외 그대로) -> `check_spec_schema` -> `meta_cross_check` ->
   `supplies_declaration` -> `input_dc_declaration` -> `element_value_declaration` -> `constraint_declaration` ->
   `compensation_target_declaration` -> `node_target_declaration` -> `intended_region_declaration` ->
-  `settings_declaration` -> `resolve_spec_references`.
+  `settings_declaration` -> [2026-10-08] `theta_bound_declaration`(gate `theta_bounds`) -> `resolve_spec_references`.
 * 위반이 하나라도 있으면 `SchemaRejectedError` 한 번(개수로 자르지 않음): detail = {"gate": "spec_load", "where": 경로,
   "hits", "rejected_gates", "not_evaluated"}. `not_evaluated`: `all_sections`(최상위·meta·human 이 객체가 아님),
   `topology_cross_checks`(meta 의 회로 이름·topology 지문 불일치 -- 다른 회로판 교차 검사는 의미가 없어 섹션 형식만 본다),
@@ -41,6 +41,7 @@ from .spec_schema import HUMAN_REQUIRED, check_spec_schema
 from .spec_settings import settings_declaration
 from .spec_supplies import supplies_declaration
 from .spec_targets import compensation_target_declaration
+from .spec_theta_bounds import theta_bound_declaration
 from .topology_load import load_topology
 from .topology_model import SchemaHit, TopologyDoc
 
@@ -109,6 +110,11 @@ def _load(path, topology, catalog, chain):
     regions = section("intended_region", "intended_region", intended_region_declaration, topo)
     settings, found = settings_declaration(human, catalog)
     run("settings", found)
+    if settings is not None and elements is not None:
+        search, found = theta_bound_declaration(settings[1], elements, topo)
+        run("theta_bounds", found)
+        if search is not None:
+            settings = (settings[0], search) + tuple(settings[2:])
     if hits or not_evaluated:
         not_evaluated.append("references")
         reject(_GATE, where, hits, rejected_gates=tuple(sorted(rejected)), not_evaluated=tuple(not_evaluated))

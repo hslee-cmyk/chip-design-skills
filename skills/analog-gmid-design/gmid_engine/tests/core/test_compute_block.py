@@ -1,5 +1,6 @@
 """CONTRACT §6 @compute_block -- 선언 검사, 입력 버전 같으면 함수 미호출(호출 계수로 확인: '같은 값 반복 계산 금지'),
 선언 밖 열 KeyError, 결과 키 불일치 ValueError, 권한 위반, 계수 불변식과 recomputes_same_input."""
+import dataclasses
 import string
 
 import pytest
@@ -441,3 +442,45 @@ def test_reuse_regression_only_undeclared_field_changes():
     assert len(log) == 1
     st = block.stats()
     assert (st.calls, st.reuses, st.computes, st.recomputes_same_input) == (3, 2, 1, 0)
+
+
+# =====================================================================================================================
+# 2026-10-08 개정(core 성능 5, CONTRACT §6.2·§8) -- 가변 extras 거부는 투영 지문 식 개정 뒤에도 그대로(계수 불변, 함수 미호출).
+# oracle 종류: 거부 기준 = §6.2 'extras 는 각각 불변 -- 가변 -> TypeError(계수 변화 없음, 블록 함수 미호출)' + §2 거부 집합.
+# =====================================================================================================================
+
+
+@dataclasses.dataclass
+class _MutDc:
+    x: int
+
+
+class _PlainObj:
+    pass
+
+
+@pytest.mark.parametrize("extras", [
+    ((1, [2]),),
+    ((1, (2, {"a": 3})),),
+    (frozenset({(1, _PlainObj())}),),
+    (_MutDc(1),),
+    (1, "ok", [3]),
+    ("ok", bytearray(b"x")),
+], ids=["list_in_tuple", "dict_deep", "plain_in_frozenset", "dc_not_frozen", "last_of_three", "bytearray_second"])
+def test_mutable_extras_rejected_after_prior_calls_counters_unchanged(extras):
+    # oracle §6.2: 앞선 정상 호출(계산 1·재사용 1)로 계수를 만든 뒤 가변 extras 호출 -> TypeError, 계수·로그 그대로.
+    log = []
+    block = _make_block(log)
+    s0 = _base()
+    s1 = block(s0, 1)
+    assert block(s1, 1) is s1
+    before = block.stats()
+    n_log = len(log)
+    with pytest.raises(TypeError):
+        block(s1, *extras)
+    assert len(log) == n_log
+    after = block.stats()
+    assert (after.calls, after.reuses, after.computes, after.recomputes_same_input) == (
+        before.calls, before.reuses, before.computes, before.recomputes_same_input) == (2, 1, 1, 0)
+    # 거부 뒤에도 정상 호출은 그대로 재사용
+    assert block(s1, 1) is s1

@@ -43,7 +43,7 @@ LAYERS = (
     (
         "core",
         (
-            ("determinism.py", "fingerprint.py", "immutability.py", "margin.py", "units.py", "writer_error.py"),
+            ("canonical_key.py", "determinism.py", "fingerprint.py", "immutability.py", "margin.py", "units.py", "writer_error.py"),
             ("bounded_lru.py", "failure_record.py", "field_value.py", "metric_signature.py", "projection.py",
              "writer_table.py"),
             ("compute_block.py", "failure_errors.py", "graph_record.py"),
@@ -71,7 +71,7 @@ LAYERS = (
             ("_rejection.py", "_two_terminal.py", "dc_edges.py", "linked_files.py", "name_uniqueness.py",
              "topology_schema.py", "_spec_fields.py", "spec_meta.py", "spec_refs.py"),
             ("devices.py", "hidden_rails.py", "ideal_sources.py", "json_read.py", "passives.py", "ports.py",
-             "rails.py", "spec_schema.py", "spec_sources.py"),
+             "rails.py", "spec_schema.py", "spec_sources.py", "spec_theta_bounds.py"),
             ("topology_load.py", "_feedback_cuts.py", "spec_input_dc.py", "spec_node_targets.py", "spec_regions.py",
              "spec_settings.py", "spec_supplies.py", "spec_targets.py"),
             ("spec_elements.py", "spec_views.py"),
@@ -93,7 +93,7 @@ LAYERS = (
     (
         "sizing",
         (
-            ("bisect_root.py", "k_max.py", "s2_values.py"),
+            ("bracket_root.py", "k_max.py", "s2_values.py"),
             ("_helpers_lut.py", "_helpers_seal.py", "block_currents.py", "block_lengths.py", "current_basis.py",
              "dc_inputs.py", "fixed_point.py", "pre_layout_widths.py", "s2_lift.py", "scc_newton.py", "scc_order.py",
              "seal_conduction.py", "seal_report.py",
@@ -160,6 +160,8 @@ LAYERS = (
 MODULES = (
     ModuleEntry("core/determinism.py", "entry", "sorted_items",
                 "정렬된 tuple 순회 도우미", ("NFR-4", "IC2")),
+    ModuleEntry("core/canonical_key.py", "entry", "canonical_key",
+                "memo 키 정준화(fp_of 와 같은 동치 관계의 hashable 값, 직렬화·sha256 없음)와 불변 검사", ("NFR-2", "DF-13", "SC-a")),
     ModuleEntry("core/fingerprint.py", "entry", "fp_of",
                 "정준 직렬화(float.hex·키 정렬)와 sha256 내용 지문", ("NFR-2", "SC-d")),
     ModuleEntry("core/immutability.py", "entry", "require_immutable",
@@ -330,6 +332,8 @@ MODULES = (
     ModuleEntry("authoring/spec_settings.py", "entry", "settings_declaration",
                 "objective 예산·search·spice_check·front_refilter(닫힌 규칙 어휘, 숫자 거부)",
                 ("DEC-34", "DEC-73", "DEC-75", "DEC-77")),
+    ModuleEntry("authoring/spec_theta_bounds.py", "entry", "theta_bound_declaration",
+                "search.theta_bounds 원소가 engine 값 저항·커패시터인지 교차 검사 -> ThetaBound(kind 단위)", ("DEC-92",)),
     ModuleEntry("authoring/spec_load.py", "entry", "load_sizing_spec",
                 "spec 게이트 전부 실행·위반 일괄 거부·SizingSpecDoc 생성", ("MOD2", "N3.15", "C00-6.2")),
     ModuleEntry("graph/s1_values.py", "data", None,
@@ -383,7 +387,8 @@ MODULES = (
     ModuleEntry("sizing/s2_values.py", "data", None,
                 "S2 dc 값 형식·어휘·권한표 S2_WRITERS(S1 + dc 필드)(데이터 선언 모듈)", ("GB7", "N3.3", "N3.4", "DEC-88")),
     ModuleEntry("sizing/k_max.py", "entry", "k_max", "반복 상한 K_max = ceil(log2(폭/tol))", ("N3.6", "DEC-32")),
-    ModuleEntry("sizing/bisect_root.py", "entry", "bisect_root", "구간 bisection(±inf 끝값 허용)", ("N3.6",)),
+    ModuleEntry("sizing/bracket_root.py", "entry", "bracket_root",
+                "괄호 근 찾기(Brent, ±inf 끝값 허용, bisection 과 같은 수렴 판정 -- 근과의 거리 ≤ tol/2)", ("N3.6",)),
     ModuleEntry("sizing/pre_layout_widths.py", "entry", "pre_layout_lut_access",
                 "레이아웃 전 폭 슬라이스 = LUT 생성 규칙 폭(용량 기준 w_ref_m)", ("DEC-91",)),
     ModuleEntry("sizing/struct_colour.py", "entry", "dc_struct_colour",

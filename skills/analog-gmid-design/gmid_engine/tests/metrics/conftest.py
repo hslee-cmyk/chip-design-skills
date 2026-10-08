@@ -440,8 +440,9 @@ _PLAN = lambda pid: {"kind": "plan_rule", "plan_id": pid}          # noqa: E731
 HAND = "hand_model"                                                  # 손 SsDevice 의 모형 표시(엔진 어휘 밖 -- 그대로 실려야 한다)
 
 
-def topo_doc(name, mos=(), passives=(), sources=(), ports=None, rails=("gnd",)):
-    """topology JSON dict. mos: (이름, kind, d, g, s, bulk), passives·sources: (이름, kind, a, b)."""
+def topo_doc(name, mos=(), passives=(), sources=(), ports=None, rails=("gnd",), bias=()):
+    """topology JSON dict. mos: (이름, kind, d, g, s, bulk), passives·sources: (이름, kind, a, b).
+    bias = authoring CONTRACT 9절 `bias_inputs`(gate 전용 넷) -- 회로마다 손으로 정한 리터럴, 비면 키 없음."""
     ports = ports or {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}
     d = {"schema_version": "2.0", "topology_name": name,
          "netlist": [{"name": n, "kind": k, "drain": dd, "gate": g, "source": s, "bulk": b} for n, k, dd, g, s, b in mos],
@@ -450,6 +451,8 @@ def topo_doc(name, mos=(), passives=(), sources=(), ports=None, rails=("gnd",)):
          "passive_elements": [{"name": n, "kind": k, "terminals": [a, b]} for n, k, a, b in passives]}
     if sources:
         d["ideal_sources"] = [{"name": n, "kind": k, "terminals": [a, b]} for n, k, a, b in sources]
+    if bias:
+        d["bias_inputs"] = list(bias)
     return d
 
 

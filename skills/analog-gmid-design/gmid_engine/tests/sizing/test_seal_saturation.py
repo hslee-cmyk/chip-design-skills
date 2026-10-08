@@ -16,7 +16,9 @@
 """
 import bisect
 import dataclasses
+import json
 import math
+import os
 
 import numpy as np
 import pytest
@@ -25,8 +27,9 @@ from gmid_engine.core import SealViolationError
 from gmid_engine.lut import LutMemo, op_point, tol_vdsat_table
 from gmid_engine.sizing import dc_seal_saturation, pre_layout_lut_access, size_and_seal
 
-from .conftest import (R4_L, build_ctx, circuit_cs_pmos_load, judge_expect, new_access, r4_tol_vdsat, r4_vdsat_at,
-                       rel_close, seal_item, tamper, theta_a, theta_c, theta_r4c, with_tol, write_r4_lut)
+from .conftest import (LOCATION_CONFIG, R4_L, REAL_CAP_SUFFIX, build_ctx, circuit_cs_pmos_load, judge_expect, new_access,
+                       r4_tol_vdsat, r4_vdsat_at, rel_close, seal_item, tamper, theta_a, theta_c, theta_r4c, with_tol,
+                       write_r4_lut)
 
 REASON_MISSING = "lut_vdsat_column_missing"
 
@@ -363,8 +366,8 @@ def _real_vdsat(a, L, vgs, vds, vsb):
 
 
 def _real_cell(a, on, i, k):
-    """lut 5.2 셀 (i, k): VGS·VDS·VS 축 선형 LOO |추정 − 값|(점과 축 방향 두 이웃이 on) 최댓값 / 2^2. L 방향 몫은 이 test 가
-    쓰는 앵커(bin 앵커 2개·외부 값 없음 = missing_external)에 없다(fixture 가 확인)."""
+    """lut 5.2 셀 (i, k): VGS·VDS·VS 축 선형 LOO |추정 − 값|(점과 축 방향 두 이웃이 on) 최댓값 / 2^2. L 방향 LOO 몫은 이 test 가
+    쓰는 앵커(앵커 2개 bin -- LOO 정의 불가)에 없다(fixture 가 확인). [2026-10-08] 외부 값(중점) 몫은 `_real_ext` 가 더한다."""
     V = a["VDSAT"]
     best = None
     nD = V.shape[2]
@@ -386,11 +389,42 @@ def _real_cell(a, on, i, k):
     return best
 
 
-def _real_tol(a, L, vds):
+# [2026-10-08 lut 중점 변경] lut CONTRACT 8절: 이 test 의 L 앵커 1·2 µm 은 앵커 2개 bin .23 (0.7·1 µm, 중점 0.85 µm)·
+# .22 (1.5·2 µm, 중점 1.75 µm) 의 앵커라 기본 tol_vdsat_table 의 그 행에 중점 외부 값(5.1 vdsat_v)이 들어간다(5.2).
+# oracle (d): 계약 8절 표·user_decisions 2026-10-08 '7번' 이 정한 bin 의 두 앵커와 중점(m).
+MID_PAIRS = {1e-6: (0.7e-6, 1e-6, 0.85e-6), 2e-6: (1.5e-6, 2e-6, 1.75e-6)}
+
+
+def _real_ext(a, mid, suf, L, k):
+    """lut 5.1 vdsat_v[k] 독립 구현(npz 직접): 감싸는 앵커 i0·i1, t = (L_m − a0)/(a1 − a0), max over (VGS, VS)
+    [중점 on ∧ 슬라이스 on(i0) ∧ on(i1)] of |V(i0) + t·(V(i1) − V(i0)) − VDSAT_m| (VDS = VDS_k). 점이 없으면 None."""
+    a0, a1, Lm = MID_PAIRS[min(MID_PAIRS, key=lambda x: abs(x - L))]
+    i0, i1 = _anchor(a["L"], a0), _anchor(a["L"], a1)
+    mi = int(np.argmin(np.abs(mid["L"] - Lm)))
+    assert abs(float(mid["L"][mi]) - Lm) <= math.ulp(Lm)
+    t = (float(mid["L"][mi]) - float(a["L"][i0])) / (float(a["L"][i1]) - float(a["L"][i0]))
+    on = (a["ID"] > 0) & (a["GM"] > 0)
+    Im, Gm = mid["ID" + suf][mi], mid["GM" + suf][mi]
+    mask = ((Im > 0) & (Gm > 0))[:, k, :] & on[i0][:, k, :] & on[i1][:, k, :]
+    if not mask.any():
+        return None
+    V = a["VDSAT"]
+    est = V[i0][:, k, :] + t * (V[i1][:, k, :] - V[i0][:, k, :])
+    return float(np.max(np.abs(est - mid["VDSAT" + suf][mi][:, k, :])[mask]))
+
+
+def _real_tol(a, L, vds, mid=None, suf=None):
+    """lut 5.2 at: 앵커 행 × VDS 칸 두 셀의 최댓값. 셀 = LOO/4 와 (mid 를 주면) 그 k 의 외부 값의 최댓값(셀 None 이면 None)."""
     on = (a["ID"] > 0) & (a["GM"] > 0)
     i = _anchor(a["L"], L)
     k = min(bisect.bisect_right(list(a["VDS"]), vds) - 1, len(a["VDS"]) - 2)
-    vals = [v for v in (_real_cell(a, on, i, k), _real_cell(a, on, i, k + 1)) if v is not None]
+    vals = []
+    for kk in (k, k + 1):
+        c = _real_cell(a, on, i, kk)
+        if c is None:
+            continue
+        e = _real_ext(a, mid, suf, L, kk) if mid is not None else None
+        vals.append(c if e is None else max(c, e))
     return max(vals) if vals else None
 
 
@@ -404,12 +438,26 @@ def real_ctx(real_lut_v2, tmp_path_factory):
     for kind, wk in acc.w_keys:
         with np.load(files[(kind, wk)]) as z:
             arrays[kind] = {k: np.array(z[k]) for k in ("L", "VGS", "VDS", "VS", "ID", "GM", "VDSAT")}
-    # 독립 계산 범위 확인: 이 test 가 쓰는 L 앵커의 tol 행에는 L 방향 몫(LOO·외부 값)이 없다
+    # [2026-10-08] 중점 파일(설정 JSON 의 verify_midpoints 를 직접 풀어 npz 로 읽음 -- 피검 함수 미사용)
+    cfg = json.loads(LOCATION_CONFIG.read_text(encoding="utf-8"))
+    root = os.environ.get(cfg["root"]["env"]) or cfg["root"]["default"]
+    with np.load(os.path.join(root, cfg["files"]["verify_midpoints"]["path"])) as z:
+        mid = {k: np.array(z[k]) for k in z.files if k != "meta_json"}
+    mid_wkeys = {(kind, wk) for kind, wk in acc.w_keys if abs(float(mid["w_ref_m"]) - lut.slice_map[(kind, wk)].w_m)
+                 <= 2 * math.ulp(float(mid["w_ref_m"]))}
+    # 독립 계산 범위 확인: 이 test 가 쓰는 L 앵커의 tol 행에는 L 방향 LOO 몫이 없고(앵커 2개 bin), 중점 폭(w_ref)의 행은 외부 값을
+    # 받는다(5.2 상태 "bin_external" -- lut 8절), 다른 폭은 외부 값 없음("bin_missing_external", 5.1 width_differs)
+    ext = {}
     for kind, wk in acc.w_keys:
         t = tol_vdsat_table(memo, kind, wk)
         for L in (1e-6, 2e-6):
-            assert t.l_loo[_anchor(arrays[kind]["L"], L)] in ("bin_missing_external", "bin_edge")
-    return ctx, memo, arrays
+            want = "bin_external" if (kind, wk) in mid_wkeys else "bin_missing_external"
+            assert t.l_loo[_anchor(arrays[kind]["L"], L)] == want, (kind, wk, L)
+        if (kind, wk) in mid_wkeys:
+            for ax in ("VGS", "VDS", "VS"):
+                assert np.array_equal(mid[ax], arrays[kind][ax]), ax
+            ext[kind] = (mid, dict(REAL_CAP_SUFFIX)[kind])
+    return ctx, memo, arrays, ext
 
 
 REAL_THETAS = [(0.5, 0.7, 0.8, 1e-6, 1e-6), (0.1, 1.2, 0.8, 1e-6, 2e-6),
@@ -417,7 +465,7 @@ REAL_THETAS = [(0.5, 0.7, 0.8, 1e-6, 1e-6), (0.1, 1.2, 0.8, 1e-6, 2e-6),
 
 
 def _real_eval(real_ctx, y, v1, v2, l1, l2):
-    ctx, memo, arrays = real_ctx
+    ctx, memo, arrays, ext = real_ctx
     vout = y * 1.8
     th = {("L", "M1"): l1, ("L", "M2"): l2,
           ("ln_idu", "M1"): math.log(op_point(memo, "nmos", 1000, l1, v1, vout, 0.0).IDu),
@@ -429,7 +477,7 @@ def _real_eval(real_ctx, y, v1, v2, l1, l2):
     for name, op in sorted(ops_of(snap).items()):
         a = arrays[op.kind]
         vd = _real_vdsat(a, op.L, op.vgs, op.vds, op.vsb)
-        tol = _real_tol(a, op.L, op.vds)
+        tol = _real_tol(a, op.L, op.vds, *ext.get(op.kind, (None, None)))
         assert tol is not None and tol > 0
         rows.append((name, vd - op.vds + 2 * tol, tol, (name,), ()))
         extra[name] = (vd, tol, op.vds - vd - tol)

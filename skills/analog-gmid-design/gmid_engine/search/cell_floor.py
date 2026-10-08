@@ -11,13 +11,24 @@
 * `start`(θ Mapping)가 있으면 하한 = min(칸 정점 하한, 시작 좌표) -- 받아들인 시작점 자체를 상자 밖으로 내몰지 않는다.
 * 캐시: `sctx.cell_floors`(S0 수명, (kind, w_key, 칸) 마다 1회, 1변수 writer 집합 1회). LUT memo 의 derived 영역은 쓰지 않는다(상한이
   슬라이스 × 파생표 수라 tol_V 표를 밀어낼 수 있다).
+* **[r9] 전도 하한**(sizing r8 봉인 9, CONTRACT §6·O17): 전도 MOS 는 I_off ≤ ε·ID, I_off = IDu(VGS=0)·W/L, ε = (gm/ID)·tol_V 이고 W/L 이
+  지워져 ln IDu(VGS) + ln(gm/ID(VGS)·tol_V) ≥ ln IDu(0) -- 좌표 하한이다. 칸 전도 하한(kind, w_key, 칸) = 그 칸 안 L 앵커 × VDS·VS 전
+  격자의 곡선마다 f(VGS) = log_GM(VGS) + ln tol_V(L, VDS) − log_ID(VGS = 0)(= ln(gm·tol_V / I_off), 같은 슬라이스 폭)가 처음 0 이상이
+  되는 VGS 격자 칸에서 ln IDu 를 f 에 대해 선형 보간한 근(margin = 1)의 ln IDu 중 최댓값(보수 -- VDS·VSB 가 θ 로 정해지기 전).
+  tol_V 는 lut `tol_v_table(kind, w_key).at(L, VDS, "id_equivalent")`(봉인 9 의 `dc_tol_v` 와 같은 셀), None 인 셀·VGS = 0 이나 근
+  주변 마디가 on_mask 밖인 곡선은 뺀다. 모든 마디에서 f ≥ 0 이면 그 곡선은 하한 없음, 어디서도 0 에 닿지 않으면 그 곡선은 뺀다.
+  VGS 격자에 0 이 없으면 전도 하한 없음(None). **모든 `ln_idu` 성분**(one_var_only 와 무관)에 적용하고, 칸 정점 하한이 적용되는
+  성분은 max(두 하한). 봉인 9 가 판정 권한이다(이 하한은 그 영역에서 평가를 아끼는 상자일 뿐).
 """
 import math
 
 import numpy as np
 
 from gmid_engine.graph import MOS_TERMINAL_NAMES
+from gmid_engine.lut import tol_v_table
 from gmid_engine.sizing import REL_VGS_GATE, REL_VGS_SOURCE, THETA_LN_IDU
+
+_ID_EQUIVALENT = "id_equivalent"          # 봉인 9·dc_tol_v 와 같은 tol_V 지표(lut TOL_V_METRICS)
 
 _ONE_VAR_KEY = ("one_var_writers",)
 _SELF_RELATIONS = (REL_VGS_GATE, REL_VGS_SOURCE)
@@ -38,6 +49,41 @@ def _peak_floor(sctx, kind, w_key, cell):
         at_peak = np.take_along_axis(ln_idu, peak[:, None, :, :], axis=1)[:, 0]
         valid = np.take_along_axis(on, peak[:, None, :, :], axis=1)[:, 0]
         sctx.cell_floors[key] = float(np.max(np.where(valid, at_peak, -np.inf)))
+    return sctx.cell_floors[key]
+
+
+def _conduction_floor(sctx, kind, w_key, cell):
+    key = ("conduction", kind, w_key, cell)
+    if key not in sctx.cell_floors:
+        sl = sctx.dc.lut.memo.lut.slice_map[(kind, w_key)]
+        vgs = np.asarray(sl.VGS_grid, dtype=float)
+        zero = np.flatnonzero(np.abs(vgs) <= np.spacing(np.max(np.abs(vgs))))
+        table = tol_v_table(sctx.dc.lut.memo, kind, w_key)
+        log_id, log_gm = np.asarray(sl.log_ID), np.asarray(sl.log_GM)
+        on = np.asarray(sl.on_mask, dtype=bool)
+        lo_l, hi_l = cell
+        best = None
+        for a, L in enumerate(float(v) for v in sl.grids[0]):
+            if not (lo_l - np.spacing(lo_l) <= L <= hi_l + np.spacing(hi_l)) or not zero.size:
+                continue
+            shift = math.log(L) - math.log(sl.w_m)
+            for k, vds in enumerate(float(v) for v in sl.grids[2]):
+                tol = table.at(L, vds, _ID_EQUIVALENT)
+                if not tol:
+                    continue
+                for s in range(log_id.shape[-1]):
+                    if not on[a, zero[0], k, s]:
+                        continue
+                    f = log_gm[a, :, k, s] + math.log(tol) - log_id[a, zero[0], k, s]
+                    ok = on[a, :, k, s]
+                    hit = np.flatnonzero(ok & (f >= 0))
+                    if not hit.size or hit[0] == 0 or not ok[hit[0] - 1]:
+                        continue
+                    j = hit[0]
+                    t = -f[j - 1] / (f[j] - f[j - 1])
+                    root = log_id[a, j - 1, k, s] + t * (log_id[a, j, k, s] - log_id[a, j - 1, k, s]) + shift
+                    best = root if best is None else max(best, float(root))
+        sctx.cell_floors[key] = None if best is None else float(best)
     return sctx.cell_floors[key]
 
 
@@ -63,10 +109,17 @@ def ln_idu_floors(sctx, variables, cells, one_var_only=False, start=None):
     out = {}
     for i, var in enumerate(variables):
         ckind, m = var.component
-        if ckind != THETA_LN_IDU or (chosen is not None and m not in chosen):
+        if ckind != THETA_LN_IDU:
             continue
-        floor = _peak_floor(sctx, kinds[m], w_keys[kinds[m]], cell_of[m])
-        if start is not None:
+        key = (kinds[m], w_keys[kinds[m]], cell_of[m])
+        parts = [_conduction_floor(sctx, *key)]
+        if chosen is None or m in chosen:
+            parts.append(_peak_floor(sctx, *key))
+        parts = [p for p in parts if p is not None]
+        if not parts:
+            continue
+        floor = max(parts)
+        if start is not None and var.component in start:     # start 에 없는 성분은 캡 없음
             floor = min(floor, start[var.component])
         if var.lo < floor < var.hi:
             out[i] = floor

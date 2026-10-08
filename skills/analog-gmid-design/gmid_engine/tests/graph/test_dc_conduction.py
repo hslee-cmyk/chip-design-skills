@@ -76,6 +76,7 @@ def test_leaf_resistor_chain_pruned_in_rounds(gh, tmp_path):
     ]
     o = gh.oracle(raw)
     assert o.dc_pruned == (("Rq2", 1), ("Rq1", 2))
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s1 = build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
     assert gh.gval(s1, "dc_pruned") == (("Rq2", 1), ("Rq1", 2))
     assert tuple(gh.seg_plain(s) for s in gh.gval(s1, "dc_segments")) == o.segments
@@ -88,6 +89,7 @@ def test_resistor_on_port_or_rail_is_kept_and_mos_leaf_not_pruned(gh, tmp_path):
     raw["passive_elements"].append({"name": "Rload", "kind": "resistor", "terminals": [out, "gnd"], "value_ohm": 1e4})
     gate = raw["netlist"][0]["gate"]
     raw["netlist"].append({"name": "Mleaf", "kind": "nmos", "drain": "dleaf", "gate": gate, "source": "gnd"})
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s1 = build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
     assert gh.gval(s1, "dc_pruned") == ()
     els = {el for s in gh.gval(s1, "dc_segments") for el in s.elements}
@@ -101,6 +103,7 @@ def test_parallel_merge_ignores_kind(gh, tmp_path):
     m = raw["netlist"][0]
     raw["passive_elements"].append({"name": "Rpar", "kind": "resistor", "terminals": [m["source"], m["drain"]],
                                     "value_ohm": 1e5})
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s1 = build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
     seg = next(s for s in gh.gval(s1, "dc_segments") if m["name"] in s.elements)
     assert seg.elements == tuple(sorted((m["name"], "Rpar")))
@@ -117,6 +120,7 @@ def _ota(gh):
 def test_stop_inductor(gh, tmp_path):
     raw = _ota(gh)
     raw["passive_elements"].append({"name": "Lx", "kind": "inductor", "terminals": ["OUT", "gnd"]})
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     d, devices = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert (d["rule_branch"], d["nets"], devices) == ("passive_kind_unsupported", (), ("Lx",))
 
@@ -143,6 +147,7 @@ def test_stop_reports_first_name_branch_and_all_its_elements(gh, tmp_path):
     raw["passive_elements"] += [{"name": "Zind", "kind": "inductor", "terminals": ["OUT", "gnd"]},
                                 {"name": "Aind", "kind": "inductor", "terminals": ["OUT", "vdd"]}]
     o_err = pytest.raises(gh.StopExpected, gh.oracle, raw).value
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     d, devices = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), None))
     assert d["rule_branch"] == o_err.branch == "passive_kind_unsupported"
     assert devices == o_err.devices == ("Aind", "Zind")
@@ -164,6 +169,7 @@ def test_unsupported_checked_before_self_loop(gh, tmp_path):
     raw = _ota(gh)
     raw["netlist"][3]["drain"] = raw["netlist"][3]["source"]
     raw["passive_elements"].append({"name": "Lx", "kind": "inductor", "terminals": ["OUT", "gnd"]})
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     d, _ = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), None))
     assert d["rule_branch"] == "passive_kind_unsupported"
 
@@ -172,6 +178,7 @@ def test_stop_is_not_cached(gh, tmp_path):
     # 정지는 예외라 캐시되지 않는다(1절): 같은 입력으로 다시 불러도 다시 정지
     raw = _ota(gh)
     raw["passive_elements"].append({"name": "Lx", "kind": "inductor", "terminals": ["OUT", "gnd"]})
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     doc = gh.load_raw(tmp_path, raw)
     for _ in range(2):
         d, _ = gh.stop(lambda: build_s1(doc, None))

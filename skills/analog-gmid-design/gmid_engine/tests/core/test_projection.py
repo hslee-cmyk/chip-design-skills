@@ -264,3 +264,77 @@ def test_direct_undeclared_column_and_missing_key_rejected():
         p.value("node", "zz", "v")
     with pytest.raises(KeyError):
         _direct(w=()).value("device", "m1", "w")
+
+
+# =====================================================================================================================
+# 2026-10-08 두 번째 개정(core 성능 5, CONTRACT §8: 행 지문 = 열마다 (kind, field) 자기 구분 텍스트 + 열 지문의 sha256) --
+# 동치 관계 유지 확인. oracle 종류: 전부 (a) 구성으로 정답이 정해진 합성 입력(같은 내용 -> 같은 fp / 한 곳만 다름 -> 다른 fp).
+# fp 문자열 자체는 기대값으로 쓰지 않는다(§8 '문자열은 옛 식과 다르다').
+# =====================================================================================================================
+
+def _cols_direct(cols, extras=()):
+    """cols: {(kind, field): ((key, value), ...)} -> 정렬된 직접 생성 인자."""
+    return Projection(tuple(sorted(cols.items())), extras)
+
+
+@pytest.mark.parametrize("other", [
+    {("node", "u"): VCOL, ("device", "w"): WCOL},         # field 이름만 다름(내용 같음)
+    {("graph", "v"): VCOL, ("device", "w"): WCOL},        # kind 만 다름
+    {("node", "v"): VCOL, ("device", "ww"): WCOL},        # 다른 열의 field 이름
+    {("node", "v"): VCOL, ("edge", "w"): WCOL},           # 다른 열의 kind
+    {("node", "v"): WCOL, ("device", "w"): VCOL},         # 두 열 내용 맞바꿈
+    {("node", "vd"): VCOL, ("device", "w"): WCOL},        # (kind, field) 텍스트 경계: "v"+"d..." 류 접미
+], ids=["field", "kind", "other_field", "other_kind", "swap_contents", "field_suffix"])
+def test_kind_or_field_difference_gives_different_fp(other):
+    # oracle (a): 기준 {node v: VCOL, device w: WCOL} 와 열 이름(kind 또는 field)만 다른 입력 -> §8 '정렬된 열마다 (kind, field)
+    # 자기 구분 텍스트 + 열 지문' 이므로 다른 fp(옛 식 fp_of((columns, extras)) 와 같은 동치 관계).
+    base = _cols_direct({("node", "v"): VCOL, ("device", "w"): WCOL})
+    assert _cols_direct(other).fp != base.fp
+
+
+def test_kind_field_text_boundary_does_not_collide():
+    # oracle (a)+§8 '(kind, field) 자기 구분 텍스트 + 열 지문': field 이름과 첫 key 의 경계만 옮긴 쌍
+    # (field "v" + key "ab" vs field "va" + key "b", 값 같음) -> 다른 fp.
+    p1 = _cols_direct({("node", "v"): (("ab", 1.0),)})
+    p2 = _cols_direct({("node", "va"): (("b", 1.0),)})
+    assert p1.fp != p2.fp
+
+
+def test_same_columns_extras_same_fp_across_paths_and_lineages():
+    # oracle (a): 같은 열 값·extras 를 (1) 직접 생성 (2) writer·input_version 이 다른 두 lineage 스냅샷의 from_snapshot 으로 만든다.
+    extras = (0.5, ("k", -0.0), frozenset({"a"}))
+    d = _direct(extras=extras)
+    s1 = _snap(v={"a": 1.0, "b": 2.0}, w={"m1": 3.0}, iv="L1")
+    s2 = _snap(w={"m1": 3.0}, v={"b": 2.0, "a": 1.0}, u={"q": 0.0}, iv="L2")
+    p1 = Projection.from_snapshot(s1, READS, extras)
+    p2 = Projection.from_snapshot(s2, tuple(reversed(READS)), extras)
+    assert d.fp == p1.fp == p2.fp
+
+
+def test_fp_independent_of_access_order():
+    # oracle (a): fp 를 먼저 읽든, 열·값을 먼저 읽든 같은 투영의 fp 는 같다(투영 불변).
+    s = _snap(v={"a": 1.0, "b": 2.0}, w={"m1": 3.0})
+    p_fp_first = Projection.from_snapshot(s, READS, (1,))
+    f1 = p_fp_first.fp
+    _ = p_fp_first.column("node", "v")
+    p_cols_first = Projection.from_snapshot(s, READS, (1,))
+    _ = p_cols_first.column("device", "w")
+    _ = p_cols_first.value("node", "a", "v")
+    assert p_cols_first.fp == f1 == p_fp_first.fp
+
+
+@pytest.mark.parametrize("x, y", [
+    (0.0, -0.0),
+    (1, 1.0),
+    (True, 1),
+    ("1", 1),
+    (b"x", "x"),
+    ((1, 2), frozenset({1, 2})),
+], ids=["signed_zero", "int_float", "bool_int", "str_int", "bytes_str", "tuple_frozenset"])
+def test_from_snapshot_value_tags_distinguished(x, y):
+    # oracle (a)+§1 태그 규칙: from_snapshot 은 값 자리에 FieldValue.value_fp(= fp_of(value)) 를 쓰므로 §1 이 구별하는 두 값은
+    # 스냅샷 경로 투영 fp 도 구별한다(파이썬 == 로는 같은 쌍 포함).
+    px = Projection.from_snapshot(_snap(v={"a": x}), (("node", "v"),))
+    py = Projection.from_snapshot(_snap(v={"a": y}), (("node", "v"),))
+    assert px.fp != py.fp
+    assert px.fp == Projection(((("node", "v"), (("a", x),)),), ()).fp

@@ -23,11 +23,12 @@
 - 순서: `load_json_checked` -> `check_spec_schema` -> `meta_cross_check` -> `supplies_declaration` -> `input_dc_declaration`
   -> `element_value_declaration` -> `constraint_declaration`(앞 게이트의 feedback 결과를 받아 기본 뷰를 `default_views` 로 로드
   한 번에 한 번 유도, 7a design) -> `compensation_target_declaration` ->
-  `node_target_declaration` -> `intended_region_declaration` -> `settings_declaration` -> `resolve_spec_references`.
+  `node_target_declaration` -> `intended_region_declaration` -> `settings_declaration` -> [2026-10-08]
+  `theta_bound_declaration`(settings·elements 가 둘 다 나왔을 때만) -> `resolve_spec_references`.
 - JSON 수준 위반은 `json_read` 예외 그대로. 그 밖 위반은 전부 모아 `SchemaRejectedError` **한 번**:
   detail = {`gate`: `"spec_load"`, `where`: 경로 문자열, `hits`, `rejected_gates`(정렬 tuple), `not_evaluated`}.
   `rejected_gates` 이름: `spec_schema`, `spec_meta`, `supplies`, `input_dc`, `elements`, `constraints`,
-  `compensation_targets`, `node_targets`, `intended_region`, `settings`, `references`.
+  `compensation_targets`, `node_targets`, `intended_region`, `settings`, `theta_bounds`, `references`.
 - `not_evaluated`: `all_sections`(최상위·`meta`·`human` 중 객체 아닌 것이 있음 -- 섹션 검사 없음),
   `topology_cross_checks`(meta 회로 이름 또는 topology 지문 불일치 -- 섹션 형식만 보고 topology 교차 검사는 안 함),
   `references`(앞 게이트에 위반이 있으면 참조 해석 안 함). 필수 human 키가 없으면 `missing_key` 하나만 내고 그 섹션 검사는 하지
@@ -51,6 +52,13 @@
 
 human 키: 필수 = supplies_v, input_dc, element_values, feedback, constraints, node_voltage_targets_v, intended_region,
 objective, search, spice_check, front_refilter. 선택 = pending_constraints, compensation_targets.
+
+[2026-10-08] `search` 의 선택 칸 `theta_bounds` = `{"<원소>": {"min": <수>, "max": <수>, "source": {...}}, ...}`(사용자 결정 8·10,
+search CONTRACT r10). 원소별 θ 수동소자 탐색 상자. 단위 = 원소 kind 의 SI 단위(resistor Ω, capacitor F -- 키 이름에 단위를 쓰지
+않는다, kind 가 정한다). 원소 = topology 수동소자 중 kind ∈ {resistor, capacitor} 이고 spec `element_values.<원소>` 가 `engine`
+인 것만(고정 값·결정 대기·MOS·이상원·모르는 이름은 `theta_bound_element`). min·max 양의 유한 수(bool 아님), min < max. 칸 키 =
+{min, max, source} 닫힌 어휘(`_` 주석 키 허용), 출처 필수(search 섹션 허용 kind = user_spec·plan_rule). 결정 대기 표지는 받지
+않는다(상자가 없으면 칸을 비운다 -- 그 원소는 search 가 `theta_*_bounds_undeclared` 로 거부). 칸이 없거나 빈 객체여도 로드는 통과.
 
 [2026-10-08] `intended_region` 영역 어휘 = `REGIONS` = (`REGION_TRIODE` = `"triode"`,)(design_spec_format 표 1.6) -- 공개 상수
 `REGION_TRIODE` 가 정본이다. 그 밖 낱말(예 `"linear"`, `"saturation"`)은 `type`. 소비자: sizing `LINEAR_REGION`(= 이 상수)이
@@ -104,6 +112,11 @@ objective, search, spice_check, front_refilter. 선택 = pending_constraints, co
 | `budget_metric_not_objective` | 예산 metric 의 `objective_axis` 가 None 또는 이름표 밖 | settings |
 | `search_method` / `optional_stage_unknown` | search_method ∉ {default, precision} / optional_stages 키 ∉ {inner_block_dp, middle_y_coordinate_descent, threshold_bisection, global_sample_budget_fill} | settings |
 | `numeric_in_rule_field` / `rule_name_unknown` | 규칙 칸에 수 / 어휘 밖 규칙 이름 | settings |
+| `type`(theta_bounds) | `theta_bounds` 가 객체 아님 / 원소 칸이 객체 아님 / min·max 가 양의 유한 수가 아님(0·음수·문자열·bool) | settings |
+| `missing_key`(theta_bounds) | 원소 칸에 min 또는 max 없음(없는 키마다 하나, where `…theta_bounds.<원소>.<키>`) | settings |
+| `theta_bound_range` | min ≥ max | settings |
+| `unknown_key`·`source_*`(theta_bounds) | 원소 칸 키가 {min, max, source} 밖 / 출처 표 위반(1절) | settings |
+| `theta_bound_element` | 원소가 topology 저항·커패시터 밖이거나 spec 값 mode 가 engine 아님 | theta_bounds |
 | `ref_unresolved` / `ref_ambiguous` / `ref_cycle` / `ref_file_rejected` | 참조 대상 없음·형식 틀림 / 같은 metric 제약 둘 이상 / 순환(파일 안·파일 사이) / 참조 파일 로드 거부 | references |
 
 규칙 어휘: spice_check = acceptance_rule{free_spec_and_all_saturated}, saturation_rule{vds_ge_vdsat, vds_ge_vdsat_plus_tol_v},
@@ -117,7 +130,9 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
   `element_values`(`ElementValue` 이름순, mode value/engine/pending), `feedback`(이름순 tuple 또는 `PendingMark`),
   `constraints`(`ConstraintDecl` 문서 순서), `pending_constraints`((metric, ID) tuple), `compensation_targets`
   ((키, `TargetDecl`/`SettlingDecl`/`PendingMark`) 이름순), `node_voltage_targets_v`, `intended_region`, `objective`
-  (`ObjectiveBudget` tuple 또는 `PendingMark`), `search`(`SettingValue`), `spice_check`·`front_refilter`(`RuleChoice`),
+  (`ObjectiveBudget` tuple 또는 `PendingMark`), `search`(`SettingValue` tuple -- [2026-10-08] `theta_bounds` 가 있으면 맨 앞에
+  `SettingValue("theta_bounds", (ThetaBound(element, kind, lo, hi, source), ...) 원소 이름순)`, 공개 상수 `THETA_BOUNDS`),
+  `spice_check`·`front_refilter`(`RuleChoice`),
   `pending`(`PendingMark` (경로, ID) 정렬), `section_fps`, `spec_fp`, `file_sha256`. 속성 `judged_constraints`.
 - `ConstraintDecl`: 참조는 해석된 `value`, `judged` = user_spec True / pending_spice False / reference 는 대상의 judged,
   metric 결정 대기면 `metric` None·`metric_decision`·`judged` False·`view` None. 참조 대상이 결정 대기면 `value` None +
@@ -146,7 +161,8 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
   해석된 값으로. 제약은 내용 지문 정렬(순서만 바꾼 spec 은 같은 지문). 섹션 지문(`SECTION_GROUPS`):
   supplies_fp(supplies_v), operating_fp(input_dc·node_voltage_targets_v·intended_region), elements_fp, feedback_fp,
   constraints_fp(constraints·pending_constraints), compensation_fp, objective_fp, search_fp, spice_check_fp, refilter_fp.
-  `spec_fp` = `fp_of(section_fps)`. spice_check 만 바꾸면 spice_check_fp·spec_fp 만 바뀐다.
+  `spec_fp` = `fp_of(section_fps)`. spice_check 만 바꾸면 spice_check_fp·spec_fp 만 바뀐다. `theta_bounds`(원소·kind·min·max·
+  출처 kind)는 `search_fp` 에 든다 -- 상자만 바꾸면 search_fp·spec_fp 만 바뀐다.
 - **실행 전 정지(MOD10 몫, 이 로더 밖)**: 사이징 실행이 읽는 필드에 `pending` 이 하나라도 있으면 전부 모아
   `SchemaRejectedError` 한 번(결정 ID 목록). 로더는 표지를 통과시키고 모으기만 한다.
 
@@ -203,7 +219,14 @@ CL1·CL2 각각 1 pF(사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF", u
 
 [CM 2026-10-08] 공통 모드 루프 제약: 파일럿에 `pm_cm_ss_deg >= 60`(source user_spec, decided 2026-10-08, 사용자 "6번도 네 의견에 동의하고 제안한 값을 사용해") 한 건을 더했다(제약 8(5) → 9(6), view 는
 적지 않음; pending 표지 수 11·총 61 은 그대로 -- 이 계약 표가 정본). library 9회로에 `default_views().cm_loop` 를 전수 실행: 파일럿만 `cm_output`(가중 ((Vom, 1/2), (Vop, 1/2))), 나머지 8회로는 차동 출력쌍이
-없어 view_required 사유. 그 8회로 중 하나에 이 제약을 적으면 `view_required`. 픽스처 이름표 갱신 대상: `pm_cm_ss_deg`(deg, ss, cm_loop) 추가(레지스트리 이름 11개). 옛 평균 수동소자 감지 넷 구조 규칙은 삭제.
+없어 view_required 사유. 그 8회로 중 하나에 이 제약을 적으면 `view_required`. 픽스처 이름표 갱신 대상: `pm_cm_ss_deg`(deg, ss, cm_loop) 추가(레지스트리 이름 11개). 옛 평균 수동소자 감지 넷 구조 규칙은 삭제.. 구동자/소비자 구조 분류(`cm_partition`)와 선언 `cm_sense_elements` 는 3절 `cm_loop` 항 참조 -- 파일럿은 분류가 명확해 선언이 필요 없다.
+
+theta_bounds 측정(2026-10-08, 이 커밋 코드 + library): 6회로에 상자 기입(current_reuse Cc1·Cc2·R1·R2, ngcc·nmcnr Cm1·Cm2,
+sf_pushpull Cc·R1a·R1b·R1c, two_stage_ota·two_stage_ota_sf Cc) -- 9/9 로드 통과, 표지 수 불변(상자는 표지를 받지 않는다).
+거부 실측(sf_pushpull 복사본 한 곳씩, 16건 전부 거부·그 규칙 하나만): 객체 아님·칸 객체 아님·0·음수·문자열·bool → `type`,
+min ≥ max·min = max → `theta_bound_range`, max 없음 → `missing_key`, 칸 키 `unit` → `unknown_key`, 출처 없음 → `source_missing`,
+출처 reference → `source_kind_not_allowed_here`, paper → `paper_source_not_adopted`, 모르는 이름·고정 값 `CL`·MOS `M1` →
+`theta_bound_element`(gate `theta_bounds`). 지문: 출처 record 만 바꾸면 section_fps 불변, min 만 바꾸면 `search_fp` 만 바뀐다.
 
 ## 6. 설계(design_spec_format)와 다르게 정한 점
 

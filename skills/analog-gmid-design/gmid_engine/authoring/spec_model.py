@@ -91,7 +91,8 @@ class ViewDecl:
       (topology 교차 검사를 못 한 로드에서는 둘 다 None).
     * loop(7a design 2.2·2.3·2.5): `beta` ∈ declared(spec feedback 비지 않음) / unity(빈 list). declared 면 `cuts` =
       (되먹임 소자, 절단 넷) 소자 이름순, `weights` = 절단 넷의 (넷, 가중) 넷순. unity 면 `weights`·`sense` 가 포트 전달 뷰와 같다.
-    * cm_output([CM] 출력 포트 CM 주입 루프): `weights` = 차동 출력 포트 (넷, 1/2) 넷순 -- 두 출력 넷에 동일 부호 주입, 절단 원소는 metrics 가 구조로 정한다.
+    * cm_output([CM] 출력 포트 CM 주입 루프): `weights` = 차동 출력 포트 (넷, 1/2) 넷순 -- 두 출력 넷에 동일 부호 주입. `cuts` = ((구동자 MOS 이름, 옮길 출력 넷), ...) **MOS 이름 오름차순**
+      (`cm_partition` 결과; 비면 metrics 가 같은 분류를 직접 한다). 순서는 이름 의존이다 -- 값은 순서에 무관하고 소비자는 집합으로 읽는다.
     * sense(출력 포트 뷰, 7a design 3.1): `sense` = 감지 `SenseDecl`(여기 없음).
     * pending: `decision` = 결정 ID(선언 표지, 또는 loop 의 feedback 결정 대기 전파).
     유도된 내용이 여기에 들어가므로 `constraints_fp` 가 feedback·ports 변경을 따라간다."""
@@ -152,6 +153,17 @@ class SettingValue:
     value: object
     source: object = None
     decision: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class ThetaBound:
+    """원소별 θ 상자 하나(`search.theta_bounds`, 2026-10-08). `kind` ∈ resistor(Ω)·capacitor(F), `lo` < `hi` 양수, `source` 출처."""
+
+    element: str
+    kind: str
+    lo: float
+    hi: float
+    source: object = None
 
 
 @dataclasses.dataclass(frozen=True)

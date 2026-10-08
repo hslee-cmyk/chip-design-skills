@@ -20,7 +20,7 @@
     포트 뷰), feedback 이 결정 대기면 mode `pending`(그 ID 전파). 유도 불가면 `view_required`. 결정 대기 아닌 선언 view 는
     `view_not_applicable`. 단 명시 모양 `{"cut_weights": …}`(7a design 2.9 예약 -- 계약에만 있고 첫 소비 spec 이 생길 때
     구현)은 조용히 무시하지 않고 `view_shape_not_supported` 로 거부한다.
-  - `cm_loop` 선언 view [CM 2026-10-08]: `{"cm_sense_elements": [MOS…]}` 만 받는다(닫힌 어휘; 그 밖 모양은 `view_not_applicable`). 구조 분류가 모호할 때 필요하고,
+  - `cm_loop` 선언 view [CM 2026-10-08]: `{"cm_sense_elements": [MOS…]}` 만 받는다(닫힌 어휘: 그 밖 키 `unknown_key`, 키 없음 `missing_key`). 구조 분류가 모호할 때 필요하고,
     분류가 명확하면 구조와 같아야 한다. 이 제약의 `source.kind` 는 `user_spec`(`cm_sense_source`). 규칙: `cm_sense_unknown`, `cm_sense_not_on_output`,
     `cm_sense_disagrees`, `cm_partition_ambiguous`(선언해도 절단 교차 검사 실패), `cm_pair_missing`, `cm_switched`.
   - `cm_loop`(`pm_cm_ss_deg`, 공통 모드 루프 PM): `loop` 와 같이 view 를 적지 않는다(결정 대기 표지만) -- 선언된 차동 출력 포트 쌍의 출력 CM 주입
@@ -136,6 +136,9 @@ def _cm_declared_view(raw, place, views, source, hits):
     before = len(hits)
     hits.extend(key_hits(raw, (CM_SENSE_KEY,), place))
     names = raw.get(CM_SENSE_KEY)
+    if CM_SENSE_KEY not in raw:
+        hits.append(SchemaHit("missing_key", at(place, CM_SENSE_KEY), "cm_loop 선언 view 는 cm_sense_elements 가 필요하다"))
+        return None
     if not isinstance(names, list) or not all(isinstance(n, str) and n for n in names) or len(set(names)) != len(names):
         hits.append(SchemaHit("type", at(place, CM_SENSE_KEY), "cm_sense_elements 는 서로 다른 MOS 이름 list 여야 한다: " + repr(names)))
     if source is not None and source.kind != USER_SPEC:
@@ -159,7 +162,7 @@ def _view(raw, signature, where, nets, views, hits, source=None):
         if raw is not None:
             hits.append(SchemaHit("view_not_applicable", place, "이 metric 은 뷰를 쓰지 않는다(view_kind None)"))
         return ViewDecl("none")
-    if kind == "cm_loop" and isinstance(raw, dict) and CM_SENSE_KEY in raw:
+    if kind == "cm_loop" and isinstance(raw, dict) and RESERVED_LOOP_VIEW_KEY not in raw:
         return _cm_declared_view(raw, place, views, source, hits)
     if kind in ("loop", "cm_loop") and raw is not None:
         if isinstance(raw, dict) and RESERVED_LOOP_VIEW_KEY in raw:

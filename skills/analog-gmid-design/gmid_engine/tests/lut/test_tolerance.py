@@ -367,19 +367,22 @@ def test_real_scaled_values_are_loo_over_two_pow_p(real_table_noext):
 
 
 @pytest.mark.lut_realdata
-def test_real_default_external_equals_explicit_midpoint_rows(real_lut, real_table, real_table_noext):
+def test_real_default_external_equals_explicit_midpoint_rows(real_lut, real_table, real_table_noext, real_mid_ext):
     """[r6] 5절: 기본 l_bin_checks=None = midpoint_l_bin_checks(...).rows 의 (model, gm_id_inverse_v, id_equivalent_v).
-    명시해 준 표와 같은 객체(memo 키 = 정규화 형식)이고, 외부 값 없는 표와는 .26 두 행만 다르다."""
+    명시해 준 표와 같은 객체(memo 키 = 정규화 형식)이고, 외부 값 없는 표와는 중점이 든 앵커 2개 bin 의 행만 다르다.
+    [2026-10-08 중점 변경] 그 행 = showmod 로 정한 앵커 2개 bin 중 중점을 감싸는 것(oracle (a) `real_mid_ext`) =
+    .26 (0, 1)·.23 (10, 11)·.22 (12, 13)·.21 (14, 15) -- 18점 격자 index(승인 L 파일 순서)."""
     m = new_memo(real_lut)
     rows = midpoint_l_bin_checks(m, "pmos", 1000).rows
-    assert len(rows) == 1
+    assert len(rows) == 4
     explicit = tuple((r.model, r.gm_id_inverse_v, r.id_equivalent_v) for r in rows)
     t_def = tol_v_table(m, "pmos", 1000)
     assert tol_v_table(m, "pmos", 1000, explicit) is t_def
     assert tuple(t_def.l_bin_checks) == tuple((mo, tuple(a), tuple(b)) for mo, a, b in explicit)
     st = {mo: idx for mo, idx, _ in real_table.l_loo_bins}
-    ext_rows = set(st[rows[0].model])
-    assert ext_rows == {0, 1}
+    ext_rows = set(i for r in rows for i in st[r.model])
+    assert ext_rows == set(real_mid_ext)
+    assert ext_rows == {0, 1, 10, 11, 12, 13, 14, 15}
     for i in range(len(real_table.cells)):
         for k in range(len(real_table.cells[i])):
             if i not in ext_rows:
@@ -404,8 +407,9 @@ def test_real_at_is_max_of_two_cells(real_table):
 @pytest.mark.lut_realdata
 def test_real_external_l_values_not_converted(real_lut, real_table, real_table_noext):
     """5절 [r5]: 외부 L 값(l_bin_checks)은 환산하지 않고 환산 후 셀 값과의 최댓값에만 들어가며 환산 전 필드에는 안 들어간다.
-    [r6] 비교 기준 = 외부 값 없는 표(l_bin_checks=()) -- 기본 표는 .26 에 중점 값이 들어 있다."""
-    st = dict((m, (idx, s)) for m, idx, s in real_table.l_loo_bins)
+    [r6] 비교 기준 = 외부 값 없는 표(l_bin_checks=()) -- 기본 표는 앵커 2개 bin 모두에 중점 값이 들어 있어([2026-10-08])
+    missing_external bin 은 외부 값 없는 표에서 고른다."""
+    st = dict((m, (idx, s)) for m, idx, s in real_table_noext.l_loo_bins)
     model, (idx, s) = next((m, v) for m, v in st.items() if v[1] == "missing_external")
     ext = 0.5                                       # 셀 값보다 큰 외부 값(V) -- 환산되면 0.5/4 등으로 보일 것
     t2 = tol_v_table(new_memo(real_lut), "pmos", 1000, l_bin_checks=((model, ext, ext),))
@@ -442,8 +446,9 @@ def test_real_l_rows_cells_match_independent(real_table, real_ref_cells, real_pm
 @pytest.mark.lut_realdata
 def test_real_statuses_match_ngspice_bins(real_table, real_table_noext, real_lut, ngspice_bins, raw_mid):
     """앵커·bin 상태: 앵커 bin 을 showmod 로 묶어 앵커 수로 정한다(3개 이상 computed, 2개 missing_external, 1개 single_point).
-    [r6] 기본 표(중점 외부 값): 앵커 2개 bin 중 중점 파일의 L 이 두 앵커 사이에 있는 bin 만 external(= .26, 중점 0.165 µm),
-    나머지 2개 bin(.23·.22·.21)은 missing_external(계약 8절 결정 C). 외부 값 없는 표는 r5 와 같다."""
+    [r6] 기본 표(중점 외부 값): 앵커 2개 bin 중 중점 파일의 L 이 두 앵커 사이에 있는 bin 만 external.
+    [2026-10-08 중점 변경, CONTRACT 8절] 중점 0.165·0.85·1.75·3.25 µm -> .26·.23·.22·.21 모두 external, missing_external 없음.
+    외부 값 없는 표는 r5 와 같다(앵커 2개 bin 모두 missing_external)."""
     sl = real_lut.slice_map[("pmos", 1000)]
     Lg = [float(x) for x in sl.grids[0]]
     mids = [float(x) for x in raw_mid["L"]]
@@ -470,9 +475,11 @@ def test_real_statuses_match_ngspice_bins(real_table, real_table_noext, real_lut
                               or ("bin_edge" if j in (0, len(idx) - 1) else "in_bin_interior"))
         assert tuple(table.l_loo_bins) == tuple(exp_bins), use_mid
         assert tuple(table.l_loo) == tuple(exp_loo), use_mid
-    ext = [m for m, _, s in real_table.l_loo_bins if s == "external"]
-    assert len(ext) == 1 and ext[0].endswith(".26")
-    assert sorted(m.rsplit(".", 1)[1] for m, _, s in real_table.l_loo_bins if s == "missing_external") == ["21", "22", "23"]
+    ext = sorted(m.rsplit(".", 1)[1] for m, _, s in real_table.l_loo_bins if s == "external")
+    assert ext == ["21", "22", "23", "26"]                                   # (d) CONTRACT 8절
+    assert [m for m, _, s in real_table.l_loo_bins if s == "missing_external"] == []
+    assert sorted(m.rsplit(".", 1)[1] for m, _, s in real_table_noext.l_loo_bins
+                  if s == "missing_external") == ["21", "22", "23", "26"]
 
 
 @pytest.mark.lut_realdata

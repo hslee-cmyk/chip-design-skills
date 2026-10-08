@@ -1,8 +1,7 @@
 """일반화 고유값의 유한 근 공용 helper (사용처: `pencil_roots.py` 계 극점·영점, `probe_loop.py` 루프 이득 T 의 극점·영점).
 
 공개 함수: `finite_eigs(a, e)` -- pencil (a, −e) 의 유한 고유값(원점 판정 포함), 정렬 (|s|, 실부, 허부).
-`probe_pencil(system, pairs, weights)` -- 루프 이득 T 의 증강 pencil(a, e, ‖w‖²) (`probe_loop` 극점·영점, `_helpers_probe` 섞인 절단 T(0)).
-`probe_dc_value(system, pairs, weights)` -- 그 pencil 의 s = 0 값 T(0) = −H(0)/(H(0) + wᵀw), 정의 안 되면 None.
+`probe_pencil(system, pairs, weights)` -- 루프 이득 T 의 증강 pencil(a, e, ‖w‖²) (`probe_loop` 극점·영점과 `_helpers_probe` 섞인 절단 T(0) 가 공용).
 
 * 균형(Ward 방법 -- LAPACK ggbal 의 배율): QZ 전에 행·열을 2 의 거듭제곱 대각 배율 D_r·(a + s·e)·D_c 로 바꾼다(고유값 불변,
   반올림 없는 정확한 변환). 지수는 a·e 의 0 아닌 원소 전부의 Σ(log2|x_ij| + r_i + c_j)² 최소제곱 해를 반올림한 것(한 번의
@@ -14,8 +13,6 @@
   |α| ≤ 차원·eps·‖a‖_F 이면 그 고유값은 원점(s = 0, 정확히 0 으로 낸다)이다 -- 용량 전용 노드의 전하 모드가 반올림 잡음으로
   작은 |s| 가 되어 격자 꺾임점에 들어가지 않게 한다(분해능 상수 없음).
 """
-import math
-
 import numpy
 import scipy.linalg
 
@@ -109,21 +106,3 @@ def probe_pencil(system, pairs, weights):
     e[:full, full] = -bc
     a[full, :full] = c
     return a, e, float(w @ w)
-
-
-def probe_dc_value(system, pairs, weights):
-    """T(s → 0) = −H(0)/(H(0) + wᵀw), H(0) = c·a⁻¹·b_g (`probe_pencil` 의 s = 0 식) -- 극한이 없으면(a 특이: T 가 원점 극점을
-    가짐, H + wᵀw = 0) None. 절단 노드가 섞여(전도 + 용량 전용) 열 선택으로 Z 의 0차 동차식을 쓸 수 없는 ω = 0 에서 `_helpers_probe`
-    가 이 값을 쓴다. 구조 결함(`system.defects`)이 있으면 None."""
-    if system.defects:
-        return None
-    a, _e, ww = probe_pencil(system, pairs, weights)
-    full = a.shape[0] - 1
-    try:
-        lu, piv = scipy.linalg.lu_factor(a[:full, :full])
-    except (ValueError, scipy.linalg.LinAlgError):
-        return None
-    if not numpy.isfinite(lu).all() or not numpy.diag(lu).all():
-        return None
-    h = float(a[full, :full] @ scipy.linalg.lu_solve((lu, piv), -a[:full, full]))
-    return None if not math.isfinite(h) or h + ww == 0 else complex(-h / (h + ww))
