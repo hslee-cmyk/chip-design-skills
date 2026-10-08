@@ -147,7 +147,9 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
 ### 1.5 `lift_s1(s1graph) -> GraphSnapshot`
 - `S1_WRITERS` 권한표의 `S1Graph` 가 아니면 `TypeError`, S1 writer 중 돌지 않은 것이 있으면 `ValueError`.
 - 결과 `writers == S2_WRITERS`. 모든 S1 필드 값이 원본과 같고 `block_version(w)` 가 원본과 같다(그래서 S1 블록을 이
-  스냅샷에 다시 부르면 reuse). 레코드 객체는 원본과 공유하지 않는다(core 계약상 원시 생성 금지 -- 12절 O7).
+  스냅샷에 다시 부르면 reuse). [2026-10-08, O7 닫음] 결과 = core `S1Graph.snapshot.extend_writers(S2_WRITERS)` -- **레코드
+  객체를 원본과 공유한다**(`is`), `fp`·필드 메타(writer·input_version·write_count)도 원본과 같다(r8 까지는 setter 로 다시 써서
+  공유하지 않았고 write_count 가 1 로 새로 시작했다).
 
 ## 2. S2 dc 필드 (권한표 `S2_WRITERS` = S1 권한표 전부 + 아래, 필드마다 writer 하나)
 
@@ -767,10 +769,10 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 - **O5 결정 대기 입력 DC(SP-2, 7회로)**: U2 기본안 (a)대로 W4(입력 공통모드 y). 노드 목표(CI-15)·의도 영역(CI-18)은 9회로 모두
   결정 대기 -> W3 0개, 선형 선언 0개.
 - **O6 (해결)** θ 전류 정의역 = `ThetaSchema.current_cone`(KCL 기저에서 유도한 선형 부등식), 밖이면 `check_theta` 가 거부.
-- **O7 core 권한표 확장 API (사용자 승인 대기)**: `lift_s1` 이 S1 필드를 setter 로 다시 써서 레코드 구조 공유가 없다.
+- **O7 (닫음, 2026-10-08 사용자 승인)** core `GraphSnapshot.extend_writers` 로 `lift_s1` 이 S1 레코드를 공유한다(1.5).
 - **O8 형제 lineage 재계산 (기록)**: FD 형제 평가끼리 같은 입력은 재계산된다(graph 가 곧 캐시라 다른 lineage 값을 볼 길이 없음).
-- **O9 성능 (사용자 승인 대기)**: 시간의 35~73% 가 core 투영 지문(`fp_of` 재직렬화). 투영 지문을 (key, `FieldValue.value_fp`) 로
-  만들면 블록 호출·봉인 4 모두 줄어든다 -- core 변경. `TolVTable.at` 중복 조회는 memo 밖.
+- **O9 (닫음, 2026-10-08 사용자 승인)** 투영 지문 = (key, `FieldValue.value_fp`) 합성(core CONTRACT 8절) -- 블록 호출·봉인 4 가
+  값을 다시 직렬화하지 않는다. 실측은 core CONTRACT 10절. `TolVTable.at` 중복 조회는 memo 밖(남은 항목).
 - **O10 (닫음, r6)** 1변수 노드 = 구간 bisection, 다변수 SCC = Gauss-Seidel(수축할 때) -> 못 하거나 strict 검증 실패 시 감쇠 Newton
   (5.4 [r6]). sf_pushpull 의 9노드 SCC 실측: Newton 이 정의역 안 시작점에서 돌고, 실패한 θ 는 ‖r‖∞ 가 0.22~0.30 V 에서 멈추는
   정체(잔차가 0 이 아닌 극소 -- 그 θ 에 정의역 안 해가 없다고 관찰). 그 θ 는 GS strict 검증 위반(주로 lut_curve_undefined)

@@ -6,6 +6,8 @@
   같은 basename 이 다른 패키지 test 에도 생기므로 test 디렉터리에 `__init__.py` 를 두거나 `--import-mode=importlib` 를 쓴다.
 - 근거: `_drafts/engine/NEW_ENGINE_DESIGN_REQUIREMENTS.md` 끝 '확정 사항'(최우선)·1절·3.1·4절, 계획 N3.3·N3.4·N3.5·N3.14·NFR-2·NFR-4·WP-03·WP-10.
 - 아래 "불변식"은 test 가 확인할 성질, "실패"는 반드시 그 예외로 거부해야 하는 입력이다.
+- **개정 2026-10-08(사용자 승인 "1은 승인." -- sizing O7·O9)**: (1) 투영 지문 = 값 지문 합성(8절, 6.2) -- 블록 호출마다 값을 다시
+  직렬화하지 않는다. (2) `GraphSnapshot.column_fields`·`extend_writers`(5.6). 실측은 10절.
 
 ---
 
@@ -168,7 +170,14 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 - 읽기: `kinds()`(레코드 있는 kind 정렬), `keys(kind)`(정렬, 없으면 ()), `record(kind, key)`(없으면 None),
   `field(kind, key, field)`(FieldValue|None), `value(kind, key, field)`(없으면 `KeyError`),
   `column(kind, field)` -> 그 필드가 있는 레코드의 `((key, value), ...)` key 정렬, `block_version(writer)`(없으면 None).
+  [2026-10-08] `column_fields(kind, field)` -> `column` 과 같은 key·순서의 `((key, FieldValue), ...)`(값 지문·출처 메타를 함께 읽을 때).
   `tables`·`block_versions` 는 읽기 전용 매핑(대입 -> `TypeError`). 제자리 수정 API 없음.
+- [2026-10-08, 사용자 승인 -- sizing O7] **`extend_writers(writers)` -- 권한표 확장**: 같은 레코드·block_versions 를 더 넓은 권한표
+  `writers` 아래로 옮긴 새 스냅샷. `writers` 는 이 스냅샷 권한표의 모든 ((kind, field), writer) 를 같은 writer 로 포함해야 한다.
+  - 결과: `writers` 가 새 표, 모든 레코드가 **같은 객체**(`is`), `fp`·모든 읽기 결과·필드 메타(writer·input_version·write_count)·
+    `block_version` 이 원본과 같다. 원본 불변. 표가 원본과 `==` 면 `self` 그대로.
+  - 실패: WriterTable 아님 -> `TypeError`; 원본 표의 항목이 빠졌거나 다른 writer -> `WriterPermissionError`(원본 불변).
+  - 쓰기 API 가 아니다(값·메타를 바꾸지 않는다) -- 값을 바꾸는 길은 여전히 `write` 하나다.
 - **`write(writer, input_version, columns)` -- 유일한 setter**:
   - `columns`: `{(kind, field): {key: value}}`. 열마다 `writers.require(writer, kind, field)`.
   - 열 교체 의미: 결과 스냅샷에서 그 (kind, field) 를 가진 레코드 key 집합 = 넘긴 key 집합. 넘기지 않은 key 의
@@ -206,7 +215,7 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 - 블록 함수는 `Projection` 하나를 위치 인자로 받는다:
   - `projection.column(kind, field)` = 선언한 열의 `snapshot.column(kind, field)` 와 같은 값. 선언 밖 열 -> `KeyError`.
   - `projection.value(kind, key, field)`, `projection.extras` = extras tuple.
-- 입력 버전 `v = fp_of((name, code_hash, projection.fp))`. `projection.fp` 는 (선언 열의 값, extras) 만의 지문.
+- 입력 버전 `v = fp_of((name, code_hash, projection.fp))`. `projection.fp` 는 (선언 열의 값 지문, extras) 만의 지문(8절).
 - **재사용**: `snapshot.block_version(name) == v` 이면 블록 함수를 부르지 않고 `snapshot` 을 그대로(`is`) 돌려준다.
   -> 같은 스냅샷에 두 번 부르면 두 번째는 함수 호출 0. 선언하지 않은 필드·다른 블록 필드만 바뀐 스냅샷에서도 재사용.
   선언한 열의 값이나 extras 중 하나라도 바뀌면 재계산(IC10: 읽는 상태를 놓친 키 없음). 값이 같은 새 객체(다른
@@ -242,7 +251,13 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 
 ## 8. `Projection` (블록 함수 인자; 직접 생성은 test 에서만)
 - `Projection.from_snapshot(snapshot, reads, extras=())`: 선언 열마다 `snapshot.column` 을 담는다(빈 열도 포함 -> `column` 이 `()`).
-- `fp = fp_of((columns, extras))`: 같은 열 값·extras 면 같은 fp, reads 선언 순서와 무관.
+- [2026-10-08 개정, 사용자 승인 '값 지문 합성'] `fp = fp_of((value_fps, extras))`, `value_fps` = 정렬된
+  `(((kind, field), 열 지문), ...)`, 열 지문 = sha256(자기 구분 인코딩된 `((key, fp_of(value)), ...)`) -- 값 자리에 값의 지문. `from_snapshot` 은 그 자리에 스냅샷 필드의
+  `FieldValue.value_fp`(= fp_of(value), 5.4)를 그대로 쓴다(값 재직렬화 없음). 직접 생성 `Projection(columns, extras)` 도 같은 식이라
+  같은 열 값·extras 면 두 경로의 fp 가 같다.
+- 불변식(옛 `fp_of((columns, extras))` 와 같은 동치 관계): 같은 열 값·extras 면 같은 fp, reads 선언 순서와 무관; 선언 열의 어느
+  값·key 하나 또는 extras 가 다르면 다른 fp(값 지문이 다르므로 -- sha256 충돌 제외). fp 문자열 자체는 옛 식과 다르다(어떤 소비자도
+  그 문자열을 다른 식으로 다시 만들지 않는다 -- 봉인 4 는 `Projection.from_snapshot(...).fp` 를 다시 부른다).
 - 실패: extras 가변 -> `TypeError`; 선언 밖 열 -> `KeyError`; 열에 없는 key 의 `value` -> `KeyError`.
 
 ---
@@ -397,3 +412,12 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
 접합 용량 소비자(DEC-91): `metrics.JunctionParams.from_pdk_decl(decl, kind)`·`metrics.DiffusionGeometry.from_lut_rule(lut_rule_decl, finger_w, m)`
 -> `metrics.junction_caps(...)` (metrics CONTRACT 8.5 -- ss_linearize `ss_dev` 가 부른다). 두 선언을 같은 memo 로 읽으면 원본 5개
 (memo 상한 5 이상이면 두 번째 호출부터 파싱 0).
+
+---
+
+## 10. 성능 실측 (2026-10-08, 개정 근거 -- sizing O9)
+- 조건: `tests/search/test_kernel.py` 15개 test(S0 컨텍스트 생성 + `evaluate` 반복) 를 cProfile 로 실행, `Projection.from_snapshot` 971 호출.
+  - 옛 식 `fp_of((columns, extras))`: `from_snapshot` 누적 1.57 s(호출당 1.6 ms), 그 중 지문 1.40 s.
+  - 값 지문 합성(열 지문 = 값 지문들의 sha256 한 번): `from_snapshot` 누적 0.80 s(호출당 0.82 ms), 그 중 지문 0.51 s. 약 49 % 감소.
+  - 남은 지문 시간의 대부분은 호출자가 넘기는 `extras` 의 직렬화(`fp_of`)이고 열 지문(`_column_fp`)은 0.07 s.
+- 같은 실행의 `fp_of` 재귀 호출 수 285,299 -> (값 지문 합성) 감소. 실행 전체 시간은 컴퓨터 부하(파일 열기 지연)로 흔들려 비교에 쓰지 않는다.

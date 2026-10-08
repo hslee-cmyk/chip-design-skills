@@ -384,3 +384,60 @@ def test_projection_does_not_expose_snapshot_write():
     p = seen[0]
     assert not isinstance(p, GraphSnapshot)
     assert not hasattr(p, "write")
+
+
+# =====================================================================================================================
+# 2026-10-08 개정(사용자 승인 1, sizing O9) 회귀 -- 투영 지문을 값 지문 합성으로 바꿔도 §6.2 재사용 규칙은 그대로.
+# oracle 종류: (a) 구성 -- 같은 스냅샷 두 번 호출이면 입력이 구성상 같으므로 두 번째는 함수 호출 0·`is`(§6.2 '재사용').
+# 호출 수는 블록 함수 안 log 길이(피검 함수 밖 계수)와 stats 둘로 본다.
+# =====================================================================================================================
+
+MULTI_READS = (("node", "v"), ("node", "u"), ("device", "gm"))   # u 는 처음에 비어 있는 선언 열
+
+
+def _make_multi_block(log):
+    @compute_block("sizer", reads=MULTI_READS, writes=WRITES)
+    def block(projection):
+        v = projection.column("node", "v")
+        u = projection.column("node", "u")
+        log.append((v, u, projection.extras))
+        return {("device", "w"): {"m_" + k: val + len(u) for k, val in v}}
+
+    return block
+
+
+def test_reuse_regression_multi_reads_extras_and_empty_column():
+    log = []
+    block = _make_multi_block(log)
+    extras = (1, "x", (2.0, -0.0))
+    s0 = _base()                                       # node u 없음(빈 선언 열)
+    s1 = block(s0, *extras)
+    assert len(log) == 1
+    assert block(s1, *extras) is s1                    # 같은 스냅샷 두 번째 -> 함수 호출 0, 그대로
+    assert len(log) == 1
+    st = block.stats()
+    assert (st.calls, st.reuses, st.computes, st.recomputes_same_input) == (2, 1, 1, 0)
+    # 빈 선언 열에 값이 생기면 입력이 바뀐 것이다 -> 재계산(빈 열도 투영의 일부, §8)
+    s2 = s1.write("other", "o1", {("node", "u"): {"z": 0.0}})
+    s3 = block(s2, *extras)
+    assert s3 is not s2
+    assert len(log) == 2
+    assert block(s3, *extras) is s3
+    assert len(log) == 2
+    # extras 의 -0.0 -> 0.0 은 다른 입력(§1 float.hex) -> 재계산
+    block(s3, 1, "x", (2.0, 0.0))
+    assert len(log) == 3
+    _assert_invariant(block.stats())
+
+
+def test_reuse_regression_only_undeclared_field_changes():
+    log = []
+    block = _make_block(log)                           # reads = node v 만
+    s1 = block(_base(u={"a": 1.0}), "e")
+    s2 = s1.write("other", "o2", {("node", "u"): {"a": 2.0, "b": 3.0}})   # 선언 밖 열만 바뀜
+    s3 = s2.write("other", "o3", {("node", "u"): {}})                     # 선언 밖 열을 지움
+    for s in (s2, s3):
+        assert block(s, "e") is s
+    assert len(log) == 1
+    st = block.stats()
+    assert (st.calls, st.reuses, st.computes, st.recomputes_same_input) == (3, 2, 1, 0)
