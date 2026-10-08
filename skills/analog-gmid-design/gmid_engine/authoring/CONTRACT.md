@@ -265,7 +265,10 @@ SYNTHESIS T15 (1)은 '비차단 `authoring_anomalies`(dangling 넷, 대칭 미�
   (기존 test 가 그 집합을 정확히 고정한다).
 - 라이브러리 선언(재실측 = 제안 목록과 일치): common_gate {VNBias1, VNBias2, VPBias1}, folded {bias3}, ngcc {VBN, VBP},
   nmcnr {VB1..VB5}, pushpull {VNB1, VPB1}, two_stage {bias}, two_stage_sf {bias}. current_reuse·sf_pushpull 은 내부 바이어스라 선언 없음(통과).
-- 소비처: SPICE 오라클 C15 (`tools/spice_oracle/oracle_netlist.py::topology_identity`)가 입력 `bias_voltages` 넷 집합 == topology `bias_inputs` 를 대조한다.
+- `bias_inputs: null` 이나 list 가 아닌 값은 `bias_inputs_type` 하나만 낸다(그 경우 선언 집합이 없어 `gate_only_undeclared` 는 같이 나오지 않는다).
+  `bias_input_entry`·`bias_input_duplicate` 는 `gate_only_undeclared`·`bias_input_not_gate_only` 와 한 번에 같이 나올 수 있다.
+  hit 의 `where` = `bias_inputs`(집합 위반) 또는 `bias_inputs[i]`(형식·중복). 공개 이름: `bias_input_declaration`(`gmid_engine.authoring.__all__`).
+- 소비처: SPICE 오라클 C15, 키가 없으면 빈 집합과 엄격 대조 (`tools/spice_oracle/oracle_netlist.py::topology_identity`)가 입력 `bias_voltages` 넷 집합 == topology `bias_inputs` 를 대조한다.
 
 ## 10. [신규] `source_manifest` -- 출처 개수 대조 (2026-10-08, 브랜치 ng-q6-bias, 정정 대기열 Q7)
 
@@ -274,5 +277,8 @@ SYNTHESIS T15 (1)은 '비차단 `authoring_anomalies`(dangling 넷, 대칭 미�
 - 대조: device_count == netlist MOS 수, passive_count == `passive_elements` 수(이상원 제외). 위반 gate `source_manifest`:
   `source_manifest_mismatch`(선언·실제 개수 둘 다 메시지에), `source_manifest_type`·`_key`·`_figure`·`_count`(형식).
   소자·수동 선언이 거부된 문서에서는 이 검사를 건너뛴다(`not_evaluated` 이름은 늘리지 않는다).
+- `source_manifest` 안의 `_` 접두 아닌 알 수 없는 키, 빠진 키, `null`(객체 아님 -> `source_manifest_type`)은 거부한다(닫힌 어휘).
+  `source_manifest_mismatch` 의 `where` = `source_manifest.device_count` 또는 `source_manifest.passive_count`(메시지에 선언·실제 개수).
+  공개 이름: `check_source_manifest`(`gmid_engine.authoring.__all__`).
 - 9회로 값(사용자 확인): common_gate 3/0, current_reuse 51/12, folded 13/1, ngcc 16/3, nmcnr 15/5, pushpull 6/1, sf_pushpull 22/5,
   two_stage 7/3, two_stage_sf 9/2 -- 9회로 전부 로드 통과(실제 개수와 일치).
