@@ -10,6 +10,7 @@
   {"name": "CL", "kind": "capacitor", "terminals": ["nout", "gnd"]},
   {"name": "RP", "kind": "resistor", "terminals": ["pout", "gnd"]}
  ],
+ "bias_inputs": ["pb"],
  "ideal_sources": [
   {"name": "I1", "kind": "current_source", "terminals": ["vdd", "nout"]}
  ]
