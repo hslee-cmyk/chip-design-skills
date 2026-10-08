@@ -99,8 +99,18 @@ def _local_inputs(s1, s1v, spec, kctx, cur_rep, current_box):
     resistor_box = {name: (lo, hi) for name, (k, lo, hi) in boxes.items() if k == KIND_RESISTOR}
     slice_ = next(iter(sorted(kctx.lut.memo.lut.slice_map.items())))[1]
     node_colour, device_colour = dict(kctx.base.column("node", "dc_colour")), dict(kctx.base.column("device", "dc_colour"))
+    attach = {}
+    for name, pin_map in pins.items():
+        if cls.get(name) == ELEMENT_MOS:
+            ends = (pin_map["d"], pin_map["s"])
+        elif cls.get(name) == ELEMENT_PASSIVE and kind[name] == KIND_RESISTOR:
+            ends = (pin_map["t0"], pin_map["t1"])
+        else:
+            continue
+        for net in ends:
+            attach[net] = attach.get(net, 0) + 1
     return LocalInputs(kind, pins, cls, bulk, rails, orbit_key, l_label, rows, tuple(basis.free), dict(basis.fixed), dict(cur_rep),
-                       dict(current_box), values, resistor_box, dict(kctx.lut.w_keys), kctx.lut.memo, tuple(slice_.grids), node_colour, device_colour)
+                       dict(current_box), values, resistor_box, dict(kctx.lut.w_keys), kctx.lut.memo, tuple(slice_.grids), node_colour, device_colour, attach)
 
 
 def _gain_target(spec):

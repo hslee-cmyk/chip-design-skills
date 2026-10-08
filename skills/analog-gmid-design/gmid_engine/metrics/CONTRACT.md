@@ -1107,9 +1107,9 @@ toy 확인(스크래치): 두 극성 입력이 같은 gate 인 4소자 회로에
 | 회로 | 게인 목표 | 블록(출력 키): 상태, Π, found | Σ 판정 | A_lb / 예산 (m²) | 헤드룸 창 폭 상한 | DOF |
 |---|---|---|---|---|---|---|
 | common_gate_amplifier | -- | (vout): 미상, 1.9e10, 53.4 | no_target | 0 / 5e-9 | in 1.69 V, out 1.69 V | free 9, 과제약 0 |
-| current_reuse_telescopic_ota | 54 dB | (Vom): 미상, 1.9e9, 62.1 · (Vom1,Vop1): 미상, 3.3e72, 83.3 · (Vop): 미상, 1.9e9, 62.1 | undetermined | 1.1e-9 / 4e-8 | in 1.72 V, out 1.72 V (swing ≥ 2.4 차동 p-p, 입력 DC 대기) | free 92 |
-| folded_cascode | -- | (out): 미상, 6.2e52, 131.5 | no_target | 0 / 1e-8 | in 1.76 V, out 1.65 V | free 25 |
-| ngcc_3stage_ff | -- | (V1): 1.7e22, 68.4 · (Vout): 9.2e10, 51.8 · (V2): 4.0e15, 71.5 · FF ND->Vout: 9.9e26, 74.1 · FF V1->Vout: 1.9e17, 50.3 (모두 미상) | no_target | 1.0e-10 / 2.5e-8 | in 1.76 V (icmr ≥ 0.6), out 1.72 V | free 29 |
+| current_reuse_telescopic_ota | 54 dB | (Vom): 미상, 4.5e12, - · (Vom1,Vop1): 미상, 3.3e72, 77.7 · (Vop): 미상, 4.5e12, - | undetermined | 1.1e-9 / 4e-8 | in 1.72 V, out 1.72 V (swing ≥ 2.4 차동 p-p, 입력 DC 대기) | free 92 |
+| folded_cascode | -- | (out): 미상, 6.2e52, 119.3 | no_target | 0 / 1e-8 | in 1.76 V, out 1.65 V | free 25 |
+| ngcc_3stage_ff | -- | (V1): 1.7e22, 68.4 · (Vout): 9.2e10, 51.8 · (V2): 4.0e15, 71.5 · FF ND->Vout: 9.9e26, 68.0 · FF V1->Vout: 1.9e17, 50.3 (모두 미상) | no_target | 1.0e-10 / 2.5e-8 | in 1.76 V (icmr ≥ 0.6), out 1.72 V | free 29 |
 | nmcnr_amplifier | -- | (NodeM2): 2.9e44, 91.0 · (NodeS2): 4.0e15, 73.0 · (Vout): 4.5e12, - (모두 미상) | no_target | 1.0e-10 / 2.5e-8 | in 1.76 V (icmr ≥ 0.5), out 1.72 V (swing ≥ 0.5) | free 35 |
 | pushpull_follower_buffer | -- | (vout): 미상, 8.4e25, −1.57 | no_target | 0 / 5e-9 | in 1.72 V, out 1.72 V, 버퍼 1.72 V | free 14 |
 | sf_pushpull_output_opamp | 65 dB | (Y): 3.4e80, - · (vout): 8.4e25, −1.57 (모두 미상) | undetermined | 5.0e-11 / 2e-8 | in 1.76 V (icm_margin ≥ 0), out 1.72 V, 버퍼(Y) 1.65 V | free 41 |
