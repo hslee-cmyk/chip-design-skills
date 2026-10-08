@@ -87,6 +87,16 @@ def n_pp_by_scan(reltol):
     return n
 
 
+def band_f_crit(f, L):
+    """계약 1(a) d56ba66: f_crit = 불안정 관련 대역 안 |1+L| 최소 표본의 주파수. 대역 = 스윕 첫 표본부터 가장 높은 |L|=1
+    교차(f_hi)를 지난 첫 표본까지(교차는 |L| 이 표본 사이에서 1 을 지나는 곳 -- 그 위쪽 표본이 대역 끝)."""
+    a = np.abs(np.asarray(L))
+    above = a >= 1
+    last = max(i for i in range(len(a) - 1) if above[i] != above[i + 1]) + 1     # 가장 높은 교차 위쪽 표본
+    band = np.abs(1 + np.asarray(L[:last + 1]))
+    return float(f[int(np.argmin(band))])
+
+
 def plan(f, L, vop_outputs, reltol=RELTOL):
     """README 절차 4(조정 상수 없음, 4ab6d85 개정) + 조기 종결 계약 1(a)(사용자 결정 B 2026-10-08):
     펄스 시간 척도는 f_lo(가장 낮은 |L|=1 교차 = PM 교차) 하나: td = tr = tf = pw = 1/(2π f_lo), t_end = td + tr + pw + tf,
@@ -96,7 +106,7 @@ def plan(f, L, vop_outputs, reltol=RELTOL):
     f_lo, f_hi = min(cr), max(cr)
     kick = KB_OVER_Q * TEMP_K
     td = 1 / (2 * math.pi * f_lo)
-    f_crit = float(f[int(np.argmin(np.abs(1 + np.asarray(L))))])
+    f_crit = band_f_crit(f, L)
     n_pp = n_pp_by_scan(reltol)
     tmax = min(td, 1 / (f_crit * n_pp))
     pw = td
@@ -206,14 +216,22 @@ def mantissa_digits(path: Path) -> int:
     return d
 
 
-def early_window(m, fl, reltol):
-    """계약 1(b) 조기 unstable 기준(계약 문안의 독립 구현): g(j) = M_j(1 − reltol) > M_{j−1}(1 + reltol) + floor'.
-    j >= 3 인 첫 창에서 g(j−1) 그리고 g(j) 그리고 M_j >= M_1 이면 그 j(1 부터), 없으면 None."""
-    def grew(j):
-        return m[j - 1] * (1 - reltol) > m[j - 2] * (1 + reltol) + fl
+def g_up(a, b, fl, reltol):
+    """계약 1(b) d56ba66: b 가 a 보다 측정 분해능을 넘게 큼 -- b(1 − reltol) > a(1 + reltol) + floor'."""
+    return b * (1 - reltol) > a * (1 + reltol) + fl
 
+
+def g_down(a, b, fl, reltol):
+    """계약 1(b) d56ba66: b 가 a 보다 측정 분해능을 넘게 작음 -- a(1 − reltol) > b(1 + reltol) + floor'."""
+    return a * (1 - reltol) > b * (1 + reltol) + fl
+
+
+def early_window(m, fl, reltol):
+    """계약 1(b) 조기 unstable 기준(계약 문안의 독립 구현): j >= 3 인 첫 창에서 g↑(M_{j−2}, M_{j−1}) 그리고
+    g↑(M_{j−1}, M_j) 그리고 g↑(M_1, M_j) 이면 그 j(1 부터), 없으면 None."""
     for j in range(3, len(m) + 1):
-        if grew(j - 1) and grew(j) and m[j - 1] >= m[0]:
+        if g_up(m[j - 3], m[j - 2], fl, reltol) and g_up(m[j - 2], m[j - 1], fl, reltol) and g_up(m[0], m[j - 1], fl,
+                                                                                                    reltol):
             return j
     return None
 
@@ -221,8 +239,9 @@ def early_window(m, fl, reltol):
 def decide_run(stab_txt: Path, p):
     """README 절차 5 의 한 실행 판정(3fdabd7 개정) + 조기 종결 계약 1(b): e = H - H(0), 창 j 의 M_j = max|e|(끝까지 닿은
     창만), floor' = floor + u·max|H|. 끝난 창들에서 조기 기준을 충족하는 첫 창 j 가 있으면 unstable(early = j, M = M_1..M_j).
-    아니고 마지막 시각이 tstop·(1 − 2u) 보다 이르면 failed. 그 밖 M_K <= floor' -> stable; M_K >= M_1 -> unstable;
-    M_1 > M_2 > ... > M_K -> decaying; 그 밖 -> undetermined."""
+    아니고 마지막 시각이 tstop·(1 − 2u) 보다 이르면 failed. 그 밖(분해능 인식형, d56ba66) M_K <= floor' -> stable;
+    g↑(M_1, M_K) -> unstable; 모든 연속 창 g↓(M_{j−1}, M_j) -> decaying; 그 밖(분해능 안의 같음 포함) -> undetermined.
+    연장 실행에도 같은 규칙."""
     a = np.loadtxt(stab_txt)
     t, h = a[:, 0], a[:, 1]
     u = 0.5 * 10.0 ** (1 - mantissa_digits(stab_txt))
@@ -235,16 +254,17 @@ def decide_run(stab_txt: Path, p):
         sel = (t >= lo) & (t <= hi)
         m.append(float(e[sel].max()) if sel.any() else float("nan"))
     fl = p["floor"] + u * float(np.abs(h).max())
-    early = early_window(m, fl, p.get("reltol", RELTOL))
+    r = p.get("reltol", RELTOL)
+    early = early_window(m, fl, r)
     if early is not None:
         return {"status": "unstable", "M": m[:early], "floor2": fl, "early": early, "t_last": float(t[-1])}
     if t[-1] < p["tstop"] * (1 - 2 * u):
         st = "failed"
     elif m[-1] <= fl:
         st = "stable"
-    elif m[-1] >= m[0]:
+    elif g_up(m[0], m[-1], fl, r):
         st = "unstable"
-    elif all(m[j] > m[j + 1] for j in range(len(m) - 1)):
+    elif all(g_down(m[j], m[j + 1], fl, r) for j in range(len(m) - 1)):
         st = "decaying"
     else:
         st = "undetermined"
@@ -878,9 +898,10 @@ def test_sustained_oscillation_undetermined_incomplete(tmp_path, ref_root):
     단조 감소 아님) -> 첫 실행 `undetermined`, 연장 없음 -> 최종 '모름', N = 0 -> `stability_unverified`,
     pm 제약 N/A -> INCOMPLETE(반환 0). 독립 폐루프 .tran 은 지속 진동(test_rhp_fixture_...).
     조기 종결 계약 1(b)(사용자 결정 B): 일정 진폭 지속 진동은 조기 기준(분해능 초과 연속 증가)을 충족하지 않으므로 판정
-    불변, early_stop 없음, K 창 끝까지. (scratch 확인 2026-10-08: 계약 tmax(f_crit 9.44 MHz, n_pp 223 -> 4.75e-10 s)로
-    같은 .stab.cir 를 돌리면 M = [1.094850, 1.094848, 1.094847, 1.094854, 1.094852, 1.094845] -- 옛 표본 간격의 들쭉날쭉한
-    M 은 표본 오차였다; M_K < M_1 차이는 5e-6 상대뿐이라 판정이 이 차이에 걸려 있다.)"""
+    불변, early_stop 없음, K 창 끝까지. 창 판정은 분해능 인식형(d56ba66): g↑(M_1, M_K) 아님, 모든 연속 창 g↓ 아님 ->
+    undetermined. (scratch 2026-10-08, 같은 .stab.cir 의 tmax 만 바꿔 단독 실행: 대역 한정 f_crit 42.2 kHz -> tmax 1.06e-7 s,
+    83 s, M = [1.311, 1.159, 1.272, 1.198, 1.120, 1.099]; 대역 없는 f_crit 9.44 MHz -> tmax 4.75e-10 s, 107 s,
+    M = [1.094850, 1.094848, 1.094847, 1.094854, 1.094852, 1.094845] -- 두 경우 모두 undetermined.)"""
     rb = RB["rb1e6"]
     ref = rhp_ref(ref_root, rb)
     inp = rhp_input(make_lut(tmp_path / "lut.npz"), rb, constraints=[pm_con(">=", 60.0)])
@@ -891,7 +912,9 @@ def test_sustained_oscillation_undetermined_incomplete(tmp_path, ref_root):
     pl = plan(f, L, [ref["nodes"]["n2"]])
     dec = decide(o / f"{stem}.stab.txt", pl)
     m = dec["M"]
-    assert m[-1] < m[0] and not all(m[j] > m[j + 1] for j in range(len(m) - 1)), m     # 다시 커짐(전제)
+    # 전제(분해능 인식형): M_K 가 M_1 보다 분해능 넘게 크지 않고, 모든 창에서 분해능 넘게 줄지도 않음
+    assert not g_up(m[0], m[-1], dec["floor2"], RELTOL), (m, dec["floor2"])
+    assert not all(g_down(m[j], m[j + 1], dec["floor2"], RELTOL) for j in range(len(m) - 1)), m
     assert dec["first"] == dec["status"] == "undetermined", dec
     tr = _sim(o, inp)["ac"]["stability"]["transient"]
     assert tr["first_status"] == "undetermined" == tr["status"], tr
@@ -1055,6 +1078,10 @@ def test_stable_cs_beta1_value_unchanged(tmp_path, ind_cs):
     f, L, A = ac_loop_from_files(tmp_path / "o", stem_of(inp, "free"), beta_loop=False)
     assert np.sign(A[0].real) == -1.0 and nyquist(L)["N"] == 0
     pl = plan(f, L, [ind_cs["V"]["nout"]])
+    # 계약 1(a) d56ba66 기대 f_crit(독립 .ac, 대역 = 첫 표본 ~ 단일 교차 2.23e7 Hz 위 첫 표본): 그 위쪽 표본 10^7.35 Hz
+    # (단일 극 루프는 |1+L| 이 주파수에 따라 줄어 대역 끝에서 최소; 대역 없이 고르면 스윕 끝 1e10 Hz 였다)
+    ind_L = np.sign(ind_cs["H"][0].real) * ind_cs["H"]
+    assert band_f_crit(ind_cs["f"], ind_L) == pytest.approx(10 ** 7.35, rel=1e-6)
     dec = decide(tmp_path / "o" / f"{stem_of(inp, 'free')}.stab.txt", pl)
     assert dec["status"] == "stable", dec
     ac = _sim(tmp_path / "o", inp)["ac"]
@@ -1181,6 +1208,9 @@ def test_extension_decaying_to_stable(lowpm_run, ref_root):
             "tstop"} <= set(ex), set(ex)
     assert ex["extension_windows"] == dec["ext"]["n"] > 0, (ex["extension_windows"], dec["ext"]["n"])
     assert ex["tstop"] == pytest.approx(dec["ext"]["plan"]["tstop"], rel=1e-9)
+    # 계약 1(c) d56ba66: 연장 실행 상한 = 창당 상한 × (K + n), 첫 실행 상한(transient.wall_cap_s)은 plan 것 그대로
+    assert ex["wall_cap_s"] == pytest.approx(wall_s_per_window() * (pl["K"] + ex["extension_windows"]), rel=1e-9)
+    assert tr["wall_cap_s"] == pytest.approx(tr["plan"]["wall_cap_s"], rel=1e-12)
     assert ex["status"] == dec["ext"]["status"] and ex["ngspice_rc"] == 0, ex
     assert len(ex["M"]) == pl["K"] + ex["extension_windows"]
     assert ex["M"] == pytest.approx(dec["ext"]["M"], rel=1e-2)
@@ -1233,6 +1263,9 @@ EARLY_CASES = [
     pytest.param([5.0, 1.0, 1.2, 1.5], 1e-3, 1e-3, False, id="below_first"),
     # 같은 열에 창 5 추가: g(4) 1.4985 > 1.2022, g(5) 5.994 > 1.5025, M_5 = 6 >= 5 -> True(j = 5)
     pytest.param([5.0, 1.0, 1.2, 1.5, 6.0], 1e-3, 1e-3, True, id="above_first_j5"),
+    # g↑(M_1, M_j) 는 분해능 인식형(d56ba66): j = 4 에서 g↑(0.5, 0.6) 0.5994 > 0.5015, g↑(0.6, 1.0005) 0.9995 > 0.6016 참이지만
+    # M_4 = 1.0005 는 M_1 = 1 보다 분해능 안(0.9995 < 1·1.001 + 1e-3 = 1.002) -> False (옛 'M_j >= M_1' 이면 True)
+    pytest.param([1.0, 0.5, 0.6, 1.0005], 1e-3, 1e-3, False, id="equal_first_within_resolution"),
     # reltol 경계(floor' 0): 1.0021*0.999 = 1.0010979 > 1.001, 1.0043*0.999 = 1.0032957 > 1.0021*1.001 = 1.0031021 -> True
     pytest.param([1.0, 1.0021, 1.0043], 0.0, 1e-3, True, id="just_above_reltol"),
     # reltol 경계 아래: 1.0019*0.999 = 1.0008981 < 1.001 -> g(2) 거짓, j = 3 뒤 창 없음 -> False
@@ -1263,6 +1296,11 @@ def test_config_declares_wall_cap():
     w = stc["wall_s_per_window"]
     assert isinstance(w, (int, float)) and not isinstance(w, bool) and w > 0, w
     assert isinstance(stc["justification"], str) and stc["justification"].strip(), stc
+    # d56ba66: wall_s_per_window = safety_factor × 창당 비용 최댓값, safety_factor = 반복 실행 max/median(1 미만이면 1),
+    # 측정치는 config 의 measured_* 키에 같이 남긴다
+    sf = stc["safety_factor"]
+    assert isinstance(sf, (int, float)) and not isinstance(sf, bool) and sf >= 1, sf
+    assert any(k.startswith("measured_") for k in stc), sorted(stc)
 
 
 def test_plan_default_reltol(tmp_path, ind_cs):
@@ -1423,6 +1461,9 @@ def test_multi_crossing_plan_uses_f_lo(tmp_path, ref_root):
     cn1 = 20e-12
     ref = notch_ref(ref_root, cn1)
     assert len(ref["cross"]) == 3 and ref["cross"][-1] / ref["cross"][0] > 100, ref["cross"]     # 전제(독립 .ac)
+    # 계약 1(a) d56ba66 기대 f_crit(독립 .ac, 대역 = 첫 표본 ~ f_hi 1.09 MHz 위 첫 표본): |1+L| 최소 = 노치 중심 격자점
+    # 1e4 Hz(40/decade 격자, 노치 f0 = 1/(2π RC) = 9.95 kHz 에 가장 가까운 표본). 대역 없이 고르면 스윕 끝 1e10 Hz 였다.
+    assert band_f_crit(ref["f"], ref["L"]) == pytest.approx(1e4, rel=1e-6)
     assert ref["nyq"]["N"] == 0
     inp = notch_input(make_lut(tmp_path / "lut.npz"), cn1, constraints=[pm_con(">=", 10.0)])
     p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
