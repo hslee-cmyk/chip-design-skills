@@ -391,7 +391,9 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
      q^(K_max−k)·max(1, q/(1−q))·Δ > tol -- 둘 다 'Gauss-Seidel 이 K_max 안에 노드전압 오차 상계 tol 에 닿지 못한다'는 반복 자체의 데이터), 또는
   2. 수렴 판정 뒤 strict 검증 바퀴가 `NonconvergentError`(strict_recheck_residual)나 `SealViolationError`(반복 중 투영으로 멈춘 노드의
      writer 식이 수렴점에서 정의역 밖)를 내면,
-  그 실패를 내지 않고 감쇠 Newton 으로 바꾼다. 시작점 = 다음 후보 중 정의역 안(아래 `newton_system` 이 None 아님)인 첫 것: (a) 시작값
+  그 실패를 내지 않고 감쇠 Newton 으로 바꾼다. [r9 명시] 경우 2 는 **Gauss-Seidel 이 수렴한 뒤**(`solved` 있음)의 `SealViolationError` 만이다.
+  Gauss-Seidel 이 수렴하기 전에 난 `SealViolationError`(반복 중 `tol_v_undefined`, strict=False 가 일시 이탈로 보지 않는 LUT 실패)는 Newton 으로
+  넘기지 않고 그대로 낸다(수렴점도 Δ 열도 없다; r8 까지는 이때 `deltas` 가 대입되기 전이라 `UnboundLocalError` 로 평가가 죽었다). 시작점 = 다음 후보 중 정의역 안(아래 `newton_system` 이 None 아님)인 첫 것: (a) 시작값
   2단계 값, (b) 경우 2 면 Gauss-Seidel 수렴값, (c) 시작값 1단계(기둥 위치 비례) 값 -- 모두 밖이면 (a)(그러면 `newton_start_outside_domain`).
   Newton 이 수렴하면 같은 strict 검증 바퀴를 다시 돌고 그 실패는 그대로 낸다. Newton 실패(5.5b 사유)는 경우 1 과 경우 2 의
   `NonconvergentError` 면 그대로 낸다(후보 실패 `NonconvergentError`). **경우 2 의 `SealViolationError` 에서 Newton 도 실패하면 GS
