@@ -23,8 +23,9 @@ from gmid_engine.graph import ELEMENT_PASSIVE
 from gmid_engine.metrics import JunctionSource, metric_registry
 
 from .archive import S3Archive
+from .area_decl import passive_area_decl
 from .search_domain import search_domain
-from .search_values import AXES, EvalKey
+from .search_values import AXES, AXIS_AREA, EvalKey
 
 _CODE_PACKAGES = ("core", "lut", "graph", "sizing", "metrics", "search")
 
@@ -62,6 +63,7 @@ class SearchContext:
         self.ss_constraints = ()
         self.spec_passive_values = ()
         self.junction = None
+        self.area_decl = None                            # metrics PassiveAreaDecl -- 수동소자 단위 면적·측정 부하 제외(결정 11)
         self.eval_budget = settings.eval_budget          # None 이면 evaluate 가 n + 1 평가 뒤 한 번 유도해 기록
         self.eval_budget_source = "declared" if settings.eval_budget is not None else None
         self.deadline = None                             # 벽시계 바깥 정지(perf_counter 기준) -- find_front 가 정한다
@@ -91,7 +93,10 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     search_section = spec.search if isinstance(spec.search, tuple) else ()
     spec_bounds = next((s.value for s in search_section if s.field == THETA_BOUNDS and s.value), ())
     untie = tuple(name for name, _source in next((s.value for s in search_section if s.field == UNTIE_ORBITS and s.value), ()))
-    domain = search_domain(dc_ctx, settings, pdk_decl, spec_bounds, untie)
+    # [결정 11] 면적 예산 = spec 판정 제약 `area_search_m2 <= 값` 중 가장 작은 값 -- θ 전류 상한(S-3b)을 닫는다
+    budgets = [float(d.value) for d in spec.judged_constraints
+               if d.metric == AXIS_AREA and d.op == "<=" and d.value is not None]
+    domain = search_domain(dc_ctx, settings, pdk_decl, spec_bounds, min(budgets) if budgets else None, untie)
     junction = JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)
     context_fp = fp_of((dc_ctx.base.fp, dc_ctx.plan_versions, dc_ctx.lut, dc_ctx.fixed_values, dc_ctx.resistor_values,
                         dc_ctx.inputs))
@@ -115,6 +120,7 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
                         tuple(dc_ctx.inputs.element_values), tuple(judged), tuple(notes), archive)
     ctx.ss_constraints = tuple(ss)
     ctx.junction = junction
+    ctx.area_decl = passive_area_decl(dc_ctx, spec, pdk_decl)
     classes = dict(dc_ctx.base.column("device", "element_class"))
     ctx.spec_passive_values = tuple(sorted((n, float(v)) for n, v in dc_ctx.inputs.element_values
                                            if v is not None and classes.get(n) == ELEMENT_PASSIVE))

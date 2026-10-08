@@ -283,7 +283,9 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
   lo ≥ hi 인 변수 -> `ValueError`.
 - `l_cells` = ((MOS, l_cells(kind)), ...) MOS 이름순. [r3] `grid_m` = PDK `manufacturing_grid_m`, `w_min_m` = PDK
   `min_finger_w_m`, `area_resolution_m2` = grid_m × w_min_m. `current_box` = ((kind, (I_off, I_max)), ...) MOS kind 이름순
-  (I_max 잠정 -- S-3b).
+  (I_max 잠정 -- S-3b). [결정 11] `area_budget_m2` = spec 판정 제약 `area_search_m2 <= v` 중 최솟값 또는 None(`search_domain(..., area_budget_m2)`).
+  있으면 `current_box` 의 I_max 는 단일 finger 슬라이스 값이 아니라 **예산이 정하는 참 상한** ID_max = IDu_max · A / L_lo²
+  (IDu_max = `_ln_idu_envelope` 상한 exp, L_lo = kind 의 최소 L 앵커; 소자 하나의 W·L ≤ A 이므로 W ≤ A/L) -- S-3b 닫힘.
 
 ### 3.19 [r2] `current_box(lut_access, kind) -> (I_off, I_max)`
 - I_off = 레이아웃 전 폭 슬라이스(`w_keys[kind]`)의 VGS 격자 중 0(|v| ≤ ulp(격자 끝 크기)) 인 첫 index 면에서 on_mask 이고 ID > 0
@@ -499,6 +501,15 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 
 ### 3.18 `S3Archive(root, context_fp, code_fp)` -- 8절.
 
+### 3.22 [r11, 사용자 결정 11] 면적 예산 `passive_area_decl(dc_ctx, spec, pdk_decl) -> PassiveAreaDecl` (`area_decl.py`)
+- 면적 예산 = spec 일반 제약 `area_search_m2 <= v`(판정 축). 새 제약 종류가 아니다: `build_search_context` 가 `judged`(AXES)로 받고
+  `kernel._spec_rows` 가 `spec:area_search_m2<=` 행 c = (v − 점 면적)/b_A 로 잰다(분모 = `area_resolution_m2`, 설계 5절 NFR-5). 면적 =
+  MOS 게이트 W·L + 회로 안 커패시터(PDK `mim_cap_density_f_per_m2` 의 역수 x 값) -- 저항은 PDK 단위 면적 선언이 없어 `passive_area_undeclared` 로 보고.
+- 제외 = spec `element_values.<원소>.measurement_load` 가 true 인 수동소자(CL·nmcnr RL). 이름 기반 코드 없음. `SearchContext.area_decl`
+  (`PassiveAreaDecl`)이 `ss_evaluate`(봉인 점)와 `metrics_dc`(그 밖 점) 둘 다에 같이 들어간다 -- 점 상태와 무관하게 같은 면적.
+- 레이아웃 판정 축(MOD7 floorplan 외곽 면적, MOS 행만)은 수동소자를 이미 포함하지 않으므로 같은 제외(부하 없음)이다. 재필터(MOD8)는 아직 없다.
+- 입력 검사: `pdk_decl` 에 그 quantity 가 없으면(`pdk_quantity_undeclared`) 커패시터도 미선언 보고, 다른 거부 사유는 그대로 올린다.
+
 ### 3.23 [r11, r12] `canonical_order(sctx, variables) -> (정렬된 변수 tuple, 변수별 차원 index list, 차원 수)` (`canonical_order.py`)
 이름을 읽지 않는 θ 변수 순서. `variables` = `Variable` 열(정의역 변수 + 칸이 구간인 L 변수, 순서 무관). 호출부: `layer0_center`
 (`_box_centre`·`_halton_probe`), `slsqp_outer` (`_layout`). `fd_jacobian`·`ln_idu_floors`·`eps_sweep`·`find_front` 는 호출부가 넘긴 변수
@@ -587,7 +598,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   area_search_m2}, power_resolution_w?, constraints[{name, c, active}], unmeasured[[metric, op, 사유]], snapshot_fp?, code_fp}.
 - `runs.jsonl`: {run_id, s0, schema_fp, settings, starts, resolution, front[], pending_front[], removed[], failed_eps,
   notes, perf, code_fp}; 점 = {point_id, status, seq, theta_hex[[키, hex]], cells, power_dc_w, area_search_m2, gate_area_m2,
-  passives_in_area False, power_resolution_w, unmeasured, active, origin, snapshot_fp, snapshot_ref}.
+  passives_in_area(sctx.area_decl 이 있으면 True -- 수동 커패시터 면적이 area_search_m2 에 들어 있다, 결정 11), power_resolution_w, unmeasured, active, origin, snapshot_fp, snapshot_ref}.
 - `snapshots/<snapshot_fp>.json.gz`: {fp, records[{kind, key, fields{이름: {value, writer, input_version}}}]}.
 - Windows 경로 길이(260자) 때문에 `root` 는 짧아야 한다(지문 두 개가 64자).
 
@@ -672,7 +683,10 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   (difftap.2 = 0.42 µm, core CONTRACT 9.4 에 추가), g = `manufacturing_grid_m`. 설계 5절 제약 표에 없던 행이라 계획 기록은
   오케스트레이터 몫. b_A 도 같은 두 PDK 값의 곱(LutSpec 의 슬라이스 최소 폭 대신 -- 한 출처).
 - **S-2b (r3 처리)** b_P 의 gm = 동작점 gm(3.6).
-- **S-3b (잠정 유지)** I_max = 단일 finger 최대 슬라이스 ID -- 참 상한은 선언된 최대 nf 또는 면적 상한이 필요(열린 항목, notes
+- **S-3b [결정 11, 2026-10-08 닫힘 -- 예산 선언 spec 한정]** 면적 예산이 선언된 spec 은 I_max = IDu_max · A / L_lo²(3.14 `area_budget_m2`),
+  find_front notes `{"verdict": "closed", "rule": "S-3b", ...}`, 층 0 `meaning_reason` = `w_bounded_by_area_budget`. 예산이 없는 spec 은
+  아래 잠정 동작 그대로.
+- **S-3b (잠정 유지 -- 예산 미선언 spec)** I_max = 단일 finger 최대 슬라이스 ID -- 참 상한은 선언된 최대 nf 또는 면적 상한이 필요(열린 항목, notes
   `provisional`).
 - **S-4 (r4 -- 병합 뒤에도 막힘)** ss_linearize·VDsat 이 들어왔지만 층 0 최소형의 세 조각이 모두 (4)(a) '소자별 필요 gm' 에 매달린다:
   필요 gm 은 블록 gain 예산(GB3 블록 분해·GB4 상한표·GB5 보상 규칙)에서 오는데 셋 다 엔진에 없다(`ss_evaluate` 는 전회로 metric 만
@@ -919,3 +933,16 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 - cProfile(cumtime): folded_cascode 48.6 s 중 size_and_seal 47.3 s(97%), LUT `gm_id_for_target` 27.5 s, core `fp_of` 19.5 s
   (40%), `Projection.from_snapshot` 10.6 s; two_stage_ota 14.4 s 중 size_and_seal 13.4 s, `fp_of` 8.5 s(59%). search 자체
   (키·캐시·원뿔·목적·제약·SLSQP 조립)는 2~7% -- 핫스팟은 sizing O9(투영 지문)·LUT 역산이다.
+- [2026-10-08 core 성능 2~5 후 주석] 위 cProfile 의 `fp_of` 비중(40~60 %)은 옛 core(memo 키·레코드·투영마다 직렬화) 기준이다. 이제 memo 키는 `canonical_key`,
+  레코드·스냅샷 지문은 읽을 때 한 번, 투영은 행 단위 sha256 이라 9회로 평가에서 fp 계열 비용이 옛의 약 1/3~1/10 이다(core CONTRACT 10.1).
+
+### 10.x [r11, 사용자 결정 11, 2026-10-08] 면적 예산 9회로 재실행 (작성자 측 시연, 정본 아님; B = 120 s, 시연 harness mod6_demo)
+- 예산: common_gate 0.005, pushpull_follower 0.005, folded_cascode 0.01, two_stage_ota 0.015, two_stage_ota_sf 0.015, sf_pushpull 0.02, ngcc 0.025,
+  nmcnr 0.025, current_reuse 0.04 mm² (spec 제약 `area_search_m2 <= v`, 부하 CL·CL1·CL2·RL 은 `measurement_load` 로 제외, MIM 2 fF/µm²).
+- 결과(시작점 / front 점): common_gate 2/2, current_reuse 0/0, folded 2/0, ngcc 2/0, nmcnr 2/0, pushpull 1/0, sf_pushpull 0/0, two_stage_ota 2/1,
+  two_stage_ota_sf 2/1. front 점 면적은 전부 예산 이내(common_gate 0.55~2.4e-6 mm², two_stage_ota 6.2e-4 mm² (Rz 면적 미선언),
+  two_stage_ota_sf 7.3e-3 mm²), W 최대 common_gate 1.1 µm · two_stage_ota 0.39 mm · two_stage_ota_sf 3.2 mm (종전 2.6e5 m 급 해소).
+- SLSQP 입력 척도(slsqp_outer): 행 c 는 면적 예산 행처럼 크기가 1e6 급이라 종전 그대로는 QP 부분문제가 '제약 비호환'(status 4)으로 끝났다.
+  SLSQP 에 넘기는 행·목적에만 양의 상수 배(행: 1/max(1,|시작점 c|), 목적: 1/max(1,|시작점 f|), ftol 도 같은 배)를 곱한다 -- 가능 집합·`best`
+  판정(원 c ≥ 0)·`SolveResult` 값은 그대로.
+- 남은 한계: 예산 때문에 시작점이 예산을 약간 넘는 회로(folded 등)는 120 s 안에 가능 점을 못 찾는다(front 0). 저항 면적은 PDK 단위 면적 선언이 없어 미포함.

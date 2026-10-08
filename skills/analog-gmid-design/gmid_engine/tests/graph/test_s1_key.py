@@ -116,8 +116,14 @@ def _first_mos(raw, kind=None):
     return next(e for e in raw["netlist"] if kind is None or e["kind"] == kind)
 
 
+def _new_gate_net(r):
+    """첫 MOS gate 를 새 넷으로 -- 그 넷은 gate 전용이라 authoring 9절 bias_inputs 에도 선언한다(입력 선언, 연결 변경은 그대로)."""
+    _first_mos(r)["gate"] = "NEW_GATE_NET"
+    r["bias_inputs"] = list(r.get("bias_inputs") or []) + ["NEW_GATE_NET"]
+
+
 CONNECTION_EDITS = {
-    "gate_net": lambda r: _first_mos(r).__setitem__("gate", "NEW_GATE_NET"),
+    "gate_net": _new_gate_net,
     "kind_flip": lambda r: _first_mos(r, "nmos").__setitem__("kind", "pmos"),
     "declared_bulk": lambda r: _first_mos(r, "nmos").__setitem__("bulk", sorted(r["supply_nets"])[0]),
     "port_role": lambda r: next(v for k, v in r["ports"].items() if not k.startswith("_")).__setitem__("role", "other_role"),

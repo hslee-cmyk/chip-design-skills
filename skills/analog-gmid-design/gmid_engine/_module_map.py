@@ -43,7 +43,7 @@ LAYERS = (
     (
         "core",
         (
-            ("determinism.py", "fingerprint.py", "immutability.py", "margin.py", "units.py", "writer_error.py"),
+            ("canonical_key.py", "determinism.py", "fingerprint.py", "immutability.py", "margin.py", "units.py", "writer_error.py"),
             ("bounded_lru.py", "failure_record.py", "field_value.py", "metric_signature.py", "projection.py",
              "writer_table.py"),
             ("compute_block.py", "failure_errors.py", "graph_record.py"),
@@ -93,7 +93,7 @@ LAYERS = (
     (
         "sizing",
         (
-            ("bisect_root.py", "k_max.py", "s2_values.py"),
+            ("bracket_root.py", "k_max.py", "s2_values.py"),
             ("_helpers_colour.py", "_helpers_lut.py", "_helpers_seal.py", "block_currents.py", "block_lengths.py", "current_basis.py",
              "dc_inputs.py", "fixed_point.py", "pre_layout_widths.py", "s2_lift.py", "scc_newton.py", "scc_order.py",
              "seal_conduction.py", "seal_report.py",
@@ -126,7 +126,7 @@ LAYERS = (
         "search",
         (
             ("search_values.py",),
-            ("archive.py", "canonical_order.py", "canonical_rows.py", "cell_floor.py", "cone_rows.py", "orbit_ties.py", "tie_expand.py", "current_box.py", "eval_key.py", "l_cells.py", "objectives.py", "pareto.py",
+            ("archive.py", "area_decl.py", "canonical_order.py", "canonical_rows.py", "cell_floor.py", "cone_rows.py", "orbit_ties.py", "tie_expand.py", "current_box.py", "eval_key.py", "l_cells.py", "objectives.py", "pareto.py",
              "seal7_pending.py", "ss_constraints.py"),
             ("constraints.py", "search_domain.py"),
             ("search_context.py",),
@@ -160,6 +160,8 @@ LAYERS = (
 MODULES = (
     ModuleEntry("core/determinism.py", "entry", "sorted_items",
                 "정렬된 tuple 순회 도우미", ("NFR-4", "IC2")),
+    ModuleEntry("core/canonical_key.py", "entry", "canonical_key",
+                "memo 키 정준화(fp_of 와 같은 동치 관계의 hashable 값, 직렬화·sha256 없음)와 불변 검사", ("NFR-2", "DF-13", "SC-a")),
     ModuleEntry("core/fingerprint.py", "entry", "fp_of",
                 "정준 직렬화(float.hex·키 정렬)와 sha256 내용 지문", ("NFR-2", "SC-d")),
     ModuleEntry("core/immutability.py", "entry", "require_immutable",
@@ -385,7 +387,8 @@ MODULES = (
     ModuleEntry("sizing/s2_values.py", "data", None,
                 "S2 dc 값 형식·어휘·권한표 S2_WRITERS(S1 + dc 필드)(데이터 선언 모듈)", ("GB7", "N3.3", "N3.4", "DEC-88")),
     ModuleEntry("sizing/k_max.py", "entry", "k_max", "반복 상한 K_max = ceil(log2(폭/tol))", ("N3.6", "DEC-32")),
-    ModuleEntry("sizing/bisect_root.py", "entry", "bisect_root", "구간 bisection(±inf 끝값 허용)", ("N3.6",)),
+    ModuleEntry("sizing/bracket_root.py", "entry", "bracket_root",
+                "괄호 근 찾기(Brent, ±inf 끝값 허용, bisection 과 같은 수렴 판정 -- 근과의 거리 ≤ tol/2)", ("N3.6",)),
     ModuleEntry("sizing/pre_layout_widths.py", "entry", "pre_layout_lut_access",
                 "레이아웃 전 폭 슬라이스 = LUT 생성 규칙 폭(용량 기준 w_ref_m)", ("DEC-91",)),
     ModuleEntry("sizing/struct_colour.py", "entry", "dc_struct_colour",
@@ -541,6 +544,8 @@ MODULES = (
                 "MOD6 탐색 값 형식·상태/단계/축 어휘(데이터 선언 모듈)", ("DEC-77", "N3.5", "N3.7")),
     ModuleEntry("search/archive.py", "entry", "S3Archive",
                 "S3 설계점 단위 append-only 기록(evals·runs·front 스냅샷 파일), 디스크 실패 캐시 원천", ("N3.3", "WP-11")),
+    ModuleEntry("search/area_decl.py", "entry", "passive_area_decl",
+                "수동소자 면적 선언(PDK MIM 단위 면적 + spec 측정 부하 제외) -> metrics PassiveAreaDecl", ("DEC-79", "U-36", "결정 11")),
     ModuleEntry("search/cell_floor.py", "entry", "ln_idu_floors",
                 "L 칸 정점 하한(쓰기 소자 ln IDu 의 칸별 상자 하한, 1변수 writer 선택·시작 좌표 예외)", ("DEC-88", "LR10")),
     ModuleEntry("search/canonical_order.py", "entry", "canonical_order",

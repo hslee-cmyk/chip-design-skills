@@ -103,7 +103,8 @@ def diffpair():
                 [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"),
                  mos("M5", "nmos", "t", "vb", "gnd"), mos("M3", "pmos", "o1", "pb", "vdd"),
                  mos("M4", "pmos", "o2", "pb", "vdd")],
-                {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")})
+                {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")},
+                bias=["pb", "vb"])                                                           # vb: M5 gate, pb: M3·M4 gate
 
 
 def test_symmetric_diffpair_ties_recorded(tmp_path, toy_access):

@@ -174,3 +174,35 @@ def test_stop_vocabulary_complete(tmp_path, lut_sealed):
     out = sweep_front(case.sctx, starts)
     stops = [r.stop for _, r in out["solves"]] + [dict(e)["stop"] for e in out["failed_eps"]]
     assert stops and all(_stop_ok(x) for x in stops), stops
+
+
+# ---------------------------------------------------------------- [r11, 결정 11] SLSQP 입력 척도 (search CONTRACT 10.x)
+# 계약: SLSQP 에 넘기는 행·목적에만 양의 상수 배를 곱한다 -- 가능 집합·best 판정(원 c ≥ 0)·SolveResult 값은 그대로.
+# oracle (a): 면적 예산 행 c = (A − 면적)/b_A 를 이 test 가 결과 목적값과 b_A 로 다시 계산해 원 값과 대조(척도 배가 새면 어긋난다),
+# best 는 같은 키의 평가 결과 객체 그 자체(캐시 적중 `is`) -- 값이 바뀌지 않았다는 직접 증거.
+
+A_BIG = 5e-9            # 회로 C 시작점 면적 ≈ 6.7e-11 m², b_A = 5e-15 m² -> 시작점 예산 행 c ≈ 1e6 (크기 1e6 급 행, 구성 입력)
+
+
+@pytest.mark.parametrize("axis", [AXIS_AREA, AXIS_POWER])
+def test_large_area_row_best_judged_on_raw_c(tmp_path, lut_sealed, axis):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400,
+                      constraints=(("area_search_m2", "<=", A_BIG, None),))
+    s = case.sctx
+    b_a = s.domain.area_resolution_m2
+    sp = _start(case, theta_r4c())
+    start_res = evaluate(s, sp.theta, sp.cells)
+    (row0,) = [c for c in start_res.constraints if c.name == "spec:area_search_m2<="]
+    assert row0.c > 1e5                                         # 입력 확인: 크기 1e6 급 행
+    r = solve_eps(s, sp, axis, None, ("t",))
+    assert r.best is not None and r.best.status in ACCEPTED_STATUSES and _feasible(r.best)
+    key = "power_w" if axis == AXIS_POWER else "area_m2"
+    assert getattr(r.best.objectives, key) <= getattr(start_res.objectives, key)
+    assert evaluate(s, r.best.theta, r.best.key.cells) is r.best              # 캐시 적중 = 같은 평가 결과(값 불변)
+    for h in (r.best,) + tuple(r.history):
+        (row,) = [c for c in h.constraints if c.name == "spec:area_search_m2<="]
+        assert row.c == pytest.approx((A_BIG - h.objectives.area_m2) / b_a, rel=1e-9)
+    # best = 수락 반복 중 모든 원 c ≥ 0 이고 목적 최소(3.13) -- 원 c 로 다시 고른 것과 같다
+    feas = [h for h in r.history if _feasible(h)]
+    assert feas                                                     # 시작점이 예산 안 -> 적어도 시작점
+    assert getattr(r.best.objectives, key) <= min(getattr(h.objectives, key) for h in feas)

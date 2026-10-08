@@ -40,6 +40,12 @@
   이다 -- `ref_file_rejected` 가 아니다.
 - 캐시 없음: 같은 경로를 두 번 부르면 두 번 읽고 같은 `spec_fp` 를 낸다(결정론).
 
+**측정 부하 표지 [사용자 결정 11, 2026-10-08]**: `element_values.<커패시터·저항 요소>` 항목(값 또는 engine)에 선택 키
+`"measurement_load": true` 를 쓸 수 있다 -- 설계가 정하는 값이 아닌 측정 부하(CL·nmcnr RL 등)라는 선언이다. `ElementValue.measurement_load`
+(기본 False)에 실리고 search 면적 축 `area_search_m2` 가 그 소자를 뺀다(이름이 아니라 이 선언이 정한다). true 가 아닌 값·커패시터/저항이
+아닌 요소(전류원 등)는 `type`. 면적 예산은 일반 제약 `{metric: "area_search_m2", op: "<=", value: <m²>, source: user_spec}` 이다
+(catalog 의 `area_search_m2`, view 없음, 판정 축 -- search 가 제약 행으로 잰다).
+
 ## 1. 파일 형식 (요약 -- 정본은 이 절과 각 파일 docstring)
 
 `<topology_name>.sizing_spec.json`(topology 와 같은 디렉터리). 최상위 `{meta, human}` + `_` 주석 키(어떤 코드도 읽지 않음,

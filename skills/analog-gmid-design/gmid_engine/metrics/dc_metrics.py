@@ -1,7 +1,7 @@
 """봉인 DC 점 -> 전력·탐색 축 면적 metric 계산 블록 (설계 design_mod1_lut_mod5_mna 3.4 `supply_current_dc`·`power_dc_w`·
 `area_search_m2`, 계획 DEC-78·DEC-79 (a), metrics CONTRACT 7절).
 
-진입점: `metrics_dc`(`@compute_block`) -- `metrics_dc(snapshot, passive_values, counted_rails)`.
+진입점: `metrics_dc`(`@compute_block`) -- `metrics_dc(snapshot, passive_values, counted_rails[, area_decl])`.
 
 * reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}`, `graph.dc_current_basis`;
   extras `passive_values` = ((수동소자, 값), ...)(DC 저항 값 = spec 선언 ∪ θ), `counted_rails` = 합산 레일 넷 tuple(DEC-78 선언 --
@@ -15,8 +15,9 @@
   ValueError(선언 결함, 2절 표 '합산 레일 선언' -- KeyError 는 미등록 metric 이름 전용).
 * `counted_rails` 가 비면 `supply_current_dc` 는 정의 불가 `counted_rails_undeclared`(definitional) -- 레일별 전류·전력은 합산 선언과
   무관하므로 그대로 낸다(`supply_currents` 는 빈 선언을 거부하므로 레일 전부를 넘겨 부르고 합만 버린다).
-* 면적: MOS 마다 `GateArea(W, L)`(dc_op), 값이 있는 수동소자 `PassiveArea(값, 단위 면적 None)` -- PDK 수동소자 단위 면적
-  선언(U-36)이 core PDK 선언에 아직 없어 전부 `passive_area_undeclared` 로 보고된다. 값이 없는 수동소자는 detail
+* 면적: MOS 마다 `GateArea(W, L)`(dc_op), 값이 있는 수동소자 `PassiveArea(값, 단위 면적)`. 단위 면적과 제외 소자는 선택 extra
+  `area_decl`(`PassiveAreaDecl`, 사용자 결정 11) -- 없으면(기본) 단위 면적 선언 없음·제외 없음이라 전부 `passive_area_undeclared`.
+  `area_decl.excluded`(측정 부하)는 면적 항에서도 `passive_area_undeclared` 에서도 뺀다. 값이 없는 수동소자는 detail
   `passive_value_missing`.
 """
 from gmid_engine.core import compute_block
@@ -26,7 +27,7 @@ from gmid_engine.sizing import DC_KEY, METRICS_DC_WRITER, METRICS_KEY
 from .area import area_search
 from .evaluate import metric_value
 from .mna_types import MetricResult, Undefined
-from .records import ChannelCurrent, CurrentSource, DcOperatingPoint, GateArea, PassiveArea, RailBias, Resistor
+from .records import ChannelCurrent, CurrentSource, DcOperatingPoint, GateArea, PassiveArea, PassiveAreaDecl, RailBias, Resistor
 from .registry import metric_registry
 from .ss_types import MetricBundle, MetricRequest
 from .supply import supply_currents
@@ -72,7 +73,8 @@ def _operating_point(projection, index, values):
 
 @compute_block(METRICS_DC_WRITER, reads=READS, writes=WRITES)
 def metrics_dc(projection):
-    passive_values, counted_rails = projection.extras
+    passive_values, counted_rails, *rest = projection.extras
+    area_decl = rest[0] if rest else PassiveAreaDecl()
     values = dict(passive_values)
     node_key = _canonical(projection, "node")
     device_key = _canonical(projection, "device")
@@ -90,7 +92,9 @@ def metrics_dc(projection):
     classes = dict(projection.column("device", "element_class"))
     gates = tuple(GateArea(o.W, o.L, label=m) for m, o in sorted(projection.column("device", "dc_op"), key=lambda r: device_key(r[0])))
     passives = sorted((n for n, c in classes.items() if c == ELEMENT_PASSIVE), key=device_key)
-    area = area_search(gates, tuple(PassiveArea(n, values[n]) for n in passives if values.get(n) is not None))
+    unit = dict(area_decl.unit_area)
+    area = area_search(gates, tuple(PassiveArea(n, values[n], unit.get(n)) for n in passives
+                                    if values.get(n) is not None and n not in area_decl.excluded))
     entries = []
     for name in SUPPLY_METRICS + AREA_METRICS:
         result = metric_value(name, supply if name in SUPPLY_METRICS else area)

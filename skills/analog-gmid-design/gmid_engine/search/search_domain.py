@@ -65,7 +65,14 @@ def _passive_box(override, spec_bounds, key):
     return spec_bounds.get(key)
 
 
-def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), untie=()):
+def _budget_i_max(lut_access, kind, l_lo_m, area_budget_m2):
+    """면적 예산이 정하는 θ 전류 상한(S-3b 닫힘): 소자 하나의 W·L 은 총 면적 A 를 넘을 수 없으므로 W ≤ A / L, 전류는
+    ID = IDu · W / L(IDu = 전류 밀도 좌표, 포락선 최댓값 `exp(hi)`)이라 ID ≤ IDu_max · A / L² -- L 은 kind 의 최소 L 앵커(가장 큰 값)."""
+    _lo, hi = _ln_idu_envelope(lut_access, kind)
+    return math.exp(hi) * area_budget_m2 / (l_lo_m * l_lo_m)
+
+
+def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=None, untie=()):
     if not isinstance(settings, SearchSettings):
         raise TypeError("search_domain: settings 는 SearchSettings 여야 한다(기본값 없음)")
     if not isinstance(pdk_decl, PdkDecl):
@@ -75,6 +82,9 @@ def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), untie=()):
     classes = dict(dc_ctx.base.column("device", "element_class"))
     mos_kinds = sorted({kinds[m] for m, c in classes.items() if c == ELEMENT_MOS})
     boxes = {k: current_box(dc_ctx.lut, k) for k in mos_kinds}
+    if area_budget_m2 is not None:
+        boxes = {k: (lo, _budget_i_max(dc_ctx.lut, k, l_cells(dc_ctx.lut, k)[0][0], area_budget_m2))
+                 for k, (lo, _peak) in boxes.items()}
     envelopes = {}
     variables, mos = [], []
     resistors = [key for kind, key in dc_ctx.schema.components if kind in (THETA_RESISTANCE, THETA_SS_RESISTANCE)]
@@ -130,4 +140,4 @@ def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), untie=()):
     table = tuple((m, cells.setdefault(kinds[m], l_cells(dc_ctx.lut, kinds[m]))) for m in sorted(mos))
     grid, w_min = pdk_decl.values(_PDK_QUANTITIES)
     return SearchDomain(tuple(variables), table, float(grid * w_min), tuple(sorted(boxes.items())), float(w_min),
-                        float(grid), ties)
+                        float(grid), area_budget_m2, ties)
