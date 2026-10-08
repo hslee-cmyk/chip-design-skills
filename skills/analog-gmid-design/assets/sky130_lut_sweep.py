@@ -728,6 +728,428 @@ def sweep(a):
         print(f"{k}: min={save[k].min():.3e} max={save[k].max():.3e}")
 
 
+# --------------------------------------------------------------------------- U3 (2026-10-08): .noise 모드·mismatch 감도 모드
+# 두 부명령은 기준 LUT(`sweep` 산출 npz = cap npz)와 **같은 (L, VGS, VDS, VS) 격자·같은 DUT 줄·같은 include** 로 잰
+# **새 버전 파일**(`..._noise_r1.npz`, `..._mismatch_r1.npz`)을 만든다. 기존 파일은 고치지 않고, 새 파일 meta 에
+# 기준 LUT sha256 을 묶어 둔다(엔진 로더가 대조). 설계: docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md
+# 7.2(잡음)·6.4-2b(mismatch), 40 11절 U3.
+#
+# * noise: 게이트 환산 잡음 S_vg(f) = inoise_spectrum² (V²/Hz), 측정 구조는 `sweep` 과 같다(드레인 choke 개방 + 게이트 AC 여기).
+#   주파수 점은 기준 LUT 의 두 점(NOISE_F_PROBE, F_TEST -- 기준 LUT meta `frequencies_hz`) 사이를 **로그 이분**한 것이다
+#   (깊이 `--depth`: 한 번 이분할 때마다 이웃 점 기하평균을 더한다. 기본 3 = 이웃 비 10 이하가 될 때까지 -- 열잡음 평탄값과 1/f 성분을
+#   가르는 데 필요한 주파수 분해능이 십진 단위라서). 점 위치는 상수가 아니라 두 끝 주파수와 깊이에서 나온다.
+# * mismatch: 모델 카드 복사본에서 변수 k 의 `*_slope_spectre` 를 0 → 1σ 로 바꾼 섭동 곡선과 기준 곡선을 같은 include·DUT 줄로 돌려, 기준 곡선
+#   칸의 ID 에서 두 곡선의 |VGS| 차 DVGS_k 를 낸다(기준 곡선 ID 에 맞는 섭동 곡선 VGS 는 ln ID 의 VGS cubic-Hermite -- 기울기 gm/ID -- 의
+#   역산). 1σ = 인스턴스 기하를 m 로 주므로(`l=0.5u`) 모델식의 sqrt(l*w*mult) 가 µm 기준 값의 `scale` 배 -- `models/all.spice` 의
+#   `.option scale=1.0u` 에서 읽은 1e-6 (카드 전제: scale 옵션 아래 l·w 는 µm 수치, 이 DUT 는 단위 글자로 m 를 직접 준다).
+MM_ALL_SPICE = os.path.join(PDK_ROOT, "models", "all.spice")
+_VAL_NOISE_RE = re.compile(r"^\s*inoise_spectrum\s*=\s*([-+0-9.eE]+)\s*$")
+_SLOPE_PARAM_RE = re.compile(r"^\.param\s+(\S+)\s*=\s*([-+0-9.eE]+)\s*$", re.M | re.I)
+
+
+def _cap_grid(cap_npz):
+    """기준 LUT 의 (L[um] list, VS 배열, meta dict, sha256). VGS·VDS 축은 이 생성기 격자(VGS_ARR·VDS_ARR)와 같아야 하고
+    기준 폭은 DUT 줄의 w 와 같아야 한다 -- 아니면 거부(다른 LUT 와 섞이지 않게)."""
+    with np.load(cap_npz, allow_pickle=False) as z:
+        meta = json.loads(str(z["meta_json"]))
+        l_um = [round(float(x) * 1e6, 9) for x in np.asarray(z["L"], dtype=float)]
+        vgs, vds = (np.asarray(z[k], dtype=float) for k in ("VGS", "VDS"))
+        vs = np.asarray(z["VS"], dtype=float)
+        w_ref = float(z["w_ref_m"])
+    if not (np.array_equal(vgs, VGS_ARR) and np.array_equal(vds, VDS_ARR)):
+        raise SystemExit(f"{cap_npz}: VGS·VDS 축이 이 생성기 격자와 다르다")
+    if w_ref != W_REF_M:
+        raise SystemExit(f"{cap_npz}: w_ref_m {w_ref} != DUT 줄 폭 {W_REF_M}")
+    return l_um, vs, meta, _sha256(cap_npz)
+
+
+def noise_frequencies(f_lo, f_hi, depth):
+    """[f_lo, f_hi] 를 로그 이분(`depth` 번: 이웃 점 기하평균 추가)한 오름차순 주파수 목록(양끝 포함)."""
+    pts = [float(f_lo), float(f_hi)]
+    for _ in range(depth):
+        mids = [float("%.12g" % math.sqrt(a * b)) for a, b in zip(pts, pts[1:])]
+        pts = sorted(set(pts + mids))
+    return pts
+
+
+def _dut_head(devcell, L_um, vb_dc, polarity, choke):
+    """공통 머리: include·소스·DUT 줄과 VGS/VDS 격자 `let` (sweep 의 `_gen_netlist` 와 같은 구조)."""
+    L = [f"* U3 {devcell} L={L_um}um vb={vb_dc}"] + model_includes(devcell)
+    L += ["", "vgs g 0 dc 0 ac 0", "vds dd 0 dc 0 ac 0", f"lchoke dd d {choke}", "vsrc s 0 dc 0 ac 0",
+          f"vb  b 0 dc {vb_dc}", DUT_LINE.format(devcell=devcell, L_um=L_um), "", ".control"]
+    L.append(f"let vgs_grid = vector({N_VGS})")
+    L += [f"let vgs_grid[{i}] = {round(polarity * v, 6)}" for i, v in enumerate(VGS_ARR)]
+    L.append(f"let vds_grid = vector({N_VDS})")
+    L += [f"let vds_grid[{i}] = {round(polarity * v, 6)}" for i, v in enumerate(VDS_ARR)]
+    return L
+
+
+def _noise_netlist(devcell, L_um, vb_dc, polarity, freqs):
+    L = _dut_head(devcell, L_um, vb_dc, polarity, LCHOKE_AC)
+    L += ["let ig = 0", f"while ig < {N_VGS}", "  let vgv = vgs_grid[ig]", "  let ivd = 0",
+          f"  while ivd < {N_VDS}", "    let vdv = vds_grid[ivd]",
+          "    alter vgs = $&vgv", "    alter vds = $&vdv", "    echo P",
+          f"    alter lchoke = {LCHOKE_NOISE}", "    alter vgs ac = 1"]
+    for f in freqs:
+        L += [f"    noise v(d) vgs dec 1 {f:.12g} {f:.12g}", "    print inoise_spectrum"]
+    L += ["    alter vgs ac = 0", f"    alter lchoke = {LCHOKE_AC}", "    destroy all",
+          "    let ivd = ivd + 1", "  end", "  let ig = ig + 1", "end", "quit", ".endc", ".end"]
+    return "\n".join(L) + "\n"
+
+
+def _parse_points(path, n_per_point, regex, what):
+    """`echo P` 마커마다 값 `n_per_point` 개(`regex` 그룹 1) -> 배열 [N_VGS, N_VDS, n_per_point]."""
+    rows, cur = [], None
+    for line in open(path, encoding="utf-8", errors="replace").read().splitlines():
+        if line.strip() == "P":
+            if cur is not None:
+                raise RuntimeError(f"{path}: 점 {len(rows)} {what} 값 {len(cur)}개 (기대 {n_per_point})")
+            cur = []
+            continue
+        if cur is None:
+            continue
+        m = regex.match(line)
+        if m is None:
+            continue
+        cur.append(float(m.group(1)))
+        if len(cur) == n_per_point:
+            rows.append(cur)
+            cur = None
+    if cur is not None or len(rows) != N_VGS * N_VDS:
+        raise RuntimeError(f"{path}: expected {N_VGS * N_VDS} {what} points, parsed {len(rows)}")
+    return np.array(rows).reshape(N_VGS, N_VDS, n_per_point)
+
+
+def _run_ngspice(cfg, stem, netlist):
+    """넷리스트를 돌려 stdout 경로를 낸다(오류 줄 검사 포함). 임시 파일은 호출부가 지운다."""
+    netfile = os.path.join(cfg["work"], stem + ".cir")
+    outfile = os.path.join(cfg["work"], stem + "_out.txt")
+    errfile = os.path.join(cfg["work"], stem + "_err.txt")
+    with open(netfile, "w") as f:
+        f.write(netlist)
+    with open(outfile, "w") as fo, open(errfile, "w") as fe:
+        subprocess.run([NGSPICE_EXE, "-b", netfile], cwd=cfg["work"], stdout=fo, stderr=fe, timeout=1800, check=False)
+    _check_log(stem, outfile, errfile)
+    return netfile, outfile, errfile
+
+
+def _run_noise_combo(cfg, devcell, L_um, VS, polarity, vb_sign):
+    stem = f"noise_{devcell}_{_ltag(L_um)}_{_vstag(VS)}"
+    ckpt = os.path.join(cfg["ckpt"], stem + ".npz")
+    key = json.dumps([cfg["gen_sha"], cfg["freqs"]])
+    if os.path.exists(ckpt):
+        d = np.load(ckpt)
+        if str(d["key"]) == key:
+            return d["S"], str(d["temp_log"]), str(d["ngspice_ver"]), 0.0, True
+    t0 = time.time()
+    files = _run_ngspice(cfg, stem, _noise_netlist(devcell, L_um, vb_sign * VS * -1, polarity, cfg["freqs"]))
+    dt = time.time() - t0
+    s = _parse_points(files[1], len(cfg["freqs"]), _VAL_NOISE_RE, "noise") ** 2     # V/√Hz -> V²/Hz
+    temps, vers = _log_conditions(files[1])
+    if not vers:
+        temps2, vers = _log_conditions(files[2])
+        temps = temps or temps2
+    np.savez(ckpt, key=key, S=s, temp_log=temps, ngspice_ver=vers)
+    for p in files:
+        _cleanup_temp(p)
+    return s, temps, vers, dt, False
+
+
+def _run_combos(cfg, devcell, polarity, vb_sign, runner, shape_tail):
+    """(L, VS) 조합 전부를 cfg['jobs'] 병렬로 돌려 {조합: 결과}와 기록을 낸다. runner(cfg, devcell, L, VS, polarity, vb_sign)."""
+    out, recs = {}, []
+    with cf.ThreadPoolExecutor(max_workers=cfg["jobs"]) as ex:
+        futs = {ex.submit(runner, cfg, devcell, L, VS, polarity, vb_sign): (iL, iV)
+                for iL, L in enumerate(cfg["L_um"]) for iV, VS in enumerate(cfg["VS"])}
+        for fu in cf.as_completed(futs):
+            iL, iV = futs[fu]
+            res = fu.result()
+            out[(iL, iV)] = res[0]
+            recs.append({"L_um": cfg["L_um"][iL], "VS": float(cfg["VS"][iV]), "temp": res[1], "ngspice": res[2],
+                         "seconds": round(res[3], 3), "cached": res[4]})
+            with open(cfg["progress"], "a", encoding="utf-8") as pf:
+                pf.write(f"{devcell} L={cfg['L_um'][iL]} VS={cfg['VS'][iV]:.4f} "
+                         f"{'cached' if res[4] else f'{res[3]:.2f}s'} elapsed={time.time() - cfg['t0']:.0f}s\n")
+    return out, recs
+
+
+def _common_cfg(a, kind):
+    l_um, vs, cap_meta, cap_sha = _cap_grid(a.cap_npz)
+    os.makedirs(a.work, exist_ok=True)
+    ckpt = os.path.join(a.work, "ckpt")
+    os.makedirs(ckpt, exist_ok=True)
+    gen_sha = _sha256(os.path.abspath(__file__))
+    cfg = dict(work=a.work, ckpt=ckpt, gen_sha=gen_sha, L_um=l_um, VS=vs, jobs=a.jobs, t0=time.time(),
+               progress=os.path.join(a.work, f"{kind}_progress.log"), cap_sha=cap_sha, cap_meta=cap_meta)
+    with open(cfg["progress"], "a", encoding="utf-8") as pf:
+        pf.write(f"# start {datetime.datetime.now().isoformat(timespec='seconds')} gen_sha256={gen_sha} "
+                 f"cap_sha256={cap_sha} devices={a.devices} jobs={a.jobs}\n")
+    return cfg
+
+
+def _model_sha(dev):
+    files = _included_files(dev) + [os.path.join(PDK_ROOT, "cells", dev, f"sky130_fd_pr__{dev}.bins.csv")]
+    return {os.path.relpath(f, PDK_ROOT).replace(os.sep, "/"): _sha256(f) for f in files}
+
+
+def noise_sweep(a):
+    """`noise` 부명령: 기준 LUT 격자의 로그 이분 주파수 점 잡음 -> `..._noise_r1.npz`."""
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    cfg = _common_cfg(a, "noise")
+    fr = cfg["cap_meta"]["frequencies_hz"]
+    cfg["freqs"] = noise_frequencies(fr["NOISE_F_PROBE"], fr["F_TEST"], a.depth)
+    devices = a.devices.split(",")
+    runners = {"nfet_01v8": (+1, +1), "pfet_01v8": (-1, -1)}
+    save, combos, model_sha, repro = {}, {}, {}, {}
+    temps, vers = set(), set()
+    with np.load(a.cap_npz) as cap:
+        for dev in devices:
+            pol, vbs = runners[dev]
+            res, recs = _run_combos(cfg, dev, pol, vbs, _run_noise_combo, None)
+            sfx = COL_SUFFIX[dev]
+            arr = np.zeros((len(cfg["freqs"]), len(cfg["L_um"]), N_VGS, N_VDS, len(cfg["VS"])))
+            for (iL, iV), s in res.items():
+                arr[:, iL, :, :, iV] = np.moveaxis(s, -1, 0)
+            for name, k in (("SVG2_1HZ", 0), ("SVG2_HF", len(cfg["freqs"]) - 1)):
+                base = np.asarray(cap[name + sfx], dtype=float)
+                ok = base > 0
+                repro[name + sfx] = float(np.max(np.abs(arr[k][ok] - base[ok]) / base[ok]))
+            save["SVG2_F" + sfx] = arr[1:-1]
+            combos[dev] = sorted(recs, key=lambda r: (r["L_um"], r["VS"]))
+            temps |= {r["temp"] for r in recs}
+            vers |= {r["ngspice"] for r in recs}
+            model_sha[dev] = _model_sha(dev)
+    if len(temps) != 1 or len(vers) != 1 or not next(iter(temps)):
+        raise RuntimeError(f"온도/버전이 조합마다 같지 않거나 못 읽음: {temps} {vers}")
+    meta = {
+        "generator": os.path.basename(__file__), "generator_sha256": cfg["gen_sha"], "mode": "noise",
+        "cap_npz_sha256": cfg["cap_sha"], "ngspice": next(iter(vers)), "ngspice_exe": NGSPICE_EXE, "pdk_root": PDK_ROOT,
+        "corner": "tt", "temp_c_from_log": float(next(iter(temps))), "model_files_sha256": model_sha,
+        "w_ref_m": W_REF_M, "dut_line": DUT_LINE, "column_suffix": COL_SUFFIX, "array_layout": "[F, L, VGS, VDS, VS]",
+        "units": {"SVG2_F": "V^2/Hz (gate-referred, inoise_spectrum^2)"},
+        "base_frequencies_hz": fr, "bisect_depth": a.depth, "f_endpoints_hz": [cfg["freqs"][0], cfg["freqs"][-1]],
+        "base_repro_rel_max": repro, "combos": combos, "date": datetime.date.today().isoformat(),
+        "seconds_total": round(time.time() - cfg["t0"], 1),
+    }
+    np.savez(a.out, corner="tt", temp_c=meta["temp_c_from_log"], w_ref_m=W_REF_M,
+             L=np.array(cfg["L_um"]) * 1e-6, VGS=VGS_ARR, VDS=VDS_ARR, VS=cfg["VS"],
+             f_hz=np.array(cfg["freqs"][1:-1]), meta_json=json.dumps(meta, ensure_ascii=False), **save)
+    print(f"Saved to {a.out} (total {time.time() - cfg['t0']:.0f}s) base_repro_rel_max={repro}")
+
+
+# ----- mismatch
+def mm_scale():
+    """`models/all.spice` 의 `.option scale=<값>` -> 배율(m). 1σ 섭동 크기의 근거(위 주석)."""
+    txt = open(MM_ALL_SPICE, encoding="utf-8", errors="replace").read()
+    m = re.search(r"^\.option\s+scale\s*=\s*([-+0-9.eE]+)([a-zA-Z]?)\s*$", txt, re.M | re.I)
+    if m is None:
+        raise RuntimeError(f"{MM_ALL_SPICE}: .option scale 없음")
+    return float(m.group(1) + _SI_EXP[m.group(2).lower()]), _sha256(MM_ALL_SPICE)
+
+
+def mm_variables(devcell):
+    """모델 카드(pm3) 머리 `.param sky130_fd_pr__<devcell>__<var>_slope_spectre = 0.0` 의 변수 이름 목록(정렬)."""
+    txt = open(model_file(devcell), encoding="utf-8", errors="replace").read()
+    pre = f"sky130_fd_pr__{devcell}__"
+    out = sorted(set(re.findall(rf"^\.param\s+{re.escape(pre)}(\w+?)_slope_spectre\s*=\s*0\.0\s*$", txt, re.M)))
+    if not out:
+        raise RuntimeError(f"{model_file(devcell)}: *_slope_spectre 변수를 못 읽음")
+    return out
+
+
+def mm_slope_values(devcell):
+    """mismatch.corner.spice 의 `.param <이름> = <값>` -> {이름: 값}."""
+    path = os.path.join(PDK_ROOT, "cells", devcell, f"sky130_fd_pr__{devcell}__mismatch.corner.spice")
+    return {k: float(v) for k, v in _SLOPE_PARAM_RE.findall(open(path, encoding="utf-8", errors="replace").read())}
+
+
+def mm_slope_idents(devcell, model, variables):
+    """`.model <model>` 블록의 변수별 slope 이름(`..._slope` 또는 `..._slope1`, 블록이 안 쓰면 None)."""
+    txt = open(model_file(devcell), encoding="utf-8", errors="replace").read()
+    blk = re.search(rf"^\.model\s+{re.escape(model)}\s+[np]mos\b(.*?)(?=^\.model|\Z)", txt, re.S | re.I | re.M)
+    if blk is None:
+        raise RuntimeError(f"{model_file(devcell)}: .model {model} 블록 없음")
+    pre = f"sky130_fd_pr__{devcell}__"
+    out = {}
+    for var in variables:
+        hits = sorted(set(re.findall(rf"{re.escape(pre)}{var}_slope(\d*)(?![\w])", blk.group(1))))
+        if len(hits) > 1:
+            raise RuntimeError(f"{model}: 변수 {var} 의 slope 이름이 둘 이상 {hits}")
+        out[var] = None if not hits else f"{pre}{var}_slope{hits[0]}"
+    return out
+
+
+def _mm_card(devcell, var, sigma, work, tag):
+    """pm3 복사본: 변수 var 의 `*_slope_spectre` 기본값 0.0 -> sigma. 경로를 낸다."""
+    src = open(model_file(devcell), encoding="utf-8", errors="replace").read()
+    pre = f"sky130_fd_pr__{devcell}__{var}_slope_spectre"
+    new, n = re.subn(rf"^(\.param\s+{re.escape(pre)}\s*=\s*)0\.0\s*$", rf"\g<1>{sigma:.17g}", src, flags=re.M)
+    if n != 1:
+        raise RuntimeError(f"{model_file(devcell)}: {pre} 기본값 줄이 {n}개")
+    path = os.path.join(work, f"card_{tag}.pm3.spice")
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(new)
+    return path
+
+
+def _mm_netlist(devcell, L_um, vb_dc, polarity, card):
+    L = _dut_head(devcell, L_um, vb_dc, polarity, LCHOKE_AC)
+    if card is not None:
+        std = model_file(devcell)
+        L = [ln if std not in ln else f'.include "{card}"' for ln in L]
+    inst = f"@m.xdut.msky130_fd_pr__{devcell}"
+    L += ["let ig = 0", f"while ig < {N_VGS}", "  let vgv = vgs_grid[ig]", "  let ivd = 0",
+          f"  while ivd < {N_VDS}", "    let vdv = vds_grid[ivd]",
+          "    alter vgs = $&vgv", "    alter vds = $&vdv", "    op", "    echo P",
+          f"    print {inst}[id]", f"    print {inst}[gm]", "    destroy all",
+          "    let ivd = ivd + 1", "  end", "  let ig = ig + 1", "end", "quit", ".endc", ".end"]
+    return "\n".join(L) + "\n"
+
+
+def _mm_val_re(devcell):
+    inst = re.escape(f"@m.xdut.msky130_fd_pr__{devcell}")
+    return re.compile(rf"^\s*{inst}\[(?:id|gm)\]\s*=\s*([-+0-9.eE]+)\s*$", re.I)
+
+
+def _mm_curve(cfg, devcell, L_um, VS, polarity, vb_sign, card, tag):
+    stem = f"mm_{devcell}_{_ltag(L_um)}_{_vstag(VS)}_{tag}"
+    files = _run_ngspice(cfg, stem, _mm_netlist(devcell, L_um, vb_sign * VS * -1, polarity, card))
+    a = _parse_points(files[1], 2, _mm_val_re(devcell), "op")
+    temps, vers = _log_conditions(files[1])
+    if not vers:
+        temps2, vers = _log_conditions(files[2])
+        temps = temps or temps2
+    for p in files:
+        _cleanup_temp(p)
+    return np.abs(a[:, :, 0]), np.abs(a[:, :, 1]), temps, vers
+
+
+def dvgs_columns(id_ref, id_pert, gm_pert):
+    """기준 곡선 ID 에서의 섭동 곡선 |VGS| 차 DVGS[VGS, VDS] (V). 각 VDS 열에서 ln ID_pert 가 VGS 에 단조 증가하는 유효 구간의
+    칸 [x_j, x_j+1] 을 목표 ln ID_ref 로 골라, 그 칸의 cubic-Hermite(값 ln ID, 기울기 gm/ID)를 bisection 으로 푼다. 목표가 섭동
+    곡선 범위 밖·ID ≤ 0·gm ≤ 0·섭동 곡선이 단조 증가가 아닌 열은 NaN."""
+    x = VGS_ARR
+    out = np.full(id_ref.shape, np.nan)
+    for c in range(id_ref.shape[1]):
+        okp = (id_pert[:, c] > 0) & (gm_pert[:, c] > 0)
+        v = np.flatnonzero(okp)
+        i = np.flatnonzero(id_ref[:, c] > 0)
+        if v.size < 2 or i.size == 0:
+            continue
+        yv = np.log(id_pert[v, c])
+        if not np.all(np.diff(yv) > 0):
+            continue
+        t = np.log(id_ref[i, c])
+        k = np.searchsorted(yv, t, side="right") - 1
+        inside = (t >= yv[0]) & (t <= yv[-1])
+        k = np.clip(k, 0, v.size - 2)
+        j, j1 = v[k], v[k + 1]
+        inside &= (j1 == j + 1)
+        if not inside.any():
+            continue
+        i, t, j = i[inside], t[inside], j[inside]
+        y0, y1 = np.log(id_pert[j, c]), np.log(id_pert[j + 1, c])
+        m0, m1 = gm_pert[j, c] / id_pert[j, c], gm_pert[j + 1, c] / id_pert[j + 1, c]
+        h = x[j + 1] - x[j]
+        lo, hi = x[j].copy(), x[j + 1].copy()
+        for _ in range(70):
+            mid = 0.5 * (lo + hi)
+            p = _hermite_np(y0, y1, m0, m1, h, (mid - x[j]) / h)
+            below = p < t
+            lo = np.where(below, mid, lo)
+            hi = np.where(below, hi, mid)
+        out[i, c] = 0.5 * (lo + hi) - x[i]
+    return out
+
+
+def _hermite_np(y0, y1, m0, m1, h, t):
+    h00, h10, h01, h11 = 2 * t**3 - 3 * t**2 + 1, t**3 - 2 * t**2 + t, -2 * t**3 + 3 * t**2, t**3 - t**2
+    return y0 * h00 + h * m0 * h10 + y1 * h01 + h * m1 * h11
+
+
+def _run_mm_combo(cfg, devcell, L_um, VS, polarity, vb_sign):
+    t0 = time.time()
+    stem = f"mmc_{devcell}_{_ltag(L_um)}_{_vstag(VS)}"
+    ckpt = os.path.join(cfg["ckpt"], stem + ".npz")
+    key = json.dumps([cfg["gen_sha"], cfg["sigma"], cfg["vars"][devcell]])
+    if os.path.exists(ckpt):
+        d = np.load(ckpt)
+        if str(d["key"]) == key:
+            return ({v: d["D_" + v] for v in cfg["vars"][devcell]} | {"_id": d["id_ref"]}, str(d["temp_log"]),
+                    str(d["ngspice_ver"]), 0.0, True)
+    id_ref, gm_ref, temps, vers = _mm_curve(cfg, devcell, L_um, VS, polarity, vb_sign, None, "ref")
+    res = {"_id": id_ref}
+    for var in cfg["vars"][devcell]:
+        card = _mm_card(devcell, var, cfg["sigma"], cfg["work"], f"{devcell}_{_ltag(L_um)}_{_vstag(VS)}_{var}")
+        id_p, gm_p, _, _ = _mm_curve(cfg, devcell, L_um, VS, polarity, vb_sign, card, var)
+        _cleanup_temp(card)
+        res[var] = dvgs_columns(id_ref, id_p, gm_p)
+    np.savez(ckpt, key=key, id_ref=id_ref, temp_log=temps, ngspice_ver=vers,
+             **{"D_" + v: res[v] for v in cfg["vars"][devcell]})
+    return res, temps, vers, time.time() - t0, False
+
+
+def mismatch_sweep(a):
+    """`mismatch` 부명령: 기준 LUT 격자의 mismatch 감도 열 DVGS_<변수> -> `..._mismatch_r1.npz`."""
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    cfg = _common_cfg(a, "mismatch")
+    scale, scale_sha = mm_scale()
+    cfg["sigma"] = scale
+    devices = a.devices.split(",")
+    cfg["vars"] = {dev: mm_variables(dev) for dev in devices}
+    runners = {"nfet_01v8": (+1, +1), "pfet_01v8": (-1, -1)}
+    bins_per_L = check_l_list(cfg["L_um"], devices, manufacturing_grid_um(a.tlef), a.work)
+    save, combos, model_sha, slope_ref, repro = {}, {}, {}, {}, {}
+    temps, vers = set(), set()
+    with np.load(a.cap_npz) as cap:
+        for dev in devices:
+            pol, vbs = runners[dev]
+            res, recs = _run_combos(cfg, dev, pol, vbs, _run_mm_combo, None)
+            sfx = COL_SUFFIX[dev]
+            shape = (len(cfg["L_um"]), N_VGS, N_VDS, len(cfg["VS"]))
+            for var in cfg["vars"][dev]:
+                arr = np.full(shape, np.nan)
+                for (iL, iV), r in res.items():
+                    arr[iL, :, :, iV] = r[var]
+                save[f"DVGS_{var}{sfx}"] = arr
+            id_all = np.zeros(shape)
+            for (iL, iV), r in res.items():
+                id_all[iL, :, :, iV] = r["_id"]
+            base = np.asarray(cap["ID" + sfx], dtype=float)
+            ok = base > 0
+            repro["ID" + sfx] = float(np.max(np.abs(id_all[ok] - base[ok]) / base[ok]))
+            values = mm_slope_values(dev)
+            slope_ref[dev] = {}
+            for L in cfg["L_um"]:
+                model = bins_per_L[dev][f"{L:g}"]["model"]
+                idents = mm_slope_idents(dev, model, cfg["vars"][dev])
+                slope_ref[dev][f"{L:g}"] = {"model": model, **{
+                    v: (None if n is None else {"slope": n, "value": values[n]}) for v, n in idents.items()}}
+            combos[dev] = sorted(recs, key=lambda r: (r["L_um"], r["VS"]))
+            temps |= {r["temp"] for r in recs}
+            vers |= {r["ngspice"] for r in recs}
+            model_sha[dev] = _model_sha(dev)
+    if len(temps) != 1 or len(vers) != 1 or not next(iter(temps)):
+        raise RuntimeError(f"온도/버전이 조합마다 같지 않거나 못 읽음: {temps} {vers}")
+    meta = {
+        "generator": os.path.basename(__file__), "generator_sha256": cfg["gen_sha"], "mode": "mismatch",
+        "cap_npz_sha256": cfg["cap_sha"], "ngspice": next(iter(vers)), "ngspice_exe": NGSPICE_EXE, "pdk_root": PDK_ROOT,
+        "corner": "tt", "temp_c_from_log": float(next(iter(temps))), "model_files_sha256": model_sha,
+        "w_ref_m": W_REF_M, "dut_line": DUT_LINE, "column_suffix": COL_SUFFIX, "array_layout": "[L, VGS, VDS, VS]",
+        "units": {"DVGS": "V (|VGS| shift of the perturbed curve at the reference curve's ID, one sigma of the instance geometry)"},
+        "variables": cfg["vars"], "sigma_unit": scale,
+        "sigma_unit_source": {"path": MM_ALL_SPICE, "sha256": scale_sha, "rule": ".option scale"},
+        "slope_ref": slope_ref, "ref_id_repro_rel_max": repro, "combos": combos,
+        "date": datetime.date.today().isoformat(), "seconds_total": round(time.time() - cfg["t0"], 1),
+    }
+    np.savez(a.out, corner="tt", temp_c=meta["temp_c_from_log"], w_ref_m=W_REF_M,
+             L=np.array(cfg["L_um"]) * 1e-6, VGS=VGS_ARR, VDS=VDS_ARR, VS=cfg["VS"],
+             meta_json=json.dumps(meta, ensure_ascii=False), **save)
+    print(f"Saved to {a.out} (total {time.time() - cfg['t0']:.0f}s) ref_id_repro_rel_max={repro}")
+    for k in sorted(save):
+        print(f"{k}: nan={int(np.isnan(save[k]).sum())} min={np.nanmin(save[k]):.3e} max={np.nanmax(save[k]):.3e}")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="sky130 기준 폭 gm/ID LUT 생성기")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -756,9 +1178,24 @@ def main(argv=None):
     c.add_argument("--devices", default="nfet_01v8,pfet_01v8")
     c.add_argument("--vs-max", type=float, default=None)
     c.add_argument("--tlef", default=TLEF_PATH)
+    for name, text in (("noise", "기준 LUT 격자의 로그 이분 주파수 점 잡음(..._noise_r1.npz)"),
+                       ("mismatch", "기준 LUT 격자의 mismatch 감도 열 DVGS(..._mismatch_r1.npz)")):
+        x = sub.add_parser(name, help=text)
+        x.add_argument("--cap-npz", required=True, help="기준 LUT(sweep 산출) -- 격자·기준 폭·주파수의 출처, sha256 을 meta 에 묶는다")
+        x.add_argument("--out", required=True)
+        x.add_argument("--work", required=True)
+        x.add_argument("--jobs", type=int, default=8)
+        x.add_argument("--devices", default="nfet_01v8,pfet_01v8")
+        x.add_argument("--tlef", default=TLEF_PATH)
+        if name == "noise":
+            x.add_argument("--depth", type=int, default=3, help="두 끝 주파수 사이 로그 이분 깊이(기본 3)")
     a = ap.parse_args(argv)
     if a.cmd == "sweep":
         sweep(a)
+    elif a.cmd == "noise":
+        noise_sweep(a)
+    elif a.cmd == "mismatch":
+        mismatch_sweep(a)
     else:
         candidates(a)
 

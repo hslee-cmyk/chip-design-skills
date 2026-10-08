@@ -1,11 +1,12 @@
 """LUT 보간 공용 helper -- 축별 보간 방법(계획 DEC-87, lut/CONTRACT.md 4.2).
 
 * 축별 방법: ln ID 는 **VGS 축 2점 cubic-Hermite**(기울기 = 저장 GM/ID = d lnID/dVGS)와 **VDS 축 2점 cubic-Hermite**
-  (기울기 = 저장 GDS/ID = d lnID/dVDS), VS·L 축은 선형이다. gm/ID 는 따로 보간하지 않고 **그 다항식의 VGS 미분**으로
+  (기울기 = 저장 GDS/ID = d lnID/dVDS), **VS 축 2점 cubic-Hermite**(기울기 = −GMBS/ID, GMBS 열이 있는 슬라이스만 --
+  [r7] 2026-10-08 DEC-87, 없으면 선형), L 축은 선형이다. gm/ID 는 따로 보간하지 않고 **그 다항식의 VGS 미분**으로
   정의한다 -- 그래서 op_point·gm_id_curve·역산·gm 이 한 곡면이다. ln GDS·VTH·용량은 모든 축 선형이다.
-* 텐서곱 순서: VGS 마디 a 마다 (1) 값 V_a = VDS Hermite(ln ID, 기울기 GDS/ID; L·VS 는 선형 가중) (2) 기울기
-  S_a = 저장 GM/ID 의 (L, VDS, VS) 선형 가중(교차 도함수 자료가 없어 VDS 방향은 선형) (3) 조회 VGS 에서
-  ln ID = VGS Hermite(V_a, S_a), gm/ID = 그 미분. 격자점에서는 저장값 그대로다(값·기울기 모두).
+* 텐서곱 순서: VGS 마디 a 마다 (1) 값 V_a = VDS 마디 b 마다 [L 선형 가중 후 VS Hermite(기울기 −GMBS/ID)] 를 y_b 로 두고
+  VDS Hermite(y_b, 기울기 GDS/ID; 기울기는 L·VS 선형 가중) (2) 기울기 S_a = 저장 GM/ID 의 (L, VDS, VS) 선형 가중(교차 도함수 자료가
+  없어 VDS·VS 방향은 선형) (3) 조회 VGS 에서 ln ID = VGS Hermite(V_a, S_a), gm/ID = 그 미분. 격자점에서는 저장값 그대로다(값·기울기 모두).
 * **Hermite 칸 = 두 끝 기울기 자료가 정의되고 Fritsch–Carlson 단조 조건을 만족하는 칸**(로드 기록 `fc_ok_*`, 가중치 0 이
   아닌 모서리 모두). 아니면 그 축은 그 칸에서 선형이다(gm/ID 는 그 직선의 기울기 -- 미분 정의 유지, 선형은 단조).
   기울기 자료가 없는 마디 = VGS: on_mask 거짓, VDS: `vds_slope_ok` 거짓. 위반 칸 수는 로드 때 기록되고(`hermite_fc`,
@@ -24,6 +25,9 @@ import numpy as np
 LINEAR_CONDITIONS = ("y0", "y1")
 HERMITE_CONDITIONS = ("y0", "m0", "y1", "m1")
 HERMITE_DEGREE = len(HERMITE_CONDITIONS) - 1
+REASON_SLOPE = "slope_undefined"           # Hermite 칸이 아닌 이유: 기울기 자료가 정의되지 않음
+REASON_FC = "fc_violation"                 # Hermite 칸이 아닌 이유: Fritsch–Carlson 단조 조건 위반
+VS_SLOPE_COLUMN = "GMBS_PER_ID"            # VS 축 기울기 자료: d ln ID / d VS = −GMBS/ID (파생 열, lut_types.DERIVED_COLUMNS)
 
 
 def cell(grid, x):
@@ -127,17 +131,20 @@ def linear_point(grids, arrays, point):
 
 
 def node_values(sl, lo, hi, l_val, vds, vsb, g_nodes):
-    """VGS 마디 `g_nodes`(range) 의 `(V, S, cell_fc_ok)` numpy 배열 -- 모듈 docstring 의 텐서곱 (1)(2).
+    """VGS 마디 `g_nodes`(range) 의 `(V, S, cell_fc_ok, fallbacks)` -- 모듈 docstring 의 텐서곱 (1)(2).
 
-    V = ln ID(VDS Hermite -- 가중치 0 이 아닌 모서리 모두 VDS 기울기 자료가 있고 그 VDS 칸이 단조 조건을 만족할 때,
-    아니면 VDS 선형), S = gm/ID(가중치 0 이 아닌 모서리에 on_mask 거짓이 있으면 NaN), cell_fc_ok[j] = 마디 j·j+1 사이
-    VGS 칸의 모서리(가중치 0 이 아닌 L·VDS·VS) 가 모두 단조 조건 만족(VGS Hermite 사용 조건의 한쪽).
+    V = ln ID(VS 축: 두 VS 마디 기울기 자료 -GMBS/ID 가 모서리 모두 있고 그 VS 칸이 단조 조건을 만족하면 VS Hermite,
+    아니면 선형 -- L 은 선형 가중이 먼저; 그 결과를 VDS 마디 b 의 값으로 삼아 VDS 축: 가중치 0 이 아닌 모서리 모두 VDS 기울기
+    자료가 있고 그 VDS 칸이 단조 조건을 만족할 때 VDS Hermite, 아니면 VDS 선형), S = gm/ID(가중치 0 이 아닌 모서리에 on_mask
+    거짓이 있으면 NaN; L·VDS·VS 선형), cell_fc_ok[j] = 마디 j·j+1 사이 VGS 칸의 모서리(가중치 0 이 아닌 L·VDS·VS) 가 모두 단조 조건
+    만족(VGS Hermite 사용 조건의 한쪽). `fallbacks` = Hermite 가 가능한 축(VDS·VS 가 칸 안쪽)인데 선형으로 간 ((축, 사유), ...)
+    정렬 tuple -- 사유 "slope_undefined"(기울기 자료 없음)·"fc_violation"(단조 조건 위반). VGS 축 사유는 부르는 쪽이 `cell_fc_ok`·S 로 센다.
     `lo, hi, l_val` = `l_position` 결과(L 장 index·L 값). 작은 창을 list 로 한 번 꺼내 스칼라로 계산한다(조회 1점 비용).
     """
     l_idx, l_w, _ = _nodes(sl.grids[0][lo:hi + 1], l_val)
     k, td = cell(sl.grids[2], vds)
     d_idx, d_w, _ = _nodes(sl.grids[2], vds)
-    s0, _ = cell(sl.grids[3], vsb)
+    s0, ts = cell(sl.grids[3], vsb)
     s_idx, s_w, _ = _nodes(sl.grids[3], vsb)
     ls = _corners(((l_idx, l_w), (tuple(s - s0 for s in s_idx), s_w)))
     lin_d = tuple((b - k, w) for b, w in zip(d_idx, d_w))
@@ -146,8 +153,19 @@ def node_values(sl, lo, hi, l_val, vds, vsb, g_nodes):
     on, vds_ok, fc_vds = (arr[window].tolist() for arr in (sl.on_mask, sl.vds_slope_ok, sl.fc_ok_vds))
     fc_vgs = sl.fc_ok_vgs[window[0], slice(g_nodes.start, g_nodes.stop - 1), window[2], window[3]].tolist()
     hermite_d = len(d_idx) > 1
+    hermite_s = len(s_idx) > 1
     h_d = sl.grids[2][k + 1] - sl.grids[2][k]
+    h_s = sl.grids[3][s0 + 1] - sl.grids[3][s0]
     ends = range(len(LINEAR_CONDITIONS))
+    vs_ratio = sl.columns.get(VS_SLOPE_COLUMN)
+    if hermite_s and vs_ratio is not None:
+        vs_m = (-vs_ratio[window]).tolist()                                  # d ln ID / d VS = -GMBS/ID
+        vs_ok = sl.vs_slope_ok[window].tolist()
+        fc_vs = sl.fc_ok_vs[window[0], window[1], window[2], slice(s0, s0 + 1)].tolist()
+    else:
+        vs_m = vs_ok = fc_vs = None
+    l_only = tuple((l, w) for (l, _s), w in _corners(((l_idx, l_w), ((0,), (1.0,)))))
+    reasons = set()
     v_out, s_out = [], []
     for a in range(len(g_nodes)):
         s_val = 0.0
@@ -157,18 +175,32 @@ def node_values(sl, lo, hi, l_val, vds, vsb, g_nodes):
                     s_val += wd * w * math.exp(log_gm[l][a][b][s] - log_id[l][a][b][s])
                 else:
                     s_val = math.nan
+        d_nodes = tuple(ends) if hermite_d else (lin_d[0][0],)
+        vs_use = False
+        if hermite_s:
+            if vs_ok is not None:          # GMBS 열이 없는 슬라이스는 VS 가 설계상 선형 축이다 -- 폴백이 아니므로 사유를 남기지 않는다
+                good = all(vs_ok[l][a][b][s] for l, _w in l_only for b in d_nodes for s in ends)
+                vs_use = good and all(fc_vs[l][a][b][0] for l, _w in l_only for b in d_nodes)
+                if not vs_use:
+                    reasons.add(("VS", REASON_FC if good else REASON_SLOPE))
+        y = []
+        for b in d_nodes:
+            if vs_use:
+                y.append(sum(w * hermite(log_id[l][a][b][0], log_id[l][a][b][1], vs_m[l][a][b][0], vs_m[l][a][b][1],
+                                         h_s, ts)[0] for l, w in l_only))
+            else:
+                y.append(sum(w * log_id[l][a][b][s] for (l, s), w in ls))
         if not hermite_d:
-            b = lin_d[0][0]
-            v = sum(w * log_id[l][a][b][s] for (l, s), w in ls)
+            v = y[0]
         else:
-            y = [sum(w * log_id[l][a][b][s] for (l, s), w in ls) for b in ends]
-            if (all(vds_ok[l][a][b][s] for (l, s), _ in ls for b in ends)
-                    and all(fc_vds[l][a][0][s] for (l, s), _ in ls)):
+            ok_vds = all(vds_ok[l][a][b][s] for (l, s), _ in ls for b in ends)
+            if ok_vds and all(fc_vds[l][a][0][s] for (l, s), _ in ls):
                 m = [sum(w * math.exp(log_gds[l][a][b][s] - log_id[l][a][b][s]) for (l, s), w in ls) for b in ends]
                 v, _ = hermite(y[0], y[1], m[0], m[1], h_d, td)
             else:
+                reasons.add(("VDS", REASON_FC if ok_vds else REASON_SLOPE))
                 v = y[0] + td * (y[1] - y[0])
         v_out.append(v)
         s_out.append(s_val)
     cell_ok = [all(fc_vgs[l][a][b][s] for (l, s), _ in ls for b, _ in lin_d) for a in range(len(g_nodes) - 1)]
-    return np.asarray(v_out), np.asarray(s_out), np.asarray(cell_ok, dtype=bool)
+    return np.asarray(v_out), np.asarray(s_out), np.asarray(cell_ok, dtype=bool), tuple(sorted(reasons))

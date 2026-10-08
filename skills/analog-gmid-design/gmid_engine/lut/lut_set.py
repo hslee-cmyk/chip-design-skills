@@ -20,6 +20,10 @@
 * Hermite 단조 검사(DEC-87, 계획 N3.7, lut/CONTRACT.md 1.4): 슬라이스마다 VGS 축 칸(ln ID, 기울기 GM/ID)과 VDS 축 칸
   (ln ID, 기울기 GDS/ID)의 Fritsch–Carlson 단조 조건을 한 번 계산해 `DcSlice.fc_ok_vgs`·`fc_ok_vds` 에 두고 칸 수·위반 수를
   `hermite_fc` 에 기록한다(로드는 거부하지 않는다 -- 위반 칸은 조회에서 그 축 선형, 역산은 그 칸의 근을 내지 않는다, 4.2).
+* [r7] VS 축 Hermite(DEC-87): GMBS 열이 있는 슬라이스는 VS 축 칸(ln ID, 기울기 −GMBS/ID)도 같은 단조 검사를 하고
+  (`DcSlice.vs_slope_ok`·`fc_ok_vs`, `hermite_fc` 의 "VS" 항), 슬라이스마다 기울기 열 3개(GM/ID·GDS/ID·GMBS/ID)가 ln ID 격자 차분(현)과
+  칸 안 기울기 범위로 맞는지(과반 칸이 모순이면, CONTRACT 1.4) 보고(`_check_units`) 어긋나면 `lut_unit_mismatch` 로 거부한다(41 §4.1 단위 불일치). 잡음 r1·mismatch 감도 r1 파일은
+  `noise_set`·`mismatch_set` 이 읽는다.
 * [r6] 선택 열(LUT v2): 기준 LUT 의 `CAP_TABLE_COLUMNS`(GMBS·VTH·VDSAT·CDD·CSS·SVG2_1HZ·SVG2_HF·ID·GM·GDS)와 슬라이스의
   `SLICE_OPTIONAL_COLUMNS` 는 있으면 읽고 없으면 비워 둔다(옛 12-L 세트도 그대로 로드 -- 그 열을 쓰는 조회가 구조화된
   `lut_column_unavailable` 로 실패한다, 조용히 대체하지 않는다). 기준 LUT meta 의 부호 규약 문장과 `L_source` 를 표에 싣는다
@@ -39,7 +43,8 @@ from gmid_engine.core import sorted_items
 
 from ._helpers_bins import bin_index
 from ._helpers_fail import schema_rejected
-from ._helpers_interp import HERMITE_DEGREE
+from ._helpers_grids import npz_grids
+from ._helpers_interp import HERMITE_DEGREE, VS_SLOPE_COLUMN
 from ._helpers_width import width_key
 from .fingerprint import lut_fingerprint
 from .lut_types import (
@@ -53,6 +58,8 @@ from .lut_types import (
     LutSet,
     MidpointTable,
 )
+from .mismatch_set import load_mismatch_tables
+from .noise_set import load_noise_tables
 from .provenance import lut_provenance
 
 BIN_KEYS = ("lmin", "lmax", "wmin", "wmax")
@@ -117,10 +124,6 @@ def _log_with_floor(arr):
     return _readonly(np.log(np.clip(arr, floor, None))), floor, int(arr.size - positive.size)
 
 
-def _grids_of(npz):
-    return tuple(tuple(float(x) for x in np.asarray(npz[axis], dtype=float)) for axis in ("L", "VGS", "VDS", "VS"))
-
-
 def _fc_monotone(dy, m0, m1, h):
     """2점 cubic-Hermite 칸의 Fritsch–Carlson 단조 조건(필요충분, 원소마다; dy = y1 − y0). 미분 p'(x)·h 의 Bernstein
     계수 b0 = m0·h, b1 = n·dy − (m0 + m1)·h, b2 = m1·h (n = Hermite 차수) 로 쓰면 비감소 ⇔ b0 ≥ 0, b2 ≥ 0,
@@ -149,9 +152,36 @@ def _fc_ok(log_id, slope, slope_ok, grid, axis):
     return ok, int(both.sum()), int(bad.sum())
 
 
+def _check_units(path, grids, log_id, pairs):
+    """단위 불일치 검사(41 §4.1 '단위 불일치 -> 로드 거부'). 기울기 열(GM/ID·GDS/ID·GMBS/ID) 모두를 같은 규칙으로 검사한다.
+    기준은 선택한 십진 수가 아니라 평균값 정리에서 나온다: 격자 칸 [x0, x1] 에서 ln ID 의 현(chord) 기울기 Δln ID/Δx 는 칸 안 어떤 점의 미분이고,
+    칸 안에서 미분이 단조이면 두 끝 기울기 m0·m1(저장된 열, 부호 규약 적용) 사이에 든다. 단위·척도가 k 배 틀린 열은 k 가 1 에서 멀수록
+    (k − 1 이 칸 안 기울기 변화비보다 크면) 현이 [min(m0,m1), max(m0,m1)] 밖으로 나간다. 그래서 '현이 두 끝 기울기 사이에 들지 않는 칸'
+    (부동소수 허용분 eps·(|ln ID| 두 값)/Δx + eps·(|m0| + |m1|) 안은 든 것으로 본다)의 비율을 열마다 재고, **절반을 넘으면**(칸 비율의 중앙값 판정 --
+    과반 칸이 모순이면 열 전체의 척도가 틀린 것이다) 거부한다. 검출 한계 = 그 열의 칸 안 기울기 변화(보간 해상도) 그 자체라 상수가 없다.
+    정의 마스크가 두 끝에서 참인 칸만 센다. `pairs` = (축, 열 이름, GM/ID 류 양수 비, 정의 마스크, d ln ID/d 축 의 부호)."""
+    eps = np.finfo(float).eps
+    for axis, name, ratio, ok, sign in pairs:
+        nd = log_id.ndim
+        lower = tuple(slice(None, -1) if d == axis else slice(None) for d in range(nd))
+        upper = tuple(slice(1, None) if d == axis else slice(None) for d in range(nd))
+        h = np.diff(np.asarray(grids[axis], dtype=float)).reshape(tuple(-1 if d == axis else 1 for d in range(nd)))
+        use = ok[lower] & ok[upper]
+        n_use = int(use.sum())
+        if n_use == 0:
+            continue
+        chord = np.diff(log_id, axis=axis) / h
+        m0, m1 = sign * ratio[lower], sign * ratio[upper]
+        slack = eps * (np.abs(log_id[lower]) + np.abs(log_id[upper])) / h + eps * (np.abs(m0) + np.abs(m1))
+        outside = use & ((chord < np.minimum(m0, m1) - slack) | (chord > np.maximum(m0, m1) + slack))
+        n_out = int(outside.sum())
+        if 2 * n_out > n_use:
+            raise schema_rejected("lut_unit_mismatch", path=path, column=name, cells_outside=n_out, cells=n_use)
+
+
 def _build_slice(src, grids, parsed):
     with np.load(src.path) as npz:
-        if _grids_of(npz) != grids:
+        if npz_grids(npz) != grids:
             raise schema_rejected("lut_slice_axes_mismatch", path=src.path)
         raw_id = np.asarray(npz["ID"], dtype=float)
         raw_gm = np.asarray(npz["GM"], dtype=float)
@@ -169,16 +199,26 @@ def _build_slice(src, grids, parsed):
     on_mask.setflags(write=False)
     vds_slope_ok = (raw_id > 0) & (raw_gds > 0)
     vds_slope_ok.setflags(write=False)
-    fc_vgs, n_vgs, bad_vgs = _fc_ok(log_id, np.exp(log_gm - log_id), on_mask, grids[1], AXES.index("VGS"))
-    fc_vds, n_vds, bad_vds = _fc_ok(log_id, np.exp(log_gds - log_id), vds_slope_ok, grids[2], AXES.index("VDS"))
+    columns = _with_derived(extra, raw_id)
+    gm_id, gds_id = np.exp(log_gm - log_id), np.exp(log_gds - log_id)
+    ratio = columns.get(VS_SLOPE_COLUMN)                       # GMBS/ID (GMBS 열이 있을 때만)
+    vs_slope_ok = np.zeros(shape, dtype=bool) if ratio is None else np.isfinite(ratio) & (ratio > 0)
+    vs_slope_ok.setflags(write=False)
+    vs_slope = np.zeros(shape) if ratio is None else -np.where(vs_slope_ok, ratio, 0.0)   # d ln ID / d VS = -GMBS/ID
+    _check_units(src.path, grids, log_id, ((AXES.index("VGS"), "GM", gm_id, on_mask, 1),
+                                           (AXES.index("VDS"), "GDS", gds_id, vds_slope_ok, 1),
+                                           (AXES.index("VS"), "GMBS", np.zeros(shape) if ratio is None else np.where(vs_slope_ok, ratio, 0.0), vs_slope_ok, -1)))
+    fc_vgs, n_vgs, bad_vgs = _fc_ok(log_id, gm_id, on_mask, grids[1], AXES.index("VGS"))
+    fc_vds, n_vds, bad_vds = _fc_ok(log_id, gds_id, vds_slope_ok, grids[2], AXES.index("VDS"))
+    fc_vs, n_vs, bad_vs = _fc_ok(log_id, vs_slope, vs_slope_ok, grids[3], AXES.index("VS"))
     return DcSlice(
         src.kind, src.w_key, src.w_m, src.sha256, grids, grids, _readonly(grids[1]),
         _readonly(raw_id), _readonly(vth), on_mask, log_id, log_gm, log_gds,
         (("GDS", floor_gds), ("GM", floor_gm), ("ID", floor_id)),
         (("GDS", np_gds), ("GM", np_gm), ("ID", np_id)),
         _l_bin_map(src, grids[0], parsed),
-        vds_slope_ok, fc_vgs, fc_vds, (("VDS", n_vds, bad_vds), ("VGS", n_vgs, bad_vgs)),
-        _with_derived(extra, raw_id),
+        vds_slope_ok, fc_vgs, fc_vds, (("VDS", n_vds, bad_vds), ("VGS", n_vgs, bad_vgs), ("VS", n_vs, bad_vs)),
+        columns, vs_slope_ok, fc_vs,
     )
 
 
@@ -246,7 +286,7 @@ def _build_caps(spec, cap_path, cap_sha256, grids, slices_by_kind):
     suffix = dict(spec.cap_column_suffix)
     caps = {}
     with np.load(cap_path) as npz:
-        cap_grids = _grids_of(npz)
+        cap_grids = npz_grids(npz)
         if cap_grids[:3] != grids[:3]:
             raise schema_rejected("lut_cap_axes_mismatch", path=cap_path)
         files = set(npz.files)
@@ -302,7 +342,7 @@ def _midpoint_tables(spec, prov, grids, slice_conditions, caps):
     suffix = dict(spec.cap_column_suffix)
     out = {}
     with np.load(path) as npz:
-        mid_grids = _grids_of(npz)
+        mid_grids = npz_grids(npz)
         if mid_grids[1:] != grids[1:]:
             raise schema_rejected("lut_midpoints_axes_mismatch", path=path)
         if "w_ref_m" not in npz.files:
@@ -335,16 +375,19 @@ def _midpoint_tables(spec, prov, grids, slice_conditions, caps):
     return types.MappingProxyType(out)
 
 
-def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None):
+def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None, noise_npz=None,
+                 mismatch_npz=None):
     """manifest(슬라이스 목록)·기준 LUT 경로와 `LutSpec` 으로 불변 `LutSet` 을 만든다.
 
     `pdk_root`: 모델 파일을 찾을 PDK 루트(None = 슬라이스 meta 의 절대 경로). `verify_midpoints`: bin 검증 중점 npz(선택 --
-    주면 tol 표의 앵커 2개 bin 외부 값 원천, lut/CONTRACT.md 5.1).
+    주면 tol 표의 앵커 2개 bin 외부 값 원천, lut/CONTRACT.md 5.1). [r7] `noise_npz`·`mismatch_npz`: 잡음 r1·mismatch 감도 r1 npz(선택,
+    기준 LUT 에 묶임 -- 9.1·10.1; `LutSet.noise`·`LutSet.mismatch`).
     실패(전부 `SchemaRejectedError`, detail.reason 은 CONTRACT.md 1.3·1.4·1.7): manifest·파일 없음, sha256 불일치,
     선언 밖 소자, 폭이 제조 격자 밖, (kind, 폭 키) 중복, 축·형상 불일치, 측정 조건 불일치, 양수 원소 없는 배열,
     용량 열·kind 접미사 없음, 용량 기준 폭 미확정, 모델 파일(bin 지도 원천) 없음·불일치·bin 블록 결함, 중점 파일 결함.
     """
-    prov = lut_provenance(manifest_path, cap_npz_path, spec, pdk_root=pdk_root, verify_midpoints=verify_midpoints)
+    prov = lut_provenance(manifest_path, cap_npz_path, spec, pdk_root=pdk_root, verify_midpoints=verify_midpoints,
+                          noise_npz=noise_npz, mismatch_npz=mismatch_npz)
     conditions = {s.conditions for s in prov.slices}
     if len(conditions) != 1:
         raise schema_rejected("lut_conditions_mismatch", conditions=tuple(sorted(conditions)))
@@ -356,7 +399,7 @@ def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_mid
                 raise schema_rejected("lut_conditions_mismatch", key=key, cap=cap_cond.get(key),
                                       slices=slice_cond.get(key))
     with np.load(prov.slices[0].path) as npz:
-        grids = _grids_of(npz)
+        grids = npz_grids(npz)
     parsed = {}
     slices = [_build_slice(src, grids, parsed) for src in prov.slices]
     by_kind = {}
@@ -367,10 +410,14 @@ def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_mid
     fp = lut_fingerprint(prov, cap_basis)
     midpoints = (types.MappingProxyType({}) if prov.midpoints_path is None
                  else _midpoint_tables(spec, prov, grids, slice_cond, caps))
+    noise = types.MappingProxyType({}) if prov.noise_path is None else load_noise_tables(spec, prov, caps)
+    mismatch = types.MappingProxyType({}) if prov.mismatch_path is None else load_mismatch_tables(spec, prov, caps)
     return LutSet(
         spec, prov,
         types.MappingProxyType({(s.kind, s.w_key): s for s in slices}),
         types.MappingProxyType(caps),
         fp,
         midpoints,
+        noise,
+        mismatch,
     )

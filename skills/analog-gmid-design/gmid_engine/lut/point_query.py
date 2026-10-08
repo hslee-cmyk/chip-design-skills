@@ -5,14 +5,16 @@ L 은 앵커이거나 같은 모델 bin 안 두 앵커 사이만(lut/CONTRACT.md
 
 * ln ID: 조회 VGS 가 든 VGS 칸 [a, a+1] (`cell` 규칙) 의 두 마디 값·기울기(`node_values` -- VDS Hermite, L·VS 선형)로
   VGS Hermite. gm/ID = 그 Hermite 의 VGS 미분(따로 보간하지 않는다). 두 마디 중 기울기 자료가 정의되지 않은 것이
-  있거나 그 VGS 칸이 단조 위반(로드 기록 `fc_ok_vgs`)이면 VGS 방향은 선형(gm/ID = 그 칸 직선의 기울기).
+  있거나 그 VGS 칸이 단조 위반(로드 기록 `fc_ok_vgs`)이면 칸 안쪽 점은 VGS 방향 선형(격자 마디는 저장값 그대로, 폴백 없음)(gm/ID = 그 칸 직선의 기울기).
+* [r7] VS 축도 GMBS 열이 있는 슬라이스에서 Hermite(기울기 −GMBS/ID, `node_values`). Hermite 가 가능한 칸인데 선형으로 간 축은
+  `OpPoint.fallbacks` 에 ((축, 사유), ...) 로 남긴다(사유 "slope_undefined"·"fc_violation" -- 조용한 선형 폴백 금지, DEC-87 FC 정책).
 * ln GDS·VTH: 모든 축 선형(`linear_point`, ln GDS 는 로그공간). gm/gds = gm/ID · exp(ln ID − ln GDS).
 * 정규화: `IDu = ID·L / w_m`(L = 앵커 값 또는 보간 조회 L), `gds_per_w = GDS / w_m`.
 """
 import math
 
 from ._helpers_anchor import l_position
-from ._helpers_interp import cell, hermite, linear_point, node_values
+from ._helpers_interp import REASON_FC, REASON_SLOPE, cell, hermite, linear_point, node_values
 from .axis_guard import check_axes
 from .lut_types import AXES, OpPoint
 
@@ -32,9 +34,15 @@ def op_point(memo, kind, w_key, L, vgs, vds, vsb):
     def compute():
         vgs_grid = sl.grids[1]
         a, t = cell(vgs_grid, rest[0])
-        v, s, cell_fc_ok = node_values(sl, lo, hi, l_val, rest[1], rest[2], range(a, a + 2))
+        v, s, cell_fc_ok, fallbacks = node_values(sl, lo, hi, l_val, rest[1], rest[2], range(a, a + 2))
         h = vgs_grid[a + 1] - vgs_grid[a]
-        if math.isfinite(s[0]) and math.isfinite(s[1]) and cell_fc_ok[0]:
+        if t in (0.0, 1.0):                  # 격자 마디: 저장값 그대로(4.2) -- 이웃 칸의 FC 위반은 이 점과 무관하다
+            hermite_vgs = bool(math.isfinite(s[int(t)]))
+        else:
+            hermite_vgs = math.isfinite(s[0]) and math.isfinite(s[1]) and bool(cell_fc_ok[0])
+        if not hermite_vgs:
+            fallbacks = tuple(sorted(set(fallbacks) | {("VGS", REASON_FC if math.isfinite(s[0] + s[1]) else REASON_SLOPE)}))
+        if hermite_vgs:
             if t in (0.0, 1.0):              # 격자 마디: Hermite 의 끝 값·끝 기울기 그 자체(반올림 없이)
                 end = int(t)
                 log_id, gm_id = float(v[end]), float(s[end])
@@ -51,6 +59,7 @@ def op_point(memo, kind, w_key, L, vgs, vds, vsb):
             gm_id * math.exp(log_id - log_gds),
             math.exp(log_gds) / sl.w_m,
             vth,
+            fallbacks,
         )
 
     return memo.lookup("point", "op_point", (kind, w_key, lo, hi, l_val) + rest, compute)

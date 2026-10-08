@@ -381,8 +381,9 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 - reads node.{dc_writer, dc_rail_v, dc_column_nbrs}, device.{dc_drop_current, dc_L, pins, kind, bulk, element_class,
   dc_coord}, graph.dc_scc_order. `theta_items` = θ 중 ln_idu·y·resistance 성분.
 - 부호 s = +1(nmos)/−1(pmos). 크기: vgs = s(V(g)−V(s)), vds = s(V(d)−V(s)), vsb = s(V(s)−V(b)).
-- VGS(좌표) = lut `gm_id_for_target(memo, kind, w_key, L, vds, vsb, W = w_m, current = exp(ln_idu)·w_m/L).vgs`
-  (w_m = 그 슬라이스 폭). `[r4]` `vgs_for_current_density` 로 바뀐다.
+- VGS(좌표) = lut `vgs_for_current_density(memo, kind, w_key, ln_idu, L, vds, vsb)` ([U3 2026-10-08] 옛 임시 우회
+  `gm_id_for_target(W = w_m, current = exp(ln_idu)·w_m/L).vgs` 를 대체 -- `_vgs_of_coordinate`·`_vgs_signed` 두 곳; 같은 곡면의 칸 안 Hermite 근, 분지 끝 마디 좌표는 반올림 2 ulp 허용, lut CONTRACT 3.1).
+  `lut_target_out_of_range` 의 `target`·`branch_max` 는 ln ID 단위로 서로 같아 `target > branch_max` 가 '필요한 VGS 가 격자 위'다.
 - writer 식: vgs_gate V(x) = V(known) + s·VGS / vgs_source V(x) = V(known) − s·VGS / resistor_drop V(x) = V(known) + Δ,
   Δ = 0 (전류 0), 아니면 known 이 t0 이면 −I·R, t1 이면 +I·R(I = dc_drop_current, R = θ 또는 선언값) / input_tie
   V(x) = V(known) / free_window V = lo + y·(hi − lo).
@@ -503,7 +504,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   구간 폭 ≤ tol 의 가운데 -> 거리 ≤ tol/2.) 허용오차를 느슨하게 하지 않는다. (bisection 과 답이 서로 tol 이내.)
 - 평가 수(끝점 2회 포함) ≤ 2·`k_max(hi − lo, tol)` + 6 (보간 반복이 `k_max` 번을 넘으면 남은 반복은 순수 이분; 해석적 상계, 무작위 2만 함수 측정에서는
   ≤ 2·`k_max`). 숫자 기본값 없음(tol/4 는 판정식의 분수, 부동소수 해상도 2·eps·|x|).
-- **h 평가 관측 (test 용)**: `solve_self` 의 h 1회 = `_vgs_signed` 1회 = lut `gm_id_for_target` 조회 1회이며, 그 조회는 `LutMemo.lookup`(point/curve/root 영역)을
+- **h 평가 관측 (test 용)**: `solve_self` 의 h 1회 = `_vgs_signed` 1회 = lut `vgs_for_current_density` 조회 1회([U3] 전에는 `gm_id_for_target`; memo 함수 이름 칸 `vgs_for_current_density`)이며, 그 조회는 `LutMemo.lookup`(point/curve/root 영역)을
   지난다 -- `LutMemo.lookup` 호출 수(적중 포함)나 `_vgs_signed` 호출 수로 센다. `solve_self` 입력 재사용 적중 시 이 호출은 0이다
   (`LutMemo.lookup(region="root", fn_name="solve_self", ...)` 1회만).
 - **Brent 만의 약속**: 매끈하고 단순한(단조·거의 선형) 근에서 평가 수가 같은 tol 의 순수 bisection(끝점 2 + k_max)보다 적다(10.7: 실제 회로 h 평가 약

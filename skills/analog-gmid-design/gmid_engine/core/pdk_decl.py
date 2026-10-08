@@ -15,6 +15,11 @@
 * 원본 파일은 매 호출 sha256 을 다시 재서 선언값과 대조하고(다르면 거부), 파싱 결과는 부르는 쪽 `BoundedLRU` 에
   (형식, sha256, 파싱 인자) 키로 둔다 -- 같은 파일은 sha256 당 한 번만 파싱한다. 모듈 수준 캐시는 없다(규칙 G).
 * 실패는 전부 `SchemaRejectedError(detail={"reason": ...})`(로드 게이트 거부, 사유 키는 core CONTRACT 9절).
+* [2026-10-08 U3] 선택 최상위 키 두 개. `mismatch_models`: kind 마다 모델 카드 원본(`spice_model_card`)과 slope 원본(`spice_instance_line`,
+  `.param 이름=값` 줄)을 연결해 `.model` 블록마다 (lmin·lmax·wmin·wmax, 변수별 slope 이름·값)의 bin 지도 `PdkMismatchModel` 을 만든다
+  (카드가 변수를 `p0 + p_slope_spectre·(slope/sqrt(l·w·mult))` 꼴로 흔드는 식에서 slope 이름을 읽는다 -- 이름은 bin 마다 다를 수 있다).
+  `resistor_types`: 후보 저항 종류마다 선언 양(시트 저항·최소 폭·머리 면적)을 가리키고, 본체 Ω당 면적 W²/R□ 가 가장 작은 종류의 양을
+  `<selected_as>_sheet_ohm_per_sq`·`_min_w_m`·`_head_area_m2` 양으로 낸다(규칙이지 고정 상수가 아니다, 계획 Q9).
 """
 import ast
 import codecs
@@ -33,7 +38,13 @@ from .determinism import sorted_items
 from .failure_errors import SchemaRejectedError
 
 _SCHEMA = "gmid_pdk_decl/1"
-_TOP_KEYS = ("note", "pdk", "pdk_root", "quantities", "schema", "sources")
+_TOP_KEYS = ("mismatch_models", "note", "pdk", "pdk_root", "quantities", "resistor_types", "schema", "sources")
+_OPTIONAL_TOP_KEYS = ("mismatch_models", "note", "resistor_types")
+_MISMATCH_KEYS = ("model_source", "parameters", "slope_source")
+_RESISTOR_KEYS = ("candidates", "selected_as")
+_RESISTOR_CANDIDATE_KEYS = ("head_area_m2", "min_w_m", "sheet_ohm_per_sq")
+_BOUND_KEYS = ("lmin", "lmax", "wmin", "wmax")
+_SLOPE_REF = re.compile(r"([A-Za-z_][A-Za-z0-9_]*_slope[0-9]*)\s*/\s*sqrt")
 _QUANTITY_KEYS = ("basis", "expression", "source")
 _FORMAT_LEF = "lef_statement"
 _FORMAT_TABLE = "rule_table_csv"
@@ -113,14 +124,45 @@ class PdkQuantity:
 
 
 @dataclasses.dataclass(frozen=True)
+class PdkMismatchBlock:
+    """모델 카드 `.model` 블록(bin) 하나: 이름·경계(m)·변수별 slope. `slopes` = ((변수, slope 이름 또는 None, slope 값 또는 None,
+    slope 원본 행 또는 None), ...) 선언 순서 -- slope 이름이 None 이면 그 블록이 변수를 흔드는 식(`p0 + p_slope_spectre·slope/sqrt(l·w·mult)`)을
+    갖지 않는다. `line` = 블록 경계 `lmin` 의 모델 카드 행."""
+
+    model: str
+    lmin_m: float
+    lmax_m: float
+    wmin_m: float
+    wmax_m: float
+    slopes: tuple
+    line: int
+
+
+@dataclasses.dataclass(frozen=True)
+class PdkMismatchModel:
+    """kind 하나의 mismatch 모델 bin 지도: `parameters` = 흔드는 변수(모델 카드 BSIM 파라미터 이름), `blocks` = PdkMismatchBlock
+    ((wmin, wmax, lmin, lmax, 이름) 정렬), 원본 경로·sha256."""
+
+    kind: str
+    parameters: tuple
+    blocks: tuple
+    model_path: str
+    model_sha256: str
+    slope_path: str
+    slope_sha256: str
+
+
+@dataclasses.dataclass(frozen=True)
 class PdkDecl:
-    """선언 파일 하나의 결과. `quantities` = ((이름, PdkQuantity), ...) 이름 정렬, `sources` = ((이름, 경로, sha256), ...)."""
+    """선언 파일 하나의 결과. `quantities` = ((이름, PdkQuantity), ...) 이름 정렬, `sources` = ((이름, 경로, sha256), ...).
+    [U3] `mismatch_models` = ((kind, PdkMismatchModel), ...) kind 정렬(선언에 없으면 ())."""
 
     pdk: str
     decl_path: str
     decl_sha256: str
     sources: tuple
     quantities: tuple
+    mismatch_models: tuple = ()
 
     def quantity(self, name):
         """이름의 PdkQuantity. 선언에 없으면 `SchemaRejectedError(pdk_quantity_undeclared)`."""
@@ -140,6 +182,13 @@ class PdkDecl:
     def rule_ids(self, names):
         """`names` 순서대로 ((이름, 규칙 식), ...) -- MOD7 `LayoutPdk.rule_ids` 형식."""
         return tuple((name, self.quantity(name).expression) for name in names)
+
+    def mismatch_model(self, kind):
+        """kind 의 PdkMismatchModel. 선언에 없으면 `SchemaRejectedError(pdk_mismatch_undeclared)`."""
+        found = dict(self.mismatch_models).get(kind)
+        if found is None:
+            raise _reject("pdk_mismatch_undeclared", kind=kind, decl=self.decl_path)
+        return found
 
 
 def _require_keys(where, record, allowed, required):
@@ -439,6 +488,104 @@ def _quantity(name, spec, sources, source_specs):
     return PdkQuantity(name, value, expression, rules, spec["basis"])
 
 
+def _number(table, rule_id, units_m, path):
+    """원본 표 `table` 의 규칙 `rule_id` 하나(모호하면 거부)를 SI 값으로 -> (값, 행)."""
+    found = table.get(rule_id)
+    if not found:
+        raise _reject("pdk_rule_missing", rule=rule_id, path=path)
+    if len(found) != 1:
+        raise _reject("pdk_rule_ambiguous", rule=rule_id, path=path, lines=tuple(line for _, _, line in found))
+    value_text, unit_text, line = found[0]
+    if not _NUMBER.fullmatch(value_text):
+        raise _reject("pdk_rule_not_numeric", rule=rule_id, value=value_text, line=line)
+    factor = units_m.get(unit_text)
+    if factor is None:
+        raise _reject("pdk_rule_unit_unknown", rule=rule_id, unit=unit_text, line=line)
+    return float(value_text) * factor, line
+
+
+def _mismatch_blocks(kind, item, sources, source_specs):
+    """kind 하나의 PdkMismatchModel -- 모델 카드의 `.model` 블록마다 변수 식에서 slope 이름을 읽고 slope 원본에서 값을 읽는다."""
+    _require_keys("mismatch_models." + kind, item, _MISMATCH_KEYS, _MISMATCH_KEYS)
+    params = item["parameters"]
+    if not isinstance(params, list) or not params or any(not isinstance(p, str) or not p for p in params) \
+            or len(set(params)) != len(params):
+        raise _reject("pdk_decl_shape", where="mismatch_models." + kind + ".parameters")
+    for key in ("model_source", "slope_source"):
+        if item[key] not in sources:
+            raise _reject("pdk_source_undeclared", quantity="mismatch_models." + kind, source=item[key])
+    model_path, model_sha, model_table = sources[item["model_source"]]
+    slope_path, slope_sha, slope_table = sources[item["slope_source"]]
+    model_units = source_specs[item["model_source"]]["units_m"]
+    slope_units = source_specs[item["slope_source"]]["units_m"]
+    names = sorted(rid[:-len("." + _BOUND_KEYS[0])] for rid in model_table if rid.endswith("." + _BOUND_KEYS[0]))
+    if not names:
+        raise _reject("pdk_mismatch_no_blocks", kind=kind, path=model_path)
+    blocks, used = [], set()
+    for name in names:
+        bounds = {key: _number(model_table, name + "." + key, model_units, model_path) for key in _BOUND_KEYS}
+        slopes = []
+        for param in params:
+            expr = model_table.get(name + "." + param)
+            ref = _SLOPE_REF.search(expr[0][0]) if expr and len(expr) == 1 else None
+            if ref is None:
+                slopes.append((param, None, None, None))
+                continue
+            value, line = _number(slope_table, ref.group(1).lower(), slope_units, slope_path)
+            slopes.append((param, ref.group(1), value, line))
+            used.add(param)
+        blocks.append(PdkMismatchBlock(name, bounds["lmin"][0], bounds["lmax"][0], bounds["wmin"][0], bounds["wmax"][0],
+                                       tuple(slopes), bounds["lmin"][1]))
+    unused = sorted(set(params) - used)
+    if unused:
+        raise _reject("pdk_mismatch_parameter_unused", kind=kind, parameters=tuple(unused), path=model_path)
+    blocks.sort(key=lambda b: (b.wmin_m, b.wmax_m, b.lmin_m, b.lmax_m, b.model))
+    return PdkMismatchModel(kind, tuple(params), tuple(blocks), model_path, model_sha, slope_path, slope_sha)
+
+
+def _mismatch_models(spec, sources, source_specs):
+    if spec is None:
+        return ()
+    if not isinstance(spec, dict) or not spec:
+        raise _reject("pdk_decl_shape", where="mismatch_models")
+    return tuple((kind, _mismatch_blocks(kind, item, sources, source_specs)) for kind, item in sorted_items(spec))
+
+
+def _resistor_quantities(spec, quantities):
+    """`resistor_types` 선언 -> 본체 Ω당 면적(W_min²/R□)이 가장 작은 후보의 양을 `<selected_as>_...` 이름으로 낸 PdkQuantity tuple.
+    동률이면 후보 이름 순. 후보가 가리키는 양이 선언에 없으면 `pdk_quantity_undeclared`."""
+    if spec is None:
+        return ()
+    _require_keys("resistor_types", spec, _RESISTOR_KEYS, _RESISTOR_KEYS)
+    candidates = spec["candidates"]
+    if not isinstance(spec["selected_as"], str) or not spec["selected_as"] or not isinstance(candidates, dict) or not candidates:
+        raise _reject("pdk_decl_shape", where="resistor_types")
+    table = dict(quantities)
+    ranked = []
+    for name, item in sorted_items(candidates):
+        _require_keys("resistor_types.candidates." + name, item, _RESISTOR_CANDIDATE_KEYS, _RESISTOR_CANDIDATE_KEYS)
+        picked = {}
+        for key in _RESISTOR_CANDIDATE_KEYS:
+            if item[key] not in table:
+                raise _reject("pdk_quantity_undeclared", quantity=item[key], where="resistor_types.candidates." + name)
+            picked[key] = table[item[key]]
+        sheet, width = picked["sheet_ohm_per_sq"].value_m, picked["min_w_m"].value_m
+        if not sheet > 0:
+            raise _reject("pdk_quantity_invalid", quantity=item["sheet_ohm_per_sq"], value=sheet)
+        ranked.append((width * width / sheet, name, picked))
+    ranked.sort(key=lambda r: (r[0], r[1]))
+    area_per_ohm, chosen, picked = ranked[0]
+    basis = ("저항 종류 선택 규칙: 본체 Ω당 면적 W_min²/R□ 가 가장 작은 후보(동률은 이름 순). 후보 = " +
+             ", ".join("%s (%.6g m²/Ω)" % (n, a) for a, n, _ in ranked) + " -> " + chosen)
+    out = []
+    for key in _RESISTOR_CANDIDATE_KEYS:
+        quantity = picked[key]
+        out.append((spec["selected_as"] + "_" + key,
+                    PdkQuantity(spec["selected_as"] + "_" + key, quantity.value_m, "select_min_area_per_ohm(" + chosen + "." + key + ")",
+                                quantity.rules, basis + " | " + quantity.basis)))
+    return tuple(out)
+
+
 def read_pdk_decl(decl_path, memo):
     """선언 파일 `decl_path`(JSON, 스키마 `gmid_pdk_decl/1`)를 읽어 길이마다 규칙 식을 원본 파일 값으로 계산한 `PdkDecl`.
 
@@ -453,7 +600,7 @@ def read_pdk_decl(decl_path, memo):
         decl = json.loads(raw.decode("utf-8"))
     except json.JSONDecodeError as exc:
         raise _reject("pdk_decl_json", path=decl_path, error=exc.msg) from None
-    _require_keys("decl", decl, _TOP_KEYS, tuple(k for k in _TOP_KEYS if k != "note"))
+    _require_keys("decl", decl, _TOP_KEYS, tuple(k for k in _TOP_KEYS if k not in _OPTIONAL_TOP_KEYS))
     if decl["schema"] != _SCHEMA:
         raise _reject("pdk_decl_schema", path=decl_path, schema=decl["schema"])
     source_specs = decl["sources"]
@@ -468,5 +615,11 @@ def read_pdk_decl(decl_path, memo):
     sources = {name: _load_source(root, decl_dir, name, spec, memo) for name, spec in sorted_items(source_specs)}
     quantities = tuple((name, _quantity(name, spec, sources, source_specs))
                        for name, spec in sorted_items(quantity_specs))
+    selected = _resistor_quantities(decl.get("resistor_types"), quantities)
+    clash = sorted(set(dict(quantities)) & set(dict(selected)))
+    if clash:
+        raise _reject("pdk_quantity_duplicate", quantities=tuple(clash))
+    quantities = tuple(sorted(quantities + selected, key=lambda item: item[0]))
     return PdkDecl(decl["pdk"], decl_path, hashlib.sha256(raw).hexdigest(),
-                   tuple((name, path, digest) for name, (path, digest, _) in sorted_items(sources)), quantities)
+                   tuple((name, path, digest) for name, (path, digest, _) in sorted_items(sources)), quantities,
+                   _mismatch_models(decl.get("mismatch_models"), sources, source_specs))

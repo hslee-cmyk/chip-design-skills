@@ -71,25 +71,29 @@ def _check_hermite_fields(sl, z):
     np.testing.assert_array_equal(np.asarray(sl.vds_slope_ok), rs.vds_ok)
     np.testing.assert_array_equal(np.asarray(sl.fc_ok_vgs), rs.fc_vgs)
     np.testing.assert_array_equal(np.asarray(sl.fc_ok_vds), rs.fc_vds)
+    # [r7] VS 축 보조 필드(CONTRACT 1.4 [r7]): vs_slope_ok = GMBS/ID 유한·양수, fc_ok_vs 모양 [nL, nVGS, nVDS, nVS − 1]
+    assert np.asarray(sl.fc_ok_vs).shape == (nL, nG, nV, nS - 1)
+    np.testing.assert_array_equal(np.asarray(sl.vs_slope_ok), rs.vs_ok)
+    np.testing.assert_array_equal(np.asarray(sl.fc_ok_vs), rs.fc_vs)
     assert tuple(sl.hermite_fc) == rs.hermite_fc()
     return rs
 
 
 @pytest.mark.parametrize("w_key,W,scale", [(100, 1e-6, 1.0), (200, 2e-6, 2.0)])
 def test_r5_toy_hermite_fields(toy, w_key, W, scale):
-    """CONTRACT 7.1: hermite_fc = (("VDS", 18, 0), ("VGS", 24, 0))."""
+    """CONTRACT 7.1: hermite_fc = (("VDS", 18, 0), ("VGS", 24, 0)) [r7: + ("VS", 0, 0) -- toy 슬라이스는 GMBS 열이 없어 VS Hermite 칸 0]."""
     sl = toy.slice_map[("nmos", w_key)]
     _check_hermite_fields(sl, toy_slice_arrays(W, scale))
-    assert tuple(sl.hermite_fc) == (("VDS", 18, 0), ("VGS", 24, 0))
+    assert tuple(sl.hermite_fc) == (("VDS", 18, 0), ("VGS", 24, 0), ("VS", 0, 0))
     assert np.asarray(sl.fc_ok_vgs).all() and np.asarray(sl.fc_ok_vds).all()
 
 
 def test_r4_toy_hermite_fields_load_not_rejected(r4toy):
-    """CONTRACT 7.2: hermite_fc = (("VDS", 18, 18), ("VGS", 24, 12)) -- 위반이 있어도 로드는 거부하지 않는다."""
+    """CONTRACT 7.2: hermite_fc = (("VDS", 18, 18), ("VGS", 24, 12)) [r7: + ("VS", 0, 0)] -- 위반이 있어도 로드는 거부하지 않는다."""
     from .conftest import r4_toy_slice_arrays
     sl = r4toy.slice_map[("nmos", 100)]
     _check_hermite_fields(sl, r4_toy_slice_arrays(1e-6))
-    assert tuple(sl.hermite_fc) == (("VDS", 18, 18), ("VGS", 24, 12))
+    assert tuple(sl.hermite_fc) == (("VDS", 18, 18), ("VGS", 24, 12), ("VS", 0, 0))
     fv = np.asarray(sl.fc_ok_vgs)
     assert not fv[:, 0].any() and fv[:, 1].all()                    # VGS 칸 0 위반, 칸 1 단조
     assert not np.asarray(sl.fc_ok_vds).any()
@@ -108,7 +112,7 @@ def test_non_hermite_cells_are_true(toy_build):
     assert bool(np.asarray(sl.fc_ok_vds)[0, 1, 0, 0])
     assert bool(np.asarray(sl.fc_ok_vgs)[2, 1, 1, 1])
     # 손계산: VDS 칸 18 − (GDS 0 점의 칸 1) − (ID 0 점의 칸 1) = 16, VGS 칸 24 − (ID 0 점 = VGS 끝 마디, 칸 1) = 23
-    assert rs.hermite_fc() == (("VDS", 16, 0), ("VGS", 23, 0))
+    assert rs.hermite_fc() == (("VDS", 16, 0), ("VGS", 23, 0), ("VS", 0, 0))
 
 
 def test_log_floor_is_min_positive_and_on_mask(toy_build):
@@ -285,8 +289,9 @@ def test_reject_width_unresolved_single_slice(toy_build):
 def test_reject_width_unresolved_tie(toy_build):
     # 2 의 거듭제곱 값: |I − 2I| / 2I = |3I − 2I| / 2I = 0.5 정확히 같음(동률)
     vgs = (0.0, 0.5, 1.0)
-    base = np.asarray((2.0 ** -24, 2.0 ** -20, 2.0 ** -16))
-    gmid = (20.0, 10.0, 4.0)
+    base = np.asarray((2.0 ** -24, 2.0 ** -20, 2.0 ** -17))
+    # [r7] gm/ID 는 ln ID 현(ln16/0.5 = 5.55, ln8/0.5 = 4.16)이 두 끝 사이가 되게(lut CONTRACT 1.4 단위 검사 일관 -- 이 test 의 대상은 폭 동률)
+    gmid = (6.0, 5.0, 4.0)
     a = curve_slice_arrays(1e-6, vgs, base, gmid)
     b = curve_slice_arrays(2e-6, vgs, 3.0 * base, gmid)
     ref = curve_slice_arrays(1e-6, vgs, 2.0 * base, gmid)["ID"]
@@ -405,10 +410,10 @@ def test_real_hermite_fields_all_slices(real_lut, real_slice_files, raw_slice):
 
 @pytest.mark.lut_realdata
 def test_old_set_hermite_fields(old_lut, old_slice_files, old_raw_slice):
-    """옛 12-L 세트: 계약 1.4 [r5 실측] 모든 슬라이스 hermite_fc = (("VDS", 276360, 0), ("VGS", 276480, 0))."""
+    """옛 12-L 세트: 계약 1.4 [r5 실측] 모든 슬라이스 hermite_fc = (("VDS", 276360, 0), ("VGS", 276480, 0)) [r7: + ("VS", 0, 0) -- GMBS 열 없음]."""
     for kind, _, _, wk, _ in old_slice_files[:3]:
         _check_hermite_fields(old_lut.slice_map[(kind, wk)], old_raw_slice(kind, wk))
-    assert {tuple(sl.hermite_fc) for sl in old_lut.slice_map.values()} == {(("VDS", 276360, 0), ("VGS", 276480, 0))}
+    assert {tuple(sl.hermite_fc) for sl in old_lut.slice_map.values()} == {(("VDS", 276360, 0), ("VGS", 276480, 0), ("VS", 0, 0))}
 
 
 # ---------------------------------------------------------------------------
@@ -614,3 +619,64 @@ def test_real_midpoints_loaded(real_lut, raw_mid):
         assert np.array_equal(np.asarray(t.VDSAT), raw_mid["VDSAT" + suf])
         I, G = raw_mid["ID" + suf], raw_mid["GM" + suf]
         assert np.array_equal(np.asarray(t.on_mask), (I > 0) & (G > 0))
+
+
+# ---------------------------------------------------------------------------
+# [r7] VS 축 FC 기록·기울기 열 단위 검사 (계획 DEC-87·N3.7, 설계 41 §4.1 '단위 불일치 -> 로드 거부(SchemaRejectedError)')
+# ---------------------------------------------------------------------------
+
+from .conftest import RefSlice, vs_toy_slices  # noqa: E402
+
+
+def test_vs_hermite_fc_recorded_toy(toy_build):
+    """(a) vs toy: VS Hermite 칸 = 3 L × 3 VGS × 2 VDS × 1 VS 칸 = 18, 위반 0(정확한 기울기). GMBS 가 없는 r5 toy 는 ("VS", 0, 0)."""
+    lut = toy_build("vs", slices=vs_toy_slices()).load()
+    assert lut.slice_map[("nmos", 100)].hermite_fc[2] == ("VS", 18, 0)
+    lut0 = toy_build("plain").load()
+    assert lut0.slice_map[("nmos", 100)].hermite_fc[2] == ("VS", 0, 0)
+
+
+def test_vs_fc_violations_counted_toy(toy_build):
+    """(a) VS FC 위반 판 vs toy(conftest vs_fc=True, 기울기 자료 일관) -> 18 칸 모두 위반(test__helpers_interp 의 손계산) -- 로드는
+    거부하지 않는다(CONTRACT 1.4 '위반이 있어도'). [r7] 옛 입력(GMBS 1000 배)은 단위 검사로 거부된다(아래 test)."""
+    lut = toy_build("vsfc", slices=vs_toy_slices(vs_fc=True)).load()
+    assert lut.slice_map[("nmos", 100)].hermite_fc[2] == ("VS", 18, 18)
+
+
+@pytest.mark.parametrize("col", ["GM", "GDS"])
+def test_unit_mismatch_rejected_gm_gds(toy_build, col):
+    """설계 41 §4.1: 기울기 열이 ln ID 격자 차분과 단위가 다르면(여기서 ×1000, A/V -> mA/V 류 SI 접두 오류) 로드 거부."""
+    def bad(W, scale):
+        from .conftest import toy_slice_arrays
+        a = toy_slice_arrays(W, scale)
+        a[col] = a[col] * 1000.0
+        return a
+    b = toy_build("unit_" + col, slices=[("a.npz", "toyn", bad(1e-6, 1.0)), ("b.npz", "toyn", bad(2e-6, 2.0))])
+    with pytest.raises(SchemaRejectedError) as ei:
+        b.load()
+    d = detail_of(ei.value)
+    assert d["reason"] == "lut_unit_mismatch" and d["column"] == col
+
+
+def test_unit_mismatch_rejected_gmbs(toy_build):
+    """[RED 예상 -- 기준 약화 보고] GMBS 는 r7 부터 VS 축 Hermite 의 기울기 열(DEC-87)이라 설계 41 §4.1 '단위 불일치 -> 로드 거부'의 대상이다.
+    계약 r7(1.4)은 'toy 슬라이스 호환'을 이유로 GMBS/ID 를 검사에서 뺐다 -- 그 결과 GMBS 가 1000 배(단위 오류)인 슬라이스가 로드되고,
+    VS 칸이 모두 FC 위반으로 선형 폴백되며 `gmb` 는 1000 배 값을 조용히 낸다. 기준을 빼는 것은 사용자 승인 사항이라 설계대로 고정한다."""
+    b = toy_build("unit_gmbs", slices=vs_toy_slices(gmbs_mult=1000.0))
+    with pytest.raises(SchemaRejectedError) as ei:
+        b.load()
+    d = detail_of(ei.value)
+    assert d["reason"] == "lut_unit_mismatch" and d["column"] in ("GMBS", "GMBS_PER_ID")
+
+
+@pytest.mark.lut_realdata
+def test_real_vs_hermite_fc_counts_independent(real_lut, real_slice_files, raw_slice):
+    """(b) 실데이터 32 슬라이스: `hermite_fc` 세 항(VDS·VGS·VS) = conftest 독립 FC 판정(RefSlice -- VS 기울기 −GMBS/ID).
+    VS 위반은 nmos 72·78 과 pmos 여러 폭의 L 0.15 µm 행에만 있다(독립 계산: nmos 합 353, pmos 합 3,934)."""
+    tot = {"nmos": 0, "pmos": 0}
+    for kind, _, _, wk, _ in real_slice_files:
+        rs = RefSlice(raw_slice(kind, wk))
+        assert real_lut.slice_map[(kind, wk)].hermite_fc == rs.hermite_fc(), (kind, wk)
+        tot[kind] += rs.hermite_fc()[2][2]
+        assert int((~rs.fc_vs[1:]).sum()) == 0, (kind, wk)          # L 0.15 µm 외 행은 위반 없음
+    assert tot == {"nmos": 353, "pmos": 3934}

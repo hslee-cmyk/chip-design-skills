@@ -7,6 +7,7 @@
 내용을 다른 폴더에 두어도 같은 지문). 코드 해시는 넣지 않는다(S0 의 '유도 규칙 코드 해시' 항목이 맡는다, P N3.3).
 [r6] 검증 중점 파일이 출처에 있으면(`midpoints_sha256` 이 None 아님) 그 sha256 을 끝에 더한다 -- 중점 값이 tol 표의 외부
 bin 값으로 들어가므로 다른 중점 파일은 다른 지문이다. 없으면 r5 와 같은 지문(같은 6항목).
+[r7] 잡음 r1 파일·mismatch 감도 r1 파일이 출처에 있으면 그 sha256 을 차례로 더한다(없으면 같은 지문).
 """
 from gmid_engine.core import fp_of
 
@@ -24,4 +25,8 @@ def lut_fingerprint(provenance, cap_basis):
     )
     if provenance.midpoints_sha256 is not None:
         items = items + (("midpoints_sha256", provenance.midpoints_sha256),)
+    if provenance.noise_sha256 is not None:
+        items = items + (("noise_sha256", provenance.noise_sha256),)
+    if provenance.mismatch_sha256 is not None:
+        items = items + (("mismatch_sha256", provenance.mismatch_sha256),)
     return fp_of(items)

@@ -94,3 +94,16 @@ def test_real_zero_current_point_uses_array_floor(real_memo, raw_slice):
     L = float(z["L"][iL])
     op = op_point(real_memo, "nmos", 1000, L, float(z["VGS"][iG]), float(z["VDS"][k]), float(z["VS"][s]))
     assert rel_close(op.IDu, floor * L / float(z["W"]), 1e-12)
+
+
+# ---------------------------------------------------------------- [r7] 격자점 = 저장값, 폴백 기록은 격자점 사이에서만
+
+@pytest.mark.parametrize("vgs,gm_id", [(0.0, 20.0), (0.5, 4.0), (1.0, 1.5)])
+def test_grid_point_returns_stored_gm_id_without_fallback(r4toy_memo, vgs, gm_id):
+    """[RED 예상 -- 결함 보고] CONTRACT 4.2 '결과: 격자점(네 축 모두 격자 위, L 앵커)에서 lnID·gm/ID·lnGDS·VTH 는 저장값 그대로'와
+    4.1 [r7] '선형 폴백 기록은 Hermite 가 가능한 칸(VGS·VDS·VS 가 격자점 사이)' -- 계획 DEC-87 '기울기 = 저장 GM/ID'.
+    oracle (a): r4 toy 저장 GM/ID = (20, 4, 1.5)(conftest r4 toy 구성 -- [r7] 1.4 단위 검사와 맞는 판). VGS = 0 은 오른쪽 칸 [0, 0.5] 가
+    FC 위반인 격자점(옛 결함: 그 칸의 할선 기울기 ln10/0.5 = 4.605 를 gm/ID 로 내고 ('VGS', 'fc_violation') 기록)."""
+    op = op_point(r4toy_memo, "nmos", 100, 1e-6, vgs, 0.5, 0.0)
+    assert abs(op.gm_over_id - gm_id) <= 1e-12 * gm_id
+    assert op.fallbacks == ()

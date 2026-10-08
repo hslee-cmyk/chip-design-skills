@@ -78,4 +78,5 @@ def test_toy_lut_is_hermite_consistent(toy_lut):
     n_vgs = len(TOY_L) * (len(TOY_VGS) - 1) * len(TOY_VDS) * len(TOY_VS)
     n_vds = len(TOY_L) * len(TOY_VGS) * (len(TOY_VDS) - 1) * len(TOY_VS)
     for sl in toy_lut.slice_map.values():
-        assert {a: (n, v) for a, n, v in sl.hermite_fc} == {"VDS": (n_vds, 0), "VGS": (n_vgs, 0)}
+        # [r7] lut 1.4: hermite_fc 세 번째 항 ("VS", Hermite 칸 수, 위반 수) -- 이 toy 는 GMBS 열이 없어 VS Hermite 칸 0
+        assert {a: (n, v) for a, n, v in sl.hermite_fc} == {"VDS": (n_vds, 0), "VGS": (n_vgs, 0), "VS": (0, 0)}

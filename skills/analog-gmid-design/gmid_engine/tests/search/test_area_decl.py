@@ -6,9 +6,8 @@ oracle:
   커패시터 값 -> 커패시터 면적 = 값 / 밀도. MOS 면적 Σ W·L 은 결과 스냅샷 입력 열 dc_op 에서 이 test 가 더한다(conftest
   `expected_objectives`). 측정 부하(measurement_load) 표지 유무만 다른 두 spec 의 면적 차 = 그 부하 값 / 밀도.
 - (d) 사용자 결정 11 / core CONTRACT 9.4 표 값 2.0e-3 F/m², 그리고 PDK 원본 파일 줄을 이 test 가 직접 파싱한 값(피검 read_pdk_decl 아님).
-- 저항: PDK 단위 면적 선언이 아직 없어 면적에 넣지 않고 `passive_area_undeclared` 로 보고(3.22). 사용자 결정 Q9(2026-10-08 "저항 면적
-  포함(PDK poly 저항 시트·폭 규칙에서 Ω당 면적 유도)")가 구현되면 이 test 의 저항 기대(미선언 목록)는 그때 바뀐다 -- 지금 동작 고정이
-  아니라 현 계약 단계의 기대다.
+- 저항: PDK 선언에 poly 저항 양(`poly_res_*`, core 9.7 resistor_types)이 없으면 면적에 넣지 않고 `passive_area_undeclared` 로 보고(3.22).
+  [U3] 사용자 결정 Q9(설계 40 §7.1)가 구현돼 그 양이 있으면 본체 W_min²/R□·값 + 머리 면적이 들어간다 -- 파일 끝 '[U3] 저항 면적' 절.
 """
 import math
 import os
@@ -198,3 +197,76 @@ def test_sky130_mim_density_read_from_pdk_file():
     lines = text.splitlines()
     assert rule.line >= 1 and re.match(r"^\+\s*camimc\s*=", lines[rule.line - 1])
     assert math.isfinite(decl.value("mim_cap_density_f_per_m2"))
+
+
+# ---------------------------------------------------------------- [U3] 저항 면적 (설계 40 §7.1 결정 Q9, core 9.7 resistor_types)
+#   oracle (a) 구성: toy PDK 저항 원본(이 test 가 쓴 R□ = 50 Ω/□, W_min = 0.4 µm, 머리 1e-12 m²) -> Ω당 면적 = W_min²/R□ = 3.2e-15 m²/Ω
+#   (40 §7.1 '단위 면적 유도: R·W_R²/R□ + 머리'), 저항마다 머리 한 번. 측정 부하 저항은 면적에서 뺀다.
+
+TOY_R_SHEET = 50.0
+TOY_R_WMIN = 4e-7
+TOY_R_HEAD = 1e-12
+RZ_OHM = 1e4                    # theta_z 기본 rz (구성 입력)
+
+
+def write_decls_mim_res(root):
+    """write_decls_mim + 원본 `toy_res`(`+ rsh=50`, `+ wmin=4e-7`, `+ head=1e-12`)와 resistor_types 후보 하나."""
+    import hashlib
+    import json
+    from gmid_engine.core import BoundedLRU
+    from .conftest import TOY_CAMIMC_F_PER_UM2, _decl_paths
+    pp, rp = _decl_paths(root)
+    root = Path(root)
+    rc = root / "toy_rc.spice"                                   # write_decls_mim 과 같은 MIM 원본(구성 입력)
+    rc.write_text("* toy r+c\n.param\n+ camimc=  %s  $ Units: farad/micrometer^2\n" % TOY_CAMIMC_F_PER_UM2,
+                  encoding="utf-8")
+    res = root / "toy_res.spice"
+    res.write_text("* toy poly resistor\n.param\n+ rsh=%r\n+ wmin=%r\n+ head=%r\n" % (TOY_R_SHEET, TOY_R_WMIN, TOY_R_HEAD),
+                   encoding="utf-8")
+    decl = json.loads(Path(pp).read_text(encoding="utf-8"))
+    decl["sources"]["toy_rc"] = {"path": "toy_rc.spice", "sha256": hashlib.sha256(rc.read_bytes()).hexdigest(),
+                                 "format": "spice_instance_line", "encoding": "utf-8",
+                                 "line_pattern": r"^\+\s*(camimc\s*=\s*[^\s$]+)", "units_m": {"": 1e12}}
+    decl["quantities"]["mim_cap_density_f_per_m2"] = {"source": "toy_rc", "expression": "camimc", "basis": "toy MIM"}
+    decl["sources"]["toy_res"] = {"path": "toy_res.spice", "sha256": hashlib.sha256(res.read_bytes()).hexdigest(),
+                                  "format": "spice_instance_line", "encoding": "utf-8",
+                                  "line_pattern": r"^\+\s*(\w+\s*=\s*[^\s$]+)", "units_m": {"": 1.0}}
+    for q, e in (("toy_res_sheet", "rsh"), ("toy_res_w", "wmin"), ("toy_res_head", "head")):
+        decl["quantities"][q] = {"source": "toy_res", "expression": e, "basis": "toy poly resistor"}
+    decl["resistor_types"] = {"selected_as": "poly_res", "candidates": {"toy": {
+        "sheet_ohm_per_sq": "toy_res_sheet", "min_w_m": "toy_res_w", "head_area_m2": "toy_res_head"}}}
+    Path(pp).write_text(json.dumps(decl), encoding="utf-8")
+    memo = BoundedLRU(8)
+    return read_pdk_decl(pp, memo), read_pdk_decl(rp, memo)
+
+
+def test_resistor_unit_area_and_head(tmp_path, lut_sealed):
+    from gmid_engine.search.area_decl import passive_area_decl
+    case = _case(tmp_path, lut_sealed, pdk_rule=write_decls_mim_res(tmp_path / "pdk_res"))
+    d = passive_area_decl(case.dc, case.spec, case.pdk)
+    unit = dict(d.unit_area)
+    assert set(unit) == {"CL", "Cz", "Rz"}
+    assert unit["Rz"] == pytest.approx(TOY_R_WMIN ** 2 / TOY_R_SHEET, rel=1e-12)
+    assert dict(d.head_area) == {"Rz": pytest.approx(TOY_R_HEAD, rel=1e-12)}
+
+
+def test_resistor_area_enters_area_axis(tmp_path, lut_sealed):
+    """area_search_m2 = Σ W·L + (CL + Cz)/밀도 + Rz·W_min²/R□ + 머리, 미선언 목록 비어 있음."""
+    case = _case(tmp_path, lut_sealed, pdk_rule=write_decls_mim_res(tmp_path / "pdk_res"))
+    r = _eval(case)
+    assert r.status == STATUS_SEALED
+    e = expected_objectives(snap_of(r))
+    want = e["gate_area"] + (CL_F + CZ_F) / TOY_MIM_DENSITY + RZ_OHM * TOY_R_WMIN ** 2 / TOY_R_SHEET + TOY_R_HEAD
+    assert r.objectives.area_m2 == pytest.approx(want, rel=1e-12)
+    assert tuple(r.objectives.passive_area_undeclared) == ()
+
+
+def test_resistor_measurement_load_excluded(tmp_path, lut_sealed):
+    """측정 부하 표지 저항은 본체·머리 모두 면적에서 빠진다(40 §7.1 '측정 부하 제외')."""
+    from gmid_engine.search.area_decl import passive_area_decl
+    case = _case(tmp_path, lut_sealed, pdk_rule=write_decls_mim_res(tmp_path / "pdk_res"), ml=("Rz",))
+    d = passive_area_decl(case.dc, case.spec, case.pdk)
+    assert "Rz" in d.excluded and "Rz" not in dict(d.unit_area) and dict(d.head_area) == {}
+    r = _eval(case)
+    e = expected_objectives(snap_of(r))
+    assert r.objectives.area_m2 == pytest.approx(e["gate_area"] + (CL_F + CZ_F) / TOY_MIM_DENSITY, rel=1e-12)

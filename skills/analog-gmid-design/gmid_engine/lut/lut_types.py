@@ -8,7 +8,8 @@
   body 전위 크기(vsb)다(슬라이스 생성기 sign_convention: source 접지, body = -VS(nfet) / +VS(pfet)).
 * 슬라이스 배열 값은 그 폭 `w_m` 에서의 절댓값(정규화 안 함). 정규화(`ID·L/w_m`)는 조회 함수가 한다.
 * 보간 방법은 축별이다(DEC-87, lut/CONTRACT.md 4.2): ln ID 는 VGS·VDS 축 2점 cubic-Hermite(기울기 = 저장 GM/ID·GDS/ID),
-  VS·L 축 선형. gm/ID 는 그 다항식의 VGS 미분으로 정의한다. 로드 때 Hermite 칸마다 Fritsch–Carlson 단조 조건을 검사해 둔다.
+  [r7] VS 축도 GMBS 열이 있는 슬라이스에서 Hermite(기울기 = −GMBS/ID), L 축 선형. gm/ID 는 그 다항식의 VGS 미분으로 정의한다.
+  로드 때 Hermite 칸마다 Fritsch–Carlson 단조 조건을 검사해 둔다.
 * numpy 배열 필드는 읽기 전용(`writeable=False`)으로 만든다. 그래서 내용 지문은 `__canonical__` 이 파일 sha256
   등 출처 값으로 대신 말한다(배열 바이트를 매번 해시하지 않는다 -- DF-13 의 '내용 해시는 비싸다'를 로드 1회로 해소).
 * [r6] 열은 그 열을 **저장한 표**에서만 읽는다(폭을 건너 옮기지 않는다): 슬라이스 선택 열(`DcSlice.columns`) 또는 그 폭이
@@ -28,6 +29,12 @@ SLICE_OPTIONAL_COLUMNS = ("GMBS", "VDSAT")
 DERIVED_COLUMNS = ("GMBS_PER_ID",)
 # 열 출처 이름(`ColumnSource.origin`)
 COLUMN_ORIGINS = ("cap_table", "slice")
+# [r7] gm/ID 축 곡선 양(`GmIdAxisCurve.quantity`)
+CURVE_QUANTITIES = ("ft_hz", "idu_a", "intrinsic_gain", "vdsat_v")      # 이름이 단위를 적는다(Hz·A·무차원·V)
+# [r7] 잡음 B(열잡음 평탄값) 상태: 점의 판정 결과. "known" 이 아니면 B 는 미상(None)이고 A 는 S_vg(1 Hz) 그대로다.
+CLASS_HERMITE = "hermite"                          # `Curve.cell_class` 값: Hermite 칸(역산 허용). 그 밖은 REASON_* 사유 글자
+NOISE_B_STATUS = ("known", "no_feedthrough_free_point", "nonpositive")
+TOL_NOISE_METRICS = ("flicker", "thermal")           # flicker: ln S_vg(f_lo) 면 LOO(상대), thermal: ln B 면 LOO(상대)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -38,12 +45,15 @@ class LutSpec:
     `min_finger_w_m`: ((kind, 최소 finger 폭 m), ...) -- `widths()` 의 하한(PDK difftap 규칙).
     `device_kinds`: ((manifest device 이름, kind), ...) -- 슬라이스 소자 이름을 엔진 kind 로.
     `cap_column_suffix`: ((kind, 기준 LUT 열 접미사), ...) -- 기준 LUT npz 의 `CGG<접미사>` 등 열 이름.
+    [r7] `noise_ef`: ((kind, 1/f 지수 EF), ...) -- 잡음 파일(`noise_npz`)을 읽을 때만 필요. PDK 선언 양 `noise_ef_<kind>`
+    (core `read_pdk_decl`, 모델 카드 `ef` 키 원본)에서 부르는 쪽이 채운다.
     """
 
     manufacturing_grid_m: float
     min_finger_w_m: tuple
     device_kinds: tuple
     cap_column_suffix: tuple
+    noise_ef: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -92,6 +102,7 @@ class LutProvenance:
 
     [r6] `midpoints_*`: bin 검증 중점 파일(선택, `load_lut_set(verify_midpoints=)`)의 경로·sha256·meta `L_source`
     (키 정렬 쌍 tuple)·측정 조건(`cap_conditions` 와 같은 형식). 없으면 None·None·()·().
+    [r7] `noise_*`·`mismatch_*`: 잡음 r1 파일·mismatch 감도 r1 파일(선택)의 경로와 sha256(없으면 None).
     """
 
     manifest_path: str
@@ -105,6 +116,10 @@ class LutProvenance:
     midpoints_sha256: object = None
     midpoints_l_source: tuple = ()
     midpoints_conditions: tuple = ()
+    noise_path: object = None
+    noise_sha256: object = None
+    mismatch_path: object = None
+    mismatch_sha256: object = None
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -123,6 +138,9 @@ class DcSlice:
 
     [r6] `columns`: 슬라이스 npz 에 있는 선택 열(`SLICE_OPTIONAL_COLUMNS`) + 파생 열(`DERIVED_COLUMNS`) {이름: 읽기 전용 배열}
     (지금 슬라이스 생성기는 선택 열을 쓰지 않는다 -> 빈 매핑).
+
+    [r7] VS 축 Hermite(DEC-87): `vs_slope_ok` = (ID > 0) & (GMBS > 0) 격자점(VS 기울기 d ln ID/d VS = −GMBS/ID 정의; GMBS 열이
+    없으면 전부 거짓), `fc_ok_vs`[L, VGS, VDS, VS 칸] = 그 칸 단조 조건(Hermite 칸이 아니면 참), `hermite_fc` 에 ("VS", ...) 항.
     """
 
     kind: str
@@ -146,6 +164,8 @@ class DcSlice:
     fc_ok_vds: object
     hermite_fc: tuple
     columns: object = types.MappingProxyType({})
+    vs_slope_ok: object = None
+    fc_ok_vs: object = None
 
     def __canonical__(self):
         return (self.kind, self.w_key, self.sha256)
@@ -215,6 +235,7 @@ class LutSet:
 
     `fp` = `lut_fingerprint(provenance, cap 채택 근거)` -- memo 키와 S0 입력에 쓴다.
     [r6] `midpoints`: {kind: MidpointTable}(검증 중점 파일을 주지 않았으면 빈 매핑).
+    [r7] `noise`: {kind: NoiseTable}(잡음 r1 파일), `mismatch`: {kind: MismatchTable}(mismatch 감도 r1 파일) -- 파일을 주지 않았으면 빈 매핑.
     """
 
     spec: LutSpec
@@ -223,6 +244,8 @@ class LutSet:
     cap_map: object
     fp: str
     midpoints: object = types.MappingProxyType({})
+    noise: object = types.MappingProxyType({})
+    mismatch: object = types.MappingProxyType({})
 
     def __canonical__(self):
         return self.fp
@@ -250,6 +273,8 @@ class OpPoint:
     """한 동작점 조회 결과(슬라이스 폭 w_m 기준).
 
     `IDu` = ID·L/w_m(A, W/L=1 기준 전류), `gm_over_id`(1/V), `gm_gds`(무차원), `gds_per_w` = GDS/w_m(S/m), `vth`(V).
+    [r7] `fallbacks` = Hermite 가 가능한 칸인데 선형으로 보간한 축의 ((축, 사유), ...) 정렬 tuple(없으면 ()) -- 사유
+    "slope_undefined"·"fc_violation"(DEC-87 FC 정책: 선형 폴백을 허용하되 사유를 기록한다, 41 §4.1).
     """
 
     IDu: float
@@ -257,6 +282,7 @@ class OpPoint:
     gm_gds: float
     gds_per_w: float
     vth: float
+    fallbacks: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -266,6 +292,8 @@ class Curve:
     (ln ID, gm/ID) 를 값·기울기로 쓰는 cubic-Hermite 다(op_point 와 같은 곡면, lut/CONTRACT.md 4.2).
     `cell_ok`[j] = VGS 칸 [j, j+1] 의 모서리(가중치 0 이 아닌 L·VDS·VS 격자 칸)가 모두 Fritsch–Carlson 단조 조건을
     만족(거짓이면 그 칸은 선형 -- 역산 함수가 그 칸의 근을 내지 않는다).
+    [r7] `cell_class`[j] = VGS 칸 j 의 분류(41 §4.1): "hermite"(단조 -- 역산 허용), "fc_violation"(Fritsch–Carlson 위반 -- 격자
+    전수만), "slope_undefined"(끝 기울기 자료 없음 -- 선형 칸).
 
     배열은 읽기 전용 numpy 배열이다.
     """
@@ -275,6 +303,7 @@ class Curve:
     gm_id_vals: object
     log_id_vals: object
     cell_ok: object
+    cell_class: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -363,7 +392,8 @@ class MidpointChecks:
 @dataclasses.dataclass(frozen=True)
 class LutLocation:
     """[r6] 설정 파일로 정한 LUT 데이터 위치(lut/CONTRACT.md 1.8). 경로는 절대 경로, 파일 sha256 은 설정 기록과 대조됨.
-    `midpoints_path`·`pdk_root` 는 설정에 없으면 None. `sources` = ((항목, "env:<이름>" 또는 "config_default"), ...)."""
+    `midpoints_path`·`pdk_root` 는 설정에 없으면 None. `sources` = ((항목, "env:<이름>" 또는 "config_default"), ...).
+    [r7] `noise_path`·`mismatch_path`: 잡음 r1·mismatch 감도 r1 파일(설정 `files.noise`·`files.mismatch`, 없으면 None)."""
 
     config_path: str
     root: str
@@ -372,6 +402,8 @@ class LutLocation:
     midpoints_path: object
     pdk_root: object
     sources: tuple
+    noise_path: object = None
+    mismatch_path: object = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -403,3 +435,142 @@ class CurveReport:
 
     lut_fp: str
     rows: tuple
+
+
+@dataclasses.dataclass(frozen=True, eq=False)
+class GmIdAxisCurve:
+    """[r7] gm/ID 축 곡선 표(lut/CONTRACT.md 4.5): 고정 (L, VDS, VS) 의 강반전 분지(VGS ≥ 곡선 정점) VGS 격자 마디에서 `quantity`
+    (`CURVE_QUANTITIES`) 의 값. 배열은 VGS 오름차순(gm/ID 는 분지에서 내려간다), 읽기 전용.
+
+    `gm_id` = 마디 gm/ID(1/V), `values` = 마디 값, `vgs` = 마디 VGS, `cell_ok`[j] = 마디 j·j+1 사이 VGS 칸이 Hermite 칸(역산 허용),
+    `monotone` = `gm_id` 가 분지에서 엄격히 감소(역산 가능 -- 아니면 소비자는 격자 전수로 쓴다, 41 §4.1). `L` = 조회 L(앵커 값 또는 보간 L).
+    """
+
+    quantity: str
+    kind: str
+    w_key: int
+    L: float
+    vds: float
+    vsb: float
+    gm_id: object
+    values: object
+    vgs: object
+    cell_ok: object
+    monotone: bool
+
+    def __canonical__(self):
+        return (self.quantity, self.kind, self.w_key, self.L, self.vds, self.vsb)
+
+
+@dataclasses.dataclass(frozen=True, eq=False)
+class NoiseTable:
+    """[r7] 잡음 r1 파일의 한 kind(lut/CONTRACT.md 9.1). `freqs` = 주파수 점(Hz, 오름차순; 기준 LUT 의 `SVG2_1HZ`·`SVG2_HF` 두 점
+    + r1 파일의 로그 이분 점), `S`[f, L, VGS, VDS, VS] = 게이트 환산 S_vg(f)(V²/Hz, 기준 폭 `w_ref_m`), `ef` = PDK 1/f 지수.
+    축·`l_bins`·`w_key` 는 기준 LUT(`CapTable`)와 같다. `cap_sha256` = 이 파일이 묶인 기준 LUT sha256(로드 때 대조)."""
+
+    kind: str
+    sha256: str
+    cap_sha256: str
+    grids: tuple
+    freqs: tuple
+    S: object
+    ef: float
+    w_ref_m: float
+    w_key: object
+    l_bins: LBinMap
+
+    def __canonical__(self):
+        return (self.kind, self.sha256)
+
+
+@dataclasses.dataclass(frozen=True, eq=False)
+class NoisePlanes:
+    """[r7] 잡음 분해 면(파생 표, lut/CONTRACT.md 9.2): S_vg(f) = A/f^EF + B. `ln_a`·`ln_b`[L, VGS, VDS, VS] = ln A, ln B(미상 NaN),
+    `status`[...] = 점마다 `NOISE_B_STATUS` index, `tol_a`[L, VDS] = 피드스루 판정 허용오차(셀 값; ln S_vg(f_lo) 면 LOO 상대오차의
+    Richardson 환산, 정의 안 되면 NaN). 조회용 보조 면(점마다 한 번 계산해 `linear_point` 가 모서리만 읽게 한다): `ln_b_filled` = ln B(미상 0),
+    `flag_no_point`·`flag_nonpositive` = 상태가 그 값이면 1.0, 아니면 0.0. `tol_point`[L, VGS, VDS, VS] = B 를 고른 점의 실효 허용오차
+    (= min(그 점의 LOO 오차, 그 셀의 `tol_a`), 점의 LOO 가 정의 안 되면 `tol_a`)."""
+
+    kind: str
+    ln_a: object
+    ln_b: object
+    status: object
+    tol_a: object
+    ln_b_filled: object
+    flag_no_point: object
+    flag_nonpositive: object
+    tol_point: object
+
+    def __canonical__(self):
+        return (self.kind,)
+
+
+@dataclasses.dataclass(frozen=True)
+class NoiseParams:
+    """[r7] 게이트 환산 잡음 계수(기준 폭 `w_m` 의 소자): S_vg(f) = `A`/f^`ef` + `B` (V²/Hz). `B` 가 미상(`b_status` != "known")이면
+    None 이고 `A` 는 S_vg(1 Hz) 그대로. 폭 W 소자는 두 값 모두 `w_m`/W 배."""
+
+    A: float
+    B: object
+    ef: float
+    b_status: str
+    w_m: float
+
+
+@dataclasses.dataclass(frozen=True)
+class TolNoiseCell:
+    """[r7] 잡음 허용오차 표 한 칸((kind, L 앵커, VDS)): `flicker` = ln S_vg(f_lo) 면, `thermal` = ln B 면의 leave-one-out(선형) 상대오차를
+    Richardson 환산(÷ 2^2)한 셀 안 최댓값, 정의 안 되면 None."""
+
+    flicker: object
+    thermal: object
+
+
+@dataclasses.dataclass(frozen=True, eq=False)
+class MismatchTable:
+    """[r7] mismatch 감도 r1 파일의 한 kind(lut/CONTRACT.md 10.1). `dvgs`[param] = DVGS_param[L, VGS, VDS, VS](V; 변수 param 의 1σ 섭동에서
+    기준 곡선 ID 의 |VGS| 차, 정의 안 되면 NaN), `slope_ref`[i] = L 앵커 i 의 ((param, slope 이름 또는 None, slope 값 또는 None), ...),
+    `sigma_unit` = 섭동 1σ 의 `*_slope_spectre` 값(.option scale)."""
+
+    kind: str
+    sha256: str
+    cap_sha256: str
+    grids: tuple
+    params: tuple
+    dvgs: object
+    slope_ref: tuple
+    sigma_unit: float
+    w_ref_m: float
+    w_key: object
+    l_bins: LBinMap
+
+    def __canonical__(self):
+        return (self.kind, self.sha256)
+
+
+@dataclasses.dataclass(frozen=True)
+class MismatchSens:
+    """[r7] 기준 폭 `w_m`, 조회점의 mismatch 감도: `dvgs`{param: V}(1σ 섭동 DVGS_k), `slope_ref`{param: 기준 bin 의 slope 값}(그 bin 이
+    변수를 안 쓰면 0.0). 소자 σ 합성은 `mismatch_sigma_vgs`."""
+
+    dvgs: object
+    slope_ref: object
+    w_m: float
+
+
+@dataclasses.dataclass(frozen=True)
+class TolMismatchCell:
+    """[r7] mismatch 허용오차 표 한 칸((kind, L 앵커, VDS)): `params` = ((변수, 값 V 또는 None), ...) -- DVGS_param 면 leave-one-out(선형)
+    오차의 Richardson 환산(÷ 2^2) 셀 안 최댓값."""
+
+    params: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class MismatchSigma:
+    """[r7] 소자 하나의 게이트 환산 mismatch σ(`mismatch_sigma_vgs`): `sigma_v`(V) = √Σ 기여², `parts` = ((변수, 기여 V), ...) 변수 선언 순서,
+    `model` = 소자 (W, L) 이 든 PDK `.model` 블록 이름."""
+
+    sigma_v: float
+    parts: tuple
+    model: str

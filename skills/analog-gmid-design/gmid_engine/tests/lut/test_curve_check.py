@@ -104,7 +104,10 @@ def test_real_rows_against_npz(real_lut, raw_slice):
 
 @pytest.mark.lut_realdata
 def test_real_n_hermite_nonmonotone_against_independent_fc(real_lut, raw_slice):
-    """[r5] n_hermite_nonmonotone = 그 L 앵커의 count(~fc_ok_vgs[i]) + count(~fc_ok_vds[i]) -- FC 는 npz 에서 독립 계산."""
+    """[r5] n_hermite_nonmonotone = 그 L 앵커의 count(~fc_ok_vgs[i]) + count(~fc_ok_vds[i]) -- FC 는 npz 에서 독립 계산.
+    [r7] + count(~fc_ok_vs[i]): VS 축도 Hermite(기울기 −GMBS/ID, 계획 DEC-87 'GMBS 열이 생기면')라 로드 때 칸마다 FC 검사·기록 대상이다
+    (DEC-87 '로드 때 칸마다 Fritsch–Carlson 단조 조건을 검사하고 위반 칸은 실패로 기록'). 독립 FC(conftest RefSlice, VS 기울기 = −GMBS/ID
+    npz 직접)로 nmos w_key 72 의 L 0.15 µm 행에 VS 위반 243 칸이 있다 -- r6 기대(VGS·VDS 만, 0)는 VS 축이 선형이던 때의 값."""
     from .conftest import RefSlice
     rows = curve_report(new_memo(real_lut)).rows
     by = {(r.kind, r.w_key, r.L): r for r in rows}
@@ -112,5 +115,7 @@ def test_real_n_hermite_nonmonotone_against_independent_fc(real_lut, raw_slice):
         z = raw_slice(kind, wk)
         rs = RefSlice(z)
         for iL, L in enumerate(z["L"]):
-            exp = int((~rs.fc_vgs[iL]).sum() + (~rs.fc_vds[iL]).sum())
+            exp = int((~rs.fc_vgs[iL]).sum() + (~rs.fc_vds[iL]).sum() + (~rs.fc_vs[iL]).sum())
             assert by[(kind, wk, float(L))].n_hermite_nonmonotone == exp, (kind, wk, iL)
+        if (kind, wk) == ("nmos", 72):
+            assert int((~rs.fc_vs[0]).sum()) == 243 and int((~rs.fc_vs[1:]).sum()) == 0

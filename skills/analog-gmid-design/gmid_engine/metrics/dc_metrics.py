@@ -93,7 +93,8 @@ def metrics_dc(projection):
     gates = tuple(GateArea(o.W, o.L, label=m) for m, o in sorted(projection.column("device", "dc_op"), key=lambda r: device_key(r[0])))
     passives = sorted((n for n, c in classes.items() if c == ELEMENT_PASSIVE), key=device_key)
     unit = dict(area_decl.unit_area)
-    area = area_search(gates, tuple(PassiveArea(n, values[n], unit.get(n)) for n in passives
+    heads = dict(area_decl.head_area)
+    area = area_search(gates, tuple(PassiveArea(n, values[n], unit.get(n), heads.get(n, 0.0)) for n in passives
                                     if values.get(n) is not None and n not in area_decl.excluded))
     entries = []
     for name in SUPPLY_METRICS + AREA_METRICS:

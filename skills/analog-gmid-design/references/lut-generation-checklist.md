@@ -277,7 +277,8 @@ sizing_recipe.py`의 `SemiEmpiricalGmIdLUT`/`_solve_vgs()`를 실제로 6단계�
 | `L`/`VGS`/`VDS`/`VS` | 격자(축) | 전체 사이징 기반 | ✅ 있음 |
 | `ID_n`/`GM_n`/`GDS_n`/`CGG_n` | [L][VGS][VDS][VS] | `size_transistor()`/`SemiEmpiricalGmIdLUT` 전체 | ✅ 있음 |
 | `ID_p`/`GM_p`/`GDS_p`/`CGG_p` | 〃 (PMOS) | 〃 | ✅ 있음 |
-| `SID_1F` (1/f 노이즈 밀도) | [L][VGS][VDS][VS], N/P 각각 | `noise_1f_density()`(배치 7-3g) | ⏳ 배치 7-3g 구현 대기 — 없으면 노이즈 추정 기능이 그 공정에서 동작 불가 |
+| `SID_1F` (1/f 노이즈 밀도) | [L][VGS][VDS][VS], N/P 각각 | `noise_1f_density()`(배치 7-3g) | ⏳ 배치 7-3g 구현 대기 — 없으면 노이즈 추정 기능이 그 공정에서 동작 불가. **[2026-10-08 새 엔진 U3]** 옛 `SID_1F`(드레인 전류 잡음처럼 읽히는 단위 오류)는 읽지 않는다 -- 게이트 환산 `SVG2_1HZ`·`SVG2_HF` + 생성기 `noise` 모드(`..._noise_r1.npz`, 로그 이분 주파수 점)를 `S_vg = A/f^EF + B` 로 분해한 `noise_params`(`gmid_engine/lut/CONTRACT.md` 9절) |
+| mismatch 감도 DVGS_k (변수별 1σ 섭동의 같은 ID 에서의 ΔVGS) | [L][VGS][VDS][VS], 변수마다·N/P 각각 | `mismatch_dvgs`·`mismatch_sigma_vgs`(`gmid_engine/lut/CONTRACT.md` 10절) | ✅ 생성기 `mismatch` 모드(`..._mismatch_r1.npz`) -- 모델 카드의 `*_slope_spectre` 변수 전수 |
 
 ### 8.2 PDK 참조 상수 (스윕이 아니라 그 공정의 model/mismatch 파일에서 **읽기만** 하면 됨)
 

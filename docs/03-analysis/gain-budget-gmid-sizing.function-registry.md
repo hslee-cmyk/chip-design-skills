@@ -609,3 +609,26 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 1변수 노드 근 찾기 | `gmid_engine.sizing.bracket_root`(Brent, 수렴 판정 = bisection 과 같음: 근과 거리 ≤ tol/2) | `solve_self` 가 부른다. 새 근 찾기 함수를 만들지 않는다 |
 | 1변수 풀이 재사용 | `solve_self` 안 LUT memo `root` 영역(함수 이름 `solve_self`) | 키 = 소자 종류·L·ln IDu·writer 관계·known·VDS/VSB 1차식 계수·구간·tol |
 | tol_V 셀 조회 한 평가 안 재사용 | `_Circuit.tolerance` 의 `tol_cells` | `tol_v_cell` 자체는 상태 없음 |
+
+## 10. 새 엔진 LUT·PDK 확장 정본 (2026-10-08, 구현 단위 U3 -- 설계 40 §11, 41 §6.4-2·§7.2)
+
+새 함수를 쓰기 전에 이 표를 먼저 본다. 모두 `gmid_engine.lut`(또는 `core`)의 공개 이름이다. 계약: `gmid_engine/lut/CONTRACT.md` r7, `core/CONTRACT.md` 9.4b·9.6·9.7.
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| 쓰기 소자 좌표 ln IDu -> VGS 역산 | `lut.vgs_for_current_density` | sizing 의 `gm_id_for_target(W = w_m, current = IDu·w_m/L)` 임시 우회(`block_columns._vgs_of_coordinate`·`_vgs_signed`)를 대체해 지웠다. 새 우회를 만들지 않는다 |
+| f_T·진성 이득 gm/gds·VDsat·IDu 의 gm/ID 축 곡선 | `lut.ft_curve`·`intrinsic_gain_curve`·`vdsat_curve`·`idu_curve`(`GmIdAxisCurve`) | 출발 구간(U13)·GB4(U9)가 부른다. 곡선을 `op_point` 반복으로 다시 만들지 않는다 |
+| 선형 폴백 사유·칸 분류 | `OpPoint.fallbacks`·`Curve.cell_class` | LUT 곡선 검사 해법 매핑(41 §4.1)의 lut 쪽 입력. 조용한 선형 폴백을 만들지 않는다 |
+| 게이트 환산 잡음 계수 A, B, EF | `lut.noise_params`(`NoiseParams`) | S_vg = A/f^EF + B. γ·K 상수를 박지 않는다(γ_eff = B·gm/4kT, K = A·W·L 은 읽는 쪽에서 계산). 옛 `SID_1F` 열은 읽지 않는다 |
+| 잡음 허용오차 | `lut.tol_noise_table`(`flicker`·`thermal`) | 디스크 캐시 `TableCache` 경유(`lookup_persistent`) |
+| 잡음·mismatch 데이터 필수 검사 | `lut.require_lut_data` | `noise_lut_missing`·`mismatch_lut_missing` 로 로드 단계 거부 |
+| mismatch 감도 DVGS_k | `lut.mismatch_dvgs`(`MismatchSens`) | A_eff 상수 표를 박지 않는다. 변수 목록은 데이터(`MismatchTable.params`)에서 온다 |
+| 소자 게이트 환산 mismatch σ | `lut.mismatch_sigma_vgs`(`MismatchSigma`) | σ = RSS(DVGS_k · slope_k(bin(W, L))/slope_k(bin_ref)) · √(W_ref/W). 쌍 ×√2, A_eff = σ_쌍·√(W·L) 는 읽는 쪽 |
+| mismatch 허용오차 | `lut.tol_mismatch_table` | 위와 같은 캐시 |
+| PDK mismatch slope bin 지도(`.model` 블록별 slope 이름·값) | `core.read_pdk_decl(...).mismatch_model(kind)` | pfet L < 0.5 µm `vth0_slope1` 7.356e-3 포함. `legacy/sizing_recipe.py:3073` 의 pfet 5.856e-3 하나(결함)는 쓰지 않는다 |
+| mismatch 식 l·w 단위(µm) | PDK 양 `mismatch_slope_geometry_unit_m`(= all.spice `.option scale`) | 쌍 MC 확인: `assets/sky130_pair_mc.py`, 기록 `docs/03-analysis/gain-budget-gmid-sizing.u3-lut-pdk-record.md` |
+| 1/f 지수 EF | PDK 양 `noise_ef_nmos`·`noise_ef_pmos`(모델 카드 `ef`) -> `LutSpec.noise_ef` | 상수를 코드에 쓰지 않는다 |
+| poly 저항 시트 R□·최소 폭·접촉 머리 면적 | PDK 양 `poly_res_sheet_ohm_per_sq`·`poly_res_min_w_m`·`poly_res_head_area_m2`(`resistor_types` 규칙: Ω당 면적이 가장 작은 종류) | `search.passive_area_decl` 이 저항 단위 면적 W_min²/R□ 와 머리를 `PassiveAreaDecl` 로 낸다 -> `metrics.area_search`. `passive_area_undeclared` 는 PDK 양이 없을 때만 |
+| LUT memo 상한 배선 | `lut.sweep_memo`(첫 평가 키 수 -> `LutMemo.from_sweep`) | 배선됨(2026-10-09): `search.search_context._wire_sweep_memo`(첫 평가 = `layer0_center.centre_start` 점), pipeline(U16)은 아직 memo 를 만들지 않음. 첫 평가가 안 쓴 영역은 상한 0 = memo 없음 |
+| 잡음·mismatch 특성화(ngspice) | `assets/sky130_lut_sweep.py noise`·`mismatch` 부명령 | 산출은 새 버전 파일 `..._noise_r1.npz`·`..._mismatch_r1.npz`(기존 r2 불변). 다른 생성기를 만들지 않는다 |
+| mismatch 단위·합성 확인 | `assets/sky130_pair_mc.py` | 오라클 쪽 도구(엔진 비의존) |

@@ -112,18 +112,24 @@ def test_bad_arguments_valueerror(toy_memo, kw):
 
 
 def test_non_monotonic_vs_out_of_range(curve_lut):
-    # 정점 index 0, 칸 [0,1] 은 자료가 맞는 단조 칸(ln ID 차 7.5, 기울기 20·10, h 0.5 -> b1 = 7.5 ≥ 0),
-    # 마디 Q(current, W = w) = (1e-7, 1e-7·e^7.5, 5e-8): 단조 구간 [0, 1], 분지 범위 [5e-8, 1e-7·e^7.5]
-    vgs = (0.0, 0.5, 1.0)
-    ids = (1e-7, 1e-7 * math.exp(7.5), 5e-8)
-    memo, _ = curve_lut(vgs, ids, (20.0, 10.0, 4.0))
+    # 정점 index 0, 칸 [0,1] 은 자료가 맞는 단조 칸(ln ID 차 7.5, 기울기 20·10, h 0.5 -> b1 = 7.5 ≥ 0), 칸 [1,2] 도 맞는 칸
+    # (ln ID 차 4, 기울기 10·6 -> 현 8 ∈ [6, 10]), 칸 [2,3] 만 ID 가 내려간다(현 음수 -- 기울기 자료와 모순인 칸).
+    # [r7 2026-10-09] 모순 칸이 곡선의 소수(3 칸 중 1)라 lut CONTRACT 1.4 단위 검사(과반)를 통과한다 -- 옛 3 마디 곡선은 2 칸 중 1 칸이
+    # 모순(정확히 절반)이었다. 단조가 깨진 ID 는 양의 gm/ID 와 함께 일관될 수 없으므로 비단조 경로는 소수 모순 칸으로만 만든다.
+    # 마디 Q(current, W = w) = (1e-7, 1e-7·e^7.5, 1e-7·e^11.5, 5e-8): 단조 구간 [0, 2], 분지 범위 [5e-8, 1e-7·e^11.5]
+    vgs = (0.0, 0.5, 1.0, 1.5)
+    g4 = (20.0, 10.0, 6.0, 4.0)
+    ids = (1e-7, 1e-7 * math.exp(7.5), 1e-7 * math.exp(11.5), 5e-8)
+    from .conftest import chord_outside_fraction
+    assert chord_outside_fraction(vgs, ids, g4) == (1, 3)
+    memo, _ = curve_lut(vgs, ids, g4)
     with pytest.raises(SealViolationError) as ei:
         gm_id_for_target(memo, "nmos", 100, 1e-6, 0.5, 0.0, W=1e-6, current=7e-8)
     det = detail_of(ei.value)
     assert det["reason"] == "lut_target_non_monotonic"
-    assert rel_close(det["monotone_lo"], 1e-7, 1e-12) and rel_close(det["monotone_hi"], ids[1], 1e-12)
-    assert rel_close(det["branch_min"], 5e-8, 1e-12) and rel_close(det["branch_max"], ids[1], 1e-12)
-    for t in (3e-8, 2e-4):
+    assert rel_close(det["monotone_lo"], 1e-7, 1e-12) and rel_close(det["monotone_hi"], ids[2], 1e-12)
+    assert rel_close(det["branch_min"], 5e-8, 1e-12) and rel_close(det["branch_max"], ids[2], 1e-12)
+    for t in (3e-8, 2e-2):
         with pytest.raises(SealViolationError) as ei:
             gm_id_for_target(memo, "nmos", 100, 1e-6, 0.5, 0.0, W=1e-6, current=t)
         assert detail_of(ei.value)["reason"] == "lut_target_out_of_range"
@@ -131,14 +137,15 @@ def test_non_monotonic_vs_out_of_range(curve_lut):
     lnmid = 0.5 * (math.log(1e-7) + math.log(ids[1])) + 0.5 * (20.0 - 10.0) / 8
     r = gm_id_for_target(memo, "nmos", 100, 1e-6, 0.5, 0.0, W=1e-6, current=math.exp(lnmid))
     from .conftest import curve_slice_arrays
-    _check(r, RefSlice(curve_slice_arrays(1e-6, vgs, ids, (20.0, 10.0, 4.0))), 0, 0.5, 0.0, 1e-6, "current",
+    _check(r, RefSlice(curve_slice_arrays(1e-6, vgs, ids, g4)), 0, 0.5, 0.0, 1e-6, "current",
            math.exp(lnmid), closed=0.25)
     # 그 해의 gm/ID = Hermite 미분(t = ½) 의 닫힌 값 1.5·δ/h − (m0 + m1)/4 = 15 (위 _check 가 p'(근) 와 유도 상한으로 확인)
     assert 1.5 * 7.5 / 0.5 - 7.5 == 15.0
 
 
 def test_r4_toy_nonmonotone_cell(r4toy_memo):
-    """CONTRACT 7.2 행: 마디 Q = (2e-7, 2e-6, 2e-5), 칸 j = 0 위반 -> lut_hermite_nonmonotone_cell."""
+    """CONTRACT 7.2 행: 마디 Q = 2·R4_ID_VGS = (2e-7, 2e-6, 2e-6·e^1.5 = 8.96e-6), 칸 j = 0 위반 -> lut_hermite_nonmonotone_cell.
+    목표 6e-6 은 단조 칸 [0.5, 1] 안(2e-6 < 6e-6 < 8.96e-6)."""
     with pytest.raises(SealViolationError) as ei:
         gm_id_for_target(r4toy_memo, "nmos", 100, 1e-6, 0.5, 0.0, W=2e-6, current=2e-6)
     det = detail_of(ei.value)
