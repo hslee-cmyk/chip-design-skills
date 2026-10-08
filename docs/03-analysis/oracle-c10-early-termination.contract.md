@@ -25,18 +25,23 @@
 * 폐루프 과도를 창 단위로 실행한다: ngspice 안에서 `stop when time >= t_end + j·W` / `resume` 로 창 j = 1..K 를 차례로 끝내며,
   창이 끝날 때마다 M_j = max|e| (e = H − H(0), 창 j 안 표본)를 로그에 한 줄(`STABWIN j M_j`) 쓴다. 데이터 파일(`.stab.txt`)은
   멈춘 시각까지 쓴다(`wrdata`).
-* 조기 unstable 기준(`early_unstable(M, floor')`, 기존 창 판정과 같은 M·floor' 정의): j >= 3 인 첫 창에서
-    M_j > floor'  그리고  M_j >= M_1  그리고  M_{j−2} <= M_{j−1} <= M_j.
-  뜻: 응답이 첫 창 아래로 내려간 적 없이(기존 'M_K >= M_1 = 줄지 않음' 규칙의 부분 창 판) 두 창 연속 비감소(= 창 j−2..j 에서 증가·
-  지속 진동 확인; 3 은 '추세'를 세우는 최소 점 수이고 창 한 개의 맥놀이를 걸러낸다). 충족하면 즉시 중단하고 `status = unstable`,
-  `early_stop = {window: j, M: [M_1..M_j], reason}` 를 기록한다. 연장 실행 없음.
+* 조기 unstable 기준(`early_unstable(M, floor', reltol)`, 기존 창 판정과 같은 M·floor' 정의) -- **엄격한 증가만**:
+  창 사이 증가 g(j) := M_j·(1 − reltol) > M_{j−1}·(1 + reltol) + floor'  (측정 분해능을 넘는 증가).
+  유도: M_j 는 표본 봉우리라 상대 오차가 최대 1−cos(π/n_pp) <= reltol(절 (a)), 절대 분해능은 floor' 이므로, 두 창의
+  측정 불확실 구간이 겹치지 않을 때만 '커졌다'고 인정한다. 새 상수 없음.
+  기준: j >= 3 인 첫 창에서 g(j−1) 그리고 g(j) (연속 두 창 증가) 그리고 M_j >= M_1.
+  3 은 추세를 세우는 최소 점 수이고 창 한 개의 맥놀이를 거른다.
+  **일정 진폭 지속 진동은 g 를 만족하지 못하므로(M_j ≈ M_{j−1}, 증가가 reltol·분해능 이내) 절대 조기 종결하지 않는다.** 그 경우는
+  기존 규칙 그대로(K 창 끝까지 또는 시간 상한 -> failed / 기존 판정, 예: test_sustained_oscillation_undetermined_incomplete 의
+  현재 결과 불변). 감쇠·완화·비단조 진동도 같은 이유로 영향 없음.
+  충족하면 즉시 중단하고 `status = unstable`, `early_stop = {window: j, M: [M_1..M_j], reason}` 를 기록한다. 연장 실행 없음.
 * 충족하지 않으면 K 창을 끝까지 돌리고 기존 판정(절차 5: stable / unstable / decaying / undetermined, 연장)을 그대로 쓴다.
   기존 규칙의 변경은 없다 -- 조기 기준은 **추가 단축 경로**일 뿐이다.
 * 파이썬은 파일에서 M_j 를 다시 계산해 같은 기준을 검증한다(`transient_decision` 이 잘린 파일을 받아: 마지막 시각이 창 j 끝에
   닿았고 기준을 충족하면 unstable(`early_stop`); 아니고 tstop 에 못 닿았으면 기존대로 `failed`). ngspice 가 중단 시점을 정하고
   판정은 파일이 증명한다.
 * 안정 회로 판정 불변 조건: 구현 커밋은 안정 판정이 나는 모든 기존 test 회로·fixture(`stable`/`decaying`->`stable`)에서 창 별 M 이
-  위 기준을 한 번도 충족하지 않음을 확인한다(충족하면 기준 설계를 되돌린다). 불안정은 계속 FAIL.
+  위 기준을 한 번도 충족하지 않음을 확인한다(충족하면 기준 설계를 되돌린다). 일정 진폭 지속 진동 fixture 의 판정도 개정 전과 같아야 한다. 불안정은 계속 FAIL.
 * 첫 창 안에서 끝나지 않는 GHz 버스트: 창 안 부분 최댓값이 아직 없어 기준을 못 쓴다 -> (c) 가 끊는다.
 
 ### (c) 기본 시간 상한(--timeout-s 없어도)
@@ -69,5 +74,5 @@
 | 안정 회로 `ac.stability`, `pm_deg` 등 | -- | 불변 (단 `plan.tmax`·새 필드 외) |
 
 독립 test 가 새로 볼 것(제안): (1) tran_plan 의 f_crit/n_pp/tmax 식, (2) early_unstable 기준 순수 함수 입출력(경계: j=2, 맥놀이
-[1,0.5,1.2], 증가 [1,1.2,1.5]), (3) 잘린 파일 판정 unstable vs failed, (4) 기본 상한 존재와 `--timeout-s` 우선, (5) 안정 fixture 에서
+[1,0.5,1.2], 일정 진폭 [1,1,1,1,1] -> 절대 False, 분해능 이내 증가 -> False, 분해능 초과 연속 증가 [1,1.2,1.5] -> True), (3) 잘린 파일 판정 unstable vs failed, (4) 기본 상한 존재와 `--timeout-s` 우선, (5) 안정 fixture 에서
 `early_stop` 없음, (6) `.save` 라인.
