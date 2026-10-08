@@ -969,3 +969,11 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
   SLSQP 에 넘기는 행·목적에만 양의 상수 배(행: 1/max(1,|시작점 c|), 목적: 1/max(1,|시작점 f|), ftol 도 같은 배)를 곱한다 -- 가능 집합·`best`
   판정(원 c ≥ 0)·`SolveResult` 값은 그대로.
 - 남은 한계: 예산 때문에 시작점이 예산을 약간 넘는 회로(folded 등)는 120 s 안에 가능 점을 못 찾는다(front 0). 저항 면적은 PDK 단위 면적 선언이 없어 미포함.
+
+## U9. `count_budget(lut, kinds, declared=None) -> int` (설계 41 §0·40 §10.1, D-NS; 파일 `count_budget.py`)
+
+* 계수 예산 N_S = kind 들의 LUT 격자점 수 합 Σ_kind Σ_(폭 슬라이스) |L|·|VGS|·|VDS|·|VS|(시간 무관·결정론, 같은 LUT·kind 면 같다. 가산적: 두 kind 합 = 각 kind 합의 합). `declared`(authoring `CountBudgetDecl`)가
+  있으면 `declared.value` 가 대체한다. 합이 1 미만이면(kind 없음·슬라이스 없음) `ValueError`.
+* 쓰임: `pipeline.run_stage_a`(→ `build_s1v(count_budget=)` 사이클 열거·복합 블록 Π 상한)와 `run_stage_b`(→ `metrics.achievability` 블록 격자 곱 게이트). `pipeline.structure_count_budget` 은 이 함수의 얇은 호출이다.
+* `passive_area_decl`(`area_decl.py`)을 공개 API 에 올렸다(`run_stage_b` 가 GB4 면적 하한의 커패시터 항 입력으로 부른다).
+

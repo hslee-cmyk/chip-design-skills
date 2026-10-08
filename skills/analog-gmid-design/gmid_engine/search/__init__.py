@@ -5,11 +5,13 @@
 봉인 7 이 VDSAT 접근자 부재로 미정인 동안 모든 점은 '봉인 7 대기'(`seal_status`)라 최종 front 는 비어 있다.
 """
 from .archive import S3Archive
+from .area_decl import passive_area_decl
 from .cell_floor import ln_idu_floors
 from .cone_rows import cone_rows
 from .canonical_order import canonical_order
 from .canonical_rows import canonical_row_key
 from .constraints import constraint_rows
+from .count_budget import count_budget
 from .current_symmetry import CurrentSymmetry, current_symmetry
 from .current_box import current_box
 from .eps_sweep import sweep_front
@@ -111,7 +113,9 @@ __all__ = (
     "current_symmetry",
     "expand_ties",
     "orbit_ties",
+    "passive_area_decl",
     "constraint_rows",
+    "count_budget",
     "current_box",
     "eval_key",
     "evaluate",
