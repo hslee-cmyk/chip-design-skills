@@ -172,14 +172,14 @@ class _Circuit:
         volts = tuple(self.rail_v.values())
         self.lo, self.hi = min(volts), max(volts)
         self.order_terms = {}
-        for m in self.coord:
+        for m in sorted(self.coord, key=lambda x: (self.device_colour.get(x, 0), x)):     # 구조 색 순서 -- 이름 치환이 항 순서(동률 tie-break)를 바꾸지 않게
             d, _g, s = (self.pins[m][t] for t in MOS_TERMINAL_NAMES)
             source_side, sink_side = (d, s) if _kind_sign(self.kinds[m]) > 0 else (s, d)
             self.order_terms.setdefault(source_side, []).append((True, sink_side))
             self.order_terms.setdefault(sink_side, []).append((False, source_side))
         self.tol_cells = {}                        # (소자, VDS) -> tol_V 또는 None -- `tolerance` 의 한 평가 안 재사용
         self.members = {}
-        for net, w in self.writers.items():
+        for net, w in self.canonical_writers():
             root = net
             while self.writers[root].relation == REL_TIE:
                 root = self.writers[root].known
@@ -215,9 +215,13 @@ class _Circuit:
             lo, hi = max(lo, self.override[net][0]), min(hi, self.override[net][1])
         return lo, hi, ncols
 
+    def canonical_writers(self):
+        """(넷, writer) 를 쓰기 순번 순으로 -- 이름순이 아니다(이름 치환이 행·합산 순서를 바꾸지 않게)."""
+        return sorted(self.writers.items(), key=lambda kv: kv[1].order)
+
     def input_roots(self):
         """입력 DC 미선언 입력 묶음의 W4 뿌리 넷(y 키 `input_common_mode`) -- 이름순이 아니라 쓰기 순번 순."""
-        return tuple(net for net, w in sorted(self.writers.items(), key=lambda kv: kv[1].order)
+        return tuple(net for net, w in self.canonical_writers()
                      if w.relation == REL_WINDOW and w.y_key == INPUT_GROUP_KEY)
 
     def saturation_rows(self, values):
@@ -246,7 +250,7 @@ class _Circuit:
         rows = self.saturation_rows(values)
         if rows is None:
             return None
-        unknown = tuple(net for net, w in self.writers.items() if w.relation not in FIXED_RELATIONS)
+        unknown = tuple(net for net, w in self.canonical_writers() if w.relation not in FIXED_RELATIONS)     # 쓰기 순번 순 -- 선형 연립 행 순서가 이름을 따르지 않게
         windows = {}
         for root in roots:
             found = saturation_window(unknown, root, values, self.writer_grad, rows)
