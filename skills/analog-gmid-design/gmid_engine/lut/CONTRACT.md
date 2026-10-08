@@ -266,25 +266,36 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - 키 `key_digest` = sha256(코드 버전, 입력 지문, 설정 지문): 코드 버전 = lut·core 패키지 `.py` 소스 바이트 전부 + numpy·python 버전, 입력 지문
   = `inputs` 의 배열(dtype·shape·바이트)·dataclass 필드·tuple·Mapping 내용, 설정 지문 = `fp_of((lut.fp, fn_name, key, settings))`
   (`settings` = 결과에 영향을 주는 상수: tol_V `(LOO_ORDERS, TOL_V_METRICS, AXES)`, tol_VDsat `(LOO_ORDERS, TOL_VDSAT_METRICS, AXES)`).
-  구성요소 하나라도 다르면 적중하지 않고 다시 계산해 **같은 칸**을 덮어쓴다. 칸 파일 이름 = `<fn_name>-<fp_of((lut.fp, fn_name, key))>.tbl`.
-- 파일: `GMIDTBL1
-` + 키(64 hex) + `
-` + 본문 sha256(64 hex) + `
-` + pickle 본문. 읽기 검증: 머리 형식·본문 해시 -> 깨짐(이벤트
+  구성요소 하나라도 다르면 적중하지 않고 다시 계산해 **같은 칸**을 덮어쓴다. 칸 파일 이름 = `<fn_name>-<자료 id>-<fp_of((lut.fp, fn_name, key))>.tbl`
+  (자료 id·지문은 64자 소문자 hex). **자료 id** = `fp_of((manifest sha256, cap_npz sha256, verify_midpoints sha256 또는 None))` -- 설정 파일
+  `files` 가 고정하는 값이라 `TableCache.data_id(lut.provenance)` 와 설정 파일만으로 같은 값이 나온다(표를 열지 않음). `fetch(lut_fp, data_id, fn_name,
+  key, inputs, settings, compute)`.
+- **정리(cleanup, 2026-10-08 사용자 허용 "캐시 정리 삭제 코드 넣는 것을 허용해")**: `TableCache.from_config`(설정 경로를 아는 객체)만, 그 객체의 **첫 쓰기
+  성공 직후 1회**(읽기·hit·두 번째 쓰기에선 안 함). 남기는 집합 = `git rev-parse --show-toplevel` 기준 설정 파일 상대 경로를 `git worktree list --porcelain`
+  의 모든 worktree(본 작업 폴더 포함) 아래에서 읽은 자료 id + 이 객체의 설정이 가리키는 id (설정이 없거나 manifest·cap_npz 항목이 없는 worktree 는 id 없음).
+  폴더 직하의 `<함수>-<64hex>-<64hex>.tbl` 파일 중 자료 id 가 집합에 **없는** 것만 `os.unlink`; 방금 쓴 파일·심볼릭 링크·일반 파일이 아닌 것·하위
+  폴더·형식이 다른 이름·폴더 밖은 건드리지 않는다. 지우면 이벤트 `cleanup_removed`(함수 이름), 지울 수 없으면(OSError, 사용 중) `cleanup_skipped`.
+  git 실행 실패·worktree 나열 실패·설정 JSON 읽기 실패(ValueError/OSError)·폴더 나열 실패면 아무것도 지우지 않고 `cleanup_failsafe`. 나이·개수 상한 없음.
+  `TableCache(directory)`(설정 경로 없음)는 정리하지 않는다.
+- 파일: `GMIDTBL1\n` + 키(64 hex) + `\n` + 본문 sha256(64 hex) + `\n` + pickle 본문. 읽기 검증: 머리 형식·본문 해시 -> 깨짐(이벤트
   "corrupt" + RuntimeWarning), 키 불일치 -> "stale_key"(경고 없음), 역직렬화 실패 -> "corrupt". 어느 경우도 예외를 내지 않고 `compute()` 로 만들어
   덮어쓴다. 키가 다른 표를 조용히 쓰는 경로는 없다.
 - 쓰기: 같은 폴더 임시 파일(`tempfile.mkstemp`) -> write·flush·fsync -> `os.replace`. 읽는 쪽은 옛 완성 파일 또는 새 완성 파일만 본다(부분 파일
   없음). 동시 시작한 여러 프로세스가 같은 표를 각자 계산해 서로 덮어써도 된다(내용 같음). 교체 실패(잠김)·디스크 오류는 "write_error" 로 기록하고 계산
   결과를 그대로 돌려준다. 결과에 ndarray 가 들어 있으면 저장하지 않는다("unstorable").
 - 관찰: `table_cache.stats()` = ((이벤트, 횟수), ...) 이름 정렬, `table_cache.events` = ((이벤트, 함수 이름), ...) 발생 순서.
-  이벤트: hit·miss·stale_key·corrupt·read_error·write·write_error·unstorable·disabled.
+  이벤트: hit·miss·stale_key·corrupt·read_error·write·write_error·unstorable·disabled·cleanup_removed·cleanup_skipped·cleanup_failsafe.
 - test 작성자용 불변식(기대값은 test 가 정한다): (1) 구성요소별 적중/미스 -- 같은 키 두 번째 `fetch` 는 hit·compute 0회; LUT 자료 한 원소·
   `settings`·호출 인자 `key`·코드 버전(소스 바이트) 중 하나를 바꾸면 compute 1회 + 덮어쓰기. (2) 깨짐 -- 파일 중간 잘림·본문 바이트 변조·머리 변조·
   빈 파일·쓰레기 파일 모두 예외 없이 다시 계산 + 깨끗한 파일로 교체, corrupt 이벤트. (3) 원자성 -- 쓰는 도중에도 목적 경로엔 완성 파일 또는 이전
   파일만 있고, 쓰기 실패 뒤 임시 파일이 남지 않으며, 읽기 실패는 계산 결과를 바꾸지 않는다. (4) 비트 동일 -- 모든 (kind, w_key) 의
   `tol_v_table`·`tol_vdsat_table` 과 `curve_report` 가 캐시 끔/켬/적중에서 속성 전부 같고 float 바이트 같다. (5) 환경 변수 -- `from_config` 가
   `env` 매핑의 값을 설정 default 보다 우선하고, 빈 값이면 default, 폴더가 없으면 만든다, 만들 수 없으면 끄고 계산한다. (6) 격리 -- `TableCache(None)`
-  이면 파일 입출력 0. (7) memo 불변 -- 같은 `LutMemo` 안에서 같은 인자는 디스크도 안 건드리고(memo hit) `lookup` 과 같은 상한·통계.
+  이면 파일 입출력 0. (7) memo 불변 -- 같은 `LutMemo` 안에서 같은 인자는 디스크도 안 건드리고(memo hit) `lookup` 과 같은 상한·통계. (8) 정리 -- 임시
+  git 저장소 + `git worktree add` 로 만든 worktree 들의 설정이 서로 다른 자료 id 를 가리킬 때: 가리켜진 id(본 저장소·각 worktree)의 파일은 남고 가리켜지지
+  않은 id 의 형식 맞는 파일만 지워진다; 방금 쓴 파일은 id 가 어느 설정에도 없어도 남는다; 하위 폴더·형식 다른 이름·심볼릭 링크·폴더 밖 파일 불변; 첫
+  쓰기에서만 실행(같은 객체 두 번째 쓰기·읽기 hit 에선 안 지움, 새 객체는 다시 실행); 삭제가 OSError 면 `cleanup_skipped` 이고 예외 없음; git 저장소 밖 설정·worktree
+  설정 JSON 이 깨짐이면 `cleanup_failsafe` 이고 삭제 0; `TableCache(directory)` 는 삭제 0. 전부 `GMID_LUT_TABLE_CACHE_DIR` 같은 임시 폴더에서만 검증한다.
 
 ---
 

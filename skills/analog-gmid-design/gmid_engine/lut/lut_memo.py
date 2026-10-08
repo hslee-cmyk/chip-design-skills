@@ -51,7 +51,7 @@ class LutMemo:
         깨졌으면 `compute()` 로 만들어 칸에 쓴다. `inputs`: 계산이 읽는 LUT 자료(배열·dataclass·tuple), `settings`: 결과에
         영향을 주는 호출부 상수(지문 가능한 값). 결과는 디스크 캐시를 거치든 아니든 같다(비트 동일)."""
         return self.lookup(region, fn_name, key, lambda: self.table_cache.fetch(
-            self.lut.fp, fn_name, key, inputs, settings, compute))
+            self.lut.fp, TableCache.data_id(self.lut.provenance), fn_name, key, inputs, settings, compute))
 
     def stats(self):
         """((영역, LruStats), ...) 영역 이름 정렬."""

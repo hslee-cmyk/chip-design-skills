@@ -8,8 +8,13 @@
   바이트 해시 + numpy·python 버전(코드가 바뀌면 키가 바뀐다). 구성요소 하나라도 다르면 적중하지 않고 다시 계산해 덮어쓴다.
 * 파일 위치 = 설정 파일(`assets/lut_v2_location.json` 의 `table_cache` = {"env", "default"})의 폴더. 환경 변수가 비어 있지 않으면 그 값.
   폴더가 없으면 만든다(못 만들면 캐시 끔 -- 계산은 그대로 된다). 데이터 폴더(lut_data)·저장소 밖의 전용 폴더다.
-* 칸(slot) 파일 이름 = 함수 이름 + (LUT 묶음 지문, 함수 이름, 호출 인자)의 지문 -- 같은 칸은 새 키로 덮어써서 코드·설정이 바뀌어도 폴더가
-  불지 않는다.
+* 칸(slot) 파일 이름 = `<함수 이름>-<LUT 자료 id>-<(LUT 묶음 지문, 함수 이름, 호출 인자)의 지문>.tbl`. LUT 자료 id = fp_of((manifest·기준 LUT·
+  검증 중점 파일 sha256)) -- 설정 파일의 `files` 가 고정하는 값이라 표를 열지 않고도 설정에서 같은 값을 만들 수 있다. 같은 칸은 새 키로
+  덮어써서 코드·설정이 바뀌어도 폴더가 불지 않는다.
+* 정리(cleanup): 이 `TableCache` 객체의 **첫 쓰기 때만** 한 번(읽기에선 안 함). 남기는 집합 = 저장소 본 작업 폴더와 `git worktree list --porcelain`
+  이 말하는 모든 worktree 의 같은 상대 경로 설정 파일(+ 이 캐시를 만든 설정)이 가리키는 LUT 자료 id. 폴더 안 `<함수>-<id>-<지문>.tbl` 형식 파일 중
+  id 가 그 집합에 없는 것만 지운다(나이·개수 상한 없음). 방금 쓴 파일·심볼릭 링크·폴더 밖·형식이 다른 파일은 건드리지 않고, 지울 수 없는 파일
+  (사용 중)은 건너뛴다(cleanup_skipped). worktree 나열·설정 읽기가 실패하면 아무것도 지우지 않는다(cleanup_failsafe).
 * 파일 형식: 머리(MAGIC, 키, 본문 sha256) + 본문(pickle). 읽을 때 머리·키·본문 해시를 모두 확인한다. 깨졌거나(머리·길이·해시·역직렬화
   실패) 키가 다르면 쓰지 않고 다시 계산한 뒤 덮어쓴다(깨짐은 RuntimeWarning + `events` 기록; 예외를 내지 않는다). 본문 해시는 깨짐
   검출용이다 -- 폴더에 쓸 수 있는 사람은 신뢰한다(pickle).
@@ -22,6 +27,7 @@ import hashlib
 import json
 import os
 import pickle
+import subprocess
 import sys
 import tempfile
 import warnings
@@ -35,7 +41,8 @@ _MAGIC = b"GMIDTBL1"
 _NL = b"\n"
 _HEX = len(hashlib.sha256().hexdigest())
 _HEADER = len(_MAGIC) + len(_NL) + _HEX + len(_NL) + _HEX + len(_NL)
-_CONFIG_NAME = "lut_v2_location.json"
+_NAME_FIELDS = ("function", "data_id", "key_fp")
+_CONFIG_NAME ="lut_v2_location.json"
 _CONFIG_ENTRY = "table_cache"
 _LOAD_ERRORS = (pickle.UnpicklingError, EOFError, AttributeError, ImportError, IndexError, ValueError, TypeError)
 
@@ -100,6 +107,51 @@ def _code_version():
     return h.hexdigest()
 
 
+def _is_hex_digest(text):
+    return len(text) == _HEX and all(c in "0123456789abcdef" for c in text)
+
+
+def _data_id(manifest_sha, cap_sha, midpoints_sha):
+    return fp_of((manifest_sha, cap_sha, midpoints_sha))
+
+
+def _pinned(files, item):
+    entry = files.get(item)
+    return entry.get("sha256") if isinstance(entry, dict) else None
+
+
+def _config_data_id(path):
+    """설정 파일이 가리키는 LUT 자료 id. 파일이 없거나 manifest·cap_npz 항목이 없으면 None(가리키는 자료 없음), 읽을 수 없으면 ValueError."""
+    if not os.path.isfile(path):
+        return None
+    with open(path, encoding="utf-8") as fh:
+        files = json.load(fh).get("files")
+    if not isinstance(files, dict) or "manifest" not in files or "cap_npz" not in files:
+        return None
+    return _data_id(_pinned(files, "manifest"), _pinned(files, "cap_npz"), _pinned(files, "verify_midpoints"))
+
+
+def _git(directory, *args):
+    done = subprocess.run(("git", "-C", directory) + args, capture_output=True, text=True, encoding="utf-8")
+    if done.returncode != 0:
+        raise OSError("git failed: " + done.stderr.strip())
+    return done.stdout
+
+
+def _retained_ids(config_path):
+    """남길 LUT 자료 id 집합: 본 저장소·모든 worktree 의 같은 상대 경로 설정 + 이 캐시의 설정. 실패는 OSError/ValueError."""
+    here = os.path.dirname(os.path.abspath(config_path))
+    top = os.path.abspath(_git(here, "rev-parse", "--show-toplevel").strip())
+    rel = os.path.relpath(os.path.abspath(config_path), top)
+    roots = [line[len("worktree "):] for line in _git(here, "worktree", "list", "--porcelain").splitlines()
+             if line.startswith("worktree ")]
+    found = {_config_data_id(config_path)}
+    for root in roots:
+        found.add(_config_data_id(os.path.join(root, rel)))
+    found.discard(None)
+    return found
+
+
 def _config_dir(config_path, env):
     """설정 파일의 `table_cache` 항목 -> 폴더(환경 변수 우선). 설정·항목이 없으면 None."""
     if not os.path.isfile(config_path):
@@ -123,9 +175,11 @@ class TableCache:
     * `events`: ((이벤트, 함수 이름), ...) 발생 순서.
     """
 
-    def __init__(self, directory):
+    def __init__(self, directory, config_path=None):
         self.events = ()
         self._code = None
+        self._config = config_path
+        self._cleaned = False
         self.directory = None
         if directory is None:
             return
@@ -139,7 +193,7 @@ class TableCache:
 
     @classmethod
     def from_config(cls, config_path, env):
-        return cls(_config_dir(config_path, env))
+        return cls(_config_dir(config_path, env), config_path)
 
     @classmethod
     def default(cls):
@@ -155,6 +209,11 @@ class TableCache:
             counts[event] = counts.get(event, 0) + 1
         return tuple(sorted(counts.items()))
 
+    @staticmethod
+    def data_id(provenance):
+        """LUT 묶음(`LutProvenance`)의 자료 id -- 설정 파일 `files` 가 고정하는 sha256 세 개(manifest·cap_npz·verify_midpoints)로 만든다."""
+        return _data_id(provenance.manifest_sha256, provenance.cap_sha256, provenance.midpoints_sha256)
+
     def key_digest(self, lut_fp, fn_name, key, inputs, settings):
         """키 sha256 hex -- 코드 버전·입력 지문·설정 지문(LUT 묶음 지문·함수 이름·호출 인자·설정 상수)."""
         if self._code is None:
@@ -162,11 +221,37 @@ class TableCache:
         parts = (self._code, _inputs_digest(inputs), fp_of((lut_fp, fn_name, tuple(key), settings)))
         return hashlib.sha256("\n".join(parts).encode("ascii")).hexdigest()
 
-    def path_of(self, lut_fp, fn_name, key):
-        """칸 파일 경로(폴더 없음 -> None)."""
+    def path_of(self, lut_fp, data_id, fn_name, key):
+        """칸 파일 경로(폴더 없음 -> None). 이름 = `<함수>-<자료 id>-<지문>.tbl`."""
         if self.directory is None:
             return None
-        return os.path.join(self.directory, "%s-%s.tbl" % (fn_name, fp_of((lut_fp, fn_name, tuple(key)))))
+        return os.path.join(self.directory, "%s-%s-%s.tbl" % (fn_name, data_id, fp_of((lut_fp, fn_name, tuple(key)))))
+
+    def _cleanup(self, keep_path):
+        """첫 쓰기 때 한 번: 남길 자료 id 집합에 없는 id 의 칸 파일만 지운다(`keep_path` 는 항상 남김)."""
+        if self._cleaned or self._config is None:
+            return
+        self._cleaned = True
+        try:
+            retained = _retained_ids(self._config)
+            names = sorted(os.listdir(self.directory))
+        except (OSError, ValueError, subprocess.SubprocessError):
+            self._note("cleanup_failsafe", "")
+            return
+        for name in names:
+            path = os.path.join(self.directory, name)
+            parts = name[:-len(".tbl")].rsplit("-", len(_NAME_FIELDS) - 1) if name.endswith(".tbl") else ()
+            if len(parts) != len(_NAME_FIELDS) or not all(_is_hex_digest(p) for p in parts[1:]) or not parts[0]:
+                continue
+            if os.path.abspath(path) == os.path.abspath(keep_path):
+                continue
+            if parts[1] in retained or os.path.islink(path) or not os.path.isfile(path):
+                continue
+            try:
+                os.unlink(path)
+                self._note("cleanup_removed", parts[0])
+            except OSError:
+                self._note("cleanup_skipped", parts[0])
 
     def _read(self, path, digest, fn_name):
         """(True, 값) 또는 None -- 없음·깨짐·키 다름은 None(이벤트 기록)."""
@@ -220,6 +305,7 @@ class TableCache:
             os.replace(tmp, path)
             tmp = None
             self._note("write", fn_name)
+            self._cleanup(path)
         except OSError as exc:
             warnings.warn("TableCache: 쓰지 못했다 %s (%s)" % (path, exc), RuntimeWarning)
             self._note("write_error", fn_name)
@@ -230,9 +316,9 @@ class TableCache:
                 except OSError:
                     pass
 
-    def fetch(self, lut_fp, fn_name, key, inputs, settings, compute):
-        """칸 (lut_fp, fn_name, key) 의 값. 키가 맞는 완성 파일이 있으면 그 값, 아니면 `compute()` 결과를 저장하고 돌려준다."""
-        path = self.path_of(lut_fp, fn_name, key)
+    def fetch(self, lut_fp, data_id, fn_name, key, inputs, settings, compute):
+        """칸 (lut_fp, fn_name, key) 의 값(`data_id` = `TableCache.data_id(lut.provenance)`). 키가 맞는 완성 파일이 있으면 그 값, 아니면 `compute()` 결과를 저장하고 돌려준다."""
+        path = self.path_of(lut_fp, data_id, fn_name, key)
         if path is None:
             return compute()
         digest = self.key_digest(lut_fp, fn_name, key, inputs, settings)
