@@ -222,3 +222,80 @@ def test_z1_compares_unmodified_netlist(tmp_path, lut):
     p, text, meta = run_netlist(base_input(lut, REL), tmp_path, extra=["--omit", "RP", "--short", "CL"])
     assert p.returncode == 0, (p.stdout + p.stderr)[-800:]
     assert ti(meta)["status"] == "verified", ti(meta)["diffs"]
+
+
+# ------------------------------------------------------------------ [신규 Q6] C6/C15: bias_voltages 넷 집합 == topology bias_inputs
+# 근거: README C6 [신규 Q6] "bias_voltages 의 넷 집합은 topology bias_inputs(키가 있을 때만 대조)와 같아야 한다. 다르면 C15
+# diffs 에 들어가 막힘". oracle (a): 픽스처 topology 의 bias_inputs 는 손으로 확인한 gate 전용 넷 {pb}(MP1 gate 에만 물림;
+# nin 은 오라클 입력 포트라 C6 게이트 전용 넷이 아니다). 입력 bias_voltages 기본 = [pb](conftest.cs_input).
+# 값이 빠진 경우 C6 막힘과 섞이지 않게 predictions.nodes 에 pb 값을 준다.
+PB_NODES = {"nout": 0.9, "pout": 0.16, "pb": 0.3}
+
+
+def _diff_text(t):
+    return json.dumps(t["diffs"], ensure_ascii=False)
+
+
+def test_fixture_bias_inputs_is_hand_derived_gate_only_set():
+    """픽스처 선언이 손 계산과 맞는다: MOS gate 넷 - (d/s/bulk ∪ 2단자 terminals ∪ 오라클 입력 포트 nin)."""
+    gates = {e["gate"] for e in TOPO["netlist"]}
+    other = {n for e in TOPO["netlist"] for n in (e["drain"], e["source"], e.get("bulk")) if n}
+    other |= {n for k in ("passive_elements", "ideal_sources") for e in TOPO.get(k, []) for n in e["terminals"]}
+    other |= {"nin"}                                    # cs_input ports.input
+    assert sorted(gates - other) == TOPO["bias_inputs"] == ["pb"]
+
+
+@pytest.mark.parametrize("bias", ["free", "forced"])
+def test_bias_voltages_equal_bias_inputs_verified(tmp_path, lut, bias):
+    p, text, meta = run_netlist(base_input(lut, FIX, preds_nodes=PB_NODES), tmp_path, bias)
+    t = ti(meta)
+    assert t["status"] == "verified", t["diffs"]
+    assert meta["blockers"] == []
+
+
+@pytest.mark.parametrize("bias_voltages", [None, []], ids=["key_absent", "empty_list"])
+def test_bias_voltages_missing_declared_net_blocks(tmp_path, lut, bias_voltages):
+    """topology bias_inputs {pb} 인데 입력 bias_voltages 에 pb 가 없다(키 없음/빈 list) -> C15 mismatch, diff 에 pb."""
+    inp = base_input(lut, FIX, preds_nodes=PB_NODES, bias_voltages=bias_voltages)
+    p, text, meta = run_netlist(inp, tmp_path)
+    t = ti(meta)
+    assert t["status"] == "mismatch", t
+    assert "pb" in _diff_text(t)
+    assert meta["blockers"]
+
+
+def test_bias_voltages_extra_net_blocks(tmp_path, lut):
+    """topology bias_inputs 가 빈 list(키는 있음)인데 입력이 pb 를 선언 -> 남는 넷 pb 가 diff."""
+    tp = variant(tmp_path, lambda t: t.update(bias_inputs=[]))
+    p, text, meta = run_netlist(base_input(lut, tp, preds_nodes=PB_NODES), tmp_path)
+    t = ti(meta)
+    assert t["status"] == "mismatch", t
+    assert "pb" in _diff_text(t)
+    assert meta["blockers"]
+
+
+def test_bias_inputs_net_missing_from_input_named_in_diff(tmp_path, lut):
+    """topology 가 넷 하나(nzz)를 더 선언 -> 입력 bias_voltages 에 없는 그 넷이 diff."""
+    tp = variant(tmp_path, lambda t: t.update(bias_inputs=["nzz", "pb"]))
+    p, text, meta = run_netlist(base_input(lut, tp, preds_nodes=PB_NODES), tmp_path)
+    t = ti(meta)
+    assert t["status"] == "mismatch", t
+    assert "nzz" in _diff_text(t)
+    assert meta["blockers"]
+
+
+def test_bias_inputs_key_absent_not_compared(tmp_path, lut):
+    """README C6: '키가 있을 때만 대조' -- topology 에 bias_inputs 키가 없으면 bias_voltages 와 대조하지 않는다."""
+    tp = variant(tmp_path, lambda t: t.pop("bias_inputs"))
+    p, text, meta = run_netlist(base_input(lut, tp, preds_nodes=PB_NODES), tmp_path)
+    assert ti(meta)["status"] == "verified", ti(meta)["diffs"]
+
+
+def test_bias_mismatch_blocked_in_run(tmp_path, lut):
+    require_spice()
+    tp = variant(tmp_path, lambda t: t.update(bias_inputs=[]))
+    p, res = run_oracle(base_input(lut, tp, preds_nodes=PB_NODES), tmp_path / "o", sat_margin=0.05)
+    r = res["free"]
+    assert r["summary"]["verdict"] == "BLOCKED" and p.returncode == 2
+    assert r["summary"]["topology_identity"]["status"] == "mismatch"
+    assert r["summary"]["topology_identity"]["diff_count"] >= 1
