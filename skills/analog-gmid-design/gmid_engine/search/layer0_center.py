@@ -18,7 +18,7 @@
    `SearchDomain.current_box` 기하 중심. 기저 원소가 MOS 하나뿐인 행은 상자 중심에서 u = 0 이라 1 의 중심과 같다.
    수렴 판정은 scipy SLSQP 기본값(이 문제는 커널이 없어 판정 분해능 단위가 없다 -- 부동소수 수준).
 3. **최대-최소**(커널): 시작점을 평가해 받아들일 상태(봉인 통과·봉인 7 대기)가 아니면(전류 중심이 원뿔 밖이어도) [S-4b,
-   오케스트레이터 결정 2026-10-08] 같은 변수·같은 L 칸에서 Halton 열(스크램블 없음) 점을 순서대로 평가해 처음 받아들일 상태인
+   오케스트레이터 결정 2026-10-08] 같은 변수·같은 L 칸에서 Halton 열(스크램블 없음, [r11] 차원 = 이름 없는 정준 (종류, 구조 색) 키 -- CONTRACT 3.21 3a) 점을 순서대로 평가해 처음 받아들일 상태인
    점을 출발점으로 삼는다(`_halton_probe` -- 한도는 평가 예산 규칙). 그래도 없으면 끝(`start_<사유>+probe_<한도>`, 층 0 시작점
    없음). 받아들일 상태면 변수 x(정의역 연속 변수 + 칸이 구간인 L) 와 t 로
    최대화 t, 제약 s_i(x) − t ≥ 0(봉인 항목 i = 1..8 중 시작점 margin 이 유한한 항목, s_i = 1 − margin_i -- margin ≤ 1 이 pass
@@ -114,7 +114,36 @@ def _box_centre(sctx):
         theta[(THETA_L, mos)] = (lo + hi) / 2
         if lo < hi:
             variables.append(Variable((THETA_L, mos), False, lo, hi))
+    colour = _colours(sctx)
+    # [r11] 변수 순서 = 이름 없는 정준 순서 (성분 종류, 원소 구조 색) -- 이름은 같은 키(= 1-WL 로 구별 안 되는 궤도) 안에서만 tie-break
+    variables.sort(key=lambda v: _canon_key(colour, v))
     return tuple(variables), theta, tuple(cells)
+
+
+def _colours(sctx):
+    """{(성분 종류 쪽 표, 이름): 구조 색}: 원소 색(device.dc_colour)과 넷 색(node.dc_colour). `y` 성분의 키는 넷 이름이거나(입력 공통모드
+    등) 표 밖 이름이라 색이 없으면 -1(구별 안 함)."""
+    base = sctx.dc.base
+    return dict(base.column("device", "dc_colour")), dict(base.column("node", "dc_colour"))
+
+
+def _canon_key(colour, var):
+    kind, element = var.component
+    devices, nodes = colour
+    c = devices.get(element)
+    if c is None:
+        c = nodes.get(element, -1)
+    return (kind == THETA_L, kind, c), element      # L 은 칸이 정해진 뒤 붙는 변수라 맨 뒤(종래 순서와 같은 자리)
+
+
+def _dimensions(sctx, variables):
+    """[r11] Halton 차원 배정: 변수마다 정준 키 (성분 종류, 원소 구조 색) 의 순위 -- 같은 키(자기동형 궤도 후보)의 변수는 같은 차원
+    (같은 소수 기저·같은 좌표)을 쓴다. 키 순위는 이름을 읽지 않는 정수라 이름 치환·원소 순서 섞기에 대해 불변이고, 궤도 안 변수에
+    같은 좌표를 줘 시작점이 자기동형으로 대응한다."""
+    colour = _colours(sctx)
+    keys = [_canon_key(colour, v)[0] for v in variables]
+    rank = {k: i for i, k in enumerate(sorted(set(keys)))}
+    return [rank[k] for k in keys], len(rank)
 
 
 def _current_centre(sctx, variables, theta):
@@ -470,7 +499,8 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     cur = [i for i, v in enumerate(variables) if v.component[0] == THETA_CURRENT]
     inside = bool(cur) and bool(schema.current_cone) and all(
         r.c > 0 for r in cone_rows(schema, tuple(sorted(theta0.items()))))
-    bases = _primes(len(variables) + (1 if inside else 0))
+    dim, n_dim = _dimensions(sctx, variables)
+    bases = _primes(n_dim + (1 if inside else 0))
     floors = ln_idu_floors(sctx, variables, cells)
     gmid_max = _gmid_max(sctx)
     batch = len(variables) + 1          # 시험 묶음 = FD 한 sweep 크기(n + 1, E_B 유도와 같은 단위)
@@ -512,7 +542,8 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
             if tried >= sctx.eval_budget:
                 return None, tried, "probe_eval_budget", tuple(repaired)
         tried += 1
-        phi = [_radical_inverse(tried, b) for b in bases]
+        phi_dim = [_radical_inverse(tried, b) for b in bases]
+        phi = [phi_dim[d] for d in dim]            # 변수별 좌표 (같은 차원 = 같은 값)
         theta = dict(theta0)
         for i, var in enumerate(variables):
             low = floors.get(i, var.lo)
@@ -534,7 +565,7 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
             # 방향이 0(모든 전류 성분 0 -- 예: 전류 변수 하나, 기저 2 의 첫 시험 φ = 1/2)이면 현이 정해지지 않는다(양끝 무한):
             # 걸음 없음(p 그대로). 끝이 무한인 현·빈 현도 걸음 없음 -- 무한 × 0 = NaN 을 만들지 않는다.
             if math.isfinite(t_lo) and math.isfinite(t_hi) and t_lo < t_hi:
-                walk = walk + (t_lo + phi[-1] * (t_hi - t_lo)) * d
+                walk = walk + (t_lo + phi_dim[-1] * (t_hi - t_lo)) * d
             for j, i in enumerate(cur):
                 theta[variables[i].component] = float(min(max(walk[j], box_lo[j]), box_hi[j]))
         res = evaluate(sctx, theta, cells, origin=tag + (("probe", tried),))
