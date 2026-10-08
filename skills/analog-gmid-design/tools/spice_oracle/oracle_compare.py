@@ -53,6 +53,7 @@ from oracle_netlist import sense_key  # noqa: E402
 MEASURES = {
     "dc_gain_db": ("abs", "dc_gain_db_abs"),
     "pm_deg": ("abs", "pm_deg_abs"),
+    "cm_pm_deg": ("abs", "pm_deg_abs"),
     "ugf_hz": ("rel", "ugf_hz_rel"),
     "f3db_hz": ("rel", "f3db_hz_rel"),
     "supply_current_A": ("rel", "supply_current_A_rel"),
@@ -126,6 +127,8 @@ def measure_value(measure, sim, item):
         return None if r is None else r.get("rout_ohm")
     if measure in TRANSIENT_MEASURES:  # C25: 재지 않음
         return None
+    if measure == "cm_pm_deg":  # CM 루프(cm_loop_passives): sim.cm_loop 의 PM(정의 불가면 None)
+        return (sim.get("cm_loop") or {}).get("pm_deg")
     return ac.get(measure)
 
 
@@ -145,6 +148,9 @@ def measure_undefined(measure, sim, item):
     여유가 아님). 없으면 None. 판정 칸은 'N/A(정의 불가: <이유>)' -> 제약이면 INCOMPLETE(PASS 불가)."""
     if measure == "pm_deg":
         return (sim.get("ac") or {}).get("pm_undefined")
+    if measure == "cm_pm_deg":
+        cl = sim.get("cm_loop")
+        return None if cl is None else cl.get("pm_undefined")
     if measure == "rout_ohm":
         r = _rout_entry(sim, item)
         if r is not None and r.get("rout_ohm") is None and r.get("undefined") not in (None, "no_data"):
@@ -309,6 +315,9 @@ def compare(inp, meta, sim, judge):
     # ac.pm_undefined = loop_probe_singular 로 N/A(정의 불가) -> PASS 불가(C10)
     if loop is not None and not loop.get("measures") and not loop.get("singular"):
         blockers.append("β 루프 측정 결과 없음(루프 넷리스트): " + " | ".join(loop.get("log_errors") or [])[:600])
+    cml = sim.get("cm_loop")
+    if cml is not None and not cml.get("measures") and not cml.get("singular"):
+        blockers.append("CM 루프 측정 결과 없음(cmloop 넷리스트): " + " | ".join(cml.get("log_errors") or [])[:600])
 
     # ---- 합격 판정(사용자 확정 2026-10-07): free 모드 = 선언 제약 만족 + 전도 MOS 전부 포화 ----
     conducting = [r for r in rows if r["ID_spice"] is not None and r["ID_spice"] >
@@ -375,6 +384,7 @@ def compare(inp, meta, sim, judge):
                            "loop_break_nets": (sim.get("ac") or {}).get("loop_break_nets"),
                            "loop_weights": (sim.get("ac") or {}).get("loop_weights")},
                "stability": _stability_summary((sim.get("ac") or {})),
+               "cm_loop": _cm_loop_summary(sim.get("cm_loop")),
                "rail_current_A": sim.get("rail_current_A")}
     ti = meta.get("topology_identity") or {"status": "unverified", "diffs": [], "notes": ["넷리스트 meta 에 C15 결과 없음"]}
     summary["topology_identity"] = {"status": ti.get("status"), "required": ti.get("required", False),
@@ -389,6 +399,17 @@ def compare(inp, meta, sim, judge):
     if meta["bias"] == "forced":
         res["diagnosis"] = forced_diagnosis(inp, rows, kcl)
     return res
+
+
+def _cm_loop_summary(cl):
+    """summary.cm_loop = 공통 모드 루프 PM 측정 요약(없으면 None). stability 는 DM 과 같은 형식(_stability_summary)."""
+    if not cl:
+        return None
+    m = cl.get("measures") or {}
+    return {"break_nets": cl.get("break_nets"), "pm_deg": cl.get("pm_deg"), "pm_deg_raw": cl.get("pm_deg_raw"),
+            "pm_undefined": cl.get("pm_undefined"), "loop_gain_dc_db": m.get("dc_gain_db"), "loop_ugf_hz": m.get("ugf_hz"),
+            "singular": cl.get("singular"), "stability": _stability_summary({"stability": cl.get("stability"),
+                                                                             "pm_deg_raw": cl.get("pm_deg_raw")})}
 
 
 def _stability_summary(ac):
@@ -555,6 +576,13 @@ def to_markdown(res):
         L.append(f"- PM 루프: {pl.get('pm_definition')}, feedback_passives {pl.get('feedback_passives')} "
                  f"(규칙 {pl.get('feedback_passives_basis') or '미기재'}), 절단 넷 {pl.get('loop_break_nets')}, "
                  f"가중 {pl.get('loop_weights')}")
+    cl = s.get("cm_loop")
+    if cl:
+        cs = cl.get("stability") or {}
+        L.append(f"- CM 루프(공통 모드 CMFB) PM: {_f(cl.get('pm_deg'))} deg"
+                 + (f" (정의 불가 {cl['pm_undefined']}, Bode 식 원값 {_f(cl.get('pm_deg_raw'))})" if cl.get("pm_undefined") else "")
+                 + f", 절단 넷 {cl.get('break_nets')}, T_cm(0) {_f(cl.get('loop_gain_dc_db'))} dB, UGF {_f(cl.get('loop_ugf_hz'))} Hz"
+                 + f", Nyquist N = {_f(cs.get('nyquist_encirclements_cw'))}, 폐루프 과도 {cs.get('transient_status')}")
     sb = s.get("stability") or {}
     if sb:
         L.append(f"- C10 PM 안정성 근거: PM {'유효' if sb.get('pm_valid') else ('정의 불가 ' + str(sb.get('pm_undefined')) if sb.get('pm_undefined') else '검사 대상 아님')}"

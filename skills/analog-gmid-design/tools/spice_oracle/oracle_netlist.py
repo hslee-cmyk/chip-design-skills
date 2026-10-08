@@ -8,7 +8,7 @@
   넷리스트(.cir)와 그 메타(<out.cir>.meta.json: 소자 probe 이름, 넷 목록, 고정한 넷, 경고/막힘)를 쓴다.
   ngspice 는 부르지 않는다(oracle_simulate.py 몫).
 
-공개 함수: build_netlist(inp, bias, ac_file, loop=False) -> (text, meta), write_netlists(inp, bias, out_cir, ...) -> meta,
+공개 함수: build_netlist(inp, bias, ac_file, loop=False|True|CM_LOOP) -> (text, meta), cm_loop_break_net(inp), write_netlists(inp, bias, out_cir, ...) -> meta,
           validate_input(inp) -> [위반], loop_break_nets(inp), load_input(path), read_lut_meta(npz_path),
           parse_netlist_elements(text, inp), topology_elements(topo), topology_identity(inp, text, path),
           resolve_topology_path(inp, input_path, override), apply_z1(inp, omit, short),
@@ -253,6 +253,31 @@ def loop_break_nets(inp):
     return nets, blockers
 
 
+CM_LOOP = "cm"      # build_netlist(loop=CM_LOOP): 공통 모드(CMFB) 루프 넷리스트
+CM_LOOP_WEIGHT = 1  # 절단 넷 하나의 스칼라 루프 -- 가중은 정의값 1(엔진 cm_loop 뷰 weights ((감지 넷, 1.0),)와 같다)
+
+
+def cm_loop_break_net(inp):
+    """공통 모드(CMFB) 루프를 끊을 넷 = 선언된 평균 수동소자(cm_loop_passives)가 모두 물린 넷 하나(입력·출력 포트 넷·레일 아님).
+    엔진 cm_loop 뷰(spec_views._cm_loop_view)의 절단(수동소자의 감지 넷 쪽 단자를 떼고 gate 쪽은 그대로)과 같은 위치다.
+    (넷 또는 None, 막힘 목록)."""
+    names = inp.get("cm_loop_passives") or []
+    if not names:
+        return None, []
+    by = {p["name"]: p for p in inp.get("passives") or []}
+    blockers = [f"cm_loop_passives 의 {n} 이 passives 에 없다" for n in names if n not in by]
+    if blockers:
+        return None, blockers
+    common = set.intersection(*(set(by[n]["terminals"]) for n in names))
+    ports = inp["ports"]
+    barred = {ports[k] for k in ("input_p", "input_n", "input", "output_p", "output_n", "output") if ports.get(k)}
+    barred |= {r["net"] for r in inp["rails"]}
+    common -= barred
+    if len(common) != 1:
+        return None, [f"cm_loop_passives {names} 에 공통인 (포트·레일 아닌) 넷이 정확히 하나가 아니다: {sorted(common)}"]
+    return next(iter(common)), []
+
+
 def build_netlist(inp, bias, ac_file, loop=False):
     """loop=False: 본 넷리스트(.op + 개루프 A 의 .ac). loop=True: β 루프 이득 측정용 넷리스트
     (되먹임 수동소자의 입력 쪽 단자를 lbx_<넷> 으로 떼고 직렬 전압원 Vlb·주입 전류원 Ilb 를 넣어 .ac 2회 --
@@ -269,6 +294,7 @@ def build_netlist(inp, bias, ac_file, loop=False):
         if lut[k] is None:
             blockers.append(f"LUT npz 에 {k} 메타가 없다: {process['lut_npz']}")
     blockers += excitation_weight_check(inp)
+    cm = loop == CM_LOOP
     N = _Nets(inp["rails"])
     devs = inp["devices"]
     kinds = {d["kind"] for d in devs}
@@ -317,9 +343,15 @@ def build_netlist(inp, bias, ac_file, loop=False):
         L.append(f"{letter}src_{s['name']} {N(a)} {N(b)} DC {_num(s['value'])}")
         notes.append(f"{s['kind']} source {s['name']}={_num(s['value'])} ({s.get('value_basis', '근거 미기재')})")
 
-    breaks, bb = loop_break_nets(inp) if loop else ([], [])
+    if cm:      # 공통 모드 루프: 끊는 곳은 입력 포트가 아니라 평균 감지 넷 -- 입력은 전부 AC 접지(Vac AC 0)
+        cm_net, bb = cm_loop_break_net(inp)
+        breaks = [] if cm_net is None else [cm_net]
+        fbp = set(inp.get("cm_loop_passives") or [])
+        driven.update(breaks)   # gate 쪽이 N(net) 으로 남아 있고 Vlb 가 lbx 쪽과 DC 로 잇는다
+    else:
+        breaks, bb = loop_break_nets(inp) if loop else ([], [])
+        fbp = set(inp.get("feedback_passives") or [])
     blockers += bb
-    fbp = set(inp.get("feedback_passives") or [])
     passive_nets = []
     for p in inp.get("passives") or []:
         a, b = p["terminals"]
@@ -370,7 +402,7 @@ def build_netlist(inp, bias, ac_file, loop=False):
     # C24 여기 수단: 테스트벤치가 이상 전압원으로 구동하는 넷 -> 그 원 이름(레일·입력 Vac·게이트 바이어스)
     ac_src = dict(rail_src)
     loop_choke = None
-    if loop and breaks:
+    if loop and breaks and not cm:
         if tb.get("loop_dc_choke_H") is None:
             blockers.append("testbench.loop_dc_choke_H 없음 -- β 루프 측정의 입력 DC 경로를 정할 수 없다")
         else:
@@ -411,6 +443,11 @@ def build_netlist(inp, bias, ac_file, loop=False):
             L.append(f"Cac_{net} {N(net)} acs_{net} {coup}")
             L.append(f"Vac_{net} acs_{net} 0 DC 0 AC {_num(0 if loop else ac_mag.get(net, 0))}")
             ac_src[net] = f"Vac_{net}"
+
+    if cm and breaks:   # 절단 직렬 전압원(증폭기 쪽 +)과 증폭기 쪽 주입 전류원 -- DM 루프와 같은 Middlebrook 이중 주입
+        ac_mag = {breaks[0]: CM_LOOP_WEIGHT}
+        L.append(f"Vlb_{breaks[0]} {N(breaks[0])} lbx_{breaks[0]} DC 0 AC {_num(CM_LOOP_WEIGHT)}")
+        L.append(f"Ilb_{breaks[0]} 0 {N(breaks[0])} DC 0 AC 0")
 
     # 게이트 전용 넷
     declared_bias = {b["net"]: float(b["value"]) for b in inp.get("bias_voltages") or []}
@@ -831,6 +868,8 @@ def apply_z1(inp, omit=(), short=()):
     blockers += [f"Z1 --omit/--short {n}: 같은 원소를 두 번 바꿀 수 없다" for n in set(omit) & set(short)]
     fbp = set(x.get("feedback_passives") or [])
     blockers += [f"Z1 변경 대상 {n} 이 feedback_passives 에 있다(β 루프 정의가 바뀐다)" for n in (set(omit) | set(short)) & fbp]
+    cmp_ = set(x.get("cm_loop_passives") or [])
+    blockers += [f"Z1 변경 대상 {n} 이 cm_loop_passives 에 있다(CM 루프 정의가 바뀐다)" for n in (set(omit) | set(short)) & cmp_]
     om = set(omit)
     x["devices"] = [d for d in x["devices"] if d["name"] not in om]
     x["sources"] = [s for s in x.get("sources") or [] if s["name"] not in om]
@@ -1030,6 +1069,17 @@ def write_netlists(inp, bias, out_cir, topology_path=None, require_topology=Fals
             meta["blockers"].append("C15 topology 연결 동일성 미검증(--require-topology): " + "; ".join(ti["notes"]))
     ti["required"] = bool(require_topology)
     meta["topology_identity"] = ti
+    meta["cm_loop"] = None
+    if work.get("cm_loop_passives") and bias != "iso":
+        ctext, cmeta = build_netlist(work, bias, f"{stem}.cmloop", loop=CM_LOOP)
+        ccir = os.path.join(os.path.dirname(os.path.abspath(out_cir)), f"{stem}.cmloop.cir")
+        with open(ccir, "w", encoding="utf-8") as f:
+            f.write(ctext)
+        cmeta["netlist"] = os.path.basename(ccir)
+        meta["cm_loop"] = cmeta
+        for b in cmeta["blockers"]:
+            if b not in meta["blockers"]:
+                meta["blockers"].append(b)
     meta["loop"] = None
     if work.get("feedback_passives") and bias != "iso":
         ltext, lmeta = build_netlist(work, bias, f"{stem}.loop", loop=True)

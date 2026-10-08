@@ -1,6 +1,8 @@
 """일반화 고유값의 유한 근 공용 helper (사용처: `pencil_roots.py` 계 극점·영점, `probe_loop.py` 루프 이득 T 의 극점·영점).
 
 공개 함수: `finite_eigs(a, e)` -- pencil (a, −e) 의 유한 고유값(원점 판정 포함), 정렬 (|s|, 실부, 허부).
+`probe_pencil(system, pairs, weights)` -- 루프 이득 T 의 증강 pencil(a, e, ‖w‖²) (`probe_loop` 극점·영점, `_helpers_probe` 섞인 절단 T(0)).
+`probe_dc_value(system, pairs, weights)` -- 그 pencil 의 s = 0 값 T(0) = −H(0)/(H(0) + wᵀw), 정의 안 되면 None.
 
 * 균형(Ward 방법 -- LAPACK ggbal 의 배율): QZ 전에 행·열을 2 의 거듭제곱 대각 배율 D_r·(a + s·e)·D_c 로 바꾼다(고유값 불변,
   반올림 없는 정확한 변환). 지수는 a·e 의 0 아닌 원소 전부의 Σ(log2|x_ij| + r_i + c_j)² 최소제곱 해를 반올림한 것(한 번의
@@ -12,6 +14,8 @@
   |α| ≤ 차원·eps·‖a‖_F 이면 그 고유값은 원점(s = 0, 정확히 0 으로 낸다)이다 -- 용량 전용 노드의 전하 모드가 반올림 잡음으로
   작은 |s| 가 되어 격자 꺾임점에 들어가지 않게 한다(분해능 상수 없음).
 """
+import math
+
 import numpy
 import scipy.linalg
 
@@ -55,3 +59,71 @@ def finite_eigs(a, e):
             continue
         out.append(complex(0, 0) if abs(al) <= tol_alpha else complex(al / be))
     return tuple(sorted(out, key=lambda z: (abs(z), z.real, z.imag)))
+
+
+def probe_pencil(system, pairs, weights):
+    """절단 회로 계(`MnaSystem`), (n, x) 노드 쌍, 가중 -> (a, e, ww): T 의 증강 pencil. 마지막 행·열은 테두리(a[full, full] = 0),
+    ww = wᵀw. T = −H/(H + wᵀw), H(s) = c·(a + s·e)⁻¹·(b_g + s·b_c) -- 테두리 pencil 의 영점 = H 의 영점(a[full, full] = 0),
+    ww 로 두면 H + ww 의 영점 = T 의 극점. 절단 노드 중 하나라도 용량 전용이면 프로브 결합을 e 쪽에 두고(프로브 전류 j = s·j',
+    2회 주입은 전하) 용량 전용 노드 행을 s 로 나눈다 -- 섞인 절단(전도 노드 + 용량 전용 노드)의 s → 0 극한도 이 식이 낸다."""
+    n = system.G.shape[0]
+    k = len(pairs)
+    size = n + k
+    w = numpy.array(weights, dtype=float)
+    at = {node: i for i, node in enumerate(system.nodes)}
+    n_idx = [at[a] for a, _ in pairs]
+    x_idx = [at[b] for _, b in pairs]
+    charge = sorted(system.charge_nodes)
+    # 절단 노드가 용량 전용이면(ω = 0 열 선택과 같은 규칙) 프로브 전류 j = s·j', 2회 주입은 전하 w(= 전류 s·w)로 둔다 --
+    # T 는 2회 실험의 공통 배율에 무관하고, 그 노드 KCL 행이 s 로 나뉘어 떨어진다.
+    scaled = bool(set(n_idx + x_idx) & set(charge))
+    probe = numpy.zeros((n, k))
+    probe[n_idx, range(k)] = 1.0
+    probe[x_idx, range(k)] = -1.0
+    a0 = numpy.zeros((size, size))
+    e0 = numpy.zeros((size, size))
+    a0[:n, :n] = system.G
+    e0[:n, :n] = system.C
+    (e0 if scaled else a0)[:n, n:] = probe
+    a0[n:, :n] = probe.T
+    # 용량 전용 노드 행(G 행 0)은 s·(C_F·v + P_F·j') = s·(우변) 이라 s 로 나눈다(`solve_dc_limit` 의 전하 보존 식과 같은 변환,
+    # 해 불변). 나누지 않으면 원점 근이 겹친 결함 고유값이 되어 QZ 가 eps^(1/m) 규모로 흩뜨린다(허위 근).
+    a0[charge, :] = e0[charge, :]
+    e0[charge, :] = 0.0
+    bg = numpy.zeros(2 * size)
+    bc = numpy.zeros(2 * size)
+    c = numpy.zeros(2 * size)
+    bg[n:size] = w                      # 1회: 프로브 전압 V(n) − V(x) = w
+    c[n_idx] = w                        # 관측 wᵀV_n
+    for i, wi in zip(n_idx, w):         # 2회: n 으로 주입(프로브 0 V) -- scaled 면 전하 w, 나눈 행에서는 상수
+        (bc if scaled and i not in charge else bg)[size + i] = wi
+    c[size + n:] = -w                   # 관측 −wᵀI (I = n → x 프로브 전류; scaled 면 j' = 배율 걷힌 I)
+    full = 2 * size
+    a = numpy.zeros((full + 1, full + 1))
+    e = numpy.zeros((full + 1, full + 1))
+    a[:size, :size] = a0
+    a[size:full, size:full] = a0
+    e[:size, :size] = e0
+    e[size:full, size:full] = e0
+    a[:full, full] = -bg
+    e[:full, full] = -bc
+    a[full, :full] = c
+    return a, e, float(w @ w)
+
+
+def probe_dc_value(system, pairs, weights):
+    """T(s → 0) = −H(0)/(H(0) + wᵀw), H(0) = c·a⁻¹·b_g (`probe_pencil` 의 s = 0 식) -- 극한이 없으면(a 특이: T 가 원점 극점을
+    가짐, H + wᵀw = 0) None. 절단 노드가 섞여(전도 + 용량 전용) 열 선택으로 Z 의 0차 동차식을 쓸 수 없는 ω = 0 에서 `_helpers_probe`
+    가 이 값을 쓴다. 구조 결함(`system.defects`)이 있으면 None."""
+    if system.defects:
+        return None
+    a, _e, ww = probe_pencil(system, pairs, weights)
+    full = a.shape[0] - 1
+    try:
+        lu, piv = scipy.linalg.lu_factor(a[:full, :full])
+    except (ValueError, scipy.linalg.LinAlgError):
+        return None
+    if not numpy.isfinite(lu).all() or not numpy.diag(lu).all():
+        return None
+    h = float(a[full, :full] @ scipy.linalg.lu_solve((lu, piv), -a[:full, full]))
+    return None if not math.isfinite(h) or h + ww == 0 else complex(-h / (h + ww))

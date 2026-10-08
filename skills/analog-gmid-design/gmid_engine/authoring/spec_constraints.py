@@ -20,6 +20,9 @@
     포트 뷰), feedback 이 결정 대기면 mode `pending`(그 ID 전파). 유도 불가면 `view_required`. 결정 대기 아닌 선언 view 는
     `view_not_applicable`. 단 명시 모양 `{"cut_weights": …}`(7a design 2.9 예약 -- 계약에만 있고 첫 소비 spec 이 생길 때
     구현)은 조용히 무시하지 않고 `view_shape_not_supported` 로 거부한다.
+  - `cm_loop`(`pm_cm_ss_deg`, 공통 모드 CMFB 루프 PM): `loop` 와 같이 view 를 적지 않는다(결정 대기 표지만) -- 차동 출력 평균 감지
+    넷에서 구조 유도한 루프 뷰(mode `loop`, β 루프 모양: 평균 수동소자의 감지 넷 쪽 단자 절단 + 가중 ((넷, 1.0),),
+    `spec_views.default_views().cm_loop`). CMFB 구조가 없는 회로의 이 제약은 `view_required`(유도 사유 포함).
   - `output_port`(`rout_ss_ohm`): 감지 전용 `{sense_p, sense_n?, sense_mode}`(mode `sense`). `ac_excite` 는
     `view_excite_not_allowed`(여기는 DEC-66 이 고정), 감지 넷이 고정 넷(레일·입력 포트·gate 전용 미구동 넷)이면
     `view_sense_fixed_net`. 적지 않으면 출력 포트가 1개일 때 그 넷 single_ended, 아니면 `view_required`.
@@ -52,7 +55,7 @@ TRANSFER_KEYS = (EXCITE_KEY,) + SENSE_KEYS
 RATIO_KEYS = ("num", "den")
 # 명시 루프 뷰 모양 `{"cut_weights": {<절단 넷>: 가중}}` -- 7a design 2.9 예약(계약에만 정의, 첫 소비 spec 과 함께 구현).
 RESERVED_LOOP_VIEW_KEY = "cut_weights"
-_UNRESOLVED = (("transfer", "port"), ("loop", "loop"), ("output_port", "sense"))
+_UNRESOLVED = (("transfer", "port"), ("loop", "loop"), ("cm_loop", "loop"), ("output_port", "sense"))
 
 
 def _sense_fields(raw, where, nets, hits):
@@ -133,7 +136,7 @@ def _view(raw, signature, where, nets, views, hits):
         if raw is not None:
             hits.append(SchemaHit("view_not_applicable", place, "이 metric 은 뷰를 쓰지 않는다(view_kind None)"))
         return ViewDecl("none")
-    if kind == "loop" and raw is not None:
+    if kind in ("loop", "cm_loop") and raw is not None:
         if isinstance(raw, dict) and RESERVED_LOOP_VIEW_KEY in raw:
             hits.append(SchemaHit("view_shape_not_supported", place, "명시 루프 뷰 {cut_weights} 는 계약에 예약된 모양이지만 "
                                   "아직 구현하지 않았다(첫 소비 spec 과 함께 구현 -- 7a design 2.9, SPEC_CONTRACT 7절 S3)"))
@@ -147,7 +150,7 @@ def _view(raw, signature, where, nets, views, hits):
             return None
         if views is None:
             return ViewDecl(dict(_UNRESOLVED)[kind])
-        return _derived({"transfer": views.port, "loop": views.loop, "output_port": views.sense}[kind], where, hits)
+        return _derived({"transfer": views.port, "loop": views.loop, "cm_loop": views.cm_loop, "output_port": views.sense}[kind], where, hits)
     if kind == "output_port":
         return _sense_view(raw, place, nets, views, hits)
     if not isinstance(raw, dict):

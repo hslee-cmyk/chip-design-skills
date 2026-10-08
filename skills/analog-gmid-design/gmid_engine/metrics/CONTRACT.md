@@ -24,7 +24,7 @@
 | 0 | `mna_types.py` | (데이터) | 결과 레코드: `Undefined`, `MnaSystem`, `Roots`, `DcLimit`, `SystemResponse`, `PointSolution`, `Factor`, `ProbeFactor`, `CutCircuit`, `Crossing`, `LoopAnalysis`, `OutputResistance`, `ResponseRatio`(+ `row`, 9절), `SupplyCurrents`, `AreaSearch`, [9절] `ParameterSet`·`ResponseSensitivity`·`Resolution`, `MetricResult`(+ `resolution`, 9절). **인수 공통 규약**(`Factor`·`ProbeFactor`): 속성 `response`(공유 격자), `samples`(격자 위 값), `poles`·`zeros`(상단 괄호용 근), `undefined`(격자 표본 사유); 격자 밖 한 점은 `PointSolution` → (복소값, 사후 오차, 사유)(`_helpers_product.product_at`) |
 | 0 | `_helpers_stamp.py` | (helper) | `admittance_pair` |
 | 0 | `_helpers_dc.py` | (helper) | `dc_limit_parts`(ω → 0 극한 식 행렬·우변·전하 주입 열 -- `dc_limit`·`sensitivity` 공용, 9.2) |
-| 0 | `_helpers_pencil.py` | (helper) | `finite_eigs`(pencil 유한 고유값, `pencil_roots`·`probe_loop` 공용) |
+| 0 | `_helpers_pencil.py` | (helper) | `finite_eigs`(pencil 유한 고유값, `pencil_roots`·`probe_loop` 공용), [CM 2026-10-08] `probe_pencil`(루프 이득 T 의 증강 pencil -- `probe_loop` 극점·영점 / `_helpers_probe` 섞인 절단 T(0) 공용), `probe_dc_value`(그 pencil 의 s = 0 값 T(0)) |
 | 0 | `junction_cap.py` | `junction_caps` | 접합 용량 cdb·csb(BSIM4, DEC-91) + 입력 레코드 `JunctionParams`·`DiffusionGeometry`, 결과 `JunctionCaps` (8절) |
 | 1 | `_helpers_probe.py` | (helper) | `probe_value`(Middlebrook T 한 점 평가·사후 오차·[9절] ∂T/∂V -- 4-tuple, `probe_loop`·`_helpers_product`·`resolution` 공용) |
 | 1 | `sensitivity.py` | `response_sensitivity` | 한 계·한 ω 의 관측값·사후 오차·∂V/∂p·∂V/∂ω(LU 1회 + 수반, 9.2) |
@@ -55,7 +55,7 @@
 core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, mv, amp, w, m2)·`DOMAINS`(dc, ss, ls, geom)·
 `AMPLITUDE_DB_PER_DECADE`), `core/metric_signature.py`(데이터, `MetricSignature(unit, domain, view_kind=None, objective_axis=None)`
 + 어휘 `VIEW_KINDS`·`OBJECTIVE_AXES` -- `unit ∈ METRIC_UNITS`, `domain ∈ DOMAINS`, `view_kind` ∈ {None} ∪ `VIEW_KINDS`
-(transfer, loop, output_port, ratio; None = 뷰 없음), `objective_axis` ∈ {None} ∪ `OBJECTIVE_AXES`(power, area) 아니면 ValueError).
+(transfer, loop, cm_loop, output_port, ratio; None = 뷰 없음), `objective_axis` ∈ {None} ∪ `OBJECTIVE_AXES`(power, area) 아니면 ValueError).
 뷰 종류 어휘의 정본은 `VIEW_KINDS` 한 곳이고 spec 로더(authoring SPEC_CONTRACT 4절)도 같은 어휘를 쓴다.
 
 ---
@@ -101,7 +101,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | `singular_dc_limit` | structural | `solve_dc_limit` | 같음 |
 | `dc_charge_injection` | definitional | `solve_dc_limit`(그 열만) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
 | `dc_not_above_level`, `no_crossing_above`, `dc_zero`, `den_zero`, `num_zero`, `operand_undefined` | definitional | 교차·비·이득·Middlebrook 분모(`probe_factor`) | STRUCTURE_UNRESOLVED / 제약 위반 후보 실패(margin null, N3.14 표의 해당 하위 클래스는 판정 계층이 확정) |
-| `loop_cut_mixed_charge` | definitional | `probe_factor` ω = 0(절단 노드 중 용량 전용과 전도 노드가 섞임 -- 열마다 1/s 차수가 달라 0차 동차성으로 극한을 못 낸다, 6절 M7) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
+| `loop_cut_mixed_charge` | definitional | `probe_factor` ω = 0(절단 노드 중 용량 전용과 전도 노드가 섞이고, 증강 pencil 의 s = 0 값 `probe_dc_value` 도 없음 -- T 가 원점 극점이거나 구조 결함. [CM 2026-10-08] 섞인 절단 자체는 이제 값이 있다, 3.17·6절 M7) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
 | `negative_output_resistance` | definitional | `output_resistance`(DC 극한 관측 / I < 0 -- 양되먹임. 값을 내면 `<=` 제약이 통과하므로 정의 불가로 둔다, 7a Q3 오케스트레이터 결정 2026-10-07) | STRUCTURE_UNRESOLVED / 후보 실패(margin null) |
 | `loop_open_rhp_poles` | definitional | `analyze_loop` 의 `phase_margin_deg` 만(→ `pm_ss_deg`·`parasitic_pm_ss_deg`). 루프 인수 `poles` 에 실부 > 0 인 근이 있음 -- Nyquist P > 0 이라 180° − 지연은 안정 여유가 아니다(3.10 전제). detail `rhp_poles`(근마다 `(실부, 허부)` float 쌍의 tuple -- complex 아님(블록 write 의 core `require_immutable`), 중복 없이 (|s|, 실부, 허부) 오름차순)·`rhp_pole_count`(int), 키 이름순 저장(3.10). 값을 내면 위상 앞섬으로 PM > 180° 가 `>=` 제약을 통과한다(ngcc 2026-10-08: PM 218°, SPICE 과도 0.73 Vpp 발진) | STRUCTURE_UNRESOLVED / 후보 실패(margin null) |
 | `singular_mna`, `crossing_bracket_overflow`, `crossing_bound_violated`, `phase_jump_unresolved`, `zero_response_on_axis`, `response_not_finite`, `unrecorded_cause` | numeric | 풀이·이분·위상 | STRUCTURE_UNRESOLVED / NONCONVERGENT(후보 실패 클래스) |
@@ -225,7 +225,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - `area_search_m2` = Σ W·L + Σ(값 × 단위 면적, 선언된 것만). 미선언 수동소자 label → `passive_area_undeclared`(정렬).
 
 ### 3.15 `metric_registry()`, `metric_catalog()`, `metric_value(name, source)`
-- 등록 10개(metric → 결과 형식.필드, 단위, 영역, view_kind):
+- 등록 11개(metric → 결과 형식.필드, 단위, 영역, view_kind) [CM 2026-10-08: `pm_cm_ss_deg` 추가]:
 
 | metric | 결과 형식.필드 | 단위 | 영역 | view_kind | objective_axis |
 |---|---|---|---|---|---|
@@ -234,6 +234,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | `gbw_ss_hz` | LoopAnalysis.gbw_hz | hz | ss | transfer | -- |
 | `parasitic_pm_ss_deg` | LoopAnalysis.phase_margin_deg(전달 뷰 인수) | deg | ss | transfer | -- |
 | `pm_ss_deg` | LoopAnalysis.phase_margin_deg(β 루프 `ProbeFactor` / β = 1 포트 `Factor`, 3.10) | deg | ss | loop | -- |
+| `pm_cm_ss_deg` | LoopAnalysis.phase_margin_deg(공통 모드 CMFB 루프 `ProbeFactor`, 7.11) | deg | ss | cm_loop | -- |
 | `ratio_ss_db` | ResponseRatio.ratio_db | db | ss | ratio | -- |
 | `rout_ss_ohm` | OutputResistance.rout_ohm | ohm | ss | output_port | -- |
 | `supply_current_dc` | SupplyCurrents.supply_current_dc | amp | dc | -- | power |
@@ -265,8 +266,11 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
   `loop_gain` 과 같은 식·같은 부호 규약(`Vlb n x`, `Ilb 0 n`, `i(Vlb)` n → x). 오라클의 두 `.ac` 를 같은 계의 여기 열로 중첩
   (근사 없음).
 - ω > 0: 전류 열. ω = 0: 전류 열 중 `dc_charge_injection` 이 없으면 전류 열 DC 해, 전부면 전하 열 DC 해(Tv·Ti 는 Z 의 0차
-  동차식이라 열마다 같은 배율 s 는 값을 바꾸지 않는다), 섞이면 T(0) NaN + `loop_cut_mixed_charge`. M 특이 → 그 점 NaN +
-  `loop_probe_singular`, Tv·Ti·T 분모 0 → `den_zero`.
+  동차식이라 열마다 같은 배율 s 는 값을 바꾸지 않는다). **섞이면(전도 노드 + 용량 전용 노드 -- 예: 공통 모드 루프의 gate 쪽 n, 저항 쪽 x)
+  열마다 1/s 차수가 달라 Z 의 0차 동차식으로는 극한을 못 내므로, T(0) = −H(0)/(H(0) + wᵀw) (H(0) = 증강 pencil `probe_pencil` 의
+  s = 0 값 c·a⁻¹·b_g, `_helpers_pencil.probe_dc_value`)을 쓴다 -- 극점·영점 계산이 이미 쓰는 식(용량 전용 행을 s 로 나누고 프로브 결합을
+  s 쪽에 둔다)이 선두 차수를 정확히 푼다. 이 값은 사후 오차 0(ω = 0 극한 규약)·∂T/∂V None 이다. a 가 특이(T 가 원점 극점)면
+  T(0) NaN + `loop_cut_mixed_charge`.** M 특이 → 그 점 NaN + `loop_probe_singular`, Tv·Ti·T 분모 0 → `den_zero`.
 - 결과 필드: 격자 위 T `samples`(1회 계산 보관), T 의 `poles`·`zeros`(항등식 1/(1 + T) = 1/(1 + Tv) + 1/(1 + Ti) = Q,
   Q·wᵀw = H + wᵀw, H = 프로브 전압원 k 개를 넣은 절단 회로 두 벌의 한 전달함수 → T = −H/(H + wᵀw): 영점 = H 영점, 극점 =
   H + wᵀw 영점, 증강 pencil), `undefined`(격자 표본 사유).
@@ -301,6 +305,9 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | I-15 | β = 1(feedback 빈 list)에서 `pm_ss_deg` = 기본 포트 뷰 `parasitic_pm_ss_deg` 비트 동일(같은 MnaSystem 의 같은 `Factor`) |
 | I-16 | A·β 무부하 인수 곱 값(예 7 대조 UGF 39756892.0418 Hz)을 `pm_ss_deg` 경로가 내면 FAIL -- 옛 정의 red |
 | I-17 | PM 전제(3.10): 인수 `poles` 에 Re > 0 근이 있으면 `phase_margin_deg` 는 None + `loop_open_rhp_poles`(예 8·8a·8b -- 옛 값 271.145°·274.443° 를 내면 FAIL). 없으면 `LoopAnalysis` 전 필드·`undefined` 가 전제 도입 전과 비트 동일(예 1~7c). `phase_lag_rad`·`ugf_hz` 는 우반면 근이 있어도 값 그대로 |
+| I-18 | [CM] 섞인 절단의 T(0): 예 7d 에서 `probe_factor.samples[0]` = gm/gds = 100(NaN 아님, 상대오차 ≤ 차원·eps; 실측 9.9999999999999991e1), `analyze_loop` 의 PM = 폐형식 17.1448910438°(상대 ≤ 1e-9), 격자 위 ω > 0 표본의 폐형식 상대오차 ≤ 1e-12. 예 7c 는 T(0) = 0(`dc_zero`·`dc_not_above_level`), `loop_cut_mixed_charge` 가 나오면 FAIL(옛 기대 red) |
+| I-19 | [CM] `probe_dc_value` 일관성: 섞이지 않은 절단(예 7 용량 전용 25, 전도 전용 33.3333…)에서 `probe_dc_value` = 열 선택 방식 T(0)(상대오차 ≤ 차원·eps; 실측 예 7 24.999999999999993 대 25.000000000000018, 전도 전용 33.33333333333333 대 33.33333333333335) |
+| I-20 | [CM] 섞인 절단은 ω > 0 표본에 영향이 없다: 같은 계의 격자 점 ω > 0 의 T 는 이 변경 전과 비트 동일(ω = 0 한 점만 NaN 에서 값으로 바뀐다) |
 
 ## 5. 손계산 예 (엔진과 독립인 폐형식으로 대조 가능)
 
@@ -382,10 +389,34 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
   T_CM(0) = 25. 가중 (1, −1) 은 (½, −½) 와 같은 T(I-13).
 - 기대(실측): DM 5.000000000000001, CM 25.00000000000007, 배율 바꿈 값 동일.
 
-### 예 7c -- 섞인 절단(정의 불가 값)
-- 예 7 에서 Cs 를 `Resistor(3, 0, 1e5)` 로 바꾸면 n = 3 은 전도 노드, x = 4 는 용량 전용 → `metric_value("pm_ss_deg",
-  analyze_loop((pf,)))` = `MetricResult(value=None, undefined=(Undefined("phase_margin_deg", "loop_cut_mixed_charge",
-  "definitional", …),))`, 예외 없음(I-10).
+### 예 7c -- 섞인 절단 (n 전도, x 용량 전용)
+- 예 7 에서 Cs 를 `Resistor(3, 0, 1e5)` 로 바꾸면 n = 3 은 전도 노드, x = 4 는 용량 전용(섞인 절단). [CM 2026-10-08 갱신: 옛 기대는
+  `loop_cut_mixed_charge`(값 없음)였으나 3.17 이 섞인 절단의 T(0) 를 낸다.] 폐형식(되돌림 비, 단일 제어원 루프):
+  T(s) = gm·Z2·sRsCf/(1 + sRsCf), Z2 = 1/(gds + sCL + sCf/(1 + sCf·Rs)) -- 대역통과, **T(0) = 0**. 기대: `samples[0]` = 0(부호 있는
+  0 포함), `analyze_loop` 의 `dc_value` = 0, `gain_db` 사유 `dc_zero`, `phase_margin_deg` = None + `dc_not_above_level`(예외 없음,
+  I-10). T 의 극점 −97096.53·−3.81966e6·−2.61803e7·−1.0299e9 rad/s, 영점 0·−97096.53·−1.0299e9(2026-10-08 엔진 실측).
+
+### 예 7d -- 섞인 절단 (n 용량 전용 gate, x 전도) -- 공통 모드 루프의 모양
+- `MosSmallSignal(d=2, g=3, s=0, b=0, gm=1e-3, gmb=0, gds=1e-5, cgs=Cg=1e-12)`, `Resistor(2, 3, Rf=1e5)`(resistors index 0),
+  `Capacitor(2, 0, CL=1e-12)`, `ac_ground=(0,)`. `cut_circuit(c, (LoopCut("resistor", 0, "b"),))`: pairs ((3, 4),). n = 3 은 gate +
+  Cg 뿐(용량 전용), x = 4 는 Rf 뿐(전도).
+- 폐형식(되돌림 비): T(s) = gm / (gds + s(CL + Cg + gds·Rf·Cg) + s²·CL·Rf·Cg) = 1e-3/(1e-5 + 3e-12·s + 1e-19·s²). T(0) = gm/gds = 100
+  (Rf 와 무관 -- gate 쪽이 열려 있다), 극점 −3819660.1125·−26180339.8875 rad/s, 영점 없음.
+- 기대: `gain_db` = 40 dB, UGF = 15639047.2344 Hz(|T| = 1), `pm_ss_deg` = 180° + arg T(jω_u) = 17.1448910438°. 2026-10-08 엔진 실측:
+  T(0) = 99.99999999999991, 격자 위 표본의 폐형식 상대오차 ≤ 3.5e-15, UGF 15639047.234433519 Hz, PM 17.14489104381184°. ngspice 선형
+  Middlebrook(오라클 `loop_gain`, `ac dec 40`): 40 dB, UGF 15638738.8 Hz, PM 17.14966°(로그 보간 한계, 폐형식과 표본 상대오차 5.0e-7).
+  재현: `tools/spice_oracle/smoke/cm_loop_mixed_cut_example.py`.
+
+### 예 7e -- 공통 모드 루프: 대칭 두 반회로 + R 평균 감지 넷 gate (7.11)
+- `MosSmallSignal(d=2, g=20, s=0, b=0, gm=1e-3, gmb=0, gds=1e-5, cgs=1e-12)`, `MosSmallSignal(d=12, g=20, …)`(같은 값), `Resistor(2, 20, 1e5)`(index 0)·
+  `Resistor(20, 12, 1e5)`(index 1), `Capacitor(2, 0, 1e-12)`·`Capacitor(12, 0, 1e-12)`, `ac_ground=(0,)`. 감지 넷 20 = 두 출력의 저항 평균, 두
+  MOS 의 gate(용량 전용). `cut_circuit(c, (LoopCut("resistor", 0, "b"), LoopCut("resistor", 1, "a")))`: 같은 노드 20 의 두 단자가 같은 x 로
+  가서 pairs ((20, 21),) 하나(n = 20 용량 전용, x = 21 전도 -- 섞인 절단). 가중 (1.0,).
+- 폐형식: 공통 모드(v2 = v12)에서 노드 20 은 v20 = v2/(1 + sRCg), 출력 노드는 gds + sCL + sCg/(1 + sRCg) 로 닫히므로 예 7d 와 **같은
+  T(s)** = gm/((gds + sCL)(1 + sRCg) + sCg) -- T(0) = 100, 극점 −3819660.11·−26180339.89 rad/s(두 반회로 분리 모드가 같은 값 극점·영점
+  쌍으로 더 남는다, 3.17 근의 정밀도 규약), UGF = 15639047.2344 Hz, PM = 17.1448910438°.
+- 기대(2026-10-08 실측): T(0) = 99.99999999999991, ω > 0 격자 표본의 폐형식 상대오차 ≤ 3.2e-15, UGF 15639047.234433519 Hz, PM
+  17.14489104381184°; ngspice 선형 Middlebrook 40 dB / UGF 15638738.8 Hz / PM 17.14966°(표본 상대오차 5.0e-7).
 
 ### 예 8 -- 우반면 극점 하나인 T (β = 1 `Factor`, PM 전제 위반, 3.10)
 - `M1 = MosSmallSignal(d=2, g=1, s=0, b=0, gm=1e-3, gmb=0, gds=1e-5)`, 교차 결합 쌍 `M2(d=2, g=5, s=0, b=0, gm=gx, gds=1e-5)`·
@@ -417,7 +448,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | # | 항목 | 현재 처리 |
 |---|---|---|
 | M1 | PM 의 루프 절단 위치(A·β 각 뷰) | **닫음**(2026-10-07) -- 7a design: β 루프 = 절단 회로 `ProbeFactor`(Middlebrook), β = 1 = 포트 `Factor`, 인수 2개 곱은 정의 아님(3.10·3.16·3.17). spec 쪽은 authoring SPEC_CONTRACT 2절·3절(S1 닫음) |
-| M7 | 섞인 절단(전도 노드와 용량 전용 노드가 함께인 절단)의 ω → 0 극한 | 정의 불가 값 `loop_cut_mixed_charge`(로랑 전개 다음 차수가 필요). 9회로 선언에는 없다 -- 쓰는 회로가 생기면 확장 |
+| M7 | 섞인 절단(전도 노드와 용량 전용 노드가 함께인 절단)의 ω → 0 극한 | **닫음(2026-10-08, CM 루프가 첫 소비자)** -- 증강 pencil 의 s = 0 값 `probe_dc_value`(3.17). T 가 원점 극점이면 여전히 `loop_cut_mixed_charge` |
 | M3 | 정의 불가 사유 → N3.14 분류 | MOD5 는 값으로만 낸다(2절 표는 권고). 판정 계층이 확정 |
 | M4 | `supply_current_dc` 단위 접미사(DEC-68: `_amp`) | 설계 문서·spec 설계 objective 표 이름 그대로 |
 | M5 | `area_search_m2` 의 objective_axis | None(예산 대상은 판정 축 `area_layout_m2`) |
@@ -522,6 +553,9 @@ tuple(view_kind 가 None 이 아닌 등록 metric), `passive_values` = ((이름,
   | `sense` | F = ground ∪ input | 전류 sense_p +1(차동이면 sense_n −1) | sense | `output_resistance(응답, 열, 행)` |
   | `ratio`(ViewDecl `num`·`den` = 각각 authoring `ExciteSense(ac_excite, sense_p, sense_n, sense_mode)` -- SPEC_CONTRACT 2·3절 ratio view `{num, den}`) | F = ground ∪ input ∪ num·den 구동 넷 | num 열, den 열 | num 관측(= den 관측이어야 함, 아니면 ValueError) | `response_ratio` |
 
+  [CM 2026-10-08] 공통 모드 루프 뷰(`pm_cm_ss_deg`, 7.11)는 `loop` beta declared 행과 **같은 경로**다(뷰의 `cuts` = 감지 넷에 물린 평균 수동소자의
+  감지 넷 쪽 단자, 가중 ((감지 넷, 1.0),); 절단 계의 교류접지 = 레일 ∪ gate 전용 ∪ **모든** 입력 포트 -- 절단 넷이 입력이 아니므로 입력은 하나도
+  빠지지 않는다). `metrics_ss` 의 코드는 이 뷰 때문에 바뀌지 않았다.
   같은 (계, 열, 관측) 은 같은 분석 객체를 쓴다 -> β = 1 `pm_ss_deg` 와 같은 포트 뷰 `parasitic_pm_ss_deg` 는 **한 평가 안에서** 비트
   동일(I-15). 요청 집합이 다른 평가끼리는 공유 격자가 달라 마지막 자리가 다를 수 있다(실측: 포트 PM 60.49744894787342 대
   60.497448947873394 -- 격자 점 수는 불변식 대상이 아니다, 3.5).
@@ -600,6 +634,11 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 | S-17 | [r5] (DEC-92, 옛 r5 번호 S-11, 병합 전 S-14) spec mode engine 커패시터는 θ `capacitance` 로 값이 들어가 소신호 요청이 값을 갖는다(같은 값을 spec 에 선언한 회로와 metric 값 같음) |
 | S-18 | [r5] (DEC-92, 옛 r5 번호 S-12, 병합 전 S-15) 구조 규칙 저항(`zero_cancel` reason None) 값 = 1/Σ_{c∈cells} `ss_dev[c].gm` -- 같은 값을 spec 에 선언한 회로와 metric 값 같음 |
 | S-19 | [r5] (DEC-92, 옛 r5 번호 S-13, 병합 전 S-16) θ `capacitance`·`ss_resistance` 만 바꾼 FD: dc 블록 computes 0, `ss_dev` reuse, `metrics_ss`·`metrics_dc` computes 1. `gain_ss_db`(용량 무관 DC 이득)는 **수치상** 불변(상대 차 ≤ 수 ulp -- 비트 동일 아님: `ss_resistance` 만 바꾼 경우 MNA 조립·풀이 순서 때문에 1 ulp 차가 실측됨) |
+| S-20 | [CM] 레지스트리·어휘: `metric_registry()` 이름 11개(`pm_cm_ss_deg` 추가, 단위 deg·영역 ss·view_kind `cm_loop`·objective_axis None·필드 `LoopAnalysis.phase_margin_deg`), `metric_catalog()` 도 11개, core `VIEW_KINDS` == ("transfer", "loop", "cm_loop", "output_port", "ratio") |
+| S-21 | [CM] 구조 유도(authoring `default_views().cm_loop`, 7.11 규칙): 파일럿에서 `ViewDecl("loop", beta="declared", cuts=(("R1", "Voc"), ("R2", "Voc")), weights=(("Voc", 1.0),))`; 나머지 8회로는 view_required 사유 문자열(CMFB 구조 없음 -- 7.11 표). 넷·소자 이름 전단사 뒤 유도 결과가 이름만 옮겨진 같은 구조 |
+| S-22 | [CM] 구조 유도의 음성·경계(복사본 하나씩 고쳐): 평균 수동소자 하나 제거 / 감지 넷에 MOS drain·source·bulk 추가 / 이상원 추가 / 다른 수동소자 추가(Voc–gnd 저항) / 두 번째 평균 감지 넷 추가(후보 둘 -- 모호 사유) 각각 view_required, R2 를 커패시터로 바꾸면 여전히 유도(수동소자 종류 resistor·capacitor) |
+| S-23 | [CM] 손 S2 예 7e 에서 `metrics_ss` 의 `pm_cm_ss_deg`(뷰 = 위 모양) 값 = 같은 계를 `cut_circuit`·`build_mna`·`probe_factor`·`analyze_loop` 로 직접 부른 값과 비트 동일(같은 `ProbeFactor` 경로), 값 = 예 7e 폐형식 PM 17.1448910438°(상대 ≤ 1e-9); `metrics_ss` 한 평가에 `pm_ss_deg`(DM)·`pm_cm_ss_deg` 가 함께 있으면 절단 계 2개(키 `("cut", cuts)` 가 다름), `solve_responses` 1회, `detail["systems"]` 에 반영 |
+| S-24 | [CM] 입력 포트는 CM 루프에서 전부 교류접지: 같은 회로에서 입력 포트 넷의 전압 구동 유무가 `pm_cm_ss_deg` 에 영향이 없다(뷰의 가중 키에 입력이 없음) |
 
 ### 7.8 9회로 시연 (2026-10-08, master 798f29c 병합 뒤 LUT v2(`resolve_lut_location`), 작성자 측 실측 -- 정본 아님)
 
@@ -628,6 +667,52 @@ master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 �
 | Q5 | 보상 수동소자 θ(DEC-92) | **결정: sizing θ 스키마에 둔다**. [r5 해결 2026-10-08] sizing r5 가 θ `capacitance`·`ss_resistance` 와 `zero_cancel` 을 두어 `passive_theta` 인자를 지웠다(7.6). 4회로(ngcc·nmcnr·two_stage·two_stage_sf) 봉인 점에서 GBW·PM 측정됨 -- sizing CONTRACT 10.3. 어긋나게 된 기존 test: `tests/metrics/test_ss_evaluate.py::test_s10_passive_theta_conflicts_rejected[4]`·`::test_passive_theta_supplies_engine_value`(test 작성자가 S-10·S-14~S-16 으로 갱신 -- 병합 때 junction S-11~S-13·분해능 S-14~S-16 과 겹쳐 DEC-92 행을 S-17~S-19 로 옮김) |
 | Q6 | 용량 LUT VS 축 밖 | **해소: LUT r6(VS 0~1.8 V)**. 축 밖이면 여전히 후보 실패(설계 2.4) |
 | Q7 | LUT v2 용량은 부호 보존(음수 점 있음) -- 옛 1절 `MosSmallSignal` 용량 ≥ 0 과 충돌(nmcnr 실측 cgb −2.03e-16 F) | **결정 (a)**: 1절 용량을 '부호 있는 유한 실수'로(NaN·inf 만 거부), 부호 그대로 스탬프 -- SPICE 오라클과 같은 정의. 계약과 어긋나게 된 기존 test: `tests/metrics/test_records.py::test_mos_negative_value_error[cgs|cgd|cgb|cdb|csb]`(test 작성자가 계약에서 갱신, gm·gmb·gds 행은 그대로 유효) |
+
+### 7.11 [CM] 공통 모드(CMFB) 루프 위상 여유 `pm_cm_ss_deg` (사용자 결정 2026-10-08 "6번도 네 의견에 동의하고 제안한 값을 사용해", `_drafts/user_decisions.md`)
+
+근거: 완전 차동 회로는 차동 모드 루프(`pm_ss_deg`, 7a)와 별개로 공통 모드 CMFB 루프의 위상 여유를 판정한다 -- 하한 **60°**(source `user_spec`,
+decided 2026-10-08). CMFB 루프가 있는 회로에만 적용한다(없는 회로는 이 제약을 선언하지 않는다).
+
+- **metric**: `pm_cm_ss_deg`(단위 deg, 영역 ss, view_kind `cm_loop`) = `LoopAnalysis.phase_margin_deg`, 인수 = 공통 모드 루프의 `ProbeFactor` 하나.
+  값 의존 정의 불가 규칙은 `pm_ss_deg` 와 같다(`loop_open_rhp_poles`, `dc_not_above_level`(T(0) ≤ 1 -- CMFB 루프 이득이 1 보다 작으면 UGF 가 없어
+  PM 이 정의되지 않는다), 섞인 절단 극한 3.17 …).
+- **뷰 유도(구조, 이름·선언 없음)**: authoring `default_views(topology, feedback).cm_loop`(SPEC_CONTRACT 3절). 차동 출력쌍(role differential_output_p·_n)
+  p, n 을 **수동소자(resistor·capacitor)로 평균해 MOS gate 에 먹이는 감지 넷 s**: s 는 레일·포트 넷이 아님; s 에 물린 MOS 단자는 전부 gate
+  (drain·source·bulk 없음); 이상원 단자 없음; s 에 물린 수동소자는 1개 이상이고 각각 s 를 단자 하나로만 가지며 반대 단자 집합이 정확히 {p, n}.
+  정확히 하나면 뷰 = `ViewDecl("loop", beta="declared", cuts=((평균 수동소자, s) 이름순), weights=((s, 1.0),))` -- **gate 쪽은 그대로, 수동소자 쪽
+  단자를 떼는** Middlebrook 절단(절단 넷 n = gate 쪽, x = 수동소자 쪽). 후보가 없거나 둘 이상이면 view_required 사유(제약을 적지 않는다 /
+  모호). 루프가 실제로 닫히는지는 판정하지 않는다(안 닫히면 T ≈ 0 이라 PM 이 값 의존 정의 불가). 다른 수동소자가 감지 넷에 더 물린 경우
+  (예: 기준 저항)는 후보가 아니다(보수적 -- 필요하면 규칙을 넓힌다).
+- **계 구성**: `metrics_ss` 의 β 루프(declared) 경로 그대로 -- 절단 계의 교류접지 = 레일 ∪ gate 전용 ∪ 모든 입력 포트(차동 입력은 공통 모드 루프에서
+  0 V), `cut_circuit`(감지 넷의 평균 수동소자 단자 → 새 노드 x), 가중 1 의 `probe_factor`, `analyze_loop`. 스칼라 T(절단 하나)라 DM/CM 모드
+  선택을 가중 부호로 하지 않는다: 입력을 접지해 DM 여기를 없애고 감지 넷 절단이 CM 루프만 남긴다(회로가 비대칭이면 DM→CM 변환까지 T 에 든다).
+  gate 쪽 n 은 용량 전용, x 는 전도 -- **섞인 절단**이라 ω = 0 극한이 3.17 의 증강 pencil 값을 쓴다.
+- **9회로 적용(2026-10-08, 작성자 측 실측 -- 정본 아님)**: `default_views(topology, ()).cm_loop` 를 library 9회로 topology 에 전수 실행:
+  current_reuse_telescopic_ota = 유도 성공(cuts ((R1, Voc), (R2, Voc)), 가중 ((Voc, 1.0),)); 나머지 8회로(common_gate_amplifier, folded_cascode,
+  ngcc_3stage_ff, nmcnr_amplifier, pushpull_follower_buffer, sf_pushpull_output_opamp, two_stage_ota, two_stage_ota_sf) = 차동 출력쌍(role)이
+  없어 "차동 출력쌍이 없는 회로" 사유 -- 제약 0건, 무동작. 파일럿 spec 에 `pm_cm_ss_deg >= 60`(source user_spec) 한 건 추가, view 는 적지 않는다.
+- **일반성 측정(파일럿 topology 복사본 하나씩 고침, 2026-10-08)**: 넷·소자 이름 무작위 전단사(seed 3) → 같은 구조(이름만 옮겨짐); R2 제거 → 없음; R2 를
+  커패시터로 → 유도됨; 감지 넷에 Voc–gnd 저항 추가 → 없음; 감지 넷에 MOS drain 추가 → 없음; 이상 전류원을 감지 넷에 → 없음; 두 번째 평균 감지 넷
+  (R3·R4·Mg) 추가 → 모호(후보 둘).
+- **강제 경로(배선)**: spec 제약 → `build_search_context` 가 `view_kind` 있는 metric 을 `ss` 제약으로 모음(search_context.py) → `ss_evaluate` 요청
+  (제약의 (metric, view)) → `metrics_ss` → `search.ss_constraint_rows`(행 `ss:<k>:pm_cm_ss_deg>=`, 분해능 NFR-5) -- 이 경로는 view_kind 어휘 밖
+  이름을 따로 모르므로 코드 변경이 없다(레지스트리에 이름 한 줄과 어휘 한 단어).
+- **오라클**(tools/spice_oracle): 입력 `cm_loop_passives`(평균 수동소자 이름), 측정 `cm_pm_deg`, 루프 넷리스트 `<stem>.cmloop.cir`(감지 넷의 평균 수동소자 단자를
+  `lbx_<넷>` 으로 떼고 직렬 전압원 Vlb·주입 전류원 Ilb, 입력은 AC 접지, 가중 1), 같은 `loop_gain`(Middlebrook) + C10 안정성 근거(Nyquist + 폐루프
+  .tran). README 'CM 루프 PM'.
+- **엔진 대 ngspice (작성자 측 실측 2026-10-08, 파일럿, `tools/spice_oracle/smoke/cm_loop_engine_vs_ngspice.py`)**: 엔진으로 사이징한 파일럿 DC 점은 없다
+  (sizing CONTRACT 10.6: current_reuse 일관 DC 점 0/215 -- 봉인 7 writer 창 `no_root_in_window`) → 옛 엔진이 낸 사이징 점(`smoke/…sizing.engine.oracle_input.json`,
+  forced 바이어스, R1 = R2 = 1 MΩ 로 바꿈, fstart 100 Hz)에서 ngspice BSIM4 의 소신호 값(gm, gmbs, gds, 단자 용량, 접합 용량)을 뽑아 엔진 MNA 에 넣었다.
+  (i) **엔진 MNA 대 ngspice 선형(같은 소신호 값을 VCCS+용량으로 옮긴 넷리스트, 같은 Middlebrook)**: CM T 100 Hz–10 GHz 142 점에서 최대 0.0011 dB·0.014°,
+  DM(Cf1·Cf2 β 루프) 161 점에서 0.0006 dB·0.04° -- 절단·섞인 절단·Middlebrook 이 일치. 열린 루프 A 도 엔진 54.838174 dB 대 ngspice 54.838037 dB.
+  (ii) **엔진(소신호 값 이식) 대 ngspice BSIM4**: DM T(100 Hz) 47.77 dB 대 43.11 dB, UGF 4.44 MHz 대 4.24 MHz; CM T(100 Hz) −39.37 대 −38.39 dB 이고
+  10 kHz 이상에서 엔진 −45 dB 대 BSIM −7 dB 로 벌어진다(전체 비가역 용량 행렬을 넣은 선형 모형은 10 kHz 에서 −30.7 dB 까지 따라오지만 BSIM 전부를 설명하지
+  못함 -- 5용량 모형·바이어스 비정합(옛 엔진 점은 KCL 잔차 있음)의 모형 차이로, 원인 미분리). 이 점의 CM 루프 이득은 전 대역 < 0 dB 라 엔진·ngspice 둘 다
+  PM 정의 불가(UGF 없음)로 일치했다. 값 있는 PM 의 엔진 대 ngspice 비교는 예 7d·7e(닫힌식 + ngspice 선형, PM 17.1449° 대 17.1497°)로 했다.
+  (iii) 오라클 C10 경로(CM Nyquist + 폐루프 .tran)를 UGF 가 있는 BSIM 점에서 돌린 값은 없다 -- 파일럿 옛 점의 CM 루프 이득이 모두 < 0 dB 라
+  `stability` 가 "PM 값 없음 -- 검사 대상 아님"으로 끝난다.
+- **열린 항목**: (a) CM 루프 이득이 1 보다 작은 설계(CMFB 가 사실상 동작하지 않음)는 PM 이 정의 불가라 `ss_constraint_rows` 에서 unmeasured -- 60° 제약이
+  그런 설계를 거르지 못한다(별도 'CM 루프 DC 이득 ≥ 값' 제약이 필요한지는 사용자 결정). (b) 엔진 사이징 파일럿 점이 생기면 (ii) 를 그 점으로 다시.
 
 ### 7.10 설계와 다르게 정한 점
 1. **`ss.mna[view]`·`ss.freq[view]` 필드를 따로 두지 않았다**: `MnaSystem`·`SystemResponse` 는 numpy 배열이라 core 불변 값 규칙(core 2절)
