@@ -17,13 +17,15 @@
 import hashlib
 from pathlib import Path
 
+from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 from gmid_engine.core import FailureRecord, PdkDecl, fp_of
 from gmid_engine.graph import ELEMENT_PASSIVE
-from gmid_engine.metrics import JunctionSource, metric_registry
+from gmid_engine.metrics import JunctionSource, metric_catalog, metric_registry
 
 from .archive import S3Archive
+from .area_decl import passive_area_decl
 from .search_domain import search_domain
-from .search_values import AXES, EvalKey
+from .search_values import AXES, AXIS_AREA, EvalKey
 
 _CODE_PACKAGES = ("core", "lut", "graph", "sizing", "metrics", "search")
 
@@ -61,6 +63,7 @@ class SearchContext:
         self.ss_constraints = ()
         self.spec_passive_values = ()
         self.junction = None
+        self.area_decl = None                            # metrics PassiveAreaDecl -- 수동소자 단위 면적·측정 부하 제외(결정 11)
         self.eval_budget = settings.eval_budget          # None 이면 evaluate 가 n + 1 평가 뒤 한 번 유도해 기록
         self.eval_budget_source = "declared" if settings.eval_budget is not None else None
         self.deadline = None                             # 벽시계 바깥 정지(perf_counter 기준) -- find_front 가 정한다
@@ -86,7 +89,14 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     for name, value in (("pdk_decl", pdk_decl), ("lut_rule_decl", lut_rule_decl)):
         if not isinstance(value, PdkDecl):            # 무엇이든 만들기 전에 입력 형식부터(§3.7·3.9)
             raise TypeError("build_search_context: " + name + " 는 core read_pdk_decl 결과여야 한다")
-    domain = search_domain(dc_ctx, settings, pdk_decl)
+    # [r10] 원소별 θ 수동소자 상자 = spec search.theta_bounds(authoring ThetaBound tuple) -- SearchSettings 값이 run 단위 재정의
+    search_section = spec.search if isinstance(spec.search, tuple) else ()
+    spec_bounds = next((s.value for s in search_section if s.field == THETA_BOUNDS and s.value), ())
+    untie = tuple(name for name, _source in next((s.value for s in search_section if s.field == UNTIE_ORBITS and s.value), ()))
+    # [결정 11] 면적 예산 = spec 판정 제약 `area_search_m2 <= 값` 중 가장 작은 값 -- θ 전류 상한(S-3b)을 닫는다
+    budgets = [float(d.value) for d in spec.judged_constraints
+               if d.metric == AXIS_AREA and d.op == "<=" and d.value is not None]
+    domain = search_domain(dc_ctx, settings, pdk_decl, spec_bounds, min(budgets) if budgets else None, untie)
     junction = JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)
     context_fp = fp_of((dc_ctx.base.fp, dc_ctx.plan_versions, dc_ctx.lut, dc_ctx.fixed_values, dc_ctx.resistor_values,
                         dc_ctx.inputs))
@@ -94,6 +104,7 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     code_fp = _code_fp()
     judged, ss, notes = [], [], []
     registry = metric_registry()
+    catalog = metric_catalog()
     for decl in spec.judged_constraints:
         if decl.value is None:
             notes.append({"metric": decl.metric, "op": decl.op, "verdict": "judgment_pending",
@@ -103,13 +114,17 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
         elif decl.metric in registry and registry[decl.metric].signature.view_kind is not None:
             ss.append(decl)
         else:
+            # [U5] 카탈로그에는 있고 레지스트리에는 없는 이름 = 서명만 있는 계산 대기 metric(metrics/pending_metrics.py) -- 조용히 통과하지 않고
+            # `constraint_notes` 미측정으로 기록한다(보고에 드러난다 -- 점마다 front 를 거르는 행은 아니다).
+            pending = decl.metric in catalog and decl.metric not in registry
             notes.append({"metric": decl.metric, "op": decl.op, "value": decl.value, "verdict": "unmeasured",
-                          "reason": "metric_not_in_registry_or_no_ss_view"})
+                          "reason": "metric_computation_pending" if pending else "metric_not_in_registry_or_no_ss_view"})
     archive = None if archive_root is None else S3Archive(archive_root, context_fp, code_fp)
     ctx = SearchContext(dc_ctx, domain, settings, context_fp, schema_fp, code_fp,
                         tuple(dc_ctx.inputs.element_values), tuple(judged), tuple(notes), archive)
     ctx.ss_constraints = tuple(ss)
     ctx.junction = junction
+    ctx.area_decl = passive_area_decl(dc_ctx, spec, pdk_decl)
     classes = dict(dc_ctx.base.column("device", "element_class"))
     ctx.spec_passive_values = tuple(sorted((n, float(v)) for n, v in dc_ctx.inputs.element_values
                                            if v is not None and classes.get(n) == ELEMENT_PASSIVE))

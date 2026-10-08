@@ -1,5 +1,6 @@
 """CONTRACT §6 @compute_block -- 선언 검사, 입력 버전 같으면 함수 미호출(호출 계수로 확인: '같은 값 반복 계산 금지'),
 선언 밖 열 KeyError, 결과 키 불일치 ValueError, 권한 위반, 계수 불변식과 recomputes_same_input."""
+import dataclasses
 import string
 
 import pytest
@@ -384,3 +385,102 @@ def test_projection_does_not_expose_snapshot_write():
     p = seen[0]
     assert not isinstance(p, GraphSnapshot)
     assert not hasattr(p, "write")
+
+
+# =====================================================================================================================
+# 2026-10-08 개정(사용자 승인 1, sizing O9) 회귀 -- 투영 지문을 값 지문 합성으로 바꿔도 §6.2 재사용 규칙은 그대로.
+# oracle 종류: (a) 구성 -- 같은 스냅샷 두 번 호출이면 입력이 구성상 같으므로 두 번째는 함수 호출 0·`is`(§6.2 '재사용').
+# 호출 수는 블록 함수 안 log 길이(피검 함수 밖 계수)와 stats 둘로 본다.
+# =====================================================================================================================
+
+MULTI_READS = (("node", "v"), ("node", "u"), ("device", "gm"))   # u 는 처음에 비어 있는 선언 열
+
+
+def _make_multi_block(log):
+    @compute_block("sizer", reads=MULTI_READS, writes=WRITES)
+    def block(projection):
+        v = projection.column("node", "v")
+        u = projection.column("node", "u")
+        log.append((v, u, projection.extras))
+        return {("device", "w"): {"m_" + k: val + len(u) for k, val in v}}
+
+    return block
+
+
+def test_reuse_regression_multi_reads_extras_and_empty_column():
+    log = []
+    block = _make_multi_block(log)
+    extras = (1, "x", (2.0, -0.0))
+    s0 = _base()                                       # node u 없음(빈 선언 열)
+    s1 = block(s0, *extras)
+    assert len(log) == 1
+    assert block(s1, *extras) is s1                    # 같은 스냅샷 두 번째 -> 함수 호출 0, 그대로
+    assert len(log) == 1
+    st = block.stats()
+    assert (st.calls, st.reuses, st.computes, st.recomputes_same_input) == (2, 1, 1, 0)
+    # 빈 선언 열에 값이 생기면 입력이 바뀐 것이다 -> 재계산(빈 열도 투영의 일부, §8)
+    s2 = s1.write("other", "o1", {("node", "u"): {"z": 0.0}})
+    s3 = block(s2, *extras)
+    assert s3 is not s2
+    assert len(log) == 2
+    assert block(s3, *extras) is s3
+    assert len(log) == 2
+    # extras 의 -0.0 -> 0.0 은 다른 입력(§1 float.hex) -> 재계산
+    block(s3, 1, "x", (2.0, 0.0))
+    assert len(log) == 3
+    _assert_invariant(block.stats())
+
+
+def test_reuse_regression_only_undeclared_field_changes():
+    log = []
+    block = _make_block(log)                           # reads = node v 만
+    s1 = block(_base(u={"a": 1.0}), "e")
+    s2 = s1.write("other", "o2", {("node", "u"): {"a": 2.0, "b": 3.0}})   # 선언 밖 열만 바뀜
+    s3 = s2.write("other", "o3", {("node", "u"): {}})                     # 선언 밖 열을 지움
+    for s in (s2, s3):
+        assert block(s, "e") is s
+    assert len(log) == 1
+    st = block.stats()
+    assert (st.calls, st.reuses, st.computes, st.recomputes_same_input) == (3, 2, 1, 0)
+
+
+# =====================================================================================================================
+# 2026-10-08 개정(core 성능 5, CONTRACT §6.2·§8) -- 가변 extras 거부는 투영 지문 식 개정 뒤에도 그대로(계수 불변, 함수 미호출).
+# oracle 종류: 거부 기준 = §6.2 'extras 는 각각 불변 -- 가변 -> TypeError(계수 변화 없음, 블록 함수 미호출)' + §2 거부 집합.
+# =====================================================================================================================
+
+
+@dataclasses.dataclass
+class _MutDc:
+    x: int
+
+
+class _PlainObj:
+    pass
+
+
+@pytest.mark.parametrize("extras", [
+    ((1, [2]),),
+    ((1, (2, {"a": 3})),),
+    (frozenset({(1, _PlainObj())}),),
+    (_MutDc(1),),
+    (1, "ok", [3]),
+    ("ok", bytearray(b"x")),
+], ids=["list_in_tuple", "dict_deep", "plain_in_frozenset", "dc_not_frozen", "last_of_three", "bytearray_second"])
+def test_mutable_extras_rejected_after_prior_calls_counters_unchanged(extras):
+    # oracle §6.2: 앞선 정상 호출(계산 1·재사용 1)로 계수를 만든 뒤 가변 extras 호출 -> TypeError, 계수·로그 그대로.
+    log = []
+    block = _make_block(log)
+    s0 = _base()
+    s1 = block(s0, 1)
+    assert block(s1, 1) is s1
+    before = block.stats()
+    n_log = len(log)
+    with pytest.raises(TypeError):
+        block(s1, *extras)
+    assert len(log) == n_log
+    after = block.stats()
+    assert (after.calls, after.reuses, after.computes, after.recomputes_same_input) == (
+        before.calls, before.reuses, before.computes, before.recomputes_same_input) == (2, 1, 1, 0)
+    # 거부 뒤에도 정상 호출은 그대로 재사용
+    assert block(s1, 1) is s1

@@ -35,6 +35,12 @@
   에서 Gauss-Seidel 이 멈추거나(측정한 q 로 K_max 안 도달 불가) 수렴 판정 뒤 strict 검증에 실패하면 같은 시작값에서 SCC 잔차
   r = V − g(V) 에 감쇠 Newton(`scc_newton.newton_solve`, 야코비안 = LUT 미분, LU, 역추적 선 탐색, 상한 K_max). `SccLog` 에
   `method`·`fallback` 필드(기본값이 있어 기존 생성 호출과 호환). 5.4·5.5b·10.4절, 12절 O10·O11 닫음.
+- **개정 r11(2026-10-08, 사용자 결정 '정준 라벨링 + 대칭 변수 묶음' + 'U2: 대칭 묶음 방식 b')**: `[r11]`. 요지 -- 정준 라벨링·자기동형은 **graph**(`canonical_form`·
+  `automorphism_orbits`, graph CONTRACT 4.7)가 계산하고, `dc_struct_colour` 는 그 결과로 `dc_colour`·`dc_orbit`·`graph.dc_symmetry` 를 쓴다(extras = 선언 표시 둘, 3.0b).
+  **`dc_colour` = 1-WL 색 안을 정준 위치로 구분한 순위 -- 정점마다 유일해 이름이 순서를 정하는 자리가 사라진다**(종래 (색, 이름) 키의 이름은 도달하지 않는다).
+  **2단자 수동소자는 방향 없는 엣지**다(저항 끝 방향은 색에 들어가지 않는다 -- 방향 보존 자기동형 때문에 9회로 모두 묶음이 비던 결함을 고친다). 이름 키가 남았던
+  자리도 색 키로: `scc_order`(deps 정렬), `block_columns`(writer 소자·SCC 소자 정렬, 기둥 시작값 합산의 방향·순서). 소비자는 search(θ 묶음, 정준 순서, 3.23~3.25)·
+  metrics(합산·행렬 순서).
 - **개정 r7(2026-10-08, 오케스트레이터 결정 -- 수렴 판정 = 노드전압 오차 상계)**: `[r7]`. Gauss-Seidel 은 Δk ≤ tol 에 사후 상계
   q/(1−q)·Δk ≤ tol 을 더한다(둘 다; q < 1, k ≥ 3; q ≥ 1 이면 받지 않음, Δk = 0 은 받음), Newton 은 ‖r‖∞ ≤ tol 에 더해 온전한 걸음 ‖Δ‖∞ ≤ tol.
   새 상수 없음(tol = 기존 노드 허용오차). 2절 SccLog 필드 목록 정정. 5.5·5.5b·10.5절.
@@ -55,7 +61,7 @@
 |---|---|---|---|
 | 0 | `s2_values.py` | 데이터 선언 모듈(값 형식·어휘·`S2_WRITERS`) | -- |
 | 0 | `k_max.py` | `k_max` | -- |
-| 0 | `bisect_root.py` [r2] | `bisect_root` | -- |
+| 0 | `bracket_root.py` [r9] | `bracket_root` | -- |
 | 1 | `pre_layout_widths.py` [r2] | `pre_layout_lut_access` | -- |
 | 1 | `struct_colour.py` [r2] | `dc_struct_colour` | `dc_struct_colour` |
 | 1 | `_helpers_lut.py` | helper: `terminal_voltages`·`w_key_of`·`with_device`·`forward_point`·`tol_v_cell` | -- |
@@ -128,13 +134,13 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
   정렬. 그 (kind, w_key) 슬라이스가 `slice_map` 에 없으면 `ValueError`. 실데이터에서 nmos·pmos 모두 1000(5 µm). 레이아웃 뒤
   실현 폭 슬라이스는 DEC-89 재평가 몫(이 함수 밖).
 
-### 1.4 `build_kernel_context(s1graph, inputs, lut) -> KernelContext`
+### 1.4 `build_kernel_context(s1graph, inputs, lut, l_classes=()) -> KernelContext` (l_classes: 13절)
 - 인자 형식 위반 -> `TypeError`(s1graph 가 `S1Graph` 아님, inputs 가 `DcInputs` 아님, lut 가 `LutAccess` 아님).
 - `supplies_declaration(dict(inputs.supplies_v), 레일 집합)`(graph) 위반 -> `SchemaRejectedError` 그대로.
   `fp_of(그 정규화 결과) != s1graph.key.supplies_v_fp` -> `ValueError`(S1 을 다른 supplies 로 만들었다).
 - S1 MOS kind 마다 `w_keys` 에 kind 가 있고 `(kind, w_key)` 가 `memo.lut.slice_map` 에 있어야 한다 -> 아니면 `ValueError`.
 - `node_targets` 넷이 S1 노드가 아니면 `ValueError`. [r5] `engine_elements` 이름이 S1 원소가 아니면 `ValueError`.
-- 순서: `lift_s1` -> `dc_rails(supplies)` -> [r2] `dc_struct_colour()` -> `dc_current_basis(이상 전류원 ((이름, 값 또는 None), ...) 이름순)` ->
+- 순서: `lift_s1` -> `dc_rails(supplies)` -> [r2] `dc_struct_colour(원소 표시, 노드 표시)` -> `dc_current_basis(이상 전류원 ((이름, 값 또는 None), ...) 이름순)` ->
   `dc_writer_plan(정렬 W3 넷 tuple, input_dc_v is not None)` -> `dc_scc_order` -> `dc_theta_schema(값 선언 DC 저항 이름 tuple,
   [r5] engine_elements 중 S1 수동소자(element_class passive) 이름 정렬 tuple)`.
   계획 블록의 `StructureUnresolvedError`·`InfeasibleTargetError` 는 그대로 전파(탐색 전 정지).
@@ -147,7 +153,9 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
 ### 1.5 `lift_s1(s1graph) -> GraphSnapshot`
 - `S1_WRITERS` 권한표의 `S1Graph` 가 아니면 `TypeError`, S1 writer 중 돌지 않은 것이 있으면 `ValueError`.
 - 결과 `writers == S2_WRITERS`. 모든 S1 필드 값이 원본과 같고 `block_version(w)` 가 원본과 같다(그래서 S1 블록을 이
-  스냅샷에 다시 부르면 reuse). 레코드 객체는 원본과 공유하지 않는다(core 계약상 원시 생성 금지 -- 12절 O7).
+  스냅샷에 다시 부르면 reuse). [2026-10-08, O7 닫음] 결과 = core `S1Graph.snapshot.extend_writers(S2_WRITERS)` -- **레코드
+  객체를 원본과 공유한다**(`is`), `fp`·필드 메타(writer·input_version·write_count)도 원본과 같다(r8 까지는 setter 로 다시 써서
+  공유하지 않았고 write_count 가 1 로 새로 시작했다).
 
 ## 2. S2 dc 필드 (권한표 `S2_WRITERS` = S1 권한표 전부 + 아래, 필드마다 writer 하나)
 
@@ -158,6 +166,8 @@ graph 레코드 key: `DC_KEY`(`"dc"`). 값은 모두 불변(frozen dataclass·tu
 | node.dc_rail_v | dc_rails | 레일 노드만 | float V |
 | node.dc_colour [r2] | dc_struct_colour | 모든 노드 | int 구조 색 |
 | device.dc_colour [r2] | dc_struct_colour | 모든 원소 | int 구조 색 |
+| node.dc_orbit [r11] | dc_struct_colour | 모든 노드 | int 자기동형 궤도 id |
+| device.dc_orbit [r11] | dc_struct_colour | 모든 원소 | int 자기동형 궤도 id |
 | graph.dc_current_basis | dc_current_basis | DC_KEY | `CurrentBasis` |
 | node.dc_writer | dc_writer_plan | 모든 노드 | `NodeWrite` |
 | device.dc_coord | dc_writer_plan | 모든 MOS | `DeviceCoord` |
@@ -226,6 +236,36 @@ device.dc_colour.
   다른 쪽을 고른 계획은 σ 로 서로 옮겨지고 θ 를 σ 로 옮기면 노드전압·소자 op 가 σ 로 옮겨진 값이 된다(엔진이 이름을 읽는 곳은
   남은 동률 깨기뿐이라). 1-WL 은 완전하지 않아(정규 그래프류) 같은 색이 자기동형이 아닐 수 있다 -- 그래서 이름이 실제로 결정을
   가른 경우는 전부 `TieBreak` 로 기록한다(3절·4.2절). 기록이 없는 결정은 이름과 무관하다.
+
+## 3.0b [r11] 정준 라벨링·자기동형 궤도 (`dc_struct_colour` 의 확장 산출, 3.0 위에)
+
+`dc_struct_colour(snapshot, element_marks, node_marks)`:
+- **reads** 3.0 과 같다(`device.{element_class, kind, is_diode, pins, bulk}`, `node.{is_rail, port_direction}` -- 추가 읽기 없음).
+- **writes** `node.dc_colour`, `device.dc_colour`, `node.dc_orbit`, `device.dc_orbit`, `graph.dc_symmetry`(key `DC_KEY`).
+- **extras 둘 = 선언 표시**(호출자 `build_kernel_context` 가 `DcInputs`·`dc_rails` 에서 만든다). 형식: `element_marks`·`node_marks` = `((이름, ((표시 이름, float), ...)), ...)`,
+  이름순 바깥 tuple, 안쪽 쌍은 표시 이름순, 모두 불변 값(`require_immutable`). 표시 이름 어휘:
+  * 노드 표시: `rail_v`(레일 전위 V -- `node.dc_rail_v`), `target_v`(W3 노드 목표 전압 V), `input_dc_v`(입력 포트 노드의 입력 DC 공통 전압 V).
+  * 원소 표시: `value`(spec 값 mode `value` 의 선언 값 -- 단위는 그 원소 kind 의 SI), `engine`(값 mode `engine`, 값 0.0), `linear`(선형 영역 소자, 값 0.0).
+  표시가 없는 이름은 목록에 없다(빈 표시). 값이 다르게 선언된 두 원소·전위가 다른 두 넷은 같은 궤도가 아니다. 표시는 처음 색에만 들어가고 `dc_colour` 의 서로 다른 1-WL 색
+  사이 순서(아래)에는 영향이 없다.
+- **계산**: graph `canonical_form(projection, element_marks, node_marks)`(graph CONTRACT 4.7)가 1-WL 색 `wl`·정준 위치 `position`·자기동형 생성자를 돌려준다(2단자 수동소자
+  무향). `automorphism_orbits` 가 정점 궤도를 만든다.
+- **`dc_colour`** = (`wl`, `position`) 쌍의 정렬 순위 → 노드 안에서도 원소 안에서도 값이 유일하다. 1-WL 색이 다른 정점 사이의 순서는 종래와 같다(색이 이미 유일한 회로에서는
+  정수 값도 종래와 같다). 3.0 의 "동률 → 이름" 은 도달하지 않는다: 같은 1-WL 색 안(자기동형 궤도 포함)은 정준 위치가 정한다. 정준 위치는 자기동형 γ 만큼의 선택 여지가 있지만
+  정준 그래프(위치로 다시 쓴 그래프)는 이름 치환·원소 순서에 불변이라, 위치만 읽는 계산은 같은 정준 그래프에 같은 계산을 한 것이다. `dc_tie_breaks` 는 호환 필드로 남고
+  (이름이 결정한 경우가 없어 비는 것이 정상) 새 TieBreak 를 만들지 않는다.
+- **`dc_orbit`** = 궤도 구성원의 정준 위치 최솟값(같은 궤도 ⇔ 같은 값, 이름 치환·순서 섞기에 불변).
+- **`graph.dc_symmetry`** = 자기동형 생성자 tuple: 각 생성자는 움직인 정점만 `((정점, 상), ...)`(정점 키 = `("n", 넷)` | `("e", 원소)`). search `current_symmetry` 가 θ 전류 부호 묶음을
+  만드는 근거다.
+- **2단자 수동소자(저항·커패시터)는 방향 없는 엣지**(사용자 결정 2026-10-08 '대칭 묶음 방식: b'). 전류 부호 규약은 종래 그대로(`current_basis._ends`: 단자 이름 순서 첫 단자 → 둘째,
+  `block_columns.drop` 도 같음). 자기동형이 단자 순서를 뒤집어 대응하면 그 가지 전류는 부호 −1 로 대응한다(search CONTRACT 3.24 `current_symmetry`). 이상 전류원은 단자 라벨이
+  방향이라 보존. library topology 의 단자 순서는 바꾸지 않는다.
+- 이름 키를 색 키로 바꾼 자리(r11): `dc_scc_order` 의 deps 정렬(계획 순서 키), `dc_columns` 의 writer 소자·SCC 소자 정렬(구조 색)과 `start` 의 기둥 합산(출발 레일 = 색이 작은 쪽,
+  이웃 정렬은 색). S1 기둥 데이터(`dc_column_nbrs` 의 레일 이름순 방향)와 `devices` 이름순 계약은 그대로다.
+- 성질(test 가 확인할 것): (1) 이름 전단사·원소 순서에 `dc_orbit` 불변; (2) 손으로 쓴 그래프에서 기지의 궤도: 대칭 쌍(차동쌍 완전 대칭 회로) = 같은 궤도, 단일 종단 OTA 의 쌍 = 서로 다른
+  궤도; 저항 terminals 순서를 뒤집어 그려도 궤도 분할이 같다; 1-WL 색이 같아도 비자기동형이면 다른 궤도; (3) 궤도 ⊆ 1-WL 색 클래스; (4) 다르게 선언된(값·레일 전위) 두 원소는 다른 궤도;
+  (5) `dc_colour` 가 노드끼리·원소끼리 서로 다르다; (6) 같은 입력 → 같은 출력(결정론); (7) 이름 치환 σ 에 대해 두 사례의 정점을 `dc_colour` 같은 것끼리 짝지은 대응 τ 아래에서
+  `dc_writer`(order·relation·known·element)·`dc_scc_order`·`dc_column_nbrs`·`dc_coord` 가 같다(σ 아래서가 아니라 τ 아래서 -- 궤도 구성원이 서로 바뀔 수 있다).
 
 ## 3. 쓰기 계획 `dc_writer_plan(snapshot, target_nets, input_dc_declared)` (θ 무관)
 
@@ -365,8 +405,9 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   [r4] 구간 끝 x = (축 끝 − a)/b 는 부동소수 반올림으로 vds·vsb 가 축 끝을 한 ulp 넘을 수 있어, 1차식 값이 축 안에 들 때까지 반대 끝
   쪽으로 `math.nextafter` 한다(끝점 조회가 정의역 밖이 되지 않게 -- r3 에서는 VDS = 0 끝이 이 때문에도 실패했다). g 평가에서 lut 가
   `lut_target_out_of_range` 를 내면 목표 > branch_max 면 VGS = +inf, 아니면 −inf(부호가 정해진 정의역 밖); 그 밖 LUT 실패는
-  `lut_query_failed`. tol = 구간 가운데 점의 writer `tol_v_cell`, 반복 수 = `k_max(hi − lo, tol)`(hi = lo 면 1) -> 마지막 구간
-  폭 ≤ tol, 가운데 점 x 뒤 g(x) 가 유한·구간 안이면 그것(한 번 다듬기). 구간이 비거나(lo > hi) 끝 부호가 같으면
+  `lut_query_failed`. tol = 구간 가운데 점의 writer `tol_v_cell`, [r9] 근 찾기 = `bracket_root`(5.6c; bisection 과 같은 수렴 판정:
+  근과의 거리 ≤ tol/2, 평가 수 ≤ 2·k_max(hi − lo, tol) + 상수)이고 `SccLog.iterations`·`k_max` 칸은 변함없이 `k_max(hi − lo, tol)`(hi = lo 면 1,
+  선언된 상한이지 실제 평가 수가 아니다), 근 x 뒤 g(x) 가 유한·구간 안이면 그것(한 번 다듬기). 구간이 비거나(lo > hi) 끝 부호가 같으면
   `SealViolationError`(devices (writer,), reason `no_root_in_window`, item = 구간 끝 출처에 `vds_axis` 가 있으면 7 아니면 6,
   margin = 유한한 끝 |h| 최솟값/tol(없으면 None), detail node·lo·hi·h_lo·h_hi·bounds(끝 출처 `rail`·`vds_axis`·`vs_axis`)).
 - SCC 순서대로: 비순환 -> 한 번 평가. 크기 1 순환(= 1변수 노드) -> 위 bisection(`SccLog.iterations` = 반복 수, tol·k_max 기록).
@@ -387,7 +428,9 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
      q^(K_max−k)·max(1, q/(1−q))·Δ > tol -- 둘 다 'Gauss-Seidel 이 K_max 안에 노드전압 오차 상계 tol 에 닿지 못한다'는 반복 자체의 데이터), 또는
   2. 수렴 판정 뒤 strict 검증 바퀴가 `NonconvergentError`(strict_recheck_residual)나 `SealViolationError`(반복 중 투영으로 멈춘 노드의
      writer 식이 수렴점에서 정의역 밖)를 내면,
-  그 실패를 내지 않고 감쇠 Newton 으로 바꾼다. 시작점 = 다음 후보 중 정의역 안(아래 `newton_system` 이 None 아님)인 첫 것: (a) 시작값
+  그 실패를 내지 않고 감쇠 Newton 으로 바꾼다. [r9 명시] 경우 2 는 **Gauss-Seidel 이 수렴한 뒤**(`solved` 있음)의 `SealViolationError` 만이다.
+  Gauss-Seidel 이 수렴하기 전에 난 `SealViolationError`(반복 중 `tol_v_undefined`, strict=False 가 일시 이탈로 보지 않는 LUT 실패)는 Newton 으로
+  넘기지 않고 그대로 낸다(수렴점도 Δ 열도 없다; r8 까지는 이때 `deltas` 가 대입되기 전이라 `UnboundLocalError` 로 평가가 죽었다). 시작점 = 다음 후보 중 정의역 안(아래 `newton_system` 이 None 아님)인 첫 것: (a) 시작값
   2단계 값, (b) 경우 2 면 Gauss-Seidel 수렴값, (c) 시작값 1단계(기둥 위치 비례) 값 -- 모두 밖이면 (a)(그러면 `newton_start_outside_domain`).
   Newton 이 수렴하면 같은 strict 검증 바퀴를 다시 돌고 그 실패는 그대로 낸다. Newton 실패(5.5b 사유)는 경우 1 과 경우 2 의
   `NonconvergentError` 면 그대로 낸다(후보 실패 `NonconvergentError`). **경우 2 의 `SealViolationError` 에서 Newton 도 실패하면 GS
@@ -450,9 +493,27 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 
 ### 5.6 `k_max(width, tol)` = ceil(log2(width/tol)), width ≤ tol 이면 1. 양의 유한 수가 아니면 `ValueError`.
 
-### 5.6b [r2] `bisect_root(f, lo, hi, iterations) -> (x | None, f_lo, f_hi)`
-- f 는 실수 또는 ±inf. f(lo) == 0 이면 lo, f(hi) == 0 이면 hi. 부호가 같으면 (None, f_lo, f_hi). 아니면 `iterations` 번 반으로
-  줄이며(가운데 값 0 이면 그 점) 마지막 구간의 가운데를 돌려준다. f 는 끝점 2회 + 반복마다 1회 부른다.
+### 5.6b (삭제) 옛 `bisect_root` 는 5.6c `bracket_root` 가 대체했고 2026-10-08 삭제했다(운영 호출 0, 독립 test 는 test 쪽 참조 구현을 쓴다).
+
+### 5.6c [r9] `bracket_root(f, lo, hi, tol) -> (x | None, f_lo, f_hi)` (사용자 승인 2026-10-08, 성능 항목 1)
+- 옛 구간 bisection 과 같은 약속(f 는 실수 또는 ±inf, f(lo) == 0 이면 lo, f(hi) == 0 이면 hi, 끝점 부호 같으면 (None, f_lo, f_hi), f 는 끝점 2회
+  먼저). 다른 점은 중간 점 선택뿐: Brent 법(유한한 점 3개면 역 2차 보간, 2개면 할선, 그 걸음이 구간 안쪽·감소 조건을 못 지키거나 ±inf 점이
+  있으면 이분, 걸음이 tol/4 보다 작으면 tol/4 만큼 밀어 반대편을 확인).
+- **수렴 판정 (bisection 과 같은 보증)**: 반환 x 는 부호가 바뀌는 구간의 한 끝이고 그 구간 폭 ≤ tol/2 -> 근과의 거리 ≤ tol/2. (bisection: 마지막
+  구간 폭 ≤ tol 의 가운데 -> 거리 ≤ tol/2.) 허용오차를 느슨하게 하지 않는다. (bisection 과 답이 서로 tol 이내.)
+- 평가 수(끝점 2회 포함) ≤ 2·`k_max(hi − lo, tol)` + 6 (보간 반복이 `k_max` 번을 넘으면 남은 반복은 순수 이분; 해석적 상계, 무작위 2만 함수 측정에서는
+  ≤ 2·`k_max`). 숫자 기본값 없음(tol/4 는 판정식의 분수, 부동소수 해상도 2·eps·|x|).
+- **h 평가 관측 (test 용)**: `solve_self` 의 h 1회 = `_vgs_signed` 1회 = lut `gm_id_for_target` 조회 1회이며, 그 조회는 `LutMemo.lookup`(point/curve/root 영역)을
+  지난다 -- `LutMemo.lookup` 호출 수(적중 포함)나 `_vgs_signed` 호출 수로 센다. `solve_self` 입력 재사용 적중 시 이 호출은 0이다
+  (`LutMemo.lookup(region="root", fn_name="solve_self", ...)` 1회만).
+- **Brent 만의 약속**: 매끈하고 단순한(단조·거의 선형) 근에서 평가 수가 같은 tol 의 순수 bisection(끝점 2 + k_max)보다 적다(10.7: 실제 회로 h 평가 약
+  0.4~0.5배; 무작위 합성 함수 2만 개 평균 0.49배). 불연속·±inf 가 섞인 f 에서는 보증하지 않는다(상계 2·k_max+6 만).
+- **입력 검증**: lo·hi 가 유한하지 않거나 lo > hi, tol 이 양의 유한 수가 아님(0·음수·NaN·inf) -> `ValueError`(f 호출 전). lo == hi 는 허용(f 1회씩 두 번
+  불러 같은 값이면 부호 같음 -> `(None, …)`, 0 이면 그 끝점). f 가 NaN 을 돌려주면 `ValueError`(끝점이든 내부 점이든 즉시).
+- `solve_self` 의 한 입력 재사용: 풀이(근 찾기 + 한 번 다듬기)는 (소자 종류, L, ln IDu, writer 관계, known 값, VDS·VSB 의 x 1차식 계수 4개, 구간
+  lo·hi, tol) 만의 함수라 LUT memo `root` 영역(함수 이름 칸 `solve_self`, BoundedLRU 상한)에 그 키로 저장한다 -- 적중하면 h 평가 0. 근 없음
+  (None, h_lo, h_hi) 도 저장되나 예외는 저장하지 않는다(부르는 쪽이 strict 에 따라 만든다). `_Circuit.tolerance` 는 한 평가(= 한 `dc_columns`
+  호출) 안에서 같은 (소자, VDS) 의 `tol_v_cell` 조회를 한 번만 한다(성능 항목 6).
 
 ### 5.7 `dc_widths(snapshot, lut)` -- `DeviceOp`
 - reads node.{dc_v, dc_rail_v}, device.{dc_current, dc_L, dc_ln_idu, pins, kind, bulk}. MOS 마다 vgs·vds·vsb(크기),
@@ -576,7 +637,7 @@ R log-U[100 Ω, 100 kΩ]) = 회로당 215 θ.
   13~50 ms. tol_V 표는 LUT derived memo 로 프로세스당 kind 마다 1회(~14 s/kind, lut CONTRACT 5절).
 - cProfile(r2, 계측 포함): core `fp_of` 비율 two_stage 63%, folded 35%, nmcnr 69%, ngcc 73%(투영 지문·`GraphSnapshot.write`).
   LUT memo 퇴출 0, 퇴출 뒤 재계산 0. 중복 인자 호출(folded FD 16회): gm_id_for_target 2442/817 고유, op_point 263/73 --
-  중복은 전부 LUT memo hit(계산 0). `TolVTable.at` 494/158 은 memo 밖 표 조회(O9).
+  중복은 전부 LUT memo hit(계산 0). `TolVTable.at` 494/158 은 memo 밖 표 조회(O9; [r9] 에서 한 평가 안 재사용으로 닫음).
 
 ### 10.2 [r4] LUT v2 실측 (2026-10-08, 작성자 측 시연 -- 정본 아님)
 LUT = `resolve_lut_location(assets/lut_v2_location.json, os.environ)`(재생성 슬라이스 32개 GMBS·VDSAT 포함 + 기준 LUT + 검증 중점),
@@ -717,6 +778,33 @@ margin 최댓값 ≤ 1.0e-3 -- 이 탐침은 봉인 9 가 겨누는 영역(VGS �
 - toy LUT(test conftest)의 `ctx_q` y = 0.99·z* = 0.3 점은 M1 봉인 9 margin 2.61 로 violated(r7 은 undefined -- 봉인 7 미정).
 - 시간: (a) 합 s 9회로 모두 ±20% 안(봉인 블록 하나·소자당 LUT 점 조회 1회 추가).
 
+### 10.7 [r9] 1변수 풀이 성능 실측 (2026-10-08, 작성자 측 시연 -- 정본 아님)
+방법: master(6a3351a) 와 이 변경을 같은 LUT v2·같은 탐침(10.2: 회로당 215 θ, seed 20261008)으로 2개 프로세스를 동시에(다른 부하 없이) 돌려 `process_time`(CPU) 비교, tol_V 표
+데우기(프로세스당 1회 비용) 12 θ 는 시간 밖. 호출 수 = 회로당 `solve_self` 호출, `_vgs_signed`(= h 평가) 호출.
+
+| 회로 | solve_self 호출 | h 평가: master -> 변경 | CPU s: master -> 변경 |
+|---|---|---|---|
+| common_gate_amplifier (1변수 노드 없음, 대조군) | 0 | 0 -> 0 | 8.47 -> 8.77 |
+| current_reuse_telescopic_ota | 3059 | 40363 -> 16966 | 43.47 -> 28.48 (−34%) |
+| folded_cascode | 3065 | 36627 -> 14107 | 49.97 -> 31.80 (−36%) |
+| ngcc_3stage_ff | 860 | 11050 -> 4958 | 18.14 -> 13.31 (−27%) |
+| nmcnr_amplifier | 1223 | 11855 -> 4063 | 17.03 -> 12.70 (−25%) |
+| pushpull_follower_buffer | 420 | 6095 -> 2537 | 6.39 -> 4.08 (−36%) |
+| sf_pushpull_output_opamp | 4281 | 43390 -> 18594 | 69.61 -> 54.95 (−21%) |
+| two_stage_ota | 332 | 3496 -> 1691 | 10.53 -> 7.53 (−28%) |
+| two_stage_ota_sf | 563 | 6243 -> 2813 | 9.67 -> 8.67 (−10%) |
+
+- 같음(9회로 1935 θ): 통과(일관) θ 수 동일(155/0/31/74/20/1/0/72/38), 통과한 θ 의 봉인 항목별 pass/fail 동일, 노드전압 최대 차 1.05e-4 V
+  (writer tol_V ≈ 0.85~0.9 mV 의 약 1/8 -- 선언 tol 이내). 실패한 θ 5개(folded 2, sf_pushpull 3)는 양쪽 모두 실패인데 실패 분류만 다르다
+  (`strict_recheck_residual`/`newton_line_search` <-> 봉인 위반): 반복 중 투영의 sub-tol 차이가 경계 θ 의 Gauss-Seidel·Newton 궤적을 바꾼 것.
+- two_stage_ota `find_front`(LUT v2, E_B = 150, 평가 100회): 전선 `[EP:s1]` 동일, 평가별 상태·origin 순서 동일. θ 궤적은 12번째 평가부터 sub-tol 차이로
+  갈라진다(FD·SLSQP 가 노드전압의 tol 이하 차이를 증폭) -- 점 단위 동일성은 보증하지 않는다. h 평가 2166 -> 316, `solve_self` CPU 1.5 -> 0.7 s,
+  find_front CPU 8.9 -> 8.1 s(같은 조건 두 번 반복에서 모두 −8~13%; 기계 부하에 따라 CPU 초가 ±30% 흔들려 동시 대조군으로 확인).
+- **프로파일 해석 정정**: find_front cProfile 에서 `solve_self` 누적이 135 s 중 ~80 s 로 보인 것은 첫 `solve_self` 안의 `tolerance` 가 부른 **tol_V 표
+  최초 구성**(`lut/tolerance.py` `compute`, kind 마다 ~14~19 s CPU, `_inverse_cell` -> `strong_inversion_root` -> `hermite_root`)이다. 표 구성을 빼면 bisection
+  자체는 find_front CPU 의 ~15%(1.6 / 10 s)였고 이번 변경은 그 절반을 줄였다. 남은 지배 항목 = tol_V 표 구성(프로세스당 ~30~40 s, lut 몫).
+- `solve_self` 입력 재사용(LUT memo `root` 영역): 탐침 215 θ 에서 적중 two_stage_ota 21/332, folded 806/3076 -- 효과가 근 찾기 교체보다 작다.
+
 ## 11. 설계와 다르게 정한 점
 
 1. **저장 = core GraphSnapshot 하나**: 설계 2.1 `DcField`·`setter.py`·`field_reuse.py`·`writer_table.py` 대신 core 의
@@ -732,7 +820,7 @@ margin 최댓값 ≤ 1.0e-3 -- 이 탐침은 봉인 9 가 겨누는 영역(VGS �
 5. **봉인 4·5 는 함수**(메타데이터를 읽어야 해서 투영 기반 계산 블록으로 쓸 수 없다), 결과는 `dc_seal_report` 의 extras 로 graph 에 든다.
 6. **봉인 2·3·8 은 `dc_op.idu_forward` 를 읽는다**: 순방향 조회를 `dc_widths` 에서 한 번만 한다(설계는 항목마다 lut.query).
 7. **봉인 8 = 멤버 ID 환산 차의 절대값 합**(부호 있는 잔차의 상계), 봉인 1 tol = 관계 소자 tol 최댓값, KCL tol_I = 노드 단위.
-8. **core 계층 수학(bisect_root·fixed_point_iter·k_max)은 sizing 에** 둔다: 소비자가 sizing 하나뿐(배선 원칙). 층 0 국소
+8. **core 계층 수학(bracket_root·fixed_point_iter·k_max)은 sizing 에** 둔다: 소비자가 sizing 하나뿐(배선 원칙). 층 0 국소
    고정점(DEC-71 (4)(d))이 생기면 core 로 옮긴다.
 9. **L 은 소자마다 θ**(`l_class` proposed 라 평가 경로가 읽지 않음, N3.3).
 10. 파일 이름: `seal/item*_*.py` 대신 `seal_<항목>.py`(하위 폴더 없이), `size_and_seal` 의 θ 검사는 `theta_check.py`.
@@ -767,10 +855,11 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 - **O5 결정 대기 입력 DC(SP-2, 7회로)**: U2 기본안 (a)대로 W4(입력 공통모드 y). 노드 목표(CI-15)·의도 영역(CI-18)은 9회로 모두
   결정 대기 -> W3 0개, 선형 선언 0개.
 - **O6 (해결)** θ 전류 정의역 = `ThetaSchema.current_cone`(KCL 기저에서 유도한 선형 부등식), 밖이면 `check_theta` 가 거부.
-- **O7 core 권한표 확장 API (사용자 승인 대기)**: `lift_s1` 이 S1 필드를 setter 로 다시 써서 레코드 구조 공유가 없다.
+- **O7 (닫음, 2026-10-08 사용자 승인)** core `GraphSnapshot.extend_writers` 로 `lift_s1` 이 S1 레코드를 공유한다(1.5).
 - **O8 형제 lineage 재계산 (기록)**: FD 형제 평가끼리 같은 입력은 재계산된다(graph 가 곧 캐시라 다른 lineage 값을 볼 길이 없음).
-- **O9 성능 (사용자 승인 대기)**: 시간의 35~73% 가 core 투영 지문(`fp_of` 재직렬화). 투영 지문을 (key, `FieldValue.value_fp`) 로
-  만들면 블록 호출·봉인 4 모두 줄어든다 -- core 변경. `TolVTable.at` 중복 조회는 memo 밖.
+- **O9 (닫음, 2026-10-08 사용자 승인)** 투영 지문 = (key, `FieldValue.value_fp`) 합성(core CONTRACT 8절) -- 블록 호출·봉인 4 가
+  값을 다시 직렬화하지 않는다. 실측은 core CONTRACT 10절. `TolVTable.at` 중복 조회는 [r9, 2026-10-08 사용자 승인 성능 항목 6] `_Circuit.tolerance` 가 한 평가 안에서 (소자, VDS) 마다 한 번만 부른다
+  (5.6c). 효과는 작다: `at` 1회 ≈ 80 µs, two_stage_ota find_front 의 `dc_columns` 조회 158회 중 고유 41개.
 - **O10 (닫음, r6)** 1변수 노드 = 구간 bisection, 다변수 SCC = Gauss-Seidel(수축할 때) -> 못 하거나 strict 검증 실패 시 감쇠 Newton
   (5.4 [r6]). sf_pushpull 의 9노드 SCC 실측: Newton 이 정의역 안 시작점에서 돌고, 실패한 θ 는 ‖r‖∞ 가 0.22~0.30 V 에서 멈추는
   정체(잔차가 0 이 아닌 극소 -- 그 θ 에 정의역 안 해가 없다고 관찰). 그 θ 는 GS strict 검증 위반(주로 lut_curve_undefined)
@@ -829,3 +918,78 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   (손으로 만든 `RegionDecl("M7", "linear")` 를 linear 로 기대 -- 이제 "triode" 여야 한다, 실패). 같은 파일 42행 9회로 spec 경로
   비교도 `"linear"` 로 걸러 기대값을 만들지만 9회로 spec 의 intended_region 이 모두 pending(결정 대기 CI-18)이라 양쪽 다 빈 tuple
   로 지금은 통과한다(triode 선언이 생기면 틀린다 -- 같이 고칠 것).
+
+
+---
+
+## 13. [U1 배선] L 동치류 공유 -- `build_kernel_context(..., l_classes=())`, `KernelContext.l_ties`
+
+설계 40 §3.2 보완 1, 계획 DEC-17·LR1. 소비하는 쪽 계약:
+
+* `build_kernel_context(s1graph, inputs, lut, l_classes=())`: `l_classes` = `graph.build_s1v` 결과 `S1v.l_classes`(LClass tuple). 생략하면 `()` 이고 이전 동작과 같다
+  (`ctx.l_ties == ()`). [14.1 이 대체] θ 스키마는 동치류가 있으면 멤버 L 성분을 뺀다(없으면 불변).
+* **status 의미 유지**: S1 `rel_l_class` 는 proposed 그대로라 읽지 않는다. `LClass.status == derived` 인 동치류만 묶는다(`review_needed` 동치류 = 멤버 DC 역할 미확정 --
+  묶지 않는다). 주인 선택(DEC-17)은 S1v 가 이미 했다.
+* `KernelContext.l_ties` = ((멤버, 주인), ...) 이름순, 주인이 아닌 derived 동치류 멤버만. 멤버 이름이 S1 원소가 아니면 `ValueError`.
+* `size_and_seal`: 멤버 소자의 L = 주인 소자의 θ L 값(`dc_lengths` 입력이 바뀐다). θ 의 멤버 L 값은 무시된다(주인 값과 달라도 오류가 아니다 -- 멤버 L 성분은 중복 변수).
+  search 는 멤버 L 성분을 변수에서 빼야 한다(U4/U11 후속: `search_domain`·`slsqp_outer`·`layer0_center` 가 아직 소자마다 L 을 변수로 둔다).
+
+## 14. [U4 보강] 설계 40 §3.7·§3.2-1, 41 §4.6·§5.3 (독립 test 작성자용 계약, 2026-10-08)
+
+대상 확인 행: DEC-17 (θ 쪽)·32·70 (일부)·95 (3), D-GB7a·c·d, D-LS, D-J5 (U4 몫). **미러 비 강제(D-GB7b, DEC-70)는 구현하지 않았다** -- 15절.
+
+### 14.1 L 동치류 L 공유 (D-GB7a)
+* `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS)`. `l_classes` = U1 `S1v.l_classes` (LClass: `owner`, `members`,
+  `status`; 이 모듈은 속성만 읽는다). `status == derived` 인 동치류만 묶고 `review_needed`·proposed 는 묶지 않는다(소자마다 L). 멤버·주인 이름이
+  S1 원소가 아니거나 MOS 가 아니거나, 주인이 다른 동치류의 멤버이거나, 한 소자가 두 동치류의 멤버면 `ValueError`.
+* `KernelContext.l_ties` = ((멤버, 주인), ...) 정렬(비주인 멤버만; 동치류가 없으면 `()`).
+* **θ 스키마**: `THETA_L` 성분은 동치류당 **주인 하나**, 동치류에 들지 않은 MOS 는 소자마다 하나. 멤버의 `("L", 멤버)` 성분은 **없다**(`check_theta` 가
+  넣으면 `ValueError` 남음). `dc_theta_schema(snapshot, declared_resistors, engine_passives, l_ties=())` -- l_ties 가 비면 extras 를 3번째까지 주지 않는다
+  (블록 입력 버전 불변; 기존 2-extras 호출과 재사용 계약 유지).
+* `size_and_seal`: 멤버 L = 주인 θ L (`dc_lengths` 입력). 주인 이름은 DEC-17 순서로 U1 이 정해 `LClass.owner` 로 준다(이 모듈은 고르지 않는다).
+* 소비자 주의: search 가 L 변수를 소자마다 두는 곳(`layer0_center`·`slsqp_outer`·`l_bin_search`·`start_points`)은 `schema.components` 의 L 성분(주인만)을 따라야 한다.
+  `search_domain` 은 이미 성분 목록에서 L 변수를 만든다.
+
+### 14.2 S2p 기반 tol_I (계획 N3.6, 설계 40 §3.7-3)
+* `dc_tolerances(snapshot, lut, gm_id_prev=())`: `gm_id_prev` = ((소자, gm/ID), ...). 있는 소자는 `dc_gm_bound` = gm/ID × 이번 후보 `dc_op.current`
+  (tol_I = tol_V × gm_bound, 봉인 3). 없는 소자는 종래 LUT 격자 최대 gm(첫 평가).
+* `size_and_seal(..., parent)`: parent 가 **봉인된**(`parent.sealed is not None`) `DcEvaluation` 이고 그 스냅샷에 `device.ss_dev` 가 있으면 소자마다
+  gm/ID = `ss_dev.gm / dc_op.current`. `ss_dev` 가 그 점에서 나온 것인지는 이 gm/ID 가 `dc_op.gm_id` 와 `2·eps` 상대 안에서 같은지로 가린다(오래된 필드 배제).
+  parent 가 없거나 봉인이 아니거나 ss 가 없으면 `gm_id_prev = ()`. 새 `dc_op` 전체가 parent 의 것과 같으면(수동소자 θ 만 바뀐 FD 등) tol_I 입력은 **parent 가 허용오차에 실제로 쓴 gm/ID**(parent 의 `dc_gm_bound` ÷ `dc_op.current`, 격자 최대 gm 이 상계인 소자는 뺀다)를 그대로 쓴다 -- 그래서 parent 가 S2p 로 평가됐어도 수동소자만 다른 자식의 허용오차 입력이 parent 와 같아 DEC-92 재사용(DC 블록 computes 0)이 성립한다. 입력의 비트 동일은 gm/ID 를 '같은 상계(gm/ID × 전류)를 내는 가장 작은 gm/ID' 정규형(`canonical_gm_id`)으로 두어 보장한다(S2p 에서 새로 뽑은 gm/ID 도 같은 정규형). **결과가 parent 에 의존한다**(N3.6 규칙 그대로).
+* 효과(toy r4, 파일럿급 W 큰 pmos): 노드 tol_I 가 격자 최대 gm 대비 수십~수만 배 줄어 봉인 3 이 실제로 판정한다.
+
+### 14.3 W_request 고정 W (D-GB7d, LY3)
+* `size_and_seal(ctx, theta, parent=None, w_request=())`, `w_request` = {MOS: W[m]} 또는 ((MOS, W), ...). MOS 가 아닌 이름·비양수·비유한 W·**같은 소자 이름이 두 번 있는 요청**((MOS, W) 쌍 목록에서) -> `ValueError`(호출 계약 위반; 값이 같아도 거부).
+* 쓰기 소자(`dc_coord.role == writer`): θ `ln_idu` 는 무시되고 ln IDu = ln(ID·L/W) 가 `dc_columns` 에 간다. 종속 소자: 좌표는 순방향 그대로. 모든 요청 소자의
+  `DeviceOp.W` = 요청값 (`dc_widths(snapshot, lut, w_request=())`). 종속 소자의 ID 어긋남은 봉인 3 이 판정한다(순방향 IDu × W/L 로 다시 센 KCL).
+* 요청이 없으면 블록 extras 가 종래와 같다(재사용 계약 유지).
+
+### 14.4 DEC-95 (3) 전체 순서 (D-GB7c)
+* `OrderHints(independent, gm_required, stage)`(모두 MOS 이름 tuple 또는 ((MOS, 번호), ...)), `NO_ORDER_HINTS`. `dc_writer_plan(snapshot, target_nets, input_dc_declared,
+  order_hints=NO_ORDER_HINTS)`: 엣지 키 = (종류: 같은 DC < 저항 < MOS, [MOS] ratified 독립 < 그 밖, diode < 그 밖, gm 요구 < 그 밖, 뒤 stage(번호 큰 쪽) < 앞, 구조 색, 이름).
+  Kruskal 에서 키가 작은 엣지가 트리(독립), 큰 쪽이 종속. 힌트가 비면 종래 순서(diode < 그 밖, 색, 이름)와 같고 TieBreak 기록도 같다.
+* **스텁**: 힌트의 출처(U1 S1v stage 번호, GB5 gm 요구, `structure.json` ratified 로더)는 U1 이 채운다. 지금은 `build_kernel_context(..., order_hints=)` 로 넣는
+  호출부가 없다(기본값만 쓴다).
+
+### 14.5 국소 봉인 (D-LS, 41 §5.3)
+* `size_and_seal_local(ctx, theta_block, fixed, columns) -> LocalSeal`; `theta_name(kind, key)` = `"kind:key"`. `LocalSeal{ok, failures, snapshot_fragment, gain_db, power_w, area_m2}`,
+  `SnapshotFragment{devices, nodes}`. 상세는 `size_and_seal_local.py` 머리 설명.
+* `theta_block ∪ fixed` = `ctx.schema.components` 정확히 (겹침·빠짐·모르는 키 `ValueError`), `columns` = {str(Column.id)} 비어 있지 않음.
+* 판정 대상 = 봉인 1·2·3(KCL)·6·7·8(KVL) 중 위반 소자·넷이 덮는 집합과 겹치는 것. 4·5·9 는 국소 판정이 아니다. ②~⑤ 중 후보 실패 예외는 `ok = False` 와 그 FailureRecord 1건.
+* **스텁**: `gain_db` 는 항상 None (`metrics.block_local_gain`, U7). 전회로를 푸는 커널이라 계산이 블록 크기에 비례하지 않는다 -- 결과 캐시는 U15(N_T,i 상한) 몫.
+
+### 14.6 y_icm = 입력 포화 창 (J-E SP-2 (c), D-J5 U4 몫)
+* 입력 DC 미선언 입력 묶음 W4 뿌리(`y_key == INPUT_GROUP_KEY`)가 있으면 `dc_columns` 가 풀이를 되풀이한다: (1) y = 1/2 로 푼 해에서 (2) `input_window.saturation_window` 로
+  입력 공통모드 x 의 포화 창(x 를 따라 움직이는 노드의 VDS 변화율 = 노드 writer 식 야코비안 연립의 해, 소자별 포화 여유 VDS − VDsat − tol_VDsat 의 1차 외삽)을 재고
+  (3) 순서 창과 교집합을 y_icm 범위로 삼아 요청 y 로 다시 풀며 (4) 경계가 tol_V 안에서 변하지 않을 때까지 되풀이(상한 `k_max(레일 폭, tol_V)`). `node.dc_window` 는 마지막 범위를 낸다.
+* (1)이 풀리지 않거나 VDSAT 열 없음·tol 미정이면 종래 사상(순서 창 = 레일 범위). `dc_columns(..., linear_devices)` 5번째 extras 는 비어 있지 않을 때만 준다.
+* 효과(toy 차동쌍): 종래 y ∈ [0.05, 0.95] 무작위 60점 중 봉인 19, 이후 60. 평가 시간 약 3배.
+* (1)이 y = 1/2 에서 풀리지 않으면 순서 창 안을 1/4, 3/4, 1/8, 3/8, ... 순으로 훑어(시도 수 ≤ k_max(레일 폭, 레일 폭 절반 VDS 셀의 최소 tol_V)) 풀리고 창을 잴 수 있는 첫 점의 해로 (2)를 시작한다. 어디서도 안 풀릴 때만 종래 사상이다.
+* (5) 창 끝은 끝에서 다듬는다: 끝 x 에 입력을 고정해 풀고 그 해에서 창을 다시 재(뉴턴) x 가 잰 창 안이고 잰 끝과 tol_V 이내이면 x 를 끝으로 삼는다(상한 k_max). 그래서 y = 0·1 도 봉인 7 포화 여유 ≥ 0 이다. VDsat 의 x 의존은 그 점의 해에서 잰 값이다.
+
+## 15. 구현하지 않은 것 (정지 후 보고)
+
+* **D-GB7b 미러 비 강제(DEC-70)**: 설계 문구는 `matching_ratio` 를 전류 기저의 강제 관계로 넣고 비율 출처를 θ 변수로 둔다. 구현하려면 새 θ 종류(`mirror_ratio`, I_out = ρ·I_ref)가 필요하고
+  (1) θ 전류 정의역 원뿔이 θ 에 비선형(곱)이 되며 (2) `search_domain`(상자: 멤버·기준 전류 상자에서 도출 가능)·`fd_jacobian`·`orbit_ties`·`current_symmetry`·
+  `layer0_center`·`start_points`·`cone_rows` 가 모두 새 종류를 알아야 한다 -- 소유가 다른 단위(U11 search 정비·U15)의 파일이라 이 단위에서 쓰면 쓰이지 않는 코드가 되거나 search 를 깨뜨린다.
+  대칭 묶음의 비율 1 은 이미 search `orbit_ties` 가 같은 궤도 전류 성분을 한 변수로 묶어 준다(U2).

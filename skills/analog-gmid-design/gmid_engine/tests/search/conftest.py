@@ -89,6 +89,30 @@ def write_pdk(root, **kw):
     return write_decls(root, **kw)[0]
 
 
+# [결정 11, 2026-10-08] toy MIM 단위 면적 원본 -- core 9.1 `spice_instance_line` 형식(sky130 선언의 mim_cap_params 와 같은 모양:
+# `.param` 다음 줄 `+ camimc= <F/µm²>  $ 주석`, units_m "" = 1e12 (µm² -> m²)). 값은 test 가 고르는 구성 입력.
+TOY_CAMIMC_F_PER_UM2 = "4.0e-15"
+TOY_MIM_DENSITY = 4.0e-3                # F/m² = 4.0e-15 F/µm² x 1e12 µm²/m² (단위 환산, 구성 값)
+
+
+def write_decls_mim(root, camimc=TOY_CAMIMC_F_PER_UM2, **kw):
+    """write_decls + PDK 선언에 원본 `toy_rc` 와 quantity `mim_cap_density_f_per_m2`(식 `camimc`) 추가. -> (PdkDecl, 규칙 PdkDecl)."""
+    from gmid_engine.core import BoundedLRU, read_pdk_decl
+    pp, rp = _decl_paths(root, **kw)
+    root = Path(root)
+    rc = root / "toy_rc.spice"
+    rc.write_text("* toy r+c\n.param\n+ camimc=  %s  $ Units: farad/micrometer^2\n+ cpwell=  1.0e-15\n" % camimc,
+                  encoding="utf-8")
+    decl = json.loads(Path(pp).read_text(encoding="utf-8"))
+    decl["sources"]["toy_rc"] = {"path": "toy_rc.spice", "sha256": hashlib.sha256(rc.read_bytes()).hexdigest(),
+                                 "format": "spice_instance_line", "encoding": "utf-8",
+                                 "line_pattern": r"^\+\s*(camimc\s*=\s*[^\s$]+)", "units_m": {"": 1e12}}
+    decl["quantities"]["mim_cap_density_f_per_m2"] = {"source": "toy_rc", "expression": "camimc", "basis": "toy MIM"}
+    Path(pp).write_text(json.dumps(decl), encoding="utf-8")
+    memo = BoundedLRU(8)
+    return read_pdk_decl(pp, memo), read_pdk_decl(rp, memo)
+
+
 # ---------------------------------------------------------------- LUT
 
 @pytest.fixture(scope="session")
@@ -254,6 +278,62 @@ def peak_floor(a, lo, hi, w_m=None):
     return best
 
 
+def tol_v_at(lut, kind, w_key):
+    """[r9] 3.22 전도 하한의 입력 tol = lut `tol_v_table(memo, kind, w_key).at(L_a, VDS_k, "id_equivalent")` -- lut 계약·lut test 소관의
+    공개 API 를 입력으로만 쓴다(피검 search 함수 아님). 새 memo 하나(피검 sctx 캐시와 무관)."""
+    from gmid_engine.lut import LutMemo, tol_v_table
+    table = tol_v_table(LutMemo(lut, point=4096, curve=4096, root=4096), kind, w_key)
+    return lambda L, vds: table.at(L, vds, "id_equivalent")
+
+
+def conduction_floor(a, lo, hi, tol_at, w_m=None):
+    """[r9] 3.22 칸 전도 하한의 독립 계산(npz 배열 a, 칸 [lo, hi], tol_at(L, VDS) -> tol 또는 None). 계약 문장 그대로:
+    칸 안 L 앵커 a(± spacing) × VDS k × VS s 곡선마다 -- tol None·0 이면 (a, k) 곡선 제외, VGS 0 마디 z(|VGS| ≤ spacing(max|VGS|),
+    없으면 None)가 on_mask 인 곡선만 -- f_i = ln GM[a, i, k, s] + ln tol − ln ID[a, z, k, s]; on_mask 이고 f ≥ 0 인 첫 마디 j 가
+    있고 j > 0 이고 j − 1 도 on_mask 이면 근 = lnID[j−1] + t·(lnID[j] − lnID[j−1]) + ln L_a − ln w_m, t = −f[j−1]/(f[j] − f[j−1]).
+    결과 = 근의 최댓값(곡선이 없으면 None). 봉인 9 margin = 1 ⇔ f = 0(sizing r8) 이 근거라 f 는 그 조건을 격자에서 다시 쓴 것."""
+    w_m = float(a["W"]) if w_m is None else w_m
+    Ls = np.asarray(a["L"], dtype=float)
+    vgs = np.asarray(a["VGS"], dtype=float)
+    vds = np.asarray(a["VDS"], dtype=float)
+    ID, GM = np.asarray(a["ID"], dtype=float), np.asarray(a["GM"], dtype=float)
+    zs = [i for i, v in enumerate(vgs) if abs(v) <= np.spacing(float(np.max(np.abs(vgs))))]
+    if not zs:
+        return None
+    z = zs[0]
+    m = on_mask({"ID": ID, "GM": GM})
+    best = None
+    for i, L in enumerate(Ls):
+        if not (lo - np.spacing(lo) <= L <= hi + np.spacing(hi)):
+            continue
+        for k in range(ID.shape[2]):
+            tol = tol_at(float(L), float(vds[k]))
+            if tol is None or tol == 0:
+                continue
+            for s in range(ID.shape[3]):
+                if not m[i, z, k, s]:
+                    continue
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    f = np.log(GM[i, :, k, s]) + math.log(tol) - math.log(ID[i, z, k, s])
+                    lnid = np.log(ID[i, :, k, s])
+                js = [j for j in range(ID.shape[1]) if m[i, j, k, s] and f[j] >= 0]
+                if not js:
+                    continue
+                j = js[0]
+                if j == 0 or not m[i, j - 1, k, s]:
+                    continue
+                t = -f[j - 1] / (f[j] - f[j - 1])
+                root = float(lnid[j - 1] + t * (lnid[j] - lnid[j - 1]) + math.log(L) - math.log(w_m))
+                best = root if best is None else max(best, root)
+    return best
+
+
+def expected_floor(cond, peak):
+    """[r9] 3.22 성분별 하한 = max(칸 전도 하한(None 아니면), 칸 정점 하한(적용될 때 -- 아니면 None)), 둘 다 없으면 None."""
+    vals = [x for x in (cond, peak) if x is not None and x != -math.inf]
+    return max(vals) if vals else None
+
+
 def circuit_diode():
     """[r8] M1 nmos diode (out, out, gnd) + M2 pmos (out, in, vdd). out = M1 vgs_gate(known gnd) 이고 M1 의 drain -> 1변수 노드
     (3.22 one_var_only = {M1}). in = M2 vgs_gate(known vdd), in 은 M2 의 gate -> 1변수 아님."""
@@ -264,8 +344,9 @@ def circuit_diode():
 PENDING = "pending"     # elements 값 자리 표지: spec 에 {"pending": "SP-1"} (값 없음·engine 아님 -> 수동소자 값 미선언)
 
 
-def load_spec(tmp, topo_doc, elements=(), constraints=()):
-    """metrics conftest `spec_json` 으로 spec 을 만들고 PENDING 원소만 결정 대기 표지로 바꿔 authoring 로더로 읽는다."""
+def load_spec(tmp, topo_doc, elements=(), constraints=(), measurement_loads=()):
+    """metrics conftest `spec_json` 으로 spec 을 만들고 PENDING 원소만 결정 대기 표지로 바꿔 authoring 로더로 읽는다.
+    [결정 11] measurement_loads = 그 원소 항목에 `"measurement_load": true` 를 적는다(SPEC_CONTRACT 측정 부하 표지)."""
     from gmid_engine.authoring import load_sizing_spec, load_topology
     from gmid_engine.metrics import metric_catalog
     tmp = Path(tmp)
@@ -278,13 +359,15 @@ def load_spec(tmp, topo_doc, elements=(), constraints=()):
     for n, _, v in elements:
         if v == PENDING:
             doc["human"]["element_values"][n] = {"pending": "SP-1"}
+    for n in measurement_loads:
+        doc["human"]["element_values"][n]["measurement_load"] = True
     sp = tmp / (topo_doc["topology_name"] + ".sizing_spec.json")
     sp.write_text(json.dumps(doc, indent=1), encoding="utf-8")
     return td, load_sizing_spec(str(sp), td, metric_catalog())
 
 
 def build_case(tmp, topo_doc, lut, constraints=(), elements=(), budget_s=600.0, eval_budget=40, rbounds=None,
-               archive_root=None, pdk=None, sources=SRC, cbounds=None, rule=None):
+               archive_root=None, pdk=None, sources=SRC, cbounds=None, rule=None, measurement_loads=()):
     """topology·spec -> KernelContext -> SearchContext([r6] PDK 선언 + LUT 규칙 선언).
     반환 SimpleNamespace(td, spec, dc, acc, pdk, rule, settings, sctx)."""
     from gmid_engine.graph import build_s1
@@ -292,7 +375,8 @@ def build_case(tmp, topo_doc, lut, constraints=(), elements=(), budget_s=600.0, 
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
     tmp = Path(tmp)
     acc = new_access(lut)
-    td, spec = load_spec(tmp / "case", topo_doc, elements=elements, constraints=constraints)
+    td, spec = load_spec(tmp / "case", topo_doc, elements=elements, constraints=constraints,
+                         measurement_loads=measurement_loads)
     inputs = dc_inputs_from_spec(spec)
     s1 = build_s1(td, dict(inputs.supplies_v))
     dc = build_kernel_context(s1, inputs, acc)
@@ -500,7 +584,8 @@ def expected_objectives(snap):
             bp += abs(v) * max(cands)
     return {
         "power": sum(rails[k] * cur_in[k] for k in rails),
-        "per_rail": tuple(sorted(cur_in.items())),
+        # [r12] metrics CONTRACT 7.x: 레일 나열 순서 = (dc_colour, 이름)(종래 이름순) -- 색은 스냅샷 입력 열
+        "per_rail": tuple(sorted(cur_in.items(), key=lambda kv: (col(snap, "node", "dc_colour").get(kv[0], -1), kv[0]))),
         "kcl": sum(cur_in.values()),
         "gate_area": sum(o.W * o.L for o in ops.values()),
         "bp": bp if rows and bp != 0 else None,

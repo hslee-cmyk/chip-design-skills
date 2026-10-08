@@ -21,7 +21,7 @@ C:/Python314/python.exe -m pytest gmid_engine/tests/generality -q      # skill �
 | `duplicate.py` | `duplicate_stage(doc, suffix)` | 회로를 한 벌 더 만들어 직렬 연결(앞 단 출력 -> 뒷 단 이름순 첫 입력, 레일 공유) -> (doc, 이어진 넷) |
 | `tag_noise.py` | `add_tag_noise(doc, seed)` | 읽지 않는 태그 키 4개(역할 키 무작위 값 포함)와 `_` 주석 키 잡음 |
 | `inject.py` | `inject_violation(doc, kind)`, `VIOLATION_KINDS` | 위반 하나 주입 + 계약이 정한 기대 hit(rule, elements, 정확 일치 여부). 원소는 이름이 아니라 문서 위치로 고른다 |
-| `_doc_walk.py` | `map_nets`·`map_element_names`·`collect_names` | 넷·원소 이름 자리 순회(공용 helper, 각 함수 2파일 이상 사용) |
+| `_doc_walk.py` | `map_nets`·`map_element_names`·`collect_names` | 넷·원소 이름 자리 순회(공용 helper, 각 함수 2파일 이상 사용). `map_nets` 는 `bias_inputs` 원소도 옮긴다(CONTRACT 9절) |
 | `spec_rename.py` | `rename_spec(spec, mapping, topology_fp)` | 사이징 spec JSON 의 이름 자리(meta.circuit·supplies 레일·input_dc net·원소 값 키·feedback)를 같은 표로 치환 + topology_fp 교체(지문은 호출자가 공개 API 로 재서 준다). 옮기지 못하는 자리(선언 view·노드 목표·영역)는 `ValueError` |
 | `spec_template.py` | `synthetic_spec(doc, topology_fp, supplies_v, constraints=())` | 합성 회로용 최소 spec(원소 값 = topology 옛 값, 입력 DC engine, feedback [], 유도 뷰 제약) |
 
@@ -43,6 +43,7 @@ topology+spec -> S1 -> sizing ctx -> search ctx 를 만들고(캐시), 고정 θ
 | `test_metamorphic_fingerprint.py` | `connectivity_fp`(authoring CONTRACT 2절): 섞기·태그/주석 잡음·topology_name 변경 -> 같음(파일 해시는 다름), 이름 치환·넷 하나·원소 하나·극성 -> 다름, 역치환·극성 두 번 -> 원래, 같은 치환표면 입력 순서 무관 같음, 복제는 극성·섞기와 교환 |
 | `test_metamorphic_violations.py` | 7가지 위반 x 7가지 변형(그대로·이름 2벌·섞기·극성·복제·태그 잡음)에서 그 위반 하나만 검출, 주입 뒤 이름 치환하면 elements 가 같은 표로 옮겨지고 rejected_gates·not_evaluated 동일 |
 | `test_metamorphic_s1.py` | S1 구조 유도(graph `build_s1`, U2~U4): 이름 치환 -> 이름 무관 정준형(segment·가지·기둥·gs 묶음·DC 역할·관계 엣지·G_vgs 개수)이 치환표로 옮겨짐(합성 3종 + library 5회로), 섞기·태그 잡음 -> `snapshot.fp` 동일, 극성 뒤집기 -> kind·레일 맞바꾼 같은 구조, 지원 밖 원소(syn_cascode 전압원) 정지가 변형을 따라감 |
+| `test_metamorphic_bias_inputs.py` | `bias_inputs`(authoring CONTRACT 9절): 이름 치환 -> 결과가 치환표로 옮겨짐(합성 syn_cs_load+외부 바이어스 gate, library 7회로), 넷만 치환하고 선언은 옛 이름 -> 새 이름 `gate_only_undeclared` + 옛 이름 `bias_input_not_gate_only`, 섞기·선언 순서 뒤집기 -> 같은 결과·같은 fp |
 | `test_spec_generators.py` | `synthetic_spec` 은 hit 없이 로드·원소 값 = topology 값, `rename_spec` 은 치환 topology 와 hit 없이 로드·이름 자리가 표로 옮겨짐·이름 없는 섹션 지문 동일·입력 불변, 옮기지 못하는 자리는 `ValueError` |
 | `test_metamorphic_matching.py` | 레이아웃 matching 분류(graph 4.5a `matching_groups`·`matching_dispositions`): 이름 치환 3벌 -> 정준형(다중집합, 정렬 꼬리는 집합)이 표로 옮겨짐, 섞기+태그 잡음 3벌 -> tuple 동일, 극성 -> 레일 표로 옮겨짐, 복제 -> kind 수 2배 (합성 3 + library 9, 84 경우) |
 | `test_metamorphic_sizing.py` | sizing 3.0 구조 색이 표로 옮겨짐, 쓰기 계획·θ 스키마·zero_cancel 이 표로(차이는 기록된 동률 후보 안만), 고정 θ 평가의 노드전압·원소 전류·소자 op 비트 동일(다변수 반복 SCC 노드만 SccLog.tol 안), 섞기+잡음 -> 스냅샷 지문 동일, 극성 -> kind 무관 개수(writer·dependent·W4·θ 종류별·free) 동일 |

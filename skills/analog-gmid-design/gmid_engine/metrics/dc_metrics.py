@@ -1,7 +1,7 @@
 """봉인 DC 점 -> 전력·탐색 축 면적 metric 계산 블록 (설계 design_mod1_lut_mod5_mna 3.4 `supply_current_dc`·`power_dc_w`·
 `area_search_m2`, 계획 DEC-78·DEC-79 (a), metrics CONTRACT 7절).
 
-진입점: `metrics_dc`(`@compute_block`) -- `metrics_dc(snapshot, passive_values, counted_rails)`.
+진입점: `metrics_dc`(`@compute_block`) -- `metrics_dc(snapshot, passive_values, counted_rails[, area_decl])`.
 
 * reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}`, `graph.dc_current_basis`;
   extras `passive_values` = ((수동소자, 값), ...)(DC 저항 값 = spec 선언 ∪ θ), `counted_rails` = 합산 레일 넷 tuple(DEC-78 선언 --
@@ -15,8 +15,9 @@
   ValueError(선언 결함, 2절 표 '합산 레일 선언' -- KeyError 는 미등록 metric 이름 전용).
 * `counted_rails` 가 비면 `supply_current_dc` 는 정의 불가 `counted_rails_undeclared`(definitional) -- 레일별 전류·전력은 합산 선언과
   무관하므로 그대로 낸다(`supply_currents` 는 빈 선언을 거부하므로 레일 전부를 넘겨 부르고 합만 버린다).
-* 면적: MOS 마다 `GateArea(W, L)`(dc_op), 값이 있는 수동소자 `PassiveArea(값, 단위 면적 None)` -- PDK 수동소자 단위 면적
-  선언(U-36)이 core PDK 선언에 아직 없어 전부 `passive_area_undeclared` 로 보고된다. 값이 없는 수동소자는 detail
+* 면적: MOS 마다 `GateArea(W, L)`(dc_op), 값이 있는 수동소자 `PassiveArea(값, 단위 면적)`. 단위 면적과 제외 소자는 선택 extra
+  `area_decl`(`PassiveAreaDecl`, 사용자 결정 11) -- 없으면(기본) 단위 면적 선언 없음·제외 없음이라 전부 `passive_area_undeclared`.
+  `area_decl.excluded`(측정 부하)는 면적 항에서도 `passive_area_undeclared` 에서도 뺀다. 값이 없는 수동소자는 detail
   `passive_value_missing`.
 """
 from gmid_engine.core import compute_block
@@ -26,14 +27,14 @@ from gmid_engine.sizing import DC_KEY, METRICS_DC_WRITER, METRICS_KEY
 from .area import area_search
 from .evaluate import metric_value
 from .mna_types import MetricResult, Undefined
-from .records import ChannelCurrent, CurrentSource, DcOperatingPoint, GateArea, PassiveArea, RailBias, Resistor
+from .records import ChannelCurrent, CurrentSource, DcOperatingPoint, GateArea, PassiveArea, PassiveAreaDecl, RailBias, Resistor
 from .registry import metric_registry
 from .ss_types import MetricBundle, MetricRequest
 from .supply import supply_currents
 
 READS = (
     ("device", "dc_op"), ("device", "dc_current"), ("device", "element_class"), ("device", "pins"),
-    ("node", "dc_v"), ("node", "dc_rail_v"), ("graph", "dc_current_basis"),
+    ("node", "dc_v"), ("node", "dc_rail_v"), ("graph", "dc_current_basis"), ("node", "dc_colour"), ("device", "dc_colour"),
 )
 WRITES = (("graph", "metrics_dc"),)
 SUPPLY_METRICS = ("power_dc_w", "supply_current_dc")
@@ -41,7 +42,14 @@ AREA_METRICS = ("area_search_m2",)
 CODE_COUNTED_RAILS = "counted_rails_undeclared"
 
 
+def _canonical(projection, kind):
+    """정렬 키: (구조 색 `dc_colour`, 이름) -- sizing 의 색은 1-WL 색 안을 정준 위치로 구분해 정점마다 유일하다(이름은 색이 없는 이름 뿐, 합산·행렬 순서가 이름을 따르지 않게)."""
+    orbit = dict(projection.column(kind, "dc_colour"))
+    return lambda name: (orbit.get(name, -1), name)
+
+
 def _operating_point(projection, index, values):
+    device_key = _canonical(projection, "device")
     basis = projection.value("graph", DC_KEY, "dc_current_basis")
     pins = dict(projection.column("device", "pins"))
     classes = dict(projection.column("device", "element_class"))
@@ -49,7 +57,7 @@ def _operating_point(projection, index, values):
     rails = tuple(RailBias(index[n], v) for n, v in projection.column("node", "dc_rail_v"))
     resistors = frozenset(basis.resistors)
     channels, res, sources, touched = [], [], [], set()
-    for name, a, b in basis.ends:
+    for name, a, b in sorted(basis.ends, key=lambda e: device_key(e[0])):
         if classes[name] == ELEMENT_MOS:
             d, _g, s = (dict(pins[name])[t] for t in MOS_TERMINAL_NAMES)
             channels.append(ChannelCurrent(index[d], index[s], currents[name] if d == a else -currents[name]))
@@ -59,15 +67,19 @@ def _operating_point(projection, index, values):
         elif classes[name] != ELEMENT_PASSIVE:
             sources.append(CurrentSource(index[a], index[b], currents[name]))
     volts = dict(projection.column("node", "dc_v"))
-    node_v = tuple((index[n], volts[n]) for n in sorted(touched) if n in volts)
+    node_v = tuple((index[n], volts[n]) for n in sorted(touched, key=index.get) if n in volts)
     return DcOperatingPoint(rails, node_v, tuple(channels), tuple(res), tuple(sources))
 
 
 @compute_block(METRICS_DC_WRITER, reads=READS, writes=WRITES)
 def metrics_dc(projection):
-    passive_values, counted_rails = projection.extras
+    passive_values, counted_rails, *rest = projection.extras
+    area_decl = rest[0] if rest else PassiveAreaDecl()
     values = dict(passive_values)
-    names = sorted({n for n, _v in projection.column("node", "dc_rail_v")} | {n for n, _v in projection.column("node", "dc_v")})
+    node_key = _canonical(projection, "node")
+    device_key = _canonical(projection, "device")
+    names = sorted({n for n, _v in projection.column("node", "dc_rail_v")} | {n for n, _v in projection.column("node", "dc_v")},
+                   key=node_key)
     index = {net: i for i, net in enumerate(names)}
     op = _operating_point(projection, index, values)
     rails = {n for n, _v in projection.column("node", "dc_rail_v")}
@@ -78,9 +90,11 @@ def metrics_dc(projection):
     counted = tuple(index[n] for n in counted_rails) or tuple(r.node for r in op.rails)
     supply = supply_currents(op, counted)
     classes = dict(projection.column("device", "element_class"))
-    gates = tuple(GateArea(o.W, o.L, label=m) for m, o in projection.column("device", "dc_op"))
-    passives = sorted(n for n, c in classes.items() if c == ELEMENT_PASSIVE)
-    area = area_search(gates, tuple(PassiveArea(n, values[n]) for n in passives if values.get(n) is not None))
+    gates = tuple(GateArea(o.W, o.L, label=m) for m, o in sorted(projection.column("device", "dc_op"), key=lambda r: device_key(r[0])))
+    passives = sorted((n for n, c in classes.items() if c == ELEMENT_PASSIVE), key=device_key)
+    unit = dict(area_decl.unit_area)
+    area = area_search(gates, tuple(PassiveArea(n, values[n], unit.get(n)) for n in passives
+                                    if values.get(n) is not None and n not in area_decl.excluded))
     entries = []
     for name in SUPPLY_METRICS + AREA_METRICS:
         result = metric_value(name, supply if name in SUPPLY_METRICS else area)

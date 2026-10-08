@@ -139,7 +139,8 @@ def dc_scc_order(projection):
         else:
             members = {n for n in writers if tie_root[n] == net} if w.y_key == INPUT_GROUP_KEY else {net}
             read = {other for m in channel for a, other in (channel[m], channel[m][::-1]) if a in members}
-        deps[net] = tuple(sorted(n for n in read if n not in fixed))
+        deps[net] = tuple(n for n in read if n not in fixed)          # 정렬은 아래(계획 순서 키로 -- 이름이 DFS 순서를 정하지 않게)
+    deps = {net: tuple(sorted(items, key=lambda n: writers[n].order)) for net, items in deps.items()}
     order = sorted(deps, key=lambda n: writers[n].order)
     entries = []
     for component in _tarjan(order, deps):

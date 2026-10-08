@@ -404,7 +404,8 @@ def circuit_s(reverse=False):
     net = [mos("M1", "nmos", "vin", "nb1", "gnd"), mos("M2", "nmos", "vout", "nb2", "vin"),
            mos("M3", "pmos", "vout", "pb", "vdd")]
     return topo("scc_s", net[::-1] if reverse else net,
-                {"vin": ("input", "single_ended_input"), "vout": ("output", "single_ended_output")})
+                {"vin": ("input", "single_ended_input"), "vout": ("output", "single_ended_output")},
+                bias=["nb1", "nb2", "pb"])                                  # nb1: M1 gate, nb2: M2 gate, pb: M3 gate
 
 
 def circuit_q(reverse=False):
@@ -412,7 +413,8 @@ def circuit_q(reverse=False):
     z = 입력 포트 -> F 없는 성분 {x, z} 의 뿌리(W4, 창 lo = gnd, hi = V(x)), x = M1 의 vgs_gate(1변수: d = x)."""
     net = [mos("M1", "nmos", "x", "x", "z"), mos("M3", "nmos", "z", "nb", "gnd"), mos("M2", "pmos", "x", "pb", "vdd")]
     return topo("scc_q", net[::-1] if reverse else net,
-                {"z": ("input", "single_ended_input"), "x": ("output", "single_ended_output")})
+                {"z": ("input", "single_ended_input"), "x": ("output", "single_ended_output")},
+                bias=["nb", "pb"])                                          # nb: M3 gate, pb: M2 gate
 
 
 def theta_s(ctx, y1, y2):
@@ -834,20 +836,25 @@ def test_case_two_seal_violation_kept_with_newton_cause(tmp_path, acc_floor):
     """경우 2(5.4 [r6]): Gauss-Seidel 이 수렴 판정([r7] 오차 상계)을 통과한 뒤 strict 검증이 SealViolationError -> Newton 으로
     바꾸지만 Newton 도 실패 -> **GS 수렴점의 strict 검증 SealViolationError 를 그대로**, __cause__ = Newton 의 NonconvergentError.
     회로: MA nmos (y, x, gnd) 가 gate x 를 쓰고(VDS(MA) = V(y)), MB nmos (x, in, y, b = y) 가 y 를 쓴다(1변수), in = 입력 DC
-    미선언 W4(창 = 레일). 해의 V(y) = V(in) − VGS(MB) ≈ 0.7 − 0.6 = 0.1 < VDS 하한 0.25 -> 반복 중엔 일시 이탈로 넘어가 수렴하지만
-    strict 검증에서 MA 조회가 lut_curve_undefined. 정의역(V(y) ≥ 0.25) 안 해가 없으므로(아래 전제) Newton 도 수렴할 수 없다."""
+    선언 0.7 V. 해의 V(y) = V(in) − VGS(MB) ≈ 0.7 − 0.6 = 0.1 < VDS 하한 0.25 -> 반복 중엔 일시 이탈로 넘어가 수렴하지만
+    strict 검증에서 MA 조회가 lut_curve_undefined. 정의역(V(y) ≥ 0.25) 안 해가 없으므로(아래 전제) Newton 도 수렴할 수 없다.
+    [U4 갱신] 옛 판은 in 을 입력 DC 미선언 W4(창 = 레일 범위, V(in) = y·1.8)로 두었다. 사용자 결정 J-E(설계 41 §4.6 SP-2 (c),
+    40 §11 'J 추가 범위' U4, D-J5)로 입력 DC 대기 회로의 y_icm 범위는 입력 포화 창이 되어 V(in) = 0.7 을 y 로 만들 수 없다
+    (이 구성에는 포화 창 자체가 없다 -- VDS(MA) ≥ VDsat 와 VDS(MB) ≥ VDsat 를 함께 만족하는 V(in) 이 없음). 이 test 가 겨냥하는
+    규칙(5.4 [r6] 경우 2)은 V(in) 의 출처와 무관하므로 같은 절의 '선언 입력 DC 유지' 경로로 V(in) = 0.7 을 고정한다."""
     net = [mos("MA", "nmos", "y", "x", "gnd", "gnd"), mos("MB", "nmos", "x", "in", "y", "y")]
     src = [two("IX", "current_source", "vdd", "x"), two("IY", "current_source", "vdd", "y")]
     doc = topo("scc_floor_cycle", net, {"in": ("input", "x"), "y": ("output", "y")}, sources=src)
-    ctx = build_ctx(tmp_path, doc, acc_floor)[2]
+    vin = 0.7
+    ctx = build_ctx(tmp_path, doc, acc_floor, input_dc_v=vin)[2]
+    assert dict(ctx.base.column("node", "dc_writer"))["in"].relation == "input_dc"
     cyc = [e for e in ctx.base.value("graph", DC_KEY, "dc_scc_order") if e.cyclic]
     assert [set(e.nodes) for e in cyc] == [{"x", "y"}]
     floor = r4_vds_floor(r4_arrays("nmos", off_cols=FLOOR_OFF["nmos"]))
     assert floor == 0.25
-    vin = 0.7
     t_mb = r4_ln_idu("nmos", 0.6, 0.5, 0.0)
     th = {("L", "MA"): 1e-6, ("L", "MB"): 1e-6, ("ln_idu", "MA"): r4_ln_idu("nmos", 0.6, 0.25, 0.0),
-          ("ln_idu", "MB"): t_mb, ("y", "input_common_mode"): vin / 1.8}
+          ("ln_idu", "MB"): t_mb}
     th.update(free_currents(ctx, {"MA": 1e-5, "MB": 1e-5, "IX": 1e-5, "IY": 1e-5}))
     assert set(th) == set(ctx.schema.components)
     # 전제: VDS(MB) ∈ [0.25, 2.0](켜진 열) 어디서도 VGS(MB) > vin − 0.25 -> V(y) = vin − VGS < 하한: 정의역 안 해 없음

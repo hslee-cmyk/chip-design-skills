@@ -1,11 +1,20 @@
 # folded_cascode -- topology connectivity table
 
-소스: `library/folded_cascode.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
+소스: `assets/library/folded_cascode.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
 
 ## ⚠️ 자동 플래그 (사람 재확인 필요)
 
-- **구동 소자 없는 net(gate로만 참조됨)**: bias3, vin_n, vin_p
+- **구동 소자 없는 net(gate로만 참조됨)**: vin_n, vin_p
   이 net을 source/drain으로 쓰는 소자가 topology.json에 없습니다 -- 외부 입력 핀이면 정상이지만, 내부에서 생성돼야 하는 신호라면 그걸 만드는 소자/감지망이 누락된 것일 수 있습니다.
+
+## 📄 출처 매니페스트 (`source_manifest`)
+
+- 그림/쪽: Maloberti p.34-38
+- 소자 13개, 수동소자 1개 (로더가 netlist·passive_elements 개수와 대조)
+
+## 🔌 외부 바이어스 입력 (`bias_inputs` -- gate 전용 선언 net, connectivity 불변)
+
+`bias3`
 
 ## Net별 연결 표 (이 net에 물린 모든 단자)
 
@@ -16,7 +25,7 @@
 | `Vg9` | M10.gate, M7.source, M9.drain, M9.gate | 4 |
 | `X` | M1.drain, M3.drain, M6.source | 3 |
 | `Y` | M2.drain, M4.drain, M5.source | 3 |
-| `bias3` ⚠️ | M5.gate, M6.gate | 2 |
+| `bias3` ℹ️ | M5.gate, M6.gate | 2 |
 | `gnd` | CL.t1, M10.source, M11.source, M9.source, MN.source | 5 |
 | `out` | CL.t0, M6.drain, M8.drain | 3 |
 | `tail` | M1.source, M11.drain, M2.source | 3 |

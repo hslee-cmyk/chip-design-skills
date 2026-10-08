@@ -23,6 +23,7 @@
     },
     "element_values": {
       "CL": {
+        "measurement_load": true,
         "value_farad": 3e-12,
         "source": {
           "kind": "user_spec",
@@ -58,14 +59,6 @@
         "_view_comment": "포트 뷰 = 이 회로 output 포트 vout(U-25 '감지 vout', 팔로워 감쇠 포함)."
       },
       {
-        "metric": "mismatch_sigma_mv",
-        "op": "<=",
-        "value_from_file": "two_stage_ota#mismatch_sigma_mv",
-        "source": {
-          "kind": "reference"
-        }
-      },
-      {
         "metric": "rout_ss_ohm",
         "op": "<=",
         "value": 1000,
@@ -75,6 +68,44 @@
           "decided": "2026-09-21",
           "origin": "lecture",
           "citation": "강의 26 p.26-6 'Rout ≤ 1000Ω'"
+        }
+      },
+      {
+        "metric": "gbw_ss_hz",
+        "op": ">=",
+        "value_from_file": "two_stage_ota#gbw_ss_hz",
+        "source": {
+          "kind": "reference"
+        }
+      },
+      {
+        "metric": "offset_excess",
+        "op": "<=",
+        "value": 1.4142135623730951,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"q3,q4는 네 제안대로 해\" -- Q3 (3): 절대 offset 값 없는 회로는 구조 가드 offset_excess <= sqrt(2)(부하 분산 <= 입력쌍 분산 경계, design 40 §9.2) -- 옛 value_from_file two_stage_ota#mismatch_sigma_mv 참조 폐기",
+          "decided": "2026-10-08"
+        }
+      },
+      {
+        "metric": "noise_excess_th",
+        "op": "<=",
+        "value": 2,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"Q1~Q11 모두 네 의견대로 진행해\" 결정 Q11 -- 잡음 구조 가드 noise_excess_th <= 2(부하 잡음 <= 입력 잡음, design 41 §7.1)",
+          "decided": "2026-10-08"
+        }
+      },
+      {
+        "metric": "area_search_m2",
+        "op": "<=",
+        "value": 1.5e-08,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 결정 11 \"B으로 표의 값을 그대로 써. Cl을 빼는 것에 동의해\" -- 회로별 면적 예산 0.015 mm² = MOS 게이트 면적 + 회로 안 커패시터(PDK 단위 면적 선언) 면적, 측정 부하(measurement_load)는 제외",
+          "decided": "2026-10-08"
         }
       }
     ],
@@ -106,6 +137,9 @@
       "_budgets_comment": "기본안 = 예산 미선언(front 제시 후 정지, DEC-77). 논문 전력·면적 값은 채택 기록이 없어 넣지 않는다."
     },
     "search": {
+      "theta_bounds": {
+        "Cc": {"min": 1e-13, "max": 1e-11, "source": {"kind": "user_spec", "record": "user_decisions.md 2026-10-08 \"10번도 네 판단에 동의해\" -- engine 보상 커패시터 θ 상자 [0.1 pF, 10 pF]", "decided": "2026-10-08"}}
+      },
       "wall_clock_budget_s": {
         "value": 300,
         "source": {

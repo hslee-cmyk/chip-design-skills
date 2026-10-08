@@ -41,6 +41,8 @@
 | columns.py | 4 | `s1_columns`(`@compute_block`) | U2 기둥·쌍 요약·orphan·열거 상한 |
 | matching_groups.py | 4 | `s1_matching_groups`(`@compute_block`) | U4 matching_offset(바이어스 형제 제외)·레이아웃 matching 그룹·제외 기록(4.5a) |
 | rel_kcl.py | 4 | `s1_rel_kcl`(`@compute_block`) | U4 kcl_group |
+| canonical_form.py [r11] | 1 | `canonical_form` | 완전 정준 라벨링·자기동형 생성자(4.7) |
+| automorphism_orbits.py [r11] | 1 | `automorphism_orbits` | 생성자 -> 정점 궤도(4.7) |
 | s1_build.py | 5 | `build_s1` | 공개 진입점(빌드 순서·재사용) |
 
 U2~U4 블록 10개는 서로 import 하지 않는다(값은 graph 필드로만 전달). 어느 것도 `device.bulk`·supplies 를 읽지 않는다.
@@ -264,6 +266,9 @@ domain 어휘 `DOMAIN_DC`(`"dc"`)·`DOMAIN_DC_TO_SS`(`"dc_to_ss"`)·`DOMAIN_GEOM
 | 루프 신호 넷 L | 영향 그래프의 강연결 성분 C 중 (1) 넷 2개 이상 (2) 양 끝이 C 안인 MOS 엣지가 있고 (3) 어느 가지 하나의 nets 에도 C 전체가 들지 않는 것들의 넷 합집합. (3)은 diode 겹침(diode 위에 gate 를 같은 넷에 둔 소자를 쌓은 self-cascode 등)처럼 한 가지 안에서 닫히는 국소 고리를 뺀다. 커패시터를 빼므로 보상 커패시터(Miller 등)로만 닫히는 고리는 L 이 아니다 |
 | 바이어스 형제 | 차동쌍 후보 묶음 멤버 중 다음 하나에 해당(검사 순서 = 기록 rule): `dc_role.role` ∈ {diode_reference, bias_current_source} -> `bias_sibling_dc_role` / gate ∈ G -> `bias_sibling_ground_gate` / gate 가 **자기 가지** nets 안 -> `bias_sibling_own_branch_gate`(그 가지 전류가 자기 gate 를 정하는 바이어스 다리) |
 | 소비 소자 | gate 비레일 gs 묶음에 diode 멤버가 있을 때, diode 멤버가 하나도 없는 블록에 있는 diode 아닌 멤버 |
+| 꼬리 넷 | status derived 인 `rel_matching_offset` RelEdge 의 공통 source 넷(`evidence.nets[0]`) |
+| diode 넷 | `is_diode` MOS 의 gate(= drain) 넷 |
+| 대응 넷 사상 | 무향 넷 짝 {a ↔ b}. seed = derived 이고 멤버가 정확히 2인 `rel_matching_offset` 의 두 멤버 drain 넷. 확장: 가지마다 걷는 넷 열(`ends[0]` 에서 segment 순서대로 반대 넷을 이은 열)과 그 반대 방향 열을 만들고, segment 서명 열(segment 마다 원소 (element_class, kind) 정렬 tuple)이 같은 두 열(같은 가지의 정·역방향 쌍 제외)에서 자리마다 (가) 같은 넷이면 끝 자리만 허용 (나) 다르면 둘 다 레일이 아니고 충돌 넷이 아니며, 이미 짝이 있는 넷이면 그 짝이 맞은편이어야 한다 -- 모든 자리가 이를 만족하고 이미 짝인 자리가 하나 이상이면 서로 다른 자리 넷끼리 짝을 더한다. 변화가 없을 때까지 반복. 짝을 더할 때 한쪽이 이미 다른 넷과 짝이면 관련 넷 전부를 충돌 넷으로 두고 최종 사상에서 뺀다. 레일은 짝이 되지 않는다 |
 
 **차동쌍 후보** `rel_matching_offset`(4.5 표 행): 같은 (kind, 비레일 source) MOS 묶음(멤버 이름순) 중 gate 넷이 2개 이상인 것마다
 바이어스 형제를 빼고, 남은 멤버 gate 넷이 2개 이상이면 RelEdge 하나. 뺀 소자는 남은 멤버로 RelEdge 를 만들었든 아니든
@@ -277,9 +282,19 @@ domain 어휘 `DOMAIN_DC`(`"dc"`)·`DOMAIN_DC_TO_SS`(`"dc_to_ss"`)·`DOMAIN_GEOM
 | mirror | gate 비레일 gs 묶음에 소비 소자가 없음(diode 멤버 없음 포함) | 묶음 멤버 전부 | derived | (`mirror_whole`, (gate, source), diode 멤버, ()) |
 | mirror | 소비 소자가 있고 gate ∉ B, gate ∉ L | 묶음 멤버 전부 | derived | (`mirror_signal_cross_block`, (gate, source), diode 멤버, (J-U4-d,)) |
 | mirror | 소비 소자가 있고 gate ∈ B 또는 L, 소비 소자 아닌 멤버(diode 쪽)가 2개 이상 | 그 멤버 | derived | (`mirror_diode_block`, (gate, source), diode 멤버, (J-U4-d,)) |
-| mirror | 같은 경우, 같은 블록에 모인 소비 소자가 2개 이상(블록마다) | 그 블록의 소비 소자 | derived | (`mirror_consumer_block`, (gate, source), diode 멤버, (J-U4-d,)) -- 블록별 그룹 순서 = members 순 |
+| mirror | 같은 경우, 같은 블록에 모인 소비 소자가 2개 이상인 블록(블록마다, 아래 '소비 소자 세분') 중 drain 이 대응 넷 짝 (a, b) 인 소비 소자 둘(각 drain 에 열린 소비 소자가 정확히 하나) | 그 둘 | derived | (`mirror_consumer_symmetric`, (gate, source, a, b) -- a < b, diode 멤버, (J-U4-d,)) |
+| mirror | gate ∈ B 또는 L 인 묶음에서 꼬리 소비 소자가 하나 이상(블록 크기 무관, 묶음 전체에서 모음) | diode 멤버 + 꼬리 소비 소자, 이름순 | derived | (`mirror_tail_ratio`, (gate, source), diode 멤버, (J-U4-d,)) -- 꼬리는 disposition 에서 빠진다 |
+| mirror | 같은 블록 세분 뒤 남은 소비 소자가 2개 이상(블록마다) | 그 소자 | derived | (`mirror_consumer_block`, (gate, source), diode 멤버, (J-U4-d,)) -- 블록별 그룹 순서 = members 순 |
 | diff_pair | `rel_matching_offset` RelEdge 마다 | 그 members | 그 status | (`diff_pair`, 그 evidence.nets, (), (J-U4-b,)) |
 | branch_symmetric | 아래 stack 전파 | 위 소자들 | derived | (`branch_symmetric`, (gate,) + source 넷 정렬, seed 그룹 members, (J-U4-c,)) |
+
+**소비 소자 세분**(사용자 ratify 2026-10-08 J14 1번·판단 7·M7 결정): bias_distribution 묶음(gate ∈ B)과 feedback_shared 묶음
+(gate ∉ B, gate ∈ L) 모두에서 소비 소자 중 drain ∈ 꼬리 넷인 것은 블록에 혼자여도 **꼬리**(`mirror_tail_ratio`, disposition 에서
+빠짐 -- 루프 신호 gate 로 구동되는 CMFB 꼬리도 diode 와 비율 미러). 이어서 같은 블록에 소비 소자가 2개 이상인 블록에서만, 꼬리가 아닌 소비
+소자를 (2) drain ∈ diode 넷 -> **diode 공급**(그룹 없음, disposition 에만 남음) (3) 나머지 = 열린 소자로 나눈다. 열린 소자 중 drain 이
+대응 넷 짝인 둘(그 두 drain 에 열린 소자가 하나씩)은 `mirror_consumer_symmetric`. 그 블록에 꼬리·diode 공급·대칭쌍이 하나도 없으면
+옛 규칙 그대로 블록 전체가 `mirror_consumer_block`, 하나라도 있으면 남은 열린 소자가 2개 이상일 때만 `mirror_consumer_block`.
+한 gs 묶음 안 그룹 순서: diode_block, (블록마다 symmetric 들 -> consumer_block), 끝에 tail_ratio.
 
 **branch_symmetric stack 전파**(Q8 (i)): 대기열 = 위 (1)(2) 그룹 중 status derived. 대기열의 그룹 S 마다, S 의 멤버 m 의 drain 이
 레일이 아니면 kind 가 m 과 같고 source == m 의 drain 이며 S 멤버가 아닌 MOS 를 모두 '위 소자'로 모아 gate 넷별로 나눈다.
@@ -293,8 +308,8 @@ branch_symmetric 그룹(gate 넷 순)을 만들고 대기열 끝에 넣는다(�
 | kind | 조건 | members | evidence (rule, nets, group, basis) |
 |---|---|---|---|
 | bias_sibling | 차동쌍 후보 묶음에서 뺀 바이어스 형제(소자마다 하나) | (그 소자,) | (위 형제 rule 셋 중 하나, (source, 그 소자 gate), 남은 멤버, (J-U4-b, J-U4-d)) |
-| bias_distribution | gate 비레일 gs 묶음에 소비 소자가 있고 gate ∈ B | 그 묶음의 소비 소자 전부 | (`bias_distribution`, (gate, source), diode 멤버, (J-U4-d,)) |
-| feedback_shared | 같은 경우 gate ∉ B 이고 gate ∈ L | 그 묶음의 소비 소자 전부 | (`feedback_shared`, (gate, source), diode 멤버, (J-U4-d,)) |
+| bias_distribution | gate 비레일 gs 묶음에 소비 소자가 있고 gate ∈ B | 그 묶음의 소비 소자 중 꼬리(`mirror_tail_ratio` 멤버) 를 뺀 전부(비면 기록 없음) | (`bias_distribution`, (gate, source), diode 멤버, (J-U4-d,)) |
+| feedback_shared | 같은 경우 gate ∉ B 이고 gate ∈ L | 같음 | (`feedback_shared`, (gate, source), diode 멤버, (J-U4-d,)) |
 
 판정 순서는 B 먼저, 그다음 L. 한 소자가 disposition(diode 기준 관계 제외)과 `mirror_consumer_block` 그룹(같은 블록 소비 소자끼리의
 관계)에 함께 나올 수 있다 -- 둘은 다른 관계다.
@@ -307,12 +322,12 @@ ratified)만 쓰고, review_needed 그룹·`matching_dispositions` 는 matching 
 | 회로 | mirror | diff_pair | branch_symmetric | bias_distribution | feedback_shared | bias_sibling |
 |---|---|---|---|---|---|---|
 | common_gate_amplifier | 0 | 0 | 0 | 0 | 0 | 0 |
-| current_reuse_telescopic_ota | 2 ({M10, M19, M5, M68}, {M17, M6, M61, M8} -- consumer_block) | 3 ({M37a, M37b}, {M4a, M4b}, {M1a, M1b}) | 2 ({M3a, M3b}, {M2a, M2b}) | 2 (Vbias4: M10, M12, M19, M21, M38, M5, M68 / Vbias1: M13, M17, M22, M6, M60, M61, M8) | 1 (Vcmfb: M7) | 2 (M63, M58 -- own_branch_gate) |
-| folded_cascode | 2 ({M10, M9} whole, {M3, M4} consumer_block) | 1 | 2 ({M7, M8}, {M5, M6}) | 2 (vb2: M11 / vb1: M3, M4) | 0 | 0 |
-| ngcc_3stage_ff | 5 (ND {M3, M4, M6B}·NX {M6A, M7}·NP {M10, M9} signal_cross_block, {M14, M8}·{M0, M12, M5} whole) | 1 | 0 | 0 | 0 | 0 |
+| current_reuse_telescopic_ota | 5 ({M10, M19}·{M17, M8} consumer_symmetric, {M38, M5, M66}·{M18_bg, M6}·{M36a, M7} tail_ratio -- **ratified 2026-10-08 J14 1번·판단 7**) | 3 ({M37a, M37b}, {M4a, M4b}, {M1a, M1b}) | 2 ({M3a, M3b}, {M2a, M2b}) | 2 (Vbias4: M10, M12, M19, M21, M68 / Vbias1: M13, M17, M22, M60, M61, M8) | 0 (Vcmfb 묶음의 유일한 소비 소자 M7 이 꼬리 -> tail_ratio) | 2 (M63, M58 -- own_branch_gate) |
+| folded_cascode | 3 ({M10, M9} whole, {M3, M4} consumer_symmetric, {M11, MN} tail_ratio -- 판단 7) | 1 | 2 ({M7, M8}, {M5, M6}) | 1 (vb1: M3, M4) | 0 | 0 |
+| ngcc_3stage_ff | 5 (ND {M3, M4, M6B}·NX {M6A, M7}·NP {M10, M9} signal_cross_block, {M14, M8}·{M0, M12, M5} whole -- {M14, M8} 은 **ratified 2026-10-08 J14**(NGCC gm14 = gm8 비율 matching)) | 1 | 0 | 0 | 0 | 0 |
 | nmcnr_amplifier | 3 ({M203, M204} signal_cross_block, {M104, M105}·{M108, M109} whole) | 1 | 1 ({M106, M107}) | 0 | 0 | 0 |
 | pushpull_follower_buffer | 0 | 0 | 0 | 0 | 0 | 0 |
-| sf_pushpull_output_opamp | 3 ({M14, M16, M20}·{M17, M6, M9}·{M11, M8} whole) | 1 | 3 ({M13, M15}, {M10, M5}, {M12, M7}) | 1 (NB: M3) | 0 | 0 |
+| sf_pushpull_output_opamp | 4 ({M14, M16, M20}·{M17, M6, M9}·{M11, M8} whole, {M3, M4} tail_ratio -- 판단 7) | 1 | 3 ({M13, M15}, {M10, M5}, {M12, M7}) | 0 | 0 | 0 |
 | two_stage_ota | 2 (whole) | 1 | 0 | 0 | 0 | 0 |
 | two_stage_ota_sf | 2 (whole) | 1 | 0 | 0 | 0 | 0 |
 
@@ -320,12 +335,30 @@ B(레일 제외): current_reuse {N11a11b, N11b, N14a14b, N14a_14b, N20a20b, N20b
 folded {vb1, vb2}, sf {NB}, 나머지 6회로 ∅. L: current_reuse 만 비어 있지 않음(CMFB·출력단·주 블록을 잇는 성분 하나 --
 Vcmfb·Vx·Vom1·Vop1·Vom·Vop·Voc·Vbias2 등 16넷), 나머지 8회로 ∅. matching_offset 은 파일럿이 {M1a, M1b}·{M4a, M4b}·{M37a, M37b}
 모두 derived(옛 규칙의 3멤버 review_needed 2건이 M58·M63 제외로 2멤버), 나머지 6회로는 옛 규칙과 같다.
+대응 넷 사상(작성자 실행값): current_reuse {N1a2a↔N1b2b, N3a4a↔N3b4b, Vom1↔Vop1, Vg15↔Vg25, Vcmfb↔N36b}, folded {X↔Y, Vg9↔Vg10,
+Vg7↔out}, ngcc {ND↔V1}, nmcnr {NodeF1↔NodeF2, NodeM1↔NodeM2}, sf {N1↔N2, N5↔N7, N56↔N78}, two_stage·two_stage_sf {D3↔O1},
+common_gate·pushpull ∅. 세분 발동: 파일럿 Vbias4·Vbias1 묶음, folded vb1(멤버 같고 rule 만 consumer_symmetric)·vb2(꼬리 M11),
+sf NB(꼬리 M3), 파일럿 Vcmfb(꼬리 M7, feedback_shared 묶음). 나머지 6회로 불변. 그 결과 9회로에서 feedback_shared 기록은 0건이다
+(L 은 파일럿에만 있고, 그 묶음의 소비 소자가 꼬리뿐). feedback_shared 는 꼬리가 아닌 소비 소자가 루프 신호 gate 를 읽을 때만 남는다.
 
 **일반성**(작성자 측 측정, `tests/generality/topogen` 합성 회로): syn_cs_load·syn_diffpair5·syn_follower 는 diode 기준 바이어스
 블록 -> 다른 블록 전류원이라 bias_distribution 1건씩, branch_symmetric·feedback_shared·bias_sibling 0(그 구조 없음, 무동작).
 손 변형: diffpair5 꼬리에 M58/M57형 바이어스 다리 추가 -> diff_pair 유지 + bias_sibling 1, 같은 gate 로 쌓인 diode 쌍은
 branch_symmetric 0; NMOS 캐스코드 2단 -> branch_symmetric 2. 이름 치환 3벌·순서 섞기 3벌·극성 뒤집기에서 분류가 치환표를
-따라감(42/42), 단 복제는 모든 kind 수가 정확히 2배.
+따라감(42/42), 단 복제는 모든 kind 수가 정확히 2배. 소비 블록 세분(2026-10-08)은 위 합성·손 변형 6종에서 결과 불변(무동작); 세분이 걸리는
+합성 변형 syn_dp_split(NMOS 차동쌍 + diode 바이어스 블록에서 받는 PMOS 부하 Pa/Pb·NMOS 꼬리 Ye·싱크 Na/Nb) -> {Pa, Pb}·{Na, Nb}
+consumer_symmetric, {Nr, Ye} tail_ratio, 변형 불변량 49/49. 판단 7(혼자인 꼬리) 뒤: syn_diffpair5 와 그 손 변형 3종의 꼬리 Ye 가
+bias_distribution -> {Ye, Yf} tail_ratio(그 구조 = 바이어스 diode 를 쓰는 차동쌍 꼬리가 있음), 차동쌍이 없는 syn_cs_load·syn_follower 는
+불변, 변형 불변량 49/49.
+
+**[r11] matching 그룹과 자기동형 궤도의 관계 (측정 2026-10-08, sizing CONTRACT 3.0b `dc_struct_colour` 의 dc_orbit)**: matching 그룹(레이아웃 짝짓기 -- 같은 kind·같은 source
+등 부분 구조 조건)과 자기동형 궤도(회로 그래프 전체의 연결·kind·레일 전위·선언을 보존하는 전단사)는 **서로 다른 개념이고 포함 관계가 없다**. 9개 라이브러리 회로 +
+합성 회로에서 확인: (1) 궤도가 둘 이상 원소인 회로는 `current_reuse_telescopic_ota` 하나(완전 차동, 2단자 수동소자를 무향으로 다루므로 R1(Vom→Voc)·R2(Voc→Vop)처럼 끝을 뒤집어 그려도 대칭이 선다 -- 22개 궤도 + 수동소자 쌍. 궤도: M10/M19, M17/M8, M1a/M1b, M2a/M2b, M3a/M3b, M4a/M4b,
+R1/R2, Cc1/Cc2, CL1/CL2, 전반부-후반부 쌍 M11a/M20a … 등). 나머지 회로는 단일 출력이라 diff_pair 두 원소도 서로 다른 궤도(예 folded_cascode M1/M2: 드레인이 서로 다른
+부하에 연결)이고 mirror/branch_symmetric 그룹도 궤도가 아니다. (2) 궤도 ⊆ 한 matching 그룹이 아닌 경우: current_reuse 의 M11a/M20a·M12/M21 … (차동 두 반쪽 사이의 대응,
+matching 그룹은 한 가지 안의 짝만 본다)와 수동소자 쌍 R1/R2·Cc1/Cc2·CL1/CL2(matching 은 MOS 만). (3) matching 그룹이 한 궤도가 아닌 경우: 비율 mirror
+(M38/M5/M66 -- 3 궤도, M18_bg/M6 …)와 current_reuse 의 diff_pair M37a/M37b(궤도 2: CMFB 쌍이라 입력 연결이 비대칭). 결론: θ 묶음은 궤도만 따른다(matching 그룹을
+묶음 근거로 쓰지 않는다 -- 비율 mirror·비대칭 diff_pair 를 잘못 묶을 위험). 불일치는 결함이 아니라 개념 차이이며 matching 쪽 판정은 이 변경이 바꾸지 않는다.
 
 ### 4.6 정지 분기 (모두 core `StructureUnresolvedError`, exit 2, `detail["reason"] == "unsupported_rule_branch"`)
 
@@ -341,6 +374,18 @@ branch_symmetric 0; NMOS 캐스코드 2단 -> branch_symmetric 2. 이름 치환 
 
 review_needed 는 정지가 아니라 기록이다(DcRole 묶음·matching_offset 3개 이상·column_orphans). `s1_matching_groups` 는 정지 분기가
 없다(분류 못 하는 경우는 mirror 그대로 또는 disposition 기록).
+
+### 4.7 [r11] 정준형 `canonical_form(source, element_marks=(), node_marks=()) -> Canonical` · `automorphism_orbits(canon) -> {정점: 궤도 id}` (설계 40 §6, 사용자 결정 2026-10-08)
+- `source` = `.column(kind, field)` 를 가진 것(S1Graph, sizing 계산 블록 Projection). 읽는 열: `device.{element_class, kind, is_diode, pins, bulk}`, `node.{is_rail, port_direction}`. θ 무관.
+- 그래프: 정점 = 넷 `("n", 넷)` ∪ 원소 `("e", 원소)`. 엣지 = 원소-넷 연결에 단자 라벨: MOS `d`·`g`·`s`·`b`(bulk 넷이 정해졌으면), 이상원 `t0`·`t1`(전류 방향), 그 밖 2단자(저항·커패시터)는 **방향 없는 `t`**
+  (단자 순서를 색에 넣지 않는다). 처음 색: 원소 = (종류, element_class, kind, is_diode, 선언 표시), 노드 = (종류, is_rail, port_direction, 선언 표시). 선언 표시 형식은 sizing 3.0b.
+- `Canonical(wl, position, generators)`: `wl` = 선언 표시 없는 1-WL 색(정수), `position` = 정준 위치 0..n−1(정점마다 다름), `generators` = 자기동형 생성자 tuple(각각 움직인 정점만 `((정점, 상), ...)`).
+  정준 라벨링 = individualization-refinement(nauty 식): 평형 분할의 가장 앞선 비단일 칸의 정점을 하나씩 개별화·정제, 잎의 증명서 cert 최소가 정준, 같은 cert 의 두 잎 사이 위치 대응이 자기동형
+  (최저 공통 선조 마디로 가지치기). 이름은 탐색 순서에만 쓰이고 증명서·군은 이름과 무관하다.
+- `automorphism_orbits`: 생성자들이 만드는 군 아래 정점 동치류. 궤도 id = 구성원의 정준 위치 최솟값(같은 궤도 ⇔ 같은 값). 생성자가 없으면 정점마다 자기 위치.
+- 불변식(test 가 확인할 성질): (a) 이름 전단사·원소 순서 섞기에 `automorphism_orbits` 가 불변; (b) 생성자는 모두 자기동형(이웃 다중집합·처음 색 보존, 단자 라벨 보존);
+  (c) 손 그래프 기지 군(링 n 개 한 궤도, 경로, C6⊔2×C3 에서 1-WL 색 같아도 궤도 2, 큐브, Petersen) 및 소규모 전수 순열 대조; (d) 단일 종단 OTA 차동쌍 두 멤버는 서로 다른 궤도,
+  완전 차동 쌍은 같은 궤도; (e) 저항 terminals 순서를 뒤집어도 궤도 분할 동일; (f) 선언 표시가 다른 두 원소는 다른 궤도; (g) 결정론; (h) 궤도 ⊆ `wl` 클래스.
 
 ## 5. `S1Graph(key, snapshot)` 질의
 
@@ -509,5 +554,98 @@ design_mod3_structure_u2_u5(DU) 대비:
     판정은 diode 가 있는 gs 묶음의 '소비 소자'에만 건다(diode 없는 묶음은 mirror 그대로) -- 승인 문언 'diode 와 다른 블록의
     소비 소자'와 DRS (c)(d) 의 'diode 가 만든 노드를 읽는 관계'를 따른 것. (d) 같은 블록에 모인 소비 소자끼리는 mirror
     (`mirror_consumer_block`)로 남겼다 -- 빼면 folded M3/M4 같은 대칭 전류원과 그 위 캐스코드쌍 seed 가 사라진다(J-U4 확인 대상).
+    -> 2026-10-08 사용자 ratify(J14 1번)로 '소비 블록 세분'(꼬리 -> diode 와 비율 미러, diode 넷 drain -> bias_distribution 만,
+    drain 대응 짝 -> 대칭쌍)을 더했다. 판단 7(2026-10-08 ratify): 꼬리는 블록에 혼자여도 tail_ratio. 단 feedback_shared 묶음의
+    꼬리(파일럿 M7, Vcmfb)도 2026-10-08 사용자 결정("꼬리 비율 미러 {M36a, M7}로 분류")으로 같은 꼬리 규칙(gate ∈ L 묶음 포함). 대응 넷은 U5 `graph.symmetry` 가 없어 derived 차동쌍 drain seed 의 가지 서명 전파로 정의했다.
     (e) branch_symmetric seed 에 mirror 도 넣었다(folded M7/M8·nmcnr M106/M107·sf 3쌍은 mirror 위에 쌓임). (f) 차동쌍 후보의
     '신호 넷 gate(입력 포트 또는 graph.symmetry 대응) 정확히 2' 조건(G5-03)은 U5 가 없어 넣지 않았다 -- 바이어스 형제 제외만.
+
+---
+
+## 10. SP1 -- `build_s1v` (U1, 설계 41 §0 단계 A3·§1, 40 §3.2, 계획 N3.2·DEC-43·57·63·65·81)
+
+test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값은 toy 손계산·ratified 대조표·불변량으로 만든다). 아래 불변량이 test 대상이다.
+
+### 10.1 공개 API (`gmid_engine.graph.__all__`)
+
+| 이름 | 설명 |
+|---|---|
+| `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), previous=None, stop_on_unsupported=True) -> S1v` | 진입점. `s1` = `build_s1` 결과, `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`) |
+| `S1v`, `ViewS1v`, `ViewSeed`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `Finding`, `StructureFact`, `CellInfo`, `DriveInfo`, `PoleNode`, `PassBundle`, `OutputDirection` | frozen dataclass(`fp_of` 가능). 필드 뜻과 어휘(`Block.kind`·AC 역할·`DriveInfo.basis`·`LClass.owner_rule`·`OutputDirection.topology`·`unreduced_diff` 형식)는 `s1v_values.py` docstring 이 정본이고 10.5 에 요약한다 |
+| `load_structure_facts(path, topology_fp, rule_fp) -> StructureFacts` | `structure.json` ratified 사실 로더(파일 없음 = 사실 0, 형식 위반 = `SchemaRejectedError` gate `structure_json`, 해시 불일치 = 사실 미적용 + `structure_fact_stale` review_needed) |
+| `structure_tables(s1v) -> dict` | JSON 으로 쓸 수 있는 구조 표(뷰·셀·구동 종류·블록·극점 노드·루프·L 동치류·기록) |
+| `s1v_rule_fp() -> str` | S1v 규칙 코드 지문(`S1V_RULE_FILES` 바이트). `structure.json` 의 `rule_hash` 와 재사용 키가 쓴다 |
+
+### 10.2 동작
+
+* 순서: `collect_views` -> 전달 뷰마다 `analyze_view` -> 전달 뷰의 (3) 루프가 만든 루프 뷰(끊는 점 (소자, gate 넷)마다 하나) -> 루프 뷰 판정 -> `l_equivalence_classes` ->
+  `declared_compare`. 뷰 id: 전달 `transfer:<순번>`(여기·관측 정렬 순), 루프 `loop:<소자>:<gate 넷>`.
+* **뷰 수집**: spec 제약의 `ViewDecl`(port·loop = 가중+관측, transfer, ratio = 분자·분모)마다 하나, (여기, 관측) 중복은 하나. 선언이 없으면 기본 뷰: 입력 포트 role 이
+  차동 p·n 한 쌍이면 가중 ±1/2 기모드 여기 하나, 아니면 입력 포트마다 단일 여기. 관측 = 출력 포트 전부. mode `sense`·`none`·`pending` 은 구조 뷰를 만들지 않는다.
+* **교류접지**: 레일 ∪ gate 전용 미구동 넷(S1) ∪ 이 뷰에서 여기하지 않는 입력 포트 ∪ (4) 바이어스 종속 넷(술어 (0)(i)(ii)(iii), `ac_ground_view.py` docstring). 기모드
+  여기에서 회로 자기동형(`virtual_ground`, 맞짝 전파)이 있으면 자기대응 넷(`ViewS1v.virtual_ground`)은 **축약 뷰의 접지**다 -- 셀·구동 종류·블록·극점 노드·출력 방향은 축약
+  뷰 기준, 루프·끊는 점은 비축약 뷰 기준(공통모드 되먹임이 가상접지를 지난다). 두 뷰에서 셀 판독이 다른 소자는 `unreduced_diff`.
+* **셀**: gate==drain -> `diode_load`. gate∈S: drain 접지 -> `cd`, source 접지 -> `cs`, 둘 다 아니면 source 가 순방향 위 신호 셀 입력·출력 포트에 닿을 때 `cell_ambiguous`
+  (기록만), 아니면 `cs`(degeneration). gate∉S: 같은 두 노드 사이 반대 방향 둘 -> pass 묶음(셋 이상 방향 섞임 `pass_group_unsupported`), 아니고 source∈S -> `cg`, 그 밖 `off`.
+  셀 이름은 소문자 `cs`/`cg`/`cd`/`pass`/`diode_load`/`off`(규칙 E: 대문자 `CS` 는 library 넷 이름과 같아 쓸 수 없다). `CellInfo.forward` = 출력 단자가 순방향 집합 위.
+* **구동 종류**: 진입(여기 포트 / CS drain·source / CD source / CG drain / diode source·drain)에서 규칙 1(drain 진입만 = 전류 후보)·3(gate 로만 나가면 전압, 채널로만 전류, 둘 다 gate 쪽
+  순방향이면 전압(stage 경계), 아니면 tap)·4(혼재 = drain 쪽 DC 역할로: 바이어스 전류원이면 전압, 신호 소자면 `mixed_drive_signal_drain`, 못 가르는 그룹이면 잠정 전압 +
+  `mixed_drive_unresolved_group`)·2·5(저항·pass 로만 들어오면 이웃 종류 상속, 저항은 `value_dependent`). ratified `drive_kind` 사실은 해당 넷을 고정(근거 `ratified_fact`).
+* **stage**: `dist`(수동소자 엣지 포함 0-1 BFS, 복귀 경로 판정용)와 `stage_dist`(수동소자 제외, stage 번호용). 시작 셀 = 순방향 CS(gate 전압 구동, 미러 입력 아님, DC 역할이
+  바이어스 전류원 아님) / source 가 전압 구동인 CG. 블록 stage = 시작 셀 입력 넷 `stage_dist` + 1.
+* **임피던스 등급**(41 §1.7-4, 2026-10-08 정정): `node_impedance` 표 하나를 블록 출력노드(`Block.impedance`, 이득·버퍼 블록 모두)와 극점 노드가 함께 읽는다. 낮음 = MOS source 단자(gate 가 교류접지이든 구동되든 무관 -- follower 출력 포함)나 diode 단자가 붙은 노드, 값 의존 = 낮음 없이 저항이 붙은 노드, 높음 = 그 밖. pass 묶음 소자의 단자는 등급에 기여하지 않는다(통로).
+* **블록**: 소유 고정점(시작 셀 -> 캐스코드·미러 연장·pass·diode). 같은 stage 블록이 넷(공통 소스·출력)을 공유하면 합친다(차동 블록). 출력노드가 같은 블록 pass 묶음의 한 끝이면 반대 끝으로 따라간다(41 §1.7-1: pass 로 끝나면 pass 출력 단자 노드 = 포트). 키 = 출력노드 이름 정렬 tuple. 서로 다른 stage 가
+  합류 노드를 공유하면 복합 블록 후보. 출력노드 임피던스가 낮으면 `cs_output_low_impedance`(기록만). 버퍼 블록 = CD 묶음 R(u)(싱크 하나). 이득 블록과 버퍼 블록이 합류 노드가 아닌 넷을 공유하면 `block_node_overlap`(review_needed, 불변량 4).
+* **루프**: 방향 신호 그래프(gate->drain/source, CG 또는 전류 진입 source->drain, 수동소자·pass 양방향)의 단순 사이클 전수, 시작 = 사이클 최소 노드. 수동소자만의 사이클 제외.
+  개수·걸음 수가 `count_budget` 초과 -> `cycle_enumeration_over_budget`(기록만). 분류 (1.5) `bias_scc` / (2) `miller` / (3) `loop_view`((3-a)·(3-b)) / (4) `record_only`.
+  끊는 점 = 복귀 구간 다음 첫 CS gate 후보 중 뷰 안 루프에서 가장 많이 나타나는 것(이름 전단사 불변). 극성 = CS gate->drain 반전 곱, 커패시터 경유 0.
+  포트쌍 CM 루프 대응(R31): 루프 뷰의 루프 노드가 차동 출력 포트쌍 두 넷을 모두 포함하면 `cm_pair`, 기록은 `cm_loop_unconstrained`(info). 그 밖의 루프 뷰는
+  `declared_loop_cuts` 에 gate 넷이 없으면 `undeclared_loop_constraint`(기록만).
+* **L 동치류**: `S1v.l_classes` = S1 `rel_l_class` 마다 주인(DEC-17: tail -> 첫 전달 뷰 최전단 stage tail -> diode 기준 -> 이름 순)과 규칙 이름. 멤버 DC 역할 미확정이면 status
+  review_needed. S1 의 `rel_l_class` 필드는 proposed 그대로다(소비자는 S1v 를 읽는다).
+* **declared 대조**: `declared` = ((출처, (소자 이름 tuple, ...)), ...) 를 첫 전달 뷰 블록과 대조해 불일치를 `declared_stage_mismatch`(review_needed). 유도의 입력이 아니다(U-50).
+* **기록과 정지**: `Finding.severity` ∈ review_needed / unsupported_rule_branch / info. `S1v.unsupported`(기록만)가 하나라도 있고 `stop_on_unsupported` 이면
+  `StructureUnresolvedError`(detail reason `unsupported_rule_branch`, `rule_branch` = 첫 분기, `branches`, `findings`). `False` 는 진단 모드(기록을 돌려받음). review_needed 는 정지가
+  아니라 `S1v.review_needed` 로 GB4 앞 정지 대상.
+
+### 10.3 불변량 (test 대상)
+
+1. 같은 입력이면 `fp_of(structure_tables(s1v))` 가 같다(프로세스·`PYTHONHASHSEED`·netlist 순서 무관). 같은 키 `previous` 는 `is` 같은 객체.
+2. 원소·넷 이름을 전단사로 바꾸면 모든 구조 필드(접지·셀·구동 종류·시작 셀·블록 키·역할·루프 노드 집합·분류·끊는 점·극점 노드·출력 방향)가 그 사상으로만 바뀐다. 예외(이름이 마지막
+   tie-break 인 곳): L 동치류에 tail·diode 기준이 없을 때의 주인(DEC-17 '이름 정렬 첫 멤버'), 전달 뷰 순번(여기 이름 정렬 순서).
+3. 접지 집합은 정적 집합의 초집합이고 여기 넷·감지 넷은 접지가 아니다. 순방향 넷 ⊆ 신호 넷. 모든 MOS 에 셀이 정확히 하나 있다.
+4. 블록의 소유 넷(입력 경계 넷 제외)은 서로 겹치지 않는다(겹침은 복합 블록 합류 또는 `block_node_overlap`). 블록 키는 출력노드 정렬 tuple 이고 단일 출력 블록은 원소 1개.
+5. stage 시작 셀은 순방향이고 바이어스 전류원 DC 역할이 아니며 CD 가 아니다. 미러 입력 노드를 gate 로 읽는 셀은 시작하지 않는다.
+6. 극점 노드 = 뷰의 접지가 아닌 모든 넷(중복 없음). 버퍼 출력노드 포함.
+7. 루프: 사이클은 단순(노드 반복 없음), 첫 노드가 사이클 최소 노드, 수동소자 하나·pass 묶음 하나로 되돌아오는 왕복 없음. `bias_scc` 는 순방향 노드를 하나도 지나지 않는다.
+   `loop_view` 루프의 끊는 점은 그 루프 위 CS 셀의 gate 엣지다.
+8. 정지 규칙: `기록만` 코드(`cell_ambiguous`·`pass_group_unsupported`·`gate_on_current_node`·`cs_output_low_impedance`·`buffer_multi_output`·`composite_dag_not_chain`·
+   `composite_over_budget`·`loop_record_only`·`cycle_enumeration_over_budget`·`undeclared_loop_constraint`)가 있으면 `build_s1v` 가 기본 모드에서 정지한다.
+
+### 10.4 설계와 다르게 정한 점 / 위임한 점
+
+* `structure_count_budget(lut, kinds)` 는 합이 1 미만(kinds 가 비었거나 LUT 슬라이스 없음)이면 `ValueError` -- N_S 는 1 이상 int 여야 하므로 정의역 밖이다. `run_stage_a` 는 이를 잡아 `count_budget_undefined`(StructureUnresolvedError, exit 2)로 보고서에 쓴다.
+* **U1b 로 미룬 것**: `structure.json` 의 `schema_version` 값 검사·알 수 없는 개념 거부(어휘는 U1b), `drive_kind` 사실 값 범위(voltage|current) 검사, 판정 규칙 J1~ 구현.
+* S1v 저장은 core `GraphSnapshot` 이 아니라 frozen dataclass 트리(`S1v`)이고 재사용은 키(`S1v.key`) 일치로 한다.
+* 입력 포트 role 문자열(`differential_input_p/n`, `differential_output_p/n`)과 spec 뷰 mode 문자열은 `s1v_values.py` 에 같은 값으로 복제했다(authoring 이 `__all__` 로 내보내지 않는다 -- U5 요청).
+* declared stage 의 생산자(topology 의 `compensation.stage_devices` 등 태그 읽기)는 엔진 안에 없다(태그 키는 규칙 I·IC4 로 읽기 금지). `declared` 인자로만 받는다.
+* 복합 블록은 묶음 경계를 J12 ratify 전 `composite_block_pending_ratify`(review_needed)로 남기고 격자 곱 Π 는 LUT 축이 필요해 U9 몫이다(`CompositeBlock.cells` = 밑).
+* `virtual_ground` 는 U2 정준 라벨링·궤도가 들어오면 그 궤도로 대체한다.
+
+### 10.5 어휘 요약과 library 9회로 정지 코드 (2026-10-08 U1 수정 뒤 실측)
+
+* `Block.kind` ∈ {gain, buffer, composite}. AC 역할 ∈ {input, cascode, mirror, diode_load, pass, follower, tail_source, load}(계획 N3.2-6 의 input·cascode·follower·pass·load·tail 에
+  mirror·diode_load 를 load 의 세분으로 더함. 계획의 `tail` 은 값 `tail_source` 로 쓴다 -- 문자열 `tail` 은 library 넷 이름과 같아 구조 규칙 E 가 코드 리터럴로 거부한다).
+* `LClass.owner_rule` ∈ {tail_owner, tail_first_gain_stage, current_source_member, name_order}. `OutputDirection.topology` ∈ {push_pull, class_a, none}(none = 어느 방향도 σ 셀 없음).
+  `DriveInfo.basis` 13종은 `s1v_values.py` `BASIS_*`. `ViewS1v.unreduced_diff` = ((소자, (축약 kind, forward), (비축약 kind, forward)), ...). `S1v.key` 는 7원소(마지막 = declared_loop_cuts 지문).
+  `S1v.views` 순서 = 전달 뷰(순번 순) 다음 루프 뷰(끊는 점 정렬 순).
+
+| 회로 | status / exit | 정지 코드(`unsupported_rule_branch`) | review_needed 코드 |
+|---|---|---|---|
+| two_stage_ota, two_stage_ota_sf, folded_cascode, common_gate_amplifier, pushpull_follower_buffer | ok / 0 | 없음 | 없음 |
+| current_reuse_telescopic_ota | stopped / 2 | `cs_output_low_impedance` -- 루프 뷰 `loop:M37a:Voc` 의 N1a2a, N1b2b, Vx(출력노드가 다른 소자의 source) | loop_polarity_undefined, mixed_drive_signal_drain |
+| ngcc_3stage_ff | stopped / 2 | `undeclared_loop_constraint` -- 루프 뷰 `loop:M8:V1`(차동 출력 포트쌍 없음, 안정도 제약 미선언) | composite_block_pending_ratify, loop_polarity_undefined |
+| nmcnr_amplifier | stopped / 2 | `undeclared_loop_constraint` -- 루프 뷰 `loop:M201:NodeM2` | loop_polarity_undefined |
+| sf_pushpull_output_opamp | stopped / 2 | `loop_record_only`(transfer:0 복합 diode 루프 9건), `composite_dag_not_chain`(N1112,N12 / N1516,N910,Y), `cs_output_low_impedance`(N1112, N1314, N1516, N17, N20, N56, N78, N910 -- 정정된 §1.7-4 로 새로 생김) | block_node_overlap(N17, N20: 버퍼 사슬 중간 노드와 부하 블록), composite_block_pending_ratify, mixed_drive_unresolved_group |
+
+정지 4회로의 정지 사유는 J 규칙(U1b)이 닿기 전까지 의도된 `기록만` 정지다.

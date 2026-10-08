@@ -184,26 +184,30 @@ class SmallSignalCircuit:
 
 LOOP_CUT_KINDS = ("resistor", "capacitor")
 LOOP_CUT_TERMINALS = ("a", "b")
+LOOP_CUT_MOS = "mos"            # [CM] 출력 포트 절단: MOS 의 gate 단자(소비자 쪽)도 새 노드로 옮길 수 있다
+LOOP_CUT_MOS_TERMINALS = ("d", "s", "g")
 
 
 @dataclasses.dataclass(frozen=True)
 class LoopCut:
     """루프 절단 하나: `SmallSignalCircuit` 의 `kind`(resistor | capacitor) 원소 `index` 번째의 단자 `terminal`(a | b)을
-    새 노드로 옮긴다(`cut_circuit`). 어느 단자를 끊을지는 선언(spec `feedback` 소자의 입력 포트 넷 쪽 단자)이 정한다."""
+    새 노드로 옮긴다(`cut_circuit`). 어느 단자를 끊을지는 선언(spec `feedback` 소자의 입력 포트 넷 쪽 단자)이 정한다.
+    [CM] kind `mos`(`LOOP_CUT_MOS`) 는 `mos` 튜플의 `index` 번째 MOS 의 단자(`terminal` ∈ `LOOP_CUT_MOS_TERMINALS` = d | s | g)를 옮긴다."""
 
     kind: str
     index: int
     terminal: str
 
     def __post_init__(self):
-        if self.kind not in LOOP_CUT_KINDS:
-            raise ValueError("LoopCut.kind 는 %r 중 하나여야 한다: %r" % (LOOP_CUT_KINDS, self.kind))
+        if self.kind not in LOOP_CUT_KINDS + (LOOP_CUT_MOS,):
+            raise ValueError("LoopCut.kind 는 %r 중 하나여야 한다: %r" % (LOOP_CUT_KINDS + (LOOP_CUT_MOS,), self.kind))
         if isinstance(self.index, bool) or not isinstance(self.index, int):
             raise TypeError("LoopCut.index 는 정수여야 한다: %r" % (self.index,))
         if self.index < 0:
             raise ValueError("LoopCut.index 는 0 이상이어야 한다: %r" % (self.index,))
-        if self.terminal not in LOOP_CUT_TERMINALS:
-            raise ValueError("LoopCut.terminal 은 %r 중 하나여야 한다: %r" % (LOOP_CUT_TERMINALS, self.terminal))
+        allowed = LOOP_CUT_MOS_TERMINALS if self.kind == LOOP_CUT_MOS else LOOP_CUT_TERMINALS
+        if self.terminal not in allowed:
+            raise ValueError("LoopCut.terminal 은 %r 중 하나여야 한다: %r" % (allowed, self.terminal))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -287,6 +291,22 @@ class GateArea:
     def __post_init__(self):
         object.__setattr__(self, "w_m", _finite(self.w_m, "GateArea.w_m", positive=True))
         object.__setattr__(self, "l_m", _finite(self.l_m, "GateArea.l_m", positive=True))
+
+
+@dataclasses.dataclass(frozen=True)
+class PassiveAreaDecl:
+    """수동소자 면적 선언(사용자 결정 11): `unit_area` = ((수동소자 이름, m²/값 단위), ...) -- PDK 단위 면적이 선언된 소자만,
+    `excluded` = 면적에서 빼는 소자 이름(측정 부하 -- spec `measurement_load`). 둘 다 이름순 tuple, 겹치지 않는다."""
+
+    unit_area: tuple = ()
+    excluded: tuple = ()
+
+    def __post_init__(self):
+        names = [n for n, _a in self.unit_area]
+        if len(set(names)) != len(names) or set(names) & set(self.excluded):
+            raise ValueError("PassiveAreaDecl: 이름이 겹친다")
+        for _n, a in self.unit_area:
+            _finite(a, "PassiveAreaDecl.unit_area", positive=True)
 
 
 @dataclasses.dataclass(frozen=True)

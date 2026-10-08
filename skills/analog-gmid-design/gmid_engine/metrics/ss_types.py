@@ -64,11 +64,15 @@ class MetricRequest:
 @dataclasses.dataclass(frozen=True)
 class MetricBundle:
     """metric 결과 묶음. `entries` = ((MetricRequest, MetricResult), ...), `approximations` = ((측면, 모형), ...) 정렬,
-    `detail` = (키, 값) 정렬 tuple."""
+    `detail` = (키, 값) 정렬 tuple. [CM] `reports` = 보고 전용 측정 ((이름, ((키, 값), ...)), ...) -- 차동 출력 포트 쌍이 있는 회로의 출력 CM 주입 루프
+    T_cm(`cm_loop`: break_nets, dc_db, pm_deg, ugf_hz, undefined), spec 선언과 무관하게 항상(판정은 선언만). `warnings` = ((코드, ((키, 값), ...)), ...)
+    -- 예: `cm_loop_unconstrained`(T_cm(0) > 1 인데 pm_cm_ss_deg 제약 미선언)."""
 
     entries: tuple
     approximations: tuple = ()
     detail: tuple = ()
+    reports: tuple = ()
+    warnings: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -82,3 +86,8 @@ class SsEvaluation:
     ss: MetricBundle
     dc: MetricBundle
     lineage: object = None
+
+    @property
+    def warnings(self):
+        """평가 경고(= `ss.warnings`) -- 판정에 영향 없는 보고."""
+        return self.ss.warnings

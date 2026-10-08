@@ -5,7 +5,7 @@ design_gb7_dc_canonical; [r8] 9 = 전도 여유). 계약: `CONTRACT.md`.
 `dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, pre_layout_lut_access(memo))` (S0 당 1회) ->
 `size_and_seal(ctx, theta, parent=None)` (θ 마다).
 """
-from .bisect_root import bisect_root
+from .bracket_root import bracket_root
 from .block_columns import dc_columns
 from .block_currents import dc_currents
 from .block_lengths import dc_lengths
@@ -115,7 +115,9 @@ from .s2_values import (
     DeviceOp,
     KernelContext,
     LutAccess,
+    NO_ORDER_HINTS,
     NodeWrite,
+    OrderHints,
     PathValue,
     SccEntry,
     SccLog,
@@ -142,7 +144,9 @@ from .seal_tolerances import dc_tolerances
 from .seal_versions import seal_versions
 from .seal_vgs_match import dc_seal_vgs_match
 from .seal_writers import seal_writers
+from .local_values import LocalSeal, SnapshotFragment
 from .size_and_seal import size_and_seal
+from .size_and_seal_local import size_and_seal_local, theta_name
 from .struct_colour import dc_struct_colour
 from .theta_check import check_theta
 from .theta_schema import dc_theta_schema
@@ -171,11 +175,14 @@ __all__ = (
     "INPUT_GROUP_KEY",
     "KernelContext",
     "LINEAR_REGION",
+    "LocalSeal",
     "LutAccess",
+    "NO_ORDER_HINTS",
     "METRICS_DC_WRITER",
     "METRICS_KEY",
     "METRICS_SS_WRITER",
     "NodeWrite",
+    "OrderHints",
     "PATH_FIXED",
     "PATH_MOS",
     "PATH_RESISTOR",
@@ -259,7 +266,7 @@ __all__ = (
     "TieBreak",
     "ThetaSchema",
     "Window",
-    "bisect_root",
+    "bracket_root",
     "build_kernel_context",
     "check_theta",
     "dc_columns",
@@ -290,5 +297,8 @@ __all__ = (
     "seal_dc",
     "seal_versions",
     "seal_writers",
+    "SnapshotFragment",
     "size_and_seal",
+    "size_and_seal_local",
+    "theta_name",
 )

@@ -17,7 +17,7 @@ import math
 
 import numpy
 
-from ._helpers_pencil import finite_eigs
+from ._helpers_pencil import finite_eigs, probe_pencil
 from ._helpers_probe import probe_value
 from .mna_types import ProbeFactor, SystemResponse
 
@@ -73,53 +73,13 @@ def _layout(system, nodes):
 
 
 def _roots(system, pairs, weights):
-    """T 의 (극점, 영점) -- 모듈 docstring 의 증강 pencil."""
+    """T 의 (극점, 영점) -- `_helpers_pencil.probe_pencil` 의 증강 pencil."""
     if system.defects:
         return (), ()
-    n = system.G.shape[0]
-    k = len(pairs)
-    size = n + k
-    w = numpy.array(weights, dtype=float)
-    at = {node: i for i, node in enumerate(system.nodes)}
-    n_idx = [at[a] for a, _ in pairs]
-    x_idx = [at[b] for _, b in pairs]
-    charge = sorted(system.charge_nodes)
-    # 절단 노드가 용량 전용이면(ω = 0 열 선택과 같은 규칙) 프로브 전류 j = s·j', 2회 주입은 전하 w(= 전류 s·w)로 둔다 --
-    # T 는 2회 실험의 공통 배율에 무관하고, 그 노드 KCL 행이 s 로 나뉘어 떨어진다.
-    scaled = bool(set(n_idx + x_idx) & set(charge))
-    probe = numpy.zeros((n, k))
-    probe[n_idx, range(k)] = 1.0
-    probe[x_idx, range(k)] = -1.0
-    a0 = numpy.zeros((size, size))
-    e0 = numpy.zeros((size, size))
-    a0[:n, :n] = system.G
-    e0[:n, :n] = system.C
-    (e0 if scaled else a0)[:n, n:] = probe
-    a0[n:, :n] = probe.T
-    # 용량 전용 노드 행(G 행 0)은 s·(C_F·v + P_F·j') = s·(우변) 이라 s 로 나눈다(`solve_dc_limit` 의 전하 보존 식과 같은 변환,
-    # 해 불변). 나누지 않으면 원점 근이 겹친 결함 고유값이 되어 QZ 가 eps^(1/m) 규모로 흩뜨린다(허위 근).
-    a0[charge, :] = e0[charge, :]
-    e0[charge, :] = 0.0
-    bg = numpy.zeros(2 * size)
-    bc = numpy.zeros(2 * size)
-    c = numpy.zeros(2 * size)
-    bg[n:size] = w                      # 1회: 프로브 전압 V(n) − V(x) = w
-    c[n_idx] = w                        # 관측 wᵀV_n
-    for i, wi in zip(n_idx, w):         # 2회: n 으로 주입(프로브 0 V) -- scaled 면 전하 w, 나눈 행에서는 상수
-        (bc if scaled and i not in charge else bg)[size + i] = wi
-    c[size + n:] = -w                   # 관측 −wᵀI (I = n → x 프로브 전류; scaled 면 j' = 배율 걷힌 I)
-    full = 2 * size
-    a = numpy.zeros((full + 1, full + 1))
-    e = numpy.zeros((full + 1, full + 1))
-    a[:size, :size] = a0
-    a[size:full, size:full] = a0
-    e[:size, :size] = e0
-    e[size:full, size:full] = e0
-    a[:full, full] = -bg
-    e[:full, full] = -bc
-    a[full, :full] = c
+    a, e, ww = probe_pencil(system, pairs, weights)
+    full = a.shape[0] - 1
     zeros = finite_eigs(a, e)
-    a[full, full] = w @ w
+    a[full, full] = ww
     poles = finite_eigs(a, e)
     return poles, zeros
 

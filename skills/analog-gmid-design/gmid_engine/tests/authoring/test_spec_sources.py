@@ -82,7 +82,7 @@ def test_user_spec_record_and_decided(sc, bad):
 
 
 def test_pending_spice_requires_record(sc):
-    sc.constraint("mismatch_sigma_mv")["source"] = {"kind": "pending_spice"}
+    sc.constraint("swing_out_v")["source"] = {"kind": "pending_spice"}
     sc.reject_only("source_record_missing", "constraints")
 
 
@@ -117,7 +117,7 @@ def test_source_kind_unknown(sc, kind):
 
 
 def test_legacy_kind_pending_7a(sc):
-    sc.constraint("mismatch_sigma_mv")["source"] = {"kind": "pending_7a", "record": "r"}
+    sc.constraint("swing_out_v")["source"] = {"kind": "pending_7a", "record": "r"}
     sc.reject_only("legacy_name", "constraints")
 
 

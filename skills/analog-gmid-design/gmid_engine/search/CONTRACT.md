@@ -31,6 +31,14 @@
   (입력 = 봉인 margin + θ 상자 + 경성 행; GB3·GB4·knee·GB5 근사식은 최소형 밖 정밀화). 9회로 실측 10.0000.
   **[r5b]** Halton 시험의 θ 전류를 상자 ∩ 원뿔 안 hit-and-run 으로(3.21 3, I-18), sf·current_reuse 실패 분류표(10.0000).
   **[r5c]** 시험 ln_idu 하한 = 칸 정점 하한(모든 쓰기 소자, 3.21 3), search_domain 채택 제안(S-4f), 9회로 재측정(10.0000).
+- **r11(2026-10-08, ng-layer0-canon -- 사용자 대원칙 '이름에 종속된 엔진 금지')**: `[r11]`. 3.21 의 변수 순서·Halton 차원 배정을 이름 정렬에서
+  **이름 없는 정준 순서**로 바꿨다(3.21 3 '정준 순서'). 이름 치환·원소 순서 섞기에 층 0 시작점이 자기동형 범위에서 따라간다.
+- **r13(2026-10-08, U2 -- 사용자 결정 '대칭 묶음 방식: b', 설계 40 §6)**: `[U2]`. 2단자 수동소자를 무향으로 다루는 자기동형(graph `canonical_form`)과 θ 전류의 **부호 −1 묶음·구조적 0**(`current_symmetry`, 3.24 2).
+  라이브러리 `current_reuse` 의 묶음이 선다(성분 107 → 탐색 차원 73). `orbit_ties` 의 대표 = 구조 색 최소(이름이 아님, 3.24 1). `search_domain` 의 5번째 인자는 `area_budget_m2`, `untie` 는 6번째.
+- **r12(2026-10-08, 사용자 결정 '정준 라벨링 + 대칭 변수 묶음, 기본값 묶음')**: `[r12]`. (1) 변수 정준 키를 1-WL 색에서 sizing `dc_struct_colour` 의 궤도 산출 의 자기동형
+  궤도 id 로(3.23), (2) 같은 궤도 원소의 같은 종류 θ 성분을 한 탐색 변수로 묶음(`orbit_ties`·`expand_ties`, 3.24; `SearchDomain.ties`;
+  spec `search.untie_orbits` 로 해제), (3) SLSQP 제약 행·원뿔 행/항을 이름 없는 정준 순서로(`canonical_rows`, 3.25). 결과: 이름 치환·섞기에 층 0 시작점과
+  SLSQP 반복이 비트 단위로 같다(DC 파생 행 기준, 3.23 4).
 - **r8(2026-10-08, ng-layer0 = master(MOD6 r7) 병합 + 오케스트레이터 결정)**: `[r8]`. (1) S-4f 채택 -- 새 파일 `cell_floor.py`
   (`ln_idu_floors`, 3.22): 1변수 노드 writer 의 ln_idu 상자 하한 = 시작 칸의 칸 정점 하한(시작 좌표는 넘지 않음)을 `solve_eps`
   (3.13)·층 0 최대-최소에 적용, 층 0 시험(모든 쓰기 소자)도 같은 함수. `search_domain`(S0 당 1회, 칸 없음)에는 넣지 않았다 -- 하한이
@@ -40,6 +48,21 @@
   test 를 고치지 않음): `test_find_front.py::test_sealed_run_perf_and_invariants`(n_starts 1 -> 층 0 시작점 포함 2)·
   `test_notes_record_open_items`(`layer0_inputs_missing` -> `seal_margin_maxmin_centre`) 두 건이 r5 계약 변경 3.12·3.16 과 어긋난다 --
   test 작성자 몫.
+- **r9(2026-10-08, 브랜치 ng-search-cond = master + 이 변경 -- sizing r8 봉인 9 전도 여유)**: `[r9]`. `cell_floor` 에 칸 전도 하한 추가
+  (3.22 r9 항목): 봉인 9 조건 IDu(VGS)·(gm/ID)·tol_V ≥ IDu(VGS = 0) 은 W 와 무관한 ln_idu 좌표 하한이라 θ 전류 상자(current_box I_off)로는
+  막을 수 없다(sizing O17). 모든 ln_idu 성분에 붙고 1변수 writer 는 정점 하한과 max. 봉인 9 가 판정 권한(하한은 평가 절약용).
+- **r10(2026-10-08, ng-search-cond -- 사용자 결정 8·10: 원소별 θ 수동소자 상자)**: `[r10]`. θ `resistance`·`ss_resistance`·
+  `capacitance` 성분의 상자는 **원소별**로 정한다. 우선순위(위가 이긴다):
+  1. `SearchSettings.resistance_bounds_ohm` / `capacitance_bounds_f` 가 None 이 아니면 그 run 의 **그 종류 모든 원소**에 그 상자
+     (명시 run 단위 재정의 -- 시연·실험용, spec 을 바꾸지 않는다).
+  2. 아니면 spec `human.search.theta_bounds.<원소>`(authoring `ThetaBound(element, kind, lo, hi, source)`, SI 단위 Ω·F --
+     authoring SPEC_CONTRACT 1절). `build_search_context` 가 `spec.search` 의 `SettingValue(field "theta_bounds")` 값을
+     `search_domain(dc_ctx, settings, pdk_decl, spec_bounds)` 의 넷째 인자로 넘긴다(기본 `()`).
+  3. 둘 다 없으면 변수를 만들기 전에 `SchemaRejectedError`(gate `search_domain`, reason `theta_resistance_bounds_undeclared` /
+     `theta_capacitance_bounds_undeclared`, `resistors` / `capacitors` = **상자가 없는 원소만** θ 순). 커널 호출 0(I-11 그대로).
+  변수 = (True, ln lo, ln hi). spec 상자는 `search_fp`(→ `spec_fp`)에 든다(값·원소·kind; 출처 문구는 지문 밖).
+  `SearchContext` 지문은 바뀌지 않는 쪽(상자는 변수 bounds 로만 작용 -- 같은 θ 의 평가 결과는 상자와 무관). 1.1·3.7·I-11 은
+  이 항목으로 읽는다. library 6회로 spec 에 상자 기입(10절 r10).
 
 ### r4 덮어쓰기 요약 (아래 본문보다 우선)
 - `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, junction=None)`: `junction` = metrics `JunctionSource`
@@ -59,6 +82,12 @@
 - 3.20 `ss_constraint_rows(bundle, declared)`: 본문 docstring -- bundle None 이면 전부 `ss_requires_sealed_snapshot`, 값 None 이면
   (metric, op, Undefined code '+' 연결), 값이 있으면 `ss:<k>:<metric><op>` c = (값 − 목표)/|목표|(>=) 또는 반대, 목표 0 이면 분모 1,
   `active` False(S-19).
+  **[CM 사용자 결정 2026-10-08 "A는 제안대로 해"]** view_kind `cm_loop` metric(구조 유도 CM 루프, 현재 파일럿 `pm_cm_ss_deg`)의 PM 이
+  `dc_not_above_level`(|T_cm(0)| ≤ 1 -- 0 dB 교차 없음, CMFB 무효)로 None 이면 `unmeasured` 가 아니라 **위반 행**: c = 20·log10|T_cm(0)| / s
+  (< 0, 0 dB 기준 -- 새 상수 없음; |T_cm(0)| = detail `dc_magnitude`), s = 이득 dB 분해능(metrics 9절; `MetricResult.resolution` 에 실림), 없거나 0 이면 1 dB
+  (c 의 단위가 dB), |T_cm(0)| = 0 이면 c = −∞, `active` True. 임계값(60°)은 쓰지 않는다. 개루프 RHP 극점(`loop_open_rhp_poles`) 등 다른 사유는
+  기존대로 unmeasured. 차동 `pm_ss_deg` 의미는 그대로(`dc_not_above_level` 이면 unmeasured). 위반 행은 T_cm(0) 이 오를수록 증가(c 가 0 으로)해
+  SLSQP 가 쓸 신호가 된다.
 - 3.15·3.16: 비지배 묶음 셋 -- `front`(봉인·미측정 없음), `unmeasured_front`(봉인·미측정 있음), `pending_front`(봉인 7 대기). L-b 뒤
   마지막 entries 로 셋 다 다시 거른다. `SearchFront.unmeasured_front`(기본 ()), runs 에 `unmeasured_front` 목록.
 - 9절 추가: **S-19** ss metric 의 NFR-5 '격자 분해능' 정의 없음 -> 정규화 = |목표|(조건수용), 활성 판정 보류. **S-20** engine 값
@@ -138,6 +167,11 @@
 |---|---|---|
 | 0 | `search_values.py` | 데이터 선언 모듈(상태·단계·축·제약 접두 어휘, 2절 형식) |
 | 1 | `archive.py` | `S3Archive` |
+| 1 | `canonical_order.py` [r11] | `canonical_order` |
+| 1 | `canonical_rows.py` [r12] | `canonical_row_key` |
+| 1 | `current_symmetry.py` [r12] | `current_symmetry` |
+| 2 | `orbit_ties.py` [r12] | `orbit_ties` |
+| 1 | `tie_expand.py` [r12] | `expand_ties` |
 | 1 | `cell_floor.py` [r8] | `ln_idu_floors` |
 | 1 | `cone_rows.py` | `cone_rows` |
 | 1 | `current_box.py` [r2] | `current_box` |
@@ -243,6 +277,9 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
   `supply_current_dc` 는 합산 레일 선언(`counted_rails`)이 spec 에 없어 계산하지 않는다(notes `supply_current_dc_needs_counted_rails_declaration`).
 
 ### 3.7 `search_domain(dc_ctx, settings) -> SearchDomain`
+- [r12] 진입 `search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=None, untie=())`: 위 변수·`l_cells` 를 만든 뒤 3.24 `orbit_ties` 로 같은 자기동형 궤도의 같은 종류 성분을
+  한 변수(대표)로 묶는다 -- 묶인 구성원은 `variables`·`l_cells` 에서 빠지고 `SearchDomain.ties` 에 기록된다(구성원 bounds 불일치 `tied_orbit_bounds_differ`).
+  `untie` = spec `search.untie_orbits` 원소 이름 tuple.
 - [r3] 진입 `search_domain(dc_ctx, settings, pdk_decl)`. `settings` 가 SearchSettings 아님·`pdk_decl` 이 core `PdkDecl` 아님 ->
   `TypeError`. `pdk_decl` 에 `manufacturing_grid_m`·`min_finger_w_m` 이 없으면 core 의 `pdk_quantity_undeclared` 거부 그대로.
   변수(θ 스키마 성분 순, L 제외):
@@ -255,7 +292,9 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
   lo ≥ hi 인 변수 -> `ValueError`.
 - `l_cells` = ((MOS, l_cells(kind)), ...) MOS 이름순. [r3] `grid_m` = PDK `manufacturing_grid_m`, `w_min_m` = PDK
   `min_finger_w_m`, `area_resolution_m2` = grid_m × w_min_m. `current_box` = ((kind, (I_off, I_max)), ...) MOS kind 이름순
-  (I_max 잠정 -- S-3b).
+  (I_max 잠정 -- S-3b). [결정 11] `area_budget_m2` = spec 판정 제약 `area_search_m2 <= v` 중 최솟값 또는 None(`search_domain(..., area_budget_m2)`).
+  있으면 `current_box` 의 I_max 는 단일 finger 슬라이스 값이 아니라 **예산이 정하는 참 상한** ID_max = IDu_max · A / L_lo²
+  (IDu_max = `_ln_idu_envelope` 상한 exp, L_lo = kind 의 최소 L 앵커; 소자 하나의 W·L ≤ A 이므로 W ≤ A/L) -- S-3b 닫힘.
 
 ### 3.19 [r2] `current_box(lut_access, kind) -> (I_off, I_max)`
 - I_off = 레이아웃 전 폭 슬라이스(`w_keys[kind]`)의 VGS 격자 중 0(|v| ≤ ulp(격자 끝 크기)) 인 첫 index 면에서 on_mask 이고 ID > 0
@@ -286,8 +325,17 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
    bounds = 변수 bounds·u ∈ [0, ∞), 출발 z = 1 의 값, u = 양의 q 중 max |ln q|(없으면 0). 결과 z 를 bounds 로 자른 값으로 θ 전류를
    바꾸고 `centre_u` = 해 u. 해의 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 커널 없이 3 의 시험으로 간다(`start_status`
    "centre_outside_cone").
+3a. **[r11] 정준 변수 순서·Halton 차원**(구현 = 3.23 `canonical_order`): 변수 목록(정의역 변수 + 칸이 구간인 L)을 (L 인가, 성분 종류, 키 구조 색) 오름차순으로 정렬한
+   뒤 이름은 같은 키 안에서만 tie-break 로 쓴다. 키 궤도 id = sizing `dc_struct_colour` 의 궤도 산출(3.0b, 정준 라벨링의 자기동형 궤도)의 원소
+   `device.dc_orbit`(`y` 성분의 키가 넷이면 `node.dc_orbit`, 둘 다 아니면 -1). [r12] 묶이지 않은 변수는 키가 유일하다. **Halton 차원 = 서로 다른 (성분 종류, 구조 색) 키의
+   순위**(L 키는 맨 뒤 -- 종래 'L 은 변수 목록 끝'과 같은 자리): 차원 d 에 (d+1) 번째 소수 기저, **같은 키의 변수는 같은 차원 =
+   같은 좌표 φ**(1-WL 로 구별되지 않는 변수 = 자기동형 궤도 후보를 한 차원으로 묶어, 궤도 구성원의 어느 쪽이 먼저인지 이름에 기대지 않는다).
+   hit-and-run 의 방향 d_j = 2φ − 1 도 차원 좌표라 궤도 안에서 같고, 걸음 비율 φ_s = 마지막 차원(키 수 + 1 번째 소수). 시험 점·
+   방향·걸음은 원소 치환 σ(이름 전단사)에 대해 θ 를 σ 로 옮긴 것과 같다(키 순위가 이름을 읽지 않으므로). 한계: 1-WL 이 자기동형이
+   아닌 원소를 같은 색으로 남기면(정정규 그래프류) 그 원소들도 같은 좌표를 받는다(결정론은 유지, 탐색 다양성만 줄어든다).
+   최대-최소 SLSQP·전류 중심·수리의 변수 순서도 이 정준 순서다(`_box_centre` 가 정렬해 돌려줌).
 3. **출발점 평가** `evaluate(sctx, θ, cells, origin = origin + (("stage", "layer0"),))`(`start_status` = 그 상태, `start_failure` =
-   그 레코드). 받아들일 상태가 아니면 [r5, S-4b] **Halton 시험**: 변수 i(1 의 순서)에 i 번째 소수 기저, 시험 k = 1, 2, … 의 점
+   그 레코드). 받아들일 상태가 아니면 [r5, S-4b] **Halton 시험**: 변수 차원 d(3a 의 정준 순서)에 (d+1) 번째 소수 기저, 시험 k = 1, 2, … 의 점
    x_i = lo_i + φ_{b_i}(k)·(hi_i − lo_i)(φ = 근기 역순(radical inverse), 스크램블 없음; ln 변수는 ln 좌표라 ln 균등), 나머지 θ
    (전류 중심을 거친 θ 의 고정 성분)·cells 는 그대로. [r5b] **θ 전류는 원뿔 안 hit-and-run**(전류 중심이 원뿔 안이고 θ 전류·원뿔
    행이 있을 때): 기저 수 = 변수 수 + 1(마지막 소수 = 걸음 비율 φ_s). 선형 전류 좌표의 점 p(처음 = 전류 중심)에서 방향
@@ -340,6 +388,23 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   d·s·bulk 중 하나(sizing `self_referential` 과 같은 판정; 집합은 `sctx.cell_floors` 에 1회). `start`(θ Mapping)가 있으면 하한 =
   min(하한, start[성분]). 원래 lo < 하한 < hi 일 때만 결과에 넣는다.
 - 쓰는 곳: `solve_eps._layout`(one_var_only, start = 시작 θ), 층 0 최대-최소(같은 인자), 층 0 시험·수리(모든 쓰기 소자, start 없음).
+- **[r9] 전도 하한**(sizing r8 봉인 9 -- 판정 권한은 봉인 9, 이 하한은 그 거부 영역에서 평가를 아끼는 상자): 칸 전도 하한(kind, w_key,
+  칸) = 칸 안 L 앵커 a × VDS 격자 k × VS 격자 s 곡선마다(tol = lut `tol_v_table(memo, kind, w_key).at(L_a, VDS_k, "id_equivalent")`,
+  None·0 이면 그 (a, k) 곡선 제외; VGS 격자의 0 마디 z(|VGS| ≤ spacing(max|VGS|), 없으면 칸 전도 하한 None)가 on_mask 인 곡선만)
+  f_i = log_GM[a, i, k, s] + ln tol − log_ID[a, z, k, s](= ln(gm·tol_V / I_off), 같은 슬라이스 폭 -- W/L 지워짐, 봉인 9 margin = 1 ⇔
+  f = 0). on_mask 이고 f ≥ 0 인 첫 마디 j 가 있고 j > 0 이고 j − 1 마디도 on_mask 이면 근 = lnID[j−1] + t·(lnID[j] − lnID[j−1]) + ln L_a
+  − ln w_m, t = −f[j−1]/(f[j] − f[j−1]); 그 밖의 곡선은 제외. 칸 전도 하한 = 근들의 최댓값(곡선이 하나도 없으면 None). 캐시
+  `sctx.cell_floors[("conduction", kind, w_key, 칸)]`.
+- [r9] 성분별 하한 = max(칸 전도 하한(None 아니면), 칸 정점 하한(one_var_only 가 아니거나 m 이 1변수 writer 일 때)). 전도 하한은
+  **모든 `ln_idu` 성분**에 붙는다(one_var_only 여도). 둘 다 없으면 그 성분은 결과에 없다. `start` 캡은 start 에 그 성분이 있을 때만
+  (없으면 캡 없음 -- r8 은 KeyError).
+- [r9] 실측(LUT v2): L 칸 (0.7, 1) µm 에서 nmos 전도 하한 ln IDu −26.48(VDS 격자 중간·VS 0 곡선에서 VGS 0.142 V), pmos −38.36(0.136 V);
+  칸 정점 하한은 nmos −30.22(0.006 V), pmos −42.00(0.015 V) -- 전도 하한이 더 크다(보수: 격자 전체 최댓값이라 sizing O17 의 L 1 µm
+  VGS* nmos ≈ 0.14 V·pmos ≈ 0.12 V 보다 pmos 쪽이 조금 높다).
+- [r9] **기대값이 바뀌는 기존 test(작성자 갱신 몫, 고치지 않음)**: `tests/search/test_cell_floor.py::test_one_var_only_selects_diode_writer`·
+  `test_one_var_only_empty_for_gate_writers`·`test_start_coordinate_caps_floor`·`test_cell_floor_cache_is_read`(캐시 키 수)·
+  `test_real_lut_v2_multi_anchor_cells`, `tests/search/test_layer0_center.py::test_halton_hit_and_run_probe_points`·
+  `test_repair_bisection_count_and_points` -- 모두 전도 하한이 더해져 하한 값·성분 집합·캐시 키가 바뀐 것.
 
 ### 3.8 [r3] `constraint_rows(snapshot, lut_access, w_min_m, grid_m) -> (rows, undefined)`
 - MOS 마다(`dc_op` 열 순서) 먼저 [r3] `w_min:<m>` c = (dc_op.W − w_min_m)/grid_m(**설계 개정 S-18**, tol 과 무관하게 늘 있음),
@@ -445,6 +510,69 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 
 ### 3.18 `S3Archive(root, context_fp, code_fp)` -- 8절.
 
+### 3.22 [r11, 사용자 결정 11] 면적 예산 `passive_area_decl(dc_ctx, spec, pdk_decl) -> PassiveAreaDecl` (`area_decl.py`)
+- 면적 예산 = spec 일반 제약 `area_search_m2 <= v`(판정 축). 새 제약 종류가 아니다: `build_search_context` 가 `judged`(AXES)로 받고
+  `kernel._spec_rows` 가 `spec:area_search_m2<=` 행 c = (v − 점 면적)/b_A 로 잰다(분모 = `area_resolution_m2`, 설계 5절 NFR-5). 면적 =
+  MOS 게이트 W·L + 회로 안 커패시터(PDK `mim_cap_density_f_per_m2` 의 역수 x 값) -- 저항은 PDK 단위 면적 선언이 없어 `passive_area_undeclared` 로 보고.
+- 제외 = spec `element_values.<원소>.measurement_load` 가 true 인 수동소자(CL·nmcnr RL). 이름 기반 코드 없음. `SearchContext.area_decl`
+  (`PassiveAreaDecl`)이 `ss_evaluate`(봉인 점)와 `metrics_dc`(그 밖 점) 둘 다에 같이 들어간다 -- 점 상태와 무관하게 같은 면적.
+- 레이아웃 판정 축(MOD7 floorplan 외곽 면적, MOS 행만)은 수동소자를 이미 포함하지 않으므로 같은 제외(부하 없음)이다. 재필터(MOD8)는 아직 없다.
+- 입력 검사: `pdk_decl` 에 그 quantity 가 없으면(`pdk_quantity_undeclared`) 커패시터도 미선언 보고, 다른 거부 사유는 그대로 올린다.
+
+### 3.23 [r11, r12] `canonical_order(sctx, variables) -> (정렬된 변수 tuple, 변수별 차원 index list, 차원 수)` (`canonical_order.py`)
+이름을 읽지 않는 θ 변수 순서. `variables` = `Variable` 열(정의역 변수 + 칸이 구간인 L 변수, 순서 무관). 호출부: `layer0_center`
+(`_box_centre`·`_halton_probe`), `slsqp_outer` (`_layout`). `fd_jacobian`·`ln_idu_floors`·`eps_sweep`·`find_front` 는 호출부가 넘긴 변수
+순서를 따를 뿐 스스로 정하지 않는다.
+1. 키 = (성분 종류 == L, 성분 종류, 궤도 id). 궤도 id = `device.dc_orbit`(성분 키가 원소일 때), 아니면 `node.dc_orbit`(`y` 의 넷), 둘 다
+   없으면 -1. 정렬 = (키, 구조 색, 이름) -- 같은 키 안은 정점마다 유일한 구조 색이 정한다. [r12] 정의역 변수는 3.24 묶음 뒤라 키가 유일하다; 같은 키는 spec 이
+   묶음을 푼 궤도(`untie_orbits`) 안에서만 남는다.
+2. 차원 = 서로 다른 키의 오름차순 순위(0 부터). 변수의 차원 = 자기 키의 순위. 차원 수 = 서로 다른 키 수.
+3. 불변식(test 가 확인할 성질): (a) 이름 전단사 σ·원소 순서 섞기에 대해 정렬된 변수의 (종류, 키, 차원) 열이 같다(이름만 σ 로 옮겨짐);
+   (b) 같은 키 ⇔ 같은 차원; (c) 입력 순서에 결과가 불변(순열에 대해 같은 출력); (d) L 키는 모든 비-L 키 뒤; (e) 같은 입력이면 같은 출력
+   (결정론); (f) 반환 변수 집합 = 입력 집합, 개수 보존; (g) 차원 index 는 0 .. 차원 수 − 1 을 빠짐없이 쓴다.
+4. **비트 동일성 (r12)**: 묶음(3.24)·정준 행 순서(3.25)·metrics/objectives 의 정준 합산·행렬 순서(`dc_colour`, metrics CONTRACT r12) 뒤에는 탐색 변수·제약 행·원뿔 항·
+   소신호 선형계·합산 어디에도 이름이 순서를 정하는 자리가 없다(spec 이 묶음을 푼 궤도 제외). 그래서 이름 치환·원소 순서 섞기에 대해 층 0 시작점(θ·L 칸·t·
+   `origin_point`)과 SLSQP 반복·평가 값(봉인 margin, W 하한·반전 하한·원뿔 행, `ss:` 행, 전력·면적·b_P)이 **비트 동일**하다(허용오차 없음). 묶음을 푼 궤도 안
+   변수의 상대 순서만 이름을 따른다(비대칭 사이징을 명시한 선택 -- 거기서는 이름 치환 불변이 보장되지 않는다). 한계: 정준 순서는 모든 정점을 구별하는 키가
+   아니라 자기동형 궤도 단위다 -- 같은 궤도(= 묶음) 원소끼리의 합산 순서는 이름이 정하지만, 궤도 구성원은 θ 가 같고 자기동형 대응이라 합산 항의 다중집합이 같아
+   (묶음 안 항의 순열) 합이 바뀌는 건 부동소수 결합 순서뿐이다 -- 이 잔여는 측정 항목(9회로 중 궤도가 둘 이상인 회로는 current_reuse 하나, 10.1 측정).
+
+### 3.24 [r12, U2] `orbit_ties(dc_ctx, components, untied, symmetry=None) -> (대표 성분 tuple, ties)` · `current_symmetry(dc_ctx, untied) -> CurrentSymmetry(ties, negated, zeros)` · `expand_ties(ties, theta, negated=(), zeros=()) -> dict`
+사용자 결정(2026-10-08): 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 **한 탐색 변수**로 묶는다(기본 묶음). 공유 gm/ID(`ln_idu`)·L·`y`·저항·커패시터 값은 같은 값, **θ 전류는 자기동형이 만드는
+부호 관계**('대칭 묶음 방식: b')로 묶는다. 자기동형은 graph `canonical_form`(2단자 수동소자 무향)의 생성자다.
+1. **비전류 성분**(ln_idu·L·y·저항·커패시터): 궤도 id = `device.dc_orbit`(키가 원소일 때), `y` 의 넷 키는 `node.dc_orbit`. 묶음 키 = (성분 종류, 궤도). 대표 = **구조 색 `dc_colour` 최소**
+   (1-WL 색 + 정준 위치, 정점마다 유일 -- 이름 치환에 불변), 나머지 = 묶인 성분(값은 같다).
+2. **θ 전류 성분**(`current_symmetry`): 기저(sizing `graph.dc_current_basis`)의 모든 DC 원소 전류는 독립 θ 전류의 선형식이다. 대칭 점의 전류는 군 불변이므로 생성자 γ 마다 모든 DC 원소
+   e 에 `I(γ e) = σ_γ(e) · I(e)`: σ = −1 은 방향 없는 2단자 수동소자(원소 종류 passive)의 **앞 끝**(단자 이름 순서 첫 단자의 넷, `current_basis._ends` 규약)이 γ 아래 앞 끝으로 가지 않을 때(자기동형이 단자
+   순서를 뒤집음), 그 밖(MOS·이상원)은 +1. 이 식들은 독립 θ 전류에 대한 선형 연립이다. 구조 색이 큰 쪽이 먼저 소거되도록 유리수 기약 행사다리꼴을 만든다. 행 중 (i) **`x_p = ±x_q`**(q 소거되지
+   않는 독립 전류) → 묶음(대표 q = 구조 색 작은 쪽, 구성원 p, 부호 −1 이면 `negated`), (ii) **`x_p = 0`** → 구조적 0(`zeros`: 대칭·KCL 이 이 가지 전류를 0 으로 정한다 -- 예 파일럿의 CMFB 감지 저항
+   R1/R2 는 Voc 가 게이트만 구동해 직렬이라 I = 0), (iii) 그 밖(항 둘 이상·상수 남음)은 묶지 않는다(탐색 공간이 넓어질 뿐 정확하다). 구조적 0 은 θ 전류 성분을 **값 0.0 으로 고정**하고
+   탐색 변수에서 뺀다(θ 전류 정의역은 전류 원뿔이라 0 이 허용된다; 저항 강하 0). 이름을 읽는 분기 없음.
+3. `ties` = ((대표 성분, (묶인 성분, ...)), ...)(비전류 묶음 + 전류 묶음, 대표의 구조 색 순서). 구성원은 `negated` 에 들면 평가 θ 에서 −대표 값, 아니면 대표 값. 한 성분은 대표이거나 구성원이거나 구조적 0 이거나
+   묶이지 않거나 넷 중 하나다(사슬 없음).
+4. `search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=None, untie=())`: `variables`·`l_cells` 에서 묶인 구성원·구조적 0 을 뺀다(`SearchDomain.ties`·`negated`·`zeros` 에 기록).
+   부호 −1 이 **아닌** 구성원의 bounds(log, lo, hi)가 대표와 다르면 `SchemaRejectedError`(gate `search_domain`, reason `tied_orbit_bounds_differ`, **detail `elements` = θ 성분 tuple
+   `((종류, 키), ...)` -- 첫 원소는 대표, 이어서 상자가 다른 구성원들(묶음 안 구조 색 순서)**) -- 비대칭 상자를 선언한 원소는 `untie_orbits` 로 풀거나 상자를 같게 한다. 부호 −1 구성원은 상자 비교를 하지 않는다
+   (값 = −대표, 상자는 대표 것). 자기동형이 선언 값(원소 값·레일 전위·노드 목표 등)을 보존하므로(sizing 3.0b) 값이 다르게 선언된 원소는 애초에 같은 궤도가 아니다.
+5. `evaluate(sctx, theta, cells, ...)` 는 맨 앞에서 `expand_ties(sctx.domain.ties, theta, sctx.domain.negated, sctx.domain.zeros)` 로 채운다 -- 호출부는 대표 성분만 넘겨도 되고, 구성원 값이 있으면 대표가 이긴다.
+   평가 키·`EvalResult.theta`·S3 기록은 확장된 전체 θ 다. 원뿔 행이 묶인 θ 전류를 읽으면 `layer0_center` 는 항을 대표 변수 열에 부호만큼 곱해 합치고, 구조적 0 전류는 상수 0 으로 읽는다
+   (`_current_alias`·`_current_fixed`). `_repair` 의 후보 소자가 묶인 구성원이면 대표의 `ln_idu` 좌표를 움직인다.
+6. L: `l_cells` 는 대표 MOS 만 갖는다(`cells` 벡터도 대표만). 구성원은 대표와 같은 칸이다(같은 kind 표, 자기동형). `polish_l_cells` 가 대표 칸을 옮기면 구성원도 함께 옮겨진다(평가 확장이 같은 L 을 준다).
+7. spec 해제: `human.search.untie_orbits = {<원소>: {"source": {...user_spec}}}`(SPEC_CONTRACT). 원소가 속한 궤도를 묶지 않는다: 비전류 성분은 그 궤도의 묶음을 만들지 않고, θ 전류는 (연립을 그대로 풀되) 그 궤도의
+   원소가 소거 변수이거나 대표인 관계·구조적 0 을 받지 않는다(다른 원소의 대칭이 KCL 로 만드는 관계도 그 궤도 변수에는 걸지 않는다). 원소가 없으면 `untie_element_unknown`, 궤도가 그 원소 하나뿐이면
+   `untie_orbit_trivial`(둘 다 gate `search_domain`, detail `element`).
+8. 실측(2026-10-08, 이 구현): 9 library 회로 중 묶음이 서는 회로는 `current_reuse_telescopic_ota` 하나 -- 성분 107 → 탐색 차원 73(변수 + L 칸 대표; 묶음 33, 구조적 0 전류 1 = 직렬 CMFB 감지 저항). 나머지 8회로(단일 종단,
+   궤도 모두 단일)는 변화 없음.
+9. 불변식(test 가 확인할 성질): (a) 대칭 쌍이 있는 회로에서 차원 + 묶인 구성원 수 + 구조적 0 수 = 스키마 성분 수; (b) `expand_ties` 는 입력을 바꾸지 않고, 구성원 값이 대표 값(`negated` 는 −대표, `zeros` 는 0.0)과 같다;
+   (c) 묶음 있는 회로에서 평가한 θ 의 구성원 성분 값 = 대표 성분 값(비트); (d) `untie_orbits` 로 푼 궤도는 변수 수가 늘고 두 구성원이 따로 움직인다; (e) 비대칭 회로(궤도 모두 단일)에서는 `ties == ()` 이고 변수가 종래와 같다;
+   (f) 위 4 의 거부; (g) 이름 치환 뒤 묶음이 치환표로 옮겨진다; (h) 저항 terminals 순서를 뒤집어 그린 사본은 같은 궤도·같은 묶음 그룹·같은 차원을 주고, 뒤집은 쪽 구성원의 θ 전류는 평가 θ 에서 −대표 값(저항 값은 같은 값)이다;
+   (i) 파일럿에서 R1/R2 가 한 궤도.
+
+### 3.25 [r12] `canonical_row_key(sctx) -> key 함수` (`canonical_rows.py`)
+제약 행 이름 `<접두>:<소자>`(`w_min`·`seal6_bulk`·`inversion_floor`·`current_cone`)와 `<접두>:<번호>:<metric>`(`ss`·`spec`)의 정렬 키 = (접두, 소자 구조 색 `dc_colour`
+(정점마다 유일, 없으면 -1), 나머지 이름). `solve_eps`(`_rows`)와 `layer0_start`(`_hard`·원뿔 행·원뿔 항 `_cone_canonical`)가 SLSQP 에 넘기는 제약 벡터·Jacobian 행 순서를 이 키로 정렬한다
+(이름 순서에 따라 합산 순서가 바뀌어 끝자리가 달라지는 일을 막는다). 불변식: 이름 치환 σ 에 대해 정렬 결과가 σ 로 옮겨진다; 접두 순서는 사전식; 같은 궤도 행 사이만 이름.
+
 ## 4. ★ 봉인 7 대기 스위치 (`seal7_pending.seal_status`, sizing O1)
 
 | 입력 DcEvaluation | 결과 |
@@ -480,7 +608,11 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 | I-14 | [r5] 원뿔의 모든 행이 항 하나(계수 1)이고 그 원천이 행 MOS 와 같은 kind 의 MOS 이면 전류 중심 = 상자 중심(u = 0) -- θ 전류 값이 상자 기하 중심과 같다(다른 kind 원천 행이 있으면 두 kind 상자 중심 차만큼 u > 0: 9회로 u = 4.28 ~ 4.83) |
 | I-15 | [r5] 같은 sctx 입력으로 두 번(새 컨텍스트) 부르면 같은 start θ·t(결정론, `PYTHONHASHSEED` 무관) |
 | I-18 | [r5b] 원뿔이 있고 전류 중심이 원뿔 안이면 Halton 시험 점은 모두 원뿔 안(`counters["outside_domain"]` 증가 0, 부동소수 경계 반올림 제외) -- 선형 원뿔·상자의 열린 현 안 걸음 |
-| I-17 | [r5] Halton 시험 점 k 의 좌표 = lo + φ_b(k)(hi − lo)(b = 변수 순서의 소수 2, 3, 5, …; θ 전류는 I-18 의 걸음): toy 커널이 처음 k* 번째 점만 받아들이면 `probes` = k*, `origin_point` = "halton:k*", 최대-최소 전까지 커널 평가 수 ≤ 1(중심) + k*(원뿔 밖 점은 0) |
+| I-17 | [r5, r11] Halton 시험 점 k 의 좌표 = lo + φ_b(k)(hi − lo)(b = 3.21 3a 정준 차원의 소수 2, 3, 5, …, 같은 (종류, 구조 색) 키는 같은 b; θ 전류는 I-18 의 걸음): toy 커널이 처음 k* 번째 점만 받아들이면 `probes` = k*, `origin_point` = "halton:k*", 최대-최소 전까지 커널 평가 수 ≤ 1(중심) + k*(원뿔 밖 점은 0) |
+| I-19 | [CM] `ss_constraint_rows`: view_kind cm_loop metric 의 `dc_not_above_level`(detail dc_magnitude = m, resolution = s) → 행 1개 `ss:<k>:<metric><op>`, c = 20·log10(m)/s(s 없음·0 이면 /1), active True, unmeasured 0. m = 0 → c = −∞. 예: m = 0.01075805, s = 3.2 → c = 20·log10(m)/s = −12.301665259916554 |
+| I-20 | [CM] 같은 입력에서 view_kind loop 인 `pm_ss_deg` 의 `dc_not_above_level` 은 행 0·unmeasured 1(사유 code 그대로), cm_loop 의 `loop_open_rhp_poles` 는 위반 행(예 rhp_poles ((3.0, 4.0),) -> c = −0.6; ((2.0, 0.0),) -> c = −1.0; Re ≤ 0 인 항목만 있으면 행 없음) |
+| I-21 | [CM] 위반 행의 c 는 |T_cm(0)| 에 단조 증가(같은 s), 값이 있는 PM(≥/<=) 행 의미(c = (값 − 목표)/s)는 변화 없음 |
+| I-22 | [CM] 경고 표면: `EvalResult.warnings` == `ss_evaluate(...).ss.warnings`(봉인 아닌 점·실패 점은 ()); `find_front` 점 기록 `warnings` = [[코드, [[키, 값], ...]], ...]; run notes 에 `{verdict: "warning", code, points}` (코드별 점 수, 캐시 전 점 기준). 경고는 front 소속·제약 행·unmeasured 에 영향이 없다 |
 | I-16 | [r5] 층 0 은 spec 성능 제약·목적 축 값을 읽지 않는다: spec judged 제약을 바꿔도(`judged_constraints`·`ss_constraints`) start θ 가 같다 |
 
 ## 6. S3 기록 형식 (`<root>/<context_fp>/`, 줄마다 flush)
@@ -489,7 +621,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   area_search_m2}, power_resolution_w?, constraints[{name, c, active}], unmeasured[[metric, op, 사유]], snapshot_fp?, code_fp}.
 - `runs.jsonl`: {run_id, s0, schema_fp, settings, starts, resolution, front[], pending_front[], removed[], failed_eps,
   notes, perf, code_fp}; 점 = {point_id, status, seq, theta_hex[[키, hex]], cells, power_dc_w, area_search_m2, gate_area_m2,
-  passives_in_area False, power_resolution_w, unmeasured, active, origin, snapshot_fp, snapshot_ref}.
+  passives_in_area(sctx.area_decl 이 있으면 True -- 수동 커패시터 면적이 area_search_m2 에 들어 있다, 결정 11), power_resolution_w, unmeasured, active, origin, snapshot_fp, snapshot_ref}.
 - `snapshots/<snapshot_fp>.json.gz`: {fp, records[{kind, key, fields{이름: {value, writer, input_version}}}]}.
 - Windows 경로 길이(260자) 때문에 `root` 는 짧아야 한다(지문 두 개가 64자).
 
@@ -574,7 +706,10 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   (difftap.2 = 0.42 µm, core CONTRACT 9.4 에 추가), g = `manufacturing_grid_m`. 설계 5절 제약 표에 없던 행이라 계획 기록은
   오케스트레이터 몫. b_A 도 같은 두 PDK 값의 곱(LutSpec 의 슬라이스 최소 폭 대신 -- 한 출처).
 - **S-2b (r3 처리)** b_P 의 gm = 동작점 gm(3.6).
-- **S-3b (잠정 유지)** I_max = 단일 finger 최대 슬라이스 ID -- 참 상한은 선언된 최대 nf 또는 면적 상한이 필요(열린 항목, notes
+- **S-3b [결정 11, 2026-10-08 닫힘 -- 예산 선언 spec 한정]** 면적 예산이 선언된 spec 은 I_max = IDu_max · A / L_lo²(3.14 `area_budget_m2`),
+  find_front notes `{"verdict": "closed", "rule": "S-3b", ...}`, 층 0 `meaning_reason` = `w_bounded_by_area_budget`. 예산이 없는 spec 은
+  아래 잠정 동작 그대로.
+- **S-3b (잠정 유지 -- 예산 미선언 spec)** I_max = 단일 finger 최대 슬라이스 ID -- 참 상한은 선언된 최대 nf 또는 면적 상한이 필요(열린 항목, notes
   `provisional`).
 - **S-4 (r4 -- 병합 뒤에도 막힘)** ss_linearize·VDsat 이 들어왔지만 층 0 최소형의 세 조각이 모두 (4)(a) '소자별 필요 gm' 에 매달린다:
   필요 gm 은 블록 gain 예산(GB3 블록 분해·GB4 상한표·GB5 보상 규칙)에서 오는데 셋 다 엔진에 없다(`ss_evaluate` 는 전회로 metric 만
@@ -583,6 +718,28 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   `layer0_inputs_missing` 에 위 목록을 남긴다(GB3·GB4·GB5 가 들어오면 다시).
 
 ## 10. 9회로 실측 -- 작성자 측 시연(정본 아님)
+
+### 10.r10 [r10] spec 원소별 θ 상자만으로 실측 (2026-10-08, LUT v2, master d672985 병합, B = 120 s, 시연 R/C 상자 없음)
+- 수동소자 상자는 전부 spec `search.theta_bounds`(SearchSettings 재정의 None). 시연 시작점 탐침도 수동소자 값을 `sctx.domain`
+  변수 상자에서 log-U 로 뽑는다(옛 하드코딩 R [100 Ω, 100 kΩ]·C [0.1, 10] pF 제거). 미선언으로 남은 것 = W/면적 상한(I_max 잠정).
+- 상자가 있는 6회로 모두 `search_domain` 통과(r2 의 current_reuse R1·R2 / sf_pushpull R1a·R1b·R1c 거부 해소). 커널 호출 = 고유 키,
+  `recompute_same_key` 0(9/9).
+
+| 회로 | 수동 θ 상자 | 시작점 | front | 최종 front 점 (P, A, ss) |
+|---|---|---|---|---|
+| common_gate_amplifier | -- | 2 | 1 | P 2.39e-12 W, A 1.26e-12 m² |
+| current_reuse_telescopic_ota | Cc1·Cc2 [0.1, 10] pF, R1·R2 [10 k, 10 M] Ω | 0 | 0 | 탐침 200 전부 DC 실패(no_root_in_window 233·lut_query_failed 3) |
+| folded_cascode | -- | 2 | 1 | P 9.98e-7 W, A 2.0e-5 m² |
+| ngcc_3stage_ff | Cm1·Cm2 [0.1, 10] pF | 2 | 0 | ε 풀이 6건 실패(봉인 점 377) |
+| nmcnr_amplifier | Cm1·Cm2 [0.1, 10] pF | 2 | 0 | 봉인 2 / 실패 139(lut_query_failed 93) |
+| pushpull_follower_buffer | -- | 1 | 2 | rout 998.3 Ω(P 2.79e-5 W) / 619.2 Ω(P 1.95e-4 W) ≤ 1000 |
+| sf_pushpull_output_opamp | Cc [0.1, 10] pF, R1a·R1b·R1c [1 k, 1 M] Ω | 0 | 0 | 탐침 200 전부 실패(lut_query_failed 104·newton 82·no_root 13) |
+| two_stage_ota | Cc [0.1, 10] pF | 2 | 1 | gain 80.02 dB ≥ 57, P 1.36e-7 W, A 1.54e-9 m² |
+| two_stage_ota_sf | Cc [0.1, 10] pF | 2 | 1 | gain 80.54 dB, rout 859.4 Ω ≤ 1000, P 5.93e-5 W |
+
+r9(시연 상자) 결과와 front 점이 같다 -- 커패시터 상자 값이 시연 값과 같고, 저항 상자가 생긴 두 회로는 상자보다 앞 단계(DC 봉인)에서
+막힌다(0 시작점은 상자 문제가 아니라 DC 해: 창 안 근 없음·LUT 범위 밖 -- 9절 열린 항목). engine 값 저항 `Rm`(nmcnr)·`Rz`
+(two_stage_ota)·`Rz1`·`Rz2`(current_reuse)는 θ schema 성분이 아니라(실측: 변수 목록에 없음) 상자가 필요 없다.
 
 ### 10.0000 [r5] 층 0 실측 (2026-10-08, LUT v2, `layer0_start` 단독 -- 새 컨텍스트, 평가 예산 미선언·B = 600 s)
 
@@ -799,3 +956,16 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 - cProfile(cumtime): folded_cascode 48.6 s 중 size_and_seal 47.3 s(97%), LUT `gm_id_for_target` 27.5 s, core `fp_of` 19.5 s
   (40%), `Projection.from_snapshot` 10.6 s; two_stage_ota 14.4 s 중 size_and_seal 13.4 s, `fp_of` 8.5 s(59%). search 자체
   (키·캐시·원뿔·목적·제약·SLSQP 조립)는 2~7% -- 핫스팟은 sizing O9(투영 지문)·LUT 역산이다.
+- [2026-10-08 core 성능 2~5 후 주석] 위 cProfile 의 `fp_of` 비중(40~60 %)은 옛 core(memo 키·레코드·투영마다 직렬화) 기준이다. 이제 memo 키는 `canonical_key`,
+  레코드·스냅샷 지문은 읽을 때 한 번, 투영은 행 단위 sha256 이라 9회로 평가에서 fp 계열 비용이 옛의 약 1/3~1/10 이다(core CONTRACT 10.1).
+
+### 10.x [r11, 사용자 결정 11, 2026-10-08] 면적 예산 9회로 재실행 (작성자 측 시연, 정본 아님; B = 120 s, 시연 harness mod6_demo)
+- 예산: common_gate 0.005, pushpull_follower 0.005, folded_cascode 0.01, two_stage_ota 0.015, two_stage_ota_sf 0.015, sf_pushpull 0.02, ngcc 0.025,
+  nmcnr 0.025, current_reuse 0.04 mm² (spec 제약 `area_search_m2 <= v`, 부하 CL·CL1·CL2·RL 은 `measurement_load` 로 제외, MIM 2 fF/µm²).
+- 결과(시작점 / front 점): common_gate 2/2, current_reuse 0/0, folded 2/0, ngcc 2/0, nmcnr 2/0, pushpull 1/0, sf_pushpull 0/0, two_stage_ota 2/1,
+  two_stage_ota_sf 2/1. front 점 면적은 전부 예산 이내(common_gate 0.55~2.4e-6 mm², two_stage_ota 6.2e-4 mm² (Rz 면적 미선언),
+  two_stage_ota_sf 7.3e-3 mm²), W 최대 common_gate 1.1 µm · two_stage_ota 0.39 mm · two_stage_ota_sf 3.2 mm (종전 2.6e5 m 급 해소).
+- SLSQP 입력 척도(slsqp_outer): 행 c 는 면적 예산 행처럼 크기가 1e6 급이라 종전 그대로는 QP 부분문제가 '제약 비호환'(status 4)으로 끝났다.
+  SLSQP 에 넘기는 행·목적에만 양의 상수 배(행: 1/max(1,|시작점 c|), 목적: 1/max(1,|시작점 f|), ftol 도 같은 배)를 곱한다 -- 가능 집합·`best`
+  판정(원 c ≥ 0)·`SolveResult` 값은 그대로.
+- 남은 한계: 예산 때문에 시작점이 예산을 약간 넘는 회로(folded 등)는 120 s 안에 가능 점을 못 찾는다(front 0). 저항 면적은 PDK 단위 면적 선언이 없어 미포함.

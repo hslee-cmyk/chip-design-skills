@@ -42,7 +42,8 @@ def test_field_names_and_order():
     assert dataclasses.replace(_dev(), lut_rel_tol=0.02).lut_rel_tol == 0.02
     assert _fields(SsCircuit) == ["nodes", "circuit", "resistors", "capacitors", "ground_nets", "input_nets", "missing"]
     assert _fields(MetricRequest) == ["metric", "view"]
-    assert _fields(MetricBundle) == ["entries", "approximations", "detail"]
+    # [CM 2026-10-08] 7.4 "결과 묶음에 reports·warnings 가 있다", S-26·S-27 (7.1 bea18e0: 필드 순서 entries, approximations, detail, reports, warnings)
+    assert _fields(MetricBundle) == ["entries", "approximations", "detail", "reports", "warnings"]
     assert _fields(SsEvaluation) == ["snapshot", "ss", "dc", "lineage"]
 
 
@@ -51,7 +52,7 @@ def test_defaults():
     assert c.missing == ()
     assert MetricRequest("power_dc_w").view is None
     b = MetricBundle(())
-    assert b.approximations == () and b.detail == ()
+    assert b.approximations == () and b.detail == () and b.reports == () and b.warnings == ()
     assert SsEvaluation(None, None, None).lineage is None
 
 

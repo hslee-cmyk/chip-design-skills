@@ -7,7 +7,7 @@
   바꾸므로 kind 는 지문에 든다.
 * `PendingMark` -- 결정 대기 표지 하나(문서 경로, 결정 ID). `SizingSpecDoc.pending` 에 모인다(설계 1.5).
 * `InputDc`·`ElementValue`·`ExciteSense`·`SenseDecl`·`ViewDecl`·`ConstraintDecl`·`TargetDecl`·`SettlingDecl`·`SettingValue`·
-  `RuleChoice`·`ObjectiveBudget`·`RegionDecl` -- 검증을 통과한 선언의 투영. `mode` 가 `pending` 이면 `decision` 에
+  `RuleChoice`·`ObjectiveBudget`·`RegionDecl`·`GainOverrideDecl`·`DrivingDecl`·`CountBudgetDecl`·`NoiseTestbenchDecl`·`SamplingCapDecl` -- 검증을 통과한 선언의 투영. `mode` 가 `pending` 이면 `decision` 에
   결정 ID 가 있고 값 필드는 None 이다.
 * `SizingSpecDoc` -- spec 전체 투영과 섹션 지문. 직접 만들지 말고 `SizingSpecDoc.from_sections` 로 만든다(지문 계산).
   섹션 지문 = 그 섹션 소비자만 무효화하는 캐시 키(필드가 곧 캐시). `spec_fp` = 섹션 지문들의 지문(S0 'spec 전체 해시').
@@ -16,6 +16,18 @@
 import dataclasses
 
 from gmid_engine.core import fp_of, require_immutable, sorted_items
+
+# `ViewDecl.mode` 어휘(닫힌 집합, 정본 이 한 곳). graph(S1v)·metrics 가 문자열을 복제하지 않고 import 한다([U5], U1 요청).
+VIEW_MODE_NONE = "none"            # 뷰를 쓰지 않는 metric
+VIEW_MODE_PORT = "port"            # 포트 전달 뷰(role 가중 여기 + 출력 포트 관측)
+VIEW_MODE_TRANSFER = "transfer"    # 선언 전달 뷰 {ac_excite, sense_p, sense_n, sense_mode}
+VIEW_MODE_RATIO = "ratio"          # 같은 계 두 여기 열 {num, den}
+VIEW_MODE_PENDING = "pending"      # 결정 대기(decision 에 ID)
+VIEW_MODE_LOOP = "loop"            # β 루프 또는 β = 1 포트 루프
+VIEW_MODE_SENSE = "sense"          # 출력 포트 감지 전용(전류 주입 열)
+VIEW_MODE_CM_OUTPUT = "cm_output"  # 출력 포트 쌍 동일 부호(공통 모드) 주입 루프
+VIEW_MODES = (VIEW_MODE_NONE, VIEW_MODE_PORT, VIEW_MODE_TRANSFER, VIEW_MODE_RATIO, VIEW_MODE_PENDING, VIEW_MODE_LOOP,
+              VIEW_MODE_SENSE, VIEW_MODE_CM_OUTPUT)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -62,6 +74,7 @@ class ElementValue:
     value: object = None
     source: object = None
     decision: object = None
+    measurement_load: bool = False      # [결정 11] 측정 부하 표지 -- 설계 면적(area_search_m2)에서 뺀다(spec_elements)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -85,12 +98,14 @@ class SenseDecl:
 
 @dataclasses.dataclass(frozen=True)
 class ViewDecl:
-    """제약의 뷰. `mode` ∈ none(뷰 없는 metric) / port(포트 전달 뷰) / transfer / ratio / pending / loop / sense.
+    """제약의 뷰. `mode` ∈ none(뷰 없는 metric) / port(포트 전달 뷰) / transfer / ratio / pending / loop / sense / cm_output.
 
     * port: `weights` = 입력 포트 (넷, 가중) 넷순(role 가중 -- 차동 ±1/|D|, 단일 1), `sense` = 출력 포트 `SenseDecl`
       (topology 교차 검사를 못 한 로드에서는 둘 다 None).
     * loop(7a design 2.2·2.3·2.5): `beta` ∈ declared(spec feedback 비지 않음) / unity(빈 list). declared 면 `cuts` =
       (되먹임 소자, 절단 넷) 소자 이름순, `weights` = 절단 넷의 (넷, 가중) 넷순. unity 면 `weights`·`sense` 가 포트 전달 뷰와 같다.
+    * cm_output([CM] 출력 포트 CM 주입 루프): `weights` = 차동 출력 포트 (넷, 1/2) 넷순 -- 두 출력 넷에 동일 부호 주입. `cuts` = ((구동자 MOS 이름, 옮길 출력 넷), ...) **MOS 이름 오름차순**
+      (`cm_partition` 결과; 비면 metrics 가 같은 분류를 직접 한다). 순서는 이름 의존이다 -- 값은 순서에 무관하고 소비자는 집합으로 읽는다.
     * sense(출력 포트 뷰, 7a design 3.1): `sense` = 감지 `SenseDecl`(여기 없음).
     * pending: `decision` = 결정 ID(선언 표지, 또는 loop 의 feedback 결정 대기 전파).
     유도된 내용이 여기에 들어가므로 `constraints_fp` 가 feedback·ports 변경을 따라간다."""
@@ -154,6 +169,17 @@ class SettingValue:
 
 
 @dataclasses.dataclass(frozen=True)
+class ThetaBound:
+    """원소별 θ 상자 하나(`search.theta_bounds`, 2026-10-08). `kind` ∈ resistor(Ω)·capacitor(F), `lo` < `hi` 양수, `source` 출처."""
+
+    element: str
+    kind: str
+    lo: float
+    hi: float
+    source: object = None
+
+
+@dataclasses.dataclass(frozen=True)
 class RuleChoice:
     """규칙 이름 선택 하나(`spice_check`·`front_refilter`). 결정 대기면 rule None + `decision`."""
 
@@ -183,6 +209,50 @@ class RegionDecl:
 
 
 @dataclasses.dataclass(frozen=True)
+class GainOverrideDecl:
+    """블록 gain 고정 선언 하나(`gain_budget_db_override`, 41 §5.7): `block` = 출력노드 넷 이름의 **정렬된** tuple(41 §1.7-3 블록 키),
+    `value_db` = 그 블록 bin 을 고정할 dB, `source` 출처."""
+
+    block: tuple
+    value_db: float
+    source: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class DrivingDecl:
+    """출력 구동 선언(`driving_spec`, DEC-58): 슬루율 `slew_rate_v_per_s`·피크 부하 전류 `load_peak_amp`·DC 부하 전류 `load_dc_amp`
+    (선언 안 한 칸은 None, 하나 이상 있다), `source` 출처."""
+
+    slew_rate_v_per_s: object
+    load_peak_amp: object
+    load_dc_amp: object
+    source: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class CountBudgetDecl:
+    """구조 계수 예산 N_S 선언(`structure_count_budget`, 41 §0): 양의 정수 `value`, `source` 출처. 선언이 없으면 LUT 격자 유도값을 쓴다."""
+
+    value: int
+    source: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class SamplingCapDecl:
+    """잡음 테스트벤치의 샘플링 커패시터 하나(`noise_testbench.sampling_caps[]`, 41 §7.1): topology capacitor 이름 `element`, `source` 출처."""
+
+    element: str
+    source: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class NoiseTestbenchDecl:
+    """잡음 테스트벤치 선언(`noise_testbench`, 41 §7.1 폐루프 모드 스위치 kT/C 항): `sampling_caps` = SamplingCapDecl tuple(이름순, 비어 있지 않다)."""
+
+    sampling_caps: tuple
+
+
+@dataclasses.dataclass(frozen=True)
 class SizingSpecDoc:
     """검증을 통과한 회로 사이징 spec. 모든 모음 필드는 tuple(이름순 또는 문서 순서), 결정 대기 섹션은 PendingMark."""
 
@@ -202,6 +272,10 @@ class SizingSpecDoc:
     search: tuple
     spice_check: tuple
     front_refilter: tuple
+    gain_budget_db_override: tuple
+    driving_spec: object
+    structure_count_budget: object
+    noise_testbench: object
     pending: tuple
     section_fps: tuple
     spec_fp: str
@@ -224,7 +298,8 @@ class SizingSpecDoc:
                    sections["pending_constraints"], sections["compensation_targets"],
                    sections["node_voltage_targets_v"], sections["intended_region"], sections["objective"],
                    sections["search"], sections["spice_check"], sections["front_refilter"],
-                   sorted_items(pending, key=lambda m: (m.path, m.decision)), fps, fp_of(fps), file_sha256)
+                   sections["gain_budget_db_override"], sections["driving_spec"], sections["structure_count_budget"],
+                   sections["noise_testbench"], sorted_items(pending, key=lambda m: (m.path, m.decision)), fps, fp_of(fps), file_sha256)
 
 
 # 섹션 지문 묶음: (지문 이름, 그 지문에 드는 섹션들). 소비자가 같은 섹션끼리 묶는다(설계 3.4).
@@ -239,6 +314,10 @@ SECTION_GROUPS = (
     ("search_fp", ("search",)),
     ("spice_check_fp", ("spice_check",)),
     ("refilter_fp", ("front_refilter",)),
+    ("gain_override_fp", ("gain_budget_db_override",)),
+    ("driving_fp", ("driving_spec",)),
+    ("count_budget_fp", ("structure_count_budget",)),
+    ("noise_testbench_fp", ("noise_testbench",)),
 )
 
 

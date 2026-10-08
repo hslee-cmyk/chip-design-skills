@@ -30,6 +30,8 @@ from scipy.optimize import minimize as scipy_minimize
 
 from gmid_engine.sizing import THETA_L
 
+from .canonical_order import canonical_order
+from .canonical_rows import canonical_row_key
 from .cell_floor import ln_idu_floors
 from .fd_jacobian import fd_jacobian
 from .kernel import evaluate
@@ -56,6 +58,7 @@ def _layout(sctx, start):
             variables.append(Variable((THETA_L, mos), False, lo, hi))
         else:
             fixed[(THETA_L, mos)] = lo
+    variables = list(canonical_order(sctx, variables)[0])       # [r11] 이름 없는 정준 변수 순서 (CONTRACT 3.23)
     # [r8, S-4f] 1변수 노드 writer(diode·소스 추종)의 ln_idu 상자 하한 = 시작 칸의 칸 정점 하한(시작 좌표는 넘지 않음) -- 칸이 고정된
     # 이 풀이 안에서 상수. 정점 아래 좌표에서 그 노드 근이 늘 없어 SLSQP 가 실패 재시작만 하는 영역을 상자에서 뺀다.
     for i, floor in ln_idu_floors(sctx, variables, start.cells, one_var_only=True, start=theta).items():
@@ -77,8 +80,8 @@ def _axis_value(result, axis):
     return result.objectives.power_w if axis == AXIS_POWER else result.objectives.area_m2
 
 
-def _rows(result, eps, scales):
-    rows = list(result.constraints) + list(result.cone)
+def _rows(result, eps, scales, row_key):
+    rows = sorted(list(result.constraints) + list(result.cone), key=lambda r: row_key(r.name))     # [r12] 정준 행 순서
     names = tuple(r.name for r in rows)
     values = [r.c for r in rows]
     if eps is not None:
@@ -97,6 +100,7 @@ def _budget_stop(sctx):
 
 
 def solve_eps(sctx, start, minimize, eps, origin):
+    row_key = canonical_row_key(sctx)
     variables, fixed, x0, exact = _layout(sctx, start)
     lo = np.asarray([v.lo for v in variables], dtype=float)
     hi = np.asarray([v.hi for v in variables], dtype=float)
@@ -127,7 +131,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
             raise _Abort("candidate_failure", x)
         if state["scales"] is None:          # 첫 받아들인 점(시작점)의 b_P 로 고정
             state["scales"] = {AXIS_POWER: res.objectives.power_resolution_w, AXIS_AREA: sctx.domain.area_resolution_m2}
-        names, cvals = _rows(res, eps, state["scales"])
+        names, cvals = _rows(res, eps, state["scales"], row_key)
         if state["names"] is None:
             state["names"] = names
         elif names != state["names"]:
@@ -149,7 +153,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
                     raise _Abort("fd_column_failure", entry["x"], i)
                 if step == 0:
                     continue
-                names, cvals = _rows(col, eps, state["scales"])
+                names, cvals = _rows(col, eps, state["scales"], row_key)
                 if names != state["names"]:
                     raise _Abort("constraint_set_changed", entry["x"])
                 gf[i] = (_axis_value(col, minimize) / state["scales"][minimize] - entry["f"]) / step
@@ -174,6 +178,10 @@ def solve_eps(sctx, start, minimize, eps, origin):
     resolved = [int(math.ceil(math.log2((hi[i] - lo[i]) / h[i]))) for i in range(n) if h[i] > 0]
     maxiter = max(1, sum(max(r, 1) for r in resolved))
     cap = max(1, int(math.ceil(math.log2(float(np.max(radius)) / float(np.min(h[h > 0])))))) if np.any(h > 0) else 1
+    # [결정 11] SLSQP 입력 행 척도: 행마다 1 / max(1, |시작점 c|) -- 양의 상수 배라 feasible 집합·`best` 판정(원 c ≥ 0)은 그대로고, 면적 예산
+    # 행(c ~ 1e6, 분모 b_A)처럼 크기가 몇 자릿수 다른 행이 QP 부분문제를 '제약 비호환'(status 4)으로 만드는 것을 막는다.
+    row_w = 1.0 / np.maximum(1.0, np.abs(first["c"]))
+    f_w = 1.0 / max(1.0, abs(first["f"]))           # 목적도 같은 이유로 SLSQP 입력만 척도(best 비교는 원 f); ftol 도 f_w 배 = 목적 분해능 1 단위(종전 ftol = 1)
     restarts, iterations, stop, aborts, frozen_log = 0, 0, "converged", [], []
     centre = first["x"]
     while True:
@@ -182,11 +190,11 @@ def solve_eps(sctx, start, minimize, eps, origin):
         box_hi = np.minimum(hi, centre + radius / shrink) if restarts else hi.copy()
         for i in state["frozen"]:
             box_lo[i] = box_hi[i] = centre[i]
-        cons = {"type": "ineq", "fun": lambda x: point(x)["c"], "jac": lambda x: jac_of(x)[1]}
+        cons = {"type": "ineq", "fun": lambda x: point(x)["c"] * row_w, "jac": lambda x: jac_of(x)[1] * row_w[:, None]}
         try:
-            out = scipy_minimize(lambda x: point(x)["f"], np.array(centre, copy=True), jac=lambda x: jac_of(x)[0], method="SLSQP",
+            out = scipy_minimize(lambda x: point(x)["f"] * f_w, np.array(centre, copy=True), jac=lambda x: jac_of(x)[0] * f_w, method="SLSQP",
                                  bounds=list(zip(box_lo, box_hi)), constraints=[cons], callback=accept,
-                                 options={"ftol": 1, "maxiter": maxiter})
+                                 options={"ftol": f_w, "maxiter": maxiter})
             iterations += int(out.nit)
             point(out.x)
             accept(out.x)

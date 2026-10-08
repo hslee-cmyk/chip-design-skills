@@ -10,7 +10,8 @@
 * 순서: `load_json_checked`(JSON 수준 위반은 그 예외 그대로) -> `check_spec_schema` -> `meta_cross_check` ->
   `supplies_declaration` -> `input_dc_declaration` -> `element_value_declaration` -> `constraint_declaration` ->
   `compensation_target_declaration` -> `node_target_declaration` -> `intended_region_declaration` ->
-  `settings_declaration` -> `resolve_spec_references`.
+  `gain_override_declaration`·`driving_declaration`·`count_budget_declaration`·`noise_testbench_declaration`([U5] 선택 섹션 4개, gate = 키 이름) ->
+  `settings_declaration` -> [2026-10-08] `theta_bound_declaration`(gate `theta_bounds`) -> `resolve_spec_references`.
 * 위반이 하나라도 있으면 `SchemaRejectedError` 한 번(개수로 자르지 않음): detail = {"gate": "spec_load", "where": 경로,
   "hits", "rejected_gates", "not_evaluated"}. `not_evaluated`: `all_sections`(최상위·meta·human 이 객체가 아님),
   `topology_cross_checks`(meta 의 회로 이름·topology 지문 불일치 -- 다른 회로판 교차 검사는 의미가 없어 섹션 형식만 본다),
@@ -30,17 +31,23 @@ from gmid_engine.core import MetricSignature, SchemaRejectedError
 from ._rejection import reject
 from .json_read import load_json_checked
 from .spec_constraints import constraint_declaration
+from .spec_count_budget import count_budget_declaration
+from .spec_driving import driving_declaration
 from .spec_elements import element_value_declaration
+from .spec_gain_override import gain_override_declaration
 from .spec_input_dc import input_dc_declaration
 from .spec_meta import SPEC_SUFFIX, meta_cross_check
 from .spec_model import SizingSpecDoc
 from .spec_node_targets import node_target_declaration
+from .spec_noise_testbench import noise_testbench_declaration
 from .spec_refs import resolve_spec_references
 from .spec_regions import intended_region_declaration
 from .spec_schema import HUMAN_REQUIRED, check_spec_schema
 from .spec_settings import settings_declaration
 from .spec_supplies import supplies_declaration
 from .spec_targets import compensation_target_declaration
+from .spec_theta_bounds import theta_bound_declaration
+from .spec_untie import untie_declaration
 from .topology_load import load_topology
 from .topology_model import SchemaHit, TopologyDoc
 
@@ -107,8 +114,19 @@ def _load(path, topology, catalog, chain):
     targets = section("compensation_targets", "compensation_targets", compensation_target_declaration)
     node_targets = section("node_targets", "node_voltage_targets_v", node_target_declaration, topo)
     regions = section("intended_region", "intended_region", intended_region_declaration, topo)
+    # [U5] 선택 섹션 3개(없으면 빈 선언): 블록 gain 고정·출력 구동·구조 계수 예산.
+    gain_override = section("gain_budget_db_override", "gain_budget_db_override", gain_override_declaration, topo)
+    driving = section("driving_spec", "driving_spec", driving_declaration)
+    count_budget = section("structure_count_budget", "structure_count_budget", count_budget_declaration)
+    noise_testbench = section("noise_testbench", "noise_testbench", noise_testbench_declaration, topo)
     settings, found = settings_declaration(human, catalog)
     run("settings", found)
+    if settings is not None and elements is not None:
+        search, found = theta_bound_declaration(settings[1], elements, topo)
+        run("theta_bounds", found)
+        if search is not None:
+            settings = (settings[0], search) + tuple(settings[2:])
+            run("untie_orbits", untie_declaration(search, topo))
     if hits or not_evaluated:
         not_evaluated.append("references")
         reject(_GATE, where, hits, rejected_gates=tuple(sorted(rejected)), not_evaluated=tuple(not_evaluated))
@@ -131,6 +149,8 @@ def _load(path, topology, catalog, chain):
         "constraints": constraints, "pending_constraints": pending_constraints, "compensation_targets": targets,
         "node_voltage_targets_v": node_targets, "intended_region": regions, "objective": objective,
         "search": search, "spice_check": spice_check, "front_refilter": front_refilter,
+        "gain_budget_db_override": gain_override, "driving_spec": driving, "structure_count_budget": count_budget,
+        "noise_testbench": noise_testbench,
     }
     return SizingSpecDoc.from_sections(meta["circuit"], meta["topology_fp"], meta["origin"], sections,
                                        marks + ref_marks, doc.sha256)

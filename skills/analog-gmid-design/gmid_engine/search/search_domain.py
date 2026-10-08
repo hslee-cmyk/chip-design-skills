@@ -27,6 +27,8 @@ from gmid_engine.sizing import (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA
 
 from .current_box import current_box
 from .l_cells import l_cells
+from .current_symmetry import current_symmetry
+from .orbit_ties import orbit_ties
 from .search_values import SearchDomain, SearchSettings, Variable
 
 _PDK_QUANTITIES = ("manufacturing_grid_m", "min_finger_w_m")   # PDK 선언 이름(core CONTRACT 9.4) -- 값은 선언 파일이 계산
@@ -56,26 +58,47 @@ def _current_bounds(dc_ctx, kinds, classes, boxes, key):
     return min(boxes[kinds[m]][0] for m in users), max(boxes[kinds[m]][1] for m in users)
 
 
-def search_domain(dc_ctx, settings, pdk_decl):
+def _passive_box(override, spec_bounds, key):
+    """[r10] θ 수동소자 상자: run 단위 `SearchSettings` 값(명시 재정의)이 있으면 그것, 없으면 spec `search.theta_bounds` 의 그 원소,
+    둘 다 없으면 None."""
+    if override is not None:
+        return tuple(override)
+    return spec_bounds.get(key)
+
+
+def _budget_i_max(lut_access, kind, l_lo_m, area_budget_m2):
+    """면적 예산이 정하는 θ 전류 상한(S-3b 닫힘): 소자 하나의 W·L 은 총 면적 A 를 넘을 수 없으므로 W ≤ A / L, 전류는
+    ID = IDu · W / L(IDu = 전류 밀도 좌표, 포락선 최댓값 `exp(hi)`)이라 ID ≤ IDu_max · A / L² -- L 은 kind 의 최소 L 앵커(가장 큰 값)."""
+    _lo, hi = _ln_idu_envelope(lut_access, kind)
+    return math.exp(hi) * area_budget_m2 / (l_lo_m * l_lo_m)
+
+
+def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=None, untie=()):
     if not isinstance(settings, SearchSettings):
         raise TypeError("search_domain: settings 는 SearchSettings 여야 한다(기본값 없음)")
     if not isinstance(pdk_decl, PdkDecl):
         raise TypeError("search_domain: pdk_decl 은 core read_pdk_decl 결과여야 한다")
+    declared = {b.element: (b.lo, b.hi) for b in spec_bounds}          # authoring ThetaBound(kind 단위 Ω·F)
     kinds = dict(dc_ctx.base.column("device", "kind"))
     classes = dict(dc_ctx.base.column("device", "element_class"))
     mos_kinds = sorted({kinds[m] for m, c in classes.items() if c == ELEMENT_MOS})
     boxes = {k: current_box(dc_ctx.lut, k) for k in mos_kinds}
+    if area_budget_m2 is not None:
+        boxes = {k: (lo, _budget_i_max(dc_ctx.lut, k, l_cells(dc_ctx.lut, k)[0][0], area_budget_m2))
+                 for k, (lo, _peak) in boxes.items()}
     envelopes = {}
     variables, mos = [], []
     resistors = [key for kind, key in dc_ctx.schema.components if kind in (THETA_RESISTANCE, THETA_SS_RESISTANCE)]
-    if resistors and settings.resistance_bounds_ohm is None:
+    missing = tuple(r for r in resistors if _passive_box(settings.resistance_bounds_ohm, declared, r) is None)
+    if missing:
         raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "theta_resistance_bounds_undeclared",
-                                          "resistors": tuple(resistors)})
+                                          "resistors": missing})
     capacitors = [key for kind, key in dc_ctx.schema.components if kind == THETA_CAPACITANCE]
-    if capacitors and settings.capacitance_bounds_f is None:
+    missing = tuple(c for c in capacitors if _passive_box(settings.capacitance_bounds_f, declared, c) is None)
+    if missing:
         # 커패시터 상자는 PDK 선언에서 유도할 수 없다(capm.* 규칙값 N/A, cap_mim 셀 원본 없음 -- sizing CONTRACT O13)
         raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "theta_capacitance_bounds_undeclared",
-                                          "capacitors": tuple(capacitors)})
+                                          "capacitors": missing})
     for component in dc_ctx.schema.components:
         ckind, key = component
         if ckind == THETA_LN_IDU:
@@ -89,10 +112,10 @@ def search_domain(dc_ctx, settings, pdk_decl):
             lo, hi = _current_bounds(dc_ctx, kinds, classes, boxes, key)
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
         elif ckind in (THETA_RESISTANCE, THETA_SS_RESISTANCE):
-            lo, hi = settings.resistance_bounds_ohm
+            lo, hi = _passive_box(settings.resistance_bounds_ohm, declared, key)
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
         elif ckind == THETA_CAPACITANCE:
-            lo, hi = settings.capacitance_bounds_f
+            lo, hi = _passive_box(settings.capacitance_bounds_f, declared, key)
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
         elif ckind == THETA_L:
             mos.append(key)
@@ -101,8 +124,24 @@ def search_domain(dc_ctx, settings, pdk_decl):
     for var in variables:
         if not var.lo < var.hi:
             raise ValueError("search_domain: 빈 bounds " + repr(var))
+    # [r12] 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 변수 하나로 묶는다(3.24) -- 묶인 구성원은 같은 bounds 여야 한다
+    symmetry = current_symmetry(dc_ctx, tuple(untie))
+    reps, ties = orbit_ties(dc_ctx, tuple(dc_ctx.schema.components), tuple(untie), symmetry)
+    by_component = {v.component: v for v in variables}
+    negated = frozenset(symmetry.negated)
+    for rep, members in ties:
+        if rep in by_component:
+            # 부호 −1 로 묶인 구성원은 대표와 상자가 같을 필요가 없다(값 = −대표). 나머지는 같은 (log, lo, hi) 여야 한다
+            odd = tuple(m for m in members if m not in negated and (by_component[m].log, by_component[m].lo, by_component[m].hi)
+                        != (by_component[rep].log, by_component[rep].lo, by_component[rep].hi))
+            if odd:
+                raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "tied_orbit_bounds_differ",
+                                                  "elements": (rep,) + odd})
+    tied = {m for _rep, members in ties for m in members} | set(symmetry.zeros)
+    variables = [v for v in variables if v.component not in tied]
+    mos = [m for m in mos if (THETA_L, m) not in tied]
     cells = {}
     table = tuple((m, cells.setdefault(kinds[m], l_cells(dc_ctx.lut, kinds[m]))) for m in sorted(mos))
     grid, w_min = pdk_decl.values(_PDK_QUANTITIES)
     return SearchDomain(tuple(variables), table, float(grid * w_min), tuple(sorted(boxes.items())), float(w_min),
-                        float(grid))
+                        float(grid), area_budget_m2, ties, symmetry.negated, symmetry.zeros)

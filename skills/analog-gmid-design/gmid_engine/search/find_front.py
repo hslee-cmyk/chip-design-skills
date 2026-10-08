@@ -63,8 +63,9 @@ def _point_record(sctx, point):
     return {"point_id": point.point_id, "status": res.status, "seq": res.seq,
             "theta_hex": [[list(k), float(v).hex()] for k, v in res.theta], "cells": list(res.key.cells),
             AXIS_POWER: res.objectives.power_w, AXIS_AREA: res.objectives.area_m2,
-            "gate_area_m2": res.objectives.gate_area_m2, "passives_in_area": False,
+            "gate_area_m2": res.objectives.gate_area_m2, "passives_in_area": sctx.area_decl is not None,
             "power_resolution_w": res.objectives.power_resolution_w, "unmeasured": [list(u) for u in res.unmeasured],
+            "warnings": [[w[0], [list(kv) for kv in w[1]]] for w in res.warnings],
             "active": [{"name": r.name, "c": r.c} for r in res.constraints if r.active],
             "origin": dict(point.origin), "snapshot_fp": res.evaluation.snapshot.fp, "snapshot_ref": ref}
 
@@ -85,17 +86,26 @@ def find_front(sctx, given_starts):
                       "passive_area_undeclared": list(probe.objectives.passive_area_undeclared)})
     notes.append({"verdict": "judgment_pending", "rule": "DEC-72", "reason": "model_error_unmeasured_front_estimated"})
     notes.append({"verdict": "not_run", "rule": "DEC-79", "reason": "layout_axis_refilter_is_mod8"})
-    notes.append({"verdict": "provisional", "rule": "S-3b",
-                  "reason": "current_upper_is_single_finger_max_slice_needs_declared_max_nf_or_area_cap",
-                  "current_box": [[k, list(v)] for k, v in sctx.domain.current_box]})
+    box = [[k, list(v)] for k, v in sctx.domain.current_box]
+    if sctx.domain.area_budget_m2 is None:
+        notes.append({"verdict": "provisional", "rule": "S-3b",
+                      "reason": "current_upper_is_single_finger_max_slice_needs_declared_max_nf_or_area_cap",
+                      "current_box": box})
+    else:
+        notes.append({"verdict": "closed", "rule": "S-3b", "reason": "current_upper_from_area_budget_IDu_max_A_over_L2",
+                      "area_budget_m2": sctx.domain.area_budget_m2, "current_box": box})
     notes.append({"verdict": "layer0_minimal" if layer0.start is not None else "layer0_no_start", "rule": "DEC-71",
                   "reason": "seal_margin_maxmin_centre", "stop": layer0.stop, "t": layer0.t, "hard_ok": layer0.hard_ok,
                   "start_status": layer0.start_status, "centre_u": layer0.centre_u, "kernel_calls": layer0.kernel_calls,
                   "probes": layer0.probes, "origin_point": layer0.origin_point, "meaning": "feasibility_only",
-                  "meaning_reason": "w_area_upper_bound_undeclared_S-3b",
+                  "meaning_reason": ("w_area_upper_bound_undeclared_S-3b" if sctx.domain.area_budget_m2 is None
+                                     else "w_bounded_by_area_budget"),
                   "refinements_out_of_scope": list(_LAYER0_REFINEMENTS_OUT_OF_SCOPE)})
     notes.append({"verdict": "not_computed", "rule": "DEC-78", "reason": "supply_current_dc_needs_counted_rails_declaration",
                   "axis_used": AXIS_POWER})
+    for code in sorted({w[0] for res in sctx.cache.values() for w in res.warnings}):
+        notes.append({"verdict": "warning", "code": code,
+                      "points": sum(1 for res in sctx.cache.values() if any(w[0] == code for w in res.warnings))})
     unmeasured = sorted({u for res in sctx.cache.values() for u in res.unmeasured})
     if unmeasured:
         notes.append({"verdict": "unmeasured", "rule": "S-1", "constraints": [list(u) for u in unmeasured],

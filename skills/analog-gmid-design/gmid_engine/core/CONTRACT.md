@@ -6,6 +6,12 @@
   같은 basename 이 다른 패키지 test 에도 생기므로 test 디렉터리에 `__init__.py` 를 두거나 `--import-mode=importlib` 를 쓴다.
 - 근거: `_drafts/engine/NEW_ENGINE_DESIGN_REQUIREMENTS.md` 끝 '확정 사항'(최우선)·1절·3.1·4절, 계획 N3.3·N3.4·N3.5·N3.14·NFR-2·NFR-4·WP-03·WP-10.
 - 아래 "불변식"은 test 가 확인할 성질, "실패"는 반드시 그 예외로 거부해야 하는 입력이다.
+- **개정 2026-10-08(사용자 승인 "1은 승인." -- sizing O7·O9)**: (1) 투영 지문 = 값 지문 합성(8절, 6.2) -- 블록 호출마다 값을 다시
+  직렬화하지 않는다. (2) `GraphSnapshot.column_fields`·`extend_writers`(5.6). 실측은 10절.
+- **개정 2026-10-08(사용자 승인 "2번 + 1번으로 진행해. 나머지도 함께 진행해." -- core 성능 2~5)**: (1) memo 키 = `canonical_key`(1.1절, 7절) --
+  `BoundedLRU.lookup` 이 키마다 `fp_of` 직렬화+sha256 을 하지 않는다. (2) `GraphRecord.fp`·`GraphSnapshot.fp` 는 처음 읽을 때 한 번 계산해 보관
+  (5.5·5.6), `GraphSnapshot.write` 는 레코드를 write 당 한 번만 새로 만들고 열 key 목록은 스냅샷마다 한 번만 정렬. (3) 투영 지문 식 개정(8절)
+  -- 열 행 직렬화 제거. 값·동치 관계·공개 계약은 그대로이고 `fp_of` 출력(영속 지문)은 한 바이트도 바뀌지 않았다.
 
 ---
 
@@ -32,6 +38,7 @@
 | 파일 | 층 | 독립 진입점 |
 |---|---|---|
 | determinism.py | 0 | `sorted_items` |
+| canonical_key.py | 0 | `canonical_key` |
 | fingerprint.py | 0 | `fp_of` |
 | immutability.py | 0 | `require_immutable` |
 | margin.py | 0 | `normalized_margin` |
@@ -40,7 +47,7 @@
 | bounded_lru.py | 1 | `BoundedLRU` (`LruStats` 는 같은 파일 비진입 공개 이름) |
 | failure_record.py | 1 | `FailureRecord` |
 | field_value.py | 1 | `FieldValue` |
-| metric_signature.py | 1 | (데이터 선언 모듈) `MetricSignature(unit, domain, view_kind=None, objective_axis=None)` + 어휘 `VIEW_KINDS`(transfer, loop, output_port, ratio)·`OBJECTIVE_AXES`(power, area) -- unit ∈ `METRIC_UNITS`, domain ∈ `DOMAINS`(units 표), view_kind ∈ {None} ∪ `VIEW_KINDS`(None = 뷰 없음, 문자열 `"none"` 은 어휘 밖), objective_axis ∈ {None} ∪ `OBJECTIVE_AXES`; 밖이면 `ValueError`. 뷰 종류 어휘는 이 파일 한 곳 |
+| metric_signature.py | 1 | (데이터 선언 모듈) `MetricSignature(unit, domain, view_kind=None, objective_axis=None)` + 어휘 `VIEW_KINDS`(transfer, loop, cm_loop, output_port, ratio)·`OBJECTIVE_AXES`(power, area) -- unit ∈ `METRIC_UNITS`, domain ∈ `DOMAINS`(units 표), view_kind ∈ {None} ∪ `VIEW_KINDS`(None = 뷰 없음, 문자열 `"none"` 은 어휘 밖), objective_axis ∈ {None} ∪ `OBJECTIVE_AXES`; 밖이면 `ValueError`. 뷰 종류 어휘는 이 파일 한 곳 |
 | projection.py | 1 | `Projection` |
 | writer_table.py | 1 | `WriterTable` (+ 상수 `ENTITY_KINDS`) |
 | compute_block.py | 2 | `compute_block` (`ComputeBlock`·`BlockStats` 는 비진입 공개 이름) |
@@ -71,6 +78,18 @@
   - dataclass 인스턴스는 (모듈.클래스 이름, 선언 순서 (필드 이름, 값)) -- 필드 값이 하나라도 다르면 다른 지문.
   - 자기 구분적 인코딩: `fp_of(("ab", "c")) != fp_of(("a", "bc"))`, `fp_of(((1,), 2)) != fp_of((1, (2,)))`.
 - 실패: 그 밖의 타입(일반 객체, 함수, 모듈, 클래스 객체 자체 등) -> `TypeError`. 중첩 안에 있어도 `TypeError`.
+
+### 1.1 memo 키 정준화 `canonical_key(obj)` -> hashable (2026-10-08, 파일 `canonical_key.py`, 층 0)
+- 목적: `fp_of` 와 **같은 동치 관계**를 직렬화·sha256 없이 `dict` 키로 옮긴다. 프로세스 안 dict 키 전용 -- 저장·기록·영속하지 않는다
+  (영속·기록하는 지문은 항상 `fp_of`). 출력 형태(어떤 hashable 인지)는 계약이 아니다; 계약은 아래 동치와 거부뿐.
+- 동치: `canonical_key(a) == canonical_key(b)` <=> `fp_of(a) == fp_of(b)` (sha256 충돌 제외). 파이썬 `==`·`hash` 가 뭉개는 구분을 살린다:
+  `0.0` != `-0.0`, `1` != `1.0` != `True` != `"1"`, 모든 NaN 은 같은 키(`float.hex` 가 모두 'nan'), `bytes` != `str`, `tuple` != `frozenset`.
+  dataclass 는 (모듈.qualname, 선언 순서 (필드 이름, 값)) -- 클래스가 다르면 다른 키, `__canonical__` 객체는 (모듈.qualname, 그 반환값의 키).
+  tuple 은 `fp_of` 처럼 원소 순서 의존, frozenset 은 순서 무관.
+- 실패: `require_immutable` 이 거부하는 값(dict, list, set, bytearray, 일반 객체, 비-frozen dataclass, 그 안에 든 가변 값)은 `TypeError` --
+  불변 검사가 같은 순회에서 이뤄진다(`BoundedLRU.lookup` 은 따로 `require_immutable` 을 부르지 않는다).
+- 불변식(test 작성용): (a) 임의 불변 값 쌍에서 위 동치 양방향; (b) 반환값은 항상 `hash` 가능하고, 같은 값을 여러 번 정준화하면 `==`;
+  (c) PYTHONHASHSEED 와 무관하게 같은 동치; (d) 가변 값은 `TypeError`.
 
 ## 2. 불변 검사 `require_immutable(value) -> None`
 
@@ -161,6 +180,8 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 ### 5.5 `GraphRecord(kind, key, fields)` -- frozen dataclass
 - `fields`: (필드 이름, FieldValue) 쌍들 -> 이름 정렬 tuple. `get(field)` -> FieldValue|None, `field_names()` -> 정렬 tuple.
 - `fp = fp_of((kind, key, ((이름, value_fp), ...)))` -- 값 내용만: writer·input_version·write_count 가 달라도 값이 같으면 같은 fp.
+  [2026-10-08] 레코드가 불변이라 `fp` 는 **처음 읽을 때 한 번** 계산해 레코드에 보관한다(만들 때 계산하지 않는다 -- 읽지 않는 중간 레코드는
+  직렬화하지 않음). 값은 즉시 계산했을 때와 같고(같은 fp_of 식), `dataclasses.fields` 에 `fp` 가 그대로 있다.
 - 실패: key 비문자열 -> `TypeError`; 필드 이름 빈/비문자열 -> `ValueError`; 필드 값이 FieldValue 아님 -> `TypeError`; 이름 중복 -> `ValueError`.
 
 ### 5.6 `GraphSnapshot` -- 불변 스냅샷 (직접 생성하지 말고 `GraphSnapshot.empty(writers)` + `write`)
@@ -168,7 +189,14 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 - 읽기: `kinds()`(레코드 있는 kind 정렬), `keys(kind)`(정렬, 없으면 ()), `record(kind, key)`(없으면 None),
   `field(kind, key, field)`(FieldValue|None), `value(kind, key, field)`(없으면 `KeyError`),
   `column(kind, field)` -> 그 필드가 있는 레코드의 `((key, value), ...)` key 정렬, `block_version(writer)`(없으면 None).
+  [2026-10-08] `column_fields(kind, field)` -> `column` 과 같은 key·순서의 `((key, FieldValue), ...)`(값 지문·출처 메타를 함께 읽을 때).
   `tables`·`block_versions` 는 읽기 전용 매핑(대입 -> `TypeError`). 제자리 수정 API 없음.
+- [2026-10-08, 사용자 승인 -- sizing O7] **`extend_writers(writers)` -- 권한표 확장**: 같은 레코드·block_versions 를 더 넓은 권한표
+  `writers` 아래로 옮긴 새 스냅샷. `writers` 는 이 스냅샷 권한표의 모든 ((kind, field), writer) 를 같은 writer 로 포함해야 한다.
+  - 결과: `writers` 가 새 표, 모든 레코드가 **같은 객체**(`is`), `fp`·모든 읽기 결과·필드 메타(writer·input_version·write_count)·
+    `block_version` 이 원본과 같다. 원본 불변. 표가 원본과 `==` 면 `self` 그대로.
+  - 실패: WriterTable 아님 -> `TypeError`; 원본 표의 항목이 빠졌거나 다른 writer -> `WriterPermissionError`(원본 불변).
+  - 쓰기 API 가 아니다(값·메타를 바꾸지 않는다) -- 값을 바꾸는 길은 여전히 `write` 하나다.
 - **`write(writer, input_version, columns)` -- 유일한 setter**:
   - `columns`: `{(kind, field): {key: value}}`. 열마다 `writers.require(writer, kind, field)`.
   - 열 교체 의미: 결과 스냅샷에서 그 (kind, field) 를 가진 레코드 key 집합 = 넘긴 key 집합. 넘기지 않은 key 의
@@ -182,7 +210,10 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
     input_version 이 바뀐 필드를 가진 레코드는 새 객체다(출처 기록이 바뀌었으므로).
   - 원본 불변: write 뒤에도 이전 스냅샷의 모든 읽기 결과·`fp` 가 그대로다.
   - `fp`: 값 내용 지문. 같은 값들을 다른 순서·다른 writer 경로·다른 input_version 으로 만들어도 같고,
-    어느 한 값이라도 다르면 다르다. block_versions 는 fp 에 들어가지 않는다.
+    어느 한 값이라도 다르면 다르다. block_versions 는 fp 에 들어가지 않는다. [2026-10-08] 스냅샷이 불변이라 처음 읽을 때 한 번 계산해 보관
+    (레코드 fp 도 그때 한 번) -- 값은 즉시 계산과 같다.
+  - [2026-10-08] 한 `write` 안에서 같은 레코드의 여러 필드가 바뀌어도 새 `GraphRecord` 는 레코드당 하나만 만든다(중간 레코드 없음).
+    열 key 목록(`column`·`column_fields`)은 스냅샷마다 kind 정렬 1회 + (kind, field) 당 1회만 만들어 보관한다(스냅샷 불변). 읽기 결과는 이전과 같다.
   - 실패: 권한 위반 -> `WriterPermissionError`(스냅샷 불변); input_version 빈/비문자열 -> `ValueError`;
     columns 가 Mapping 아님 또는 열 값이 Mapping 아님 -> `TypeError`; key 비문자열 -> `TypeError`; 값 가변 -> `TypeError`.
   - `==` 는 객체 동일성(eq=False). 내용 비교는 `fp` 로 한다.
@@ -206,7 +237,7 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 - 블록 함수는 `Projection` 하나를 위치 인자로 받는다:
   - `projection.column(kind, field)` = 선언한 열의 `snapshot.column(kind, field)` 와 같은 값. 선언 밖 열 -> `KeyError`.
   - `projection.value(kind, key, field)`, `projection.extras` = extras tuple.
-- 입력 버전 `v = fp_of((name, code_hash, projection.fp))`. `projection.fp` 는 (선언 열의 값, extras) 만의 지문.
+- 입력 버전 `v = fp_of((name, code_hash, projection.fp))`. `projection.fp` 는 (선언 열의 값 지문, extras) 만의 지문(8절).
 - **재사용**: `snapshot.block_version(name) == v` 이면 블록 함수를 부르지 않고 `snapshot` 을 그대로(`is`) 돌려준다.
   -> 같은 스냅샷에 두 번 부르면 두 번째는 함수 호출 0. 선언하지 않은 필드·다른 블록 필드만 바뀐 스냅샷에서도 재사용.
   선언한 열의 값이나 extras 중 하나라도 바뀌면 재계산(IC10: 읽는 상태를 놓친 키 없음). 값이 같은 새 객체(다른
@@ -228,8 +259,9 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 ## 7. LUT memo `BoundedLRU(capacity)`
 
 - `capacity`: 1 이상 int(부르는 쪽이 계산). 실패: 0·음수·float·bool·비정수 -> `ValueError`. 숫자 기본값 없음.
-- `lookup(key, compute)`: `key` 는 불변 값(가변 -> `TypeError`, compute 미호출). 키 동일성 = `fp_of(key)`
-  (`(0.0,)` 와 `(-0.0,)` 는 다른 키, `(1,)` 와 `(True,)` 다른 키, `(1, 2)` 와 `[1, 2]` 는 list 라서 TypeError).
+- `lookup(key, compute)`: `key` 는 불변 값(가변 -> `TypeError`, compute 미호출). 키 동일성 = `fp_of` 와 같은 동치 관계
+  (1.1절 `canonical_key` 를 dict 키로 쓴다 -- 키마다 직렬화·sha256 을 하지 않는다. `(0.0,)` 와 `(-0.0,)` 는 다른 키, `(1,)` 와 `(1.0,)` 와 `(True,)` 는
+  서로 다른 키, NaN 을 담은 같은 내용 키는 적중, `(1, 2)` 와 `[1, 2]` 는 list 라서 TypeError). 상한(LRU)·결정론은 그대로.
   - 적중: 저장 값 그대로(`is`) 반환, compute 미호출, 그 키를 가장 최근으로.
   - 미적중: `compute()`(인자 없음) 1회 호출, 결과 저장·반환. 크기가 capacity 를 넘으면 가장 오래 안 쓴 항목 1개 퇴출.
     캐싱을 멈추지 않는다(DF-07): 상한 도달 뒤에도 새 키는 저장된다.
@@ -242,7 +274,13 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 
 ## 8. `Projection` (블록 함수 인자; 직접 생성은 test 에서만)
 - `Projection.from_snapshot(snapshot, reads, extras=())`: 선언 열마다 `snapshot.column` 을 담는다(빈 열도 포함 -> `column` 이 `()`).
-- `fp = fp_of((columns, extras))`: 같은 열 값·extras 면 같은 fp, reads 선언 순서와 무관.
+- [2026-10-08 개정, 사용자 승인 '값 지문 합성'] `fp = fp_of((행 지문, extras))`, 행 지문 =
+  sha256(정렬된 열마다 `(kind, field)` 자기 구분 텍스트 + 열 지문)(열 수에 비례하던 `fp_of` 재귀 직렬화 제거, 2026-10-08 두 번째 개정), 열 지문 = sha256(자기 구분 인코딩된 `((key, fp_of(value)), ...)`) -- 값 자리에 값의 지문. `from_snapshot` 은 그 자리에 스냅샷 필드의
+  `FieldValue.value_fp`(= fp_of(value), 5.4)를 그대로 쓴다(값 재직렬화 없음). 직접 생성 `Projection(columns, extras)` 도 같은 식이라
+  같은 열 값·extras 면 두 경로의 fp 가 같다.
+- 불변식(옛 `fp_of((columns, extras))` 와 같은 동치 관계): 같은 열 값·extras 면 같은 fp, reads 선언 순서와 무관; 선언 열의 어느
+  값·key 하나 또는 extras 가 다르면 다른 fp(값 지문이 다르므로 -- sha256 충돌 제외). fp 문자열 자체는 옛 식과 다르다(어떤 소비자도
+  그 문자열을 다른 식으로 다시 만들지 않는다 -- 봉인 4 는 `Projection.from_snapshot(...).fp` 를 다시 부른다).
 - 실패: extras 가변 -> `TypeError`; 선언 밖 열 -> `KeyError`; 열에 없는 key 의 `value` -> `KeyError`.
 
 ---
@@ -340,6 +378,11 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 | `well_spacing_m` | `max(nwell.2a + 2 * difftap.8, difftap.9 + difftap.8)`(121·329·330행) | 1.63e-6 |
 | `min_finger_w_m` [2026-10-08 추가] | `difftap.2`(321행 0.420 µm, areaid.sc 밖 FET 최소 채널 폭) | 4.2e-7 |
 
+| `mim_cap_density_f_per_m2` [2026-10-08 추가, 사용자 결정 11] | `camimc`(`models/r+c/res_typical__cap_typical__lin.spice` 의 `.param` 줄, `spice_instance_line`, 원본 F/µm² x units_m 1e12) | 2.0e-3 |
+
+`mim_cap_density_f_per_m2` 는 MIM 커패시터 단위 면적 용량(sky130 typical 모서리, 공개 문서 ~2 fF/µm² 와 일치)이다. cap_mim_m3 셀 모델
+원본이 로컬에 없어 이 모서리 파라미터가 유일한 로컬 출처다. 소비자 `search.passive_area_decl`(수동 커패시터 면적 = 값 / 이 값).
+
 `min_finger_w_m` 은 MOD6 설계 개정 S-18(search W ≥ W_min 제약, 소비자 `search.build_search_context`)로 더한 quantity 다. 선언 형식·
 읽기 규칙은 9.1~9.3 그대로이고 엔진 코드 변경은 없다(선언 파일 sha256 은 바뀐다).
 
@@ -397,3 +440,21 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
 접합 용량 소비자(DEC-91): `metrics.JunctionParams.from_pdk_decl(decl, kind)`·`metrics.DiffusionGeometry.from_lut_rule(lut_rule_decl, finger_w, m)`
 -> `metrics.junction_caps(...)` (metrics CONTRACT 8.5 -- ss_linearize `ss_dev` 가 부른다). 두 선언을 같은 memo 로 읽으면 원본 5개
 (memo 상한 5 이상이면 두 번째 호출부터 파싱 0).
+
+---
+
+## 10. 성능 실측 (2026-10-08, 개정 근거 -- sizing O9)
+- 조건: `tests/search/test_kernel.py` 15개 test(S0 컨텍스트 생성 + `evaluate` 반복) 를 cProfile 로 실행, `Projection.from_snapshot` 971 호출.
+  - 옛 식 `fp_of((columns, extras))`: `from_snapshot` 누적 1.57 s(호출당 1.6 ms), 그 중 지문 1.40 s.
+  - 값 지문 합성(열 지문 = 값 지문들의 sha256 한 번): `from_snapshot` 누적 0.80 s(호출당 0.82 ms), 그 중 지문 0.51 s. 약 49 % 감소.
+  - 남은 지문 시간의 대부분은 호출자가 넘기는 `extras` 의 직렬화(`fp_of`)이고 열 지문(`_column_fp`)은 0.07 s.
+- 같은 실행의 `fp_of` 재귀 호출 수 285,299 -> (값 지문 합성) 감소. 실행 전체 시간은 컴퓨터 부하(파일 열기 지연)로 흔들려 비교에 쓰지 않는다.
+
+### 10.1 core 성능 2~5 실측 (2026-10-08, 사용자 승인 "2번 + 1번으로 진행해. 나머지도 함께 진행해.")
+- 조건: 9회로 표준 탐침 θ(회로당 215 + 통과 θ 의 FD 형제), LUT v2, `fp_of`·`canonical_key`·`require_immutable` 을 최상위 호출 단위로 `perf_counter` 계측(재귀 중복 제외). 옛/새 엔진 동시 실행(같은 부하).
+- 계측 합(초, 옛 -> 새): common_gate 26.0 -> 7.2, current_reuse 10.4 -> 2.0, folded 50.9 -> 10.1, ngcc 84.9 -> 15.5, nmcnr 27.0 -> 7.3,
+  pushpull_follower 2.3 -> 0.4, sf_pushpull 20.6 -> 2.7, two_stage 32.9 -> 5.0, two_stage_sf 21.9 -> 4.0 (fp_of+require_immutable+canonical_key).
+- 평가당 CPU(ms, 옛 -> 새, 부하 잡음 있음): common_gate 24.8 -> 13.0, folded 116.5 -> 83.7, ngcc 46.7 -> 21.2, nmcnr 57.7 -> 34.1, two_stage 33.0 -> 18.0, sf_pushpull 336.6 -> 249.9.
+- two_stage find_front(E_B=150) 는 LUT 역산이 지배해 비프로파일 CPU 차이가 부하 잡음 안(최소값 32.1 s -> 30.2 s); fp 계열 호출 합 2.8 s -> 0.8 s.
+- 동일성: perf 계수(kernel_calls 100, unique_keys 100, recompute_same_key 0, block 1074/896/178/48)·front·evals(code_fp 제외)·schema_fp·w_fixed_fp·
+  xcheck 4801줄(스냅샷 fp 포함) 옛/새 완전 일치. 바뀐 영속 값: 투영 지문 식 개정(8절)으로 archive 스냅샷 파일 필드의 `input_version` 문자열.

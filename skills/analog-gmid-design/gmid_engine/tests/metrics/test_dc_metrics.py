@@ -40,7 +40,8 @@ def _topo():
         mos=[("M1", "nmos", "out", "in", "gnd", "gnd"), ("M2", "pmos", "out", "pb", "vdd", "vdd"),
              ("M4", "nmos", "x", "in", "gnd", "gnd"), ("M3", "nmos", "y", "y", "gnd", "gnd")],
         passives=[("R1", "resistor", "vdd", "x"), ("CL", "capacitor", "out", "gnd")],
-        sources=[("I1", "current_source", "vmid", "y")], rails=("vdd", "vmid", "gnd"))
+        sources=[("I1", "current_source", "vmid", "y")], rails=("vdd", "vmid", "gnd"),
+        bias=["pb"])                                          # pb: M2 gate 에만 (authoring 9절 입력 선언)
 
 
 @pytest.fixture(scope="module")
@@ -70,7 +71,8 @@ def test_block_declaration():
     assert metrics_dc.name == METRICS_DC_WRITER == S2_WRITERS.writer_of("graph", "metrics_dc") == "metrics_dc"
     assert set(metrics_dc.reads) == {("device", "dc_op"), ("device", "dc_current"), ("device", "element_class"),
                                      ("device", "pins"), ("node", "dc_v"), ("node", "dc_rail_v"),
-                                     ("graph", "dc_current_basis")}
+                                     ("graph", "dc_current_basis"),
+                                     ("device", "dc_colour"), ("node", "dc_colour")}    # [r12] 합산·나열 순서 = dc_colour(CONTRACT r12)
     assert tuple(metrics_dc.writes) == (("graph", "metrics_dc"),)
     # ss 값은 읽지 않는다(7.10 3: ss 변경에 재계산되지 않게)
     assert ("device", "ss_dev") not in set(metrics_dc.reads)
@@ -190,3 +192,69 @@ def test_power_area_resolution_none(snap):
     for name, r in e.items():
         assert r.value is not None, name
         assert r.resolution is None, name
+
+
+# ---------------------------------------------------------------- [사용자 결정 11, 2026-10-08] 네 번째 extra area_decl (7.5)
+# oracle (a) 구성으로 정해진 합성 입력: 손 회로 CL = 1 pF, R1 = 100 kΩ, 단위 면적 U_C = 1/(2e-3 F/m²) = 500 m²/F(이 test 가 고른 값)
+# -> 면적 = Σ W·L(EXP_AREA, 손 표) + CL·U_C = EXP_AREA + 5e-10. excluded 소자는 면적 항·미선언 목록 둘 다에서 빠진다(계약 문장).
+
+U_C = 1.0 / 2e-3                        # m²/F -- 2 fF/µm² 의 역수(구성 값)
+CL_F = 1e-12
+
+
+def _bundle_decl(s, decl, passives=(("CL", CL_F), ("R1", R1)), counted=("vdd",)):
+    out = metrics_dc(s, passives, counted, decl)
+    return out, out.value("graph", METRICS_KEY, "metrics_dc")
+
+
+def test_area_decl_absent_equals_old_and_empty_decl(snap):
+    """area_decl 없음 = 종전 동작(값 있는 수동소자 전부 미선언, 면적 = Σ W·L) -- 빈 PassiveAreaDecl() 과 값이 비트 단위로 같다."""
+    from gmid_engine.metrics import PassiveAreaDecl
+    _, b0 = _bundle(snap, counted=("vdd",))
+    _, b1 = _bundle_decl(snap, PassiveAreaDecl())
+    e0, e1 = _entries(b0), _entries(b1)
+    for k in ("power_dc_w", "supply_current_dc", "area_search_m2"):
+        assert e0[k].value == e1[k].value, k
+    assert b0.detail == b1.detail
+    assert tuple(dict(b0.detail)["passive_area_undeclared"]) == ("CL", "R1")
+    assert rel_close(e0["area_search_m2"].value, EXP_AREA, 1e-12)
+
+
+def test_area_decl_unit_area_adds_capacitor_area(snap):
+    from gmid_engine.metrics import PassiveAreaDecl
+    _, b = _bundle_decl(snap, PassiveAreaDecl(unit_area=(("CL", U_C),)))
+    assert rel_close(_entries(b)["area_search_m2"].value, EXP_AREA + CL_F * U_C, 1e-12)
+    assert tuple(dict(b.detail)["passive_area_undeclared"]) == ("R1",)       # 저항은 단위 면적 미선언 -> 보고
+
+
+def test_area_decl_excluded_capacitor_not_in_area_nor_undeclared(snap):
+    from gmid_engine.metrics import PassiveAreaDecl
+    _, b = _bundle_decl(snap, PassiveAreaDecl(excluded=("CL",)))
+    assert rel_close(_entries(b)["area_search_m2"].value, EXP_AREA, 1e-12)
+    assert tuple(dict(b.detail)["passive_area_undeclared"]) == ("R1",)
+
+
+def test_area_decl_excluded_resistor_keeps_power(snap):
+    """측정 부하 저항을 면적에서 빼도 전력·레일 전류는 그대로(저항 값은 DC 해에 그대로 쓰인다) -- 면적만의 선언이다."""
+    from gmid_engine.metrics import PassiveAreaDecl
+    _, b0 = _bundle(snap, counted=("vdd",))
+    _, b = _bundle_decl(snap, PassiveAreaDecl(unit_area=(("CL", U_C),), excluded=("R1",)))
+    e0, e = _entries(b0), _entries(b)
+    assert e["power_dc_w"].value == e0["power_dc_w"].value
+    assert dict(b.detail)["per_rail_amp"] == dict(b0.detail)["per_rail_amp"]
+    assert tuple(dict(b.detail)["passive_area_undeclared"]) == ()
+    assert rel_close(e["area_search_m2"].value, EXP_AREA + CL_F * U_C, 1e-12)
+
+
+def test_area_decl_is_block_input(snap):
+    """area_decl 이 바뀌면 재계산(옛 면적 재사용 금지), 같은 area_decl 이면 재사용."""
+    from gmid_engine.metrics import PassiveAreaDecl
+    metrics_dc.reset_stats()
+    s1, b1 = _bundle_decl(snap, PassiveAreaDecl())
+    s2, b2 = _bundle_decl(s1, PassiveAreaDecl(unit_area=(("CL", U_C),)))
+    assert s2 is not s1
+    assert _entries(b2)["area_search_m2"].value != _entries(b1)["area_search_m2"].value
+    s3, _ = _bundle_decl(s2, PassiveAreaDecl(unit_area=(("CL", U_C),)))
+    assert s3 is s2
+    st = metrics_dc.stats()
+    assert (st.computes, st.reuses, st.recomputes_same_input) == (2, 1, 0)

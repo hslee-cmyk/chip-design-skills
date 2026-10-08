@@ -45,10 +45,12 @@ class SearchSettings:
     `front_budget_s`: front 전체 벽시계 예산 B(s) -- spec `search.front_budget_s`(PA-2·U-47 결정 대기). 벽시계는 바깥 정지
     (기록)로만 쓴다. `eval_budget`: 커널 평가 수 예산 E_B(정수) 또는 None -- None 이면 E_B = ⌊B / t_ref⌋(t_ref = 시작점 확인
     평가 시간 중앙값, 한 번 재서 기록)로 정한다. 탐색 안 모든 한도는 평가 수로 센다 -- 같은 E_B 면 결과가 결정론적이다.
-    `resistance_bounds_ohm`: θ 저항 상자 (lo, hi) Ω 또는 None. PDK 선언에 수동소자 범위가 없어 θ 저항이 있는 회로는 반드시
-    선언해야 한다(없으면 `search_domain` 이 SchemaRejectedError). θ `ss_resistance`(DEC-92)도 이 상자. `sources`: ((필드, 출처 문자열), ...).
-    [r6] `capacitance_bounds_f`: θ `capacitance`(DEC-92 engine 커패시터) 상자 (lo, hi) F 또는 None -- PDK 선언에서 유도 불가(sizing O13),
-    θ 커패시터가 있는데 None 이면 `search_domain` 이 SchemaRejectedError(`theta_capacitance_bounds_undeclared`).
+    `resistance_bounds_ohm`: θ 저항(`resistance`·`ss_resistance`) 상자 (lo, hi) Ω 또는 None. `sources`: ((필드, 출처 문자열), ...).
+    [r6] `capacitance_bounds_f`: θ `capacitance`(DEC-92 engine 커패시터) 상자 (lo, hi) F 또는 None.
+    [r10] 두 상자는 **run 단위 명시 재정의**다 -- None 이 아니면 그 종류 모든 원소에 쓴다. None 이면 spec
+    `search.theta_bounds` 의 원소별 상자(authoring `ThetaBound`)를 쓰고, 둘 다 없는 원소가 있으면 `search_domain` 이
+    SchemaRejectedError(`theta_resistance_bounds_undeclared` / `theta_capacitance_bounds_undeclared`, 없는 원소만). PDK 선언에는
+    수동소자 범위가 없어 유도하지 않는다(sizing O13).
     """
 
     front_budget_s: float
@@ -72,10 +74,11 @@ class Variable:
 class SearchDomain:
     """S0·고정 W 집합마다 1개(설계 4.1). `variables` = 연속 변수(θ 성분 순), `l_cells` = ((MOS, ((lo, hi), ...)), ...)
     L 칸(PDK 모델 bin 안 LUT L 점 구간; 앵커 하나뿐인 칸은 lo == hi). `area_resolution_m2` = b_A = 제조 격자 × 최소 finger 폭
-    (DEC-80 (i), 모델 오차 미측정이라 (ii) = (i) -- '추정'). `current_box` = ((kind, (I_off, I_max)), ...) θ 전류 상자의
+    (DEC-80 (i), 모델 오차 미측정이라 (ii) = (i) -- '추정'). [r12] `ties` = ((대표 성분, (묶인 성분, ...)), ...)(`negated` = 부호 −1 로 묶인 θ 전류 구성원, `zeros` = 구조적 0 으로 고정된 θ 전류 성분 -- 3.24) -- 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 변수 하나(대표)로 묶는다(`variables`·`l_cells` 에서 묶인 쪽은 빠진다, 3.24). `current_box` = ((kind, (I_off, I_max)), ...) θ 전류 상자의
     근거(`current_box.py`; I_max 는 잠정 -- 단일 finger 최대 슬라이스, S-3b). 전력 분해능 b_P 는 점마다 다르다
     (`Objectives.power_resolution_w`). `w_min_m`·`grid_m` = PDK 선언 `min_finger_w_m`(difftap.2)·`manufacturing_grid_m`
-    (W 하한 제약 S-18 과 b_A = grid_m × w_min_m)."""
+    (W 하한 제약 S-18 과 b_A = grid_m × w_min_m). `area_budget_m2` = spec 면적 예산(`area_search_m2 <= 값`, 사용자 결정 11) 또는
+    None -- 있으면 `current_box` 의 I_max 는 예산이 정하는 참 상한이다(S-3b 닫힘, `search_domain`)."""
 
     variables: tuple
     l_cells: tuple
@@ -83,6 +86,10 @@ class SearchDomain:
     current_box: tuple
     w_min_m: float
     grid_m: float
+    area_budget_m2: object = None
+    ties: tuple = ()
+    negated: tuple = ()
+    zeros: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -126,7 +133,8 @@ class ConstraintRow:
 class EvalResult:
     """커널 1회 결과(설계 2.3). `evaluation` = DcEvaluation 또는 None, `failure` = FailureRecord 또는 None,
     `constraints` = ConstraintRow tuple(ε 제약 제외 -- ε 는 키 밖이라 호출부가 붙인다), `cone` = 원뿔 제약 행,
-    `unmeasured` = 이 점에서 재지 못한 spec 제약 ((metric, op, 사유), ...) -- 빠뜨리지 않고 '미측정'으로 남긴다(S-1)."""
+    `unmeasured` = 이 점에서 재지 못한 spec 제약 ((metric, op, 사유), ...) -- 빠뜨리지 않고 '미측정'으로 남긴다(S-1).
+    [CM] `warnings` = 판정에 영향 없는 평가 경고 ((코드, ((키, 값), ...)), ...) -- `ss_evaluate` 의 `MetricBundle.warnings`(예 `cm_loop_unconstrained`)."""
 
     key: EvalKey
     theta: tuple
@@ -138,6 +146,7 @@ class EvalResult:
     failure: object
     seq: int
     unmeasured: tuple = ()
+    warnings: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)

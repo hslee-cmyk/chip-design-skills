@@ -9,6 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 
 from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED, SearchFront, find_front
 
@@ -160,3 +161,115 @@ def test_passive_theta_circuit_front_measured(tmp_path, lut_sealed):
         assert any(c.name.startswith("ss:") for c in p.result.constraints)
         th = dict(p.result.theta)
         assert 1e-14 <= th[("capacitance", "Cz")] <= 1e-10 and 1e2 <= th[("ss_resistance", "Rz")] <= 1e6
+
+
+# =====================================================================================================================
+# [CM 0e487b3] search CONTRACT I-22 경고 표면: SsEvaluation.warnings -> EvalResult.warnings -> find_front run notes
+# {verdict: "warning", code, points}. 회로: 완전 차동 CS 쌍 + PMOS 부하, 부하 gate c = 출력 저항 평균(R1·R2) -- CMFB 루프가 있는데
+# pm_cm_ss_deg 를 선언하지 않았다(metrics 7.11 '보고 전용' + 경고 조건 T_cm(0) > 1: CM 이득 ≈ gmp/(gds_n + gds_p) ≫ 1).
+# 기대값은 계약 문장(키·코드 이름)과 같은 점의 ss_evaluate 직접 호출(등식 I-22).
+# =====================================================================================================================
+
+CM_PORTS_D = {"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),
+              "op": ("output", "differential_output_p"), "om": ("output", "differential_output_n")}
+CM_GAIN_VIEW = {"ac_excite": {"ip": 0.5, "im": -0.5}, "sense_p": "op", "sense_n": "om", "sense_mode": "differential"}
+
+
+def circuit_cmfb_diff():
+    from .conftest import mos, topo, two
+    return topo("hand_cmfb_diff", [mos("M1", "nmos", "op", "ip", "gnd"), mos("M2", "nmos", "om", "im", "gnd"),
+                                   mos("M3", "pmos", "op", "c", "vdd"), mos("M4", "pmos", "om", "c", "vdd")],
+                CM_PORTS_D, passives=[two("R1", "resistor", "op", "c"), two("R2", "resistor", "c", "om")])
+
+
+def _cm_case(tmp, lut, archive_root=None):
+    return build_case(tmp, circuit_cmfb_diff(), lut, constraints=(("gain_ss_db", ">=", 0.0, CM_GAIN_VIEW),),
+                      elements=(("R1", "resistor", 1e6), ("R2", "resistor", 1e6)), eval_budget=20, archive_root=archive_root)
+
+
+def test_cm_unconstrained_warning_reaches_run_notes_i22(tmp_path, lut_sealed, short_root):
+    """I-22: CMFB 루프가 있고 선언이 없으면 run notes 에 {verdict: warning, code: cm_loop_unconstrained, points ≥ 1}(코드별 하나),
+    points ≤ 봉인 점 수(경고는 봉인 점의 ss 평가에서만 나온다). 경고는 notes 외 판정에 영향 없음 -- 다른 notes 는 그대로 있다."""
+    case = _cm_case(tmp_path, lut_sealed, short_root)
+    fr = find_front(case.sctx, [])
+    warn = [dict(n) for n in fr.notes if dict(n).get("verdict") == "warning"]
+    assert len(warn) == 1, warn
+    assert warn[0]["code"] == "cm_loop_unconstrained"
+    lines = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "evals.jsonl").read_text(
+        encoding="utf-8").splitlines() if x.strip()]
+    n_sealed = sum(1 for x in lines if x["status"] == STATUS_SEALED)
+    assert 1 <= warn[0]["points"] <= n_sealed
+
+
+def test_cm_constrained_circuit_has_no_warning_note(tmp_path, lut_sealed):
+    """S-27·I-22: 같은 회로에 pm_cm_ss_deg 를 선언하면 경고 note 가 없다(판정은 제약 행이 맡는다)."""
+    case = build_case(tmp_path, circuit_cmfb_diff(), lut_sealed,
+                      constraints=(("gain_ss_db", ">=", 0.0, CM_GAIN_VIEW), ("pm_cm_ss_deg", ">=", 60.0, None)),
+                      elements=(("R1", "resistor", 1e6), ("R2", "resistor", 1e6)), eval_budget=20)
+    fr = find_front(case.sctx, [])
+    assert not [n for n in fr.notes if dict(n).get("verdict") == "warning"]
+
+
+def test_eval_result_warnings_equal_ss_evaluate_i22(tmp_path, lut_sealed, short_root):
+    """I-22: 봉인 점의 EvalResult.warnings == 같은 점을 ss_evaluate 로 직접 부른 SsEvaluation.warnings(== ss.warnings), 형식
+    (("cm_loop_unconstrained", (("dc_db", 값 > 0),)),); 실패 점은 ()."""
+    from gmid_engine.metrics import ss_evaluate
+    from gmid_engine.search import STATUS_FAILED, evaluate
+    case = _cm_case(tmp_path, lut_sealed, short_root)
+    find_front(case.sctx, [])
+    lines = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "evals.jsonl").read_text(
+        encoding="utf-8").splitlines() if x.strip()]
+    sealed = [x for x in lines if x["status"] == STATUS_SEALED]
+    assert sealed
+    th = {tuple(k): v for k, v in sealed[0]["theta"]}
+    r = evaluate(case.sctx, th, tuple(sealed[0]["cells"]))
+    assert r.status == STATUS_SEALED
+    ssv = ss_evaluate(r.evaluation.sealed, case.sctx.dc, th, case.sctx.ss_constraints, junction=case.sctx.junction)
+    assert ssv.warnings == ssv.ss.warnings == r.warnings
+    assert len(r.warnings) == 1
+    code, det = r.warnings[0]
+    assert code == "cm_loop_unconstrained" and [k for k, _ in det] == ["dc_db"] and dict(det)["dc_db"] > 0.0
+    failed = [x for x in lines if x["status"] == STATUS_FAILED]
+    if failed:
+        r2 = evaluate(case.sctx, {tuple(k): v for k, v in failed[0]["theta"]}, tuple(failed[0]["cells"]))
+        assert tuple(r2.warnings) == ()
+
+
+# ---------------------------------------------------------------- [r11, 사용자 결정 11] 면적 예산 선언 spec (S-3b 닫힘, 3.22)
+# oracle (d) 계약 S-3b 문장: 예산 선언 spec -> notes {"verdict": "closed", "rule": "S-3b"}, 층 0 meaning_reason = w_bounded_by_area_budget,
+# 예산 없는 spec -> {"verdict": "provisional", "rule": "S-3b"}. oracle (a) 물리 불변식: front 점은 판정 제약 면적 행 c ≥ 0 ⇔ 면적 ≤ A,
+# 면적 = Σ W·L(회로 C 는 수동소자 없음) ≥ 어느 소자 하나의 W·L. 행 c = (A − 면적)/b_A 는 원 값(SLSQP 척도 배 없음).
+
+A_BUDGET = 1e-10        # 회로 C 시작점(theta_r4c) Σ W·L ≈ 6.7e-11 m² 보다 크게 고른 구성 입력 -- 시작점이 예산 안
+
+
+def test_budget_closes_s3b_note_and_layer0_reason(tmp_path, lut_sealed):
+    _, fr = _run(tmp_path, lut_sealed, eval_budget=30, constraints=(("area_search_m2", "<=", A_BUDGET, None),))
+    notes = _notes(fr)
+    s3b = [n for n in notes if n.get("rule") == "S-3b"]
+    assert len(s3b) == 1 and s3b[0]["verdict"] == "closed"
+    assert not any(n.get("rule") == "S-3b" and n.get("verdict") == "provisional" for n in notes)
+    (l0,) = [n for n in notes if n.get("reason") == "seal_margin_maxmin_centre"]
+    assert l0["meaning_reason"] == "w_bounded_by_area_budget"
+
+
+def test_no_budget_keeps_s3b_provisional(tmp_path, lut_sealed):
+    _, fr = _run(tmp_path, lut_sealed, eval_budget=30)
+    s3b = [n for n in _notes(fr) if n.get("rule") == "S-3b"]
+    assert len(s3b) == 1 and s3b[0]["verdict"] == "provisional"
+
+
+def test_front_points_inside_area_budget(tmp_path, lut_sealed):
+    case, fr = _run(tmp_path, lut_sealed, eval_budget=40, constraints=(("area_search_m2", "<=", A_BUDGET, None),))
+    b_a = case.sctx.domain.area_resolution_m2
+    assert len(fr.front) >= 1
+    for p in fr.front:
+        area = p.result.objectives.area_m2
+        ops = dict(p.result.evaluation.snapshot.column("device", "dc_op"))
+        wl = [op.W * op.L for op in ops.values()]
+        (row,) = [c for c in p.result.constraints if c.name == "spec:area_search_m2<="]
+        assert row.c >= 0, p.point_id
+        assert area <= A_BUDGET
+        assert row.c == pytest.approx((A_BUDGET - area) / b_a, rel=1e-9)
+        assert area == pytest.approx(sum(wl), rel=1e-12)
+        assert area >= max(wl)

@@ -91,6 +91,8 @@
     }
   },
   "supply_nets": ["vdd", "gnd"],
+  "source_manifest": {"figure": "Maloberti p.28-33", "device_count": 7, "passive_count": 3},
+  "bias_inputs": ["bias"],
   "_supply_nets_comment": "2026-09-17 선언(U-26 (b), 사용자 승인). 계획 DEC-60: 레일 넷은 이 필드로만 정한다(넷 이름 집합으로 판정하지 않는다. 전환기 이름집합 해석은 MG1까지 한시 허용이었고 이 선언이 그것을 대체한다). 레일 전압 `supplies_v`는 사이징 스펙 쪽 선언이고 여기에 두지 않는다(U-26 (a)).",
   "netlist": [
     {

@@ -57,6 +57,7 @@
 | HTML 리포트 | `design_report.render_html_report` | 계획 §8.5 "신규" `render_design_report_html()` | **새로 만들지 않는다** |
 | diode 고정점 | `solve_diode_connected_vds` | 계획 §7.3/§8.4의 `_solve_diode_connected_vgs_fixed_point` | 이름만 다름 -- **새로 만들지 않는다** |
 | L grid 스냅 | `quantize_L` | SD `_quantize_to_grid`(의도적 사본) | 모듈 경계 결정 후 |
+| 비싼 파생 표(tol_V·tol_VDsat·곡선 보고)의 프로세스 간 재사용 | `gmid_engine.lut.LutMemo.lookup_persistent` -> `TableCache.fetch`(lut/CONTRACT 2.1, 키 = 코드 버전 + 입력 내용 + 설정, 원자적 쓰기, 읽을 때 검증) | 호출부마다 파일 캐시·pickle·모듈 전역 dict 를 따로 만드는 것 | **새로 만들지 않는다** -- 새 비싼 파생 표는 `memo.lookup` 대신 `memo.lookup_persistent(region, fn, key, compute, inputs, settings)` 만 쓴다. 옛 `id(lut)` 키 캐시는 쓰지 않는다 |
 
 ## 3. R0 -- 수정 없이 그대로 재사용 (새로 만들면 중복)
 
@@ -599,3 +600,12 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | `nmcnr_predict_ac_response` | topology_library.py | 2 | DF-31 | 7b |
 | `<module>` | topology_to_markdown.py | 1 | 신규 | 해당 없음 |
 
+
+
+## 9. 새 엔진(`gmid_engine`) 근 찾기 정본 (2026-10-08, 성능 항목 1·6)
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| 1변수 노드 근 찾기 | `gmid_engine.sizing.bracket_root`(Brent, 수렴 판정 = bisection 과 같음: 근과 거리 ≤ tol/2) | `solve_self` 가 부른다. 새 근 찾기 함수를 만들지 않는다 |
+| 1변수 풀이 재사용 | `solve_self` 안 LUT memo `root` 영역(함수 이름 `solve_self`) | 키 = 소자 종류·L·ln IDu·writer 관계·known·VDS/VSB 1차식 계수·구간·tol |
+| tol_V 셀 조회 한 평가 안 재사용 | `_Circuit.tolerance` 의 `tol_cells` | `tol_v_cell` 자체는 상태 없음 |
