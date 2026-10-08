@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+import math
 from collections import Counter
 from pathlib import Path
 
@@ -178,6 +179,120 @@ def test_every_spec_meta_fp_matches_topology():
     for name in TABLE:
         topo = load_topology(str(LIBRARY / (name + ".topology.json")))
         assert _spec(name)["meta"]["topology_fp"] == topo.connectivity_fp, name
+
+
+# ---------------------------------------------------------------- [2026-10-08] search.theta_bounds (사용자 결정 8·9·10)
+# oracle (d) 사용자 결정 문장(_drafts/user_decisions.md 2026-10-08):
+#  8번 "θ 저항 범위: current_reuse R1·R2(CMFB 공통모드 감지) [10 kOhm, 10 MOhm], sf_pushpull R1a~c(자기바이어스 캐스코드) [1 kOhm, 1 MOhm]"
+#  10번 "θ 커패시터 범위 [0.1 pF, 10 pF]: ... spec mode engine 인 커패시터 전부"
+#  9번 "J7 영점 상쇄 규칙(R = 1/Σgm) ... 현 매칭 확정: two_stage Rz->M6, nmcnr Rm->M301, 파일럿 Rz1->M16 / Rz2->M26" -- 구조 규칙이 값을
+#  정하는 저항은 θ 가 아니다(sizing CONTRACT 4.4 r5 4번) -> 상자를 받지 않는다(SPEC_CONTRACT 1절: 상자 없는 원소는 search 가 거부 --
+#  θ 가 아닌 원소는 search 가 묻지 않는다).
+# engine 원소 집합은 spec/topology JSON 직접 집계(피검 로더 아님).
+DEC8_R = {
+    "current_reuse_telescopic_ota": {"R1": (1e4, 1e7), "R2": (1e4, 1e7)},
+    "sf_pushpull_output_opamp": {"R1a": (1e3, 1e6), "R1b": (1e3, 1e6), "R1c": (1e3, 1e6)},
+}
+DEC10_C = (1e-13, 1e-11)
+DEC9_STRUCTURAL_R = {
+    "two_stage_ota": {"Rz"},
+    "nmcnr_amplifier": {"Rm"},
+    "current_reuse_telescopic_ota": {"Rz1", "Rz2"},
+}
+
+
+def _engine_rc(name):
+    """JSON 직접: topology 수동소자 중 kind 저항·커패시터이고 spec element_values 가 {"engine": true, ...} 인 것 -> {이름: kind}."""
+    topo = json.loads((LIBRARY / (name + ".topology.json")).read_text(encoding="utf-8"))
+    ev = _spec(name)["human"]["element_values"]
+    out = {}
+    for e in topo.get("passive_elements", []):
+        v = ev.get(e["name"])
+        if e["kind"] in ("resistor", "capacitor") and isinstance(v, dict) and v.get("engine") is True:
+            out[e["name"]] = e["kind"]
+    return out
+
+
+def _expected_boxes(name):
+    """결정 8·10 으로 정해진 상자: 결정 8 의 저항 + 그 회로의 engine 커패시터 전부(결정 10)."""
+    want = dict(DEC8_R.get(name, {}))
+    for n, k in _engine_rc(name).items():
+        if k == "capacitor":
+            want[n] = DEC10_C
+    return want
+
+
+def _theta_bounds_of(doc):
+    from gmid_engine.authoring import THETA_BOUNDS
+    found = [s.value for s in doc.search if s.field == THETA_BOUNDS]
+    return found[0] if found else ()
+
+
+def test_engine_resistors_are_decision8_or_decision9_structural():
+    """손 집계: library 의 engine 저항 = 결정 8 의 θ 저항 ∪ 결정 9 의 구조 규칙 저항(빠짐·겹침 없음)."""
+    for name in TABLE:
+        eng_r = {n for n, k in _engine_rc(name).items() if k == "resistor"}
+        dec8 = set(DEC8_R.get(name, {}))
+        dec9 = DEC9_STRUCTURAL_R.get(name, set())
+        assert not (dec8 & dec9), name
+        assert eng_r == dec8 | dec9, (name, eng_r)
+    assert sum(len(_engine_rc(n)) for n in TABLE) == 18       # 손 집계: R 9(R1·R2·Rz1·Rz2·Rm·R1a~c·Rz) + C 9(Cc1·Cc2·ngcc Cm1·Cm2·nmcnr Cm1·Cm2·sf Cc·two_stage Cc·two_stage_sf Cc)
+
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_theta_bounds_follow_user_decisions(name):
+    """spec 상자 = 결정 8(저항)·결정 10(engine 커패시터 전부), 결정 9 구조 규칙 저항은 상자 없음. JSON 과 로드 결과 둘 다."""
+    want = _expected_boxes(name)
+    raw = _spec(name)["human"]["search"].get("theta_bounds") or {}
+    assert {n: (b["min"], b["max"]) for n, b in raw.items()} == want
+    for n, b in raw.items():
+        assert b["source"]["kind"] == "user_spec" and b["source"]["decided"] == "2026-10-08", (name, n)
+    assert not set(raw) & DEC9_STRUCTURAL_R.get(name, set())
+    kinds = _engine_rc(name)
+    got = _theta_bounds_of(_load(name))
+    assert [(t.element, t.kind, t.lo, t.hi) for t in got] == [(n, kinds[n]) + want[n] for n in sorted(want)]
+
+
+def test_boxed_circuit_count():
+    """상자가 있는 회로 = engine R/C 가 있는 6회로(SPEC_CONTRACT 5절 theta_bounds 측정 문장), 나머지 3회로는 칸 없음."""
+    with_box = sorted(n for n in TABLE if _expected_boxes(n))
+    assert with_box == ["current_reuse_telescopic_ota", "ngcc_3stage_ff", "nmcnr_amplifier", "sf_pushpull_output_opamp",
+                        "two_stage_ota", "two_stage_ota_sf"]
+    for n in set(TABLE) - set(with_box):
+        assert "theta_bounds" not in _spec(n)["human"]["search"], n
+
+
+@pytest.fixture(scope="module")
+def toy_access_lib(tmp_path_factory):
+    from gmid_engine.lut import load_lut_set
+    from sizing.conftest import TOY_SPEC, new_access, write_toy_lut
+    m, c = write_toy_lut(tmp_path_factory.mktemp("lib_toy_lut"))
+    return new_access(load_lut_set(str(m), str(c), TOY_SPEC))
+
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_boxes_cover_exactly_theta_passive_components(name, toy_access_lib, tmp_path):
+    """9회로: sizing θ 스키마(sizing CONTRACT 4.4 -- 의존 층 입력)의 수동소자 성분 원소 = spec 상자 원소, 그리고 search_domain 이
+    재정의 없이(SearchSettings 상자 None) spec 상자만으로 변수를 만든다(거부 없음, 변수 = 상자의 ln)."""
+    from gmid_engine.search import SearchSettings, search_domain
+    from search.conftest import write_decls
+    from sizing.conftest import library_ctx
+    ctx = library_ctx(name, toy_access_lib)[5]
+    kind_of = {"resistance": "resistor", "ss_resistance": "resistor", "capacitance": "capacitor"}
+    theta_passive = {k: kind_of[t] for t, k in ctx.schema.components if t in kind_of}
+    want = _expected_boxes(name)
+    assert set(theta_passive) == set(want)
+    assert theta_passive == {n: k for n, k in _engine_rc(name).items() if n in want}
+    for r in DEC9_STRUCTURAL_R.get(name, set()):
+        assert r not in theta_passive                            # 구조 규칙 저항은 θ 아님(결정 9)
+    pdk, _ = write_decls(tmp_path / "pdk")
+    dom = search_domain(ctx, SearchSettings(600.0, 40, None, (("front_budget_s", "test"),)), pdk,
+                        _theta_bounds_of(_load(name)))
+    got = {v.component[1]: (v.log, v.lo, v.hi) for v in dom.variables if v.component[0] in kind_of}
+    assert set(got) == set(want)
+    for n, (lo, hi) in want.items():
+        assert got[n][0] is True
+        assert got[n][1] == pytest.approx(math.log(lo), rel=1e-15) and got[n][2] == pytest.approx(math.log(hi), rel=1e-15)
 
 
 # =====================================================================================================================

@@ -45,10 +45,12 @@ class SearchSettings:
     `front_budget_s`: front 전체 벽시계 예산 B(s) -- spec `search.front_budget_s`(PA-2·U-47 결정 대기). 벽시계는 바깥 정지
     (기록)로만 쓴다. `eval_budget`: 커널 평가 수 예산 E_B(정수) 또는 None -- None 이면 E_B = ⌊B / t_ref⌋(t_ref = 시작점 확인
     평가 시간 중앙값, 한 번 재서 기록)로 정한다. 탐색 안 모든 한도는 평가 수로 센다 -- 같은 E_B 면 결과가 결정론적이다.
-    `resistance_bounds_ohm`: θ 저항 상자 (lo, hi) Ω 또는 None. PDK 선언에 수동소자 범위가 없어 θ 저항이 있는 회로는 반드시
-    선언해야 한다(없으면 `search_domain` 이 SchemaRejectedError). θ `ss_resistance`(DEC-92)도 이 상자. `sources`: ((필드, 출처 문자열), ...).
-    [r6] `capacitance_bounds_f`: θ `capacitance`(DEC-92 engine 커패시터) 상자 (lo, hi) F 또는 None -- PDK 선언에서 유도 불가(sizing O13),
-    θ 커패시터가 있는데 None 이면 `search_domain` 이 SchemaRejectedError(`theta_capacitance_bounds_undeclared`).
+    `resistance_bounds_ohm`: θ 저항(`resistance`·`ss_resistance`) 상자 (lo, hi) Ω 또는 None. `sources`: ((필드, 출처 문자열), ...).
+    [r6] `capacitance_bounds_f`: θ `capacitance`(DEC-92 engine 커패시터) 상자 (lo, hi) F 또는 None.
+    [r10] 두 상자는 **run 단위 명시 재정의**다 -- None 이 아니면 그 종류 모든 원소에 쓴다. None 이면 spec
+    `search.theta_bounds` 의 원소별 상자(authoring `ThetaBound`)를 쓰고, 둘 다 없는 원소가 있으면 `search_domain` 이
+    SchemaRejectedError(`theta_resistance_bounds_undeclared` / `theta_capacitance_bounds_undeclared`, 없는 원소만). PDK 선언에는
+    수동소자 범위가 없어 유도하지 않는다(sizing O13).
     """
 
     front_budget_s: float

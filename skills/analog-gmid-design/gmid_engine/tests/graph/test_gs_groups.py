@@ -49,6 +49,7 @@ def test_rail_gate_group_included(gh, tmp_path):
     raw = gh.raw("pushpull_follower_buffer")
     raw["netlist"] += [{"name": "Mg1", "kind": "nmos", "drain": "A", "gate": "vdd", "source": "vss"},
                        {"name": "Mg2", "kind": "nmos", "drain": "B", "gate": "vdd", "source": "vss"}]
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s1 = build_s1(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
     assert ("nmos", "vdd", "vss", ("Mg1", "Mg2")) in [gh.gs_plain(g) for g in gh.gval(s1, "gs_groups")]
 
@@ -57,6 +58,7 @@ def test_kind_separates_groups(gh, tmp_path):
     raw = gh.raw("pushpull_follower_buffer")
     raw["netlist"] += [{"name": "Mk1", "kind": "nmos", "drain": "A", "gate": "VNB1", "source": "B"},
                        {"name": "Mk2", "kind": "pmos", "drain": "vout", "gate": "VNB1", "source": "B"}]
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s1 = build_s1(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
     assert all({"Mk1", "Mk2"} - set(g.members) for g in gh.gval(s1, "gs_groups"))
 

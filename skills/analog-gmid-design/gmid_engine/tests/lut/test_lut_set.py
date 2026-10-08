@@ -11,7 +11,7 @@ import pytest
 from gmid_engine.core import SchemaRejectedError
 from gmid_engine.lut import CapTable, DcSlice, LutSet, LutSpec, MidpointTable
 
-from .conftest import (BIN_ANCHOR_BIN_LO, BIN_BLOCKS, BIN_MODEL_REL, MID_L_SOURCE, TOY_L, TOY_SPEC, TOY_VDS, TOY_VGS, TOY_VS,
+from .conftest import (BIN_ANCHOR_BIN_LO, BIN_BLOCKS, BIN_MODEL_REL, MID_L_SOURCE, SKILL_DIR, TOY_L, TOY_SPEC, TOY_VDS, TOY_VGS, TOY_VS,
                        curve_cap_arrays, curve_slice_arrays, detail_of, mid_point_arrays, sha256_file,
                        rel_close,
                        standard_toy_slices, toy_cap_arrays, toy_slice_arrays)
@@ -596,12 +596,21 @@ def test_reject_order(mid_toy_build, bad, first):
 
 @pytest.mark.lut_realdata
 def test_real_midpoints_loaded(real_lut, raw_mid):
-    """[r6] 1.7 실측: L = 0.165·6.0·14.0 µm, w_ref_m 5e-06 -> 폭 키 1000, nmos·pmos 표."""
+    """[r6, 2026-10-08 중점 변경] 1.7: L = 승인 L 파일 `verification_midpoints_um` (0.165·0.85·1.75·3.25 µm -- CONTRACT 8절,
+    user_decisions 2026-10-08 '7번'), w_ref_m 5e-06 -> 폭 키 1000, nmos·pmos 표.
+    oracle: (d) 사용자 결정으로 선언된 승인 L 파일 값(파일을 직접 읽음) + 중점 npz 를 numpy 로 직접 읽은 L 축."""
     assert set(real_lut.midpoints) == {"nmos", "pmos"}
+    declared = json.loads((SKILL_DIR / "assets" / "sky130_lut_L_grid.json").read_text(encoding="utf-8"))
+    declared_um = declared["verification_midpoints_um"]
+    assert declared_um == [0.165, 0.85, 1.75, 3.25]                    # (d) 사용자 결정 2026-10-08 '7번' 의 목록
+    file_L = tuple(float(x) for x in raw_mid["L"])
+    assert len(file_L) == len(declared_um)
+    for got, um_ in zip(file_L, declared_um):                         # µm -> m 곱의 반올림(1 ulp) 안
+        assert abs(got - um_ * 1e-6) <= math.ulp(um_ * 1e-6), (got, um_)
     for kind, suf in (("nmos", "_n"), ("pmos", "_p")):
         t = real_lut.midpoints[kind]
         assert t.w_key == 1000 and t.w_m == float(raw_mid["w_ref_m"]) == 5e-06
-        assert tuple(t.L_points) == tuple(float(x) for x in raw_mid["L"]) == (1.65e-7, 6e-6, 1.4e-5)
+        assert tuple(t.L_points) == file_L
         assert np.array_equal(np.asarray(t.VDSAT), raw_mid["VDSAT" + suf])
         I, G = raw_mid["ID" + suf], raw_mid["GM" + suf]
         assert np.array_equal(np.asarray(t.on_mask), (I > 0) & (G > 0))

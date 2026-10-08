@@ -20,7 +20,8 @@ def two_src_circuit():
     return topo("hand_two_src_cur",
                 [mos("M1", "nmos", "n", "in", "gnd"), mos("M2", "nmos", "n", "b2", "gnd")],
                 {"in": ("input", "x"), "n": ("output", "y")},
-                sources=[two("I1", "current_source", "vdd", "n"), two("I2", "current_source", "vdd", "n")])
+                sources=[two("I1", "current_source", "vdd", "n"), two("I2", "current_source", "vdd", "n")],
+                bias=["b2"])                                                                 # b2: M2 gate 에만
 
 
 @pytest.fixture

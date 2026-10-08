@@ -155,6 +155,17 @@ class SettingValue:
 
 
 @dataclasses.dataclass(frozen=True)
+class ThetaBound:
+    """원소별 θ 상자 하나(`search.theta_bounds`, 2026-10-08). `kind` ∈ resistor(Ω)·capacitor(F), `lo` < `hi` 양수, `source` 출처."""
+
+    element: str
+    kind: str
+    lo: float
+    hi: float
+    source: object = None
+
+
+@dataclasses.dataclass(frozen=True)
 class RuleChoice:
     """규칙 이름 선택 하나(`spice_check`·`front_refilter`). 결정 대기면 rule None + `decision`."""
 

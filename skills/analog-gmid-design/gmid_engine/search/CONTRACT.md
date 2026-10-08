@@ -40,6 +40,21 @@
   test 를 고치지 않음): `test_find_front.py::test_sealed_run_perf_and_invariants`(n_starts 1 -> 층 0 시작점 포함 2)·
   `test_notes_record_open_items`(`layer0_inputs_missing` -> `seal_margin_maxmin_centre`) 두 건이 r5 계약 변경 3.12·3.16 과 어긋난다 --
   test 작성자 몫.
+- **r9(2026-10-08, 브랜치 ng-search-cond = master + 이 변경 -- sizing r8 봉인 9 전도 여유)**: `[r9]`. `cell_floor` 에 칸 전도 하한 추가
+  (3.22 r9 항목): 봉인 9 조건 IDu(VGS)·(gm/ID)·tol_V ≥ IDu(VGS = 0) 은 W 와 무관한 ln_idu 좌표 하한이라 θ 전류 상자(current_box I_off)로는
+  막을 수 없다(sizing O17). 모든 ln_idu 성분에 붙고 1변수 writer 는 정점 하한과 max. 봉인 9 가 판정 권한(하한은 평가 절약용).
+- **r10(2026-10-08, ng-search-cond -- 사용자 결정 8·10: 원소별 θ 수동소자 상자)**: `[r10]`. θ `resistance`·`ss_resistance`·
+  `capacitance` 성분의 상자는 **원소별**로 정한다. 우선순위(위가 이긴다):
+  1. `SearchSettings.resistance_bounds_ohm` / `capacitance_bounds_f` 가 None 이 아니면 그 run 의 **그 종류 모든 원소**에 그 상자
+     (명시 run 단위 재정의 -- 시연·실험용, spec 을 바꾸지 않는다).
+  2. 아니면 spec `human.search.theta_bounds.<원소>`(authoring `ThetaBound(element, kind, lo, hi, source)`, SI 단위 Ω·F --
+     authoring SPEC_CONTRACT 1절). `build_search_context` 가 `spec.search` 의 `SettingValue(field "theta_bounds")` 값을
+     `search_domain(dc_ctx, settings, pdk_decl, spec_bounds)` 의 넷째 인자로 넘긴다(기본 `()`).
+  3. 둘 다 없으면 변수를 만들기 전에 `SchemaRejectedError`(gate `search_domain`, reason `theta_resistance_bounds_undeclared` /
+     `theta_capacitance_bounds_undeclared`, `resistors` / `capacitors` = **상자가 없는 원소만** θ 순). 커널 호출 0(I-11 그대로).
+  변수 = (True, ln lo, ln hi). spec 상자는 `search_fp`(→ `spec_fp`)에 든다(값·원소·kind; 출처 문구는 지문 밖).
+  `SearchContext` 지문은 바뀌지 않는 쪽(상자는 변수 bounds 로만 작용 -- 같은 θ 의 평가 결과는 상자와 무관). 1.1·3.7·I-11 은
+  이 항목으로 읽는다. library 6회로 spec 에 상자 기입(10절 r10).
 
 ### r4 덮어쓰기 요약 (아래 본문보다 우선)
 - `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, junction=None)`: `junction` = metrics `JunctionSource`
@@ -346,6 +361,23 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   d·s·bulk 중 하나(sizing `self_referential` 과 같은 판정; 집합은 `sctx.cell_floors` 에 1회). `start`(θ Mapping)가 있으면 하한 =
   min(하한, start[성분]). 원래 lo < 하한 < hi 일 때만 결과에 넣는다.
 - 쓰는 곳: `solve_eps._layout`(one_var_only, start = 시작 θ), 층 0 최대-최소(같은 인자), 층 0 시험·수리(모든 쓰기 소자, start 없음).
+- **[r9] 전도 하한**(sizing r8 봉인 9 -- 판정 권한은 봉인 9, 이 하한은 그 거부 영역에서 평가를 아끼는 상자): 칸 전도 하한(kind, w_key,
+  칸) = 칸 안 L 앵커 a × VDS 격자 k × VS 격자 s 곡선마다(tol = lut `tol_v_table(memo, kind, w_key).at(L_a, VDS_k, "id_equivalent")`,
+  None·0 이면 그 (a, k) 곡선 제외; VGS 격자의 0 마디 z(|VGS| ≤ spacing(max|VGS|), 없으면 칸 전도 하한 None)가 on_mask 인 곡선만)
+  f_i = log_GM[a, i, k, s] + ln tol − log_ID[a, z, k, s](= ln(gm·tol_V / I_off), 같은 슬라이스 폭 -- W/L 지워짐, 봉인 9 margin = 1 ⇔
+  f = 0). on_mask 이고 f ≥ 0 인 첫 마디 j 가 있고 j > 0 이고 j − 1 마디도 on_mask 이면 근 = lnID[j−1] + t·(lnID[j] − lnID[j−1]) + ln L_a
+  − ln w_m, t = −f[j−1]/(f[j] − f[j−1]); 그 밖의 곡선은 제외. 칸 전도 하한 = 근들의 최댓값(곡선이 하나도 없으면 None). 캐시
+  `sctx.cell_floors[("conduction", kind, w_key, 칸)]`.
+- [r9] 성분별 하한 = max(칸 전도 하한(None 아니면), 칸 정점 하한(one_var_only 가 아니거나 m 이 1변수 writer 일 때)). 전도 하한은
+  **모든 `ln_idu` 성분**에 붙는다(one_var_only 여도). 둘 다 없으면 그 성분은 결과에 없다. `start` 캡은 start 에 그 성분이 있을 때만
+  (없으면 캡 없음 -- r8 은 KeyError).
+- [r9] 실측(LUT v2): L 칸 (0.7, 1) µm 에서 nmos 전도 하한 ln IDu −26.48(VDS 격자 중간·VS 0 곡선에서 VGS 0.142 V), pmos −38.36(0.136 V);
+  칸 정점 하한은 nmos −30.22(0.006 V), pmos −42.00(0.015 V) -- 전도 하한이 더 크다(보수: 격자 전체 최댓값이라 sizing O17 의 L 1 µm
+  VGS* nmos ≈ 0.14 V·pmos ≈ 0.12 V 보다 pmos 쪽이 조금 높다).
+- [r9] **기대값이 바뀌는 기존 test(작성자 갱신 몫, 고치지 않음)**: `tests/search/test_cell_floor.py::test_one_var_only_selects_diode_writer`·
+  `test_one_var_only_empty_for_gate_writers`·`test_start_coordinate_caps_floor`·`test_cell_floor_cache_is_read`(캐시 키 수)·
+  `test_real_lut_v2_multi_anchor_cells`, `tests/search/test_layer0_center.py::test_halton_hit_and_run_probe_points`·
+  `test_repair_bisection_count_and_points` -- 모두 전도 하한이 더해져 하한 값·성분 집합·캐시 키가 바뀐 것.
 
 ### 3.8 [r3] `constraint_rows(snapshot, lut_access, w_min_m, grid_m) -> (rows, undefined)`
 - MOS 마다(`dc_op` 열 순서) 먼저 [r3] `w_min:<m>` c = (dc_op.W − w_min_m)/grid_m(**설계 개정 S-18**, tol 과 무관하게 늘 있음),
@@ -594,6 +626,28 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 
 ## 10. 9회로 실측 -- 작성자 측 시연(정본 아님)
 
+### 10.r10 [r10] spec 원소별 θ 상자만으로 실측 (2026-10-08, LUT v2, master d672985 병합, B = 120 s, 시연 R/C 상자 없음)
+- 수동소자 상자는 전부 spec `search.theta_bounds`(SearchSettings 재정의 None). 시연 시작점 탐침도 수동소자 값을 `sctx.domain`
+  변수 상자에서 log-U 로 뽑는다(옛 하드코딩 R [100 Ω, 100 kΩ]·C [0.1, 10] pF 제거). 미선언으로 남은 것 = W/면적 상한(I_max 잠정).
+- 상자가 있는 6회로 모두 `search_domain` 통과(r2 의 current_reuse R1·R2 / sf_pushpull R1a·R1b·R1c 거부 해소). 커널 호출 = 고유 키,
+  `recompute_same_key` 0(9/9).
+
+| 회로 | 수동 θ 상자 | 시작점 | front | 최종 front 점 (P, A, ss) |
+|---|---|---|---|---|
+| common_gate_amplifier | -- | 2 | 1 | P 2.39e-12 W, A 1.26e-12 m² |
+| current_reuse_telescopic_ota | Cc1·Cc2 [0.1, 10] pF, R1·R2 [10 k, 10 M] Ω | 0 | 0 | 탐침 200 전부 DC 실패(no_root_in_window 233·lut_query_failed 3) |
+| folded_cascode | -- | 2 | 1 | P 9.98e-7 W, A 2.0e-5 m² |
+| ngcc_3stage_ff | Cm1·Cm2 [0.1, 10] pF | 2 | 0 | ε 풀이 6건 실패(봉인 점 377) |
+| nmcnr_amplifier | Cm1·Cm2 [0.1, 10] pF | 2 | 0 | 봉인 2 / 실패 139(lut_query_failed 93) |
+| pushpull_follower_buffer | -- | 1 | 2 | rout 998.3 Ω(P 2.79e-5 W) / 619.2 Ω(P 1.95e-4 W) ≤ 1000 |
+| sf_pushpull_output_opamp | Cc [0.1, 10] pF, R1a·R1b·R1c [1 k, 1 M] Ω | 0 | 0 | 탐침 200 전부 실패(lut_query_failed 104·newton 82·no_root 13) |
+| two_stage_ota | Cc [0.1, 10] pF | 2 | 1 | gain 80.02 dB ≥ 57, P 1.36e-7 W, A 1.54e-9 m² |
+| two_stage_ota_sf | Cc [0.1, 10] pF | 2 | 1 | gain 80.54 dB, rout 859.4 Ω ≤ 1000, P 5.93e-5 W |
+
+r9(시연 상자) 결과와 front 점이 같다 -- 커패시터 상자 값이 시연 값과 같고, 저항 상자가 생긴 두 회로는 상자보다 앞 단계(DC 봉인)에서
+막힌다(0 시작점은 상자 문제가 아니라 DC 해: 창 안 근 없음·LUT 범위 밖 -- 9절 열린 항목). engine 값 저항 `Rm`(nmcnr)·`Rz`
+(two_stage_ota)·`Rz1`·`Rz2`(current_reuse)는 θ schema 성분이 아니라(실측: 변수 목록에 없음) 상자가 필요 없다.
+
 ### 10.0000 [r5] 층 0 실측 (2026-10-08, LUT v2, `layer0_start` 단독 -- 새 컨텍스트, 평가 예산 미선언·B = 600 s)
 
 θ 저항이 있는 두 회로(current_reuse R1·R2, sf_pushpull R1a~R1c)는 **시연 전용 상자 (1e2, 1e5) Ω**(GB7 §10 탐침 범위, 엔진 밖 하네스
@@ -809,3 +863,6 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 - cProfile(cumtime): folded_cascode 48.6 s 중 size_and_seal 47.3 s(97%), LUT `gm_id_for_target` 27.5 s, core `fp_of` 19.5 s
   (40%), `Projection.from_snapshot` 10.6 s; two_stage_ota 14.4 s 중 size_and_seal 13.4 s, `fp_of` 8.5 s(59%). search 자체
   (키·캐시·원뿔·목적·제약·SLSQP 조립)는 2~7% -- 핫스팟은 sizing O9(투영 지문)·LUT 역산이다.
+
+- [2026-10-08 core 성능 2~5 후 주석] 위 cProfile 의 `fp_of` 비중(40~60 %)은 옛 core(memo 키·레코드·투영마다 직렬화) 기준이다. 이제 memo 키는 `canonical_key`,
+  레코드·스냅샷 지문은 읽을 때 한 번, 투영은 행 단위 sha256 이라 9회로 평가에서 fp 계열 비용이 옛의 약 1/3~1/10 이다(core CONTRACT 10.1).
