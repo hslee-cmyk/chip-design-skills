@@ -105,6 +105,34 @@ def test_side_injection_into_block_internal_node_is_not_feedforward(tmp_path):
     assert v.ff_ratio_candidates == ()
 
 
+def test_side_injection_merges_into_reader_block_keeping_reader_stage(tmp_path):
+    # [U1b-jrules] graph 계약 10.5 '다른 stage 블록이 겹친 넷을 한 블록 멤버가 입력으로 읽으면 내부 노드 측면 주입이라 읽는 블록에
+    # 합친다'(41 1.12.2-2 K8). oracle (a) 손 유도(K8): Mk 는 gate in(stage_dist 0)이라 1단 셀이고 drain c 를 낸다. c 는 2단 블록
+    # (M2 input, 시작 입력 a 의 stage_dist 1 -> stage 2)의 캐스코드 Mc 가 source 로 읽는 넷 -> c 는 2단 블록의 내부 노드, Mk 는 그
+    # 블록으로 합쳐지고 stage 는 읽는 블록의 2 를 유지한다. 블록 = (a,) stage 1 {M1 input, P1 load}, (out,) stage 2 {M2, Mc, Mk, P2}.
+    # c 를 출력노드로 갖는 블록은 없다.
+    _, s1v = H.build(tmp_path, J.K8)
+    v = H.view(s1v)
+    assert {b.key: (b.kind, b.stage) for b in v.blocks} == {("a",): ("gain", 1), ("out",): ("gain", 2)}
+    out = H.roles(H.blocks(v)[("out",)])
+    assert set(out) == {"M2", "Mc", "Mk", "P2"}
+    assert (out["M2"], out["Mc"]) == ("input", "cascode")
+    assert "c" in H.blocks(v)[("out",)].nodes
+
+
+def test_side_injection_merge_leaves_no_overlap_record(tmp_path):
+    # [U1b-jrules] 합친 뒤에는 c 를 두 블록이 소유하지 않는다(위 test) -> 불변량 4 의 겹침이 없으니 `block_node_overlap`(review_needed,
+    # '이득 블록과 버퍼 블록이 합류 노드가 아닌 넷을 공유') 기록도 없어야 한다. 41 1.13 sf 행(같은 K8 모양 M17·M20)도 review 없음.
+    _, s1v = H.build(tmp_path, J.K8)
+    v = H.view(s1v)
+    owned = {}
+    for b in v.blocks:
+        for n in set(b.nodes) - set(b.inputs):
+            assert n not in owned, (n, owned.get(n), b.key)
+            owned[n] = b.key
+    assert "block_node_overlap" not in H.codes(v)
+
+
 def test_merge_is_always_a_main_block_output(tmp_path):
     # 41 1.12.2-2 합류 노드 조건을 모든 손 회로·library 회로에 건다
     for doc in (J.FF3, J.FFAMB, J.PAR2, J.K8, H.FF, H.MILLER, H.FOLDED):

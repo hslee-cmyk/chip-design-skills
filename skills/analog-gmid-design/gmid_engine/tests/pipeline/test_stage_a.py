@@ -15,15 +15,22 @@ performed·ok, 섞인 선언은 declared_stage_mismatch(review_needed), 해시 �
 쓴다. review_needed 만 내는 손 회로는 FF(이제 feedforward, 41 1.12.2) 대신 FOLDED(l_owner_name_order, 41 1.12.5-4). library 정지 표는
 41 1.13 으로 바뀐다: sf 는 정지 없음, ngcc·nmcnr 는 spec 없이 돌리면 compensation_internal 의 전체 PM 미선언 정지, 파일럿은
 cs_output_low_impedance(1.12.6 '사실 없이 남는다').
+
+[U1b-jrules 2026-10-09] 821fb72·5b5496f(pipeline 계약 1절, graph 계약 10.2): declared_loop_cuts 는 **내부** 루프 뷰 선언(mode loop,
+beta != declared)의 끊는 넷만이고, spec feedback 유도 β 루프(beta declared)는 build_s1v 전달과 `loop_cut_unmatched` 대조 양쪽에서
+뺀다. 엔진 루프 뷰 끊는 gate 넷에 맞지 않는 내부 선언 넷은 보고서 review_needed `loop_cut_unmatched`(뷰 "", subject = 넷).
+옛 test_declared_loop_cuts_reach_build_s1v(β 선언 inn 이 build_s1v 로 간다)는 이 결정과 충돌해 β 제외·내부 전달 두 test 로 바꿨다.
 """
 from __future__ import annotations
 
+import dataclasses
 import json
 from pathlib import Path
 
 import pytest
 
-from gmid_engine.authoring import load_sizing_spec, load_topology
+import gmid_engine.pipeline.stage_a as stage_a_module
+from gmid_engine.authoring import ViewDecl, load_sizing_spec, load_topology
 from gmid_engine.graph import build_s1, build_s1v, s1v_rule_fp, structure_rule_fp
 from gmid_engine.metrics import metric_catalog
 from gmid_engine.pipeline import StageAResult, run_stage_a, structure_count_budget
@@ -184,16 +191,54 @@ def test_non_json_structure_file_still_writes_report(tmp_path, real_lut):
 
 
 # ------------------------------------------------------------------ [U1b] 40 3.2-3 파이프라인 수정
-def test_declared_loop_cuts_reach_build_s1v(tmp_path, real_lut):
-    # red-first(40 3.2-3 파이프라인 2, 41 1.8): spec 루프 뷰 선언(feedback [Rf] -> pm_ss_deg 루프 뷰 cuts ((Rf, inn),))의 끊는 넷
-    # inn 을 단계 A 가 build_s1v(declared_loop_cuts=) 로 넘긴다. S1v 키의 마지막 원소가 declared_loop_cuts 지문(graph 계약 10.5)이므로
-    # 단계 A 의 S1v 키 = 같은 입력에 ("inn",) 을 준 build_s1v 키, != 넘기지 않은 키. [u1-sp1] 단계 A(넘기지 않음)에서는 실패한다.
-    # oracle (a) 구성: 인자 하나만 다른 두 build_s1v 호출의 키가 정답 후보 둘이다(값을 다시 계산하지 않고 어느 쪽인지만 본다).
-    # 기능 효과(정지 해제)는 이 경로로 보일 수 없다 -- spec 의 루프 끊는 넷은 입력 포트 넷인데 엔진 루프 뷰의 끊는 gate 는 입력
-    # 포트가 될 수 없다(여기 포트는 이상 전압원이라 그 넷을 지나는 신호 사이클이 없다). 보고서의 설계 공백 항목.
+def _spy_build_s1v(monkeypatch):
+    """단계 A 가 부른 build_s1v 의 declared_loop_cuts 인자를 모은다(실 함수를 그대로 호출 -- 값은 바꾸지 않는다).
+    단계 A 모듈이 build_s1v 를 모듈 이름으로 부른다는 것은 모듈 공개 이름(dir)으로만 확인했다(소스 미열람)."""
+    import inspect
+    real = stage_a_module.build_s1v
+    sig = inspect.signature(real)
+    seen = []
+
+    def spy(*a, **k):
+        bound = sig.bind(*a, **k)
+        bound.apply_defaults()
+        seen.append(tuple(bound.arguments.get("declared_loop_cuts") or ()))
+        return real(*a, **k)
+
+    monkeypatch.setattr(stage_a_module, "build_s1v", spy)
+    return seen
+
+
+def _internal_loop_decl(monkeypatch, cuts):
+    """spec 파일을 실 로더로 읽은 뒤 pm_ss_deg 제약의 뷰만 내부 루프 뷰 선언 ViewDecl(mode loop, beta None, cuts)로 바꾼다.
+    authoring 은 loop metric 의 명시 view 를 거부하고(SPEC_CONTRACT `view_not_applicable`·`view_shape_not_supported`) feedback 없는
+    기본 유도는 beta unity·cuts () 라, 내부 루프 끊는 넷을 담은 선언은 spec 파일로 만들 수 없다(보고 대상). 그래서 로드 결과만
+    바꿔 단계 A 의 수집·대조를 본다."""
+    real = stage_a_module.load_sizing_spec
+
+    def load(*a, **k):
+        spec = real(*a, **k)
+        cs = tuple(dataclasses.replace(c, view=ViewDecl("loop", beta=None, cuts=tuple(cuts))) if c.metric == "pm_ss_deg" else c
+                   for c in spec.constraints)
+        return dataclasses.replace(spec, constraints=cs)
+
+    monkeypatch.setattr(stage_a_module, "load_sizing_spec", load)
+
+
+def _codes(lines):
+    return [x.split("|")[1] for x in lines]
+
+
+def test_beta_loop_declaration_does_not_reach_build_s1v(tmp_path, real_lut, monkeypatch):
+    # [U1b-jrules 5b5496f 결정, pipeline 계약 1절] spec feedback [Rf] 에서 유도된 β 루프 선언(ViewDecl beta declared, cuts ((Rf, inn),))
+    # 은 입력 포트 절단(테스트벤치 루프)이라 declared_loop_cuts 에서 뺀다 -> build_s1v 에 inn 이 가지 않는다. oracle (a) 구성: 인자 하나만
+    # 다른 두 build_s1v 호출의 키가 정답 후보 둘이다(넘기지 않은 쪽 = 단계 A).
+    seen = _spy_build_s1v(monkeypatch)
     tp, sp = J.write_pair(tmp_path, J.UGB, feedback=("Rf",))
     r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
     assert r.s1v is not None
+    assert seen and all("inn" not in cuts for cuts in seen)
+    monkeypatch.undo()
     topo = load_topology(str(tp))
     spec = load_sizing_spec(str(sp), topo, metric_catalog())
     s1 = build_s1(topo, H.SUPPLIES)
@@ -201,7 +246,49 @@ def test_declared_loop_cuts_reach_build_s1v(tmp_path, real_lut):
     with_cut = build_s1v(s1, spec, declared_loop_cuts=("inn",), **kw)
     without = build_s1v(s1, spec, **kw)
     assert with_cut.key[-1] != without.key[-1]                    # 전제: 인자가 키를 바꾼다
-    assert r.s1v.key[-1] == with_cut.key[-1]
+    assert r.s1v.key[-1] == without.key[-1]
+    assert "loop_cut_unmatched" not in _codes(r.report["review_needed"])      # 대조에서도 뺀다
+
+
+def test_internal_loop_declaration_reaches_build_s1v(tmp_path, real_lut, monkeypatch):
+    # [U1b-jrules, pipeline 계약 1절] 내부 루프 뷰 선언(mode loop, beta != declared)의 끊는 넷은 build_s1v(declared_loop_cuts=) 로 간다.
+    # 손 회로 CMFB(s1v_hand)의 엔진 루프 뷰 끊는 넷 = cm(test_loop_cuts 손 유도: (M5, cm) 이 두 루프 모두의 최다 후보).
+    seen = _spy_build_s1v(monkeypatch)
+    _internal_loop_decl(monkeypatch, (("M5", "cm"),))
+    tp, sp = J.write_pair(tmp_path, H.CMFB)
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    assert r.s1v is not None
+    assert seen and all(set(cuts) == {"cm"} for cuts in seen)
+
+
+def test_unmatched_internal_loop_cut_is_review(tmp_path, real_lut, monkeypatch):
+    # [U1b-jrules 821fb72, graph 계약 10.2] 선언 끊는 넷이 어느 엔진 루프 뷰 끊는 gate 넷(CMFB: cm 하나)에도 맞지 않으면
+    # loop_cut_unmatched(review_needed, 뷰 "", subject = 그 넷)가 보고서 review_needed 에 오른다(S1v 에는 넣지 않는다).
+    # cmfb 는 루프 위 넷이지만 끊는 점(M5 gate cm)이 아니다 -> 불일치. 회로 자체는 기록 없는 ok(아래 일치 test)이므로 상태는 review_needed/2.
+    _internal_loop_decl(monkeypatch, (("M3", "cmfb"),))
+    tp, sp = J.write_pair(tmp_path, H.CMFB)
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    assert (r.exit_code, r.status) == (2, "review_needed")
+    hits = [x.split("|")[:4] for x in r.report["review_needed"] if x.split("|")[1] == "loop_cut_unmatched"]
+    assert hits == [["review_needed", "loop_cut_unmatched", "", "cmfb"]]
+    assert "loop_cut_unmatched" not in {f.code for f in r.s1v.findings} | {f.code for v in r.s1v.views for f in v.findings}
+
+
+def test_matching_internal_loop_cut_leaves_no_record(tmp_path, real_lut, monkeypatch):
+    _internal_loop_decl(monkeypatch, (("M5", "cm"),))
+    tp, sp = J.write_pair(tmp_path, H.CMFB)
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
+    assert "loop_cut_unmatched" not in _codes(r.report["review_needed"])
+
+
+@pytest.mark.parametrize("feedback", [("Rf",), ()], ids=["beta_declared", "beta_unity"])
+def test_real_spec_beta_loops_never_report_unmatched(tmp_path, real_lut, feedback):
+    # 실 spec 파일 그대로(조작 없음): β 루프(declared, 끊는 넷 inn 은 엔진 루프 뷰에 없음)와 unity(cuts 없음) 모두 대조 대상이 아니다
+    tp, sp = J.write_pair(tmp_path, J.UGB, feedback=feedback)
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    assert r.s1v is not None
+    assert "loop_cut_unmatched" not in _codes(r.report["review_needed"])
 
 
 def test_cuts_only_from_pm_constraints(tmp_path, real_lut):

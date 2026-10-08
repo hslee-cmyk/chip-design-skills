@@ -14,6 +14,7 @@ review_needed 만 있는 회로는 FOLDED({M3, M4} L 동치류 주인이 이름 
 """
 from __future__ import annotations
 
+import jrules_hand as J
 import s1v_hand as H
 
 
@@ -26,6 +27,36 @@ def test_feedforward_merge_is_not_composite(tmp_path):
     assert "composite_block_pending_ratify" not in H.all_codes(s1v)
     assert {b.key: b.stage for b in v.blocks} == {("a",): 1, ("out",): 2}
     assert [(c.tap, c.merge, c.cells) for c in v.feedforward] == [("in", "out", ("M4",))]
+
+
+def test_output_node_merge_without_tap_is_composite(tmp_path):
+    # [U1b-jrules] 양성 복합 블록(41 1.9 DEC-81, graph 계약 10.2 '서로 다른 stage 가 합류 노드를 공유하면 복합 블록 후보').
+    # oracle (a) 손 유도(jrules_hand.DCOMP): 주경로 inp -M1-> a -M3-> out(D_max out = 2). M4(inn -> out) 진입 slack = 2 - 0 - 1 = 1 이지만
+    # 거꾸로 따라가면 주경로 넷이 아닌 inn 에 닿아 탭이 없다 -> feedforward 아님(41 1.12.2-2). 1단 블록 (a,)(M1) -> 2단 블록 (out,)(M3)
+    # 과 1단 M4 블록이 출력노드 out 을 공유 -> 복합 블록 하나: 합류 노드 (out,), 경로 부호 = 셀 부호 곱(CS -1): a -> out(M3) -1,
+    # inn -> out(M4) -1. 묶인 MOS 셀 = out 에 붙은 M3·M4·P3 = 3. 묶은 뒤 DAG (a,) -> 복합은 사슬. 경계는 J12 ratify 전이라
+    # status review_needed + composite_block_pending_ratify(계약 10.4).
+    _, s1v = H.build(tmp_path, J.DCOMP)
+    v = H.view(s1v)
+    assert v.feedforward == ()
+    assert len(v.composites) == 1
+    c = v.composites[0]
+    assert (c.merge_nodes, c.outputs, c.chain, c.status, c.cells) == (("out",), ("out",), True, "review_needed", 3)
+    assert sorted(c.paths) == [(("a", "out"), -1), (("inn", "out"), -1)]
+    assert set(c.inputs) == {"a", "inn"}
+    hits = [f for f in v.findings if f.code == "composite_block_pending_ratify"]
+    assert [(h.severity, h.subject) for h in hits] == [("review_needed", ("out",))]
+    assert {b.key: b.kind for b in v.blocks} == {("a",): "gain", ("out",): "composite"}
+
+
+def test_internal_node_side_injection_is_not_composite(tmp_path):
+    # [U1b-jrules] graph 계약 10.5 '다른 stage 블록이 겹친 넷을 한 블록 멤버가 입력으로 읽으면 내부 노드 측면 주입이라 읽는 블록에
+    # 합친다' -- 복합 블록은 출력노드 합류에서만 생긴다. K8(jrules_hand): Mk(1단, in -> c)가 2단 블록의 캐스코드 source c 로 들어온다
+    # -> 합병이지 복합 블록이 아니다
+    _, s1v = H.build(tmp_path, J.K8)
+    v = H.view(s1v)
+    assert v.composites == ()
+    assert "composite_block_pending_ratify" not in H.all_codes(s1v)
 
 
 def test_chain_without_merge_has_no_composite(tmp_path):

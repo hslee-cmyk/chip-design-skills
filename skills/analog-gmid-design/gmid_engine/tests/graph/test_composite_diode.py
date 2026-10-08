@@ -148,6 +148,38 @@ def test_mirror_reading_the_entry_net_extends_the_block(tmp_path):
     assert [(b.key, dict(b.roles)["Mo"]) for b in v.blocks] == [(("out",), "mirror")]
 
 
+def test_mirror_output_on_follower_output_is_side_injection(tmp_path):
+    # [U1b-jrules] graph 계약 10.5 블록 구성 문장(미러 출력 넷이 낮은 임피던스면 측면 주입이라 잇지 않는다), 41 1.12.2-2(K8 = 블록
+    # 내부 노드로 들어옴), 1.7-4(낮음 = MOS source 단자가 붙은 노드, follower 출력 포함). oracle (a) 손 유도(jrules_hand.IMPLOW):
+    # 신호 in -M1-> n1, 묶음 {Ma, Mb, R1} 이 n1 의 diode 부하 하나. 미러 출력 Mo(gate n5) drain out 에는 팔로워 Mf 의 source 가 붙어
+    # out 등급 = 낮음 -> 미러 연장 금지. 그래서 이득 블록은 (n1,) 하나(M1 input, Ma·Mb diode_load)이고 Mo 는 어느 이득 블록에도 들지
+    # 않는다. n1 -> out 은 CD 묶음 R(n1) = {out} 의 버퍼 블록(DEC-63, Mf follower). 대조: 미러 출력이 높음 등급인 SFLOAD 는 블록이
+    # out 까지 이어진다(위 test).
+    _, s1v = _toy(tmp_path, J.IMPLOW)
+    v = H.view(s1v)
+    gains = {b.key: b for b in v.blocks if b.kind == "gain"}
+    assert list(gains) == [("n1",)]
+    assert {k: r for k, r in gains[("n1",)].roles if k in ("M1", "Ma", "Mb")} == {
+        "M1": "input", "Ma": "diode_load", "Mb": "diode_load"}
+    assert "Mo" not in {d for b in gains.values() for d, _ in b.roles}
+    assert [(b.key, H.roles(b)["Mf"]) for b in v.blocks if b.kind == "buffer"] == [(("out",), "follower")]
+    assert v.stage_starts == ("M1",)
+
+
+def test_library_sf_follower_side_mirrors_stay_out_of_gain_block():
+    # oracle (d) 41 1.13 sf 행 '이득 블록 {Y} 하나 + 버퍼 블록 {vout}', 1.12.2 무동작 행 'sf M17·M20 은 K8'. 손 확인(topology JSON):
+    # M17(gate N5 = 복합 기준 M6 gate) drain N17 = 팔로워 M18 source, M20(gate N13 = 복합 기준 M14 gate) drain N20 = 팔로워 M19
+    # source -> 두 미러 출력 넷 모두 낮음 등급 -> 이득 블록에 들지 않는다. M9·M16 의 미러 출력 N910·N1516 은 캐스코드 M10·M15
+    # source(전류 진입) 쪽이라 Y 블록으로 이어진다(41 1.12.1-2).
+    _, s1v = H.build_lib("sf_pushpull_output_opamp")
+    v = H.view(s1v)
+    assert {b.key: b.kind for b in v.blocks} == {("Y",): "gain", ("vout",): "buffer"}
+    gain = H.blocks(v)[("Y",)]
+    members = {d for d, _ in gain.roles}
+    assert not {"M17", "M20"} & members
+    assert {"M9", "M16"} <= members
+
+
 def test_bundle_internal_cycle_is_composite_diode_internal(tmp_path):
     # 소비 3(41 1.8 분류 (1.6), 1.12.1-3): SFLOAD 신호 그래프의 사이클 n1 -Mb(gate->drain)-> n5 -R1-> n1 은 원소 {Mb, R1} 이
     # 모두 한 묶음 안 -> composite_diode_internal(info), 끊는 점·루프 뷰 없음, `기록만` 정지 없음.

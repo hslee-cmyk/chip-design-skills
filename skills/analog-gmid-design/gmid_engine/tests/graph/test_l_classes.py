@@ -120,10 +120,24 @@ def test_name_order_tie_inside_one_orbit_raises_no_review(tmp_path):
     assert s1v.review_needed == ()
 
 
+def test_orbit_exemption_breaks_with_one_asymmetric_capacitor(tmp_path):
+    # [U1b-jrules] 최소쌍(41 1.12.5-4 예외, graph 계약 10.5 '한 자기동형 궤도(S1 구조만)'): FDIFF 에 op 쪽 커패시터 Cx 하나만 더하면
+    # op<->om 교환이 자기동형이 아니라 {M3, M4} 가 서로 다른 궤도 -> name_order review(l_owner_name_order, 주인 이름 순 M3).
+    # FDIFF 의 포트 role 은 op = p, om = n 으로 이미 비대칭인데도 예외가 서므로(위 test) 궤도는 선언 표지가 아니라 구조만으로 정해진다.
+    _, s1v = H.build(tmp_path, J.FDIFF_CX)
+    got = {lc.members: (lc.owner, lc.owner_rule, lc.status) for lc in s1v.l_classes}
+    assert got[("M3", "M4")] == ("M3", "name_order", STATUS_REVIEW_NEEDED)
+    hits = [f for f in s1v.findings if f.code == "l_owner_name_order"]
+    assert [(h.severity, h.subject) for h in hits] == [("review_needed", ("M3", "M4"))]
+
+
 def test_name_order_tie_across_orbits_stays_review(tmp_path):
     # 같은 부하 쌍이라도 단일 종단(미러 부하) 회로면 궤도가 갈린다 -> review 유지. nmcnr {M104, M105} 도 단일 종단 미러(M108 diode /
     # M109 출력) 때문에 두 소자가 서로 다른 궤도라(엔진 automorphism_orbits 로 확인한 값이 아니라 test_automorphism_orbits 의
-    # '단일 종단 = 다른 궤도' 손 유도) 예외에 들지 않는다
+    # '단일 종단 = 다른 궤도' 손 유도) 예외에 들지 않는다.
+    # [U1b-jrules] 손 확인(nmcnr topology JSON): M104<->M105 교환은 NodeF1<->NodeF2, M106<->M107, NodeM1<->NodeM2, M108<->M109 를
+    # 강제하는데 M108 은 diode(gate = drain = NodeM1)이고 M109 는 gate NodeM1·drain NodeM2(M201 gate·Cm1 단자)라 사상이 안 된다.
+    # 설계 41 1.12.5-4 본문은 nmcnr {M104, M105} 를 예외의 예로 들지만 구조상 한 궤도가 아니다(보고 대상 -- 설계 문장 쪽 문제).
     _, s1v = H.build(tmp_path, H.FOLDED)
     assert "l_owner_name_order" in J.finding_codes(s1v)
     _, lib = H.build_lib("nmcnr_amplifier")

@@ -123,6 +123,21 @@ K8 = H.topo("k8", (("M1", "nmos", "a", "in", "gnd"), ("P1", "pmos", "a", "vbp", 
                    ("Mc", "nmos", "out", "vbc", "c"), ("P2", "pmos", "out", "vbp", "vdd"), ("Mk", "nmos", "c", "in", "gnd")),
             {"in": H.SE_IN, "out": H.SE_OUT}, bias=("vbp", "vbc"))
 
+# [U1b-jrules] 복합 묶음 미러 출력이 낮은 임피던스(팔로워 출력)인 회로: SFLOAD 의 미러 출력 Mo(gate n5) drain 이 CS 출력 n1 을
+# 받는 소스 팔로워 Mf(drain vdd, gate n1, source out)의 출력 out 에 붙는다(싱크 Ms). out 은 MOS source 단자가 붙은 낮음 등급
+# 노드(41 1.7-4) -> Mo 는 블록 내부 노드로 들어오는 측면 주입(K8)이지 미러 연장이 아니다(라이브러리 sf M17·M20 과 같은 모양).
+IMPLOW = H.topo("implow", (("M1", "nmos", "n1", "in", "gnd"), ("Mb", "pmos", "n5", "n1", "n56"), ("Ma", "pmos", "n56", "n5", "vdd"),
+                           ("Mf", "nmos", "vdd", "n1", "out"), ("Mo", "pmos", "out", "n5", "vdd"), ("Ms", "nmos", "out", "vb", "gnd")),
+                {"in": H.SE_IN, "out": H.SE_OUT}, passives=(("R1", "resistor", ("n1", "n5")),), bias=("vb",))
+
+# [U1b-jrules] 복합 블록 양성(출력노드 합류): 차동 입력 inp 의 2단 사슬 inp -M1-> a -M3-> out 과 반대 입력 inn 의 1단 CS M4(inn -> out).
+# 두 경로가 서로 다른 stage 블록((a,)->(out,) 2단, M4 1단)으로 출력노드 out 에서 합류한다. M4 진입 엣지는 slack 1 이지만 거꾸로
+# 따라가면 주경로(inp -> a -> out) 넷이 아닌 inn 에 닿아 탭이 없다 -> feedforward 묶음이 아니고(41 1.12.2-2 '닿은 주경로 넷이 탭')
+# 41 1.9 복합 블록(DEC-81) 판정으로 간다. 두 1단 셀의 source 는 레일이라 같은 stage 반쪽 블록 합치기(1.7-3)는 일어나지 않는다.
+DCOMP = H.topo("dcomp", (("M1", "nmos", "a", "inp", "gnd"), ("P1", "pmos", "a", "vbp", "vdd"), ("M3", "nmos", "out", "a", "gnd"),
+                         ("P3", "pmos", "out", "vbp", "vdd"), ("M4", "nmos", "out", "inn", "gnd")),
+               {"inp": H.DIFF_P, "inn": H.DIFF_N, "out": H.SE_OUT}, bias=("vbp",))
+
 # ---------------------------------------------------------------- 1.12.3 중첩 Miller 3단 손 회로(이름 없음)
 # 1단 PMOS 차동쌍(Q1·Q2, 꼬리 Q0) + NMOS 미러(Q3 diode d1, Q4) -> v1, 2단 CS Q8(v1 -> np, diode Q9) + 미러 Q10 -> v2(싱크 Q11),
 # 3단 CS Q13(v2 -> out, 부하 Q12). 중첩 Miller Cm1(v1-out)·Cm2(v2-out), 부하 CL.
@@ -152,6 +167,11 @@ POL_CONFLICT = H.topo("pol_cf", _CMFB_MOS + (("Mf", "nmos", "vdd", "cmfb", "f"),
 FDIFF = H.topo("fdiff", (("M1", "nmos", "om", "inp", "tail"), ("M2", "nmos", "op", "inn", "tail"), ("M0", "nmos", "tail", "vb", "gnd"),
                          ("M3", "pmos", "om", "vbp", "vdd"), ("M4", "pmos", "op", "vbp", "vdd")),
                {"inp": H.DIFF_P, "inn": H.DIFF_N, "op": H.OUT_P, "om": H.OUT_N}, bias=("vb", "vbp"))
+# 같은 회로에 op 쪽에만 커패시터 Cx(op-gnd)를 더한 최소쌍: op<->om 교환이 Cx 를 옮길 곳이 없어 자기동형이 아니다 -> {M3, M4} 가
+# 서로 다른 궤도 -> 예외 없음(name_order review).
+FDIFF_CX = H.topo("fdiffcx", tuple((e["name"], e["kind"], e["drain"], e["gate"], e["source"]) for e in FDIFF["netlist"]),
+                  {"inp": H.DIFF_P, "inn": H.DIFF_N, "op": H.OUT_P, "om": H.OUT_N},
+                  passives=(("Cx", "capacitor", ("op", "gnd")),), bias=("vb", "vbp"))
 
 # ---------------------------------------------------------------- β 루프 손 회로(단계 A declared_loop_cuts)
 # 5T OTA + 되먹임 저항 Rf(out-inn) + 부하 CL. spec feedback = [Rf] -> pm_ss_deg 루프 뷰 cuts = ((Rf, inn),).

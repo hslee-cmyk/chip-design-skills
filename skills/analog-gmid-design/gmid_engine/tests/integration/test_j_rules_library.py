@@ -22,6 +22,13 @@ compensation_internal(1.12.3 (a)(b)). 파일럿 CM 루프는 M37a·M7 이 순방
 없다 -- tests/graph/test_loop_roles.py 주석), 파일럿 레플리카 루프는 신호 사이클이 없어 0.
 spec 있는 단계 A(ngcc·nmcnr spec 은 pm_ss_deg 선언): compensation_internal 정지가 풀려 ngcc = review_needed(dc_role 그룹),
 nmcnr = review_needed(l_owner_name_order).
+[U1b-jrules] spec 있는 단계 A 9회로 표(손 유도, loop_cut_unmatched 는 어느 회로에도 없음 -- 내부 루프 선언 없음):
+| 회로 | spec 안정도 선언 | 단계 A |
+|---|---|---|
+| ngcc_3stage_ff | pm_ss_deg unity | review_needed {dc_role_unresolved_group} |
+| nmcnr_amplifier | pm_ss_deg unity | review_needed {l_owner_name_order} |
+| current_reuse_telescopic_ota | pm_ss_deg β(Cf1·Cf2), pm_cm_ss_deg(cm_output) | stopped {cs_output_low_impedance} + review 혼재(loop:M37a:Voc 한정) |
+| 나머지 6회로 | 없음 | ok |
 """
 from __future__ import annotations
 
@@ -117,15 +124,43 @@ def test_firing_table_stage_a_without_spec(name, real_lut, tmp_path):
     ("common_gate_amplifier", "ok", set()),
     ("pushpull_follower_buffer", "ok", set()),
     ("sf_pushpull_output_opamp", "ok", set()),
+    ("two_stage_ota", "ok", set()),
+    ("two_stage_ota_sf", "ok", set()),
 ])
 def test_stage_a_with_library_spec(name, status, reviews, real_lut, tmp_path):
-    # spec 이 실 metric 카탈로그로 로드되는 회로만(파일럿·two_stage 두 회로 spec 은 metric 이름 문제로 A1 거부 -- U1b 범위 밖).
-    # ngcc·nmcnr spec 에 pm_ss_deg 가 있어 compensation_internal 정지가 풀린다(41 1.12.3)
+    # [U1b-jrules] 9회로 spec 이 모두 실 metric 카탈로그로 로드된다(옛 파일럿·two_stage 두 회로 A1 거부는 해소). 손 유도(spec JSON):
+    # - ngcc·nmcnr: pm_ss_deg 는 feedback 없음 -> beta unity·cuts () -> declared_loop_cuts 없음, 전체 PM 선언이라 compensation_internal
+    #   정지가 풀리고(41 1.12.3) 남는 review 는 구조 것뿐: ngcc {M8, M14} 기준 없는 gs 묶음(41 1.13 '남는다'), nmcnr {M104, M105}
+    #   name_order 동률(한 궤도 아님 -- test_l_classes 손 확인).
+    # - 나머지 6회로: pm_* 제약 없음 -> 단계 A 는 spec 없는 표(TABLE)와 같은 ok.
+    # - 어느 회로도 내부 루프 선언이 없으므로 loop_cut_unmatched 는 0.
     r = run_stage_a(H.LIBRARY / (name + ".topology.json"), H.LIBRARY / (name + ".sizing_spec.json"), real_lut, output_dir=tmp_path,
                     supplies_v=H.lib_supplies(name))
     assert r.status == status, r.report["stop_reasons"]
     assert r.report["stop_reasons"] == []
     assert {x.split("|")[1] for x in r.report["review_needed"]} == reviews
+
+
+def test_pilot_stage_a_with_spec_has_no_unmatched_cut(real_lut, tmp_path):
+    # [U1b-jrules] 파일럿 spec 의 안정도 제약 = pm_ss_deg(feedback Cf1·Cf2 -> β 루프, 끊는 넷 Vip·Vim = 입력 포트)와 pm_cm_ss_deg
+    # (mode cm_output, 루프 뷰 선언 아님). 둘 다 declared_loop_cuts·대조 대상이 아니다(pipeline 계약 1절: mode loop 이고 beta != declared
+    # 만) -> loop_cut_unmatched 0. 남는 것은 41 1.12.6 '사실 없이 남는' 루프 뷰 loop:M37a:Voc 의 정지 cs_output_low_impedance 와
+    # 혼재(mixed_drive_signal_drain)이고, 이 기록은 전부 그 뷰의 것이다(같은 뷰 한정 교류접지 사실이 전부 지운다 -- test_stage_a
+    # test_view_scoped_ground_fact_clears_pilot_stop). spec 이 이 판정을 바꾸지 않으므로 spec 유무의 기록이 같다.
+    name = "current_reuse_telescopic_ota"
+    topo = H.LIBRARY / (name + ".topology.json")
+    with_spec = run_stage_a(topo, H.LIBRARY / (name + ".sizing_spec.json"), real_lut, output_dir=tmp_path / "a",
+                            supplies_v=H.lib_supplies(name))
+    plain = run_stage_a(topo, None, real_lut, output_dir=tmp_path / "b", supplies_v=H.lib_supplies(name))
+    assert (with_spec.exit_code, with_spec.status) == (2, "stopped")
+    stops = [x.split("|") for x in with_spec.report["stop_reasons"]]
+    reviews = [x.split("|") for x in with_spec.report["review_needed"]]
+    assert {s[1] for s in stops} == {"cs_output_low_impedance"}
+    assert "mixed_drive_signal_drain" in {x[1] for x in reviews}
+    assert "loop_cut_unmatched" not in {x[1] for x in reviews}
+    assert {x[2] for x in stops + reviews} == {"loop:M37a:Voc"}
+    assert sorted(with_spec.report["stop_reasons"]) == sorted(plain.report["stop_reasons"])
+    assert sorted(with_spec.report["review_needed"]) == sorted(plain.report["review_needed"])
 
 
 @pytest.fixture(scope="module")
