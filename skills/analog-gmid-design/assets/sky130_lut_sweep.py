@@ -612,8 +612,8 @@ def candidates(a):
             if bn["wmin"] != wmin or bn["wmax"] != wmax:
                 continue
             l0, l1 = bn["lmin"] * 1e6, bn["lmax"] * 1e6
-            mem = [x for x in cand if l0 - 1e-9 <= x <= l1 + 1e-9
-                   and not (any(abs(x - b) < grid / 2 for b in disc) and used[f"{x:g}"]["model"] != bn["model"])]
+            # 소속 = showmod 가 고른 model(경계 L 은 아래 bin -- 엔진 4.0.1 규칙과 같다). 구간 끝점이라도 다른 bin 에 속하면 뺀다.
+            mem = [x for x in cand if l0 - 1e-9 <= x <= l1 + 1e-9 and used[f"{x:g}"]["model"] == bn["model"]]
             if mem:
                 groups[(dev, bn["model"])] = mem
     mids = sorted({round(round((g[0] + g[1]) / 2 / grid) * grid, 9) for g in groups.values() if len(g) == 2})
