@@ -632,3 +632,15 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | LUT memo 상한 배선 | `lut.sweep_memo`(첫 평가 키 수 -> `LutMemo.from_sweep`) | 배선됨(2026-10-09): `search.search_context._wire_sweep_memo`(첫 평가 = `layer0_center.centre_start` 점), pipeline(U16)은 아직 memo 를 만들지 않음. 첫 평가가 안 쓴 영역은 상한 0 = memo 없음 |
 | 잡음·mismatch 특성화(ngspice) | `assets/sky130_lut_sweep.py noise`·`mismatch` 부명령 | 산출은 새 버전 파일 `..._noise_r1.npz`·`..._mismatch_r1.npz`(기존 r2 불변). 다른 생성기를 만들지 않는다 |
 | mismatch 단위·합성 확인 | `assets/sky130_pair_mc.py` | 오라클 쪽 도구(엔진 비의존) |
+
+## 13. 새 엔진(`gmid_engine.graph`) J 구조 규칙 정본 (2026-10-09, 단위 U1b -- 새로 만들기 전에 여기 먼저)
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| 복합 diode(DC 가지 걷기로 자기 gate 에 닿는 MOS)·묶음·기준/캐스코드 기준 | `graph.composite_diode.composite_diodes` | DC 역할 규칙 1c 가 부르고, `net_model` 이 evidence 에서 `diode_nodes`·`composite_mos`·`composite_bundles`·`composite_internal` 을 만든다. 다른 곳에서 복합 diode 를 다시 찾지 않는다 |
+| 주경로(D_max·slack)·feedforward 묶음 | `graph.feedforward_cells.feedforward_cells` | 비용 정의는 `stage_bfs` 의 `StageResult.edges` 하나. 주경로 블록 재구성은 `view_analysis._without` |
+| 루프 역할(루프 뷰 \| 중첩 Miller 내부 \| 복합 diode 내부 \| 바이어스 SCC) | `graph.loop_roles.loop_roles` | 복합 diode 내부 분류는 `loop_classify`(1.6), 중첩 Miller 판정은 이 함수 |
+| 사이클 극성(DC)·`ac_only` | `graph.polarity.loop_polarity`, 루프 뷰 극성은 `s1v_build._polarity` | 커패시터 경유 = 0 = `ac_only` |
+| `structure.json` 어휘·값 범위·거부 | `graph.structure_load.load_structure_facts` | concept 7개, 소비 방식 override/confirm 은 `graph/CONTRACT.md` 10.6 |
+| `structure.json` stale 지문 | `graph.s1v_key.structure_rule_fp` | S1v 파일 + composite_diode·dc_roles·gs_groups·matching_groups |
+| 안정도 루프 뷰 선언의 끊는 넷 | `pipeline.stage_a._declared_loop_cuts` | spec 제약 `pm_*` 의 `ViewDecl` mode loop `cuts` |

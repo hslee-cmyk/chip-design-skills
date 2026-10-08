@@ -14,6 +14,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 import gmid_engine.graph as graph_pkg
 from gmid_engine.graph import S1V_RULE_FILES, StructureFact, StructureFacts, s1v_rule_fp
 
@@ -64,3 +66,44 @@ def test_key_changes_with_each_input(tmp_path):
     supplies = H.build(tmp_path, H.MILLER, supplies={"vdd": 3.3, "gnd": 0.0})[1]
     keys = [x.key for x in (base, budget, declared, ratified, cuts, supplies)]
     assert len(set(keys)) == len(keys)
+
+
+# ---------------------------------------------------------------- [U1b] 40 3.2-3 rule_hash = structure_rule_fp()
+import shutil  # noqa: E402
+
+from gmid_engine.graph import structure_rule_fp  # noqa: E402
+
+# 40 3.2-3: 대상 = S1V_RULE_FILES ∪ {composite_diode.py, dc_roles.py, gs_groups.py, matching_groups.py, feedforward_cells.py,
+# loop_roles.py} -- 사실이 대조하거나 덮어쓰는 값을 만드는 graph 파일 전부
+STRUCTURE_EXTRA = ("composite_diode.py", "dc_roles.py", "gs_groups.py", "matching_groups.py", "feedforward_cells.py", "loop_roles.py")
+
+_FP_SCRIPT = ("import sys; sys.path.insert(0, sys.argv[1]);"
+              "from gmid_engine.graph import s1v_rule_fp, structure_rule_fp; print(s1v_rule_fp(), structure_rule_fp())")
+
+
+def _fps(root):
+    r = subprocess.run([sys.executable, "-c", _FP_SCRIPT, str(root)], capture_output=True, text=True, check=True,
+                       env=dict(os.environ, PYTHONDONTWRITEBYTECODE="1"))
+    return tuple(r.stdout.split())
+
+
+def test_structure_rule_fp_is_stable_hex_and_differs_from_s1v():
+    a, b = structure_rule_fp(), structure_rule_fp()
+    assert a == b and re.fullmatch(r"[0-9a-f]{64}", a)
+    assert a != s1v_rule_fp()
+
+
+@pytest.mark.parametrize("target", STRUCTURE_EXTRA)
+def test_structure_rule_fp_tracks_s1_side_consumer_files(tmp_path, target):
+    # 패키지 사본(tmp)에서 파일 하나에 주석 한 줄을 더하면 structure_rule_fp 가 바뀐다(작업 트리 엔진 파일은 건드리지 않는다).
+    # S1V_RULE_FILES 밖 파일이면 s1v_rule_fp 는 그대로다 -- 그래서 as-built s1v_rule_fp 로는 S1 쪽 변경 stale 을 못 잡았다(40 3.2-3)
+    graph_dir = Path(graph_pkg.__file__).resolve().parent
+    dst = tmp_path / "pkg"
+    shutil.copytree(graph_dir.parent, dst / "gmid_engine", ignore=shutil.ignore_patterns("tests", "__pycache__", "*.pyc"))
+    s1v_before, st_before = _fps(dst)
+    assert (s1v_before, st_before) == (s1v_rule_fp(), structure_rule_fp())
+    f = dst / "gmid_engine" / "graph" / target
+    f.write_bytes(f.read_bytes() + b"\n# structure rule change marker\n")
+    s1v_after, st_after = _fps(dst)
+    assert st_after != st_before
+    assert (s1v_after == s1v_before) == (target not in S1V_RULE_FILES)

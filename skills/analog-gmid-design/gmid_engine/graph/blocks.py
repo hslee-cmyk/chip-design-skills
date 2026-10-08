@@ -13,6 +13,9 @@ stage 시작 셀(`stage_bfs`)마다 블록 하나를 열고 **소유 관계**를
 항상), 입력 = 시작 셀의 입력 넷). 블록 키 = 출력노드 이름 정렬 tuple(JSON 에서는 배열, 40·41 §1.7-3).
 소자 역할: input(시작 CS·CG), cascode(CG), mirror(미러 입력을 gate 로 읽는 CS), diode_load(소유 노드의 diode 소자), pass, tail(DC 역할이
 바이어스 전류원이고 drain 이 블록 안 둘 이상 멤버 source 인 소자), load(그 밖에 블록 소유 노드에 단자가 닿는 MOS·수동소자).
+복합 diode 묶음(41 §1.12.1)의 MOS 멤버는 묶음의 gate 넷(미러 입력)을 소유한 블록의 `diode_load` 멤버이고(`_composite_members`) 소유 넷은 늘리지 않는다 -- 묶음 내부 넷까지 소유하면 그 gate 를 읽는
+측면 주입 미러 출력(K8)이 블록으로 딸려 들어온다. feedforward 묶음 소자는 호출자가 모형에서 뺀 뒤 부른다(`view_analysis`, 41 §1.12.2).
+복합 diode 묶음 내부 gate 넷을 읽는 셀은 진입 넷 소유 블록으로 이어진다(`_owner_of`; 미러 출력이 낮은 임피던스 노드로 들어가면 K8 이라 이어지지 않는다). 다른 stage 블록이 겹친 넷을 한 블록 멤버가 입력으로 읽으면 내부 노드 측면 주입(K8)이라 읽는 블록에 합친다(`_absorb_side_injections`).
 규칙 9 (c): 출력노드 임피던스 등급이 낮으면 `cs_output_low_impedance`(기록만, 항상 DEC-59 정지) -- 순방향 위 출력노드에만 건다.
 """
 import dataclasses
@@ -96,8 +99,27 @@ def _input_net(m, kind):
     return m.g if kind == CELL_CS else m.s
 
 
-def _grow(model, ground, cells, drive, owners, members, starts):
+def _bundle_gates(model):
+    """복합 diode 묶음마다 그 MOS 멤버의 gate 넷 집합 -- 묶음 내부 넷(미러 입력)을 읽는 셀의 소유 블록을 묶음 진입 넷의 소유자로 풀기 위한 표."""
+    return tuple(frozenset(model.mos_by_name[name].g for name in sorted(bundle) if name in model.mos_by_name)
+                 for bundle in model.composite_bundles)
+
+
+def _owner_of(net, owners, gates):
+    """넷을 소유한 블록 id. 소유자가 없는 복합 diode 묶음 gate 넷이면 같은 묶음의 다른 gate 넷(진입 넷) 소유자 -- 블록이 미러 출력 쪽으로 이어진다(41 §1.12.1-2)."""
+    bid = owners.owner.get(net)
+    if bid is None:
+        for nets in gates:
+            if net in nets:
+                bid = next((owners.owner[n] for n in sorted(nets) if n in owners.owner), None)
+                if bid is not None:
+                    break
+    return bid
+
+
+def _grow(model, ground, cells, drive, owners, members, starts, impedance):
     info = {c.dev: c for c in cells.cells}
+    gates = _bundle_gates(model)
     changed = True
     while changed:
         changed = False
@@ -107,6 +129,10 @@ def _grow(model, ground, cells, drive, owners, members, starts):
                 continue
             if cell.kind in (CELL_CS, CELL_CG) and cell.forward and m.name not in starts:
                 bid = owners.owner.get(_input_net(m, cell.kind))
+                if bid is None:
+                    bid = _owner_of(_input_net(m, cell.kind), owners, gates)
+                    if bid is not None and cell.kind == CELL_CS and impedance.get(m.d) == IMP_LOW:
+                        bid = None         # 묶음 내부 넷을 읽는 미러 출력이 다른 셀이 구동하는 낮은 임피던스 노드(예 팔로워 출력)로 들어가면 측면 주입(K8)이다 -- 블록이 그쪽으로 이어지지 않는다
                 if bid is None:
                     continue
                 role = ROLE_CASCODE if cell.kind == CELL_CG else (
@@ -129,6 +155,39 @@ def _grow(model, ground, cells, drive, owners, members, starts):
                         members[name] = (owners.owner[src], ROLE_PASS)
                     owners.claim(dst, owners.owner[src])
                     changed = True
+    return members
+
+
+def _absorb_side_injections(owners, members, info, model):
+    """측면 주입(K8, 41 §1.12.2-2): 다른 stage 블록이 소유를 겹친 넷을 한 블록의 멤버(CS gate·CG source)가 입력으로 읽으면 그 넷은 읽는 블록의 **내부 노드**다. 겹친
+    블록은 그 내부 노드로 전류를 주입하는 쪽이므로 읽는 블록에 합쳐지고 읽는 블록의 stage 를 유지한다(복합 블록 합류는 출력노드에서만 -- `composite_blocks`)."""
+    readers = {}
+    for name, (bid, _) in members.items():
+        cell = info[name]
+        if cell.kind in (CELL_CS, CELL_CG):
+            readers.setdefault(_input_net(model.mos_by_name[name], cell.kind), set()).add(owners.find(bid))
+    for net, ids in sorted_items(owners.conflicts):
+        roots = {owners.find(b) for b in ids}
+        inner = sorted(roots & readers.get(net, set()))
+        if len(roots) == 1 or len(inner) != 1:
+            continue
+        keep = inner[0]
+        stage = owners.stage_of[keep]
+        for other in sorted(roots - {keep}):
+            owners.union(keep, other)
+        owners.stage_of[owners.find(keep)] = stage
+    return members
+
+
+def _composite_members(model, owners, members):
+    """복합 diode 묶음(41 §1.12.1)의 MOS 멤버는 묶음의 gate 넷(미러 입력)을 소유한 블록의 `diode_load` 멤버다. 소유 넷은 늘리지 않는다 -- 묶음 내부 넷이 블록 노드로 들어오면
+    그 gate 를 읽는 미러 출력(측면 주입 K8 포함)까지 따라 들어오기 때문이다."""
+    for bundle in model.composite_bundles:
+        mos = [model.mos_by_name[name] for name in sorted(bundle) if name in model.mos_by_name]
+        anchor = next((owners.owner[m.g] for m in mos if m.g in owners.owner), None)
+        for m in mos:
+            if anchor is not None and m.name not in members:
+                members[m.name] = (anchor, ROLE_DIODE_LOAD)
     return members
 
 
@@ -161,6 +220,10 @@ def _outputs(model, members, info, sense, bundles):
         if cell.kind == CELL_CS:
             readers.setdefault(m.s, set()).add(bid)
     inputs = set(readers)
+    for nets in _bundle_gates(model):          # 복합 diode 묶음의 gate 넷 하나를 블록 멤버가 읽으면 묶음 전체(진입 넷 포함)가 그 블록 안으로 이어진 내부 노드다
+        reading = set().union(*(readers.get(n, ()) for n in nets))
+        for net in nets:
+            readers.setdefault(net, set()).update(reading)
     out = {}
     for name, (bid, role) in members.items():
         cell = info[name]
@@ -211,7 +274,9 @@ def build_blocks(model, ground, cells, drive, stage, impedance, sense, view_id):
         owners.claim(m.d, name)
         if info[name].kind == CELL_CS and m.s not in ground:
             owners.claim(m.s, name)
-    members = _grow(model, ground, cells, drive, owners, members, starts)
+    members = _grow(model, ground, cells, drive, owners, members, starts, impedance)
+    members = _absorb_side_injections(owners, members, info, model)
+    members = _composite_members(model, owners, members)
     members = {name: (owners.find(bid), role) for name, (bid, role) in members.items()}
     nodes = {owners.find(bid): set() for bid in stage_of}
     for net, bid in owners.owner.items():
@@ -234,6 +299,7 @@ def build_blocks(model, ground, cells, drive, stage, impedance, sense, view_id):
                                         "이득 블록 출력노드의 임피던스 등급이 낮다(CS 버퍼·종단 diode 부하)", ("N3.2-9c", "DEC-59")))
         blocks.append(Block(outs, BLOCK_GAIN, owners.stage_of[bid], tuple(inputs), outs,
                             sorted_items(roles), tuple(sorted(nodes[bid] | set(inputs))), table, STATUS_DERIVED))
-    conflicts = tuple((net, tuple(sorted({owners.find(b) for b in ids}))) for net, ids in sorted_items(owners.conflicts))
+    roots = tuple((net, tuple(sorted({owners.find(b) for b in ids}))) for net, ids in sorted_items(owners.conflicts))
+    conflicts = tuple((net, ids) for net, ids in roots if len(ids) > 1)     # 측면 주입 합치기(`_absorb_side_injections`) 뒤 한 블록으로 모인 겹침은 최종 블록 집합에서 겹침이 아니다
     return BlocksResult(tuple(blocks), tuple(sorted(nodes)), conflicts, tuple((bid, tuple(sorted(nodes[bid]))) for bid in sorted(nodes)),
                         tuple(findings))

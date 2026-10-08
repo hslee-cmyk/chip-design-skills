@@ -72,12 +72,14 @@ def test_miller_loop_has_no_cut(tmp_path):
     assert v.cuts == ()
 
 
-def test_library_loop_view_needs_declared_cut():
-    # ngcc_3stage_ff: 루프 뷰가 있고 차동 출력 포트쌍이 없다(출력 Vout 하나) -> 끊는 gate 넷을 선언하면 기록이 사라진다
+def test_library_compensation_internal_loop_is_not_cleared_by_a_cut_declaration():
+    # [U1b] 설계 41 1.12.3: ngcc_3stage_ff 의 옛 루프 뷰 `loop:M8:V1` 은 중첩 Miller 내부 루프(compensation_internal)라 루프 뷰를
+    # 만들지 않는다. 안정도는 전달 뷰 전체 `pm_ss_deg` 가 덮으므로, 그 선언이 없으면 정지 `undeclared_loop_constraint` 를 사유
+    # `compensation_internal_needs_overall_pm` 으로 유지한다 -- 끊는 넷(V1)을 declared_loop_cuts 로 줘도 루프 뷰가 없으니 풀리지
+    # 않는다(풀리는 경로는 test_loop_roles 의 spec pm_ss_deg 선언).
     _, s1v = H.build_lib("ngcc_3stage_ff")
-    loops = [v for v in s1v.views if v.kind == "loop"]
-    assert loops and all(not v.cm_pair for v in loops)
-    assert "undeclared_loop_constraint" in H.all_codes(s1v)
-    gates = tuple(sorted({g for v in loops for _, g in v.cuts}))
-    _, declared = H.build_lib("ngcc_3stage_ff", declared_loop_cuts=gates)
-    assert "undeclared_loop_constraint" not in H.all_codes(declared)
+    assert [v.kind for v in s1v.views] == ["transfer"]
+    hits = [f for v in s1v.views for f in v.findings if f.code == "undeclared_loop_constraint"]
+    assert len(hits) == 1 and "compensation_internal_needs_overall_pm" in hits[0].detail
+    _, declared = H.build_lib("ngcc_3stage_ff", declared_loop_cuts=("V1",))
+    assert "undeclared_loop_constraint" in H.all_codes(declared)

@@ -132,12 +132,13 @@ search CONTRACT r10). 원소별 θ 수동소자 탐색 상자. 단위 = 원소 k
 | `op_value` | 제약 op ∉ {>=, <=}, 예산 op ≠ <= | constraints, settings |
 | `value_and_ref` | value / value_from_constraint / value_from_file 이 정확히 하나가 아님 | constraints, compensation_targets |
 | `ref_kind_mismatch` | 참조인데 source.kind ≠ reference, 또는 그 반대 | constraints, compensation_targets |
-| `view_not_applicable` | view_kind None(뷰 없음)인 metric 에 view, metric 결정 대기 제약에 (결정 대기 아닌) view, **loop·cm_loop metric 에 결정 대기 아닌 view**(루프 뷰는 유도만 -- 7a design 2.9, CM 루프도 같다) | constraints |
+| `view_not_applicable` | view_kind None(뷰 없음)인 metric 에 view, metric 결정 대기 제약에 (결정 대기 아닌) view, **loop·cm_loop metric 에 결정 대기 아닌 view**(단 loop metric 의 내부 루프 선언 `{"loop_cut": [...]}` 와 cm_loop 의 `{"cm_sense_elements": ...}` 는 예외; 루프 뷰는 유도만 -- 7a design 2.9, CM 루프도 같다) | constraints |
 | `view_shape_not_supported` | loop·cm_loop metric 에 명시 모양 `{"cut_weights": …}` -- 계약에 예약된 모양(7a design 2.9)이지만 첫 소비 spec 이 생길 때까지 구현하지 않는다(조용히 무시하지 않고 거부, 7절 S3) | constraints |
 | `view_required` | ratio metric 에 view 없음 / transfer·loop(β = 1)에 view 없고 입력 포트가 차동쌍 1개(role differential_input_p·_n)·단일 1개(single_ended_input)가 아니거나 출력 포트가 단일 1개·차동쌍 1개(differential_output_p·_n)가 아님 / loop(β 루프)의 절단 넷 role 이 가중 어휘 밖 / **cm_loop(`pm_cm_ss_deg`)에 view 가 없고 구조 유도가 안 됨 -- 차동 출력쌍 없음·평균 수동소자로 gate 에 먹이는 감지 넷 없음·후보 둘 이상(3절 `cm_loop`)** / output_port 에 view 없고 출력 포트가 1개가 아님 | constraints |
 | `view_excite_not_allowed` | output_port view 에 `ac_excite`(감지 전용 -- 여기는 DEC-66 이 고정) | constraints |
 | `view_sense_fixed_net` | output_port 감지 넷(sense_p·sense_n)이 고정 넷: 레일·입력 포트 넷·gate 전용 미구동 넷(레일·입력 포트가 아니고 단자가 전부 MOS gate -- graph `ac_ground_class` 비 None 과 같은 정의) | constraints |
-| `view_net_unknown` | 뷰 넷(ac_excite 키·sense_p·sense_n)이 어느 단자에도 없음 | constraints |
+| `loop_cut_source` | 내부 루프 선언 `{"loop_cut": [...]}` 이 있는 제약의 `source.kind` 가 `user_spec` 아님(cm_loop 의 `cm_sense_source` 와 같은 제한) | constraints |
+| `view_net_unknown` | 뷰 넷(ac_excite 키·sense_p·sense_n·loop_cut 원소)이 어느 단자에도 없음 | constraints |
 | `constraint_duplicate` | 같은 (metric, op, view) 두 번(metric·view 결정 대기 제약은 비교 밖) | constraints |
 | `settling_order` | settling.linear_s > total_s | compensation_targets |
 | `budget_metric_not_objective` | 예산 metric 의 `objective_axis` 가 None 또는 이름표 밖 | settings |
@@ -325,5 +326,9 @@ min ≥ max·min = max → `theta_bound_range`, max 없음 → `missing_key`, �
 | # | 항목 | 현재 처리 |
 |---|---|---|
 | S1 | loop(`pm_ss_deg`)·output_port(`rout_ss_ohm`) metric 의 선언 view 모양 | **닫음**(2026-10-07) -- 7a design: loop 는 유도만(2절·3절), output_port 는 감지 전용, `view_not_defined_yet` 삭제 |
+
 | S3 | [CM 2026-10-08: 공통 모드 루프는 별도 metric `pm_cm_ss_deg`(view_kind `cm_loop`) 의 구조 유도로 닫음 -- 아래 명시 모양은 여전히 예약] 명시 loop view `{"cut_weights": {<절단 넷>: 가중}}`(β 루프) / `{<입력 포트 넷>: 가중}`(β = 1) -- 공통 모드 루프 같은 다른 모드 선택(7a design 2.9) | 계약에만 정의, 로더는 `view_shape_not_supported` 로 거부(배선 원칙: 첫 소비 spec -- 예: 7a Q2 에서 CM 루프 판정이 정해지면 -- 과 함께 구현). 키 집합 = 유도 절단 넷 집합(β = 1 은 입력 포트 집합), 0 아닌 유한 가중, 관측·절단 위치는 바꾸지 못한다 |
 | S2 | **닫음(U5 2026-10-08)**: 옛 `mismatch_sigma_mv`·`mirror_ratio_error_mv`·`mismatch_sigma_v` 는 옛 이름 표로 거부하고 library 3 spec 은 새 이름·값으로 바꿨다(offset_in_sigma_mv 등 11개는 `metric_catalog()` 의 계산 대기 서명). 아래는 닫기 전 기록: `mismatch_sigma_mv`·`mirror_ratio_error_mv` 가 MOD5 레지스트리(`metrics.metric_catalog()`)에 없다 -- library spec(파일럿·two_stage_ota·two_stage_ota_sf)과 픽스처 이름표에만 있다 | 실제 레지스트리 이름표로 로드하면 `metric_unknown`. 레지스트리 등록(정합 metric 계산 위치 포함) 또는 spec 쪽 결정 대기 표지 전환을 MOD10 배선 전에 정한다 |
+
+**내부 루프 뷰 선언 [U1b-jrules]**: loop metric(`pm_ss_deg` 등)의 제약 view `{"loop_cut": [<끊는 넷>, ...]}` -- 비지 않은 서로 다른 넷 이름 list(위반 `type`), 넷은 topology 단자에 있어야 한다(`view_net_unknown`), 닫힌 어휘라 다른 키 동반은 `unknown_key`(`cut_weights` 와 같이 적어도 `unknown_key`). 결과 `ViewDecl(mode loop, beta None, cuts=(("", 넷), ...) 넷순)`. 41 §1.8 안정도 선언이며 단계 A 가 `declared_loop_cuts` 로 모아 엔진 루프 뷰의 끊는 gate 넷과 대조한다(`undeclared_loop_constraint` 해제 / `loop_cut_unmatched`). feedback 에서 유도된 β 루프(`beta == declared`)는 그대로 대조 밖이다.
+

@@ -50,8 +50,12 @@ def _cyclomatic(edges):
 
 
 class U2Oracle:
-    def __init__(self, raw: dict, merge: bool = True, column_limit=None):
+    def __init__(self, raw: dict, merge: bool = True, column_limit=None, composite=None):
+        """composite = {복합 diode 소자: (묶음 멤버 이름순 tuple, 하위 구분)} -- [U1b] 41 1.12.1 규칙 1c 입력. 이 oracle 은 DC 가지
+        걷기를 다시 구현하지 않는다: 값은 test 가 손으로 걸어 적은 표(`jrules_hand.LIB_COMPOSITE`·손 회로 리터럴)를 받는다.
+        None = 복합 diode 없음(U1 이전 정의 그대로)."""
         self.raw = raw
+        self.composite = dict(composite or {})
         self.mos = {e["name"]: e for e in raw["netlist"]}
         self.passives = {e["name"]: e for e in (raw.get("passive_elements") or [])}
         self.sources = {e["name"]: e for e in (raw.get("ideal_sources") or [])}
@@ -239,10 +243,16 @@ class U2Oracle:
         for n in diode:
             e = self.mos[n]
             roles[n] = ("diode_reference", "derived", ("1", (e["gate"], e["source"]), (), ()))
+        # [U1b] 규칙 1c(41 1.12.1 소비 1, graph 계약 4.4 (1c) 행): 복합 diode 소자 = diode 기준, evidence group = 묶음 멤버,
+        # basis = (하위 구분,). 같은 gate·source 묶음은 '기준이 있는 묶음'이 되어 나머지 멤버가 규칙 2 첫 행(바이어스)으로 간다.
+        for n, (bundle, sub) in self.composite.items():
+            e = self.mos[n]
+            roles[n] = ("diode_reference", "derived", ("1c", (e["gate"], e["source"]), tuple(bundle), (sub,)))
+        refs = diode | set(self.composite)
         for kind, g, s, members in self.gs_groups:
-            if any(m in diode for m in members):
+            if any(m in refs for m in members):
                 for m in members:
-                    if m not in diode:
+                    if m not in refs:
                         roles[m] = ("bias_current_source", "derived", ("2", (g, s), members, ()))
             elif g in self.ground:
                 for m in members:
