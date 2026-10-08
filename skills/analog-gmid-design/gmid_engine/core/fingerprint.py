@@ -27,7 +27,20 @@ def _type_name(obj):
 
 
 def _encode(obj):
-    canonical = getattr(type(obj), "__canonical__", None)
+    kind = type(obj)
+    if kind is str:                      # 정확히 내장 타입이면 __canonical__ 가 없으므로 아래 일반 분기와 같은 바이트를 바로 만든다
+        payload = obj.encode("utf-8")
+        return _frame(b"S", len(payload), payload)
+    if kind is tuple:
+        parts = [_encode(item) for item in obj]
+        return _frame(b"T", len(parts), b"".join(parts))
+    if kind is float:
+        payload = float.hex(obj).encode("ascii")
+        return _frame(b"F", len(payload), payload)
+    if kind is int:
+        payload = str(obj).encode("ascii")
+        return _frame(b"I", len(payload), payload)
+    canonical = getattr(kind, "__canonical__", None)
     if canonical is not None:
         inner = _type_name(obj) + _encode(canonical(obj))
         return _frame(b"C", len(inner), inner)

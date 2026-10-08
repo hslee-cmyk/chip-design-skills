@@ -95,6 +95,7 @@ def test_gate_ground_group_rule(gh, tmp_path):
     raw["netlist"] += [{"name": "Mq1", "kind": "nmos", "drain": "A", "gate": "VNB1", "source": "vss"},
                        {"name": "Mq2", "kind": "nmos", "drain": "B", "gate": "VNB1", "source": "vss"}]
     o = gh.oracle(raw)
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s1 = build_s1(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
     # 원본 M6(nmos, gate VNB1, source vss)도 같은 묶음이 된다(JSON 확인)
     m6 = next(e for e in raw["netlist"] if e["name"] == "M6")

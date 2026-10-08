@@ -501,3 +501,269 @@ def test_extend_writers_rejects_non_superset(triples):
             s.extend_writers(table)
         assert _reads(s) == before
         assert s.writers == TABLE
+
+
+# =====================================================================================================================
+# 2026-10-08 개정(core 성능 3·4, CONTRACT §5.6): 스냅샷·레코드 fp 지연 보관, write 당 레코드 1회 생성, 열 key 목록 스냅샷별 보관.
+# oracle 종류:
+# - (a) 구성으로 정답이 정해진 합성 입력: 한 write 로 여러 필드를 바꾼 결과를, 같은 값을 필드마다 따로 쓴 참조 스냅샷(또는
+#   계약 식으로 직접 만든 GraphRecord)과 비교한다. 열 key 목록 기대값은 이 test 가 넣은 key 집합이다.
+# - (c) 기준선: §5.6 은 스냅샷 fp 식을 적지 않는다(계약 결함으로 보고). '값은 즉시 계산과 같다'(§5.6 [2026-10-08]) 를 바이트
+#   수준으로 보려고, 변경 전 엔진 6a3351a(ng-perf-core 의 부모, 동작 보존 변경의 기준선)에서 _golden_snapshots() 의 fp 를
+#   구해 _BASE_SNAPSHOT_FP 에 적었다(생성: 6a3351a 를 git archive 로 푼 트리를 sys.path 앞에 두고 이 파일의
+#   _golden_snapshots() 를 실행 -- 피검(새) 구현은 쓰지 않음).
+# =====================================================================================================================
+
+MULTI = WriterTable([
+    ("device", "w", "sizer"),
+    ("device", "l", "sizer"),
+    ("device", "nf", "sizer"),
+    ("device", "gm", "meas"),
+    ("node", "v", "bias"),
+    ("graph", "theta", "search"),
+])
+
+
+def _multi_base():
+    s = GraphSnapshot.empty(MULTI)
+    s = s.write("sizer", "z1", {("device", "w"): {"m1": 1.0, "m2": 2.0, "m3": 3.0},
+                                ("device", "l"): {"m1": 0.15, "m2": 0.15},
+                                ("device", "nf"): {"m1": 1, "m2": 2}})
+    s = s.write("meas", "g1", {("device", "gm"): {"m1": 1e-3, "m2": 2e-3}})
+    s = s.write("bias", "b1", {("node", "v"): {"a": 0.9}})
+    return s
+
+
+def _field_meta(s, kind, key):
+    r = s.record(kind, key)
+    return None if r is None else tuple(
+        (n, r.get(n).value, r.get(n).writer, r.get(n).input_version, r.get(n).write_count) for n in r.field_names())
+
+
+def test_one_write_many_fields_same_record_equals_field_by_field_reference():
+    # oracle (a): 같은 레코드 m1 의 w·l·nf 를 한 write 로 바꾼 결과 = 같은 writer·같은 input_version 으로 필드를 하나씩 바꿔 쓴
+    # 참조(세 번의 write, 매번 다른 열은 직전 값 그대로 넘겨 열 교체로 지워지지 않게 한다).
+    s0 = _multi_base()
+    one = s0.write("sizer", "z2", {("device", "w"): {"m1": 1.5, "m2": 2.0, "m3": 3.0},
+                                   ("device", "l"): {"m1": 0.30, "m2": 0.15},
+                                   ("device", "nf"): {"m1": 4, "m2": 2}})
+    ref = s0.write("sizer", "z2", {("device", "w"): {"m1": 1.5, "m2": 2.0, "m3": 3.0},
+                                   ("device", "l"): {"m1": 0.15, "m2": 0.15},
+                                   ("device", "nf"): {"m1": 1, "m2": 2}})
+    ref = ref.write("sizer", "z2", {("device", "w"): {"m1": 1.5, "m2": 2.0, "m3": 3.0},
+                                    ("device", "l"): {"m1": 0.30, "m2": 0.15},
+                                    ("device", "nf"): {"m1": 1, "m2": 2}})
+    ref = ref.write("sizer", "z2", {("device", "w"): {"m1": 1.5, "m2": 2.0, "m3": 3.0},
+                                    ("device", "l"): {"m1": 0.30, "m2": 0.15},
+                                    ("device", "nf"): {"m1": 4, "m2": 2}})
+    for kind in ("device", "node"):
+        assert one.keys(kind) == ref.keys(kind)
+        for key in one.keys(kind):
+            assert one.record(kind, key).fp == ref.record(kind, key).fp
+    assert one.fp == ref.fp
+    assert one.block_version("sizer") == ref.block_version("sizer") == "z2"
+    # 메타 손계산(§5.6: 새로 쓴 필드는 이번 writer·input_version, write_count = 이전 + 1(값·버전 같으면 그대로), meas 필드 불변)
+    assert _field_meta(one, "device", "m1") == (
+        ("gm", 1e-3, "meas", "g1", 1),
+        ("l", 0.30, "sizer", "z2", 2),
+        ("nf", 4, "sizer", "z2", 2),
+        ("w", 1.5, "sizer", "z2", 2),
+    )
+    assert _field_meta(one, "device", "m2") == (
+        ("gm", 2e-3, "meas", "g1", 1),
+        ("l", 0.15, "sizer", "z2", 2),
+        ("nf", 2, "sizer", "z2", 2),
+        ("w", 2.0, "sizer", "z2", 2),
+    )
+    assert _field_meta(one, "device", "m3") == (("w", 3.0, "sizer", "z2", 2),)
+
+
+def test_one_write_many_fields_record_equals_direct_graphrecord():
+    # oracle (a)+§5.5: 결과 레코드의 fp 는 그 필드 값으로 직접 만든 GraphRecord 의 fp(값만의 지문, 메타 무관)와 같고 §5.5 식과 같다.
+    s0 = _multi_base()
+    s1 = s0.write("sizer", "z2", {("device", "w"): {"m1": 1.5, "m2": 2.0, "m3": 3.0},
+                                  ("device", "l"): {"m1": 0.30, "m2": 0.15},
+                                  ("device", "nf"): {"m1": 4, "m2": 2}})
+    vals = {"gm": 1e-3, "l": 0.30, "nf": 4, "w": 1.5}
+    direct = GraphRecord("device", "m1", [(n, FieldValue(v, "x", "y")) for n, v in vals.items()])
+    assert s1.record("device", "m1").fp == direct.fp
+    assert direct.fp == fp_of(("device", "m1", tuple((n, fp_of(vals[n])) for n in sorted(vals))))
+
+
+def test_one_write_many_fields_structural_sharing():
+    # oracle (a)+§5.6 '구조 공유': 이번 write 로 필드가 안 바뀐 레코드(m2·m3 -- 값·버전 같음)는 같은 객체, 바뀐 레코드 m1 안의
+    # 다른 writer 필드(gm) 객체도 그대로, 다른 kind 레코드도 그대로.
+    s0 = _multi_base()
+    s1 = s0.write("sizer", "z1", {("device", "w"): {"m1": 1.5, "m2": 2.0, "m3": 3.0},
+                                  ("device", "l"): {"m1": 0.30, "m2": 0.15},
+                                  ("device", "nf"): {"m1": 4, "m2": 2}})
+    assert s1.record("device", "m1") is not s0.record("device", "m1")
+    assert s1.record("device", "m2") is s0.record("device", "m2")
+    assert s1.record("device", "m3") is s0.record("device", "m3")
+    assert s1.record("node", "a") is s0.record("node", "a")
+    assert s1.field("device", "m1", "gm") is s0.field("device", "m1", "gm")
+    # 원본 불변
+    assert _field_meta(s0, "device", "m1") == (
+        ("gm", 1e-3, "meas", "g1", 1), ("l", 0.15, "sizer", "z1", 1), ("nf", 1, "sizer", "z1", 1), ("w", 1.0, "sizer", "z1", 1))
+
+
+def test_one_write_many_fields_no_change_returns_self():
+    # oracle (a)+§5.6 '아무 레코드도 안 바뀌고 block_version 도 같으면 self': 같은 값·같은 버전으로 여러 열을 다른 dict 순서로 다시 쓰기.
+    s0 = _multi_base()
+    again = s0.write("sizer", "z1", {("device", "w"): {"m3": 3.0, "m2": 2.0, "m1": 1.0},
+                                     ("device", "nf"): {"m2": 2, "m1": 1},
+                                     ("device", "l"): {"m2": 0.15, "m1": 0.15}})
+    assert again is s0
+
+
+def test_one_write_many_fields_removal_and_creation():
+    # oracle (a)+§5.6 열 교체: m1 의 l 을 지우고(넘기지 않음) nf 를 바꾸고, 새 key m9 는 w·l·nf 를 한 번에 생성.
+    s0 = _multi_base()
+    s1 = s0.write("sizer", "z3", {("device", "w"): {"m1": 1.0, "m2": 2.0, "m3": 3.0, "m9": 9.0},
+                                  ("device", "l"): {"m2": 0.15, "m9": 0.5},
+                                  ("device", "nf"): {"m1": 7, "m2": 2, "m9": 1}})
+    assert s1.record("device", "m1").field_names() == ("gm", "nf", "w")
+    assert _field_meta(s1, "device", "m9") == (("l", 0.5, "sizer", "z3", 1), ("nf", 1, "sizer", "z3", 1),
+                                               ("w", 9.0, "sizer", "z3", 1))
+    vals = {"l": 0.5, "nf": 1, "w": 9.0}
+    assert s1.record("device", "m9").fp == fp_of(("device", "m9", tuple((n, fp_of(vals[n])) for n in sorted(vals))))
+    assert s1.keys("device") == ("m1", "m2", "m3", "m9")
+
+
+# ---------- 스냅샷 fp 지연 보관 ----------
+
+def test_snapshot_fp_stable_and_independent_of_read_order():
+    # oracle (a): 같은 구성의 두 스냅샷 -- 하나는 레코드 fp 를 먼저 읽고, 하나는 스냅샷 fp 를 먼저 읽는다. 읽는 순서가 값을
+    # 바꾸면 안 된다(§5.6 '처음 읽을 때 한 번 계산 -- 값은 즉시 계산과 같다').
+    a = _multi_base()
+    b = _multi_base()
+    for kind in a.kinds():
+        for key in a.keys(kind):
+            _ = a.record(kind, key).fp
+    fb = b.fp
+    fa = a.fp
+    assert fa == fb
+    for _ in range(3):
+        assert a.fp == fa and b.fp == fb
+
+
+def test_snapshot_fp_old_snapshot_unchanged_after_write_regardless_of_read_timing():
+    # oracle (a)+§5.6 '원본 불변: write 뒤에도 이전 스냅샷의 fp 가 그대로'. fp 를 write 전에 읽은 경우와 안 읽은 경우 모두.
+    read_first = _multi_base()
+    unread = _multi_base()
+    f0 = read_first.fp
+    n1 = read_first.write("bias", "b2", {("node", "v"): {"a": 1.1}})
+    n2 = unread.write("bias", "b2", {("node", "v"): {"a": 1.1}})
+    assert read_first.fp == f0 == unread.fp
+    assert n1.fp == n2.fp
+    assert n1.fp != f0
+
+
+def _golden_snapshots():
+    """기준선(c) 대상 스냅샷들 -- 이름 -> 스냅샷. 공개 API(empty·write)만 쓴다."""
+    out = {"empty": _empty(), "rich": _rich(), "populated": _populated(), "multi": _multi_base()}
+    s = GraphSnapshot.empty(MULTI)
+    s = s.write("sizer", "q1", {("device", "w"): {"m1": -0.0, "m2": 0.0, "m3": float("inf")},
+                                ("device", "nf"): {"m1": True, "m2": 1, "m3": "1"}})
+    s = s.write("search", "q2", {("graph", "theta"): {"g": (float("nan"), (b"x", "x"), frozenset({1.0, 2.5}), None)}})
+    s = s.write("bias", "q3", {("node", "v"): {"": 1e-300, "한": -1e300}})
+    out["tags"] = s
+    return out
+
+
+_BASE_SNAPSHOT_FP = {
+    # 생성: 6a3351a 엔진(변경 전)으로 _golden_snapshots() 실행 -- 아래 값은 그 출력(oracle (c)).
+    "empty": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
+    "rich": "48df4634aeb9b7a00e37cb4c57dae16f7f402e283e14026c08b7ebbd955aafa7",
+    "populated": "5a749e61104217437d1e4acb56a7027b15aa2dbe3a081b7fe122c63c1fae696d",
+    "multi": "26cdce81ad807040d9980ca6aafb1bbacc219c08a1d4e0049a05951f7a7575e1",
+    "tags": "745aacd82bac88f73d84c51ef711b8fe494366fef41f438a93ce4123ffd8ba1d",
+}
+
+
+def test_snapshot_fp_matches_pre_change_baseline():
+    # oracle (c): §0 개정 (2)(3) '값·동치 관계·공개 계약은 그대로', §5.6 '값은 즉시 계산과 같다' -- 변경 전 엔진의 스냅샷 fp 와
+    # 바이트까지 같아야 한다. 레코드 fp 를 먼저 읽은 경로도 같은 값.
+    snaps = _golden_snapshots()
+    assert set(snaps) == set(_BASE_SNAPSHOT_FP)
+    for name, snap in snaps.items():
+        assert snap.fp == _BASE_SNAPSHOT_FP[name], name
+    again = _golden_snapshots()
+    for name, snap in again.items():
+        for kind in snap.kinds():
+            for key in snap.keys(kind):
+                _ = snap.record(kind, key).fp
+        assert snap.fp == _BASE_SNAPSHOT_FP[name], name
+
+
+# ---------- 열 key 목록 보관(column·column_fields) ----------
+
+def _cols(s):
+    return {(k, f): (s.column(k, f), tuple((key, fv.value, fv.writer, fv.input_version, fv.write_count)
+                                           for key, fv in s.column_fields(k, f)))
+            for k in ("device", "node", "graph", "edge") for f in ("w", "l", "nf", "gm", "v", "vb", "theta", "u")}
+
+
+def test_column_repeated_calls_identical():
+    # oracle (a): 같은 스냅샷(불변)에 반복 호출 -> 같은 결과. 구성상 key·값도 확인.
+    s = _multi_base()
+    first = _cols(s)
+    for _ in range(3):
+        assert _cols(s) == first
+    assert s.column("device", "l") == (("m1", 0.15), ("m2", 0.15))
+    assert tuple(k for k, _ in s.column_fields("device", "w")) == ("m1", "m2", "m3")
+
+
+def test_column_after_write_never_stale():
+    # oracle (a): s0 에서 열을 먼저 읽어(보관 유발) 둔 뒤 write -- 새 스냅샷은 넣은 key 집합·값을, 원본은 옛 key 를 그대로.
+    s0 = _multi_base()
+    _ = _cols(s0)
+    s1 = s0.write("sizer", "z9", {("device", "w"): {"m2": 5.0, "m4": 4.0},
+                                  ("device", "l"): {"m1": 0.15, "m2": 0.15},
+                                  ("device", "nf"): {"m1": 1, "m2": 2}})
+    assert s1.column("device", "w") == (("m2", 5.0), ("m4", 4.0))
+    assert tuple(k for k, _ in s1.column_fields("device", "w")) == ("m2", "m4")
+    assert s1.keys("device") == ("m1", "m2", "m4")         # m3 은 w 만 있었으므로 레코드가 없어진다
+    assert s1.column("device", "gm") == (("m1", 1e-3), ("m2", 2e-3))
+    assert s0.column("device", "w") == (("m1", 1.0), ("m2", 2.0), ("m3", 3.0))
+    assert s0.keys("device") == ("m1", "m2", "m3")
+    # 값만 바뀌고 key 집합이 같은 write -- 값이 새 값으로
+    _ = _cols(s1)
+    s2 = s1.write("meas", "g2", {("device", "gm"): {"m1": 7e-3, "m2": 2e-3}})
+    assert s2.column("device", "gm") == (("m1", 7e-3), ("m2", 2e-3))
+    assert dict(s2.column_fields("device", "gm"))["m1"].input_version == "g2"
+    assert dict(s2.column_fields("device", "gm"))["m2"].input_version == "g2"
+    # 새 kind 생성
+    _ = _cols(s2)
+    s3 = s2.write("search", "t1", {("graph", "theta"): {"g": (1.0,)}})
+    assert s3.kinds() == ("device", "graph", "node")
+    assert s2.kinds() == ("device", "node")
+    assert s3.column("graph", "theta") == (("g", (1.0,)),)
+    assert s2.column("graph", "theta") == ()
+    # 열을 비워 kind 가 사라지는 write
+    _ = _cols(s3)
+    s4 = s3.write("search", "t2", {("graph", "theta"): {}})
+    assert s4.kinds() == ("device", "node")
+    assert s4.column("graph", "theta") == ()
+    assert s4.keys("graph") == ()
+
+
+def test_column_after_extend_writers_then_write_not_stale():
+    # oracle (a)+§5.6 extend_writers('모든 읽기 결과가 원본과 같다') -- 원본에서 열을 읽어 둔 뒤 확장, 확장본에서 다시 write.
+    s0 = _populated()
+    before = _cols(s0)
+    e = s0.extend_writers(WIDE)
+    assert _cols(e) == before
+    e2 = e.write("s2", "n1", {("node", "vb"): {"a": 0.1, "z": 0.2}, ("device", "gm"): {"m1": 1e-3}})
+    assert e2.column("node", "vb") == (("a", 0.1), ("z", 0.2))
+    assert e2.keys("node") == ("a", "b", "c", "z")
+    assert e2.column("device", "gm") == (("m1", 1e-3),)
+    assert e2.column("node", "v") == s0.column("node", "v")
+    assert e.column("node", "vb") == ()
+    assert e.keys("node") == ("a", "b", "c")
+    assert _cols(s0) == before
+    _ = _cols(e2)
+    e3 = e2.write("bias", "i3", {("node", "v"): {"z": 4.0}})
+    assert e3.column("node", "v") == (("z", 4.0),)
+    assert tuple(k for k, _ in e3.column_fields("node", "v")) == ("z",)
+    assert e2.column("node", "v") == (("a", 1.0), ("b", 3.0))

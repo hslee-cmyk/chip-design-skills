@@ -254,6 +254,62 @@ def peak_floor(a, lo, hi, w_m=None):
     return best
 
 
+def tol_v_at(lut, kind, w_key):
+    """[r9] 3.22 전도 하한의 입력 tol = lut `tol_v_table(memo, kind, w_key).at(L_a, VDS_k, "id_equivalent")` -- lut 계약·lut test 소관의
+    공개 API 를 입력으로만 쓴다(피검 search 함수 아님). 새 memo 하나(피검 sctx 캐시와 무관)."""
+    from gmid_engine.lut import LutMemo, tol_v_table
+    table = tol_v_table(LutMemo(lut, point=4096, curve=4096, root=4096), kind, w_key)
+    return lambda L, vds: table.at(L, vds, "id_equivalent")
+
+
+def conduction_floor(a, lo, hi, tol_at, w_m=None):
+    """[r9] 3.22 칸 전도 하한의 독립 계산(npz 배열 a, 칸 [lo, hi], tol_at(L, VDS) -> tol 또는 None). 계약 문장 그대로:
+    칸 안 L 앵커 a(± spacing) × VDS k × VS s 곡선마다 -- tol None·0 이면 (a, k) 곡선 제외, VGS 0 마디 z(|VGS| ≤ spacing(max|VGS|),
+    없으면 None)가 on_mask 인 곡선만 -- f_i = ln GM[a, i, k, s] + ln tol − ln ID[a, z, k, s]; on_mask 이고 f ≥ 0 인 첫 마디 j 가
+    있고 j > 0 이고 j − 1 도 on_mask 이면 근 = lnID[j−1] + t·(lnID[j] − lnID[j−1]) + ln L_a − ln w_m, t = −f[j−1]/(f[j] − f[j−1]).
+    결과 = 근의 최댓값(곡선이 없으면 None). 봉인 9 margin = 1 ⇔ f = 0(sizing r8) 이 근거라 f 는 그 조건을 격자에서 다시 쓴 것."""
+    w_m = float(a["W"]) if w_m is None else w_m
+    Ls = np.asarray(a["L"], dtype=float)
+    vgs = np.asarray(a["VGS"], dtype=float)
+    vds = np.asarray(a["VDS"], dtype=float)
+    ID, GM = np.asarray(a["ID"], dtype=float), np.asarray(a["GM"], dtype=float)
+    zs = [i for i, v in enumerate(vgs) if abs(v) <= np.spacing(float(np.max(np.abs(vgs))))]
+    if not zs:
+        return None
+    z = zs[0]
+    m = on_mask({"ID": ID, "GM": GM})
+    best = None
+    for i, L in enumerate(Ls):
+        if not (lo - np.spacing(lo) <= L <= hi + np.spacing(hi)):
+            continue
+        for k in range(ID.shape[2]):
+            tol = tol_at(float(L), float(vds[k]))
+            if tol is None or tol == 0:
+                continue
+            for s in range(ID.shape[3]):
+                if not m[i, z, k, s]:
+                    continue
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    f = np.log(GM[i, :, k, s]) + math.log(tol) - math.log(ID[i, z, k, s])
+                    lnid = np.log(ID[i, :, k, s])
+                js = [j for j in range(ID.shape[1]) if m[i, j, k, s] and f[j] >= 0]
+                if not js:
+                    continue
+                j = js[0]
+                if j == 0 or not m[i, j - 1, k, s]:
+                    continue
+                t = -f[j - 1] / (f[j] - f[j - 1])
+                root = float(lnid[j - 1] + t * (lnid[j] - lnid[j - 1]) + math.log(L) - math.log(w_m))
+                best = root if best is None else max(best, root)
+    return best
+
+
+def expected_floor(cond, peak):
+    """[r9] 3.22 성분별 하한 = max(칸 전도 하한(None 아니면), 칸 정점 하한(적용될 때 -- 아니면 None)), 둘 다 없으면 None."""
+    vals = [x for x in (cond, peak) if x is not None and x != -math.inf]
+    return max(vals) if vals else None
+
+
 def circuit_diode():
     """[r8] M1 nmos diode (out, out, gnd) + M2 pmos (out, in, vdd). out = M1 vgs_gate(known gnd) 이고 M1 의 drain -> 1변수 노드
     (3.22 one_var_only = {M1}). in = M2 vgs_gate(known vdd), in 은 M2 의 gate -> 1변수 아님."""

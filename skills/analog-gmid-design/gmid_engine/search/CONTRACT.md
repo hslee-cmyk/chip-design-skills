@@ -867,7 +867,8 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 - cProfile(cumtime): folded_cascode 48.6 s 중 size_and_seal 47.3 s(97%), LUT `gm_id_for_target` 27.5 s, core `fp_of` 19.5 s
   (40%), `Projection.from_snapshot` 10.6 s; two_stage_ota 14.4 s 중 size_and_seal 13.4 s, `fp_of` 8.5 s(59%). search 자체
   (키·캐시·원뿔·목적·제약·SLSQP 조립)는 2~7% -- 핫스팟은 sizing O9(투영 지문)·LUT 역산이다.
-
+- [2026-10-08 core 성능 2~5 후 주석] 위 cProfile 의 `fp_of` 비중(40~60 %)은 옛 core(memo 키·레코드·투영마다 직렬화) 기준이다. 이제 memo 키는 `canonical_key`,
+  레코드·스냅샷 지문은 읽을 때 한 번, 투영은 행 단위 sha256 이라 9회로 평가에서 fp 계열 비용이 옛의 약 1/3~1/10 이다(core CONTRACT 10.1).
 
 ### 10.x [r11, 사용자 결정 11, 2026-10-08] 면적 예산 9회로 재실행 (작성자 측 시연, 정본 아님; B = 120 s, 시연 harness mod6_demo)
 - 예산: common_gate 0.005, pushpull_follower 0.005, folded_cascode 0.01, two_stage_ota 0.015, two_stage_ota_sf 0.015, sf_pushpull 0.02, ngcc 0.025,
