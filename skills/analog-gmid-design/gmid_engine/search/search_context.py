@@ -20,7 +20,7 @@ from pathlib import Path
 from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 from gmid_engine.core import FailureRecord, PdkDecl, fp_of
 from gmid_engine.graph import ELEMENT_PASSIVE
-from gmid_engine.metrics import JunctionSource, metric_registry
+from gmid_engine.metrics import JunctionSource, metric_catalog, metric_registry
 
 from .archive import S3Archive
 from .area_decl import passive_area_decl
@@ -104,6 +104,7 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     code_fp = _code_fp()
     judged, ss, notes = [], [], []
     registry = metric_registry()
+    catalog = metric_catalog()
     for decl in spec.judged_constraints:
         if decl.value is None:
             notes.append({"metric": decl.metric, "op": decl.op, "verdict": "judgment_pending",
@@ -113,8 +114,11 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
         elif decl.metric in registry and registry[decl.metric].signature.view_kind is not None:
             ss.append(decl)
         else:
+            # [U5] 카탈로그에는 있고 레지스트리에는 없는 이름 = 서명만 있는 계산 대기 metric(metrics/pending_metrics.py) -- 조용히 통과하지 않고
+            # `constraint_notes` 미측정으로 기록한다(보고에 드러난다 -- 점마다 front 를 거르는 행은 아니다).
+            pending = decl.metric in catalog and decl.metric not in registry
             notes.append({"metric": decl.metric, "op": decl.op, "value": decl.value, "verdict": "unmeasured",
-                          "reason": "metric_not_in_registry_or_no_ss_view"})
+                          "reason": "metric_computation_pending" if pending else "metric_not_in_registry_or_no_ss_view"})
     archive = None if archive_root is None else S3Archive(archive_root, context_fp, code_fp)
     ctx = SearchContext(dc_ctx, domain, settings, context_fp, schema_fp, code_fp,
                         tuple(dc_ctx.inputs.element_values), tuple(judged), tuple(notes), archive)
