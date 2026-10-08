@@ -5,7 +5,8 @@
 순서: `load_json_checked`(JSON 수준 위반이면 그 `SchemaRejectedError` 를 그대로 낸다 -- 문서가 없으니 다음 게이트가 없다)
 -> `check_topology_schema` -> `check_linked_files` -> 선언 접근자 `device_declaration`·`rail_declaration`·
 `passive_declaration`·`source_declaration` -> `check_name_uniqueness`(원소 이름 + 넷 이름 대소문자 충돌 -- 넷 집합에 `supply_nets` 문자열·`ports` 키를 원본에서 더한다)
--> `port_declaration` -> `check_hidden_rails`.
+-> `port_declaration` -> `check_hidden_rails` -> `bias_input_declaration`(gate 전용 넷 게이트, `bias_inputs.py`)
+-> `check_source_manifest`. 이 둘은 입력 선언이 거부된 문서에서는 돌지 않는다(`not_evaluated` 이름은 늘리지 않는다).
 접근자가 낸 `SchemaRejectedError` 는 그 hits 를 모으고 계속한다. 어떤 검사의 입력 선언이 거부됐으면 그 검사는
 돌릴 수 없으므로 `not_evaluated` 에 이름을 남긴다(조용히 건너뛰지 않는다 -- 문서는 이미 거부된다):
 `name_uniqueness`·`hidden_rails` 는 통째로, `port_declaration` 은 형식 검사는 그대로 하고 `ports.port_net_unknown`
@@ -20,6 +21,7 @@
 from gmid_engine.core import SchemaRejectedError
 
 from ._rejection import reject
+from .bias_inputs import bias_input_declaration
 from ._terminal_nets import mos_terminal_nets, two_terminal_nets
 from .devices import device_declaration
 from .hidden_rails import check_hidden_rails
@@ -30,6 +32,7 @@ from .name_uniqueness import check_name_uniqueness
 from .passives import passive_declaration
 from .ports import COMMENT_PREFIX, PORTS_KEY, port_declaration
 from .rails import SUPPLY_KEY, rail_declaration
+from .source_manifest import check_source_manifest
 from .topology_model import TopologyDoc
 from .topology_schema import check_topology_schema
 
@@ -92,8 +95,15 @@ def load_topology(path):
         run_check("hidden_rails", check_hidden_rails, rails, devices, passives, sources)
     else:
         not_evaluated.append("hidden_rails")
+    # 부가 선언 검사(source_manifest·bias_inputs): 입력 선언이 거부됐으면 문서는 이미 거부되므로 이 검사만 건너뛴다
+    # (기존 `not_evaluated` 이름 계약을 늘리지 않는다 -- test_topology_load 가 그 집합을 정확히 고정한다).
+    if devices is not None and passives is not None:
+        run_check("source_manifest", check_source_manifest, data, devices, passives)
+    bias_inputs = ()
+    if elements_ok and rails is not None and ports is not None:
+        bias_inputs = run_accessor("bias_inputs", bias_input_declaration, data, devices, passives, sources, rails, ports)
     if hits or not_evaluated:
         reject(_GATE, where, hits, rejected_gates=tuple(sorted(rejected)), not_evaluated=tuple(not_evaluated))
     return TopologyDoc.from_declarations(data["topology_name"], devices, passives, sources, rails.nets, ports,
-                                         doc.sha256)
+                                         doc.sha256, bias_inputs)
 

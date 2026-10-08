@@ -1,11 +1,16 @@
 # sf_pushpull_output_opamp -- topology connectivity table
 
-소스: `library/sf_pushpull_output_opamp.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
+소스: `assets/library/sf_pushpull_output_opamp.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
 
 ## ⚠️ 자동 플래그 (사람 재확인 필요)
 
 - **구동 소자 없는 net(gate로만 참조됨)**: vin_n, vin_p
   이 net을 source/drain으로 쓰는 소자가 topology.json에 없습니다 -- 외부 입력 핀이면 정상이지만, 내부에서 생성돼야 하는 신호라면 그걸 만드는 소자/감지망이 누락된 것일 수 있습니다.
+
+## 📄 출처 매니페스트 (`source_manifest`)
+
+- 그림/쪽: Allen Lecture 26, Page 26-6
+- 소자 22개, 수동소자 5개 (로더가 netlist·passive_elements 개수와 대조)
 
 ## Net별 연결 표 (이 net에 물린 모든 단자)
 

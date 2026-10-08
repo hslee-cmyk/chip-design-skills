@@ -1,6 +1,6 @@
 # current_reuse_telescopic_ota -- topology connectivity table
 
-소스: `library/current_reuse_telescopic_ota.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
+소스: `assets/library/current_reuse_telescopic_ota.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
 
 ## ⚠️ 자동 플래그: 없음 (구조적으로는 이상 없음 -- §8 정직한 한계 참고)
 
@@ -9,6 +9,11 @@
 - **`Vim`**: opamp의 differential input 신호(음극) -- 칩 외부에서 인가되는 핀이라 topology.json 안에 이걸 구동하는 소자가 없는 게 정상(2026-08-03 사용자 확인, 아래 ports 참고).
 - **`Vip`**: opamp의 differential input 신호(양극) -- Vim과 동일 사유, 외부 인가 핀.
 - **`Voc`**: R1/R2로 최종 출력 Vom/Vop를 평균해 구동됨(위 passive_elements 참고) -- topology_to_markdown.py의 '구동 소자 없는 net' 플래그는 netlist(트랜지스터)만 보므로 여전히 뜬다, 하지만 passive_elements를 포함하면 실제로는 고아가 아니다.
+
+## 📄 출처 매니페스트 (`source_manifest`)
+
+- 그림/쪽: Xie & Chen, A 126uW Current-Reuse Telescopic OTA with Class-AB Output Stage
+- 소자 51개, 수동소자 12개 (로더가 netlist·passive_elements 개수와 대조)
 
 ## Net별 연결 표 (이 net에 물린 모든 단자)
 

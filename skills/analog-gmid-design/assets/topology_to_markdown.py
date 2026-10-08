@@ -87,7 +87,9 @@ def render_markdown(topology_json_path: str) -> str:
     all_elements = passives + ideal_sources
     name = meta.get("topology_name", os.path.basename(topology_json_path))
     dangling = _flag_dangling_nets(transistors, all_elements) - set(known_dangling)
-    gate_only = _flag_gate_only_nets(transistors, all_elements) - set(known_dangling)
+    # Q6: 선언된 외부 바이어스 입력(bias_inputs)은 gate 전용이 정상인 net -- 자동 플래그에서 빼고 따로 표시한다.
+    bias_inputs = set(raw.get("bias_inputs") or [])
+    gate_only = _flag_gate_only_nets(transistors, all_elements) - set(known_dangling) - bias_inputs
     net_table = _net_table(transistors, all_elements)
 
     lines = []
@@ -125,6 +127,20 @@ def render_markdown(topology_json_path: str) -> str:
             lines.append(f"- **`{net}`**: {reason}")
         lines.append("")
 
+    manifest = raw.get("source_manifest")
+    if isinstance(manifest, dict):
+        lines.append("## 📄 출처 매니페스트 (`source_manifest`)")
+        lines.append("")
+        lines.append(f"- 그림/쪽: {manifest.get('figure')}")
+        lines.append(f"- 소자 {manifest.get('device_count')}개, 수동소자 {manifest.get('passive_count')}개 (로더가 netlist·passive_elements 개수와 대조)")
+        lines.append("")
+
+    if bias_inputs:
+        lines.append("## 🔌 외부 바이어스 입력 (`bias_inputs` -- gate 전용 선언 net, connectivity 불변)")
+        lines.append("")
+        lines.append(", ".join(f"`{n}`" for n in sorted(bias_inputs)))
+        lines.append("")
+
     lines.append("## Net별 연결 표 (이 net에 물린 모든 단자)")
     lines.append("")
     lines.append("| Net | 연결된 단자 (device.terminal) | 단자 수 |")
@@ -132,7 +148,7 @@ def render_markdown(topology_json_path: str) -> str:
     for net in sorted(net_table.keys()):
         terms = sorted(net_table[net])
         term_str = ", ".join(f"{d}.{t}" for d, t in terms)
-        if net in known_dangling:
+        if net in known_dangling or net in bias_inputs:
             flag = " ℹ️"
         elif net in dangling or net in gate_only:
             flag = " ⚠️"
