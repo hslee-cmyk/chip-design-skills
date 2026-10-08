@@ -21,11 +21,24 @@ HERE = Path(__file__).resolve().parent
 SKILL = HERE.parents[2]
 
 
-def test_tables_round_trip_through_json(tmp_path):
+JSON_SCALARS = (str, int, float, bool, type(None))
+
+
+def _non_json(node, path="$"):
+    """JSON 값 형식(dict[str] · list · 스칼라)이 아닌 자리의 경로 목록 -- tuple·set·dataclass 등은 왕복에서 형이 바뀐다."""
+    if isinstance(node, dict):
+        bad = [path + " key " + repr(k) for k in node if not isinstance(k, str)]
+        return bad + [b for k, v in node.items() for b in _non_json(v, path + "." + str(k))]
+    if isinstance(node, list):
+        return [b for i, v in enumerate(node) for b in _non_json(v, "%s[%d]" % (path, i))]
+    return [] if isinstance(node, JSON_SCALARS) else [path + " " + type(node).__name__]
+
+
+def test_tables_are_plain_json_values(tmp_path):
     _, s1v = H.build(tmp_path, H.CMFB)
-    t = structure_tables(s1v)
-    text = json.dumps(t, sort_keys=True)
-    assert json.loads(text) == t
+    tables = structure_tables(s1v)
+    assert isinstance(tables, dict)
+    assert _non_json(tables) == []                      # 그래서 json.dumps -> json.loads 왕복이 같은 값이다
 
 
 def test_tables_mention_views_cells_classes_and_records(tmp_path):

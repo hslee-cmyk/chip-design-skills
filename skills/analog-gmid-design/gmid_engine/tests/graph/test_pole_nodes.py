@@ -60,6 +60,6 @@ def test_drive_attribute_matches_view_drive_kind(tmp_path):
     _, s1v = H.build(tmp_path, H.FOLDED)
     v = H.view(s1v)
     d = H.drive(v)
-    for p in v.pole_nodes:
-        if p.net in d:
-            assert p.drive == d[p.net], p.net
+    mismatched = [(p.net, p.drive, d[p.net]) for p in v.pole_nodes if p.net in d and p.drive != d[p.net]]
+    assert mismatched == []
+    assert {p.net for p in v.pole_nodes} >= set(d)
