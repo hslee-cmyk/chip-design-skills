@@ -404,7 +404,8 @@ def circuit_s(reverse=False):
     net = [mos("M1", "nmos", "vin", "nb1", "gnd"), mos("M2", "nmos", "vout", "nb2", "vin"),
            mos("M3", "pmos", "vout", "pb", "vdd")]
     return topo("scc_s", net[::-1] if reverse else net,
-                {"vin": ("input", "single_ended_input"), "vout": ("output", "single_ended_output")})
+                {"vin": ("input", "single_ended_input"), "vout": ("output", "single_ended_output")},
+                bias=["nb1", "nb2", "pb"])                                  # nb1: M1 gate, nb2: M2 gate, pb: M3 gate
 
 
 def circuit_q(reverse=False):
@@ -412,7 +413,8 @@ def circuit_q(reverse=False):
     z = 입력 포트 -> F 없는 성분 {x, z} 의 뿌리(W4, 창 lo = gnd, hi = V(x)), x = M1 의 vgs_gate(1변수: d = x)."""
     net = [mos("M1", "nmos", "x", "x", "z"), mos("M3", "nmos", "z", "nb", "gnd"), mos("M2", "pmos", "x", "pb", "vdd")]
     return topo("scc_q", net[::-1] if reverse else net,
-                {"z": ("input", "single_ended_input"), "x": ("output", "single_ended_output")})
+                {"z": ("input", "single_ended_input"), "x": ("output", "single_ended_output")},
+                bias=["nb", "pb"])                                          # nb: M3 gate, pb: M2 gate
 
 
 def theta_s(ctx, y1, y2):

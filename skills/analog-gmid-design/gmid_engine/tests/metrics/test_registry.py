@@ -1,4 +1,4 @@
-"""CONTRACT 3.15: metric_registry -- 등록 10개(metric -> 결과 형식.필드, 단위, 영역, view_kind, objective_axis)."""
+"""CONTRACT 3.15: metric_registry -- 등록 11개([CM 2026-10-08] pm_cm_ss_deg 추가, S-20)(metric -> 결과 형식.필드, 단위, 영역, view_kind, objective_axis)."""
 import pytest
 
 from gmid_engine.core import MetricSignature
@@ -19,6 +19,8 @@ TABLE = {
     "gbw_ss_hz": (LoopAnalysis, "gbw_hz", "hz", "ss", "transfer", None),
     "parasitic_pm_ss_deg": (LoopAnalysis, "phase_margin_deg", "deg", "ss", "transfer", None),
     "pm_ss_deg": (LoopAnalysis, "phase_margin_deg", "deg", "ss", "loop", None),
+    # [CM 2026-10-08] 3.15 표 행 + S-20: 필드 LoopAnalysis.phase_margin_deg, deg, ss, cm_loop, axis None
+    "pm_cm_ss_deg": (LoopAnalysis, "phase_margin_deg", "deg", "ss", "cm_loop", None),
     "ratio_ss_db": (ResponseRatio, "ratio_db", "db", "ss", "ratio", None),
     "rout_ss_ohm": (OutputResistance, "rout_ohm", "ohm", "ss", "output_port", None),
     "supply_current_dc": (SupplyCurrents, "supply_current_dc", "amp", "dc", None, "power"),
@@ -27,9 +29,10 @@ TABLE = {
 }
 
 
-def test_exactly_ten_names():
+def test_names_exactly_contract_table():
+    # oracle (d): 계약 3.15 "등록 11개" 문장과 표(S-20) -- 개수는 이름에 넣지 않는다
     assert set(metric_registry()) == set(TABLE)
-    assert len(metric_registry()) == 10
+    assert len(metric_registry()) == 11
 
 
 @pytest.mark.parametrize("name", sorted(TABLE))

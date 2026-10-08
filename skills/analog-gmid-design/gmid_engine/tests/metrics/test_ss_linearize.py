@@ -54,7 +54,8 @@ OPS = {
 
 def _topo():
     return topo_doc("ssdev_cs", mos=[("M1", "nmos", "out", "in", "gnd", "gnd"), ("M2", "pmos", "out", "pb", "vdd", "vdd")],
-                    passives=[("CL", "capacitor", "out", "gnd")], rails=("vdd", "gnd"))
+                    passives=[("CL", "capacitor", "out", "gnd")], rails=("vdd", "gnd"),
+                    bias=["pb"])                                 # pb: M2 gate 에만 (authoring 9절 입력 선언)
 
 
 def _snap(tmp_path, ops=None):

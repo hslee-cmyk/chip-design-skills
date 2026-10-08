@@ -281,7 +281,9 @@ def test_undeclared_quantity_rejected(sky_decl, call):
 @needs_sky130
 def test_second_call_hits_memo_and_no_module_cache():
     n_src = len(SKY["sources"])
-    memo = BoundedLRU(4)
+    # 9.5 'memo = 원본 수 이상': 상한 = 원본 수(JSON 직접 집계). [결정 11, 2026-10-08] mim_cap_params 추가로 원본 5 -> 옛 상한 4 는
+    # 원본 수보다 작아 두 번째 호출에 퇴출이 생긴다(기대 변경: 상한을 원본 수에서 유도).
+    memo = BoundedLRU(n_src)
     first = read_pdk_decl(str(SKY130_DECL), memo)
     s1 = memo.stats()
     assert (s1.hits, s1.misses) == (0, n_src)
@@ -291,7 +293,7 @@ def test_second_call_hits_memo_and_no_module_cache():
     assert s2.misses == s1.misses
     assert first == second
     # 새 memo 면 다시 파싱(모듈 수준 캐시가 있으면 misses 가 0 이 된다)
-    other = BoundedLRU(4)
+    other = BoundedLRU(n_src)
     read_pdk_decl(str(SKY130_DECL), other)
     assert other.stats().misses == n_src and other.stats().hits == 0
 
@@ -1100,16 +1102,19 @@ def test_base_decl_dir_missing_file_and_explicit_pdk_root(tmp_path):
 
 @needs_sky130
 def test_two_decls_share_one_memo_five_sources():
-    # 9.5: 두 선언을 같은 memo 로 읽으면 원본 5개 -- 상한 5 이상이면 두 번째부터 파싱 0
-    memo = BoundedLRU(5)
+    # 9.5: 두 선언을 같은 memo 로 읽으면 원본 n 개 -- 상한 n 이상이면 두 번째부터 파싱 0. n = 두 선언 JSON sources 수 직접 집계.
+    # [결정 11, 2026-10-08] PDK 선언에 mim_cap_params 원본 추가 -> n = 5 + 1 = 6 (test 이름의 'five' 는 옛 값 -- id 유지).
+    n = len(SKY["sources"]) + len(_load_json(LUT_RULE_DECL)["sources"])
+    assert n == 6                           # 손 집계: tech_lef·periphery_rules·nfet/pfet 모델 카드·mim_cap_params + lut_generator
+    memo = BoundedLRU(n)
     a1 = read_pdk_decl(str(SKY130_DECL), memo)
     b1 = read_pdk_decl(str(LUT_RULE_DECL), memo)
     s1 = memo.stats()
-    assert (s1.hits, s1.misses) == (0, 5)
+    assert (s1.hits, s1.misses) == (0, n)
     a2 = read_pdk_decl(str(SKY130_DECL), memo)
     b2 = read_pdk_decl(str(LUT_RULE_DECL), memo)
     s2 = memo.stats()
-    assert (s2.hits, s2.misses) == (5, 5)
+    assert (s2.hits, s2.misses) == (n, n)
     assert (a1, b1) == (a2, b2)
     assert fp_of(a1) == fp_of(a2)
 

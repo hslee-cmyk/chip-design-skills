@@ -86,6 +86,13 @@
    "type": "array", "items": {"type": "string"}, "uniqueItems": true,
    "description": "β 되먹임망을 이루는 passives 이름(입력 포트 넷에 물린 되먹임·입력측 소자). 있으면 PM 은 이 β 루프의 위상여유(루프 넷리스트, Middlebrook 이중 주입), 없으면 β=1(개루프 A) 위상여유. README 'PM 정의'. [변경 C14] 원소마다 두 단자 중 입력 포트 넷에 물린 단자가 정확히 1개여야 한다(0개·2개 모두 막힘)."
   },
+  "cm_loop_passives": false,
+  "cm_output_loop": {
+   "type": "object", "additionalProperties": false, "required": ["drivers"],
+   "properties": {"drivers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true, "minItems": 1,
+    "description": "구동자(x 쪽) MOS 이름 -- 엔진 cm_partition 결과(차동 출력 넷에 channel 단자가 물려 레일에 닿는 출력 단 소자). 각 소자는 drain 또는 source 중 정확히 하나가 출력 넷이어야 한다."}},
+   "description": "[신규 CM] 선택. 있으면 공통 모드 루프를 선언된 차동 출력 포트 쌍(ports.output_p·output_n)에서 끊는다: <stem>.cmloop.cir 에서 drivers 의 출력 넷 쪽 channel 단자를 lbx_<넷> 으로 떼고(수동소자·gate·그 밖 MOS 는 남는다 -- 분할은 엔진이 정해 주입, 오라클은 엔진을 import 하지 않는다) 두 넷에 동일 부호(가중 1/2씩) Middlebrook 전압·전류 이중 주입으로 T_cm 을 잰다(입력은 전부 AC 접지). PM = measure cm_pm_deg. README 'CM 루프 PM'."
+  },
   "feedback_passives_basis": {
    "type": "string", "minLength": 1,
    "description": "[신규 C12 보충] 선택. feedback_passives 를 정한 규칙(기록 전용, 판정 무관). 옛 어댑터 = 'legacy_c12_input_net_passives'(입력 포트 넷에 물린 passives 전부), 새 엔진 = 'spec_feedback_elements'(spec feedback.elements 그대로). 두 규칙이 다른 집합을 고르면 두 PM 은 다른 루프를 잰 값이다 -- compare.summary.pm_loop 에 그대로 남는다."
@@ -121,7 +128,7 @@
      "type": "array",
      "items": {"type": "object", "required": ["measure", "value"], "properties": {
       "name": {"type": "string", "description": "엔진 쪽 metric 이름(표시용)"},
-      "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A", "ratio_db", "rout_ohm",
+      "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "cm_pm_deg", "f3db_hz", "supply_current_A", "ratio_db", "rout_ohm",
                            "slew_rate_v_per_s", "settle_s"],
                   "description": "[신규] ratio_db = 엔진 ratio_ss_db(CMRR·PSRR 일반형, view 필수, C24). [신규 C26] rout_ohm = 엔진 rout_ss_ohm(출력 포트 뷰, 감지 전용 view 필수). slew_rate_v_per_s·settle_s = 기록 전용(C25: 지금은 SPICE 정의 미정이라 not_measured)."},
       "value": {"type": "number"},
@@ -139,7 +146,7 @@
    "type": "object",
    "properties": {
     "constraints": {"type": "array", "items": {"type": "object", "required": ["measure", "op", "limit"], "properties": {
-     "name": {"type": "string"}, "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A", "ratio_db",
+     "name": {"type": "string"}, "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "cm_pm_deg", "f3db_hz", "supply_current_A", "ratio_db",
                                                       "rout_ohm"],
                                               "description": "[신규] ratio_db(CMRR·PSRR, view 필수) 는 판정 대상(Q5 (ii), C24). [신규 C26] rout_ohm(출력 저항, 감지 전용 view 필수)도 판정 대상. slew·settling 은 판정 대상이 아니라 여기 없다(C25)."},
      "op": {"enum": [">=", "<="]}, "limit": {"type": "number"}, "rail": {"type": "string"},

@@ -6,12 +6,14 @@
 from __future__ import annotations
 
 import json
+import math
 from collections import Counter
 from pathlib import Path
 
 import pytest
 
-from gmid_engine.authoring import BETA_DECLARED, BETA_UNITY, SenseDecl, load_sizing_spec, load_topology
+from gmid_engine.authoring import BETA_DECLARED, BETA_UNITY, SenseDecl, ViewDecl, load_sizing_spec, load_topology
+
 from gmid_engine.core import MetricSignature as M
 
 LIBRARY = Path(__file__).resolve().parents[3] / "assets" / "library"
@@ -21,6 +23,7 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
     "ugf_ss_hz": M("hz", "ss", "transfer"),
     "gbw_ss_hz": M("hz", "ss", "transfer"),
     "pm_ss_deg": M("deg", "ss", "loop"),
+    "pm_cm_ss_deg": M("deg", "ss", "cm_loop"),  # [CM 2026-10-08] SPEC_CONTRACT 5절 픽스처 이름표 갱신
     "parasitic_pm_ss_deg": M("deg", "ss", "transfer"),
     "rout_ss_ohm": M("ohm", "ss", "output_port"),
     "ratio_ss_db": M("db", "ss", "ratio"),
@@ -35,16 +38,36 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
 # 5절 표: 회로 -> (제약 수, 판정 수, pending 표지 수). 파일럿 pending 은 SP-10 해소(사용자 2026-10-07 "파일럿 CL1·CL2가
 # 각각 1 pF", 커밋 0bc22fe) 뒤 13, CI-10 해소(사용자 2026-10-08 "5번도 네 의견에 동의해", 커밋 3a38275 -- feedback 표지 CI-10
 # 1 과 pm_ss_deg 뷰 표지 MOD5 1 삭제) 뒤 11 = JSON 표지 직접 집계(MOD5 5 + SP-2·CI-15·CI-18·PA-1·PA-2·AC-3 각 1) = 5절 표 11.
+# [사용자 결정 11, 2026-10-08] 회로마다 면적 예산 제약 `area_search_m2 <= v`(user_spec -> 판정) 1개씩 추가 -> 제약 수·판정 수 각 +1,
+# pending 수 불변(예산은 결정 대기 표지가 아니다). 옛 표 = (0,0)·(8,5)·(0,0)·(3,2)·(2,2)·(1,1)·(3,3)·(2,1)·(3,2).
 TABLE = {
-    "common_gate_amplifier": (0, 0, 6),
-    "current_reuse_telescopic_ota": (8, 5, 11),
-    "folded_cascode": (0, 0, 7),
-    "ngcc_3stage_ff": (3, 2, 7),
-    "nmcnr_amplifier": (2, 2, 6),
-    "pushpull_follower_buffer": (1, 1, 5),
-    "sf_pushpull_output_opamp": (3, 3, 6),
-    "two_stage_ota": (2, 1, 7),
-    "two_stage_ota_sf": (3, 2, 6),
+    "common_gate_amplifier": (1, 1, 6),
+    # 파일럿 10(7)/11: 결정 11 면적 예산 1건 + [CM 2026-10-08] pm_cm_ss_deg >= 60(user_spec) 1건 -- 둘 다 판정, JSON 직접 집계 10개.
+    # (SPEC_CONTRACT 5절 표는 두 갈래가 각각 9(6) 으로 적어 병합 뒤 10(7) 을 반영하지 않음 -- 계약 갱신 대상)
+    "current_reuse_telescopic_ota": (10, 7, 11),
+    "folded_cascode": (1, 1, 7),
+    "ngcc_3stage_ff": (4, 3, 7),
+    "nmcnr_amplifier": (3, 3, 6),
+    "pushpull_follower_buffer": (2, 2, 5),
+    "sf_pushpull_output_opamp": (4, 4, 6),
+    "two_stage_ota": (3, 2, 7),
+    "two_stage_ota_sf": (4, 3, 6),
+}
+# oracle (d) 사용자 결정 11 문장(_drafts/user_decisions.md 2026-10-08 "B으로 표의 값을 그대로 써. Cl을 빼는 것에 동의해")의 표 값 [mm²].
+# m² 환산은 1 mm² = 1e-6 m² (단위 정의, 피검 식 아님).
+DEC11_BUDGET_MM2 = {
+    "common_gate_amplifier": 0.005, "pushpull_follower_buffer": 0.005, "folded_cascode": 0.01, "two_stage_ota": 0.015,
+    "two_stage_ota_sf": 0.015, "sf_pushpull_output_opamp": 0.02, "ngcc_3stage_ff": 0.025, "nmcnr_amplifier": 0.025,
+    "current_reuse_telescopic_ota": 0.04,
+}
+MM2_TO_M2 = 1e-6
+# 측정 부하(measurement_load) -- oracle (d) 결정 11 "CL(측정 부하)은 면적에서 제외" + 회로 해석: 각 회로의 출력 부하 커패시터(파일럿은
+# 두 출력 CL1·CL2), nmcnr 은 출력 부하 RL(25 kΩ)도 측정 부하다. common_gate 는 수동소자 없음. RL 포함은 SPEC_CONTRACT('CL·nmcnr RL')
+# 의 회로 해석이고 결정 11 문장은 CL 만 명시한다(지금은 저항 면적이 미선언이라 면적 값에 영향 없음 -- Q9 저항 면적 포함 때 의미가 생긴다).
+MEASUREMENT_LOADS = {
+    "common_gate_amplifier": set(), "current_reuse_telescopic_ota": {"CL1", "CL2"}, "folded_cascode": {"CL"},
+    "ngcc_3stage_ff": {"CL"}, "nmcnr_amplifier": {"CL", "RL"}, "pushpull_follower_buffer": {"CL"},
+    "sf_pushpull_output_opamp": {"CL"}, "two_stage_ota": {"CL"}, "two_stage_ota_sf": {"CL"},
 }
 # 5절 ID 합계: SP-10 2 가 빠지고(65 -> 63), CI-10 해소로 CI-10 1·MOD5 1(파일럿 pm_ss_deg 뷰)이 빠진다(63 -> 61, MOD5 7 -> 6 =
 # 파일럿 뷰 4·metric 1 + ngcc metric 1). 5절 문장 '남은 표지 61개' 와 JSON 직접 집계가 같음.
@@ -176,6 +199,120 @@ def test_every_spec_meta_fp_matches_topology():
         assert _spec(name)["meta"]["topology_fp"] == topo.connectivity_fp, name
 
 
+# ---------------------------------------------------------------- [2026-10-08] search.theta_bounds (사용자 결정 8·9·10)
+# oracle (d) 사용자 결정 문장(_drafts/user_decisions.md 2026-10-08):
+#  8번 "θ 저항 범위: current_reuse R1·R2(CMFB 공통모드 감지) [10 kOhm, 10 MOhm], sf_pushpull R1a~c(자기바이어스 캐스코드) [1 kOhm, 1 MOhm]"
+#  10번 "θ 커패시터 범위 [0.1 pF, 10 pF]: ... spec mode engine 인 커패시터 전부"
+#  9번 "J7 영점 상쇄 규칙(R = 1/Σgm) ... 현 매칭 확정: two_stage Rz->M6, nmcnr Rm->M301, 파일럿 Rz1->M16 / Rz2->M26" -- 구조 규칙이 값을
+#  정하는 저항은 θ 가 아니다(sizing CONTRACT 4.4 r5 4번) -> 상자를 받지 않는다(SPEC_CONTRACT 1절: 상자 없는 원소는 search 가 거부 --
+#  θ 가 아닌 원소는 search 가 묻지 않는다).
+# engine 원소 집합은 spec/topology JSON 직접 집계(피검 로더 아님).
+DEC8_R = {
+    "current_reuse_telescopic_ota": {"R1": (1e4, 1e7), "R2": (1e4, 1e7)},
+    "sf_pushpull_output_opamp": {"R1a": (1e3, 1e6), "R1b": (1e3, 1e6), "R1c": (1e3, 1e6)},
+}
+DEC10_C = (1e-13, 1e-11)
+DEC9_STRUCTURAL_R = {
+    "two_stage_ota": {"Rz"},
+    "nmcnr_amplifier": {"Rm"},
+    "current_reuse_telescopic_ota": {"Rz1", "Rz2"},
+}
+
+
+def _engine_rc(name):
+    """JSON 직접: topology 수동소자 중 kind 저항·커패시터이고 spec element_values 가 {"engine": true, ...} 인 것 -> {이름: kind}."""
+    topo = json.loads((LIBRARY / (name + ".topology.json")).read_text(encoding="utf-8"))
+    ev = _spec(name)["human"]["element_values"]
+    out = {}
+    for e in topo.get("passive_elements", []):
+        v = ev.get(e["name"])
+        if e["kind"] in ("resistor", "capacitor") and isinstance(v, dict) and v.get("engine") is True:
+            out[e["name"]] = e["kind"]
+    return out
+
+
+def _expected_boxes(name):
+    """결정 8·10 으로 정해진 상자: 결정 8 의 저항 + 그 회로의 engine 커패시터 전부(결정 10)."""
+    want = dict(DEC8_R.get(name, {}))
+    for n, k in _engine_rc(name).items():
+        if k == "capacitor":
+            want[n] = DEC10_C
+    return want
+
+
+def _theta_bounds_of(doc):
+    from gmid_engine.authoring import THETA_BOUNDS
+    found = [s.value for s in doc.search if s.field == THETA_BOUNDS]
+    return found[0] if found else ()
+
+
+def test_engine_resistors_are_decision8_or_decision9_structural():
+    """손 집계: library 의 engine 저항 = 결정 8 의 θ 저항 ∪ 결정 9 의 구조 규칙 저항(빠짐·겹침 없음)."""
+    for name in TABLE:
+        eng_r = {n for n, k in _engine_rc(name).items() if k == "resistor"}
+        dec8 = set(DEC8_R.get(name, {}))
+        dec9 = DEC9_STRUCTURAL_R.get(name, set())
+        assert not (dec8 & dec9), name
+        assert eng_r == dec8 | dec9, (name, eng_r)
+    assert sum(len(_engine_rc(n)) for n in TABLE) == 18       # 손 집계: R 9(R1·R2·Rz1·Rz2·Rm·R1a~c·Rz) + C 9(Cc1·Cc2·ngcc Cm1·Cm2·nmcnr Cm1·Cm2·sf Cc·two_stage Cc·two_stage_sf Cc)
+
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_theta_bounds_follow_user_decisions(name):
+    """spec 상자 = 결정 8(저항)·결정 10(engine 커패시터 전부), 결정 9 구조 규칙 저항은 상자 없음. JSON 과 로드 결과 둘 다."""
+    want = _expected_boxes(name)
+    raw = _spec(name)["human"]["search"].get("theta_bounds") or {}
+    assert {n: (b["min"], b["max"]) for n, b in raw.items()} == want
+    for n, b in raw.items():
+        assert b["source"]["kind"] == "user_spec" and b["source"]["decided"] == "2026-10-08", (name, n)
+    assert not set(raw) & DEC9_STRUCTURAL_R.get(name, set())
+    kinds = _engine_rc(name)
+    got = _theta_bounds_of(_load(name))
+    assert [(t.element, t.kind, t.lo, t.hi) for t in got] == [(n, kinds[n]) + want[n] for n in sorted(want)]
+
+
+def test_boxed_circuit_count():
+    """상자가 있는 회로 = engine R/C 가 있는 6회로(SPEC_CONTRACT 5절 theta_bounds 측정 문장), 나머지 3회로는 칸 없음."""
+    with_box = sorted(n for n in TABLE if _expected_boxes(n))
+    assert with_box == ["current_reuse_telescopic_ota", "ngcc_3stage_ff", "nmcnr_amplifier", "sf_pushpull_output_opamp",
+                        "two_stage_ota", "two_stage_ota_sf"]
+    for n in set(TABLE) - set(with_box):
+        assert "theta_bounds" not in _spec(n)["human"]["search"], n
+
+
+@pytest.fixture(scope="module")
+def toy_access_lib(tmp_path_factory):
+    from gmid_engine.lut import load_lut_set
+    from sizing.conftest import TOY_SPEC, new_access, write_toy_lut
+    m, c = write_toy_lut(tmp_path_factory.mktemp("lib_toy_lut"))
+    return new_access(load_lut_set(str(m), str(c), TOY_SPEC))
+
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_boxes_cover_exactly_theta_passive_components(name, toy_access_lib, tmp_path):
+    """9회로: sizing θ 스키마(sizing CONTRACT 4.4 -- 의존 층 입력)의 수동소자 성분 원소 = spec 상자 원소, 그리고 search_domain 이
+    재정의 없이(SearchSettings 상자 None) spec 상자만으로 변수를 만든다(거부 없음, 변수 = 상자의 ln)."""
+    from gmid_engine.search import SearchSettings, search_domain
+    from search.conftest import write_decls
+    from sizing.conftest import library_ctx
+    ctx = library_ctx(name, toy_access_lib)[5]
+    kind_of = {"resistance": "resistor", "ss_resistance": "resistor", "capacitance": "capacitor"}
+    theta_passive = {k: kind_of[t] for t, k in ctx.schema.components if t in kind_of}
+    want = _expected_boxes(name)
+    assert set(theta_passive) == set(want)
+    assert theta_passive == {n: k for n, k in _engine_rc(name).items() if n in want}
+    for r in DEC9_STRUCTURAL_R.get(name, set()):
+        assert r not in theta_passive                            # 구조 규칙 저항은 θ 아님(결정 9)
+    pdk, _ = write_decls(tmp_path / "pdk")
+    dom = search_domain(ctx, SearchSettings(600.0, 40, None, (("front_budget_s", "test"),)), pdk,
+                        _theta_bounds_of(_load(name)))
+    got = {v.component[1]: (v.log, v.lo, v.hi) for v in dom.variables if v.component[0] in kind_of}
+    assert set(got) == set(want)
+    for n, (lo, hi) in want.items():
+        assert got[n][0] is True
+        assert got[n][1] == pytest.approx(math.log(lo), rel=1e-15) and got[n][2] == pytest.approx(math.log(hi), rel=1e-15)
+
+
 # =====================================================================================================================
 # CI-10 해소 (사용자 2026-10-08 "5번도 네 의견에 동의해", SPEC_CONTRACT 3절 loop 뷰 규칙 + 5절 개정, 커밋 3a38275)
 # 기대값 출처: (d) 사용자 결정 문장(파일럿 되먹임 = {Cf1, Cf2}, Cs1·Cs2 는 입력 부하) + 계약 3절 문장(cuts = (소자, 입력 포트 넷
@@ -291,3 +428,59 @@ def test_other_circuits_have_no_loop_view(name):
     """loop 뷰는 pm_ss_deg 기본뿐(3절) -- JSON 에 pm_ss_deg 제약이 없는 6회로는 loop 뷰가 없다."""
     assert not [c for c in _spec(name)["human"]["constraints"] if c.get("metric") == "pm_ss_deg"]
     assert all(c.view is None or c.view.mode != "loop" for c in _load(name).constraints)
+
+
+def test_cm_pm_constraint_only_in_pilot():
+    """[CM 2026-10-08] 사용자 결정(user_decisions.md 2026-10-08 "6번도 네 의견에 동의하고 제안한 값을 사용해" -- CMFB 루프 PM 하한
+    60 deg, 완전 차동 회로에만): 파일럿에 pm_cm_ss_deg >= 60(user_spec, 판정) 한 건, 나머지 8회로에는 없다(JSON 직접 집계 + 로드)."""
+    for name in TABLE:
+        raw = [c for c in _spec(name)["human"]["constraints"] if c.get("metric") == "pm_cm_ss_deg"]
+        got = [c for c in _load(name).constraints if c.metric == "pm_cm_ss_deg"]
+        if name != PILOT:
+            assert raw == [] and got == [], name
+            continue
+        assert len(raw) == 1 and len(got) == 1
+        assert (raw[0]["op"], raw[0]["value"], raw[0]["source"]["kind"]) == (">=", 60, "user_spec")
+        assert "view" not in raw[0]                                    # 3절: view 를 적지 않는다
+        c = got[0]
+        assert (c.op, c.value, c.judged) == (">=", 60.0, True)
+        # [CM 0e487b3] SPEC_CONTRACT 3절 cm_loop: 차동 출력쌍(Vop = _p, Vom = _n, 손으로 읽은 ports) -> cm_output, 넷순 각 1/2
+        assert c.view.mode == "cm_output" and tuple(c.view.weights) == (("Vom", 0.5), ("Vop", 0.5))
+        # [6a6e4c7] 구동자 = 손 분류(M15·M16 -> Vom, M25·M26 -> Vop: 다른 channel 단자가 레일)
+        assert set(c.view.cuts) == {("M15", "Vom"), ("M16", "Vom"), ("M25", "Vop"), ("M26", "Vop")}
+
+
+# ---------------------------------------------------------------- [사용자 결정 11, 2026-10-08] 면적 예산·측정 부하
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_area_budget_constraint_follows_decision11(name):
+    """회로마다 `area_search_m2 <= 결정 11 표 값(m²)` 판정 제약이 정확히 하나(JSON 과 로드 결과 둘 다), user_spec 2026-10-08."""
+    raw = [c for c in _spec(name)["human"]["constraints"] if c.get("metric") == "area_search_m2"]
+    assert len(raw) == 1, name
+    (c,) = raw
+    assert (c["op"], c["source"]["kind"], c["source"]["decided"]) == ("<=", "user_spec", "2026-10-08")
+    assert "view" not in c
+    want = DEC11_BUDGET_MM2[name] * MM2_TO_M2
+    assert math.isclose(c["value"], want, rel_tol=1e-12), (c["value"], want)
+    doc = _load(name)
+    got = [x for x in doc.constraints if x.metric == "area_search_m2"]
+    assert len(got) == 1 and got[0].op == "<=" and got[0].judged is True
+    assert got[0].view is None or got[0].view.mode == "none"           # SPEC_CONTRACT: view 없음(판정 축)
+    assert math.isclose(got[0].value, want, rel_tol=1e-12)
+    assert len([x for x in doc.judged_constraints if x.metric == "area_search_m2"]) == 1
+
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_measurement_loads_declared_per_circuit(name):
+    """측정 부하 표지: JSON 의 measurement_load 집합 = MEASUREMENT_LOADS(값 true), 모두 커패시터·저항(topology kind 직접),
+    로드 결과 ElementValue.measurement_load 가 같은 집합(나머지 False)."""
+    ev = _spec(name)["human"]["element_values"]
+    topo = json.loads((LIBRARY / (name + ".topology.json")).read_text(encoding="utf-8"))
+    kinds = {e["name"]: e["kind"] for e in topo.get("passive_elements", [])}
+    marked = {k for k, v in ev.items() if isinstance(v, dict) and "measurement_load" in v}
+    assert marked == MEASUREMENT_LOADS[name]
+    for k in marked:
+        assert ev[k]["measurement_load"] is True
+        assert kinds[k] in ("capacitor", "resistor"), (name, k)
+    doc = _load(name)
+    assert {e.name for e in doc.element_values if e.measurement_load} == MEASUREMENT_LOADS[name]

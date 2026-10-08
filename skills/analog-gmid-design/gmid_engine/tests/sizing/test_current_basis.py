@@ -216,7 +216,8 @@ def test_two_fixed_sources_share_net(tmp_path, toy_access):
     doc = topo("hand_two_src",
                [mos("M1", "nmos", "n", "in", "gnd"), mos("M2", "nmos", "n", "b2", "gnd")],
                {"in": ("input", "x"), "n": ("output", "y")},
-               sources=[two("I1", "current_source", "vdd", "n"), two("I2", "current_source", "vdd", "n")])
+               sources=[two("I1", "current_source", "vdd", "n"), two("I2", "current_source", "vdd", "n")],
+               bias=["b2"])                                                                  # b2: M2 gate 에만
     _, _, ctx = build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 1e-5), ("I2", 2e-5)))
     b = basis_of(ctx)
     check(b, expected_basis(doc, (("I1", 1e-5), ("I2", 2e-5)), ctx.base))
@@ -232,7 +233,8 @@ def test_symmetric_pair_basis_matches_oracle(tmp_path, toy_access):
                [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"),
                 mos("M5", "nmos", "t", "vb", "gnd"), mos("M3", "pmos", "o1", "pb", "vdd"),
                 mos("M4", "pmos", "o2", "pb", "vdd")],
-               {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")})
+               {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")},
+               bias=["pb", "vb"])                                                            # vb: M5 gate, pb: M3·M4 gate
     _, _, ctx = build_ctx(tmp_path, doc, toy_access)
     _, ecol = wl_colours(ctx.base)
     assert ecol["M1"] == ecol["M2"] and ecol["M3"] == ecol["M4"]
@@ -256,7 +258,8 @@ def test_declared_kcl_conflict(tmp_path, toy_access):
     doc = topo("hand_kcl_conflict",
                [mos("M1", "nmos", "out", "in", "gnd"), mos("M2", "pmos", "out", "pb", "vdd")],
                {"in": ("input", "x"), "out": ("output", "y")},
-               sources=[two("I1", "current_source", "vdd", "m"), two("I2", "current_source", "m", "gnd")])
+               sources=[two("I1", "current_source", "vdd", "m"), two("I2", "current_source", "m", "gnd")],
+               bias=["pb"])                                                                  # pb: M2 gate 에만
     with pytest.raises(InfeasibleTargetError) as ei:
         build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 1e-6), ("I2", 2e-6)))
     assert detail(ei.value)["reason"] == "declared_source_kcl_conflict"
@@ -272,7 +275,7 @@ def test_structural_zero_current_mos(tmp_path, toy_access):
                [mos("M1", "nmos", "out", "in", "gnd"), mos("M2", "pmos", "out", "pb", "vdd"),
                 mos("M3", "nmos", "z", "in", "gnd")],
                {"in": ("input", "x"), "out": ("output", "y")},
-               passives=[two("Cz", "capacitor", "z", "gnd")])
+               passives=[two("Cz", "capacitor", "z", "gnd")], bias=["pb"])                  # pb: M2 gate 에만
     with pytest.raises(StructureUnresolvedError) as ei:
         build_ctx(tmp_path, doc, toy_access)
     d = detail(ei.value)

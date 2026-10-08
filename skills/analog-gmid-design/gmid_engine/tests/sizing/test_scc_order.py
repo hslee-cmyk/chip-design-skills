@@ -189,7 +189,7 @@ def test_column_neighbors_chain_positions(tmp_path, toy_access):
     doc = topo("hand_chain",
                [mos("M1", "nmos", "a", "in", "gnd"), mos("M2", "nmos", "b", "vb", "a"),
                 mos("M3", "pmos", "b", "pb", "vdd")],
-               {"in": ("input", "x"), "b": ("output", "y")})
+               {"in": ("input", "x"), "b": ("output", "y")}, bias=["pb", "vb"])             # vb: M2 gate, pb: M3 gate
     _, _, ctx = build_ctx(tmp_path, doc, toy_access)
     nb = {k: v for k, v in ctx.base.column("node", "dc_column_nbrs")}
     assert set(nb) == {"a", "b"}

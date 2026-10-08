@@ -228,7 +228,8 @@ def test_failure_resistor_cycle(tmp_path, toy_access):
 
 def test_failure_zero_current_mos(tmp_path, toy_access):
     doc = topo("f_zero", [mos("M1", "nmos", "out", "in", "gnd"), mos("M2", "pmos", "out", "pb", "vdd"),
-                          mos("M3", "nmos", "z", "in", "gnd")], {"in": ("input", "x"), "out": ("output", "y")})
+                          mos("M3", "nmos", "z", "in", "gnd")], {"in": ("input", "x"), "out": ("output", "y")},
+               bias=["pb"])                                                                  # pb: M2 gate 에만
     with pytest.raises(StructureUnresolvedError) as ei:
         build_ctx(tmp_path, doc, toy_access)
     assert detail(ei.value)["rule_branch"] == "mos_zero_current_structural"
@@ -238,7 +239,8 @@ def test_failure_zero_current_mos(tmp_path, toy_access):
 def test_failure_declared_kcl(tmp_path, toy_access):
     doc = topo("f_kcl", [mos("M1", "nmos", "out", "in", "gnd"), mos("M2", "pmos", "out", "pb", "vdd")],
                {"in": ("input", "x"), "out": ("output", "y")},
-               sources=[two("I1", "current_source", "vdd", "m"), two("I2", "current_source", "m", "gnd")])
+               sources=[two("I1", "current_source", "vdd", "m"), two("I2", "current_source", "m", "gnd")],
+               bias=["pb"])                                                                  # pb: M2 gate 에만
     with pytest.raises(InfeasibleTargetError) as ei:
         build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 1e-6), ("I2", 5e-6)))
     assert detail(ei.value)["reason"] == "declared_source_kcl_conflict" and ei.value.record.margin is None
@@ -247,7 +249,7 @@ def test_failure_declared_kcl(tmp_path, toy_access):
 def test_failure_mos_current_nonpositive(tmp_path, toy_access):
     doc = topo("f_neg", [mos("M1", "nmos", "n", "in", "gnd"), mos("M2", "nmos", "n", "b2", "gnd")],
                {"in": ("input", "x"), "n": ("output", "y")},
-               sources=[two("I1", "current_source", "vdd", "n")])
+               sources=[two("I1", "current_source", "vdd", "n")], bias=["b2"])             # b2: M2 gate 에만
     ctx = build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 1e-5),))[2]
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("y", "n"): 0.5,
           ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.9, 0.0), ("ln_idu", "M2"): Oracle.ln_idu("nmos", 0.6, 0.9, 0.0)}

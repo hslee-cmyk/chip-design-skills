@@ -1,7 +1,8 @@
 """봉인 스냅샷 하나 -> 소신호 선형화 + spec 제약 metric + 전력·면적 (계획 N3.5 커널 '봉인 -> ss_linearize -> mna -> metric',
 설계 design_mod1_lut_mod5_mna 3.2·3.5 커널 순서, 7a design 4.5 단계 5 배선 지점, metrics CONTRACT 7절, 계획 DEC-92).
 
-진입점: `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction) -> SsEvaluation`.
+진입점: `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, area_decl=None) -> SsEvaluation`
+(`area_decl` = 선택 `PassiveAreaDecl` -- 면적 항의 수동소자 단위 면적·측정 부하 제외, 사용자 결정 11).
 
 * `junction` = metrics `JunctionSource`(DEC-91 접합 용량 입력 -- PDK 선언·LUT 생성 규칙 선언·LUT 측정 온도, 부르는 쪽이
   `JunctionSource.from_decls(read_pdk_decl(...), read_pdk_decl(...), ctx.lut.memo.lut)` 로 S0 당 1회 만든다). 필수 키워드 인자:
@@ -67,7 +68,7 @@ def _requests(constraints):
     return tuple(seen)
 
 
-def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction):
+def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, area_decl=None):
     if not isinstance(sealed, SealedSnapshot):
         raise TypeError("ss_evaluate: 봉인 스냅샷(SealedSnapshot)만 받는다(DEC-67)")
     if not isinstance(ctx, KernelContext):
@@ -81,7 +82,7 @@ def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction):
     snapshot = ss_dev(sealed.snapshot, ctx.lut, junction)
     values = _passive_values(snapshot, ctx, theta)
     snapshot = metrics_ss(snapshot, ss_requests, values)
-    snapshot = metrics_dc(snapshot, values, tuple(counted_rails))
+    snapshot = metrics_dc(snapshot, values, tuple(counted_rails), *(() if area_decl is None else (area_decl,)))
     lineage = DcEvaluation(snapshot, sealed.report, SealedSnapshot(snapshot, sealed.report))
     return SsEvaluation(snapshot, snapshot.value("graph", METRICS_KEY, "metrics_ss"),
                         snapshot.value("graph", METRICS_KEY, "metrics_dc"), lineage)

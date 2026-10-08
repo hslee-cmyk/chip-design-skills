@@ -157,3 +157,31 @@ def test_mos_zero_values_allowed():
 def test_nonfinite_value_error(make):
     with pytest.raises(ValueError):
         make()
+
+
+# ---------------------------------------------------------------- [사용자 결정 11, 2026-10-08] PassiveAreaDecl (metrics CONTRACT 7.5)
+# oracle (d) 계약 문장: `unit_area` 와 `excluded` 가 겹치면 ValueError, 단위 면적은 양의 유한 수. 기본 = 둘 다 빈 tuple.
+
+def test_passive_area_decl_default_empty():
+    from gmid_engine.metrics import PassiveAreaDecl
+    d = PassiveAreaDecl()
+    assert (tuple(d.unit_area), tuple(d.excluded)) == ((), ())
+
+
+def test_passive_area_decl_valid():
+    from gmid_engine.metrics import PassiveAreaDecl
+    d = PassiveAreaDecl(unit_area=(("Cc", 500.0),), excluded=("CL",))
+    assert tuple(d.unit_area) == (("Cc", 500.0),) and tuple(d.excluded) == ("CL",)
+
+
+def test_passive_area_decl_overlap_value_error():
+    from gmid_engine.metrics import PassiveAreaDecl
+    with pytest.raises(ValueError):
+        PassiveAreaDecl(unit_area=(("CL", 500.0),), excluded=("CL",))
+
+
+@pytest.mark.parametrize("u", [0.0, -500.0, NAN, INF, -INF])
+def test_passive_area_decl_unit_area_not_positive_finite(u):
+    from gmid_engine.metrics import PassiveAreaDecl
+    with pytest.raises(ValueError):
+        PassiveAreaDecl(unit_area=(("Cc", u),))
