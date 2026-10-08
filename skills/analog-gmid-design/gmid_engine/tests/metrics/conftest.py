@@ -1417,17 +1417,72 @@ def cm_variant(name):
         src += [("It1", "current_source", "ta", "gnd", 1e-6), ("It2", "current_source", "tb", "gnd", 1e-6)]
         bias = ["vref"]
         t0 = gmp * 1e-4 * 1e-4 * 1e5 * 1e5 / CM_GO
-    elif name == "triode":
+    elif name in ("triode", "ambiguous", "ambiguous_declared"):
         # V4: 평균 저항 R1·R2 를 triode MOS 로(gate = vdd 레일, Vds ≈ 0 이라 gm = 0, gds = 1/R): 전기적으로 "direct" 와 같은 회로
-        # (물리 CM 루프 이득 = gmp/Go = 50). 7.11 규칙상 Mt 의 channel 단자가 출력에 물려 구동자(x)로 옮겨진다.
+        # -> T0 = gmp/Go = 50, 전체 T 도 "direct" 와 같다. 분류(7.11 6a6e4c7, 손으로): Mt 의 다른 channel 단자 c 에서 퍼지면 c 의
+        # channel 은 Mt1·Mt2(다른 끝 = 출력, 멈춤)뿐 -> 레일 미도달 -> 소비자. 구동자 = M1..M4(다른 단자 gnd·vdd = 레일).
+        # ambiguous: 같은 회로 + 감지 넷 c 에 이상 전류원 Iref(c, gnd) -- c 가 이상원 단자 넷(= 레일) 이고 M3·M4 gate 가 걸린 넷 ->
+        # Mt 는 '레일 도달 + 감지 쪽 gate 넷' = 모호(변형 6). 이상 전류원은 교류 개방이라 값은 triode 와 같다.
         gmp = 1e-4
         mos, pas = _core(gmp)
         mos += [("Mt1", "nmos", "op", "vdd", "c", "gnd", 0.0, 1.0 / CM_R, 0.0),
                 ("Mt2", "nmos", "om", "vdd", "c", "gnd", 0.0, 1.0 / CM_R, 0.0)]
-        t0 = gmp / CM_GO          # 물리 루프 이득(정의 밖 참고값) -- 엔진 정의로는 0(7.11 변형 4)
+        if name != "triode":
+            src += [("Iref", "current_source", "c", "gnd", 1e-7)]
+        t0 = gmp / CM_GO
+    elif name == "cascode_ideal":
+        # V7: 출력 캐스코드 Mc(op, vbc, n1) + 입력 M1(n1, ip, gnd) + 이상 전류원 Ib(n1, gnd)(교류 개방, n1 = 이상원 단자 = 레일 ->
+        # Mc 구동자). PMOS 부하 M3(op, c, vdd), 저항 평균 c. 출력 컨덕턴스 = gdsp + gdsc·gds1/(gmc + gdsc + gds1)(gmb 0, 캐스코드
+        # 손유도: 소스 n1 KCL), T0 = gmp/Go. vbc = gate 전용(bias_inputs).
+        gmp = 1e-5
+        mos = [("M1", "nmos", "n1", "ip", "gnd", "gnd", 1e-4, 1e-6, 0.0), ("M2", "nmos", "n2", "im", "gnd", "gnd", 1e-4, 1e-6, 0.0),
+               ("Mc1", "nmos", "op", "vbc", "n1", "gnd", 1e-4, 1e-6, 0.0), ("Mc2", "nmos", "om", "vbc", "n2", "gnd", 1e-4, 1e-6, 0.0),
+               ("M3", "pmos", "op", "c", "vdd", "vdd", gmp, CM_GDSP, CM_CG), ("M4", "pmos", "om", "c", "vdd", "vdd", gmp, CM_GDSP, CM_CG)]
+        pas = [("CL1", "capacitor", "op", "gnd", CM_CL), ("CL2", "capacitor", "om", "gnd", CM_CL),
+               ("R1", "resistor", "op", "c", CM_R), ("R2", "resistor", "c", "om", CM_R)]
+        src += [("Ib1", "current_source", "n1", "gnd", 1e-6), ("Ib2", "current_source", "n2", "gnd", 1e-6)]
+        bias = ["vbc"]
+        gcas = 1e-6 * 1e-6 / (1e-4 + 1e-6 + 1e-6)
+        t0 = gmp / (CM_GDSP + gcas)
+    elif name == "degen":
+        # V8: PMOS 부하 소스 축퇴 M3(op, c, sd1) + Rdeg(sd1, vdd) -- 다른 단자 sd1 -> 수동소자 -> vdd(레일) -> 구동자.
+        # 손유도: I = (gm·vc + gds·v)/D, D = 1 + (gmp + gdsp)·Rdeg; 출력 KCL gds1·v + I = 0 -> T0 = (gmp/D)/(gds1 + gdsp/D).
+        gmp = 1e-4
+        mos, pas = _core(gmp)
+        mos = [m if m[0] not in ("M3", "M4") else (m[0], m[1], m[2], m[3], "sd" + m[0][-1], m[5]) + m[6:] for m in mos]
+        pas += [("R1", "resistor", "op", "c", CM_R), ("R2", "resistor", "c", "om", CM_R),
+                ("Rdeg3", "resistor", "sd3", "vdd", 1e4), ("Rdeg4", "resistor", "sd4", "vdd", 1e4)]
+        dd = 1.0 + (gmp + CM_GDSP) * 1e4
+        t0 = (gmp / dd) / (CM_GDS1 + CM_GDSP / dd)
+    elif name == "diode_load":
+        # 교차 검사 실패용: 출력에 다이오드 접속 PMOS M5(op, op, vdd)·M6(om, om, vdd)(후보 gate = 출력 넷 -> 모호). 선언 [](소비자 없음)
+        # 이면 M5 가 구동자가 되고 '구동자 gate 가 출력 넷' 이라 절단 교차 검사 (i) 실패 -> cm_partition_ambiguous.
+        gmp = 1e-4
+        mos, pas = _core(gmp)
+        mos += [("M5", "pmos", "op", "op", "vdd", "vdd", 1e-5, 1e-6, 0.0), ("M6", "pmos", "om", "om", "vdd", "vdd", 1e-5, 1e-6, 0.0)]
+        pas += [("R1", "resistor", "op", "c", CM_R), ("R2", "resistor", "c", "om", CM_R)]
+        t0 = None
+    elif name == "pass_device":
+        # S-29 'd·s 가 모두 출력 넷인 MOS 는 어느 쪽도 아님': direct + 출력 사이 통과 소자 Mx(op, vbx, om)(vbx = gate 전용).
+        gmp = 1e-4
+        mos, pas = _core(gmp)
+        mos += [("Mx", "nmos", "op", "vbx", "om", "gnd", 1e-6, 1e-7, 0.0)]
+        pas += [("R1", "resistor", "op", "c", CM_R), ("R2", "resistor", "c", "om", CM_R)]
+        bias = ["vbx"]
+        t0 = gmp / CM_GO          # CM(v_op = v_om) 에서 Mx 에 전류 없음
     else:
         raise KeyError(name)
-    return dict(mos=mos, passives=pas, sources=src, bias_inputs=bias, t0=t0)
+    return dict(mos=mos, passives=pas, sources=src, bias_inputs=bias, t0=t0, drivers=CM_DRIVERS.get(name))
+
+
+# 손 분류(7.11 6a6e4c7 규칙을 test 작성자가 회로마다 적용 -- oracle (d)+(a)): 구동자 MOS 집합. None = 모호(선언 없이는 뷰 없음).
+CM_DRIVERS = {
+    "direct": ("M1", "M2", "M3", "M4"), "ref_rc": ("M1", "M2", "M3", "M4"), "low_gain": ("M1", "M2", "M3", "M4"),
+    "err_amp": ("M1", "M2", "M3", "M4"), "sf_buffer": ("M1", "M2", "M3", "M4"), "dda": ("M1", "M2", "M3", "M4"),
+    "triode": ("M1", "M2", "M3", "M4"), "ambiguous": None, "ambiguous_declared": ("M1", "M2", "M3", "M4"),
+    "cascode_ideal": ("M3", "M4", "Mc1", "Mc2"), "degen": ("M1", "M2", "M3", "M4"), "diode_load": None,
+    "pass_device": ("M1", "M2", "M3", "M4"),
+}
 
 
 def cm_topology(name, variant, names=None):
@@ -1457,17 +1512,21 @@ def cm_case(tmp_path, variant, constraints, names=None, ss_scale=None):
 
 
 def ref_cm_output(variant, omega):
-    """(b) 독립 Middlebrook: 출력 op·om 에서 7.11 절단(출력 넷에 d 또는 s 가 정확히 한쪽만 물린 MOS 의 그 단자 -> x_넷), 가중 (½, ½),
+    """(b) 독립 Middlebrook: 출력 op·om 에서 손 분류 구동자(CM_DRIVERS)의 출력 넷 쪽 channel 단자 -> x_넷, 가중 (½, ½),
     교류접지 = 레일 ∪ 입력 포트 ∪ gate 전용 넷(bias_inputs). 이상 전류원 = 개방. 반환 T(jω)."""
     v = cm_variant(variant)
     fixed = {"gnd", "vdd", "ip", "im"} | set(v["bias_inputs"])
     outs = ("om", "op")
+    drivers = set(v["drivers"])
     mos = [list(m) for m in v["mos"]]
     for m in mos:
+        if m[0] not in drivers:
+            continue
         for o in outs:
             hit = [i for i in (2, 4) if m[i] == o]
-            if len(hit) == 1 and m[2] != m[4]:
+            if len(hit) == 1:
                 m[hit[0]] = "x_" + o
+
     nets = set()
     for m in mos:
         nets |= set(m[2:6])

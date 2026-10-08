@@ -71,7 +71,8 @@ def test_block_declaration():
     assert METRICS_KEY == "metrics"
     assert set(metrics_ss.reads) == {("device", "ss_dev"), ("device", "element_class"), ("device", "kind"),
                                      ("device", "pins"), ("device", "bulk"), ("node", "ac_ground_class"),
-                                     ("node", "port_direction"), ("node", "port_role")}   # [CM] 7.4 reads + port_role
+                                     ("node", "port_direction"), ("node", "port_role"),
+                                     ("node", "is_rail")}   # [CM] 7.4 reads + port_role, [6a6e4c7] S-32 is_rail
     assert tuple(metrics_ss.writes) == (("graph", "metrics_ss"),)
 
 
@@ -614,10 +615,12 @@ def test_cm_direct_closed_form_s23(cm_direct):
     assert rel_close(rep["dc_db"], ref["gain_db"], 1e-12)
 
 
-@pytest.mark.parametrize("variant", ["direct", "ref_rc", "err_amp", "sf_buffer", "dda"])
+@pytest.mark.parametrize("variant", ["direct", "ref_rc", "err_amp", "sf_buffer", "dda", "triode", "cascode_ideal", "degen",
+                                     "pass_device"])
 def test_cm_variants_match_independent_middlebrook(tmp_path, variant):
-    """S-21 일반성(연속시간 CMFB 변형 -- 저항 평균 직접, 감지 넷 기준 R·C, 저항 평균 -> 오차 증폭 2단, 소스 팔로어 버퍼 -> 저항 평균,
-    DDA): T_cm(0) dB = 손유도(상대 ≤ 1e-12), PM·UGF = 독립 Middlebrook(상대 ≤ 1e-9), 값 있으면 undefined 비어 있음."""
+    """S-21·S-29 일반성(연속시간 CMFB 변형 -- 저항 평균 직접, 감지 넷 기준 R·C, 저항 평균 -> 오차 증폭 2단, 소스 팔로어 버퍼 -> 저항 평균,
+    DDA, [6a6e4c7] triode 평균(소비자), 출력 캐스코드 + 이상 전류원, 소스 축퇴 출력 단, 출력 사이 통과 소자): T_cm(0) dB = 손유도
+    (상대 ≤ 1e-12), PM·UGF = 손 분류 구동자로 끊은 독립 Middlebrook(상대 ≤ 1e-9), 값 있으면 undefined 비어 있음."""
     case = cm_case(tmp_path, variant, CM_REQ)
     v = case[4]
     _, _, b = _cm_run(case)
@@ -633,20 +636,41 @@ def test_cm_variants_match_independent_middlebrook(tmp_path, variant):
     assert rep["break_nets"] == ("om", "op")
 
 
-def test_cm_triode_average_is_definitional_false_violation(tmp_path):
-    """7.11 변형 4(정의의 한계, 계약에 '거짓 위반'으로 명시): 평균 소자가 triode MOS(channel 이 출력에 물림)면 그 MOS 가 구동자로 옮겨져
-    루프가 절단선을 지나지 않는다 -> T_cm(0) = 0 -> dc_not_above_level(dc_magnitude 0). 바이어스(소신호 값)와 무관한 구조 결과다:
-    gm = 0·gds = 1/R 로 둔 triode 판은 전기적으로 '직접' 변형과 같은 회로이고 물리 CM 루프 이득은 gmp/Go = 50 이다(아래 입력 확인).
-    -- 이 test 는 계약이 적은 현재 동작을 고정하고, 물리 이득과의 차이를 숫자로 남긴다(사용자 결정 대기 항목)."""
+def test_cm_triode_average_equals_resistor_average(tmp_path, cm_direct):
+    """[6a6e4c7] 변형 4: triode MOS 평균(gm = 0, gds = 1/R)은 소비자로 분류되어 전기적으로 같은 '직접'(저항 평균) 회로와 같은 T_cm --
+    T_cm(0) = gmp/Go = 50(손유도), PM = 예 7d 형 폐형식(상대 ≤ 1e-9). (이전 판의 거짓 위반 T_cm(0) = 0 이 나오면 FAIL.)"""
+    ref = closed_ex7d(dict(gm=1e-4, gds=CM_GO, cg=CM_CG, cl=CM_CL, rf=CM_R))
     case = cm_case(tmp_path, "triode", CM_REQ)
     _, _, b = _cm_run(case)
     r = bundle_map(b)["pm_cm_ss_deg"]
-    assert r.value is None
-    assert [u.code for u in r.undefined] == ["dc_not_above_level"]
-    assert dict(r.undefined[0].detail)["dc_magnitude"] == 0.0
-    assert abs(ref_cm_output("triode", 1.0)) <= 1e-12                      # 독립 구현도 같은 절단 규칙이면 0
-    assert cm_variant("triode")["t0"] == pytest.approx(50.0, rel=1e-15)    # 물리 루프 이득(손유도) -- 정의가 놓치는 값
-    assert ref_cm_output("direct", 1e-2) == pytest.approx(50.0, rel=1e-6)  # 같은 전기 회로를 저항으로 쓰면 50
+    assert r.undefined == ()
+    assert rel_close(r.value, ref["pm_deg"], 1e-9), (r.value, ref["pm_deg"])
+    assert rel_close(_report(b)["dc_db"], 20.0 * math.log10(50.0), 1e-12)
+    _, _, bd = _cm_run(cm_direct)
+    assert rel_close(r.value, bundle_map(bd)["pm_cm_ss_deg"].value, 1e-12)
+
+
+def test_cm_ambiguous_report_only_s32(tmp_path):
+    """S-32: 모호 회로(triode + 감지 넷 이상 전류원)에 선언 요청이 없으면 reports = break_nets + undefined (cm_partition_ambiguous,)
+    만, 경고 없음, cm 계를 만들지 않는다(gain_ss_db 포트 계 1개)."""
+    case = cm_case(tmp_path, "ambiguous", (("gain_ss_db", ">=", 0.0, GAIN_DIFF),))
+    _, _, b = _cm_run(case)
+    assert b.reports == (("cm_loop", (("break_nets", ("om", "op")), ("undefined", ("cm_partition_ambiguous",)))),)
+    assert b.warnings == ()
+    assert dict(b.detail)["systems"] == 1
+
+
+def test_cm_ambiguous_with_declaration_s30_s32(tmp_path, cm_direct):
+    """S-30·S-32: 같은 모호 회로에 cm_sense_elements [Mt1, Mt2] 선언 -> 선언된 요청과 보고 전용이 그 뷰를 쓴다: 값 = triode·직접과 같은 T_cm
+    (이상 전류원은 교류 개방), reports pm_deg = 선언 결과 값, 경고 없음, systems 1."""
+    case = cm_case(tmp_path, "ambiguous_declared", (("pm_cm_ss_deg", ">=", 60.0, {"cm_sense_elements": ["Mt1", "Mt2"]}),))
+    _, _, b = _cm_run(case)
+    r = bundle_map(b)["pm_cm_ss_deg"]
+    _, _, bd = _cm_run(cm_direct)
+    assert r.undefined == () and rel_close(r.value, bundle_map(bd)["pm_cm_ss_deg"].value, 1e-12)
+    assert _report(b)["pm_deg"] == r.value and b.warnings == ()
+    assert dict(b.detail)["systems"] == 1
+
 
 
 def test_cm_low_gain_violation_detail_s25(tmp_path):

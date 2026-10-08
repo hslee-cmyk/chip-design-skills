@@ -35,6 +35,11 @@ def _dev(name, kind, d, g, s, b):
             "n_fingers": CM["n"], "W": CM["fw"] * CM["n"]}
 
 
+# [6a6e4c7, S-33] cm_output_loop = {"drivers": [...]}: 손 분류 구동자(7.11 규칙 -- 출력 넷에 channel, 다른 단자가 레일): cmfb 변형은
+# M1·M2(소스 gnd)·M3·M4(소스 vdd), none 변형은 M1·M2(RL 은 수동소자라 구동자 후보 아님).
+CM_DRIVERS_BY_VARIANT = {"cmfb": ["M1", "M2", "M3", "M4"], "none": ["M1", "M2"]}
+
+
 def cm_input(lut: Path, variant="cmfb", cm_output_loop=True, ports=None, constraint=True) -> dict:
     """variant cmfb: NMOS 입력쌍 M1·M2 + PMOS 부하 M3·M4, 부하 gate c = 출력 저항 평균(R1·R2) + Cg(c, gnd) -- CM 루프 있음.
     variant none: 같은 입력쌍 + 저항 부하 RL(vdd, 출력) -- CMFB 없음(출력 CM 주입 루프 이득 0)."""
@@ -56,7 +61,9 @@ def cm_input(lut: Path, variant="cmfb", cm_output_loop=True, ports=None, constra
            "predictions": {"nodes": {"ip": CM["vin"], "im": CM["vin"]}, "devices": {}, "metrics": []},
            "testbench": testbench_block()}
     zero_diffusion(inp)
-    if cm_output_loop is not None:
+    if cm_output_loop is True:
+        inp["cm_output_loop"] = {"drivers": list(CM_DRIVERS_BY_VARIANT[variant])}
+    elif cm_output_loop is not None:
         inp["cm_output_loop"] = cm_output_loop
     if constraint:
         inp["acceptance"] = {"constraints": [{"name": "pm_cm", "measure": "cm_pm_deg", "op": ">=", "limit": 60.0}]}
@@ -101,9 +108,9 @@ def test_cmloop_netlist_cuts_driver_channel_terminals(tmp_path):
     assert "lbx_" not in text                                                          # 주 넷리스트는 그대로
 
 
-@pytest.mark.parametrize("flag", [None, False])
+@pytest.mark.parametrize("flag", [None])
 def test_no_cmloop_files_without_flag(tmp_path, flag):
-    """cm_output_loop 이 없거나 false 면 cmloop 파일을 만들지 않는다(기존 출력 비트 동일 -- README)."""
+    """cm_output_loop 이 없으면 cmloop 파일을 만들지 않는다(기존 출력 비트 동일 -- README)."""
     inp = cm_input(make_lut(tmp_path / "lut.npz"), cm_output_loop=flag, constraint=False)
     p, _, meta = run_netlist(inp, tmp_path)
     assert p.returncode == 0
@@ -224,7 +231,38 @@ def test_schema_rejects_old_cm_loop_passives(tmp_path):
     """스키마(bea18e0): 삭제된 옛 입력 cm_loop_passives 는 false 스키마로 명시 거부 -> C13: 산출물 없음, 반환 2. 값 모양과 무관."""
     for val in (["R1", "R2"], []):
         d = tmp_path / ("v%d" % len(val))
-        inp = cm_input(make_lut(tmp_path / "lut.npz"), cm_output_loop=True, constraint=False)
+        inp = cm_input(make_lut(tmp_path / "lut.npz"), cm_output_loop=True, constraint=False)  # 유효 drivers 객체 + 옛 키
+
         inp["cm_loop_passives"] = val
         p, text, meta = run_netlist(inp, d)
         assert p.returncode == 2 and text is None and meta is None, (p.stdout + p.stderr)[-600:]
+
+
+# ---------------------------------------------------------------- [6a6e4c7] S-33: drivers 주입(오라클은 분류하지 않는다)
+
+@pytest.mark.parametrize("val", [True, False, {}, {"drivers": []}, {"drivers": ["M1"], "x": 1}],
+                         ids=["bool_true", "bool_false", "no_drivers", "empty_drivers", "extra_key"])
+def test_cm_output_loop_schema_shape(tmp_path, val):
+    """스키마: cm_output_loop = {"drivers": [이름…, 1개 이상]} 만(boolean·빈 목록·다른 키 거부) -> C13 반환 2, 산출물 없음."""
+    inp = cm_input(make_lut(tmp_path / "lut.npz"), cm_output_loop=None, constraint=False)
+    inp["cm_output_loop"] = val
+    p, text, meta = run_netlist(inp, tmp_path)
+    assert p.returncode == 2 and text is None and meta is None, (p.stdout + p.stderr)[-600:]
+
+
+def test_cmloop_cuts_only_listed_drivers(tmp_path):
+    """오라클은 drivers 에 든 소자만 뗀다: drivers [M1, M2] 면 M3·M4 drain 은 출력 넷(n 쪽)에 남는다."""
+    inp = cm_input(make_lut(tmp_path / "lut.npz"), cm_output_loop={"drivers": ["M1", "M2"]}, constraint=False)
+    p, _, meta = run_netlist(inp, tmp_path)
+    assert p.returncode == 0 and meta["blockers"] == [], (p.stdout + p.stderr)[-800:]
+    cl = (tmp_path / "t.free.cmloop.cir").read_text(encoding="utf-8")
+    assert _tok(cl, "XM1")[1] == "lbx_op" and _tok(cl, "XM2")[1] == "lbx_om"
+    assert _tok(cl, "XM3")[1] == "op" and _tok(cl, "XM4")[1] == "om"
+
+
+@pytest.mark.parametrize("drivers", [["R1"], ["Mzz"], ["M1", "Cg"]], ids=["passive", "unknown", "mixed"])
+def test_cmloop_driver_not_on_output_blocks(tmp_path, drivers):
+    """S-33: drivers 소자가 drain·source 중 정확히 하나를 출력 넷에 두지 않으면(MOS 아님·없음 포함) 막힘."""
+    inp = cm_input(make_lut(tmp_path / "lut.npz"), cm_output_loop={"drivers": drivers}, constraint=False)
+    p, _, meta = run_netlist(inp, tmp_path)
+    assert meta is not None and meta["blockers"], (p.stdout + p.stderr)[-800:]

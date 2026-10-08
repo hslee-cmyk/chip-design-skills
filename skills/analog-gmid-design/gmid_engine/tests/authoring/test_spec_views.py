@@ -408,7 +408,13 @@ _LIB = _Path(__file__).resolve().parents[3] / "assets" / "library"
 _LIB9 = ("common_gate_amplifier", "current_reuse_telescopic_ota", "folded_cascode", "ngcc_3stage_ff", "nmcnr_amplifier",
          "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota", "two_stage_ota_sf")
 _PILOT = "current_reuse_telescopic_ota"
-_PILOT_CM = ViewDecl("cm_output", weights=(("Vom", 0.5), ("Vop", 0.5)))        # 넷순 "Vom" < "Vop", 각 1/2
+# [6a6e4c7] cuts = 손 분류 구동자(M15 pmos Vom–vdd·M16 nmos Vom–gnd·M25·M26 대칭 -- 다른 channel 단자가 바로 레일)
+_PILOT_CM_W = (("Vom", 0.5), ("Vop", 0.5))                                     # 넷순 "Vom" < "Vop", 각 1/2
+_PILOT_CUTS = {("M15", "Vom"), ("M16", "Vom"), ("M25", "Vop"), ("M26", "Vop")}
+
+
+def _is_pilot_cm(v):
+    return isinstance(v, ViewDecl) and v.mode == "cm_output" and tuple(v.weights) == _PILOT_CM_W and set(v.cuts) == _PILOT_CUTS
 _CONN_KEYS = ("schema_version", "topology_name", "netlist", "supply_nets", "ports", "passive_elements", "ideal_sources",
               "bias_inputs")
 
@@ -444,14 +450,14 @@ def test_cm_view_library_pilot_and_eight_without_pair():
     for name in _LIB9:
         v = default_views(_load_topology(str(_LIB / (name + ".topology.json"))), ()).cm_loop
         if name == _PILOT:
-            assert v == _PILOT_CM, v
+            assert _is_pilot_cm(v), v
         else:
             assert isinstance(v, str) and v, (name, v)
 
 
 def test_cm_view_pilot_minimal_copy_same(tmp_path):
     """입력 확인: 연결 키만 옮긴 사본도 같은 뷰(태그 키를 읽지 않는다)."""
-    assert _dv(tmp_path, _pilot_mini()) == _PILOT_CM
+    assert _is_pilot_cm(_dv(tmp_path, _pilot_mini()))
 
 
 @pytest.mark.parametrize("variant", ["drop_R2", "R2_as_capacitor", "ref_resistor_on_sense", "ref_cap_on_sense",
@@ -473,7 +479,7 @@ def test_cm_view_independent_of_sense_structure(tmp_path, variant):
         d["passive_elements"] = [e for e in d["passive_elements"] if e["name"] not in ("R1", "R2")]
         d["netlist"] += [{"name": "Mtri1", "kind": "nmos", "drain": "Vom", "gate": "vdd", "source": "Voc"},
                          {"name": "Mtri2", "kind": "nmos", "drain": "Vop", "gate": "vdd", "source": "Voc"}]
-    assert _dv(tmp_path, d) == _PILOT_CM
+    assert _is_pilot_cm(_dv(tmp_path, d))
 
 
 def test_cm_view_name_bijection(tmp_path):
@@ -501,8 +507,10 @@ def test_cm_view_name_bijection(tmp_path):
     if "bias_inputs" in d:
         d["bias_inputs"] = [nm[n] for n in d["bias_inputs"]]
     assert nm["Vop"] < nm["Vom"]                                   # 넷순이 원래와 뒤집힌 경우
-    want = ViewDecl("cm_output", weights=((nm["Vop"], 0.5), (nm["Vom"], 0.5)))
-    assert _dv(tmp_path, d) == want
+    got = _dv(tmp_path, d)
+    assert got.mode == "cm_output" and tuple(got.weights) == ((nm["Vop"], 0.5), (nm["Vom"], 0.5))
+    assert set(got.cuts) == {(dev[m], nm[o]) for m, o in _PILOT_CUTS}
+
 
 
 @pytest.mark.parametrize("where,kind", [("passive_elements", "switch"), ("ideal_sources", "clock"),
@@ -529,3 +537,173 @@ def test_cm_view_requires_exactly_one_declared_pair(tmp_path, variant):
         d["ports"]["Voc"] = {"direction": "output", "role": "single_ended_output"}
     v = _dv(tmp_path, d)
     assert isinstance(v, str) and v
+
+
+# =====================================================================================================================
+# [CM 6a6e4c7] 구동자/소비자 구조 분류(cm_partition) + 모호 정지 + 제약 view {"cm_sense_elements": [...]} (SPEC_CONTRACT 3절 cm_loop,
+# metrics 7.11, S-29~S-31). 회로: tests/metrics/conftest.py 의 합성 CMFB 변형(cm_variant -- test 작성자 설계). 기대 구동자 집합은
+# 7.11 규칙을 test 작성자가 회로마다 손으로 적용한 CM_DRIVERS(oracle (d)+(a), 각 변형 주석에 경로). 절단 단자 넷 = 그 MOS 의 d·s 중
+# 출력 넷인 것(손으로 읽음). cuts 의 순서는 계약이 정하지 않아 집합으로 비교한다.
+# =====================================================================================================================
+
+from gmid_engine.core import SchemaRejectedError  # noqa: E402
+
+from metrics.conftest import CM_DRIVERS, CM_SUPPLIES, cm_topology, cm_variant, spec_json  # noqa: E402
+
+_CM_W = (("om", 0.5), ("op", 0.5))
+
+
+def _variant_td(tmp_path, variant):
+    doc, v = cm_topology("cmp_" + variant, variant)
+    p = tmp_path / ("cmp_%s.topology.json" % variant)
+    p.write_text(_json.dumps(doc), encoding="utf-8")
+    return _load_topology(str(p)), doc, v
+
+
+def _want_cuts(v):
+    out = set()
+    for m in v["mos"]:
+        if m[0] in v["drivers"]:
+            (o,) = [n for n in (m[2], m[4]) if n in ("op", "om")]
+            out.add((m[0], o))
+    return out
+
+
+@pytest.mark.parametrize("variant", ["direct", "ref_rc", "err_amp", "sf_buffer", "dda", "triode", "cascode_ideal", "degen",
+                                     "pass_device"])
+def test_cm_partition_drivers_by_hand_s29(tmp_path, variant):
+    """S-29: 명확한 변형 -- cm_output 뷰, 가중 (om ½, op ½), cuts = 손 분류 구동자 (MOS, 출력 넷). triode 평균(Mt)은 소비자(레일 미도달),
+    출력 캐스코드(이상원 단자 = 레일)·소스 축퇴(수동소자 경유 레일)는 구동자, 출력 사이 통과 소자(d·s 모두 출력)는 어느 쪽도 아님."""
+    td, _, v = _variant_td(tmp_path, variant)
+    got = default_views(td, ()).cm_loop
+    assert isinstance(got, ViewDecl), got
+    assert got.mode == "cm_output" and tuple(got.weights) == _CM_W
+    assert set(got.cuts) == _want_cuts(v) and len(got.cuts) == len(v["drivers"])
+
+
+@pytest.mark.parametrize("variant", ["ambiguous", "diode_load"])
+def test_cm_partition_ambiguous_stops_s29(tmp_path, variant):
+    """S-29: 모호(감지 넷이 이상원 단자 = 레일이면서 gate 가 걸림 / 후보 gate 가 출력 넷) -> 뷰 없음(사유 문자열)."""
+    td, _, _ = _variant_td(tmp_path, variant)
+    got = default_views(td, ()).cm_loop
+    assert isinstance(got, str) and got
+
+
+def test_pilot_cm_cuts_s21():
+    """S-21: 파일럿 구동자 = M15·M16(Vom)·M25·M26(Vop) -- topology 를 손으로 읽음(M15 pmos Vom–vdd, M16 nmos Vom–gnd, M25·M26 대칭)."""
+    v = default_views(_load_topology(str(_LIB / (_PILOT + ".topology.json"))), ()).cm_loop
+    assert v.mode == "cm_output" and tuple(v.weights) == (("Vom", 0.5), ("Vop", 0.5))
+    assert set(v.cuts) == {("M15", "Vom"), ("M16", "Vom"), ("M25", "Vop"), ("M26", "Vop")}
+
+
+# ---------- 제약 view {"cm_sense_elements": [...]} (S-30) ----------
+
+_CM_C = {"metric": "pm_cm_ss_deg", "op": ">=", "value": 60.0}
+
+
+def _load_cm(tmp_path, variant, view=None, source_kind="user_spec", extra_passive=None):
+    from gmid_engine.authoring import load_sizing_spec
+    from gmid_engine.metrics import metric_catalog
+    doc, v = cm_topology("cms_" + variant, variant)
+    if extra_passive:
+        doc["passive_elements"].append(extra_passive)
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    tp = tmp_path / ("cms_%s.topology.json" % variant)
+    tp.write_text(_json.dumps(doc), encoding="utf-8")
+    td = _load_topology(str(tp))
+    kinds = {e["name"]: e["kind"] for e in doc["passive_elements"] + doc.get("ideal_sources", [])}
+    els = [(a, kinds[a], val) for a, _, _, _, val in v["passives"] + v["sources"]]
+    sj = spec_json(td, CM_SUPPLIES, els, (), (("pm_cm_ss_deg", ">=", 60.0, view),), input_dc_v=0.9)
+    if extra_passive:     # 스위치 값 칸은 계약 밖 -- 결정 대기 표지로 둔다(값과 무관한 정지 규칙만 본다)
+        sj["human"]["element_values"][extra_passive["name"]] = {"pending": "SP-1"}
+    src = copy.deepcopy(sj["human"]["constraints"][0]["source"])      # spec_json 의 출처 dict 는 모듈 공용 -- 사본만 고친다
+    src["kind"] = source_kind
+    if source_kind != "user_spec":
+        src.pop("decided", None)
+    sj["human"]["constraints"][0]["source"] = src
+
+    sp = tmp_path / ("cms_%s.sizing_spec.json" % variant)
+    sp.write_text(_json.dumps(sj), encoding="utf-8")
+    return lambda: load_sizing_spec(str(sp), td, metric_catalog()), v
+
+
+def _cm_view_of(loader):
+    (c,) = [c for c in loader().constraints if c.metric == "pm_cm_ss_deg"]
+    return c.view
+
+
+def _cm_rules(loader):
+    with pytest.raises(SchemaRejectedError) as ei:
+        loader()
+    return [h.rule for h in dict(ei.value.record.detail)["hits"]]
+
+
+def test_cm_sense_declaration_resolves_ambiguous_s30(tmp_path):
+    """S-30(변형 6 -> 6'): 모호 회로에 선언이 없으면 view_required, cm_sense_elements [Mt1, Mt2] 를 선언하면 소비자 = Mt1·Mt2,
+    구동자 = 나머지 후보 M1..M4."""
+    loader, _ = _load_cm(tmp_path / "a", "ambiguous")
+    assert _cm_rules(loader) == ["view_required"]
+    loader, v = _load_cm(tmp_path / "b", "ambiguous", {"cm_sense_elements": ["Mt1", "Mt2"]})
+    got = _cm_view_of(loader)
+    assert got.mode == "cm_output" and tuple(got.weights) == _CM_W
+    assert set(got.cuts) == _want_cuts(cm_variant("ambiguous_declared"))
+
+
+def test_cm_sense_declaration_equal_to_structure_same_view_s30(tmp_path):
+    """S-30: 구조가 명확한 회로(triode)에 구조 소비자 집합과 같은 선언 -> 선언 없는 유도와 같은 cuts."""
+    loader, v = _load_cm(tmp_path / "a", "triode")
+    base = _cm_view_of(loader)
+    loader, _ = _load_cm(tmp_path / "b", "triode", {"cm_sense_elements": ["Mt2", "Mt1"]})
+    got = _cm_view_of(loader)
+    assert set(got.cuts) == set(base.cuts) == _want_cuts(v)
+
+
+@pytest.mark.parametrize("decl", [["Mt1"], ["Mt1", "Mt2", "M3"], []], ids=["subset", "driver_as_consumer", "empty"])
+def test_cm_sense_disagrees_with_clear_structure_s30(tmp_path, decl):
+    """S-30: 구조 명확(triode: 소비자 {Mt1, Mt2}) + 선언이 다름 -> cm_sense_disagrees 하나."""
+    loader, _ = _load_cm(tmp_path, "triode", {"cm_sense_elements": decl})
+    assert _cm_rules(loader) == ["cm_sense_disagrees"]
+
+
+@pytest.mark.parametrize("variant,decl,rule", [
+    ("triode", ["Mzz"], "cm_sense_unknown"),                     # topology 에 없는 이름
+    ("triode", ["R1x"], "cm_sense_unknown"),                     # MOS 아님(없는 이름) -- 아래 수동소자 이름 경우와 같은 규칙
+    ("direct", ["R1"], "cm_sense_unknown"),                      # 수동소자 이름 = MOS 아님
+    ("err_amp", ["Me1"], "cm_sense_not_on_output"),              # Me1(e, s, gnd): drain·source 가 출력 넷 아님
+], ids=["unknown_name", "unknown_name2", "passive_name", "not_on_output"])
+def test_cm_sense_rejections_s30(tmp_path, variant, decl, rule):
+    loader, _ = _load_cm(tmp_path, variant, {"cm_sense_elements": decl})
+    assert rule in _cm_rules(loader)
+
+
+def test_cm_sense_requires_user_spec_source_s30(tmp_path):
+    loader, _ = _load_cm(tmp_path, "ambiguous", {"cm_sense_elements": ["Mt1", "Mt2"]}, source_kind="pending_spice")
+    assert "cm_sense_source" in _cm_rules(loader)
+
+
+def test_cm_sense_closed_vocabulary_s30(tmp_path):
+    """닫힌 어휘: cm_sense_elements 외 키가 있으면 view_not_applicable."""
+    loader, _ = _load_cm(tmp_path, "ambiguous", {"cm_sense_elements": ["Mt1", "Mt2"], "drivers": ["M1"]})
+    assert "view_not_applicable" in _cm_rules(loader)
+
+
+def test_cm_partition_cross_check_rejects_declaration_s31(tmp_path):
+    """S-31 (i): diode_load 에 선언 [](소비자 없음) -> 다이오드 M5·M6 가 구동자, gate = 출력 넷 -> cm_partition_ambiguous.
+    같은 회로에 [M5, M6] 선언 -> 통과, 구동자 = M1..M4(손 분류)."""
+    loader, _ = _load_cm(tmp_path / "a", "diode_load", {"cm_sense_elements": []})
+    assert "cm_partition_ambiguous" in _cm_rules(loader)
+    loader, _ = _load_cm(tmp_path / "b", "diode_load", {"cm_sense_elements": ["M5", "M6"]})
+    got = _cm_view_of(loader)
+    assert set(got.cuts) == {("M1", "op"), ("M2", "om"), ("M3", "op"), ("M4", "om")}
+
+
+def test_cm_sense_on_switched_circuit_s30(tmp_path):
+    loader, _ = _load_cm(tmp_path, "direct", {"cm_sense_elements": []},
+                         extra_passive={"name": "Ksw", "kind": "switch", "terminals": ["c", "gnd"]})
+    assert "cm_switched" in _cm_rules(loader)
+
+
+def test_cm_sense_on_single_ended_is_pair_missing_s30(sc):
+    """차동 출력쌍 없는 픽스처(fx_spec_amp)에 선언 view -> cm_pair_missing."""
+    _cm(sc, {"cm_sense_elements": []})
+    sc.reject_only("cm_pair_missing", "constraints")

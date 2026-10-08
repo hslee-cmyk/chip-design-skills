@@ -427,4 +427,6 @@ def test_cm_pm_constraint_only_in_pilot():
         c = got[0]
         assert (c.op, c.value, c.judged) == (">=", 60.0, True)
         # [CM 0e487b3] SPEC_CONTRACT 3절 cm_loop: 차동 출력쌍(Vop = _p, Vom = _n, 손으로 읽은 ports) -> cm_output, 넷순 각 1/2
-        assert c.view == ViewDecl("cm_output", weights=(("Vom", 0.5), ("Vop", 0.5)))
+        assert c.view.mode == "cm_output" and tuple(c.view.weights) == (("Vom", 0.5), ("Vop", 0.5))
+        # [6a6e4c7] 구동자 = 손 분류(M15·M16 -> Vom, M25·M26 -> Vop: 다른 channel 단자가 레일)
+        assert set(c.view.cuts) == {("M15", "Vom"), ("M16", "Vom"), ("M25", "Vop"), ("M26", "Vop")}
