@@ -19,6 +19,7 @@ import json
 import math
 import re
 import subprocess
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -215,11 +216,27 @@ def tran_line(text: str):
     return None
 
 
+NGSPICE_MEM_ERR = "not enough memory"     # 무거운 병렬 부하에서 ngspice 가 간헐적으로 내는 메모리 할당 실패(2026-10-08 관측)
+# 같은 원인의 다른 문장(2026-10-08 관측: "... memory available (401408 Bytes)! Setting the output memory is not possible.")
+NGSPICE_MEM_ERRS = (NGSPICE_MEM_ERR, "output memory is not possible", "memory available")
+
+
+def _is_mem_err(text: str) -> bool:
+    low = (text or "").lower()
+    return any(s in low for s in NGSPICE_MEM_ERRS)
+
+
 def _ngspice(lines, workdir: Path, name="r.cir", timeout=600):
+    """독립 ngspice 실행. 그 특정 오류('not enough memory')면 한 번만 다시 돌리고 경고로 기록한다(다른 오류는 그대로)."""
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / name).write_text("\n".join(lines) + "\n", encoding="utf-8")
-    p = subprocess.run([str(NGSPICE), "-b", name], capture_output=True, text=True, cwd=str(workdir),
-                       encoding="utf-8", errors="replace", timeout=timeout)
+    for attempt in (1, 2):
+        p = subprocess.run([str(NGSPICE), "-b", name], capture_output=True, text=True, cwd=str(workdir),
+                           encoding="utf-8", errors="replace", timeout=timeout)
+        if attempt == 1 and _is_mem_err(p.stdout + p.stderr):
+            warnings.warn(f"독립 ngspice '{NGSPICE_MEM_ERR}' -> 1회 재실행: {workdir / name}")
+            continue
+        break
     vals = {}
     for ln in p.stdout.splitlines():
         if " = " in ln:
@@ -229,6 +246,19 @@ def _ngspice(lines, workdir: Path, name="r.cir", timeout=600):
             except ValueError:
                 pass
     return p, vals
+
+
+def run_spice_retry(*args, **kw):
+    """conftest.run_spice 와 같고, 실패 메시지(독립 ngspice stdout/stderr 꼬리 포함)가 'not enough memory' 면 한 번만
+    다시 돌린다(경고로 기록). .ac 데이터 파일이 안 생긴 경우(FileNotFoundError -- 메시지에 ngspice 출력이 없어 원인을 못
+    가림)도 한 번만 다시 돌린다; 진짜 결함이면 두 번째도 같은 예외로 실패한다. 다른 실패는 그대로 올린다."""
+    try:
+        return run_spice(*args, **kw)
+    except (AssertionError, FileNotFoundError) as e:
+        if not (isinstance(e, FileNotFoundError) or _is_mem_err(str(e))):
+            raise
+        warnings.warn(f"독립 ngspice '{NGSPICE_MEM_ERR}' -> 1회 재실행: {args[1]}")
+        return run_spice(*args, **kw)
 
 
 HEAD = ["* independent C10 reference", None, ".temp 27.0", ".option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7"]
@@ -292,7 +322,7 @@ def rhp_ref(root: Path, rb):
     pr = ["v(n1)", "v(n2)", "v(n3)"]
     for nm, n in (("xm1", RHP["n1f"]), ("xm2", RHP["n2f"]), ("xm3", RHP["n3f"])):
         pr += [probe("nmos", f"{nm}_{k}", q) for k in range(n) for q in ("gm", "gds", "vds", "vdsat")]
-    r = run_spice("\n".join(rhp_body(rb)), root / f"rhp_{rb:g}", pr, ac_out="n2", ac=(0.01, 1e10, 40))
+    r = run_spice_retry("\n".join(rhp_body(rb)), root / f"rhp_{rb:g}", pr, ac_out="n2", ac=(0.01, 1e10, 40))
     op = r["op"]
     g = {nm: {q: sum(op[probe("nmos", f"{nm}_{k}", q).lower()] for k in range(n)) for q in ("gm", "gds")}
          for nm, n in (("xm1", RHP["n1f"]), ("xm2", RHP["n2f"]), ("xm3", RHP["n3f"]))}
@@ -310,16 +340,18 @@ def rhp_ref(root: Path, rb):
     return out
 
 
-def rhp_closed_loop_pp(root: Path, rb, v2op, tstop=300e-6, last=100e-6):
+def rhp_closed_loop_pp(root: Path, rb, v2op, tstop=150e-6, last=50e-6):
     """독립 폐루프 .tran: nin = (0.7 + V2op + 킥) - V(n2) (이상 VCVS 단위 음되먹임, A(0) > 0).
-    마지막 `last` 구간의 V(n2) 최대-최소."""
+    마지막 `last` 구간의 V(n2) 최대-최소. 길이는 부르는 쪽이 UGF 에서 정한다(6/UGF) -- 빠른 기생 RHP 모드
+    (~6e9 rad/s)가 걸음을 잘게 만들어 병렬 부하에서 고정 300 µs 는 600 s 를, Rb 1e5 의 150 µs 는 1800 s 를 넘었다(2026-10-08 관측)."""
     v0 = RHP["vin"] + v2op
     body = rhp_body(rb, vin_line=f"Ecl nin cl n2 0 -1")
     body.append(f"Vcl cl 0 DC {v0} PULSE({v0} {v0 + 0.01} 1e-6 1e-8 1e-8 1e-6)")
-    ctrl = [".control", "set noaskquit", f"tran 1e-7 {tstop} 0 2e-7",
+    # save v(n2): 백만 개 넘는 시점의 모든 노드·전류 벡터를 메모리에 두지 않는다(병렬 부하에서 출력 메모리 할당 실패 관측)
+    ctrl = [".control", "set noaskquit", "save v(n2)", f"tran 1e-7 {tstop} 0 2e-7",
             f"meas tran vmax MAX v(n2) from={tstop - last} to={tstop}",
             f"meas tran vmin MIN v(n2) from={tstop - last} to={tstop}", "quit", ".endc", ".end"]
-    p, vals = _ngspice(_head() + body + ctrl, root / f"rhp_cl_{rb:g}")
+    p, vals = _ngspice(_head() + body + ctrl, root / f"rhp_cl_{rb:g}", timeout=1800)
     assert "vmax" in vals and "vmin" in vals, (p.returncode, p.stdout[-600:], p.stderr[-2000:])
     return vals["vmax"] - vals["vmin"]
 
@@ -369,7 +401,7 @@ _THREE_REF = {}
 def three_ref(root: Path, caps, ppd=40):
     key = (caps, ppd)
     if key not in _THREE_REF:
-        r = run_spice("\n".join(three_body(caps)), root / f"three_{caps[0]:g}_{caps[1]:g}_{ppd}", ["v(n3)"],
+        r = run_spice_retry("\n".join(three_body(caps)), root / f"three_{caps[0]:g}_{caps[1]:g}_{ppd}", ["v(n3)"],
                       ac_out="n3", ac=(0.01, 1e10, ppd))
         H = r["H"]
         _THREE_REF[key] = {"f": r["f"], "H": H, "meas": measure(r["f"], H), "nyq": nyquist(np.sign(H[0].real) * H),
@@ -424,7 +456,7 @@ def test_rhp_fixture_has_open_loop_rhp_pole(ref_root, rb):
     assert ref["K"] > ref["A0"] + 1 > 2, "K > 1 + A0(폐루프도 불안정), K > 1(개루프 RHP 극) 조건 점검"
     body = rhp_body(RB[rb], vin_line=f"Vin nin 0 DC {RHP['vin']}") + [
         "Ik 0 n3 DC 0 PULSE(0 1e-12 5e-10 1e-11 1e-11 1e-10)"]
-    ctrl = [".control", "set noaskquit", "tran 1e-11 2e-8 0 1e-11", "let vo2 = v(n2)", "set wr_singlescale",
+    ctrl = [".control", "set noaskquit", "save v(n2)", "tran 1e-11 2e-8 0 1e-11", "let vo2 = v(n2)", "set wr_singlescale",
             "wrdata g.txt vo2", "quit", ".endc", ".end"]
     wd = ref_root / f"rhp_open_tran_{rb}"
     p, _ = _ngspice(_head() + body + ctrl, wd)
@@ -444,8 +476,10 @@ def test_rhp_fixture_closed_loop_oscillates_and_n_is_zero(ref_root, rb):
     ref = rhp_ref(ref_root, RB[rb])
     assert ref["nyq"]["N"] == 0, ref["nyq"]
     assert ref["meas"]["pm_deg"] is not None and ref["meas"]["pm_deg"] > 180, ref["meas"]   # Bode 식은 '여유 큼'
-    pp = rhp_closed_loop_pp(ref_root, RB[rb], ref["nodes"]["n2"])
-    assert pp > 0.3, pp           # 마지막 100 µs 에도 0.3 V 넘게 흔들림 = 감쇠하지 않음
+    # 길이는 독립 .ac 의 |L|=1 교차(UGF)에서: 6 주기 실행, 마지막 2 주기를 본다(오라클 첫 실행 창 수·창 길이와 같은 척도)
+    ugf = ref["meas"]["ugf_hz"]
+    pp = rhp_closed_loop_pp(ref_root, RB[rb], ref["nodes"]["n2"], tstop=6 / ugf, last=2 / ugf)
+    assert pp > 0.3, pp           # 마지막 2 주기에도 0.3 V 넘게 흔들림 = 감쇠하지 않음
 
 
 # ====================================================================== 개루프 RHP 극 -> PM 정의 불가
@@ -1010,7 +1044,7 @@ def notch_input(lut, cn1, constraints=None):
 
 
 def notch_ref(root: Path, cn1):
-    r = run_spice("\n".join(notch_body(cn1)), root / f"notch_{cn1:g}", ["v(no)"], ac_out="no", ac=(0.01, 1e10, 40))
+    r = run_spice_retry("\n".join(notch_body(cn1)), root / f"notch_{cn1:g}", ["v(no)"], ac_out="no", ac=(0.01, 1e10, 40))
     H = r["H"]
     L = np.sign(H[0].real) * H
     return {"f": r["f"], "H": H, "L": L, "meas": measure(r["f"], H), "nyq": nyquist(L), "vo": r["op"]["v(no)"],
