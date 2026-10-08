@@ -599,8 +599,9 @@ def test_cyclic_strict_recheck_below_floor_fails(tmp_path, acc_f, vin, ok):
 # ===========================================================================
 # 관찰 방법(공개 주입점): lut `LutMemo.lookup(region, fn_name, key, compute)`(lut CONTRACT 2절)를 감싼 하위 클래스를 `LutAccess` 에
 # 넣는다. 계약 5.6c 가 solve_self 저장 위치를 'LUT memo root 영역, 함수 이름 칸 solve_self' 로 정했으므로 그 조회의 compute 가
-# 돌았는지(= 적중 아님)와 그 compute 안에서 일어난 `gm_id_for_target` 조회 수(= h 평가 수: 5.4 'VGS(좌표) = lut gm_id_for_target',
-# h(x) = x − g(x) 한 번에 VGS 역산 한 번)를 센다. `tol_v_table` 조회 결과는 `.at` 호출을 세는 대리로 돌려준다(5.6c '한 평가 안에서
+# 돌았는지(= 적중 아님)와 그 compute 안에서 일어난 VGS 역산 조회 수(= h 평가 수: 5.4 'VGS(좌표) = lut vgs_for_current_density'
+# -- [U3] 계획 DEC-88 '쓰기 소자 VGS 는 vgs_for_current_density 로' 에 따라 옛 임시 우회 gm_id_for_target 을 대체, memo 함수 이름 칸
+# `vgs_for_current_density`; h(x) = x − g(x) 한 번에 VGS 역산 한 번)를 센다. `tol_v_table` 조회 결과는 `.at` 호출을 세는 대리로 돌려준다(5.6c '한 평가 안에서
 # 같은 (소자, VDS) 의 tol_v_cell 조회를 한 번만'; tol_v_cell = tol_v_table(kind, w_key).at(L, vds, "id_equivalent"), 6절 표 tol 행).
 
 SOLVE_SELF = "solve_self"                    # CONTRACT 5.6c: memo root 영역 함수 이름 칸
@@ -652,7 +653,7 @@ class CountingMemo(LutMemo):
         return sum(1 for _, r, fn in self.log if (r, fn) == ("root", SOLVE_SELF))
 
     def h_evaluations(self):
-        return sum(1 for d, r, fn in self.log if d > 0 and fn == "gm_id_for_target")
+        return sum(1 for d, r, fn in self.log if d > 0 and fn == "vgs_for_current_density")
 
 
 def kmax_ref(width, tol):

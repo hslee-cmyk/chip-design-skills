@@ -626,7 +626,10 @@ LUT_VS = (-0.45, 0.0, 0.45, 0.9, 1.35, 1.8)
 LUT_I0 = {"nmos": 1e-11, "pmos": 5e-12}
 LUT_B, LUT_C, LUT_LAM, LUT_A = 20.0, 8.0, 0.1, 2.0
 LUT_KSCALE = {"nmos": 1.0, "pmos": 1.5}         # 용량 kind 배율(두 kind 값이 섞이면 드러나게)
-GMBS_COEF = {"slice": (0.2, -0.05), "cap": (0.3, -0.04)}   # GMBS/ID = c0 + c1·VS (열 출처마다 다르게)
+# GMBS/ID = c0 + c1·VS (열 출처마다 다르게). [U3] 슬라이스 GMBS 는 lut r7 부터 ln ID 의 VS 축 Hermite 기울기(−GMBS/ID, 계획 DEC-87)라
+# ln ID 의 VS 미분과 맞아야 한다: ln ID 의 VS 항 −A·VS² -> GMBS/ID = 2A·VS (c0 = 0, c1 = 2A). 옛 값 (0.2, −0.05)는 ln ID 와 무관한
+# 임의 기울기여서 VS Hermite 가 그 기울기로 ln ID 를 휘게 했다(입력 자료 모순). 기준 LUT 열("cap")은 VS 보간에 쓰이지 않아 그대로.
+GMBS_COEF = {"slice": (0.0, 2.0 * 2.0), "cap": (0.3, -0.04)}
 LUT_SPEC_ARGS = (LUT_GRID, (("nmos", 1e-6), ("pmos", 1e-6)), (("toyn", "nmos"), ("toyp", "pmos")),
                  (("nmos", "_n"), ("pmos", "_p")))
 LUT_WKEYS = (("nmos", LUT_WKEY), ("pmos", LUT_WKEY))
@@ -749,16 +752,23 @@ def multilinear(grids, arr, point):
     return tot
 
 
-def lut_vs_term(vsb):
-    """ln ID 의 VS 항 = 격자 위 −A·VS² 의 구간 선형(VS 축 선형 보간)."""
+def lut_vs_term(vsb, slice_gmbs=True):
+    """ln ID 의 VS 항(lut 4.2 [r7] 독립 판정). 격자점이면 −A·VS². 격자 밖:
+    - 슬라이스 GMBS 열이 있고 칸 두 끝의 기울기 −GMBS/ID 가 정의(GMBS/ID = 2A·VS > 0 -> 두 끝 VS > 0)되면 VS Hermite -- 끝 기울기가 ln ID 의
+      정확한 미분이라 2차식 −A·VS² 를 정확히 재현한다(FC 단조: 두 끝 기울기 같은 부호·2차식이라 위반 없음).
+    - 아니면(GMBS 열 없음 또는 VS ≤ 0 끝 -- 기울기 정의 안 됨) 구간 선형(r6 와 같음)."""
     i, t = _cell(LUT_VS, vsb)
+    if t in (0.0, 1.0):
+        return -LUT_A * LUT_VS[i + int(t)] ** 2
+    if slice_gmbs and LUT_VS[i] > 0 and LUT_VS[i + 1] > 0:
+        return -LUT_A * vsb * vsb
     y0, y1 = -LUT_A * LUT_VS[i] ** 2, -LUT_A * LUT_VS[i + 1] ** 2
     return y0 + t * (y1 - y0)
 
 
-def lut_ln_idu(kind, vgs, vds, vsb):
+def lut_ln_idu(kind, vgs, vds, vsb, slice_gmbs=True):
     """IDu = ID·L/w_m 의 로그(L 무관). VGS 2차·VDS 1차는 저장 기울기 Hermite 가 정확히 재현한다(lut 4.2)."""
-    return math.log(LUT_I0[kind]) + LUT_B * vgs - 0.5 * LUT_C * vgs * vgs + LUT_LAM * vds + lut_vs_term(vsb)
+    return math.log(LUT_I0[kind]) + LUT_B * vgs - 0.5 * LUT_C * vgs * vgs + LUT_LAM * vds + lut_vs_term(vsb, slice_gmbs)
 
 
 def oracle_ss(op, gmb_source="slice", cap_model="lut_cgs_cgb"):
@@ -768,7 +778,8 @@ def oracle_ss(op, gmb_source="slice", cap_model="lut_cgs_cgb"):
     pt = (op.L, op.vgs, op.vds, op.vsb)
     gds_arr = np.log(lut_id(op.kind, *grids) * LUT_LAM)
     gds = math.exp(multilinear(grids, gds_arr, pt)) / LUT_WM * op.W
-    id_pt = math.exp(lut_ln_idu(op.kind, op.vgs, op.vds, op.vsb)) * LUT_WM / op.L
+    # [U3] 슬라이스 GMBS 열이 있는 toy(gmb_source "slice")만 VS 축 Hermite -- "cap"(lut_c)·"secant"(lut_b) toy 는 슬라이스 GMBS 가 없다
+    id_pt = math.exp(lut_ln_idu(op.kind, op.vgs, op.vds, op.vsb, slice_gmbs=(gmb_source == "slice"))) * LUT_WM / op.L
     if gmb_source == "secant":
         k, _ = _cell(LUT_VS, op.vsb)
         slope = (-LUT_A * LUT_VS[k + 1] ** 2 + LUT_A * LUT_VS[k] ** 2) / (LUT_VS[k + 1] - LUT_VS[k])

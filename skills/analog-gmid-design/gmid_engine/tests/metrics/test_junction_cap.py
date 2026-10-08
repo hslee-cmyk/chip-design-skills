@@ -378,7 +378,10 @@ def test_consumer_call_85_chain_and_memo():
     # -> kind 마다 params, 첫 사이징점 기하 -> junction_caps. [결정 11, 2026-10-08] PDK 선언에 mim_cap_params 원본이 더해져 5 -> 6.
     if not _SKY_PRESENT:
         pytest.skip("sky130 원본 없음")
-    assert N_DECL_SOURCES == 6             # 손 집계: pdk 5(tech_lef·periphery_rules·nfet/pfet 모델 카드·mim_cap_params) + 규칙 1
+    # [U3] PDK 선언 원본 4개 추가(nfet·pfet mismatch slope -- 설계 41 §6.4-2 'slope 출처', scale_option -- 같은 절 '단위 확인',
+    # poly_res_params -- 40 §7.1 Q9 'R□ 는 PDK 저항 모델 파일') -> 9 + 1 = 10
+    assert N_DECL_SOURCES == 10            # 손 집계: pdk 9(tech_lef·periphery_rules·nfet/pfet 모델 카드·mim_cap_params·nfet/pfet mismatch
+    #                                        slope·scale_option·poly_res_params) + 규칙 1
     memo = BoundedLRU(N_DECL_SOURCES)
     w_m, W, vds, vsb = 5e-6, 17.5e-6, 0.6, 0.25   # 슬라이스 폭·소자 폭(m = W / w_m = 3.5)
     for _ in range(2):
