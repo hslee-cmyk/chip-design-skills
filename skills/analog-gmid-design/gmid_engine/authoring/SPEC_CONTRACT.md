@@ -28,7 +28,7 @@
 - JSON 수준 위반은 `json_read` 예외 그대로. 그 밖 위반은 전부 모아 `SchemaRejectedError` **한 번**:
   detail = {`gate`: `"spec_load"`, `where`: 경로 문자열, `hits`, `rejected_gates`(정렬 tuple), `not_evaluated`}.
   `rejected_gates` 이름: `spec_schema`, `spec_meta`, `supplies`, `input_dc`, `elements`, `constraints`,
-  `compensation_targets`, `node_targets`, `intended_region`, `settings`, `theta_bounds`, `references`.
+  `compensation_targets`, `node_targets`, `intended_region`, `settings`, `theta_bounds`, `untie_orbits`, `references`.
 - `not_evaluated`: `all_sections`(최상위·`meta`·`human` 중 객체 아닌 것이 있음 -- 섹션 검사 없음),
   `topology_cross_checks`(meta 회로 이름 또는 topology 지문 불일치 -- 섹션 형식만 보고 topology 교차 검사는 안 함),
   `references`(앞 게이트에 위반이 있으면 참조 해석 안 함). 필수 human 키가 없으면 `missing_key` 하나만 내고 그 섹션 검사는 하지
@@ -58,6 +58,14 @@
 
 human 키: 필수 = supplies_v, input_dc, element_values, feedback, constraints, node_voltage_targets_v, intended_region,
 objective, search, spice_check, front_refilter. 선택 = pending_constraints, compensation_targets.
+
+[2026-10-08] `search` 의 선택 칸 `untie_orbits` = `{"<원소>": {"source": {...}}, ...}`(사용자 결정 '정준 라벨링 + 대칭 변수 묶음, 기본값 묶음', search
+CONTRACT r12 3.24). 기본은 **자기동형 궤도 원소의 같은 종류 θ 성분을 한 변수로 묶는다**(대칭 사이징). 이 칸은 그 원소가 속한 궤도의 묶음을 풀어
+의도한 비대칭 사이징을 허용한다(원소 하나만 적어도 궤도 전체가 풀린다). 닫힌 어휘 = 원소 이름을 키로, 값은 `{source}` 객체 하나뿐(`_` 주석 키 허용).
+**출처 필수이고 kind 는 `user_spec` 만**(`record`·`decided` 필수 -- 섹션 이름 `search_untie`, `plan_rule` 은 받지 않는다: 비대칭 선택은 사용자 결정이다).
+원소 = topology MOS 또는 수동소자 이름(아니면 `untie_element`). 궤도가 그 원소 하나뿐이면 search `orbit_ties` 가 `untie_orbit_trivial` 로 거부(그래프가
+필요해 spec 로드가 아니라 search 정의역 만들 때). 결정 대기 표지는 받지 않는다. 결과 = `SettingValue("untie_orbits", ((원소, source), ...) 이름순)`
+(theta_bounds 다음, 있을 때만, 공개 상수 `UNTIE_ORBITS`).
 
 [2026-10-08] `search` 의 선택 칸 `theta_bounds` = `{"<원소>": {"min": <수>, "max": <수>, "source": {...}}, ...}`(사용자 결정 8·10,
 search CONTRACT r10). 원소별 θ 수동소자 탐색 상자. 단위 = 원소 kind 의 SI 단위(resistor Ω, capacitor F -- 키 이름에 단위를 쓰지
@@ -123,6 +131,9 @@ search CONTRACT r10). 원소별 θ 수동소자 탐색 상자. 단위 = 원소 k
 | `theta_bound_range` | min ≥ max | settings |
 | `unknown_key`·`source_*`(theta_bounds) | 원소 칸 키가 {min, max, source} 밖 / 출처 표 위반(1절) | settings |
 | `theta_bound_element` | 원소가 topology 저항·커패시터 밖이거나 spec 값 mode 가 engine 아님 | theta_bounds |
+| `type`(untie_orbits) | `untie_orbits` 가 객체 아님 / 원소 칸이 객체 아님 | settings |
+| `unknown_key`·`source_*`(untie_orbits) | 원소 칸 키가 {source} 밖 / 출처 없음(`source_missing`)·kind 가 user_spec 아님(`source_kind_not_allowed_here`)·record/decided 없음 | settings |
+| `untie_element` | untie_orbits 원소가 topology MOS·수동소자 이름이 아님 | untie_orbits |
 | `ref_unresolved` / `ref_ambiguous` / `ref_cycle` / `ref_file_rejected` | 참조 대상 없음·형식 틀림 / 같은 metric 제약 둘 이상 / 순환(파일 안·파일 사이) / 참조 파일 로드 거부 | references |
 
 규칙 어휘: spice_check = acceptance_rule{free_spec_and_all_saturated}, saturation_rule{vds_ge_vdsat, vds_ge_vdsat_plus_tol_v},
@@ -137,7 +148,7 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
   `constraints`(`ConstraintDecl` 문서 순서), `pending_constraints`((metric, ID) tuple), `compensation_targets`
   ((키, `TargetDecl`/`SettlingDecl`/`PendingMark`) 이름순), `node_voltage_targets_v`, `intended_region`, `objective`
   (`ObjectiveBudget` tuple 또는 `PendingMark`), `search`(`SettingValue` tuple -- [2026-10-08] `theta_bounds` 가 있으면 맨 앞에
-  `SettingValue("theta_bounds", (ThetaBound(element, kind, lo, hi, source), ...) 원소 이름순)`, 공개 상수 `THETA_BOUNDS`),
+  `SettingValue("theta_bounds", (ThetaBound(element, kind, lo, hi, source), ...) 원소 이름순)`, 공개 상수 `THETA_BOUNDS`; [2026-10-08] `untie_orbits` 가 있으면 그 다음 `SettingValue("untie_orbits", ((원소, source), ...) 이름순)`, 공개 상수 `UNTIE_ORBITS`),
   `spice_check`·`front_refilter`(`RuleChoice`),
   `pending`(`PendingMark` (경로, ID) 정렬), `section_fps`, `spec_fp`, `file_sha256`. 속성 `judged_constraints`.
 - `ConstraintDecl`: 참조는 해석된 `value`, `judged` = user_spec True / pending_spice False / reference 는 대상의 judged,

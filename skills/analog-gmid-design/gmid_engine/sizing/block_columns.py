@@ -78,7 +78,7 @@ from .s2_values import (
 
 READS = (
     ("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"),
-    ("device", "dc_drop_current"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"), ("device", "bulk"),
+    ("device", "dc_drop_current"), ("node", "dc_colour"), ("device", "dc_colour"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"), ("device", "bulk"),
     ("device", "element_class"), ("device", "dc_coord"), ("graph", "dc_scc_order"),
 )
 WRITES = (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), ("device", "dc_ln_idu"),
@@ -155,6 +155,8 @@ class _Circuit:
         self.classes = dict(projection.column("device", "element_class"))
         self.L = dict(projection.column("device", "dc_L"))
         self.current = dict(projection.column("device", "dc_drop_current"))
+        self.net_colour = dict(projection.column("node", "dc_colour"))
+        self.device_colour = dict(projection.column("device", "dc_colour"))
         self.coord = dict(projection.column("device", "dc_coord"))
         self.order = projection.value("graph", DC_KEY, "dc_scc_order")
         self.resistance = {n: v for n, v in resistor_values if v is not None}
@@ -203,10 +205,20 @@ class _Circuit:
         cols = [c for member in self.members.get(net, (net,)) for c in self.nbrs.get(member, ())]
         if not cols:
             return (self.lo + self.hi) / 2
-        total = 0.0
+        # 색 열이 없는 손 조립 스냅샷은 색 0 -- 이름 순으로 떨어진다(커널 컨텍스트가 만든 스냅샷은 늘 색이 있다)
+        # 기둥 방향·합산 순서를 구조 색(정준 위치)으로 -- S1 기둥은 레일 이름순 방향이라 이름 치환이 부동소수 합 순서를 바꾸는 것을 막는다
+        colour = self.net_colour
+        canon = []
         for c in cols:
-            v0, v1 = self.rail_v[c.rails[0]], self.rail_v[c.rails[1]]
-            total += v0 + (v1 - v0) * c.position / c.length
+            r0, r1, pred, succ, pos = c.rails[0], c.rails[1], c.pred, c.succ, c.position
+            if (colour.get(r0, 0), r0) > (colour.get(r1, 0), r1):
+                r0, r1, pred, succ, pos = r1, r0, succ, pred, c.length - c.position
+            canon.append(((colour.get(r0, 0), colour.get(r1, 0), colour.get(pred, 0), colour.get(succ, 0), pos, c.length),
+                          r0, r1, pos, c.length))
+        total = 0.0
+        for _key, r0, r1, pos, length in sorted(canon, key=lambda x: x[0]):
+            v0, v1 = self.rail_v[r0], self.rail_v[r1]
+            total += v0 + (v1 - v0) * pos / length
         return total / len(cols)
 
     def transient(self, exc, m, vds):
@@ -496,6 +508,7 @@ def dc_columns(projection):
             values[net] = float(c.fixed[net])
     logs = []
     for entry in c.order:
+        entry_devices = tuple(sorted(entry.devices, key=lambda m: (c.device_colour.get(m, 0), m)))      # 구조 색 순서(이름이 처음 실패할 소자를 정하지 않게)
         if not entry.cyclic:
             (net,) = entry.nodes
             values[net] = c.update(net, values)
@@ -512,8 +525,9 @@ def dc_columns(projection):
         for net in entry.nodes:
             values[net] = c.start_writer(net, values)
         writers = tuple(sorted({c.writers[n].element for n in entry.nodes
-                                if c.writers[n].relation in (REL_VGS_GATE, REL_VGS_SOURCE)}))
-        devices = writers or tuple(m for m in entry.devices if c.has_channel_values(m, values))
+                                if c.writers[n].relation in (REL_VGS_GATE, REL_VGS_SOURCE)},
+                               key=lambda m: (c.device_colour.get(m, 0), m)))              # 구조 색 순서 -- 이름이 처음 실패할 소자를 정하지 않게
+        devices = writers or tuple(m for m in entry_devices if c.has_channel_values(m, values))
 
         def tolerance(v, devs=devices):
             return c.tolerance(devs, v)
@@ -521,7 +535,7 @@ def dc_columns(projection):
         method, fallback, solved, seal_failure = SCC_GAUSS_SEIDEL, None, None, None
         try:
             solved, (k, deltas, tol, limit) = gauss_seidel(
-                entry.nodes, values, lambda n, v: c.update(n, v, strict=False), tolerance, c.hi - c.lo, entry.devices)
+                entry.nodes, values, lambda n, v: c.update(n, v, strict=False), tolerance, c.hi - c.lo, entry_devices)
             _strict_recheck(c, entry, solved, tol)
         except NonconvergentError as exc:                  # Gauss-Seidel 이 K_max 안에 tol 에 닿지 못함(측정한 q 로 판정)
             stopped = dict(exc.record.detail)              # 또는 수렴 판정 뒤 strict 검증 잔차 > tol
@@ -543,7 +557,7 @@ def dc_columns(projection):
             start = next((s for s in starts if system(s) is not None), values)
             try:
                 solved, (k, deltas, tol, limit) = newton_solve(entry.nodes, start, system, tolerance, c.hi - c.lo,
-                                                               entry.devices)
+                                                               entry_devices)
             except NonconvergentError as newton_exc:       # Newton 도 해를 못 찾았다 -- GS 수렴점에서 잰 strict 검증 위반이
                 if seal_failure is None:                   # 있었으면 그 사실(봉인 위반)을 낸다(strict 검증 규약 불변)
                     raise

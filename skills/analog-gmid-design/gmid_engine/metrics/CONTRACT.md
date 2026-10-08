@@ -542,7 +542,7 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 - `circuit.ac_ground == ()`(뷰가 정한다), `ground_nets`·`input_nets` 정렬.
 
 ### 7.4 `metrics_ss(snapshot, requests, passive_values)` -- 뷰 -> 계 -> metric
-reads `device.{ss_dev, element_class, kind, pins, bulk}`, `node.{ac_ground_class, port_direction}`. `requests` = `MetricRequest`
+reads `device.{ss_dev, element_class, kind, pins, bulk, dc_colour}`, `node.{ac_ground_class, port_direction, dc_colour}`. **[r12, 2026-10-08]** 노드·소자 순서 = (`dc_colour` -- 정점마다 유일, 이름은 색 없는 이름만)(이름 치환에 불변한 선형계 행·스탬프 순서; dc_colour 가 없는 이름은 -1). `requests` = `MetricRequest`
 tuple(view_kind 가 None 이 아닌 등록 metric), `passive_values` = ((이름, 값), ...). 결과 `MetricBundle`.
 - 노드 = `ac_ground_class` 열의 넷(모든 S1 노드, 이름순), ground_nets = 그 값이 None 아닌 넷(레일 ∪ gate 전용 미구동),
   input_nets = `port_direction == INPUT_DIRECTION`.
@@ -576,7 +576,7 @@ tuple(view_kind 가 None 이 아닌 등록 metric), `passive_values` = ((이름,
   값에 따른 정의 불가는 예외가 아니다(2절).
 
 ### 7.5 `metrics_dc(snapshot, passive_values, counted_rails)` -- 전력·면적
-reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}`, `graph.dc_current_basis`.
+reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v, dc_rail_v, dc_colour}`, `graph.dc_current_basis`. **[r12, 2026-10-08]** 노드 인덱스·채널·게이트·수동소자 합산 순서 = (`dc_colour` -- 정점마다 유일, 이름은 색 없는 이름만)(레일 전류·전력·면적의 부동소수 합이 이름 치환에 불변). 따라서 `per_rail_amp` 의 레일 나열 순서도 (`dc_colour`, 이름) 순이다(종래 이름순).
 - 노드 인덱스 = (dc_rail_v ∪ dc_v 넷) 이름순. `DcOperatingPoint`: rails = `RailBias(레일, dc_rail_v)`; `basis.ends` 의 (원소, from, to)
   마다 MOS -> `ChannelCurrent(d, s, +dc_current if d == from else −dc_current)`, `basis.resistors` -> `Resistor(from, to,
   passive_values[원소])`, 그 밖 비수동 DC 원소(이상 전류원) -> `CurrentSource(from, to, dc_current)`; node_v = 그 저항 끝 중 dc_v 넷.

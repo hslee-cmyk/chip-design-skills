@@ -42,6 +42,7 @@ from .spec_settings import settings_declaration
 from .spec_supplies import supplies_declaration
 from .spec_targets import compensation_target_declaration
 from .spec_theta_bounds import theta_bound_declaration
+from .spec_untie import untie_declaration
 from .topology_load import load_topology
 from .topology_model import SchemaHit, TopologyDoc
 
@@ -115,6 +116,7 @@ def _load(path, topology, catalog, chain):
         run("theta_bounds", found)
         if search is not None:
             settings = (settings[0], search) + tuple(settings[2:])
+            run("untie_orbits", untie_declaration(search, topo))
     if hits or not_evaluated:
         not_evaluated.append("references")
         reject(_GATE, where, hits, rejected_gates=tuple(sorted(rejected)), not_evaluated=tuple(not_evaluated))

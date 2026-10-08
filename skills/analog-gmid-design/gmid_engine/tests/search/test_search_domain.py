@@ -313,16 +313,26 @@ def test_no_spec_boxes_reject_lists_all_in_theta_order(tmp_path, lut_sealed):
 
 
 def test_capacitors_spec_box_override_and_reject(tmp_path, lut_sealed):
-    """커패시터도 같은 우선순위: spec 원소별 / capacitance_bounds_f 재정의(모두) / 없는 원소만 거부(capacitors)."""
+    """커패시터도 같은 우선순위: spec 원소별 / capacitance_bounds_f 재정의(모두) / 없는 원소만 거부(capacitors).
+    [r12] 회로 CC 의 C1·C2 는 연결이 같은 자기동형 궤도(sizing 3.0b)라 기본은 한 변수로 묶인다(3.24) -- 원소별로 다른 spec 상자는
+    `untie`(spec untie_orbits)로 풀어야 받고, 풀지 않으면 tied_orbit_bounds_differ. 재정의는 두 원소에 같은 상자라 묶인 채 대표 하나."""
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path / "a", circuit_cc(), lut_sealed, CC_ELEMENTS,
                                              {"C1": (1e-13, 1e-11), "C2": (2e-13, 5e-12)})
     comps = dc.schema.components
     assert ("capacitance", "C1") in comps and ("capacitance", "C2") in comps
-    assert _bounds(search_domain(dc, _settings(None), pdk, sb)) == {
+    assert _bounds(search_domain(dc, _settings(None), pdk, sb, untie=("C1",))) == {
         ("capacitance", "C1"): _ln(1e-13, 1e-11), ("capacitance", "C2"): _ln(2e-13, 5e-12)}
+    with pytest.raises(SchemaRejectedError) as e:
+        search_domain(dc, _settings(None), pdk, sb)
+    assert dict(e.value.record.detail)["reason"] == "tied_orbit_bounds_differ"
     ov = SearchSettings(600.0, 40, None, SRC, (1e-14, 1e-10))
-    assert _bounds(search_domain(dc, ov, pdk, sb)) == {
+    assert _bounds(search_domain(dc, ov, pdk, sb, untie=("C2",))) == {
         ("capacitance", "C1"): _ln(1e-14, 1e-10), ("capacitance", "C2"): _ln(1e-14, 1e-10)}
+    tied = search_domain(dc, ov, pdk, sb)
+    got = _bounds(tied)
+    assert len(got) == 1 and list(got.values()) == [_ln(1e-14, 1e-10)]
+    assert {frozenset((r,) + tuple(m)) for r, m in tied.ties if r[0] == "capacitance"} == {
+        frozenset({("capacitance", "C1"), ("capacitance", "C2")})}
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path / "b", circuit_cc(), lut_sealed, CC_ELEMENTS, {"C2": (1e-13, 1e-11)})
     with pytest.raises(SchemaRejectedError) as e:
         search_domain(dc, _settings(None), pdk, sb)
