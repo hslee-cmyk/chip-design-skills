@@ -3,7 +3,7 @@
 진입점: `intended_region_declaration(raw, topology) -> (tuple[RegionDecl] | PendingMark | None, tuple[SchemaHit])`.
 
 모양: `{"pending": <ID>}` / `{}`(전 소자 포화 검사의 명시 선언) / `{<소자>: {"region": <영역>, "source"}}`, 영역 ∈
-`REGIONS`. 위반: `type`(형식·어휘 밖 영역), `intended_region_device`(topology 소자 밖). `topology` 가 None 이면 소자
+`REGIONS` = (`REGION_TRIODE` = "triode",) -- 선언 소자는 sizing 봉인 7(포화 여유)에서 빠진다. 위반: `type`(형식·어휘 밖 영역), `intended_region_device`(topology 소자 밖). `topology` 가 None 이면 소자
 교차 검사를 하지 않는다.
 """
 from ._spec_fields import COMMENT_PREFIX, at, is_pending, key_hits, pending_decision
@@ -13,7 +13,8 @@ from .topology_model import SchemaHit
 
 SECTION = "intended_region"
 WHERE = "human.intended_region"
-REGIONS = ("triode",)
+REGION_TRIODE = "triode"                     # 선형 영역 의도 -- 사용자 어휘 정본(sizing `LINEAR_REGION` 이 이 값을 쓴다)
+REGIONS = (REGION_TRIODE,)
 
 
 def intended_region_declaration(raw, topology):

@@ -5,7 +5,7 @@
 * `supplies_v` = spec 그대로(레일 정본, DEC-60).
 * `input_dc_v`: InputDc mode `net` -> 그 레일의 supplies_v 전압, `value` -> 값, `engine` -> None(엔진이 정함 = W4).
 * `node_targets` = spec `node_voltage_targets_v`(W3). `element_values` = mode `value` 인 원소의 값, `engine` -> None(θ).
-* `linear_devices` = intended_region 의 `linear` 선언 소자.
+* `linear_devices` = intended_region 에서 region == `LINEAR_REGION`(= authoring `REGION_TRIODE` "triode") 인 선언 소자(이름순).
 * `engine_elements` = mode `engine` 인 원소 이름(정렬) -- 그 수동소자가 DEC-92 θ 연속 성분·영점 상쇄 구조 규칙 대상이다
   (`dc_theta_schema`). `pending`(결정 대기)은 engine 이 아니다 -- 값을 엔진이 고르지 않는다.
 * **결정 대기 표지**(`pending`)는 막지 않고 '미선언'으로 투영하며 (경로, 결정 ID) 를 `pending` 에 모은다. 실행 전 정지
