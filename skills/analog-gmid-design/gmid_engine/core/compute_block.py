@@ -23,7 +23,6 @@ import marshal
 from collections.abc import Mapping
 
 from .fingerprint import fp_of
-from .immutability import require_immutable
 from .projection import Projection
 from .writer_table import ENTITY_KINDS
 
@@ -72,9 +71,7 @@ class ComputeBlock:
         self._seen_inputs = set()
 
     def __call__(self, snapshot, *extras):
-        for extra in extras:
-            require_immutable(extra)
-        projection = Projection.from_snapshot(snapshot, self.reads, extras)
+        projection = Projection.from_snapshot(snapshot, self.reads, extras)    # extras 불변 검사(TypeError)는 여기서 한 번
         input_version = fp_of((self.name, self.code_hash, projection.fp))
         self._calls += 1
         if snapshot.block_version(self.name) == input_version:

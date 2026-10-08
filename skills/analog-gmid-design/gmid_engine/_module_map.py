@@ -43,7 +43,7 @@ LAYERS = (
     (
         "core",
         (
-            ("determinism.py", "fingerprint.py", "immutability.py", "margin.py", "units.py", "writer_error.py"),
+            ("canonical_key.py", "determinism.py", "fingerprint.py", "immutability.py", "margin.py", "units.py", "writer_error.py"),
             ("bounded_lru.py", "failure_record.py", "field_value.py", "metric_signature.py", "projection.py",
              "writer_table.py"),
             ("compute_block.py", "failure_errors.py", "graph_record.py"),
@@ -160,6 +160,8 @@ LAYERS = (
 MODULES = (
     ModuleEntry("core/determinism.py", "entry", "sorted_items",
                 "정렬된 tuple 순회 도우미", ("NFR-4", "IC2")),
+    ModuleEntry("core/canonical_key.py", "entry", "canonical_key",
+                "memo 키 정준화(fp_of 와 같은 동치 관계의 hashable 값, 직렬화·sha256 없음)와 불변 검사", ("NFR-2", "DF-13", "SC-a")),
     ModuleEntry("core/fingerprint.py", "entry", "fp_of",
                 "정준 직렬화(float.hex·키 정렬)와 sha256 내용 지문", ("NFR-2", "SC-d")),
     ModuleEntry("core/immutability.py", "entry", "require_immutable",

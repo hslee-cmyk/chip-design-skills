@@ -17,6 +17,7 @@ from .failure_errors import (
     StructureUnresolvedError,
 )
 from .field_value import FieldValue
+from .canonical_key import canonical_key
 from .fingerprint import fp_of
 from .graph_record import GraphRecord
 from .graph_snapshot import GraphSnapshot
@@ -65,6 +66,7 @@ __all__ = (
     "WriterTable",
     "compute_block",
     "exit_code_for",
+    "canonical_key",
     "fp_of",
     "normalized_margin",
     "read_pdk_decl",
