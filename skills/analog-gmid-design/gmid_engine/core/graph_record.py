@@ -16,6 +16,7 @@ class GraphRecord:
     """`kind`·`key`(입력에서 읽은 이름 문자열)와 정렬된 ((field, FieldValue), ...) tuple.
 
     `fp` = fp_of((kind, key, ((field, value_fp), ...))) -- 값 내용만의 지문(writer·입력 버전·쓰기 횟수 제외).
+    레코드는 불변이라 `fp` 는 처음 읽을 때 한 번 계산해 레코드에 보관한다(스냅샷 지문을 읽지 않는 중간 레코드는 계산하지 않는다).
     """
 
     kind: str
@@ -37,8 +38,14 @@ class GraphRecord:
             raise ValueError("GraphRecord 필드 이름 중복")
         ordered = tuple(sorted(self.fields, key=lambda pair: pair[0]))
         object.__setattr__(self, "fields", ordered)
-        content = (self.kind, self.key, tuple((name, fv.value_fp) for name, fv in ordered))
+
+    def __getattr__(self, name):
+        """`fp` 만 지연 계산: 첫 읽기에 계산해 인스턴스에 보관한다(이후는 일반 속성 조회)."""
+        if name != "fp":
+            raise AttributeError(name)
+        content = (self.kind, self.key, tuple((field, fv.value_fp) for field, fv in self.fields))
         object.__setattr__(self, "fp", fp_of(content))
+        return self.fp
 
     def get(self, field):
         """필드의 FieldValue, 없으면 None."""

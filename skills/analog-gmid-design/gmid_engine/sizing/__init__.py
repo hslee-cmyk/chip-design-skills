@@ -5,7 +5,7 @@ design_gb7_dc_canonical; [r8] 9 = 전도 여유). 계약: `CONTRACT.md`.
 `dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, pre_layout_lut_access(memo))` (S0 당 1회) ->
 `size_and_seal(ctx, theta, parent=None)` (θ 마다).
 """
-from .bisect_root import bisect_root
+from .bracket_root import bracket_root
 from .block_columns import dc_columns
 from .block_currents import dc_currents
 from .block_lengths import dc_lengths
@@ -260,7 +260,7 @@ __all__ = (
     "TieBreak",
     "ThetaSchema",
     "Window",
-    "bisect_root",
+    "bracket_root",
     "build_kernel_context",
     "check_theta",
     "dc_columns",

@@ -404,12 +404,16 @@ def two(name, kind, a, b):
     return {"name": name, "kind": kind, "terminals": [a, b]}
 
 
-def topo(name, netlist, ports, passives=(), sources=(), rails=("vdd", "gnd")):
+def topo(name, netlist, ports, passives=(), sources=(), rails=("vdd", "gnd"), bias=()):
+    """bias = authoring CONTRACT 9절 `bias_inputs`(gate 전용 외부 바이어스 넷) -- 회로마다 손으로 정한 리터럴(입력 선언, 기대값 아님).
+    비면 키를 쓰지 않는다(키 없음 = 빈 선언)."""
     d = {"schema_version": "2.0", "topology_name": name, "netlist": list(netlist), "supply_nets": list(rails),
          "ports": {k: {"direction": v[0], "role": v[1]} for k, v in ports.items()},
          "passive_elements": list(passives)}
     if sources:
         d["ideal_sources"] = list(sources)
+    if bias:
+        d["bias_inputs"] = list(bias)
     return d
 
 
@@ -426,7 +430,8 @@ def circuit_cs_pmos_load():
     """C: M1 nmos (out, in, gnd) + M2 pmos (out, pb, vdd). out 은 drain 만 -> G_vgs 밖 W4. 순환 SCC 없음."""
     return topo("hand_cs_pload",
                 [mos("M1", "nmos", "out", "in", "gnd"), mos("M2", "pmos", "out", "pb", "vdd")],
-                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")})
+                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
+                bias=["pb"])                                  # pb: M2 gate 에만
 
 
 def circuit_cs_res(bulk_m1=None):
