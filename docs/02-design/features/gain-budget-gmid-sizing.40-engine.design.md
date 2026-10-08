@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.3
-plan_version: 6.0
+version: 1.4
+plan_version: 6.2
 ---
 
 # gain-budget-gmid-sizing -- 40-engine Design Document (새 엔진 `gmid_engine`, 색인·아키텍처)
@@ -9,12 +9,12 @@ plan_version: 6.0
 > **Summary**: 새 gm/ID 사이징 엔진(`skills/analog-gmid-design/gmid_engine/`)의 설계 정본이다. 계획서 N3.1 흐름 GB0~GB9를 패키지·파일에 대응시키고, 단계마다 알고리즘·입출력·불변식·실패 코드·as-built 상태를 적는다. 계획서가 요구하고 실행 로드맵에서 빠졌던 gain-budget 흐름(FR-1·FR-2·FR-4·FR-8)은 `41-gain-budget`에서 전부 설계한다. gap 분석 기준표는 `42-gap-checklist`다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Date**: 2026-10-08 · **Status**: v1.3. 사용자 결정 2026-10-08 "Q1~Q11 모두 네 의견대로 진행해"(§8·§9 확정)를 반영하고, §11 구현 단위를 추가했다. 아래는 v1.2에서 반영한 내용이다.
+> **Date**: 2026-10-08 · **Status**: v1.4. 사용자 결정 2026-10-08 "q3,q4는 네 제안대로 해"를 반영했다: §3.8-8 offset·미러비·스윙·ICMR metric 7개(닫힌 어휘), §9 Q3·Q4 확정과 §9.2 회로별 선언, §9 Q7 J 목록 추가, §10.2 오라클 Monte-Carlo·DC 스윕, §11 U3·U5·U6·U7·U9·U13 범위. v1.3은 사용자 결정 2026-10-08 "Q1~Q11 모두 네 의견대로 진행해"(§8·§9 확정)를 반영하고, §11 구현 단위를 추가했다. 아래는 v1.2에서 반영한 내용이다.
 > - 재검증 지적 N1~N9와 Low 항목
 > - 잡음 경로를 범위 안으로 넣기로 한 사용자 결정(2026-10-08)
 > - `[ng-layer0-canon]` 49283c6 대칭 실측
 > - v1.1에서 반영한 C1~C4, H1~H8, M1~M14, L1~L8과 R19 정정은 유지한다.
-> **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v6.0
+> **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v6.2
 > **as-built 기준**: master `004b7d2`(ng-perf-sizing 병합분 포함). 아직 병합되지 않은 브랜치도 함께 본다: `ng-cmfb-pm`(6a6e4c7), `ng-oracle-early`(d56ba66), `ng-tolv-cache`(674a6a1), `ng-layer0-canon`(0c5dc20), `ng-area-budget`(538eeab), `worktree-agent-a90dfb25fa6fe9f04`(7090b9f, LUT r2), `ng-bridge`(d529ea5).
 
 진행 순서는 bkit PDCA다: 이 design → 구현 → gap 분석(`42-gap-checklist`).
@@ -23,7 +23,7 @@ plan_version: 6.0
 
 | 파일 | 내용 |
 |---|---|
-| `40-engine`(이 문서) | §1 범위·원칙 / §2 아키텍처(흐름·상태 층·패키지 API) / §3 단계별 설계 GB0~GB9(gain-budget 외) / §4 SPICE 오라클 / §5 CM(CMFB) 루프 / §6 대칭 / §7 면적 예산·성능 / §8 승인 없이 축소된 범위와 계획 이탈 / §9 사용자 결정(2026-10-08 확정, 값 대기는 Q3·Q4) / §10 신규 API·검증(오라클·DoD·IC test) / §11 구현 단위(병렬 배분) |
+| `40-engine`(이 문서) | §1 범위·원칙 / §2 아키텍처(흐름·상태 층·패키지 API) / §3 단계별 설계 GB0~GB9(gain-budget 외) / §4 SPICE 오라클 / §5 CM(CMFB) 루프 / §6 대칭 / §7 면적 예산·성능 / §8 승인 없이 축소된 범위와 계획 이탈 / §9 사용자 결정(2026-10-08 확정, Q3·Q4 포함, §9.2 회로별 offset·스윙·ICMR 선언) / §10 신규 API·검증(오라클·DoD·IC test) / §11 구현 단위(병렬 배분) |
 | `41-gain-budget` | FR-1(SP1 stage 유도), FR-2(블록 gain 모델과 MNA 잔차), FR-3 연계, FR-8(탐색 전 달성 불가), FR-4(층 0 gain 예산 조합 front와 `gain_budget_db`), 스펙에서 gm/ID·L 출발값 유도 |
 | `42-gap-checklist` | FR·NFR·DEC·설계 항목마다 한 행: 설계 절, as-built 상태, 증거 위치 |
 
@@ -315,11 +315,11 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 3. **`ls` 필드**:
    - 방향별 최대 전류는 DEC-65의 β·σ·κ 규칙으로 계산한다.
    - 슬루 등가 용량 `ls.c_slew_farad`를 둔다.
-   - 스윙·ICMR 한계는 P N3.8 경로 합으로 계산한다.
+   - 스윙·ICMR 한계는 P N3.8 경로 합으로 계산한다. metric 정의는 아래 8이다.
    - `driving_spec`이 선언되면 이 값들로 제약 행을 만든다.
 4. **보고 metric**:
    - `nqs_ratio` = `ugf_ss_hz` / 신호 경로 소자 최소 f_T. f_T는 봉인 `ss`의 gm/(2π·cgg)이다.
-   - `mismatch_sigma_v`는 Pelgrom 식으로 계산한다. 계수는 §8 R17 선행 조건이 풀린 뒤에 쓸 수 있다.
+   - 옛 `mismatch_sigma_v`(matching 그룹별 Pelgrom 두 항)는 아래 8의 `offset_in_sigma_mv`·`mirror_ratio_sigma_pct`로 대체한다(사용자 결정 2026-10-08 Q3).
 5. **전력 축 = Σ V·I**(`power_dc_w`, 사용자 결정 2026-10-08 Q6. U-10 변경, DEC-78 문구 정정 대상): 레일마다 전압 × 공급 전류를 계산해 더한다. '기둥마다 전류를 한 번 센' 값과의 대조는 매 실행 기록하고, 둘이 어긋나면 `review_needed`로 올린다.
 6. **`verified_by`·모델 오차**: 레지스트리 항목에 `verified_by`·`model_error_ref`를 두고, 오라클 대조 결과(DEC-72)를 `derived.model_error_<metric>`에 쓴다.
 7. **잡음**(사용자 결정 2026-10-08, 범위 안): 다음 넷을 둔다. 설계는 41 §7이다.
@@ -327,6 +327,23 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
    - LUT 잡음 열(PDK BSIM4 `.noise` 특성화, 새 버전 파일)
    - MNA adjoint 잡음 해석과 소자별 기여 표
    - 오라클 `.noise` 대조
+8. **offset·미러비·스윙·ICMR**(사용자 결정 2026-10-08 "q3,q4는 네 제안대로 해", 근거 `_drafts/engine/matching_swing_spec_proposal.md` §1). 닫힌 어휘로 MOD5 레지스트리에 `MetricSignature`로 등록하고, 레지스트리 밖 이름은 `metric_unknown`으로 거부한다. 옛 이름 `mismatch_sigma_mv`·`mirror_ratio_error_mv`·`mismatch_sigma_v`는 spec 옛 이름 표에 넣어 거부한다(새 이름으로 안내).
+
+| metric | 정의 | 단위 | domain / view_kind | 분해능 | 쓰임 |
+|---|---|---|---|---|---|
+| `offset_in_sigma_mv` | **입력 환산 랜덤 offset 1σ**. 회로의 **모든 MOS** i에 독립 게이트 전압 오차원 σ_VGS,i(41 §6.4-2 A_eff 모델: LUT 감도 열 × bin별 slope / √(W_i·L_i))를 두고, 봉인 `ss` 스냅샷의 MNA 저주파(ω → 0) 전달로 출력(차동 출력이면 차동)까지 보낸 분산을 합해 차동 이득 A_dm으로 나눈다: σ²_in = Σ_i (Z_i·gm_i·σ_VGS,i)² / A_dm². Z_i는 소자 i 드레인 전류 → 출력 전달 임피던스이고, 잡음 해석(41 §7.3)과 같은 adjoint 해 한 번으로 모든 i를 얻는다 | mv | ss / transfer(gain 제약 전달 뷰) | LUT `tol_mismatch`와 소신호 tol의 adjoint 감도 전파 | 파일럿 제약, 나머지 보고 |
+| `offset_excess` | `offset_in_sigma_mv` ÷ (입력 셀 소자만의 같은 합). 입력 셀은 S1v의 gain 제약 전달 뷰 첫 이득 블록 input 셀(`noise_excess_th`와 같은 구조 규칙) | ratio | ss / transfer | 위 두 값의 전파 | 구조 가드 `<= √2`(부하 분산 ≤ 입력쌍 분산의 경계) |
+| `offset_sys_mv` | **계통 offset**: 봉인 DC 동작점(실제 VDS 반영)에서 입력 차 0일 때의 출력 오차 / A_dm. 출력 오차 기준은 차동 출력 = Vop − Vom, 단일 출력 = spec에 선언된 출력 기준 DC(선언이 없으면 값을 내지 않고 `reference_undeclared`로 보고) | mv | dc→ss / transfer | DC tol(tol_V)의 전파 | 상한 = `value_from_constraint: offset_in_sigma_mv`(기존 규칙 '계통 ≤ 랜덤 예산', 그 제약이 있는 회로만), 나머지 보고 |
+| `mirror_ratio_sigma_pct` | S1 matching 그룹 중 mirror 계열(whole, consumer_symmetric, `mirror_tail_ratio`, bias_distribution)마다 랜덤 전류비 σ(ΔI/I) = (gm/ID)·σ_ΔVGS,pair | pct | dc→ss / ratio | tol 전파 | 보고만 |
+| `swing_out_v` | **포화 기준 출력 스윙**: 출력 DC 동작점을 중심으로, 출력 경로의 모든 MOS가 VDS ≥ VDSAT + tol_vdsat(사용자 SPICE 포화 규칙 + LUT `tol_vdsat_table`)를 지키는 대칭 peak-to-peak 폭. 단일 출력 = 2·min(V_hi − V_o, V_o − V_lo). 차동 출력(포트쌍 p/n) = 출력마다 계산한 반폭의 최솟값 × 4(차동 p-p). [V_lo, V_hi]는 P N3.8 경로 합(VDS 엣지 = 포화 하한, VGS 엣지 = 그 전류의 VSB 포함 VGS)이다. 구간 자체도 레코드로 낸다 | v | ls | tol_vdsat·tol_V 합 | 파일럿·nmcnr 제약, 나머지 보고 |
+| `icmr_v` | 입력 공통모드 창 [Vin,min, Vin,max] ∩ [rail_lo, rail_hi]의 폭(레일 밖 입력 불허). 경계 = 입력 경로 소자 전부 VDS ≥ VDSAT + tol_vdsat. 창이 비면 음수 폭(부족량)을 그대로 낸다 | v | ls | 같음 | ngcc·nmcnr 제약, 나머지 보고 |
+| `icm_margin_v` | 선언된 입력 DC(spec `input_dc`)와 위 창 경계의 최소 거리 min(V_icm − Vin,min, Vin,max − V_icm). 경계에 tol이 이미 들어 있으므로 ≥ 0이 'LUT tol 여유를 두고 창 안'이다. 입력 DC가 SP-2 대기면 값을 내지 않고 `input_dc_pending`으로 보고 | v | ls | 같음 | 아래 규칙 |
+
+   - **topology 무관**: offset은 회로 이름·그룹 규칙 없이 MNA 전달로 계산한다. S1 matching 그룹(J-U4)은 계산 대상이 아니라 **해석·대조**에만 쓴다: 소자별 기여 표 `offset_contrib[{device, share, matching_record}]`를 내고, 기여가 큰 소자가 matching 레코드에 들지 않으면 `review_needed`가 아니라 보고 행으로 남긴다(레이아웃 matching 대상 확인용).
+   - **ICMR 제약 규칙**(사용자 결정 Q4 (4)): ICMR = 폭 + 선언 입력 DC 포함. `icmr_v >= w` 제약이 있는 회로는 입력 DC가 선언되면 `icm_margin_v >= 0`도 같은 출처로 함께 판정한다. 3σ 관례는 쓰지 않는다.
+   - **판정 위치**: 다른 metric과 같이 외층 전회로 계산 한 곳(DEC-74). 출발 구간(41 §6.2·§6.4-2)은 출발값과 보고에만 쓴다(EP-7).
+   - **단위 어휘**: `core/units.METRIC_UNITS`에 `pct`, `ratio`, `v`가 없으면 더한다(`ratio`·`v`는 잡음 경로와 공유).
+   - 파일: `E/metrics/offset_analysis.py`(offset_in·excess·contrib), `offset_systematic.py`, `mirror_ratio.py`, `ls_swing.py`(swing·icmr·icm_margin, `ls_fields`가 부른다).
 
 | 항목 | 상태 | 증거 |
 |---|---|---|
@@ -334,7 +351,8 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 | `gain_ss_db`, `ugf`, `gbw`, `pm_ss_deg`(β 또는 β=1), ratio, `parasitic_pm_ss_deg` | OK | `metrics/CONTRACT.md:173-235` |
 | `rout_ss_ohm` | PART(블록 테브난 잔차 없음) | `metrics/CONTRACT.md:205-213` |
 | 블록 국소 모델·잔차, 감도 게이트 | MISS | `metrics/CONTRACT.md:13-14` |
-| `ls`·스윙·ICMR·nqs·mismatch | MISS | `metrics/CONTRACT.md:14` |
+| `ls`·스윙·ICMR·nqs | MISS | `metrics/CONTRACT.md:14` |
+| offset·미러비·스윙·ICMR metric(8) | MISS: spec에 옛 이름 `mismatch_sigma_mv`·`mirror_ratio_error_mv`(파일럿·two_stage·two_stage_sf), ngcc `{metric: pending MOD5}`만 있고 레지스트리 항목이 없다 | `authoring/SPEC_CONTRACT.md:261`(S2), `E/core/units.py:7,13`, `assets/library/current_reuse_telescopic_ota.sizing_spec.json:215,224`, `ngcc_3stage_ff.sizing_spec.json:87` |
 | 전력 축 | PART: Σ V·I는 OK(결정 Q6). 기둥 대조 없음 | `E/search/objectives.py:9` |
 | 면적 탐색 축 | PART(master는 수동소자 단위 면적 None. MIM·측정 부하 제외는 `[ng-area-budget]`) | `E/metrics/dc_metrics.py:18-19,80-83` |
 | `verified_by`, `spice_unverifiable` | MISS | `metrics/CONTRACT.md:246,424` |
@@ -597,7 +615,7 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 | R14 | 미러 비율 전류 강제 없음, DEC-95 (3) ratified·② 없음, tol_I 격자 최대 gm | `sizing/CONTRACT.md:276,741,766` | DEC-70, DEC-95, N3.6 | 미결 | 복원(§3.7) |
 | R15 | 뷰별 교류접지(바이어스 종속 넷) U5로 연기. 차동쌍 '신호 gate 정확히 2' 조건 빠짐 | `graph/CONTRACT.md:491,538`, JU4:131 | SP1-1 (4), DEC-93 (1) | 미결 | 복원(41 §1.2) |
 | R16 | 대칭 θ 묶기 열린 항목 | `search/CONTRACT.md` 3.23 (4) | 사용자 2026-10-08 대칭 결정 | 미결 | 구현(§6) |
-| R17 | Pelgrom 계수 선언 없음 → mismatch 보고·matching L 하한 불가 | core 조사 | DEC-96 (2), N3.16 | 선행 조건 | PDK `*__mismatch.corner.spice`의 `vth0_slope`·`toxe_slope` 계열에서 A_VT·A_β를 유도하는 식과 단위 확인을 MOD1/`core` PDK 선언에 둠(§9 Q2) |
+| R17 | Pelgrom 계수 선언 없음 → mismatch 보고·matching L 하한 불가 | core 조사 | DEC-96 (2), N3.16 | 선행 조건 | PDK `*__mismatch.corner.spice`의 `vth0_slope`·`toxe_slope` 계열에서 A_VT·A_β를 유도하는 식과 단위 확인을 MOD1/`core` PDK 선언에 둠(§9 Q2). Q3(2026-10-08)로 A_eff 모델(전 slope 변수·bin별 slope·LUT 감도 열)로 확장(41 §6.4-2) |
 | R18 | C10: 지속 진동을 undetermined로 유지(계약에 '사용자 승인'으로 기록) | `[ng-oracle-early]` 계약 L42-54 | 사용자 결정 2026-10-08 4번 | 사용자 결정과 모순 | 사용자 결정대로 되돌림(§4) |
 | R19 | 오라클이 `pm_undefined`(개루프 RHP 극점 포함)를 일괄 INCOMPLETE로 판정 | `[ng-cmfb-pm]` README, `tools/spice_oracle/README.md:516` | 사용자 결정 A(엔진 탐색 규칙), P N3.6 오라클 합격 정의 | 미결 | Nyquist Z와 폐루프 과도로 판정하고, 둘 다 결정할 수 없을 때만 INCOMPLETE(§4-5). 개루프 RHP만으로 FAIL을 주지 않는다 |
 | R20 | ΔA_tie = grid² | `E/layout/floorplan.py:83` | DEC-79, DEC-95 (2) | 미결 | 계획 식으로 수정 |
@@ -625,12 +643,12 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 |---|---|---|
 | Q1 | U-53 | §8 결정 목록대로 |
 | Q2 | U-54 | Pelgrom 계수는 PDK `*__mismatch.corner.spice`에서 가져온다. 유도식과 단위는 41 §6.4-2에 기록하고, MC 대조 test로 확정한다 |
-| Q3 | U-17 확장 | **값 대기**. offset·미러비 matching 하한은 값이 있는 회로에서만 동작한다. 구조 분석에서 낸 제안값을 사용자에게 따로 검토받는다(설계는 막지 않는다) |
-| Q4 | U-55 | **값 대기**. 스윙·ICMR 몫은 값이 있는 회로에서만 동작한다(지금은 ngcc ICMR ≥ 0.6 V 하나). 제안값은 따로 검토받는다 |
+| Q3 | U-17 확장 → U-55로 닫음 | **확정(2026-10-08 "q3,q4는 네 제안대로 해")**. mismatch 모델 = 유효 계수 A_eff(toxe의 Vth 기여·약반전 voff 항 포함, LUT 감도 열, bin별 slope -- 41 §6.4-2), 옛 식 대체. 파일럿 `offset_in_sigma_mv ≤ 3.3 mV`(옛 5 mV 대체). 출처 없는 회로는 절대값 대신 구조 가드 `offset_excess ≤ √2` + 보고. 아래 §9.2 |
+| Q4 | U-55 | **확정(2026-10-08, 같은 원문)**. 스윙 = 포화 기준(`swing_out_v`), ICMR = 폭(`icmr_v`) + 선언 입력 DC 포함(`icm_margin_v`), 여유 = LUT tol, 레일 밖 입력 불허, 3σ 관례 미사용. 파일럿 스윙 ±1.2 V, nmcnr ICMR·스윙 ≥ 0.5 V, ngcc ICMR ≥ 0.6 V 유지. 헤드룸 불가는 탐색 전 보고(41 §4.6). 아래 §9.2 |
 | Q5 | U-44 | topology `_declared_target_spec`(2026-09-21 확정)의 성능 목표를 제약으로 올린다. 회로별 현황은 아래 표 |
 | Q5b | U-56 | 제약이 남지 않는 회로도 사이징에서 빼지 않는다. '성능 판정 보류'로 탐색하고 보고한다(41 §5.1) |
 | Q6 | U-10 변경 | 전력 축 = Σ V·I(as-built `power_dc_w`). DEC-78 문구를 고친다. 기둥 대조 기록은 유지한다 |
-| Q7 | U-06 | J 공동분석은 SP1 구현 뒤에 한다 |
+| Q7 | U-06 | J 공동분석은 SP1 구현 뒤에 한다. Q3·Q4 결정(2026-10-08)으로 목록에 더한 항목: (i) 입력 DC 값 -- nmcnr 0 V(agnd 관례)는 L ≥ 0.5 µm 입력에서 ICMR 창 밖, 파일럿·two_stage·folded·ngcc·common_gate SP-2 값(41 §4.6), (ii) sf_pushpull 차동 대응 짝 M6↔M8·M5↔M7의 matching(서로 다른 gate 묶음이라 J-U4 대칭쌍 그룹이 없다, 레이아웃 matching 대상 확정), (iii) sf_pushpull·pushpull 4-팔로워 버퍼 스택의 헤드룸(41 §4.6 보고 결과를 보고 회로 해석) |
 | Q8 | U-57 | 면적 예산은 그대로 둔다. 진단(§7.1-4) 결과를 보고 다시 논의한다 |
 | Q9 | U-36 확장 | 저항 면적을 면적 축에 넣는다. 저항 단위 면적은 PDK에서 유도한다(§7.1) |
 | Q10 | U-58 | 오라클 최종 판정은 Nyquist Z = N + P(`.pz`로 독립 측정)와 폐루프 과도로 한다. 둘 다 판정할 수 없을 때만 INCOMPLETE다. 탐색은 결정 A의 보수 규칙을 유지한다(§4-5~7) |
@@ -640,14 +658,14 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 
 | 회로 | 이미 제약에 있는 것 | 이번에 올리는 것 | 아직 없는 값 |
 |---|---|---|---|
-| current_reuse(파일럿) | gain ≥ 54, PM ≥ 70, CMRR·PSRR ≥ 60, mismatch ≤ 5(대기) | 잡음 ≤ 300 µVrms | -- |
-| two_stage_ota | gain ≥ 57, mismatch ≤ 5 | GBW ≥ 7 MHz(보상 목표 `user_spec`을 제약으로) | PM(SP-3) |
-| two_stage_ota_sf | rout ≤ 1 kΩ, gain·mismatch는 two_stage_ota를 참조 | GBW는 두 회로 상속 | PM |
-| ngcc_3stage_ff | GBW ≥ 10 MHz, PM ≥ 63.4 | ICMR ≥ 0.6 V(`ls` 입력 범위 metric 구현과 함께) | gain |
-| nmcnr_amplifier | GBW ≥ 816 kHz, PM ≥ 70 | -- | gain(논문 > 100 dB는 채택하지 않음) |
-| sf_pushpull_output_opamp | gain ≥ 65, GBW ≥ 60 MHz, rout ≤ 1 kΩ | -- | PM(SP-3) |
+| current_reuse(파일럿) | gain ≥ 54, PM ≥ 70, CMRR·PSRR ≥ 60 | 잡음 ≤ 300 µVrms. Q3·Q4(§9.2): offset σ ≤ 3.3 mV(옛 mismatch ≤ 5 대체), 출력 스윙 ±1.2 V | 입력 DC(SP-2) |
+| two_stage_ota | gain ≥ 57 | GBW ≥ 7 MHz(보상 목표 `user_spec`을 제약으로). Q3: 옛 mismatch ≤ 5 폐기 → 가드 `offset_excess ≤ √2` | PM(SP-3) |
+| two_stage_ota_sf | rout ≤ 1 kΩ, gain은 two_stage_ota를 참조 | GBW는 두 회로 상속. Q3: 옛 mismatch 참조 폐기 → 가드 | PM |
+| ngcc_3stage_ff | GBW ≥ 10 MHz, PM ≥ 63.4 | `icmr_v ≥ 0.6 V`(값 유지, 이름 부여). Q3: 가드 | gain |
+| nmcnr_amplifier | GBW ≥ 816 kHz, PM ≥ 70 | Q4: `icmr_v ≥ 0.5 V`, `swing_out_v ≥ 0.5 V`. Q3: 가드 | gain(논문 > 100 dB는 채택하지 않음) |
+| sf_pushpull_output_opamp | gain ≥ 65, GBW ≥ 60 MHz, rout ≤ 1 kΩ | Q3: 가드 `offset_excess ≤ √2` | PM(SP-3) |
 | pushpull_follower_buffer | rout ≤ 1 kΩ | -- | (버퍼, 다른 값 불필요) |
-| folded_cascode | 없음 | -- | gain·GBW·PM 모두 → Q5b 판정 보류 |
+| folded_cascode | 없음 | Q3: 가드 `offset_excess ≤ √2` | gain·GBW·PM 모두 → Q5b 판정 보류 |
 | common_gate_amplifier | 없음 | -- | gain·GBW 모두 → Q5b 판정 보류 |
 
 모든 회로에 공통으로 잡음 가드와 면적 예산 제약(결정 11)을 함께 둔다.
@@ -671,19 +689,40 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 | Q8 | U-57 | 7.1 진단 뒤에도 예산 안에 해가 없는 회로가 남으면 그 회로의 면적 예산을 바꿀지 | spec 값 | 그 회로 합격 |
 | Q9 | U-36 확장 | 저항 면적을 면적 축에 넣을지(단위 면적 PDK 선언 필요), 결정 11 문구대로 뺄지 | 목적 축 정의 | §7.1, DEC-79 `review_needed` |
 
+### 9.2 Q3·Q4 회로별 선언 (사용자 결정 2026-10-08 "q3,q4는 네 제안대로 해")
+
+원문 전문은 `_drafts/user_decisions.md` 마지막 항목, 분석 근거는 `_drafts/engine/matching_swing_spec_proposal.md`다. metric 정의는 §3.8-8, 출발 구간은 41 §6.2·§6.4-2, 탐색 전 보고는 41 §4.6이다. 모든 제약 행은 `{metric, op, value, source}` 형식이고 `source`는 아래 '출처' 열이다.
+
+| 회로 | offset (Q3) | 스윙·ICMR (Q4) | 출처·유도 |
+|---|---|---|---|
+| current_reuse(파일럿) | `offset_in_sigma_mv <= 3.3`(옛 `mismatch_sigma_mv <= 5` 대체). `offset_sys_mv <= value_from_constraint: offset_in_sigma_mv`(옛 `mirror_ratio_error_mv` 대체) | `swing_out_v >= 2.4`(차동 p-p, 논문 Table I 출력 스윙 스펙 ±1.2 V). `icm_margin_v >= 0`(입력 DC SP-2가 선언되면 활성, 그 전에는 `input_dc_pending` 보고) | `user_spec`(2026-10-08). 3.3 mV 유도: 입력 용량이 논문 β ≈ 0.48 가정(Cf = Cs = 500 fF → Cgg1 ≈ 41.7 fF)을 넘지 않는 최대 면적에서 σ_os = (Σ A_i√c_i)/(2√Cin), gm/ID 15·L 0.5 µm A_eff 기준(제안서 §2.3 (C)). 이 값은 β 0.48 가정의 앵커이고, β 손실이 전력과 교환되는 점은 목적 함수가 다룬다. 정적 ½ LSB 규칙은 이 Cf/Cs에서 해가 없음(제안서 §2.3 (A))을 함께 기록한다 |
+| two_stage_ota | 옛 5 mV 절대값 폐기 → `offset_excess <= √2` 가드 + `offset_in_sigma_mv`·`offset_sys_mv` 보고 | 보고만 | 가드 `user_spec`(부하 기여 ≤ 입력쌍 기여, 잡음 가드와 같은 등분 원칙) |
+| two_stage_ota_sf | 옛 `value_from_file: two_stage_ota#mismatch_sigma_mv` 폐기 → 같은 가드 + 보고 | 보고만(출처의 '상한 제한'이 sky130에서 좁은 스윙으로 나타난다) | 같음 |
+| folded_cascode, ngcc_3stage_ff, nmcnr_amplifier, sf_pushpull_output_opamp | 같은 가드 + 보고(출처에 offset 값 없음) | ngcc: `icmr_v >= 0.6`(값 불변, 이름만 부여, 1.8 V 기준 VDD/3). nmcnr: `icmr_v >= 0.5`, `swing_out_v >= 0.5`(원문 단위 이득 0.5 V 계단 측정 조건, 원문 절대값 그대로). folded·sf_pushpull: 보고만. sf_pushpull은 선언 입력 DC(agnd 0.9 V)라 `icm_margin_v` 보고 | ngcc: 기존 사용자 확정. nmcnr: `user_spec`(Leung et al. Table 1 측정 조건 앵커). ICMR 제약 회로는 입력 DC가 선언되면 `icm_margin_v >= 0`을 함께 판정(§3.8-8) |
+| pushpull_follower_buffer, common_gate_amplifier | 차동쌍이 없어 offset 제약·가드 없음. pushpull은 정지 전류 산포를 `mirror_ratio_sigma_pct`와 같은 식으로 보고 | 보고만(pushpull 선언 입력 DC agnd라 `icm_margin_v` 보고, common_gate 스윙은 출처 식 VDD − VDSAT3 − VDSAT1 − VDSAT2와 대조) | -- |
+| 전 회로 | `mirror_ratio_sigma_pct` 보고 | 탐색 전 헤드룸 달성가능성 보고(41 §4.6) | -- |
+
+**유지·이관 항목**:
+- bulk 기본 규칙(NMOS = 최저 레일, PMOS = 최고 레일)은 유지한다(Q4 (6)).
+- 입력 DC 변경, sf_pushpull M6↔M8·M5↔M7 matching, 버퍼 스택 헤드룸은 회로 해석이므로 J 공동분석 목록에 넣는다(위 Q7 행).
+- Monte-Carlo offset 분포와 스윙·ICMR DC 스윕 확인은 오라클(U6)이 한다(§10.2).
+- 옛 이름(`mismatch_sigma_mv`, `mirror_ratio_error_mv`)이 쓰인 library spec 3개(파일럿·two_stage·two_stage_sf)는 U5가 새 이름·값으로 바꾸고, 옛 이름은 로더 옛 이름 표로 거부한다.
+
 ---
 
 ## 10. 신규 API·검증
 
 ### 10.1 신규 공개 API 서명
 
-41 §8에 있는 API(`build_s1v`, `block_local_gain`, `achievability`, `start_intervals`, `layer0_budget`, `size_and_seal_local`, `count_budget`, `EvalBudget`, `noise_params`, `noise_analysis`)에 아래를 더한다.
+41 §8에 있는 API(`build_s1v`, `block_local_gain`, `achievability`, `start_intervals`, `layer0_budget`, `size_and_seal_local`, `count_budget`, `EvalBudget`, `noise_params`, `noise_analysis`, `mismatch_dvgs`, `headroom_bound`)에 아래를 더한다.
 
 ```python
 def coupling_vars(s1: S1, s1v: S1v) -> Coupling                                    # E/graph/coupling_vars.py  {vars[CouplingVar], column_block_map}
 def canonical_form(s1: S1) -> Canonical                                             # E/graph/canonical_form.py {order, generators}
 def automorphism_orbits(s1: S1, canon: Canonical, untie: list[Untie]) -> Orbits     # E/graph/automorphism_orbits.py
 def ls_fields(snap: GraphSnapshot, s1v: S1v, spec: SizingSpec) -> LsFields          # E/metrics/ls_fields.py
+def offset_analysis(snap: GraphSnapshot, s1v: S1v, view_key: str) -> OffsetResult  # E/metrics/offset_analysis.py {sigma_in_mv, excess, contrib[], resolution}
+def swing_icmr(snap: GraphSnapshot, s1v: S1v, spec: SizingSpec) -> SwingIcmr       # E/metrics/ls_swing.py {swing_out_v, out_ranges[], icmr_v, window, icm_margin_v}
 def sensitivity_gate(snap: GraphSnapshot, s1v: S1v, metric: str) -> GateResult     # E/metrics/sensitivity_gate.py
 def solve_budget_point(ctx: SearchContext, budget: ObjectiveBudget) -> FrontPoint   # E/search/budget_point.py
 def converge(front: Front, ctx: SearchContext, pdk: PdkDecl) -> ConvergedFront      # E/convergence/converge.py (MOD8)
@@ -703,6 +742,10 @@ def run_gmid_design_pipeline(spec_path, *, search=None, output_dir=None, instrum
 | 척도화 | (a) 1e6 규모 행 픽스처 | `tests/search/test_slsqp_scaling.py` | status 4 없음. 척도화 전후 활성 집합 동일 |
 | 아카이브 타입 | (a) 왕복 | `tests/search/test_archive_records.py` | float 왕복 비트 동일. 문자열 숫자는 거부 |
 | CM 감지 저항 | (a) R 부하 손계산 | `tests/search/test_cm_sense_r.py` | 최소 R에서 ΔG ≤ b_gain |
+| offset 해석(§3.8-8) | (a) 이름 없는 5T·2단 toy 손계산(입력쌍 + 차동쌍 drain 미러 부하), (b) 소자별 섭동 DC 재풀이(MNA 전달과 다른 방법) | `tests/metrics/test_offset_analysis.py` | σ_in이 resolution 안에서 일치. 캐스코드 기여가 1/(gm·ro) 배로 감쇠. 이름 전단사 불변 |
+| 스윙·ICMR(§3.8-8) | (a) CS·캐스코드·follower toy 경로 합 손계산 | `tests/metrics/test_ls_swing.py` | 경계 = VDSAT + tol_vdsat, 레일 밖 자름, 빈 창은 음수 폭, 입력 DC 미선언이면 `input_dc_pending` |
+| 오라클 offset Monte-Carlo | (c) ngspice mismatch 블록 변수를 소자마다 gauss로 둔 MC(오라클 측, 엔진 비의존). 표본 수는 MC σ 추정의 상대 표준오차가 엔진 resolution과 같아지도록 유도 | `tools/spice_oracle/tests/test_oracle_offset_mc.py` | MC 입력 offset σ와 엔진 `offset_in_sigma_mv`의 차를 `model_error_offset_in_sigma_mv`(DEC-72)로 기록. 파일럿 제약 판정에 오라클 값 사용 |
+| 오라클 스윙·ICMR DC 스윕 | (c) 출력 DC(되먹임으로 이동)·입력 공통모드 `.dc` 스윕에서 모든 MOS VDS ≥ VDSAT 구간 측정 | `tools/spice_oracle/tests/test_oracle_swing_icmr.py` | 측정 구간과 엔진 [V_lo, V_hi]·창의 차를 모델 오차로 기록. 41 §4.6 '알려진 사례' 4건의 실제 창을 잰다 |
 
 ### 10.3 IC1~IC11 계약 test (P N4.1)
 
@@ -763,17 +806,17 @@ R26(축소 유지)에 따라 test 경로는 현행 체계를 따른다. 별도�
 |---|---|---|---|---|---|---|
 | **U1 SP1 구조** | `E/graph/` 신규 파일: `views`, `ac_ground_view`, `signal_reach`, `cells`, `drive_kind`, `stage_bfs`, `blocks`, `pole_nodes`, `loops`, `loop_classify`, `loop_cuts`, `polarity`, `buffer_bundles`, `output_direction`, `composite_blocks`, `declared_compare`, `s1v_build`. `structure.json` 로더. L 동치류 `derived` 처리와 주인 결정 | 41 §1, 40 §3.2 | U0 | 1 | FR-1, DEC-17·29·43·57·63·65·81, D-GB1a, D-GB2a~j | 41 §9 SP1·루프 행. toy 2~4소자(a), 9회로 표(d), 이름 전단사 |
 | **U2 대칭** | `ng-layer0-canon`의 정준 라벨링·궤도를 `E/graph/canonical_form.py`·`automorphism_orbits.py`로 옮긴다. 수동소자 무향 처리와 부호 −1 묶기. `orbit_matching_crosstab`. `E/search/orbit_ties.py`·`tie_expand.py` 갱신 | 40 §6 | U0 | 1 | D-SYa~d, R16 | 40 §10.2 대칭 행. 파일럿 R1/R2 궤도, 단자 순서 뒤집기 metamorphic |
-| **U3 LUT·PDK 확장** | `E/lut/`: `vgs_for_current_density`, VS Hermite, FC 정책, `ft_curve`·`intrinsic_gain_curve`·`vdsat_curve`·`idu_curve`, `noise_params`, 잡음 LUT r1 로더, `LutMemo.from_sweep` 배선 도우미. `assets/sky130_lut_sweep.py`에 `.noise` 모드 추가. `E/core/pdk_decl.py`와 PDK 선언 json에 EF, Pelgrom, poly 저항 양 추가 | 41 §4.1, §7.2, 40 §7.1, R25 | U0 | 1 | DEC-87·88, D-LUTc, D-NZ2, D-PF1·2, D-GB4a(분류 쪽) | 격자점·칸 중앙 ngspice 대조(c), Pelgrom MC 대조(c), Ω당 면적 손계산(a) |
+| **U3 LUT·PDK 확장** | `E/lut/`: `vgs_for_current_density`, VS Hermite, FC 정책, `ft_curve`·`intrinsic_gain_curve`·`vdsat_curve`·`idu_curve`, `noise_params`, 잡음 LUT r1 로더, `LutMemo.from_sweep` 배선 도우미. `assets/sky130_lut_sweep.py`에 `.noise` 모드와 **mismatch 감도 모드**(Q3: `*_slope_spectre` 섭동 → DVGS 열, 새 버전 파일 `..._mismatch_r1.npz`, 공유 데이터 덮어쓰기 금지) 추가, `mismatch_dvgs` 로더·`tol_mismatch`. `E/core/pdk_decl.py`와 PDK 선언 json에 EF, mismatch slope(카드 `.model` 블록별 bin 지도 + slope 이름, pfet L < 0.5 µm `vth0_slope1` 등), poly 저항 양 추가 | 41 §4.1, §6.4-2·2b, §7.2, 40 §7.1, R25 | U0 | 1 | DEC-87·88, D-LUTc, D-NZ2, D-PF1·2, D-GB4a(분류 쪽), D-PG, D-MM1·2 | 격자점·칸 중앙 ngspice 대조(c), 감도 열 칸 중앙 섭동 대조(c), `vth0` 성분 = √2·slope(bin별)(a), 소자 쌍 MC 단위 확인(c), Ω당 면적 손계산(a) |
 | **U4 sizing 보강** | `E/sizing/`: L 동치류 L 공유(θ 스키마), 미러 비 강제, S2p 기반 tol_I, DEC-95 (3) 전체 순서, W_request 고정 W, `size_and_seal_local` | 40 §3.7, 41 §5.3 | U0(② 순서 항목은 U1 인터페이스 필요) | 1 | DEC-17(θ 쪽)·32·70·95, D-GB7a~d, D-LS | IC1·IC2·IC10 test, 국소 봉인 toy |
-| **U5 authoring·spec** | `E/authoring/`: `gain_budget_db_override`(배열 키), `driving_spec`, `structure_count_budget`, 잡음 metric 어휘, `noise_testbench`, 옛 이름 표 수정(`input_dc_net`·`topology_hash`·`derived`), `spice_unverifiable[]`. `E/core/units.py` 잡음 단위. `assets/library/*.sizing_spec.json`에 Q5 승격·Q11 잡음 제약 반영 | 40 §3.1, §9, 41 §7.1 | U0 | 1 | FR-9, DEC-68·69·90(3), D-GB0a, D-NZ1 | 거부 test(옛 이름·출처 없음·`metric_unknown`), 9회로 로드 |
-| **U6 오라클** | `tools/spice_oracle/`: C10 한계 사이클과 안정 fixture 불변, 고Q 표시, `.pz` P, 위상 펼침 N과 Z 판정, `.noise` 개루프·폐루프 SC 테스트벤치, `ORACLE_MEASURES` 추가 | 40 §4, 41 §7.6 | U0 | 1 | D-OR1~4, D-NZ6 | 40 §10.2 C10 행. 조건부 안정 fixture, `.noise` 손계산 저항 분압 |
-| **U7 metrics 이득·보고** | `E/metrics/`: `block_model`, `block_residual`, 결합 잔차 측정, `sensitivity_gate`, `ls_fields`(슬루·방향별 전류·스윙·ICMR), `nqs_ratio`, `mismatch_sigma_v`, `verified_by`·모델 오차 레지스트리 | 41 §2, 40 §3.8 | U1(블록 정의), U3(Pelgrom) | 2 | FR-2, DEC-05·23·58·66·72·96, D-BM, D-SG, D-GB8a~c | CS·캐스코드 손계산, 단일 블록 잔차 0, ICMR ngcc |
+| **U5 authoring·spec** | `E/authoring/`: `gain_budget_db_override`(배열 키), `driving_spec`, `structure_count_budget`, 잡음 metric 어휘, `noise_testbench`, 옛 이름 표 수정(`input_dc_net`·`topology_hash`·`derived`), `spice_unverifiable[]`. `E/core/units.py` 잡음 단위와 Q3·Q4 단위(`pct`, `ratio`, `v`). Q3·Q4 metric 어휘(`offset_in_sigma_mv`, `offset_excess`, `offset_sys_mv`, `mirror_ratio_sigma_pct`, `swing_out_v`, `icmr_v`, `icm_margin_v`)와 옛 이름 표(`mismatch_sigma_mv`, `mirror_ratio_error_mv`, `mismatch_sigma_v`). `assets/library/*.sizing_spec.json`에 Q5 승격·Q11 잡음 제약·**§9.2 Q3·Q4 선언**(파일럿 3.3 mV·스윙 2.4 V·icm_margin, 6회로 가드, ngcc·nmcnr ICMR, nmcnr 스윙) 반영 | 40 §3.1, §3.8-8, §9, §9.2, 41 §7.1 | U0 | 1 | FR-9, DEC-68·69·90(3), D-GB0a, D-NZ1, D-Q34 | 거부 test(옛 이름·출처 없음·`metric_unknown`), 9회로 로드, §9.2 표와 spec 대조 |
+| **U6 오라클** | `tools/spice_oracle/`: C10 한계 사이클과 안정 fixture 불변, 고Q 표시, `.pz` P, 위상 펼침 N과 Z 판정, `.noise` 개루프·폐루프 SC 테스트벤치, **offset Monte-Carlo**(mismatch 블록 gauss, 입력 환산 분포)와 **스윙·ICMR `.dc` 스윕**(Q3·Q4 (8)), `ORACLE_MEASURES` 추가 | 40 §4, §10.2, 41 §7.6 | U0 | 1 | D-OR1~5, D-NZ6 | 40 §10.2 C10·offset MC·스윙 DC 스윕 행. 조건부 안정 fixture, `.noise` 손계산 저항 분압, MC 표본 수 유도 |
+| **U7 metrics 이득·보고** | `E/metrics/`: `block_model`, `block_residual`, 결합 잔차 측정, `sensitivity_gate`, `ls_fields`(슬루·방향별 전류), `ls_swing`(`swing_out_v`·`icmr_v`·`icm_margin_v`), `nqs_ratio`, `offset_analysis`(`offset_in_sigma_mv`·`offset_excess`·`offset_contrib`, MNA adjoint 공유), `offset_systematic`, `mirror_ratio`(옛 `mismatch_sigma_v` 대체), `verified_by`·모델 오차 레지스트리 | 41 §2, 40 §3.8 | U1(블록 정의), U3(A_eff 감도 열) | 2 | FR-2, DEC-05·23·58·66·72·96, D-BM, D-SG, D-GB8a~c, D-OF1~3, D-MR, D-SW, D-ICM | CS·캐스코드 손계산, 단일 블록 잔차 0, offset toy 손계산·섭동 재풀이(b), 스윙·ICMR 경로 합 toy |
 | **U8 metrics 잡음** | `E/metrics/noise_sources.py`, `noise_analysis.py`, 잡음 제약 행 연결 | 41 §7.3·7.4 | U3, U5 | 2 | D-NZ3·4 | 4kTR·4kTγgm 손계산(a), ngspice `.noise`(c) |
-| **U9 GB4 달성가능성** | `E/metrics/achievability.py`, `curve_checks.py`, `block_gain_bound.py`, `dof_report.py`, `area_lower_bound.py`, `E/search/count_budget.py` | 41 §0, §4 | U1, U3 | 2 | FR-8, D-GB4a~e, D-NS, D-NM | 격자 직접 전수 toy(b), 불가능 스펙 exit 3, IC6 사고19, 계수 예산 결정론 |
+| **U9 GB4 달성가능성** | `E/metrics/achievability.py`, `curve_checks.py`, `block_gain_bound.py`, `dof_report.py`, `area_lower_bound.py`, `headroom_bound.py`(Q4 헤드룸 창 상한·유도 보고), `E/search/count_budget.py` | 41 §0, §4 | U1, U3 | 2 | FR-8, D-GB4a~f, D-NS, D-NM | 격자 직접 전수 toy(b), 불가능 스펙 exit 3, IC6 사고19, 계수 예산 결정론, follower 스택·두 극성 입력 toy 상한 |
 | **U10 GB3 결합** | `E/graph/coupling_vars.py`, `column_block_map` | 40 §3.3 | U1 | 2 | D-GB3, DEC-71 (2)(7) | 9회로 매핑표, 귀속 안 된 소자 정지 |
 | **U11 search 정비** | `E/search/`: SLSQP 척도화, 타입 있는 아카이브 레코드, 예산 점 풀이, `n_starts`·L-c 분지, ε 간격과 점 예산, CM 감지 저항 최소화, CM 1 dB 대체 제거, 면적 예산 출발점과 W 타당성 | 40 §3.6, §5-4, §7.1·7.2, §3.5 | U0 | 2 | D-SC, D-AC, D-BP, D-ST, D-EPS, D-CM4, D-CMR, D-AR2·3 | 1e6 행 픽스처, 왕복 비트 동일, 예산 점 1개 |
 | **U12 layout 정비** | `E/layout/`: ΔA_tie, LY5 즉시 완화 제거, `matching_L_mismatch`, `ly.diffusion`, 그룹 경계 tap, 판정 축 면적에 수동소자(MIM·poly 저항) 포함 | 40 §3.9 | U3(저항 PDK 양) | 2 | D-LY1~4, R20~22 | 해시 대조, 면적 손계산 |
-| **U13 출발 구간·매크로 모델** | `E/search/start_intervals.py`, `iv_*`, `macro_poles.py`, `dominant_node.py`, `eval_budget.py` | 41 §6, §7.5, §5.8 | U1, U3, U9 | 3 | D-SIa~f, D-DN, D-NZ5 | 손계산 toy, 이상 VCCS 2·3극점 |
+| **U13 출발 구간·매크로 모델** | `E/search/start_intervals.py`, `iv_*`(Q3·Q4: `iv_headroom`의 스윙·ICMR·입력 DC 예산 분할, `iv_matching_l`의 A_eff 기반 matching L 하한과 offset 가드 부하 gm/ID 상한), `macro_poles.py`, `dominant_node.py`, `eval_budget.py` | 41 §6(§6.2, §6.4-2·2a), §7.5, §5.8 | U1, U3, U9 | 3 | D-SIa~g, D-DN, D-NZ5 | 손계산 toy, 이상 VCCS 2·3극점, 절대 offset 회로에서만 L 하한 활성 |
 | **U14 MOD8 수렴** | `E/convergence/`: `converge`(W_request 루프, LY7 재평가, 판정 축 재필터, K_max) | 40 §3.9 | U4, U12 | 3 | D-M8, R12 | W_request 합성 픽스처, 커널 호출 계수 |
 | **U15 층 0 gain 예산** | `E/search/`: `layer0_budget`, `gain_bins`, `local_candidates`, `local_front`, `combo_dp`, `assembly`, `budget_override`. `layer0_center`는 대체되어 초기점 생성 전용이 된다 | 41 §5 | U4, U7, U9, U10, U13 | 4 | FR-4, DEC-03·10·71·73, D-L0a~i | 2블록 toy DP = 전수, 파일럿 `gain_budget_db` 출력 |
 | **U16 보고·진입점·통합** | `E/report/`, `E/pipeline/`(`ng-bridge` 흡수), `tests/integration/`의 9회로 E2E·구조 표·IC7·IC11·회귀 추적 | 40 §3.9, §10 | U14, U15, U6 | 5 | D-M9·M10, D-IC, D-T, T1~T9 | 9회로 E2E, 오라클 대조 |

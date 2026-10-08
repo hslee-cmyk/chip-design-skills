@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.3
-plan_version: 6.0
+version: 1.4
+plan_version: 6.2
 ---
 
 # gain-budget-gmid-sizing -- 41-gain-budget Design Document
@@ -14,7 +14,7 @@ plan_version: 6.0
 > - 스펙에서 gm/ID·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-10-08 · **Status**: v1.3. 사용자 결정 2026-10-08 "Q1~Q11 모두 네 의견대로 진행해"를 반영했다(R29 knee 추가 후보, Q2 Pelgrom 출처, Q5b 판정 보류 탐색, Q11 잡음 값과 metric). v1.2의 변경은 다음 셋이다.
+> **Date**: 2026-10-08 · **Status**: v1.4. 사용자 결정 2026-10-08 "q3,q4는 네 제안대로 해"(Q3 offset·미러비, Q4 스윙·ICMR)를 반영했다: §6.4-2 mismatch 모델을 유효 계수 A_eff(LUT 감도 열, bin별 slope)로 대체, §6.4-2a offset 구조 가드, §6.2 스윙·ICMR 예산 분할, §4.6 헤드룸 달성가능성 보고. 근거 `_drafts/engine/matching_swing_spec_proposal.md`. v1.3은 사용자 결정 2026-10-08 "Q1~Q11 모두 네 의견대로 진행해"를 반영했다(R29 knee 추가 후보, Q2 Pelgrom 출처, Q5b 판정 보류 탐색, Q11 잡음 값과 metric). v1.2의 변경은 다음 셋이다.
 > - 재검증 지적 N1~N9와 Low 항목 반영
 > - 잡음 경로 추가(§7, 사용자 결정 2026-10-08)
 > - v1.1에서 반영한 C1~C4·H1~H8·M1~M14·L1~L8 유지
@@ -43,7 +43,8 @@ P N3.1의 'GB0~GB4는 S0 지문마다 한 번'에 맞춘 순서다. 앞 단계�
  A4 GB3 coupling_vars   : y 목록, 기둥↔블록 매핑                        40 §3.3
  A5 GB4a curve_checks   : LUT 칸 분류(역산 허용/격자 전용/거부)          §4.1
  A6 GB4b block_bounds   : A_i,max 표(LUT 격자 전수, 인증 또는 미상)      §4.2
- A7 GB4c verdict        : Σ A_i,max 판정, 구조 DOF, 인증된 면적 하한     §4.3~4.5
+ A7 GB4c verdict        : Σ A_i,max 판정, 구조 DOF, 인증된 면적 하한,    §4.3~4.6
+                          헤드룸 창 상한(스윙·ICMR·버퍼)
  A8 start_intervals     : gm/ID·L·I 출발 구간(A3·A6을 읽는다)            §6
 [단계 B -- 봉인 평가가 필요, S0당 1회, 평가 커널 컨텍스트 생성 뒤]
  B1 residual_probe      : 결합 잔차 분포 r̂ (표본 = dof_rank_sample_count) §2.4
@@ -302,7 +303,7 @@ P N3.1의 'GB0~GB4는 S0 지문마다 한 번'에 맞춘 순서다. 앞 단계�
 
 ## 4. FR-8 -- 탐색 전 달성 불가 판정 (GB4, MOD5)
 
-**파일**: `E/metrics/achievability.py`(진입점), `curve_checks.py`, `block_gain_bound.py`, `dof_report.py`, `area_lower_bound.py`.
+**파일**: `E/metrics/achievability.py`(진입점), `curve_checks.py`, `block_gain_bound.py`, `dof_report.py`, `area_lower_bound.py`, `headroom_bound.py`(§4.6).
 
 ### 4.1 LUT 곡선 검사에서 해법으로 (P N3.7)
 
@@ -390,7 +391,36 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 
 산출은 `DofReport{status, structural_rank, numeric_ranks[], competing_pairs}`다.
 
-**상태**: 4.1은 PART(분류는 있고 매핑이 없다). 4.2~4.5는 MISS.
+### 4.6 헤드룸 달성가능성 (사용자 결정 2026-10-08 Q4 (6), 탐색 전 보고)
+
+**왜 필요한가**: sky130 1.8 V에서는 pfet |VT|가 L bin에 따라 크게 뛴다(gm/ID 15에서 VSG 0.68 / 0.81 / 1.02 V at L 0.15 / 0.18 / 0.5 µm, 제안서 §0.4). 그래서 '게이트-소스로 쌓이는' 경로(입력 두 극성 공유 gate, follower 스택, PMOS 입력쌍)는 L bin 선택이 곧 DC 성립 여부다. 이 사실을 탐색이 수백 번 실패한 뒤가 아니라 탐색 전에, 유도와 함께 보고한다.
+
+**대상(구조로 정한다, 이름 없음)**: S1의 레일-레일 경로 중 VGS 엣지를 하나 이상 지나는 DC 경로 전부. 각 경로에 대해 아래 세 창을 계산한다.
+- 출력 창: 출력 노드에 닿는 경로들로 [V_lo, V_hi]의 최대 폭(`swing_out_v`의 상한).
+- 입력 창: 입력 셀 gate에서 레일까지의 경로들로 [Vin,min, Vin,max] ∩ [rail_lo, rail_hi]의 최대 폭(`icmr_v`의 상한). 레일 밖 입력은 허용하지 않는다(사용자 결정 Q4 (4)).
+- 버퍼 창: 버퍼 묶음(§1.9) 입력 노드가 DC로 성립하는 구간의 최대 폭.
+
+**상한 계산(인증)**: 경로 폭 = ΔV_rail − Σ_VGS엣지 |VGS|_min − Σ_VDS엣지 (VDSAT_min + tol_VDsat). |VGS|_min·VDSAT_min은 그 소자 kind의 LUT 격자 전수(gm/ID, L bin, VS 축은 bulk 기본 규칙이 정하는 VSB 범위)에서의 최솟값이다. 서로 다른 소자를 독립으로 최소화하므로 실제 폭의 **상한**이다. 등식(`equal_vgs`, L 동치류)으로 묶인 소자는 한 축으로 센다(§4.2와 같은 규칙). 격자 곱이 N_S를 넘으면 '미상'이다.
+
+**판정**(§4.3과 같은 규칙):
+- 선언 제약(`swing_out_v >=`, `icmr_v >=`, `icm_margin_v >= 0`)의 대상 창이 **모두 인증**되었고 상한 + 분해능 < 목표면 `InfeasibleTargetError`(exit 3, 사유 `headroom_unattainable{metric, window, upper_bound, target, derivation}`)이다.
+- 선언 제약이 없는 창(포화 전용 -- SPICE 합격 조건 '모든 MOS 포화'에만 걸리는 버퍼 창 등)과, 입력 DC가 SP-2 대기라 `icm_margin_v`를 판정할 수 없는 경우는 **보고만** 하고 정지하지 않는다.
+- 산출 `headroom_achievability[{path, window_kind, upper_bound_v, binding_devices, best_row{gm_id, L_bin, VSB}, status: certified|unknown, verdict}]`. 각 행에 유도(경로 엣지 목록과 엣지별 최솟값의 출처 LUT 칸)를 함께 적는다.
+
+**알려진 사례**(제안서 §2.4·§7·§8·§9 추정 -- W 5 µm 한 슬라이스·bulk = 레일 가정이다. **test 기대값이 아니다**, 기대값은 오라클 DC 스윕과 test 작성 주체가 만든다):
+
+| 회로 | 경로 | 제안서 추정 |
+|---|---|---|
+| current_reuse(파일럿) 입력단 | 두 극성 입력이 같은 gate: VDSAT5 + VGS4 ≤ Vin ≤ VDD − VSDsat6 − VSG1 | 창이 pfet 최단 bin(L 0.15 µm)·nmos 약반전에서만 열린다(+0.14 V), L 0.18 −0.02 V, L 0.5 −0.15 V |
+| nmcnr_amplifier 입력 | Vin,max = vdd − VSDsat101 − VSG102 | L ≥ 0.5 µm에서 −0.26 ~ −0.48 V → 입력 DC 0 V(agnd 관례, SP-2 대기)는 창 밖 |
+| sf_pushpull_output_opamp 출력 버퍼 | Y ∈ [VGS19 + VDSAT20, VDD − VSDsat17 − VSG18] | L 0.15 +0.11 V, L 0.18 −0.12 V, L 0.5 −0.32 V. 선언 입력 DC 0.9 V도 Vin,min 0.83–0.99 V에 걸린다 |
+| pushpull_follower_buffer | vin 창 = [VDSAT6 + VGS4, VDD − VSDsat5 − VSG3] | 위와 같은 식·같은 수치. Rout ≤ 1 kΩ 선언과 충돌 가능 |
+
+**후속 처리**: bulk 기본 규칙(NMOS = 최저 레일, PMOS = 최고 레일)은 유지한다(사용자 결정 Q4 (6)). 입력 DC 변경(nmcnr 0 V, 파일럿 SP-2 값), sf_pushpull 버퍼 구성은 회로 해석이므로 엔진이 고치지 않고 J 공동분석 목록(40 §9 Q7)으로 넘긴다.
+
+**파일**: `E/metrics/headroom_bound.py`(진입점 `achievability`가 부른다).
+
+**상태**: 4.1은 PART(분류는 있고 매핑이 없다). 4.2~4.6은 MISS.
 
 ---
 
@@ -556,6 +586,8 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
 
 **파일**: `E/search/start_intervals.py`, `iv_headroom.py`, `iv_speed.py`, `iv_gain_l.py`, `iv_matching_l.py`, `iv_noise.py`, `iv_area.py`, `iv_currents.py`, `macro_poles.py`, `dominant_node.py`.
 
+**matching·헤드룸**(사용자 결정 2026-10-08 Q3·Q4): 절대 offset 제약이 있으면 matching L 하한(§6.4-2), offset 구조 가드가 있으면 부하 gm/ID 상한(§6.4-2a), 스윙·ICMR 제약이 있으면 헤드룸 예산 분할(§6.2)을 계산한다.
+
 **잡음 경로**: 범위 안이다(사용자 결정 2026-10-08, §7). 1/f 제약이 있으면 1/f L 하한(§6.4-3)을, 열잡음 제약이 있으면 열잡음 gm 하한(§7.5)을 계산한다.
 
 **LUT 곡선 API(신규)**: `ft_curve`, `intrinsic_gain_curve`, `vdsat_curve`, `idu_curve`.
@@ -595,6 +627,13 @@ VDSAT_k(gm/ID) ≤ V_part − Σ_{j≠k}(VDSAT_j,min + tol_VDsat,j)
 
 VDSAT_j,min은 LUT 최대 gm/ID에서의 VDSAT를 L 점 전체에서 최소로 한 값이다.
 
+**스윙·입력 범위 제약에서 V_lo·V_hi 정하기**(사용자 결정 2026-10-08 Q4, 정의는 40 §3.8-3):
+- `swing_out_v >= s`: 출력 노드마다 요구 반폭 h = s/2(단일 출력) 또는 s/4(차동 출력, 출력마다). 출력 DC V_o가 spec에 선언되어 있으면 V_hi = V_o + h, V_lo = V_o − h. 선언이 없으면 위·아래 예산 합 = ΔV_rail − 2h로 두고, 둘의 나눔은 위·아래 부분 기둥의 최소 요구(Σ(VDSAT_j,min + tol_VDsat,j))에 대한 남는 여유의 최솟값이 가장 크도록 정한다(계산값, 상수 없음).
+- `icmr_v >= w`: 입력 경로 기둥(입력 셀 gate에서 레일까지의 VGS·VDS 엣지 경로)의 가용 폭을 ΔV_rail − w로 두고 같은 식으로 역산한다.
+- `icm_margin_v >= 0`이고 입력 DC V_icm이 선언된 회로: 입력 경로의 위쪽 예산 = V_rail,hi − V_icm, 아래쪽 예산 = V_icm − V_rail,lo.
+- 경계의 여유는 사용자 SPICE 포화 규칙 VDS ≥ VDSAT에 LUT `tol_vdsat`를 더한 것뿐이다. 3σ 같은 통계 관례는 쓰지 않는다(사용자 결정 Q4 (4)).
+- 이 구간이 비면(필요 폭 > 가용 폭) 41 §4.6 헤드룸 달성가능성 보고와 같은 사실이다. 출발 구간은 충돌 레코드로 남기고 자르지 않는다(§6.6).
+
 ### 6.3 gm/ID 상한 -- 속도
 
 - **전제**: `gbw_target_hz`와 `pm_target_deg`가 있어야 한다. 없으면 비활성이다.
@@ -613,17 +652,27 @@ VDSAT_j,min은 LUT 최대 gm/ID에서의 VDSAT를 L 점 전체에서 최소로 �
    - 블록 목표 g_i = G·A_i,max / Σ A_max로 둔다.
    - 블록 국소 모델 gain ≥ g_i를 만족하는 최소 L을 찾는다. bin은 오름차순으로 훑고, bin 안에서는 bisection한다.
    - A_max가 미상이거나 gain 제약이 없으면 비활성이다(H3).
-2. **matching 하한**: 오프셋·미러비 스펙 값이 있는 회로에서만 활성이다(Q3, 값 대기).
-   - A_min = (A_VT² + A_β²/(gm/ID)²) / σ_target²
-   - L ≥ √(A_min · IDu / I)
-   - **계수 출처**(사용자 결정 2026-10-08 Q2): PDK `C:/pdk/sky130_fd_pr/cells/{nfet,pfet}_01v8/sky130_fd_pr__*_01v8__mismatch.corner.spice`.
-     - 모델 카드는 파라미터를 `p = p0 + p_slope/√(l·w·mult)` 꼴로 흔든다.
-     - 쌍의 차이 표준편차가 σ(Δp) = √2·p_slope/√(W·L)이므로 A_VT = √2·`vth0_slope`이다.
-     - A_β는 `toxe_slope`에서 구한다. β ∝ Cox ∝ 1/toxe이므로 A_β = √2·`toxe_slope`/toxe0이다.
-     - 나머지 `*_slope`(`voff_slope` 등)는 이 식에 넣지 않고 '미반영'으로 기록한다. 그 크기는 아래 MC 대조로 확인한다.
-   - **단위**: 모델 식의 l·w 단위(µm인지 m인지, scale 적용 여부)를 구현 첫 커밋에서 확인한다.
-     - 방법: ngspice `mc_mm_switch = 1` 소자 쌍 Monte Carlo(오라클 측, 엔진 비의존)로 σ(ΔVth)·σ(Δβ/β)를 재고 식과 비교한다.
-     - 그 비교를 test로 고정하고, 확인한 단위와 출처(sha256·행)를 `core` PDK 선언에 기록한다.
+2. **matching 하한**(사용자 결정 2026-10-08 Q3 "q3,q4는 네 제안대로 해", 근거 `_drafts/engine/matching_swing_spec_proposal.md` §0·§2.3): **절대 offset 제약**(`offset_in_sigma_mv <= 값`, 현재 파일럿 3.3 mV)이 있는 회로에서만 활성이다. 구조 가드(`offset_excess`, §6.4-2a)만 있는 회로는 L 하한이 아니라 부하 gm/ID 상한으로 간다.
+   - **mismatch 모델(옛 식 대체)**: 옛 식 A_min = (A_VT² + A_β²/(gm/ID)²)/σ² 는 `vth0` 한 항과 β 한 항만 본다. ngspice 감도 실측(제안서 §0.3)에서 `toxe`는 β보다 Vth로 더 크게 들어가고(BSIM4 k1ox 경로, n 2.2–4.1·p 2.3–6.5 mV·µm로 `vth0` 항과 같은 크기), nfet 약반전에서는 `voff` 항이 `vth0` 항을 넘는다. 옛 식은 nfet을 1.2–2.4배, pfet을 1.05–1.4배 과소평가한다. 그래서 **유효 계수 A_eff**로 바꾼다.
+     - 단일 소자 게이트 환산 σ: σ_VGS(W, L, 점) = √(Σ_k (DVGS_k(L, 점) · slope_k(bin(W, L)) / slope_k(bin_ref))²) · √(W_ref·L_ref) / √(W·L).
+     - k는 mismatch 블록의 `*_slope_spectre` 변수 **전수**다(`vth0`, `toxe`, `voff`, `nfactor` 등 카드가 쓰는 것, lint·wint는 slope 0이라 0 기여). 같은 ID에서의 ΔVGS로 정의하므로 β 경로(1/(gm/ID)에 비례)와 Vth 경로가 한 열에 함께 들어간다.
+     - 쌍: σ_ΔVGS,pair = √2·σ_VGS(두 소자 독립). A_eff(L, gm/ID) = σ_ΔVGS,pair·√(W·L)이고 읽는 쪽에서 계산한다(열로 저장하지 않는다).
+     - DVGS_k는 §6.4-2b의 LUT 감도 열에서 읽는다(상수 표를 박지 않는다).
+   - **slope 출처**(사용자 결정 2026-10-08 Q2, 이번 Q3로 bin 규칙 보강): PDK `C:/pdk/sky130_fd_pr/cells/{nfet,pfet}_01v8/sky130_fd_pr__*_01v8__mismatch.corner.spice`를 파싱한다.
+     - 모델 카드는 파라미터를 `p = p0 + p_slope·(slope_spectre)/√(l·w·mult)` 꼴로 흔든다(`toxe`는 toxe0을 곱한 상대값).
+     - **bin마다 쓰는 slope 이름이 다르다.** 모델 카드(`*__tt.pm3.spice`) `.model` 블록마다 lmin/lmax/wmin/wmax와 그 블록이 쓰는 slope 이름(`vth0_slope` / `vth0_slope1`, `toxe_slope` / `toxe_slope1` 등)을 읽어 LBinMap과 같은 bin 지도에 붙인다. 예(제안서 §0.1 전수 집계): pfet L < 0.5 µm 36 bin은 `vth0_slope1` = 7.356e-3(L ≥ 0.5 µm의 5.856e-3 대비 +26 %), nfet L 4–8 µm·좁은 W 4 bin도 `vth0_slope1`. 옛 `legacy/sizing_recipe.py:3073`은 pfet에 5.856e-3 하나만 썼다(결함, 대조 기준선으로만 기록).
+     - 참고 유도값(vth0 항만, 대조용): A_VT = √2·`vth0_slope` = nfet 4.75, pfet 8.28(L ≥ 0.5) / 10.40(L < 0.5) mV·µm. A_β = √2·`toxe_slope` = nfet 0.487, pfet 0.628 / 0.911 %·µm. LUT 감도 열의 `vth0` 성분은 이 값과 같아야 한다(U3 test (c)).
+   - **단위 확인**: `models/all.spice` `.option scale=1.0u`라 l·w는 µm²다. 구현 첫 커밋에서 ngspice 소자 쌍 Monte Carlo(mismatch 블록 변수를 소자마다 gauss로, 오라클 측·엔진 비의존)로 σ(ΔVGS at 같은 ID)를 재고 A_eff 식과 비교한다. 그 비교를 test로 고정하고, 확인한 단위와 출처(파일 sha256·행)를 `core` PDK 선언에 기록한다.
+   - **하한**: 출발 단계의 입력 셀 몫 σ_share = σ_target/√2(입력 셀 분산 = 나머지 분산, §6.4-2a 가드와 §7.5 잡음과 같은 등분 원칙 -- 새 상수가 아니라 '부하 기여 ≤ 입력쌍 기여'의 경계). 입력 셀 소자 면적 하한 A_min(L, gm/ID) = A_eff(L, gm/ID)² / σ_share², **L ≥ √(A_min·IDu/I)**. A_eff가 L에 의존하므로 §6.4-1처럼 bin을 오름차순으로 훑고 bin 안에서 bisection한다.
+   - 판정은 이 하한이 아니라 봉인 스냅샷의 `offset_in_sigma_mv`(40 §3.8, MNA 전회로)가 한다(EP-7).
+2a. **offset 구조 가드 → 부하 gm/ID 상한**(`offset_excess <= √2` 회로): 부하 소자 k의 입력 환산 분산 비 Σ_k (gm_k·σ_VGS,k)² / Σ_in (gm_in·σ_VGS,in)² ≤ 1이 되도록 부하 gm/ID를 상한으로 둔다. gm_k/gm_in은 §6.5 매크로 모델 전류 비로 쓴다(§7.5 잡음 가드와 같은 방법). §6.3 속도 상한·§7.5 잡음 상한과 교집합하고, 헤드룸 하한(§6.2)과 충돌하면 충돌 레코드로 남긴다.
+2b. **LUT mismatch 감도 열**(U3): 생성기 `assets/sky130_lut_sweep.py`에 mismatch 모드를 더한다.
+   - 방법(제안서 §0.3과 같음): pm3 카드 복사본에서 변수 k의 `*_slope_spectre`를 0 → 1(인스턴스 기하의 1σ)로 바꾼 섭동 곡선과 기준 곡선을 같은 include·DUT 줄로 돌리고, 기준 곡선의 칸 ID에서 두 곡선의 VGS 차를 DVGS_k로 둔다(W_ref·각 L·DC LUT 축 격자).
+   - **저장**: 새 버전 파일 `..._mismatch_r1.npz`(sha256, 생성 메타: 모델 경로·sha, ngspice 버전, 온도, 섭동 변수 목록)에 둔다. **공유 `lut_data`의 기존 v2 r2 파일은 고치지 않는다.** `lut_v2_location.json`에 새 항목으로 더한다. 로더는 v2 칸과 같은 키로 합쳐 노출한다.
+   - **tol**: 칸별 `tol_mismatch`를 LOO로 계산한다(DEC-87 방법, 디스크 캐시 대상).
+   - 감도 데이터가 없는데 offset 제약이 선언되면 `SchemaRejectedError(mismatch_lut_missing)`이다.
+   - 한계 기록: 제안서 실측은 W 5 µm·|VDS| 0.9 V·VS 0 한 슬라이스였다. 생성기는 DC LUT 축(VDS·VS·W 슬라이스) 전체에서 잰다.
+   - API(신규): `mismatch_dvgs(kind, w_key, L, VGS, VDS, VS) -> MismatchSens{dvgs: {param: V}, slope_ref: {param: value}}`.
 3. **flicker 잡음 하한**(사용자 결정 2026-10-08, 파일럿 `noise_out_int_vrms` 제약에서 활성):
    - 출발 단계에서는 §7.5에 따라 (총 예산 − 스위치 kT/C 항)의 절반을 flicker 몫으로 보고, 이를 출력 적분 예산으로 둔다.
    - 입력 소자의 flicker 출력 적분은 Σ_in (K_k/(W_k·L_k))·∫ f^−EF_k·|폐루프 잡음 이득|² df이다. K는 §7.2의 A·W·L이고 W에 무관하다. 적분은 매크로 모델 폐루프 응답으로 계산한다.
@@ -632,7 +681,7 @@ VDSAT_j,min은 LUT 최대 gm/ID에서의 VDSAT를 L 점 전체에서 최소로 �
 5. **면적 상한**(결정 11):
    - L ≤ √(A_budget · IDu / I)
    - W ≤ A_budget / L
-6. **선택**: L = max(1, 2, 3의 하한)이다. LUT L 점이나 bin 안 값으로 맞춘다(LR3). 구간 끝이 다른 bin에 있으면 bin마다 후보를 하나씩 둔다.
+6. **선택**: L = max(1, 2, 3의 하한)이다(2a는 L이 아니라 gm/ID 상한이다). LUT L 점이나 bin 안 값으로 맞춘다(LR3). 구간 끝이 다른 bin에 있으면 bin마다 후보를 하나씩 둔다.
 
 ### 6.5 전류 출발값 -- S1v 매크로 모델 (H4)
 
@@ -842,6 +891,8 @@ class EvalBudget:                                                               
     def remaining(self) -> int: ...
 def noise_params(kind, w_key, L, VGS, VDS, VS) -> NoiseParams                                            # E/lut/noise_query.py
 def noise_analysis(snap: GraphSnapshot, view_key: str, spec_item) -> NoiseResult                         # E/metrics/noise_analysis.py
+def mismatch_dvgs(kind, w_key, L, VGS, VDS, VS) -> MismatchSens                                          # E/lut/mismatch_query.py  (§6.4-2b)
+def headroom_bound(s1: S1, s1v: S1v, lut: LutSet, spec: SizingSpec, pdk: PdkDecl, *, count_budget: int) -> HeadroomAchievability  # E/metrics/headroom_bound.py (§4.6)
 ```
 
 ---
@@ -866,6 +917,9 @@ def noise_analysis(snap: GraphSnapshot, view_key: str, spec_item) -> NoiseResult
 | 잡음 LUT | (c) 단일 소자 ngspice `.noise` 칸 중앙 대조 | `tests/lut/test_noise_query.py` | 칸 중앙 오차 ≤ tol_noise |
 | 잡음 해석 | (a) 저항 분압·CS 한 단 손계산(4kTR, 4kTγgm), (c) ngspice `.noise` | `tests/metrics/test_noise_analysis.py` | 입력 환산 밀도·적분이 resolution 안 |
 | 잡음 출발 구간 | (a) 손계산 | `tests/search/test_start_intervals.py` | 열잡음 gm 하한, 1/f L 하한 |
+| mismatch 감도 LUT | (c) 단일 소자 ngspice 섭동(칸 중앙), (c) 소자 쌍 Monte Carlo | `tests/lut/test_mismatch_query.py` | 칸 중앙 오차 ≤ tol_mismatch. `vth0` 성분 = √2·slope 유도값(bin별 slope1 포함). MC σ와 A_eff 식이 MC 표본 분해능 안 |
+| matching L 하한·offset 가드 | (a) 손계산 | `tests/search/test_start_intervals.py` | 절대 offset 회로에서만 L 하한 활성, 가드 회로는 부하 gm/ID 상한 |
+| 헤드룸 달성가능성 | (a) 이름 없는 follower 스택·두 극성 입력 toy 손계산, (b) 소형 toy 격자 직접 전수 | `tests/metrics/test_headroom_bound.py` | 상한 ≥ 격자 직접 전수 최대 폭. 선언 제약이 인증 불가면 exit 3, 제약 없는 창은 보고만 |
 
 **DoD 명령**(`$PY` = `C:\Python314\python.exe`):
 
@@ -888,7 +942,7 @@ $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_layer
 |---|---|---|---|---|---|
 | §1 SP1 | 10 | 0 | 0 | 1(1.2 정적 교류접지) | 9 |
 | §2 블록 모델·잔차 | 3 | 0 | 0 | 0 | 3 |
-| §4 GB4 | 5 | 0 | 0 | 1(4.1 곡선 분류) | 4 |
+| §4 GB4 | 6 | 0 | 0 | 1(4.1 곡선 분류) | 5 |
 | §5 층 0 | 9 | 0 | 0 | 0 | 9 |
 | §6 출발 구간 | 6 | 0 | 0 | 0 | 6 |
 | §7 잡음 | 6 | 0 | 0 | 0 | 6 |
