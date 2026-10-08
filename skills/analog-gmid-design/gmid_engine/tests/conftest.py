@@ -1,4 +1,14 @@
-"""gmid_engine test 경로 설정 -- editable 설치 없이 skills/analog-gmid-design 을 sys.path 앞에 둬 `import gmid_engine` 이 되게 한다."""
+"""gmid_engine test 경로 설정 -- editable 설치 없이 skills/analog-gmid-design 을 sys.path 앞에 둬 `import gmid_engine` 이 되게 한다.
+
+[2026-10-08 오케스트레이터 결정] test 세션은 사용자의 실제 파생 표 캐시 폴더(lut/CONTRACT.md 2.1, 설정
+`assets/lut_v2_location.json` 의 `table_cache.default`)에 쓰거나 그곳에서 정리(삭제)를 돌리지 않는다. 그래서 이 conftest 가
+세션 전체에 `GMID_LUT_TABLE_CACHE_DIR` 을 전용 test 캐시 폴더로 고정한다(하위 프로세스·spawn 도 os.environ 을 물려받는다).
+- 폴더 = 실제 default 의 부모 + 고정 접미사 `_TEST_CACHE_DIRNAME`(예: .../fpga/lut_table_cache_tests). 저장소 밖, 실제 캐시 밖,
+  세션 사이에 남아 프로세스 간 캐시 이득은 유지된다.
+- 경로는 60자 미만이어야 한다(칸 파일 이름 약 150자 + 임시 접미사 -> Windows MAX_PATH 260). 넘으면 즉시 실패(조용한 write_error 방지).
+- 임시 캐시가 필요한 test 는 자기 폴더를 따로 쓴다(test_table_cache.py 등).
+"""
+import json
 import os
 import sys
 
@@ -6,3 +16,20 @@ import sys
 _SKILL_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if _SKILL_DIR not in sys.path:
     sys.path.insert(0, _SKILL_DIR)
+
+_LOCATION_CONFIG = os.path.join(_SKILL_DIR, "assets", "lut_v2_location.json")
+_TEST_CACHE_DIRNAME = "lut_table_cache_tests"      # 실제 캐시 폴더 옆 test 전용 폴더 이름(고정 접미사)
+_TEST_CACHE_MAX_LEN = 60                           # 오케스트레이터 결정: MAX_PATH 여유(위 docstring)
+
+
+def _isolate_table_cache():
+    with open(_LOCATION_CONFIG, encoding="utf-8") as f:
+        entry = json.load(f)["table_cache"]
+    real = os.path.normcase(os.path.abspath(entry["default"]))
+    test_dir = os.path.join(os.path.dirname(os.path.abspath(entry["default"])), _TEST_CACHE_DIRNAME)
+    if os.path.normcase(test_dir) == real or len(test_dir) >= _TEST_CACHE_MAX_LEN:
+        raise RuntimeError("test 캐시 폴더가 실제 캐시와 같거나 너무 길다: %s" % test_dir)
+    os.environ[entry["env"]] = test_dir
+
+
+_isolate_table_cache()

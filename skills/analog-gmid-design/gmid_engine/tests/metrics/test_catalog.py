@@ -12,6 +12,8 @@ EXPECTED = {
     "gbw_ss_hz": MetricSignature("hz", "ss", "transfer", None),
     "parasitic_pm_ss_deg": MetricSignature("deg", "ss", "transfer", None),
     "pm_ss_deg": MetricSignature("deg", "ss", "loop", None),
+    # [CM 2026-10-08] 3.15 표 행 + S-20(공통 모드 CMFB 루프 PM, 계약 7.11)
+    "pm_cm_ss_deg": MetricSignature("deg", "ss", "cm_loop", None),
     "ratio_ss_db": MetricSignature("db", "ss", "ratio", None),
     "rout_ss_ohm": MetricSignature("ohm", "ss", "output_port", None),
     "supply_current_dc": MetricSignature("amp", "dc", None, "power"),

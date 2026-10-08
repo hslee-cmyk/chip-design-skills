@@ -65,6 +65,7 @@ def _point_record(sctx, point):
             AXIS_POWER: res.objectives.power_w, AXIS_AREA: res.objectives.area_m2,
             "gate_area_m2": res.objectives.gate_area_m2, "passives_in_area": sctx.area_decl is not None,
             "power_resolution_w": res.objectives.power_resolution_w, "unmeasured": [list(u) for u in res.unmeasured],
+            "warnings": [[w[0], [list(kv) for kv in w[1]]] for w in res.warnings],
             "active": [{"name": r.name, "c": r.c} for r in res.constraints if r.active],
             "origin": dict(point.origin), "snapshot_fp": res.evaluation.snapshot.fp, "snapshot_ref": ref}
 
@@ -102,6 +103,9 @@ def find_front(sctx, given_starts):
                   "refinements_out_of_scope": list(_LAYER0_REFINEMENTS_OUT_OF_SCOPE)})
     notes.append({"verdict": "not_computed", "rule": "DEC-78", "reason": "supply_current_dc_needs_counted_rails_declaration",
                   "axis_used": AXIS_POWER})
+    for code in sorted({w[0] for res in sctx.cache.values() for w in res.warnings}):
+        notes.append({"verdict": "warning", "code": code,
+                      "points": sum(1 for res in sctx.cache.values() if any(w[0] == code for w in res.warnings))})
     unmeasured = sorted({u for res in sctx.cache.values() for u in res.unmeasured})
     if unmeasured:
         notes.append({"verdict": "unmeasured", "rule": "S-1", "constraints": [list(u) for u in unmeasured],

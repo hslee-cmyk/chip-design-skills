@@ -46,6 +46,7 @@ from .lut_types import (
 from .midpoint_checks import midpoint_l_bin_checks
 from .point_query import op_point
 from .provenance import lut_provenance
+from .table_cache import TableCache
 from .tolerance import TolVTable, tol_v_table
 from .vdsat_query import vdsat
 from .vdsat_tolerance import TolVdsatTable, tol_vdsat_table
@@ -81,6 +82,7 @@ __all__ = (
     "SliceSource",
     "TOL_VDSAT_METRICS",
     "TOL_V_METRICS",
+    "TableCache",
     "TargetSolution",
     "TolVCell",
     "TolVTable",
