@@ -93,7 +93,7 @@ LAYERS = (
     (
         "sizing",
         (
-            ("bisect_root.py", "k_max.py", "s2_values.py"),
+            ("bracket_root.py", "k_max.py", "s2_values.py"),
             ("_helpers_lut.py", "_helpers_seal.py", "block_currents.py", "block_lengths.py", "current_basis.py",
              "dc_inputs.py", "fixed_point.py", "pre_layout_widths.py", "s2_lift.py", "scc_newton.py", "scc_order.py",
              "seal_conduction.py", "seal_report.py",
@@ -385,7 +385,8 @@ MODULES = (
     ModuleEntry("sizing/s2_values.py", "data", None,
                 "S2 dc 값 형식·어휘·권한표 S2_WRITERS(S1 + dc 필드)(데이터 선언 모듈)", ("GB7", "N3.3", "N3.4", "DEC-88")),
     ModuleEntry("sizing/k_max.py", "entry", "k_max", "반복 상한 K_max = ceil(log2(폭/tol))", ("N3.6", "DEC-32")),
-    ModuleEntry("sizing/bisect_root.py", "entry", "bisect_root", "구간 bisection(±inf 끝값 허용)", ("N3.6",)),
+    ModuleEntry("sizing/bracket_root.py", "entry", "bracket_root",
+                "괄호 근 찾기(Brent, ±inf 끝값 허용, bisection 과 같은 수렴 판정 -- 근과의 거리 ≤ tol/2)", ("N3.6",)),
     ModuleEntry("sizing/pre_layout_widths.py", "entry", "pre_layout_lut_access",
                 "레이아웃 전 폭 슬라이스 = LUT 생성 규칙 폭(용량 기준 w_ref_m)", ("DEC-91",)),
     ModuleEntry("sizing/struct_colour.py", "entry", "dc_struct_colour",
