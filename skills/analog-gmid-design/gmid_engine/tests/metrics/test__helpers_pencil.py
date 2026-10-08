@@ -60,17 +60,25 @@ def test_probe_factor_roots_finite_and_origin_exact():
 
 
 # =====================================================================================================================
-# [CM 2026-10-08] I-19: probe_dc_value(system, pairs, weights) -- 증강 pencil 의 s = 0 값 T(0). 섞이지 않은 절단에서 열 선택 방식
-# T(0)(probe_factor samples[0])과 같다(상대 ≤ 차원·eps 규모 -> test_probe_loop 의 I12_REL 1e-14 와 같은 규약). 기대값: 폐형식 예 7
-# T(0) = 25, 저항 되먹임(전도 전용) T(0) = gm/(gds + 1/(Rf + Rs))·Rs/(Rf + Rs) = 50/7, 예 7d(섞인 절단) = gm/gds = 100.
-# (시그니처는 interface: inspect.signature 와 docstring 첫 단락 -- 소스 미열람.)
+# [CM 2026-10-08, 424eb5e 개정] I-19·`probe_pencil`(T 의 증강 pencil -- probe_loop 극점·영점 / 섞인 절단 T(0) 공용)을 공개 경로로:
+# ProbeFactor samples[0](T(0))·poles 가 폐형식과 같다. 비공개 `_mixed_dc_value` 는 부르지 않는다(섞인 절단의 공개 결과 = 예 7d 100).
+# 기대값(oracle (a) 손유도):
+#   예 7   (용량 전용 절단) T(0) = (gm/gds)·Cf/(Cf+Cs) = 25, 극점 −gds/(CL + Cf·Cs/(Cf+Cs))
+#   예 7f  (전도 전용) T = gm·(Rs/(Rf+Rs))/(gds + 1/(Rf+Rs) + sCL) -> T(0) = 100/3, 극점 −(gds + 1/(Rf+Rs))/CL = −1.5e7
+#   저항 되먹임(Rf 3e4, Rs 1e4) T(0) = gm·(Rs/(Rf+Rs))/(gds + 1/(Rf+Rs)) = 50/7
+#   예 7d  (섞인 절단) T(0) = gm/gds = 100, 극점 = 2차 분모 근(conftest closed_ex7d)
+# 허용: T(0) 상대 ≤ 1e-14(I-19 '차원·eps' -- test_probe_loop 의 I12_REL 과 같은 규약), 극점 상대 ≤ 1e-9(3.17 근 정밀도 test 와 같음).
 # =====================================================================================================================
 
-from gmid_engine.metrics._helpers_pencil import probe_dc_value  # noqa: E402
+from .conftest import EX7, EX7D, EX7D_CUT, closed_ex7d, ex7d_circuit, probe_cut  # noqa: E402
 
-from .conftest import EX7, EX7D, EX7D_CUT, ex7d_circuit, probe_cut  # noqa: E402
+_REL_T0 = 1e-14
+_RF, _RS = 1e5, 1e5
 
-_I19_REL = 1e-14
+
+def _ex7f_circuit():
+    p = EX7
+    return circuit_of(((2, 3, 0, 0, p["gm"], 0.0, p["gds"]),), ((2, 3, _RF), (3, 0, _RS)), ((2, 0, p["cl"]),))
 
 
 def _resistive_circuit():
@@ -78,26 +86,49 @@ def _resistive_circuit():
     return circuit_of(((2, 3, 0, 0, p["gm"], 0.0, p["gds"]),), ((2, 3, 3e4), (3, 0, 1e4)), ((2, 0, p["cl"]),))
 
 
-@pytest.mark.parametrize("case", ["ex7_charge_only", "resistive_conduction_only"])
-def test_probe_dc_value_equals_column_selection_i19(case):
+def _cases():
     p = EX7
-    if case == "ex7_charge_only":
-        ck, cuts, t0 = circuit_of(*ex7_parts()), EX7_CUT, closed_ex7()["t0"]
-    else:
-        ck, cuts = _resistive_circuit(), (("resistor", 0, "b"),)
-        t0 = p["gm"] / (p["gds"] + 1.0 / 4e4) * 1e4 / 4e4
-    cut, sysm, pf, _ = probe_cut(ck, cuts)
-    v = probe_dc_value(sysm, cut.pairs, (1.0,))
-    col = complex(pf.samples[0])
-    assert v is not None
-    assert abs(complex(v) - col) <= _I19_REL * abs(col), (v, col)
-    assert abs(complex(v) - t0) <= _I19_REL * abs(t0), (v, t0)
+    g7f = p["gds"] + 1.0 / (_RF + _RS)
+    return {
+        "ex7": (circuit_of(*ex7_parts()), EX7_CUT, closed_ex7()["t0"], (-closed_ex7()["wp"],)),
+        "ex7f": (_ex7f_circuit(), (("resistor", 0, "b"),), p["gm"] * _RS / (_RF + _RS) / g7f, (-g7f / p["cl"],)),
+        "resistive": (_resistive_circuit(), (("resistor", 0, "b"),),
+                      p["gm"] * 1e4 / 4e4 / (p["gds"] + 1.0 / 4e4), (-(p["gds"] + 1.0 / 4e4) / p["cl"],)),
+        "ex7d": (ex7d_circuit(), EX7D_CUT, EX7D["gm"] / EX7D["gds"], closed_ex7d()["poles"]),
+    }
 
 
-def test_probe_dc_value_mixed_cut_i18():
-    """섞인 절단(예 7d)에서 probe_dc_value = gm/gds = 100 = probe_factor samples[0](3.17: 섞이면 이 값을 쓴다)."""
-    cut, sysm, pf, _ = probe_cut(ex7d_circuit(), EX7D_CUT)
-    v = complex(probe_dc_value(sysm, cut.pairs, (1.0,)))
-    assert abs(v - EX7D["gm"] / EX7D["gds"]) <= _I19_REL * 100.0
-    assert v == complex(pf.samples[0])
+def test_hand_t0_values_match_contract_numbers():
+    """입력 확인: 손유도 T(0) 가 계약 숫자(예 7 25, 예 7f 100/3, 예 7d 100)와 저항 되먹임 50/7 이다."""
+    c = _cases()
+    assert c["ex7"][2] == pytest.approx(25.0, rel=1e-15)
+    assert c["ex7f"][2] == pytest.approx(100.0 / 3.0, rel=1e-15)
+    assert c["resistive"][2] == pytest.approx(50.0 / 7.0, rel=1e-15)
+    assert c["ex7d"][2] == pytest.approx(100.0, rel=1e-15)
+
+
+@pytest.mark.parametrize("case", ["ex7", "ex7f", "resistive", "ex7d"])
+def test_probe_dc_value_public_t0_i19(case):
+    """I-19(공개 경로): 섞이지 않은 절단(ex7 용량 전용, ex7f·resistive 전도 전용)과 섞인 절단(ex7d)의 samples[0] = 손유도 T(0),
+    실수, 정의 불가 없음 -- analyze_loop dc_value 도 같다."""
+    from gmid_engine.metrics import analyze_loop
+    ck, cuts, t0, _ = _cases()[case]
+    _, _, pf, _ = probe_cut(ck, cuts)
+    v = complex(pf.samples[0])
+    assert v.imag == 0.0
+    assert abs(v - t0) <= _REL_T0 * abs(t0), (v, t0)
+    assert pf.undefined == ()
+    assert analyze_loop((pf,)).dc_value == pytest.approx(t0, rel=_REL_T0)
+
+
+@pytest.mark.parametrize("case", ["ex7", "ex7f", "resistive", "ex7d"])
+def test_probe_pencil_poles_public(case):
+    """probe_pencil(공개 결과 ProbeFactor.poles): 손유도 극점이 모두 들어 있고 우반면 근 없음, 근은 유한 복소수."""
+    ck, cuts, _, poles = _cases()[case]
+    _, _, pf, _ = probe_cut(ck, cuts)
+    got = [complex(x) for x in pf.poles]
+    assert all(math.isfinite(z.real) and math.isfinite(z.imag) for z in got)
+    assert all(z.real <= 0.0 for z in got)
+    for p0 in poles:
+        assert min(abs(z - p0) for z in got) <= 1e-9 * abs(p0), (p0, got)
 

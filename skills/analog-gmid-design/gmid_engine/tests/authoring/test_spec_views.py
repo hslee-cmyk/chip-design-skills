@@ -655,8 +655,17 @@ def test_cm_sense_requires_user_spec_source_s30(tmp_path):
 
 
 def test_cm_sense_closed_vocabulary_s30(tmp_path):
-    """닫힌 어휘: cm_sense_elements 외 키가 있으면 view_not_applicable."""
+    """닫힌 어휘(S-30, 424eb5e 개정): cm_sense_elements 와 함께 다른 키가 있으면 unknown_key."""
     loader, _ = _load_cm(tmp_path, "ambiguous", {"cm_sense_elements": ["Mt1", "Mt2"], "drivers": ["M1"]})
+    assert "unknown_key" in _cm_rules(loader)
+
+
+@pytest.mark.parametrize("decl", [{"sense_p": "op", "sense_mode": "single_ended"},
+                                  {"ac_excite": {"ip": 0.5, "im": -0.5}, "sense_p": "op", "sense_n": "om",
+                                   "sense_mode": "differential"}], ids=["sense_shape", "transfer_shape"])
+def test_cm_shaped_view_without_sense_key_not_applicable_s30(tmp_path, decl):
+    """S-30: cm_sense_elements 없이 감지·전달 모양 view -> view_not_applicable(루프 뷰는 유도·선언 키만)."""
+    loader, _ = _load_cm(tmp_path, "triode", decl)
     assert "view_not_applicable" in _cm_rules(loader)
 
 
