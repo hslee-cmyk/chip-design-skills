@@ -137,6 +137,7 @@ search CONTRACT r10). 원소별 θ 수동소자 탐색 상자. 단위 = 원소 k
 | `view_required` | ratio metric 에 view 없음 / transfer·loop(β = 1)에 view 없고 입력 포트가 차동쌍 1개(role differential_input_p·_n)·단일 1개(single_ended_input)가 아니거나 출력 포트가 단일 1개·차동쌍 1개(differential_output_p·_n)가 아님 / loop(β 루프)의 절단 넷 role 이 가중 어휘 밖 / **cm_loop(`pm_cm_ss_deg`)에 view 가 없고 구조 유도가 안 됨 -- 차동 출력쌍 없음·평균 수동소자로 gate 에 먹이는 감지 넷 없음·후보 둘 이상(3절 `cm_loop`)** / output_port 에 view 없고 출력 포트가 1개가 아님 | constraints |
 | `view_excite_not_allowed` | output_port view 에 `ac_excite`(감지 전용 -- 여기는 DEC-66 이 고정) | constraints |
 | `view_sense_fixed_net` | output_port 감지 넷(sense_p·sense_n)이 고정 넷: 레일·입력 포트 넷·gate 전용 미구동 넷(레일·입력 포트가 아니고 단자가 전부 MOS gate -- graph `ac_ground_class` 비 None 과 같은 정의) | constraints |
+| `loop_cut_source` | 내부 루프 선언 `{"loop_cut": [...]}` 이 있는 제약의 `source.kind` 가 `user_spec` 아님(cm_loop 의 `cm_sense_source` 와 같은 제한) | constraints |
 | `view_net_unknown` | 뷰 넷(ac_excite 키·sense_p·sense_n·loop_cut 원소)이 어느 단자에도 없음 | constraints |
 | `constraint_duplicate` | 같은 (metric, op, view) 두 번(metric·view 결정 대기 제약은 비교 밖) | constraints |
 | `settling_order` | settling.linear_s > total_s | compensation_targets |
