@@ -620,7 +620,7 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
   포트쌍 CM 루프 대응(R31): 루프 뷰의 루프 노드가 차동 출력 포트쌍 두 넷을 모두 포함하면 `cm_pair`, 기록은 `cm_loop_unconstrained`(info). 그 밖의 루프 뷰는
   `declared_loop_cuts` 에 gate 넷이 없으면 `undeclared_loop_constraint`(기록만).
   **선언 끊는 넷 = 엔진 루프 뷰의 끊는 gate 넷**(U1b-jrules 결정): spec 루프 뷰 선언의 `cuts` 는 입력 포트가 아니라 엔진 루프 뷰 `cuts[*][1]`(단계 A 보고서 `views[]` 에 나오는 끊는 gate 넷)를 가리켜야 한다.
-  단계 A(`pipeline.stage_a`)가 `declared_loop_cuts` 를 엔진 루프 뷰 끊는 넷 집합과 대조해 어느 뷰에도 맞지 않은 선언 넷마다 `loop_cut_unmatched`(review_needed, 뷰 "", subject = 그 넷)를 보고서 `review_needed` 에 올린다(`build_s1v` 결과 `S1v` 에는 넣지 않는다) -- 맞지 않는 선언이 조용히 무동작이 되지 않게 한다.
+  단계 A(`pipeline.stage_a`)는 spec `feedback` 소자에서 유도된 β 루프 선언(`ViewDecl.beta == declared`; 입력 포트 절단)을 `declared_loop_cuts` 와 이 대조에서 제외한다(내부 루프 뷰가 아니다). 나머지 `declared_loop_cuts` 를 엔진 루프 뷰 끊는 넷 집합과 대조해 어느 뷰에도 맞지 않은 선언 넷마다 `loop_cut_unmatched`(review_needed, 뷰 "", subject = 그 넷)를 보고서 `review_needed` 에 올린다(`build_s1v` 결과 `S1v` 에는 넣지 않는다) -- 맞지 않는 선언이 조용히 무동작이 되지 않게 한다.
 * **L 동치류**: `S1v.l_classes` = S1 `rel_l_class` 마다 주인(DEC-17: tail -> 첫 전달 뷰 최전단 stage tail -> diode 기준(복합 diode 포함) -> [U1b] `main_path_signal` -> 이름 순)과 규칙 이름. 멤버 DC 역할 미확정이면 status
   review_needed. S1 의 `rel_l_class` 필드는 proposed 그대로다(소비자는 S1v 를 읽는다).
 * **declared 대조**: `declared` = ((출처, (소자 이름 tuple, ...)), ...) 를 첫 전달 뷰 블록과 대조해 불일치를 `declared_stage_mismatch`(review_needed). 유도의 입력이 아니다(U-50).

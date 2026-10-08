@@ -6,7 +6,7 @@
 `<회로>.structure.json`, 없으면 사실 0 이고 declared 대조는 하지 않았다고 보고서에 적는다; topology 지문 = `doc.connectivity_fp` 라 `build_s1` 전에 이미 있고, rule_hash 는
 `structure_rule_fp()`) -> A2 `build_s1(structure=)`(`dc_role`·`matching_pair` 소비) -> A3 `build_s1v`(N_S = `structure_count_budget`, `structure=`, spec 에서 직접 모은 `declared_loop_cuts`)
 -> 보고서(`write_stage_a_report`: 구조 표 + review_needed + 정지 사유 + N_S + declared 대조 여부 + 적용한 사실 + feedforward 비율 후보 + 루프 역할).
-* `declared_loop_cuts` = spec 제약 중 안정도 metric(`pm_*`)의 루프 뷰 선언(`ViewDecl` mode loop)의 끊는 넷 -- 안정도 제약이 걸린 루프 뷰는 `undeclared_loop_constraint` 정지가 풀린다.
+* `declared_loop_cuts` = spec 제약 중 안정도 metric(`pm_*`)의 내부 루프 뷰 선언(`ViewDecl` mode loop, `beta != declared`)의 끊는 넷 -- feedback 소자에서 유도된 β 루프(beta declared)는 제외 -- 안정도 제약이 걸린 루프 뷰는 `undeclared_loop_constraint` 정지가 풀린다.
   선언 끊는 넷은 엔진 루프 뷰의 끊는 gate 넷(보고서 `views[].cuts[*][1]`)이어야 하고, 어느 뷰에도 맞지 않은 선언은 `loop_cut_unmatched`(review_needed)로 보고서 `review_needed` 에 오른다.
 * 로드·구조 단계의 예외(`SchemaRejectedError`·`StructureUnresolvedError`)는 전파하지 않고 보고서에 정지 사유로 적은 뒤 그 분류의 exit code 를 낸다(exit 7·2).
 * `기록만`(unsupported_rule_branch) 기록이 있으면 정지, `review_needed` 가 남아 있으면 GB4 앞 정지 -- 둘 다 exit 2(StructureUnresolvedError 분류). 둘 다 없으면 exit 0.
@@ -18,7 +18,7 @@
 import dataclasses
 from pathlib import Path
 
-from gmid_engine.authoring import load_sizing_spec, load_topology
+from gmid_engine.authoring import BETA_DECLARED, load_sizing_spec, load_topology
 from gmid_engine.core import SchemaRejectedError, StructureUnresolvedError, exit_code_for
 from gmid_engine.graph import (
     ELEMENT_MOS,
@@ -88,11 +88,14 @@ def _ff_ratio_rows(s1v):
 
 
 def _declared_loop_cuts(spec):
-    """안정도 제약(`pm_*` metric)이 걸린 루프 뷰 선언의 끊는 넷 -- `build_s1v(declared_loop_cuts=)` 로 넘긴다(41 §1.8). spec 이 없으면 빈 tuple."""
+    """안정도 제약(`pm_*` metric)이 걸린 **내부 루프 뷰** 선언의 끊는 넷 -- `build_s1v(declared_loop_cuts=)` 로 넘긴다(41 §1.8). spec 이 없으면 빈 tuple.
+    spec `feedback` 소자에서 유도된 β 루프(`ViewDecl.beta == BETA_DECLARED`, 입력 포트에서 되먹임 수동소자를 거쳐 끊는 테스트벤치 루프)는 엔진 내부 루프 뷰가 아니라
+    metric 의 되먹임 뷰가 평가하므로 제외한다(U1b-jrules 결정)."""
     if spec is None:
         return ()
     return tuple(sorted({net for c in spec.judged_constraints if c.metric is not None and c.metric.startswith(STABILITY_PREFIX)
-                         and c.view is not None and c.view.mode == SPEC_VIEW_LOOP for _, net in c.view.cuts}))
+                         and c.view is not None and c.view.mode == SPEC_VIEW_LOOP and c.view.beta != BETA_DECLARED
+                         for _, net in c.view.cuts}))
 
 
 def _unmatched_loop_cuts(s1v, declared_cuts):
