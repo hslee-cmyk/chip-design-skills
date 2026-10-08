@@ -36,17 +36,20 @@ import math
 
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
 from gmid_engine.graph import MOS_TERMINAL_NAMES
-from gmid_engine.lut import AXES, gm_id_for_target, gmb
+from gmid_engine.lut import AXES, gm_id_for_target, gmb, tol_vdsat_table, vdsat
 
 from ._helpers_lut import forward_point, terminal_voltages, tol_v_cell, w_key_of, with_device
 from .bracket_root import bracket_root
 from .fixed_point import gauss_seidel
+from .input_window import saturation_window
 from .k_max import k_max
 from .scc_newton import newton_solve
+from .scc_order import FIXED_RELATIONS
 from .s2_values import (
     COORD_WRITER,
     DC_COLUMNS_WRITER,
     DC_KEY,
+    INPUT_GROUP_KEY,
     PATH_FIXED,
     PATH_MOS,
     PATH_RESISTOR,
@@ -90,6 +93,7 @@ _CURVE_UNDEFINED = "lut_curve_undefined"     # lut CONTRACT 4.1 -- VDS 정의역
 _VDS_AXIS, _VS_AXIS = AXES.index("VDS"), AXES.index("VS")
 _BOUND_RAIL, _BOUND_VDS, _BOUND_VS = "rail", "vds_axis", "vs_axis"
 _SOLVE_SELF_MEMO = "solve_self"            # LUT memo root 영역의 함수 이름 칸(1변수 풀이 재사용)
+_MID = 1 / 2                                         # y_icm 창을 재기 시작하는 해의 위치(순서 창 한가운데)
 _GS_STOPPED = "gauss_seidel_stopped"                  # SccLog.fallback[0]: GS 가 K_max 안 tol 도달 불가로 멈춤
 
 
@@ -142,7 +146,9 @@ class _Circuit:
     """블록 한 번의 읽기 전용 입력 묶음과 writer 식."""
 
     def __init__(self, projection):
-        theta_items, fixed_values, resistor_values, lut = projection.extras
+        theta_items, fixed_values, resistor_values, lut, *rest = projection.extras
+        self.linear = frozenset(rest[0]) if rest else frozenset()      # 선형 영역 선언 소자 -- 입력 창 포화 판정에서 뺀다(봉인 7 과 같은 규칙)
+        self.override = {}                                             # {W4 입력 뿌리 넷: (lo, hi)} 입력 포화 창 (y_icm 범위)
         self.theta = dict(theta_items)
         self.fixed = dict(fixed_values)
         self.lut = lut
@@ -189,8 +195,8 @@ class _Circuit:
         _vgs, vds, vsb = terminal_voltages(self.kinds[m], values[d], values[s], values[s], values[self.bulk[m]])
         return vds, vsb
 
-    def window(self, net, values):
-        """W4 창: x(입력 묶음이면 묶음 전원)에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이 되는 쪽 -- x 가 전류가 나가는 단자면
+    def kvl_window(self, net, values):
+        """W4 순서 창: x(입력 묶음이면 묶음 전원)에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이 되는 쪽 -- x 가 전류가 나가는 단자면
         lo ≥ V(반대 단자), 들어오는 단자면 hi ≤ V(반대 단자). 제약이 없는 쪽은 레일 전압 범위 끝."""
         terms = [t for member in self.members.get(net, (net,)) for t in self.order_terms.get(member, ())]
         lo, hi = self.lo, self.hi
@@ -200,6 +206,54 @@ class _Circuit:
             else:
                 hi = min(hi, values[other])
         return lo, hi, len(terms)
+
+    def window(self, net, values):
+        """W4 창 = 순서 창 ∩ (입력 뿌리면) 입력 포화 창 `override`(y_icm 범위, `input_windows`가 정한다)."""
+        lo, hi, ncols = self.kvl_window(net, values)
+        if net in self.override:
+            lo, hi = max(lo, self.override[net][0]), min(hi, self.override[net][1])
+        return lo, hi, ncols
+
+    def input_roots(self):
+        """입력 DC 미선언 입력 묶음의 W4 뿌리 넷(y 키 `input_common_mode`) -- 이름순이 아니라 쓰기 순번 순."""
+        return tuple(net for net, w in sorted(self.writers.items(), key=lambda kv: kv[1].order)
+                     if w.relation == REL_WINDOW and w.y_key == INPUT_GROUP_KEY)
+
+    def saturation_rows(self, values):
+        """전도 MOS 마다 ((d, s, 부호, 포화 여유)): 여유 = VDS − VDsat − tol_VDsat (봉인 7 의 판정식, 선형 영역 선언 소자 제외). LUT 에 VDSAT 열이
+        없거나 tol 이 미정이면 그 판정을 할 수 없어 None(창을 좁히지 않는다 -- 종래 사상)."""
+        rows = []
+        for m in sorted(self.coord, key=lambda x: (self.device_colour.get(x, 0), x)):
+            if m in self.linear:
+                continue
+            kind = self.kinds[m]
+            d, _g, s = (self.pins[m][t] for t in MOS_TERMINAL_NAMES)
+            vgs, vds, vsb = self.mos_point(m, values)
+            w_key = w_key_of(self.lut, kind)
+            try:
+                sat = vdsat(self.lut.memo, kind, w_key, self.L[m], vgs, vds, vsb)
+                tol = tol_vdsat_table(self.lut.memo, kind, w_key).at(self.L[m], vds)
+            except SealViolationError:
+                return None
+            if tol is None:
+                return None
+            rows.append((d, s, _kind_sign(kind), vds - sat - tol))
+        return tuple(rows)
+
+    def input_windows(self, values, roots):
+        """{뿌리: (lo, hi)} -- 해 `values` 에서 잰 입력 포화 창(순서 창과 교집합, 레일 범위 포함). 잴 수 없으면 None."""
+        rows = self.saturation_rows(values)
+        if rows is None:
+            return None
+        unknown = tuple(net for net, w in self.writers.items() if w.relation not in FIXED_RELATIONS)
+        windows = {}
+        for root in roots:
+            found = saturation_window(unknown, root, values, self.writer_grad, rows)
+            if found is None:
+                return None
+            lo, hi, _ncols = self.kvl_window(root, values)
+            windows[root] = (max(lo, found[0]), min(hi, found[1]))
+        return windows
 
     def start(self, net):
         cols = [c for member in self.members.get(net, (net,)) for c in self.nbrs.get(member, ())]
@@ -433,6 +487,11 @@ class _Circuit:
                 lo, lo_node = values[other], other
             elif not is_lower and values[other] < hi:
                 hi, hi_node = values[other], other
+        if net in self.override:                    # 입력 포화 창이 순서 창보다 좁으면 그 끝은 상수(이웃 노드 항 없음)
+            if self.override[net][0] > lo:
+                lo, lo_node = self.override[net][0], None
+            if self.override[net][1] < hi:
+                hi, hi_node = self.override[net][1], None
         if lo > hi:
             raise SealViolationError(devices=(), margin=None,
                                      detail={"item": SEAL_SATURATION, "reason": REASON_EMPTY_WINDOW, "node": net,
@@ -499,9 +558,8 @@ def _strict_recheck(c, entry, values, tol):
                                      detail={"node": net, "reason": REASON_STRICT_RECHECK, "nodes": entry.nodes})
 
 
-@compute_block(DC_COLUMNS_WRITER, reads=READS, writes=WRITES)
-def dc_columns(projection):
-    c = _Circuit(projection)
+def _solve(c):
+    """쓰기 계획 위상 순서로 SCC 를 풀어 (노드전압, SccLog 열)을 낸다 -- 현재 `c.theta`·`c.override` 한 벌에 대한 풀이 한 번."""
     values = dict(c.rail_v)
     for net, w in c.writers.items():
         if w.relation in (REL_TARGET, REL_INPUT_DC):
@@ -565,6 +623,58 @@ def dc_columns(projection):
             _strict_recheck(c, entry, solved, tol)
         values = solved
         logs.append(SccLog(entry.index, entry.nodes, k, deltas, tol, limit, method, fallback))
+    return values, tuple(logs)
+
+
+_FAILURES = (SealViolationError, NonconvergentError)
+
+
+def _solve_input_window(c):
+    """입력 DC 대기 회로의 y_icm 범위 = 입력 포화 창 (사용자 결정 J-E, 설계 41 §4.6 SP-2 (c)).
+
+    입력 묶음 W4 뿌리가 없으면 풀이 한 번(종래). 있으면: (1) y_icm = 1/2 로 풀어 해를 얻고(순서 창 사상) (2) 그 해에서 잰 포화 창
+    [Vin,min, Vin,max] ∩ 순서 창을 y_icm 범위로 삼아 요청 y_icm 으로 다시 풀며 (3) 새 해에서 창을 다시 재 경계가 tol 안에서 같아질 때까지
+    되풀이한다(상한 K_max = `k_max`(레일 폭, tol)). (1) 이 풀리지 않거나 창을 잴 수 없으면(VDSAT 열 없음·tol 미정) 종래 사상(요청 y_icm,
+    순서 창)으로 푼다 -- 종래보다 나빠지지 않는다. 경계는 마지막 풀이의 값이다(봉인 시점 값, tol_VDsat 포함)."""
+    roots = c.input_roots()
+    if not roots:
+        return _solve(c)
+    key = (THETA_Y, INPUT_GROUP_KEY)
+    requested = c.theta[key]
+    c.theta[key] = _MID
+    try:
+        values, logs = _solve(c)
+    except _FAILURES:
+        c.theta[key] = requested
+        return _solve(c)
+    windows = c.input_windows(values, roots)
+    c.theta[key] = requested
+    if windows is None:
+        return _solve(c)
+    devices = tuple(sorted(c.coord, key=lambda m: (c.device_colour.get(m, 0), m)))
+    try:
+        tol = c.tolerance(devices, values)
+    except SealViolationError:                         # tol 이 어느 소자에서도 미정 -- 되풀이 수렴 판정을 할 수 없다(창은 한 번만 적용)
+        c.override = windows
+        return _solve(c)
+    for _ in range(k_max(c.hi - c.lo, tol)):
+        c.override = windows
+        values, logs = _solve(c)
+        again = c.input_windows(values, roots)
+        if again is None:
+            break
+        settled = all(abs(a - b) <= tol for root in roots for a, b in zip(again[root], windows[root]))
+        windows = again
+        if settled:
+            break
+    return values, logs
+
+
+@compute_block(DC_COLUMNS_WRITER, reads=READS, writes=WRITES)
+def dc_columns(projection):
+    c = _Circuit(projection)
+    values, logs = _solve_input_window(c)
+    logs = list(logs)
     ln_idu = {}
     for m, coord in c.coord.items():
         if coord.role == COORD_WRITER:

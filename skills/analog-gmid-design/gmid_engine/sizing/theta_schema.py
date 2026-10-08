@@ -1,10 +1,11 @@
 """θ 스키마(DOF 표) 계산 블록 (설계 3.1 5, 계획 DEC-70 결정변수, DEC-88, DEC-92, N3.7 DOF 입력).
 
-진입점: `dc_theta_schema`(`@compute_block`) -- `dc_theta_schema(snapshot, declared_resistors, engine_passives)`. θ 무관(S0 당 1회).
+진입점: `dc_theta_schema`(`@compute_block`) -- `dc_theta_schema(snapshot, declared_resistors, engine_passives, l_ties=())`. θ 무관(S0 당 1회).
 
 성분 (kind, key):
-* `ln_idu`(쓰기 소자 -- DEC-88 반전 좌표 ln IDu, IDu = ID·L/W), `L`(모든 MOS -- `l_class` 관계는 status `proposed`
-  (J-U4-a 미확정)라 평가 경로가 읽지 않는다(계획 N3.3: 평가는 declared·derived·ratified 만) -> 소자마다 L),
+* `ln_idu`(쓰기 소자 -- DEC-88 반전 좌표 ln IDu, IDu = ID·L/W), `L`(MOS -- **L 동치류당 하나**(DEC-17, LR1, 설계 40 §3.2-1): `l_ties` =
+  ((멤버, 주인), ...) = S1v derived 동치류의 비주인 멤버는 성분이 없고(주인의 L 을 `size_and_seal` 이 물려준다), 동치류에 들지 않은
+  MOS 는 소자마다 하나. status 가 derived 가 아닌 동치류(proposed·review_needed)는 `build_kernel_context` 가 `l_ties` 에 넣지 않아 소자마다 L),
 * `y`(W4 키마다, [0, 1] 창 안 위치), `current`(원소 단위 KCL 독립 기저), `resistance`(DC 경로 저항 중 spec 값 미선언).
 * [DEC-92] `capacitance`(spec mode engine 커패시터), `ss_resistance`(spec mode engine 저항 중 DC 전류 0 -- 잎 가지치기
   `basis.pruned` -- 이고 영점 상쇄 구조 규칙이 값을 정하지 못한 것). 둘은 DC 동작점을 바꾸지 않으므로(커패시터는 DC 엣지가
@@ -122,7 +123,8 @@ def _zero_cancel(resistor, projection, classes, kinds, pins, internal):
 
 @compute_block(DC_THETA_SCHEMA_WRITER, reads=READS, writes=WRITES)
 def dc_theta_schema(projection):
-    declared_resistors, engine_passives = projection.extras
+    declared_resistors, engine_passives, *rest = projection.extras
+    l_ties = rest[0] if rest else ()          # 생략 = L 동치류 없음(소자마다 L)
     classes = dict(projection.column("device", "element_class"))
     kinds = dict(projection.column("device", "kind"))
     pins = {name: dict(p) for name, p in projection.column("device", "pins")}
@@ -131,7 +133,8 @@ def dc_theta_schema(projection):
     for name, coord in projection.column("device", "dc_coord"):
         if coord.role == COORD_WRITER:
             components.add((THETA_LN_IDU, name))
-    components.update((THETA_L, name) for name, cls in classes.items() if cls == ELEMENT_MOS)
+    tied = {member for member, _owner in l_ties}
+    components.update((THETA_L, name) for name, cls in classes.items() if cls == ELEMENT_MOS and name not in tied)
     components.update((THETA_Y, w.y_key) for _net, w in projection.column("node", "dc_writer")
                       if w.relation == REL_WINDOW)
     components.update((THETA_CURRENT, name) for name in basis.free)

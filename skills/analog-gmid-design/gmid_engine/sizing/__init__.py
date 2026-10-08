@@ -115,7 +115,9 @@ from .s2_values import (
     DeviceOp,
     KernelContext,
     LutAccess,
+    NO_ORDER_HINTS,
     NodeWrite,
+    OrderHints,
     PathValue,
     SccEntry,
     SccLog,
@@ -142,7 +144,9 @@ from .seal_tolerances import dc_tolerances
 from .seal_versions import seal_versions
 from .seal_vgs_match import dc_seal_vgs_match
 from .seal_writers import seal_writers
+from .local_values import LocalSeal, SnapshotFragment
 from .size_and_seal import size_and_seal
+from .size_and_seal_local import size_and_seal_local, theta_name
 from .struct_colour import dc_struct_colour
 from .theta_check import check_theta
 from .theta_schema import dc_theta_schema
@@ -171,11 +175,14 @@ __all__ = (
     "INPUT_GROUP_KEY",
     "KernelContext",
     "LINEAR_REGION",
+    "LocalSeal",
     "LutAccess",
+    "NO_ORDER_HINTS",
     "METRICS_DC_WRITER",
     "METRICS_KEY",
     "METRICS_SS_WRITER",
     "NodeWrite",
+    "OrderHints",
     "PATH_FIXED",
     "PATH_MOS",
     "PATH_RESISTOR",
@@ -290,5 +297,8 @@ __all__ = (
     "seal_dc",
     "seal_versions",
     "seal_writers",
+    "SnapshotFragment",
     "size_and_seal",
+    "size_and_seal_local",
+    "theta_name",
 )
