@@ -49,7 +49,7 @@ from .ss_types import MetricBundle
 
 READS = (
     ("device", "ss_dev"), ("device", "element_class"), ("device", "kind"), ("device", "pins"), ("device", "bulk"),
-    ("node", "ac_ground_class"), ("node", "port_direction"),
+    ("node", "ac_ground_class"), ("node", "port_direction"), ("node", "dc_colour"), ("device", "dc_colour"),
 )
 WRITES = (("graph", "metrics_ss"),)
 UNIT = 1.0                                              # 단위 시험 전류(rout_ohm = 관측 / 이 값)
@@ -204,10 +204,13 @@ def metrics_ss(projection):
     bulk = {m: b.net for m, b in projection.column("device", "bulk")}
     ss_values = dict(projection.column("device", "ss_dev"))
     ground = tuple(n for n, c in projection.column("node", "ac_ground_class") if c is not None)
-    nodes = tuple(n for n, _c in projection.column("node", "ac_ground_class"))
+    node_orbit = dict(projection.column("node", "dc_colour"))
+    device_orbit = dict(projection.column("device", "dc_colour"))
+    # 정준 순서(구조 색 dc_colour -- 정점마다 유일, 이름은 색 없는 이름만): 선형계 행·소자 스탬프 순서가 이름 치환에 불변
+    nodes = tuple(sorted((n for n, _c in projection.column("node", "ac_ground_class")), key=lambda n: (node_orbit.get(n, -1), n)))
     inputs = tuple(n for n, d in projection.column("node", "port_direction") if d == INPUT_DIRECTION)
     devices = tuple((name, classes[name], kinds[name], pins[name], bulk.get(name), ss_values.get(name))
-                    for name in sorted(classes))
+                    for name in sorted(classes, key=lambda n: (device_orbit.get(n, -1), n)))
     ss = ss_circuit(nodes, ground, inputs, devices, passive_values)
     pending = {r: _undefined(r, CODE_VIEW_PENDING, (("decision", r.view.decision),))
                for r in requests if r.view.mode == "pending"}

@@ -25,6 +25,7 @@ from gmid_engine.sizing import THETA_PASSIVE_KINDS, THETA_RESISTANCE, DcEvaluati
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
 from .eval_key import eval_key
+from .tie_expand import expand_ties
 from .objectives import objective_values
 from .search_values import (
     ACCEPTED_STATUSES,
@@ -75,7 +76,8 @@ def _record(sctx, result, origin):
 
 def evaluate(sctx, theta, cells, parent=None, origin=()):
     sctx.counters["requests"] += 1
-    pairs = tuple(sorted(theta.items() if isinstance(theta, Mapping) else theta))
+    theta = expand_ties(sctx.domain.ties, theta if isinstance(theta, Mapping) else dict(theta))    # [r12] 묶인 성분은 대표 값
+    pairs = tuple(sorted(theta.items()))
     key = eval_key(sctx.context_fp, sctx.schema_fp, pairs, cells, None)
     hit = sctx.cache.get(key)
     if hit is not None:

@@ -33,7 +33,7 @@ from .supply import supply_currents
 
 READS = (
     ("device", "dc_op"), ("device", "dc_current"), ("device", "element_class"), ("device", "pins"),
-    ("node", "dc_v"), ("node", "dc_rail_v"), ("graph", "dc_current_basis"),
+    ("node", "dc_v"), ("node", "dc_rail_v"), ("graph", "dc_current_basis"), ("node", "dc_colour"), ("device", "dc_colour"),
 )
 WRITES = (("graph", "metrics_dc"),)
 SUPPLY_METRICS = ("power_dc_w", "supply_current_dc")
@@ -41,7 +41,14 @@ AREA_METRICS = ("area_search_m2",)
 CODE_COUNTED_RAILS = "counted_rails_undeclared"
 
 
+def _canonical(projection, kind):
+    """정렬 키: (구조 색 `dc_colour`, 이름) -- sizing 의 색은 1-WL 색 안을 정준 위치로 구분해 정점마다 유일하다(이름은 색이 없는 이름 뿐, 합산·행렬 순서가 이름을 따르지 않게)."""
+    orbit = dict(projection.column(kind, "dc_colour"))
+    return lambda name: (orbit.get(name, -1), name)
+
+
 def _operating_point(projection, index, values):
+    device_key = _canonical(projection, "device")
     basis = projection.value("graph", DC_KEY, "dc_current_basis")
     pins = dict(projection.column("device", "pins"))
     classes = dict(projection.column("device", "element_class"))
@@ -49,7 +56,7 @@ def _operating_point(projection, index, values):
     rails = tuple(RailBias(index[n], v) for n, v in projection.column("node", "dc_rail_v"))
     resistors = frozenset(basis.resistors)
     channels, res, sources, touched = [], [], [], set()
-    for name, a, b in basis.ends:
+    for name, a, b in sorted(basis.ends, key=lambda e: device_key(e[0])):
         if classes[name] == ELEMENT_MOS:
             d, _g, s = (dict(pins[name])[t] for t in MOS_TERMINAL_NAMES)
             channels.append(ChannelCurrent(index[d], index[s], currents[name] if d == a else -currents[name]))
@@ -59,7 +66,7 @@ def _operating_point(projection, index, values):
         elif classes[name] != ELEMENT_PASSIVE:
             sources.append(CurrentSource(index[a], index[b], currents[name]))
     volts = dict(projection.column("node", "dc_v"))
-    node_v = tuple((index[n], volts[n]) for n in sorted(touched) if n in volts)
+    node_v = tuple((index[n], volts[n]) for n in sorted(touched, key=index.get) if n in volts)
     return DcOperatingPoint(rails, node_v, tuple(channels), tuple(res), tuple(sources))
 
 
@@ -67,7 +74,10 @@ def _operating_point(projection, index, values):
 def metrics_dc(projection):
     passive_values, counted_rails = projection.extras
     values = dict(passive_values)
-    names = sorted({n for n, _v in projection.column("node", "dc_rail_v")} | {n for n, _v in projection.column("node", "dc_v")})
+    node_key = _canonical(projection, "node")
+    device_key = _canonical(projection, "device")
+    names = sorted({n for n, _v in projection.column("node", "dc_rail_v")} | {n for n, _v in projection.column("node", "dc_v")},
+                   key=node_key)
     index = {net: i for i, net in enumerate(names)}
     op = _operating_point(projection, index, values)
     rails = {n for n, _v in projection.column("node", "dc_rail_v")}
@@ -78,8 +88,8 @@ def metrics_dc(projection):
     counted = tuple(index[n] for n in counted_rails) or tuple(r.node for r in op.rails)
     supply = supply_currents(op, counted)
     classes = dict(projection.column("device", "element_class"))
-    gates = tuple(GateArea(o.W, o.L, label=m) for m, o in projection.column("device", "dc_op"))
-    passives = sorted(n for n, c in classes.items() if c == ELEMENT_PASSIVE)
+    gates = tuple(GateArea(o.W, o.L, label=m) for m, o in sorted(projection.column("device", "dc_op"), key=lambda r: device_key(r[0])))
+    passives = sorted((n for n, c in classes.items() if c == ELEMENT_PASSIVE), key=device_key)
     area = area_search(gates, tuple(PassiveArea(n, values[n]) for n in passives if values.get(n) is not None))
     entries = []
     for name in SUPPLY_METRICS + AREA_METRICS:

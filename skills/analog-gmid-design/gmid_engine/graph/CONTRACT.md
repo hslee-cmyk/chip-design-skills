@@ -349,6 +349,15 @@ consumer_symmetric, {Nr, Ye} tail_ratio, 변형 불변량 49/49. 판단 7(혼자
 bias_distribution -> {Ye, Yf} tail_ratio(그 구조 = 바이어스 diode 를 쓰는 차동쌍 꼬리가 있음), 차동쌍이 없는 syn_cs_load·syn_follower 는
 불변, 변형 불변량 49/49.
 
+**[r11] matching 그룹과 자기동형 궤도의 관계 (측정 2026-10-08, sizing CONTRACT 3.0b `dc_struct_colour` 의 dc_orbit)**: matching 그룹(레이아웃 짝짓기 -- 같은 kind·같은 source
+등 부분 구조 조건)과 자기동형 궤도(회로 그래프 전체의 연결·kind·레일 전위·선언을 보존하는 전단사)는 **서로 다른 개념이고 포함 관계가 없다**. 9개 라이브러리 회로 +
+합성 회로에서 확인: (1) 궤도가 둘 이상 원소인 회로는 `current_reuse_telescopic_ota` 하나(완전 차동, 끝 방향을 무시하면 22개 궤도 -- 단 R1(Vom→Voc)·R2(Voc→Vop) 이 끝을 뒤집어 그려져 있어 방향을 보존하는 자기동형(sizing 3.0b)에서는 대칭 전체가 사라진다. R2 의 terminals 를 뒤집으면 궤도 33개 짝이 선다 -- 사용자 데이터라 고치지 않았다. 궤도: M10/M19, M17/M8, M1a/M1b, M2a/M2b, M3a/M3b, M4a/M4b,
+R1/R2, Cc1/Cc2, CL1/CL2, 전반부-후반부 쌍 M11a/M20a … 등). 나머지 회로는 단일 출력이라 diff_pair 두 원소도 서로 다른 궤도(예 folded_cascode M1/M2: 드레인이 서로 다른
+부하에 연결)이고 mirror/branch_symmetric 그룹도 궤도가 아니다. (2) 궤도 ⊆ 한 matching 그룹이 아닌 경우: current_reuse 의 M11a/M20a·M12/M21 … (차동 두 반쪽 사이의 대응,
+matching 그룹은 한 가지 안의 짝만 본다)와 수동소자 쌍 R1/R2·Cc1/Cc2·CL1/CL2(matching 은 MOS 만). (3) matching 그룹이 한 궤도가 아닌 경우: 비율 mirror
+(M38/M5/M66 -- 3 궤도, M18_bg/M6 …)와 current_reuse 의 diff_pair M37a/M37b(궤도 2: CMFB 쌍이라 입력 연결이 비대칭). 결론: θ 묶음은 궤도만 따른다(matching 그룹을
+묶음 근거로 쓰지 않는다 -- 비율 mirror·비대칭 diff_pair 를 잘못 묶을 위험). 불일치는 결함이 아니라 개념 차이이며 matching 쪽 판정은 이 변경이 바꾸지 않는다.
+
 ### 4.6 정지 분기 (모두 core `StructureUnresolvedError`, exit 2, `detail["reason"] == "unsupported_rule_branch"`)
 
 | `rule_branch` | 블록 | 조건 | `record.devices` / detail |

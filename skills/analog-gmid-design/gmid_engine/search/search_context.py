@@ -17,7 +17,7 @@
 import hashlib
 from pathlib import Path
 
-from gmid_engine.authoring import THETA_BOUNDS
+from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 from gmid_engine.core import FailureRecord, PdkDecl, fp_of
 from gmid_engine.graph import ELEMENT_PASSIVE
 from gmid_engine.metrics import JunctionSource, metric_registry
@@ -90,7 +90,8 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     # [r10] 원소별 θ 수동소자 상자 = spec search.theta_bounds(authoring ThetaBound tuple) -- SearchSettings 값이 run 단위 재정의
     search_section = spec.search if isinstance(spec.search, tuple) else ()
     spec_bounds = next((s.value for s in search_section if s.field == THETA_BOUNDS and s.value), ())
-    domain = search_domain(dc_ctx, settings, pdk_decl, spec_bounds)
+    untie = tuple(name for name, _source in next((s.value for s in search_section if s.field == UNTIE_ORBITS and s.value), ()))
+    domain = search_domain(dc_ctx, settings, pdk_decl, spec_bounds, untie)
     junction = JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)
     context_fp = fp_of((dc_ctx.base.fp, dc_ctx.plan_versions, dc_ctx.lut, dc_ctx.fixed_values, dc_ctx.resistor_values,
                         dc_ctx.inputs))

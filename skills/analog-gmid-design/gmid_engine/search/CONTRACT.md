@@ -33,6 +33,10 @@
   **[r5c]** 시험 ln_idu 하한 = 칸 정점 하한(모든 쓰기 소자, 3.21 3), search_domain 채택 제안(S-4f), 9회로 재측정(10.0000).
 - **r11(2026-10-08, ng-layer0-canon -- 사용자 대원칙 '이름에 종속된 엔진 금지')**: `[r11]`. 3.21 의 변수 순서·Halton 차원 배정을 이름 정렬에서
   **이름 없는 정준 순서**로 바꿨다(3.21 3 '정준 순서'). 이름 치환·원소 순서 섞기에 층 0 시작점이 자기동형 범위에서 따라간다.
+- **r12(2026-10-08, 사용자 결정 '정준 라벨링 + 대칭 변수 묶음, 기본값 묶음')**: `[r12]`. (1) 변수 정준 키를 1-WL 색에서 sizing `dc_struct_colour` 의 궤도 산출 의 자기동형
+  궤도 id 로(3.23), (2) 같은 궤도 원소의 같은 종류 θ 성분을 한 탐색 변수로 묶음(`orbit_ties`·`expand_ties`, 3.24; `SearchDomain.ties`;
+  spec `search.untie_orbits` 로 해제), (3) SLSQP 제약 행·원뿔 행/항을 이름 없는 정준 순서로(`canonical_rows`, 3.25). 결과: 이름 치환·섞기에 층 0 시작점과
+  SLSQP 반복이 비트 단위로 같다(DC 파생 행 기준, 3.23 4).
 - **r8(2026-10-08, ng-layer0 = master(MOD6 r7) 병합 + 오케스트레이터 결정)**: `[r8]`. (1) S-4f 채택 -- 새 파일 `cell_floor.py`
   (`ln_idu_floors`, 3.22): 1변수 노드 writer 의 ln_idu 상자 하한 = 시작 칸의 칸 정점 하한(시작 좌표는 넘지 않음)을 `solve_eps`
   (3.13)·층 0 최대-최소에 적용, 층 0 시험(모든 쓰기 소자)도 같은 함수. `search_domain`(S0 당 1회, 칸 없음)에는 넣지 않았다 -- 하한이
@@ -156,6 +160,9 @@
 | 0 | `search_values.py` | 데이터 선언 모듈(상태·단계·축·제약 접두 어휘, 2절 형식) |
 | 1 | `archive.py` | `S3Archive` |
 | 1 | `canonical_order.py` [r11] | `canonical_order` |
+| 1 | `canonical_rows.py` [r12] | `canonical_row_key` |
+| 1 | `orbit_ties.py` [r12] | `orbit_ties` |
+| 1 | `tie_expand.py` [r12] | `expand_ties` |
 | 1 | `cell_floor.py` [r8] | `ln_idu_floors` |
 | 1 | `cone_rows.py` | `cone_rows` |
 | 1 | `current_box.py` [r2] | `current_box` |
@@ -261,6 +268,9 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
   `supply_current_dc` 는 합산 레일 선언(`counted_rails`)이 spec 에 없어 계산하지 않는다(notes `supply_current_dc_needs_counted_rails_declaration`).
 
 ### 3.7 `search_domain(dc_ctx, settings) -> SearchDomain`
+- [r12] 진입 `search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), untie=())`: 위 변수·`l_cells` 를 만든 뒤 3.24 `orbit_ties` 로 같은 자기동형 궤도의 같은 종류 성분을
+  한 변수(대표)로 묶는다 -- 묶인 구성원은 `variables`·`l_cells` 에서 빠지고 `SearchDomain.ties` 에 기록된다(구성원 bounds 불일치 `tied_orbit_bounds_differ`).
+  `untie` = spec `search.untie_orbits` 원소 이름 tuple.
 - [r3] 진입 `search_domain(dc_ctx, settings, pdk_decl)`. `settings` 가 SearchSettings 아님·`pdk_decl` 이 core `PdkDecl` 아님 ->
   `TypeError`. `pdk_decl` 에 `manufacturing_grid_m`·`min_finger_w_m` 이 없으면 core 의 `pdk_quantity_undeclared` 거부 그대로.
   변수(θ 스키마 성분 순, L 제외):
@@ -305,8 +315,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
    바꾸고 `centre_u` = 해 u. 해의 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 커널 없이 3 의 시험으로 간다(`start_status`
    "centre_outside_cone").
 3a. **[r11] 정준 변수 순서·Halton 차원**(구현 = 3.23 `canonical_order`): 변수 목록(정의역 변수 + 칸이 구간인 L)을 (L 인가, 성분 종류, 키 구조 색) 오름차순으로 정렬한
-   뒤 이름은 같은 키 안에서만 tie-break 로 쓴다. 키 구조 색 = sizing `dc_struct_colour`(3.0, 이름을 읽지 않는 1-WL 색)의 원소
-   `device.dc_colour`(`y` 성분의 키가 넷이면 `node.dc_colour`, 둘 다 아니면 -1). **Halton 차원 = 서로 다른 (성분 종류, 구조 색) 키의
+   뒤 이름은 같은 키 안에서만 tie-break 로 쓴다. 키 궤도 id = sizing `dc_struct_colour` 의 궤도 산출(3.0b, 정준 라벨링의 자기동형 궤도)의 원소
+   `device.dc_orbit`(`y` 성분의 키가 넷이면 `node.dc_orbit`, 둘 다 아니면 -1). [r12] 묶이지 않은 변수는 키가 유일하다. **Halton 차원 = 서로 다른 (성분 종류, 구조 색) 키의
    순위**(L 키는 맨 뒤 -- 종래 'L 은 변수 목록 끝'과 같은 자리): 차원 d 에 (d+1) 번째 소수 기저, **같은 키의 변수는 같은 차원 =
    같은 좌표 φ**(1-WL 로 구별되지 않는 변수 = 자기동형 궤도 후보를 한 차원으로 묶어, 궤도 구성원의 어느 쪽이 먼저인지 이름에 기대지 않는다).
    hit-and-run 의 방향 d_j = 2φ − 1 도 차원 좌표라 궤도 안에서 같고, 걸음 비율 φ_s = 마지막 차원(키 수 + 1 번째 소수). 시험 점·
@@ -489,23 +499,49 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 
 ### 3.18 `S3Archive(root, context_fp, code_fp)` -- 8절.
 
-### 3.23 [r11] `canonical_order(sctx, variables) -> (정렬된 변수 tuple, 변수별 차원 index list, 차원 수)` (`canonical_order.py`)
+### 3.23 [r11, r12] `canonical_order(sctx, variables) -> (정렬된 변수 tuple, 변수별 차원 index list, 차원 수)` (`canonical_order.py`)
 이름을 읽지 않는 θ 변수 순서. `variables` = `Variable` 열(정의역 변수 + 칸이 구간인 L 변수, 순서 무관). 호출부: `layer0_center`
 (`_box_centre`·`_halton_probe`), `slsqp_outer` (`_layout`). `fd_jacobian`·`ln_idu_floors`·`eps_sweep`·`find_front` 는 호출부가 넘긴 변수
 순서를 따를 뿐 스스로 정하지 않는다.
-1. 키 = (성분 종류 == L, 성분 종류, 구조 색). 구조 색 = `device.dc_colour`(성분 키가 원소일 때), 아니면 `node.dc_colour`(`y` 의 넷), 둘 다
-   없으면 -1. 정렬 = (키, 이름) -- 이름은 같은 키 안 tie-break 만.
+1. 키 = (성분 종류 == L, 성분 종류, 궤도 id). 궤도 id = `device.dc_orbit`(성분 키가 원소일 때), 아니면 `node.dc_orbit`(`y` 의 넷), 둘 다
+   없으면 -1. 정렬 = (키, 구조 색, 이름) -- 같은 키 안은 정점마다 유일한 구조 색이 정한다. [r12] 정의역 변수는 3.24 묶음 뒤라 키가 유일하다; 같은 키는 spec 이
+   묶음을 푼 궤도(`untie_orbits`) 안에서만 남는다.
 2. 차원 = 서로 다른 키의 오름차순 순위(0 부터). 변수의 차원 = 자기 키의 순위. 차원 수 = 서로 다른 키 수.
 3. 불변식(test 가 확인할 성질): (a) 이름 전단사 σ·원소 순서 섞기에 대해 정렬된 변수의 (종류, 키, 차원) 열이 같다(이름만 σ 로 옮겨짐);
    (b) 같은 키 ⇔ 같은 차원; (c) 입력 순서에 결과가 불변(순열에 대해 같은 출력); (d) L 키는 모든 비-L 키 뒤; (e) 같은 입력이면 같은 출력
    (결정론); (f) 반환 변수 집합 = 입력 집합, 개수 보존; (g) 차원 index 는 0 .. 차원 수 − 1 을 빠짐없이 쓴다.
-4. **궤도 안 순서의 영향과 한계**: 같은 키 안 변수(자기동형 궤도 후보)의 상대 순서는 이름을 따르므로 이름 치환이 그 순서를 바꿀 수 있다.
-   Halton 시험 점은 같은 키가 같은 좌표라 영향이 없다(3.21 3a). SLSQP(층 0 최대-최소·`solve_eps`) 반복은 변수 순서에 따라 부동소수
-   합산 순서만 달라져 **끝자리 잡음**(관측 상대 ~1e-9)이 생긴다. 정해진 상한: 두 실행의 목적 차이는 SLSQP 종료 판정 `ftol` = 1(목적의
-   단위 = 층 0 은 t 의 허용오차 한 칸, `solve_eps` 는 축 분해능 한 칸; 커널 봉인 판정도 같은 허용오차)을 넘지 않는다 -- 반복 경로가 갈려
-   종료 칸이 하나 다를 수 있다는 보장 범위. 따라서 이름 치환 test 의 기대는 '비트 일치'가 아니라 (i) 시작점 출처·시험 번호(`origin_point`)
-   일치와 (ii) 목적·θ 가 위 상한 안(관측 잡음은 θ 상대 1e-6 이하)이다. 궤도 안 순서에 완전 불변이어야 하면 궤도 구성원을 한 변수로
-   묶는 별도 변경이 필요하다(열린 항목).
+4. **비트 동일성 (r12)**: 묶음(3.24)·정준 행 순서(3.25)·metrics/objectives 의 정준 합산·행렬 순서(`dc_colour`, metrics CONTRACT r12) 뒤에는 탐색 변수·제약 행·원뿔 항·
+   소신호 선형계·합산 어디에도 이름이 순서를 정하는 자리가 없다(spec 이 묶음을 푼 궤도 제외). 그래서 이름 치환·원소 순서 섞기에 대해 층 0 시작점(θ·L 칸·t·
+   `origin_point`)과 SLSQP 반복·평가 값(봉인 margin, W 하한·반전 하한·원뿔 행, `ss:` 행, 전력·면적·b_P)이 **비트 동일**하다(허용오차 없음). 묶음을 푼 궤도 안
+   변수의 상대 순서만 이름을 따른다(비대칭 사이징을 명시한 선택 -- 거기서는 이름 치환 불변이 보장되지 않는다). 한계: 정준 순서는 모든 정점을 구별하는 키가
+   아니라 자기동형 궤도 단위다 -- 같은 궤도(= 묶음) 원소끼리의 합산 순서는 이름이 정하지만, 궤도 구성원은 θ 가 같고 자기동형 대응이라 합산 항의 다중집합이 같아
+   (묶음 안 항의 순열) 합이 바뀌는 건 부동소수 결합 순서뿐이다 -- 이 잔여는 측정 항목(9회로 중 궤도가 둘 이상인 회로는 current_reuse 하나, 10.1 측정).
+
+### 3.24 [r12] `orbit_ties(dc_ctx, components, untied) -> (대표 성분 tuple, ties)` · `expand_ties(ties, theta) -> dict`
+사용자 결정(2026-10-08): 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 **한 탐색 변수**로 묶는다(기본 묶음). 공유 전류·gm/ID(`ln_idu`)·L·`y`·R·C 모두.
+1. 궤도 id: 원소 키는 `device.dc_orbit`, `y` 의 넷 키는 `node.dc_orbit`. 묶음 키 = (성분 종류, 궤도). 성분이 둘 이상인 묶음에서 대표 = 키 이름 최소
+   (이름은 대표 선택에만 쓰이고 모든 구성원이 같은 값을 받아 평가에 영향이 없다). `ties` = ((대표, (구성원, ...)), ...).
+2. `search_domain(dc_ctx, settings, pdk_decl, spec_bounds, untie)`: `variables`·`l_cells` 에서 묶인 구성원을 뺀다(`SearchDomain.ties` 에 기록). 구성원의
+   bounds(log, lo, hi)가 대표와 다르면 `SchemaRejectedError`(gate `search_domain`, reason `tied_orbit_bounds_differ`, elements) -- 비대칭 상자를 선언한
+   원소는 `untie_orbits` 로 풀거나 상자를 같게 한다. 자기동형이 선언 값(원소 값·레일 전위·노드 목표 등)을 보존하므로(sizing 3.0b) 값이 다르게 선언된
+   원소는 애초에 같은 궤도가 아니다.
+3. `evaluate(sctx, theta, cells, ...)` 는 맨 앞에서 `expand_ties(sctx.domain.ties, theta)` 로 묶인 성분을 대표 값으로 채운다 -- 호출부는 대표 성분만 넘겨도 되고,
+   구성원 값이 있으면 대표가 이긴다. 평가 키·`EvalResult.theta`·S3 기록은 확장된 전체 θ 다. 원뿔 행이 묶인 θ 전류를 읽으면 `layer0_center` 는 항을 대표 변수
+   열에 합친다(`_current_alias`). `_repair` 의 후보 소자가 묶인 구성원이면 대표의 `ln_idu` 좌표를 움직인다.
+4. L: `l_cells` 는 대표 MOS 만 갖는다(`cells` 벡터도 대표만). 구성원은 대표와 같은 칸이다(같은 kind 표, 자기동형). `polish_l_cells` 가 대표 칸을 옮기면 구성원도
+   함께 옮겨진다(평가 확장이 같은 L 을 준다).
+5. spec 해제: `human.search.untie_orbits = {<원소>: {"source": {...user_spec}}}`(SPEC_CONTRACT). 원소가 속한 궤도를 묶지 않는다. 원소가 없으면
+   `untie_element_unknown`, 궤도가 그 원소 하나뿐이면 `untie_orbit_trivial`(둘 다 gate `search_domain`).
+6. 한계: 자기동형은 DC 저항 끝 방향과 선언 표시를 보존한다(sizing 3.0b) -- 9개 라이브러리 회로에서 묶음이 서는 회로는 현재 없다(`current_reuse` 는 R1·R2 가 끝을 뒤집어 그려져 대칭이
+   자기동형이 아니다; R2 terminals 를 뒤집은 사본에서는 107 → 74 차원). 단일 종단 회로의 diff_pair·mirror 는 matching 그룹일 뿐 자기동형이 아니다(graph CONTRACT 4.5a [r11]).
+7. 불변식(test 가 확인할 성질): (a) 대칭 쌍이 있는 회로에서 `len(domain.variables)` + 묶인 구성원 수 = 스키마 성분 수 − L 고정 칸 수; (b) `expand_ties` 는 입력을
+   바꾸지 않고, 구성원 값이 대표 값과 같다; (c) 묶음 있는 회로에서 평가한 θ 의 구성원 성분 값 = 대표 성분 값(비트); (d) `untie_orbits` 로 푼 궤도는 변수 수가 늘고 두 구성원이
+   따로 움직인다; (e) 비대칭 회로(궤도 모두 단일)에서는 `ties == ()` 이고 변수가 종래와 같다; (f) 위 2 의 거부; (g) 이름 치환 뒤 묶음이 치환표로 옮겨진다.
+
+### 3.25 [r12] `canonical_row_key(sctx) -> key 함수` (`canonical_rows.py`)
+제약 행 이름 `<접두>:<소자>`(`w_min`·`seal6_bulk`·`inversion_floor`·`current_cone`)와 `<접두>:<번호>:<metric>`(`ss`·`spec`)의 정렬 키 = (접두, 소자 구조 색 `dc_colour`
+(정점마다 유일, 없으면 -1), 나머지 이름). `solve_eps`(`_rows`)와 `layer0_start`(`_hard`·원뿔 행·원뿔 항 `_cone_canonical`)가 SLSQP 에 넘기는 제약 벡터·Jacobian 행 순서를 이 키로 정렬한다
+(이름 순서에 따라 합산 순서가 바뀌어 끝자리가 달라지는 일을 막는다). 불변식: 이름 치환 σ 에 대해 정렬 결과가 σ 로 옮겨진다; 접두 순서는 사전식; 같은 궤도 행 사이만 이름.
 
 ## 4. ★ 봉인 7 대기 스위치 (`seal7_pending.seal_status`, sizing O1)
 

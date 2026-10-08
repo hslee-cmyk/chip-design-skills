@@ -27,6 +27,7 @@ from gmid_engine.sizing import (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA
 
 from .current_box import current_box
 from .l_cells import l_cells
+from .orbit_ties import orbit_ties
 from .search_values import SearchDomain, SearchSettings, Variable
 
 _PDK_QUANTITIES = ("manufacturing_grid_m", "min_finger_w_m")   # PDK 선언 이름(core CONTRACT 9.4) -- 값은 선언 파일이 계산
@@ -64,7 +65,7 @@ def _passive_box(override, spec_bounds, key):
     return spec_bounds.get(key)
 
 
-def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=()):
+def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), untie=()):
     if not isinstance(settings, SearchSettings):
         raise TypeError("search_domain: settings 는 SearchSettings 여야 한다(기본값 없음)")
     if not isinstance(pdk_decl, PdkDecl):
@@ -112,8 +113,21 @@ def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=()):
     for var in variables:
         if not var.lo < var.hi:
             raise ValueError("search_domain: 빈 bounds " + repr(var))
+    # [r12] 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 변수 하나로 묶는다(3.24) -- 묶인 구성원은 같은 bounds 여야 한다
+    reps, ties = orbit_ties(dc_ctx, tuple(dc_ctx.schema.components), tuple(untie))
+    by_component = {v.component: v for v in variables}
+    for rep, members in ties:
+        if rep in by_component:
+            odd = tuple(m for m in members if (by_component[m].log, by_component[m].lo, by_component[m].hi)
+                        != (by_component[rep].log, by_component[rep].lo, by_component[rep].hi))
+            if odd:
+                raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "tied_orbit_bounds_differ",
+                                                  "elements": (rep,) + odd})
+    tied = {m for _rep, members in ties for m in members}
+    variables = [v for v in variables if v.component not in tied]
+    mos = [m for m in mos if (THETA_L, m) not in tied]
     cells = {}
     table = tuple((m, cells.setdefault(kinds[m], l_cells(dc_ctx.lut, kinds[m]))) for m in sorted(mos))
     grid, w_min = pdk_decl.values(_PDK_QUANTITIES)
     return SearchDomain(tuple(variables), table, float(grid * w_min), tuple(sorted(boxes.items())), float(w_min),
-                        float(grid))
+                        float(grid), ties)

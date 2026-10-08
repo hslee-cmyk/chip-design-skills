@@ -31,6 +31,7 @@ from scipy.optimize import minimize as scipy_minimize
 from gmid_engine.sizing import THETA_L
 
 from .canonical_order import canonical_order
+from .canonical_rows import canonical_row_key
 from .cell_floor import ln_idu_floors
 from .fd_jacobian import fd_jacobian
 from .kernel import evaluate
@@ -79,8 +80,8 @@ def _axis_value(result, axis):
     return result.objectives.power_w if axis == AXIS_POWER else result.objectives.area_m2
 
 
-def _rows(result, eps, scales):
-    rows = list(result.constraints) + list(result.cone)
+def _rows(result, eps, scales, row_key):
+    rows = sorted(list(result.constraints) + list(result.cone), key=lambda r: row_key(r.name))     # [r12] 정준 행 순서
     names = tuple(r.name for r in rows)
     values = [r.c for r in rows]
     if eps is not None:
@@ -99,6 +100,7 @@ def _budget_stop(sctx):
 
 
 def solve_eps(sctx, start, minimize, eps, origin):
+    row_key = canonical_row_key(sctx)
     variables, fixed, x0, exact = _layout(sctx, start)
     lo = np.asarray([v.lo for v in variables], dtype=float)
     hi = np.asarray([v.hi for v in variables], dtype=float)
@@ -129,7 +131,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
             raise _Abort("candidate_failure", x)
         if state["scales"] is None:          # 첫 받아들인 점(시작점)의 b_P 로 고정
             state["scales"] = {AXIS_POWER: res.objectives.power_resolution_w, AXIS_AREA: sctx.domain.area_resolution_m2}
-        names, cvals = _rows(res, eps, state["scales"])
+        names, cvals = _rows(res, eps, state["scales"], row_key)
         if state["names"] is None:
             state["names"] = names
         elif names != state["names"]:
@@ -151,7 +153,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
                     raise _Abort("fd_column_failure", entry["x"], i)
                 if step == 0:
                     continue
-                names, cvals = _rows(col, eps, state["scales"])
+                names, cvals = _rows(col, eps, state["scales"], row_key)
                 if names != state["names"]:
                     raise _Abort("constraint_set_changed", entry["x"])
                 gf[i] = (_axis_value(col, minimize) / state["scales"][minimize] - entry["f"]) / step
