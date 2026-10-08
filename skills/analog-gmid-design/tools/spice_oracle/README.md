@@ -450,10 +450,21 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
    - `.control`: `tran tmax tstop 0 tmax`, `let hst = <H 식>`, `wrdata <stem>.stab.txt hst`. 캐시(C21) 대상.
 4. **과도 계획**(`tran_plan`, 조정 상수 없음 -- 측정 L 과 입력에서 유도): f_lo/f_hi = 가장 낮은/높은 |L|=1 교차
    (`gain_crossings_hz`, log 보간), kick = V_T = k_B·T/q(T = LUT temp_c + 273.15 K; 소신호 선형화의 물리 척도),
-   tmax = td = tr = tf = 1/(2π f_hi), pw = 1/(2π f_lo), 킥 끝 t_end = td + tr + pw + tf, 창 W = 1/f_lo,
+   **[변경 2026-10-08] 시간 척도는 f_lo 하나**: tmax = td = tr = tf = pw = 1/(2π f_lo), 킥 끝 t_end = td + tr + pw + tf,
+   창 W = 1/f_lo. f_lo = 가장 낮은 교차 = PM 을 정의한 교차(UGF -- PM 원값이 있으면 L(fstart) >= 1 이고 첫 교차가 하강이므로
+   늘 같다). f_hi 는 기록(`plan.f_hi_hz`)만 하고 계획에 쓰지 않는다: tmax 는 창 안 표본 간격의 상한일 뿐이고 f_lo 보다 빠른
+   동특성은 ngspice 절단 오차(LTE) 걸음 제어가 들뜬 만큼 잘게 쪼갠다. 옛 tmax = 1/(2π f_hi) 는 교차가 많은 L(엔진 브리지
+   two_stage_ota_sf 시작점 start_s1_seq23, free: 59 교차 0.48 Hz ~ 9.5 GHz, 공급 전류 3.3e-11 A 로 거의 꺼진 회로)에서
+   tmax 1.7e-11 s·tstop 14.9 s(~8.8e11 걸음)로 끝나지 않았다(프로세스 강제 종료). 교차가 하나면(f_hi = f_lo) 계획은 옛
+   것과 같다. 새 숫자(걸음 예산 등)를 두지 않았다.
    창 수 K = ceil(ln(kick/floor)), floor(해 분해능) = 출력 노드마다 reltol·|V_op| + vntol 의 합(입력 `testbench.options`
    값, 없으면 ngspice 기본 reltol 1e-3·vntol 1e-6), tstop = t_end + K·W. kick <= floor 이거나 K < 2 면 계획 없음
-   (과도 `not_run`). 기록 `ac.stability.transient.plan`.
+   (과도 `not_run`). 기록 `ac.stability.transient.plan`. 실행 시간 상한이 필요하면 진입점의 `--timeout-s` 가 ngspice 를
+   끊는다(데이터 파일이 tstop 에 못 미치면 절차 5 의 `failed` -> '모름' -> PM 은 표대로 정의 불가 또는 N 만으로 판정).
+   확인(2026-10-08): 위 시작점 free 는 tmax 0.33 s·tstop 15.8 s 로 2 초 안에 끝나고 N = None(편각 180 deg 걸음) + 과도
+   unstable -> `closed_loop_unstable`(PM 원값 64.0 deg 이 PASS 되지 않음), forced 는 N = 0 + unstable ->
+   `open_loop_rhp_poles`(원값 182.3 deg). 교차가 하나인 기존 확인 회로(test 회로 4종, two_stage_ota·nmcnr·two_stage_ota_sf·
+   ngcc 프로브, 손 RHP 회로)는 `ac` 전체(안정성 기록 포함)가 바꾸기 전과 같다.
 5. **과도 판정**(`transient_decision`): e(t) = H(t) − H(0), 창 j = 1..K(t_end 부터 W 씩)의 M_j = max|e|,
    floor' = floor + u·max|H|(u = .stab.txt 반올림 반 단위, C20 의 data_rel_resolution). 마지막 시각이 tstop·(1 − 2u) 보다
    이르면 `failed`. 첫 실행 판정: M_K <= floor' -> `stable`; 아니고 M_K >= M_1 -> `unstable`(K 창 동안 줄지 않음 =

@@ -433,10 +433,13 @@ def solver_floor(options, v_ops):
 def tran_plan(crossings_hz, temp_c, floor_v, file_name):
     """폐루프 과도 계획(전부 측정 L 과 입력에서 유도, 조정 상수 없음):
       kick_V = V_T(.temp)  -- 소신호 선형화의 물리 척도(exp(v/V_T) 1차), 해 분해능 floor 보다 커야 한다.
-      tmax = 1/(2π f_hi)   -- f_hi = 가장 높은 |L|=1 교차(폐루프 진동은 |L| >= 1 인 주파수에서만 생긴다)의 1 rad 시간.
-      킥 = PULSE(td = tr = tf = tmax, pw = 1/(2π f_lo)) -- f_lo = 가장 낮은 |L|=1 교차, 지배 루프 동특성을 1 rad 동안 민다.
-      창 W = 1/f_lo(가장 느린 교차의 한 주기), 창 수 K = ceil(ln(kick_V/floor)) -- 창마다 1 e-fold 감쇠하면 킥 크기가
-      해 분해능에 닿는 창 수. K < 2 면 비교할 수 없어 계획 없음(None)."""
+      시간 척도 = f_lo = 가장 낮은 |L|=1 교차 = PM 을 정의한 교차(UGF; L(fstart) >= 1 이고 첫 교차가 하강이라 늘 같다).
+      tmax = td = tr = tf = pw = 1/(2π f_lo), 창 W = 1/f_lo, 창 수 K = ceil(ln(kick_V/floor)) -- 창마다 1 e-fold 감쇠하면
+      킥 크기가 해 분해능에 닿는 창 수. K < 2 면 비교할 수 없어 계획 없음(None).
+      [변경 2026-10-08] 옛 tmax = 1/(2π f_hi)(f_hi = 가장 높은 교차)는 교차가 많은 L(two_stage_ota_sf 시작점: 59 교차,
+      0.48 Hz ~ 9.5 GHz)에서 tmax 1.7e-11 s·tstop 14.9 s(~8.8e11 걸음)로 끝나지 않았다. tmax 는 창 안 표본 간격의 상한일 뿐이고
+      f_lo 보다 빠른 동특성은 ngspice 의 절단 오차(LTE) 걸음 제어가 들뜬 만큼 잘게 쪼갠다 -- 그래서 f_hi 는 계획에 쓰지 않는다
+      (기록 f_hi_hz 만). 교차가 하나면(f_hi = f_lo) 계획은 옛 것과 같다."""
     f_lo, f_hi = min(crossings_hz), max(crossings_hz)
     kick = thermal_voltage(temp_c)
     if not floor_v or floor_v <= 0 or kick <= floor_v:
@@ -444,7 +447,7 @@ def tran_plan(crossings_hz, temp_c, floor_v, file_name):
     K = math.ceil(math.log(kick / floor_v))
     if K < 2:
         return None
-    tmax = 1 / (2 * math.pi * f_hi)
+    tmax = 1 / (2 * math.pi * f_lo)
     pw = 1 / (2 * math.pi * f_lo)
     W = 1 / f_lo
     t_end = tmax + tmax + pw + tmax
