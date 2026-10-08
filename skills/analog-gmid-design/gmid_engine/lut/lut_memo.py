@@ -2,8 +2,8 @@
 
 진입점: `LutMemo`.
 
-* 영역 4개(`REGIONS`): point(OpPoint·gmb·용량·[r6] VDsat), curve(Curve), root(VGS 근·역산), derived(tol_V 표·곡선 보고·
-  [r6] VDsat 허용오차 표·중점 검증).
+* 영역 4개(`REGIONS`): point(OpPoint·gmb·용량·[r6] VDsat·[r7] 잡음 계수·mismatch 감도·소자 σ), curve(Curve·gm/ID 축 곡선 표),
+  root(VGS 근·역산), derived(tol_V 표·곡선 보고·[r6] VDsat 허용오차 표·중점 검증·[r7] 잡음 면·잡음/mismatch 허용오차 표).
   영역마다 `core.BoundedLRU` 하나를 이 객체가 소유한다(모듈 수준 캐시 없음).
 * 키 = (LutSet 지문, 함수 이름) + 호출부가 넘긴 값(kind, w_key, 축 float 그대로 -- 반올림 없음). 객체·`id()` 키는
   `TypeError`(BoundedLRU 의 불변 검사).
@@ -17,7 +17,8 @@ from gmid_engine.core import BoundedLRU
 from .table_cache import TableCache
 
 REGIONS = ("curve", "derived", "point", "root")
-DERIVED_TABLES = ("curve_report", "midpoint_l_bin_checks", "tol_v_table", "tol_vdsat_table")
+DERIVED_TABLES = ("curve_report", "midpoint_l_bin_checks", "noise_planes", "tol_mismatch_table", "tol_noise_table",
+                  "tol_v_table", "tol_vdsat_table")
 SWEEP_REGIONS = ("curve", "point", "root")
 
 
@@ -37,10 +38,11 @@ class LutMemo:
         }
 
     @classmethod
-    def from_sweep(cls, lut, n_theta, unique_keys_per_eval):
-        """sweep 상계로 만든다: 영역 r 의 상한 = `(n_theta + 1) * unique_keys_per_eval[r]`(r = point·curve·root)."""
+    def from_sweep(cls, lut, n_theta, unique_keys_per_eval, table_cache=None):
+        """sweep 상계로 만든다: 영역 r 의 상한 = `(n_theta + 1) * unique_keys_per_eval[r]`(r = point·curve·root). 첫 평가가 센 키 수를
+        넣는 배선은 `sweep_memo`(sweep_memo.py)."""
         per = dict(unique_keys_per_eval)
-        return cls(lut, **{r: (n_theta + 1) * per[r] for r in SWEEP_REGIONS})
+        return cls(lut, table_cache=table_cache, **{r: (n_theta + 1) * per[r] for r in SWEEP_REGIONS})
 
     def lookup(self, region, fn_name, key, compute):
         """영역 `region` 에서 키 `(lut.fp, fn_name) + key` 의 값. 없으면 `compute()` 결과를 저장해 돌려준다."""

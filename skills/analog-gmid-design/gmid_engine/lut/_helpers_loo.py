@@ -161,3 +161,20 @@ def table_at(table, field, L, vds, context):
     vals = [getattr(table.cells[i][b], field) for i in sorted({lo, hi}) for b in (k, k + 1)]
     vals = [v for v in vals if v is not None]
     return max(vals) if vals else None
+
+
+def linear_loo_cells(values, grids, interior, per_point=False):
+    """점별 값 면 `values`[L, VGS, VDS, VS](정의 없음 = NaN)의 **선형** leave-one-out 오차를 Richardson 환산(÷ 2^p)한 [L, VDS] 셀 최댓값
+    (정의 없음 = NaN; `per_point` 면 셀로 줄이지 않은 [L, VGS, VDS, VS] 점별 값 -- 그 점이 내부 격자점인 축들의 최댓값). 네 축 모두 내부 격자점의 이웃
+    선형 추정과 저장값의 차 |추정 − 값|; L 축은 같은 bin 안 내부 앵커(`interior`)에서만.
+    기울기 자료가 없는 면(잡음 ln S·ln B, mismatch DVGS)의 허용오차 -- 값의 단위가 곧 오차의 단위다."""
+    best = np.full(values.shape, np.nan)
+    in_bin = np.asarray(interior, dtype=bool).reshape((-1,) + (1,) * (values.ndim - 1))
+    for axis, name in enumerate(AXES):
+        est, order = loo_estimate(values, None, None, axis, grids[axis], False)
+        err = np.abs(est - np.moveaxis(values, axis, 0)[1:-1]) / 2.0 ** order
+        if name == "L":
+            err = np.where(np.moveaxis(np.broadcast_to(in_bin, values.shape), axis, 0)[1:-1], err, np.nan)
+        view = np.moveaxis(best, axis, 0)
+        view[1:-1] = np.fmax(view[1:-1], err)
+    return best if per_point else cell_max(best)

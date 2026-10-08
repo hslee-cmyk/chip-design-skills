@@ -48,3 +48,11 @@ def strong_inversion_root(v, y, m, targets):
         tgt = tgt.item()
     vgs[rows] = hermite_root(*ends, lambda value, slope: slope - tgt)
     return vgs, np.where(has, last, -1)
+
+
+def monotone_end(q, p):
+    """배열 `q` 에서 index `p` 부터 엄격히 증가하는 첫 구간의 끝 index(`q[p] < q[p+1] < ... < q[end]`; 증가가 없으면 p)."""
+    end = p
+    while end + 1 < len(q) and q[end + 1] > q[end]:
+        end += 1
+    return end

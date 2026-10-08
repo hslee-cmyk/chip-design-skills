@@ -32,6 +32,14 @@
   (9) [2026-10-08 오케스트레이터 결정 A] 외부 L 값(`l_bin_checks`·`MidpointRow`)은 **셀 단위 -- (bin, VDS 격자점)마다**(5절·5.1·5.2).
   (10) [결정 B] 폭 슬라이스 32개를 GMBS·VDSAT 포함으로 재생성(기존 열 비트 동일) -- 모든 폭에서 `vdsat`·`tol_vdsat_table`·GMBS 열 `gmb`
   (4.3·4.4), VS 축 Hermite 는 보류. (11) [결정 C] 앵커 2개 bin .23·.22·.21 은 외부 값 없이 `missing_external` 로 명시(8절).
+- **개정 r7(2026-10-08, 구현 단위 U3 -- 설계 40 §11 U3, 41 §4.1·§6.4-2·§6.4-2b·§7.2, 계획 DEC-87·88·96)**: 바뀐 곳에 `[r7]` 표시. 요지 --
+  (1) **VS 축 Hermite**(DEC-87, GMBS 열이 있는 슬라이스): ln ID 의 VS 축도 2점 cubic-Hermite, 기울기 = −GMBS/ID(4.2·5절 LOO·1.4 로드 검사). r6 의 '보류'를 푼다.
+  (2) **FC 정책**: 선형 폴백에 사유를 남긴다 -- `OpPoint.fallbacks`·`Curve.cell_class`(4.1·4.2), 기울기 열이 ln ID 격자 차분과 십진 단위로 어긋나면 로드 거부
+  `lut_unit_mismatch`(1.4). (3) `vgs_for_current_density`(3.1, DEC-88 -- sizing 의 `gm_id_for_target(current=)` 우회를 대체). (4) gm/ID 축 곡선 표
+  `ft_curve`·`intrinsic_gain_curve`·`vdsat_curve`·`idu_curve`(4.5). (5) **잡음**: 새 버전 파일 `..._noise_r1.npz` 로드(`noise_set`), 분해 `noise_planes`,
+  `noise_params`, `tol_noise_table`(9절). (6) **mismatch**: 새 버전 파일 `..._mismatch_r1.npz` 로드, `mismatch_dvgs`, `tol_mismatch_table`, 소자 σ
+  `mismatch_sigma_vgs`(10절). (7) `sweep_memo`(2.2, `LutMemo.from_sweep` 배선)·`require_lut_data`(9.5·10.5). (8) 데이터 위치 설정에 `noise`·`mismatch` 항목(1.8),
+  `LutSpec.noise_ef`·`LutSet.noise`·`LutSet.mismatch`·`LutProvenance` 4필드·`lut_fingerprint` 항목(1.3·1.4·1.5), 0절 층 재배치(8개 파일 추가).
 - 실패 객체는 core 의 `SchemaRejectedError`(로드 거부)·`SealViolationError`(조회 실패)다. `record.detail` 은
   `{"reason": <사유 키>, ...}` 의 키 정렬 쌍 tuple 이고 `record.devices == ()`, `record.margin is None`
   (LUT 는 소자 이름을 모른다 -- 소자를 아는 호출부가 덧붙인다, P-28·P-34).
@@ -44,40 +52,58 @@
 |---|---|---|
 | 0 | `_helpers_bins.py` [r4] | helper: `bin_index`(bin 소속 규칙, 4.0.1) |
 | 0 | `_helpers_fail.py` | helper: `schema_rejected`, `seal_violation` |
-| 0 | `_helpers_interp.py` [r5] | helper: `cell`, `hermite`, `hermite_root`, `linear_point`, `node_values`(축별 보간, 4.2), 상수 `LINEAR_CONDITIONS`·`HERMITE_CONDITIONS`·`HERMITE_DEGREE` |
+| 0 | `_helpers_interp.py` [r5, r7] | helper: `cell`, `hermite`, `hermite_root`, `linear_point`, `node_values`(축별 보간 -- [r7] VS 축 Hermite·폴백 사유 4번째 반환, 4.2), 상수 `LINEAR_CONDITIONS`·`HERMITE_CONDITIONS`·`HERMITE_DEGREE`·[r7] `REASON_SLOPE`·`REASON_FC`·`VS_SLOPE_COLUMN` |
 | 0 | `_helpers_width.py` [r6] | helper: `width_key(w_m, grid_m) -> (키, 격자 위 여부)`(1.3 규칙, provenance·lut_set 공용) |
-| 1 | `_helpers_root.py` [r5] | helper: `peak_index`, `strong_inversion_root`(곡선 묶음, 칸 안 Hermite 근 -- `hermite_root` 를 쓴다) |
-| 1 | `_helpers_columns.py` [r6] | helper: `column_source(lut, kind, w_key, column, required=True)`(열 출처, 4.3) |
-| 0 | `lut_types.py` | 데이터 선언 모듈(`LutSpec`·`SliceSource`·[r4] `LBin`·`LBinMap`·`LutProvenance`·`DcSlice`·`CapTable`·`LutSet`·`OpPoint`·`Curve`·`TargetSolution`·`Caps`·`TolVCell`·`CurveRow`·`CurveReport`, [r6] `MidpointTable`·`ColumnSource`·`TolVdsatCell`·`MidpointRow`·`MidpointChecks`·`LutLocation`, 상수 `AXES`·`TOL_V_METRICS`·[r6] `TOL_VDSAT_METRICS`·`CAP_TABLE_COLUMNS`·`SLICE_OPTIONAL_COLUMNS`·`DERIVED_COLUMNS`·`COLUMN_ORIGINS`) |
 | 0 | `fingerprint.py` | `lut_fingerprint` |
+| 0 | `lut_types.py` | 데이터 선언 모듈(`LutSpec`·`SliceSource`·[r4] `LBin`·`LBinMap`·`LutProvenance`·`DcSlice`·`CapTable`·`LutSet`·`OpPoint`·`Curve`·`TargetSolution`·`Caps`·`TolVCell`·`CurveRow`·`CurveReport`, [r6] `MidpointTable`·`ColumnSource`·`TolVdsatCell`·`MidpointRow`·`MidpointChecks`·`LutLocation`, 상수 `AXES`·`TOL_V_METRICS`·[r6] `TOL_VDSAT_METRICS`·`CAP_TABLE_COLUMNS`·`SLICE_OPTIONAL_COLUMNS`·`DERIVED_COLUMNS`·`COLUMN_ORIGINS`) |
 | 0 | `table_cache.py` [2026-10-08] | `TableCache`(2.1) |
 | 0 | `widths.py` | `widths` |
+| 1 | `_helpers_columns.py` [r6] | helper: `column_source(lut, kind, w_key, column, required=True)`(열 출처, 4.3) |
+| 1 | `_helpers_grids.py` [r7] | helper: `npz_grids`(npz 축 읽기)·`npz_condition_mismatch`(측정 조건 대조) -- lut_set·noise_set·mismatch_set 공용 |
+| 1 | `_helpers_root.py` [r5, r7] | helper: `peak_index`, `strong_inversion_root`(곡선 묶음, 칸 안 Hermite 근 -- `hermite_root` 를 쓴다), [r7] `monotone_end`(분지에서 엄격 증가 구간 끝) |
 | 1 | `axis_guard.py` | `check_axes` |
 | 1 | `curve_check.py` | `curve_report` |
-| 1 | `lut_memo.py` [2026-10-08 층 0 -> 1] | `LutMemo` (+ 상수 `REGIONS`·`DERIVED_TABLES`; `lookup_persistent` 는 `table_cache` 를 쓴다) |
-| 1 | `provenance.py` | `lut_provenance` |
 | 1 | `data_location.py` [r6] | `resolve_lut_location`(1.8) |
+| 1 | `lut_memo.py` [2026-10-08 층 0 -> 1] | `LutMemo` (+ 상수 `REGIONS`·`DERIVED_TABLES`; `lookup_persistent` 는 `table_cache` 를 쓴다) |
+| 1 | `lut_requirements.py` [r7] | `require_lut_data`(9.5·10.5) |
+| 1 | `provenance.py` | `lut_provenance` |
 | 2 | `_helpers_anchor.py` [r4] | helper: `l_position`(옛 `l_anchor_index` 대체 -- 앵커 또는 같은 bin 보간 위치) |
-| 2 | `lut_set.py` | `load_lut_set` |
-| 3 | `_helpers_loo.py` [r6] | helper: `l_interior`·`external_by_model`·`l_loo_report`·`loo_estimate`·`cell_max`·`branch_targets`·`with_external`·`opt`·`table_at`, 상수 `LINEAR_ORDER`·`HERMITE_ORDER`·`HERMITE_SLOPE_ORDER`(r5 `tolerance.py` 안 함수를 옮김 -- 동작 같음) |
-| 3 | `point_query.py` | `op_point` |
-| 3 | `gm_id_curve.py` | `gm_id_curve` |
-| 3 | `cap_query.py` | `caps` |
-| 3 | `vdsat_query.py` [r6] | `vdsat`(4.3) |
-| 4 | `gmb.py` [r5, r6] | `gmb`(`op_point` 를 부른다, 4.4) |
-| 4 | `vgs_root.py` | `vgs_for_gm_id` |
-| 4 | `id_inverse.py` | `gm_id_for_target` |
-| 4 | `midpoint_checks.py` [r6] | `midpoint_l_bin_checks`(5.1) |
-| 5 | `tolerance.py` [r6 층 3 → 5] | `tol_v_table` (`TolVTable` 은 비진입 공개 이름, 상수 `LOO_ORDERS`) |
-| 5 | `vdsat_tolerance.py` [r6] | `tol_vdsat_table` (`TolVdsatTable` 비진입 공개 이름, 상수 `LOO_ORDERS`, 5.2) |
+| 2 | `mismatch_set.py` [r7] | `load_mismatch_tables`(10.1) |
+| 2 | `noise_set.py` [r7] | `load_noise_tables`(9.1) |
+| 2 | `sweep_memo.py` [r7] | `sweep_memo`(2.2) |
+| 3 | `lut_set.py` | `load_lut_set` |
+| 4 | `_helpers_loo.py` [r6] | helper: `l_interior`·`external_by_model`·`l_loo_report`·`loo_estimate`·`cell_max`·`branch_targets`·`with_external`·`opt`·`table_at`·[r7] `linear_loo_cells`, 상수 `LINEAR_ORDER`·`HERMITE_ORDER`·`HERMITE_SLOPE_ORDER`(r5 `tolerance.py` 안 함수를 옮김 -- 동작 같음) |
+| 4 | `cap_query.py` | `caps` |
+| 4 | `gm_id_curve.py` | `gm_id_curve` |
+| 4 | `point_query.py` | `op_point` |
+| 4 | `vdsat_query.py` [r6] | `vdsat`(4.3) |
+| 5 | `_helpers_gmid_axis.py` [r7] | helper: `axis_curve`(gm/ID 축 곡선 표 공용, 4.5) |
+| 5 | `gmb.py` [r5, r6] | `gmb`(`op_point` 를 부른다, 4.4) |
+| 5 | `id_inverse.py` | `gm_id_for_target` |
+| 5 | `midpoint_checks.py` [r6] | `midpoint_l_bin_checks`(5.1) |
+| 5 | `mismatch_query.py` [r7] | `mismatch_dvgs`(10.2) |
+| 5 | `mismatch_tolerance.py` [r7] | `tol_mismatch_table`(10.3; `TolMismatchTable` 비진입 공개 이름) |
+| 5 | `noise_planes.py` [r7] | `noise_planes`(9.2; 상수 `STATUS_KNOWN`·`STATUS_NO_POINT`·`STATUS_NONPOSITIVE`) |
+| 5 | `vgs_current_density.py` [r7] | `vgs_for_current_density`(3.1) |
+| 5 | `vgs_root.py` | `vgs_for_gm_id` |
+| 6 | `ft_curve.py` [r7] | `ft_curve`(4.5) |
+| 6 | `idu_curve.py` [r7] | `idu_curve`(4.5) |
+| 6 | `intrinsic_gain_curve.py` [r7] | `intrinsic_gain_curve`(4.5) |
+| 6 | `mismatch_sigma.py` [r7] | `mismatch_sigma_vgs`(10.4) |
+| 6 | `noise_query.py` [r7] | `noise_params`(9.3) |
+| 6 | `noise_tolerance.py` [r7] | `tol_noise_table`(9.4; `TolNoiseTable` 비진입 공개 이름) |
+| 6 | `tolerance.py` [r6 층 3 → 5] | `tol_v_table` (`TolVTable` 은 비진입 공개 이름, 상수 `LOO_ORDERS`) |
+| 6 | `vdsat_curve.py` [r7] | `vdsat_curve`(4.5) |
+| 6 | `vdsat_tolerance.py` [r6] | `tol_vdsat_table` (`TolVdsatTable` 비진입 공개 이름, 상수 `LOO_ORDERS`, 5.2) |
 
 graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 함수는 모두 첫 인자로 `LutMemo` 를 받는다.
+[r7] 층 번호는 `_module_map.LAYERS["lut"]` 의 위치다: `lut_set` 이 `noise_set`·`mismatch_set`(층 2)을 부르므로 한 층 뒤(3)로, 그 아래 조회 파일은 한 층씩 밀렸다.
 
 ---
 
 ## 1. 입력 파일 형식과 로드
 
-### 1.1 `LutSpec(manufacturing_grid_m, min_finger_w_m, device_kinds, cap_column_suffix)` -- frozen dataclass
+### 1.1 `LutSpec(manufacturing_grid_m, min_finger_w_m, device_kinds, cap_column_suffix, noise_ef=())` -- frozen dataclass
 - `manufacturing_grid_m`: float(m). `min_finger_w_m`: `((kind, m), ...)`. `device_kinds`: `((manifest device, kind), ...)`.
   `cap_column_suffix`: `((kind, 접미사), ...)`. 값은 부르는 쪽이 PDK 선언에서 채운다(엔진 안 숫자 0).
 
@@ -102,7 +128,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - [r6] 파생 열(로드 1회): 표에 GMBS·ID 가 다 있으면 `GMBS_PER_ID` = GMBS/ID(ID > 0 인 점, 아니면 NaN)를 그 표의 `columns` 에 더한다
   (`DERIVED_COLUMNS`). 기준 LUT 표는 ID·GM 이 다 있으면 `CapTable.on_mask` = (ID > 0) & (GM > 0).
 
-### 1.3 `lut_provenance(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None) -> LutProvenance`
+### 1.3 `lut_provenance(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None, noise_npz=None, mismatch_npz=None) -> LutProvenance`
 - [r6] `pdk_root`: None 이 아니면 모델 파일 경로 = `os.path.join(pdk_root, 상대 경로)`(meta `pdk_root` 대신, `lut_model_root_missing`
   판정도 이 값으로). sha256 대조는 그대로라 같은 모델 파일이면 어느 폴더든 같은 결과·같은 지문.
 - [r6] `verify_midpoints`: None 이 아니면 그 파일 `(절대 경로, sha256, meta L_source 키 정렬 쌍, 측정 조건)` 을
@@ -123,7 +149,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   `lut_manifest_empty`, `lut_cap_missing`, [r4] `lut_model_root_missing`(모델 파일 기록이 있는데 `pdk_root` 없음, detail `path` = 슬라이스),
   `lut_model_file_missing`(detail `path, slice`), `lut_model_file_sha256_mismatch`(detail `path, recorded, actual, slice`).
 
-### 1.4 `load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None) -> LutSet`
+### 1.4 `load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None, noise_npz=None, mismatch_npz=None) -> LutSet`
 - `LutSet(spec, provenance, slice_map, cap_map, fp, midpoints)`: `slice_map` = 읽기 전용 매핑 {(kind, w_key): DcSlice}, `cap_map` = {kind: CapTable},
   [r6] `midpoints` = {kind: MidpointTable}(1.7, 중점 파일을 주지 않으면 빈 매핑). `pdk_root`·`verify_midpoints` 는 1.3 으로 넘긴다.
 - [r6] `CapTable` 추가 필드: `w_key`(= `width_key(w_ref_m, grid)` 의 키, 격자 밖이면 None), `columns`(1.2 선택 열 + 파생 열, 읽기 전용
@@ -168,10 +194,20 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
     `b1 = n·(y1 − y0) − b0 − b2`, `q = (b1² ≤ b0·b2)`; 비감소 = `b0 ≥ 0 ∧ b2 ≥ 0 ∧ (b1 ≥ 0 ∨ q)`, 비증가 = `b0 ≤ 0 ∧ b2 ≤ 0 ∧
     (b1 ≤ 0 ∨ q)`, 단조 = 둘 중 하나(p'(x)·h 의 Bernstein 계수가 [0, 1] 에서 한 부호 -- Fritsch–Carlson(1980) α = m0/δ,
     β = m1/δ 영역과 같은 식. 예: δ = 0 이고 기울기 ≠ 0 이면 위반).
-  - `DcSlice.hermite_fc = (("VDS", Hermite 칸 수, 위반 칸 수), ("VGS", Hermite 칸 수, 위반 칸 수))`. 위반이 있어도 **로드는
+  - `DcSlice.hermite_fc = (("VDS", Hermite 칸 수, 위반 칸 수), ("VGS", Hermite 칸 수, 위반 칸 수))` [r7: + 세 번째 항 `("VS", Hermite 칸 수, 위반 칸 수)` -- GMBS 열이 없으면 `("VS", 0, 0)`]. 위반이 있어도 **로드는
     거부하지 않는다**(위반 칸의 조회 규칙은 4.2, 보고는 `curve_report` 의 `n_hermite_nonmonotone`).
   - [r5 실측 2026-10-07, 생성 슬라이스 32개] 모든 슬라이스 `hermite_fc = (("VDS", 276360, 0), ("VGS", 276480, 0))`(위반 0 --
     off 격자점은 VDS = 0 열 5880개뿐). 로드 3.0 s → 5.1 s(같은 기계·같은 시각 측정, FC 검사 ≈ 1.1 s 포함).
+- [r7] **VS 축 Hermite 보조(DEC-87)**: `DcSlice.vs_slope_ok` = 파생 열 `GMBS_PER_ID` 가 있고 유한·양수인 격자점(VS 기울기 d ln ID/d VS = −GMBS/ID 정의 -- GMBS 열이 없으면
+  전부 거짓), `fc_ok_vs` 모양 `[nL, nVGS, nVDS, nVS − 1]`(VGS·VDS 와 같은 단조 조건, Hermite 칸이 아니면 참), `hermite_fc` 에 세 번째 항 `("VS", Hermite 칸 수, 위반 칸 수)`.
+  기울기 부호 근거: 실측 `−GMBS/ID` 는 ln ID 의 VS 격자 차분과 부호·크기가 맞는다(w_key 1000, 중앙 상대차 6e-4~8e-4, p99 3e-3~5e-3).
+  [r7 실측 2026-10-08, 생성 슬라이스 32개] @@VS_FC@@
+- [r7] **기울기 열 단위 검사**(41 §4.1 '단위 불일치 -> 로드 거부'): 슬라이스마다 GM/ID 대 VGS, GDS/ID 대 VDS 격자 차분(ln ID 의 같은 축 차분)에서 (두 마디 평균 기울기)/(격자 차분 기울기)의 중앙값의
+  십진 로그가 ±1(한 십진 단위) 이상 벗어나면 `lut_unit_mismatch`(detail `path, column, decades`). 정상은 1 근처(로그 0), 단위 오류(A/mA/µA 등 SI 접두어)는 십진 배수(로그 3 의 배수)라 로그 1 이 경계다.
+  실데이터 32개 모두 통과(최대 |로그| GM 1.9e-4·GDS 8.0e-5; 참고로 GMBS/ID 대 VS 도 2.9e-4). **GMBS/ID 는 검사하지 않는다** -- 기존 test 의 toy 슬라이스는 GMBS 열을 ln ID 의 VS 기울기와 무관한 임의 값으로
+  가져(검사하면 -0.58~-1.33 로그로 로드 거부, test 100여 개) 검사 대상이 아니다. GMBS 열의 부호·크기는 실데이터에서 −GMBS/ID 가 ln ID 의 VS 격자 차분과 일치함(중앙 상대차 6e-4~8e-4)으로 확인했다.
+- [r7] `load_lut_set(..., noise_npz=None, mismatch_npz=None)`: 선택 두 파일(9.1·10.1)을 읽어 `LutSet.noise`·`LutSet.mismatch`(둘 다 {kind: 표}, 파일이 없으면 빈 매핑)에 둔다.
+  `lut_provenance` 는 두 파일의 경로·sha256 을 `LutProvenance.noise_*`·`mismatch_*` 에 싣는다(파일 없음 -> `lut_noise_missing`·`lut_mismatch_missing`).
 - `fp == lut_fingerprint(provenance, ((kind, w_ref_m, basis), ...))`.
 - 실패(`SchemaRejectedError`, reason): 1.3 전부 + `lut_conditions_mismatch`, `lut_slice_axes_mismatch`, `lut_slice_shape_mismatch`,
   `lut_array_no_positive`, `lut_cap_axes_mismatch`, `lut_cap_kind_undeclared`, `lut_cap_kind_without_slices`, `lut_cap_column_missing`,
@@ -187,6 +223,8 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   바뀌면 다른 지문.
 - [r6] `provenance.midpoints_sha256` 이 None 이 아니면 7번째 항목 `("midpoints_sha256", 값)` 을 더한다(중점 값이 tol 표 외부 값으로
   들어가므로). None 이면 r5 와 **같은 지문**(항목 6개 그대로).
+- [r7] `noise_sha256`·`mismatch_sha256` 이 None 이 아니면 그 순서로 `("noise_sha256", 값)`·`("mismatch_sha256", 값)` 을 더한다(없으면 r6 와 같은 지문). 표 디스크 캐시의 자료 id
+  (`TableCache.data_id`)는 바뀌지 않는다(manifest·cap_npz·중점 파일만) -- 잡음·mismatch 파생 표는 함수 이름(`noise_planes` 등)과 입력 내용 지문으로 구분된다.
 
 ### 1.6 `widths(lut, kind) -> tuple[int]`
 - `kind` 슬라이스 폭 키 중 `w_key · grid ≥ min_finger_w_m[kind]` 인 것의 오름차순. 근접 폭 대체·보간 없음.
@@ -220,6 +258,9 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   `lut_location_root_missing`, `root`·`files` 가 객체가 아님 → `lut_location_config_invalid`. 슬라이스는 여기서 재지 않는다(manifest 가
   고정하고 `load_lut_set` 이 대조).
 - `LutLocation(config_path, root, manifest_path, cap_npz_path, midpoints_path, pdk_root, sources)`, `sources` = ((항목, 출처), ...) 항목 정렬.
+- [r7] 선택 항목 `files.noise`·`files.mismatch`(같은 `path`·`sha256` 형식, root 기준 상대 경로): `LutLocation.noise_path`·`mismatch_path`(없으면 None). 호출:
+  `load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path, noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)`.
+  새 파일은 공유 데이터 폴더의 **새 버전 파일**이다(기존 r2 파일은 고치지 않는다) -- 이 브랜치의 설정만 가리킨다.
 - 저장소 설정: `skills/analog-gmid-design/assets/lut_v2_location.json` -- root 기본 `C:/Users/HSLEE/Documents/Todoc/fpga/lut_data/sky130_lut_v2`
   (git 밖, `GMID_LUT_V2_ROOT` 로 덮어씀), pdk_root 기본 `C:/pdk/sky130_fd_pr`(`GMID_PDK_ROOT`), 세 파일 sha256 고정. 쓰는 법:
   `loc = resolve_lut_location(<설정>, os.environ)` → `load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
@@ -234,20 +275,30 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 ## 2. memo `LutMemo(lut, *, point, curve, root)`
 
 - 상한 인자: 1 이상 int(아니면 core `BoundedLRU` 의 `ValueError`). `derived` 영역 상한 = `len(lut.slice_map) * len(DERIVED_TABLES)`.
-- `LutMemo.from_sweep(lut, n_theta, unique_keys_per_eval)`: 영역 r ∈ {point, curve, root} 상한 = `(n_theta + 1) * unique_keys_per_eval[r]`
-  (`unique_keys_per_eval` 은 Mapping 또는 (영역, int) 쌍).
+- `LutMemo.from_sweep(lut, n_theta, unique_keys_per_eval, table_cache=None)`: 영역 r ∈ {point, curve, root} 상한 = `(n_theta + 1) * unique_keys_per_eval[r]`
+  (`unique_keys_per_eval` 은 Mapping 또는 (영역, int) 쌍; [r7] `table_cache` 인자 추가). 첫 평가가 센 키 수를 넣는 배선은 2.2.
 - `lookup(region, fn_name, key, compute)`: 키 = `(lut.fp, fn_name) + tuple(key)`. 적중이면 저장 값 그대로(`is`), 아니면 compute 1회.
   가변 원소가 든 키 → `TypeError`. 알 수 없는 region → `KeyError`.
 - `stats()` → `(("curve", LruStats), ("derived", ...), ("point", ...), ("root", ...))`.
 - 조회 함수별 영역: `op_point`·`gmb`·`caps`·[r6] `vdsat` = point, `gm_id_curve` = curve, `vgs_for_gm_id`·`gm_id_for_target` = root,
   `tol_v_table`·`curve_report`·[r6] `tol_vdsat_table`·`midpoint_l_bin_checks` = derived. [r6] `DERIVED_TABLES` =
   ("curve_report", "midpoint_l_bin_checks", "tol_v_table", "tol_vdsat_table") -- derived 상한 = 슬라이스 수 × 4(r5 는 × 2).
+  [r7] `DERIVED_TABLES` = ("curve_report", "midpoint_l_bin_checks", "noise_planes", "tol_mismatch_table", "tol_noise_table", "tol_v_table", "tol_vdsat_table") --
+  derived 상한 = 슬라이스 수 × 7. 영역: `noise_params`·`mismatch_dvgs`·`mismatch_sigma_vgs` = point, gm/ID 축 곡선 표 4개 = curve, `vgs_for_current_density` = root,
+  `noise_planes`·`tol_noise_table`·`tol_mismatch_table` = derived(디스크 캐시 대상, `lookup_persistent`).
   `tol_v_table`·`tol_vdsat_table` 을 `l_bin_checks=None` 으로 부르면 LutSet 에 중점 표가 있을 때만 `midpoint_l_bin_checks` 를 먼저
   부른다(derived misses +1, 두 번째부터 hits) -- 중점 표가 없으면 그 조회를 하지 않는다(r5 와 같은 misses 수).
   [r6] `gmb` 의 compute 는 GMBS 열이 있으면 `op_point` 1회(조회점), 없으면 3회(r5). 같은 인자 두 번 → 두 번째는 compute 0(그 영역 hits +1). 실패한 조회는 저장되지 않는다.
   [r5] `gmb` 의 compute 는 같은 (L, vgs, vds) 의 `op_point` 3회(VS 칸 양끝·조회점, point 영역)를 부른다 -- 첫 `gmb` 호출은 point
   영역 misses 가 gmb 1 + op_point ≤ 3 늘어난다(이미 있던 op_point 키는 hits).
 - 같은 내용의 LutSet 두 개(같은 파일, 다른 폴더)는 같은 `fp` 라 같은 키가 된다.
+
+### 2.2 [r7] `sweep_memo(lut, n_theta, first_eval, table_cache=None) -> LutMemo` (`sweep_memo.py`, 층 2; 설계 40 §7.3 'LUT memo 상한')
+- U_eval = **첫 평가가 센 서로 다른 키 수**(영역 point·curve·root 마다). `first_eval(memo)` 를 계수용 memo 에서 한 번 돌린다: 그 memo 는 같은 (영역, 키)를 한 번만 계산해 값을 모으고
+  (평가 한 번 분량이라 유한) 서로 다른 키 수를 센 뒤 버려진다. 반환 = `LutMemo.from_sweep(lut, n_theta, 센 수, table_cache)` -- 새 memo(계수용 값은 넘기지 않음), 상한 = `(n_θ + 1)·U_eval`.
+  `first_eval` 은 LUT 조회 함수에 memo 를 첫 인자로 주는 평가(예: 첫 θ 의 커널 평가). 테스트의 상수 4096 대신 이 값을 쓴다.
+- **소비처**: 평가 커널 컨텍스트를 만드는 단위 -- search `build_search_context`(설계 40 §11 U11)와 pipeline 진입점(U16). 이 브랜치(U3)에는 `LutMemo` 를 만드는 운영 코드가 없어(`grep -rn "LutMemo(" gmid_engine` 은
+  lut·tests 뿐) 배선할 호출부가 아직 없다. 도우미를 공개하고 소비처를 여기 기록한다(만들었으면 배선한다는 원칙 -- 호출부가 생기는 U11·U16 에서 test 의 4096 을 지운다).
 
 ### 2.1 [2026-10-08, 사용자 승인 "tol_V표를 파일로 캐시해"] 파생 표 디스크 캐시 `TableCache` (`table_cache.py`, 층 0) + `LutMemo.lookup_persistent`
 
@@ -320,6 +371,16 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   2점 선형 역보간 문장을 복사했으나 [r5] 칸 안 근이 Hermite 로 바뀌어 복사 구간은 남지 않는다(6절). 칸 선택 규칙(분지 거르기·
   가장 오른쪽·해 없음)은 r4 와 같다.
 
+### 3.1 [r7] `vgs_for_current_density(memo, kind, w_key, ln_idu, L, vds, vsb) -> float V` (`vgs_current_density.py`; 계획 DEC-88, 설계 40 §2.3)
+- 쓰기 소자의 독립 좌표 ln IDu(IDu = ID·L/w_m)에서 VGS 크기를 강반전 분지 위에서 역산한다. 곡선 = `gm_id_curve`(op_point 와 같은 곡면). 목표 ln ID = ln IDu + ln w_m − ln L(L = 앵커 값 또는
+  같은 bin 보간 L). 정점 index p 부터 마디 ln ID 가 엄격히 증가하는 첫 구간 [p, e] 안이면(양끝은 exp·log 왕복 반올림 2 ulp 허용) 칸 j = p + max(searchsorted(왼쪽) − 1, 0) 을 고르고,
+  j = e 면 VGS[e], 아니면 칸의 VGS Hermite(값 ln ID, 기울기 gm/ID)에서 `hermite_root` 로 `value − 목표 = 0` 을 푼다. 그래서 결과 VGS 의 `op_point(...).IDu` 는 입력과 부동소수 분해능 안에서 같다.
+- 실패(`SealViolationError`, detail `kind, w_key, quantity = "ln_idu", target = 목표 ln ID, ln_idu, L, vds, vsb, branch_min, branch_max, monotone_lo, monotone_hi`): 곡선에 NaN 마디
+  `lut_curve_undefined`, 목표가 분지 ln ID 범위 밖 `lut_target_out_of_range`, 범위 안이나 단조 구간 밖 `lut_target_non_monotonic`, 고른 칸 단조 위반 `lut_hermite_nonmonotone_cell`(+ `axis, cell_lo, cell_hi`).
+- **대체**: sizing 이 같은 양을 `gm_id_for_target(W = w_m, current = IDu·w_m/L)` 로 푸는 임시 우회 두 곳(`block_columns._vgs_of_coordinate`·`_vgs_signed`)을 이 함수로 바꿨다(같은 커밋). 정점 마디 좌표처럼 분지 끝에 놓인
+  입력에서 옛 우회는 반올림으로 `lut_target_out_of_range`(소비자는 −inf 로 취급)가 나던 곳을 이 함수는 끝 마디 VGS 로 돌려준다. 실측(실데이터 w_key 1000, 무작위 3000점×2 kind(seed 20261008, 좌표 = 곡선 IDu 마디 + 0~0.5 의 로그 오프셋): 둘 다 성공한 점에서 옛 우회와 VGS 차 최대 nmos 5.1e-15 V·pmos 3.1e-15 V, `op_point(결과).IDu` 왕복 |Δln IDu| 최대 2.1e-14; 옛 우회만 실패한 점 nmos 19·pmos 12(분지 끝 마디 반올림), 새 함수만 실패한 점 0).
+- 소비자 호출 규약: `lut_target_out_of_range` 의 `target`·`branch_max` 는 같은 단위(ln ID)라 `target > branch_max` 가 '필요한 VGS 가 격자 위'다.
+
 ---
 
 ## 4. 조회 API
@@ -376,24 +437,28 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 | 함수 | 반환 | 정의 |
 |---|---|---|
 | `check_axes(grids, names, point, context=())` | None | 위 축 검사. `context` 쌍은 detail 에 더해진다 |
-| `op_point(memo, kind, w_key, L, vgs, vds, vsb)` | `OpPoint` | [r5] 4.0 의 L 장에서 4.2 의 축별 보간 1회: `IDu = exp(lnID)·L/w_m`, `gm_over_id` = lnID 의 VGS 미분(4.2), `gm_gds = gm_over_id · exp(lnID − lnGDS)`, `gds_per_w = exp(lnGDS)/w_m`(lnGDS 모든 축 선형), `vth`(모든 축 선형). 단조 위반 칸은 그 축 선형으로 보간하고 실패하지 않는다 |
-| `gm_id_curve(memo, kind, w_key, L, vds, vsb)` | `Curve` | [r5] 4.0 의 L 장, VGS 격자 **마디마다** 4.2 의 마디 값: `log_id_vals` = V_a, `id_vals = exp(V_a)`(폭 w_m 의 A), `gm_id_vals` = S_a(정의 안 되면 NaN), `cell_ok`(길이 nVGS − 1) = 4.2 의 VGS 칸 단조 조건. `vgs_grid` 는 슬라이스 VGS 축. 배열 읽기 전용. 마디 사이 곡선은 그 칸의 VGS Hermite(op_point 와 같은 곡면). VGS 축 검사는 없다(격자 전체) |
+| `op_point(memo, kind, w_key, L, vgs, vds, vsb)` | `OpPoint` | [r5] 4.0 의 L 장에서 4.2 의 축별 보간 1회: `IDu = exp(lnID)·L/w_m`, `gm_over_id` = lnID 의 VGS 미분(4.2), `gm_gds = gm_over_id · exp(lnID − lnGDS)`, `gds_per_w = exp(lnGDS)/w_m`(lnGDS 모든 축 선형), `vth`(모든 축 선형). 단조 위반 칸은 그 축 선형으로 보간하고 실패하지 않는다. [r7] **선형 폴백은 조용하지 않다**: Hermite 가 가능한 칸(VGS·VDS·VS 가 격자점 사이)인데 선형으로 간 축은 `OpPoint.fallbacks` = ((축, 사유), ...) 정렬 tuple 에 남는다(사유 `slope_undefined`·`fc_violation`, 없으면 ()) |
+| `gm_id_curve(memo, kind, w_key, L, vds, vsb)` | `Curve` | [r7] `Curve.cell_class`[j] = 칸 분류(41 §4.1): `hermite`(단조 -- 역산 허용)·`fc_violation`(격자 전수만, 역산 거부 `lut_hermite_nonmonotone_cell`)·`slope_undefined`(끝 기울기 없음 -- 선형 칸). [r5] 4.0 의 L 장, VGS 격자 **마디마다** 4.2 의 마디 값: `log_id_vals` = V_a, `id_vals = exp(V_a)`(폭 w_m 의 A), `gm_id_vals` = S_a(정의 안 되면 NaN), `cell_ok`(길이 nVGS − 1) = 4.2 의 VGS 칸 단조 조건. `vgs_grid` 는 슬라이스 VGS 축. 배열 읽기 전용. 마디 사이 곡선은 그 칸의 VGS Hermite(op_point 와 같은 곡면). VGS 축 검사는 없다(격자 전체) |
 | `vgs_for_gm_id(memo, kind, w_key, gm_id, L, vds, vsb)` | float V | [r5] 3절 규칙(칸 선택 + 칸 안 Hermite 미분 근). 실패(`SealViolationError`): 곡선에 NaN 마디 → `lut_curve_undefined`(detail `gm_id, L, vds, vsb, kind, w_key, n_undefined`), 해 없음 → `lut_no_strong_inversion_root`(detail `gm_id, L, vds, vsb, kind, w_key, branch_gm_id_min, branch_gm_id_max, peak_vgs`), 고른 칸 `cell_ok` 거짓 → `lut_hermite_nonmonotone_cell`(detail `gm_id, L, vds, vsb, kind, w_key, axis "VGS", cell_lo, cell_hi` -- 칸 양끝 VGS) |
 | `gm_id_for_target(memo, kind, w_key, L, vds, vsb, *, W, gm=None, current=None)` | `TargetSolution(vgs, gm_id, id_a, gm_s)` | Q = `id_vals·W/w_m`(current) 또는 `id_vals·gm_id_vals·W/w_m`(gm) -- 마디 값. 분지 index p 부터 마디 Q 가 엄격히 증가하는 첫 구간 [p, e] 에서 칸 j = p + max(searchsorted(Q[p..e], 목표, left) − 1, 0). j = e 면 vgs = VGS[e], 아니면 [r5] 칸 [j, j+1] 의 VGS Hermite 로 ln Q(vgs) = ln 목표를 `hermite_root` 로 푼다(current: ln Q = p(v) + ln(W/w_m), gm: ln Q = p(v) + ln p'(v) + ln(W/w_m)). 그 vgs 의 `op_point` 로 `gm_id`, `id_a = IDu·W/L`, `gm_s = gm_id·id_a`. 목표가 Q[p]..Q[e] 밖이고 분지 Q 범위 밖 → reason `lut_target_out_of_range`, 범위 안이지만 단조 구간 밖에서만 닿음 → `lut_target_non_monotonic`(detail `quantity, target, W, L, vds, vsb, kind, w_key, branch_min, branch_max, monotone_lo, monotone_hi`). [r5] NaN 마디 → `lut_curve_undefined`(detail `quantity, target, W, L, vds, vsb, kind, w_key, n_undefined`), 칸 j(j < e) 의 `cell_ok` 거짓 → `lut_hermite_nonmonotone_cell`(앞 detail + `axis "VGS", cell_lo, cell_hi`). `gm`·`current` 둘 다/둘 다 없음, `W ≤ 0` → `ValueError` |
 | `vdsat(memo, kind, w_key, L, vgs, vds, vsb)` [r6] | float V | 4.3 |
+| [r7] `ft_curve`·`intrinsic_gain_curve`·`vdsat_curve`·`idu_curve` `(memo, kind, w_key, L, vds, vsb)` | `GmIdAxisCurve` | 4.5 |
+| [r7] `vgs_for_current_density(memo, kind, w_key, ln_idu, L, vds, vsb)` | float V | 3.1 |
+| [r7] `noise_params(memo, kind, w_key, L, vgs, vds, vsb)` | `NoiseParams` | 9.3 |
+| [r7] `mismatch_dvgs(memo, kind, w_key, L, vgs, vds, vsb)` | `MismatchSens` | 10.2 |
 | `tol_vdsat_table(memo, kind, w_key, l_bin_checks=None)` [r6] | `TolVdsatTable` | 5.2 |
 | `midpoint_l_bin_checks(memo, kind, w_key)` [r6] | `MidpointChecks` | 5.1 |
 | `gmb(memo, kind, w_key, L, vgs, vds, vsb)` | float A/V(폭 w_m) | [r6] GMBS 열이 있으면 4.4 의 열 정의(정본). 없으면 아래 r5 정의. [r5] VS 칸 k = `min(bisect_right(VS, vsb) − 1, len(VS) − 2)`(VS 는 선형 축이라 칸 안 ln ID 가 vsb 에 선형), `gmb = −ID(점) · (ln IDu(VS[k+1]) − ln IDu(VS[k])) / (VS[k+1] − VS[k])`, 세 값 모두 같은 (L, vgs, vds) 의 `op_point`(ID(점) = IDu·w_m/L). 소자 폭 W 값 = `× W / w_m`(부르는 쪽) |
 | `caps(memo, kind, L, vgs, vds, vsb, W)` | `Caps(cgg, cgd, cgs, cgb, model)` F | [r4] 4.0 의 L 장(bin 지도 = `CapTable.l_bins`)에서 기준 LUT 열 (L, VGS, VDS, VS) 모든 축 선형 보간([r5] `linear_point`, 4.2 표) × `W / w_ref_m`. CGS·CGB 열이 있으면 `model = "lut_cgs_cgb"`, 없으면 `"cgg_minus_cgd_at_gs"`(cgs = cgg − cgd, cgb = 0.0). 축은 기준 LUT 축(옛 세트 VS 0~0.8 → vsb > 0.8 실패, LUT v2 는 0~1.8). kind 표 없음 → `KeyError`. [r6] `Caps.cdd`·`css` = CDD·CSS 열이 있으면 같은 보간 × W/w_ref_m, 없으면 None. 값은 저장 부호 그대로(음수 가능 -- 로그·절댓값 없음). bin 지도 = `CapTable.l_bins`(1.4 폭 키 수정) |
 | `tol_v_table(memo, kind, w_key, l_bin_checks=None)` | `TolVTable` | 5절([r6] 기본값 None = 중점 파일 값) |
 | `curve_report(memo)` | `CurveReport(lut_fp, rows)` | 슬라이스·L 앵커마다 `CurveRow`(lut_types 문서): 격자점 곡선만. [r2] `n_curves` = **검사한** 곡선 수(건너뛴 곡선 제외), `n_skipped` = ID·GM 에 0 이하 격자점이 있어 뺀 곡선 수,
-`n_curves + n_skipped = len(VDS)·len(VS)`. [r5] `n_hermite_nonmonotone` = 그 L 앵커 i 의 `count(~fc_ok_vgs[i]) + count(~fc_ok_vds[i])`. 행 순서 (kind, w_key) 정렬 후 L 오름차순 |
+`n_curves + n_skipped = len(VDS)·len(VS)`. [r5] `n_hermite_nonmonotone` = 그 L 앵커 i 의 `count(~fc_ok_vgs[i]) + count(~fc_ok_vds[i])` + [r7] `count(~fc_ok_vs[i])`. 행 순서 (kind, w_key) 정렬 후 L 오름차순 |
 
 ### 4.2 [r5] 축별 보간 방법 (DEC-87 -- `op_point`·`gm_id_curve`·역산·`gmb` 공통, `_helpers_interp`)
 
 | 양 | L | VGS | VDS | VS |
 |---|---|---|---|---|
-| ln ID | 선형(4.0 의 L 장) | 2점 cubic-Hermite, 기울기 = 저장 GM/ID | 2점 cubic-Hermite, 기울기 = 저장 GDS/ID | 선형 |
+| ln ID | 선형(4.0 의 L 장) | 2점 cubic-Hermite, 기울기 = 저장 GM/ID | 2점 cubic-Hermite, 기울기 = 저장 GDS/ID | [r7] 2점 cubic-Hermite, 기울기 = −GMBS/ID (GMBS 열이 있는 슬라이스, 아니면 선형) |
 | gm/ID | (ln ID 의 VGS 미분으로 **정의**) | Hermite 미분 | 마디 기울기 S_a 는 선형 | 마디 기울기 S_a 는 선형 |
 | ln GDS, VTH, 용량 | 선형 | 선형 | 선형 | 선형 |
 
@@ -403,9 +468,12 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   (h00 = 2t³ − 3t² + 1, h10 = t³ − 2t² + t, h01 = −2t³ + 3t², h11 = t³ − t²), 미분 `p'(x) = dp/dt / h`. 코드는 같은 다항식을 Bernstein
   제어점 (y0, y0 + m0·h/3, y1 − m1·h/3, y1) 의 de Casteljau 로 계산한다(3 = 조건 수 4 − 1). p(x0) = y0, p'(x0) = m0, p(x1) = y1, p'(x1) = m1.
 - **조회점 (L, vgs, vds, vsb) 의 계산**(텐서곱 순서):
-  1. VGS 칸 [a, a+1] = `cell(VGS, vgs)`, VDS 칸 k = `cell(VDS, vds)`(t_d), VS·L 은 선형 가중(L 은 4.0 의 장 안).
+  1. VGS 칸 [a, a+1] = `cell(VGS, vgs)`, VDS 칸 k = `cell(VDS, vds)`(t_d), [r7] VS 칸 s0 = `cell(VS, vsb)`(t_s), L 은 선형 가중(L 은 4.0 의 장 안).
   2. VGS 마디 a' ∈ {a, a+1} 마다 **마디 값** V_a' 와 **마디 기울기** S_a':
-     - y_b = Σ_{L, VS 모서리} w·lnID[·, a', b, ·] (b = k, k+1), m_b = Σ w·(GDS/ID)[·, a', b, ·].
+     - [r7] **VS 축**: VDS 마디 b ∈ {k, k+1}(VDS 가 격자점이면 그 하나)마다 L 선형 가중 후 VS 칸 [s0, s0+1] 의 Hermite(끝 값 ln ID, 끝 기울기 −GMBS/ID, 폭 h_s, t_s)로 y_b 를 만든다.
+       조건: 가중치 0 이 아닌 L 모서리·VDS 마디 모두에서 두 VS 끝 `vs_slope_ok` 참이고 `fc_ok_vs` 참. 아니면 y_b = L·VS 선형 가중(사유 `slope_undefined`/`fc_violation` 기록).
+       VS 가 격자점이면 VS 보간이 없다.
+     - y_b = (위 VS 처리 결과 또는 Σ_{L, VS 모서리} w·lnID[·, a', b, ·]) (b = k, k+1), m_b = Σ w·(GDS/ID)[·, a', b, ·](L·VS 선형).
      - V_a' = VDS 가 격자점이면 그 y_b, 아니면 Hermite(y_k, y_k+1, m_k, m_k+1, h_d, t_d) -- 단, 가중치 0 이 아닌 (L, VS) 모서리의
        `vds_slope_ok` 가 (b = k, k+1) 모두 참이고 `fc_ok_vds[·, a', k, ·]` 가 모두 참일 때만, 아니면 VDS 선형 y_k + t_d·(y_k+1 − y_k).
      - S_a' = Σ_{L, VDS, VS 모서리(가중치 ≠ 0)} w·(GM/ID) -- 그 모서리 중 `on_mask` 거짓이 있으면 NaN.
@@ -414,9 +482,9 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
      아니면 lnID = V_a + t·(V_a+1 − V_a), gm/ID = (V_a+1 − V_a)/h (그 직선의 미분 -- 정의 유지).
 - 결과: 격자점(네 축 모두 격자 위, L 앵커)에서 lnID·gm/ID·lnGDS·VTH 는 저장값 그대로(r4·옛 다선형과 같은 값, gm_gds 만 식이
   `gm/ID·exp(lnID − lnGDS)` 라 몇 ulp 차). 마디 사이에서 gm/ID 는 ln ID 의 VGS 미분과 **같다**(같은 곡면).
-- 이 표에 없는 축 조합의 기울기 자료(GMBS 열 -- VS 축 Hermite 기울기 −GMBS/ID)는 열이 생기면 VS 를 Hermite 로 바꾼다(DEC-87, 계획 범위 밖).
-  [r6] 재생성 슬라이스가 GMBS 를 가져 기울기 자료는 생겼지만 **VS 축 Hermite 는 보류**(오케스트레이터 결정 B, 2026-10-08 -- 운영 보간·
-  tol_V·FC 검사·toy 기대값이 함께 바뀌는 별도 변경). VS 축은 r6 에서도 선형이다(8절).
+- [r7] VS 축 Hermite(GMBS 열 -- 기울기 −GMBS/ID): r6 에서 보류했던 변경을 U3 가 했다(운영 보간·tol_V LOO·FC 검사·로드 기록이 함께 바뀜). GMBS 열이 없는 슬라이스(옛 12-L 세트·toy)는 VS 선형 그대로다.
+  gm/ID 의 마디 기울기 S_a 는 VS 방향도 선형(저장 GM/ID 의 L·VDS·VS 선형 가중, VDS 와 같은 규칙).
+  [r7 실측 2026-10-08, 소자 W = 5 µm(w_key 1000)·L 0.35 µm 칸 중앙 점 -- 선형 대비] @@VS_ACC@@
 - [r5 실측 2026-10-07, ngspice-46 새 점 -- code author 측정, 소자 W = 5 µm(w_key 1000), L 0.15·0.35·1·4 µm, VS 0·0.4 V, 강반전 분지
   (VGS ≥ 그 곡선 정점) · VDS ≥ 2 격자칸] 칸 중앙 오차(엔진 op_point 대 ngspice, `|Δln ID|/(gm/ID)` V 단위 / gm/ID 상대):
   - VGS 칸 중앙(VDS 격자점) nmos: r4 p50 0.286 mV·p99 0.904 mV / gm/ID p99 0.53 % → r5 p50 0.13 µV·p99 2.5 µV / p99 0.0012 %
@@ -463,10 +531,25 @@ memo 에 저장 안 됨)·4.0·4.1 사유.
   5.0e-7(n·p); 다른 폭 8점(seed 20261008) 새 독립 .op 대비 ID·VDSAT·GMBS 최대 상대차 3.2e-7. 생성기 sha256 8df35d2e…(옛 6ad080e9…),
   manifest sha256 a25b9036…, 576 조합 1230.6 s(jobs 9).
 
+### 4.5 [r7] gm/ID 축 곡선 표 -- `ft_curve`·`intrinsic_gain_curve`·`vdsat_curve`·`idu_curve` `(memo, kind, w_key, L, vds, vsb) -> GmIdAxisCurve` (설계 40 §2.3, 41 §6.2~§6.4, §4.1)
+- 곡선 = 고정 (L, VDS, VS)의 `gm_id_curve`. 표의 마디 = **강반전 분지**(VGS ≥ 곡선 정점 = gm/ID 최댓값 마디, `nanargmax`)의 VGS 격자 마디 -- 값은 그 마디에서 LUT 가 말하는 양이라 새 추정이 없고,
+  마디 사이는 소비자가 `op_point` 등으로 읽는다. 분지 안에 gm/ID 가 정의 안 된 마디(NaN)가 있으면 `lut_curve_undefined`(역산 함수와 같은 규칙).
+- `GmIdAxisCurve(quantity, kind, w_key, L, vds, vsb, gm_id, values, vgs, cell_ok, monotone)`: 배열은 VGS 오름차순(gm/ID 는 분지에서 내려간다)·읽기 전용, `cell_ok[j]` = 마디 j·j+1 사이가
+  Hermite 칸(역산 허용), `monotone` = `gm_id` 가 분지에서 엄격히 감소(그러면 gm/ID 축으로 값을 역산할 수 있고, 아니면 소비자는 마디 전수로 쓴다 -- 41 §4.1 해법 매핑).
+- 값(`quantity`): `ft_curve` "ft_hz" = gm/(2π·Cgg)(Hz; gm = (gm/ID)·ID(w_m), Cgg = `caps(W = w_m).cgg` 라 폭 무관, 2π = `math.tau`; Cgg ≤ 0 마디는 `lut_curve_undefined`),
+  `intrinsic_gain_curve` "intrinsic_gain" = `op_point.gm_gds`(무차원), `vdsat_curve` "vdsat_v" = `vdsat(...)`(V; VDSAT 열 없으면 `lut_column_unavailable`), `idu_curve` "idu_a" = ID·L/w_m(A; `op_point.IDu` 와 같은 양).
+- memo: 영역 curve, 키 `(kind, w_key, L, vds, vsb)`, 함수 이름 `<quantity>_curve`. 같은 인자 두 번째는 compute 0.
+- **소비처**(설계 40 §2.3 'lut → 41 §6'): `ft_curve`·`idu_curve`·`vdsat_curve`·`intrinsic_gain_curve` = search 출발 구간(`iv_speed`·`iv_headroom`·`iv_gain_l`, U13)과 GB4 곡선 검사·블록 gain 상한(U9). 만들어진 곡선 API 와 겹치는
+  기존 임시 구현은 없다(`rg "gm_gds|\.cgg|vdsat\(" gmid_engine -g '!tests' -g '!lut'` 은 sizing 의 `gm_gds`(미분 보조)뿐 -- 곡선 표가 아니다). `vgs_for_current_density` 만 sizing 임시 우회를 대체했다(3.1).
+- 실측(실데이터 w_key 1000, 무작위 (L 앵커, VDS ≥ 2 칸, VS 격자) 300점/kind(seed 20261008): 표 생성 성공 nmos 300·pmos 300(VDS ≥ 2 칸이라 `lut_curve_undefined` 0), 분지(정점 = VGS 0 의 약반전 평탄 구간)에서 gm/ID 엄격 감소(`monotone`) nmos 300·pmos 74 -- pmos 는 중반전에서 gm/ID 가 한 번 올라가는 모델 특성(곡선 보고 `n_branch_nonmonotonic`)이라 `monotone` = False 인 곡선이 많고 소비자는 그 곡선을 마디 전수로 쓴다, 평균 마디 수 nmos 49.0·pmos 48.8, 표 하나(새 memo) 평균 ms: nmos ft 2.46·gain 4.71·vdsat 1.75·idu 0.77 / pmos ft 2.38·gain 4.65·vdsat 1.62·idu 0.72).
+
 ## 5. [r2 전면 교체, r4 L 방향 추가, r5 같은 방법 LOO + Richardson] tol_V 표 `tol_v_table(memo, kind, w_key, l_bin_checks=()) -> TolVTable` (계획 N3.6, 사용자 확정 2026-10-07)
 
 - **보간 축 VGS·VDS·VS leave-one-out + [r4] 같은 모델 bin 안의 L 축 leave-one-out.** **모든 L 앵커가 셀을 가진다**(r1 의 '양끝 앵커 None' 폐기).
 - 셀 = (kind, w_key, L 앵커 i, VDS 격자 k) -- `cells[i][k]` = `TolVCell`. **셀별 값만** 낸다(전역 최댓값으로 줄이지 않음).
+- [r7] VS 축 id_equivalent LOO 도 같은 방법(Hermite, 기울기 −GMBS/ID, 두 이웃의 `vs_slope_ok` 가 다 있는 점)이다 -- 차수 p = 4(없는 점·GMBS 열 없는 슬라이스는 선형 p = 2). `loo_orders` 의
+  (id_equivalent, VS) 행이 `("id_equivalent", "VS", "hermite", 4, 2^-4)`. gm_id_inverse 의 VS 축은 그대로(곡선 ln ID 는 두 이웃의 VS Hermite, gm/ID 는 선형). 이 변경으로 tol_V 값이 바뀐다(캐시 키의 코드
+  버전이 달라 옛 표는 재사용되지 않는다). @@TOLV_SHIFT@@
 - [r5] **LOO 추정 = 운영 보간과 같은 방법**(DEC-87, 4.2): 축 a, 내부 격자점 x_j(0 < j < n_a − 1), 이웃 x_{j−1}·x_{j+1},
   H = x_{j+1} − x_{j−1}, t = (x_j − x_{j−1})/H.
   - ln ID 추정: VGS 축 = Hermite(lnID_{j−1}, lnID_{j+1}, (GM/ID)_{j−1}, (GM/ID)_{j+1}, H, t), 두 이웃 `on_mask` 가 참일 때(아니면 선형);
@@ -672,7 +755,7 @@ tol_V 의 `l_loo` 전부 "bins_unavailable", `l_loo_bins == ()`. bin 보간·bin
 
 | 호출 | 기대값(r5 toy) |
 |---|---|
-| `lut.slice_map[("nmos", 100)].hermite_fc` | `(("VDS", 18, 0), ("VGS", 24, 0))` |
+| `lut.slice_map[("nmos", 100)].hermite_fc` | `(("VDS", 18, 0), ("VGS", 24, 0))` [r7: `+ (("VS", 0, 0),)` -- toy 슬라이스는 GMBS 열이 없다] |
 | `widths(lut, "nmos")` | `(200,)` |
 | [r2] `op_point(m, "nmos", 100, 1.5e-6, 0.5, 0.5, 0.0)` | `SealViolationError` `lut_l_not_anchor`, below 1e-6, above 2e-6. `1e-6 + 2·ulp(1e-6)` 도 같은 실패, `1e-6 + ulp(1e-6)` 은 앵커 1e-6 값 |
 | [r2] `op_point(..., L=4e-6, ...)` | `lut_axis_out_of_range`, axis "L" |
@@ -715,7 +798,7 @@ b1² = 65.5 > b0·b2 = 50 → 위반, VGS 칸 1(기울기 10·4)은 b1 = −0.09
 
 | 호출 | 기대값(r4 toy) |
 |---|---|
-| `slice_map[("nmos", 100)].hermite_fc` | `(("VDS", 18, 18), ("VGS", 24, 12))`; `curve_report(m).rows[i].n_hermite_nonmonotone` = 10 (VGS 4 + VDS 6, 모든 행) |
+| `slice_map[("nmos", 100)].hermite_fc` | `(("VDS", 18, 18), ("VGS", 24, 12))` [r7: `+ (("VS", 0, 0),)`]; `curve_report(m).rows[i].n_hermite_nonmonotone` = 10 (VGS 4 + VDS 6, 모든 행) |
 | `op_point(m, "nmos", 100, 1e-6, 0.25, 0.75, 0.0)` | VGS·VDS 모두 선형 칸 → IDu = √(1e-7·1e-6) = 3.162278e-7, gm_over_id = ln10/0.5 = 4.605170(그 직선의 미분), gm_gds = 46.05170, gds_per_w 0.03162278, vth 0.4 -- 실패하지 않는다 |
 | `vgs_for_gm_id(m, "nmos", 100, 15.0, 1e-6, 0.5, 0.0)` | 고른 칸 [0, 0.5] 위반 → `SealViolationError` `lut_hermite_nonmonotone_cell`, detail axis "VGS", cell_lo 0.0, cell_hi 0.5 |
 | `vgs_for_gm_id(m, "nmos", 100, 7.0, 1e-6, 0.5, 0.0)` | 칸 [0.5, 1] (단조) 의 Hermite 미분 = 7 인 근 0.5834716 (2차식 근, 칸 안 t = 0.1669433) |
@@ -766,5 +849,116 @@ b1² = 65.5 > b0·b2 = 50 → 위반, VGS 칸 1(기울기 10·4)은 b1 = −0.09
 - 옛 `SemiEmpiricalGmIdLUT`(W_ref = 5 µm 슬라이스 배열) 대비 `op_point` 동치 test: [r5] **격자점에서만**(6절). 옛 로그 바닥(1e-18·1e-30)과
   갈리는 점(ID < 1e-18)은 비교에서 뺀다. `vgs_for_gm_id` 는 칸 선택(3절)만 옛과 비교할 수 있고 칸 안 근은 다르다. 옛 해가 정점 왼쪽인
   입력은 새 쪽이 실패해야 한다(3절).
-- [r5] VS 축 Hermite(GMBS 열 -- 기울기 −GMBS/ID): GMBS 열이 LUT 재생성(Q1)에서 생기면 4.2 표의 VS 를 바꾼다. 그때까지 VS 는 선형이고
-  gmb 는 VS 칸 할선(이웃 칸 경계에서 계단).
+- [r5 -> r7 해소] VS 축 Hermite(GMBS 열): 4.2·5절에서 했다. GMBS 열이 없는 슬라이스(옛 12-L 세트·toy)의 gmb 는 VS 칸 할선(이웃 칸 경계에서 계단) 그대로다.
+- [r7] 잡음·mismatch 열: 기준 폭(5 µm)에서만 잰다(다른 폭으로 옮기지 않는다 -- 4.3 규칙). 폭 W 소자는 호출부가 환산한다(9.3·10.4).
+- [r7] 특성화 깊이: 잡음 주파수 점은 고정 로그 이분 깊이(기본 3)이고, 설계 41 §7.2 의 '조건을 만족하는 점이 생길 때까지 반복(상한 K_max)'를 칸별 적응 반복이 아니라 전 칸 같은 깊이로 구현했다
+  (칸별 tol 이 B 면에서 나와 순환이므로 flicker 면 tol 로 판정 -- 9.2). 미상 칸 수는 9.2 실측에 있다. 깊이를 늘려 다시 재는 것은 `--depth` 로 가능하다(새 버전 파일).
+
+---
+
+## 9. [r7] 잡음 -- 새 버전 파일 `..._noise_r1.npz`, 분해 S_vg = A/f^EF + B (설계 41 §7.2, 계획 DEC-96 (3), D-NZ2)
+
+모델 사실(PDK 모델 카드, bin 전수 확인 `_drafts/engine/noise_spec_proposal.md` §0): `fnoimod = 1`(unified flicker, EF), `tnoimod = 1`(holistic thermal -- γ 는 모델 파라미터가 아니라 바이어스 함수).
+그래서 γ·K 를 상수로 가정하지 않고 LUT 칸마다 읽는다. EF 는 PDK 선언 양(`noise_ef_nmos` 0.84, `noise_ef_pmos` 1.0 -- core CONTRACT 9.4b)이고 `LutSpec.noise_ef` 로 들어온다.
+
+### 9.1 파일과 로드 `load_noise_tables(spec, prov, caps) -> {kind: NoiseTable}` (`noise_set.py`, `load_lut_set(noise_npz=)` 가 부른다)
+- 생성기: `assets/sky130_lut_sweep.py noise --cap-npz <기준 LUT> --out <npz> --work <폴더> [--jobs N] [--depth K]`. 기준 LUT 와 **같은 (L, VGS, VDS, VS) 격자·같은 DUT 줄·같은 include·같은 측정 구조**
+  (드레인 choke 개방 + 게이트 AC 여기, `inoise_spectrum`² = 게이트 환산 V²/Hz). 주파수 점 = 기준 LUT 두 점(meta `frequencies_hz`: `NOISE_F_PROBE` = 1 Hz, `F_TEST` = 100 MHz) 사이의 **로그 이분**
+  (깊이 `--depth` 기본 3: 이웃 점 기하평균을 더하는 일을 깊이만큼 반복 -> 1, 10, 10², …, 10⁸ Hz). 점 위치는 상수가 아니라 두 끝과 깊이에서 나온다.
+- 새 파일 키: `L·VGS·VDS·VS`, `w_ref_m`, `corner`, `temp_c`, `f_hz`(양끝 사이 이분 점 7개 [10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0]), kind 마다 `SVG2_F<접미사>`[f, L, VGS, VDS, VS](V²/Hz, 기준 폭 5 µm), `meta_json`
+  (`cap_npz_sha256` = 묶인 기준 LUT sha256, `base_frequencies_hz`, `bisect_depth`, `base_repro_rel_max` = 같은 생성기로 다시 잰 1 Hz·100 MHz 값과 기준 LUT 열의 최대 상대차, 모델 파일 sha256, ngspice 버전, 온도, 조합 기록).
+  기존 r2 파일은 고치지 않는다. 기준 LUT 의 `SVG2_1HZ`·`SVG2_HF`(f_lo·f_hi)와 이 파일의 점을 합쳐 `NoiseTable.S` = [f_lo, 이분 점들, f_hi] 오름차순으로 노출한다.
+- 거부(`SchemaRejectedError`): meta 키 없음/수 변환 불가 `lut_noise_meta_invalid`(detail `path, missing`), 묶인 기준 LUT 가 다름 `lut_noise_cap_mismatch`(`bound, cap`), 측정 조건(corner·temp_c)이 기준 LUT 와 다름
+  `lut_conditions_mismatch`, 주파수 점이 오름차순·양끝 안쪽이 아님 `lut_noise_frequency_invalid`, 축·기준 폭 불일치 `lut_noise_axes_mismatch`, 기준 LUT 에 `SVG2_1HZ`·`SVG2_HF`·`GM` 열 없음
+  `lut_noise_cap_column_missing`, `spec.noise_ef` 에 kind 없음 `lut_noise_ef_undeclared`, 열 없음/모양 다름 `lut_noise_column_missing`·`lut_noise_shape_mismatch`.
+- [실측 2026-10-08] 생성기 `noise` 모드, 조합 360(nfet 180 + pfet 180 = L 18 × VS 10, 조합당 ngspice 프로세스 1개가 VGS×VDS 2401점 × 주파수 9개를 돈다), 병렬 8. 소요: 벽시계 약 104 분(20:01~21:45, 기계 부하 100 % -- 다른 단위의 테스트·특성화와 동시; 30 분 백그라운드 시간 제한에 한 번 중단돼 체크포인트(조합 단위, 생성기 sha256 같을 때만 재사용)로 이어 돌렸다), 단독 실행 조합 1개 17.5 s(2401점, 주파수 9개). 재현성: 같은 생성기로 다시 잰 1 Hz·100 MHz 값이 기준 LUT `SVG2_1HZ`·`SVG2_HF` 와 비트 동일(`base_repro_rel_max` = 0.0, 4개 열 모두). 파일 `sky130_nfet_pfet_lut_v2_noise_r1.npz` 48.6 MB sha256 `f5ecfdf1…32a1`, 생성기 sha256(작업 트리 CRLF 바이트) `0ea5ca36…cc69`(git blob LF `73522053…5987`), ngspice-46, TT 27 °C.
+
+### 9.2 분해 `noise_planes(memo, kind) -> NoisePlanes` (`noise_planes.py`, 층 5; memo 영역 derived)
+- 점마다 S_lo = S(f_lo), 이분 점 j 의 flicker 비 r_j = (f_j/f_lo)^−EF, **B_j = (S_j − S_lo·r_j)/(1 − r_j)**, A = (S_lo − B)·f_lo^EF (f_lo = 1 Hz 면 A = S_vg(1 Hz) − B).
+- **B 를 읽는 점**: 점마다 아래 두 조건을 모두 만족하는 **가장 높은** 주파수 점 j.
+  (1) **피드스루**(설계 41 §7.2): (2π·f_j·|Cgd|/gm)² ≤ 그 점의 허용오차 `tol_point`. Cgd = `CapTable.CGD`, gm = 기준 LUT `GM` 열 -- 같은 LUT 칸이라 새 상수가 없다.
+      (게이트 환산 잡음의 피드스루: 드레인 열잡음 전류가 gm 대신 √(gm² + (ωCgd)²) 로 나뉘어 측정값이 B/(1 + (ωCgd/gm)²) 로 작아진다 -- 상대오차 (ωCgd/gm)².)
+  (2) **평탄(plateau)** [r7 추가, 설계 밖]: j 가 가장 낮은 이분 점이 아니면 |B_j − B_{j−1}| ≤ `tol_point`·|B_{j−1}|. 근거(실측 2026-10-08): 긴 L·약반전에서는 입력 환산 잡음이 위 피드스루 식이
+      예측하는 것보다 훨씬 낮은 주파수에서 1차 저역 통과로 떨어진다(L = 20 µm·VGS 0.6 V·VS 0.6 V, gm/ID 25: B_j 가 10 Hz~1e4 Hz 에서 6.82e-14 로 같다가 1e5 Hz 6.42e-14, 1e6 Hz 9.4e-15 -- 피드스루 식은
+      1e6 Hz 에서 6e-4). 열잡음 평탄값은 주파수와 무관해야 하므로(모델이 정확하면 flicker 가 지배하는 낮은 주파수에서도 같은 B) 평탄이 깨지는 점은 쓰지 않는다. (1) 만 쓰면 이런 점의 B 를 86 % 낮게 읽는다.
+      효과(같은 데이터로 재 본 |B_선택 − B(100 Hz)|/B 의 p50/p90/p99 -- 셀 허용오차+피드스루만: nmos 0.029/0.44/0.99(10 % 넘는 점 28 %), pmos 0.021/0.87/1.0(37 %); 점 허용오차+평탄: nmos 0.0023/0.105/0.42(10.5 %), pmos 0.00055/0.004/0.14(1.2 %). 대가: B known 비율 nmos 94.4 → 90.1 %·pmos 81.7 → 77.5 %).
+  그런 점이 없으면 B 는 미상(`no_feedthrough_free_point`).
+- **허용오차**: `tol_a`[L, VDS] = ln S_vg(f_lo) 면의 leave-one-out(선형, 네 축; L 은 같은 bin 안 내부 앵커) 오차 ÷ 2^2 의 셀 안 최댓값 -- 잡음 면 자체의 보간 해상도(`linear_loo_cells`). 정의 안 되면 NaN -> B 미상.
+  `tol_point`[L, VGS, VDS, VS] = min(그 점의 같은 LOO 오차, 그 셀 `tol_a`); 점의 LOO 가 정의 안 되면(격자 가장자리) `tol_a`. **설계의 '그 칸의 tol' 보다 엄격하다**: 셀 최댓값은 몇 개 병적 점(VDS ≈ 0 열·VGS 끝)이 정해 셀 전체
+  허용오차를 부풀린다(`tol_a` 중앙/최대 nmos 0.135/3.95·pmos 0.297/4.17 -- 상대오차가 1 을 넘는 셀이 있다). 점 허용오차 ≤ 셀 허용오차라 셀 허용오차 보증은 유지된다. B 의 주파수를 고르는 데 B 의 tol 을 쓸 수 없어(순환)
+  flicker 면의 tol 을 쓴다.
+- 상태 `NOISE_B_STATUS` = ("known", "no_feedthrough_free_point", "nonpositive"): 조건을 만족하는 점이 없으면 `no_feedthrough_free_point`, B ≤ 0 또는 A ≤ 0 이면 `nonpositive`. 미상인 점은
+  A := S_lo·f_lo^EF(B 를 0 으로 둠), ln B = NaN. 설계 41 §7.2: 미상이면 그 칸을 쓰는 잡음 metric 의 resolution 을 무한대로 두고 판정을 보류한다(소비자 U8).
+- 결과 `NoisePlanes(kind, ln_a, ln_b, status, tol_a, ln_b_filled, flag_no_point, flag_nonpositive, tol_point)`(배열은 읽기 전용; 뒤 4개는 조회·진단용 보조 면; 배열을 품어 디스크 캐시 `unstorable` -- 재계산 비용 1.3 s / 1.4 s(nmos/pmos, 한 번))). 잡음 r1 파일이 없으면 `KeyError`.
+- [실측 2026-10-08] 격자점(기준 LUT on_mask 점) 중 B known 비율 nmos 90.1 %·pmos 77.5 % (상태 0/1/2 점 수 nmos {'0': 381515, '1': 41737, '2': 108}·pmos {'0': 328150, '1': 94975, '2': 235}). `tol_a` 정의된 셀 nmos 882/882·pmos 882/882, 중앙/최대 nmos 1.35e-01/3.95e+00·pmos 2.97e-01/4.17e+00. γ_eff = B·gm/(4kT)(T = 300.15 K, VDS 0.9 V, VS 0): nmos L 0.25 µm gm/ID 10.9 -> γ 1.95 K 1.72e-22 known; nmos L 0.25 µm gm/ID 15.7 -> γ 1.924 K 1.73e-22 known; nmos L 0.5 µm gm/ID 10.5 -> γ 1.977 K 2.71e-22 known; nmos L 0.5 µm gm/ID 17.3 -> γ 1.776 K 2.45e-22 known; nmos L 1 µm gm/ID 10.9 -> γ 2.108 K 3.08e-22 known; nmos L 1 µm gm/ID 15.4 -> γ 1.973 K 2.74e-22 known; pmos L 0.25 µm gm/ID 11.3 -> γ 1.016 K 7.31e-23 known; pmos L 0.25 µm gm/ID 15.2 -> γ 0.781 K 7.63e-23 known; pmos L 0.5 µm gm/ID 10.3 -> γ 1.013 K 1.24e-22 known; pmos L 0.5 µm gm/ID 15.3 -> γ 0.844 K 1.15e-22 known; pmos L 1 µm gm/ID 10.4 -> γ 1.056 K 1.87e-22 known; pmos L 1 µm gm/ID 15.2 -> γ 0.854 K 1.79e-22 known. 제안서 §0.2 값(nfet 1.9–2.1, pfet 1.0–1.05(gm/ID 10)·0.77–0.84(gm/ID 15), K = A·W·L nfet 1.7e-22–3.3e-22, pfet 0.5e-22–1.9e-22 V²·m²)과 일치.
+
+### 9.3 조회 `noise_params(memo, kind, w_key, L, vgs, vds, vsb) -> NoiseParams(A, B, ef, b_status, w_m)` (`noise_query.py`, 층 6; memo 영역 point)
+- S_vg(f) = A/f^EF + B (V²/Hz, 기준 폭 `w_m`). 폭 W 소자는 A·B 모두 `w_m`/W 배(같은 전류밀도에서 S_vg 는 폭에 반비례). 파생량은 읽는 쪽이 계산한다(열로 저장하지 않는다): **γ_eff = B·gm/(4kT)**, **K = A·W·L**
+  (V²·m², §6.4-3 의 1/f L 하한).
+- 보간: ln A·ln B 를 L(4.0 규칙)·VGS·VDS·VS 모든 축 선형(`linear_point`). 가중치 0 이 아닌 모서리 중 B 미상이 하나라도 있으면 그 점의 `B` = None, `b_status` = 그 사유(`nonpositive` 우선), `A` 는 면의 값 그대로.
+- 폭 키가 기준 LUT 폭 키(`CapTable.w_key`)와 다르면 실패 -- 다른 폭 열로 대신하지 않는다(4.3 규칙).
+- 실패(`SealViolationError`): 잡음 파일 없음 `lut_noise_unavailable`, 폭 키 불일치 `lut_column_unavailable`(`column` = "SVG2"), L·축 -> 4.0·4.1 사유(context `table` = "noise"). 옛 `SID_1F` 열은 읽지 않는다(단위가 잘못됨).
+- 호출 비용 약 102 µs / 275 µs (nmos/pmos, memo 미적중 1회).
+
+### 9.4 허용오차 `tol_noise_table(memo, kind) -> TolNoiseTable` (`noise_tolerance.py`; memo 영역 derived, 디스크 캐시 대상)
+- 셀 (kind, L 앵커, VDS) × 지표 `TOL_NOISE_METRICS` = ("flicker", "thermal"): `flicker` = ln S_vg(f_lo) 면의 LOO 선형 상대오차 ÷ 2^2 의 셀 안 최댓값(= 위 `tol_a`), `thermal` = ln B 면(B known 인 점끼리)의 같은 값.
+  값이 로그라 상대오차(무차원)다. `.at(L, vds, metric)` = `TolVTable.at` 와 같은 행·칸 규칙, 정의 안 되면 None. 앵커 2개 bin 의 외부 L 값(검증 중점)은 잡음에 없다 -- `l_loo` 상태에 남는다.
+- [실측 2026-10-08] flicker 중앙/최대 nmos 1.35e-01/3.95e+00·pmos 2.97e-01/4.17e+00, thermal 중앙/최대 nmos 1.67e-01/1.03e+00·pmos 1.72e-01/1.29e+00 (상대). 계산 0.3 s/0.4 s. 셀 최댓값은 소수의 병적 점이 정한다 -- 점별(on 점) ln B LOO 오차 p50/p90/p99: nmos L 축 0.4/1.6/4.4 %·VGS 0.13/1.4/11.5 %·VDS 0.002/0.44/7.1 %·VS 0.13/0.94/12 %, pmos L 0.8/4.4/22 %·VGS 0.38/1.1/13 %·VDS 0.002/0.41/7.0 %·VS 0.17/0.75/14 %.
+
+### 9.5 데이터 필수 검사 `require_lut_data(lut, kinds, *, noise=False, mismatch=False)` (`lut_requirements.py`)
+- 잡음 제약(`noise_*` metric)이 선언됐는데 `lut.noise` 에 kind 가 없으면 `SchemaRejectedError` `noise_lut_missing`, offset 제약이 선언됐는데 `lut.mismatch` 에 없으면 `mismatch_lut_missing`
+  (detail `kinds` = 없는 kind 정렬 tuple; 둘 다 없으면 잡음 쪽이 먼저). 호출부 = spec 의 제약 선언을 읽는 단위(authoring·search 시작, 설계 40 §11 U5·U9) -- 이 브랜치에는 그 제약 선언이 아직 없다.
+
+### 9.6 손계산 toy (test 작성자가 그대로 만들 수 있는 입력)
+- 잡음 r1·기준 LUT 를 같은 축으로 만들고 모든 점에서 S_vg(f) = A0/f^EF + B0 (A0 = 1e-12, B0 = 1e-16, EF = 1; f = f_lo = 1, 이분 점 10, 100, f_hi = 1e4 Hz -- 기준 LUT `SVG2_1HZ` = A0 + B0, `SVG2_HF` = f_hi 값)를 쓰고 `GM` = 1e-3 이다.
+  - `CGD` = 0 이면 피드스루 0 이라 허용오차(≥ 0) 이하다. 모든 j 에서 B_j = B0(대수적으로 정확: S_j − S_lo·r_j = A0(f_j^−1 − f_j^−1) + B0(1 − r_j))이고 평탄 조건은 허용오차 0 이어도 반올림 허용분 안에서 통과한다 ->
+    선택은 가장 높은 f(1e4), A = S_lo − B0 = A0 -> `noise_params` = (A0, B0, EF = 1, "known", w_m).
+  - 면이 모든 점에서 같으면 LOO 오차 0 이라 허용오차 0: `CGD` > 0 이면 피드스루 > 0 이라 모든 점이 탈락 -> 모든 점 `no_feedthrough_free_point`, `B` = None, `A` = S_lo·f_lo^EF = A0 + B0.
+  - 경계: 이분 점은 항상 f_lo 보다 크다(`lut_noise_frequency_invalid` 로 보장) -- B_j 식의 분모 1 − r_j 가 0 이 되지 않는다.
+  - 한계(데이터): ngspice 가 `inoise_spectrum` 을 7자리로 찍어 S 가 상대 ~1e-6 해상도라, flicker 가 지배하는 낮은 주파수의 B_j 는 (S_lo·r_j/B)·1e-6 만큼 흔들린다(예: nfet L 0.5 µm, gm/ID 10: S_lo/B = 1.4e6 -> 10 Hz 점 B_j -4 %,
+    100 Hz +1.8 %, 1e3 Hz 이상 0.5 % 안). 평탄 조건이 이 점들을 거부할 수 있다.
+
+## 10. [r7] mismatch 감도 -- 새 버전 파일 `..._mismatch_r1.npz`, DVGS_k 와 A_eff (설계 41 §6.4-2·2b, 계획 DEC-96 (2), D-MM1·2, D-PG)
+
+모델 카드는 변수 p ∈ {vth0, toxe, voff, (pfet) nfactor} 를 `p = p0 + p_slope_spectre·(p_slope/sqrt(l·w·mult))` 로 소자마다 독립 gauss(std 1) 로 흔든다(core CONTRACT 9.4b·9.6: l·w 는 µm 수치, slope 의 길이 단위 µm,
+**bin 마다 쓰는 slope 이름이 다르다** -- pfet L < 0.5 µm 은 `vth0_slope1` 7.356e-3). 같은 ID 에서의 ΔVGS 가 β 경로(1/(gm/ID))와 Vth 경로를 한 열에 함께 담는다.
+
+### 10.1 파일과 로드 `load_mismatch_tables(spec, prov, caps) -> {kind: MismatchTable}` (`mismatch_set.py`)
+- 생성기: `assets/sky130_lut_sweep.py mismatch --cap-npz <기준 LUT> --out <npz> --work <폴더> [--jobs N]`. 기준 LUT 와 같은 격자·DUT 줄·include 로, 모델 카드 복사본에서 변수 k 의 `*_slope_spectre` 를 0 → **1σ**
+  (= `.option scale` 에서 읽은 1e-6; DUT 가 l·w 를 m 로 주므로 sqrt(l·w) 가 µm 기준 값의 1e-6 배 -- core CONTRACT 9.4b 단위 확인)로 바꾼 섭동 곡선과 기준 곡선을 돌려, 기준 곡선 칸의 ID 에서 섭동 곡선의
+  |VGS| 차를 **DVGS_k**(V) 로 둔다(역산 = 섭동 곡선의 VGS cubic-Hermite -- 값 ln ID, 기울기 gm/ID -- 의 bisection 70회, 기준 ID 가 섭동 곡선 범위 밖·ID ≤ 0·섭동 곡선이 단조 증가 아님이면 NaN). 변수 = 모델 카드 머리
+  `*_slope_spectre` 전수(nfet toxe·vth0·voff, pfet toxe·vth0·voff·nfactor).
+- 새 파일 키: `L·VGS·VDS·VS`, `w_ref_m`, `corner`, `temp_c`, kind 마다 변수별 `DVGS_<변수><접미사>`[L, VGS, VDS, VS], `meta_json`(`cap_npz_sha256`, `variables`{소자: [변수]}, `sigma_unit`,
+  `sigma_unit_source`(all.spice 경로·sha256), `slope_ref`{소자: {L(µm 글자, 오름차순): {model, 변수: {slope 이름, value} 또는 None}}} = 앵커 L 마다 기준 폭 bin 이 쓴 slope, `ref_id_repro_rel_max` = 기준 곡선 ID 와 기준 LUT ID 열의
+  최대 상대차(0 이어야 같은 넷리스트), 모델 파일 sha256, ngspice 버전, 온도, 조합 기록). 기존 r2 파일은 고치지 않는다. 한계: 기준 폭(5 µm)에서만 잰다.
+- 거부(`SchemaRejectedError`): meta 키 없음 `lut_mismatch_meta_invalid`(앵커 수와 `slope_ref` 개수 불일치 포함), 기준 LUT 가 다름 `lut_mismatch_cap_mismatch`, 측정 조건 다름 `lut_conditions_mismatch`,
+  축·기준 폭 다름 `lut_mismatch_axes_mismatch`, 열 없음/모양 다름 `lut_mismatch_column_missing`·`lut_mismatch_shape_mismatch`.
+- [실측 2026-10-08] 생성기 `mismatch` 모드, 조합 360(nfet 180 + pfet 180), 조합당 ngspice 4~5회(기준 곡선 1 + 변수 nfet 3·pfet 4) × op 2401점, 병렬 6. 소요: 벽시계 약 79 분(20:01~21:20, 같은 부하 조건, 한 번 중단 후 체크포인트 재개). 기준 곡선 ID 가 기준 LUT ID 열과 비트 동일(`ref_id_repro_rel_max` = 0.0). NaN 칸 4.04 %(전 변수 공통: VDS = 0 열 + 섭동 곡선이 격자 끝 VGS = 1.8 V 를 넘는 최상단 행), voff 는 nfet 2.62 %·pfet 2.04 %, pfet voff 는 모델 카드가 쓰는 slope 가 0 이라 DVGS ≈ 1e-15 V. 파일 `sky130_nfet_pfet_lut_v2_mismatch_r1.npz` 24.4 MB sha256 `dfec7bbf…bf4e`, 같은 생성기 sha256, ngspice-46, TT 27 °C.
+
+### 10.2 조회 `mismatch_dvgs(memo, kind, w_key, L, vgs, vds, vsb) -> MismatchSens(dvgs, slope_ref, w_m)` (`mismatch_query.py`; memo 영역 point)
+- `dvgs`{변수: V}·`slope_ref`{변수: 기준 bin 의 slope 값(그 bin 이 변수를 안 쓰면 0.0)} 읽기 전용 매핑. 보간 = (L 4.0 규칙, VGS, VDS, VS) 모든 축 선형. `slope_ref` = 조회 L 아래 앵커의 기록(같은 bin 이라 같다).
+- 실패(`SealViolationError`): mismatch 파일 없음 `lut_mismatch_unavailable`, 폭 키 불일치 `lut_column_unavailable`(`column` = "DVGS"), 가중치 0 이 아닌 모서리에 정의 안 된 칸(NaN) `lut_mismatch_undefined`(detail `parameters`),
+  L·축 -> 4.0·4.1 사유(context `table` = "mismatch"). 호출 비용 약 102 µs / 275 µs (nmos/pmos, memo 미적중 1회).
+
+### 10.3 허용오차 `tol_mismatch_table(memo, kind) -> TolMismatchTable` (`mismatch_tolerance.py`; memo 영역 derived, 디스크 캐시 대상)
+- 셀 (kind, L 앵커, VDS) × 변수: DVGS_k 면의 LOO 선형 오차 ÷ 2^2 의 셀 안 최댓값(V). `.at(L, vds, param)` = `TolVTable.at` 규칙, 정의 안 되면 None. 변수가 `params` 밖이면 `ValueError`.
+- [실측 2026-10-08] 변수별 셀 최댓값 [V] nmos {'toxe': '3.00e-05', 'voff': '1.14e-04', 'vth0': '2.50e-05'}, pmos {'nfactor': '1.57e-04', 'toxe': '4.31e-05', 'voff': '2.22e-16', 'vth0': '4.82e-05'}. 계산 0.9 s/1.5 s.
+
+### 10.4 소자 σ `mismatch_sigma_vgs(memo, model, kind, w_key, L, vgs, vds, vsb, W) -> MismatchSigma(sigma_v, parts, model)` (`mismatch_sigma.py`; memo 영역 point)
+
+  σ_VGS(W, L, 점) = √(Σ_k (DVGS_k(L, 점) · slope_k(bin(W, L)) / slope_k(bin_ref))²) · √(W_ref / W)   [V, 단일 소자]
+
+- `model` = `core.PdkMismatchModel`(kind 의 것, `decl.mismatch_model(kind)`). `slope_k(bin(W, L))` = 소자 폭 W(모델 카드에 넘기는 인스턴스 `w`, m)·길이 L 이 든 블록(`bin_index` 규칙으로 W bin 먼저, 그 안 L bin;
+  블록이 변수를 안 쓰면 0). `slope_k(bin_ref)` = `MismatchSens.slope_ref`. 기하 √(W_ref·L)/√(W·L) = √(W_ref/W).
+- 쌍: σ_ΔVGS,pair = √2·σ_VGS, **A_eff(L, gm/ID) = σ_쌍·√(W·L)**(mV·µm)이고 읽는 쪽이 계산한다(열로 저장하지 않는다). 변수별 기여 `parts`(V)는 offset 기여 표용.
+- 손계산: 변수 3개 DVGS = (1, 2, 2) mV, 기준 bin slope = 소자 bin slope 이면 W = W_ref 에서 σ = √(1+4+4) = 3 mV, W = 4·W_ref 에서 1.5 mV(√(W_ref/W) = 1/2); 두 번째 변수의 소자 bin slope 가 기준의 2배면
+  σ = √(1 + 16 + 4) = √21 mV (W = W_ref); 소자 bin 이 세 번째 변수를 안 쓰면(slope 0) σ = √(1+4) mV.
+- 실패: `mismatch_dvgs` 사유, (W, L) 을 품는 블록 없음 `lut_mismatch_no_block`, 기준 bin 이 변수를 안 쓰는데(slope_ref 0) 소자 bin 은 쓰면 `lut_mismatch_slope_unscalable`. `W <= 0` -> `ValueError`.
+- [대조 2026-10-08, W = 5 µm, 쌍 A_eff mV·µm, VDS 0.9 V·VS 0] nmos L 0.15: gm/ID 5/10/15/20 = 7.11/8.85/10.47/11.23 | nmos L 0.18: gm/ID 5/10/15/20 = 7.39/9.18/10.33/11.3 | nmos L 0.25: gm/ID 5/10/15/20 = 6.5/7.31/8.49/9.75 | nmos L 0.5: gm/ID 5/10/15/20 = 5.79/6.13/7.73/9.12 | nmos L 1: gm/ID 5/10/15/20 = 6.05/6.51/7.58/8.96 | nmos L 2: gm/ID 5/10/15/20 = 6.12/7.62/9.09/10.27 | nmos L 4: gm/ID 5/10/15/20 = 6.11/6.98/8.32/9.69 | pmos L 0.15: gm/ID 5/10/15/20 = 12.47/12.09/12.08/12.74 | pmos L 0.18: gm/ID 5/10/15/20 = 12.52/12.01/11.98/12.39 | pmos L 0.25: gm/ID 5/10/15/20 = 12.5/11.93/11.86/11.95 | pmos L 0.5: gm/ID 5/10/15/20 = 11.84/11.37/11.25/11.36 | pmos L 1: gm/ID 5/10/15/20 = 9.39/9.05/8.98/9.16 | pmos L 2: gm/ID 5/10/15/20 = 9.34/8.92/8.9/9.33 | pmos L 4: gm/ID 5/10/15/20 = 9.32/8.91/8.9/9.26 (제안서 §0.3 표: n 0.5 µm 5.8/6.0/7.1/8.6, p 0.5 µm 11.9/11.4/11.3/11.4 등과 일치)
+
+### 10.5 필수 검사: `require_lut_data(..., mismatch=True)` -- 9.5.
+
+### 10.6 PDK slope 와 Pelgrom 계수 유도 (참고, 대조용 -- 코드에 박지 않는다)
+쌍 A_VT = √2·`vth0_slope`, A_β = √2·`toxe_slope`(%·µm, toxe 는 상대값): nfet 4.75 mV·µm / 0.487 %·µm; pfet L ≥ 0.5 µm 8.28 / 0.628; pfet L < 0.5 µm 10.40 / 0.911 (`vth0_slope1` 7.356e-3, `toxe_slope1` 6.443e-3).
+ngspice 쌍 MC(`assets/sky130_pair_mc.py`) 확인: 표본 1000/사례(seed 20261008), nfet W5 L0.5: A_VT mc 4.75(기대 4.75, 비 1.001), native/meter 1.0000, A_eff mc 6.12, all/rss 1.025, A_β mc 0.452(기대 0.487); nfet W5 L1: A_VT mc 4.76(기대 4.75, 비 1.002), native/meter 1.0000, A_eff mc 6.49, all/rss 1.033, A_β mc 0.470(기대 0.487); nfet W5 L0.18: A_VT mc 4.56(기대 4.75, 비 0.961), native/meter 1.0000, A_eff mc 8.05, all/rss 0.962, A_β mc 0.370(기대 0.487); nfet W2 L1: A_VT mc 4.84(기대 4.75, 비 1.020), native/meter 1.0000, A_eff mc 5.94, all/rss 1.012, A_β mc 0.434(기대 0.487); pfet W5 L0.5: A_VT mc 10.14(기대 10.40, 비 0.974), native/meter 1.0000, A_eff mc 11.00, all/rss 0.975, A_β mc 0.843(기대 0.911); pfet W5 L1: A_VT mc 8.62(기대 8.28, 비 1.041), native/meter 1.0000, A_eff mc 9.31, all/rss 1.030, A_β mc 0.553(기대 0.628); pfet W5 L0.18: A_VT mc 9.16(기대 10.40, 비 0.881), native/meter 1.0000, A_eff mc 11.46, all/rss 1.000, A_β mc 0.892(기대 0.911); pfet W2 L1: A_VT mc 8.09(기대 8.28, 비 0.977), native/meter 1.0000, A_eff mc 8.64, all/rss 0.971, A_β mc 0.601(기대 0.628). A_β 는 toxe 만 흔든 σ(ΔVGS) = a + b/(gm/ID) 회귀(gm/ID 5·7·10·12)의 b·√(W·L)이라 근사다(제안서 §0.3 의 같은 회귀 결과 n 0.45–0.52·p 0.56–0.59(L ≥ 1)·0.88–1.16(L ≤ 0.5)과 같은 범위). LUT 감도 열로 합성한 A_eff 와 같은 점(다이오드 접속 VDS = VGS, 같은 전류밀도)의 쌍 MC 비교: nmos W5 L0.5: LUT 6.04 / MC 6.12 (비 1.014, 모델 블록 model.24); nmos W5 L1: LUT 6.33 / MC 6.49 (비 1.025, 모델 블록 model.23); nmos W5 L0.18: LUT 8.59 / MC 8.05 (비 0.938, 모델 블록 model.26); nmos W2 L1: LUT 6.35 / MC 5.94 (비 0.935, 모델 블록 model.41); pmos W5 L0.5: LUT 11.37 / MC 11.00 (비 0.967, 모델 블록 model.24); pmos W5 L1: LUT 9.06 / MC 9.31 (비 1.028, 모델 블록 model.23); pmos W5 L0.18: LUT 12.02 / MC 11.46 (비 0.953, 모델 블록 model.26); pmos W2 L1: LUT 9.05 / MC 8.64 (비 0.955, 모델 블록 model.41). 전체 표·재현 명령·sha256 = `docs/03-analysis/gain-budget-gmid-sizing.u3-lut-pdk-record.md`.
+LUT 감도 열의 vth0 성분은 이 값과 같아야 한다(U3 test (c)): nmos W5 L0.5: 4.74; nmos W5 L1: 4.753; nmos W5 L0.18: 4.815; nmos W2 L1: 4.752; pmos W5 L0.5: 10.409; pmos W5 L1: 8.366; pmos W5 L0.18: 9.712; pmos W2 L1: 8.365 mV·µm (기대 = √2·vth0_slope: nfet 4.746, pfet L ≥ 0.5 µm 8.282, L < 0.5 µm 10.403 -- 짧은 채널(L 0.18 µm)에서는 같은 ID 의 ΔVGS 가 ΔVT 와 한 자릿수 % 다르다(pfet 9.71 대 10.40)). 같은 점의 쌍 MC 와 A_eff 비 MC/LUT = 1.014, 1.025, 0.938, 0.935, 0.967, 1.028, 0.953, 0.955

@@ -15,6 +15,8 @@
   폴더로 옮겨도 sha256 대조는 그대로 -- 경로는 지문에 들어가지 않는다). 주지 않으면 meta 값(r5 그대로).
 * [r6] `verify_midpoints` 인자: bin 검증 중점 파일(선택) -- 파일 sha256 과 meta `L_source` 를 출처에 싣는다(내용 검사는
   `load_lut_set`).
+* [r7] `noise_npz`·`mismatch_npz` 인자: 잡음 r1·mismatch 감도 r1 파일(선택) -- 경로와 sha256 을 출처에 싣는다(파일 없음 ->
+  `lut_noise_missing`·`lut_mismatch_missing`, 내용 검사는 `load_lut_set`).
 """
 import hashlib
 import json
@@ -86,13 +88,24 @@ def _midpoints(path):
     return os.path.abspath(path), _sha256_of(path), sorted_items(meta.get("L_source") or {}), conditions
 
 
-def lut_provenance(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None):
+def _extra_file(path, reason):
+    """선택 파일의 (절대 경로, sha256), 없으면 (None, None). 파일이 없으면 `reason` 으로 거부."""
+    if path is None:
+        return None, None
+    if not os.path.isfile(path):
+        raise schema_rejected(reason, path=str(path))
+    return os.path.abspath(path), _sha256_of(path)
+
+
+def lut_provenance(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None, noise_npz=None,
+                   mismatch_npz=None):
     """manifest 와 기준 LUT(`cap_npz_path`) 의 출처를 읽어 `LutProvenance` 로 돌려준다.
 
     슬라이스 소자 이름은 `spec.device_kinds` 로 kind 를 정한다(선언 밖 소자는 거부). 폭 키는
     `round(W / spec.manufacturing_grid_m)` 이고, 파일의 W(m) 와 키·격자 곱의 차가 float 반올림 3회(곱·격자·나눗셈)의
     상계 `2 * ulp(W / grid)` 를 넘으면 거부한다(폭이 제조 격자 위에 있지 않은 파일).
     `pdk_root`: 모델 파일을 찾을 PDK 루트(None = 슬라이스 meta 값). `verify_midpoints`: 검증 중점 파일 경로(None = 없음).
+    `noise_npz`·`mismatch_npz`: 잡음 r1·mismatch 감도 r1 파일 경로(None = 없음).
     """
     if not os.path.isfile(manifest_path):
         raise schema_rejected("lut_manifest_missing", path=str(manifest_path))
@@ -141,4 +154,5 @@ def lut_provenance(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_m
         os.path.abspath(manifest_path), _sha256_of(manifest_path), str(manifest.get("generator_sha256")),
         tuple(sorted(slices, key=lambda s: (s.kind, s.w_key))),
         os.path.abspath(cap_npz_path), _sha256_of(cap_npz_path), cap_conditions, *mid,
+        *_extra_file(noise_npz, "lut_noise_missing"), *_extra_file(mismatch_npz, "lut_mismatch_missing"),
     )

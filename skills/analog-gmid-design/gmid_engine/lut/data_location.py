@@ -5,12 +5,13 @@
 * 엔진 코드에는 폴더 경로가 없다: 기본 위치·환경 변수 이름·파일 sha256 은 **설정 파일**(예: `assets/lut_v2_location.json`)에
   있고, 환경은 부르는 쪽이 매핑으로 넘긴다(`os.environ` 를 이 모듈이 직접 읽지 않는다 -- 같은 입력이면 같은 결과).
 * 설정 형식: `{"root": {"env": <이름>, "default": <폴더>}, "pdk_root": {"env", "default"} (선택),
-  "files": {"manifest": {"path", "sha256"}, "cap_npz": {...}, "verify_midpoints": {...} (선택)}}`. `path` 는 root 기준 상대 경로
+  "files": {"manifest": {"path", "sha256"}, "cap_npz": {...}, "verify_midpoints": {...} (선택), "noise": {...} (선택, [r7] 잡음 r1),
+  "mismatch": {...} (선택, [r7] mismatch 감도 r1)}}`. `path` 는 root 기준 상대 경로
   (절대 경로·`..` 금지). root·pdk_root = 환경 변수가 비어 있지 않으면 그 값, 아니면 `default`.
 * 파일마다 sha256 을 다시 재서 설정 값과 대조한다(manifest 가 슬라이스 sha256 을 고정하고 `load_lut_set` 이 그것을 대조하므로
   슬라이스는 여기서 다시 재지 않는다 -- 같은 파일 두 번 해시 안 함). 다르면 거부(조용히 다른 데이터를 쓰지 않음).
 * 결과 `LutLocation` 을 `load_lut_set(location.manifest_path, location.cap_npz_path, spec, pdk_root=location.pdk_root,
-  verify_midpoints=location.midpoints_path)` 로 넘긴다.
+  verify_midpoints=location.midpoints_path, noise_npz=location.noise_path, mismatch_npz=location.mismatch_path)` 로 넘긴다.
 """
 import hashlib
 import json
@@ -20,7 +21,7 @@ from ._helpers_fail import schema_rejected
 from .lut_types import LutLocation
 
 _REQUIRED_FILES = ("cap_npz", "manifest")
-_OPTIONAL_FILES = ("verify_midpoints",)
+_OPTIONAL_FILES = ("mismatch", "noise", "verify_midpoints")
 
 
 def _sha256_of(path):
@@ -81,4 +82,5 @@ def resolve_lut_location(config_path, env):
     if isinstance(config.get("pdk_root"), dict):
         pdk_root = os.path.abspath(_choose(config["pdk_root"], env, "pdk_root", sources))
     return LutLocation(os.path.abspath(config_path), root, paths["manifest"], paths["cap_npz"],
-                       paths.get("verify_midpoints"), pdk_root, tuple(sorted(sources)))
+                       paths.get("verify_midpoints"), pdk_root, tuple(sorted(sources)), paths.get("noise"),
+                       paths.get("mismatch"))

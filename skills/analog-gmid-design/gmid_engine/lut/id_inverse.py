@@ -23,17 +23,10 @@ import numpy as np
 from ._helpers_anchor import l_position
 from ._helpers_fail import seal_violation
 from ._helpers_interp import hermite_root
-from ._helpers_root import peak_index
+from ._helpers_root import monotone_end, peak_index
 from .gm_id_curve import gm_id_curve
 from .lut_types import TargetSolution
 from .point_query import op_point
-
-
-def _monotone_end(q, p):
-    end = p
-    while end + 1 < len(q) and q[end + 1] > q[end]:
-        end += 1
-    return end
 
 
 def gm_id_for_target(memo, kind, w_key, L, vds, vsb, *, W, gm=None, current=None):
@@ -61,7 +54,7 @@ def gm_id_for_target(memo, kind, w_key, L, vds, vsb, *, W, gm=None, current=None
             raise seal_violation("lut_curve_undefined", n_undefined=undefined, **context)
         q = curve.id_vals * scale if quantity == "current" else curve.id_vals * curve.gm_id_vals * scale
         p = peak_index(curve.gm_id_vals)
-        end = _monotone_end(q, p)
+        end = monotone_end(q, p)
         context.update(branch_min=float(q[p:].min()), branch_max=float(q[p:].max()),
                        monotone_lo=float(q[p]), monotone_hi=float(q[end]))
         if not q[p] <= target <= q[end]:

@@ -36,7 +36,7 @@ import math
 
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
 from gmid_engine.graph import MOS_TERMINAL_NAMES
-from gmid_engine.lut import AXES, gm_id_for_target, gmb
+from gmid_engine.lut import AXES, gmb, vgs_for_current_density
 
 from ._helpers_lut import forward_point, terminal_voltages, tol_v_cell, w_key_of, with_device
 from .bracket_root import bracket_root
@@ -84,7 +84,7 @@ READS = (
 WRITES = (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), ("device", "dc_ln_idu"),
           ("graph", "dc_scc_log"))
 _REL_MOS, _REL_RES, _REL_TIE, _REL_FIXED, _REL_Y = PATH_MOS, PATH_RESISTOR, PATH_TIE, PATH_FIXED, PATH_Y
-_TARGET_OUT_OF_RANGE = "lut_target_out_of_range"       # lut CONTRACT 4.1 gm_id_for_target 사유 키
+_TARGET_OUT_OF_RANGE = "lut_target_out_of_range"       # lut CONTRACT 4.1·3.1 vgs_for_current_density·gm_id_for_target 사유 키
 _TRANSIENT_LUT_REASONS = (_TARGET_OUT_OF_RANGE, "lut_axis_out_of_range")   # 반복 중 정의역 이탈(검증 바퀴가 다시 잰다)
 _CURVE_UNDEFINED = "lut_curve_undefined"     # lut CONTRACT 4.1 -- VDS 정의역 하한(`_vds_floor`) 아래에서만 반복 중 이탈로 본다
 _VDS_AXIS, _VS_AXIS = AXES.index("VDS"), AXES.index("VS")
@@ -127,13 +127,10 @@ def _kind_sign(kind):
 
 
 def _vgs_of_coordinate(lut, device, kind, L, vds, vsb, ln_idu):
-    """좌표 ln IDu(DEC-88)에서 VGS 크기 -- 강반전 분지 역산. master lut r3 에는 `vgs_for_current_density` 가 없어
-    `gm_id_for_target(W = 슬라이스 폭 w_m, current = IDu·w_m/L)` 로 같은 양을 푼다(IDu = ID·L/w_m 정의, 분지 index p 부터
-    단조 구간 ln Q 선형). r4(Hermite 칸 안 bisection, DEC-87)가 들어오면 이 함수만 바꾼다."""
+    """좌표 ln IDu(DEC-88)에서 VGS 크기 -- 강반전 분지 역산(lut `vgs_for_current_density`: 칸 안 Hermite 근, DEC-87)."""
     w_key = w_key_of(lut, kind)
-    w_m = lut.memo.lut.slice_map[(kind, w_key)].w_m
     try:
-        return gm_id_for_target(lut.memo, kind, w_key, L, vds, vsb, W=w_m, current=math.exp(ln_idu) * w_m / L).vgs
+        return vgs_for_current_density(lut.memo, kind, w_key, ln_idu, L, vds, vsb)
     except SealViolationError as exc:
         raise with_device(exc, device, "vgs_of_coordinate") from exc
 
@@ -256,10 +253,8 @@ class _Circuit:
         그 밖 LUT 실패(축 밖·비단조)는 소자 이름을 붙여 그대로 낸다."""
         kind = self.kinds[m]
         w_key = w_key_of(self.lut, kind)
-        w_m = self.lut.memo.lut.slice_map[(kind, w_key)].w_m
         try:
-            return gm_id_for_target(self.lut.memo, kind, w_key, self.L[m], vds, vsb, W=w_m,
-                                    current=math.exp(self.ln_idu[m]) * w_m / self.L[m]).vgs
+            return vgs_for_current_density(self.lut.memo, kind, w_key, self.ln_idu[m], self.L[m], vds, vsb)
         except SealViolationError as exc:
             detail = dict(exc.record.detail)
             if detail.get("reason") != _TARGET_OUT_OF_RANGE:

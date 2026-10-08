@@ -4,7 +4,7 @@
 
 격자점 값만 쓴다(보간 없음). 곡선 = 한 (L, VDS, VS) 의 VGS 축 gm/ID = exp(lnGM - lnID). ID·GM 에 0 이하 격자점이
 있는 곡선(예: VDS = 0)은 gm/ID 가 정의되지 않아 세지 않고 `n_skipped` 로만 센다. 분지 규칙은 `_helpers_root`
-(정점 index 부터 오른쪽). Hermite 칸 단조 위반 수(`n_hermite_nonmonotone`)는 로드 기록 `DcSlice.fc_ok_vgs`·`fc_ok_vds`
+(정점 index 부터 오른쪽). Hermite 칸 단조 위반 수(`n_hermite_nonmonotone`)는 로드 기록 `DcSlice.fc_ok_vgs`·`fc_ok_vds`·[r7] `fc_ok_vs`
 의 그 L 앵커 몫을 센다(DEC-87 FC 검사, 다시 계산하지 않는다).
 """
 import numpy as np
@@ -32,7 +32,8 @@ def _rows_of(sl):
                 n_nonmono += 1
                 max_rise = max(max_rise, float(rises.max() / g[p]))
         gm_gds = gm_gds_all[i][on]
-        n_fc_bad = int(np.count_nonzero(~sl.fc_ok_vgs[i]) + np.count_nonzero(~sl.fc_ok_vds[i]))
+        n_fc_bad = int(np.count_nonzero(~sl.fc_ok_vgs[i]) + np.count_nonzero(~sl.fc_ok_vds[i])
+                       + np.count_nonzero(~sl.fc_ok_vs[i]))
         rows.append(CurveRow(sl.kind, sl.w_key, L, n_curves, int(curve_ok.size - n_curves), n_nonmono, max_rise,
                              gm_id_max, float(gm_gds.max()) if gm_gds.size else 0.0, n_fc_bad))
     return rows

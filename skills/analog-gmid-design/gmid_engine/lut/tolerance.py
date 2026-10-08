@@ -5,13 +5,14 @@ VDS))별 (계획 N3.6 사용자 확정 2026-10-07, DEC-87 tol_V 연동, 설계 M
 
 * 모든 L 앵커가 셀을 가진다. 보간 축 = VGS·VDS·VS + **L(같은 bin 안에서만)**.
 * **같은 방법**(DEC-87): 축 a 의 **내부** 격자점 x_j(0 < j < n_a − 1)를 빼고 이웃 x_{j-1}·x_{j+1} 로 운영 보간과 같은 방법의
-  추정을 만든다 -- ln ID 는 VGS 축 Hermite(기울기 GM/ID)·VDS 축 Hermite(기울기 GDS/ID)·VS·L 축 선형, gm/ID 는 VGS 축이면
-  Hermite 미분, 다른 축이면 선형(운영 보간의 마디 기울기 S_a 와 같은 규칙). 두 이웃의 기울기 자료가 다 있지 않으면 그 점은
+  추정을 만든다 -- ln ID 는 VGS 축 Hermite(기울기 GM/ID)·VDS 축 Hermite(기울기 GDS/ID)·[r7] VS 축 Hermite(기울기 −GMBS/ID,
+  GMBS 열이 있는 슬라이스)·L 축 선형, gm/ID 는 VGS 축이면 Hermite 미분, 다른 축이면 선형(운영 보간의 마디 기울기 S_a 와 같은 규칙). 두 이웃의 기울기 자료가 다 있지 않으면 그 점은
   선형(운영 보간의 대체 규칙과 같다). 양끝 격자점은 그 축 방향 추정이 없다(다른 축 방향은 있다).
 * **Richardson 환산**(Q2 (ii) (A)): LOO 는 간격 2배 격자의 오차라 운영 칸(간격 h)의 칸 중앙 오차보다 2^p 배 크다(p = 보간
   차수). 그래서 점마다 LOO 값을 그 (지표, 축, 방법) 의 차수 p 로 2^p 나눠 셀 값에 넣는다(`LOO_ORDERS`). 차수는 방법에서
   유도한다: 선형 값 p = 조건 수 2, Hermite 값 p = 조건 수 4, Hermite 미분(gm/ID 의 VGS 축) p = 4 − 1 = 3, VDS·VS·L 축의
-  gm/ID(선형) p = 2. 환산 전 값도 셀에 따로 둔다(`*_loo_v`).
+  gm/ID(선형) p = 2. [r7] VS 축 id_equivalent 는 기울기 자료가 있는 점에서 Hermite(p = 4), 없는 점은 선형(p = 2).
+  환산 전 값도 셀에 따로 둔다(`*_loo_v`).
 * L 축: 앵커 i 의 양옆 앵커 i-1·i+1 이 **모두 i 와 같은 bin**(`LBinMap.anchor_bin`)일 때만(= bin 안 내부 앵커) 추정한다.
   앵커 2개 bin 은 bin 중점 검증 시뮬레이션의 보간 오차를 외부 값으로 받는다(그 값은 이미 운영 보간의 칸 중앙 오차라 환산하지
   않는다). [r6] `l_bin_checks=None`(기본)이면 LutSet 에 실린 검증 중점 파일에서 `midpoint_l_bin_checks` 로 만든 값을 쓰고,
@@ -28,7 +29,7 @@ VDS))별 (계획 N3.6 사용자 확정 2026-10-07, DEC-87 tol_V 연동, 설계 M
 """
 import numpy as np
 
-from ._helpers_interp import hermite
+from ._helpers_interp import VS_SLOPE_COLUMN, hermite
 from ._helpers_loo import (
     HERMITE_ORDER,
     HERMITE_SLOPE_ORDER,
@@ -56,7 +57,7 @@ LOO_ORDERS = (
     ("id_equivalent", "L", "linear", LINEAR_ORDER),
     ("id_equivalent", "VDS", "hermite", HERMITE_ORDER),
     ("id_equivalent", "VGS", "hermite", HERMITE_ORDER),
-    ("id_equivalent", "VS", "linear", LINEAR_ORDER),
+    ("id_equivalent", "VS", "hermite", HERMITE_ORDER),
 )
 _EXTERNAL_FIELDS = ("gm_id_inverse_v", "id_equivalent_v")
 
@@ -71,6 +72,9 @@ def _id_equivalent(sl, lid, gm_id, gds_id, interior):
     raw_best = np.full(lid.shape, np.nan)
     in_bin = np.asarray(interior, dtype=bool).reshape((-1,) + (1,) * (lid.ndim - 1))
     slopes = {"VGS": (gm_id, sl.on_mask), "VDS": (gds_id, sl.vds_slope_ok)}
+    ratio = sl.columns.get(VS_SLOPE_COLUMN)
+    if ratio is not None:                                   # [r7] VS 축 Hermite 기울기 d ln ID / d VS = -GMBS/ID
+        slopes["VS"] = (-np.where(sl.vs_slope_ok, ratio, 0.0), sl.vs_slope_ok)
     for axis, name in enumerate(AXES):
         slope, ok_mask = slopes.get(name, (lid, sl.on_mask))
         est, order = loo_estimate(lid, slope, ok_mask, axis, sl.grids[axis], name in slopes)
@@ -87,24 +91,36 @@ def _id_equivalent(sl, lid, gm_id, gds_id, interior):
 
 
 def _vs_pairs(grid):
-    """VS 축 곡선 s 마다 (아래 이웃 index, 위 이웃 index, t 열벡터, 내부 여부) -- 슬라이스당 1회(셀 반복 밖)."""
+    """VS 축 곡선 s 마다 (아래 이웃 index, 위 이웃 index, t 열벡터, 내부 여부, 이웃 간격 H 열벡터) -- 슬라이스당 1회(셀 반복 밖)."""
     x = np.asarray(grid, dtype=float)
     rows = np.arange(len(x))
     inner = (rows > 0) & (rows < len(x) - 1)
     lo_c = np.where(inner, rows - 1, rows)
     hi_c = np.where(inner, rows + 1, rows)
-    t = np.where(inner, (x - x[lo_c]) / np.where(inner, x[hi_c] - x[lo_c], 1.0), 0.0)[:, None]
-    return lo_c, hi_c, t, inner
+    span = np.where(inner, x[hi_c] - x[lo_c], 1.0)
+    t = np.where(inner, (x - x[lo_c]) / span, 0.0)[:, None]
+    return lo_c, hi_c, t, inner, span[:, None]
 
 
 def _vs_neighbor_curves(sl, lid, gm_id, i, k, vs_pairs):
-    """VS 축 LOO 곡선 묶음 (Y, G, 정의 여부) -- 곡선 s 마다 이웃 s−1·s+1 로 선형(모양 (VS, VGS)), s 가 VS 양끝이면 정의 없음."""
-    lo_c, hi_c, t, inner = vs_pairs
+    """VS 축 LOO 곡선 묶음 (Y, G, 정의 여부) -- 곡선 s 마다 이웃 s−1·s+1 로 (모양 (VS, VGS)), s 가 VS 양끝이면 정의 없음.
+    ln ID 는 두 이웃의 VS 기울기 자료(−GMBS/ID)가 정의된 VGS 점에서 Hermite(운영 보간과 같은 방법, [r7]), 아니면 선형.
+    gm/ID 는 선형(운영 보간의 마디 기울기 규칙)."""
+    lo_c, hi_c, t, inner, span = vs_pairs
     y = lid[i, :, k, :].T
     g = gm_id[i, :, k, :].T
     on = sl.on_mask[i, :, k, :].T.all(axis=1)
     valid = inner & on[lo_c] & on[hi_c]
-    return y[lo_c] + t * (y[hi_c] - y[lo_c]), g[lo_c] + t * (g[hi_c] - g[lo_c]), valid
+    y_loo = y[lo_c] + t * (y[hi_c] - y[lo_c])
+    ratio = sl.columns.get(VS_SLOPE_COLUMN)
+    if ratio is not None:
+        m = -np.where(sl.vs_slope_ok[i, :, k, :], ratio[i, :, k, :], 0.0).T
+        ok = sl.vs_slope_ok[i, :, k, :].T
+        use = ok[lo_c] & ok[hi_c]
+        with np.errstate(invalid="ignore", over="ignore"):
+            herm, _ = hermite(y[lo_c], y[hi_c], m[lo_c], m[hi_c], span, t)
+        y_loo = np.where(use, herm, y_loo)
+    return y_loo, g[lo_c] + t * (g[hi_c] - g[lo_c]), valid
 
 
 def _neighbor_curves(sl, lid, gm_id, gds_id, i, k, axis, idx, vs_pairs):

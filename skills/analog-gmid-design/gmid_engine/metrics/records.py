@@ -296,10 +296,13 @@ class GateArea:
 @dataclasses.dataclass(frozen=True)
 class PassiveAreaDecl:
     """수동소자 면적 선언(사용자 결정 11): `unit_area` = ((수동소자 이름, m²/값 단위), ...) -- PDK 단위 면적이 선언된 소자만,
-    `excluded` = 면적에서 빼는 소자 이름(측정 부하 -- spec `measurement_load`). 둘 다 이름순 tuple, 겹치지 않는다."""
+    `excluded` = 면적에서 빼는 소자 이름(측정 부하 -- spec `measurement_load`). 둘 다 이름순 tuple, 겹치지 않는다.
+    [U3 Q9] `head_area` = ((수동소자 이름, m²), ...) -- 값에 비례하지 않고 소자마다 한 번 더하는 면적(poly 저항의 양 끝 접촉 머리).
+    `unit_area` 에 있는 소자만 둘 수 있다."""
 
     unit_area: tuple = ()
     excluded: tuple = ()
+    head_area: tuple = ()
 
     def __post_init__(self):
         names = [n for n, _a in self.unit_area]
@@ -307,18 +310,26 @@ class PassiveAreaDecl:
             raise ValueError("PassiveAreaDecl: 이름이 겹친다")
         for _n, a in self.unit_area:
             _finite(a, "PassiveAreaDecl.unit_area", positive=True)
+        heads = [n for n, _a in self.head_area]
+        if len(set(heads)) != len(heads) or set(heads) - set(names):
+            raise ValueError("PassiveAreaDecl: head_area 소자가 겹치거나 unit_area 에 없다")
+        for _n, a in self.head_area:
+            _finite(a, "PassiveAreaDecl.head_area", positive=True)
 
 
 @dataclasses.dataclass(frozen=True)
 class PassiveArea:
-    """수동소자 하나의 면적 항: 값(F 또는 Ω)과 PDK 선언 단위 면적(m²/값 단위, U-36). 선언이 없으면 None."""
+    """수동소자 하나의 면적 항: 값(F 또는 Ω)과 PDK 선언 단위 면적(m²/값 단위, U-36). 선언이 없으면 None.
+    [U3 Q9] `head_area_m2` = 값과 무관하게 한 번 더하는 면적(poly 저항 접촉 머리, 기본 0 -- 단위 면적이 선언된 소자에만 더한다)."""
 
     label: str
     value: float
     area_per_unit_m2: object = None
+    head_area_m2: float = 0.0
 
     def __post_init__(self):
         object.__setattr__(self, "value", _finite(self.value, "PassiveArea.value", positive=True))
+        object.__setattr__(self, "head_area_m2", _finite(self.head_area_m2, "PassiveArea.head_area_m2", nonnegative=True))
         if self.area_per_unit_m2 is not None:
             object.__setattr__(
                 self, "area_per_unit_m2",
