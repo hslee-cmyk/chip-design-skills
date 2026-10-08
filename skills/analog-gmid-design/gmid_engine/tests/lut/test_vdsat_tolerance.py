@@ -259,15 +259,17 @@ def _real_ref(real_lut, raw_slice, raw_mid, kind, suf, wk, with_ext=True):
 @pytest.mark.parametrize("kind,suf,wk", [("nmos", "_n", 1000), ("pmos", "_p", 1000), ("nmos", "_n", 72), ("pmos", "_p", 84)])
 def test_real_cells_match_independent(real_lut, raw_slice, raw_mid, kind, suf, wk):
     """전 셀 = 독립 구현(npz 직접; L 방향은 엔진 bin 지도 -- 지도 자체는 test__helpers_bins 가 ngspice 로 확인) + 중점 외부 값(5.1 독립).
-    다른 폭은 중점 폭이 아니라 외부 값 없음(모든 2-앵커 bin missing_external)."""
+    다른 폭은 중점 폭이 아니라 외부 값 없음(모든 2-앵커 bin missing_external).
+    [2026-10-08 중점 변경, CONTRACT 8절] w_key 1000: 중점 0.165·0.85·1.75·3.25 µm -> 앵커 2개 bin 4개(.26 (0, 1)·.23 (10, 11)·
+    .22 (12, 13)·.21 (14, 15)) 모두 external."""
     t = tol_vdsat_table(new_memo(real_lut), kind, wk)
     assert t.origin == "slice"
     ref, ext = _real_ref(real_lut, raw_slice, raw_mid, kind, suf, wk)
     _check_cells(t, ref, ext)
     sts = [s for _, _, s in t.l_loo_bins]
     if wk == 1000:
-        assert sorted(ext) == [0, 1]
-        assert sts == ["external", "computed", "computed", "missing_external", "missing_external", "missing_external",
+        assert sorted(ext) == [0, 1, 10, 11, 12, 13, 14, 15]
+        assert sts == ["external", "computed", "computed", "external", "external", "external",
                        "single_point", "single_point"]
     else:
         assert "external" not in sts and sts.count("missing_external") >= 1
@@ -282,22 +284,71 @@ def printed_close(got, text, scale):
     return abs(got / scale - float(text)) <= 0.5 * 10 ** (-dec)
 
 
+def _ref_cell_values(real_lut, raw_slice, raw_mid, kind, suf, wk):
+    """독립 셀 값(5.2: 환산 후 = 환산 전/4 와 그 행·k 의 외부 값의 최댓값)과 셀마다의 허용 차(유도 반올림 상한/4) -- {(i, k): (값, 상한)}."""
+    ref, ext = _real_ref(real_lut, raw_slice, raw_mid, kind, suf, wk)
+    out = {}
+    for i, row in enumerate(ref):
+        for k, (loo, scaled, bnd) in enumerate(row):
+            if loo is None:
+                continue
+            e = ext.get(i, (None,) * len(row))[k]
+            out[(i, k)] = (e, 0.0) if (e is not None and e > scaled) else (scaled, bnd / 4)
+    return out
+
+
+# CONTRACT 8절 표(2026-10-08) vdsat 열(mV) 의 bin 별 최댓값 중 최대 -- nmos .21 6.39, pmos .26 32.5 (oracle (d) 계약 기록값)
+CONTRACT_8_VDSAT_MAX = {"nmos": "6.39", "pmos": "32.5"}
+
+
 @pytest.mark.lut_realdata
-@pytest.mark.parametrize("kind,wk,p50,p90,mx", [("nmos", 1000, "0.93", "1.88", "2.49"), ("pmos", 1000, "1.08", "10.2", "32.5"),
-                                                 ("nmos", 72, "0.97", "1.31", "1.39"), ("pmos", 84, "0.89", "1.36", "8.18")])
-def test_real_contract_measured(real_lut, kind, wk, p50, p90, mx):
-    """계약 5.2 실측(셀 vdsat_v p50/p90/max, mV 표기 자릿수 안). 분위수 정의 = numpy 기본(선형)."""
+@pytest.mark.parametrize("kind,suf,wk,p50,p90,mx", [("nmos", "_n", 1000, None, None, CONTRACT_8_VDSAT_MAX["nmos"]),
+                                                     ("pmos", "_p", 1000, None, None, CONTRACT_8_VDSAT_MAX["pmos"]),
+                                                     ("nmos", "_n", 72, "0.97", "1.31", "1.39"),
+                                                     ("pmos", "_p", 84, "0.89", "1.36", "8.18")])
+def test_real_contract_measured(real_lut, raw_slice, raw_mid, kind, suf, wk, p50, p90, mx):
+    """계약 5.2 실측(셀 vdsat_v p50/p90/max, mV 표기 자릿수 안). 분위수 정의 = numpy 기본(선형).
+    [2026-10-08 중점 변경] w_key 1000 은 앵커 2개 bin 4개 모두 외부 값을 받아 5.2 의 옛 실측(0.93/1.88/2.49, 1.08/10.2/32.5 mV)이
+    더는 계약 값이 아니다(5.2 문장은 갱신되지 않았다 -- 보고). 그래서 w_key 1000 의 p50·p90 은 (b) 독립 셀 값(`_ref_cell_values`)의
+    분위수와 셀 상한 안에서 같고(분위수는 원소별 섭동에 1-Lipschitz), max 는 (d) CONTRACT 8절 표 vdsat 열 최대(외부 값 > LOO/4 셀 값).
+    다른 폭(72·84)은 중점 폭이 아니라 바뀌지 않아 5.2 실측 그대로."""
     t = tol_vdsat_table(new_memo(real_lut), kind, wk)
     vals = np.asarray([c.vdsat_v for row in t.cells for c in row if c.vdsat_v is not None])
+    if p50 is None:
+        ref = _ref_cell_values(real_lut, raw_slice, raw_mid, kind, suf, wk)
+        rv = np.asarray([v for v, _ in ref.values()])
+        rb = max(b for _, b in ref.values())
+        assert len(rv) == len(vals)
+        for q in (50, 90):
+            assert abs(np.percentile(vals, q) - np.percentile(rv, q)) <= rb, (kind, q)
+        assert printed_close(vals.max(), mx, 1e-3), (kind, wk, vals.max(), mx)
+        return
     for got, want in ((np.percentile(vals, 50), p50), (np.percentile(vals, 90), p90), (vals.max(), mx)):
         assert printed_close(got, want, 1e-3), (kind, wk, got, want)
 
 
 @pytest.mark.lut_realdata
-def test_real_contract_at_example(real_lut):
-    """계약 5.2 예: tol_vdsat_table(nmos, 1000).at(1e-6, 0.9) = 0.93 mV (표기 자릿수)."""
-    v = tol_vdsat_table(new_memo(real_lut), "nmos", 1000).at(1e-6, 0.9)
-    assert printed_close(v, "0.93", 1e-3), v
+def test_real_contract_at_example(real_lut, raw_slice, raw_mid):
+    """계약 5.2 예 `tol_vdsat_table(nmos, 1000).at(1e-6, 0.9)`. [2026-10-08 중점 변경] L = 1 µm 은 앵커 2개 bin .23(0.7·1 µm)의 앵커라
+    이제 중점 0.85 µm 의 외부 값을 받는다 -- 5.2 의 옛 값 0.93 mV 는 외부 값 없던 때의 것(5.2 문장 미갱신 -- 보고).
+    기대값 = (b) 독립 셀 값(`_ref_cell_values`)으로 5절 at 규칙(앵커 행 하나 × VDS 칸 두 셀의 최댓값)을 다시 계산, 허용 차 = 그 셀 상한.
+    판별: 같은 조회를 외부 값 없는 표(l_bin_checks=())로 하면 5.2 의 옛 예 0.93 mV 이고, 기본 표 값은 그 이상이다."""
+    m = new_memo(real_lut)
+    t = tol_vdsat_table(m, "nmos", 1000)
+    v = t.at(1e-6, 0.9)
+    z = raw_slice("nmos", 1000)
+    Lg = [float(x) for x in z["L"]]
+    Va = [float(x) for x in z["VDS"]]
+    rows = [i for i, a in enumerate(Lg) if abs(1e-6 - a) <= math.ulp(a)]
+    assert len(rows) == 1
+    kk = min(bisect.bisect_right(Va, 0.9) - 1, len(Va) - 2)
+    ref = _ref_cell_values(real_lut, raw_slice, raw_mid, "nmos", "_n", 1000)
+    cells = [ref[(rows[0], b)] for b in (kk, kk + 1) if (rows[0], b) in ref]
+    exp = max(c[0] for c in cells)
+    assert abs(v - exp) <= max(c[1] for c in cells), (v, exp)
+    v0 = tol_vdsat_table(m, "nmos", 1000, ()).at(1e-6, 0.9)
+    assert printed_close(v0, "0.93", 1e-3), v0                       # (d) 5.2 옛 예 = 외부 값 없는 값
+    assert v >= v0                                                   # 5.2: 외부 값은 셀 값과의 최댓값에만 들어간다
 
 
 @pytest.mark.lut_realdata
