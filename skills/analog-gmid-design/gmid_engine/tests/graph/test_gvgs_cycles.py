@@ -151,6 +151,7 @@ def test_fixed_vgs(gh, tmp_path):
     raw = gh.raw("two_stage_ota")
     raw["netlist"].append({"name": "Mfix", "kind": "nmos", "drain": "OUT", "gate": "vdd", "source": "gnd"})
     o = gh.oracle(raw)
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s = _summary(gh, build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert tuple(sorted(s.fixed_vgs)) == o.fixed_vgs == ("Mfix",)
     assert s.cyclomatic == o.cyclomatic
@@ -162,6 +163,7 @@ def test_parallel_vgs_edges_counted_once(gh, tmp_path):
     base = gh.oracle(raw).cyclomatic
     m = next(e for e in raw["netlist"] if e["source"] not in raw["supply_nets"])
     raw["netlist"].append({"name": "Zdup", "kind": m["kind"], "drain": m["drain"], "gate": m["gate"], "source": m["source"]})
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s = _summary(gh, build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert s.cyclomatic == base == gh.oracle(raw).cyclomatic
 
@@ -172,6 +174,7 @@ def test_gate_equals_source_stops(gh, tmp_path):
     tail = next(e["source"] for e in raw["netlist"] if e["source"] not in raw["supply_nets"])
     raw["netlist"].append({"name": "Mgs", "kind": "nmos", "drain": "OUT", "gate": tail, "source": tail})
     o_err = pytest.raises(gh.StopExpected, gh.oracle, raw).value
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     d, devices = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert d["rule_branch"] == o_err.branch == "gvgs_self_edge"
     assert devices == ("Mgs",)
@@ -181,6 +184,7 @@ def test_gate_equals_source_stops(gh, tmp_path):
 def test_gate_equals_source_on_rail_is_fixed_not_stop(gh, tmp_path):
     raw = gh.raw("two_stage_ota")
     raw["netlist"].append({"name": "Moff", "kind": "nmos", "drain": "OUT", "gate": "gnd", "source": "gnd"})
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s = _summary(gh, build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert "Moff" in s.fixed_vgs
 

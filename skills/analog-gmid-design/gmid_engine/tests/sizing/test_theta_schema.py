@@ -151,7 +151,8 @@ def test_resistance_only_undeclared(tmp_path, toy_access):
 
 def test_fixed_source_in_cone(tmp_path, toy_access):
     doc = topo("ts_fixed", [mos("M1", "nmos", "n", "in", "gnd"), mos("M2", "nmos", "n", "b2", "gnd")],
-               {"in": ("input", "x"), "n": ("output", "y")}, sources=[two("I1", "current_source", "vdd", "n")])
+               {"in": ("input", "x"), "n": ("output", "y")}, sources=[two("I1", "current_source", "vdd", "n")],
+               bias=["b2"])                                                                  # b2: M2 gate 에만
     ctx = build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 3e-5),))[2]
     s = ctx.schema
     assert s.fixed == (("I1", 3e-5),)
