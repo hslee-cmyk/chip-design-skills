@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.0
+version: 1.1
 plan_version: 6.0
 ---
 
@@ -9,9 +9,9 @@ plan_version: 6.0
 > **Summary**: 새 gm/ID 사이징 엔진(`skills/analog-gmid-design/gmid_engine/`)의 설계 정본이다. 계획서 N3.1 흐름 GB0~GB9를 패키지·파일에 대응시키고, 단계마다 알고리즘·입출력·불변식·실패 코드·as-built 상태를 적는다. 계획서가 요구하고 실행 로드맵에서 빠졌던 gain-budget 흐름(FR-1·FR-2·FR-4·FR-8)은 `41-gain-budget`에서 전부 설계한다. gap 분석 기준표는 `42-gap-checklist`다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Date**: 2026-10-08 · **Status**: v1.0 초안
+> **Date**: 2026-10-08 · **Status**: v1.1. design-validator 지적(C1~C4, H1~H8, M1~M14, L1~L8)과 조정자 정정(R19)을 반영했다.
 > **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v6.0
-> **as-built 기준**: master `f0f0fb8`, 그리고 미병합 브랜치 `ng-cmfb-pm`(6a6e4c7), `ng-oracle-early`(d56ba66), `ng-perf-sizing`(f8d04ac), `ng-tolv-cache`(674a6a1), `ng-layer0-canon`(0c5dc20), `ng-area-budget`(538eeab), `worktree-agent-a90dfb25fa6fe9f04`(7090b9f, LUT r2), `ng-bridge`(d529ea5)
+> **as-built 기준**: master `004b7d2`(ng-perf-sizing 병합분 포함). 아직 병합되지 않은 브랜치도 함께 본다: `ng-cmfb-pm`(6a6e4c7), `ng-oracle-early`(d56ba66), `ng-tolv-cache`(674a6a1), `ng-layer0-canon`(0c5dc20), `ng-area-budget`(538eeab), `worktree-agent-a90dfb25fa6fe9f04`(7090b9f, LUT r2), `ng-bridge`(d529ea5).
 
 진행 순서는 bkit PDCA다: 이 design → 구현 → gap 분석(`42-gap-checklist`).
 
@@ -19,7 +19,7 @@ plan_version: 6.0
 
 | 파일 | 내용 |
 |---|---|
-| `40-engine`(이 문서) | §1 범위·원칙, §2 아키텍처(흐름·상태 층·패키지 API), §3 단계별 설계 GB0~GB9(gain-budget 외), §4 SPICE 오라클, §5 CM(CMFB) 루프, §6 대칭, §7 면적 예산·성능, §8 승인 없이 축소된 범위, §9 사용자 결정이 필요한 질문 |
+| `40-engine`(이 문서) | §1 범위·원칙 / §2 아키텍처(흐름·상태 층·패키지 API) / §3 단계별 설계 GB0~GB9(gain-budget 외) / §4 SPICE 오라클 / §5 CM(CMFB) 루프 / §6 대칭 / §7 면적 예산·성능 / §8 승인 없이 축소된 범위와 계획 이탈 / §9 사용자 결정이 필요한 질문 / §10 신규 API·검증(오라클·DoD·IC test) |
 | `41-gain-budget` | FR-1(SP1 stage 유도), FR-2(블록 gain 모델과 MNA 잔차), FR-3 연계, FR-8(탐색 전 달성 불가), FR-4(층 0 gain 예산 조합 front와 `gain_budget_db`), 스펙에서 gm/ID·L 출발값 유도 |
 | `42-gap-checklist` | FR·NFR·DEC·설계 항목마다 한 행: 설계 절, as-built 상태, 증거 위치 |
 
@@ -82,6 +82,8 @@ spec + topology + LUT + PDK 선언
 | GB8 metric | `metrics`(MOD5) | `ss_evaluate`, `metric_value`, `area_search`, `supply_currents` | §3.8 | PART |
 | GB9 탐색·검증 | `search`·`layout`(MOD7)·`convergence`(MOD8)·`report`(MOD9)·`pipeline`(MOD10)·`tools/spice_oracle` | `archive`, `run_layout`, **신규** `run_gmid_design_pipeline` | §3.9, §4 | PART |
 
+위 그림은 대략의 흐름이다. 실제 계산 순서(S0당 1회 단계 A, 봉인 평가가 필요한 단계 B, 탐색 단계 C)와 그 사이에 순환이 없다는 규칙의 정본은 41 §0의 DAG다.
+
 import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` < `search` < `layout` < `convergence` < `report` < `pipeline` 이다(P N3.10). GB4·GB5가 MOD5에 있는 이유는 P N3.1 '모듈 열 정정'이다.
 
 ### 2.2 상태 층(S0~S3)
@@ -127,7 +129,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 
 | 필드 | 형식 | 소비자 |
 |---|---|---|
-| `gain_budget_db_override` | `{<블록 키>: {value_db, source}}`. 블록 키 = 그 블록 출력노드 넷 이름(topology 데이터) | 41 §5.6 |
+| `gain_budget_db_override` | `{<블록 키>: {value_db, source}}`. 블록 키 = 출력노드 넷 이름, 차동 블록은 두 출력노드 이름을 정렬해 세로줄 문자로 이은 것(41 §1.7-3) | 41 §5.7 |
 | `driving_spec` | `{slew_rate_v_per_s?, load_peak_amp?, load_dc_amp?, source}` | §3.8 `ls` |
 | `symmetry_untie` | `[{devices: [...], source}]` | §6 |
 | `cm_sense_elements` | `[<요소 이름>]` + `source: user_spec` | §5 `[ng-cmfb-pm]` |
@@ -187,6 +189,21 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 
 ### 3.4 GB4 -- 달성가능성 (MOD5) → 41 §4
 
+41 §4는 다섯 단계로 이루어진다.
+1. **LUT 곡선 검사 → 해법 매핑**(41 §4.1). 곡선 칸을 세 가지로 처리한다.
+   - 단조이면 역산한다.
+   - 비단조이거나 Fritsch–Carlson(FC) 조건을 어기면 격자 전수로 계산한다.
+   - 단위가 맞지 않으면 로드를 거부한다.
+2. **블록 gain 상한**(41 §4.2). LUT 격자를 전수 계산해 행 memo로 남긴다. 예산을 넘으면 그 상한은 '미상'으로 둔다.
+3. **Σ 판정**(41 §4.3).
+4. **인증된 면적 하한**(41 §4.4).
+5. **DOF**(41 §4.5).
+
+| 항목 | 상태 | 증거 |
+|---|---|---|
+| LUT 곡선 칸 분류 | PART: 분류는 있다. 해법 매핑이 없고, `op_point`는 FC 위반 칸에서 사유 기록 없이 선형으로 넘어간다 | `E/lut/lut_set.py:124-173`, `E/lut/curve_check.py:37` |
+| 2~5 | MISS | `grep -rn "achievab\|block_gain_bound" E/` 0 |
+
 ### 3.5 GB5 -- 보상 (MOD5 + sizing θ)
 
 **규칙**은 DEC-92다.
@@ -200,7 +217,16 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 - 루프 뷰 (3-b)의 복귀 경로에만 있고 (2) Miller 구간에 없는 수동소자. 예: CM 감지 평균 저항. 이것이 6a 열린 항목 ⑤의 해법이다.
 - spec이 feedback이나 CM 감지 소자로 선언한 요소.
 
-**단일단(`compensation: null`)**: gm_1 ≥ 2π·`gbw_target_hz`·C_out,total을 θ 제약으로 둔다(U-12 기본안). C_out,total = `ss.node_c_farad`(출력노드) + 부하 요소 값이다. 이 행은 U-12가 확정되기 전에는 '보고만' 한다.
+**단일단**: 단일단 여부는 태그가 아니라 구조로 판정한다. S1v에서 이득 블록이 하나이고 Miller (2) 루프가 없으면 단일단이다. `compensation: null` 태그는 읽지 않는다(U-50, DEC-85). 단일단이면 gm_1 ≥ 2π·`gbw_target_hz`·C_out,total을 θ 제약으로 둔다(U-12 기본안). C_out,total = `ss.node_c_farad`(출력노드) + 부하 요소 값이다. U-12가 확정되기 전에는 이 행을 '보고만' 한다. 출발값은 41 §6.5의 매크로 모델에서 같은 값이 나온다.
+
+**CM 감지 저항**(사용자 결정 2026-10-07 'R1·R2 = (b)', M4): 감지 저항은 출력을 부하하지 않아야 하고, 엔진이 값을 계산한다. 대상은 CM 분할(§5)에서 소비(n)로 분류된 저항이다. 처리 순서:
+1. 외층이 풀이를 마친다.
+2. 그 저항 값 R에 대해 '부하 손실' 행 ΔG(R) = gain_ss_db(R → ∞) − gain_ss_db(R)를 정의한다. R → ∞는 해당 스탬프를 제거하고 ω → 0에서 한 번 더 푸는 것으로 계산한다.
+3. 다른 θ를 고정한 채 `bracket_root`로 ΔG(R) ≤ b_gain을 만족하는 최소 R을 찾는다. 범위는 θ 범위 [10 kΩ, 10 MΩ](사용자 결정 8)다.
+4. 그 최소 R로 바꾼 뒤 평가 커널을 1회 돌려 모든 제약을 다시 판정한다.
+5. 재판정에서 하나라도 위반이 나오면 원래 R을 유지하고 사유를 기록한다.
+
+상수는 새로 두지 않는다. 허용 손실은 gain 분해능 b_gain이다.
 
 | 항목 | 상태 | 증거 |
 |---|---|---|
@@ -209,6 +235,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 | `gm_req` 1-D 근, `comp_approx_gap` | MISS | `E/search/find_front.py:45-48`('범위 밖') |
 | 극점 노드 목록에서 후보 집합 유도 | MISS(SP1이 없어서) | -- |
 | 단일단 gm_1 규칙(U-12) | MISS(계획상 확정 대기) | -- |
+| CM 감지 저항 최소 R | MISS | `grep -rn "load_loss\|cm_sense" E/` 0 |
 
 ### 3.6 GB6 -- 할당·탐색 (MOD6)
 
@@ -225,10 +252,24 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 2. **제약·목적의 척도화**(§7.2): 행마다 판정 단위와 풀이 단위를 나눈다.
 3. **시작점 출처**: 층 0 조립점(41 §5)과 출발 구간 후보(41 §6)를 맨 앞에 둔다. as-built `layer0_center`(θ 상자 중심 + 전류 Chebyshev 중심)는 블록 국소 문제의 초기점 생성기로 옮긴다(41 §5.2). 시작점 출처를 대체하므로 WP-01에 따라 옛 경로를 지운다.
 4. `n_starts` 선언과 L-c '분지' 판정을 넣는다. L-c 분지 = bin 벡터가 다른 시작점(LR10).
+5. **ε 간격과 점 예산**(DEC-80, H6):
+   - **간격**: ε 간격은 격자 분해능이 아니라 DEC-80 (ii) 면적 bin 폭 = max(레이아웃 격자 분해능, 면적 축 모델 오차)다. 전력 쪽 간격은 max(b_P, 전력 모델 오차)다. 모델 오차가 측정되기 전에는 격자 분해능만 쓰고 front를 '추정'으로 표시한다.
+   - **점 예산**: ε 점 수 상한 = 외층 예산 N_C = N − (단계 B 사용분)이다. N은 41 §5.8 식으로 구한다. 점 하나의 비용은 실측 풀이 평가 수 중앙값이다.
+   - **예산 초과 시**: 간격을 2배씩 넓힌다. 이 2배는 DEC-80 예산 게이트 규칙 그대로이며 새 상수가 아니다. 넓힌 배수와 '해상도 굵음(배수 n)'을 front 표에 적는다.
+6. **SLSQP·ε-제약·시작점 출처**(DEC-54): 스칼라화는 ε-제약 하나만 쓰고 가중합은 쓰지 않는다. 시작점 출처는 다음 순서다.
+   1. 층 0 조립점(41 §5)
+   2. 출발 구간 후보(41 §6.6)
+   3. 지문이 일치하는 S3 feasible 점 상위 `n_starts`
+   4. 선언 x0
+   5. as-built `layer0_center` 점: t_eval을 처음 재는 데 쓰고 다른 출처가 없을 때만 시작점으로 쓴다
+
+   준난수 전역 샘플(DEC-34)은 선언했을 때만 켠다(DEC-75).
+7. **근방 반경**: 41 §5.9.
 
 | 항목 | 상태 | 증거 |
 |---|---|---|
 | ε 두 방향·비지배·L-a/L-b | OK | `E/search/eps_sweep.py:1-14`, `pareto.py:31`, `slsqp_outer.py:49`, `l_bin_search.py:1-12` |
+| ε 간격 = DEC-80 bin 폭 + 점 예산 | PART(간격 = b_A = grid × W_min와 2배 예산 게이트는 있음. 모델 오차 항, '추정' 표시, 41 §5.8 예산 식 연결이 없음) | `E/search/eps_sweep.py:1-14` |
 | L-c 분지 판정 | PART(시작점마다 따로 돌고 키 중복만 제거) | `E/search/eps_sweep.py:4` |
 | 예산 점 | MISS(`budget_point.py` 미작성) | `search/CONTRACT.md:537` |
 | `n_starts`, Sobol 전역 샘플(DEC-34, 기본 비활성) | MISS / 비활성 | `search/CONTRACT.md:591` |
@@ -245,7 +286,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 2. **미러 비율 강제**: `matching_ratio`(그룹의 W/L 비)를 전류 기저의 강제 관계로 넣는다(DEC-70). 비율의 출처는 θ 변수이며, 대칭 묶음(§6)이 같은 비율 1을 준다.
 3. **tol_I**: 직전 봉인 스냅샷(S2p)의 `ss` gm으로 계산하고, 첫 평가만 격자 최대 gm을 쓴다(P N3.6).
 4. **종속 소자 선택 DEC-95 (3)**: ratified 선택(`structure.json`)과 ② 'GB5 gm 요구·뒤 stage 독립'을 Kruskal 엣지 키 앞에 둔다. ②의 입력은 S1v stage 번호다.
-5. **W4 초기값**: 층 0이 배분한 기둥 VDS를 쓴다(41 §5.4).
+5. **W4 초기값**: 층 0이 배분한 기둥 VDS를 쓴다(41 §5.3 (c)).
 
 | 항목 | 상태 | 증거 |
 |---|---|---|
@@ -319,22 +360,39 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 
 **C10 폐루프 과도 판정**(`docs/03-analysis/oracle-c10-early-termination.contract.md`, `[ng-oracle-early]` d56ba66 개정본 위에 아래 규칙을 더한다):
 
-1. 걸음 상한·관찰 창·조기 unstable(분해능을 넘는 엄격 증가 g↑)·연장 상한 n·`wall_s_per_window` 유도·시간 초과와 치명 오류 = `failed`는 d56ba66 그대로다.
-2. **지속 진동 = 불안정(한계 사이클)**(사용자 결정 2026-10-08 4번). 창 진폭 M_j가 다음을 모두 만족하면 `unstable`(사유 `limit_cycle`)이다.
-   - 바닥 floor'를 분해능 밖으로 넘는다: M_j·(1 − reltol) > floor'.
-   - 연속 창 사이 변화가 분해능 안이다: |M_j − M_{j−1}| ≤ (M_j + M_{j−1})·reltol + floor'.
-   - 감소 판정 g↓가 성립하지 않는다.
-   이 조건이 j ≥ 3인 첫 창에서 두 번 연속(j−1, j) 성립하면 조기 종결한다. 창 수 3은 개정본 조기 규칙과 같은 정의를 재사용한다(새 상수가 아니다).
-3. 판정은 '분해능 안의 같음 → undetermined'(d56ba66 L48-54)를 대체한다. 그래서 d56ba66의 '일정 진폭 지속 진동은 undetermined 유지(사용자 승인)' 문구와 `test_sustained_oscillation_undetermined_incomplete` 기대값은 사용자 결정 2026-10-08 4번으로 바뀐다. 기대값 갱신은 test 작성 주체가 한다.
-4. `unstable`(limit_cycle 포함)은 폐루프 불합격(FAIL)이다(사용자 결정 2026-10-08 B '불안정은 계속 불합격').
-5. **엔진과 오라클의 대칭**: 엔진은 개루프 RHP 극점을 위반 행으로 다룬다. 오라클은 `pm_undefined`를 N/A→INCOMPLETE로 다룬다. 사용자 결정 A('RHP 극점으로 인한 정의 불가는 불안정(실패)')에 맞춰 오라클도 FAIL로 둔다.
+1. **d56ba66에서 그대로 쓰는 것**. 아래 L번호는 개정 계약 파일 기준이다.
+   - f_crit 대역: L14-15
+   - n_pp, tmax: L25, L28
+   - 분해능을 아는 창 판정 g: L37
+   - 조기 unstable(엄격 증가): L40
+   - 연장 실행 상한 n: L71-72
+   - `wall_s_per_window` 유도: L75-78
+   - 시간 초과·치명 오류 = `failed`: L79-81
+2. **지속 진동은 불안정(한계 사이클)이다**(사용자 결정 2026-10-08 4번). 창 진폭 M_j가 아래를 모두 만족하면 `unstable`(사유 `limit_cycle`)이다.
+   - 바닥보다 분해능 넘게 크다: M_j·(1 − reltol) > floor'.
+   - 연속 창의 변화가 분해능 안이다: |M_j − M_{j−1}| ≤ (M_j + M_{j−1})·reltol + floor'.
+   - g↓(감소)가 아니다.
+
+   j ≥ 3인 창에서 이 조건이 j−1, j에 연속으로 성립하면 조기 종결한다. 창 수 3은 L40과 같은 정의이므로 새 상수가 아니다.
+3. 2번은 d56ba66의 다음 두 곳을 대체한다.
+   - L48-52 '그 밖(분해능 안의 같음 포함) → undetermined'
+   - L42-44·L52-54 '일정 진폭 지속 진동은 undetermined 유지(사용자 승인)'
+
+   2026-10-08 사용자 결정이 이 문구보다 나중이다. `tools/spice_oracle/tests/test_oracle_c10_stability.py:710`의 `test_sustained_oscillation_undetermined_incomplete` 기대값도 바뀐다. 기대값은 test 작성 주체가 고친다.
+4. 폐루프 과도에서 `unstable`(limit_cycle 포함)이 나오면 FAIL이다(사용자 결정 B).
+5. **개루프 RHP 극점 처리**(조정자 정정, R19):
+   - 개루프 RHP 극점이 있어도 폐루프는 안정할 수 있다(조건부 안정). 그래서 오라클은 개루프 RHP 극점만으로 FAIL을 내지 않는다.
+   - 오라클 최종 판정 = Nyquist 감김 수 N(개루프 RHP 극점 수 P를 반영해 폐루프 RHP 극점 수 Z = N + P)과 폐루프 과도 판정을 함께 본다.
+   - Z ≥ 1이거나 과도가 `unstable`이면 FAIL이다. Z = 0이고 과도가 stable/decaying이면 안정이다.
+   - INCOMPLETE는 두 판정 모두 결론이 없을 때만 낸다(`failed`, undetermined).
+   - 엔진의 결정 A('RHP 극점 → 위반 행')는 **탐색용 보수 규칙**이다. 엔진이 FAIL로 본 점을 오라클이 합격으로 볼 수는 있다. 그 차이는 T8 모델 오차와 함께 기록한다.
 
 | 항목 | 상태 | 증거 |
 |---|---|---|
 | free/forced, 포화, off_current, CMRR/PSRR, 접합 기하 | OK | `tools/spice_oracle/README.md:60-69,114-117,146-147,300-318` |
 | C10 조기 종결 계약 | PART(계약만 있고 master 미반영) | `[ng-oracle-early]` 계약 L14-81 |
 | 지속 진동 = unstable | DEV: 계약과 test가 undetermined로 고정되어 있다 | 계약 L42-54, `tools/spice_oracle/tests/test_oracle_c10_stability.py:710` |
-| RHP → FAIL 대칭 | DEV(오라클은 INCOMPLETE) | `[ng-cmfb-pm]` README '판정' |
+| 개루프 RHP: Nyquist Z + 과도로 판정, 결정 불가일 때만 INCOMPLETE | DEV: `pm_undefined`이면 무조건 N/A→INCOMPLETE | `[ng-cmfb-pm]` README '판정', `tools/spice_oracle/README.md:516` |
 | `pm_cm_ss_deg` 측정 | OK `[ng-cmfb-pm]`. `[ng-bridge]` `ORACLE_MEASURES`에는 없다 | -- |
 
 ---
@@ -353,7 +411,11 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
    - CM 루프에서 PM이 정의되지 않으면(T_cm(0) ≤ 1, 또는 0 dB 교차 없음) 위반이다(결정 A).
    - 개루프 RHP 극점이 있으면 위반이다.
    - 제약이 선언되지 않았어도 차동 포트쌍이 있으면 T_cm을 늘 계산해 보고한다. 이때 T_cm(0) > 1이면 경고 `cm_loop_unconstrained`를 낸다.
-4. **위반 행의 척도**: c = 20·log10|T_cm(0)|/s. s는 그 metric의 분해능(`MetricResult.resolution`)이다. 분해능이 없을 때 쓰는 1 dB 대체값(as-built)은 상수이므로 지운다(EP-4). 분해능이 없으면 그 행을 '판정 보류'로 두고 front를 '추정'으로 표시한다.
+4. **위반 판정과 척도는 별개다**(M1).
+   - **판정**: 결정 A에 해당하면 그 행은 **늘 위반**이다(부호가 위반). 이 판정은 척도에 의존하지 않는다.
+   - **크기**: 판정 단위 크기는 c = 20·log10|T_cm(0)|/s다. 이 값은 ≤ 0이다. s는 그 metric의 분해능(`MetricResult.resolution`)이다.
+   - **분해능이 없을 때**: as-built는 s = 1 dB로 대체하는데, 이것은 근거 없는 상수라 지운다(EP-4). 대신 행은 위반으로 유지하고, 풀이 단위 크기만 §7.2 규칙으로 정한다(s_k = max(|c 원값|, ...)). 그리고 front에 '분해능 미측정'을 표시한다.
+   - RHP 극점 행(c = −max Re/|p|)도 같은 방식으로 다룬다.
 5. **스위치드 커패시터 CMFB**는 `unsupported`로 명시 정지한다.
 
 | 항목 | 상태 |
@@ -377,7 +439,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 3. **θ 묶기**(`E/sizing/theta_schema.py`): 같은 궤도의 소자는 θ 성분을 하나 공유한다. 대상은 ln IDu, L 동치류 L, 보상 수동소자 값이다. 전류 기저 성분은 궤도에 대해 대칭인 것끼리 묶는다. 이것이 기본값이다.
 4. **해제**: spec `symmetry_untie: [{devices, source}]`에 적힌 소자는 궤도에서 빼고 따로 변수를 둔다. 의도적 비대칭 사이징에 쓴다.
 5. **불변식**:
-   - 궤도는 matching 레코드(`diff_pair`·`branch_symmetric`·mirror whole)와 맞아야 한다. 어긋나면 `review_needed`다.
+   - **한 방향 검사만 한다**(H1). 크기 2 이상인 궤도는 matching 레코드 하나(`diff_pair`·`branch_symmetric`·mirror) 안에 들어가야 한다. 들어가지 않으면 `review_needed`다. 반대 방향(matching 그룹이면 한 궤도)은 요구하지 않는다. 예를 들어 5T OTA에서 차동쌍과 미러 부하는 서로 다른 궤도다.
    - 이름을 전단사로 바꾼 입력은 비트 단위로 같은 결과(front 정규화 해시)를 낸다.
    - 1-WL 결과와 정준형이 다른 회로는 그 목록을 보고한다.
 
@@ -396,19 +458,30 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 **규칙**:
 - 회로별 spec 제약 `area_search_m2 <= 예산`을 둔다. 값은 결정 11의 표다.
 - 면적 = MOS 게이트 면적 Σ W·L + 보상·내부 커패시터 면적이다.
-- 커패시터 면적 = 값 / `mim_cap_density_f_per_m2`다. PDK 선언 값은 `camimc`이고, 출처는 `C:/pdk/sky130_fd_pr/models/r+c/res_typical__cap_typical__lin.spice`(2.00e-15 F/µm² = 2.0e-3 F/m², sha256 고정)다.
+- 커패시터 면적 = 값 / ρ_MIM이다. ρ_MIM은 `core` PDK 선언 양 `mim_cap_density_f_per_m2`를 `read_pdk_decl`로 읽은 값이고, 코드에 숫자를 적지 않는다.
+  - 원본은 `C:/pdk/sky130_fd_pr/models/r+c/res_typical__cap_typical__lin.spice`의 `camimc`다(sha256과 행 번호를 선언에 기록).
+  - 단위 환산(F/µm² → F/m²)은 선언 로더가 한다.
 - spec `element_values.<el>.measurement_load: true`로 표시한 측정 부하(CL·CL1·CL2·RL)는 면적에서 뺀다. 이름이 아니라 선언으로 가른다.
-- 저항 단위 면적은 선언이 없으면 `passive_area_undeclared`로 보고한다.
+- 저항 단위 면적은 선언이 없으면 `passive_area_undeclared`로 보고한다. 이 처리에는 두 결정이 걸린다(M3).
+  - DEC-79: 보상·부하 수동소자가 있는 회로에서 수동소자 면적 선언이 없으면 front는 `review_needed`다.
+  - 사용자 결정 11: 면적 = MOS 게이트 면적 + 커패시터 면적이고, 저항은 언급하지 않는다.
+  - 저항 면적을 넣을지(단위 면적 PDK 선언 필요), 결정 11대로 뺄지는 사용자에게 묻는다(§9 Q9). 그 결정 전에는 저항을 뺀 값을 쓰고, front에 '저항 면적 미포함'을 표시한다(`review_needed`로 정지하지 않음).
 - 제약 행은 c = (v − A)/b_A다(판정 단위).
 
-**S-3b 닫힘**: 예산이 선언되면 전류 상자 상한 I_max = IDu_max·A_budget/L_lo²로 둔다. 근거는 W·L = I·L²/IDu ≤ A_budget이다.
+**S-3b 잠정 상한과 그 닫힘**:
+- **잠정 상한**(L6): 예산이 없을 때 쓰는 as-built 전류 상자 상한이다. I_max는 그 kind의 모든 폭 슬라이스에서 단일 finger 기준 최대 ID다(`E/search/current_box.py:12-33`). 회로 근거가 없는 LUT 범위 값이라서 '잠정'이라 부른다.
+- **닫힘**: 예산이 선언되면 I_max = IDu_max·A_budget/L_lo²로 바꾼다. 근거는 W·L = I·L²/IDu ≤ A_budget이다.
 
 **설계가 더하는 것**:
 1. **예산을 지키는 출발점**: 41 §6.4의 면적 상한(L ≤ √(A_budget·IDu/I), W ≤ A_budget/L)으로 출발 구간을 자른다. 층 0 국소 문제에도 면적 bin 상한을 예산으로 둔다.
 2. **소자별 W 타당성**: 레이아웃 전에 W ≤ A_budget/L_min을 상자 제약으로 둔다. 예산이 없으면 S-3b 잠정 상한을 쓰되 보고에 '잠정'을 붙인다. W가 수 mm인 시작점은 이 제약에서 거부된다.
-3. **면적 달성가능성**(GB4 확장, 41 §4.3): 면적 하한 A_lb = Σ_k I_k,min·L_k,min²/IDu_k,max가 예산보다 크면 탐색 전에 INFEASIBLE_TARGET(사유 `area_budget_below_lower_bound`)으로 정지한다. I_k,min은 gm 요구(41 §6.3)에서 나온다.
+3. **면적 달성가능성**(GB4 확장, 41 §4.4): 인증된 면적 하한 A_lb만 정지 근거로 쓴다(C1).
+   - A_lb에 넣는 전류는 선언되었거나 KCL로 고정된 전류뿐이고, 나머지는 0으로 둔다.
+   - L은 LUT 최소 L, 커패시터는 θ 하한을 쓴다.
+   - A_lb > 예산 + b_A이면 INFEASIBLE_TARGET(`area_budget_below_lower_bound`)으로 정지한다.
+   - 출발값으로 만든 면적 추정 A_est는 보고만 하고 정지 근거로 쓰지 않는다.
 4. **front를 잃은 4회로의 원인 보고**: B = 120 s 실측에서 folded·ngcc·nmcnr·pushpull은 front 0이었고, sf_pushpull·current_reuse는 시작점이 0이었다. 회로마다 다음을 결과 JSON에 쓴다.
-   - (i) A_lb 대비 예산
+   - (i) A_lb와 A_est를 예산과 비교한 값
    - (ii) 출발 구간 충돌 표(41 §6.6)
    - (iii) 예산 점 풀이의 위반 행
    이 정보로 '예산이 불가능' / '시작점 문제' / '탐색 문제'를 가른다. 예산 값을 고치는 것은 사용자 몫이다(§9 Q8).
@@ -446,19 +519,23 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 
 ---
 
-## 8. 승인 없이 축소된 범위 (승인하거나 되돌릴 대상)
+## 8. 승인 없이 축소된 범위와 계획 이탈 (승인하거나 되돌릴 대상)
 
-아래 표는 로드맵(`_drafts/engine/ROADMAP.md`, 이하 R)이나 초안·CONTRACT가 계획 요구를 줄이거나 미룬 곳이다. **결정은 사용자 몫이다.** 권고는 이 design의 의견일 뿐이다. 'D18 철회'(사용자 2026-10-08)로 이미 되돌리기가 정해진 항목은 그렇게 표시했다.
+아래 표는 두 종류를 함께 모았다.
+- R1~R28: 로드맵(`_drafts/engine/ROADMAP.md`, 이하 R), 초안, CONTRACT가 계획 요구를 줄이거나 미룬 곳.
+- R29~R33: **이 design 자체가 계획 문구와 다르게 정한 곳**.
+
+**결정은 사용자 몫이다.** 권고는 이 design의 의견이다. 'D18 철회'(사용자 2026-10-08)로 이미 되돌리기로 정해진 항목은 그렇게 표시했다.
 
 | # | 축소 내용 | 출처 | 계획 근거 | 상태 | 권고 |
 |---|---|---|---|---|---|
 | R1 | 층 0을 최소형(시작점 하나)으로. 블록별 gain bin front·조합 DP·`gain_budget_db` 출력 없음 | R §4 D18, R §0.2, `search/CONTRACT.md:26-31` | FR-4, DEC-03·71·73·77 | **사용자가 철회(2026-10-08)** | 41 §5대로 복원 |
 | R2 | GB3(결합 변수 y) 범위 밖 | R §0.2 행 32, D18 | GB3, DEC-71 (7) | 미결 | 복원: 층 0 조립의 입력(§3.3). 내층 DP·중층 좌표강하는 DEC-73대로 기본 꺼짐 유지 |
-| R3 | GB4를 'INFEASIBLE_TARGET만'으로 축소, DOF·수치 rank 범위 밖 | R §0.2 행 33, K6. 계획 N6.1 단위 7('GB4 축소')에도 반영됨 | FR-8, GB4, IC6 | 미결 | 구조 DOF와 수치 rank 복원(표본 수 = `dof_rank_sample_count`, 41 §4.4) |
+| R3 | GB4를 'INFEASIBLE_TARGET만'으로 축소, DOF·수치 rank 범위 밖 | R §0.2 행 33, K6. 계획 N6.1 단위 7('GB4 축소')에도 반영됨 | FR-8, GB4, IC6 | 미결 | 구조 DOF와 수치 rank 복원(표본 수 = `dof_rank_sample_count`, 41 §4.5). 블록 gain 상한은 계획대로 격자 전수로 계산하고, 예산을 넘으면 '미상'으로 둔다(41 §4.2) |
 | R4 | U-49 기본안(층 0 최소형, gain bin front·GB3 범위 밖)이 계획서 안에 있다 | P N7.2 U-49 | FR-4와 긴장 | 미결(계획서 안의 대기 결정) | 2026-10-08 지시로 U-49를 '복원'으로 닫고 계획서를 정정 |
 | R5 | 블록 국소 모델·MNA 잔차·감도 게이트 범위 밖 | `metrics/CONTRACT.md:13-14`, 초안 M15:191, L7a:261 | FR-2, DEC-05·66, N3.8 | 미결 | 복원(41 §2, §3.8) |
 | R6 | SP1(셀·0-1 BFS·stage·루프 (0)~(4)·끊는 점·R(u)·DEC-81) 연기, declared 대조 연기 | 초안 U25:196·201·133, R N5~N7 미착수 | FR-1, GB2, DEC-43·57·59·63·65·81 | 미결 | 복원(41 §1) |
-| R7 | `rule_branch_coverage.json`과 검증 발동 0 분기 정지 없음 | graph CONTRACT | DEC-59 | 미결 | 복원(41 §1.9) |
+| R7 | `rule_branch_coverage.json`과 검증 발동 0 분기 정지 없음 | graph CONTRACT | DEC-59 | 미결 | 복원(41 §1.10) |
 | R8 | GB5 `gm_req`·`comp_approx_gap` 범위 밖 | `find_front.py:45-48` | DEC-92 (1)(2) | 미결 | 복원(§3.5) |
 | R9 | `ls`(슬루·방향별 전류)·스윙·ICMR·`nqs_ratio`·`mismatch_sigma_v` 범위 밖 | `metrics/CONTRACT.md:14` | DEC-58·65·96, N3.8 | 미결 | 복원(§3.8) |
 | R10 | spec 로더가 `gain_budget_db_override`·`driving_spec`을 거부 | `SPEC_CONTRACT.md:226-228`, R D5('N3.15 축소') | GB0, DEC-03, DEC-58 | 미결 | 복원(§3.1) |
@@ -470,7 +547,7 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 | R16 | 대칭 θ 묶기 열린 항목 | `search/CONTRACT.md` 3.23 (4) | 사용자 2026-10-08 대칭 결정 | 미결 | 구현(§6) |
 | R17 | Pelgrom 계수 선언 없음 → mismatch 보고·matching L 하한 불가 | core 조사 | DEC-96 (2), N3.16 | 선행 조건 | PDK `*__mismatch.corner.spice`의 `vth0_slope`·`toxe_slope` 계열에서 A_VT·A_β를 유도하는 식과 단위 확인을 MOD1/`core` PDK 선언에 둠(§9 Q2) |
 | R18 | C10: 지속 진동을 undetermined로 유지(계약에 '사용자 승인'으로 기록) | `[ng-oracle-early]` 계약 L42-54 | 사용자 결정 2026-10-08 4번 | 사용자 결정과 모순 | 사용자 결정대로 되돌림(§4) |
-| R19 | 오라클이 RHP 극점을 INCOMPLETE로 판정 | `[ng-cmfb-pm]` README | 사용자 결정 A | 미결 | FAIL로 맞춤(§4) |
+| R19 | 오라클이 `pm_undefined`(개루프 RHP 극점 포함)를 일괄 INCOMPLETE로 판정 | `[ng-cmfb-pm]` README, `tools/spice_oracle/README.md:516` | 사용자 결정 A(엔진 탐색 규칙), P N3.6 오라클 합격 정의 | 미결 | Nyquist Z와 폐루프 과도로 판정하고, 둘 다 결정할 수 없을 때만 INCOMPLETE(§4-5). 개루프 RHP만으로 FAIL을 주지 않는다 |
 | R20 | ΔA_tie = grid² | `E/layout/floorplan.py:83` | DEC-79, DEC-95 (2) | 미결 | 계획 식으로 수정 |
 | R21 | LY5 `W_adjustable=False` 즉시 완화 | `layout/CONTRACT.md:217,306-311` | LY5 마지막 문장 | 미결 | 제거 |
 | R22 | LY8 `ly.diffusion` 없음, 판정 축 면적에 수동소자 없음 | `E/layout/_ly_fields.py` | DEC-89 (5), DEC-91 (2), DEC-79 | 미결 | 구현(§3.9) |
@@ -478,22 +555,92 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 | R24 | 전력 축 = Σ V·I(`power_dc_w`). DEC-78은 공급 전류 합 | `E/search/objectives.py:9`, `metrics/CONTRACT.md:544,627` | DEC-78, U-10 | 정의 차이 | 사용자 결정(§9 Q6) |
 | R25 | LUT: GMBS 열이 있는데 VS 축 선형, FC 위반 칸 선형 폴백, `vgs_for_current_density` 없음, bin 소속을 메타 대신 식으로 판정 | `lut/CONTRACT.md` 1.4, 4.0.1, 4.2 | DEC-87, DEC-88, LR3 | 미결 | `vgs_for_current_density`와 VS Hermite 구현. bin 소속은 실측 384/384 일치 근거로 식 유지를 제안하되 계획 LR3 정정이 필요(사용자 확인) |
 | R26 | 새 test 체계의 `contracts/`·`regression/`·`oracles/`·`perf/` 폴더 없음 | `E/tests/` | N3.11, N6.2 T9, IC1~IC11 | 미결 | 단위별로 작성 |
-| R27 | 슬루·정착은 SPICE 기록만, 잡음 경로 없음 | 초안 SF:209, M15:43 | DEC-90 (2), DEC-96 (3) | **사용자 승인됨**(Q5 (ii), "잡음·왜곡 스펙은 없어") | 유지. 잡음 경로는 설계만 두고 비활성(41 §6.3) |
+| R27 | 슬루·정착은 SPICE 기록만, 잡음 경로 없음 | 초안 SF:209, M15:43 | DEC-90 (2), DEC-96 (3) | **사용자 승인됨**(Q5 (ii), "잡음·왜곡 스펙은 없어") | 유지. 잡음 경로는 설계 문장만 두고 파일은 만들지 않음(발동 없음, 41 §6.4-3) |
 | R28 | 정밀 경로(내층 DP·중층)·전역 샘플·bisection 기본 비활성 | 초안 M6:299 | DEC-73·75 | **계획 승인됨**(기본 비활성) | 유지 |
+| R29 | (design 이탈) 층 0 첫 회차의 고정 입력을 LR5 knee 앵커가 아니라 41 §6 출발값으로 둔다 | 41 §5.3 | DEC-71 (3), LR5 | 사용자 확인 필요 | 채택 권고. 근거: 출발값은 스펙에서 나오고, knee는 스펙과 무관하다 |
+| R30 | (design 이탈) U-12 단일단 규칙을 일반 매크로 모델(41 §6.5)의 특수해로 대신 낸다. 단일단 판정을 `compensation: null` 태그가 아니라 구조로 한다 | 41 §6.5, §3.5 | U-12, U-50, DEC-85 | U-12 미확정 | 채택 권고(같은 값이 나오고 태그에 의존하지 않음) |
+| R31 | (design 이탈) U-24 정지에서 '포트쌍 CM 루프 대응' 루프 뷰를 빼고 사용자 CM 결정(보고 + 경고)을 적용한다 | 41 §1.8 | U-24, 사용자 2026-10-08 CM 결정 | 사용자 확인 필요 | 채택 권고(두 결정의 충돌을 구조적 대응으로 해소) |
+| R32 | (design 결정) gain 제약·rout 제약이 모두 없는 회로는 층 0을 끄고 '성능 판정 보류'로 탐색. DEC-71 (3)은 '사이징 대상에서 뺀다' | 41 §5.1 | DEC-71 (3), DEC-85 | 사용자 결정 | §9 Q5b |
+| R33 | (design 결정) 지속 진동 판정을 d56ba66 문구(undetermined, '사용자 승인')에서 사용자 결정 2026-10-08 4번(unstable)으로 바꾼다 | §4-2·3 | 사용자 결정 4번 | 사용자 결정이 근거 | 적용 |
 
 ---
 
 ## 9. 사용자 결정이 필요한 질문
 
-spec 값·회로 해석·범위만 남긴다. 알고리즘 선택은 이 design이 정했다.
+spec 값, 회로 해석, 범위에 관한 질문만 남긴다. 알고리즘 선택은 이 design에서 정했다.
 
-| # | 질문 | 왜 사용자 몫인가 | 막는 것 |
+계획서 N7.2에 올릴 때 쓸 U id 후보도 함께 적는다. 계획서 개정 문안으로만 쓰며, 이 커밋은 계획서를 고치지 않는다.
+
+| # | U 후보 | 질문 | 왜 사용자 몫인가 | 막는 것 |
+|---|---|---|---|---|
+| Q1 | U-53 | §8 R2~R26과 R29~R31 각 행을 복원할지, 승인(축소 유지)할지. 특히 R3(DOF 수치 rank), R4(U-49 닫기), R25(LR3 bin 소속 규칙 정정) | 범위 | 해당 구현 |
+| Q2 | U-54 | Pelgrom 계수 출처로 PDK `sky130_fd_pr__{n,p}fet_01v8__mismatch.corner.spice`(slope 파라미터, 체크아웃 f62031a1)를 쓸지. 유도식과 단위 확인은 엔진이 하고, 출처를 기록한다 | PDK 출처 채택 | matching L 하한(41 §6.4-2), `mismatch_sigma_v` |
+| Q3 | U-17 확장 | 오프셋·미러비 오차 스펙 값. 파일럿 `mismatch_sigma_mv ≤ 5`는 U-17 pending이다. 나머지 8회로에도 둘지 | spec 값 | matching L 하한 활성 |
+| Q4 | U-55 | 출력 스윙·ICMR 스펙 값. ngcc `icmr_v ≥ 0.6 V` 말고는 선언이 없다 | spec 값 | 헤드룸 gm/ID 하한의 스윙 몫(41 §6.2) |
+| Q5 | U-44 | gain 제약이 없는 5회로(common_gate, folded, ngcc, nmcnr, pushpull)의 gain 값, 그리고 GBW·PM이 없는 회로의 값 | spec 값 | 그 회로의 gain 예산·속도 상한 비활성(41 §5.1) |
+| Q5b | U-56 | gain 제약도 rout 제약도 없는 회로의 처리. DEC-71 (3)대로 사이징 대상에서 뺄지, 층 0 없이 탐색만 하고 '성능 판정 보류'로 둘지. DEC-85(9회로 전부 합격)와 충돌한다 | 범위 | 그 회로의 층 0·합격 판정 |
+| Q6 | U-10 재확인 | 전력 목적 축을 DEC-78 '레일 공급 전류 합'(U-10 확정)으로 할지, as-built Σ V·I로 할지. 3레일 회로에서 front 순서가 달라질 수 있다 | 목적 축 정의 | §3.8 |
+| Q7 | U-06 확장 | SP1 유도 뒤 J 공동분석: J2~J13, J12-a~i, 6a 열린 항목 ⑮(J 항목이 없는 DC 역할 그룹 둘) | 회로 해석 | GB2 `review_needed` 해소 → 탐색 |
+| Q8 | U-57 | 7.1 진단 뒤에도 예산 안에 해가 없는 회로가 남으면 그 회로의 면적 예산을 바꿀지 | spec 값 | 그 회로 합격 |
+| Q9 | U-36 확장 | 저항 면적을 면적 축에 넣을지(단위 면적 PDK 선언 필요), 결정 11 문구대로 뺄지 | 목적 축 정의 | §7.1, DEC-79 `review_needed` |
+
+---
+
+## 10. 신규 API·검증
+
+### 10.1 신규 공개 API 서명
+
+41 §7의 `build_s1v`, `block_local_gain`, `achievability`, `start_intervals`, `layer0_budget`, `EvalBudget`에 아래를 더한다.
+
+```python
+def coupling_vars(s1: S1, s1v: S1v) -> Coupling                                    # E/graph/coupling_vars.py  {vars[CouplingVar], column_block_map}
+def canonical_form(s1: S1) -> Canonical                                             # E/graph/canonical_form.py {order, generators}
+def automorphism_orbits(s1: S1, canon: Canonical, untie: list[Untie]) -> Orbits     # E/graph/automorphism_orbits.py
+def ls_fields(snap: GraphSnapshot, s1v: S1v, spec: SizingSpec) -> LsFields          # E/metrics/ls_fields.py
+def sensitivity_gate(snap: GraphSnapshot, s1v: S1v, metric: str) -> GateResult     # E/metrics/sensitivity_gate.py
+def solve_budget_point(ctx: SearchContext, budget: ObjectiveBudget) -> FrontPoint   # E/search/budget_point.py
+def converge(front: Front, ctx: SearchContext, pdk: PdkDecl) -> ConvergedFront      # E/convergence/converge.py (MOD8)
+def build_report(result: PipelineResult) -> dict                                    # E/report/report_json.py (MOD9)
+def run_gmid_design_pipeline(spec_path, *, search=None, output_dir=None, instrument=False, activations_out=None) -> int  # E/pipeline/run.py
+```
+
+### 10.2 검증: 오라클 종류와 test
+
+오라클 종류 (a) 손계산, (b) 참조구현, (c) SPICE, (d) 사용자 선언은 P N0.4를 따른다. 41 §8 표에 다음을 더한다.
+
+| 항목 | 오라클 | test(신규) | 단언 |
 |---|---|---|---|
-| Q1 | §8 R2~R26 각 행: 복원 / 승인(축소 유지) 중 어느 쪽인가. 특히 R3(DOF 수치 rank), R4(U-49 닫기), R25(LR3 bin 소속 규칙 정정) | 범위 | 해당 구현 |
-| Q2 | Pelgrom 계수 출처로 PDK `sky130_fd_pr__{n,p}fet_01v8__mismatch.corner.spice`(slope 파라미터, 체크아웃 f62031a1)를 쓰는 데 동의하는가. 유도식과 단위는 엔진이 계산하고 출처를 기록한다 | PDK 출처 채택 | matching L 하한(41 §6.4), `mismatch_sigma_v` |
-| Q3 | 오프셋·미러비 오차 스펙 값(파일럿 `mismatch_sigma_mv ≤ 5`는 U-17 pending). 다른 8회로에도 둘 것인가 | spec 값 | matching L 하한 활성 |
-| Q4 | 출력 스윙·ICMR 스펙 값(ngcc `icmr_v ≥ 0.6 V` 외에는 선언이 없다) | spec 값 | 헤드룸 gm/ID 하한의 스윙 몫(41 §6.2) |
-| Q5 | gain 제약이 없는 5회로(common_gate, folded, ngcc, nmcnr, pushpull)의 gain 값과 GBW·PM이 없는 회로의 값(U-44) | spec 값 | 그 회로의 gain 예산·속도 상한은 비활성(41 §5.1) |
-| Q6 | 전력 목적 축: DEC-78 '레일 공급 전류 합'(U-10 확정)인가, as-built Σ V·I인가. 3레일 회로에서 front 순서가 달라질 수 있다 | 목적 축 정의(사용자 확정 사항) | §3.8 |
-| Q7 | SP1 유도 뒤 J 공동분석: J2~J13, J12-a~i, 6a 열린 항목 ⑮(J 항목이 없는 DC 역할 그룹 둘) | 회로 해석 | GB2 `review_needed` 해소 → 탐색 |
-| Q8 | 7.1의 진단 뒤에도 예산 안에 해가 없는 회로가 남으면 그 회로의 면적 예산을 바꿀 것인가 | spec 값 | 그 회로 합격 |
+| 대칭 궤도·θ 묶기 | (a) 5T·캐스코드 toy, (b) 전수 순열 자기동형(소자 ≤ 8 toy) | `tests/graph/test_canonical_form.py`, `test_automorphism_orbits.py` | 궤도 ⊆ matching 그룹. 이름 전단사 후 front 해시 동일 |
+| MOD8 수렴·재필터 | (a) W_request 합성 픽스처 | `tests/convergence/test_converge.py` | 레이아웃 안 재시도에서 커널 호출 0. 결과마다 재평가 1회. K_max에 닿으면 NONCONVERGENT |
+| C10 한계 사이클·Nyquist | (c) 지속 진동 fixture, 조건부 안정 fixture | `tools/spice_oracle/tests/test_oracle_c10_stability.py` | 지속 진동 → unstable(limit_cycle) FAIL. 개루프 RHP이면서 Z = 0이고 과도 안정 → 합격 |
+| 척도화 | (a) 1e6 규모 행 픽스처 | `tests/search/test_slsqp_scaling.py` | status 4 없음. 척도화 전후 활성 집합 동일 |
+| 아카이브 타입 | (a) 왕복 | `tests/search/test_archive_records.py` | float 왕복 비트 동일. 문자열 숫자는 거부 |
+| CM 감지 저항 | (a) R 부하 손계산 | `tests/search/test_cm_sense_r.py` | 최소 R에서 ΔG ≤ b_gain |
+
+### 10.3 IC1~IC11 계약 test (P N4.1, 경로 `E/tests/contracts/`)
+
+| IC | test | 입력 | 단언 | 단위 |
+|---|---|---|---|---|
+| IC1 | `test_vgs_consistency_all_devices` | 9회로 봉인 해 | 모든 소자 \|ΔlnIDu\|/(gm/ID) ≤ tol_V | 4 |
+| IC2 | `test_order_shuffle_invariance` | 소자·그룹 순서를 섞은 입력 2벌 | 이산 필드 동일. 연속 필드는 tol 안 | 4 |
+| IC3 | `test_coverage_and_field_completeness` | 레이아웃·결과 JSON | 소자 누락 0, 이름 충돌 0 | 9 |
+| IC4 | `test_role_label_removal_invariance` | 태그 키가 있는 입력과 없는 입력 | 결과 해시 동일(T2) | 3 |
+| IC5 | `test_gate_docstring_declares_blind_spots` | `check_*` 등 게이트 함수 전수 | docstring에 '검사하지 않는 것'과 `영역:` | 0 |
+| IC6 | `test_ic6_dof` | 사고19 픽스처 | over/underdetermined 판정(41 §4.5) | 7 |
+| IC7 | `test_all_library_topologies_run` | 9회로와 검증 발동 0 분기 변형 | 발동표 생성, 정지(exit 2) | 3 |
+| IC8 | `test_unevidenced_derivation_stops_before_search` | 증거 없는 유도 픽스처 | exit 2 | 3 |
+| IC9 | `test_no_raw_duplicated_writes` | 소스 AST | 원시 대입 0(구조 규칙 G와 같은 검사기 재사용) | 0 |
+| IC10 | `test_cache_key_covers_mutable_state` | 같은 θ, 입력 필드 하나만 변경 | 옛 값 미반환 | 4 |
+| IC11 | `test_rail_origin_shift_invariance` | nmcnr ±0.9 V와 0/1.8 V, 3레일 회로 | VGS·VDS·VSB·gm_id·W·metric이 tol 안에서 같음 | 10 |
+
+### 10.4 DoD 명령
+
+`$PY` = `C:\Python314\python.exe`, 작업 위치는 저장소 루트다.
+
+| 범위 | 명령 |
+|---|---|
+| 전체(slow 제외) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q -m "not slow"` |
+| 계약 | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/contracts -q` |
+| 9회로 구조 표(S1v·발동표·A_max) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/regression/test_structure_tables.py -q` |
+| 9회로 E2E(T9) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/regression -q` |
+| 오라클 | `$PY -m pytest skills/analog-gmid-design/tools/spice_oracle/tests -q` |
