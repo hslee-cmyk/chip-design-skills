@@ -54,7 +54,7 @@ def test_library_like_old_names_are_unknown_key(sc, name):
 
 
 def test_legacy_source_kind(sc):
-    sc.constraint("mismatch_sigma_mv")["source"]["kind"] = "pending_7a"
+    sc.constraint("swing_out_v")["source"]["kind"] = "pending_7a"
     sc.reject_only("legacy_name", "constraints")
 
 
@@ -77,3 +77,84 @@ def test_pending_marker_with_extra_key_is_not_a_marker(sc):
 def test_pending_marker_with_comment_is_marker(sc):
     sc.human["input_dc"] = {"pending": "SP-2", "_why": "waiting"}
     assert sc.load().input_dc.mode == "pending"
+
+
+# =====================================================================================================================
+# [U5 2026-10-08] 정합 metric 옛 이름 -- 설계 40 §3.8-8('옛 이름 mismatch_sigma_mv·mirror_ratio_error_mv·mismatch_sigma_v 는 spec 옛
+# 이름 표에 넣어 거부한다(새 이름으로 안내)'), §9.2(대체 관계), §3.8-4(mismatch_sigma_v 대체).
+# oracle (d) 설계 문장: 새 이름 안내 = mismatch_sigma_mv -> offset_in_sigma_mv(§9.2 파일럿 행 '옛 mismatch_sigma_mv <= 5 대체'),
+#   mirror_ratio_error_mv -> offset_sys_mv(§9.2 '옛 mirror_ratio_error_mv 대체'), mismatch_sigma_v -> offset_in_sigma_mv·
+#   mirror_ratio_sigma_pct(§3.8-4). 대문자 V 판(mismatch_sigma_V)은 SPEC_CONTRACT 2절 문장(설계에는 없음 -- 계약 출처).
+# 자리: 제약 metric, pending_constraints metric, value_from_constraint, value_from_file 대상 metric, 모든 객체의 키.
+# =====================================================================================================================
+LEGACY_REPLACEMENTS = {
+    "mismatch_sigma_mv": ("offset_in_sigma_mv",),
+    "mirror_ratio_error_mv": ("offset_sys_mv",),
+    "mismatch_sigma_v": ("offset_in_sigma_mv", "mirror_ratio_sigma_pct"),
+}
+LEGACY = tuple(LEGACY_REPLACEMENTS)
+LEGACY_UPPER = "mismatch_sigma_V"   # SPEC_CONTRACT 2절 '(및 대문자 V 판)' -- 계약 출처, 제약 metric 자리 하나로만 확인
+
+
+def _legacy_hit(sc, gate):
+    d = sc.reject()
+    assert sc.rules(d) == ["legacy_name"], [(h.rule, h.where) for h in d["hits"]]
+    assert d["rejected_gates"] == (gate,)
+    return d["hits"][0]
+
+
+@pytest.mark.parametrize("name", LEGACY + (LEGACY_UPPER,))
+def test_legacy_metric_in_constraint(sc, name):
+    sc.constraint("swing_out_v")["metric"] = name
+    _legacy_hit(sc, "constraints")
+
+
+@pytest.mark.parametrize("name", list(LEGACY_REPLACEMENTS))
+def test_legacy_metric_message_names_replacement(sc, name):
+    sc.constraint("swing_out_v")["metric"] = name
+    hit = _legacy_hit(sc, "constraints")
+    for new in LEGACY_REPLACEMENTS[name]:
+        assert new in hit.message, (name, hit.message)
+
+
+@pytest.mark.parametrize("name", LEGACY)
+def test_legacy_metric_in_pending_constraints(sc, name):
+    sc.human["pending_constraints"].append({"metric": name, "decision": "SP-93"})
+    _legacy_hit(sc, "constraints")
+
+
+@pytest.mark.parametrize("name", LEGACY)
+def test_legacy_value_from_constraint(sc, name):
+    sc.constraint("icmr_v")["value_from_constraint"] = name
+    _legacy_hit(sc, "constraints")
+
+
+@pytest.mark.parametrize("name", LEGACY)
+def test_legacy_value_from_constraint_in_compensation_target(sc, name):
+    sc.human["compensation_targets"]["pm_target_deg"]["value_from_constraint"] = name
+    _legacy_hit(sc, "compensation_targets")
+
+
+@pytest.mark.parametrize("name", LEGACY)
+def test_legacy_value_from_file_target(sc, name):
+    c = next(c for c in sc.human["constraints"] if "value_from_file" in c)
+    c["value_from_file"] = "fx_spec_ref#" + name
+    _legacy_hit(sc, "constraints")
+
+
+@pytest.mark.parametrize("where", list(OBJECTS))
+@pytest.mark.parametrize("name", LEGACY)
+def test_legacy_name_as_key_everywhere(sc, where, name):
+    get, gate = OBJECTS[where]
+    get(sc.spec)[name] = {"value": 1.0, "source": dict(US)}
+    _legacy_hit(sc, gate)
+
+
+@pytest.mark.parametrize("name", ["offset_in_sigma_mv", "offset_excess", "offset_sys_mv", "mirror_ratio_sigma_pct",
+                                  "icm_margin_v"])
+def test_new_names_are_not_legacy(sc, name):
+    """새 이름은 옛 이름 표에 없다: 제약 metric 으로 받는다(합성 입력 -- 제약 하나 추가, view 없음 -> 유도 또는 none).
+    swing_out_v·icmr_v 는 픽스처 제약으로 이미 매 로드에 쓰인다."""
+    sc.human["constraints"].append({"metric": name, "op": "<=", "value": 1.0, "source": dict(US)})
+    doc = sc.load()
+    assert [c.metric for c in doc.constraints].count(name) == 1

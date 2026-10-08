@@ -58,7 +58,7 @@ def test_view_modes(sc):
     assert modes["pm_ss_deg"] == "loop"             # loop metric(6절 9번), view 없음 -> feedback·ports 유도 루프 뷰(7a)
     assert modes["parasitic_pm_ss_deg"] == "transfer"
     assert modes["ratio_ss_db"] == "pending"
-    assert modes["mismatch_sigma_mv"] == "none"     # view_kind None
+    assert modes["swing_out_v"] == "none"     # view_kind None
 
 
 def test_transfer_view_projection(sc):
@@ -129,11 +129,11 @@ def test_loop_output_port_undeclared_view_two_outputs_required(sc, metric):
     sc.reject_only("view_required", "constraints")
 
 
-@pytest.mark.parametrize("metric", ["mismatch_sigma_mv", "power_dc_w", "area_search_m2"])
+@pytest.mark.parametrize("metric", ["swing_out_v", "power_dc_w", "area_search_m2"])
 @pytest.mark.parametrize("view", [TRANSFER, DIFFERENTIAL], ids=["transfer_shaped", "differential_shaped"])
 def test_view_not_applicable_none_view_kind(sc, metric, view):
     """view_kind None(픽스처 이름표) metric 에 선언 view -> view_not_applicable."""
-    if metric != "mismatch_sigma_mv":
+    if metric != "swing_out_v":
         _add(sc, metric=metric, op="<=", value=1.0)
     sc.constraint(metric)["view"] = copy.deepcopy(view)
     sc.reject_only("view_not_applicable", "constraints")
@@ -186,7 +186,7 @@ def test_value_and_ref_none(sc):
 
 
 def test_value_and_ref_three(sc):
-    c = sc.constraint("mirror_ratio_error_mv")
+    c = sc.constraint("icmr_v")
     c["value"] = 1.0
     c["value_from_file"] = "fx_spec_ref#ugf_ss_hz"
     sc.reject_only("value_and_ref", "constraints")
@@ -203,12 +203,12 @@ def test_ref_kind_mismatch_value_with_reference(sc):
 
 
 def test_ref_kind_mismatch_ref_with_user_spec(sc):
-    sc.constraint("mirror_ratio_error_mv")["source"] = copy.deepcopy(US)
+    sc.constraint("icmr_v")["source"] = copy.deepcopy(US)
     sc.reject_only("ref_kind_mismatch", "constraints")
 
 
 def test_view_not_applicable_none_metric(sc):
-    sc.constraint("mismatch_sigma_mv")["view"] = copy.deepcopy(TRANSFER)
+    sc.constraint("swing_out_v")["view"] = copy.deepcopy(TRANSFER)
     sc.reject_only("view_not_applicable", "constraints")
 
 
@@ -317,11 +317,11 @@ def test_pending_spice_allowed_only_here(sc):
 
 
 def test_ref_judged_follows_target(sc):
-    """mirror_ratio_error_mv -> mismatch_sigma_mv(pending_spice) 이므로 judged False, 값은 대상 값."""
+    """icmr_v -> swing_out_v(pending_spice) 이므로 judged False, 값은 대상 값."""
     doc = sc.load()
-    c = [c for c in doc.constraints if c.metric == "mirror_ratio_error_mv"][0]
+    c = [c for c in doc.constraints if c.metric == "icmr_v"][0]
     assert c.judged is False
-    assert c.value == sc.constraint("mismatch_sigma_mv")["value"]
+    assert c.value == sc.constraint("swing_out_v")["value"]
 
 
 def test_pending_constraints_result(sc):
@@ -348,3 +348,41 @@ def test_all_constraint_hits_collected(sc):
     _add(sc, metric="slew_ss_vps", op=">=", value=1.0)
     d = sc.reject()
     assert sc.rules(d) == ["op_value", "view_net_unknown", "metric_unknown"]
+
+
+# ---------------------------------------------------------------- [U5 2026-10-08] 실제 카탈로그(metrics.metric_catalog)로 새 어휘
+# oracle (d): 설계 40 §3.8-8·41 §7.1 -- 닫힌 어휘 11개는 받고, 레지스트리 밖 잡음 이름(40 §3.1 표의 옛 행 이름·옛 topology
+# `noise_v_rthz`)은 metric_unknown. 합성 입력(a): 픽스처에 제약 한 줄을 더한다.
+U5_US = {"kind": "user_spec", "record": "fixture u5", "decided": "2026-10-08"}
+
+
+def _real_catalog():
+    from gmid_engine.metrics import metric_catalog
+    return dict(metric_catalog())
+
+
+@pytest.mark.parametrize("metric", ["offset_in_sigma_mv", "offset_excess", "offset_sys_mv", "mirror_ratio_sigma_pct",
+                                    "icm_margin_v", "noise_th_in_v2hz", "noise_fc_in_hz", "noise_excess_th",
+                                    "noise_out_int_vrms"])
+def test_u5_metric_accepted_with_real_catalog(sc, metric):
+    sc.human["constraints"].append({"metric": metric, "op": "<=", "value": 2.0, "source": dict(U5_US)})
+    doc = sc.load(catalog=_real_catalog())
+    got = [c for c in doc.constraints if c.metric == metric]
+    assert len(got) == 1 and got[0].judged is True and got[0].value == 2.0
+
+
+@pytest.mark.parametrize("metric", ["noise_in_density_ss_v_rthz", "noise_in_integrated_ss_v", "noise_v_rthz",
+                                    "noise_th_in_v_rthz", "offset_sigma_mv"])
+def test_noise_and_offset_names_outside_vocabulary_metric_unknown(sc, metric):
+    sc.human["constraints"].append({"metric": metric, "op": "<=", "value": 1e-8, "source": dict(U5_US)})
+    sc.reject_only("metric_unknown", "constraints", catalog=_real_catalog())
+
+
+@pytest.mark.parametrize("metric", ["swing_out_v", "icmr_v", "icm_margin_v"])
+def test_large_signal_metric_rejects_view(sc, metric):
+    """스윙·ICMR 은 뷰 없음('ls') -- 선언 view 는 view_not_applicable(계약 2절 view_kind None 규칙)."""
+    if metric == "icm_margin_v":
+        sc.human["constraints"].append({"metric": metric, "op": ">=", "value": 0.0, "source": dict(U5_US)})
+    sc.constraint(metric)["view"] = copy.deepcopy(TRANSFER)
+    sc.reject_only("view_not_applicable", "constraints", catalog=_real_catalog())
+
