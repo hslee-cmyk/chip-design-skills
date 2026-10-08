@@ -1,5 +1,5 @@
 """MOD4 sizing -- GB7 DC 정본 풀이(노드전압·가지전류·소자 op)와 봉인 8항목 (계획 N3.4~N3.6·N3.10, 설계
-design_gb7_dc_canonical). 계약: `CONTRACT.md`.
+design_gb7_dc_canonical; [r8] 9 = 전도 여유). 계약: `CONTRACT.md`.
 
 다른 패키지와 test 는 이 `__all__` 만 쓴다. 공개 흐름:
 `dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, pre_layout_lut_access(memo))` (S0 당 1회) ->
@@ -68,6 +68,7 @@ from .s2_values import (
     SCC_GAUSS_SEIDEL,
     SCC_NEWTON,
     SEAL_BULK_REVERSE,
+    SEAL_CONDUCTION,
     SEAL_FAIL,
     SEAL_ITEM_NAMES,
     SEAL_KCL,
@@ -131,6 +132,7 @@ from .scc_newton import newton_solve
 from .scc_order import dc_scc_order
 from .seal import seal_dc
 from .seal_bulk_reverse import dc_seal_bulk_reverse
+from .seal_conduction import dc_seal_conduction
 from .seal_kcl import dc_seal_kcl
 from .seal_kvl_branch import dc_seal_kvl_branch
 from .seal_node_conflict import dc_seal_node_conflict
@@ -209,6 +211,7 @@ __all__ = (
     "SCC_GAUSS_SEIDEL",
     "SCC_NEWTON",
     "SEAL_BULK_REVERSE",
+    "SEAL_CONDUCTION",
     "SEAL_FAIL",
     "SEAL_ITEM_NAMES",
     "SEAL_KCL",
@@ -267,6 +270,7 @@ __all__ = (
     "dc_rails",
     "dc_scc_order",
     "dc_seal_bulk_reverse",
+    "dc_seal_conduction",
     "dc_seal_kcl",
     "dc_seal_kvl_branch",
     "dc_seal_node_conflict",

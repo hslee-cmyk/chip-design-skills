@@ -71,7 +71,7 @@ ZC_MIXED_DIRECTION = "cs_cell_direction_mixed"         # 저항 끝 넷이 어�
 
 # ---- 봉인 항목(계획 N3.6 표 순서 -- 항목 번호 = 이 tuple 의 위치 + 1)
 SEAL_ITEM_NAMES = ("node_conflict", "vgs_match", "kcl", "versions", "writer_unique", "bulk_reverse", "saturation",
-                   "kvl_branch")
+                   "kvl_branch", "conduction")
 SEAL_NODE_CONFLICT = SEAL_ITEM_NAMES.index("node_conflict") + 1
 SEAL_VGS_MATCH = SEAL_ITEM_NAMES.index("vgs_match") + 1
 SEAL_KCL = SEAL_ITEM_NAMES.index("kcl") + 1
@@ -80,6 +80,7 @@ SEAL_WRITER_UNIQUE = SEAL_ITEM_NAMES.index("writer_unique") + 1
 SEAL_BULK_REVERSE = SEAL_ITEM_NAMES.index("bulk_reverse") + 1
 SEAL_SATURATION = SEAL_ITEM_NAMES.index("saturation") + 1
 SEAL_KVL_BRANCH = SEAL_ITEM_NAMES.index("kvl_branch") + 1
+SEAL_CONDUCTION = SEAL_ITEM_NAMES.index("conduction") + 1   # [r8] 전도 여유: VGS=0 누설 ≤ ε·ID
 
 # ---- 봉인 상태
 SEAL_PASS = "pass"
@@ -133,6 +134,7 @@ DC_SEAL_KCL_WRITER = "dc_seal_kcl"
 DC_SEAL_BULK_WRITER = "dc_seal_bulk_reverse"
 DC_SEAL_SATURATION_WRITER = "dc_seal_saturation"
 DC_SEAL_KVL_WRITER = "dc_seal_kvl_branch"
+DC_SEAL_CONDUCTION_WRITER = "dc_seal_conduction"
 DC_SEAL_REPORT_WRITER = "dc_seal_report"
 
 # ---- 블록별 writes (reads 는 각 블록 파일에 둔다)
@@ -155,6 +157,7 @@ DC_WRITES = (
     (DC_SEAL_BULK_WRITER, (("graph", "dc_seal_6"),)),
     (DC_SEAL_SATURATION_WRITER, (("graph", "dc_seal_7"),)),
     (DC_SEAL_KVL_WRITER, (("graph", "dc_seal_8"),)),
+    (DC_SEAL_CONDUCTION_WRITER, (("graph", "dc_seal_9"), ("device", "dc_off_current"), ("device", "dc_conduction_floor"))),
     (DC_SEAL_REPORT_WRITER, (("graph", "dc_seal_report"),)),
 )
 # ---- S2 ss·metric 필드(writer = MOD5 계산 블록, metrics CONTRACT 7절). 권한표가 S2 한 곳이라 여기서 선언한다
