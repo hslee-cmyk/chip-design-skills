@@ -146,11 +146,13 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
     `cuts` = (되먹임 소자, 절단 넷) 소자 이름순 -- 절단 넷 = 소자의 입력 포트 넷 쪽 단자 넷, `weights` = 절단 넷 (넷, 가중)
     넷순, `sense` None. unity(feedback 빈 list): `weights`·`sense` 가 `port` 와 같다. feedback 이 결정 대기 표지면 view =
     `pending`(decision = feedback 의 ID -- 새 표지를 `pending` 에 더하지 않는다, 이미 `human.feedback` 표지로 들어 있다).
-  - `cm_loop`(pm_cm_ss_deg, [CM 2026-10-08] 공통 모드 루프 PM -- 출력 포트 CM 주입, 사용자 결정 2026-10-08): view 를 적지 않는다(결정 대기 표지만 허용). 선언된 차동 출력 포트 쌍(role
-    differential_output_p·_n 각 하나, 다른 출력 없음)이 있으면 `ViewDecl("cm_output", weights=((p, 1/2), (n, 1/2)))`(두 출력 넷 동일 부호 Middlebrook 주입, 입력 교류접지; 절단 원소는 metrics 가
-    소신호 회로에서 구조로 정한다 -- CM 감지 구현 방식은 보지 않는다, 이름·구조 리터럴 없음). 차동 출력쌍이 없으면 `view_required` 사유(`DefaultViews.cm_loop` 가 문자열); 수동소자·이상원 kind ∈
-    `SWITCHED_KINDS`("switch", "clock", 스위치드 커패시터 CMFB 선언)이 있으면 명시적 정지 사유 `view_required`(연속시간 소신호 MNA 로 표현할 수 없다). 제약이 선언돼야 판정하고, 선언이 없으면
-    metrics 가 보고 전용으로만 계산한다(metrics CONTRACT 7.11).
+  - `cm_loop`(pm_cm_ss_deg, [CM 2026-10-08] 공통 모드 루프 PM -- 출력 포트 CM 주입, 사용자 결정 2026-10-08): 선언된 차동 출력 포트 쌍(role differential_output_p·_n 각 하나, 다른 출력 없음)이 있으면
+    `ViewDecl("cm_output", weights=((p, 1/2), (n, 1/2)), cuts=((구동자 MOS, 출력 넷), …))`. 구동자/소비자 분류는 `cm_partition`(metrics CONTRACT 7.11: 출력 넷에 channel 이 물린 MOS 의 다른 channel 단자에서
+    MOS channel·수동소자를 따라 레일(공급 레일·이상원 단자 넷)에 닿으면 구동자, 안 닿으면 소비자, 닿지만 gate 가 걸린 감지 쪽 넷을 거치면 모호; 절단 교차 검사). 모호하면 `view_required` 사유(`DefaultViews.cm_loop` 가 문자열) --
+    제약 `view` 로 **`{"cm_sense_elements": [소비자(CM 감지) MOS 이름…]}`** 을 선언해 대체한다(닫힌 어휘: 그 키 하나만; 서로 다른 MOS 이름 list, 빈 list 가능; 이 제약의 `source.kind` 는 `user_spec` 필수). 선언은 분류를 덮어쓰지만
+    구조가 명확하면 구조 소비자 집합과 같아야 한다. 거부 규칙: `cm_sense_unknown`(topology MOS 아님), `cm_sense_not_on_output`(drain·source 가 출력 넷에 안 물림), `cm_sense_disagrees`(구조 명확 + 불일치),
+    `cm_sense_source`(출처 user_spec 아님), `cm_partition_ambiguous`(선언해도 절단 교차 검사 실패), `cm_pair_missing`(차동 출력쌍 없음), `cm_switched`(수동소자·이상원 kind ∈ `SWITCHED_KINDS` = "switch"/"clock" -- 스위치드
+    커패시터 CMFB 는 연속시간 소신호 MNA 로 표현할 수 없어 명시적 정지). 선언이 없으면 `DefaultViews.cm_loop`(ViewDecl 또는 사유 문자열). 제약이 선언돼야 판정하고, 선언이 없으면 metrics 가 보고 전용으로만 계산한다(7.11).
   - `sense`(rout_ss_ohm): `sense` = `SenseDecl`(기본 = 출력 포트 1개면 그 넷 single_ended, 선언이면 그 감지 칸).
   - topology 교차 검사를 못 한 로드(meta 불일치 -- 어차피 거부)나 feedback 이 거부된 로드에서는 유도하지 않은 mode 만 담는다.
 - 유도된 내용이 `ViewDecl` 에 들어가므로 `constraints_fp` 가 feedback·ports 변경을 따라간다(feedback 만 바꿔도 loop 제약이

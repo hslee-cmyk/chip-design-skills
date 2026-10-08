@@ -67,7 +67,7 @@ LAYERS = (
     (
         "authoring",
         (
-            ("topology_model.py", "_terminal_nets.py", "spec_model.py"),
+            ("topology_model.py", "_terminal_nets.py", "spec_model.py", "cm_partition.py"),
             ("_rejection.py", "_two_terminal.py", "dc_edges.py", "linked_files.py", "name_uniqueness.py",
              "topology_schema.py", "_spec_fields.py", "spec_meta.py", "spec_refs.py"),
             ("devices.py", "hidden_rails.py", "ideal_sources.py", "json_read.py", "passives.py", "ports.py",
@@ -312,6 +312,8 @@ MODULES = (
                 "supplies_v 레일 전압(넷 집합 = supply_nets, 최고 레일 유일)", ("DEC-60", "SP-1")),
     ModuleEntry("authoring/spec_input_dc.py", "entry", "input_dc_declaration",
                 "입력 DC(net·value_v·engine·pending)", ("SP-2", "N3.16")),
+    ModuleEntry("authoring/cm_partition.py", "entry", "cm_partition",
+                "공통 모드 루프 절단 분할: 출력 넷 channel 소자를 구동자(x)·소비자(n)로 구조 분류·선언 덮어쓰기·절단 교차 검사", ("U-48", "7a")),
     ModuleEntry("authoring/_feedback_cuts.py", "helper", None,
                 "되먹임 수동소자의 입력 포트 넷 쪽 단자(절단 단자) 판정(spec_elements·spec_views 공용)", ("U-48", "7a")),
     ModuleEntry("authoring/spec_elements.py", "entry", "element_value_declaration",

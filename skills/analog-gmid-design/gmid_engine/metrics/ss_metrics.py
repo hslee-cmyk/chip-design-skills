@@ -28,8 +28,9 @@
 import dataclasses
 
 from gmid_engine.authoring import (BETA_DECLARED, INPUT_DIRECTION, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P,
-                                   SENSE_DIFFERENTIAL, ViewDecl)
+                                   SENSE_DIFFERENTIAL, ViewDecl, cm_partition)
 from gmid_engine.core import compute_block
+from gmid_engine.graph import ELEMENT_SOURCE
 from gmid_engine.sizing import METRICS_KEY, METRICS_SS_WRITER
 
 from .evaluate import metric_value
@@ -51,7 +52,7 @@ from .ss_types import MetricBundle, MetricRequest
 
 READS = (
     ("device", "ss_dev"), ("device", "element_class"), ("device", "kind"), ("device", "pins"), ("device", "bulk"),
-    ("node", "ac_ground_class"), ("node", "port_direction"), ("node", "port_role"),
+    ("node", "ac_ground_class"), ("node", "port_direction"), ("node", "port_role"), ("node", "is_rail"),
 )
 WRITES = (("graph", "metrics_ss"),)
 UNIT = 1.0                                              # 단위 시험 전류(rout_ohm = 관측 / 이 값)
@@ -79,9 +80,12 @@ class _Ledger:
     """계 조립 장부(블록 호출 하나 안에서만 산다 -- 모듈 수준 상태가 아니다). 계 key: 전체 회로 계 = 고정 넷 frozenset,
     β 루프 계 = ("cut", 뷰 cuts)."""
 
-    def __init__(self, ss):
+    def __init__(self, ss, rail_nets=(), source_nets=()):
         self.ss = ss
+        self.cm_ambiguity = None
         self.index = {net: i for i, net in enumerate(ss.nodes)}
+        self.rails = frozenset(self.index[n] for n in rail_nets if n in self.index)       # 공급 레일 노드 ([CM] 구동자 분류용)
+        self.source_nodes = frozenset(self.index[n] for n in source_nets if n in self.index)   # 이상원 단자 노드
         self.base = frozenset(ss.ground_nets) | frozenset(ss.input_nets)
         self.rows = {}
 
@@ -108,16 +112,28 @@ class _Ledger:
         return key
 
     def cm_cuts(self, view):
-        """[CM] 출력 포트 CM 절단(view mode `cm_output`): 뷰 가중의 각 출력 넷에서 **구동자(루프 신호를 내는 쪽)** 를 새 노드 x 로 옮긴다 -- 그 넷에
-        drain 또는 source 가 물린 MOS 의 그 channel 단자(MOS 소신호 요소의 d·s 단자). 수동소자·MOS gate(루프 신호를 받는 소비자: 감지 회로·부하·
-        버퍼 gate)는 n 쪽에 남는다 -- Middlebrook 관례(n = 받는 쪽, x = 되돌림을 내는 쪽: 예 7·7d 의 n = gate/입력, x = 되먹임 소자 쪽). 한 MOS 의 d·s 가
-        모두 절단 넷에 있으면(포트 사이 통과 소자) 옮기지 않는다. 이름 없이 노드 인덱스로만 판정. 반환 LoopCut tuple(없으면 ())."""
-        idx = {self.index[net] for net, _w in view.weights}
+        """[CM] 출력 포트 CM 절단(view mode `cm_output`): 구동자 MOS 의 출력 넷 쪽 channel 단자를 새 노드 x 로 옮긴다. 구동자 = 뷰 `cuts`((MOS 이름, 출력 넷), authoring
+        `cm_partition` 결과·선언 반영) -- 비어 있으면(보고 전용 뷰 등) 같은 `cm_partition` 을 이 소신호 회로(MOS 라벨·수동소자·`self.rails` = 레일 ∪ 이상원 단자 넷)에서
+        직접 부른다. 수동소자·gate·소비자 MOS 는 n 쪽에 남는다. 모호하면 `self.cm_ambiguity` 에 사유를 남기고 절단 ()."""
+        index = self.index
+        mos_by_label = {m.label: (position, m) for position, m in enumerate(self.ss.circuit.mos)}
+        outputs = tuple(sorted(index[net] for net, _w in view.weights))
+        self.cm_ambiguity = None
+        if view.cuts:
+            moved = [(name, index[net]) for name, net in view.cuts]
+        else:
+            part = cm_partition(
+                outputs, tuple((m.label, m.d, m.g, m.s) for m in self.ss.circuit.mos),
+                tuple((e.a, e.b) for e in self.ss.circuit.resistors + self.ss.circuit.capacitors), self.rails, None,
+                self.source_nodes)
+            if part.ambiguity is not None:
+                self.cm_ambiguity = part.ambiguity
+                return ()
+            moved = [(name, index[net] if isinstance(net, str) else net) for name, net in part.drivers]
         cuts = []
-        for position, mos in enumerate(self.ss.circuit.mos):
-            ends = [t for t in ("d", "s") if getattr(mos, t) in idx]
-            if len(ends) == 1:
-                cuts.append(LoopCut(LOOP_CUT_MOS, position, ends[0]))
+        for name, net in moved:
+            position, mos = mos_by_label[name]
+            cuts.append(LoopCut(LOOP_CUT_MOS, position, "d" if mos.d == net else "s"))
         return tuple(cuts)
 
     def cm_cut(self, view):
@@ -273,17 +289,24 @@ def metrics_ss(projection):
     results = dict(pending)
     detail = ()
     reports = warnings = ()
+    report_note = cm_view = None
     if ss.missing:
         detail = (("missing_passives", ss.missing),)
         results.update({r: _undefined(r, CODE_PASSIVE_MISSING, (("elements", ss.missing),))
                         for r in requests if r not in pending})
     else:
-        ledger = _Ledger(ss)
+        rail_nets = {n for n, flag in projection.column("node", "is_rail") if flag}
+        source_nets = {net for name in classes if classes[name] == ELEMENT_SOURCE for _t, net in pins[name]}
+        ledger = _Ledger(ss, rail_nets, source_nets)
         plans = {r: _plan(r, ledger) for r in requests if r not in pending}
-        cm_view = _cm_report_view(projection.column("node", "port_role"))
-        report_plan = None
-        if cm_view is not None and ledger.cm_cuts(cm_view):
-            report_plan = _plan(MetricRequest("", cm_view), ledger)
+        declared_cm = next((r.view for r in requests if r.view.mode == CM_OUTPUT_MODE), None)
+        cm_view = declared_cm or _cm_report_view(projection.column("node", "port_role"))
+        report_plan = report_note = None
+        if cm_view is not None:
+            if ledger.cm_cuts(cm_view):
+                report_plan = _plan(MetricRequest("", cm_view), ledger)
+            elif ledger.cm_ambiguity is not None:
+                report_note = ledger.cm_ambiguity
         if plans or report_plan is not None:
             responses, cuts = ledger.solve()
             parameters = lut_parameters(ss.circuit, tuple(ss_values[m.label].lut_rel_tol for m in ss.circuit.mos))
@@ -299,10 +322,11 @@ def metrics_ss(projection):
                 if report_plan not in done:
                     analysis, source = _analysis(report_plan, responses, cuts)
                     done[report_plan] = (analysis, metric_resolutions(analysis, source, parameters, memo))
-                reports, warnings = _cm_report(done[report_plan][0], cm_view,
-                                               any(r.view.mode == CM_OUTPUT_MODE for r in requests))
+                reports, warnings = _cm_report(done[report_plan][0], cm_view, declared_cm is not None)
             first = next(iter(responses.values()))
             detail = (("grid_points", len(first.omegas)), ("systems", len(responses)))
+    if report_note is not None:       # [CM] 구동자·소비자 분류가 모호해 보고 전용 CM 루프를 만들지 못했다 -- 보고에 사유를 남긴다(경고 없음)
+        reports = (("cm_loop", (("break_nets", tuple(net for net, _w in cm_view.weights)), ("undefined", ("cm_partition_ambiguous",)))),)
     bundle = MetricBundle(tuple((r, results[r]) for r in requests), _approximations(ss_values.values()), detail, reports,
                           warnings)
     return {("graph", "metrics_ss"): {METRICS_KEY: bundle}}

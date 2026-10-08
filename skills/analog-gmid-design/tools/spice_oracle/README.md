@@ -564,15 +564,15 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
 엔진 `pm_cm_ss_deg`(metrics CONTRACT 7.11, 출력 포트 CM 주입)와 같은 정의를 재는 측정. DM β 루프(`feedback_passives`)와 독립이다(둘이 함께 있어도 된다).
 
 ### 입력 스키마 추가(선택 필드)
-* `cm_output_loop`(boolean): true 면 공통 모드 루프를 **선언된 차동 출력 포트 쌍(ports.output_p·output_n)** 에서 끊는다(output_p·output_n 이 없으면 막힘).
-  CM 감지가 평균 저항이든 DDA 든 버퍼든 보지 않는다. (옛 `cm_loop_passives` 입력은 삭제.)
+* `cm_output_loop`(object, `{"drivers": [소자 이름…]}`): 있으면 공통 모드 루프를 **선언된 차동 출력 포트 쌍(ports.output_p·output_n)** 에서 끊는다(output_p·output_n 이 없으면 막힘). `drivers` = 구동자(x 쪽) MOS 이름 --
+  엔진 `cm_partition` 이 정한 집합을 부르는 쪽(어댑터·엔진 브리지)이 넣는다(오라클은 엔진을 import 하지 않는다). 각 소자는 drain·source 중 정확히 하나가 출력 넷이어야 한다(아니면 막힘). CM 감지가 평균 저항이든 DDA 든 버퍼든
+  triode 평균이든 오라클은 보지 않는다. (옛 `cm_loop_passives` 입력과 boolean `cm_output_loop` 는 스키마 거부.)
 * 닫힌 어휘: 삭제된 옛 입력 `cm_loop_passives` 는 스키마가 명시적으로 거부한다(`false` 스키마 -- 있으면 스키마 위반, 넷리스트를 쓰지 않음).
 * measure `cm_pm_deg`(predictions.metrics, acceptance.constraints): 허용오차 키는 `pm_deg_abs`.
 
 ### 동작 계약
-* 넷리스트: `cm_output_loop` 가 true 이면 `<stem>.cmloop.cir`(+ `meta.cm_loop`)를 더 쓴다 -- 두 출력 넷 각각에서 **구동자 쪽 단자**를 `lbx_<넷>` 으로 뗀다: 그 넷에
-  drain 또는 source 가 (정확히 한쪽만) 물린 MOS 의 그 channel 단자. 수동소자·MOS gate(루프 신호를 받는 소비자: 감지 회로·부하·버퍼 gate)는 원래 넷(n 쪽)에 남는다
-  (Middlebrook 관례 n = 받는 쪽, x = 되돌림을 내는 쪽; 엔진 `cm_cuts` 와 같은 규칙; drain·source 가 모두 출력 넷인 MOS 는 옮기지 않는다). 넷마다 직렬 전압원
+* 넷리스트: `cm_output_loop` 가 있으면 `<stem>.cmloop.cir`(+ `meta.cm_loop`)를 더 쓴다 -- `drivers` 각 MOS 의 출력 넷 쪽 channel 단자를 `lbx_<넷>` 으로 뗀다.
+  수동소자·MOS gate·소비자(감지망) MOS 는 원래 넷(n 쪽)에 남는다(Middlebrook 관례 n = 받는 쪽, x = 되돌림을 내는 쪽; 엔진 `cm_cuts` 와 같은 분할). 넷마다 직렬 전압원
   `Vlb_<넷>`(수신 쪽 +, AC 1/2, DC 0)과 수신 쪽 주입 전류원 `Ilb_<넷>` 을 넣어 두 출력에 **동일 부호** 가중(1/2, 1/2)으로 Middlebrook 이중 주입한다. 입력 포트는 **전부 AC 접지**(`Vac_*` AC 0, DC 는 Vlb 0 V 가 이어 준다). `.ac` 2회 + `loop_gain`
   (DM 과 같은 식). `feedback_passives`·`cm_output_loop` 가 없는 입력은 이 파일들을 만들지 않는다(기존 출력 비트 동일).
 * 시뮬레이션: `sim.cm_loop` = {ngspice_rc, break_nets, weights, measures(`ac_measures`), singular, pm_deg, pm_deg_raw, pm_undefined, stability,

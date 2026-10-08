@@ -120,8 +120,9 @@ def linear_reference(topo, inp, ng, exe, work, kind):
         breaks = sorted(pt.net for pt in topo.ports if pt.direction == "output")
         weights = [1 / len(breaks)] * len(breaks)
         moved = set()
-        drv_moved = {d.name: [t for t in ("d", "s") if getattr(d, t) in breaks] for d in topo.devices}
-        drv_moved = {n: t[0] for n, t in drv_moved.items() if len(t) == 1}        # 구동자 channel 단자를 x(lbx)로
+        from gmid_engine.authoring.spec_views import cm_loop_view
+        names = dict(cm_loop_view(topo)[0].cuts)                                  # 엔진 cm_partition 이 정한 구동자
+        drv_moved = {d.name: next(t for t in ("d", "s") if getattr(d, t) == names[d.name]) for d in topo.devices if d.name in names}
     else:
         breaks = sorted(pt.net for pt in topo.ports if pt.direction == "input")
         weights = [-0.5 if pt.role.endswith("_n") else 0.5 for pt in (ports[n] for n in breaks)]

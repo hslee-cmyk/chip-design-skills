@@ -88,8 +88,10 @@
   },
   "cm_loop_passives": false,
   "cm_output_loop": {
-   "type": "boolean",
-   "description": "[신규 CM] 선택. true 면 공통 모드 루프를 선언된 차동 출력 포트 쌍(ports.output_p·output_n)에서 끊는다: <stem>.cmloop.cir 에서 두 출력 넷의 구동자 쪽 단자(그 넷에 drain 또는 source 가 물린 MOS 의 그 channel 단자; 수동소자·gate 는 남는다)를 lbx_<넷> 으로 떼고 두 넷에 동일 부호(가중 1/2씩) Middlebrook 전압·전류 이중 주입으로 T_cm 을 잰다(입력은 전부 AC 접지). CM 감지 구현 방식(평균 저항·DDA·버퍼)은 보지 않는다. PM = measure cm_pm_deg. README 'CM 루프 PM'."
+   "type": "object", "additionalProperties": false, "required": ["drivers"],
+   "properties": {"drivers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true, "minItems": 1,
+    "description": "구동자(x 쪽) MOS 이름 -- 엔진 cm_partition 결과(차동 출력 넷에 channel 단자가 물려 레일에 닿는 출력 단 소자). 각 소자는 drain 또는 source 중 정확히 하나가 출력 넷이어야 한다."}},
+   "description": "[신규 CM] 선택. 있으면 공통 모드 루프를 선언된 차동 출력 포트 쌍(ports.output_p·output_n)에서 끊는다: <stem>.cmloop.cir 에서 drivers 의 출력 넷 쪽 channel 단자를 lbx_<넷> 으로 떼고(수동소자·gate·그 밖 MOS 는 남는다 -- 분할은 엔진이 정해 주입, 오라클은 엔진을 import 하지 않는다) 두 넷에 동일 부호(가중 1/2씩) Middlebrook 전압·전류 이중 주입으로 T_cm 을 잰다(입력은 전부 AC 접지). PM = measure cm_pm_deg. README 'CM 루프 PM'."
   },
   "feedback_passives_basis": {
    "type": "string", "minLength": 1,
