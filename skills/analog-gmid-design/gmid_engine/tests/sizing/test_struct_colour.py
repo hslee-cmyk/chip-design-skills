@@ -53,6 +53,8 @@ def rename(doc, seed):
     for k in list(d):
         if k in ("device_roles", "symmetry", "sizing_roles", "compensation") or (k.startswith("_") and k != "_comment"):
             d.pop(k)
+    if "bias_inputs" in d:                                   # authoring 9절 선언도 같은 σ 로 옮긴다(이름 전단사의 일부)
+        d["bias_inputs"] = [sn[n] for n in d["bias_inputs"]]
     d["topology_name"] = d["topology_name"] + "_r%d" % seed
     return d, sn, se
 
@@ -76,7 +78,8 @@ def test_symmetric_pair_same_colour_and_port_direction_separates(tmp_path, toy_a
                [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"),
                 mos("M5", "nmos", "t", "vb", "gnd"), mos("M3", "pmos", "o1", "pb", "vdd"),
                 mos("M4", "pmos", "o2", "pb", "vdd")],
-               {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")})
+               {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")},
+               bias=["pb", "vb"])                                                            # vb: M5 gate, pb: M3·M4 gate
     _, _, ctx = build_ctx(tmp_path, doc, toy_access)
     nc, ec = colours(ctx.base)
     assert ec["M1"] == ec["M2"] and ec["M3"] == ec["M4"] and ec["M1"] != ec["M5"]
@@ -96,8 +99,8 @@ def test_current_source_direction_matters(tmp_path, toy_access):
     net = [mos("M1", "nmos", "a", "in", "gnd"), mos("M2", "nmos", "b", "in", "gnd"),
            mos("M3", "pmos", "a", "pb", "vdd"), mos("M4", "pmos", "b", "pb", "vdd")]
     ports = {"in": ("input", "x"), "a": ("output", "y"), "b": ("output", "y")}
-    src = topo("hand_src_dir", net, ports, sources=[two("I1", "current_source", "a", "b")])
-    res = topo("hand_res_dir", net, ports, passives=[two("R1", "resistor", "a", "b")])
+    src = topo("hand_src_dir", net, ports, sources=[two("I1", "current_source", "a", "b")], bias=["pb"])  # pb: M3·M4 gate
+    res = topo("hand_res_dir", net, ports, passives=[two("R1", "resistor", "a", "b")], bias=["pb"])
     _, _, cs = build_ctx(tmp_path, src, toy_access)
     _, _, cr = build_ctx(tmp_path, res, toy_access)
     assert colours(cs.base) == wl_colours(cs.base) and colours(cr.base) == wl_colours(cr.base)

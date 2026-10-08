@@ -90,7 +90,8 @@ def circuit_window():
 def circuit_follower():
     """nmos 만: M1 (vdd, in, x) 소스 추종 + M2 (x, nb, gnd) 전류 싱크 -> 원뿔 행 둘 다 같은 nmos 원천 단일항(I-14)."""
     return topo("hand_nfollow", [mos("M1", "nmos", "vdd", "in", "x"), mos("M2", "nmos", "x", "nb", "gnd")],
-                {"in": ("input", "single_ended_input"), "x": ("output", "single_ended_output")})
+                {"in": ("input", "single_ended_input"), "x": ("output", "single_ended_output")},
+                bias=["nb"])                                  # nb: M2 gate 에만 (authoring 9절 입력 선언)
 
 
 # ---------------------------------------------------------------- 독립 계산 도구

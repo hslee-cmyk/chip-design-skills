@@ -68,11 +68,12 @@ D, P, R = "derived", "proposed", "review_needed"
 
 
 # ---------------------------------------------------------------- 입력 생성 (test 쪽)
-def topo(netlist, inputs, outputs, passives=(), rails=("vdd", "gnd"), name="syn"):
-    """netlist = ((이름, kind, drain, gate, source), ...), passives = ((이름, kind, t0, t1), ...)."""
+def topo(netlist, inputs, outputs, passives=(), rails=("vdd", "gnd"), name="syn", bias=()):
+    """netlist = ((이름, kind, drain, gate, source), ...), passives = ((이름, kind, t0, t1), ...).
+    bias = authoring CONTRACT 9절 `bias_inputs`(gate 전용 넷) -- 회로마다 손으로 정한 리터럴(입력 선언), 비면 키 없음."""
     ports = {n: {"direction": "input", "role": "signal"} for n in inputs}
     ports.update({n: {"direction": "output", "role": "signal"} for n in outputs})
-    return {
+    d = {
         "schema_version": "2.0",
         "topology_name": name,
         "supply_nets": list(rails),
@@ -80,6 +81,9 @@ def topo(netlist, inputs, outputs, passives=(), rails=("vdd", "gnd"), name="syn"
         "passive_elements": [{"name": n, "kind": k, "terminals": [a, b]} for n, k, a, b in passives],
         "ports": ports,
     }
+    if bias:
+        d["bias_inputs"] = list(bias)
+    return d
 
 
 def build(gh, tmp_path, raw, supplies=None, stem="syn"):
@@ -111,6 +115,8 @@ def rename_all(raw, netmap, elmap):
             e["terminals"] = [f(t) for t in e["terminals"]]
     d["supply_nets"] = [f(n) for n in d["supply_nets"]]
     d["ports"] = {(k if k.startswith("_") else f(k)): v for k, v in d["ports"].items()}
+    if "bias_inputs" in d:                                   # authoring 9절 선언도 같은 넷 치환(이름 치환의 일부)
+        d["bias_inputs"] = [f(n) for n in d["bias_inputs"]]
     for k in list(d):
         if k in ("device_roles", "symmetry", "sizing_roles", "compensation"):
             del d[k]                                   # 태그는 소자 이름을 담아 치환 대상이 아니다(엔진은 읽지 않음)
@@ -458,11 +464,12 @@ OTA5 = (
 )
 
 
-def ota5(extra=(), drop=(), replace=None, passives=(), inputs=("inp", "inn"), outputs=("O1",)):
+def ota5(extra=(), drop=(), replace=None, passives=(), inputs=("inp", "inn"), outputs=("O1",), bias=()):
+    """bias: 케이스마다 손으로 정한 gate 전용 넷(authoring 9절) -- 기본 몸통만이면 vb(M5 gate)."""
     rows = [r for r in OTA5 if r[0] not in drop]
     if replace:
         rows = [replace.get(r[0], r) for r in rows]
-    return topo(rows + list(extra), inputs, outputs, passives)
+    return topo(rows + list(extra), inputs, outputs, passives, bias=bias)
 
 
 MIRROR_M3M4 = ("mirror", ("M3", "M4"), D, ("mirror_whole", ("D3", "vdd"), ("M3",), ()))
@@ -472,13 +479,14 @@ DIFF_M1M2 = ("diff_pair", ("M1", "M2"), D, ("diff_pair", ("CS", "inn", "inp"), (
 CASES = {}
 
 # A. 기본 5T: 한 블록(CS 공유) -> 소비 소자 없음 -> mirror_whole. 차동쌍 M1/M2 derived. 위 소자 없음.
-CASES["ota5"] = (ota5(), ((OFF_M1M2,), (MIRROR_M3M4, DIFF_M1M2), ()))
+CASES["ota5"] = (ota5(bias=["vb"]), ((OFF_M1M2,), (MIRROR_M3M4, DIFF_M1M2), ()))      # vb: M5 gate
 
 # B. 2단 NMOS 캐스코드: diff seed -> {M1c, M2c}(gate vc1, source X1/X2) -> 다시 seed -> {M1d, M2d}(gate vc2).
 CASES["cascode2"] = (
     ota5(replace={"M1": ("M1", "nmos", "X1", "inp", "CS"), "M2": ("M2", "nmos", "X2", "inn", "CS")},
          extra=(("M1c", "nmos", "Y1", "vc1", "X1"), ("M2c", "nmos", "Y2", "vc1", "X2"),
-                ("M1d", "nmos", "D3", "vc2", "Y1"), ("M2d", "nmos", "O1", "vc2", "Y2"))),
+                ("M1d", "nmos", "D3", "vc2", "Y1"), ("M2d", "nmos", "O1", "vc2", "Y2")),
+         bias=["vb", "vc1", "vc2"]),                                       # vb: M5, vc1: M1c·M2c, vc2: M1d·M2d gate
     ((OFF_M1M2,),
      (MIRROR_M3M4, DIFF_M1M2,
       ("branch_symmetric", ("M1c", "M2c"), D, ("branch_symmetric", ("vc1", "X1", "X2"), ("M1", "M2"), (JC,))),
@@ -490,7 +498,8 @@ CASES["cascode2"] = (
 CASES["siblings3"] = (
     ota5(extra=(("Md", "nmos", "Yd", "Yd", "CS"), ("Mg", "nmos", "Z", "vb", "CS"),
                 ("Mq", "nmos", "P", "P", "Q"), ("Mo", "nmos", "Q", "P", "CS")),
-         passives=(("Ryd", "resistor", "vdd", "Yd"), ("Rz", "resistor", "vdd", "Z"), ("Rq", "resistor", "vdd", "P"))),
+         passives=(("Ryd", "resistor", "vdd", "Yd"), ("Rz", "resistor", "vdd", "Z"), ("Rq", "resistor", "vdd", "P")),
+         bias=["vb"]),                                                     # vb: M5·Mg gate (P 는 Mq drain·Rq 단자)
     ((OFF_M1M2,), (MIRROR_M3M4, DIFF_M1M2),
      (("bias_sibling", ("Md",), P, ("bias_sibling_dc_role", ("CS", "Yd"), ("M1", "M2"), (JB, JD))),
       ("bias_sibling", ("Mg",), P, ("bias_sibling_ground_gate", ("CS", "vb"), ("M1", "M2"), (JB, JD))),
@@ -499,7 +508,7 @@ CASES["siblings3"] = (
 # C2. 검사 순서: gate 가 G(vb) 이고 같은 gs 묶음(nmos, vb, CS)인 Mg/Mh 는 dc_role(2)=bias 라 rule 은 dc_role(ground_gate 아님).
 CASES["sibling_order"] = (
     ota5(extra=(("Mg", "nmos", "Z", "vb", "CS"), ("Mh", "nmos", "Z2", "vb", "CS")),
-         passives=(("Rz", "resistor", "vdd", "Z"), ("Rz2", "resistor", "vdd", "Z2"))),
+         passives=(("Rz", "resistor", "vdd", "Z"), ("Rz2", "resistor", "vdd", "Z2")), bias=["vb"]),   # vb: M5·Mg·Mh gate
     ((OFF_M1M2,),
      (("mirror", ("Mg", "Mh"), D, ("mirror_whole", ("vb", "CS"), (), ())),   # gs 묶음 순: (nmos, vb, CS) 먼저
       MIRROR_M3M4,
@@ -511,7 +520,7 @@ CASES["sibling_order"] = (
 CASES["sibling_leaves_one"] = (
     topo((("M1", "nmos", "D3", "inp", "CS"), ("M3", "pmos", "D3", "D3", "vdd"),
           ("Mg", "nmos", "Z", "vb", "CS"), ("M5", "nmos", "CS", "vb", "gnd")),
-         ("inp",), ("D3",), (("Rz", "resistor", "vdd", "Z"),)),
+         ("inp",), ("D3",), (("Rz", "resistor", "vdd", "Z"),), bias=["vb"]),                      # vb: Mg·M5 gate
     ((), (), (("bias_sibling", ("Mg",), P, ("bias_sibling_ground_gate", ("CS", "vb"), ("M1",), (JB, JD))),)))
 
 # C4. 남은 멤버 3(gate 셋 다름) -> review_needed. review_needed diff_pair 는 seed 가 아니라 그 위 캐스코드쌍도 안 생긴다.
@@ -520,7 +529,7 @@ CASES["offset3_review"] = (
           ("M1c", "nmos", "D3", "vc", "X1"), ("M2c", "nmos", "O1", "vc", "X2"),
           ("M3", "pmos", "D3", "D3", "vdd"), ("M4", "pmos", "O1", "D3", "vdd"), ("M6", "pmos", "O2", "D3", "vdd"),
           ("M5", "nmos", "CS", "vb", "gnd")),
-         ("inp", "inn", "inx"), ("O1",)),
+         ("inp", "inn", "inx"), ("O1",), bias=["vb", "vc"]),                                     # vc: M1c·M2c, vb: M5 gate
     ((("matching_offset", "dc_to_ss", ("M1", "M2", "Mx"), R,
        ("matching_offset", ("CS", "inn", "inp", "inx"), (), (JB,))),),
      (("mirror", ("M3", "M4", "M6"), D, ("mirror_whole", ("D3", "vdd"), ("M3",), ())),
@@ -600,13 +609,13 @@ CASES["local_loop_excluded"] = (
 # H1. kind 가 다른 위 소자(PMOS source = NMOS 차동쌍 drain): branch_symmetric 없음.
 CASES["kind_filter"] = (
     ota5(replace={"M1": ("M1", "nmos", "X1", "inp", "CS"), "M2": ("M2", "nmos", "X2", "inn", "CS")},
-         extra=(("Mk1", "pmos", "D3", "vk", "X1"), ("Mk2", "pmos", "O1", "vk", "X2"))),
+         extra=(("Mk1", "pmos", "D3", "vk", "X1"), ("Mk2", "pmos", "O1", "vk", "X2")), bias=["vb", "vk"]),  # vb: M5, vk: Mk1·Mk2
     ((OFF_M1M2,), (MIRROR_M3M4, DIFF_M1M2), ()))
 
 # H2. 위 소자 source 넷이 하나뿐({Mu1, Mu2} 모두 X1 위): branch_symmetric 없음. {Mu1, Mu2} 자체는 gs 묶음 mirror.
 CASES["single_source_upper"] = (
     ota5(replace={"M1": ("M1", "nmos", "X1", "inp", "CS")},
-         extra=(("Mu1", "nmos", "D3", "vc", "X1"), ("Mu2", "nmos", "D3", "vc", "X1"))),
+         extra=(("Mu1", "nmos", "D3", "vc", "X1"), ("Mu2", "nmos", "D3", "vc", "X1")), bias=["vb", "vc"]),  # vb: M5, vc: Mu1·Mu2
     ((OFF_M1M2,),
      (("mirror", ("Mu1", "Mu2"), D, ("mirror_whole", ("vc", "X1"), (), ())), MIRROR_M3M4, DIFF_M1M2),
      ()))
@@ -617,7 +626,8 @@ CASES["dedup_seed"] = (
     ota5(replace={"M1": ("M1", "nmos", "X1", "inp", "CS"), "M2": ("M2", "nmos", "X2", "inn", "CS"),
                   "M5": ("M5", "nmos", "CS", "nb", "gnd")},
          extra=(("M1c", "nmos", "D3", "vc", "X1"), ("M2c", "nmos", "O1", "vc", "X2"),
-                ("Mt1", "nmos", "X1", "nb", "gnd"), ("Mt2", "nmos", "X2", "nb", "gnd"))),
+                ("Mt1", "nmos", "X1", "nb", "gnd"), ("Mt2", "nmos", "X2", "nb", "gnd")),
+         bias=["nb", "vc"]),                                               # nb: M5·Mt1·Mt2, vc: M1c·M2c gate
     ((OFF_M1M2,),
      (("mirror", ("M5", "Mt1", "Mt2"), D, ("mirror_whole", ("nb", "gnd"), (), ())), MIRROR_M3M4, DIFF_M1M2,
       ("branch_symmetric", ("M1c", "M2c"), D, ("branch_symmetric", ("vc", "X1", "X2"), ("M5", "Mt1", "Mt2"), (JC,)))),
@@ -631,7 +641,7 @@ CASES["negatives"] = (
           ("Mp1", "pmos", "A", "vb", "vdd"), ("Mp2", "pmos", "B", "vb", "vdd"),
           ("Mf1", "nmos", "E", "inp", "T"), ("Mf2", "nmos", "F", "inp", "T"), ("Mt", "nmos", "T", "vb2", "gnd"),
           ("Mf3", "pmos", "E", "vb", "vdd"), ("Mf4", "pmos", "F", "vb", "vdd")),
-         ("inp", "inn"), ("A",)),
+         ("inp", "inn"), ("A",), bias=["vb", "vb2"]),                       # vb: Mp1·Mp2·Mf3·Mf4, vb2: Mt gate
     ((),
      (("mirror", ("Mf1", "Mf2"), D, ("mirror_whole", ("inp", "T"), (), ())),
       ("mirror", ("Mf3", "Mf4", "Mp1", "Mp2"), D, ("mirror_whole", ("vb", "vdd"), (), ()))),
@@ -702,7 +712,7 @@ CASES["tail_needs_derived_pair"] = (
           ("M1c", "nmos", "D3", "vc", "X1"), ("M2c", "nmos", "O1", "vc", "X2"),
           ("M3", "pmos", "D3", "D3", "vdd"), ("M4", "pmos", "O1", "D3", "vdd"), ("M6", "pmos", "O2", "D3", "vdd"),
           ("M5", "nmos", "CS", "NB", "gnd"), ("Mb", "nmos", "NB", "NB", "gnd")),
-         ("inp", "inn", "inx"), ("O1",), (("Rb", "resistor", "vdd", "NB"),)),
+         ("inp", "inn", "inx"), ("O1",), (("Rb", "resistor", "vdd", "NB"),), bias=["vc"]),       # vc: M1c·M2c gate
     ((("matching_offset", "dc_to_ss", ("M1", "M2", "Mx"), R,
        ("matching_offset", ("CS", "inn", "inp", "inx"), (), (JB,))),),
      (("mirror", ("M3", "M4", "M6"), D, ("mirror_whole", ("D3", "vdd"), ("M3",), ())),
@@ -1147,6 +1157,9 @@ def _duplicate(raw):
     if a.get("ideal_sources") or b.get("ideal_sources"):
         a["ideal_sources"] = (a.get("ideal_sources") or []) + (b.get("ideal_sources") or [])
     a["ports"].update({k: v for k, v in b["ports"].items() if not k.startswith("_")})
+    if a.get("bias_inputs") or b.get("bias_inputs"):        # 복제본의 gate 전용 넷도 선언(authoring 9절)
+        a["bias_inputs"] = (a.get("bias_inputs") or []) + (b.get("bias_inputs") or [])
+    a.pop("source_manifest", None)                           # 복제 문서는 출처 그림이 아니다(10절: 키 없으면 검사 안 함)
     return a
 
 

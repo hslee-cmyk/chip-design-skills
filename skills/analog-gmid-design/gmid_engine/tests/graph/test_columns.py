@@ -129,6 +129,7 @@ def test_orphan_branch_recorded_not_stopped(gh, tmp_path):
     gate = next(e["gate"] for e in raw["netlist"] if e["kind"] == "nmos")
     raw["netlist"].append({"name": "Mleaf", "kind": "nmos", "drain": "dleaf", "gate": gate, "source": "vss"})
     o = gh.oracle(raw)
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s1 = build_s1(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
     orphans = gh.gval(s1, "column_orphans")
     assert tuple(gh.astuple(x) for x in orphans) == o.column_orphans
