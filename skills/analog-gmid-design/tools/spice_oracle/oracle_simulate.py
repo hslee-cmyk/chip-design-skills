@@ -275,7 +275,12 @@ def _cols(path):
 def loop_gain(v_file, i_file, weights):
     """Middlebrook 이중 주입 루프 이득. 끊은 넷 k 마다 x=되먹임 쪽(lbx), y=증폭기 쪽.
     Tv = -sum(w*vx)/sum(w*vy) (직렬 전압 주입), Ti = sum(w*ix)/sum(w*(w - ix)) (전류 w 주입, ix = 되먹임 쪽으로
-    가는 전류 = i(Vlb)), T = (Tv*Ti - 1)/(Tv + Ti + 2). 반환 (주파수, T 실수부, T 허수부) 또는 None."""
+    가는 전류 = i(Vlb)), T = (Tv*Ti - 1)/(Tv + Ti + 2). 반환 (주파수, T 실수부, T 허수부) 또는 None.
+    [신규 2026-10-08] 분모(sum(w*vy), sum(w*(w - ix)), Tv + Ti + 2) 중 하나가 데이터 파일 값으로 정확히 0 인 표본이 하나라도
+    있으면 None(ZeroDivisionError 로 죽지 않는다) -- 그 표본의 Tv 또는 Ti 가 정의되지 않아 T 가 정의되지 않는다.
+    어느 표본인지는 loop_probe_singular() 가 준다."""
+    if loop_probe_singular(v_file, i_file, weights):
+        return None
     v, i = _cols(v_file), _cols(i_file)
     if v is None or i is None or len(v[0]) != len(i[0]):
         return None
@@ -290,6 +295,32 @@ def loop_gain(v_file, i_file, weights):
         re_.append(t.real)
         im.append(t.imag)
     return v[0], re_, im
+
+
+LOOP_PROBE_SINGULAR = "loop_probe_singular"
+
+
+def loop_probe_singular(v_file, i_file, weights):
+    """Middlebrook 분모가 정확히 0 인 표본 목록 [{f_hz, which}] (which = 'vy'(전압 주입: 증폭기 쪽 전압 0 -> Tv 정의 불가),
+    'iy'(전류 주입: 주입 전류가 전부 되먹임 쪽으로 가 증폭기 쪽 전류 0 -> Ti 정의 불가), 'tv+ti+2'(합성식 분모 0)).
+    iy = 0 은 그 주파수에서 증폭기 쪽(절단 넷의 증폭기 쪽 원소 + 테스트벤치 choke)의 어드미턴스가 데이터 파일 분해능에서 0 이라
+    주입 전류의 귀로가 되먹임 쪽밖에 없다는 뜻이다(예: 입력 넷에 접지 C 가 없고 되먹임 Cf 만 있는 단일 입력 회로). 파일이 없으면 []."""
+    v, i = _cols(v_file), _cols(i_file)
+    if v is None or i is None or len(v[0]) != len(i[0]):
+        return []
+    out = []
+    for f, row_v, row_i in zip(v[0], v[1], i[1]):
+        vx = sum(w * row_v[2 * k] for k, w in enumerate(weights))
+        vy = sum(w * row_v[2 * k + 1] for k, w in enumerate(weights))
+        ix = sum(w * row_i[k] for k, w in enumerate(weights))
+        iy = sum(w * (w - row_i[k]) for k, w in enumerate(weights))
+        if vy == 0:
+            out.append({"f_hz": f, "which": "vy"})
+        elif iy == 0:
+            out.append({"f_hz": f, "which": "iy"})
+        elif (-vx / vy) + (ix / iy) + 2 == 0:
+            out.append({"f_hz": f, "which": "tv+ti+2"})
+    return out
 
 
 def ratio_measure(run, folder):
@@ -578,6 +609,17 @@ def stability_judgement(nyq, tran_status, pm_raw=None):
     return r
 
 
+def _run_stab(exe, cir, timeout_s, cache_dir, outputs):
+    """안정성 근거 실행(동작점 패스·과도·연장)용 run_ngspice. --timeout-s 로 끊기면(subprocess.TimeoutExpired) 죽지 않고
+    (None, '', None, 사유) 를 돌려준다 -- 데이터 파일이 tstop 에 못 미쳐 절차 5 의 failed -> '모름'(README C10 절차 4).
+    반환 (rc, 로그, 캐시 상태, timeout 사유 또는 None)."""
+    try:
+        rc, log, cst = run_ngspice(exe, cir, os.path.splitext(cir)[0] + ".log", timeout_s, cache_dir, outputs)
+        return rc, log, cst, None
+    except subprocess.TimeoutExpired:
+        return None, "", None, f"ngspice 가 --timeout-s {timeout_s} s 에 끊겼다({os.path.basename(cir)})"
+
+
 def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=None, pm_raw=None):
     """PM 을 정한 루프 L 의 안정성 근거(C10). β 루프면 L = T(실제 루프), β=1 이면 L = sign*A(sign = 기준점 Re A 의 부호,
     PM 정의가 가정하는 음되먹임 닫기). Nyquist N(nyquist_count) + 폐루프 .tran(stability_netlist, transient_decision)
@@ -628,15 +670,19 @@ def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=No
             ocir = os.path.join(d, f"{stem}.stabop.cir")
             with open(ocir, "w", encoding="utf-8") as fh:
                 fh.write(otext)
-            orc, olog, ocst = run_ngspice(exe, ocir, os.path.splitext(ocir)[0] + ".log", timeout_s, cache_dir, [])
+            orc, olog, ocst, oto = _run_stab(exe, ocir, timeout_s, cache_dir, [])
             plan["choke_I"] = {c.lower(): _grab(olog, f"i({c.lower()})") for c in chokes}
             plan["node_V"] = {n.lower(): _grab(olog, f"v({n.lower()})") for n in onodes}
             tr["op_pass"] = {"netlist": os.path.basename(ocir), "ngspice_rc": orc, "cache": ocst,
                              "choke_current_A": plan["choke_I"], "node_V": plan["node_V"]}
+            if oto:
+                tr["op_pass"]["timeout"] = oto
             w = dict(zip(lm["break_nets"], lm["weights"])) if lm else dict(meta.get("input_ac_weights") or {})
             stext, missing = stability_netlist(text, mode, w, meta["output_nodes"], plan)
             tr["plan"] = {k: v for k, v in plan.items() if k not in ("file", "choke_I", "node_V", "input_nodes")}
-            if missing or not w:
+            if oto:
+                tr.update(status="failed", reason=f"동작점 패스 시간 초과: {oto}", timeout=oto)
+            elif missing or not w:
                 tr.update(status="failed", reason=f"과도 넷리스트를 만들 수 없다(킥 넷·동작점 값 없음): {missing or '(가중 없음)'}")
             else:
                 scir = os.path.join(d, f"{stem}.stab.cir")
@@ -645,11 +691,14 @@ def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=No
                 sfile = os.path.join(d, plan["file"])
                 if os.path.exists(sfile):
                     os.remove(sfile)
-                rc, slog, cst = run_ngspice(exe, scir, os.path.splitext(scir)[0] + ".log", timeout_s, cache_dir,
-                                            [plan["file"]])
+                rc, slog, cst, sto = _run_stab(exe, scir, timeout_s, cache_dir, [plan["file"]])
                 dec = transient_decision(sfile, plan)
+                if sto:  # 끊긴 과도는 tstop 에 못 미친다 -> failed(부분 파일로 판정하지 않는다)
+                    dec.update(status="failed", reason=f"과도 시간 초과: {sto}")
                 tr.update(dec)
                 tr.update(netlist=os.path.basename(scir), file=plan["file"], ngspice_rc=rc, cache=cst)
+                if sto:
+                    tr["timeout"] = sto
                 tr["first_status"] = dec["status"]
                 p2 = extension_plan(plan, dec, f"{stem}.stab2.txt")
                 dec2 = None
@@ -661,9 +710,10 @@ def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=No
                     s2file = os.path.join(d, p2["file"])
                     if os.path.exists(s2file):
                         os.remove(s2file)
-                    rc2, _, cst2 = run_ngspice(exe, s2cir, os.path.splitext(s2cir)[0] + ".log", timeout_s, cache_dir,
-                                               [p2["file"]])
+                    rc2, _, cst2, s2to = _run_stab(exe, s2cir, timeout_s, cache_dir, [p2["file"]])
                     dec2 = transient_decision(s2file, p2)
+                    if s2to:
+                        dec2.update(status="failed", reason=f"연장 실행 시간 초과: {s2to}", timeout=s2to)
                     tr["extension"] = {**dec2, "netlist": os.path.basename(s2cir), "file": p2["file"],
                                        "ngspice_rc": rc2, "cache": cst2, "extension_windows": p2["extension_windows"],
                                        "tstop": p2["tstop"]}
@@ -722,7 +772,8 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
         lrc, llog, lcst = run_ngspice(exe, lcir, os.path.splitext(lcir)[0] + ".log", timeout_s, cache_dir,
                                       [lm["v_file"], lm["i_file"]])
         res["cache"]["loop"] = lcst
-        t = loop_gain(vf, inf, lm["weights"])
+        sing = loop_probe_singular(vf, inf, lm["weights"])
+        t = None if sing else loop_gain(vf, inf, lm["weights"])
         # T 한 표본 = 끊은 넷마다 v 파일 실수 4개(vx, vy 복소) + i 파일 실수 2개(ix 복소); 분해능은 두 파일 중 거친 쪽
         uv, ui = data_rel_resolution(vf), data_rel_resolution(inf)
         lres = mp_resolution(None if uv is None or ui is None else max(uv, ui), 6 * len(lm["weights"]))
@@ -733,6 +784,8 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
                        "measures": ac_measures(*t) if t else None,
                        "pm_crosscheck": pm_crosscheck(*t, mp_res=lres) if t else None,
                        "choke_ratio": loop_choke_ratio(inf, lm["break_nets"], lm["weights"], lm.get("choke_H"))}
+        if sing:  # T 가 정의되지 않는 표본 -> 루프 측정 전체가 정의 불가(측정 실패 아님, 막힘 아님)
+            res["loop"]["singular"] = {"count": len(sing), "first": sing[0], "points": sing[:20]}
     if res["ac"] is not None:
         res["ac"]["pm_open_loop_deg"] = res["ac"]["pm_deg"]
         res["ac"]["dc_path_isolation"] = meta.get("dc_path_isolation")  # C27 기록(판정 아님)
@@ -759,6 +812,11 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
         pc, pm = res["ac"].get("pm_crosscheck_deg"), res["ac"].get("pm_deg")
         res["ac"]["pm_crosscheck_gap_deg"] = None if pc is None or pm is None else pc - pm
         apply_stability(res, cir_path, meta, Ldata, exe, timeout_s, cache_dir)
+        sg = (res["loop"] or {}).get("singular")
+        if sg:  # PM 은 측정 실패가 아니라 정의 불가(값에 따른 불가능 -> N/A(정의 불가) -> PASS 불가)
+            res["ac"]["pm_undefined"] = LOOP_PROBE_SINGULAR
+            res["ac"]["stability"]["reason"] = (f"β 루프 T 정의 불가: Middlebrook 분모 0 인 표본 {sg['count']}개(첫 표본 "
+                                                f"{sg['first']['f_hz']:.4g} Hz, {sg['first']['which']})")
     return res
 
 

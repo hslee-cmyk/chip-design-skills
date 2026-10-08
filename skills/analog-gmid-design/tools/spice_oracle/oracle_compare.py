@@ -305,7 +305,9 @@ def compare(inp, meta, sim, judge):
     if not sim.get("op_ok") and not sim.get("skipped"):
         blockers.append("ngspice .op 결과 없음: " + " | ".join(sim.get("log_errors") or [])[:600])
     loop = sim.get("loop")
-    if loop is not None and not loop.get("measures"):
+    # [신규] 루프 T 가 정의 불가(Middlebrook 분모 0, sim.loop.singular)면 측정 실패가 아니다 -> 막힘 아님, PM 은
+    # ac.pm_undefined = loop_probe_singular 로 N/A(정의 불가) -> PASS 불가(C10)
+    if loop is not None and not loop.get("measures") and not loop.get("singular"):
         blockers.append("β 루프 측정 결과 없음(루프 넷리스트): " + " | ".join(loop.get("log_errors") or [])[:600])
 
     # ---- 합격 판정(사용자 확정 2026-10-07): free 모드 = 선언 제약 만족 + 전도 MOS 전부 포화 ----
