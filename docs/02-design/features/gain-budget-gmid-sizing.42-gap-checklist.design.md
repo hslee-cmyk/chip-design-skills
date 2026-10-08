@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.4
-plan_version: 6.2
+version: 1.5
+plan_version: 6.3
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
@@ -197,7 +197,14 @@ plan_version: 6.2
 | D-GB4f | 헤드룸 달성가능성: 출력·입력·버퍼 창 상한(LUT 격자 전수, 인증/미상), 선언 제약 인증 불가 → exit 3 `headroom_unattainable`, 제약 없는 창·입력 DC 대기는 보고, 유도 기록 | 41 §4.6 | MISS | `rg "headroom_bound\|headroom_unattainable" E/` 0 |
 | D-SIg | 출발 구간 Q3·Q4: 스윙·ICMR·입력 DC 예산 분할(41 §6.2), A_eff matching L 하한(절대 offset 회로만, 41 §6.4-2) | 41 §6.2, §6.4-2 | MISS | `rg "start_intervals"` 0 |
 | D-OR5 | 오라클 offset Monte-Carlo(표본 수 유도, `model_error_offset_in_sigma_mv`)와 스윙·ICMR `.dc` 스윕 | 40 §10.2 | MISS | `rg "mc_mm_switch\|offset_mc" tools/spice_oracle` 0 |
-| D-J34 | J 공동분석 목록 추가: 입력 DC 값(nmcnr 0 V, SP-2), sf_pushpull M6↔M8·M5↔M7 matching, 4-팔로워 버퍼 헤드룸 | 40 §9 Q7 | MISS | SP1(U1) 병합 뒤 착수 |
+| D-J34 | J 공동분석 목록 추가: 입력 DC 값(nmcnr 0 V, SP-2), sf_pushpull M6↔M8·M5↔M7 matching, 4-팔로워 버퍼 헤드룸 | 40 §9 Q7, §9.3 | MISS | 해석은 2026-10-08 결정으로 닫혔다(40 §9.3 J-D·J-E). 구현 확인은 D-J1·D-J5·D-J7 행에서 한다 |
+| D-J1 | 복합 diode D1: DC 가지 걷기 정의, 묶음·기준/캐스코드 구분, 소비 셋(DC 역할 규칙 1c, 미러 입력 확장·`diode_load`, 루프 (1.6) `composite_diode_internal`). 9회로 발동 = 41 §1.13 실측 집합, 나머지 7회로 무동작 | 41 §1.12.1, §1.13 | MISS | `rg "composite_diode" E/` 0. `[u1-sp1] E/graph/drive_kind.py` `_mirror_inputs`는 단순 diode만 본다 |
+| D-J2 | feedforward 셀: 주경로(D_max·slack), FF 묶음·탭·merge·B_b, 블록 분해(FF 합류는 복합 블록 아님), gain 예산은 주경로만, 경로 기여·A_decomp 잔차, `ff_ratio_candidates`·`ff_gm_ratio`, Σ 판정 FF 상한, FF 출발값 | 41 §1.12.2, §2, §4.3, §5.1, §6.5, 40 §3.8-8 | MISS | `rg "feedforward\|ff_gm_ratio" E/` 0. `[u1-sp1]`은 ngcc Vout을 복합 블록 하나로 묶는다(`composite_block_pending_ratify`) |
+| D-J3 | 중첩 Miller 보상 내부 루프: 조건 (a)(b), 루프 뷰 미생성, `pm_ss_deg` 미선언이면 `undeclared_loop_constraint`(사유 `compensation_internal_needs_overall_pm`), 전체 PM 판정의 P = 0 확인 | 41 §1.12.3 | MISS | `rg "compensation_internal" E/` 0. `[u1-sp1]` ngcc·nmcnr에서 `undeclared_loop_constraint` 정지 |
+| D-J4 | 루프 극성 = 뷰의 DC 사이클 극성, 커패시터 사이클 `ac_only`, `loop_polarity_conflict`. L 동치류 주인 규칙 `main_path_signal`, name_order는 review | 41 §1.12.4·5 | MISS | `[u1-sp1] E/graph/polarity.py`(커패시터 사이클 → 0 → review), `l_classes.py`(주인 순서 3단계) |
+| D-J5 | 입력 DC 정책: SP-2 (c) y_icm 창 범위, `required_input_cm_v`, sf `icm_margin_v >= 0` 제약, `buffer_window_report`, `icmr_window_short_l_bin` 경고 | 41 §4.6, 40 §3.8-8, §9.2 | MISS | `rg "required_input_cm\|short_l_bin" E/` 0. `assets/library/sf_pushpull_output_opamp.sizing_spec.json`에 `icm_margin_v` 제약 없음 |
+| D-J6 | `structure.json` concept 어휘 7개(신규 5), override/confirm/고아/불일치 전이, `structure_rule_fp`, 단계 A의 사실 로드 순서·`build_s1(structure=)`·`declared_loop_cuts` 전달, 뷰 한정 `ac_ground_exception` 소비 | 40 §3.2-3, 41 §1.12.6 | MISS | `[u1-sp1] E/graph/structure_load.py`는 `drive_kind`만 소비한다. `[u1-sp1] E/pipeline/stage_a.py` `run_stage_a`는 `declared_loop_cuts`를 넘기지 않는다 |
+| D-J7 | 회로별 사실 파일(`assets/library/<name>.structure.json`) 작성: U1b 병합 뒤, confirm 사실은 실측 일치 시만, rule_hash = 병합 코드의 `structure_rule_fp` | 40 §3.2-3 표 | MISS | 사실 파일 0개(작성 순서상 U1b 뒤) |
 | D-RA | 저항 면적: poly 시트·최소 폭·머리를 PDK 선언에 두고 Ω당 면적 계산 | 40 §7.1 | MISS | `rg "poly_res_sheet"` 0 |
 | D-Q5 | Q5 승격(two_stage GBW 제약, ngcc ICMR)과 Q5b 판정 보류 표시 | 40 §9 | MISS | `assets/library/*.sizing_spec.json` |
 | D-NZ3 | adjoint 잡음 해석, 소자별 기여, 분해능 | 41 §7.3 | MISS | `rg -i "noise" E/metrics` 0 |
@@ -239,8 +246,10 @@ plan_version: 6.2
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 3 | 1 | 6 | 5 | 0 |
 | DEC | 81 | 24 | 6 | 28 | 16 | 7 |
-| 설계 항목 | 100 | 0 | 9 | 12 | 78 | 1 |
-| **합계** | 196 | 27 | 16 | 46 | 99 | 8 |
+| 설계 항목 | 107 | 0 | 9 | 12 | 85 | 1 |
+| **합계** | 203 | 27 | 16 | 46 | 106 | 8 |
+
+v1.5(2026-10-08, 사용자 결정 "j해석은 네의견에 모두 동의해."): 설계 항목 7행 추가(D-J1~D-J7, 모두 MISS, 구현 단위 U1b와 40 §11 'J 추가 범위'). D-J34 문구 갱신(해석 닫힘).
 
 v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, D-OF1~3, D-MR, D-SW, D-ICM, D-Q34, D-GB4f, D-SIg, D-OR5, D-J34, 모두 MISS), DEC-21을 N/A에서 MISS로(결정으로 닫혔고 spec 미반영), D-PG·D-GB8a·b·DEC-23·96 문구 갱신.
 
