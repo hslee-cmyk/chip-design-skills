@@ -387,7 +387,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 **이 설계가 바꾸는 것**:
 1. **L 동치류 공유**: §3.2-1을 따른다.
 2. **미러 비율 강제**: `matching_ratio`(그룹의 W/L 비)를 전류 기저의 강제 관계로 넣는다(DEC-70). 비율의 출처는 θ 변수이며, 대칭 묶음(§6)이 같은 비율 1을 준다.
-3. **tol_I**: 직전 봉인 스냅샷(S2p)의 `ss` gm으로 계산하고, 첫 평가만 격자 최대 gm을 쓴다(P N3.6).
+3. **tol_I**: 직전 봉인 스냅샷(S2p)의 `ss` gm으로 계산하고, 첫 평가만 격자 최대 gm을 쓴다(P N3.6). as-built(U4, 2026-10-09): gm 상계 = (S2p gm/ID, 정규형 `canonical_gm_id`) × 이번 후보 ID. DC 동작점이 parent와 같은 자식(수동소자 θ만 바뀐 FD 등)은 parent가 실제로 쓴 입력을 그대로 이어받아 DC 블록을 비트 동일로 재사용한다(DEC-92가 N3.6 문언보다 우선). parent에서 격자 최대 상계를 쓴 소자는 그대로 격자 최대다.
 4. **종속 소자 선택 DEC-95 (3)**: ratified 선택(`structure.json`)과 ② 'GB5 gm 요구·뒤 stage 독립'을 Kruskal 엣지 키 앞에 둔다. ②의 입력은 S1v stage 번호다.
 5. **W4 초기값**: 층 0이 배분한 기둥 VDS를 쓴다(41 §5.3 (c)).
 
