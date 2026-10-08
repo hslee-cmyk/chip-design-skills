@@ -1,4 +1,8 @@
 """CONTRACT §7 BoundedLRU -- 상한 LRU memo: 적중은 compute 미호출·같은 객체, 미적중 1회 호출, 퇴출 계수, 상한 도달 뒤 캐싱 계속."""
+import dataclasses
+import math
+import struct
+
 import pytest
 
 from gmid_engine.core import BoundedLRU, LruStats
@@ -197,3 +201,121 @@ def test_compute_exception_not_stored_and_propagates():
     lru.lookup("k", lambda: calls.append(1) or "ok")
     assert calls == [1]
     assert lru.stats().misses == 2
+
+
+# =====================================================================================================================
+# 2026-10-08 개정(core 성능 2: memo 키 = canonical_key, CONTRACT §7·§1.1) -- 키 구분·계수가 fp_of 동치 그대로인지.
+# oracle 종류: (a) 구성으로 정답이 정해진 합성 키 + §7 문장(구분 목록·계약 예 1,2,1,3,2,2 손계산). 기대 계수는 §7 의 예를
+# 손으로 따라간 값이고 피검 함수로 만들지 않는다.
+# =====================================================================================================================
+
+@dataclasses.dataclass(frozen=True)
+class _KA:
+    x: object
+
+
+@dataclasses.dataclass(frozen=True)
+class _KB:
+    x: object
+
+
+@dataclasses.dataclass
+class _KMut:
+    x: object
+
+
+class _KPlain:
+    pass
+
+
+def test_one_float_bool_str_tuple_keys_all_distinct():
+    # oracle (a)+§7 '(1,) 와 (1.0,) 와 (True,) 는 서로 다른 키': 파이썬 == 로는 셋이 같다(전제 assert). ("1",) 도 다른 태그(§1).
+    assert (1,) == (1.0,) == (True,)
+    lru = BoundedLRU(8)
+    c = _Counter()
+    keys = [(1,), (1.0,), (True,), ("1",), (b"1",)]
+    for i, k in enumerate(keys):
+        lru.lookup(k, c.for_key(i))
+    assert c.calls == {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
+    st = lru.stats()
+    assert (st.hits, st.misses, st.size) == (0, 5, 5)
+    # 다시 같은 순서로 -> 모두 적중, compute 추가 호출 0
+    for i, k in enumerate(keys):
+        lru.lookup(k, c.for_key(i))
+    assert c.total() == 5
+    assert lru.stats().hits == 5
+
+
+def test_zero_negzero_both_stored_and_hit_separately():
+    # oracle (a)+§7 '(0.0,) 와 (-0.0,) 는 다른 키': 각자 저장된 값(is)을 각자 돌려준다.
+    lru = BoundedLRU(4)
+    c = _Counter()
+    vp = lru.lookup((0.0,), c.for_key("pos"))
+    vn = lru.lookup((-0.0,), c.for_key("neg"))
+    assert vp is not vn
+    assert lru.lookup((0.0,), c.for_key("pos")) is vp
+    assert lru.lookup((-0.0,), c.for_key("neg")) is vn
+    assert c.calls == {"pos": 1, "neg": 1}
+    st = lru.stats()
+    assert (st.hits, st.misses, st.evictions) == (2, 2, 0)
+
+
+def test_nan_keys_hit():
+    # oracle (a)+§7 'NaN 을 담은 같은 내용 키는 적중'(§1.1: 모든 NaN 은 같은 키). 다른 NaN 객체·부호·비트라도 적중.
+    nan_other = struct.unpack("<d", struct.pack("<Q", 0x7FF8000000000777))[0]
+    lru = BoundedLRU(4)
+    c = _Counter()
+    v = lru.lookup(("x", float("nan")), c.for_key("n"))
+    assert lru.lookup(("x", nan_other), c.for_key("n")) is v
+    assert lru.lookup(("x", -math.nan), c.for_key("n")) is v
+    assert c.calls == {"n": 1}
+    assert lru.stats().hits == 2
+
+
+@pytest.mark.parametrize("ka, kb", [
+    ("a", b"a"),
+    ((1, 2), frozenset({1, 2})),
+    (_KA(1), _KB(1)),
+    (_KA(1), _KA(1.0)),
+    (("ab", "c"), ("a", "bc")),
+], ids=["str_bytes", "tuple_frozenset", "dc_class", "dc_field_tag", "self_delimiting"])
+def test_contract_distinctions_are_distinct_keys(ka, kb):
+    # oracle (a)+§1.1 구분 목록(str/bytes, tuple/frozenset, 다른 dataclass 클래스) + §1 자기 구분 인코딩.
+    lru = BoundedLRU(4)
+    c = _Counter()
+    lru.lookup(ka, c.for_key("a"))
+    lru.lookup(kb, c.for_key("b"))
+    assert c.calls == {"a": 1, "b": 1}
+    assert lru.stats().misses == 2
+
+
+def test_contract_example_trace_with_tag_sensitive_keys():
+    # oracle (a)+§7 계약 예(capacity 2, 1,2,1,3,2,2 -> hits 2, misses 4, evictions 2, recomputes_after_eviction 1, size 2) 를
+    # 파이썬 == 로는 같지만 §1.1 로는 다른 키 세 개로 다시 한다: 1 -> (0.0,), 2 -> (-0.0,), 3 -> (False,).
+    # 키 구분이 뭉개지면(0.0 == -0.0 == False) 계수가 바뀐다(예: 1·2 가 한 키 -> hits 4).
+    k1, k2, k3 = (0.0,), (-0.0,), (False,)
+    assert k1 == k2 == k3                # 전제: 파이썬 == 로는 같다
+    lru = BoundedLRU(2)
+    c = _Counter()
+    for name, k in (("1", k1), ("2", k2), ("1", k1), ("3", k3), ("2", k2), ("2", k2)):
+        lru.lookup(k, c.for_key(name))
+    st = lru.stats()
+    assert (st.hits, st.misses, st.evictions, st.recomputes_after_eviction, st.size) == (2, 4, 2, 1, 2)
+    assert c.calls == {"1": 1, "2": 2, "3": 1}
+
+
+@pytest.mark.parametrize("key", [_KMut(1), _KPlain(), (1, (2, {"a": 1})), _KA([1]), frozenset({(1, _KPlain())}),
+                                 (_KA(1), [2])],
+                         ids=["dc_not_frozen", "plain_obj", "dict_deep", "frozen_dc_list_field", "plain_in_frozenset",
+                              "list_after_dc"])
+def test_more_mutable_keys_rejected_without_compute(key):
+    # 거부(§7 '가변 -> TypeError, compute 미호출', §1.1 '실패' = §2 거부 집합). 계수 불변.
+    lru = BoundedLRU(2)
+    lru.lookup("seed", lambda: "s")
+    before = lru.stats()
+    calls = []
+    with pytest.raises(TypeError):
+        lru.lookup(key, lambda: calls.append(1))
+    assert calls == []
+    assert lru.stats() == before
+    assert len(lru) == 1
