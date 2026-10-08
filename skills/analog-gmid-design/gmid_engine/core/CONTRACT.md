@@ -345,6 +345,10 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 
 (값은 float 연산 결과 그대로 -- 예 `row_gap_m` = 4.6999999999999995e-07. test 는 손계산과 상대 오차로 비교한다.)
 식(기하 해석)은 선언 파일의 `basis` 에 적었고 사용자 ratify 대상이다.
+**[2026-10-08] 사용자 ratify 완료**(출처: 사용자 결정, 오케스트레이터 전달 2026-10-08): 레이아웃 길이 다섯 식 `finger_pitch_overhead_m`·
+`row_gap_m`·`dummy_w_m`·`tap_w_m`·`well_spacing_m` 을 위 표 그대로 승인. 적용 확인(layout 계약 4.10): well 간격은 (kind, body) well 이
+다른 묶음 사이에만 들어간다; `dummy_w_m` 의 `overhead/2` 항은 끝 확산이 nf+1 개라 끝 하나당 반 피치가 맞고 dummy L = poly.1a 는
+periphery.csv `X.1a`(dummy_poly L = 그 소자 최소 L)가 정한다 -- 식 변경 없음. (`min_finger_w_m`·접합 파라미터는 이 ratify 범위 밖.)
 
 **접합 파라미터(DEC-91, 2026-10-08)** -- 같은 선언 파일에 원본 둘 추가: `nfet_01v8_tt_model_card` =
 `C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice`(sha256 `eec2f478...`, `model_pattern`
