@@ -128,6 +128,26 @@
         }
       },
       {
+        "metric": "offset_excess",
+        "op": "<=",
+        "value": 1.4142135623730951,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"q3,q4는 네 제안대로 해\" -- Q3 (3): 절대 offset 값 없는 회로는 구조 가드 offset_excess <= sqrt(2)(부하 분산 <= 입력쌍 분산 경계, design 40 §9.2)",
+          "decided": "2026-10-08"
+        }
+      },
+      {
+        "metric": "noise_excess_th",
+        "op": "<=",
+        "value": 2,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"Q1~Q11 모두 네 의견대로 진행해\" 결정 Q11 -- 잡음 구조 가드 noise_excess_th <= 2(부하 잡음 <= 입력 잡음, design 41 §7.1)",
+          "decided": "2026-10-08"
+        }
+      },
+      {
         "metric": "area_search_m2",
         "op": "<=",
         "value": 2e-08,

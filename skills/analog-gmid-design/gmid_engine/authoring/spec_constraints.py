@@ -38,10 +38,11 @@
 `topology` 가 None 이면 기본 뷰 유도·넷 교차 검사를 하지 않는다(유도하지 않은 mode 만 담는다 -- 로드는 meta 위반으로 거부된다).
 `feedback` = `element_value_declaration` 의 feedback 결과(이름순 tuple / `PendingMark` / 거부면 None).
 """
-from ._spec_fields import (LEGACY_NAMES, REF_KEYS, at, finite_number, is_pending, key_hits, pending_decision,
-                           value_slot)
+from ._spec_fields import (LEGACY_NAMES, LEGACY_REPLACEMENT, REF_KEYS, at, finite_number, is_pending, key_hits,
+                           pending_decision, value_slot)
 from ._terminal_nets import mos_terminal_nets, two_terminal_nets
-from .spec_model import ConstraintDecl, ExciteSense, SenseDecl, ViewDecl
+from .spec_model import (VIEW_MODE_LOOP, VIEW_MODE_NONE, VIEW_MODE_PENDING, VIEW_MODE_PORT, VIEW_MODE_RATIO,
+                         VIEW_MODE_SENSE, VIEW_MODE_TRANSFER, ConstraintDecl, ExciteSense, SenseDecl, ViewDecl)
 from .spec_schema import PENDING_ID_PATTERN
 from .spec_sources import PENDING_SPICE, REFERENCE, USER_SPEC, source_declaration_checks
 from .spec_views import SENSE_MODES, default_views
@@ -58,7 +59,7 @@ RATIO_KEYS = ("num", "den")
 # 명시 루프 뷰 모양 `{"cut_weights": {<절단 넷>: 가중}}` -- 7a design 2.9 예약(계약에만 정의, 첫 소비 spec 과 함께 구현).
 RESERVED_LOOP_VIEW_KEY = "cut_weights"
 CM_SENSE_KEY = "cm_sense_elements"       # cm_loop 뷰 선언 키(소비자 MOS 이름 list, source user_spec)
-_UNRESOLVED = (("transfer", "port"), ("loop", "loop"), ("cm_loop", "loop"), ("output_port", "sense"))
+_UNRESOLVED = (("transfer", VIEW_MODE_PORT), ("loop", VIEW_MODE_LOOP), ("cm_loop", VIEW_MODE_LOOP), ("output_port", VIEW_MODE_SENSE))
 
 
 def _sense_fields(raw, where, nets, hits):
@@ -120,7 +121,7 @@ def _sense_view(raw, where, nets, views, hits):
                                       "gate 전용 미구동 넷)이다 -- 고정 노드에는 시험 전류를 넣을 수 없다", (net,)))
     if len(hits) != before:
         return None
-    return ViewDecl("sense", sense=SenseDecl(sense_p, sense_n, mode))
+    return ViewDecl(VIEW_MODE_SENSE, sense=SenseDecl(sense_p, sense_n, mode))
 
 
 def _derived(found, where, hits):
@@ -143,7 +144,7 @@ def _cm_declared_view(raw, place, views, source, hits):
     if len(hits) != before:
         return None
     if views is None or views.cm_declared is None:
-        return ViewDecl("loop")
+        return ViewDecl(VIEW_MODE_LOOP)
     view, problems = views.cm_declared(tuple(names))
     for rule, reason in problems:
         hits.append(SchemaHit(rule, at(place, CM_SENSE_KEY), reason))
@@ -153,12 +154,12 @@ def _cm_declared_view(raw, place, views, source, hits):
 def _view(raw, signature, where, nets, views, hits, source=None):
     place = at(where, "view")
     if is_pending(raw):
-        return ViewDecl("pending", decision=pending_decision(raw))
+        return ViewDecl(VIEW_MODE_PENDING, decision=pending_decision(raw))
     kind = signature.view_kind
     if kind is None:
         if raw is not None:
             hits.append(SchemaHit("view_not_applicable", place, "이 metric 은 뷰를 쓰지 않는다(view_kind None)"))
-        return ViewDecl("none")
+        return ViewDecl(VIEW_MODE_NONE)
     if kind == "cm_loop" and isinstance(raw, dict) and CM_SENSE_KEY in raw:
         return _cm_declared_view(raw, place, views, source, hits)
     if kind in ("loop", "cm_loop") and raw is not None:
@@ -186,9 +187,9 @@ def _view(raw, signature, where, nets, views, hits, source=None):
         hits.extend(key_hits(raw, RATIO_KEYS, place))
         num = _transfer(raw.get("num"), at(place, "num"), nets, hits)
         den = _transfer(raw.get("den"), at(place, "den"), nets, hits)
-        return ViewDecl("ratio", num=num, den=den) if len(hits) == before else None
+        return ViewDecl(VIEW_MODE_RATIO, num=num, den=den) if len(hits) == before else None
     transfer = _transfer(raw, place, nets, hits)
-    return ViewDecl("transfer", transfer=transfer) if transfer is not None else None
+    return ViewDecl(VIEW_MODE_TRANSFER, transfer=transfer) if transfer is not None else None
 
 
 def _item(raw, where, nets, views, catalog, hits):
@@ -207,7 +208,9 @@ def _item(raw, where, nets, views, catalog, hits):
         metric = None
     else:
         if isinstance(metric, str) and metric in LEGACY_NAMES:
-            hits.append(SchemaHit("legacy_name", at(where, "metric"), "옛 metric 이름 " + repr(metric) + " (N3.16)"))
+            new = LEGACY_REPLACEMENT.get(metric)
+            hits.append(SchemaHit("legacy_name", at(where, "metric"), "옛 metric 이름 " + repr(metric) + " (N3.16)"
+                                  + ("" if new is None else " -> 새 이름: " + new)))
         elif not isinstance(metric, str) or metric not in catalog:
             hits.append(SchemaHit("metric_unknown", at(where, "metric"),
                                   "metric " + repr(metric) + " 이 metric 레지스트리 이름표에 없다"))
@@ -269,7 +272,7 @@ def constraint_declaration(raw, raw_pending, topology, metric_catalog, feedback)
         parsed = [_item(item, at(WHERE, i), nets, views, metric_catalog, hits) for i, item in enumerate(raw)]
         seen = set()
         for index, decl in enumerate(parsed):
-            if decl is None or decl.metric is None or decl.view.mode == "pending":
+            if decl is None or decl.metric is None or decl.view.mode == VIEW_MODE_PENDING:
                 continue
             key = (decl.metric, decl.op, decl.view)
             if key in seen:

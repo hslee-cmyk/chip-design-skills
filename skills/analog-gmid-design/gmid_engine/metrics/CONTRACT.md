@@ -41,7 +41,8 @@
 | 1 | `registry.py` | `metric_registry` | 이름 → `RegisteredMetric` |
 | 2 | `mna_build.py` | `build_mna` | 조립 1회 |
 | 2 | `point_solve.py` | `solve_point` | ω 한 점 풀이 + 사후 오차 |
-| 2 | `catalog.py` | `metric_catalog` | {이름: MetricSignature} |
+| 0 | `pending_metrics.py` | (상수 표) | [U5] 계산 대기 metric 서명 11행(3.15) |
+| 2 | `catalog.py` | `metric_catalog` | {이름: MetricSignature} (레지스트리 + 계산 대기 서명) |
 | 2 | `evaluate.py` | `metric_value` | 이름으로 값 읽기 → `MetricResult` |
 | 2 | `lut_parameters.py` | `lut_parameters` | LUT 파라미터 Δp = ε·|p|·단위 스탬프(9.1) |
 | 2 | `resolution.py` | `metric_resolutions` | metric 분해능 = max(LUT 1차 최악 전파, MNA 사후 오차 전파)(9.3) |
@@ -241,7 +242,13 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | `power_dc_w` | SupplyCurrents.power_dc_w | w | dc | -- | -- |
 | `area_search_m2` | AreaSearch.area_search_m2 | m2 | geom | -- | -- |
 
-- `metric_catalog()` = {이름: MetricSignature} 읽기 전용(spec 로더 `metric_catalog` 인자).
+- `metric_catalog()` = {이름: MetricSignature} 읽기 전용(spec 로더 `metric_catalog` 인자). [U5 2026-10-08] = 레지스트리 서명(11개) + **계산 대기
+  서명 11개**(`pending_metrics.PENDING_METRIC_ROWS`, 총 22개): offset_in_sigma_mv(mv, ss, transfer)·offset_excess(ratio, ss, transfer)·
+  offset_sys_mv(mv, ss, transfer)·mirror_ratio_sigma_pct(pct, ss, None)·swing_out_v·icmr_v·icm_margin_v(v, ls, None)·noise_th_in_v2hz(v2_per_hz,
+  ss, transfer)·noise_fc_in_hz(hz, ss, transfer)·noise_excess_th(ratio, ss, transfer)·noise_out_int_vrms(v, ss, transfer). 이 이름은 레지스트리에
+  없다(결과 형식·필드 없음) -- `metric_value` 는 KeyError. 서명만이며 계산은 U7(offset·스윙)·U8(잡음)이 레지스트리로 옮긴다(`ValueError`:
+  카탈로그가 레지스트리와 겹치면). 탐색 문맥(`build_search_context`)은 판정 제약 중 카탈로그에만 있는 이름을 `constraint_notes` 에
+  `unmeasured`/`metric_computation_pending` 으로 남긴다.
 - `metric_value`: 미등록 KeyError, 형식 다르면 TypeError, 그 외에는 `MetricResult`(값 None 이면 그 필드의 `Undefined` 들).
   `metric_value` 는 분해능을 계산하지 않는다(`resolution` None) -- 분해능은 `metrics_ss` 가 9절로 붙인다.
 - 오라클 측정 이름(DEC-90 (3) `oracle_measure`, 레지스트리 필드로는 아직 없음 -- 넣을 때 이 대응): `pm_ss_deg` → `pm_deg`,

@@ -7,7 +7,7 @@
   바꾸므로 kind 는 지문에 든다.
 * `PendingMark` -- 결정 대기 표지 하나(문서 경로, 결정 ID). `SizingSpecDoc.pending` 에 모인다(설계 1.5).
 * `InputDc`·`ElementValue`·`ExciteSense`·`SenseDecl`·`ViewDecl`·`ConstraintDecl`·`TargetDecl`·`SettlingDecl`·`SettingValue`·
-  `RuleChoice`·`ObjectiveBudget`·`RegionDecl` -- 검증을 통과한 선언의 투영. `mode` 가 `pending` 이면 `decision` 에
+  `RuleChoice`·`ObjectiveBudget`·`RegionDecl`·`GainOverrideDecl`·`DrivingDecl`·`CountBudgetDecl` -- 검증을 통과한 선언의 투영. `mode` 가 `pending` 이면 `decision` 에
   결정 ID 가 있고 값 필드는 None 이다.
 * `SizingSpecDoc` -- spec 전체 투영과 섹션 지문. 직접 만들지 말고 `SizingSpecDoc.from_sections` 로 만든다(지문 계산).
   섹션 지문 = 그 섹션 소비자만 무효화하는 캐시 키(필드가 곧 캐시). `spec_fp` = 섹션 지문들의 지문(S0 'spec 전체 해시').
@@ -16,6 +16,18 @@
 import dataclasses
 
 from gmid_engine.core import fp_of, require_immutable, sorted_items
+
+# `ViewDecl.mode` 어휘(닫힌 집합, 정본 이 한 곳). graph(S1v)·metrics 가 문자열을 복제하지 않고 import 한다([U5], U1 요청).
+VIEW_MODE_NONE = "none"            # 뷰를 쓰지 않는 metric
+VIEW_MODE_PORT = "port"            # 포트 전달 뷰(role 가중 여기 + 출력 포트 관측)
+VIEW_MODE_TRANSFER = "transfer"    # 선언 전달 뷰 {ac_excite, sense_p, sense_n, sense_mode}
+VIEW_MODE_RATIO = "ratio"          # 같은 계 두 여기 열 {num, den}
+VIEW_MODE_PENDING = "pending"      # 결정 대기(decision 에 ID)
+VIEW_MODE_LOOP = "loop"            # β 루프 또는 β = 1 포트 루프
+VIEW_MODE_SENSE = "sense"          # 출력 포트 감지 전용(전류 주입 열)
+VIEW_MODE_CM_OUTPUT = "cm_output"  # 출력 포트 쌍 동일 부호(공통 모드) 주입 루프
+VIEW_MODES = (VIEW_MODE_NONE, VIEW_MODE_PORT, VIEW_MODE_TRANSFER, VIEW_MODE_RATIO, VIEW_MODE_PENDING, VIEW_MODE_LOOP,
+              VIEW_MODE_SENSE, VIEW_MODE_CM_OUTPUT)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -197,6 +209,35 @@ class RegionDecl:
 
 
 @dataclasses.dataclass(frozen=True)
+class GainOverrideDecl:
+    """블록 gain 고정 선언 하나(`gain_budget_db_override`, 41 §5.7): `block` = 출력노드 넷 이름의 **정렬된** tuple(41 §1.7-3 블록 키),
+    `value_db` = 그 블록 bin 을 고정할 dB, `source` 출처."""
+
+    block: tuple
+    value_db: float
+    source: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class DrivingDecl:
+    """출력 구동 선언(`driving_spec`, DEC-58): 슬루율 `slew_rate_v_per_s`·피크 부하 전류 `load_peak_amp`·DC 부하 전류 `load_dc_amp`
+    (선언 안 한 칸은 None, 하나 이상 있다), `source` 출처."""
+
+    slew_rate_v_per_s: object
+    load_peak_amp: object
+    load_dc_amp: object
+    source: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class CountBudgetDecl:
+    """구조 계수 예산 N_S 선언(`structure_count_budget`, 41 §0): 양의 정수 `value`, `source` 출처. 선언이 없으면 LUT 격자 유도값을 쓴다."""
+
+    value: int
+    source: object = None
+
+
+@dataclasses.dataclass(frozen=True)
 class SizingSpecDoc:
     """검증을 통과한 회로 사이징 spec. 모든 모음 필드는 tuple(이름순 또는 문서 순서), 결정 대기 섹션은 PendingMark."""
 
@@ -216,6 +257,9 @@ class SizingSpecDoc:
     search: tuple
     spice_check: tuple
     front_refilter: tuple
+    gain_budget_db_override: tuple
+    driving_spec: object
+    structure_count_budget: object
     pending: tuple
     section_fps: tuple
     spec_fp: str
@@ -238,6 +282,7 @@ class SizingSpecDoc:
                    sections["pending_constraints"], sections["compensation_targets"],
                    sections["node_voltage_targets_v"], sections["intended_region"], sections["objective"],
                    sections["search"], sections["spice_check"], sections["front_refilter"],
+                   sections["gain_budget_db_override"], sections["driving_spec"], sections["structure_count_budget"],
                    sorted_items(pending, key=lambda m: (m.path, m.decision)), fps, fp_of(fps), file_sha256)
 
 
@@ -253,6 +298,9 @@ SECTION_GROUPS = (
     ("search_fp", ("search",)),
     ("spice_check_fp", ("spice_check",)),
     ("refilter_fp", ("front_refilter",)),
+    ("gain_override_fp", ("gain_budget_db_override",)),
+    ("driving_fp", ("driving_spec",)),
+    ("count_budget_fp", ("structure_count_budget",)),
 )
 
 

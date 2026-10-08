@@ -16,6 +16,7 @@
 넷·소자 이름 문자열 금지). 그 키는 닫힌 어휘 밖이라 `unknown_key` 로 거부된다(거부 자체는 같고 규칙 이름만 다르다).
 """
 import math
+from types import MappingProxyType
 
 from .topology_model import SchemaHit
 
@@ -23,14 +24,26 @@ COMMENT_PREFIX = "_"
 PENDING_KEY = "pending"
 REF_KEYS = ("value_from_constraint", "value_from_file")
 
-# 설계 1.8 (a): N3.16 '흡수되는 옛 이름' + 이 형식이 대체한 계획 N3.15 이름(F7 `derived`, F9 `ports`, F10
-# `input_dc_net`, 3.4 `topology_hash`, F2 `pending_7a`).
+# 설계 1.8 (a): N3.16 '흡수되는 옛 이름' + 이 형식이 대체한 계획 N3.15 이름(F9 `ports`, F2 `pending_7a`).
+# [U5 2026-10-08] `input_dc_net`·`topology_hash`·`derived` 는 정본 이름(40 §3.1 개정)이라 표에서 뺐다 -- 거부하지 않는다.
+# [U5] 정합 metric 옛 이름 `mismatch_sigma_mv`(소문자 mv)·`mirror_ratio_error_mv`·`mismatch_sigma_v` 를 더했다(40 §3.8-8, Q3):
+# 새 이름은 `LEGACY_REPLACEMENT` 가 안내한다.
 LEGACY_NAMES = frozenset((
     "supplies", "value_amp", "PM_target_deg", "PM", "GBW", "GBW_hz", "CL_farad", "IBias_amp", "same_as_device",
     "node_voltage_targets", "input_dc_v", "input_common_mode", "pm_deg", "gain_db", "dc_gain_db",
-    "rout_ohm", "parasitic_pm_deg", "mismatch_sigma_mV", "mirror_ratio_error_mV", "power_uA", "input_dc_net",
-    "topology_hash", "derived", "ports", "pending_7a", "value_from_spec",
+    "rout_ohm", "parasitic_pm_deg", "mismatch_sigma_mV", "mirror_ratio_error_mV", "power_uA",
+    "ports", "pending_7a", "value_from_spec",
+    "mismatch_sigma_mv", "mirror_ratio_error_mv", "mismatch_sigma_v",
 ))
+
+# 옛 정합 metric 이름 -> 새 이름 안내(설계 40 §3.8-8). 거부 메시지에만 쓴다(판정은 `LEGACY_NAMES` 원소 여부).
+LEGACY_REPLACEMENT = MappingProxyType({
+    "mismatch_sigma_mv": "offset_in_sigma_mv (제약) 또는 구조 가드 offset_excess <= 값",
+    "mirror_ratio_error_mv": "offset_sys_mv (value_from_constraint: offset_in_sigma_mv)",
+    "mismatch_sigma_v": "offset_in_sigma_mv 와 mirror_ratio_sigma_pct (보고)",
+    "mismatch_sigma_mV": "offset_in_sigma_mv (제약) 또는 구조 가드 offset_excess <= 값",
+    "mirror_ratio_error_mV": "offset_sys_mv (value_from_constraint: offset_in_sigma_mv)",
+})
 
 # 설계 1.8 (b): 회로 전용 키(대원칙 2026-10-07 -- topology 종속 엔진 금지).
 CIRCUIT_SPECIFIC_KEYS = frozenset((
@@ -39,6 +52,11 @@ CIRCUIT_SPECIFIC_KEYS = frozenset((
     "stage_objective", "stage_power_tolerance", "min_vds_by_role", "vth0_slope", "W_bounds", "L_min",
     "min_finger_w", "max_finger_w", "report_only", "minimize", "inherits", "spec_fn",
 ))
+
+
+def _replacement_note(name):
+    new = LEGACY_REPLACEMENT.get(name)
+    return "" if new is None else " -> 새 이름: " + new
 
 
 def at(where, key):
@@ -74,7 +92,7 @@ def key_hits(obj, allowed, where, elements=()):
         place = at(where, key)
         if key in LEGACY_NAMES:
             hits.append(SchemaHit("legacy_name", place, "옛 이름 " + repr(key)
-                                  + " -- 정본 이름만 받는다(N3.16·DEC-69, 설계 1.8 (a))", elements))
+                                  + " -- 정본 이름만 받는다(N3.16·DEC-69, 설계 1.8 (a))" + _replacement_note(key), elements))
         elif key in CIRCUIT_SPECIFIC_KEYS:
             hits.append(SchemaHit("circuit_specific_key", place, "회로 전용 키 " + repr(key)
                                   + " -- 보상·제약은 일반 metric 과 구조 유도로만 표현한다(대원칙 2026-10-07, 설계 1.8 (b))",
@@ -88,7 +106,7 @@ def key_hits(obj, allowed, where, elements=()):
 def _legacy_value_hit(value, where):
     """참조 문자열 값 안의 옛 이름(N3.16 끝 문단 -- 값 안 이름도 검사)."""
     if isinstance(value, str) and value in LEGACY_NAMES:
-        return SchemaHit("legacy_name", where, "참조 값 안의 옛 이름 " + repr(value) + " (N3.16)")
+        return SchemaHit("legacy_name", where, "참조 값 안의 옛 이름 " + repr(value) + " (N3.16)" + _replacement_note(value))
     return None
 
 

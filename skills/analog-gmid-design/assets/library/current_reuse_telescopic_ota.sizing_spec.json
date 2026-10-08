@@ -223,20 +223,57 @@
         }
       },
       {
-        "metric": "mismatch_sigma_mv",
+        "metric": "offset_in_sigma_mv",
         "op": "<=",
-        "value": 5.0,
+        "value": 3.3,
         "source": {
-          "kind": "pending_spice",
-          "record": "U-17(7a 재도출 대상) -- 옛 mismatch_sigma_mV, 옛 source pending_7a"
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"q3,q4는 네 제안대로 해\" -- Q3 (2): 파일럿 입력 환산 offset 1 sigma <= 3.3 mV(옛 mismatch_sigma_mv <= 5 대체). 3.3 mV 유도: 입력 용량이 논문 beta ~ 0.48 가정(Cf = Cs = 500 fF)을 넘지 않는 최대 면적에서 sigma_os = (Sum A_i sqrt(c_i))/(2 sqrt(Cin)), gm/ID 15·L 0.5 um A_eff 기준(design 40 §9.2, 제안서 §2.3 (C))",
+          "decided": "2026-10-08"
         }
       },
       {
-        "metric": "mirror_ratio_error_mv",
+        "metric": "offset_sys_mv",
         "op": "<=",
-        "value_from_constraint": "mismatch_sigma_mv",
+        "value_from_constraint": "offset_in_sigma_mv",
         "source": {
           "kind": "reference"
+        },
+        "_metric_comment": "계통 offset 상한 = 랜덤 offset 예산(옛 mirror_ratio_error_mv 대체, design 40 §3.8-8)."
+      },
+      {
+        "metric": "swing_out_v",
+        "op": ">=",
+        "value": 2.4,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"q3,q4는 네 제안대로 해\" -- Q4 (5): 파일럿 출력 스윙 +-1.2 V 제약 채택(차동 p-p 2.4 V, 포화 기준 swing_out_v)",
+          "decided": "2026-10-08",
+          "origin": "paper",
+          "citation": "Xie & Chen 논문 Table I 출력 스윙 +-1.2 V"
+        }
+      },
+      {
+        "metric": "icm_margin_v",
+        "op": ">=",
+        "value": 0,
+        "_comment": "선언 입력 DC 와 ICMR 창 경계의 최소 거리 >= 0(LUT tol 여유 포함 창 안). 입력 DC 가 SP-2 대기인 동안 계산은 input_dc_pending 으로 보고(design 40 §3.8-8).",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"q3,q4는 네 제안대로 해\" -- Q4 (4): 파일럿 icm_margin_v >= 0, 입력 DC(SP-2) 선언 시 활성(design 40 §9.2)",
+          "decided": "2026-10-08"
+        }
+      },
+      {
+        "metric": "noise_out_int_vrms",
+        "op": "<=",
+        "value": 0.0003,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"Q1~Q11 모두 네 의견대로 진행해\" 결정 Q11 -- 파일럿 폐루프 적분 출력 잡음 <= 300 uVrms(CMFB·바이어스·스위치 포함, 하한 LUT 최저 잡음 주파수·상한 유도, design 41 §7.1)",
+          "decided": "2026-10-08",
+          "origin": "paper",
+          "citation": "Xie & Chen 논문 Table I 적분 출력 잡음 300 uVrms"
         }
       },
       {
