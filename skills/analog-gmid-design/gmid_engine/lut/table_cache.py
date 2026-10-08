@@ -21,6 +21,9 @@
 * 쓰기: 같은 폴더의 임시 파일에 쓰고 fsync 한 뒤 `os.replace`(원자적). 여러 프로세스가 동시에 시작해도 읽는 쪽은 옛 완성 파일 또는
   새 완성 파일만 본다(둘 다 계산해도 좋다). 쓰기 실패(교체 중 잠김 포함)는 기록만 하고 계산 결과를 그대로 돌려준다.
 * 배열을 품은 결과는 저장하지 않는다(읽기 전용 플래그가 pickle 로 보존되지 않음) -- 이벤트 "unstorable".
+* Windows 경로 길이: 칸 파일 이름이 길다(~150자 + 임시 접미사). Windows 에서는 캐시 폴더 안의 모든 파일 작업(만들기·나열·읽기·임시 쓰기·교체·삭제)을
+  확장 길이 경로(`\\\\?\\` + 절대 경로)로 한다. 파일 이름은 그대로다(정리가 이름을 읽는다). 그래도 쓰기가 실패하면 경고에 경로 길이와 MAX_PATH 원인
+  가능성을 적는다.
 """
 import dataclasses
 import hashlib
@@ -107,6 +110,20 @@ def _code_version():
     return h.hexdigest()
 
 
+_EXTENDED = "\\\\?\\"
+_UNC = "\\\\"
+
+
+def _io(path):
+    """파일 작업용 경로: Windows 에서는 확장 길이 경로(`\\\\?\\` + 절대 경로, UNC 는 `\\\\?\\UNC\\`), 그 밖에는 그대로."""
+    if os.name != "nt" or path.startswith(_EXTENDED):
+        return path
+    full = os.path.abspath(path).replace("/", "\\")
+    if full.startswith(_UNC):
+        return _EXTENDED + "UNC\\" + full[len(_UNC):]
+    return _EXTENDED + full
+
+
 def _is_hex_digest(text):
     return len(text) == _HEX and all(c in "0123456789abcdef" for c in text)
 
@@ -170,8 +187,10 @@ class TableCache:
 
     * `TableCache.from_config(config_path, env)`: 설정 파일 + 환경 매핑으로 폴더를 정한다(모듈이 `os.environ` 를 직접 읽지 않는다).
     * `TableCache.default()`: 저장소 설정(`assets/lut_v2_location.json`) + `os.environ` -- `LutMemo` 의 기본값.
-    * `fetch(lut_fp, fn_name, key, inputs, settings, compute)`: 적중이면 저장 값, 아니면 `compute()` 를 부르고 저장.
-    * `stats()`: ((이벤트, 횟수), ...) 이름 정렬. 이벤트 = hit·miss·stale_key·corrupt·read_error·write·write_error·unstorable·disabled.
+    * `fetch(lut_fp, data_id, fn_name, key, inputs, settings, compute)`: 적중이면 저장 값, 아니면 `compute()` 를 부르고 저장.
+      `data_id` = `TableCache.data_id(lut.provenance)`.
+    * `stats()`: ((이벤트, 횟수), ...) 이름 정렬. 이벤트 = hit·miss·stale_key·corrupt·read_error·write·write_error·unstorable·disabled·
+      cleanup_removed·cleanup_skipped·cleanup_failsafe.
     * `events`: ((이벤트, 함수 이름), ...) 발생 순서.
     """
 
@@ -184,7 +203,7 @@ class TableCache:
         if directory is None:
             return
         try:
-            os.makedirs(directory, exist_ok=True)
+            os.makedirs(_io(directory), exist_ok=True)
         except OSError as exc:
             warnings.warn("TableCache: 폴더를 만들 수 없어 캐시를 끈다: %s (%s)" % (directory, exc), RuntimeWarning)
             self._note("disabled", "")
@@ -234,16 +253,16 @@ class TableCache:
         self._cleaned = True
         try:
             retained = _retained_ids(self._config)
-            names = sorted(os.listdir(self.directory))
+            names = sorted(os.listdir(_io(self.directory)))
         except (OSError, ValueError, subprocess.SubprocessError):
             self._note("cleanup_failsafe", "")
             return
         for name in names:
-            path = os.path.join(self.directory, name)
+            path = _io(os.path.join(self.directory, name))
             parts = name[:-len(".tbl")].rsplit("-", len(_NAME_FIELDS) - 1) if name.endswith(".tbl") else ()
             if len(parts) != len(_NAME_FIELDS) or not all(_is_hex_digest(p) for p in parts[1:]) or not parts[0]:
                 continue
-            if os.path.abspath(path) == os.path.abspath(keep_path):
+            if path == _io(keep_path):
                 continue
             if parts[1] in retained or os.path.islink(path) or not os.path.isfile(path):
                 continue
@@ -256,7 +275,7 @@ class TableCache:
     def _read(self, path, digest, fn_name):
         """(True, 값) 또는 None -- 없음·깨짐·키 다름은 None(이벤트 기록)."""
         try:
-            with open(path, "rb") as fh:
+            with open(_io(path), "rb") as fh:
                 data = fh.read()
         except FileNotFoundError:
             self._note("miss", fn_name)
@@ -273,11 +292,14 @@ class TableCache:
         intact = (len(data) >= _HEADER and data[:magic_end] == _MAGIC + _NL and data[key_end:sha_start] == _NL
                   and data[sha_end:_HEADER] == _NL
                   and hashlib.sha256(body).hexdigest().encode("ascii") == data[sha_start:sha_end])
+        stored_key = data[magic_end:key_end]
+        if intact and not _is_hex_digest(stored_key.decode("ascii", errors="replace")):
+            intact = False   # 키 칸이 64자 소문자 hex 가 아니다 -> 형식 위반 = 깨짐 (stale_key 아님)
         if not intact:
             warnings.warn("TableCache: 깨진 캐시 파일을 버리고 다시 계산한다: %s" % path, RuntimeWarning)
             self._note("corrupt", fn_name)
             return None
-        if data[magic_end:key_end] != digest.encode("ascii"):
+        if stored_key != digest.encode("ascii"):
             self._note("stale_key", fn_name)
             return None
         try:
@@ -297,17 +319,19 @@ class TableCache:
         blob = (_MAGIC + _NL + digest.encode("ascii") + _NL + hashlib.sha256(body).hexdigest().encode("ascii") + _NL + body)
         tmp = None
         try:
-            fd, tmp = tempfile.mkstemp(dir=self.directory, prefix=os.path.basename(path) + ".", suffix=".tmp")
+            fd, tmp = tempfile.mkstemp(dir=_io(self.directory), prefix=os.path.basename(path) + ".", suffix=".tmp")
             with os.fdopen(fd, "wb") as fh:
                 fh.write(blob)
                 fh.flush()
                 os.fsync(fh.fileno())
-            os.replace(tmp, path)
+            os.replace(tmp, _io(path))
             tmp = None
             self._note("write", fn_name)
             self._cleanup(path)
         except OSError as exc:
-            warnings.warn("TableCache: 쓰지 못했다 %s (%s)" % (path, exc), RuntimeWarning)
+            hint = (" -- 경로 길이 %d 자: Windows MAX_PATH 한도 초과가 원인일 수 있다(더 짧은 캐시 폴더를 쓸 것)" % len(os.path.abspath(path))
+                    if os.name == "nt" else "")
+            warnings.warn("TableCache: 쓰지 못했다 %s (%s)%s" % (path, exc, hint), RuntimeWarning)
             self._note("write_error", fn_name)
         finally:
             if tmp is not None:

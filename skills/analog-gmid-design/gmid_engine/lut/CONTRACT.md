@@ -257,7 +257,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - `LutMemo(lut, *, point, curve, root, table_cache=None)`: `table_cache=None` -> `TableCache.default()`(저장소 설정 + `os.environ`),
   끄려면 `TableCache(None)`. `memo.table_cache` 로 읽는다. 메모리 memo(`lookup`, 상한 BoundedLRU, 2절)는 그대로다.
 - `LutMemo.lookup_persistent(region, fn_name, key, compute, inputs, settings=())`: `lookup` 과 같은 키·반환(메모리 적중이면 디스크를 안
-  건드림). memo 에 없을 때 `compute` 대신 `table_cache.fetch(lut.fp, fn_name, key, inputs, settings, compute)` 를 부른다. 쓰는 곳:
+  건드림). memo 에 없을 때 `compute` 대신 `table_cache.fetch(lut.fp, TableCache.data_id(lut.provenance), fn_name, key, inputs, settings, compute)` 를 부른다. 쓰는 곳:
   `tol_v_table`(inputs = 슬라이스 `DcSlice` 전체), `tol_vdsat_table`(inputs = `ColumnSource`), `curve_report`(inputs = 정렬된 전 슬라이스).
   결과는 디스크를 거치든 아니든 **비트 동일**하다(float 은 pickle 이 정확한 8바이트로 보존).
 - 위치: `assets/lut_v2_location.json` 의 `"table_cache": {"env": "GMID_LUT_TABLE_CACHE_DIR", "default": <전용 폴더>}`(lut_data·저장소 밖).
@@ -277,12 +277,16 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   폴더·형식이 다른 이름·폴더 밖은 건드리지 않는다. 지우면 이벤트 `cleanup_removed`(함수 이름), 지울 수 없으면(OSError, 사용 중) `cleanup_skipped`.
   git 실행 실패·worktree 나열 실패·설정 JSON 읽기 실패(ValueError/OSError)·폴더 나열 실패면 아무것도 지우지 않고 `cleanup_failsafe`. 나이·개수 상한 없음.
   `TableCache(directory)`(설정 경로 없음)는 정리하지 않는다.
-- 파일: `GMIDTBL1\n` + 키(64 hex) + `\n` + 본문 sha256(64 hex) + `\n` + pickle 본문. 읽기 검증: 머리 형식·본문 해시 -> 깨짐(이벤트
-  "corrupt" + RuntimeWarning), 키 불일치 -> "stale_key"(경고 없음), 역직렬화 실패 -> "corrupt". 어느 경우도 예외를 내지 않고 `compute()` 로 만들어
+- 파일: `GMIDTBL1\n` + 키(64 hex) + `\n` + 본문 sha256(64 hex) + `\n` + pickle 본문. 읽기 검증: 머리 형식(MAGIC·구분자·길이, **키 칸이 64자 소문자 hex
+  가 아니면 형식 위반**)·본문 해시 -> 깨짐(이벤트 "corrupt" + RuntimeWarning), 형식은 맞고 값만 다른 키 -> "stale_key"(경고 없음), 역직렬화 실패 -> "corrupt". 어느 경우도 예외를 내지 않고 `compute()` 로 만들어
   덮어쓴다. 키가 다른 표를 조용히 쓰는 경로는 없다.
 - 쓰기: 같은 폴더 임시 파일(`tempfile.mkstemp`) -> write·flush·fsync -> `os.replace`. 읽는 쪽은 옛 완성 파일 또는 새 완성 파일만 본다(부분 파일
   없음). 동시 시작한 여러 프로세스가 같은 표를 각자 계산해 서로 덮어써도 된다(내용 같음). 교체 실패(잠김)·디스크 오류는 "write_error" 로 기록하고 계산
   결과를 그대로 돌려준다. 결과에 ndarray 가 들어 있으면 저장하지 않는다("unstorable").
+- **Windows 경로 길이**: 칸 파일 이름이 ~150자(+ 임시 접미사)라 폴더 경로가 ~97자를 넘으면 MAX_PATH(260) 때문에 쓰기가 실패한다. 그래서 Windows(`os.name == "nt"`)에서는
+  캐시 폴더 안의 모든 파일 작업(폴더 만들기·나열·읽기·임시 파일 쓰기·교체·삭제)을 확장 길이 경로(절대 경로 앞에 `\\?\`, UNC 는 `\\?\UNC\`)로 한다.
+  파일 이름은 바뀌지 않는다(정리가 이름을 읽는다). `path_of` 가 돌려주는 경로는 보통 표기다. 그래도 쓰기가 실패하면 RuntimeWarning 에 경로 길이와
+  "MAX_PATH 한도 초과가 원인일 수 있다"를 적고 `write_error` 이벤트를 남긴다(계산 결과는 그대로).
 - 관찰: `table_cache.stats()` = ((이벤트, 횟수), ...) 이름 정렬, `table_cache.events` = ((이벤트, 함수 이름), ...) 발생 순서.
   이벤트: hit·miss·stale_key·corrupt·read_error·write·write_error·unstorable·disabled·cleanup_removed·cleanup_skipped·cleanup_failsafe.
 - test 작성자용 불변식(기대값은 test 가 정한다): (1) 구성요소별 적중/미스 -- 같은 키 두 번째 `fetch` 는 hit·compute 0회; LUT 자료 한 원소·
