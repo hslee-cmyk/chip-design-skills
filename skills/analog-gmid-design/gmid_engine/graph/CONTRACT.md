@@ -611,8 +611,8 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 
 ### 10.5 어휘 요약과 library 9회로 정지 코드 (2026-10-08 U1 수정 뒤 실측)
 
-* `Block.kind` ∈ {gain, buffer, composite}. AC 역할 ∈ {input, cascode, mirror, diode_load, pass, follower, tail, load}(계획 N3.2-6 의 input·cascode·follower·pass·load·tail 에
-  mirror·diode_load 를 load 의 세분으로 더함. 옛 이름 `tail_source` 는 `tail` 로 바꿨다).
+* `Block.kind` ∈ {gain, buffer, composite}. AC 역할 ∈ {input, cascode, mirror, diode_load, pass, follower, tail_source, load}(계획 N3.2-6 의 input·cascode·follower·pass·load·tail 에
+  mirror·diode_load 를 load 의 세분으로 더함. 계획의 `tail` 은 값 `tail_source` 로 쓴다 -- 문자열 `tail` 은 library 넷 이름과 같아 구조 규칙 E 가 코드 리터럴로 거부한다).
 * `LClass.owner_rule` ∈ {tail_owner, tail_first_gain_stage, current_source_member, name_order}. `OutputDirection.topology` ∈ {push_pull, class_a, none}(none = 어느 방향도 σ 셀 없음).
   `DriveInfo.basis` 13종은 `s1v_values.py` `BASIS_*`. `ViewS1v.unreduced_diff` = ((소자, (축약 kind, forward), (비축약 kind, forward)), ...). `S1v.key` 는 7원소(마지막 = declared_loop_cuts 지문).
   `S1v.views` 순서 = 전달 뷰(순번 순) 다음 루프 뷰(끊는 점 정렬 순).

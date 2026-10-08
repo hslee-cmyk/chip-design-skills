@@ -66,7 +66,7 @@ ROLE_FOLLOWER = "follower"
 ROLE_PASS = "pass"
 ROLE_MIRROR = "mirror"
 ROLE_LOAD = "load"
-ROLE_TAIL = "tail"
+ROLE_TAIL = "tail_source"   # 계획 N3.2-6 의 tail. 값 "tail" 은 library 넷 이름과 같아 구조 규칙 E(회로 이름 리터럴 금지)가 거부한다
 ROLE_DIODE_LOAD = "diode_load"
 # ---- 임피던스 등급(41 §1.7-4)
 IMP_LOW = "low"
@@ -265,8 +265,8 @@ class Block:
     """블록 하나. `key` = 출력노드 넷 이름의 정렬 tuple, `kind` ∈ {gain, buffer, composite}(composite = 복합 블록이 멤버를 대체한 블록, `CompositeBlock` 기록과 짝),
     `stage` = 시작 셀 입력 넷 `stage_dist` + 1(버퍼 블록은 입력 넷 `stage_dist`, 복합은 멤버 최소),
     `inputs` = 블록 입력 넷, `outputs` = 출력노드, `roles` = (소자, AC 역할) 이름순, AC 역할 ∈ {input(시작 CS·CG), cascode(CG), mirror(미러 입력을 gate 로 읽는 CS), diode_load(소유 노드의 diode 소자),
-    pass(pass 묶음), follower(버퍼 블록의 CD), tail(바이어스 전류원이고 drain 이 블록 안 둘 이상 멤버의 source), load(그 밖 블록 소유 노드에 닿는 MOS·수동소자)} --
-    계획 N3.2-6 의 input·cascode·follower·pass·load·tail 에 mirror·diode_load 를 load 의 세분으로 더한 것, `nodes` = 블록 노드 집합(교류접지 제외),
+    pass(pass 묶음), follower(버퍼 블록의 CD), tail_source(= 계획 N3.2-6 tail, 바이어스 전류원이고 drain 이 블록 안 둘 이상 멤버의 source), load(그 밖 블록 소유 노드에 닿는 MOS·수동소자)} --
+    계획 N3.2-6 의 input·cascode·follower·pass·load·tail(= 값 tail_source) 에 mirror·diode_load 를 load 의 세분으로 더한 것, `nodes` = 블록 노드 집합(교류접지 제외),
     `impedance` = (출력노드, 등급 ∈ {low, high, value_dependent}) 이름순 -- `node_impedance` 표 그대로(극점 노드와 같은 값),
     `status` ∈ {derived, review_needed}."""
 
