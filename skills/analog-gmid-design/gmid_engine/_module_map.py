@@ -126,7 +126,7 @@ LAYERS = (
         "search",
         (
             ("search_values.py",),
-            ("archive.py", "cell_floor.py", "cone_rows.py", "current_box.py", "eval_key.py", "l_cells.py", "objectives.py", "pareto.py",
+            ("archive.py", "area_decl.py", "cell_floor.py", "cone_rows.py", "current_box.py", "eval_key.py", "l_cells.py", "objectives.py", "pareto.py",
              "seal7_pending.py", "ss_constraints.py"),
             ("constraints.py", "search_domain.py"),
             ("search_context.py",),
@@ -536,6 +536,8 @@ MODULES = (
                 "MOD6 탐색 값 형식·상태/단계/축 어휘(데이터 선언 모듈)", ("DEC-77", "N3.5", "N3.7")),
     ModuleEntry("search/archive.py", "entry", "S3Archive",
                 "S3 설계점 단위 append-only 기록(evals·runs·front 스냅샷 파일), 디스크 실패 캐시 원천", ("N3.3", "WP-11")),
+    ModuleEntry("search/area_decl.py", "entry", "passive_area_decl",
+                "수동소자 면적 선언(PDK MIM 단위 면적 + spec 측정 부하 제외) -> metrics PassiveAreaDecl", ("DEC-79", "U-36", "결정 11")),
     ModuleEntry("search/cell_floor.py", "entry", "ln_idu_floors",
                 "L 칸 정점 하한(쓰기 소자 ln IDu 의 칸별 상자 하한, 1변수 writer 선택·시작 좌표 예외)", ("DEC-88", "LR10")),
     ModuleEntry("search/cone_rows.py", "entry", "cone_rows",

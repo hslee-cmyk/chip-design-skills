@@ -6,7 +6,8 @@
 요소 값의 정본은 spec 이다(F5 확정 2026-10-07 -- topology 는 connectivity 만). topology 수동소자·이상원 **전부**를
 선언해야 한다(F4, 생략 = 조용한 기본값이라 거부). 항목 모양(요소 이름 -> 하나):
 `{"pending": <ID>}` / `{<값 키>: <수>, "source"}` / `{"engine": true, "source"}`(엔진이 계산하는 값 -- 사용자 결정 기록이
-출처). 위반:
+출처). 선택 키 `"measurement_load": true`(값 또는 engine 항목, 커패시터·저항 요소만) = 설계가 아닌 측정 부하 -- 면적
+`area_search_m2` 에서 뺀다(사용자 결정 11, 이름이 아니라 이 선언이 정한다). 위반:
 * `type` -- 객체가 아니거나, 값 키·engine 이 정확히 하나가 아니거나, 값이 유한 수가 아니거나, engine 이 true 아님.
 * `element_value_key` -- 값 키가 요소 kind 와 맞지 않는다(`VALUE_KEY_BY_KIND`; 표 밖 kind 는 값 선언 불가 -- engine·
   pending 만).
@@ -33,6 +34,7 @@ from .topology_model import SchemaHit
 WHERE = "human.element_values"
 FEEDBACK_WHERE = "human.feedback"
 ENGINE_KEY = "engine"
+LOAD_KEY = "measurement_load"
 VALUE_KEY_BY_KIND = MappingProxyType({
     "capacitor": "value_farad",
     "resistor": "value_ohm",
@@ -41,6 +43,7 @@ VALUE_KEY_BY_KIND = MappingProxyType({
 })
 VALUE_KEYS = tuple(sorted(VALUE_KEY_BY_KIND.values()))
 POSITIVE_KEYS = ("value_farad", "value_ohm")
+LOAD_KINDS = ("capacitor", "resistor")
 
 
 def _conflict(name, result, where, topo_values):
@@ -61,7 +64,11 @@ def _element(name, entry, where, kinds, topo_values):
         return result, _conflict(name, result, where, topo_values)
     if not isinstance(entry, dict):
         return None, [SchemaHit("type", where, "요소 값 선언은 객체여야 한다: " + type(entry).__name__, (name,))]
-    hits = key_hits(entry, VALUE_KEYS + (ENGINE_KEY, "source"), where, (name,))
+    hits = key_hits(entry, VALUE_KEYS + (ENGINE_KEY, LOAD_KEY, "source"), where, (name,))
+    load = entry.get(LOAD_KEY, False)
+    if LOAD_KEY in entry and (load is not True or (kinds is not None and kinds.get(name) not in LOAD_KINDS)):
+        hits.append(SchemaHit("type", at(where, LOAD_KEY), "measurement_load 는 true 만 받고 커패시터·저항 요소에만 쓴다: "
+                              + repr(load), (name,)))
     source, source_hits = source_declaration_checks(entry.get("source"), where, "element_values")
     hits.extend(source_hits)
     present = tuple(k for k in VALUE_KEYS + (ENGINE_KEY,) if k in entry)
@@ -74,7 +81,7 @@ def _element(name, entry, where, kinds, topo_values):
     if key == ENGINE_KEY:
         if value is not True:
             hits.append(SchemaHit("type", at(where, key), "engine 은 true 만 받는다: " + repr(value), (name,)))
-        result = ElementValue(name, "engine", source=source)
+        result = ElementValue(name, "engine", source=source, measurement_load=load is True)
     else:
         if not finite_number(value):
             hits.append(SchemaHit("type", at(where, key), "요소 값은 유한 수여야 한다: " + repr(value), (name,)))
@@ -84,7 +91,8 @@ def _element(name, entry, where, kinds, topo_values):
             hits.append(SchemaHit("element_value_key", at(where, key), "요소 " + repr(name) + " (kind " + repr(kind)
                                   + ") 의 값 키는 " + repr(VALUE_KEY_BY_KIND.get(kind)) + " 여야 한다: " + repr(key),
                                   (name,)))
-        result = ElementValue(name, "value", key, float(value) if finite_number(value) else None, source)
+        result = ElementValue(name, "value", key, float(value) if finite_number(value) else None, source,
+                              measurement_load=load is True)
     hits.extend(_conflict(name, result, where, topo_values))
     return result, hits
 
