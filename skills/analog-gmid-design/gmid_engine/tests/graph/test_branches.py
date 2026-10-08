@@ -103,6 +103,7 @@ def test_isolated_loop_stops(gh, tmp_path):
         {"name": "Mlc", "kind": "nmos", "drain": "lc", "gate": gate, "source": "la"},
     ]
     o_err = pytest.raises(gh.StopExpected, gh.oracle, raw).value
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     d, devices = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert d["rule_branch"] == o_err.branch == "dc_isolated_loop"
     assert devices == o_err.devices == ("Mla", "Mlb", "Mlc")
@@ -119,6 +120,7 @@ def test_loop_through_anchor_is_a_branch_not_a_stop(gh, tmp_path):
         {"name": "Mrc", "kind": "nmos", "drain": "gnd", "gate": gate, "source": "rb"},
     ]
     o = gh.oracle(raw)
+    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s1 = build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
     assert tuple(gh.branch_plain(b) for b in gh.gval(s1, "branches")) == o.branches
     loops = [b for b in gh.gval(s1, "branches") if b.ends[0] == b.ends[1]]
