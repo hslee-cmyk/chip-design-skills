@@ -218,8 +218,15 @@ def tran_line(text: str):
 def _ngspice(lines, workdir: Path, name="r.cir", timeout=600):
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / name).write_text("\n".join(lines) + "\n", encoding="utf-8")
-    p = subprocess.run([str(NGSPICE), "-b", name], capture_output=True, text=True, cwd=str(workdir),
-                       encoding="utf-8", errors="replace", timeout=timeout)
+    timed_out = None
+    try:
+        p = subprocess.run([str(NGSPICE), "-b", name], capture_output=True, text=True, cwd=str(workdir),
+                           encoding="utf-8", errors="replace", timeout=timeout)
+    except subprocess.TimeoutExpired as e:
+        timed_out = e.stdout[-300:] if isinstance(e.stdout, str) else (e.stdout or b"")[-300:]
+    if timed_out is not None:
+        # 시간 초과는 독립 기준 실행의 실패다(판정 결과가 아님) -- 예외 추적 대신 원인을 밝혀 실패시킨다.
+        pytest.fail(f"독립 ngspice 실행이 {timeout} s 안에 끝나지 않음: {workdir / name} (stdout 끝: {timed_out!r})")
     vals = {}
     for ln in p.stdout.splitlines():
         if " = " in ln:
@@ -310,13 +317,41 @@ def rhp_ref(root: Path, rb):
     return out
 
 
-def rhp_closed_loop_pp(root: Path, rb, v2op, tstop=300e-6, last=100e-6):
+RHP_KICK = dict(dv=0.01, delay=1e-6, rise=1e-8, width=1e-6, fall=1e-8)   # 폐루프 킥(PULSE) -- 아래 창 계산과 공유
+TMAX_PER_TAU = 20                     # τ 지수 회복을 τ 당 20 점 이상으로 따라간다(빠른 근 구간은 ngspice 오차 제어가 더 줄인다)
+
+
+def rhp_closed_loop_window(rb, K):
+    """폐루프 .tran 의 (tstop, last, tmax) 를 이 회로 자신의 τ = Rb·Cc 와 손 모형 K(rhp_ref, 독립 .op)로 유도한다.
+
+    폐루프 파형(독립 실행 2026-10-08)은 이완 발진이다: 높은 상태(M2 꺼짐, V(n2) ~ VDD)와 낮은 상태를 오가며, 전환
+    때 Cc 로 n3 에 실린 n2 스윙이 Rb 를 거쳐 τ = Rb·Cc 로 vb(= .op 의 V(n3); Rb 에는 DC 전류가 없다) 쪽으로 회복하다가,
+    남은 차이가 내부 양되먹임 루프가 선형(루프 이득 K)으로 동작하는 폭 ~ (n2 스윙)/K 안에 들어오면 빠른 RHP 근
+    (~6e9 rad/s, test_rhp_fixture_has_open_loop_rhp_pole)으로 재생 전환한다. 그래서 반주기 ~ τ·ln(스윙 / (스윙/K))
+    = τ·ln K, 주기 상한 T = 2τ·ln K (K ~ 197 -> 10.6τ; 실측 주기 Rb 1e5: 9.3τ, Rb 1e6: 6.6τ -- 상한 안).
+      * tstop = 킥 끝(지연+상승+폭+하강) + 2T: 앞 T 는 킥 응답이 빠지는 구간(안정 계라면 가장 느린 시간상수 τ 의
+        ln K 배 넘게 지나 감쇠한다), 뒤 T 가 판정 창 `last` -- 주기 상한이라 지속 이완 발진이면 창 안에 최대·최소가
+        다 든다(창이 한 주기보다 짧으면 정지한 높은 상태만 볼 수 있다).
+      * tmax = τ / TMAX_PER_TAU.
+    계산 비용은 낮은 상태 앞부분의 빠른 근 진동 길이(~τ)에 비례해 Rb 에 비례한다(고정 tstop 300 µs 는 Rb 1e5·1e6 에서
+    600 s 초과, Rb 1e7 에서 메모리 부족이었다)."""
+    tau = rb * RHP["cc"]
+    period = 2.0 * tau * math.log(K)
+    k = RHP_KICK
+    kick_end = k["delay"] + k["rise"] + k["width"] + k["fall"]
+    return kick_end + 2.0 * period, period, tau / TMAX_PER_TAU
+
+
+def rhp_closed_loop_pp(root: Path, rb, v2op, K):
     """독립 폐루프 .tran: nin = (0.7 + V2op + 킥) - V(n2) (이상 VCVS 단위 음되먹임, A(0) > 0).
-    마지막 `last` 구간의 V(n2) 최대-최소."""
+    마지막 `last` 구간의 V(n2) 최대-최소. 창은 `rhp_closed_loop_window`."""
+    tstop, last, tmax = rhp_closed_loop_window(rb, K)
     v0 = RHP["vin"] + v2op
+    k = RHP_KICK
     body = rhp_body(rb, vin_line=f"Ecl nin cl n2 0 -1")
-    body.append(f"Vcl cl 0 DC {v0} PULSE({v0} {v0 + 0.01} 1e-6 1e-8 1e-8 1e-6)")
-    ctrl = [".control", "set noaskquit", f"tran 1e-7 {tstop} 0 2e-7",
+    body.append(f"Vcl cl 0 DC {v0} PULSE({v0} {v0 + k['dv']} {k['delay']} {k['rise']} {k['fall']} {k['width']})")
+    body.append(".save v(n2)")                      # 판정에 쓰는 벡터만 저장(전체 저장은 긴 실행에서 메모리 부족)
+    ctrl = [".control", "set noaskquit", f"tran {tmax} {tstop} 0 {tmax}",
             f"meas tran vmax MAX v(n2) from={tstop - last} to={tstop}",
             f"meas tran vmin MIN v(n2) from={tstop - last} to={tstop}", "quit", ".endc", ".end"]
     p, vals = _ngspice(_head() + body + ctrl, root / f"rhp_cl_{rb:g}")
@@ -444,8 +479,9 @@ def test_rhp_fixture_closed_loop_oscillates_and_n_is_zero(ref_root, rb):
     ref = rhp_ref(ref_root, RB[rb])
     assert ref["nyq"]["N"] == 0, ref["nyq"]
     assert ref["meas"]["pm_deg"] is not None and ref["meas"]["pm_deg"] > 180, ref["meas"]   # Bode 식은 '여유 큼'
-    pp = rhp_closed_loop_pp(ref_root, RB[rb], ref["nodes"]["n2"])
-    assert pp > 0.3, pp           # 마지막 100 µs 에도 0.3 V 넘게 흔들림 = 감쇠하지 않음
+    pp = rhp_closed_loop_pp(ref_root, RB[rb], ref["nodes"]["n2"], ref["K"])
+    # oracle (a) 물리 불변식: 킥 응답이 빠진 뒤 마지막 이완 주기 상한(2τ·ln K) 창에도 0.3 V 넘게 흔들림 = 감쇠하지 않음
+    assert pp > 0.3, pp
 
 
 # ====================================================================== 개루프 RHP 극 -> PM 정의 불가
