@@ -11,12 +11,16 @@
 |---|---|---|
 | `oracle_input.schema.json` | - | 입력 형식(JSON Schema 2020-12). 진입점은 입력을 이것으로 먼저 검증한다 |
 | `oracle_netlist.py` | `python oracle_netlist.py <input.json> <out.cir> --bias free\|forced\|iso [--topology T] [--require-topology] [--omit N..] [--short N..]` | 넷리스트 + `<out.cir>.meta.json`, feedback_passives 가 있으면 `<stem>.loop.cir` |
-| `oracle_simulate.py` | `python oracle_simulate.py <netlist.cir> <sim.json> --ngspice EXE [--timeout-s S] [--cache-dir D]` | `ngspice -b` 실행, .op/.ac(+β 루프) 추출, **[신규 C10]** PM 안정성 근거(Nyquist 감은 수 + 폐루프 `.tran`, `<stem>.stab.cir`) |
+| `oracle_simulate.py` | `python oracle_simulate.py <netlist.cir> <sim.json> --ngspice EXE [--timeout-s S] [--cache-dir D]` | `ngspice -b` 실행, .op/.ac(+β 루프) 추출, **[신규 C10]** PM 안정성 근거(Nyquist N(위상 펼침 + 적응 세분화) + 독립 `.pz` P + 폐루프 `.tran` 창 단위 조기 종결, `<stem>.stab.cir`·`<stem>.pz.cir`) |
+| `oracle_config.json` | - | **[신규 U6]** `stability_transient.wall_s_per_window`(폐루프 과도 창당 ngspice 실행 시간 상한 -- 기본 시간 상한의 근거 `measured_*`·`safety_factor`·`justification` 포함) |
+| `oracle_noise.py` | `python oracle_noise.py <input.json> <netlist.cir> <out.json> --ngspice EXE [--timeout-s S] [--cache-dir D]` | **[신규 U6]** ngspice `.noise` 대조: 개루프 입력 환산 열잡음·flicker 코너·excess·소자별 기여, 폐루프 적분 출력 잡음 |
+| `oracle_offset_mc.py` | `python oracle_offset_mc.py <input.json> <netlist.cir> <out.json> --ngspice EXE [--timeout-s S] [--cache-dir D]` | **[신규 U6]** 소자별 독립 mismatch Monte-Carlo 입력 환산 offset 1σ |
+| `oracle_swing.py` | `python oracle_swing.py <input.json> <netlist.cir> <out.json> --ngspice EXE [--timeout-s S] [--cache-dir D] [--sat-margin-v V]` | **[신규 U6]** 출력 스윙·입력 공통모드 범위(ICMR) `.op` 스윕 |
 | `oracle_compare.py` | `python oracle_compare.py <input.json> <netlist.cir> <sim.json> <out_prefix> [--judge J] [--sat-margin-v V] [--forced-compare F]` | 합격 판정 + 비교 기록 |
-| `oracle_run.py` | `python oracle_run.py <input.json> <out_dir> --bias free [forced] [iso] [--judge J] [--sat-margin-v V] [--ngspice EXE] [--tag T] [--topology T] [--require-topology] [--omit N..] [--short N..] [--cache-dir D]` | 위 셋을 한 번에(bias 마다) |
+| `oracle_run.py` | `python oracle_run.py <input.json> <out_dir> --bias free [forced] [iso] [--judge J] [--sat-margin-v V] [--ngspice EXE] [--tag T] [--topology T] [--require-topology] [--omit N..] [--short N..] [--cache-dir D]` | 위 셋을 한 번에(bias 마다). **[신규 U6]** free 에서 입력에 `noise`·`offset_mc`·`swing_icmr` 블록이 있으면 같이 돈다 |
 | `legacy_adapter.py` | `python legacy_adapter.py <circuit_key> <out_dir> --w-source layout\|sizing --isrc topology\|engine [--from-dump D] [--instance I] [--topology T]` | 옛 엔진 실행(또는 dump) -> 오라클 입력 |
 | `legacy_testbench.json` | - | 어댑터가 넣는 테스트벤치 구성값 |
-| `smoke/` | - | 스모크 실행 산출물과 보고서(`smoke/SMOKE_REPORT.md`) |
+| `smoke/` | - | 스모크 실행 산출물과 보고서(`smoke/SMOKE_REPORT.md`), **[신규 U6]** 구현 기록 `smoke/U6_REPORT.md`, 자체 점검 `smoke/u6_selfchecks.py`, 시간 상한 근거 측정 `smoke/measure_wall_s_per_window.py` |
 
 `python -P` 로 실행해도 된다(진입점이 자기 디렉터리를 sys.path 에 넣는다). numpy, jsonschema 필요.
 
@@ -35,11 +39,13 @@
   **[신규 C12 보충]** 선택 `feedback_passives_basis`(그 집합을 정한 규칙 문자열, 기록 전용).
 * `predictions`: `nodes`(넷 -> V), `devices`(이름 -> `ID, VGS, VDS, VSB, gm, gds, gm_id, region(sat|triode|off),
   off_current_A`), `metrics` (`[{name, measure, value, rail?, view?}]`, measure ∈ `dc_gain_db, ugf_hz, pm_deg, f3db_hz,
-  supply_current_A, ratio_db, rout_ohm, slew_rate_v_per_s, settle_s`).
+  supply_current_A, ratio_db, rout_ohm, slew_rate_v_per_s, settle_s`, **[신규 U6]** `noise_th_in_v2hz, noise_fc_in_hz, noise_excess_th, noise_out_int_vrms, offset_in_sigma_mv,
+  swing_out_v, icmr_v, icm_margin_v`).
 * `acceptance.constraints`: `[{name, measure, op(>=|<=), limit, view?}]` -- 회로 성능 스펙. 합격 판정에 쓰인다
-  (measure 에 `ratio_db`·**[신규 C26]** `rout_ohm` 포함, 과도 measure 제외).
+  (measure 에 `ratio_db`·**[신규 C26]** `rout_ohm`·**[신규 U6]** 위 U6 measure 포함, 과도 measure 제외).
 * `testbench`: `dc_choke_H`, `ac_couple_F`, `ac{fstart_hz, fstop_hz, points_per_decade, input_*_ac, diff_feedback_gain}`,
   `options`, `nodeset_from_predictions`, **[신규]** `loop_dc_choke_H`(β 루프 측정용 입력 DC 경로, feedback_passives 가 있으면 필요).
+* **[신규 U6]** 선택 측정 블록 `noise`, `offset_mc`, `swing_icmr` (아래 "U6" 절).
 * `judge`: `sat_margin_V`(합격 판정의 포화 여유), `off_current_A`(선택), `tolerances{ID_rel, VGS_abs_V, VDS_abs_V, VSB_abs_V,
   gm_rel, gds_rel, gm_id_rel, node_abs_V, W_rel, kcl_abs_A, dc_gain_db_abs, pm_deg_abs, ugf_hz_rel, f3db_hz_rel,
   supply_current_A_rel, ratio_db_abs, rout_ohm_rel}`(기록·경고용). **기본값 없음**. `--judge` 파일·`--sat-margin-v` 가 덮어쓴다.
@@ -66,6 +72,8 @@
    아니다(포화 검사 대상 밖, 엔진 예측 전도면 3 에서 FAIL). 문턱이 둘 다 없으면 소자 행 `conduction_threshold_A` 는 None 으로
    기록하고 전도 = ID_spice > 0 이다.
 3. **[신규 C23]** 엔진이 전도로 예측한 MOS 가 SPICE 에서 꺼지지 않았다(문턱 = 엔진이 낸 소자별 `off_current_A`).
+4. **[신규 U6, 사용자 결정 B·Q10]** 폐루프가 불안정하지 않다: C10 최종 안정성 판정(`summary.stability.verdict`)이 `unstable`(폐루프 과도 unstable -- 한계 사이클 포함 -- 또는 Nyquist Z = N + P >= 1)이면
+   pm 제약이 있든 없든 FAIL 이다. 판정을 못 낸 `undetermined` 는 FAIL 이 아니라 pm 제약 N/A -> INCOMPLETE 로 남는다.
 그리고 합격 실행(free)은 접합 용량을 넣은 넷리스트여야 한다(C22: 확산 기하 없으면 막힘).
 
 노드전압·소자 ID/gm/gds/VGS/...·성능 metric 의 엔진-SPICE 차이는 **기록만** 한다(verdict 와 무관). 허용오차가 있으면
@@ -425,29 +433,45 @@ C27. **[신규]** 정의 일치 검사(엔진과 같은 양을 재는지):
 ## [신규] C10 PM 안정성 근거 (2026-10-08, 결함: ngcc 프로브에서 PM 211.3 deg·free 판정 PASS 인데 폐루프 과도가 0.73 Vpp 지속 진동)
 
 PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 없을 때(P = 0)만 안정 여유다. Nyquist: **Z = N + P**
-(Z = 폐루프 RHP 극 수, N = 측정 L(jω) 곡선이 −1 을 **시계 방향**으로 감는 수, P = 개루프 RHP 극 수). 오라클은 N 을 측정
-.ac 데이터에서 세고, Z > 0 여부를 폐루프 `.tran` 으로 보고, 둘로 P 를 추론한다. **P = 0 이 증명되거나 증거가 P = 0 과
-맞을 때만 PM 이 값이다**(음수 PM 도 P = 0 이면 유효한 여유 -- 엔진 metrics §3.10 과 같은 정의, 오케스트레이터 결정 2026-10-08).
+(Z = 폐루프 RHP 극 수, N = 측정 L(jω) 곡선이 −1 을 **시계 방향**으로 감는 수, P = 개루프 RHP 극 수). 오라클은
+**P 를 ngspice `.pz` 로 독립 측정**하고 N 을 측정 `.ac` 표본에서(위상 펼침 + 적응 세분화) 세어 Z 를 직접 구하며(사용자 결정 Q10,
+2026-10-08), 폐루프 `.tran` 을 별도 증거로 같이 본다. **최종 안정성 판정(절차 8): 폐루프 과도 unstable(한계 사이클 포함) 또는 Z >= 1 이면
+FAIL, Z = 0 이고 과도가 unstable 이 아니면 안정, 둘 다 결론을 못 내면 INCOMPLETE.**
 
-### 방법 선택과 기각한 것
+### 방법 선택 (개정 2026-10-08, 사용자 결정 Q10)
 
-* **ngspice `.pz` 기각**(실측 2026-10-08, ngspice-46, smoke current_reuse_telescopic_ota 루프 넷리스트·입력 고정 개루프
-  넷리스트): 205 개 극 중 190 개가 같은 값(−5.52e6 ± j1e8)으로 반복되고 +5.9e13 + j1e12 같은 실수부 양의 가짜 극이 나왔다
-  (Muller 반복 실패 흔적), 입력을 전압원 노드로 주면 극을 하나도 내지 않았다. BSIM4 큰 회로에서 극 목록을 믿을 수 없다.
-* **측정 L(jω) 만으로는 P 를 셀 수 없다**: 편각 원리로 얻는 것은 차(Z − P, 또는 RHP 극 − RHP 영점)뿐이다.
-* 채택: **N(측정 .ac, 결정적) + 폐루프 `.tran`(SPICE 가 직접 보는 Z > 0)**. `.tran` 은 사용자가 결함을 확인한 방법과 같다.
+* **[개정] ngspice `.pz` 채택.** 옛 기각 근거(2026-10-08 실측, smoke current_reuse_telescopic_ota 루프 넷리스트: 극 205 개 중 190 개가
+  같은 값(−5.52e6 ± j1e8) 반복, +5.9e13 + j1e12 같은 가짜 RHP 극, 입력을 전압원 노드로 주면 극 0 개)은 두 가지 원인으로 갈린다.
+  (1) **테스트벤치의 큰 L·C**: 1e12 H DC choke 와 1 F 결합 용량이 1e-12 ~ 1e11 rad/s 동적 범위를 만들어 근 찾기가 반복 한도에 걸린다
+  (5T OTA 실측: 본 넷리스트에 `.pz` -> `Pole-zero iteration limit reached; giving up`, 가짜 극 9.99976 ± j1e8). 그래서 `.pz` 넷리스트는
+  **동작점 패스 값으로 큰 L·C 없이** 만든다(절차 7) -- 같은 5T OTA 가 극 15 개를 정상으로 낸다(−1.30e6 rad/s 지배극 …).
+  (2) **포트가 이미 전압원에 묶인 노드**: `.pz` 가 'input signal is shorted' 로 거부한다. 극점은 포트와 무관한 자연 주파수라 포트를 출력 노드의
+  **전류 입력**(`pz <출력> 0 <출력> 0 cur pol`)으로 둔다(회로를 바꾸지 않는다).
+  그래도 **`.pz` 는 큰 BSIM4 회로에서 근을 놓치거나 가짜 RHP 근을 낸다**(smoke 파일럿 forced, 소자 51 개: 경고 없이 RHP 극 23 개 -- 포트를 바꿔도 같은 값이 반복되는
+  결정적 오답이고, 같은 회로의 400 ns 개루프 과도 `.tran` 에는 지수 증가가 없다). 그래서 **신뢰 규칙**을 둔다: (a) `.pz` 가 반복 한도·오류를 내거나 극을 못 내면 P = None('알 수 없음',
+  0 으로 두지 않는다), (b) RHP 후보 극이 `.ac` 스윕 상한(2π·fstop) 밖이면(가짜 +5.9e13 형) P = None + `beyond_sweep` 기록, (c) 실수부는
+  극 자신의 크기에 대한 상대 reltol 로 판정(`Re p > reltol·|p|`; 0 근처 극을 양으로 세지 않는다), (d) **폐루프 과도가 stable 로 정해졌으면 Z = 0 이라 P = −N 이 정확하다(Nyquist)** --
+  `.pz` 는 참고이고 어긋나면 `pz_conflict` 에 적고 무시한다, (e) 폐루프 과도가 정해지지 않았으면(undetermined·failed) `.pz` 의 P >= 1 은 **개루프 과도 `.tran` 이 변위의 증가를
+  보일 때만**(`pz.validated`, 절차 7) 판정에 쓴다 -- 확인 못 하면 INCOMPLETE. (정직한 한계: 이 규칙은 사용자 결정 Q10 의 'Z >= 1 이면 FAIL' 에서 `.pz` 오답이 안정 회로를 FAIL 시키는 것을
+  막으려고 둔 것이다. 폐루프 과도가 stable 인데 실제로는 불안정한 회로(킥이 그 모드를 못 들뜨게 함)는 FAIL 이 아니라 stable 로 남는다.)
+* **측정 L(jω) 만으로는 P 를 셀 수 없다**: 편각 원리로 얻는 것은 차(Z − P, 또는 RHP 극 − RHP 영점)뿐이다. 그래서 P 는 `.pz`, N 은 `.ac`.
+* 폐루프 `.tran` 은 사용자가 결함을 확인한 방법과 같고, `.pz`/Nyquist 가 못 보는 비선형 한계 사이클(포화로 진폭이 묶이는 진동)을 본다.
 
 ### 절차(`oracle_simulate.stability_check`, PM 원값이 있을 때만 -- 없으면 `ac.stability.reason` 에 '검사 대상 아님')
 
 1. 루프와 닫기 부호: β 루프(feedback_passives 있음)면 L = 측정 T(실제 루프, 회전 없음). β=1 이면 L = sign·A,
    sign = 기준점(fstart) Re A 의 부호(PM 정의가 기준점 위상을 0 으로 보는 것 = 기준점에서 음되먹임으로 닫는 것).
    Re A(fstart) = 0 이면 닫기 부호를 정할 수 없어 N = None, 과도 안 돌림. `ac.stability.loop`, `closure_sign`.
-2. **N**(`nyquist_count`): 닫힌 곡선 = 켤레 반쪽(ω: −f_last → −f_first) + 측정 반쪽(f_first → f_last), 두 끝은 직선.
-   N = −(1+L 편각 변화 합)/2π(표본 사이 변화는 ±π 로 접음). 유효 조건(아니면 N = None + `reason`):
+2. **N**(`nyquist_count`, `nyquist_adaptive`): 닫힌 곡선 = 켤레 반쪽(ω: −f_last → −f_first) + 측정 반쪽(f_first → f_last), 두 끝은 직선.
+   N = −(1+L 편각 변화 합)/2π(표본 사이 변화는 ±π 로 접음 = 위상 펼침). 유효 조건(아니면 N = None + `reason`):
    (a) |L(f_last)| < 1 -- 스윕 위 꼬리가 −1 을 감을 수 없다(측정 정의의 UGF 와 같은 가정, 스윕 상한 부족이면 실패),
-   (b) 두 닫는 직선을 포함한 모든 표본 간격에서 1+L 편각 변화 < 90 deg -- 접기 모호성(180)의 절반 여유
-   (스윕 밀도 부족이면 실패, `max_step_deg`·`max_step_hz` 기록), (c) L = −1 인 표본 없음.
-   기록 `ac.stability.nyquist = {encirclements_cw, reason, max_step_deg, max_step_hz, f_first_hz, f_last_hz, L_first, L_last}`.
+   (b) 두 닫는 직선을 포함한 모든 표본 간격에서 1+L 편각 변화 < 90 deg(π/2) -- 접기 모호성(180)의 절반 여유, (c) L = −1 인 표본 없음.
+   **[개정 Q10] 적응 세분화**: (b)를 어기는 양의 주파수 구간(`nyquist.bad_intervals_hz`)이 있으면 그 구간을 (로그) 이분하는 점을 `ac dec` 로
+   다시 잰다(`refine_samples`: 원래 L 을 만든 넷리스트의 `ac` 줄 구간·밀도와 `wrdata` 파일 이름만 바꿔 다시 돌림 -- β=1 은 본 넷리스트, β 루프는
+   Middlebrook 두 `ac` 둘 다) -> 합쳐 다시 센다. 최대 `NYQUIST_K_MAX` = 10 라운드(한 라운드가 구간을 이분 = 1024 분할; 그래도 π/2 를 넘으면 L 이 −1 을
+   극히 가까이 지나는 특이 구조라 N 미정). 두 닫는 직선(저주파·고주파 끝)의 큰 간격은 표본을 더할 수 없어 그대로 N = None.
+   기록 `ac.stability.nyquist = {encirclements_cw, reason, max_step_deg, max_step_hz, bad_intervals_hz, closing_step_deg, f_first_hz,
+   f_last_hz, L_first, L_last, refinement{rounds, samples_added, k_max, history}}`. 플랜·f_crit 은 **세분화 전** 원래 스윕 표본으로 정한다.
 3. **폐루프 과도 넷리스트** `<stem>.stab.cir`(`oracle_netlist.stability_netlist`, 원 넷리스트의 .control 앞 본문에서 만든다):
    - β 루프: 루프 넷리스트 그대로(Vlb = 0 이면 실제 폐루프), 끊은 넷 k 의 `Vlb_<넷>` 을 `DC 0 PULSE(0 w_k·kick ...)` 로.
    - β=1: 본 넷리스트에서 입력 넷마다 그 넷의 테스트벤치 원(`Cac_ Vac_ Vdc_ Ldc_ Efb_ Vofs_ Lfb_`)을 빼고
@@ -456,56 +480,62 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
      sign·A, H = H_op 에서 본 동작점과 같다(결합 C 1 F 를 이상 VCVS 로 구동하면 큰 진동에서 'Timestep too small' -- 실측).
    - 남은 테스트벤치 choke(`Lfb_ Ldc_ Lhold_ <tb 노드> <회로 노드> L`)는 `Itb_<choke 이름> <tb 노드> <회로 노드> DC <I_op>`
      + `.ic v(<회로 노드>)=<V_op>`. I_op·V_op = **동작점 패스** `<stem>.stabop.cir`(같은 본문 + `op` + choke 마다
-     `print i(<choke>)`, 입력·출력·choke 회로 쪽 노드 `print v(..)`, `oracle_netlist.stability_op_netlist`)의 값 -- 본·루프
+     `print i(<choke>)`, 입력·출력·choke 회로 쪽·절단 양쪽 노드 `print v(..)`, `oracle_netlist.stability_op_netlist`)의 값 -- 본·루프
      넷리스트 텍스트는 바꾸지 않는다. 기록 `ac.stability.transient.op_pass = {netlist, ngspice_rc, choke_current_A,
-     node_V}`. β=1 의 V_op(입력)·H_op 도 이 패스 값이다. uic 없는 .ic 는
-     바이어스 해에서만 노드를 묶고 t > 0 에서 푼다 -- 과도 중 전류가 얼어 있는 이상 choke 와 같다(1e12·1e20 H 를 그대로 두면
-     .tran 이 멈춤, 1e8 H 는 성공 -- 실측). C15 대조 대상이 아니다(본 넷리스트만 대조).
-   - `.control`: `tran tmax tstop 0 tmax`, `let hst = <H 식>`, `wrdata <stem>.stab.txt hst`. 캐시(C21) 대상.
+     node_V}`. β=1 의 V_op(입력)·H_op 도 이 패스 값이다. uic 없는 .ic 는 바이어스 해에서만 노드를 묶고 t > 0 에서 푼다 -- 과도 중 전류가
+     얼어 있는 이상 choke 와 같다(1e12·1e20 H 를 그대로 두면 .tran 이 멈춤, 1e8 H 는 성공 -- 실측). 이 패스는 `.pz`(절차 7)도 같이 쓴다.
+   - **[개정 조기 종결 계약 1(b)(d), d56ba66] `.control` 은 창 단위 실행**(`oracle_netlist.stability_control`): `.save v(<H 식 피연산자>)`
+     (+ time) 만 저장(전체 벡터 저장 안 함 -- 메모리 오류 완화), `set numdgt=8`(wrdata 가수 9 자리 = 파일 반올림 반 단위 u = 5e-9 를 .control 과 파이썬이
+     같은 값으로 쓴다), `stop when time > <창 j 끝>` -> `tran` 이 멈추면 창 j 의 M_j = max|H − H(0)| 를 계산해 로그에 **`STABWIN j M_j`** 한 줄을 쓰고,
+     조기 기준(절차 5)을 충족하면 즉시 `wrdata` 하고 끝, 아니면 `delete all`(끝난 조건을 지우지 않으면 resume 이 같은 조건에서 곧바로 다시 멈춘다 -- 실측)
+     + 다음 `stop when` + `resume`. (계약 문안의 `time >= x` 는 ngspice 가 `>=` 를 받지 않아 `>` 로 썼다 -- 경계를 처음 넘은 표본에서 멈추고 그 표본은 창 j 밖.
+     ngspice 명령 줄의 `>`·`<` 는 출력/입력 리다이렉션이라 `let x = (a > b)` 가 **조용히 틀린다 -- 실측**: 스크립트 안 비교는 `>=` 만, 한 줄에 하나씩
+     `let x = (a >= b)`.) 데이터 파일 `<stem>.stab.txt` 는 멈춘 시각까지 쓴다. 마지막 시각이 창 끝에 못 닿으면(ngspice 가 중간에 죽음) 더 돌리지 않고 파일만 쓴다.
 4. **과도 계획**(`tran_plan`, 조정 상수 없음 -- 측정 L 과 입력에서 유도): f_lo/f_hi = 가장 낮은/높은 |L|=1 교차
-   (`gain_crossings_hz`, log 보간), kick = V_T = k_B·T/q(T = LUT temp_c + 273.15 K; 소신호 선형화의 물리 척도),
-   **[변경 2026-10-08] 시간 척도는 f_lo 하나**: tmax = td = tr = tf = pw = 1/(2π f_lo), 킥 끝 t_end = td + tr + pw + tf,
-   창 W = 1/f_lo. f_lo = 가장 낮은 교차 = PM 을 정의한 교차(UGF -- PM 원값이 있으면 L(fstart) >= 1 이고 첫 교차가 하강이므로
-   늘 같다). f_hi 는 기록(`plan.f_hi_hz`)만 하고 계획에 쓰지 않는다: tmax 는 창 안 표본 간격의 상한일 뿐이고 f_lo 보다 빠른
-   동특성은 ngspice 절단 오차(LTE) 걸음 제어가 들뜬 만큼 잘게 쪼갠다. 옛 tmax = 1/(2π f_hi) 는 교차가 많은 L(엔진 브리지
-   two_stage_ota_sf 시작점 start_s1_seq23, free: 59 교차 0.48 Hz ~ 9.5 GHz, 공급 전류 3.3e-11 A 로 거의 꺼진 회로)에서
-   tmax 1.7e-11 s·tstop 14.9 s(~8.8e11 걸음)로 끝나지 않았다(프로세스 강제 종료). 교차가 하나면(f_hi = f_lo) 계획은 옛
-   것과 같다. 새 숫자(걸음 예산 등)를 두지 않았다.
-   창 수 K = ceil(ln(kick/floor)), floor(해 분해능) = 출력 노드마다 reltol·|V_op| + vntol 의 합(입력 `testbench.options`
-   값, 없으면 ngspice 기본 reltol 1e-3·vntol 1e-6), tstop = t_end + K·W. kick <= floor 이거나 K < 2 면 계획 없음
-   (과도 `not_run`). 기록 `ac.stability.transient.plan`. 실행 시간 상한이 필요하면 진입점의 `--timeout-s` 가 ngspice 를
-   끊는다(데이터 파일이 tstop 에 못 미치면 절차 5 의 `failed` -> '모름' -> PM 은 표대로 정의 불가 또는 N 만으로 판정).
-   **[고침 2026-10-08]** 안정성 근거의 세 실행(동작점 패스·과도·연장)은 `subprocess.TimeoutExpired` 를 잡는다(`_run_stab`):
-   끊기면 죽지 않고 그 실행 기록에 `timeout`(사유 문자열)·`ngspice_rc = None` 을 남긴다. 동작점 패스가 끊기면 과도 `failed`
-   (사유 '동작점 패스 시간 초과'), 과도가 끊기면 부분 데이터로 판정하지 않고 `failed`(사유 '과도 시간 초과'), 연장 실행이 끊기면
-   연장 `failed` -> 최종 `undetermined`. sim.json·compare 는 계속 쓴다(옛 코드는 traceback·rc 1·sim.json 없음 -- 독립 test
-   b6931f7 test_truncated_transient_failed_never_pass, 손 RHP 회로 Rb 1 MΩ·`--timeout-s 4`). 본·루프 넷리스트 실행의
-   시간 초과는 이 항목 밖(지금도 예외로 끝남).
-   확인(2026-10-08): 위 시작점 free 는 tmax 0.33 s·tstop 15.8 s 로 2 초 안에 끝나고 N = None(편각 180 deg 걸음) + 과도
-   unstable -> `closed_loop_unstable`(PM 원값 64.0 deg 이 PASS 되지 않음), forced 는 N = 0 + unstable ->
-   `open_loop_rhp_poles`(원값 182.3 deg). 교차가 하나인 기존 확인 회로(test 회로 4종, two_stage_ota·nmcnr·two_stage_ota_sf·
-   ngcc 프로브, 손 RHP 회로)는 `ac` 전체(안정성 기록 포함)가 바꾸기 전과 같다.
-5. **과도 판정**(`transient_decision`): e(t) = H(t) − H(0), 창 j = 1..K(t_end 부터 W 씩)의 M_j = max|e|,
-   floor' = floor + u·max|H|(u = .stab.txt 반올림 반 단위, C20 의 data_rel_resolution). 마지막 시각이 tstop·(1 − 2u) 보다
-   이르면 `failed`. 첫 실행 판정: M_K <= floor' -> `stable`; 아니고 M_K >= M_1 -> `unstable`(K 창 동안 줄지 않음 =
-   증가·지속 진동); 아니고 **모든 창에서 감소**(M_1 > M_2 > … > M_K) -> `decaying`; 그 밖(창 사이 다시 커짐) -> `undetermined`.
-   **[변경 2026-10-08]** 옛 규칙 'M_K < M_{K−1} 이면 stable'(끝 두 창만 봄)은 지속 완화 진동(독립 test 40158dd, 손 RHP 회로
-   Rb 1 MΩ·R1 51764.7 Ω: M = [1.43, 1.21, 0.68, 1.13, 1.45, 1.30], 진폭 1.3 V)을 stable 로 판정해 PM 283.8 deg 가 pm >= 60
-   을 PASS 시켰다 -- 없앴다. `stable` 은 **floor' 도달** 또는 **입증된 감쇠**뿐이다:
-   - `decaying` 이면 **연장 실행** `<stem>.stab2.cir` / `.stab2.log` / `.stab2.txt`(같은 킥·같은 창, 같은 동작점 패스 값):
+   (`gain_crossings_hz`, log 보간), kick = V_T = k_B·T/q(T = LUT temp_c + 273.15 K; 소신호 선형화의 물리 척도).
+   **시간 척도 f_lo**: td = tr = tf = pw = 1/(2π f_lo), 킥 끝 t_end = td + tr + pw + tf, 창 W = 1/f_lo (f_lo = PM 을 정의한 교차).
+   **[개정 조기 종결 계약 1(a)] 걸음 상한 tmax = min(1/(2π f_lo), 1/(f_crit·n_pp))**:
+   * f_crit = **불안정 관련 대역** 안에서 |1+L| 이 최소인 표본의 주파수(`band_f_crit`). 대역 = 스윕 첫 표본부터 **가장 높은 |L|=1 교차를 지난 첫 표본**까지(닫기
+     부호 반영 L). 근거: Nyquist 에서 |L| < 1 인 꼬리는 −1 을 감지 못한다 -- 꼬리에서는 |1+L| → 1 이라 argmin 이 스윕 끝(1e10 Hz)에 붙는다.
+   * n_pp = ceil(π / arccos(1 − reltol)) (`n_pp_of`; reltol = 입력 `testbench.options.reltol`, 없으면 ngspice 기본 1e-3 -> 71, 1e-4 -> 223).
+     유도: 표본 간격 Δ = 주기/n 일 때 정현파 봉우리를 놓치는 최대 상대 오차 1 − cos(π/n) 가 reltol 이하인 최소 n.
+   * f_hi 는 계획에 쓰지 않는다(기록만). 옛 tmax = 1/(2π f_hi) 는 교차가 많은 L 에서 끝나지 않았다(two_stage_ota_sf 시작점 59 교차 0.48 Hz ~ 9.5 GHz,
+     tmax 1.7e-11 s·tstop 14.9 s, ~8.8e11 걸음). f_crit 이 f_lo 근처면 tmax 는 옛 값과 같다(min 이 f_lo 항).
+   창 수 K = ceil(ln(kick/floor)), floor(해 분해능) = 출력 노드마다 reltol·|V_op| + vntol 의 합(ngspice 기본 reltol 1e-3·vntol 1e-6),
+   tstop = t_end + K·W. kick <= floor 이거나 K < 2 면 계획 없음(과도 `not_run`). 기록 `ac.stability.transient.plan` = {kick_V, td, tr, pw, tmax,
+   window_s, windows, **windows_planned**, t_kick_end, tstop, f_lo_hz, f_hi_hz, **f_crit_hz, n_pp, reltol, wall_cap_s**, floor_V, sign}.
+   **[개정 계약 1(c)] 기본 시간 상한**: 설정 `oracle_config.json` 의 `stability_transient.wall_s_per_window`(창 하나를 끝내는 ngspice 실행 시간 상한) x 창 수.
+   `plan.wall_cap_s` = wall_s_per_window × K, 연장 실행은 `extension.wall_cap_s` = wall_s_per_window × (K + n)(n = extension_windows; 연장은 K+n 창을 처음부터
+   다시 돌린다). 적용 상한 `transient.wall_cap_s` = `--timeout-s` 가 있으면 그것(사용자 지정 우선), 없으면 `plan.wall_cap_s`. 동작점 패스·`.pz`에는 이 상한을 쓰지
+   않는다(`--timeout-s` 가 있을 때만, `.pz` 는 없으면 wall_s_per_window 1 회분). 끊기면(`subprocess.TimeoutExpired`) 또는 ngspice 가 치명 오류로 tstop 에 못
+   닿으면 `failed`(사유 '과도 시간 초과'/'과도가 tstop 까지 가지 않았다') -> '모름' -> PM 정의 불가 -> PASS 불가. **이 경로는 `unstable` 이 아니다**(진동을 확인한
+   것이 아니므로). 안정성 근거의 세 실행은 `TimeoutExpired` 를 잡는다(`_run_stab`): 끊기면 죽지 않고 그 실행 기록에 `timeout` 을 남긴다.
+   `oracle_config.json` 의 값은 `measured_*`·`safety_factor`·`justification` 으로 근거를 같이 둔다(`smoke/measure_wall_s_per_window.py` 로 잰다).
+5. **과도 판정**(`transient_decision`, **분해능 인식형**): e(t) = H(t) − H(0), 창 j = 1..K(t_end 부터 W 씩)의 M_j = max|e| (창 끝까지 표본이 닿은 창만),
+   floor' = floor + u·max|H|(u = .stab.txt 반올림 반 단위, C20 의 data_rel_resolution), reltol = `plan.reltol`.
+   g↑(a,b) := b(1 − reltol) > a(1 + reltol) + floor' (b 가 a 보다 측정 분해능을 넘게 큼), g↓(a,b) := a(1 − reltol) > b(1 + reltol) + floor'. (M_j 는 표본
+   봉우리라 상대 오차 <= reltol, 절대 분해능 floor' -- 두 창의 측정 불확실 구간이 겹치지 않을 때만 커졌다/작아졌다고 인정.) 순서대로:
+   * **조기 종결**(끝난 창들에서 첫 j >= 3): (growth) g↑(M_{j−2},M_{j−1}) 그리고 g↑(M_{j−1},M_j) 그리고 g↑(M_1,M_j) -- 엄격한 연속 증가;
+     (**limit_cycle, 사용자 결정 4**) 창 j−1 과 창 j 가 둘 다 **일정 진폭**: flat(j) := M_j(1−reltol) > floor' 이고 g↑(M_{j−1},M_j)·g↓(M_{j−1},M_j) 둘 다
+     아님(= |M_j − M_{j−1}| <= (M_j+M_{j−1})·reltol + floor'). 충족하면 `status = unstable`, `early_stop = {window, M[1..j], reason, kind}`, `windows_run = j`, 연장 없음.
+     순수 함수: `early_unstable(M, floor', reltol)` = growth 만(일정 진폭은 False), `limit_cycle_early(...)` = limit_cycle 만, `early_window` = 둘 중 첫 창.
+   * 조기가 아니고 마지막 시각이 tstop·(1 − 2u) 보다 이르면 `failed`.
+   * M_K <= floor' -> `stable`; g↑(M_1, M_K) -> `unstable`; 모든 연속 창 g↓ -> `decaying`; 그 밖(분해능 안의 같음 포함) -> `undetermined`.
+   **일정 진폭 지속 진동 = 불안정(한계 사이클)이다**(사용자 결정 4, 2026-10-08; 개정 전에는 undetermined). 이 판정은 고Q 로 창당 감쇠가 분해능보다 작은 **안정** 회로와
+   K 창 안에서 구별되지 않는다 -> 보수적으로 `unstable(limit_cycle)` -> FAIL 이고, 대신 `transient.limit_cycle_vs_slow_decay_unresolved = {M[1..j], window_ratios, floor_V,
+   reltol, reason}` 를 `ac.stability` 에 올리고 비교표 맨 앞에 찍는다(사용자가 이 FAIL 이 판정 한계에서 나왔을 수 있음을 알아보도록).
+   **안정 판정 불변 조건**: 안정(`stable`/`decaying` -> `stable`)인 모든 test 회로·fixture 에서 조기 기준(growth·limit_cycle)이 한 번도 충족되지 않는다
+   (창 변화비가 e 이하로 감쇠 -- 측정 기록: 아래 '확인').
+   - `decaying` 이면 **연장 실행** `<stem>.stab2.cir` / `.stab2.log` / `.stab2.txt`(같은 킥·같은 창, 같은 동작점 패스 값, 같은 `.control`):
      마지막 창 감쇠비 r = M_K/M_{K−1} 의 기하 감쇠로 floor' 에 닿는 창 수 n = ceil(ln(floor'/M_K)/ln r) 만큼 늘린다
-     (창 수 K + n, tstop = t_end + (K + n)·W -- 측정한 감쇠율에서 유도, 상수 없음). 연장 실행을 같은 규칙으로 판정해
-     `stable`(floor' 도달) 또는 `decaying`(투영한 시간 전체에서 창마다 감소 = 감쇠 입증) -> 최종 `stable`, `unstable` ->
-     `unstable`, 그 밖(`undetermined`·`failed`) -> `undetermined`.
+     (창 수 K + n, tstop = t_end + (K + n)·W). 연장 실행을 같은 규칙으로 판정해 `stable` 또는 `decaying` -> 최종 `stable`, `unstable` -> `unstable`, 그 밖
+     (`undetermined`·`failed`) -> `undetermined`.
    - 첫 실행이 `decaying` 이 아니면 그 상태가 최종이다(연장 없음, `.stab2.*` 없음).
-   최종 `undetermined` 는 아래 표의 '모름' -> PM 정의 불가(PASS 불가). 기록 `ac.stability.transient = {status(최종),
-   first_status, reason, M(첫 실행), floor_V(첫 실행), plan(첫 실행), op_pass, netlist, file, ngspice_rc,
-   extension{status, M, floor_V, reason, netlist, file, ngspice_rc, extension_windows, tstop}(연장했을 때만)}`.
-   연장 실행 캐시 상태는 `sim.stability_cache.extension`(C21, 데이터 파일 `.stab2.txt` 도 캐시 대상).
-6. **추론**(`stability_judgement(nyq, S, pm_raw)`, S = 최종 과도 상태(절차 5, 연장 반영), stable/unstable 이 아니면 '모름', pm_raw = Bode 식 원값).
-   폐루프가 불안정(S unstable 또는 N >= 1)이고 N >= 1 일 때 P = 0(Z = N)과 맞는 Bode 결과는 PM < 0 이다(첫 교차의 위상이
-   이미 −180 을 넘음) -- 이때 PM 값을 유지하고 pm 제약은 이전처럼 FAIL. PM >= 0 이면 '불안정인데 여유가 양수' = 증거 충돌
-   (P > 0 이거나 놓친 모드) -> `stability_evidence_inconsistent`.
+   기록 `ac.stability.transient = {status(최종), first_status, reason, M(첫 실행), floor_V, plan, op_pass, netlist, file, ngspice_rc, **windows_run, wall_cap_s,
+   early_stop{window, M, reason, kind}(조기일 때), limit_cycle_vs_slow_decay_unresolved(limit_cycle 일 때), timeout(끊겼을 때)**, extension{... wall_cap_s}(연장했을 때만)}`.
+6. **추론(P 를 모를 때의 옛 표, `_judgement_legacy`)**: `.pz` 가 못 믿을 때(P = None) N + 과도로 P 를 추론한다. pm_raw = Bode 식 원값.
+   폐루프가 불안정(S unstable 또는 N >= 1)이고 N >= 1 일 때 P = 0(Z = N)과 맞는 Bode 결과는 PM < 0 이다 -- 이때 PM 값을 유지하고 pm 제약은 이전처럼 FAIL.
+   PM >= 0 이면 증거 충돌 -> `stability_evidence_inconsistent`.
 
 | S | N | pm_raw | `closed_loop` | `open_loop_rhp_poles`(`_bound`) | PM | `pm_undefined` |
 |---|---|---|---|---|---|---|
@@ -522,28 +552,49 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
 | 모름 | < 0 | 아무 값 | None | −N (`>=`) | None | `open_loop_rhp_poles` |
 | 모름 | 0 또는 None | 아무 값 | None | None | None | `stability_unverified` |
 
-   (`closed_loop_unstable` 은 이제 '폐루프 불안정인데 N 을 못 세어 P = 0 과 맞는지 볼 수 없음' 한 경우만 쓴다.)
-
-   `pm_valid` = (pm_undefined 가 None). 정의 불가면: `ac.pm_deg = None`, `ac.pm_undefined = <이유>`, `ac.pm_deg_raw` = 원값
-   (유효해도 `pm_deg_raw` = `pm_deg`), β=1 이면 `ac.pm_open_loop_deg = None`(같은 양), β 루프의 `pm_open_loop_deg`(A 의
-   β=1 PM 기록)은 이 검사의 대상이 아니라 원값 그대로, C20 은 위 [변경]대로.
-7. compare: pm_deg 제약·metric 판정 칸 `N/A(정의 불가: <pm_undefined>)`, 제약 행 `undefined` 칸 = 같은 이유(C26 rout 과 같은
-   경로 `measure_undefined`). `summary.stability = {pm_valid, pm_undefined, pm_deg_raw, loop, closed_loop, open_loop_rhp_poles,
-   open_loop_rhp_poles_bound, nyquist_encirclements_cw, nyquist_reason, transient_status, transient_reason, reason}`
-   (PM 원값이 없으면 `pm_valid` None + reason), Markdown 에 `- C10 PM 안정성 근거: ...` 한 줄. free·forced(진단) 모두 같은
-   검사를 한다(forced verdict 는 C8 대로 INCOMPLETE). iso 는 AC 가 없어 해당 없음.
+7. **P = 독립 `.pz`**(`pz_check`, `oracle_netlist.open_loop_parts`·`pz_netlist`, 사용자 결정 Q10): 동작점 패스(절차 3)의 V_op·I_op 로 **큰 L·C 없는** 개루프 넷리스트
+   `<stem>.pz.cir` 를 만든다: 입력 넷의 테스트벤치 사슬(`Cac_ Vac_ Vdc_ Ldc_ Efb_ Vofs_ Lfb_ Vlb_ Ilb_`)을 빼고 입력 노드를 `Vpz_<넷> <노드> 0 DC V_op`(AC 단락)로
+   구동, 남은 choke(Lhold_)는 `Itb_ ... DC I_op` + `.nodeset`. β 루프(`dm`): 절단 양쪽(증폭기 쪽 n 과 되먹임 망 쪽 `lbx_<넷>`)을 모두 V_op 의 이상 전압원으로 구동한다(Vlb·Ilb 제거;
+   닫힌 루프에서 n 은 가상 접지라 되먹임 소자의 반대편이 AC 접지에 놓이는 부하와 같고, 용량만 물린 lbx 를 띄우면 `.pz` 가 'singular matrix' 로 실패 -- 파일럿 실측).
+   CM 루프(`cm`): 소비자 쪽 lbx 를 V_op 로 구동하고 구동자 쪽(출력)은 둔다. `.control`: `op`, `pz <출력> 0 <출력> 0 cur pol`(입력 포트가 전압원에 묶인 노드는 `.pz` 가 거부 --
+   극점은 포트와 무관), `print all`. 극점 파싱(`pz_poles`)·RHP 개수(`pz_rhp_count`)로
+   `ac.stability.pz = {status ok|failed|unavailable, P, rhp, beyond_sweep, n_poles, poles(상위 40), reason, netlist, ngspice_rc, method, open_loop, validated, validation}`.
+   **개루프 과도 확인**(`pz_validate`, 폐루프 과도가 정해지지 않고 P >= 1 일 때만): 같은 개루프 본문(`.nodeset` 대신 `.ic`)에 출력 노드 하나의 초기 변위 `.ic v(<출력>) = V_op + V_T`
+   (uic 없는 `.ic` 는 바이어스 해에서만 그 노드를 묶고 t > 0 에서 푼다 = 풀려 나가는 과도)를 주고 같은 창 계획(K 창, t_kick_end = 0, 기준 = 동작점 H)과 같은 판정 규칙
+   (`transient_decision`)으로 돌린다 -> `pz.validated` = True(unstable: 변위 증가 또는 일정 진폭 지속) / False(stable·decaying) / None(undetermined·failed·시간 초과).
+   파일 `<stem>.pzv.cir/.log/.txt`, 캐시 상태는 `sim.stability_cache.pz_validation`. 시간 예산: 확인에는 과도가 쓰고 남은 계획 상한(`plan.wall_cap_s` − 과도 시간)을 주되 최소 창 하나 몫(`wall_s_per_window`)은 보장한다(`--timeout-s` 가 있으면 그것) --
+   증가하는 회로는 창 3 안에 확인되어 짧다. 끊기거나 판정 못 하면 `pz.validated` = None.
+   (RHP 극은 능동 증폭기 내부(국소 양되먹임)에서만 나오고 수동 β 망은 RHP 극을 만들지 않는다.)
+8. **최종 안정성 판정**(`stability_judgement`, 사용자 결정 Q10 + 결정 B·4): `verdict` =
+   * `unstable`: 폐루프 과도 unstable(limit_cycle 포함) **또는** N >= 1 (P >= 0 이라 Z >= N >= 1) **또는** Z = N + P >= 1 이고 P 가 쓸 수 있음(위 신뢰 규칙: 과도 unstable 이거나
+     `pz.validated`);
+   * `stable`: 폐루프 과도 stable (`verdict_basis` = transient 또는 transient+nyquist(Z = 0 이 `.pz` 와 일치));
+   * `undetermined`: 그 밖 -- 둘 다 결론을 못 낸 경우(INCOMPLETE). Z = 0 이라도 과도가 안 정해졌으면 Nyquist 만으로는 안정이라 하지 않는다(P = 0 은 `.pz` 가 근을 놓치지
+     않았다는 가정에 기댄다).
+   P_eff(쓸 수 있는 P)가 정수면 PM 유효성은 옛 추론표 대신: P_eff = 0 이고 verdict stable -> PM 값; P_eff = 0 이고 unstable -> N >= 1 & pm_raw < 0 만 값(Z = N 과 일치), 그 밖
+   `stability_evidence_inconsistent`; P_eff >= 1 이고 Z = 0 이고 안정 -> **조건부 안정**(`conditionally_stable`, PM 원값을 값으로 둠 -- 개루프 RHP 극이 있어도 폐루프 안정이면
+   합격 가능; 단 이 PM 은 Bode 식 원값이라 안정 여유의 의미는 N + P 로 확인한 것); P_eff >= 1 그 밖 -> `open_loop_rhp_poles`; Z < 0 -> `stability_evidence_inconsistent`.
+   P_eff 를 모르면 옛 추론표(절차 6).
+   `pm_valid` = (pm_undefined 가 None). 정의 불가면: `ac.pm_deg = None`, `ac.pm_undefined = <이유>`, `ac.pm_deg_raw` = 원값(유효해도 `pm_deg_raw` = `pm_deg`), β=1 이면
+   `ac.pm_open_loop_deg = None`(같은 양), C20 교차 측정은 PM 이 아니라 `pm_crosscheck_deg = None`(원값 `_raw`).
+   기록 `ac.stability.{closed_loop, open_loop_rhp_poles(_bound), pm_valid, pm_undefined, verdict, verdict_basis, Z, P_pz, P_eff, pz_conflict, conditionally_stable}`.
+9. compare: pm_deg 제약·metric 판정 칸 `N/A(정의 불가: <pm_undefined>)`, 제약 행 `undefined` 칸 = 같은 이유(C26 rout 과 같은 경로 `measure_undefined`).
+   **[신규 U6] `verdict == unstable` 이면 pm 제약이 있든 없든 free verdict = FAIL**(사유 '폐루프 불안정(Z, 과도, 근거)'; `summary.acceptance.closed_loop_unstable`).
+   `summary.stability = {pm_valid, pm_undefined, pm_deg_raw, loop, closed_loop, open_loop_rhp_poles(_bound), nyquist_encirclements_cw, nyquist_reason,
+   nyquist_refinement_rounds, pz_status, pz_P, pz_reason, Z, verdict, verdict_basis, conditionally_stable, transient_status, transient_reason, early_stop,
+   limit_cycle_vs_slow_decay_unresolved, reason}`(PM 원값이 없으면 `pm_valid` None + reason), Markdown 에 `- C10 PM 안정성 근거: ...` 한 줄과(limit_cycle 일 때) 맨 앞
+   `limit_cycle_vs_slow_decay_unresolved` 줄(`summary.limit_cycle_vs_slow_decay_unresolved` 최상위 키에도 같은 값). free·forced(진단) 모두 같은 검사를 한다(forced verdict 는 C8 대로 INCOMPLETE). iso 는 AC 가 없어 해당 없음.
 
 ### 한계(판정 안에서 드러나는 것은 fail-closed)
 
 * 스윕 밖: f < fstart 의 L(기준점을 DC 로 보는 오라클 관례)과 f > fstop 꼬리(|L(fstop)| < 1 만 확인)는 보지 않는다.
-* 과도는 킥 넷(β 루프 절단 넷 / β=1 입력)에서 들뜨는 모드만 본다. 킥이 거의 안 들뜨게 하는 불안정 모드는 놓칠 수 있다.
-  완화 진동·모드 맥놀이·늦게 자라는 모드는 `undetermined` -> PM 정의 불가(PASS 불가)로 드러난다. 감쇠가 기하적이지 않고
-  느려지면(여러 모드) 연장 실행이 floor' 에 못 닿을 수 있다 -- 그래도 창마다 감소가 이어지면 `stable`(입증된 감쇠),
-  다시 커지면 `undetermined`.
-* 'unstable' 은 Z >= 1 만 안다(Z 의 개수는 모름) -- 그래서 P 는 하한(`>=`)만 낸다.
-* 고전적 불안정(P = 0, PM < 0, 예 nmcnr_amplifier 프로브 PM −49.4 deg)은 위 표대로 PM 값이 남아 pm 제약이 이전처럼 FAIL
-  이다(새 합격 규칙이 아니라 음수 PM 도 유효한 여유라는 엔진 정의와의 일치). 'Z = N' 은 Z 개수를 세지 못해 증명이 아니라
-  '증거가 P = 0 과 맞음'이다(`_bound` 에 그 뜻을 적음).
+* 과도는 킥 넷(β 루프 절단 넷 / β=1 입력)에서 들뜨는 모드만 본다. 킥이 거의 안 들뜨게 하는 불안정 모드는 과도에서 놓칠 수 있다 -- `.pz` P 가 별도로 본다.
+* `.pz` 는 큰 BSIM4 회로에서 근을 놓치거나 가짜 극을 낼 수 있다(위 방법 선택). 가짜 극은 (b)로 거르고, 놓친 극은 Z 를 낮게 보이게 하므로 **Z = 0 은 과도와 함께** 읽는다.
+  P 를 못 믿으면 P = None 이라 옛 표로 돌아가 N + 과도로만 판정한다.
+* 'unstable' 은 Z >= 1 만 안다(Z 의 개수는 모름). P 를 못 쓸 때 P 는 하한(`>=`)만 낸다.
+* 일정 진폭 지속 진동의 한계 사이클 판정은 고Q 안정 회로와 구별되지 않는다(위 `limit_cycle_vs_slow_decay_unresolved`). 창 진폭이 분해능 밖으로 출렁이는 이완 진동·맥놀이는
+  여전히 `undetermined` 이다 -- 이때 `.pz` P >= 1 이면 Z >= 1 로 FAIL, P = 0 이면 INCOMPLETE.
+* 고전적 불안정(P = 0, PM < 0, 예 nmcnr_amplifier 프로브 PM −49.4 deg)은 PM 값이 남고 pm 제약은 이전처럼 FAIL 이며 안정성 판정도 FAIL 이다.
 
 ### 확인(2026-10-08, ngspice-46 sky130 tt, 기록 -- test 아님)
 
@@ -551,13 +602,84 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
   n3(Rb 1 MΩ 로 0.7 V 레일) -> M3(드레인 n1) = DC 를 막은 양되먹임. 손 .op(gm·gds) 모형 A = A0(1+sτ)/(1+sτ(1−K)),
   A0 = 21.7, K = 178.6, τ = 1 µs -> RHP 극 p = 1/(τ(K−1)) = 5630 rad/s; 독립 개루프 .tran(입력 고정, n3 에 1 pA·1 µs 킥)의
   지수 증가율 5619 rad/s(0.2 %), 독립 폐루프 .tran(이상 단위 되먹임) 0.86 V 로 포화. 옛 오라클: PM 274.5 deg, pm_deg >= 60
-  제약 **PASS**. 새 오라클: N = 0, 과도 unstable -> `open_loop_rhp_poles`(P >= 1), 제약 `N/A(정의 불가: open_loop_rhp_poles)`.
+  제약 **PASS**. 새 오라클: `.pz` 가 RHP 극 둘을 낸다(Rb 100 kΩ 판 5.12e4 rad/s 와 6.19e9 rad/s(0.99 GHz), Rb 1 MΩ 판 5.09e3 rad/s(손 모형 5.63e3 의 ±10 %)와 6.33e9 rad/s -- 같은
+  양되먹임이 GHz 대에서도 루프 이득 > 1 인 증거이고 rb1e7 의 GHz 버스트가 이것이다), Rb 100 kΩ 판은 폐루프 과도가 한계 사이클(창 4 에서 일정 진폭 조기 종결)이라 free verdict FAIL,
+  Rb 1 MΩ 판은 과도가 undetermined(이완 진동, M 이 분해능 밖으로 출렁임)지만 개루프 과도가 변위 증가를 확인해(`pz.validated`) Z = 0 + 2 >= 1 로 FAIL. 제약은 `N/A(정의 불가: open_loop_rhp_poles)`.
+* **`.pz` 오답 실측**: smoke 파일럿(current_reuse_telescopic_ota forced, 소자 51 개)은 `.pz` 가 경고 없이 RHP 극 23 개(3.9e6 ± j5.1e6 rad/s ... 1e9)를 낸다 -- 출력 포트를 바꿔도 같은 값이 반복되는 결정적 오답이고,
+  같은 개루프 회로의 400 ns `.tran`(출력에 킥)에는 지수 증가가 없다. 폐루프 과도는 stable(창 변화비 ~1e-2 ~ 1e-3)이므로 판정은 stable(`pz` 무시)이다(절차 8).
 * ngcc_3stage_ff 프로브(β=1, free·forced): 원값 211.3 / 211.6 deg -> N = 0, 과도 unstable -> `open_loop_rhp_poles`.
   nmcnr_amplifier·two_stage_ota_sf 프로브: N = 2, 과도 unstable, PM −49.4 / −23.7 deg -> P = 0 과 일치, PM 값 유지(제약 FAIL).
 * 안정 회로(값 불변 확인, 옛·새 오라클 비교에서 `pm_deg`·`pm_open_loop_deg`·`pm_crosscheck_deg`·`gap`·`ugf_hz`·`dc_gain_db`·
   `loop_ugf_hz` 비트 동일): test 회로 tcs_nmos_rload(94.22), tfb_cs_rfeedback β 루프(58.21), 같은 회로 β=1(94.87),
   Cin 1 pF(34.10), two_stage_ota 프로브 free 7.70 / forced 7.20, smoke current_reuse_telescopic_ota 차동 β 루프 forced
   (sizing 90.01, layout 50.77) -- 전부 N = 0, 과도 stable, PM 그대로.
+* U6 조기 종결·`.pz` 구현 후 같은 fixture 판정 비교는 `smoke/U6_REPORT.md`.
+
+## [신규] U6 -- `.noise` 대조, offset Monte-Carlo, 스윙·ICMR 스윕 (2026-10-08, 설계 40 §4·§10.2·§11 U6, 41 §7.6, 사용자 결정 Q3·Q4·Q11)
+
+세 측정 모두 **입력 JSON 에 해당 블록이 있을 때만** 돈다(없으면 sim 에 키가 없고 기존 출력은 바뀌지 않는다). free 모드에서만 돌고(`oracle_run.run_one`), 엔진을 import 하지 않는다.
+결과는 `sim.noise` / `sim.offset_mc` / `sim.swing_icmr` 와 `compare.summary.u6`, 비교표(Markdown)의 `U6 ...` 줄로 나온다. 새 measure 이름은
+`acceptance.constraints[].measure`·`predictions.metrics[].measure` 에 쓸 수 있고(`noise_th_in_v2hz, noise_fc_in_hz, noise_excess_th, noise_out_int_vrms, offset_in_sigma_mv,
+swing_out_v, icmr_v, icm_margin_v`), 제약은 `>=`/`<=` 로 판정하며 값이 없으면 `N/A(SPICE 값 없음)` 또는 `N/A(정의 불가: <이유>)` -> INCOMPLETE(PASS 불가).
+엔진 예측과의 차이(`predictions.metrics`)는 다른 metric 과 같이 기록만 한다(`judge.tolerances.<measure>_rel|_abs` 키, DEC-72 의 `model_error_*` 재료).
+
+### 입력 블록 (스키마 `noise`, `offset_mc`, `swing_icmr`)
+
+| 블록 | 필드 | 뜻 |
+|---|---|---|
+| `noise` | `f_lo_hz`(필수) | 열잡음 평탄값 평가·적분 하한(엔진 LUT 가 실측한 가장 낮은 잡음 점 -- 외삽 안 함) |
+| | `points_per_decade` | 주파수 격자 밀도(기본 `testbench.ac.points_per_decade`) |
+| | `input_cell_devices` | `noise_excess_th` 분모(입력 셀) 소자 이름 목록 |
+| | `closed_loop` | true 면 feedback_passives 로 닫은 루프 넷리스트에서 `noise_out_int_vrms` 를 잰다 |
+| | `rel_resolution` | 적분 꼬리 판정의 상대 분해능 r(기본 = ngspice reltol) |
+| `offset_mc` | `rel_resolution`(필수) | 목표 상대 표준오차 r(엔진 offset resolution). N = ceil(1 + 1/(2 r²)) |
+| | `seed`, `max_samples` | 난수 시드(기본 0, 결과에 기록), 표본 수 상한(넘으면 `n_capped`) |
+| `swing_icmr` | `swing`, `icmr` | 어느 스윕을 할지 |
+| | `input_dc_V`, `input_dc_pending` | `icm_margin_v` 용 선언 입력 DC (없으면 예측 입력 DC); pending 이면 `icm_margin_v` 를 내지 않고 `input_dc_pending` 으로 보고(SP-2 대기) |
+
+### `.noise` (`oracle_noise.py`)
+
+* **개루프**(`noise_th_in_v2hz`, `noise_fc_in_hz`, `noise_excess_th`, `noise_contrib`): free 본 넷리스트에서 주파수 f 마다 `ac lin 1 f f`(차동/단일 AC 이득 H) +
+  `noise v(out[,out_n]) <Vac_..> lin 2 f f(1+δ) 1`(δ = reltol) 을 한 번의 ngspice 실행으로 이어 돌려, `print all` 의 소스별 합계(ngspice 는 sqrt(∫S df) [V] 를 낸다)에서
+  S_k(f) = v_k²/Δf 를 얻고 입력 환산 S_in(f) = Σ_k S_k(f)/|H(f)|² 를 만든다. 열 성분 = `1overf` 가 아닌 모든 소스(MOS `.id .rd .rs .rg .rb* .ig*`, 저항 thermal),
+  flicker = `1overf` 소스(MOS `.1overf`, 저항 `_1overf`).
+  * `noise_th_in_v2hz` = 열 성분 입력 환산 합의 f_lo 값(저주파 평탄 영역 -- 엔진 정의 Σ|Z_k/H|² gm_k² B_k 와 같은 양).
+  * `noise_fc_in_hz` = 입력 환산 flicker 합이 `noise_th_in_v2hz` 와 같아지는 주파수: f_lo 부터 격자를 올려 첫 교차를 로그-로그 보간. f_lo 에서 이미 아래면 None +
+    `fc_reason = below_f_lo`, `testbench.ac.fstop_hz` 까지 못 만나면 None + `above_cap`.
+  * `noise_excess_th` = `noise_th_in_v2hz` / (`input_cell_devices` 소자만의 열 성분 합). 입력 셀이 없으면 None + `excess_reason`.
+  * `noise_contrib` = 소자·저항별 `{element, thermal_in_v2hz, flicker_in_v2hz, share_thermal}` (f_lo).
+* **폐루프**(`noise_out_int_vrms`, `noise.closed_loop = true`, feedback_passives 필요): 루프 넷리스트를 닫은 채(Vlb DC 0) `noise v(out) Vlb_<넷> dec ppd f_lo f_top` 의
+  `onoise_spectrum` 을 로그 격자 사다리꼴로 적분한다. 격자 밀도를 두 배씩 올려(최대 4 회) 같은 구간 적분이 reltol 안에 일치하면 멈춘다. f_top 은 `fstop_hz` 에서 시작해
+  꼬리 상계 S(f)·f(>= 1 극 감쇠에서 성립)가 (r·v_rms)² 이하가 될 때까지 10 배씩 올린다(상한 8 회) -- 못 맞추면 `converged = false` + `tail_bound_v2` 를 같이 보고(값은 f_hi 까지의 적분).
+  **스위치 kT/C 항은 이 모듈이 재지 않는다**(`ktc_sampling.status = not_measured`): 샘플링 위상 과도(trnoise) 평균이 필요하다. 오라클 입력의 스위치를 저항 passive 로 넣으면 그 열잡음은
+  `.noise` 에 이미 들어간다(스위치 포함 실제 SC 테스트벤치 증폭 위상).
+* 손계산 점검(`smoke/u6_selfchecks.py noise_rc`): 저항 분압 RC (Ra = Rb = 2 kΩ, H0 = 0.5)의 입력 환산 열잡음 = 4kT·(Ra‖Rb)/H0² = 6.6304e-17 V²/Hz 와 상대 6e-7 일치, 두 저항 몫 각 0.5.
+  폐루프 적분은 같은 `.noise` 의 ngspice 자체 `onoise_total` 과 4e-5 상대 일치(tfb_cs_rfeedback).
+
+### offset Monte-Carlo (`oracle_offset_mc.py`)
+
+* **소자마다 독립** mismatch 변수: 모델 카드의 `<subckt>__*_slope_spectre`(PDK 가 `.param ... = 0.0` 으로 선언, 카드 안 `p = p0 + slope_spectre·(p_slope/sqrt(l·w·mult))`; sky130 nfet 은 toxe·vth0·voff,
+  pfet 은 nfactor 포함)를 소자 k 마다 래퍼 subckt `mmv_<이름>` 안 지역 `.param` 으로 덮는다(ngspice 가 모델 `{식}` 을 래퍼 인스턴스 범위에서 평가함 -- 실측: 두 인스턴스가 다른 vth0 를 갖는다).
+  표본마다 `alterparam pv_<이름>_<j> = z·1e-6/sqrt(m)` (z ~ N(0,1), 시드 고정) + `reset` + `op` 를 한 번의 ngspice 실행에 펼친다.
+* **단위**: 카드는 l·w 가 µm 숫자(`.option scale=1u`)라고 가정하지만 오라클 넷리스트는 SI 숫자를 주므로 카드 안 sqrt(l·w·mult) 가 1e-6 배이고, 인스턴스 `m`(병렬)은 카드의 `mult` 가 아니라 면적에
+  안 들어간다. 그래서 변수값 = z·1e-6/sqrt(m) 로 두어 σ(ΔP) = slope/sqrt(L_µm·W_µm·m) (엔진 41 §6.4-2 A_eff 모델과 같은 면적 의존)을 얻는다. 점검: 5T OTA M1 의 vth0 감도 = 1.1843 mV
+  (손계산 3.356e-3/sqrt(1·8) = 1.1865 mV, 0.2 % 일치).
+* 입력 환산 offset(차동 입력 쌍 + free 넷리스트의 DC servo): 표본마다 DC 해에서 V_os,k = (V_out,k − V_out,0)/A − (V_id,k − V_id,0) (A = 같은 넷리스트 `.ac` 첫 점의 부호 있는 차동 DC 이득, 0 = 흔들림
+  없는 기준 해). 입력이 차동 쌍이 아니거나 servo(`Lfb_`)가 없으면 `status = unavailable` + 이유. 표본 수 N = ceil(1 + 1/(2 r²)) (정규 표본 표준편차의 상대 표준오차 1/sqrt(2(N−1)) = r).
+  결과 `sigma_in_mV`(= `offset_in_sigma_mv`), `mean_in_mV`, `n_samples`, `rel_se_achieved`, `n_failed`, `mismatch_vars`.
+* 독립 점검(`smoke/u6_selfchecks.py mc_5t`, 5T OTA, r = 0.05 -> 201 표본): MC σ_in = 3.236 mV (상대 표준오차 0.05), 같은 모델의 소자·변수별 1σ 결정적 섭동 감도 RSS = 3.212 mV (비 1.008).
+
+### 스윙·ICMR (`oracle_swing.py`)
+
+* 포화 조건(한 점): 도통 중인(|ID| > `judge.off_current_A`, 없으면 0) MOS 전부 VDS >= VDSAT + `judge.sat_margin_V`(없으면 0), 회로 노드 전압이 레일 ± reltol·레일 폭 안(이상 전류원 꼬리가 레일 밖으로
+  내려가는 비물리 해를 창에 넣지 않는다). 풀이가 안 되는 점은 포화 아님(fail-closed). 도통 소자가 하나도 없는 점도 통과가 아니다.
+* 스윕은 free 넷리스트의 DC servo 기준원을 `alter` 로 바꾸는 `.op` 들이다(회로를 고치지 않는다): 입력 공통모드 Δ = 입력 넷의 `Vofs_`(servo 입력)에서 Δ 를 빼고 `Vdc_`(servo 없는 입력)에 Δ 를 더한다
+  (출력은 servo 로 예측 DC 에 묶인 채); 단일 출력 목표 Vt = `Vofs_<servo 입력>` 에 (Vt − Vo,pred) 를 더한다; 차동 출력 목표 D = V(op) − V(on) = 두 servo 기준을 ∓k·D 만큼 민다(k = `diff_feedback_gain`).
+  servo 가 없는 쪽은 `status = unavailable` + 이유.
+* 창 = 공칭점에서 이어지는 연속 구간. 거친 격자(간격 V_T = kT/q) 한 번의 ngspice 실행 -> 경계 괄호([마지막 통과, 첫 실패])를 7 점 부분 격자로 좁혀 간다(최대 8 라운드, 목표 분해능 reltol·레일 폭).
+* `swing_out_v`: 단일 출력 2·min(V_hi − Vo, Vo − V_lo), 차동 출력 2·min(D_hi, −D_lo) (설계 40 §3.8-8 '출력마다 반폭의 최솟값 × 4' 와 같다). `icmr_v` = [Vin,min, Vin,max] ∩ [rail_lo, rail_hi] 의 폭,
+  `icm_margin_v` = min(V_icm − Vin,min, Vin,max − V_icm). 공칭점이 이미 포화 조건을 어기면 창이 비어 있다: `swing_out_v`·`icmr_v` 는 음수(−최대 부족량 [V]).
+* 점검(`smoke/u6_selfchecks.py swing_5t`, 5T OTA 입력 DC 0.9 V): 스윙 1.2065 V (출력 창 0.2967 ~ 1.6142 V), ICMR 0.6289 V (입력 창 0.6701 ~ 1.2990 V, 하한은 꼬리 노드 ≥ 0 에 의한 것), icm_margin 0.2299 V.
 
 ## [신규] CM 루프 PM -- 공통 모드(CMFB) 루프 위상여유 (2026-10-08, 사용자 결정 "6번도 네 의견에 동의하고 제안한 값을 사용해": 완전 차동 회로의 CMFB 루프 PM 하한 60 deg)
 

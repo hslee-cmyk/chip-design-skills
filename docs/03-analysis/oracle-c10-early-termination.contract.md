@@ -102,3 +102,17 @@
 독립 test 가 새로 볼 것(제안): (1) tran_plan 의 f_crit/n_pp/tmax 식, (2) early_unstable 기준 순수 함수 입출력(경계: j=2, 맥놀이
 [1,0.5,1.2], 일정 진폭 [1,1,1,1,1] -> 절대 False, 분해능 이내 증가 -> False, 분해능 초과 연속 증가 [1,1.2,1.5] -> True), (3) 잘린 파일 판정 unstable vs failed, (4) 기본 상한 존재와 `--timeout-s` 우선, (5) 안정 fixture 에서
 `early_stop` 없음, (6) `.save` 라인.
+
+## 3. 구현 메모 (U6, 2026-10-08 -- 계약 문안과 달라진 곳·계약이 정하지 않은 곳)
+README `tools/spice_oracle/README.md` "C10 PM 안정성 근거"가 정본이다. 구현이 계약과 다르거나 계약이 정하지 않아 구현이 정한 것만 적는다.
+* **창 경계 `stop when time >= x` -> `time > x`**: ngspice 의 `stop when` 이 `>=` 를 받지 않는다(`Syntax error parsing breakpoint specification`, 실측). 경계를 처음 넘은
+  표본에서 멈추고 그 표본은 창 j 밖이다(창 안 표본 집합은 계약과 같다). 멈출 때마다 `delete all` 이 필요하다(끝난 조건을 지우지 않으면 resume 이 같은 조건에서 곧바로 다시 멈춘다).
+* **스크립트 안 비교는 `>=` 만**: ngspice 명령 줄의 `>`·`<` 는 출력/입력 리다이렉션이라 `let x = (a > b)` 가 조용히 틀리거나 실패한다(실측). g↑·g↓ 의 엄격 부등식을
+  `>=` 로 평가한다 -- floor' > 0 이라 값이 정확히 같을 수 없어 파이썬 판정(엄격)과 같다.
+* **wrdata 자릿수**: 스크립트가 `set numdgt=8` 을 명시해 파일 반올림 반 단위 u = 5e-9 를 스크립트와 파이썬이 같은 값으로 쓴다(스크립트의 floor' = 계획 floor + u·지금까지의 max|H|).
+* **`early_unstable(M, floor', reltol)` 은 엄격 증가(growth)만** 본다(일정 진폭은 False). 사용자 결정 4(2026-10-08)의 한계 사이클은 별도 함수 `limit_cycle_early` 와 조기 창 선택 `early_window` 가 본다:
+  j >= 3 에서 창 j−1 과 j 가 모두 flat(M_j(1−reltol) > floor' 이고 g↑·g↓ 둘 다 아님) -> `unstable`, `early_stop.kind = limit_cycle` + `limit_cycle_vs_slow_decay_unresolved`.
+  그래서 3.3 의 EARLY_CASES `constant`([1,1,1,1,1] -> False)는 `early_unstable` 에서는 그대로이고 `limit_cycle_early` 에서 True 다.
+* 연장 실행도 같은 `.control`(창 단위 실행·조기 종결)로 돌고 `extension.wall_cap_s` 를 기록한다. 시간 초과·치명 오류는 부분 파일로 판정하지 않는 것도 계약과 같다
+  (`wrdata` 를 실행 끝에 한 번 쓰므로 killed 실행은 파일이 없다).
+* `wall_s_per_window` 는 `oracle_config.json` 에 있고 근거 측정은 `tools/spice_oracle/smoke/measure_wall_s_per_window.py`.
