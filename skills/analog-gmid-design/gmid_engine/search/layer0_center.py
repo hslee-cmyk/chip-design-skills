@@ -223,10 +223,17 @@ def _current_centre(sctx, variables, theta, rung=None):
     grad[n] = 1.0
     out = scipy_minimize(lambda v: v[n], np.asarray(z0 + [u0], dtype=float), jac=lambda v: grad, method="SLSQP",
                          bounds=bounds, constraints=[{"type": "ineq", "fun": cons, "jac": cons_jac}])
-    moved = dict(theta)
-    for k, i in enumerate(index):
-        moved[variables[i].component] = math.exp(min(max(float(out.x[k]), variables[i].lo), variables[i].hi))
-    return moved, float(out.x[n])
+    u = float(out.x[n])
+    # [U13] 기준 전류가 '폭 = W_min 인 전류 이상'(`StartIntervals.current_ref`)이면 Chebyshev 해의 MOS 전류는 기준의 e^±u 배 안에 든다 -- 움직이는 θ 전류를 모두 e^u 배 올려 모든 MOS 가
+    # 기준 이상(= 폭 ≥ W_min)이 되게 한다. 원뿔(행 합이 양수)이 깨지면(고정 전류·음의 계수) 올리지 않는다.
+    lift = u if start is not None and start.current_ref else 0.0
+    for scale in ((lift, 0.0) if lift else (0.0,)):
+        moved = dict(theta)
+        for k, i in enumerate(index):
+            moved[variables[i].component] = math.exp(min(max(float(out.x[k]) + scale, variables[i].lo), variables[i].hi))
+        if not scale or all(r.c > 0 for r in cone_rows(schema, tuple(sorted(_expanded(sctx, moved).items())))):
+            break
+    return moved, u
 
 
 def _item_slacks(res):

@@ -661,3 +661,21 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 구조 DOF 이분 매칭 | `metrics.dof_report` | 변수·등식 조립은 `achievability` 의 `_dof`(비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ 저항 / 소자 식·저항 강하·선언 노드 목표·입력 동일 DC) |
 | 단계 B 진입점 | `pipeline.run_stage_b` | 단계 A 결과 위에서 한 번. exit 3 정지와 보고서 `<회로>.stage_b.json` |
 
+
+## 14. 새 엔진(`gmid_engine.search` 출발 구간·매크로 모델) 정본 (2026-10-09, 단위 U13 -- 새로 만들기 전에 여기 먼저)
+
+계약: `gmid_engine/search/CONTRACT.md` U13절. 설계 41 §6·§7.5·§5.8, 40 §11 U13·§7.1.
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| 소자별 gm/ID·L·전류 출발 구간 + 선택점 + 출발 사다리 | `search.start_intervals(s1v, ach, kctx, spec, pdk_decl, domain)` | `build_search_context(s1v=, ach=)` 가 한 번 부르고 `ctx.start` 에 둔다. 층 0 `layer0_start` 가 소비한다. **U11 임시 `fit_to_area_budget`(예산 넘는 시작점의 ln IDu 를 모두 같은 Δ만큼 옮김)을 대체한다** -- U11 병합 때 그 함수와 호출부를 지운다 |
+| 헤드룸 gm/ID 하한(스윙·ICMR·입력 DC 분할) | `search.iv_headroom.headroom_bounds` (U9 `metrics.headroom_bound` 를 모든 단자 넷 창으로 부름) | 경로 DP 를 다시 만들지 않는다 |
+| 속도 gm/ID 상한·L 상한, 주극점 노드 | `search.iv_speed.speed_bounds`, `search.dominant_node` | 비주극점 낮은 등급 단자 소자 f_T ≥ f_np = GBW·tan(PM) |
+| matching L 하한(A_eff)·offset 가드 부하 상한 | `search.iv_matching_l.matching_bounds` | σ 는 U3 `lut.mismatch_sigma_vgs`, 부하 합 가드 공용은 `_helpers_guard` |
+| 열잡음 가드 부하 상한 | `search.iv_noise.noise_bounds` | S_vg 는 U3 `lut.noise_params` |
+| 면적 예산 -> L·gm/ID 상한, 최소 폭 -> gm/ID 하한 | `search.iv_area.area_bounds` + `_helpers_area.area_estimate` | `area_search_m2` 와 같은 구성(MOS W·L + 수동소자). 일반 면적 하한(인증)은 `metrics.area_lower_bound` |
+| LUT 역산 정의역(커널 `vgs_for_current_density` 가 받는 ln IDu 창) | `search.iv_domain.domain_bounds` | 출발점이 정점·VGS 끝에 놓여 DC 풀이가 첫 평가에서 죽는 것을 막는다 |
+| 블록 gm -> 소자·θ 전류 전파, 소자 용량 계수 | `search.iv_currents.current_model` | KCL 기저 행 + 미러(폭 비 1) + FF 묶음 |
+| 블록 VCCS 매크로 모델(UGF = GBW, PM ≥ 목표, 전원 전류 최소) | `search.macro_poles.macro_solve` | 극점·UGF·PM 은 `metrics.solve_responses`·`analyze_loop` |
+| 평가 예산 N_T | `search.EvalBudget` | `kernel.evaluate` 의 E_B 유도가 `limit()` 을 쓴다 |
+| mv -> V 환산 | `core.MILLI` | `core/units.py` (단위 환산 계수는 한 곳) |

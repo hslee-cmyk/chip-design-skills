@@ -1009,8 +1009,9 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 * **매크로 모델**(`macro_poles`): 전달 뷰의 이득 블록마다 VCCS(gm_b, G_out = gm_b/A_intr, 버퍼는 A = 1) + 노드 용량(소자 cgg·cdd 는 전류에 비례하는 아핀 계수) + 수동소자(Miller C·영점 상쇄 R = 1/Σgm) + feedforward VCCS(G_ff = r_ff·gm_in(B_b), r_ff = 1).
   풀이 = |H(jω_GBW)| = 1 과 PM(ω_GBW) ≥ 목표를 지키는 **전원 전류 합 최소**(SLSQP, 실행 가능한 출발점에서). 극점·UGF·PM 은 U7 `solve_responses`·`analyze_loop`. 근 괄호가 없으면 `macro_root_missing`, 반복 한도에서 `macro_nonconvergent`.
   PM 목표가 없으면 PM_FLOOR_DEG = atan(1) = 45°(비주극점이 UGF 에 놓인 경계). GBW 목표가 없으면 비활성(`macro_inactive`).
-* **전류 확정**: 블록 입력 소자 방정식 `I_d = gm_b/(gm/ID)_d` + KCL 기저 행 + 미러(같은 VGS 묶음 폭 비 1) + FF 묶음 소자(G_ff/(gm/ID)) 전파. 정해지지 않은 θ 전류의 자리값 = 선택 점에서 W = W_min 인 전류(`StartIntervals.current_ref`) --
-  층 0 의 Chebyshev 중심이 상자 기하 중심 대신 이 값을 기준 전류로 쓴다.
+* **전류 확정**: 블록 입력 소자 방정식 `I_d = gm_b/(gm/ID)_d` + KCL 기저 행 + 미러(같은 VGS 묶음 폭 비 1) + FF 묶음 소자(G_ff/(gm/ID)) 전파. 정해지지 않은 소자의 자리값
+  (`StartIntervals.current_ref`) = max(선택 점에서 W = W_min 인 전류 W_min·IDu/L, 정해진 전류들의 기하 평균). 층 0 의 Chebyshev 중심이 상자 기하 중심 대신 이 값을 기준 전류로 쓰고, 해의 편차 u(ln)만큼
+  움직이는 θ 전류를 모두 올려(원뿔이 유지될 때만) 모든 MOS 가 기준 이상 = 폭 ≥ W_min 이 되게 한다(최소 폭 hard 제약 `w_min:*` 위반 방지).
 
 ### U13.3 불변식 (test 가 확인할 성질)
 

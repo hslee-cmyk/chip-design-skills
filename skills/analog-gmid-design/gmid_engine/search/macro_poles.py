@@ -342,7 +342,7 @@ def _iterate(ctx, net, gm_id, pm_target, records, refine):
 def _pole_margin(poles, omega_np):
     """비주극점 조건 값: (두 번째로 낮은 극점 크기 / ω_np) − 1 (극점이 둘 미만이면 0 = 제약 없음). 주극점은 가장 낮은 극점이다."""
     mags = sorted(abs(p) for p in poles if abs(p) > 0)
-    return 0.0 if len(mags) <= 1 else mags[1] / omega_np - 1
+    return 0.0 if len(mags) <= 1 or not omega_np > 0 else mags[1] / omega_np - 1
 
 
 def _signed_pm(pm, target):

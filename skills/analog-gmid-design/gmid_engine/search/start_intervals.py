@@ -105,16 +105,15 @@ def _state(ctx, gm_id, lengths, refine=True):
     elements = {e: v for e, v in elements.items() if e not in free or v > 0}      # θ 전류는 양수 -- 아닌 값은 정해지지 않은 것으로 센다
     cap_values, res_values = dict(macro.cap_values), dict(macro.resistor_values)
     currents = {n: (v if v is not None and v > 0 else None) for n, v in _mos_currents(ctx, elements).items()}
-    # 전류를 정하지 못한 소자의 자리값(층 0 의 Chebyshev 중심이 기준 전류로 쓴다): 정해진 전류가 있으면 그 기하 평균 -- 선언된 이상 전류원·매크로가 전류 눈금을 정하고 나머지 가지는 같은 눈금에서
-    # 시작한다(눈금이 다른 가지를 섞으면 미러·적층의 DC 가 무너진다); 정해진 것이 하나도 없으면 선택 점에서 폭이 PDK 최소 finger 폭 W_min 일 때의 전류(가장 작은 실현 가능 소자 = front 의 최소
-    # 전력·면적 쪽 끝점).
+    # 전류를 정하지 못한 소자의 자리값(층 0 의 Chebyshev 중심이 기준 전류로 쓴다): 폭이 PDK 최소 finger 폭 W_min 일 때의 전류 I_Wmin = W_min·IDu/L (가장 작은 실현 가능 소자 = front 의 최소
+    # 전력·면적 쪽 끝점)과, 정해진 전류가 있으면 그 기하 평균(선언된 이상 전류원·매크로가 정한 전류 눈금 -- 눈금이 다른 가지를 섞으면 미러·적층의 DC 가 무너진다) 중 큰 쪽.
     known = [v for v in currents.values() if v is not None]
-    scale = math.exp(sum(math.log(v) for v in known) / len(known)) if known else None
+    scale = math.exp(sum(math.log(v) for v in known) / len(known)) if known else 0.0
     refs = {}
     for d in ctx.devices:
         bundle = ctx.curves.bundle_of(d.name, d.kind, lengths[d.name])
         if currents[d.name] is None and bundle is not None:
-            refs[d.name] = scale if scale is not None else ctx.w_min_m * ctx.curves.value(bundle, QUANTITY_IDU, gm_id[d.name]) / lengths[d.name]
+            refs[d.name] = max(scale, ctx.w_min_m * ctx.curves.value(bundle, QUANTITY_IDU, gm_id[d.name]) / lengths[d.name])
     merged = {n: currents[n] if currents[n] is not None else refs.get(n) for n in currents}
     area, passive, per_device = (None, None, None)
     if all(v is not None for v in merged.values()):
