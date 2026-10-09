@@ -284,7 +284,13 @@ def test_b_pilot_current_reuse_r1_r2_tied(tmp_path, lut_sealed):
     raw, spec = library_doc("current_reuse_telescopic_ota")
     # [U8 2026-10-09] 잡음 제약(noise_out_int_vrms)은 잡음 LUT 를 요구한다(search CONTRACT 11절 noise_lut_missing) -- 이 test 는 궤도 묶음만 보므로
     # 잡음 r1 이 없는 toy LUT(lut_sealed)에 맞춰 잡음 제약만 뺀다(정의역·묶음은 제약과 무관)
-    spec["human"]["constraints"] = [c for c in spec["human"]["constraints"] if not str(c.get("metric", "")).startswith("noise_")]
+    # [U13 후속 2026-10-09] offset 제약(offset_in_sigma_mv·offset_excess)도 mismatch r1 을 요구한다(search CONTRACT 11절 mismatch_lut_missing,
+    # fail-closed) -- toy LUT 는 mismatch r1 도 없으므로 같은 이유로 그 두 제약과, 값을 그 제약에서 가져오는(value_from_constraint) 제약을 뺀다
+    # (궤도 묶음과 무관)
+    offset = ("offset_in_sigma_mv", "offset_excess")
+    spec["human"]["constraints"] = [c for c in spec["human"]["constraints"]
+                                    if not str(c.get("metric", "")).startswith("noise_") and c.get("metric") not in offset
+                                    and c.get("value_from_constraint") not in offset]
     orig = build_library_case(tmp_path / "o", raw, spec, lut_sealed)
     flipped = build_library_case(tmp_path / "f", flip_terminals(raw, "R2"), spec, lut_sealed)
     assert flipped.domain.ties                                                     # 전제(현재 코드도 통과)

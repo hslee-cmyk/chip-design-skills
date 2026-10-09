@@ -2,7 +2,8 @@
 `load_lut_set(..., noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)`)와 sky130 PDK·LUT 규칙 선언, library 회로 -> 단계 A(s1v) -> 단계 B(ach)
 -> `build_search_context(s1v=, ach=)` 공개 진입점 묶음. 기대값을 만들지 않는다(입력 생성).
 
-측정 harness(tests/generality/pipeline.py·tests/pipeline/conftest.py)는 noise·mismatch npz 를 싣지 않는다 -- 여기서는 명시적으로 싣는다.
+측정 harness tests/generality/pipeline.py 도 noise·mismatch npz 를 싣는다(search CONTRACT 11절 시작 검사); tests/pipeline/conftest.py 는 싣지 않는다
+-- 여기서는 명시적으로 싣는다.
 데이터가 없으면 FAIL 이다(skip 아님 -- tests/pipeline conftest 와 같은 정책).
 프로세스당 LUT 한 번(메모리 한계): `real_env()` 는 모듈 전역 한 칸 캐시, `real_case()` 는 (회로, 추가 제약) 키의 작은 캐시(상한 `_CASE_CAP`).
 """
