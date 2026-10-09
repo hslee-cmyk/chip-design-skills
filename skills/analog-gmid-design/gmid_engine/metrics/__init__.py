@@ -27,24 +27,56 @@ from .achievability_types import (
 from .area import area_search
 from .area_lower_bound import area_lower_bound
 from .block_gain_bound import block_gain_bound
-from .block_gain_model import block_model
 from .block_gain_rows import row_gains
 from .block_param_tables import ParamTables
 from .curve_checks import curve_checks
 from .dof_report import dof_report
 from .edge_cost_bounds import edge_costs
 from .headroom_bound import HeadroomResult, headroom_bound
+from .aux_types import (
+    BlockGain,
+    BlockResidual,
+    BlockStruct,
+    CoupledResidual,
+    FfContribution,
+    FfRatio,
+    FfStruct,
+    GateResult,
+    LsFields,
+    LsNode,
+    MetricStructure,
+    MirrorRatio,
+    MismatchSource,
+    NqsRatio,
+    OffsetAnalysis,
+    OffsetContribution,
+    OffsetSystematic,
+    SatDevice,
+    SwingIcmr,
+    ViewStruct,
+)
+from .block_model import block_local_gain
+from .block_residual import block_residual
+from .coupled_residual import coupled_residual
 from .catalog import metric_catalog
+from .device_sigma import device_sigmas
 from .crossing import find_crossing
 from .dc_metrics import metrics_dc
 from .dc_limit import solve_dc_limit
 from .evaluate import metric_value
+from .ff_gm_ratio import ff_gm_ratio
 from .junction_cap import DiffusionGeometry, JunctionCaps, JunctionParams, junction_caps
 from .junction_source import JunctionSource
 from .loop_analysis import analyze_loop
 from .loop_cut import cut_circuit
+from .ls_fields import ls_fields
+from .ls_swing import ls_swing
 from .lut_parameters import LUT_PARAMETERS, lut_parameters
 from .mna_build import build_mna
+from .metric_structure import metric_structure
+from .metrics_aux import AUX_TYPES, REPORT_BLOCK_RESIDUAL, REPORT_LS_FIELDS, metrics_aux
+from .mirror_ratio import mirror_ratio
+from .model_error import model_error_pairs
 from .mna_solve import solve_responses
 from .mna_types import (
     AreaSearch,
@@ -67,6 +99,25 @@ from .mna_types import (
     SystemResponse,
     Undefined,
 )
+from .noise_analysis import noise_analysis
+from .noise_devices import noise_devices
+from .noise_integral import noise_integral
+from .noise_plan import noise_plan
+from .noise_sources import noise_sources
+from .noise_transfer import noise_transfer
+from .noise_types import (
+    NoiseAnalysis,
+    NoiseDecl,
+    NoiseDevice,
+    NoiseInput,
+    NoisePlan,
+    NoiseSetup,
+    NoiseSources,
+    NoiseTransfer,
+)
+from .nqs_ratio import nqs_ratio
+from .offset_analysis import offset_analysis
+from .offset_systematic import offset_systematic
 from .omega_grid import omega_grid
 from .pencil_roots import pencil_roots
 from .phase_lag import phase_lag
@@ -100,99 +151,153 @@ from .ss_linearize import GMB_COLUMN, GMB_VS_CELL_SECANT, JUNCTION_LUT_RULE, ss_
 from .ss_metrics import metrics_ss
 from .ss_types import MetricBundle, MetricRequest, SsCircuit, SsDevice, SsEvaluation
 from .stamp_mos import mos_stamps
+from .sensitivity_gate import sensitivity_gate
 from .stamp_two_terminal import two_terminal_stamps
 from .supply import supply_currents
+from .verified_by import VerifiedBy, verified_by
+from .block_gain_model import block_gain_model_of
 
 __all__ = (
+    "AUX_TYPES",
     "Achievability",
     "AreaBound",
     "AreaSearch",
     "AxisSpec",
     "BlockBound",
+    "BlockGain",
     "BlockModel",
+    "BlockResidual",
     "BlockSpec",
-    "CurveCheck",
-    "CurveChecks",
-    "DofReport",
-    "EdgeCost",
-    "GainCheck",
-    "HeadroomResult",
-    "HeadroomRow",
-    "LocalInputs",
-    "MosLocal",
-    "ParamTables",
-    "ResLocal",
-    "SliceCurveCheck",
-    "achievability",
-    "area_lower_bound",
-    "block_gain_bound",
-    "block_model",
-    "curve_checks",
-    "dof_report",
-    "edge_costs",
-    "headroom_bound",
-    "row_gains",
+    "BlockStruct",
     "Capacitor",
     "ChannelCurrent",
+    "CoupledResidual",
     "Crossing",
     "CurrentSource",
+    "CurveCheck",
+    "CurveChecks",
     "CutCircuit",
     "DcLimit",
     "DcOperatingPoint",
     "DiffusionGeometry",
+    "DofReport",
+    "EdgeCost",
     "Excitation",
     "Factor",
+    "FfContribution",
+    "FfRatio",
+    "FfStruct",
     "GMB_COLUMN",
     "GMB_VS_CELL_SECANT",
+    "GainCheck",
     "GateArea",
+    "GateResult",
+    "HeadroomResult",
+    "HeadroomRow",
     "JUNCTION_LUT_RULE",
     "JunctionCaps",
     "JunctionParams",
     "JunctionSource",
     "LUT_PARAMETERS",
+    "LocalInputs",
     "LoopAnalysis",
     "LoopCut",
+    "LsFields",
+    "LsNode",
     "MetricBundle",
     "MetricRequest",
     "MetricResult",
+    "MetricStructure",
+    "MirrorRatio",
+    "MismatchSource",
     "MnaSystem",
+    "MosLocal",
     "MosSmallSignal",
+    "NoiseAnalysis",
+    "NoiseDecl",
+    "NoiseDevice",
+    "NoiseInput",
+    "NoisePlan",
+    "NoiseSetup",
+    "NoiseSources",
+    "NoiseTransfer",
+    "NqsRatio",
+    "OffsetAnalysis",
+    "OffsetContribution",
+    "OffsetSystematic",
     "OutputResistance",
+    "ParamTables",
     "ParameterSet",
     "PassiveArea",
     "PassiveAreaDecl",
     "PointSolution",
     "ProbeFactor",
+    "REPORT_BLOCK_RESIDUAL",
+    "REPORT_LS_FIELDS",
     "RailBias",
     "RegisteredMetric",
+    "ResLocal",
     "Resistor",
     "Resolution",
     "ResponseRatio",
     "ResponseSensitivity",
     "Roots",
+    "SatDevice",
     "Sense",
+    "SliceCurveCheck",
     "SmallSignalCircuit",
     "SsCircuit",
     "SsDevice",
     "SsEvaluation",
     "StampSet",
     "SupplyCurrents",
+    "SwingIcmr",
     "SystemResponse",
     "Undefined",
+    "VerifiedBy",
+    "ViewStruct",
+    "achievability",
     "analyze_loop",
+    "area_lower_bound",
     "area_search",
+    "block_gain_bound",
+    "block_local_gain",
+    "block_gain_model_of",
+    "block_residual",
     "build_mna",
+    "coupled_residual",
+    "curve_checks",
     "cut_circuit",
+    "device_sigmas",
+    "dof_report",
+    "edge_costs",
+    "ff_gm_ratio",
     "find_crossing",
+    "headroom_bound",
     "junction_caps",
+    "ls_fields",
+    "ls_swing",
     "lut_parameters",
     "metric_catalog",
     "metric_registry",
     "metric_resolutions",
+    "metric_structure",
     "metric_value",
+    "metrics_aux",
     "metrics_dc",
     "metrics_ss",
+    "mirror_ratio",
+    "model_error_pairs",
     "mos_stamps",
+    "noise_analysis",
+    "noise_devices",
+    "noise_integral",
+    "noise_plan",
+    "noise_sources",
+    "noise_transfer",
+    "nqs_ratio",
+    "offset_analysis",
+    "offset_systematic",
     "omega_grid",
     "output_resistance",
     "pencil_roots",
@@ -200,6 +305,8 @@ __all__ = (
     "probe_factor",
     "response_ratio",
     "response_sensitivity",
+    "row_gains",
+    "sensitivity_gate",
     "solve_dc_limit",
     "solve_point",
     "solve_responses",
@@ -208,4 +315,5 @@ __all__ = (
     "ss_evaluate",
     "supply_currents",
     "two_terminal_stamps",
+    "verified_by",
 )

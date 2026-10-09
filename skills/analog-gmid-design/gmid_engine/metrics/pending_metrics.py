@@ -7,27 +7,17 @@
 조용히 통과시키지 않는다 -- `search.search_context` 가 판정 제약 중 카탈로그에는 있고 레지스트리에는 없는 이름을
 `constraint_notes` 에 verdict `unmeasured`·사유 `metric_computation_pending` 으로 기록한다(보고에 드러난다). 주의: 이 기록은 점마다
 front 를 거르는 행이 아니다(레지스트리 밖 제약의 기존 처리와 같다) -- 계산이 들어오기 전에는 이 제약이 합격을 막지도 허락하지도 않는다고
-읽어야 한다. 계산을 구현하는 단위(offset·스윙 = U7, 잡음 = U8)는 그 metric 의 행을 이 표에서 지우고 `registry._ROWS` 에 계산 필드와 함께 옮긴다(서명은 같아야 한다).
+읽어야 한다. 계산을 구현하는 단위(offset·스윙 = U7)는 그 metric 의 행을 이 표에서 지우고 `registry._ROWS` 에 계산 필드와 함께 옮긴다(서명은 같아야 한다).
+
+[U7] offset_in_sigma_mv·offset_excess·offset_sys_mv·mirror_ratio_sigma_pct·swing_out_v·icmr_v·icm_margin_v·ff_gm_ratio 8행은 계산이 들어와 `registry._ROWS` 로 옮겼다(서명 동일) --
+잡음 4행(U8)도 옮겨져 이 표는 비었다(계산 대기 이름 없음). 아래 뜻풀이는 옮긴 행의 정의 출처 기록으로 남긴다.
 
 행 = (metric 이름, 단위, 영역, view_kind, objective_axis). 이름 정의·쓰임은 설계 40 §3.8-8 표(offset·미러비·스윙·ICMR)와 41 §7.1 표(잡음).
 * offset_in_sigma_mv / offset_excess / offset_sys_mv: ss 영역, `transfer` 뷰(gain 제약 전달 뷰의 A_dm 으로 나눈다).
 * mirror_ratio_sigma_pct: matching 그룹별 보고 metric -- 뷰를 받지 않는다(설계 표의 `ratio` 는 '전류비'이지 `ratio` 뷰({num, den})가 아니다).
 * swing_out_v / icmr_v / icm_margin_v: `ls` 영역(P N3.8 경로 합), 뷰 없음(출력·입력 포트는 topology ports 에서 읽는다).
 * ff_gm_ratio: ss 영역, `transfer` 뷰(40 §3.8-8 표 'ratio / ss / transfer'). feedforward 묶음마다 r_ff = G_ff / gm_in(B_b)(41 §1.12.2-5), 묶음 없는 회로는 값 없음 -- 계산은 U7.
-* noise_*: ss 영역, `transfer` 뷰(41 §7.1 '공통 규칙'). `noise_out_int_vrms` 의 폐루프 β 는 spec feedback 에서 유도한다(뷰에 적지 않는다).
+* [U8] noise_* 4개는 계산이 들어와 `registry._ROWS` 로 옮겨졌다(서명 그대로: ss 영역, `transfer` 뷰 -- 41 §7.1 '공통 규칙'. `noise_out_int_vrms` 의 폐루프 β 는 spec feedback 에서 유도한다, 뷰에 적지 않는다).
 """
 
-PENDING_METRIC_ROWS = (
-    ("offset_in_sigma_mv", "mv", "ss", "transfer", None),
-    ("offset_excess", "ratio", "ss", "transfer", None),
-    ("offset_sys_mv", "mv", "ss", "transfer", None),
-    ("mirror_ratio_sigma_pct", "pct", "ss", None, None),
-    ("swing_out_v", "v", "ls", None, None),
-    ("icmr_v", "v", "ls", None, None),
-    ("icm_margin_v", "v", "ls", None, None),
-    ("ff_gm_ratio", "ratio", "ss", "transfer", None),
-    ("noise_th_in_v2hz", "v2_per_hz", "ss", "transfer", None),
-    ("noise_fc_in_hz", "hz", "ss", "transfer", None),
-    ("noise_excess_th", "ratio", "ss", "transfer", None),
-    ("noise_out_int_vrms", "v", "ss", "transfer", None),
-)
+PENDING_METRIC_ROWS = ()

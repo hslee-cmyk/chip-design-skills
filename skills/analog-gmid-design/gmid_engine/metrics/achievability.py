@@ -57,7 +57,7 @@ from .achievability_types import (
 )
 from .area_lower_bound import area_lower_bound
 from .block_gain_bound import block_gain_bound
-from .block_gain_model import block_model
+from .block_gain_model import block_gain_model_of
 from .block_param_tables import ParamTables
 from .curve_checks import curve_checks
 from .dof_report import STATUS_OVERCONSTRAINED, dof_report
@@ -126,7 +126,7 @@ def _block_spec(view, block, local):
 
 
 def _bound(local, tables, spec, budget, role=None):
-    model, reason = block_model(local, spec)
+    model, reason = block_gain_model_of(local, spec)
     if model is None:
         return BlockBound(spec.key, spec.role if role is None else role, STATUS_UNKNOWN, None, None, 0, (), (), reason, None,
                           spec.members, 0)

@@ -1,8 +1,16 @@
 """봉인 스냅샷 하나 -> 소신호 선형화 + spec 제약 metric + 전력·면적 (계획 N3.5 커널 '봉인 -> ss_linearize -> mna -> metric',
 설계 design_mod1_lut_mod5_mna 3.2·3.5 커널 순서, 7a design 4.5 단계 5 배선 지점, metrics CONTRACT 7절, 계획 DEC-92).
 
-진입점: `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, area_decl=None) -> SsEvaluation`
-(`area_decl` = 선택 `PassiveAreaDecl` -- 면적 항의 수동소자 단위 면적·측정 부하 제외, 사용자 결정 11).
+진입점: `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, area_decl=None, noise_decl=None, mismatch=None, structure=None, driving=None) -> SsEvaluation`
+(`area_decl` = 선택 `PassiveAreaDecl` -- 면적 항의 수동소자 단위 면적·측정 부하 제외, 사용자 결정 11. [U8] `noise_decl` = 선택 `NoiseDecl` -- spec feedback·샘플링
+커패시터·S1v 입력 셀(`search.noise_decl`). 잡음 metric 요청이 있을 때만 쓰이고, 그때 `noise_devices`(소자별 LUT 잡음 값·f_lo·kT)를 만들어 `metrics_ss` 의 세 번째 extras 로 넘긴다.
+생략하면 `NoiseDecl()`(되먹임 미제공 -> 출력 적분 정의 불가, 입력 셀 미제공 -> excess 정의 불가)).
+
+* [U7] `driving` = 선택 spec `DrivingDecl`(선언되면 슬루·방향별 전류 `ls_fields` 보고), `mismatch` = 선택 `MismatchSource`(`MismatchSource.from_decl(pdk_decl)` -- offset·미러비의 PDK bin slope 입력, 없으면 그 metric 은 정의 불가
+  `mismatch_source_missing`), `structure` = 선택 `MetricStructure`(`metric_structure(s1v)` -- offset_excess 입력 셀·FF 비·블록 잔차의 구조 사실. 없으면 그 값들은 정의 불가).
+  제약 metric 중 레지스트리 결과 형식이 `AUX_TYPES` 인 것(offset·미러비·스윙·ICMR·FF 비)은 `metrics_ss` 가 아니라 계산 블록 `metrics_aux` 가 계산하고, 두 묶음의
+  entries·reports 를 합쳐 `SsEvaluation.ss` 로 낸다(`metrics_aux` 가 돌지 않으면 묶음 그대로). `structure` 가 있으면 전달 뷰 제약마다 블록 잔차 보고(`reports` 의
+  `block_residual`·`nqs_ratio`)를 항상 낸다. 판정 제약에 `ugf_ss_hz` 가 있으면 그 값이 `nqs_ratio` 분자다.
 
 * `junction` = metrics `JunctionSource`(DEC-91 접합 용량 입력 -- PDK 선언·LUT 생성 규칙 선언·LUT 측정 온도, 부르는 쪽이
   `JunctionSource.from_decls(read_pdk_decl(...), read_pdk_decl(...), ctx.lut.memo.lut)` 로 S0 당 1회 만든다). 필수 키워드 인자:
@@ -32,10 +40,13 @@ from gmid_engine.sizing import (METRICS_KEY, THETA_PASSIVE_KINDS, THETA_RESISTAN
 
 from .dc_metrics import metrics_dc
 from .junction_source import JunctionSource
+from .metrics_aux import AUX_TYPES, metrics_aux
+from .noise_devices import noise_devices
+from .noise_types import NoiseAnalysis, NoiseDecl
 from .registry import metric_registry
 from .ss_linearize import ss_dev
 from .ss_metrics import metrics_ss
-from .ss_types import MetricRequest, SsEvaluation
+from .ss_types import MetricBundle, MetricRequest, SsEvaluation
 
 _THETA_PASSIVES = (THETA_RESISTANCE,) + THETA_PASSIVE_KINDS
 
@@ -68,21 +79,50 @@ def _requests(constraints):
     return tuple(seen)
 
 
-def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, area_decl=None):
+TRANSFER_VIEW_KIND = "transfer"                       # 블록 잔차 보고가 짝을 찾는 뷰 종류(core VIEW_KINDS)
+UGF_METRIC = "ugf_ss_hz"                              # nqs_ratio 분자
+
+
+def _transfer_views(requests, registry):
+    """판정 제약의 전달 뷰 선언(중복 제거, 요청 순서) -- 소신호 전달 뷰(mode port·transfer·β=1 loop)만."""
+    seen = []
+    for r in requests:
+        if registry[r.metric].signature.view_kind == TRANSFER_VIEW_KIND and r.view not in seen:
+            seen.append(r.view)
+    return tuple(seen)
+
+
+def _merged(ss_bundle, aux_bundle):
+    return MetricBundle(ss_bundle.entries + aux_bundle.entries, ss_bundle.approximations, ss_bundle.detail,
+                        ss_bundle.reports + aux_bundle.reports, ss_bundle.warnings + aux_bundle.warnings)
+
+
+def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, area_decl=None, noise_decl=None, mismatch=None, structure=None, driving=None):
     if not isinstance(sealed, SealedSnapshot):
         raise TypeError("ss_evaluate: 봉인 스냅샷(SealedSnapshot)만 받는다(DEC-67)")
     if not isinstance(ctx, KernelContext):
         raise TypeError("ss_evaluate: ctx 는 build_kernel_context 결과여야 한다")
     if not isinstance(junction, JunctionSource):
         raise TypeError("ss_evaluate: junction 은 JunctionSource 여야 한다(DEC-91 접합 용량 입력)")
+    if noise_decl is not None and not isinstance(noise_decl, NoiseDecl):
+        raise TypeError("ss_evaluate: noise_decl 은 NoiseDecl 이어야 한다")
     theta = check_theta(ctx.schema, theta.values if isinstance(theta, Theta) else theta)
     requests = _requests(tuple(constraints))
     registry = metric_registry()
-    ss_requests = tuple(r for r in requests if registry[r.metric].signature.view_kind is not None)
+    aux_requests = tuple(r for r in requests if registry[r.metric].source_type in AUX_TYPES)
+    ss_requests = tuple(r for r in requests if registry[r.metric].signature.view_kind is not None and r not in aux_requests)
     snapshot = ss_dev(sealed.snapshot, ctx.lut, junction)
     values = _passive_values(snapshot, ctx, theta)
-    snapshot = metrics_ss(snapshot, ss_requests, values)
+    noisy = any(registry[r.metric].source_type is NoiseAnalysis for r in ss_requests)
+    extra = (noise_devices(snapshot, ctx.lut, junction, NoiseDecl() if noise_decl is None else noise_decl),) if noisy else ()
+    snapshot = metrics_ss(snapshot, ss_requests, values, *extra)
+    bundle = snapshot.value("graph", METRICS_KEY, "metrics_ss")
+    views = () if structure is None else _transfer_views(requests, registry)
+    if aux_requests or views:
+        ugf = next((res.value for req, res in bundle.entries if req.metric == UGF_METRIC and res.value is not None), None)
+        snapshot = metrics_aux(snapshot, aux_requests, values, ctx.lut, mismatch, structure, ctx.inputs.node_targets, ctx.inputs.input_dc_v,
+                               ctx.inputs.linear_devices, views, ugf, driving)
+        bundle = _merged(bundle, snapshot.value("graph", METRICS_KEY, "metrics_aux"))
     snapshot = metrics_dc(snapshot, values, tuple(counted_rails), *(() if area_decl is None else (area_decl,)))
     lineage = DcEvaluation(snapshot, sealed.report, SealedSnapshot(snapshot, sealed.report))
-    return SsEvaluation(snapshot, snapshot.value("graph", METRICS_KEY, "metrics_ss"),
-                        snapshot.value("graph", METRICS_KEY, "metrics_dc"), lineage)
+    return SsEvaluation(snapshot, bundle, snapshot.value("graph", METRICS_KEY, "metrics_dc"), lineage)

@@ -17,3 +17,7 @@ METRIC_UNITS = ("db", "hz", "deg", "ohm", "mv", "amp", "w", "m2", "pct", "ratio"
 DOMAINS = ("dc", "ss", "ls", "geom")
 
 AMPLITUDE_DB_PER_DECADE = 20.0
+
+MV_PER_V = 1000.0
+PCT_PER_UNIT = 100.0
+# [U7] 단위 환산 계수 둘: 전압(V) -> 정규 단위 `mv`, 무차원 비 -> 정규 단위 `pct`. 정의에 의한 환산이라 유도할 근거가 없다.

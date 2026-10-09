@@ -647,13 +647,13 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 
 ## 12. 새 엔진(`gmid_engine.metrics` GB4 · `search.count_budget`) 달성가능성 정본 (2026-10-09, 단위 U9 -- 새로 만들기 전에 여기 먼저)
 
-계약: `gmid_engine/metrics/CONTRACT.md` 10절, `pipeline/CONTRACT.md` 5절, `search/CONTRACT.md` U9절. 설계 41 §4, 40 §3.4.
+계약: `gmid_engine/metrics/CONTRACT.md` 10절(GB4), `pipeline/CONTRACT.md` 5절, `search/CONTRACT.md` U9절. 설계 41 §4, 40 §3.4.
 
 | 개념 | 정본 | 비고 |
 |---|---|---|
 | 계수 예산 N_S (kind 별 LUT 격자점 수 합 또는 spec 선언값) | `search.count_budget(lut, kinds, declared=None)` | `pipeline.structure_count_budget` 은 얇은 호출이다(공개 이름 유지). metrics 가 search 보다 아래 층이라 `achievability` 는 값을 인자로 받는다. 새 격자 곱 상한을 만들지 않는다 |
 | LUT 곡선 칸 분류 -> 해법(역산 허용 / 격자 전용 / 로드 거부) | `metrics.curve_checks` (`CurveChecks`) | 분류 자료는 `DcSlice.on_mask`·`vds_slope_ok`·`vs_slope_ok`·`fc_ok_*`(lut). 칸 분류를 다시 계산하지 않는다 |
-| 블록 국소 소신호 모델 + 행 풀이 | `metrics.block_model` -> `metrics.row_gains`(`ParamTables`) | 소자 파라미터는 `lut.intrinsic_gain_curve`·`gmb`·`op_point` 에서 `ParamTables` 가 한 번 읽는다. 블록 gain 은 U7 `block_model`(봉인 스냅샷 기준) 과 다른 양이다(여기는 LUT 격자 행 기준 상한). U7 이 들어오면 MNA 조립 도우미는 공유를 검토 |
+| 블록 국소 소신호 모델 + 행 풀이 | `metrics.block_gain_model_of` -> `metrics.row_gains`(`ParamTables`) | 소자 파라미터는 `lut.intrinsic_gain_curve`·`gmb`·`op_point` 에서 `ParamTables` 가 한 번 읽는다. 블록 gain 은 U7 `block_model`(봉인 스냅샷 기준) 과 다른 양이다(여기는 LUT 격자 행 기준 상한). U7 이 들어오면 MNA 조립 도우미는 공유를 검토 |
 | 블록 gain 상한 A_i,max (격자 전수 + 예산 게이트 + 비단조 축 세분) | `metrics.block_gain_bound` | 상한은 `certified` 만 판정에 쓴다. 좌표 상승 `found_db` 는 하한 추정(보고만) |
 | Σ gain 판정(feedforward 포함) | `metrics.achievability` 의 `GainCheck` | 주경로 블록만(U1b `ViewS1v.blocks`), FF 는 `ViewS1v.feedforward` |
 | 인증된 면적 하한 A_lb | `metrics.area_lower_bound` | 입력 면적 분해능 b_A·수동소자 단위 면적은 `search_domain`·`search.passive_area_decl`. U11 `front_diagnosis` 의 `A_lb` 가 이 값을 쓴다 |
@@ -661,3 +661,31 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 구조 DOF 이분 매칭 | `metrics.dof_report` | 변수·등식 조립은 `achievability` 의 `_dof`(비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ 저항 / 소자 식·저항 강하·선언 노드 목표·입력 동일 DC) |
 | 단계 B 진입점 | `pipeline.run_stage_b` | 단계 A 결과 위에서 한 번. exit 3 정지와 보고서 `<회로>.stage_b.json` |
 
+## 11. 새 엔진 잡음 metric 정본 (2026-10-09, 구현 단위 U8 -- 설계 41 §7.1·7.3, 계약 `gmid_engine/metrics/CONTRACT.md` 11절)
+
+새 함수를 쓰기 전에 이 표를 먼저 본다. 잡음 계산을 다른 곳에서 다시 만들지 않는다.
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| 잡음 metric 4개(`noise_th_in_v2hz`·`noise_fc_in_hz`·`noise_excess_th`·`noise_out_int_vrms`) | `metrics.registry`(결과 형식 `NoiseAnalysis`) | U5 계산 대기 표에서 옮겼다. 서명 불변 |
+| 소자별 LUT 잡음 값(A·B·EF·허용오차, 폭 W 배율) | `metrics.noise_devices` | `lut.noise_params`·`lut.tol_noise_table` 를 부르는 유일한 곳. 질의 실패는 소자 `failure` 로 남는다 |
+| 잡음원 표(MOS gm²·S_vg, 저항 4kT/R) | `metrics.noise_sources` | kT = scipy.constants.k × (LUT 온도 + zero_Celsius) -- 새 상수 없음 |
+| 잡음원 -> 관측 전달(수반 풀이)과 파라미터·ω 1차 미분 | `metrics.noise_transfer` | `MnaSystem`(G, C) 재사용. 전달을 다시 조립하지 않는다 |
+| 입력 환산 평탄값·corner·excess | `metrics.noise_analysis` | corner 는 `sizing.bracket_root`, 반복 상한은 `sizing.k_max` |
+| 출력 적분 + 스위치 kT/C 항 | `metrics.noise_integral` | f_hi 는 꼬리 상계로 유도, 이분 상한 `k_max`. kT/C 는 `detail.ktc_v2` 로 따로 |
+| 폐루프 모드 구조(spec feedback -> 자유 입력 넷) | `metrics.noise_plan` | authoring `_feedback_cuts` 와 같은 규칙(입력 포트 쪽 단자 정확히 하나) |
+| 잡음 선언(spec feedback·샘플링 커패시터·S1v 입력 셀) | `search.noise_decl` | 입력 셀 = S1v 전달 뷰의 첫 이득 블록 input 소자. 이름이 아니라 구조 |
+| 잡음 데이터 필수 검사 | `search.build_search_context` -> `lut.require_lut_data` | 잡음 제약이 있으면 시작 때 `noise_lut_missing` |
+
+## 14. 새 엔진 offset·미러비·스윙·ICMR·FF 비·블록 잔차 정본 (2026-10-09, 구현 단위 U7 -- 계약 `gmid_engine/metrics/CONTRACT.md` 12절)
+
+새 함수를 쓰기 전에 이 표를 먼저 본다. 8개 metric 은 `metrics.registry`(결과 형식 `aux_types`)에 있고 계산 블록 `metrics.metrics_aux` 가 계산한다(`ss_evaluate` 가 `AUX_TYPES` 로 분류).
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| offset σ_in·초과·계통 offset | `metrics.offset_analysis`·`metrics.offset_systematic` | 소자 σ 는 `metrics.device_sigmas`(lut `mismatch_sigma_vgs`) |
+| 미러비 σ | `metrics.mirror_ratio` | matching 그룹별 |
+| 출력 스윙·ICMR | `metrics.ls_swing`, 대신호 필드 `metrics.ls_fields` | 제약 `ls_constraints`(`search.ls_constraints`) |
+| FF 비·블록 잔차·NQS 비 | `metrics.ff_gm_ratio`·`metrics.block_residual`·`metrics.nqs_ratio` | 블록 국소 모델은 `metrics.block_model.block_local_gain`(서브모듈; U9 의 블록 국소 모델 함수는 충돌을 피하려고 `metrics.block_gain_model_of`(`block_gain_model.py`)로 이름을 달리했다) |
+| 구조 사실(offset 입력 셀·FF·블록) | `metrics.metric_structure` | S1v 에서 파생 |
+| 모델 오차 쌍 | `metrics.model_error_pairs` | `build_search_context(model_error=)` |

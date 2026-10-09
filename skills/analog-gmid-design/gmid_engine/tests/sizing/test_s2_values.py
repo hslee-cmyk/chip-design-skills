@@ -73,6 +73,9 @@ SS_TABLE = {
     ("device", "ss_dev"): "ss_dev",
     ("graph", "metrics_ss"): "metrics_ss",
     ("graph", "metrics_dc"): "metrics_dc",
+    # [U7 2026-10-09] oracle (d): sizing CONTRACT 2절 끝 표 행 'graph.metrics_aux | metrics_aux' + metrics CONTRACT 10.0
+    # ('metrics_aux(@compute_block, writer metrics_aux, 필드 graph.metrics_aux)') -- 계약 표에서 옮겨 적은 행이다.
+    ("graph", "metrics_aux"): "metrics_aux",
 }
 
 
