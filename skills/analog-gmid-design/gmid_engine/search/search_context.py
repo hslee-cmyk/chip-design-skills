@@ -32,6 +32,7 @@ from .layer0_center import centre_start
 from .kernel import evaluate
 from .search_domain import search_domain
 from .search_values import AXES, AXIS_AREA, EvalKey
+from .start_intervals import start_intervals
 
 _CODE_PACKAGES = ("core", "lut", "graph", "sizing", "metrics", "search")
 
@@ -74,6 +75,7 @@ class SearchContext:
         self.eval_budget_source = "declared" if settings.eval_budget is not None else None
         self.deadline = None                             # 벽시계 바깥 정지(perf_counter 기준) -- find_front 가 정한다
         self.cell_floors = {}                            # [r8] `cell_floor` 의 (kind, w_key, L 칸) -> 칸 정점 하한 등 S0 수명 캐시
+        self.start = None                                # [U13] `StartIntervals`(스펙에서 유도한 출발 구간) -- 층 0 이 상자 중심 대신 읽는다. s1v 를 안 주면 None(상자 중심)
 
 
 def _disk_failures(archive, context_fp, schema_fp):
@@ -108,9 +110,11 @@ def _wire_sweep_memo(ctx):
     ctx.dc = dataclasses.replace(ctx.dc, lut=LutAccess(memo, old.w_keys))
 
 
-def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl):
+def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None, ach=None):
     """[r6] `lut_rule_decl` = core `read_pdk_decl(<LUT 생성 규칙 선언>)`(sky130 = assets/sky130_lut_rule_decl.json). 여기서 S0 당
-    1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)`(metrics 7.6 필수 junction)를 만든다."""
+    1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)`(metrics 7.6 필수 junction)를 만든다.
+    [U13] `s1v`(단계 A 의 `S1v`)를 주면 여기서 한 번 `start_intervals(s1v, ach, dc_ctx, spec, pdk_decl, domain)`(`ach` = U9 `Achievability` 또는 None)로 gm/ID·L·전류 출발 구간을 유도해
+    `ctx.start` 에 둔다 -- 층 0(`layer0_start`)이 θ 상자 기하 중심 대신 이 구간의 선택점에서 출발한다(41 §6). s1v 를 안 주면 `ctx.start` 는 None 이고 층 0 은 상자 중심으로 간다."""
     for name, value in (("pdk_decl", pdk_decl), ("lut_rule_decl", lut_rule_decl)):
         if not isinstance(value, PdkDecl):            # 무엇이든 만들기 전에 입력 형식부터(§3.7·3.9)
             raise TypeError("build_search_context: " + name + " 는 core read_pdk_decl 결과여야 한다")
@@ -150,6 +154,8 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     ctx.ss_constraints = tuple(ss)
     ctx.junction = junction
     ctx.area_decl = passive_area_decl(dc_ctx, spec, pdk_decl)
+    if s1v is not None:
+        ctx.start = start_intervals(s1v, ach, dc_ctx, spec, pdk_decl, domain)
     classes = dict(dc_ctx.base.column("device", "element_class"))
     ctx.spec_passive_values = tuple(sorted((n, float(v)) for n, v in dc_ctx.inputs.element_values
                                            if v is not None and classes.get(n) == ELEMENT_PASSIVE))

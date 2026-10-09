@@ -14,6 +14,8 @@ from .constraints import constraint_rows
 from .count_budget import count_budget
 from .current_symmetry import CurrentSymmetry, current_symmetry
 from .current_box import current_box
+from .dominant_node import DominantNode, dominant_node
+from .eval_budget import EvalBudget
 from .eps_sweep import sweep_front
 from .eval_key import eval_key
 from .fd_jacobian import fd_jacobian
@@ -65,13 +67,22 @@ from .search_values import (
 )
 from .slsqp_outer import solve_eps
 from .ss_constraints import ss_constraint_rows
+from .start_intervals import start_intervals
 from .start_points import start_points
+from .start_values import (
+    Bound,
+    MacroResult,
+    StartConflict,
+    StartIntervals,
+    StartRow,
+)
 
 __all__ = (
     "ACCEPTED_STATUSES",
     "AXES",
     "AXIS_AREA",
     "AXIS_POWER",
+    "Bound",
     "CON_CONE",
     "CON_EPS",
     "CON_INVERSION",
@@ -82,6 +93,7 @@ __all__ = (
     "EvalResult",
     "FrontPoint",
     "Layer0Result",
+    "MacroResult",
     "NodeRow",
     "Objectives",
     "ParetoResult",
@@ -103,12 +115,17 @@ __all__ = (
     "SearchFront",
     "SearchSettings",
     "SolveResult",
+    "StartConflict",
+    "StartIntervals",
     "StartPoint",
+    "StartRow",
     "Variable",
     "build_search_context",
     "canonical_order",
     "canonical_row_key",
     "CurrentSymmetry",
+    "DominantNode",
+    "EvalBudget",
     "cone_rows",
     "current_symmetry",
     "expand_ties",
@@ -116,6 +133,7 @@ __all__ = (
     "passive_area_decl",
     "constraint_rows",
     "count_budget",
+    "dominant_node",
     "current_box",
     "eval_key",
     "evaluate",
@@ -132,6 +150,7 @@ __all__ = (
     "seal_status",
     "solve_eps",
     "ss_constraint_rows",
+    "start_intervals",
     "start_points",
     "sweep_front",
 )

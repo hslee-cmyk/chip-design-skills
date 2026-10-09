@@ -977,3 +977,45 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 * 쓰임: `pipeline.run_stage_a`(→ `build_s1v(count_budget=)` 사이클 열거·복합 블록 Π 상한)와 `run_stage_b`(→ `metrics.achievability` 블록 격자 곱 게이트). `pipeline.structure_count_budget` 은 이 함수의 얇은 호출이다.
 * `passive_area_decl`(`area_decl.py`)을 공개 API 에 올렸다(`run_stage_b` 가 GB4 면적 하한의 커패시터 항 입력으로 부른다).
 
+
+
+## U13. 출발 구간·매크로 모델 (설계 41 §6·§7.5·§5.8, 40 §11 U13 · §7.1 면적 예산 출발점; D-SIa~g, D-DN, D-NZ5)
+
+**목적**: 층 0 의 상자 기하 중점(ln IDu −26~−34 = LUT 정의역 밖, 전류 pA·면적 예산의 12~99 배 퇴화점)을 스펙에서 유도한 소자별 gm/ID·L·전류 출발 구간의 선택점으로 바꾼다. 출발값과 보고에만 쓴다(EP-7).
+
+### U13.1 공개 API와 배선
+
+| 이름 | 파일 | 서명 / 뜻 |
+|---|---|---|
+| `start_intervals` | `start_intervals.py` | `start_intervals(s1v, ach, kctx, spec, pdk_decl, domain) -> StartIntervals` (S0 당 1회) |
+| `build_search_context` [U13] | `search_context.py` | `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None, ach=None)` -- `s1v` 를 주면 `ctx.start = start_intervals(...)`. 안 주면 `ctx.start = None`(상자 중심) |
+| `layer0_start` [U13] | `layer0_center.py` | `ctx.start.ladder`(StartRung 사다리)를 칸 순서로 커널에 확인해 처음 받아들일 상태인 칸에서 출발. 칸이 모두 안 되면 위반 크기가 가장 작은 칸에 S-4b 1단계 보정(`_repair`), 그래도 안 되면 Halton 시험(종전). `Layer0Result.origin_point` = `centre`(칸 0) · `ladder:k` · `ladder_repair:k` · `halton:k` · `repair:k` |
+| `dominant_node` | `dominant_node.py` | `dominant_node(view) -> DominantNode(nets, rule)` -- Miller 루프 앞 노드 / 출력 포트 노드 / 버퍼 앞 마지막 이득 블록 노드(구조 판정, 매크로 모델 비사용) |
+| `EvalBudget` | `eval_budget.py` | `EvalBudget(wall_s, times, reserve_evals=0)` · `.limit()` = ⌊B/t_eval⌋ − reserve · `.remaining()` = limit − 지금까지 평가 수 · `.t_eval()` = 중앙값. `kernel.evaluate` 의 E_B 한 번 유도가 `limit()` 을 쓴다(`derived_once:floor(B/median_t_eval)` 문자열·값 불변) |
+| 값 형식 | `start_values.py` | `Bound`·`StartConflict`·`StartRow`·`StartRung`·`MacroResult`·`StartIntervals`·`StartContext` + 경계 식 이름 `SRC_*`·비활성 사유 `WHY_*`·`PM_FLOOR_DEG` |
+| 내부 | `iv_context`(입력 묶음) · `iv_curves`(`CurveBook`: U3 곡선 API 를 gm/ID 축 묶음으로) · `iv_headroom`(§6.2) · `iv_speed`(§6.3·§6.4-4) · `iv_gain_l`(§6.4-1 활성 판정) · `iv_matching_l`(§6.4-2·2a) · `iv_noise`(§7.5) · `iv_area`(§6.4-5·최소 폭) · `iv_domain`(LUT 역산 정의역) · `iv_currents`(블록 gm -> 소자·θ 전류 아핀 전파) · `macro_poles`(§6.5) · `_helpers_curves`·`_helpers_area`·`_helpers_guard` | |
+
+### U13.2 계산 순서와 경계 식 (설계 41 §6.1 의 순서, 순환 없음)
+
+0. 주극점 노드 `dominant_node`. 1. gm/ID 하한: U9 `headroom_bound` 를 모든 MOS 단자 넷의 창으로 불러(복제 없음) 소자 엣지 예산 `U(윗 넷) − L(아랫 넷)`(다른 소자는 최소 비용) + 스윙·ICMR·입력 DC 분할 -> `vdsat_curve`·VGS 역산(`hull`).
+2. L 상한(속도 §6.4-4, 면적 §6.4-5)·L 하한(matching §6.4-2, 이득 §6.4-1 은 비활성 사유만). 3. 1회차 매크로(gm/ID = 하한)로 전류. 4. L = max(하한), 동치류·자기동형 묶음 교집합, LUT L 칸으로 맞춤.
+5. 그 L 에서 gm/ID: 하한(헤드룸, **LUT 역산 정의역 `iv_domain`**, 최소 폭 W ≥ W_min), 상한(속도 f_T ≥ f_np, offset·열잡음 가드, 면적, LUT 정의역 중점). 같은 VGS 묶음(`parallel_vgs`)은 구간 교집합 하나를 공유.
+6. 선택 = 구간의 최댓값(t = 1), 면적 예산 안이고 매크로가 GBW·PM 을 풀 수 있는 최대 t(`bracket_root`); 7. 출발 사다리 = t, t/2, t/4, … (길이 ⌈log2(구간 폭 최댓값 / gm/ID 하한 최솟값)⌉ + 1).
+
+* **경계는 항상 '나머지는 최소로 두고 k 가 가질 수 있는 최대'** (41 §6.2): 헤드룸 예산, 면적 A_k,avail, 가드의 level_k. 비어 있으면(하한 > 상한) 자르지 않고 `StartConflict` 를 남기고 헤드룸 쪽(포화)으로 닫는다.
+* **gm 고정 전류 모델**(iv_area): 매크로가 정하는 것은 gm 이고 I(g) = gm/g. W(g) = gm·L/(g·IDu), 면적 gm·L²/(g·IDu) -- g 에 대해 증가.
+* **비활성 사유**(조용히 빠지지 않는다): 제약 미선언(`constraint_not_declared`), LUT 데이터 없음(`lut_mismatch_unavailable`·`lut_noise_unavailable`), A_max 미인증(`u9_value_not_certified`), 전류 미정(`stage_current_unavailable`),
+  U8 미병합 의존(`depends_on_unmerged_unit` -- `noise_out_int_vrms` 의 C_eff·1/f 하한).
+* **매크로 모델**(`macro_poles`): 전달 뷰의 이득 블록마다 VCCS(gm_b, G_out = gm_b/A_intr, 버퍼는 A = 1) + 노드 용량(소자 cgg·cdd 는 전류에 비례하는 아핀 계수) + 수동소자(Miller C·영점 상쇄 R = 1/Σgm) + feedforward VCCS(G_ff = r_ff·gm_in(B_b), r_ff = 1).
+  풀이 = |H(jω_GBW)| = 1 과 PM(ω_GBW) ≥ 목표를 지키는 **전원 전류 합 최소**(SLSQP, 실행 가능한 출발점에서). 극점·UGF·PM 은 U7 `solve_responses`·`analyze_loop`. 근 괄호가 없으면 `macro_root_missing`, 반복 한도에서 `macro_nonconvergent`.
+  PM 목표가 없으면 PM_FLOOR_DEG = atan(1) = 45°(비주극점이 UGF 에 놓인 경계). GBW 목표가 없으면 비활성(`macro_inactive`).
+* **전류 확정**: 블록 입력 소자 방정식 `I_d = gm_b/(gm/ID)_d` + KCL 기저 행 + 미러(같은 VGS 묶음 폭 비 1) + FF 묶음 소자(G_ff/(gm/ID)) 전파. 정해지지 않은 θ 전류의 자리값 = 선택 점에서 W = W_min 인 전류(`StartIntervals.current_ref`) --
+  층 0 의 Chebyshev 중심이 상자 기하 중심 대신 이 값을 기준 전류로 쓴다.
+
+### U13.3 불변식 (test 가 확인할 성질)
+
+* 같은 입력이면 같은 표·같은 θ. 소자 순회·합산은 구조 색 순서이고 이름은 행 이름에만 쓰인다(이름 전단사 불변).
+* 절대 offset 제약(`offset_in_sigma_mv`)이 없는 회로에서는 matching L 하한 무동작, 가드 제약(`offset_excess`·`noise_excess_th`)이 없으면 가드 상한 무동작.
+* `ctx.start is None`(s1v 미전달)이면 `layer0_start` 는 종전과 같은 상자 중심 한 점.
+* `StartIntervals.ladder[0]` 의 θ·cells·current_ref 는 `StartIntervals.theta`·`cells`·`current_ref` 와 같고, 각 칸의 `t` 는 절반씩 줄어든다.
+* 매크로 풀이 값(gm·C)은 `macro_root_missing`·`macro_nonconvergent` 가 있으면 버린다(전류는 정해지지 않은 것으로 센다).
