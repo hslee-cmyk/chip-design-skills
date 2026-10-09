@@ -301,3 +301,38 @@ def test_sealed_point_with_passive_theta_has_ss_row(tmp_path, lut_sealed):
     (res,) = [x for q, x in ref.ss.entries if q.metric == "gain_ss_db"]
     (row,) = [c for c in r.constraints if c.name.startswith("ss:")]
     assert row.c == pytest.approx((res.value - 10.0) / res.resolution, rel=1e-9)
+
+# ---------------------------------------------------------------- [U7 2026-10-09] 구조 입력 -> S3 evals 의 블록 잔차 기록
+# oracle (d) 설계 41 §2.2 '평가마다 다음을 S2 ss 와 S3 evals 요약에 쓴다 -- gain_residual_db·ss.block_gain·ss.rout_residual_ohm' +
+# metrics CONTRACT 10.7('kernel.evaluate 가 S3 evals 줄에 block_residual 을 쓴다', `build_search_context(s1v=)`). (a) 회로 C 는 단일 이득 블록
+# (CS + PMOS 전류원 부하) -> 분해 = 전회로, 잔차 0, 전회로 이득 = 같은 점의 gain_ss_db 값.
+
+def test_u7_structure_writes_block_residual_to_evals(tmp_path, lut_sealed, short_root):
+    from gmid_engine.graph import build_s1, build_s1v
+    from gmid_engine.search import build_search_context
+    from gmid_engine.sizing import dc_inputs_from_spec
+    case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=AXIS_CONS + SS_CONS)
+    s1 = build_s1(case.td, dict(dc_inputs_from_spec(case.spec).supplies_v))
+    s1v = build_s1v(s1, case.spec, count_budget=10 ** 6, stop_on_unsupported=False)
+    s = build_search_context(case.dc, case.spec, case.settings, short_root, case.pdk, case.rule, s1v=s1v)
+    assert s.structure is not None and len(s.structure.views) >= 1
+    r = evaluate(s, th_sorted(theta_r4c()), CELLS_C)
+    assert r.status == STATUS_SEALED
+    (rec,) = read_evals(short_root, s.context_fp)
+    rows = [dict(x) for x in (tuple(tuple(kv) for kv in rep) for rep in rec["block_residual"])]
+    assert len(rows) == 1
+    assert abs(rows[0]["gain_residual_db"]) <= 1e-9
+    ss_row = [x for x in r.constraints if x.name == "ss:0:gain_ss_db>="]
+    assert len(ss_row) == 1
+    ref = ss_evaluate(r.evaluation.sealed, case.dc, theta_r4c(), s.ss_constraints, (), junction=s.junction)
+    (g,) = [res.value for req, res in ref.ss.entries if req.metric == "gain_ss_db"]
+    assert rows[0]["full_gain_db"] == pytest.approx(g, rel=1e-12)
+
+
+def test_u7_without_structure_no_block_residual_record(case_c):
+    case, root = case_c
+    s = case.sctx
+    evaluate(s, th_sorted(theta_r4c()), CELLS_C)
+    (rec,) = read_evals(root, s.context_fp)
+    assert "block_residual" not in rec
+
