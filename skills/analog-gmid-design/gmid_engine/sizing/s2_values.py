@@ -168,10 +168,12 @@ METRICS_KEY = "metrics"
 SS_DEV_WRITER = "ss_dev"                               # device.ss_dev: 봉인 op 의 소신호 선형화(MOS 마다)
 METRICS_SS_WRITER = "metrics_ss"                       # graph.metrics_ss: 뷰 계 MNA -> 제약 metric 묶음
 METRICS_DC_WRITER = "metrics_dc"                       # graph.metrics_dc: 레일 전류·전력·탐색 축 면적 묶음
+METRICS_AUX_WRITER = "metrics_aux"                     # graph.metrics_aux: offset·미러비·스윙·ICMR·FF 비 metric 묶음 + 블록 잔차 보고 (U7)
 SS_WRITES = (
     (SS_DEV_WRITER, (("device", "ss_dev"),)),
     (METRICS_SS_WRITER, (("graph", "metrics_ss"),)),
     (METRICS_DC_WRITER, (("graph", "metrics_dc"),)),
+    (METRICS_AUX_WRITER, (("graph", "metrics_aux"),)),
 )
 S2_WRITERS = WriterTable(
     tuple((kind, field, writer) for (kind, field), writer in S1_WRITERS.entries)

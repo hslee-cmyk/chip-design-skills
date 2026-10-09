@@ -471,11 +471,28 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 | LY10 | tap은 행마다 넣지 않고 그룹 경계에만 넣는다 |
 | 판정 축 면적 | 수동소자 면적(MIM 배치 면적 = 값/밀도 + PDK 여유)을 포함 항목으로 넣는다. 지금은 MOS 행만 들어간다 |
 
-**MOD8 `convergence`**(MISS). 알고리즘:
+**MOD8 `convergence`**(U14 구현 2026-10-09, 계약 `E/convergence/CONTRACT.md`; U16 배선 대기). 알고리즘:
 - (1) front 점마다 `run_layout`을 실행한다.
 - (2) `W_requests`가 있거나 폭 키가 바뀌었으면 그 W를 고정 입력으로 평가 커널을 1회 돌리고 봉인 1~8을 확인한다(LY3·LY7).
 - (3) K_max(P N3.6 식, 구간 = W 변경 비)까지 반복하고, 닿으면 NONCONVERGENT로 둔다.
 - (4) 수렴한 스냅샷으로 판정 축 면적을 계산하고 front를 다시 비지배 필터에 통과시킨다. 동률 폭은 ΔA_tie다(DEC-79). 순위가 뒤집힌 점은 (1)로 돌아간다. 교대 횟수 상한도 K_max다.
+
+**MOD8 구현 요약(U14)**:
+- 진입점 `converge(sctx, pdk_decl, points, pool=(), slice_keys=None)`(점마다 `converge_point` -> `refilter` -> 교대). 호출자는 U16: `find_front(...)` 뒤 `converge(sctx, pdk_decl, front.front)`.
+  `convergence` 는 패키지 순서상 `search` 위라 `find_front` 가 부를 수 없다(역방향 import 금지) -- 배선은 파이프라인 몫이다.
+- `run_layout` 의 유일한 프로덕션 호출처는 `convergence.place_layout`, 평가 커널 재호출의 유일한 호출처는 `search.evaluate(geometry=)`(키의 `w_fixed_fp` 자리). 봉인 스냅샷 -> `LayoutInput` 어댑터는
+  `layout_input_of`(`W_adjustable` = 쓰기 소자, matching = derived·ratified, 수동소자 = `layout.passives_from_decl(passive_values(...))`).
+- LY7: 레이아웃 결과마다 실현 기하(모든 소자의 실현 W 고정 + 실현 폭 슬라이스 + `LayoutResult.diffusion` 확산 기하)로 평가 커널 1회·봉인·제약 행 재확인. 같은 기하가 나오는 고정점에서 freeze,
+  `K_max = k_max(max |ln(W_실현/W_사이징)|, min 실효 W 허용오차)`(첫 레이아웃에서 한 번)에 닿으면 NONCONVERGENT. 접합 용량은 `ss_evaluate(diffusion=)` -> `ss_dev` 가 실현 확산 기하로 계산한다.
+- W_request: 그룹 요청(cc_nf)은 요청한 (폭 키, nf) 로 평가, 위반하면 거부(`rejected_requests`) -> 레이아웃은 pattern None -> **완화 판정**(`relaxation_decision`): common-centroid 를 요구하는 그룹이
+  pattern None 이고 응답 대기도 아니면(nf 조정·W 조정 모두 불가) hub 가 있는 쌍은 interdigitation 전용 `mirror` role 로 다시 놓고 `Relaxation` 기록(맨 앞 review_needed 대상, dx·dy), hub 없는 branch_symmetric 은
+  `not_relaxable` 로 배치 없이 기록한다.
+- 판정 축 재필터: 축 (전력, 레이아웃 외곽 면적), 동률 폭 = (b_P 큰 값, `layout.area_tie_m2`) 를 `search.nondominated(ties=)` 에 넘긴다. 교대: `pool`(탐색 축에서 지배당한 봉인 점) 중 탐색 축 면적을 대리값으로 비지배인 점만
+  레이아웃·재검증하고 다시 거른다(상한 `K_alt` = `k_max(면적 범위, ΔA_tie 최솟값)`).
+- **설계 gap(열린 항목)**: (a) 평가 커널의 폭 슬라이스는 kind 당 하나(`LutAccess.w_keys`)라 레이아웃의 PDK 폭 키를 kind 당 하나로 좁힌다(`place_layout`, `layout_score` 최소 키). 소자별 슬라이스를 받게 하려면 sizing
+  `w_key_of(lut, kind)` 호출부(block_columns·block_widths·seal_tolerances 등)의 확장이 필요하다. (b) 종속 소자는 W 를 고정 입력으로 받을 수 없어(`dc_coord`) 차동쌍이 `cc_same_W` 로 서지 못하면 곧바로 완화로 간다.
+  (c) LY1 소자별 W 허용오차는 소자 사이 전류비를 보장하지 않아 재평가 봉인 3 이 거부할 수 있다(`key_exclusion` 이 폭 키를 하나씩 빼며 재시도하지만 완전 탐색은 아니다). (d) DEC-80 (ii) 면적 모델 오차 선언값이
+  없어 `review_needed` 승격은 기록(탐색 축 대 판정 축 차)만 한다. (e) 탐색이 library 회로의 front 를 내지 못하는 동안(`find_front` front 0) 실측은 손으로 봉인한 점으로 했다.
 
 **MOD9 `report`**(MISS): 결과 JSON(DRS 8섹션 키, `perf`, front 표, 출발 구간 표 41 §6.6, `gain_budget_db`, 충돌 표, 실패 레코드)을 낸다.
 
@@ -946,7 +963,7 @@ R26(축소 유지)에 따라 test 경로는 현행 체계를 따른다. 별도�
 | **U13 출발 구간·매크로 모델** | `E/search/start_intervals.py`, `iv_*`(Q3·Q4: `iv_headroom`의 스윙·ICMR·입력 DC 예산 분할, `iv_matching_l`의 A_eff 기반 matching L 하한과 offset 가드 부하 gm/ID 상한), `macro_poles.py`, `dominant_node.py`, `eval_budget.py` | 41 §6(§6.2, §6.4-2·2a), §7.5, §5.8 | U1, U3, U9 | 3 | D-SIa~g, D-DN, D-NZ5 | 손계산 toy, 이상 VCCS 2·3극점, 절대 offset 회로에서만 L 하한 활성 |
 | **U14 MOD8 수렴** | `E/convergence/`: `converge`(W_request 루프, LY7 재평가, 판정 축 재필터, K_max). **U12 인계(2026-10-09)**: 봉인 스냅샷 → `LayoutInput` 어댑터(수동소자는 `layout.passives_from_decl` 사용), `run_layout`의 유일한 프로덕션 호출처, ΔA_tie(`area_tie_m2`)를 `pareto.nondominated(ties=)`에 배선, `LayoutResult.diffusion`·`RealizedDevice.diffusion` 재검증 소비, LY5 즉시 완화를 지운 뒤 W 조정 불가 그룹(pattern None)의 완화 판정 | 40 §3.9 | U4, U12 | 3 | D-M8, R12 | W_request 합성 픽스처, 커널 호출 계수 |
 | **U15 층 0 gain 예산** | `E/search/`: `layer0_budget`, `gain_bins`, `local_candidates`, `local_front`, `combo_dp`, `assembly`, `budget_override`. `layer0_center`는 대체되어 초기점 생성 전용이 된다 | 41 §5 | U4, U7, U9, U10, U13 | 4 | FR-4, DEC-03·10·71·73, D-L0a~i | 2블록 toy DP = 전수, 파일럿 `gain_budget_db` 출력 |
-| **U16 보고·진입점·통합** | `E/report/`, `E/pipeline/`(`ng-bridge` 흡수), `tests/integration/`의 9회로 E2E·구조 표·IC7·IC11·회귀 추적 | 40 §3.9, §10 | U14, U15, U6 | 5 | D-M9·M10, D-IC, D-T, T1~T9 | 9회로 E2E, 오라클 대조 |
+| **U16 보고·진입점·통합** | `E/report/`, `E/pipeline/`(`ng-bridge` 흡수). **인계(2026-10-09)**: (i) 엔진이 정한 finger 폭(mismatch σ의 bin 선택, U7 `device_sigma`: W/ceil(W/w_bin_max(L)))을 오라클 입력으로 넘겨 오라클 넷리스트 `w=finger_w m=n`이 같은 bin을 쓰게 한다(출처 하나); (ii) `build_search_context(s1v=)`로 S1v를 넘기는 진입점(구조 의존 metric·잡음 입력 셀); (iii) U7 `model_error_pairs` 적재(오라클 대조 결과); (iv) 내부 루프 뷰 `loop_cut` 선언의 PM metric 평가 경로(U1b 인계), `tests/integration/`의 9회로 E2E·구조 표·IC7·IC11·회귀 추적 | 40 §3.9, §10 | U14, U15, U6 | 5 | D-M9·M10, D-IC, D-T, T1~T9 | 9회로 E2E, 오라클 대조 |
 
 **J 결정(§9.3)이 다른 단위에 더하는 범위**(파일 소유는 위 표 그대로이고, 범위만 더한다):
 

@@ -26,7 +26,7 @@ from .margin import normalized_margin
 from .metric_signature import OBJECTIVE_AXES, VIEW_KINDS, MetricSignature
 from .pdk_decl import PdkDecl, PdkMismatchBlock, PdkMismatchModel, PdkQuantity, PdkRule, read_pdk_decl
 from .projection import Projection
-from .units import AMPLITUDE_DB_PER_DECADE, DOMAINS, METRIC_UNITS, MILLI
+from .units import AMPLITUDE_DB_PER_DECADE, DOMAINS, METRIC_UNITS, MILLI, MV_PER_V, PCT_PER_UNIT
 from .writer_error import WriterPermissionError
 from .writer_table import ENTITY_KINDS, WriterTable
 
@@ -50,9 +50,11 @@ __all__ = (
     "LruStats",
     "METRIC_UNITS",
     "MILLI",
+    "MV_PER_V",
     "MetricSignature",
     "NonconvergentError",
     "OBJECTIVE_AXES",
+    "PCT_PER_UNIT",
     "PdkDecl",
     "PdkMismatchBlock",
     "PdkMismatchModel",

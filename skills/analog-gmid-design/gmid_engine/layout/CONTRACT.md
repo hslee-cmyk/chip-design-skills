@@ -1,7 +1,7 @@
 # gmid_engine.layout 동작 계약 (test 작성용) -- 1단계: 복사 단위 + canonical_rows, 2단계: 행 구성(4절)
 
 - 대상: 0~3절 = 1단계 파일 15개(아래 0절 표, 2026-10-07 `hub_candidates.py` 복사 추가). **4절 = 2단계 행 구성·입력/출력 계약·
-  graph 레이아웃 필드**(파일 15개). MOD8 W_request 루프·레이아웃 뒤 재검증 실행은 다음 단계라 이 계약에는 요청 인터페이스만 있다(4.14).
+  graph 레이아웃 필드**(파일 15개). MOD8 W_request 루프·레이아웃 뒤 재검증 실행은 `convergence`(U14, `convergence/CONTRACT.md`)가 하고 이 계약에는 요청 인터페이스만 있다(4.14).
 - **2026-10-07 사용자 결정 Q4·Q8 반영판**(근거 `wt/_drafts/engine/reference_review/SYNTHESIS.md` Q4·Q8, G2-01~03·05~07·09·10·14·20):
   LY1 보존량 = (ID, gm/ID, L), 실현 W 의 기준 = `W_need(fw) = ID / J_slice(fw)`(4.2), 허용오차는 후보 순위 기준·실효 = max(상한, 하한)
   (4.3), 레이아웃 뒤 재검증 요청(4.14), branch_symmetric 행 swap·제외 role·review_needed(4.5~4.6), box 하드 게이트 폐지·판정 축 면적
@@ -483,16 +483,16 @@ reads device `ly_device`·`ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_ro
 11. coverage: 모든 소자에 사용 가능 슬라이스가 있으면 `coverage_ok` 이고 `coverage_missing == ()`.
 12. **재검증 요청(Q4 (ii))**: `revalidation.required is True` 가 W_request 유무와 무관하게 항상 참.
 
-### 4.14 레이아웃 뒤 재검증 요청 (Q4 (ii)(iii)) -- 소비자 배선 대기
+### 4.14 레이아웃 뒤 재검증 요청 (Q4 (ii)(iii)) -- 소비자 = MOD8 `convergence` (U14)
 - `Revalidation(required=True, status=REVALIDATION_PENDING ("pending_wiring"), seals=REVALIDATION_SEALS ("seal_1".."seal_8"),
   devices = 입력 순 배치 소자의 RealizedDevice, consumer=REVALIDATION_CONSUMER, reason=REVALIDATION_PENDING_REASON)`.
 - `RealizedDevice(name, kind, finger_w_key, finger_w_m, n_fingers, W_need_m, W_realized_m, ID_A, gm_id, L_m, vds_V, vsb_V, recalibrate_id,
   recompute_node_voltages)`: `recalibrate_id = not diode`(Q4 (iii): diode 는 ID 재보정 불필요), `recompute_node_voltages = True`(모든 소자 --
   diode 도 노드전압·봉인은 다시 계산).
-- **소비 계약(배선 대기 -- 가짜 구현 없음)**: MOD8 `convergence` 가 `LayoutResult.revalidation` 을 받아 실현 기하(폭 키·nf·실현 W)로 평가 커널을
-  1회 다시 돌리고 봉인 1~8 을 재실행한 뒤 통과하면 freeze, 위반하면 W_request 경로로 보낸다. LY1 허용오차는 후보 순위 기준일 뿐이다.
-  평가 커널(MOD5 metrics·sizing 블록)·봉인(MOD6)·MOD8 은 아직 엔진에 없어(`gmid_engine/metrics`·`sizing`·`convergence` 비어 있음) 지금
-  status 는 늘 `"pending_wiring"` 이다. 소비자가 생기면 status 를 바꾸는 쪽은 MOD8 이다(레이아웃은 요청만 낸다).
+- **소비 계약([U14] 배선됨)**: MOD8 `convergence.converge_point` 가 `run_layout` 결과의 실현 기하(폭 키·nf·실현 W, `LayoutResult.diffusion` = `RealizedDevice.diffusion`
+  과 같은 값)로 평가 커널을 1회 다시 돌리고(`search.evaluate(geometry=)`) 봉인 1~8·spec 제약 행을 재확인한 뒤, 통과하면 그 점으로 다시 놓아 같은 기하가 나오는 고정점에서
+  freeze 하고 위반하면 W_request 응답 대기 그룹의 요청을 거부(`rejected_requests`)한다. LY1 허용오차는 후보 순위 기준일 뿐이다. `LayoutResult` 가 불변이라 `status` 는 늘
+  `"pending_wiring"` 이고 소비 결과는 `convergence.ConvergedPoint` 에 기록된다(`convergence/CONTRACT.md`).
 - 계획 LY7('평가 커널은 W_request 가 있을 때만')은 Q4 (ii)로 바뀐다: MOD7 결과마다 재검증 1회는 W_request 와 무관하게 돈다. 레이아웃
   재시도(기하 판정)는 여전히 전기 재계산 없이 돈다.
 
@@ -563,6 +563,6 @@ diode False, adjustable True, W_m 4e-6(참고). **전류 단위 I1 = 1e-7·e^8.5
   ok 가 아니게 되어(W_need 대비 10.2 % > 7.3 %) 공통 키가 600 으로 바뀌고 M3a 오차 17.1 %, M4a 1.4 %. M3a·M3b 를 branch_symmetric
   그룹으로 주면 행 swap 키 336 nf 2, 오차 8.2 %, dx = dy = 0.
 - 남는 한계: M3a 동작점의 id_equivalent 셀이 30~33 mV 라 상한이 45~50 % 다(이 행 다른 소자가 없으면 키 1000 nf 1 의 47 % 도 순위
-  허용 안). 이 크기의 실현 오차를 막는 것은 4.14 재검증(배선 대기)과 tol_V 측정 정의(SYNTHESIS T05·Q2) 몫이다.
+  허용 안). 이 크기의 실현 오차를 막는 것은 4.14 재검증(MOD8 `convergence`)과 tol_V 측정 정의(SYNTHESIS T05·Q2) 몫이다.
 - 비용: 첫 `run_layout` 490 s 중 대부분이 슬라이스 20장의 `tol_v_table`(장당 약 14~24 s, `LutMemo` derived 영역에 캐시 -- 같은 memo
   재호출에서는 다시 계산하지 않는다).

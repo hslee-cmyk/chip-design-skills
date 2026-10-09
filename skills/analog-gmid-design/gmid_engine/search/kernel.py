@@ -1,10 +1,13 @@
 """평가 커널 조립 -- θ 하나 -> GB7 DC 정본 + 봉인 + 목적 + 제약, 캐시·S3 (설계 design_mod6_search_front 2.2·2.3·7절).
 
-진입점: `evaluate(sctx, theta, cells, parent=None, origin=()) -> EvalResult`.
+진입점: `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`.
 
 * `theta` = {(kind, key): 값} 또는 쌍 iterable(스키마 전 성분), `cells` = L 칸 index 벡터(MOS 이름순), `parent` = 같은
   컨텍스트의 이전 EvalResult(그 `evaluation` 스냅샷을 sizing 이 재사용 -- 바뀐 성분을 읽는 블록만 다시 계산, 필드가 곧 캐시),
   `origin` = S3 기록용 ((키, 값), ...)(단계·ε·시작점 -- 키 밖).
+* [U14] `geometry` = `RealizedGeometry`(MOD8 재검증, LY7·LY8) -- 레이아웃 뒤 실현 기하로 평가한다: 고정 W(`w_request`)·실현 폭 슬라이스(`w_keys`, 이 평가의
+  `LutAccess`)·실현 확산 기하(`diffusion`, 접합 용량)를 쓴다. 키의 `w_fixed_fp` = 기하 지문(없으면 None), 나머지 흐름은 같다 -- 같은 (θ, 기하)는
+  캐시 적중이고 기하가 다르면 다른 점이다. 슬라이스를 바꿔도 계획 블록 버전은 그대로라 `parent` 를 쓸 수 있다.
 * 순서: 요청 계수 -> 키(`eval_key`) -> 메모리 캐시 적중이면 그대로(커널 0) -> 디스크 실패 캐시(S3 evals 재구성) 적중이면
   실패 결과(커널 0) -> 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 `STATUS_OUTSIDE_DOMAIN`(커널 0, 정의역 밖) -> `size_and_seal`.
 * 후보 실패는 `CANDIDATE_FAILURE_CLASSES` 만 이름으로 잡아 `STATUS_FAILED` + FailureRecord(N3.14). ValueError·TypeError 등은
@@ -14,17 +17,20 @@
 * E_B(평가 수 예산)가 선언되지 않았으면 평가 수가 n + 1 을 넘는 순간 한 번 ⌊B / median(평가 시간)⌋ 로 정한다(기록).
 * 커널을 부른 평가만 S3 evals 에 한 줄(설계 8절). 같은 키를 두 번 계산하면 `recompute_same_key` +1(정상 0).
 """
+import dataclasses
+import statistics
 import time
 from collections.abc import Mapping
 
-from gmid_engine.core import CANDIDATE_FAILURE_CLASSES
-from gmid_engine.metrics import metrics_dc, ss_evaluate
-from gmid_engine.sizing import THETA_PASSIVE_KINDS, THETA_RESISTANCE, DcEvaluation, size_and_seal
+from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, fp_of
+from gmid_engine.metrics import REPORT_BLOCK_RESIDUAL, metrics_dc, ss_evaluate
+from gmid_engine.sizing import METRICS_KEY, THETA_PASSIVE_KINDS, THETA_RESISTANCE, DcEvaluation, LutAccess, size_and_seal
 
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
 from .eval_budget import EvalBudget
 from .eval_key import eval_key
+from .ls_constraints import ls_constraint_rows
 from .tie_expand import expand_ties
 from .objectives import objective_values
 from .search_values import (
@@ -54,6 +60,15 @@ def _spec_rows(sctx, objectives):
     return tuple(rows)
 
 
+def _block_residual_rows(snapshot):
+    """S3 evals 요약 -- 그 점의 블록 분해 잔차 보고(41 §2.2: `gain_residual_db`·`ss.block_gain`·`ss.ff_contrib`·`ss.rout_residual_ohm`). `metrics_aux` 가 안 돈 점은 빈 목록."""
+    try:
+        bundle = snapshot.value("graph", METRICS_KEY, "metrics_aux")
+    except KeyError:
+        return []
+    return [[list(kv) for kv in rep] for name, rep in bundle.reports if name == REPORT_BLOCK_RESIDUAL]
+
+
 def _record(sctx, result, origin):
     if sctx.archive is None:
         return
@@ -71,15 +86,19 @@ def _record(sctx, result, origin):
         rec["power_resolution_w"] = result.objectives.power_resolution_w
     if result.evaluation is not None:
         rec["snapshot_fp"] = result.evaluation.snapshot.fp
+        residual_rows = _block_residual_rows(result.evaluation.snapshot)
+        if residual_rows:
+            rec["block_residual"] = residual_rows
     sctx.archive.append_eval(rec)
 
 
-def evaluate(sctx, theta, cells, parent=None, origin=()):
+def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
     sctx.counters["requests"] += 1
+    dc = sctx.dc if geometry is None else dataclasses.replace(sctx.dc, lut=LutAccess(sctx.dc.lut.memo, geometry.w_keys))
     theta = expand_ties(sctx.domain.ties, theta if isinstance(theta, Mapping) else dict(theta),
                          sctx.domain.negated, sctx.domain.zeros)    # [r12] 묶인 성분은 대표 값
     pairs = tuple(sorted(theta.items()))
-    key = eval_key(sctx.context_fp, sctx.schema_fp, pairs, cells, None)
+    key = eval_key(sctx.context_fp, sctx.schema_fp, pairs, cells, None if geometry is None else fp_of(geometry))
     hit = sctx.cache.get(key)
     if hit is not None:
         sctx.counters["hits"] += 1
@@ -87,7 +106,7 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
             sctx.counters["fail_hits"] += 1
         return hit
     disk = sctx.disk_failures.get(key)
-    cone = cone_rows(sctx.dc.schema, pairs)
+    cone = cone_rows(dc.schema, pairs)
     if disk is not None:
         sctx.counters["disk_hits"] += 1
         result = EvalResult(key, pairs, STATUS_FAILED, None, None, (), cone, disk, -1)
@@ -107,7 +126,7 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
     base = None if parent is None else parent.evaluation
     evaluation, failure, objectives, rows, status = None, None, None, (), STATUS_FAILED
     try:
-        evaluation = size_and_seal(sctx.dc, dict(pairs), parent=base)
+        evaluation = size_and_seal(dc, dict(pairs), parent=base, w_request=() if geometry is None else geometry.w_request)
     except CANDIDATE_FAILURE_CLASSES as exc:
         failure = exc.record
     unmeasured, bundle = (), None
@@ -117,8 +136,9 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
             # 봉인 점: ss_dev -> metrics_ss -> metrics_dc(metrics CONTRACT 7.6). lineage(ss 필드를 담은 DcEvaluation)를 이 점의
             # evaluation 으로 둔다 -- 다음 평가의 parent 가 그 필드를 재사용한다.
             try:
-                ssev = ss_evaluate(evaluation.sealed, sctx.dc, pairs, sctx.ss_constraints, (), junction=sctx.junction,
-                                area_decl=sctx.area_decl)
+                ssev = ss_evaluate(evaluation.sealed, dc, pairs, sctx.ss_constraints, (), junction=sctx.junction,
+                                   area_decl=sctx.area_decl, noise_decl=sctx.noise_decl, mismatch=sctx.mismatch, structure=sctx.structure,
+                                   driving=sctx.driving, diffusion=() if geometry is None else geometry.diffusion)
                 evaluation, bundle = ssev.lineage, ssev.ss
             except CANDIDATE_FAILURE_CLASSES as exc:
                 evaluation, failure, status = None, exc.record, STATUS_FAILED
@@ -133,10 +153,12 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
         if objectives.power_resolution_w is None:
             status = STATUS_UNDEFINED          # 전력 축 분해능 b_P 를 정할 tol 행이 없다 -- 목적 정규화 불가
         if status != STATUS_UNDEFINED:
-            seal_rows, _undefined = constraint_rows(evaluation.snapshot, sctx.dc.lut, sctx.domain.w_min_m,
+            seal_rows, _undefined = constraint_rows(evaluation.snapshot, dc.lut, sctx.domain.w_min_m,
                                                     sctx.domain.grid_m)
-            ss_rows, unmeasured = ss_constraint_rows(bundle, sctx.ss_constraints)
-            rows = seal_rows + _spec_rows(sctx, objectives) + ss_rows
+            ss_rows, unmeasured = ss_constraint_rows(bundle, sctx.ss_constraints, sctx.model_error)
+            ls_rows, ls_unmeasured = ls_constraint_rows(bundle, sctx.driving)
+            unmeasured = unmeasured + ls_unmeasured
+            rows = seal_rows + _spec_rows(sctx, objectives) + ss_rows + ls_rows
     sctx.eval_times.append(time.perf_counter() - start)
     if sctx.eval_budget is None and len(sctx.eval_times) > len(sctx.domain.variables):
         # E_B 를 한 번 정한다: 평가 한 sweep(n + 1 = FD Jacobian 한 번) 뒤의 시간 중앙값 t_ref -- 첫 평가의 LUT 파생표(tol_V) 1회

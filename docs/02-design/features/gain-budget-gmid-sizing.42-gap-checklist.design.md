@@ -224,7 +224,7 @@ plan_version: 6.3
 | D-LY2 | LY5 즉시 완화 제거 | 40 §3.9 | DEV | `E/layout/CONTRACT.md:217,306-311` |
 | D-LY3 | `ly.diffusion` | 40 §3.9 | MISS | `E/layout/_ly_fields.py:22-40` |
 | D-LY4 | 판정 축 면적에 수동소자 포함 | 40 §3.9 | MISS | `E/layout/floorplan.py:30-84` |
-| D-M8 | MOD8 수렴과 재필터 | 40 §3.9 | MISS | `E/convergence/__init__.py` |
+| D-M8 | MOD8 수렴과 재필터 | 40 §3.9 | PART | `E/convergence/converge.py`(U14 구현·`E/convergence/CONTRACT.md`). 호출자(U16 `run_gmid_design_pipeline`)가 아직 없어 파이프라인 배선은 U16 몫 |
 | D-M9 | MOD9 결과 JSON | 40 §3.9 | MISS | `E/report/__init__.py` |
 | D-M10 | `run_gmid_design_pipeline` | 40 §3.9 | MISS | `E/pipeline/__init__.py`. 일부가 `[ng-bridge]`에 있다 |
 | D-PF1 | `LutMemo.from_sweep` 배선 | 40 §7.3 | PART | `E/lut/lut_memo.py:34`, 호출부 0 |

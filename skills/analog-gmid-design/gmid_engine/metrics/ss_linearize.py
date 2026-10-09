@@ -17,7 +17,9 @@
 * 접합 용량 cdb·csb(DEC-91): PDK 접합 파라미터(`junction.params_of(kind)`) + 봉인점 역바이어스(v_db = VDS + VSB, v_sb = VSB)
   + 확산 기하로 `junction_caps`(metrics CONTRACT 8절). S2 에는 아직 레이아웃 기하(MOD7 `ly.diffusion`)가 없으므로 기하는 레이아웃 전
   첫 사이징점 규칙 = LUT 생성 규칙(finger_w = 폭 슬라이스 w_m, m = W / w_m) -- `junction_model` = `JUNCTION_LUT_RULE`(metric 묶음의
-  `approximations` 로 매 결과에 실린다). 레이아웃 기하가 S2 에 생기면 그 경로가 이 규칙 기하를 대체한다.
+  `approximations` 로 매 결과에 실린다). [U14] 레이아웃 뒤(MOD8 재검증)에는 추가 extra `diffusion` = ((MOS, `DiffusionGeometry`), ...)(MOD7
+  `ly.diffusion` 실현 기하: finger_w·ad·as·pd·ps·m = n_fingers)가 그 소자의 규칙 기하를 대체하고 `junction_model` = `JUNCTION_LAYOUT_DIFFUSION`.
+  extra 가 없거나 비면 입력 버전이 종래와 같다.
 * `gmb_model` = `GMB_COLUMN`(GMBS 열) 또는 `GMB_VS_CELL_SECANT`(열 없는 옛 LUT -- 임시 근사, 설계 2.8).
 * 접합 용량 정본이 PDK 파라미터라 LUT v2 의 CDD·CSS 열(`Caps.cdd`·`css`)은 쓰지 않는다(DEC-91 '대조 test 전용').
 * LUT 실패(용량 VS 축 0~0.8 V 밖 등)는 소자 이름을 붙인 `SealViolationError`(reason `lut_query_failed`, `lut_reason` = 원래
@@ -36,6 +38,7 @@ GMB_COLUMN = "lut_gmbs_column"                        # lut gmb: GMBS 열(정본
 GMB_VS_CELL_SECANT = "lut_vs_cell_secant"              # lut gmb: VS 선형 칸 할선(GMBS 열 없는 옛 LUT, 설계 MOD1 2.8 임시)
 GMBS_COLUMN = "GMBS_PER_ID"                            # lut DERIVED_COLUMNS 의 gmb 열 이름(4.4 가 읽는 열)
 JUNCTION_LUT_RULE = "pdk_bsim4_lut_rule_diffusion"     # DEC-91 접합 용량: PDK BSIM4 파라미터 + LUT 생성 규칙 확산 기하(레이아웃 전)
+JUNCTION_LAYOUT_DIFFUSION = "pdk_bsim4_layout_diffusion"   # [U14] DEC-91 (2)·LY8: PDK BSIM4 파라미터 + MOD7 `ly.diffusion` 실현 확산 기하(레이아웃 뒤)
 
 
 def _query(device, name, call):
@@ -54,26 +57,27 @@ def _gmb_model(table, kind, w_key):
     return GMB_COLUMN if cap is not None and cap.w_key == w_key and GMBS_COLUMN in cap.columns else GMB_VS_CELL_SECANT
 
 
-def _linearize(lut, junction, device, op, tol_v):
+def _linearize(lut, junction, device, op, tol_v, realized):
     memo = lut.memo
     w_m = memo.lut.slice_map[(op.kind, op.w_key)].w_m
     args = (op.L, op.vgs, op.vds, op.vsb)
     point = _query(device, "op_point", lambda: op_point(memo, op.kind, op.w_key, *args))
     body = _query(device, "gmb", lambda: gmb(memo, op.kind, op.w_key, *args))
     cap = _query(device, "caps", lambda: caps(memo, op.kind, *args, op.W))
-    geometry = junction.pre_layout_geometry(w_m, op.W / w_m)
+    geometry = junction.pre_layout_geometry(w_m, op.W / w_m) if realized is None else realized
     jc = junction_caps(junction.params_of(op.kind), geometry, op.vds + op.vsb, op.vsb, junction.temp_c)
     return SsDevice(
         gm=op.gm_id * op.current, gmb=body * op.W / w_m, gds=point.gds_per_w * op.W,
         cgg=cap.cgg, cgs=cap.cgs, cgd=cap.cgd, cgb=cap.cgb, cdb=jc.cdb, csb=jc.csb,
-        cap_model=cap.model, gmb_model=_gmb_model(memo.lut, op.kind, op.w_key), junction_model=JUNCTION_LUT_RULE,
+        cap_model=cap.model, gmb_model=_gmb_model(memo.lut, op.kind, op.w_key), junction_model=JUNCTION_LUT_RULE if realized is None else JUNCTION_LAYOUT_DIFFUSION,
         lut_rel_tol=None if tol_v is None else op.gm_id * tol_v,
     )
 
 
 @compute_block(SS_DEV_WRITER, reads=READS, writes=WRITES)
 def ss_dev(projection):
-    lut, junction = projection.extras
+    lut, junction, *rest = projection.extras
     tols = dict(projection.column("device", "dc_tol_v"))
-    return {("device", "ss_dev"): {m: _linearize(lut, junction, m, op, tols.get(m))
+    realized = dict(rest[0]) if rest else {}                 # [U14] 실현 확산 기하 ((MOS, DiffusionGeometry), ...) -- 없으면 LUT 생성 규칙 기하
+    return {("device", "ss_dev"): {m: _linearize(lut, junction, m, op, tols.get(m), realized.get(m))
                                    for m, op in projection.column("device", "dc_op")}}

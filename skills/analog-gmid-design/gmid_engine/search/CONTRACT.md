@@ -425,7 +425,11 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   (같은 schema_fp·code_fp) -> {EvalKey: FailureRecord}.
 - `counters` 키: requests, kernel_calls, hits, fail_hits, disk_hits, outside_domain, recompute_same_key(모두 0 시작).
 
-### 3.10 `evaluate(sctx, theta, cells, parent=None, origin=()) -> EvalResult`
+### 3.10 `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`
+[U14] `geometry` = `RealizedGeometry(w_request, w_keys, diffusion=())`(search_values, `search.__all__`; MOD8 `convergence` 의 재검증 입력, LY7·LY8): 있으면 1 의 키 `w_fixed_fp = fp_of(geometry)`,
+5 의 커널은 `LutAccess(memo, geometry.w_keys)` 로 `size_and_seal(dc, θ, parent=parent.evaluation, w_request=geometry.w_request)`, 6 의 `ss_evaluate`·`constraint_rows` 도 같은 `dc`
+(`ss_evaluate(diffusion=geometry.diffusion)` -- 접합 용량이 실현 확산 기하). 없으면(None) 아래가 종전과 같다. 같은 (θ, cells, geometry) 는 캐시 적중, 계획 블록 버전은 슬라이스와 무관해
+`parent` 를 그대로 쓴다. S3 evals 줄의 `w_fixed_fp` 도 이 값이다.
 순서와 계수(정확히 이 순서):
 1. requests +1. 키 = `eval_key(..., 키 정렬 θ, cells, None)`.
 2. 메모리 캐시 적중 -> hits +1(실패면 fail_hits 도 +1), 같은 객체(`is`) 반환. 커널 0.
@@ -698,7 +702,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 - **S-10 (승인)** 부분 목적값이 없어 재시작(기록).
 - **S-11** FD y 스텝의 'VDS 격자 간격'(비균등 격자) -> 최소 간격으로 읽었다.
 - **S-13** 원뿔 제약 정규화(설계 5절 표에 없음) -> Σ항/Σ|항|.
-- **S-14** T_refilter(판정 축 재필터 시간) = 0 -- MOD8 미구현.
+- **S-14** T_refilter(판정 축 재필터 시간) = 0 -- `find_front` 안에서는 0이다. 판정 축 재필터는 `convergence.converge(sctx, pdk_decl, front.front)`(U14, 패키지 순서상 search 위)가 하고 U16 이 부른다. `find_front` 의 `not_run` 노트와 `refilter: "mod8_not_implemented"` 는 `find_front` 산출물의 상태(재필터 전)를 가리킨다.
 - **S-15** L-b 의 'LR5 격자 안' -- LR5 knee 격자 미구현이라 LUT 의 모든 L 칸이 격자다.
 - **S-16 (처리)** FD 양방향 실패 열 = 변수 고정(3.13), 모두 고정되면 끝.
 - **S-17** 예산 초과: 예산 검사는 새 x 평가 때만 해서 FD 한 번·L-b 시험 한 번만큼(평가 수로 n + 1 이하) 넘을 수 있다.
@@ -977,6 +981,18 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 * 쓰임: `pipeline.run_stage_a`(→ `build_s1v(count_budget=)` 사이클 열거·복합 블록 Π 상한)와 `run_stage_b`(→ `metrics.achievability` 블록 격자 곱 게이트). `pipeline.structure_count_budget` 은 이 함수의 얇은 호출이다.
 * `passive_area_decl`(`area_decl.py`)을 공개 API 에 올렸다(`run_stage_b` 가 GB4 면적 하한의 커패시터 항 입력으로 부른다).
 
+## 11. 잡음 제약 배선 (구현 단위 U8, 2026-10-09 -- 설계 41 §7.4, metrics CONTRACT 11절)
+
+- `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None)`: 끝에 선택 인자 `s1v`(`graph.build_s1v` 결과). 기존 호출(6인자)은 그대로 동작한다.
+  - 값이 있는 판정 제약 중 잡음 metric(레지스트리 결과 형식 `NoiseAnalysis`)이 있으면 `search_domain` 뒤·`JunctionSource` 앞에서 `lut.require_lut_data(lut, MOS kind 들, noise=True)`:
+    잡음 r1 데이터(`LutSet.noise`)가 없으면 `SchemaRejectedError(noise_lut_missing)`. (잡음 r1 없이 만든 LUT 로 library spec 의 잡음 제약을 올리면 이제 거부된다 -- test 입력은 `load_lut_set(noise_npz=)`
+    와 `LutSpec.noise_ef` 로 잡음 데이터를 실어야 한다: **독립 test 갱신 필요**, test 작성자 몫.)
+  - `SearchContext.noise_decl` = `noise_decl(spec, s1v)`(metrics `NoiseDecl`): spec feedback 소자·`noise_testbench.sampling_caps`·S1v 전달 뷰의 첫 이득 블록 input 셀. `s1v=None` 이면 input 셀이 없어
+    `noise_excess_th` 는 정의 불가(`noise_input_cell_undefined`) -- 미측정으로 보고된다(조용히 통과하지 않는다).
+- `kernel.evaluate`: 봉인 점 `ss_evaluate(..., area_decl=, noise_decl=sctx.noise_decl)`. 잡음 metric 은 이제 `search_context` 가 `ss_constraints` 로 분류한다(레지스트리에 있고 view_kind 가 있다) --
+  `constraint_notes` 의 `metric_computation_pending` 에서 빠지고 점마다 `ss:<k>:<metric><op>` 행(c = (목표 − 값)/분해능 등 기존 `ss_constraint_rows` 규칙)이나 `unmeasured` 사유(예
+  `noise_thermal_unknown`, `resolution_undefined`)가 된다.
+
 
 
 ## U13. 출발 구간·매크로 모델 (설계 41 §6·§7.5·§5.8, 40 §11 U13 · §7.1 면적 예산 출발점; D-SIa~g, D-DN, D-NZ5)
@@ -988,7 +1004,7 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 | 이름 | 파일 | 서명 / 뜻 |
 |---|---|---|
 | `start_intervals` | `start_intervals.py` | `start_intervals(s1v, ach, kctx, spec, pdk_decl, domain) -> StartIntervals` (S0 당 1회) |
-| `build_search_context` [U13] | `search_context.py` | `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None, ach=None)` -- `s1v` 를 주면 `ctx.start = start_intervals(...)`. 안 주면 `ctx.start = None`(상자 중심) |
+| `build_search_context` [U13] | `search_context.py` | `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None, ach=None, model_error=())` -- `s1v`(U7·U8 과 공유 한 인자)를 주면 `ctx.start = start_intervals(...)`. 안 주면 `ctx.start = None`(상자 중심) |
 | `layer0_start` [U13] | `layer0_center.py` | `ctx.start.ladder`(StartRung 사다리)를 칸 순서로 커널에 확인해 처음 받아들일 상태인 칸에서 출발. 칸이 모두 안 되면 위반 크기가 가장 작은 칸에 S-4b 1단계 보정(`_repair`), 그래도 안 되면 Halton 시험(종전). `Layer0Result.origin_point` = `centre`(칸 0) · `ladder:k` · `ladder_repair:k` · `halton:k` · `repair:k` |
 | `dominant_node` | `dominant_node.py` | `dominant_node(view) -> DominantNode(nets, rule)` -- Miller 루프 앞 노드 / 출력 포트 노드 / 버퍼 앞 마지막 이득 블록 노드(구조 판정, 매크로 모델 비사용) |
 | `EvalBudget` | `eval_budget.py` | `EvalBudget(wall_s, times, reserve_evals=0)` · `.limit()` = ⌊B/t_eval⌋ − reserve · `.remaining()` = limit − 지금까지 평가 수 · `.t_eval()` = 중앙값. `kernel.evaluate` 의 E_B 한 번 유도가 `limit()` 을 쓴다(`derived_once:floor(B/median_t_eval)` 문자열·값 불변) |

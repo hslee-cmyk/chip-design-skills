@@ -4,7 +4,7 @@
 - 설계 `docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md` 0절(N_S)·4절(4.1~4.6),
   `metrics/CONTRACT.md` 10절, `pipeline/CONTRACT.md` 5절, `search/CONTRACT.md` U9 절, `lut/CONTRACT.md` 1.4·4.2·4.4·4.5.
 - 이 모듈은 **입력**(해석식 toy LUT npz, 손 LocalInputs/BlockModel, topology·spec JSON)과 독립 계산(oracle (a)·(b))만 둔다.
-  피검 함수(curve_checks·block_model·row_gains·block_gain_bound·area_lower_bound·edge_costs·dof_report·headroom_bound·
+  피검 함수(curve_checks·block_gain_model_of·row_gains·block_gain_bound·area_lower_bound·edge_costs·dof_report·headroom_bound·
   achievability·count_budget·run_stage_b)를 부르지 않는다.
 
 toy LUT 해석식(구성으로 정답이 정해진 합성 입력, oracle (a)) -- 폭 w_m 슬라이스, 밀도 배율 k:

@@ -282,6 +282,9 @@ def test_b_pilot_current_reuse_r1_r2_tied(tmp_path, lut_sealed):
     차원 = R2 를 뒤집은 사본의 차원(search CONTRACT 3.24 8 실측 107 -> 73; 숫자 대신 사본과의 같음으로 본다 -- 무향이라 같은 그래프)."""
     from .canon_cases import build_library_case, flip_terminals, library_doc
     raw, spec = library_doc("current_reuse_telescopic_ota")
+    # [U8 2026-10-09] 잡음 제약(noise_out_int_vrms)은 잡음 LUT 를 요구한다(search CONTRACT 11절 noise_lut_missing) -- 이 test 는 궤도 묶음만 보므로
+    # 잡음 r1 이 없는 toy LUT(lut_sealed)에 맞춰 잡음 제약만 뺀다(정의역·묶음은 제약과 무관)
+    spec["human"]["constraints"] = [c for c in spec["human"]["constraints"] if not str(c.get("metric", "")).startswith("noise_")]
     orig = build_library_case(tmp_path / "o", raw, spec, lut_sealed)
     flipped = build_library_case(tmp_path / "f", flip_terminals(raw, "R2"), spec, lut_sealed)
     assert flipped.domain.ties                                                     # 전제(현재 코드도 통과)

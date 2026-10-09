@@ -9,7 +9,7 @@
 * **최종 front = 봉인된 점만.** 봉인 7 이 VDSAT 부재로 미정인 동안(`seal7_pending`) 모든 점은 `pending_front` 에만 있고
   `front` 는 비어 있다 -- 대기 front 는 '봉인 7 대기·추정'이며 판정·보고 값으로 쓰지 않는다(DEC-72·77).
 * 기록하는 판정 보류(`notes`): spec 성능 제약 중 잴 수 없는 것(ss 영역, S-1), 수동소자 면적·값 미선언(DEC-79 -- 보상·부하
-  수동소자가 있으면 `review_needed`), 층 0 결과(최소형 -- 정밀화 GB3·GB4·knee 는 범위 밖, S-4), 판정 축 재필터 미실행(MOD8 몫), 모델 오차 미측정('추정').
+  수동소자가 있으면 `review_needed`), 층 0 결과(최소형 -- 정밀화 GB3·GB4·knee 는 범위 밖, S-4), 판정 축 재필터 미실행(MOD8 몫 -- `convergence.converge(sctx, pdk_decl, front.front)` 가 이 front 를 받아 한다; 패키지 순서상 여기서 부를 수 없고 U16 파이프라인이 부른다), 모델 오차 미측정('추정').
 * 계측 `perf`(설계 7.4): requests·kernel_calls·hits·fail_hits·disk_hits·outside_domain·recompute_same_key, 고유 키 수,
   평가 시간 중앙값, sizing 계산 블록 calls·reuses·computes·recomputes_same_input 델타, LUT memo 퇴출 수.
   합격 기준(NFR-2): kernel_calls == 고유 키 수, recompute_same_key == 0, LUT memo 퇴출 0.
@@ -18,6 +18,7 @@ import statistics
 import time
 
 from gmid_engine.core import fp_of
+from gmid_engine.metrics import verified_by
 from gmid_engine.sizing import (
     dc_columns,
     dc_currents,
@@ -34,6 +35,7 @@ from gmid_engine.sizing import (
 )
 
 from .eps_sweep import sweep_front
+from .gate_run import run_sensitivity_gate
 from .layer0_center import layer0_start
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, SearchFront
 from .start_points import start_points
@@ -79,12 +81,20 @@ def find_front(sctx, given_starts):
     out = sweep_front(sctx, starts)
     blocks_after = _block_totals()
     notes = [dict(n) for n in sctx.constraint_notes]
+    gate = run_sensitivity_gate(sctx, out["front"][0].result) if out["front"] else None      # [U7] 최종 해의 감도 게이트(40 §3.8-2)
+    if gate is not None:
+        notes.append({"verdict": "ok" if gate.ok else "error", "rule": "sensitivity_gate", "errors": list(gate.errors),
+                      "checks": len(gate.checks), "unchecked": sum(1 for c in gate.checks if c[4] is None), "epsilon_db": gate.epsilon})
     probe = next((s.best for _p, s in out["solves"] if s.best is not None), None)
     if probe is not None and (probe.objectives.passive_value_undetermined or probe.objectives.passive_area_undeclared):
         notes.append({"verdict": "review_needed", "rule": "DEC-79",
                       "passive_value_undetermined": list(probe.objectives.passive_value_undetermined),
                       "passive_area_undeclared": list(probe.objectives.passive_area_undeclared)})
     notes.append({"verdict": "judgment_pending", "rule": "DEC-72", "reason": "model_error_unmeasured_front_estimated"})
+    declared = sorted({d.metric for d in sctx.ss_constraints} | {m for m, _op, _v in sctx.judged_constraints})      # [U7] 판정 metric 의 검증 출처(DEC-90 (3))
+    notes.append({"verdict": "verified_by", "rule": "DEC-72/DEC-90",
+                  "metrics": [[v.metric, v.kind, v.measure, v.model_error_ref] for v in map(verified_by, declared)],
+                  "model_error": [list(p) for p in sctx.model_error]})
     notes.append({"verdict": "not_run", "rule": "DEC-79", "reason": "layout_axis_refilter_is_mod8"})
     box = [[k, list(v)] for k, v in sctx.domain.current_box]
     if sctx.domain.area_budget_m2 is None:

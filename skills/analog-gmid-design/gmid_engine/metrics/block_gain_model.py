@@ -1,6 +1,6 @@
 """블록 국소 소신호 모델 조립 -- 격자 축·전류 모델·여기·출력 (설계 41 §2.1 블록 국소 모델, §4.2 축 표; GB4 단계 A6 의 입력).
 
-진입점: `block_model(local, spec) -> (BlockModel | None, 미상 사유 | None)`  (`local` = `LocalInputs`, `spec` = `BlockSpec`).
+진입점: `block_gain_model_of(local, spec) -> (BlockModel | None, 미상 사유 | None)`  (`local` = `LocalInputs`, `spec` = `BlockSpec`).
 
 **모형**(ω → 0, 커패시터는 열림): 미지수 = 블록 노드 중 교류접지·여기 넷이 아닌 것(저항 끝만 달린 막다른 가지는 DC 에 닿지 않으므로 뺀다). 각 MOS 는 `i = gm·(vg−vs) + gds·(vd−vs) +
 gmb·(vb−vs)`(드레인에서 소스로, 양/음극 모두 LUT 크기 값을 같은 식에 넣는다), 저항은 컨덕턴스. 여기 = 입력 넷 단위 전압(`excite` 가 가중을 주면 그대로, 차동 입력은 ±½),
@@ -129,7 +129,7 @@ def _log_grid(lo, hi, count):
     return np.exp(np.linspace(math.log(lo), math.log(hi), count))
 
 
-def block_model(local, spec):
+def block_gain_model_of(local, spec):
     device_colour, node_colour = local.device_colour or {}, local.node_colour or {}
 
     def dkey(name):

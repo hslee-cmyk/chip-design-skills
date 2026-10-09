@@ -110,48 +110,99 @@ def test_junction_built_once_per_context(tmp_path, lut_sealed):
     assert j == JunctionSource.from_decls(case.pdk, case.rule, case.dc.lut.memo.lut)
 
 
-# ---------------------------------------------------------------- [U5 2026-10-08] 계산 대기 metric 제약
-# oracle (d) metrics CONTRACT 3.15 문장: '탐색 문맥(build_search_context)은 판정 제약 중 카탈로그에만 있는 이름을 constraint_notes 에
-# unmeasured/metric_computation_pending 으로 남긴다' + (a) 이름은 설계 40 §3.8-8·41 §7.1 어휘, 회로 C 는 손 회로.
-# ss_constraints 에 들어가면 측정 못 하는 행이 탐색 판정에 섞인다 -- 그래서 '들어가지 않는다'가 핵심 단정이다.
-PENDING_CONS = (("offset_excess", "<=", 2 ** 0.5, None), ("noise_excess_th", "<=", 2.0, None),
-                ("swing_out_v", ">=", 0.5, None), ("noise_out_int_vrms", "<=", 3e-4, None))
+# ---------------------------------------------------------------- [U7+U8 통합 2026-10-09] 계산 대기 표가 빈 표인 문맥
+# 옛 [U5] 두 test(`test_pending_metric_constraints_noted_not_searched`·`test_pending_metric_notes_do_not_touch_registry_rows`)는 계산 대기
+# 이름(PENDING_CONS)이 빈 tuple 이 되어 반복할 대상이 없는 헐거운 test 였다 -- 삭제하고 아래 test 로 대체한다.
+# 현재 계약: metrics CONTRACT 10.0·11절(`PENDING_METRIC_ROWS` 빈 tuple, 카탈로그 = 레지스트리), search CONTRACT 3.9 분류
+# (목적 축 -> judged_constraints, view 있는 판정 제약 -> ss_constraints, 나머지 -> notes metric_not_in_registry_or_no_ss_view).
+# 그래서 카탈로그의 어떤 이름으로 제약을 걸어도 metric_computation_pending 노트가 생기지 않고, 각 제약은 세 곳 중 정확히 한 곳에 간다.
+# oracle (d) 계약 문장. 잡음 4개는 잡음 LUT 없는 toy LUT 에서 noise_lut_missing 거부(U8 절 test)라 이 sweep 에서 뺀다 -- 구성(a).
+# view_kind cm_loop(회로 C 는 차동 출력이 없어 기본 뷰 없음)·ratio({num, den} 명시 필수)는 로더가 view_required 로 거부하므로
+# 뷰 없는 이 sweep 에서 뺀다(SPEC_CONTRACT 2절, authoring test 가 본다) -- 구성(a).
+# 값 1.0 은 합성 입력(a), 사용자 값 아님. 미지 이름 거부(metric_unknown, 로더)는 authoring/test_spec_constraints.py 가 본다.
+NOISE_NAMES = ("noise_th_in_v2hz", "noise_fc_in_hz", "noise_excess_th", "noise_out_int_vrms")
+VIEW_REQUIRED_KINDS = ("cm_loop", "ratio")
 
 
-def test_pending_metric_constraints_noted_not_searched(tmp_path, lut_sealed):
-    case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=PENDING_CONS + (("gain_ss_db", ">=", 10.0, None),))
-    s = case.sctx
-    assert [c.metric for c in s.ss_constraints] == ["gain_ss_db"]
-    assert not {m for m, *_ in PENDING_CONS} & {x[0] for x in s.judged_constraints}
+def test_every_catalog_constraint_classified_once_never_pending(tmp_path, lut_sealed):
+    from gmid_engine.metrics import metric_catalog
+    cat = metric_catalog()
+    names = sorted(n for n in cat if n not in NOISE_NAMES and cat[n].view_kind not in VIEW_REQUIRED_KINDS)
+    assert len(names) == 23 - len(NOISE_NAMES) - 2          # pm_cm_ss_deg(cm_loop)·ratio_ss_db(ratio)
+    cons = tuple((n, "<=", 1.0, None) for n in names)
+    s = build_case(tmp_path, circuit_c(), lut_sealed, constraints=cons).sctx
     notes = _notes(s)
-    for metric, *_ in PENDING_CONS:
-        mine = [n for n in notes if metric in repr(n)]
-        assert len(mine) == 1, (metric, notes)
-        assert mine[0].get("verdict") == "unmeasured"
-        assert mine[0].get("reason") == "metric_computation_pending"
+    assert not any(n.get("reason") == "metric_computation_pending" for n in notes)
+    ss = [c.metric for c in s.ss_constraints]
+    judged = [x[0] for x in s.judged_constraints]
+    for n in names:
+        noted = [x for x in notes if x.get("reason") == "metric_not_in_registry_or_no_ss_view" and repr(n) in repr(x)]
+        assert ss.count(n) + judged.count(n) + len(noted) == 1, (n, ss, judged, notes)
 
 
-def test_pending_metric_notes_do_not_touch_registry_rows(tmp_path, lut_sealed):
-    """계산 대기 제약을 더해도 레지스트리 제약 분류(ss_constraints·judged_constraints)는 그대로다."""
-    a = build_case(tmp_path / "a", circuit_c(), lut_sealed, constraints=CONS).sctx
-    b = build_case(tmp_path / "b", circuit_c(), lut_sealed, constraints=CONS + PENDING_CONS).sctx
-    assert [(c.metric, c.op, c.value) for c in a.ss_constraints] == [(c.metric, c.op, c.value) for c in b.ss_constraints]
-    assert tuple(tuple(x) for x in a.judged_constraints) == tuple(tuple(x) for x in b.judged_constraints)
-    extra = [n for n in _notes(b) if n not in _notes(a)]
-    assert len(extra) == len(PENDING_CONS)
-    assert all(n.get("reason") == "metric_computation_pending" for n in extra)
+# ---------------------------------------------------------------- [U7 2026-10-09] 계산이 들어온 offset·스윙·FF 비 제약
+# oracle (d) metrics CONTRACT 10.7: '`ctx.ss_constraints` 에 `AUX_TYPES` metric(뷰 없는 swing·mirror 포함)이 들어가 `ss_constraint_rows` 가
+# 판정한다'. 설계 40 §3.8-8 판정 위치 '다른 metric 과 같이 외층 전회로 계산 한 곳(DEC-74)' -- 계산 대기 노트(metric_computation_pending)로
+# 남으면 판정이 조용히 빠진다. 옛 기대(계산 대기 노트)는 U7 이 계산을 넣어 대체된 동작이다.
+AUX_CONS = (("offset_excess", "<=", 2 ** 0.5, None), ("swing_out_v", ">=", 0.5, None), ("mirror_ratio_sigma_pct", "<=", 1.0, None),
+            ("ff_gm_ratio", ">=", 1.0, None))
 
 
+def test_aux_metric_constraints_enter_ss_constraints(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=AUX_CONS + (("gain_ss_db", ">=", 10.0, None),))
+    s = case.sctx
+    assert sorted(c.metric for c in s.ss_constraints) == sorted([m for m, *_ in AUX_CONS] + ["gain_ss_db"])
+    assert not {m for m, *_ in AUX_CONS} & {x[0] for x in s.judged_constraints}
+    assert not any(n.get("reason") == "metric_computation_pending" for n in _notes(s))
+    assert not any(n.get("reason") == "metric_not_in_registry_or_no_ss_view" and any(m in repr(n) for m, *_ in AUX_CONS)
+                   for n in _notes(s))
 
-def test_ff_gm_ratio_constraint_noted_computation_pending(tmp_path, lut_sealed):
-    """[U5 후속 2026-10-09] ff_gm_ratio(40 §3.8-8, 값 계산은 §11 J 추가 범위 U7) 는 카탈로그에만 있는 계산 대기 이름 --
-    oracle (d) SPEC_CONTRACT 6절 끝 '탐색 문맥이 constraint_notes 에 unmeasured/metric_computation_pending 으로 남긴다'.
-    ss_constraints·judged_constraints 에 들지 않는다(측정 못 하는 행이 탐색 판정에 섞이지 않음)."""
+
+def test_ff_gm_ratio_constraint_judged_not_pending(tmp_path, lut_sealed):
+    """[U7] ff_gm_ratio(40 §3.8-8, 계산 = §11 J 추가 범위 U7 행) 는 이제 레지스트리 metric -- ss_constraints 에 들고 노트가 없다."""
     cons = (("ff_gm_ratio", ">=", 1.0, None), ("gain_ss_db", ">=", 10.0, None))
     s = build_case(tmp_path, circuit_c(), lut_sealed, constraints=cons).sctx
-    assert [c.metric for c in s.ss_constraints] == ["gain_ss_db"]
+    assert [c.metric for c in s.ss_constraints] == ["ff_gm_ratio", "gain_ss_db"]
     assert "ff_gm_ratio" not in {x[0] for x in s.judged_constraints}
-    mine = [n for n in _notes(s) if "ff_gm_ratio" in repr(n)]
-    assert len(mine) == 1, _notes(s)
-    assert mine[0].get("verdict") == "unmeasured"
-    assert mine[0].get("reason") == "metric_computation_pending"
+    assert [n for n in _notes(s) if "ff_gm_ratio" in repr(n)] == []
+
+
+
+# ---------------------------------------------------------------- [U8 2026-10-09] 잡음 제약 -- 시작 때 잡음 LUT 필수 검사
+# oracle (d) search CONTRACT 11절·설계 41 §7.2 '잡음 데이터가 없는데 잡음 제약이 선언되면 SchemaRejectedError(noise_lut_missing)',
+# lut CONTRACT 9.5(detail kinds = 없는 kind 정렬 tuple). lut_sealed 는 잡음 r1 없이 만든 toy LUT 다(구성).
+
+@pytest.mark.parametrize("metric, op, value", [("noise_excess_th", "<=", 2.0), ("noise_th_in_v2hz", "<=", 1e-15),
+                                               ("noise_fc_in_hz", "<=", 1e5), ("noise_out_int_vrms", "<=", 3e-4)])
+def test_noise_constraint_without_noise_lut_rejected(tmp_path, lut_sealed, metric, op, value):
+    with pytest.raises(SchemaRejectedError) as ei:
+        build_case(tmp_path, circuit_c(), lut_sealed, constraints=((metric, op, value, None), ("gain_ss_db", ">=", 10.0, None)))
+    d = dict(ei.value.record.detail)
+    assert d["reason"] == "noise_lut_missing"
+    assert tuple(d["kinds"]) == ("nmos", "pmos")              # 회로 C 의 MOS kind 둘 다 잡음 표가 없다
+
+
+def test_no_noise_constraint_no_noise_lut_needed(tmp_path, lut_sealed):
+    """잡음 제약이 없으면 잡음 LUT 없이도 시작한다(거부는 값 있는 잡음 제약이 있을 때만)."""
+    s = build_case(tmp_path, circuit_c(), lut_sealed, constraints=(("gain_ss_db", ">=", 10.0, None),)).sctx
+    assert [c.metric for c in s.ss_constraints] == ["gain_ss_db"]
+
+
+def test_noise_decl_without_s1v(tmp_path, lut_sealed):
+    """search 11절: SearchContext.noise_decl = noise_decl(spec, s1v) -- 6인자 호출(s1v 없음)이면 입력 셀 없음, spec feedback 빈 list -> (),
+    noise_testbench 없음 -> 샘플링 커패시터 (). oracle (d)."""
+    from gmid_engine.metrics import NoiseDecl
+    s = build_case(tmp_path, circuit_c(), lut_sealed).sctx
+    assert s.noise_decl == NoiseDecl(feedback=(), sampling_caps=(), input_cells=())
+
+
+def test_u7_context_inputs_default(tmp_path, lut_sealed):
+    """[U7] CONTRACT 10.7: s1v 를 안 주면 구조 입력 None(구조 의존 값은 정의 불가로 남는다), model_error 기본 (), mismatch 는 PDK 선언에서
+    `MismatchSource.from_decl(pdk_decl)`, driving = spec.driving_spec."""
+    from gmid_engine.metrics import MismatchSource
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    s = case.sctx
+    assert s.structure is None
+    assert tuple(s.model_error) == ()
+    assert s.mismatch == MismatchSource.from_decl(case.pdk)
+    assert s.driving is case.spec.driving_spec

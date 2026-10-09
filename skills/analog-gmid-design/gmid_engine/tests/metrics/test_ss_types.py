@@ -91,19 +91,24 @@ def test_junction_model_constant():
 
 
 def test_s2_writer_table_has_ss_fields():
-    """권한표 S2_WRITERS: ss·metric 필드 3개가 dc 필드 뒤에 더 있다, writer = metrics 계산 블록 이름."""
+    """권한표 S2_WRITERS: ss·metric 필드가 dc 필드 뒤에 더 있다, writer = metrics 계산 블록 이름.
+    [U7 2026-10-09] oracle (d) metrics CONTRACT 10.0 'sizing: S2 writer `metrics_aux`(`METRICS_AUX_WRITER`, 필드 ("graph", "metrics_aux")) 추가'
+    + sizing CONTRACT 2절 끝 표 행 -- ss·metric 필드 3개 -> 4개(옛 기대 3개는 U7 배선으로 대체된 동작)."""
+    from gmid_engine.metrics import metrics_aux
+    from gmid_engine.sizing import METRICS_AUX_WRITER
     assert SS_WRITES == (("ss_dev", (("device", "ss_dev"),)), ("metrics_ss", (("graph", "metrics_ss"),)),
-                         ("metrics_dc", (("graph", "metrics_dc"),)))
+                         ("metrics_dc", (("graph", "metrics_dc"),)), ("metrics_aux", (("graph", "metrics_aux"),)))
     assert S2_WRITERS.writer_of("device", "ss_dev") == SS_DEV_WRITER == ss_dev.name
     assert S2_WRITERS.writer_of("graph", "metrics_ss") == METRICS_SS_WRITER == metrics_ss.name
     assert S2_WRITERS.writer_of("graph", "metrics_dc") == METRICS_DC_WRITER == metrics_dc.name
+    assert S2_WRITERS.writer_of("graph", "metrics_aux") == METRICS_AUX_WRITER == metrics_aux.name
     assert METRICS_KEY == "metrics"
     for writer, fields in SS_WRITES:
-        blk = {b.name: b for b in (ss_dev, metrics_ss, metrics_dc)}[writer]
+        blk = {b.name: b for b in (ss_dev, metrics_ss, metrics_dc, metrics_aux)}[writer]
         assert tuple(blk.writes) == fields
-    # 필드마다 writer 하나 -- 세 writer 가 쓰는 필드는 정확히 그 3개
-    owned = {kf for kf, w in S2_WRITERS.entries if w in (SS_DEV_WRITER, METRICS_SS_WRITER, METRICS_DC_WRITER)}
-    assert owned == {("device", "ss_dev"), ("graph", "metrics_ss"), ("graph", "metrics_dc")}
+    # 필드마다 writer 하나 -- 네 writer 가 쓰는 필드는 정확히 그 4개
+    owned = {kf for kf, w in S2_WRITERS.entries if w in (SS_DEV_WRITER, METRICS_SS_WRITER, METRICS_DC_WRITER, METRICS_AUX_WRITER)}
+    assert owned == {("device", "ss_dev"), ("graph", "metrics_ss"), ("graph", "metrics_dc"), ("graph", "metrics_aux")}
 
 
 def test_s2_writer_table_rejects_other_writer():
