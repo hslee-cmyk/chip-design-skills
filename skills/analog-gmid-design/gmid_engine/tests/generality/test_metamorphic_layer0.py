@@ -142,7 +142,13 @@ def _case(name):
     spec = json.loads((LIBRARY / (name + ".sizing_spec.json")).read_text(encoding="utf-8"))
     # [U8 2026-10-09] 값 있는 잡음 제약은 잡음 r1 LUT 를 요구한다(search CONTRACT 11절 noise_lut_missing) -- 이 test 의 LUT 는 잡음 없는 r4 toy 라
     # 잡음 제약만 뺀다(층 0 비트 동일성이 목적; 잡음 metric 의 이름 치환 불변은 실데이터 하네스(Env, 잡음 r1 포함)와 tests/metrics 잡음 test 가 본다)
-    spec["human"]["constraints"] = [c for c in spec["human"]["constraints"] if not str(c.get("metric", "")).startswith("noise_")]
+    # [U13 후속 2026-10-09] 값 있는 offset_in_sigma_mv·offset_excess 제약은 mismatch r1 을 요구한다(search CONTRACT 11절 mismatch_lut_missing,
+    # fail-closed) -- r4 toy 는 mismatch r1 도 없어 같은 이유로 그 두 제약과 값을 그 제약에서 가져오는(value_from_constraint) 제약을 뺀다
+    # (offset metric 의 실경로 분류는 Env(mismatch r1 포함)·tests/search/test_search_context.py 실경로 test 가 본다)
+    offset = ("offset_in_sigma_mv", "offset_excess")
+    spec["human"]["constraints"] = [c for c in spec["human"]["constraints"]
+                                    if not str(c.get("metric", "")).startswith("noise_") and c.get("metric") not in offset
+                                    and c.get("value_from_constraint") not in offset]
     extra = ()
     if name == "two_stage_ota_sf":                           # value_from_file 참조 대상(원본 그대로)
         extra = (LIBRARY / "two_stage_ota.topology.json", LIBRARY / "two_stage_ota.sizing_spec.json")
