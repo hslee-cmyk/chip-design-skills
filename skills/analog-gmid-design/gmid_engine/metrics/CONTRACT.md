@@ -1070,7 +1070,7 @@ Z_i = z[s_i] − z[d_i], z = 관측 벡터의 수반 풀이(LU 1회 -- 소자마
 
 ### 10.4 `mirror_ratio` (D-MR)
 
-그룹마다 기준 diode(DC 역할 `ROLE_DIODE`)가 있으면 (기준, 나머지) 쌍, 없으면 멤버 전쌍. σ(ΔI/I) = √((gm/ID_a·σ_a)² + (gm/ID_b·σ_b)²) -- 두 gm/ID 가 같으면 설계 표의 (gm/ID)·√2·σ 와 같다.
+그룹마다 기준 diode(DC 역할 `ROLE_DIODE` 또는 복합 diode 의 기준 멤버 `ROLE_DIODE_COMPOSITE`; 복합 캐스코드 멤버 `ROLE_DIODE_COMPOSITE_CASCODE` 는 기준이 아님)가 있으면 (기준, 나머지) 쌍, 없으면 멤버 전쌍. σ(ΔI/I) = √((gm/ID_a·σ_a)² + (gm/ID_b·σ_b)²) -- 두 gm/ID 가 같으면 설계 표의 (gm/ID)·√2·σ 와 같다.
 값 = 모든 그룹·쌍의 최댓값 [pct]. `groups` 표 = (표지, 멤버, 기준 소자들, 그룹 최대 σ pct). 사유: `no_mirror_group`, `sigma_missing`.
 
 ### 10.5 `ls_swing` (D-SW·D-ICM·D-J5)
@@ -1090,7 +1090,7 @@ V_icm = `input_dc_v`(선언) 또는 입력 DC 대기(SP-2)면 봉인 해의 입�
 스탬프 소자 = **netlist 인접**(소유 노드에 채널·저항 단자가 닿는 MOS·저항) -- S1v `roles` 가 아니다(버퍼 블록의 부하 소자도 같은 규칙으로 붙는다, 10.9 (3)). 소유도 접지도 다른 블록도 아닌 넷은 미지수로 폐포(Rz–Cc 중간 넷, FF 내부 넷).
 `exclude` = FF 묶음 소자(주경로 블록에서 뺀다), `extra` = merge 블록에 합류시킬 FF 소자. 산출 `BlockGain(gain 부호 있음, gain_db, zout_ohm, node_v, members, decomposed_only, solve_residual)`.
 `block_residual`: 주경로 사슬을 **앞 블록의 해 전압을 다음 입력으로** 이어 푼다(`gain_residual_db` = 전회로 DC 이득 dB − 20·log10|A_decomp|). FF: A_decomp = FF 소자를 merge 블록 해에 넣고 탭 전압(사슬 해)으로 구동한 사슬의 감지값.
-`ff_contrib` = FF 묶음 하나만 켠 사슬의 감지값 − 주경로 감지값 (`gain_db`, `sign` 보강 +1/상쇄 −1). `rout_residual_ohm` = 전회로 rout − 감지 넷을 출력으로 갖는 마지막 블록의 Z_out(FF 부하는 이 잔차에 나타난다).
+FF 소자는 merge 블록 국소 모형에 항상 들어간다(gds 부하 = Z_merge 의 일부, 블록 gain·Z_out 에 반영). `ff_contrib` = 경로 항 A_in→tap·G_ff·Z_merge = (그 묶음 탭만 구동한 사슬 − 구동 없는 사슬) 감지값 (`gain_db`, `sign` 주경로와 같은 방향 +1/반대 −1). `rout_residual_ohm` = 전회로 rout − 감지 넷을 출력으로 갖는 마지막 블록의 Z_out(FF 부하는 이 잔차에 나타난다).
 `ff_gm_ratio`: r_ff = |G_ff| / gm_in(B_b), G_ff = B_b 입력(차동 1 V) -> merge 단락 전류(B_b 국소 해 + FF 소자, merge 접지)의 크기, gm_in = B_b input 셀 gm 평균; 값 = 묶음 r_ff 최댓값, `per_ff` 표.
 작성자 측 9회로 중 5회로 실측은 10.8. DC 극한이라 닫힌 선형 분해이므로 정상 회로의 잔차는 부동소수 바닥(0.0 dB)이다 -- 잔차가 0 이 아닌 회로는 '블록을 가로지르는 되먹임'이나 구조 모형 누락의 신호다.
 

@@ -4,7 +4,7 @@
 
 * 대상 = S1 matching 그룹 중 mirror 계열(`groups` = ((kind 문자열, 멤버 이름 tuple), ...) -- 호출자가 `graph.matching_groups` 의 mirror 그룹과
   `matching_dispositions` 의 bias_distribution 을 이 형식으로 준다). 계산 대상은 소자 쌍이다: 같은 그룹에 DC 역할이 기준 diode(`roles` 값
-  `diode_reference` 로 시작)인 멤버가 있으면 (기준, 나머지 멤버) 쌍, 없으면 멤버 전쌍.
+  `diode_reference` 또는 복합 diode 기준 `diode_reference_composite`; 복합 캐스코드 멤버는 제외)인 멤버가 있으면 (기준, 나머지 멤버) 쌍, 없으면 멤버 전쌍.
 * 쌍 (a, b) 의 전류비 오차: 같은 VGS 에서 전류는 ΔI/I = (gm/ID)·ΔVGS 이므로 독립 게이트 오차 σ_VGS,a·σ_VGS,b(U3 `mismatch_sigma_vgs`)에서
   σ(ΔI/I) = √((gm/ID_a·σ_a)² + (gm/ID_b·σ_b)²) (두 소자 gm/ID 가 같으면 설계 40 §3.8-8 의 (gm/ID)·√2·σ 와 같다 -- 같지 않을 때 일반형).
 * metric 값 = 모든 그룹·쌍의 최댓값 [pct], `groups` = 그룹마다 (kind, 멤버, 기준 소자들, 최대 σ pct) 표 -- 보고.
@@ -15,12 +15,13 @@ import itertools
 import math
 
 from gmid_engine.core import PCT_PER_UNIT
-from gmid_engine.graph import ROLE_DIODE
+from gmid_engine.graph import ROLE_DIODE, ROLE_DIODE_COMPOSITE
 
 from .aux_types import MirrorRatio
 from .mna_types import Undefined
 
 QUANTITY = "sigma_pct"
+REFERENCE_ROLES = (ROLE_DIODE, ROLE_DIODE_COMPOSITE)   # 기준 = diode 또는 복합 diode 의 기준 멤버(캐스코드 멤버 `diode_reference_composite_cascode` 는 기준이 아니다)
 PAIR = 1 + 1                                    # 쌍 = 소자 둘
 
 
@@ -41,7 +42,7 @@ def mirror_ratio(groups, roles, gm_id, sigmas):
         absent = tuple(m for m in members if m not in sigma_of or m not in gmid_of)
         if absent:
             return _bare("sigma_missing", (("devices", absent),))
-        refs = tuple(m for m in members if role_of.get(m) == ROLE_DIODE)
+        refs = tuple(m for m in members if role_of.get(m) in REFERENCE_ROLES)
         pairs = tuple((r, m) for r in refs for m in members if m not in refs) if refs and len(refs) < len(members) \
             else tuple(itertools.combinations(members, PAIR))
         values = tuple((_pair(gmid_of[a], sigma_of[a][0], gmid_of[b], sigma_of[b][0]), a, b) for a, b in pairs)

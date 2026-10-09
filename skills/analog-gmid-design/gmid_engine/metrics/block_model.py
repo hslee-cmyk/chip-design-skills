@@ -13,7 +13,7 @@
   FF 묶음)는 항상 스탬프한다.
 * **산출**: `gain` = V(out)/V(in)(입력 둘이면 차, 출력 둘이면 차 -- 차동은 ±½ 이라 입력 1 V), `zout_ohm` = 입력 접지·출력 단위 전류(출력 둘이면 +1/−1)의 출력 전압(차),
   `node_v`(사슬 입력), 복합 블록(`kind == composite`, 입력 둘 이상)은 경로별 기여 `contributions`((입력 넷, 기여), 다른 경로 입력 소자의 gm·gmb 를 0 으로 둔 국소 해, 부호 포함)를
-  내고 `gain` 은 None(`composite_paths` -- 한 이득 값이 아니다), `decomposed_only` = 입력 넷과 소유 노드를 잇는 저항(되먹임 수동소자)이 있는가(41 §2.2 '분해값'), 상대 풀이 잔차.
+  내고 `gain` 은 None(`composite_paths` -- 한 이득 값이 아니다), `decomposed_only` = 소유 노드와 블록 밖 노드(입력 넷·다른 블록 노드)를 잇는 저항(블록을 가로지르는 되먹임 수동소자)이 있는가 -- 저항이 닿는 블록 모두에 표시(41 §2.2 '분해값'), 상대 풀이 잔차.
 * 정의 불가(값으로): 출력이 없거나 셋 이상(`unsupported_outputs`), 입력이 없거나 셋 이상(`unsupported_inputs`), 입력 차 0(`input_zero`), 계 특이(`singular_dc`).
 """
 import dataclasses
@@ -118,7 +118,8 @@ def block_local_gain(ss, block, drive=None, others=(), exclude=(), extra=()):
     node_v = tuple(sorted((names[i], float(volt[i])) for i in unknown | driven))
     by_net = dict(node_v)
     outputs = tuple(n for n in block.outputs)
-    decomposed = any((r.a in inputs and r.b in unknown) or (r.b in inputs and r.a in unknown)
+    across = inputs | outside                                      # 블록 경계 밖 노드(입력 넷 + 다른 블록 노드)
+    decomposed = any((r.a in across and r.b in unknown) or (r.b in across and r.a in unknown)
                      for r in ss.circuit.resistors if r.label in res_labels)
     if len(outputs) not in (SINGLE, PAIR) or any(n not in by_net for n in outputs):
         return BlockGain(block.key, None, None, None, (), decomposed, residual, node_v, members, _undefined("unsupported_outputs"))
