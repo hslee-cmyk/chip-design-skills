@@ -1009,22 +1009,30 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 | `dominant_node` | `dominant_node.py` | `dominant_node(view) -> DominantNode(nets, rule)` -- Miller 루프 앞 노드 / 출력 포트 노드 / 버퍼 앞 마지막 이득 블록 노드(구조 판정, 매크로 모델 비사용) |
 | `EvalBudget` | `eval_budget.py` | `EvalBudget(wall_s, times, reserve_evals=0)` · `.limit()` = ⌊B/t_eval⌋ − reserve · `.remaining()` = limit − 지금까지 평가 수 · `.t_eval()` = 중앙값. `kernel.evaluate` 의 E_B 한 번 유도가 `limit()` 을 쓴다(`derived_once:floor(B/median_t_eval)` 문자열·값 불변) |
 | 값 형식 | `start_values.py` | `Bound`·`StartConflict`·`StartRow`·`StartRung`·`MacroResult`·`StartIntervals`·`StartContext` + 경계 식 이름 `SRC_*`·비활성 사유 `WHY_*`·`PM_FLOOR_DEG` |
-| 내부 | `iv_context`(입력 묶음) · `iv_curves`(`CurveBook`: U3 곡선 API 를 gm/ID 축 묶음으로) · `iv_headroom`(§6.2) · `iv_speed`(§6.3·§6.4-4) · `iv_gain_l`(§6.4-1 활성 판정) · `iv_matching_l`(§6.4-2·2a) · `iv_noise`(§7.5) · `iv_area`(§6.4-5·최소 폭) · `iv_domain`(LUT 역산 정의역) · `iv_currents`(블록 gm -> 소자·θ 전류 아핀 전파) · `macro_poles`(§6.5) · `_helpers_curves`·`_helpers_area`·`_helpers_guard` | |
+| 내부 | `iv_context`(입력 묶음) · `iv_curves`(`CurveBook`: U3 곡선 API 를 gm/ID 축 묶음으로) · `iv_headroom`(§6.2) · `iv_speed`(§6.3·§6.4-4) · `iv_gain_l`(§6.4-1 블록 국소 모델 L 하한; 입력 묶음은 `iv_context`) · `iv_matching_l`(§6.4-2·2a) · `iv_noise`(§7.5) · `iv_area`(§6.4-5·최소 폭) · `iv_domain`(LUT 역산 정의역) · `iv_currents`(블록 gm -> 소자·θ 전류 아핀 전파) · `macro_poles`(§6.5) · `_helpers_curves`·`_helpers_area`·`_helpers_guard` | |
 
 ### U13.2 계산 순서와 경계 식 (설계 41 §6.1 의 순서, 순환 없음)
 
 0. 주극점 노드 `dominant_node`. 1. gm/ID 하한: U9 `headroom_bound` 를 모든 MOS 단자 넷의 창으로 불러(복제 없음) 소자 엣지 예산 `U(윗 넷) − L(아랫 넷)`(다른 소자는 최소 비용) + 스윙·ICMR·입력 DC 분할 -> `vdsat_curve`·VGS 역산(`hull`).
-2. L 상한(속도 §6.4-4, 면적 §6.4-5)·L 하한(matching §6.4-2, 이득 §6.4-1 은 비활성 사유만). 3. 1회차 매크로(gm/ID = 하한)로 전류. 4. L = max(하한), 동치류·자기동형 묶음 교집합, LUT L 칸으로 맞춤.
+2. L 상한(속도 §6.4-4, 면적 §6.4-5)·L 하한(matching §6.4-2; 이득 §6.4-1 = U9 블록 국소 모델이 블록 목표 g_i = G·A_i,max/ΣA_max 를 맞추는 최소 L -- A_max 미인증·이득 제약 없음이면 비활성 사유). 3. 1회차 매크로(gm/ID = 하한)로 전류. 4. L = max(하한), 동치류·자기동형 묶음 교집합, LUT L 칸으로 맞춤.
 5. 그 L 에서 gm/ID: 하한(헤드룸, **LUT 역산 정의역 `iv_domain`**, 최소 폭 W ≥ W_min), 상한(속도 f_T ≥ f_np, offset·열잡음 가드, 면적, LUT 정의역 중점). 같은 VGS 묶음(`parallel_vgs`)은 구간 교집합 하나를 공유.
-6. 선택 = 구간의 최댓값(t = 1), 면적 예산 안이고 매크로가 GBW·PM 을 풀 수 있는 최대 t(`bracket_root`); 7. 출발 사다리 = t, t/2, t/4, … (길이 ⌈log2(구간 폭 최댓값 / gm/ID 하한 최솟값)⌉ + 1).
+6. 선택 = 구간의 최댓값(t = 1), 면적 예산 안이고 매크로가 GBW·PM 을 풀 수 있는 최대 t(`bracket_root`); 7. 출발 사다리 = t, t/2, t/4, … (길이 = ⌈log2(gm/ID 구간 폭 최댓값 / LUT 곡선 gm/ID 최솟값)⌉ + 1, 선택 t = 0 이면 1칸).
 
 * **경계는 항상 '나머지는 최소로 두고 k 가 가질 수 있는 최대'** (41 §6.2): 헤드룸 예산, 면적 A_k,avail, 가드의 level_k. 비어 있으면(하한 > 상한) 자르지 않고 `StartConflict` 를 남기고 헤드룸 쪽(포화)으로 닫는다.
 * **gm 고정 전류 모델**(iv_area): 매크로가 정하는 것은 gm 이고 I(g) = gm/g. W(g) = gm·L/(g·IDu), 면적 gm·L²/(g·IDu) -- g 에 대해 증가.
 * **비활성 사유**(조용히 빠지지 않는다): 제약 미선언(`constraint_not_declared`), LUT 데이터 없음(`lut_mismatch_unavailable`·`lut_noise_unavailable`), A_max 미인증(`u9_value_not_certified`), 전류 미정(`stage_current_unavailable`),
-  U8 미병합 의존(`depends_on_unmerged_unit` -- `noise_out_int_vrms` 의 C_eff·1/f 하한).
+  PM 목표 없음(`pm_target_missing`, 속도 상한), U8 미병합 의존(`depends_on_unmerged_unit` -- `noise_out_int_vrms` 의 C_eff·1/f 하한).
 * **매크로 모델**(`macro_poles`): 전달 뷰의 이득 블록마다 VCCS(gm_b, G_out = gm_b/A_intr, 버퍼는 A = 1) + 노드 용량(소자 cgg·cdd 는 전류에 비례하는 아핀 계수) + 수동소자(Miller C·영점 상쇄 R = 1/Σgm) + feedforward VCCS(G_ff = r_ff·gm_in(B_b), r_ff = 1).
-  풀이 = |H(jω_GBW)| = 1 과 PM(ω_GBW) ≥ 목표를 지키는 **전원 전류 합 최소**(SLSQP, 실행 가능한 출발점에서). 극점·UGF·PM 은 U7 `solve_responses`·`analyze_loop`. 근 괄호가 없으면 `macro_root_missing`, 반복 한도에서 `macro_nonconvergent`.
-  PM 목표가 없으면 PM_FLOOR_DEG = atan(1) = 45°(비주극점이 UGF 에 놓인 경계). GBW 목표가 없으면 비활성(`macro_inactive`).
+  풀이 = |H(jω_GBW)| = 1 과 PM(ω_GBW) ≥ 목표를 지키는 **전원 전류 합 최소**(SLSQP). 비볼록(주극점이 어느 단에 놓이는지가 국소 최소를 가른다)이라 단마다 그 단을 주극점으로 하는 실행 가능한 출발점(나머지 단 gm 을 올리고 그 단 gm 으로 UGF = GBW)에서 다중 출발하고,
+  구조 주극점 노드(`dominant_node`)의 단을 먼저 시도해 만족해 중 전류가 가장 작은 것을 쓴다(상대 1e-6 안 동률이면 먼저 얻은 쪽). 설계 §6.5 의 순차 바퀴는 gm_1 모서리로 퇴화해 쓰지 않았다(설계 41 §6.5 as-built 절). 극점·UGF·PM 은 U7 `solve_responses`·`analyze_loop`. 근 괄호가 없으면 `macro_root_missing`, 반복 한도에서 `macro_nonconvergent`.
+  PM 목표가 없으면 PM_FLOOR_DEG = atan(1) = 45°(비주극점이 UGF 에 놓인 경계)를 **매크로 풀이 안에서만** 쓰고 기록한다(`pm_floor_pole_at_ugf`); 속도 gm/ID·L 상한(§6.3)은 PM 목표가 없으면 비활성(`pm_target_missing`).
+  GBW 목표가 없으면 매크로 비활성(`macro_inactive`). 출력노드 컨덕턴스 G_i = gm_i/A_i: 이득 제약 + 전 블록 A_max 인증이면 블록 목표 g_i, 아니면 입력 소자의 LUT 진성 이득(설계의 중간 단계 'A_i,max' 는 쓰지 않았다 -- 이득 제약이 없으면 인증 상한을 실제 이득으로 볼 근거가 없다).
+* **헤드룸 예산 분할**(설계 §6.2): 출력 DC 가 선언되지 않은 스윙·ICMR 창은 남는 여유(창 폭 − 요구)를 위·아래 부분 기둥의 남는 여유 중 최솟값이 가장 크도록(같은 몫) 나눈다. 판정 어휘가 `no_target`(레일–레일 경로가 VGS 엣지를 지나지 않는 창)이어도 선언 요구는 분할에 쓴다.
+  곡선 전체가 예산을 만족해 하한이 곡선 최솟값이면 구간을 좁히지 않으므로 출처로 남기지 않는다.
+* **가드(offset·열잡음)**: 입력 쪽 기여는 입력 소자가 가질 수 있는 최대(가드가 아닌 경계의 상한 안에서 기여가 최대인 곡선 마디, LUT 가 정의하지 못하는 마디는 제외), 부하는 최소에서 잰다 -- 가능한 가장 느슨한 경우라 거짓 충돌이 없다.
+  mismatch/잡음 질의의 폭은 W_min 이상으로 맞춘다(모델 bin 밖 폭 방지). matching L 하한이 어느 앵커로도 안 맞으면 충돌 레코드를 남기고 가장 긴 앵커로 닫는다. 곡선 읽기(`at_gm_id`)는 gm/ID 를 품은 칸이 여럿이면(pmos 중반전 상승) 가장 오른쪽(강반전) 칸에서 읽는다.
+* **최소 폭 보정**: 확정된 전류에서 W = I·L/IDu(g) < W_min 인 소자(같은 VGS 묶음은 함께)의 gm/ID 를 W = W_min 이 되는 g 로 올린다(전류가 입력 소자를 따르는 미러 부하는 gm 고정 하한이 1회차 전류로 재서 어긋난다). 전류가 바뀌므로 고정점까지 되풀이하고(상한 4),
+  상한을 넘기면 충돌 레코드로 남긴다.
 * **전류 확정**: 블록 입력 소자 방정식 `I_d = gm_b/(gm/ID)_d` + KCL 기저 행 + 미러(같은 VGS 묶음 폭 비 1) + FF 묶음 소자(G_ff/(gm/ID)) 전파. 정해지지 않은 소자의 자리값
   (`StartIntervals.current_ref`) = max(선택 점에서 W = W_min 인 전류 W_min·IDu/L, 정해진 전류들의 기하 평균). 층 0 의 Chebyshev 중심이 상자 기하 중심 대신 이 값을 기준 전류로 쓰고, 해의 편차 u(ln)만큼
   움직이는 θ 전류를 모두 올려(원뿔이 유지될 때만) 모든 MOS 가 기준 이상 = 폭 ≥ W_min 이 되게 한다(최소 폭 hard 제약 `w_min:*` 위반 방지).

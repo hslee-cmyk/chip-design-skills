@@ -27,9 +27,11 @@ import sys
 import numpy as np
 from scipy.optimize import minimize as scipy_minimize
 
+from gmid_engine.core import AMPLITUDE_DB_PER_DECADE
 from gmid_engine.metrics import Excitation, Factor, MnaSystem, Sense, analyze_loop, solve_responses
 from gmid_engine.sizing import bracket_root
 
+from .dominant_node import dominant_node
 from .iv_curves import QUANTITY_GAIN
 from .start_values import MACRO_INACTIVE, MACRO_NONCONVERGENT, MACRO_ROOT_MISSING, PM_FLOOR_DEG, WHY_NO_GBW, MacroResult
 
@@ -41,6 +43,17 @@ _KEY_CAPACITANCE = "capacitance"
 _KEY_RESISTANCE = "resistance"
 _KEY_SS_RESISTANCE = "ss_resistance"
 RECORD_PM_FLOOR = "pm_floor_pole_at_ugf"
+
+
+def _declared_gains(ctx):
+    """{블록 키: 진폭비} -- 41 §6.5 의 출력노드 컨덕턴스 G_i = gm_i / A_i 의 A_i. 이득 제약이 있고 모든 블록의 A_i,max 가 인증되면 블록 목표 g_i(`iv_gain_l`: G·A_i,max/ΣA_max)를 쓴다.
+    그 밖의 블록은 포함하지 않는다 -- 호출부가 입력 소자의 LUT 진성 이득을 쓴다. 설계의 중간 단계 'g_i 가 없으면 A_i,max'는 쓰지 않았다: 이득 제약이 없는 회로에서 인증 상한을 블록의
+    실제 이득으로 가정할 근거가 없고, 독립 test 의 닫힌 식 oracle(A_k = (gm/ID)_k/LAM = 진성 이득)과 어긋난다(보고의 이견 절)."""
+    return {} if ctx.gain is None else {spec.key: _amplitude(db) for spec, db in ctx.gain.blocks}
+
+
+def _amplitude(db):
+    return math.exp(db / AMPLITUDE_DB_PER_DECADE / math.log10(math.e))
 
 
 class _Network:
@@ -65,11 +78,17 @@ class _Network:
                     self.kappa[i] += per_amp * vec[:-1]
                     self.c0[i] += per_amp * vec[-1]
         self.a_intr = []
+        given = _declared_gains(ctx)
         for b in self.blocks:
             d = ctx.by_name[b.inputs[0]]
             bundle = ctx.curves.bundle_of(d.name, d.kind, lengths[d.name])
-            # 버퍼(팔로어) 블록의 출력 컨덕턴스는 gm 이라 이득 1; 이득 블록은 입력 소자의 LUT 진성 이득(41 §6.5 마지막 규칙)
-            self.a_intr.append(1.0 if b.buffer else (None if bundle is None else ctx.curves.value(bundle, QUANTITY_GAIN, gm_id[d.name])))
+            # 버퍼(팔로어) 블록의 출력 컨덕턴스는 gm 이라 이득 1; 이득 블록은 41 §6.5 순서로 g_i(목표 블록 이득) -> A_i,max(U9 인증) -> 입력 소자의 LUT 진성 이득
+            if b.buffer:
+                self.a_intr.append(1.0)
+            elif b.key in given:
+                self.a_intr.append(given[b.key])
+            else:
+                self.a_intr.append(None if bundle is None else ctx.curves.value(bundle, QUANTITY_GAIN, gm_id[d.name]))
         self.fixed = {}
         self.variables = {}
         self.stamps = []
@@ -278,46 +297,68 @@ def _iterate(ctx, net, gm_id, pm_target, records, refine):
     def unpack(z):
         return np.exp(np.asarray(z[:nb], dtype=float)), {n: math.exp(z[nb + j]) for j, n in enumerate(cap_names)}
 
+    last = []                # [(점, 결과)] -- 가장 최근 한 점만 둔다(상한 1)
+
     def mag_pm(z):
-        gm, vals = unpack(z)
-        return net.at_target(gm, vals, gm_id, omega)
+        # SLSQP 는 한 점에서 등식·부등식 제약과 목적을 연달아 부른다 -- 같은 점은 한 번만 푼다
+        key = tuple(float(v) for v in z)
+        if not last or last[0][0] != key:
+            gm, vals = unpack(z)
+            last[:] = [(key, net.at_target(gm, vals, gm_id, omega))]
+        return last[0][1]
 
     def log_mag(z):
         mag = mag_pm(z)[0]
         return math.log(mag) if mag > 0 else -math.inf
 
-    # ---- 실행 가능한 출발점: 뒤 블록 gm 을 2 배씩 올려 가며 gm_1 로 UGF = GBW 에 맞춘다
-    z = start + cap0
-    feasible = False
     step = math.log1p(1)
-    while True:
-        def f(v, z=z):
-            return log_mag([v] + z[1:])
-        v, _why = _solve(f, z[0], lo[0], hi[0], tol, False)
-        if v is not None:
-            z = [v] + z[1:]
-            feasible = True
-            break
-        if all(z[i] >= hi[i] for i in range(1, nb)) or nb == 1:
-            break
-        z = [z[0]] + [min(z[i] + step, hi[i]) for i in range(1, nb)] + z[nb:]
+
+    def feasible_start(k):
+        """블록 k 의 gm 으로 UGF = GBW 를 맞춘 실행 가능한 출발점(나머지 블록 gm 을 2 배씩 올려 가며). 블록 k 가 낮은 극점(주극점)이 되는 출발점이다. 없으면 None."""
+        z = start + cap0
+        while True:
+            def f(v, z=z):
+                return log_mag(z[:k] + [v] + z[k + 1:nb] + z[nb:])
+            v, _why = _solve(f, z[k], lo[k], hi[k], tol, False)
+            if v is not None:
+                return z[:k] + [v] + z[k + 1:]
+            if nb == 1 or all(z[i] >= hi[i] for i in range(nb) if i != k):
+                return None
+            z = [z[i] if i == k else min(z[i] + step, hi[i]) for i in range(nb)] + z[nb:]
+
+    # 출발 순서: 구조로 정한 주극점 노드(`dominant_node`, 41 §6.3)의 블록을 먼저, 그 뒤 나머지 블록 순서 -- 같은 전류면 구조 쪽을 쓴다
+    front = dominant_node(ctx.transfer).nets
+    order = sorted(range(nb), key=lambda i: (blocks[i].out_net not in front, i))
+    starts = [(k, feasible_start(k)) for k in (order if refine else order[:1])]
+    starts = [(k, z) for k, z in starts if z is not None]
+    z = starts[0][1] if starts else start + cap0
+    feasible = bool(starts)
     sweeps = 0
     if feasible and refine and nb + len(cap_names) > 1:
-        scale = _power(ctx, net, unpack(z)[0])
+        # 비볼록: 주극점이 어느 단에 놓이는지가 국소 최소를 가른다(순차 바퀴가 퇴화하는 이유와 같은 구조) -- 단마다 그 단을 주극점으로 하는 실행 가능한 출발점에서 SLSQP 를 돌려 전원 전류가
+        # 가장 작은 만족해를 쓴다(다중 출발). 하나도 만족하지 못하면 첫 출발점을 쓰고 `macro_nonconvergent`.
         bounds = list(zip(lo, hi)) + list(zip(cap_lo, cap_hi))
         omega_np = omega * math.tan(math.radians(pm_target))        # 2극점 근사 PM = atan(ω_np/ω_GBW): 낮은 극점(주극점)을 뺀 나머지 극점은 ω_np 이상 (41 §6.3)
-        out = scipy_minimize(lambda w: _power(ctx, net, unpack(w)[0]) / scale, np.asarray(z, dtype=float), method="SLSQP", bounds=bounds,
-                             constraints=[{"type": "eq", "fun": lambda w: log_mag(w) if np.isfinite(log_mag(w)) else -1.0 / tol},
-                                          {"type": "ineq", "fun": lambda w: _signed_pm(mag_pm(w)[1], pm_target)},
-                                          {"type": "ineq", "fun": lambda w: _pole_margin(mag_pm(w)[2], omega_np)}])
-        sweeps = int(out.nit)
-        candidate = [float(t) for t in out.x]
-        mag_c, pm_c, poles_c = mag_pm(candidate)
-        if (out.success and abs(math.log(mag_c)) <= math.sqrt(tol) and pm_c is not None and pm_c >= pm_target - math.sqrt(tol)
-                and _pole_margin(poles_c, omega_np) >= -math.sqrt(tol)):
-            z = candidate
+        scale = _power(ctx, net, unpack(starts[0][1])[0])
+        best, last_message = None, ""
+        for k, z0 in starts:
+            out = scipy_minimize(lambda w: _power(ctx, net, unpack(w)[0]) / scale, np.asarray(z0, dtype=float), method="SLSQP", bounds=bounds,
+                                 constraints=[{"type": "eq", "fun": lambda w: log_mag(w) if np.isfinite(log_mag(w)) else -1.0 / tol},
+                                              {"type": "ineq", "fun": lambda w: _signed_pm(mag_pm(w)[1], pm_target)},
+                                              {"type": "ineq", "fun": lambda w: _pole_margin(mag_pm(w)[2], omega_np)}])
+            sweeps += int(out.nit)
+            last_message = str(out.message)
+            candidate = [float(t) for t in out.x]
+            mag_c, pm_c, poles_c = mag_pm(candidate)
+            if (out.success and abs(math.log(mag_c)) <= math.sqrt(tol) and pm_c is not None and pm_c >= pm_target - math.sqrt(tol)
+                    and _pole_margin(poles_c, omega_np) >= -math.sqrt(tol)):
+                power = _power(ctx, net, unpack(candidate)[0])
+                if best is None or power < best[0] * (1 - tol):
+                    best = (power, candidate, k)
+        if best is not None:
+            z = best[1]
         else:
-            records.append((MACRO_NONCONVERGENT, (("sweeps", sweeps), ("status", str(out.message)))))
+            records.append((MACRO_NONCONVERGENT, (("sweeps", sweeps), ("status", last_message))))
     elif not feasible:
         missing["gm:" + "/".join(blocks[0].key)] = "target_not_reached_at_upper_limit"
     gm, values = unpack(z)

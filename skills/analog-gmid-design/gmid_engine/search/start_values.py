@@ -43,6 +43,7 @@ WHY_NO_RAILS = "rail_potentials_undeclared"
 WHY_NO_CERT = "u9_value_not_certified"
 WHY_NO_DOMINANT = "dominant_node_undefined"
 WHY_NO_GBW = "gbw_target_missing"
+WHY_NO_PM = "pm_target_missing"
 WHY_NO_CURRENT = "stage_current_unavailable"
 WHY_PENDING_DEP = "depends_on_unmerged_unit"
 # ---- 매크로 기록 코드(41 §6.5)
@@ -148,7 +149,7 @@ class StartIntervals:
     -- 면적 예산에 들어가는 최대 t, `uncovered` = θ 성분 중 구간이 값을 정하지 못해 상자 중심으로 남은 것((kind, key), ...), `records` = 매크로 모델 기록((코드, 상세 쌍들), ...)
     -- 1회차와 확정 풀이의 `macro_nonconvergent`·`macro_root_missing`·`macro_inactive`·`pm_floor_pole_at_ugf`,
     `ladder` = StartRung tuple -- 출발 사다리: 칸 0 = 실행 가능한 최대 t(위 `theta`·`cells`·`current_ref` 와 같다), 다음 칸은 t 를 절반씩 줄인 점(gm/ID 하한 쪽으로, 강반전). 층 0 이 칸 순서로
-    커널 봉인 여부를 확인해 처음 봉인되는 칸에서 출발한다. 사다리 길이 = ⌈log2(gm/ID 구간 폭 최댓값 / gm/ID 하한 최솟값)⌉ + 1(구간을 LUT 폭 단위까지 반으로 가르는 횟수),
+    커널 봉인 여부를 확인해 처음 봉인되는 칸에서 출발한다. 사다리 길이 = ⌈log2(gm/ID 구간 폭 최댓값 / LUT 곡선 gm/ID 최솟값)⌉ + 1(구간을 LUT 곡선 gm/ID 최솟값 단위까지 반으로 가르는 횟수; 선택 t = 0 이면 1칸),
     `current_ref` = ((MOS, A), ...) 전류를 정하지 못한 소자의 자리값 -- 선택 gm/ID·L 에서 폭이 PDK 최소 finger 폭 W_min 일 때의 전류 I = W_min·IDu/L (가장 작은 실현 가능 소자 = front 의
     최소 전력·면적 쪽 끝점; 층 0 Chebyshev 중심의 기준 전류)."""
 
@@ -178,7 +179,7 @@ class StartContext:
     `passive_area` = `PassiveAreaDecl`, `theta_bounds` = {수동소자: (하한, 상한)}, `l_cells` = {L 주인 소자: L 칸 ((lo, hi), ...)}, `ach` = U9 `Achievability` 또는 None,
     `port_direction`·`port_role` = {포트 넷: 방향·역할}, `box` = {θ 성분 (kind, key): (하한, 상한) 자연 좌표 값}(`SearchDomain.variables` 의 ln 좌표는 exp 로 되돌린다),
     `current_box` = {kind: (I_off, I_max) A}(`search.current_box` -- LUT 가 특성화한 단일 finger 범위. 면적 예산이 닫은 `SearchDomain.current_box` 상한은 W 상한이 없어 매크로 근 범위로 너무 넓다),
-    `w_min_m` = PDK 최소 finger 폭(`SearchDomain.w_min_m`, W 하한 제약 S-18), `pdk` = core `PdkDecl`(mismatch 모델 bin 지도), `memo`·`w_keys` = LUT 손잡이."""
+    `w_min_m` = PDK 최소 finger 폭(`SearchDomain.w_min_m`, W 하한 제약 S-18), `pdk` = core `PdkDecl`(mismatch 모델 bin 지도), `memo`·`w_keys` = LUT 손잡이, `gain` = `iv_gain_l.GainInputs`(이득 L 하한 입력; 비활성이면 None)·`gain_inactive` = 그 비활성 사유."""
 
     curves: object
     devices: tuple
@@ -212,3 +213,14 @@ class StartContext:
     pdk: object
     memo: object
     w_keys: object
+    gain: object = None
+    gain_inactive: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True, eq=False)
+class GainInputs:
+    """`local` = `LocalInputs`, `tables` = `ParamTables`, `blocks` = ((BlockSpec, 목표 g_i dB), ...) 전달 뷰의 블록 순서."""
+
+    local: object
+    tables: object
+    blocks: tuple

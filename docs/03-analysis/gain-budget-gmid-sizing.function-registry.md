@@ -705,5 +705,7 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | LUT 역산 정의역(커널 `vgs_for_current_density` 가 받는 ln IDu 창) | `search.iv_domain.domain_bounds` | 출발점이 정점·VGS 끝에 놓여 DC 풀이가 첫 평가에서 죽는 것을 막는다 |
 | 블록 gm -> 소자·θ 전류 전파, 소자 용량 계수 | `search.iv_currents.current_model` | KCL 기저 행 + 미러(폭 비 1) + FF 묶음 |
 | 블록 VCCS 매크로 모델(UGF = GBW, PM ≥ 목표, 전원 전류 최소) | `search.macro_poles.macro_solve` | 극점·UGF·PM 은 `metrics.solve_responses`·`analyze_loop` |
+| 이득 L 하한(§6.4-1, 블록 국소 모델이 목표 g_i 를 맞추는 최소 L) | `search.iv_gain_l.gain_l_bounds` | U9 `BlockModel`·`ParamTables`·`row_gains` 재사용, 입력 묶음·블록 대상은 `metrics.local_inputs`·`metrics.block_spec`(U9 `_local_inputs`·`_block_spec` 공개 이름). 입력 묶음은 `search.iv_context` 가 S0 당 한 번 만든다 |
+| θ 전류 대표·상자(`cur_rep`·`current_box`) | `pipeline.stage_b._theta_currents` (정본), `search.iv_context._theta_currents` (같은 규칙의 사본) | 파일당 진입점 하나·패키지 공개 API 규칙(구조 test A·C)으로 한 곳에 모으지 못했다 -- 한쪽을 바꾸면 다른 쪽도 바꾼다 |
 | 평가 예산 N_T | `search.EvalBudget` | `kernel.evaluate` 의 E_B 유도가 `limit()` 을 쓴다 |
 | mv -> V 환산 | `core.MILLI` | `core/units.py` (단위 환산 계수는 한 곳) |

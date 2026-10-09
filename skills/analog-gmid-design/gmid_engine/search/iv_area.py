@@ -19,6 +19,7 @@
 출발값 전용(EP-7): 레이아웃 타당성(W 격자·nf)은 외층 제약 행이 판정한다.
 """
 import dataclasses
+import math
 
 import numpy as np
 
@@ -68,7 +69,7 @@ def area_bounds(ctx, currents, lengths, gm_id_lo):
             continue
         g, idu, gm = nodes
         width = gm * lengths[d.name] / (g * idu)                       # W(g) -- g·IDu 가 급히 떨어져 g 에 대해 증가한다
-        low = hull(g, width, ctx.w_min_m, below=False)
+        low = hull(g, np.log(width), math.log(ctx.w_min_m), below=False)      # IDu 는 log 보간 -- log W 위에서 교차를 구한다
         if low is not None:
             bounds[d.name] = (Bound(QUANTITY_GM_ID, SIDE_LO, SRC_W_MIN, low[0]),)
     if ctx.area_budget_m2 is None:

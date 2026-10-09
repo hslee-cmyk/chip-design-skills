@@ -11,6 +11,8 @@
 * **offset 가드 부하 상한**(41 §6.4-2a): 부하 소자 k 의 입력 환산 분산 비 Σ_k (gm_k·σ_VGS,k)² / Σ_in (gm_in·σ_VGS,in)² ≤ E² − 1(offset_excess = √(총 분산 / 입력 분산)) 이 되도록
   부하 gm/ID 를 상한으로 둔다(`guard_bounds`). gm_k/gm_in 은 매크로 전류 비, gm/ID_in 은 입력 소자의 하한.
 * LUT mismatch 데이터가 없으면(`lut_mismatch_unavailable` 등 U3 사유) 계산하지 않고 그 사유를 비활성으로 남긴다 -- 41 §6.4-2b 의 `mismatch_lut_missing` 정지는 로드 단계의 몫이다.
+* **가드의 입력 쪽 gm/ID**: 입력 기여는 입력 소자가 가질 수 있는 최대(가드 아닌 경계가 정한 상한 `gm_id_cap`, 없으면 하한)에서 잰다 -- 부하는 최소·입력은 최대가 '가능한 가장 느슨한 경우'라서
+  거짓 충돌을 만들지 않는다(`guard_input_gm_id`). 소자 폭은 PDK 최소 finger 폭 W_min 이상으로 맞춘 뒤 σ 를 잰다(모델 bin 밖 폭 방지).
 출발값 전용(EP-7): 판정은 봉인 스냅샷의 `offset_in_sigma_mv`·`offset_excess`(MNA 전회로)가 한다.
 """
 import dataclasses
@@ -21,7 +23,7 @@ from gmid_engine.core import MILLI, SchemaRejectedError, SealViolationError
 from gmid_engine.lut import mismatch_sigma_vgs
 from gmid_engine.sizing import bracket_root
 
-from ._helpers_guard import guard_bounds, guard_devices
+from ._helpers_guard import Tolerant, guard_bounds, guard_devices, guard_input_gm_id
 from .iv_curves import QUANTITY_IDU, QUANTITY_VGS
 from .start_values import (
     QUANTITY_L,
@@ -58,10 +60,25 @@ def _sigma_vgs(ctx, name, g, L, current):
     """소자 `name` 의 σ_VGS(V) -- 폭 W = I·L/IDu(gm/ID, L), 기준 (VDS, VSB) 점."""
     d = ctx.by_name[name]
     bundle = ctx.curves.bundle_of(d.name, d.kind, L)
-    w = current * L / ctx.curves.value(bundle, QUANTITY_IDU, g)
+    w = max(current * L / ctx.curves.value(bundle, QUANTITY_IDU, g), ctx.w_min_m)      # 실현 폭은 PDK 최소 finger 폭 W_min 이상(W 하한 제약 S-18): 그 아래 폭은 mismatch 모델 bin 밖이다
     vgs = ctx.curves.value(bundle, QUANTITY_VGS, g)
     curve = bundle[QUANTITY_IDU]
     return mismatch_sigma_vgs(ctx.memo, ctx.pdk.mismatch_model(d.kind), d.kind, d.w_key, L, vgs, curve.vds, curve.vsb, w).sigma_v
+
+
+def _sigma_from(ctx, name, g, L, current):
+    """σ_VGS 를 gm/ID = g 에서 재되, 감도 열이 정의되지 않는 점(강반전 끝 등 `lut_mismatch_undefined`)이면 곡선 마디를 gm/ID 가 큰 쪽으로 올라가며 처음 정의된 점에서 잰다
+    (입력 소자의 gm/ID 는 하한 이상 어디든 가능 -- 하한이 LUT 가 모르는 점이면 그 위 첫 정의 점이 하한의 가장 가까운 실현 가능 값이다). 하나도 정의되지 않으면 처음 예외를 던진다."""
+    try:
+        return _sigma_vgs(ctx, name, g, L, current)
+    except _LUT_ERRORS as first:
+        d = ctx.by_name[name]
+        for node in sorted(float(x) for x in ctx.curves.bundle_of(d.name, d.kind, L)[QUANTITY_IDU].gm_id if x > g):
+            try:
+                return _sigma_vgs(ctx, name, node, L, current)
+            except _LUT_ERRORS:
+                continue
+        raise first
 
 
 def _l_lower(ctx, name, current, g, sigma_share):
@@ -69,7 +86,7 @@ def _l_lower(ctx, name, current, g, sigma_share):
     d = ctx.by_name[name]
 
     def slack(L):
-        return sigma_share - _SQRT2 * _sigma_vgs(ctx, name, g, L, current)
+        return sigma_share - _SQRT2 * _sigma_from(ctx, name, g, L, current)
 
     anchors = [L for L in ctx.curves.l_anchors(d.kind) if ctx.curves.bundle_of(d.name, d.kind, L) is not None]
     bins = ctx.curves.slice_of(d.kind).l_bins
@@ -86,7 +103,7 @@ def _l_lower(ctx, name, current, g, sigma_share):
     return None
 
 
-def matching_bounds(ctx, currents, lengths, gm_id_lo):
+def matching_bounds(ctx, currents, lengths, gm_id_lo, gm_id_cap=None):
     absolute = [v for m, op, v in ctx.constraints if m == _METRIC_ABSOLUTE and op == "<="]
     guard = [v for m, op, v in ctx.constraints if m == _METRIC_GUARD and op == "<="]
     inputs, loads = guard_devices(ctx)
@@ -100,21 +117,29 @@ def matching_bounds(ctx, currents, lengths, gm_id_lo):
     if not inputs or any(currents.get(n) is None for n in inputs + loads):
         return MatchingBounds({}, (), tuple(inactive) + ((SRC_OFFSET_GUARD, WHY_NO_CURRENT),))
     bounds, conflicts = {}, []
+    # L 하한과 가드는 서로 독립이다 -- 한쪽이 LUT 에서 정의되지 않아도 다른 쪽은 계산한다(비활성 사유는 각자)
     try:
         if absolute:
             share = min(absolute) * MILLI / _SQRT2
             for name in inputs:
                 L = _l_lower(ctx, name, currents[name], gm_id_lo[name], share)
                 if L is None:
+                    # 어느 LUT L 앵커도 못 맞춘다 -- 충돌을 남기고(41 §6.6) 요구 방향으로 닫는다: 하한 = 정의된 가장 긴 L 앵커(가장 잘 맞는 쪽)
                     conflicts.append(StartConflict(name, QUANTITY_L, ((SRC_MATCH_L, share),), share))
-                else:
-                    bounds[name] = (Bound(QUANTITY_L, SIDE_LO, SRC_MATCH_L, L),)
+                    L = max(a for a in ctx.curves.l_anchors(ctx.by_name[name].kind) if ctx.curves.bundle_of(name, ctx.by_name[name].kind, a) is not None)
+                bounds[name] = (Bound(QUANTITY_L, SIDE_LO, SRC_MATCH_L, L),)
+    except _LUT_ERRORS as exc:
+        bounds, conflicts = {}, []
+        inactive.append((SRC_MATCH_L, _reason(exc)))
+    try:
         if guard and loads:
             def term(name, g):
                 return (g * currents[name] * _sigma_vgs(ctx, name, g, lengths[name], currents[name])) ** 2
-            found, lost = guard_bounds(ctx, inputs, loads, term, min(guard) ** 2 - 1, lengths, gm_id_lo, gm_id_lo[inputs[0]], SRC_OFFSET_GUARD)
+            term = Tolerant(term)
+            found, lost = guard_bounds(ctx, inputs, loads, term, min(guard) ** 2 - 1, lengths, gm_id_lo,
+                                       guard_input_gm_id(ctx, term, inputs, lengths, gm_id_lo, gm_id_cap), SRC_OFFSET_GUARD)
             bounds.update(found)
             conflicts.extend(lost)
     except _LUT_ERRORS as exc:
-        return MatchingBounds({}, (), tuple(inactive) + ((SRC_MATCH_L if absolute else SRC_OFFSET_GUARD, _reason(exc)),))
+        inactive.append((SRC_OFFSET_GUARD, _reason(exc)))
     return MatchingBounds(bounds, tuple(conflicts), tuple(inactive))

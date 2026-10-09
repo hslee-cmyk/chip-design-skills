@@ -12,7 +12,8 @@
 * **VGS 엣지**: |VGS_k|(gm/ID, L) ≤ 예산(VGS) -> 같은 방식(VGS 도 강반전일수록 커진다). 다이오드 연결 소자는 VGS 예산이 지배한다.
 * **스윙·ICMR·입력 DC 분할**(Q4): 선언 제약(`swing_out_v`·`icmr_v`·`icm_margin_v`)이 걸린 창에서, 창 경로 위 소자의 예산을 `min(기둥 예산, 최소 비용 + 창 여유)` 로 줄인다.
   창 여유 = 창 폭 − 요구 폭(`swing_out_v`: 차동 출력 포트면 폭 × 2 가 p-p 라 요구 폭 = 값/2, 단일은 값 그대로; `icmr_v`: 값). 출력 DC V_o 가 선언된 노드면 위·아래를 따로 나눈다 --
-  위쪽 여유 = U(n) − (V_o + 요구/2), 아래쪽 여유 = (V_o − 요구/2) − L(n). 선언이 없으면 위·아래 한 여유를 공유한다. `icm_margin_v >= m` + 입력 DC 선언이면 위쪽 여유 = U − V_icm − m,
+  위쪽 여유 = U(n) − (V_o + 요구/2), 아래쪽 여유 = (V_o − 요구/2) − L(n). 선언이 없으면 남는 여유(창 폭 − 요구)를 위·아래 부분 기둥의 남는 여유 중 최솟값이 가장 크도록 -- 두 부분 기둥이 같은 몫(여유/2) -- 나눈다
+  (설계 41 §6.2; 위·아래가 한 여유를 모두 공유한다는 이전 CONTRACT 규칙은 위·아래 예산 합이 창 폭을 넘어 요구를 못 지킨다). `icm_margin_v >= m` + 입력 DC 선언이면 위쪽 여유 = U − V_icm − m,
   아래쪽 여유 = V_icm − L − m.
 * 경계의 여유는 사용자 SPICE 포화 규칙 VDS ≥ VDSAT 에 LUT `tol_vdsat` 를 더한 것뿐이다(3σ 같은 통계 관례 없음).
 * 요구 > 가용(예산 < 최소 비용)이면 그 경계는 자르지 않고 충돌 레코드로 남긴다(41 §6.6; 같은 사실의 정지 판정은 U9 의 몫). 경로에 양수 사이클이 있어 창이 미상이면 비활성.
@@ -45,6 +46,7 @@ WINDOW_OUTPUT = "output"
 STATUS_UNKNOWN = "unknown"
 VERDICT_INFEASIBLE = "infeasible"
 VERDICT_NOT_EXCLUDED = "not_excluded"
+VERDICT_NO_TARGET = "no_target"
 _METRIC_SWING = "swing_out_v"
 _METRIC_ICMR = "icmr_v"
 _METRIC_MARGIN = "icm_margin_v"
@@ -79,7 +81,9 @@ def _chains(row):
 
 def _slacks(row, ctx, differential):
     """창 요구에서 나온 (위쪽 여유, 아래쪽 여유) 또는 None(요구가 걸리지 않은 창)."""
-    if row.constraint is None or row.verdict not in (VERDICT_INFEASIBLE, VERDICT_NOT_EXCLUDED) or not row.path:
+    # 판정 어휘가 no_target 이어도 constraint 가 있으면 요구는 선언된 것이다 -- U9 는 레일–레일 경로가 VGS 엣지를 지나지 않는 창(캐스코드 게이트가 레일 바이어스인 기둥)을 정지 근거로
+    # 쓰지 않을 뿐(`eligible`), 출발 구간은 같은 요구를 예산 분할에 쓴다.
+    if row.constraint is None or row.verdict not in (VERDICT_INFEASIBLE, VERDICT_NOT_EXCLUDED, VERDICT_NO_TARGET) or not row.path:
         return None
     metric, _op, value = row.constraint
     need = value / (1 + int(bool(differential))) if metric == _METRIC_SWING else value
@@ -90,8 +94,13 @@ def _slacks(row, ctx, differential):
     declared = ctx.node_targets.get(row.net)
     if metric == _METRIC_SWING and declared is not None:
         return row.hi_edge_v - (declared + need / 2), (declared - need / 2) - row.lo_edge_v
-    shared = row.upper_bound_v - need
-    return shared, shared
+    # 출력 DC 가 선언되지 않았다: 남는 여유(창 폭 − 요구)를 위·아래 부분 기둥의 남는 여유 중 최솟값이 가장 커지도록 나눈다(41 §6.2) -- 두 부분 기둥이 같은 몫을 가질 때다.
+    # 한쪽 사슬이 비면(소자 없음) 그쪽은 몫이 의미가 없으므로 다른 쪽이 전부 가진다. 소자 k 의 예산은 '나머지는 최소로 두고 k 가 가질 수 있는 최대'라서 자기 사슬 몫 전체를 쓴다.
+    lower, upper = _chains(row)
+    rest = row.upper_bound_v - need
+    sides = int(bool(lower)) + int(bool(upper))
+    share = rest / sides if sides else 0.0
+    return share if upper else 0.0, share if lower else 0.0
 
 
 def _budgets(ctx, edges):

@@ -16,7 +16,7 @@ import dataclasses
 from gmid_engine.core import SchemaRejectedError, SealViolationError
 from gmid_engine.lut import noise_params
 
-from ._helpers_guard import guard_bounds, guard_devices
+from ._helpers_guard import Tolerant, guard_bounds, guard_devices, guard_input_gm_id
 from .iv_curves import QUANTITY_IDU, QUANTITY_VGS
 from .start_values import (
     SRC_NOISE_FLICKER_L,
@@ -54,11 +54,11 @@ def _white_density(ctx, name, g, L, current):
     params = noise_params(ctx.memo, d.kind, d.w_key, L, ctx.curves.value(bundle, QUANTITY_VGS, g), curve.vds, curve.vsb)
     if params.B is None:
         raise _WhiteLevelUnknown(params.b_status)
-    w = current * L / ctx.curves.value(bundle, QUANTITY_IDU, g)
+    w = max(current * L / ctx.curves.value(bundle, QUANTITY_IDU, g), ctx.w_min_m)          # 실현 폭은 PDK 최소 finger 폭 이상
     return params.B * params.w_m / w
 
 
-def noise_bounds(ctx, currents, lengths, gm_id_lo):
+def noise_bounds(ctx, currents, lengths, gm_id_lo, gm_id_cap=None):
     inactive = []
     if any(m == _METRIC_INTEGRATED for m, _op, _v in ctx.constraints):
         inactive += [(SRC_NOISE_FLICKER_L, WHY_PENDING_DEP), (SRC_NOISE_THERMAL_C, WHY_PENDING_DEP)]
@@ -74,8 +74,10 @@ def noise_bounds(ctx, currents, lengths, gm_id_lo):
     def term(name, g):
         return _white_density(ctx, name, g, lengths[name], currents[name]) * (g * currents[name]) ** 2
 
+    term = Tolerant(term)
     try:
-        bounds, conflicts = guard_bounds(ctx, inputs, loads, term, min(guard) - 1, lengths, gm_id_lo, gm_id_lo[inputs[0]], SRC_NOISE_GUARD)
+        bounds, conflicts = guard_bounds(ctx, inputs, loads, term, min(guard) - 1, lengths, gm_id_lo,
+                                         guard_input_gm_id(ctx, term, inputs, lengths, gm_id_lo, gm_id_cap), SRC_NOISE_GUARD)
     except _LUT_ERRORS as exc:
         return NoiseBounds({}, (), tuple(inactive) + ((SRC_NOISE_GUARD, dict(exc.record.detail).get("reason", WHY_NO_LUT)),))
     except _WhiteLevelUnknown as exc:

@@ -5,7 +5,7 @@
 계약: `metrics/CONTRACT.md`.
 """
 
-from .achievability import achievability
+from .achievability import achievability, block_spec, local_inputs
 from .achievability_types import (
     Achievability,
     AreaBound,
@@ -259,6 +259,8 @@ __all__ = (
     "VerifiedBy",
     "ViewStruct",
     "achievability",
+    "block_spec",
+    "local_inputs",
     "analyze_loop",
     "area_lower_bound",
     "area_search",

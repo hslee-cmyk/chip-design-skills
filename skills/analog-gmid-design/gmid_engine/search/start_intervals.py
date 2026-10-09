@@ -8,7 +8,7 @@
 **계산 순서**(41 §6.1, 순환 없음):
 0. 주극점 노드(`dominant_node`, 구조 판정, 매크로 모델을 쓰지 않는다).
 1. gm/ID 하한 -- 헤드룸 예산(`headroom_bounds`, §6.2). 소자 L 은 PDK/LUT 의 첫 정의된 L 앵커로 시작한다.
-2. 이득 L 하한(`gain_l_status`, §6.4-1) -- A_max 미인증이면 비활성 사유만 낸다.
+2. 이득 L 하한(`gain_l_bounds`, §6.4-1) -- A_max 가 모두 인증이고 gain 제약이 있을 때 블록 국소 모델이 목표 g_i 를 맞추는 최소 L(1회차 전류·gm/ID_lo 사용); 아니면 비활성 사유만 낸다.
 3. 속도 L 상한(`speed_bounds`, §6.4-4; gm/ID_lo 사용).
 4. matching·면적 L 경계(`matching_bounds`·`area_bounds`, §6.4-2·5) -- 이 경계에 필요한 전류는 **1회차 매크로 모델**(gm/ID = gm/ID_lo, `current_model` + `macro_solve`)에서 가져온다.
 5. L 선택: L = max(L 하한들). L 동치류·자기동형 묶음은 구간의 교집합이고, LUT L 칸(bin) 안 값으로 맞춘다(LR3: 칸 하한이 L 보다 크면 그 칸의 하한, bin 사이 틈은 다음 칸).
@@ -33,13 +33,14 @@ import numpy as np
 from gmid_engine.sizing import THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, bracket_root
 
 from ._helpers_area import area_estimate
+from ._helpers_curves import hull
 from .dominant_node import RULE_NONE, DominantNode, dominant_node
 from .iv_area import area_bounds
 from .iv_context import build_start_context
 from .iv_currents import current_model
 from .iv_curves import QUANTITY_FT, QUANTITY_IDU
 from .iv_domain import domain_bounds
-from .iv_gain_l import gain_l_status
+from .iv_gain_l import gain_l_bounds
 from .iv_headroom import headroom_bounds
 from .iv_matching_l import matching_bounds
 from .iv_noise import noise_bounds
@@ -64,6 +65,9 @@ from .start_values import (
     StartRow,
     StartRung,
 )
+
+
+_REL = math.sqrt(sys.float_info.epsilon)       # 상대 비교·여유(부동소수 분해능 √ε): W = W_min 이 정확히 경계라 반올림이 아래로 떨어지지 않게 하는 여유, 같은 값끼리 비교의 허용
 
 
 class _State:
@@ -119,6 +123,55 @@ def _state(ctx, gm_id, lengths, refine=True):
     if all(v is not None for v in merged.values()):
         area, per_device, passive = area_estimate(ctx, merged, gm_id, lengths, cap_values, res_values)
     return _State(model, macro, currents, elements, cap_values, res_values, area, passive, per_device, refs, failed)
+
+
+def _width_floor_gm_id(ctx, d, length, current, g0):
+    """전류 `current` 에서 폭 W(g) = I·L/IDu(g) (보고가 읽는 `CurveBook.value` 와 같은 값) 가 W_min 이상이 되는 g0 이상의 최소 gm/ID. 이미 만족하면 g0, 곡선 끝까지 못 미치면 None.
+    곡선은 약반전 쪽에서 gm/ID 가 비단조일 수 있어(포화 근처) 마디 교차 대신 g0 ~ 곡선 최댓값을 촘촘히 훑어 처음 만족하는 칸을 `bracket_root` 로 다듬는다."""
+    bundle = ctx.curves.bundle_of(d.name, d.kind, length)
+    target = ctx.w_min_m * (1 + _REL)
+
+    def excess(x):
+        return target - current * length / ctx.curves.value(bundle, QUANTITY_IDU, x)       # > 0 : 폭 부족
+
+    if excess(g0) <= 0:
+        return g0
+    nodes = np.asarray(bundle[QUANTITY_IDU].gm_id, dtype=float)
+    grid = np.unique(np.concatenate([[g0], nodes[nodes > g0]]))             # g0 이상의 곡선 마디(LUT 가 정한 해상도)
+    for a, b in zip(grid[:-1], grid[1:]):
+        if excess(float(b)) <= 0:
+            root, _fa, _fb = bracket_root(excess, float(a), float(b), _REL * float(b))
+            return float(b) if root is None or excess(float(root)) > 0 else float(root)
+    return None
+
+
+def _widen(ctx, state, g, lengths):
+    """최소 폭 W ≥ W_min 을 **확정된 전류**에서 맞춘다 -- 전류가 정해진 소자의 폭 W = I·L/IDu(g) 는 g 에 대해 증가하므로 W < W_min 인 소자(같은 VGS 묶음은 함께)의 g 를 W = W_min 인 g 로 올린다.
+    gm 고정 모델의 하한(`iv_area` 의 `w_min_gm_id`)은 입력 소자(전류 = gm/g)에는 맞지만 전류가 미러·KCL 로 입력 소자 전류를 따르는 소자에는 1회차 전류로 재서 어긋난다. 바뀌면 새 g 사전, 아니면 g 그대로."""
+    need = {}
+    for d in ctx.devices:
+        current = state.currents.get(d.name)
+        if current is None:
+            continue
+        found = _width_floor_gm_id(ctx, d, lengths[d.name], current, g[d.name])
+        if found is not None:
+            need[d.group] = max(need.get(d.group, 0.0), found)
+    new = {n: max(v, need.get(ctx.by_name[n].group, 0.0)) for n, v in g.items()}
+    return g if new == g else new
+
+
+def _placed(ctx, gm_id, lengths, refine=True):
+    """`_state` + 최소 폭 보정 -- (보정된 g 에서의 상태), `state.g` = 보정된 gm/ID. 보정은 전류를 다시 정하므로 고정점까지(상한 = 소자 수) 되풀이한다."""
+    g = gm_id
+    state = _state(ctx, g, lengths, refine)
+    for _ in ctx.devices:                 # 고정점 반복: 한 번에 적어도 한 소자가 확정되는 단조 수렴(반복 상한 = 소자 수)
+        wider = _widen(ctx, state, g, lengths)
+        if wider is g:
+            break
+        g = wider
+        state = _state(ctx, g, lengths, refine)
+    state.g = g
+    return state
 
 
 def _first_defined(ctx, d, cells):
@@ -201,11 +254,12 @@ def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
 
     # ---- 2, 3, 4: L 경계
     l_items = {d.name: [] for d in devices}
-    inactive.extend(gain_l_status(ctx))
+    gain = gain_l_bounds(ctx, {} if first is None else first.elements, {} if first is None else first.res_values, g_lo0)
+    inactive.extend(gain.inactive)
     speed = speed_bounds(ctx, dominant, first_L, g_lo0) if ctx.transfer is not None else None
     match = matching_bounds(ctx, currents1, first_L, g_lo0)
     area = area_bounds(ctx, currents1, first_L, g_lo0)
-    for part in (speed, match, area):
+    for part in (speed, match, area, gain):
         if part is None:
             continue
         for name, items in part.bounds.items():
@@ -229,13 +283,19 @@ def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
     conflicts.extend(head2.conflicts)
     dom2 = domain_bounds(ctx, chosen_L, vds_budget)
     conflicts.extend(dom2.conflicts)
-    g_items = {d.name: list(dom2.bounds.get(d.name, ())) for d in devices}
+    # 헤드룸 하한은 곡선 전체가 예산을 만족하면(하한 = 곡선 최솟값) 구간을 좁히지 않는다 -- 좁히는 것만 출처로 남긴다
+    g_items = {d.name: [b for b in head2.bounds.get(d.name, ()) if b.value > float(min(bundles[d.name][QUANTITY_FT].gm_id)) * (1 + _REL)] + list(dom2.bounds.get(d.name, ()))
+               for d in devices}
     g_lo = {d.name: max([float(min(bundles[d.name][QUANTITY_FT].gm_id))] + _side(head2.bounds.get(d.name, ()), QUANTITY_GM_ID, SIDE_LO)
                         + _side(g_items[d.name], QUANTITY_GM_ID, SIDE_LO)) for d in devices}
     speed2 = speed_bounds(ctx, dominant, chosen_L, g_lo) if ctx.transfer is not None else None
-    match2 = matching_bounds(ctx, currents1, chosen_L, g_lo)
-    noise2 = noise_bounds(ctx, currents1, chosen_L, g_lo)
     area2 = area_bounds(ctx, currents1, chosen_L, g_lo)
+    # 가드(offset·열잡음)의 입력 기여는 입력 소자가 가질 수 있는 최대 gm/ID 에서 잰다 -- 가드가 아닌 경계(LUT 곡선 끝·정의역·속도·면적)의 상한
+    g_cap = {d.name: min([float(max(bundles[d.name][QUANTITY_FT].gm_id))] + _side(g_items[d.name], QUANTITY_GM_ID, SIDE_HI)
+                         + [b.value for part in (speed2, area2) if part is not None for b in part.bounds.get(d.name, ())
+                            if b.quantity == QUANTITY_GM_ID and b.side == SIDE_HI]) for d in devices}
+    match2 = matching_bounds(ctx, currents1, chosen_L, g_lo, g_cap)
+    noise2 = noise_bounds(ctx, currents1, chosen_L, g_lo, g_cap)
     for part in (speed2, match2, noise2, area2):
         if part is None:
             continue
@@ -265,7 +325,7 @@ def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
         return within and not (use_macro[0] and state.macro_failed)
 
     def solve(x, refine=True):
-        return _state(ctx, pick(x), chosen_L, use_macro[0] and refine)
+        return _placed(ctx, pick(x), chosen_L, use_macro[0] and refine)
 
     # 사다리 길이 = 구간 폭을 LUT gm/ID 최솟값 단위까지 반으로 가르는 횟수 -- t 탐색의 분해능도 같은 칸 폭(2^-steps)이면 충분하다(더 가는 t 는 사다리의 칸 사이에 든다)
     span = max(g_hi[n] - g_low[n] for n in g_low)
@@ -296,12 +356,15 @@ def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
     if final.refs:
         inactive.append(("current_from_macro", WHY_NO_CURRENT))
     # 출발 사다리: 실행 가능한 최대 t 에서 시작해 t 를 절반씩 줄인 점들(층 0 이 커널로 봉인 여부를 확인한다)
-    rungs = [_rung(ctx, domain, kctx, final, pick(t), chosen_L, cell_index, bundles, t)]
+    rungs = [_rung(ctx, domain, kctx, final, final.g, chosen_L, cell_index, bundles, t)]
     for k in range(1, (steps if t > 0 else 0) + 1):
         lower = t / 2 ** k
         state = solve(lower, refine=False)          # 사다리의 아래 칸은 대안 출발점 -- 전원 전류 최소화 없이 실행 가능한 출발점의 전류로 충분하다
-        rungs.append(_rung(ctx, domain, kctx, state, pick(lower), chosen_L, cell_index, bundles, lower))
-    return _report(ctx, domain, final, pick(t), chosen_L, cell_index, (g_low, g_hi, l_range, lut_range), (g_items, l_items), bundles,
+        rungs.append(_rung(ctx, domain, kctx, state, state.g, chosen_L, cell_index, bundles, lower))
+    for d in devices:         # 최소 폭 보정이 상한을 넘겼다면 숨기지 않고 충돌로 남긴다(W_min 은 경성 제약이라 상한보다 우선)
+        if final.g[d.name] > g_hi[d.name] * (1 + _REL) and d.name == d.group:
+            conflicts.append(StartConflict(d.name, QUANTITY_GM_ID, (("w_min_at_fixed_current", final.g[d.name]), ("upper", g_hi[d.name])), final.g[d.name] - g_hi[d.name]))
+    return _report(ctx, domain, final, final.g, chosen_L, cell_index, (g_low, g_hi, l_range, lut_range), (g_items, l_items), bundles,
                    (conflicts, inactive, records), t, tuple(rungs))
 
 

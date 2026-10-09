@@ -320,3 +320,8 @@ def achievability(s1, s1v, spec, kctx, *, count_budget, cur_rep, current_box, ar
         error.achievability = result
         raise error
     return result
+
+
+# [U13] 출발 구간의 이득 L 하한(`search.iv_gain_l`)이 U9 와 같은 입력 묶음·블록 대상을 만들도록 공개한 이름(복제하지 않는다)
+local_inputs = _local_inputs
+block_spec = _block_spec
