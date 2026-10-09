@@ -110,38 +110,34 @@ def test_junction_built_once_per_context(tmp_path, lut_sealed):
     assert j == JunctionSource.from_decls(case.pdk, case.rule, case.dc.lut.memo.lut)
 
 
-# ---------------------------------------------------------------- [U5 2026-10-08] 계산 대기 metric 제약
-# oracle (d) metrics CONTRACT 3.15 문장: '탐색 문맥(build_search_context)은 판정 제약 중 카탈로그에만 있는 이름을 constraint_notes 에
-# unmeasured/metric_computation_pending 으로 남긴다' + (a) 이름은 설계 41 §7.1 어휘, 회로 C 는 손 회로.
-# ss_constraints 에 들어가면 측정 못 하는 행이 탐색 판정에 섞인다 -- 그래서 '들어가지 않는다'가 핵심 단정이다.
-# [U7+U8 통합 2026-10-09] 계산 대기 이름이 하나도 남지 않았다(U8 이 잡음 4개, U7 이 나머지 8개를 레지스트리로 옮겼다 -- metrics CONTRACT 10.0·11절,
-# `PENDING_METRIC_ROWS` 빈 tuple). 아래 두 test 는 계산 대기 이름이 생길 때를 위해 PENDING_CONS 만 비우고 그대로 둔다(현재는 반복할 이름이 없어 헐겁다).
-# 잡음 제약 분류는 U8 절, offset·스윙·FF 비는 U7 절 test 가 본다.
-PENDING_CONS = ()
+# ---------------------------------------------------------------- [U7+U8 통합 2026-10-09] 계산 대기 표가 빈 표인 문맥
+# 옛 [U5] 두 test(`test_pending_metric_constraints_noted_not_searched`·`test_pending_metric_notes_do_not_touch_registry_rows`)는 계산 대기
+# 이름(PENDING_CONS)이 빈 tuple 이 되어 반복할 대상이 없는 헐거운 test 였다 -- 삭제하고 아래 test 로 대체한다.
+# 현재 계약: metrics CONTRACT 10.0·11절(`PENDING_METRIC_ROWS` 빈 tuple, 카탈로그 = 레지스트리), search CONTRACT 3.9 분류
+# (목적 축 -> judged_constraints, view 있는 판정 제약 -> ss_constraints, 나머지 -> notes metric_not_in_registry_or_no_ss_view).
+# 그래서 카탈로그의 어떤 이름으로 제약을 걸어도 metric_computation_pending 노트가 생기지 않고, 각 제약은 세 곳 중 정확히 한 곳에 간다.
+# oracle (d) 계약 문장. 잡음 4개는 잡음 LUT 없는 toy LUT 에서 noise_lut_missing 거부(U8 절 test)라 이 sweep 에서 뺀다 -- 구성(a).
+# view_kind cm_loop(회로 C 는 차동 출력이 없어 기본 뷰 없음)·ratio({num, den} 명시 필수)는 로더가 view_required 로 거부하므로
+# 뷰 없는 이 sweep 에서 뺀다(SPEC_CONTRACT 2절, authoring test 가 본다) -- 구성(a).
+# 값 1.0 은 합성 입력(a), 사용자 값 아님. 미지 이름 거부(metric_unknown, 로더)는 authoring/test_spec_constraints.py 가 본다.
+NOISE_NAMES = ("noise_th_in_v2hz", "noise_fc_in_hz", "noise_excess_th", "noise_out_int_vrms")
+VIEW_REQUIRED_KINDS = ("cm_loop", "ratio")
 
 
-def test_pending_metric_constraints_noted_not_searched(tmp_path, lut_sealed):
-    case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=PENDING_CONS + (("gain_ss_db", ">=", 10.0, None),))
-    s = case.sctx
-    assert [c.metric for c in s.ss_constraints] == ["gain_ss_db"]
-    assert not {m for m, *_ in PENDING_CONS} & {x[0] for x in s.judged_constraints}
+def test_every_catalog_constraint_classified_once_never_pending(tmp_path, lut_sealed):
+    from gmid_engine.metrics import metric_catalog
+    cat = metric_catalog()
+    names = sorted(n for n in cat if n not in NOISE_NAMES and cat[n].view_kind not in VIEW_REQUIRED_KINDS)
+    assert len(names) == 23 - len(NOISE_NAMES) - 2          # pm_cm_ss_deg(cm_loop)·ratio_ss_db(ratio)
+    cons = tuple((n, "<=", 1.0, None) for n in names)
+    s = build_case(tmp_path, circuit_c(), lut_sealed, constraints=cons).sctx
     notes = _notes(s)
-    for metric, *_ in PENDING_CONS:
-        mine = [n for n in notes if metric in repr(n)]
-        assert len(mine) == 1, (metric, notes)
-        assert mine[0].get("verdict") == "unmeasured"
-        assert mine[0].get("reason") == "metric_computation_pending"
-
-
-def test_pending_metric_notes_do_not_touch_registry_rows(tmp_path, lut_sealed):
-    """계산 대기 제약을 더해도 레지스트리 제약 분류(ss_constraints·judged_constraints)는 그대로다."""
-    a = build_case(tmp_path / "a", circuit_c(), lut_sealed, constraints=CONS).sctx
-    b = build_case(tmp_path / "b", circuit_c(), lut_sealed, constraints=CONS + PENDING_CONS).sctx
-    assert [(c.metric, c.op, c.value) for c in a.ss_constraints] == [(c.metric, c.op, c.value) for c in b.ss_constraints]
-    assert tuple(tuple(x) for x in a.judged_constraints) == tuple(tuple(x) for x in b.judged_constraints)
-    extra = [n for n in _notes(b) if n not in _notes(a)]
-    assert len(extra) == len(PENDING_CONS)
-    assert all(n.get("reason") == "metric_computation_pending" for n in extra)
+    assert not any(n.get("reason") == "metric_computation_pending" for n in notes)
+    ss = [c.metric for c in s.ss_constraints]
+    judged = [x[0] for x in s.judged_constraints]
+    for n in names:
+        noted = [x for x in notes if x.get("reason") == "metric_not_in_registry_or_no_ss_view" and repr(n) in repr(x)]
+        assert ss.count(n) + judged.count(n) + len(noted) == 1, (n, ss, judged, notes)
 
 
 # ---------------------------------------------------------------- [U7 2026-10-09] 계산이 들어온 offset·스윙·FF 비 제약

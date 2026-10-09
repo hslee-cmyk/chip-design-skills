@@ -86,10 +86,25 @@ def test_offset_metrics_transfer_view(name):
     assert (sig.domain, sig.view_kind) == ("ss", "transfer")
 
 
-@pytest.mark.parametrize("name", sorted(STILL_PENDING))
-def test_pending_name_has_no_registry_value(name):
-    """계산 대기 = 레지스트리에 결과 형식·필드가 없다(계약 3.15: metric_value 는 KeyError). [U7] 남은 대기 = 잡음 4개."""
+def test_empty_pending_table_catalog_equals_registry():
+    """[U7+U8 통합 2026-10-09] 옛 `test_pending_name_has_no_registry_value`(계산 대기 이름마다 metric_value KeyError)를 대체한다 --
+    계산 대기 이름이 하나도 없어 parametrize 가 비어 늘 skip 되던 헐거운 test 였다. 현재 계약(metrics CONTRACT 10.0·11절,
+    3.15 '카탈로그 = 레지스트리 + 계산 대기'): 계산 대기 표가 빈 표이면 카탈로그 = 레지스트리(이름 집합과 서명이 같다).
+    oracle (d) 계약 문장 + (a) 집합 비교는 이 test 가 직접 한다."""
+    cat = metric_catalog()
+    reg = metric_registry()
+    assert set(cat) == set(reg)
+    assert len(cat) == REGISTRY_COUNT == 23
+    for name in reg:
+        assert cat[name] == reg[name].signature, name
+
+
+def test_name_outside_catalog_has_no_registry_value():
+    """빈 계산 대기 표에서도 카탈로그 밖 이름은 metric_value 가 KeyError(계약 3.15 '레지스트리 밖 이름은 KeyError'). oracle (d).
+    이름은 구성으로 정한 미지 이름(a) -- 카탈로그에 없음을 먼저 단정한다."""
     from gmid_engine.metrics import metric_value
+    name = "noise_no_such_metric_v2hz"
+    assert name not in metric_catalog()
     with pytest.raises(KeyError):
         metric_value(name, object())
 
