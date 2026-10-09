@@ -141,13 +141,14 @@ from .records import (
     SmallSignalCircuit,
     StampSet,
 )
+from .passive_values import passive_values
 from .registry import RegisteredMetric, metric_registry
 from .resolution import metric_resolutions
 from .rout import output_resistance
 from .sensitivity import response_sensitivity
 from .ss_circuit import ss_circuit
 from .ss_evaluate import ss_evaluate
-from .ss_linearize import GMB_COLUMN, GMB_VS_CELL_SECANT, JUNCTION_LUT_RULE, ss_dev
+from .ss_linearize import GMB_COLUMN, GMB_VS_CELL_SECANT, JUNCTION_LAYOUT_DIFFUSION, JUNCTION_LUT_RULE, ss_dev
 from .ss_metrics import metrics_ss
 from .ss_types import MetricBundle, MetricRequest, SsCircuit, SsDevice, SsEvaluation
 from .stamp_mos import mos_stamps
@@ -194,6 +195,7 @@ __all__ = (
     "GateResult",
     "HeadroomResult",
     "HeadroomRow",
+    "JUNCTION_LAYOUT_DIFFUSION",
     "JUNCTION_LUT_RULE",
     "JunctionCaps",
     "JunctionParams",
@@ -300,6 +302,7 @@ __all__ = (
     "offset_systematic",
     "omega_grid",
     "output_resistance",
+    "passive_values",
     "pencil_roots",
     "phase_lag",
     "probe_factor",

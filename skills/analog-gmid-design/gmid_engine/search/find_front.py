@@ -9,7 +9,7 @@
 * **최종 front = 봉인된 점만.** 봉인 7 이 VDSAT 부재로 미정인 동안(`seal7_pending`) 모든 점은 `pending_front` 에만 있고
   `front` 는 비어 있다 -- 대기 front 는 '봉인 7 대기·추정'이며 판정·보고 값으로 쓰지 않는다(DEC-72·77).
 * 기록하는 판정 보류(`notes`): spec 성능 제약 중 잴 수 없는 것(ss 영역, S-1), 수동소자 면적·값 미선언(DEC-79 -- 보상·부하
-  수동소자가 있으면 `review_needed`), 층 0 결과(최소형 -- 정밀화 GB3·GB4·knee 는 범위 밖, S-4), 판정 축 재필터 미실행(MOD8 몫), 모델 오차 미측정('추정').
+  수동소자가 있으면 `review_needed`), 층 0 결과(최소형 -- 정밀화 GB3·GB4·knee 는 범위 밖, S-4), 판정 축 재필터 미실행(MOD8 몫 -- `convergence.converge(sctx, pdk_decl, front.front)` 가 이 front 를 받아 한다; 패키지 순서상 여기서 부를 수 없고 U16 파이프라인이 부른다), 모델 오차 미측정('추정').
 * 계측 `perf`(설계 7.4): requests·kernel_calls·hits·fail_hits·disk_hits·outside_domain·recompute_same_key, 고유 키 수,
   평가 시간 중앙값, sizing 계산 블록 calls·reuses·computes·recomputes_same_input 델타, LUT memo 퇴출 수.
   합격 기준(NFR-2): kernel_calls == 고유 키 수, recompute_same_key == 0, LUT memo 퇴출 0.

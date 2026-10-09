@@ -425,7 +425,11 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   (같은 schema_fp·code_fp) -> {EvalKey: FailureRecord}.
 - `counters` 키: requests, kernel_calls, hits, fail_hits, disk_hits, outside_domain, recompute_same_key(모두 0 시작).
 
-### 3.10 `evaluate(sctx, theta, cells, parent=None, origin=()) -> EvalResult`
+### 3.10 `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`
+[U14] `geometry` = `RealizedGeometry(w_request, w_keys, diffusion=())`(search_values, `search.__all__`; MOD8 `convergence` 의 재검증 입력, LY7·LY8): 있으면 1 의 키 `w_fixed_fp = fp_of(geometry)`,
+5 의 커널은 `LutAccess(memo, geometry.w_keys)` 로 `size_and_seal(dc, θ, parent=parent.evaluation, w_request=geometry.w_request)`, 6 의 `ss_evaluate`·`constraint_rows` 도 같은 `dc`
+(`ss_evaluate(diffusion=geometry.diffusion)` -- 접합 용량이 실현 확산 기하). 없으면(None) 아래가 종전과 같다. 같은 (θ, cells, geometry) 는 캐시 적중, 계획 블록 버전은 슬라이스와 무관해
+`parent` 를 그대로 쓴다. S3 evals 줄의 `w_fixed_fp` 도 이 값이다.
 순서와 계수(정확히 이 순서):
 1. requests +1. 키 = `eval_key(..., 키 정렬 θ, cells, None)`.
 2. 메모리 캐시 적중 -> hits +1(실패면 fail_hits 도 +1), 같은 객체(`is`) 반환. 커널 0.
@@ -698,7 +702,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 - **S-10 (승인)** 부분 목적값이 없어 재시작(기록).
 - **S-11** FD y 스텝의 'VDS 격자 간격'(비균등 격자) -> 최소 간격으로 읽었다.
 - **S-13** 원뿔 제약 정규화(설계 5절 표에 없음) -> Σ항/Σ|항|.
-- **S-14** T_refilter(판정 축 재필터 시간) = 0 -- MOD8 미구현.
+- **S-14** T_refilter(판정 축 재필터 시간) = 0 -- `find_front` 안에서는 0이다. 판정 축 재필터는 `convergence.converge(sctx, pdk_decl, front.front)`(U14, 패키지 순서상 search 위)가 하고 U16 이 부른다. `find_front` 의 `not_run` 노트와 `refilter: "mod8_not_implemented"` 는 `find_front` 산출물의 상태(재필터 전)를 가리킨다.
 - **S-15** L-b 의 'LR5 격자 안' -- LR5 knee 격자 미구현이라 LUT 의 모든 L 칸이 격자다.
 - **S-16 (처리)** FD 양방향 실패 열 = 변수 고정(3.13), 모두 고정되면 끝.
 - **S-17** 예산 초과: 예산 검사는 새 x 평가 때만 해서 FD 한 번·L-b 시험 한 번만큼(평가 수로 n + 1 이하) 넘을 수 있다.
