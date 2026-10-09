@@ -155,9 +155,7 @@ from .sensitivity_gate import sensitivity_gate
 from .stamp_two_terminal import two_terminal_stamps
 from .supply import supply_currents
 from .verified_by import VerifiedBy, verified_by
-# `block_model` 은 함수(block_gain_model) 이름이자 서브모듈(block_model.py, U7) 이름이다 -- 서브모듈 적재가 패키지 속성을 모듈로 덮으므로
-# 함수 import 는 다른 import 가 모두 끝난 뒤 마지막에 둔다(`metrics.block_model` = 함수, test_block_gain_model).
-from .block_gain_model import block_model
+from .block_gain_model import block_gain_model_of
 
 __all__ = (
     "AUX_TYPES",
@@ -264,7 +262,7 @@ __all__ = (
     "area_search",
     "block_gain_bound",
     "block_local_gain",
-    "block_model",
+    "block_gain_model_of",
     "block_residual",
     "build_mna",
     "coupled_residual",

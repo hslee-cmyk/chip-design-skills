@@ -45,9 +45,9 @@ _TABLE = (
     ("offset_sys_mv", SPICE_UNVERIFIABLE, None), ("mirror_ratio_sigma_pct", SPICE_UNVERIFIABLE, None),
     ("swing_out_v", SPICE_ORACLE, "swing_out_v"), ("icmr_v", SPICE_ORACLE, "icmr_v"), ("icm_margin_v", SPICE_ORACLE, "icm_margin_v"),
     ("ff_gm_ratio", SPICE_UNVERIFIABLE, None),
-    # [U7+U8 통합] 잡음 4개(U8): `tools/spice_oracle/oracle_compare.py` MEASURES·U6_MEASURES 에 잡음 measure 가 없다 -> spice_unverifiable(위 규칙)
-    ("noise_th_in_v2hz", SPICE_UNVERIFIABLE, None), ("noise_fc_in_hz", SPICE_UNVERIFIABLE, None),
-    ("noise_excess_th", SPICE_UNVERIFIABLE, None), ("noise_out_int_vrms", SPICE_UNVERIFIABLE, None),
+    # [U7+U8 통합] 잡음 4개(U8): 오라클 `oracle_noise.py` 가 .noise 로 재고 `oracle_compare.py` MEASURES·U6_MEASURES 가 같은 키로 대조한다
+    ("noise_th_in_v2hz", SPICE_ORACLE, "noise_th_in_v2hz"), ("noise_fc_in_hz", SPICE_ORACLE, "noise_fc_in_hz"),
+    ("noise_excess_th", SPICE_ORACLE, "noise_excess_th"), ("noise_out_int_vrms", SPICE_ORACLE, "noise_out_int_vrms"),
 )
 
 

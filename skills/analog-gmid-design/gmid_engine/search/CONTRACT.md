@@ -977,7 +977,7 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 * 쓰임: `pipeline.run_stage_a`(→ `build_s1v(count_budget=)` 사이클 열거·복합 블록 Π 상한)와 `run_stage_b`(→ `metrics.achievability` 블록 격자 곱 게이트). `pipeline.structure_count_budget` 은 이 함수의 얇은 호출이다.
 * `passive_area_decl`(`area_decl.py`)을 공개 API 에 올렸다(`run_stage_b` 가 GB4 면적 하한의 커패시터 항 입력으로 부른다).
 
-## 11. 잡음 제약 배선 (구현 단위 U8, 2026-10-09 -- 설계 41 §7.4, metrics CONTRACT 10절)
+## 11. 잡음 제약 배선 (구현 단위 U8, 2026-10-09 -- 설계 41 §7.4, metrics CONTRACT 11절)
 
 - `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None)`: 끝에 선택 인자 `s1v`(`graph.build_s1v` 결과). 기존 호출(6인자)은 그대로 동작한다.
   - 값이 있는 판정 제약 중 잡음 metric(레지스트리 결과 형식 `NoiseAnalysis`)이 있으면 `search_domain` 뒤·`JunctionSource` 앞에서 `lut.require_lut_data(lut, MOS kind 들, noise=True)`:

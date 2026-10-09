@@ -245,7 +245,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - `metric_catalog()` = {이름: MetricSignature} 읽기 전용(spec 로더 `metric_catalog` 인자). [U5 2026-10-08] = 레지스트리 서명(11개) + **계산 대기
   서명 12개**(`pending_metrics.PENDING_METRIC_ROWS`, 총 23개; [U5 후속] `ff_gm_ratio`(ratio, ss, transfer) 추가 -- 계산은 U7): offset_in_sigma_mv(mv, ss, transfer)·offset_excess(ratio, ss, transfer)·
   offset_sys_mv(mv, ss, transfer)·mirror_ratio_sigma_pct(pct, ss, None)·swing_out_v·icmr_v·icm_margin_v(v, ls, None)·noise_th_in_v2hz(v2_per_hz,
-  ss, transfer)·noise_fc_in_hz(hz, ss, transfer)·noise_excess_th(ratio, ss, transfer)·noise_out_int_vrms(v, ss, transfer). [U8 2026-10-09] 잡음 4개는 계산이 들어와 레지스트리로 옮겨졌다(10절; 레지스트리 15개, 계산 대기 8개, 카탈로그 23개 그대로). 나머지 계산 대기 이름은 레지스트리에
+  ss, transfer)·noise_fc_in_hz(hz, ss, transfer)·noise_excess_th(ratio, ss, transfer)·noise_out_int_vrms(v, ss, transfer). [U8 2026-10-09] 잡음 4개는 계산이 들어와 레지스트리로 옮겨졌다(11절; 레지스트리 15개, 계산 대기 8개, 카탈로그 23개 그대로). 나머지 계산 대기 이름은 레지스트리에
   없다(결과 형식·필드 없음) -- `metric_value` 는 KeyError. 서명만이며 계산은 U7(offset·스윙)·U8(잡음)이 레지스트리로 옮긴다(`ValueError`:
   카탈로그가 레지스트리와 겹치면). 탐색 문맥(`build_search_context`)은 판정 제약 중 카탈로그에만 있는 이름을 `constraint_notes` 에
   `unmeasured`/`metric_computation_pending` 으로 남긴다.
@@ -1019,7 +1019,7 @@ test 는 `from gmid_engine.metrics import ...` 만 쓴다(`_` 이름·파일 모
 |---|---|---|---|
 | 0 | `achievability_types.py` | (데이터) | `CurveCheck`·`SliceCurveCheck`·`CurveChecks`, `BlockBound`·`GainCheck`, `AreaBound`, `EdgeCost`·`HeadroomRow`, `DofReport`, `Achievability`; 국소 모델 레코드 `LocalInputs`·`BlockSpec`·`AxisSpec`·`MosLocal`·`ResLocal`·`BlockModel`; 어휘 상수 |
 | 1 | `curve_checks.py` | `curve_checks(lut)` | 41 §4.1 칸 분류 -> 해법 매핑 |
-| 1 | `block_gain_model.py` | `block_model(local, spec)` | 블록 국소 모델 조립(축·전류식·여기·출력) -> (`BlockModel` 또는 None, 미상 사유 또는 None) |
+| 1 | `block_gain_model.py` | `block_gain_model_of(local, spec)` | 블록 국소 모델 조립(축·전류식·여기·출력) -> (`BlockModel` 또는 None, 미상 사유 또는 None) |
 | 1 | `block_param_tables.py` | `ParamTables(memo, w_keys, grids)` | 소자 파라미터 표(LUT 곡선 API 에서 한 번 조회, 행 memo) |
 | 1 | `block_gain_rows.py` | `row_gains(model, tables, idx, cont=None)` | 행 묶음 풀이(MNA ω→0) -> gain 진폭 배열 |
 | 1 | `area_lower_bound.py` | `area_lower_bound(lut, mos_kind, basis_rows, fixed, caps, budget_m2, b_a_m2)` | 41 §4.4 |

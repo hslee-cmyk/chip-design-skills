@@ -653,7 +653,7 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 |---|---|---|
 | 계수 예산 N_S (kind 별 LUT 격자점 수 합 또는 spec 선언값) | `search.count_budget(lut, kinds, declared=None)` | `pipeline.structure_count_budget` 은 얇은 호출이다(공개 이름 유지). metrics 가 search 보다 아래 층이라 `achievability` 는 값을 인자로 받는다. 새 격자 곱 상한을 만들지 않는다 |
 | LUT 곡선 칸 분류 -> 해법(역산 허용 / 격자 전용 / 로드 거부) | `metrics.curve_checks` (`CurveChecks`) | 분류 자료는 `DcSlice.on_mask`·`vds_slope_ok`·`vs_slope_ok`·`fc_ok_*`(lut). 칸 분류를 다시 계산하지 않는다 |
-| 블록 국소 소신호 모델 + 행 풀이 | `metrics.block_model` -> `metrics.row_gains`(`ParamTables`) | 소자 파라미터는 `lut.intrinsic_gain_curve`·`gmb`·`op_point` 에서 `ParamTables` 가 한 번 읽는다. 블록 gain 은 U7 `block_model`(봉인 스냅샷 기준) 과 다른 양이다(여기는 LUT 격자 행 기준 상한). U7 이 들어오면 MNA 조립 도우미는 공유를 검토 |
+| 블록 국소 소신호 모델 + 행 풀이 | `metrics.block_gain_model_of` -> `metrics.row_gains`(`ParamTables`) | 소자 파라미터는 `lut.intrinsic_gain_curve`·`gmb`·`op_point` 에서 `ParamTables` 가 한 번 읽는다. 블록 gain 은 U7 `block_model`(봉인 스냅샷 기준) 과 다른 양이다(여기는 LUT 격자 행 기준 상한). U7 이 들어오면 MNA 조립 도우미는 공유를 검토 |
 | 블록 gain 상한 A_i,max (격자 전수 + 예산 게이트 + 비단조 축 세분) | `metrics.block_gain_bound` | 상한은 `certified` 만 판정에 쓴다. 좌표 상승 `found_db` 는 하한 추정(보고만) |
 | Σ gain 판정(feedforward 포함) | `metrics.achievability` 의 `GainCheck` | 주경로 블록만(U1b `ViewS1v.blocks`), FF 는 `ViewS1v.feedforward` |
 | 인증된 면적 하한 A_lb | `metrics.area_lower_bound` | 입력 면적 분해능 b_A·수동소자 단위 면적은 `search_domain`·`search.passive_area_decl`. U11 `front_diagnosis` 의 `A_lb` 가 이 값을 쓴다 |
@@ -686,6 +686,6 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | offset σ_in·초과·계통 offset | `metrics.offset_analysis`·`metrics.offset_systematic` | 소자 σ 는 `metrics.device_sigmas`(lut `mismatch_sigma_vgs`) |
 | 미러비 σ | `metrics.mirror_ratio` | matching 그룹별 |
 | 출력 스윙·ICMR | `metrics.ls_swing`, 대신호 필드 `metrics.ls_fields` | 제약 `ls_constraints`(`search.ls_constraints`) |
-| FF 비·블록 잔차·NQS 비 | `metrics.ff_gm_ratio`·`metrics.block_residual`·`metrics.nqs_ratio` | 블록 국소 모델은 `metrics.block_model.block_local_gain`(서브모듈; 패키지 속성 `metrics.block_model` 은 U9 `block_gain_model.block_model` 함수다 -- 이름 충돌, `metrics/__init__.py` 주석) |
+| FF 비·블록 잔차·NQS 비 | `metrics.ff_gm_ratio`·`metrics.block_residual`·`metrics.nqs_ratio` | 블록 국소 모델은 `metrics.block_model.block_local_gain`(서브모듈; U9 의 블록 국소 모델 함수는 충돌을 피하려고 `metrics.block_gain_model_of`(`block_gain_model.py`)로 이름을 달리했다) |
 | 구조 사실(offset 입력 셀·FF·블록) | `metrics.metric_structure` | S1v 에서 파생 |
 | 모델 오차 쌍 | `metrics.model_error_pairs` | `build_search_context(model_error=)` |

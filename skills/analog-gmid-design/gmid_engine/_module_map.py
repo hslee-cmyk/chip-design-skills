@@ -642,7 +642,7 @@ MODULES = (
                 "GB4 달성가능성 값 형식·어휘(CurveChecks·BlockBound·GainCheck·AreaBound·HeadroomRow·DofReport·Achievability, 국소 모델 레코드)", ("FR-8", "D-GB4a")),
     ModuleEntry("metrics/curve_checks.py", "entry", "curve_checks",
                 "LUT 곡선 칸 분류 -> 해법 매핑(단조 역산 허용 / FC 위반 격자 전용 / 단위 불일치 로드 거부)", ("FR-8", "D-GB4a")),
-    ModuleEntry("metrics/block_gain_model.py", "entry", "block_model",
+    ModuleEntry("metrics/block_gain_model.py", "entry", "block_gain_model_of",
                 "블록 국소 소신호 모델 조립(축·전류식·여기·출력)", ("FR-8", "D-GB4b", "D-NM")),
     ModuleEntry("metrics/block_param_tables.py", "entry", "ParamTables",
                 "소자 파라미터 표(LUT 곡선 API 에서 한 번 조회 -- 행 memo, 상한 = LUT 격자 크기)", ("FR-8", "D-GB4b")),
