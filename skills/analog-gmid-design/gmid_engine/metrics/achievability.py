@@ -133,7 +133,7 @@ def _bound(local, tables, spec, budget, role=None):
     return block_gain_bound(model, tables, budget, spec.members)
 
 
-def _chain(view, blocks, bounds, use_b, colour):
+def _chain(view, blocks, bounds, colour):
     """뷰 입력 → 출력 합성 상한(선형 진폭): 넷별 값 = 그 넷을 출력으로 갖는 블록들 (A·최대 입력 값) 의 합. 반환 {넷: 값} (미상 블록이 있으면 None)."""
     if any(b.status != STATUS_CERTIFIED for b in bounds):
         return None
@@ -145,7 +145,7 @@ def _chain(view, blocks, bounds, use_b, colour):
             ins = [value[n] for n in block.inputs if n in value]
             if not ins:
                 continue
-            db = bound.a_max_db + (bound.b_db if use_b else 0)
+            db = bound.a_max_db
             lin = _amplitude(db) * max(ins)
             for net in block.outputs:
                 produced[net] = produced.get(net, 0) + lin
@@ -183,23 +183,21 @@ def _gain(view, s1v_blocks, local, tables, spec, budget, target):
                             ((f.tap, 1),), tuple(sorted(nodes)), drive=(f.tap,))
         ff_specs.append(ff_spec)
         ff_bounds.append(_bound(local, tables, ff_spec, budget))
-    chain_pure = _chain(view, s1v_blocks, bounds, False, local.node_colour)
-    chain_b = _chain(view, s1v_blocks, bounds, True, local.node_colour)
+    chain_pure = _chain(view, s1v_blocks, bounds, local.node_colour)
     sense = tuple(view.sense)
     found = [b.found_db for b in bounds]
     found_sum = None if any(f is None for f in found) else float(sum(found))
     n_unknown = sum(1 for b in bounds if b.status != STATUS_CERTIFIED) + sum(1 for b in ff_bounds if b.status != STATUS_CERTIFIED)
     sum_db = b_db = None
     if chain_pure is not None and all(b.status == STATUS_CERTIFIED for b in ff_bounds) and any(n in chain_pure for n in sense):
-        total, total_b = max(chain_pure[n] for n in sense if n in chain_pure), max(chain_b[n] for n in sense if n in chain_b)
+        total = max(chain_pure[n] for n in sense if n in chain_pure)
         for f, fb in zip(view.feedforward, ff_bounds):
             if f.tap not in chain_pure:
-                total = total_b = None
+                total = None
                 break
             total += _amplitude(fb.a_max_db) * chain_pure[f.tap]
-            total_b += _amplitude(fb.a_max_db + fb.b_db) * chain_b[f.tap]
         if total is not None:
-            sum_db, b_db = _db(total), _db(total_b) - _db(total)
+            sum_db, b_db = _db(total), float(sum(b.b_db for b in bounds))      # 41 4.3: b_GB4 = 주경로 블록 b 의 합
     if target is None:
         verdict = VERDICT_NO_TARGET
     elif sum_db is None:

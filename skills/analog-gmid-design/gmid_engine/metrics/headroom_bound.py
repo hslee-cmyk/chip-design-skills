@@ -94,9 +94,11 @@ def _relax(nets, rails, rail_v, edge_list, upward):
 
 
 def _walk(best, state):
-    """상태에서 레일까지 선행 엣지 열(상태 쪽부터)."""
+    """상태에서 레일까지 선행 엣지 열(상태 쪽부터). 선행 사슬이 상태 수 안에 레일에 닿지 않으면(양수 사이클) 빈 열 -- 그 창은 어차피 미상."""
     chain = []
     while best[state][1] is not None:
+        if len(chain) >= len(best):
+            return []
         chain.append(best[state][1])
         state = best[state][2]
     return chain

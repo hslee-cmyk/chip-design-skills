@@ -16,6 +16,7 @@ import math
 from pathlib import Path
 
 from gmid_engine.core import InfeasibleTargetError, SchemaRejectedError, StructureUnresolvedError, exit_code_for
+from gmid_engine.graph import ELEMENT_MOS
 from gmid_engine.metrics import achievability
 from gmid_engine.search import SearchSettings, count_budget, passive_area_decl, search_domain
 from gmid_engine.sizing import (
@@ -152,6 +153,12 @@ def run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False):
     if stage_a.s1v is None or stage_a.spec is None or (stage_a.status != "ok" and not diagnostic):
         return _finish(circuit, STAGE_SKIPPED, stage_a.exit_code, False, None, ["stage_a_" + stage_a.status], budget, output_dir)
     spec, s1 = stage_a.spec, stage_a.s1
+    held = stage_a.status != "ok"     # 진단 모드: 측정만 하고 단계 A 의 상태·exit code 를 그대로 둔다(계약 5절)
+
+    def finish(status, code, result, reasons, budget_value):
+        if held:
+            status, code = stage_a.status, stage_a.exit_code
+        return _finish(circuit, status, code, diagnostic, result, reasons, budget_value, output_dir)
     try:
         inputs = dc_inputs_from_spec(spec)
         kctx = build_kernel_context(s1, inputs, pre_layout_lut_access(memo), l_classes=stage_a.s1v.l_classes)
@@ -163,18 +170,18 @@ def run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False):
         settings = SearchSettings(0.0 if wall is None else float(wall), None, None, ((SETTING_WALL, "spec.search"),))   # 정의역 계산은 벽시계를 읽지 않는다
         domain = search_domain(kctx, settings, pdk_decl, spec_bounds, min(budgets) if budgets else None, untie)
     except (SchemaRejectedError, StructureUnresolvedError, InfeasibleTargetError) as exc:
-        return _finish(circuit, STAGE_STOPPED, exit_code_for(exc), diagnostic, None, [json.dumps(exc.record.to_json(), ensure_ascii=False, default=str)],
-                       budget, output_dir)
+        return finish(STAGE_STOPPED, exit_code_for(exc), None, [json.dumps(exc.record.to_json(), ensure_ascii=False, default=str)], budget)
     cur_rep, current_box = _theta_currents(domain)
     declared = spec.structure_count_budget
-    n_s = count_budget(memo.lut, {k for k, _w in kctx.lut.w_keys}, declared)
+    classes = dict(s1.column("device", "element_class"))     # 단계 A 와 같은 kind 집합(회로가 쓰는 MOS kind 만) -> 같은 S0 면 같은 N_S
+    kinds = {kind for name, kind in s1.column("device", "kind") if classes[name] == ELEMENT_MOS}
+    n_s = count_budget(memo.lut, kinds, declared)
     try:
         result = achievability(s1, stage_a.s1v, spec, kctx, count_budget=n_s, cur_rep=cur_rep, current_box=current_box,
                                area_resolution_m2=domain.area_resolution_m2, passive_area=passive_area_decl(kctx, spec, pdk_decl))
-        return _finish(circuit, STAGE_OK, 0, diagnostic, result, [], n_s, output_dir)
+        return finish(STAGE_OK, 0, result, [], n_s)
     except InfeasibleTargetError as exc:
         reasons = [code + " " + json.dumps(dict(detail), ensure_ascii=False, default=str) for code, detail in exc.achievability.reasons]
-        return _finish(circuit, STAGE_INFEASIBLE, exit_code_for(exc), diagnostic, exc.achievability, reasons, n_s, output_dir)
+        return finish(STAGE_INFEASIBLE, exit_code_for(exc), exc.achievability, reasons, n_s)
     except SchemaRejectedError as exc:        # LUT 이 GB4 입력을 못 만든다(예: 전도 행 없음) -- 조용히 통과하지 않고 정지 사유로 보고
-        return _finish(circuit, STAGE_STOPPED, exit_code_for(exc), diagnostic, None,
-                       [json.dumps(exc.record.to_json(), ensure_ascii=False, default=str)], n_s, output_dir)
+        return finish(STAGE_STOPPED, exit_code_for(exc), None, [json.dumps(exc.record.to_json(), ensure_ascii=False, default=str)], n_s)
