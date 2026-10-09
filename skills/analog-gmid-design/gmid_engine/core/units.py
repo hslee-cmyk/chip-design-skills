@@ -10,6 +10,7 @@
   레지스트리 항목의 단위는 이 안에 있어야 한다(표에 없는 단위는 거부 -- 옛 A12 규칙 계승).
 * `DOMAINS`: 영역 어휘(DEC-67 의 DC·소신호·대신호 + MOD5 설계 3.4 의 레이아웃 기하 `geom`).
 * `AMPLITUDE_DB_PER_DECADE`: 진폭비의 dB 정의 계수(20·log10|H|). dB 정의 자체라 유도할 근거가 없는 단위 계수다.
+* `MILLI`: SI 접두사 m(mv -> V 환산, [U13] `iv_matching_l` 이 `offset_in_sigma_mv` 값을 V 로 옮긴다). 단위 환산 계수는 이 파일 한 곳에 둔다.
 """
 
 METRIC_UNITS = ("db", "hz", "deg", "ohm", "mv", "amp", "w", "m2", "pct", "ratio", "v", "v2_per_hz")
@@ -18,6 +19,7 @@ DOMAINS = ("dc", "ss", "ls", "geom")
 
 AMPLITUDE_DB_PER_DECADE = 20.0
 
+MILLI = 0.001
 MV_PER_V = 1000.0
 PCT_PER_UNIT = 100.0
 # [U7] 단위 환산 계수 둘: 전압(V) -> 정규 단위 `mv`, 무차원 비 -> 정규 단위 `pct`. 정의에 의한 환산이라 유도할 근거가 없다.

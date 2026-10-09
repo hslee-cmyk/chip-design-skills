@@ -107,11 +107,26 @@ class _Abort(Exception):
         self.column = column
 
 
-def _box_centre(sctx):
+def _box_centre(sctx, rung=None):
+    """출발 θ 의 기반. [U13] `sctx.start`(`start_intervals` -- 스펙에서 유도한 gm/ID·L·전류 출발 구간의 선택점)가 값을 정한 성분(ln_idu·θ 전류·보상 커패시터·L 과 그 L 칸)은 그 값을 쓴다.
+    구간이 값을 정하지 못한 성분(`y`, 저항, 또는 `start` 가 None 인 컨텍스트 전부)은 상자 중심 -- bounds 중점(ln 좌표 변수는 ln 중점, `y` 는 창 중앙), L 은 칸 ln 중점이
+    전체 L 범위의 ln 중점에 가장 가까운 칸의 중점. 이 상자 기하 중점은 ln IDu 가 LUT 가 정의되지 않는 영역(예: −26~−34)으로 가고 면적이 예산의 12~99 배인 퇴화점을 만들었다(41 §6 상태 MISS)."""
     variables = list(sctx.domain.variables)
     theta = {v.component: (math.exp((v.lo + v.hi) / 2) if v.log else (v.lo + v.hi) / 2) for v in variables}
+    start = sctx.start if rung is None else rung          # StartRung 과 StartIntervals 는 같은 이름의 theta·cells·current_ref 를 가진다
+    given = {} if start is None else dict(start.theta)
+    chosen_cell = {} if start is None else dict(start.cells)
+    theta.update({component: value for component, value in given.items() if component in theta})
     cells = []
     for mos, table in sctx.domain.l_cells:
+        if mos in chosen_cell and (THETA_L, mos) in given:
+            j = chosen_cell[mos]
+            lo, hi = table[j]
+            cells.append(j)
+            theta[(THETA_L, mos)] = min(max(given[(THETA_L, mos)], lo), hi)
+            if lo < hi:
+                variables.append(Variable((THETA_L, mos), False, lo, hi))
+            continue
         mid = (math.log(min(c[0] for c in table)) + math.log(max(c[1] for c in table))) / 2
         j = min(range(len(table)), key=lambda i: (abs((math.log(table[i][0]) + math.log(table[i][1])) / 2 - mid), i))
         lo, hi = table[j]
@@ -148,16 +163,24 @@ def _current_fixed(sctx):
     return out
 
 
-def _current_centre(sctx, variables, theta):
+def _current_centre(sctx, variables, theta, rung=None):
     schema = sctx.dc.schema
     index = [i for i, v in enumerate(variables) if v.component[0] == THETA_CURRENT]
     if not index or not schema.current_cone:
         return theta, None
+    start = sctx.start if rung is None else rung
+    covered = set() if start is None else {c for c, _v in start.theta}
+    fixed = _current_fixed(sctx)
+    fixed.update({variables[i].component[1]: theta[variables[i].component] for i in index if variables[i].component in covered})
+    index = [i for i in index if variables[i].component not in covered]      # [U13] 출발 구간이 정한 θ 전류는 상수로 읽고 나머지만 Chebyshev 중심을 푼다
+    if not index:
+        return theta, None
     kinds = dict(sctx.dc.base.column("device", "kind"))
     box = dict(sctx.domain.current_box)
     ref = {m: math.sqrt(box[kinds[m]][0] * box[kinds[m]][1]) for m, _t in schema.current_cone}
+    if start is not None:                           # [U13] 전류를 정하지 못한 소자의 기준 전류 = 선택 점에서 최소 폭 소자의 전류(상자 기하 중심 대신)
+        ref.update({m: v for m, v in start.current_ref if m in ref})
     pos = {variables[i].component[1]: k for k, i in enumerate(index)}
-    fixed = _current_fixed(sctx)
     # θ 전류를 하나도 읽지 않는 행(값 선언 이상원만으로 정해지는 MOS 전류)은 움직일 수 없으므로 편차 경쟁에서 뺀다 -- 넣으면
     # u 가 그 고정 편차로 정해져 나머지 행이 느슨해진다(원뿔 경계까지 허용).
     alias = _current_alias(sctx)
@@ -200,10 +223,17 @@ def _current_centre(sctx, variables, theta):
     grad[n] = 1.0
     out = scipy_minimize(lambda v: v[n], np.asarray(z0 + [u0], dtype=float), jac=lambda v: grad, method="SLSQP",
                          bounds=bounds, constraints=[{"type": "ineq", "fun": cons, "jac": cons_jac}])
-    moved = dict(theta)
-    for k, i in enumerate(index):
-        moved[variables[i].component] = math.exp(min(max(float(out.x[k]), variables[i].lo), variables[i].hi))
-    return moved, float(out.x[n])
+    u = float(out.x[n])
+    # [U13] 기준 전류가 '폭 = W_min 인 전류 이상'(`StartIntervals.current_ref`)이면 Chebyshev 해의 MOS 전류는 기준의 e^±u 배 안에 든다 -- 움직이는 θ 전류를 모두 e^u 배 올려 모든 MOS 가
+    # 기준 이상(= 폭 ≥ W_min)이 되게 한다. 원뿔(행 합이 양수)이 깨지면(고정 전류·음의 계수) 올리지 않는다.
+    lift = u if start is not None and start.current_ref else 0.0
+    for scale in ((lift, 0.0) if lift else (0.0,)):
+        moved = dict(theta)
+        for k, i in enumerate(index):
+            moved[variables[i].component] = math.exp(min(max(float(out.x[k]) + scale, variables[i].lo), variables[i].hi))
+        if not scale or all(r.c > 0 for r in cone_rows(schema, tuple(sorted(_expanded(sctx, moved).items())))):
+            break
+    return moved, u
 
 
 def _item_slacks(res):
@@ -586,28 +616,47 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
             best = (info[1], res)          # 묶음 안 위반 크기(margin) 최소 시험 점 -- 묶음이 끝나면 1단계 출발점
 
 
-def centre_start(sctx):
+def centre_start(sctx, rung=None):
     """layer0 가 처음 평가하는 점 `(variables, theta, cells, centre_u)` -- 상자 중심 + 전류 중심. `build_search_context` 가 LUT memo 상한을 정하는
     첫 평가(설계 40 §7.3)도 이 점을 쓴다(`variables` 길이 = n_θ)."""
-    variables, theta, cells = _box_centre(sctx)
-    theta, centre_u = _current_centre(sctx, variables, theta)
+    variables, theta, cells = _box_centre(sctx, rung)
+    theta, centre_u = _current_centre(sctx, variables, theta, rung)
     return variables, theta, cells, centre_u
 
 
 def layer0_start(sctx, origin=()):
     calls0 = sctx.counters["kernel_calls"]
     tag = origin + (("stage", STAGE_LAYER0),)
-    variables, theta, cells, centre_u = centre_start(sctx)
+    # [U13] 출발 사다리(`StartIntervals.ladder`: 실행 가능한 최대 gm/ID 위치에서 구간 하한 쪽으로 반씩)를 칸 순서로 커널에 확인해 처음 받아들일 상태인 칸에서 출발한다.
+    # 사다리가 없으면(start 가 None) 상자 중심 한 점이다.
+    rungs = sctx.start.ladder if sctx.start is not None and sctx.start.ladder else (None,)
     failure, probes, source, repairs = None, 0, "centre", ()
-    if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(_expanded(sctx, theta).items())))):
-        start_status = "centre_outside_cone"
-        first = None
-    else:
+    first, start_status, base, best = None, "centre_outside_cone", None, None
+    for k, rung in enumerate(rungs):
+        variables, theta, cells, centre_u = centre_start(sctx, rung)
+        base = (variables, theta, cells, centre_u) if base is None else base
+        if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(_expanded(sctx, theta).items())))):
+            start_status = "centre_outside_cone"
+            continue
         first = evaluate(sctx, theta, cells, origin=tag)
         start_status, failure = first.status, first.failure
-        if first.status not in ACCEPTED_STATUSES:
-            first = None
+        if first.status in ACCEPTED_STATUSES:
+            source = "centre" if k == 0 else "ladder:" + str(k)
+            break
+        info = _repairable(first)
+        if info is not None and (best is None or info[1] < best[0]):
+            best = (info[1], first, variables, theta, cells, centre_u, k)       # 위반 크기가 가장 작은 칸 -- 아래 1단계 보정의 출발점
+        first = None
+    if first is None and best is not None and _budget_stop(sctx) is None:
+        # 사다리 어느 칸도 받아들일 상태가 아니면 위반 크기가 가장 작은 칸(1변수 노드 근이 창 밖)에 S-4b 1단계(`_repair`: writer ln IDu 한 좌표 bisection)를 적용한다 --
+        # Halton 시험 점에 쓰는 것과 같은 보정이다.
+        _margin, res, variables, theta, cells, centre_u, k = best
+        fixed_res, chain = _repair(sctx, variables, res, cells, tag, _gmid_max(sctx))
+        repairs = (chain,)
+        if fixed_res is not None:
+            first, source, theta = fixed_res, "ladder_repair:" + str(k), dict(fixed_res.theta)
     if first is None:
+        variables, theta, cells, centre_u = base
         first, probes, why, repairs = _halton_probe(sctx, variables, theta, cells, tag)
         if first is None:
             reason = start_status

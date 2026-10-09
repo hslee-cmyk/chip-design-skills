@@ -689,3 +689,23 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | FF 비·블록 잔차·NQS 비 | `metrics.ff_gm_ratio`·`metrics.block_residual`·`metrics.nqs_ratio` | 블록 국소 모델은 `metrics.block_model.block_local_gain`(서브모듈; U9 의 블록 국소 모델 함수는 충돌을 피하려고 `metrics.block_gain_model_of`(`block_gain_model.py`)로 이름을 달리했다) |
 | 구조 사실(offset 입력 셀·FF·블록) | `metrics.metric_structure` | S1v 에서 파생 |
 | 모델 오차 쌍 | `metrics.model_error_pairs` | `build_search_context(model_error=)` |
+
+## 15. 새 엔진(`gmid_engine.search` 출발 구간·매크로 모델) 정본 (2026-10-09, 단위 U13 -- 새로 만들기 전에 여기 먼저)
+
+계약: `gmid_engine/search/CONTRACT.md` U13절. 설계 41 §6·§7.5·§5.8, 40 §11 U13·§7.1.
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| 소자별 gm/ID·L·전류 출발 구간 + 선택점 + 출발 사다리 | `search.start_intervals(s1v, ach, kctx, spec, pdk_decl, domain)` | `build_search_context(s1v=, ach=)` 가 한 번 부르고 `ctx.start` 에 둔다. 층 0 `layer0_start` 가 소비한다. **U11 임시 `fit_to_area_budget`(예산 넘는 시작점의 ln IDu 를 모두 같은 Δ만큼 옮김)을 대체한다** -- U11 병합 때 그 함수와 호출부를 지운다 |
+| 헤드룸 gm/ID 하한(스윙·ICMR·입력 DC 분할) | `search.iv_headroom.headroom_bounds` (U9 `metrics.headroom_bound` 를 모든 단자 넷 창으로 부름) | 경로 DP 를 다시 만들지 않는다 |
+| 속도 gm/ID 상한·L 상한, 주극점 노드 | `search.iv_speed.speed_bounds`, `search.dominant_node` | 비주극점 낮은 등급 단자 소자 f_T ≥ f_np = GBW·tan(PM) |
+| matching L 하한(A_eff)·offset 가드 부하 상한 | `search.iv_matching_l.matching_bounds` | σ 는 U3 `lut.mismatch_sigma_vgs`, 부하 합 가드 공용은 `_helpers_guard` |
+| 열잡음 가드 부하 상한 | `search.iv_noise.noise_bounds` | S_vg 는 U3 `lut.noise_params` |
+| 면적 예산 -> L·gm/ID 상한, 최소 폭 -> gm/ID 하한 | `search.iv_area.area_bounds` + `_helpers_area.area_estimate` | `area_search_m2` 와 같은 구성(MOS W·L + 수동소자). 일반 면적 하한(인증)은 `metrics.area_lower_bound` |
+| LUT 역산 정의역(커널 `vgs_for_current_density` 가 받는 ln IDu 창) | `search.iv_domain.domain_bounds` | 출발점이 정점·VGS 끝에 놓여 DC 풀이가 첫 평가에서 죽는 것을 막는다 |
+| 블록 gm -> 소자·θ 전류 전파, 소자 용량 계수 | `search.iv_currents.current_model` | KCL 기저 행 + 미러(폭 비 1) + FF 묶음 |
+| 블록 VCCS 매크로 모델(UGF = GBW, PM ≥ 목표, 전원 전류 최소) | `search.macro_poles.macro_solve` | 극점·UGF·PM 은 `metrics.solve_responses`·`analyze_loop` |
+| 이득 L 하한(§6.4-1, 블록 국소 모델이 목표 g_i 를 맞추는 최소 L) | `search.iv_gain_l.gain_l_bounds` | U9 `BlockModel`·`ParamTables`·`row_gains` 재사용, 입력 묶음·블록 대상은 `metrics.local_inputs`·`metrics.block_spec`(U9 `_local_inputs`·`_block_spec` 공개 이름). 입력 묶음은 `search.iv_context` 가 S0 당 한 번 만든다 |
+| θ 전류 대표·상자(`cur_rep`·`current_box`) | `pipeline.stage_b._theta_currents` (정본), `search.iv_context._theta_currents` (같은 규칙의 사본) | 파일당 진입점 하나·패키지 공개 API 규칙(구조 test A·C)으로 한 곳에 모으지 못했다 -- 한쪽을 바꾸면 다른 쪽도 바꾼다 |
+| 평가 예산 N_T | `search.EvalBudget` | `kernel.evaluate` 의 E_B 유도가 `limit()` 을 쓴다 |
+| mv -> V 환산 | `core.MILLI` | `core/units.py` (단위 환산 계수는 한 곳) |

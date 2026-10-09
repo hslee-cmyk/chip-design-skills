@@ -28,6 +28,7 @@ from gmid_engine.sizing import METRICS_KEY, THETA_PASSIVE_KINDS, THETA_RESISTANC
 
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
+from .eval_budget import EvalBudget
 from .eval_key import eval_key
 from .ls_constraints import ls_constraint_rows
 from .tie_expand import expand_ties
@@ -162,8 +163,9 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
     if sctx.eval_budget is None and len(sctx.eval_times) > len(sctx.domain.variables):
         # E_B 를 한 번 정한다: 평가 한 sweep(n + 1 = FD Jacobian 한 번) 뒤의 시간 중앙값 t_ref -- 첫 평가의 LUT 파생표(tol_V) 1회
         # 비용이 중앙값을 끌지 않게. 이후 모든 한도는 평가 수(결정론). 값·근거는 기록되고 settings.eval_budget 으로 재현한다.
-        sctx.eval_budget = int(sctx.settings.front_budget_s / statistics.median(sctx.eval_times))
-        sctx.eval_budget_source = "derived_once:floor(B/median_t_eval)@n_evals=" + str(len(sctx.eval_times))
+        sctx.eval_budget = EvalBudget(sctx.settings.front_budget_s, sctx.eval_times).limit()
+        if sctx.eval_budget is not None:
+            sctx.eval_budget_source = "derived_once:floor(B/median_t_eval)@n_evals=" + str(len(sctx.eval_times))
     result = EvalResult(key, pairs, status, evaluation, objectives, rows, cone, failure, sctx.seq, unmeasured,
                         () if bundle is None else bundle.warnings)
     sctx.cache[key] = result

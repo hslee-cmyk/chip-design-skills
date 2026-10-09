@@ -34,6 +34,7 @@ from .kernel import evaluate
 from .noise_decl import noise_decl
 from .search_domain import search_domain
 from .search_values import AXES, AXIS_AREA, EvalKey
+from .start_intervals import start_intervals
 
 _CODE_PACKAGES = ("core", "lut", "graph", "sizing", "metrics", "search")
 
@@ -81,6 +82,7 @@ class SearchContext:
         self.eval_budget_source = "declared" if settings.eval_budget is not None else None
         self.deadline = None                             # 벽시계 바깥 정지(perf_counter 기준) -- find_front 가 정한다
         self.cell_floors = {}                            # [r8] `cell_floor` 의 (kind, w_key, L 칸) -> 칸 정점 하한 등 S0 수명 캐시
+        self.start = None                                # [U13] `StartIntervals`(스펙에서 유도한 출발 구간) -- 층 0 이 상자 중심 대신 읽는다. s1v 를 안 주면 None(상자 중심)
 
 
 def _disk_failures(archive, context_fp, schema_fp):
@@ -115,6 +117,9 @@ def _wire_sweep_memo(ctx):
     ctx.dc = dataclasses.replace(ctx.dc, lut=LutAccess(memo, old.w_keys))
 
 
+_OFFSET_METRICS = ("offset_in_sigma_mv", "offset_excess")
+
+
 def _require_noise_data(dc_ctx, spec):
     """[U8, 설계 41 §7.2] 평가할 잡음 제약(값이 있는 판정 제약)이 선언됐는데 LUT 에 그 kind 의 잡음 r1 데이터가 없으면 `SchemaRejectedError(noise_lut_missing)`
     -- 탐색 중 조회 실패로 늦게 알지 않게 시작 때 거른다."""
@@ -123,9 +128,14 @@ def _require_noise_data(dc_ctx, spec):
         classes = dict(dc_ctx.base.column("device", "element_class"))
         kinds = {k for n, k in dc_ctx.base.column("device", "kind") if classes[n] == ELEMENT_MOS}
         require_lut_data(dc_ctx.lut.memo.lut, kinds, noise=True)
+    # [U13 후속, 설계 41 §6.4-2b·lut CONTRACT 9.5] 값이 있는 offset 제약(`offset_in_sigma_mv`·`offset_excess`)이 있으면 mismatch 감도 r1 데이터도 필수(fail-closed)
+    if any(d.metric in _OFFSET_METRICS and d.value is not None for d in spec.judged_constraints):
+        classes = dict(dc_ctx.base.column("device", "element_class"))
+        kinds = {k for n, k in dc_ctx.base.column("device", "kind") if classes[n] == ELEMENT_MOS}
+        require_lut_data(dc_ctx.lut.memo.lut, kinds, mismatch=True)
 
 
-def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None, model_error=()):
+def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None, ach=None, model_error=()):
     """[r6] `lut_rule_decl` = core `read_pdk_decl(<LUT 생성 규칙 선언>)`(sky130 = assets/sky130_lut_rule_decl.json). 여기서 S0 당
     1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)`(metrics 7.6 필수 junction)를 만든다.
 
@@ -134,7 +144,9 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     [U7] 있으면 S0 당 1회 `metric_structure(s1v)` 로 metrics 구조 입력(offset_excess 입력 셀·FF 비·블록 잔차 보고)을 만들어
     매 평가 `ss_evaluate(structure=)` 에 넘긴다(없으면 그 값들은 정의 불가 -- 조용히 통과하지 않고 미측정으로 남는다). PDK 선언의 mismatch 모델은 `MismatchSource`
     (offset·미러비 σ 입력)로 매 평가 넘긴다. `model_error` = ((metric, 값), ...) DEC-72 오라클 대조 모델 오차(`verified_by.model_error_pairs` 가 `derived.model_error_<metric>`
-    에서 만든다) -- 분해능 바닥(`ss_constraint_rows`)."""
+    에서 만든다) -- 분해능 바닥(`ss_constraint_rows`).
+    [U13] `s1v` 를 주면 여기서 한 번 `start_intervals(s1v, ach, dc_ctx, spec, pdk_decl, domain)`(`ach` = U9 `Achievability` 또는 None)로 gm/ID·L·전류 출발 구간을 유도해
+    `ctx.start` 에 둔다 -- 층 0(`layer0_start`)이 θ 상자 기하 중심 대신 이 구간의 선택점에서 출발한다(41 §6). s1v 가 없으면 `ctx.start` 는 None 이고 층 0 은 상자 중심으로 간다."""
     for name, value in (("pdk_decl", pdk_decl), ("lut_rule_decl", lut_rule_decl)):
         if not isinstance(value, PdkDecl):            # 무엇이든 만들기 전에 입력 형식부터(§3.7·3.9)
             raise TypeError("build_search_context: " + name + " 는 core read_pdk_decl 결과여야 한다")
@@ -181,6 +193,8 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     ctx.driving = spec.driving_spec
     ctx.area_decl = passive_area_decl(dc_ctx, spec, pdk_decl)
     ctx.noise_decl = noise_decl(spec, s1v)
+    if s1v is not None:
+        ctx.start = start_intervals(s1v, ach, dc_ctx, spec, pdk_decl, domain)
     classes = dict(dc_ctx.base.column("device", "element_class"))
     ctx.spec_passive_values = tuple(sorted((n, float(v)) for n, v in dc_ctx.inputs.element_values
                                            if v is not None and classes.get(n) == ELEMENT_PASSIVE))

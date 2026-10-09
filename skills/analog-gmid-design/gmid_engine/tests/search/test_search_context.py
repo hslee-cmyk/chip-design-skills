@@ -121,14 +121,18 @@ def test_junction_built_once_per_context(tmp_path, lut_sealed):
 # 뷰 없는 이 sweep 에서 뺀다(SPEC_CONTRACT 2절, authoring test 가 본다) -- 구성(a).
 # 값 1.0 은 합성 입력(a), 사용자 값 아님. 미지 이름 거부(metric_unknown, 로더)는 authoring/test_spec_constraints.py 가 본다.
 NOISE_NAMES = ("noise_th_in_v2hz", "noise_fc_in_hz", "noise_excess_th", "noise_out_int_vrms")
+# [U13 후속 2026-10-09] offset 2개(offset_in_sigma_mv·offset_excess)는 mismatch r1 없는 toy LUT 에서 mismatch_lut_missing 거부(search CONTRACT 11절,
+# 아래 U13 후속 절 test)라 잡음과 같은 이유로 이 sweep 에서 뺀다 -- 구성(a). 두 metric 의 분류(ss_constraints)는 mismatch r1 을 실은 실경로 test 가 본다.
+OFFSET_NAMES = ("offset_in_sigma_mv", "offset_excess")
 VIEW_REQUIRED_KINDS = ("cm_loop", "ratio")
 
 
 def test_every_catalog_constraint_classified_once_never_pending(tmp_path, lut_sealed):
     from gmid_engine.metrics import metric_catalog
     cat = metric_catalog()
-    names = sorted(n for n in cat if n not in NOISE_NAMES and cat[n].view_kind not in VIEW_REQUIRED_KINDS)
-    assert len(names) == 23 - len(NOISE_NAMES) - 2          # pm_cm_ss_deg(cm_loop)·ratio_ss_db(ratio)
+    assert set(OFFSET_NAMES) <= set(cat)                     # 입력 확인: 빼는 이름이 카탈로그에 있다
+    names = sorted(n for n in cat if n not in NOISE_NAMES + OFFSET_NAMES and cat[n].view_kind not in VIEW_REQUIRED_KINDS)
+    assert len(names) == 23 - len(NOISE_NAMES) - len(OFFSET_NAMES) - 2          # pm_cm_ss_deg(cm_loop)·ratio_ss_db(ratio)
     cons = tuple((n, "<=", 1.0, None) for n in names)
     s = build_case(tmp_path, circuit_c(), lut_sealed, constraints=cons).sctx
     notes = _notes(s)
@@ -144,8 +148,9 @@ def test_every_catalog_constraint_classified_once_never_pending(tmp_path, lut_se
 # oracle (d) metrics CONTRACT 10.7: '`ctx.ss_constraints` 에 `AUX_TYPES` metric(뷰 없는 swing·mirror 포함)이 들어가 `ss_constraint_rows` 가
 # 판정한다'. 설계 40 §3.8-8 판정 위치 '다른 metric 과 같이 외층 전회로 계산 한 곳(DEC-74)' -- 계산 대기 노트(metric_computation_pending)로
 # 남으면 판정이 조용히 빠진다. 옛 기대(계산 대기 노트)는 U7 이 계산을 넣어 대체된 동작이다.
-AUX_CONS = (("offset_excess", "<=", 2 ** 0.5, None), ("swing_out_v", ">=", 0.5, None), ("mirror_ratio_sigma_pct", "<=", 1.0, None),
-            ("ff_gm_ratio", ">=", 1.0, None))
+# [U13 후속 2026-10-09] offset_excess 는 mismatch r1 없는 toy LUT(lut_sealed)에서 시작 거부(mismatch_lut_missing)라 여기서 뺐다 -- 같은 단언
+# (ss_constraints 에 들고 판정 축·노트에 없다)은 mismatch r1 을 실은 실경로 test_offset_constraints_with_mismatch_lut_enter_ss_constraints 가 본다.
+AUX_CONS = (("swing_out_v", ">=", 0.5, None), ("mirror_ratio_sigma_pct", "<=", 1.0, None), ("ff_gm_ratio", ">=", 1.0, None))
 
 
 def test_aux_metric_constraints_enter_ss_constraints(tmp_path, lut_sealed):
@@ -206,3 +211,44 @@ def test_u7_context_inputs_default(tmp_path, lut_sealed):
     assert tuple(s.model_error) == ()
     assert s.mismatch == MismatchSource.from_decl(case.pdk)
     assert s.driving is case.spec.driving_spec
+
+
+# ---------------------------------------------------------------- [U13 후속 2026-10-09] offset 제약 -- 시작 때 mismatch LUT 필수 검사(fail-closed)
+# oracle (d) search CONTRACT 11절 '값이 있는 offset_in_sigma_mv 또는 offset_excess 판정 제약이 있고 MOS kind 의 mismatch 감도 r1 데이터
+# (LutSet.mismatch)가 없으면 SchemaRejectedError(mismatch_lut_missing)', lut CONTRACT 9.5(detail kinds = 없는 kind 정렬 tuple).
+# lut_sealed 는 mismatch r1 없이 만든 toy LUT 다(구성 (a)). 제약 값 3.3·sqrt(2) 는 합성 입력(사용자 값 아님, 판정 기대 아님).
+
+@pytest.mark.parametrize("metric, op, value", [("offset_in_sigma_mv", "<=", 3.3), ("offset_excess", "<=", 2 ** 0.5)])
+def test_offset_constraint_without_mismatch_lut_rejected(tmp_path, lut_sealed, metric, op, value):
+    with pytest.raises(SchemaRejectedError) as ei:
+        build_case(tmp_path, circuit_c(), lut_sealed, constraints=((metric, op, value, None), ("gain_ss_db", ">=", 10.0, None)))
+    d = dict(ei.value.record.detail)
+    assert d["reason"] == "mismatch_lut_missing"
+    assert tuple(d["kinds"]) == ("nmos", "pmos")              # 회로 C 의 MOS kind 둘 다 mismatch 표가 없다
+
+
+def test_offset_sys_constraint_needs_no_mismatch_lut(tmp_path, lut_sealed):
+    """oracle (d) search CONTRACT 11절: 검사 대상은 offset_in_sigma_mv·offset_excess 둘뿐 -- 계통 offset(offset_sys_mv)은 mismatch 감도와 무관해
+    mismatch r1 없이도 시작한다(거부 범위가 넓어지지 않는다)."""
+    s = build_case(tmp_path, circuit_c(), lut_sealed, constraints=(("offset_sys_mv", "<=", 1.0, None),
+                                                                   ("gain_ss_db", ">=", 10.0, None))).sctx
+    noted = [x for x in _notes(s) if x.get("reason") == "metric_not_in_registry_or_no_ss_view" and "offset_sys_mv" in repr(x)]
+    ss = [c.metric for c in s.ss_constraints]
+    judged = [x[0] for x in s.judged_constraints]
+    assert ss.count("offset_sys_mv") + judged.count("offset_sys_mv") + len(noted) == 1     # 위 sweep 과 같은 '정확히 한 곳'
+
+
+def test_offset_constraints_with_mismatch_lut_enter_ss_constraints():
+    """mismatch r1 을 실은 실 LUT(u13_real: lut CONTRACT 1.8 정본 호출 `mismatch_npz=loc.mismatch_path`)면 같은 두 제약으로 거부되지 않고 시작하며,
+    두 metric 은 ss_constraints 에 정확히 한 번씩 들고 판정 축·계산 대기/뷰 없음 노트에 없다(위 U7 절 oracle (d) metrics CONTRACT 10.7 과 같은 단언).
+    입력: library two_stage_ota(spec 이 offset_excess <= sqrt(2) 를 선언) + 추가 offset_in_sigma_mv <= 3.3(test_iv_matching_l 과 같은 test 입력)."""
+    from .u13_real import real_case, real_env
+    assert real_env().lut.mismatch                              # 전제: mismatch r1 이 실렸다
+    s = real_case("two_stage_ota", (("offset_in_sigma_mv", "<=", 3.3),)).sctx
+    ss = [c.metric for c in s.ss_constraints]
+    judged = {x[0] for x in s.judged_constraints}
+    for m in OFFSET_NAMES:
+        assert ss.count(m) == 1, (m, ss)
+        assert m not in judged
+    assert not any(n.get("reason") in ("metric_computation_pending", "metric_not_in_registry_or_no_ss_view")
+                   and any(m in repr(n) for m in OFFSET_NAMES) for n in _notes(s))
