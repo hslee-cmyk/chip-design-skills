@@ -58,6 +58,7 @@ from .start_values import (
     SRC_L_CLASS,
     SRC_LUT_L,
     SRC_LUT_RANGE,
+    SRC_W_MIN,
     WHY_NO_CURRENT,
     Bound,
     StartConflict,
@@ -309,7 +310,14 @@ def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
     for d in devices:
         upper = min(raw_hi[m.name] for m in devices if m.group == d.group)
         if d.name == d.group and g_low[d.name] > upper:
-            conflicts.append(StartConflict(d.name, QUANTITY_GM_ID, (("lower", g_low[d.name]), ("upper", upper)), g_low[d.name] - upper))
+            # 하한을 정한 경계가 최소 폭이면 그 출처를 남긴다(W_min 은 경성 제약 -- 상한을 넘기는 최소 폭 보정은 조용한 위반이 아니라 충돌 기록, CONTRACT '최소 폭 보정')
+            walls = {m.name: tuple((b.source, b.value) for b in g_items[m.name] if b.source == SRC_W_MIN and b.side == SIDE_LO and b.value > upper)
+                     for m in devices if m.group == d.group}
+            for m in sorted(walls):         # 같은 VGS 묶음은 한 gm/ID 를 공유한다 -- 최소 폭에 걸린 구성원마다 그 출처를 단 충돌을 남긴다
+                if walls[m]:
+                    conflicts.append(StartConflict(m, QUANTITY_GM_ID, (("lower", g_low[d.name]), ("upper", upper)) + walls[m], g_low[d.name] - upper))
+            if not any(walls.values()):
+                conflicts.append(StartConflict(d.name, QUANTITY_GM_ID, (("lower", g_low[d.name]), ("upper", upper)), g_low[d.name] - upper))
 
     # ---- 7, 8: 선택(면적 예산 안 최대 t)과 전류 확정
     def pick(t):

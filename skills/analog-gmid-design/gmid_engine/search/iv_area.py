@@ -14,6 +14,7 @@
   * **L 상한**: 41 식 L ≤ √(A·IDu/I) -- gm_k·L² / (g_lo,k·IDu(g_lo,k, L)) ≤ A_k,avail 인 LUT L 앵커 중 최댓값.
   * **gm/ID 상한**(U13 의 면적 출발점 -- U11 의 임시 `fit_to_area_budget`(예산을 넘는 시작점의 ln IDu 를 모두 같은 Δ만큼 옮기던 방식)을 대체한다): 선택된 L 에서
     gm_k·L² / (g·IDu(g, L)) ≤ A_k,avail 인 g 의 최댓값(마디 사이 선형 교차 `hull`).
+* 상한(곡선 gm/ID 끝)까지 올려도 W < W_min 이면 충돌 레코드(`w_min_gm_id`, gap = ln(W_min/W_최대) 무차원)로 남기고 하한을 W 최대 마디로 닫는다(자르지 않는다).
 * 소자 전류 I_k 를 모르면(매크로·전파가 정하지 못함) 그 소자는 경계를 만들지 않고 비활성 `stage_current_unavailable` 로 남는다.
 * A_k,avail 이 최소 면적에도 못 미치면(예산 < 하한) 자르지 않고 충돌 레코드로 남긴다(41 §6.6 'A_est > 예산(보고만)'; 같은 사실의 정지 판정은 U9 `area_lower_bound` 의 몫).
 출발값 전용(EP-7): 레이아웃 타당성(W 격자·nf)은 외층 제약 행이 판정한다.
@@ -72,6 +73,12 @@ def area_bounds(ctx, currents, lengths, gm_id_lo):
         low = hull(g, np.log(width), math.log(ctx.w_min_m), below=False)      # IDu 는 log 보간 -- log W 위에서 교차를 구한다
         if low is not None:
             bounds[d.name] = (Bound(QUANTITY_GM_ID, SIDE_LO, SRC_W_MIN, low[0]),)
+        else:
+            # gm/ID 를 곡선 상한까지 올려도 W < W_min -- 충돌 레코드로 남기고(41 §6.6) 요구 방향으로 닫는다: 하한 = W 가 가장 큰 마디. gap = ln(W_min/W_최대)(무차원, > 0)
+            best = int(np.argmax(width))
+            gap = math.log(ctx.w_min_m) - float(np.log(width[best]))
+            conflicts.append(StartConflict(d.name, QUANTITY_GM_ID, ((SRC_W_MIN, float(g[best])),), gap))
+            bounds[d.name] = (Bound(QUANTITY_GM_ID, SIDE_LO, SRC_W_MIN, float(g[best])),)
     if ctx.area_budget_m2 is None:
         return AreaBounds(bounds, (), ((SRC_AREA_L, WHY_NO_TARGET), (SRC_AREA_GM_ID, WHY_NO_TARGET)), None)
     inactive = [(SRC_AREA_GM_ID + ":" + d.name, WHY_NO_CURRENT) for d in ctx.devices if currents.get(d.name) is None]

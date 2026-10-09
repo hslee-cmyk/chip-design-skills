@@ -45,7 +45,6 @@ WHY_NO_DOMINANT = "dominant_node_undefined"
 WHY_NO_GBW = "gbw_target_missing"
 WHY_NO_PM = "pm_target_missing"
 WHY_NO_CURRENT = "stage_current_unavailable"
-WHY_PENDING_DEP = "depends_on_unmerged_unit"
 # ---- 매크로 기록 코드(41 §6.5)
 MACRO_NONCONVERGENT = "macro_nonconvergent"
 MACRO_ROOT_MISSING = "macro_root_missing"

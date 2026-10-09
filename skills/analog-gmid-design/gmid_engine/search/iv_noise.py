@@ -7,8 +7,10 @@
   gm = (gm/ID)·I(매크로 1회차 전류). 합 가드를 소자별 gm/ID 상한으로 바꾸는 규약은 `guard_bounds`(41 §6.2 와 같은 '나머지는 최소로').
   입력·부하 소자는 gain 제약 전달 뷰의 첫 이득 블록 역할로 정한다. 41 §7.5 는 γ_k·gm_k 비 형태로 쓰지만 B = 4kTγ/gm 이라 같은 비다.
 * **파일럿 `noise_out_int_vrms`**: 41 §7.5·§6.4-3 의 열잡음 C_eff 하한(`2·γ_avg·kT/(β·C_eff)`)과 1/f L 하한(`Σ_in K/(W·L)·∫ f^−EF |폐루프 이득|² df`)은 (1) 적분 대역 [f_lo, f_hi] 의
-  유도 규칙과 kT/C 스위치 항(U8 `noise_analysis`, 미병합), (2) 엔진에 볼츠만 상수·온도 선언이 없다는 두 가지가 필요하다. 어느 쪽도 이 단위 밖이라 비활성(`depends_on_unmerged_unit`)으로
-  남기고 보고한다 -- 임의 대역·상수로 계산하지 않는다.
+  유도 규칙(U8 `noise_integral`: f_lo = LUT 실측 최저 잡음 주파수, 꼬리 상계 f·S(f) <= 분해능²)과 kT(U8 은 `scipy.constants.k` × (`JunctionSource.temp_c` + 273.15))은 병합돼 있다. 그러나 출발 구간 입력에는
+  (1) 되먹임율 β -- 1/f 하한 `∫ f^−EF |폐루프 이득|² df` 의 폐루프 이득(`feedback_factor_beta_unavailable`), (2) C_eff 를 받을 출발 어휘 -- `Bound` 는 소자 gm/ID·L 뿐이고 수동소자 값 경계와
+  보상 C 소자 지정이 입력 묶음에 없다(`c_eff_not_a_start_bound`)가 없다. 없는 입력을 임의로 정하지 않고 위 정확한 사유로 비활성 보고한다(`depends_on_unmerged_unit` 은 U8 병합으로 거짓이 돼 제거). LUT 잡음
+  데이터가 없으면 `lut_noise_unavailable`. 판정은 U8 전회로 `noise_out_int_vrms`(봉인 스냅샷)가 한다.
 * LUT 잡음 데이터가 없으면(`lut_noise_unavailable`) 계산하지 않고 그 사유를 비활성으로 남긴다(`noise_lut_missing` 정지는 로드 단계의 몫). 출발값 전용(EP-7).
 """
 import dataclasses
@@ -25,9 +27,11 @@ from .start_values import (
     WHY_NO_CURRENT,
     WHY_NO_LUT,
     WHY_NO_TARGET,
-    WHY_PENDING_DEP,
 )
 
+WHY_NO_LUT_NOISE = "lut_noise_unavailable"                 # LUT 잡음 r1 데이터 없음(`noise_params` 가 던지는 사유와 같은 이름)
+WHY_NO_BETA = "feedback_factor_beta_unavailable"            # 1/f L 하한의 폐루프 이득 |H_cl|² 에 쓸 되먹임율 β -- 출발 입력 묶음(StartContext)에 되먹임 선언·그 전달이 없다
+WHY_NO_C_EFF = "c_eff_not_a_start_bound"                    # 열잡음 C_eff 하한은 수동소자(보상 C) 값 경계 -- 출발 어휘(Bound)는 소자 gm/ID·L 뿐이고 C_eff 소자 지정도 입력 묶음에 없다
 _METRIC_GUARD = "noise_excess_th"
 _METRIC_INTEGRATED = "noise_out_int_vrms"
 _LUT_ERRORS = (SealViolationError, SchemaRejectedError)
@@ -61,7 +65,9 @@ def _white_density(ctx, name, g, L, current):
 def noise_bounds(ctx, currents, lengths, gm_id_lo, gm_id_cap=None):
     inactive = []
     if any(m == _METRIC_INTEGRATED for m, _op, _v in ctx.constraints):
-        inactive += [(SRC_NOISE_FLICKER_L, WHY_PENDING_DEP), (SRC_NOISE_THERMAL_C, WHY_PENDING_DEP)]
+        no_lut = {d.kind for d in ctx.devices} - set(ctx.memo.lut.noise)
+        inactive += [(SRC_NOISE_FLICKER_L, WHY_NO_LUT_NOISE if no_lut else WHY_NO_BETA),
+                     (SRC_NOISE_THERMAL_C, WHY_NO_LUT_NOISE if no_lut else WHY_NO_C_EFF)]
     else:
         inactive += [(SRC_NOISE_FLICKER_L, WHY_NO_TARGET), (SRC_NOISE_THERMAL_C, WHY_NO_TARGET)]
     guard = [v for m, op, v in ctx.constraints if m == _METRIC_GUARD and op == "<="]

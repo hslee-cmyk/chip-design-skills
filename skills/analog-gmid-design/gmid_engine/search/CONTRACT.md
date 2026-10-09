@@ -987,6 +987,9 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
   - 값이 있는 판정 제약 중 잡음 metric(레지스트리 결과 형식 `NoiseAnalysis`)이 있으면 `search_domain` 뒤·`JunctionSource` 앞에서 `lut.require_lut_data(lut, MOS kind 들, noise=True)`:
     잡음 r1 데이터(`LutSet.noise`)가 없으면 `SchemaRejectedError(noise_lut_missing)`. (잡음 r1 없이 만든 LUT 로 library spec 의 잡음 제약을 올리면 이제 거부된다 -- test 입력은 `load_lut_set(noise_npz=)`
     와 `LutSpec.noise_ef` 로 잡음 데이터를 실어야 한다: **독립 test 갱신 필요**, test 작성자 몫.)
+  - [U13 후속, 2026-10-09 오케스트레이터 결정: fail-closed] 같은 자리에서, 값이 있는 `offset_in_sigma_mv` 또는 `offset_excess` 판정 제약이 있고 MOS kind 의 mismatch 감도 r1 데이터(`LutSet.mismatch`)가 없으면
+    `SchemaRejectedError(mismatch_lut_missing)`(설계 41 §6.4-2b, lut CONTRACT 9.5) -- `noise_lut_missing` 과 같은 시작 검사. library spec 은 `offset_excess` 를 선언하므로 mismatch r1 을 싣지 않은 LUT 는
+    이제 거부된다(**독립 test harness 갱신 필요**, test 작성자 몫). `iv_matching_l` 의 `lut_mismatch_*` 비활성 사유는 이 검사를 우회해 직접 부르는 경우의 방어로 남는다.
   - `SearchContext.noise_decl` = `noise_decl(spec, s1v)`(metrics `NoiseDecl`): spec feedback 소자·`noise_testbench.sampling_caps`·S1v 전달 뷰의 첫 이득 블록 input 셀. `s1v=None` 이면 input 셀이 없어
     `noise_excess_th` 는 정의 불가(`noise_input_cell_undefined`) -- 미측정으로 보고된다(조용히 통과하지 않는다).
 - `kernel.evaluate`: 봉인 점 `ss_evaluate(..., area_decl=, noise_decl=sctx.noise_decl)`. 잡음 metric 은 이제 `search_context` 가 `ss_constraints` 로 분류한다(레지스트리에 있고 view_kind 가 있다) --
@@ -1021,7 +1024,7 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 * **경계는 항상 '나머지는 최소로 두고 k 가 가질 수 있는 최대'** (41 §6.2): 헤드룸 예산, 면적 A_k,avail, 가드의 level_k. 비어 있으면(하한 > 상한) 자르지 않고 `StartConflict` 를 남기고 헤드룸 쪽(포화)으로 닫는다.
 * **gm 고정 전류 모델**(iv_area): 매크로가 정하는 것은 gm 이고 I(g) = gm/g. W(g) = gm·L/(g·IDu), 면적 gm·L²/(g·IDu) -- g 에 대해 증가.
 * **비활성 사유**(조용히 빠지지 않는다): 제약 미선언(`constraint_not_declared`), LUT 데이터 없음(`lut_mismatch_unavailable`·`lut_noise_unavailable`), A_max 미인증(`u9_value_not_certified`), 전류 미정(`stage_current_unavailable`),
-  PM 목표 없음(`pm_target_missing`, 속도 상한), U8 미병합 의존(`depends_on_unmerged_unit` -- `noise_out_int_vrms` 의 C_eff·1/f 하한).
+  PM 목표 없음(`pm_target_missing`, 속도 상한), `noise_out_int_vrms` 의 C_eff·1/f 하한 비활성 사유(U8 병합 뒤: LUT 잡음 없음 `lut_noise_unavailable`, 없는 입력 `c_eff_not_a_start_bound`(출발 어휘에 수동소자 값 경계·C_eff 소자 지정 없음)·`feedback_factor_beta_unavailable`(되먹임율 β 없음)).
 * **매크로 모델**(`macro_poles`): 전달 뷰의 이득 블록마다 VCCS(gm_b, G_out = gm_b/A_intr, 버퍼는 A = 1) + 노드 용량(소자 cgg·cdd 는 전류에 비례하는 아핀 계수) + 수동소자(Miller C·영점 상쇄 R = 1/Σgm) + feedforward VCCS(G_ff = r_ff·gm_in(B_b), r_ff = 1).
   풀이 = |H(jω_GBW)| = 1 과 PM(ω_GBW) ≥ 목표를 지키는 **전원 전류 합 최소**(SLSQP). 비볼록(주극점이 어느 단에 놓이는지가 국소 최소를 가른다)이라 단마다 그 단을 주극점으로 하는 실행 가능한 출발점(나머지 단 gm 을 올리고 그 단 gm 으로 UGF = GBW)에서 다중 출발하고,
   구조 주극점 노드(`dominant_node`)의 단을 먼저 시도해 만족해 중 전류가 가장 작은 것을 쓴다(상대 1e-6 안 동률이면 먼저 얻은 쪽). 설계 §6.5 의 순차 바퀴는 gm_1 모서리로 퇴화해 쓰지 않았다(설계 41 §6.5 as-built 절). 극점·UGF·PM 은 U7 `solve_responses`·`analyze_loop`. 근 괄호가 없으면 `macro_root_missing`, 반복 한도에서 `macro_nonconvergent`.

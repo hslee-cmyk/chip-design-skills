@@ -117,6 +117,9 @@ def _wire_sweep_memo(ctx):
     ctx.dc = dataclasses.replace(ctx.dc, lut=LutAccess(memo, old.w_keys))
 
 
+_OFFSET_METRICS = ("offset_in_sigma_mv", "offset_excess")
+
+
 def _require_noise_data(dc_ctx, spec):
     """[U8, 설계 41 §7.2] 평가할 잡음 제약(값이 있는 판정 제약)이 선언됐는데 LUT 에 그 kind 의 잡음 r1 데이터가 없으면 `SchemaRejectedError(noise_lut_missing)`
     -- 탐색 중 조회 실패로 늦게 알지 않게 시작 때 거른다."""
@@ -125,6 +128,11 @@ def _require_noise_data(dc_ctx, spec):
         classes = dict(dc_ctx.base.column("device", "element_class"))
         kinds = {k for n, k in dc_ctx.base.column("device", "kind") if classes[n] == ELEMENT_MOS}
         require_lut_data(dc_ctx.lut.memo.lut, kinds, noise=True)
+    # [U13 후속, 설계 41 §6.4-2b·lut CONTRACT 9.5] 값이 있는 offset 제약(`offset_in_sigma_mv`·`offset_excess`)이 있으면 mismatch 감도 r1 데이터도 필수(fail-closed)
+    if any(d.metric in _OFFSET_METRICS and d.value is not None for d in spec.judged_constraints):
+        classes = dict(dc_ctx.base.column("device", "element_class"))
+        kinds = {k for n, k in dc_ctx.base.column("device", "kind") if classes[n] == ELEMENT_MOS}
+        require_lut_data(dc_ctx.lut.memo.lut, kinds, mismatch=True)
 
 
 def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None, ach=None, model_error=()):
