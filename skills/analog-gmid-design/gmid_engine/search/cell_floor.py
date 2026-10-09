@@ -105,6 +105,8 @@ def ln_idu_floors(sctx, variables, cells, one_var_only=False, start=None):
     kinds = dict(sctx.dc.base.column("device", "kind"))
     w_keys = dict(sctx.dc.lut.w_keys)
     cell_of = {mos: table[j] for (mos, table), j in zip(sctx.domain.l_cells, cells)}
+    for member, owner in sctx.dc.l_ties:        # L 동치류 멤버의 L 은 주인 θ L (θ 스키마에 멤버 L 성분 없음, 설계 40 §3.7)
+        cell_of[member] = cell_of[owner]
     chosen = _one_var_writers(sctx) if one_var_only else None
     out = {}
     for i, var in enumerate(variables):
