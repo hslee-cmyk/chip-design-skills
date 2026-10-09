@@ -17,7 +17,7 @@ def test_layout_result_review_needed_first():
     # Q8 (iv): review_needed 가 결과 첫 필드
     assert names(LayoutResult)[0] == "review_needed"
     assert set(names(LayoutResult)) >= {"devices", "groups", "matching_dispositions", "rows", "box", "fold_attempts",
-                                        "merge_decisions", "floorplan", "coverage_ok", "coverage_missing", "w_requests",
+                                        "merge_decisions", "floorplan", "diffusion", "coverage_ok", "coverage_missing", "w_requests",
                                         "w_invariant_ok", "revalidation", "computed_blocks", "snapshot"}
 
 
@@ -34,7 +34,12 @@ def test_layout_result_review_needed_first():
     ("GroupRebuild", ["gid", "n_rows", "method", "dx", "dy"]),
     ("RowsLayout", ["rows", "box", "fold_attempts", "merge_decisions", "rebuilt_groups"]),
     ("RealizedDevice", ["name", "kind", "finger_w_key", "finger_w_m", "n_fingers", "W_need_m", "W_realized_m", "ID_A",
-                        "gm_id", "L_m", "vds_V", "vsb_V", "recalibrate_id", "recompute_node_voltages"]),
+                        "gm_id", "L_m", "vds_V", "vsb_V", "recalibrate_id", "recompute_node_voltages", "diffusion"]),
+    # [U12] CONTRACT 4.10a: DeviceDiffusion(name, finger_w_m, n_fingers, ad_m2, as_m2, pd_m, ps_m)
+    ("DeviceDiffusion", ["name", "finger_w_m", "n_fingers", "ad_m2", "as_m2", "pd_m", "ps_m"]),
+    # [U12] CONTRACT 4.10: area_tie_m2 필드를 지우고 grid_m, passive_area_m2 를 둔다
+    ("FloorplanSummary", ["bbox_width_m", "bbox_height_m", "outline_area_m2", "grid_m", "aspect_ratio", "packing_density",
+                          "placements", "included", "passive_area_m2"]),
     ("Revalidation", ["required", "status", "seals", "devices", "consumer", "reason"]),
 ])
 def test_declared_fields(cls, fields):
@@ -65,5 +70,15 @@ def test_constants():
     assert isinstance(co.REVALIDATION_PENDING_REASON, str) and co.REVALIDATION_PENDING_REASON
     assert isinstance(co.MERGE_NOISE_NOTE, str) and co.MERGE_NOISE_NOTE
     assert {co.AREA_ITEM_FINGER_OVERHEAD, co.AREA_ITEM_ROW_END_DUMMY, co.AREA_ITEM_TAP, co.AREA_ITEM_ROW_GAP,
-            co.AREA_ITEM_WELL_SPACING} == {"finger_pitch_overhead", "row_end_dummy_x2_per_row", "body_tap_per_row", "row_gap",
-                                          "well_spacing_between_bodies"}
+            co.AREA_ITEM_WELL_SPACING, co.AREA_ITEM_PASSIVES} == {
+        # [U12] CONTRACT 4.10: tap 은 행 그룹 경계에만(LY10) -> "body_tap_per_group", 수동소자 블록 항목 추가(D-LY4)
+        "finger_pitch_overhead", "row_end_dummy_x2_per_row", "body_tap_per_group", "row_gap", "well_spacing_between_bodies",
+        "passive_blocks_mim_poly_resistor"}
+
+
+def test_group_layout_has_no_relaxed_and_records_l_mismatch():
+    # [U12] CONTRACT 4.5 6 (iii)·LY5 마지막 문장: `relaxed` 필드 삭제(즉시 완화 없음, D-LY2/R21), LY4 `l_mismatch` 기록 추가
+    fields = names(co.GroupLayout)
+    assert "relaxed" not in fields
+    assert "l_mismatch" in fields
+    assert co.GroupLayout.__dataclass_fields__["l_mismatch"].default == ()

@@ -7,6 +7,7 @@ import pytest
 
 from gmid_engine.layout import LayoutDevice, LayoutInput, LayoutPdk, MatchingGroup, RowGroup
 from gmid_engine.layout import contract_input as ci
+from gmid_engine.layout.contract_input import LayoutPassive
 from gmid_engine.layout import __all__ as public
 from gmid_engine.lut import widths
 
@@ -34,7 +35,9 @@ def test_field_order():
     assert f(RowGroup) == ["rid", "kind", "body_net", "members"]
     assert f(LayoutPdk) == ["manufacturing_grid_m", "slice_width_keys", "finger_pitch_overhead_m", "row_gap_m", "dummy_w_m",
                             "tap_w_m", "well_spacing_m", "rule_ids", "source_fp"]
-    assert f(LayoutInput) == ["devices", "matching_groups", "row_groups", "pdk", "rejected_requests"]
+    # [U12] CONTRACT 4.1: LayoutInput(..., rejected_requests=(), passives=()) -- 판정 축 면적의 수동소자 블록(D-LY4)
+    assert f(LayoutInput) == ["devices", "matching_groups", "row_groups", "pdk", "rejected_requests", "passives"]
+    assert f(LayoutPassive) == ["name", "area_m2"]
     assert "tol_v_V" not in f(LayoutDevice)                           # 옛 필드 없음(tol_V 는 슬라이스마다 LUT 에서)
     assert "box_max_row_ratio" not in f(LayoutInput) + f(LayoutPdk)   # 하드 box 허용치 없음(Q8 (vi))
 
@@ -174,6 +177,35 @@ def test_input_rejects(toy_lut, case):
         rej = ("A", "A")
     with pytest.raises(ValueError):
         make_input(devs, groups, rgs, pdk, rej)
+
+
+# --- LayoutPassive / LayoutInput.passives (U12, CONTRACT 4.1: 면적 양의 유한 수, 이름 중복 없음) -----------------------
+
+def test_input_accepts_passives(toy_lut):
+    devs, groups, rgs, pdk = _base(toy_lut)
+    ps = (LayoutPassive("Cc", 2.5e-10), LayoutPassive("R1", 1e-11))
+    inp = make_input(devs, groups, rgs, pdk, (), ps)
+    assert inp.passives == ps
+    assert make_input(devs, groups, rgs, pdk).passives == ()          # 기본값 () -- 기존 호출 그대로
+
+
+@pytest.mark.parametrize("name, area", [
+    ("C1", 0.0), ("C1", -1e-12), ("C1", float("nan")), ("C1", float("inf")), ("C1", True), ("C1", "1e-12"), ("", 1e-12),
+])
+def test_layout_passive_rejects(name, area):
+    with pytest.raises(ValueError):
+        LayoutPassive(name, area)
+
+
+@pytest.mark.parametrize("case", ["dup_name", "not_layout_passive"])
+def test_input_rejects_bad_passives(toy_lut, case):
+    devs, groups, rgs, pdk = _base(toy_lut)
+    if case == "dup_name":
+        ps = (LayoutPassive("C1", 1e-12), LayoutPassive("C1", 2e-12))
+    else:
+        ps = (("C1", 1e-12),)
+    with pytest.raises(ValueError):
+        make_input(devs, groups, rgs, pdk, (), ps)
 
 
 def test_excluded_role_group_may_span_rowgroups(toy_lut):

@@ -301,8 +301,12 @@ def test_rebuild_adopted_reduces_area(toy_lut):
 
 
 def test_interdigitation_pattern_not_rebuildable(toy_lut):
-    ds = [dev("A", "h", "da", 1e-6, adj=False), dev("B", "h", "db", 1e-6, adj=False)]
-    rl, fp, _ = compose(toy_lut, ds, [mg("g1", ("A", "B"), "diff_pair", "h")])
+    # [U12] 옛 픽스처(조정 불가 차동쌍 -> interdigitation 즉시 완화)는 LY5 즉시 완화 제거(D-LY2/R21)로 pattern None 이 되어 패턴 행이 없다.
+    # interdigitation 패턴 행은 mirror 정렬 키 첫 칸(interdigitation 성립)으로 만든다: ID 2e-6 mirror -> interdigitation
+    # (test_pattern_select.test_mirror_prefers_feasible_interdigitation 과 같은 구성).
+    ds = [dev("A", "h", "da", 2e-6), dev("B", "h", "db", 2e-6)]
+    rl, fp, _ = compose(toy_lut, ds, [mg("g1", ("A", "B"), "mirror", "h")])
+    assert [r.row_id for r in rl.rows if r.group == "g1"] == ["r1/g1/0"]          # 패턴 행 하나(전제 확인)
     recs = [a for a in rl.fold_attempts if a.row_id == "r1/g1"]
     assert len(recs) == 1
     a = recs[0]
@@ -342,9 +346,10 @@ def test_same_content_computed_once_per_block_call(toy_lut, monkeypatch):
         calls["row_euler"][(k, _key(matching_pairs), _key(pair_sensitivity))] += 1
         return real_re(transistors, matching_pairs, pair_sensitivity)
 
-    def fp_spy(rows, bodies, pdk):
-        calls["floorplan_of"][(_key(sorted(rows, key=lambda r: r.row_id)), _key(bodies))] += 1
-        return real_fp(rows, bodies, pdk)
+    def fp_spy(rows, bodies, pdk, passives=()):
+        # [U12] floorplan_of(rows, bodies, pdk, passives=()) -- 수동소자 블록 인자 추가(CONTRACT 4.10)
+        calls["floorplan_of"][(_key(sorted(rows, key=lambda r: r.row_id)), _key(bodies), _key(tuple(passives)))] += 1
+        return real_fp(rows, bodies, pdk, passives)
 
     monkeypatch.setattr(rows_mod, "row_euler", re_spy)
     monkeypatch.setattr(rows_mod, "floorplan_of", fp_spy)

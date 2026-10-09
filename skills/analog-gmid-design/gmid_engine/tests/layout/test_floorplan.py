@@ -1,7 +1,8 @@
 """CONTRACT 4.10 `floorplan_of(rows, bodies, pdk) -> FloorplanSummary` (Q8 (vii), 판정 축 면적).
 
-행마다 블록 폭 = 행 폭 + 2 x dummy + tap(행 끝 dummy 양끝 + 행마다 body tap), 높이 = finger_w. body 가 둘 이상이면 body 묶음 사이 간격
-max(row_gap, well_spacing). included 항목은 pdk.rule_ids 의 규칙 번호를 단다.
+행마다 블록 폭 = 행 폭 + 2 x dummy(행 끝 dummy 양끝), 높이 = finger_w. [U12, LY10] body tap 은 행마다가 아니라 행 그룹 경계에만 --
+그룹 외곽 오른쪽에 폭 tap_w, 높이 = 그룹 높이인 띠(`tap:<행 그룹>`). body 가 둘 이상이면 body 묶음 사이 간격
+max(row_gap, well_spacing). included 항목은 pdk.rule_ids 의 규칙 번호를 단다. ΔA_tie 재료는 `grid_m`(옛 area_tie_m2 = g² 삭제, D-LY1).
 """
 from __future__ import annotations
 
@@ -26,21 +27,28 @@ def test_single_row_includes_dummies_and_tap(toy_lut):
     pdk = toy_pdk(toy_lut, overhead=0.05e-6, gap=0.3e-6, dummy=0.2e-6, tap=0.3e-6, well=1.0e-6)
     fp = floorplan_of((row("r/w100", "r", 3e-6),), {"r": "sub"}, pdk)
     assert isinstance(fp, FloorplanSummary)
-    w = 3e-6 + 2 * 0.2e-6 + 0.3e-6
+    # oracle (a) 구성: 행 블록 3 + 2 x 0.2 µm, 행 그룹 하나라 tap 띠 하나(0.3 µm, 높이 = 그룹 높이 1 µm)가 오른쪽에 붙는다(CONTRACT 4.10 LY10)
+    w_row = 3e-6 + 2 * 0.2e-6
+    w = w_row + 0.3e-6
     assert fp.bbox_width_m == pytest.approx(w, rel=1e-9)
     assert fp.bbox_height_m == pytest.approx(1e-6, rel=1e-9)
     assert fp.outline_area_m2 == pytest.approx(w * 1e-6, rel=1e-9)
-    assert fp.area_tie_m2 == pytest.approx(1e-16, rel=1e-12)              # g^2
+    assert fp.grid_m == 1e-8                                                # [U12] 제조 격자(toy GRID) -- ΔA_tie 재료
     assert fp.aspect_ratio == pytest.approx(w / 1e-6, rel=1e-9)
     assert fp.packing_density == pytest.approx(1.0, rel=1e-9)
-    assert len(fp.placements) == 1
-    pid, x, y, pw, ph = fp.placements[0]
-    assert (pid, x, y) == ("r/w100", 0.0, 0.0)
-    assert pw == pytest.approx(w, rel=1e-9) and ph == pytest.approx(1e-6, rel=1e-9)
+    assert fp.passive_area_m2 == 0.0
+    P = {p[0]: p for p in fp.placements}
+    assert set(P) == {"r/w100", "tap:r"}
+    _, x, y, pw, ph = P["r/w100"]
+    assert (x, y) == (0.0, 0.0)
+    assert pw == pytest.approx(w_row, rel=1e-9) and ph == pytest.approx(1e-6, rel=1e-9)
+    _, tx, ty, tw, th = P["tap:r"]
+    assert tx == pytest.approx(w_row, rel=1e-9) and ty == pytest.approx(0.0, abs=1e-15)
+    assert tw == pytest.approx(0.3e-6, rel=1e-9) and th == pytest.approx(1e-6, rel=1e-9)
     assert fp.included == (
         ("finger_pitch_overhead", pytest.approx(0.05e-6), RULE["finger_pitch_overhead_m"]),
         ("row_end_dummy_x2_per_row", pytest.approx(0.2e-6), RULE["dummy_w_m"]),
-        ("body_tap_per_row", pytest.approx(0.3e-6), RULE["tap_w_m"]),
+        ("body_tap_per_group", pytest.approx(0.3e-6), RULE["tap_w_m"]),
         ("row_gap", pytest.approx(0.3e-6), RULE["row_gap_m"]),
     )
 
@@ -64,7 +72,7 @@ def test_row_gap_inside_body(toy_lut):
 def test_well_spacing_only_between_bodies(toy_lut):
     rows = (row("ra/w100", "ra", 3e-6), row("rb/w100", "rb", 3e-6))
     one = floorplan_of(rows, {"ra": "sub", "rb": "sub"}, toy_pdk(toy_lut, well=5e-6))
-    assert [i[0] for i in one.included] == ["finger_pitch_overhead", "row_end_dummy_x2_per_row", "body_tap_per_row", "row_gap"]
+    assert [i[0] for i in one.included] == ["finger_pitch_overhead", "row_end_dummy_x2_per_row", "body_tap_per_group", "row_gap"]
     assert one.outline_area_m2 == pytest.approx(6e-12, rel=1e-9)     # body 하나 -> well 간격 없음
     bodies = {"ra": "sub", "rb": "nw"}
     two0 = floorplan_of(rows, bodies, toy_pdk(toy_lut, well=0.0))
@@ -227,7 +235,124 @@ def test_dummy_width_formula_consumed(toy_lut):
     nf, L = 4, 1e-6
     width = nf * (L + overhead)                                                       # 행 폭 = Σ nf x (L + overhead)
     fp = floorplan_of((row("r/w100", "r", width, devices=(("M", nf),)),), {"r": "sub"}, pdk)
-    _, _, _, pw, ph = fp.placements[0]
-    assert pw == pytest.approx(width + 2 * dummy + tap, rel=1e-9)                     # + 2 x dummy_w + tap_w
+    P = {p[0]: p for p in fp.placements}
+    _, _, _, pw, ph = P["r/w100"]
+    assert pw == pytest.approx(width + 2 * dummy, rel=1e-9)                            # + 2 x dummy_w (tap 은 그룹 띠, U12 LY10)
     assert ph == pytest.approx(1e-6, rel=1e-9)
+    assert P["tap:r"][3] == pytest.approx(tap, rel=1e-9)                               # 그룹 경계 tap 띠 폭 = tap_w
+    assert fp.bbox_width_m == pytest.approx(width + 2 * dummy + tap, rel=1e-9)
     assert dict((i[0], i[1]) for i in fp.included)["row_end_dummy_x2_per_row"] == pytest.approx(dummy)
+
+
+# --- [U12] 그룹 경계 tap(LY10)·수동소자 블록(D-LY4) -- CONTRACT 4.10 개정 ------------------------------------------------
+# oracle (a) 구성: 배치 기하 불변식(띠 = 그룹 외곽 오른쪽, 높이 = 그룹 높이, 그룹 하나에 띠 하나, 블록 겹침 없음)과
+# 손계산 격자 블록(폭 max(1, ceil(sqrt(A/g²))) 칸 x 높이 ceil((A/g²)/폭) 칸, g = toy GRID 1e-8).
+
+from gmid_engine.layout.contract_input import LayoutPassive  # noqa: E402
+
+TAP = 0.68e-6
+
+
+def _rows_two_groups():
+    return (row("ra/1", "ra", 3e-6), row("ra/2", "ra", 3e-6), row("rb/1", "rb", 5e-6))
+
+
+def _overlap_free(P):
+    P = list(P)
+    for i in range(len(P)):
+        for j in range(i + 1, len(P)):
+            a, b = P[i], P[j]
+            ox = min(a[1] + a[3], b[1] + b[3]) - max(a[1], b[1])
+            oy = min(a[2] + a[4], b[2] + b[4]) - max(a[2], b[2])
+            assert ox <= 1e-15 or oy <= 1e-15, (a, b)
+
+
+def test_tap_one_strip_per_row_group_at_group_right_edge(toy_lut):
+    fp = floorplan_of(_rows_two_groups(), {"ra": "sub", "rb": "sub"}, toy_pdk(toy_lut, gap=GAP, tap=TAP))
+    P = place(fp)
+    taps = sorted(k for k in P if k.startswith("tap:"))
+    assert taps == ["tap:ra", "tap:rb"]                                       # 행 그룹마다 하나(행마다가 아님)
+    for gid, members in (("ra", ("ra/1", "ra/2")), ("rb", ("rb/1",))):
+        rows_ = [P[m] for m in members]
+        gx1 = max(r[1] + r[3] for r in rows_)
+        gy0 = min(r[2] for r in rows_)
+        gy1 = max(r[2] + r[4] for r in rows_)
+        _, tx, ty, tw, th = P["tap:" + gid]
+        assert tw == pytest.approx(TAP, rel=1e-9)
+        assert tx == pytest.approx(gx1, rel=1e-9)                              # 그룹 외곽 오른쪽에 붙는다
+        assert ty == pytest.approx(gy0, abs=1e-15)
+        assert th == pytest.approx(gy1 - gy0, rel=1e-9)                        # 높이 = 그룹 높이
+    _overlap_free(fp.placements)
+    assert dict((i[0], i[1]) for i in fp.included)["body_tap_per_group"] == pytest.approx(TAP)
+
+
+def test_tap_strip_height_covers_stacked_rows(toy_lut):
+    # 같은 그룹 행 둘 -> 띠 하나가 두 행(+ 행 간격)을 덮는다. 옛 행마다 tap 이면 두 행 각각 폭이 늘었다.
+    fp = floorplan_of((row("r/1", "r", 3e-6), row("r/2", "r", 3e-6)), {"r": "sub"}, toy_pdk(toy_lut, gap=GAP, tap=TAP))
+    P = place(fp)
+    assert [k for k in P if k.startswith("tap:")] == ["tap:r"]
+    rows_ = (P["r/1"], P["r/2"])
+    span = max(r[2] + r[4] for r in rows_) - min(r[2] for r in rows_)
+    assert P["tap:r"][4] == pytest.approx(span, rel=1e-9)
+    assert P["r/1"][3] == pytest.approx(3e-6, rel=1e-9) and P["r/2"][3] == pytest.approx(3e-6, rel=1e-9)   # 행 폭에 tap 없음
+
+
+def test_no_tap_strip_when_tap_zero(toy_lut):
+    fp = floorplan_of(_rows_two_groups(), {"ra": "sub", "rb": "sub"}, toy_pdk(toy_lut, gap=GAP))
+    assert not [p for p in fp.placements if p[0].startswith("tap:")]
+
+
+# 손계산 격자 블록(g = 1e-8 m, 칸 = 1e-16 m²):
+#   A = 2.5e-10 m² = 2.5e6 칸 -> 폭 ceil(1581.14) = 1582, 높이 ceil(2.5e6/1582 = 1580.28) = 1581 -> 2 501 142 칸
+#   A = 3e-12 m²   = 3e4 칸   -> 폭 ceil(173.205) = 174,  높이 ceil(3e4/174 = 172.41) = 173    -> 30 102 칸
+#   A = 5e-17 m²   = 0.5 칸   -> 폭 max(1, ceil(0.707)) = 1, 높이 ceil(0.5) = 1                -> 1 칸
+PASSIVE_HAND = (("Cc", 2.5e-10, 1582, 1581), ("R1", 3e-12, 174, 173), ("Rt", 5e-17, 1, 1))
+
+
+def _passives():
+    return tuple(LayoutPassive(n, a) for n, a, _w, _h in PASSIVE_HAND)
+
+
+def test_passive_blocks_hand_grid_shape(toy_lut):
+    g = 1e-8
+    fp = floorplan_of((row("r/w100", "r", 3e-6),), {"r": "sub"}, toy_pdk(toy_lut, gap=GAP, well=WELL), _passives())
+    P = place(fp)
+    total = 0.0
+    for n, a, wc, hc in PASSIVE_HAND:
+        _, _, _, w, h = P["passive:" + n]
+        assert w == pytest.approx(wc * g, rel=1e-9) and h == pytest.approx(hc * g, rel=1e-9)
+        assert w * h >= a * (1 - 1e-12)                                      # 블록 면적 >= 선언 면적 A
+        total += wc * hc * g * g
+    assert fp.passive_area_m2 == pytest.approx(total, rel=1e-9)
+    assert fp.passive_area_m2 >= sum(a for _n, a, _w, _h in PASSIVE_HAND)
+    assert fp.included[-1] == ("passive_blocks_mim_poly_resistor", pytest.approx(total, rel=1e-9),
+                               "PassiveArea.area_m2 (PDK mim_cap_density_f_per_m2 / poly_res_*)")
+    _overlap_free(fp.placements)
+    for _, x, y, w, h in fp.placements:                                      # 외곽이 수동소자 블록을 포함한다
+        assert x >= -1e-15 and y >= -1e-15
+        assert x + w <= fp.bbox_width_m * (1 + 1e-12) and y + h <= fp.bbox_height_m * (1 + 1e-12)
+    assert fp.outline_area_m2 == pytest.approx(fp.bbox_width_m * fp.bbox_height_m, rel=1e-12)
+    assert fp.outline_area_m2 >= 3e-6 * 1e-6 + total
+
+
+def test_passive_blocks_spaced_by_placement_gap(toy_lut):
+    # MIM 배치 여유 = 블록 사이 배치 간격 max(row_gap, well_spacing)(CONTRACT 4.10 수동소자 블록)
+    fp = floorplan_of((row("r/w100", "r", 3e-6),), {"r": "sub"}, toy_pdk(toy_lut, gap=GAP, well=WELL), _passives())
+    P = place(fp)
+    blocks = ["r/w100"] + ["passive:" + n for n, *_ in PASSIVE_HAND]
+    for i in range(len(blocks)):
+        for j in range(i + 1, len(blocks)):
+            assert separation(P[blocks[i]], P[blocks[j]]) >= max(GAP, WELL) * (1 - 1e-9), (blocks[i], blocks[j])
+
+
+def test_passive_area_grows_outline_and_order_invariant(toy_lut):
+    pdk = toy_pdk(toy_lut, gap=GAP, well=WELL)
+    rows = (row("r/w100", "r", 3e-6),)
+    base = floorplan_of(rows, {"r": "sub"}, pdk)
+    fwd = floorplan_of(rows, {"r": "sub"}, pdk, _passives())
+    rev = floorplan_of(rows, {"r": "sub"}, pdk, tuple(reversed(_passives())))
+    assert base.passive_area_m2 == 0.0
+    assert "passive_blocks_mim_poly_resistor" not in [i[0] for i in base.included]
+    assert fwd.outline_area_m2 > base.outline_area_m2
+    assert fwd == rev                                                        # 입력 순서와 무관(이름순 정렬해 사용)
+

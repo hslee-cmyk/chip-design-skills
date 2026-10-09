@@ -8,7 +8,6 @@ from __future__ import annotations
 import dataclasses
 import math
 from collections import Counter
-from fractions import Fraction
 
 import pytest
 
@@ -151,24 +150,29 @@ def test_w_requests_collect_group_and_device_requests(toy_lut):
 
 # --- review_needed (Q8 (iv)) -----------------------------------------------------------------------------------------
 
-def test_review_needed_relaxed_diff_pair(toy_lut):
+def test_review_needed_not_adjustable_diff_pair_no_relax(toy_lut):
+    # [U12] CONTRACT 4.15 예(oracle (d) 계약 손계산): 조정 불가 c 1 -> 즉시 완화 없음(LY5 마지막 문장, D-LY2/R21), pattern None,
+    # review_needed = (ReviewItem("g1", "diff_pair", "w_not_adjustable", None, None),) -- 옛 relaxed:w_not_adjustable(dx 1.0) 아님.
     ds = [dev("A", "h", "da", 1e-6, adj=False), dev("B", "h", "db", 1e-6, adj=False)]
     res = run_layout(make_input(ds, [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B"))], toy_pdk(toy_lut)),
                      new_memo(toy_lut))
-    assert res.review_needed == (ReviewItem("g1", "diff_pair", "relaxed:w_not_adjustable", 1.0, 0.0),)
+    assert res.review_needed == (ReviewItem("g1", "diff_pair", "w_not_adjustable", None, None),)
     g = res.groups[0]
     steps = [a.step for a in g.attempts]
-    assert g.relaxed and "w_request" in steps and steps.index("w_request") < steps.index("relax")   # LY5
+    assert "w_request" in steps and "relax" not in steps
+    assert not [r for r in res.rows if r.group == "g1"]                         # 패턴 행 없음(완화 배치 채택 안 함)
+    assert sorted(n for r in res.rows for n, _k in r.devices) == ["A", "B"]     # 멤버는 일반 행에 남는다(커버리지)
+    assert res.coverage_ok is True
 
 
 def test_review_needed_cc_only_not_adjustable(toy_lut):
-    # 4.15 [r5]: c 1, 조정 불가, allowed_patterns=("common_centroid",) -> pattern None, relaxed False, reason w_not_adjustable,
-    # review_needed = (ReviewItem("g1", "diff_pair", "w_not_adjustable", None, None),)
+    # 4.15 [r5]: c 1, 조정 불가, allowed_patterns=("common_centroid",) -> pattern None, reason w_not_adjustable,
+    # review_needed = (ReviewItem("g1", "diff_pair", "w_not_adjustable", None, None),)  [U12: relaxed 필드 삭제]
     ds = [dev("A", "h", "da", 1e-6, adj=False), dev("B", "h", "db", 1e-6, adj=False)]
     res = run_layout(make_input(ds, [mg("g1", ("A", "B"), "diff_pair", "h", patterns=("common_centroid",))],
                                 [rg("r1", ("A", "B"))], toy_pdk(toy_lut)), new_memo(toy_lut))
     g = res.groups[0]
-    assert (g.pattern, g.relaxed, g.pending, g.provisional, g.reason) == (None, False, False, False, "w_not_adjustable")
+    assert (g.pattern, g.pending, g.provisional, g.reason) == (None, False, False, "w_not_adjustable")
     assert res.review_needed == (ReviewItem("g1", "diff_pair", "w_not_adjustable", None, None),)
 
 
@@ -188,30 +192,24 @@ def test_review_needed_is_first_and_in_group_order(toy_lut):
     groups = [mg("z2", ("E", "F"), "branch_symmetric", None), mg("a1", ("A", "B"), "diff_pair", "h")]
     res = run_layout(make_input(ds, groups, [rg("r1", ("A", "B")), rg("r2", ("E", "F"))], toy_pdk(toy_lut)),
                      new_memo(toy_lut))
-    assert [(r.gid, r.reason) for r in res.review_needed] == [("a1", "relaxed:w_not_adjustable"),
-                                                              ("z2", "relaxed:w_not_adjustable")]
-    z = res.review_needed[1]
-    assert (z.dx, z.dy) == (1.0, 0.0)                                            # 행 swap 무게중심 불일치 그대로 기록
+    # [U12] 즉시 완화 없음 -> 사유 = (iii) 사유 그대로, 무게중심 불일치 행 swap 은 채택하지 않아 그룹 dx·dy 없음
+    assert [(r.gid, r.reason) for r in res.review_needed] == [("a1", "w_not_adjustable"), ("z2", "w_not_adjustable")]
+    assert [f.name for f in dataclasses.fields(res)][0] == "review_needed"
 
 
-def test_review_needed_uses_rebuild_offsets(toy_lut):
-    # branch_symmetric E·F ID 3e-6 조정 불가: 키 100 nf 3 만 ok -> 행 swap 2행(E2F2 / F1E1) dx 1.0 -> relax.
-    # 4.11 3 재구성 k = 3(조각 1·1·1) 은 무게중심이 덜 어긋나고(1/3) 면적이 줄면 채택 -> review_needed 의 dx·dy = GroupRebuild 값.
+def test_review_needed_uncentred_branch_symmetric_not_adopted(toy_lut):
+    # branch_symmetric E·F ID 3e-6 조정 불가: 키 100 nf 3 만 ok -> 행 swap 2행(E2F2 / F1E1) dx 1.0.
+    # [U12] 옛 동작은 이 무게중심 불일치 배치를 relax 로 채택하고 4.11 3 재구성(k = 3, dx 1/3)까지 갔다. LY5 즉시 완화 제거(D-LY2/R21)로
+    # 이제 pattern None -> 패턴 행이 없어 재구성 대상도 없고, review_needed 에 (iii) 사유로 남는다(판정은 MOD8 몫).
     ds = [dev("E", "p", "q", 3e-6, gate="gc", adj=False), dev("F", "r", "t", 3e-6, gate="gc", adj=False)]
     res = run_layout(make_input(ds, [mg("g2", ("E", "F"), "branch_symmetric", None)], [rg("r1", ("E", "F"))], toy_pdk(toy_lut)),
                      new_memo(toy_lut))
     g = res.groups[0]
-    assert g.relaxed and (g.dx, g.dy) == (1.0, 0.0)
-    rebuilt = res.snapshot.value("graph", "layout", "ly_rows").rebuilt_groups
-    assert len(res.review_needed) == 1
-    item = res.review_needed[0]
-    assert len(rebuilt) == 1, "k = 3 재구성(무게중심 1/3, 면적 감소)이 채택되지 않았다"
-    gr = rebuilt[0]
-    assert gr.n_rows == 3
-    assert (item.dx, item.dy) == (gr.dx, gr.dy)
-    dx, dy = centroid_offsets([r.transistor_sequence for r in res.rows if r.group == "g2"], ("E", "F"))
-    assert (dx, dy) == (Fraction(1, 3), 0)
-    assert (item.dx, item.dy) == pytest.approx((float(dx), float(dy)))
+    assert g.pattern is None and g.reason == "w_not_adjustable"
+    assert ("cc_same_W", "row_swap", 1.0, 0.0) in [(a.step, a.method, a.dx, a.dy) for a in g.attempts]   # (i) 시도는 기록
+    assert res.snapshot.value("graph", "layout", "ly_rows").rebuilt_groups == ()
+    assert not [r for r in res.rows if r.group == "g2"]
+    assert res.review_needed == (ReviewItem("g2", "branch_symmetric", "w_not_adjustable", None, None),)
 
 
 # --- 재검증 요청 (Q4 (ii)(iii)) ----------------------------------------------------------------------------------------
@@ -301,7 +299,8 @@ def test_rejected_only_change_reuses_slices_and_candidates(toy_lut):
     assert "ly_finger_candidates" not in r2.computed_blocks
     assert "ly_pattern_select" in r2.computed_blocks
     assert _misses(memo) == m1
-    assert r2.groups[0].reason == "relaxed:w_request_rejected"
+    assert r2.groups[0].reason == "w_request_rejected"                         # [U12] 즉시 완화 없음(옛 "relaxed:" 접두 없음)
+    assert r2.groups[0].pattern is None
     _assert_no_same_input_recompute()
 
 
@@ -507,3 +506,90 @@ def test_m3a_regression_real_lut():
     if not key1000_ok_for_m4:
         assert (round(by["M3a"].finger_w_m / grid), by["M3a"].n_fingers) != (1000, 1)
     assert res.revalidation.required is True and res.revalidation.status == "pending_wiring"
+
+
+# --- [U12] ly.diffusion(LY8, 4.10a·4.12 7) 과 수동소자 블록(D-LY4, 4.10·4.12 2) -- run_layout 경로 ------------------------------
+# oracle (a) 물리 불변식: 확산 영역은 남김없이 finger 에 나뉜다(KCL 처럼 보존) --
+#   Σ_소자 n_f·(ad + as) = Σ_섬 (k + 1)·W·D,   Σ_소자 n_f·(pd + ps) = Σ_섬 (2kW + 2D(k + 1) + 2W)
+#   (섬 하나 = finger k 개·영역 k+1 개: 게이트 쪽 변 2k 개, 영역마다 위·아래 STI 변 2D, 양끝 반대쪽 변 둘).
+#   finger 평균은 [공유, 섬 끝] 사이: W·D/2 <= ad, as <= W·D,  W + D <= pd, ps <= 2W + 2D.
+
+from gmid_engine.layout.contract_input import LayoutPassive  # noqa: E402
+from gmid_engine.layout.contract_output import DeviceDiffusion  # noqa: E402
+
+OVH = 0.28e-6
+
+
+def _islands(r):
+    return r.segments if r.segments else ((r.transistor_sequence, r.node_sequence),)
+
+
+def _diffusion_case(toy_lut, passives=()):
+    pdk = toy_pdk(toy_lut, overhead=OVH, gap=0.47e-6, dummy=0.54e-6, tap=0.68e-6, well=1.63e-6)
+    return run_layout(composite(pdk, extra=(dev("G", "y", "w", 1e-6), dev("H", "k", "m", 3e-6))), new_memo(toy_lut)), pdk
+
+
+def test_diffusion_output_and_revalidation_carry(toy_lut):
+    res, _ = _diffusion_case(toy_lut)
+    assert res.diffusion == res.snapshot.value("graph", "layout", "ly_diffusion")
+    assert all(isinstance(d, DeviceDiffusion) for d in res.diffusion)
+    names = [d.name for d in res.diffusion]
+    assert names == sorted(names)
+    by_dev = {d.name: d for d in res.devices}
+    assert set(names) == {n for n, d in by_dev.items() if d.n_fingers is not None}
+    for d in res.diffusion:
+        assert d.n_fingers == by_dev[d.name].n_fingers                       # 행 finger 수 합 == 소자 nf
+        assert d.finger_w_m == by_dev[d.name].finger_w_m
+    dif = {d.name: d for d in res.diffusion}
+    for r in res.revalidation.devices:                                       # RealizedDevice.diffusion = 그 소자의 DeviceDiffusion
+        assert r.diffusion == dif[r.name]
+
+
+def test_diffusion_conserves_regions(toy_lut):
+    res, _ = _diffusion_case(toy_lut)
+    area_sum = sum(d.n_fingers * (d.ad_m2 + d.as_m2) for d in res.diffusion)
+    perim_sum = sum(d.n_fingers * (d.pd_m + d.ps_m) for d in res.diffusion)
+    exp_area = exp_perim = 0.0
+    for r in res.rows:
+        W = r.finger_w_m
+        for seq, _nodes in _islands(r):
+            k = len(seq)
+            exp_area += (k + 1) * W * OVH
+            exp_perim += 2 * k * W + 2 * OVH * (k + 1) + 2 * W
+    assert area_sum == pytest.approx(exp_area, rel=1e-9)
+    assert perim_sum == pytest.approx(exp_perim, rel=1e-9)
+    for d in res.diffusion:
+        W = d.finger_w_m
+        for a in (d.ad_m2, d.as_m2):
+            assert W * OVH / 2 * (1 - 1e-9) <= a <= W * OVH * (1 + 1e-9)
+        for p in (d.pd_m, d.ps_m):
+            assert (W + OVH) * (1 - 1e-9) <= p <= (2 * W + 2 * OVH) * (1 + 1e-9)
+
+
+def test_passives_reach_floorplan(toy_lut):
+    # 손계산: A = 3e-12 m² = 3e4 칸(g 1e-8) -> 174 x 173 칸 = 3.0102e-12 m² (test_floorplan PASSIVE_HAND 와 같은 수)
+    res0, pdk = _diffusion_case(toy_lut)
+    inp = composite(pdk, extra=(dev("G", "y", "w", 1e-6), dev("H", "k", "m", 3e-6)))
+    res = run_layout(dataclasses.replace(inp, passives=(LayoutPassive("Cc", 3e-12),)), new_memo(toy_lut))
+    assert res.snapshot.value("graph", "layout", "ly_passives") == (LayoutPassive("Cc", 3e-12),)
+    assert res.floorplan.passive_area_m2 == pytest.approx(30102e-16, rel=1e-9)
+    assert res.floorplan.outline_area_m2 > res0.floorplan.outline_area_m2
+    assert res.floorplan.included[-1][0] == "passive_blocks_mim_poly_resistor"
+    assert res.rows == res0.rows and res.devices == res0.devices                # 수동소자는 MOS 배치를 바꾸지 않는다
+
+
+def test_passives_only_change_recomputes_rows_block_only(toy_lut):
+    # 4.12 캐시: 수동소자만 바뀌면 슬라이스·후보·패턴·finger 블록은 다시 계산하지 않고 ly_rows(floorplan) 만 다시 계산한다
+    _reset_blocks()
+    memo = new_memo(toy_lut)
+    inp = composite(toy_pdk(toy_lut))
+    r1 = run_layout(inp, memo)
+    r2 = run_layout(dataclasses.replace(inp, passives=(LayoutPassive("Cc", 3e-12),)), memo, previous=r1)
+    assert r2.computed_blocks == ("ly_rows",)
+    assert r2.floorplan.passive_area_m2 == pytest.approx(30102e-16, rel=1e-9)
+    _assert_no_same_input_recompute()
+    # 되돌리면 수동소자 없음(스냅샷은 직전 값만 들고 있어 r1 입력으로의 복귀는 ly_rows 재계산이 정상 -- 재계산 계수는 위에서만 본다)
+    r3 = run_layout(inp, memo, previous=r2)
+    assert r3.computed_blocks == ("ly_rows",)
+    assert r3.floorplan.passive_area_m2 == 0.0
+    assert r3.floorplan == r1.floorplan
