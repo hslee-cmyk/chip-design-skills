@@ -760,3 +760,78 @@ def test_cm_report_only_adds_one_system_s28(tmp_path):
     _, _, b = _cm_run(case)
     assert dict(b.detail)["systems"] == 2
     assert len(b.reports) == 1
+
+
+# ---------------------------------------------------------------- [U8 2026-10-09] 잡음 metric 배선 (metrics CONTRACT 10.4)
+# oracle (a) 예 7 소자(M1 d=out g=in, CL, Cf(out, in), Cs(in, gnd)) 폐형식:
+# * 포트 뷰(입력 in 1 V 구동): H = −(gm − jωCf)/Y_out, 잡음 전류 gm²B 가 out 으로 -> th_in = gm²B/|gm − jωCf|² (f_lo = 1 Hz).
+# * 폐루프(feedback = Cf, 입력 in 자유, Cs 는 입력 부하 CI-10): Y_out = gds + gm·β + jω(CL + CfCs/(Cf+Cs)), β = Cf/(Cf+Cs) -> 1극 적분.
+# (d) 계약 10.3·10.4: NoiseInput 이 없으면 `noise_inputs_missing`, 보고 `noise_report`·`noise_detail:<metric>`·`noise_contrib:<metric>`.
+from gmid_engine.metrics import NoiseDecl as _NoiseDecl, NoiseDevice as _NoiseDevice, NoiseInput as _NoiseInput, SsDevice as _SsDevice  # noqa: E402
+from scipy import constants as _const  # noqa: E402
+
+_KT = _const.k * (27.0 + _const.zero_Celsius)
+_B, _A = 1e-16, 1e-12
+NOISE_CONS = (("noise_th_in_v2hz", "<=", 1e-15, None), ("noise_fc_in_hz", "<=", 1e6, None),
+              ("noise_out_int_vrms", "<=", 1e-3, None))
+
+
+def _noise_case(tmp_path, names=None, feedback=("Cf",)):
+    ss = {"M1": _SsDevice(EX7["gm"], 0.0, EX7["gds"], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, HAND, HAND, HAND, 0.01)}
+    return ex7_case(tmp_path, NOISE_CONS, feedback=feedback, names=names, ss=ss)
+
+
+def _noise_input(feedback=("Cf",)):
+    dev = _NoiseDevice("M1", a=_A, b=_B, ef=1.0, b_status="known", tol_flicker=0.0, tol_thermal=0.0)
+    return _NoiseInput(_NoiseDecl(feedback=feedback), (dev,), 1.0, _KT)
+
+
+def _noise_run(case, noise):
+    _td, spec, snap = case
+    reqs = requests_of(spec)
+    extras = (reqs, ex7_passives()) + ((noise,) if noise is not None else ())
+    return metrics_ss(snap, *extras).value("graph", METRICS_KEY, "metrics_ss")
+
+
+def _closed_ex7_noise():
+    p = EX7
+    w = 2 * math.pi * 1.0
+    th_in = p["gm"] ** 2 * _B / (p["gm"] ** 2 + (w * p["cf"]) ** 2)
+    beta = p["cf"] / (p["cf"] + p["cs"])
+    g = p["gds"] + p["gm"] * beta
+    c_eff = p["cl"] + p["cf"] * p["cs"] / (p["cf"] + p["cs"])
+    fp = g / (2 * math.pi * c_eff)
+    s0 = p["gm"] ** 2 * _B / g ** 2
+    k = p["gm"] ** 2 * _A / g ** 2
+    v2 = s0 * fp * (math.pi / 2 - math.atan(1.0 / fp)) + 0.5 * k * math.log1p(fp ** 2)
+    return th_in, math.sqrt(v2)
+
+
+def test_noise_metrics_through_metrics_ss(tmp_path):
+    b = _noise_run(_noise_case(tmp_path), _noise_input())
+    got = bundle_map(b)
+    th_in, v_out = _closed_ex7_noise()
+    assert got["noise_th_in_v2hz"].value == pytest.approx(th_in, rel=1e-9)
+    # 포트 뷰 + cgd = 0: W = |Z/H|² = 1/|gm − jωCf|² 는 거의 상수 -> corner ≈ A/B(EF = 1); 정확한 근은 W(f) 변화만큼 옮겨진다
+    assert got["noise_fc_in_hz"].value == pytest.approx(_A / _B, rel=1e-3)
+    r = got["noise_out_int_vrms"]
+    assert r.resolution is not None and abs(r.value - v_out) <= r.resolution
+    keys = {k for k, _v in b.reports}
+    assert {"noise_report", "noise_detail:noise_out_int_vrms", "noise_contrib:noise_th_in_v2hz"} <= keys
+
+
+def test_noise_inputs_missing_reason(tmp_path):
+    b = _noise_run(_noise_case(tmp_path), None)
+    for name in ("noise_th_in_v2hz", "noise_fc_in_hz", "noise_out_int_vrms"):
+        res = bundle_map(b)[name]
+        assert res.value is None and "noise_inputs_missing" in [u.code for u in res.undefined]
+
+
+def test_noise_net_rename_invariance(tmp_path):
+    """넷 이름 전단사(이름순 노드 번호가 바뀜) 뒤 잡음 값이 같다 -- 구조로 정해진다. 기준 = 폐형식(위 test 와 같은 값)."""
+    names = {"out": "a0", "in": "zz", "gnd": "m5"}
+    b = bundle_map(_noise_run(_noise_case(tmp_path / "r", names=names), _noise_input()))
+    th_in, v_out = _closed_ex7_noise()
+    assert b["noise_th_in_v2hz"].value == pytest.approx(th_in, rel=1e-9)
+    assert abs(b["noise_out_int_vrms"].value - v_out) <= b["noise_out_int_vrms"].resolution
+
