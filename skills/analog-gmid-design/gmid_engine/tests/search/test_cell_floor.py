@@ -13,6 +13,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -29,6 +30,8 @@ from gmid_engine.search import (
 
 from .conftest import (R4_GRIDS, R4_L, SKILL_DIR, W_M, build_case, circuit_c, circuit_diode, conduction_floor, expected_floor,
                        peak_floor, r4_arrays, tol_v_at)
+from .conftest import SRC, load_spec, new_access, write_decls
+from sizing.conftest import LClassStub, mos, topo
 
 KIND = {"M1": "nmos", "M2": "pmos"}
 DIODE_ONE_VAR = ("M1",)
@@ -418,3 +421,117 @@ def test_layer0_maxmin_respects_one_var_floor(tmp_path, lut_sealed, short_root):
     for ln in after:
         assert _th(ln)[("ln_idu", "M1")] >= floor - 1e-12 * abs(floor), ln["origin"]
     assert evaluate(s, r.start.theta, r.start.cells).status in ACCEPTED_STATUSES
+
+
+# ---------------------------------------------------------------- L 동치류 멤버 = 주인 L 칸 (설계 40 §3.7 / D-GB7a, fix-cellfloor-lclass)
+# θ 는 동치류마다 주인 L 하나(멤버 ("L", m) 성분 없음, sctx.dc.l_ties = ((멤버, 주인), ...)) -> l_cells 에 멤버 칸이 없다.
+# 멤버의 ("ln_idu", m) 성분 하한은 주인 L 칸에서 계산한다(멤버 L = 주인 L). 이 절 test 는 모두 l_classes 를 넘겨 l_ties 가 비지
+# 않은 경로를 쓴다 -- l_classes 없는 build_case(l_ties = ()) 로는 고치기 전 KeyError(멤버 이름)가 재현되지 않는다.
+
+TIED_KIND = {"M1": "nmos", "M2": "pmos", "M3": "nmos", "M4": "pmos"}     # 아래 손 회로의 MOS kind(입력 선언)
+
+
+def circuit_tied_cs2():
+    """2단 CS: M1 nmos (o1, in, gnd) + M2 pmos 부하 (o1, pb, vdd) -> M3 nmos (o2, o1, gnd) + M4 pmos 부하 (o2, pb, vdd).
+    두 단이 비대칭(M3 gate = o1)이라 궤도 묶음으로 M3 가 사라지지 않고 ("ln_idu", "M3") 성분이 남는다. 동치류 {M1(주인), M3}."""
+    return topo("hand_tied_cs2",
+                [mos("M1", "nmos", "o1", "in", "gnd"), mos("M2", "pmos", "o1", "pb", "vdd"),
+                 mos("M3", "nmos", "o2", "o1", "gnd"), mos("M4", "pmos", "o2", "pb", "vdd")],
+                {"in": ("input", "single_ended_input"), "o2": ("output", "single_ended_output")},
+                bias=["pb"])
+
+
+def _tied_case(tmp, lut):
+    """build_case 와 같은 입력 사슬에 l_classes(LClassStub, sizing CONTRACT 14.1 속성 셋)만 더한다."""
+    from gmid_engine.graph import build_s1
+    from gmid_engine.search import SearchSettings, build_search_context
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
+    acc = new_access(lut)
+    td, spec = load_spec(Path(tmp) / "case", circuit_tied_cs2())
+    inputs = dc_inputs_from_spec(spec)
+    s1 = build_s1(td, dict(inputs.supplies_v))
+    dc = build_kernel_context(s1, inputs, acc, l_classes=(LClassStub("M1", ("M1", "M3")),))
+    pdk, rule = write_decls(Path(tmp) / "pdk")
+    sctx = build_search_context(dc, spec, SearchSettings(600.0, 40, None, tuple(SRC), None), None, pdk, rule)
+    return SimpleNamespace(acc=acc, dc=dc, sctx=sctx)
+
+
+@pytest.mark.parametrize("owner_cell", [0, 1])
+def test_l_class_member_floor_in_owner_cell(tmp_path, floor_lut, owner_cell):
+    case = _tied_case(tmp_path, floor_lut)
+    s = case.sctx
+    V = s.domain.variables
+    ties = dict(case.dc.l_ties)
+    # 전제(비공허): 멤버 M3 는 l_ties 에 있고 l_cells 에 칸이 없으며 ln_idu 성분은 있다.
+    assert ties == {"M3": "M1"}
+    order = [m for m, _ in s.domain.l_cells]
+    assert "M3" not in order and "M1" in order
+    i3 = _index(V, ("ln_idu", "M3"))
+    i1 = _index(V, ("ln_idu", "M1"))
+    l_cells = dict(s.domain.l_cells)
+    tols = _tols(floor_lut, case)
+
+    def expect(cells):
+        # oracle (a)+(d): 기대 하한 = 그 성분 소자의 L 칸 -- 멤버면 주인(l_ties) 칸 -- 에서 npz 배열로 직접 계산한 전도·정점 하한의
+        # max(conftest conduction_floor·peak_floor·expected_floor = 계약 3.22 문장의 격자 계산). 멤버 L = 주인 L 은 설계 40 §3.7 D-GB7a.
+        out = {}
+        for idx, v in enumerate(V):
+            t, m = v.component
+            if t != "ln_idu":
+                continue
+            cm = ties.get(m, m)
+            cell = l_cells[cm][cells[order.index(cm)]]
+            f = expected_floor(_cond(_floor_arrays, tols, TIED_KIND[m], cell), peak_floor(_floor_arrays(TIED_KIND[m]), *cell))
+            if f is not None and v.lo < f < v.hi:
+                out[idx] = f
+        return out
+
+    cells = tuple(owner_cell if m == "M1" else 0 for m in order)
+    other = tuple((1 - owner_cell) if m == "M1" else 0 for m in order)       # 주인 칸만 바꾼다
+    exp, exp2 = expect(cells), expect(other)
+    assert i3 in exp and i1 in exp and i3 in exp2                     # 멤버·주인 하한이 상자 안(비공허)
+    assert exp2[i3] != exp[i3]                                         # toy LUT 는 칸마다 IDu 가 e^0.7 배 -> 주인 칸이 갈린다
+    _close(ln_idu_floors(s, V, cells), exp)
+    _close(ln_idu_floors(s, V, other), exp2)
+
+
+# ---------------------------------------------------------------- 실경로: 단계 A l_classes -> kernel -> search -> find_front (library)
+
+LCLASS_LIB = ("two_stage_ota_sf", "folded_cascode", "ngcc_3stage_ff")
+
+
+@pytest.fixture(scope="module")
+def lib_env():
+    from generality.pipeline import Env
+    return Env()
+
+
+@pytest.mark.parametrize("name", LCLASS_LIB)
+def test_library_real_path_find_front_with_l_classes(tmp_path, lib_env, name):
+    """고치기 전에는 solve_eps -> _layout -> ln_idu_floors 에서 KeyError(멤버 이름)로 죽었다. oracle (a): 계약 3.16 의 반환형
+    (SearchFront) + '예외 없음' -- 기대 수치는 없다. two_stage_ota_sf spec 은 two_stage_ota 를 value_from_file 로 참조하므로
+    library 폴더(두 원본이 같이 있음)에서 그대로 읽는다. 단계 A 상태(ok·stopped)와 무관하게 l_classes 를 넘긴다."""
+    from generality.pipeline import CAPACITANCE_BOX, LIBRARY, RESISTANCE_BOX
+    from gmid_engine.authoring import load_sizing_spec, load_topology
+    from gmid_engine.graph import build_s1
+    from gmid_engine.pipeline import run_stage_a
+    from gmid_engine.search import SearchFront, SearchSettings, build_search_context, find_front
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
+
+    env = lib_env
+    tp = LIBRARY / (name + ".topology.json")
+    td = load_topology(str(tp))
+    spec = load_sizing_spec(str(LIBRARY / (name + ".sizing_spec.json")), td, env.catalog)
+    inputs = dc_inputs_from_spec(spec)
+    sup = dict(inputs.supplies_v)
+    stage_a = run_stage_a(tp, None, env.lut, output_dir=tmp_path / "a", supplies_v=sup)
+    dc = build_kernel_context(build_s1(td, sup), inputs, env.access, l_classes=stage_a.s1v.l_classes)
+    settings = SearchSettings(60.0, 40, RESISTANCE_BOX, (("cellfloor_lclass", "test_fixture"),), CAPACITANCE_BOX)
+    sctx = build_search_context(dc, spec, settings, None, env.pdk, env.lut_rule)
+    comps = {v.component for v in sctx.domain.variables}
+    # 전제(비공허): 동치류 멤버가 있고 그중 하나 이상이 ln_idu 성분을 가지며 l_cells 에는 멤버가 없다(하한 계산이 멤버를 만난다).
+    assert dc.l_ties
+    assert any(("ln_idu", m) in comps for m, _ in dc.l_ties)
+    assert not {m for m, _ in dc.l_ties} & {m for m, _ in sctx.domain.l_cells}
+    fr = find_front(sctx, [])
+    assert isinstance(fr, SearchFront)
