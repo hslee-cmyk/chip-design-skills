@@ -46,6 +46,7 @@ from ._ly_fields import (
     GRAPH_KEY,
     WRITER_GROUPS,
 )
+from .canonical_naming import canonical_names
 from .contract_input import (
     CC_REQUIRED_ROLES,
     EXCLUDED_ROLES,
@@ -279,6 +280,7 @@ def _place(group, devices, fw_cand, pdk, rejected):
     reads=((DEVICE, F_DEVICE), (DEVICE, F_FW_CAND), (GRAPH, F_PDK), (GRAPH, F_GROUPS_IN), (GRAPH, F_REJECTED)),
     writes=((GRAPH, F_GROUPS), (GRAPH, F_DISPOSITIONS)),
 )
+@canonical_names()
 def pattern_select(projection):
     """레이아웃 matching 그룹마다 `GroupLayout`(gid 정렬 tuple), 뺀 그룹마다 `MatchingDisposition`(gid 정렬 tuple)."""
     devices = dict(projection.column(DEVICE, F_DEVICE))

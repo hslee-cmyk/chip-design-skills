@@ -39,6 +39,7 @@ from ._ly_fields import (
     F_PASSIVES,
     F_PDK,
     F_ROW_GROUPS,
+    F_REJECTED,
     F_ROWS,
     GRAPH,
     GRAPH_KEY,
@@ -49,6 +50,7 @@ from .contract_input import LAYOUT_ROLES, PATTERN_COMMON_CENTROID, ROLE_BRANCH_S
 from .contract_output import MERGE_NOISE_NOTE, FoldAttempt, GroupRebuild, MergeDecision, RowLayout, RowsLayout
 from .diffusion import diffusion_geometry
 from .floorplan import floorplan_of
+from .canonical_naming import canonical_names
 from .hub_candidates import find_hub_merge_candidates
 from .mirror_trail import check_walk_sequence
 from .patterns_common_centroid import common_centroid_layout
@@ -273,9 +275,10 @@ def _improve(state, rows, placed):
 @compute_block(
     WRITER_ROWS,
     reads=((DEVICE, F_DEVICE), (DEVICE, F_FINGER), (GRAPH, F_GROUPS), (GRAPH, F_GROUPS_IN), (GRAPH, F_ROW_GROUPS),
-           (GRAPH, F_PDK), (GRAPH, F_PASSIVES)),
+           (GRAPH, F_PDK), (GRAPH, F_PASSIVES), (GRAPH, F_REJECTED)),
     writes=((GRAPH, F_ROWS), (GRAPH, F_FLOORPLAN), (GRAPH, F_DIFFUSION)),
 )
+@canonical_names(rows=True)
 def compose_rows(projection):
     """물리 행 전부(행 id 정렬)·행 폭 비 기록·시도 기록 = `RowsLayout`, 최종 행의 `FloorplanSummary`, 최종 행의 `ly.diffusion`."""
     devices = dict(projection.column(DEVICE, F_DEVICE))
