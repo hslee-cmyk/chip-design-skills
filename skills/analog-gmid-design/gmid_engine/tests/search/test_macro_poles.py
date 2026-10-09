@@ -7,6 +7,11 @@
   gm/ID(보고 행의 선택값 -- 매크로 2회차의 입력)/LAM 은 toy LUT 구성 식이다.
 - oracle (b) 같은 문제를 다른 방법으로: 주극점 단 전수 + 비주극점 u 격자·황금 분할 + 이득 식 닫힌 해(`chain_min_current`).
 - oracle (d) 설계 41 §6.5 '특수 경우': 단일 블록·Miller 없음이면 gm_1 = 2π·GBW·C_out.
+- oracle (d) 설계 41 §6.5 as-built 절(2026-10-09, 오케스트레이터 수락):
+  * 출력노드 컨덕턴스의 A_i = 이득 제약이 있고 모든 블록 A_i,max 가 인증되면 블록 목표 g_i(§6.4-1 g_i = G·A_i,max/ΣA_max, dB), 아니면 입력 소자 LUT 진성 이득.
+    그래서 이득 제약이 없는 사슬(아래 대부분)은 A_k = (gm/ID)_k/LAM, 이득 제약 + 인증이면 A_k = 10^(g_k/20).
+  * 공동 SLSQP + 단마다 다중 출발, 구조 주극점 노드(`dominant_node`)의 단은 먼저 시도할 뿐 강제하지 않는다 -> 전역 최소(oracle (b))의 주극점 단은
+    구조 주극점(출력 out)이 아닐 수 있다(2p_4_1, 3극점 순열).
 허용오차: 상대 1e-6 -- 남는 차이는 소자 용량(≤ 1e-9 상대)과 매크로의 √ε 분해능 등식 풀이(SLSQP 등식 제약)뿐이다. 최소성 비교는 상대 1e-4 --
 SLSQP 의 목적 수렴 허용오차(scipy 기본 ftol 1e-6, 목적 척도 1e-4 A)와 oracle 의 격자·황금 분할 해상도를 덮는 값.
 """
@@ -81,11 +86,48 @@ def test_two_pole_supply_current_is_minimum(caps):
 
 def test_three_pole_supply_current_is_global_minimum():
     # oracle (b): C = (1, 2, 3) pF 에서 전역 최소는 주극점을 가장 큰 커패시터 단(3 pF)에 두는 것.
-    # [기대 red] 매크로의 SLSQP 는 실행 가능한 출발점의 국소 최소(주극점 = 1 pF 단)에 머문다(실측 Σ gm/g = 1.160e-3 A 대 전역 6.82e-4 A).
+    # (24cfecd 에서 red: 단일 출발 국소 최소 1.160e-3 A 대 전역 6.82e-4 A -- 75626c8 의 다중 출발로 해소, 41 §6.5 as-built)
     st, gms, g, a = _chain(CASES[2])
     want, _gm, d = chain_min_current(list(CASES[2]), g, a, GBW, PM)
     got = sum(x / y for x, y in zip(gms, g))
     assert got <= want * (1 + 1e-4), (got, want, d)
+
+
+@pytest.mark.parametrize("caps", [(3e-12, 2e-12, 1e-12), (2e-12, 3e-12, 1e-12), (1e-12, 3e-12, 2e-12)],
+                         ids=["3p_3_2_1", "3p_2_3_1", "3p_1_3_2"])
+def test_three_pole_global_minimum_when_structural_dominant_is_not_optimal(caps):
+    # oracle (b): 전역 최소의 주극점 단 = 가장 큰 커패시터 단(구조 주극점 노드 out 이 아니다). 구조 주극점 단에서만 출발한 SLSQP 는
+    # 그 단을 주극점으로 둔 국소 최소에 머문다(설계 41 §6.5 as-built: 3극점에서 국소 최소는 전역의 1.7 배) -- 다중 출발이 아니면 이 test 는 실패한다.
+    st, gms, g, a = _chain(caps)
+    assert st.macro.records == ()
+    want, _gm, d = chain_min_current(list(caps), g, a, GBW, PM)
+    assert d == max(range(3), key=lambda k: caps[k]) and d != 2          # 입력 확인: 전역 최소의 주극점 단 ≠ 구조 주극점(out) 단
+    got = sum(x / y for x, y in zip(gms, g))
+    assert got <= want * (1 + 1e-4), (got, want, d)
+    assert abs(chain_response(gms, caps, a, GBW)) == pytest.approx(1.0, rel=1e-6)
+    assert chain_pm_deg(gms, caps, a, GBW) >= PM - 1e-6
+    poles = chain_poles_hz(gms, caps, a)
+    assert min(range(3), key=lambda k: gms[k] / a[k] / caps[k]) == d     # 실제 주극점(가장 낮은 극점)이 놓인 단 = oracle 의 단
+    assert poles[1] >= GBW * math.tan(math.radians(PM)) * (1 - 1e-6)
+
+
+def test_gain_constraint_with_certified_a_max_uses_block_targets():
+    # 41 §6.5 as-built 'A_i 순서' + §6.4-1: 이득 제약 G = 60 dB, 두 단 대칭(toy A_max = 20/(0.1 + 0.1) = 100 = 40 dB씩, count budget 10^6 로 인증)
+    # -> g_i = 60·40/80 = 30 dB -> A = 10^(30/20). 닫힌 식 |H(jω_GBW)| = 1 이 이 A 로 성립하고 진성 이득 A = g/LAM 로는 성립하지 않는다.
+    caps = (1e-12, 4e-12)
+    els = tuple(("C%d" % (k + 1), "capacitor", c) for k, c in enumerate(caps))
+    case = toy_case(cs_chain(2), cap_scale=TINY, elements=els, constraints=TARGETS + (("gain_ss_db", ">=", 60.0),),
+                    count_budget=10 ** 6)
+    st = case.start
+    assert st.macro.records == ()
+    gm = dict(st.macro.gm)
+    gms = [gm[("n1",)], gm[("out",)]]
+    rows = rows_by_name(st)
+    a_target = [10 ** (30.0 / 20.0)] * 2
+    a_intr = [rows["MN%d" % (k + 1)].gm_id_chosen / LAM for k in range(2)]
+    assert abs(chain_response(gms, caps, a_target, GBW)) == pytest.approx(1.0, rel=1e-6)
+    assert chain_pm_deg(gms, caps, a_target, GBW) >= PM - 1e-6
+    assert abs(abs(chain_response(gms, caps, a_intr, GBW)) - 1.0) > 1e-2       # 진성 이득으로 본 망과 구별된다(입력 검사)
 
 
 def test_single_block_gm_is_2pi_gbw_cout():
@@ -101,7 +143,7 @@ def test_single_block_gm_is_2pi_gbw_cout():
 
 def test_no_pm_target_uses_floor_and_records_it():
     # CONTRACT U13: PM 목표가 없으면 PM_FLOOR_DEG = atan(1) = 45°, 기록 `pm_floor_pole_at_ugf`.
-    # (설계 41 §6.5 는 PM 목표 없는 경우를 정하지 않는다 -- 설계 대조는 보고의 '이견' 절.)
+    # (설계 41 §6.5 as-built 절: PM_FLOOR 는 매크로 풀이 안에서만 쓴다.)
     caps = (1e-12, 4e-12)
     st, gms, g, a = _chain(caps, constraints=(("gbw_ss_hz", ">=", GBW),))
     codes = [code for code, _ in st.macro.records]

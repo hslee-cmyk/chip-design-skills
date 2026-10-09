@@ -9,7 +9,7 @@ oracle:
 """
 import pytest
 
-from gmid_engine.search._helpers_guard import guard_bounds, guard_devices
+from gmid_engine.search._helpers_guard import guard_bounds, guard_devices, guard_input_gm_id
 from gmid_engine.search.iv_context import build_start_context
 
 from .u13_hand import cs_chain, toy_case
@@ -55,3 +55,40 @@ def test_guard_bounds_unsatisfiable_is_conflict_not_cut(ctx):
     hit = [c for c in conflicts if c.device == "MP1"]
     assert len(hit) == 1 and hit[0].quantity == "gm_id"
     assert hit[0].gap == pytest.approx(5.6 - 3.0, abs=1e-9)
+
+
+def _hump(name, g):
+    """입력 기여: g = 12.1 근처에서 최대인 혹(toy 곡선 마디 20 − 0.8k 중 최대 마디 = 12.0). 부하 기여: g(선형)."""
+    return 30.0 - (g - 12.1) ** 2 if name == "MN1" else g
+
+
+def test_guard_input_measured_at_max_contribution_node(ctx):
+    # CONTRACT U13 가드: 입력 쪽 기여는 입력 소자가 가질 수 있는 최대(하한 ~ 가드가 아닌 상한 안에서 기여가 최대인 곡선 마디)
+    got = guard_input_gm_id(ctx, _hump, ("MN1",), {"MN1": 1e-6}, {"MN1": 6.4}, {"MN1": 16.0})
+    assert got["MN1"] == pytest.approx(12.0, abs=1e-9)
+    # 상한이 혹 아래면 그 안의 최대 마디 = 상한 쪽 마디 10.4
+    got = guard_input_gm_id(ctx, _hump, ("MN1",), {"MN1": 1e-6}, {"MN1": 6.4}, {"MN1": 10.4 + 1e-9})
+    assert got["MN1"] == pytest.approx(10.4, abs=1e-9)
+
+
+def test_guard_input_skips_undefined_nodes(ctx):
+    # LUT 가 정의하지 못하는 마디(None)는 뺀다: 12.0 이 None 이면 다음으로 큰 기여 12.8(−0.49) > 11.2(−0.81)
+    def term(name, g):
+        return None if abs(g - 12.0) < 1e-6 else _hump(name, g)
+    got = guard_input_gm_id(ctx, term, ("MN1",), {"MN1": 1e-6}, {"MN1": 6.4}, {"MN1": 16.0})
+    assert got["MN1"] == pytest.approx(12.8, abs=1e-9)
+
+
+def test_guard_levels_use_input_max_and_loads_min(ctx):
+    # 손계산(41 §6.2 규약 '나머지는 최소'): 입력 기여 = 혹 최대 30 − 0.01 = 29.99 (g_in = 12.0), ratio 0.5 -> 우변 14.995.
+    # level_MP1 = 14.995 − term(MP2, lo 7) = 7.995, level_MP2 = 14.995 − 6 = 8.995; 부하 term = g 이므로 상한 = level.
+    # 입력을 하한 6.4 에서 쟀다면 우변 = 0.5·(30 − 32.49) < 0 -> 모두 충돌(대조: 가장 느슨한 경우라 거짓 충돌이 없다).
+    g_in = guard_input_gm_id(ctx, _hump, ("MN1",), {"MN1": 1e-6}, {"MN1": 6.4}, {"MN1": 16.0})
+    lengths = {"MN1": 1e-6, "MP1": 1e-6, "MP2": 1e-6}
+    bounds, conflicts = guard_bounds(ctx, ("MN1",), ("MP1", "MP2"), _hump, 0.5, lengths, {"MP1": 6.0, "MP2": 7.0}, g_in, "src_t")
+    assert conflicts == ()
+    rhs = 0.5 * (30.0 - (12.0 - 12.1) ** 2)
+    (b1,) = bounds["MP1"]
+    (b2,) = bounds["MP2"]
+    assert b1.value == pytest.approx(rhs - 7.0, abs=1e-6)
+    assert b2.value == pytest.approx(rhs - 6.0, abs=1e-6)

@@ -166,6 +166,29 @@ def all_inactive(start):
     return out
 
 
+def start_ctx_with(topo_doc, elements, constraints, extra):
+    """탐색 문맥 시작 검사(설계 41 §7.2·§6.4-2b 데이터 필수 거부)를 거치지 않고 `extra` 제약이 든 spec 으로 출발 입력 묶음을 만든다
+    (단계 A·B 는 잡음·mismatch 데이터를 요구하지 않는다). 정의역과 전류·L·gm/ID 하한은 `extra` 없는 같은 회로의 공개 산출물(입력)이다.
+    -> (StartContext, {소자: 전류}, {소자: L}, {소자: gm/ID 하한})."""
+    from gmid_engine.pipeline import run_stage_a, run_stage_b
+    from gmid_engine.search.iv_context import build_start_context
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    clean = toy_case(topo_doc, elements=elements, constraints=constraints)
+    env = toy_env()
+    env.n += 1
+    root = env.root / ("c%03d" % env.n)
+    tp, sp = write_case(root, topo_doc, elements=elements, constraints=tuple(constraints) + tuple(extra), count_budget=10 ** 6)
+    a = run_stage_a(tp, sp, env.lut, output_dir=root / "out")
+    assert a.s1v is not None, a.report.get("stop_reasons")
+    b = run_stage_b(a, memo_of(env.lut), env.decls[0], output_dir=root / "out")
+    kctx = build_kernel_context(a.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo_of(env.lut)),
+                                l_classes=a.s1v.l_classes)
+    ctx = build_start_context(a.s1v, b.achievability, kctx, a.spec, env.decls[0], clean.sctx.domain)
+    rows = rows_by_name(clean.start)
+    return (ctx, {d: r.i_start for d, r in rows.items()}, {d: r.l_chosen for d, r in rows.items()},
+            {d: r.gm_id_lo for d, r in rows.items()})
+
+
 # ---------------------------------------------------------------- 손 회로
 
 def cs_chain(n, name=None, ren=None):

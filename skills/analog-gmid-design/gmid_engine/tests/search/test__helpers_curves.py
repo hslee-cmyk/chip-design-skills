@@ -42,3 +42,17 @@ def test_hull_counts_all_cells_of_non_monotone_curve():
 
 def test_hull_empty_is_none():
     assert hull(G, V, 0.5) is None
+
+
+def test_at_gm_id_non_monotone_curve_reads_strong_inversion_cell():
+    # CONTRACT U13 '곡선 읽기(at_gm_id)는 gm/ID 를 품은 칸이 여럿이면(pmos 중반전 상승) 가장 오른쪽(강반전) 칸에서 읽는다'.
+    # 손 toy 곡선(VGS 오름차순 마디): gm/ID 20 -> 14 로 내려갔다가 16 으로 다시 오른 뒤(혹) 10 으로 내려간다.
+    g = (20.0, 14.0, 16.0, 10.0)
+    v = (1.0, 2.0, 3.0, 4.0)
+    # g = 15 는 세 칸 [20,14]·[14,16]·[16,10] 에 든다 -> 가장 오른쪽 칸 [16,10]: 3 + (16 − 15)/(16 − 10)·(4 − 3)
+    assert at_gm_id(g, v, 15.0) == pytest.approx(3.0 + 1.0 / 6.0, rel=1e-12)
+    # 한 칸에만 드는 값은 그 칸에서: g = 17 -> [20,14]: 1 + 3/6, g = 12 -> [16,10]: 3 + 4/6
+    assert at_gm_id(g, v, 17.0) == pytest.approx(1.5, rel=1e-12)
+    assert at_gm_id(g, v, 12.0) == pytest.approx(3.0 + 4.0 / 6.0, rel=1e-12)
+    # log 보간도 같은 칸: 3^(5/6)·4^(1/6)
+    assert at_gm_id(g, v, 15.0, log=True) == pytest.approx(3.0 ** (5.0 / 6.0) * 4.0 ** (1.0 / 6.0), rel=1e-12)

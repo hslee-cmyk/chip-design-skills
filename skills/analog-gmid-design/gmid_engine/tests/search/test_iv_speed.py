@@ -63,7 +63,9 @@ def test_no_gbw_target_speed_inactive_with_reason():
 
 def test_no_pm_target_speed_bound_inactive_per_design():
     # 설계 41 §6.3 전제: PM 목표가 없으면 속도 상한은 비활성이고 그 사유가 보고에 남는다.
-    # [기대 red, 이견] 구현은 PM_FLOOR_DEG = 45° 로 상한을 계산한다(GBW·tan45 경계 = PM 45 spec 과 같은 값; iv_speed docstring '설계 공백으로 보고').
+    # (24cfecd 에서 red: PM_FLOOR 45° 로 상한 계산 -- 75626c8 에서 설계대로 비활성 `pm_target_missing`; PM_FLOOR 는 매크로 풀이 안에서만, 41 §6.5 as-built)
+    st, b, _ = _speed((('gbw_ss_hz', '>=', 1e6),))
+    assert ('speed_ft_6.3', 'pm_target_missing') in all_inactive(st)
     st, b, _ = _speed((("gbw_ss_hz", ">=", 1e6),))
     assert not any(b.values())
     assert any(src == SRC_FT for src, _why in all_inactive(st))

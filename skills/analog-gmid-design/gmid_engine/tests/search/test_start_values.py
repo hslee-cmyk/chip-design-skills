@@ -2,7 +2,7 @@
 
 oracle:
 - (a) PM_FLOOR_DEG: 2극점 근사 PM = atan(f_np/GBW) 에서 비주극점이 UGF 에 놓이는 f_np = GBW 의 값 = atan(1) = 45° (CONTRACT 주장의 수치 확인;
-  설계 41 §6.3 은 PM 목표가 없으면 비활성이라 쓴다 -- 이견은 test_iv_speed·보고).
+  설계 41 §6.5 as-built 절: PM_FLOOR 는 매크로 풀이 안에서만, §6.3 속도 상한은 PM 목표가 없으면 비활성 -- test_iv_speed·test_macro_poles).
 - (d) 41 §6.6 보고 표 열: device, gm_id_lo/hi/chosen, L_lo/hi/chosen, bin, I_start, sources, inactive_reasons, conflicts.
 - 경계 식 이름·비활성 사유는 서로 다른 문자열이어야 보고에서 구별된다. 값 형식은 불변(frozen).
 """

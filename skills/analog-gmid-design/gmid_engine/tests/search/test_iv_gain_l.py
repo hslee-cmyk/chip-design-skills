@@ -39,7 +39,7 @@ def test_without_achievability_reason_is_reported():
 
 def test_certified_a_max_and_gain_constraint_activates_l_lower_bound():
     # 41 §6.4-1: A_max 인증 + gain 제약 -> 활성. toy LUT 에서 블록 gain 은 L 무관(gds/ID·gm/ID 가 L 에 무관)이라 최소 L = LUT L 최솟값 1 µm.
-    # [기대 red] 구현은 인증된 블록의 L 풀이를 연결하지 않고 `certified_block_local_model_not_wired` 를 비활성 사유로 낸다(iv_gain_l docstring).
+    # (24cfecd 에서 red: `certified_block_local_model_not_wired` -- 75626c8 에서 U9 블록 국소 모델로 연결, 설계 41 §6.5 as-built 절)
     st = _start(GAIN, 10 ** 6)
     assert not _reasons(st), _reasons(st)
     got = {r.device: bound_values(r, SRC, "L", "lo") for r in st.rows}
