@@ -21,9 +21,11 @@ graph `ly_pdk`·`ly_groups_in`·`ly_rejected`, writes graph `ly_groups`·`ly_dis
    interdigitation 성립 = 패턴 interdigitation 이 배치를 냈고 crossover 0.
 5. 차동쌍·branch_symmetric(LY5, Q8 (ii)): common-centroid 만 먼저 -> (i) 무게중심 일치 후보가 있으면 채택(같은 보존량에서
    nf 조정) (ii) 없고 멤버 모두 `W_adjustable`·MOD8 거부 없음이면 `W_request`(nf = 멤버 수, finger_w = 특성화 폭 중
-   max W_need(폭)/멤버 수 에 가장 가까운 것, 모든 멤버 같은 값) + `pending`(배치는 잠정) (iii) 그 밖이면 완화
-   (`relaxed=True`): 차동쌍은 interdigitation, branch_symmetric 은 (i)의 최선 행 swap 배치(무게중심 불일치 그대로).
-   시도는 순서대로 전부 `attempts` 에 남긴다.
+   max W_need(폭)/멤버 수 에 가장 가까운 것, 모든 멤버 같은 값) + `pending`(배치는 잠정) (iii) 그 밖(조정 불가·거부·사용 가능 폭 없음)은
+   **즉시 완화하지 않는다**(U12, LY5 마지막 문장 -- 완화 판정은 MOD8 몫): pattern None + 사유(`w_not_adjustable` 등)로 두고
+   `review_needed` 에 올린다. 시도는 순서대로 전부 `attempts` 에 남긴다(무게중심 불일치 (i) 시도의 dx·dy 포함).
+6. 패턴을 고를 때 그룹 멤버 L 이 같은지 본다(LY4): 다르면 `GroupLayout.l_mismatch` = ((멤버, L_m), ...) 로 기록만 한다(거부 사유 아님,
+   L 통일은 LR2 소관).
 """
 import itertools
 from collections import Counter
@@ -44,6 +46,7 @@ from ._ly_fields import (
     GRAPH_KEY,
     WRITER_GROUPS,
 )
+from .canonical_naming import canonical_names
 from .contract_input import (
     CC_REQUIRED_ROLES,
     EXCLUDED_ROLES,
@@ -195,17 +198,17 @@ class _Evaluator:
         return best
 
 
-def _layout(group, chosen, attempts, *, relaxed=False, pending=False, reason="", w_requests=()):
+def _layout(group, chosen, attempts, *, pending=False, reason="", w_requests=(), l_mismatch=()):
     members = group.members
     if chosen is None:
         return GroupLayout(group.gid, group.role, members, None, None, None, None, (), (), None, None, None, None, None,
-                           False, relaxed, pending, pending, reason, tuple(attempts), tuple(w_requests))
+                           False, pending, pending, reason, tuple(attempts), tuple(w_requests), l_mismatch)
     _, _, pattern, result, rows, choice, dx, dy = chosen
     return GroupLayout(group.gid, group.role, members, pattern, result["method"], choice[0].finger_w_key,
                        choice[0].finger_w_m, tuple((n, c.n_fingers) for n, c in zip(members, choice)), rows,
                        float(result["residual"]), result["crossover_count"], result["isolated_pairs"], float(dx),
-                       float(dy), dx == 0 and dy == 0, relaxed, pending, pending, reason, tuple(attempts),
-                       tuple(w_requests))
+                       float(dy), dx == 0 and dy == 0, pending, pending, reason, tuple(attempts),
+                       tuple(w_requests), l_mismatch)
 
 
 def _w_requests(group, fw_cand, pdk):
@@ -229,22 +232,29 @@ def _why(chosen, ev, ok_reason):
     return "no_applicable_pattern" if ev.combos else "no_common_finger_w"
 
 
+def _l_mismatch(group, devices):
+    """LY4 `matching_L_mismatch`: 멤버 L 이 모두 같으면 (), 아니면 ((멤버, L_m), ...) 멤버 순서."""
+    lengths = tuple((m, devices[m].L_m) for m in group.members)
+    return lengths if len({length for _, length in lengths}) > 1 else ()
+
+
 def _place(group, devices, fw_cand, pdk, rejected):
+    mismatch = _l_mismatch(group, devices)
     if group.role == ROLE_BRANCH_SYMMETRIC:
         ends, reason = _branch_ends(group, devices)
     else:
         ends, reason = orient(group, devices)
     if ends is None:
         attempt = GroupAttempt("precondition", None, None, (), (), None, None, None, False, reason)
-        return _layout(group, None, [attempt], reason=reason)
+        return _layout(group, None, [attempt], reason=reason, l_mismatch=mismatch)
     ev = _Evaluator(group, ends, devices, fw_cand, pdk)
     allowed = tuple(p for p in PATTERNS if p in group.allowed_patterns)
     if group.role not in CC_REQUIRED_ROLES:
         chosen = ev.best(allowed, "select")
-        return _layout(group, chosen, ev.attempts, reason=_why(chosen, ev, "selected"))
+        return _layout(group, chosen, ev.attempts, reason=_why(chosen, ev, "selected"), l_mismatch=mismatch)
     chosen = ev.best((PATTERN_COMMON_CENTROID,), "cc_same_W")
     if chosen is not None and chosen[0][0] == 0:
-        return _layout(group, chosen, ev.attempts, reason="cc_same_W")
+        return _layout(group, chosen, ev.attempts, reason="cc_same_W", l_mismatch=mismatch)
     adjustable = all(devices[m].W_adjustable and m not in rejected for m in group.members)
     requests = _w_requests(group, fw_cand, pdk) if adjustable else ()
     if requests:
@@ -252,7 +262,8 @@ def _place(group, devices, fw_cand, pdk, rejected):
         ev.attempts.append(GroupAttempt("w_request", PATTERN_COMMON_CENTROID, requests[0].W_new_m / n,
                                         tuple(n for _ in group.members), tuple(r.W_new_m for r in requests), None,
                                         None, None, False, "cc_nf"))
-        return _layout(group, chosen, ev.attempts, pending=True, reason="w_request_pending", w_requests=requests)
+        return _layout(group, chosen, ev.attempts, pending=True, reason="w_request_pending", w_requests=requests,
+                       l_mismatch=mismatch)
     if any(m in rejected for m in group.members):
         why = "w_request_rejected"
     elif adjustable:
@@ -260,17 +271,8 @@ def _place(group, devices, fw_cand, pdk, rejected):
     else:
         why = "w_not_adjustable"
     ev.attempts.append(GroupAttempt("w_request", PATTERN_COMMON_CENTROID, None, (), (), None, None, None, False, why))
-    if group.role == ROLE_BRANCH_SYMMETRIC:
-        relaxed = chosen
-        if relaxed is not None:
-            _, _, _, result, _, choice, dx, dy = relaxed
-            ev.attempts.append(GroupAttempt("relax", PATTERN_COMMON_CENTROID, choice[0].finger_w_m,
-                                            tuple(c.n_fingers for c in choice), tuple(c.W_realized_m for c in choice),
-                                            result["method"], float(dx), float(dy), False, "row_swap_uncentred"))
-    else:
-        relaxed = ev.best((PATTERN_INTERDIGITATION,), "relax") if PATTERN_INTERDIGITATION in allowed else None
-    return _layout(group, relaxed, ev.attempts, relaxed=relaxed is not None,
-                   reason=("relaxed:" + why) if relaxed is not None else (why if ev.combos else "no_common_finger_w"))
+    # LY5: W_request 를 낼 수 없어도 즉시 완화(interdigitation·무게중심 불일치 배치)하지 않는다 -- 판정은 MOD8.
+    return _layout(group, None, ev.attempts, reason=why if ev.combos else "no_common_finger_w", l_mismatch=mismatch)
 
 
 @compute_block(
@@ -278,6 +280,7 @@ def _place(group, devices, fw_cand, pdk, rejected):
     reads=((DEVICE, F_DEVICE), (DEVICE, F_FW_CAND), (GRAPH, F_PDK), (GRAPH, F_GROUPS_IN), (GRAPH, F_REJECTED)),
     writes=((GRAPH, F_GROUPS), (GRAPH, F_DISPOSITIONS)),
 )
+@canonical_names()
 def pattern_select(projection):
     """레이아웃 matching 그룹마다 `GroupLayout`(gid 정렬 tuple), 뺀 그룹마다 `MatchingDisposition`(gid 정렬 tuple)."""
     devices = dict(projection.column(DEVICE, F_DEVICE))

@@ -1,6 +1,7 @@
 """CONTRACT 4.5 `pattern_select`(@compute_block) -- graph `ly_groups`·`ly_dispositions`.
 
-4.15 손계산 오라클(차동쌍 g1·branch_symmetric g2·bias_distribution g3) + 전제 실패 + 완화 순서(LY5) + mirror 정렬 키 첫 칸
+4.15 손계산 오라클(차동쌍 g1·branch_symmetric g2·bias_distribution g3) + 전제 실패 + 즉시 완화 없음(LY5 마지막 문장, U12 D-LY2/R21:
+옛 interdigitation 완화·무게중심 불일치 행 swap 채택과 `relaxed` 필드 삭제) + LY4 `l_mismatch` 기록 + mirror 정렬 키 첫 칸
 (interdigitation 성립, Q8 (ii)) + 제외 role 사유(Q8 (iii)). dx·dy 는 행 순서에서 독립 계산해 대조한다.
 """
 from __future__ import annotations
@@ -49,8 +50,9 @@ def test_diff_pair_cc_same_w(toy_lut):
     assert (g.pattern, g.method, g.finger_w_key, g.n_fingers) == ("common_centroid", "rotation_exact", 100, (("A", 2), ("B", 2)))
     assert [r.transistor_sequence for r in g.rows] == [("A", "B"), ("B", "A")]
     assert (g.dx, g.dy) == (0.0, 0.0)
-    assert g.reason == "cc_same_W" and g.ok is True and g.relaxed is False and g.pending is False
+    assert g.reason == "cc_same_W" and g.ok is True and g.pending is False
     assert g.w_requests == ()
+    assert g.l_mismatch == ()                                   # 멤버 L 같음 -> 기록 없음(LY4)
     check_offsets(g)
     # attempts: 조합 순서 = 행 폭 칸 수 오름차순 -> 키 200 nf 1(200칸, cc_precondition) 다음 키 100 nf 2(400칸)
     assert [(a.step, a.n_fingers, a.reason) for a in g.attempts] == [
@@ -61,7 +63,7 @@ def test_diff_pair_cc_same_w(toy_lut):
 def test_diff_pair_w_request_pending(toy_lut):
     g = one(toy_lut, dp(1e-6), mg("g1", ("A", "B"), "diff_pair", "h"))
     assert g.pattern is None                                    # (i) 최선 없음(cc_precondition 뿐)
-    assert (g.pending, g.relaxed, g.reason) == (True, False, "w_request_pending")
+    assert (g.pending, g.reason) == (True, "w_request_pending")
     assert len(g.w_requests) == 2
     for w, name in zip(g.w_requests, ("A", "B")):
         assert isinstance(w, WRequest)
@@ -84,41 +86,41 @@ def test_w_request_pending_is_provisional_without_placement(toy_lut):
 def test_w_request_pending_keeps_best_cc_placement_provisional(toy_lut):
     # branch_symmetric ID 1e-6: (i) 최선 = 조각 행 1개 행 swap(dx 1.0, 중심 불일치) -> 조정 가능 -> 요청 + 배치 = (i) 최선
     g = one(toy_lut, bs(1e-6), mg("g2", ("E", "F"), "branch_symmetric", None))
-    assert (g.pending, g.provisional, g.relaxed, g.reason) == (True, True, False, "w_request_pending")
+    assert (g.pending, g.provisional, g.reason) == (True, True, "w_request_pending")
     assert (g.pattern, g.method, g.dx) == ("common_centroid", "row_swap", 1.0)
     assert [(w.device, w.reason, w.group) for w in g.w_requests] == [("E", "cc_nf", "g2"), ("F", "cc_nf", "g2")]
     assert all(w.W_new_m == pytest.approx(2e-6) for w in g.w_requests)
     assert g.attempts[-1].step == "w_request"
 
 
-def test_diff_pair_not_adjustable_relaxes_to_interdigitation(toy_lut):
+def test_diff_pair_not_adjustable_no_immediate_relax(toy_lut):
+    # [U12] CONTRACT 4.15 예(oracle (d) 계약 손계산): W_adjustable=False -> attempts cc_same_W(cc_precondition) -> w_request(w_not_adjustable),
+    # 이후 완화 없음: pattern None, reason "w_not_adjustable"(키 100 nf 1 조합이 있으므로 (iii) 사유). 판정은 MOD8 몫(LY5 마지막 문장).
     g = one(toy_lut, dp(1e-6, adj=False), mg("g1", ("A", "B"), "diff_pair", "h"))
-    steps = [(a.step, a.reason) for a in g.attempts]
-    assert steps[0] == ("cc_same_W", "cc_precondition")
-    assert ("w_request", "w_not_adjustable") in steps
-    i_w = steps.index(("w_request", "w_not_adjustable"))
-    i_r = [s for s, _ in steps].index("relax")
-    assert i_w < i_r                                                    # LY5: 완화 전에 cc·W 요청 시도가 기록
-    assert (g.pattern, g.method) == ("interdigitation", "pattern_table")
-    assert [r.transistor_sequence for r in g.rows] == [("A", "B")]
-    assert (g.dx, g.dy) == (1.0, 0.0)
-    assert g.relaxed is True and g.ok is False and g.pending is False
-    assert g.reason == "relaxed:w_not_adjustable"
-    check_offsets(g)
+    assert [(a.step, a.reason) for a in g.attempts] == [("cc_same_W", "cc_precondition"), ("w_request", "w_not_adjustable")]
+    assert "relax" not in [a.step for a in g.attempts]
+    assert "interdigitation" not in [a.pattern for a in g.attempts]        # 옛 interdigitation 완화 평가 없음
+    assert g.pattern is None and g.ok is False
+    assert (g.pending, g.provisional) == (False, False)
+    assert g.reason == "w_not_adjustable"
+    assert g.w_requests == ()
+    assert not hasattr(g, "relaxed")
 
 
 def test_diff_pair_rejected_request(toy_lut):
     g = one(toy_lut, dp(1e-6), mg("g1", ("A", "B"), "diff_pair", "h"), rejected=("A",))
-    assert ("w_request", "w_request_rejected") in [(a.step, a.reason) for a in g.attempts]
-    assert g.reason == "relaxed:w_request_rejected" and g.relaxed is True
+    assert [(a.step, a.reason) for a in g.attempts][-1] == ("w_request", "w_request_rejected")
+    assert g.pattern is None and g.ok is False and g.pending is False
+    assert g.reason == "w_request_rejected"                                # [U12] 옛 "relaxed:w_request_rejected" 아님
     assert g.w_requests == ()
 
 
-def test_diff_pair_no_relax_without_interdigitation(toy_lut):
-    g = one(toy_lut, dp(1e-6, adj=False), mg("g1", ("A", "B"), "diff_pair", "h", patterns=("common_centroid",)))
-    assert g.pattern is None and g.relaxed is False
-    assert g.reason == "w_not_adjustable"                                  # 후보가 있으면 (iii) 사유
-    assert "relax" not in [a.step for a in g.attempts if a.pattern == "interdigitation" and a.reason == "evaluated"]
+def test_not_adjustable_result_independent_of_allowed_patterns(toy_lut):
+    # [U12] CONTRACT 4.15: "(`allowed_patterns` 와 무관 -- 옛 interdigitation 완화는 지웠다)"
+    both = one(toy_lut, dp(1e-6, adj=False), mg("g1", ("A", "B"), "diff_pair", "h"))
+    cc_only = one(toy_lut, dp(1e-6, adj=False), mg("g1", ("A", "B"), "diff_pair", "h", patterns=("common_centroid",)))
+    assert cc_only.pattern is None and cc_only.reason == "w_not_adjustable"
+    assert (cc_only.attempts, cc_only.reason, cc_only.pattern, cc_only.ok) == (both.attempts, both.reason, both.pattern, both.ok)
 
 
 def test_diff_pair_no_usable_slice(toy_lut):
@@ -126,7 +128,7 @@ def test_diff_pair_no_usable_slice(toy_lut):
     groups, _ = select(toy_lut, devs, [mg("g1", ("A", "B"), "diff_pair", "h")])
     g = groups[0]
     assert ("w_request", "no_usable_slice") in [(a.step, a.reason) for a in g.attempts]
-    assert g.pattern is None and g.relaxed is False and g.pending is False
+    assert g.pattern is None and g.pending is False
     assert g.reason == "no_common_finger_w"                               # 후보 없음 -> 7 의 사유
 
 
@@ -164,18 +166,45 @@ def test_branch_symmetric_gate_differs(toy_lut):
     assert a.step == "precondition" and (a.method, a.dx, a.dy) == (None, None, None)
 
 
-def test_branch_symmetric_relax_records_uncentred_row_swap(toy_lut):
-    # ID 1e-6 만 ok(키 100 nf 1) -> 행 swap 2행 요청이지만 조각 행 1개 -> dx 1.0 -> 조정 불가 -> relax(row_swap_uncentred)
+def test_branch_symmetric_not_adjustable_no_uncentred_adoption(toy_lut):
+    # ID 1e-6 만 ok(키 100 nf 1) -> 행 swap 2행 요청이지만 조각 행 1개 -> dx 1.0 -> 조정 불가.
+    # [U12] 옛 동작(무게중심 불일치 행 swap 채택, step "relax" row_swap_uncentred)은 지웠다: pattern None, (i) 시도의 dx·dy 는 attempts 에 남는다.
     g = one(toy_lut, bs(1e-6, adj=False), mg("g2", ("E", "F"), "branch_symmetric", None))
     steps = [a.step for a in g.attempts]
-    assert steps.index("w_request") < steps.index("relax")
-    last = g.attempts[-1]
-    assert (last.step, last.pattern, last.method, last.ok, last.reason) == (
-        "relax", "common_centroid", "row_swap", False, "row_swap_uncentred")
-    assert (last.dx, last.dy) == (1.0, 0.0)
-    assert g.relaxed is True and g.reason == "relaxed:w_not_adjustable"
-    assert (g.method, g.dx) == ("row_swap", 1.0)
+    assert "relax" not in steps
+    assert (g.attempts[-1].step, g.attempts[-1].reason) == ("w_request", "w_not_adjustable")
+    first = g.attempts[0]
+    assert (first.step, first.method, first.reason) == ("cc_same_W", "row_swap", "evaluated")
+    assert (first.dx, first.dy) == (1.0, 0.0)                              # 손계산: 조각 행 1개 (E, F) -> 중심 차 1 피치
+    assert g.pattern is None and g.ok is False and g.pending is False
+    assert g.reason == "w_not_adjustable"
     assert "interdigitation" not in [a.pattern for a in g.attempts]        # 공유 hub 없음 -> interdigitation 평가 없음
+
+
+# --- [U12] LY4 matching_L_mismatch (CONTRACT 4.5 6·7) -- oracle (a) 구성: 입력 L 을 다르게 준 그대로가 기록값 ------------------
+
+@pytest.mark.parametrize("role, hub, devs", [
+    ("diff_pair", "h", (("A", "h", "da", "g"), ("B", "h", "db", "g"))),          # 6 경로
+    ("mirror", "h", (("A", "h", "da", "g"), ("B", "h", "db", "g"))),             # 7 경로
+    ("branch_symmetric", None, (("A", "p", "q", "gc"), ("B", "r", "t", "gx"))),  # 6 전제 실패 경로(branch_gate_differs)
+])
+def test_l_mismatch_recorded_on_every_path(toy_lut, role, hub, devs):
+    Ls = {"A": 1e-6, "B": 2e-6}
+    ds = [dev(n, s, d, 2e-6, gate=gt, L=Ls[n]) for n, s, d, gt in devs]
+    g = one(toy_lut, ds, mg("g1", ("A", "B"), role, hub))
+    assert g.l_mismatch == (("A", 1e-6), ("B", 2e-6))                     # 멤버 순서, 입력 L 그대로
+
+
+def test_l_mismatch_follows_member_order(toy_lut):
+    ds = [dev("A", "h", "da", 2e-6, L=2e-6), dev("B", "h", "db", 2e-6, L=1e-6)]
+    g = one(toy_lut, ds, mg("g1", ("B", "A"), "diff_pair", "h"))
+    assert g.l_mismatch == (("B", 1e-6), ("A", 2e-6))
+
+
+def test_l_mismatch_empty_when_equal_l(toy_lut):
+    for role, hub in (("diff_pair", "h"), ("mirror", "h")):
+        g = one(toy_lut, [dev("A", "h", "da", 2e-6, L=2e-6), dev("B", "h", "db", 2e-6, L=2e-6)], mg("g1", ("A", "B"), role, hub))
+        assert g.l_mismatch == ()
 
 
 # --- 전제(hub-leaf) ---------------------------------------------------------------------------------------------------

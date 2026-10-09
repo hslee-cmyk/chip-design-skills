@@ -206,9 +206,9 @@ def dev(name, s, d, w_need, gate="g", W=4e-6, L=1e-6, gm_id=TOY_GM_ID, vds=TOY_V
     return LayoutDevice(name, kind, d, gate, s, body, W, L, current, gm_id, vds, vsb, diode, adj)
 
 
-def make_input(devices, groups, row_groups, pdk, rejected=()):
+def make_input(devices, groups, row_groups, pdk, rejected=(), passives=()):
     from gmid_engine.layout import LayoutInput
-    return LayoutInput(tuple(devices), tuple(groups), tuple(row_groups), pdk, tuple(rejected))
+    return LayoutInput(tuple(devices), tuple(groups), tuple(row_groups), pdk, tuple(rejected), tuple(passives))
 
 
 def rg(rid, members, kind="nmos", body="sub"):
@@ -281,6 +281,8 @@ def staged_snapshot(inp, memo, upto=None):
         (lf.GRAPH, lf.F_GROUPS_IN): {lf.GRAPH_KEY: inp.matching_groups},
         (lf.GRAPH, lf.F_ROW_GROUPS): {lf.GRAPH_KEY: inp.row_groups},
         (lf.GRAPH, lf.F_REJECTED): {lf.GRAPH_KEY: tuple(sorted(inp.rejected_requests))},
+        # [U12] CONTRACT 4.12 2: 입력 필드 `ly_passives` = 이름순 `LayoutPassive` tuple(_ly_fields.INPUT_FIELDS 에 추가된 필드)
+        (lf.GRAPH, lf.F_PASSIVES): {lf.GRAPH_KEY: tuple(sorted(inp.passives, key=lambda p: p.name))},
     })
     snap = snap.write(lf.WRITER_SLICES, "test-slices", {
         (lf.DEVICE, lf.F_SLICES): {d.name: slice_density(memo, d, keys[d.kind]) for d in inp.devices},

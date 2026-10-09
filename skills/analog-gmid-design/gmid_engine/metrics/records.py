@@ -335,3 +335,11 @@ class PassiveArea:
                 self, "area_per_unit_m2",
                 _finite(self.area_per_unit_m2, "PassiveArea.area_per_unit_m2", positive=True),
             )
+
+    @property
+    def area_m2(self):
+        """면적 항 = 값 x 단위 면적 + 머리 면적(m^2), 단위 면적 선언이 없으면 None. 탐색 축 `area_search` 와 레이아웃 판정 축
+        수동소자 블록(`layout.LayoutPassive.from_decl`)이 같은 식을 쓰는 단일 정본이다(U12)."""
+        if self.area_per_unit_m2 is None:
+            return None
+        return self.value * self.area_per_unit_m2 + self.head_area_m2

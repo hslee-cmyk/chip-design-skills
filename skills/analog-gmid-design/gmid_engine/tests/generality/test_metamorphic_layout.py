@@ -117,10 +117,31 @@ def test_floorplan_follows_renaming(pipe, name, seed):
     assert (rb.floorplan.bbox_width_m, rb.floorplan.bbox_height_m) == (ra.floorplan.bbox_width_m, ra.floorplan.bbox_height_m)
     assert sorted(_device_rows(d, lambda x: x) for d in rb.devices) == sorted(_device_rows(d, b.nm) for d in ra.devices)
     assert len(rb.rows) == len(ra.rows)
-    grp = lambda g: (g.role, g.pattern, g.method, g.finger_w_m, g.dx, g.dy, g.ok, g.relaxed, g.pending, g.reason)  # noqa: E731
-    assert sorted(map(repr, map(grp, rb.groups))) == sorted(map(repr, map(grp, ra.groups)))
+    # [U12] `GroupLayout.relaxed` 삭제(LY5 즉시 완화 제거, D-LY2) -> 비교 열에서 빼고 LY4 `l_mismatch` 를 치환표로 따라가게 비교
+    def grp(g, nm):
+        return (g.role, g.pattern, g.method, g.finger_w_m, g.dx, g.dy, g.ok, g.pending, g.reason,
+                tuple(sorted((nm(m), L) for m, L in g.l_mismatch)))
+    assert sorted(map(repr, (grp(g, lambda x: x) for g in rb.groups))) == sorted(map(repr, (grp(g, b.nm) for g in ra.groups)))
     assert sorted((b.nm(w.device), w.reason) for w in ra.w_requests) == sorted((w.device, w.reason) for w in rb.w_requests)
     assert (rb.coverage_ok, rb.w_invariant_ok) == (ra.coverage_ok, ra.w_invariant_ok)
+    # [U12] 새 판정 축 면적 항목(grid_m, passive_area_m2, included)도 치환표를 따라간다
+    assert (rb.floorplan.grid_m, rb.floorplan.passive_area_m2, rb.floorplan.included) == (
+        ra.floorplan.grid_m, ra.floorplan.passive_area_m2, ra.floorplan.included)
+
+
+@pytest.mark.parametrize("seed", SEEDS)
+@pytest.mark.parametrize("name", CIRCUITS)
+def test_diffusion_follows_renaming(pipe, name, seed):
+    """[U12] ly.diffusion(LY8, CONTRACT 4.10a) -- 소자별 ad·as·pd·ps·finger 수가 치환표를 따라간다.
+
+    oracle (a) 변형 관계: 확산 기하는 엔진 접합 용량과 오라클 입력이 쓰는 성능 양이다(4.10a). 사용자 대원칙(topology·이름 무관)에서
+    이름만 바꾼 회로의 소자별 drain·source 확산이 달라지면 같은 회로가 이름에 따라 다른 C_db·C_sb 를 받는다.
+    """
+    a, b = pipe.case(name), pipe.case(name, ("ren", seed))
+    th = _theta0(pipe, name)
+    ra, rb = _run(pipe, a, th), _run(pipe, b, map_theta(th, b))
+    dif = lambda d, nm: (nm(d.name), d.finger_w_m, d.n_fingers, d.ad_m2, d.as_m2, d.pd_m, d.ps_m)  # noqa: E731
+    assert sorted(dif(d, lambda x: x) for d in rb.diffusion) == sorted(dif(d, b.nm) for d in ra.diffusion)
 
 
 @pytest.mark.parametrize("name", CIRCUITS)
@@ -130,6 +151,7 @@ def test_floorplan_same_after_shuffle_and_tag_noise(pipe, name):
     ra, rb = _run(pipe, a, th), _run(pipe, b, th)
     assert rb.floorplan == ra.floorplan
     assert rb.devices == ra.devices and rb.groups == ra.groups and rb.rows == ra.rows
+    assert rb.diffusion == ra.diffusion                                      # [U12] ly.diffusion 도 같은 입력 = 같은 결과
 
 
 def test_layout_inputs_are_nontrivial(pipe):

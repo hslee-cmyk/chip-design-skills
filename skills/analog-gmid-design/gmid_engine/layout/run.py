@@ -8,7 +8,7 @@
    `ly_slice_density`)로 쓴다. 입력 버전 = (LUT 지문, 폭 키, 소자별 (kind, L, ID, gm/ID, VDS, VSB)) -- 같으면 다시 조회하지 않는다.
    같은 보존량·동작점의 소자는 한 번만 조회한다. `memo.lut.fp` 가 `pdk.source_fp` 와 다르면 `ValueError`.
 3. 계산 블록을 차례로: `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`(행 + floorplan).
-4. 결과: `review_needed`(완화되었거나 배치 못 한 차동쌍·branch_symmetric, dx·dy) 맨 앞, coverage(`check_stick_diagram_coverage`),
+4. 결과: `review_needed`(배치 못 한 차동쌍·branch_symmetric -- LY5 는 즉시 완화하지 않고 판정을 MOD8 에 맡긴다, dx·dy) 맨 앞, coverage(`check_stick_diagram_coverage`),
    W_requests 모음(그룹 요청 + finger_quantization + 사용 가능 폭이 없는 소자 `no_usable_slice`), 불변식, 재검증 요청
    (`Revalidation` -- W_request 유무와 관계없이 항상 required, 평가 커널·봉인이 엔진에 생길 때까지 status pending_wiring).
 """
@@ -17,11 +17,13 @@ from gmid_engine.core import GraphSnapshot, fp_of
 from ._ly_fields import (
     DEVICE,
     F_DEVICE,
+    F_DIFFUSION,
     F_DISPOSITIONS,
     F_FINGER,
     F_FLOORPLAN,
     F_GROUPS,
     F_GROUPS_IN,
+    F_PASSIVES,
     F_PDK,
     F_REJECTED,
     F_ROW_GROUPS,
@@ -64,6 +66,7 @@ def _input_columns(layout_input):
         (GRAPH, F_GROUPS_IN): {GRAPH_KEY: layout_input.matching_groups},
         (GRAPH, F_ROW_GROUPS): {GRAPH_KEY: layout_input.row_groups},
         (GRAPH, F_REJECTED): {GRAPH_KEY: tuple(sorted(layout_input.rejected_requests))},
+        (GRAPH, F_PASSIVES): {GRAPH_KEY: tuple(sorted(layout_input.passives, key=lambda p: p.name))},
     }
 
 
@@ -92,7 +95,7 @@ def _review(groups, rebuilds):
     final = {r.gid: r for r in rebuilds}
     out = []
     for g in groups:
-        if g.role not in CC_REQUIRED_ROLES or not (g.relaxed or (g.pattern is None and not g.pending)):
+        if g.role not in CC_REQUIRED_ROLES or not (g.pattern is None and not g.pending):
             continue
         dx, dy = (final[g.gid].dx, final[g.gid].dy) if g.gid in final else (g.dx, g.dy)
         out.append(ReviewItem(g.gid, g.role, g.reason, dx, dy))
@@ -117,6 +120,8 @@ def run_layout(layout_input, memo, previous=None):
     fingers = dict(snapshot.column(DEVICE, F_FINGER))
     groups = snapshot.value(GRAPH, GRAPH_KEY, F_GROUPS)
     rows_layout = snapshot.value(GRAPH, GRAPH_KEY, F_ROWS)
+    diffusion = snapshot.value(GRAPH, GRAPH_KEY, F_DIFFUSION)
+    diffusion_of = {x.name: x for x in diffusion}
     per_device = {}
     for row in rows_layout.rows:
         for name, n_fingers in row.devices:
@@ -145,7 +150,8 @@ def run_layout(layout_input, memo, previous=None):
         devices.append(DeviceLayout(d.name, f.finger_w_m, f.n_fingers, placed, d.W_m, f.W_need_m, f.W_realized_m,
                                     f.err_rel, f.lower, f.upper, f.tol_effective, f.grid_dominated, f.origin, excluded))
         realized.append(RealizedDevice(d.name, d.kind, f.finger_w_key, f.finger_w_m, f.n_fingers, f.W_need_m,
-                                       f.W_realized_m, d.ID_A, d.gm_id, d.L_m, d.vds_V, d.vsb_V, not d.diode, True))
+                                       f.W_realized_m, d.ID_A, d.gm_id, d.L_m, d.vds_V, d.vsb_V, not d.diode, True,
+                                       diffusion_of.get(d.name)))
     coverage = check_stick_diagram_coverage([d.name for d in layout_input.devices],
                                             {r.row_id: [n for n, _ in r.devices] for r in rows_layout.rows})
     revalidation = Revalidation(True, REVALIDATION_PENDING, REVALIDATION_SEALS, tuple(realized), REVALIDATION_CONSUMER,
@@ -153,5 +159,5 @@ def run_layout(layout_input, memo, previous=None):
     return LayoutResult(_review(groups, rows_layout.rebuilt_groups), tuple(devices), groups,
                         snapshot.value(GRAPH, GRAPH_KEY, F_DISPOSITIONS), rows_layout.rows, rows_layout.box,
                         rows_layout.fold_attempts, rows_layout.merge_decisions,
-                        snapshot.value(GRAPH, GRAPH_KEY, F_FLOORPLAN), coverage.ok, tuple(sorted(coverage.missing)),
+                        snapshot.value(GRAPH, GRAPH_KEY, F_FLOORPLAN), diffusion, coverage.ok, tuple(sorted(coverage.missing)),
                         requests, invariant, revalidation, tuple(computed), snapshot)

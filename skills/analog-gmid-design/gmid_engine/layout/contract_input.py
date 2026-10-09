@@ -15,7 +15,9 @@
 * `LayoutPdk`: 제조 격자(tlef MANUFACTURINGGRID), kind 별 finger_w 후보 = PDK 특성화 폭 키(LUT `widths`, LY2·E5),
   finger 당 L 밖 폭 여유·행 간격·행 끝 dummy 폭·tap 폭·well 간격(PDK 규칙 선언, 규칙 번호 `rule_ids` 필수, Q8 (vii)).
   `from_lut` 이 LUT 묶음에서 격자·폭 키를 읽는다.
-* `LayoutInput`: 위 묶음 + MOD8 이 거부한 W_request 소자 이름(LY5 (iii)). box 행 폭 비 허용치는 없다(Q8 (vi) --
+* `LayoutPassive`: 판정 축 면적에 넣는 수동소자(MIM 커패시터·poly 저항) 하나의 배치 면적. 면적 식은 탐색 축과 같은 정본
+  (`metrics.PassiveArea.area_m2` = 값 x PDK 선언 단위 면적 + 머리 면적)이고 `passives.passives_from_decl` 이 그 식으로 채운다(U12).
+* `LayoutInput`: 위 묶음 + MOD8 이 거부한 W_request 소자 이름(LY5) + 수동소자 면적. box 행 폭 비 허용치는 없다(Q8 (vi) --
   하드 box 게이트 없음, 판정 축 = floorplan 외곽 면적).
 """
 import dataclasses
@@ -119,7 +121,7 @@ class RowGroup:
 @dataclasses.dataclass(frozen=True)
 class LayoutPdk:
     """`slice_width_keys` = ((kind, (폭 키 오름차순, ...)), ...), 폭 키 x `manufacturing_grid_m` = finger_w(m).
-    `dummy_w_m` = 행 끝 dummy 하나의 폭(행마다 양끝 둘), `tap_w_m` = 행마다 body tap 폭, `well_spacing_m` = body 넷이 다른
+    `dummy_w_m` = 행 끝 dummy 하나의 폭(행마다 양끝 둘), `tap_w_m` = 행 그룹 경계 body tap 폭(LY10: 행마다가 아니라 그룹마다 하나), `well_spacing_m` = body 넷이 다른
     묶음 사이 간격. `rule_ids` = ((`PDK_RULE_QUANTITIES` 이름, PDK 규칙 번호 문자열), ...) -- 다섯 길이 모두."""
 
     manufacturing_grid_m: float
@@ -162,8 +164,23 @@ class LayoutPdk:
 
 
 @dataclasses.dataclass(frozen=True)
+class LayoutPassive:
+    """판정 축 면적에 들어가는 수동소자 하나(MIM 커패시터·poly 저항): 이름, 배치 면적 `area_m2`(> 0, m^2).
+    측정 부하(`measurement_load`)·단위 면적 미선언 소자는 만들지 않는다(탐색 축과 같은 제외, 결정 11)."""
+
+    name: str
+    area_m2: float
+
+    def __post_init__(self):
+        _require(isinstance(self.name, str) and self.name, "LayoutPassive.name 은 비지 않은 문자열")
+        _require(not isinstance(self.area_m2, bool) and isinstance(self.area_m2, (int, float))
+                 and math.isfinite(self.area_m2) and self.area_m2 > 0, self.name + ": area_m2 는 양의 유한 수")
+
+
+@dataclasses.dataclass(frozen=True)
 class LayoutInput:
-    """레이아웃 입력 계약 전체. `rejected_requests` = MOD8 이 제약 위반으로 거부한 W_request 의 소자 이름(LY5 (iii) 완화 조건).
+    """레이아웃 입력 계약 전체. `rejected_requests` = MOD8 이 제약 위반으로 거부한 W_request 의 소자 이름(기록 -- LY5 는 거부를
+    받아도 즉시 완화하지 않고 판정을 MOD8 에 맡긴다). `passives` = 판정 축 면적의 수동소자 블록(`LayoutPassive`, 이름 중복 없음).
     `EXCLUDED_ROLES` 그룹은 '한 행 그룹 안' 제약을 받지 않는다(블록을 넘는 바이어스 분배·루프 gate 공유가 정상이다)."""
 
     devices: tuple
@@ -171,6 +188,7 @@ class LayoutInput:
     row_groups: tuple
     pdk: LayoutPdk
     rejected_requests: tuple = ()
+    passives: tuple = ()
 
     def __post_init__(self):
         by_name = {d.name: d for d in self.devices}
@@ -195,3 +213,6 @@ class LayoutInput:
             if g.role in LAYOUT_ROLES:
                 _require(len({row_of[name] for name in g.members}) == 1, g.gid + ": 멤버가 한 행 그룹에 있어야 한다")
         _names(self.rejected_requests, "rejected_requests")
+        for p in self.passives:
+            _require(isinstance(p, LayoutPassive), "passives 원소는 LayoutPassive: " + repr(p))
+        _names(tuple(p.name for p in self.passives), "passives 이름")
