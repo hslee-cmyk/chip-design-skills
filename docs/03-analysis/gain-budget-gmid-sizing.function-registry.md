@@ -644,3 +644,20 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | `structure.json` 어휘·값 범위·거부 | `graph.structure_load.load_structure_facts` | concept 7개, 소비 방식 override/confirm 은 `graph/CONTRACT.md` 10.6 |
 | `structure.json` stale 지문 | `graph.s1v_key.structure_rule_fp` | S1v 파일 + composite_diode·dc_roles·gs_groups·matching_groups |
 | 안정도 루프 뷰 선언의 끊는 넷 | `pipeline.stage_a._declared_loop_cuts` | spec 제약 `pm_*` 의 `ViewDecl` mode loop `cuts` |
+
+## 12. 새 엔진(`gmid_engine.metrics` GB4 · `search.count_budget`) 달성가능성 정본 (2026-10-09, 단위 U9 -- 새로 만들기 전에 여기 먼저)
+
+계약: `gmid_engine/metrics/CONTRACT.md` 10절, `pipeline/CONTRACT.md` 5절, `search/CONTRACT.md` U9절. 설계 41 §4, 40 §3.4.
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| 계수 예산 N_S (kind 별 LUT 격자점 수 합 또는 spec 선언값) | `search.count_budget(lut, kinds, declared=None)` | `pipeline.structure_count_budget` 은 얇은 호출이다(공개 이름 유지). metrics 가 search 보다 아래 층이라 `achievability` 는 값을 인자로 받는다. 새 격자 곱 상한을 만들지 않는다 |
+| LUT 곡선 칸 분류 -> 해법(역산 허용 / 격자 전용 / 로드 거부) | `metrics.curve_checks` (`CurveChecks`) | 분류 자료는 `DcSlice.on_mask`·`vds_slope_ok`·`vs_slope_ok`·`fc_ok_*`(lut). 칸 분류를 다시 계산하지 않는다 |
+| 블록 국소 소신호 모델 + 행 풀이 | `metrics.block_model` -> `metrics.row_gains`(`ParamTables`) | 소자 파라미터는 `lut.intrinsic_gain_curve`·`gmb`·`op_point` 에서 `ParamTables` 가 한 번 읽는다. 블록 gain 은 U7 `block_model`(봉인 스냅샷 기준) 과 다른 양이다(여기는 LUT 격자 행 기준 상한). U7 이 들어오면 MNA 조립 도우미는 공유를 검토 |
+| 블록 gain 상한 A_i,max (격자 전수 + 예산 게이트 + 비단조 축 세분) | `metrics.block_gain_bound` | 상한은 `certified` 만 판정에 쓴다. 좌표 상승 `found_db` 는 하한 추정(보고만) |
+| Σ gain 판정(feedforward 포함) | `metrics.achievability` 의 `GainCheck` | 주경로 블록만(U1b `ViewS1v.blocks`), FF 는 `ViewS1v.feedforward` |
+| 인증된 면적 하한 A_lb | `metrics.area_lower_bound` | 입력 면적 분해능 b_A·수동소자 단위 면적은 `search_domain`·`search.passive_area_decl`. U11 `front_diagnosis` 의 `A_lb` 가 이 값을 쓴다 |
+| 헤드룸 경로 엣지 비용의 LUT 최솟값 / 창 폭 상한 / 짧은 L bin 경고 | `metrics.edge_costs` / `metrics.headroom_bound` | 전도 봉인 9 의 식(`gm·tol_V >= I_off`)·포화 봉인 7(`VDS >= VDSAT + tol_vdsat`)을 그대로 쓴다. 새 임계값을 만들지 않는다 |
+| 구조 DOF 이분 매칭 | `metrics.dof_report` | 변수·등식 조립은 `achievability` 의 `_dof`(비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ 저항 / 소자 식·저항 강하·선언 노드 목표·입력 동일 DC) |
+| 단계 B 진입점 | `pipeline.run_stage_b` | 단계 A 결과 위에서 한 번. exit 3 정지와 보고서 `<회로>.stage_b.json` |
+

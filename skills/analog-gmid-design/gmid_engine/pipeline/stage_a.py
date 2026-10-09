@@ -53,13 +53,15 @@ STATUS_STOPPED = "stopped"
 
 @dataclasses.dataclass(frozen=True)
 class StageAResult:
-    """`exit_code`, `status`(ok|review_needed|stopped), `s1v`(정지 전이면 None), `report`(dict), `report_paths`((json, md))."""
+    """`exit_code`, `status`(ok|review_needed|stopped), `s1v`(정지 전이면 None), `report`(dict), `report_paths`((json, md)), `s1`·`spec`(단계 B 가 이어 쓴다, 정지 전이면 None)."""
 
     exit_code: int
     status: str
     s1v: object
     report: object
     report_paths: tuple
+    s1: object = None
+    spec: object = None
 
 
 def _stopped(circuit, exc, stage):
@@ -151,9 +153,9 @@ def _finding_line(f):
     return f.severity + "|" + f.code + "|" + f.view + "|" + ",".join(f.subject) + "|" + f.detail
 
 
-def _finish(report, s1v, output_dir, circuit):
+def _finish(report, s1v, output_dir, circuit, s1=None, spec=None):
     paths = write_stage_a_report(report, output_dir, circuit)
-    return StageAResult(report["exit_code"], report["status"], s1v, report, paths)
+    return StageAResult(report["exit_code"], report["status"], s1v, report, paths, s1, spec)
 
 
 def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None):
@@ -175,7 +177,7 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
     classes = dict(s1.column("device", "element_class"))
     kinds = {kind for name, kind in s1.column("device", "kind") if classes[name] == ELEMENT_MOS}
     try:
-        budget = structure_count_budget(lut, kinds)
+        budget = structure_count_budget(lut, kinds, None if spec is None else spec.structure_count_budget)
     except ValueError as exc:   # N_S 정의역 밖(MOS 없음·LUT 슬라이스 없음) -- 보고서를 쓰고 정지
         return _finish(_stopped(circuit, StructureUnresolvedError(detail={"reason": "count_budget_undefined", "message": str(exc)}),
                                 "A2_count_budget"), None, output_dir, circuit)
@@ -196,4 +198,4 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
               "stop_reasons": unsupported, "review_needed": review, "views": [_view_summary(v) for v in s1v.views],
               "applied_facts": [list(f) for f in s1v.facts_applied], "ff_ratio_candidates": _ff_ratio_rows(s1v),
               "coupling": coupling, "tables": structure_tables(s1v)}
-    return _finish(report, s1v, output_dir, circuit)
+    return _finish(report, s1v, output_dir, circuit, s1, spec)

@@ -1,0 +1,92 @@
+"""metrics/block_param_tables.py -- `ParamTables(memo, w_keys, grids)`, `.lookup(kind, i_l, i_d, i_s, i_v) -> (x, y, z)`
+(metrics CONTRACT 10.3 '소자 파라미터', 설계 41 4.2 '소자 파라미터는 LUT memo 에서 한 번만 조회').
+
+oracle (a): 해석식 toy LUT(gb4_hand 모듈 문서)라 격자 마디에서 x = gm/ID = f'(VGS), y = gds/ID = LAM, z = gmb/ID = 2A·VS 가 닫힌 식이다.
+강반전 분지(정점 마디 이상)만 유효 -- 정점이 격자 안쪽에 있는 toy(f' 가 VGS = 0.5 에서 최대)로 분지 밖 마디가 NaN 임을 본다(lut 3절 분지 규칙).
+"""
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from gmid_engine.metrics import ParamTables
+
+from .gb4_hand import (A, GRIDS, L_GRID, LAM, VDS_GRID, VGS_GRID, VS_GRID, W_KEY, branch_start, fp_default, memo_of,
+                       write_lut)
+
+W_KEYS = {"nmos": W_KEY, "pmos": W_KEY}
+
+# 정점이 안쪽인 gm/ID: f'(g) = 10 + 10g − 10g² (g = 0.5 에서 최대 12.5), f = 10g + 5g² − 10g³/3. VGS 격자 0..1.5 (0.125 간격)
+PEAK_VGS = tuple(0.125 * i for i in range(13))
+PEAK_GRIDS = (L_GRID, PEAK_VGS, VDS_GRID, VS_GRID)
+
+
+def f_peak(g):
+    return 10.0 * g + 5.0 * g * g - 10.0 * g ** 3 / 3.0
+
+
+def fp_peak(g):
+    return 10.0 + 10.0 * g - 10.0 * g * g
+
+
+@pytest.fixture(scope="module")
+def toy(tmp_path_factory):
+    return write_lut(tmp_path_factory.mktemp("pt_toy"))
+
+
+@pytest.fixture(scope="module")
+def peak(tmp_path_factory):
+    return write_lut(tmp_path_factory.mktemp("pt_peak"), grids=PEAK_GRIDS, f=f_peak, fp=fp_peak)
+
+
+def _all_index(grids):
+    nl, ng, nd, ns = (len(g) for g in grids)
+    il, iv, idd, iss = np.meshgrid(np.arange(nl), np.arange(ng), np.arange(nd), np.arange(ns), indexing="ij")
+    return il.ravel(), idd.ravel(), iss.ravel(), iv.ravel()
+
+
+@pytest.mark.parametrize("kind", ["nmos", "pmos"])
+def test_lookup_matches_closed_form_on_every_grid_node(toy, kind):
+    t = ParamTables(memo_of(toy), W_KEYS, GRIDS)
+    il, idd, iss, iv = _all_index(GRIDS)
+    x, y, z = t.lookup(kind, il, idd, iss, iv)
+    vgs = np.asarray(VGS_GRID)[iv]
+    vs = np.asarray(VS_GRID)[iss]
+    assert np.allclose(x, fp_default(vgs), rtol=1e-9, atol=0)
+    assert np.allclose(y, LAM, rtol=1e-9, atol=0)
+    assert np.allclose(z, 2.0 * A * vs, rtol=1e-9, atol=1e-12)
+
+
+def test_nodes_below_gm_id_peak_are_invalid(peak):
+    t = ParamTables(memo_of(peak), W_KEYS, PEAK_GRIDS)
+    p = branch_start(fp_peak, PEAK_VGS)
+    assert p == 4                                      # 손: f' 최대 g = 0.5 = 격자 index 4
+    il, idd, iss, iv = _all_index(PEAK_GRIDS)
+    x, y, z = t.lookup("nmos", il, idd, iss, iv)
+    below = iv < p
+    assert np.isnan(x[below]).all() and np.isnan(y[below]).all() and np.isnan(z[below]).all()
+    vgs = np.asarray(PEAK_VGS)[iv[~below]]
+    assert np.allclose(x[~below], fp_peak(vgs), rtol=1e-9)
+    assert np.allclose(y[~below], LAM, rtol=1e-9)
+
+
+def test_lookup_shape_follows_index_arrays(toy):
+    t = ParamTables(memo_of(toy), W_KEYS, GRIDS)
+    il = np.zeros((2, 3), int)
+    x, y, z = t.lookup("nmos", il, il, il + 1, il + 2)
+    assert x.shape == y.shape == z.shape == (2, 3)
+    assert np.allclose(x, fp_default(VGS_GRID[2]), rtol=1e-9)
+    assert np.allclose(z, 2.0 * A * VS_GRID[1], atol=1e-12)
+
+
+def test_curves_are_built_once_per_entry(toy):
+    # 행 memo: 같은 (kind, L, VDS, VS) 항목은 한 번만 만든다; 만든 곡선 수 상한 = kind 마다 |L|·|VDS|·|VS| (계약 10.3, 모듈 문서 `loads`)
+    t = ParamTables(memo_of(toy), W_KEYS, GRIDS)
+    il, idd, iss, iv = _all_index(GRIDS)
+    t.lookup("nmos", il, idd, iss, iv)
+    first = t.loads
+    assert 0 < first <= len(L_GRID) * len(VDS_GRID) * len(VS_GRID)
+    t.lookup("nmos", il, idd, iss, iv)
+    assert t.loads == first
+    t.lookup("pmos", il[:5], idd[:5], iss[:5], iv[:5])
+    assert first < t.loads <= 2 * len(L_GRID) * len(VDS_GRID) * len(VS_GRID)

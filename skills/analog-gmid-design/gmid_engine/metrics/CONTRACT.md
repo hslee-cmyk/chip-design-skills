@@ -10,7 +10,7 @@
 - 1단계(0~6절) 함수는 **입력 레코드만 보는 순수 함수**이고 graph·S2·LUT 를 import 하지 않는다. **2단계(7절, 2026-10-08)** =
   `ss_linearize` 배선: 봉인 스냅샷 → `ss_dev`·`metrics_ss`·`metrics_dc` 계산 블록 → S2 필드, 진입점 `ss_evaluate` (7a 4.5 단계 5
   배선 지점 -- spec `ViewDecl` → 계 레코드). 그 파일들만 graph·sizing·lut·authoring 을 import 한다(PACKAGE_ORDER 앞쪽).
-- 아직 범위 밖: GB4 `achievability`, GB5 `compensation` 근사식(보상 수동소자 값 자체는 r5 부터 sizing θ 성분 -- 7.6),
+- 아직 범위 밖: GB5 `compensation` 근사식(보상 수동소자 값 자체는 r5 부터 sizing θ 성분 -- 7.6),
   `ls_fields`, `columns_current_check`, `area_layout_m2`, `nqs_ratio`·`mismatch_sigma_v`, 레이아웃 기하(MOD7 `ly.diffusion`)로 하는
   접합 용량(지금은 LUT 생성 규칙 기하, 7.2·8절).
 
@@ -1006,3 +1006,116 @@ LUT v2(`resolve_lut_location`), sizing CONTRACT 10절 탐침 θ(seed 0, 회로�
 | R3 | 파라미터 오차 상관 | 독립(최악 선형)으로 둔다. 상관 근거(같은 격자 점의 오차 부호 관계 측정)가 생기면 결합 규칙 재검토 |
 | R4 | 레이아웃 기하 접합 용량 | 접합은 폐형식이라 이 절 대상 아님(8절) |
 
+---
+
+## 10. GB4 달성가능성 -- `achievability` (U9, 설계 41 §4·§0 A5~A7, 40 §3.4, FR-8, D-GB4a~f·D-NS·D-NM·D-J2·D-J5)
+
+탐색 앞(단계 A 보고서 뒤)에서 S0 당 한 번, 봉인 평가 없이 LUT 격자와 구조만으로 '달성 불가'를 **인증된 근거가 있을 때만** 판정한다(미상은 정지 근거가 아니다). 호출은 `pipeline.run_stage_b`(pipeline CONTRACT 5절).
+test 는 `from gmid_engine.metrics import ...` 만 쓴다(`_` 이름·파일 모듈 직접 import 금지). 배치(규칙 H): `tests/metrics/test_<파일>.py`.
+
+### 10.1 파일과 진입점
+
+| 층 | 파일 | 진입점 | 내용 |
+|---|---|---|---|
+| 0 | `achievability_types.py` | (데이터) | `CurveCheck`·`SliceCurveCheck`·`CurveChecks`, `BlockBound`·`GainCheck`, `AreaBound`, `EdgeCost`·`HeadroomRow`, `DofReport`, `Achievability`; 국소 모델 레코드 `LocalInputs`·`BlockSpec`·`AxisSpec`·`MosLocal`·`ResLocal`·`BlockModel`; 어휘 상수 |
+| 1 | `curve_checks.py` | `curve_checks(lut)` | 41 §4.1 칸 분류 -> 해법 매핑 |
+| 1 | `block_gain_model.py` | `block_model(local, spec)` | 블록 국소 모델 조립(축·전류식·여기·출력) -> (`BlockModel` 또는 None, 미상 사유 또는 None) |
+| 1 | `block_param_tables.py` | `ParamTables(memo, w_keys, grids)` | 소자 파라미터 표(LUT 곡선 API 에서 한 번 조회, 행 memo) |
+| 1 | `block_gain_rows.py` | `row_gains(model, tables, idx, cont=None)` | 행 묶음 풀이(MNA ω→0) -> gain 진폭 배열 |
+| 1 | `area_lower_bound.py` | `area_lower_bound(lut, mos_kind, basis_rows, fixed, caps, budget_m2, b_a_m2)` | 41 §4.4 |
+| 1 | `edge_cost_bounds.py` | `edge_costs(memo, kind, w_key)` | 헤드룸 엣지 비용 최솟값 |
+| 1 | `dof_report.py` | `dof_report(variables, equations)` | 41 §4.5 구조 DOF(이분 매칭) |
+| 2 | `block_gain_bound.py` | `block_gain_bound(model, tables, budget, members)` | 41 §4.2 A_i,max |
+| 2 | `headroom_bound.py` | `headroom_bound(local, rail_v, edges, windows, constraints, input_dc_v, differential_out)` | 41 §4.6 (결과 `HeadroomResult`) |
+| 3 | `achievability.py` | `achievability(s1, s1v, spec, kctx, *, count_budget, cur_rep, current_box, area_resolution_m2, passive_area, stop=True)` | 진입점 -> `Achievability`, 인증된 근거가 있고 `stop` 이면 `InfeasibleTargetError`(`.achievability` 에 결과) |
+| (search) | `search/count_budget.py` | `count_budget(lut, kinds, declared=None)` | 41 §0 N_S |
+
+### 10.2 `curve_checks(lut)`
+
+`DcSlice` 의 칸 분류 자료를 (kind, w_key, 축 VGS|VDS|VS)마다 센다: `n_cells`, `n_hermite`(끝 기울기 둘 다 정의), `n_violation`(Fritsch–Carlson 위반), `n_slope_undefined`(= n_cells − n_hermite, 선형 칸).
+FC 위반 칸은 `CurveCheck` 행(kind, w_key, L, vds, vs, 축, 칸 index = 격자 index `cell` 과 `cell+1` 사이, reason `fc_violation`, method `grid_only`)으로도 나온다. 단조 Hermite 칸 = `inverse`(행 없음).
+`n_unit_mismatch` 는 늘 0(`lut_unit_mismatch` 는 로드 거부). 같은 LUT 면 결과가 같다. 실 LUT(32 슬라이스): 슬라이스·축 96행, 격자 전용(FC 위반) 4287칸 -- 모두 VS 축 (VDS·VGS 축 위반 0, lut CONTRACT 1.4 와 같음).
+
+### 10.3 블록 gain 상한 (41 §4.2)
+
+**국소 모형**: 미지수 = 블록 노드 중 교류접지·여기 넷이 아닌 것(저항 한 끝만 달린 막다른 저항은 되풀이해 뺀다), MOS `i_d = gm·(vg−vs) + gds·(vd−vs) + gmb·(vb−vs)`(양극 모두 같은 식·LUT 크기 값), 저항 컨덕턴스, 커패시터 열림.
+여기 = `view.excite` 가 블록 구동 입력을 모두 주면 그 가중, 아니면 구동 입력 하나 = 1, 둘 = (+½, −½)와 (+½, +½) 두 패턴 중 큰 쪽(상한 안전), 셋 이상 = 미상(`block_input_pattern_unsupported`).
+출력 = 넷 하나(`+`) 또는 둘(`+`/`−`, 차동). 블록 밖 넷·레일·교류접지는 접지.
+
+**소자 파라미터**(`ParamTables`, 모두 1/V): `x = gm/ID`, `y = gds/ID = x/(gm/gds)`, `z = gmb/ID` -- `lut.intrinsic_gain_curve` 의 강반전 분지 마디(VGS ≥ gm/ID 정점)와 `lut.gmb`; 분지 밖·곡선 불가(`SealViolationError`) 항목은 NaN(그 행 무효).
+소자 gm = x·I, gds = y·I, gmb = z·I 이고 I = `CurrentBasis` 전류식(`kctx.base.value("graph", DC_KEY, "dc_current_basis")`)을 행의 θ 전류로 평가한 값(≤ 0 이면 무효).
+
+**축**(`BlockModel.axes`, 등식으로 묶인 것은 축 하나; 그룹 = 같은 (gate, source) 넷 ∪ 같은 자기동형 궤도(`device.dc_orbit`, spec `untie_orbits` 원소의 궤도는 제외)):
+`vgs`(그룹당 LUT VGS 격자 마디 = gm/ID 축), `L`(그룹 = 같은 L 동치류(S1v derived) ∪ 같은 궤도, LUT L 앵커), `vds`(비 diode 같은 궤도끼리, LUT VDS 격자; diode 는 VDS = VGS 마디라 축 없음 -- VDS 격자에 VGS 마디 값이 다 있을 때),
+`vsb`(소스 넷 ≠ bulk 넷인 MOS 를 궤도끼리, LUT VS 격자), `current`(블록 전류식이 읽는 θ 전류 **대표** 원소마다 하나 -- 자기동형 묶음은 `cur_rep` 로 탐색 변수와 같게, 부호 ±1, 구조적 0 은 항 제거,
+격자 = `current_box[대표]` 위 로그 균등 |VGS 격자| 점; 블록에 저항·값 선언 전류원 항이 없으면 0차 동차라 첫 원소를 기준(=1)으로 빼고 나머지는 비 [lo_j/hi_0, hi_j/lo_0]), `resistor`(DC 에 걸린 θ 저항, 컨덕턴스 로그 균등;
+값 선언 저항은 고정). `current`·`resistor` 는 `continuous`(비단조 축 세분 대상). 격자 곱 Π = ∏ 축 크기(Python int).
+
+**예산 게이트**: Π > N_S -> `unknown`(사유 `grid_product_over_budget`, `a_max_db`·`b_db` None). Π ≤ N_S -> 모든 행 평가: 묶음 크기 ceil(√Π), 최대 행 = 사전식 첫 최댓값, 연속 축 세분(최대 행에서 양 이웃이 모두 작을 때 로그 구간
+5점 이분 반복, 반복 상한 K_max = ceil(log2(구간 폭/√ε)) (`sizing.k_max` 식, ε = 배정밀도), 끝점 최대는 인증) -> `certified`. 세분이 마지막 바퀴에서 √ε 보다 크게 오르면 `unknown`(`continuous_axis_not_refined`).
+
+**분해능 b_i**(dB) = 최대 행과 격자 이웃 행(각 축 ±1, 연속 축은 세분 마지막 구간 끝)의 |gain 비| dB 최댓값. `row_condition` = 최대 행의 축별 값. `n_rows` = 평가 행 수.
+
+**`found_db`**: 좌표 상승 하한 추정(연속 축은 전류 여유 최급 상승으로 찾은 KCL 원뿔 안 중앙 근방 기준점에 고정, 시작점 bit_length(최대 축 크기)개). **상한이 아니다 -- 판정에 쓰지 않는다**(보고만). 기준점을 못 찾으면 None.
+버퍼 블록도 같은 방법이다(상한 ≤ 0 dB). 독립 검증(2026-10-09, 작성자 측 스크래치): 소스 팔로워(이상 전류원 부하) 블록 `A_max` = −0.6640180915616081 dB 를 LUT 슬라이스 원시 배열에서 x/(x+y+z) 최댓값으로 직접 구한 값과 비트까지 일치;
+`row_gains` 는 CS·팔로워·5T OTA toy 의 손 계산 식과 일치.
+
+### 10.4 Σ gain 판정 (41 §4.3, §1.12.2-6)
+
+뷰 = 첫 전달 뷰(L 동치류 gain 뷰 규칙과 같음). 블록 = `ViewS1v.blocks`(주경로 블록만; FF 묶음 소자는 이미 빠져 있다). 목표 G = `gain_ss_db >= G` 제약 중 최댓값(없으면 판정 `no_target`).
+체인 상한(선형) = 넷별 값: 여기 넷 = 1, 블록 출력 넷 += A_i,max · max(입력 넷 값)(같은 출력을 만드는 병렬 블록은 합); 합산은 b 없는 값(`sum_db`)과 b 를 더한 값(A_i,max + b_i)을 따로 센다. 모든 블록(그리고 FF)이 `certified` 이고
+`sum_db + b_db < G` 이면 `infeasible`(사유 `gain_target_above_upper_bound`), 하나라도 미상이면 `undetermined`(보고만). feedforward 가 있으면 총합 = 체인 값 + Σ_ff A_ff,max, A_ff,max = (입력→탭 체인 값) ×
+(FF 국소 격자 상한: 모델 = 탭을 단위 구동, 멤버 = FF 셀·bias·load ∪ 합류 블록 멤버, 출력 = 합류 넷). FF 상한이 미상이면 판정하지 않는다.
+
+### 10.5 인증된 면적 하한 (41 §4.4)
+
+`A_lb = Σ_k I_k,cert·L_min,k²/IDu_max,k + Σ_c C_c,min·(면적/용량)_c`. I_cert = MOS 전류식이 값 선언 이상 전류원만 읽을 때 |Σ 계수·값|(θ 전류를 읽으면 0, `not_certified` 에 (소자, `current_depends_on_theta`)),
+L_min = kind 의 LUT L 최솟값, IDu_max = kind 의 모든 폭 슬라이스 ID·L/w_m 최댓값(on_mask 점). 커패시터 = 선언값 또는 spec θ 하한, 면적/용량은 `PassiveAreaDecl.unit_area`(측정 부하 제외). 저항 면적은 넣지 않는다.
+`A_lb > B + b_A` 이면 `infeasible`(사유 `area_budget_below_lower_bound`). B = `area_search_m2 <= B` 중 최솟값, b_A = `SearchDomain.area_resolution_m2`.
+
+### 10.6 헤드룸 (41 §4.6)
+
+엣지(위 방향): nmos 소스→드레인(VDS), 소스→게이트(VGS); pmos 드레인→소스(VDS), 게이트→소스(VGS). 비용 = `edge_costs`: VGS = 전도 봉인 9(`gm·tol_V ≥ I_off`)와 포화 봉인 7(`VDS ≥ VDSAT + tol_vdsat`)을 만족하는 강반전 분지 행의
+|VGS| 최솟값(한 마디 아래로 내림 -- 마디 사이 보간 해상도, 모든 L·VDS·VS 곡선 중 최솟값, L bin 별로도), VDS = VDSAT 최솟값 + tol_vdsat 최솟값. 넷 n 의 창 [L(n), U(n)] 은 상태 (넷, VGS 지났는가) 위 최장/최단 경로 완화로 구한다;
+창 폭 = U − L (레일 범위로 자름, 비면 음수). 대상 = 레일–레일 경로가 VGS 엣지를 지나는 넷(`eligible`); 대상이 아닌 창은 계산해 보고하되 정지 근거가 아니다. 판정(대상 창 + `certified` 만): `swing_out_v >= S`: 출력 폭 × (차동 출력 포트쌍이면 2) < S;
+`icmr_v >= w`: 입력 폭 < w; `icm_margin_v >= m`: 선언 입력 DC 와 창 경계 최소 거리 < m (입력 DC 가 대기면 보고만, SP-2). 정지 사유 `headroom_unattainable`(상세: metric, window, net, upper_bound, target, derivation = (소자, 엣지, 비용, kind) 목록).
+`warnings`: `icmr_window_short_l_bin{kind, bin, upper_bound_by_bin}` -- 입력 창 최장 경로의 VGS kind 마다 그 kind 비용만 L bin 별 값으로 바꾼 폭이 양인 bin 이 맨 아래 bin 하나일 때. 버퍼 블록 입력 창은 `buffer_window_report`.
+toy 확인(스크래치): 두 극성 입력이 같은 gate 인 4소자 회로에서 폭 = ΔV − (VDS 비용 합 + VGS 비용 합) 손 계산과 일치, 경고·정지 동작.
+
+### 10.7 구조 DOF (41 §4.5)
+
+변수: 비레일 노드 전압 `V:`, MOS 반전 좌표 `u:`, L 동치류 `L:`(`kctx.l_ties` 의 주인 또는 자기), θ 전류 `I:`(전류 기저 자유 원소), θ DC 경로 저항 `R:`(값 미선언). 등식: `dev:<MOS>`(u, L, 비레일 d·g·s 전압), `res:<저항>`(양 끝 전압·그 저항 전류식의
+자유 전류·R), `fix:<넷>`(`kctx.fixed_values`: 선언 노드 목표·입력 DC), `tie:<넷>`(쓰기 계획 `input_tie`). 최대 이분 매칭: 매칭 안 되는 등식이 있으면 `overconstrained`(정지 사유 `overconstrained`, `competing_pairs`),
+매칭 안 되는 변수 = `free_variables`(탐색의 자유도). 수치 rank(41 §4.5 B2, FD Jacobian)는 평가 커널 표본이 필요한 단계 B 몫 -- `numeric_ranks = ()`.
+
+### 10.8 설계와 다르게 정한 점 / 위임한 점
+
+1. **격자 곱이 N_S 를 크게 넘는다**: 9회로 블록 중 인증된 것은 팔로워 한 개뿐이고 나머지는 `grid_product_over_budget`(Π 4e5 ~ 1e80, N_S = 1.38e7). 설계 41 §4.2 의 '격자를 줄이지 않는다'를 지켰다.
+   그 결과 Σ 판정은 실제 회로에서 `undetermined` 이다. 완화(정의역 제한·분해 상한)는 사용자 결정 몫이라 구현하지 않았다.
+2. 기둥 VDS 를 그룹마다 독립 축으로 둔다(KVL 합 미사용), L 앵커 사이 bin 내부 극값 점은 넣지 않는다, 저항 컨덕턴스 후보에 이웃 소자 gds 를 더하지 않는다(로그 균등 + 세분) -- 모두 풀이 공간의 상위 집합 쪽이라 상한으로는 안전하고 Π 만 커진다.
+   θ 전류 비 축은 상자 [I_off, I_max] 전체(열 자릿수)라 극단 비 행이 거의 특이 행렬이 되어 gain 이 비물리적으로 커질 수 있다(상한으로는 안전, 그래서 `found_db` 는 기준점 근방만 훑는다).
+3. 헤드룸 VGS 비용: 전도 봉인(`gm·tol_V ≥ I_off`)이 tol_V 가 큰 칸에서 VGS = 0 마디도 통과시켜 nmos 의 전체 최솟값이 0 V 이다(L bin 별로는 0 ~ 0.11 V). 설계 41 §4.6 의 예시(gm/ID 15 에서 VSG 0.68 V)는 gm/ID 상한을 쓰는데
+   그 상한은 단계 A8 출발 구간(GB4 뒤)이라 쓸 수 없다. 결과: 9회로 창 폭 상한 ~1.6~1.8 V 로 선언 제약을 막지 못한다(헤드룸 달성불가 사전 판정이 현재 데이터에서는 동작하지 않는다).
+4. 면적 하한은 θ 전류를 인증할 수 없어 값 선언 전류원과 커패시터 항뿐이다(9회로 A_lb 0 ~ 1.1e-9 m², 예산 5e-9 ~ 4e-8 m²).
+5. `found_db`(좌표 상승 하한 추정)는 설계에 없다 -- 미상이어도 같은 평가기로 '이 모형에서 이만큼은 간다'를 보고하려고 더했다(판정에 쓰지 않음).
+6. 수치 rank(41 §4.5 단계 B2)와 `required_input_cm_v`(SP-2 (c), sizing y_icm 몫)는 이 단위 밖이다.
+
+### 10.9 9회로 실측 (2026-10-09, 작성자 측 시연 -- 정본 아님, LUT v2, `run_stage_b(diagnostic=True)`, N_S = 13829760)
+
+블록 행: 상한 상태(전부 `unknown` = Π > N_S, 예외 하나), Π, 좌표 상승 하한 추정 `found`(dB; 저항·값 선언 전류가 있어 기준점을 못 잡으면 `-`). Σ 판정은 게인 제약이 있는 회로만 의미가 있다(목표).
+
+| 회로 | 게인 목표 | 블록(출력 키): 상태, Π, found | Σ 판정 | A_lb / 예산 (m²) | 헤드룸 창 폭 상한 | DOF |
+|---|---|---|---|---|---|---|
+| common_gate_amplifier | -- | (vout): 미상, 1.9e10, 53.4 | no_target | 0 / 5e-9 | in 1.69 V, out 1.69 V | free 9, 과제약 0 |
+| current_reuse_telescopic_ota | 54 dB | (Vom): 미상, 4.5e12, - · (Vom1,Vop1): 미상, 3.3e72, 77.7 · (Vop): 미상, 4.5e12, - | undetermined | 1.1e-9 / 4e-8 | in 1.72 V, out 1.72 V (swing ≥ 2.4 차동 p-p, 입력 DC 대기) | free 92 |
+| folded_cascode | -- | (out): 미상, 6.2e52, 119.3 | no_target | 0 / 1e-8 | in 1.76 V, out 1.65 V | free 25 |
+| ngcc_3stage_ff | -- | (V1): 1.7e22, 68.4 · (Vout): 9.2e10, 51.8 · (V2): 4.0e15, 71.5 · FF ND->Vout: 9.9e26, 68.0 · FF V1->Vout: 1.9e17, 50.3 (모두 미상) | no_target | 1.0e-10 / 2.5e-8 | in 1.76 V (icmr ≥ 0.6), out 1.72 V | free 29 |
+| nmcnr_amplifier | -- | (NodeM2): 2.9e44, 91.0 · (NodeS2): 4.0e15, 73.0 · (Vout): 4.5e12, - (모두 미상) | no_target | 1.0e-10 / 2.5e-8 | in 1.76 V (icmr ≥ 0.5), out 1.72 V (swing ≥ 0.5) | free 35 |
+| pushpull_follower_buffer | -- | (vout): 미상, 8.4e25, −1.57 | no_target | 0 / 5e-9 | in 1.72 V, out 1.72 V, 버퍼 1.72 V | free 14 |
+| sf_pushpull_output_opamp | 65 dB | (Y): 3.4e80, - · (vout): 8.4e25, −1.57 (모두 미상) | undetermined | 5.0e-11 / 2e-8 | in 1.76 V (icm_margin ≥ 0), out 1.72 V, 버퍼(Y) 1.65 V | free 41 |
+| two_stage_ota | 57 dB | (O1): 1.7e22, 61.2 · (OUT): 1.9e9, 67.7 (모두 미상) | undetermined | 5.0e-11 / 1.5e-8 | in 1.76 V, out 1.72 V | free 15 |
+| two_stage_ota_sf | 57 dB | (O1): 1.7e22, 61.2 · (OUT): 1.9e9, 67.7 (미상) · (vout): **인증** A_max = −0.664 dB, b = 0.153 dB, Π = 4.3e5 | undetermined | 5.0e-11 / 1.5e-8 | in 1.76 V, out 1.72 V, 버퍼(OUT) 1.72 V | free 17 |
+
+- 인증된 블록은 `two_stage_ota_sf` 의 팔로워 하나(블록 안 MOS 하나 + 소자 밖 부하)뿐이다. 어떤 회로에서도 `infeasible` 이 나오지 않는다(정지 0, 모두 exit 0). 인증된 근거가 없다는 뜻이지 달성 가능하다는 보증이 아니다.
+- 합성 회로(소스 팔로워 + 이상 전류원 부하, 게인 ≥ 10 dB)로 정지 경로 확인: `status = infeasible`, exit 3, 사유 `gain_target_above_upper_bound`, Σ 상한 −0.664 dB(+b 0.153).
+- 헤드룸: 모든 창 폭 상한이 레일 폭(1.8 V)에서 VDS 비용 합(0.04~0.08 V)만 뺀 값이다 -- 전도 봉인(`gm·tol_V ≥ I_off`)이 큰 tol_V 칸에서 VGS ≈ 0 행을 통과시켜 VGS 비용 최솟값이 0~0.11 V 다(10.8 의 3).
