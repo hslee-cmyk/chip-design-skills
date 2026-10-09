@@ -128,6 +128,30 @@ def test_corner_with_frequency_dependent_weight():
     assert math.isclose(r.fc_in_hz, expect, rel_tol=1e-7)
 
 
+@pytest.mark.parametrize("ef", [1.0, 0.84])
+def test_corner_resolution_closed_form(ef):
+    """계약 10.2 corner 분해능: δ ln f = (Σ|∂g/∂p|Δp + 허용오차 몫)/|∂ln Q_fl/∂ln f|. 단일 CS(cgd = 0)는 W·S 의 gm 의존이 상쇄돼 파라미터 몫 0,
+    허용오차 몫 = tol_flicker + tol_thermal(성분 하나라 몫 1), 기울기 = EF -> 분해능 = f_c·(tol_fl + tol_th)/EF. oracle (a)."""
+    t_fl, t_th = 0.1, 0.05
+    s = setup_of(cs(), (dev("M1", a=A0, b=B0, ef=ef, tol_flicker=t_fl, tol_thermal=t_th),), rel_tol=0.02)
+    r = noise_analysis("fc_in_hz", s, {})
+    f_c = (A0 / B0) ** (1.0 / ef)
+    assert r.resolution == pytest.approx(f_c * (t_fl + t_th) / ef, rel=1e-6)
+
+
+def test_excess_resolution_closed_form():
+    """계약 10.2 excess 분해능 = excess × (Σ|∂ln(Q_th/Q_in)/∂p|Δp + Σ_k tol_k·|th_k/Q_th − [k∈입력]·th_k/Q_in|). Δp = 0(rel_tol 0) 이면
+    파라미터 몫 0, excess = 2 인 두 소자(몫 1/2 씩)는 허용오차 몫 = (t1 + t2)/2. oracle (a)."""
+    gm2, t1, t2 = 5e-5, 0.04, 0.2
+    b2 = GM ** 2 * B0 / gm2 ** 2
+    s = setup_of(cs(load=(gm2, 1e-6)), (dev("M1", a=A0, b=B0, tol_thermal=t1, tol_flicker=0.0),
+                                        dev("M2", a=0.0, b=b2, tol_thermal=t2, tol_flicker=0.0)),
+                 input_devices=("M1",), rel_tol=0.0)
+    r = noise_analysis("excess_th", s, {})
+    assert r.excess_th == pytest.approx(2.0, rel=1e-12)
+    assert r.resolution == pytest.approx(2.0 * (t1 + t2) / 2, rel=1e-9)
+
+
 def test_corner_below_f_lo_reason():
     """f_lo 에서 이미 Q_fl < Q_th(A < B·f_lo^EF) -> `noise_fc_below_f_lo`(값 없음). oracle (a) 구성 + (d) 계약 10.1·10.3."""
     s = setup_of(cs(), (dev("M1", a=0.5 * B0 * F_LO, b=B0),))

@@ -177,3 +177,11 @@ def test_no_noise_constraint_no_noise_lut_needed(tmp_path, lut_sealed):
     """잡음 제약이 없으면 잡음 LUT 없이도 시작한다(거부는 값 있는 잡음 제약이 있을 때만)."""
     s = build_case(tmp_path, circuit_c(), lut_sealed, constraints=(("gain_ss_db", ">=", 10.0, None),)).sctx
     assert [c.metric for c in s.ss_constraints] == ["gain_ss_db"]
+
+
+def test_noise_decl_without_s1v(tmp_path, lut_sealed):
+    """search 11절: SearchContext.noise_decl = noise_decl(spec, s1v) -- 6인자 호출(s1v 없음)이면 입력 셀 없음, spec feedback 빈 list -> (),
+    noise_testbench 없음 -> 샘플링 커패시터 (). oracle (d)."""
+    from gmid_engine.metrics import NoiseDecl
+    s = build_case(tmp_path, circuit_c(), lut_sealed).sctx
+    assert s.noise_decl == NoiseDecl(feedback=(), sampling_caps=(), input_cells=())

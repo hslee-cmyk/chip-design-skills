@@ -81,13 +81,19 @@ class Env:
                 w = float(z["W"])
             kind = dk[s["device"]]
             mins[kind] = min(w, mins.get(kind, w))
-        spec = LutSpec(grid, tuple(sorted(mins.items())), REAL_DEVICE_KINDS, REAL_CAP_SUFFIX)
-        self.lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
-                                verify_midpoints=loc.midpoints_path)
-        self.memo = LutMemo(self.lut, point=MEMO_POINT, curve=MEMO_CURVE, root=MEMO_ROOT)
-        self.access = pre_layout_lut_access(self.memo)
         decl_memo = BoundedLRU(16)
         self.pdk = read_pdk_decl(str(PDK_DECL), decl_memo)
+        # [U8 2026-10-09] search CONTRACT 11절: 값 있는 잡음 제약이 있으면 시작 때 noise_lut_missing 거부 -- 잡음 r1(설정 files.noise)과
+        # LutSpec.noise_ef(PDK 선언 noise_ef_<kind>, lut CONTRACT 9 '부르는 쪽이 PDK 선언에서 채운다')를 싣는다
+        if not loc.noise_path:
+            raise RuntimeError("LUT 위치 설정에 잡음 r1(files.noise) 항목이 없다: %s" % LOCATION_CONFIG)
+        q = dict(self.pdk.quantities)
+        noise_ef = tuple(sorted((kind, q["noise_ef_%s" % kind].value_m) for kind in mins))
+        spec = LutSpec(grid, tuple(sorted(mins.items())), REAL_DEVICE_KINDS, REAL_CAP_SUFFIX, noise_ef=noise_ef)
+        self.lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
+                                verify_midpoints=loc.midpoints_path, noise_npz=loc.noise_path)
+        self.memo = LutMemo(self.lut, point=MEMO_POINT, curve=MEMO_CURVE, root=MEMO_ROOT)
+        self.access = pre_layout_lut_access(self.memo)
         self.lut_rule = read_pdk_decl(str(LUT_RULE_DECL), decl_memo)
         self.junction = JunctionSource.from_decls(self.pdk, self.lut_rule, self.lut)
         cat = dict(metric_catalog())
