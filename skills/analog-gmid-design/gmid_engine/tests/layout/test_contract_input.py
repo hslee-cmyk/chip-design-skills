@@ -15,7 +15,19 @@ from .conftest import dev, make_input, mg, rg, rule_ids, toy_pdk
 
 
 def test_public_api():
-    assert set(public) == {"LayoutDevice", "LayoutInput", "LayoutPdk", "LayoutResult", "MatchingGroup", "RowGroup", "run_layout"}
+    # oracle (d): 설계 40 §11 U14 행 U12 인계 + convergence/CONTRACT.md §10 'layout.__all__ 에 area_tie_m2·passives_from_decl·role·패턴
+    # 이름 상수 추가' -- 옛 7개 + MOD8 이 쓰는 이름. 상수 낱말은 CONTRACT 4.1(아래 test_constants 와 같은 출처).
+    assert set(public) == {"LayoutDevice", "LayoutInput", "LayoutPdk", "LayoutResult", "MatchingGroup", "RowGroup", "run_layout",
+                           "area_tie_m2", "passives_from_decl",
+                           "CC_REQUIRED_ROLES", "EXCLUDED_ROLES", "PATTERNS", "PATTERN_COMMON_CENTROID", "PATTERN_INTERDIGITATION",
+                           "ROLE_DIFF_PAIR", "ROLE_MIRROR", "ROLE_BRANCH_SYMMETRIC", "ROLE_BIAS_DISTRIBUTION", "ROLE_FEEDBACK_SHARED"}
+    import gmid_engine.layout as layout_pkg
+    assert (layout_pkg.ROLE_DIFF_PAIR, layout_pkg.ROLE_MIRROR, layout_pkg.ROLE_BRANCH_SYMMETRIC) == ("diff_pair", "mirror", "branch_symmetric")
+    assert (layout_pkg.ROLE_BIAS_DISTRIBUTION, layout_pkg.ROLE_FEEDBACK_SHARED) == ("bias_distribution", "feedback_shared")
+    assert (layout_pkg.PATTERN_COMMON_CENTROID, layout_pkg.PATTERN_INTERDIGITATION) == ("common_centroid", "interdigitation")
+    # 공개 상수는 contract_input 정의 그 객체다(별도 사본이 아니다)
+    assert layout_pkg.CC_REQUIRED_ROLES is ci.CC_REQUIRED_ROLES and layout_pkg.PATTERNS is ci.PATTERNS
+    assert layout_pkg.EXCLUDED_ROLES is ci.EXCLUDED_ROLES
 
 
 def test_constants():
