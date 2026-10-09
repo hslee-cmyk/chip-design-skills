@@ -118,7 +118,7 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
             # evaluation 으로 둔다 -- 다음 평가의 parent 가 그 필드를 재사용한다.
             try:
                 ssev = ss_evaluate(evaluation.sealed, sctx.dc, pairs, sctx.ss_constraints, (), junction=sctx.junction,
-                                area_decl=sctx.area_decl)
+                                area_decl=sctx.area_decl, noise_decl=sctx.noise_decl)
                 evaluation, bundle = ssev.lineage, ssev.ss
             except CANDIDATE_FAILURE_CLASSES as exc:
                 evaluation, failure, status = None, exc.record, STATUS_FAILED

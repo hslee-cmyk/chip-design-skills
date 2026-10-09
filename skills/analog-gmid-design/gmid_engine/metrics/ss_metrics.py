@@ -21,6 +21,11 @@
   모든 계는 **한 번의** `solve_responses` 로 푼다(공유 격자 -- 루프 계와 포트 계가 함께, 7a 2.4 '격자').
 * 값은 `metric_value`(레지스트리 필드 읽기 -- 예외 없음, 정의 불가는 `Undefined`). 묶음 `approximations` = ss_dev 의
   (cap, cap_model)·(gmb, gmb_model)·(junction, junction_model) -- 용량 의존 metric 이 근사·미정 위에 있음을 매 결과에 싣는다(M6).
+* [U8 잡음] 요청에 잡음 metric(레지스트리 결과 형식 `NoiseAnalysis`: noise_th_in_v2hz·noise_fc_in_hz·noise_excess_th·noise_out_int_vrms)이 있으면 선택 추가 인자
+  `NoiseInput`(`noise_devices` -- 소자별 LUT 잡음 값·선언·f_lo·kT)을 세 번째 extras 로 받는다(없으면 잡음 요청은 정의 불가 `noise_inputs_missing`). 개루프 세 metric 은 gain metric
+  과 **같은 계(같은 G·C)·같은 전달 뷰 열**을 쓴다(`_plan` 의 계 키 공유 -- 조립 1회). 출력 적분은 spec feedback 이 비지 않으면 되먹임 소자의 입력 포트 쪽 넷을 자유 노드로 푼 계
+  (`noise_plan` -- 폐루프), 비면 입력 고정 계(개루프 출력 잡음)이다. 수반 풀이는 `noise_transfer`(ω 마다 1회), 값·분해능은 `noise_analysis`. 개루프 뷰가 있으면 보고 전용으로
+  th_in·fc 를 항상 `reports` 의 `noise_report` 에 싣는다(41 §7.1 '보고(모든 회로)'), 분석마다 `noise_detail:<metric>`·`noise_contrib:<metric>`(소자별 기여, 41 §7.3 `noise_contrib`).
 * [NFR-5] 값마다 분해능 `MetricResult.resolution`(metrics CONTRACT 9절): `lut_parameters(회로, ss_dev 의 lut_rel_tol)` 한 번,
   분석 열쇠마다 `metric_resolutions` 한 번(같은 계·같은 ω 의 수반 풀이는 블록 안 memo 로 공유). 블록 안에서 계산하므로 입력이 같으면
   블록 재사용으로 다시 계산하지 않는다. 미정이면 None.
@@ -40,6 +45,10 @@ from .lut_parameters import lut_parameters
 from .mna_build import build_mna
 from .mna_solve import solve_responses
 from .mna_types import Factor, MetricResult, Undefined
+from .noise_analysis import FIELD_FC, FIELD_OUT, FIELD_TH, noise_analysis
+from .noise_plan import noise_plan
+from .noise_sources import noise_sources
+from .noise_types import NoiseAnalysis, NoiseSetup
 from .probe_loop import probe_factor
 from .ratio import response_ratio
 from .records import (LOOP_CUT_KINDS, LOOP_CUT_MOS, LOOP_CUT_TERMINALS, Excitation, LoopCut,
@@ -59,6 +68,8 @@ WRITES = (("graph", "metrics_ss"),)
 UNIT = 1.0                                              # 단위 시험 전류(rout_ohm = 관측 / 이 값)
 CODE_VIEW_PENDING = "view_pending"
 CODE_PASSIVE_MISSING = "passive_value_undeclared"
+CODE_NOISE_INPUTS = "noise_inputs_missing"             # 잡음 요청이 있는데 NoiseInput(extras)이 오지 않았다
+CODE_NOISE_VIEW = "noise_view_unsupported"            # 잡음 metric 은 port·transfer 뷰만 읽는다
 CM_OUTPUT_MODE = "cm_output"                          # authoring ViewDecl.mode: 출력 포트 CM 주입 루프
 CM_VIEW_KIND = "cm_loop"                              # 보고 전용 CM 루프가 읽는 metric = 레지스트리에서 이 view_kind 인 것
 WARN_CM_UNCONSTRAINED = "cm_loop_unconstrained"
@@ -95,8 +106,8 @@ class _Ledger:
             self.rows[key] = make()
         return self.rows[key]
 
-    def full(self, driven):
-        key = frozenset(self.base | frozenset(driven))
+    def full(self, driven, free=()):
+        key = frozenset((self.base - frozenset(free)) | frozenset(driven))
         return key, self._entry(key, lambda: {"columns": [], "senses": [], "driven": set()})
 
     def column(self, entry, voltages=(), currents=()):
@@ -271,9 +282,101 @@ def _cm_report(analysis, view, declared):
     return (("cm_loop", summary),), warn
 
 
+def _noise_undefined(request, code, detail=()):
+    field = metric_registry()[request.metric].field
+    return MetricResult(request.metric, None, (Undefined(field, code, "definitional", detail),))
+
+
+def _noise_sense(view):
+    """잡음 metric 뷰의 감지 선언(`port` 뷰 -> view.sense, `transfer` 뷰 -> view.transfer) 또는 None(그 밖 뷰는 지원하지 않는다)."""
+    if view.mode == "transfer":
+        return view.transfer
+    return view.sense if view.mode == "port" else None
+
+
+def _view_nets(view):
+    """뷰의 (여기 넷 frozenset, 감지 넷 frozenset) -- S1v 전달 뷰와 대조하는 열쇠."""
+    sense = _noise_sense(view)
+    pairs = view.transfer.ac_excite if view.mode == "transfer" else view.weights
+    return (frozenset(net for net, _a in pairs),
+            frozenset(net for net in (sense.sense_p, sense.sense_n) if net is not None))
+
+
+def _input_devices(decl, view):
+    """이 뷰와 같은 여기·감지 넷의 S1v 전달 뷰 첫 이득 블록 input 셀 MOS 이름 tuple, 없으면 None(`noise_input_cell_undefined`)."""
+    if _noise_sense(view) is None:
+        return None
+    excite, sense = _view_nets(view)
+    for cell_excite, cell_sense, devices in decl.input_cells:
+        if frozenset(cell_excite) == excite and frozenset(cell_sense) == sense:
+            return devices
+    return None
+
+
+def _noise_job(request, ledger, plan):
+    """잡음 요청 하나 -> (종류, 모드, 계 키, 전달 뷰 열 또는 None, 관측 행) 또는 `MetricResult`(정의 불가)."""
+    if metric_registry()[request.metric].field != FIELD_OUT:
+        key = _plan(request, ledger)
+        return ("view", "open", key[1], key[2], key[3])
+    if plan.mode == "undefined":
+        return _noise_undefined(request, plan.reason, plan.detail)
+    sense = _noise_sense(request.view)
+    free = plan.free_nets if plan.mode == "closed" else frozenset()
+    fixed = ledger.base - free
+    inject = next((n for n in (sense.sense_p, sense.sense_n) if n is not None and n not in fixed), None)
+    if inject is None:
+        return _noise_undefined(request, "noise_sense_on_fixed_node")
+    key, entry = ledger.full((), free)
+    ledger.column(entry, currents=((inject, UNIT),))              # 계 조립용 단위 전류 열(잡음 해석은 이 열을 읽지 않는다)
+    return ("integral", plan.mode, key, None, ledger.sense(entry, sense))
+
+
+def _noise_result(name, analysis):
+    result = metric_value(name, analysis)
+    if result.value is None:
+        return result
+    return MetricResult(name, float(result.value), (), None if analysis.resolution is None else float(analysis.resolution))
+
+
+def _noise_reports(analyses, setup_of, memo):
+    """분석마다 상세·소자별 기여, 개루프 뷰가 있으면 th_in·fc 보고(41 §7.1 '보고(모든 회로)')."""
+    reports = []
+    for name, analysis in sorted(analyses.items()):
+        if analysis.detail:
+            reports.append(("noise_detail:" + name, analysis.detail))
+        if analysis.contrib:
+            reports.append(("noise_contrib:" + name, analysis.contrib))
+    if setup_of is not None:
+        found = []
+        for field in (FIELD_TH, FIELD_FC):
+            analysis = noise_analysis(field, setup_of, memo)
+            value = getattr(analysis, field)
+            found.append((field, None if value is None else float(value)))
+            found.append((field + "_undefined", tuple(sorted({u.code for u in analysis.undefined}))))
+        reports.append(("noise_report", tuple(sorted(found))))
+    return tuple(reports)
+
+
+def _noise_block(jobs, results, responses, ss, noise, nplan, parameters):
+    """잡음 요청 전부의 값을 `results` 에 채우고 보고 항목 tuple 을 낸다. 소스 표는 블록 호출당 1회, 기준 계산은 계·열·관측당 1회(memo)."""
+    sources = noise_sources(ss, noise, parameters)
+    memo, analyses, view_setup = {}, {}, None
+    for request, (kind, mode, key, column, row) in jobs.items():
+        response = responses[key]
+        setup = NoiseSetup(response.system, row, column, sources, parameters, noise, nplan, ss,
+                           _input_devices(noise.decl, request.view), response.roots.poles, mode)
+        analysis = noise_analysis(metric_registry()[request.metric].field, setup, memo)
+        analyses[request.metric] = analysis
+        results[request] = _noise_result(request.metric, analysis)
+        if kind == "view" and view_setup is None:
+            view_setup = setup
+    return _noise_reports(analyses, view_setup, memo)
+
+
 @compute_block(METRICS_SS_WRITER, reads=READS, writes=WRITES)
 def metrics_ss(projection):
-    requests, passive_values = projection.extras
+    requests, passive_values, *optional = projection.extras
+    noise = optional[0] if optional else None                  # [U8] NoiseInput -- 잡음 요청이 없으면 안 온다
     classes = dict(projection.column("device", "element_class"))
     kinds = dict(projection.column("device", "kind"))
     pins = dict(projection.column("device", "pins"))
@@ -302,7 +405,21 @@ def metrics_ss(projection):
         rail_nets = {n for n, flag in projection.column("node", "is_rail") if flag}
         source_nets = {net for name in classes if classes[name] == ELEMENT_SOURCE for _t, net in pins[name]}
         ledger = _Ledger(ss, rail_nets, source_nets)
-        plans = {r: _plan(r, ledger) for r in requests if r not in pending}
+        noisy = [r for r in requests if r not in pending and metric_registry()[r.metric].source_type is NoiseAnalysis]
+        plans = {r: _plan(r, ledger) for r in requests if r not in pending and r not in noisy}
+        jobs = {}
+        nplan = noise_plan(ss, noise.decl) if noise is not None and noisy else None
+        for r in noisy:                                   # [U8] 잡음 요청: 계·열·관측을 장부에 올린다(개루프는 gain 과 같은 계 키를 공유)
+            if noise is None:
+                results[r] = _noise_undefined(r, CODE_NOISE_INPUTS)
+            elif _noise_sense(r.view) is None:
+                results[r] = _noise_undefined(r, CODE_NOISE_VIEW, (("mode", r.view.mode),))
+            else:
+                job = _noise_job(r, ledger, nplan)
+                if isinstance(job, MetricResult):
+                    results[r] = job
+                else:
+                    jobs[r] = job
         declared_cm = next((r.view for r in requests if r.view.mode == CM_OUTPUT_MODE), None)
         cm_view = declared_cm or _cm_report_view(projection.column("node", "port_role"))
         report_plan = report_note = None
@@ -311,7 +428,7 @@ def metrics_ss(projection):
                 report_plan = _plan(MetricRequest("", cm_view), ledger)
             elif ledger.cm_ambiguity is not None:
                 report_note = ledger.cm_ambiguity
-        if plans or report_plan is not None:
+        if plans or jobs or report_plan is not None:
             responses, cuts = ledger.solve()
             parameters = lut_parameters(ss.circuit, tuple(ss_values[m.label].lut_rel_tol for m in ss.circuit.mos))
             memo = {}                                   # (id(계), ω) -> 수반 풀이 -- 이 블록 호출 안에서만 산다
@@ -327,6 +444,8 @@ def metrics_ss(projection):
                     analysis, source = _analysis(report_plan, responses, cuts)
                     done[report_plan] = (analysis, metric_resolutions(analysis, source, parameters, memo))
                 reports, warnings = _cm_report(done[report_plan][0], cm_view, declared_cm is not None)
+            if jobs:
+                reports = reports + _noise_block(jobs, results, responses, ss, noise, nplan, parameters)
             first = next(iter(responses.values()))
             detail = (("grid_points", len(first.omegas)), ("systems", len(responses)))
     if report_note is not None:       # [CM] 구동자·소비자 분류가 모호해 보고 전용 CM 루프를 만들지 못했다 -- 보고에 사유를 남긴다(경고 없음)

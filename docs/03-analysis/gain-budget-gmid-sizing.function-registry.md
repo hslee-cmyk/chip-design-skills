@@ -661,3 +661,18 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 구조 DOF 이분 매칭 | `metrics.dof_report` | 변수·등식 조립은 `achievability` 의 `_dof`(비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ 저항 / 소자 식·저항 강하·선언 노드 목표·입력 동일 DC) |
 | 단계 B 진입점 | `pipeline.run_stage_b` | 단계 A 결과 위에서 한 번. exit 3 정지와 보고서 `<회로>.stage_b.json` |
 
+## 11. 새 엔진 잡음 metric 정본 (2026-10-09, 구현 단위 U8 -- 설계 41 §7.1·7.3, 계약 `gmid_engine/metrics/CONTRACT.md` 10절)
+
+새 함수를 쓰기 전에 이 표를 먼저 본다. 잡음 계산을 다른 곳에서 다시 만들지 않는다.
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| 잡음 metric 4개(`noise_th_in_v2hz`·`noise_fc_in_hz`·`noise_excess_th`·`noise_out_int_vrms`) | `metrics.registry`(결과 형식 `NoiseAnalysis`) | U5 계산 대기 표에서 옮겼다. 서명 불변 |
+| 소자별 LUT 잡음 값(A·B·EF·허용오차, 폭 W 배율) | `metrics.noise_devices` | `lut.noise_params`·`lut.tol_noise_table` 를 부르는 유일한 곳. 질의 실패는 소자 `failure` 로 남는다 |
+| 잡음원 표(MOS gm²·S_vg, 저항 4kT/R) | `metrics.noise_sources` | kT = scipy.constants.k × (LUT 온도 + zero_Celsius) -- 새 상수 없음 |
+| 잡음원 -> 관측 전달(수반 풀이)과 파라미터·ω 1차 미분 | `metrics.noise_transfer` | `MnaSystem`(G, C) 재사용. 전달을 다시 조립하지 않는다 |
+| 입력 환산 평탄값·corner·excess | `metrics.noise_analysis` | corner 는 `sizing.bracket_root`, 반복 상한은 `sizing.k_max` |
+| 출력 적분 + 스위치 kT/C 항 | `metrics.noise_integral` | f_hi 는 꼬리 상계로 유도, 이분 상한 `k_max`. kT/C 는 `detail.ktc_v2` 로 따로 |
+| 폐루프 모드 구조(spec feedback -> 자유 입력 넷) | `metrics.noise_plan` | authoring `_feedback_cuts` 와 같은 규칙(입력 포트 쪽 단자 정확히 하나) |
+| 잡음 선언(spec feedback·샘플링 커패시터·S1v 입력 셀) | `search.noise_decl` | 입력 셀 = S1v 전달 뷰의 첫 이득 블록 input 소자. 이름이 아니라 구조 |
+| 잡음 데이터 필수 검사 | `search.build_search_context` -> `lut.require_lut_data` | 잡음 제약이 있으면 시작 때 `noise_lut_missing` |

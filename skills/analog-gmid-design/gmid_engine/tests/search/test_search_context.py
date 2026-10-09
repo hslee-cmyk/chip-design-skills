@@ -114,8 +114,10 @@ def test_junction_built_once_per_context(tmp_path, lut_sealed):
 # oracle (d) metrics CONTRACT 3.15 문장: '탐색 문맥(build_search_context)은 판정 제약 중 카탈로그에만 있는 이름을 constraint_notes 에
 # unmeasured/metric_computation_pending 으로 남긴다' + (a) 이름은 설계 40 §3.8-8·41 §7.1 어휘, 회로 C 는 손 회로.
 # ss_constraints 에 들어가면 측정 못 하는 행이 탐색 판정에 섞인다 -- 그래서 '들어가지 않는다'가 핵심 단정이다.
-PENDING_CONS = (("offset_excess", "<=", 2 ** 0.5, None), ("noise_excess_th", "<=", 2.0, None),
-                ("swing_out_v", ">=", 0.5, None), ("noise_out_int_vrms", "<=", 3e-4, None))
+# [U8 2026-10-09] 잡음 4개는 레지스트리로 옮겨졌다(metrics CONTRACT 10절) -- 계산 대기 자리는 아직 대기인 이름(offset_sys_mv·icmr_v, 40 §3.8-8 표)으로 바꾼다.
+# 잡음 제약 분류는 아래 U8 절 test 가 본다.
+PENDING_CONS = (("offset_excess", "<=", 2 ** 0.5, None), ("offset_sys_mv", "<=", 2.0, None),
+                ("swing_out_v", ">=", 0.5, None), ("icmr_v", ">=", 0.3, None))
 
 
 def test_pending_metric_constraints_noted_not_searched(tmp_path, lut_sealed):
@@ -155,3 +157,31 @@ def test_ff_gm_ratio_constraint_noted_computation_pending(tmp_path, lut_sealed):
     assert len(mine) == 1, _notes(s)
     assert mine[0].get("verdict") == "unmeasured"
     assert mine[0].get("reason") == "metric_computation_pending"
+
+
+# ---------------------------------------------------------------- [U8 2026-10-09] 잡음 제약 -- 시작 때 잡음 LUT 필수 검사
+# oracle (d) search CONTRACT 11절·설계 41 §7.2 '잡음 데이터가 없는데 잡음 제약이 선언되면 SchemaRejectedError(noise_lut_missing)',
+# lut CONTRACT 9.5(detail kinds = 없는 kind 정렬 tuple). lut_sealed 는 잡음 r1 없이 만든 toy LUT 다(구성).
+
+@pytest.mark.parametrize("metric, op, value", [("noise_excess_th", "<=", 2.0), ("noise_th_in_v2hz", "<=", 1e-15),
+                                               ("noise_fc_in_hz", "<=", 1e5), ("noise_out_int_vrms", "<=", 3e-4)])
+def test_noise_constraint_without_noise_lut_rejected(tmp_path, lut_sealed, metric, op, value):
+    with pytest.raises(SchemaRejectedError) as ei:
+        build_case(tmp_path, circuit_c(), lut_sealed, constraints=((metric, op, value, None), ("gain_ss_db", ">=", 10.0, None)))
+    d = dict(ei.value.record.detail)
+    assert d["reason"] == "noise_lut_missing"
+    assert tuple(d["kinds"]) == ("nmos", "pmos")              # 회로 C 의 MOS kind 둘 다 잡음 표가 없다
+
+
+def test_no_noise_constraint_no_noise_lut_needed(tmp_path, lut_sealed):
+    """잡음 제약이 없으면 잡음 LUT 없이도 시작한다(거부는 값 있는 잡음 제약이 있을 때만)."""
+    s = build_case(tmp_path, circuit_c(), lut_sealed, constraints=(("gain_ss_db", ">=", 10.0, None),)).sctx
+    assert [c.metric for c in s.ss_constraints] == ["gain_ss_db"]
+
+
+def test_noise_decl_without_s1v(tmp_path, lut_sealed):
+    """search 11절: SearchContext.noise_decl = noise_decl(spec, s1v) -- 6인자 호출(s1v 없음)이면 입력 셀 없음, spec feedback 빈 list -> (),
+    noise_testbench 없음 -> 샘플링 커패시터 (). oracle (d)."""
+    from gmid_engine.metrics import NoiseDecl
+    s = build_case(tmp_path, circuit_c(), lut_sealed).sctx
+    assert s.noise_decl == NoiseDecl(feedback=(), sampling_caps=(), input_cells=())
