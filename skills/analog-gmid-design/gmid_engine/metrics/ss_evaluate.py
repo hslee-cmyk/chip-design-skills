@@ -1,7 +1,7 @@
 """봉인 스냅샷 하나 -> 소신호 선형화 + spec 제약 metric + 전력·면적 (계획 N3.5 커널 '봉인 -> ss_linearize -> mna -> metric',
 설계 design_mod1_lut_mod5_mna 3.2·3.5 커널 순서, 7a design 4.5 단계 5 배선 지점, metrics CONTRACT 7절, 계획 DEC-92).
 
-진입점: `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, area_decl=None, noise_decl=None, mismatch=None, structure=None, driving=None) -> SsEvaluation`
+진입점: `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, area_decl=None, noise_decl=None, mismatch=None, structure=None, driving=None, diffusion=()) -> SsEvaluation`
 (`area_decl` = 선택 `PassiveAreaDecl` -- 면적 항의 수동소자 단위 면적·측정 부하 제외, 사용자 결정 11. [U8] `noise_decl` = 선택 `NoiseDecl` -- spec feedback·샘플링
 커패시터·S1v 입력 셀(`search.noise_decl`). 잡음 metric 요청이 있을 때만 쓰이고, 그때 `noise_devices`(소자별 LUT 잡음 값·f_lo·kT)를 만들어 `metrics_ss` 의 세 번째 extras 로 넘긴다.
 생략하면 `NoiseDecl()`(되먹임 미제공 -> 출력 적분 정의 불가, 입력 셀 미제공 -> excess 정의 불가)).
@@ -12,6 +12,8 @@
   entries·reports 를 합쳐 `SsEvaluation.ss` 로 낸다(`metrics_aux` 가 돌지 않으면 묶음 그대로). `structure` 가 있으면 전달 뷰 제약마다 블록 잔차 보고(`reports` 의
   `block_residual`·`nqs_ratio`)를 항상 낸다. 판정 제약에 `ugf_ss_hz` 가 있으면 그 값이 `nqs_ratio` 분자다.
 
+* [U14] `diffusion` = ((MOS, `DiffusionGeometry`), ...) -- 레이아웃 뒤 실현 확산 기하(MOD7 `ly.diffusion`, MOD8 재검증). 있는 소자의 접합 용량 cdb·csb 는 그 기하로 계산하고
+  (`junction_model` = `JUNCTION_LAYOUT_DIFFUSION`) 없는 소자는 레이아웃 전 LUT 생성 규칙 기하다. 비면 `ss_dev` 입력이 그대로라 기존 점의 필드를 재사용한다.
 * `junction` = metrics `JunctionSource`(DEC-91 접합 용량 입력 -- PDK 선언·LUT 생성 규칙 선언·LUT 측정 온도, 부르는 쪽이
   `JunctionSource.from_decls(read_pdk_decl(...), read_pdk_decl(...), ctx.lut.memo.lut)` 로 S0 당 1회 만든다). 필수 키워드 인자:
   `KernelContext` 에 PDK 선언이 없어서 새 입력으로 명시했다(metrics CONTRACT 7.6). 아니면 TypeError.
@@ -34,40 +36,18 @@
   parent 로, 같은 θ 를 다시 볼 때는 `ss_evaluate(lineage.sealed, ...)` 로 넘긴다. 그 lineage 에서 `size_and_seal` 이 낸 스냅샷에는
   앞 점의 ss 필드가 입력 버전과 함께 남아 있다 -- `ss_evaluate` 를 거치기 전에는 읽지 않는다(값의 정본은 이 함수의 결과).
 """
-from gmid_engine.graph import ELEMENT_PASSIVE
-from gmid_engine.sizing import (METRICS_KEY, THETA_PASSIVE_KINDS, THETA_RESISTANCE, DcEvaluation, KernelContext,
-                                SealedSnapshot, Theta, check_theta)
+from gmid_engine.sizing import METRICS_KEY, DcEvaluation, KernelContext, SealedSnapshot, Theta, check_theta
 
 from .dc_metrics import metrics_dc
 from .junction_source import JunctionSource
 from .metrics_aux import AUX_TYPES, metrics_aux
 from .noise_devices import noise_devices
 from .noise_types import NoiseAnalysis, NoiseDecl
+from .passive_values import passive_values
 from .registry import metric_registry
 from .ss_linearize import ss_dev
 from .ss_metrics import metrics_ss
 from .ss_types import MetricBundle, MetricRequest, SsEvaluation
-
-_THETA_PASSIVES = (THETA_RESISTANCE,) + THETA_PASSIVE_KINDS
-
-
-def _passive_values(snapshot, ctx, theta):
-    classes = dict(snapshot.column("device", "element_class"))
-    passives = {n for n, c in classes.items() if c == ELEMENT_PASSIVE}
-    values = {n: v for n, v in ctx.inputs.element_values if n in passives and v is not None}
-    gm = {n: dev.gm for n, dev in snapshot.column("device", "ss_dev")}
-    structural = tuple((z.resistor, 1.0 / sum(gm[c] for c in z.cells))
-                       for z in ctx.schema.zero_cancel if z.reason is None)
-    sources = (tuple((key, v) for (kind, key), v in theta.values if kind in _THETA_PASSIVES), structural)
-    for pairs in sources:
-        for name, value in pairs:
-            if name not in passives:
-                raise ValueError("ss_evaluate: %r 은 S1 수동소자가 아니다" % (name,))
-            if name in values:
-                raise ValueError("ss_evaluate: 수동소자 %r 의 값이 두 곳에서 온다(spec·θ·구조 규칙 중 하나만)" % (name,))
-            values[name] = float(value)
-    return tuple(sorted(values.items()))
-
 
 def _requests(constraints):
     seen = []
@@ -97,7 +77,8 @@ def _merged(ss_bundle, aux_bundle):
                         ss_bundle.reports + aux_bundle.reports, ss_bundle.warnings + aux_bundle.warnings)
 
 
-def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, area_decl=None, noise_decl=None, mismatch=None, structure=None, driving=None):
+def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, area_decl=None, noise_decl=None, mismatch=None, structure=None, driving=None,
+                diffusion=()):
     if not isinstance(sealed, SealedSnapshot):
         raise TypeError("ss_evaluate: 봉인 스냅샷(SealedSnapshot)만 받는다(DEC-67)")
     if not isinstance(ctx, KernelContext):
@@ -111,8 +92,8 @@ def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, 
     registry = metric_registry()
     aux_requests = tuple(r for r in requests if registry[r.metric].source_type in AUX_TYPES)
     ss_requests = tuple(r for r in requests if registry[r.metric].signature.view_kind is not None and r not in aux_requests)
-    snapshot = ss_dev(sealed.snapshot, ctx.lut, junction)
-    values = _passive_values(snapshot, ctx, theta)
+    snapshot = ss_dev(sealed.snapshot, ctx.lut, junction, *((diffusion,) if diffusion else ()))
+    values = passive_values(snapshot, ctx, theta)
     noisy = any(registry[r.metric].source_type is NoiseAnalysis for r in ss_requests)
     extra = (noise_devices(snapshot, ctx.lut, junction, NoiseDecl() if noise_decl is None else noise_decl),) if noisy else ()
     snapshot = metrics_ss(snapshot, ss_requests, values, *extra)

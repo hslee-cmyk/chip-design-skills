@@ -104,6 +104,19 @@ class EvalKey:
 
 
 @dataclasses.dataclass(frozen=True)
+class RealizedGeometry:
+    """레이아웃 뒤 실현 기하(MOD8 재검증 입력, 계획 N3.17 LY7·LY8, 설계 40 §3.9) -- `evaluate(geometry=)` 가 받는다.
+    `w_request` = ((MOS, W(m)), ...) 소자 이름순 -- 실현 W(nf x finger_w) 고정 입력(`size_and_seal(w_request=)`),
+    `w_keys` = ((kind, 폭 키), ...) kind 순, S1 MOS kind 전부 -- 실현 폭 슬라이스(커널의 `LutAccess.w_keys`),
+    `diffusion` = ((MOS, metrics `DiffusionGeometry`), ...) 소자 이름순 -- 접합 용량의 실현 확산 기하(없는 소자는 LUT 생성 규칙). 지문(`fp_of`)이
+    평가 키의 `w_fixed_fp` 다."""
+
+    w_request: tuple
+    w_keys: tuple
+    diffusion: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True)
 class Objectives:
     """목적 값. `power_w` = power_dc_w, `area_m2` = area_search_m2, `per_rail` = ((레일, I_k), ...),
     `kcl_residual_a`, `gate_area_m2`, `passive_area_undeclared`, `passive_value_undetermined`(값 미정 수동소자),

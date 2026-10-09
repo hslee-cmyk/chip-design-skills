@@ -10,7 +10,7 @@
 3. 계산 블록을 차례로: `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`(행 + floorplan).
 4. 결과: `review_needed`(배치 못 한 차동쌍·branch_symmetric -- LY5 는 즉시 완화하지 않고 판정을 MOD8 에 맡긴다, dx·dy) 맨 앞, coverage(`check_stick_diagram_coverage`),
    W_requests 모음(그룹 요청 + finger_quantization + 사용 가능 폭이 없는 소자 `no_usable_slice`), 불변식, 재검증 요청
-   (`Revalidation` -- W_request 유무와 관계없이 항상 required, 평가 커널·봉인이 엔진에 생길 때까지 status pending_wiring).
+   (`Revalidation` -- W_request 유무와 관계없이 항상 required, status 는 늘 pending_wiring: `LayoutResult` 가 불변이라 소비 결과는 MOD8 `convergence.ConvergedPoint` 에 기록된다).
 """
 from gmid_engine.core import GraphSnapshot, fp_of
 

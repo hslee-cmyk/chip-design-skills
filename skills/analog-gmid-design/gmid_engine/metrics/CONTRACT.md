@@ -602,7 +602,11 @@ reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v,
 - `detail` = counted_rails, kcl_residual_amp, passive_area_undeclared, passive_value_missing, per_rail_amp((레일 넷, A), ...) 키 정렬.
 - [9절] 전력·면적 결과의 `resolution` 은 None(LUT 소신호 불확실성 전파 대상이 아니다 -- 전력 축 분해능 b_P 는 search 쪽 유도값).
 
-### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction) -> SsEvaluation`
+### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, ..., diffusion=()) -> SsEvaluation`
+[U14] `diffusion` = ((MOS, `DiffusionGeometry`), ...) -- 레이아웃 뒤 실현 확산 기하(MOD7 `ly.diffusion`). 있는 소자의 `ss_dev` cdb·csb 는 그 기하로, `junction_model` = `JUNCTION_LAYOUT_DIFFUSION`
+(없는 소자는 LUT 생성 규칙·`JUNCTION_LUT_RULE`). `ss_dev` 의 추가 extra 이며 빈 값은 넘기지 않는다(입력 버전이 종전과 같다). 수동소자 값 정본은 새 공개 함수 `passive_values(snapshot, ctx, theta)`
+(`passive_values.py`, 이전 `ss_evaluate._passive_values`)이고 MOD8 판정 축 면적 입력(`layout.passives_from_decl`)이 같은 값을 쓴다.
+
 - **[r5 2026-10-08, DEC-92 / 7.9 Q5 해결] 인자 `passive_theta` 삭제**: engine 보상 수동소자 값은 이제 sizing θ 스키마 성분
   (`capacitance`·`ss_resistance`, sizing CONTRACT 4.4 r5)이라 θ 에서 읽는다(값의 출처 하나). 6번째 위치 인자를 넘기던 호출은 TypeError.
 - `sealed` 가 `SealedSnapshot` 아님 -> TypeError(DEC-67). `ctx` 가 `KernelContext` 아님 -> TypeError. `junction`(**필수 키워드**,

@@ -14,8 +14,9 @@ import dataclasses
 REVALIDATION_SEALS = ("seal_1", "seal_2", "seal_3", "seal_4", "seal_5", "seal_6", "seal_7", "seal_8")
 REVALIDATION_PENDING = "pending_wiring"
 REVALIDATION_CONSUMER = "convergence (MOD8): evaluation kernel + seals 1-8 on realized geometry, then freeze"
-REVALIDATION_PENDING_REASON = ("evaluation kernel (MOD5 metrics / sizing blocks) and seals 1-8 (MOD6) are not in the engine "
-                               "yet -- MOD8 convergence must consume this request before freeze")
+REVALIDATION_PENDING_REASON = ("the layout only requests re-validation (LayoutResult is immutable, status stays pending_wiring): "
+                               "MOD8 convergence.converge_point consumes it -- evaluates the realized geometry with the evaluation "
+                               "kernel + seals 1-8 + junction caps from ly.diffusion and records the outcome in ConvergedPoint")
 # 판정 축 면적 포함 항목(Q8 (vii)) -- FloorplanSummary.included 의 항목 이름.
 AREA_ITEM_ROW_END_DUMMY = "row_end_dummy_x2_per_row"
 AREA_ITEM_TAP = "body_tap_per_group"
