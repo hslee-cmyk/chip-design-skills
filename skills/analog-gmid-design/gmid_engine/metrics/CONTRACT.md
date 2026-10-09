@@ -1038,7 +1038,7 @@ LUT v2(`resolve_lut_location`), sizing CONTRACT 10절 탐침 θ(seed 0, 회로�
 * `noise_excess_th` = Q_th / Q_in,th. Q_in,th = 입력 셀 MOS(S1v 전달 뷰의 첫 이득 블록 input 소자 -- `NoiseDecl.input_cells`)만의 같은 합.
 * `noise_out_int_vrms` = sqrt(∫_{f_lo}^{f_hi} S_out df + Σ_s kT/C_s·abs(T_s)^2). 모드: spec feedback 이 비지 않으면 **폐루프**(되먹임 소자의 입력 포트 쪽 넷 = 자유 노드로 푼 계 -- 되먹임이
   아닌 입력 부하 Cs 는 그대로, CI-10), 빈 tuple 이면 **개루프 출력 잡음**(입력 고정), None(대기)이면 `noise_feedback_undeclared`. f_hi 는 가장 높은 극점에서 두 배씩 올리며 꼬리 상계 f·S(f) <= 분해능^2
-  (상한 `k_max(f_top·S_peak, 분해능^2)`), 못 맞추면 `noise_tail_not_converged`(값 없음). 적분 = 구간 로그-로그(멱법칙) 적분 + Richardson 구간 이분(상한 `k_max(오차/예산, 1)`).
+  (상한 `k_max(f_top·S_peak, 분해능^2)`), 못 맞추면 `noise_tail_not_converged`(값 없음). 적분 = 구간 로그-로그(멱법칙) 적분 + 구간 이분(구간 오차 = 반 구간 합과 한 구간 규칙의 차이 -- 세분 추정 오차의 상계; 이분 깊이 상한 `k_max(ln f 폭, 그 축 값의 부동소수 해상도)`, 예산을 못 맞춘 채 상한에 닿으면 `noise_tail_not_converged`).
   스위치 kT/C: `noise_testbench.sampling_caps` 커패시터마다 kT/C_s × abs(jω_ref·C_s·Z_cap)^2, **`detail.ktc_v2` 로 따로** 기록(선언 없으면 None -- 선언 여부는 사용자 결정 대기, spec 에 선언을 추가하지 않았다).
 * 소자별 기여: `MetricBundle.reports` 의 `noise_contrib:<metric>` = ((소자 이름, (("flicker", ...), ("share", 몫), ("thermal", ...))), ...), 상세 `noise_detail:<metric>`, 개루프 뷰가 있으면
   보고 전용 `noise_report`(th_in·fc 값/정의 불가 사유 -- 41 §7.1 '보고(모든 회로)').
@@ -1048,8 +1048,8 @@ LUT v2(`resolve_lut_location`), sizing CONTRACT 10절 탐침 θ(seed 0, 회로�
 값 q 의 LUT 몫 = Σ_p abs(∂q/∂p)·Δp(Δp = `ParameterSet.delta`, ∂q/∂p = `noise_transfer` 의 파라미터 미분 -- 수반 y 와 정방향 X = A^-1·E 로 −y^T(∂A/∂p)X 를 한 번의 축약 -- 과 S_k 의 gm 직접 의존
 2·S_k/gm_k 를 같은 파라미터에 부호째 합친 `source_gradient`) + LUT 잡음 칸 허용오차 Σ_k tol_k·(그 성분)(열 성분 `tol_noise.thermal`(ln B 면), flicker `tol_noise.flicker`). excess 는 ln(Q_th/Q_in) 의 미분·몫 차,
 corner 는 암시적 미분(δ ln f = (Σ abs(∂g/∂p)Δp + 허용오차 몫)/abs(∂ln Q_fl/∂ln f), g = ln Q_fl − ln Q_th), 출력 적분은 구간 규칙의 해석 미분(∂I/∂S1, ∂I/∂S2)을 적분하고 δv = δI/2v 로 옮긴 뒤
-max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미정이면(`ParameterSet.undetermined`·허용오차 칸 NaN) None. 출력 적분은 분해능이 없으면 이분을 한 번만 하고 `resolution` None
-(값의 수치 오차 추정은 `detail.numeric_v`).
+max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미정이면(`ParameterSet.undetermined`·허용오차 칸 NaN) None. 출력 적분은 분해능이 없으면 수치 목표 sqrt(eps)·v 까지 구간별로 이분하고(예산 = 2v·목표 × 구간 폭/전체 폭) `resolution` None
+(값의 수치 오차 추정은 `detail.numeric_v` -- 실제 오차를 덮는다).
 
 ### 10.3 정의 불가 사유 (`Undefined`, 예외 없음)
 
@@ -1068,7 +1068,7 @@ max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미
 ### 10.5 손계산·오라클 대조 (2026-10-09, 작성자 측 실측 -- 정본 아님)
 
 * 손 RC(오라클 conftest RC: Ra = Rb = 2 kΩ, C = 1 nF, 27 °C): 엔진 th_in = 6.630429e-17 = 4kT(Ra‖Rb)/H0^2 (상대 0.0), 오라클 `.noise` 6.630426e-17(−4.6e-7). fc: 엔진 `noise_flicker_zero`, 오라클 None(`below_f_lo`).
-* 평행 RC 출력 적분(R = 10 kΩ, C = 1 pF): 해석 kT/C 대비 −8.2e-4(허용 1 % -> 분해능 3.2e-7 V 안), −4.5e-8(허용 1e-6).
+* 평행 RC 출력 적분(R = 10 kΩ, C = 1 pF, f_lo = 1 Hz, MOS 없음 -> 분해능 None): 폐형식 6.437404607e-5 V 대 엔진 6.437404606e-5 V(상대 −2.5e-10), 실제 오차 1.6e-14 V ≤ `detail.numeric_v` 4.7e-14 V (70409 점, 0.74 s; 수정 전: 이분 1회로 −6.3 %, numeric_v 4.6e-7 V 가 실제 오차 4.1e-6 V 의 1/9). 다이오드 MOS ‖ C(허용 1e-2 -> 분해능 3.2e-7 V 안 305 점, 1e-4 -> 3019 점).
 * two_stage_ota 봉인 점(ln_idu = −13, 50 µA): 엔진 대 오라클(같은 소자 크기·바이어스, 오라클은 ngspice 자체 동작점) th_in 1.29359e-16 대 1.29531e-16(−0.13 %), excess 1.2565 대 1.2584(−0.15 %), fc 477.4 kHz 대 470.5 kHz(+1.5 %),
   소자별 열 기여 M1 5.1442e-17 대 5.1444e-17, M2 5.1510e-17 대 5.1491e-17, M3 1.2809e-17 대 1.2905e-17, M4 1.3529e-17 대 1.3623e-17.
 * CS + Rf + Cin 폐루프(오라클 conftest FB, 같은 gm·gds): 엔진 3.8283e-4 V(수치 목표 sqrt(eps)·v) 대 오라클 3.8314e-4 V(−0.08 %). LUT 동작점(ID 10.2 µA 대 ngspice 8.7 µA)을 쓰면 4.193e-4 V(+9.4 %).

@@ -11,7 +11,7 @@ v_out = sqrt( ∫_{f_lo}^{f_hi} S_out(f) df + Σ_s kT/C_s·|T_s|² ),  S_out(f) 
 * 상한 f_hi(유도): 가장 높은 극점에서 시작해 주파수를 두 배씩 올리며 꼬리 상계 f·S_out(f)(1극 이상 감쇠에서 ∫_f^∞ S ≤ f·S(f))가 분해능² 이하가 되는 첫 점에서 멈춘다. 두 배 확장 상한
   `k_max(f_top·S_peak, 분해능²)`(1극 포락선 S ≤ S_peak·(f_top/f)² 로 유도 -- `_extend`) -- 못 맞추면 `noise_tail_not_converged`(꼬리 상계를 같이 싣는다; 값을 내지 않는다).
 * 적분은 구간마다 PSD 를 로그-로그로 보간한 멱법칙 적분이다(S = S1·(f/f1)^m, m = ln(S2/S1)/ln(f2/f1) -- 평탄 구간·극점 뒤 -2 기울기 구간에서 정확하다):
-  I = S1·f1·L·exprel(ln(S2/S1) + L), L = ln(f2/f1). 구간마다 중점을 더해 두 반 구간 적분과의 차이/3(Richardson, 오차 O(h²))이 그 구간 예산(분해능 × 구간
+  I = S1·f1·L·exprel(ln(S2/S1) + L), L = ln(f2/f1). 구간마다 중점을 더해 두 반 구간 적분과의 차이(세분 추정의 오차 상계; 점근 오차는 이 차이의 1/3)가 그 구간 예산(분해능 × 구간
   폭/전체 폭) 이하가 될 때까지 이분한다. 이분 횟수 상한 = `k_max(최악 오차/예산, 1)`(오차는 구간 이분마다 1/4, 예산은 1/2). 분해능 전파는 이 적분 규칙의 해석 미분
   (∂I/∂S1, ∂I/∂S2)으로 PSD 의 파라미터 미분을 적분한다.
 * 분해능(metrics §9와 같은 방식): LUT 파라미터 불확실성(`ParameterSet`)의 1차 최악 전파 Σ_p |∂I/∂p|·Δp(∂I/∂p = 격자 적분한 ∂S_out/∂p -- S_k 의 gm 직접 의존 포함) +
@@ -36,7 +36,6 @@ from .noise_types import NoiseAnalysis
 
 FIELD = "out_int_vrms"
 EPS = float(numpy.finfo(float).eps)
-RICHARDSON = 2 ** 2 - 1                     # 구간 적분 오차 O(h²): 구간 이분 한 번의 두 추정 차이 = 3 × 세분 추정의 오차
 OCTAVE = math.log1p(1)                      # ln 2 -- 주파수 두 배 확장 한 걸음(ln(1 + 1))
 
 
@@ -179,11 +178,11 @@ def _extend(setup, cache, x_top, tol_sq):
 
 
 def _refine(setup, cache, tol_i):
-    """구간 이분(Richardson 오차 예산 비례). -> 받아들인 구간 오차 합(I 단위)."""
+    """구간 이분(Richardson 오차 예산 비례). -> (받아들인 구간 오차 합, 이분 상한에서 예산을 못 맞추고 받은 오차 합)(I 단위)."""
     xs = sorted(cache)
     total_width = xs[-1] - xs[0]
     pending = list(zip(xs, xs[1:]))
-    accepted, rounds, done = 0.0, None, 0
+    accepted, rounds, done, capped = 0.0, None, 0, 0.0
     while pending:
         lo = numpy.array([a for a, _b in pending])
         hi = numpy.array([b for _a, b in pending])
@@ -192,18 +191,21 @@ def _refine(setup, cache, tol_i):
         s_lo, s_hi, s_mid = (numpy.array([cache[v] for v in arr.tolist()]) for arr in (lo, hi, mid))
         whole = _rule(lo, s_lo, hi, s_hi)[0]
         halves = _rule(lo, s_lo, mid, s_mid)[0] + _rule(mid, s_mid, hi, s_hi)[0]
-        errors = numpy.abs(halves - whole) / RICHARDSON
+        errors = numpy.abs(halves - whole)          # 세분(반 구간 합) 추정의 오차 ≤ 두 추정의 차이(점근적으로 차이/3 -- 추정이 낮게 잡히지 않게 상계로 쓴다)
         budgets = tol_i * (hi - lo) / total_width
-        if rounds is None:
-            rounds = k_max(max(1.0, float((errors / budgets).max())), 1.0)
+        if rounds is None:                      # 이분 깊이 상한: ln f 축 폭이 그 축 값의 부동소수 해상도에 닿을 때까지
+            rounds = k_max(max(total_width, 1.0), EPS * max(1.0, abs(xs[0]), abs(xs[-1])))
         pending = []
         for e, budget, a, m, b in zip(errors.tolist(), budgets.tolist(), lo.tolist(), mid.tolist(), hi.tolist()):
-            if e <= budget or done + 1 >= rounds:
+            if e <= budget:
                 accepted += e
+            elif done + 1 >= rounds:
+                accepted += e
+                capped += e
             else:
                 pending.extend([(a, m), (m, b)])
         done += 1
-    return accepted
+    return accepted, capped
 
 
 def _contrib(setup, fin):
@@ -233,7 +235,10 @@ def noise_integral(setup):
         if tail > tol_sq:
             raise _Stop((Undefined(FIELD, "noise_tail_not_converged", "numeric",
                                    (("f_hi_hz", math.exp(x_end)), ("tail_bound_v2", tail), ("target_v2", tol_sq))),))
-        quad = _refine(setup, cache, 2 * first["v"] * tol_v if known else math.inf)
+        quad, capped = _refine(setup, cache, 2 * first["v"] * tol_v)
+        if capped > 0:
+            raise _Stop((Undefined(FIELD, "noise_tail_not_converged", "numeric",
+                                   (("quad_err_v2", float(quad)), ("unmet_err_v2", float(capped)), ("target_v", tol_v))),))
         fin = _final(setup, cache)
     except _Stop as stop:
         return NoiseAnalysis(undefined=stop.undefined)
