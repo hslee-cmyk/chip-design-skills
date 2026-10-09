@@ -1119,13 +1119,13 @@ toy 확인(스크래치): 두 극성 입력이 같은 gate 인 4소자 회로에
 - 인증된 블록은 `two_stage_ota_sf` 의 팔로워 하나(블록 안 MOS 하나 + 소자 밖 부하)뿐이다. 어떤 회로에서도 `infeasible` 이 나오지 않는다(정지 0, 모두 exit 0). 인증된 근거가 없다는 뜻이지 달성 가능하다는 보증이 아니다.
 - 합성 회로(소스 팔로워 + 이상 전류원 부하, 게인 ≥ 10 dB)로 정지 경로 확인: `status = infeasible`, exit 3, 사유 `gain_target_above_upper_bound`, Σ 상한 −0.664 dB(+b 0.153).
 - 헤드룸: 모든 창 폭 상한이 레일 폭(1.8 V)에서 VDS 비용 합(0.04~0.08 V)만 뺀 값이다 -- 전도 봉인(`gm·tol_V ≥ I_off`)이 큰 tol_V 칸에서 VGS ≈ 0 행을 통과시켜 VGS 비용 최솟값이 0~0.11 V 다(10.8 의 3).
-## 10. 잡음 metric (설계 41 §7.1·7.3·7.4, 체크리스트 D-NZ3·4, 구현 단위 U8, 2026-10-09)
+## 11. 잡음 metric (설계 41 §7.1·7.3·7.4, 체크리스트 D-NZ3·4, 구현 단위 U8, 2026-10-09)
 
 레지스트리 11개 -> **15개**: `noise_th_in_v2hz`(v2_per_hz)·`noise_fc_in_hz`(hz)·`noise_excess_th`(ratio)·`noise_out_int_vrms`(v) -- 서명(ss, transfer 뷰, 목적 축 없음)은 U5 계산 대기
 서명과 같고 `pending_metrics.PENDING_METRIC_ROWS` 에서 지워 `registry._ROWS` 로 옮겼다(카탈로그 총 23개 그대로, 계산 대기 8개). 결과 형식은 `NoiseAnalysis`(필드 `th_in_v2hz`·`fc_in_hz`·`excess_th`·
 `out_int_vrms` 중 요청한 하나만 채움 + `undefined`·`resolution`·`contrib`·`detail`), `metric_value` 가 그대로 읽는다.
 
-### 10.0 파일·층 (모두 `metrics/`, 각 파일 진입점 1개)
+### 11.0 파일·층 (모두 `metrics/`, 각 파일 진입점 1개)
 
 | 층 | 파일 | 진입점 |
 |---|---|---|
@@ -1139,7 +1139,7 @@ toy 확인(스크래치): 두 극성 입력이 같은 gate 인 4소자 회로에
 | 3 | `noise_analysis.py` | `noise_analysis(field, setup, memo) -> NoiseAnalysis`(`th_in_v2hz`·`fc_in_hz`·`excess_th` + 출력 적분 분기) |
 | search | `search/noise_decl.py` | `noise_decl(spec, s1v) -> NoiseDecl` |
 
-### 10.1 식 (출처 41 §7.3)
+### 11.1 식 (출처 41 §7.3)
 
 * 잡음원: MOS = drain-source 전류 잡음 gm^2·S_vg(f), S_vg = A/f^EF + B(LUT `noise_params` 의 기준 폭 값에 w_m/W 배, gm = 스탬프된 소신호 gm). 저항 = 단측 4kT/R. 커패시터·이상 전류원 = 없음.
   kT = scipy.constants.k × (`JunctionSource.temp_c` + zero_Celsius) -- LUT 측정 온도 = ngspice 온도.
@@ -1156,7 +1156,7 @@ toy 확인(스크래치): 두 극성 입력이 같은 gate 인 4소자 회로에
 * 소자별 기여: `MetricBundle.reports` 의 `noise_contrib:<metric>` = ((소자 이름, (("flicker", ...), ("share", 몫), ("thermal", ...))), ...), 상세 `noise_detail:<metric>`, 개루프 뷰가 있으면
   보고 전용 `noise_report`(th_in·fc 값/정의 불가 사유 -- 41 §7.1 '보고(모든 회로)').
 
-### 10.2 분해능 (MetricResult.resolution, 9절과 같은 방식)
+### 11.2 분해능 (MetricResult.resolution, 9절과 같은 방식)
 
 값 q 의 LUT 몫 = Σ_p abs(∂q/∂p)·Δp(Δp = `ParameterSet.delta`, ∂q/∂p = `noise_transfer` 의 파라미터 미분 -- 수반 y 와 정방향 X = A^-1·E 로 −y^T(∂A/∂p)X 를 한 번의 축약 -- 과 S_k 의 gm 직접 의존
 2·S_k/gm_k 를 같은 파라미터에 부호째 합친 `source_gradient`) + LUT 잡음 칸 허용오차 Σ_k tol_k·(그 성분)(열 성분 `tol_noise.thermal`(ln B 면), flicker `tol_noise.flicker`). excess 는 ln(Q_th/Q_in) 의 미분·몫 차,
@@ -1164,24 +1164,147 @@ corner 는 암시적 미분(δ ln f = (Σ abs(∂g/∂p)Δp + 허용오차 몫)/
 max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미정이면(`ParameterSet.undetermined`·허용오차 칸 NaN) None. 출력 적분은 분해능이 없으면 수치 목표 sqrt(eps)·v 까지 구간별로 이분하고(예산 = 2v·목표 × 구간 폭/전체 폭) `resolution` None
 (값의 수치 오차 추정은 `detail.numeric_v` -- 실제 오차를 덮는다).
 
-### 10.3 정의 불가 사유 (`Undefined`, 예외 없음)
+### 11.3 정의 불가 사유 (`Undefined`, 예외 없음)
 
 `noise_inputs_missing`(extras 에 NoiseInput 없음)·`noise_view_unsupported`(port·transfer 뷰 아님)·`noise_thermal_unknown`(LUT B 미상 -- 설계는 'resolution 무한대로 판정 보류'라 했으나 무한대를 값으로 싣지 않고
 값 없음 + 소자 이름으로 보류한다)·`noise_lut_query_failed`·`noise_device_missing`·`noise_f_lo_undefined`·`noise_input_cell_undefined`·`noise_input_cell_not_in_circuit`·`noise_input_cell_noise_zero`·
 `noise_transfer_view_missing`·`noise_transfer_zero`·`noise_feedback_undeclared`·`noise_feedback_element_unknown`·`noise_feedback_cut_ambiguous`·`noise_sampling_cap_unknown`·`noise_sense_on_fixed_node`·
 `noise_fc_below_f_lo`·`noise_flicker_zero`·`noise_thermal_zero`·`noise_fc_not_found`·`noise_tail_not_converged`·`noise_psd_not_positive`·`noise_nonfinite_*`·`singular_mna`.
 
-### 10.4 배선
+### 11.4 배선
 
 * `ss_evaluate(..., noise_decl=None)`: 잡음 요청이 있을 때만 `noise_devices` 로 `NoiseInput` 을 만들어 `metrics_ss` 의 세 번째 extras 로 넘긴다(블록 입력 버전에 든다 -- 같은 입력이면 재사용).
 * `metrics_ss`: 잡음 요청의 계 키를 `_Ledger` 에 올린다(개루프 = `_plan` 과 같은 키 -> gain 과 한 계, 폐루프/개루프 출력 = `ledger.full((), free)`), 한 번의 `solve_responses` 뒤 `noise_analysis`. `READS` 는 늘리지 않았다.
 * `search.build_search_context(..., s1v=None)`: `noise_decl(spec, s1v)` 를 `SearchContext.noise_decl` 에 두고 `kernel.evaluate` 가 `ss_evaluate(..., noise_decl=)` 로 넘긴다. 잡음 제약(값 있는 판정 제약)이 있으면
   시작 때 `lut.require_lut_data(noise=True)` 로 `noise_lut_missing` 거부. 판정 행은 기존 `ss_constraint_rows` 가 그대로 만든다(c = (값 − 목표)/분해능).
 
-### 10.5 손계산·오라클 대조 (2026-10-09, 작성자 측 실측 -- 정본 아님)
+### 11.5 손계산·오라클 대조 (2026-10-09, 작성자 측 실측 -- 정본 아님)
 
 * 손 RC(오라클 conftest RC: Ra = Rb = 2 kΩ, C = 1 nF, 27 °C): 엔진 th_in = 6.630429e-17 = 4kT(Ra‖Rb)/H0^2 (상대 0.0), 오라클 `.noise` 6.630426e-17(−4.6e-7). fc: 엔진 `noise_flicker_zero`, 오라클 None(`below_f_lo`).
 * 평행 RC 출력 적분(R = 10 kΩ, C = 1 pF, f_lo = 1 Hz, MOS 없음 -> 분해능 None): 폐형식 6.437404607e-5 V 대 엔진 6.437404606e-5 V(상대 −2.5e-10), 실제 오차 1.6e-14 V ≤ `detail.numeric_v` 4.7e-14 V (70409 점, 0.74 s; 수정 전: 이분 1회로 −6.3 %, numeric_v 4.6e-7 V 가 실제 오차 4.1e-6 V 의 1/9). 다이오드 MOS ‖ C(허용 1e-2 -> 분해능 3.2e-7 V 안 305 점, 1e-4 -> 3019 점).
 * two_stage_ota 봉인 점(ln_idu = −13, 50 µA): 엔진 대 오라클(같은 소자 크기·바이어스, 오라클은 ngspice 자체 동작점) th_in 1.29359e-16 대 1.29531e-16(−0.13 %), excess 1.2565 대 1.2584(−0.15 %), fc 477.4 kHz 대 470.5 kHz(+1.5 %),
   소자별 열 기여 M1 5.1442e-17 대 5.1444e-17, M2 5.1510e-17 대 5.1491e-17, M3 1.2809e-17 대 1.2905e-17, M4 1.3529e-17 대 1.3623e-17.
-* CS + Rf + Cin 폐루프(오라클 conftest FB, 같은 gm·gds): 엔진 3.8283e-4 V(수치 목표 sqrt(eps)·v) 대 오라클 3.8314e-4 V(−0.08 %). LUT 동작점(ID 10.2 µA 대 ngspice 8.7 µA)을 쓰면 4.193e-4 V(+9.4 %).
+* CS + Rf + Cin 폐루프(오라클 conftest FB, 같은 gm·gds): 엔진 3.8283e-4 V(수치 목표 sqrt(eps)·v) 대 오라클 3.8314e-4 V(−0.08 %). LUT 동작점(ID 11.2 µA 대 ngspice 8.7 µA)을 쓰면 4.193e-4 V(+9.4 %).
+
+
+
+---
+
+## 12. U7 -- 블록 gain 모델·잔차, offset·미러비·스윙·ICMR·FF 비, 대신호 필드 (단위 U7, 2026-10-09)
+
+설계: 40 §3.8(·§3.8-8 metric 표), 41 §2(블록 모델·잔차), §1.12.2(FF), §4.6(y_icm). 체크리스트 FR-2, DEC-05·23·58·66·72·96, D-BM, D-SG, D-GB8a~c, D-OF1~3, D-MR, D-SW, D-ICM, D-J2, D-J5.
+아래 서명·사유 코드·단위가 test 작성자의 인터페이스다. 설계와 다르게 정한 점은 12.9.
+
+### 12.0 파일·층·진입점 (`_module_map.py` 가 정본)
+
+| 파일 | 진입점 | 내용 |
+|---|---|---|
+| `aux_types.py` | (데이터) | 결과·구조 입력 frozen 레코드(12.1) |
+| `_helpers_nodal.py` | `conductance_matrix`, `nodal_factor`, `nodal_solve`, `nodal_adjoint` | ω → 0 노달 풀이(용량 열린 회로, 전도 경로 있는 노드), LU 1회, 정방향·수반 |
+| `_helpers_view.py` | `view_system`, 상수 `PARAMETER_ORDER` | 전달 뷰 -> (고정 노드, 구동, 관측 벡터, 여기 쌍, 감지 쌍) |
+| `metric_structure.py` | `metric_structure(s1v) -> MetricStructure` | S1v -> 주경로 블록 사슬·FF 묶음·입력 셀·신호 셀·극점 노드·방향 셀 |
+| `device_sigma.py` | `device_sigmas(lut, mismatch, devices)` | 소자별 σ_VGS(U3 `mismatch_sigma_vgs`)와 tol_mismatch 1차 전파 |
+| `offset_analysis.py` | `offset_analysis(ss, view, sigmas, input_cells, rel_tols, matching) -> OffsetAnalysis` | `offset_in_sigma_mv`·`offset_excess`·`offset_contrib` |
+| `offset_systematic.py` | `offset_systematic(ss, view, node_v, targets, node_tol_v) -> OffsetSystematic` | `offset_sys_mv` |
+| `mirror_ratio.py` | `mirror_ratio(groups, roles, gm_id, sigmas) -> MirrorRatio` | `mirror_ratio_sigma_pct` |
+| `ls_swing.py` | `ls_swing(devices, rails, node_v, outputs, inputs, diff_outputs, input_dc_v) -> SwingIcmr` | `swing_out_v`·`icmr_v`·`icm_margin_v` |
+| `ls_fields.py` | `ls_fields(ss, vstruct, ops, volts, bounds, lut, rel_tols, driving, outputs) -> LsFields` | 슬루 등가 용량 `c_slew_farad`·방향별 최대 전류 |
+| `nqs_ratio.py` | `nqs_ratio(devices, ugf_hz) -> NqsRatio` | ugf / 신호 경로 최소 f_T |
+| `block_model.py` | `block_local_gain(ss, block, drive, others, exclude, extra) -> BlockGain` | 블록 국소 gain·Z_out·노드 전압 |
+| `block_residual.py` | `block_residual(ss, view, vstruct) -> BlockResidual` | 분해 합성 A_decomp·`gain_residual_db`·FF 기여·rout 잔차 |
+| `ff_gm_ratio.py` | `ff_gm_ratio(ss, vstruct, rel_tols) -> FfRatio` | `ff_gm_ratio` |
+| `coupled_residual.py` | `coupled_residual(residuals_db) -> CoupledResidual` | r̂(중앙값)·r̂_spread |
+| `sensitivity_gate.py` | `sensitivity_gate(base, runs) -> GateResult` | 감도 게이트 판정 |
+| `verified_by.py` / `model_error.py` | `verified_by(metric)` / `model_error_pairs(derived)` | 검증 출처·모델 오차 읽기 |
+| `metrics_aux.py` | `metrics_aux`(`@compute_block`, writer `metrics_aux`, 필드 `graph.metrics_aux`) | 위 함수들을 봉인 스냅샷에 배선 |
+| (search) `residual_probe.py`, `gate_run.py`, `ls_constraints.py` | `residual_probe`, `run_sensitivity_gate`, `ls_constraint_rows` | 결합 잔차 측정, 게이트 실행, driving_spec 제약 행 |
+
+레지스트리(`registry._ROWS`)에 옮긴 8행(서명은 `pending_metrics` 와 같다): `offset_in_sigma_mv`(mv, ss, transfer) -> `OffsetAnalysis.sigma_in_mv`, `offset_excess`(ratio, ss, transfer) -> `.excess`,
+`offset_sys_mv`(mv, ss, transfer) -> `OffsetSystematic.sys_mv`, `mirror_ratio_sigma_pct`(pct, ss, 뷰 없음) -> `MirrorRatio.sigma_pct`, `swing_out_v`·`icmr_v`·`icm_margin_v`(v, ls, 뷰 없음) ->
+`SwingIcmr.*`, `ff_gm_ratio`(ratio, ss, transfer) -> `FfRatio.ratio`. `pending_metrics.PENDING_METRIC_ROWS` 에는 잡음 4행만 남는다(U8).
+`core.units`: `MV_PER_V = 1000.0`, `PCT_PER_UNIT = 100.0`(정의 환산 계수) 추가, `core.__all__` 에 내보냄. `graph.__all__` 에 `BLOCK_BUFFER`·`BLOCK_GAIN`·`CELL_OFF`·`DIR_BETA`·`DIR_KAPPA`·`DIR_SIGMA`·`NMOS`·
+`PMOS`·`ROLE_INPUT`·`VIEW_TRANSFER` 추가. sizing: S2 writer `metrics_aux`(`METRICS_AUX_WRITER`, 필드 `("graph", "metrics_aux")`) 추가.
+
+### 12.1 입력 형식
+
+* `ss` = `SsCircuit`(`ss_circuit`), `view` = authoring `ViewDecl`(mode port·transfer·β=1 loop), 노드 = `ss.nodes` 위치 정수.
+* `sigmas` = ((라벨, σ_VGS V, σ tol V 또는 None), ...) **모든 MOS**. `rel_tols` = {라벨: (gm/ID)·tol_V 또는 None}(= `SsDevice.lut_rel_tol`).
+* `groups` = ((표지, 멤버 tuple), ...) mirror 계열 그룹(S1 `matching_groups` kind mirror ∪ `matching_dispositions` bias_distribution), `roles` = ((소자, DC 역할), ...).
+* `devices`(ls_swing) = `SatDevice(label, polarity ±1, d, g, s, vgs_v, sat_v, sat_tol_v, vgs_tol_v, linear)` -- `sat_v` = VDSAT + tol_vdsat(LUT `vdsat`·`tol_vdsat_table`), None 이면 `sat_unavailable`.
+* `MetricStructure` = `ViewStruct(id, excite, sense, blocks[BlockStruct], ff[FfStruct], input_cells, signal_devices, pole_nets, directions)` 의 tuple. `ss_evaluate(structure=)` 와
+  `build_search_context(s1v=)` 로 들어온다. 구조 입력이 없으면 offset_excess 입력 셀·FF 비·블록 잔차는 정의 불가(조용히 통과하지 않는다).
+
+### 12.2 `offset_analysis` (40 §3.8-8, D-OF1·D-OF2)
+
+σ²_in = Σ_i (Z_i·gm_i·σ_VGS,i)² / A_dm². 뷰의 고정 노드 = 교류접지 ∪ 입력 포트 ∪ 뷰 구동 넷(`metrics_ss` 와 같은 계), A_dm = 뷰 여기(차동 ±1/|D|)에서 관측(감지 쌍의 차) DC 값(부호 포함),
+Z_i = z[s_i] − z[d_i], z = 관측 벡터의 수반 풀이(LU 1회 -- 소자마다 풀지 않는다). `sigma_in_mv` = σ_in × `MV_PER_V`. `excess` = σ_in / (입력 셀 소자만의 같은 합 σ) -- 입력 셀 = S1v 첫 이득 블록(최소 stage)의
+`input` 역할 MOS. 입력 셀이 없으면 None + `Undefined("excess", "input_cells_undeclared")`, 분산 0 이면 `input_cell_variance_zero`. 정의 불가 사유(quantity `sigma_in_mv`): `unsupported_view`(mode),
+`sense_fixed`, `sigma_missing`(devices), `singular_dc`, `gain_zero`. `contrib` = 분산 점유율 큰 순 `OffsetContribution(device, variance_v2, share, sigma_vgs_v, z_ohm, matching)`.
+**분해능**: LUT 소신호 허용오차(gm·gmb·gds 를 한 파라미터씩 +ε_i·|p|)의 1차 수반 갱신 |Δσ| 합 + mismatch σ_i +tol_mismatch 의 닫힌 식 |Δσ| 합, 풀이 상대 잔차 × σ_in 바닥(부동소수 해상도). 허용오차가 없는 소자가 있으면 None.
+검증(작성자 측, 정본 아님): 소자별 섭동 DC 재풀이(전체 G 행렬 직접 풀이, 수반과 다른 방법)와 두 회로에서 1e-15 상대 일치.
+
+### 12.3 `offset_systematic` (D-OF3)
+
+출력 오차 = 감지 쌍이면 V_dc(p) − V_dc(n), 감지 하나면 V_dc(out) − spec `node_voltage_targets_v` 의 그 넷 목표(없으면 `reference_undeclared`). `sys_mv` = |오차| / |A_dm| × `MV_PER_V`(부호 있는 오차는 `output_error_v`).
+분해능 = (오차를 이루는 넷들에 채널 단자가 닿은 MOS 의 `dc_tol_v` 합) / |A_dm|. 사유: `unsupported_view`, `output_dc_missing`, `reference_undeclared`, `singular_dc`, `gain_zero`.
+
+### 12.4 `mirror_ratio` (D-MR)
+
+그룹마다 기준 diode(DC 역할 `ROLE_DIODE` 또는 복합 diode 의 기준 멤버 `ROLE_DIODE_COMPOSITE`; 복합 캐스코드 멤버 `ROLE_DIODE_COMPOSITE_CASCODE` 는 기준이 아님)가 있으면 (기준, 나머지) 쌍, 없으면 멤버 전쌍. σ(ΔI/I) = √((gm/ID_a·σ_a)² + (gm/ID_b·σ_b)²) -- 두 gm/ID 가 같으면 설계 표의 (gm/ID)·√2·σ 와 같다.
+값 = 모든 그룹·쌍의 최댓값 [pct]. `groups` 표 = (표지, 멤버, 기준 소자들, 그룹 최대 σ pct). 사유: `no_mirror_group`, `sigma_missing`.
+
+### 12.5 `ls_swing` (D-SW·D-ICM·D-J5)
+
+경로 합 = 차분 제약계의 가장 긴 경로. 제약: 채널 NMOS V_d − V_s ≥ sat, PMOS V_s − V_d ≥ sat(`linear` 소자 제외); VGS 엣지 V_g − V_s = polarity·|VGS|(양쪽) -- 전류가 바깥 회로로 고정되는 소자
+(source 가 레일이 아닌 소자 = follower·차동쌍, 또는 gate = drain diode)에만; 수동소자 엣지 없음. 모든 노드의 출발 구간 = [rail_min, rail_max](레일 밖 불허). Bellman–Ford 노드 수 + 1 회.
+`swing_out_v` = 단일 2·min 반폭, 차동 출력 쌍 4·min 반폭(출력마다 min(hi − V_dc, V_dc − lo)); `icmr_v` = min hi − max lo(입력 포트 넷들, 빈 창은 음수 폭); `icm_margin_v` = min(V_icm − lo, hi − V_icm),
+V_icm = `input_dc_v`(선언) 또는 입력 DC 대기(SP-2)면 봉인 해의 입력 넷 전압(y_icm) -- 이때 `input_dc == "pending"` 이고 `required_input_cm_v = (V_icm, lo, hi)` 도 낸다. `out_ranges`·`window`·`bounds` 레코드.
+사유: `no_output_port`, `no_input_port`, `sat_unavailable`(devices), `node_v_missing`(nets) -- 세 metric 모두 같은 사유.
+**분해능**: 가장 긴 경로를 따라 엣지 허용오차(채널 = tol_vdsat, VGS 엣지 = 그 소자 `dc_tol_v`) 누적; swing = (2 또는 4) × 구속 쪽, icmr = 하한 누적 + 상한 누적, margin = 구속 쪽.
+손계산 toy(작성자 측): CS+전류원 부하(sat 0.2/0.25, V_o 0.9, 레일 0~1.8) -> 구간 [0.2, 1.55] swing 1.3; 캐스코드(0.2, 0.3) -> lo 0.5 swing 0.8; NMOS follower(VGS 0.5, 싱크 sat 0.15) -> [0.15, 1.3] swing 1.0,
+입력 창 [0.65, 1.8]; 차동 쌍 대칭 -> swing = 4 × 0.65.
+
+### 12.6 블록 모델·잔차·FF (41 §2, D-BM·D-J2)
+
+`block_local_gain`: 미지수 = 블록 소유 노드(블록 노드 − 입력), 입력 넷은 `drive` 로 구동(생략 = 단위 구동: 입력 하나 1 V, 둘 ±1/2 V 이름순), 블록 밖(`others` = 다른 블록 노드)·접지 = 0.
+스탬프 소자 = **netlist 인접**(소유 노드에 채널·저항 단자가 닿는 MOS·저항) -- S1v `roles` 가 아니다(버퍼 블록의 부하 소자도 같은 규칙으로 붙는다, 12.9 (3)). 소유도 접지도 다른 블록도 아닌 넷은 미지수로 폐포(Rz–Cc 중간 넷, FF 내부 넷).
+`exclude` = FF 묶음 소자(주경로 블록에서 뺀다), `extra` = merge 블록에 합류시킬 FF 소자. 산출 `BlockGain(gain 부호 있음, gain_db, zout_ohm, node_v, members, decomposed_only, solve_residual)`.
+`block_residual`: 주경로 사슬을 **앞 블록의 해 전압을 다음 입력으로** 이어 푼다(`gain_residual_db` = 전회로 DC 이득 dB − 20·log10|A_decomp|). FF: A_decomp = FF 소자를 merge 블록 해에 넣고 탭 전압(사슬 해)으로 구동한 사슬의 감지값.
+FF 소자는 merge 블록 국소 모형에 항상 들어간다(gds 부하 = Z_merge 의 일부, 블록 gain·Z_out 에 반영). `ff_contrib` = 경로 항 A_in→tap·G_ff·Z_merge = (그 묶음 탭만 구동한 사슬 − 구동 없는 사슬) 감지값 (`gain_db`, `sign` 주경로와 같은 방향 +1/반대 −1). `rout_residual_ohm` = 전회로 rout − 감지 넷을 출력으로 갖는 마지막 블록의 Z_out(FF 부하는 이 잔차에 나타난다).
+`ff_gm_ratio`: r_ff = |G_ff| / gm_in(B_b), G_ff = B_b 입력(차동 1 V) -> merge 단락 전류(B_b 국소 해 + FF 소자, merge 접지)의 크기, gm_in = B_b input 셀 gm 평균; 값 = 묶음 r_ff 최댓값, `per_ff` 표.
+작성자 측 9회로 중 5회로 실측은 12.8. DC 극한이라 닫힌 선형 분해이므로 정상 회로의 잔차는 부동소수 바닥(0.0 dB)이다 -- 잔차가 0 이 아닌 회로는 '블록을 가로지르는 되먹임'이나 구조 모형 누락의 신호다.
+
+### 12.7 `metrics_aux` 배선과 소비 경로
+
+* `ss_evaluate(..., mismatch=None, structure=None, driving=None)`: 레지스트리 결과 형식이 `AUX_TYPES` 인 제약 metric 은 `metrics_ss` 가 아니라 `metrics_aux` 가 계산하고, 두 묶음의 `entries`·`reports` 를 합친 `MetricBundle` 이
+  `SsEvaluation.ss` 로 나간다(aux 가 안 돌면 `metrics_ss` 묶음 그대로). `structure` 가 있으면 전달 뷰 제약마다 보고 `block_residual`·`nqs_ratio` 를 항상 낸다(`REPORT_BLOCK_RESIDUAL`).
+* 보고(`reports`): `block_residual`(view, gain_residual_db, full_gain_db, decomposed_gain_db, rout_residual_ohm, solve_residual, read_devices, block_gain[(키, dB, Z_out, 분해값표시)], ff_contrib[(id, dB, 부호)]),
+  `nqs_ratio`, `offset_contrib`, `swing_icmr`, `mirror_ratio`, `ff_gm_ratio`, `ls_fields`(driving 선언 시, `REPORT_LS_FIELDS`).
+* search: `build_search_context(..., s1v=None, model_error=())` -- `s1v` 로 구조 입력을 S0 당 1회 만들고 `MismatchSource.from_decl(pdk_decl)` 을 매 평가 넘긴다. `ctx.ss_constraints` 에 `AUX_TYPES` metric(뷰 없는 swing·mirror 포함)이
+  들어가 `ss_constraint_rows` 가 판정한다(행 `ss:<k>:<metric><op>`). `kernel.evaluate` 가 S3 evals 줄에 `block_residual` 을 쓴다. `driving_spec` 이 있으면 `ls_constraint_rows` 가 `ls:<net>:<방향>:slew_rate>=`·
+  `ls:load_peak_amp>=` 행을 낸다. `find_front` 가 최종 front 첫 점에서 `run_sensitivity_gate` 를 돌려 notes 에 `sensitivity_gate` 를 남긴다. `residual_probe(sctx, count)` 는 B1 결합 잔차 측정(소비자 = U15).
+
+### 12.8 실측 (작성자 측, 정본 아님. 손 점 = layer0 중심 θ 의 ln IDu·전류를 gm/ID 12·전류 20 µA 로 다시 잡은 봉인 점; LUT v2 + mismatch r1)
+
+| 회로 | 점 | gain_residual_db | offset_in σ [mV] | offset_excess | swing [V] | icmr [V] | icm_margin [V] | FF r_ff |
+|---|---|---|---|---|---|---|---|---|
+| two_stage_ota | gm/ID 12 | 0.0 | 1.94 | 1.154 | 1.488 | 0.343 | 0.171 | -- |
+| folded_cascode | gm/ID 16 | 0.0 | 1.96 | 1.545 | 0.733 | 0.923 | 0.418 | -- |
+| ngcc_3stage_ff | gm/ID 12 | 0.0 (주경로 124.4 dB, FF 둘 −1 부호 114.8·114.7 dB) | 1.88 | 2.008 | 1.492 | 0.439 | 0.198 | ND->Vout 0.330, V1->Vout 0.911 |
+| nmcnr_amplifier | 상자 중심 | −5.7e-14 | 0.78 | 18.5 | 0.691 | 0.438 | 0.198 | -- |
+| common_gate_amplifier | gm/ID 12 | 0.0 | 1.15 | 1.151 | 0.817 | 1.347 | 0.552 | -- |
+| pushpull_follower_buffer | layer0 시작점 | 0.0 (S1v roles 만이면 −0.031 dB) | 2.69 | 정의 불가(input 셀 없음) | 0.557 | 0.849 | 0.278 | -- |
+| two_stage_ota_sf | layer0 시작점(퇴화: pA 전류) | 0.0 (버퍼 블록 −1.76 dB 포함 3블록) | 1.67 | 1.000 | 1.142 | 1.406 | 0.644 | -- |
+| current_reuse_telescopic_ota · sf_pushpull_output_opamp | 봉인 점 없음(층 0 시작점 평가 800 회에도 `start_lut_query_failed`, 시작점은 U13 몫) | -- | -- | -- | -- | -- | -- | -- |
+
+### 12.9 설계와 다르게 정한 점·열린 항목
+
+1. **VGS 엣지 적용 범위**: 설계 문구 'VGS 엣지 = 그 전류의 VSB 포함 VGS' 를 모든 MOS 에 걸면 CS 구동 소자의 게이트가 0 폭으로 굳는다. 전류가 바깥 회로로 고정된 소자(source 가 레일 아님, 또는 diode)에만 건다(12.5).
+2. **swing 의 기준**: 경로 합(설계 문구)이다. 봉인 점의 실제 바이어스 노드 전압으로 재는 선형화(U4 `saturation_window` 방식)와 캐스코드에서 다르다(경로 합이 낙관적). 오라클 `.dc` 스윕 대조(D-OR5)가 어느 쪽이 맞는지 가린다.
+3. **버퍼 블록 부하 부착**: 블록 국소 모델은 S1v `roles` 가 아니라 netlist 인접으로 소자를 고른다 -- 버퍼 블록도 이득 블록과 같은 규칙이 된다(U10 관찰). 용량(CL)은 ω → 0 극한에서 열려 있어 DC 이득·Z_out 에 영향이 없으므로
+   부착하지 않는다(주파수 의존 양을 블록 모델에 넣을 때 같이 붙인다). 이 규칙은 graph 파일을 고치지 않고 metrics 쪽에서 닫았다.
+4. **mismatch σ 의 W**: U3 `mismatch_sigma_vgs` 는 W 를 모델 bin 폭으로도 쓴다(W ≤ 100 µm bin). W 가 그 L 의 최대 bin 폭을 넘으면 같은 L 의 최대 bin 폭 이하 finger n = ceil(W / w_top)개로 나눠 σ_finger/√n 으로 환산한다
+   (`device_sigma._sigma`, 레이아웃 전 가정). bin 이 L 로도 없으면 원래대로 후보 실패(`lut_mismatch_no_block`).
+5. `ff_gm_ratio` 값은 크기 비 |G_ff|/gm_in 이다(경로 부호는 `ff_contrib.sign`), 묶음이 여럿이면 최댓값(제약 연산자와 무관) -- 묶음별 값은 `per_ff`/보고.
+6. `icm_margin_v` 의 SP-2 대기: 설계 D-ICM 표('input_dc_pending')와 41 §4.6 J-E('y_icm 으로 계산 + required_input_cm_v')가 다르다 -- J-E 를 따른다.
+7. `residual_probe` 의 표본 수율: 상자 전체 Halton 점은 대부분 봉인되지 않는다(two_stage_ota 38 평가 0 봉인) -- 앵커(층 0 시작점) 주변 표본이 필요하다(U13·U15).

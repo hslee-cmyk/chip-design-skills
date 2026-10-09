@@ -20,6 +20,7 @@ import types
 
 from gmid_engine.core import MetricSignature
 
+from .aux_types import FfRatio, MirrorRatio, OffsetAnalysis, OffsetSystematic, SwingIcmr
 from .mna_types import AreaSearch, LoopAnalysis, OutputResistance, ResponseRatio, SupplyCurrents
 from .noise_types import NoiseAnalysis
 
@@ -51,6 +52,15 @@ _ROWS = (
     ("noise_fc_in_hz", "hz", "ss", "transfer", None, NoiseAnalysis, "fc_in_hz"),
     ("noise_excess_th", "ratio", "ss", "transfer", None, NoiseAnalysis, "excess_th"),
     ("noise_out_int_vrms", "v", "ss", "transfer", None, NoiseAnalysis, "out_int_vrms"),
+    # [U7] offset·미러비·스윙·ICMR·FF 비(설계 40 §3.8-8) -- 계산 대기 표(pending_metrics)에서 옮겨 왔다(서명 동일)
+    ("offset_in_sigma_mv", "mv", "ss", "transfer", None, OffsetAnalysis, "sigma_in_mv"),
+    ("offset_excess", "ratio", "ss", "transfer", None, OffsetAnalysis, "excess"),
+    ("offset_sys_mv", "mv", "ss", "transfer", None, OffsetSystematic, "sys_mv"),
+    ("mirror_ratio_sigma_pct", "pct", "ss", None, None, MirrorRatio, "sigma_pct"),
+    ("swing_out_v", "v", "ls", None, None, SwingIcmr, "swing_out_v"),
+    ("icmr_v", "v", "ls", None, None, SwingIcmr, "icmr_v"),
+    ("icm_margin_v", "v", "ls", None, None, SwingIcmr, "icm_margin_v"),
+    ("ff_gm_ratio", "ratio", "ss", "transfer", None, FfRatio, "ratio"),
 )
 
 

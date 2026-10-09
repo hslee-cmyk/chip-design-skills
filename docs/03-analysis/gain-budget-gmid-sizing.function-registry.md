@@ -647,7 +647,7 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 
 ## 12. 새 엔진(`gmid_engine.metrics` GB4 · `search.count_budget`) 달성가능성 정본 (2026-10-09, 단위 U9 -- 새로 만들기 전에 여기 먼저)
 
-계약: `gmid_engine/metrics/CONTRACT.md` 10절, `pipeline/CONTRACT.md` 5절, `search/CONTRACT.md` U9절. 설계 41 §4, 40 §3.4.
+계약: `gmid_engine/metrics/CONTRACT.md` 10절(GB4), `pipeline/CONTRACT.md` 5절, `search/CONTRACT.md` U9절. 설계 41 §4, 40 §3.4.
 
 | 개념 | 정본 | 비고 |
 |---|---|---|
@@ -661,7 +661,7 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 구조 DOF 이분 매칭 | `metrics.dof_report` | 변수·등식 조립은 `achievability` 의 `_dof`(비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ 저항 / 소자 식·저항 강하·선언 노드 목표·입력 동일 DC) |
 | 단계 B 진입점 | `pipeline.run_stage_b` | 단계 A 결과 위에서 한 번. exit 3 정지와 보고서 `<회로>.stage_b.json` |
 
-## 11. 새 엔진 잡음 metric 정본 (2026-10-09, 구현 단위 U8 -- 설계 41 §7.1·7.3, 계약 `gmid_engine/metrics/CONTRACT.md` 10절)
+## 11. 새 엔진 잡음 metric 정본 (2026-10-09, 구현 단위 U8 -- 설계 41 §7.1·7.3, 계약 `gmid_engine/metrics/CONTRACT.md` 11절)
 
 새 함수를 쓰기 전에 이 표를 먼저 본다. 잡음 계산을 다른 곳에서 다시 만들지 않는다.
 
@@ -676,3 +676,16 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 폐루프 모드 구조(spec feedback -> 자유 입력 넷) | `metrics.noise_plan` | authoring `_feedback_cuts` 와 같은 규칙(입력 포트 쪽 단자 정확히 하나) |
 | 잡음 선언(spec feedback·샘플링 커패시터·S1v 입력 셀) | `search.noise_decl` | 입력 셀 = S1v 전달 뷰의 첫 이득 블록 input 소자. 이름이 아니라 구조 |
 | 잡음 데이터 필수 검사 | `search.build_search_context` -> `lut.require_lut_data` | 잡음 제약이 있으면 시작 때 `noise_lut_missing` |
+
+## 14. 새 엔진 offset·미러비·스윙·ICMR·FF 비·블록 잔차 정본 (2026-10-09, 구현 단위 U7 -- 계약 `gmid_engine/metrics/CONTRACT.md` 12절)
+
+새 함수를 쓰기 전에 이 표를 먼저 본다. 8개 metric 은 `metrics.registry`(결과 형식 `aux_types`)에 있고 계산 블록 `metrics.metrics_aux` 가 계산한다(`ss_evaluate` 가 `AUX_TYPES` 로 분류).
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| offset σ_in·초과·계통 offset | `metrics.offset_analysis`·`metrics.offset_systematic` | 소자 σ 는 `metrics.device_sigmas`(lut `mismatch_sigma_vgs`) |
+| 미러비 σ | `metrics.mirror_ratio` | matching 그룹별 |
+| 출력 스윙·ICMR | `metrics.ls_swing`, 대신호 필드 `metrics.ls_fields` | 제약 `ls_constraints`(`search.ls_constraints`) |
+| FF 비·블록 잔차·NQS 비 | `metrics.ff_gm_ratio`·`metrics.block_residual`·`metrics.nqs_ratio` | 블록 국소 모델은 `metrics.block_model.block_local_gain`(서브모듈; 패키지 속성 `metrics.block_model` 은 U9 `block_gain_model.block_model` 함수다 -- 이름 충돌, `metrics/__init__.py` 주석) |
+| 구조 사실(offset 입력 셀·FF·블록) | `metrics.metric_structure` | S1v 에서 파생 |
+| 모델 오차 쌍 | `metrics.model_error_pairs` | `build_search_context(model_error=)` |

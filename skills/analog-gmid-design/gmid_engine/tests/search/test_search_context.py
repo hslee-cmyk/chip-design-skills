@@ -112,12 +112,12 @@ def test_junction_built_once_per_context(tmp_path, lut_sealed):
 
 # ---------------------------------------------------------------- [U5 2026-10-08] 계산 대기 metric 제약
 # oracle (d) metrics CONTRACT 3.15 문장: '탐색 문맥(build_search_context)은 판정 제약 중 카탈로그에만 있는 이름을 constraint_notes 에
-# unmeasured/metric_computation_pending 으로 남긴다' + (a) 이름은 설계 40 §3.8-8·41 §7.1 어휘, 회로 C 는 손 회로.
+# unmeasured/metric_computation_pending 으로 남긴다' + (a) 이름은 설계 41 §7.1 어휘, 회로 C 는 손 회로.
 # ss_constraints 에 들어가면 측정 못 하는 행이 탐색 판정에 섞인다 -- 그래서 '들어가지 않는다'가 핵심 단정이다.
-# [U8 2026-10-09] 잡음 4개는 레지스트리로 옮겨졌다(metrics CONTRACT 10절) -- 계산 대기 자리는 아직 대기인 이름(offset_sys_mv·icmr_v, 40 §3.8-8 표)으로 바꾼다.
-# 잡음 제약 분류는 아래 U8 절 test 가 본다.
-PENDING_CONS = (("offset_excess", "<=", 2 ** 0.5, None), ("offset_sys_mv", "<=", 2.0, None),
-                ("swing_out_v", ">=", 0.5, None), ("icmr_v", ">=", 0.3, None))
+# [U7+U8 통합 2026-10-09] 계산 대기 이름이 하나도 남지 않았다(U8 이 잡음 4개, U7 이 나머지 8개를 레지스트리로 옮겼다 -- metrics CONTRACT 10.0·11절,
+# `PENDING_METRIC_ROWS` 빈 tuple). 아래 두 test 는 계산 대기 이름이 생길 때를 위해 PENDING_CONS 만 비우고 그대로 둔다(현재는 반복할 이름이 없어 헐겁다).
+# 잡음 제약 분류는 U8 절, offset·스윙·FF 비는 U7 절 test 가 본다.
+PENDING_CONS = ()
 
 
 def test_pending_metric_constraints_noted_not_searched(tmp_path, lut_sealed):
@@ -144,19 +144,32 @@ def test_pending_metric_notes_do_not_touch_registry_rows(tmp_path, lut_sealed):
     assert all(n.get("reason") == "metric_computation_pending" for n in extra)
 
 
+# ---------------------------------------------------------------- [U7 2026-10-09] 계산이 들어온 offset·스윙·FF 비 제약
+# oracle (d) metrics CONTRACT 10.7: '`ctx.ss_constraints` 에 `AUX_TYPES` metric(뷰 없는 swing·mirror 포함)이 들어가 `ss_constraint_rows` 가
+# 판정한다'. 설계 40 §3.8-8 판정 위치 '다른 metric 과 같이 외층 전회로 계산 한 곳(DEC-74)' -- 계산 대기 노트(metric_computation_pending)로
+# 남으면 판정이 조용히 빠진다. 옛 기대(계산 대기 노트)는 U7 이 계산을 넣어 대체된 동작이다.
+AUX_CONS = (("offset_excess", "<=", 2 ** 0.5, None), ("swing_out_v", ">=", 0.5, None), ("mirror_ratio_sigma_pct", "<=", 1.0, None),
+            ("ff_gm_ratio", ">=", 1.0, None))
 
-def test_ff_gm_ratio_constraint_noted_computation_pending(tmp_path, lut_sealed):
-    """[U5 후속 2026-10-09] ff_gm_ratio(40 §3.8-8, 값 계산은 §11 J 추가 범위 U7) 는 카탈로그에만 있는 계산 대기 이름 --
-    oracle (d) SPEC_CONTRACT 6절 끝 '탐색 문맥이 constraint_notes 에 unmeasured/metric_computation_pending 으로 남긴다'.
-    ss_constraints·judged_constraints 에 들지 않는다(측정 못 하는 행이 탐색 판정에 섞이지 않음)."""
+
+def test_aux_metric_constraints_enter_ss_constraints(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=AUX_CONS + (("gain_ss_db", ">=", 10.0, None),))
+    s = case.sctx
+    assert sorted(c.metric for c in s.ss_constraints) == sorted([m for m, *_ in AUX_CONS] + ["gain_ss_db"])
+    assert not {m for m, *_ in AUX_CONS} & {x[0] for x in s.judged_constraints}
+    assert not any(n.get("reason") == "metric_computation_pending" for n in _notes(s))
+    assert not any(n.get("reason") == "metric_not_in_registry_or_no_ss_view" and any(m in repr(n) for m, *_ in AUX_CONS)
+                   for n in _notes(s))
+
+
+def test_ff_gm_ratio_constraint_judged_not_pending(tmp_path, lut_sealed):
+    """[U7] ff_gm_ratio(40 §3.8-8, 계산 = §11 J 추가 범위 U7 행) 는 이제 레지스트리 metric -- ss_constraints 에 들고 노트가 없다."""
     cons = (("ff_gm_ratio", ">=", 1.0, None), ("gain_ss_db", ">=", 10.0, None))
     s = build_case(tmp_path, circuit_c(), lut_sealed, constraints=cons).sctx
-    assert [c.metric for c in s.ss_constraints] == ["gain_ss_db"]
+    assert [c.metric for c in s.ss_constraints] == ["ff_gm_ratio", "gain_ss_db"]
     assert "ff_gm_ratio" not in {x[0] for x in s.judged_constraints}
-    mine = [n for n in _notes(s) if "ff_gm_ratio" in repr(n)]
-    assert len(mine) == 1, _notes(s)
-    assert mine[0].get("verdict") == "unmeasured"
-    assert mine[0].get("reason") == "metric_computation_pending"
+    assert [n for n in _notes(s) if "ff_gm_ratio" in repr(n)] == []
+
 
 
 # ---------------------------------------------------------------- [U8 2026-10-09] 잡음 제약 -- 시작 때 잡음 LUT 필수 검사
@@ -185,3 +198,15 @@ def test_noise_decl_without_s1v(tmp_path, lut_sealed):
     from gmid_engine.metrics import NoiseDecl
     s = build_case(tmp_path, circuit_c(), lut_sealed).sctx
     assert s.noise_decl == NoiseDecl(feedback=(), sampling_caps=(), input_cells=())
+
+
+def test_u7_context_inputs_default(tmp_path, lut_sealed):
+    """[U7] CONTRACT 10.7: s1v 를 안 주면 구조 입력 None(구조 의존 값은 정의 불가로 남는다), model_error 기본 (), mismatch 는 PDK 선언에서
+    `MismatchSource.from_decl(pdk_decl)`, driving = spec.driving_spec."""
+    from gmid_engine.metrics import MismatchSource
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    s = case.sctx
+    assert s.structure is None
+    assert tuple(s.model_error) == ()
+    assert s.mismatch == MismatchSource.from_decl(case.pdk)
+    assert s.driving is case.spec.driving_spec

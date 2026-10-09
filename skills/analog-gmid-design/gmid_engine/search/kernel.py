@@ -19,12 +19,13 @@ import time
 from collections.abc import Mapping
 
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES
-from gmid_engine.metrics import metrics_dc, ss_evaluate
-from gmid_engine.sizing import THETA_PASSIVE_KINDS, THETA_RESISTANCE, DcEvaluation, size_and_seal
+from gmid_engine.metrics import REPORT_BLOCK_RESIDUAL, metrics_dc, ss_evaluate
+from gmid_engine.sizing import METRICS_KEY, THETA_PASSIVE_KINDS, THETA_RESISTANCE, DcEvaluation, size_and_seal
 
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
 from .eval_key import eval_key
+from .ls_constraints import ls_constraint_rows
 from .tie_expand import expand_ties
 from .objectives import objective_values
 from .search_values import (
@@ -54,6 +55,15 @@ def _spec_rows(sctx, objectives):
     return tuple(rows)
 
 
+def _block_residual_rows(snapshot):
+    """S3 evals 요약 -- 그 점의 블록 분해 잔차 보고(41 §2.2: `gain_residual_db`·`ss.block_gain`·`ss.ff_contrib`·`ss.rout_residual_ohm`). `metrics_aux` 가 안 돈 점은 빈 목록."""
+    try:
+        bundle = snapshot.value("graph", METRICS_KEY, "metrics_aux")
+    except KeyError:
+        return []
+    return [[list(kv) for kv in rep] for name, rep in bundle.reports if name == REPORT_BLOCK_RESIDUAL]
+
+
 def _record(sctx, result, origin):
     if sctx.archive is None:
         return
@@ -71,6 +81,9 @@ def _record(sctx, result, origin):
         rec["power_resolution_w"] = result.objectives.power_resolution_w
     if result.evaluation is not None:
         rec["snapshot_fp"] = result.evaluation.snapshot.fp
+        residual_rows = _block_residual_rows(result.evaluation.snapshot)
+        if residual_rows:
+            rec["block_residual"] = residual_rows
     sctx.archive.append_eval(rec)
 
 
@@ -118,7 +131,8 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
             # evaluation 으로 둔다 -- 다음 평가의 parent 가 그 필드를 재사용한다.
             try:
                 ssev = ss_evaluate(evaluation.sealed, sctx.dc, pairs, sctx.ss_constraints, (), junction=sctx.junction,
-                                area_decl=sctx.area_decl, noise_decl=sctx.noise_decl)
+                                   area_decl=sctx.area_decl, noise_decl=sctx.noise_decl, mismatch=sctx.mismatch, structure=sctx.structure,
+                                   driving=sctx.driving)
                 evaluation, bundle = ssev.lineage, ssev.ss
             except CANDIDATE_FAILURE_CLASSES as exc:
                 evaluation, failure, status = None, exc.record, STATUS_FAILED
@@ -135,8 +149,10 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
         if status != STATUS_UNDEFINED:
             seal_rows, _undefined = constraint_rows(evaluation.snapshot, sctx.dc.lut, sctx.domain.w_min_m,
                                                     sctx.domain.grid_m)
-            ss_rows, unmeasured = ss_constraint_rows(bundle, sctx.ss_constraints)
-            rows = seal_rows + _spec_rows(sctx, objectives) + ss_rows
+            ss_rows, unmeasured = ss_constraint_rows(bundle, sctx.ss_constraints, sctx.model_error)
+            ls_rows, ls_unmeasured = ls_constraint_rows(bundle, sctx.driving)
+            unmeasured = unmeasured + ls_unmeasured
+            rows = seal_rows + _spec_rows(sctx, objectives) + ss_rows + ls_rows
     sctx.eval_times.append(time.perf_counter() - start)
     if sctx.eval_budget is None and len(sctx.eval_times) > len(sctx.domain.variables):
         # E_B 를 한 번 정한다: 평가 한 sweep(n + 1 = FD Jacobian 한 번) 뒤의 시간 중앙값 t_ref -- 첫 평가의 LUT 파생표(tol_V) 1회
