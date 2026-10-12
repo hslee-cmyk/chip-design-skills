@@ -1,6 +1,6 @@
 """`relaxation_records(first_seen, final_layout, relaxed) -> tuple[Relaxation]` (CONTRACT 6절, 계획 LY5 '조용한 완화 금지', CONTRACT 11절 불변식 6).
 
-oracle (a): 손으로 만든 완화 전 GroupLayout 과 최종 레이아웃에서 기록 필드를 손으로 읽는다.
+oracle (a): 손으로 만든 완화 전 GroupLayout 과 최종 레이아웃(그룹은 `LayoutResult.snapshot` 의 `ly_groups` 필드, [U17 1-e])에서 기록 필드를 손으로 읽는다.
 """
 from __future__ import annotations
 

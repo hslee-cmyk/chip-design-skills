@@ -237,10 +237,54 @@ def centroid_offsets(rows, members):
     return max(cx) - min(cx), max(cy) - min(cy)
 
 
+# --- [U17 1-e] 설계점(S2) 스냅샷 대역과 레이아웃 필드 읽기 (design 40 v1.6 §2.4.7 `LayoutResult` 행·§2.4.8 '레이아웃 결과' 행) -----------
+# 레이아웃 결과는 그 설계점 스냅샷의 S2 `layout` 필드다. test 는 레이아웃이 아닌 writer 둘(평가 커널 소자 필드, metric graph 필드)만 가진
+# 설계점 대역을 만든다 -- 실제 봉인 스냅샷도 sizing 층에서 만들어져 layout 권한표를 모른다(층 순서 sizing < layout).
+
+DP_GRAPH_KEY = "metrics"
+DP_OP_VERSION = "dp-op-v1"
+DP_METRIC_VERSION = "dp-metric-v1"
+
+
+def dp_writers():
+    from gmid_engine.core import WriterTable
+    return WriterTable((("device", "dp_op", "dp_kernel"), ("graph", "dp_metric", "dp_metrics")))
+
+
+def design_point(names):
+    """설계점(봉인 S2) 스냅샷 대역: 소자마다 `dp_op`, graph `dp_metric`. 같은 이름이면 같은 block_version(같은 설계점 lineage)."""
+    from gmid_engine.core import GraphSnapshot
+    s = GraphSnapshot.empty(dp_writers())
+    s = s.write("dp_kernel", DP_OP_VERSION, {("device", "dp_op"): {n: ("op", n) for n in names}})
+    return s.write("dp_metrics", DP_METRIC_VERSION, {("graph", "dp_metric"): {DP_GRAPH_KEY: 1.0}})
+
+
+def design_point_of(inp):
+    return design_point(tuple(d.name for d in inp.devices))
+
+
+def layout_fields(snap, names):
+    """{(kind, key, field): FieldValue} -- `_ly_fields.LY_WRITERS` 의 모든 레이아웃 필드(없으면 None)."""
+    from gmid_engine.layout import _ly_fields as lf
+    out = {}
+    for (kind, field), _w in lf.LY_WRITERS.entries:
+        for key in ((lf.GRAPH_KEY,) if kind == lf.GRAPH else tuple(names)):
+            out[(kind, key, field)] = snap.field(kind, key, field)
+    return out
+
+
 def strip_volatile(result):
-    """결과 비교용: computed_blocks·snapshot 제외(4.13 9·10)."""
-    return ser(tuple((f.name, getattr(result, f.name)) for f in dataclasses.fields(result)
-                     if f.name not in ("computed_blocks", "snapshot")))
+    """결과 비교용(4.13 9·10): 레이아웃 필드 값(`ly_*`, 이름순)과 필드 파생 출력 `layout_outputs` -- computed_blocks·입력 버전·쓰기 횟수 제외."""
+    from gmid_engine.layout import _ly_fields as lf
+    from gmid_engine.layout import layout_outputs
+    snap = result.snapshot
+    fields = []
+    for (kind, field), _w in lf.LY_WRITERS.entries:
+        if kind == lf.GRAPH:
+            fields.append(((kind, lf.GRAPH_KEY, field), ser(snap.value(kind, lf.GRAPH_KEY, field))))
+        else:
+            fields.extend((((kind, key, field), ser(value)) for key, value in snap.column(kind, field)))
+    return ser((tuple(fields), layout_outputs(snap)))
 
 
 def pytest_configure(config):
