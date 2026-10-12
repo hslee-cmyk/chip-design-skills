@@ -28,8 +28,9 @@ CONCEPT_LOOP_ROLE = "loop_role"
 CONCEPT_FEEDFORWARD_CELL = "feedforward_cell"
 CONCEPT_AC_GROUND_EXCEPTION = "ac_ground_exception"
 CONCEPT_MATCHING_PAIR = "matching_pair"
+CONCEPT_L_OWNER = "l_owner"         # L 동치류 주인(override, 41 §1.12.5, C-3): subject = 동치류 멤버 이름 정렬 JSON 배열, value = 주인 소자 이름
 CONCEPTS = (CONCEPT_DRIVE_KIND, CONCEPT_STAGE_MEMBERS, CONCEPT_DC_ROLE, CONCEPT_LOOP_ROLE, CONCEPT_FEEDFORWARD_CELL,
-            CONCEPT_AC_GROUND_EXCEPTION, CONCEPT_MATCHING_PAIR)
+            CONCEPT_AC_GROUND_EXCEPTION, CONCEPT_MATCHING_PAIR, CONCEPT_L_OWNER)
 FF_ARROW = "->"                     # `feedforward_cell` 값 `<종류>:<탭>-><merge>` 의 탭·merge 구분(넷 이름에 들어 있으면 로드 거부)
 FF_SEPARATOR = ":"
 FF_CELL = "ff"
@@ -471,7 +472,8 @@ class FfRatioCandidate:
 class LClass:
     """L 동치류 하나(40 §3.2 보완 1, LR1): 멤버, 주인 소자, 주인 선택 근거 규칙 이름, status.
     `owner_rule` ∈ {tail_owner(동치류에 tail 하나), tail_first_gain_stage(tail 여럿 -> 첫 전달 뷰 최전단 stage), current_source_member(tail 없음 -> diode 기준
-    멤버, 복합 diode 포함), main_path_signal(멤버 중 gain 제약 전달 뷰의 주경로 stage 시작 셀, 41 §1.12.5), name_order(그 밖 -> 이름 정렬 첫 멤버, review_needed)}."""
+    멤버, 복합 diode 포함), main_path_signal(멤버 중 gain 제약 전달 뷰의 주경로 stage 시작 셀, 41 §1.12.5), name_order(그 밖 -> 이름 정렬 첫 멤버, review_needed),
+    ratified_fact(structure.json `l_owner` 사실이 주인을 정함 -- status ratified, 40 §3.2-3 C-3)}."""
 
     members: tuple
     owner: str

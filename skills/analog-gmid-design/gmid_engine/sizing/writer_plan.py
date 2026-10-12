@@ -2,7 +2,7 @@
 
 진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINTS)`. θ 무관(S0 당 1회).
 
-모든 순서 결정의 키는 **구조 색 먼저**(`dc_struct_colour`, 이름을 읽지 않는 1-WL 정준 색) 그다음 이름이다. 이름이 실제로
+모든 순서 결정의 키는 **구조 색 먼저**(`dc_colour` -- graph 대칭 블록 `s1_symmetry`, 이름을 읽지 않는 1-WL 색 + 정준 위치) 그다음 이름이다. 이름이 실제로
 결정을 가른 경우(같은 구조 색 후보가 서로 다른 결과로 갈린 경우)는 `graph.dc_tie_breaks` 에 `TieBreak` 로 남긴다.
 
 1. 고정 노드 F = 레일(W0) ∪ spec 노드 목표(W3) ∪ (입력 DC 가 선언되면) 입력 포트(W2 (d)). 우선순위 W0 > W3 > W2.

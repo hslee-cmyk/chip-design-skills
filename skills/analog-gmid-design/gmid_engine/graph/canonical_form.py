@@ -3,13 +3,16 @@
 진입점: `canonical_form(source, element_marks=(), node_marks=()) -> Canonical`. `source` = `.column(kind, field)` 를 가진 것(S1Graph, sizing 계산 블록의
 Projection 모두 된다). θ 무관.
 
-* 그래프: 정점 = 넷 `("n", 넷)` ∪ 원소 `("e", 원소)`, 엣지 = 원소-넷 연결에 단자 라벨: MOS `d`·`g`·`s`·`b`(bulk 넷이 정해졌으면), 이상원 단자 라벨
-  `t0`·`t1`(전류 방향이 있다), 저항·커패시터 등 그 밖 2단자는 **방향 없는** `t`(단자 순서는 색에 넣지 않는다 -- 사용자 결정 '대칭 묶음 방식: b').
+* 그래프: 정점 = 넷 `("n", 넷)` ∪ 원소 `("e", 원소)`, 엣지 = 원소-넷 연결에 단자 라벨: MOS 의 drain·source 는 **같은 채널 라벨 `c`**(MOS 는 d/s 에 대해
+  물리적으로 대칭이다 -- 사용자 결정 2026-10-12 "6. 가"·D-3, 40 §6-8), gate `g`, bulk `b`(bulk 넷이 정해졌으면), 이상원 단자 라벨 `t0`·`t1`(전류 방향이 있다),
+  저항·커패시터 등 그 밖 2단자는 **방향 없는** `t`(단자 순서는 색에 넣지 않는다 -- 사용자 결정 '대칭 묶음 방식: b'). 그래서 자기동형은 한 MOS 의 drain 을
+  상 MOS 의 source 로 보낼 수 있다(gate·bulk 넷과 모든 선언이 보존될 때만).
 * 처음 색: 원소 = (원소 종류, element_class, kind, is_diode, 선언 표시), 노드 = (넷 종류, is_rail, port_direction, 선언 표시). 선언 표시
   `element_marks`·`node_marks` = ((이름, ((표시 이름, 수), ...)), ...)(표시 이름순 정렬): 자기동형이 선언 값(레일 전위·노드 목표·입력 DC·값 선언·engine·
   선형 영역)을 보존하게 한다. 이름을 읽지 않는다.
-* `wl` = 선언 표시 없는 1-WL 색 정제(새 색 = (옛 색, (라벨, 이웃 옛 색) 정렬 다중집합)의 정렬 순위, 색 종류 수가 더 늘지 않으면 멈춤) -- 서로 다른
-  색 사이의 순서(종래 `dc_colour` 순서)의 근거.
+* **그래프 하나**(D-2, 40 §6-8): `wl`·`position`·`generators` 를 모두 선언 표시를 넣은 같은 그래프 하나에서 정한다(두 번 탐색하지 않는다).
+  `wl` = 그 그래프의 1-WL 색 정제(새 색 = (옛 색, (라벨, 이웃 옛 색) 정렬 다중집합)의 정렬 순위, 색 종류 수가 더 늘지 않으면 멈춤) -- 서로 다른 색 사이의
+  순서(`dc_colour` 순서)의 근거. 같은 그래프라 궤도 ⊆ `wl` 클래스(CONTRACT 4.7 (h))가 맞바꿈 궤도에서도 성립한다.
 * 정준 라벨링(individualization-refinement, nauty 식): 선언 표시를 넣은 그래프의 평형 분할에서 색 순위가 가장 앞선 비단일 칸을 대상 칸으로, 칸의 정점을
   하나씩 개별화한 뒤 다시 정제한다. 이산 분할(잎)의 위치 함수로 그래프를 다시 쓴 증명서 cert 가 최소인 잎의 위치가 `position`(0..n−1). 같은 cert 의 두 잎
   사이 위치 대응이 자기동형이다 -- 마디마다 지역 union-find 로 (a) 같은 궤도 자식 건너뛰기 (b) 최저 공통 선조 마디 아래 가지치기. 찾은 자기동형(움직인
@@ -18,9 +21,10 @@ Projection 모두 된다). θ 무관.
 """
 import dataclasses
 
-from .s1_values import ELEMENT_MOS, ELEMENT_SOURCE, MOS_TERMINAL_NAMES
+from .s1_values import ELEMENT_MOS, ELEMENT_SOURCE, MOS_DRAIN, MOS_GATE, MOS_SOURCE
 
 _BULK = "b"
+_CHANNEL = "c"
 _UNDIRECTED = "t"
 NODE, ELEMENT = ("n", "e")
 
@@ -39,7 +43,7 @@ def _edges(classes, pins, bulk):
     for name, cls in classes.items():
         p = dict(pins[name])
         if cls == ELEMENT_MOS:
-            edges.extend((name, t, p[t]) for t in MOS_TERMINAL_NAMES)
+            edges.extend(((name, _CHANNEL, p[MOS_DRAIN]), (name, MOS_GATE, p[MOS_GATE]), (name, _CHANNEL, p[MOS_SOURCE])))
             net = getattr(bulk.get(name), "net", None)
             if net is not None:
                 edges.append((name, _BULK, net))
@@ -100,10 +104,9 @@ class _Union:
             self.parent[rb] = ra
 
 
-def _search(colour0, neighbours):
-    """-> (정준 위치 {정점: int}, 자기동형 생성자 list[dict])."""
+def _search(colour0, neighbours, start):
+    """`start` = `colour0` 의 1-WL 평형 분할(`wl`, 다시 계산하지 않는다) -> (정준 위치 {정점: int}, 자기동형 생성자 list[dict])."""
     vertices = sorted(colour0, key=repr)                   # 탐색 순서만 정한다(결과 불변)
-    start = _refine(colour0, neighbours)
     base_rank = _rank(colour0)                             # 처음 색의 순위(정제 전)
     best = []                                              # [(cert, pos)]
     generators = {}                                        # 중복 제거: 정렬한 (정점, 상) 쌍 -> dict
@@ -161,7 +164,7 @@ def _search(colour0, neighbours):
 
 
 def canonical_form(source, element_marks=(), node_marks=()):
-    wl = _refine(*_graph(source, (), ()))                  # 1-WL 색(선언 표시 없음) -- 서로 다른 색 사이의 순서
-    marked, neighbours = _graph(source, element_marks, node_marks)
-    position, generators = _search(marked, neighbours)     # 선언을 보존하는 정준 위치·자기동형 생성자
+    marked, neighbours = _graph(source, element_marks, node_marks)        # 그래프 하나(D-2): 선언 표시를 넣은 색 그래프
+    wl = _refine(marked, neighbours)                       # 1-WL 색 -- 서로 다른 색 사이의 순서
+    position, generators = _search(marked, neighbours, wl)  # 같은 그래프의 정준 위치·자기동형 생성자(평형 분할 = wl)
     return Canonical(wl, position, tuple(sorted(generators)))

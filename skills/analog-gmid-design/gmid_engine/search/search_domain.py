@@ -15,13 +15,16 @@
 * `area_resolution_m2` = b_A = PDK 선언 `manufacturing_grid_m` × `min_finger_w_m`(difftap.2)(DEC-80 (i), 설계 6.4 'Σ W·L 축
   한 칸') -- 같은 두 값을 W 하한 제약(S-18)이 `w_min_m`·`grid_m` 으로 읽는다. 진입점은 `search_domain(dc_ctx, settings, pdk_decl)`.
   면적 모델 오차가 미측정이라 (ii) = (i) 이고 '추정'이다(DEC-72·80). 전력 분해능 b_P 는 점마다(`objectives`).
+* 묶음 상자(CONTRACT 3.24-4, 40 §6-8 D-1): 같은 자기동형 궤도 안 구성원(부호 +1)의 상자가 대표와 다르면 `tied_orbit_bounds_differ` 로 거부한다. 궤도를 넘는(KCL 이 유도한 --
+  graph `orbits` 에서 대표와 다른 궤도) θ 전류 구성원(부호 +1)은 대표 변수의 상자를 대표·구성원 상자의 **교집합**으로 줄이고, 교집합이 비면 `tied_current_box_empty`
+  (SchemaRejectedError, gate `search_domain`)로 거부한다. 부호 −1 구성원은 상자 비교를 하지 않는다(값 = −대표).
 """
 import math
 
 import numpy as np
 
 from gmid_engine.core import PdkDecl, SchemaRejectedError
-from gmid_engine.graph import ELEMENT_MOS
+from gmid_engine.graph import ELEMENT_MOS, GRAPH_KEY
 from gmid_engine.sizing import (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE,
                                 THETA_SS_RESISTANCE, THETA_Y)
 
@@ -129,14 +132,25 @@ def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=Non
     reps, ties = orbit_ties(dc_ctx, tuple(dc_ctx.schema.components), tuple(untie), symmetry)
     by_component = {v.component: v for v in variables}
     negated = frozenset(symmetry.negated)
+    orbit = dict(dc_ctx.base.value("graph", GRAPH_KEY, "orbits").devices)
     for rep, members in ties:
-        if rep in by_component:
-            # 부호 −1 로 묶인 구성원은 대표와 상자가 같을 필요가 없다(값 = −대표). 나머지는 같은 (log, lo, hi) 여야 한다
-            odd = tuple(m for m in members if m not in negated and (by_component[m].log, by_component[m].lo, by_component[m].hi)
-                        != (by_component[rep].log, by_component[rep].lo, by_component[rep].hi))
-            if odd:
-                raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "tied_orbit_bounds_differ",
-                                                  "elements": (rep,) + odd})
+        if rep not in by_component:
+            continue
+        head = by_component[rep]
+        # 부호 −1 로 묶인 구성원은 대표와 상자가 같을 필요가 없다(값 = −대표)
+        same = tuple(m for m in members if m not in negated and orbit.get(m[1]) == orbit.get(rep[1]))
+        cross = tuple(m for m in members if m not in negated and orbit.get(m[1]) != orbit.get(rep[1]))
+        odd = tuple(m for m in same if (by_component[m].log, by_component[m].lo, by_component[m].hi) != (head.log, head.lo, head.hi))
+        if odd:
+            raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "tied_orbit_bounds_differ",
+                                              "elements": (rep,) + odd})
+        if cross:                                      # D-1: 궤도를 넘는 전류 묶음 = 구성원 상자의 교집합
+            lo = max((head.lo,) + tuple(by_component[m].lo for m in cross))
+            hi = min((head.hi,) + tuple(by_component[m].hi for m in cross))
+            if not lo < hi:
+                raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "tied_current_box_empty",
+                                                  "elements": (rep,) + cross, "box": (lo, hi)})
+            variables[variables.index(head)] = Variable(head.component, head.log, lo, hi)
     tied = {m for _rep, members in ties for m in members} | set(symmetry.zeros)
     variables = [v for v in variables if v.component not in tied]
     mos = [m for m in mos if (THETA_L, m) not in tied]

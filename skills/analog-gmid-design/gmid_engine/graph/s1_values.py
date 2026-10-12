@@ -2,7 +2,9 @@
 
 공개 정의는 데이터 클래스와 예외뿐이다(규칙 A 데이터 선언 모듈):
 
-* `S1Key` -- S1 지문 {topology_fp, rule_fp, supplies_v_fp, facts_fp}(설계 5.1, 40 §3.2-3).
+* `S1Key` -- S1 지문 {topology_fp, rule_fp, supplies_v_fp, facts_fp, marks_fp}(설계 5.1, 40 §3.2-3·§6-8).
+* `SymmetryMarks` -- 자기동형이 보존해야 하는 선언 표시(입력 DC·원소 값·engine·선형 영역·노드 목표, 40 §6-8 D-2). `Orbits`·`CurrentSigns` -- 대칭 블록
+  `s1_symmetry` 의 `graph/s1: orbits`·`current_symmetry` 값(40 §2.4.8).
 * `BulkResult` -- 소자 하나의 bulk 넷과 그 출처(DEC-61, 사용자 확정 2026-10-07 6번).
 * `FieldNotComputed` -- 권한표에 있으나 그 writer 가 아직 돌지 않은 필드를 질의함(조용한 빈 값 금지, WP-02).
 
@@ -121,6 +123,7 @@ BRANCH_DC_ISOLATED_LOOP = "dc_isolated_loop"
 BRANCH_COLUMN_BUDGET = "column_enumeration_over_budget"
 BRANCH_MOS_KIND = "mos_kind_unsupported"
 BRANCH_GVGS_SELF_EDGE = "gvgs_self_edge"
+BRANCH_DS_SELF_SWAP = "ds_self_swap_zero_current"     # 자기동형이 전도 MOS 하나를 자기 자신으로 보내며 d/s 를 맞바꿈 -> 구조적 0 전류(40 §6-8)
 
 # ---- 필드 (kind, field) 와 writer
 S1_STRUCTURE_WRITER = "s1_structure"
@@ -135,6 +138,7 @@ S1_REL_KCL_WRITER = "s1_rel_kcl"
 S1_REL_MATCHING_WRITER = "s1_rel_matching"
 S1_MATCHING_GROUPS_WRITER = "s1_matching_groups"
 S1_GVGS_WRITER = "s1_gvgs"
+S1_SYMMETRY_WRITER = "s1_symmetry"                    # 대칭 블록(40 §6, §2.4.8): 구조 색·자기동형 궤도·전류 부호
 STRUCTURE_WRITES = (
     ("node", "ac_ground_class"), ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"),
     ("node", "terminals"),
@@ -182,6 +186,11 @@ GVGS_READS = (
     ("node", "is_rail"), ("node", "port_direction"),
 )
 GVGS_WRITES = (("graph", "gvgs_summary"), ("graph", "rel_kvl_branch"))
+SYMMETRY_READS = (
+    ("device", "bulk"), ("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
+    ("node", "is_rail"), ("node", "port_direction"), ("graph", "dc_pruned"),
+)
+SYMMETRY_WRITES = (("node", "dc_colour"), ("device", "dc_colour"), ("graph", "orbits"), ("graph", "current_symmetry"))
 S1_WRITERS = WriterTable(
     tuple((kind, field, writer)
           for writer, writes in ((S1_STRUCTURE_WRITER, STRUCTURE_WRITES), (S1_BULK_WRITER, BULK_WRITES),
@@ -190,28 +199,64 @@ S1_WRITERS = WriterTable(
                                  (S1_GS_GROUPS_WRITER, GS_GROUPS_WRITES), (S1_DC_ROLES_WRITER, DC_ROLES_WRITES),
                                  (S1_REL_VGS_WRITER, REL_VGS_WRITES), (S1_REL_KCL_WRITER, REL_KCL_WRITES),
                                  (S1_REL_MATCHING_WRITER, REL_MATCHING_WRITES),
-                                 (S1_MATCHING_GROUPS_WRITER, MATCHING_GROUPS_WRITES), (S1_GVGS_WRITER, GVGS_WRITES))
+                                 (S1_MATCHING_GROUPS_WRITER, MATCHING_GROUPS_WRITES), (S1_GVGS_WRITER, GVGS_WRITES),
+                                 (S1_SYMMETRY_WRITER, SYMMETRY_WRITES))
           for kind, field in writes)
 )
 
 # ---- rule_fp 대상: S1 필드 값을 정하는 graph 파일(이 패키지 안 basename). s1_key 가 파일 바이트로 지문한다.
-S1_RULE_FILES = ("ac_ground_static.py", "branches.py", "bulk_default.py", "columns.py", "composite_diode.py",
-                 "dc_conduction.py", "dc_roles.py", "gs_groups.py", "gvgs_cycles.py", "matching_groups.py", "rel_kcl.py",
-                 "rel_matching.py", "rel_vgs.py", "s1_build.py", "s1_index.py", "s1_structure.py", "s1_values.py",
-                 "supplies.py")
+S1_RULE_FILES = ("ac_ground_static.py", "automorphism_orbits.py", "branches.py", "bulk_default.py", "canonical_form.py", "columns.py",
+                 "composite_diode.py", "dc_conduction.py", "dc_roles.py", "gs_groups.py", "gvgs_cycles.py", "matching_groups.py",
+                 "rel_kcl.py", "rel_matching.py", "rel_vgs.py", "s1_build.py", "s1_index.py", "s1_structure.py",
+                 "s1_symmetry.py", "s1_values.py", "supplies.py")
 NO_SUPPLIES_FP = "none"
 NO_FACTS_FP = "none"                                   # S1 에 적용되는 ratified 사실(`dc_role`·`matching_pair`)이 없을 때의 지문
+NO_MARKS_FP = "none"                                   # 선언 표시가 없을 때(`NO_MARKS`)의 지문
 
 
 @dataclasses.dataclass(frozen=True)
 class S1Key:
     """S1 지문. `topology_fp` = TopologyDoc.connectivity_fp, `rule_fp` = `S1_RULE_FILES` 코드 지문,
-    `supplies_v_fp` = 정규화한 supplies_v 지문(없으면 `NO_SUPPLIES_FP`), `facts_fp` = S1 이 소비하는 ratified 사실의 지문(없으면 `NO_FACTS_FP`)."""
+    `supplies_v_fp` = 정규화한 supplies_v 지문(없으면 `NO_SUPPLIES_FP`), `facts_fp` = S1 이 소비하는 ratified 사실의 지문(없으면 `NO_FACTS_FP`),
+    `marks_fp` = 대칭 블록이 읽는 선언 표시(`SymmetryMarks`)의 지문(없으면 `NO_MARKS_FP`) -- 같은 topology 라도 선언이 다르면 궤도가 다르다."""
 
     topology_fp: str
     rule_fp: str
     supplies_v_fp: str
     facts_fp: str = NO_FACTS_FP
+    marks_fp: str = NO_MARKS_FP
+
+
+@dataclasses.dataclass(frozen=True)
+class SymmetryMarks:
+    """자기동형이 보존해야 하는 사람 선언 표시(40 §6-8 '원소 처음 색·노드 색의 선언 표시'). 레일 전위 표시는 대칭 블록이 supplies 에서 직접 만든다.
+    `input_dc_v` = 입력 포트 공통 DC(V) 또는 None, `elements` = ((원소, ((표시, 수), ...)), ...) 원소 이름순(표시 = value·engine·linear),
+    `targets` = ((넷, V), ...) 넷 이름순(노드 목표 W3)."""
+
+    input_dc_v: object = None
+    elements: tuple = ()
+    targets: tuple = ()
+
+
+NO_MARKS = SymmetryMarks()
+
+
+@dataclasses.dataclass(frozen=True)
+class Orbits:
+    """`graph/s1: orbits`(40 §2.4.8) -- 자기동형 궤도. `devices` = ((원소, 궤도 id), ...) 이름순, `nodes` = ((넷, 궤도 id), ...) 이름순.
+    궤도 id = 구성원의 정준 위치 최솟값(이름에 불변, 같은 궤도 ⇔ 같은 값)."""
+
+    devices: tuple
+    nodes: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class CurrentSigns:
+    """`graph/s1: current_symmetry`(40 §2.4.8, §6-7·8) -- 자기동형 생성자마다 원소 대응과 전류 부호. `generators` = 생성자 순서(정준형 순서)의 tuple, 각각
+    ((원소, 상 원소, 부호 ±1), ...) 원소 이름순 -- 움직이거나 방향을 뒤집는 원소만(부호 −1 = `reverses_orientation`: MOS 는 drain 이 상 MOS 의 drain 으로 가지 않을 때,
+    방향 없는 2단자 수동소자는 첫 단자 넷이 상의 첫 단자 넷으로 가지 않을 때)."""
+
+    generators: tuple
 
 
 @dataclasses.dataclass(frozen=True)

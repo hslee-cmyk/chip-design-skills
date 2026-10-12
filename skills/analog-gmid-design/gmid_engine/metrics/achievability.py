@@ -30,7 +30,7 @@ from gmid_engine.authoring import (
     UNTIE_ORBITS,
 )
 from gmid_engine.core import AMPLITUDE_DB_PER_DECADE, InfeasibleTargetError
-from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, STATUS_DERIVED
+from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, STATUS_DERIVED, STATUS_RATIFIED
 from gmid_engine.sizing import DC_KEY, REL_TIE
 
 from .achievability_types import (
@@ -80,14 +80,14 @@ def _local_inputs(s1, s1v, spec, kctx, cur_rep, current_box):
     pins = {name: dict(value) for name, value in s1.column("device", "pins")}
     bulk = {name: res.net for name, res in s1.column("device", "bulk") if cls.get(name) == ELEMENT_MOS}
     rails = frozenset(net for net, flag in s1.column("node", "is_rail") if flag)
-    orbit = dict(kctx.base.column("device", "dc_orbit"))
+    orbit = dict(kctx.base.value("graph", GRAPH_KEY, "orbits").devices)
     search = spec.search if isinstance(spec.search, tuple) else ()
     untied = {name for name, _src in next((s.value for s in search if s.field == UNTIE_ORBITS and s.value), ())}
     free_orbits = {orbit[n] for n in untied if n in orbit}
     orbit_key = {n: (o if o not in free_orbits else ("untied", n)) for n, o in orbit.items()}
     l_label = {}
     for cls_ in s1v.l_classes:
-        if cls_.status == STATUS_DERIVED:
+        if cls_.status in (STATUS_DERIVED, STATUS_RATIFIED):
             for member in cls_.members:
                 l_label[member] = cls_.owner
     basis = kctx.base.value("graph", DC_KEY, "dc_current_basis")

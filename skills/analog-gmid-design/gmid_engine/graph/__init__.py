@@ -31,6 +31,7 @@ from .gs_groups import s1_gs_groups
 from .gvgs_cycles import s1_gvgs
 from .loop_roles import loop_roles
 from .matching_groups import s1_matching_groups
+from .orbit_matching_crosstab import OrbitMatchingCrosstab, orbit_matching_crosstab
 from .rel_kcl import s1_rel_kcl
 from .rel_matching import s1_rel_matching
 from .rel_vgs import s1_rel_vgs
@@ -39,6 +40,7 @@ from .s1_index import terminal_index
 from .s1_key import s1_key
 from .s1_model import S1Graph
 from .s1_structure import s1_structure
+from .s1_symmetry import s1_symmetry
 from .s1v_build import build_s1v
 from .s1v_key import s1v_rule_fp, structure_rule_fp
 from .s1_values import (
@@ -47,6 +49,7 @@ from .s1_values import (
     BRANCH_COLUMN_BUDGET,
     BRANCH_DC_ISOLATED_LOOP,
     BRANCH_DC_SELF_LOOP,
+    BRANCH_DS_SELF_SWAP,
     BRANCH_GVGS_SELF_EDGE,
     BRANCH_MOS_KIND,
     BRANCH_MULTI_DOMAIN,
@@ -92,6 +95,8 @@ from .s1_values import (
     MOS_TERMINAL_NAMES,
     NMOS,
     PMOS,
+    NO_MARKS,
+    NO_MARKS_FP,
     NO_SUPPLIES_FP,
     REL_EQUAL_VGS,
     REL_KCL_GROUP,
@@ -120,6 +125,7 @@ from .s1_values import (
     S1_DC_ROLES_WRITER,
     S1_GS_GROUPS_WRITER,
     S1_GVGS_WRITER,
+    S1_SYMMETRY_WRITER,
     S1_MATCHING_GROUPS_WRITER,
     S1_REL_KCL_WRITER,
     S1_REL_MATCHING_WRITER,
@@ -149,6 +155,9 @@ from .s1_values import (
     MatchingGroup,
     RelEdge,
     S1Key,
+    SymmetryMarks,
+    Orbits,
+    CurrentSigns,
     Segment,
 )
 from .s1v_values import (
@@ -194,6 +203,7 @@ __all__ = (
     "BRANCH_DC_ISOLATED_LOOP",
     "BRANCH_DC_SELF_LOOP",
     "BRANCH_GVGS_SELF_EDGE",
+    "BRANCH_DS_SELF_SWAP",
     "BRANCH_MOS_KIND",
     "BRANCH_MULTI_DOMAIN",
     "BLOCK_BUFFER",
@@ -282,6 +292,11 @@ __all__ = (
     "Canonical",
     "S1Graph",
     "S1Key",
+    "SymmetryMarks",
+    "Orbits",
+    "CurrentSigns",
+    "NO_MARKS",
+    "NO_MARKS_FP",
     "S1_BRANCHES_WRITER",
     "S1_BULK_WRITER",
     "S1_COLUMNS_WRITER",
@@ -289,6 +304,7 @@ __all__ = (
     "S1_DC_ROLES_WRITER",
     "S1_GS_GROUPS_WRITER",
     "S1_GVGS_WRITER",
+    "S1_SYMMETRY_WRITER",
     "S1_MATCHING_GROUPS_WRITER",
     "S1_REL_KCL_WRITER",
     "S1_REL_MATCHING_WRITER",
@@ -361,6 +377,9 @@ __all__ = (
     "s1_dc_roles",
     "s1_gs_groups",
     "s1_gvgs",
+    "s1_symmetry",
+    "orbit_matching_crosstab",
+    "OrbitMatchingCrosstab",
     "s1_key",
     "s1_matching_groups",
     "s1_rel_kcl",

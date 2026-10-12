@@ -9,6 +9,9 @@
 -> 보고서(`write_stage_a_report`: 구조 표 + review_needed + 정지 사유 + N_S + declared 대조 여부 + 적용한 사실 + feedforward 비율 후보 + 루프 역할 + `coupling`).
 * `coupling` 보고 키: `{"vars": [{kind, members, blocks[[뷰, 블록 키]], domain, init_rule, nets}], "column_block_map": [{column, block, device, shared, basis}], "bias_columns": [...],
   "kind_counts": {kind: 수}}` (정지 전 단계거나 `column_unassigned` 정지면 None). 소비자는 U15 층 0 조립(41 §5.5)이다 -- 아직 읽는 코드가 없고 보고서가 유일한 출구다.
+* A2 의 `build_s1(marks=)`: 대칭 블록(정준형·궤도·전류 부호)이 보존할 선언 표시 = `sizing.symmetry_marks(dc_inputs_from_spec(spec))`(spec 이 없으면 `NO_MARKS`) --
+  커널 컨텍스트가 같은 표시로 같은 블록을 재사용한다(40 §6-8 D-2 그래프 하나). 자기 맞바꿈 정지(`ds_self_swap_zero_current`)는 A2 정지로 보고된다.
+* 보고 키 `orbit_matching_crosstab`(40 §6-5): `{"orbits": [{"members", "records": [[kind, members]]}], "records": [{"kind", "members", "orbits"}]}`(MOS 궤도만).
 * `declared_loop_cuts` = spec 제약 중 안정도 metric(`pm_*`)의 내부 루프 뷰 선언(`ViewDecl` mode loop, `beta != declared`)의 끊는 넷 -- feedback 소자에서 유도된 β 루프(beta declared)는 제외 -- 안정도 제약이 걸린 루프 뷰는 `undeclared_loop_constraint` 정지가 풀린다.
   선언 끊는 넷은 엔진 루프 뷰의 끊는 gate 넷(보고서 `views[].cuts[*][1]`)이어야 하고, 어느 뷰에도 맞지 않은 선언은 `loop_cut_unmatched`(review_needed)로 보고서 `review_needed` 에 오른다.
 * 로드·구조 단계의 예외(`SchemaRejectedError`·`StructureUnresolvedError`)는 전파하지 않고 보고서에 정지 사유로 적은 뒤 그 분류의 exit code 를 낸다(exit 7·2).
@@ -30,14 +33,17 @@ from gmid_engine.graph import (
     SPEC_VIEW_LOOP,
     Finding,
     BASIS_COLUMN_MATE,
+    NO_MARKS,
     build_s1,
     build_s1v,
     coupling_vars,
     load_structure_facts,
+    orbit_matching_crosstab,
     structure_rule_fp,
     structure_tables,
 )
 from gmid_engine.metrics import metric_catalog
+from gmid_engine.sizing import dc_inputs_from_spec, symmetry_marks
 
 from .stage_a_budget import structure_count_budget
 from .stage_a_report import write_stage_a_report
@@ -67,7 +73,8 @@ class StageAResult:
 def _stopped(circuit, exc, stage):
     return {"circuit": circuit, "status": STATUS_STOPPED, "exit_code": exit_code_for(exc), "count_budget": 0,
             "declared_comparison": "not_performed", "stop_reasons": [stage + ": " + str(exc.record.to_json())],
-            "review_needed": [], "views": [], "applied_facts": [], "ff_ratio_candidates": [], "coupling": None, "tables": None}
+            "review_needed": [], "views": [], "applied_facts": [], "ff_ratio_candidates": [], "coupling": None, "tables": None,
+            "orbit_matching_crosstab": None}
 
 
 def _supplies(spec, supplies_v):
@@ -140,6 +147,12 @@ def _unmatched_loop_cuts(s1v, declared_cuts):
                          ("41 §1.8", "U-24")) for net in sorted(set(declared_cuts) - engine))
 
 
+def _crosstab_report(s1):
+    table = orbit_matching_crosstab(s1)
+    return {"orbits": [{"members": list(names), "records": [[kind, list(members)] for kind, members in records]} for names, records in table.orbits],
+            "records": [{"kind": kind, "members": list(members), "orbits": [list(o) for o in orbits]} for kind, members, orbits in table.records]}
+
+
 def _net_names(topology):
     nets = set(topology.rails)
     for d in topology.devices:
@@ -163,6 +176,7 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
     try:
         topology = load_topology(str(topology_path))
         spec = None if spec_path is None else load_sizing_spec(str(spec_path), topology, metric_catalog())
+        marks = NO_MARKS if spec is None else symmetry_marks(dc_inputs_from_spec(spec))
     except SchemaRejectedError as exc:
         return _finish(_stopped(circuit, exc, "A1_load"), None, output_dir, circuit)
     path = Path(structure_path) if structure_path is not None else Path(topology_path).with_name(circuit + STRUCTURE_SUFFIX)
@@ -171,7 +185,7 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
     except SchemaRejectedError as exc:
         return _finish(_stopped(circuit, exc, "A2_structure_json"), None, output_dir, circuit)
     try:
-        s1 = build_s1(topology, _supplies(spec, supplies_v), structure=structure)
+        s1 = build_s1(topology, _supplies(spec, supplies_v), structure=structure, marks=marks)
     except (SchemaRejectedError, StructureUnresolvedError) as exc:
         return _finish(_stopped(circuit, exc, "A2_build_s1"), None, output_dir, circuit)
     classes = dict(s1.column("device", "element_class"))
@@ -197,5 +211,5 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
     report = {"circuit": circuit, "status": status, "exit_code": code, "count_budget": budget, "declared_comparison": comparison,
               "stop_reasons": unsupported, "review_needed": review, "views": [_view_summary(v) for v in s1v.views],
               "applied_facts": [list(f) for f in s1v.facts_applied], "ff_ratio_candidates": _ff_ratio_rows(s1v),
-              "coupling": coupling, "tables": structure_tables(s1v)}
+              "coupling": coupling, "tables": structure_tables(s1v), "orbit_matching_crosstab": _crosstab_report(s1)}
     return _finish(report, s1v, output_dir, circuit, s1, spec)
