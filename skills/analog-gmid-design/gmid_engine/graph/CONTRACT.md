@@ -425,8 +425,8 @@ review_needed 는 정지가 아니라 기록이다(DcRole 묶음·matching_offse
 ## 7. 9회로 실측 (2026-10-07, 이 커밋 코드 + library 정정본 b9c7042, 9회로 모두 load 통과)
 
 supplies_v: two_stage_ota·two_stage_ota_sf·current_reuse·folded·common_gate = 사용자 확정 `{vdd: 1.8, gnd: 0}`;
-ngcc·nmcnr·pushpull·sf = topology `_declared_target_spec.supplies_v`(`_comment` 제외; nmcnr vdd 0.9/vss −0.9, pushpull·sf
-vdd 1.8/vss 0/agnd 0.9). column_limit None. 9회로 모두 `unsupported` 열 `()`, 정지 0(오정지 0).
+ngcc·nmcnr·pushpull·sf = topology `_declared_target_spec.supplies_v`(`_comment` 제외; nmcnr·pushpull·sf
+vdd 1.8/vss 0/agnd 0.9 -- nmcnr 은 2026-10-12 사용자 정정 Q8 로 옛 vdd 0.9/vss −0.9 에서 바뀌고 CL·RL 끝이 vss -> agnd, 아래 nmcnr 행은 Q8 뒤 손 재측정). column_limit None. 9회로 모두 `unsupported` 열 `()`, 정지 0(오정지 0).
 
 ### 7.1 S1 기본 필드
 
@@ -436,7 +436,7 @@ vdd 1.8/vss 0/agnd 0.9). column_limit None. 9회로 모두 `unsupported` 열 `()
 | current_reuse_telescopic_ota | 37 | gnd, vdd | 51 (24/27) | 12 | 1 | 16 (M11a, M11b, M14a, M14b, M18_bg, M20a, M20b, M23a, M24b, M36a, M36b, M39, M40, M57, M64, M66) | 없음 | 2/2 | gnd 24, vdd 27 |
 | folded_cascode | 14 | gnd, vdd | 13 (8/5) | 1 | 1 | 4 (M7, M9, MN, MP) | bias3 | 2/1 | gnd 8, vdd 5 |
 | ngcc_3stage_ff | 13 | gnd, vdd | 16 (9/7) | 3 | 0 | 3 (M3, M6A, M9) | VBN, VBP | 2/1 | gnd 9, vdd 7 |
-| nmcnr_amplifier | 18 | vdd, vss | 15 (7/8) | 5 | 0 | 2 (M108, M203) | VB1~VB5 | 2/1 | vss 7, vdd 8 |
+| nmcnr_amplifier | 19 | agnd, vdd, vss | 15 (7/8) | 5 | 0 | 2 (M108, M203) | VB1~VB5 | 2/1 | vss 7, vdd 8 (agnd 0) |
 | pushpull_follower_buffer | 9 | agnd, vdd, vss | 6 (3/3) | 1 | 0 | 0 | VNB1, VPB1 | 1/1 | vss 3, vdd 3 (agnd 0) |
 | sf_pushpull_output_opamp | 23 | agnd, vdd, vss | 22 (11/11) | 5 | 1 | 1 (M4) | 없음 | 2/1 | vss 11, vdd 11 (agnd 0) |
 | two_stage_ota | 10 | gnd, vdd | 7 (4/3) | 3 | 0 | 1 (M3) | bias | 2/1 | gnd 4, vdd 3 |
@@ -449,7 +449,8 @@ two_stage_ota_sf 는 supplies_v 를 넘기지 않으면 bulk 9개 모두 undeter
 
 | 회로 | 레일(전위) | 채널 레일 | {최저, 최고} | 판정 |
 |---|---|---|---|---|
-| 2레일 7회로 | vdd/gnd(1.8/0) 또는 vdd/vss(0.9/−0.9) | 두 레일 | 같은 두 레일 | 통과 |
+| 2레일 6회로 | vdd/gnd(1.8/0) | 두 레일 | 같은 두 레일 | 통과 |
+| nmcnr_amplifier (Q8 뒤) | vdd 1.8, vss 0, agnd 0.9 | vdd, vss (agnd 는 CL·RL 단자만) | vss, vdd | 통과 |
 | pushpull_follower_buffer | vdd 1.8, vss 0, agnd 0.9 | vdd, vss (agnd 는 CL 단자만) | vss, vdd | 통과 |
 | sf_pushpull_output_opamp | vdd 1.8, vss 0, agnd 0.9 | vdd, vss (agnd 는 CL·Cc 단자만) | vss, vdd | 통과 |
 
@@ -468,7 +469,7 @@ sf 에 레일 vddx(1.5) 추가 + pmos source 하나 이동 -> outside vddx; vddx
 | current_reuse_telescopic_ota | Rz1 (1), Rz2 (1) | 51 | M9a∥M9b, M18a∥M18b, M6∥M7 | **7 / 9** | **27 / 32** | **41 / 62** | gnd–vdd 41 | 0 | 1 |
 | folded_cascode | -- | 14 | -- | 3 / 3 | 8 / 8 | 7 / 7 | gnd–vdd 7 | 0 | 1 |
 | ngcc_3stage_ff | -- | 13 | M6A∥M6B, M13∥M14∥M7 | 1 / 3 | 7 / 12 | 6 / 9 | gnd–vdd 6 | 0 | 0 |
-| nmcnr_amplifier | Rm (1) | 15 | M301∥RL (J13-a 종류 무관 합침) | 3 / 4 | 10 / 12 | **9 / 10** | vdd–vss 9 | 0 | 0 |
+| nmcnr_amplifier | Rm (1) | 16 | -- (Q8 뒤 RL 은 Vout–agnd 라 M301 과 갈림; 옛 M301∥RL 15 segment) | 4 / 4 | 12 / 12 | **11 / 11** | agnd–vdd 1, agnd–vss 1, vdd–vss 9 | 0 | 0 |
 | pushpull_follower_buffer | -- | 6 | -- | 0 / 0 | 3 / 3 | 3 / 3 | agnd–vdd 0, agnd–vss 0, vdd–vss 3 | 0 | 0 |
 | sf_pushpull_output_opamp | -- | 26 | -- | 1 / 1 | 9 / 9 | 8 / 8 | agnd–vdd 0, agnd–vss 0, vdd–vss 8 | 0 | 1 |
 | two_stage_ota | Rz (1) | 7 | -- | 1 / 1 | 4 / 4 | 3 / 3 | gnd–vdd 3 | 0 | 0 |
@@ -500,7 +501,7 @@ sf 에 레일 vddx(1.5) 추가 + pmos source 하나 이동 -> outside vddx; vddx
 | current_reuse_telescopic_ota | 3 | 16 | 18 | 3 | {M37a, M37b}, {M4a, M4b}, {M1a, M1b} 모두 derived (M63·M58 = bias_sibling, 4.5a) | **5 (4/0/1)** | 0 | **22** |
 | folded_cascode | 3 | 4 | 3 | 3 | {M1, M2} derived | 0 | 0 | 1 (M10) |
 | ngcc_3stage_ff | 5 | 3 | 6 | 5 | {M1, M2} derived | 0 | 0 | 6 |
-| nmcnr_amplifier | 3 | 2 | 5 | 3 | {M102, M103} derived | 0 | 0 | 4 |
+| nmcnr_amplifier | 3 | 2 | 4 (Q8 전 5: vss–Vout–vdd 가지가 Vout 분기로 갈림) | 3 | {M102, M103} derived | 0 | 0 | 4 |
 | pushpull_follower_buffer | 0 | 0 | 3 | 0 | -- | **1 (0/1/0)** | 0 | 0 |
 | sf_pushpull_output_opamp | 4 | 1 | 8 | 4 | {M1, M2} derived | **1 (1/0/0)** | 0 | 0 |
 | two_stage_ota | 2 | 1 | 3 | 2 | {M1, M2} derived | 0 | 0 | 1 (M4) |

@@ -3,19 +3,20 @@
   "meta": {
     "schema_version": "5",
     "circuit": "nmcnr_amplifier",
-    "topology_fp": "0f1551b3b117164b68824d0003d84815c1bb0efbc1e90187a3da9aac94d183e9",
+    "topology_fp": "887747d29064aa37f03aecf3c251b385431b4930f2b1b9a6260c2d0ea8036999",
     "origin": "canonical"
   },
   "human": {
     "supplies_v": {
       "values": {
-        "vdd": 0.9,
-        "vss": -0.9
+        "vdd": 1.8,
+        "vss": 0.0,
+        "agnd": 0.9
       },
       "source": {
         "kind": "user_spec",
-        "record": "2026-09-15 사용자 \"+-0.9로 고치고\" (U-26(a)) -- nmcnr_amplifier.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec)",
-        "decided": "2026-09-15"
+        "record": "2026-10-12 사용자 \"nmcnr은 1.8, 0으로 고치고 agnd로 0.9로 하는 pushpull 형태로 고쳐\" + \"Q8은 한꺼번에 반영해\" (TOPOLOGY_CORRECTION_QUEUE Q8). 이전 기록: 2026-09-15 사용자 \"+-0.9로 고치고\" (U-26(a)) -- nmcnr_amplifier.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec)",
+        "decided": "2026-10-12"
       }
     },
     "input_dc": {
@@ -194,8 +195,24 @@
     },
     "search": {
       "theta_bounds": {
-        "Cm1": {"min": 1e-13, "max": 1e-11, "source": {"kind": "user_spec", "record": "user_decisions.md 2026-10-08 \"10번도 네 판단에 동의해\" -- engine 보상 커패시터 θ 상자 [0.1 pF, 10 pF]", "decided": "2026-10-08"}},
-        "Cm2": {"min": 1e-13, "max": 1e-11, "source": {"kind": "user_spec", "record": "user_decisions.md 2026-10-08 \"10번도 네 판단에 동의해\" -- engine 보상 커패시터 θ 상자 [0.1 pF, 10 pF]", "decided": "2026-10-08"}}
+        "Cm1": {
+          "min": 1e-13,
+          "max": 1e-11,
+          "source": {
+            "kind": "user_spec",
+            "record": "user_decisions.md 2026-10-08 \"10번도 네 판단에 동의해\" -- engine 보상 커패시터 θ 상자 [0.1 pF, 10 pF]",
+            "decided": "2026-10-08"
+          }
+        },
+        "Cm2": {
+          "min": 1e-13,
+          "max": 1e-11,
+          "source": {
+            "kind": "user_spec",
+            "record": "user_decisions.md 2026-10-08 \"10번도 네 판단에 동의해\" -- engine 보상 커패시터 θ 상자 [0.1 pF, 10 pF]",
+            "decided": "2026-10-08"
+          }
+        }
       },
       "wall_clock_budget_s": {
         "value": 300,

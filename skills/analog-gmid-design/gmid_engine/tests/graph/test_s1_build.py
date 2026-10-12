@@ -81,7 +81,7 @@ def test_same_inputs_reloaded_doc_previous_still_same(gh):
     ("sf_pushpull_output_opamp", "lib", {"vdd": 3.3, "vss": 0.0, "agnd": 1.65}),
     ("current_reuse_telescopic_ota", "lib", {"vdd": 0.9, "gnd": -0.9}),
     ("two_stage_ota_sf", None, {"vdd": 1.8, "gnd": 0.0}),    # None -> 값: bulk 만 다시
-    ("nmcnr_amplifier", "lib", {"vdd": 1.8, "vss": 0.0}),    # ±0.9 -> 0/1.8 원점 이동
+    ("nmcnr_amplifier", "lib", {"vdd": 0.9, "vss": -0.9, "agnd": 0.0}),    # 0/1.8/0.9 -> ±0.9/0 원점 이동(Q8 뒤 3레일)
 ])
 def test_supplies_only_change_reuses_structure(gh, name, sv1, sv2):
     doc = gh.load_lib(name)

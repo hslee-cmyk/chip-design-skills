@@ -15,7 +15,7 @@ SIX = (
 )
 NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
 TABLE = {"common_gate_amplifier": 1, "current_reuse_telescopic_ota": 18, "folded_cascode": 3, "ngcc_3stage_ff": 6,
-         "nmcnr_amplifier": 5, "pushpull_follower_buffer": 3, "sf_pushpull_output_opamp": 8, "two_stage_ota": 3,
+         "nmcnr_amplifier": 4, "pushpull_follower_buffer": 3, "sf_pushpull_output_opamp": 8, "two_stage_ota": 3,
          "two_stage_ota_sf": 4}
 
 
