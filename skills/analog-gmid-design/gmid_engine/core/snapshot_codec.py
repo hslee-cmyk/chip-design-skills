@@ -3,13 +3,17 @@
 
 진입점: `S0SnapshotStore(directory, code_fp)`.
 
-* 키 = 호출자가 준 S0 입력 지문 `inputs`(문자열 -> 64자 hex 문자열 또는 None 의 매핑: S0 전체 지문 구성요소(P N3.3 v6.4)와
-  `structure.json` 사실 지문) + 엔진 코드 지문 `code_fp`(`engine_code_fp()`, 키 이름 `KEY_CODE_FP`). 파일 이름 = `<fp_of(키)>.json.gz`.
-  키가 다르면 없는 것으로 본다(SC-d) -- 부분 재사용은 하지 않는다.
-* `load(inputs) -> (GraphSnapshot | None, outcome)`: outcome ∈ {`OUTCOME_HIT`, `OUTCOME_MISS`, `OUTCOME_CORRUPT`}. 파일이 없으면 miss.
+* 키 = 호출자가 준 S0 입력 지문 `inputs`(문자열 -> 문자열 또는 None 의 매핑: S0 전체 지문 구성요소(P N3.3 v6.4)와 `structure.json` 사실 지문)
+  + 입력 파일 `sources`({역할: (경로 | None, 원본 바이트 sha256 | None)} -- topology·spec·structure·LUT·PDK 선언 파일, 사용자 결정 U-68 원문 범위)
+  + 엔진 코드 지문 `code_fp`(`engine_code_fp()`, 키 이름 `KEY_CODE_FP`). 입력 파일마다 키에 `source.<역할>.path`(저장소 안이면
+  `repo:<저장소 기준 posix 상대 경로>`, 밖이면 `abs:<절대 posix 경로>`, 경로 없음이면 None)와 `source.<역할>.sha256`(파일이 없으면 None)을 넣는다.
+  저장소 = 엔진 폴더 위로 처음 `.git` 이 있는 폴더(worktree 포함). 파일 이름 = `<fp_of(키)>.json.gz`. 키가 다르면 없는 것으로 본다(SC-d).
+  정규화 지문(topology 연결 지문 등)은 원본 바이트와 엔진 코드의 함수이므로, 원본 sha·위치·엔진 코드 지문이 같으면 같은 키가 다시 만들어진다
+  -- 아래 정리가 이것으로 재현 가능성을 엔진 실행 없이 판정한다. 저장된 키가 곧 스냅샷 메타다(문서 `key`).
+* `load(inputs, sources) -> (GraphSnapshot | None, outcome)`: outcome ∈ {`OUTCOME_HIT`, `OUTCOME_MISS`, `OUTCOME_CORRUPT`}. 파일이 없으면 miss.
   읽은 뒤 본문 sha256(`body_sha256`), 형식 판(`schema_version`), 저장된 키, writer 권한표 대조, 스냅샷 `fp` 재계산을 확인한다 --
   하나라도 틀리면(디코더가 등록부 밖 타입을 만난 경우 포함) 손상(corrupt, RuntimeWarning)이고 스냅샷을 돌려주지 않는다.
-* `save(inputs, snapshot) -> 경로 | None`: 키 파일이 이미 있고 검증을 통과하면 쓰지 않는다. 아니면(없음·손상) 같은 폴더의 임시 파일에
+* `save(inputs, sources, snapshot) -> 경로 | None`: 키 파일이 이미 있고 검증을 통과하면 쓰지 않는다. 아니면(없음·손상) 같은 폴더의 임시 파일에
   쓰고 fsync 뒤 `os.replace` 로 교체한다(원자적, 손상 파일은 같은 키로 교체된다). 쓰기 실패는 RuntimeWarning 뒤 None(계산 결과는 그대로).
   쓴 뒤 1회 옛 파일 정리(U-68, 아래).
 * 형식: gzip(mtime 0) JSON 하나 `{schema_version, key{...}, writers[[kind, field, writer]...], block_versions{writer: 입력 버전},
@@ -20,12 +24,12 @@
   `{"__type__": "<모듈>.<클래스>", "fields": {이름: 값}}`(init 필드만 -- 디코더가 생성자로 다시 만든다). dataclass 는 타입 등록부
   (`type_registry`)에 있는 것만 인코드·디코드한다(목록 밖은 인코드 `TypeError`, 디코드 = 손상). 옛 S3 `_plain`(repr 직렬화)은 쓰지 않는다.
 * 위치: `S0SnapshotStore.default(code_fp)` = `gmid_engine/.s0_snapshot/`(저장소 `.gitignore` 등록, P N3.5).
-* 옛 파일 정리(U-68, 쓰기 시점 1회): 폴더의 `<64 hex>.json.gz` 형식 파일 중 저장된 엔진 코드 지문이 이 저장소·`git worktree list` 의
-  모든 worktree 의 현재 엔진 코드 지문 어느 것과도 다른 파일만 지운다(그 키는 어떤 checkout 으로도 만들 수 없다). 방금 쓴 파일·심볼릭
-  링크·폴더 밖·형식이 다르거나 읽을 수 없는 파일은 건드리지 않고, worktree 나열·지문 계산이 실패하면 아무것도 지우지 않는다.
-  저장된 코드 지문이 모두 현재 것과 같으면 git 을 부르지 않고, worktree 지문은 남은 후보가 모두 재현될 때까지만 잰다(실측: worktree 104개
-  전부 재면 약 80 s). 입력 파일(topology·spec·LUT·PDK 선언) 쪽 재현 가능성은 보지 않는다
-  (정규화 지문은 그 checkout 의 엔진 코드로만 다시 만들 수 있다) -- 지우는 쪽으로 틀리지 않는다.
+* 옛 파일 정리(U-68, 쓰기 시점 1회): 폴더의 `<64 hex>.json.gz` 형식 파일(방금 쓴 파일·심볼릭 링크·폴더 밖·형식이 다르거나 읽을 수 없는 파일 제외)
+  중 **어떤 checkout 으로도 그 키를 만들 수 없는 것**만 지운다. 판정(엔진 실행 없음): 키의 `abs:` 입력 파일은 지금 그 경로 파일의 원본 sha 가
+  저장된 값과 같아야 하고(없음 = None), 이 저장소·`git worktree list` 의 어느 worktree W 에서 `W/<엔진 상대 경로>` 의 엔진 코드 지문이 키의
+  것과 같고 `repo:` 입력 파일마다 `W/<상대 경로>` 의 원본 sha 가 저장된 값과 같으면(없음 = None) 재현 가능 -- 보존한다. worktree 는 이 저장소부터
+  하나씩 재고 남은 후보가 없어지면 멈춘다(실측: worktree 104개 전부 재면 약 80 s). 정리 중 잰 파일 sha 는 그 정리 한 번 안에서만 다시 쓰고,
+  worktree 나열이 실패하면 아무것도 지우지 않는다.
 """
 import dataclasses
 import gzip
@@ -53,6 +57,11 @@ SCHEMA_VERSION = 1
 SNAPSHOT_DIR_NAME = ".s0_snapshot"
 FILE_SUFFIX = ".json.gz"
 KEY_CODE_FP = "engine_code_fp"
+SOURCE_PREFIX = "source."
+SOURCE_PATH = ".path"
+SOURCE_SHA = ".sha256"
+LOCATOR_REPO = "repo:"
+LOCATOR_ABS = "abs:"
 OUTCOME_HIT = "hit"
 OUTCOME_MISS = "miss"
 OUTCOME_CORRUPT = "corrupt"
@@ -66,6 +75,9 @@ _T_BYTES = "bytes"
 _T_TUPLE = "tuple"
 _T_FROZENSET = "frozenset"
 _BODY_SHA = "body_sha256"
+_GIT_MARK = ".git"
+_WORKTREE_LINE = "worktree "
+_SOURCE_PAIR = ("path", "sha256")
 _FILE_NAME = re.compile(r"[0-9a-f]{64}" + re.escape(FILE_SUFFIX))
 # 손상으로 보는 예외: 파일·gzip·JSON·형식 위반과, 깨진 문서로 레코드·필드 값·권한표를 다시 만들 때 나는 예외(모양이 틀린 칸의 속성 접근 포함)
 _READ_ERRORS = (OSError, EOFError, zlib.error, gzip.BadGzipFile, UnicodeDecodeError, ValueError, TypeError, KeyError, AttributeError,
@@ -175,19 +187,88 @@ def _git(directory, *args):
     return done.stdout
 
 
-def _unreproducible(engine_root, candidates):
-    """`candidates`(저장된 코드 지문 집합) 중 이 저장소와 `git worktree list` 의 어느 worktree 의 같은 상대 경로 엔진 폴더 현재 지문과도 같지 않은 것.
-    worktree 를 나열 순서대로 하나씩 재고, 남은 후보가 없어지면 멈춘다(모두 재현 가능 = 지울 것 없음). 실패는 OSError·ValueError·SubprocessError."""
-    top = Path(_git(engine_root, "rev-parse", "--show-toplevel").strip()).resolve()
-    rel = engine_root.resolve().relative_to(top)
-    roots = [line[len("worktree "):] for line in _git(engine_root, "worktree", "list", "--porcelain").splitlines()
-             if line.startswith("worktree ")]
-    left = set(candidates)
-    for root in roots:
-        left.discard(engine_code_fp(Path(root) / rel))
+def _engine_root():
+    return Path(__file__).resolve().parents[1]
+
+
+def _repo_top(engine_root):
+    """엔진 폴더 위로 처음 `.git`(폴더 또는 worktree 의 파일)이 있는 폴더, 없으면 None."""
+    for folder in (engine_root,) + tuple(engine_root.parents):
+        if (folder / _GIT_MARK).exists():
+            return folder
+    return None
+
+
+def _locator(path, top):
+    """입력 파일 경로 -> `repo:<상대 posix>` | `abs:<절대 posix>`."""
+    full = Path(path).resolve()
+    if top is not None and full.is_relative_to(top):
+        return LOCATOR_REPO + full.relative_to(top).as_posix()
+    return LOCATOR_ABS + full.as_posix()
+
+
+def _file_sha(path, seen):
+    """원본 바이트 sha256(없으면 None). `seen` = 이 정리 한 번의 경로별 결과(같은 파일을 다시 읽지 않는다)."""
+    if path not in seen:
+        if os.path.isfile(path):
+            with open(path, "rb") as fh:
+                seen[path] = hashlib.file_digest(fh, "sha256").hexdigest()
+        else:
+            seen[path] = None
+    return seen[path]
+
+
+def _sources_of(key):
+    """키의 ((locator, sha256 | None), ...) -- 경로가 있는 입력 파일만."""
+    out = []
+    for name, value in key.items():
+        if name.startswith(SOURCE_PREFIX) and name.endswith(SOURCE_PATH) and value is not None:
+            out.append((value, key[name[:-len(SOURCE_PATH)] + SOURCE_SHA]))
+    return tuple(out)
+
+
+def _well_formed(key):
+    """정리가 읽을 수 있는 키인가(코드 지문 문자열, 입력 파일 칸이 `repo:`·`abs:` 위치와 문자열|None sha)."""
+    return (type(key) is dict and isinstance(key.get(KEY_CODE_FP), str)
+            and all(isinstance(loc, str) and loc.startswith((LOCATOR_REPO, LOCATOR_ABS)) and (sha is None or isinstance(sha, str))
+                    for loc, sha in _sources_of(key)))
+
+
+def _unreproducible(engine_root, current_key, candidates):
+    """`candidates`((파일 경로, 저장된 키), ...) 중 어떤 checkout 으로도 키를 만들 수 없는 것의 파일 경로 집합(모듈 머리 '옛 파일 정리').
+    `current_key` = 방금 쓴 파일의 키 -- 이 실행이 잰 입력 파일 sha 와 엔진 코드 지문을 다시 재지 않고 쓴다.
+    실패는 OSError·ValueError·SubprocessError(호출자는 아무것도 지우지 않는다)."""
+    top = _repo_top(engine_root)
+    if top is None:
+        raise OSError("snapshot_codec: 엔진 폴더가 git 저장소 안에 없다")
+    rel = engine_root.relative_to(top)
+    current_code_fp = current_key[KEY_CODE_FP]
+    seen = {}
+    for loc, sha in _sources_of(current_key):
+        if loc.startswith(LOCATOR_ABS):
+            seen[loc[len(LOCATOR_ABS):]] = sha
+        else:
+            seen[str(top / loc[len(LOCATOR_REPO):])] = sha
+    doomed, left = set(), []
+    for path, key in candidates:
+        sources = _sources_of(key)
+        outside = [(loc[len(LOCATOR_ABS):], sha) for loc, sha in sources if loc.startswith(LOCATOR_ABS)]
+        if any(_file_sha(p, seen) != sha for p, sha in outside):
+            doomed.add(path)
+        else:
+            inside = [(loc[len(LOCATOR_REPO):], sha) for loc, sha in sources if loc.startswith(LOCATOR_REPO)]
+            left.append((path, key[KEY_CODE_FP], inside))
+    if not left:
+        return doomed
+    listed = [Path(line[len(_WORKTREE_LINE):]).resolve()
+              for line in _git(engine_root, "worktree", "list", "--porcelain").splitlines() if line.startswith(_WORKTREE_LINE)]
+    for root in [top] + [r for r in listed if r != top]:
+        code = current_code_fp if root == top else engine_code_fp(root / rel)
+        left = [(path, stored, inside) for path, stored, inside in left
+                if not (stored == code and all(_file_sha(str(root / r), seen) == sha for r, sha in inside))]
         if not left:
             break
-    return left
+    return doomed | {path for path, _, _ in left}
 
 
 @dataclasses.dataclass(frozen=True)
@@ -206,22 +287,39 @@ class S0SnapshotStore:
     @classmethod
     def default(cls, code_fp):
         """`gmid_engine/.s0_snapshot/`(`.gitignore` 등록) 저장소."""
-        return cls(str(Path(__file__).resolve().parents[1] / SNAPSHOT_DIR_NAME), code_fp)
+        return cls(str(_engine_root() / SNAPSHOT_DIR_NAME), code_fp)
 
-    def key_of(self, inputs):
-        """전체 키 dict = `inputs` + {`KEY_CODE_FP`: code_fp}. 이름은 비어 있지 않은 문자열, 값은 문자열 또는 None."""
-        if not isinstance(inputs, Mapping) or KEY_CODE_FP in inputs:
-            raise TypeError("S0SnapshotStore: inputs 는 " + KEY_CODE_FP + " 를 뺀 {이름: 지문 문자열 | None} 매핑이어야 한다")
+    def key_of(self, inputs, sources):
+        """전체 키 dict = `inputs` + 입력 파일 칸(`source.<역할>.path`·`.sha256`) + {`KEY_CODE_FP`: code_fp}.
+        `inputs`: {비어 있지 않은 이름(`KEY_CODE_FP`·`source.` 접두 금지): 문자열 | None}. `sources`: {비어 있지 않은 역할: (경로 | None, sha256 | None)}
+        -- 경로가 None 이면 sha256 도 None. 위반은 `TypeError`."""
+        if not isinstance(inputs, Mapping) or not isinstance(sources, Mapping):
+            raise TypeError("S0SnapshotStore: inputs·sources 는 매핑이어야 한다")
+        key = {}
         for name, value in inputs.items():
-            if not isinstance(name, str) or not name or not (value is None or isinstance(value, str)):
+            if (not isinstance(name, str) or not name or name == KEY_CODE_FP or name.startswith(SOURCE_PREFIX)
+                    or not (value is None or isinstance(value, str))):
                 raise TypeError("S0SnapshotStore: inputs 항목 " + repr((name, value)) + " 형식 위반")
-        key = dict(sorted(inputs.items()))
+            key[name] = value
+        top = _repo_top(_engine_root())
+        for role, pair in sources.items():
+            if not isinstance(role, str) or not role or not isinstance(pair, tuple) or len(pair) != len(_SOURCE_PAIR):
+                raise TypeError("S0SnapshotStore: sources 항목 " + repr((role, pair)) + " 은 역할: (경로, sha256) 이어야 한다")
+            path, sha = pair
+            if (path is None and sha is not None) or not (sha is None or isinstance(sha, str)):
+                raise TypeError("S0SnapshotStore: sources 항목 " + repr((role, pair)) + " 형식 위반")
+            key[SOURCE_PREFIX + role + SOURCE_PATH] = None if path is None else _locator(path, top)
+            key[SOURCE_PREFIX + role + SOURCE_SHA] = sha
+        key = dict(sorted(key.items()))
         key[KEY_CODE_FP] = self.code_fp
         return key
 
-    def path_of(self, inputs):
+    def _path_for(self, key):
+        return os.path.join(self.directory, fp_of(key) + FILE_SUFFIX)
+
+    def path_of(self, inputs, sources):
         """키 파일 경로(`<fp_of(키)>.json.gz`)."""
-        return os.path.join(self.directory, fp_of(self.key_of(inputs)) + FILE_SUFFIX)
+        return self._path_for(self.key_of(inputs, sources))
 
     def _load_path(self, path, key):
         try:
@@ -232,17 +330,17 @@ class S0SnapshotStore:
             warnings.warn("S0SnapshotStore: 손상된 스냅샷 파일 -- 다시 계산해 같은 키로 교체한다: %s (%s)" % (path, exc), RuntimeWarning)
             return None, OUTCOME_CORRUPT
 
-    def load(self, inputs):
+    def load(self, inputs, sources):
         """(GraphSnapshot | None, outcome)."""
-        key = self.key_of(inputs)
-        return self._load_path(self.path_of(inputs), key)
+        key = self.key_of(inputs, sources)
+        return self._load_path(self._path_for(key), key)
 
-    def save(self, inputs, snapshot):
+    def save(self, inputs, sources, snapshot):
         """`snapshot`(GraphSnapshot)을 키 파일로 쓴다. 이미 검증되는 파일이 있으면 쓰지 않는다. 쓴 경로 또는 None."""
         if not isinstance(snapshot, GraphSnapshot):
             raise TypeError("S0SnapshotStore.save: snapshot 은 GraphSnapshot 이어야 한다")
-        key = self.key_of(inputs)
-        path = self.path_of(inputs)
+        key = self.key_of(inputs, sources)
+        path = self._path_for(key)
         if os.path.isfile(path) and self._load_path(path, key)[1] == OUTCOME_HIT:
             return path
         blob = gzip.compress(_canonical_json(_document(key, snapshot)), mtime=0)   # 인코드 실패(TypeError)는 전파 -- 등록부 밖 값
@@ -265,35 +363,34 @@ class S0SnapshotStore:
                     os.unlink(tmp)
                 except OSError:
                     pass
-        self._cleanup(path)
+        self._cleanup(path, key)
         return path
 
-    def _cleanup(self, keep_path):
-        """U-68: 어떤 checkout 의 엔진 코드로도 만들 수 없는 키(저장된 코드 지문이 어느 worktree 의 현재 지문과도 다름)의 파일만 지운다."""
+    def _cleanup(self, keep_path, keep_key):
+        """U-68: 어떤 checkout 으로도 키를 만들 수 없는 파일만 지운다(모듈 머리 '옛 파일 정리')."""
         try:
             names = sorted(os.listdir(self.directory))
         except OSError:
             return
-        stale = []
+        candidates = []
         for name in names:
             path = os.path.join(self.directory, name)
             if not _FILE_NAME.fullmatch(name) or path == keep_path or os.path.islink(path) or not os.path.isfile(path):
                 continue
             try:
-                stored = _read_doc(path)["key"][KEY_CODE_FP]
+                key = _read_doc(path)["key"]
+                valid = _well_formed(key)
             except _READ_ERRORS:
                 continue
-            if isinstance(stored, str) and stored != self.code_fp:
-                stale.append((path, stored))
-        if not stale:
+            if valid:
+                candidates.append((path, key))
+        if not candidates:
             return
         try:
-            doomed = _unreproducible(Path(__file__).resolve().parents[1], {stored for _, stored in stale})
+            doomed = _unreproducible(_engine_root(), keep_key, candidates)
         except (OSError, ValueError, subprocess.SubprocessError):
             return
-        for path, stored in stale:
-            if stored not in doomed:
-                continue
+        for path in sorted(doomed):
             try:
                 os.unlink(path)
             except OSError:

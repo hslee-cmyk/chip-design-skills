@@ -1,10 +1,11 @@
 """탐색 컨텍스트 -- S0 당 1회 루프 불변 입력 + 실행 수명 평가 캐시·계수 (설계 2.1·7.2·7.4, WP-23 (3)).
 
-진입점: `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl) -> SearchContext`(`pdk_decl` = core
+진입점: `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, ..., *, code_fp) -> SearchContext`(`pdk_decl` = core
 `read_pdk_decl` 결과 -- W 하한·b_A 의 `min_finger_w_m`·`manufacturing_grid_m`).
 
 * 담는 것: sizing `KernelContext`(dc), `SearchDomain`, 지문 3개(S0 = `context_fp`, θ 스키마 = `schema_fp`, 코드 =
-  `code_fp` -- core `engine_code_fp()`: gmid_engine 의 test 밖 모든 패키지 소스 바이트 sha256, 설계 40 §2.4.3 (iii)), spec 요소 값, 판정 보류 제약 기록, S3 기록기.
+  `code_fp` -- 호출자가 넘긴 core `engine_code_fp()` 값(단계 A 가 실행마다 한 번 재 `StageAResult.code_fp` 로 넘긴다 -- 여기서 다시 재지 않는다):
+  gmid_engine 의 test 밖 모든 패키지 소스 바이트 sha256, 설계 40 §2.4.3 (iii)), spec 요소 값, 판정 보류 제약 기록, S3 기록기.
 * **평가 캐시**(설계 7.2): `cache` = {EvalKey: EvalResult}(실패 포함). 상한 = 실행이 만드는 고유 키 수 -- 요약은 θ 길이에
   비례하는 작은 값이라 퇴출이 없다. `disk_failures` = S3 evals 실패 줄에서 재구성한 {EvalKey: FailureRecord}(같은 S0·코드 지문만,
   설계 7.3). 모듈 수준 캐시가 아니라 이 객체가 소유한다.
@@ -18,7 +19,7 @@ import copy
 import dataclasses
 
 from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
-from gmid_engine.core import FailureRecord, PdkDecl, engine_code_fp, fp_of
+from gmid_engine.core import FailureRecord, PdkDecl, fp_of
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE
 from gmid_engine.lut import require_lut_data, sweep_memo
 from gmid_engine.metrics import (AUX_TYPES, JunctionSource, MismatchSource, NoiseAnalysis, metric_catalog, metric_registry,
@@ -121,7 +122,7 @@ def _require_noise_data(dc_ctx, spec):
         require_lut_data(dc_ctx.lut.memo.lut, kinds, mismatch=True)
 
 
-def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None, ach=None, model_error=()):
+def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None, ach=None, model_error=(), *, code_fp):
     """[r6] `lut_rule_decl` = core `read_pdk_decl(<LUT 생성 규칙 선언>)`(sky130 = assets/sky130_lut_rule_decl.json). 여기서 S0 당
     1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)`(metrics 7.6 필수 junction)를 만든다.
 
@@ -133,6 +134,8 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     에서 만든다) -- 분해능 바닥(`ss_constraint_rows`).
     [U13] `s1v` 를 주면 여기서 한 번 `start_intervals(s1v, ach, dc_ctx, spec, pdk_decl, domain)`(`ach` = U9 `Achievability` 또는 None)로 gm/ID·L·전류 출발 구간을 유도해
     `ctx.start` 에 둔다 -- 층 0(`layer0_start`)이 θ 상자 기하 중심 대신 이 구간의 선택점에서 출발한다(41 §6). s1v 가 없으면 `ctx.start` 는 None 이고 층 0 은 상자 중심으로 간다."""
+    if not isinstance(code_fp, str) or not code_fp:
+        raise TypeError("build_search_context: code_fp 는 단계 A 가 잰 엔진 코드 지문(StageAResult.code_fp) 문자열이어야 한다")
     for name, value in (("pdk_decl", pdk_decl), ("lut_rule_decl", lut_rule_decl)):
         if not isinstance(value, PdkDecl):            # 무엇이든 만들기 전에 입력 형식부터(§3.7·3.9)
             raise TypeError("build_search_context: " + name + " 는 core read_pdk_decl 결과여야 한다")
@@ -149,7 +152,6 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     context_fp = fp_of((dc_ctx.base.fp, dc_ctx.plan_versions, dc_ctx.lut, dc_ctx.fixed_values, dc_ctx.resistor_values,
                         dc_ctx.inputs))
     schema_fp = fp_of(dc_ctx.schema)
-    code_fp = engine_code_fp()
     judged, ss, notes = [], [], []
     registry = metric_registry()
     catalog = metric_catalog()

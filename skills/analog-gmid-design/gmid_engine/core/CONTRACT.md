@@ -522,14 +522,17 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
 ### 11.3 `S0SnapshotStore(directory, code_fp)` -- frozen dataclass (파일 `snapshot_codec.py`, 층 4)
 - `S0SnapshotStore.default(code_fp)`: `directory` = `gmid_engine/.s0_snapshot`(저장소 `.gitignore`). `directory`·`code_fp` 가 빈 문자열이거나
   문자열이 아니면 `ValueError`.
-- `key_of(inputs) -> dict`: `inputs` = {비어 있지 않은 이름 문자열: 문자열 | None} 매핑(`KEY_CODE_FP` = "engine_code_fp" 는 넣지 못한다, 위반 `TypeError`).
-  결과 = 이름 정렬 `inputs` + {`KEY_CODE_FP`: code_fp}. `path_of(inputs)` = `<directory>/<fp_of(key_of(inputs))>.json.gz`.
-- `load(inputs) -> (GraphSnapshot | None, outcome)`: 파일 없음 -> (None, `OUTCOME_MISS`="miss"). 정상 -> (스냅샷, `OUTCOME_HIT`="hit"): 돌려준
+- `key_of(inputs, sources) -> dict`: `inputs` = {비어 있지 않은 이름(`KEY_CODE_FP`="engine_code_fp" 와 `source.` 접두 금지): 문자열 | None},
+  `sources` = {비어 있지 않은 역할: (경로 | None, 원본 바이트 sha256 | None)}(경로 None 이면 sha256 도 None). 위반은 `TypeError`.
+  결과 = `inputs` + 역할마다 `source.<역할>.path`(경로가 엔진 폴더 위 첫 `.git` 폴더(저장소 top) 안이면 `repo:<top 기준 posix 상대 경로>`,
+  밖이면 `abs:<resolve 한 절대 posix 경로>`, 경로 None 이면 None)·`source.<역할>.sha256` 을 이름 정렬한 뒤 `KEY_CODE_FP`: code_fp.
+  `path_of(inputs, sources)` = `<directory>/<fp_of(key_of(...))>.json.gz`.
+- `load(inputs, sources) -> (GraphSnapshot | None, outcome)`: 파일 없음 -> (None, `OUTCOME_MISS`="miss"). 정상 -> (스냅샷, `OUTCOME_HIT`="hit"): 돌려준
   스냅샷의 `fp`·`block_versions`·`writers`·모든 필드의 값·writer·input_version·write_count 가 저장한 스냅샷과 같다. 다음은 전부
-  (None, `OUTCOME_CORRUPT`="corrupt") + `RuntimeWarning`: gzip·JSON 깨짐, `body_sha256` 불일치, `schema_version` 다름, 저장된 `key` 가 `key_of(inputs)` 와 다름,
+  (None, `OUTCOME_CORRUPT`="corrupt") + `RuntimeWarning`: gzip·JSON 깨짐, `body_sha256` 불일치, `schema_version` 다름, 저장된 `key` 가 `key_of(...)` 와 다름,
   권한표와 다른 writer 의 필드, 권한표 밖 writer 의 block_version, 등록부 밖 `__type__`, 타입 없는 JSON 값(맨 숫자 float·list·`__type__` 없는 객체),
   dataclass 필드 이름이 init 필드와 다름, 다시 만든 스냅샷 `fp` 가 저장된 `fp` 와 다름.
-- `save(inputs, snapshot) -> 경로 | None`: `snapshot` 이 GraphSnapshot 아니면 `TypeError`. 값에 등록부 밖 dataclass·지원 밖 형식이 있으면
+- `save(inputs, sources, snapshot) -> 경로 | None`: `snapshot` 이 GraphSnapshot 아니면 `TypeError`. 값에 등록부 밖 dataclass·지원 밖 형식이 있으면
   `TypeError`(파일을 쓰지 않는다). 키 파일이 이미 있고 `load` 가 hit 이면 쓰지 않고 그 경로. 아니면(없음·손상) 원자적으로 쓰고(같은 폴더 임시
   파일 -> `os.replace`, 손상 파일은 같은 이름으로 교체) 경로를 돌려준다. 쓰기 OSError 는 `RuntimeWarning` 뒤 None. 같은 입력·같은 스냅샷이면
   파일 바이트가 같다(gzip mtime 0, 정준 JSON).
@@ -538,8 +541,10 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
   `json.dumps(sort_keys=True, separators=(",", ":"), ensure_ascii=True)` 바이트 sha256. 값 인코딩: None·bool·int·str 그대로, float
   `{"__type__": "float", "hex": float.hex(x)}`, bytes `{"__type__": "bytes", "hex"}`, tuple `{"__type__": "tuple", "items"}`, frozenset
   `{"__type__": "frozenset", "items"}`(원소 `fp_of` 오름차순), 등록 dataclass `{"__type__": "<모듈>.<qualname>", "fields": {init 필드: 값}}`.
-- 옛 파일 정리(U-68): `save` 가 실제로 쓴 뒤 1회. 폴더 안 `<64 소문자 hex>.json.gz` 이름의 일반 파일(방금 쓴 파일·심볼릭 링크 제외) 중 저장된
-  `key.engine_code_fp` 가 현재 `code_fp` 와 다르고, 이 저장소와 `git worktree list` 의 모든 worktree 의 같은 상대 경로 엔진 폴더 현재
-  `engine_code_fp` 어느 것과도 다른 파일만 지운다. 읽을 수 없는 파일·형식 다른 이름·폴더 밖은 건드리지 않는다. git 실패면 아무것도 지우지 않는다.
+- 옛 파일 정리(U-68, 사용자 결정 원문 범위 = topology·spec·LUT·PDK 선언·엔진 코드): `save` 가 실제로 쓴 뒤 1회. 폴더 안 `<64 소문자 hex>.json.gz`
+  이름의 일반 파일(방금 쓴 파일·심볼릭 링크 제외, 읽을 수 없거나 키 모양이 틀린 파일은 건드리지 않음) 중 다음을 만족하는 checkout 이 하나도 없는
+  파일만 지운다: 키의 `abs:` 입력 파일마다 지금 그 경로 파일의 원본 sha256 이 저장값과 같고(파일 없음 = None) / 이 저장소 top 과 `git worktree list` 의
+  worktree W 중 하나에서 `W/<엔진 상대 경로>` 의 `engine_code_fp` 가 키의 `engine_code_fp` 와 같고 키의 `repo:` 입력 파일마다 `W/<상대 경로>` 원본
+  sha256 이 저장값과 같다(없음 = None). git 실패면 아무것도 지우지 않는다. 엔진을 실행하지 않는다(원본 sha 와 코드 지문만 본다).
 - 배선: `pipeline.run_stage_a` 가 S1 생성 경로에서 부른다(pipeline CONTRACT §1). 계수 `perf.s0_snapshot{hit, miss, corrupt}` 는 `RunCounters`
   (40 §2.4.9, 단계 ②) 몫이고, 지금은 단계 A 보고서 `s0_snapshot` 에 outcome 을 남긴다.
