@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.6
-plan_version: 6.5
+version: 1.7
+plan_version: 6.6
 ---
 
 # gain-budget-gmid-sizing -- 40-engine Design Document (새 엔진 `gmid_engine`, 색인·아키텍처)
@@ -9,7 +9,9 @@ plan_version: 6.5
 > **Summary**: 새 gm/ID 사이징 엔진(`skills/analog-gmid-design/gmid_engine/`)의 설계 정본이다. 계획서 N3.1 흐름 GB0~GB9를 패키지·파일에 대응시키고, 단계마다 알고리즘·입출력·불변식·실패 코드·as-built 상태를 적는다. 계획서가 요구하고 실행 로드맵에서 빠졌던 gain-budget 흐름(FR-1·FR-2·FR-4·FR-8)은 `41-gain-budget`에서 전부 설계한다. gap 분석 기준표는 `42-gap-checklist`다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Date**: 2026-10-12 · **Status**: v1.6 -- **v1.6 graph 정본 개정 (사용자 결정 2026-10-12), 사용자 승인(2026-10-12 "design 승인")**. 사용자 결정 2026-10-12 "1~4까지 새로고친 네 제안대로 해"(graph 단일 정본 + 계산 중복 제거)와 "G는 승인"(G-5·G-7·G-8·G-9·G-10)을 설계로 옮겼다.
+> **Date**: 2026-10-12 · **Status**: v1.7 -- `budget_ref` 구조 유도(사용자 결정 2026-10-12 "가로 해"): §3.2 `budget_ref` 규칙·concept `budget_ref` 추가, §3.7-8 유도·쓰기 경로, §9.4 J8. 열린 질문 BR-1(열린 단자 정의)·BR-2(서로를 가리키는 쌍).
+>
+> v1.6 -- **v1.6 graph 정본 개정 (사용자 결정 2026-10-12), 사용자 승인(2026-10-12 "design 승인")**. 사용자 결정 2026-10-12 "1~4까지 새로고친 네 제안대로 해"(graph 단일 정본 + 계산 중복 제거)와 "G는 승인"(G-5·G-7·G-8·G-9·G-10)을 설계로 옮겼다.
 > - §2.4 신설: graph 밖 허용 저장소 넷, S0 수준 층 필드와 디스크 영속화, 이식(graft)과 분할 계산 블록, S3 메모리 색인·스냅샷 보존, LUT memo 순수성·인스턴스 하나·상한 식, 값 사본 제거, 필드 소유표, G-10 계수·test, G-8 강제 장치, 열린 질문 Q1~Q7
 > - §1.2 EP-2, §2.2 상태 층 표, §2.3 API, §3.7-3 tol_I, §7.3 성능·캐시 표, §11 단위 U17(3단계) 갱신. 42에 D-GR1~D-GR15 추가
 > - 사용자 결정 2026-10-12 "P-1~P-15까지 권고대로 고쳐"(사용자 승인(2026-10-12 P)): §3.10 신설(P-2·P-3·P-6·P-7·P-10·P-11·P-12·P-13), §3.1 옛 이름·포트(P-4), §3.6 DEC-88 행(P-7), §3.9 MOD8 열린 항목 닫음(P-6), §10.3a DF 재발 금지 표(P-8). 42에 D-P2~D-P13 추가, DEC-22 행 정정
@@ -594,6 +596,7 @@ design-validator 지적(2026-10-12)에 따라 기본안을 정했다. 사용자 
    | `ac_ground_exception`(신규) | 넷 | 뷰 id | override(그 뷰 한정, 41 §1.12.6) | `E/graph/ac_ground_view.py` |
    | `matching_pair`(신규) | 소자·수동소자 쌍(JSON 배열) | `branch_symmetric` | override(레코드 추가, status ratified, evidence에 approval_id) | `E/graph/matching_groups.py` |
    | `l_owner`(신규, C-3 사용자 결정 2026-10-12 "7절 권고대로") | L 동치류 대표 멤버 목록(동치류 멤버 이름 정렬 JSON 배열) | 주인 소자 이름(그 동치류 멤버) | override(41 §1.12.5 주인 규칙 1~4를 덮음. 주인이 멤버가 아니거나 subject가 엔진 유도 동치류와 다르면 `structure_fact_mismatch`, 그 동치류가 없으면 `structure_fact_orphan`) | `E/graph/l_classes.py` |
+   | `budget_ref`(신규, 사용자 결정 2026-10-12 "가로 해") | 소자 X(아래 `budget_ref` 규칙의 대상 소자) | 기준 소자 이름 Y(후보 집합 C(X)의 원소) | 유도가 유일하지 않은 X(`budget_ref_ambiguous`)는 **override**, 유도가 유일한 X는 **confirm**(`dc_role`과 같은 방식). Y가 C(X)에 없으면 `structure_fact_mismatch`, X가 대상 소자가 아니거나 C(X)가 비면 `structure_fact_orphan` | `budget_ref` 엣지 writer(파일은 U4 관계 엣지 단위가 정한다. `structure_rule_fp` 대상에 넣는다) |
 
    - 루프 id: 루프 뷰는 as-built 뷰 id `loop:<끊는 소자>:<끊는 넷>`이다. 루프 뷰가 아닌 사이클은 정준 회전(이름 정렬 첫 노드에서 시작)의 노드 이름 JSON 배열이다.
    - `<탭>`·`<merge>`가 넷 이름이므로 `feedforward_cell` value는 `->`로 잇는다. 넷 이름에 `->`가 들어 있는 topology는 로드에서 거부한다(`structure_value_ambiguous`).
@@ -640,7 +643,17 @@ design-validator 지적(2026-10-12)에 따라 기본안을 정했다. 사용자 
 
    **사실 파일 상태**: 파일럿 `current_reuse_telescopic_ota.structure.json`(`ac_ground_exception` Vbias2, C-6 사용자 결정 2026-10-12 "7절 권고대로")은 별도 브랜치에서 작성 중이다. 단계 A 통과를 확인하고, 사실이 더 필요하면 다시 승인을 받는다. 나머지 회로의 사실 파일은 위 표대로 U1b 병합 뒤 쓴다. nmcnr 파일에는 `l_owner` 사실(subject [M104, M105], value M105)이 들어가고, 쓴 뒤 nmcnr 단계 A 보고서에서 `l_owner_name_order` review가 없어져야 한다. 같은 패턴(전류원 멤버 동률)이 다른 회로에서 나오면 규칙 '동률이면 drain이 주경로 노드인 멤버'로 일반화한다(같은 결정 기록).
 
-**`budget_ref`**(P DEC-55·N3.16): topology `budget_reference_device` 선언은 S1 관계 엣지 `budget_ref`(domain dc, status declared)가 된다. 노드를 공유하면 W1 항등으로 쓰고, 공유하지 않으면 `review_needed`(J8)다. 쓰기 경로는 §3.7-8.
+**`budget_ref`**(P DEC-55·N3.4 W1·N3.16, 사용자 결정 2026-10-12 "가로 해"): `budget_ref`는 S1 관계 엣지(domain dc)이고 **연결 구조에서 유도한다**. topology·spec의 `budget_reference_device` 키는 유도 입력으로도, 대조용 declared 엣지로도 읽지 않는다(U-50 lint, 예외 없음).
+- **대상 소자**: MOS 소자 X와 X의 열린 단자 넷 n이다. n은 레일이 아니다(`is_rail` 거짓). DEC-55·W1의 '노드를 공유하는'은 n이 다른 MOS 소자의 drain 넷과 같은 S1 노드라는 뜻이다. 열린 단자의 정의는 열린 질문 BR-1이다.
+- **후보 집합**: C(X) = n을 drain 단자로 쓰는 X 밖의 MOS 소자들이다. S1 노드 n의 `terminals`에서 읽는다.
+- **유일성 판정**:
+  - |C(X)| = 1: 그 소자 Y가 기준 소자다. 엣지 `{type: budget_ref, domain: dc, members: (X, Y), status: derived, evidence{rule: budget_ref_shared_drain, nets: [n]}}`.
+  - |C(X)| ≥ 2: 엔진이 정하지 못한다. `structure.json` `budget_ref` 사실(위 concept 표)이 X를 덮으면 그 값 Y로 엣지를 만들고 status는 `ratified`(approval_id)다. 사실이 없으면 엣지는 `review_needed`(`budget_ref_ambiguous{device: X, net: n, candidates: C(X) 이름순}`)이고, ratify 전에는 GB4 전에 정지한다(P N3.3 status 전이 그대로).
+  - |C(X)| = 0: 엣지가 없다. 노드를 공유하지 않는 옛 선언(계획 J8의 4건)은 `budget_ref`가 아니다.
+- **소비**: W1 구조 항등(§3.7-8). `derived`·`ratified` 엣지만 쓰기 계획에 들어간다.
+- **열린 질문**(결정 문언 밖. 정해지기 전에는 유도 구현을 시작하지 않는다):
+  - **BR-1 열린 단자 정의**: 옛 규칙(B26-1 spec (ii))은 `vertical_stack_id`(U-50 태그)로 열린 단자를 골랐다. 이를 대신할 S1 개념(기둥·가지 등)은 정해지지 않았다. drain 단자를 그대로 열린 단자로 읽으면 9회로의 유일 후보 74건이 모두 서로를 가리키는 쌍(37쌍)이 되고 한 방향 쌍은 0건이다(2026-10-12 topology 실측). 그러면 기준 소자 방향이 정해지지 않는다.
+  - **BR-2 서로를 가리키는 쌍**: X→Y와 Y→X가 함께 유도되는 경우다. 결정 전에는 두 엣지를 `review_needed`(`budget_ref_mutual`)로 두고 GB4 전에 정지한다. 공유 노드의 writer가 둘이 되기 때문이다(writer 유일, 봉인 5).
 
 ### 3.3 GB3 -- 결합 변수 y와 기둥↔블록 매핑 (MOD3)
 
@@ -793,11 +806,15 @@ design-validator 지적(2026-10-12)에 따라 기본안을 정했다. 사용자 
 5. **W4 초기값**: 층 0이 배분한 기둥 VDS를 쓴다(41 §5.3.4 (c) VDS 배분).
 6. **DEC-12 diode 창**: diode 노드 창은 그 VGS를 공유하는 미러 멤버 전원의 W 한계를 함께 본다. 멤버 VDS가 아직 정해지지 않았으면 그 멤버의 포화 하한 = LUT `VDSAT` 열 보간 + tol_VDsat(DEC-88, 봉인 7과 같은 양)을 바닥으로 쓴다. 멤버의 L이나 ID가 정해지지 않았으면 창을 만들지 않고 `SealViolationError`(사유 `diode_window_member_undefined`, 멤버 기록)로 명시적으로 실패한다. 역할 라벨 바닥(`min_vds_by_role`, DF-20)은 쓰지 않는다.
 7. **DEC-13 적층 diode**: `stacked_vsb`로 묶인 diode 두 개는 두 노드전압을 한 W2 블록에서 함께 푼다(2변수 고정점, 수렴·상한은 N3.6). 각 소자의 vsb는 DEC-61대로 그 순간의 노드전압과 bulk 넷에서 유도한다(두 bulk가 같으면 아래 vsb = 위 vsb + 위 vds가 그 특수형이다). 한 소자씩 차례로 풀지 않는다(DF-01 버전 혼재 방지: 두 소자의 W·gm은 같은 반복의 vsb로 계산된다).
-8. **`budget_ref` 로드·쓰기 경로**(P DEC-55, N3.4 W1, N3.16 `budget_reference_device` ↔ 엣지 `budget_ref`; design 소관):
-   - **로드**: topology 소자 필드 `budget_reference_device`(DEC-55, 사람 선언)를 GB0 로더가 읽는다. 대상 소자가 topology에 없으면 `SchemaRejectedError`(exit 7).
-   - **S1**: `build_s1`이 S1 관계 엣지 `{type: budget_ref, domain: dc, members: (소자, 기준 소자), status: declared, evidence}`로 만든다(N3.3 S1 어휘).
-   - **쓰기**: 두 소자가 노드를 공유하면(DEC-55 '노드를 공유하는') W1 구조 항등이다: 쓰기 계획이 그 공유 노드 변수를 기준 소자의 writer 하나로 묶고, 참조 소자는 그 노드를 쓰지 않는다(writer 유일, 봉인 5). 노드를 공유하지 않는 선언(계획 J8의 4건)은 등식을 만들지 않는다: 엣지는 `review_needed`로 남고 J8 ratify 전에는 GB4 전에 정지한다(P N3.3 status 전이).
-   - **소비 기록**: 결과 JSON 소자 행에 `budget_ref` 출처(선언 id)를 싣는다. 역할 라벨로 쓰지 않는다(IC4).
+8. **`budget_ref` 유도·쓰기 경로**(P DEC-55, N3.4 W1, N3.16; 사용자 결정 2026-10-12 "가로 해"; design 소관):
+   - **입력**: S1 노드(`terminals`, `is_rail`)와 `structure.json` `budget_ref` 사실뿐이다. topology·spec 키 `budget_reference_device`는 읽지 않는다(U-50 lint `TAG_ROLE_KEYS_U50`, 예외 없음). 옛 경로(GB0 로더가 선언을 읽어 status declared 엣지를 만듦)는 폐기한다.
+   - **S1**: `build_s1`이 §3.2 `budget_ref` 규칙으로 엣지 `{type: budget_ref, domain: dc, members: (X, 기준 소자 Y), status, evidence}`를 만든다(N3.3 S1 어휘). status는 다음과 같다.
+     - 후보가 하나로 정해지면 `derived`(evidence rule `budget_ref_shared_drain`, nets [공유 노드]).
+     - 하나로 정해지지 않고 `structure.json` 사실이 있으면 `ratified`(approval_id).
+     - 하나로 정해지지 않고 사실이 없으면 `review_needed`. ratify 전에는 GB4 전에 정지한다(P N3.3 status 전이).
+   - **쓰기**: W1 구조 항등이다. 쓰기 계획이 공유 노드 변수를 기준 소자 Y의 writer 하나로 묶고, X는 그 노드를 쓰지 않는다(writer 유일, 봉인 5). `review_needed` 엣지는 쓰기 계획에 들어가지 않는다(그 전에 정지한다).
+   - **소비 기록**: 결과 JSON 소자 행에 `budget_ref` 출처를 싣는다. 유도면 규칙 id와 공유 노드, 사실이면 approval_id다. 역할 라벨로 쓰지 않는다(IC4).
+   - **as-built**: `E/graph/CONTRACT.md` 4.5는 `budget_ref`를 '선언 전용'으로 보고 만들지 않는다. 유도 구현은 BR-1·BR-2(§3.2)가 정해진 뒤 시작한다(42 행 55).
 
 | 항목 | 상태 | 증거 |
 |---|---|---|
@@ -1416,7 +1433,7 @@ J-A~J-F(§9.3)가 닫은 것 밖의 J 항목이다. ratify 전에는 엔진 유�
 | J3 | class-AB(J3-ac 블록 경계, J3-dc `kvl_branch`·정지전류·루프 종속 gm_id·방향별 전류) | stage1 출력노드 = Vop1(계획 문언 기본안) | 열림 |
 | J5 | 5T 미러부하·NMCNR 폴딩 미러의 기모드 축약 | 엔진 유도 | 열림 |
 | J6 | 출력노드 부하 귀속(파일럿 M18a/M19/M18b, nmcnr M104/M106) | 엔진 유도(규칙 3 load) | 열림 |
-| J8 | `fold_group`·`shared_gm_id_groups`·노드 비공유 `budget_reference_device`·의도 태그 | 엔진 유도(태그는 유도 입력이 아니다, U-50) | 열림 |
+| J8 | `fold_group`·`shared_gm_id_groups`·노드 비공유 옛 `budget_reference_device` 선언 4건·의도 태그 | 엔진 유도(태그는 유도 입력이 아니다, U-50). `budget_ref`는 공유 drain 노드에서 유도하고, 유일하지 않으면 `structure.json` `budget_ref` 사실로 정한다(§3.2, 사용자 결정 2026-10-12 "가로 해"). 비공유 4건은 `budget_ref`가 아니다 | 열림(`budget_ref` 규칙은 결정됨. BR-1·BR-2 열림) |
 | J10 | follower·pass 끝 경로의 독립 블록 여부 | 독립 버퍼 블록(DEC-57, DEC-63 경계 절차) | 열림 |
 | J12-a | 버퍼 블록 경계 3건 | 엔진 유도(DEC-63) | 열림 |
 | J12-b | A·B·N17·N20 구동 종류 | 전압 구동(용어집 혼재 우선 규칙) | 열림 |
