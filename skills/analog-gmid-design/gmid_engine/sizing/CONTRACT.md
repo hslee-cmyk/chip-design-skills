@@ -192,7 +192,7 @@ graph 레코드 key: `DC_KEY`(`"dc"`). 값은 모두 불변(frozen dataclass·tu
 | [r8] device.dc_conduction_floor | dc_seal_conduction | `dc_op.current > 0` 인 MOS | float A(ID 하한 I_off/ε) 또는 None(tol_V 미정) |
 | graph.dc_seal_report | dc_seal_report | DC_KEY | `SealReport` |
 
-[ss_linearize 2026-10-08] 권한표 `S2_WRITERS` 에는 위 dc 필드 뒤에 ss·metric 필드 3개(`SS_WRITES`)가 더 있다 -- writer 는
+[ss_linearize 2026-10-08] 권한표 `S2_WRITERS` 에는 위 dc 필드 뒤에 ss·metric 필드(`SS_WRITES`)가 더 있다 -- writer 는
 metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여기서 선언한다(sizing 은 metrics 를 import 하지 않는다):
 
 | (kind, field) | writer | 대상 레코드 | 값 |
@@ -201,6 +201,9 @@ metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여�
 | graph.metrics_ss | metrics_ss | `METRICS_KEY`(`"metrics"`) | metrics `MetricBundle` |
 | graph.metrics_dc | metrics_dc | `METRICS_KEY` | metrics `MetricBundle` |
 | graph.metrics_aux | metrics_aux | `METRICS_KEY` | metrics `MetricBundle`(offset·미러비·스윙·ICMR·FF 비 + 블록 잔차 보고, metrics CONTRACT 12절, U7) |
+| [U17 ①] device.passive_value | passive_values | 값이 정해진 수동소자(spec ∪ θ ∪ 영점 상쇄 R) | float(Ω·F), 영점 상쇄 R = 1/Σ`dc_gm`(설계 40 §2.4.8, GB5 블록) |
+| [U17 ①] graph.gate_area_m2 | metrics_dc | `METRICS_KEY` | float m²(Σ_MOS W·L, 설계 40 §2.4.8) |
+| [U17 ①] graph.power_resolution_w | metrics_dc | `METRICS_KEY` | float W 또는 None(b_P = Σ_레일 |V_k|·max(dc_tol_v·dc_gm), 설계 40 §2.4.8) |
 
 노드전압 정본: 레일 = `dc_rail_v`, 그 밖 = `dc_v`(한 노드에 둘 중 하나만 -- 봉인 5). 소자 VGS/VDS/VSB 는 저장 필드가 아니고
 `DeviceOp` 는 노드전압 차의 파생이다(설정 API 없음, N3.4).
