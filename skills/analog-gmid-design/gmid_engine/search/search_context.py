@@ -4,7 +4,7 @@
 `read_pdk_decl` 결과 -- W 하한·b_A 의 `min_finger_w_m`·`manufacturing_grid_m`).
 
 * 담는 것: sizing `KernelContext`(dc), `SearchDomain`, 지문 3개(S0 = `context_fp`, θ 스키마 = `schema_fp`, 코드 =
-  `code_fp` -- core·lut·graph·sizing·metrics·search 소스 바이트 sha256), spec 요소 값, 판정 보류 제약 기록, S3 기록기.
+  `code_fp` -- core `engine_code_fp()`: gmid_engine 의 test 밖 모든 패키지 소스 바이트 sha256, 설계 40 §2.4.3 (iii)), spec 요소 값, 판정 보류 제약 기록, S3 기록기.
 * **평가 캐시**(설계 7.2): `cache` = {EvalKey: EvalResult}(실패 포함). 상한 = 실행이 만드는 고유 키 수 -- 요약은 θ 길이에
   비례하는 작은 값이라 퇴출이 없다. `disk_failures` = S3 evals 실패 줄에서 재구성한 {EvalKey: FailureRecord}(같은 S0·코드 지문만,
   설계 7.3). 모듈 수준 캐시가 아니라 이 객체가 소유한다.
@@ -16,11 +16,9 @@
 """
 import copy
 import dataclasses
-import hashlib
-from pathlib import Path
 
 from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
-from gmid_engine.core import FailureRecord, PdkDecl, fp_of
+from gmid_engine.core import FailureRecord, PdkDecl, engine_code_fp, fp_of
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE
 from gmid_engine.lut import require_lut_data, sweep_memo
 from gmid_engine.metrics import (AUX_TYPES, JunctionSource, MismatchSource, NoiseAnalysis, metric_catalog, metric_registry,
@@ -35,18 +33,6 @@ from .noise_decl import noise_decl
 from .search_domain import search_domain
 from .search_values import AXES, AXIS_AREA, EvalKey
 from .start_intervals import start_intervals
-
-_CODE_PACKAGES = ("core", "lut", "graph", "sizing", "metrics", "search")
-
-
-def _code_fp():
-    root = Path(__file__).resolve().parents[1]
-    digests = []
-    for pkg in _CODE_PACKAGES:
-        for path in sorted((root / pkg).glob("*.py")):
-            digests.append((pkg + "/" + path.name, hashlib.sha256(path.read_bytes()).hexdigest()))
-    return fp_of(tuple(digests))
-
 
 class SearchContext:
     """`build_search_context` 결과. 불변 입력(dc·domain·settings·지문·제약)과 실행 수명 상태(cache·counters·eval_times·seq)."""
@@ -163,7 +149,7 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     context_fp = fp_of((dc_ctx.base.fp, dc_ctx.plan_versions, dc_ctx.lut, dc_ctx.fixed_values, dc_ctx.resistor_values,
                         dc_ctx.inputs))
     schema_fp = fp_of(dc_ctx.schema)
-    code_fp = _code_fp()
+    code_fp = engine_code_fp()
     judged, ss, notes = [], [], []
     registry = metric_registry()
     catalog = metric_catalog()

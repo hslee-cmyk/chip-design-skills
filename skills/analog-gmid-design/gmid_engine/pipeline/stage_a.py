@@ -1,6 +1,6 @@
 """파이프라인 단계 A 진입점 (설계 40 §2.1 GB0~GB2, 41 §0 단계 A1~A3).
 
-진입점: `run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None) -> StageAResult`.
+진입점: `run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None, pdk_decl=None) -> StageAResult`.
 
 순서(40 §3.2-3): A1 `load_topology`·`load_sizing_spec`(spec_path 가 None 이면 구조만 -- 기본 전달 뷰) -> `structure.json` 사실 로드(ratified 사실, 기본 경로 = topology 파일 옆
 `<회로>.structure.json`, 없으면 사실 0 이고 declared 대조는 하지 않았다고 보고서에 적는다; topology 지문 = `doc.connectivity_fp` 라 `build_s1` 전에 이미 있고, rule_hash 는
@@ -16,13 +16,26 @@
   보고서에는 정지 여부와 무관하게 전체 구조 표를 쓴다(`build_s1v(stop_on_unsupported=False)` 로 기록을 받아 여기서 판정한다).
 * ratified 사실 개념: `drive_kind`(대상 = 넷, 값 = voltage|current)는 구동 종류를 고정하고, `stage_members`(대상 = stage 이름, 값 = 공백으로 이은 소자 이름)는
   유도 stage 와 대조하는 declared 로 쓴다. topology 태그 섹션은 읽지 않는다(IC4).
+* [U17 ①-a] S0 수준 스냅샷 영속화(설계 40 §2.4.3): `structure.json` 로드 뒤 S0 키 입력(`_s0_inputs`: topology 정규화 지문, 레일 전압, spec 전체 지문,
+  `structure.json` 사실 지문, 유도 규칙 코드 지문 `structure_rule_fp()`, LUT 지문, PDK 선언 파일 내용 해시(`pdk_decl` = core `read_pdk_decl` 결과, 없으면 None))
+  + 엔진 코드 지문으로 core `S0SnapshotStore.default` 에서 S0 수준 스냅샷을 읽고, 적중이면 `build_s1(previous=스냅샷)` 이 모든 블록을 재사용한다(계산 0).
+  적중이 아니면(miss·corrupt) 계산한 S1 스냅샷을 같은 키로 원자적으로 쓴다. 결과는 보고서 `s0_snapshot`(hit|miss|corrupt, 정지 전 단계면 None)에 남긴다.
 * 결과 `StageAResult` 는 `S1v`(`l_classes` 를 `sizing.build_kernel_context(..., l_classes=)` 가 받는다)와 보고서 경로를 담는다.
 """
 import dataclasses
 from pathlib import Path
 
 from gmid_engine.authoring import BETA_DECLARED, load_sizing_spec, load_topology
-from gmid_engine.core import SchemaRejectedError, StructureUnresolvedError, exit_code_for
+from gmid_engine.core import (
+    OUTCOME_HIT,
+    PdkDecl,
+    S0SnapshotStore,
+    SchemaRejectedError,
+    StructureUnresolvedError,
+    engine_code_fp,
+    exit_code_for,
+    fp_of,
+)
 from gmid_engine.graph import (
     ELEMENT_MOS,
     F_LOOP_CUT_UNMATCHED,
@@ -67,7 +80,8 @@ class StageAResult:
 def _stopped(circuit, exc, stage):
     return {"circuit": circuit, "status": STATUS_STOPPED, "exit_code": exit_code_for(exc), "count_budget": 0,
             "declared_comparison": "not_performed", "stop_reasons": [stage + ": " + str(exc.record.to_json())],
-            "review_needed": [], "views": [], "applied_facts": [], "ff_ratio_candidates": [], "coupling": None, "tables": None}
+            "review_needed": [], "views": [], "applied_facts": [], "ff_ratio_candidates": [], "coupling": None, "tables": None,
+            "s0_snapshot": None}
 
 
 def _supplies(spec, supplies_v):
@@ -149,6 +163,14 @@ def _net_names(topology):
     return tuple(sorted(nets))
 
 
+def _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, supplies):
+    """S0 수준 스냅샷 키 입력(설계 40 §2.4.3 키 (i)(ii), §2.4.12 Q1). 엔진 코드 지문 (iii)은 `S0SnapshotStore` 가 더한다 -- 그 지문이 gmid_engine
+    test 밖 모든 패키지를 덮으므로 metric 정의 코드도 (iii) 안에 있다."""
+    return {"topology_fp": topology.connectivity_fp, "supplies_v_fp": fp_of(supplies),
+            "spec_fp": None if spec is None else fp_of(spec), "structure_facts_fp": fp_of(structure),
+            "derivation_rule_fp": rule_fp, "lut_fp": lut.fp, "pdk_decl_fp": None if pdk_decl is None else pdk_decl.decl_sha256}
+
+
 def _finding_line(f):
     return f.severity + "|" + f.code + "|" + f.view + "|" + ",".join(f.subject) + "|" + f.detail
 
@@ -158,7 +180,9 @@ def _finish(report, s1v, output_dir, circuit, s1=None, spec=None):
     return StageAResult(report["exit_code"], report["status"], s1v, report, paths, s1, spec)
 
 
-def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None):
+def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None, pdk_decl=None):
+    if pdk_decl is not None and not isinstance(pdk_decl, PdkDecl):
+        raise TypeError("run_stage_a: pdk_decl 은 None 또는 core read_pdk_decl 결과여야 한다")
     circuit = Path(topology_path).name.removesuffix(TOPOLOGY_SUFFIX)
     try:
         topology = load_topology(str(topology_path))
@@ -166,21 +190,28 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
     except SchemaRejectedError as exc:
         return _finish(_stopped(circuit, exc, "A1_load"), None, output_dir, circuit)
     path = Path(structure_path) if structure_path is not None else Path(topology_path).with_name(circuit + STRUCTURE_SUFFIX)
+    rule_fp = structure_rule_fp()
     try:
-        structure = load_structure_facts(path, topology.connectivity_fp, structure_rule_fp(), _net_names(topology))
+        structure = load_structure_facts(path, topology.connectivity_fp, rule_fp, _net_names(topology))
     except SchemaRejectedError as exc:
         return _finish(_stopped(circuit, exc, "A2_structure_json"), None, output_dir, circuit)
+    supplies = _supplies(spec, supplies_v)
+    store = S0SnapshotStore.default(engine_code_fp())
+    s0_inputs = _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, supplies)
+    stored, s0_outcome = store.load(s0_inputs)
     try:
-        s1 = build_s1(topology, _supplies(spec, supplies_v), structure=structure)
+        s1 = build_s1(topology, supplies, previous=stored, structure=structure)
     except (SchemaRejectedError, StructureUnresolvedError) as exc:
-        return _finish(_stopped(circuit, exc, "A2_build_s1"), None, output_dir, circuit)
+        return _finish(dict(_stopped(circuit, exc, "A2_build_s1"), s0_snapshot=s0_outcome), None, output_dir, circuit)
+    if s0_outcome != OUTCOME_HIT:
+        store.save(s0_inputs, s1.snapshot)
     classes = dict(s1.column("device", "element_class"))
     kinds = {kind for name, kind in s1.column("device", "kind") if classes[name] == ELEMENT_MOS}
     try:
         budget = structure_count_budget(lut, kinds, None if spec is None else spec.structure_count_budget)
     except ValueError as exc:   # N_S 정의역 밖(MOS 없음·LUT 슬라이스 없음) -- 보고서를 쓰고 정지
-        return _finish(_stopped(circuit, StructureUnresolvedError(detail={"reason": "count_budget_undefined", "message": str(exc)}),
-                                "A2_count_budget"), None, output_dir, circuit)
+        return _finish(dict(_stopped(circuit, StructureUnresolvedError(detail={"reason": "count_budget_undefined", "message": str(exc)}),
+                                     "A2_count_budget"), s0_snapshot=s0_outcome), None, output_dir, circuit)
     groups = tuple(tuple(f.value.split()) for f in structure.facts if f.concept == CONCEPT_STAGE_MEMBERS)
     declared = ((path.name, groups),) if groups else ()
     declared_cuts = _declared_loop_cuts(spec)
@@ -197,5 +228,5 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
     report = {"circuit": circuit, "status": status, "exit_code": code, "count_budget": budget, "declared_comparison": comparison,
               "stop_reasons": unsupported, "review_needed": review, "views": [_view_summary(v) for v in s1v.views],
               "applied_facts": [list(f) for f in s1v.facts_applied], "ff_ratio_candidates": _ff_ratio_rows(s1v),
-              "coupling": coupling, "tables": structure_tables(s1v)}
+              "coupling": coupling, "tables": structure_tables(s1v), "s0_snapshot": s0_outcome}
     return _finish(report, s1v, output_dir, circuit, s1, spec)

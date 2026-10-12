@@ -3,6 +3,8 @@ design_mod3_structure_u2_u5). 계약: `CONTRACT.md`.
 
 다른 패키지와 test 는 이 `__all__` 만 쓴다. 공개 진입점은 `build_s1(load_topology(path), supplies_v)`.
 """
+from gmid_engine.core import type_registry
+
 from .ac_ground_static import static_ac_ground
 from .automorphism_orbits import automorphism_orbits
 from .branches import s1_branches
@@ -186,6 +188,12 @@ from .s1v_values import (
 from .structure_load import StructureFacts, load_structure_facts
 from .structure_tables import structure_tables
 from .supplies import supplies_declaration
+
+# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 graph 필드 값 형식 -- S1 필드(`S1_WRITERS`)의 값 형식 전부(설계 40 §2.4.3 '타입 등록부').
+# 새 S0 수준 필드가 graph 로 옮겨 오면 그 값 형식을 여기 더한다.
+for _field_value_type in (BulkResult, Evidence, Segment, Branch, Column, ColumnOrphan, GsGroup, DcRole, RelEdge,
+                          MatchingGroup, MatchingDisposition, GvgsSummary):
+    type_registry().register(_field_value_type)
 
 __all__ = (
     "AC_GROUND_GATE_ONLY",

@@ -503,3 +503,43 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
 - two_stage find_front(E_B=150) 는 LUT 역산이 지배해 비프로파일 CPU 차이가 부하 잡음 안(최소값 32.1 s -> 30.2 s); fp 계열 호출 합 2.8 s -> 0.8 s.
 - 동일성: perf 계수(kernel_calls 100, unique_keys 100, recompute_same_key 0, block 1074/896/178/48)·front·evals(code_fp 제외)·schema_fp·w_fixed_fp·
   xcheck 4801줄(스냅샷 fp 포함) 옛/새 완전 일치. 바뀐 영속 값: 투영 지문 식 개정(8절)으로 archive 스냅샷 파일 필드의 `input_version` 문자열.
+
+---
+
+## 11. S0 수준 graph 스냅샷 영속화 (U17 단계 ①-a, 설계 40 §2.4.1 (d)·§2.4.3·§2.4.12 Q1·Q2, §3.10.11 U-68)
+
+### 11.1 `type_registry() -> 등록부` (파일 `type_registry.py`, 층 0)
+- 프로세스에 하나. `.register(cls)`: frozen dataclass 클래스만(아니면 `TypeError`), 그대로 돌려준다. 같은 클래스 재등록은 무동작,
+  같은 이름(`<모듈>.<qualname>`)의 다른 클래스는 `ValueError`. `.lookup(name)` / `.name_of(cls)`: 목록 밖이면 `KeyError`. `.names()`: 정렬 tuple.
+- 등록은 각 패키지 `__init__` 이 한다(아래에서 위로). 지금 등록 = graph S1 필드 값 형식 12개(`BulkResult`, `Evidence`, `Segment`, `Branch`,
+  `Column`, `ColumnOrphan`, `GsGroup`, `DcRole`, `RelEdge`, `MatchingGroup`, `MatchingDisposition`, `GvgsSummary`). core 는 등록하지 않는다.
+
+### 11.2 `engine_code_fp(engine_root=None) -> str | None` (파일 `engine_code_fp.py`, 층 1)
+- `engine_root`(기본 = `gmid_engine` 폴더) 아래 `.py` 중 `tests/`·숨김 폴더·`__pycache__` 밖 파일마다 (posix 상대 경로, 바이트 sha256) 을
+  상대 경로로 정렬한 tuple 의 `fp_of`. 폴더가 아니거나 대상 파일 0 이면 None. 파일 하나의 바이트가 바뀌면 값이 바뀐다.
+- 소비자: S0 수준 스냅샷 키 (iii), S3 기록의 `code_fp`(`search.build_search_context`, 옛 6개 패키지 `_code_fp` 대체).
+
+### 11.3 `S0SnapshotStore(directory, code_fp)` -- frozen dataclass (파일 `snapshot_codec.py`, 층 4)
+- `S0SnapshotStore.default(code_fp)`: `directory` = `gmid_engine/.s0_snapshot`(저장소 `.gitignore`). `directory`·`code_fp` 가 빈 문자열이거나
+  문자열이 아니면 `ValueError`.
+- `key_of(inputs) -> dict`: `inputs` = {비어 있지 않은 이름 문자열: 문자열 | None} 매핑(`KEY_CODE_FP` = "engine_code_fp" 는 넣지 못한다, 위반 `TypeError`).
+  결과 = 이름 정렬 `inputs` + {`KEY_CODE_FP`: code_fp}. `path_of(inputs)` = `<directory>/<fp_of(key_of(inputs))>.json.gz`.
+- `load(inputs) -> (GraphSnapshot | None, outcome)`: 파일 없음 -> (None, `OUTCOME_MISS`="miss"). 정상 -> (스냅샷, `OUTCOME_HIT`="hit"): 돌려준
+  스냅샷의 `fp`·`block_versions`·`writers`·모든 필드의 값·writer·input_version·write_count 가 저장한 스냅샷과 같다. 다음은 전부
+  (None, `OUTCOME_CORRUPT`="corrupt") + `RuntimeWarning`: gzip·JSON 깨짐, `body_sha256` 불일치, `schema_version` 다름, 저장된 `key` 가 `key_of(inputs)` 와 다름,
+  권한표와 다른 writer 의 필드, 권한표 밖 writer 의 block_version, 등록부 밖 `__type__`, 타입 없는 JSON 값(맨 숫자 float·list·`__type__` 없는 객체),
+  dataclass 필드 이름이 init 필드와 다름, 다시 만든 스냅샷 `fp` 가 저장된 `fp` 와 다름.
+- `save(inputs, snapshot) -> 경로 | None`: `snapshot` 이 GraphSnapshot 아니면 `TypeError`. 값에 등록부 밖 dataclass·지원 밖 형식이 있으면
+  `TypeError`(파일을 쓰지 않는다). 키 파일이 이미 있고 `load` 가 hit 이면 쓰지 않고 그 경로. 아니면(없음·손상) 원자적으로 쓰고(같은 폴더 임시
+  파일 -> `os.replace`, 손상 파일은 같은 이름으로 교체) 경로를 돌려준다. 쓰기 OSError 는 `RuntimeWarning` 뒤 None. 같은 입력·같은 스냅샷이면
+  파일 바이트가 같다(gzip mtime 0, 정준 JSON).
+- 파일 형식(gzip JSON): `{schema_version: 1, key, writers[[kind, field, writer]], block_versions{writer: 입력 버전}, records[{kind, key,
+  fields{name: {value, writer, input_version, write_count}}}], fp, body_sha256}`. `body_sha256` = `body_sha256` 를 뺀 문서의
+  `json.dumps(sort_keys=True, separators=(",", ":"), ensure_ascii=True)` 바이트 sha256. 값 인코딩: None·bool·int·str 그대로, float
+  `{"__type__": "float", "hex": float.hex(x)}`, bytes `{"__type__": "bytes", "hex"}`, tuple `{"__type__": "tuple", "items"}`, frozenset
+  `{"__type__": "frozenset", "items"}`(원소 `fp_of` 오름차순), 등록 dataclass `{"__type__": "<모듈>.<qualname>", "fields": {init 필드: 값}}`.
+- 옛 파일 정리(U-68): `save` 가 실제로 쓴 뒤 1회. 폴더 안 `<64 소문자 hex>.json.gz` 이름의 일반 파일(방금 쓴 파일·심볼릭 링크 제외) 중 저장된
+  `key.engine_code_fp` 가 현재 `code_fp` 와 다르고, 이 저장소와 `git worktree list` 의 모든 worktree 의 같은 상대 경로 엔진 폴더 현재
+  `engine_code_fp` 어느 것과도 다른 파일만 지운다. 읽을 수 없는 파일·형식 다른 이름·폴더 밖은 건드리지 않는다. git 실패면 아무것도 지우지 않는다.
+- 배선: `pipeline.run_stage_a` 가 S1 생성 경로에서 부른다(pipeline CONTRACT §1). 계수 `perf.s0_snapshot{hit, miss, corrupt}` 는 `RunCounters`
+  (40 §2.4.9, 단계 ②) 몫이고, 지금은 단계 A 보고서 `s0_snapshot` 에 outcome 을 남긴다.
