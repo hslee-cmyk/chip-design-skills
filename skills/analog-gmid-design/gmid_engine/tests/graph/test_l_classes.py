@@ -143,3 +143,46 @@ def test_name_order_tie_across_orbits_stays_review(tmp_path):
     _, lib = H.build_lib("nmcnr_amplifier")
     got = {lc.members: (lc.owner_rule, lc.status) for lc in lib.l_classes}
     assert got[("M104", "M105")] == ("name_order", STATUS_REVIEW_NEEDED)
+
+
+# ---------------------------------------------------------------- [U17 ①-d] `l_owner` 사실(40 v1.6 §3.2-3 concept 표, 41 §9 행 '`l_owner` 사실')
+# 40 §3.2-3: "`l_owner`(신규, C-3) | L 동치류 대표 멤버 목록(동치류 멤버 이름 정렬 JSON 배열) | 주인 소자 이름(그 동치류 멤버) |
+# override(41 §1.12.5 주인 규칙 1~4를 덮음. 주인이 멤버가 아니거나 subject가 엔진 유도 동치류와 다르면 `structure_fact_mismatch`, 그
+# 동치류가 없으면 `structure_fact_orphan`) | `E/graph/l_classes.py`", "override: ... 적용한 사실은 S1v `applied_facts`에 남긴다".
+# 41 §9: "사실이 있으면 1~4 규칙과 무관하게 사실의 주인, 멤버가 아니면 `structure_fact_mismatch`".
+# 사실은 로더를 거치지 않는 `J.facts`(StructureFacts 직접 생성)로 넣는다 -- 소비 쪽 test.
+
+def _owner(s1v, members):
+    return {lc.members: lc.owner for lc in s1v.l_classes}[members]
+
+
+def test_l_owner_fact_overrides_name_order_tie(tmp_path):
+    """FOLDED {M3, M4}: 규칙으로는 name_order(M3, review) -> 사실 M4 가 주인을 덮고 l_owner_name_order review 가 없다."""
+    _, s1v = H.build(tmp_path, H.FOLDED, structure=J.facts(("l_owner", '["M3","M4"]', "M4", "C-3t")))
+    assert _owner(s1v, ("M3", "M4")) == "M4"
+    assert "l_owner_name_order" not in J.finding_codes(s1v)
+    assert ("l_owner", '["M3","M4"]') in s1v.facts_applied
+    assert _owner(s1v, ("M7", "M8")) == "M7"                                   # 사실 없는 동치류는 규칙 그대로
+
+
+def test_l_owner_fact_overrides_rule_owner(tmp_path):
+    """OTA5 {M3, M4}: 규칙 3(전류 출처 diode M3)이 정한 주인도 사실(M4)이 덮는다('1~4 규칙과 무관하게')."""
+    _, plain = H.build(tmp_path, H.OTA5)
+    assert _owner(plain, ("M3", "M4")) == "M3"                                 # 전제(위 test_diode_reference_owns_mirror_class)
+    _, s1v = H.build(tmp_path, H.OTA5, structure=J.facts(("l_owner", '["M3","M4"]', "M4", "C-3t")))
+    assert _owner(s1v, ("M3", "M4")) == "M4"
+    assert ("l_owner", '["M3","M4"]') in s1v.facts_applied
+
+
+def test_l_owner_fact_owner_not_member_is_mismatch(tmp_path):
+    _, s1v = H.build(tmp_path, H.FOLDED, structure=J.facts(("l_owner", '["M3","M4"]', "M7", "C-3t")))
+    assert "structure_fact_mismatch" in J.finding_codes(s1v)
+    assert ("l_owner", '["M3","M4"]') not in s1v.facts_applied
+
+
+def test_l_owner_fact_without_engine_class_is_orphan(tmp_path):
+    """FOLDED 에서 {M1, M2}(차동쌍 -- gate 가 달라 L 동치류 아님)를 가리키는 사실 -> 그 동치류가 없다 -> structure_fact_orphan."""
+    _, s1v = H.build(tmp_path, H.FOLDED, structure=J.facts(("l_owner", '["M1","M2"]', "M1", "C-3t")))
+    assert ("M1", "M2") not in {lc.members for lc in s1v.l_classes}             # 전제
+    assert "structure_fact_orphan" in J.finding_codes(s1v)
+    assert ("l_owner", '["M1","M2"]') not in s1v.facts_applied

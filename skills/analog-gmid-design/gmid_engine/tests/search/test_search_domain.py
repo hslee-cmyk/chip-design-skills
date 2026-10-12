@@ -436,3 +436,89 @@ def test_context_without_area_constraint_has_no_budget(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=(("power_dc_w", "<=", 1e-3, None),))
     assert case.sctx.domain.area_budget_m2 is None
     assert case.sctx.domain == search_domain(case.dc, case.settings, case.pdk)
+
+
+# ---------------------------------------------------------------- [U17 ①-d] 설계 40 v1.6 §6-8·§2.4.8 graph/s1 대칭 필드
+#
+# (1) §6-8 '자기 맞바꿈 = 구조적 0 전류 -> 정지': "자기동형이 전도 MOS 하나를 자기 자신으로 보내며 d/s를 맞바꾸면 그 소자 전류는 `I = −I`로
+#     구조적 0이다 ... 탐색 전에 `unsupported_rule_branch`(사유 `ds_self_swap_zero_current`, 소자·생성자 기록)로 정지한다. test: 합성
+#     toy(U11 `pass_device` 변형 -- 대칭 두 출력 사이의 통과 MOS 하나)". 정지 위치(build_s1 / 커널 컨텍스트 / search_domain)는 design 이
+#     '탐색 전'으로만 정하므로 공개 진입 사슬 build_s1 -> build_kernel_context -> build_search_context(= search_domain) 전체로 본다.
+#     design 이 적은 test 파일 이름 `tests/graph/test_ds_self_swap_stops.py` 는 원본 파일이 없어 규칙 H(orphan_test)에 걸리므로 여기 둔다(보고).
+# (2) §2.4.8 소유표 행 "자기동형 궤도·d/s 맞바꿈 부호(§6) | `graph/s1`: `orbits`, `current_symmetry` | 대칭 블록(§6) | S0" + §6-8 '범위':
+#     "다른 모듈은 U2 결과를 그대로 소비한다" -> 필드가 graph 레코드 key `s1`(GRAPH_KEY)에 있고, 소비자 search_domain 은 정준형·궤도·전류
+#     대칭을 다시 계산하지 않는다(관찰: 그 이름의 함수 호출 수 = 0).
+
+_P_PORTS = {"ip": ("input", "differential_input"), "im": ("input", "differential_input"),
+            "op": ("output", "differential_output"), "om": ("output", "differential_output")}
+_P_R = (("R1", "resistor", 1e5), ("R2", "resistor", 1e5))
+
+
+def _pass_doc(with_mx=True):
+    """tests/metrics conftest `cm_variant('pass_device')` 의 연결(M1~M4, R1(op, c)·R2(c, om), Mx(op, vbx, om)) -- CL 은 뺐다(값 선언 불필요)."""
+    from .conftest import topo as _topo
+    m = [mos("M1", "nmos", "op", "ip", "gnd"), mos("M2", "nmos", "om", "im", "gnd"),
+         mos("M3", "pmos", "op", "c", "vdd"), mos("M4", "pmos", "om", "c", "vdd")]
+    if with_mx:
+        m.append(mos("Mx", "nmos", "op", "vbx", "om"))
+    return _topo("hand_pass_ds%d" % int(with_mx), m, _P_PORTS,
+                 passives=[two("R1", "resistor", "op", "c"), two("R2", "resistor", "c", "om")],
+                 bias=["vbx"] if with_mx else [])
+
+
+def test_ds_self_swap_zero_current_stops_before_search(tmp_path, lut_sealed):
+    from gmid_engine.core import StructureUnresolvedError, exit_code_for
+    from .canon_cases import make_case
+    with pytest.raises(StructureUnresolvedError) as e:
+        make_case(tmp_path, _pass_doc(), lut_sealed, elements=_P_R)
+    assert exit_code_for(e.value) == 2
+    det = dict(e.value.record.detail)
+    assert det["reason"] == "unsupported_rule_branch"
+    assert det["rule_branch"] == "ds_self_swap_zero_current"
+    assert tuple(e.value.record.devices) == ("Mx",)
+    rest = repr({k: v for k, v in det.items() if k not in ("reason", "rule_branch")})
+    assert "op" in rest and "om" in rest                                    # 생성자 기록(op<->om 반사) -- 키 이름은 design 미정
+
+
+def test_pass_circuit_without_self_swap_device_builds(tmp_path, lut_sealed):
+    """대조: 같은 회로에서 통과 MOS Mx 만 뺀 것은 정지하지 않는다(정지 원인이 Mx 의 자기 d/s 맞바꿈임)."""
+    from .canon_cases import make_case
+    case = make_case(tmp_path, _pass_doc(with_mx=False), lut_sealed, elements=_P_R)
+    assert case.sctx.domain is not None
+
+
+def _sym_case(tmp_path, lut):
+    from .canon_cases import C_BOX, SYM_ELEMENTS, make_case, sym_doc
+    return make_case(tmp_path, sym_doc(), lut, elements=SYM_ELEMENTS, boxes={"CL1": C_BOX, "CL2": C_BOX})
+
+
+def test_graph_s1_symmetry_fields_present(tmp_path, lut_sealed):
+    from gmid_engine.graph import GRAPH_KEY
+    case = _sym_case(tmp_path, lut_sealed)
+    for field in ("orbits", "current_symmetry"):
+        assert case.dc.base.value("graph", GRAPH_KEY, field) is not None, field
+
+
+def test_search_domain_does_not_recompute_symmetry(tmp_path, lut_sealed, monkeypatch):
+    """소비자(search_domain)는 graph/s1 필드를 읽는다 -- 정준형·궤도·전류 대칭 계산 함수를 부르지 않는다."""
+    import sys
+    import types
+    case = _sym_case(tmp_path, lut_sealed)
+    calls = []
+
+    def wrap(name, fn):
+        def counted(*a, **k):
+            calls.append(name)
+            return fn(*a, **k)
+        return counted
+    for modname, mod in list(sys.modules.items()):
+        if not modname.startswith("gmid_engine.") or mod is None:
+            continue
+        for attr in ("canonical_form", "automorphism_orbits", "current_symmetry"):
+            fn = getattr(mod, attr, None)
+            if isinstance(fn, types.FunctionType):
+                monkeypatch.setattr(mod, attr, wrap(attr, fn))
+    d = search_domain(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
+    assert d.ties == case.sctx.domain.ties                                   # 같은 결과(공허하지 않음: SYM 은 묶음이 있다)
+    assert d.ties
+    assert calls == []

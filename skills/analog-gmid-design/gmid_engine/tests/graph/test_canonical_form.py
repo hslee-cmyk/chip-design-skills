@@ -6,6 +6,9 @@ oracle:
   다중도 보존 전단사).
 - 정준성: 위치로 다시 쓴 그래프(cert)가 이름 전단사·원소/넷 순서 섞기에 같고, 같은 그래프를 다르게 그려도 같고, 비동형이면 다르다.
 - (a) 구성: 손 그래프(2단자 원소 = 무향 엣지)의 동형 관계.
+- [U17 ①-d] 설계 40 v1.6 §6-8 D-2·D-3: MOS d·s 엣지 = 같은 라벨 c(`canon_graphs.labeled_graph` 를 그 문장대로 고침), 그리고 "이름 전단사,
+  수동소자 단자 순서 변경, **MOS d/s 표기를 뒤집은 입력**이 모두 비트 동일 결과(궤도, 정준 위치, `dc_colour`, front 정규화 해시)를 낸다".
+  뒤집기 대상은 gate 가 drain·source 어느 쪽도 아닌 MOS 다(diode 연결 MOS 는 d/s 를 바꾸면 gate-source 단락이 되어 다른 회로).
 graph `.py` 소스는 열람하지 않았다.
 """
 from __future__ import annotations
@@ -144,3 +147,64 @@ def test_marks_enter_initial_colour_not_wl():
     col, nb = labeled_graph(c, em, ())
     assert all(is_automorphism(col, nb, dict(g)) for g in marked.generators)
     assert ("e", "E00") not in {v for g in marked.generators for v, _ in g}
+
+
+# ---------------------------------------------------------------- [U17 ①-d] 설계 40 v1.6 §6-8 MOS d/s 맞바꿈 (D-2·D-3)
+
+def _flippable(c):
+    """gate 가 drain·source 어느 쪽도 아닌 MOS(뒤집어도 같은 물리 회로)."""
+    return [e[0] for e in c.elements if e[1] == "mos" and e[3]["g"] not in (e[3]["d"], e[3]["s"])]
+
+
+def _diff_full():
+    from canon_graphs import mosd
+    els = [mosd("M1", "nmos", "o1", "inp", "t"), mosd("M2", "nmos", "o2", "inn", "t"), mosd("M5", "nmos", "t", "vb", "gnd"),
+           mosd("M3", "pmos", "o1", "pb", "vdd"), mosd("M4", "pmos", "o2", "pb", "vdd")]
+    return Circuit(els, ("vdd", "gnd"), {"inp": "input", "inn": "input", "o1": "output", "o2": "output"})
+
+
+def _diff_single():
+    from canon_graphs import mosd
+    els = [mosd("M1", "nmos", "o1", "inp", "t"), mosd("M2", "nmos", "o2", "inn", "t"), mosd("M5", "nmos", "t", "vb", "gnd"),
+           mosd("M3", "pmos", "o1", "o1", "vdd"), mosd("M4", "pmos", "o2", "o1", "vdd")]
+    return Circuit(els, ("vdd", "gnd"), {"inp": "input", "inn": "input", "o2": "output"})
+
+
+@pytest.mark.parametrize("make", [_diff_full, _diff_single])
+def test_ds_flip_bit_identical_hand(make):
+    """§6-8 D-3: MOS 하나의 d/s 표기를 뒤집은 입력 -> 정준 위치·1-WL 색 비트 동일(정점 이름이 같으므로 dict 그대로 같다)."""
+    c = make()
+    base = _cf(c)
+    names = _flippable(c)
+    assert names                                                            # 공허한 비교 아님
+    for name in names:
+        r = _cf(c.flip_ds(name))
+        assert r.position == base.position, name
+        assert r.wl == base.wl, name
+
+
+@pytest.mark.parametrize("seed", range(25))
+def test_ds_flip_bit_identical_random(seed):
+    c = random_circuit(800 + seed)
+    base = _cf(c)
+    for name in _flippable(c):
+        r = _cf(c.flip_ds(name))
+        assert (r.position, r.wl) == (base.position, base.wl), name
+
+
+def test_ds_flip_all_at_once_bit_identical():
+    """모든 뒤집을 수 있는 MOS 를 한꺼번에 뒤집어도 같다."""
+    c = _diff_full()
+    f = c
+    for name in _flippable(c):
+        f = f.flip_ds(name)
+    assert (_cf(f).position, _cf(f).wl) == (_cf(c).position, _cf(c).wl)
+
+
+def test_ds_label_not_in_cert():
+    """§6-8 D-2: d·s 는 같은 라벨 c -- d/s 를 뒤집어 그린 회로의 정준 그래프(cert)가 원래와 같다(독립 oracle 그래프 기준)."""
+    c = _diff_full()
+    f = c.flip_ds("M3")
+    ca, na = labeled_graph(c)
+    cb, nbb = labeled_graph(f)
+    assert cert(ca, na, _cf(c).position) == cert(cb, nbb, _cf(f).position)

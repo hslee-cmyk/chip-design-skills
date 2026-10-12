@@ -126,11 +126,13 @@ def _rejected_rules(tmp_path, facts, schema_version="1", net_names=()):
 def test_every_closed_vocabulary_value_loads(tmp_path):
     rows = [J.fact_dict(c, SUBJECT[c], v, "V-%d" % i) for i, (c, vals) in enumerate(sorted(CONCEPT_VALUES.items())) for v in vals]
     rows += [J.fact_dict("ac_ground_exception", "n", "loop:M1:n", "V-ac"), J.fact_dict("stage_members", "s", "M1 M2", "V-st")]
+    # [U17 ①-d] 40 v1.6 3.2-3 concept 표 `l_owner`(C-3): subject = 동치류 멤버 이름 정렬 JSON 배열, value = 주인 소자 이름(그 멤버)
+    rows += [J.fact_dict("l_owner", '["M1","M2"]', "M2", "V-lo")]
     p = J.write_structure(tmp_path / "ok.json", TOPO_FP, s1v_rule_fp(), rows)
     got = load_structure_facts(p, TOPO_FP, s1v_rule_fp(), ("a", "b", "n", "x"))
     assert got.findings == ()
     assert len(got.facts) == len(rows)
-    assert {f.concept for f in got.facts} == set(CONCEPT_VALUES) | {"ac_ground_exception", "stage_members"}
+    assert {f.concept for f in got.facts} == set(CONCEPT_VALUES) | {"ac_ground_exception", "stage_members", "l_owner"}
 
 
 @pytest.mark.parametrize("version", ["2", "0", "1.0", "01"])
@@ -139,9 +141,10 @@ def test_schema_version_other_than_1_is_rejected(tmp_path, version):
         "structure_schema_version"]
 
 
-@pytest.mark.parametrize("concept", ["l_owner", "frobnicate", "dc_roles", "DriveKind"])
+@pytest.mark.parametrize("concept", ["frobnicate", "dc_roles", "DriveKind", "L_owner"])
 def test_unknown_concept_is_rejected(tmp_path, concept):
-    # 40 3.2-3 'L 동치류 주인은 사실로 두지 않는다' -- l_owner 도 어휘 밖
+    # [U17 ①-d] 40 v1.6 3.2-3 은 `l_owner` 를 concept 어휘에 넣었다(C-3 사용자 결정 2026-10-12 "7절 권고대로") -- 옛 'l_owner 도 어휘 밖'
+    # 항목을 지우고 대소문자만 다른 이름(L_owner)을 어휘 밖 예로 둔다
     assert _rejected_rules(tmp_path, [J.fact_dict(concept, "x", "voltage")]) == ["structure_concept_unknown"]
 
 
