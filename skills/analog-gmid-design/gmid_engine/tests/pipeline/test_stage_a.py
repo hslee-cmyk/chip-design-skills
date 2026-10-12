@@ -174,12 +174,31 @@ RECORD_ONLY = {"cell_ambiguous", "pass_group_unsupported", "gate_on_current_node
     ("current_reuse_telescopic_ota", {"cs_output_low_impedance"}),
 ])
 def test_library_stopping_circuits(tmp_path, real_lut, circuit, expected):
+    # [C-6] 파일럿은 library 에 structure.json(ac_ground_exception Vbias2)이 생겼다. 이 test 의 대상은 '사실 없음 -> 정지'이므로
+    # 존재하지 않는 경로를 structure_path 로 주어 사실 파일 없는 상태를 그대로 검사한다(기준 불변). 사실 있는 기본 상태는 아래 test.
     r = run_stage_a(H.LIBRARY / (circuit + ".topology.json"), None, real_lut, output_dir=tmp_path,
-                    supplies_v=H.lib_supplies(circuit))
+                    supplies_v=H.lib_supplies(circuit), structure_path=tmp_path / "absent" / (circuit + ".structure.json"))
     assert (r.exit_code, r.status) == (2, "stopped")
     codes = {s.split("|")[1] for s in r.report["stop_reasons"]}
     assert codes <= RECORD_ONLY
     assert expected <= codes
+
+
+PILOT = "current_reuse_telescopic_ota"
+
+
+@pytest.mark.parametrize("with_spec", [False, True], ids=["no_spec", "spec"])
+def test_library_pilot_default_structure_facts_give_ok(tmp_path, real_lut, with_spec):
+    # [C-6] 사용자 결정 2026-10-12: library 파일럿 structure.json 의 ratified 사실 1건(ac_ground_exception Vbias2 @ loop:M37a:Voc).
+    # structure_path 를 주지 않으면 topology 옆 기본 파일을 읽는다(계약 1절) -> 41 1.12.6 정지·혼재가 모두 풀려 spec 유무와 무관하게 ok/0,
+    # 적용 사실은 그 1건, 정지·review 기록 0(spec 의 안정도 제약은 내부 루프 선언이 아니라 loop_cut_unmatched 도 없다).
+    assert (H.LIBRARY / (PILOT + ".structure.json")).is_file()
+    sp = H.LIBRARY / (PILOT + ".sizing_spec.json") if with_spec else None
+    r = run_stage_a(H.LIBRARY / (PILOT + ".topology.json"), sp, real_lut, output_dir=tmp_path, supplies_v=H.lib_supplies(PILOT))
+    assert (r.exit_code, r.status) == (0, "ok"), r.report["stop_reasons"] + r.report["review_needed"]
+    assert [tuple(x) for x in r.report["applied_facts"]] == [("ac_ground_exception", "Vbias2")]
+    assert r.report["stop_reasons"] == []
+    assert r.report["review_needed"] == []
 
 
 def test_non_json_structure_file_still_writes_report(tmp_path, real_lut):

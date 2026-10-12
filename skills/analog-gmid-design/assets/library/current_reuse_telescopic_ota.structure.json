@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "topology_hash": "025d0aed9b359baeb2769c4248463a82b79cdcdc4955adb9fc46d98ccea9c383",
+  "rule_hash": "e46e66cc5a390cb3d8aaefc2141a4d2ccc63b52c80266d61d35c39aaff672f9f",
+  "facts": [
+    {
+      "concept": "ac_ground_exception",
+      "subject": "Vbias2",
+      "value": "loop:M37a:Voc",
+      "status": "ratified",
+      "evidence": {
+        "rule": "40 §3.2-3 table",
+        "nets": [
+          "Vbias2"
+        ]
+      },
+      "approval_id": "user_decisions 2026-10-12 C-6"
+    }
+  ]
+}
