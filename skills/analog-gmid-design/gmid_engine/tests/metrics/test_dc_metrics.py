@@ -69,11 +69,15 @@ def _entries(b):
 
 def test_block_declaration():
     assert metrics_dc.name == METRICS_DC_WRITER == S2_WRITERS.writer_of("graph", "metrics_dc") == "metrics_dc"
-    assert set(metrics_dc.reads) == {("device", "dc_op"), ("device", "dc_current"), ("device", "element_class"),
+    # [U17 ①] 설계 40 v1.6 §2.4.7 Objectives 행: metrics_dc 가 power_resolution_w 를 쓰며 dc_gm·dc_tol_v·dc_current_basis·dc_rail_v 를
+    # 읽는다. 수동소자 값이 S2 필드(device.passive_value, §2.4.8)가 되어 그 필드를 읽을 수도 있으므로 reads 는 '적어도' 로 단언한다.
+    assert set(metrics_dc.reads) >= {("device", "dc_op"), ("device", "dc_current"), ("device", "element_class"),
                                      ("device", "pins"), ("node", "dc_v"), ("node", "dc_rail_v"),
                                      ("graph", "dc_current_basis"),
-                                     ("device", "dc_colour"), ("node", "dc_colour")}    # [r12] 합산·나열 순서 = dc_colour(CONTRACT r12)
-    assert tuple(metrics_dc.writes) == (("graph", "metrics_dc"),)
+                                     ("device", "dc_colour"), ("node", "dc_colour"),    # [r12] 합산·나열 순서 = dc_colour(CONTRACT r12)
+                                     ("device", "dc_gm"), ("device", "dc_tol_v")}       # [U17 ①] b_P 입력(§2.4.7)
+    # [U17 ①] §2.4.8 소유표 '게이트 면적·전력 분해능 | graph/metrics: gate_area_m2, power_resolution_w | metrics_dc'
+    assert set(metrics_dc.writes) == {("graph", "metrics_dc"), ("graph", "gate_area_m2"), ("graph", "power_resolution_w")}
     # ss 값은 읽지 않는다(7.10 3: ss 변경에 재계산되지 않게)
     assert ("device", "ss_dev") not in set(metrics_dc.reads)
 

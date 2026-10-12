@@ -36,7 +36,7 @@ DC_TABLE = {
     ("graph", "dc_scc_log"): "dc_columns",
     ("device", "dc_op"): "dc_widths",
     ("device", "dc_tol_v"): "dc_tolerances",
-    ("device", "dc_gm_bound"): "dc_tolerances",
+    ("device", "dc_gm"): "dc_tolerances",                    # [U17 ①] 설계 40 §2.4.8 소유표·§3.7-3 (옛 dc_gm_bound 폐기)
     ("graph", "dc_seal_1"): "dc_seal_node_conflict",
     ("graph", "dc_seal_2"): "dc_seal_vgs_match",
     ("graph", "dc_seal_3"): "dc_seal_kcl",
@@ -76,7 +76,14 @@ SS_TABLE = {
     # [U7 2026-10-09] oracle (d): sizing CONTRACT 2절 끝 표 행 'graph.metrics_aux | metrics_aux' + metrics CONTRACT 10.0
     # ('metrics_aux(@compute_block, writer metrics_aux, 필드 graph.metrics_aux)') -- 계약 표에서 옮겨 적은 행이다.
     ("graph", "metrics_aux"): "metrics_aux",
+    # [U17 ①] 설계 40 §2.4.8 소유표 행 '게이트 면적·전력 분해능 | graph/metrics: gate_area_m2, power_resolution_w | metrics_dc'
+    # (§2.4.7 Objectives 행: metrics_dc 가 쓰고 search 는 다시 계산하지 않는다).
+    ("graph", "gate_area_m2"): "metrics_dc",
+    ("graph", "power_resolution_w"): "metrics_dc",
 }
+# [U17 ①] 설계 40 §2.4.8 소유표 행 '수동소자 값 | device: passive_value | GB5 수동소자 블록(passive_values 를 블록으로)'. 설계가 writer
+# 이름을 적지 않았으므로(이름 미정) 이름은 단언하지 않고 '권한표에 writer 하나가 있다'만 단언한다(아래 test).
+NAME_OPEN_FIELDS = (("device", "passive_value"),)
 
 
 def test_s2_writers_is_s1_plus_dc_table_exactly():
@@ -85,8 +92,11 @@ def test_s2_writers_is_s1_plus_dc_table_exactly():
     expected = dict(s1)
     expected.update(DC_TABLE)
     expected.update(SS_TABLE)
+    for key in NAME_OPEN_FIELDS:                       # writer 이름 미정 필드: 있어야 하고 writer 는 하나(이름은 비교 밖)
+        assert s2.get(key) is not None, key
+        expected[key] = s2[key]
     assert s2 == expected
-    assert len(S.S2_WRITERS.entries) == len(S1_WRITERS.entries) + len(DC_TABLE) + len(SS_TABLE)
+    assert len(S.S2_WRITERS.entries) == len(S1_WRITERS.entries) + len(DC_TABLE) + len(SS_TABLE) + len(NAME_OPEN_FIELDS)
     for k, w in s1.items():
         assert S.S2_WRITERS.writer_of(*k) == w
 
