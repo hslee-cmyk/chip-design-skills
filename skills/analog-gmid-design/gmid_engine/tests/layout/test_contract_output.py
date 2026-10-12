@@ -21,6 +21,12 @@ def test_layout_result_review_needed_first():
                                         "w_invariant_ok", "revalidation", "computed_blocks", "snapshot"}
 
 
+def test_layout_result_declares_only_snapshot_and_computed_blocks():
+    # [U17 1-e] design 40 v1.6 §2.4.7 `LayoutResult` 행: "(스냅샷, 이번 호출의 계산 블록 목록)만 둔다" -- 결과 값 사본 칸 없음.
+    # 칸 이름은 design 에 없어 as-built 이름을 쓴다(이름 미정).
+    assert set(names(LayoutResult)) == {"snapshot", "computed_blocks"}
+
+
 @pytest.mark.parametrize("cls, fields", [
     ("SliceDensity", None),
     ("WTolerance", ["lower", "upper", "effective", "grid_dominated"]),

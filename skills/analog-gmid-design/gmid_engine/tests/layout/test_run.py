@@ -593,3 +593,133 @@ def test_passives_only_change_recomputes_rows_block_only(toy_lut):
     assert r3.computed_blocks == ("ly_rows",)
     assert r3.floorplan.passive_area_m2 == 0.0
     assert r3.floorplan == r1.floorplan
+
+
+# --- [U17 1-e] 레이아웃 결과 = 설계점 스냅샷의 S2 `layout` 필드 (design 40 v1.6 §2.4.7 `LayoutResult` 행, §2.4.8 '레이아웃 결과' 행,
+#     §2.4.1 설계점 층(S2), EP-2 '필드가 곧 캐시') ---------------------------------------------------------------------------
+# 독립 기대값: 필드 이름·writer = `_ly_fields.py`(design 이 "as-built 필드 이름 그대로"로 지정), 쓰기 횟수·입력 버전·값 유지 =
+# core `GraphSnapshot.write` 계약. 피검 결과로 기대값을 만들지 않는다.
+# 호출 형식(design 에 서명 없음 -- 이름 미정): 셋째 위치 인자에 설계점 스냅샷(`GraphSnapshot`)을 준다. 재시도는 앞 결과의 스냅샷
+# (같은 설계점 lineage, §2.4.7 "레이아웃 재시도는 같은 설계점 lineage의 새 스냅샷이다")을 같은 자리에 준다.
+# `LayoutResult` 두 칸의 이름은 as-built `snapshot`·`computed_blocks` 를 쓴다(design 은 '스냅샷, 이번 호출의 계산 블록 목록'만 적음).
+
+from gmid_engine.core import GraphSnapshot, WriterTable  # noqa: E402
+from gmid_engine.layout import _ly_fields as lf  # noqa: E402
+
+# 설계점(S2) 스냅샷 대역: 레이아웃이 아닌 writer 둘(평가 커널 소자 필드, metric graph 필드). 권한표에 레이아웃 writer 는 없다 --
+# 실제 봉인 스냅샷도 sizing 층에서 만들어져 layout 권한표를 모른다(층 순서 sizing < layout).
+DP_WRITERS = WriterTable((("device", "dp_op", "dp_kernel"), ("graph", "dp_metric", "dp_metrics")))
+DP_GRAPH_KEY = "metrics"
+MOD7_WRITERS = frozenset((lf.WRITER_INPUT, lf.WRITER_SLICES) + lf.BLOCK_WRITERS)
+
+
+def design_point(names):
+    s = GraphSnapshot.empty(DP_WRITERS)
+    s = s.write("dp_kernel", "dp-op-v1", {("device", "dp_op"): {n: ("op", n) for n in names}})
+    return s.write("dp_metrics", "dp-metric-v1", {("graph", "dp_metric"): {DP_GRAPH_KEY: 1.0}})
+
+
+def _layout_keys(kind, names):
+    return (lf.GRAPH_KEY,) if kind == lf.GRAPH else tuple(names)
+
+
+def _layout_fields(snap, names):
+    """{(kind, key, field): FieldValue} -- `_ly_fields.LY_WRITERS` 의 모든 레이아웃 필드."""
+    return {(kind, key, field): snap.field(kind, key, field)
+            for (kind, field), _w in lf.LY_WRITERS.entries for key in _layout_keys(kind, names)}
+
+
+def _assert_design_point_kept(snap, dp, names):
+    for n in names:
+        assert snap.field("device", n, "dp_op") == dp.field("device", n, "dp_op")
+    assert snap.field("graph", DP_GRAPH_KEY, "dp_metric") == dp.field("graph", DP_GRAPH_KEY, "dp_metric")
+    assert snap.block_version("dp_kernel") == "dp-op-v1"
+    assert snap.block_version("dp_metrics") == "dp-metric-v1"
+
+
+def test_layout_fields_written_on_design_point_snapshot(toy_lut):
+    # §2.4.8: 레이아웃 결과 -> S2 `layout` 필드(`_ly_fields.py` 이름 그대로), §2.4.7: 레이아웃 필드는 그 설계점 스냅샷의 필드
+    inp = composite(toy_pdk(toy_lut))
+    names = tuple(d.name for d in inp.devices)
+    dp = design_point(names)
+    r = run_layout(inp, new_memo(toy_lut), dp)
+    snap = r.snapshot
+    assert isinstance(snap, GraphSnapshot)
+    for (kind, key, field), fv in _layout_fields(snap, names).items():
+        assert fv is not None, (kind, key, field)
+    _assert_design_point_kept(snap, dp, names)
+    for n in names:                                    # 같은 소자 레코드에 설계점 필드와 레이아웃 필드가 함께 있다(사본 레코드 없음)
+        rec = snap.record("device", n)
+        assert rec.get("dp_op") is not None and rec.get(lf.F_FINGER) is not None, n
+
+
+def test_layout_field_writers_are_single_mod7_blocks(toy_lut):
+    # §2.4.8 writer = MOD7 블록, 필드마다 writer 하나(SC-a). 레이아웃 writer 는 레이아웃 필드만 쓴다.
+    inp = composite(toy_pdk(toy_lut))
+    names = tuple(d.name for d in inp.devices)
+    r = run_layout(inp, new_memo(toy_lut), design_point(names))
+    table = r.snapshot.writers
+    for (kind, field), writer in lf.LY_WRITERS.entries:
+        assert writer in MOD7_WRITERS
+        assert table.writer_of(kind, field) == writer, (kind, field)
+    for (kind, key, field), fv in _layout_fields(r.snapshot, names).items():
+        assert fv.writer == lf.LY_WRITERS.writer_of(kind, field), (kind, key, field)
+    for writer in MOD7_WRITERS:
+        assert set(table.fields_of(writer)) == set(lf.LY_WRITERS.fields_of(writer)), writer
+    for (kind, field), writer in DP_WRITERS.entries:   # 설계점 필드의 writer 는 그대로
+        assert table.writer_of(kind, field) == writer
+
+
+def test_no_separate_layout_lineage(toy_lut, monkeypatch):
+    # §2.4.7: "별도 lineage는 없다" -- 설계점 스냅샷이 주어지면 레이아웃은 빈 스냅샷에서 새 lineage 를 시작하지 않는다
+    def no_new_lineage(cls, writers):
+        raise AssertionError("run_layout 이 GraphSnapshot.empty 로 별도 lineage 를 만들었다")
+
+    inp = composite(toy_pdk(toy_lut))
+    names = tuple(d.name for d in inp.devices)
+    dp = design_point(names)
+    monkeypatch.setattr(GraphSnapshot, "empty", classmethod(no_new_lineage))
+    r = run_layout(inp, new_memo(toy_lut), dp)
+    _assert_design_point_kept(r.snapshot, dp, names)
+
+
+def test_layout_result_carries_only_snapshot_and_computed_blocks(toy_lut):
+    # §2.4.7: `LayoutResult` 는 (스냅샷, 이번 호출의 계산 블록 목록)만 둔다 -- 결과 값 사본 없음
+    inp = composite(toy_pdk(toy_lut))
+    r = run_layout(inp, new_memo(toy_lut), design_point(tuple(d.name for d in inp.devices)))
+    assert isinstance(r.snapshot, GraphSnapshot)
+    assert isinstance(r.computed_blocks, tuple) and all(isinstance(w, str) for w in r.computed_blocks)
+    assert set(r.computed_blocks) <= MOD7_WRITERS
+
+
+def test_same_design_point_second_request_reuses_fields(toy_lut):
+    # EP-2·§2.4.1: 필드가 곧 캐시 -- 같은 설계점 lineage 에서 같은 입력으로 다시 요청하면 계산 0, 같은 필드(입력 버전·쓰기 횟수 불변)
+    memo = new_memo(toy_lut)
+    inp = composite(toy_pdk(toy_lut))
+    names = tuple(d.name for d in inp.devices)
+    dp = design_point(names)
+    r1 = run_layout(inp, memo, dp)
+    m1 = _misses(memo)
+    r2 = run_layout(inp, memo, r1.snapshot)
+    assert r2.computed_blocks == ()
+    assert _misses(memo) == m1                                                   # LUT 조회도 다시 하지 않는다
+    assert r2.snapshot.fp == r1.snapshot.fp
+    assert _layout_fields(r2.snapshot, names) == _layout_fields(r1.snapshot, names)   # value·writer·입력 버전·쓰기 횟수
+    for writer in MOD7_WRITERS:
+        assert r2.snapshot.block_version(writer) == r1.snapshot.block_version(writer), writer
+    _assert_design_point_kept(r2.snapshot, dp, names)
+
+
+def test_layout_retry_stays_on_design_point_lineage(toy_lut):
+    # §2.4.7: 레이아웃 재시도는 같은 설계점 lineage 의 새 스냅샷 -- 설계점 필드 유지, 바뀐 레이아웃 입력 필드는 같은 lineage 의 둘째 쓰기
+    memo = new_memo(toy_lut)
+    ds = [dev("A", "h", "da", 1e-6), dev("B", "h", "db", 1e-6)]
+    g, rgs = [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B"))]
+    dp = design_point(("A", "B"))
+    r1 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut)), memo, dp)
+    r2 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut), rejected=("A",)), memo, r1.snapshot)
+    _assert_design_point_kept(r2.snapshot, dp, ("A", "B"))
+    rej = r2.snapshot.field(lf.GRAPH, lf.GRAPH_KEY, lf.F_REJECTED)
+    assert rej.value == ("A",)
+    assert (rej.writer, rej.write_count) == (lf.WRITER_INPUT, 2)
+    assert r2.snapshot.field(lf.GRAPH, lf.GRAPH_KEY, lf.F_GROUPS).write_count == 2
