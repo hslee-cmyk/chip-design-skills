@@ -95,7 +95,7 @@ plan_version: 6.6
 | 52 vsb | -- | OK | `E/sizing/seal_bulk_reverse.py` |
 | 53 metric 서명 | 40 §5 | OK | `E/core/metric_signature.py:26`. `cm_loop`는 `[ng-cmfb-pm]`에서 계획 갱신 필요 |
 | 54 SLSQP, ε-제약, 시작점 출처 | 40 §3.6 | PART | `E/search/slsqp_outer.py:99-225`, `E/search/eps_sweep.py`, `E/search/start_intervals`는 MISS. `n_starts` MISS(`E/search/CONTRACT.md:591`) |
-| 55 `budget_reference_device` → 기둥 흡수, `budget_ref` 엣지 없음(태그 키는 읽지 않는다, U-50. 비공유 옛 선언 4건은 J8 엔진 유도. 사용자 결정 2026-10-12 "다로 해") | 40 §3.2·§3.7-8 | N/A | 구현 측정만: 9회로 옛 선언 대상 노드 writer 1개·예산 = vdd − VDS(Y) 재현(40 §3.7-8). 엣지 없음은 as-built와 같다(`E/graph/CONTRACT.md:226`, 문구 정정은 아래 후속 항목) |
+| 55 `budget_reference_device` → 기둥 흡수, `budget_ref` 엣지 없음(태그 키는 읽지 않는다, U-50. 비공유 옛 선언 4건은 J8 엔진 유도. 사용자 결정 2026-10-12 "다로 해") | 40 §3.2·§3.7-8 | N/A | 구현 측정만(40 §3.7-8): 대상 = 노드 공유 옛 선언 5건(파일럿 M9a→M10, M9b→M8, M18a→M19, M18b→M17, M60→M66), 나머지 8회로 대상 0건 보고, 비공유 4건 J8 제외. 각 대상에서 (a) 노드 n writer 정확히 1개(티어·블록), (b) X·Y 같은 S1 기둥 id, (c) \|B_X − ((V_top − V_bot) − \|VDS(Y)\|)\| ≤ tol_V(N3.6). 엣지 없음은 as-built와 같다(`E/graph/CONTRACT.md:226`, 문구 정정은 아래 후속 항목) |
 | 56 L5c 픽스처 | -- | N/A | 옛 엔진 전용(P N2.1 '새 엔진에는 해당하지 않는다') |
 | 57 전압 이득 stage | 41 §1.6 | MISS | FR-1 |
 | 58 블록 속성, 출력 구동 | 41 §1.7, 40 §3.8 | MISS | `rg "c_slew_farad\|i_out_max"` 0 |
