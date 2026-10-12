@@ -8,7 +8,7 @@
 뽑힌 점은 실제로 레이아웃·재검증한 뒤 진짜 판정 축 값으로 다시 거른다). 동률 폭: 전력 = 두 점 b_P 중 큰 값, 면적 = 남은 점 floorplan 의 `area_tie_m2`(후보 쪽은 비교 상대 점의
 floorplan 으로 갈음, 후보끼리는 남은 점 floorplan 자기 쌍 폭 중 최솟값 -- 후보에는 floorplan 이 없다. 작은 폭이 더 많은 후보를 뽑는다). 반환은 후보 입력 순서.
 """
-from gmid_engine.layout import area_tie_m2
+from gmid_engine.layout import F_FLOORPLAN, LAYOUT_KEY, area_tie_m2
 from gmid_engine.search import nondominated
 
 
@@ -16,7 +16,7 @@ def admit_candidates(survivors, candidates):
     survivors, candidates = tuple(survivors), tuple(candidates)
     if not candidates or not survivors:
         return ()
-    plan = {p.point_id: p.layout.floorplan for p in survivors}
+    plan = {p.point_id: p.layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN) for p in survivors}
     power_tie = {p.point_id: p.power_resolution_w for p in survivors}
     power_tie.update((c.point_id, c.result.objectives.power_resolution_w) for c in candidates)
 

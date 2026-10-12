@@ -16,7 +16,7 @@
 import dataclasses
 import time
 
-from gmid_engine.layout import LayoutPdk
+from gmid_engine.layout import F_FLOORPLAN, LAYOUT_KEY, LayoutPdk
 from gmid_engine.search import STATUS_SEALED
 
 from .admission import admit_candidates
@@ -87,7 +87,7 @@ def converge(sctx, pdk_decl, points, pool=(), slice_keys=None):
     nonconverged = tuple(done[i] for i in order if done[i].status != STATUS_CONVERGED)
     dropped += tuple(DroppedPoint(c.point_id, DROP_NONCONVERGED, None) for c in nonconverged)
     if front:
-        included = tuple(name for name, _value, _rule in front[0].layout.floorplan.included)
+        included = tuple(name for name, _value, _rule in front[0].layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN).included)
         notes.append((("rule", "DEC-79"), ("verdict", "judged_axis"), ("axis", "layout_outline_area_m2"), ("included", included),
                       ("search_axis_differs", True)))
     notes.append((("rule", "DEC-79"), ("verdict", "area_model_error_undeclared"),
