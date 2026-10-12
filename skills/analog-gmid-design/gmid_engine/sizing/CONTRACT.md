@@ -185,7 +185,7 @@ graph 레코드 key: `DC_KEY`(`"dc"`). 값은 모두 불변(frozen dataclass·tu
 | graph.dc_scc_log | dc_columns | DC_KEY | tuple[`SccLog`] |
 | device.dc_op | dc_widths | 모든 MOS | `DeviceOp` |
 | device.dc_tol_v | dc_tolerances | 모든 MOS | float V 또는 None |
-| device.dc_gm_bound | dc_tolerances | 모든 MOS | float S |
+| device.dc_gm | dc_tolerances | 모든 MOS | float S (= dc_op.gm_id × dc_op.current, 자기 동작점 gm -- 설계 40 §3.7-3 v1.6) |
 | graph.dc_seal_1/2/3/6/7/8 | dc_seal_node_conflict / vgs_match / kcl / bulk_reverse / saturation / kvl_branch | DC_KEY | `SealItem` |
 | [r8] graph.dc_seal_9 | dc_seal_conduction | DC_KEY | `SealItem` |
 | [r8] device.dc_off_current | dc_seal_conduction | `dc_op.current > 0` 인 MOS | float A(VGS = 0 누설) |
@@ -542,7 +542,7 @@ None 을 주지만 봉인에서는 '허용오차 0 을 넘은 위반' = 무한 �
 
 | # | 블록 | 판정 |
 |---|---|---|
-| tol | `dc_tolerances` | dc_tol_v = lut `tol_v_table(kind, w_key).at(L, vds, "id_equivalent")`(None 가능), dc_gm_bound = max(gm_id_curve(L, vds, vsb) 의 id·gm/id)·W/w_m |
+| tol | `dc_tolerances` | dc_tol_v = lut `tol_v_table(kind, w_key).at(L, vds, "id_equivalent")`(None 가능), dc_gm = dc_op.gm_id × dc_op.current(자기 동작점 gm, 봉인 3 tol_I·`ss_dev`·b_P·영점 상쇄 R 공용, 설계 40 §3.7-3 v1.6) |
 | 1 | `dc_seal_node_conflict` | 노드마다 spread = max − min of {노드 값} ∪ path_values; tol = 닿는 PATH_MOS 소자 tol_v 최댓값(정의된 것), 없으면 None; MOS 관계가 없는 노드는 n·eps·max|V|(n = 값 수) |
 | 2 | `dc_seal_vgs_match` | MOS 마다 |ln idu_forward − ln_idu| / gm_id ≤ tol_v |
 | 3 | `dc_seal_kcl` | [r3] 행 = DC 원소(`basis.ends` -- MOS·DC 저항·이상원, 가지치기 저항 제외)의 from·to 로 한 번이라도 나오는 레일 아닌 넷마다(DC 원소가 닿지 않는 넷 -- gate 전용 넷·커패시터만 닿는 넷 -- 은 행이 없고 n_checked 에 들지 않는다) |Σ from − Σ to|, MOS = idu_forward·W/L, 저항 = (V(from) − V(to))/R, 이상원 = dc_current; tol = 채널이 닿는 MOS 의 tol_v·gm_bound 최댓값(정의된 것; MOS 는 있는데 모두 None 이면 None), MOS 없는 넷은 n·eps·Σ|I| |
@@ -952,13 +952,11 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 * 소비자 주의: search 가 L 변수를 소자마다 두는 곳(`layer0_center`·`slsqp_outer`·`l_bin_search`·`start_points`)은 `schema.components` 의 L 성분(주인만)을 따라야 한다.
   `search_domain` 은 이미 성분 목록에서 L 변수를 만든다.
 
-### 14.2 S2p 기반 tol_I (계획 N3.6, 설계 40 §3.7-3)
-* `dc_tolerances(snapshot, lut, gm_id_prev=())`: `gm_id_prev` = ((소자, gm/ID), ...). 있는 소자는 `dc_gm_bound` = gm/ID × 이번 후보 `dc_op.current`
-  (tol_I = tol_V × gm_bound, 봉인 3). 없는 소자는 종래 LUT 격자 최대 gm(첫 평가).
-* `size_and_seal(..., parent)`: parent 가 **봉인된**(`parent.sealed is not None`) `DcEvaluation` 이고 그 스냅샷에 `device.ss_dev` 가 있으면 소자마다
-  gm/ID = `ss_dev.gm / dc_op.current`. `ss_dev` 가 그 점에서 나온 것인지는 이 gm/ID 가 `dc_op.gm_id` 와 `2·eps` 상대 안에서 같은지로 가린다(오래된 필드 배제).
-  parent 가 없거나 봉인이 아니거나 ss 가 없으면 `gm_id_prev = ()`. 새 `dc_op` 전체가 parent 의 것과 같으면(수동소자 θ 만 바뀐 FD 등) tol_I 입력은 **parent 가 허용오차에 실제로 쓴 gm/ID**(parent 의 `dc_gm_bound` ÷ `dc_op.current`, 격자 최대 gm 이 상계인 소자는 뺀다)를 그대로 쓴다 -- 그래서 parent 가 S2p 로 평가됐어도 수동소자만 다른 자식의 허용오차 입력이 parent 와 같아 DEC-92 재사용(DC 블록 computes 0)이 성립한다. 입력의 비트 동일은 gm/ID 를 '같은 상계(gm/ID × 전류)를 내는 가장 작은 gm/ID' 정규형(`canonical_gm_id`)으로 두어 보장한다(S2p 에서 새로 뽑은 gm/ID 도 같은 정규형). **결과가 parent 에 의존한다**(N3.6 규칙 그대로).
-* 효과(toy r4, 파일럿급 W 큰 pmos): 노드 tol_I 가 격자 최대 gm 대비 수십~수만 배 줄어 봉인 3 이 실제로 판정한다.
+### 14.2 tol_I = tol_V × 자기 동작점 gm (계획 N3.6 v6.4, 설계 40 §3.7-3 v1.6, U17 ①)
+* `dc_tolerances(snapshot, lut)`: `device.dc_gm` = `dc_op.gm_id × dc_op.current`(writer 이 블록 하나). 봉인 3 tol_I = tol_V × 노드에 닿는 소자 `dc_gm` 최댓값.
+  `ss_dev` gm·`metrics_dc` b_P·`passive_values` 영점 상쇄 R 이 같은 필드를 읽는다.
+* parent 에 의존하지 않는다: 같은 θ 는 parent 와 무관하게 같은 봉인 결과. 옛 S2p 경로(`previous_gm_id`·`inherited_gm_id`·`canonical_gm_id`·`gm_grid_max`·
+  `dc_gm_bound`)는 지웠다. 수동소자 θ 만 바뀐 자식의 DC 재사용은 입력 버전 일치로 성립한다(`dc_gm` 이 수동소자 θ 를 읽지 않는다).
 
 ### 14.3 W_request 고정 W (D-GB7d, LY3)
 * `size_and_seal(ctx, theta, parent=None, w_request=())`, `w_request` = {MOS: W[m]} 또는 ((MOS, W), ...). MOS 가 아닌 이름·비양수·비유한 W·**같은 소자 이름이 두 번 있는 요청**((MOS, W) 쌍 목록에서) -> `ValueError`(호출 계약 위반; 값이 같아도 거부).

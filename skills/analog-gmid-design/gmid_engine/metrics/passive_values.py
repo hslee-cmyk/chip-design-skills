@@ -1,31 +1,40 @@
-"""봉인 점의 수동소자 값 -- 값의 정본 하나 (DEC-92, 설계 40 §3.9 U14: 판정 축 면적의 수동소자 블록도 같은 값을 쓴다).
+"""GB5 수동소자 값 계산 블록 -- 설계점의 수동소자 값 정본 하나 (DEC-92, J7, 설계 40 §2.4.7·§2.4.8 `device.passive_value`, §3.5).
 
-진입점: `passive_values(snapshot, ctx, theta) -> ((수동소자, 값), ...)` 이름순.
+진입점: `passive_values`(`@compute_block`) -- `passive_values(snapshot, element_values, zero_cancel, theta)`.
 
-`snapshot` = `ss_dev` 필드가 있는 봉인 스냅샷(영점 상쇄 구조 규칙 저항 1/Σgm 이 `ss_dev` gm 에서 나온다), `ctx` = 그 점의 `KernelContext`, `theta` = `Theta`.
-값의 출처 셋: spec 선언(`ctx.inputs.element_values`, 수동소자만) ∪ θ 저항·커패시터·ss 저항(sizing `THETA_PASSIVE_KINDS`) ∪ 영점 상쇄 구조 규칙 저항
-(`ctx.schema.zero_cancel` 중 reason None). 같은 소자에 둘 이상이면 `ValueError`, θ 이름이 S1 수동소자가 아니면 `ValueError`(스키마가 S1 에서 나오므로
-계약 위반 표지). 어느 출처에도 없는 수동소자(결정 대기 등)는 결과에 없다. `ss_evaluate` 와 MOD8 `convergence` 의 `LayoutInput.passives` 가 이 함수를 쓴다.
+* reads `device.element_class`, `device.dc_gm`(dc 단계 `dc_tolerances` 가 쓴 자기 동작점 gm -- 봉인 전에도 정의된다).
+  writes `device.passive_value` = {수동소자: 값} -- 값이 정해진 수동소자만 행이 있다(어느 출처에도 없는 소자 = 결정 대기 등은 행 없음).
+* extras: `element_values` = spec 선언((원소, 값 또는 None), ... -- sizing `DcInputs.element_values`, 수동소자 행만 쓴다),
+  `zero_cancel` = θ 스키마의 영점 상쇄 판정(sizing `ZeroCancel` tuple), `theta` = θ 쌍 ((kind, key), 값) 전부(이 블록이 수동소자 성분만 고른다 --
+  고르는 규칙은 이 파일 하나에만 있다).
+* 값의 출처 셋: spec 선언 ∪ θ 저항·커패시터·ss 저항(sizing `THETA_RESISTANCE` + `THETA_PASSIVE_KINDS`) ∪ 영점 상쇄 구조 규칙 저항
+  (`zero_cancel` 중 reason None: R = 1/Σ_{c∈S} `dc_gm`_c). 같은 소자에 둘 이상이면 `ValueError`, θ 이름이 S1 수동소자가 아니면 `ValueError`
+  (스키마가 S1 에서 나오므로 계약 위반 표지).
+* 소비자는 이 필드를 읽는다: `metrics_ss`·`metrics_aux`(소신호 회로)·`metrics_dc`(DC 저항·면적), MOD8 `convergence`(판정 축 면적 입력),
+  오라클 입력(U16). 같은 입력이면 블록 재사용(필드가 곧 캐시) -- 값을 다시 만들지 않는다.
 """
+from gmid_engine.core import compute_block
 from gmid_engine.graph import ELEMENT_PASSIVE
-from gmid_engine.sizing import THETA_PASSIVE_KINDS, THETA_RESISTANCE
+from gmid_engine.sizing import PASSIVE_VALUES_WRITER, THETA_PASSIVE_KINDS, THETA_RESISTANCE
 
+READS = (("device", "element_class"), ("device", "dc_gm"))
+WRITES = (("device", "passive_value"),)
 _THETA_PASSIVES = (THETA_RESISTANCE,) + THETA_PASSIVE_KINDS
 
 
-def passive_values(snapshot, ctx, theta):
-    classes = dict(snapshot.column("device", "element_class"))
-    passives = {n for n, c in classes.items() if c == ELEMENT_PASSIVE}
-    values = {n: v for n, v in ctx.inputs.element_values if n in passives and v is not None}
-    gm = {n: dev.gm for n, dev in snapshot.column("device", "ss_dev")}
-    structural = tuple((z.resistor, 1.0 / sum(gm[c] for c in z.cells))
-                       for z in ctx.schema.zero_cancel if z.reason is None)
-    sources = (tuple((key, v) for (kind, key), v in theta.values if kind in _THETA_PASSIVES), structural)
+@compute_block(PASSIVE_VALUES_WRITER, reads=READS, writes=WRITES)
+def passive_values(projection):
+    element_values, zero_cancel, theta = projection.extras
+    passives = {n for n, c in projection.column("device", "element_class") if c == ELEMENT_PASSIVE}
+    values = {n: float(v) for n, v in element_values if n in passives and v is not None}
+    gm = dict(projection.column("device", "dc_gm"))
+    structural = tuple((z.resistor, 1.0 / sum(gm[c] for c in z.cells)) for z in zero_cancel if z.reason is None)
+    sources = (tuple((key, v) for (kind, key), v in theta if kind in _THETA_PASSIVES), structural)
     for pairs in sources:
         for name, value in pairs:
             if name not in passives:
-                raise ValueError("ss_evaluate: %r 은 S1 수동소자가 아니다" % (name,))
+                raise ValueError("passive_values: %r 은 S1 수동소자가 아니다" % (name,))
             if name in values:
-                raise ValueError("ss_evaluate: 수동소자 %r 의 값이 두 곳에서 온다(spec·θ·구조 규칙 중 하나만)" % (name,))
+                raise ValueError("passive_values: 수동소자 %r 의 값이 두 곳에서 온다(spec·θ·구조 규칙 중 하나만)" % (name,))
             values[name] = float(value)
-    return tuple(sorted(values.items()))
+    return {("device", "passive_value"): values}

@@ -21,7 +21,7 @@ from pathlib import Path
 
 from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 from gmid_engine.core import FailureRecord, PdkDecl, fp_of
-from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE
+from gmid_engine.graph import ELEMENT_MOS
 from gmid_engine.lut import require_lut_data, sweep_memo
 from gmid_engine.metrics import (AUX_TYPES, JunctionSource, MismatchSource, NoiseAnalysis, metric_catalog, metric_registry,
                                  metric_structure)
@@ -70,7 +70,6 @@ class SearchContext:
         self.eval_times = []
         self.seq = 0
         self.ss_constraints = ()
-        self.spec_passive_values = ()
         self.junction = None
         self.mismatch = None                             # [U7] metrics MismatchSource(PDK mismatch 모델) -- offset·미러비 σ 입력
         self.structure = None                            # [U7] metrics MetricStructure(S1v 에서) -- 없으면 구조 의존 값은 정의 불가
@@ -195,9 +194,6 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     ctx.noise_decl = noise_decl(spec, s1v)
     if s1v is not None:
         ctx.start = start_intervals(s1v, ach, dc_ctx, spec, pdk_decl, domain)
-    classes = dict(dc_ctx.base.column("device", "element_class"))
-    ctx.spec_passive_values = tuple(sorted((n, float(v)) for n, v in dc_ctx.inputs.element_values
-                                           if v is not None and classes.get(n) == ELEMENT_PASSIVE))
     if archive is not None:
         ctx.disk_failures = _disk_failures(archive, context_fp, schema_fp)
     _wire_sweep_memo(ctx)

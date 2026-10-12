@@ -23,8 +23,8 @@ import time
 from collections.abc import Mapping
 
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, fp_of
-from gmid_engine.metrics import REPORT_BLOCK_RESIDUAL, metrics_dc, ss_evaluate
-from gmid_engine.sizing import METRICS_KEY, THETA_PASSIVE_KINDS, THETA_RESISTANCE, DcEvaluation, LutAccess, size_and_seal
+from gmid_engine.metrics import REPORT_BLOCK_RESIDUAL, metrics_dc, passive_values, ss_evaluate
+from gmid_engine.sizing import METRICS_KEY, DcEvaluation, LutAccess, size_and_seal
 
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
@@ -46,9 +46,6 @@ from .search_values import (
 )
 from .seal7_pending import seal_status
 from .ss_constraints import ss_constraint_rows
-
-_THETA_PASSIVES = (THETA_RESISTANCE,) + THETA_PASSIVE_KINDS
-
 
 def _spec_rows(sctx, objectives):
     rows = []
@@ -143,10 +140,9 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
             except CANDIDATE_FAILURE_CLASSES as exc:
                 evaluation, failure, status = None, exc.record, STATUS_FAILED
         else:
-            # 수동소자 값 = spec 값 ∪ θ 저항·커패시터·ss 저항(DEC-92) -- ss_evaluate 와 같은 규칙. 영점 상쇄 구조 규칙 저항(1/Σgm)은
-            # ss_dev(봉인 점 전용)가 있어야 정해져 봉인 아닌 점에서는 값 없음(passive_value_missing -- 면적 단위 선언이 없어 면적 값은 같다)
-            values = sctx.spec_passive_values + tuple((k[1], v) for k, v in pairs if k[0] in _THETA_PASSIVES)
-            snap = metrics_dc(evaluation.snapshot, tuple(sorted(values)), (), sctx.area_decl)
+            # 봉인 아닌 점도 수동소자 값 필드는 같은 GB5 블록이 쓴다(영점 상쇄 R = 1/Σdc_gm 은 dc 단계 필드라 봉인 전에도 정의, 설계 40 §2.4.7)
+            snap = passive_values(evaluation.snapshot, dc.inputs.element_values, dc.schema.zero_cancel, pairs)
+            snap = metrics_dc(snap, (), sctx.area_decl)
             evaluation = DcEvaluation(snap, evaluation.report, evaluation.sealed)
     if evaluation is not None:
         objectives = objective_values(evaluation.snapshot)

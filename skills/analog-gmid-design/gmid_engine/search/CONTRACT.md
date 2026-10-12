@@ -78,7 +78,7 @@
   나중에 같은 점이 봉인되면 블록 재사용), `evaluation` = DcEvaluation(그 스냅샷, report, sealed). 그다음 목적·b_P(None 이면
   `STATUS_UNDEFINED`)·제약 = constraint_rows + 목적 축 spec 행 + `ss_constraint_rows(bundle, ss_constraints)`.
 - 3.9: `ss_constraints` = judged·값 있음·목적 축 밖·`metric_registry()` 에서 view_kind 가 있는 metric 의 `ConstraintDecl` tuple(문서
-  순서). 레지스트리 밖·view 없는 판정 제약은 notes(`metric_not_in_registry_or_no_ss_view`). `spec_passive_values` 를 둔다.
+  순서). 레지스트리 밖·view 없는 판정 제약은 notes(`metric_not_in_registry_or_no_ss_view`). (옛 `spec_passive_values` 칸은 U17 ① 에서 지웠다 -- 수동소자 값은 S2 필드 `device.passive_value`.)
 - 3.20 `ss_constraint_rows(bundle, declared)`: 본문 docstring -- bundle None 이면 전부 `ss_requires_sealed_snapshot`, 값 None 이면
   (metric, op, Undefined code '+' 연결), 값이 있으면 `ss:<k>:<metric><op>` c = (값 − 목표)/|목표|(>=) 또는 반대, 목표 0 이면 분모 1,
   `active` False(S-19).
@@ -268,12 +268,9 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 - `area_m2` = metrics `area_search(GateArea(dc_op.W, dc_op.L) 전 MOS, PassiveArea(값 있는 수동소자, 단위 면적 None))`.
   수동소자 값이 `element_values`·`resistances` 어디에도 없으면 `passive_value_undetermined`(이름순), 값은 있는데 단위 면적
   선언이 없으면 `passive_area_undeclared`(U-36).
-- [r3] `power_resolution_w` = b_P = Σ_{레일 k} |dc_rail_v_k| · tol_I,k, tol_I,k = 채널 끝(`dc_current_basis.ends` 의 from·to)이
-  레일 넷 k 인 MOS 중 `dc_tol_v` 가 None 이 아닌 것의 `dc_tol_v · gm_op` 최댓값, gm_op = `dc_op.current · dc_op.gm_id`(그 점의
-  동작점 gm). 행이 있는 레일이 없거나 합이 0 이면 None. **봉인 3 과 다른 점**: sizing 봉인 3 의 KCL 허용오차는 `dc_gm_bound`(곡선
-  전체 최대 gm × W/w_m)를 쓰고 그대로 둔다(sizing 계약 -- 봉인은 어느 동작점에서나 안전한 상계가 필요). 탐색 축 해상도는 '이 점의
-  전류가 tol_V 만큼 흔들릴 때 전력이 움직이는 양'이라 점 국소 gm 이 맞다 -- gm_bound 를 쓰면 W 큰 소자에서 수십~수천 배 과대였다
-  (r2 실측: ngcc 120 배, two_stage_ota_sf 2000 배). power_dc_w 는 모든 레일 합이라 합산 레일 = 모든 레일(전압 0 레일은 0 기여).
+- [U17 ①] `power_resolution_w` = graph 필드 `power_resolution_w`(writer metrics `metrics_dc`, 설계 40 §2.4.8): b_P = Σ_{레일 k} |dc_rail_v_k| · tol_I,k,
+  tol_I,k = 채널 끝이 레일 넷 k 인 MOS 중 `dc_tol_v` 가 None 이 아닌 것의 `dc_tol_v · dc_gm` 최댓값(봉인 3 과 같은 gm 필드). 행이 있는 레일이 없거나
+  합이 0 이면 None. `gate_area_m2` 도 같은 블록의 필드다. search 는 다시 계산하지 않는다(옛 `_power_resolution` 삭제). power_dc_w 는 모든 레일 합이라 합산 레일 = 모든 레일(전압 0 레일은 0 기여).
   `supply_current_dc` 는 합산 레일 선언(`counted_rails`)이 spec 에 없어 계산하지 않는다(notes `supply_current_dc_needs_counted_rails_declaration`).
 
 ### 3.7 `search_domain(dc_ctx, settings) -> SearchDomain`

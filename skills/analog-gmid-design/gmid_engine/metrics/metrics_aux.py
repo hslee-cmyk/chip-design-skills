@@ -1,11 +1,11 @@
 """봉인 점 -> offset·미러비·스윙·ICMR·FF 비 metric + 블록 잔차 보고 계산 블록 (설계 40 §3.8, §3.8-8, 41 §2, 단위 U7).
 
-진입점: `metrics_aux`(`@compute_block`) -- `metrics_aux(snapshot, requests, passive_values, lut, mismatch, structure, targets, input_dc_v, linear_devices,
+진입점: `metrics_aux`(`@compute_block`) -- `metrics_aux(snapshot, requests, lut, mismatch, structure, targets, input_dc_v, linear_devices,
 transfer_views, ugf_hz, driving)`.
 
-* reads `device.{ss_dev, dc_op, dc_tol_v, element_class, kind, pins, bulk, dc_role, dc_colour}`, `node.{ac_ground_class, port_direction, port_role, dc_colour, dc_v,
+* reads `device.{ss_dev, dc_op, dc_tol_v, element_class, kind, pins, bulk, dc_role, dc_colour, passive_value}`(수동소자 값 = GB5 필드), `node.{ac_ground_class, port_direction, port_role, dc_colour, dc_v,
   dc_rail_v}`, `graph.{matching_groups, matching_dispositions}`(S1 필드). writes `graph.metrics_aux`(key `METRICS_KEY`) = `MetricBundle`.
-* extras: `requests` = `MetricRequest` tuple(레지스트리 결과 형식이 `AUX_TYPES` 인 metric 만), `passive_values` = ((수동소자, 값), ...), `lut` = sizing `LutAccess`,
+* extras: `requests` = `MetricRequest` tuple(레지스트리 결과 형식이 `AUX_TYPES` 인 metric 만), `lut` = sizing `LutAccess`,
   `mismatch` = `MismatchSource`(또는 None -- offset·미러비는 `mismatch_source_missing`), `structure` = `MetricStructure`(또는 None -- offset_excess·FF·블록 잔차는 구조 입력 없음),
   `targets` = spec 노드 목표 ((넷, V), ...), `input_dc_v` = 선언 입력 DC 또는 None(SP-2 대기 -> 해의 y_icm), `linear_devices` = 선형 영역 선언 소자,
   `transfer_views` = 판정 제약의 전달 뷰 `ViewDecl` tuple(블록 잔차 보고가 짝을 찾는 뷰), `ugf_hz` = 같은 평가의 `ugf_ss_hz` 값(nqs_ratio 입력, 없으면 None),
@@ -41,7 +41,7 @@ from .ss_types import MetricBundle
 
 READS = (
     ("device", "ss_dev"), ("device", "dc_op"), ("device", "dc_tol_v"), ("device", "element_class"), ("device", "kind"), ("device", "pins"),
-    ("device", "bulk"), ("device", "dc_role"), ("device", "dc_colour"),
+    ("device", "bulk"), ("device", "dc_role"), ("device", "dc_colour"), ("device", "passive_value"),
     ("node", "ac_ground_class"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_colour"), ("node", "dc_v"), ("node", "dc_rail_v"),
     ("graph", "matching_groups"), ("graph", "matching_dispositions"),
 )
@@ -89,7 +89,7 @@ def _structure_of(structure, view):
     return next((v for v in structure.views if frozenset(n for n, _w in v.excite) == excite and frozenset(v.sense) == sense), None)
 
 
-def _ss_of(projection, passive_values):
+def _ss_of(projection):
     classes = dict(projection.column("device", "element_class"))
     kinds = dict(projection.column("device", "kind"))
     pins = dict(projection.column("device", "pins"))
@@ -102,7 +102,7 @@ def _ss_of(projection, passive_values):
     inputs = tuple(n for n, d in projection.column("node", "port_direction") if d == INPUT_DIRECTION)
     devices = tuple((name, classes[name], kinds[name], pins[name], bulk.get(name), ss_values.get(name))
                     for name in sorted(classes, key=lambda n: (device_orbit.get(n, -1), n)))
-    return ss_circuit(nodes, ground, inputs, devices, passive_values), ss_values, device_orbit
+    return ss_circuit(nodes, ground, inputs, devices, projection.column("device", "passive_value")), ss_values, device_orbit
 
 
 def _sat_devices(projection, lut, linear, canonical):
@@ -156,8 +156,8 @@ def _tags(projection):
 
 @compute_block(METRICS_AUX_WRITER, reads=READS, writes=WRITES)
 def metrics_aux(projection):
-    (requests, passive_values, lut, mismatch, structure, targets, input_dc_v, linear_devices, transfer_views, ugf_hz, driving) = projection.extras
-    ss, ss_values, device_orbit = _ss_of(projection, passive_values)
+    (requests, lut, mismatch, structure, targets, input_dc_v, linear_devices, transfer_views, ugf_hz, driving) = projection.extras
+    ss, ss_values, device_orbit = _ss_of(projection)
     canonical = lambda name: (device_orbit.get(name, -1), name)                  # noqa: E731
     results = {}
     reports = []

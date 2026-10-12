@@ -1,15 +1,19 @@
 """봉인 DC 점 -> 전력·탐색 축 면적 metric 계산 블록 (설계 design_mod1_lut_mod5_mna 3.4 `supply_current_dc`·`power_dc_w`·
 `area_search_m2`, 계획 DEC-78·DEC-79 (a), metrics CONTRACT 7절).
 
-진입점: `metrics_dc`(`@compute_block`) -- `metrics_dc(snapshot, passive_values, counted_rails[, area_decl])`.
+진입점: `metrics_dc`(`@compute_block`) -- `metrics_dc(snapshot, counted_rails[, area_decl])`.
 
-* reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}`, `graph.dc_current_basis`;
-  extras `passive_values` = ((수동소자, 값), ...)(DC 저항 값 = spec 선언 ∪ θ), `counted_rails` = 합산 레일 넷 tuple(DEC-78 선언 --
-  기본값 없음). writes `graph.metrics_dc`(key `METRICS_KEY`) = `MetricBundle`(supply_current_dc·power_dc_w·area_search_m2).
+* reads `device.{dc_op, dc_current, element_class, pins, passive_value, dc_gm, dc_tol_v}`, `node.{dc_v, dc_rail_v}`, `graph.dc_current_basis`;
+  extras `counted_rails` = 합산 레일 넷 tuple(DEC-78 선언 -- 기본값 없음). 수동소자 값은 GB5 필드 `device.passive_value`(`passive_values` 블록)를
+  읽는다(DC 저항 값·면적 항 -- 사본을 받지 않는다). writes(key `METRICS_KEY`, 설계 40 §2.4.8):
+  - `graph.metrics_dc` = `MetricBundle`(supply_current_dc·power_dc_w·area_search_m2),
+  - `graph.gate_area_m2` = Σ_MOS W·L(면적 항 계산의 게이트 합 그대로 -- 다시 더하지 않는다),
+  - `graph.power_resolution_w` = 전력 축 분해능 b_P = Σ_레일 |V_k|·tol_I,k, tol_I,k = 레일 넷 k 에 채널이 닿는 MOS 의 `dc_tol_v`·`dc_gm` 최댓값
+    (봉인 3 KCL 허용오차와 같은 식·같은 gm 필드, 설계 40 §3.7-3). 정의된 행이 있는 레일이 없거나 합이 0 이면 None.
 * DC 점 레코드(`DcOperatingPoint`, 노드 인덱스 = 레일 ∪ 노드전압 넷 이름 정렬 위치):
   - MOS 채널: `basis.ends` 의 (from, to) 가 양의 전류 방향이므로 drain = from 이면 drain→source 전류 = +ID, 아니면 −ID
     (극성 표를 따로 두지 않는다).
-  - DC 저항(`basis.resistors`, 잎 가지치기 제외 -- 가지치기 저항은 전류 0): 값은 `passive_values`.
+  - DC 저항(`basis.resistors`, 잎 가지치기 제외 -- 가지치기 저항은 전류 0): 값은 `device.passive_value`.
   - 이상 전류원(ends 의 나머지 DC 원소): (from, to, `dc_current`) -- 선언값 또는 θ 전류.
 * `counted_rails` = 합산 레일의 **넷 이름** tuple(노드 인덱스 아님). 레일(`dc_rail_v` 넷) 밖 이름(회로에 없는 넷 포함)·중복 ->
   ValueError(선언 결함, 2절 표 '합산 레일 선언' -- KeyError 는 미등록 metric 이름 전용).
@@ -35,8 +39,9 @@ from .supply import supply_currents
 READS = (
     ("device", "dc_op"), ("device", "dc_current"), ("device", "element_class"), ("device", "pins"),
     ("node", "dc_v"), ("node", "dc_rail_v"), ("graph", "dc_current_basis"), ("node", "dc_colour"), ("device", "dc_colour"),
+    ("device", "passive_value"), ("device", "dc_gm"), ("device", "dc_tol_v"),
 )
-WRITES = (("graph", "metrics_dc"),)
+WRITES = (("graph", "metrics_dc"), ("graph", "gate_area_m2"), ("graph", "power_resolution_w"))
 SUPPLY_METRICS = ("power_dc_w", "supply_current_dc")
 AREA_METRICS = ("area_search_m2",)
 CODE_COUNTED_RAILS = "counted_rails_undeclared"
@@ -48,9 +53,23 @@ def _canonical(projection, kind):
     return lambda name: (orbit.get(name, -1), name)
 
 
-def _operating_point(projection, index, values):
+def _power_resolution(projection, basis, node_key, device_key):
+    """b_P = Σ_레일 |V_k|·max_{m: 채널이 레일 k 에 닿음, tol 정의} dc_tol_v[m]·dc_gm[m]. 합산 순서는 정준(구조 색) 순서."""
+    tols = dict(projection.column("device", "dc_tol_v"))
+    gm = dict(projection.column("device", "dc_gm"))
+    channel = {e: (a, b) for e, a, b in basis.ends}
+    devices = sorted(gm, key=device_key)
+    total, defined = 0.0, False
+    for rail, volt in sorted(projection.column("node", "dc_rail_v"), key=lambda r: node_key(r[0])):
+        rows = [tols[m] * gm[m] for m in devices if tols.get(m) is not None and rail in channel.get(m, ())]
+        if rows:
+            defined = True
+            total += abs(float(volt)) * max(rows)
+    return total if defined and total > 0 else None
+
+
+def _operating_point(projection, index, values, basis):
     device_key = _canonical(projection, "device")
-    basis = projection.value("graph", DC_KEY, "dc_current_basis")
     pins = dict(projection.column("device", "pins"))
     classes = dict(projection.column("device", "element_class"))
     currents = dict(projection.column("device", "dc_current"))
@@ -73,15 +92,16 @@ def _operating_point(projection, index, values):
 
 @compute_block(METRICS_DC_WRITER, reads=READS, writes=WRITES)
 def metrics_dc(projection):
-    passive_values, counted_rails, *rest = projection.extras
+    counted_rails, *rest = projection.extras
     area_decl = rest[0] if rest else PassiveAreaDecl()
-    values = dict(passive_values)
+    values = dict(projection.column("device", "passive_value"))
+    basis = projection.value("graph", DC_KEY, "dc_current_basis")
     node_key = _canonical(projection, "node")
     device_key = _canonical(projection, "device")
     names = sorted({n for n, _v in projection.column("node", "dc_rail_v")} | {n for n, _v in projection.column("node", "dc_v")},
                    key=node_key)
     index = {net: i for i, net in enumerate(names)}
-    op = _operating_point(projection, index, values)
+    op = _operating_point(projection, index, values, basis)
     rails = {n for n, _v in projection.column("node", "dc_rail_v")}
     outside = tuple(n for n in counted_rails if n not in rails)
     if outside or len(set(counted_rails)) != len(counted_rails):
@@ -112,4 +132,6 @@ def metrics_dc(projection):
         ("passive_value_missing", tuple(n for n in passives if values.get(n) is None)),
         ("per_rail_amp", tuple((names[k], float(i)) for k, i in supply.per_rail)),
     )
-    return {("graph", "metrics_dc"): {METRICS_KEY: MetricBundle(tuple(entries), (), detail)}}
+    return {("graph", "metrics_dc"): {METRICS_KEY: MetricBundle(tuple(entries), (), detail)},
+            ("graph", "gate_area_m2"): {METRICS_KEY: float(area.gate_area_m2)},
+            ("graph", "power_resolution_w"): {METRICS_KEY: _power_resolution(projection, basis, node_key, device_key)}}
