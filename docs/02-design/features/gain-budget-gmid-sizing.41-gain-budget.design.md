@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.6
-plan_version: 6.5
+version: 1.7
+plan_version: 6.6
 ---
 
 # gain-budget-gmid-sizing -- 41-gain-budget Design Document
@@ -14,7 +14,7 @@ plan_version: 6.5
 > - 스펙에서 gm/ID·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-10-12 · **Status**: v1.6 §5 (+ 사용자 결정 2026-10-12 L-3·L-11·L-12·graph 저장 반영, §4.2 층 0 정의역 상한 추가) 계획 복귀 개정(사용자 결정 2026-10-12 "A1~A6은 계획대로 되돌려", "L1~L13 모두 권고대로 해", 재검증 반영, L-14 결정 -- 사용자 결정 2026-10-12 "3은 권고대로"·"L14부터 PQ5까지"): 층 0 국소 후보를 DEC-71 (4) 역산 우선으로 되돌리고(gm/ID·L 역산, VDS 배분, 국소 고정점), bin을 목표로, LR5 knee·동치류 격자, `comp_approx_gap` 정의를 넣었다. 나머지 절은 v1.5 그대로다.
+> **Date**: 2026-10-12 · **Status**: v1.7 -- §4.5 DOF 등식 목록에서 `budget_ref` 제거(사용자 결정 2026-10-12 "다로 해", 계획 v6.6 DEC-55). v1.6 §5 (+ 사용자 결정 2026-10-12 L-3·L-11·L-12·graph 저장 반영, §4.2 층 0 정의역 상한 추가) 계획 복귀 개정(사용자 결정 2026-10-12 "A1~A6은 계획대로 되돌려", "L1~L13 모두 권고대로 해", 재검증 반영, L-14 결정 -- 사용자 결정 2026-10-12 "3은 권고대로"·"L14부터 PQ5까지"): 층 0 국소 후보를 DEC-71 (4) 역산 우선으로 되돌리고(gm/ID·L 역산, VDS 배분, 국소 고정점), bin을 목표로, LR5 knee·동치류 격자, `comp_approx_gap` 정의를 넣었다. 나머지 절은 v1.5 그대로다.
 >
 > **v1.6(2026-10-12, 사용자 결정 "9번 권고대로"·"B는 권고대로"·"K-1~K-3도 권고대로")**: §6.7 KVL 고리 출발 제약(쓰기 계획의 v2 고리 등식·VDS-1 포화 부등식, 묶인 소자 구간 안 공동 선택 + 매크로·면적 재확인, 해 없으면 충돌 레코드, 층 0 역산·VDS 배분과의 관계, DEC-64 v1 을 계획대로 제약 없음으로 하는 커널 쓰기 계획 개정 §6.7-1a) 추가, §6.1 순서 7a·8, §6.6 충돌 종류, §7.5 β·C_eff 입력 배선(design 검증 뒤 사용자 승인 대상). 계획과의 차이는 §6.7-10(P5·P8은 K-1·K-3으로 닫힘, P7은 K-2 조건부 승인, P1 남음). P-1·P-9·P-15(§5.1·§5.3.11·§9), C-2(§7, 파일럿 kT/C 미선언)도 이 판에 반영했다.
 >
@@ -574,7 +574,7 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 
 **구조 rank**(단계 A):
 - 변수: 노드전압, 소자 gm_id(P N3.7 이름. 새 엔진 좌표는 쓰기 소자 ln IDu(DEC-88)이고 강반전 분지에서 gm_id와 일대일이라 rank가 같다. 종속 소자 gm_id는 관계가 정해 변수가 아니다), L 동치류 L, θ 전류, DC 경로 저항.
-- 등식: diode, `equal_vgs`, `budget_ref`, `stacked_vsb`, `kvl_branch`, KCL.
+- 등식: diode, `equal_vgs`, `stacked_vsb`, `kvl_branch`, KCL. (`budget_ref`는 없다: 옛 `budget_reference_device`의 예산 관계는 기둥 KVL과 노드 변수 하나로 이미 들어 있다, 계획 DEC-55·사용자 결정 2026-10-12 "다로 해")
 - 방법: 변수와 등식의 이분 매칭으로 rank를 구한다.
 - 판정: 매칭되지 않는 등식이 있으면 `overconstrained`이고 INFEASIBLE_TARGET이다. 남는 변수가 있으면 `underdetermined` 목록을 낸다.
 - 부등식(포화 여유, 벌크 역바이어스, 헤드룸 창 등)은 rank에 넣지 않고 경고로만 낸다(P N3.7 "부등식은 경고"): `dof_inequality_warning[{kind, devices}]`.

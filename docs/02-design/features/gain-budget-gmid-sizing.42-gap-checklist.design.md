@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.6
-plan_version: 6.5
+version: 1.7
+plan_version: 6.6
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
@@ -95,7 +95,7 @@ plan_version: 6.5
 | 52 vsb | -- | OK | `E/sizing/seal_bulk_reverse.py` |
 | 53 metric 서명 | 40 §5 | OK | `E/core/metric_signature.py:26`. `cm_loop`는 `[ng-cmfb-pm]`에서 계획 갱신 필요 |
 | 54 SLSQP, ε-제약, 시작점 출처 | 40 §3.6 | PART | `E/search/slsqp_outer.py:99-225`, `E/search/eps_sweep.py`, `E/search/start_intervals`는 MISS. `n_starts` MISS(`E/search/CONTRACT.md:591`) |
-| 55 `budget_reference_device` | -- | N/A | 태그 키(U-50) |
+| 55 `budget_reference_device` → 기둥 흡수, `budget_ref` 엣지 없음(태그 키는 읽지 않는다, U-50. 비공유 옛 선언 4건은 J8 엔진 유도. 사용자 결정 2026-10-12 "다로 해") | 40 §3.2·§3.7-8 | N/A | 구현 측정만(40 §3.7-8): 대상 = 노드 공유 옛 선언 5건(파일럿 M9a→M10, M9b→M8, M18a→M19, M18b→M17, M60→M66), 나머지 8회로 대상 0건 보고, 비공유 4건 J8 제외. 각 대상에서 (a) 노드 n writer 정확히 1개(티어·블록), (b) X·Y 같은 S1 기둥 id, (c) \|B_X − ((V_top − V_bot) − \|VDS(Y)\|)\| ≤ tol_V(N3.6). 엣지 없음은 as-built와 같다(`E/graph/CONTRACT.md:226`, 문구 정정은 아래 후속 항목) |
 | 56 L5c 픽스처 | -- | N/A | 옛 엔진 전용(P N2.1 '새 엔진에는 해당하지 않는다') |
 | 57 전압 이득 stage | 41 §1.6 | MISS | FR-1 |
 | 58 블록 속성, 출력 구동 | 41 §1.7, 40 §3.8 | MISS | `rg "c_slew_farad\|i_out_max"` 0 |
@@ -294,6 +294,10 @@ plan_version: 6.5
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
 | 설계 항목 | 151 | 0 | 23 | 16 | 111 | 1 |
 | **합계** | 248 | 27 | 30 | 51 | 133 | 7 |
+
+v1.7(2026-10-12, 사용자 결정 "다로 해"): DEC 행 55 = `budget_reference_device`의 역할을 S1 기둥이 흡수하고 `budget_ref` 엣지는 만들지 않는다(N/A 유지, 구현 단위 측정만). 직전 안("가로 해" 구조 유도, MISS)은 대체했다.
+
+**후속 항목**(코드 쪽, 이 문서 개정에서 고치지 않음): `E/graph/CONTRACT.md:226`의 "`same_as`·`budget_ref`(선언 전용)" 문구 중 `budget_ref`를 '만들지 않는다 -- 기둥이 흡수(DEC-55, 사용자 결정 2026-10-12 "다로 해")'로 고친다. 다음 graph 계약 개정 단위에서 처리한다.
 
 v1.6 최종검증(2026-10-12): 설계 항목 6행 추가(D-FV1~D-FV6, PART 1·MISS 5). 계획 N7 U-60~U-70은 모두 2026-10-12에 결정됐다(U-67 결정 뒤 D-FV7 추가, 설계 항목 MISS 1행). gap 재분석으로 U-71~U-74를 올렸고, U-72~U-74는 같은 날 결정됐다("K-2 권고대로, GQ1/GQ3/GQ4, ..."). U-71도 같은 날 결정됐다("U-71승인"). U-51도 결정됐다("U-51은 (나)로"). U-04도 결정됐다("U-04 권고대로"). 계획 N7에 남은 사용자 결정·확정 대기는 없다(D-G1~D-G3 추가).
 
