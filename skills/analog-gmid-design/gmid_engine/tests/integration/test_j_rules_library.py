@@ -1,7 +1,7 @@
 """U1b J 구조 규칙 -- library 9회로 발동표와 이름 전단사 불변(설계 41 1.12·1.13, 40 3.2-3·11 U1b 행, 체크리스트 D-J1~D-J6).
 
 발동표(oracle (a) 손 유도 -- 각 회로 topology JSON 에 41 1.12 규칙을 손으로 적용, 41 1.13 기대 행은 기준값이 아니라 대조 대상):
-| 회로 | 복합 diode(1.12.1) | feedforward(1.12.2) 탭->merge | 루프 역할(1.12.1-3·1.12.3) | 루프 뷰·극성(1.12.4) | 단계 A(spec 없음) |
+| 회로 | 복합 diode(1.12.1) | feedforward(1.12.2) 탭->merge | 루프 역할(1.12.1-3·1.12.3) | 루프 뷰·극성(1.12.4) | 단계 A(spec·사실 파일 없음) |
 |---|---|---|---|---|---|
 | common_gate_amplifier | 0 | 0 | 없음 | 없음 | ok |
 | two_stage_ota | 0 | 0 | 없음(Miller 사이클만) | 없음 | ok |
@@ -18,6 +18,8 @@ Vout)는 2단 블록을, M6B -> NX -> M7 가지는 1·2단 블록을 우회해 �
 compensation_internal(1.12.3 (a)(b)). 파일럿 CM 루프는 M37a·M7 이 순방향 밖이라 루프 뷰가 남고, DC 사이클 4개가 모두 -1
 (CS 셋의 곱), Cc–Rz 경유 2개는 ac_only. nmcnr {M104, M105} 는 tail·diode 기준·stage 시작 셀이 없는 name_order 동률이고 단일 종단
 미러 부하 때문에 한 자기동형 궤도가 아니라 edb5ee0 예외에 들지 않는다.
+[C-6] 파일럿은 library structure.json(ac_ground_exception Vbias2, 사용자 결정 2026-10-12)이 있어 기본 상태는 spec 유무와 무관하게
+ok/0(정지·review 0, 적용 사실 그 1건). 위 표의 단계 A 열은 사실 파일 없는 상태이므로 그 test 는 없는 경로를 structure_path 로 준다.
 41 1.13 과 다른 점(보고 대상): sf composite_diode_internal 은 9 가 아니라 3(묶음 내부 혼재 넷을 판정하지 않아 그 넷을 지나는 사이클이
 없다 -- tests/graph/test_loop_roles.py 주석), 파일럿 레플리카 루프는 신호 사이클이 없어 0.
 spec 있는 단계 A(ngcc·nmcnr spec 은 pm_ss_deg 선언): compensation_internal 정지가 풀려 ngcc = review_needed(dc_role 그룹),
@@ -81,6 +83,11 @@ def _role_key(loop_id):
     return loop_id if loop_id.startswith("loop:") else frozenset(json.loads(loop_id))
 
 
+def _absent_structure(tmp_path, name):
+    """[C-6] 사실 파일 없는 상태를 검사하는 test 용 -- 존재하지 않는 structure_path(library 기본 파일을 읽지 않게)."""
+    return tmp_path / "absent_structure" / (name + ".structure.json")
+
+
 def _s1(name):
     return build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name))
 
@@ -109,7 +116,8 @@ def test_firing_table_totals():
 @pytest.mark.parametrize("name", NINE)
 def test_firing_table_stage_a_without_spec(name, real_lut, tmp_path):
     status, stops, reviews = TABLE[name]["stage_a"]
-    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), None, real_lut, output_dir=tmp_path, supplies_v=H.lib_supplies(name))
+    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), None, real_lut, output_dir=tmp_path, supplies_v=H.lib_supplies(name),
+                    structure_path=_absent_structure(tmp_path, name))
     assert r.status == status
     assert r.exit_code == (0 if status == "ok" else 2)
     assert {x.split("|")[1] for x in r.report["stop_reasons"]} == stops
@@ -149,9 +157,11 @@ def test_pilot_stage_a_with_spec_has_no_unmatched_cut(real_lut, tmp_path):
     # test_view_scoped_ground_fact_clears_pilot_stop). spec 이 이 판정을 바꾸지 않으므로 spec 유무의 기록이 같다.
     name = "current_reuse_telescopic_ota"
     topo = H.LIBRARY / (name + ".topology.json")
+    # [C-6] 이 test 는 사실 파일 없는 상태(41 1.12.6 '사실 없이 남는')를 본다 -- library 기본 structure.json 을 읽지 않게 없는 경로를 준다
+    absent = _absent_structure(tmp_path, name)
     with_spec = run_stage_a(topo, H.LIBRARY / (name + ".sizing_spec.json"), real_lut, output_dir=tmp_path / "a",
-                            supplies_v=H.lib_supplies(name))
-    plain = run_stage_a(topo, None, real_lut, output_dir=tmp_path / "b", supplies_v=H.lib_supplies(name))
+                            supplies_v=H.lib_supplies(name), structure_path=absent)
+    plain = run_stage_a(topo, None, real_lut, output_dir=tmp_path / "b", supplies_v=H.lib_supplies(name), structure_path=absent)
     assert (with_spec.exit_code, with_spec.status) == (2, "stopped")
     stops = [x.split("|") for x in with_spec.report["stop_reasons"]]
     reviews = [x.split("|") for x in with_spec.report["review_needed"]]
@@ -161,6 +171,19 @@ def test_pilot_stage_a_with_spec_has_no_unmatched_cut(real_lut, tmp_path):
     assert {x[2] for x in stops + reviews} == {"loop:M37a:Voc"}
     assert sorted(with_spec.report["stop_reasons"]) == sorted(plain.report["stop_reasons"])
     assert sorted(with_spec.report["review_needed"]) == sorted(plain.report["review_needed"])
+
+
+@pytest.mark.parametrize("with_spec", [False, True], ids=["no_spec", "spec"])
+def test_pilot_stage_a_library_default_facts_ok(real_lut, tmp_path, with_spec):
+    # [C-6] library 기본 상태(structure.json 있음, structure_path 미지정): 루프 뷰 loop:M37a:Voc 한정 교류접지 사실이 위 test 의 정지·혼재를
+    # 전부 지운다(41 1.12.6) -> spec 유무와 무관하게 ok/0, 적용 사실 [(ac_ground_exception, Vbias2)], 정지·review 0.
+    name = "current_reuse_telescopic_ota"
+    sp = H.LIBRARY / (name + ".sizing_spec.json") if with_spec else None
+    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), sp, real_lut, output_dir=tmp_path, supplies_v=H.lib_supplies(name))
+    assert (r.exit_code, r.status) == (0, "ok"), r.report["stop_reasons"] + r.report["review_needed"]
+    assert [tuple(x) for x in r.report["applied_facts"]] == [("ac_ground_exception", "Vbias2")]
+    assert r.report["stop_reasons"] == []
+    assert r.report["review_needed"] == []
 
 
 @pytest.fixture(scope="module")
