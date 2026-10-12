@@ -40,7 +40,7 @@ TABLE = {
     "current_reuse_telescopic_ota": (41, 62, (("gnd", "vdd", 41),), 0),
     "folded_cascode": (7, 7, (("gnd", "vdd", 7),), 0),
     "ngcc_3stage_ff": (6, 9, (("gnd", "vdd", 6),), 0),
-    "nmcnr_amplifier": (9, 10, (("vdd", "vss", 9),), 0),
+    "nmcnr_amplifier": (11, 11, (("agnd", "vdd", 1), ("agnd", "vss", 1), ("vdd", "vss", 9)), 0),
     "pushpull_follower_buffer": (3, 3, (("agnd", "vdd", 0), ("agnd", "vss", 0), ("vdd", "vss", 3)), 0),
     "sf_pushpull_output_opamp": (8, 8, (("agnd", "vdd", 0), ("agnd", "vss", 0), ("vdd", "vss", 8)), 0),
     "two_stage_ota": (3, 3, (("gnd", "vdd", 3),), 0),
