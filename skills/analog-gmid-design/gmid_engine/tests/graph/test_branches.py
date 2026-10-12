@@ -21,7 +21,7 @@ TABLE = {
     "current_reuse_telescopic_ota": (7, 9, 27, 32, 1),
     "folded_cascode": (3, 3, 8, 8, 1),
     "ngcc_3stage_ff": (1, 3, 7, 12, 0),
-    "nmcnr_amplifier": (3, 4, 10, 12, 0),
+    "nmcnr_amplifier": (4, 4, 12, 12, 0),
     "pushpull_follower_buffer": (0, 0, 3, 3, 0),
     "sf_pushpull_output_opamp": (1, 1, 9, 9, 1),
     "two_stage_ota": (1, 1, 4, 4, 0),

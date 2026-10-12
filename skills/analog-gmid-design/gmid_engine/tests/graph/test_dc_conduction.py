@@ -20,7 +20,7 @@ TABLE = {
     "current_reuse_telescopic_ota": ((("Rz1", 1), ("Rz2", 1)), 51, (("M18a", "M18b"), ("M6", "M7"), ("M9a", "M9b"))),
     "folded_cascode": ((), 14, ()),
     "ngcc_3stage_ff": ((), 13, (("M13", "M14", "M7"), ("M6A", "M6B"))),
-    "nmcnr_amplifier": ((("Rm", 1),), 15, (("M301", "RL"),)),
+    "nmcnr_amplifier": ((("Rm", 1),), 16, ()),
     "pushpull_follower_buffer": ((), 6, ()),
     "sf_pushpull_output_opamp": ((), 26, ()),
     "two_stage_ota": ((("Rz", 1),), 7, ()),
@@ -98,7 +98,7 @@ def test_resistor_on_port_or_rail_is_kept_and_mos_leaf_not_pruned(gh, tmp_path):
 
 
 def test_parallel_merge_ignores_kind(gh, tmp_path):
-    # J13-a 기본안: MOS 와 저항이 같은 넷 쌍이면 한 segment (nmcnr M301∥RL 과 같은 꼴을 합성)
+    # J13-a 기본안: MOS 와 저항이 같은 넷 쌍이면 한 segment (Q8 정정 전 nmcnr M301∥RL(Vout–vss) 과 같은 꼴을 합성 -- 정정 뒤 RL 은 Vout–agnd 라 library 에는 이 꼴이 없다)
     raw, _ = _base(gh)
     m = raw["netlist"][0]
     raw["passive_elements"].append({"name": "Rpar", "kind": "resistor", "terminals": [m["source"], m["drain"]],
