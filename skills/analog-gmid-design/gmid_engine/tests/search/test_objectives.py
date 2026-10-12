@@ -1,7 +1,9 @@
-"""CONTRACT r4 3.6 `objective_values(snapshot) -> Objectives`: 값은 `graph.metrics_dc` MetricBundle 에서, b_P = Σ_레일 |V_k|·tol_I,k
-(tol_I,k = 채널 끝이 레일 k 인 MOS 의 dc_tol_v·(current·gm_id) 최댓값), 합 0·행 없음 -> None.
+"""CONTRACT r4 3.6 `objective_values(snapshot) -> Objectives`: 값은 `graph.metrics_dc` MetricBundle 에서, [U17 ①] gate_area_m2·b_P 는
+같은 블록이 쓴 graph 필드 `gate_area_m2`·`power_resolution_w`(설계 40 v1.6 §2.4.7·§2.4.8)에서 읽는다. b_P = Σ_레일 |V_k|·tol_I,k
+(tol_I,k = 채널 끝이 레일 k 인 MOS 의 dc_tol_v·dc_gm 최댓값, dc_gm = ID × 그 동작점 gm/ID), 합 0·행 없음 -> None.
 
 기대값: 스냅샷 입력 열(dc_current_basis·dc_current·dc_rail_v·dc_op·dc_tol_v)로 test 가 KCL·전력·면적·b_P 를 직접 계산한다.
+수동소자 값은 S2 필드 `device.passive_value`(§2.4.8) -- 손 값을 conftest `with_passive_value` 로 그 필드에 쓴 뒤 metrics_dc 를 부른다.
 """
 
 import pytest
@@ -10,7 +12,8 @@ from gmid_engine.metrics import metrics_dc
 from gmid_engine.search import Objectives, objective_values
 from gmid_engine.sizing import DC_KEY, METRICS_KEY, size_and_seal
 
-from .conftest import PENDING, build_case, expected_objectives, circuit_c, circuit_n, circuit_p, theta_n, theta_p, theta_r4c
+from .conftest import (PENDING, build_case, expected_objectives, circuit_c, circuit_n, circuit_p, theta_n, theta_p, theta_r4c,
+                       with_passive_value)
 
 
 def _check(o, e, passive_area=0.0):
@@ -31,7 +34,7 @@ def _check(o, e, passive_area=0.0):
 def test_circuit_c_two_rails(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     ev = size_and_seal(case.dc, theta_r4c(i2=2e-5, y=0.6))
-    snap = metrics_dc(ev.snapshot, (), ())
+    snap = metrics_dc(with_passive_value(ev.snapshot, ()), ())
     e = expected_objectives(snap)
     o = objective_values(snap)
     _check(o, e)
@@ -46,7 +49,7 @@ def test_resistor_circuit_bp_uses_only_mos_on_rails(tmp_path, lut_sealed):
                       rbounds=(1e3, 1e6))
     th = theta_p(case.dc)
     ev = size_and_seal(case.dc, th)
-    snap = metrics_dc(ev.snapshot, (("R1", th[("resistance", "R1")]),), ())
+    snap = metrics_dc(with_passive_value(ev.snapshot, (("R1", th[("resistance", "R1")]),)), ())
     o = objective_values(snap)
     _check(o, expected_objectives(snap))
     assert o.power_resolution_w is not None and o.power_resolution_w > 0
@@ -58,7 +61,7 @@ def test_zero_volt_rail_only_gives_none(tmp_path, lut_sealed):
                       rbounds=(1e3, 1e6))
     th = theta_n(case.dc)
     ev = size_and_seal(case.dc, th)
-    snap = metrics_dc(ev.snapshot, (("R1", th[("resistance", "R1")]),), ())
+    snap = metrics_dc(with_passive_value(ev.snapshot, (("R1", th[("resistance", "R1")]),)), ())
     o = objective_values(snap)
     assert o.power_resolution_w is None
     assert o.power_w == pytest.approx(expected_objectives(snap)["power"], rel=1e-12)
@@ -67,14 +70,14 @@ def test_zero_volt_rail_only_gives_none(tmp_path, lut_sealed):
 def test_passive_without_value_is_undetermined(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(with_cap=True), lut_sealed, elements=(("CL", "capacitor", PENDING),))
     ev = size_and_seal(case.dc, theta_r4c())
-    o = objective_values(metrics_dc(ev.snapshot, (), ()))
+    o = objective_values(metrics_dc(with_passive_value(ev.snapshot, ()), ()))
     assert o.passive_value_undetermined == ("CL",)
 
 
 def test_passive_with_value_but_no_unit_area_is_undeclared(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(with_cap=True), lut_sealed, elements=(("CL", "capacitor", 1e-12),))
     ev = size_and_seal(case.dc, theta_r4c())
-    snap = metrics_dc(ev.snapshot, (("CL", 1e-12),), ())
+    snap = metrics_dc(with_passive_value(ev.snapshot, (("CL", 1e-12),)), ())
     o = objective_values(snap)
     assert o.passive_area_undeclared == ("CL",)
     assert o.passive_value_undetermined == ()

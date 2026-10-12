@@ -938,3 +938,29 @@ def with_hand_ss(ev, gm_scale=None):
                        "hand", "hand", "hand") for m, o in ops.items()}
     snap = ev.snapshot.write(S2_WRITERS.writer_of("device", "ss_dev"), "hand_ss", {("device", "ss_dev"): col})
     return DcEvaluation(snap, ev.report, SealedSnapshot(snap, ev.report) if ev.sealed is not None else None)
+
+
+def mirror_w_nat(vgs1=0.6, y=0.5, i=1e-5, l=1e-6):
+    """circuit_mirror 종속 소자 M2 의 '그 전류에 맞는 W'(닫힌 식, CONTRACT 14.3): W = ID·L / IDu_forward(V(nb) = vgs1 -- θ 구성상
+    M1 diode 근, VDS = V(out) = y·1.8, VSB 0). theta_mirror 의 기본 θ 와 같은 인자."""
+    return i * l / math.exp(r4_ln_idu("nmos", vgs1, y * 1.8, 0.0))
+
+
+# [U17 ①, 설계 40 §3.7-3] 종속 소자 M2 에 W 를 요청하면 봉인 3 이 그 어긋남 δ = W_req/W_nat − 1 을 판정한다: 잔차 = δ·ID ≤ tol_I =
+# tol_V × max(dc_gm(M2), dc_gm(M3)), dc_gm = (B − C·VGS)·ID(r4 닫힌 식) -> δ_max = tol_V × max(B − C·0.6, B − C·0.7) = tol_V × 15.2.
+# r4 toy 의 tol_V 셀(dc_tol_v 입력, 모든 셀 같음)은 1/128 V 라 δ_max = 0.11875. 옛 상계(곡선 격자 최대 gm)에서는 δ 0.27(요청 3e-5)도
+# 통과했지만 자기 동작점 gm 에서는 거부된다(판정 변화 -- 설계 §2.4.12 Q7 기록 대상). 봉인되는 요청은 δ < δ_max 로 잡는다.
+MIRROR_W_DELTA = 0.05
+
+
+def mirror_w_request(delta=MIRROR_W_DELTA, **kw):
+    """봉인 3 허용오차 안의 종속 소자 M2 W 요청값 = (1 + delta)·W_nat. delta 는 δ_max(위 주석, test 가 dc_tol_v 입력으로 재확인) 아래."""
+    return (1.0 + delta) * mirror_w_nat(**kw)
+
+
+def mirror_delta_max(snapshot):
+    """δ_max = max_{m ∈ M2, M3} tol_V(m) × (B − C·VGS(m))(설계 40 §3.7-3 tol_I = tol_V × max dc_gm 을 ID 로 나눈 것 -- M2·M3 의 ID 는
+    out 노드 KCL 로 같다) -- 입력은 스냅샷의 dc_tol_v 셀과 동작점 VGS(피검 블록의 입력), gm/ID 는 r4 닫힌 식."""
+    tol = dict(snapshot.column("device", "dc_tol_v"))
+    ops = dict(snapshot.column("device", "dc_op"))
+    return max(tol[m] * (B - C * ops[m].vgs) for m in ("M2", "M3"))

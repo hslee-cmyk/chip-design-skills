@@ -1,85 +1,108 @@
-"""`metrics.passive_values(snapshot, ctx, theta)` -- 수동소자 값 정본 (metrics CONTRACT 7.6, DEC-92, 설계 40 §11 U14 '공개 passive_values').
+"""`metrics.passive_values` 계산 블록 -- GB5 수동소자 값 필드 `device.passive_value` (설계 40 v1.6 §2.4.7 '수동소자 값' 행·§2.4.8 소유표,
+DEC-92, metrics CONTRACT 7.6).
 
-oracle (a)·(d): 가짜 스냅샷·ctx·θ(피검이 읽는 속성만)에 손으로 둔 세 출처 -- spec 선언 값, θ 저항·커패시터·ss 저항, 영점 상쇄 구조 규칙 저항.
-영점 상쇄 저항 값은 회로 해석(Miller 영점을 지우는 직렬 저항 = 1/(그 단의 gm 합))에서 손으로: gm 1 mS + 3 mS -> 250 Ω.
-실경로(two_stage_ota Rz = 1/gm(M6))는 tests/convergence/test_converge.py 에서 본다(같은 값이 판정 축 면적 입력으로 간다).
+호출 `passive_values(snapshot, element_values, zero_cancel, theta)` -- reads `device.element_class`·`device.dc_gm`, writes
+`device.passive_value`(이름·서명은 구현 공개 API 에 맞춤 -- 값의 정의는 설계).
+oracle (a)·(d): 손 S2 스냅샷(S1 -> lift_s1, `device.dc_gm` 열은 권한표 writer dc_tolerances 로 손으로)에 세 출처를 손으로 둔다 -- spec
+선언 값, θ 저항·커패시터·ss 저항, 영점 상쇄 구조 규칙 저항(설계 §2.4.7 R = 1/Σ`dc_gm`). 영점 상쇄 저항 값은 회로 해석(Miller 영점을
+지우는 직렬 저항 = 1/(그 단의 gm 합))에서 손으로: dc_gm 1 mS + 3 mS -> 250 Ω.
+실경로(two_stage_ota Rz = 1/dc_gm(M6))는 tests/convergence/test_converge.py 에서 본다(같은 필드가 판정 축 면적 입력으로 간다).
 """
 from __future__ import annotations
-
-from types import SimpleNamespace
 
 import pytest
 
 import gmid_engine.metrics as metrics
+from gmid_engine.graph import ELEMENT_PASSIVE
 from gmid_engine.metrics import passive_values
+from gmid_engine.sizing import S2_WRITERS, ZeroCancel
+
+from .conftest import hand_write, s2_of, topo_doc, topo_only
+
+SUP = {"vdd": 1.8, "gnd": 0.0}
+GM = {"M1": 1e-3, "M2": 3e-3}                     # 손 dc_gm(writer dc_tolerances)
+PASSIVES = ("R1", "C1", "Rs", "CL", "Cx", "Rz", "Rq")
 
 
-class Snap:
-    def __init__(self, classes, gm):
-        self.classes, self.gm = classes, gm
+def _topo():
+    """M1 nmos (out, in, gnd) + M2 pmos (out, pb, vdd); 수동소자 7개(R1·Rq 분압 vdd-x-gnd, Rz out-x, C1·CL out-gnd, Cx out-in,
+    Rs in-gnd); 이상 전류원 I1 vdd -> in. 이름 집합만 의미가 있다(값은 이 test 가 준다)."""
+    return topo_doc("pv_hand",
+                    mos=[("M1", "nmos", "out", "in", "gnd", "gnd"), ("M2", "pmos", "out", "pb", "vdd", "vdd")],
+                    passives=[("R1", "resistor", "vdd", "x"), ("Rq", "resistor", "x", "gnd"), ("Rz", "resistor", "out", "x"),
+                              ("C1", "capacitor", "out", "gnd"), ("CL", "capacitor", "out", "gnd"), ("Cx", "capacitor", "out", "in"),
+                              ("Rs", "resistor", "in", "gnd")],
+                    sources=[("I1", "current_source", "vdd", "in")], rails=("vdd", "gnd"), bias=["pb"])
 
-    def column(self, table, field):
-        if (table, field) == ("device", "element_class"):
-            return tuple(sorted(self.classes.items()))
-        if (table, field) == ("device", "ss_dev"):
-            return tuple(sorted((m, SimpleNamespace(gm=g)) for m, g in self.gm.items()))
-        raise KeyError((table, field))
 
-
-def ctx(values, zero_cancel=()):
-    return SimpleNamespace(inputs=SimpleNamespace(element_values=tuple(values)),
-                           schema=SimpleNamespace(zero_cancel=tuple(zero_cancel)))
+@pytest.fixture(scope="module")
+def snap(tmp_path_factory):
+    s = s2_of(topo_only(tmp_path_factory.mktemp("pv"), _topo()), SUP)
+    assert {n for n, c in s.column("device", "element_class") if c == ELEMENT_PASSIVE} == set(PASSIVES)   # 전제
+    return hand_write(s, "device", "dc_gm", GM)
 
 
 def zc(resistor, cells, reason=None):
-    return SimpleNamespace(resistor=resistor, cells=tuple(cells), reason=reason)
+    return ZeroCancel(resistor, None, (), tuple(cells), reason)
 
 
-def theta(pairs):
-    return SimpleNamespace(values=tuple(pairs))
-
-
-CLASSES = {"M1": "mos", "M2": "mos", "R1": "passive", "C1": "passive", "Rs": "passive", "CL": "passive", "Cx": "passive",
-           "Rz": "passive", "Rq": "passive", "V1": "ideal_source"}
-GM = {"M1": 1e-3, "M2": 3e-3}
+def values_of(out):
+    return dict(out.column("device", "passive_value"))
 
 
 def test_public():
     assert "passive_values" in metrics.__all__
 
 
-def test_three_sources_merged_sorted():
-    c = ctx((("CL", 3e-12), ("Cx", None), ("V1", 0.9)), (zc("Rz", ("M1", "M2")), zc("Rq", ("M1",), reason="pending")))
-    th = theta(((("resistance", "R1"), 1e3), (("capacitance", "C1"), 2e-12), (("ss_resistance", "Rs"), 5e4),
-                (("ln_idu", "M1"), -14.0), (("current", "M2"), 1e-5)))
-    out = passive_values(Snap(CLASSES, GM), c, th)
-    assert [n for n, _v in out] == ["C1", "CL", "R1", "Rs", "Rz"]     # 이름순, 값 없는 Cx·reason 있는 Rq·비수동 V1 제외
-    got = dict(out)
+def test_block_declaration():
+    """§2.4.8: writer = 권한표 writer_of(device, passive_value); reads element_class·dc_gm(§2.4.7 R = 1/Σ dc_gm -- dc 단계 필드,
+    ss_dev 를 읽지 않으므로 봉인 전에도 정의된다)."""
+    assert passive_values.name == S2_WRITERS.writer_of("device", "passive_value")
+    assert set(passive_values.reads) == {("device", "element_class"), ("device", "dc_gm")}
+    assert tuple(passive_values.writes) == (("device", "passive_value"),)
+
+
+def test_three_sources_merged(snap):
+    ev = (("CL", 3e-12), ("Cx", None), ("I1", 0.9))
+    zcs = (zc("Rz", ("M1", "M2")), zc("Rq", ("M1",), reason="pending"))
+    th = ((("resistance", "R1"), 1e3), (("capacitance", "C1"), 2e-12), (("ss_resistance", "Rs"), 5e4),
+          (("ln_idu", "M1"), -14.0), (("current", "M2"), 1e-5))
+    got = values_of(passive_values(snap, ev, zcs, th))
+    assert sorted(got) == ["C1", "CL", "R1", "Rs", "Rz"]     # 값 없는 Cx·reason 있는 Rq·비수동 I1 제외
     assert (got["C1"], got["CL"], got["R1"], got["Rs"]) == (2e-12, 3e-12, 1e3, 5e4)
     assert got["Rz"] == pytest.approx(250.0, rel=1e-15)                  # 1 / (1 mS + 3 mS)
     assert all(isinstance(v, float) for v in got.values())
 
 
-def test_theta_name_not_a_passive_is_rejected():
+def test_theta_name_not_a_passive_is_rejected(snap):
     with pytest.raises(ValueError):
-        passive_values(Snap(CLASSES, GM), ctx(()), theta(((("resistance", "M1"), 1e3),)))
+        passive_values(snap, (), (), ((("resistance", "M1"), 1e3),))
 
 
-def test_same_passive_from_two_sources_is_rejected():
+def test_same_passive_from_two_sources_is_rejected(snap):
     with pytest.raises(ValueError):
-        passive_values(Snap(CLASSES, GM), ctx((("C1", 1e-12),)), theta(((("capacitance", "C1"), 2e-12),)))
+        passive_values(snap, (("C1", 1e-12),), (), ((("capacitance", "C1"), 2e-12),))
     with pytest.raises(ValueError):
-        passive_values(Snap(CLASSES, GM), ctx((), (zc("R1", ("M1",)),)), theta(((("resistance", "R1"), 1e3),)))
+        passive_values(snap, (), (zc("R1", ("M1",)),), ((("resistance", "R1"), 1e3),))
 
 
-def test_structural_resistor_must_be_passive():
+def test_structural_resistor_must_be_passive(snap):
     with pytest.raises(ValueError):
-        passive_values(Snap(CLASSES, GM), ctx((), (zc("V1", ("M1",)),)), theta(()))
+        passive_values(snap, (), (zc("I1", ("M1",)),), ())
 
 
-def test_no_sources_gives_empty():
-    assert passive_values(Snap({"M1": "mos"}, {"M1": 1e-3}), ctx(()), theta(())) == ()
+def test_no_sources_gives_empty(snap):
+    assert values_of(passive_values(snap, (), (), ())) == {}
 
+
+def test_field_follows_dc_gm_input_version(snap):
+    """DF-15·§2.4.1: dc_gm 열만 바뀌면 다시 계산(R 이 따라간다), 같은 입력이면 재사용(`is`)."""
+    zcs = (zc("Rz", ("M1", "M2")),)
+    s1 = passive_values(snap, (), zcs, ())
+    assert passive_values(s1, (), zcs, ()) is s1
+    s2 = passive_values(hand_write(s1, "device", "dc_gm", {"M1": 2e-3, "M2": 6e-3}, version="gm2"), (), zcs, ())
+    assert s2 is not s1
+    assert values_of(s2)["Rz"] == pytest.approx(125.0, rel=1e-15)
 
 # ===========================================================================
 # [U17 ①] 수동소자 값 = S2 필드 `device.passive_value` (설계 40 v1.6 §2.4.7 '수동소자 값' 행, §2.4.8 소유표, §3.7-3, 10.3a DF-15)

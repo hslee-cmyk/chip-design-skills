@@ -28,9 +28,9 @@ from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, SealViolationError
 from gmid_engine.sizing import size_and_seal
 from gmid_engine.sizing.kernel_run import normalize_w_request
 
-from .conftest import (B, C, HERE, I0, LAM, SKILL_DIR, W_M, build_ctx, build_ctx_u4, circuit_cs_res, circuit_mirror,
-                       detail, hand_dc_gm, node_voltages, r4_ln_idu, r4_npz, r4_vgs_of, rel_close, seal_item, theta_c,
-                       theta_mirror, theta_r4c, two, with_hand_ss)
+from .conftest import (B, C, HERE, MIRROR_W_DELTA, SKILL_DIR, build_ctx, build_ctx_u4, circuit_cs_res, circuit_mirror, detail,
+                       hand_dc_gm, mirror_delta_max, mirror_w_request, node_voltages, r4_ln_idu, r4_npz, r4_vgs_of, rel_close,
+                       seal_item, theta_mirror, theta_r4c, two, with_hand_ss)
 
 EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
           S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
@@ -257,21 +257,26 @@ def test_w_request_diode_writer(mir):
 
 
 def test_w_request_dependent_keeps_coordinate(mir):
-    """종속 소자 M2(parallel_vgs) 에 W = 3e-5: 좌표·노드전압은 요청 없을 때의 닫힌 식 그대로(V(out) = 0.9, V(nb) = M1 좌표의 diode
-    근 0.6 -- θ 구성), DeviceOp.W = 요청값, idu_forward = exp(ln IDu(V(nb), 0.9, 0))."""
-    ev = size_and_seal(mir, theta_mirror(), w_request={"M2": 3e-5})
+    """종속 소자 M2(parallel_vgs) 에 W = (1 + δ)·W_nat(conftest `mirror_w_request`, δ = 0.05): 좌표·노드전압은 요청 없을 때의 닫힌 식
+    그대로(V(out) = 0.9, V(nb) = M1 좌표의 diode 근 0.6 -- θ 구성), DeviceOp.W = 요청값, idu_forward = exp(ln IDu(V(nb), 0.9, 0)).
+    [U17 ①] 옛 요청 3e-5(δ ≈ 0.27)는 자기 동작점 gm 의 tol_I(설계 40 §3.7-3)에서 봉인 3 위반이라 봉인되는 δ 로 바꿨다 -- 전제로
+    δ < δ_max = tol_V × max gm/ID (dc_tol_v 입력 + r4 닫힌 식, conftest `mirror_delta_max`)를 함께 확인한다."""
+    w_req = mirror_w_request()
+    ev = size_and_seal(mir, theta_mirror(), w_request={"M2": w_req})
     V, o = node_voltages(ev.snapshot), ops(ev)
+    assert MIRROR_W_DELTA < mirror_delta_max(ev.snapshot)                  # 전제: 요청 어긋남이 봉인 3 허용오차 안
     log = {e.nodes: e for e in ev.snapshot.value("graph", S.DC_KEY, "dc_scc_log")}[("nb",)]
     assert abs(V["nb"] - 0.6) <= log.tol and abs(V["out"] - 0.9) <= 1e-12
-    assert o["M2"].W == 3e-5
+    assert o["M2"].W == w_req
     assert rel_close(o["M2"].idu_forward, math.exp(r4_ln_idu("nmos", V["nb"], 0.9, 0.0)), 1e-9)
 
 
 def test_w_request_forms_equivalent(mir):
-    """{MOS: W} 와 ((MOS, W), ...)(순서 무관) 은 같은 입력(CONTRACT 14.3)."""
-    a = size_and_seal(mir, theta_mirror(), w_request={"M3": 1e-5, "M2": 3e-5})
-    b = size_and_seal(mir, theta_mirror(), w_request=(("M2", 3e-5), ("M3", 1e-5)))
-    c = size_and_seal(mir, theta_mirror(), w_request=(("M3", 1e-5), ("M2", 3e-5)))
+    """{MOS: W} 와 ((MOS, W), ...)(순서 무관) 은 같은 입력(CONTRACT 14.3). 종속 소자 M2 의 요청은 봉인 3 허용오차 안(U17 ①)."""
+    w_req = mirror_w_request()
+    a = size_and_seal(mir, theta_mirror(), w_request={"M3": 1e-5, "M2": w_req})
+    b = size_and_seal(mir, theta_mirror(), w_request=(("M2", w_req), ("M3", 1e-5)))
+    c = size_and_seal(mir, theta_mirror(), w_request=(("M3", 1e-5), ("M2", w_req)))
     assert a.snapshot.fp == b.snapshot.fp == c.snapshot.fp
     assert normalize_w_request(mir, {"M3": 1e-5, "M1": 2e-5}) == (("M1", 2e-5), ("M3", 1e-5))
 
@@ -315,13 +320,15 @@ def test_ic10_w_request_change_not_served_from_parent(mir):
     """같은 θ, parent = 요청 없는 평가, 바뀐 것은 W_request 하나 -> dc_widths 다시 계산, W = 새 요청값(옛 값 미반환)."""
     th = theta_mirror()
     e0 = size_and_seal(mir, th)
+    w1, w2 = mirror_w_request(0.05), mirror_w_request(0.10)              # [U17 ①] 둘 다 δ < δ_max(봉인 3 허용오차 안, conftest 주석)
+    assert 0.10 < mirror_delta_max(e0.snapshot)
     reset()
-    e1 = size_and_seal(mir, th, parent=e0, w_request={"M2": 3e-5})
+    e1 = size_and_seal(mir, th, parent=e0, w_request={"M2": w1})
     assert computes()["dc_widths"] == 1
-    assert ops(e1)["M2"].W == 3e-5 != ops(e0)["M2"].W
+    assert ops(e1)["M2"].W == w1 != ops(e0)["M2"].W
     reset()
-    e2 = size_and_seal(mir, th, parent=e1, w_request={"M2": 4e-5})
-    assert computes()["dc_widths"] == 1 and ops(e2)["M2"].W == 4e-5
+    e2 = size_and_seal(mir, th, parent=e1, w_request={"M2": w2})
+    assert computes()["dc_widths"] == 1 and ops(e2)["M2"].W == w2
 
 
 # ===========================================================================

@@ -19,8 +19,18 @@ import ast
 
 import pytest
 
-REMOVED = ("dc_gm_bound", "previous_gm_id", "inherited_gm_id", "canonical_gm_id", "gm_grid_max",
-           "_power_resolution", "spec_passive_values")
+# 이름 -> 설계가 삭제를 적은 범위(엔진 상대 경로 접두사; None = 엔진 전체). `_power_resolution` 은 설계 §2.4.7·§11 U17 ① 이
+# 'search/objectives.py 의 _power_resolution' 으로 범위를 적었으므로 search/ 안에서만 폐기 이름이다(b_P 의 정본은 metrics_dc 로
+# 옮겨졌고, 그 파일 안의 `_` helper 이름은 설계가 정하지 않는다 -- 파일 분할 규칙 (B)).
+REMOVED_SCOPES = (("dc_gm_bound", None), ("previous_gm_id", None), ("inherited_gm_id", None), ("canonical_gm_id", None),
+                  ("gm_grid_max", None), ("_power_resolution", "search/"), ("spec_passive_values", None))
+REMOVED = tuple(n for n, _s in REMOVED_SCOPES)
+
+
+def removed_names_for(rel_path):
+    """엔진 상대 경로(`/` 구분)에 적용되는 폐기 이름 집합."""
+    rel_path = rel_path.replace("\\", "/")
+    return frozenset(n for n, scope in REMOVED_SCOPES if scope is None or rel_path.startswith(scope))
 
 
 def removed_name_hits(tree, names=REMOVED):
@@ -55,8 +65,9 @@ def test_removed_names_absent_from_engine(checks, engine_root, report):
     files = checks.engine_files(engine_root)
     hits = []
     for p in files:
-        for line, name, form in removed_name_hits(checks.parse(p)):
-            hits.append("%s:%d %s (%s)" % (checks.rel(engine_root, p), line, name, form))
+        rel = checks.rel(engine_root, p)
+        for line, name, form in removed_name_hits(checks.parse(p), removed_names_for(rel)):
+            hits.append("%s:%d %s (%s)" % (rel, line, name, form))
     report(len(files), len(hits))
     assert len(files) > 0
     assert not hits, "폐기 이름이 엔진 코드에 남아 있다 %d건:\n%s" % (len(hits), "\n".join(hits))
@@ -75,6 +86,15 @@ def test_removed_names_absent_from_engine(checks, engine_root, report):
 def test_scanner_rejects_each_form(src, form):
     hits = removed_name_hits(ast.parse(src))
     assert hits and all(h[2] == form for h in hits), hits
+
+
+def test_scope_of_power_resolution_is_search_only():
+    """§2.4.7·§11 U17 ①: `_power_resolution` 삭제 범위는 search/objectives.py -- search/ 밖(metrics 의 b_P 정본 파일)에는 적용하지
+    않고, 범위 없는 이름(dc_gm_bound 등)은 모든 파일에 적용한다."""
+    assert "_power_resolution" in removed_names_for("search/objectives.py")
+    assert "_power_resolution" in removed_names_for("search\\kernel.py")
+    assert "_power_resolution" not in removed_names_for("metrics/dc_metrics.py")
+    assert removed_names_for("metrics/dc_metrics.py") == frozenset(REMOVED) - {"_power_resolution"}
 
 
 def test_scanner_ignores_docstring_and_comment_mentions():

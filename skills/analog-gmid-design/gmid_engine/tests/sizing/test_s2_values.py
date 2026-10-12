@@ -80,10 +80,10 @@ SS_TABLE = {
     # (§2.4.7 Objectives 행: metrics_dc 가 쓰고 search 는 다시 계산하지 않는다).
     ("graph", "gate_area_m2"): "metrics_dc",
     ("graph", "power_resolution_w"): "metrics_dc",
+    # [U17 ①] 설계 40 §2.4.8 소유표 행 '수동소자 값 | device: passive_value | GB5 수동소자 블록(passive_values 를 블록으로)' -- 블록
+    # 이름 = writer 이름 규약(위 metrics_* 행과 같음)이라 writer 는 `passive_values`(구현 공개 이름 PASSIVE_VALUES_WRITER 와 같다).
+    ("device", "passive_value"): "passive_values",
 }
-# [U17 ①] 설계 40 §2.4.8 소유표 행 '수동소자 값 | device: passive_value | GB5 수동소자 블록(passive_values 를 블록으로)'. 설계가 writer
-# 이름을 적지 않았으므로(이름 미정) 이름은 단언하지 않고 '권한표에 writer 하나가 있다'만 단언한다(아래 test).
-NAME_OPEN_FIELDS = (("device", "passive_value"),)
 
 
 def test_s2_writers_is_s1_plus_dc_table_exactly():
@@ -92,11 +92,8 @@ def test_s2_writers_is_s1_plus_dc_table_exactly():
     expected = dict(s1)
     expected.update(DC_TABLE)
     expected.update(SS_TABLE)
-    for key in NAME_OPEN_FIELDS:                       # writer 이름 미정 필드: 있어야 하고 writer 는 하나(이름은 비교 밖)
-        assert s2.get(key) is not None, key
-        expected[key] = s2[key]
     assert s2 == expected
-    assert len(S.S2_WRITERS.entries) == len(S1_WRITERS.entries) + len(DC_TABLE) + len(SS_TABLE) + len(NAME_OPEN_FIELDS)
+    assert len(S.S2_WRITERS.entries) == len(S1_WRITERS.entries) + len(DC_TABLE) + len(SS_TABLE)
     for k, w in s1.items():
         assert S.S2_WRITERS.writer_of(*k) == w
 
