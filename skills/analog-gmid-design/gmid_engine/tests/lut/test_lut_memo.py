@@ -4,7 +4,7 @@
 import pytest
 
 from gmid_engine.core import LruStats, SealViolationError
-from gmid_engine.lut import (DERIVED_TABLES, REGIONS, LutMemo, caps, curve_report, gm_id_curve, gm_id_for_target, gmb,
+from gmid_engine.lut import (DERIVED_TABLES, REGIONS, LutMemo, caps, curve_report, derived, gm_id_curve, gm_id_for_target, gmb,
                              midpoint_l_bin_checks, op_point, tol_v_table, tol_vdsat_table, vdsat, vgs_for_gm_id)
 
 from .conftest import new_memo, standard_toy_slices
@@ -22,8 +22,10 @@ def test_constants():
     # [r6] 2절: derived 표 4개(r5 는 curve_report·tol_v_table 2개)
     # [r7] 2절: + noise_planes·tol_mismatch_table·tol_noise_table = 7개 -- 설계 41 §7.2 'tol_noise ... 디스크 캐시 대상',
     #      §6.4-2b 'tol_mismatch ... 디스크 캐시 대상'(파생 표라 derived 영역)
-    assert DERIVED_TABLES == ("curve_report", "midpoint_l_bin_checks", "noise_planes", "tol_mismatch_table", "tol_noise_table",
-                              "tol_v_table", "tol_vdsat_table")
+    # [U17 ①-b 기준 변경, 설계 40 v1.9.1 §2.4.6 'memo로 옮기는 것' edge_costs(lut, kind, w_key) 행 + §2.4.8 (a) 행 D10, lut CONTRACT 머리
+    #  'DERIVED_TABLES 에 edge_costs 추가'] edge_costs 는 슬라이스(kind, w_key)마다 하나인 LUT 파생 표 -> derived 영역 8개(이름순)
+    assert DERIVED_TABLES == ("curve_report", "edge_costs", "midpoint_l_bin_checks", "noise_planes", "tol_mismatch_table",
+                              "tol_noise_table", "tol_v_table", "tol_vdsat_table")
 
 
 def test_capacities(toy):
@@ -31,7 +33,8 @@ def test_capacities(toy):
     st = _stats(m)
     assert (st["point"].capacity, st["curve"].capacity, st["root"].capacity) == (3, 5, 7)
     # [r6] derived 상한 = 슬라이스 수 × 4 (toy 슬라이스 2장 -> 8; r5 는 × 2 = 4) -- [r7] × 7 -> 14
-    assert st["derived"].capacity == len(toy.slice_map) * len(DERIVED_TABLES) == 2 * 7
+    # [U17 ①-b, 40 v1.9.1 D10] 상한 식(슬라이스 수 × 표 종류)은 그대로, 표 종류 8(edge_costs) -> 2 × 8
+    assert st["derived"].capacity == len(toy.slice_map) * len(DERIVED_TABLES) == 2 * 8
 
 
 @pytest.mark.parametrize("bad", [0, -1, 1.5, True, None, "3"])
@@ -47,7 +50,7 @@ def test_from_sweep_capacity(toy):
     m2 = LutMemo.from_sweep(toy, 0, (("point", 1), ("curve", 4), ("root", 2)))
     st2 = _stats(m2)
     assert (st2["point"].capacity, st2["curve"].capacity, st2["root"].capacity) == (1, 4, 2)
-    assert st2["derived"].capacity == 2 * 7                  # [r7] 슬라이스 2 × DERIVED_TABLES 7 (from_sweep 도 같은 식)
+    assert st2["derived"].capacity == 2 * 8                  # [r7] 슬라이스 2 × DERIVED_TABLES (from_sweep 도 같은 식); [U17 ①-b D10] 표 8
 
 
 def test_lookup_computes_once_principle(toy_memo):
@@ -148,8 +151,10 @@ def test_r6_derived_capacity_holds_all_tables(mid_toy_build):
         midpoint_l_bin_checks(m, "nmos", wk)
         tol_v_table(m, "nmos", wk)
         tol_vdsat_table(m, "nmos", wk)
+        derived(m, "edge_costs", "nmos", wk)     # [U17 ①-b D10] edge_costs 도 derived 영역 슬라이스당 1개
     st = _stats(m)["derived"]
-    assert st.capacity == 14 and st.evictions == 0 and st.size == 7     # curve_report 는 LUT 전체 1개; [r7] 상한 2 × 7
+    # curve_report 는 LUT 전체 1개 + 폭 2 × 표 4(midpoint·tol_v·tol_vdsat·edge_costs) = 9; [U17 ①-b D10] 상한 2 × 8 = 16 -- 퇴출 0
+    assert st.capacity == 16 and st.evictions == 0 and st.size == 9
 
 
 def test_distinct_fp_luts_do_not_share(toy_build):

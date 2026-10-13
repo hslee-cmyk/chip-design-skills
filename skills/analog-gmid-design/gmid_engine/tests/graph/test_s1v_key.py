@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 
 import gmid_engine.graph as graph_pkg
+from gmid_engine.core import fp_of
 from gmid_engine.graph import S1V_RULE_FILES, StructureFact, StructureFacts, s1v_rule_fp
 
 import s1v_hand as H
@@ -57,15 +58,29 @@ def test_key_same_for_same_inputs(tmp_path):
 
 
 def test_key_changes_with_each_input(tmp_path):
+    # [U17 ①-b 기준 변경, 설계 40 v1.9.1 §2.4.2 '블록이 선언한 입력만 읽으므로 입력 버전이 같으면 다시 계산하지 않는다' + D1,
+    #  graph CONTRACT 10.1 'extras = (spec 판정 제약, N_S, declared, 사실, stale 기록, 선언 루프 끊는 넷)'] 재사용 키 = S1v 블록 입력 버전.
+    # oracle (a)·(d): 블록이 읽는 입력(계수 예산·declared·ratified 사실·선언 끊는 넷)을 하나만 바꿔도 기준과 키가 달라야 한다(5개 서로 다름).
+    # 옛 6번째 입력(supplies 전압값만 바꿈)은 아래 test 로 옮겼다 -- S1v 가 읽는 값을 바꾸지 않으므로 같은 키가 design 의 기대다.
     _, base = H.build(tmp_path, H.MILLER)
     _, budget = H.build(tmp_path, H.MILLER, count_budget=H.BIG_BUDGET + 1)
     _, declared = H.build(tmp_path, H.MILLER, declared=(("comp", (("M1", "M2"), ("M6",))),))
     fact = StructureFact("drive_kind", "out", "voltage", "T-1", ("out",))
     _, ratified = H.build(tmp_path, H.MILLER, structure=StructureFacts(facts=(fact,), findings=()))
     _, cuts = H.build(tmp_path, H.MILLER, declared_loop_cuts=("o1",))
-    supplies = H.build(tmp_path, H.MILLER, supplies={"vdd": 3.3, "gnd": 0.0})[1]
-    keys = [x.key for x in (base, budget, declared, ratified, cuts, supplies)]
-    assert len(set(keys)) == len(keys)
+    keys = [x.key for x in (base, budget, declared, ratified, cuts)]
+    assert len(set(keys)) == len(keys) == 5
+
+
+def test_supply_value_only_change_keeps_key_and_s1v_fields(tmp_path):
+    # [U17 ①-b, 설계 40 v1.9.1 §2.4.2(재사용 = 블록 입력 버전 일치) + D1(graph/s1v 5필드, 옛 `S1v.key` 칸 폐기)]
+    # oracle (a) 구성: 레일 넷 집합(vdd·gnd)은 그대로이고 전압값만 1.8 -> 3.3 V. S1v(뷰·교류접지·셀·L 동치류·기록)는 어느 넷이 레일인지로만
+    # 정해지는 구조라(graph CONTRACT 10.2 '교류접지: 레일 ∪ ...') 다섯 필드 값이 같고, 그래서 블록 입력 버전(키)도 같아 재계산이 없다.
+    _, base = H.build(tmp_path, H.MILLER, stem="v18")
+    _, hv = H.build(tmp_path, H.MILLER, supplies={"vdd": 3.3, "gnd": 0.0}, stem="v33")
+    for name in ("views", "l_classes", "findings", "declared", "applied_facts"):
+        assert fp_of(getattr(base, name)) == fp_of(getattr(hv, name)), name
+    assert hv.key == base.key
 
 
 # ---------------------------------------------------------------- [U1b] 40 3.2-3 rule_hash = structure_rule_fp()

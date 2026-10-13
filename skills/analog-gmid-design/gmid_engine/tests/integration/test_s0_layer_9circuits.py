@@ -16,6 +16,9 @@
 5. 결과 불변(이 이동은 값 정의를 바꾸지 않는다): 단계 A·B 보고서의 기준선 키마다 정준 JSON sha256 이 base master a5d8ccb 코드로 이 test 작성
    주체가 직접 잰 값(`fixtures/u17_1b_s0_baseline.json`)과 같고, S0 필드 값 지문(`fp_of`)이 base 의 같은 값(StartIntervals·KernelContext·
    SearchContext 칸)의 지문과 같다. 기준선 측정 스크립트는 `wt/_scratch_u17_1b_tests/baseline.py`(엔진 밖) -- 피검 코드로 기대값을 만들지 않았다.
+   [U17 ①-b 판정 후 2026-10-14] 단계 A 보고서 `tables` 기준선은 옛 기준선 표에서 design 이 바꾼 만큼만 변환했다: 설계 40 v1.9.1 D1(§2.4.8
+   graph/s1v 5필드 -- 최상위 `key` 칸 폐기) + 추가 결정 (c)(`facts_applied` -> `applied_facts` 이름 하나). 변환 스크립트
+   `wt/_scratch_u17_1b_fix_tests/transform_tables_baseline.py`(head 출력 복사 아님). `junction_source` 는 경로 아닌 내용(params·온도·PDK 선언 sha)으로 대조한다(아래 6).
 
 S0 스냅샷 저장 시점 = build_search_context 끝 1회(D6)라 실행 사슬은 단계 A -> 단계 B -> 커널 컨텍스트 -> 탐색 컨텍스트다. 단계 A 가 ok 가
 아닌 회로(기준선 ngcc_3stage_ff = review_needed)는 탐색 컨텍스트를 만들지 않으므로 5 의 보고서 대조만 한다.
@@ -366,7 +369,7 @@ def test_s0_field_values_unchanged_from_base(env, circuit):
             diff.append("graph/start: " + field)
     for key, (record, field) in {"schema_fp": ("kernel", "theta_schema"), "fixed_values_fp": ("kernel", "fixed_values"),
                                  "resistor_values_fp": ("kernel", "resistor_values"), "l_ties_fp": ("kernel", "l_ties"),
-                                 "search_domain_fp": ("kernel", "search_domain"), "junction_source_fp": ("kernel", "junction_source"),
+                                 "search_domain_fp": ("kernel", "search_domain"),
                                  "mismatch_source_fp": ("kernel", "mismatch_source"), "passive_area_decl_fp": ("kernel", "passive_area_decl"),
                                  "model_error_fp": ("kernel", "model_error"), "metric_structure_fp": ("s1v", "metric_structure"),
                                  "noise_input_cells_fp": ("s1v", "noise_input_cells")}.items():
@@ -376,3 +379,45 @@ def test_s0_field_values_unchanged_from_base(env, circuit):
         if got is None or got.value_fp != want["kernel"][key]:
             diff.append("graph/%s: %s" % (record, field))
     assert not diff, "base 와 다른 S0 필드 값: %r" % diff
+
+
+# [U17 ①-b 판정 후] graph/kernel: junction_source 는 전체 지문이 아니라 내용으로 대조한다. 판정(audit 8절): 옛 값의 LUT 규칙 PdkDecl 이
+# checkout 절대 경로를 담아 지문이 경로마다 달랐다 -- S0 키(§2.4.3 키 (i) 'PDK 선언 파일 내용 해시')와 같이 값도 내용만이어야 다른 checkout 에서
+# 같은 S0 값이 된다(§2.4.2 '입력 버전이 같으면 다시 계산하지 않는다').
+# oracle: params(core fp_of)·temp_c = base 9255a22 코드로 잰 기준선(c) `kernel.junction_content`(wt/_scratch_u17_1b_fix_tests/junction_content_base.py),
+# pdk_decl_sha256 = 이 test 가 PDK 선언 파일 바이트를 직접 해시한 값(a, metrics CONTRACT 'pdk_decl_sha256 = PDK 선언 파일 sha256').
+
+def _strings(node):
+    if isinstance(node, str):
+        yield node
+    elif isinstance(node, dict):
+        for v in node.values():
+            yield from _strings(v)
+    elif isinstance(node, list):
+        for v in node:
+            yield from _strings(v)
+
+
+@pytest.mark.parametrize("circuit", SEARCHED)
+def test_junction_source_content_unchanged_from_base(env, circuit):
+    run = _run(env, circuit)
+    got = run.first.sctx.dc.base.field("graph", "kernel", "junction_source")
+    assert got is not None
+    want = BASELINE[circuit]["kernel"]["junction_content"]
+    js = got.value
+    assert fp_of(js.params) == want["params_fp"]
+    assert float(js.temp_c).hex() == want["temp_c_hex"]
+    pdk_sha = hashlib.sha256((SKILL / "assets" / "sky130_pdk_decl.json").read_bytes()).hexdigest()
+    assert js.pdk_decl_sha256 == pdk_sha == want["pdk_decl_sha256"]
+
+
+@pytest.mark.parametrize("circuit", SEARCHED)
+def test_junction_source_value_has_no_checkout_path(env, circuit):
+    # 디스크 S0 파일(§2.4.3 형식)의 junction_source 칸 문자열 어디에도 이 checkout 의 저장소 경로가 없다(audit 8절 결함 -- 코드 수정 뒤 green).
+    run = _run(env, circuit)
+    cells = [r["fields"]["junction_source"] for r in _doc(run)["records"]
+             if (r["kind"], r["key"]) == ("graph", "kernel") and "junction_source" in r["fields"]]
+    assert len(cells) == 1
+    root = str(SKILL.parents[1]).replace("\\", "/").lower()
+    hits = [s for s in _strings(cells[0]["value"]) if root in s.replace("\\", "/").lower()]
+    assert not hits, "junction_source 값에 checkout 경로: %r" % hits[:5]
