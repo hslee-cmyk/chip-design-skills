@@ -1,0 +1,322 @@
+{
+  "_comment": "회로 사이징 spec(사람 선언, 정본) -- 형식 gmid_engine/authoring/SPEC_CONTRACT.md, 값 출처 = 각 source. 미정 칸은 {\"pending\": <결정 ID>}. held-out 회로 B(library 밖, 엔진 개발·test 픽스처에 쓰지 않는다 -- 계획 DEC-98·U-75·U-76). 원문 수치·쪽 = erfc_ota.spec_source.md",
+  "meta": {
+    "schema_version": "5",
+    "circuit": "erfc_ota",
+    "topology_fp": "cc69e381f3b91a18c8dec57dc3c00276d38862284b790e7985b9c07084071c65",
+    "origin": "canonical"
+  },
+  "human": {
+    "supplies_v": {
+      "values": {
+        "vdd": 1.8,
+        "gnd": 0.0,
+        "vcp": 1.1,
+        "vcn": 0.7
+      },
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-13 held-out B \"B-1~B-8 모두 네 판단대로\" B-2 -- VCP 1.1 V·VCN 0.7 V 는 supply_nets 레일(엔진은 이상 전압원 kind 를 지원하지 않는다); VDD 1.8 V",
+        "decided": "2026-10-13",
+        "origin": "paper",
+        "citation": "Wu 외, Sensors 25(8):2523, 2025 p.8 Fig.6 우상단 표(VDD 1.8 V, VCP 1.1 V, VCN 0.7 V), p.12"
+      }
+    },
+    "input_dc": {
+      "value_v": 0.8,
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" -- held-out B spec 제약 선택 기준: 소신호(DC gain, GBW, PM)와 정지 전류는 제약, CL·VDD·입력 CM은 동작 조건, SR·정착·입력 잡음·offset·PVT·MC는 보고만 (입력 CM 은 동작 조건)",
+        "decided": "2026-10-13",
+        "origin": "paper",
+        "citation": "Wu 외, Sensors 25(8):2523, 2025 p.13 open-loop 응답 조건 'common-mode input voltage of 800 mV'"
+      }
+    },
+    "element_values": {
+      "CL": {
+        "measurement_load": true,
+        "value_farad": 7e-11,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 held-out B \"B-1~B-8 모두 네 판단대로\" B-4 -- CL 70 pF out-gnd, 측정 부하",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.12 본문 'load capacitance CL is 70 pF', p.15 Table 2 CL 70 pF"
+        }
+      },
+      "R1": {
+        "value_ohm": 52000.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "held-out B connectivity 사용자 확인(user_decisions.md 2026-10-13 \"B-1~B-8 모두 네 판단대로\", \"9,10,13,14는 네 판단대로\", \"12는 가로, B-5도 네 판단대로\") -- 값은 원문 그대로",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.9 Table 1 R1,2 = 52 kΩ"
+        }
+      },
+      "R2": {
+        "value_ohm": 52000.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "held-out B connectivity 사용자 확인(user_decisions.md 2026-10-13 \"B-1~B-8 모두 네 판단대로\", \"9,10,13,14는 네 판단대로\", \"12는 가로, B-5도 네 판단대로\") -- 값은 원문 그대로",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.9 Table 1 R1,2 = 52 kΩ"
+        }
+      },
+      "CBAT1_L": {
+        "engine": true,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 held-out B \"12는 가로, B-5도 네 판단대로\" -- CBAT1_L·CBAT1_R·CBAT2 값은 원문 없음 -> 엔진 계산(보상·결합 소자 값은 엔진 계산 원칙, 2026-10-07 TQ Q3 와 같은 원칙)",
+          "decided": "2026-10-13"
+        }
+      },
+      "CBAT1_R": {
+        "engine": true,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 held-out B \"12는 가로, B-5도 네 판단대로\" -- CBAT1_L·CBAT1_R·CBAT2 값은 원문 없음 -> 엔진 계산(보상·결합 소자 값은 엔진 계산 원칙, 2026-10-07 TQ Q3 와 같은 원칙)",
+          "decided": "2026-10-13"
+        }
+      },
+      "CBAT2": {
+        "engine": true,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 held-out B \"12는 가로, B-5도 네 판단대로\" -- CBAT1_L·CBAT1_R·CBAT2 값은 원문 없음 -> 엔진 계산(보상·결합 소자 값은 엔진 계산 원칙, 2026-10-07 TQ Q3 와 같은 원칙)",
+          "decided": "2026-10-13"
+        }
+      },
+      "IC_L": {
+        "value_dc_amp": 2e-07,
+        "source": {
+          "kind": "user_spec",
+          "record": "held-out B connectivity 사용자 확인(user_decisions.md 2026-10-13 \"B-1~B-8 모두 네 판단대로\", \"9,10,13,14는 네 판단대로\", \"12는 가로, B-5도 네 판단대로\") -- 값은 원문 그대로; 이상 전류원 IC",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.8 Fig.6 우상단 표 IC = 0.2 µA"
+        }
+      },
+      "IC_R": {
+        "value_dc_amp": 2e-07,
+        "source": {
+          "kind": "user_spec",
+          "record": "held-out B connectivity 사용자 확인(user_decisions.md 2026-10-13 \"B-1~B-8 모두 네 판단대로\", \"9,10,13,14는 네 판단대로\", \"12는 가로, B-5도 네 판단대로\") -- 값은 원문 그대로; 이상 전류원 IC",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.8 Fig.6 우상단 표 IC = 0.2 µA"
+        }
+      },
+      "I05B_L": {
+        "value_dc_amp": 1e-06,
+        "source": {
+          "kind": "user_spec",
+          "record": "held-out B connectivity 사용자 확인(user_decisions.md 2026-10-13 \"B-1~B-8 모두 네 판단대로\", \"9,10,13,14는 네 판단대로\", \"12는 가로, B-5도 네 판단대로\") -- 값은 원문 그대로; 이상 전류원 0.5IB",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.8 Fig.6 우상단 표 IB = 2 µA -> 0.5IB = 1 µA, p.12 'bias current IB is 2 µA'"
+        }
+      },
+      "I05B_R": {
+        "value_dc_amp": 1e-06,
+        "source": {
+          "kind": "user_spec",
+          "record": "held-out B connectivity 사용자 확인(user_decisions.md 2026-10-13 \"B-1~B-8 모두 네 판단대로\", \"9,10,13,14는 네 판단대로\", \"12는 가로, B-5도 네 판단대로\") -- 값은 원문 그대로; 이상 전류원 0.5IB",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.8 Fig.6 우상단 표 IB = 2 µA -> 0.5IB = 1 µA, p.12 'bias current IB is 2 µA'"
+        }
+      }
+    },
+    "feedback": {
+      "elements": [],
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-07 \"9, 10, 11번은 기본안대로 해\" 9번 PM 정의 -- 선언된 되먹임 수동소자가 없으면 beta=1 루프. 이 회로에는 되먹임 수동소자 선언이 없다(오케스트레이터 적용)",
+        "decided": "2026-10-07"
+      }
+    },
+    "constraints": [
+      {
+        "metric": "gain_ss_db",
+        "op": ">=",
+        "value": 84.18,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" -- held-out B spec 제약 선택 기준: 소신호(DC gain, GBW, PM)와 정지 전류는 제약, CL·VDD·입력 CM은 동작 조건, SR·정착·입력 잡음·offset·PVT·MC는 보고만",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.15 Table 2 'Proposed ERFC OTA' 열 DC gain 84.18 dB"
+        }
+      },
+      {
+        "metric": "gbw_ss_hz",
+        "op": ">=",
+        "value": 1370000.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" -- held-out B spec 제약 선택 기준: 소신호(DC gain, GBW, PM)와 정지 전류는 제약, CL·VDD·입력 CM은 동작 조건, SR·정착·입력 잡음·offset·PVT·MC는 보고만",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.15 Table 2 'Proposed ERFC OTA' 열 GBW 1.37 MHz"
+        }
+      },
+      {
+        "metric": "pm_ss_deg",
+        "op": ">=",
+        "value": 67.05,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" -- held-out B spec 제약 선택 기준: 소신호(DC gain, GBW, PM)와 정지 전류는 제약, CL·VDD·입력 CM은 동작 조건, SR·정착·입력 잡음·offset·PVT·MC는 보고만; ⚠️12 (가) 'TT 기준값은 Table 2·Table 4 의 PM 67.05도'(user_decisions.md 2026-10-13 \"12는 가로\")",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.15 Table 2 'Proposed ERFC OTA' 열 PM 67.05° (Table 3 TT 열 66.86° 는 참고)"
+        }
+      },
+      {
+        "metric": "supply_current_dc",
+        "op": "<=",
+        "value": 1.04e-05,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" -- held-out B spec 제약 선택 기준: 소신호(DC gain, GBW, PM)와 정지 전류는 제약, CL·VDD·입력 CM은 동작 조건, SR·정착·입력 잡음·offset·PVT·MC는 보고만 (정지 전류 = 공급 전류)",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.15 Table 2 'Proposed ERFC OTA' 열 supply current 10.4 µA, p.12"
+        }
+      }
+    ],
+    "driving_spec": {
+      "slew_rate_v_per_s": 19320000.0,
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-13 \"slew는 권고대로 B에 넣어\" -- driving_spec.slew_rate_v_per_s = 19.32e6",
+        "decided": "2026-10-13",
+        "origin": "paper",
+        "citation": "Wu 외, Sensors 25(8):2523, 2025 p.15 Table 2 'Proposed ERFC OTA' 열 평균 slew rate 19.32 V/µs (600 mV p-p 계단, 단위이득 반전 구성 p.14; Table 3 TT 열 19.175 는 참고)"
+      }
+    },
+    "node_voltage_targets_v": {
+      "pending": "CI-15"
+    },
+    "intended_region": {
+      "pending": "CI-18"
+    },
+    "objective": {
+      "budgets": {
+        "pending": "PA-1"
+      },
+      "_budgets_comment": "기본안 = 예산 미선언(front 제시 후 정지, DEC-77). 논문 전력·면적 값은 채택 기록이 없어 넣지 않는다."
+    },
+    "search": {
+      "wall_clock_budget_s": {
+        "value": 300,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-34",
+          "record": "U-26(c) 기본안: 파일럿 선언값 300 s 를 전 회로 공통(회로별 변경은 PA-2)"
+        }
+      },
+      "front_budget_s": {
+        "pending": "PA-2"
+      },
+      "search_method": {
+        "value": "default",
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-73"
+        }
+      },
+      "optional_stages": {
+        "value": {},
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-75",
+          "record": "기본 비활성"
+        }
+      },
+      "dof_rank_sample_count": {
+        "value": 10,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "N3.7",
+          "record": "기본 10"
+        }
+      }
+    },
+    "spice_check": {
+      "acceptance_rule": {
+        "rule": "free_spec_and_all_saturated",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "saturation_rule": {
+        "rule": "vds_ge_vdsat",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화(VDS - VDsat >= 0, 여유 0)",
+          "decided": "2026-10-07"
+        }
+      },
+      "node_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "device_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "forced_warn_rule": {
+        "rule": "forced_device_diff_gt_lut_tolerance",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "front_points_rule": {
+        "pending": "AC-3"
+      },
+      "_front_points_rule_comment": "기본안 endpoints_and_budget_point(AC-3·U-45 결정 대기)."
+    },
+    "front_refilter": {
+      "axis_rule": {
+        "rule": "layout_floorplan_outline",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "tie_rule": {
+        "rule": "manufacturing_grid_cell_area",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "cycle_cap_rule": {
+        "rule": "k_max_n3_6",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      }
+    },
+    "_constraints_comment": "held-out B: 제약 4개만(사용자 2026-10-13 \"A, B 모두 권고대로 해\"). 정착 시간·입력 잡음·offset·PVT·Monte Carlo 는 보고만 -- erfc_ota.spec_source.md 에 원문 수치. 원문 공정 0.18 µm CMOS, 엔진 PDK 는 sky130 -- 값은 원문 그대로 두고 조정하지 않는다."
+  }
+}
