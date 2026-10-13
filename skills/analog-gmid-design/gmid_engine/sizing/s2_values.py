@@ -149,7 +149,7 @@ DC_WRITES = (
     (DC_COLUMNS_WRITER, (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"),
                          ("device", "dc_ln_idu"), ("graph", "dc_scc_log"))),
     (DC_WIDTHS_WRITER, (("device", "dc_op"),)),
-    (DC_TOLERANCES_WRITER, (("device", "dc_tol_v"), ("device", "dc_gm_bound"))),
+    (DC_TOLERANCES_WRITER, (("device", "dc_tol_v"), ("device", "dc_gm"))),
     (DC_SEAL_NODE_CONFLICT_WRITER, (("graph", "dc_seal_1"),)),
     (DC_SEAL_VGS_MATCH_WRITER, (("graph", "dc_seal_2"),)),
     (DC_SEAL_KCL_WRITER, (("graph", "dc_seal_3"),)),
@@ -164,12 +164,14 @@ DC_WRITES = (
 METRICS_KEY = "metrics"
 SS_DEV_WRITER = "ss_dev"                               # device.ss_dev: 봉인 op 의 소신호 선형화(MOS 마다)
 METRICS_SS_WRITER = "metrics_ss"                       # graph.metrics_ss: 뷰 계 MNA -> 제약 metric 묶음
-METRICS_DC_WRITER = "metrics_dc"                       # graph.metrics_dc: 레일 전류·전력·탐색 축 면적 묶음
+METRICS_DC_WRITER = "metrics_dc"                       # graph.metrics_dc: 레일 전류·전력·탐색 축 면적 묶음 + graph.gate_area_m2·power_resolution_w(설계 40 §2.4.8)
+PASSIVE_VALUES_WRITER = "passive_values"               # device.passive_value: GB5 수동소자 값(spec ∪ θ ∪ 영점 상쇄 R = 1/Σdc_gm, 설계 40 §2.4.8)
 METRICS_AUX_WRITER = "metrics_aux"                     # graph.metrics_aux: offset·미러비·스윙·ICMR·FF 비 metric 묶음 + 블록 잔차 보고 (U7)
 SS_WRITES = (
     (SS_DEV_WRITER, (("device", "ss_dev"),)),
     (METRICS_SS_WRITER, (("graph", "metrics_ss"),)),
-    (METRICS_DC_WRITER, (("graph", "metrics_dc"),)),
+    (METRICS_DC_WRITER, (("graph", "metrics_dc"), ("graph", "gate_area_m2"), ("graph", "power_resolution_w"))),
+    (PASSIVE_VALUES_WRITER, (("device", "passive_value"),)),
     (METRICS_AUX_WRITER, (("graph", "metrics_aux"),)),
 )
 S2_WRITERS = WriterTable(

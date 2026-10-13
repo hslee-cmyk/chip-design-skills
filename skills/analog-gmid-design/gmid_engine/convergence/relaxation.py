@@ -1,6 +1,8 @@
 """LY5 완화 판정 -- W 조정이 불가능해 common-centroid 로 배치되지 못한 그룹 (계획 N3.17 LY5, 설계 40 §3.9 U14, U12 인계).
 
-진입점: `relaxation_decision(layout, layout_input, relaxed) -> (relax, not_relaxable)`.
+진입점: `relaxation_decision(snapshot, relaxed) -> (relax, not_relaxable)`.
+
+`snapshot` = 레이아웃 필드를 쓴 설계점 스냅샷(`LayoutResult.snapshot`, 설계 40 v1.6 §2.4.7) -- 그룹 결과 `ly_groups`, 입력 그룹(hub 넷) `ly_groups_in`.
 
 레이아웃은 즉시 완화하지 않는다(U12 -- `GroupLayout.pattern is None`). 시도 순서 (i) 같은 (ID, gm/ID, L) 에서 nf 조정 (ii) W_request 로 sizing 재평가를 거친 W 조정이
 **둘 다** 불가능해야만 완화한다: 그룹이 common-centroid 를 요구하는 role(`CC_REQUIRED_ROLES` -- 차동쌍·branch_symmetric)이고, 배치가 없고(`pattern is None`), W_request 응답 대기가
@@ -11,13 +13,13 @@
 * `not_relaxable` = (gid 순) hub 가 없어 interdigitation 경로가 없는 그룹(branch_symmetric 은 hub 없는 쌍 -- 행 swap common-centroid 만): 배치 없이 `review_needed` 로 남긴다.
 `relaxed` = 이미 완화한 gid 집합(다시 판정하지 않는다).
 """
-from gmid_engine.layout import CC_REQUIRED_ROLES
+from gmid_engine.layout import CC_REQUIRED_ROLES, F_GROUPS, F_GROUPS_IN, LAYOUT_KEY
 
 
-def relaxation_decision(layout, layout_input, relaxed):
-    hub = {g.gid: g.hub_net for g in layout_input.matching_groups}
+def relaxation_decision(snapshot, relaxed):
+    hub = {g.gid: g.hub_net for g in snapshot.value("graph", LAYOUT_KEY, F_GROUPS_IN)}
     relax, not_relaxable = [], []
-    for g in sorted(layout.groups, key=lambda x: x.gid):
+    for g in sorted(snapshot.value("graph", LAYOUT_KEY, F_GROUPS), key=lambda x: x.gid):
         if g.role not in CC_REQUIRED_ROLES or g.pattern is not None or g.pending or g.gid in relaxed:
             continue
         (relax if hub.get(g.gid) is not None else not_relaxable).append(g.gid)

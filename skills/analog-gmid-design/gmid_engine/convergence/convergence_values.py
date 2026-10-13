@@ -60,12 +60,11 @@ class Placement:
 
 @dataclasses.dataclass(frozen=True, eq=False)
 class PlacedLayout:
-    """`place_layout` 결과(평가 커널 호출 없이 얻은 레이아웃). `layout`·`layout_input` = 마지막 `run_layout` 결과와 그 입력, `undelivered` = 넘기지 못한 matching 그룹,
+    """`place_layout` 결과(평가 커널 호출 없이 얻은 레이아웃). `layout` = 마지막 `run_layout` 결과(설계점 스냅샷 -- 그 입력도 `ly_*` 입력 필드), `undelivered` = 넘기지 못한 matching 그룹,
     `placements`·`unplaced` = `effective_placement`, `keys` = `kernel_keys` 가 고른 ((kind, 키), ...), `pdk` = 폭 키를 좁힌 뒤의 `LayoutPdk`, `relaxed` = 완화 입력으로 바꾼
     gid 집합(frozenset), `first_seen` = {gid: 완화 판정 시점의 `GroupLayout`}, `layout_calls` = 이 호출의 `run_layout` 횟수, `narrowed` = ((kind, 키), ...) 이 호출에서 좁힌 kind."""
 
     layout: object
-    layout_input: object
     undelivered: tuple
     placements: tuple
     unplaced: tuple
@@ -110,7 +109,7 @@ class JunctionChange:
 @dataclasses.dataclass(frozen=True, eq=False)
 class ConvergedPoint:
     """front 점 하나의 MOD8 결과. `result` = 실현 기하로 재검증한 `search.EvalResult`(수렴하지 못하면 마지막 성공 재검증, 없으면 None),
-    `layout` = 마지막 `LayoutResult`, `geometry` = 마지막 재검증 `RealizedGeometry`, `search_area_m2` = 탐색 축 면적(사이징 W 기준 -- 재검증 전 점),
+    `layout` = 마지막 `LayoutResult`(레이아웃 필드를 쓴 설계점 스냅샷), `geometry` = 마지막 재검증 `RealizedGeometry`, `search_area_m2` = 탐색 축 면적(사이징 W 기준 -- 재검증 전 점),
     `layout_area_m2` = 판정 축 외곽 면적(수동소자 블록 포함, 수렴 레이아웃), `power_w`·`power_resolution_w` = 재검증 점의 전력 축 값, `k_max` = 반복 상한(첫 레이아웃에서 한 번 계산,
     None 이면 레이아웃 전에 끝남), `iterations` = 재평가 기록, `relaxations` = 완화 판정, `rejected` = 거부한 W_request 소자, `narrowed` = ((kind, 폭 키), ...) 커널이 한 kind 에
     슬라이스 하나만 쓰므로 PDK 폭 키를 좁힌 결과, `excluded` = ((kind, 폭 키), ...) 재검증이 거절돼 후보에서 뺀 키, `junction` = 소자별 접합 용량 변화, `unmatched` = 배치되지 못한 matching 그룹 ((gid, role, reason), ...),

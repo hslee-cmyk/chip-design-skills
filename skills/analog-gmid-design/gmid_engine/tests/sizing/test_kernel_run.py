@@ -1,14 +1,19 @@
-"""`sizing/kernel_run.py` (U4) -- 평가 커널 본체의 새 입력 두 개: S2p 기반 tol_I(계획 N3.6, 설계 40 §3.7-3, CONTRACT 14.2)와
+"""`sizing/kernel_run.py` (U4, U17 ①) -- 평가 커널 본체: tol_I 의 gm(설계 40 v1.6 §3.7-3·§2.4.11, U17 ①)과
 W_request 고정 W(설계 40 §3.7 머리 'W_request가 있으면 그 소자의 W는 고정 입력', 계획 N3.5 ⑤·N3.17 LY3, D-GB7d, CONTRACT 14.3),
 그리고 IC10(캐시 키가 바뀐 입력을 덮는다, 설계 40 §10.3)·결정론(CONTRACT 9절).
+
+[U17 ①] tol_I = tol_V × 순환 블록 소자 gm 최댓값, gm = 후보 자기 동작점의 `device.dc_gm`(= ID × 그 동작점 LUT gm/ID, writer
+`dc_tolerances` 하나). parent(S2p)에 의존하지 않으므로 같은 θ 는 parent 와 무관하게 같은 봉인 결과를 낸다(사용자 결정 G-3').
+옛 S2p 경로(`previous_gm_id`·`inherited_gm_id`·`canonical_gm_id`·`gm_grid_max`·`dc_gm_bound`)와 그것을 단언하던 test 는 설계
+§11 U17 ① '같은 변경에서 지우는 것' 에 따라 지웠다.
 
 oracle:
 - (a) 손계산 -- r4 toy LUT(conftest: ln IDu = ln I0 + B·VGS − C·VGS²/2 + LAM·VDS + VS 항, gm/ID = B − C·VGS)의 닫힌 식.
   예: 'W 고정 쓰기 소자의 좌표 = ln(ID·L/W)' 는 정의(CONTRACT 14.3·계획 N3.17 LY3)를 r4 식에 넣어 VGS 를 닫힌 식으로 푼다.
-- (a) 구성으로 정답이 정해진 입력 -- S2p parent 는 test 가 손으로 쓴 `ss_dev`(gm = 그 점의 gm/ID × ID, conftest `with_hand_ss`).
-  기대 gm 상한 = 손으로 쓴 gm(계획 N3.6 'gm 은 직전 봉인 스냅샷(S2p)의 ss 값').
-- 피검 함수(`size_and_seal`·`dc_tolerances`·`previous_gm_id`·`normalize_w_request`)로 기대값을 만들지 않는다. 스냅샷에서 읽는 값은
-  피검 결과(대조 대상)이거나 피검 블록의 입력(예: parent 의 dc_op·dc_tol_v)뿐이다.
+- (a) dc_gm 손계산 -- conftest `hand_dc_gm`: 이 test 가 r4 LUT 파일(npz)을 직접 열어 그 동작점 gm/ID 를 보간한 값 × ID.
+- (a) 구성으로 정한 parent -- 손으로 쓴 `ss_dev`(conftest `with_hand_ss`, 정합·어긋남). 새 설계에서는 결과에 영향이 없어야 하는 입력이다.
+- 피검 함수(`size_and_seal`·`dc_tolerances`·`normalize_w_request`)로 기대값을 만들지 않는다. 스냅샷에서 읽는 값은 피검 결과(대조
+  대상)이거나 피검 블록의 입력(예: dc_op 의 동작점 좌표·전류, dc_tol_v)뿐이다.
 """
 import json
 import math
@@ -21,11 +26,11 @@ import pytest
 from gmid_engine import sizing as S
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, SealViolationError
 from gmid_engine.sizing import size_and_seal
-from gmid_engine.sizing.kernel_run import normalize_w_request, previous_gm_id
+from gmid_engine.sizing.kernel_run import normalize_w_request
 
-from .conftest import (B, C, EPS, HERE, I0, LAM, SKILL_DIR, W_M, build_ctx, build_ctx_u4, circuit_cs_res, circuit_mirror,
-                       detail, node_voltages, r4_ln_idu, r4_vgs_of, rel_close, theta_c, theta_mirror, theta_r4c, two,
-                       with_hand_ss)
+from .conftest import (B, C, HERE, MIRROR_W_DELTA, SKILL_DIR, build_ctx, build_ctx_u4, circuit_cs_res, circuit_mirror, detail,
+                       hand_dc_gm, mirror_delta_max, mirror_w_request, node_voltages, r4_ln_idu, r4_npz, r4_vgs_of, rel_close,
+                       seal_item, theta_mirror, theta_r4c, two, with_hand_ss)
 
 EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
           S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
@@ -45,21 +50,21 @@ def ops(ev):
     return dict(ev.snapshot.column("device", "dc_op"))
 
 
-def gm_bound(ev):
-    return dict(ev.snapshot.column("device", "dc_gm_bound"))
+def dc_gm(ev):
+    return dict(ev.snapshot.column("device", "dc_gm"))
 
 
 def same_dc(a, b):
     """두 평가의 DC 결과(노드전압·소자 op·허용오차·봉인 보고)가 같다. parent 에 손 ss 를 쓴 스냅샷은 지문이 다르므로 지문 대신 쓴다."""
-    for kind, field in (("node", "dc_v"), ("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm_bound")):
+    for kind, field in (("node", "dc_v"), ("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm")):
         if a.snapshot.column(kind, field) != b.snapshot.column(kind, field):
             return False
     return a.report == b.report
 
 
 def r4_grid_max_gm(kind, L, W, vds, vsb):
-    """첫 평가의 gm 상한(계획 N3.6 '첫 평가는 LUT 격자 최댓값', CONTRACT 6절 tol 행 max(gm_id_curve 의 id·gm/id)·W/w_m) --
-    r4 toy 의 닫힌 식을 VGS 격자 위에서 직접 최대화(vsb = 0 격자점, VDS 방향 1차라 보간 정확)."""
+    """옛 '첫 평가 gm 상한'(곡선 VGS 격자 위 최대 gm × W/w_m, 폐기된 정의) -- r4 toy 닫힌 식. 새 dc_gm 이 이것과 다름(자기 동작점
+    값)을 보이는 대조용으로만 쓴다(vsb = 0 격자점, VDS 방향 1차라 보간 정확)."""
     from .conftest import R4_VGS
     return max(math.exp(math.log(W / L) + r4_ln_idu(kind, v, vds, vsb)) * (B - C * v) for v in R4_VGS)
 
@@ -79,77 +84,73 @@ def sealed_c(ctx_r4c):
 
 
 # ===========================================================================
-# S2p 기반 tol_I (계획 N3.6, 설계 40 §3.7-3, D-GB7 tol_I 행)
+# tol_I = tol_V × 자기 동작점 dc_gm, parent 무관 (설계 40 v1.6 §3.7-3, §2.4.11, 사용자 결정 G-3', U17 ①)
 # ===========================================================================
 
-def test_first_evaluation_uses_lut_grid_max(ctx_r4c, sealed_c):
-    """parent 가 없으면 gm 상한 = LUT 격자 최대 gm × W/w_m(계획 N3.6 '첫 평가는 LUT 격자 최댓값')."""
+def _npz(r4_lut_root):
+    return lambda kind: r4_npz(r4_lut_root[1], kind)
+
+
+def _parents(ctx, e0):
+    """같은 θ 를 평가할 서로 다른 parent 이력: 없음(첫 평가), 봉인 parent + 정합 손 ss(옛 S2p 경로), 봉인 parent + 어긋난 손 ss
+    (M1 gm 1.5 배), 다른 θ 의 평가 + 손 ss."""
+    other = size_and_seal(ctx, theta_r4c(v1=0.65))
+    return {"none": None, "s2p": with_hand_ss(e0), "stale": with_hand_ss(e0, gm_scale={"M1": 1.5}),
+            "other": with_hand_ss(other)}
+
+
+def test_first_evaluation_dc_gm_is_own_operating_point(sealed_c, r4_lut_root):
+    """parent 없는 첫 평가: dc_gm = 자기 동작점 ID × LUT 파일 gm/ID(§3.7-3). 옛 '첫 평가 = 곡선 격자 최대 gm' 과 다른 값이다."""
     e0, _ = sealed_c
-    gb = gm_bound(e0)
+    gm = dc_gm(e0)
+    assert set(gm) == set(ops(e0))
     for m, o in ops(e0).items():
-        assert rel_close(gb[m], r4_grid_max_gm(o.kind, o.L, o.W, o.vds, o.vsb), 1e-9), m
+        want = hand_dc_gm(_npz(r4_lut_root), o)
+        assert rel_close(gm[m], want, 1e-9), (m, gm[m], want)
+        assert r4_grid_max_gm(o.kind, o.L, o.W, o.vds, o.vsb) > 10 * want, m          # 전제: 폐기된 상계와 구별 가능
 
 
-def test_s2p_gm_bound_is_parent_ss_gm(ctx_r4c, sealed_c):
-    """봉인 parent(ss 있음)에서 좌표 하나만 바꾼 후보(전류 같음): gm 상한 = parent 의 ss gm(계획 N3.6 문언 그대로 -- 같은 전류라
-    CONTRACT 14.2 의 'gm/ID_prev × 이번 ID' 와 같은 값). 격자 최대보다 훨씬 작다(봉인 3 이 실제로 판정하게 되는 이유)."""
-    e0, parent = sealed_c
-    e1 = size_and_seal(ctx_r4c, theta_r4c(v1=0.62), parent=parent)
-    o0, o1 = ops(e0), ops(e1)
-    assert o1["M1"] != o0["M1"] and all(o1[m].current == o0[m].current for m in o0)       # 전제: DC 점은 바뀌고 전류는 같음
-    ss = dict(parent.snapshot.column("device", "ss_dev"))
-    gb = gm_bound(e1)
-    for m in o0:
-        assert abs(gb[m] - ss[m].gm) <= 4 * EPS * ss[m].gm, (m, gb[m], ss[m].gm)
-        assert gb[m] < 1e-3 * r4_grid_max_gm(o1[m].kind, o1[m].L, o1[m].W, o1[m].vds, o1[m].vsb)
-
-
-def test_s2p_gm_bound_scales_with_candidate_current(ctx_r4c, sealed_c):
-    """CONTRACT 14.2 주장: 전류가 바뀐 후보는 gm 상한 = parent 의 gm/ID × 이번 후보 ID(전류 2배 -> 2배). 손으로 쓴 ss 의
-    gm/ID = op.gm_id 라 기대값 = op.gm_id(parent) × 2e-5."""
-    e0, parent = sealed_c
-    e2 = size_and_seal(ctx_r4c, theta_r4c(i2=2e-5), parent=parent)
-    gb = gm_bound(e2)
-    for m, o in ops(e0).items():
-        assert ops(e2)[m].current == 2e-5
-        assert rel_close(gb[m], o.gm_id * 2e-5, 8 * EPS), m
-
-
-def test_unsealed_parent_falls_back_to_grid_max(ctx_c):
-    """parent 가 봉인되지 않았으면(VDSAT 열 없는 toy -> 봉인 7 undefined) ss 가 있어도 쓰지 않는다 -> 격자 최대
-    (계획 N3.6 'S2p = 직전 **봉인** 스냅샷'). 기대값 = conftest Oracle.gm_bound(toy 닫힌 식)."""
-    from .conftest import Oracle
-    ctx = ctx_c[2]
-    e0 = size_and_seal(ctx, theta_c())
-    assert e0.sealed is None                                               # 전제
-    parent = with_hand_ss(e0)
-    e1 = size_and_seal(ctx, theta_c(x1=Oracle.ln_idu("nmos", 0.62, 0.9, 0.0)), parent=parent)
-    gb = gm_bound(e1)
-    for m, o in ops(e1).items():
-        assert rel_close(gb[m], Oracle.gm_bound(o.kind, o.L, o.vds, o.vsb, o.W), 1e-9), m
-
-
-def test_stale_ss_field_not_used(ctx_r4c, sealed_c):
-    """parent 의 ss gm/ID 가 그 점의 dc_op.gm_id 와 맞지 않으면(옛 점의 필드) 그 소자는 격자 최대로 -- 계획 N3.6 의 'S2p 의 ss'
-    는 그 봉인 점의 값이어야 한다. M1 만 1.5 배로 어긋나게 쓰고 M2 는 정합."""
+def test_tol_i_parent_independent(ctx_r4c, sealed_c, r4_lut_root):
+    """§3.7-3·§2.4.11: 같은 θ 를 서로 다른 parent 이력(없음·S2p 정합·S2p 어긋남·다른 θ)에서 평가하면 dc_gm·dc_tol_v 열, 봉인 3 결과
+    (SealItem 전체: status·magnitude·tol·margin·detail), 봉인 보고가 비트 동일하다. tol_I 손계산: 봉인 3 의 out 행 tol =
+    max over out 에 채널이 닿는 M1·M2 of tol_V × dc_gm(손, LUT 파일)."""
     e0, _ = sealed_c
-    parent = with_hand_ss(e0, gm_scale={"M1": 1.5})
-    e1 = size_and_seal(ctx_r4c, theta_r4c(v1=0.62), parent=parent)
-    o1, gb = ops(e1), gm_bound(e1)
-    assert rel_close(gb["M1"], r4_grid_max_gm("nmos", o1["M1"].L, o1["M1"].W, o1["M1"].vds, o1["M1"].vsb), 1e-9)
-    assert rel_close(gb["M2"], ops(e0)["M2"].gm_id * ops(e0)["M2"].current, 8 * EPS)
+    th = theta_r4c(v1=0.62)
+    evs = {k: size_and_seal(ctx_r4c, th, parent=p) for k, p in _parents(ctx_r4c, e0).items()}
+    base = evs["none"]
+    item0 = seal_item(base.snapshot, 3)
+    for k, ev in evs.items():
+        assert ev.snapshot.column("device", "dc_gm") == base.snapshot.column("device", "dc_gm"), k
+        assert ev.snapshot.column("device", "dc_tol_v") == base.snapshot.column("device", "dc_tol_v"), k
+        assert seal_item(ev.snapshot, 3) == item0, k
+        assert ev.report == base.report, k
+    tolv = dict(base.snapshot.column("device", "dc_tol_v"))
+    o = ops(base)
+    want = max(tolv[m] * hand_dc_gm(_npz(r4_lut_root), o[m]) for m in ("M1", "M2"))
+    assert dict(item0.detail)["worst"] == "out"
+    assert rel_close(item0.tol, want, 1e-9), (item0.tol, want)
 
 
-def test_previous_gm_id_values(ctx_c, sealed_c):
-    """`previous_gm_id`: 봉인 parent -> ((소자, ss.gm / dc_op.current), ...) 이름순; 미봉인·None -> ()."""
-    e0, parent = sealed_c
-    got = previous_gm_id(parent)
-    assert [m for m, _ in got] == sorted(ops(e0))
-    for m, g in got:
-        assert rel_close(g, ops(e0)[m].gm_id, 4 * EPS)
-    assert previous_gm_id(None) == ()
-    assert previous_gm_id(with_hand_ss(size_and_seal(ctx_c[2], theta_c()))) == ()
-    assert [m for m, _ in previous_gm_id(with_hand_ss(e0, gm_scale={"M2": 0.5}))] == ["M1"]
+@pytest.mark.parametrize("which", ["none", "s2p", "stale"])
+def test_seal_3_violation_margin_parent_independent(mir, r4_lut_root, which):
+    """종속 소자 M2 의 요청 W 가 그 전류에 맞는 W 의 2배 -> 순방향 전류 2·ID, 노드 out 의 KCL 잔차 = ID = 1e-5 A(닫힌 식). tol_I =
+    max over out 에 채널이 닿는 M2·M3 of tol_V × dc_gm(자기 동작점: ID × LUT 파일 gm/ID -- W 만 바뀌어 VGS·VDS·VSB·ID 는 요청
+    없는 평가 e0 와 같다). margin = 잔차 / tol_I 이고 parent(없음·S2p 정합·S2p 어긋남)와 무관하게 같다(§3.7-3·§2.4.11)."""
+    th = theta_mirror()
+    e0 = size_and_seal(mir, th)
+    assert e0.sealed is not None
+    parent = {"none": None, "s2p": with_hand_ss(e0), "stale": with_hand_ss(e0, gm_scale={"M2": 1.5, "M3": 0.5})}[which]
+    V0 = node_voltages(e0.snapshot)
+    w_nat = 1e-5 * 1e-6 / math.exp(r4_ln_idu("nmos", V0["nb"], 0.9, 0.0))
+    assert rel_close(ops(e0)["M2"].W, w_nat, 1e-9)                       # 전제: 요청 없을 때 W
+    with pytest.raises(SealViolationError) as ei:
+        size_and_seal(mir, th, parent=parent, w_request={"M2": 2 * w_nat})
+    d = detail(ei.value)
+    assert d["item"] == 3 and d["nodes"] == ("out",)
+    tol_v = dict(e0.snapshot.column("device", "dc_tol_v"))
+    o0 = ops(e0)
+    tol_i = max(tol_v[m] * hand_dc_gm(_npz(r4_lut_root), o0[m]) for m in ("M2", "M3"))
+    assert rel_close(ei.value.record.margin, 1e-5 / tol_i, 1e-5), (ei.value.record.margin, 1e-5 / tol_i)
 
 
 @pytest.fixture(scope="module")
@@ -181,7 +182,7 @@ def test_passive_only_child_of_first_evaluation_reuses(ctx_passive_r4):
 def test_passive_only_child_of_s2p_evaluation_reuses(ctx_passive_r4):
     """DEC-92 재사용 계약(CONTRACT 7절 r5 '수동소자 θ 만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0, 결과는 parent 와
     같은 봉인 상태')은 parent 가 **첫 평가가 아닐 때**도 성립해야 한다(FD 기준점은 보통 탐색 중간 점이다). 사슬: e0(봉인) -> e1 =
-    좌표 하나 바꾼 후보(parent = e0 + ss, 그래서 e1 의 tol_I 는 S2p 값) -> e2 = e1 에서 수동소자 θ 만 바꾼 후보(parent = e1 + ss).
+    좌표 하나 바꾼 후보(parent = e0 + ss) -> e2 = e1 에서 수동소자 θ 만 바꾼 후보(parent = e1 + ss).
     e2 의 DC 입력은 e1 과 모두 같으므로 DC 블록 computes 0, DC 결과(노드전압·op·허용오차)·보고가 e1 과 같아야 한다(CONTRACT 14.2 가 '새 dc_op 전체가
     parent 의 것과 같으면 ... DEC-92 재사용을 지킨다' 고 주장하는 경우)."""
     ctx = ctx_passive_r4
@@ -195,75 +196,24 @@ def test_passive_only_child_of_s2p_evaluation_reuses(ctx_passive_r4):
     assert same_dc(e2, e1)
 
 
-def test_passive_only_chain_of_s2p_parents_bit_identical(ctx_passive_r4):
-    """DEC-92 재사용(CONTRACT 7절 r5) + 14.2(U4 후속): 수동소자 θ 만 바꾼 자식을 두 번 잇는다(e1 = S2p 평가 -> e2 -> e3, 각 parent 는 직전
-    평가 + 정합 ss). 매 단계 DC 블록 computes 0, gm 상한 열이 e1 과 **비트 동일**(==)이고 그 값은 e0 의 손 ss gm(계획 N3.6 S2p)과
-    4 eps 안에서 같다. oracle (a): 손으로 쓴 ss gm(구성으로 정답이 정해진 parent)과 '입력이 같으면 결과 같음'(재사용 정의)."""
+def test_passive_only_chain_bit_identical_dc_gm(ctx_passive_r4, r4_lut_root):
+    """DEC-92 재사용 + §3.7-3 '수동소자 θ 만 바뀐 자식의 DC 재사용은 parent 입력을 이어받는 특수 경로 없이 입력 버전 일치로 성립한다
+    (`dc_gm` 이 수동소자 θ 를 읽지 않는다)': 수동소자 θ 만 바꾼 자식을 두 번 잇는다(e1 -> e2 -> e3, 각 parent 는 직전 평가 + 정합 ss).
+    매 단계 DC 블록 computes 0, dc_gm 열이 e1 과 비트 동일(==)하고 그 값은 손계산(ID × LUT 파일 gm/ID)과 같다."""
     ctx = ctx_passive_r4
     e0 = size_and_seal(ctx, theta_passive_r4())
-    p0 = with_hand_ss(e0)
-    e1 = size_and_seal(ctx, theta_passive_r4(vgs=0.62), parent=p0)
+    e1 = size_and_seal(ctx, theta_passive_r4(vgs=0.62), parent=with_hand_ss(e0))
     assert e1.sealed is not None
-    ss0 = dict(p0.snapshot.column("device", "ss_dev"))
-    assert abs(gm_bound(e1)["M1"] - ss0["M1"].gm) <= 4 * EPS * ss0["M1"].gm          # e1 은 S2p 값으로 평가됐다(전제)
+    for m, o in ops(e1).items():
+        assert rel_close(dc_gm(e1)[m], hand_dc_gm(_npz(r4_lut_root), o), 1e-9), m
     prev = e1
     for cz in (2e-12, 3e-12):
         reset()
         nxt = size_and_seal(ctx, theta_passive_r4(vgs=0.62, cz=cz), parent=with_hand_ss(prev))
         assert sum(computes().values()) == 0, {k: v for k, v in computes().items() if v}
-        assert nxt.snapshot.column("device", "dc_gm_bound") == e1.snapshot.column("device", "dc_gm_bound")
+        assert nxt.snapshot.column("device", "dc_gm") == e1.snapshot.column("device", "dc_gm")
         assert same_dc(nxt, e1)
         prev = nxt
-
-
-def test_passive_only_child_keeps_grid_max_bound_device(ctx_passive_r4):
-    """CONTRACT 14.2(U4 후속) '격자 최대 gm 이 상계인 소자는 뺀다': e1 은 parent ss 가 어긋난(M1 1.5 배 -> 옛 점의 필드) S2p 평가라 M1 의
-    gm 상한 = LUT 격자 최대(test_stale_ss_field_not_used 와 같은 규칙). e1 + 정합 ss 를 parent 로 수동소자만 바꾼 자식은 parent 가
-    실제로 쓴 입력(격자 최대)을 그대로 써야 하므로 M1 상한 = 격자 최대(닫힌 식 r4_grid_max_gm), DC 블록 computes 0, DC 결과 같음.
-    oracle (a) r4 toy 닫힌 식."""
-    ctx = ctx_passive_r4
-    e0 = size_and_seal(ctx, theta_passive_r4())
-    e1 = size_and_seal(ctx, theta_passive_r4(vgs=0.62), parent=with_hand_ss(e0, gm_scale={"M1": 1.5}))
-    assert e1.sealed is not None
-    o1 = ops(e1)["M1"]
-    grid = r4_grid_max_gm("nmos", o1.L, o1.W, o1.vds, o1.vsb)
-    assert rel_close(gm_bound(e1)["M1"], grid, 1e-9)                                   # 전제
-    reset()
-    e2 = size_and_seal(ctx, theta_passive_r4(vgs=0.62, cz=2e-12), parent=with_hand_ss(e1))
-    assert sum(computes().values()) == 0, {k: v for k, v in computes().items() if v}
-    assert rel_close(gm_bound(e2)["M1"], grid, 1e-9)
-    assert same_dc(e2, e1)
-
-
-@pytest.mark.parametrize("seed", range(4))
-def test_canonical_gm_id_is_smallest_with_same_bound(seed):
-    """CONTRACT 14.2 정의: canonical_gm_id(bound, current) = '같은 상계(gm/ID × 전류)를 내는 가장 작은 gm/ID'. oracle (a) 정의 그대로
-    -- 곱이 bound 와 같고(==), 바로 아래 부동소수(math.nextafter(c, 0))는 곱이 달라야 한다(양수 곱은 c 에 단조라 같은 곱의 집합은
-    구간). 원래 gm/ID 보다 크지 않다. 무작위 gm/ID ∈ [1, 30], I ∈ [1e-8, 1e-2]."""
-    import random
-    from gmid_engine.sizing.kernel_run import canonical_gm_id
-    rng = random.Random(seed)
-    for _ in range(500):
-        g = rng.uniform(1.0, 30.0)
-        cur = 10 ** rng.uniform(-8, -2)
-        bound = g * cur
-        c = canonical_gm_id(bound, cur)
-        assert c * cur == bound, (g, cur, c)
-        assert math.nextafter(c, 0.0) * cur != bound, (g, cur, c)
-        assert c <= g
-        assert canonical_gm_id(c * cur, cur) == c                                        # 정규형은 고정점
-
-
-def test_s2p_gm_id_is_canonical(sealed_c):
-    """CONTRACT 14.2 'S2p 에서 새로 뽑은 gm/ID 도 같은 정규형': previous_gm_id 의 값 g 마다 parent 전류 I 에서 g·I 를 내는 더 작은
-    부동소수가 없다(math.nextafter 로 직접 확인 -- canonical_gm_id 를 부르지 않는다)."""
-    e0, parent = sealed_c
-    o = ops(e0)
-    got = previous_gm_id(parent)
-    assert got
-    for m, g in got:
-        cur = o[m].current
-        assert math.nextafter(g, 0.0) * cur != g * cur, m
 
 
 # ===========================================================================
@@ -307,41 +257,26 @@ def test_w_request_diode_writer(mir):
 
 
 def test_w_request_dependent_keeps_coordinate(mir):
-    """종속 소자 M2(parallel_vgs) 에 W = 3e-5: 좌표·노드전압은 요청 없을 때의 닫힌 식 그대로(V(out) = 0.9, V(nb) = M1 좌표의 diode
-    근 0.6 -- θ 구성), DeviceOp.W = 요청값, idu_forward = exp(ln IDu(V(nb), 0.9, 0))."""
-    ev = size_and_seal(mir, theta_mirror(), w_request={"M2": 3e-5})
+    """종속 소자 M2(parallel_vgs) 에 W = (1 + δ)·W_nat(conftest `mirror_w_request`, δ = 0.05): 좌표·노드전압은 요청 없을 때의 닫힌 식
+    그대로(V(out) = 0.9, V(nb) = M1 좌표의 diode 근 0.6 -- θ 구성), DeviceOp.W = 요청값, idu_forward = exp(ln IDu(V(nb), 0.9, 0)).
+    [U17 ①] 옛 요청 3e-5(δ ≈ 0.27)는 자기 동작점 gm 의 tol_I(설계 40 §3.7-3)에서 봉인 3 위반이라 봉인되는 δ 로 바꿨다 -- 전제로
+    δ < δ_max = tol_V × max gm/ID (dc_tol_v 입력 + r4 닫힌 식, conftest `mirror_delta_max`)를 함께 확인한다."""
+    w_req = mirror_w_request()
+    ev = size_and_seal(mir, theta_mirror(), w_request={"M2": w_req})
     V, o = node_voltages(ev.snapshot), ops(ev)
+    assert MIRROR_W_DELTA < mirror_delta_max(ev.snapshot)                  # 전제: 요청 어긋남이 봉인 3 허용오차 안
     log = {e.nodes: e for e in ev.snapshot.value("graph", S.DC_KEY, "dc_scc_log")}[("nb",)]
     assert abs(V["nb"] - 0.6) <= log.tol and abs(V["out"] - 0.9) <= 1e-12
-    assert o["M2"].W == 3e-5
+    assert o["M2"].W == w_req
     assert rel_close(o["M2"].idu_forward, math.exp(r4_ln_idu("nmos", V["nb"], 0.9, 0.0)), 1e-9)
 
 
-def test_w_request_dependent_mismatch_judged_by_seal_3(mir):
-    """종속 소자의 요청 W 가 그 전류에 맞는 W 의 2배면 순방향 전류 = 2·ID -> 노드 out 의 KCL 잔차 = ID = 1e-5 A(닫힌 식: 순방향
-    IDu × 2W_nat/L = 2·ID). S2p parent(봉인 + ss)가 있으면 tol_I = tol_V × max(gm(M2), gm(M3)) = tol_V × (B − C·0.6)·ID 라 봉인 3
-    위반(CONTRACT 14.3 '종속 소자의 ID 어긋남은 봉인 3 이 판정한다', 계획 N3.6 tol_I). margin = 잔차 / tol_I."""
-    th = theta_mirror()
-    e0 = size_and_seal(mir, th)
-    assert e0.sealed is not None
-    parent = with_hand_ss(e0)
-    V0 = node_voltages(e0.snapshot)
-    w_nat = 1e-5 * 1e-6 / math.exp(r4_ln_idu("nmos", V0["nb"], 0.9, 0.0))
-    assert rel_close(ops(e0)["M2"].W, w_nat, 1e-9)                       # 전제: 요청 없을 때 W
-    with pytest.raises(SealViolationError) as ei:
-        size_and_seal(mir, th, parent=parent, w_request={"M2": 2 * w_nat})
-    d = detail(ei.value)
-    assert d["item"] == 3 and d["nodes"] == ("out",)
-    tol_v = dict(e0.snapshot.column("device", "dc_tol_v"))["M2"]
-    gm_max = max((B - C * 0.6) * 1e-5, (B - C * 0.7) * 1e-5)
-    assert rel_close(ei.value.record.margin, 1e-5 / (tol_v * gm_max), 1e-5)
-
-
 def test_w_request_forms_equivalent(mir):
-    """{MOS: W} 와 ((MOS, W), ...)(순서 무관) 은 같은 입력(CONTRACT 14.3)."""
-    a = size_and_seal(mir, theta_mirror(), w_request={"M3": 1e-5, "M2": 3e-5})
-    b = size_and_seal(mir, theta_mirror(), w_request=(("M2", 3e-5), ("M3", 1e-5)))
-    c = size_and_seal(mir, theta_mirror(), w_request=(("M3", 1e-5), ("M2", 3e-5)))
+    """{MOS: W} 와 ((MOS, W), ...)(순서 무관) 은 같은 입력(CONTRACT 14.3). 종속 소자 M2 의 요청은 봉인 3 허용오차 안(U17 ①)."""
+    w_req = mirror_w_request()
+    a = size_and_seal(mir, theta_mirror(), w_request={"M3": 1e-5, "M2": w_req})
+    b = size_and_seal(mir, theta_mirror(), w_request=(("M2", w_req), ("M3", 1e-5)))
+    c = size_and_seal(mir, theta_mirror(), w_request=(("M3", 1e-5), ("M2", w_req)))
     assert a.snapshot.fp == b.snapshot.fp == c.snapshot.fp
     assert normalize_w_request(mir, {"M3": 1e-5, "M1": 2e-5}) == (("M1", 2e-5), ("M3", 1e-5))
 
@@ -385,26 +320,15 @@ def test_ic10_w_request_change_not_served_from_parent(mir):
     """같은 θ, parent = 요청 없는 평가, 바뀐 것은 W_request 하나 -> dc_widths 다시 계산, W = 새 요청값(옛 값 미반환)."""
     th = theta_mirror()
     e0 = size_and_seal(mir, th)
+    w1, w2 = mirror_w_request(0.05), mirror_w_request(0.10)              # [U17 ①] 둘 다 δ < δ_max(봉인 3 허용오차 안, conftest 주석)
+    assert 0.10 < mirror_delta_max(e0.snapshot)
     reset()
-    e1 = size_and_seal(mir, th, parent=e0, w_request={"M2": 3e-5})
+    e1 = size_and_seal(mir, th, parent=e0, w_request={"M2": w1})
     assert computes()["dc_widths"] == 1
-    assert ops(e1)["M2"].W == 3e-5 != ops(e0)["M2"].W
+    assert ops(e1)["M2"].W == w1 != ops(e0)["M2"].W
     reset()
-    e2 = size_and_seal(mir, th, parent=e1, w_request={"M2": 4e-5})
-    assert computes()["dc_widths"] == 1 and ops(e2)["M2"].W == 4e-5
-
-
-def test_ic10_parent_ss_change_not_served_from_cache(ctx_r4c, sealed_c):
-    """같은 θ 후보, parent 둘(같은 DC 점, ss gm 만 다름: 정합 / M1 1.5 배 어긋남) -> 허용오차 입력이 다르므로 dc_tolerances 가 다시
-    계산되고 gm 상한이 다르다(옛 값 미반환)."""
-    e0, p_ok = sealed_c
-    p_stale = with_hand_ss(e0, gm_scale={"M1": 1.5})
-    th = theta_r4c(v1=0.62)
-    a = size_and_seal(ctx_r4c, th, parent=p_ok)
-    reset()
-    b = size_and_seal(ctx_r4c, th, parent=p_stale)
-    assert computes()["dc_tolerances"] == 1
-    assert gm_bound(a)["M1"] != gm_bound(b)["M1"] and gm_bound(a)["M2"] == gm_bound(b)["M2"]
+    e2 = size_and_seal(mir, th, parent=e1, w_request={"M2": w2})
+    assert computes()["dc_widths"] == 1 and ops(e2)["M2"].W == w2
 
 
 # ===========================================================================

@@ -58,8 +58,14 @@ def snap(tmp_path_factory):
     return hand_write(s, "device", "dc_op", ops)
 
 
+def with_passive_value(s, passives):
+    """[U17 ①] 수동소자 값은 S2 필드 `device.passive_value`(설계 40 §2.4.8, writer = 권한표 writer_of) -- 손 값을 그 필드로 쓴다
+    (블록 입력 버전은 읽는 열 값의 지문이라 version 표지는 임의)."""
+    return hand_write(s, "device", "passive_value", dict(passives), version="hand_pv:%r" % (tuple(sorted(passives)),))
+
+
 def _bundle(s, passives=(("CL", 1e-12), ("R1", R1)), counted=()):
-    out = metrics_dc(s, passives, counted)
+    out = metrics_dc(with_passive_value(s, passives), counted)
     return out, out.value("graph", METRICS_KEY, "metrics_dc")
 
 
@@ -69,11 +75,16 @@ def _entries(b):
 
 def test_block_declaration():
     assert metrics_dc.name == METRICS_DC_WRITER == S2_WRITERS.writer_of("graph", "metrics_dc") == "metrics_dc"
+    # [U17 ①] reads = 종전 7.5 읽기 열(설계가 바꾸지 않음) ∪ 설계 40 v1.6 §2.4.7 Objectives 행의 b_P 입력(dc_gm·dc_tol_v·
+    # dc_current_basis·dc_rail_v) ∪ §2.4.8 '수동소자 값 | device: passive_value | ... 엔진이 이 필드를 읽는다'(DC 저항 값·면적 항).
     assert set(metrics_dc.reads) == {("device", "dc_op"), ("device", "dc_current"), ("device", "element_class"),
                                      ("device", "pins"), ("node", "dc_v"), ("node", "dc_rail_v"),
                                      ("graph", "dc_current_basis"),
-                                     ("device", "dc_colour"), ("node", "dc_colour")}    # [r12] 합산·나열 순서 = dc_colour(CONTRACT r12)
-    assert tuple(metrics_dc.writes) == (("graph", "metrics_dc"),)
+                                     ("device", "dc_colour"), ("node", "dc_colour"),    # [r12] 합산·나열 순서 = dc_colour(CONTRACT r12)
+                                     ("device", "dc_gm"), ("device", "dc_tol_v"),       # [U17 ①] b_P 입력(§2.4.7)
+                                     ("device", "passive_value")}                       # [U17 ①] 수동소자 값 필드(§2.4.8)
+    # [U17 ①] §2.4.8 소유표 '게이트 면적·전력 분해능 | graph/metrics: gate_area_m2, power_resolution_w | metrics_dc'
+    assert set(metrics_dc.writes) == {("graph", "metrics_dc"), ("graph", "gate_area_m2"), ("graph", "power_resolution_w")}
     # ss 값은 읽지 않는다(7.10 3: ss 변경에 재계산되지 않게)
     assert ("device", "ss_dev") not in set(metrics_dc.reads)
 
@@ -203,8 +214,44 @@ CL_F = 1e-12
 
 
 def _bundle_decl(s, decl, passives=(("CL", CL_F), ("R1", R1)), counted=("vdd",)):
-    out = metrics_dc(s, passives, counted, decl)
+    out = metrics_dc(with_passive_value(s, passives), counted, decl)
     return out, out.value("graph", METRICS_KEY, "metrics_dc")
+
+
+# ---------------------------------------------------------------- [U17 ①] graph/metrics 필드 gate_area_m2·power_resolution_w
+# 설계 40 v1.6 §2.4.7 Objectives 행·§2.4.8 소유표: metrics_dc 가 gate_area_m2(Σ dc_op W·L)와 power_resolution_w(b_P = Σ_레일 |V_k|·tol_I,k,
+# tol_I,k = 채널 끝이 레일 k 인 MOS 의 dc_tol_v × dc_gm 최댓값, 정의된 행 없음·합 0 -> None)를 쓴다. 손 회로: vdd 1.8 V 에 채널이 닿는
+# MOS 는 M2 뿐(R1 은 저항, I1 은 vmid 의 이상원), gnd 0 V 는 기여 0, vmid 0.9 V 는 채널 없음(행 없음).
+
+TOL_V = {"M1": 0.01, "M2": 0.02, "M3": None, "M4": 0.005}          # 손 tol_V 셀(M3 미정) -- writer dc_tolerances 로 쓴다
+
+
+def _with_tol_gm(s):
+    ops = dict(s.column("device", "dc_op"))
+    gm = {m: o.gm_id * o.current for m, o in ops.items()}          # 설계 §3.7-3 dc_gm 정의 = ID × gm/ID(손 dc_op 의 값)
+    s = hand_write(s, "device", "dc_tol_v", TOL_V, version="hand_tol")
+    return hand_write(s, "device", "dc_gm", gm, version="hand_gm"), gm
+
+
+def test_u17_gate_area_and_power_resolution_fields(snap):
+    s, gm = _with_tol_gm(snap)
+    out = metrics_dc(with_passive_value(s, (("CL", CL_F), ("R1", R1))), ("vdd",))
+    assert S2_WRITERS.writer_of("graph", "gate_area_m2") == S2_WRITERS.writer_of("graph", "power_resolution_w") == "metrics_dc"
+    assert rel_close(out.value("graph", METRICS_KEY, "gate_area_m2"), EXP_AREA, 1e-12)
+    want = 1.8 * TOL_V["M2"] * gm["M2"]                            # 손: vdd 행만 정의, max over {M2}
+    assert rel_close(out.value("graph", METRICS_KEY, "power_resolution_w"), want, 1e-12)
+    assert rel_close(want, 1.8 * 0.02 * 12.0 * 10e-6, 1e-12)        # = 4.32e-6 W
+
+
+def test_u17_power_resolution_none_without_defined_rows(snap):
+    """dc_tol_v 열이 없거나(합산할 행 없음) 레일에 닿는 MOS 의 tol 이 모두 None 이면 power_resolution_w = None; gate_area 는 그대로."""
+    out = metrics_dc(with_passive_value(snap, (("CL", CL_F), ("R1", R1))), ("vdd",))
+    assert out.value("graph", METRICS_KEY, "power_resolution_w") is None
+    assert rel_close(out.value("graph", METRICS_KEY, "gate_area_m2"), EXP_AREA, 1e-12)
+    s, _gm = _with_tol_gm(snap)
+    s = hand_write(s, "device", "dc_tol_v", {"M1": 0.01, "M2": None, "M3": None, "M4": 0.005}, version="hand_tol2")
+    out2 = metrics_dc(with_passive_value(s, (("CL", CL_F), ("R1", R1))), ("vdd",))
+    assert out2.value("graph", METRICS_KEY, "power_resolution_w") is None     # gnd 0 V 행만 정의 -> 합 0 -> None
 
 
 def test_area_decl_absent_equals_old_and_empty_decl(snap):

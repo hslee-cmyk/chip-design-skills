@@ -1,7 +1,8 @@
 """MOD7 레이아웃 graph 필드 이름과 writer 권한표 (design_mod7_layout.md 4절, 계획 N3.4·DEC-83 '필드 = 캐시').
 
-공개 정의(함수·클래스) 없음 -- 상수 표. 레이아웃 결과는 core `GraphSnapshot` 의 필드로만 쓰고, 필드마다 writer 하나
-(`LY_WRITERS`), 값과 함께 그 값을 만든 입력 버전이 기록된다(core `compute_block`). 같은 입력 버전이면 다시 계산하지 않는다.
+공개 정의(함수·클래스) 없음 -- 상수 표. 레이아웃 결과는 그 **설계점 스냅샷**(봉인 S2)의 S2 `layout` 필드로만 쓴다(설계 40 v1.6
+§2.4.7·§2.4.8, 별도 lineage 없음): `run.run_layout` 이 설계점 권한표에 `LY_WRITERS` 를 더해 넓힌다(core `extend_writers`). 필드마다 writer 하나,
+값과 함께 그 값을 만든 입력 버전이 기록된다(core `compute_block`). 같은 입력 버전이면 다시 계산하지 않는다.
 
 입력 필드(writer `WRITER_INPUT`, `run.run_layout` 이 계약 `LayoutInput` 을 풀어 쓴다):
   device `F_DEVICE` (소자별 `LayoutDevice`), graph `F_PDK`·`F_GROUPS_IN`·`F_ROW_GROUPS`·`F_REJECTED`·`F_PASSIVES`(판정 축 면적의

@@ -6,7 +6,8 @@
 
 필드 값: `SliceDensity`(device `ly_slices`), `FingerCandidate`(device `ly_fw_cand`), `GroupLayout`·`MatchingDisposition`
 (graph `ly_groups`·`ly_dispositions`), `DeviceFinger`(device `ly_finger`), `RowsLayout`·`FloorplanSummary`
-(graph `ly_rows`·`ly_floorplan`). 최종 결과: `LayoutResult`(맨 앞 `review_needed`, 끝에 재검증 요청 `Revalidation`).
+(graph `ly_rows`·`ly_floorplan`). 결과: `LayoutResult`(설계점 스냅샷 + 이번 호출의 계산 블록 목록, 설계 40 v1.6 §2.4.7),
+필드 파생 출력: `LayoutOutputs`(맨 앞 `review_needed`, 끝에 재검증 요청 `Revalidation`).
 """
 import dataclasses
 
@@ -364,24 +365,23 @@ class Revalidation:
 
 @dataclasses.dataclass(frozen=True)
 class LayoutResult:
-    """`run_layout` 반환. 맨 앞 `review_needed`(Q8 (iv)). `w_invariant_ok` = 행별 finger 합 = 소자 nf 이고 실효 허용오차를 넘는
-    소자는 모두 W_request 가 있다. `revalidation` = 재검증 요청(Q4 (ii)). `computed_blocks` = 이번 호출에서 다시 계산한
-    writer 이름(나머지는 graph 필드 재사용). `snapshot` = 결과 필드를 담은 core GraphSnapshot(다음 호출의 `previous`)."""
+    """`run_layout` 반환(설계 40 v1.6 §2.4.7): `snapshot` = 레이아웃 `ly_*` 필드를 쓴 설계점 스냅샷(같은 설계점 위 다음 호출의 `previous`),
+    `computed_blocks` = 이번 호출에서 다시 계산한 writer 이름(나머지는 graph 필드 재사용). 레이아웃 값은 스냅샷 필드에서 읽는다."""
+
+    snapshot: object = dataclasses.field(repr=False)
+    computed_blocks: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class LayoutOutputs:
+    """`layout_outputs(snapshot)` 반환 -- 레이아웃 필드에서 파생한 출력 계약 항목(필드 사본이 아니라 읽을 때 만드는 반환값).
+    맨 앞 `review_needed`(Q8 (iv)). `devices` = 소자 이름순 `DeviceLayout`. `w_invariant_ok` = 행별 finger 합 = 소자 nf 이고 실효 허용오차를
+    넘는 소자는 모두 W_request 가 있다. `revalidation` = 재검증 요청(Q4 (ii))."""
 
     review_needed: tuple
     devices: tuple
-    groups: tuple
-    matching_dispositions: tuple
-    rows: tuple
-    box: BoxVerdict
-    fold_attempts: tuple
-    merge_decisions: tuple
-    floorplan: FloorplanSummary
-    diffusion: tuple
     coverage_ok: bool
     coverage_missing: tuple
     w_requests: tuple
     w_invariant_ok: bool
     revalidation: Revalidation
-    computed_blocks: tuple
-    snapshot: object = dataclasses.field(default=None, compare=False, repr=False)

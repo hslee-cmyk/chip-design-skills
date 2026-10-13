@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.8
-plan_version: 6.7
+version: 1.9
+plan_version: 6.8
 ---
 
 # gain-budget-gmid-sizing -- 40-engine Design Document (새 엔진 `gmid_engine`, 색인·아키텍처)
@@ -9,7 +9,13 @@ plan_version: 6.7
 > **Summary**: 새 gm/ID 사이징 엔진(`skills/analog-gmid-design/gmid_engine/`)의 설계 정본이다. 계획서 N3.1 흐름 GB0~GB9를 패키지·파일에 대응시키고, 단계마다 알고리즘·입출력·불변식·실패 코드·as-built 상태를 적는다. 계획서가 요구하고 실행 로드맵에서 빠졌던 gain-budget 흐름(FR-1·FR-2·FR-4·FR-8)은 `41-gain-budget`에서 전부 설계한다. gap 분석 기준표는 `42-gap-checklist`다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Date**: 2026-10-13 · **Status**: v1.8 -- 사용자 결정 2026-10-12 다섯 건과 구현·검증 실측 정정 반영: §6-5 diff_pair review (나')("나'로 진행해"), §3.2-3 sf `drive_kind` 사실 없음·파일럿 `rule_hash` 재기록("1, 가로 해"·"2번 승인."), §6-3·§6-8 전류 기저 열 순서 규칙("3번 권고대로"), §2.4.8·§11 U16 `layout_outputs`("4번 권고대로"), §6-8 `tied_current_box_empty`, §2.4.3 `s0_snapshot` 보고서 키·PDK 선언 필수 인자·U-68 재현 판정, §2.4.8·§2.4.12 Q7 측정 완료·Q8 열림(`constraint_rows` ②로 이월), §2.4.9·§11 `test_g10_second_run_s0_zero` ②로, §10.2 test 3행. 경위는 history.
+> **Date**: 2026-10-13 · **Status**: v1.9 -- 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ① 반영: §10.5 A' 판정 기준 신설(판정자 ngspice·독립 대조군 AI 손분석·피검 엔진 시작점·front, 판정 규칙, U17 단계 ② 완료 조건 -- 시작점과 front 점(U-45)의 ngspice 판정, MOD8 전 점은 T4-pre), §11 U17 ② 행 확인 행 D-AP1·test 열 완료 조건 인용. 결정 원문 밖 세부는 계획 U-76 기본안(사용자 변경 가능). 계획 v6.8 DEC-98·U-75·U-76. 경위는 history.
+>
+> v1.8.2 -- 사용자 결정 2026-10-13 "1은 권고"(d/s 비트 동일 범위 (라))와 U17 ①-a·①-c·①-d 실측 정정 반영: §6-8 D-2·D-3·§3.10.11 U-62·§10.2 -- topology d/s 표기 = 물리 방향 선언(사용자만 수정하는 정본), d/s 표기 맞바꿈에 대해 대칭 결과(궤도·정준 위치·`dc_colour`)는 비트 동일, 전류 부호는 표기 기준 방향 변환 뒤 동일, 사이징 결과(writer 계획·θ 스키마·ties·front)는 선언 방향을 따르고 틀린 선언은 봉인 7이 거부(`no_root_in_window`). 정정(결정 아님): §2.4.8 `dc_colour` 소유자 = graph 대칭 블록 `s1_symmetry`, §6-8 D-1 예시 toy 교체(완전 차동 직렬 가지 + 출력 사이 R1), §2.4.10 허용 모듈에 `core/snapshot_codec.py`, §2.4.3 U-68 정리 = 프로세스당 첫 실제 쓰기 1회·환경 변수 `GMID_S0_SNAPSHOT_DIR`, §2.4.4 분할 대상에 GB5 `passive_values`(단계 ② 이월 기록). 경위는 history.
+>
+> v1.8.1 -- U17 ①-d·①-e 실측에 문구를 맞춘 정정(사용자 결정 변경 아님): §6-3·§6-8·§10.2 (전류 묶음 수, 탐색 θ 변수 수) 정의를 `len(SearchDomain.ties)`(전체 묶음 수)·`len(SearchDomain.variables)`로(파일럿 29/38, 그중 전류 묶음 7), §6-3 열 순서 방향(자유 열 선택에서 비자명 궤도 우선 = 열 정렬 키에서는 비자명 궤도 원소를 뒤로), §6-5·§10.2 review 기록 코드 `diff_pair_orbit_split`, §2.3·§3.9 `LayoutResult` 칸 문구 → 설계점 스냅샷 `ly_*` 필드·`layout_outputs(snapshot)`. 경위는 history.
+>
+> v1.8 -- 사용자 결정 2026-10-12 다섯 건과 구현·검증 실측 정정 반영: §6-5 diff_pair review (나')("나'로 진행해"), §3.2-3 sf `drive_kind` 사실 없음·파일럿 `rule_hash` 재기록("1, 가로 해"·"2번 승인."), §6-3·§6-8 전류 기저 열 순서 규칙("3번 권고대로"), §2.4.8·§11 U16 `layout_outputs`("4번 권고대로"), §6-8 `tied_current_box_empty`, §2.4.3 `s0_snapshot` 보고서 키·PDK 선언 필수 인자·U-68 재현 판정, §2.4.8·§2.4.12 Q7 측정 완료·Q8 열림(`constraint_rows` ②로 이월), §2.4.9·§11 `test_g10_second_run_s0_zero` ②로, §10.2 test 3행. 경위는 history.
 >
 > v1.7 -- `budget_ref` 폐지(사용자 결정 2026-10-12 "다로 해"): `budget_ref` 엣지·concept를 만들지 않는다. 옛 `budget_reference_device`의 역할은 S1 레일-레일 기둥(DEC-71 (1), `E/graph/columns.py`)이 흡수한다. §3.2 `budget_ref` 문단, §3.7-8 폐기(노드 변수 writer = 쓰기 계획 규칙)와 구현 단위 측정 의무, §9.4 J8. 직전 안("가로 해"의 구조 유도 규칙, 열린 질문 BR-1·BR-2)은 이 결정으로 대체·소멸.
 >
@@ -152,7 +158,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 | sizing → search | `size_and_seal`, `build_kernel_context`, `dc_theta_schema`, `dc_current_basis` | 기존 | OK |
 | metrics → search | `ss_evaluate`, `metric_value`, **신규** `block_local_gain`, `achievability`, `ls_fields` | | PART |
 | search → layout·report·pipeline | `find_front` → `FrontPoint`, `node_across_front`, **신규** `layer0_budget` → `BudgetCombination{gain_budget_db, ...}` | | PART |
-| layout ⇄ convergence | `run_layout` → `LayoutResult{W_requests, revalidation}`, **신규** `converge(snapshot)` | | MISS(MOD8) |
+| layout ⇄ convergence | `run_layout` → 설계점 스냅샷의 S2 `ly_*` 필드(§2.4.7·§2.4.8, `LayoutResult` = (스냅샷, 계산 블록 목록)), 파생 값(`w_requests`·`revalidation` 등)은 `layout_outputs(snapshot)`, **신규** `converge(snapshot)` | | MISS(MOD8) |
 | pipeline | **신규** `run_gmid_design_pipeline(spec, *, search, output_dir, instrument, activations_out)` | exit code = `exit_code_for` | MISS(`[ng-bridge]`에 오라클 입력 생산자만) |
 
 
@@ -211,8 +217,8 @@ S0 수준 값은 계산 블록(`core.compute_block`)으로 만들고 S0 수준 �
 | 검증 | 읽은 뒤 스냅샷 `fp`를 다시 계산해 저장된 `fp`와 비교한다. 다르거나 `body_sha256`이 틀리면 손상으로 본다 |
 | 손상 처리 | 다시 계산하고 **같은 키의 파일을 원자적으로 교체**한다. 손상 사실은 **단계 A 보고서의 `s0_snapshot` 키**(값 `hit` \| `miss` \| `corrupt`)에 남긴다(U17 ①-a). 결과 JSON 계수 `perf.s0_snapshot.corrupt`는 `RunCounters`(§2.4.9)가 생기는 단계 ②에서 더한다 |
 | 쓰기 | 원자적이다: 같은 디렉터리의 임시 파일에 쓰고 교체한다. 키가 이미 있고 검증을 통과하면 쓰지 않는다 |
-| 위치 | P N3.5: `gmid_engine` 아래 `.gitignore` 등록 디렉터리. 파일 이름 = `<키 지문>.json.gz` |
-| 무효화 | 키가 다르면 없는 것으로 본다(SC-d). 부분 재사용은 하지 않는다. 키가 다른 옛 파일은 U-68 결정대로 쓰기 시점에 정리한다(§2.4.12 Q2). U-68의 '현재 파일로 만들 수 있는 키' 재현 판정 = **입력 파일 원본 sha256**(topology·spec·LUT·PDK 선언·`structure.json` -- 키 (ii)와 일치) + **엔진 코드 지문**(키 (iii))이다(구현도 `structure.json`을 포함한다). `structure.json`을 넣는 것은 U-68 원문 취지(어떤 checkout으로도 재현할 수 없는 옛 파일만 정리)를 지키기 위해서다: 키 (ii)가 사실 지문을 담으므로 빼면 현재 사실 파일로 만든 키를 재현 불가로 오판해 지운다 |
+| 위치 | P N3.5: `gmid_engine` 아래 `.gitignore` 등록 디렉터리. 파일 이름 = `<키 지문>.json.gz`. 환경 변수 `GMID_S0_SNAPSHOT_DIR`가 비어 있지 않으면 그 폴더를 쓴다(test 격리 수단, LUT 파생표 캐시 `GMID_LUT_TABLE_CACHE_DIR`와 같은 관례. 기본 위치는 바뀌지 않는다) |
+| 무효화 | 키가 다르면 없는 것으로 본다(SC-d). 부분 재사용은 하지 않는다. 키가 다른 옛 파일은 U-68 결정대로 쓰기 시점에 정리한다(§2.4.12 Q2). **U-68 정리 = 프로세스당 첫 실제 쓰기 1회**: 프로세스에서 처음으로 파일을 실제로 쓴 저장만 정리하고(적중·이미 있는 키는 쓰기가 아니다) 같은 프로세스의 다음 쓰기는 정리하지 않는다. 표시는 `core/snapshot_codec.py`의 모듈 수준 1비트 `_CLEANUP_STARTED`다(정리를 시작하기 전에 켠다 -- 정리가 실패해도 그 프로세스에서 다시 시도하지 않는다). 값 캐시가 아니라 §2.4.1 (d) S0 스냅샷 영속화 범주의 상태다(§2.4.10 허용 모듈). U-68의 '현재 파일로 만들 수 있는 키' 재현 판정 = **입력 파일 원본 sha256**(topology·spec·LUT·PDK 선언·`structure.json` -- 키 (ii)와 일치) + **엔진 코드 지문**(키 (iii))이다(구현도 `structure.json`을 포함한다). `structure.json`을 넣는 것은 U-68 원문 취지(어떤 checkout으로도 재현할 수 없는 옛 파일만 정리)를 지키기 위해서다: 키 (ii)가 사실 지문을 담으므로 빼면 현재 사실 파일로 만든 키를 재현 불가로 오판해 지운다 |
 | 계수 | 단계 ①: 단계 A 보고서 `s0_snapshot` 키(`hit` \| `miss` \| `corrupt`). 단계 ②: `RunCounters`의 `perf.s0_snapshot{hit, miss, corrupt}`(§2.4.9). 적중이면 S0 수준 블록 계산 수 0이 G-10 판정 2다 |
 
 #### 2.4.4 이식(graft) 연산
@@ -231,7 +237,7 @@ S0 수준 값은 계산 블록(`core.compute_block`)으로 만들고 S0 수준 �
 - **`fixed`는 extras로만 넘긴다**: 국소 봉인(41 §5.3.9)은 `fixed` 값을 graph 행으로 쓰지 않는다(그 행의 writer는 다른 분할·블록이다). 분할 블록은 읽는 양을 투영에서 찾고, 행에 없으면 `fixed` extras의 같은 (kind, key, field) 칸에서 읽는다. 둘 다 있으면 호출 계약 위반(`ValueError`)이다.
 - **이식이 비트 동일인 전제**(분할 블록의 의무): 분할 블록은 투영 밖의 어떤 입력도 읽지 않는다. 반복 풀이의 초기값도 투영의 함수다. 직전 스냅샷(S2p)·parent·이전 반복의 값을 시드로 쓰지 않는다. 시드가 필요한 블록은 분할 블록이 될 수 없고 `*` 하나로 남는다(이식 대상 아님). 구조 test가 분할 블록 함수의 인자가 `Projection` 하나뿐인지 확인한다(as-built 규칙 그대로, `E/core/compute_block.py:12-13`).
 - 쓰기: graph setter 서명을 `GraphSnapshot.write(name, part, input_version, rows)`로 바꾼다. `rows` = `{(kind, field): {key: value}}`이고 key는 그 분할의 쓰는 레코드 key 집합과 정확히 같아야 한다(다르면 `ValueError`). 분할 밖 행은 건드리지 않는다. `block_version(name, part)`가 `input_version`이 된다. 분할 없는 블록은 `part = "*"`이고 동작은 as-built `write`와 같다. 한 블록의 분할들은 서로 다른 행을 쓰므로 writer 하나 규칙(SC-a)은 그대로다.
-- 대상: 평가 커널 ②~⑤와 봉인 항목 블록, 층 0 블록 범위 metric. 분할이 정의되지 않는 블록(전회로 MNA, 전역 metric)은 `*`이다.
+- 대상: 평가 커널 ②~⑤와 봉인 항목 블록, 층 0 블록 범위 metric, GB5 수동소자 블록 `passive_values`(§2.4.8 `device: passive_value`. 읽는 레코드 = 영점 상쇄 셀 소자의 `dc_gm`. 분할이 없으면 전류 θ만 바뀐 자식에서도 블록 전체가 다시 계산되므로 이 분할로 해소한다 -- U17 ①-c 재검증 기록, **U17 단계 ②로 이월**). 분할이 정의되지 않는 블록(전회로 MNA, 전역 metric)은 `*`이다.
 
 **API**(`E/core/graft.py`, 신규):
 
@@ -388,7 +394,8 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 | 값(as-built 위치) | 필드(kind/key: field) | writer(계산 블록) | 층 |
 |---|---|---|---|
 | S1v 전체(`sctx.s1v`, `StageAResult.s1v`) | `graph/s1v`: `views`, `blocks`, `composite_blocks`, `pole_nodes`, `loops`, `cuts`, `coverage`, `findings`, `l_classes`, `applied_facts` | `build_s1v`(GB2) | S0 |
-| 자기동형 궤도·d/s 맞바꿈 부호(§6) | `graph/s1`: `orbits`, `current_symmetry` | 대칭 블록(§6) | S0 |
+| 자기동형 궤도·d/s 맞바꿈 부호(§6) | `graph/s1`: `orbits`, `current_symmetry` | graph 대칭 블록 `s1_symmetry`(`graph/s1_symmetry.py`, §6) | S0 |
+| 구조 색(정준 순서, as-built master writer = sizing `dc_struct_colour`, `E/sizing/struct_colour.py:20`) | `device: dc_colour`, `node: dc_colour` = (`wl`, 정준 위치) 쌍의 정렬 순위(정점마다 유일, 이름 무관) | graph 대칭 블록 `s1_symmetry`(graph/s1, §6). sizing·search·metrics는 읽기만 한다 | S0 |
 | 결합 변수 y, 기둥↔블록 매핑(보고서에만 있음, `E/pipeline/stage_a.py:101-121`) | `graph/coupling`: `vars`, `column_block_map`, `bias_columns` | `coupling_vars`(GB3) | S0 |
 | GB4 `Achievability`(`sctx.ach`, `StageBResult`) | `graph/ach`: `curve_checks`, `gain_checks`, `area_bound`, `headroom_rows`, `verdict`, `block_bounds`(블록 키 순 tuple). `dof`는 **구조 DOF만**(41 A7) | `achievability`(GB4, 41 A4~A7) | S0 |
 | 층 0 정의역 상한 A_i,max^L0(41 A9, §4.2) | `graph/ach: block_bounds_l0` | `block_bounds_l0`(41 A9) | S0 |
@@ -480,6 +487,7 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 - core graph 모듈: `core/graph_snapshot.py`, `core/compute_block.py`, `core/projection.py`, `core/graft.py`, `core/field_value.py`, `core/graph_record.py`, `core/writer_table.py`, `core/type_registry.py`
 - LUT memo와 디스크 캐시: `lut/lut_memo.py`, `lut/table_cache.py`, `core/bounded_lru.py`
 - S3: `search/archive.py`, `search/s3_index.py`
+- S0 스냅샷 영속화(§2.4.1 (d)): `core/snapshot_codec.py` -- U-68 정리의 프로세스당 1회 표시 `_CLEANUP_STARTED`(모듈 수준 1비트, 값 캐시 아님, §2.4.3) 하나만
 - 실행 계수 모듈 하나: `core/run_counters.py`(신규)
 
 목록에 넣지 않는 것과 이유:
@@ -900,7 +908,7 @@ design-validator 지적(2026-10-12)에 따라 기본안을 정했다. 사용자 
   `convergence` 는 패키지 순서상 `search` 위라 `find_front` 가 부를 수 없다(역방향 import 금지) -- 배선은 파이프라인 몫이다.
 - `run_layout` 의 유일한 프로덕션 호출처는 `convergence.place_layout`, 평가 커널 재호출의 유일한 호출처는 `search.evaluate(geometry=)`(키의 `w_fixed_fp` 자리). 봉인 스냅샷 -> `LayoutInput` 어댑터는
   `layout_input_of`(`W_adjustable` = 쓰기 소자, matching = derived·ratified, 수동소자 = `layout.passives_from_decl(passive_values(...))`).
-- LY7: 레이아웃 결과마다 실현 기하(모든 소자의 실현 W 고정 + 실현 폭 슬라이스 + `LayoutResult.diffusion` 확산 기하)로 평가 커널 1회·봉인·제약 행 재확인. 같은 기하가 나오는 고정점에서 freeze,
+- LY7: 레이아웃 결과마다 실현 기하(모든 소자의 실현 W 고정 + 실현 폭 슬라이스 + 설계점 스냅샷 `ly_diffusion` 필드의 확산 기하)로 평가 커널 1회·봉인·제약 행 재확인. 같은 기하가 나오는 고정점에서 freeze,
   `K_max = k_max(max |ln(W_실현/W_사이징)|, min 실효 W 허용오차)`(첫 레이아웃에서 한 번)에 닿으면 NONCONVERGENT. 접합 용량은 `ss_evaluate(diffusion=)` -> `ss_dev` 가 실현 확산 기하로 계산한다.
 - W_request: 그룹 요청(cc_nf)은 요청한 (폭 키, nf) 로 평가, 위반하면 거부(`rejected_requests`) -> 레이아웃은 pattern None -> **완화 판정**(`relaxation_decision`): common-centroid 를 요구하는 그룹이
   pattern None 이고 응답 대기도 아니면(nf 조정·W 조정 모두 불가) hub 가 있는 쌍은 interdigitation 전용 `mirror` role 로 다시 놓고 `Relaxation` 기록(맨 앞 review_needed 대상, dx·dy), hub 없는 branch_symmetric 은
@@ -1043,7 +1051,7 @@ design이 정하면 안 되는 것(범위·회로 해석·판정 기준 변경)�
 |---|---|---|---|
 | U-60 | LUT memo 상한과 퇴출 판정(§2.4.6) | **결정**(사용자 결정 2026-10-12 "U-60은 (가)로"): (가) 퇴출 허용·퇴출 수 보고, `recomputes_after_eviction` = 0 판정, 상한 N_T 무관. U17 ③ 착수 조건 해소 | -- |
 | U-61 | d/s 맞바꿈의 종류가 다른 소자 전류 묶음 상자(§6-8, D-1) | **결정**(사용자 결정 2026-10-12 "5절 권고대로"): 구성원 상자의 교집합, 비면 거부. 같은 궤도 안 불일치는 지금처럼 거부 | U2·U11(`search_domain`) |
-| U-62 | d/s 맞바꿈과 DEC-97(§6-8, D-3) | **결정**(사용자 결정 2026-10-12 "5절 권고대로"): DEC-97 (3) '방향 없음'을 MOS d/s로 넓힘, 위치·`wl`·생성자 모두 그래프 하나(D-2), d/s 뒤집은 입력도 비트 동일, 9회로 `dc_colour` 순서 변화는 test 기대값 재생성 | U2 |
+| U-62 | d/s 맞바꿈과 DEC-97(§6-8, D-3) | **결정**(사용자 결정 2026-10-12 "5절 권고대로"): DEC-97 (3) '방향 없음'을 MOS d/s로 넓힘, 위치·`wl`·생성자 모두 그래프 하나(D-2), d/s 뒤집은 입력은 대칭 결과(궤도·정준 위치·`dc_colour`, 전류 부호는 표기 기준 방향 변환 뒤)만 비트 동일하고 사이징 결과는 선언 방향을 따른다(범위 (라), 사용자 결정 2026-10-13 "1은 권고", 틀린 선언은 봉인 7 거부), 9회로 `dc_colour` 순서 변화는 test 기대값 재생성 | U2 |
 | U-63 | 층 0 정지 범위(41 PQ2, §5.3.11) | **결정**(사용자 결정 2026-10-12 "U-63은 (가)로", U-63): 정지는 경로 열거 예산 초과와 후보 격자 Π > N_S 둘뿐. N_T,i는 평가 상한(`layer0_candidates_truncated` 기록 + 블록 front '추정'). 현재 library 정지 0 | U15 |
 | U-64 | 층 0 정의역 상한 A^L0의 쓰임(41 L-14) | **결정**(사용자 결정 2026-10-12 "3은 권고대로"·"L14부터 PQ5까지"): 층 0 전용(첫 배분 제외, bin 위 끝 보조). exit 3·41 §6.4-1은 축소 전 표 | U9 A9·U15 |
 | U-65 | 복합 블록 묶음 크기 상한(DEC-81) = N_S | **결정**(사용자 결정 2026-10-12 "GQ2, N1, N3, K2 권고대로"): 계수 예산 N_S | U1 복합 블록 |
@@ -1158,14 +1166,14 @@ design이 정하면 안 되는 것(범위·회로 해석·판정 기준 변경)�
    - 이름을 쓰지 않는다. 결과는 정준 순서와 자기동형 생성자다.
 2. **궤도**(신규 `E/graph/automorphism_orbits.py`): 생성자들로 소자 궤도를 만든다. 레일과 포트 role은 고정한다. 차동 포트 p/n은 서로 바뀔 수 있다.
 3. **θ 묶기**(`E/sizing/theta_schema.py`): 같은 궤도의 소자는 θ 성분을 하나 공유한다. 대상은 ln IDu, L 동치류 L, 보상 수동소자 값이다. 전류 기저 성분은 궤도에 대해 대칭인 것끼리 묶는다. 이것이 기본값이다.
-   - **전류 기저 열 순서 규칙**(사용자 결정 2026-10-12 "3번 권고대로", (가)): KCL 행사다리꼴의 열 순서 키 = (그 원소의 궤도가 비자명인가 -- 비자명 먼저, `dc_colour`, 이름). 대칭 궤도 원소를 자유 열로 먼저 남겨 위 '대칭인 것끼리 묶는다'를 규칙으로 만든 것이다. `current_basis`는 `graph/s1: orbits`(§2.4.8)를 읽는다. 측정 의무: (전류 묶음 수, 탐색 θ 변수 수) = (`SearchDomain.ties` 중 대표가 θ 전류 성분(`CurrentBasis.free` 원소)인 묶음 수, `len(SearchDomain.variables)`). 기준선 = master `8e46548` as-built 값(파일럿 29/38, 나머지 8회로 각 회로 값)과 같아야 한다. "D-3 반영 뒤·열 순서 규칙 전" 측정값(파일럿 28/39)은 기록만 한다. 파일럿 묶음 구성: M1a~M1b 복원, M4a~M4b 대신 M19~M10.
+   - **전류 기저 열 순서 규칙**(사용자 결정 2026-10-12 "3번 권고대로", (가)): 결정 취지 = "대칭 궤도 원소를 자유 열로 먼저 남긴다"(위 '대칭인 것끼리 묶는다'의 규칙화). 자유 열 선택에서 비자명 궤도 원소를 우선한다. 행사다리꼴은 앞 열부터 pivot(종속)으로 잡으므로, **열 정렬 키에서는 비자명 궤도 원소를 뒤로** 둔다: 열 정렬 키 = (그 원소의 궤도가 비자명인가 -- 비자명이 뒤, `dc_colour`, 이름). (결정 원문의 키 표기 '비자명 먼저'는 자유 열 선택 순서를 뜻한다. 열 정렬에서 앞에 두면 비자명 원소가 pivot이 되어 파일럿이 27/40으로 나빠진다 -- ①-d 실측.) `current_basis`는 `graph/s1: orbits`(§2.4.8)를 읽는다. 측정 의무: (묶음 수, 탐색 θ 변수 수) = (`len(SearchDomain.ties)` -- 전류·L·ln IDu·수동소자 값 묶음 전체, `len(SearchDomain.variables)`). 그중 전류 묶음 수(대표가 θ 전류 성분인 묶음)는 함께 기록한다. 기준선 = master `8e46548` as-built 값(파일럿 29/38, 그중 전류 묶음 7. 나머지 8회로 각 회로 값)과 같아야 한다. ①-d 실측: 규칙 적용 뒤 파일럿 29/38·전류 묶음 7, 나머지 8회로 base와 같음. "D-3 반영 뒤·열 순서 규칙 전" 측정값(파일럿 28/39, 전류 묶음 6)은 기록만 한다. 파일럿 전류 묶음 구성: M1a~M1b 유지, M4a~M4b 대신 M19~M10.
 4. **해제**: spec `search.untie_orbits: {원소: {source}}`(as-built 정본, 옛 이름 `symmetry_untie`)에 적힌 소자는 궤도에서 빼고 따로 변수를 둔다. 의도적 비대칭 사이징에 쓴다.
 5. **불변식**:
    - **궤도와 matching 사이에는 포함 관계를 불변식으로 두지 않는다**(H1·N8, `[ng-layer0-canon]` 실측). 어느 쪽도 일반적으로 다른 쪽을 포함하지 않는다.
      - 비율 미러는 궤도가 아니다.
      - 반회로 대응은 궤도지만 matching 그룹 하나에 들어가지 않는다. 실측 예: 파일럿 M11a/M20a(class-AB KVL 루프 멤버), M37a/M37b(CMFB 쌍).
      - 대신 대조 표 `orbit_matching_crosstab`을 보고한다. MOS 궤도마다 그 궤도가 걸친 matching 레코드, 그리고 matching 레코드마다 그 레코드가 걸친 궤도를 적는다. 수동소자 궤도(Cc1/Cc2, Rz1/Rz2, R1/R2, CL1/CL2 등)는 matching 대상이 아니므로 표에서 뺀다.
-     - `review_needed`로 올리는 것은 하나뿐이다(사용자 결정 2026-10-12 "나'로 진행해", (나')). `diff_pair` 레코드의 두 멤버가 다른 궤도이고, (a) 회로의 출력 포트(topology `ports`)가 차동 쌍(`differential_output_p/n`)이며 (b) 그 `diff_pair`의 두 gate가 회로의 차동 입력 포트 p/n일 때만이다. 이 경우만 대칭 차동쌍의 정의와 직접 모순된다. 그 밖의 `diff_pair` 궤도 불일치는 `orbit_matching_crosstab`에 기록만 한다.
+     - `review_needed`로 올리는 것은 하나뿐이다(사용자 결정 2026-10-12 "나'로 진행해", (나')). `diff_pair` 레코드의 두 멤버가 다른 궤도이고, (a) 회로의 출력 포트(topology `ports`)가 차동 쌍(`differential_output_p/n`)이며 (b) 그 `diff_pair`의 두 gate가 회로의 차동 입력 포트 p/n일 때만이다. 기록 코드는 `diff_pair_orbit_split`이다(`orbit_matching_crosstab`의 `findings`, 단계 A 보고서 review 목록). 이 경우만 대칭 차동쌍의 정의와 직접 모순된다. 그 밖의 `diff_pair` 궤도 불일치는 `orbit_matching_crosstab`에 기록만 한다.
      - 9 library 회로 기대: review 0. 파일럿 M1a/M1b는 같은 궤도라 통과, M37a/M37b는 gate가 Voc/Voc_des라 대상 아님(CMFB 단일 출력 오차증폭기), 단일 출력 7회로는 (a)에 걸리지 않는다. 실제로 거부하는지는 파일럿에서 넷 하나를 비대칭으로 바꾼 합성 회로로 확인한다(§10.2).
    - 이름을 전단사로 바꾼 입력은 비트 단위로 같은 결과(front 정규화 해시)를 낸다.
    - 1-WL 결과와 정준형이 다른 회로는 그 목록을 보고한다.
@@ -1189,13 +1197,13 @@ design이 정하면 안 되는 것(범위·회로 해석·판정 기준 변경)�
    - **확인**: 이름을 전단사로 바꾸거나 수동소자 단자 순서를 바꾼 입력에서 궤도와 front 정규화 해시가 같은지 metamorphic test로 본다. 파일럿에서 R1/R2 궤도가 잡히는지도 test한다.
 8. **MOS drain/source 맞바꿈**(사용자 결정 2026-10-12 "6. 가", 대칭 탐색 그래프 하나 = 사용자 결정 2026-10-12 "1~4까지 새로고친 네 제안대로 해" 1절 D-2, D-1·D-3 = 사용자 결정 2026-10-12 "5절 권고대로" -- **결정됨**):
    - **규칙**: MOS는 d/s에 대해 물리적으로 대칭이다. 자기동형은 한 MOS의 drain을 상 MOS의 source로 보낼 수 있다(자기 자신으로 가며 d/s를 맞바꾸는 것 포함). 계획 DEC-97 (3)의 '방향 없는 원소'를 2단자 수동소자에서 MOS d/s까지 넓힌 것이다(D-3).
-   - **그래프 하나**(D-2): 정준 위치 `position`, 1-WL 색 `wl`, 자기동형 생성자를 **모두 같은 그래프 하나**에서 정한다. 그 그래프에서 MOS의 `d`·`s` 엣지는 같은 라벨 `c`(채널)다. `g`·`b` 라벨, 원소 처음 색(kind, is_diode, 선언 표시 `_declaration_marks`), 노드 색(레일, 포트 role, 선언 표시)은 그대로다. 그래서 맞바꿈은 gate·bulk 넷과 모든 선언이 보존될 때만 생긴다. 두 번 탐색하지 않는다.
+   - **그래프 하나**(D-2): 정준 위치 `position`, 1-WL 색 `wl`, 자기동형 생성자를 **모두 같은 그래프 하나**에서 정한다. 그 그래프에서 MOS의 `d`·`s` 엣지는 같은 라벨 `c`(채널)다. `g`·`b` 라벨, 원소 처음 색(kind, is_diode, 선언 표시 `_declaration_marks`), 노드 색(레일, 포트 role, 선언 표시)은 그대로다. 그래서 맞바꿈은 gate·bulk 넷과 모든 선언이 보존될 때만 생긴다. 두 번 탐색하지 않는다. 이 그래프는 **대칭 결과**(궤도·정준 위치·`wl`·`dc_colour`·전류 부호)만 정한다. 사이징은 topology의 선언 d/s 방향을 그대로 쓴다(아래 비트 동일 범위, D-3).
    - **불변식 유지**: 한 그래프에서 정하므로 "개별화·정제 뒤 남는 동률 = 정확히 자기동형 궤도"와 graph CONTRACT 4.7 (h) "궤도 ⊆ `wl` 클래스"가 맞바꿈 궤도에서도 성립한다. 궤도 id(구성원 정준 위치 최솟값)와 대표(구조 색 최소)는 이름에 불변이다.
-   - **비트 동일**(DEC-97 (4), D-3): 이름 전단사, 수동소자 단자 순서 변경, **MOS d/s 표기를 뒤집은 입력**이 모두 비트 동일 결과(궤도, 정준 위치, `dc_colour`, front 정규화 해시)를 낸다. metamorphic test에 d/s 뒤집기 변형을 더한다.
-   - **결과(측정 대상)**: d·s 구별이 사라지므로 9 library 회로의 정준 순서·`dc_colour` 순서가 바뀐다(궤도는 2026-10-12 측정에서 맞바꿈 자기동형이 없어 그대로다. 전류 묶음은 KCL 열 순서가 `dc_colour`를 따라 바뀌므로 '그대로'가 아니다 -- §6-3 전류 기저 열 순서 규칙으로 파일럿 (전류 묶음 수, 탐색 θ 변수 수)를 master `8e46548` as-built 값 29/38로 회복하고(M1a~M1b 복원, M4a~M4b 대신 M19~M10) 나머지 8회로는 as-built 값 그대로. 규칙 전 측정값 28/39는 기록만). 이 순서를 기대값으로 쓰는 test는 **독립 test 작성 주체가 기대값을 다시 만든다**(작성자 ≠ 검증자, 기준 약화 아님 -- 정준 순서 정의가 바뀐 결과).
+   - **비트 동일 범위**(DEC-97 (4), D-3, 범위 (라) = 사용자 결정 2026-10-13 "1은 권고"): topology의 d/s 표기는 **물리 방향 선언**이다(사용자만 수정하는 정본, 엔진은 고치지 않는다). 이름 전단사·수동소자 단자 순서 변경은 지금처럼 비트 동일 결과(궤도, 정준 위치, `dc_colour`, front 정규화 해시)를 낸다. **MOS d/s 표기 맞바꿈**에 대해서는 **대칭 결과**(궤도, 정준 위치, `dc_colour`)가 비트 동일이고, 전류 부호는 표기 기준 방향 변환(뒤집은 소자 f = −1을 원소·상에 곱함)을 적용하면 동일하다. **사이징 결과**(writer 계획, θ 스키마, ties, front)는 선언 방향을 따르므로 비트 동일 대상이 아니다. 근거: 엔진 51개 파일이 표기 source를 물리 source로 쓴다(U17 ①-d 구현 조사) -- 사이징까지 표기 무관으로 만들려면 엔진 전반을 바꿔야 하고, (라)는 엔진 변경 0이다. 틀린 선언은 봉인 7(VDS − VDsat ≥ tol)이 거부한다: 선언 VDS ≤ 0이라 창 안에 근이 없어 `no_root_in_window`(fail-closed). test: `tests/search/test_orbit_ties.py::test_ds_flip_symmetry_bit_identical`(옛 `test_ds_flip_ties_bit_identical` -- ties 비교를 빼고 대칭 결과만 비교), 봉인 7 거부는 `tests/sizing/test_block_columns.py`(d/s 반대 선언 거부, 바른 선언의 같은 동작점은 통과).
+   - **결과(측정 대상)**: d·s 구별이 사라지므로 9 library 회로의 정준 순서·`dc_colour` 순서가 바뀐다(궤도는 2026-10-12 측정에서 맞바꿈 자기동형이 없어 그대로다. 전류 묶음은 KCL 열 순서가 `dc_colour`를 따라 바뀌므로 '그대로'가 아니다 -- §6-3 전류 기저 열 순서 규칙으로 파일럿 (묶음 수 `len(SearchDomain.ties)`, 탐색 θ 변수 수 `len(SearchDomain.variables)`)를 master `8e46548` as-built 값 29/38(그중 전류 묶음 7)로 회복하고(전류 묶음 M1a~M1b 유지, M4a~M4b 대신 M19~M10) 나머지 8회로는 as-built 값 그대로 -- ①-d 실측 일치. 규칙 전 측정값 28/39(전류 묶음 6)는 기록만). 이 순서를 기대값으로 쓰는 test는 **독립 test 작성 주체가 기대값을 다시 만든다**(작성자 ≠ 검증자, 기준 약화 아님 -- 정준 순서 정의가 바뀐 결과).
    - **전류 부호**: 자기동형이 MOS의 drain을 상 MOS의 drain으로 보내지 않으면 그 전류 성분은 부호 −1로 묶인다(2단자 수동소자 규칙과 같다, graph `reverses_orientation`).
    - **자기 맞바꿈 = 구조적 0 전류 → 정지**(design-validator N5): 자기동형이 전도 MOS 하나를 자기 자신으로 보내며 d/s를 맞바꾸면 그 소자 전류는 `I = −I`로 구조적 0이다. 전류 0인 전도 MOS는 gm/ID·VGS 역산이 정의되지 않는다(ID > 0 전제, 봉인 7). 이 분기의 계산 규칙은 만들지 않고(DEC-76) 탐색 전에 `unsupported_rule_branch`(사유 `ds_self_swap_zero_current`, 소자·생성자 기록)로 정지한다. test: 합성 toy(U11 `pass_device` 변형 -- 대칭 두 출력 사이의 통과 MOS 하나)에서 정지와 사유를 단언한다(`tests/graph/test_s1_symmetry.py`, 원본 `graph/s1_symmetry.py`). 9 library 회로는 발동 0이다(측정 2026-10-12).
-   - **종류가 다른 소자의 전류 묶음 상자**(D-1, 결정 사용자 결정 2026-10-12 "5절 권고대로"): 맞바꿈이 만든 대칭이 KCL과 함께 종류가 다른 소자의 전류를 묶을 수 있다(예: U11 `pass_device` 변형의 nmos M2와 pmos M3·M4). 궤도를 넘는(KCL 유도) 전류 묶음의 탐색 상자 = 구성원 상자의 **교집합**이고, 비면 실패 레코드 `tied_current_box_empty`로 거부한다. 같은 궤도 안 상자 불일치는 지금처럼 `tied_orbit_bounds_differ`로 거부한다(search CONTRACT 3.24-4). `search_domain` 변경이다(승인됨).
+   - **종류가 다른 소자의 전류 묶음 상자**(D-1, 결정 사용자 결정 2026-10-12 "5절 권고대로"): 맞바꿈이 만든 대칭이 KCL과 함께 종류가 다른 소자의 전류를 묶을 수 있다(예: 완전 차동 직렬 가지 + 출력 사이 R1 toy -- 가지마다 nmos 입력과 pmos 부하가 출력 노드에서 만나고 두 출력 사이에 R1이 있다. 반사가 R1 단자 순서를 뒤집어 I_R1 = 0이고, KCL로 nmos 궤도 {M1, M2}와 pmos 궤도 {M3, M4}의 전류가 궤도를 넘어 묶인다. 옛 예시 'U11 `pass_device` 변형(통과 MOS Mx 포함)'은 위 자기 맞바꿈 정지(`ds_self_swap_zero_current`)에 먼저 걸려 `search_domain`에 닿지 않는다 -- U17 ①-d 통합 test 지적). 궤도를 넘는(KCL 유도) 전류 묶음의 탐색 상자 = 구성원 상자의 **교집합**이고, 비면 실패 레코드 `tied_current_box_empty`로 거부한다. 같은 궤도 안 상자 불일치는 지금처럼 `tied_orbit_bounds_differ`로 거부한다(search CONTRACT 3.24-4). `search_domain` 변경이다(승인됨).
    - **범위**: U2(`canonical_form`, `automorphism_orbits`, `current_symmetry`)와 `search_domain`(D-1 상자)이 바뀐다. 다른 모듈은 U2 결과를 그대로 소비한다. D-SYa~c·R16의 궤도·묶기·해제 규칙은 그대로다.
    - **계획 정정**: 계획 DEC-97 (1)(3)(4)를 같은 커밋에서 고쳤다(v6.5 정합 정정).
 
@@ -1475,9 +1483,10 @@ def build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structur
 | 항목 | 오라클 | test(신규) | 단언 |
 |---|---|---|---|
 | 대칭 궤도·θ 묶기 | (a) 5T·캐스코드 toy, (b) 전수 순열 자기동형(소자 ≤ 8 toy) | `tests/graph/test_canonical_form.py`, `test_automorphism_orbits.py` | diff_pair 두 멤버가 같은 궤도에 든다. crosstab을 생성한다. 이름 전단사나 수동소자 단자 순서를 바꿔도 front 해시가 같다. 파일럿 R1/R2가 한 궤도로 묶이고 전류 부호는 −1이다 |
-| diff_pair review(§6-5, (나')) | (d) 9 library 회로, (a) 파일럿에서 넷 하나를 비대칭으로 바꾼 합성 회로 | `tests/graph/test_orbit_matching_crosstab.py`(원본 `graph/orbit_matching_crosstab.py`) | 9회로 review 0(각 회로 `orbit_matching_crosstab` 기록). 합성 회로: (a)(b)를 만족하는 `diff_pair`가 다른 궤도가 되어 `review_needed`. 출력 포트가 단일이거나 gate가 입력 포트가 아니면 crosstab 기록만 |
-| 전류 기저 열 순서(§6-3) | (d) 9 library 회로 | `tests/sizing/test_current_basis.py`(기존 파일에 추가) | (전류 묶음 수, 탐색 θ 변수 수) = (`SearchDomain.ties` 중 대표가 θ 전류 성분(`CurrentBasis.free` 원소)인 묶음 수, `len(SearchDomain.variables)`): 파일럿 29/38(M1a~M1b 묶임, M19~M10 묶임), 나머지 8회로는 master `8e46548` as-built 값과 같음. 28/39(규칙 전)는 기록만. 열 순서 키가 이름 전단사에 불변 |
-| 궤도 넘는 전류 상자(§6-8 D-1) | (a) U11 `pass_device` 변형 toy(구성원 상자 교집합 빈 경우·안 빈 경우) | `tests/search/test_search_domain.py`(기존 파일에 추가) | 빈 교집합 → `tied_current_box_empty` 거부, 같은 궤도 안 불일치 → `tied_orbit_bounds_differ` |
+| d/s 비트 동일 범위(§6-8 D-3, (라)) | (a) d/s 표기만 맞바꾼 입력(전류 부호는 뒤집은 소자 f = −1 손 유도 변환), (a) d/s를 반대로 선언한 toy(선언 VDS ≤ 0) | `tests/search/test_orbit_ties.py::test_ds_flip_symmetry_bit_identical`(옛 `test_ds_flip_ties_bit_identical`), `tests/sizing/test_block_columns.py`(봉인 7 거부) | 궤도·정준 위치·`dc_colour`(노드·원소) 비트 동일, 전류 부호는 뒤집은 소자 f = −1을 원소·상에 곱한 뒤 동일. ties·writer 계획·θ 스키마·front는 비교하지 않는다(선언 방향을 따름). 반대 선언 → 봉인 7 `no_root_in_window`(item 7) 거부, 바른 선언의 같은 동작점 → 봉인 7 통과 |
+| diff_pair review(§6-5, (나')) | (d) 9 library 회로, (a) 파일럿에서 넷 하나를 비대칭으로 바꾼 합성 회로 | `tests/graph/test_orbit_matching_crosstab.py`(원본 `graph/orbit_matching_crosstab.py`) | 9회로 review 0(각 회로 `orbit_matching_crosstab` 기록). 합성 회로: (a)(b)를 만족하는 `diff_pair`가 다른 궤도가 되어 `review_needed`(코드 `diff_pair_orbit_split`). 출력 포트가 단일이거나 gate가 입력 포트가 아니면 crosstab 기록만 |
+| 전류 기저 열 순서(§6-3) | (d) 9 library 회로 | `tests/sizing/test_current_basis.py`(기존 파일에 추가) | (묶음 수, 탐색 θ 변수 수) = (`len(SearchDomain.ties)`, `len(SearchDomain.variables)`): 파일럿 29/38, 그중 전류 묶음(대표가 θ 전류 성분) 7(M1a~M1b 묶임, M19~M10 묶임), 나머지 8회로는 master `8e46548` as-built 값과 같음. 28/39(규칙 전, 전류 묶음 6)는 기록만. 열 정렬에서 비자명 궤도 원소가 뒤(자유 열로 남음). 열 순서 키가 이름 전단사에 불변 |
+| 궤도 넘는 전류 상자(§6-8 D-1) | (a) 완전 차동 직렬 가지 + 출력 사이 R1 toy(nmos·pmos 궤도 전류가 KCL로 묶임, 구성원 상자 교집합 빈 경우·안 빈 경우. `ds_self_swap` 정지에 걸리지 않는다) | `tests/search/test_search_domain.py`(기존 파일에 추가) | 빈 교집합 → `tied_current_box_empty` 거부, 같은 궤도 안 불일치 → `tied_orbit_bounds_differ` |
 | MOD8 수렴·재필터 | (a) W_request 합성 픽스처 | `tests/convergence/test_converge.py` | 레이아웃 안 재시도에서 커널 호출 0. 결과마다 재평가 1회. K_max에 닿으면 NONCONVERGENT |
 | C10 한계 사이클·Nyquist | (c) 지속 진동 fixture, 조건부 안정 fixture | `tools/spice_oracle/tests/test_oracle_c10_stability.py` | 지속 진동 → unstable(limit_cycle) FAIL. 개루프 RHP이면서 Z = 0이고 과도 안정 → 합격 |
 | 척도화 | (a) 1e6 규모 행 픽스처 | `tests/search/test_slsqp_scaling.py` | status 4 없음. 척도화 전후 활성 집합 동일 |
@@ -1574,6 +1583,39 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | P N6.2 단위 10(IC11 2·3레일, push-pull 등식 잔차 ≤ 멤버 수 × tol_V) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration -q -k "ic11 or kvl_branch_residual"` |
 | 공유 블록 전후 대조(DEC-51) | `$PY tools/compare_runs.py --before <base 결과 디렉터리> --after <변경 결과 디렉터리>`: 9회로 노드전압·front·SPICE verdict 차 표를 쓴다. verdict 차가 있으면 보고 맨 앞 |
 
+### 10.5 A' 판정 기준 (P DEC-98, U17 단계 ② 완료 조건)
+
+사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①. 이 절은 규칙만 적는다. 첫 사례(nmcnr 시범)의 경위·수치는 계획 history H1·H4에 있다. 'P U-76 (n)'은 결정 원문 밖이라 원칙으로 정한 기본안(사용자 변경 가능)이다.
+
+| 역할 | 누구 | 규칙 |
+|---|---|---|
+| 판정자 | ngspice(`tools/spice_oracle/`, §4) | 합격 정의 = P N6.2 T4·T5(DEC-90). MOD8 전 점(시작점, MOD8 전 front 점)은 T4-pre 기하(아래). 엔진 점과 손분석 설계를 같은 정의로 판정한다 |
+| 독립 대조군 | AI 손분석 | 결정 원문 "코드 없음"(해석: 엔진 코드를 보지 않는다. LUT 조회·계산 보조 스크립트는 허용). 회로마다 1회 문서로 고정한다. 값마다 유도 근거(회로 원리·LUT 조회·spec 값)를 적고 상수를 발명하지 않는다(P WP-03). 결과는 엔진 입력(spec·topology·`structure.json`·출발값)으로 쓰지 않고 판정 기준으로도 쓰지 않는다(판정은 ngspice). 손분석 작성 주체 ≠ 엔진 코드 작성 주체(P WP-13) |
+| 피검 | 엔진 시작점(층 0·출발 구간, 41 §5·§6)과 front 점(P U-45 대상: 양 끝점 + 예산 점) | 둘 다 아래 완료 조건에서 ngspice로 판정한다 |
+
+**판정 규칙**(결정 (3), 실패 정의는 P U-76 (7) 결정 문언 풀이)
+
+| 엔진 | AI 손분석 | 분류 | 기록 | 그 회로의 완료 |
+|---|---|---|---|---|
+| 실패 | 통과 | 엔진 결함 | A' 대조표로 원인 | 아님(P U-76 (1)) |
+| 통과 | 실패 | AI 해석 오류 | 사용자 공동분석(P N7.1) 기록 | 완료(P U-76 (8)) |
+| 통과 | 통과 | -- | 전력·면적 차(출처 아래) | 완료 |
+| 실패 | 실패 | 판정 불능(P U-76 (2)) | 사용자 공동분석(AI만 실패와 같은 경로) | 원인 확정 전 아님 |
+
+* 엔진 쪽 조건(P U-76 (7)) = 봉인 통과(P N3.6) + spec 제약 행(`graph/metrics: constraint_rows`, §2.4.8) 전부 c ≥ 0. 엔진 실패 = 그런 점을 내지 못함 또는 그 점의 ngspice 불합격. AI 실패 = 손분석 설계의 ngspice 불합격. front 점(P U-45)에도 엔진 쪽 조건(봉인 통과 + c ≥ 0)을 적용하고, front 점의 ngspice 불합격도 엔진 실패로 A' 대조표 대상이다. 근거: 엔진 자기 예측도 spec 충족을 주장해야 ngspice 통과가 우연이 아니다.
+* **T4-pre** = T4·T5와 같은 판정 정의에 MOD8 전 기하를 쓴 판정: 넷리스트 W = sizing W 그대로(레이아웃 전), 접합 기하 ad/as/pd/ps = LUT 특성화와 같은 규칙 -- `assets/sky130_lut_sweep.py` `DUT_LINE`(W = 5 µm 기준 ad = as = 2.5e-12 m²(= 2.5 µm², ngspice `2.5p`), pd = ps = 7e-6 m)을 W에 비례시킨다. 전도 문턱 `off_current_A`(DEC-90 (1))는 같은 엔진 코드로 sizing W에서 계산한다. 손분석 설계의 전도 집합은 손분석 문서가 선언한 집합이다. 그 점의 T5도 T4-pre 기하로 잰다(P U-76 (3)). MOD8 수렴 뒤 front 점은 기존 T4·T5다.
+* 미측정 제약 행(§2.4.12 Q8)과 `spice_unverifiable[]` 제약은 c ≥ 0 판정에서 빼고 보고서에 목록으로 낸다. ngspice는 측정할 수 있는 항목만 판정한다(P U-76 (4)).
+* 전력·면적 차의 출처(P U-76 (9)): 전력 = ngspice 측정, 면적 = 엔진 면적 코드(P DEC-79)에 손분석 W/L/finger를 넣은 값. 손계산 수치는 A' 문서 참고값으로만 쓴다(P WP-21). 손분석점과 front 점의 전력·면적 차는 기록만 하고 A' 판정 기준값이 아니다(P U-76 (6)).
+* A' 대조표 = 같은 항목(소자 L·gm/ID·ID·W, 노드전압, 보상 소자 값, spec 제약 행 c 등)에서 손분석 값과 엔진 값을 맞대고, 갈린 항목마다 회로 원리 근거의 원인 가설을 적은 표. 손분석과 대조표는 `docs/03-analysis/aprime/<회로>.md` 한 문서이고 실측 원본(넷리스트·로그)은 그 문서에서 경로로 참조한다(P U-76 (6)).
+
+**U17 단계 ② 완료 조건**
+
+1. 대상 = library 9회로 + held-out 회로. held-out = library 9회로 밖이고 엔진 개발(코드·test 픽스처·`structure.json` 사실·spec 값 조정·발동표 측정)에 쓰지 않은 회로(P DEC-98 (4)). **선정은 사용자 몫**(P U-75).
+2. 회로마다 (가) 엔진 시작점(층 0·출발 구간)이 엔진 쪽 조건을 만족하는 점을 내고 그 점이 ngspice T4-pre·T5를 통과하고 (나) 엔진 front 점(P U-45 대상)도 ngspice를 통과한다 -- MOD8 전 점은 T4-pre, MOD8 수렴 뒤 점은 T4·T5.
+3. 엔진 실패 회로(엔진만 실패·판정 불능)는 A' 대조표를 남기고, 그런 회로가 남으면 완료가 아니다(fail-closed). 회로별 예외는 그 회로의 대조표 + 사용자 결정으로만 둔다(P U-76 (1)). AI만 실패한 회로는 그 회로 완료로 보되 공동분석 기록을 남긴다(P U-76 (8)).
+4. library 9회로 도달률(2를 만족한 회로 수 / 9)은 회귀 지표로만 기록한다. 일반성의 근거는 held-out 회로다.
+5. held-out 정의 세부: held-out 회로의 실패를 고치려고 엔진을 바꾸면 그 회로는 개발 회로로 옮기고, 다음 일반성 판정에는 새 held-out 회로가 필요하다(P U-76 (5) 기본안).
+
 ---
 
 ## 11. 구현 단위 (병렬 배분용)
@@ -1615,7 +1657,7 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | **U11 search 정비** | `E/search/`: SLSQP 척도화, 타입 있는 아카이브 레코드, 예산 점 풀이, `n_starts`·L-c 분지, ε 간격과 점 예산, CM 감지 저항 최소화, CM 1 dB 대체 제거, 면적 예산 출발점과 W 타당성 | 40 §3.6, §5-4, §7.1·7.2, §3.5 | U0 | 2 | D-SC, D-AC, D-BP, D-ST, D-EPS, D-CM4, D-CMR, D-AR2·3 | 1e6 행 픽스처, 왕복 비트 동일, 예산 점 1개 |
 | **U12 layout 정비** | `E/layout/`: ΔA_tie, LY5 즉시 완화 제거, `matching_L_mismatch`, `ly.diffusion`, 그룹 경계 tap, 판정 축 면적에 수동소자(MIM·poly 저항) 포함 | 40 §3.9 | U3(저항 PDK 양) | 2 | D-LY1~4, R20~22 | 해시 대조, 면적 손계산 |
 | **U13 출발 구간·매크로 모델** | `E/search/start_intervals.py`, `iv_*`(Q3·Q4: `iv_headroom`의 스윙·ICMR·입력 DC 예산 분할, `iv_matching_l`의 A_eff 기반 matching L 하한과 offset 가드 부하 gm/ID 상한), `macro_poles.py`, `dominant_node.py`, `eval_budget.py` | 41 §6(§6.2, §6.4-2·2a), §7.5, §5.8 | U1, U3, U9 | 3 | D-SIa~g, D-DN, D-NZ5 | 손계산 toy, 이상 VCCS 2·3극점, 절대 offset 회로에서만 L 하한 활성 |
-| **U14 MOD8 수렴** | `E/convergence/`: `converge`(W_request 루프, LY7 재평가, 판정 축 재필터, K_max). **U12 인계(2026-10-09)**: 봉인 스냅샷 → `LayoutInput` 어댑터(수동소자는 `layout.passives_from_decl` 사용), `run_layout`의 유일한 프로덕션 호출처, ΔA_tie(`area_tie_m2`)를 `pareto.nondominated(ties=)`에 배선, `LayoutResult.diffusion`·`RealizedDevice.diffusion` 재검증 소비, LY5 즉시 완화를 지운 뒤 W 조정 불가 그룹(pattern None)의 완화 판정 | 40 §3.9 | U4, U12 | 3 | D-M8, R12 | W_request 합성 픽스처, 커널 호출 계수 |
+| **U14 MOD8 수렴** | `E/convergence/`: `converge`(W_request 루프, LY7 재평가, 판정 축 재필터, K_max). **U12 인계(2026-10-09)**: 봉인 스냅샷 → `LayoutInput` 어댑터(수동소자는 `layout.passives_from_decl` 사용), `run_layout`의 유일한 프로덕션 호출처, ΔA_tie(`area_tie_m2`)를 `pareto.nondominated(ties=)`에 배선, `LayoutResult.diffusion`(U17 ①-e 뒤 설계점 스냅샷 `ly_diffusion` 필드)·`RealizedDevice.diffusion` 재검증 소비, LY5 즉시 완화를 지운 뒤 W 조정 불가 그룹(pattern None)의 완화 판정 | 40 §3.9 | U4, U12 | 3 | D-M8, R12 | W_request 합성 픽스처, 커널 호출 계수 |
 | **U15 층 0 gain 예산** | `E/search/`: `layer0_budget`, `gain_bins`, `local_candidates`, `local_front`, `combo_dp`, `assembly`, `budget_override`, `layer0_inverse`, `l_targets`(41 v1.6 §5.3·§5.10 구현 변경 목록). `layer0_center`는 대체되어 초기점 생성 전용이 된다 | 41 §5 | U4, U7, U9, U10, U13 | 4 | FR-4, DEC-03·10·71·73, D-L0a~i | 2블록 toy DP = 전수, 파일럿 `gain_budget_db` 출력 |
 | **U16 보고·진입점·통합** | `E/report/`, `E/pipeline/`(`ng-bridge` 흡수). **인계(2026-10-09)**: (i) 엔진이 정한 finger 폭(mismatch σ의 bin 선택, U7 `device_sigma`: W/ceil(W/w_bin_max(L)))을 오라클 입력으로 넘겨 오라클 넷리스트 `w=finger_w m=n`이 같은 bin을 쓰게 한다(출처 하나); (ii) `build_search_context(s1v=)`로 S1v를 넘기는 진입점(구조 의존 metric·잡음 입력 셀); (iii) U7 `model_error_pairs` 적재(오라클 대조 결과); (iv) 내부 루프 뷰 `loop_cut` 선언의 PM metric 평가 경로(U1b 인계), (v) 결과 JSON이 설계점마다 `layout_outputs(snapshot)`을 한 번 부르는 배선(완료 조건, 사용자 결정 2026-10-12 "4번 권고대로", 42 D-LY5), `tests/integration/`의 9회로 E2E·구조 표·IC7·IC11·회귀 추적 | 40 §3.9, §10 | U14, U15, U6 | 5 | D-M9·M10, D-IC, D-T, T1~T9 | 9회로 E2E, 오라클 대조 |
 
@@ -1624,7 +1666,7 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | 단계 | 범위(소유 파일) | 재작성 범위 | 같은 변경에서 지우는 것 | 선행 | 확인 행 | test |
 |---|---|---|---|---|---|---|
 | **① graph 층 이동** | S1v 저장(`E/graph/s1v_build.py` 출력층, `s1v_values.py`의 `S1v` 묶음), GB3 출력(`coupling_vars.py`), U9 출력층(`E/metrics/achievability.py`·`achievability_types.py`의 `Achievability` 묶음), U13 데이터 흐름(`E/search/start_intervals.py`, `iv_context.py`, `iv_curves.py`, `start_values.py`의 `StartContext`·`StartIntervals`), S0 수준 스냅샷 직렬화(신규 `E/core/snapshot_codec.py`·`type_registry.py`, 패키지마다 `__init__` 등록, `E/pipeline/stage_a.py`·`stage_b.py` 배선), 단계 B 층(`residual_probe`·`dof_numeric` 필드, 직렬화 제외), 커널 컨텍스트 구조 파생과 SearchContext 선언 파생의 S0 수준 필드(`E/sizing/kernel_context.py`, `E/search/search_domain.py`, 제약 분류, 접합·mismatch 출처, 면적 선언, 모델 오차), CurveBook·ParamTables의 LUT 파생을 `E/lut/derived_fns.py`로(호출 형식은 ③에서 `call`로), `metrics_dc`의 `gate_area_m2`·`power_resolution_w`(search `_power_resolution` 삭제), 수동소자 값 블록(`E/metrics/passive_values.py` → 계산 블록, 소비자 `ss_evaluate.py`·`search/kernel.py`·`convergence/converge_point.py`. `search/_helpers_area.py`는 출발 구간(S0 층) 추정이라 S2 필드 `device.passive_value`를 읽을 수 없으므로 ①-b(S0 필드 이동)로 이월), tol_I gm 필드(`E/sizing/seal_tolerances.py`, `seal_kcl.py`, `kernel_run.py`, `seal.py`, `E/metrics/ss_linearize.py`, `search/objectives.py`·`search_values.py` b_P), 레이아웃 필드(`E/layout/run.py`, `contract_output.py`의 `LayoutResult`, `E/convergence/` 어댑터) | **전체 재작성**: S1v 저장, U9 출력층, U13 데이터 흐름(`StartContext`·`CurveBook` 폐기), S0 수준 스냅샷 경로. **부분 수정**: 수동소자 값(R = 1/Σ`dc_gm`), tol_I, 레이아웃 출력, `metrics_dc` | `StartContext`, `CurveBook`, `ParamTables` 두 벌 생성, `search/objectives.py`의 `_power_resolution`·`gate_area_m2` 계산, `S1v`·`Achievability`·`StartIntervals` 묶음 전달, `previous_gm_id`·`inherited_gm_id`·`canonical_gm_id`·`gm_grid_max`와 `dc_gm_bound` 필드, `kernel.py:146-150` 수동소자 규칙 사본, `sctx.spec_passive_values`, 레이아웃 별도 lineage(`GraphSnapshot.empty(LY_WRITERS)`), 이것들을 직접 단언하던 test | U9·U13 병합(as-built) | D-GR2·3·7·8·13, D-GR9(레이아웃 부분) | `test_s0_snapshot_roundtrip`, 수동소자 필드 단일 writer, tol_I parent 무관(같은 θ·다른 parent → 같은 봉인 결과), 9회로 front 재측정 기록(Q7) |
-| **② search 상태·층 0** | core 분할 계산 블록과 `graft`(`E/core/compute_block.py`, `graph_snapshot.py`의 `block_versions` 키, 신규 `core/graft.py`), 평가 커널 ②~⑤·봉인 블록의 분할 선언(`E/sizing/block_*.py`, `seal_*.py`), S3 메모리 색인과 보존(신규 `E/search/s3_index.py`, `local`·`solved` 분리, 보존 소유자 5종, `archive.py` 타입 있는 직렬화), 계수 소유 이동(`ComputeBlock` 무상태화, 신규 `core/run_counters.py`, `BoundedLRU._evicted`·`TableCache.events` 이동), 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 제약 행 `graph/metrics: constraint_rows`(①-c에서 이월, `unmeasured` 자리는 §2.4.12 Q8), 결과 JSON 계수 `perf.s0_snapshot`(①에서는 단계 A 보고서 `s0_snapshot` 키), `SearchContext`(G-7), `kernel.evaluate`, `EvalResult`·`SsEvaluation` 사본 제거, 층 0의 이식 사용(`layer0_budget.py`, `local_candidates.py`, `local_front.py`, `combo_dp.py`, `assembly.py`, `size_and_seal_local.py`의 `LocalSeal`) | **전체 재작성**: search 상태층(`search_context.py`, `kernel.py`의 캐시·기록 부분, `EvalResult`), 층 0 데이터 흐름(41 §5 v1.6 U15 재구현과 한 변경). **부분 수정**: core 블록(분할 추가, 분할 없는 블록은 `*` 하나로 as-built와 같은 동작), 커널 블록 분할 선언 | `sctx.cache`·`disk_failures`·`computed_keys`·`cell_floors`·`local_seal_memo`, `_disk_failures`, `ComputeBlock`의 계수 칸·`_seen_inputs`·`reset_stats`, `SsEvaluation.ss/dc`, `EvalResult`의 값 칸, `LocalSeal.snapshot_fragment`·`power_w`·`area_m2`, 오케스트레이터 초안 EvalCache, 이것들을 단언하던 test | ①, U15 design(41 §5 v1.6) 승인 | D-GR1·4·5·9·10·14 | `test_g10_second_run_s0_zero`(`RunCounters` 필요, §2.4.9에서 ①에서 옮김), `test_graft_equals_compute`, `test_graft_donor_order_invariant`, `test_partition_scc_not_split`, 분할 블록 시드 금지(같은 θ·다른 parent → 같은 분할 값), 보존 규칙(풀이 중 기준점 유지·끝나면 놓음), 색인 적중 = 커널 0, 층 0 조립점에서 비공유 분할 `computes` 0 |
+| **② search 상태·층 0** | core 분할 계산 블록과 `graft`(`E/core/compute_block.py`, `graph_snapshot.py`의 `block_versions` 키, 신규 `core/graft.py`), 평가 커널 ②~⑤·봉인 블록의 분할 선언(`E/sizing/block_*.py`, `seal_*.py`), S3 메모리 색인과 보존(신규 `E/search/s3_index.py`, `local`·`solved` 분리, 보존 소유자 5종, `archive.py` 타입 있는 직렬화), 계수 소유 이동(`ComputeBlock` 무상태화, 신규 `core/run_counters.py`, `BoundedLRU._evicted`·`TableCache.events` 이동), 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 제약 행 `graph/metrics: constraint_rows`(①-c에서 이월, `unmeasured` 자리는 §2.4.12 Q8), 결과 JSON 계수 `perf.s0_snapshot`(①에서는 단계 A 보고서 `s0_snapshot` 키), `SearchContext`(G-7), `kernel.evaluate`, `EvalResult`·`SsEvaluation` 사본 제거, 층 0의 이식 사용(`layer0_budget.py`, `local_candidates.py`, `local_front.py`, `combo_dp.py`, `assembly.py`, `size_and_seal_local.py`의 `LocalSeal`) | **전체 재작성**: search 상태층(`search_context.py`, `kernel.py`의 캐시·기록 부분, `EvalResult`), 층 0 데이터 흐름(41 §5 v1.6 U15 재구현과 한 변경). **부분 수정**: core 블록(분할 추가, 분할 없는 블록은 `*` 하나로 as-built와 같은 동작), 커널 블록 분할 선언 | `sctx.cache`·`disk_failures`·`computed_keys`·`cell_floors`·`local_seal_memo`, `_disk_failures`, `ComputeBlock`의 계수 칸·`_seen_inputs`·`reset_stats`, `SsEvaluation.ss/dc`, `EvalResult`의 값 칸, `LocalSeal.snapshot_fragment`·`power_w`·`area_m2`, 오케스트레이터 초안 EvalCache, 이것들을 단언하던 test | ①, U15 design(41 §5 v1.6) 승인 | D-GR1·4·5·9·10·14, D-AP1 | `test_g10_second_run_s0_zero`(`RunCounters` 필요, §2.4.9에서 ①에서 옮김), `test_graft_equals_compute`, `test_graft_donor_order_invariant`, `test_partition_scc_not_split`, 분할 블록 시드 금지(같은 θ·다른 parent → 같은 분할 값), 보존 규칙(풀이 중 기준점 유지·끝나면 놓음), 색인 적중 = 커널 0, 층 0 조립점에서 비공유 분할 `computes` 0. **완료 조건 = A' 판정 기준**(§10.5, P DEC-98: library 9회로 + held-out 회로에서 시작점이 봉인 통과·spec 제약 행 c ≥ 0이고 ngspice(T4-pre·T5) 통과, front 점(P U-45)도 ngspice 통과, 엔진 실패 회로가 남으면 미완료·A' 대조표, 9회로 도달률은 회귀 지표) |
 | **③ LUT memo·lint·G-10** | `E/lut/lut_memo.py`(`call`·계수 상태·상한 B_r), `sweep_memo.py`, LUT 순수 함수로 옮기는 것(`E/search/cell_floor.py`, `E/metrics/block_param_tables.py`, `edge_costs` 호출처, `E/sizing/block_columns.py`의 `solve_self`·`tol_cells`), 구조 규칙 G 확장·설계 값 타입 위치 검사·SC-a/SC-b lint(`E/tests/structure/structure_checks.py`, `_module_map.py` 필드 형식 열), memo 상한·퇴출 판정(§2.4.6 사용자 결정 (가)/(나)에 따라 -- 결정이 착수 조건), G-10 test(`E/tests/perf/`, `E/tests/integration/`) | **전체 재작성**: memo 생성·상한 배선(`_wire_sweep_memo`, `sweep_memo`), `ParamTables`. **부분 수정**: `cell_floor`·`solve_self`·`tol_cells`(memo 함수로 옮김), 구조 검사(규칙 추가) | `LutMemo.lookup`(클로저형), `_Unmemoized`, `_CountingMemo`·`sweep_memo.py`, 두 번째 memo 인스턴스, `ParamTables` 클래스와 두 벌 생성, `CurveBook`의 LUT 사전(①에서 클래스 삭제), §2.4.10 실측 위반 줄 전부, 이것들을 단언하던 test | ②, §2.4.6 사용자 결정 | D-GR6·11·12·15 | `test_lut_memo_single_instance`, `test_lut_memo_purity`, `test_g10_no_recompute_9circuits`, 구조 규칙 G 확장의 거부 확인 픽스처(규칙마다 위반 예 1개가 실제로 거부됨) |
 
 **U17과 다른 단위의 관계**:

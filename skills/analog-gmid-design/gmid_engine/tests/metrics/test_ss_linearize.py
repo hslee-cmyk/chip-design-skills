@@ -1,8 +1,10 @@
 """`ss_dev` 계산 블록(봉인 op -> MOS 소신호) -- metrics CONTRACT 7.2 (+ 7.7 S-6·S-7·S-11·S-12, lut CONTRACT r6 4.1·4.3·4.4).
 
-입력: 손 S2 스냅샷(S1 -> lift_s1 -> 권한표 writer `dc_widths` 로 `device.dc_op` 열을 손으로 쓴다) + toy LUT r6 + toy 접합 선언
+입력: 손 S2 스냅샷(S1 -> lift_s1 -> 권한표 writer `dc_widths` 로 `device.dc_op` 열을, [U17 ①] writer `dc_tolerances` 로 `device.dc_gm`
+열(= 손 dc_op 의 gm_id × current, 설계 40 v1.6 §3.7-3 정의)을 손으로 쓴다) + toy LUT r6 + toy 접합 선언
 (conftest `toy_junction_decls` -- core 9.1 형식 PDK 선언·LUT 규칙 선언, 8.5 소비자 호출 `JunctionSource.from_decls`).
 기대값: conftest `oracle_ss` -- toy LUT npz 의 해석식과 numpy 다중선형 보간으로 7.2 식을 따로 계산(피검 함수·lut 조회 함수 미사용).
+[U17 ①] gm 은 `dc_gm` 필드 하나를 읽는다(§3.7-3 'ss_dev ... 모두 이 필드를 읽는다', 다시 계산하지 않는다) -- 필드 값이 곧 ss gm.
 접합 용량: conftest `oracle_junction` -- 8.2 식의 독립 구현(`ref_caps`)에 toy 선언에 쓴 파라미터·규칙 줄 값을 넣는다.
 S-11 의 비트 동일은 계약 문장 그대로(같은 `dc_op`·`JunctionSource` 로 공개 `junction_caps` 를 부른 값)만 그 경로로 확인한다.
 """
@@ -58,12 +60,19 @@ def _topo():
                     bias=["pb"])                                 # pb: M2 gate 에만 (authoring 9절 입력 선언)
 
 
+def _with_ops(s, col, version="hand"):
+    """손 dc_op 열 + [U17 ①] 같은 동작점의 dc_gm 열(writer dc_tolerances, 값 = gm_id × current -- 설계 40 §3.7-3 의 정의를 손 op 에
+    적용한 값). dc 단계 블록이 두 열을 함께 쓰는 자리를 손으로 대신한다."""
+    s = hand_write(s, "device", "dc_op", col, version=version)
+    return hand_write(s, "device", "dc_gm", {m: o.gm_id * o.current for m, o in col.items()}, version=version)
+
+
 def _snap(tmp_path, ops=None):
     td = topo_only(tmp_path / "t", _topo())
     ops = OPS if ops is None else ops
     col = {m: device_op(k, L, vgs, vds, vsb, W, current=1e-5 * (i + 1), gm_id=10.0 + i)
            for i, (m, (k, L, vgs, vds, vsb, W)) in enumerate(sorted(ops.items()))}
-    return hand_write(s2_of(td, SUP), "device", "dc_op", col), col
+    return _with_ops(s2_of(td, SUP), col), col
 
 
 @pytest.fixture(scope="module")
@@ -116,10 +125,29 @@ def _check(ss, exp, op, js, rtol=1e-12, temp_c=27.0, params=None, rule=None):
 
 
 def test_block_declaration():
-    """reads device.dc_op·[9절] device.dc_tol_v, writes device.ss_dev, writer = 권한표 writer_of(device, ss_dev)."""
+    """reads device.dc_op·[9절] device.dc_tol_v·[U17 ①, 설계 40 §3.7-3] device.dc_gm, writes device.ss_dev, writer = 권한표 writer_of."""
     assert ss_dev.name == SS_DEV_WRITER == S2_WRITERS.writer_of("device", "ss_dev") == "ss_dev"
-    assert tuple(ss_dev.reads) == (("device", "dc_op"), ("device", "dc_tol_v"))
+    assert set(ss_dev.reads) == {("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm")}
     assert tuple(ss_dev.writes) == (("device", "ss_dev"),)
+
+
+def test_gm_is_dc_gm_field_not_recomputed(tmp_path, lut_a, decl_paths):
+    """[U17 ①] 설계 40 §3.7-3: ss gm = `device.dc_gm` 필드 하나(dc_tolerances 가 쓴 값) -- ss_dev 가 op.gm_id × op.current 를 따로 계산하지
+    않는다. 손 dc_gm 을 정의값의 2 배로 쓰면 ss gm 도 그 값(비트 동일)이고, dc_gm 만 바뀌어도 블록은 다시 계산한다(입력 버전에 든다)."""
+    acc = lut_access(lut_a)
+    js = _js(decl_paths, lut_a)
+    snap, ops = _snap(tmp_path)
+    s1 = ss_dev(snap, acc, js)
+    for m, op in ops.items():
+        assert s1.value("device", m, "ss_dev").gm == op.gm_id * op.current           # 정합 필드 = 정의값
+    doubled = {m: 2.0 * op.gm_id * op.current for m, op in ops.items()}
+    s2 = hand_write(s1, "device", "dc_gm", doubled, version="gm2")
+    ss_dev.reset_stats()
+    s3 = ss_dev(s2, acc, js)
+    assert s3 is not s2 and ss_dev.stats().computes == 1
+    for m in ops:
+        assert s3.value("device", m, "ss_dev").gm == doubled[m]
+        assert s3.value("device", m, "ss_dev").gds == s1.value("device", m, "ss_dev").gds   # gm 밖 값은 LUT 그대로
 
 
 def test_old_pending_name_removed():
@@ -275,7 +303,7 @@ def test_reuse_and_recompute(tmp_path, lut_a, decl_paths):
     new = dict(ops)
     op1 = ops["M1"]
     new["M1"] = device_op(op1.kind, op1.L, 0.66, op1.vds, op1.vsb, op1.W, op1.current, op1.gm_id)
-    s4 = hand_write(s1, "device", "dc_op", new, version="hand2")
+    s4 = _with_ops(s1, new, version="hand2")                 # [U17 ①] dc_op 와 함께 그 동작점의 dc_gm 도 다시 쓴다
     s5 = ss_dev(s4, acc, js)
     assert s5 is not s4
     _check(s5.value("device", "M1", "ss_dev"), oracle_ss(new["M1"], "slice"), new["M1"], js)

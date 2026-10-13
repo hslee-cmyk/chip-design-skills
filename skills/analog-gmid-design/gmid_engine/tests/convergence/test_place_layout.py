@@ -3,6 +3,9 @@
 
 oracle (a): `run_layout`·`layout_input_of` 를 스크립트 가짜로 바꿔(monkeypatch) 입력(PDK 폭 키·완화 집합)에 따라 손으로 정한 레이아웃을 돌려준다.
 기대 반복(좁히기 시험 수, 고른 키, 완화 집합, first_seen)은 스크립트와 CONTRACT 7절 규칙에서 손으로 센다.
+[U17 1-e] `run_layout(layout_input, memo, snapshot, previous)`: 레이아웃 필드는 설계점 `snapshot` 위, 재시도 `previous` 는 같은 설계점 lineage 의 앞 결과
+(design 40 v1.6 §2.4.7). hub 넷(완화 판정)은 레이아웃 결과 스냅샷의 `ly_groups_in` 필드에서 읽으므로 가짜 결과에 입력 그룹을 넣는다.
+`PlacedLayout` 에 입력 사본 `layout_input` 은 없다.
 """
 from __future__ import annotations
 
@@ -12,25 +15,25 @@ import pytest
 
 from gmid_engine.convergence import PlacedLayout, place_layout
 
-from .conftest import GRID, dlay, dunplaced, floorplan, glay, layout, module, pdk
+from .conftest import GRID, dlay, dunplaced, floorplan, glay, layout, module, pdk, with_groups_in
 
 KINDS = {"A": "nmos", "B": "nmos", "C": "pmos"}
 CUR = (("nmos", 1000), ("pmos", 1000))
 
 
 class Script:
-    """가짜 run_layout: `fn(layout_input) -> LayoutResult`. 호출마다 (nmos 폭 키, 완화 집합, rejected, previous) 를 기록한다."""
+    """가짜 run_layout: `fn(layout_input) -> LayoutResult`. 호출마다 (nmos 폭 키, 완화 집합, rejected, previous, memo, 설계점 snapshot) 을 기록하고
+    결과 스냅샷에 입력 그룹 필드(`ly_groups_in` = hub 넷)를 넣는다."""
 
     def __init__(self, fn, hubs=()):
         self.fn, self.calls, self.hubs = fn, [], dict(hubs)
 
     def layout_input_of(self, snapshot, pdk_, passives, rejected=(), relaxed=()):
-        mg = tuple(SimpleNamespace(gid=g, hub_net=h) for g, h in sorted(self.hubs.items()))
-        return SimpleNamespace(pdk=pdk_, relaxed=frozenset(relaxed), rejected=tuple(rejected), passives=passives, matching_groups=mg), ()
+        return SimpleNamespace(pdk=pdk_, relaxed=frozenset(relaxed), rejected=tuple(rejected), passives=passives), ()
 
-    def run_layout(self, li, memo, previous):
-        self.calls.append((dict(li.pdk.slice_width_keys)["nmos"], li.relaxed, li.rejected, previous, memo))
-        return self.fn(li)
+    def run_layout(self, li, memo, snapshot, previous):
+        self.calls.append((dict(li.pdk.slice_width_keys)["nmos"], li.relaxed, li.rejected, previous, memo, snapshot))
+        return with_groups_in(self.fn(li), self.hubs.items())
 
 
 @pytest.fixture
@@ -44,9 +47,12 @@ def patch(monkeypatch):
     return install
 
 
+def dev3_devices(nkey_a, nkey_b):
+    return (dlay("A", nkey_a * GRID, 2, 2 * nkey_a * GRID), dlay("B", nkey_b * GRID, 2, 2 * nkey_b * GRID), dlay("C", 40 * GRID, 1, 40 * GRID))
+
+
 def dev3(nkey_a, nkey_b, area):
-    return layout(devices=(dlay("A", nkey_a * GRID, 2, 2 * nkey_a * GRID), dlay("B", nkey_b * GRID, 2, 2 * nkey_b * GRID),
-                           dlay("C", 40 * GRID, 1, 40 * GRID)), plan=floorplan(1e-5, 1e-5, area=area))
+    return layout(devices=dev3_devices(nkey_a, nkey_b), plan=floorplan(1e-5, 1e-5, area=area))
 
 
 def test_conflict_narrows_kind_to_best_scoring_key(patch):
@@ -55,7 +61,7 @@ def test_conflict_narrows_kind_to_best_scoring_key(patch):
         if keys == (10, 20, 30):
             return dev3(10, 20, 5e-10)                       # nmos 가 키 10·20 둘 다 씀 -> 충돌
         if keys == (10,):                                    # 시험: CC 그룹 미배치(점수 2칸 1) -- 면적은 더 작다
-            return layout(devices=dev3(10, 10, 1e-10).devices, groups=(glay("g", "diff_pair", ("A", "B")),),
+            return layout(devices=dev3_devices(10, 10), groups=(glay("g", "diff_pair", ("A", "B")),),
                           plan=floorplan(1e-5, 1e-5, area=1e-10))
         if keys == (20,):                                    # 시험: 모두 배치(점수 2칸 0) -> 고른다
             return dev3(20, 20, 9e-10)
@@ -72,8 +78,10 @@ def test_conflict_narrows_kind_to_best_scoring_key(patch):
     assert out.keys == (("nmos", 20), ("pmos", 40))
     assert [(p.name, p.key) for p in out.placements] == [("A", 20), ("B", 20), ("C", 40)]
     assert out.unplaced == () and out.relaxed == frozenset()
-    assert all(c[2] == ("R",) and c[4] == "MEMO" for c in s.calls)              # rejected·memo 를 그대로 넘긴다
+    assert all(c[2] == ("R",) and c[4] == "MEMO" and c[5] == "SNAP" for c in s.calls)   # rejected·memo·설계점 스냅샷을 그대로 넘긴다
     assert s.calls[0][3] is None and s.calls[1][3] is not None                   # previous = 앞 호출 결과(graph 캐시)
+    assert [c[3] is None for c in s.calls] == [True, False, False, False]        # 좁히기 시험·재호출도 같은 설계점의 앞 결과를 previous 로
+    assert not hasattr(out, "layout_input")                                      # §2.4.7: 입력 사본 없음(입력은 스냅샷 ly_* 입력 필드)
     assert base.slice_width_keys == (("nmos", (10, 20, 30)), ("pmos", (40,)))   # 입력 PDK 불변
     assert first_seen == {} and relaxed == set()
 

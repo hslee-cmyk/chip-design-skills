@@ -224,9 +224,62 @@ def r4_vdsat_at(kind, L, vgs, vsb):
 
 
 @pytest.fixture(scope="session")
-def r4_lut(tmp_path_factory):
+def r4_lut_root(tmp_path_factory):
+    """r4 toy LUT 파일을 쓴 폴더 -> (LutSet, 폴더). 폴더의 `r4_<kind>.npz` 는 기대값을 LUT 파일에서 직접 읽는 test 가 연다."""
+    root = tmp_path_factory.mktemp("r4_lut")
+    return write_r4_lut(root), root
+
+
+@pytest.fixture(scope="session")
+def r4_lut(r4_lut_root):
     """VDSAT 열(nmos·pmos), 모든 점 켜짐."""
-    return write_r4_lut(tmp_path_factory.mktemp("r4_lut"))
+    return r4_lut_root[0]
+
+
+def r4_npz(root, kind):
+    """`write_r4_lut(root)` 가 쓴 kind 슬라이스 파일 경로."""
+    return Path(root) / ("r4_%s.npz" % kind)
+
+
+def toy_npz(manifest_path, kind):
+    """`write_toy_lut` 가 쓴 kind 기본 슬라이스 파일 경로(manifest 와 같은 폴더)."""
+    return Path(manifest_path).parent / ("toy_%s.npz" % kind)
+
+
+def lut_file_gm_id(npz_path, L, vgs, vds, vsb):
+    """[U17 ①, 설계 40 §3.7-3] 동작점 (L, VGS, VDS, VSB) 의 LUT gm/ID 를 **LUT 파일에서 직접** 읽는다(피검 lut·sizing 함수 없음).
+
+    npz 의 GM·ID 배열로 GM/ID 격자를 만들고 네 축(L, VGS, VDS, VS) 다선형 보간한다. 이 test 들이 쓰는 toy·r4 파일은 GM/ID 열이
+    VGS 에 대해 1차이고 다른 축에 대해 상수다(파일에서 그 성질을 확인한 뒤 보간한다) -- 그러면 다선형 보간이 정확한 값이고, LUT 의
+    다른 보간법(ln ID 의 Hermite 기울기 등)과도 같은 값이 된다. 축 밖 점은 test 입력 결함이라 AssertionError."""
+    with np.load(npz_path) as z:
+        axes = [np.asarray(z[k], dtype=float) for k in ("L", "VGS", "VDS", "VS")]
+        g = np.asarray(z["GM"], dtype=float) / np.asarray(z["ID"], dtype=float)
+    # 파일 성질 확인: VGS 2차 차분 0(1차), L·VDS·VS 방향 상수
+    assert np.allclose(np.diff(g, 2, axis=1), 0.0, atol=1e-9), "LUT GM/ID 열이 VGS 에 1차가 아니다 -- 이 helper 의 전제가 깨짐"
+    for ax in (0, 2, 3):
+        assert np.allclose(np.diff(g, 1, axis=ax), 0.0, atol=1e-9), "LUT GM/ID 열이 축 %d 방향 상수가 아니다" % ax
+    brackets = []
+    for xs, x in zip(axes, (L, vgs, vds, vsb)):
+        assert xs[0] <= x <= xs[-1], "축 밖 동작점 %r (축 %r..%r)" % (x, xs[0], xs[-1])
+        i = min(max(bisect.bisect_right(list(xs), x) - 1, 0), len(xs) - 2)
+        t = (x - xs[i]) / (xs[i + 1] - xs[i])
+        brackets.append(((i, 1.0 - t), (i + 1, t)))
+    total = 0.0
+    for a, wa in brackets[0]:
+        for b, wb in brackets[1]:
+            for c, wc in brackets[2]:
+                for d, wd in brackets[3]:
+                    w = wa * wb * wc * wd
+                    if w != 0.0:
+                        total += w * float(g[a, b, c, d])
+    return total
+
+
+def hand_dc_gm(npz_of_kind, op):
+    """설계 40 §3.7-3 `dc_gm` 의 독립 계산: 그 소자 ID(`dc_op.current`) × 그 동작점(L, VGS, VDS, VSB)의 LUT 파일 gm/ID.
+    `npz_of_kind(kind)` -> npz 경로. dc_op 에서 읽는 것은 동작점 좌표와 전류(피검 블록의 입력)뿐이고 gm_id 칸은 읽지 않는다."""
+    return op.current * lut_file_gm_id(npz_of_kind(op.kind), op.L, op.vgs, op.vds, op.vsb)
 
 
 @pytest.fixture(scope="session")
@@ -378,12 +431,6 @@ class Oracle:
                 val = np.abs(loo - lnI[tuple(sj)]) / g[tuple(sj)] / 2 ** p
                 best = max(best, float(val.max()))
         return best
-
-    @staticmethod
-    def gm_bound(kind, L, vds, vsb, W):
-        """max over VGS 마디 of (id·gm/id) at (L, vds, vsb) × W/w_m."""
-        best = max(math.exp(math.log(W_M / L) + Oracle.ln_idu(kind, v, vds, vsb)) * Oracle.gm_id(v) for v in TOY_VGS)
-        return best * W / W_M
 
 
 def rel_close(a, b, rtol=1e-9, atol=0.0):
@@ -944,3 +991,29 @@ def rename_inputs(inputs, sn, se):
                     tuple(sorted((se[k], v) for k, v in inputs.element_values)),
                     tuple(sorted(se[k] for k in inputs.linear_devices)), inputs.pending,
                     tuple(sorted(se[k] for k in inputs.engine_elements)))
+
+
+def mirror_w_nat(vgs1=0.6, y=0.5, i=1e-5, l=1e-6):
+    """circuit_mirror 종속 소자 M2 의 '그 전류에 맞는 W'(닫힌 식, CONTRACT 14.3): W = ID·L / IDu_forward(V(nb) = vgs1 -- θ 구성상
+    M1 diode 근, VDS = V(out) = y·1.8, VSB 0). theta_mirror 의 기본 θ 와 같은 인자."""
+    return i * l / math.exp(r4_ln_idu("nmos", vgs1, y * 1.8, 0.0))
+
+
+# [U17 ①, 설계 40 §3.7-3] 종속 소자 M2 에 W 를 요청하면 봉인 3 이 그 어긋남 δ = W_req/W_nat − 1 을 판정한다: 잔차 = δ·ID ≤ tol_I =
+# tol_V × max(dc_gm(M2), dc_gm(M3)), dc_gm = (B − C·VGS)·ID(r4 닫힌 식) -> δ_max = tol_V × max(B − C·0.6, B − C·0.7) = tol_V × 15.2.
+# r4 toy 의 tol_V 셀(dc_tol_v 입력, 모든 셀 같음)은 1/128 V 라 δ_max = 0.11875. 옛 상계(곡선 격자 최대 gm)에서는 δ 0.27(요청 3e-5)도
+# 통과했지만 자기 동작점 gm 에서는 거부된다(판정 변화 -- 설계 §2.4.12 Q7 기록 대상). 봉인되는 요청은 δ < δ_max 로 잡는다.
+MIRROR_W_DELTA = 0.05
+
+
+def mirror_w_request(delta=MIRROR_W_DELTA, **kw):
+    """봉인 3 허용오차 안의 종속 소자 M2 W 요청값 = (1 + delta)·W_nat. delta 는 δ_max(위 주석, test 가 dc_tol_v 입력으로 재확인) 아래."""
+    return (1.0 + delta) * mirror_w_nat(**kw)
+
+
+def mirror_delta_max(snapshot):
+    """δ_max = max_{m ∈ M2, M3} tol_V(m) × (B − C·VGS(m))(설계 40 §3.7-3 tol_I = tol_V × max dc_gm 을 ID 로 나눈 것 -- M2·M3 의 ID 는
+    out 노드 KCL 로 같다) -- 입력은 스냅샷의 dc_tol_v 셀과 동작점 VGS(피검 블록의 입력), gm/ID 는 r4 닫힌 식."""
+    tol = dict(snapshot.column("device", "dc_tol_v"))
+    ops = dict(snapshot.column("device", "dc_op"))
+    return max(tol[m] * (B - C * ops[m].vgs) for m in ("M2", "M3"))

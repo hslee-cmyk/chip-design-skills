@@ -14,7 +14,7 @@
 |---|---|---|---|
 | `convergence_values.py` | 0 | (데이터) | `ConvergedPoint`·`ConvergedFront`·`Iteration`·`Relaxation`·`Placement`·`PlacedLayout`·`JunctionChange`·`DroppedPoint`, 상수 `STATUS_*`·`DROP_*`·`RELAX_*` |
 | `layout_input.py` | 1 | `layout_input_of` | 봉인 스냅샷 -> `LayoutInput` (1절) |
-| `effective_placement.py` | 1 | `effective_placement` | `LayoutResult` -> 소자별 실효 배치 (2절) |
+| `effective_placement.py` | 1 | `effective_placement` | 레이아웃 필드(설계점 스냅샷) -> 소자별 실효 배치 (2절) |
 | `kernel_keys.py` | 1 | `kernel_keys` | kind 별 평가 커널 폭 키와 충돌 (3절) |
 | `key_exclusion.py` | 1 | `key_exclusion` | 거절된 기하의 폭 키 제외 (7절) |
 | `layout_score.py` | 1 | `layout_score` | 레이아웃 후보 점수 (3절) |
@@ -55,28 +55,31 @@
 * `rejected` = W_request 를 거부한 소자 이름(`LayoutInput.rejected_requests`, 정렬), `passives` = `layout.passives_from_decl` 결과(호출부).
 * 입력 `snapshot` 은 바꾸지 않는다. 같은 입력이면 같은 결과(결정론).
 
-## 2. `effective_placement(layout, grid_m) -> (placements, unplaced)`
+**레이아웃 결과 읽기(설계 40 v1.6 §2.4.7·§2.4.8, U17 ①)**: `LayoutResult` = (설계점 스냅샷, 계산 블록 목록)뿐이다. 이 패키지는 레이아웃 값을 그 스냅샷의
+`ly_*` 필드(`layout.LAYOUT_KEY`·`F_*`)에서 읽는다 -- 그룹 `ly_groups`, 입력 그룹 `ly_groups_in`, 소자 `ly_device`, finger `ly_finger`, 면적 `ly_floorplan`, 확산 `ly_diffusion`.
 
-`layout` = `LayoutResult`, `grid_m` = 제조 격자. 소자 이름순 `Placement(name, key, finger_w_m, n_fingers, W_m, pending, tol_effective)`:
-* 놓인 소자(`DeviceLayout.finger_w_m` 있음, 그룹의 `pending` 멤버 아님): key = `round(finger_w_m / grid)`, `W_m = DeviceLayout.W_realized_m`, `pending=False`,
-  `tol_effective = DeviceLayout.W_tol_effective`.
+## 2. `effective_placement(snapshot, grid_m) -> (placements, unplaced)`
+
+`snapshot` = `LayoutResult.snapshot`, `grid_m` = 제조 격자. 소자(`ly_device`) 이름순 `Placement(name, key, finger_w_m, n_fingers, W_m, pending, tol_effective)`:
+* 놓인 소자(`ly_finger` 값 있음, 그룹의 `pending` 멤버 아님): key = `round(finger_w_m / grid)`, `W_m = DeviceFinger.W_realized_m`, `pending=False`,
+  `tol_effective = DeviceFinger.tol_effective`.
 * **W_request 응답 대기 그룹**(`GroupLayout.pending`)의 멤버: 레이아웃은 잠정 배치만 했다(LY3 -- W 를 바꾸지 않는다). 그 소자는 마지막 시도(`attempts[-1]`)의
   `finger_w_m`(= 요청 W / 멤버 수)와 멤버 순서의 `n_fingers` 로 key = `round(finger_w_m / grid)`, `finger_w_m = key * grid`, `n_fingers = nf`, `W_m = nf * (key * grid)`
   (레이아웃이 후보 실현 W 를 만드는 식과 같아 다음 레이아웃의 실현 W 와 비트가 같다), `pending=True`.
-* `unplaced` = `finger_w_m is None`(사용 가능한 폭 슬라이스가 없는) 소자 이름, 이름순.
+* `unplaced` = `ly_finger` 값이 없는(사용 가능한 폭 슬라이스가 없는) 소자 이름, 이름순.
 
-## 3. `kernel_keys(placements, kinds, current) -> (keys, conflicts)` · `layout_score(layout, unplaced) -> tuple`
+## 3. `kernel_keys(placements, kinds, current) -> (keys, conflicts)` · `layout_score(snapshot, unplaced) -> tuple`
 
 * 평가 커널의 `LutAccess.w_keys` 는 kind 마다 슬라이스 하나다(sizing 계약). `kinds` = {소자: kind}, `current` = ((kind, 키), ...).
   `keys` = `current` 의 kind 순 ((kind, 키), ...): 그 kind 의 배치가 쓰는 키(여럿이면 가장 작은 값 -- 충돌이라 의미 없음), 배치 소자가 없는 kind 는 `current` 값.
   `conflicts` = ((kind, (사용 키 오름차순)), ...) 둘 이상 쓰는 kind.
 * `layout_score` = 작을수록 좋은 사전식 점수 `(놓지 못한 소자 수, 배치 못 한 common-centroid 요구 그룹 수(CC_REQUIRED_ROLES, pattern None, pending 아님),
-  pending 그룹 수, floorplan.outline_area_m2)`.
+  pending 그룹 수, ly_floorplan.outline_area_m2)` -- `snapshot` = `LayoutResult.snapshot`.
 
-## 4. `realized_geometry(layout, placements, keys) -> search.RealizedGeometry` · `junction_change(before, after)`
+## 4. `realized_geometry(snapshot, placements, keys) -> search.RealizedGeometry` · `junction_change(before, after)`
 
 * `w_request` = ((소자, `Placement.W_m`), ...) 이름순 -- 배치된 **모든** 소자(LY7: W_request 유무와 관계없이 실현 기하로 재평가).
-* `w_keys` = `keys` 그대로. `diffusion` = ((소자, `metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, float(n_fingers))`), ...) 이름순 -- `LayoutResult.diffusion`
+* `w_keys` = `keys` 그대로. `diffusion` = ((소자, `metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, float(n_fingers))`), ...) 이름순 -- `ly_diffusion` 필드
   (= `RealizedDevice.diffusion`, LY8) 중 **`pending` 이 아닌** 소자. pending 소자는 레이아웃의 잠정 기하가 요청한 (키, nf) 와 달라 LUT 생성 규칙 기하로 둔다.
 * `junction_change(before, after)` = `ss_dev` 가 든 두 스냅샷의 소자(이름순, 둘에 모두 있는 것)마다 `JunctionChange(device, cdb_before, csb_before, cdb_after, csb_after)`.
 
@@ -85,10 +88,10 @@
 `sized_w` = {소자: 사이징 W}. `max_dlnw = max |ln(W_m / sized_w)|`, `tol = min Placement.tol_effective`(둘 다 무차원 상대량). `k_max = 1` 이면(`max_dlnw <= tol`) 한 번 평가로 판정,
 아니면 `sizing.k_max(max_dlnw, tol) = ceil(log2(max_dlnw / tol))`. 배치가 없으면 `(1, 0.0, 0.0)`. 새 상수 없음.
 
-## 6. `relaxation_decision(layout, layout_input, relaxed) -> (relax, not_relaxable)` · `relaxation_records(first_seen, final_layout, relaxed)`
+## 6. `relaxation_decision(snapshot, relaxed) -> (relax, not_relaxable)` · `relaxation_records(first_seen, final_layout, relaxed)`
 
 * 대상 그룹 = `role in CC_REQUIRED_ROLES` ∧ `pattern is None` ∧ `not pending` ∧ gid ∉ `relaxed`(gid 순). 이 조건은 시도 (i) nf 조정 (ii) W_request 가 모두 소진됐음을 뜻한다(조정 불가·
-  요청 거부·공통 폭 없음 -- 사유 문자열을 읽지 않는다). hub 넷이 있으면(`layout_input.matching_groups` 의 `hub_net`) `relax`, 없으면 `not_relaxable`.
+  요청 거부·공통 폭 없음 -- 사유 문자열을 읽지 않는다). hub 넷이 있으면(`ly_groups_in` 필드의 `hub_net`) `relax`, 없으면 `not_relaxable`.
 * `relaxation_records` = gid 순 `Relaxation(gid, role(완화 전), members, reason(완화 전 `GroupLayout.reason`), attempts(완화 전), outcome, pattern, dx, dy, ok)`:
   `relaxed` 에 든 gid 는 최종 레이아웃 같은 gid 그룹이 패턴을 가졌으면 `RELAX_PLACED`(pattern·dx·dy·ok), 아니면 `RELAX_NOT_PLACED`; 안 든 gid 는 `RELAX_NOT_AVAILABLE`.
 
@@ -96,7 +99,8 @@
 
 `place_layout(memo, snapshot, pdk, passives, rejected, relaxed, first_seen, previous, kinds, current_keys) -> PlacedLayout` -- 평가 커널 호출 0.
 `run_layout` 의 **유일한 프로덕션 호출처**. 반복(상태는 `pdk`·`relaxed` 뿐이고 둘 다 단조: 폭 키 집합은 줄고 완화 집합은 는다):
-1. `layout_input_of` -> `run_layout(previous=)` -> `effective_placement`. `unplaced` 가 있으면 멈춘다.
+1. `layout_input_of` -> `run_layout(layout_input, memo, snapshot, previous)`(레이아웃 필드는 설계점 `snapshot` 위, 재시도는 같은 설계점 lineage) -> `effective_placement`.
+   `unplaced` 가 있으면 멈춘다. `PlacedLayout` 은 입력 사본(`layout_input`)을 두지 않는다(입력은 스냅샷의 `ly_*` 입력 필드).
 2. `kernel_keys` 충돌이 있으면 충돌 kind 마다 사용된 키 각각으로 PDK 폭 키를 좁혀 다시 놓아 `layout_score` 가 가장 작은 키(동점은 작은 키)로 좁힌다. 1 로.
 3. `relaxation_decision` 의 `relax` 가 있으면 `relaxed` 에 더하고 1 로. `not_relaxable`·`relax` 의 완화 전 `GroupLayout` 은 `first_seen` 에 gid 별로 처음 한 번만 남긴다.
 `PlacedLayout.layout_calls` = 이 호출의 `run_layout` 횟수(좁히기 시험 포함), `narrowed` = ((kind, 키), ...).
@@ -113,7 +117,7 @@ loop:
   (w_request, w_keys) 가 같은 상태(PDK 후보·거부·완화)에서 직전보다 앞서 이미 평가한 것 -> STATUS_NONCONVERGENT (주기; detail cycle=True) -- 다음 레이아웃은 평가 점의 DC 상태만 읽는 결정론적 사상이라 K 까지 돌아도 벗어나지 못한다(확산 기하는 출력이라 키에 넣지 않는다; 직전과 DC 상태가 같고 확산만 다르면 주기가 아니라 확산 재평가)
   재평가 횟수(제외 재시도 제외) >= K     -> STATUS_NONCONVERGENT (FailureRecord NONCONVERGENT, margin = max_dlnw / tol)
   result = search.evaluate(sctx, θ, cells, parent=current, geometry=geometry)   # 커널 1회 + 봉인 1~8 + spec 제약 행 (LY7)
-  accepted(status SEALED, 제약 행 c >= 0 전부, 출발 점이 재던 (metric, 연산) 을 잃지 않음) -> current = result ; previous_geometry = geometry
+  accepted(status SEALED, 제약 행 c >= 0 전부, 출발 점이 재던 (metric, 연산) 을 잃지 않음) -> current = result ; previous_geometry = geometry ; previous_layout = None (새 설계점 -- 레이아웃은 그 스냅샷 위에 다시 쓴다)
   아니면 W_request 응답 대기 소자가 있고 아직 거부 안 했으면 -> rejected += 그 소자들 (같은 current 로 반복)
   아니면 key_exclusion(...) 이 뺄 폭 키를 주면          -> pdk 에서 그 (kind, 키) 를 뺀다 (Iteration.status "excluded", 같은 current 로 반복)
   아니면                                   -> STATUS_INFEASIBLE
