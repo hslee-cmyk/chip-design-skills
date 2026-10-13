@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.8.1
+version: 1.9.1
 plan_version: 6.7
 ---
 
@@ -14,7 +14,9 @@ plan_version: 6.7
 > - 스펙에서 gm/ID·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-10-13 · **Status**: v1.8.1 -- U17 ①-d 실측에 문구를 맞춘 정정(사용자 결정 변경 아님): §1.5-4 측정 의무 (2)·§9 표 '혼재 노드 구동 종류' 행의 folded M8 "해제" → "시작 셀 아님 유지"(base에서도 시작 셀 = M1, M2), 허용 변화 = Vg10 극점 노드 drive voltage → current 하나. 경위는 history.
+> **Date**: 2026-10-13 · **Status**: v1.9.1 -- U17 ①-b 착수 전 as-built 실측 정정(오케스트레이터 기본안 2026-10-13 U17 ①-b D1~D10, 사용자 결정 아님, 40 v1.9.1과 같은 정정): §6.1-9 `graph/start: rungs` = as-built `StartIntervals.ladder`, `placement`는 U17 ②(U15 `placer`와 함께, as-built MOD8 `Placement`와 다른 것), §6.7 KVL 기록은 U17 ②에서 `records`에 더함, §7.5 `noise_inputs`는 U17 ②(β·C_eff 계산과 함께). 경위는 history.
+>
+> v1.8.1 -- U17 ①-d 실측에 문구를 맞춘 정정(사용자 결정 변경 아님): §1.5-4 측정 의무 (2)·§9 표 '혼재 노드 구동 종류' 행의 folded M8 "해제" → "시작 셀 아님 유지"(base에서도 시작 셀 = M1, M2), 허용 변화 = Vg10 극점 노드 drive voltage → current 하나. 경위는 history.
 >
 > v1.8 -- §1.5-4 혼재 노드 C-1 보완 (가)(source 쪽 follower 먼저, 예상 집합에 folded_cascode Vg10 추가·sf N17·N20 유지, 측정 의무 3개)와 §9 표 해당 행(사용자 결정 2026-10-12 "1, 가로 해", 계획 v6.7). 경위는 history.
 >
@@ -1259,7 +1261,7 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
    - **칸 0(선택점)**: 실행 가능(면적 ≤ 예산, 매크로 근 있음)한 최대 t*. t = 1이 실행 가능하면 t* = 1이고, 아니면 [0, 1]에서 `bracket_root`(허용오차 2^−steps)로 경계를 찾아 그보다 한 칸 아래를 쓴다. 칸 0은 매크로 확정 풀이(전원 전류 최소화 포함)의 전류를 쓴다. 7a(KVL 고리 공동 선택)는 칸 0에 적용한다.
    - **칸 k = 1..steps**(t* > 0일 때): t_k = t*/2^k. 매크로는 전원 전류 최소화 없이 실행 가능한 출발점(`refine=False`)만 풀고, 7a를 칸마다 다시 적용한다(§6.7-6).
    - **칸의 내용**(`StartRung`): t, θ(구간이 값을 정한 성분만: ln IDu, θ 전류, 보상 커패시터, L 동치류 L), L 칸 index, 기준 전류(매크로가 전류를 정하지 못한 소자의 자리값).
-   - **저장**: 칸 목록은 S0 수준 필드 `graph/start: rungs`, 선택점 둘레 출발 θ 생성기의 입력(선택 gm/ID·L·칸·t)은 `graph/start: placement`다(40 §2.4.8). 층 0 `layer0_start`는 칸 0부터 차례로 커널에 확인해 처음 받아들일 상태인 칸을 기준점으로 쓴다(§5.9 상태).
+   - **저장**: 칸 목록은 S0 수준 필드 `graph/start: rungs`(as-built `StartIntervals.ladder` 그대로, U17 ①-b), 선택점 둘레 출발 θ 생성기의 입력(선택 gm/ID·L·칸·t)은 `graph/start: placement`다(40 §2.4.8). `placement`는 U17 ②에서 U15 `placer`와 함께 만들고, as-built MOD8 `Placement`(`E/convergence/convergence_values.py:47`)와 다른 것이다(40 v1.9.1 D4, 근거: 소비자 위치). 층 0 `layer0_start`는 칸 0부터 차례로 커널에 확인해 처음 받아들일 상태인 칸을 기준점으로 쓴다(§5.9 상태).
 
 **4의 전류를 정하는 방법**: 4는 전류 I가 필요하다. 그 값은 §6.5 매크로 모델을 **1회차**로 돌려 얻는다. 1회차에서는 gm/ID를 gm/ID_lo로 두고 L을 2의 하한으로 둔다. 확정 전류는 8에서 다시 계산한다. 4→8 사이에는 되먹임이 없으므로(8의 결과가 4로 돌아가지 않는다) 순환이 생기지 않는다.
 
@@ -1454,7 +1456,7 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 
 **7. 인터페이스**(S0 수준 필드, 40 §2.4.2·§2.4.8. 묶음 객체 `StartContext`·`StartIntervals`는 없앤다, 40 §2.4.7):
 - KVL 모델(쓰기 계획·고정 전위·종속 소자·의존 묶음)은 S0 수준 필드 `graph/start: kvl_model`이다(writer = `start_intervals` 블록, S0당 1회). 쓰기 계획 자체는 sizing 쓰기 계획 블록의 S0 수준 필드를 읽는다.
-- 선택점의 행 표 `[{kind, device, value_v, deps}]`는 `graph/start: kvl_rows`, 기록 `kvl_adjusted{groups, min_position}`·`kvl_macro_recheck{k}`·`kvl_unsatisfied{rows}`는 `graph/start: records`, 충돌은 `graph/start: conflicts`다. 채택된 소자 gm/ID·L은 `device: start.row`, (VDS, VSB)는 `device: start.point`다.
+- 선택점의 행 표 `[{kind, device, value_v, deps}]`는 `graph/start: kvl_rows`, 기록 `kvl_adjusted{groups, min_position}`·`kvl_macro_recheck{k}`·`kvl_unsatisfied{rows}`는 `graph/start: records`(KVL 기록은 U17 ②에서 더한다. U17 ①-b의 `records` = as-built 매크로 모델 기록 -- 40 v1.9.1 D3), 충돌은 `graph/start: conflicts`다. 채택된 소자 gm/ID·L은 `device: start.row`, (VDS, VSB)는 `device: start.point`다.
 - `StartConflict.quantity` 어휘에 `"kvl"` 추가. 출처 어휘 `SRC_KVL_LOOP`·`SRC_KVL_SATURATION`.
 - 새 파일 `E/search/iv_kvl.py`(진입점 `kvl_model`, 행 평가), `E/search/iv_kvl_choice.py`(진입점 `kvl_choice`, 4·5).
 - 재사용: 행 평가는 같은 x 벡터를 한 선택 호출 안에서만 묶는다. 이것은 호출 지역 변수이고 호출 밖으로 나가지 않는다(40 §2.4.10 G-8 허용, 상한 = 그 호출의 평가 상한 maxiter·(변수 수 + 2)). LUT 조회는 LUT memo `memo.call`(40 §2.4.6)이다.
@@ -1608,7 +1610,7 @@ metric 이름은 주파수를 숫자로 고르지 않도록 '평탄값'과 'corn
 
 **1/f L 하한**: §6.4-3.
 
-**β·C_eff 입력 배선(v1.6, 사용자 결정 2026-10-12 "K-1~K-3도 권고대로" K-2 "design 검증에서 지적이 없을 때 승인(지적이 있으면 다시 묻는다)", U13 열린 항목 `feedback_factor_beta_unavailable`·`c_eff_not_a_start_bound` 해소)**: (β, C_eff 노드, 샘플링 커패시터) 묶음은 S0 수준 필드 `graph/start: noise_inputs`다(writer = `start_intervals` 블록, S0당 1회, 40 §2.4.8). 새 상수 없음.
+**β·C_eff 입력 배선(v1.6, 사용자 결정 2026-10-12 "K-1~K-3도 권고대로" K-2 "design 검증에서 지적이 없을 때 승인(지적이 있으면 다시 묻는다)", U13 열린 항목 `feedback_factor_beta_unavailable`·`c_eff_not_a_start_bound` 해소)**: (β, C_eff 노드, 샘플링 커패시터) 묶음은 S0 수준 필드 `graph/start: noise_inputs`다(writer = `start_intervals` 블록, S0당 1회, 40 §2.4.8). U17 ②에서 β·C_eff 계산과 함께 만든다(40 v1.9.1 D3, 근거: 소비자 위치). 새 상수 없음.
 - **β**: spec `feedback.elements`(되먹임 소자) 각각의 입력 포트 쪽 단자 넷(authoring `_feedback_cuts`·metrics `noise_plan` 과 같은 절단 규칙)에서, β = ΣC_fb / (ΣC_fb + 그 넷에 닿는 다른 커패시터 값 합 + 그 넷에 gate 가 닿는 입력 소자의 cgg 추정 gm/(2π f_T)). 커패시터 값 = 선언값, engine θ 면 §6.5 매크로 출발값(`cap_values`), 둘 다 없으면 θ 상자 기하 중심(층 0 과 같은 값). 되먹임 소자가 커패시터가 아니거나 절단 넷이 정확히 하나가 아니면 비활성(`noise_feedback_cut_ambiguous`·`noise_feedback_element_unknown`, `noise_plan` 과 같은 사유 이름), `feedback` 이 결정 대기면 `noise_feedback_undeclared`. 입력쌍 차동 회로는 절단 넷마다 β 를 구하고 같지 않으면 작은 쪽(보수)을 쓰고, 그 계수를 '추정'으로 표시한다(비대칭 귀환, U-70 결정 "GQ2, N1, N3, K2 권고대로").
 - **C_eff**: 구조 주극점 노드(§6.3 `dominant_node`)의 매크로 모델 노드 용량(§6.5 망 구성: 부하 + 소자 cgg 추정 + 보상 수동소자)에, 그 노드가 되먹임 소자의 출력 쪽 단자면 (1 − β)·ΣC_fb 를 더한 값. 주극점 노드가 정해지지 않으면 비활성(`dominant_node_undefined`).
 - **열잡음 C_eff 하한**: v²_th,budget = (V_budget² − Σ_s kT/C_s·(C_s/ΣC_fb)²)/2(스위치 kT/C 항 -- 저주파 폐루프 전달 C_s/ΣC_fb, 남는 몫을 열잡음·flicker 가 같은 몫으로 시작, 위 '예산은 나누지 않는다'), 하한 C_eff,min = N_in·γ_avg·kT·(1 + 부하 비)/(β·v²_th,budget)(N_in은 위 구조 유도). γ_avg = 입력 소자 LUT γ_eff = B·gm/(4kT)(§7.2) 평균, 부하 비 = 위 가드와 같은 Σ(γ_k gm_k)/(γ_in gm_in)(출발점). kT 는 U8 `noise_integral` 과 같은 출처. 주극점 노드의 engine θ 커패시터가 있으면 그 출발값을 하한까지 올린다(값 경계 출처 `SRC_NOISE_THERMAL_C`); 모두 선언값이면 검사만 하고 모자라면 `StartConflict(quantity="capacitance")`. v²_th,budget ≤ 0 이면 `StartConflict`(스위치 항이 예산을 다 씀).
