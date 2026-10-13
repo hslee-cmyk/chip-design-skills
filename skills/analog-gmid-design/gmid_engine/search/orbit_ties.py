@@ -5,12 +5,13 @@
 * `components` = θ 스키마 성분 (종류, 키) 열.
 * **θ 전류 성분**: 자기동형이 만드는 부호 묶음·구조적 0(`current_symmetry`) -- `symmetry` 를 안 주면 여기서 만든다. 묶인 구성원은 ties 에, 구조적 0 은 대표에서
   빠진다(탐색 변수가 아니다).
-* **그 밖 성분**(ln_idu·L·y·저항·커패시터 값): 키가 원소(소자)면 `device.dc_orbit`, `y` 의 키가 넷이면 `node.dc_orbit` 의 궤도 id 로 보아 같은 (종류, 궤도) 성분을 한
+* **그 밖 성분**(ln_idu·L·y·저항·커패시터 값): 키가 원소(소자)면 graph `orbits.devices`, `y` 의 키가 넷이면 `orbits.nodes` 의 궤도 id 로 보아 같은 (종류, 궤도) 성분을 한
   변수로 묶는다(값은 같다). 대표 = 구조 색 `dc_colour`(1-WL 색 + 정준 위치, 정점마다 유일) 최소.
 * `untied` = 묶지 않을 원소 이름 tuple(spec `search.untie_orbits`): 그 원소의 궤도는 묶지 않는다(검사는 `current_symmetry`: 원소 없음 `untie_element_unknown`,
   궤도가 원소 하나뿐 `untie_orbit_trivial`).
 * 반환 `ties` = ((대표, (구성원, ...)), ...) 대표의 구조 색 순서. 구성원의 부호(−1)와 구조적 0 은 `current_symmetry` 의 `negated`·`zeros` 다.
 """
+from gmid_engine.graph import GRAPH_KEY
 from gmid_engine.sizing import THETA_CURRENT, THETA_Y
 
 from .current_symmetry import current_symmetry
@@ -26,8 +27,8 @@ def _orbit_of(component, device_orbit, node_orbit):
 
 def orbit_ties(dc_ctx, components, untied, symmetry=None):
     symmetry = current_symmetry(dc_ctx, untied) if symmetry is None else symmetry
-    device_orbit = dict(dc_ctx.base.column("device", "dc_orbit"))
-    node_orbit = dict(dc_ctx.base.column("node", "dc_orbit"))
+    orbits = dc_ctx.base.value("graph", GRAPH_KEY, "orbits")          # graph 대칭 블록 필드(40 §2.4.8)
+    device_orbit, node_orbit = dict(orbits.devices), dict(orbits.nodes)
     colour = {**dict(dc_ctx.base.column("node", "dc_colour")), **dict(dc_ctx.base.column("device", "dc_colour"))}
     free = {device_orbit[name] for name in untied}
     dropped = {m for _rep, members in symmetry.ties for m in members} | set(symmetry.zeros)

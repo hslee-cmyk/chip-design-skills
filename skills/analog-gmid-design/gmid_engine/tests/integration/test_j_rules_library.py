@@ -130,7 +130,10 @@ def test_firing_table_stage_a_without_spec(name, real_lut, tmp_path):
 
 @pytest.mark.parametrize("name,status,reviews", [
     ("ngcc_3stage_ff", "review_needed", {"dc_role_unresolved_group"}),
-    ("nmcnr_amplifier", "review_needed", {"l_owner_name_order"}),
+    # [U17 ①-d] 40 v1.8 §3.2-3 사실 표: nmcnr library structure.json l_owner ["M104","M105"] -> M105(사용자 결정 2026-10-12 C-3) 를 쓴 뒤
+    # '단계 A 의 l_owner_name_order review 가 사라져야 한다' -> ok, review 0. (사실 파일의 rule_hash 는 규칙 변경 뒤 사용자 재확인 대기 -- 재확인 전에는
+    # structure_fact_stale 로 실패하는 것이 예상 상태다.)
+    ("nmcnr_amplifier", "ok", set()),
     ("folded_cascode", "ok", set()),
     ("common_gate_amplifier", "ok", set()),
     ("pushpull_follower_buffer", "ok", set()),
@@ -155,8 +158,7 @@ def test_stage_a_with_library_spec(name, status, reviews, real_lut, tmp_path):
 def test_pilot_stage_a_with_spec_has_no_unmatched_cut(real_lut, tmp_path):
     # [U1b-jrules] 파일럿 spec 의 안정도 제약 = pm_ss_deg(feedback Cf1·Cf2 -> β 루프, 끊는 넷 Vip·Vim = 입력 포트)와 pm_cm_ss_deg
     # (mode cm_output, 루프 뷰 선언 아님). 둘 다 declared_loop_cuts·대조 대상이 아니다(pipeline 계약 1절: mode loop 이고 beta != declared
-    # 만) -> loop_cut_unmatched 0. 남는 것은 41 1.12.6 '사실 없이 남는' 루프 뷰 loop:M37a:Voc 의 정지 cs_output_low_impedance 와
-    # 혼재(mixed_drive_signal_drain)이고, 이 기록은 전부 그 뷰의 것이다(같은 뷰 한정 교류접지 사실이 전부 지운다 -- test_stage_a
+    # 만) -> loop_cut_unmatched 0. 남는 것은 41 1.12.6 '사실 없이 남는' 루프 뷰 loop:M37a:Voc 의 정지 cs_output_low_impedance 이고([U17 ①-d] 옛 혼재 review 는 C-1 로 사라짐), 이 기록은 전부 그 뷰의 것이다(같은 뷰 한정 교류접지 사실이 전부 지운다 -- test_stage_a
     # test_view_scoped_ground_fact_clears_pilot_stop). spec 이 이 판정을 바꾸지 않으므로 spec 유무의 기록이 같다.
     name = "current_reuse_telescopic_ota"
     topo = H.LIBRARY / (name + ".topology.json")
@@ -169,7 +171,9 @@ def test_pilot_stage_a_with_spec_has_no_unmatched_cut(real_lut, tmp_path):
     stops = [x.split("|") for x in with_spec.report["stop_reasons"]]
     reviews = [x.split("|") for x in with_spec.report["review_needed"]]
     assert {s[1] for s in stops} == {"cs_output_low_impedance"}
-    assert "mixed_drive_signal_drain" in {x[1] for x in reviews}
+    # [U17 ①-d] 41 v1.8 §1.5-4 C-1 + 보완 (가): 혼재 노드 review(mixed_drive_signal_drain)는 규칙이 대체돼 없다 -- 루프 뷰의 혼재 넷(N1a2a·N1b2b)은
+    # drain 쪽 gate(Vip·Vim)가 그 뷰의 신호 넷이 아니라 전압 구동(tests/integration/test_drive_kind_mixed_9circuits.py)
+    assert not {"mixed_drive_signal_drain", "mixed_drive_unresolved_group"} & {x[1] for x in reviews}
     assert "loop_cut_unmatched" not in {x[1] for x in reviews}
     assert {x[2] for x in stops + reviews} == {"loop:M37a:Voc"}
     assert sorted(with_spec.report["stop_reasons"]) == sorted(plain.report["stop_reasons"])

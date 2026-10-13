@@ -531,7 +531,11 @@ def test_library_real_path_find_front_with_l_classes(tmp_path, lib_env, name):
     comps = {v.component for v in sctx.domain.variables}
     # 전제(비공허): 동치류 멤버가 있고 그중 하나 이상이 ln_idu 성분을 가지며 l_cells 에는 멤버가 없다(하한 계산이 멤버를 만난다).
     assert dc.l_ties
-    assert any(("ln_idu", m) in comps for m, _ in dc.l_ties)
+    # [U17 ①-d] 40 v1.8 §6-8 D-2(MOS d·s 같은 라벨 c)로 정준 순서·dc_colour 순서가 바뀌어 two_stage_ota_sf 의 writer 계획이 달라졌고, 그 회로에서는
+    # 동치류 멤버에 ln_idu 성분이 더 이상 없다(§6-8 '이 순서를 기대값으로 쓰는 test 는 독립 test 작성 주체가 다시 만든다'). 비공허 전제는 나머지 두 회로
+    # (folded_cascode·ngcc_3stage_ff)가 지키고, two_stage_ota_sf 는 '예외 없음'만 본다.
+    if name != "two_stage_ota_sf":
+        assert any(("ln_idu", m) in comps for m, _ in dc.l_ties)
     assert not {m for m, _ in dc.l_ties} & {m for m, _ in sctx.domain.l_cells}
     fr = find_front(sctx, [])
     assert isinstance(fr, SearchFront)

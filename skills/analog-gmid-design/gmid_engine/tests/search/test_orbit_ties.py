@@ -110,9 +110,9 @@ def test_asymmetric_circuit_no_ties(tmp_path, lut_sealed):
 
 
 def test_dc_orbit_pairs_follow_construction(tmp_path, lut_sealed):
-    """입력 확인: 묶음의 근거인 dc_orbit 이 σ 짝에서 같고 고정점끼리 다르다(sizing 3.0b)."""
+    """입력 확인: 묶음의 근거인 궤도(graph/s1 orbits -- [U17 ①-d] 옛 sizing dc_orbit 대체, 40 §2.4.8)가 σ 짝에서 같고 고정점끼리 다르다."""
     case = _sym(tmp_path, lut_sealed)
-    orb = dict(case.dc.base.column("device", "dc_orbit"))
+    orb = dict(case.dc.base.value("graph", "s1", "orbits").devices)
     assert orb["M1"] == orb["M2"] and orb["M3"] == orb["M4"] and orb["CL1"] == orb["CL2"]
     assert len({orb["M1"], orb["M3"], orb["M5"], orb["CL1"]}) == 4
 
@@ -255,7 +255,7 @@ def test_b_reversed_resistor_same_ties_as_drawn_alike(tmp_path, lut_sealed):
     same = make_case(tmp_path / "s", _rload(False), lut_sealed, elements=R_ELEMENTS, boxes=R_BOXES)
     flip = make_case(tmp_path / "f", _rload(True), lut_sealed, elements=R_ELEMENTS, boxes=R_BOXES)
     assert frozenset({("resistance", "R1"), ("resistance", "R2")}) in tie_groups(same.sctx.domain.ties)   # 대조(현재도 통과)
-    orb = dict(flip.dc.base.column("device", "dc_orbit"))
+    orb = dict(flip.dc.base.value("graph", "s1", "orbits").devices)
     assert orb["R1"] == orb["R2"] and orb["M1"] == orb["M2"]
     assert frozenset({("resistance", "R1"), ("resistance", "R2")}) in tie_groups(flip.sctx.domain.ties)
     assert _dimension(flip.sctx.domain) == _dimension(same.sctx.domain)
@@ -295,8 +295,52 @@ def test_b_pilot_current_reuse_r1_r2_tied(tmp_path, lut_sealed):
     flipped = build_library_case(tmp_path / "f", flip_terminals(raw, "R2"), spec, lut_sealed)
     assert flipped.domain.ties                                                     # 전제(현재 코드도 통과)
     assert _dimension(flipped.domain) < len(flipped.dc.schema.components)
-    orb = dict(orig.dc.base.column("device", "dc_orbit"))
+    orb = dict(orig.dc.base.value("graph", "s1", "orbits").devices)
     assert orb["R1"] == orb["R2"]
     assert orig.domain.ties
     assert _dimension(orig.domain) == _dimension(flipped.domain)
     assert len(tie_groups(orig.domain.ties)) == len(tie_groups(flipped.domain.ties))
+
+
+# ---------------------------------------------------------------- [U17 ①-d] 설계 40 §6-8 MOS d/s 맞바꿈 (D-3 비트 동일 -- 대칭 결과까지)
+# 범위 결정(사용자 결정 2026-10-13 "1은 권고", (라)) 원문 요지(오케스트레이터 전달): "topology d/s 표기 = 물리 방향 선언. design 40 §6-8 D-3 비트 동일은
+# **대칭 결과(궤도·정준 위치·dc_colour·전류 부호)까지만**, 사이징 결과(writer 계획·θ 스키마·ties)는 선언 방향을 따름. 틀린 선언은 봉인 7(VDS−VDsat ≥ tol)이
+# 거부." -> 옛 판정 'd/s 뒤집기 전후 SearchDomain.ties 가 같다'(사이징 결과)는 삭제하고 대칭 결과만 본다(봉인 7 거부는
+# tests/sizing/test_block_columns.py::test_reversed_ds_declaration_rejected_by_seal7).
+# 전류 부호(graph/s1 current_symmetry)는 '표기된 drain 이 상의 표기된 drain 으로 가는가'(§6-8) 기준이라 표기를 뒤집은 소자는 기준 방향이 바뀐다.
+# 그래서 비트 동일의 뜻 = 뒤집은 집합 F 에 대해 (원소, 상, 부호) 행이 부호 × f(원소) × f(상)(f = F 에 들면 −1)으로 옮겨진 것과 같다(손 유도: 기준 방향
+# 하나를 바꾸면 그 원소가 낀 관계 I(γe) = σ·I(e) 의 σ 가 한 번 뒤집힌다). 행은 '움직이거나 방향을 뒤집는 원소만' 적히므로 그 규칙으로 정규화해 비교한다.
+# 뒤집기 대상 = gate 가 drain·source 어느 쪽도 아닌 MOS(SYM 의 다섯 MOS 모두).
+
+def _flip_ds(doc, names, new_name):
+    import json
+    d = json.loads(json.dumps(doc))
+    for e in d["netlist"]:
+        if e["name"] in names:
+            e["drain"], e["source"] = e["source"], e["drain"]
+    d["topology_name"] = new_name
+    return d
+
+
+def _sign_rows(dc, flipped=()):
+    """current_symmetry 생성자 행을 뒤집은 집합 기준으로 옮겨 정규화: {(원소, 상, 부호')}(부호' = 부호 × f(원소) × f(상)), 고정·부호 +1 행은 뺀다."""
+    f = {n: -1 for n in flipped}
+    out = []
+    for g in dc.base.value("graph", "s1", "current_symmetry").generators:
+        rows = {(e, i, s * f.get(e, 1) * f.get(i, 1)) for e, i, s in g}
+        out.append(frozenset(r for r in rows if r[0] != r[1] or r[2] == -1))
+    return sorted(out, key=sorted)
+
+
+@pytest.mark.parametrize("names", [("M1",), ("M3",), ("M5",), ("M1", "M2", "M3", "M4", "M5")])
+def test_ds_flip_symmetry_bit_identical(names, tmp_path, lut_sealed):
+    base = make_case(tmp_path / "b", sym_doc(), lut_sealed, elements=SYM_ELEMENTS, boxes=BOXES, build_sctx=False)
+    flip = make_case(tmp_path / "f", _flip_ds(sym_doc(), names, "hand_sym_canon_ds"), lut_sealed, elements=SYM_ELEMENTS,
+                     boxes=BOXES, build_sctx=False)
+    orb = dict(base.dc.base.value("graph", "s1", "orbits").devices)
+    assert orb["M1"] == orb["M2"] and orb["M3"] == orb["M4"]                # 공허한 비교 아님(비자명 궤도)
+    assert dict(flip.dc.base.value("graph", "s1", "orbits").devices) == orb
+    assert dict(flip.dc.base.value("graph", "s1", "orbits").nodes) == dict(base.dc.base.value("graph", "s1", "orbits").nodes)
+    assert dict(flip.dc.base.column("device", "dc_colour")) == dict(base.dc.base.column("device", "dc_colour"))
+    assert dict(flip.dc.base.column("node", "dc_colour")) == dict(base.dc.base.column("node", "dc_colour"))
+    assert _sign_rows(flip.dc, names) == _sign_rows(base.dc)

@@ -46,11 +46,16 @@
 | loop_roles.py [U1b] | 1 | `loop_roles` | 루프 역할(루프 뷰 \| 중첩 Miller 내부 \| 복합 diode 내부 \| 바이어스 SCC, 10.6) |
 | canonical_form.py [r11] | 1 | `canonical_form` | 완전 정준 라벨링·자기동형 생성자(4.7) |
 | automorphism_orbits.py [r11] | 1 | `automorphism_orbits` | 생성자 -> 정점 궤도(4.7) |
+| orbit_matching_crosstab.py [U17-1d] | 1 | `orbit_matching_crosstab` | MOS 궤도 ↔ matching 레코드 대조 표(4.8) |
+| s1_symmetry.py [U17-1d] | 4 | `s1_symmetry`(`@compute_block`) | 대칭 블록: 구조 색·`graph/s1: orbits`·`current_symmetry`·d/s 자기 맞바꿈 정지(4.8) |
 | s1_build.py | 5 | `build_s1` | 공개 진입점(빌드 순서·재사용) |
 
 U2~U4 블록 10개는 서로 import 하지 않는다(값은 graph 필드로만 전달). 어느 것도 `device.bulk`·supplies 를 읽지 않는다.
 
-## 1. `build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None) -> S1Graph`
+## 1. `build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None, marks=NO_MARKS) -> S1Graph`
+
+- `marks` [U17-1d] = `SymmetryMarks`(사람 선언 표시 -- 입력 DC·원소 값·engine·선형 영역·노드 목표, 단계 A 는 `sizing.symmetry_marks(dc_inputs_from_spec(spec))`).
+  `SymmetryMarks` 가 아니면 `TypeError`. 지문은 `S1Key.marks_fp`. 마지막 블록 `s1_symmetry(·, supplies, marks)`(4.8)가 이 표시를 읽는다.
 
 - `structure` [U1b] = `load_structure_facts` 결과 또는 None. S1 이 소비하는 ratified 사실만(`dc_role` -> `s1_dc_roles` 규칙 4, `matching_pair` -> `s1_matching_groups` 레코드 추가)
   뽑아 두 블록의 extras 로 넘기고 그 지문을 `S1Key.facts_fp` 에 넣는다(사실이 다르면 S1 이 다르다). `drive_kind`·`ac_ground_exception`·`loop_role`·`feedforward_cell`·`stage_members` 는 S1v 쪽.
@@ -61,13 +66,13 @@ U2~U4 블록 10개는 서로 import 하지 않는다(값은 graph 필드로만 �
   doc.devices, doc.passives, doc.sources, 정렬 레일 tuple, doc.ports)` -> `s1_bulk(·, supplies)` -> `s1_dc_conduction` ->
   `s1_gs_groups` -> `s1_branches` -> `s1_dc_roles(·, dc 사실)` -> `s1_rel_vgs` -> `s1_rel_matching` -> `s1_matching_groups(·, matching_pair 사실)` -> `s1_gvgs` ->
   `s1_columns(·, column_limit)`
-  -> `s1_rel_kcl` -> `S1Graph(key, snapshot)`. `base` = `previous.snapshot`(있으면) 또는 `GraphSnapshot.empty(S1_WRITERS)`.
+  -> `s1_rel_kcl` -> `s1_symmetry(·, supplies, marks)` -> `S1Graph(key, snapshot)`. `base` = `previous.snapshot`(있으면) 또는 `GraphSnapshot.empty(S1_WRITERS)`.
 - 재사용 판정: `previous.key == key` 이고 (`column_limit` 가 None 이거나 `previous` 의 기둥 수 ≤ `column_limit`)이면
   `previous` 를 **그대로**(`is`) 반환, 블록 호출 0. 기둥 수가 상한을 넘으면 반환하지 않고 블록을 부른다 -- `s1_columns` 만
   입력(extras)이 바뀌어 다시 돌고 정지한다(1.1).
 - 재사용(확정 사항 1·2·5):
   - 같은 doc·supplies_v·column_limit 로 `previous` 를 넘기면 같은 객체, 모든 블록 계수 변화 0.
-  - supplies_v 만 바꿔 `previous` 를 넘기면 `s1_bulk` 만 compute, 나머지 11 블록은 reuse(입력 버전 같음). node 레코드는
+  - supplies_v 만 바꿔 `previous` 를 넘기면 `s1_bulk` 와 `s1_symmetry`(레일 전위 표시·bulk 를 읽는다) 만 compute, 나머지 11 블록은 reuse(입력 버전 같음). node 레코드는
     모두 이전 스냅샷과 같은 객체, device 레코드는 bulk 필드가 바뀌는 MOS 만 새 객체.
   - `column_limit` 만 바꾸면(키 같음, 이전 기둥 수가 새 상한 초과) `s1_columns` 만 compute.
   - `previous` 없이 같은 doc 으로 두 번 부르면 두 번 계산하고 각 블록 `stats().recomputes_same_input` 이 1 오른다
@@ -91,7 +96,10 @@ U2~U4 블록 10개는 서로 import 하지 않는다(값은 graph 필드로만 �
 | `supplies_value` | `supplies_v.<넷>` | (넷,) | 값이 bool, 비실수, NaN·Inf |
 | `supplies_missing_rail` | `supplies_v.<넷>` | (넷,) | 레일 선언 넷의 전위 없음 |
 
-## 3. `s1_key(doc, supplies) -> S1Key(topology_fp, rule_fp, supplies_v_fp, facts_fp)`
+## 3. `s1_key(doc, supplies, facts=(), marks=NO_MARKS) -> S1Key(topology_fp, rule_fp, supplies_v_fp, facts_fp, marks_fp)`
+
+- [U17-1d] `facts_fp` = `build_s1` 이 뽑은 S1 사실 tuple(`dc_role`·`matching_pair`)의 지문(둘 다 비면 `NO_FACTS_FP`), `marks_fp` = `fp_of(marks)`(`NO_MARKS` 면 `NO_MARKS_FP`) --
+  40 §3.2-3 파이프라인 3, §6-8. `S1_RULE_FILES` 에 `canonical_form.py`·`automorphism_orbits.py`·`s1_symmetry.py` 가 든다.
 
 - `topology_fp == doc.connectivity_fp`.
 - `rule_fp` = `fp_of`(((basename, 파일 바이트(CRLF -> LF 정규화) sha256), ...) basename 정렬) over `S1_RULE_FILES`
@@ -392,15 +400,35 @@ review_needed 는 정지가 아니라 기록이다(DcRole 묶음·matching_offse
 
 ### 4.7 [r11] 정준형 `canonical_form(source, element_marks=(), node_marks=()) -> Canonical` · `automorphism_orbits(canon) -> {정점: 궤도 id}` (설계 40 §6, 사용자 결정 2026-10-08)
 - `source` = `.column(kind, field)` 를 가진 것(S1Graph, sizing 계산 블록 Projection). 읽는 열: `device.{element_class, kind, is_diode, pins, bulk}`, `node.{is_rail, port_direction}`. θ 무관.
-- 그래프: 정점 = 넷 `("n", 넷)` ∪ 원소 `("e", 원소)`. 엣지 = 원소-넷 연결에 단자 라벨: MOS `d`·`g`·`s`·`b`(bulk 넷이 정해졌으면), 이상원 `t0`·`t1`(전류 방향), 그 밖 2단자(저항·커패시터)는 **방향 없는 `t`**
+- 그래프: 정점 = 넷 `("n", 넷)` ∪ 원소 `("e", 원소)`. 엣지 = 원소-넷 연결에 단자 라벨: MOS `c`(drain·source 같은 채널 라벨, U17-1d)·`g`·`b`(bulk 넷이 정해졌으면), 이상원 `t0`·`t1`(전류 방향), 그 밖 2단자(저항·커패시터)는 **방향 없는 `t`**
   (단자 순서를 색에 넣지 않는다). 처음 색: 원소 = (종류, element_class, kind, is_diode, 선언 표시), 노드 = (종류, is_rail, port_direction, 선언 표시). 선언 표시 형식은 sizing 3.0b.
-- `Canonical(wl, position, generators)`: `wl` = 선언 표시 없는 1-WL 색(정수), `position` = 정준 위치 0..n−1(정점마다 다름), `generators` = 자기동형 생성자 tuple(각각 움직인 정점만 `((정점, 상), ...)`).
+- [U17-1d] 그래프: MOS 의 drain·source 엣지는 같은 채널 라벨 `c`(d/s 맞바꿈 허용, gate `g`·bulk `b` 는 그대로).
+- `Canonical(wl, position, generators)`: `wl` = 선언 표시를 넣은 **같은 그래프**의 1-WL 색(정수, D-2), `position` = 정준 위치 0..n−1(정점마다 다름), `generators` = 자기동형 생성자 tuple(각각 움직인 정점만 `((정점, 상), ...)`).
   정준 라벨링 = individualization-refinement(nauty 식): 평형 분할의 가장 앞선 비단일 칸의 정점을 하나씩 개별화·정제, 잎의 증명서 cert 최소가 정준, 같은 cert 의 두 잎 사이 위치 대응이 자기동형
   (최저 공통 선조 마디로 가지치기). 이름은 탐색 순서에만 쓰이고 증명서·군은 이름과 무관하다.
 - `automorphism_orbits`: 생성자들이 만드는 군 아래 정점 동치류. 궤도 id = 구성원의 정준 위치 최솟값(같은 궤도 ⇔ 같은 값). 생성자가 없으면 정점마다 자기 위치.
 - 불변식(test 가 확인할 성질): (a) 이름 전단사·원소 순서 섞기에 `automorphism_orbits` 가 불변; (b) 생성자는 모두 자기동형(이웃 다중집합·처음 색 보존, 단자 라벨 보존);
   (c) 손 그래프 기지 군(링 n 개 한 궤도, 경로, C6⊔2×C3 에서 1-WL 색 같아도 궤도 2, 큐브, Petersen) 및 소규모 전수 순열 대조; (d) 단일 종단 OTA 차동쌍 두 멤버는 서로 다른 궤도,
   완전 차동 쌍은 같은 궤도; (e) 저항 terminals 순서를 뒤집어도 궤도 분할 동일; (f) 선언 표시가 다른 두 원소는 다른 궤도; (g) 결정론; (h) 궤도 ⊆ `wl` 클래스.
+
+### 4.8 [U17-1d] 대칭 블록 `s1_symmetry`·`orbit_matching_crosstab` (설계 40 §6-5·7·8, §2.4.1 '대칭 탐색', §2.4.8, 사용자 결정 2026-10-12 "6. 가"·D-1~D-3)
+
+- reads `device.{bulk, element_class, is_diode, kind, pins}`, `node.{is_rail, port_direction}`, `graph.dc_pruned`; extras `(supplies, marks)`.
+  writes `device.dc_colour`·`node.dc_colour`(int), `graph.orbits`(`Orbits(devices, nodes)`), `graph.current_symmetry`(`CurrentSigns(generators)`).
+- **그래프 하나**(D-2): 선언 표시(노드 = 레일 전위 `rail_v`(supplies)·노드 목표 `target_v`·입력 포트 `input_dc_v`, 원소 = `marks.elements`)를 넣은 색 그래프 하나에서
+  `canonical_form` 이 `wl`·정준 위치·생성자를 모두 정한다. 그 그래프에서 MOS 의 d·s 엣지는 같은 라벨 `c`(4.7 갱신). 같은 S1 에서 이 블록 밖 어디서도 정준형을 다시 계산하지
+  않는다(L 동치류 `name_order` 예외·search 묶음·sizing 순서가 모두 이 필드를 읽는다).
+- `dc_colour` = (`wl`, 정준 위치) 정렬 순위(정점마다 유일). `orbits` = 궤도 id(구성원 정준 위치 최솟값). `current_symmetry.generators[i]` = 생성자 i 아래 움직이거나 방향을 뒤집는
+  원소의 (원소, 상, 부호) 이름순: 부호 −1 = MOS drain 이 상 MOS drain 으로 가지 않음, 방향 없는 2단자 수동소자 첫 단자 넷이 상의 첫 단자 넷으로 가지 않음; 이상원 +1.
+- 정지: 군의 원소가 전도 MOS(가지치기 안 된 MOS) 하나를 자기 자신으로 보내며 d/s 를 맞바꾸면 `StructureUnresolvedError`(reason `unsupported_rule_branch`,
+  rule_branch `ds_self_swap_zero_current`, devices, detail generators). (원소, ±방향) 쌍 궤도의 union-find 로 군 전체에서 판정.
+- 소비자: `l_equivalence_classes`(궤도), sizing `build_kernel_context`(같은 블록을 `symmetry_marks(inputs)` 로 재호출 -- 같은 표시면 재사용), search `current_symmetry`·`orbit_ties`·
+  `canonical_order`·`search_domain`(궤도·부호), metrics `achievability`(궤도).
+- `orbit_matching_crosstab(s1) -> OrbitMatchingCrosstab(orbits, records)`: MOS 궤도마다 걸친 matching 레코드, 레코드마다 걸친 MOS 궤도(40 §6-5). 단계 A 보고서 키
+  `orbit_matching_crosstab`. `findings` = `diff_pair_orbit_split`(review_needed, 40 §6-5 (나') v1.8): `diff_pair` 두 멤버가 다른 궤도이고 (a) 출력 포트 role 에
+  `differential_output_p`·`_n` 이 둘 다 있으며 (b) 두 멤버 gate 넷의 포트 role 이 `differential_input_p`·`_n` 일 때만. 그 밖은 표에 기록만. 단계 A 가 review 목록에 올린다.
+- [U17-1d] 혼재 노드 구동 종류(`drive_kinds`, 41 §1.5-4 C-1 + 보완 (가)): (i) source 쪽 소자 drain 이 그 뷰 교류 접지이고 gate 가 순방향 신호 넷이면 전압(근거 `follower`),
+  (ii) 아니면 drain 쪽 소자 gate 가 순방향 신호 넷이면 전류(근거 `cascode`), 그 밖 전압(`mixed_bias_drain`). 옛 DC 역할 판정과 기록 `mixed_drive_signal_drain`·`mixed_drive_unresolved_group` 삭제.
 
 ## 5. `S1Graph(key, snapshot)` 질의
 
@@ -673,6 +701,11 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 정지 회로의 정지 사유는 사실(`structure.json`)이나 spec 선언이 닿기 전까지 의도된 `기록만` 정지다(U1 시점의 sf 정지 `loop_record_only`·`composite_dag_not_chain` 등은 10.6 으로 닫혔다).
 
 ### 10.6 [U1b] J 공동분석 구조 규칙과 structure.json 사실 소비 (설계 41 §1.12·§1.13, 40 §3.2-3, 사용자 결정 2026-10-08)
+
+* **[U17-1d] concept `l_owner`**(C-3, 사용자 결정 2026-10-12 "7절 권고대로"): subject = L 동치류 멤버 이름 정렬 JSON 배열(둘 이상), value = 주인 소자 이름(로드 검사는 형식만).
+  `build_s1v` 가 `l_equivalence_classes(..., owner_facts)` 로 넘기고 멤버가 엔진 유도 동치류와 같고 주인이 멤버면 주인 = 사실(`owner_rule` `ratified_fact`, status ratified -- 41 §1.12.5
+  규칙 1~4 를 덮음, `applied_facts` 에 남김). 멤버가 겹치는 동치류가 있으나 다르거나 주인이 멤버가 아니면 `structure_fact_mismatch`, 겹치는 동치류가 없으면 `structure_fact_orphan`.
+  소비자(sizing `l_ties`, metrics `achievability`)는 derived·ratified 동치류를 L 공유로 쓴다. `name_order` 동률 예외의 궤도는 S1 필드 `graph/s1: orbits`(4.8, 정준형 재계산 없음).
 
 모든 규칙은 connectivity 만 읽는다(회로·소자·넷 이름 없음). 사실 파일은 이 단위가 쓰지 않는다(코드 병합 뒤 `structure_rule_fp()` 로 쓴다).
 

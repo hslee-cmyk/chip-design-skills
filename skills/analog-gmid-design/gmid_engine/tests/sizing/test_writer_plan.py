@@ -18,7 +18,7 @@ from gmid_engine.sizing import (DC_KEY, INPUT_GROUP_KEY, DeviceCoord, NodeWrite,
 
 from .conftest import (NINE, build_ctx, circuit_cs_pmos_load, circuit_cs_res, circuit_empty_window, detail,
                        library_ctx, load_doc, mos, topo, two)
-from .test_struct_colour import rename
+from .conftest import rename
 
 
 def plan(ctx):

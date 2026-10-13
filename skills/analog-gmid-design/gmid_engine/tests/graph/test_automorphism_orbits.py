@@ -6,6 +6,9 @@ oracle:
   넷 궤도 2), 정육면체 Q3·Petersen(넷 1 궤도). 차동쌍: 완전 차동 = 같은 궤도, 단일 종단(미러 부하) = 다른 궤도.
 - (b) 전수 역추적 자기동형(`brute_orbits`) 대조, 독립 1-WL(`wl_classes`)로 전제 확인.
 - (d) 사용자 결정 '대칭 묶음 방식: b': 저항 terminals 순서를 뒤집어도 궤도 분할 동일.
+- [U17 ①-d] 설계 40 v1.6 §6-8(사용자 결정 2026-10-12 "6. 가", D-2·D-3): "자기동형은 한 MOS의 drain을 상 MOS의 source로 보낼 수 있다(자기
+  자신으로 가며 d/s를 맞바꾸는 것 포함)", d·s = 같은 라벨 c(oracle `labeled_graph` 를 그대로 고침 -> 위 brute-force 대조가 이 규칙으로 바뀐다),
+  "궤도 ⊆ `wl` 클래스"가 맞바꿈 궤도에서도 성립, d/s 표기를 뒤집은 입력의 궤도가 비트 동일.
 graph `.py` 소스는 열람하지 않았다.
 """
 from __future__ import annotations
@@ -161,3 +164,56 @@ def test_marks_split_orbits():
 def test_deterministic():
     c = c6_2c3()
     assert orbits(c) == orbits(c)
+
+
+# ---------------------------------------------------------------- [U17 ①-d] 설계 40 v1.6 §6-8 MOS d/s 맞바꿈
+
+def _drain_to_source_pair():
+    """Ma(d=a, s=gnd)·Mb(d=gnd, s=b) -- 같은 gate vb, 출력 a·b 에 같은 커패시터. a<->b, Ma<->Mb 는 Ma 의 drain(a)을 Mb 의 source(b)로
+    보내야만 자기동형이다(옛 d·s 라벨 그래프에서는 아니다)."""
+    els = [mosd("Ma", "nmos", "a", "vb", "gnd"), mosd("Mb", "nmos", "gnd", "vb", "b"), cap("CA", "a", "vdd"), cap("CB", "b", "vdd")]
+    return Circuit(els, ("vdd", "gnd"), {"a": "output", "b": "output"})
+
+
+def test_drain_may_map_to_source_of_image():
+    o = orbits(_drain_to_source_pair())
+    assert o[("e", "Ma")] == o[("e", "Mb")] and o[("n", "a")] == o[("n", "b")] and o[("e", "CA")] == o[("e", "CB")]
+    assert partition(o) == brute_orbits(*labeled_graph(_drain_to_source_pair()))
+
+
+def _pass_device():
+    """U11 `pass_device` 변형(tests/metrics conftest cm_variant): 완전 차동 M1~M4 + 평균 저항 R1(op, c)·R2(c, om) + 두 출력 사이 통과 MOS
+    Mx(d=op, g=vbx, s=om). op<->om 반사는 Mx 를 자기 자신으로 보내며 d/s 를 맞바꾼다(§6-8 '자기 자신으로 가며 d/s를 맞바꾸는 것')."""
+    els = [mosd("M1", "nmos", "op", "ip", "gnd"), mosd("M2", "nmos", "om", "im", "gnd"),
+           mosd("M3", "pmos", "op", "c", "vdd"), mosd("M4", "pmos", "om", "c", "vdd"),
+           res("R1", "op", "c"), res("R2", "c", "om"), mosd("Mx", "nmos", "op", "vbx", "om")]
+    return Circuit(els, ("vdd", "gnd"), {"ip": "input", "im": "input", "op": "output", "om": "output"})
+
+
+def test_self_ds_swap_is_automorphism():
+    c = _pass_device()
+    canon = canonical_form(c)
+    o = automorphism_orbits(canon)
+    assert o[("n", "op")] == o[("n", "om")] and o[("e", "M1")] == o[("e", "M2")] and o[("e", "R1")] == o[("e", "R2")]
+    assert partition(o) == brute_orbits(*labeled_graph(c))
+    # 군은 반사 하나(Z2) -- 그 생성자는 op<->om 을 움직이고 Mx 는 고정한다(= Mx 자기 d/s 맞바꿈)
+    moved = [dict(g) for g in canon.generators]
+    assert any(("n", "op") in g and ("e", "Mx") not in g for g in moved)
+
+
+@pytest.mark.parametrize("seed", range(30))
+def test_ds_flip_orbits_bit_identical_random(seed):
+    """§6-8 D-3: d/s 표기를 뒤집은 입력(gate 가 d·s 가 아닌 MOS 하나씩)의 궤도 dict 가 비트 동일."""
+    c = random_circuit(900 + seed)
+    base = orbits(c)
+    for e in c.elements:
+        if e[1] == "mos" and e[3]["g"] not in (e[3]["d"], e[3]["s"]):
+            assert orbits(c.flip_ds(e[0])) == base, e[0]
+
+
+def test_ds_swap_orbits_refine_wl():
+    """§6-8 '궤도 ⊆ `wl` 클래스'가 맞바꿈 궤도에서도 성립(독립 1-WL, c 라벨)."""
+    for c in (_drain_to_source_pair(), _pass_device()):
+        col, nb = labeled_graph(c)
+        wl = wl_classes(col, nb)
+        assert all(len({wl[v] for v in g}) == 1 for g in partition(orbits(c)))

@@ -15,6 +15,7 @@ import pytest
 from gmid_engine.core import (CANDIDATE_FAILURE_CLASSES, InfeasibleTargetError, NonconvergentError,
                               SealViolationError, StructureUnresolvedError)
 from gmid_engine import sizing as S
+from gmid_engine.graph import s1_symmetry   # [U17 ①-d] 계획 블록 dc_struct_colour -> graph 대칭 블록(40 §6-8 D-2)
 from gmid_engine.sizing import DcEvaluation, check_theta, size_and_seal
 
 from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circuit_empty_window, detail, free_currents, mos,
@@ -23,7 +24,7 @@ from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circu
 EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
           S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
           S.dc_seal_conduction, S.dc_seal_report)       # [r8] 4 평가 + 8 봉인(tol·1·2·3·6·7·8·9) + report = 13
-PLAN5 = (S.dc_rails, S.dc_struct_colour, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
+PLAN5 = (S.dc_rails, s1_symmetry, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
 
 
 def reset():

@@ -33,6 +33,7 @@ from .gs_groups import s1_gs_groups
 from .gvgs_cycles import s1_gvgs
 from .loop_roles import loop_roles
 from .matching_groups import s1_matching_groups
+from .orbit_matching_crosstab import OrbitMatchingCrosstab, orbit_matching_crosstab
 from .rel_kcl import s1_rel_kcl
 from .rel_matching import s1_rel_matching
 from .rel_vgs import s1_rel_vgs
@@ -41,6 +42,7 @@ from .s1_index import terminal_index
 from .s1_key import s1_key
 from .s1_model import S1Graph
 from .s1_structure import s1_structure
+from .s1_symmetry import s1_symmetry
 from .s1v_build import build_s1v
 from .s1v_key import s1v_rule_fp, structure_rule_fp
 from .s1_values import (
@@ -49,6 +51,7 @@ from .s1_values import (
     BRANCH_COLUMN_BUDGET,
     BRANCH_DC_ISOLATED_LOOP,
     BRANCH_DC_SELF_LOOP,
+    BRANCH_DS_SELF_SWAP,
     BRANCH_GVGS_SELF_EDGE,
     BRANCH_MOS_KIND,
     BRANCH_MULTI_DOMAIN,
@@ -94,6 +97,8 @@ from .s1_values import (
     MOS_TERMINAL_NAMES,
     NMOS,
     PMOS,
+    NO_MARKS,
+    NO_MARKS_FP,
     NO_SUPPLIES_FP,
     REL_EQUAL_VGS,
     REL_KCL_GROUP,
@@ -122,6 +127,7 @@ from .s1_values import (
     S1_DC_ROLES_WRITER,
     S1_GS_GROUPS_WRITER,
     S1_GVGS_WRITER,
+    S1_SYMMETRY_WRITER,
     S1_MATCHING_GROUPS_WRITER,
     S1_REL_KCL_WRITER,
     S1_REL_MATCHING_WRITER,
@@ -151,6 +157,9 @@ from .s1_values import (
     MatchingGroup,
     RelEdge,
     S1Key,
+    SymmetryMarks,
+    Orbits,
+    CurrentSigns,
     Segment,
 )
 from .s1v_values import (
@@ -190,11 +199,11 @@ from .structure_tables import structure_tables
 from .supplies import supplies_declaration
 
 # S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 graph 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식'):
-# (1) S1 필드(`S1_WRITERS`)의 값 형식 전부, (2) S1v 필드 값 형식 -- 묶음 `S1v` 를 필드로 풀었을 때 그 필드 값에서 닿는 frozen dataclass
+# (1) S1 필드(`S1_WRITERS`)의 값 형식 전부(대칭 블록 `s1_symmetry` 의 `Orbits`·`CurrentSigns` 포함 -- 선언 표시 `SymmetryMarks` 는 블록 extras 라 필드 값이 아니다), (2) S1v 필드 값 형식 -- 묶음 `S1v` 를 필드로 풀었을 때 그 필드 값에서 닿는 frozen dataclass
 # (`S1v.key` 의 `S1Key`, `views` 의 `ViewS1v` 와 그 안의 값, `l_classes`·`findings`). 묶음 `S1v` 자체와 계산용 입력 모형(`NetModel`·`Mos`·`TwoTerm`·
 # `ViewSeed`·`StructureFact`·`LoopEdge`)은 필드 값이 아니라 올리지 않는다. 새 S0 수준 필드가 graph 로 옮겨 오면 그 값 형식을 여기 더한다.
 for _field_value_type in (BulkResult, Evidence, Segment, Branch, Column, ColumnOrphan, GsGroup, DcRole, RelEdge,
-                          MatchingGroup, MatchingDisposition, GvgsSummary,
+                          MatchingGroup, MatchingDisposition, GvgsSummary, Orbits, CurrentSigns,
                           S1Key, ViewS1v, Finding, Block, CompositeBlock, Loop, LClass, CellInfo, DriveInfo, PoleNode, PassBundle,
                           OutputDirection, LoopRole, FeedforwardCell, FfRatioCandidate):
     type_registry.type_registry().register(_field_value_type)
@@ -206,6 +215,7 @@ __all__ = (
     "BRANCH_DC_ISOLATED_LOOP",
     "BRANCH_DC_SELF_LOOP",
     "BRANCH_GVGS_SELF_EDGE",
+    "BRANCH_DS_SELF_SWAP",
     "BRANCH_MOS_KIND",
     "BRANCH_MULTI_DOMAIN",
     "BLOCK_BUFFER",
@@ -294,6 +304,11 @@ __all__ = (
     "Canonical",
     "S1Graph",
     "S1Key",
+    "SymmetryMarks",
+    "Orbits",
+    "CurrentSigns",
+    "NO_MARKS",
+    "NO_MARKS_FP",
     "S1_BRANCHES_WRITER",
     "S1_BULK_WRITER",
     "S1_COLUMNS_WRITER",
@@ -301,6 +316,7 @@ __all__ = (
     "S1_DC_ROLES_WRITER",
     "S1_GS_GROUPS_WRITER",
     "S1_GVGS_WRITER",
+    "S1_SYMMETRY_WRITER",
     "S1_MATCHING_GROUPS_WRITER",
     "S1_REL_KCL_WRITER",
     "S1_REL_MATCHING_WRITER",
@@ -373,6 +389,9 @@ __all__ = (
     "s1_dc_roles",
     "s1_gs_groups",
     "s1_gvgs",
+    "s1_symmetry",
+    "orbit_matching_crosstab",
+    "OrbitMatchingCrosstab",
     "s1_key",
     "s1_matching_groups",
     "s1_rel_kcl",

@@ -17,6 +17,7 @@ import bisect
 import hashlib
 import json
 import math
+import random
 from fractions import Fraction
 from pathlib import Path
 
@@ -812,7 +813,9 @@ def node_voltages(snap):
 
 
 def wl_colours(snap):
-    """CONTRACT 3.0 구조 색(1-WL)의 독립 구현. 입력은 S1 필드만. 반환 ({노드: 색}, {원소: 색})."""
+    """CONTRACT 3.0 구조 색(1-WL)의 독립 구현. 입력은 S1 필드만. 반환 ({노드: 색}, {원소: 색}).
+    [U17 ①-d] 설계 40 v1.6 §6-8 D-2: 1-WL 색 `wl` 도 정준 위치·생성자와 같은 그래프 하나에서 정하고, 그 그래프에서 MOS 의 d·s 엣지는 같은 라벨
+    `c`(채널)다 -- 그래서 여기 MOS 링크도 d·s -> c."""
     nodes = list(snap.keys("node"))
     elems = list(snap.keys("device"))
     sig0 = {}
@@ -830,7 +833,7 @@ def wl_colours(snap):
         pins = dict(snap.value("device", e, "pins"))
         links = []
         if cls == "mos":
-            links = [(t, pins[t]) for t in ("d", "g", "s")]
+            links = [("c", pins["d"]), ("g", pins["g"]), ("c", pins["s"])]
             bf = snap.field("device", e, "bulk")
             if bf is not None and bf.value is not None and bf.value.net is not None:
                 links.append(("b", bf.value.net))
@@ -938,6 +941,56 @@ def with_hand_ss(ev, gm_scale=None):
                        "hand", "hand", "hand") for m, o in ops.items()}
     snap = ev.snapshot.write(S2_WRITERS.writer_of("device", "ss_dev"), "hand_ss", {("device", "ss_dev"): col})
     return DcEvaluation(snap, ev.report, SealedSnapshot(snap, ev.report) if ev.sealed is not None else None)
+
+
+# [U17 ①-d] 옛 test_struct_colour.py(원본 sizing/struct_colour.py 삭제로 tests/graph/test_s1_symmetry.py 로 옮김)의 입력 구성 helper --
+# test_writer_plan·test_theta_schema 가 쓰므로 공용 conftest 로 옮겼다(기대값 아님, 이름 전단사 입력 생성).
+def rename(doc, seed):
+    """넷·원소 이름 전단사 σ(무작위). 반환 (새 doc, σ_net, σ_el)."""
+    d = json.loads(json.dumps(doc))
+    nets = set(d["supply_nets"]) | {k for k in d["ports"] if not k.startswith("_")}
+    for e in d["netlist"]:
+        nets |= {e["drain"], e["gate"], e["source"]} | ({e["bulk"]} if e.get("bulk") else set())
+    for key in ("passive_elements", "ideal_sources"):
+        for e in d.get(key) or []:
+            nets |= set(e["terminals"])
+    els = [e["name"] for e in d["netlist"]] + [e["name"] for k in ("passive_elements", "ideal_sources")
+                                                for e in (d.get(k) or [])]
+    rng = random.Random(seed)
+    nl = sorted(nets)
+    tn = ["n%03d_%d" % (i, seed) for i in range(len(nl))]
+    rng.shuffle(tn)
+    sn = dict(zip(nl, tn))
+    te = ["E%03d_%d" % (i, seed) for i in range(len(els))]
+    rng.shuffle(te)
+    se = dict(zip(sorted(els), te))
+    for e in d["netlist"]:
+        e["name"] = se[e["name"]]
+        for k in ("drain", "gate", "source", "bulk"):
+            if k in e:
+                e[k] = sn[e[k]]
+    for key in ("passive_elements", "ideal_sources"):
+        for e in d.get(key) or []:
+            e["name"] = se[e["name"]]
+            e["terminals"] = [sn[t] for t in e["terminals"]]
+    d["supply_nets"] = [sn[n] for n in d["supply_nets"]]
+    d["ports"] = {(k if k.startswith("_") else sn[k]): v for k, v in d["ports"].items()}
+    for k in list(d):
+        if k in ("device_roles", "symmetry", "sizing_roles", "compensation") or (k.startswith("_") and k != "_comment"):
+            d.pop(k)
+    if "bias_inputs" in d:                                   # authoring 9절 선언도 같은 σ 로 옮긴다(이름 전단사의 일부)
+        d["bias_inputs"] = [sn[n] for n in d["bias_inputs"]]
+    d["topology_name"] = d["topology_name"] + "_r%d" % seed
+    return d, sn, se
+
+
+def rename_inputs(inputs, sn, se):
+    """DcInputs 의 이름 자리(레일·노드 목표·원소 값·선형 소자·engine 원소)를 σ 로 옮긴다(입력 구성, 기대값 아님)."""
+    return DcInputs(tuple(sorted((sn[k], v) for k, v in inputs.supplies_v)), inputs.input_dc_v,
+                    tuple(sorted((sn[k], v) for k, v in inputs.node_targets)),
+                    tuple(sorted((se[k], v) for k, v in inputs.element_values)),
+                    tuple(sorted(se[k] for k in inputs.linear_devices)), inputs.pending,
+                    tuple(sorted(se[k] for k in inputs.engine_elements)))
 
 
 def mirror_w_nat(vgs1=0.6, y=0.5, i=1e-5, l=1e-6):

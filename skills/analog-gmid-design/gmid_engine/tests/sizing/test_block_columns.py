@@ -910,3 +910,55 @@ def test_non_transient_lut_failure_before_convergence_propagates(tmp_path, toy_l
         assert d["device_query"] in ("vgs_of_coordinate", "tol_v_cell")
         assert e.record.devices == ("MA",)
         assert not isinstance(e.__cause__, NonconvergentError)
+
+
+# ---------------------------------------------------------------- [U17 ①-d] d/s 반대 선언 -> 봉인 7 거부
+# 사용자 결정 2026-10-13 "1은 권고"(라)(오케스트레이터 전달): "topology d/s 표기 = 물리 방향 선언 ... 사이징 결과(writer 계획·θ 스키마·ties)는 선언 방향을
+# 따름. 틀린 선언은 봉인 7(VDS−VDsat ≥ tol)이 거부."
+# 손 유도: 회로 C(M1 nmos (out, in, gnd) + M2 pmos (out, pb, vdd))의 두 MOS 를 모두 d/s 반대로 선언한다 -- M1 d=gnd·s=out, M2 d=vdd·s=out.
+# (하나만 뒤집으면 KCL 이 I_M1 = −I_M2 < 0 을 요구해 전류 원뿔에서 먼저 거부되고, 둘 다 뒤집어야 선언 방향 전류가 양수로 맞는다.)
+# 선언 방향의 VDS: M1 = V(gnd) − V(out) = −V(out), M2(pmos VSD) = V(out) − V(vdd). out 은 레일 창 [0, 1.8] V 안이므로 M1 의 VDS ≤ 0 이고
+# VDS ≥ VDsat + tol > 0 을 만족하는 V(out) 이 창 안에 없다 -> 봉인 7(item 7) 거부, 소자 M1, 노드 out(M1 의 vgs_source 로 쓰는 노드), 원인 축 VDS.
+# 대조: 바르게 선언한 같은 회로·같은 θ 값은 봉인 7 을 통과한다(test_seal_saturation R4_SCENARIOS (0.5, 0.6, 0.7) 과 같은 동작점).
+
+def _reversed_c():
+    return topo("hand_cs_pload_rev", [mos("M1", "nmos", "gnd", "in", "out"), mos("M2", "pmos", "vdd", "pb", "out")],
+                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}, bias=["pb"])
+
+
+def _theta_for(ctx, v1=0.6, v2=0.6, y=0.5):
+    from .conftest import r4_ln_idu
+    th = {}
+    for t, k in ctx.schema.components:
+        if t == "L":
+            th[(t, k)] = 1e-6
+        elif t == "current":
+            th[(t, k)] = 1e-5
+        elif t == "y":
+            th[(t, k)] = y
+        elif t == "ln_idu":
+            th[(t, k)] = r4_ln_idu("nmos" if k == "M1" else "pmos", v1 if k == "M1" else v2, 0.5, 0.0)
+    return th
+
+
+def test_reversed_ds_declaration_rejected_by_seal7(tmp_path, r4_access):
+    from .conftest import with_tol
+    ctx = build_ctx(tmp_path, _reversed_c(), r4_access)[2]
+    writer = dict(ctx.base.column("node", "dc_writer"))["out"]
+    assert (writer.relation, writer.element) == ("vgs_source", "M1")     # 전제: out = V(in) − VGS(M1), 선언 source 기준
+    with pytest.raises(SealViolationError) as e:
+        with_tol(ctx, _theta_for(ctx))
+    d = detail(e.value)
+    assert d["item"] == 7
+    assert tuple(e.value.record.devices) == ("M1",)
+    assert d["node"] == "out"
+    assert "vds_axis" in d["bounds"]                                         # 원인 = 선언 방향 VDS 축(VDS ≥ 0 이 되는 V(out) ≤ 0)
+    assert d["hi"] <= 0.0                                                    # 창 상한: −V(out) ≥ 0 -> V(out) ≤ 0(손 유도 VDS 부호)
+
+
+def test_correct_ds_declaration_same_point_passes_seal7(tmp_path, r4_access):
+    from gmid_engine.sizing import dc_seal_saturation
+    from .conftest import circuit_cs_pmos_load, seal_item, theta_r4c, with_tol
+    ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), r4_access)[2]
+    snap, _ = with_tol(ctx, theta_r4c(y=0.5, v1=0.6, v2=0.7))
+    assert seal_item(dc_seal_saturation(snap, (), ctx.lut), 7).status == "pass"

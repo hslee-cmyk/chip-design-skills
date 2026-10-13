@@ -515,8 +515,8 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
   같은 이름(`<모듈>.<qualname>`)의 다른 클래스는 `ValueError`. `.lookup(name)` / `.name_of(cls)`: 목록 밖이면 `KeyError`. `.names()`: 정렬 tuple.
 - 등록은 각 패키지 `__init__` 이 한다(아래에서 위로). 대상 = 40 §2.4.2 S0 수준 층 필드 값 형식: 묶음 객체(`S1v`·`Achievability`·`StartIntervals`)를
   필드로 풀었을 때 그 필드 값에서 닿는 frozen dataclass(묶음 자체와 계산용 입력 모형은 아님). 지금 등록:
-  graph = S1 필드 값 형식 12개(`BulkResult`, `Evidence`, `Segment`, `Branch`, `Column`, `ColumnOrphan`, `GsGroup`, `DcRole`, `RelEdge`, `MatchingGroup`,
-  `MatchingDisposition`, `GvgsSummary`) + S1v 필드 값 형식 15개(`S1Key`, `ViewS1v`, `Finding`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `CellInfo`,
+  graph = S1 필드 값 형식 14개(`BulkResult`, `Evidence`, `Segment`, `Branch`, `Column`, `ColumnOrphan`, `GsGroup`, `DcRole`, `RelEdge`, `MatchingGroup`,
+  `MatchingDisposition`, `GvgsSummary`, 대칭 블록 `s1_symmetry` 의 `Orbits`·`CurrentSigns`) + S1v 필드 값 형식 15개(`S1Key`, `ViewS1v`, `Finding`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `CellInfo`,
   `DriveInfo`, `PoleNode`, `PassBundle`, `OutputDirection`, `LoopRole`, `FeedforwardCell`, `FfRatioCandidate`);
   metrics = `GainCheck`, `BlockBound`, `AreaBound`, `HeadroomRow`, `DofReport`, `CurveChecks`, `CurveCheck`, `SliceCurveCheck`;
   search = `StartRow`, `StartConflict`, `MacroResult`, `StartRung`, `Bound`. core 는 등록하지 않는다. 값을 graph 필드로 옮기는 일은 U17 ①-b 몫이다

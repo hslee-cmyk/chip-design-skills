@@ -114,10 +114,14 @@ def test_loop_through_anchor_is_a_branch_not_a_stop(gh, tmp_path):
     # 레일에 닿는 고리는 닻이 있어 정지하지 않는다(ends 가 같은 닻인 가지 하나)
     raw = gh.raw("two_stage_ota")
     gate = raw["netlist"][0]["gate"]
+    # [U17 ①-d] 40 v1.8 §6-8: 세 MOS 의 gate 가 모두 같으면 ra<->rb 반사(Mra<->Mrc)가 Mrb 를 자기 자신으로 보내며 d/s 를 맞바꾸는 자기동형이 되어
+    # build_s1 이 ds_self_swap_zero_current 로 멈춘다(그 정지는 tests/graph/test_s1_symmetry.py 가 본다). 이 test 의 판정(닻을 지나는 고리 = 가지)은
+    # 대칭과 무관하므로 Mrc 의 gate 만 다른 기존 넷으로 바꿔 반사를 없앤다(가지 구조는 gate 를 읽지 않는다).
+    other_gate = next(e["gate"] for e in raw["netlist"] if e["gate"] != gate)
     raw["netlist"] += [                         # gnd - ra - rb - gnd (ra·rb 는 차수 2, 닻 아님)
         {"name": "Mra", "kind": "nmos", "drain": "ra", "gate": gate, "source": "gnd"},
         {"name": "Mrb", "kind": "nmos", "drain": "rb", "gate": gate, "source": "ra"},
-        {"name": "Mrc", "kind": "nmos", "drain": "gnd", "gate": gate, "source": "rb"},
+        {"name": "Mrc", "kind": "nmos", "drain": "gnd", "gate": other_gate, "source": "rb"},
     ]
     o = gh.oracle(raw)
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)

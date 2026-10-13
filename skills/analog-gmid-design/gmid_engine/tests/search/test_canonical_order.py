@@ -1,7 +1,7 @@
 """search CONTRACT 3.23 [r11, r12] `canonical_order(sctx, variables) -> (정렬된 변수 tuple, 변수별 차원 index list, 차원 수)`.
 
-oracle (d) 계약 3.23 1~3 문장: 키 = (L 인가, 성분 종류, 궤도 id), 궤도 id = device.dc_orbit(원소 키) / node.dc_orbit(넷 키) / -1 -- 이 test 는 키를
-스냅샷 입력 열(dc_orbit)에서 직접 만들어 (a)~(g) 를 확인한다. 이름 치환은 (a) 구성(손 회로 SYM 의 이름 전단사)과 τ(dc_colour 짝) 대응.
+oracle (d) 계약 3.23 1~3 문장: 키 = (L 인가, 성분 종류, 궤도 id), 궤도 id = graph/s1 orbits 의 원소 궤도(원소 키) / 넷 궤도(넷 키) / -1 -- 이 test 는 키를
+스냅샷 입력 필드(graph/s1 orbits, [U17 ①-d])에서 직접 만들어 (a)~(g) 를 확인한다. 이름 치환은 (a) 구성(손 회로 SYM 의 이름 전단사)과 τ(dc_colour 짝) 대응.
 """
 from __future__ import annotations
 
@@ -28,8 +28,8 @@ def _with_l(case):
 
 
 def _key(case, var):
-    dv = dict(case.dc.base.column("device", "dc_orbit"))
-    nv = dict(case.dc.base.column("node", "dc_orbit"))
+    orbits = case.dc.base.value("graph", "s1", "orbits")          # [U17 ①-d] 40 §2.4.8 graph/s1 orbits(옛 device/node.dc_orbit 대체)
+    dv, nv = dict(orbits.devices), dict(orbits.nodes)
     kind, name = var.component
     orb = dv.get(name, nv.get(name, -1))
     return (kind == "L", kind, orb)

@@ -30,8 +30,9 @@ PDK_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "s
 # [U1b] applied_facts·ff_ratio_candidates (pipeline CONTRACT 2절), [U10] coupling (설계 40 §3.3 as-built: 단계 A 보고서 `coupling` 이
 # U15 전까지 유일한 출구)
 # [U17 ①-a] s0_snapshot (설계 40 §2.4.3 '손상 처리'·'계수': S0 수준 스냅샷 hit|miss|corrupt 를 실행 기록에 남긴다, pipeline CONTRACT 1절)
+# [U17 ①-d] 40 v1.8 §6-5 '대조 표 orbit_matching_crosstab 을 보고한다' -- 단계 A 보고서 키(pipeline CONTRACT 1절 [U17-1d])
 KEYS = ["applied_facts", "circuit", "count_budget", "coupling", "declared_comparison", "exit_code", "ff_ratio_candidates",
-        "review_needed", "s0_snapshot", "status", "stop_reasons", "tables", "views"]
+        "orbit_matching_crosstab", "review_needed", "s0_snapshot", "status", "stop_reasons", "tables", "views"]
 
 
 def _run(tmp_path, real_lut, doc, out="out"):

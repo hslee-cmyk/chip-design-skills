@@ -8,11 +8,12 @@
 * 형식 위반은 위반을 모두 모아 `SchemaRejectedError` 한 번(detail gate `structure_json`): 키 누락·알 수 없는 키·빈 문자열, `schema_version` 이 `STRUCTURE_SCHEMA_VERSION` 이
   아님, status 가 ratified 가 아님, **닫힌 어휘 밖 concept**(`CONCEPTS`, 규칙 `structure_concept_unknown`), concept 별 값 범위 위반(규칙 `structure_value_range`:
   `drive_kind` 는 voltage|current, `dc_role` 은 5개 값, `loop_role` 은 `LOOP_ROLES`, `feedforward_cell` 은 `<ff|ff_bias|ff_load>:<탭>-><merge>`, `matching_pair` 는
-  이름 둘 이상의 JSON 배열 subject + 값 `branch_symmetric`, `ac_ground_exception` 은 비어 있지 않은 뷰 id), `feedforward_cell` 사실이 있는데 `net_names` 중 하나가
+  이름 둘 이상의 JSON 배열 subject + 값 `branch_symmetric`, `ac_ground_exception` 은 비어 있지 않은 뷰 id, `l_owner` 는 이름 둘 이상의 정렬 JSON 배열 subject(동치류 멤버) +
+  비어 있지 않은 소자 이름 값 -- 주인이 멤버인지·동치류가 엔진 유도와 같은지는 소비(`build_s1v`)가 `structure_fact_mismatch`·`structure_fact_orphan` 으로 대조), `feedforward_cell` 사실이 있는데 `net_names` 중 하나가
   `->` 를 품어 값이 모호함(규칙 `structure_value_ambiguous`).
 * `topology_hash` 가 현재 S1 지문의 `topology_fp` 와 다르거나 `rule_hash` 가 현재 `structure_rule_fp()` 와 다르면 **그 사실들을 적용하지 않고** 사실마다
   `structure_fact_stale`(review_needed)로 되돌린다(`ratified` -> `review_needed` 전이).
-적용은 소비 코드가 한다(40 §3.2-3): `dc_role`·`matching_pair` 는 `build_s1`, 나머지는 `build_s1v` 와 그 아래 파일.
+적용은 소비 코드가 한다(40 §3.2-3): `dc_role`·`matching_pair` 는 `build_s1`, 나머지(`l_owner` 포함 -- `l_equivalence_classes`)는 `build_s1v` 와 그 아래 파일.
 """
 import dataclasses
 import json
@@ -27,6 +28,7 @@ from .s1v_values import (
     CONCEPT_DC_ROLE,
     CONCEPT_DRIVE_KIND,
     CONCEPT_FEEDFORWARD_CELL,
+    CONCEPT_L_OWNER,
     CONCEPT_LOOP_ROLE,
     CONCEPT_MATCHING_PAIR,
     CONCEPT_STAGE_MEMBERS,
@@ -85,6 +87,9 @@ def _value_range_ok(concept, subject, value):
         return kind in FF_KINDS and bool(separator) and bool(arrow) and bool(tap) and bool(merge) and FF_ARROW not in merge
     if concept == CONCEPT_MATCHING_PAIR:
         return value == MATCH_PAIR_VALUE and _pair_names(subject) is not None
+    if concept == CONCEPT_L_OWNER:
+        names = _pair_names(subject)
+        return names is not None and names == sorted(names)
     return concept in (CONCEPT_AC_GROUND_EXCEPTION, CONCEPT_STAGE_MEMBERS)
 
 

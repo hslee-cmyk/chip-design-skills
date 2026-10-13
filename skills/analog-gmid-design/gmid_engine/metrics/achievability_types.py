@@ -222,7 +222,7 @@ class LocalInputs:
     """블록 국소 모델 조립에 필요한 회로 전체 표(S0 당 1회 `achievability` 가 만든다; 이름 → 값 사전이라 `eq=False`).
 
     `kind`·`pins`·`cls` = 원소별 kind·핀({d,g,s} 또는 {t0,t1})·element_class, `bulk` = MOS 별 bulk 넷(None 이면 교류접지로 둔다), `rails` = 레일 넷 집합,
-    `orbit` = MOS 별 자기동형 궤도 id(`device.dc_orbit`, 묶지 않을 원소는 자기 고유 값으로 이미 바꿔 둔다), `l_label` = MOS 별 L 동치류 id(모든 derived 동치류 멤버, 없으면 키 없음),
+    `orbit` = MOS 별 자기동형 궤도 id(graph `orbits.devices`, 묶지 않을 원소는 자기 고유 값으로 이미 바꿔 둔다), `l_label` = MOS 별 L 동치류 id(모든 derived·ratified 동치류 멤버, 없으면 키 없음),
     `basis_rows` = MOS(및 수동소자) 전류 = Σ (원천 원소, 계수) (`CurrentBasis.rows`), `free` = θ 전류 원소(기저), `fixed` = {값 선언 이상 전류원: A},
     `cur_rep` = {θ 전류 원소: (대표 원소, 부호 ±1) 또는 (None, 0)=구조적 0}(자기동형 묶음 -- 탐색 변수와 같은 묶음, 없는 원소는 자기 자신 +1),
     `current_box` = {대표 θ 전류 원소: (하한 A, 상한 A)}, `element_value` = {수동소자: 선언값 또는 None}, `resistor_box` = {θ 저항: (하한 Ω, 상한 Ω)},

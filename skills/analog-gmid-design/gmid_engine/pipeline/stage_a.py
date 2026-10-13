@@ -9,6 +9,10 @@
 -> 보고서(`write_stage_a_report`: 구조 표 + review_needed + 정지 사유 + N_S + declared 대조 여부 + 적용한 사실 + feedforward 비율 후보 + 루프 역할 + `coupling`).
 * `coupling` 보고 키: `{"vars": [{kind, members, blocks[[뷰, 블록 키]], domain, init_rule, nets}], "column_block_map": [{column, block, device, shared, basis}], "bias_columns": [...],
   "kind_counts": {kind: 수}}` (정지 전 단계거나 `column_unassigned` 정지면 None). 소비자는 U15 층 0 조립(41 §5.5)이다 -- 아직 읽는 코드가 없고 보고서가 유일한 출구다.
+* A2 의 `build_s1(marks=)`: 대칭 블록(정준형·궤도·전류 부호)이 보존할 선언 표시 = `sizing.symmetry_marks(dc_inputs_from_spec(spec))`(spec 이 없으면 `NO_MARKS`) --
+  커널 컨텍스트가 같은 표시로 같은 블록을 재사용한다(40 §6-8 D-2 그래프 하나). 자기 맞바꿈 정지(`ds_self_swap_zero_current`)는 A2 정지로 보고된다.
+* `orbit_matching_crosstab` 의 `diff_pair_orbit_split`(40 §6-5 (나') -- 차동 출력 회로의 차동 입력 diff_pair 궤도 불일치)은 review 목록에 오른다.
+* 보고 키 `orbit_matching_crosstab`(40 §6-5): `{"orbits": [{"members", "records": [[kind, members]]}], "records": [{"kind", "members", "orbits"}]}`(MOS 궤도만).
 * `declared_loop_cuts` = spec 제약 중 안정도 metric(`pm_*`)의 내부 루프 뷰 선언(`ViewDecl` mode loop, `beta != declared`)의 끊는 넷 -- feedback 소자에서 유도된 β 루프(beta declared)는 제외 -- 안정도 제약이 걸린 루프 뷰는 `undeclared_loop_constraint` 정지가 풀린다.
   선언 끊는 넷은 엔진 루프 뷰의 끊는 gate 넷(보고서 `views[].cuts[*][1]`)이어야 하고, 어느 뷰에도 맞지 않은 선언은 `loop_cut_unmatched`(review_needed)로 보고서 `review_needed` 에 오른다.
 * 로드·구조 단계의 예외(`SchemaRejectedError`·`StructureUnresolvedError`)는 전파하지 않고 보고서에 정지 사유로 적은 뒤 그 분류의 exit code 를 낸다(exit 7·2).
@@ -17,7 +21,7 @@
 * ratified 사실 개념: `drive_kind`(대상 = 넷, 값 = voltage|current)는 구동 종류를 고정하고, `stage_members`(대상 = stage 이름, 값 = 공백으로 이은 소자 이름)는
   유도 stage 와 대조하는 declared 로 쓴다. topology 태그 섹션은 읽지 않는다(IC4).
 * [U17 ①-a] S0 수준 스냅샷 영속화(설계 40 §2.4.3): `structure.json` 로드 뒤 S0 키 입력(`_s0_inputs`: topology 정규화 지문, 레일 전압, spec 전체 지문,
-  `structure.json` 사실 지문, 유도 규칙 코드 지문 `structure_rule_fp()`, LUT 지문, PDK 선언 파일 내용 해시(`pdk_decl` = core `read_pdk_decl` 결과, **필수** --
+  `structure.json` 사실 지문, 대칭 선언 표시 지문(`symmetry_marks_fp` -- `build_s1(marks=)` 가 S1 키 `marks_fp` 로 읽는 것과 같은 값), 유도 규칙 코드 지문 `structure_rule_fp()`, LUT 지문, PDK 선언 파일 내용 해시(`pdk_decl` = core `read_pdk_decl` 결과, **필수** --
   None·다른 형식이면 `TypeError`, 설계 40 §2.4.12 Q1 fail-closed)) + 입력 파일 원본(`_s0_sources`: topology·spec·structure·PDK 선언·LUT 파일의 경로와 원본
   바이트 sha256, U-68 정리가 checkout 마다 키 재현을 판정하는 재료)
   + 엔진 코드 지문으로 core `S0SnapshotStore.default` 에서 S0 수준 스냅샷을 읽고, 적중이면 `build_s1(previous=스냅샷)` 이 모든 블록을 재사용한다(계산 0).
@@ -47,14 +51,17 @@ from gmid_engine.graph import (
     SPEC_VIEW_LOOP,
     Finding,
     BASIS_COLUMN_MATE,
+    NO_MARKS,
     build_s1,
     build_s1v,
     coupling_vars,
     load_structure_facts,
+    orbit_matching_crosstab,
     structure_rule_fp,
     structure_tables,
 )
 from gmid_engine.metrics import metric_catalog
+from gmid_engine.sizing import dc_inputs_from_spec, symmetry_marks
 
 from .stage_a_budget import structure_count_budget
 from .stage_a_report import write_stage_a_report
@@ -87,7 +94,7 @@ def _stopped(circuit, exc, stage):
     return {"circuit": circuit, "status": STATUS_STOPPED, "exit_code": exit_code_for(exc), "count_budget": 0,
             "declared_comparison": "not_performed", "stop_reasons": [stage + ": " + str(exc.record.to_json())],
             "review_needed": [], "views": [], "applied_facts": [], "ff_ratio_candidates": [], "coupling": None, "tables": None,
-            "s0_snapshot": None}
+            "s0_snapshot": None, "orbit_matching_crosstab": None}
 
 
 def _supplies(spec, supplies_v):
@@ -160,6 +167,11 @@ def _unmatched_loop_cuts(s1v, declared_cuts):
                          ("41 §1.8", "U-24")) for net in sorted(set(declared_cuts) - engine))
 
 
+def _crosstab_report(table):
+    return {"orbits": [{"members": list(names), "records": [[kind, list(members)] for kind, members in records]} for names, records in table.orbits],
+            "records": [{"kind": kind, "members": list(members), "orbits": [list(o) for o in orbits]} for kind, members, orbits in table.records]}
+
+
 def _net_names(topology):
     nets = set(topology.rails)
     for d in topology.devices:
@@ -169,11 +181,11 @@ def _net_names(topology):
     return tuple(sorted(nets))
 
 
-def _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, supplies):
+def _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, supplies, marks):
     """S0 수준 스냅샷 키 입력(설계 40 §2.4.3 키 (i)(ii), §2.4.12 Q1). 엔진 코드 지문 (iii)은 `S0SnapshotStore` 가 더한다 -- 그 지문이 gmid_engine
     test 밖 모든 패키지를 덮으므로 metric 정의 코드도 (iii) 안에 있다."""
     return {"topology_fp": topology.connectivity_fp, "supplies_v_fp": fp_of(supplies),
-            "spec_fp": None if spec is None else fp_of(spec), "structure_facts_fp": fp_of(structure),
+            "spec_fp": None if spec is None else fp_of(spec), "structure_facts_fp": fp_of(structure), "symmetry_marks_fp": fp_of(marks),
             "derivation_rule_fp": rule_fp, "lut_fp": lut.fp, "pdk_decl_fp": pdk_decl.decl_sha256}
 
 
@@ -211,6 +223,7 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, supplies
     try:
         topology = load_topology(str(topology_path))
         spec = None if spec_path is None else load_sizing_spec(str(spec_path), topology, metric_catalog())
+        marks = NO_MARKS if spec is None else symmetry_marks(dc_inputs_from_spec(spec))
     except SchemaRejectedError as exc:
         return _finish(_stopped(circuit, exc, "A1_load"), None, output_dir, circuit, code_fp)
     path = Path(structure_path) if structure_path is not None else Path(topology_path).with_name(circuit + STRUCTURE_SUFFIX)
@@ -221,11 +234,11 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, supplies
         return _finish(_stopped(circuit, exc, "A2_structure_json"), None, output_dir, circuit, code_fp)
     supplies = _supplies(spec, supplies_v)
     store = S0SnapshotStore.default(code_fp)
-    s0_inputs = _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, supplies)
+    s0_inputs = _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, supplies, marks)
     s0_sources = _s0_sources(topology_path, topology, spec_path, spec, path, pdk_decl, lut)
     stored, s0_outcome = store.load(s0_inputs, s0_sources)
     try:
-        s1 = build_s1(topology, supplies, previous=stored, structure=structure)
+        s1 = build_s1(topology, supplies, previous=stored, structure=structure, marks=marks)
     except (SchemaRejectedError, StructureUnresolvedError) as exc:
         return _finish(dict(_stopped(circuit, exc, "A2_build_s1"), s0_snapshot=s0_outcome), None, output_dir, circuit, code_fp)
     if s0_outcome != OUTCOME_HIT:
@@ -243,7 +256,9 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, supplies
     s1v = build_s1v(s1, spec, count_budget=budget, declared=declared, structure=structure,
                     declared_loop_cuts=declared_cuts, stop_on_unsupported=False)
     unsupported = [_finding_line(f) for f in s1v.unsupported]
-    review = [_finding_line(f) for f in s1v.review_needed] + [_finding_line(f) for f in _unmatched_loop_cuts(s1v, declared_cuts)]
+    crosstab = orbit_matching_crosstab(s1)
+    review = ([_finding_line(f) for f in s1v.review_needed] + [_finding_line(f) for f in _unmatched_loop_cuts(s1v, declared_cuts)]
+              + [_finding_line(f) for f in crosstab.findings])
     note = " has no stage_members facts" if path.is_file() else " absent"
     comparison = "performed" if declared else "not_performed: " + path.name + note
     coupling, coupling_stop = _coupling_stage(s1, s1v)
@@ -253,5 +268,6 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, supplies
     report = {"circuit": circuit, "status": status, "exit_code": code, "count_budget": budget, "declared_comparison": comparison,
               "stop_reasons": unsupported, "review_needed": review, "views": [_view_summary(v) for v in s1v.views],
               "applied_facts": [list(f) for f in s1v.facts_applied], "ff_ratio_candidates": _ff_ratio_rows(s1v),
-              "coupling": coupling, "tables": structure_tables(s1v), "s0_snapshot": s0_outcome}
+              "coupling": coupling, "tables": structure_tables(s1v), "orbit_matching_crosstab": _crosstab_report(crosstab),
+              "s0_snapshot": s0_outcome}
     return _finish(report, s1v, output_dir, circuit, code_fp, s1, spec)

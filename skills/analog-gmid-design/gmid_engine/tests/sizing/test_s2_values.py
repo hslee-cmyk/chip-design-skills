@@ -14,11 +14,8 @@ from gmid_engine import sizing as S
 # CONTRACT 2절 표 (kind, field) -> writer  (graph.dc_seal_1/2/3/6/7/8 행은 6개로 풀어 적음)
 DC_TABLE = {
     ("node", "dc_rail_v"): "dc_rails",
-    ("node", "dc_colour"): "dc_struct_colour",              # [r2]
-    ("device", "dc_colour"): "dc_struct_colour",            # [r2]
-    ("node", "dc_orbit"): "dc_struct_colour",               # [r11] 3.0b
-    ("device", "dc_orbit"): "dc_struct_colour",             # [r11] 3.0b
-    ("graph", "dc_symmetry"): "dc_struct_colour",           # [U2] 3.0b 자기동형 생성자
+    # [U17 ①-d] 40 v1.8 §6-8 D-2·§2.4.8: 구조 색 dc_colour·궤도·전류 부호는 graph 대칭 블록(s1_symmetry, S1 권한표)으로 옮겼고 dc_orbit·
+    # dc_symmetry 는 graph/s1 orbits·current_symmetry 로 대체됐다 -- dc 표에서 다섯 행을 지운다(S1 권한표 쪽은 tests/graph/test_s1_values.py).
     ("graph", "dc_current_basis"): "dc_current_basis",
     ("node", "dc_writer"): "dc_writer_plan",
     ("device", "dc_coord"): "dc_writer_plan",
@@ -50,7 +47,7 @@ DC_TABLE = {
 }
 
 BLOCKS = {
-    "dc_rails": S.dc_rails, "dc_struct_colour": S.dc_struct_colour, "dc_current_basis": S.dc_current_basis, "dc_writer_plan": S.dc_writer_plan,
+    "dc_rails": S.dc_rails, "dc_current_basis": S.dc_current_basis, "dc_writer_plan": S.dc_writer_plan,
     "dc_scc_order": S.dc_scc_order, "dc_theta_schema": S.dc_theta_schema, "dc_currents": S.dc_currents,
     "dc_lengths": S.dc_lengths, "dc_columns": S.dc_columns, "dc_widths": S.dc_widths,
     "dc_tolerances": S.dc_tolerances, "dc_seal_node_conflict": S.dc_seal_node_conflict,
@@ -61,10 +58,11 @@ BLOCKS = {
 }
 
 
-def test_dc_table_has_34_fields():
+def test_dc_table_has_29_fields():
     # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28, [r8] dc_seal_9·dc_off_current·dc_conduction_floor 3 = 31,
-    # [r11] 3.0b node.dc_orbit·device.dc_orbit 2 = 33, [U2] graph.dc_symmetry 1 = 34).
-    assert len(DC_TABLE) == 34
+    # [r11] 3.0b node.dc_orbit·device.dc_orbit 2 = 33, [U2] graph.dc_symmetry 1 = 34, [U17 ①-d] 대칭 블록 graph 이동 −5
+    # (node/device dc_colour·dc_orbit, graph.dc_symmetry) = 29).
+    assert len(DC_TABLE) == 29
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -126,10 +124,9 @@ def test_block_name_and_writes_match_table(name):
 # CONTRACT 3·4·5절이 reads 를 다 적은 블록(writer_plan·theta_schema 는 이번 판 범위 밖)
 READS = {
     "dc_rails": {("node", "is_rail")},
-    "dc_struct_colour": {("device", "element_class"), ("device", "kind"), ("device", "is_diode"), ("device", "pins"),
-                         ("device", "bulk"), ("node", "is_rail"), ("node", "port_direction")},
+    # [U17 ①-d] 40 §6-3 전류 기저 열 순서 규칙: current_basis 는 graph/s1 orbits 를 읽는다
     "dc_current_basis": {("device", "dc_nets"), ("device", "element_class"), ("device", "kind"), ("device", "pins"),
-                         ("device", "dc_colour"), ("node", "is_rail"), ("graph", "dc_pruned")},
+                         ("device", "dc_colour"), ("node", "is_rail"), ("graph", "dc_pruned"), ("graph", "orbits")},
     "dc_writer_plan": {("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
                        ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
                        ("node", "dc_colour")},
@@ -153,15 +150,9 @@ def test_seal_conduction_reads_cover_contract_inputs():
     assert {("device", "dc_op"), ("device", "dc_tol_v")} <= set(S.dc_seal_conduction.reads)
 
 
-@pytest.mark.parametrize("name", sorted(n for n in READS if n != "dc_struct_colour"))
+@pytest.mark.parametrize("name", sorted(READS))
 def test_block_reads_declared_as_contract(name):
     assert set(BLOCKS[name].reads) == READS[name]
-
-
-def test_b_struct_colour_reads_are_3_0_set():
-    """3.0b 'reads 3.0 과 같다 -- 추가 읽기 없음'(+ extras 선언 표시 둘). [사용자 결정 2026-10-08 '대칭 묶음 방식: b'] 2단자 수동소자는 방향이 없어
-    DC 저항 판별용 device.dc_nets·graph.dc_pruned 를 읽지 않는다 -- 3.0 의 7개 필드 그대로."""
-    assert set(S.dc_struct_colour.reads) == READS["dc_struct_colour"]
 
 
 def test_theta_schema_reads_include_structural_rule_fields():

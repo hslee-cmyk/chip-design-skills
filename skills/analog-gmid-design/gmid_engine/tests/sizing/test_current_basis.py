@@ -3,8 +3,12 @@
 기대값: 이 파일의 `expected_basis` 가 topology dict 에서 직접 계산한다 -- DC 원소(MOS·저항·이상원, 잎 가지치기 저항 제외),
 ends(nmos (d, s), pmos (s, d), 2단자 (t0, t1)), 레일 아닌 넷마다 KCL 행, 미지수 열 = (구조 색, 이름)순, 정확 유리수 RREF(열 왼쪽부터
 pivot), pivot 원소 = −(RREF 계수) × (free·고정 원소), free 는 이름순, 같은 색 열 묶음이 free/pivot 으로 갈리면 TieBreak(current_pivot, 묶음, free 쪽).
-[r11] 구조 색 = 스냅샷 `device.dc_colour`(3.0b -- 1-WL 색 + 정준 위치, 정점마다 유일; 색 계약 자체는 test_struct_colour 가 독립 1-WL 로 본다)
+[r11] 구조 색 = 스냅샷 `device.dc_colour`(3.0b -- 1-WL 색 + 정준 위치, 정점마다 유일; 색 계약 자체는 tests/graph/test_s1_symmetry.py 가 독립 1-WL 로 본다)
 -> 열 순서에 이름이 들어가지 않고 TieBreak 는 생기지 않는다.
+[U17 ①-d] 40 v1.8 §6-3 전류 기저 열 순서 규칙(사용자 결정 2026-10-12 "3번 권고대로" (가)): 열 키 = (궤도가 비자명인가, dc_colour, 이름), 궤도 =
+graph/s1 orbits(입력 필드). 규칙의 목적 문언 '대칭 궤도 원소를 자유 열로 먼저 남겨 대칭인 것끼리 묶는다' 와 RREF 가 왼쪽 열부터 pivot(종속)을
+잡는다는 사실에서, 비자명 궤도 열은 **오른쪽**(자유 열 후보 우선)에 둔다 -- 키 정렬값은 (비자명 = 1, 단일 = 0). design 의 '비자명 먼저'는
+'자유 열 선택에서 먼저'로 읽는다(측정 의무 파일럿 29/38·M1a~M1b 가 판정: test_current_ties_and_variables_match_8e46548).
 """
 from fractions import Fraction
 
@@ -49,6 +53,10 @@ def expected_basis(doc, declared, snap):
     rails = set(doc["supply_nets"])
     pruned = leaf_pruned(doc)
     ecol = dict(snap.column("device", "dc_colour"))            # [r11] 입력 열(정점마다 유일)
+    orbit = dict(snap.value("graph", "s1", "orbits").devices)     # [U17 ①-d] 입력 필드(graph 대칭 블록)
+    osize = {}
+    for o in orbit.values():
+        osize[o] = osize.get(o, 0) + 1
     ends = {}
     kinds = {}
     for e in doc["netlist"]:
@@ -64,7 +72,7 @@ def expected_basis(doc, declared, snap):
         ends[e["name"]] = tuple(e["terminals"])
         sources[e["name"]] = e["kind"]
     fixed = {n: float(v) for n, v in declared if v is not None and sources.get(n) == "current_source"}
-    cols = sorted((n for n in ends if n not in fixed), key=lambda n: (ecol[n], n))
+    cols = sorted((n for n in ends if n not in fixed), key=lambda n: (osize[orbit[n]] > 1, ecol[n], n))   # [U17 ①-d] §6-3
     fixed_names = sorted(fixed)
     nets = sorted({x for ab in ends.values() for x in ab} - rails)
     rows = []
@@ -253,7 +261,7 @@ def test_identical_parallel_pair_no_tie_canonical_pivot(tmp_path, toy_access):
     b = basis_of(ctx)
     check(b, expected_basis(doc, (("I1", 2e-5),), ctx.base))
     ecol = dict(ctx.base.column("device", "dc_colour"))
-    orb = dict(ctx.base.column("device", "dc_orbit"))
+    orb = dict(ctx.base.value("graph", "s1", "orbits").devices)          # [U17 ①-d] graph/s1 orbits
     assert orb["M1"] == orb["M2"]                                              # 입력 확인: 같은 궤도
     assert wl_colours(ctx.base)[1]["M1"] == wl_colours(ctx.base)[1]["M2"]       # 1-WL 로 구별 안 됨
     assert b.ties == ()
@@ -288,3 +296,71 @@ def test_structural_zero_current_mos(tmp_path, toy_access):
     assert d["reason"] == "unsupported_rule_branch"
     assert d["rule_branch"] == "mos_zero_current_structural"
     assert ei.value.record.devices == ("M3",)
+
+
+# ---------------------------------------------------------------- [U17 ①-d] 40 v1.8 §6-3 전류 기저 열 순서 규칙 -- 측정 의무(§10.2 행 '전류 기저 열 순서')
+# (전류 묶음 수, 탐색 θ 변수 수) = (len(SearchDomain.ties), len(SearchDomain.variables)) -- 정의는 오케스트레이터 지시(design 문구 정정 예정:
+# design 문구 'ties 중 대표가 θ 전류 성분인 묶음 수' 로 재면 파일럿 7 이고, 29 는 len(ties) 다 -- test agent 독립 측정, 아래 기준선 표).
+# 기준선 = master 8e46548 as-built 값. test agent 가 8e46548 을 git archive 로 따로 풀어 같은 측정 경로(단계 A(spec, 실 LUT) -> 커널 컨텍스트
+# (S1v L 동치류) -> search_domain(spec theta_bounds·untie_orbits·area 예산))로 잰 값이다(측정 스크립트: _scratch_u17_1d_integ/my_measure.py):
+#   current_reuse_telescopic_ota 29/38(전류 묶음 7개: M11a~M20a, M13~M22, M15~M25, M17~M8, M18a~M9a, M1a~M1b, M4a~M4b),
+#   common_gate 0/6, folded 0/16, ngcc 0/21, nmcnr 0/23, pushpull 0/8, sf 0/26, two_stage 0/10, two_stage_sf 0/12.
+# 파일럿 묶음 구성(design 문언): M1a~M1b 복원, M4a~M4b 대신 M19~M10.
+BASELINE_8E46548 = {
+    "current_reuse_telescopic_ota": (29, 38), "common_gate_amplifier": (0, 6), "folded_cascode": (0, 16), "ngcc_3stage_ff": (0, 21),
+    "nmcnr_amplifier": (0, 23), "pushpull_follower_buffer": (0, 8), "sf_pushpull_output_opamp": (0, 26), "two_stage_ota": (0, 10),
+    "two_stage_ota_sf": (0, 12),
+}
+
+
+def _measured_domain(name, lut, tmp_path):
+    from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
+    from gmid_engine.core import BoundedLRU, read_pdk_decl
+    from gmid_engine.lut import LutMemo
+    from gmid_engine.pipeline import run_stage_a
+    from gmid_engine.search import SearchSettings, search_domain
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from .conftest import LIBRARY
+    skill = LIBRARY.parents[1]
+    pdk = read_pdk_decl(str(skill / "assets" / "sky130_pdk_decl.json"), BoundedLRU(8))
+    # [U17 ①-a 병합] run_stage_a(pdk_decl=) 필수(40 §2.4.12 Q1) -- 아래 search_domain 이 쓰는 같은 PDK 선언을 넘긴다(판정 내용 변경 없음)
+    r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, pdk_decl=pdk, output_dir=tmp_path)
+    spec = r.spec
+    k = build_kernel_context(r.s1, dc_inputs_from_spec(spec), pre_layout_lut_access(LutMemo(lut, point=4096, curve=4096, root=4096)),
+                             l_classes=r.s1v.l_classes if r.s1v else ())
+    search = spec.search if isinstance(spec.search, tuple) else ()
+    sb = next((s.value for s in search if s.field == THETA_BOUNDS and s.value), ())
+    un = tuple(n for n, _s in next((s.value for s in search if s.field == UNTIE_ORBITS and s.value), ()))
+    bud = [float(d.value) for d in spec.judged_constraints if d.metric == "area_search_m2" and d.op == "<=" and d.value is not None]
+    dom = search_domain(k, SearchSettings(0.0, None, None, (("wall", "x"),)), pdk, sb, min(bud) if bud else None, un)
+    return k, dom
+
+
+@pytest.mark.parametrize("name", sorted(BASELINE_8E46548))
+def test_current_ties_and_variables_match_8e46548(name, real_lut_v2, tmp_path):
+    _k, dom = _measured_domain(name, real_lut_v2[0], tmp_path)
+    assert (len(dom.ties), len(dom.variables)) == BASELINE_8E46548[name]
+
+
+def test_pilot_current_groups_m1a_m1b_and_m19_m10(real_lut_v2, tmp_path):
+    k, dom = _measured_domain("current_reuse_telescopic_ota", real_lut_v2[0], tmp_path)
+    free = set(k.base.value("graph", DC_KEY, "dc_current_basis").free)
+    groups = {frozenset([rep[1]] + [m[1] for m in ms]) for rep, ms in dom.ties if rep[0] == "current" and rep[1] in free}
+    assert frozenset({"M1a", "M1b"}) in groups
+    assert frozenset({"M10", "M19"}) in groups
+    assert frozenset({"M4a", "M4b"}) not in groups
+    assert len(groups) == 7
+
+
+def test_column_order_invariant_under_renaming(tmp_path, toy_access):
+    """§10.2 '열 순서 키가 이름 전단사에 불변': 파일럿 이름 전단사 -> 기저 free 원소가 σ 로 옮겨진다."""
+    from gmid_engine.graph import build_s1
+    from .conftest import library_ctx, load_doc, rename, rename_inputs
+    raw, _td, _spec, inputs, _s1, ctx = library_ctx("current_reuse_telescopic_ota", toy_access)
+    d2, sn, se = rename(raw, 5)
+    inputs2 = rename_inputs(inputs, sn, se)
+    from gmid_engine.sizing import build_kernel_context
+    ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d2), dict(inputs2.supplies_v)), inputs2, toy_access)
+    free = ctx.base.value("graph", DC_KEY, "dc_current_basis").free
+    free2 = ctx2.base.value("graph", DC_KEY, "dc_current_basis").free
+    assert tuple(sorted(se[n] for n in free)) == free2
