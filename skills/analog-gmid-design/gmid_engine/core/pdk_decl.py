@@ -110,6 +110,10 @@ class PdkRule:
     sha256: str
     line: int
 
+    def __canonical__(self):
+        """지문 = 내용만(경로 제외). 파일 위치는 checkout 마다 달라 값 지문에 들이지 않는다 -- 내용 동일성은 `sha256`·`line` 이 맡는다."""
+        return (self.rule_id, self.value_m, self.value_text, self.unit_text, self.source, self.sha256, self.line)
+
 
 @dataclasses.dataclass(frozen=True)
 class PdkQuantity:
@@ -151,6 +155,10 @@ class PdkMismatchModel:
     slope_path: str
     slope_sha256: str
 
+    def __canonical__(self):
+        """지문 = 내용만(`model_path`·`slope_path` 제외 -- checkout 마다 다른 위치). 내용 동일성은 두 sha256 이 맡는다."""
+        return (self.kind, self.parameters, self.blocks, self.model_sha256, self.slope_sha256)
+
 
 @dataclasses.dataclass(frozen=True)
 class PdkDecl:
@@ -163,6 +171,12 @@ class PdkDecl:
     sources: tuple
     quantities: tuple
     mismatch_models: tuple = ()
+
+    def __canonical__(self):
+        """지문 = 내용만: `decl_path` 와 `sources` 의 경로 칸을 뺀다(checkout 마다 다른 위치 -- S0 스냅샷 지문이 checkout 에 묶이지 않게).
+        내용 동일성은 `decl_sha256`·원본 sha256·양·규칙이 맡는다."""
+        return (self.pdk, self.decl_sha256, tuple((name, digest) for name, _path, digest in self.sources), self.quantities,
+                self.mismatch_models)
 
     def quantity(self, name):
         """이름의 PdkQuantity. 선언에 없으면 `SchemaRejectedError(pdk_quantity_undeclared)`."""

@@ -40,7 +40,7 @@ from .kernel import evaluate
 from .noise_decl import noise_decl
 from .s0_fields import S0_WRITERS, STAGE_B_WRITERS, START_KEY
 from .search_domain import search_domain
-from .search_values import AXIS_AREA, EvalKey
+from .search_values import AXIS_AREA, EvalKey, SearchSettings
 from .start_intervals import start_intervals
 
 
@@ -217,6 +217,8 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     (`ss_constraint_rows`). `s0` = core `S0Slot`(단계 A 결과의 S0 키) 또는 None. 잡음 제약이 있으면 LUT 잡음 r1 데이터, offset 제약이 있으면 mismatch r1 데이터가 있어야 한다."""
     if not isinstance(code_fp, str) or not code_fp:
         raise TypeError("build_search_context: code_fp 는 단계 A 가 잰 엔진 코드 지문(StageAResult.code_fp) 문자열이어야 한다")
+    if not isinstance(settings, SearchSettings):
+        raise TypeError("build_search_context: settings 는 SearchSettings 여야 한다(기본값 없음)")
     for name, value in (("pdk_decl", pdk_decl), ("lut_rule_decl", lut_rule_decl)):
         if not isinstance(value, PdkDecl):            # 무엇이든 만들기 전에 입력 형식부터(§3.7·3.9)
             raise TypeError("build_search_context: " + name + " 는 core read_pdk_decl 결과여야 한다")
