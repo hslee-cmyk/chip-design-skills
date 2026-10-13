@@ -229,3 +229,49 @@ def test_deterministic_and_name_bijection_invariant(tmp_path, toy, pdk):
     tp, sp = write_case(tmp_path / "b", cs("sbcsr", ren, dev), constraints=cons, count_budget=10 ** 6)
     _, b3 = stage_ab(tmp_path / "b", toy, tp, sp, pdk)
     assert _numbers(b3.report) == _numbers(b1.report)
+
+
+def _loose_design_values(value, path="result"):
+    """GraphSnapshot 밖에 실린 설계 값(타입 등록부 형식, 설계 40 §2.4.3·§2.4.10 ②) -- tests/pipeline/test_stage_a.py 의 같은 이름 helper 와 같은 정의."""
+    import dataclasses
+    from gmid_engine.core import GraphSnapshot, type_registry
+    names = set(type_registry.type_registry().names())
+    out, stack, seen = [], [(value, path)], set()
+    while stack:
+        v, p = stack.pop()
+        if isinstance(v, GraphSnapshot) or isinstance(v, (str, bytes, int, float, bool, type(None))) or id(v) in seen:
+            continue
+        seen.add(id(v))
+        cls = type(v)
+        if cls.__module__ + "." + cls.__qualname__ in names:
+            out.append((p, cls.__qualname__))
+        if isinstance(v, (tuple, list, frozenset, set)):
+            stack.extend((x, p + "[]") for x in v)
+        elif isinstance(v, dict):
+            stack.extend((x, p + "[" + repr(k) + "]") for k, x in v.items())
+        elif dataclasses.is_dataclass(v):
+            stack.extend((getattr(v, f.name), p + "." + f.name) for f in dataclasses.fields(v))
+    return sorted(out)
+
+
+def test_stage_b_result_carries_s0_snapshot_reference_only(tmp_path, toy, pdk):
+    """[U17 ①-b] 설계 40 v1.9 §2.4.7 'S1v·Achievability·StartIntervals 묶음 객체' 행 '단계 결과는 S0 수준 스냅샷 참조만 넘긴다', §2.4.8 GB4 행
+    (오케스트레이터 기본안 D2 2026-10-13: graph/ach = curve_checks·gain_checks·area_bound·headroom_rows·buffer_window_report·warnings·reasons·
+    verdict·dof·count_budget·local_inputs, block_bounds 없음).
+    oracle (d): StageBResult 칸에 `achievability` 가 없고, 등록된 설계 값 형식이 GraphSnapshot 밖에 실리지 않으며, 실린 GraphSnapshot 하나 이상이
+    graph/ach 레코드(위 11 필드)를 가지고 verdict·count_budget 이 보고서와 같다. 입력 = 팔로워 + gain ≥ 10 dB(손 계산 exit 3, 첫 test 와 같은 입력)."""
+    import dataclasses
+    from gmid_engine.core import GraphSnapshot
+    tp, sp = write_case(tmp_path, follower(), elements=(("I1", "current_source", None),), constraints=(("gain_ss_db", ">=", 10.0),))
+    _, b = stage_ab(tmp_path, toy, tp, sp, pdk)
+    assert (b.status, b.exit_code) == ("infeasible", 3)
+    assert "achievability" not in {f.name for f in dataclasses.fields(StageBResult)}
+    assert _loose_design_values(b) == []
+    snaps = [getattr(b, f.name) for f in dataclasses.fields(b) if isinstance(getattr(b, f.name), GraphSnapshot)]
+    with_ach = [s for s in snaps if s.record("graph", "ach") is not None]
+    assert with_ach, "S0 수준 스냅샷 참조(graph/ach 레코드)가 결과에 없다"
+    fields = {name for name, _fv in with_ach[0].record("graph", "ach").fields}
+    assert fields == {"curve_checks", "gain_checks", "area_bound", "headroom_rows", "buffer_window_report", "warnings", "reasons",
+                      "verdict", "dof", "count_budget", "local_inputs"}, fields
+    assert with_ach[0].value("graph", "ach", "verdict") == "infeasible"
+    assert with_ach[0].value("graph", "ach", "count_budget") == b.report["count_budget"]

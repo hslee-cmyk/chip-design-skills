@@ -5,7 +5,9 @@
   counters 7키 0, eval_budget = settings, deadline None, archive None/S3Archive, spec_passive_values.
 - I-11: θ 저항이 있고 상자 미선언 -> SchemaRejectedError(theta_resistance_bounds_undeclared), 커널(sizing 평가 블록) 호출 0.
 """
+import ast
 import re
+from pathlib import Path
 
 import pytest
 
@@ -279,3 +281,44 @@ def test_offset_constraints_with_mismatch_lut_enter_ss_constraints():
         assert m not in judged
     assert not any(n.get("reason") in ("metric_computation_pending", "metric_not_in_registry_or_no_ss_view")
                    and any(m in repr(n) for m in OFFSET_NAMES) for n in _notes(s))
+
+
+# [U17 ①-b] 설계 40 v1.9 §2.4.7 'SearchContext 칸 배정' 표 중 S0 수준 필드로 가는 칸(§2.4.8 graph/kernel·graph/s1v·graph/ach·graph/start 행):
+# `domain` -> graph/kernel search_domain, `judged_constraints`·`ss_constraints`·`constraint_notes` -> graph/kernel constraint_classes,
+# `junction`·`mismatch` -> junction_source·mismatch_source, `area_decl` -> passive_area_decl, `model_error` -> model_error,
+# `structure` -> graph/s1v metric_structure, `noise_decl` -> graph/s1v noise_input_cells, `s1v`·`ach`·`start` -> graph/s1v·ach·start 필드.
+# SearchContext 는 이 값을 칸으로 들지 않는다(나머지 칸 정리 -- 참조·S3 색인·실행 계수만 -- 는 단계 ② G-7).
+S0_SLOTS_REMOVED = ("domain", "judged_constraints", "ss_constraints", "constraint_notes", "junction", "mismatch", "area_decl",
+                    "model_error", "structure", "noise_decl", "s1v", "ach", "start")
+
+
+def _stored_attrs(tree):
+    """모듈 안에서 속성으로 **대입**되는 이름(`x.a = ...`, `x.a += ...`), 클래스 본문의 주석·대입 이름, `__slots__` 문자열."""
+    out = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Attribute) and isinstance(n.ctx, ast.Store):
+            out.add(n.attr)
+        elif isinstance(n, ast.ClassDef):
+            for st in n.body:
+                if isinstance(st, ast.AnnAssign) and isinstance(st.target, ast.Name):
+                    out.add(st.target.id)
+                elif isinstance(st, ast.Assign):
+                    for t in st.targets:
+                        if isinstance(t, ast.Name) and t.id == "__slots__":
+                            out.update(c.value for c in ast.walk(st.value) if isinstance(c, ast.Constant) and isinstance(c.value, str))
+                        elif isinstance(t, ast.Name):
+                            out.add(t.id)
+    return out
+
+
+def test_search_context_has_no_s0_value_slots():
+    import gmid_engine.search as search_pkg
+    path = Path(search_pkg.__file__).resolve().parent / "search_context.py"      # 파일 = design §2.4.7 표의 E/search/search_context.py
+    stored = _stored_attrs(ast.parse(path.read_text(encoding="utf-8")))
+    assert not stored & set(S0_SLOTS_REMOVED), sorted(stored & set(S0_SLOTS_REMOVED))
+
+
+def test_stored_attrs_scanner():
+    src = ("class C:\n    __slots__ = ('a', 'b')\n    c: int\n    d = 1\n    def f(self):\n        self.e = 0\n        self.g.h = 1\n"
+           "ctx.i = 2\nctx.j += 1\nx = ctx.k\n")
+    assert _stored_attrs(ast.parse(src)) == {"a", "b", "c", "d", "e", "h", "i", "j"}
