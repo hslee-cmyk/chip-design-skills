@@ -173,20 +173,15 @@
           "origin": "paper",
           "citation": "Wu 외, Sensors 25(8):2523, 2025 p.15 Table 2 'Proposed ERFC OTA' 열 PM 67.05° (Table 3 TT 열 66.86° 는 참고)"
         }
-      },
-      {
-        "metric": "supply_current_dc",
-        "op": "<=",
-        "value": 1.04e-05,
-        "source": {
-          "kind": "user_spec",
-          "record": "user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" -- held-out B spec 제약 선택 기준: 소신호(DC gain, GBW, PM)와 정지 전류는 제약, CL·VDD·입력 CM은 동작 조건, SR·정착·입력 잡음·offset·PVT·MC는 보고만 (정지 전류 = 공급 전류)",
-          "decided": "2026-10-13",
-          "origin": "paper",
-          "citation": "Wu 외, Sensors 25(8):2523, 2025 p.15 Table 2 'Proposed ERFC OTA' 열 supply current 10.4 µA, p.12"
-        }
       }
     ],
+    "pending_constraints": [
+      {
+        "metric": "supply_current_dc",
+        "decision": "U-75"
+      }
+    ],
+    "_pending_constraints_comment": "공급 전류 10.4 µA(p.15 Table 2, p.12)는 판정 제약에서 결정 대기로 옮겼다(user_decisions.md 2026-10-13 \"HA-1, HA-2, HB-1, HB-2 모두 권고대로 해\" HB-1): supply_current_dc 는 합산 레일 선언(counted_rails, DEC-78)이 있어야 정의되는데 spec 선언 칸이 아직 없어 늘 미측정이다(design 빈칸, U17 ② 결정 자료). held-out A 와 같은 처리. 값 1.04e-5 A 는 erfc_ota.spec_source.md 에 둔다.",
     "driving_spec": {
       "slew_rate_v_per_s": 19320000.0,
       "source": {

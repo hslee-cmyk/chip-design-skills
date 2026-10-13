@@ -21,9 +21,15 @@
       }
     },
     "input_dc": {
-      "pending": "U-75"
+      "value_v": 1.02,
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-13 \"HA-1, HA-2, HB-1, HB-2 모두 권고대로 해\" -- HA-1: 입력 공통모드 DC = 원문 ICMR [0.3, 1.74] V 의 중앙값 (0.3 + 1.74) / 2 = 1.02 V (원문에 입력 CM 값 없음, 유도값)",
+        "decided": "2026-10-13",
+        "origin": "paper",
+        "citation": "Matibag, UPC 석사논문 2024 p.47 Table 12 ICMR [0.3; 1.74] V (Recycling 열)"
+      }
     },
-    "_input_dc_comment": "입력 공통모드 DC 는 원문 미기재(rfc_ota.spec_source.md §3, p.36·p.37 testbench 에 값 없음) -> 결정 대기. user_decisions.md 2026-10-13 \"A도 넣어.\" 항목: '입력 공통모드 DC는 원문 미기재 -> pending으로 두고 사용자에게 별도 질문'. ID 는 U-75(held-out 선정·spec 값은 사용자 몫, 계획 U-75 열림) -- 로더 결정 ID 형식(SP-n·AC-n·CI-n·PA-n·ET-n·U-nn·MODn) 안에서 고른 것.",
     "element_values": {
       "CL": {
         "measurement_load": true,
