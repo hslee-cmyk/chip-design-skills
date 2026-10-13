@@ -64,6 +64,41 @@ SRC = (("front_budget_s", "test_fixture"),)
 
 # ---------------------------------------------------------------- toy PDK 선언 (core 9.1)
 
+
+# [U17 ①-b] 설계 40 v1.9.1 §2.4.7 KernelContext 행: θ 스키마·L 묶음은 칸이 아니라 S0 수준 필드 `graph/kernel: theta_schema·l_ties`(§2.4.8, D8) --
+# test 는 커널 컨텍스트의 `base` 스냅샷에서 그 필드를 읽는다(사본 없음).
+def schema_of(dc):
+    from gmid_engine.sizing import KERNEL_KEY
+    return dc.base.value("graph", KERNEL_KEY, "theta_schema")
+
+
+def l_ties_of(dc):
+    from gmid_engine.sizing import KERNEL_KEY
+    return dc.base.value("graph", KERNEL_KEY, "l_ties")
+
+
+def domain_of(dc, settings, pdk_decl, spec_bounds=(), area_budget_m2=None, untie=()):
+    """[U17 ①-b] 탐색 정의역 읽기 -- `search_domain` 은 계산 블록이 됐다(설계 40 §2.4.7 'SearchContext 칸 배정' `domain` 행, §2.4.8: S0 수준 필드
+    `graph/kernel: search_domain`, extras = 실행 설정의 θ 수동소자 상자·PDK 선언·spec 상자·면적 예산·untie). 커널 컨텍스트 `base` 를 S0 수준 권한표로 넓혀 블록을
+    부르고 그 필드를 읽는다(옛 `search_domain(dc_ctx, settings, pdk_decl, spec_bounds, area_budget_m2, untie) -> SearchDomain` 의 같은 입력)."""
+    from gmid_engine.search import search_domain
+    from gmid_engine.search.s0_fields import S0_WRITERS
+    from gmid_engine.sizing import KERNEL_KEY
+    snap = search_domain(dc.base.widen(S0_WRITERS), dc.lut, settings.resistance_bounds_ohm, settings.capacitance_bounds_f, pdk_decl,
+                         tuple(spec_bounds), area_budget_m2, tuple(untie))
+    return snap.value("graph", KERNEL_KEY, "search_domain")
+
+
+def area_decl_of(dc, spec, pdk_decl):
+    """[U17 ①-b] 수동소자 면적 선언 읽기 -- `passive_area_decl` 은 계산 블록이 됐다(설계 40 §2.4.7 'SearchContext 칸 배정' `area_decl` 행: S0 수준 필드
+    `graph/kernel: passive_area_decl`). extras = spec 측정 부하 원소 이름(build_search_context 와 같은 spec 읽기: element_values 중 measurement_load)·PDK 선언."""
+    from gmid_engine.search.area_decl import passive_area_decl
+    from gmid_engine.search.s0_fields import S0_WRITERS
+    from gmid_engine.sizing import KERNEL_KEY
+    loads = tuple(sorted(e.name for e in spec.element_values if e.measurement_load))
+    return passive_area_decl(dc.base.widen(S0_WRITERS), loads, pdk_decl).value("graph", KERNEL_KEY, "passive_area_decl")
+
+
 def _decl_paths(root, grid_um=GRID_UM, minw_um=MINW_UM, with_minw=True):
     """[r6] toy PDK 선언 = metrics conftest 의 toy 접합 선언(모델 카드 27 양 × kind) + lef 원본의 격자·최소 finger 폭,
     LUT 생성 규칙 선언 = metrics conftest 의 toy 규칙 선언(core 9.1 형식, metrics 8.5 소비). 반환 (pdk 경로, 규칙 경로)."""
@@ -166,7 +201,7 @@ def circuit_p():
 
 def theta_p(dc, i=1e-5, r=9e4, vgs=0.6, l1=1e-6):
     """회로 P 의 θ. 전류 성분 키는 스키마(입력)에서 읽는다(기저 free 원소가 M1/R1 중 무엇이든 같은 전류)."""
-    comps = dict.fromkeys(dc.schema.components)
+    comps = dict.fromkeys(schema_of(dc).components)
     th = {("L", "M1"): l1, ("ln_idu", "M1"): r4_ln_idu("pmos", vgs, 1.8 - i * r, 0.0), ("resistance", "R1"): r}
     for k in comps:
         if k[0] == "current":
@@ -184,7 +219,7 @@ def circuit_n():
 
 
 def theta_n(dc, i=1e-5, r=9e4, vgs=0.6, l1=1e-6):
-    comps = dict.fromkeys(dc.schema.components)
+    comps = dict.fromkeys(schema_of(dc).components)
     th = {("L", "M1"): l1, ("ln_idu", "M1"): r4_ln_idu("nmos", vgs, 1.8 - i * r, 0.0), ("resistance", "R1"): r}
     for k in comps:
         if k[0] == "current":
@@ -249,12 +284,12 @@ def theta_z(dc, cz=1e-12, rz=1e4, **kw):
     """회로 Z 의 θ: 회로 C 의 θ + 수동소자 θ. y 키는 스키마(입력)에서 읽는다(W4 뿌리 이름)."""
     th = dict(theta_r4c(**kw))
     y = th.pop(("y", "out"))
-    ykeys = [k for k in dc.schema.components if k[0] == "y"]
+    ykeys = [k for k in schema_of(dc).components if k[0] == "y"]
     assert len(ykeys) == 1
     th[ykeys[0]] = y
     th[("capacitance", "Cz")] = cz
     th[("ss_resistance", "Rz")] = rz
-    assert set(th) == set(dc.schema.components), (sorted(th), dc.schema.components)
+    assert set(th) == set(schema_of(dc).components), (sorted(th), schema_of(dc).components)
     return th
 
 
@@ -450,7 +485,7 @@ def expected_fd_steps(sctx, base, vgs_grid=R4_VGS, vds_grid=R4_VDS):
     windows = col(snap, "node", "dc_window")
     drop = col(snap, "device", "dc_drop_current")
     th = dict(base.theta)
-    cone = dict(sctx.dc.schema.current_cone)
+    cone = dict(schema_of(sctx.dc).current_cone)
     out = []
     for v in sctx.domain.variables:
         t, key = v.component

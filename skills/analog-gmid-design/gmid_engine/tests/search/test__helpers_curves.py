@@ -1,4 +1,7 @@
-"""search/_helpers_curves.py -- `at_gm_id`(gm/ID 축 보간)·`hull`(수준 집합의 gm/ID 폭) (설계 41 §6, §4.1 해법 매핑).
+"""search/_helpers_curves.py -- `curve_value`(gm/ID 축 보간)·`hull`(수준 집합의 gm/ID 폭) (설계 41 §6, §4.1 해법 매핑).
+
+[U17 ①-b] 옛 공개 `at_gm_id` 는 `_at_gm_id`(비공개)가 되고 공개 읽기는 `curve_value(bundle, quantity, g)` 다(40 §2.4.7 CurveBook 행 v1.9.1 D10).
+같은 성질을 `curve_value` 로 본다: 선형 양 = intrinsic_gain, log 양 = idu(곡선 묶음은 test 쪽 SimpleNamespace -- gm_id·values 칸).
 
 oracle (a) 손계산: 마디 gm/ID 는 분지에서 내려가는 순서(lut 4.5 `GmIdAxisCurve`). 선형 보간은 두 마디 사이 직선, log 보간은 기하 평균,
 정의역 밖은 끝 값. hull 은 {g : v(g) ≤ level}(below) 의 (최소, 최대) -- 마디 사이 선형 교차점, 비단조 곡선은 모든 칸을 센다, 비면 None.
@@ -7,7 +10,15 @@ import math
 
 import pytest
 
-from gmid_engine.search._helpers_curves import at_gm_id, hull
+from types import SimpleNamespace
+
+from gmid_engine.search._helpers_curves import QUANTITY_GAIN, QUANTITY_IDU, curve_value, hull
+
+
+def at_gm_id(gm_id, values, g, log=False):
+    """test 쪽 입력 포장: 곡선 마디를 묶음 하나로 싸서 공개 `curve_value` 로 읽는다(log = log 보간 양 idu, 아니면 선형 양 intrinsic_gain)."""
+    quantity = QUANTITY_IDU if log else QUANTITY_GAIN
+    return curve_value({quantity: SimpleNamespace(gm_id=gm_id, values=values)}, quantity, g)
 
 G = (20.0, 16.0, 12.0, 8.0)          # 내려가는 gm/ID 마디
 V = (1.0, 2.0, 4.0, 8.0)

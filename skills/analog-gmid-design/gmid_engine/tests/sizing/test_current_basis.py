@@ -314,26 +314,30 @@ BASELINE_8E46548 = {
 
 
 def _measured_domain(name, lut, tmp_path):
+    """[U17 ①-b] 같은 측정 경로를 새 API 로: run_stage_a(lut_rule_decl= 필수) -> 커널 컨텍스트(L 동치류는 S1Graph 의 S0 수준 필드
+    `graph/s1v: l_classes` 에서 -- build_kernel_context(l_classes=) 삭제, 설계 40 v1.9.1 §2.4.7·§2.4.8) -> 계산 블록 search_domain 이 쓴
+    `graph/kernel: search_domain` 필드(§2.4.7 'SearchContext 칸 배정' domain 행)를 읽는다."""
     from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
     from gmid_engine.core import BoundedLRU, read_pdk_decl
     from gmid_engine.lut import LutMemo
     from gmid_engine.pipeline import run_stage_a
-    from gmid_engine.search import SearchSettings, search_domain
-    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from gmid_engine.search import S0_WRITERS, search_domain
+    from gmid_engine.sizing import KERNEL_KEY, build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
     from .conftest import LIBRARY
     skill = LIBRARY.parents[1]
     pdk = read_pdk_decl(str(skill / "assets" / "sky130_pdk_decl.json"), BoundedLRU(8))
+    rule = read_pdk_decl(str(skill / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(8))
     # [U17 ①-a 병합] run_stage_a(pdk_decl=) 필수(40 §2.4.12 Q1) -- 아래 search_domain 이 쓰는 같은 PDK 선언을 넘긴다(판정 내용 변경 없음)
-    r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, pdk_decl=pdk, output_dir=tmp_path)
+    r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, pdk_decl=pdk,
+                    lut_rule_decl=rule, output_dir=tmp_path)
     spec = r.spec
-    k = build_kernel_context(r.s1, dc_inputs_from_spec(spec), pre_layout_lut_access(LutMemo(lut, point=4096, curve=4096, root=4096)),
-                             l_classes=r.s1v.l_classes if r.s1v else ())
+    k = build_kernel_context(r.s1, dc_inputs_from_spec(spec), pre_layout_lut_access(LutMemo(lut, point=4096, curve=4096, root=4096)))
     search = spec.search if isinstance(spec.search, tuple) else ()
     sb = next((s.value for s in search if s.field == THETA_BOUNDS and s.value), ())
     un = tuple(n for n, _s in next((s.value for s in search if s.field == UNTIE_ORBITS and s.value), ()))
     bud = [float(d.value) for d in spec.judged_constraints if d.metric == "area_search_m2" and d.op == "<=" and d.value is not None]
-    dom = search_domain(k, SearchSettings(0.0, None, None, (("wall", "x"),)), pdk, sb, min(bud) if bud else None, un)
-    return k, dom
+    snap = search_domain(k.base.widen(S0_WRITERS), k.lut, None, None, pdk, sb, min(bud) if bud else None, un)
+    return k, snap.value("graph", KERNEL_KEY, "search_domain")
 
 
 @pytest.mark.parametrize("name", sorted(BASELINE_8E46548))

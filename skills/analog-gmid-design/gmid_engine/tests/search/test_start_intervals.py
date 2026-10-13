@@ -1,4 +1,7 @@
 """search/start_intervals.py -- `start_intervals(s1v, ach, kctx, spec, pdk_decl, domain) -> StartIntervals` + 층 0 배선
+[U17 ①-b] 계산 블록 `start_intervals(snapshot, spec, inputs, pdk_decl, lut)` -> S0 수준 필드 `device: start.row·start.point`, `graph/start: conflicts·inactive·macro·
+rungs·records·area_est_m2·area_fraction·uncovered`(설계 40 v1.9.1 §2.4.8 D3). 옛 `StartIntervals` 칸은 u13_hand `StartRead` 가 그 필드에서 읽는다
+(theta·cells·current_ref = rungs 칸 0, ladder = rungs). 'S1v 가 없으면 start None' = S1v 뷰 필드가 없는 S0 수준 스냅샷이면 `graph/start` 레코드가 없다.
 (설계 41 §6.1·§6.6, 40 §11 U13·§7.1, search CONTRACT U13.1~U13.3; D-SIa~g).
 
 oracle:
@@ -157,10 +160,19 @@ def test_name_bijection_changes_only_row_names():
     assert [x.t for x in orig.ladder] == [x.t for x in ren.ladder]
 
 
-def test_without_s1v_start_is_none_and_layer0_uses_box_centre():
+def test_without_s1v_start_is_none_and_layer0_uses_box_centre(tmp_path):
+    # [U17 ①-b] S1v 필드가 없는 S0 수준 스냅샷(build_s1 만) -> 출발 구간 블록을 부르지 않아 graph/start 레코드·사다리가 없다.
+    from gmid_engine.authoring import load_topology
+    from gmid_engine.graph import build_s1
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
+    from metrics.gb4_hand import write_case
+    from .u13_hand import start_of
     c = toy_case(cs_chain(2), elements=TOY_ELS, constraints=TOY_CONS)
-    sctx = build_search_context(c.kctx, c.spec, c.settings, None, c.pdk, c.rule, code_fp=CODE_FP)
-    assert sctx.start is None
+    tp, _sp = write_case(tmp_path, cs_chain(2), elements=TOY_ELS, constraints=TOY_CONS, count_budget=10 ** 6)
+    inputs = dc_inputs_from_spec(c.spec)
+    kctx = build_kernel_context(build_s1(load_topology(str(tp)), dict(inputs.supplies_v)), inputs, c.kctx.lut)
+    sctx = build_search_context(kctx, c.spec, c.settings, None, c.pdk, c.rule, code_fp=CODE_FP)
+    assert start_of(sctx) is None and sctx.rungs is None
     res = layer0_start(sctx)
     assert res.origin_point in (None, "centre") or res.origin_point.startswith(("halton:", "repair:"))
     assert not str(res.origin_point).startswith("ladder")
@@ -192,16 +204,21 @@ def _reachable_dataclass_types(roots, skip=()):
 # 독립 도출: 실제 단계 A·B·출발 구간 산출물을 걸어 닿는 타입을 모은다(구현 등록 목록을 쓰지 않는다).
 
 
+# [U17 ①-b] 묶음은 없어졌다 -- 필드 목록은 설계 40 v1.9.1 §2.4.8 GB4 행(D2)·출발 구간 행(D3) 그대로(구현 목록을 쓰지 않는다).
+ACH_FIELDS = ("curve_checks", "gain_checks", "area_bound", "headroom_rows", "buffer_window_report", "warnings", "reasons", "verdict", "dof",
+              "count_budget", "local_inputs")
+START_GRAPH_FIELDS = ("conflicts", "inactive", "macro", "rungs", "records", "area_est_m2", "area_fraction", "uncovered")
+START_DEVICE_FIELDS = ("start.row", "start.point")
+
+
 def _assert_bundle_values_registered(ach, start):
     import gmid_engine.pipeline  # noqa: F401
     from gmid_engine.core.type_registry import type_registry
-    from gmid_engine.metrics import Achievability
-    from gmid_engine.search import StartIntervals
     names = set(type_registry().names())
-    reach = set()
-    for bundle, cls in ((ach, Achievability), (start, StartIntervals)):
-        assert isinstance(bundle, cls)
-        reach |= _reachable_dataclass_types([getattr(bundle, f.name) for f in dataclasses.fields(bundle)], skip=(cls,))
+    values = [ach.value("graph", "ach", f) for f in ACH_FIELDS]
+    values += [start.snapshot.value("graph", "start", f) for f in START_GRAPH_FIELDS]
+    values += [v for f in START_DEVICE_FIELDS for _n, v in start.snapshot.column("device", f)]
+    reach = _reachable_dataclass_types(values)
     missing = sorted(t.__module__ + "." + t.__qualname__ for t in reach if t.__module__ + "." + t.__qualname__ not in names)
     assert not missing, "S0 수준 필드 값 형식인데 등록부에 없다(코덱이 거부): %s" % missing
     return reach

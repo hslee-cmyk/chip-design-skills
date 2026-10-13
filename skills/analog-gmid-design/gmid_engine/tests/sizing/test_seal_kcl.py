@@ -15,6 +15,7 @@ from gmid_engine.sizing import dc_seal_kcl
 
 from .conftest import (EPS, assert_item, build_ctx, hand_dc_gm, judge_expect, mos, node_voltages, rel_close,
                        resistances_of, seal_item, tamper, theta_a, theta_c, topo, toy_npz, two, with_tol)
+from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 
 def rows_of(snap, resistances):
@@ -135,7 +136,7 @@ def test_ideal_source_term(tmp_path, toy_access):
           ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.9, 0.0), ("ln_idu", "M2"): Oracle.ln_idu("nmos", 0.5, 0.9, 0.0)}
     from .conftest import free_currents
     th.update(free_currents(ctx, {"M1": 2e-5, "M2": 1e-5}))              # M1 + M2 = I1 + I2
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     snap, _ = with_tol(ctx, th)
     exp = judge_expect(rows_of(snap, ()))
     assert exp["status"] == "pass"

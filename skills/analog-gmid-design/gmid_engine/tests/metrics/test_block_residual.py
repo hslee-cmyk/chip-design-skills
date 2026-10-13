@@ -163,9 +163,8 @@ def test_deterministic():
 # ---------------------------------------------------------------- ngcc 실제 구조 + 합성 소신호 값
 
 def _ngcc():
-    from gmid_engine.metrics import metric_structure
     nets, m, r, ground, inputs = N.hand_circuit()
-    (vs,) = metric_structure(N.s1v()).views
+    (vs,) = N.structure_of(N.s1v()).views
     return H.circuit(nets, m, r, ground, inputs), m, r, ground, vs
 
 

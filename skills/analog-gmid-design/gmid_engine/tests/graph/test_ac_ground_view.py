@@ -97,7 +97,7 @@ def _pilot(*rows):
     st = J.facts(*rows)
     name = "current_reuse_telescopic_ota"
     s1 = build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), structure=st)
-    return build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=st)
+    return H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=st))
 
 
 def test_view_scoped_exception_grounds_net_only_in_that_view():

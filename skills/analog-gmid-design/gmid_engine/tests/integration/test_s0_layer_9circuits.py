@@ -115,6 +115,7 @@ def _s0_of(result):
     from gmid_engine.core import GraphSnapshot
     for f in dataclasses.fields(result):
         v = getattr(result, f.name)
+        v = getattr(v, "snapshot", v)     # [이름 정정] 결과 칸 = S1Graph(.snapshot = GraphSnapshot) -- tests/pipeline/test_stage_a.py 같은 helper 형식
         if isinstance(v, GraphSnapshot) and v.record("graph", "s1v") is not None:
             return v
     raise AssertionError("결과에 S0 수준 스냅샷 참조(graph/s1v 레코드를 가진 GraphSnapshot)가 없다: " + type(result).__name__)
@@ -123,13 +124,20 @@ def _s0_of(result):
 def _search_context(env, a, b):
     """이름 미정 -- ①-b 뒤 커널 컨텍스트·탐색 컨텍스트 생성. 임시 형식: as-built 호출에서 `s1v=`·`ach=` 를 빼고(그 값은 S0 필드), L 동치류는
     S0 필드 `graph/s1v: l_classes` 에서 읽는다. 탐색 설정은 tests/search/u13_real.py 와 같은 입력."""
-    from gmid_engine.search import SearchSettings, build_search_context
+    from gmid_engine.search import build_search_context
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
-    s0 = _s0_of(b)
-    kctx = build_kernel_context(a.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo),
-                                l_classes=s0.value("graph", "s1v", "l_classes"))
-    settings = SearchSettings(600.0, 40, (1e2, 1e5), (("front_budget_s", "u17-1b test fixture"),), (1e-13, 1e-10))
-    return build_search_context(kctx, a.spec, settings, None, env.pdk, env.rule, code_fp=a.code_fp)
+    _s0_of(b)                             # 결과가 S0 수준 스냅샷 참조를 싣는다(§2.4.7)
+    # [이름 정정, interface 확정] build_kernel_context(l_classes=) 삭제 -- L 동치류는 엔진이 S0 필드 graph/s1v: l_classes 에서 읽는다. 커널 컨텍스트는 단계 B 결과
+    # S1Graph(S0 수준 스냅샷 위, GB4 필드 포함) 위에 만든다(엔진 단계 B 와 같은 호출 형식). 저장 시점 D6: build_search_context(s0=단계 A 의 S0Slot) 끝 1회.
+    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo))
+    return build_search_context(kctx, a.spec, _settings(), None, env.pdk, env.rule, code_fp=a.code_fp, s0=a.s0)
+
+
+def _settings():
+    """탐색 설정(tests/search/u13_real.py 와 같은 입력). [이름 정정] 단계 B 에도 같은 값을 넘긴다 -- pipeline CONTRACT 5절 `run_stage_b(settings=)`:
+    'build_search_context 와 같은 값을 넘기면 정의역 블록이 한 번만 계산된다'(한 실행 = 한 설정)."""
+    from gmid_engine.search import SearchSettings
+    return SearchSettings(600.0, 40, (1e2, 1e5), (("front_budget_s", "u17-1b test fixture"),), (1e-13, 1e-10))
 
 
 def _chain(env, circuit, tag, monkeypatch_dir):
@@ -140,9 +148,9 @@ def _chain(env, circuit, tag, monkeypatch_dir):
     out = env.root / circuit / tag
     os.environ[S0_ENV] = str(monkeypatch_dir)
     a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env.lut, pdk_decl=env.pdk,
-                    output_dir=out)
+                    lut_rule_decl=env.rule, output_dir=out)          # [이름 정정] run_stage_a(lut_rule_decl=) 필수
     env.memo = LutMemo(env.lut, point=1 << 16, curve=1 << 14, root=1 << 16)
-    b = run_stage_b(a, env.memo, env.pdk, output_dir=out, diagnostic=True)
+    b = run_stage_b(a, env.memo, env.pdk, output_dir=out, diagnostic=True, settings=_settings())
     sctx = _search_context(env, a, b) if (a.status, b.status) == ("ok", "ok") else None
     blocks = _blocks()
     return SimpleNamespace(a=a, b=b, sctx=sctx, stats={n: blk.stats() for n, blk in blocks.items()},

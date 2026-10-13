@@ -40,6 +40,15 @@ def s1v():
     return v
 
 
+def structure_of(s1v_or_graph):
+    """[U17 ①-b] metric 구조 입력 = S0 수준 필드 `graph/s1v: metric_structure`(설계 40 v1.9.1 §2.4.8 'metric 구조 입력' 행, writer `metric_structure` 블록).
+    S1v 필드가 있는 S1Graph(또는 tests/graph `S1vRead`)의 스냅샷을 metrics S0 권한표로 넓혀 블록을 부르고 그 필드를 읽는다."""
+    from gmid_engine.metrics import METRICS_S0_WRITERS, metric_structure
+    graph = getattr(s1v_or_graph, "graph", s1v_or_graph)
+    snapshot = getattr(graph, "snapshot", graph).widen(METRICS_S0_WRITERS)
+    return metric_structure(snapshot).value("graph", "s1v", "metric_structure")
+
+
 def hand_circuit(values=None, gds_scale=1.0):
     values = dict(VALUES, **(values or {}))
     doc = topology()
@@ -65,7 +74,7 @@ def view():
 def library_case(name):
     """library 회로 하나 -> (SsCircuit, ViewStruct tuple, 뷰 선언 tuple). 합성 값: k 번째 MOS gm = 1e-4·(1 + 7k mod 11), gds = gm/(40 + 13k mod 37),
     gmb = 0.1·gm, 바디 = 최저/최고 레일(기본 규칙), 저항 = 1e4·(1 + i) Ω, 용량·이상 전류원은 DC 에서 열림. 교류접지 = 레일 ∪ bias 입력."""
-    from gmid_engine.metrics import MosSmallSignal, Resistor, SmallSignalCircuit, SsCircuit, metric_structure
+    from gmid_engine.metrics import MosSmallSignal, Resistor, SmallSignalCircuit, SsCircuit
     doc = json.loads((LIB / (name + ".topology.json")).read_text(encoding="utf-8"))
     rails = list(doc["supply_nets"])
     bias = list(doc.get("bias_inputs") or ())
@@ -91,6 +100,6 @@ def library_case(name):
     ss = SsCircuit(nets, SmallSignalCircuit(mos=tuple(mos), resistors=tuple(res)), tuple(r.label for r in res), (),
                    tuple(sorted(set(rails) | set(bias))), inputs)
     _s1, s1v_ = s1v_hand.build_lib(name)
-    views = metric_structure(s1v_).views
+    views = structure_of(s1v_).views
     decls = tuple(H.transfer(dict(v.excite), v.sense[0], v.sense[1] if len(v.sense) > 1 else None) for v in views)
     return ss, views, decls

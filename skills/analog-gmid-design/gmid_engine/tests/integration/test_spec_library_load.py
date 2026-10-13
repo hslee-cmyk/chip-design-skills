@@ -314,20 +314,25 @@ def toy_access_lib(tmp_path_factory):
 def test_boxes_cover_exactly_theta_passive_components(name, toy_access_lib, tmp_path):
     """9회로: sizing θ 스키마(sizing CONTRACT 4.4 -- 의존 층 입력)의 수동소자 성분 원소 = spec 상자 원소, 그리고 search_domain 이
     재정의 없이(SearchSettings 상자 None) spec 상자만으로 변수를 만든다(거부 없음, 변수 = 상자의 ln)."""
-    from gmid_engine.search import SearchSettings, search_domain
+    from gmid_engine.search import S0_WRITERS, SearchSettings, search_domain
+    from gmid_engine.sizing import KERNEL_KEY
     from search.conftest import write_decls
     from sizing.conftest import library_ctx
     ctx = library_ctx(name, toy_access_lib)[5]
     kind_of = {"resistance": "resistor", "ss_resistance": "resistor", "capacitance": "capacitor"}
-    theta_passive = {k: kind_of[t] for t, k in ctx.schema.components if t in kind_of}
+    theta_passive = {k: kind_of[t] for t, k in ctx.base.value("graph", "kernel", "theta_schema").components if t in kind_of}   # [U17 ①-b] graph/kernel: theta_schema
     want = _expected_boxes(name)
     assert set(theta_passive) == set(want)
     assert theta_passive == {n: k for n, k in _engine_rc(name).items() if n in want}
     for r in DEC9_STRUCTURAL_R.get(name, set()):
         assert r not in theta_passive                            # 구조 규칙 저항은 θ 아님(결정 9)
     pdk, _ = write_decls(tmp_path / "pdk")
-    dom = search_domain(ctx, SearchSettings(600.0, 40, None, (("front_budget_s", "test"),)), pdk,
-                        _theta_bounds_of(_load(name)))
+    # [U17 ①-b] search_domain 은 계산 블록(writer search_domain) -> S0 수준 필드 graph/kernel: search_domain(설계 40 v1.9.1 §2.4.7 'SearchContext 칸 배정' domain 행).
+    # 옛 호출(설정 None 상자 = spec 상자만, 면적 예산 없음, untie 없음)과 같은 입력을 extras 로 넘긴다.
+    settings = SearchSettings(600.0, 40, None, (("front_budget_s", "test"),))
+    snap = search_domain(ctx.base.widen(S0_WRITERS), ctx.lut, settings.resistance_bounds_ohm, settings.capacitance_bounds_f, pdk,
+                         _theta_bounds_of(_load(name)), None, ())
+    dom = snap.value("graph", KERNEL_KEY, "search_domain")
     got = {v.component[1]: (v.log, v.lo, v.hi) for v in dom.variables if v.component[0] in kind_of}
     # [U2] search CONTRACT 3.24: 같은 자기동형 궤도의 수동소자 θ 성분은 대표 하나로 묶인다(current_reuse 의 R1/R2·Cc1/Cc2) -- 구성원은 변수에서 빠지고
     # 대표의 상자를 쓴다(상자가 같아야 받는다). 변수 ∪ 묶인 구성원 = spec 상자 원소.

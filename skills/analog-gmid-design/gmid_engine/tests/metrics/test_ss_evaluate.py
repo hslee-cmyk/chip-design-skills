@@ -38,6 +38,7 @@ from gmid_engine.sizing import (
 
 from .conftest import (
     JUNCTION_RTOL,
+    schema_of,
     LUT_WM,
     bundle_map,
     load_case,
@@ -250,7 +251,7 @@ def test_s13_negative_check_valid_junction_accepted(base):
 
 
 def test_theta_checked(base):
-    """θ = check_theta(ctx.schema, ...) -- 키 빠짐은 ValueError(sizing 5.1)."""
+    """θ = check_theta(θ 스키마 필드, ...) -- 키 빠짐은 ValueError(sizing 5.1)."""
     spec, ctx, _, sealed, _, js = base
     th = theta()
     del th[("resistance", "R1")]
@@ -275,10 +276,10 @@ def test_s10_passive_theta_argument_removed(base):
 def test_passive_value_two_sources_or_non_passive_rejected(base, case):
     """7.6 [r5]: passive_values 의 출처(spec 값 ∪ θ resistance ∪ θ capacitance·ss_resistance ∪ 구조 규칙 값)에서 이름이 S1
     수동소자가 아니거나 같은 소자 값이 두 출처면 ValueError. 정상 경로(build_kernel_context)는 이런 스키마를 만들지 않으므로
-    KernelContext 의 schema 를 손으로 바꿔 계약 위반 표지를 직접 만든다(θ 는 그 스키마의 components 에 맞춘다)."""
+    θ 스키마 필드(graph/kernel: theta_schema)를 손으로 바꿔 계약 위반 표지를 직접 만든다(θ 는 그 스키마의 components 에 맞춘다)."""
     from gmid_engine.sizing import ZeroCancel
     spec, ctx, _, sealed, _, js = base
-    s = ctx.schema
+    s = schema_of(ctx)
     th = theta()
     zc = s.zero_cancel
     extra = {"spec_valued": ("capacitance", "CL"),           # CL 은 spec 값 1 pF -> 두 출처
@@ -292,7 +293,11 @@ def test_passive_value_two_sources_or_non_passive_rejected(base, case):
         th[extra] = 1e-12 if extra[0] == "capacitance" else 5e4
     else:                                                    # 구조 규칙 값(R1 = 1/gm(M1))과 θ resistance R1 -> 두 출처
         zc = (ZeroCancel("R1", "out", ("in",), ("M1",), None),)
-    bad = dataclasses.replace(ctx, schema=dataclasses.replace(s, components=comps, zero_cancel=zc))
+    # [U17 ①-b] θ 스키마는 S0 수준 필드 graph/kernel: theta_schema(40 v1.9.1 §2.4.8 D8, writer dc_theta_schema) -- 그 필드를 손으로 바꿔 쓴다
+    from gmid_engine.sizing import KERNEL_KEY
+    tampered = ctx.base.write(ctx.base.writers.writer_of("graph", "theta_schema"), "test-tampered-schema",
+                              {("graph", "theta_schema"): {KERNEL_KEY: dataclasses.replace(s, components=comps, zero_cancel=zc)}})
+    bad = dataclasses.replace(ctx, base=tampered)
     with pytest.raises(ValueError):
         ss_evaluate(sealed, bad, th, spec.constraints, ("vdd",), junction=js)
 
@@ -301,7 +306,7 @@ def test_s14_engine_capacitor_value_from_theta(tmp_path):
     """S-14 [r5] (DEC-92): spec mode engine 커패시터 CL 은 θ capacitance -- θ 값으로 소신호 요청이 값을 갖고, 같은 값을 spec
     에 선언한 회로와 metric 값이 같다(비트). (θ 값이 소신호 회로에 실제로 들어가는지는 아래 영점 상쇄 회로의 ugf 폐형식이 잰다.)"""
     spec, ctx, ev, js = build(tmp_path / "e", cl_engine=True, th=theta(cl=1e-12))
-    assert ("capacitance", "CL") in ctx.schema.components
+    assert ("capacitance", "CL") in schema_of(ctx).components
     sealed = SealedSnapshot(ev.snapshot, ev.report)
     r1 = ss_evaluate(sealed, ctx, theta(cl=1e-12), spec.constraints, ("vdd",), junction=js)
     for _, r in r1.ss.entries:
@@ -338,7 +343,7 @@ def test_pending_capacitor_stays_missing(tmp_path):
     assert "CL" not in inputs.engine_elements
     ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs,
                                lut_access(load_lut_v2(tmp_path / "lut")))
-    assert not any(k == "CL" for _, k in ctx.schema.components)
+    assert not any(k == "CL" for _, k in schema_of(ctx).components)
     js = toy_junction(tmp_path / "junction", ctx.lut.memo.lut)
     ev = size_and_seal(ctx, theta())
     r = ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, theta(), spec.constraints, ("vdd",), junction=js)
@@ -496,7 +501,7 @@ def zc_theta(ctx, c=1e-12, rz=None, **kw):
     base_th = theta(**kw)
     i = base_th.pop(("current", "R1"))
     th = dict(base_th)
-    for t, k in ctx.schema.components:
+    for t, k in schema_of(ctx).components:
         if t == "current":
             th[(t, k)] = i
         elif t == "capacitance":
@@ -560,14 +565,14 @@ def test_zc_schema_premise(zc_cell, zc_nocell):
     """전제(sizing 4.4 -- 독립 판정은 tests/sizing/test_theta_schema): cell 은 Rz 가 구조 규칙(θ 아님), nocell 은 θ 폴백."""
     from gmid_engine.sizing import ZC_NO_CELL
     ctx = zc_cell[1]
-    (z,) = ctx.schema.zero_cancel
+    (z,) = schema_of(ctx).zero_cancel
     assert (z.resistor, z.end_net, z.far_nets, z.cells, z.reason) == ("Rz", "out", ("in",), ("M1",), None)
-    assert ("capacitance", "Cc") in ctx.schema.components
-    assert not any(k == "Rz" for _, k in ctx.schema.components)
+    assert ("capacitance", "Cc") in schema_of(ctx).components
+    assert not any(k == "Rz" for _, k in schema_of(ctx).components)
     ctx2 = zc_nocell[1]
-    (z2,) = ctx2.schema.zero_cancel
+    (z2,) = schema_of(ctx2).zero_cancel
     assert z2.reason == ZC_NO_CELL
-    assert {("capacitance", "Cz"), ("ss_resistance", "Rz")} <= set(ctx2.schema.components)
+    assert {("capacitance", "Cz"), ("ss_resistance", "Rz")} <= set(schema_of(ctx2).components)
 
 
 def test_zc_rule_value_enters_small_signal(zc_cell):
@@ -598,7 +603,7 @@ def test_s15_rule_equals_spec_declared_value(zc_cell, tmp_path):
     op = res.snapshot.value("device", "M1", "dc_op")
     rz = 1.0 / (op.gm_id * op.current)                  # 7.2 gm = gm_id·current
     spec2, ctx2, js2 = zc_build(tmp_path, "cell_decl", rz_decl=rz)
-    assert ctx2.schema.zero_cancel == () and not any(k == "Rz" for _, k in ctx2.schema.components)
+    assert schema_of(ctx2).zero_cancel == () and not any(k == "Rz" for _, k in schema_of(ctx2).components)
     th2 = zc_theta(ctx2)
     ev2 = size_and_seal(ctx2, th2)
     assert ev2.snapshot.column("node", "dc_v") == res.snapshot.column("node", "dc_v")

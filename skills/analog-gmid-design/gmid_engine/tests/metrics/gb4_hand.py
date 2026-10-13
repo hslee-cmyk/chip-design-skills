@@ -134,11 +134,15 @@ def branch_start(fp, vgs_grid=VGS_GRID):
 
 # ---------------------------------------------------------------- LocalInputs (손)
 
-def local_inputs(devs, *, rails=("gnd", "vdd"), memo=None, grids=GRIDS, passives=(), orbit=None, l_label=None,
+def local_inputs(devs, *, rails=("gnd", "vdd"), grids=GRIDS, passives=(), orbit=None, l_label=None,
                  basis_rows=None, free=("I0",), fixed=None, cur_rep=None, current_box=None, element_value=None,
                  resistor_box=None, bulk=None):
     """devs = ((이름, kind, d, g, s), ...), passives = ((이름, kind, t0, t1), ...). 기본: 모든 MOS 가 θ 전류 I0 한 원소를
-    계수 1 로 읽고(직렬 가지), 궤도는 소자마다 따로, bulk 는 kind 기본 레일(nmos gnd, pmos vdd)."""
+    계수 1 로 읽고(직렬 가지), 궤도는 소자마다 따로, bulk 는 kind 기본 레일(nmos gnd, pmos vdd).
+
+    [U17 ①-b] 필드 값 `LocalInputs`(설계 40 v1.9.1 §2.4.8 D9: dict 칸 -> 이름순 (이름, 값) tuple, memo 칸 없음)를 손으로 만들고, 소비자
+    (`block_gain_model_of`·`headroom_bound`, metrics CONTRACT 머리말 'LocalView 를 받는다')가 받는 사전 질의 형식 `.view`(`LocalView`)를 돌려준다.
+    구조 색·attach 는 비운다(옛 helper 와 같이 미제공 -- 이름 순서·막다른 넷 없음)."""
     from gmid_engine.metrics import LocalInputs
     kind = {n: k for n, k, *_ in devs}
     pins = {n: {"d": d, "g": g, "s": s} for n, k, d, g, s in devs}
@@ -148,18 +152,25 @@ def local_inputs(devs, *, rails=("gnd", "vdd"), memo=None, grids=GRIDS, passives
         pins[n] = {"t0": a, "t1": b}
         cls[n] = "passive"
     mos_names = [n for n, *_ in devs]
-    return LocalInputs(
-        kind=kind, pins=pins, cls=cls,
-        bulk=dict(bulk) if bulk is not None else {n: ("gnd" if kind[n] == "nmos" else "vdd") for n in mos_names},
+
+    def tup(d):
+        return tuple(sorted(d.items()))
+
+    bulk_map = dict(bulk) if bulk is not None else {n: ("gnd" if kind[n] == "nmos" else "vdd") for n in mos_names}
+    stored = LocalInputs(
+        kind=tup(kind), pins=tuple((n, tup(p)) for n, p in sorted(pins.items())), cls=tup(cls),
+        bulk=tup(bulk_map),
         rails=frozenset(rails),
-        orbit=dict(orbit) if orbit is not None else {n: i for i, n in enumerate(mos_names)},
-        l_label=dict(l_label or {}),
-        basis_rows=dict(basis_rows) if basis_rows is not None else {n: (("I0", 1.0),) for n in mos_names},
-        free=tuple(free), fixed=dict(fixed or {}),
-        cur_rep=dict(cur_rep) if cur_rep is not None else {e: (e, 1) for e in free},
-        current_box=dict(current_box) if current_box is not None else {e: (1e-6, 1e-4) for e in free},
-        element_value=dict(element_value or {}), resistor_box=dict(resistor_box or {}),
-        w_keys={"nmos": W_KEY, "pmos": W_KEY}, memo=memo, grids=tuple(tuple(g) for g in grids))
+        orbit=tup(dict(orbit) if orbit is not None else {n: i for i, n in enumerate(mos_names)}),
+        l_label=tup(dict(l_label or {})),
+        basis_rows=tup(dict(basis_rows) if basis_rows is not None else {n: (("I0", 1.0),) for n in mos_names}),
+        free=tuple(free), fixed=tup(dict(fixed or {})),
+        cur_rep=tup(dict(cur_rep) if cur_rep is not None else {e: (e, 1) for e in free}),
+        current_box=tup(dict(current_box) if current_box is not None else {e: (1e-6, 1e-4) for e in free}),
+        element_value=tup(dict(element_value or {})), resistor_box=tup(dict(resistor_box or {})),
+        w_keys=tup({"nmos": W_KEY, "pmos": W_KEY}), grids=tuple(tuple(float(x) for x in g) for g in grids),
+        node_colour=(), device_colour=(), attach=())
+    return stored.view
 
 
 def block_spec(key, members, inputs, outputs, nodes, ground=("gnd", "vdd"), excite=None, passives=(), role="main",
@@ -319,10 +330,24 @@ TOY_MIM_DENSITY = 4.0e-3            # F/m² -- search conftest TOY_CAMIMC_F_PER_
 TOY_B_A = GRID_M * 5e-7             # b_A = 제조 격자 × 최소 finger 폭(search 3.7) -- toy 선언 값의 곱
 
 
-def stage_ab(root, lut, tp, sp, pdk, diagnostic=False, out="out"):
-    """단계 A -> 단계 B(공개 진입점 두 개를 부르는 입력 helper -- 기대값을 만들지 않는다)."""
+def toy_rule(root):
+    """toy LUT 생성 규칙 선언(search conftest `write_decls_mim` 의 두 번째 값) -- [U17 ①-b] `run_stage_a(lut_rule_decl=)` 필수 인자(40 v1.9.1 §2.4.3 키 (i))."""
+    import sys
+    tests_dir = str(Path(__file__).resolve().parents[1])
+    if tests_dir not in sys.path:
+        sys.path.insert(0, tests_dir)
+    from search.conftest import write_decls_mim
+    return write_decls_mim(Path(root))[1]
+
+
+def stage_ab(root, lut, tp, sp, pdk, diagnostic=False, out="out", rule=None):
+    """단계 A -> 단계 B(공개 진입점 두 개를 부르는 입력 helper -- 기대값을 만들지 않는다). `rule` = LUT 생성 규칙 선언(None 이면 toy 규칙 선언을
+    `root/_rule` 에 써서 읽는다)."""
     from gmid_engine.pipeline import run_stage_a, run_stage_b
-    a = run_stage_a(tp, sp, lut, pdk_decl=pdk, output_dir=Path(root) / out)
+    if rule is None:
+        (Path(root) / "_rule").mkdir(parents=True, exist_ok=True)
+        rule = toy_rule(Path(root) / "_rule")
+    a = run_stage_a(tp, sp, lut, pdk_decl=pdk, lut_rule_decl=rule, output_dir=Path(root) / out)
     b = run_stage_b(a, memo_of(lut), pdk, output_dir=Path(root) / out, diagnostic=diagnostic)
     return a, b
 

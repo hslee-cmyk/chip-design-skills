@@ -117,6 +117,5 @@ def test_name_bijection_invariance():
 
 def _ngcc_struct():
     """ngcc 구조 입력 -- 실제 S1v 에서(metric_structure)."""
-    from gmid_engine.metrics import metric_structure
-    (vs,) = metric_structure(N.s1v()).views
+    (vs,) = N.structure_of(N.s1v()).views
     return vs

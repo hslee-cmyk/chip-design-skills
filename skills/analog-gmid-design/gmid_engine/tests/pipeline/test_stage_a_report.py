@@ -26,6 +26,9 @@ import s1v_hand as H
 
 # [U17 ①-a] run_stage_a(pdk_decl=) 필수(설계 40 §2.4.12 Q1 fail-closed -- S0 키의 PDK 선언 파일 내용 해시). 저장소 PDK 선언 원본.
 PDK_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json"), BoundedLRU(4))
+# [U17 ①-b] run_stage_a(lut_rule_decl=) 필수(설계 40 §2.4.7 SearchContext 칸 배정 `junction` -> S0 필드 junction_source = PDK 선언·LUT 생성 규칙 선언의 파생,
+# S0 키 입력). 저장소 LUT 생성 규칙 선언 원본.
+LUT_RULE_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(4))
 
 # [U1b] applied_facts·ff_ratio_candidates (pipeline CONTRACT 2절), [U10] coupling (설계 40 §3.3 as-built: 단계 A 보고서 `coupling` 이
 # U15 전까지 유일한 출구)
@@ -38,7 +41,7 @@ KEYS = ["applied_facts", "circuit", "count_budget", "coupling", "declared_compar
 def _run(tmp_path, real_lut, doc, out="out"):
     p = tmp_path / (doc["topology_name"] + ".topology.json")
     p.write_text(json.dumps(doc), encoding="utf-8")
-    return run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
+    return run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
 
 
 def _pairs_hook(seen):
@@ -86,7 +89,7 @@ def test_views_summary(tmp_path, real_lut):
 
 def test_tables_are_structure_tables(tmp_path, real_lut):
     r = _run(tmp_path, real_lut, H.CMFB)
-    assert fp_of(r.report["tables"]) == fp_of(json.loads(json.dumps(structure_tables(r.s1v))))
+    assert fp_of(r.report["tables"]) == fp_of(json.loads(json.dumps(structure_tables(r.s1))))   # [U17 ①-b] 인자 = S1v 필드가 있는 S1Graph
 
 
 def test_markdown_mentions_status_and_reasons(tmp_path, real_lut):

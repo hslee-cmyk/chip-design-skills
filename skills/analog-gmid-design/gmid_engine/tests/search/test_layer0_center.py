@@ -33,6 +33,7 @@ from gmid_engine.search import (
     start_points,
 )
 
+from .conftest import schema_of  # [U17 ①-b] graph/kernel 필드 읽기
 from .conftest import (
     R4_VDS,
     R4_VGS,
@@ -211,13 +212,13 @@ def test_centre_point_box_centre_and_current_centre(tmp_path, lut4, roots):
     z = math.log(th[("current", "M2")])
     assert abs(z - 0.5 * (zn + zp)) <= 1e-5
     assert abs(r.centre_u - 0.5 * abs(zn - zp)) <= 1e-5 and r.centre_u > 0.1
-    assert all(row.c > 0 for row in cone_rows(s.dc.schema, tuple(sorted(th.items()))))
+    assert all(row.c > 0 for row in cone_rows(schema_of(s.dc), tuple(sorted(th.items()))))
 
 
 def test_same_kind_single_term_cone_centre_is_box_centre(tmp_path, lut4, roots):
     """I-14: 원뿔 행이 모두 같은 kind(nmos) 원천의 계수 1 단일항 -> u = 0, θ 전류 = 상자 기하 중심 √(I_off·I_max)."""
     case, r, lines = run_l0(tmp_path, circuit_follower(), lut4, roots())
-    cur = [k for k in case.dc.schema.components if k[0] == "current"]
+    cur = [k for k in schema_of(case.dc).components if k[0] == "current"]
     assert len(cur) == 1
     th = th_of(lines[0])
     assert abs(r.centre_u) <= 1e-9
@@ -238,7 +239,7 @@ def _expected_probes(case, centre_line, ks, lut):
     s = case.sctx
     V = s.domain.variables
     P = primes(len(V) + 1)
-    cone = dict(s.dc.schema.current_cone)
+    cone = dict(schema_of(s.dc).current_cone)
     cidx = [i for i, v in enumerate(V) if v.component[0] == "current"]
     pos = {V[i].component[1]: n for n, i in enumerate(cidx)}
     centre = th_of(centre_line)
@@ -317,7 +318,7 @@ def test_halton_hit_and_run_probe_points(tmp_path, lut4, roots):
         for comp, want in exp[k].items():
             assert math.isclose(got[comp], want, rel_tol=1e-9), (k, comp, got[comp], want)
         assert tuple(ln["cells"]) == tuple(lines[0]["cells"])
-        assert all(row.c > 0 for row in cone_rows(s.dc.schema, tuple(sorted(got.items())))), k
+        assert all(row.c > 0 for row in cone_rows(schema_of(s.dc), tuple(sorted(got.items())))), k
     # 비공허 대조: 같은 Halton 을 전류 상자에 독립으로 쓰면(r5 초안) 원뿔 MC = MB − MA 밖 점이 나온다
     V = s.domain.variables
     P = primes(len(V) + 1)

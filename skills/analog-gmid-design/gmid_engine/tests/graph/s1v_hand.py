@@ -18,7 +18,66 @@ import random
 from pathlib import Path
 
 from gmid_engine.authoring import load_topology
-from gmid_engine.graph import build_s1, build_s1v
+from gmid_engine.graph import BUILD_S1V_WRITER, S1V_KEY, build_s1, build_s1v
+
+SEVERITY_REVIEW_NEEDED = "review_needed"                 # 계약 10절 Finding.severity 어휘(graph 공개 값 SEVERITY_REVIEW)
+SEVERITY_UNSUPPORTED_BRANCH = "unsupported_rule_branch"  # 같은 어휘의 `기록만` 분기
+
+
+class S1vRead:
+    """[U17 ①-b] S1v 필드 읽기(test 쪽) -- 설계 40 v1.9.1 §2.4.8 'graph/s1v: views, l_classes, findings, declared, applied_facts'(D1).
+    묶음 객체 `S1v` 는 없어졌고(§2.4.2) `build_s1v` 는 S1Graph 를 돌려준다. 이 객체는 값을 담지 않고 부를 때마다 그 S1Graph 의 `graph/s1v`
+    필드를 읽는다. review_needed·unsupported 는 필드의 기록을 severity 로 거른 것(계약 10절 정의를 test 쪽에서 다시 적용)."""
+
+    def __init__(self, graph):
+        self.graph = graph
+
+    def _f(self, name):
+        return self.graph.value("graph", S1V_KEY, name)
+
+    # S1v 필드를 읽는 엔진 함수(structure_tables 등)에 넘길 수 있게 질의는 그 S1Graph 로 넘긴다
+    def value(self, kind, key, field):
+        return self.graph.value(kind, key, field)
+
+    def column(self, kind, field):
+        return self.graph.column(kind, field)
+
+    @property
+    def snapshot(self):
+        return getattr(self.graph, "snapshot", self.graph)
+
+    @property
+    def key(self):
+        """옛 `S1v.key`(재사용 키) 자리 -- 설계 40 §2.4.2 '입력 버전이 같으면 다시 계산하지 않는다': S1v 계산 블록(writer build_s1v)의 입력 버전."""
+        return self.snapshot.block_version(BUILD_S1V_WRITER)
+
+    views = property(lambda self: self._f("views"))
+    l_classes = property(lambda self: self._f("l_classes"))
+    findings = property(lambda self: self._f("findings"))
+    declared = property(lambda self: self._f("declared"))
+    facts_applied = property(lambda self: self._f("applied_facts"))
+    applied_facts = facts_applied
+
+    @property
+    def loop_roles(self):
+        return tuple(r for v in self.views for r in v.loop_roles)
+
+    @property
+    def all_findings(self):
+        return tuple(self.findings) + tuple(f for v in self.views for f in v.findings)
+
+    @property
+    def review_needed(self):
+        return tuple(f for f in self.all_findings if f.severity == SEVERITY_REVIEW_NEEDED)
+
+    @property
+    def unsupported(self):
+        return tuple(f for f in self.all_findings if f.severity == SEVERITY_UNSUPPORTED_BRANCH)
+
+
+def read_s1v(graph):
+    """S1Graph(또는 GraphSnapshot) -> `S1vRead`."""
+    return S1vRead(graph)
 
 # 포트 role 어휘(계약 10.4: `differential_input_p/n`, `differential_output_p/n` -- authoring 어휘 복제)
 DIFF_P = {"direction": "input", "role": "differential_input_p"}
@@ -57,7 +116,7 @@ def build(tmp_path, doc, *, supplies=None, spec=None, stem=None, **kw):
     s1 = build_s1(load(tmp_path, doc, stem), dict(supplies or {r: SUPPLIES.get(r, 0.9) for r in doc["supply_nets"]}))
     kw.setdefault("count_budget", BIG_BUDGET)
     kw.setdefault("stop_on_unsupported", False)
-    return s1, build_s1v(s1, spec, **kw)
+    return s1, read_s1v(build_s1v(s1, spec, **kw))
 
 
 LIBRARY = Path(__file__).resolve().parents[3] / "assets" / "library"
@@ -78,7 +137,7 @@ def build_lib(name, spec=None, **kw):
     s1 = build_s1(load_topology(str(LIBRARY / (name + ".topology.json"))), lib_supplies(name))
     kw.setdefault("count_budget", BIG_BUDGET)
     kw.setdefault("stop_on_unsupported", False)
-    return s1, build_s1v(s1, spec, **kw)
+    return s1, read_s1v(build_s1v(s1, spec, **kw))
 
 
 def view(s1v, vid="transfer:0"):

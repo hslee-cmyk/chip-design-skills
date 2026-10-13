@@ -17,7 +17,7 @@ from gmid_engine.graph import ELEMENT_PASSIVE
 from gmid_engine.metrics import passive_values
 from gmid_engine.sizing import S2_WRITERS, ZeroCancel
 
-from .conftest import hand_write, s2_of, topo_doc, topo_only
+from .conftest import hand_write, s2_of, schema_of, topo_doc, topo_only
 
 SUP = {"vdd": 1.8, "gnd": 0.0}
 GM = {"M1": 1e-3, "M2": 3e-3}                     # 손 dc_gm(writer dc_tolerances)
@@ -159,11 +159,11 @@ def _theta_m(dc, cc=CC_F, **kw):
     from sizing.conftest import theta_r4c
     th = dict(theta_r4c(**kw))
     y = th.pop(("y", "out"))
-    ykeys = [k for k in dc.schema.components if k[0] == "y"]
+    ykeys = [k for k in schema_of(dc).components if k[0] == "y"]
     assert len(ykeys) == 1
     th[ykeys[0]] = y
     th[("capacitance", "Cc")] = cc
-    assert set(th) == set(dc.schema.components), (sorted(th), dc.schema.components)
+    assert set(th) == set(schema_of(dc).components), (sorted(th), schema_of(dc).components)
     return tuple(sorted(th.items()))
 
 
@@ -205,7 +205,7 @@ def test_zero_cancel_r_is_inverse_sum_dc_gm(tmp_path, m_luts, which):
     from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED
     lut, root = m_luts[which]
     case = _case_m(tmp_path, lut)
-    zc_rz = {z.resistor: z for z in case.dc.schema.zero_cancel}["Rz"]        # 전제: 구조 규칙이 Rz 를 정한다(셀 M1)
+    zc_rz = {z.resistor: z for z in schema_of(case.dc).zero_cancel}["Rz"]        # 전제: 구조 규칙이 Rz 를 정한다(셀 M1)
     assert zc_rz.reason is None and tuple(zc_rz.cells) == ("M1",)
     r = _eval_m(case, _theta_m(case.dc))
     assert r.status == (STATUS_SEALED if which == "sealed" else STATUS_PENDING_SEAL7)

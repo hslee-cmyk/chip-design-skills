@@ -89,8 +89,11 @@ MIM_DENSITY = 4.0e-3                  # F/m² (search conftest TOY_MIM_DENSITY)
 
 def build(root, lut, decls, topo_doc, *, elements=(), constraints=(), supplies=None, input_dc_v=None, node_targets=None,
           count_budget=10 ** 6, with_ach=True, eval_budget=40, cbounds=(1e-13, 1e-10), rbounds=(1e2, 1e5)):
-    """topology·spec -> 단계 A(s1v) -> 단계 B(ach) -> kctx·domain -> SearchContext(s1v=, ach=) 공개 진입점 호출 묶음.
-    기대값을 만들지 않는다. -> SimpleNamespace(a, b, s1v, ach, spec, kctx, sctx, start, pdk, rule)."""
+    """topology·spec -> 단계 A(S1v 필드) -> 단계 B(GB4 필드) -> kctx -> SearchContext 공개 진입점 호출 묶음. 기대값을 만들지 않는다.
+    [U17 ①-b] 묶음 객체(S1v·Achievability·StartIntervals)는 없다(설계 40 v1.9.1 §2.4.2·§2.4.7): 커널 컨텍스트는 S0 수준 S1Graph(단계 B 를 돌렸으면 GB4 필드
+    `graph/ach` 까지 담은 `b.s1`, 아니면 `a.s1`)에서 만들고 L 동치류는 그 S1Graph 의 `graph/s1v: l_classes` 필드에서 읽힌다. `s1v` = S1v 필드 읽기(`S1vRead`),
+    `ach` = GB4 필드가 있는 S1Graph(또는 None), `start` = 출발 구간 필드 읽기(`StartRead`, 필드가 없으면 None).
+    -> SimpleNamespace(a, b, s1v, ach, spec, kctx, sctx, start, pdk, rule)."""
     from gmid_engine.pipeline import run_stage_a, run_stage_b
     from gmid_engine.search import SearchSettings, build_search_context
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
@@ -98,16 +101,83 @@ def build(root, lut, decls, topo_doc, *, elements=(), constraints=(), supplies=N
     pdk, rule = decls
     tp, sp = write_case(root, topo_doc, supplies=supplies, elements=elements, constraints=constraints,
                         input_dc_v=input_dc_v, count_budget=count_budget, node_targets=node_targets)
-    a = run_stage_a(tp, sp, lut, pdk_decl=pdk, output_dir=root / "out")
-    assert a.s1v is not None, a.report.get("stop_reasons")
+    a = run_stage_a(tp, sp, lut, pdk_decl=pdk, lut_rule_decl=rule, output_dir=root / "out")
+    assert a.s1 is not None and a.s1.snapshot.record("graph", "s1v") is not None, a.report.get("stop_reasons")
     b = run_stage_b(a, memo_of(lut), pdk, output_dir=root / "out") if with_ach else None
-    ach = b.achievability if b is not None else None
+    s0 = b.s1 if b is not None else a.s1
+    ach = s0 if b is not None and s0.snapshot.record("graph", "ach") is not None else None
     inputs = dc_inputs_from_spec(a.spec)
-    kctx = build_kernel_context(a.s1, inputs, pre_layout_lut_access(memo_of(lut)), l_classes=a.s1v.l_classes)
+    kctx = build_kernel_context(s0, inputs, pre_layout_lut_access(memo_of(lut)))
     settings = SearchSettings(600.0, eval_budget, rbounds, (("front_budget_s", "u13 test fixture"),), cbounds)
-    sctx = build_search_context(kctx, a.spec, settings, None, pdk, rule, s1v=a.s1v, ach=ach, code_fp=a.code_fp)
-    return SimpleNamespace(a=a, b=b, s1v=a.s1v, ach=ach, spec=a.spec, kctx=kctx, sctx=sctx, start=sctx.start, pdk=pdk,
+    sctx = build_search_context(kctx, a.spec, settings, None, pdk, rule, code_fp=a.code_fp)
+    return SimpleNamespace(a=a, b=b, s1v=read_s1v(s0), ach=ach, spec=a.spec, kctx=kctx, sctx=sctx, start=start_of(sctx), pdk=pdk,
                            rule=rule, settings=settings, lut=lut)
+
+
+def read_s1v(graph):
+    """S1v 필드 읽기(graph test helper `S1vRead`, 설계 40 v1.9.1 §2.4.8 D1)."""
+    from graph.s1v_hand import read_s1v as _read
+    return _read(graph)
+
+
+class StartRead:
+    """[U17 ①-b] 출발 구간 필드 읽기(test 쪽) -- 설계 40 v1.9.1 §2.4.8 출발 구간 행(D3): `device: start.row`(StartRow), `graph/start`:
+    conflicts·inactive·macro·rungs(칸 0 = 선택점)·records·area_est_m2·area_fraction·uncovered. 옛 `StartIntervals` 칸 이름으로 부를 때마다 그 필드를 읽는다
+    (값을 담지 않는다). `theta`·`cells`·`current_ref` = `rungs` 칸 0 의 칸(D3: 옛 칸은 칸 0 의 사본이라 필드가 아니다), `ladder` = `rungs`,
+    `rows` = start.row 를 구조 색 순(동률 이름)으로 -- 옛 '색 순서'. `area_budget_m2` 는 필드가 아니다(§2.4.8 '면적 예산은 spec 선언'):
+    spec 판정 제약 `area_search_m2 <= v` 중 가장 작은 v 를 test 쪽에서 읽는다."""
+
+    def __init__(self, snapshot, spec):
+        self.snapshot = snapshot
+        self.spec = spec
+
+    def _g(self, name):
+        return self.snapshot.value("graph", "start", name)
+
+    @property
+    def rows(self):
+        colour = dict(self.snapshot.column("device", "dc_colour"))
+        rows = dict(self.snapshot.column("device", "start.row"))
+        return tuple(rows[n] for n in sorted(rows, key=lambda n: (colour.get(n), n)))
+
+    @property
+    def points(self):
+        return dict(self.snapshot.column("device", "start.point"))
+
+    conflicts = property(lambda self: self._g("conflicts"))
+    inactive = property(lambda self: self._g("inactive"))
+    macro = property(lambda self: self._g("macro"))
+    ladder = property(lambda self: self._g("rungs"))
+    rungs = ladder
+    records = property(lambda self: self._g("records"))
+    area_est_m2 = property(lambda self: self._g("area_est_m2"))
+    area_fraction = property(lambda self: self._g("area_fraction"))
+    uncovered = property(lambda self: self._g("uncovered"))
+    theta = property(lambda self: self._g("rungs")[0].theta)
+    cells = property(lambda self: self._g("rungs")[0].cells)
+    current_ref = property(lambda self: self._g("rungs")[0].current_ref)
+
+    @property
+    def area_budget_m2(self):
+        vals = [float(c.value) for c in self.spec.judged_constraints if c.metric == "area_search_m2" and c.op == "<=" and c.value is not None]
+        return min(vals) if vals else None
+
+
+def start_of(sctx):
+    """탐색 컨텍스트의 S0 수준 스냅샷에서 출발 구간 필드 읽기 -- `graph/start` 레코드가 없으면 None(S1v 뷰 필드 없음)."""
+    base = sctx.dc.base
+    return None if base.record("graph", "start") is None else StartRead(base, sctx.spec)
+
+
+def start_view_of(case, spec=None, pdk=None):
+    """출발 구간 블록 안 읽기 묶음 `StartView`(옛 `build_start_context` 결과 자리, 40 §2.4.7 StartContext 행): 블록이 선언한 필드(`start_intervals.reads`)를
+    탐색 컨텍스트의 S0 수준 스냅샷에서 투영해 공개 `iv_context.start_view` 에 넘긴다(입력 생성)."""
+    from gmid_engine.core import Projection
+    from gmid_engine.search.iv_context import start_view
+    from gmid_engine.search.start_intervals import start_intervals
+    base = case.sctx.dc.base
+    proj = Projection.from_snapshot(base, start_intervals.reads, ())
+    return start_view(proj, case.spec if spec is None else spec, case.kctx.inputs, case.pdk if pdk is None else pdk, case.kctx.lut)
 
 
 def rows_by_name(start):
@@ -169,21 +239,17 @@ def all_inactive(start):
 def start_ctx_with(topo_doc, elements, constraints, extra):
     """탐색 문맥 시작 검사(설계 41 §7.2·§6.4-2b 데이터 필수 거부)를 거치지 않고 `extra` 제약이 든 spec 으로 출발 입력 묶음을 만든다
     (단계 A·B 는 잡음·mismatch 데이터를 요구하지 않는다). 정의역과 전류·L·gm/ID 하한은 `extra` 없는 같은 회로의 공개 산출물(입력)이다.
-    -> (StartContext, {소자: 전류}, {소자: L}, {소자: gm/ID 하한})."""
-    from gmid_engine.pipeline import run_stage_a, run_stage_b
-    from gmid_engine.search.iv_context import build_start_context
-    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    [U17 ①-b] 출발 입력 묶음 = `StartView`(옛 StartContext): `extra` 없는 같은 회로의 S0 수준 스냅샷 투영 + `extra` 가 든 spec(extras).
+    -> (StartView, {소자: 전류}, {소자: L}, {소자: gm/ID 하한})."""
+    from gmid_engine.authoring import load_sizing_spec, load_topology
+    from gmid_engine.metrics import metric_catalog
     clean = toy_case(topo_doc, elements=elements, constraints=constraints)
     env = toy_env()
     env.n += 1
     root = env.root / ("c%03d" % env.n)
     tp, sp = write_case(root, topo_doc, elements=elements, constraints=tuple(constraints) + tuple(extra), count_budget=10 ** 6)
-    a = run_stage_a(tp, sp, env.lut, pdk_decl=env.decls[0], output_dir=root / "out")
-    assert a.s1v is not None, a.report.get("stop_reasons")
-    b = run_stage_b(a, memo_of(env.lut), env.decls[0], output_dir=root / "out")
-    kctx = build_kernel_context(a.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo_of(env.lut)),
-                                l_classes=a.s1v.l_classes)
-    ctx = build_start_context(a.s1v, b.achievability, kctx, a.spec, env.decls[0], clean.sctx.domain)
+    spec = load_sizing_spec(str(sp), load_topology(str(tp)), metric_catalog())
+    ctx = start_view_of(clean, spec=spec, pdk=env.decls[0])
     rows = rows_by_name(clean.start)
     return (ctx, {d: r.i_start for d, r in rows.items()}, {d: r.l_chosen for d, r in rows.items()},
             {d: r.gm_id_lo for d, r in rows.items()})

@@ -4,8 +4,9 @@ oracle (d) 선언값 그대로:
 - 설계 40 §3.3: 레코드 `CouplingVar{kind, members, blocks, domain, init_rule}` + as-built 보완(6707424) `nets`,
   매핑표 `column_block_map{column, block, device, shared}` + `basis`(`block_member`·`column_mate`·`bias_column`),
   결합 종류 K1·K2·K3·K4·K7·K8, 정지 사유 `column_unassigned`(DEC-71 (2)).
-- graph CONTRACT 11.1: `BlockRef(view, key)` 정렬 가능, 같은 키라도 뷰가 다르면 다른 블록, `Coupling(vars, column_block_map)`,
-  `ColumnBlockMap(rows, bias_columns)`. 모두 frozen.
+- graph CONTRACT 11.1: `BlockRef(view, key)` 정렬 가능, 같은 키라도 뷰가 다르면 다른 블록. 모두 frozen.
+- [U17 ①-b] 설계 40 v1.9.1 §2.4.8 D8: 묶음 `Coupling`·`ColumnBlockMap` 은 없어지고 필드 `graph/coupling: vars·column_block_map(=옛 rows)·
+  bias_columns` 로 풀렸다 -- 두 묶음의 필드·frozen 단언은 삭제(필드 존재·writer 는 tests/integration/test_s0_layer_9circuits.py 가 본다).
 """
 from __future__ import annotations
 
@@ -21,9 +22,7 @@ from gmid_engine.graph import (
     COUPLING_KINDS,
     REASON_COLUMN_UNASSIGNED,
     BlockRef,
-    ColumnBlockMap,
     ColumnBlockRow,
-    Coupling,
     CouplingVar,
 )
 
@@ -39,8 +38,6 @@ def test_vocabulary_matches_design():
     (BlockRef, ("view", "key")),
     (CouplingVar, ("kind", "members", "blocks", "domain", "init_rule", "nets")),
     (ColumnBlockRow, ("column", "block", "device", "shared", "basis")),
-    (ColumnBlockMap, ("rows", "bias_columns")),
-    (Coupling, ("vars", "column_block_map")),
 ])
 def test_record_fields_are_design_fields(cls, fields):
     # 설계 레코드 필드(+ as-built nets·basis) 그대로, 더하거나 빼지 않는다
@@ -52,11 +49,10 @@ def _samples():
     b = BlockRef("transfer:0", ("out",))
     var = CouplingVar("K2", ("M5", "M7"), (a, b), "dc", "common_vgs_candidates", ("vb", "gnd"))
     row = ColumnBlockRow(0, a, "M5", True, BASIS_BLOCK_MEMBER)
-    cbm = ColumnBlockMap((row,), ())
-    return a, var, row, cbm, Coupling((var,), cbm)
+    return a, var, row
 
 
-@pytest.mark.parametrize("idx, field", [(0, "key"), (1, "kind"), (2, "shared"), (3, "rows"), (4, "vars")])
+@pytest.mark.parametrize("idx, field", [(0, "key"), (1, "kind"), (2, "shared")])
 def test_values_are_frozen(idx, field):
     obj = _samples()[idx]
     with pytest.raises(dataclasses.FrozenInstanceError):
@@ -74,8 +70,8 @@ def test_blockref_identity_includes_view_and_is_orderable():
 
 def test_values_have_fingerprint():
     # 결정론 비교와 보고서 기록에 쓰이는 지문이 정의된다(같은 값 -> 같은 지문, 다른 값 -> 다른 지문)
-    *_, cpl = _samples()
-    *_, cpl2 = _samples()
-    assert fp_of(cpl) == fp_of(cpl2)
-    other = Coupling((), cpl.column_block_map)
-    assert fp_of(other) != fp_of(cpl)
+    # [U17 ①-b] 필드 값 형식(graph/coupling: vars = CouplingVar tuple, column_block_map = ColumnBlockRow tuple)으로 본다
+    _, var, row = _samples()
+    _, var2, row2 = _samples()
+    assert fp_of(((var,), (row,))) == fp_of(((var2,), (row2,)))
+    assert fp_of(((), (row,))) != fp_of(((var,), (row,)))

@@ -3,7 +3,7 @@
 oracle:
 - (a) toy 구성: 곡선 gm/ID 범위 = [20 − 8·1.8, 20] = [5.6, 20] -- 정의역은 그 안이다(역산은 강반전 분지 [정점, 단조 끝] 안의 목표만 받는다).
 - (a) lut 3.1 역산 왕복: 출발점의 ln IDu 는 그 소자 L 에서 `vgs_for_current_density` 로 역산된다(lut 공개 API -- 피검 search 함수 아님).
-  기준 VDS·VS 는 같은 toy 의 포화 경계 0.3 V(test_iv_curves 에서 확인한 입력)·VS 0.
+  기준 VDS·VS 는 같은 toy 의 포화 경계 0.3 V(toy 구성 식의 VDSAT 열)·VS 0.
 """
 import pytest
 

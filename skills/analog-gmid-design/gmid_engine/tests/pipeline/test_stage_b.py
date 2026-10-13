@@ -39,6 +39,15 @@ FOL_B_DB = db((5.6 / 3.9) / (5.6 / 5.7))
 CS_B_DB = db(20.0 / 19.2)
 
 
+
+def _ach(b):
+    """[U17 ①-b] GB4 결과 = 결과 S0 수준 스냅샷의 graph/ach 레코드(설계 40 v1.9.1 §2.4.7 '단계 결과는 S0 수준 스냅샷 참조만', §2.4.8 GB4 행 D2).
+    옛 `StageBResult.achievability` 묶음 대신 읽는다. 레코드가 없으면(GB4 를 계산하지 않았으면) None."""
+    if b.s1 is None or b.s1.snapshot.record("graph", "ach") is None:
+        return None
+    return b.s1.snapshot
+
+
 @pytest.fixture(scope="module")
 def toy(tmp_path_factory):
     return write_lut(tmp_path_factory.mktemp("sb_lut"))
@@ -76,7 +85,7 @@ def test_follower_gain_target_above_certified_bound_is_exit_3(tmp_path, toy, pdk
     g = b.report["achievability"]["gain"]
     assert g["verdict"] == "infeasible" and g["target_db"] == 10.0
     assert g["sum_db"] == pytest.approx(FOL_AMAX_DB, abs=1e-9)
-    assert b.achievability is not None and b.achievability.verdict == "infeasible"
+    assert _ach(b) is not None and _ach(b).value("graph", "ach", "verdict") == "infeasible"
     # 보고서는 항상 쓴다(json·md)
     jp, mp = (Path(p) for p in b.report_paths)
     assert jp.name == "sbfol.stage_b.json" and mp.name == "sbfol.stage_b.md"
@@ -194,7 +203,7 @@ def test_skipped_when_stage_a_is_not_ok(tmp_path, toy, pdk):
     a, b = stage_ab(tmp_path, toy, tp, sp, pdk)
     assert a.status == "review_needed" and a.exit_code == 2
     assert b.status == "skipped" and b.exit_code == a.exit_code
-    assert b.achievability is None and b.diagnostic is False
+    assert _ach(b) is None and b.diagnostic is False
     assert all(Path(p).is_file() for p in b.report_paths)
 
 
@@ -204,7 +213,7 @@ def test_diagnostic_measures_but_keeps_stage_a_stop(tmp_path, toy, pdk):
     tp, sp = write_case(tmp_path, H.FOLDED)
     a, b = stage_ab(tmp_path, toy, tp, sp, pdk, diagnostic=True)
     assert a.exit_code == 2
-    assert b.diagnostic is True and b.achievability is not None
+    assert b.diagnostic is True and _ach(b) is not None
     assert b.exit_code == a.exit_code
     assert b.status != "ok"
 
@@ -268,6 +277,8 @@ def test_stage_b_result_carries_s0_snapshot_reference_only(tmp_path, toy, pdk):
     assert "achievability" not in {f.name for f in dataclasses.fields(StageBResult)}
     assert _loose_design_values(b) == []
     snaps = [getattr(b, f.name) for f in dataclasses.fields(b) if isinstance(getattr(b, f.name), GraphSnapshot)]
+    snaps += [getattr(b, f.name).snapshot for f in dataclasses.fields(b)
+              if isinstance(getattr(getattr(b, f.name), "snapshot", None), GraphSnapshot)]   # [이름 정정] 결과 칸 = S1Graph(.snapshot) -- test_stage_a 같은 helper 형식
     with_ach = [s for s in snaps if s.record("graph", "ach") is not None]
     assert with_ach, "S0 수준 스냅샷 참조(graph/ach 레코드)가 결과에 없다"
     fields = {name for name, _fv in with_ach[0].record("graph", "ach").fields}

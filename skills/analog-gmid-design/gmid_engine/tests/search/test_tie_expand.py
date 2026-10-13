@@ -10,6 +10,7 @@ import math
 
 from gmid_engine.search import evaluate, expand_ties
 
+from .conftest import schema_of  # [U17 ①-b] graph/kernel 필드 읽기
 from .canon_cases import C_BOX, SYM_ELEMENTS, make_case, mid_theta, sym_doc
 
 TIES = ((("L", "A"), (("L", "B"), ("L", "C"))), (("current", "A"), (("current", "B"),)))
@@ -64,7 +65,7 @@ def test_evaluate_expands_tied_members_bit_exact(tmp_path, lut_sealed):
     for rep, members in d.ties:
         for m in members:
             assert _hex(got[m]) == _hex(th[rep]), (rep, m)
-    assert set(got) == set(case.dc.schema.components)                    # 확장된 전체 θ
+    assert set(got) == set(schema_of(case.dc).components)                    # 확장된 전체 θ
 
 
 def test_evaluate_representative_wins_and_same_key(tmp_path, lut_sealed):

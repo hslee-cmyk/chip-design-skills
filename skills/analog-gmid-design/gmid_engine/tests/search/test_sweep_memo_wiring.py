@@ -105,7 +105,8 @@ def test_eval_results_identical_with_and_without_sweep_memo(tmp_path, lut_sealed
     a = build_case(tmp_path / "a", circuit_c(), lut_sealed, eval_budget=30)
     b = build_case(tmp_path / "b", circuit_c(), lut_sealed, eval_budget=30)
     assert b.dc.lut.memo is b.acc.memo
-    b.sctx.dc = b.dc                                                   # (B) 탐색이 호출자 memo 를 쓴다
+    # (B) 탐색이 호출자 memo 를 쓴다. [U17 ①-b] 커널 컨텍스트 `base` 는 S0 수준 스냅샷(탐색 S0 필드 포함, 40 §2.4.7)이라 LUT 손잡이만 호출자 것으로 바꾼다.
+    b.sctx.dc = dataclasses.replace(b.sctx.dc, lut=b.dc.lut)
     fa = find_front(a.sctx, [theta_r4c()])
     fb = find_front(b.sctx, [theta_r4c()])
     assert a.sctx.dc.lut.memo is not a.acc.memo and b.sctx.dc.lut.memo is b.acc.memo

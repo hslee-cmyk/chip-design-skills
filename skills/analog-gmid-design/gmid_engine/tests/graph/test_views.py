@@ -75,7 +75,7 @@ def test_sense_only_spec_constraints_make_no_extra_view():
     doc = load_topology(str(path))
     spec = load_sizing_spec(str(LIBRARY / "pushpull_follower_buffer.sizing_spec.json"), doc, metric_catalog())
     s1 = build_s1(doc, H.lib_supplies("pushpull_follower_buffer"))
-    with_spec = build_s1v(s1, spec, count_budget=H.BIG_BUDGET, stop_on_unsupported=False)
+    with_spec = H.read_s1v(build_s1v(s1, spec, count_budget=H.BIG_BUDGET, stop_on_unsupported=False))
     assert [(v.id, v.kind, v.excite, v.sense) for v in with_spec.views] == [
         ("transfer:0", "transfer", (("vin", 1.0),), ("vout",))]
 

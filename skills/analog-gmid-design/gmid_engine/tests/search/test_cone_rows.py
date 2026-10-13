@@ -7,6 +7,7 @@ import pytest
 from gmid_engine.search import CON_CONE, ConstraintRow, cone_rows
 from gmid_engine.sizing import CurrentTerm, ThetaSchema, check_theta
 
+from .conftest import schema_of  # [U17 ①-b] graph/kernel 필드 읽기
 from .conftest import build_case, circuit_c, theta_r4c
 
 CT = CurrentTerm
@@ -69,7 +70,7 @@ def test_positive_rational_rounding_to_float_zero_is_arithmetic_error():
 
 def test_nonpositive_row_iff_check_theta_rejects(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
-    schema = case.dc.schema
+    schema = schema_of(case.dc)
     for i2, ok in ((1e-5, True), (-1e-5, False)):
         th = tuple(sorted(theta_r4c(i2=i2).items()))
         rows = cone_rows(schema, th)

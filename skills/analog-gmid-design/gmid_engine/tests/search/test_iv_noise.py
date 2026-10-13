@@ -18,10 +18,9 @@ import math
 import pytest
 
 from gmid_engine.core.failure_errors import SchemaRejectedError
-from gmid_engine.search.iv_context import build_start_context
 from gmid_engine.search.iv_noise import noise_bounds
 
-from .u13_hand import all_inactive, bound_values, cs_chain, rows_by_name, start_ctx_with, toy_case
+from .u13_hand import all_inactive, bound_values, cs_chain, rows_by_name, start_ctx_with, start_view_of, toy_case
 from .u13_real import input_gate_devices, real_case, real_env
 
 SRC = "noise_guard_7.5"
@@ -98,7 +97,7 @@ def test_noise_density_query_width_is_at_least_w_min(dev):
     # CONTRACT U13 '잡음 질의의 폭은 W_min 이상' -- 내부 helper `_white_density(ctx, name, g, L, current)` 를 직접 부른다.
     from gmid_engine.search.iv_noise import _white_density
     case = real_case("two_stage_ota")
-    ctx = build_start_context(case.s1v, case.ach, case.kctx, case.spec, real_env().pdk, case.sctx.domain)
+    ctx = start_view_of(case, pdk=real_env().pdk)
     r = rows_by_name(case.start)[dev]
     g, L = r.gm_id_chosen, r.l_chosen
     idu = math.exp(r.ln_idu)                         # 행의 IDu(같은 g·L) -- W = I·L/IDu (IDu 정의)

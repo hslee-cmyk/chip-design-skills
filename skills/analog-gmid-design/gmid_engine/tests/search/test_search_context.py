@@ -1,6 +1,6 @@
 """CONTRACT 3.9 [r2·r3·r4] `build_search_context` + I-11.
 
-- 정의역 = search_domain(dc, settings, pdk), 제약 분류(목적 축 -> judged_constraints, 레지스트리 view 있는 판정 제약 ->
+- 정의역 = domain_of(dc, settings, pdk), 제약 분류(목적 축 -> judged_constraints, 레지스트리 view 있는 판정 제약 ->
   ss_constraints + notes verdict unmeasured, view 없는 판정 제약 -> notes metric_not_in_registry_or_no_ss_view),
   counters 7키 0, eval_budget = settings, deadline None, archive None/S3Archive, spec_passive_values.
 - I-11: θ 저항이 있고 상자 미선언 -> SchemaRejectedError(theta_resistance_bounds_undeclared), 커널(sizing 평가 블록) 호출 0.
@@ -15,6 +15,7 @@ from gmid_engine.core import SchemaRejectedError
 from gmid_engine.search import S3Archive, SearchSettings, build_search_context, search_domain
 from gmid_engine.sizing import dc_columns, dc_currents, dc_widths
 
+from .conftest import domain_of  # [U17 ①-b] graph/kernel: search_domain 필드 읽기
 from .conftest import CODE_FP, SRC, build_case, circuit_c, circuit_p, write_pdk
 
 COUNTERS = ("requests", "kernel_calls", "hits", "fail_hits", "disk_hits", "outside_domain", "recompute_same_key")
@@ -42,7 +43,7 @@ def test_classification_and_initial_state(tmp_path, lut_sealed):
     assert s.archive is None
     # [결정 11] 3.14: CONS 의 판정 제약 area_search_m2 <= 1e-9 가 면적 예산 -> 정의역 = search_domain(..., area_budget_m2=1e-9)
     # (옛 기대 search_domain(dc, settings, pdk) 는 예산 없는 정의역 -- 계약 3.14 r11 로 기대 변경).
-    d = search_domain(case.dc, case.settings, case.pdk, (), 1e-9)
+    d = domain_of(case.dc, case.settings, case.pdk, (), 1e-9)
     assert s.domain == d and s.domain.area_budget_m2 == 1e-9
     assert re.fullmatch(r"[0-9a-f]{64}", s.code_fp)
     assert not hasattr(s, "spec_passive_values")        # [U17 ①] 설계 40 §2.4.7 SearchContext 칸 배정: 수동소자 값 사본 칸 없음

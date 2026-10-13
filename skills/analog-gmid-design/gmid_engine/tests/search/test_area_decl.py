@@ -20,6 +20,7 @@ from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.metrics import PassiveAreaDecl
 from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED, evaluate
 
+from .conftest import area_decl_of  # [U17 ①-b] graph/kernel: passive_area_decl 필드 읽기
 from .conftest import (
     CELLS_C,
     TOY_MIM_DENSITY,
@@ -64,9 +65,8 @@ def _eval(case):
 
 def test_unit_area_is_inverse_density_for_capacitors_only(tmp_path, lut_sealed):
     """측정 부하 없음: unit_area = 회로 안 커패시터 전부(CL·Cz)에 1/밀도, 저항 Rz 는 없음(미선언), excluded 없음."""
-    from gmid_engine.search.area_decl import passive_area_decl
     case = _case(tmp_path, lut_sealed)
-    d = passive_area_decl(case.dc, case.spec, case.pdk)
+    d = area_decl_of(case.dc, case.spec, case.pdk)
     assert isinstance(d, PassiveAreaDecl)
     assert [n for n, _ in d.unit_area] == ["CL", "Cz"]
     for _, u in d.unit_area:
@@ -77,9 +77,8 @@ def test_unit_area_is_inverse_density_for_capacitors_only(tmp_path, lut_sealed):
 
 def test_measurement_load_goes_to_excluded(tmp_path, lut_sealed):
     """spec measurement_load CL -> excluded = (CL,), unit_area 에서 빠진다(이름이 아니라 선언이 정한다)."""
-    from gmid_engine.search.area_decl import passive_area_decl
     case = _case(tmp_path, lut_sealed, ml=("CL",))
-    d = passive_area_decl(case.dc, case.spec, case.pdk)
+    d = area_decl_of(case.dc, case.spec, case.pdk)
     assert tuple(d.excluded) == ("CL",)
     assert [n for n, _ in d.unit_area] == ["Cz"]
     assert d.unit_area[0][1] == pytest.approx(1.0 / TOY_MIM_DENSITY, rel=1e-12)
@@ -87,18 +86,16 @@ def test_measurement_load_goes_to_excluded(tmp_path, lut_sealed):
 
 def test_measurement_load_on_theta_capacitor_also_excluded(tmp_path, lut_sealed):
     """표지는 이름·값 출처와 무관: engine(θ) 커패시터 Cz 에 표지를 달아도 excluded (측정 부하 선언이 정한다)."""
-    from gmid_engine.search.area_decl import passive_area_decl
     case = _case(tmp_path, lut_sealed, ml=("Cz",))
-    d = passive_area_decl(case.dc, case.spec, case.pdk)
+    d = area_decl_of(case.dc, case.spec, case.pdk)
     assert tuple(d.excluded) == ("Cz",)
     assert [n for n, _ in d.unit_area] == ["CL"]
 
 
 def test_pdk_without_mim_quantity_reports_capacitors_undeclared(tmp_path, lut_sealed):
     """PDK 선언에 mim_cap_density_f_per_m2 가 없으면 거부가 아니라 커패시터도 미선언(unit_area 빈 tuple), 제외는 그대로."""
-    from gmid_engine.search.area_decl import passive_area_decl
     case = _case(tmp_path, lut_sealed, pdk_rule=write_decls(tmp_path / "pdk_plain"), ml=("CL",))
-    d = passive_area_decl(case.dc, case.spec, case.pdk)
+    d = area_decl_of(case.dc, case.spec, case.pdk)
     assert (tuple(d.unit_area), tuple(d.excluded)) == ((), ("CL",))
     r = _eval(case)
     assert r.status == STATUS_SEALED
@@ -241,9 +238,8 @@ def write_decls_mim_res(root):
 
 
 def test_resistor_unit_area_and_head(tmp_path, lut_sealed):
-    from gmid_engine.search.area_decl import passive_area_decl
     case = _case(tmp_path, lut_sealed, pdk_rule=write_decls_mim_res(tmp_path / "pdk_res"))
-    d = passive_area_decl(case.dc, case.spec, case.pdk)
+    d = area_decl_of(case.dc, case.spec, case.pdk)
     unit = dict(d.unit_area)
     assert set(unit) == {"CL", "Cz", "Rz"}
     assert unit["Rz"] == pytest.approx(TOY_R_WMIN ** 2 / TOY_R_SHEET, rel=1e-12)
@@ -263,9 +259,8 @@ def test_resistor_area_enters_area_axis(tmp_path, lut_sealed):
 
 def test_resistor_measurement_load_excluded(tmp_path, lut_sealed):
     """측정 부하 표지 저항은 본체·머리 모두 면적에서 빠진다(40 §7.1 '측정 부하 제외')."""
-    from gmid_engine.search.area_decl import passive_area_decl
     case = _case(tmp_path, lut_sealed, pdk_rule=write_decls_mim_res(tmp_path / "pdk_res"), ml=("Rz",))
-    d = passive_area_decl(case.dc, case.spec, case.pdk)
+    d = area_decl_of(case.dc, case.spec, case.pdk)
     assert "Rz" in d.excluded and "Rz" not in dict(d.unit_area) and dict(d.head_area) == {}
     r = _eval(case)
     e = expected_objectives(snap_of(r))

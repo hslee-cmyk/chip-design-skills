@@ -35,7 +35,7 @@ REASON_NEEDS_PM = "compensation_internal_needs_overall_pm"     # 41 1.12.3 'ì²˜ë
 def _nmc3(tmp_path, pm, stop=False):
     topo, spec = J.load_spec(tmp_path, J.NMC3, pm=pm)
     s1 = build_s1(topo, H.SUPPLIES)
-    return build_s1v(s1, spec, count_budget=H.BIG_BUDGET, stop_on_unsupported=stop)
+    return H.read_s1v(build_s1v(s1, spec, count_budget=H.BIG_BUDGET, stop_on_unsupported=stop))
 
 
 def _lib(name, spec=True, **kw):
@@ -43,7 +43,7 @@ def _lib(name, spec=True, **kw):
     sp = load_sizing_spec(str(H.LIBRARY / (name + ".sizing_spec.json")), topo, metric_catalog()) if spec else None
     s1 = build_s1(topo, H.lib_supplies(name))
     kw.setdefault("stop_on_unsupported", False)
-    return build_s1v(s1, sp, count_budget=H.BIG_BUDGET, **kw)
+    return H.read_s1v(build_s1v(s1, sp, count_budget=H.BIG_BUDGET, **kw))
 
 
 def _roles(s1v):

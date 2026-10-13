@@ -19,10 +19,9 @@ import math
 import pytest
 
 from gmid_engine.core.failure_errors import SchemaRejectedError
-from gmid_engine.search.iv_context import build_start_context
 from gmid_engine.search.iv_matching_l import matching_bounds
 
-from .u13_hand import all_inactive, bound_values, cs_chain, rows_by_name, start_ctx_with, toy_case
+from .u13_hand import all_inactive, bound_values, cs_chain, rows_by_name, start_ctx_with, start_view_of, toy_case
 from .u13_real import input_gate_devices, real_case, real_env
 
 SRC_L = "matching_l_6.4_2"
@@ -99,7 +98,7 @@ def test_sigma_query_width_is_at_least_w_min(dev):
     # CONTRACT U13 'mismatch 질의의 폭은 W_min 이상' -- 내부 helper `_sigma_vgs(ctx, name, g, L, current)` 를 직접 부른다.
     from gmid_engine.search.iv_matching_l import _sigma_vgs
     case = real_case("two_stage_ota", OFFSET)
-    ctx = build_start_context(case.s1v, case.ach, case.kctx, case.spec, real_env().pdk, case.sctx.domain)
+    ctx = start_view_of(case, pdk=real_env().pdk)
     r = rows_by_name(case.start)[dev]
     g, L = r.gm_id_chosen, r.l_chosen
     idu = math.exp(r.ln_idu)                          # W = I·L/IDu (IDu 정의)

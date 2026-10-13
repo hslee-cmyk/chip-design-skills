@@ -1,4 +1,6 @@
-"""`dc_theta_schema(snapshot, declared_resistors, engine_passives)` -- CONTRACT 4.4 [r2][r5]:
+"""`dc_theta_schema(snapshot, engine_passives)` -- CONTRACT 4.4 [r2][r5]:
+[U17 ①-b] 설계 40 v1.9.1 §2.4.8 D8: θ 스키마 필드는 graph/kernel `theta_schema`(옛 graph/dc `dc_theta_schema`), writer dc_theta_schema 유지.
+`declared_resistors` 는 extras 가 아니라 커널 구조 파생 필드 graph/kernel `resistor_values` 의 이름으로 읽힌다(§2.4.7 KernelContext 행).
 ThetaSchema(components, current_cone, fixed, zero_cancel).
 
 components(정렬): (ln_idu, writer MOS), (L, 모든 MOS), (y, W4 y 키), (current, free 원소), (resistance, DC 저항 중 선언 밖)
@@ -10,10 +12,11 @@ kind)에 직접 적용해 만든다(피검 함수 결과를 쓰지 않는다).
 """
 import pytest
 
-from gmid_engine.sizing import (DC_KEY, ZC_MIXED_DIRECTION, ZC_MULTIPLE_RESISTORS, ZC_NO_CAPACITOR, ZC_NO_CELL,
+from gmid_engine.sizing import (DC_KEY, KERNEL_KEY, ZC_MIXED_DIRECTION, ZC_MULTIPLE_RESISTORS, ZC_NO_CAPACITOR, ZC_NO_CELL,
                                 ZC_RESISTOR_END, ThetaSchema, ZeroCancel, dc_theta_schema)
 
 from .conftest import NINE, build_ctx, circuit_cs_res, library_ctx, mos, topo, two
+from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 
 # ---------------------------------------------------------------------------
@@ -132,7 +135,7 @@ def schema_tuple(s):
 # ---------------------------------------------------------------------------
 
 def test_circuit_c_hand(ctx_c):
-    s = ctx_c[2].schema
+    s = kschema(ctx_c[2])
     assert isinstance(s, ThetaSchema)
     assert s.components == (("L", "M1"), ("L", "M2"), ("current", s.components[2][1]), ("ln_idu", "M1"),
                             ("ln_idu", "M2"), ("y", "out"))
@@ -144,9 +147,9 @@ def test_resistance_only_undeclared(tmp_path, toy_access):
     doc = circuit_cs_res()
     doc["topology_name"] = "ts_res_decl"
     ctx = build_ctx(tmp_path, doc, toy_access, element_values=(("R1", 5e4),))[2]
-    assert ("resistance", "R1") not in ctx.schema.components
+    assert ("resistance", "R1") not in kschema(ctx).components
     ctx2 = build_ctx(tmp_path, circuit_cs_res(), toy_access)[2]
-    assert ("resistance", "R1") in ctx2.schema.components
+    assert ("resistance", "R1") in kschema(ctx2).components
 
 
 def test_fixed_source_in_cone(tmp_path, toy_access):
@@ -154,7 +157,7 @@ def test_fixed_source_in_cone(tmp_path, toy_access):
                {"in": ("input", "x"), "n": ("output", "y")}, sources=[two("I1", "current_source", "vdd", "n")],
                bias=["b2"])                                                                  # b2: M2 gate 에만
     ctx = build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 3e-5),))[2]
-    s = ctx.schema
+    s = kschema(ctx)
     assert s.fixed == (("I1", 3e-5),)
     assert schema_tuple(s) == expected(ctx)
     srcs = {t.source for _, terms in s.current_cone for t in terms}
@@ -163,7 +166,7 @@ def test_fixed_source_in_cone(tmp_path, toy_access):
 
 def test_mos_cone_rows_are_box_for_free_mos(ctx_c):
     """기저 원소가 MOS 자신인 행 = θ_I > 0 상자 하한."""
-    s = ctx_c[2].schema
+    s = kschema(ctx_c[2])
     free = {k for t, k in s.components if t == "current"}
     for m, terms in s.current_cone:
         if m in free:
@@ -174,9 +177,9 @@ def test_mos_cone_rows_are_box_for_free_mos(ctx_c):
 def test_library_schema(name, toy_access):
     raw, td, spec, inputs, s1, ctx = library_ctx(name, toy_access)
     declared = tuple(n for n, v in inputs.element_values if v is not None)
-    s = ctx.schema
+    s = kschema(ctx)
     assert schema_tuple(s) == expected(ctx, declared)
-    assert ctx.base.value("graph", DC_KEY, "dc_theta_schema") == s
+    assert ctx.base.field("graph", KERNEL_KEY, "theta_schema").writer == "dc_theta_schema"      # [U17 ①-b] D8 필드 위치
     n_mos = len(raw["netlist"])
     assert sum(1 for t, _ in s.components if t == "L") == n_mos
     assert len(s.current_cone) == n_mos
@@ -203,8 +206,8 @@ HAND_ZC = {
 @pytest.mark.parametrize("name", sorted(HAND_ZC))
 def test_library_zero_cancel_hand(name, toy_access):
     ctx = library_ctx(name, toy_access)[5]
-    assert ctx.schema.zero_cancel == HAND_ZC[name]
-    keys = set(ctx.schema.components)
+    assert kschema(ctx).zero_cancel == HAND_ZC[name]
+    keys = set(kschema(ctx).components)
     for z in HAND_ZC[name]:          # 구조 규칙이 정한 저항은 θ 가 아니다
         assert not any(k == z.resistor for _, k in keys)
 
@@ -212,7 +215,7 @@ def test_library_zero_cancel_hand(name, toy_access):
 def test_block_reuse(ctx_c):
     base = ctx_c[2].base
     dc_theta_schema.reset_stats()
-    assert dc_theta_schema(base, (), ()) is base          # [r5] extras = (declared_resistors, engine_passives)
+    assert dc_theta_schema(base, ()) is base              # [U17 ①-b] extras = (engine_passives,) -- 선언 저항은 graph/kernel resistor_values 필드
     assert dc_theta_schema.stats().reuses == 1
 
 
@@ -237,7 +240,7 @@ def ctx_of(tmp_path, doc, toy_access, engine, values=(), supplies=None):
 
 def check(ctx, zc, cap=(), ss_res=(), res=()):
     """스키마 = 독립 oracle, 그리고 손으로 적은 zero_cancel·수동 θ 성분."""
-    s = ctx.schema
+    s = kschema(ctx)
     assert schema_tuple(s) == expected(ctx)
     assert s.zero_cancel == zc
     assert sorted(k for t, k in s.components if t == "capacitance") == sorted(cap)
@@ -362,7 +365,7 @@ def test_element_class_rules(tmp_path, toy_access):
                     element_values=(("CL", 1e-12), ("Cc", None), ("Cd", 1e-12), ("Cp", None), ("Ib", None),
                                     ("RL", None), ("Rd", 2e3), ("Rp", None), ("Rz", None)),
                     engine_elements=("Cc", "Ib", "RL", "Rz"))[2]
-    s = ctx.schema
+    s = kschema(ctx)
     assert schema_tuple(s) == expected(ctx)
     assert [z.resistor for z in s.zero_cancel] == ["Rz"]
     kinds = {}
@@ -403,13 +406,13 @@ def test_hand_renaming_zero_cancel_follows_sigma(case, seed, tmp_path, toy_acces
     sig.update(se)
     m = lambda x: None if x is None else sig[x]          # noqa: E731
     zc1 = {(m(z.resistor), m(z.end_net), tuple(sorted(m(n) for n in z.far_nets)), tuple(sorted(m(c) for c in z.cells)),
-            z.reason) for z in ctx.schema.zero_cancel}
-    zc2 = {(z.resistor, z.end_net, z.far_nets, z.cells, z.reason) for z in ctx2.schema.zero_cancel}
-    assert zc1 == zc2 and len(zc1) == len(ctx.schema.zero_cancel)
+            z.reason) for z in kschema(ctx).zero_cancel}
+    zc2 = {(z.resistor, z.end_net, z.far_nets, z.cells, z.reason) for z in kschema(ctx2).zero_cancel}
+    assert zc1 == zc2 and len(zc1) == len(kschema(ctx).zero_cancel)
     pk = ("capacitance", "ss_resistance")
-    assert {(t, sig[k]) for t, k in ctx.schema.components if t in pk} == {
-        (t, k) for t, k in ctx2.schema.components if t in pk}
-    assert schema_tuple(ctx2.schema) == expected(ctx2)
+    assert {(t, sig[k]) for t, k in kschema(ctx).components if t in pk} == {
+        (t, k) for t, k in kschema(ctx2).components if t in pk}
+    assert schema_tuple(kschema(ctx2)) == expected(ctx2)
 
 
 def test_engine_element_not_in_s1_rejected(tmp_path, toy_access):
@@ -424,10 +427,10 @@ def test_passive_theta_extras_change_only_schema_inputs(tmp_path, toy_access):
     doc = cs("zc_det", [two("Rz", "resistor", "out", "m"), two("Cc", "capacitor", "m", "in")])
     a = ctx_of(tmp_path, doc, toy_access, ("Rz", "Cc"))
     b = ctx_of(tmp_path, doc, toy_access, ("Rz", "Cc"))
-    assert a.schema == b.schema
+    assert kschema(a) == kschema(b)
     c = ctx_of(tmp_path, doc, toy_access, ("Cc",), values=(("Rz", 1e3),))
-    assert c.schema.zero_cancel == ()
-    assert c.schema.current_cone == a.schema.current_cone
+    assert kschema(c).zero_cancel == ()
+    assert kschema(c).current_cone == kschema(a).current_cone
     assert c.base.column("node", "dc_writer") == a.base.column("node", "dc_writer")
     assert (c.base.value("graph", DC_KEY, "dc_current_basis")
             == a.base.value("graph", DC_KEY, "dc_current_basis"))

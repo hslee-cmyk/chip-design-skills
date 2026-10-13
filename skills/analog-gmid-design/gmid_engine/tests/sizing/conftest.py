@@ -27,7 +27,7 @@ import pytest
 from gmid_engine.authoring import load_topology
 from gmid_engine.graph import build_s1
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set
-from gmid_engine.sizing import DcInputs, LutAccess, build_kernel_context
+from gmid_engine.sizing import KERNEL_KEY, PLAN_WRITERS, DcInputs, LutAccess, build_kernel_context
 
 HERE = Path(__file__).resolve().parent
 SKILL_DIR = HERE.parents[2]
@@ -716,7 +716,7 @@ def run_blocks(ctx, theta, upto="widths"):
     if upto == "lengths":
         return snap
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
-    snap = dc_columns(snap, items, ctx.fixed_values, ctx.resistor_values, ctx.lut)
+    snap = dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut)
     if upto == "columns":
         return snap
     return dc_widths(snap, ctx.lut)
@@ -731,7 +731,7 @@ def eval_calls(ctx, theta):
     ls = tuple(sorted((k, v) for (t, k), v in th.items() if t == "L"))
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     calls = ((dc_currents, (cur,)), (dc_lengths, (ls,)),
-             (dc_columns, (items, ctx.fixed_values, ctx.resistor_values, ctx.lut)), (dc_widths, (ctx.lut,)))
+             (dc_columns, (items, kfixed(ctx), kres(ctx), ctx.lut)), (dc_widths, (ctx.lut,)))
     snap = ctx.base
     for blk, ex in calls:
         snap = blk(snap, *ex)
@@ -745,7 +745,7 @@ def with_tol(ctx, theta):
 
 
 def resistances_of(ctx, theta):
-    return tuple(ctx.resistor_values) + tuple(sorted((k, v) for (t, k), v in dict(theta).items()
+    return tuple(kres(ctx)) + tuple(sorted((k, v) for (t, k), v in dict(theta).items()
                                                      if t == "resistance"))
 
 
@@ -888,23 +888,63 @@ def rref_free(columns, rows):
 # ---------------------------------------------------------------------------
 
 class LClassStub:
-    """U1 `S1v.l_classes` 원소의 자리(CONTRACT 14.1: 이 모듈은 `owner`·`members`·`status` 속성만 읽는다). U1 형식이 병합되기
-    전이라 test 가 속성 셋만 가진 값으로 만든다."""
+    """U1 `S1v.l_classes` 원소의 자리(CONTRACT 14.1: 이 모듈은 `owner`·`members`·`status` 속성만 읽는다).
+    [U17 ①-b] L 동치류는 이제 S0 수준 필드 `graph/s1v: l_classes`(설계 40 v1.9.1 §2.4.8 D1)에서 읽힌다(`build_kernel_context(l_classes=)` 삭제,
+    §2.4.7 KernelContext 행). `inject_l_classes` 가 이 자리 값을 graph `LClass` 로 바꿔 그 필드에 넣는다(test 입력)."""
     __slots__ = ("owner", "members", "status")
 
     def __init__(self, owner, members, status="derived"):
         self.owner, self.members, self.status = owner, tuple(members), status
 
 
+def inject_l_classes(s1, l_classes):
+    """[U17 ①-b] test 입력: S1Graph 에 S1v 필드 `graph/s1v: l_classes`(writer `build_s1v`, 설계 40 v1.9.1 §2.4.8 D1)를 넣은 S1Graph.
+    손 회로 test 가 L 동치류를 직접 정하던 옛 `build_kernel_context(l_classes=)` 입력의 자리 -- 커널 구조 파생 블록(`kernel_fields`)이 이 필드를
+    읽는다(§2.4.7·§2.4.8 '커널 컨텍스트 구조 파생'). 빈 묶음이면 S1 그대로(S1v 필드 없음 = 소자마다 L). owner_rule 은 kernel 이 읽지 않는 칸이라
+    자리 표시 문자열."""
+    if not l_classes:
+        return s1
+    from gmid_engine.graph import S1V_KEY, S1V_WRITERS, BUILD_S1V_WRITER, LClass, S1Graph
+    values = tuple(LClass(tuple(c.members), c.owner, "test_injected", c.status) for c in l_classes)
+    snap = s1.snapshot.widen(S1V_WRITERS).write(BUILD_S1V_WRITER, "test-injected-l-classes",
+                                                {("graph", "l_classes"): {S1V_KEY: values}})
+    return S1Graph(s1.key, snap)
+
+
+def kschema(ctx):
+    """[U17 ①-b] θ 스키마 = S0 수준 필드 `graph/kernel: theta_schema`(설계 40 v1.9.1 §2.4.7 KernelContext 행·§2.4.8 D8, 옛 `ctx.schema`)."""
+    return ctx.base.value("graph", KERNEL_KEY, "theta_schema")
+
+
+def kfixed(ctx):
+    """`graph/kernel: fixed_values`(옛 `ctx.fixed_values`)."""
+    return ctx.base.value("graph", KERNEL_KEY, "fixed_values")
+
+
+def kres(ctx):
+    """`graph/kernel: resistor_values`(옛 `ctx.resistor_values`)."""
+    return ctx.base.value("graph", KERNEL_KEY, "resistor_values")
+
+
+def kties(ctx):
+    """`graph/kernel: l_ties`(옛 `ctx.l_ties`)."""
+    return ctx.base.value("graph", KERNEL_KEY, "l_ties")
+
+
+def kplan(ctx):
+    """옛 `ctx.plan_versions` 대체 -- 쓰기 계획 블록의 block_version 읽기(설계 40 §2.4.7 'plan_versions 는 … block_version 읽기로 대체')."""
+    return tuple((w, ctx.base.block_version(w)) for w in PLAN_WRITERS)
+
+
 def build_ctx_u4(tmp_path, doc, access, l_classes=(), order_hints=None, supplies=None, **inputs_kw):
     """`build_ctx` 와 같되 U4 인자(l_classes·order_hints)를 넘긴다. order_hints None = 인자를 주지 않는다(기본값 경로).
-    반환 (S1Graph, KernelContext)."""
+    [U17 ①-b] l_classes 는 `inject_l_classes` 로 S1 의 `graph/s1v: l_classes` 필드에 넣는다. 반환 (S1Graph, KernelContext)."""
     Path(tmp_path).mkdir(parents=True, exist_ok=True)
     td = load_doc(tmp_path, doc)
     sup = dict(SUPPLIES if supplies is None else supplies)
-    s1 = build_s1(td, sup)
+    s1 = inject_l_classes(build_s1(td, sup), tuple(l_classes))
     inputs = DcInputs(tuple(sorted(sup.items())), **inputs_kw)
-    kw = {"l_classes": tuple(l_classes)}
+    kw = {}
     if order_hints is not None:
         kw["order_hints"] = order_hints
     return s1, build_kernel_context(s1, inputs, access, **kw)

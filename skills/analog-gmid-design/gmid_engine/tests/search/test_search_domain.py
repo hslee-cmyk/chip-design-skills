@@ -1,4 +1,6 @@
 """CONTRACT 3.7 [r2·r3·r10] `search_domain(dc_ctx, settings, pdk_decl, spec_bounds=()) -> SearchDomain`.
+[U17 ①-b] 블록화: `search_domain(snapshot, lut, rb, cb, pdk, spec_bounds, area_budget_m2, untie)` -> S0 수준 필드 `graph/kernel: search_domain`(40 §2.4.7·§2.4.8).
+같은 입력으로 블록을 불러 필드를 읽는 conftest `domain_of` 로 같은 성질을 본다.
 
 기대값: θ 스키마 성분 순(L 제외), ln_idu 포락선·전류 상자는 npz 배열 직접 계산(conftest `expect_ln_idu_bounds`·`expect_box`),
 저항 상자 = 선언 ln, grid/w_min = toy PDK 선언 값, b_A = 둘의 곱.
@@ -10,6 +12,8 @@ import pytest
 from gmid_engine.core import SchemaRejectedError
 from gmid_engine.search import SearchDomain, SearchSettings, Variable, search_domain
 
+from .conftest import domain_of  # [U17 ①-b] graph/kernel: search_domain 필드 읽기
+from .conftest import schema_of  # [U17 ①-b] graph/kernel 필드 읽기
 from .conftest import (
     CODE_FP,
     GRID,
@@ -39,9 +43,9 @@ def _settings(rb=None, eb=40):
 
 def test_circuit_c_domain(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
-    d = search_domain(case.dc, _settings(), case.pdk)
+    d = domain_of(case.dc, _settings(), case.pdk)
     assert isinstance(d, SearchDomain)
-    comps = [c for c in case.dc.schema.components if c[0] != "L"]
+    comps = [c for c in schema_of(case.dc).components if c[0] != "L"]
     assert [v.component for v in d.variables] == comps
     arr = {k: r4_arrays(k) for k in ("nmos", "pmos")}
     for v in d.variables:
@@ -70,7 +74,7 @@ def test_circuit_c_domain(tmp_path, lut_sealed):
 
 def test_resistor_variable_and_non_mos_current(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=(1e3, 1e6))
-    d = search_domain(case.dc, _settings((1e3, 1e6)), case.pdk)
+    d = domain_of(case.dc, _settings((1e3, 1e6)), case.pdk)
     vs = {v.component: v for v in d.variables}
     r = vs[("resistance", "R1")]
     assert r.log is True
@@ -86,7 +90,7 @@ def test_resistor_variable_and_non_mos_current(tmp_path, lut_sealed):
 def test_resistor_bounds_undeclared_rejected(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=(1e3, 1e6))
     with pytest.raises(SchemaRejectedError) as e:
-        search_domain(case.dc, _settings(None), case.pdk)
+        domain_of(case.dc, _settings(None), case.pdk)
     det = dict(e.value.record.detail)
     assert det["gate"] == "search_domain"
     assert det["reason"] == "theta_resistance_bounds_undeclared"
@@ -97,29 +101,29 @@ def test_resistor_bounds_undeclared_rejected(tmp_path, lut_sealed):
 def test_empty_box_value_error(tmp_path, lut_sealed, rb):
     case = build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=(1e3, 1e6))
     with pytest.raises(ValueError):
-        search_domain(case.dc, _settings(rb), case.pdk)
+        domain_of(case.dc, _settings(rb), case.pdk)
 
 
 def test_type_errors(tmp_path, lut_sealed):
+    # [U17 ①-b] 블록 extras 는 실행 설정 객체가 아니라 그 θ 수동소자 상자 값이다(40 §2.4.7·v1.9.1 D6) -- 옛 'settings 가 SearchSettings 가 아니면
+    # TypeError' 단언은 대상 인자가 없어져 지웠다(설정 형식 검사는 build_search_context 쪽 test_search_context::test_settings_type_checked).
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     with pytest.raises(TypeError):
-        search_domain(case.dc, (600.0, 40, None, ()), case.pdk)
-    with pytest.raises(TypeError):
-        search_domain(case.dc, _settings(), {"manufacturing_grid_m": 1e-8})
+        domain_of(case.dc, _settings(), {"manufacturing_grid_m": 1e-8})
 
 
 def test_pdk_without_min_finger_rejected(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     pdk = write_pdk(tmp_path / "pdk2", with_minw=False)
     with pytest.raises(SchemaRejectedError) as e:
-        search_domain(case.dc, _settings(), pdk)
+        domain_of(case.dc, _settings(), pdk)
     assert dict(e.value.record.detail)["reason"] == "pdk_quantity_undeclared"
 
 
 def test_pdk_values_follow_declaration(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     pdk = write_pdk(tmp_path / "pdk3", grid_um="0.005", minw_um="0.42")
-    d = search_domain(case.dc, _settings(), pdk)
+    d = domain_of(case.dc, _settings(), pdk)
     assert d.grid_m == pytest.approx(5e-9, rel=1e-12)
     assert d.w_min_m == pytest.approx(4.2e-7, rel=1e-12)
     assert d.area_resolution_m2 == pytest.approx(5e-9 * 4.2e-7, rel=1e-12)
@@ -131,9 +135,9 @@ def test_passive_theta_variables_use_declared_boxes(tmp_path, lut_sealed):
     """r6: capacitance -> (ln, capacitance_bounds_f), ss_resistance -> (ln, resistance_bounds_ohm)."""
     rb, cb = (1e2, 1e6), (1e-14, 1e-10)
     case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=rb, cbounds=cb)
-    comps = case.dc.schema.components
+    comps = schema_of(case.dc).components
     assert ("capacitance", "Cz") in comps and ("ss_resistance", "Rz") in comps      # 입력 확인(sizing r5)
-    d = search_domain(case.dc, SearchSettings(600.0, 40, rb, SRC, cb), case.pdk)
+    d = domain_of(case.dc, SearchSettings(600.0, 40, rb, SRC, cb), case.pdk)
     vs = {v.component: v for v in d.variables}
     assert [v.component for v in d.variables] == [c for c in comps if c[0] != "L"]
     c, r = vs[("capacitance", "Cz")], vs[("ss_resistance", "Rz")]
@@ -146,7 +150,7 @@ def test_passive_theta_variables_use_declared_boxes(tmp_path, lut_sealed):
 def test_capacitance_bounds_undeclared_rejected(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10))
     with pytest.raises(SchemaRejectedError) as e:
-        search_domain(case.dc, SearchSettings(600.0, 40, (1e2, 1e6), SRC), case.pdk)
+        domain_of(case.dc, SearchSettings(600.0, 40, (1e2, 1e6), SRC), case.pdk)
     det = dict(e.value.record.detail)
     assert (det["gate"], det["reason"]) == ("search_domain", "theta_capacitance_bounds_undeclared")
     assert tuple(det["capacitors"]) == ("Cz",)
@@ -155,7 +159,7 @@ def test_capacitance_bounds_undeclared_rejected(tmp_path, lut_sealed):
 def test_ss_resistance_needs_resistor_bounds(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10))
     with pytest.raises(SchemaRejectedError) as e:
-        search_domain(case.dc, SearchSettings(600.0, 40, None, SRC, (1e-14, 1e-10)), case.pdk)
+        domain_of(case.dc, SearchSettings(600.0, 40, None, SRC, (1e-14, 1e-10)), case.pdk)
     det = dict(e.value.record.detail)
     assert det["reason"] == "theta_resistance_bounds_undeclared"
     assert "Rz" in tuple(det["resistors"])
@@ -165,18 +169,21 @@ def test_ss_resistance_needs_resistor_bounds(tmp_path, lut_sealed):
 def test_empty_capacitance_box_value_error(tmp_path, lut_sealed, cb):
     case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10))
     with pytest.raises(ValueError):
-        search_domain(case.dc, SearchSettings(600.0, 40, (1e2, 1e6), SRC, cb), case.pdk)
+        domain_of(case.dc, SearchSettings(600.0, 40, (1e2, 1e6), SRC, cb), case.pdk)
 
 
 def test_unknown_theta_kind_value_error(tmp_path, lut_sealed):
     """r6: 모르는 θ 종류는 조용히 건너뛰지 않고 ValueError."""
     import dataclasses
     case = build_case(tmp_path, circuit_c(), lut_sealed)
-    sch = case.dc.schema
+    sch = schema_of(case.dc)
     bad = dataclasses.replace(sch, components=tuple(sorted(sch.components + (("bogus_kind", "X"),))))
-    dc2 = dataclasses.replace(case.dc, schema=bad)
+    # [U17 ①-b] θ 스키마는 graph/kernel 필드(writer dc_theta_schema, 40 §2.4.8 D8) -- 손으로 고친 스키마를 그 writer 이름으로 그 필드에 쓴 스냅샷(입력 생성).
+    from gmid_engine.sizing import KERNEL_KEY
+    base2 = case.dc.base.write("dc_theta_schema", "test-bogus-kind", {("graph", "theta_schema"): {KERNEL_KEY: bad}})
+    dc2 = dataclasses.replace(case.dc, base=base2)
     with pytest.raises(ValueError):
-        search_domain(dc2, _settings(), case.pdk)
+        domain_of(dc2, _settings(), case.pdk)
 
 
 def test_capacitance_bounds_default_none():
@@ -186,7 +193,7 @@ def test_capacitance_bounds_default_none():
 def test_current_box_kinds_are_circuit_mos_kinds(tmp_path, lut_sealed):
     """r5: current_box 의 kind = 회로 S1 의 MOS kind 집합(이름순) -- 회로 P 는 pmos 만."""
     case = build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=(1e3, 1e6))
-    d = search_domain(case.dc, _settings((1e3, 1e6)), case.pdk)
+    d = domain_of(case.dc, _settings((1e3, 1e6)), case.pdk)
     assert [k for k, _ in d.current_box] == ["pmos"]
     arr = r4_arrays("pmos")
     assert tuple(d.current_box[0][1]) == pytest.approx(expect_box(arr, [arr]), rel=1e-12)
@@ -264,11 +271,11 @@ def test_spec_boxes_apply_per_element(tmp_path, lut_sealed):
     from gmid_engine.search import build_search_context
     boxes = {"R1": (1e3, 1e6), "R2": (1e4, 1e7)}
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path, circuit_rr(), lut_sealed, RR_ELEMENTS, boxes)
-    comps = dc.schema.components
+    comps = schema_of(dc).components
     assert ("resistance", "R1") in comps and ("resistance", "R2") in comps        # 입력 확인(sizing 4.4)
     assert [(t.element, t.kind, t.lo, t.hi) for t in sb] == [("R1", "resistor", 1e3, 1e6), ("R2", "resistor", 1e4, 1e7)]
     want = {("resistance", "R1"): _ln(1e3, 1e6), ("resistance", "R2"): _ln(1e4, 1e7)}
-    assert _bounds(search_domain(dc, _settings(None), pdk, sb)) == want
+    assert _bounds(domain_of(dc, _settings(None), pdk, sb)) == want
     sctx = build_search_context(dc, spec, _settings(None), None, pdk, rule, code_fp=CODE_FP)
     assert _bounds(sctx.domain) == want
 
@@ -279,7 +286,7 @@ def test_settings_override_applies_to_all_elements_of_kind(tmp_path, lut_sealed)
     boxes = {"R1": (1e3, 1e6), "R2": (1e4, 1e7)}
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path, circuit_rr(), lut_sealed, RR_ELEMENTS, boxes)
     want = {("resistance", "R1"): _ln(50.0, 5e5), ("resistance", "R2"): _ln(50.0, 5e5)}
-    assert _bounds(search_domain(dc, _settings((50.0, 5e5)), pdk, sb)) == want
+    assert _bounds(domain_of(dc, _settings((50.0, 5e5)), pdk, sb)) == want
     sctx = build_search_context(dc, spec, _settings((50.0, 5e5)), None, pdk, rule, code_fp=CODE_FP)
     assert _bounds(sctx.domain) == want
 
@@ -287,7 +294,7 @@ def test_settings_override_applies_to_all_elements_of_kind(tmp_path, lut_sealed)
 def test_override_also_covers_unboxed_elements(tmp_path, lut_sealed):
     """재정의는 spec 상자가 없는 원소에도 적용된다 -- R1 만 상자, 재정의 있으면 거부 없이 R1·R2 모두 재정의 상자."""
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path, circuit_rr(), lut_sealed, RR_ELEMENTS, {"R1": (1e3, 1e6)})
-    got = _bounds(search_domain(dc, _settings((2e2, 2e5)), pdk, sb))
+    got = _bounds(domain_of(dc, _settings((2e2, 2e5)), pdk, sb))
     assert got == {("resistance", "R1"): _ln(2e2, 2e5), ("resistance", "R2"): _ln(2e2, 2e5)}
 
 
@@ -296,7 +303,7 @@ def test_unboxed_resistor_rejected_listing_only_unboxed(tmp_path, lut_sealed):
     from gmid_engine.search import build_search_context
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path, circuit_rr(), lut_sealed, RR_ELEMENTS, {"R1": (1e3, 1e6)})
     with pytest.raises(SchemaRejectedError) as e:
-        search_domain(dc, _settings(None), pdk, sb)
+        domain_of(dc, _settings(None), pdk, sb)
     det = dict(e.value.record.detail)
     assert (det["gate"], det["reason"]) == ("search_domain", "theta_resistance_bounds_undeclared")
     assert tuple(det["resistors"]) == ("R2",)
@@ -309,7 +316,7 @@ def test_no_spec_boxes_reject_lists_all_in_theta_order(tmp_path, lut_sealed):
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path, circuit_rr(), lut_sealed, RR_ELEMENTS, None)
     assert sb == ()
     with pytest.raises(SchemaRejectedError) as e:
-        search_domain(dc, _settings(None), pdk, sb)
+        domain_of(dc, _settings(None), pdk, sb)
     assert tuple(dict(e.value.record.detail)["resistors"]) == ("R1", "R2")
 
 
@@ -319,24 +326,24 @@ def test_capacitors_spec_box_override_and_reject(tmp_path, lut_sealed):
     `untie`(spec untie_orbits)로 풀어야 받고, 풀지 않으면 tied_orbit_bounds_differ. 재정의는 두 원소에 같은 상자라 묶인 채 대표 하나."""
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path / "a", circuit_cc(), lut_sealed, CC_ELEMENTS,
                                              {"C1": (1e-13, 1e-11), "C2": (2e-13, 5e-12)})
-    comps = dc.schema.components
+    comps = schema_of(dc).components
     assert ("capacitance", "C1") in comps and ("capacitance", "C2") in comps
-    assert _bounds(search_domain(dc, _settings(None), pdk, sb, untie=("C1",))) == {
+    assert _bounds(domain_of(dc, _settings(None), pdk, sb, untie=("C1",))) == {
         ("capacitance", "C1"): _ln(1e-13, 1e-11), ("capacitance", "C2"): _ln(2e-13, 5e-12)}
     with pytest.raises(SchemaRejectedError) as e:
-        search_domain(dc, _settings(None), pdk, sb)
+        domain_of(dc, _settings(None), pdk, sb)
     assert dict(e.value.record.detail)["reason"] == "tied_orbit_bounds_differ"
     ov = SearchSettings(600.0, 40, None, SRC, (1e-14, 1e-10))
-    assert _bounds(search_domain(dc, ov, pdk, sb, untie=("C2",))) == {
+    assert _bounds(domain_of(dc, ov, pdk, sb, untie=("C2",))) == {
         ("capacitance", "C1"): _ln(1e-14, 1e-10), ("capacitance", "C2"): _ln(1e-14, 1e-10)}
-    tied = search_domain(dc, ov, pdk, sb)
+    tied = domain_of(dc, ov, pdk, sb)
     got = _bounds(tied)
     assert len(got) == 1 and list(got.values()) == [_ln(1e-14, 1e-10)]
     assert {frozenset((r,) + tuple(m)) for r, m in tied.ties if r[0] == "capacitance"} == {
         frozenset({("capacitance", "C1"), ("capacitance", "C2")})}
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path / "b", circuit_cc(), lut_sealed, CC_ELEMENTS, {"C2": (1e-13, 1e-11)})
     with pytest.raises(SchemaRejectedError) as e:
-        search_domain(dc, _settings(None), pdk, sb)
+        domain_of(dc, _settings(None), pdk, sb)
     det = dict(e.value.record.detail)
     assert (det["gate"], det["reason"]) == ("search_domain", "theta_capacitance_bounds_undeclared")
     assert tuple(det["capacitors"]) == ("C1",)
@@ -346,10 +353,10 @@ def test_mixed_override_resistor_spec_capacitor(tmp_path, lut_sealed):
     """회로 Z: ss_resistance Rz 는 resistor 상자 규칙(r6). 저항 재정의만 있으면 Rz = 재정의, Cz = spec 상자."""
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path, circuit_z(), lut_sealed, Z_ELEMENTS,
                                              {"Rz": (1e3, 1e5), "Cz": (1e-13, 1e-11)})
-    assert ("ss_resistance", "Rz") in dc.schema.components
-    assert _bounds(search_domain(dc, _settings(None), pdk, sb)) == {
+    assert ("ss_resistance", "Rz") in schema_of(dc).components
+    assert _bounds(domain_of(dc, _settings(None), pdk, sb)) == {
         ("ss_resistance", "Rz"): _ln(1e3, 1e5), ("capacitance", "Cz"): _ln(1e-13, 1e-11)}
-    assert _bounds(search_domain(dc, _settings((1e2, 1e6)), pdk, sb)) == {
+    assert _bounds(domain_of(dc, _settings((1e2, 1e6)), pdk, sb)) == {
         ("ss_resistance", "Rz"): _ln(1e2, 1e6), ("capacitance", "Cz"): _ln(1e-13, 1e-11)}
 
 
@@ -357,7 +364,7 @@ def test_override_one_kind_still_rejects_other_unboxed_kind(tmp_path, lut_sealed
     """저항 재정의만 있고 Cz 상자가 없으면 커패시터 쪽은 거부(capacitors = (Cz,))."""
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path, circuit_z(), lut_sealed, Z_ELEMENTS, {"Rz": (1e3, 1e5)})
     with pytest.raises(SchemaRejectedError) as e:
-        search_domain(dc, _settings((1e2, 1e6)), pdk, sb)
+        domain_of(dc, _settings((1e2, 1e6)), pdk, sb)
     det = dict(e.value.record.detail)
     assert det["reason"] == "theta_capacitance_bounds_undeclared" and tuple(det["capacitors"]) == ("Cz",)
 
@@ -390,7 +397,7 @@ def _budget_box(kind, A):
 @pytest.mark.parametrize("A", [1e-9, 1e-11])
 def test_area_budget_sets_current_upper_bound(tmp_path, lut_sealed, A):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
-    d = search_domain(case.dc, _settings(), case.pdk, (), A)
+    d = domain_of(case.dc, _settings(), case.pdk, (), A)
     assert d.area_budget_m2 == A
     assert [k for k, _ in d.current_box] == ["nmos", "pmos"]
     for k, box in d.current_box:
@@ -404,8 +411,8 @@ def test_area_budget_sets_current_upper_bound(tmp_path, lut_sealed, A):
 def test_area_budget_scales_upper_bound_linearly(tmp_path, lut_sealed):
     """I_max ∝ A (같은 IDu_max·L_lo): 예산 두 배 -> I_max 두 배, I_off 불변."""
     case = build_case(tmp_path, circuit_c(), lut_sealed)
-    a = dict(search_domain(case.dc, _settings(), case.pdk, (), 1e-10).current_box)
-    b = dict(search_domain(case.dc, _settings(), case.pdk, (), 2e-10).current_box)
+    a = dict(domain_of(case.dc, _settings(), case.pdk, (), 1e-10).current_box)
+    b = dict(domain_of(case.dc, _settings(), case.pdk, (), 2e-10).current_box)
     for k in a:
         assert b[k][0] == a[k][0]
         assert b[k][1] == pytest.approx(2 * a[k][1], rel=1e-12)
@@ -414,8 +421,8 @@ def test_area_budget_scales_upper_bound_linearly(tmp_path, lut_sealed):
 def test_no_budget_keeps_provisional_box(tmp_path, lut_sealed):
     """예산 없음(None, 기본) -> area_budget_m2 None, current_box 는 종전 단일 finger 슬라이스 값(3.19) -- 예산 인자 없이 부른 것과 같다."""
     case = build_case(tmp_path, circuit_c(), lut_sealed)
-    d0 = search_domain(case.dc, _settings(), case.pdk)
-    d1 = search_domain(case.dc, _settings(), case.pdk, (), None)
+    d0 = domain_of(case.dc, _settings(), case.pdk)
+    d1 = domain_of(case.dc, _settings(), case.pdk, (), None)
     assert d0 == d1 and d0.area_budget_m2 is None
     for k, box in d0.current_box:
         arr = r4_arrays(k)
@@ -428,7 +435,7 @@ def test_context_budget_from_spec_area_constraint(tmp_path, lut_sealed):
     cons = (("area_search_m2", "<=", 2e-10, None), ("power_dc_w", "<=", 1e-3, None))
     case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=cons)
     assert case.sctx.domain.area_budget_m2 == 2e-10
-    assert case.sctx.domain == search_domain(case.dc, case.settings, case.pdk, (), 2e-10)
+    assert case.sctx.domain == domain_of(case.dc, case.settings, case.pdk, (), 2e-10)
     for k, box in case.sctx.domain.current_box:
         assert tuple(box) == pytest.approx(_budget_box(k, 2e-10), rel=1e-12)
 
@@ -436,7 +443,7 @@ def test_context_budget_from_spec_area_constraint(tmp_path, lut_sealed):
 def test_context_without_area_constraint_has_no_budget(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=(("power_dc_w", "<=", 1e-3, None),))
     assert case.sctx.domain.area_budget_m2 is None
-    assert case.sctx.domain == search_domain(case.dc, case.settings, case.pdk)
+    assert case.sctx.domain == domain_of(case.dc, case.settings, case.pdk)
 
 
 # ---------------------------------------------------------------- [U17 ①-d] 설계 40 v1.6 §6-8·§2.4.8 graph/s1 대칭 필드
@@ -528,7 +535,7 @@ def test_search_domain_does_not_recompute_symmetry(tmp_path, lut_sealed, monkeyp
                 monkeypatch.setattr(mod, attr, wrap(attr, fn))
     from gmid_engine.graph import s1_symmetry
     before = s1_symmetry.stats().computes
-    d = search_domain(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
+    d = domain_of(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
     assert d.ties == case.sctx.domain.ties                                   # 같은 결과(공허하지 않음: SYM 은 묶음이 있다)
     assert d.ties
     assert calls == []
@@ -594,7 +601,7 @@ def _bridge_case(tmp_path, lut):
 
 def test_cross_orbit_current_tie_box_is_intersection(tmp_path, lut_sealed):
     case = _bridge_case(tmp_path, lut_sealed)
-    d = search_domain(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
+    d = domain_of(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
     cur = [(rep, members) for rep, members in d.ties if rep[0] == "current"]
     assert len(cur) == 1
     rep, members = cur[0]
@@ -616,7 +623,7 @@ def test_cross_orbit_current_tie_empty_box_rejected(tmp_path):
     assert boxes["pmos"][0] > boxes["nmos"][1]                               # 전제: 두 kind 상자가 떨어져 있다
     case = _bridge_case(tmp_path / "c", lut)
     with pytest.raises(SchemaRejectedError) as e:
-        search_domain(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
+        domain_of(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
     det = dict(e.value.record.detail)
     assert (det["gate"], det["reason"]) == ("search_domain", "tied_current_box_empty")
     names = {x[1] for x in det["elements"]}

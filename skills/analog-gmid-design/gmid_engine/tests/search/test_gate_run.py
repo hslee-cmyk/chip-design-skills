@@ -44,9 +44,10 @@ VARS = tuple(types.SimpleNamespace(component=c, log=lg, lo=0.0, hi=10.0) for c, 
     ((THETA_Y, "vcm"), False)))
 THETA = {("L", "M1"): 1e-6, (THETA_CURRENT, "I1"): 1e-5, (THETA_CURRENT, "I2"): 2e-5, ("ln_idu", "M9"): -3.0, (THETA_Y, "vcm"): 0.9}
 TERM = lambda src: types.SimpleNamespace(source=src)  # noqa: E731
-SCTX = types.SimpleNamespace(domain=types.SimpleNamespace(variables=VARS),
-                             dc=types.SimpleNamespace(schema=types.SimpleNamespace(
-                                 current_cone=(("M1", (TERM("I1"),)), ("M3", (TERM("I1"), TERM("I2"))), ("M2", (TERM("I0"),))))))
+_SCHEMA = types.SimpleNamespace(current_cone=(("M1", (TERM("I1"),)), ("M3", (TERM("I1"), TERM("I2"))), ("M2", (TERM("I0"),))))
+# [U17 ①-b] θ 스키마는 커널 컨텍스트 칸이 아니라 S0 수준 필드 `graph/kernel: theta_schema`(설계 40 v1.9.1 §2.4.7·§2.4.8 D8) -- 손 컨텍스트의 `dc.base` 가 그 필드를 돌려준다.
+_BASE = types.SimpleNamespace(value=lambda kind, key, field: {("graph", "kernel", "theta_schema"): _SCHEMA}[(kind, key, field)])
+SCTX = types.SimpleNamespace(domain=types.SimpleNamespace(variables=VARS), dc=types.SimpleNamespace(base=_BASE))
 
 
 def test_perturbs_only_unread_directions_and_flags_error(monkeypatch):

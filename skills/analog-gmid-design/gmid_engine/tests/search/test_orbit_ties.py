@@ -1,4 +1,5 @@
 """search CONTRACT 3.24 [r12] `orbit_ties(dc_ctx, components, untied) -> (대표 성분 tuple, ties)` + 3.7 [r12] `search_domain(..., untie)` 묶음.
+[U17 ①-b] 첫 인자 = 필드 질의가 되는 스냅샷(`dc.base`); 정의역은 블록 필드 `graph/kernel: search_domain`(conftest `domain_of`).
 
 oracle:
 - (a) 구성: 손 회로 SYM 의 자기동형 σ = (M1 M2)(M3 M4)(CL1 CL2)(inp inn)(o1 o2)(`canon_cases.SYM_SIGMA`) -- 기대 묶음 = σ 로 짝지어지는 같은 종류
@@ -23,6 +24,8 @@ from .canon_cases import (
     sym_doc,
     tie_groups,
 )
+from .conftest import domain_of  # [U17 ①-b] graph/kernel: search_domain 필드 읽기
+from .conftest import schema_of  # [U17 ①-b] graph/kernel 필드 읽기
 from .conftest import SRC, two
 
 BOXES = {"CL1": C_BOX, "CL2": C_BOX}
@@ -34,7 +37,7 @@ def _sym(tmp, lut, **kw):
 
 
 def _domain(case, untie=()):
-    return search_domain(case.dc, SearchSettings(600.0, 40, None, SRC), case.pdk, case.spec_bounds, untie=untie)
+    return domain_of(case.dc, SearchSettings(600.0, 40, None, SRC), case.pdk, case.spec_bounds, untie=untie)
 
 
 def _members(ties):
@@ -45,11 +48,11 @@ def _members(ties):
 
 def test_symmetric_pairs_tied_as_constructed(tmp_path, lut_sealed):
     case = _sym(tmp_path, lut_sealed)
-    comps = case.dc.schema.components
+    comps = schema_of(case.dc).components
     want = expected_sym_groups(comps)
     assert want                                                          # 공허한 비교 아님(L·전류·y·C 짝)
     assert tie_groups(case.sctx.domain.ties) == want
-    reps, ties = orbit_ties(case.dc, comps, ())
+    reps, ties = orbit_ties(case.dc.base, comps, ())
     assert tie_groups(ties) == want
 
 
@@ -57,7 +60,7 @@ def test_variables_plus_tied_equal_schema_components(tmp_path, lut_sealed):
     """3.24 7 (a): L 밖 성분 = 변수 ⊔ 묶인 L 밖 구성원, L = l_cells 대표 MOS ⊔ 묶인 L 구성원(서로소)."""
     case = _sym(tmp_path, lut_sealed)
     d = case.sctx.domain
-    comps = case.dc.schema.components
+    comps = schema_of(case.dc).components
     members = _members(d.ties)
     var = [v.component for v in d.variables]
     non_l = [c for c in comps if c[0] != "L"]
@@ -92,8 +95,8 @@ def test_representative_is_min_dc_colour(tmp_path, lut_sealed):
 
 def test_orbit_ties_reps_are_components_minus_members(tmp_path, lut_sealed):
     case = _sym(tmp_path, lut_sealed)
-    comps = case.dc.schema.components
-    reps, ties = orbit_ties(case.dc, comps, ())
+    comps = schema_of(case.dc).components
+    reps, ties = orbit_ties(case.dc.base, comps, ())
     assert sorted(reps) == sorted(set(comps) - _members(ties))
 
 
@@ -102,10 +105,10 @@ def test_asymmetric_circuit_no_ties(tmp_path, lut_sealed):
     case = make_case(tmp_path, asym_doc(), lut_sealed)
     d = case.sctx.domain
     assert d.ties == ()
-    comps = case.dc.schema.components
+    comps = schema_of(case.dc).components
     assert sorted(v.component for v in d.variables) == sorted(c for c in comps if c[0] != "L")
     assert sorted(m for m, _ in d.l_cells) == sorted(c[1] for c in comps if c[0] == "L")
-    reps, ties = orbit_ties(case.dc, comps, ())
+    reps, ties = orbit_ties(case.dc.base, comps, ())
     assert ties == () and sorted(reps) == sorted(comps)
 
 
@@ -164,10 +167,10 @@ def test_untie_trivial_orbit_rejected(tmp_path, lut_sealed):
 
 def test_orbit_ties_direct_rejections(tmp_path, lut_sealed):
     case = _sym(tmp_path, lut_sealed)
-    comps = case.dc.schema.components
+    comps = schema_of(case.dc).components
     for bad, reason in ((("Nope",), "untie_element_unknown"), (("M5",), "untie_orbit_trivial")):
         with pytest.raises(SchemaRejectedError) as e:
-            orbit_ties(case.dc, comps, bad)
+            orbit_ties(case.dc.base, comps, bad)
         assert dict(e.value.record.detail)["reason"] == reason
 
 
@@ -268,7 +271,7 @@ def test_b_reversed_resistor_current_tie_sign_minus_one(tmp_path, lut_sealed):
 
     from .canon_cases import mid_theta
     flip = make_case(tmp_path, _rload(True), lut_sealed, elements=R_ELEMENTS, boxes=R_BOXES)
-    comps = set(flip.dc.schema.components)
+    comps = set(schema_of(flip.dc).components)
     assert {("current", "R1"), ("current", "R2")} <= comps                       # 입력 확인(현재 스키마)
     assert frozenset({("current", "R1"), ("current", "R2")}) in tie_groups(flip.sctx.domain.ties)
     th, cells = mid_theta(flip.sctx.domain)
@@ -294,7 +297,7 @@ def test_b_pilot_current_reuse_r1_r2_tied(tmp_path, lut_sealed):
     orig = build_library_case(tmp_path / "o", raw, spec, lut_sealed)
     flipped = build_library_case(tmp_path / "f", flip_terminals(raw, "R2"), spec, lut_sealed)
     assert flipped.domain.ties                                                     # 전제(현재 코드도 통과)
-    assert _dimension(flipped.domain) < len(flipped.dc.schema.components)
+    assert _dimension(flipped.domain) < len(schema_of(flipped.dc).components)
     orb = dict(orig.dc.base.value("graph", "s1", "orbits").devices)
     assert orb["R1"] == orb["R2"]
     assert orig.domain.ties

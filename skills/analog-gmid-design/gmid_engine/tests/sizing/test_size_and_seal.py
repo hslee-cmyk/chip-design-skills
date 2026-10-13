@@ -20,6 +20,7 @@ from gmid_engine.sizing import DcEvaluation, check_theta, size_and_seal
 
 from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circuit_empty_window, detail, free_currents, mos,
                        theta_a, theta_c, topo, two)
+from .conftest import kschema, kties  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
           S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
@@ -54,7 +55,7 @@ def test_returns_evaluation(ctx_c):
 def test_theta_object_equivalent(ctx_c):
     ctx = ctx_c[2]
     a = size_and_seal(ctx, theta_c())
-    b = size_and_seal(ctx, check_theta(ctx.schema, theta_c()))
+    b = size_and_seal(ctx, check_theta(kschema(ctx), theta_c()))
     assert a.snapshot.fp == b.snapshot.fp
 
 
@@ -154,7 +155,7 @@ def theta_passive(cz=1e-12, rz=1e4, **kw):
 
 
 def test_passive_theta_components_present(ctx_passive):
-    keys = set(ctx_passive.schema.components)
+    keys = set(kschema(ctx_passive).components)
     assert ("capacitance", "Cz") in keys and ("ss_resistance", "Rz") in keys
     assert {k for t, k in keys if t in S.THETA_PASSIVE_KINDS} == {"Cz", "Rz"}
 
@@ -190,7 +191,7 @@ def test_passive_theta_domain(ctx_passive, key, bad):
     """5.1 [r5]: capacitance ≤ 0, ss_resistance ≤ 0 -> ValueError(check_theta, size_and_seal 경로 모두)."""
     th = {**theta_passive(), key: bad}
     with pytest.raises(ValueError):
-        check_theta(ctx_passive.schema, th)
+        check_theta(kschema(ctx_passive), th)
     with pytest.raises(ValueError):
         size_and_seal(ctx_passive, th)
 
@@ -255,20 +256,20 @@ def test_failure_mos_current_nonpositive(tmp_path, toy_access):
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("y", "n"): 0.5,
           ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.9, 0.0), ("ln_idu", "M2"): Oracle.ln_idu("nmos", 0.6, 0.9, 0.0)}
     th.update(free_currents(ctx, {"M1": -2e-5, "M2": 3e-5}))     # KCL M1 + M2 = I1 -> 한 MOS 가 음수
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     # [r2] 원뿔 밖 θ 는 check_theta 의 ValueError(정의역 밖) -- 후보 실패가 아니다
     with pytest.raises(ValueError) as ei:
         size_and_seal(ctx, th)
     assert not isinstance(ei.value, CANDIDATE_FAILURE_CLASSES)
     assert "M1" in str(ei.value)
     with pytest.raises(ValueError):
-        check_theta(ctx.schema, th)
+        check_theta(kschema(ctx), th)
 
 
 def test_failure_empty_window(tmp_path, toy_access):
     ctx = build_ctx(tmp_path, circuit_empty_window(), toy_access)[2]
     th = {}
-    for kind, key in ctx.schema.components:
+    for kind, key in kschema(ctx).components:
         if kind != "current":
             th[(kind, key)] = {"L": 1e-6, "y": 0.5, "ln_idu": Oracle.ln_idu("nmos", 0.6, 0.9, 0.0)}[kind]
     th.update(free_currents(ctx, {"MA": 1e-5, "MB": 2e-5, "MC": 1e-5}))
@@ -496,12 +497,14 @@ def test_ic2_order_shuffle_invariance(tmp_path, r4_access):
     _random.Random(7).shuffle(doc_b["netlist"])
     assert [e["name"] for e in doc_b["netlist"]] != [e["name"] for e in doc_a["netlist"]]
     lc_a = (LClassStub("M1", ("M1", "M2")), LClassStub("M3", ("M3",)))
-    lc_b = (LClassStub("M3", ("M3",)), LClassStub("M1", ("M2", "M1")))
+    # [U17 ①-b] L 동치류 목록 순서는 이제 S0 수준 필드 graph/s1v: l_classes(writer build_s1v)의 값이다(설계 40 v1.9.1 §2.4.8 D1) -- 그 정준 순서는
+    # build_s1v 몫이라 이 test 의 입력 주입(inject_l_classes)은 같은 정준 순서로 준다. 나머지 섞기(netlist·OrderHints·W_request)는 그대로.
+    lc_b = (LClassStub("M1", ("M1", "M2")), LClassStub("M3", ("M3",)))
     h_a = OrderHints(gm_required=("M2", "M3"), stage=(("M1", 1), ("M2", 2)))
     h_b = OrderHints(gm_required=("M3", "M2"), stage=(("M2", 2), ("M1", 1)))
     _, a = build_ctx_u4(tmp_path / "a", doc_a, r4_access, l_classes=lc_a, order_hints=h_a, element_values=(("I1", 1e-5),))
     _, b = build_ctx_u4(tmp_path / "b", doc_b, r4_access, l_classes=lc_b, order_hints=h_b, element_values=(("I1", 1e-5),))
-    assert a.base.fp == b.base.fp and a.schema == b.schema and a.l_ties == b.l_ties
+    assert a.base.fp == b.base.fp and kschema(a) == kschema(b) and kties(a) == kties(b)
     th = _tied_theta(2e-6)
     w2 = mirror_w_request(l=2e-6)                             # [U17 ①] 종속 소자 M2 요청 = 봉인 3 허용오차 안(L = 주인 2e-6; 옛 3e-5 는 위반)
     ea = size_and_seal(a, th, w_request={"M3": 1e-5, "M2": w2})
