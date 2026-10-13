@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.6
-plan_version: 6.5
+version: 1.8.1
+plan_version: 6.7
 ---
 
 # gain-budget-gmid-sizing -- 41-gain-budget Design Document
@@ -14,7 +14,11 @@ plan_version: 6.5
 > - 스펙에서 gm/ID·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-10-12 · **Status**: v1.6 §5 (+ 사용자 결정 2026-10-12 L-3·L-11·L-12·graph 저장 반영, §4.2 층 0 정의역 상한 추가) 계획 복귀 개정(사용자 결정 2026-10-12 "A1~A6은 계획대로 되돌려", "L1~L13 모두 권고대로 해", 재검증 반영, L-14 결정 -- 사용자 결정 2026-10-12 "3은 권고대로"·"L14부터 PQ5까지"): 층 0 국소 후보를 DEC-71 (4) 역산 우선으로 되돌리고(gm/ID·L 역산, VDS 배분, 국소 고정점), bin을 목표로, LR5 knee·동치류 격자, `comp_approx_gap` 정의를 넣었다. 나머지 절은 v1.5 그대로다.
+> **Date**: 2026-10-13 · **Status**: v1.8.1 -- U17 ①-d 실측에 문구를 맞춘 정정(사용자 결정 변경 아님): §1.5-4 측정 의무 (2)·§9 표 '혼재 노드 구동 종류' 행의 folded M8 "해제" → "시작 셀 아님 유지"(base에서도 시작 셀 = M1, M2), 허용 변화 = Vg10 극점 노드 drive voltage → current 하나. 경위는 history.
+>
+> v1.8 -- §1.5-4 혼재 노드 C-1 보완 (가)(source 쪽 follower 먼저, 예상 집합에 folded_cascode Vg10 추가·sf N17·N20 유지, 측정 의무 3개)와 §9 표 해당 행(사용자 결정 2026-10-12 "1, 가로 해", 계획 v6.7). 경위는 history.
+>
+> v1.7 -- §4.5 DOF 등식 목록에서 `budget_ref` 제거(사용자 결정 2026-10-12 "다로 해", 계획 v6.6 DEC-55). v1.6 §5 (+ 사용자 결정 2026-10-12 L-3·L-11·L-12·graph 저장 반영, §4.2 층 0 정의역 상한 추가) 계획 복귀 개정(사용자 결정 2026-10-12 "A1~A6은 계획대로 되돌려", "L1~L13 모두 권고대로 해", 재검증 반영, L-14 결정 -- 사용자 결정 2026-10-12 "3은 권고대로"·"L14부터 PQ5까지"): 층 0 국소 후보를 DEC-71 (4) 역산 우선으로 되돌리고(gm/ID·L 역산, VDS 배분, 국소 고정점), bin을 목표로, LR5 knee·동치류 격자, `comp_approx_gap` 정의를 넣었다. 나머지 절은 v1.5 그대로다.
 >
 > **v1.6(2026-10-12, 사용자 결정 "9번 권고대로"·"B는 권고대로"·"K-1~K-3도 권고대로")**: §6.7 KVL 고리 출발 제약(쓰기 계획의 v2 고리 등식·VDS-1 포화 부등식, 묶인 소자 구간 안 공동 선택 + 매크로·면적 재확인, 해 없으면 충돌 레코드, 층 0 역산·VDS 배분과의 관계, DEC-64 v1 을 계획대로 제약 없음으로 하는 커널 쓰기 계획 개정 §6.7-1a) 추가, §6.1 순서 7a·8, §6.6 충돌 종류, §7.5 β·C_eff 입력 배선(design 검증 뒤 사용자 승인 대상). 계획과의 차이는 §6.7-10(P5·P8은 K-1·K-3으로 닫힘, P7은 K-2 조건부 승인, P1 남음). P-1·P-9·P-15(§5.1·§5.3.11·§9), C-2(§7, 파일럿 kT/C 미선언)도 이 판에 반영했다.
 >
@@ -164,12 +168,12 @@ P N3.1의 'GB0~GB4는 S0 지문마다 한 번'에 맞춘 순서다. 앞 단계�
    - gate로만 나가면 전압 구동이다.
    - 채널로만 나가면 전류 구동이다.
    - 둘 다면 gate 쪽 셀의 출력이 F 위에 있을 때 전압 구동(stage 경계)이다. 그렇지 않으면 그 노드는 **tap**이다. tap은 채널 쪽만 순방향을 잇는 노드다. 구동 종류는 '전류 구동'으로 기록하고, gate로 갈라진 셀은 규칙 9 (a)(`기록만`, DEC-59 정지)로 둔다.
-4. **혼재**(source 진입과 다른 소자 drain이 한 노드에 있음)는 **drain 쪽 소자의 gate가 그 뷰의 신호 노드인지**로 가른다(C-1, 사용자 결정 2026-10-12 "7절 권고대로". 회로·소자 이름을 쓰지 않는 구조 규칙).
-   - drain 쪽 소자의 gate가 그 뷰의 신호 노드(순방향 신호 경로 위 넷, §1.3)이면 **전류 구동**이다. 그 소자가 신호 전류를 그 노드로 밀어 넣기 때문이다.
-   - 그 gate가 신호 노드가 아니면(교류접지이거나 신호가 닿지 않는 바이어스 넷) 전압 구동이다. 그 소자는 그 뷰에서 고정 전류원이다.
-   - **대체하는 규칙**: 옛 규칙 4 'drain 쪽 소자의 DC 역할로 가른다(바이어스 전류원 → 전압 구동, 신호 소자 → `review_needed`, 못 가르면 J 대기)'를 통째로 바꾼다. DC 역할은 뷰와 무관한 S1 사실이라 AC 신호 진입을 가르지 못했다. 바뀐 규칙은 뷰마다 신호 노드 집합(§1.3)만 읽는다.
-   - **예상 효과**: `sf_pushpull_output_opamp`의 N910·N1112·N1516이 전류 구동이 된다(J 공동분석 J12-b와 같은 결론, 40 §3.2-3 사실 표의 `drive_kind` override가 필요 없어진다). 나머지 8회로는 혼재 노드의 판정이 바뀌지 않아야 한다.
-   - **측정 의무**(구현 DoD): 9 library 회로에서 이 규칙의 발동표(뷰마다 혼재 노드, 옛 판정, 새 판정)를 내고, 판정이 바뀐 노드가 위 예상 집합과 정확히 같음을 보인다(그 밖의 회로 무동작, WP-05). 다르면 구현을 멈추고 보고한다(§9 표 '혼재 노드 구동 종류' 행).
+4. **혼재**(한 소자의 drain과 다른 소자의 source가 만나는 노드)는 두 단계로 가른다(C-1, 사용자 결정 2026-10-12 "7절 권고대로", 보완 (가) 사용자 결정 2026-10-12 "1, 가로 해". 회로·소자 이름을 쓰지 않는 구조 규칙).
+   - **(i) source 쪽 소자를 먼저 본다**: 그 소자의 drain이 교류 접지(레일)이고 gate가 그 뷰의 신호 노드(순방향 신호 경로 위 넷, §1.3)이면 source follower(CD)다. 그 노드는 **전압 구동**이다.
+   - **(ii) 아니면(CG/cascode) drain 쪽 소자를 본다**(기존 C-1): drain 쪽 소자의 gate가 그 뷰의 신호 노드이면 **전류 구동**이다. 그 소자가 신호 전류를 그 노드로 밀어 넣기 때문이다. 그 gate가 신호 노드가 아니면(교류접지이거나 신호가 닿지 않는 바이어스 넷) 전압 구동이다. 그 소자는 그 뷰에서 고정 전류원이다.
+   - **대체하는 규칙**: 옛 규칙 4 'drain 쪽 소자의 DC 역할로 가른다(바이어스 전류원 → 전압 구동, 신호 소자 → `review_needed`, 못 가르면 J 대기)'를 통째로 바꾼다. DC 역할은 뷰와 무관한 S1 사실이라 AC 신호 진입을 가르지 못했다. 바뀐 규칙은 뷰마다 신호 노드 집합(§1.3)과 교류 접지(§1.2)만 읽는다.
+   - **예상 집합**(판정이 바뀌는 노드): `sf_pushpull_output_opamp` N910·N1112·N1516 → 전류 구동, `folded_cascode` Vg10 → 전류 구동(미러 출력 M10 → cascode M8, 옛 판정 오판). 유지: `sf_pushpull_output_opamp` N17·N20 = 전압 구동((i) follower M18·M19). 나머지 회로는 무동작이다. 40 §3.2-3 사실 표의 sf `drive_kind` override는 필요 없다.
+   - **측정 의무**(구현 DoD): (1) 9 library 회로 발동표(뷰마다 혼재 노드, 옛 판정, 새 판정, 근거 `follower` | `cascode`). (2) `folded_cascode` 전후 비교 = 기록 + 판정 하나: Vg10이 전류 구동이 되고 M8이 stage 시작 셀이 아님(§1.6 규칙)이 유지됨을 확인한다(base에서도 M8은 시작 셀이 아니었다 -- stage 시작 셀 = M1, M2. ①-d 실측). 그 밖의 블록·stage·극점 노드 변화는 기록하고, Vg10 극점 노드 drive(voltage → current) 변화 밖이면 멈추고 보고한다. ①-d 실측: 변화는 Vg10 극점 노드 drive voltage → current 하나, 블록·stage는 9회로 불변. (3) 비교 키 = (회로, `view_key`, 노드). 예상 집합의 노드는 **그 노드가 혼재로 판정되는 모든 뷰에서** 판정이 바뀌어야 한다. 일부 뷰에서만 바뀌거나 예상 밖 (회로, 뷰, 노드)가 바뀌면(그 밖의 회로 무동작, WP-05) 구현을 멈추고 보고한다(§9 표 '혼재 노드 구동 종류' 행).
 5. pass 묶음을 지난 노드는 반대편 노드의 종류를 상속한다.
 
 ### 1.6 0-1 BFS와 stage 경계
@@ -411,7 +415,7 @@ DEC-17 순서(`E/graph/l_classes.py`)의 3번째에 규칙 하나를 넣는다.
 | 1.12.4 극성 | **기대**: 파일럿 CM 루프 뷰 = −1(DC 사이클 4개), Cc–Rz 우회 사이클 2개 = `ac_only`. ngcc ×2·nmcnr ×4 미정의는 1.12.3으로 사라진다 | -- | 패킷 F.1 |
 | 1.12.5 L 주인 | **기대**: ngcc {M8, M14} → M8(`main_path_signal`), sf 3동치류 → M6·M8·M14(`current_source_member`) | -- | 패킷 F.3·F.4 |
 | 1.12.6 교류접지 예외 | 파일럿 Vbias2, 뷰 `loop:M37a:Voc`. 패킷 C.4 scratch 실측: 정지·혼재 3건 해소 | -- | 패킷 C.4·C.5 |
-| sf 전체 | **기대**: 이득 블록 {Y} 하나 + 버퍼 블록 {vout}. `composite_dag_not_chain`·`record_only`·혼재 8건 해소. 남는 혼재가 있으면 그 넷만 `drive_kind` 사실(40 §3.2-3) | -- | 패킷 D.4. DC 역할만 바꾼 scratch 실측에서는 DAG 1·record_only 9·혼재 3이 남았다. 그 원인인 미러 인식은 1.12.1-2가 바꾼다 |
+| sf 전체 | **기대**: 이득 블록 {Y} 하나 + 버퍼 블록 {vout}. `composite_dag_not_chain`·`record_only`·혼재 8건 해소. 남는 혼재는 `drive_kind` 사실로 메우지 않는다(v1.8: §1.5-4 C-1 보완 (가)가 sf 혼재 넷을 구조로 가르고, 예상 집합과 다르면 구현을 멈추고 보고, 40 §3.2-3) | -- | 패킷 D.4. DC 역할만 바꾼 scratch 실측에서는 DAG 1·record_only 9·혼재 3이 남았다. 그 원인인 미러 인식은 1.12.1-2가 바꾼다 |
 
 ---
 
@@ -574,7 +578,7 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 
 **구조 rank**(단계 A):
 - 변수: 노드전압, 소자 gm_id(P N3.7 이름. 새 엔진 좌표는 쓰기 소자 ln IDu(DEC-88)이고 강반전 분지에서 gm_id와 일대일이라 rank가 같다. 종속 소자 gm_id는 관계가 정해 변수가 아니다), L 동치류 L, θ 전류, DC 경로 저항.
-- 등식: diode, `equal_vgs`, `budget_ref`, `stacked_vsb`, `kvl_branch`, KCL.
+- 등식: diode, `equal_vgs`, `stacked_vsb`, `kvl_branch`, KCL. (`budget_ref`는 없다: 옛 `budget_reference_device`의 예산 관계는 기둥 KVL과 노드 변수 하나로 이미 들어 있다, 계획 DEC-55·사용자 결정 2026-10-12 "다로 해")
 - 방법: 변수와 등식의 이분 매칭으로 rank를 구한다.
 - 판정: 매칭되지 않는 등식이 있으면 `overconstrained`이고 INFEASIBLE_TARGET이다. 남는 변수가 있으면 `underdetermined` 목록을 낸다.
 - 부등식(포화 여유, 벌크 역바이어스, 헤드룸 창 등)은 rank에 넣지 않고 경고로만 낸다(P N3.7 "부등식은 경고"): `dof_inequality_warning[{kind, devices}]`.
@@ -1674,7 +1678,7 @@ def loop_roles(view_loops, transfer_views, declared_pm_views) -> tuple[LoopRole,
 | 출발 구간 | (a) 손계산 | `tests/search/test_start_intervals.py` | 필요조건 성질 |
 | 매크로 모델 | (a) 이상 VCCS 2·3극점, 캐스코드 노드 포함 | `tests/search/test_macro_poles.py` | UGF·PM 근, 근 없음 기록, 바퀴 수렴. **기본 호출 비트 동일**: 키워드 인자 셋이 None이면 `MacroResult`의 `fp_of`가 bd19cc6 기준 지문과 같다(이상 VCCS 픽스처 + library 매크로 활성 회로). 키워드 인자 호출은 `gm_bounds` 밖으로 나가지 않고 `gain_targets` 블록의 G_i = gm_i/10^{g/20} |
 | **축소 격자 전수 대조**(P N3.7 검증, 사용자 결정 2026-10-12 "P-1~P-15까지 권고대로 고쳐" P-9 "9회로 축소 격자 전수 대조 추가(N3.7, NFR-5)") | (b) 다른 모델: 전체회로 MNA를 목적·제약으로 쓰는 축소 격자 전수탐색(P N3.7 "사이징 대상 회로 전부에서 전체회로 MNA를 목적·제약으로 쓰는 축소 격자 전수탐색(다른 모델)과 대조한다") | `tests/integration/test_reduced_grid_crosscheck.py`(slow, 9회로) | 대조량 둘(DEC-77): (i) 축마다(전력·면적) 최적값 차, (ii) 같은 면적 상한 ε에서의 최소 전력 차(= front 점 대조). 각각 ≤ max(그 축의 격자 분해능(면적은 DEC-80), 모델 오차(DEC-72)), NFR-5와 같은 기준. 모델 오차 미측정이면 '판정 보류'. 단계 A·B에서 정지하는 회로(current_reuse·ngcc·nmcnr, P-1 정지 회로)는 그 정지를 기록하고 대조 대상에서 뺀 사실을 보고한다. 축소 격자의 정의는 계획에 없다(§5.12.5 PQ1) |
-| 혼재 노드 구동 종류(§1.5-4, C-1) | (a) 이름 없는 toy 둘(drain 쪽 gate가 신호 노드 / 바이어스 넷), (d) 9회로 발동표 | `tests/graph/test_drive_kind.py`(toy), `tests/integration/test_drive_kind_mixed_9circuits.py` | toy: 앞은 전류 구동, 뒤는 전압 구동. 9회로: 판정이 바뀐 노드 = sf N910·N1112·N1516뿐, 나머지 8회로 무동작 |
+| 혼재 노드 구동 종류(§1.5-4, C-1 + 보완 (가)) | (a) 이름 없는 toy 셋(source 쪽 소자 drain 레일·gate 신호 노드 / drain 쪽 gate가 신호 노드 / 바이어스 넷), (d) 9회로 발동표 | `tests/graph/test_drive_kind.py`(toy), `tests/integration/test_drive_kind_mixed_9circuits.py` | toy: 첫째 전압 구동(근거 `follower`), 둘째 전류 구동(근거 `cascode`), 셋째 전압 구동. 9회로 발동표(옛/새/근거, 키 (회로, `view_key`, 노드)): 바뀐 키 = sf N910·N1112·N1516 + folded_cascode Vg10이 혼재로 판정되는 모든 뷰(모두 전류 구동)뿐, sf N17·N20 전압 구동 유지, 나머지 회로 무동작. folded_cascode: M8이 stage 시작 셀이 아님(base와 같이 유지, 시작 셀 = M1, M2)을 단언, 그 밖 블록·stage·극점 노드 변화는 기록(Vg10 극점 노드 drive voltage → current 밖이면 실패) |
 | `l_owner` 사실(§1.12.5, C-3) | (a) toy 동치류 + 사실 | `tests/graph/test_l_classes.py` | 사실이 있으면 1~4 규칙과 무관하게 사실의 주인, 멤버가 아니면 `structure_fact_mismatch` |
 | P-1 정지(§5.3.11 (a)(b)) | (a) 경로 열거 수가 예산 상한을 넘는 toy, Π > N_S toy(N_S 선언값 작게) | `tests/search/test_layer0_budget.py` | 둘 다 `unsupported_rule_branch`로 탐색 전 정지(결정론: 시간 설정을 바꿔도 같은 판정). 좌표 훑기 코드 경로 없음(구조 test) |
 | P-1 절단(§5.3.11) | (a) N_S ≥ Π > N_T,i toy(N_T 선언 E_B 작게) | `tests/search/test_layer0_budget.py` | 정지하지 않고 반분 단계 순으로 N_T,i개 평가 후 `layer0_candidates_truncated{block, bin, Π, evaluated}` 기록, 그 블록 front·조합 front '추정' |

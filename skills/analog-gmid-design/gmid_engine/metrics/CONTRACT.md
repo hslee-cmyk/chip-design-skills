@@ -503,12 +503,14 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 - `MetricBundle(entries, approximations=(), detail=(), reports=(), warnings=())` -- `entries` = ((MetricRequest, MetricResult), ...) 요청 순서. [CM] `reports`·`warnings` 는 7.11(필드 순서 entries, approximations, detail, reports, warnings).
 - `SsEvaluation(snapshot, ss, dc, lineage=None)` -- `lineage` = sizing `DcEvaluation(snapshot, report, SealedSnapshot(snapshot, report))`.
 
-### 7.2 `ss_dev(snapshot, lut, junction)` -- reads `device.dc_op`, [9절] `device.dc_tol_v`, extras `(LutAccess, JunctionSource)`
-- [9절, 2026-10-08] `ss_dev.reads == (("device", "dc_op"), ("device", "dc_tol_v"))`. `lut_rel_tol = dc_op.gm_id · dc_tol_v`(그 소자 열에
+### 7.2 `ss_dev(snapshot, lut, junction)` -- reads `device.dc_op`, [9절] `device.dc_tol_v`, [U17 ①] `device.dc_gm`, extras `(LutAccess, JunctionSource)`
+- [U17 ①, 설계 40 §3.7-3] `ss_dev.reads == (("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm"))`. `gm` = `dc_gm`(sizing `dc_tolerances` 가 쓴
+  자기 동작점 gm = dc_op.gm_id · dc_op.current -- gm 정의 하나, 다시 계산하지 않는다).
+- [9절, 2026-10-08] `lut_rel_tol = dc_op.gm_id · dc_tol_v`(그 소자 열에
   dc_tol_v 가 없거나 None 이면 None). dc_tol_v 는 sizing `dc_tolerances` 가 쓴 tol_V(id_equivalent) 셀(sizing CONTRACT 6절 tol 행,
   봉인 2 와 같은 값) -- LUT 를 다시 조회하지 않는다. dc_tol_v 만 바뀌어도 블록 입력 버전이 바뀐다(재계산 1회).
 - MOS(= `dc_op` 이 있는 소자)마다, `op = dc_op`, `w_m` = 슬라이스 `(op.kind, op.w_key)` 의 폭:
-  `gm = op.gm_id · op.current`, `gds = op_point(memo, kind, w_key, L, vgs, vds, vsb).gds_per_w · op.W`,
+  `gm = dc_gm[소자]`(U17 ①), `gds = op_point(memo, kind, w_key, L, vgs, vds, vsb).gds_per_w · op.W`,
   `gmb = lut.gmb(같은 인자) · op.W / w_m`, `(cgg, cgd, cgs, cgb, cap_model) = lut.caps(memo, kind, L, vgs, vds, vsb, op.W)`,
   **접합 용량(DEC-91, 2026-10-08 배선)** `(cdb, csb) = junction_caps(junction.params_of(op.kind),
   junction.pre_layout_geometry(w_m, op.W / w_m), op.vds + op.vsb, op.vsb, junction.temp_c)`(8절 -- 기하 = LUT 생성 규칙,
@@ -548,9 +550,10 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
   -> 위와 같은 `StructureUnresolvedError`(devices = 그 원소, detail element_class·kind).
 - `circuit.ac_ground == ()`(뷰가 정한다), `ground_nets`·`input_nets` 정렬.
 
-### 7.4 `metrics_ss(snapshot, requests, passive_values)` -- 뷰 -> 계 -> metric
+### 7.4 `metrics_ss(snapshot, requests[, noise])` -- 뷰 -> 계 -> metric
+[U17 ①, 설계 40 §2.4.8] 수동소자 값은 extras 가 아니라 GB5 필드 `device.passive_value`(reads 에 추가)를 읽는다.
 reads `device.{ss_dev, element_class, kind, pins, bulk, dc_colour}`, `node.{ac_ground_class, port_direction, dc_colour}`. **[r12, 2026-10-08]** 노드·소자 순서 = (`dc_colour` -- 정점마다 유일, 이름은 색 없는 이름만)(이름 치환에 불변한 선형계 행·스탬프 순서; dc_colour 가 없는 이름은 -1). `requests` = `MetricRequest`
-tuple(view_kind 가 None 이 아닌 등록 metric), `passive_values` = ((이름, 값), ...). 결과 `MetricBundle`.
+tuple(view_kind 가 None 이 아닌 등록 metric). 수동소자 값 = `device.passive_value` 필드 열((이름, 값), ...)을 `ss_circuit` 에 넘긴다. 결과 `MetricBundle`.
 - 노드 = `ac_ground_class` 열의 넷(모든 S1 노드, 이름순), ground_nets = 그 값이 None 아닌 넷(레일 ∪ gate 전용 미구동),
   input_nets = `port_direction == INPUT_DIRECTION`.
 - 요청 처리: (1) view mode `pending` -> `MetricResult(metric, None, (Undefined(필드, "view_pending", "definitional",
@@ -582,11 +585,14 @@ tuple(view_kind 가 None 이 아닌 등록 metric), `passive_values` = ((이름,
 - 예외: 뷰 정의 결함(ratio 관측 불일치, `build_mna`·`cut_circuit` 의 ValueError -- 값과 무관), 미등록 metric KeyError.
   값에 따른 정의 불가는 예외가 아니다(2절).
 
-### 7.5 `metrics_dc(snapshot, passive_values, counted_rails)` -- 전력·면적
+### 7.5 `metrics_dc(snapshot, counted_rails[, area_decl])` -- 전력·면적
+[U17 ①, 설계 40 §2.4.7·§2.4.8] reads 에 `device.{passive_value, dc_gm, dc_tol_v}` 추가(수동소자 값 = GB5 필드 `device.passive_value` 를 읽는다 -- extras 로 받지 않는다).
+writes 에 `graph.gate_area_m2`(= 면적 항의 Σ W·L 그대로)와 `graph.power_resolution_w`(b_P = Σ_레일 |V_k|·max(dc_tol_v·dc_gm), 채널이 레일에 닿는 MOS, 정의된 행이 없거나 0 이면 None) 추가(key `METRICS_KEY`).
+search 의 옛 재계산(`objectives._power_resolution`, gate 합)은 지웠다.
 reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v, dc_rail_v, dc_colour}`, `graph.dc_current_basis`. **[r12, 2026-10-08]** 노드 인덱스·채널·게이트·수동소자 합산 순서 = (`dc_colour` -- 정점마다 유일, 이름은 색 없는 이름만)(레일 전류·전력·면적의 부동소수 합이 이름 치환에 불변). 따라서 `per_rail_amp` 의 레일 나열 순서도 (`dc_colour`, 이름) 순이다(종래 이름순).
 - 노드 인덱스 = (dc_rail_v ∪ dc_v 넷) 이름순. `DcOperatingPoint`: rails = `RailBias(레일, dc_rail_v)`; `basis.ends` 의 (원소, from, to)
   마다 MOS -> `ChannelCurrent(d, s, +dc_current if d == from else −dc_current)`, `basis.resistors` -> `Resistor(from, to,
-  passive_values[원소])`, 그 밖 비수동 DC 원소(이상 전류원) -> `CurrentSource(from, to, dc_current)`; node_v = 그 저항 끝 중 dc_v 넷.
+  device.passive_value[원소])`, 그 밖 비수동 DC 원소(이상 전류원) -> `CurrentSource(from, to, dc_current)`; node_v = 그 저항 끝 중 dc_v 넷.
 - **`power_dc_w` = 선언된 모든 공급 레일(spec `supplies_v` 의 레일 전부)의 Σ V_k·I_k**(오케스트레이터 결정 2026-10-08 Q4 -- 합산 선언과
   무관).
 - `counted_rails` = 합산 레일의 **넷 이름** tuple(노드 인덱스가 아니다). 레일(`dc_rail_v` 넷) 밖 이름(회로에 없는 넷·레일 아닌 넷)이나
@@ -600,12 +606,15 @@ reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v,
   단위 면적 선언 없음·제외 없음 -- 값 있는 수동소자 전부 `passive_area_undeclared`(종전 동작). `ss_evaluate(..., *, junction,
   area_decl=None)` 가 그대로 넘긴다. `PassiveAreaDecl` 은 `unit_area` 와 `excluded` 가 겹치면 ValueError, 단위 면적은 양의 유한 수.
 - `detail` = counted_rails, kcl_residual_amp, passive_area_undeclared, passive_value_missing, per_rail_amp((레일 넷, A), ...) 키 정렬.
-- [9절] 전력·면적 결과의 `resolution` 은 None(LUT 소신호 불확실성 전파 대상이 아니다 -- 전력 축 분해능 b_P 는 search 쪽 유도값).
+- [9절] 전력·면적 결과의 `resolution` 은 None(LUT 소신호 불확실성 전파 대상이 아니다 -- 전력 축 분해능 b_P 는 같은 블록의 `power_resolution_w` 필드).
 
 ### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, ..., diffusion=()) -> SsEvaluation`
 [U14] `diffusion` = ((MOS, `DiffusionGeometry`), ...) -- 레이아웃 뒤 실현 확산 기하(MOD7 `ly.diffusion`). 있는 소자의 `ss_dev` cdb·csb 는 그 기하로, `junction_model` = `JUNCTION_LAYOUT_DIFFUSION`
-(없는 소자는 LUT 생성 규칙·`JUNCTION_LUT_RULE`). `ss_dev` 의 추가 extra 이며 빈 값은 넘기지 않는다(입력 버전이 종전과 같다). 수동소자 값 정본은 새 공개 함수 `passive_values(snapshot, ctx, theta)`
-(`passive_values.py`, 이전 `ss_evaluate._passive_values`)이고 MOD8 판정 축 면적 입력(`layout.passives_from_decl`)이 같은 값을 쓴다.
+(없는 소자는 LUT 생성 규칙·`JUNCTION_LUT_RULE`). `ss_dev` 의 추가 extra 이며 빈 값은 넘기지 않는다(입력 버전이 종전과 같다). 수동소자 값 정본은 [U17 ①] GB5 계산 블록
+`passive_values(snapshot, element_values, zero_cancel, theta_passive_pairs(θ))`(`passive_values.py`)가 쓰는 S2 필드 `device.passive_value`이고(설계 40 §2.4.8), MOD8 판정 축 면적 입력(`layout.passives_from_decl`)·
+`metrics_ss`·`metrics_aux`·`metrics_dc` 가 그 필드를 읽는다. 영점 상쇄 R = 1/Σ`dc_gm`(dc 단계 필드)이라 봉인 전 점에서도 정의되며 search 의 봉인 아닌 점 경로도 같은 블록을 부른다.
+extras 의 θ 칸은 블록이 읽는 수동소자 성분(θ `resistance`·`capacitance`·`ss_resistance`)만 -- 두 호출부(`ss_evaluate`·search `kernel`) 모두
+같은 `theta_passive_pairs` 로 고른다(설계 40 §2.4.1, WP-23 (5): MOS θ 만 바뀐 FD 스텝은 입력 버전이 같아 이 블록을 재사용한다).
 
 - **[r5 2026-10-08, DEC-92 / 7.9 Q5 해결] 인자 `passive_theta` 삭제**: engine 보상 수동소자 값은 이제 sizing θ 스키마 성분
   (`capacitance`·`ss_resistance`, sizing CONTRACT 4.4 r5)이라 θ 에서 읽는다(값의 출처 하나). 6번째 위치 인자를 넘기던 호출은 TypeError.
@@ -616,12 +625,12 @@ reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v,
   기본값을 두지 않는다(접합 용량 없는 평가 경로 = 옛 대기 경로를 남기지 않는다).
 - passive_values = spec 값(`ctx.inputs.element_values` 중 S1 수동소자, 값 None 제외) ∪ θ `resistance` ∪ [r5] θ `capacitance`·
   `ss_resistance`(sizing `THETA_PASSIVE_KINDS`) ∪ [r5] **영점 상쇄 구조 규칙 값**: `ctx.schema.zero_cancel` 중 reason None 인 항목마다
-  (resistor, 1/Σ_{c∈cells} gm_c), gm_c = 이 호출이 쓴 `ss_dev` 필드의 `SsDevice.gm`(7.2 -- gm 정의 하나). 이름이 S1 수동소자가
+  (resistor, 1/Σ_{c∈cells} gm_c), gm_c = `device.dc_gm`(U17 ① -- dc 단계 gm 필드 하나, `ss_dev` gm 과 같은 값). 이름이 S1 수동소자가
   아니거나 같은 소자 값이 두 출처면 ValueError(스키마가 S1·spec 에서 나오므로 정상 경로에서는 생기지 않는 계약 위반 표지). 정렬 tuple.
   어느 출처에도 없는 수동소자(spec mode pending 등)는 그대로 `missing` -> `passive_value_undeclared`(7.4 (2)).
 - requests = constraints 의 (metric, view) 중 metric 이 None 아닌 것, 중복 제거·문서 순서. view_kind 가 있는 것만 `metrics_ss` 로.
-- 순서 `ss_dev(sealed.snapshot, ctx.lut, junction)` -> (passive_values -- 구조 규칙이 gm 을 읽으므로 ss_dev 뒤) ->
-  `metrics_ss(..., ss_requests, passive_values)` -> `metrics_dc(..., passive_values, tuple(counted_rails))`. `ss`·`dc` = 그 필드 값,
+- 순서 [U17 ①] `passive_values(sealed.snapshot, ctx.inputs.element_values, ctx.schema.zero_cancel, theta_passive_pairs(θ))` -> `ss_dev(..., ctx.lut, junction)` ->
+  `metrics_ss(..., ss_requests)` -> `metrics_dc(..., tuple(counted_rails))`. `ss`·`dc` = 그 필드 값,
   `lineage` = 7.1.
 - [r5] θ `capacitance`·`ss_resistance` 성분만 바꾼 θ' 로 `size_and_seal(ctx, θ', parent=res.lineage)` -> dc 블록 computes 0(sizing 7절
   r5), 이어 `ss_evaluate(그 결과 sealed, ctx, θ', ..., junction=같은 묶음)` -> `ss_dev` reuse(dc_op·junction 불변), `metrics_ss`·

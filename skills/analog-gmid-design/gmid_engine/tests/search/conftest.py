@@ -401,6 +401,15 @@ def col(snap, kind, field):
     return dict(snap.column(kind, field))
 
 
+def with_passive_value(snap, pairs):
+    """[U17 ①] 손 수동소자 값을 S2 필드 `device.passive_value`(설계 40 §2.4.8, writer = 권한표 writer_of)로 쓴 스냅샷 --
+    metrics_dc 는 이 필드를 읽는다(사본 extras 없음). 블록 입력 버전은 읽는 열 값의 지문이라 version 표지는 임의."""
+    from gmid_engine.sizing import S2_WRITERS
+    pairs = tuple(sorted(pairs))
+    return snap.write(S2_WRITERS.writer_of("device", "passive_value"), "hand_pv:%r" % (pairs,),
+                      {("device", "passive_value"): {n: float(v) for n, v in pairs}})
+
+
 def node_v(snap):
     v = col(snap, "node", "dc_rail_v")
     v.update(col(snap, "node", "dc_v"))

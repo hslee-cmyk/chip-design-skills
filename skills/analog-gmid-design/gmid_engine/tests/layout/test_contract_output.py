@@ -5,7 +5,7 @@ import dataclasses
 
 import pytest
 
-from gmid_engine.layout import LayoutResult
+from gmid_engine.layout import LayoutOutputs, LayoutResult
 from gmid_engine.layout import contract_output as co
 
 
@@ -13,12 +13,20 @@ def names(c):
     return [f.name for f in dataclasses.fields(c)]
 
 
-def test_layout_result_review_needed_first():
-    # Q8 (iv): review_needed 가 결과 첫 필드
-    assert names(LayoutResult)[0] == "review_needed"
-    assert set(names(LayoutResult)) >= {"devices", "groups", "matching_dispositions", "rows", "box", "fold_attempts",
-                                        "merge_decisions", "floorplan", "diffusion", "coverage_ok", "coverage_missing", "w_requests",
-                                        "w_invariant_ok", "revalidation", "computed_blocks", "snapshot"}
+def test_layout_result_declares_only_snapshot_and_computed_blocks():
+    # [U17 1-e] design 40 v1.6 §2.4.7 `LayoutResult` 행: "(스냅샷, 이번 호출의 계산 블록 목록)만 둔다" -- 결과 값 사본 칸 없음.
+    # 칸 이름은 design 에 없어 as-built 이름 `snapshot`·`computed_blocks` 를 쓴다(그 순서).
+    assert names(LayoutResult) == ["snapshot", "computed_blocks"]
+    assert LayoutResult.__dataclass_params__.frozen
+
+
+def test_layout_outputs_review_needed_first():
+    # Q8 (iv): review_needed 가 첫 필드 -- [U17 1-e] 옛 `LayoutResult` 결과 칸은 필드 파생 출력 `LayoutOutputs`(4.12 5~8) 로 옮겨졌다.
+    # groups·dispositions·rows·box·folds·merges·floorplan·diffusion 은 스냅샷 필드로 읽으므로 여기 없다(4.12 7).
+    assert names(LayoutOutputs) == ["review_needed", "devices", "coverage_ok", "coverage_missing", "w_requests", "w_invariant_ok",
+                                    "revalidation"]
+    assert LayoutOutputs.__dataclass_params__.frozen
+    assert co.LayoutOutputs is LayoutOutputs
 
 
 @pytest.mark.parametrize("cls, fields", [

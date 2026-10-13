@@ -5,12 +5,13 @@
 
 * reads `device.dc_op`(GB7 `DeviceOp` -- kind·ID·gm/ID·L·W·VGS·VDS·VSB 크기·폭 키), extras `(lut, junction)`(sizing `LutAccess`,
   metrics `JunctionSource` -- 접합 파라미터·LUT 생성 규칙 선언·온도·PDK 선언 sha256 이 블록 입력 버전에 든다), [NFR-5]
-  `device.dc_tol_v`(sizing `dc_tolerances` 가 쓴 그 소자의 tol_V(id_equivalent) 셀 -- 봉인 2 와 같은 값, LUT 다시 조회 안 함).
+  `device.dc_tol_v`(sizing `dc_tolerances` 가 쓴 그 소자의 tol_V(id_equivalent) 셀 -- 봉인 2 와 같은 값, LUT 다시 조회 안 함),
+  `device.dc_gm`(같은 블록이 쓴 자기 동작점 gm = ID × LUT gm/ID -- ss 의 gm 은 이 필드 하나, 설계 40 §3.7-3).
   writes `device.ss_dev` = `SsDevice`(MOS 마다).
 * [NFR-5] `lut_rel_tol` = `dc_op.gm_id · dc_tol_v`(무차원, metrics CONTRACT 9.1) -- tol_V(id_equivalent) = |Δln ID| / (gm/ID) 의 정의를
   되돌린 LUT 전류의 상대 불확실성. `dc_tol_v` 가 None 이거나 없으면 None(분해능 미정).
 * 소자마다 같은 동작점의 LUT 조회 세 가지(모두 LUT memo point 영역 -- `op_point` 는 `dc_widths` 가 같은 키로 이미 불러
-  적중이다): gm = ID·(gm/ID)(`DeviceOp.gm_id`, dc 정의값), gds = `op_point(...).gds_per_w`·W, gmb = lut `gmb(...)`·W/w_m,
+  적중이다): gm = `dc_gm`(dc 단계 필드를 읽는다 -- 다시 계산하지 않는다), gds = `op_point(...).gds_per_w`·W, gmb = lut `gmb(...)`·W/w_m,
   용량 = lut `caps(..., W)`(cgg·cgd·cgs·cgb·모형). [lut r6] `gmb` 는 GMBS 열이 있으면 열 정의(정본, lut CONTRACT 4.4), 없으면
   r5 VS 칸 할선 -- 어느 쪽인지 `gmb_model` 에 적는다(열 출처 규칙 4.3 과 같은 판정: 그 폭 슬라이스 열, 아니면 같은 폭 키의
   기준 LUT 열). 용량은 LUT v2 의 CGS·CGB 열(모형 `lut_cgs_cgb`, 부호 보존 값 그대로).
@@ -32,7 +33,7 @@ from gmid_engine.sizing import REASON_LUT_QUERY, SS_DEV_WRITER
 from .junction_cap import junction_caps
 from .ss_types import SsDevice
 
-READS = (("device", "dc_op"), ("device", "dc_tol_v"))
+READS = (("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm"))
 WRITES = (("device", "ss_dev"),)
 GMB_COLUMN = "lut_gmbs_column"                        # lut gmb: GMBS 열(정본, lut CONTRACT r6 4.4)
 GMB_VS_CELL_SECANT = "lut_vs_cell_secant"              # lut gmb: VS 선형 칸 할선(GMBS 열 없는 옛 LUT, 설계 MOD1 2.8 임시)
@@ -57,7 +58,7 @@ def _gmb_model(table, kind, w_key):
     return GMB_COLUMN if cap is not None and cap.w_key == w_key and GMBS_COLUMN in cap.columns else GMB_VS_CELL_SECANT
 
 
-def _linearize(lut, junction, device, op, tol_v, realized):
+def _linearize(lut, junction, device, op, tol_v, gm, realized):
     memo = lut.memo
     w_m = memo.lut.slice_map[(op.kind, op.w_key)].w_m
     args = (op.L, op.vgs, op.vds, op.vsb)
@@ -67,7 +68,7 @@ def _linearize(lut, junction, device, op, tol_v, realized):
     geometry = junction.pre_layout_geometry(w_m, op.W / w_m) if realized is None else realized
     jc = junction_caps(junction.params_of(op.kind), geometry, op.vds + op.vsb, op.vsb, junction.temp_c)
     return SsDevice(
-        gm=op.gm_id * op.current, gmb=body * op.W / w_m, gds=point.gds_per_w * op.W,
+        gm=gm, gmb=body * op.W / w_m, gds=point.gds_per_w * op.W,
         cgg=cap.cgg, cgs=cap.cgs, cgd=cap.cgd, cgb=cap.cgb, cdb=jc.cdb, csb=jc.csb,
         cap_model=cap.model, gmb_model=_gmb_model(memo.lut, op.kind, op.w_key), junction_model=JUNCTION_LUT_RULE if realized is None else JUNCTION_LAYOUT_DIFFUSION,
         lut_rel_tol=None if tol_v is None else op.gm_id * tol_v,
@@ -78,6 +79,7 @@ def _linearize(lut, junction, device, op, tol_v, realized):
 def ss_dev(projection):
     lut, junction, *rest = projection.extras
     tols = dict(projection.column("device", "dc_tol_v"))
+    gm = dict(projection.column("device", "dc_gm"))
     realized = dict(rest[0]) if rest else {}                 # [U14] 실현 확산 기하 ((MOS, DiffusionGeometry), ...) -- 없으면 LUT 생성 규칙 기하
-    return {("device", "ss_dev"): {m: _linearize(lut, junction, m, op, tols.get(m), realized.get(m))
+    return {("device", "ss_dev"): {m: _linearize(lut, junction, m, op, tols.get(m), gm[m], realized.get(m))
                                    for m, op in projection.column("device", "dc_op")}}

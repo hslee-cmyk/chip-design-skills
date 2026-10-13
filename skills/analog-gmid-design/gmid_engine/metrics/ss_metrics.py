@@ -1,9 +1,9 @@
 """spec 뷰 -> 계 레코드 -> 소신호 제약 metric 계산 블록 (7a design 2.2·2.3·2.5·3.2·4.5 단계 5, metrics CONTRACT 7절 -- 배선 지점).
 
-진입점: `metrics_ss`(`@compute_block`) -- `metrics_ss(snapshot, requests, passive_values)`.
+진입점: `metrics_ss`(`@compute_block`) -- `metrics_ss(snapshot, requests[, noise])`.
 
-* reads `device.{ss_dev, element_class, kind, pins, bulk}`, `node.{ac_ground_class, port_direction}`; extras
-  `requests` = `MetricRequest` tuple(view_kind 가 있는 metric 만), `passive_values` = ((수동소자, 값), ...).
+* reads `device.{ss_dev, element_class, kind, pins, bulk, passive_value}`(수동소자 값 = GB5 필드 `passive_value`), `node.{ac_ground_class, port_direction}`;
+  extras `requests` = `MetricRequest` tuple(view_kind 가 있는 metric 만).
   writes `graph.metrics_ss`(key `METRICS_KEY`) = `MetricBundle`.
 * 회로: `ss_circuit`(노드 인덱스 = S1 노드 이름 정렬 위치). 값 없는 수동소자가 있으면 계를 만들지 않고 모든 요청을 정의 불가
   `passive_value_undeclared`(definitional, detail elements)로 낸다 -- 회로 일부를 빼고 푸는 것은 다른 회로를 푸는 것이다.
@@ -22,7 +22,7 @@
 * 값은 `metric_value`(레지스트리 필드 읽기 -- 예외 없음, 정의 불가는 `Undefined`). 묶음 `approximations` = ss_dev 의
   (cap, cap_model)·(gmb, gmb_model)·(junction, junction_model) -- 용량 의존 metric 이 근사·미정 위에 있음을 매 결과에 싣는다(M6).
 * [U8 잡음] 요청에 잡음 metric(레지스트리 결과 형식 `NoiseAnalysis`: noise_th_in_v2hz·noise_fc_in_hz·noise_excess_th·noise_out_int_vrms)이 있으면 선택 추가 인자
-  `NoiseInput`(`noise_devices` -- 소자별 LUT 잡음 값·선언·f_lo·kT)을 세 번째 extras 로 받는다(없으면 잡음 요청은 정의 불가 `noise_inputs_missing`). 개루프 세 metric 은 gain metric
+  `NoiseInput`(`noise_devices` -- 소자별 LUT 잡음 값·선언·f_lo·kT)을 두 번째 extras 로 받는다(없으면 잡음 요청은 정의 불가 `noise_inputs_missing`). 개루프 세 metric 은 gain metric
   과 **같은 계(같은 G·C)·같은 전달 뷰 열**을 쓴다(`_plan` 의 계 키 공유 -- 조립 1회). 출력 적분은 spec feedback 이 비지 않으면 되먹임 소자의 입력 포트 쪽 넷을 자유 노드로 푼 계
   (`noise_plan` -- 폐루프), 비면 입력 고정 계(개루프 출력 잡음)이다. 수반 풀이는 `noise_transfer`(ω 마다 1회), 값·분해능은 `noise_analysis`. 개루프 뷰가 있으면 보고 전용으로
   th_in·fc 를 항상 `reports` 의 `noise_report` 에 싣는다(41 §7.1 '보고(모든 회로)'), 분석마다 `noise_detail:<metric>`·`noise_contrib:<metric>`(소자별 기여, 41 §7.3 `noise_contrib`).
@@ -61,6 +61,7 @@ from .ss_types import MetricBundle, MetricRequest
 
 READS = (
     ("device", "ss_dev"), ("device", "element_class"), ("device", "kind"), ("device", "pins"), ("device", "bulk"),
+    ("device", "passive_value"),
     ("node", "ac_ground_class"), ("node", "port_direction"), ("node", "port_role"), ("node", "is_rail"),
     ("node", "dc_colour"), ("device", "dc_colour"),
 )
@@ -375,7 +376,7 @@ def _noise_block(jobs, results, responses, ss, noise, nplan, parameters):
 
 @compute_block(METRICS_SS_WRITER, reads=READS, writes=WRITES)
 def metrics_ss(projection):
-    requests, passive_values, *optional = projection.extras
+    requests, *optional = projection.extras
     noise = optional[0] if optional else None                  # [U8] NoiseInput -- 잡음 요청이 없으면 안 온다
     classes = dict(projection.column("device", "element_class"))
     kinds = dict(projection.column("device", "kind"))
@@ -390,7 +391,7 @@ def metrics_ss(projection):
     inputs = tuple(n for n, d in projection.column("node", "port_direction") if d == INPUT_DIRECTION)
     devices = tuple((name, classes[name], kinds[name], pins[name], bulk.get(name), ss_values.get(name))
                     for name in sorted(classes, key=lambda n: (device_orbit.get(n, -1), n)))
-    ss = ss_circuit(nodes, ground, inputs, devices, passive_values)
+    ss = ss_circuit(nodes, ground, inputs, devices, projection.column("device", "passive_value"))
     pending = {r: _undefined(r, CODE_VIEW_PENDING, (("decision", r.view.decision),))
                for r in requests if r.view.mode == "pending"}
     results = dict(pending)

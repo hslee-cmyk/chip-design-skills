@@ -119,9 +119,9 @@ class RealizedGeometry:
 @dataclasses.dataclass(frozen=True)
 class Objectives:
     """목적 값. `power_w` = power_dc_w, `area_m2` = area_search_m2, `per_rail` = ((레일, I_k), ...),
-    `kcl_residual_a`, `gate_area_m2`, `passive_area_undeclared`, `passive_value_undetermined`(값 미정 수동소자),
-    `power_resolution_w` = b_P = Σ_레일 |V_k|·tol_I,k(tol_I,k = 레일 k 에 채널이 닿는 MOS 의 dc_tol_v·dc_gm_bound 최댓값 --
-    봉인 3 KCL 허용오차와 같은 식), 정의된 행이 없으면 None."""
+    `kcl_residual_a`, `gate_area_m2`(graph 필드 `gate_area_m2`), `passive_area_undeclared`, `passive_value_undetermined`(값 미정 수동소자),
+    `power_resolution_w` = graph 필드 `power_resolution_w`(writer `metrics_dc`: b_P = Σ_레일 |V_k|·tol_I,k, tol_I,k = 레일 k 에 채널이 닿는
+    MOS 의 dc_tol_v·dc_gm 최댓값 -- 봉인 3 KCL 허용오차와 같은 식), 정의된 행이 없으면 None. 이 객체는 필드 읽기 결과다(값 정본은 graph)."""
 
     power_w: float
     area_m2: float

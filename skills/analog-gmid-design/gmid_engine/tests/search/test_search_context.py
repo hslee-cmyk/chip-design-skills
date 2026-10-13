@@ -43,12 +43,19 @@ def test_classification_and_initial_state(tmp_path, lut_sealed):
     d = search_domain(case.dc, case.settings, case.pdk, (), 1e-9)
     assert s.domain == d and s.domain.area_budget_m2 == 1e-9
     assert re.fullmatch(r"[0-9a-f]{64}", s.code_fp)
-    assert tuple(s.spec_passive_values) == ()
+    assert not hasattr(s, "spec_passive_values")        # [U17 ①] 설계 40 §2.4.7 SearchContext 칸 배정: 수동소자 값 사본 칸 없음
 
 
-def test_spec_passive_values(tmp_path, lut_sealed):
+def test_spec_passive_value_is_s2_field(tmp_path, lut_sealed):
+    """[U17 ①] 설계 40 v1.6 §2.4.7 'SearchContext 칸 배정' 표: `element_values`·`spec_passive_values` -> 수동소자 값 필드(S2).
+    spec 선언 값 CL = 2e-12 는 SearchContext 의 칸이 아니라 평가 스냅샷의 `device.passive_value` 행이다(§2.4.8, 값 = spec 선언 그대로)."""
+    from gmid_engine.search import evaluate
+    from .conftest import CELLS_C, theta_r4c
     case = build_case(tmp_path, circuit_c(with_cap=True), lut_sealed, elements=(("CL", "capacitor", 2e-12),))
-    assert tuple(tuple(x) for x in case.sctx.spec_passive_values) == (("CL", 2e-12),)
+    assert not hasattr(case.sctx, "spec_passive_values")
+    r = evaluate(case.sctx, tuple(sorted(theta_r4c().items())), CELLS_C)
+    assert r.evaluation is not None
+    assert dict(r.evaluation.snapshot.column("device", "passive_value")) == {"CL": 2e-12}
 
 
 def test_fingerprints_deterministic_and_input_sensitive(tmp_path, lut_sealed, lut_pending):
