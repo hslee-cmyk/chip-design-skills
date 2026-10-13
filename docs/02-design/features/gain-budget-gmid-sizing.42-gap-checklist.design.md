@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.8.1
+version: 1.8.2
 plan_version: 6.7
 ---
 
@@ -199,6 +199,7 @@ plan_version: 6.7
 | D-SYc | 수동소자를 방향 없이 다루는 라벨링과 부호 있는 전류 묶기(사용자 결정 2026-10-08 'b') | 40 §6-7 | DEV | 브랜치 실측에서 9회로 모두 묶기가 비활성이다(수동소자를 방향 있는 것으로 다룸) |
 | D-SYd | folded_cascode·two_stage_ota front 회귀 추적 | 40 §6-6 | MISS | `tests/integration`에 없음 |
 | D-SYe | diff_pair review (나'): 두 멤버가 다른 궤도이고 (a) 출력 포트가 `differential_output_p/n` 쌍, (b) 그 쌍의 두 gate가 차동 입력 포트 p/n일 때만 `review_needed`(코드 `diff_pair_orbit_split`), 나머지는 crosstab 기록만. 9회로 review 0, 거부 test = 파일럿 넷 하나 비대칭 합성 회로 | 40 §6-5, §10.2 | MISS | `rg "orbit_matching_crosstab"` 0 |
+| D-SYg | d/s 비트 동일 범위 (라)(사용자 결정 2026-10-13 "1은 권고"): topology d/s 표기 = 물리 방향 선언(사용자만 수정하는 정본). d/s 표기 맞바꿈에 대해 대칭 결과(궤도·정준 위치·`dc_colour`)는 비트 동일, 전류 부호는 표기 기준 방향 변환(뒤집은 소자 f = −1을 원소·상에 곱함) 뒤 동일. 사이징 결과(writer 계획·θ 스키마·ties·front)는 선언 방향. 틀린 선언 → 봉인 7 `no_root_in_window` 거부. test `tests/search/test_orbit_ties.py::test_ds_flip_symmetry_bit_identical`, 봉인 7 거부 `tests/sizing/test_block_columns.py`. `dc_colour` writer = graph 대칭 블록 `s1_symmetry` | 40 §6-8, §2.4.8, §10.2 | MISS | `rg "test_ds_flip_symmetry_bit_identical"` 0, `dc_colour` writer = `E/sizing/struct_colour.py:20` |
 | D-SYf | 전류 기저 열 순서: 결정 취지 "대칭 궤도 원소를 자유 열로 먼저 남긴다" = 자유 열 선택에서 비자명 궤도 우선, 행사다리꼴이 앞 열을 pivot으로 잡으므로 열 정렬 키 = (궤도 비자명이 뒤, `dc_colour`, 이름)(앞에 두면 파일럿 27/40). `current_basis`가 `graph/s1: orbits` 읽음. (묶음 수, 탐색 θ 변수 수) = (`len(SearchDomain.ties)`, `len(SearchDomain.variables)`): 파일럿 29/38, 그중 전류 묶음 7(M1a~M1b, M19~M10), 나머지 8회로 = master `8e46548` as-built 값, 28/39(규칙 전, 전류 묶음 6)는 기록만 | 40 §6-3·§6-8 | MISS | `E/sizing/current_basis.py:8` 열 순서 = (`dc_colour`, 이름), orbit 읽기 0 |
 | D-NS | 시간과 무관한 계수 예산 N_S, `structure_count_budget` | 41 §0 | MISS | `rg "count_budget"` 0 |
 | D-NM | 비단조 축 세분(미러 비·전류 배율·저항), 저항 컨덕턴스 격자 | 41 §4.2 | MISS | -- |
@@ -265,15 +266,15 @@ plan_version: 6.7
 | D-T | test 폴더 체계 | 40 §8 R26 | N/A | 축소 유지 승인(2026-10-08). 현행 체계를 쓴다 |
 | D-GR1 | graph 밖 저장소는 넷뿐(LUT memo·S3 기록과 색인·실행 계수·S0 수준 스냅샷 직렬화) | 40 §2.4.1 | DEV | bd19cc6 `E/search/search_context.py:65-89`(cache·cell_floors·local_seal_memo 등) |
 | D-GR2 | S0 수준 층 필드화(S1v·결합 변수·GB4·출발 구간·metric 구조 입력) | 40 §2.4.2·2.4.8 | MISS | bd19cc6 `sctx.s1v`·`sctx.ach`·`sctx.start` 객체, `E/search/start_values.py:186-235` `StartContext` |
-| D-GR3 | S0 수준 스냅샷 디스크 영속화(키·타입 있는 코덱·원자적 쓰기·검증), 단계 A 보고서 `s0_snapshot` 키(hit\|miss\|corrupt), `run_stage_a` PDK 선언 필수 인자, U-68 재현 판정 = 입력 파일 원본 sha(`structure.json` 포함) + 엔진 코드 지문 | 40 §2.4.3 | MISS | `rg "snapshot_codec"` 0 |
-| D-GR4 | 분할 계산 블록과 이식(graft) | 40 §2.4.4 | MISS | `rg "def graft"` 0, `E/core/compute_block.py:73-90`(블록 이름 하나의 버전) |
+| D-GR3 | S0 수준 스냅샷 디스크 영속화(키·타입 있는 코덱·원자적 쓰기·검증), 단계 A 보고서 `s0_snapshot` 키(hit\|miss\|corrupt), `run_stage_a` PDK 선언 필수 인자, U-68 재현 판정 = 입력 파일 원본 sha(`structure.json` 포함) + 엔진 코드 지문, U-68 정리 = 프로세스당 첫 실제 쓰기 1회(`core/snapshot_codec.py` `_CLEANUP_STARTED`), 위치 환경 변수 `GMID_S0_SNAPSHOT_DIR`(test 격리) | 40 §2.4.3 | MISS | `rg "snapshot_codec"` 0 |
+| D-GR4 | 분할 계산 블록과 이식(graft). 분할 대상에 GB5 `passive_values`(읽는 레코드 = 영점 상쇄 셀 소자의 `dc_gm`, 전류 θ만 바뀐 자식의 재계산 해소, U17 ② 이월) | 40 §2.4.4 | MISS | `rg "def graft"` 0, `E/core/compute_block.py:73-90`(블록 이름 하나의 버전) |
 | D-GR5 | S3 메모리 색인·스냅샷 보존(`sctx.cache`·`local_seal_memo` 대체, G-5) | 40 §2.4.5 | DEV | bd19cc6 `E/search/kernel.py:102-121`, `E/search/local_candidates.py:141-144` |
 | D-GR6 | LUT memo 순수성(`call`)·S0당 인스턴스 하나·상한 B_r(층 0 항) | 40 §2.4.6 | DEV | bd19cc6 `E/search/search_context.py:105-121`(두 번째 인스턴스, 첫 평가 버림), `E/lut/lut_memo.py:25-36,60-62` |
 | D-GR7 | 수동소자 값 S2 필드(writer GB5, R = 1/Σgm 포함) | 40 §2.4.8 | MISS | bd19cc6 `E/metrics/passive_values.py:16`(함수), `E/search/kernel.py:146-150`(규칙 사본) |
 | D-GR8 | tol_I = tol_V × `dc_gm`(자기 동작점, writer 1개, `ss_dev` 공용) | 40 §3.7-3, §2.4.11 | DEV | bd19cc6 `E/sizing/seal_tolerances.py:36-45`, `E/sizing/kernel_run.py:51-96` |
 | D-GR9 | 값 사본 제거(`SsEvaluation`·`EvalResult`·`LayoutResult`), 레이아웃 = 설계점 필드 | 40 §2.4.7 | DEV | bd19cc6 `E/metrics/ss_types.py:79-88`, `E/search/search_values.py:146-162`, `E/layout/run.py:109` |
 | D-GR10 | G-7 SearchContext = 참조 + S3 색인 + 실행 계수, `__slots__`·frozen | 40 §2.4.7 | DEV | bd19cc6 `E/search/search_context.py:51-89` |
-| D-GR11 | G-8 강제 장치 4종(규칙 G 확장·설계 값 타입 위치·SC-a/SC-b lint·9회로 test) | 40 §2.4.10 | PART | bd19cc6 규칙 G = 모듈 가변·데코레이터·global만(`E/tests/structure/structure_checks.py:880-920`) |
+| D-GR11 | G-8 강제 장치 4종(규칙 G 확장·설계 값 타입 위치·SC-a/SC-b lint·9회로 test). 허용 모듈에 `core/snapshot_codec.py`(U-68 1회 표시 `_CLEANUP_STARTED`, §2.4.1 (d) 범주) | 40 §2.4.10 | PART | bd19cc6 규칙 G = 모듈 가변·데코레이터·global만(`E/tests/structure/structure_checks.py:880-920`) |
 | D-GR12 | G-10 계수(블록·분할별 grafts 포함, `perf.s0_snapshot` 포함)와 9회로·두 번째 실행 test(`test_g10_second_run_s0_zero`는 U17 단계 ②) | 40 §2.4.9 | PART | bd19cc6 `E/core/compute_block.py:30-38` `BlockStats`, `E/search/kernel.py:120-121` `recompute_same_key` |
 | D-GR13 | 단계 B 층(r̂·수치 rank, 직렬화 제외), `ach.dof` = 구조 DOF만, KernelContext·SearchContext 선언 파생의 S0 수준 필드, `metrics_dc` `gate_area_m2`·`power_resolution_w`(제약 행 `constraint_rows`는 U17 ②로 이월, `unmeasured` 자리 40 §2.4.12 Q8 열림) | 40 §2.4.1·2.4.7·2.4.8 | DEV | bd19cc6 `E/search/objectives.py:31-45`, `E/sizing/s2_values.py:429-443` |
 | D-GR14 | 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 색인 `local`·`solved` | 40 §2.4.5·2.4.8, 41 §5.3.9·§5.3.11·§5.5 | MISS | `rg "comp_approx_gap"` 0(엔진 .py) |
@@ -296,8 +297,10 @@ plan_version: 6.7
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 3 | 1 | 6 | 5 | 0 |
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
-| 설계 항목 | 155 | 0 | 23 | 16 | 115 | 1 |
-| **합계** | 252 | 27 | 30 | 51 | 137 | 7 |
+| 설계 항목 | 156 | 0 | 23 | 16 | 116 | 1 |
+| **합계** | 253 | 27 | 30 | 51 | 138 | 7 |
+
+v1.8.2(2026-10-13, 사용자 결정 2026-10-13 "1은 권고" d/s 비트 동일 범위 (라)와 U17 ①-a·①-c·①-d 실측 정정): 설계 항목 1행 추가(D-SYg, MISS -- master `980d147`에서 잰), D-GR3(U-68 프로세스당 첫 실제 쓰기 1회·`GMID_S0_SNAPSHOT_DIR`)·D-GR4(분할 대상 GB5 `passive_values`, ② 이월)·D-GR11(허용 모듈 `core/snapshot_codec.py`) 문구 갱신(상태 불변).
 
 v1.8.1(2026-10-13, U17 ①-d·①-e 실측에 문구를 맞춘 정정, 사용자 결정 변경 아님): D-SYf (묶음 수, 변수 수) 정의 = `len(SearchDomain.ties)`·`len(SearchDomain.variables)`(파일럿 29/38, 전류 묶음 7)와 열 정렬 방향(비자명 궤도 원소를 뒤로 = 자유 열 우선), D-SYe 기록 코드 `diff_pair_orbit_split`, D-J8 folded M8 "해제" → "시작 셀 아님 유지". 상태·집계 불변.
 
