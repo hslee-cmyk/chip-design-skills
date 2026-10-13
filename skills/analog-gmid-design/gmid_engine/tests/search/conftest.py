@@ -22,6 +22,12 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
+from gmid_engine.core import engine_code_fp
+
+# [U17 ①-a] build_search_context(code_fp=) 필수 -- 단계 A 가 실행마다 한 번 잰 엔진 코드 지문(설계 40 §2.4.3 (iii)).
+# 단계 A 를 거치지 않는 test 는 같은 공개 함수 core.engine_code_fp() 를 모듈 import 때 한 번 재서 넘긴다.
+CODE_FP = engine_code_fp()
+
 from sizing.conftest import (  # noqa: F401  (다른 test 파일이 여기서 가져간다)
     R4_GRIDS,
     R4_L,
@@ -385,7 +391,7 @@ def build_case(tmp, topo_doc, lut, constraints=(), elements=(), budget_s=600.0, 
         pdk = p2 if pdk is None else pdk
         rule = r2 if rule is None else rule
     settings = SearchSettings(budget_s, eval_budget, rbounds, tuple(sources), cbounds)
-    sctx = build_search_context(dc, spec, settings, archive_root, pdk, rule)
+    sctx = build_search_context(dc, spec, settings, archive_root, pdk, rule, code_fp=CODE_FP)
     return SimpleNamespace(td=td, spec=spec, dc=dc, acc=acc, pdk=pdk, rule=rule, settings=settings, sctx=sctx)
 
 

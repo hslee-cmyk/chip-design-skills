@@ -30,7 +30,7 @@ from gmid_engine.search import (
 
 from .conftest import (R4_GRIDS, R4_L, SKILL_DIR, W_M, build_case, circuit_c, circuit_diode, conduction_floor, expected_floor,
                        peak_floor, r4_arrays, tol_v_at)
-from .conftest import SRC, load_spec, new_access, write_decls
+from .conftest import CODE_FP, SRC, load_spec, new_access, write_decls
 from sizing.conftest import LClassStub, mos, topo
 
 KIND = {"M1": "nmos", "M2": "pmos"}
@@ -452,7 +452,7 @@ def _tied_case(tmp, lut):
     s1 = build_s1(td, dict(inputs.supplies_v))
     dc = build_kernel_context(s1, inputs, acc, l_classes=(LClassStub("M1", ("M1", "M3")),))
     pdk, rule = write_decls(Path(tmp) / "pdk")
-    sctx = build_search_context(dc, spec, SearchSettings(600.0, 40, None, tuple(SRC), None), None, pdk, rule)
+    sctx = build_search_context(dc, spec, SearchSettings(600.0, 40, None, tuple(SRC), None), None, pdk, rule, code_fp=CODE_FP)
     return SimpleNamespace(acc=acc, dc=dc, sctx=sctx)
 
 
@@ -524,10 +524,10 @@ def test_library_real_path_find_front_with_l_classes(tmp_path, lib_env, name):
     spec = load_sizing_spec(str(LIBRARY / (name + ".sizing_spec.json")), td, env.catalog)
     inputs = dc_inputs_from_spec(spec)
     sup = dict(inputs.supplies_v)
-    stage_a = run_stage_a(tp, None, env.lut, output_dir=tmp_path / "a", supplies_v=sup)
+    stage_a = run_stage_a(tp, None, env.lut, pdk_decl=env.pdk, output_dir=tmp_path / "a", supplies_v=sup)
     dc = build_kernel_context(build_s1(td, sup), inputs, env.access, l_classes=stage_a.s1v.l_classes)
     settings = SearchSettings(60.0, 40, RESISTANCE_BOX, (("cellfloor_lclass", "test_fixture"),), CAPACITANCE_BOX)
-    sctx = build_search_context(dc, spec, settings, None, env.pdk, env.lut_rule)
+    sctx = build_search_context(dc, spec, settings, None, env.pdk, env.lut_rule, code_fp=stage_a.code_fp)
     comps = {v.component for v in sctx.domain.variables}
     # 전제(비공허): 동치류 멤버가 있고 그중 하나 이상이 ln_idu 성분을 가지며 l_cells 에는 멤버가 없다(하한 계산이 멤버를 만난다).
     assert dc.l_ties

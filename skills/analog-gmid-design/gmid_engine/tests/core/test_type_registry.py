@@ -9,9 +9,11 @@
 * §2.4.2: search `start_values.py`의 `StartRow`·`StartConflict`·`MacroResult`·`StartRung`을 필드 값으로 그대로 쓴다
   (`Placement`는 as-built 위치가 `convergence/convergence_values.py`라 design 문장과 어긋나 여기서 단언하지 않는다 -- 보고 항목).
 
-이름 미정(design 은 `register(cls)` 만 정한다): 이름으로 타입을 찾는 함수와 등록 이름 목록 함수는 아래 `_PENDING` 한 곳에만
-적었다. interface card 가 이름을 정하면 이 표만 고친다. 예외 클래스도 design 이 정하지 않아 (TypeError, ValueError, KeyError)
-중 하나를 받는다.
+이름(통합 단계에서 구현 공개 API 로 맞춤, design 은 `register(cls)` 만 정한다): 등록부는 `core.type_registry` 모듈의
+`type_registry()` 가 돌려주는 프로세스 하나의 객체이고, 그 메서드 `register`·`lookup`(이름 -> 클래스)·`names`(등록 이름 목록)를
+`_API` 표 한 곳에 적었다. 판정 의미(무엇을 받고 무엇을 거부하는가)는 red-first 그대로다. 예외 클래스는 design 이 정하지 않아
+(TypeError, ValueError, KeyError) 중 하나를 받는다. 주의: 패키지 `gmid_engine.core` 의 `type_registry` 속성은 같은 이름의 함수라
+(`core/__init__` 재수출) 모듈은 `from gmid_engine.core.type_registry import type_registry` 로 가져온다.
 
 기대값은 피검 코드를 부르지 않고 design 문장과 파이썬 클래스 이름 규칙(`__module__` + `.` + `__qualname__`)에서 정했다.
 """
@@ -23,27 +25,29 @@ import uuid
 
 import pytest
 
-# design 이 이름을 정하지 않은 API(이름 미정) -- 개념 -> 임시 이름.
-_PENDING = {
-    "resolve": "resolve",                    # "<모듈>.<클래스>" -> 등록된 cls, 없으면 거부
-    "registered_names": "registered_names",  # 등록된 "<모듈>.<클래스>" 이름 목록(§2.4.10 ② 가 읽는 목록)
+# 개념 -> 등록부 객체(`type_registry()`)의 메서드 이름(구현 공개 API).
+_API = {
+    "resolve": "lookup",                     # "<모듈>.<클래스>" -> 등록된 cls, 없으면 거부
+    "registered_names": "names",             # 등록된 "<모듈>.<클래스>" 이름 목록(§2.4.10 ② 가 읽는 목록)
 }
+# 하위 프로세스에서 등록부 객체를 얻는 문장(모듈 경로는 design §2.4.3·§2.4.10 이 정한 것)
+_GET_REGISTRY = "from gmid_engine.core.type_registry import type_registry as _type_registry\nr = _type_registry()\n"
 _REJECT = (TypeError, ValueError, KeyError)   # 예외 클래스 이름 미정
 
 _SKILL_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 
 def _registry():
-    from gmid_engine.core import type_registry   # 모듈 경로는 design §2.4.3·§2.4.10 이 정한 것
-    return type_registry
+    from gmid_engine.core.type_registry import type_registry   # 모듈 경로는 design §2.4.3·§2.4.10 이 정한 것
+    return type_registry()
 
 
 def _api(concept):
-    mod = _registry()
-    name = _PENDING[concept]
-    fn = getattr(mod, name, None)
+    reg = _registry()
+    name = _API[concept]
+    fn = getattr(reg, name, None)
     if fn is None:
-        pytest.fail("이름 미정: core.type_registry 에 '%s' 개념의 함수(임시 이름 %r)가 없다" % (concept, name))
+        pytest.fail("core.type_registry 등록부에 '%s' 개념의 메서드 %r 가 없다" % (concept, name))
     return fn
 
 
@@ -132,15 +136,15 @@ def _imported_engine_packages(statement):
 
 
 def test_type_registry_imports_no_upper_package():
-    pkgs = _imported_engine_packages("import gmid_engine.core.type_registry")
+    pkgs = _imported_engine_packages("from gmid_engine.core.type_registry import type_registry")
     assert pkgs <= {"core"}, "core.type_registry 가 상위 패키지를 import 했다: %s" % sorted(pkgs - {"core"})
 
 
 def test_importing_core_alone_registers_no_upper_package_type():
     code = (
-        "import gmid_engine.core.type_registry as r\n"
-        "names = [n for n in r.%s() if n.startswith('gmid_engine.') and not n.startswith('gmid_engine.core.')]\n"
-        "print(len(names))\n" % _PENDING["registered_names"]
+        _GET_REGISTRY
+        + "names = [n for n in r.%s() if n.startswith('gmid_engine.') and not n.startswith('gmid_engine.core.')]\n"
+        "print(len(names))\n" % _API["registered_names"]
     )
     env = dict(os.environ)
     env["PYTHONPATH"] = _SKILL_DIR + os.pathsep + env.get("PYTHONPATH", "")
@@ -162,9 +166,9 @@ _SEARCH_START_VALUE_TYPES = (
 def test_pipeline_import_registers_search_start_value_types():
     code = (
         "import gmid_engine.pipeline\n"
-        "import gmid_engine.core.type_registry as r\n"
-        "names = set(r.%s())\n"
-        "print('|'.join(sorted(n for n in %r if n not in names)))\n" % (_PENDING["registered_names"], _SEARCH_START_VALUE_TYPES)
+        + _GET_REGISTRY
+        + "names = set(r.%s())\n"
+        "print('|'.join(sorted(n for n in %r if n not in names)))\n" % (_API["registered_names"], _SEARCH_START_VALUE_TYPES)
     )
     env = dict(os.environ)
     env["PYTHONPATH"] = _SKILL_DIR + os.pathsep + env.get("PYTHONPATH", "")

@@ -98,14 +98,14 @@ def build(root, lut, decls, topo_doc, *, elements=(), constraints=(), supplies=N
     pdk, rule = decls
     tp, sp = write_case(root, topo_doc, supplies=supplies, elements=elements, constraints=constraints,
                         input_dc_v=input_dc_v, count_budget=count_budget, node_targets=node_targets)
-    a = run_stage_a(tp, sp, lut, output_dir=root / "out")
+    a = run_stage_a(tp, sp, lut, pdk_decl=pdk, output_dir=root / "out")
     assert a.s1v is not None, a.report.get("stop_reasons")
     b = run_stage_b(a, memo_of(lut), pdk, output_dir=root / "out") if with_ach else None
     ach = b.achievability if b is not None else None
     inputs = dc_inputs_from_spec(a.spec)
     kctx = build_kernel_context(a.s1, inputs, pre_layout_lut_access(memo_of(lut)), l_classes=a.s1v.l_classes)
     settings = SearchSettings(600.0, eval_budget, rbounds, (("front_budget_s", "u13 test fixture"),), cbounds)
-    sctx = build_search_context(kctx, a.spec, settings, None, pdk, rule, s1v=a.s1v, ach=ach)
+    sctx = build_search_context(kctx, a.spec, settings, None, pdk, rule, s1v=a.s1v, ach=ach, code_fp=a.code_fp)
     return SimpleNamespace(a=a, b=b, s1v=a.s1v, ach=ach, spec=a.spec, kctx=kctx, sctx=sctx, start=sctx.start, pdk=pdk,
                            rule=rule, settings=settings, lut=lut)
 
@@ -178,7 +178,7 @@ def start_ctx_with(topo_doc, elements, constraints, extra):
     env.n += 1
     root = env.root / ("c%03d" % env.n)
     tp, sp = write_case(root, topo_doc, elements=elements, constraints=tuple(constraints) + tuple(extra), count_budget=10 ** 6)
-    a = run_stage_a(tp, sp, env.lut, output_dir=root / "out")
+    a = run_stage_a(tp, sp, env.lut, pdk_decl=env.decls[0], output_dir=root / "out")
     assert a.s1v is not None, a.report.get("stop_reasons")
     b = run_stage_b(a, memo_of(env.lut), env.decls[0], output_dir=root / "out")
     kctx = build_kernel_context(a.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo_of(env.lut)),

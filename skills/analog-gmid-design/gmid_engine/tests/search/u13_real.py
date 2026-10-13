@@ -85,13 +85,14 @@ def real_case(name, extra=()):
     tp.write_text((LIBRARY / (name + ".topology.json")).read_text(encoding="utf-8"), encoding="utf-8")
     sp = d / (name + ".sizing_spec.json")
     sp.write_text(json.dumps(library_spec(name, extra), indent=1, ensure_ascii=False), encoding="utf-8")
-    a = run_stage_a(tp, sp, env.lut, output_dir=d / "out")
+    a = run_stage_a(tp, sp, env.lut, pdk_decl=env.pdk, output_dir=d / "out")
     assert a.s1v is not None and a.status == "ok", (a.status, a.report.get("stop_reasons"))
     b = run_stage_b(a, env.memo, env.pdk, output_dir=d / "out")
     assert b.status == "ok", (b.status, b.report.get("stop_reasons"))
     kctx = build_kernel_context(a.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo), l_classes=a.s1v.l_classes)
     settings = SearchSettings(600.0, EVAL_BUDGET, RBOX, (("front_budget_s", "u13 test fixture"),), CBOX)
-    sctx = build_search_context(kctx, a.spec, settings, None, env.pdk, env.rule, s1v=a.s1v, ach=b.achievability)
+    sctx = build_search_context(kctx, a.spec, settings, None, env.pdk, env.rule, s1v=a.s1v, ach=b.achievability,
+                                code_fp=a.code_fp)
     case = SimpleNamespace(a=a, b=b, s1v=a.s1v, ach=b.achievability, spec=a.spec, kctx=kctx, sctx=sctx, start=sctx.start,
                            topology=json.loads(tp.read_text(encoding="utf-8")), settings=settings)
     if len(_CASES) >= _CASE_CAP:

@@ -13,7 +13,7 @@ import math
 from pathlib import Path
 from types import SimpleNamespace
 
-from .conftest import SRC, SUPPLIES, mos, new_access, topo, two, write_decls
+from .conftest import CODE_FP, SRC, SUPPLIES, mos, new_access, topo, two, write_decls
 
 US = {"kind": "user_spec", "record": "canon test fixture", "decided": "2026-10-08"}
 C_BOX = (1e-13, 1e-11)
@@ -94,7 +94,7 @@ def make_case(tmp, topo_doc, lut, elements=(), boxes=None, untie=None, cbounds=N
     dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, new_access(lut))
     pdk, rule = write_decls(tmp / "pdk")
     settings = SearchSettings(600.0, eval_budget, None, SRC, cbounds)
-    sctx = build_search_context(dc, spec, settings, archive_root, pdk, rule) if build_sctx else None
+    sctx = build_search_context(dc, spec, settings, archive_root, pdk, rule, code_fp=CODE_FP) if build_sctx else None
     tb = [s.value for s in spec.search if s.field == THETA_BOUNDS]
     ut = [s.value for s in spec.search if s.field == UNTIE_ORBITS]
     return SimpleNamespace(td=td, spec=spec, dc=dc, pdk=pdk, rule=rule, settings=settings, sctx=sctx,
@@ -192,4 +192,5 @@ def build_library_case(tmp, topo_doc, spec_doc, lut, eval_budget=40):
     inputs = dc_inputs_from_spec(spec)
     dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, new_access(lut))
     pdk, rule = write_decls(tmp / "pdk")
-    return build_search_context(dc, spec, SearchSettings(600.0, eval_budget, None, SRC, None), None, pdk, rule)
+    return build_search_context(dc, spec, SearchSettings(600.0, eval_budget, None, SRC, None), None, pdk, rule,
+                                code_fp=CODE_FP)

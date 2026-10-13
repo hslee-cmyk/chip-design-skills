@@ -16,13 +16,18 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from gmid_engine.authoring import load_sizing_spec, load_topology
+from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.metrics import metric_catalog
 from gmid_engine.pipeline import run_stage_a
 
 import jrules_hand as J
 import s1v_hand as H
+
+# [U17 ①-a] run_stage_a(pdk_decl=) 필수(설계 40 §2.4.12 Q1 fail-closed -- S0 키의 PDK 선언 파일 내용 해시). 저장소 PDK 선언 원본.
+PDK_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json"), BoundedLRU(4))
 
 CMFB_SE = H.topo("cmfbse", tuple((e["name"], e["kind"], e["drain"], e["gate"], e["source"]) for e in H.CMFB["netlist"]),
                  {"inp": H.DIFF_P, "inn": H.DIFF_N, "op": H.SE_OUT, "om": H.SE_OUT},
@@ -53,7 +58,7 @@ def _codes(lines):
 
 def _go(tmp_path, real_lut, doc, loop_cut, out="o", stem=None):
     tp, sp = _pair(tmp_path, doc, loop_cut, stem=stem)
-    return run_stage_a(tp, sp, real_lut, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
+    return run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
 
 
 # ------------------------------------------------------------------ 해제·불일치·거부

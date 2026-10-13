@@ -18,6 +18,7 @@ import pytest
 
 from gmid_engine.search import ACCEPTED_STATUSES, build_search_context, evaluate, layer0_start
 
+from .conftest import CODE_FP
 from .u13_hand import all_inactive, cs_chain, rows_by_name, toy_case
 from .u13_real import LIBRARY, real_case
 
@@ -157,7 +158,7 @@ def test_name_bijection_changes_only_row_names():
 
 def test_without_s1v_start_is_none_and_layer0_uses_box_centre():
     c = toy_case(cs_chain(2), elements=TOY_ELS, constraints=TOY_CONS)
-    sctx = build_search_context(c.kctx, c.spec, c.settings, None, c.pdk, c.rule)
+    sctx = build_search_context(c.kctx, c.spec, c.settings, None, c.pdk, c.rule, code_fp=CODE_FP)
     assert sctx.start is None
     res = layer0_start(sctx)
     assert res.origin_point in (None, "centre") or res.origin_point.startswith(("halton:", "repair:"))

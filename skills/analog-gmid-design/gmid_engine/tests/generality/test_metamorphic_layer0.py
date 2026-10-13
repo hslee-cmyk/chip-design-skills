@@ -21,6 +21,7 @@ from pathlib import Path
 
 import pytest
 
+from .pipeline import CODE_FP
 from .topogen import random_renaming, rename, shuffle_order, synthetic_topologies
 
 LIBRARY = Path(__file__).resolve().parents[3] / "assets" / "library"
@@ -95,7 +96,7 @@ def build(tmp, topo_doc, spec_doc, lut, archive_root, extra_files=(), m=None):
     dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, new_access(lut))
     pdk, rule = write_decls(tmp / "pdk")
     settings = SearchSettings(600.0, EVAL_BUDGET, (1e3, 1e6), SRC, (1e-13, 1e-11))
-    return build_search_context(dc, spec, settings, archive_root, pdk, rule)
+    return build_search_context(dc, spec, settings, archive_root, pdk, rule, code_fp=CODE_FP)
 
 
 def tau(sctx):

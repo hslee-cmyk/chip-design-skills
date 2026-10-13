@@ -21,6 +21,7 @@ from gmid_engine.search import (
 )
 
 from .conftest import (
+    CODE_FP,
     CELLS_C,
     CELLS_P,
     PENDING,
@@ -314,7 +315,7 @@ def test_u7_structure_writes_block_residual_to_evals(tmp_path, lut_sealed, short
     case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=AXIS_CONS + SS_CONS)
     s1 = build_s1(case.td, dict(dc_inputs_from_spec(case.spec).supplies_v))
     s1v = build_s1v(s1, case.spec, count_budget=10 ** 6, stop_on_unsupported=False)
-    s = build_search_context(case.dc, case.spec, case.settings, short_root, case.pdk, case.rule, s1v=s1v)
+    s = build_search_context(case.dc, case.spec, case.settings, short_root, case.pdk, case.rule, s1v=s1v, code_fp=CODE_FP)
     assert s.structure is not None and len(s.structure.views) >= 1
     r = evaluate(s, th_sorted(theta_r4c()), CELLS_C)
     assert r.status == STATUS_SEALED

@@ -26,7 +26,7 @@ from pathlib import Path
 import numpy as np
 
 from gmid_engine.authoring import load_sizing_spec, load_topology
-from gmid_engine.core import BoundedLRU, MetricSignature, SchemaRejectedError, read_pdk_decl
+from gmid_engine.core import BoundedLRU, MetricSignature, SchemaRejectedError, engine_code_fp, read_pdk_decl
 from gmid_engine.graph import build_s1
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.metrics import JunctionSource, metric_catalog
@@ -35,6 +35,10 @@ from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_la
 
 from .topogen import add_tag_noise, flip_polarity, random_renaming, rename, rename_spec, shuffle_order, synthetic_spec
 from .topogen import synthetic_topologies
+
+# [U17 ①-a] build_search_context(code_fp=) 필수 -- 단계 A 가 실행마다 한 번 잰 엔진 코드 지문(설계 40 §2.4.3 (iii)).
+# 단계 A 를 거치지 않는 test 는 같은 공개 함수 core.engine_code_fp() 를 모듈 import 때 한 번 재서 넘긴다.
+CODE_FP = engine_code_fp()
 
 SKILL_DIR = Path(__file__).resolve().parents[3]
 LIBRARY = SKILL_DIR / "assets" / "library"
@@ -220,12 +224,12 @@ class Pipe:
         key = (case.name, case.variant)
         if key not in self._sctx:
             self._sctx[key] = build_search_context(case.ctx, case.spec, self.settings(), None, self.env.pdk,
-                                                   self.env.lut_rule)
+                                                   self.env.lut_rule, code_fp=CODE_FP)
         return self._sctx[key]
 
     def fresh_sctx(self, case):
         """캐시 없는 새 search 컨텍스트(층 0 비교용 -- 평가 캐시가 결과에 끼지 않게)."""
-        return build_search_context(case.ctx, case.spec, self.settings(), None, self.env.pdk, self.env.lut_rule)
+        return build_search_context(case.ctx, case.spec, self.settings(), None, self.env.pdk, self.env.lut_rule, code_fp=CODE_FP)
 
     def theta0(self, name):
         """원래 회로의 층 0 시작점 (θ dict, {MOS: L 칸 index}) 또는 None. 변형 비교의 고정 θ 출처(입력)."""

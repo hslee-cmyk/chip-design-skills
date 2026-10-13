@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from gmid_engine.core import fp_of
+from gmid_engine.core import BoundedLRU, fp_of, read_pdk_decl
 from gmid_engine.graph import structure_tables
 from gmid_engine.pipeline import run_stage_a
 
@@ -24,16 +24,20 @@ import coupling_hand as CH
 import jrules_hand as J
 import s1v_hand as H
 
+# [U17 ①-a] run_stage_a(pdk_decl=) 필수(설계 40 §2.4.12 Q1 fail-closed -- S0 키의 PDK 선언 파일 내용 해시). 저장소 PDK 선언 원본.
+PDK_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json"), BoundedLRU(4))
+
 # [U1b] applied_facts·ff_ratio_candidates (pipeline CONTRACT 2절), [U10] coupling (설계 40 §3.3 as-built: 단계 A 보고서 `coupling` 이
 # U15 전까지 유일한 출구)
+# [U17 ①-a] s0_snapshot (설계 40 §2.4.3 '손상 처리'·'계수': S0 수준 스냅샷 hit|miss|corrupt 를 실행 기록에 남긴다, pipeline CONTRACT 1절)
 KEYS = ["applied_facts", "circuit", "count_budget", "coupling", "declared_comparison", "exit_code", "ff_ratio_candidates",
-        "review_needed", "status", "stop_reasons", "tables", "views"]
+        "review_needed", "s0_snapshot", "status", "stop_reasons", "tables", "views"]
 
 
 def _run(tmp_path, real_lut, doc, out="out"):
     p = tmp_path / (doc["topology_name"] + ".topology.json")
     p.write_text(json.dumps(doc), encoding="utf-8")
-    return run_stage_a(p, None, real_lut, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
+    return run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
 
 
 def _pairs_hook(seen):
@@ -54,6 +58,7 @@ def test_files_and_sorted_keys(tmp_path, real_lut):
     assert all(keys == sorted(keys) for keys in seen)          # 하위 객체도 키 정렬
     assert data == json.loads(json.dumps(r.report))            # 결과의 report 와 같은 내용
     assert data["circuit"] == "cs" and data["exit_code"] == 0 and data["status"] == "ok"
+    assert data["s0_snapshot"] in ("hit", "miss", "corrupt")
 
 
 def test_stop_reason_format(tmp_path, real_lut):

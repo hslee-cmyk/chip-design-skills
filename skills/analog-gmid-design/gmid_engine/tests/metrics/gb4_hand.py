@@ -322,7 +322,7 @@ TOY_B_A = GRID_M * 5e-7             # b_A = 제조 격자 × 최소 finger 폭(s
 def stage_ab(root, lut, tp, sp, pdk, diagnostic=False, out="out"):
     """단계 A -> 단계 B(공개 진입점 두 개를 부르는 입력 helper -- 기대값을 만들지 않는다)."""
     from gmid_engine.pipeline import run_stage_a, run_stage_b
-    a = run_stage_a(tp, sp, lut, output_dir=Path(root) / out)
+    a = run_stage_a(tp, sp, lut, pdk_decl=pdk, output_dir=Path(root) / out)
     b = run_stage_b(a, memo_of(lut), pdk, output_dir=Path(root) / out, diagnostic=diagnostic)
     return a, b
 

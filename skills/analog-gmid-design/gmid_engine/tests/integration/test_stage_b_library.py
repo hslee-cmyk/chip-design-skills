@@ -98,7 +98,8 @@ def _follower_anchor(z):
 def _run(env, circuit, tmp_path_factory):
     if circuit not in env["cache"]:
         out = tmp_path_factory.mktemp("sbl_" + circuit)
-        a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env["lut"], output_dir=out)
+        a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env["lut"], pdk_decl=env["pdk"],
+                        output_dir=out)
         memo = LutMemo(env["lut"], point=200000, curve=200000, root=4096)
         b = run_stage_b(a, memo, env["pdk"], output_dir=out, diagnostic=True)
         env["cache"][circuit] = (a, b)

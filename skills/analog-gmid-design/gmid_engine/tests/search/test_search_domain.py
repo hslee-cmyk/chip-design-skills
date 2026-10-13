@@ -11,6 +11,7 @@ from gmid_engine.core import SchemaRejectedError
 from gmid_engine.search import SearchDomain, SearchSettings, Variable, search_domain
 
 from .conftest import (
+    CODE_FP,
     GRID,
     R4_L,
     SRC,
@@ -268,7 +269,7 @@ def test_spec_boxes_apply_per_element(tmp_path, lut_sealed):
     assert [(t.element, t.kind, t.lo, t.hi) for t in sb] == [("R1", "resistor", 1e3, 1e6), ("R2", "resistor", 1e4, 1e7)]
     want = {("resistance", "R1"): _ln(1e3, 1e6), ("resistance", "R2"): _ln(1e4, 1e7)}
     assert _bounds(search_domain(dc, _settings(None), pdk, sb)) == want
-    sctx = build_search_context(dc, spec, _settings(None), None, pdk, rule)
+    sctx = build_search_context(dc, spec, _settings(None), None, pdk, rule, code_fp=CODE_FP)
     assert _bounds(sctx.domain) == want
 
 
@@ -279,7 +280,7 @@ def test_settings_override_applies_to_all_elements_of_kind(tmp_path, lut_sealed)
     spec, dc, pdk, rule, sb = _dc_with_boxes(tmp_path, circuit_rr(), lut_sealed, RR_ELEMENTS, boxes)
     want = {("resistance", "R1"): _ln(50.0, 5e5), ("resistance", "R2"): _ln(50.0, 5e5)}
     assert _bounds(search_domain(dc, _settings((50.0, 5e5)), pdk, sb)) == want
-    sctx = build_search_context(dc, spec, _settings((50.0, 5e5)), None, pdk, rule)
+    sctx = build_search_context(dc, spec, _settings((50.0, 5e5)), None, pdk, rule, code_fp=CODE_FP)
     assert _bounds(sctx.domain) == want
 
 
@@ -300,7 +301,7 @@ def test_unboxed_resistor_rejected_listing_only_unboxed(tmp_path, lut_sealed):
     assert (det["gate"], det["reason"]) == ("search_domain", "theta_resistance_bounds_undeclared")
     assert tuple(det["resistors"]) == ("R2",)
     with pytest.raises(SchemaRejectedError) as e2:                       # build_search_context 경로도 같은 거부
-        build_search_context(dc, spec, _settings(None), None, pdk, rule)
+        build_search_context(dc, spec, _settings(None), None, pdk, rule, code_fp=CODE_FP)
     assert tuple(dict(e2.value.record.detail)["resistors"]) == ("R2",)
 
 
@@ -366,8 +367,8 @@ def test_spec_box_change_keeps_context_fp(tmp_path, lut_sealed):
     from gmid_engine.search import build_search_context
     a = _dc_with_boxes(tmp_path / "a", circuit_rr(), lut_sealed, RR_ELEMENTS, {"R1": (1e3, 1e6), "R2": (1e4, 1e7)})
     b = _dc_with_boxes(tmp_path / "b", circuit_rr(), lut_sealed, RR_ELEMENTS, {"R1": (2e3, 1e6), "R2": (1e4, 1e7)})
-    sa = build_search_context(a[1], a[0], _settings(None), None, a[2], a[3])
-    sb_ = build_search_context(b[1], b[0], _settings(None), None, b[2], b[3])
+    sa = build_search_context(a[1], a[0], _settings(None), None, a[2], a[3], code_fp=CODE_FP)
+    sb_ = build_search_context(b[1], b[0], _settings(None), None, b[2], b[3], code_fp=CODE_FP)
     assert a[0].spec_fp != b[0].spec_fp
     assert dict(a[0].section_fps)["search_fp"] != dict(b[0].section_fps)["search_fp"]
     assert sa.context_fp == sb_.context_fp and sa.schema_fp == sb_.schema_fp
