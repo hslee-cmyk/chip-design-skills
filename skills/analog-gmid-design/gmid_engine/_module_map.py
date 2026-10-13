@@ -43,12 +43,13 @@ LAYERS = (
     (
         "core",
         (
-            ("canonical_key.py", "determinism.py", "fingerprint.py", "immutability.py", "margin.py", "units.py", "writer_error.py"),
-            ("bounded_lru.py", "failure_record.py", "field_value.py", "metric_signature.py", "projection.py",
+            ("canonical_key.py", "determinism.py", "fingerprint.py", "immutability.py", "margin.py", "type_registry.py", "units.py",
+             "writer_error.py"),
+            ("bounded_lru.py", "engine_code_fp.py", "failure_record.py", "field_value.py", "metric_signature.py", "projection.py",
              "writer_table.py"),
             ("compute_block.py", "failure_errors.py", "graph_record.py"),
             ("failure_classes.py", "graph_snapshot.py", "pdk_decl.py"),
-            ("canon_pointer.py", "exit_code.py"),
+            ("canon_pointer.py", "exit_code.py", "snapshot_codec.py"),
         ),
     ),
     (
@@ -232,6 +233,15 @@ MODULES = (
                 "불변 graph 스냅샷: 구조 공유 갱신, writer 권한, block 입력 버전", ("N3.3", "N3.4", "SC-a", "SC-b")),
     ModuleEntry("core/canon_pointer.py", "entry", "CanonPointer",
                 "현재 정본 = 채택 스냅샷 포인터", ("N3.3",)),
+    ModuleEntry("core/type_registry.py", "entry", "type_registry",
+                "S0 수준 스냅샷 코덱이 받는 graph 필드 값 형식(frozen dataclass)의 실행 시 등록부 -- 패키지 __init__ 이 아래에서 위로 등록",
+                ("DEC-83", "NFR-2", "N3.5", "WP-23")),
+    ModuleEntry("core/engine_code_fp.py", "entry", "engine_code_fp",
+                "엔진 코드 지문: gmid_engine 의 test 밖 모든 패키지 .py 바이트 sha256(S0 수준 스냅샷 키 (iii)·S3 코드 지문)",
+                ("NFR-2", "SC-d", "N3.3", "WP-23")),
+    ModuleEntry("core/snapshot_codec.py", "entry", "S0SnapshotStore",
+                "S0 수준 graph 스냅샷 디스크 영속화: 타입 있는 gzip JSON, fp·body_sha256 검증, 손상 교체, 원자적 쓰기, 옛 키 정리(U-68)",
+                ("DEC-83", "NFR-2", "N3.3", "N3.5", "SC-d", "U-68", "U-72", "WP-23")),
     ModuleEntry("core/pdk_decl.py", "entry", "read_pdk_decl",
                 "PDK 선언 읽기: 선언 파일의 규칙 식을 PDK 원본(tlef·규칙표·모델 카드, sha256 대조)에서 계산한 양과 규칙 출처, mismatch 모델 bin 지도, "
                 "저항 종류 선택",

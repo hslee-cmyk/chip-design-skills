@@ -13,7 +13,7 @@ from gmid_engine.core import SchemaRejectedError
 from gmid_engine.search import S3Archive, SearchSettings, build_search_context, search_domain
 from gmid_engine.sizing import dc_columns, dc_currents, dc_widths
 
-from .conftest import SRC, build_case, circuit_c, circuit_p, write_pdk
+from .conftest import CODE_FP, SRC, build_case, circuit_c, circuit_p, write_pdk
 
 COUNTERS = ("requests", "kernel_calls", "hits", "fail_hits", "disk_hits", "outside_domain", "recompute_same_key")
 CONS = (("power_dc_w", "<=", 1e-3, None), ("gain_ss_db", ">=", 10.0, None), ("supply_current_dc", "<=", 1e-3, None),
@@ -85,15 +85,35 @@ def test_theta_resistance_without_bounds_rejected_before_kernel(tmp_path, lut_se
 def test_settings_type_checked(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     with pytest.raises(TypeError):
-        build_search_context(case.dc, case.spec, (600.0, 40, None, SRC), None, case.pdk, case.rule)
+        build_search_context(case.dc, case.spec, (600.0, 40, None, SRC), None, case.pdk, case.rule, code_fp=CODE_FP)
     with pytest.raises(TypeError):
-        build_search_context(case.dc, case.spec, SearchSettings(600.0, 40, None, SRC), None, None, case.rule)
+        build_search_context(case.dc, case.spec, SearchSettings(600.0, 40, None, SRC), None, None, case.rule, code_fp=CODE_FP)
+
+
+def test_code_fp_is_required_keyword(tmp_path, lut_sealed):
+    # [U17 ①-a] 설계 40 §2.4.3 (iii): 코드 지문은 단계 A 가 실행마다 한 번 잰 엔진 코드 지문(StageAResult.code_fp)을 받는다 --
+    # 없거나 빈 값이면 거부(옛 6개 패키지 자체 계산 경로 없음).
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    with pytest.raises(TypeError):
+        build_search_context(case.dc, case.spec, case.settings, None, case.pdk, case.rule)
+    for bad in (None, "", 7):
+        with pytest.raises(TypeError):
+            build_search_context(case.dc, case.spec, case.settings, None, case.pdk, case.rule, code_fp=bad)
+
+
+def test_code_fp_is_the_given_value(tmp_path, lut_sealed):
+    # 넘긴 값을 그대로 쓴다(다시 재지 않는다) -- S3 기록의 code_fp 가 단계 A·S0 스냅샷 키의 엔진 코드 지문과 같은 값.
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    given = "ab" * 32
+    s = build_search_context(case.dc, case.spec, case.settings, None, case.pdk, case.rule, code_fp=given)
+    assert s.code_fp == given
 
 
 def test_pdk_missing_quantity(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     with pytest.raises(SchemaRejectedError) as e:
-        build_search_context(case.dc, case.spec, case.settings, None, write_pdk(tmp_path / "p2", with_minw=False), case.rule)
+        build_search_context(case.dc, case.spec, case.settings, None, write_pdk(tmp_path / "p2", with_minw=False), case.rule,
+                             code_fp=CODE_FP)
     assert dict(e.value.record.detail)["reason"] == "pdk_quantity_undeclared"
 
 

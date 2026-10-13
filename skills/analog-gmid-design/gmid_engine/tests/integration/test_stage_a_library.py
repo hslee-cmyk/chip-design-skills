@@ -13,10 +13,14 @@ from pathlib import Path
 import pytest
 
 from gmid_engine.authoring import load_topology
+from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.graph import STATUS_DERIVED, build_s1, structure_rule_fp
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a
 from gmid_engine.sizing import DcInputs, LutAccess, build_kernel_context
+
+# [U17 ①-a] run_stage_a(pdk_decl=) 필수(설계 40 §2.4.12 Q1 fail-closed -- S0 키의 PDK 선언 파일 내용 해시). 저장소 PDK 선언 원본.
+PDK_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json"), BoundedLRU(4))
 
 SKILL = Path(__file__).resolve().parents[3]
 LIBRARY = SKILL / "assets" / "library"
@@ -42,8 +46,8 @@ def real_lut():
 @pytest.mark.parametrize("circuit", CIRCUITS)
 def test_stage_a_library_circuit(circuit, real_lut, tmp_path):
     topology = LIBRARY / (circuit + ".topology.json")
-    first = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "a", supplies_v=_supplies(circuit))
-    again = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "b", supplies_v=_supplies(circuit))
+    first = run_stage_a(topology, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "a", supplies_v=_supplies(circuit))
+    again = run_stage_a(topology, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "b", supplies_v=_supplies(circuit))
     assert first.report["tables"] == again.report["tables"]
     assert all(Path(p).is_file() for p in first.report_paths)
     assert json.loads(Path(first.report_paths[0]).read_text(encoding="utf-8"))["circuit"] == circuit
@@ -62,7 +66,7 @@ def _supplies(circuit):
 
 def test_l_classes_reach_theta_schema(real_lut, tmp_path):
     circuit = "two_stage_ota"
-    result = run_stage_a(LIBRARY / (circuit + ".topology.json"), None, real_lut, output_dir=tmp_path, supplies_v=_supplies(circuit))
+    result = run_stage_a(LIBRARY / (circuit + ".topology.json"), None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path, supplies_v=_supplies(circuit))
     s1 = build_s1(load_topology(str(LIBRARY / (circuit + ".topology.json"))), _supplies(circuit))
     w_keys = {}
     for (kind, w_key) in sorted(real_lut.slice_map):
@@ -100,10 +104,10 @@ def test_structure_json_declared_comparison(real_lut, tmp_path):
     _structure_file(bad, s1.key.topology_fp, structure_rule_fp(), "M1 M6", "M2")
     _structure_file(stale, "0" * 64, structure_rule_fp(), "M1 M2", "M6")
     kw = {"supplies_v": _supplies(circuit)}
-    ok = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "o1", structure_path=good, **kw)
+    ok = run_stage_a(topology, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o1", structure_path=good, **kw)
     assert ok.report["declared_comparison"] == "performed" and ok.status == "ok"
-    mismatch = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "o2", structure_path=bad, **kw)
+    mismatch = run_stage_a(topology, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o2", structure_path=bad, **kw)
     assert mismatch.status == "review_needed" and any("declared_stage_mismatch" in r for r in mismatch.report["review_needed"])
-    old = run_stage_a(topology, None, real_lut, output_dir=tmp_path / "o3", structure_path=stale, **kw)
+    old = run_stage_a(topology, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o3", structure_path=stale, **kw)
     assert old.status == "review_needed" and any("structure_fact_stale" in r for r in old.report["review_needed"])
     assert old.report["declared_comparison"].startswith("not_performed")

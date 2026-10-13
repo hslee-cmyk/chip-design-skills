@@ -4,6 +4,8 @@
 공개 흐름: `build_search_context(dc_ctx, spec, settings, archive_root)`(S0 당 1회) -> `find_front(sctx, given_starts)`.
 봉인 7 이 VDSAT 접근자 부재로 미정인 동안 모든 점은 '봉인 7 대기'(`seal_status`)라 최종 front 는 비어 있다.
 """
+from gmid_engine.core import type_registry
+
 from .archive import S3Archive
 from .area_decl import passive_area_decl
 from .cell_floor import ln_idu_floors
@@ -76,7 +78,14 @@ from .start_values import (
     StartConflict,
     StartIntervals,
     StartRow,
+    StartRung,
 )
+
+# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 search 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식' -- `start_values.py` 의
+# `StartRow`·`StartConflict`·`MacroResult`·`StartRung` 과 `StartRow.sources` 의 `Bound`). 묶음 `StartIntervals` 와 계산용 입력(`StartContext`·`DeviceInfo`·
+# `GainInputs`)은 필드 값이 아니라 올리지 않는다.
+for _field_value_type in (StartRow, StartConflict, MacroResult, StartRung, Bound):
+    type_registry.type_registry().register(_field_value_type)
 
 __all__ = (
     "ACCEPTED_STATUSES",
@@ -121,6 +130,7 @@ __all__ = (
     "StartIntervals",
     "StartPoint",
     "StartRow",
+    "StartRung",
     "Variable",
     "build_search_context",
     "canonical_order",

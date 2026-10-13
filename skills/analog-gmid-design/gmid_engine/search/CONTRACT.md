@@ -1050,3 +1050,7 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 * `ctx.start is None`(s1v 미전달)이면 `layer0_start` 는 종전과 같은 상자 중심 한 점.
 * `StartIntervals.ladder[0]` 의 θ·cells·current_ref 는 `StartIntervals.theta`·`cells`·`current_ref` 와 같고, 각 칸의 `t` 는 절반씩 줄어든다.
 * 매크로 풀이 값(gm·C)은 `macro_root_missing`·`macro_nonconvergent` 가 있으면 버린다(전류는 정해지지 않은 것으로 센다).
+
+## [U17 ①-a] `build_search_context(..., *, code_fp)` -- 필수 키워드 인자
+
+- `code_fp` = 단계 A 가 잰 엔진 코드 지문(`pipeline.StageAResult.code_fp` = core `engine_code_fp()`). 빠지면 파이썬 `TypeError`, 비어 있지 않은 문자열이 아니면 `TypeError`. `SearchContext.code_fp`·S3 기록 `code_fp` 가 이 값 그대로다. 옛 `_code_fp()`(core·lut·graph·sizing·metrics·search 6개 패키지)는 삭제됐고 여기서 다시 재지 않는다(설계 40 §2.4.3 (iii)).

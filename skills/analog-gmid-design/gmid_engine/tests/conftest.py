@@ -10,7 +10,9 @@
 """
 import json
 import os
+import shutil
 import sys
+import tempfile
 
 # tests -> gmid_engine -> analog-gmid-design(패키지 부모)
 _SKILL_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -33,3 +35,16 @@ def _isolate_table_cache():
 
 
 _isolate_table_cache()
+
+
+# [U17 ①-a] S0 수준 스냅샷(core.snapshot_codec, 설계 40 §2.4.3): test 세션은 실제 `gmid_engine/.s0_snapshot` 에 쓰지 않고 그곳의 정리(U-68)도
+# 돌리지 않는다 -- 세션마다 새 임시 폴더를 `GMID_S0_SNAPSHOT_DIR` 로 고정한다(하위 프로세스도 물려받는다). 세션 사이에 남기지 않는다:
+# library 회로처럼 저장소 안 입력 파일의 키는 세션을 넘어 적중해 첫 실행의 블록 계수를 보는 test 결과가 저장소 상태에 따라 바뀐다.
+# 기본 위치 자체는 tests/core/test_snapshot_codec.py 가 환경 변수를 지운 상태로 본다.
+_S0_ENV = "GMID_S0_SNAPSHOT_DIR"
+_S0_DIR = tempfile.mkdtemp(prefix="gmid_s0_tests_")
+os.environ[_S0_ENV] = _S0_DIR
+
+
+def pytest_unconfigure(config):
+    shutil.rmtree(_S0_DIR, ignore_errors=True)

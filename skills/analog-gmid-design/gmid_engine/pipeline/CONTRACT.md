@@ -2,7 +2,9 @@
 
 ng-bridge 브랜치(`oracle_input` 등 오라클 생산자)가 같은 파일을 쓴다. 병합 때 이 절을 그 파일의 새 절로 합친다. 이 문서는 단계 A 만 다룬다.
 
-## 1. `run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None) -> StageAResult`
+## 1. `run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, supplies_v=None, structure_path=None) -> StageAResult`
+
+[U17 ①-a] `pdk_decl`(core `read_pdk_decl` 결과)은 **필수**다 -- 빠지면 파이썬 `TypeError`, PdkDecl 아니면(None 포함) `TypeError`(S0 키의 PDK 선언 해시, 40 §2.4.12 Q1 fail-closed). S0 수준 스냅샷 영속화(설계 40 §2.4.3, core CONTRACT §11): `structure.json` 로드 뒤 키 입력 {`topology_fp`(정규화 연결 지문), `supplies_v_fp`, `spec_fp`(spec 없으면 None), `structure_facts_fp`(`fp_of(StructureFacts)`), `derivation_rule_fp`(`structure_rule_fp()`), `lut_fp`(`lut.fp`), `pdk_decl_fp`(`pdk_decl.decl_sha256`)} + 입력 파일 sources {`topology`(경로, `file_sha256`), `spec`(경로, `file_sha256` | spec 없으면 (None, None)), `structure`(경로, 원본 sha256 | 파일 없으면 None), `pdk_decl`(`decl_path`, `decl_sha256`), `lut_manifest`·`lut_cap`·`lut_midpoints`·`lut_noise`·`lut_mismatch`(LUT 출처의 경로·sha256, 없으면 (None, None))} + 엔진 코드 지문으로 `S0SnapshotStore.default` 를 읽는다. hit 이면 `build_s1(previous=읽은 스냅샷)` -- S1 블록 12개가 모두 재사용(계산 0), 결과 `s1.snapshot.fp` 는 계산했을 때와 같다. miss·corrupt 면 계산한 S1 스냅샷을 쓴다(`save`). 보고서 `s0_snapshot` = "hit" | "miss" | "corrupt"(S1 단계 전 정지면 None). 엔진 코드 지문은 호출마다 한 번 재 `StageAResult.code_fp`(정지 결과 포함)로 돌려준다 -- `search.build_search_context(..., code_fp=)` 가 받는다.
 
 설계 40 §2.1 GB0~GB2, 41 §0 단계 A1~A3. 파일: `stage_a.py`(진입), `stage_a_budget.py`(`structure_count_budget`), `stage_a_report.py`(`write_stage_a_report`).
 

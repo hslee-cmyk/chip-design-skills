@@ -11,6 +11,7 @@ oracle:
 - (d) CONTRACT U13 '비활성 사유는 조용히 빠지지 않는다': 조건부 경계 식마다 경계·충돌·비활성 사유 중 하나로 보고에 나온다.
 실경로 = 실 LUT v2(noise·mismatch 포함, lut CONTRACT 1.8 정본 로드) + library two_stage_ota·common_gate_amplifier(u13_real).
 """
+import dataclasses
 import json
 import math
 
@@ -18,6 +19,7 @@ import pytest
 
 from gmid_engine.search import ACCEPTED_STATUSES, build_search_context, evaluate, layer0_start
 
+from .conftest import CODE_FP
 from .u13_hand import all_inactive, cs_chain, rows_by_name, toy_case
 from .u13_real import LIBRARY, real_case
 
@@ -157,8 +159,61 @@ def test_name_bijection_changes_only_row_names():
 
 def test_without_s1v_start_is_none_and_layer0_uses_box_centre():
     c = toy_case(cs_chain(2), elements=TOY_ELS, constraints=TOY_CONS)
-    sctx = build_search_context(c.kctx, c.spec, c.settings, None, c.pdk, c.rule)
+    sctx = build_search_context(c.kctx, c.spec, c.settings, None, c.pdk, c.rule, code_fp=CODE_FP)
     assert sctx.start is None
     res = layer0_start(sctx)
     assert res.origin_point in (None, "centre") or res.origin_point.startswith(("halton:", "repair:"))
     assert not str(res.origin_point).startswith("ladder")
+
+
+def _reachable_dataclass_types(roots, skip=()):
+    """값들에서 닿는 dataclass 인스턴스의 타입 집합(필드 값·tuple·list·frozenset·dict 값을 따라 내려간다). `skip` 타입은 세지 않고 안으로만 간다."""
+    import dataclasses as _dc
+    seen, found, stack = set(), set(), list(roots)
+    while stack:
+        v = stack.pop()
+        if id(v) in seen:
+            continue
+        seen.add(id(v))
+        if _dc.is_dataclass(v) and not isinstance(v, type):
+            if type(v) not in skip:
+                found.add(type(v))
+            stack.extend(getattr(v, f.name) for f in _dc.fields(v))
+        elif isinstance(v, (tuple, list, frozenset, set)):
+            stack.extend(v)
+        elif hasattr(v, "items") and hasattr(v, "keys"):
+            stack.extend(v.values())
+            stack.extend(v.keys())
+    return found
+
+
+# ---------- [U17 ①-a 통합] metrics·search 묶음을 필드로 풀었을 때 닿는 값 형식이 등록부에 있다(design 40 §2.4.2·§2.4.3) ----------
+# 묶음 Achievability(GB4)·StartIntervals(출발 구간)는 필드로 풀고, 그 필드 값에서 닿는 frozen dataclass 는 코덱이 받아야 한다(목록 밖 = 거부).
+# 독립 도출: 실제 단계 A·B·출발 구간 산출물을 걸어 닿는 타입을 모은다(구현 등록 목록을 쓰지 않는다).
+
+
+def _assert_bundle_values_registered(ach, start):
+    import gmid_engine.pipeline  # noqa: F401
+    from gmid_engine.core.type_registry import type_registry
+    from gmid_engine.metrics import Achievability
+    from gmid_engine.search import StartIntervals
+    names = set(type_registry().names())
+    reach = set()
+    for bundle, cls in ((ach, Achievability), (start, StartIntervals)):
+        assert isinstance(bundle, cls)
+        reach |= _reachable_dataclass_types([getattr(bundle, f.name) for f in dataclasses.fields(bundle)], skip=(cls,))
+    missing = sorted(t.__module__ + "." + t.__qualname__ for t in reach if t.__module__ + "." + t.__qualname__ not in names)
+    assert not missing, "S0 수준 필드 값 형식인데 등록부에 없다(코덱이 거부): %s" % missing
+    return reach
+
+
+def test_toy_ach_and_start_value_types_are_registered():
+    c = toy_case(cs_chain(2), elements=TOY_ELS, constraints=TOY_CONS)
+    reach = _assert_bundle_values_registered(c.ach, c.start)
+    assert {t.__name__ for t in reach} >= {"StartRow"}, sorted(t.__name__ for t in reach)
+
+
+@pytest.mark.parametrize("name", REAL)
+def test_real_ach_and_start_value_types_are_registered(name):
+    c = real_case(name)
+    _assert_bundle_values_registered(c.ach, c.start)

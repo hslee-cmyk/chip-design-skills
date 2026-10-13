@@ -35,4 +35,6 @@ skills/analog-gmid-design/assets/library/.bkit/
 
 # 역할 분리 부트스트랩 ①·④(계획 N3.12.6): 탐색 아카이브와 실행 산출물은 추적하지 않는다(EL2 무시 목록)
 skills/analog-gmid-design/assets/library/*.search_archive/
+# S0 수준 graph 스냅샷 디스크 직렬화(설계 40 §2.4.3, 계획 N3.5 -- 실행 사이 재사용 캐시, 재생성 가능)
+skills/analog-gmid-design/gmid_engine/.s0_snapshot/
 runs/

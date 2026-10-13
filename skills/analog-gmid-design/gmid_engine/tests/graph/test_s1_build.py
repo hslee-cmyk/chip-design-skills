@@ -218,11 +218,40 @@ def test_doc_type_error(gh):
 
 
 def test_previous_type_error(gh):
+    # [U17 ①-a] design 40 §2.4.3: 단계 A 가 디스크 S0 수준 스냅샷(GraphSnapshot, 권한표 S1_WRITERS)을 previous 로 넘긴다 ->
+    # S1_WRITERS GraphSnapshot 은 이제 받는다(아래 두 test). 그 밖의 형식과 다른 권한표 스냅샷은 여전히 TypeError.
     doc = gh.load_lib("common_gate_amplifier")
     s1 = build_s1(doc, None)
-    for bad in (s1.snapshot, "previous", s1.key, GraphSnapshot.empty(S1_WRITERS)):
+    other = GraphSnapshot.empty(WriterTable([("node", "terminals", "someone_else")]))
+    for bad in ("previous", s1.key, other, {"snapshot": s1.snapshot}):
         with pytest.raises(TypeError):
             build_s1(doc, None, previous=bad)
+
+
+@pytest.mark.parametrize("name", NINE)
+def test_previous_snapshot_reuses_every_block(gh, name):
+    # design 40 §2.4.3 '계수': 같은 S0 의 S0 수준 스냅샷이 적중하면 S0 수준 블록 계산 수 0(G-10 판정 2 의 이 단위 부분).
+    # 디스크에서 읽은 스냅샷 = 같은 S0 로 만든 S1 의 스냅샷(GraphSnapshot) -> 12블록 모두 reuse, compute 0, 내용 fp 동일.
+    doc = gh.load_lib(name)
+    sv = gh.supplies_for(name)
+    s1 = build_s1(doc, sv)
+    before = _all_stats()
+    again = build_s1(doc, sv, previous=s1.snapshot)
+    d = _delta(before, _all_stats())
+    assert all(v == (1, 1, 0, 0) for v in d.values()), d
+    assert isinstance(again, S1Graph) and again.key == s1.key
+    assert again.snapshot.fp == s1.snapshot.fp
+
+
+def test_previous_empty_snapshot_computes_like_fresh(gh):
+    # S1_WRITERS 빈 스냅샷 = 재사용할 것이 없다 -> 12블록 모두 compute, 결과는 previous 없이 만든 것과 같은 내용.
+    doc = gh.load_lib("common_gate_amplifier")
+    fresh = build_s1(doc, None)
+    before = _all_stats()
+    got = build_s1(doc, None, previous=GraphSnapshot.empty(S1_WRITERS))
+    d = _delta(before, _all_stats())
+    assert all(v == (1, 0, 1, 1) for v in d.values()), d   # recomputes_same_input: fresh 가 같은 입력으로 이미 계산했다
+    assert got.snapshot.fp == fresh.snapshot.fp and got.key == fresh.key
 
 
 def test_previous_with_other_writer_table_type_error(gh):

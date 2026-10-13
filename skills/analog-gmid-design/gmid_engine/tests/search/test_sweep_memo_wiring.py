@@ -20,7 +20,7 @@ from gmid_engine.lut import LutMemo
 from gmid_engine.search import evaluate, find_front
 from gmid_engine.search.layer0_center import centre_start
 
-from .conftest import build_case, circuit_c, front_signature, theta_r4c
+from .conftest import CODE_FP, build_case, circuit_c, front_signature, theta_r4c
 
 SWEEP = ("point", "curve", "root")
 
@@ -63,7 +63,7 @@ def _build_with_caller_cap(tmp, lut, cap, **kw):
     dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, acc)
     pdk, rule = write_decls(tmp / "pdk")
     settings = SearchSettings(600.0, kw.get("eval_budget", 30), None, tuple(SRC), None)
-    return acc, build_search_context(dc, spec, settings, None, pdk, rule)
+    return acc, build_search_context(dc, spec, settings, None, pdk, rule, code_fp=CODE_FP)
 
 
 def _eval_table(sctx):

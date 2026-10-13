@@ -322,7 +322,9 @@ def _measured_domain(name, lut, tmp_path):
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
     from .conftest import LIBRARY
     skill = LIBRARY.parents[1]
-    r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, output_dir=tmp_path)
+    pdk = read_pdk_decl(str(skill / "assets" / "sky130_pdk_decl.json"), BoundedLRU(8))
+    # [U17 ①-a 병합] run_stage_a(pdk_decl=) 필수(40 §2.4.12 Q1) -- 아래 search_domain 이 쓰는 같은 PDK 선언을 넘긴다(판정 내용 변경 없음)
+    r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, pdk_decl=pdk, output_dir=tmp_path)
     spec = r.spec
     k = build_kernel_context(r.s1, dc_inputs_from_spec(spec), pre_layout_lut_access(LutMemo(lut, point=4096, curve=4096, root=4096)),
                              l_classes=r.s1v.l_classes if r.s1v else ())
@@ -330,7 +332,6 @@ def _measured_domain(name, lut, tmp_path):
     sb = next((s.value for s in search if s.field == THETA_BOUNDS and s.value), ())
     un = tuple(n for n, _s in next((s.value for s in search if s.field == UNTIE_ORBITS and s.value), ()))
     bud = [float(d.value) for d in spec.judged_constraints if d.metric == "area_search_m2" and d.op == "<=" and d.value is not None]
-    pdk = read_pdk_decl(str(skill / "assets" / "sky130_pdk_decl.json"), BoundedLRU(8))
     dom = search_domain(k, SearchSettings(0.0, None, None, (("wall", "x"),)), pdk, sb, min(bud) if bud else None, un)
     return k, dom
 
