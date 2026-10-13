@@ -5,7 +5,9 @@
 
 두 종류의 입력:
 1. **합성 픽스처**(이 파일 앞부분): layout 출력 계약(`layout.contract_output`) 레코드를 손으로 만들고, 스냅샷·EvalResult·sctx 는 피검 코드가 읽는
-   속성만 가진 가짜(`FakeSnapshot`·`SimpleNamespace`)다. 루프 test 는 `place_layout`·`evaluate` 를 스크립트 가짜로 바꾸고(monkeypatch)
+   속성만 가진 가짜(`FakeSnapshot`·`SimpleNamespace`)다. [U17 1-e] design 40 v1.6 §2.4.7: `LayoutResult` 는 (설계점 스냅샷, 계산 블록 목록)뿐이고
+   MOD8 은 레이아웃 값을 그 스냅샷의 `ly_*` 필드(layout `LAYOUT_KEY`·`F_*`)로 읽는다 -- 합성 `layout()` 은 손 레코드를 그 필드 이름으로 담은
+   `FakeSnapshot` 을 든 `LayoutResult` 다. 루프 test 는 `place_layout`·`evaluate` 를 스크립트 가짜로 바꾸고(monkeypatch)
    가짜 `evaluate` 가 기하 지문마다 한 번만 `sctx.counters["kernel_calls"]` 를 올린다(커널 캐시 모형).
 2. **실경로**(뒷부분 `RealPath`): 실 LUT v2 + sky130 선언 + library 회로(generality `pipeline.Env/Pipe`). 탐색이 front 를 내지 못하는 동안
    (설계 40 §3.9 gap (e)) 손으로 봉인한 점을 쓴다 -- 층 0 θ 에서 `ln_idu` 성분을 모두 `REAL_LN_IDU` 로 옮기고 `current` 성분을 `REAL_CURRENT_SCALE`
@@ -19,11 +21,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from gmid_engine.layout import LayoutPdk
+from gmid_engine.layout import F_DEVICE, F_DIFFUSION, F_FINGER, F_FLOORPLAN, F_GROUPS, F_GROUPS_IN, LAYOUT_KEY, LayoutPdk
 from gmid_engine.layout.contract_input import PDK_RULE_QUANTITIES
 from gmid_engine.layout.contract_output import (
     DeviceDiffusion,
-    DeviceLayout,
+    DeviceFinger,
     FloorplanSummary,
     GroupAttempt,
     GroupLayout,
@@ -44,12 +46,13 @@ def floorplan(w, h, grid=GRID, area=None, passive=0.0, included=()):
 
 
 def dlay(name, fw, nf, W, tol=0.01):
-    """놓인 소자(finger_w 있음). W = 실현 W(손으로 준다)."""
-    return DeviceLayout(name, fw, nf, (), W, W, W, 0.0, tol / 2, tol, tol, False, "row", ())
+    """놓인 소자: (이름, `ly_finger` 값 DeviceFinger). W = 실현 W(손으로 준다). 폭 키 = fw / 격자(손으로 고른 값이 정수 근처)."""
+    return (name, DeviceFinger(name, round(fw / GRID), fw, nf, W, W, 0.0, tol / 2, tol, tol, False, True, "row", None, None))
 
 
 def dunplaced(name, tol=0.01):
-    return DeviceLayout(name, None, 0, (), 1e-6, 1e-6, 1e-6, 0.0, tol / 2, tol, tol, False, "row", ())
+    """놓지 못한 소자: `ly_device` 에는 있고 `ly_finger` 값이 없다."""
+    return (name, None)
 
 
 def attempt(fw, nfs, step="w_request", ok=False, reason=""):
@@ -65,9 +68,29 @@ def ddiff(name, fw, nf, ad, as_, pd, ps):
     return DeviceDiffusion(name, fw, nf, ad, as_, pd, ps)
 
 
-def layout(devices=(), groups=(), diffusion=(), plan=None):
-    return LayoutResult((), tuple(devices), tuple(groups), (), (), None, (), (), plan if plan is not None else floorplan(1e-5, 1e-5),
-                        tuple(diffusion), True, (), (), True, None, ())
+def layout(devices=(), groups=(), diffusion=(), plan=None, groups_in=()):
+    """손 레이아웃 결과: 레이아웃 필드(`ly_device`·`ly_finger`·`ly_groups`·`ly_groups_in`·`ly_floorplan`·`ly_diffusion`)를 든 FakeSnapshot 의
+    `LayoutResult(snapshot, computed_blocks=())`. `devices` = `dlay`/`dunplaced` 항목, `groups_in` = 입력 그룹(gid·hub_net)."""
+    fields = {
+        ("device", F_DEVICE): {n: SimpleNamespace(name=n) for n, _f in devices},
+        ("device", F_FINGER): {n: f for n, f in devices if f is not None},
+        ("graph", F_GROUPS): {LAYOUT_KEY: tuple(groups)},
+        ("graph", F_GROUPS_IN): {LAYOUT_KEY: tuple(groups_in)},
+        ("graph", F_FLOORPLAN): {LAYOUT_KEY: plan if plan is not None else floorplan(1e-5, 1e-5)},
+        ("graph", F_DIFFUSION): {LAYOUT_KEY: tuple(diffusion)},
+    }
+    return LayoutResult(FakeSnapshot(fields), ())
+
+
+def groups_in(*hubs):
+    """입력 그룹(`ly_groups_in`) 가짜: ((gid, hub_net), ...) -> 피검이 읽는 gid·hub_net 만."""
+    return tuple(SimpleNamespace(gid=g, hub_net=h) for g, h in hubs)
+
+
+def with_groups_in(lay, hubs):
+    """손 레이아웃 결과에 입력 그룹 필드를 넣는다(gid 순)."""
+    lay.snapshot.fields[("graph", F_GROUPS_IN)] = {LAYOUT_KEY: groups_in(*sorted(hubs))}
+    return lay
 
 
 def placement(name, key, nf, W, pending=False, tol=0.01, grid=GRID):
@@ -125,7 +148,7 @@ def converged(pid, power, area, bbox, b_p=1e-9, slack_rows=(5.0,), status="conve
     """refilter·admission·alternation 입력용 ConvergedPoint(판정 축 값만 의미 있음)."""
     plan = floorplan(bbox, bbox, grid=grid, area=area)
     res = SimpleNamespace(constraints=rows(*slack_rows))
-    return ConvergedPoint(pid, status, None, res, SimpleNamespace(floorplan=plan), None, area, area, power, b_p, 1, (), (), (), (),
+    return ConvergedPoint(pid, status, None, res, layout(plan=plan), None, area, area, power, b_p, 1, (), (), (), (),
                           (), (), (), (), 0, 0, None, ())
 
 
@@ -216,7 +239,7 @@ class RealPath:
             before = sctx.counters["kernel_calls"]
             placed = real_place(*a, **k)
             spy.place.append((before, sctx.counters["kernel_calls"], placed,
-                              None if placed.unplaced else realized_geometry(placed.layout, placed.placements, placed.keys)))
+                              None if placed.unplaced else realized_geometry(placed.layout.snapshot, placed.placements, placed.keys)))
             return placed
 
         def eval_spy(*a, **k):

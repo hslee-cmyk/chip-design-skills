@@ -27,6 +27,8 @@ from gmid_engine.convergence import (
     converge,
 )
 
+from gmid_engine.layout import F_FLOORPLAN, LAYOUT_KEY
+
 from .conftest import candidate, converged, module, pdk, rows
 
 U = 1e-12           # 격자 1e-8 x bbox 1e-4
@@ -159,7 +161,8 @@ def test_real_converges_and_front_kept(real, name):
     assert [p.point_id for p in out.front] == ["p0"] and out.dropped == () and out.nonconverged == ()
     assert out.rounds == 1 and out.k_alt == 1
     judged = [dict(n) for n in out.notes if dict(n)["verdict"] == "judged_axis"][0]
-    assert tuple(judged["included"]) == tuple(i for i, _v, _rule in r.point.layout.floorplan.included)
+    assert tuple(judged["included"]) == tuple(
+        i for i, _v, _rule in r.point.layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN).included)   # [U17 1-e] ly_floorplan 필드
     assert dict(out.perf)["kernel_calls"] == r.point.kernel_calls
 
 
@@ -179,7 +182,7 @@ def test_real_two_stage_passives_feed_judged_axis(real):
     assert values["CL"] == spec["human"]["element_values"]["CL"]["value_farad"]
     assert values["Cc"] == dict(cp.result.theta)[("capacitance", "Cc")]
     assert values["Rz"] * gm == pytest.approx(1.0, rel=1e-12)                   # Miller 영점 상쇄 Rz = 1/gm2
-    plan = cp.layout.floorplan
+    plan = cp.layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN)                      # [U17 1-e] ly_floorplan 필드
     assert "passive_blocks_mim_poly_resistor" in [i for i, _v, _rule in plan.included]
     unit = dict(r.sctx.area_decl.unit_area)
     assert plan.passive_area_m2 >= values["Cc"] * unit["Cc"]                     # MIM 면적 >= C / 밀도 (측정 부하 CL 은 제외)

@@ -5,7 +5,7 @@
 K_alt = sizing `k_max(구간폭, tol)`: 구간폭 = 수렴 점들의 판정 축 외곽 면적 범위 `max − min`(m²), tol = 두 점 사이 동률 폭 `area_tie_m2` 의 최솟값(레이아웃 해상도 -- 이보다 작은
 면적 차는 순위를 가르지 못한다). 범위가 tol 이하이거나 점이 하나뿐이면 1(재실행 한 번 허용). 새 상수 없음.
 """
-from gmid_engine.layout import area_tie_m2
+from gmid_engine.layout import F_FLOORPLAN, LAYOUT_KEY, area_tie_m2
 from gmid_engine.sizing import k_max
 
 
@@ -15,5 +15,6 @@ def alternation_bound(points):
         return 1
     areas = [p.layout_area_m2 for p in points]
     width = max(areas) - min(areas)
-    tol = min(area_tie_m2(a.layout.floorplan, b.layout.floorplan) for i, a in enumerate(points) for b in points[i + 1:])
+    plan = [p.layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN) for p in points]
+    tol = min(area_tie_m2(a, b) for i, a in enumerate(plan) for b in plan[i + 1:])
     return 1 if width <= tol else k_max(width, tol)

@@ -6,7 +6,8 @@
 `run_layout` 의 유일한 프로덕션 호출처(`place_layout` 이 부른다)이자 `evaluate(geometry=)` 의 유일한 호출처다.
 
 루프(점마다, 평가 커널 호출은 모두 `evaluate` 한 곳):
-1. 현재 점(처음엔 front 점)의 봉인 스냅샷으로 `LayoutInput` 을 만들어 레이아웃을 놓는다(`place_layout` -- 폭 키 좁히기·완화 판정 포함, 커널 0).
+1. 현재 점(처음엔 front 점)의 봉인 스냅샷으로 `LayoutInput` 을 만들어 레이아웃을 놓는다(`place_layout` -- 폭 키 좁히기·완화 판정 포함, 커널 0). 레이아웃 필드는
+   그 설계점 스냅샷의 S2 `layout` 필드다(설계 40 v1.6 §2.4.7): 같은 현재 점에서의 재시도(거부·키 제외)는 앞 레이아웃 스냅샷 위에, 새 현재 점은 그 설계점 스냅샷 위에 쓴다.
 2. 실효 배치에서 `RealizedGeometry`(실현 W 고정 입력 + 실현 폭 슬라이스 + 실현 확산 기하)를 만든다. **이 기하가 직전에 평가한 기하와 같으면 고정점이다**
    (그 평가 점으로 놓은 레이아웃이 같은 기하를 낳음) -> 수렴.
 3. 아니면 같은 θ·L 칸으로 그 기하를 고정해 평가 커널 1회 + 봉인 1~8(+ spec 제약 행)을 다시 돈다(LY7 -- W_request 유무와 관계없이 레이아웃 결과마다 1회). 통과하면 그 점이
@@ -20,7 +21,7 @@
 import dataclasses
 
 from gmid_engine.core import NonconvergentError
-from gmid_engine.layout import passives_from_decl
+from gmid_engine.layout import F_FLOORPLAN, F_GROUPS, LAYOUT_KEY, passives_from_decl
 from gmid_engine.metrics import PassiveAreaDecl
 from gmid_engine.search import STATUS_SEALED, evaluate
 
@@ -73,11 +74,12 @@ def converge_point(sctx, pdk, point):
     def done(status, current, placed, geometry, iterations, k_max, failure, rejected, relaxed, first_seen, layouts, notes=()):
         layout = None if placed is None else placed.layout
         verified = current if current is not start else None
-        area = None if layout is None else layout.floorplan.outline_area_m2
+        area = None if layout is None else layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN).outline_area_m2
         junction = () if verified is None else junction_change(start.evaluation.snapshot, verified.evaluation.snapshot)
         seen = {} if placed is None else first_seen
         records = () if placed is None else relaxation_records(seen, layout, relaxed)
-        unmatched = () if layout is None else tuple((g.gid, g.role, g.reason) for g in layout.groups if g.pattern is None)
+        unmatched = () if layout is None else tuple((g.gid, g.role, g.reason) for g in layout.snapshot.value("graph", LAYOUT_KEY, F_GROUPS)
+                                                    if g.pattern is None)
         return ConvergedPoint(point.point_id, status, point, verified, layout, geometry, start.objectives.area_m2, area,
                               None if verified is None else verified.objectives.power_w,
                               None if verified is None else verified.objectives.power_resolution_w, k_max, tuple(iterations),
@@ -102,7 +104,7 @@ def converge_point(sctx, pdk, point):
         if placed.unplaced:
             return done(STATUS_UNPLACEABLE, current, placed, None, iterations, k_bound, None, rejected, relaxed, first_seen,
                         layouts, (("unplaced_devices", placed.unplaced),))
-        geometry = realized_geometry(placed.layout, placed.placements, placed.keys)
+        geometry = realized_geometry(placed.layout.snapshot, placed.placements, placed.keys)
         if geometry == previous_geometry:
             return done(STATUS_CONVERGED, current, placed, geometry, iterations, k_bound, None, rejected, relaxed, first_seen, layouts)
         bound, dlnw, tol = w_loop_bound(placed.placements, sized_w)
@@ -125,10 +127,11 @@ def converge_point(sctx, pdk, point):
         reject = () if accepted or not pending or set(pending) <= rejected else pending
         status = "sealed" if accepted else ("rejected" if reject else "failed")
         iterations.append(Iteration(len(iterations) + 1, tuple((p.name, p.key, p.n_fingers) for p in placed.placements), pending,
-                                    reject, status, sctx.counters["kernel_calls"] - calls0, placed.layout.floorplan.outline_area_m2,
+                                    reject, status, sctx.counters["kernel_calls"] - calls0, placed.layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN).outline_area_m2,
                                     dlnw, None if accepted else _margin(result)))
         if accepted:
             current, previous_geometry = result, geometry
+            previous_layout = None                               # 새 설계점: 레이아웃은 그 설계점 스냅샷 위에 다시 쓴다(설계 40 v1.6 §2.4.7, 별도 lineage 없음)
             keys_now = tuple(sorted(geometry.w_keys))
             if not visited or visited[-1] != dc_state:
                 visited.append(dc_state)

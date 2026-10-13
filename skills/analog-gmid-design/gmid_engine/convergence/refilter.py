@@ -4,17 +4,17 @@
 
 `points` = 수렴한(`STATUS_CONVERGED`) `ConvergedPoint` 들. 탐색 축 필터와 같은 함수 `search.nondominated` 를 쓴다:
 * 축 = (재검증 점의 `power_w`, 수렴 레이아웃의 `floorplan.outline_area_m2`), 둘 다 최소화. slack = 재검증 점의 활성 제약 여유 합.
-* 동률 폭 = (전력: 두 점 전력 분해능 b_P 중 큰 값 -- 탐색 축 필터와 같다, 면적: `layout.area_tie_m2`(두 점 `FloorplanSummary`) = 제조 격자 x max(두 점 bbox 변 4개), DEC-79).
+* 동률 폭 = (전력: 두 점 전력 분해능 b_P 중 큰 값 -- 탐색 축 필터와 같다, 면적: `layout.area_tie_m2`(두 점 레이아웃 스냅샷의 `ly_floorplan` 필드) = 제조 격자 x max(두 점 bbox 변 4개), DEC-79).
 반환: `kept` = 남은 점 id(남기는 순서), `dominated` = ((id, 지배한 id), ...) id 순, `folded` = ((id, 대표 id), ...) id 순 -- 모든 축이 동률 폭 안이라 먼저 남은 점으로 접힌 점.
 """
-from gmid_engine.layout import area_tie_m2
+from gmid_engine.layout import F_FLOORPLAN, LAYOUT_KEY, area_tie_m2
 from gmid_engine.search import nondominated
 
 
 def refilter(points):
     points = tuple(points)
     ids = tuple(p.point_id for p in points)
-    plan = {p.point_id: p.layout.floorplan for p in points}
+    plan = {p.point_id: p.layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN) for p in points}
     power_tie = {p.point_id: p.power_resolution_w for p in points}
     entries = tuple((p.point_id, (p.power_w, p.layout_area_m2), sum(row.c for row in p.result.constraints if row.active))
                     for p in points)
