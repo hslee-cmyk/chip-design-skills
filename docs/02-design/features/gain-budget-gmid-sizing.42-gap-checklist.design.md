@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.8
+version: 1.8.1
 plan_version: 6.7
 ---
 
@@ -198,8 +198,8 @@ plan_version: 6.7
 | D-SYb | 궤도 θ 묶기와 해제, `orbit_matching_crosstab`, diff_pair 궤도 검사(review 조건은 D-SYe) | 40 §6 | PART(브랜치) | `[ng-layer0-canon]` `E/search/orbit_ties.py`, `tie_expand.py`, `human.search.untie_orbits`. 대조 표는 MISS |
 | D-SYc | 수동소자를 방향 없이 다루는 라벨링과 부호 있는 전류 묶기(사용자 결정 2026-10-08 'b') | 40 §6-7 | DEV | 브랜치 실측에서 9회로 모두 묶기가 비활성이다(수동소자를 방향 있는 것으로 다룸) |
 | D-SYd | folded_cascode·two_stage_ota front 회귀 추적 | 40 §6-6 | MISS | `tests/integration`에 없음 |
-| D-SYe | diff_pair review (나'): 두 멤버가 다른 궤도이고 (a) 출력 포트가 `differential_output_p/n` 쌍, (b) 그 쌍의 두 gate가 차동 입력 포트 p/n일 때만 `review_needed`, 나머지는 crosstab 기록만. 9회로 review 0, 거부 test = 파일럿 넷 하나 비대칭 합성 회로 | 40 §6-5, §10.2 | MISS | `rg "orbit_matching_crosstab"` 0 |
-| D-SYf | 전류 기저 열 순서 키 = (궤도 비자명 먼저, `dc_colour`, 이름), `current_basis`가 `graph/s1: orbits` 읽음. (전류 묶음 수, 탐색 θ 변수 수)(`SearchDomain.ties` 전류 묶음 수, `len(SearchDomain.variables)`): 파일럿 29/38(M1a~M1b, M19~M10), 나머지 8회로 = master `8e46548` as-built 값, 28/39(규칙 전)는 기록만 | 40 §6-3·§6-8 | MISS | `E/sizing/current_basis.py:8` 열 순서 = (`dc_colour`, 이름), orbit 읽기 0 |
+| D-SYe | diff_pair review (나'): 두 멤버가 다른 궤도이고 (a) 출력 포트가 `differential_output_p/n` 쌍, (b) 그 쌍의 두 gate가 차동 입력 포트 p/n일 때만 `review_needed`(코드 `diff_pair_orbit_split`), 나머지는 crosstab 기록만. 9회로 review 0, 거부 test = 파일럿 넷 하나 비대칭 합성 회로 | 40 §6-5, §10.2 | MISS | `rg "orbit_matching_crosstab"` 0 |
+| D-SYf | 전류 기저 열 순서: 결정 취지 "대칭 궤도 원소를 자유 열로 먼저 남긴다" = 자유 열 선택에서 비자명 궤도 우선, 행사다리꼴이 앞 열을 pivot으로 잡으므로 열 정렬 키 = (궤도 비자명이 뒤, `dc_colour`, 이름)(앞에 두면 파일럿 27/40). `current_basis`가 `graph/s1: orbits` 읽음. (묶음 수, 탐색 θ 변수 수) = (`len(SearchDomain.ties)`, `len(SearchDomain.variables)`): 파일럿 29/38, 그중 전류 묶음 7(M1a~M1b, M19~M10), 나머지 8회로 = master `8e46548` as-built 값, 28/39(규칙 전, 전류 묶음 6)는 기록만 | 40 §6-3·§6-8 | MISS | `E/sizing/current_basis.py:8` 열 순서 = (`dc_colour`, 이름), orbit 읽기 0 |
 | D-NS | 시간과 무관한 계수 예산 N_S, `structure_count_budget` | 41 §0 | MISS | `rg "count_budget"` 0 |
 | D-NM | 비단조 축 세분(미러 비·전류 배율·저항), 저항 컨덕턴스 격자 | 41 §4.2 | MISS | -- |
 | D-LS | `size_and_seal_local` 국소 봉인 인터페이스 | 41 §5.3 | MISS | `rg "size_and_seal_local"` 0 |
@@ -227,7 +227,7 @@ plan_version: 6.7
 | D-J5 | 입력 DC 정책: SP-2 (c) y_icm 창 범위, `required_input_cm_v`, sf `icm_margin_v >= 0` 제약, `buffer_window_report`, `icmr_window_short_l_bin` 경고 | 41 §4.6, 40 §3.8-8, §9.2 | MISS | `rg "required_input_cm\|short_l_bin" E/` 0. `assets/library/sf_pushpull_output_opamp.sizing_spec.json`에 `icm_margin_v` 제약 없음 |
 | D-J6 | `structure.json` concept 어휘 7개(신규 5), override/confirm/고아/불일치 전이, `structure_rule_fp`, 단계 A의 사실 로드 순서·`build_s1(structure=)`·`declared_loop_cuts` 전달, 뷰 한정 `ac_ground_exception` 소비 | 40 §3.2-3, 41 §1.12.6 | MISS | `[u1-sp1] E/graph/structure_load.py`는 `drive_kind`만 소비한다. `[u1-sp1] E/pipeline/stage_a.py` `run_stage_a`는 `declared_loop_cuts`를 넘기지 않는다 |
 | D-J7 | 회로별 사실 파일(`assets/library/<name>.structure.json`) 작성: U1b 병합 뒤, confirm 사실은 실측 일치 시만, rule_hash = 병합 코드의 `structure_rule_fp` | 40 §3.2-3 표 | MISS | 사실 파일 0개(작성 순서상 U1b 뒤) |
-| D-J8 | 혼재 노드 구동 종류(C-1 + 보완 (가)): (i) source 쪽 소자 drain이 교류 접지·gate가 신호 노드면 follower → 전압 구동, (ii) 아니면 drain 쪽 gate가 신호 노드면 전류 구동. 9회로 발동표(옛/새/근거 `follower`\|`cascode`, 키 (회로, `view_key`, 노드), 혼재로 판정되는 모든 뷰에서 바뀜) = 바뀐 노드 sf N910·N1112·N1516 + folded_cascode Vg10(전류 구동), sf N17·N20 전압 구동 유지, 나머지 무동작. folded: M8 stage 시작 해제 판정 + 그 밖 변화 기록 | 41 §1.5-4 | MISS | as-built는 DC 역할로 가른다(`E/graph/drive_kind.py`) |
+| D-J8 | 혼재 노드 구동 종류(C-1 + 보완 (가)): (i) source 쪽 소자 drain이 교류 접지·gate가 신호 노드면 follower → 전압 구동, (ii) 아니면 drain 쪽 gate가 신호 노드면 전류 구동. 9회로 발동표(옛/새/근거 `follower`\|`cascode`, 키 (회로, `view_key`, 노드), 혼재로 판정되는 모든 뷰에서 바뀜) = 바뀐 노드 sf N910·N1112·N1516 + folded_cascode Vg10(전류 구동), sf N17·N20 전압 구동 유지, 나머지 무동작. folded: M8 stage 시작 셀 아님 유지 판정(base도 시작 셀 = M1, M2) + 그 밖 변화 기록(허용 = Vg10 극점 노드 drive voltage → current 하나, 블록·stage 9회로 불변) | 41 §1.5-4 | MISS | as-built는 DC 역할로 가른다(`E/graph/drive_kind.py`) |
 | D-J9 | `structure.json` concept `l_owner`(C-3, override). nmcnr 사실 = [M104, M105] → M105(사용자 결정 2026-10-12 "C-3은 네 제안대로 해") | 40 §3.2-3, 41 §1.12.5 | MISS | `rg "l_owner"` 사실 개념 0, nmcnr 사실 파일 없음 |
 | D-J10 | 파일럿 `structure.json` `rule_hash`만 재기록(사실 불변, approval_id `user_decisions 2026-10-12 C-6 재확인`): ①-d 마지막 규칙 변경(C-1 보완 (가)·전류 기저 열 순서) 뒤 1회, 갱신 뒤 단계 A Vbias2 판정 불변 확인(달라지면 갱신하지 않고 재질의) | 40 §3.2-3 | MISS | 규칙 변경 미병합(master `8e46548`) |
 | D-RA | 저항 면적: poly 시트·최소 폭·머리를 PDK 선언에 두고 Ω당 면적 계산 | 40 §7.1 | MISS | `rg "poly_res_sheet"` 0 |
@@ -298,6 +298,8 @@ plan_version: 6.7
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
 | 설계 항목 | 155 | 0 | 23 | 16 | 115 | 1 |
 | **합계** | 252 | 27 | 30 | 51 | 137 | 7 |
+
+v1.8.1(2026-10-13, U17 ①-d·①-e 실측에 문구를 맞춘 정정, 사용자 결정 변경 아님): D-SYf (묶음 수, 변수 수) 정의 = `len(SearchDomain.ties)`·`len(SearchDomain.variables)`(파일럿 29/38, 전류 묶음 7)와 열 정렬 방향(비자명 궤도 원소를 뒤로 = 자유 열 우선), D-SYe 기록 코드 `diff_pair_orbit_split`, D-J8 folded M8 "해제" → "시작 셀 아님 유지". 상태·집계 불변.
 
 v1.8(2026-10-13, 사용자 결정 2026-10-12 "나'로 진행해"·"1, 가로 해"·"2번 승인."·"3번 권고대로"·"4번 권고대로"): 설계 항목 4행 추가(D-J10, D-SYe, D-SYf, D-LY5, 모두 MISS -- master `8e46548`에서 잰), D-J8·D-D1·D-SYb·D-GR3·D-GR12·D-GR13 문구 갱신(상태 불변).
 
