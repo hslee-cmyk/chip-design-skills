@@ -189,11 +189,15 @@ from .structure_load import StructureFacts, load_structure_facts
 from .structure_tables import structure_tables
 from .supplies import supplies_declaration
 
-# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 graph 필드 값 형식 -- S1 필드(`S1_WRITERS`)의 값 형식 전부(설계 40 §2.4.3 '타입 등록부').
-# 새 S0 수준 필드가 graph 로 옮겨 오면 그 값 형식을 여기 더한다.
+# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 graph 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식'):
+# (1) S1 필드(`S1_WRITERS`)의 값 형식 전부, (2) S1v 필드 값 형식 -- 묶음 `S1v` 를 필드로 풀었을 때 그 필드 값에서 닿는 frozen dataclass
+# (`S1v.key` 의 `S1Key`, `views` 의 `ViewS1v` 와 그 안의 값, `l_classes`·`findings`). 묶음 `S1v` 자체와 계산용 입력 모형(`NetModel`·`Mos`·`TwoTerm`·
+# `ViewSeed`·`StructureFact`·`LoopEdge`)은 필드 값이 아니라 올리지 않는다. 새 S0 수준 필드가 graph 로 옮겨 오면 그 값 형식을 여기 더한다.
 for _field_value_type in (BulkResult, Evidence, Segment, Branch, Column, ColumnOrphan, GsGroup, DcRole, RelEdge,
-                          MatchingGroup, MatchingDisposition, GvgsSummary):
-    type_registry().register(_field_value_type)
+                          MatchingGroup, MatchingDisposition, GvgsSummary,
+                          S1Key, ViewS1v, Finding, Block, CompositeBlock, Loop, LClass, CellInfo, DriveInfo, PoleNode, PassBundle,
+                          OutputDirection, LoopRole, FeedforwardCell, FfRatioCandidate):
+    type_registry.type_registry().register(_field_value_type)
 
 __all__ = (
     "AC_GROUND_GATE_ONLY",

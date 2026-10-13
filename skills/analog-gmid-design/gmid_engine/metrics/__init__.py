@@ -5,6 +5,8 @@
 계약: `metrics/CONTRACT.md`.
 """
 
+from gmid_engine.core import type_registry
+
 from .achievability import achievability, block_spec, local_inputs
 from .achievability_types import (
     Achievability,
@@ -157,6 +159,12 @@ from .stamp_two_terminal import two_terminal_stamps
 from .supply import supply_currents
 from .verified_by import VerifiedBy, verified_by
 from .block_gain_model import block_gain_model_of
+
+# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 metrics 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식'): 묶음 `Achievability` 를
+# 필드로 풀었을 때 그 필드 값에서 닿는 frozen dataclass(GB4 `gain`·`area`·`headroom`·`dof`·`curves`). 묶음 자체와 계산용 입력(`LocalInputs`·`BlockSpec`·
+# `AxisSpec`·`MosLocal`·`ResLocal`·`BlockModel`·`EdgeCost`)은 필드 값이 아니라 올리지 않는다.
+for _field_value_type in (GainCheck, BlockBound, AreaBound, HeadroomRow, DofReport, CurveChecks, CurveCheck, SliceCurveCheck):
+    type_registry.type_registry().register(_field_value_type)
 
 __all__ = (
     "AUX_TYPES",

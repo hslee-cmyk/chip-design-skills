@@ -15,7 +15,7 @@
   하나라도 틀리면(디코더가 등록부 밖 타입을 만난 경우 포함) 손상(corrupt, RuntimeWarning)이고 스냅샷을 돌려주지 않는다.
 * `save(inputs, sources, snapshot) -> 경로 | None`: 키 파일이 이미 있고 검증을 통과하면 쓰지 않는다. 아니면(없음·손상) 같은 폴더의 임시 파일에
   쓰고 fsync 뒤 `os.replace` 로 교체한다(원자적, 손상 파일은 같은 키로 교체된다). 쓰기 실패는 RuntimeWarning 뒤 None(계산 결과는 그대로).
-  쓴 뒤 1회 옛 파일 정리(U-68, 아래).
+  쓴 뒤 옛 파일 정리(U-68, 아래 -- 프로세스의 첫 쓰기에서만).
 * 형식: gzip(mtime 0) JSON 하나 `{schema_version, key{...}, writers[[kind, field, writer]...], block_versions{writer: 입력 버전},
   records[{kind, key, fields{name: {value, writer, input_version, write_count}}}], fp, body_sha256}`. `body_sha256` = 그 칸을 뺀
   문서의 정준 JSON 바이트(키 정렬·구분자 고정·ASCII) sha256. 값은 타입 있는 인코딩이다: None·bool·int·str 는 JSON 그대로,
@@ -23,8 +23,13 @@
   frozenset = `{"__type__": "frozenset", "items": [...]}`(원소 `fp_of` 정렬 = 정준 순서), frozen dataclass =
   `{"__type__": "<모듈>.<클래스>", "fields": {이름: 값}}`(init 필드만 -- 디코더가 생성자로 다시 만든다). dataclass 는 타입 등록부
   (`type_registry`)에 있는 것만 인코드·디코드한다(목록 밖은 인코드 `TypeError`, 디코드 = 손상). 옛 S3 `_plain`(repr 직렬화)은 쓰지 않는다.
-* 위치: `S0SnapshotStore.default(code_fp)` = `gmid_engine/.s0_snapshot/`(저장소 `.gitignore` 등록, P N3.5).
-* 옛 파일 정리(U-68, 쓰기 시점 1회): 폴더의 `<64 hex>.json.gz` 형식 파일(방금 쓴 파일·심볼릭 링크·폴더 밖·형식이 다르거나 읽을 수 없는 파일 제외)
+* 위치: `S0SnapshotStore.default(code_fp)` = 환경 변수 `GMID_S0_SNAPSHOT_DIR`(`SNAPSHOT_DIR_ENV`)가 비어 있지 않으면 그 폴더, 아니면
+  `gmid_engine/.s0_snapshot/`(저장소 `.gitignore` 등록, P N3.5). 환경 변수 이름은 LUT 파생표 캐시 `GMID_LUT_TABLE_CACHE_DIR` 관례를 따른다
+  (test 격리 수단 -- 기본 위치는 바뀌지 않는다).
+* 옛 파일 정리(U-68, 쓰기 시점 1회 = **프로세스의 첫 쓰기 1회**): 승인된 tol_V 캐시 정리('첫 쓰기 때만')와 같은 방식이다. 프로세스에서 처음으로
+  파일을 실제로 쓴 `save` 만 정리하고(적중·이미 있는 키는 쓰기가 아니다), 같은 프로세스의 다음 쓰기는 정리하지 않는다(실측: 엔진 코드가 바뀐 뒤
+  쓰기마다 worktree ~100개 지문을 다시 재 test 하나가 102 s). 표시는 모듈 수준 `threading.Event` 하나(`_CLEANUP_STARTED`, 값 캐시가 아닌 실행 계수
+  성격의 1비트 -- 정리를 시작하기 전에 켠다: 정리가 실패해도 그 프로세스에서 다시 시도하지 않는다). 폴더의 `<64 hex>.json.gz` 형식 파일(방금 쓴 파일·심볼릭 링크·폴더 밖·형식이 다르거나 읽을 수 없는 파일 제외)
   중 **어떤 checkout 으로도 그 키를 만들 수 없는 것**만 지운다. 판정(엔진 실행 없음): 키의 `abs:` 입력 파일은 지금 그 경로 파일의 원본 sha 가
   저장된 값과 같아야 하고(없음 = None), 이 저장소·`git worktree list` 의 어느 worktree W 에서 `W/<엔진 상대 경로>` 의 엔진 코드 지문이 키의
   것과 같고 `repo:` 입력 파일마다 `W/<상대 경로>` 의 원본 sha 가 저장된 값과 같으면(없음 = None) 재현 가능 -- 보존한다. worktree 는 이 저장소부터
@@ -39,6 +44,7 @@ import os
 import re
 import subprocess
 import tempfile
+import threading
 import warnings
 import zlib
 from collections.abc import Mapping
@@ -55,6 +61,7 @@ from .writer_table import WriterTable
 
 SCHEMA_VERSION = 1
 SNAPSHOT_DIR_NAME = ".s0_snapshot"
+SNAPSHOT_DIR_ENV = "GMID_S0_SNAPSHOT_DIR"
 FILE_SUFFIX = ".json.gz"
 KEY_CODE_FP = "engine_code_fp"
 SOURCE_PREFIX = "source."
@@ -79,6 +86,8 @@ _GIT_MARK = ".git"
 _WORKTREE_LINE = "worktree "
 _SOURCE_PAIR = ("path", "sha256")
 _FILE_NAME = re.compile(r"[0-9a-f]{64}" + re.escape(FILE_SUFFIX))
+# U-68 정리 '프로세스의 첫 쓰기 1회' 표시(모듈 머리 '옛 파일 정리') -- 켜지면 그 프로세스의 다음 쓰기는 정리하지 않는다
+_CLEANUP_STARTED = threading.Event()
 # 손상으로 보는 예외: 파일·gzip·JSON·형식 위반과, 깨진 문서로 레코드·필드 값·권한표를 다시 만들 때 나는 예외(모양이 틀린 칸의 속성 접근 포함)
 _READ_ERRORS = (OSError, EOFError, zlib.error, gzip.BadGzipFile, UnicodeDecodeError, ValueError, TypeError, KeyError, AttributeError,
                 WriterPermissionError)
@@ -286,8 +295,8 @@ class S0SnapshotStore:
 
     @classmethod
     def default(cls, code_fp):
-        """`gmid_engine/.s0_snapshot/`(`.gitignore` 등록) 저장소."""
-        return cls(str(_engine_root() / SNAPSHOT_DIR_NAME), code_fp)
+        """환경 변수 `SNAPSHOT_DIR_ENV` 가 비어 있지 않으면 그 폴더, 아니면 `gmid_engine/.s0_snapshot/`(`.gitignore` 등록) 저장소."""
+        return cls(os.environ.get(SNAPSHOT_DIR_ENV) or str(_engine_root() / SNAPSHOT_DIR_NAME), code_fp)
 
     def key_of(self, inputs, sources):
         """전체 키 dict = `inputs` + 입력 파일 칸(`source.<역할>.path`·`.sha256`) + {`KEY_CODE_FP`: code_fp}.
@@ -363,11 +372,13 @@ class S0SnapshotStore:
                     os.unlink(tmp)
                 except OSError:
                     pass
-        self._cleanup(path, key)
+        if not _CLEANUP_STARTED.is_set():
+            _CLEANUP_STARTED.set()
+            self._cleanup(path, key)
         return path
 
     def _cleanup(self, keep_path, keep_key):
-        """U-68: 어떤 checkout 으로도 키를 만들 수 없는 파일만 지운다(모듈 머리 '옛 파일 정리')."""
+        """U-68: 어떤 checkout 으로도 키를 만들 수 없는 파일만 지운다(모듈 머리 '옛 파일 정리'). 프로세스의 첫 쓰기에서만 불린다."""
         try:
             names = sorted(os.listdir(self.directory))
         except OSError:

@@ -34,7 +34,7 @@ from .snapshot_codec import (
     OUTCOME_MISS,
     S0SnapshotStore,
 )
-from .type_registry import type_registry
+from . import type_registry   # 모듈 그대로 내보낸다(등록부는 `type_registry.type_registry()`) -- 같은 이름 함수로 패키지 속성을 가리지 않는다
 from .units import AMPLITUDE_DB_PER_DECADE, DOMAINS, METRIC_UNITS, MILLI, MV_PER_V, PCT_PER_UNIT
 from .writer_error import WriterPermissionError
 from .writer_table import ENTITY_KINDS, WriterTable

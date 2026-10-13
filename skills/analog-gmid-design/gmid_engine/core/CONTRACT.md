@@ -509,10 +509,18 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
 ## 11. S0 수준 graph 스냅샷 영속화 (U17 단계 ①-a, 설계 40 §2.4.1 (d)·§2.4.3·§2.4.12 Q1·Q2, §3.10.11 U-68)
 
 ### 11.1 `type_registry() -> 등록부` (파일 `type_registry.py`, 층 0)
+- core 는 모듈 `type_registry` 를 그대로 내보낸다(`from gmid_engine.core import type_registry` -> 등록부는 `type_registry.type_registry()`).
+  같은 이름의 함수를 재수출하지 않는다 -- 그러면 패키지 속성 `gmid_engine.core.type_registry` 가 모듈이 아니라 함수로 가려진다.
 - 프로세스에 하나. `.register(cls)`: frozen dataclass 클래스만(아니면 `TypeError`), 그대로 돌려준다. 같은 클래스 재등록은 무동작,
   같은 이름(`<모듈>.<qualname>`)의 다른 클래스는 `ValueError`. `.lookup(name)` / `.name_of(cls)`: 목록 밖이면 `KeyError`. `.names()`: 정렬 tuple.
-- 등록은 각 패키지 `__init__` 이 한다(아래에서 위로). 지금 등록 = graph S1 필드 값 형식 12개(`BulkResult`, `Evidence`, `Segment`, `Branch`,
-  `Column`, `ColumnOrphan`, `GsGroup`, `DcRole`, `RelEdge`, `MatchingGroup`, `MatchingDisposition`, `GvgsSummary`). core 는 등록하지 않는다.
+- 등록은 각 패키지 `__init__` 이 한다(아래에서 위로). 대상 = 40 §2.4.2 S0 수준 층 필드 값 형식: 묶음 객체(`S1v`·`Achievability`·`StartIntervals`)를
+  필드로 풀었을 때 그 필드 값에서 닿는 frozen dataclass(묶음 자체와 계산용 입력 모형은 아님). 지금 등록:
+  graph = S1 필드 값 형식 12개(`BulkResult`, `Evidence`, `Segment`, `Branch`, `Column`, `ColumnOrphan`, `GsGroup`, `DcRole`, `RelEdge`, `MatchingGroup`,
+  `MatchingDisposition`, `GvgsSummary`) + S1v 필드 값 형식 15개(`S1Key`, `ViewS1v`, `Finding`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `CellInfo`,
+  `DriveInfo`, `PoleNode`, `PassBundle`, `OutputDirection`, `LoopRole`, `FeedforwardCell`, `FfRatioCandidate`);
+  metrics = `GainCheck`, `BlockBound`, `AreaBound`, `HeadroomRow`, `DofReport`, `CurveChecks`, `CurveCheck`, `SliceCurveCheck`;
+  search = `StartRow`, `StartConflict`, `MacroResult`, `StartRung`, `Bound`. core 는 등록하지 않는다. 값을 graph 필드로 옮기는 일은 U17 ①-b 몫이다
+  (지금 스냅샷에 실제로 쓰이는 것은 S1 필드뿐). 40 §2.4.2 의 `Placement` 는 as-built 가 `convergence/convergence_values.py` 의 레이아웃 결과(설계점 층)라 올리지 않았다.
 
 ### 11.2 `engine_code_fp(engine_root=None) -> str | None` (파일 `engine_code_fp.py`, 층 1)
 - `engine_root`(기본 = `gmid_engine` 폴더) 아래 `.py` 중 `tests/`·숨김 폴더·`__pycache__` 밖 파일마다 (posix 상대 경로, 바이트 sha256) 을
@@ -520,7 +528,8 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
 - 소비자: S0 수준 스냅샷 키 (iii), S3 기록의 `code_fp`(`search.build_search_context`, 옛 6개 패키지 `_code_fp` 대체).
 
 ### 11.3 `S0SnapshotStore(directory, code_fp)` -- frozen dataclass (파일 `snapshot_codec.py`, 층 4)
-- `S0SnapshotStore.default(code_fp)`: `directory` = `gmid_engine/.s0_snapshot`(저장소 `.gitignore`). `directory`·`code_fp` 가 빈 문자열이거나
+- `S0SnapshotStore.default(code_fp)`: `directory` = 환경 변수 `GMID_S0_SNAPSHOT_DIR`(상수 `SNAPSHOT_DIR_ENV`, LUT 파생표 캐시
+  `GMID_LUT_TABLE_CACHE_DIR` 와 같은 관례)가 비어 있지 않으면 그 값, 아니면 `gmid_engine/.s0_snapshot`(저장소 `.gitignore`). 환경 변수는 test 격리 수단이다. `directory`·`code_fp` 가 빈 문자열이거나
   문자열이 아니면 `ValueError`.
 - `key_of(inputs, sources) -> dict`: `inputs` = {비어 있지 않은 이름(`KEY_CODE_FP`="engine_code_fp" 와 `source.` 접두 금지): 문자열 | None},
   `sources` = {비어 있지 않은 역할: (경로 | None, 원본 바이트 sha256 | None)}(경로 None 이면 sha256 도 None). 위반은 `TypeError`.
@@ -541,7 +550,11 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
   `json.dumps(sort_keys=True, separators=(",", ":"), ensure_ascii=True)` 바이트 sha256. 값 인코딩: None·bool·int·str 그대로, float
   `{"__type__": "float", "hex": float.hex(x)}`, bytes `{"__type__": "bytes", "hex"}`, tuple `{"__type__": "tuple", "items"}`, frozenset
   `{"__type__": "frozenset", "items"}`(원소 `fp_of` 오름차순), 등록 dataclass `{"__type__": "<모듈>.<qualname>", "fields": {init 필드: 값}}`.
-- 옛 파일 정리(U-68, 사용자 결정 원문 범위 = topology·spec·LUT·PDK 선언·엔진 코드): `save` 가 실제로 쓴 뒤 1회. 폴더 안 `<64 소문자 hex>.json.gz`
+- 옛 파일 정리(U-68, 사용자 결정 원문 범위 = topology·spec·LUT·PDK 선언·엔진 코드): **프로세스의 첫 실제 쓰기 1회**. 40 §2.4.12 Q2 '쓰기 시점에 1회'
+  (= 승인된 tol_V 캐시 정리 '첫 쓰기 때만')의 해석: 프로세스에서 처음으로 파일을 실제로 쓴 `save` 만 정리하고, 같은 프로세스의 다음 쓰기(다른 폴더 포함)는
+  정리하지 않는다. 적중·이미 검증되는 키·쓰기 실패는 쓰기가 아니라 정리도 표시도 하지 않는다. 표시(모듈 수준 `threading.Event` `_CLEANUP_STARTED`)는
+  정리를 시작하기 전에 켠다 -- 정리가 실패해도 그 프로세스에서 다시 시도하지 않는다. 근거(실측): 엔진 코드가 바뀐 뒤 쓰기마다 worktree ~100개의
+  엔진 코드 지문을 다시 재 test 하나가 102 s 걸렸다. test 가 정리를 다시 보려면 그 표시를 새 `threading.Event()` 로 바꾼다. 폴더 안 `<64 소문자 hex>.json.gz`
   이름의 일반 파일(방금 쓴 파일·심볼릭 링크 제외, 읽을 수 없거나 키 모양이 틀린 파일은 건드리지 않음) 중 다음을 만족하는 checkout 이 하나도 없는
   파일만 지운다: 키의 `abs:` 입력 파일마다 지금 그 경로 파일의 원본 sha256 이 저장값과 같고(파일 없음 = None) / 이 저장소 top 과 `git worktree list` 의
   worktree W 중 하나에서 `W/<엔진 상대 경로>` 의 `engine_code_fp` 가 키의 `engine_code_fp` 와 같고 키의 `repo:` 입력 파일마다 `W/<상대 경로>` 원본
