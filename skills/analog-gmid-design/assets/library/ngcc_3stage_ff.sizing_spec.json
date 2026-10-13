@@ -60,6 +60,18 @@
     },
     "constraints": [
       {
+        "metric": "gain_ss_db",
+        "op": ">=",
+        "value": 111,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"Q1-2는 (ii) 권고대로, (i)는 추가하는 것으로 해\" + \"ngcc는 논문값 참조\" (단계 ② 결정 자료 Q1-2 (i)). 논문은 DC gain을 spec이 아니라 시뮬레이션 결과로 보고한다 -- 설계 예(α = 0.3, CL = 10 pF)의 결과값을 사용자 지시로 참조",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "NGCC 논문(Lee 외, JSTS Vol.7 No.1 2007) Table 5(CL=10pF) α=0.3 DC gain 111 dB 및 결론부 '111dB DC gain' (p.25; 같은 표 α 0.1~1에서 107~113 dB)"
+        }
+      },
+      {
         "metric": "gbw_ss_hz",
         "op": ">=",
         "value": 10000000.0,
