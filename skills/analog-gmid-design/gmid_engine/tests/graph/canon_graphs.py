@@ -2,8 +2,11 @@
 
 - `Circuit`: `canonical_form` 의 `source`(= `.column(kind, field)` 를 가진 것) 를 손으로 만든 회로 목록에서 만든다. 열 형식은 S1Graph 실측
   형식(`pins` = ((단자, 넷), ...), `bulk` = `.net` 을 가진 값, MOS 만 `is_diode`·`bulk`)을 따른다. 키 정렬 tuple.
-- `labeled_graph`: 4.7 문장 그대로의 그래프 -- 정점 ("n", 넷)·("e", 원소), 엣지 라벨 MOS d·g·s·b, 이상 전류원 t0·t1(방향), 그 밖 2단자 t(무향),
-  처음 색 = (종류, element_class, kind, is_diode, 표시) / (종류, is_rail, port_direction, 표시).
+- `labeled_graph`: 4.7 문장 그대로의 그래프 -- 정점 ("n", 넷)·("e", 원소), 엣지 라벨 MOS c·g·b(drain·source 는 같은 라벨 c), 이상 전류원 t0·t1(방향),
+  그 밖 2단자 t(무향), 처음 색 = (종류, element_class, kind, is_diode, 표시) / (종류, is_rail, port_direction, 표시).
+  [U17 ①-d] 설계 40 v1.6 §6-8 D-2: "그 그래프에서 MOS의 `d`·`s` 엣지는 같은 라벨 `c`(채널)다. `g`·`b` 라벨, 원소 처음 색(kind, is_diode,
+  선언 표시), 노드 색(레일, 포트 role, 선언 표시)은 그대로다" -- 정준 위치·1-WL 색·자기동형 생성자를 모두 이 그래프 하나에서 정한다.
+- `flip_ds`: MOS 하나의 drain·source 표기를 맞바꾼 사본(§6-8 비트 동일 metamorphic 입력).
 - oracle (b): `brute_orbits`(역추적 전수 자기동형: 처음 색·라벨 엣지 다중도 보존 전단사), `wl_classes`(1-WL, sizing 3.0 문장).
 """
 from __future__ import annotations
@@ -52,6 +55,17 @@ class Circuit:
                 raise KeyError((kind, field))
         return tuple(out)
 
+    def flip_ds(self, name):
+        """MOS `name` 의 drain·source 표기를 맞바꾼 사본(연결은 같다). is_diode 는 S1 정의(gate == drain)대로 다시 정한다 --
+        gate 가 drain·source 어느 쪽도 아닌 MOS 만 물리적으로 같은 회로다(호출부가 고른다)."""
+        els = []
+        for n, c, k, p, d, b in self.elements:
+            if n == name:
+                p = dict(p, d=p["s"], s=p["d"])
+                d = p["d"] == p["g"]
+            els.append((n, c, k, dict(p), d, b))
+        return Circuit(els, set(self.rails), dict(self.ports), list(self.nets))
+
     def renamed(self, sig):
         f = lambda n: sig.get(n, n)                                        # noqa: E731
         els = [(f(n), c, k, {t: f(x) for t, x in p.items()}, d, None if b is None else f(b)) for n, c, k, p, d, b in self.elements]
@@ -90,7 +104,7 @@ def labeled_graph(c, element_marks=(), node_marks=()):
         col[v] = ("e", cls, k, bool(diode) if cls == "mos" else False, em.get(name, ()))
         nb[v] = []
         if cls == "mos":
-            links = [(t, pins[t]) for t in ("d", "g", "s")] + ([("b", bulk)] if bulk is not None else [])
+            links = [("c", pins["d"]), ("g", pins["g"]), ("c", pins["s"])] + ([("b", bulk)] if bulk is not None else [])
         elif cls == "ideal_source" and k == "current_source":
             links = [("t0", pins["t0"]), ("t1", pins["t1"])]
         else:

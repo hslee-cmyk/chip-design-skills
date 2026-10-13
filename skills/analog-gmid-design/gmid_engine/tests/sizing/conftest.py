@@ -765,7 +765,9 @@ def node_voltages(snap):
 
 
 def wl_colours(snap):
-    """CONTRACT 3.0 구조 색(1-WL)의 독립 구현. 입력은 S1 필드만. 반환 ({노드: 색}, {원소: 색})."""
+    """CONTRACT 3.0 구조 색(1-WL)의 독립 구현. 입력은 S1 필드만. 반환 ({노드: 색}, {원소: 색}).
+    [U17 ①-d] 설계 40 v1.6 §6-8 D-2: 1-WL 색 `wl` 도 정준 위치·생성자와 같은 그래프 하나에서 정하고, 그 그래프에서 MOS 의 d·s 엣지는 같은 라벨
+    `c`(채널)다 -- 그래서 여기 MOS 링크도 d·s -> c."""
     nodes = list(snap.keys("node"))
     elems = list(snap.keys("device"))
     sig0 = {}
@@ -783,7 +785,7 @@ def wl_colours(snap):
         pins = dict(snap.value("device", e, "pins"))
         links = []
         if cls == "mos":
-            links = [(t, pins[t]) for t in ("d", "g", "s")]
+            links = [("c", pins["d"]), ("g", pins["g"]), ("c", pins["s"])]
             bf = snap.field("device", e, "bulk")
             if bf is not None and bf.value is not None and bf.value.net is not None:
                 links.append(("b", bf.value.net))

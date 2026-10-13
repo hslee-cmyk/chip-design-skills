@@ -81,7 +81,7 @@ def _links(snap, e):
     kind = snap.value("device", e, "kind")
     pins = dict(snap.value("device", e, "pins"))
     if cls == "mos":
-        out = [(t, pins[t]) for t in ("d", "g", "s")]
+        out = [("c", pins["d"]), ("g", pins["g"]), ("c", pins["s"])]          # [U17 ①-d] 40 §6-8 D-2: d·s = 같은 라벨 c
         bf = snap.field("device", e, "bulk")
         if bf is not None and bf.value is not None and bf.value.net is not None:
             out.append(("b", bf.value.net))
@@ -318,3 +318,36 @@ def test_block_reuse_with_same_marks(ctx_c):
     dc_struct_colour.reset_stats()
     assert dc_struct_colour(base, (), other) is not base
     assert dc_struct_colour.stats().reuses == 0
+
+
+# ---------------------------------------------------------------- [U17 ①-d] 설계 40 v1.6 §6-8 MOS d/s 맞바꿈 (D-2·D-3)
+# "이름 전단사, 수동소자 단자 순서 변경, MOS d/s 표기를 뒤집은 입력이 모두 비트 동일 결과(궤도, 정준 위치, `dc_colour`, front 정규화 해시)를 낸다".
+# 대상은 gate 가 drain·source 어느 쪽도 아닌 MOS(diode 연결 MOS 는 d/s 를 바꾸면 gate-source 단락이 되어 다른 회로).
+
+def _flip_ds(doc, names, new_name):
+    d = json.loads(json.dumps(doc))
+    for e in d["netlist"]:
+        if e["name"] in names:
+            e["drain"], e["source"] = e["source"], e["drain"]
+    d["topology_name"] = new_name
+    return d
+
+
+@pytest.mark.parametrize("names", [("M1",), ("M3",), ("M5",), ("M1", "M2", "M3", "M4", "M5")])
+def test_ds_flip_colours_and_orbits_bit_identical(names, tmp_path, toy_access):
+    doc = sym_doc("hand_sym_ds", caps=True)
+    _, _, base = build_ctx(tmp_path / "base", doc, toy_access)
+    _, _, flip = build_ctx(tmp_path / "flip", _flip_ds(doc, names, "hand_sym_ds_f"), toy_access)
+    assert colours(flip.base) == colours(base.base)
+    assert orbits(flip.base) == orbits(base.base)
+
+
+def test_ds_flip_library_bit_identical(tmp_path, toy_access):
+    """library 회로(two_stage_ota)에서 gate 가 d·s 가 아닌 모든 MOS 를 한꺼번에 뒤집어도 dc_colour·dc_orbit 이 같다."""
+    raw, td, spec, inputs, s1, ctx = library_ctx("two_stage_ota", toy_access)
+    names = {e["name"] for e in raw["netlist"] if e["gate"] not in (e["drain"], e["source"])}
+    assert names
+    d2 = _flip_ds(raw, names, raw["topology_name"])
+    ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d2), dict(inputs.supplies_v)), inputs, toy_access)
+    assert colours(ctx2.base) == colours(ctx.base)
+    assert orbits(ctx2.base) == orbits(ctx.base)

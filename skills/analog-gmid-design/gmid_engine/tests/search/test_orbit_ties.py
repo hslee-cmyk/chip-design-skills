@@ -300,3 +300,30 @@ def test_b_pilot_current_reuse_r1_r2_tied(tmp_path, lut_sealed):
     assert orig.domain.ties
     assert _dimension(orig.domain) == _dimension(flipped.domain)
     assert len(tie_groups(orig.domain.ties)) == len(tie_groups(flipped.domain.ties))
+
+
+# ---------------------------------------------------------------- [U17 ①-d] 설계 40 v1.6 §6-8 MOS d/s 맞바꿈 (D-3 비트 동일)
+# §6-8: "이름 전단사, 수동소자 단자 순서 변경, MOS d/s 표기를 뒤집은 입력이 모두 비트 동일 결과(궤도, 정준 위치, `dc_colour`, front 정규화
+# 해시)를 낸다" + §6-3 θ 묶기는 같은 궤도 원소를 묶는다 -> d/s 뒤집기 전후 묶음 그룹(ties)이 같다. 이름이 같으므로 ties 가 그대로 같아야 한다.
+# 부호(negated)는 비교하지 않는다(§6-8 '전류 부호': drain 이 상 drain 으로 가지 않으면 −1 -- 표기를 뒤집은 소자는 전류 기준 방향이 바뀐다).
+# 뒤집기 대상 = gate 가 drain·source 어느 쪽도 아닌 MOS(SYM 의 다섯 MOS 모두).
+
+def _flip_ds(doc, names, new_name):
+    import json
+    d = json.loads(json.dumps(doc))
+    for e in d["netlist"]:
+        if e["name"] in names:
+            e["drain"], e["source"] = e["source"], e["drain"]
+    d["topology_name"] = new_name
+    return d
+
+
+@pytest.mark.parametrize("names", [("M1",), ("M3",), ("M5",), ("M1", "M2", "M3", "M4", "M5")])
+def test_ds_flip_ties_bit_identical(names, tmp_path, lut_sealed):
+    base = _sym(tmp_path / "b", lut_sealed)
+    flip = make_case(tmp_path / "f", _flip_ds(sym_doc(), names, "hand_sym_canon_ds"), lut_sealed, elements=SYM_ELEMENTS,
+                     boxes=BOXES)
+    assert base.sctx.domain.ties                                            # 공허한 비교 아님
+    assert flip.sctx.domain.ties == base.sctx.domain.ties
+    assert dict(flip.dc.base.column("device", "dc_orbit")) == dict(base.dc.base.column("device", "dc_orbit"))
+    assert dict(flip.dc.base.column("device", "dc_colour")) == dict(base.dc.base.column("device", "dc_colour"))

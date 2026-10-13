@@ -107,3 +107,20 @@ def test_structure_rule_fp_tracks_s1_side_consumer_files(tmp_path, target):
     s1v_after, st_after = _fps(dst)
     assert st_after != st_before
     assert (s1v_after == s1v_before) == (target not in S1V_RULE_FILES)
+
+
+# ---------------------------------------------------------------- [U17 ①-d] `l_owner` 사실과 재사용 키(40 v1.6 §3.2-3)
+# 40 §3.2-3: "같은 topology라도 사실이 다르면 S1이 다르다", "`l_classes.py`가 `structure_rule_fp` 대상이다: S1V_RULE_FILES에 이미 있다".
+# l_owner 는 S1v(`l_classes.py`)가 소비하므로 그 사실의 지문은 S1v 재사용 키를 바꿔야 한다(같은 키면 이전 S1v 를 재사용해 주인 덮기가 사라진다).
+# 사실 지문을 S1Key.facts_fp 에 넣는지(= S1 키)까지는 design 이 정하지 않는다(§3.2-3 파이프라인 3 은 dc_role 만 적는다) -- S1v 키로만 본다.
+
+def test_l_owner_fact_changes_s1v_key(tmp_path):
+    import jrules_hand as J
+    _, plain = H.build(tmp_path, H.FOLDED)
+    _, owned = H.build(tmp_path, H.FOLDED, structure=J.facts(("l_owner", '["M3","M4"]', "M4", "C-3t")))
+    _, other = H.build(tmp_path, H.FOLDED, structure=J.facts(("l_owner", '["M3","M4"]', "M3", "C-3t")))
+    assert len({plain.key, owned.key, other.key}) == 3
+
+
+def test_l_classes_is_a_structure_rule_file():
+    assert "l_classes.py" in S1V_RULE_FILES
