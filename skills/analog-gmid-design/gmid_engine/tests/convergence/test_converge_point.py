@@ -359,3 +359,61 @@ def test_real_same_geometry_reevaluation_is_cache_hit(real, name):
     again = evaluate(r.sctx, r.start.theta, r.start.key.cells, parent=cp.result, geometry=cp.geometry)
     assert r.sctx.counters["kernel_calls"] == k0
     assert again is cp.result
+
+
+# ---------------------------------------------------------------- [_audit_u17_1c_r2 §F-3] 판정 축 수동소자 값 = 평가 스냅샷 필드(비어 있지 않은 경로)
+# 설계 40 §2.4.8: 수동소자 값의 정본은 GB5 필드 `device.passive_value` 하나 -- MOD8(convergence)은 판정 축 면적 입력으로 이 필드를 읽는다(다시
+# 계산하지 않는다). 손 스냅샷에 값을 두고(출발 점·재평가 점이 서로 다른 값), `passives_from_decl` 에 넘어가는 (선언, 값)과 `place_layout` 이 받는
+# 수동소자 면적을 본다. 면적 기대값은 metrics `PassiveArea.area_m2` 문서식(값 x 단위 면적 + 머리 면적)으로 손계산, 측정 부하는 제외(결정 11).
+
+PV_START = {"Cc": 2e-12, "CL": 1e-12, "Rz": 2500.0}
+PV_EVAL = {"Cc": 2e-12, "CL": 1e-12, "Rz": 3000.0}
+
+
+class PvLoop(Loop):
+    """Loop + place_layout 이 받은 `passives` 기록 + 재평가 스냅샷에 손 `device.passive_value` 열."""
+
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        self.passives = []
+
+    def place_layout(self, memo, snapshot, pdk_, passives, *rest):
+        self.passives.append(passives)
+        return super().place_layout(memo, snapshot, pdk_, passives, *rest)
+
+    def evaluate(self, *a, **kw):
+        r = super().evaluate(*a, **kw)
+        r.evaluation.snapshot.fields[("device", "passive_value")] = dict(PV_EVAL)
+        return r
+
+
+def test_passives_read_from_evaluation_snapshot_field(monkeypatch):
+    from gmid_engine.metrics import PassiveAreaDecl
+    mod = module("converge_point")
+    real = mod.passives_from_decl
+    seen = []
+
+    def spy(decl, values):
+        seen.append((decl, dict(values)))
+        return real(decl, values)
+
+    loop = PvLoop([lay(2e-6, area=3e-10), lay(2e-6, area=3e-10)])
+    monkeypatch.setattr(mod, "place_layout", loop.place_layout)
+    monkeypatch.setattr(mod, "evaluate", loop.evaluate)
+    monkeypatch.setattr(mod, "passives_from_decl", spy)
+    decl = PassiveAreaDecl(unit_area=(("Cc", 2e-3), ("Rz", 1e-15)), excluded=("CL",), head_area=(("Rz", 1e-12),))
+    sctx = SimpleNamespace(counters={"kernel_calls": 0}, area_decl=decl,
+                           dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO", w_keys=(("nmos", 30),))))
+    s0 = snap()
+    s0.fields[("device", "passive_value")] = dict(PV_START)
+    start = eval_result(s0, power=2e-3, area=7e-11, constraints=rows(3.0), tag="start")
+    cp = converge_point(sctx, loop.pdk, FrontPoint("p0", start, ()))
+    assert cp.status == STATUS_CONVERGED and len(loop.place_args) == 2
+    # passives_from_decl 은 (sctx 선언, 그 레이아웃을 놓는 설계점 스냅샷의 passive_value 열) 로 불린다 -- 출발 점, 그다음 재평가 점
+    assert [d for d, _ in seen] == [decl, decl]
+    assert [v for _, v in seen] == [PV_START, PV_EVAL]
+    # place_layout 이 받는 면적(손): Cc 2e-12 x 2e-3 = 4e-15; Rz 2500 x 1e-15 + 1e-12 = 3.5e-12 -> 재평가 점 3000 x 1e-15 + 1e-12 = 4e-12; CL 제외
+    want = [(("Cc", 4e-15), ("Rz", 3.5e-12)), (("Cc", 4e-15), ("Rz", 4e-12))]
+    for got, exp in zip(loop.passives, want):
+        assert [x.name for x in got] == [n for n, _ in exp]
+        assert all(x.area_m2 == pytest.approx(a, rel=1e-12) for x, (_, a) in zip(got, exp))
