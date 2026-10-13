@@ -233,3 +233,55 @@ def test_df15_zero_cancel_is_versioned_field(tmp_path, m_luts):
     assert pv1["Rz"] == pv0["Rz"] and pv1["Cc"] == 2 * CC_F
     assert pv2["Rz"] != pv0["Rz"]
     assert pv2["Rz"] == pytest.approx(_expected_rz(s2, root), rel=1e-9)
+
+
+# ===========================================================================
+# [회귀 9065d5f, 재검증 _audit_u17_1c_r2 §F-2] `passive_values` extras 의 θ 칸 = 수동소자 θ 성분만(`theta_passive_pairs`).
+# 근거: 설계 40 §2.4.1 'FD 스텝: θ가 다르므로 입력 버전이 다르다. 그 성분을 읽는 블록만 계산한다(WP-23 (5))' -- 이 블록이 읽는 θ 성분은
+# 수동소자 값의 출처인 θ 저항·커패시터·ss 저항(metrics CONTRACT 7.6 DEC-92, 42 #24 'θ capacitance, ss_resistance')뿐이다. extras 는 투영
+# 지문에 들어가므로 MOS θ(L·ln_idu·current·y)까지 넘기면 MOS θ 만 다른 스텝에서도 다시 계산한다. 호출 경로 두 곳(봉인점 `ss_evaluate`,
+# 비봉인점 `search.kernel`)의 관찰 test 는 각 원본의 짝 파일(tests/metrics/test_ss_evaluate.py, tests/search/test_kernel.py)에 둔다(규칙 H).
+# ===========================================================================
+
+MIXED_THETA = (
+    (("L", "M1"), 1e-6),
+    (("resistance", "R1"), 1e3),
+    (("ln_idu", "M1"), -14.0),
+    (("ss_resistance", "Rs"), 5e4),
+    (("current", "M2"), 1e-5),
+    (("capacitance", "C1"), 2e-12),
+    (("y", "out"), 0.5),
+    (("capacitance", "CL"), 1e-12),
+)
+
+
+def test_theta_passive_pairs_public():
+    assert "theta_passive_pairs" in metrics.__all__
+
+
+def test_theta_passive_pairs_selects_passive_components_in_order():
+    """손 θ(MOS·수동 성분 섞임) -> resistance·capacitance·ss_resistance 성분만, 원래 순서·원래 값 그대로(손으로 고른 기대값)."""
+    from gmid_engine.metrics import theta_passive_pairs
+    want = ((("resistance", "R1"), 1e3), (("ss_resistance", "Rs"), 5e4), (("capacitance", "C1"), 2e-12),
+            (("capacitance", "CL"), 1e-12))
+    assert theta_passive_pairs(MIXED_THETA) == want
+    assert theta_passive_pairs(tuple(reversed(MIXED_THETA))) == tuple(reversed(want))     # 정렬하지 않는다 -- 원래 순서
+    mos_only = tuple(p for p in MIXED_THETA if p[0][0] in ("L", "ln_idu", "current", "y"))
+    assert theta_passive_pairs(mos_only) == ()
+    assert theta_passive_pairs(()) == ()
+
+
+def test_mos_theta_change_reuses_block_through_selector(snap):
+    """같은 dc_gm 스냅샷에서 MOS θ 만 바꾼 θ 를 `theta_passive_pairs` 로 고르면 extras 가 같아 재사용(`is`, computes 0),
+    수동소자 θ(R1)를 바꾸면 계산 1 -- 값은 새 θ 값(손)."""
+    from gmid_engine.metrics import theta_passive_pairs
+    zcs = (zc("Rz", ("M1", "M2")),)
+    s1 = passive_values(snap, (), zcs, theta_passive_pairs(MIXED_THETA))
+    mos_step = tuple(((k, v * 1.01) if k[0] in ("L", "ln_idu", "current", "y") else (k, v)) for k, v in MIXED_THETA)
+    passive_values.reset_stats()
+    assert passive_values(s1, (), zcs, theta_passive_pairs(mos_step)) is s1
+    assert (passive_values.stats().computes, passive_values.stats().reuses) == (0, 1)
+    r_step = tuple(((k, 2e3) if k == ("resistance", "R1") else (k, v)) for k, v in MIXED_THETA)
+    s2 = passive_values(s1, (), zcs, theta_passive_pairs(r_step))
+    assert passive_values.stats().computes == 1 and s2 is not s1
+    assert values_of(s2)["R1"] == 2e3 and values_of(s2)["Rz"] == values_of(s1)["Rz"]

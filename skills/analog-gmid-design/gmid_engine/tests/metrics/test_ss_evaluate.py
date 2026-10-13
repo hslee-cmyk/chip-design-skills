@@ -653,3 +653,37 @@ def test_s16_passive_theta_fd_reuses_dc_and_ss_dev(zc_cell, zc_nocell, which):
     again = ss_evaluate(r2.lineage.sealed, ctx, th2, spec.constraints, ("vdd",), junction=js)
     assert again.snapshot is r2.snapshot
     assert all(b.stats().computes == 0 for b in BLOCKS)
+
+
+# ---------------------------------------------------------------- [회귀 9065d5f, _audit_u17_1c_r2 §F-2] 봉인점 경로의 passive_values extras
+# 설계 40 §2.4.1 'FD 스텝은 그 성분을 읽는 블록만 계산(WP-23 (5))': 같은 봉인 스냅샷(같은 dc_gm·passive_value lineage)에서 MOS θ 만 다른 θ 로
+# ss_evaluate 를 부르면 GB5 블록 `passive_values` 는 재사용(computes 0)이어야 한다 -- 호출부가 θ 전체를 extras 로 넘기면 투영 지문이 달라져
+# computes 1 이 되므로 이 계수로 관찰된다. 수동소자 θ(capacitance·ss_resistance)를 바꾸면 computes 1, 값은 새 θ 값(손).
+
+def _mos_step(th):
+    """MOS θ 성분(ln_idu·L·current)만 1 % 바꾼 θ -- 수동소자 성분은 그대로."""
+    return {k: (v * 1.01 if k[0] in ("L", "ln_idu", "current") else v) for k, v in th.items()}
+
+
+@pytest.mark.parametrize("which", ["cell", "nocell"])
+def test_passive_values_reused_on_mos_theta_only_change(zc_cell, zc_nocell, which):
+    from gmid_engine.metrics import passive_values
+    spec, ctx, th, res, js = zc_cell if which == "cell" else zc_nocell
+    sealed = res.lineage.sealed
+    pv0 = dict(res.snapshot.column("device", "passive_value"))
+    th_mos = _mos_step(th)
+    assert th_mos != th and {k for k in th if th[k] != th_mos[k]} and         all(th[k] == th_mos[k] for k in th if k[0] in ("capacitance", "ss_resistance", "resistance"))   # 전제
+    passive_values.reset_stats()
+    r = ss_evaluate(sealed, ctx, th_mos, spec.constraints, ("vdd",), junction=js)
+    st = passive_values.stats()
+    assert (st.computes, st.reuses) == (0, 1), st
+    assert dict(r.snapshot.column("device", "passive_value")) == pv0
+    # 수동소자 θ 성분을 바꾸면 계산 1 -- 새 값이 필드에 든다
+    key = ("capacitance", "Cc") if which == "cell" else ("ss_resistance", "Rz")
+    th_p = dict(th)
+    th_p[key] = th[key] * 1.1
+    passive_values.reset_stats()
+    r2 = ss_evaluate(sealed, ctx, th_p, spec.constraints, ("vdd",), junction=js)
+    st = passive_values.stats()
+    assert (st.computes, st.recomputes_same_input) == (1, 0), st
+    assert dict(r2.snapshot.column("device", "passive_value"))[key[1]] == th[key] * 1.1

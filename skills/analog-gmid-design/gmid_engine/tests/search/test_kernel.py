@@ -336,3 +336,44 @@ def test_u7_without_structure_no_block_residual_record(case_c):
     (rec,) = read_evals(root, s.context_fp)
     assert "block_residual" not in rec
 
+
+
+# ---------------------------------------------------------------- [회귀 9065d5f, _audit_u17_1c_r2 §F-2] 비봉인점 경로의 passive_values extras
+# 설계 40 §2.4.1 'FD 스텝은 그 성분을 읽는 블록만 계산(WP-23 (5))'. 비봉인점(pending_seal_7)에서도 `evaluate` 가 GB5 블록 `passive_values` 를
+# 부른다(§2.4.7). 같은 dc_gm 스냅샷을 고정하려고 DC 풀이(`size_and_seal`)를 첫 점의 평가로 바꿔 끼우고(그 스냅샷엔 첫 점의 passive_value
+# 필드·입력 버전이 있다), MOS θ 만 다른 θ 로 평가하면 블록은 재사용(computes 0)이어야 한다 -- 호출부가 θ 전체를 extras 로 넘기면 computes 1.
+# 수동소자 θ(capacitance·ss_resistance)를 바꾸면 computes 1, 값은 새 θ 값(손).
+
+def test_pending_point_passive_values_reused_on_mos_theta_only_change(tmp_path, lut_pending, monkeypatch):
+    import importlib
+    from gmid_engine.metrics import passive_values
+    from .conftest import Z_ELEMENTS, circuit_z, theta_z
+    kernel = importlib.import_module("gmid_engine.search.kernel")
+    case = build_case(tmp_path, circuit_z(), lut_pending, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10),
+                      constraints=SS_CONS)
+    s = case.sctx
+    th0 = theta_z(case.dc)
+    r0 = evaluate(s, th_sorted(th0), CELLS_C)
+    assert r0.status == STATUS_PENDING_SEAL7
+    pv0 = dict(r0.evaluation.snapshot.column("device", "passive_value"))
+    assert pv0 == {"Cz": th0[("capacitance", "Cz")], "Rz": th0[("ss_resistance", "Rz")]}
+    fixed = r0.evaluation
+    monkeypatch.setattr(kernel, "size_and_seal", lambda dc, theta, parent=None, w_request=(): fixed)
+
+    th_mos = dict(th0)
+    th_mos[("ln_idu", "M1")] = th0[("ln_idu", "M1")] + 0.01
+    passive_values.reset_stats()
+    r1 = evaluate(s, th_sorted(th_mos), CELLS_C)
+    assert r1.status == STATUS_PENDING_SEAL7
+    st = passive_values.stats()
+    assert (st.computes, st.reuses) == (0, 1), st
+    assert dict(r1.evaluation.snapshot.column("device", "passive_value")) == pv0
+
+    for key in (("capacitance", "Cz"), ("ss_resistance", "Rz")):
+        th_p = dict(th0)
+        th_p[key] = th0[key] * 1.1
+        passive_values.reset_stats()
+        r2 = evaluate(s, th_sorted(th_p), CELLS_C)
+        st = passive_values.stats()
+        assert (st.computes, st.recomputes_same_input) == (1, 0), (key, st)
+        assert dict(r2.evaluation.snapshot.column("device", "passive_value"))[key[1]] == th0[key] * 1.1
