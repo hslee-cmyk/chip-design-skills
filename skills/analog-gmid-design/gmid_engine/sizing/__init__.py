@@ -149,7 +149,7 @@ from .seal_writers import seal_writers
 from .local_values import LocalSeal, SnapshotFragment
 from .size_and_seal import size_and_seal
 from .size_and_seal_local import size_and_seal_local, theta_name
-from .struct_colour import dc_struct_colour
+from .symmetry_marks import symmetry_marks
 from .theta_check import check_theta
 from .theta_schema import dc_theta_schema
 from .w0_rails import dc_rails
@@ -288,7 +288,7 @@ __all__ = (
     "dc_seal_report",
     "dc_seal_saturation",
     "dc_seal_vgs_match",
-    "dc_struct_colour",
+    "symmetry_marks",
     "dc_theta_schema",
     "dc_tolerances",
     "dc_widths",

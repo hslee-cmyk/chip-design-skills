@@ -9,9 +9,10 @@
 * 규칙 3(전류 진입 노드): 신호가 나가는 쪽으로 가른다 -- gate 로만 나가면 전압, 채널(CG source·pass)로만 나가면 전류, 둘 다면 gate 쪽
   셀의 출력이 F 위일 때 전압(stage 경계), 아니면 **tap**(전류 구동으로 기록하고 gate 로 갈라진 셀은 규칙 9 (a) `gate_on_current_node`
   기록만). 나가는 곳이 없으면 전류(종단 노드).
-* 규칙 4(혼재 = drain 진입과 source·포트 진입이 한 노드에): drain 쪽 소자의 DC 역할이 바이어스 전류원이면 전압, 신호 소자면
-  `mixed_drive_signal_drain`(review_needed), 구조로 못 가르는 그룹(S1 dc_role status review_needed)이면 잠정 전압 +
-  `mixed_drive_unresolved_group`(review_needed, 열린 항목 ③).
+* 규칙 4(혼재 = drain 진입과 source·포트 진입이 한 노드에, 41 §1.5-4 C-1 + 보완 (가) -- 사용자 결정 2026-10-12 "7절 권고대로"·"1, 가로 해"):
+  (i) source 쪽 소자 중 drain 이 그 뷰의 교류 접지(레일)이고 gate 가 그 뷰의 순방향 신호 넷(F, §1.3)인 것이 있으면 source follower(CD) -- **전압 구동**
+  (근거 `follower`); (ii) 아니면(CG/cascode) drain 쪽 소자 중 gate 가 F 위인 것이 있으면 **전류 구동**(근거 `cascode` -- 신호 전류를 밀어 넣음),
+  없으면 전압 구동(`mixed_bias_drain` -- 그 뷰에서 고정 전류원). 뷰마다 신호 넷·교류 접지만 읽고 DC 역할은 읽지 않는다(옛 'drain 쪽 DC 역할로 가름'을 통째로 대체).
 * 규칙 2·5: 저항(DC 를 통하는 수동소자)·pass 묶음으로만 들어오는 넷은 이웃의 종류를 상속한다(저항은 `value_dependent` 표시, pass 는
   아님). 커패시터는 구동 종류를 정하지 않는다.
   상속이 모순이거나 근거가 없는 순환이면 `drive_inherit_cycle`(review_needed).
@@ -24,7 +25,6 @@ import dataclasses
 from gmid_engine.authoring import DC_CONDUCTING_PASSIVE_KINDS
 from gmid_engine.core import sorted_items
 
-from .s1_values import ROLE_BIAS, STATUS_REVIEW_NEEDED
 from .s1v_values import (
     BASIS_DRAIN_CHANNEL_EXIT,
     BASIS_DRAIN_GATE_EXIT,
@@ -34,6 +34,7 @@ from .s1v_values import (
     BASIS_INHERIT_PASS,
     BASIS_INHERIT_PASSIVE,
     BASIS_MIXED_BIAS,
+    BASIS_MIXED_FOLLOWER,
     BASIS_MIXED_SIGNAL,
     BASIS_PORT,
     BASIS_RATIFIED,
@@ -47,8 +48,6 @@ from .s1v_values import (
     DRIVE_VOLTAGE,
     F_DRIVE_CYCLE,
     F_GATE_ON_CURRENT,
-    F_MIXED_SIGNAL,
-    F_MIXED_UNRESOLVED,
     SEVERITY_REVIEW,
     SEVERITY_UNSUPPORTED,
     DriveInfo,
@@ -119,31 +118,24 @@ def _current_split(model, cells, net, view_id):
     return DRIVE_CURRENT, False, BASIS_DRAIN_TERMINAL, None
 
 
-def _mixed(model, entry, net, view_id):
-    devices = [model.mos_by_name[name] for name in entry["drain"]]
-    unresolved = [m.name for m in devices if m.dc_status == STATUS_REVIEW_NEEDED]
-    signal = [m.name for m in devices if m.dc_role != ROLE_BIAS and m.dc_status != STATUS_REVIEW_NEEDED]
-    if unresolved:
-        note = Finding(F_MIXED_UNRESOLVED, SEVERITY_REVIEW, view_id, tuple(sorted(unresolved)) + (net,),
-                       "혼재 노드의 drain 쪽 소자가 구조로 못 가르는 DC 역할 그룹이라 잠정 전압 구동", ("N3.2-5", "J12-d"))
-        return DRIVE_VOLTAGE, BASIS_MIXED_SIGNAL, note
-    if signal:
-        note = Finding(F_MIXED_SIGNAL, SEVERITY_REVIEW, view_id, tuple(sorted(signal)) + (net,),
-                       "혼재 노드의 drain 쪽이 신호 소자라 구동 종류를 구조로 못 가른다", ("N3.2-5", "J12-d"))
-        return DRIVE_VOLTAGE, BASIS_MIXED_SIGNAL, note
-    return DRIVE_VOLTAGE, BASIS_MIXED_BIAS, None
+def _mixed(model, ground, reach, entry):
+    """41 §1.5-4: (i) source 쪽 follower(drain 교류 접지, gate 신호) -> 전압, (ii) drain 쪽 gate 신호 -> 전류, 그 밖 전압."""
+    if any(model.mos_by_name[name].d in ground and model.mos_by_name[name].g in reach.forward for name in entry["source"]):
+        return DRIVE_VOLTAGE, BASIS_MIXED_FOLLOWER
+    if any(model.mos_by_name[name].g in reach.forward for name in entry["drain"]):
+        return DRIVE_CURRENT, BASIS_MIXED_SIGNAL
+    return DRIVE_VOLTAGE, BASIS_MIXED_BIAS
 
 
-def _base_kinds(model, ground, cells, table, ratified, view_id):
+def _base_kinds(model, ground, reach, cells, table, ratified, view_id):
     kinds = {}
     findings = []
     for net, entry in sorted_items(table):
         if net in ratified:
             kinds[net] = DriveInfo(net, ratified[net], False, False, BASIS_RATIFIED)
         elif entry["drain"] and (entry["source"] or entry["port"]):
-            kind, basis, note = _mixed(model, entry, net, view_id)
+            kind, basis = _mixed(model, ground, reach, entry)
             kinds[net] = DriveInfo(net, kind, False, False, basis)
-            findings.extend(() if note is None else (note,))
         elif entry["drain"]:
             kind, tap, basis, note = _current_split(model, cells, net, view_id)
             kinds[net] = DriveInfo(net, kind, False, tap, basis)
@@ -197,6 +189,6 @@ def _mirror_inputs(model, cells):
 
 def drive_kinds(model, ground, reach, cells, excite, view_id, ratified):
     table = _entries(model, ground, reach, cells, excite)
-    kinds, findings = _base_kinds(model, ground, cells, table, dict(ratified), view_id)
+    kinds, findings = _base_kinds(model, ground, reach, cells, table, dict(ratified), view_id)
     findings.extend(_inherit(model, ground, reach, cells, kinds, view_id))
     return DriveResult(tuple(kinds[net] for net in sorted(kinds)), _mirror_inputs(model, cells), tuple(findings))

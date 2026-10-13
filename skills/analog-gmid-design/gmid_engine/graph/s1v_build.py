@@ -9,7 +9,7 @@
 * 순서: 뷰 수집(`collect_views`) -> 전달 뷰마다 `analyze_view` -> 전달 뷰의 (3) 루프가 만든 루프 뷰(끊는 점마다 하나, 중첩 Miller 내부 루프는 제외)를 같은 `analyze_view` 로 분석
   -> 루프 뷰 판정(포트쌍 CM 루프 대응 R31, 선언 안 된 안정도 제약, 루프 뷰 극성 = 그 뷰의 DC 사이클 극성) -> L 동치류(`l_equivalence_classes`) -> declared 대조(`declared_compare`)
   -> ratified 사실 대조(override 적용 기록·confirm 일치·`structure_fact_mismatch`·`structure_fact_orphan`, 40 §3.2-3).
-* 사실 소비(40 §3.2-3): `drive_kind`·`ac_ground_exception` 은 `analyze_view` 에 넘기고(override), `dc_role`·`matching_pair` 는 `build_s1` 이 이미 적용했으며(S1 안), `loop_role`·
+* 사실 소비(40 §3.2-3): `drive_kind`·`ac_ground_exception` 은 `analyze_view` 에, `l_owner` 는 `l_equivalence_classes` 에 넘기고(override), `dc_role`·`matching_pair` 는 `build_s1` 이 이미 적용했으며(S1 안), `loop_role`·
   `feedforward_cell` 은 유도 결과와 대조한다(confirm). 전달 뷰의 전체 안정도 선언(`pm_ss_deg`)·gain 제약 뷰는 spec 제약에서 직접 모은다(authoring 소유 파일을 고치지 않는다).
 * **정지**: `기록만`(unsupported_rule_branch) 기록이 하나라도 있으면 `StructureUnresolvedError`(reason `unsupported_rule_branch`, exit 2)로 멈춘다 --
   `stop_on_unsupported=False` 는 구조 표·측정을 위해 기록을 그대로 돌려받는 진단 모드다(정지 규칙을 우회하는 경로가 아니다: 호출자가 `S1v.unsupported` 를 보고
@@ -22,7 +22,7 @@ import types
 
 from gmid_engine.core import StructureUnresolvedError, fp_of, sorted_items
 
-from .l_classes import l_equivalence_classes, RULE_NAME_ORDER
+from .l_classes import l_equivalence_classes, RULE_FACT, RULE_NAME_ORDER
 from .declared_compare import declared_compare
 from .net_model import net_model
 from .s1_values import (
@@ -41,6 +41,7 @@ from .s1v_values import (
     CONCEPT_DC_ROLE,
     CONCEPT_DRIVE_KIND,
     CONCEPT_FEEDFORWARD_CELL,
+    CONCEPT_L_OWNER,
     CONCEPT_LOOP_ROLE,
     CONCEPT_MATCHING_PAIR,
     CONCEPT_STAGE_MEMBERS,
@@ -174,7 +175,7 @@ def _unresolved_role_groups(s1):
                          ("J-U3-c", "40 §3.2-3")) for group in sorted(groups))
 
 
-def _fact_findings(s1, model, facts, views, roles):
+def _fact_findings(s1, model, facts, views, roles, l_classes):
     """ratified 사실 대조(40 §3.2-3): (적용·확인한 (concept, subject) 목록, 기록 목록, confirm 일치 {(concept, subject, 값): approval_id}). override 가 쓰인 곳과 confirm 이 일치한 곳은
     applied, 어긋나면 mismatch, subject 가 없으면 orphan."""
     applied = []
@@ -245,6 +246,18 @@ def _fact_findings(s1, model, facts, views, roles):
                 orphan()
             elif f.value == MATCH_PAIR_VALUE and (names, STATUS_RATIFIED) in pairs:
                 applied.append(mark)
+        elif f.concept == CONCEPT_L_OWNER:
+            # 동치류가 엔진 유도와 같고 주인이 멤버면 적용(l_classes 가 덮음). 멤버가 겹치는 동치류가 있으나 다르거나 주인이 멤버가 아니면 mismatch, 겹치는 동치류가 없으면 orphan
+            names = tuple(sorted(json.loads(f.subject)))
+            exact = next((c for c in l_classes if c.members == names), None)
+            overlap = [c for c in l_classes if set(c.members) & set(names)]
+            if exact is not None and exact.owner_rule == RULE_FACT and exact.owner == f.value:
+                applied.append(mark)
+            elif exact is not None or overlap:
+                derived = exact.owner if exact is not None else ";".join(",".join(c.members) for c in overlap)
+                mismatch(derived)
+            else:
+                orphan()
     return tuple(sorted(set(applied))), tuple(findings), confirmed
 
 
@@ -293,10 +306,11 @@ def build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_l
         views.append(dataclasses.replace(loop_view, cm_pair=pair, polarity=polarity,
                                          findings=loop_view.findings + extra + polarity_findings))
     gain_views = frozenset(r.view.id for r, flag in zip(results, flags) if flag[1])
-    l_classes = l_equivalence_classes(s1, model, views, gain_views)
+    owner_facts = tuple((tuple(sorted(json.loads(f.subject))), f.value, f.approval_id) for f in facts if f.concept == CONCEPT_L_OWNER)
+    l_classes = l_equivalence_classes(s1, model, views, gain_views, owner_facts)
     mismatches = declared_compare(views, tuple(declared))
     all_roles = tuple(r for v in views for r in v.loop_roles)
-    applied, fact_findings, confirmed = _fact_findings(s1, model, facts, views, all_roles)
+    applied, fact_findings, confirmed = _fact_findings(s1, model, facts, views, all_roles, l_classes)
     views = _ratify_derived(views, confirmed)
     owner_order = tuple(Finding(F_L_OWNER_NAME_ORDER, SEVERITY_REVIEW, "", c.members,
                                 "L 동치류 주인을 tail·전류 출처·주경로 규칙으로 못 정해 이름 순서로 골랐다: " + c.owner, ("41 §1.12.5", "DEC-17"))

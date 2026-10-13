@@ -2,11 +2,12 @@
 WP-23 (3) 루프 불변 입력은 컨텍스트에, 설계 3.1).
 
 진입점: `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS) -> KernelContext`.
-`l_classes` = `graph.build_s1v` 의 `S1v.l_classes`(derived 만 L 공유로 쓴다), `order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·
+`l_classes` = `graph.build_s1v` 의 `S1v.l_classes`(derived 와 ratified(`l_owner` 사실) 만 L 공유로 쓴다), `order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·
 GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
 
 순서: 인자 검사 -> `supplies_declaration`(graph, 레일 집합과 대조) + S1 키의 supplies 지문 대조 -> `lift_s1` ->
-`dc_rails` -> `dc_struct_colour`(구조 색) -> `dc_current_basis`(값 선언 이상 전류원) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부) -> `dc_scc_order` ->
+`dc_rails` -> graph 대칭 블록 `s1_symmetry`(구조 색·궤도·전류 부호 -- S1 이 같은 선언 표시로 이미 계산했으면 재사용, 표시 = `symmetry_marks(inputs)`)
+-> `dc_current_basis`(값 선언 이상 전류원) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부) -> `dc_scc_order` ->
 `dc_theta_schema`(값 선언 저항, engine 수동소자 -- DEC-92). 계획 블록의 정지(`StructureUnresolvedError`)·KCL 선언 충돌(`InfeasibleTargetError`)은
 그대로 전파된다(탐색 전 정지).
 * `lut.w_keys` 에 S1 MOS kind 가 모두 있어야 하고 그 (kind, w_key) 슬라이스가 LUT 에 있어야 한다(`ValueError`).
@@ -15,8 +16,8 @@ GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
 """
 from gmid_engine.authoring import INPUT_DIRECTION
 from gmid_engine.core import fp_of
-from gmid_engine.graph import (ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE, GRAPH_KEY, STATUS_DERIVED, S1Graph,
-                               supplies_declaration)
+from gmid_engine.graph import (ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE, GRAPH_KEY, S1_SYMMETRY_WRITER, STATUS_DERIVED, STATUS_RATIFIED,
+                               S1Graph, s1_symmetry, supplies_declaration)
 
 from .current_basis import dc_current_basis
 from .s2_lift import lift_s1
@@ -26,7 +27,6 @@ from .s2_values import (
     DC_KEY,
     DC_RAILS_WRITER,
     DC_SCC_ORDER_WRITER,
-    DC_STRUCT_COLOUR_WRITER,
     DC_THETA_SCHEMA_WRITER,
     DC_WRITER_PLAN_WRITER,
     RESISTOR,
@@ -37,39 +37,13 @@ from .s2_values import (
     OrderHints,
 )
 from .scc_order import dc_scc_order
-from .struct_colour import dc_struct_colour
+from .symmetry_marks import symmetry_marks
 from .theta_schema import dc_theta_schema
 from .w0_rails import dc_rails
 from .writer_plan import dc_writer_plan
 
-PLAN_WRITERS = (DC_RAILS_WRITER, DC_STRUCT_COLOUR_WRITER, DC_CURRENT_BASIS_WRITER, DC_WRITER_PLAN_WRITER, DC_SCC_ORDER_WRITER,
+PLAN_WRITERS = (DC_RAILS_WRITER, S1_SYMMETRY_WRITER, DC_CURRENT_BASIS_WRITER, DC_WRITER_PLAN_WRITER, DC_SCC_ORDER_WRITER,
                 DC_THETA_SCHEMA_WRITER)
-
-
-def _pack(table):
-    return tuple((n, tuple(sorted(marks))) for n, marks in sorted(table.items()))
-
-
-def _declaration_marks(base, inputs, targets):
-    """자기동형이 보존해야 하는 선언 표시 -- 레일 전위·노드 목표·입력 DC·값 선언 원소·engine 값 원소·선형 영역 소자(struct_colour)."""
-    nodes, elements = {}, {}
-    for net, volts in base.column("node", "dc_rail_v"):
-        if volts is not None:
-            nodes.setdefault(net, []).append(("rail_v", float(volts)))
-    for net, volts in targets.items():
-        nodes.setdefault(net, []).append(("target_v", float(volts)))
-    if inputs.input_dc_v is not None:
-        for net, direction in base.column("node", "port_direction"):
-            if direction == INPUT_DIRECTION:
-                nodes.setdefault(net, []).append(("input_dc_v", float(inputs.input_dc_v)))
-    for name, value in inputs.element_values:
-        if value is not None:
-            elements.setdefault(name, []).append(("value", float(value)))
-    for name in inputs.engine_elements:
-        elements.setdefault(name, []).append(("engine", 0.0))
-    for name in inputs.linear_devices:
-        elements.setdefault(name, []).append(("linear", 0.0))
-    return _pack(elements), _pack(nodes)
 
 
 def build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS):
@@ -106,14 +80,13 @@ def build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDE
                       and values.get(n) is not None)
     base = lift_s1(s1graph)
     base = dc_rails(base, supplies)
-    element_marks, node_marks = _declaration_marks(base, inputs, targets)
-    base = dc_struct_colour(base, element_marks, node_marks)
+    base = s1_symmetry(base, supplies, symmetry_marks(inputs))     # S1 의 대칭 블록 -- 같은 표시면 재사용(계산 0)
     base = dc_current_basis(base, sources)
     base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None,
                           *(() if order_hints == NO_ORDER_HINTS else (order_hints,)))      # 힌트 없음 = 생략(블록 입력 버전 불변)
     base = dc_scc_order(base)
     engine_passives = tuple(n for n in sorted(inputs.engine_elements) if classes[n] == ELEMENT_PASSIVE)
-    classes_of_l = tuple((m, c.owner) for c in l_classes if c.status == STATUS_DERIVED for m in c.members if m != c.owner)
+    classes_of_l = tuple((m, c.owner) for c in l_classes if c.status in (STATUS_DERIVED, STATUS_RATIFIED) for m in c.members if m != c.owner)
     stray_l = sorted({n for pair in classes_of_l for n in pair} - set(classes))
     if stray_l:
         raise ValueError("build_kernel_context: L 동치류 멤버가 S1 원소가 아니다 " + repr(stray_l))

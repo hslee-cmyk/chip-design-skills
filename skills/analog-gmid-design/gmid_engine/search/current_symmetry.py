@@ -2,10 +2,12 @@
 
 진입점: `current_symmetry(dc_ctx, untied) -> CurrentSymmetry(ties, negated, zeros)`.
 
-* 입력: sizing 의 전류 기저 `graph.dc_current_basis`(원소 전류 = 독립 θ 전류와 선언 전류원의 선형식 `rows`)와 정준형이 쓴 자기동형 생성자
-  `graph.dc_symmetry`(움직인 정점만, sizing `dc_struct_colour`), 원소 구조 색 `device.dc_colour`·궤도 `device.dc_orbit`.
-* 대칭 동작점의 전류는 군 불변이다: 생성자 γ 마다 모든 DC 원소 e 에 `I(γ e) = σ_γ(e) · I(e)`. σ = −1 은 방향 없는 2단자 수동소자(저항 등)의 앞 끝
-  (단자 이름 순서 첫 단자의 넷, `current_basis._ends`)이 γ 아래 앞 끝으로 대응하지 않을 때(자기동형이 단자 순서를 뒤집음), 그 밖(MOS, 방향 있는 이상원)은 +1.
+* 입력: sizing 의 전류 기저 `graph.dc_current_basis`(원소 전류 = 독립 θ 전류와 선언 전류원의 선형식 `rows`)와 graph 대칭 블록(`s1_symmetry`, S1 하나에서 한 번)의
+  필드 `graph/s1: current_symmetry`(생성자마다 (원소, 상, 부호 σ)) · `graph/s1: orbits`(원소 궤도), 원소 구조 색 `device.dc_colour`. 부호를 여기서 다시 계산하지 않는다
+  (40 §2.4.8 -- 필드를 읽는다).
+* 대칭 동작점의 전류는 군 불변이다: 생성자 γ 마다 모든 DC 원소 e 에 `I(γ e) = σ_γ(e) · I(e)`. σ = −1 은 자기동형이 방향을 뒤집을 때다(graph `reverses_orientation`:
+  MOS 는 drain 이 상 MOS 의 drain 으로 가지 않는 d/s 맞바꿈, 방향 없는 2단자 수동소자는 첫 단자 넷이 상의 첫 단자 넷으로 가지 않음), 그 밖은 +1.
+  전도 MOS 의 자기 맞바꿈(구조적 0 전류)은 graph 대칭 블록이 이미 정지시켰다(`ds_self_swap_zero_current`, 40 §6-8).
   `I(x)` 는 독립 θ 전류의 선형식이라 이 식들은 독립 θ 전류에 대한 선형 연립이다. 구조 색이 큰 쪽이 먼저 소거되도록 기약 행사다리꼴(유리수)을 만든다.
 * 연립의 행 중 **독립 θ 전류 하나에 대한 `x_p = ±x_q` (q 는 소거되지 않는 변수)** 는 부호 묶음(대표 q = 구조 색 작은 쪽), **`x_p = 0`** 은 구조적 0(대칭 점에서
   이 가지 전류는 KCL·대칭이 0 으로 정한다 -- 예: 파일럿의 CMFB 감지 저항 R1/R2 는 Voc 가 게이트만 구동해 직렬이므로 I = 0)이다. 그 밖(항이 둘 이상이거나 상수가
@@ -20,11 +22,8 @@ import dataclasses
 from fractions import Fraction
 
 from gmid_engine.core import SchemaRejectedError
-from gmid_engine.graph import ELEMENT_PASSIVE
+from gmid_engine.graph import GRAPH_KEY
 from gmid_engine.sizing import DC_KEY, THETA_CURRENT
-
-_ELEMENT = "e"
-_NODE = "n"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -39,7 +38,7 @@ def _reject(reason, element):
 
 
 def _free_orbits(base, untied):
-    orbit = dict(base.column("device", "dc_orbit"))
+    orbit = dict(base.value("graph", GRAPH_KEY, "orbits").devices)
     size = {}
     for o in orbit.values():
         size[o] = size.get(o, 0) + 1
@@ -77,34 +76,20 @@ def current_symmetry(dc_ctx, untied):
     base = dc_ctx.base
     orbit, free_orbits = _free_orbits(base, untied)
     basis = base.value("graph", DC_KEY, "dc_current_basis")
-    generators = base.value("graph", DC_KEY, "dc_symmetry")
+    generators = base.value("graph", GRAPH_KEY, "current_symmetry").generators
     colour = dict(base.column("device", "dc_colour"))
-    classes = dict(base.column("device", "element_class"))
-    pins = {name: dict(p) for name, p in base.column("device", "pins")}
     forms = {name: {t.source: Fraction(t.num, t.den) for t in terms} for name, terms in basis.rows}
     fixed = {name: Fraction(value) for name, value in basis.fixed}
     variables = sorted(basis.free, key=lambda n: (-colour[n], n))        # 구조 색이 큰 쪽이 왼쪽 = 먼저 소거(대표는 색 작은 쪽)
     column = {name: i for i, name in enumerate(variables)}
     width = len(variables)
 
-    def first_net(element):
-        terminals = pins[element]
-        return terminals[min(terminals)]
-
     seen, matrix = set(), []
     for generator in generators:
-        emap = {v[1]: image[1] for v, image in generator if v[0] == _ELEMENT}
-        nmap = {v[1]: image[1] for v, image in generator if v[0] == _NODE}
+        acts = {element: (image, sign) for element, image, sign in generator}      # 움직이거나 방향을 뒤집는 원소만(graph 필드)
         for element, form in forms.items():
-            image = emap.get(element, element)
-            if image not in forms:
-                continue
-            sign = 1
-            if classes[element] == ELEMENT_PASSIVE:               # 방향 없는 2단자: 앞 끝이 앞 끝으로 안 가면 부호 −1
-                a, b = first_net(element), first_net(image)
-                if nmap.get(a, a) != b:
-                    sign = -1
-            if image == element and sign == 1:
+            image, sign = acts.get(element, (element, 1))
+            if image not in forms or (image == element and sign == 1):
                 continue
             row = [Fraction(0)] * (width + 1)
             for source, coeff in forms[image].items():

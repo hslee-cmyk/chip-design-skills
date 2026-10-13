@@ -538,6 +538,12 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
    아니라 자기동형 궤도 단위다 -- 같은 궤도(= 묶음) 원소끼리의 합산 순서는 이름이 정하지만, 궤도 구성원은 θ 가 같고 자기동형 대응이라 합산 항의 다중집합이 같아
    (묶음 안 항의 순열) 합이 바뀌는 건 부동소수 결합 순서뿐이다 -- 이 잔여는 측정 항목(9회로 중 궤도가 둘 이상인 회로는 current_reuse 하나, 10.1 측정).
 
+> **[U17-1d] 개정(2026-10-12, 설계 40 §6-8·§2.4.8)**: (a) 궤도는 graph 대칭 블록 필드 `graph/s1: orbits`(옛 `device/node.dc_orbit`), 생성자별 전류 부호는
+> `graph/s1: current_symmetry`(옛 `graph.dc_symmetry` + 여기서의 수동소자 첫 단자 부호 계산 -- 삭제)를 읽는다. 부호 −1 은 MOS d/s 맞바꿈도 포함한다(graph `reverses_orientation`).
+> 전도 MOS 자기 맞바꿈은 graph 가 `ds_self_swap_zero_current` 로 정지시켜 여기 오지 않는다. (b) **D-1**: `search_domain` 에서 대표와 다른 궤도인(KCL 이 유도한) θ 전류 구성원(부호 +1)은
+> 대표 상자를 구성원 상자와의 교집합으로 줄이고, 비면 `SchemaRejectedError`(gate `search_domain`, reason `tied_current_box_empty`, elements, box)로 거부한다. 같은 궤도 안 불일치는
+> 종래대로 `tied_orbit_bounds_differ`. 아래 본문의 `dc_orbit`·`dc_struct_colour`·`dc_symmetry` 는 이 필드로 읽는다.
+
 ### 3.24 [r12, U2] `orbit_ties(dc_ctx, components, untied, symmetry=None) -> (대표 성분 tuple, ties)` · `current_symmetry(dc_ctx, untied) -> CurrentSymmetry(ties, negated, zeros)` · `expand_ties(ties, theta, negated=(), zeros=()) -> dict`
 사용자 결정(2026-10-08): 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 **한 탐색 변수**로 묶는다(기본 묶음). 공유 gm/ID(`ln_idu`)·L·`y`·저항·커패시터 값은 같은 값, **θ 전류는 자기동형이 만드는
 부호 관계**('대칭 묶음 방식: b')로 묶는다. 자기동형은 graph `canonical_form`(2단자 수동소자 무향)의 생성자다.

@@ -63,7 +63,7 @@
 | 0 | `k_max.py` | `k_max` | -- |
 | 0 | `bracket_root.py` [r9] | `bracket_root` | -- |
 | 1 | `pre_layout_widths.py` [r2] | `pre_layout_lut_access` | -- |
-| 1 | `struct_colour.py` [r2] | `dc_struct_colour` | `dc_struct_colour` |
+| 1 | `symmetry_marks.py` [U17-1d] | `symmetry_marks` | -- (DcInputs -> graph `SymmetryMarks`; 옛 `struct_colour.py` 삭제) |
 | 1 | `_helpers_lut.py` | helper: `terminal_voltages`·`w_key_of`·`with_device`·`forward_point`·`tol_v_cell` | -- |
 | 1 | `_helpers_seal.py` | helper: `judge`·`node_values` | -- |
 | 1 | `dc_inputs.py` | `dc_inputs_from_spec` | -- |
@@ -164,10 +164,10 @@ graph 레코드 key: `DC_KEY`(`"dc"`). 값은 모두 불변(frozen dataclass·tu
 | (kind, field) | writer | 대상 레코드 | 값 |
 |---|---|---|---|
 | node.dc_rail_v | dc_rails | 레일 노드만 | float V |
-| node.dc_colour [r2] | dc_struct_colour | 모든 노드 | int 구조 색 |
-| device.dc_colour [r2] | dc_struct_colour | 모든 원소 | int 구조 색 |
-| node.dc_orbit [r11] | dc_struct_colour | 모든 노드 | int 자기동형 궤도 id |
-| device.dc_orbit [r11] | dc_struct_colour | 모든 원소 | int 자기동형 궤도 id |
+| node.dc_colour [r2] | s1_symmetry(graph, U17-1d) | 모든 노드 | int 구조 색 |
+| device.dc_colour [r2] | s1_symmetry(graph, U17-1d) | 모든 원소 | int 구조 색 |
+| graph.orbits [U17-1d] | s1_symmetry(graph) | GRAPH_KEY | `Orbits` 자기동형 궤도 id(옛 node/device.dc_orbit) |
+| graph.current_symmetry [U17-1d] | s1_symmetry(graph) | GRAPH_KEY | `CurrentSigns` 생성자별 (원소, 상, 부호)(옛 graph.dc_symmetry) |
 | graph.dc_current_basis | dc_current_basis | DC_KEY | `CurrentBasis` |
 | node.dc_writer | dc_writer_plan | 모든 노드 | `NodeWrite` |
 | device.dc_coord | dc_writer_plan | 모든 MOS | `DeviceCoord` |
@@ -224,6 +224,15 @@ metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여�
   `DeviceOp(kind, current, ln_idu, gm_id, L, W, vgs, vds, vsb, w_key, idu_forward)`,
   `SealItem(item, status, magnitude=None, tol=None, margin=None, devices=(), nodes=(), detail=())`, `SealReport(items, status)`,
   `SealedSnapshot(snapshot, report)`, `KernelContext(...)`(1.4), `DcEvaluation(snapshot, report, sealed=None)`.
+
+> **[U17-1d] 대체(2026-10-12, 설계 40 §6-8 D-2·§2.4.8)**: `dc_struct_colour`·`struct_colour.py` 는 삭제됐다. 구조 색 `device/node.dc_colour`, 궤도 `graph/s1: orbits`(옛
+> `dc_orbit` 두 필드 대체), 전류 부호 `graph/s1: current_symmetry`(옛 `graph.dc_symmetry` 대체)는 graph 대칭 블록 `s1_symmetry`(graph CONTRACT 4.8)가 S1 하나에서 쓴다.
+> MOS d/s 는 같은 채널 라벨 `c`, `wl` 은 선언 표시를 넣은 같은 그래프의 1-WL 색이다. `build_kernel_context` 는 `lift_s1` 뒤 `dc_rails` 다음에 같은 블록을
+> `s1_symmetry(base, supplies, symmetry_marks(inputs))`(새 `symmetry_marks.py`, 선언 표시 형식은 아래 3.0b 그대로이고 레일 전위 표시는 블록이 supplies 에서 만든다)로
+> 재호출한다 -- S1 이 같은 표시로 만들어졌으면 재사용(계산 0). 계획 블록 버전 목록의 `dc_struct_colour` 자리는 `s1_symmetry` 다. 아래 3.0·3.0b 는 그 블록의 규칙 기록으로 남긴다
+> (writer 이름만 바뀜, 그래프 라벨은 graph CONTRACT 4.7·4.8 이 정본).
+> **[U17-1d] 전류 기저 열 순서**(40 §6-3 v1.8, 사용자 결정 "3번 권고대로" (가)): `dc_current_basis` 는 `graph.orbits` 를 더 읽고 열 키 = (궤도 비자명인가, `dc_colour`, 이름)으로
+> 정렬한다. 행사다리꼴은 왼쪽 열부터 pivot 을 잡으므로 비자명 궤도 열을 뒤에 두어 자유 열(θ 전류)로 먼저 남긴다.
 
 ## 3.0 [r2] 구조 색 `dc_struct_colour(snapshot)` (θ 무관) -- 이름 없는 정준 tie-break 키
 

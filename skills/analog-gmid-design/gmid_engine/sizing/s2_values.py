@@ -119,7 +119,6 @@ TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원�
 
 # ---- 필드 writer(= 계산 블록 이름)
 DC_RAILS_WRITER = "dc_rails"
-DC_STRUCT_COLOUR_WRITER = "dc_struct_colour"
 DC_CURRENT_BASIS_WRITER = "dc_current_basis"
 DC_WRITER_PLAN_WRITER = "dc_writer_plan"
 DC_SCC_ORDER_WRITER = "dc_scc_order"
@@ -142,8 +141,6 @@ DC_SEAL_REPORT_WRITER = "dc_seal_report"
 DC_WRITES = (
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
-    (DC_STRUCT_COLOUR_WRITER, (("node", "dc_colour"), ("device", "dc_colour"), ("node", "dc_orbit"), ("device", "dc_orbit"),
-                                 ("graph", "dc_symmetry"))),
     (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"))),
     (DC_SCC_ORDER_WRITER, (("graph", "dc_scc_order"), ("node", "dc_column_nbrs"))),
     (DC_THETA_SCHEMA_WRITER, (("graph", "dc_theta_schema"),)),

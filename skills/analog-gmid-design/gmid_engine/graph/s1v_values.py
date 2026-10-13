@@ -28,8 +28,9 @@ CONCEPT_LOOP_ROLE = "loop_role"
 CONCEPT_FEEDFORWARD_CELL = "feedforward_cell"
 CONCEPT_AC_GROUND_EXCEPTION = "ac_ground_exception"
 CONCEPT_MATCHING_PAIR = "matching_pair"
+CONCEPT_L_OWNER = "l_owner"         # L 동치류 주인(override, 41 §1.12.5, C-3): subject = 동치류 멤버 이름 정렬 JSON 배열, value = 주인 소자 이름
 CONCEPTS = (CONCEPT_DRIVE_KIND, CONCEPT_STAGE_MEMBERS, CONCEPT_DC_ROLE, CONCEPT_LOOP_ROLE, CONCEPT_FEEDFORWARD_CELL,
-            CONCEPT_AC_GROUND_EXCEPTION, CONCEPT_MATCHING_PAIR)
+            CONCEPT_AC_GROUND_EXCEPTION, CONCEPT_MATCHING_PAIR, CONCEPT_L_OWNER)
 FF_ARROW = "->"                     # `feedforward_cell` 값 `<종류>:<탭>-><merge>` 의 탭·merge 구분(넷 이름에 들어 있으면 로드 거부)
 FF_SEPARATOR = ":"
 FF_CELL = "ff"
@@ -75,7 +76,8 @@ BASIS_DRAIN_STAGE_BOUNDARY = "drain_entry_gate_and_channel_exit"
 BASIS_DRAIN_TAP = "drain_entry_tap"
 BASIS_DRAIN_TERMINAL = "drain_entry_no_exit"
 BASIS_MIXED_BIAS = "mixed_bias_drain"
-BASIS_MIXED_SIGNAL = "mixed_signal_drain"
+BASIS_MIXED_SIGNAL = "cascode"                       # 혼재 (ii): drain 쪽 gate 신호 -> 전류 구동(41 §1.5-4 근거 이름)
+BASIS_MIXED_FOLLOWER = "follower"                     # 혼재 (i): source 쪽 follower -> 전압 구동(41 §1.5-4 근거 이름)
 BASIS_INHERIT_PASSIVE = "inherit_passive"
 BASIS_INHERIT_PASS = "inherit_pass_bundle"
 BASIS_RATIFIED = "ratified_fact"
@@ -131,8 +133,6 @@ PASSIVE_EDGES = (EDGE_RESISTOR, EDGE_CAPACITOR)
 F_CELL_AMBIGUOUS = "cell_ambiguous"
 F_PASS_GROUP = "pass_group_unsupported"
 F_DRIVE_CYCLE = "drive_inherit_cycle"
-F_MIXED_SIGNAL = "mixed_drive_signal_drain"
-F_MIXED_UNRESOLVED = "mixed_drive_unresolved_group"
 F_GATE_ON_CURRENT = "gate_on_current_node"
 F_CURRENT_INPUT_CG = "current_input_cg"
 F_CS_LOW_IMPEDANCE = "cs_output_low_impedance"
@@ -150,6 +150,7 @@ F_LOOP_POLARITY = "loop_polarity_undefined"
 F_LOOP_3A = "loop_active_cell_off_forward"
 F_UNDECLARED_LOOP = "undeclared_loop_constraint"
 F_LOOP_CUT_UNMATCHED = "loop_cut_unmatched"
+F_DIFF_PAIR_ORBIT_SPLIT = "diff_pair_orbit_split"     # 대칭 차동쌍(차동 출력·차동 입력 gate) 두 멤버가 다른 궤도(40 §6-5 (나'))
 F_CM_LOOP_UNCONSTRAINED = "cm_loop_unconstrained"
 F_DECLARED_MISMATCH = "declared_stage_mismatch"
 F_UNSUPPORTED_VIEW = "unsupported_view"
@@ -273,8 +274,8 @@ class DriveInfo:
     `tap` = 채널 쪽만 순방향을 잇는 노드,
     `basis` = 판정 근거 ∈ {port(여기 포트), source_entry(CD·CG 등 source 로 진입), drain_entry_gate_exit(drain 진입, gate 로만 나감 -> 전압),
     drain_entry_channel_exit(drain 진입, 채널로만 나감 -> 전류), drain_entry_gate_and_channel_exit(둘 다 -> stage 경계, 전압), drain_entry_tap(채널 쪽만 순방향
-    -> tap), drain_entry_no_exit(나가는 엣지 없음), mixed_bias_drain(혼재, drain 쪽이 바이어스 전류원 -> 전압), mixed_signal_drain(혼재, 신호 소자 drain ->
-    기록), inherit_passive(저항으로만 들어와 이웃 종류 상속), inherit_pass_bundle(pass 로 상속), ratified_fact(structure.json 이 고정), undriven(구동 없음)}."""
+    -> tap), drain_entry_no_exit(나가는 엣지 없음), follower(혼재, source 쪽 follower: drain 교류 접지·gate 신호 -> 전압, 41 §1.5-4 (i)), cascode(혼재, drain 쪽 gate 가
+    신호 넷 -> 전류, (ii) cascode), mixed_bias_drain(혼재, drain 쪽 gate 가 신호 넷 아님 -> 전압), inherit_passive(저항으로만 들어와 이웃 종류 상속), inherit_pass_bundle(pass 로 상속), ratified_fact(structure.json 이 고정), undriven(구동 없음)}."""
 
     net: str
     kind: str
@@ -471,7 +472,8 @@ class FfRatioCandidate:
 class LClass:
     """L 동치류 하나(40 §3.2 보완 1, LR1): 멤버, 주인 소자, 주인 선택 근거 규칙 이름, status.
     `owner_rule` ∈ {tail_owner(동치류에 tail 하나), tail_first_gain_stage(tail 여럿 -> 첫 전달 뷰 최전단 stage), current_source_member(tail 없음 -> diode 기준
-    멤버, 복합 diode 포함), main_path_signal(멤버 중 gain 제약 전달 뷰의 주경로 stage 시작 셀, 41 §1.12.5), name_order(그 밖 -> 이름 정렬 첫 멤버, review_needed)}."""
+    멤버, 복합 diode 포함), main_path_signal(멤버 중 gain 제약 전달 뷰의 주경로 stage 시작 셀, 41 §1.12.5), name_order(그 밖 -> 이름 정렬 첫 멤버, review_needed),
+    ratified_fact(structure.json `l_owner` 사실이 주인을 정함 -- status ratified, 40 §3.2-3 C-3)}."""
 
     members: tuple
     owner: str

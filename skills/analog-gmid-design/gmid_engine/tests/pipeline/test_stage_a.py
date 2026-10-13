@@ -376,8 +376,9 @@ def test_fact_file_written_with_old_s1v_rule_fp_is_stale(tmp_path, real_lut):
 
 def test_structure_rejection_stops_before_build_s1(tmp_path, real_lut):
     # 40 3.2-3 파이프라인 1: 사실 로드가 build_s1 앞 -> 거부(알 수 없는 concept)면 S1·S1v 를 만들지 않고 exit 7, 보고서는 쓴다
+    # [U17 ①-d] 40 v1.6 은 l_owner 를 concept 어휘에 넣었다(C-3) -- 어휘 밖 예를 frobnicate 로 바꿈
     side = tmp_path / "cs.structure.json"
-    J.write_structure(side, "0" * 64, structure_rule_fp(), [J.fact_dict("l_owner", "M1", "M1")])
+    J.write_structure(side, "0" * 64, structure_rule_fp(), [J.fact_dict("frobnicate", "M1", "M1")])
     r = _run(tmp_path, real_lut, H.CS)
     assert (r.exit_code, r.status) == (7, "stopped")
     assert r.s1v is None and r.report["tables"] is None
@@ -385,3 +386,80 @@ def test_structure_rejection_stops_before_build_s1(tmp_path, real_lut):
     assert "structure_concept_unknown" in r.report["stop_reasons"][0]
     assert r.report["stop_reasons"][0].startswith("A2_structure_json")     # pipeline 계약 1절 [U1b] 단계 이름
     assert all(Path(p).is_file() for p in r.report_paths)
+
+
+# ---------------------------------------------------------------- [U17 ①-d] 40 v1.6 §3.2-3 `l_owner` 사실(C-3)·§6-5 crosstab·diff_pair review
+
+def test_nmcnr_l_owner_fact_clears_name_order_review(tmp_path, real_lut):
+    # 40 §3.2-3 사실 표 "nmcnr_amplifier | `l_owner` | `["M104","M105"]` | `M105` | override -- 결정(사용자 결정 2026-10-12 "C-3은 네
+    # 제안대로 해") ... 단계 A의 `l_owner_name_order` review가 사라지는지 확인한다" + '사실 파일 상태': "쓴 뒤 nmcnr 단계 A 보고서에서
+    # `l_owner_name_order` review가 없어져야 한다". 사실 파일은 library 사본 옆(tmp)에 이 test 가 쓴다(topology 지문 = 사실 없는 첫 실행의
+    # S1 키, rule_hash = structure_rule_fp() -- 기존 test_dc_role_facts_are_loaded_before_build_s1 과 같은 준비).
+    tp, sp = _lib_copy(tmp_path, "nmcnr_amplifier")
+    sup = H.lib_supplies("nmcnr_amplifier")
+    plain = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o0", supplies_v=sup)
+    assert any("|l_owner_name_order|" in x for x in plain.report["review_needed"])          # 전제: 사실 없이는 review
+    J.write_structure(tp.parent / "nmcnr_amplifier.structure.json", plain.s1v.key[0].topology_fp, structure_rule_fp(),
+                      [J.fact_dict("l_owner", '["M104","M105"]', "M105", "C-3")])
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o1", supplies_v=sup)
+    assert plain.report["stop_reasons"] == [] and len(plain.report["review_needed"]) == 1   # 전제: 남은 review 는 이것 하나
+    assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
+    assert not any("l_owner_name_order" in x for x in r.report["review_needed"]), r.report["review_needed"]
+    assert ("l_owner", '["M104","M105"]') in [tuple(x) for x in r.report["applied_facts"]]
+    assert {lc.members: lc.owner for lc in r.s1v.l_classes}[("M104", "M105")] == "M105"
+    assert r.s1v.key != plain.s1v.key                                       # 같은 topology 라도 사실이 다르면 다른 키
+
+
+FDIFF_CL = H.topo("fdiffcl", tuple((e["name"], e["kind"], e["drain"], e["gate"], e["source"]) for e in J.FDIFF["netlist"]),
+                  {"inp": H.DIFF_P, "inn": H.DIFF_N, "op": H.OUT_P, "om": H.OUT_N},
+                  passives=(("CL1", "capacitor", ("om", "gnd")), ("CL2", "capacitor", ("op", "gnd"))), bias=("vb", "vbp"))
+
+
+def _find_key(obj, key):
+    """보고서(dict/list 중첩) 안에서 key 의 값을 모두 찾는다. 위치는 design 이 정하지 않았다('보고한다'만)."""
+    out = []
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k == key:
+                out.append(v)
+            out.extend(_find_key(v, key))
+    elif isinstance(obj, (list, tuple)):
+        for v in obj:
+            out.extend(_find_key(v, key))
+    return out
+
+
+def _names_in(value):
+    import re
+    return set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", json.dumps(value, default=repr)))
+
+
+def test_orbit_matching_crosstab_is_reported(tmp_path, real_lut):
+    # 40 §6-5: "대신 대조 표 `orbit_matching_crosstab`을 보고한다. MOS 궤도마다 그 궤도가 걸친 matching 레코드, 그리고 matching 레코드마다
+    # 그 레코드가 걸친 궤도를 적는다. 수동소자 궤도(Cc1/Cc2, Rz1/Rz2, R1/R2, CL1/CL2 등)는 matching 대상이 아니므로 표에서 뺀다."
+    # 손 회로 FDIFF_CL(완전 차동 + 출력마다 CL): MOS 궤도마다 행이 있으므로 MOS 이름 5개가 모두 나오고, 수동소자 CL1·CL2 는 나오지 않는다.
+    # 표의 위치·행 형식은 design 이 정하지 않았다 -> 단계 A 보고서 어디든 그 키로 찾는다(이름 미정 항목으로 보고).
+    r = _run(tmp_path, real_lut, FDIFF_CL)
+    found = _find_key(r.report, "orbit_matching_crosstab")
+    assert len(found) == 1, "orbit_matching_crosstab 이 단계 A 보고서에 정확히 한 번"
+    names = _names_in(found[0])
+    assert {"M0", "M1", "M2", "M3", "M4"} <= names
+    assert not ({"CL1", "CL2"} & names)
+
+
+def test_diff_pair_members_in_different_orbits_is_review_needed(tmp_path, real_lut):
+    # [U17 ①-d] 40 v1.8 §6-5 (나')(사용자 결정 2026-10-12 "나'로 진행해"): review 는 `diff_pair` 두 멤버가 다른 궤도이고 (a) 출력 포트가 차동 쌍,
+    # (b) 두 gate 가 차동 입력 포트 p/n 일 때만(코드 diff_pair_orbit_split). FDIFF/FDIFF_CX 는 출력 op/om = differential_output_p/n, diff_pair {M1, M2}
+    # gate inp/inn = differential_input_p/n 이라 (a)(b) 를 만족한다 -> 아래 판정은 v1.8 에서도 그대로다.
+    # 합성 최소쌍: FDIFF(완전 차동, M1<->M2 반사가 자기동형 -> diff_pair {M1, M2} 같은 궤도 -> 이 review 없음)와 FDIFF_CX(op 쪽에만 Cx ->
+    # op<->om 반사가 자기동형이 아니다 -> M1·M2 다른 궤도 -> review). diff_pair 레코드 {M1, M2}(공통 source tail, gate inp/inn)는 둘에 같다.
+    # review 코드 이름은 design 에 없다 -> 'M1·M2 둘을 함께 적은 review 항목'으로 본다(FDIFF_CX 의 다른 review 는 l_owner_name_order {M3, M4}).
+    def pair_reviews(rep):
+        return [x for x in rep["review_needed"] if "M1" in x.split("|")[3].replace(" ", "").split(",")
+                and "M2" in x.split("|")[3].replace(" ", "").split(",")]
+    sym = _run(tmp_path, real_lut, J.FDIFF, out="o_sym")
+    asym = _run(tmp_path, real_lut, J.FDIFF_CX, out="o_asym")
+    assert pair_reviews(sym.report) == []
+    assert len(pair_reviews(asym.report)) == 1, asym.report["review_needed"]
+    assert pair_reviews(asym.report)[0].split("|")[1] == "diff_pair_orbit_split"          # [U17 ①-d] 실제 API 의 기록 코드(graph CONTRACT 4.8)
+    assert asym.status == "review_needed"

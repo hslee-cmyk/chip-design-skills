@@ -18,7 +18,8 @@ from gmid_engine.sizing import (DC_KEY, S2_WRITERS, DcInputs, KernelContext, Lut
 from .conftest import (NINE, SUPPLIES, W_KEYS, build_ctx, circuit_cs_pmos_load, detail, library_ctx, load_doc,
                        mos, new_access, topo, two)
 
-PLAN = ("dc_rails", "dc_struct_colour", "dc_current_basis", "dc_writer_plan", "dc_scc_order", "dc_theta_schema")
+# [U17 ①-d] 40 §6-8 D-2: 구조 색 블록 = graph 대칭 블록 s1_symmetry(S1 이 같은 표시로 계산했으면 재사용)
+PLAN = ("dc_rails", "s1_symmetry", "dc_current_basis", "dc_writer_plan", "dc_scc_order", "dc_theta_schema")
 
 
 @pytest.fixture

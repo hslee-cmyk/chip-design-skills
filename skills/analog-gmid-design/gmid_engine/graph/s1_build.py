@@ -1,6 +1,6 @@
 """S1 생성 (설계 design_mod3_s1_graph 5.2, design_mod3_structure_u2_u5 4.0, 확정 사항 1·2·5).
 
-진입점: `build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None) -> S1Graph`.
+진입점: `build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None, marks=NO_MARKS) -> S1Graph`.
 
 * `doc`: `authoring.load_topology` 결과 `TopologyDoc`(파일을 다시 읽지 않는다). `supplies_v`: {레일 넷: 전위} 또는
   None(`supplies_declaration` 이 검사·정규화). topology 의 `_` 주석 키는 읽지 않는다.
@@ -12,15 +12,17 @@
   레코드는 이전 스냅샷과 같은 객체다(구조 공유). `previous` 없이 같은 doc 으로 두 번 부르면 두 번 계산하고 블록 계수
   `recomputes_same_input` 이 올라간다 -- 같은 실행의 재사용은 호출자가 이전 S1 을 넘겨서 한다(graph 가 곧 캐시).
 * `structure`: `load_structure_facts` 결과(`StructureFacts`) 또는 None. S1 이 소비하는 ratified 사실 -- `dc_role`(`s1_dc_roles` 규칙 4)과 `matching_pair`
-  (`s1_matching_groups` 레코드 추가) -- 만 뽑아 두 블록에 넘기고, 그 지문을 S1 키(`facts_fp`)에 넣는다(같은 topology 라도 사실이 다르면 S1 이 다르다, 40 §3.2-3).
+  (`s1_matching_groups` 레코드 추가) -- 만 뽑아 두 블록에 넘기고, 그 지문을 S1 키(`facts_fp`, `s1_key`)에 넣는다(같은 topology 라도 사실이 다르면 S1 이 다르다, 40 §3.2-3).
   `drive_kind`·`ac_ground_exception`·`loop_role`·`feedforward_cell`·`stage_members` 는 S1v 쪽 사실이다(`build_s1v`).
+* `marks`: 대칭 블록(`s1_symmetry`)이 보존할 사람 선언 표시 `SymmetryMarks`(기본 `NO_MARKS` -- spec 없음). 지문은 S1 키(`marks_fp`)에 들어간다(40 §6-8 D-2: 궤도·구조 색·
+  전류 부호를 S1 하나에서 정한다).
 * 순서(고정): supplies 검사 -> 키 -> structure -> bulk -> dc_conduction -> gs_groups -> branches -> dc_roles -> rel_vgs
-  -> rel_matching -> matching_groups -> gvgs -> columns -> rel_kcl.
+  -> rel_matching -> matching_groups -> gvgs -> columns -> rel_kcl -> symmetry(대칭 블록, d/s 자기 맞바꿈이면 정지).
 """
 import json
 
 from gmid_engine.authoring import TopologyDoc
-from gmid_engine.core import GraphSnapshot, fp_of, sorted_items
+from gmid_engine.core import GraphSnapshot, sorted_items
 
 from .branches import s1_branches
 from .bulk_default import s1_bulk
@@ -36,7 +38,8 @@ from .rel_vgs import s1_rel_vgs
 from .s1_key import s1_key
 from .s1_model import S1Graph
 from .s1_structure import s1_structure
-from .s1_values import GRAPH_KEY, NO_FACTS_FP, S1_WRITERS, S1Key
+from .s1_symmetry import s1_symmetry
+from .s1_values import GRAPH_KEY, NO_MARKS, S1_WRITERS, SymmetryMarks
 from .s1v_values import CONCEPT_DC_ROLE, CONCEPT_MATCHING_PAIR
 from .supplies import supplies_declaration
 
@@ -49,7 +52,7 @@ def _s1_facts(structure):
     return dc, pairs
 
 
-def build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None):
+def build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None, marks=NO_MARKS):
     if not isinstance(doc, TopologyDoc):
         raise TypeError("build_s1: doc 는 authoring.load_topology 가 만든 TopologyDoc 이어야 한다")
     if previous is not None and (not isinstance(previous, S1Graph) or previous.snapshot.writers != S1_WRITERS):
@@ -57,10 +60,11 @@ def build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structur
     if column_limit is not None and (isinstance(column_limit, bool) or not isinstance(column_limit, int)
                                      or column_limit < 0):
         raise TypeError("build_s1: column_limit 는 None 또는 0 이상 int 여야 한다")
+    if not isinstance(marks, SymmetryMarks):
+        raise TypeError("build_s1: marks 는 SymmetryMarks 여야 한다")
     supplies = supplies_declaration(supplies_v, doc.rails)
     dc_facts, pair_facts = _s1_facts(structure)
-    base = s1_key(doc, supplies)
-    key = S1Key(base.topology_fp, base.rule_fp, base.supplies_v_fp, fp_of((dc_facts, pair_facts)) if dc_facts or pair_facts else NO_FACTS_FP)
+    key = s1_key(doc, supplies, (dc_facts, pair_facts), marks)
     if previous is not None and previous.key == key and (
             column_limit is None or len(previous.value("graph", GRAPH_KEY, "columns")) <= column_limit):
         return previous
@@ -77,4 +81,5 @@ def build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structur
     snapshot = s1_gvgs(snapshot)
     snapshot = s1_columns(snapshot, column_limit)
     snapshot = s1_rel_kcl(snapshot)
+    snapshot = s1_symmetry(snapshot, supplies, marks)
     return S1Graph(key, snapshot)

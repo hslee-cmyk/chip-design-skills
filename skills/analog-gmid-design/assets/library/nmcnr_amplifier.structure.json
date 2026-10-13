@@ -1,0 +1,21 @@
+{
+  "schema_version": "1",
+  "topology_hash": "887747d29064aa37f03aecf3c251b385431b4930f2b1b9a6260c2d0ea8036999",
+  "rule_hash": "e619c3a95cd694452505935971e0ef431c480ffacc7730a8e014dd47bdb04f6e",
+  "facts": [
+    {
+      "concept": "l_owner",
+      "subject": "[\"M104\", \"M105\"]",
+      "value": "M105",
+      "status": "ratified",
+      "evidence": {
+        "rule": "40 §3.2-3 table",
+        "nets": [
+          "VB2",
+          "vss"
+        ]
+      },
+      "approval_id": "user_decisions 2026-10-12 C-3 재확인(2026-10-13)"
+    }
+  ]
+}
