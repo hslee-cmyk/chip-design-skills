@@ -50,6 +50,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import threading
 from pathlib import Path
 
 import pytest
@@ -392,13 +393,37 @@ def test_stored_key_carries_engine_code_fp_and_input_file_sha(tmp_path):
 # 위치(§2.4.3 '위치': gmid_engine 아래 .gitignore 등록 디렉터리)
 # =====================================================================
 
-def test_default_location_is_gitignored_dir_under_engine():
+_ENV = "GMID_S0_SNAPSHOT_DIR"      # test 격리용 위치 환경 변수(core CONTRACT, LUT 파생표 캐시 GMID_LUT_TABLE_CACHE_DIR 관례)
+
+
+def test_default_location_is_gitignored_dir_under_engine(monkeypatch):
+    monkeypatch.delenv(_ENV, raising=False)        # 루트 conftest 가 세션 tmp 로 돌려 둔 것을 지운 상태 = 실제 기본 위치
     store = S0SnapshotStore.default("e" * 8)
     d = Path(store.directory).resolve()
     assert d.parent == _ENGINE_DIR
     probe = d / ("0" * 64 + _SUFFIX)
     done = subprocess.run(("git", "-C", str(_ENGINE_DIR), "check-ignore", "-q", str(probe)), capture_output=True)
     assert done.returncode == 0, "S0 스냅샷 폴더가 .gitignore 에 등록되지 않았다: %s" % d
+
+
+@pytest.mark.parametrize("value", ["", None])
+def test_empty_or_absent_env_keeps_default_location(monkeypatch, value):
+    if value is None:
+        monkeypatch.delenv(_ENV, raising=False)
+    else:
+        monkeypatch.setenv(_ENV, value)
+    assert Path(S0SnapshotStore.default("e" * 8).directory).resolve() == _ENGINE_DIR / ".s0_snapshot"
+
+
+def test_env_redirects_default_location(monkeypatch, tmp_path):
+    monkeypatch.setenv(_ENV, str(tmp_path / "s0"))
+    assert Path(S0SnapshotStore.default("e" * 8).directory).resolve() == (tmp_path / "s0").resolve()
+
+
+def test_test_session_does_not_use_engine_snapshot_folder():
+    # 루트 conftest: test 세션은 실제 gmid_engine/.s0_snapshot 에 쓰지 않는다(세션 tmp 로 돌린다).
+    d = Path(S0SnapshotStore.default("e" * 8).directory).resolve()
+    assert d != _ENGINE_DIR / ".s0_snapshot" and _ENGINE_DIR not in d.parents
 
 
 # =====================================================================
@@ -738,10 +763,29 @@ def test_engine_code_fp_change_gives_other_file(tmp_path):
 # 방금 쓴 파일·링크·폴더 밖·형식 다른 파일 제외, 실패 시 0.
 # 재현 재료 = 키의 입력 파일 원본 sha256 + 엔진 코드 지문(사용자 원문 '현재 파일(topology·spec·LUT·PDK 선언·유도 규칙 코드·writer 코드
 # 지문)'). 기대값(보존/삭제)은 이 재료를 test 가 직접 바꿔 정한다.
+# '쓰기 시점 1회' = 프로세스의 첫 실제 쓰기 1회(core CONTRACT §11.3, 승인된 tol_V 캐시 정리의 '첫 쓰기 때만'과 같은 방식). 프로세스 표시
+# (`_CLEANUP_STARTED`)는 test 마다 '이미 썼다'로 두고(준비 쓰기는 정리하지 않는다), 정리를 관찰할 쓰기 바로 앞에서만 `_arm()` 으로
+# 새 표시(= 이 프로세스의 첫 쓰기)를 넣는다. 판정 의미(무엇을 지우고 무엇을 남기는가)는 그대로다.
 # =====================================================================
 
 _ROLES = ("topology", "spec", "structure", "pdk_decl", "lut_manifest")
 _CURRENT_CODE = "e" * 8
+
+
+@pytest.fixture(autouse=True)
+def cleanup_flag(monkeypatch):
+    """프로세스 표시를 test 마다 격리한다: 기본 = 이미 첫 쓰기를 한 프로세스(정리 없음). `_arm()` = 아직 쓰지 않은 프로세스."""
+    codec = _codec_module()
+    done = threading.Event()
+    done.set()
+    monkeypatch.setattr(codec, "_CLEANUP_STARTED", done)
+    return codec
+
+
+def _arm():
+    """다음 실제 쓰기를 이 프로세스의 첫 쓰기로 만든다(정리를 관찰할 쓰기 바로 앞에서만 부른다)."""
+    codec = _codec_module()
+    codec._CLEANUP_STARTED = threading.Event()      # cleanup_flag 의 monkeypatch 가 test 끝에 원래 값으로 되돌린다
 
 
 def _sha(path):
@@ -775,6 +819,12 @@ def _write(directory, key):
     return path
 
 
+def _observe(directory, key):
+    """정리를 관찰할 쓰기: 이 프로세스의 첫 쓰기로 만든 뒤 쓴다."""
+    _arm()
+    return _write(directory, key)
+
+
 def _repo_top():
     for folder in (_ENGINE_DIR,) + tuple(_ENGINE_DIR.parents):
         if (folder / ".git").exists():
@@ -791,7 +841,7 @@ def _listing(*worktrees):
 def worktrees(monkeypatch):
     """worktree 나열을 test 가 정한 목록으로 바꾼다(판정 로직은 그대로). 기본 = 이 저장소 하나.
     이 파일의 모든 test 에 건다: 실제 나열이면 엔진 코드 지문이 다른 후보 하나에 저장소의 worktree ~100개를 모두 재어
-    test 하나가 약 100 s 걸리고(실측 102 s, test_engine_code_fp_change_gives_other_file) 결과가 저장소 상태에 따라 바뀐다."""
+    test 하나가 약 100 s 걸리고(실측 102 s) 결과가 저장소 상태에 따라 바뀐다."""
     codec = _codec_module()
     state = {"listing": _listing(), "calls": 0}
 
@@ -811,7 +861,7 @@ def test_cleanup_keeps_key_reproducible_from_current_files(tmp_path, worktrees):
     inputs = _inputs_dir(tmp_path)
     cache = tmp_path / "cache"
     old = _write(cache, _key(sources=_sources_now(inputs), spec_fp="old"))
-    new = _write(cache, _key(sources=_sources_now(inputs), spec_fp="new"))
+    new = _observe(cache, _key(sources=_sources_now(inputs), spec_fp="new"))
     assert os.path.exists(old) and os.path.exists(new)
 
 
@@ -821,7 +871,7 @@ def test_cleanup_removes_key_whose_input_file_changed(tmp_path, worktrees, role)
     cache = tmp_path / "cache"
     old = _write(cache, _key(sources=_sources_now(inputs)))
     (inputs / (role + ".json")).write_bytes(b'{"edited": true}')          # 이 입력 파일의 현재 내용으로는 옛 키를 못 만든다
-    new = _write(cache, _key(sources=_sources_now(inputs)))
+    new = _observe(cache, _key(sources=_sources_now(inputs)))
     assert not os.path.exists(old), role
     assert os.path.exists(new)
 
@@ -831,7 +881,7 @@ def test_cleanup_removes_key_whose_input_file_was_deleted(tmp_path, worktrees):
     cache = tmp_path / "cache"
     old = _write(cache, _key(sources=_sources_now(inputs)))
     os.remove(inputs / "spec.json")
-    new = _write(cache, _key(sources=_sources_now(inputs)))
+    new = _observe(cache, _key(sources=_sources_now(inputs)))
     assert not os.path.exists(old)
     assert os.path.exists(new)
 
@@ -842,7 +892,7 @@ def test_cleanup_keeps_key_whose_absent_input_is_still_absent(tmp_path, worktree
     cache = tmp_path / "cache"
     os.remove(inputs / "structure.json")
     old = _write(cache, _key(sources=_sources_now(inputs), spec_fp="old"))
-    new = _write(cache, _key(sources=_sources_now(inputs), spec_fp="new"))
+    new = _observe(cache, _key(sources=_sources_now(inputs), spec_fp="new"))
     assert os.path.exists(old) and os.path.exists(new)
 
 
@@ -850,7 +900,7 @@ def test_cleanup_removes_key_whose_engine_code_no_checkout_has(tmp_path, worktre
     inputs = _inputs_dir(tmp_path)
     cache = tmp_path / "cache"
     old = _write(cache, _key(sources=_sources_now(inputs), engine_code_fp="old-code"))
-    new = _write(cache, _key(sources=_sources_now(inputs), engine_code_fp=_CURRENT_CODE))
+    new = _observe(cache, _key(sources=_sources_now(inputs), engine_code_fp=_CURRENT_CODE))
     assert not os.path.exists(old)
     assert os.path.exists(new)
     assert worktrees["calls"] == 1          # 이 저장소에서 결정되지 않은 후보가 있어 worktree 를 나열했다
@@ -883,7 +933,7 @@ def test_cleanup_keeps_key_reproducible_in_another_worktree(tmp_path, worktrees)
     other_code = _code_fp_of(_fake_worktree(other, {"__init__.py": "", "core/a.py": "A = 2\n"}))
     worktrees["listing"] = _listing(other)
     old = _write(cache, _key(sources=_sources_now(inputs), engine_code_fp=other_code))
-    _write(cache, _key(sources=_sources_now(inputs), engine_code_fp=_CURRENT_CODE))
+    _observe(cache, _key(sources=_sources_now(inputs), engine_code_fp=_CURRENT_CODE))
     assert worktrees["calls"] == 1
     assert os.path.exists(old), "다른 worktree 의 엔진 코드로 만들 수 있는 키를 지웠다"
 
@@ -897,7 +947,8 @@ def test_cleanup_removes_key_when_other_worktree_code_differs(tmp_path, worktree
     (engine / "core" / "a.py").write_bytes(b"A = 3\n")                    # 그 worktree 의 코드가 바뀌었다
     worktrees["listing"] = _listing(other)
     old = _write(cache, _key(sources=_sources_now(inputs), engine_code_fp=old_code))
-    _write(cache, _key(sources=_sources_now(inputs), engine_code_fp=_CURRENT_CODE))
+    _observe(cache, _key(sources=_sources_now(inputs), engine_code_fp=_CURRENT_CODE))
+    assert worktrees["calls"] == 1
     assert not os.path.exists(old)
 
 
@@ -908,12 +959,12 @@ def test_cleanup_ignores_worktree_without_engine(tmp_path, worktrees):
     bare.mkdir()
     worktrees["listing"] = _listing(bare)
     old = _write(cache, _key(sources=_sources_now(inputs), engine_code_fp="old-code"))
-    _write(cache, _key(sources=_sources_now(inputs), engine_code_fp=_CURRENT_CODE))
+    _observe(cache, _key(sources=_sources_now(inputs), engine_code_fp=_CURRENT_CODE))
     assert not os.path.exists(old)
 
 
 def test_cleanup_repo_relative_input_is_checked_per_worktree(tmp_path, worktrees):
-    # 저장소 안 입력 파일은 checkout 마다 그 worktree 의 같은 상대 경로 파일로 재현을 판정한다.
+    # 저장소 안 입력 파일은 checkout 마다 그 worktree 의 같은 상대 경로 파일로 재현을 판정한다(한 번의 정리에서 세 후보를 함께 판정).
     cache = tmp_path / "cache"
     repo_file = _ENGINE_DIR.parent / "assets" / "sky130_pdk_decl.json"
     assert repo_file.is_file()
@@ -926,7 +977,7 @@ def test_cleanup_repo_relative_input_is_checked_per_worktree(tmp_path, worktrees
     kept = _write(cache, _key(sources={"pdk_decl": (str(repo_file), _sha(other / rel))}, engine_code_fp=other_code, spec_fp="k"))
     gone = _write(cache, _key(sources={"pdk_decl": (str(repo_file), "0" * 64)}, engine_code_fp=other_code, spec_fp="g"))
     here = _write(cache, _key(sources={"pdk_decl": (str(repo_file), _sha(repo_file))}, spec_fp="h"))
-    _write(cache, _key(sources={"pdk_decl": (str(repo_file), _sha(repo_file))}, spec_fp="now"))
+    _observe(cache, _key(sources={"pdk_decl": (str(repo_file), _sha(repo_file))}, spec_fp="now"))
     assert os.path.exists(kept), "다른 worktree 의 현재 파일·코드로 만들 수 있는 키를 지웠다"
     assert not os.path.exists(gone), "어떤 checkout 으로도 만들 수 없는 키를 남겼다"
     assert os.path.exists(here), "이 checkout 의 현재 파일·코드로 만들 수 있는 키를 지웠다"
@@ -935,22 +986,53 @@ def test_cleanup_repo_relative_input_is_checked_per_worktree(tmp_path, worktrees
 def test_just_written_file_is_kept_even_if_unreproducible(tmp_path, worktrees):
     inputs = _inputs_dir(tmp_path)
     cache = tmp_path / "cache"
-    _write(cache, _key(sources=_sources_now(inputs), spec_fp="old"))
+    old = _write(cache, _key(sources=_sources_now(inputs), spec_fp="old"))
+    (inputs / "spec.json").write_bytes(b'{"edited": true}')             # 대조군: 옛 키는 재현 불가 -> 지워진다(정리가 돌았다)
     stale = {"topology": (str(inputs / "topology.json"), "0" * 64)}      # 지금 파일과 다른 sha -- 그래도 방금 쓴 파일
-    new = _write(cache, _key(sources=stale, spec_fp="new"))
+    new = _observe(cache, _key(sources=stale, spec_fp="new"))
+    assert not os.path.exists(old)
     assert os.path.exists(new)
 
 
-def test_cleanup_does_not_run_on_hit(tmp_path, worktrees):
+def test_cleanup_does_not_run_on_hit(tmp_path, worktrees, cleanup_flag):
     inputs = _inputs_dir(tmp_path)
     cache = tmp_path / "cache"
     cur = _key(sources=_sources_now(inputs), spec_fp="cur")
     _write(cache, cur)
     old = _write(cache, _key(sources=_sources_now(inputs), spec_fp="old"))
     (inputs / "topology.json").write_bytes(b'{"edited": true}')          # 이제 'old'·'cur' 둘 다 재현 불가
+    _arm()
     got = _fetch(cache, cur, _must_not_compute)                          # 적중: 쓰기 없음 -> 정리 없음
     assert got.outcome == OUTCOME_HIT
     assert os.path.exists(old)
+    assert not cleanup_flag._CLEANUP_STARTED.is_set(), "쓰기가 없었는데 프로세스의 첫 쓰기(정리 기회)를 써 버렸다"
+
+
+def test_save_of_already_valid_file_is_not_the_first_write(tmp_path, worktrees, cleanup_flag):
+    # 검증되는 같은 키 파일이 있어 쓰지 않은 save 는 '실제 쓰기'가 아니다 -> 정리 기회를 남긴다.
+    inputs = _inputs_dir(tmp_path)
+    cache = tmp_path / "cache"
+    key = _key(sources=_sources_now(inputs), spec_fp="cur")
+    _write(cache, key)
+    _arm()
+    _store(cache, key).save(key.inputs, key.sources, _snapshot())
+    assert not cleanup_flag._CLEANUP_STARTED.is_set()
+
+
+def test_second_write_in_same_process_does_not_clean(tmp_path, worktrees):
+    # '쓰기 시점 1회' = 프로세스의 첫 쓰기 1회: 첫 쓰기가 정리하고 나면, 같은 프로세스의 다음 쓰기는 재현 불가 파일이 새로 생겨도 지우지 않는다.
+    inputs = _inputs_dir(tmp_path)
+    cache = tmp_path / "cache"
+    first_old = _write(cache, _key(sources=_sources_now(inputs), spec_fp="a"))
+    (inputs / "spec.json").write_bytes(b'{"edited": 1}')
+    _observe(cache, _key(sources=_sources_now(inputs), spec_fp="b"))      # 이 프로세스의 첫 쓰기 -> 정리
+    assert not os.path.exists(first_old), "대조군: 첫 쓰기는 재현 불가 파일을 지운다"
+    second_old = os.path.join(cache, _key_name(_key(sources=_sources_now(inputs), spec_fp="b")))
+    (inputs / "spec.json").write_bytes(b'{"edited": 2}')                 # 이제 'b' 도 재현 불가
+    calls = worktrees["calls"]
+    _write(cache, _key(sources=_sources_now(inputs), spec_fp="c"))       # 같은 프로세스의 두 번째 쓰기
+    assert os.path.exists(second_old), "같은 프로세스의 두 번째 쓰기가 정리했다"
+    assert worktrees["calls"] == calls
 
 
 def test_cleanup_failure_deletes_nothing(tmp_path, worktrees):
@@ -958,13 +1040,13 @@ def test_cleanup_failure_deletes_nothing(tmp_path, worktrees):
     cache = tmp_path / "cache"
     topo_only = {"topology": _sources_now(inputs)["topology"]}
     old_code = _write(cache, _key(sources=topo_only, engine_code_fp="old-code"))   # worktree 나열이 필요한 후보(spec 을 읽지 않은 키)
-    worktrees["listing"] = OSError("worktree listing failed")         # 다음 쓰기부터 나열 실패
     old_input = _write(cache, _key(sources=_sources_now(inputs), spec_fp="x"))
-    assert os.path.exists(old_code)
     (inputs / "spec.json").write_bytes(b'{"edited": true}')            # old_input 은 이 저장소만으로도 삭제 대상
+    worktrees["listing"] = OSError("worktree listing failed")
+    _arm()
     got = _fetch(cache, _key(sources=_sources_now(inputs), spec_fp="new"), _counting(_snapshot())[0])
     assert got.snapshot.fp == _snapshot().fp
-    assert worktrees["calls"] == 2, "나열 실패 주입이 실제로 판정 경로에 닿지 않았다"
+    assert worktrees["calls"] == 1, "나열 실패 주입이 실제로 판정 경로에 닿지 않았다"
     assert os.path.exists(old_code) and os.path.exists(old_input), "정리 실패인데 일부를 지웠다"
 
 
@@ -979,7 +1061,7 @@ def test_cleanup_skips_other_format_files(tmp_path, worktrees):
     garbage = cache / ("2" * 64 + _SUFFIX)                               # 형식 이름이지만 읽을 수 없는 파일
     garbage.write_bytes(b"x")
     (inputs / "topology.json").write_bytes(b'{"edited": true}')
-    _write(cache, _key(sources=_sources_now(inputs)))
+    _observe(cache, _key(sources=_sources_now(inputs)))
     assert not os.path.exists(old), "대조군: 형식 이름의 재현 불가 파일은 지워져야 한다(정리가 돌았다)"
     for name in others:
         assert (cache / name).exists(), name
@@ -999,7 +1081,7 @@ def test_cleanup_skips_subdirectory_and_files_outside_folder(tmp_path, worktrees
     dir_like = cache / ("0" * 64 + _SUFFIX)             # 형식 이름을 가진 폴더
     dir_like.mkdir()
     (inputs / "topology.json").write_bytes(b'{"edited": true}')
-    _write(cache, _key(sources=_sources_now(inputs)))
+    _observe(cache, _key(sources=_sources_now(inputs)))
     assert not os.path.exists(old), "대조군: 정리가 돌았다"
     assert outside.exists()
     assert inner.exists()
@@ -1018,6 +1100,6 @@ def test_cleanup_skips_symlink(tmp_path, worktrees):
     except (OSError, NotImplementedError):
         pytest.skip("이 환경은 심볼릭 링크를 만들 수 없다")
     (inputs / "topology.json").write_bytes(b'{"edited": true}')
-    _write(cache, _key(sources=_sources_now(inputs)))
+    _observe(cache, _key(sources=_sources_now(inputs)))
     assert os.path.islink(link)
     assert target.exists()

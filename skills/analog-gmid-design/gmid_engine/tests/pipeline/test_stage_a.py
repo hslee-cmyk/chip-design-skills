@@ -395,7 +395,8 @@ def test_structure_rejection_stops_before_build_s1(tmp_path, real_lut):
 # [U17 ①-a] S0 수준 스냅샷 영속화(설계 40 v1.6 §2.4.3, §2.4.12 Q1·Q2, §3.10.11 U-68; pipeline CONTRACT 1절)
 # 기대값: design 문장(키 (i)~(iii), PDK 선언 해시 fail-closed, 적중이면 S0 수준 블록 계산 0, 손상 -> 재계산·같은 키 교체,
 # 보고서 s0_snapshot = hit|miss|corrupt) + hashlib 로 직접 잰 입력 파일 sha256. 피검 함수로 기대값을 만들지 않는다.
-# 저장 위치만 test 의 임시 폴더로 돌린다(`S0SnapshotStore.default` -- 위치 규칙 자체는 tests/core/test_snapshot_codec.py).
+# 저장 위치만 test 의 임시 폴더로 돌린다(환경 변수 `GMID_S0_SNAPSHOT_DIR` -- 위치 규칙 자체는 tests/core/test_snapshot_codec.py).
+# U-68 정리는 프로세스의 첫 실제 쓰기 1회(core CONTRACT §11.3) -- 정리를 관찰하는 test 는 그 실행 바로 앞에서 프로세스 표시를 새로 둔다.
 # =====================================================================
 
 import gzip as _gzip
@@ -417,14 +418,19 @@ _PDK_DECL_FILE = Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_de
 @pytest.fixture
 def s0_dir(tmp_path, monkeypatch):
     d = tmp_path / "s0"
-
-    class _TmpStore(stage_a_module.S0SnapshotStore):
-        @classmethod
-        def default(cls, code_fp):
-            return cls(str(d), code_fp)
-
-    monkeypatch.setattr(stage_a_module, "S0SnapshotStore", _TmpStore)
+    monkeypatch.setenv("GMID_S0_SNAPSHOT_DIR", str(d))
     return d
+
+
+@pytest.fixture
+def arm_cleanup(monkeypatch):
+    """다음 실제 쓰기를 이 프로세스의 첫 쓰기로 만든다(정리 관찰용, test 끝에 원래 표시로 되돌린다)."""
+    import threading
+    from gmid_engine.core import snapshot_codec
+
+    def arm():
+        monkeypatch.setattr(snapshot_codec, "_CLEANUP_STARTED", threading.Event())
+    return arm
 
 
 def _snapshots(d):
@@ -553,21 +559,23 @@ def test_s0_key_records_engine_code_fp_and_input_file_sha(tmp_path, real_lut, s0
     assert r.code_fp == _engine_code_fp() and r.code_fp in values
 
 
-def test_s0_input_file_edit_makes_old_snapshot_unreproducible_and_removed(tmp_path, real_lut, s0_dir):
+def test_s0_input_file_edit_makes_old_snapshot_unreproducible_and_removed(tmp_path, real_lut, s0_dir, arm_cleanup):
     # U-68: topology 파일 원본이 바뀌면(정규화 지문이 같은 공백 변경이라도) 옛 키는 어떤 checkout 으로도 만들 수 없다 -> 쓰기 시점에 삭제.
     p = _write(tmp_path, H.CS)
     run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "a", supplies_v=H.SUPPLIES)
     old = _snapshots(s0_dir)
     p.write_text(json.dumps(H.CS, indent=2), encoding="utf-8")
+    arm_cleanup()
     r = run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "b", supplies_v=H.SUPPLIES)
     assert r.report["s0_snapshot"] == "miss"
     now = _snapshots(s0_dir)
     assert len(old) == 1 and len(now) == 1 and now != old
 
 
-def test_s0_other_circuit_snapshot_is_kept(tmp_path, real_lut, s0_dir):
-    # U-68 대조: 다른 회로의 스냅샷은 그 입력 파일이 그대로라 다시 만들 수 있다 -> 보존.
+def test_s0_other_circuit_snapshot_is_kept(tmp_path, real_lut, s0_dir, arm_cleanup):
+    # U-68 대조: 다른 회로의 스냅샷은 그 입력 파일이 그대로라 다시 만들 수 있다 -> 보존(정리가 도는 첫 쓰기에서도).
     _run(tmp_path, real_lut, H.CS, out="a")
+    arm_cleanup()
     _run(tmp_path, real_lut, H.MILLER, out="b")
     assert len(_snapshots(s0_dir)) == 2
 

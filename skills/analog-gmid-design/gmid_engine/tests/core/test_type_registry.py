@@ -175,3 +175,102 @@ def test_pipeline_import_registers_search_start_value_types():
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, cwd=_SKILL_DIR)
     assert out.returncode == 0, out.stderr
     assert out.stdout.strip() == "", "pipeline import 뒤 등록되지 않은 필드 값 형식: %s" % out.stdout.strip()
+
+
+def _reachable_dataclass_types(roots, skip=()):
+    """값들에서 닿는 dataclass 인스턴스의 타입 집합(필드 값·tuple·list·frozenset·dict 값을 따라 내려간다). `skip` 타입은 세지 않고 안으로만 간다."""
+    import dataclasses as _dc
+    seen, found, stack = set(), set(), list(roots)
+    while stack:
+        v = stack.pop()
+        if id(v) in seen:
+            continue
+        seen.add(id(v))
+        if _dc.is_dataclass(v) and not isinstance(v, type):
+            if type(v) not in skip:
+                found.add(type(v))
+            stack.extend(getattr(v, f.name) for f in _dc.fields(v))
+        elif isinstance(v, (tuple, list, frozenset, set)):
+            stack.extend(v)
+        elif hasattr(v, "items") and hasattr(v, "keys"):
+            stack.extend(v.values())
+            stack.extend(v.keys())
+    return found
+
+
+# ---------- [U17 ①-a 통합] 등록 대상 = design §2.4.2 '값 형식'에서 독립 도출(구현 등록 목록을 베끼지 않는다) ----------
+# design 40 §2.4.2: S0 수준 필드 값 = as-built frozen dataclass(graph/s1v_values.py, metrics/achievability_types.py, search/start_values.py 의
+# StartRow·StartConflict·MacroResult·StartRung·Placement)를 그대로 쓰고, 묶음(S1v, Achievability, StartIntervals)은 필드로 풀어 사본을 두지 않는다.
+# 그래서 (가) 실제 S1 필드 값과 (나) 묶음 S1v 를 필드로 풀었을 때 그 값에서 닿는 dataclass 는 모두 등록돼 있어야 하고(목록 밖이면 코덱이 거부),
+# (다) 묶음 클래스 자체는 필드 값이 아니다. 대상 회로 = library 9개 전부(구조가 다른 회로마다 닿는 값 형식이 다르다).
+# metrics·search 묶음(Achievability·StartIntervals)의 같은 검사는 실제 단계 B·출발 구간이 필요해 tests/search/test_start_intervals.py 에 있다.
+
+_LIBRARY = os.path.join(_SKILL_DIR, "assets", "library")
+
+
+def _library_names():
+    return sorted(n[: -len(".topology.json")] for n in os.listdir(_LIBRARY) if n.endswith(".topology.json") and not n.startswith("_"))
+
+
+def _library_s1_s1v(name):
+    import json
+    from gmid_engine.authoring import load_topology
+    from gmid_engine.graph import build_s1, build_s1v
+    raw = json.loads(open(os.path.join(_LIBRARY, name + ".topology.json"), encoding="utf-8").read())
+    supplies = {k: v for k, v in raw["_declared_target_spec"]["supplies_v"].items() if not k.startswith("_")}
+    s1 = build_s1(load_topology(os.path.join(_LIBRARY, name + ".topology.json")), supplies)
+    return s1, build_s1v(s1, None, count_budget=10 ** 9, stop_on_unsupported=False)
+
+
+def _field_values(snapshot):
+    out = []
+    for kind in snapshot.kinds():
+        for key in snapshot.keys(kind):
+            rec = snapshot.record(kind, key)
+            out.extend(rec.get(n).value for n in rec.field_names())
+    return out
+
+
+def test_library_has_nine_circuits():
+    assert len(_library_names()) == 9, _library_names()
+
+
+@pytest.mark.parametrize("name", _library_names())
+def test_s1_and_s1v_field_value_types_are_registered(name):
+    import gmid_engine.pipeline  # noqa: F401  (design §2.4.3: pipeline 이 모든 패키지를 import 해 등록부를 채운다)
+    from gmid_engine.graph import S1v
+    s1, s1v = _library_s1_s1v(name)
+    s1_types = _reachable_dataclass_types(_field_values(s1.snapshot))
+    s1v_types = _reachable_dataclass_types([getattr(s1v, f.name) for f in dataclasses.fields(s1v)], skip=(S1v,))
+    names = set(_api("registered_names")())
+    missing = sorted(_qualified(t) for t in s1_types | s1v_types if _qualified(t) not in names)
+    assert not missing, "S0 수준 필드 값 형식인데 등록부에 없다(코덱이 거부): %s" % missing
+    assert s1v_types, "s1v 에서 닿는 값 형식이 0 -- 검사가 비었다"
+
+
+def test_bundle_classes_are_not_registered():
+    # §2.4.2: 묶음 객체는 필드 묶음으로 풀고 사본을 두지 않는다 -> 묶음 클래스 자체는 필드 값 형식이 아니다.
+    code = (
+        "import gmid_engine.pipeline\n"
+        + _GET_REGISTRY
+        + "names = set(r.%s())\n"
+        "print('|'.join(sorted(n for n in %r if n in names)))\n"
+        % (_API["registered_names"], ("gmid_engine.graph.s1v_values.S1v", "gmid_engine.metrics.achievability_types.Achievability",
+                                      "gmid_engine.search.start_values.StartIntervals"))
+    )
+    env = dict(os.environ)
+    env["PYTHONPATH"] = _SKILL_DIR + os.pathsep + env.get("PYTHONPATH", "")
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, cwd=_SKILL_DIR)
+    assert out.returncode == 0, out.stderr
+    assert out.stdout.strip() == "", "묶음 클래스가 등록돼 있다: %s" % out.stdout.strip()
+
+
+def test_pipeline_import_registered_count_reported():
+    # 보고용 계수: pipeline import 뒤 gmid_engine 값 형식 등록 수(판정은 위 도달 검사가 한다 -- 수 자체는 design 이 정하지 않는다).
+    code = "import gmid_engine.pipeline\n" + _GET_REGISTRY + "print(len([n for n in r.%s() if n.startswith('gmid_engine.')]))\n" % _API["registered_names"]
+    env = dict(os.environ)
+    env["PYTHONPATH"] = _SKILL_DIR + os.pathsep + env.get("PYTHONPATH", "")
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, cwd=_SKILL_DIR)
+    assert out.returncode == 0, out.stderr
+    print("registered gmid_engine value types after pipeline import:", out.stdout.strip())
+    assert int(out.stdout.strip()) > 0
