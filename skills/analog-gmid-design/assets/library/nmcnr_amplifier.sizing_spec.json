@@ -80,6 +80,18 @@
     },
     "constraints": [
       {
+        "metric": "gain_ss_db",
+        "op": ">=",
+        "value": 100,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"Q1-2는 (ii) 권고대로, (i)는 추가하는 것으로 해\" + \"nmcnr은 승인\" (단계 ② 결정 자료 Q1-2 (i)). 논문 문언은 '> 100 dB'이고 spec 연산자는 '>='만 쓰므로 '>= 100'으로 둔다",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "NMCNR 논문(Leung·Mok·Ki 1999) Table 1: 'DC gain of both amplifiers are greater than 100dB' (topology _paper_target_spec.performance_targets_nmcnr.dc_gain_db)"
+        }
+      },
+      {
         "metric": "gbw_ss_hz",
         "op": ">=",
         "value": 816000,
