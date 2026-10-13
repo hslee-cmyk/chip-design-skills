@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.7
-plan_version: 6.6
+version: 1.8
+plan_version: 6.7
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
@@ -180,7 +180,7 @@ plan_version: 6.6
 | D-K1 | 41 §6.7 KVL 고리 출발 제약: K-1 공동 선택 순서(위반 최소 → max-min → 위치 합 최대), 실행 불가 시 올린 묶음 상한 반분 재풀이(최대 steps+1), `StartConflict(kvl)`, PQ5(출발 단계 A8에도 등식), K-3 `input_tie` 폐기 | 41 §6.7 | MISS | `rg "kvl_choice"` 0 |
 | D-K2 | 41 §7.5 β·C_eff 입력 배선(feedback 절단, C_eff 노드), 비대칭 귀환 계수 '추정'(U-70), N_in = Σγ_k·gm_k/(γ_avg·G_half)(K-2 결정) | 41 §7.5 | MISS | U13 열린 항목 `feedback_factor_beta_unavailable` |
 | D-C4 | 잡음 B 평탄(plateau) 규칙(피드스루 + 이웃 점 일치), 칸별 적응 재측정 구현 단위(미상·엇갈림·계단형 칸, 로그 이분, 상한 K_max, noise r2) -- 시점 = graph 재작성 ①~③ 뒤, U16 전(C-4) | 41 §7.2 | PART | plateau는 as-built `noise_planes.py`와 일치, 재측정 단위 없음 |
-| D-D1 | d/s 맞바꿈 궤도를 넘는(KCL 유도) 전류 묶음 상자 = 구성원 상자 교집합, 비면 거부(U-61 D-1) | 40 §6-8 | MISS | as-built `search_domain`은 `tied_orbit_bounds_differ`로 거부 |
+| D-D1 | d/s 맞바꿈 궤도를 넘는(KCL 유도) 전류 묶음 상자 = 구성원 상자 교집합, 비면 거부 `tied_current_box_empty`(U-61 D-1). 같은 궤도 안 불일치는 `tied_orbit_bounds_differ` | 40 §6-8 | MISS | as-built `search_domain`은 `tied_orbit_bounds_differ`로 거부 |
 | D-G1 | IC11 픽스처: 거부 = 합성 음전위 레일·pushpull(supply_nets 삭제), 동등 = two_stage_ota 2레일·pushpull 3레일 | 40 §3.10.8, §10.3 | MISS | `rg "def test_rail_origin_shift_invariance"` 0 |
 | D-G2 | 문자열 값 안 옛 이름 test, `human.objective` 형식·`duplicate_axis_budget`, spec `origin` 규칙(U-04 결정) | 40 §3.1 | MISS | -- |
 | D-G3 | LY1 쌍 전류비 규칙(U-71 결정, 사용자 결정 2026-10-12 "U-71승인") | 40 §3.10.3 | MISS | -- |
@@ -195,9 +195,11 @@ plan_version: 6.6
 | D-CM4 | 결정 A는 척도와 무관하게 위반, 1 dB 대체 제거 | 40 §5 | DEV | `[ng-cmfb-pm] E/search/ss_constraints.py` `_cm_level_violation` |
 | D-CMR | CM 감지 저항 최소 R(사용자 결정 R1·R2 (b)) | 40 §3.5 | MISS | -- |
 | D-SYa | 완전 정준 라벨링 | 40 §6 | PART(브랜치) | `[ng-layer0-canon]` 49283c6 `E/sizing/struct_canon.py`. master에는 1-WL만 있다(`E/sizing/struct_colour.py:1-15`). 위치를 `graph`로 옮겨야 한다 |
-| D-SYb | 궤도 θ 묶기와 해제, `orbit_matching_crosstab`, diff_pair 궤도 검사 | 40 §6 | PART(브랜치) | `[ng-layer0-canon]` `E/search/orbit_ties.py`, `tie_expand.py`, `human.search.untie_orbits`. 대조 표는 MISS |
+| D-SYb | 궤도 θ 묶기와 해제, `orbit_matching_crosstab`, diff_pair 궤도 검사(review 조건은 D-SYe) | 40 §6 | PART(브랜치) | `[ng-layer0-canon]` `E/search/orbit_ties.py`, `tie_expand.py`, `human.search.untie_orbits`. 대조 표는 MISS |
 | D-SYc | 수동소자를 방향 없이 다루는 라벨링과 부호 있는 전류 묶기(사용자 결정 2026-10-08 'b') | 40 §6-7 | DEV | 브랜치 실측에서 9회로 모두 묶기가 비활성이다(수동소자를 방향 있는 것으로 다룸) |
 | D-SYd | folded_cascode·two_stage_ota front 회귀 추적 | 40 §6-6 | MISS | `tests/integration`에 없음 |
+| D-SYe | diff_pair review (나'): 두 멤버가 다른 궤도이고 (a) 출력 포트가 `differential_output_p/n` 쌍, (b) 그 쌍의 두 gate가 차동 입력 포트 p/n일 때만 `review_needed`, 나머지는 crosstab 기록만. 9회로 review 0, 거부 test = 파일럿 넷 하나 비대칭 합성 회로 | 40 §6-5, §10.2 | MISS | `rg "orbit_matching_crosstab"` 0 |
+| D-SYf | 전류 기저 열 순서 키 = (궤도 비자명 먼저, `dc_colour`, 이름), `current_basis`가 `graph/s1: orbits` 읽음. 파일럿 묶음/변수 29/38(M1a~M1b, M19~M10), 나머지 8회로 무동작 | 40 §6-3·§6-8 | MISS | `E/sizing/current_basis.py:8` 열 순서 = (`dc_colour`, 이름), orbit 읽기 0 |
 | D-NS | 시간과 무관한 계수 예산 N_S, `structure_count_budget` | 41 §0 | MISS | `rg "count_budget"` 0 |
 | D-NM | 비단조 축 세분(미러 비·전류 배율·저항), 저항 컨덕턴스 격자 | 41 §4.2 | MISS | -- |
 | D-LS | `size_and_seal_local` 국소 봉인 인터페이스 | 41 §5.3 | MISS | `rg "size_and_seal_local"` 0 |
@@ -225,7 +227,8 @@ plan_version: 6.6
 | D-J5 | 입력 DC 정책: SP-2 (c) y_icm 창 범위, `required_input_cm_v`, sf `icm_margin_v >= 0` 제약, `buffer_window_report`, `icmr_window_short_l_bin` 경고 | 41 §4.6, 40 §3.8-8, §9.2 | MISS | `rg "required_input_cm\|short_l_bin" E/` 0. `assets/library/sf_pushpull_output_opamp.sizing_spec.json`에 `icm_margin_v` 제약 없음 |
 | D-J6 | `structure.json` concept 어휘 7개(신규 5), override/confirm/고아/불일치 전이, `structure_rule_fp`, 단계 A의 사실 로드 순서·`build_s1(structure=)`·`declared_loop_cuts` 전달, 뷰 한정 `ac_ground_exception` 소비 | 40 §3.2-3, 41 §1.12.6 | MISS | `[u1-sp1] E/graph/structure_load.py`는 `drive_kind`만 소비한다. `[u1-sp1] E/pipeline/stage_a.py` `run_stage_a`는 `declared_loop_cuts`를 넘기지 않는다 |
 | D-J7 | 회로별 사실 파일(`assets/library/<name>.structure.json`) 작성: U1b 병합 뒤, confirm 사실은 실측 일치 시만, rule_hash = 병합 코드의 `structure_rule_fp` | 40 §3.2-3 표 | MISS | 사실 파일 0개(작성 순서상 U1b 뒤) |
-| D-J8 | 혼재 노드 구동 종류 = drain 쪽 gate가 신호 노드면 전류 구동(C-1), 9회로 발동 = sf N910·N1112·N1516만 | 41 §1.5-4 | MISS | as-built는 DC 역할로 가른다(`E/graph/drive_kind.py`) |
+| D-J8 | 혼재 노드 구동 종류(C-1 + 보완 (가)): (i) source 쪽 소자 drain이 교류 접지·gate가 신호 노드면 follower → 전압 구동, (ii) 아니면 drain 쪽 gate가 신호 노드면 전류 구동. 9회로 발동표(옛/새/근거 `follower`\|`cascode`) = 바뀐 노드 sf N910·N1112·N1516 + folded_cascode Vg10(전류 구동), sf N17·N20 전압 구동 유지, 나머지 무동작. folded 블록·stage·극점 노드 전후 비교 | 41 §1.5-4 | MISS | as-built는 DC 역할로 가른다(`E/graph/drive_kind.py`) |
+| D-J10 | 파일럿 `structure.json` `rule_hash`만 재기록(사실 불변, approval_id `user_decisions 2026-10-12 C-6 재확인`): ①-d 마지막 규칙 변경(C-1 보완 (가)·전류 기저 열 순서) 뒤 1회, 갱신 뒤 단계 A Vbias2 판정 불변 확인(달라지면 갱신하지 않고 재질의) | 40 §3.2-3 | MISS | 규칙 변경 미병합(master `8e46548`) |
 | D-J9 | `structure.json` concept `l_owner`(C-3, override). nmcnr 사실 = [M104, M105] → M105(사용자 결정 2026-10-12 "C-3은 네 제안대로 해") | 40 §3.2-3, 41 §1.12.5 | MISS | `rg "l_owner"` 사실 개념 0, nmcnr 사실 파일 없음 |
 | D-RA | 저항 면적: poly 시트·최소 폭·머리를 PDK 선언에 두고 Ω당 면적 계산 | 40 §7.1 | MISS | `rg "poly_res_sheet"` 0 |
 | D-Q5 | Q5 승격(two_stage GBW 제약, ngcc ICMR)과 Q5b 판정 보류 표시 | 40 §9 | MISS | `assets/library/*.sizing_spec.json` |
@@ -245,6 +248,7 @@ plan_version: 6.6
 | D-LY2 | LY5 즉시 완화 제거 | 40 §3.9 | DEV | `E/layout/CONTRACT.md:217,306-311` |
 | D-LY3 | `ly.diffusion` | 40 §3.9 | MISS | `E/layout/_ly_fields.py:22-40` |
 | D-LY4 | 판정 축 면적에 수동소자 포함 | 40 §3.9 | MISS | `E/layout/floorplan.py:30-84` |
+| D-LY5 | 레이아웃 파생 값(`review_needed`·`devices`·`coverage`·`w_requests`·`w_invariant_ok`·`revalidation`) = 반환값 함수 `layout_outputs(snapshot)`(graph 필드 아님). **U16 완료 조건**: U16 결과 JSON이 설계점마다 한 번 호출하도록 배선. U16 전 프로덕션 호출처 0(test만) 사용자 승인(사용자 결정 2026-10-12 "4번 권고대로") | 40 §2.4.8, §11 U16 | MISS | `rg "def layout_outputs"` 0 |
 | D-M8 | MOD8 수렴과 재필터 | 40 §3.9 | PART | `E/convergence/converge.py`(U14 구현·`E/convergence/CONTRACT.md`). 호출자(U16 `run_gmid_design_pipeline`)가 아직 없어 파이프라인 배선은 U16 몫 |
 | D-M9 | MOD9 결과 JSON | 40 §3.9 | MISS | `E/report/__init__.py` |
 | D-M10 | `run_gmid_design_pipeline` | 40 §3.9 | MISS | `E/pipeline/__init__.py`. 일부가 `[ng-bridge]`에 있다 |
@@ -261,7 +265,7 @@ plan_version: 6.6
 | D-T | test 폴더 체계 | 40 §8 R26 | N/A | 축소 유지 승인(2026-10-08). 현행 체계를 쓴다 |
 | D-GR1 | graph 밖 저장소는 넷뿐(LUT memo·S3 기록과 색인·실행 계수·S0 수준 스냅샷 직렬화) | 40 §2.4.1 | DEV | bd19cc6 `E/search/search_context.py:65-89`(cache·cell_floors·local_seal_memo 등) |
 | D-GR2 | S0 수준 층 필드화(S1v·결합 변수·GB4·출발 구간·metric 구조 입력) | 40 §2.4.2·2.4.8 | MISS | bd19cc6 `sctx.s1v`·`sctx.ach`·`sctx.start` 객체, `E/search/start_values.py:186-235` `StartContext` |
-| D-GR3 | S0 수준 스냅샷 디스크 영속화(키·타입 있는 코덱·원자적 쓰기·검증) | 40 §2.4.3 | MISS | `rg "snapshot_codec"` 0 |
+| D-GR3 | S0 수준 스냅샷 디스크 영속화(키·타입 있는 코덱·원자적 쓰기·검증), 단계 A 보고서 `s0_snapshot` 키(hit\|miss\|corrupt), `run_stage_a` PDK 선언 필수 인자, U-68 재현 판정 = 입력 파일 원본 sha + 엔진 코드 지문 | 40 §2.4.3 | MISS | `rg "snapshot_codec"` 0 |
 | D-GR4 | 분할 계산 블록과 이식(graft) | 40 §2.4.4 | MISS | `rg "def graft"` 0, `E/core/compute_block.py:73-90`(블록 이름 하나의 버전) |
 | D-GR5 | S3 메모리 색인·스냅샷 보존(`sctx.cache`·`local_seal_memo` 대체, G-5) | 40 §2.4.5 | DEV | bd19cc6 `E/search/kernel.py:102-121`, `E/search/local_candidates.py:141-144` |
 | D-GR6 | LUT memo 순수성(`call`)·S0당 인스턴스 하나·상한 B_r(층 0 항) | 40 §2.4.6 | DEV | bd19cc6 `E/search/search_context.py:105-121`(두 번째 인스턴스, 첫 평가 버림), `E/lut/lut_memo.py:25-36,60-62` |
@@ -270,8 +274,8 @@ plan_version: 6.6
 | D-GR9 | 값 사본 제거(`SsEvaluation`·`EvalResult`·`LayoutResult`), 레이아웃 = 설계점 필드 | 40 §2.4.7 | DEV | bd19cc6 `E/metrics/ss_types.py:79-88`, `E/search/search_values.py:146-162`, `E/layout/run.py:109` |
 | D-GR10 | G-7 SearchContext = 참조 + S3 색인 + 실행 계수, `__slots__`·frozen | 40 §2.4.7 | DEV | bd19cc6 `E/search/search_context.py:51-89` |
 | D-GR11 | G-8 강제 장치 4종(규칙 G 확장·설계 값 타입 위치·SC-a/SC-b lint·9회로 test) | 40 §2.4.10 | PART | bd19cc6 규칙 G = 모듈 가변·데코레이터·global만(`E/tests/structure/structure_checks.py:880-920`) |
-| D-GR12 | G-10 계수(블록·분할별 grafts 포함)와 9회로·두 번째 실행 test | 40 §2.4.9 | PART | bd19cc6 `E/core/compute_block.py:30-38` `BlockStats`, `E/search/kernel.py:120-121` `recompute_same_key` |
-| D-GR13 | 단계 B 층(r̂·수치 rank, 직렬화 제외), `ach.dof` = 구조 DOF만, KernelContext·SearchContext 선언 파생의 S0 수준 필드, `metrics_dc` `gate_area_m2`·`power_resolution_w` | 40 §2.4.1·2.4.7·2.4.8 | DEV | bd19cc6 `E/search/objectives.py:31-45`, `E/sizing/s2_values.py:429-443` |
+| D-GR12 | G-10 계수(블록·분할별 grafts 포함, `perf.s0_snapshot` 포함)와 9회로·두 번째 실행 test(`test_g10_second_run_s0_zero`는 U17 단계 ②) | 40 §2.4.9 | PART | bd19cc6 `E/core/compute_block.py:30-38` `BlockStats`, `E/search/kernel.py:120-121` `recompute_same_key` |
+| D-GR13 | 단계 B 층(r̂·수치 rank, 직렬화 제외), `ach.dof` = 구조 DOF만, KernelContext·SearchContext 선언 파생의 S0 수준 필드, `metrics_dc` `gate_area_m2`·`power_resolution_w`(제약 행 `constraint_rows`는 U17 ②로 이월, `unmeasured` 자리 40 §2.4.12 Q8 열림) | 40 §2.4.1·2.4.7·2.4.8 | DEV | bd19cc6 `E/search/objectives.py:31-45`, `E/sizing/s2_values.py:429-443` |
 | D-GR14 | 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 색인 `local`·`solved` | 40 §2.4.5·2.4.8, 41 §5.3.9·§5.3.11·§5.5 | MISS | `rg "comp_approx_gap"` 0(엔진 .py) |
 | D-GR15 | 계수 소유 `RunCounters`(블록 무상태, `_evicted`·`events` 이동), LUT memo 퇴출 판정(U-60 결정 (가): 퇴출 뒤 재계산 0) | 40 §2.4.6·2.4.9 | DEV | bd19cc6 `E/core/compute_block.py:67-71`, `E/core/bounded_lru.py:38`, `E/lut/table_cache.py:199` |
 | D-P2 | 소자별 폭 슬라이스(`LutAccess.w_keys` 소자 키, `w_key_of(lut, device)`), LY2 행별 finger 폭 | 40 §3.10.1 | DEV | bd19cc6 `LutAccess.w_keys` = kind 키, `convergence/place_layout` `layout_score` 최소 키 |
@@ -292,8 +296,10 @@ plan_version: 6.6
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 3 | 1 | 6 | 5 | 0 |
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
-| 설계 항목 | 151 | 0 | 23 | 16 | 111 | 1 |
-| **합계** | 248 | 27 | 30 | 51 | 133 | 7 |
+| 설계 항목 | 155 | 0 | 23 | 16 | 115 | 1 |
+| **합계** | 252 | 27 | 30 | 51 | 137 | 7 |
+
+v1.8(2026-10-13, 사용자 결정 2026-10-12 "나'로 진행해"·"1, 가로 해"·"2번 승인."·"3번 권고대로"·"4번 권고대로"): 설계 항목 4행 추가(D-J10, D-SYe, D-SYf, D-LY5, 모두 MISS -- master `8e46548`에서 잼), D-J8·D-D1·D-SYb·D-GR3·D-GR12·D-GR13 문구 갱신(상태 불변).
 
 v1.7(2026-10-12, 사용자 결정 "다로 해"): DEC 행 55 = `budget_reference_device`의 역할을 S1 기둥이 흡수하고 `budget_ref` 엣지는 만들지 않는다(N/A 유지, 구현 단위 측정만). 직전 안("가로 해" 구조 유도, MISS)은 대체했다.
 
