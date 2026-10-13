@@ -1,35 +1,37 @@
-"""평가 커널 컨텍스트 -- S0 당 1회: S1 을 S2 권한표로 옮기고 θ 무관 계획 블록을 돌린다 (계획 N3.5 평가 커널 컨텍스트,
-WP-23 (3) 루프 불변 입력은 컨텍스트에, 설계 3.1).
+"""평가 커널 컨텍스트 -- S0 당 1회: S1 을 S2 권한표로 넓히고 θ 무관 계획 블록과 커널 구조 파생 블록을 돌린다 (계획 N3.5 평가 커널 컨텍스트,
+WP-23 (3) 루프 불변 입력은 S0 수준 필드로, 설계 3.1, 40 §2.4.7 `KernelContext` 행·§2.4.8 v1.9.1 D8).
 
-진입점: `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS) -> KernelContext`.
-`l_classes` = `graph.build_s1v` 의 `S1v.l_classes`(derived 와 ratified(`l_owner` 사실) 만 L 공유로 쓴다), `order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·
-GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
+진입점: `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext`.
+`order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
 
 순서: 인자 검사 -> `supplies_declaration`(graph, 레일 집합과 대조) + S1 키의 supplies 지문 대조 -> `lift_s1` ->
 `dc_rails` -> graph 대칭 블록 `s1_symmetry`(구조 색·궤도·전류 부호 -- S1 이 같은 선언 표시로 이미 계산했으면 재사용, 표시 = `symmetry_marks(inputs)`)
--> `dc_current_basis`(값 선언 이상 전류원) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부) -> `dc_scc_order` ->
-`dc_theta_schema`(값 선언 저항, engine 수동소자 -- DEC-92). 계획 블록의 정지(`StructureUnresolvedError`)·KCL 선언 충돌(`InfeasibleTargetError`)은
-그대로 전파된다(탐색 전 정지).
+-> `dc_current_basis`(값 선언 이상 전류원) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부; `device.dc_self_referential` 도 쓴다) -> `dc_scc_order` ->
+`kernel_fields`(writer `kernel_context`: `graph/kernel: fixed_values·resistor_values·l_ties` -- L 동치류는 S1v 필드 `graph/s1v: l_classes` 에서 읽는다(derived 와
+ratified(`l_owner` 사실) 만 L 공유), S1v 필드가 없으면 소자마다 L) -> `dc_theta_schema`(`graph/kernel: theta_schema` -- engine 수동소자, DEC-92).
+계획 블록의 정지(`StructureUnresolvedError`)·KCL 선언 충돌(`InfeasibleTargetError`)은 그대로 전파된다(탐색 전 정지).
+모든 블록은 입력 버전이 같으면 재사용이라 같은 S0 의 다음 호출(디스크 S0 수준 스냅샷 위 포함)은 계산 0 이다.
+결과 `KernelContext(base, inputs, lut)` 는 참조만 담는다 -- θ 스키마·고정 노드·저항 값·L 묶음은 `base` 의 `graph/kernel` 필드, 계획 블록 입력 버전은
+`base.block_version(writer)`(writer = `PLAN_WRITERS`)로 읽는다(사본 없음).
 * `lut.w_keys` 에 S1 MOS kind 가 모두 있어야 하고 그 (kind, w_key) 슬라이스가 LUT 에 있어야 한다(`ValueError`).
 * 노드 목표 넷은 S1 노드여야 한다(`ValueError` -- spec 로더가 이미 거부하는 경우라 계약 위반).
 * `inputs.engine_elements` 이름은 S1 원소여야 한다(`ValueError`, 같은 이유). 그중 수동소자만 `dc_theta_schema` 로 간다.
+* L 동치류가 S1 원소가 아니거나 MOS 만의 서로소 묶음이 아니면 `ValueError`(`kernel_fields`).
 """
-from gmid_engine.authoring import INPUT_DIRECTION
 from gmid_engine.core import fp_of
-from gmid_engine.graph import (ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE, GRAPH_KEY, S1_SYMMETRY_WRITER, STATUS_DERIVED, STATUS_RATIFIED,
-                               S1Graph, s1_symmetry, supplies_declaration)
+from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE, S1_SYMMETRY_WRITER, S1Graph, s1_symmetry, supplies_declaration
 
 from .current_basis import dc_current_basis
+from .kernel_fields import kernel_fields
 from .s2_lift import lift_s1
 from .s2_values import (
     CURRENT_SOURCE,
     DC_CURRENT_BASIS_WRITER,
-    DC_KEY,
     DC_RAILS_WRITER,
     DC_SCC_ORDER_WRITER,
     DC_THETA_SCHEMA_WRITER,
     DC_WRITER_PLAN_WRITER,
-    RESISTOR,
+    KERNEL_CONTEXT_WRITER,
     NO_ORDER_HINTS,
     DcInputs,
     KernelContext,
@@ -43,10 +45,10 @@ from .w0_rails import dc_rails
 from .writer_plan import dc_writer_plan
 
 PLAN_WRITERS = (DC_RAILS_WRITER, S1_SYMMETRY_WRITER, DC_CURRENT_BASIS_WRITER, DC_WRITER_PLAN_WRITER, DC_SCC_ORDER_WRITER,
-                DC_THETA_SCHEMA_WRITER)
+                KERNEL_CONTEXT_WRITER, DC_THETA_SCHEMA_WRITER)
 
 
-def build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS):
+def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS):
     if not isinstance(s1graph, S1Graph):
         raise TypeError("build_kernel_context: s1graph 는 graph.build_s1 결과 S1Graph 여야 한다")
     if not isinstance(inputs, DcInputs) or not isinstance(lut, LutAccess):
@@ -74,10 +76,6 @@ def build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDE
     values = dict(inputs.element_values)
     sources = tuple((n, values.get(n)) for n in sorted(classes)
                     if classes[n] == ELEMENT_SOURCE and kinds[n] == CURRENT_SOURCE)
-    pruned = {e for e, _round in s1graph.value("graph", GRAPH_KEY, "dc_pruned")}
-    resistors = tuple((n, values[n]) for n in sorted(classes)
-                      if classes[n] == ELEMENT_PASSIVE and kinds[n] == RESISTOR and n not in pruned
-                      and values.get(n) is not None)
     base = lift_s1(s1graph)
     base = dc_rails(base, supplies)
     base = s1_symmetry(base, supplies, symmetry_marks(inputs))     # S1 의 대칭 블록 -- 같은 표시면 재사용(계산 0)
@@ -85,25 +83,7 @@ def build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDE
     base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None,
                           *(() if order_hints == NO_ORDER_HINTS else (order_hints,)))      # 힌트 없음 = 생략(블록 입력 버전 불변)
     base = dc_scc_order(base)
+    base = kernel_fields(base, tuple(sorted(targets.items())), inputs.input_dc_v, tuple(inputs.element_values))
     engine_passives = tuple(n for n in sorted(inputs.engine_elements) if classes[n] == ELEMENT_PASSIVE)
-    classes_of_l = tuple((m, c.owner) for c in l_classes if c.status in (STATUS_DERIVED, STATUS_RATIFIED) for m in c.members if m != c.owner)
-    stray_l = sorted({n for pair in classes_of_l for n in pair} - set(classes))
-    if stray_l:
-        raise ValueError("build_kernel_context: L 동치류 멤버가 S1 원소가 아니다 " + repr(stray_l))
-    l_ties = tuple(sorted(classes_of_l))
-    members = [m for m, _o in l_ties]
-    owners = {o for _m, o in l_ties}
-    bad_l = sorted({n for pair in l_ties for n in pair if classes[n] != ELEMENT_MOS} | (owners & set(members))
-                   | {m for m in members if members.count(m) > 1})
-    if bad_l:
-        raise ValueError("build_kernel_context: L 동치류가 MOS 만의 서로소 묶음이 아니다(MOS 아님·주인이 다른 동치류 멤버·두 동치류 멤버) "
-                         + repr(bad_l))
-    base = dc_theta_schema(base, tuple(n for n, _v in resistors), engine_passives, *((l_ties,) if l_ties else ()))
-    fixed = dict(targets)
-    if inputs.input_dc_v is not None:
-        for net, direction in s1graph.column("node", "port_direction"):
-            if direction == INPUT_DIRECTION and net not in fixed:
-                fixed[net] = float(inputs.input_dc_v)
-    schema = base.value("graph", DC_KEY, "dc_theta_schema")
-    versions = tuple((w, base.block_version(w)) for w in PLAN_WRITERS)
-    return KernelContext(base, inputs, lut, schema, tuple(sorted(fixed.items())), resistors, versions, l_ties)
+    base = dc_theta_schema(base, engine_passives)
+    return KernelContext(base, inputs, lut)

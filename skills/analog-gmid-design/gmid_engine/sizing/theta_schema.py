@@ -1,16 +1,18 @@
 """θ 스키마(DOF 표) 계산 블록 (설계 3.1 5, 계획 DEC-70 결정변수, DEC-88, DEC-92, N3.7 DOF 입력).
 
-진입점: `dc_theta_schema`(`@compute_block`) -- `dc_theta_schema(snapshot, declared_resistors, engine_passives, l_ties=())`. θ 무관(S0 당 1회).
+진입점: `dc_theta_schema`(`@compute_block`) -- `dc_theta_schema(snapshot, engine_passives)`. θ 무관(S0 당 1회).
+writes S0 수준 필드 `graph/kernel: theta_schema`(key `KERNEL_KEY` -- 옛 `graph/dc: dc_theta_schema` 를 옮긴 것, writer 그대로, 설계 40 §2.4.7·§2.4.8 v1.9.1 D8).
+reads 에 커널 컨텍스트 블록(`kernel_fields`)이 쓴 `graph/kernel: resistor_values`(spec 에 값이 선언된 DC 경로 저항 -- 그 이름이 `declared_resistors`)·`l_ties` 가 든다.
 
 성분 (kind, key):
-* `ln_idu`(쓰기 소자 -- DEC-88 반전 좌표 ln IDu, IDu = ID·L/W), `L`(MOS -- **L 동치류당 하나**(DEC-17, LR1, 설계 40 §3.2-1): `l_ties` =
+* `ln_idu`(쓰기 소자 -- DEC-88 반전 좌표 ln IDu, IDu = ID·L/W), `L`(MOS -- **L 동치류당 하나**(DEC-17, LR1, 설계 40 §3.2-1): `l_ties`(필드) =
   ((멤버, 주인), ...) = S1v derived 동치류의 비주인 멤버는 성분이 없고(주인의 L 을 `size_and_seal` 이 물려준다), 동치류에 들지 않은
   MOS 는 소자마다 하나. status 가 derived 가 아닌 동치류(proposed·review_needed)는 `build_kernel_context` 가 `l_ties` 에 넣지 않아 소자마다 L),
 * `y`(W4 키마다, [0, 1] 창 안 위치), `current`(원소 단위 KCL 독립 기저), `resistance`(DC 경로 저항 중 spec 값 미선언).
 * [DEC-92] `capacitance`(spec mode engine 커패시터), `ss_resistance`(spec mode engine 저항 중 DC 전류 0 -- 잎 가지치기
   `basis.pruned` -- 이고 영점 상쇄 구조 규칙이 값을 정하지 못한 것). 둘은 DC 동작점을 바꾸지 않으므로(커패시터는 DC 엣지가
   아니고, 가지치기 저항은 전류 0 이라 강하 0) DC 블록이 읽지 않는다 -- 소신호 회로(metrics `ss_evaluate`)에만 들어간다.
-`declared_resistors` = spec 에 값이 선언된 저항 이름 tuple, `engine_passives` = spec 값 mode 가 engine 인 수동소자 이름 tuple.
+`declared_resistors` = `resistor_values` 필드의 저항 이름, `engine_passives` = spec 값 mode 가 engine 인 수동소자 이름 tuple(extras).
 DC 경로(가지치기 안 된) engine 저항은 지금처럼 `resistance` 다(값 미선언 DC 저항 규칙, DEC-70).
 
 영점 상쇄 구조 규칙(DEC-92 (3)(a), `zero_cancel`): 가지치기된 engine 저항 R 마다 연결만으로 --
@@ -37,6 +39,7 @@ from .s2_values import (
     COORD_WRITER,
     DC_KEY,
     DC_THETA_SCHEMA_WRITER,
+    KERNEL_KEY,
     REL_WINDOW,
     RESISTOR,
     THETA_CAPACITANCE,
@@ -58,9 +61,9 @@ from .s2_values import (
 READS = (
     ("device", "dc_coord"), ("node", "dc_writer"), ("graph", "dc_current_basis"), ("device", "element_class"),
     ("device", "kind"), ("device", "pins"), ("device", "bulk"), ("node", "terminals"), ("node", "is_rail"),
-    ("node", "port_direction"), ("node", "ac_ground_class"),
+    ("node", "port_direction"), ("node", "ac_ground_class"), ("graph", "resistor_values"), ("graph", "l_ties"),
 )
-WRITES = (("graph", "dc_theta_schema"),)
+WRITES = (("graph", "theta_schema"),)
 
 
 def _internal_nets(projection, classes):
@@ -123,8 +126,9 @@ def _zero_cancel(resistor, projection, classes, kinds, pins, internal):
 
 @compute_block(DC_THETA_SCHEMA_WRITER, reads=READS, writes=WRITES)
 def dc_theta_schema(projection):
-    declared_resistors, engine_passives, *rest = projection.extras
-    l_ties = rest[0] if rest else ()          # 생략 = L 동치류 없음(소자마다 L)
+    (engine_passives,) = projection.extras
+    declared_resistors = tuple(name for name, _value in projection.value("graph", KERNEL_KEY, "resistor_values"))
+    l_ties = projection.value("graph", KERNEL_KEY, "l_ties")       # 빈 tuple = L 동치류 없음(소자마다 L)
     classes = dict(projection.column("device", "element_class"))
     kinds = dict(projection.column("device", "kind"))
     pins = {name: dict(p) for name, p in projection.column("device", "pins")}
@@ -150,4 +154,4 @@ def dc_theta_schema(projection):
     rows = dict(basis.rows)
     cone = tuple((m, rows[m]) for m in sorted(basis.mos))
     schema = ThetaSchema(tuple(sorted(components)), cone, tuple(basis.fixed), zero_cancel)
-    return {("graph", "dc_theta_schema"): {DC_KEY: schema}}
+    return {("graph", "theta_schema"): {KERNEL_KEY: schema}}

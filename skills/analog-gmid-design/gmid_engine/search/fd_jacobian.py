@@ -25,7 +25,7 @@ import math
 
 import numpy as np
 
-from gmid_engine.sizing import THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_PASSIVE_KINDS, THETA_RESISTANCE, THETA_Y
+from gmid_engine.sizing import KERNEL_KEY, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_PASSIVE_KINDS, THETA_RESISTANCE, THETA_Y
 
 from .kernel import evaluate
 from .search_values import ACCEPTED_STATUSES, STAGE_FD
@@ -46,7 +46,7 @@ def _steps(sctx, variables, base):
     defined = [tols[m] * ops[m].gm_id for m in ops if tols.get(m)]
     tol_min = min(t for t in tols.values() if t) if any(tols.values()) else None
     sources = {}
-    for mos, terms in sctx.dc.schema.current_cone:
+    for mos, terms in sctx.dc.base.value("graph", KERNEL_KEY, "theta_schema").current_cone:
         for t in terms:
             sources.setdefault(t.source, []).append(mos)
     windows = {}

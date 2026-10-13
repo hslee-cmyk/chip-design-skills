@@ -23,8 +23,8 @@ from gmid_engine.core import MILLI, SchemaRejectedError, SealViolationError
 from gmid_engine.lut import mismatch_sigma_vgs
 from gmid_engine.sizing import bracket_root
 
+from ._helpers_curves import QUANTITY_IDU, QUANTITY_VGS, curve_bundle_of, curve_value, l_anchors, slice_of
 from ._helpers_guard import Tolerant, guard_bounds, guard_devices, guard_input_gm_id
-from .iv_curves import QUANTITY_IDU, QUANTITY_VGS
 from .start_values import (
     QUANTITY_L,
     SIDE_LO,
@@ -59,9 +59,9 @@ def _reason(exc):
 def _sigma_vgs(ctx, name, g, L, current):
     """소자 `name` 의 σ_VGS(V) -- 폭 W = I·L/IDu(gm/ID, L), 기준 (VDS, VSB) 점."""
     d = ctx.by_name[name]
-    bundle = ctx.curves.bundle_of(d.name, d.kind, L)
-    w = max(current * L / ctx.curves.value(bundle, QUANTITY_IDU, g), ctx.w_min_m)      # 실현 폭은 PDK 최소 finger 폭 W_min 이상(W 하한 제약 S-18): 그 아래 폭은 mismatch 모델 bin 밖이다
-    vgs = ctx.curves.value(bundle, QUANTITY_VGS, g)
+    bundle = curve_bundle_of(ctx, d.name, d.kind, L)
+    w = max(current * L / curve_value(bundle, QUANTITY_IDU, g), ctx.w_min_m)      # 실현 폭은 PDK 최소 finger 폭 W_min 이상(W 하한 제약 S-18): 그 아래 폭은 mismatch 모델 bin 밖이다
+    vgs = curve_value(bundle, QUANTITY_VGS, g)
     curve = bundle[QUANTITY_IDU]
     return mismatch_sigma_vgs(ctx.memo, ctx.pdk.mismatch_model(d.kind), d.kind, d.w_key, L, vgs, curve.vds, curve.vsb, w).sigma_v
 
@@ -73,7 +73,7 @@ def _sigma_from(ctx, name, g, L, current):
         return _sigma_vgs(ctx, name, g, L, current)
     except _LUT_ERRORS as first:
         d = ctx.by_name[name]
-        for node in sorted(float(x) for x in ctx.curves.bundle_of(d.name, d.kind, L)[QUANTITY_IDU].gm_id if x > g):
+        for node in sorted(float(x) for x in curve_bundle_of(ctx, d.name, d.kind, L)[QUANTITY_IDU].gm_id if x > g):
             try:
                 return _sigma_vgs(ctx, name, node, L, current)
             except _LUT_ERRORS:
@@ -88,9 +88,9 @@ def _l_lower(ctx, name, current, g, sigma_share):
     def slack(L):
         return sigma_share - _SQRT2 * _sigma_from(ctx, name, g, L, current)
 
-    anchors = [L for L in ctx.curves.l_anchors(d.kind) if ctx.curves.bundle_of(d.name, d.kind, L) is not None]
-    bins = ctx.curves.slice_of(d.kind).l_bins
-    index = {float(a): i for i, a in enumerate(ctx.curves.l_anchors(d.kind))}
+    anchors = [L for L in l_anchors(ctx, d.kind) if curve_bundle_of(ctx, d.name, d.kind, L) is not None]
+    bins = slice_of(ctx, d.kind).l_bins
+    index = {float(a): i for i, a in enumerate(l_anchors(ctx, d.kind))}
     previous = None
     for L in anchors:
         if slack(L) >= 0:
@@ -126,7 +126,7 @@ def matching_bounds(ctx, currents, lengths, gm_id_lo, gm_id_cap=None):
                 if L is None:
                     # 어느 LUT L 앵커도 못 맞춘다 -- 충돌을 남기고(41 §6.6) 요구 방향으로 닫는다: 하한 = 정의된 가장 긴 L 앵커(가장 잘 맞는 쪽)
                     conflicts.append(StartConflict(name, QUANTITY_L, ((SRC_MATCH_L, share),), share))
-                    L = max(a for a in ctx.curves.l_anchors(ctx.by_name[name].kind) if ctx.curves.bundle_of(name, ctx.by_name[name].kind, a) is not None)
+                    L = max(a for a in l_anchors(ctx, ctx.by_name[name].kind) if curve_bundle_of(ctx, name, ctx.by_name[name].kind, a) is not None)
                 bounds[name] = (Bound(QUANTITY_L, SIDE_LO, SRC_MATCH_L, L),)
     except _LUT_ERRORS as exc:
         bounds, conflicts = {}, []

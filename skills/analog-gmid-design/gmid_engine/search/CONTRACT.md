@@ -1,5 +1,22 @@
 # gmid_engine.search 동작 계약 (MOD6 θ 탐색 -> (전력, 면적) 비지배 front, test 작성용)
 
+> **[U17 ①-b] S0 수준 필드 이동**(설계 40 §2.4.1~§2.4.3·§2.4.7·§2.4.8 v1.9.1 D3~D8·D10, 2026-10-13) -- 이 단락이 아래 옛 서술보다 우선한다.
+> * `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, model_error=(), *, code_fp, s0=None)` -- `s1v`·`ach` 인자는 없다. `dc_ctx.base` 를 S0 수준 권한표
+>   `S0_WRITERS`(= S2 ∪ graph S1V ∪ metrics S0 ∪ search S0 표, `s0_fields.py`)로 넓히고 계산 블록을 차례로 부른다: `search_domain`(extras: lut, 실행 설정의 수동소자 상자 둘, pdk_decl, spec θ 상자, 면적 예산,
+>   untie -- 벽시계 등 다른 실행 설정은 넣지 않는다) -> `junction_field` -> `mismatch_field` -> `model_error_field` -> `constraint_classes` -> `passive_area_decl` -> `metric_structure` -> `noise_decl` ->
+>   (`graph/s1v: views` 필드가 있으면) `start_intervals`. 끝에서 `s0`(core `S0Slot`, `StageAResult.s0`)로 S0 수준 스냅샷을 **한 번** 쓴다(단계 B 층 writer `residual_probe`·`dof_numeric` 은 `transient`,
+>   v1.9.1 D6). 같은 S0 의 다음 실행(디스크 적중)은 모든 S0 블록이 재사용이다(계산 0).
+> * `SearchContext` 칸 = 참조(`dc` -- base 가 S0 수준 스냅샷, `spec`, `settings`, `archive`, `context_fp` = (S0 스냅샷 fp, LUT 손잡이, DcInputs) 지문, `code_fp`) + 실행 수명 상태(cache·counters·예산·
+>   `cell_floors`). 옛 S0 칸(`domain`·`junction`·`mismatch`·`model_error`·`area_decl`·`structure`·`noise_decl`·`judged_constraints`·`ss_constraints`·`constraint_notes`·`start`·`element_values`·
+>   `driving`·`schema_fp`)은 같은 이름의 **읽기 속성**이 부를 때마다 필드에서 읽는다(`start` 대신 `rungs` = `graph/start: rungs` 또는 None, 칸 0 = 선택점).
+> * 새/바뀐 계산 블록: `search_domain`(-> `graph/kernel: search_domain`), `constraint_classes`(-> `graph/kernel: constraint_classes` = `ConstraintClasses(judged, ss = spec judged_constraints 위치, notes = (키, 값) 쌍)`),
+>   `passive_area_decl`(extras (측정 부하 이름, pdk_decl) -> `graph/kernel: passive_area_decl`), `noise_decl`(extras (feedback, sampling_caps) -> `graph/s1v: noise_input_cells` = NoiseDecl 전체),
+>   `start_intervals`(extras (spec, DcInputs, pdk_decl, lut) -> `device: start.row`·`start.point`, `graph/start(START_KEY="start")`: `conflicts`·`inactive`·`macro`·`rungs`·`records`·`area_est_m2`·`area_fraction`·
+>   `uncovered`). 묶음 `StartIntervals`·`StartContext`·`CurveBook`(`iv_curves.py`)·`build_start_context` 는 없다: 블록 안 읽기 묶음 = `iv_context.start_view(projection, spec, inputs, pdk_decl, lut) -> StartView`,
+>   곡선 읽기 = `_helpers_curves`(LUT 파생 기준 VDS·tol_vdsat·엣지 비용은 `lut.derived`), 이득 L 하한 입력은 필드 `graph/ach: local_inputs`. `current_symmetry`·`orbit_ties` 는 첫 인자로 필드 질의가 되는
+>   스냅샷(또는 투영)을 받는다. `cell_floor` 의 1변수 writer 집합은 `device.dc_self_referential` 필드다.
+> * search `__init__` 이 S0 수준 스냅샷 값 형식(`SearchDomain`·`Variable`·`ConstraintClasses`·`StartRow`·`StartConflict`·`MacroResult`·`StartRung`·`Bound`)을 올린다.
+
 - 대상: `gmid_engine/search/` 공개 API(`gmid_engine.search.__all__`). test 는 `from gmid_engine.search import ...` 와 그보다 앞
   패키지(`core`·`lut`·`authoring`·`graph`·`sizing`·`metrics`)의 공개 이름만 쓴다(`_` 이름·파일 모듈 직접 import 금지).
   배치는 규칙 H: `gmid_engine/tests/search/test_<파일>.py`(지금은 docstring 만 있는 자리표 21개 -- 동작 test 는 독립 test

@@ -21,6 +21,8 @@
    중 (구조 색, 이름) 최소(y 키 = 넷) -- W4. 최소 색 후보가 둘 이상이면 `w4_root` 기록. G_vgs 에 없는 노드 = W4(y 키 = 넷).
 6. 비트리 MOS 엣지 = 종속 소자(좌표는 노드 VGS 순방향). 분류: gate·source 가 둘 다 고정 -> `fixed_vgs`, 같은 kind·같은
    (gate, source) 트리 엣지가 있으면 `parallel_vgs`(v0, partner), 나머지 `cycle_vgs`(v1·v2).
+7. [U17 ①-b, 설계 40 §2.4.8 '1변수 writer 집합'] `device.dc_self_referential` = MOS 마다 그 소자가 쓰는 노드가 자기 d·s·bulk 중 하나인가(diode 의 gate 쓰기,
+   소스 추종의 source 쓰기 -- 1변수 방정식 노드). 쓰기 계획의 파생이라 S0 수준 필드이고(θ 무관), 평가 커널 `dc_columns`·탐색 상자 `cell_floor` 가 읽기만 한다.
 정지: 비트리 저항 엣지(값이 정해진 저항 루프 -- 저항을 종속시키는 규칙이 없음) -> `StructureUnresolvedError`
 (`unsupported_rule_branch`, rule_branch `dc_resistor_cycle`).
 """
@@ -66,9 +68,10 @@ from .s2_values import (
 
 READS = (
     ("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
-    ("node", "is_rail"), ("node", "port_direction"), ("node", "dc_colour"), ("device", "dc_colour"),
+    ("node", "is_rail"), ("node", "port_direction"), ("node", "dc_colour"), ("device", "dc_colour"), ("device", "bulk"),
 )
-WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"))
+WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))
+_SELF_RELATIONS = (REL_VGS_GATE, REL_VGS_SOURCE)
 _FIXED = ("",)                                          # F 한 점(넷 이름이 될 수 없는 tuple 키)
 _TIE, _RES, _DIODE, _MOS = (0, 1, 1 + 1, 1 + 1 + 1)    # 엣지 순위
 _KIND_TIE, _KIND_RES, _KIND_MOS = (0, 1, 1 + 1)          # 엣지 키의 종류 칸(같은 DC < 저항 < MOS)
@@ -233,8 +236,14 @@ def dc_writer_plan(projection):
     for net in nodes:
         if net not in plan.writes:
             plan.put(net, TIER_W4, REL_WINDOW, None, None, net)
+    bulk = {n: b.net for n, b in projection.column("device", "bulk")}
+    self_ref = {m: False for m, c in classes.items() if c == ELEMENT_MOS}
+    for net, w in plan.writes.items():
+        if w.relation in _SELF_RELATIONS:
+            terminals = dict(pins[w.element])
+            self_ref[w.element] = self_ref[w.element] or net in (terminals["d"], terminals["s"], bulk[w.element])
     return {("node", "dc_writer"): plan.writes, ("device", "dc_coord"): coords,
-            ("graph", "dc_tie_breaks"): {DC_KEY: tuple(ties)}}
+            ("graph", "dc_tie_breaks"): {DC_KEY: tuple(ties)}, ("device", "dc_self_referential"): self_ref}
 
 
 def _component(adjacency, start):

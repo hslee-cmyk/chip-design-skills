@@ -1,5 +1,9 @@
 # gmid_engine.lut 동작 계약 (MOD1, test 작성용)
 
+> **[U17 ①-b] LUT 파생 함수**(설계 40 §2.4.6 'memo 로 옮기는 것'·§2.4.8 (a) 행, v1.9.1 D10, 2026-10-13): `derived(memo, name, *args)` -- `DERIVED_FUNCTIONS` 의 `edge_costs`(kind, w_key)
+> -> `EdgeCost`(옛 metrics `edge_cost_bounds`, 영역 derived -- `DERIVED_TABLES` 에 `edge_costs` 추가), `reference_vds`(kind, w_key, L), `tol_vdsat_max`(kind, w_key, L, vds), `param_row`(kind, w_key, L, vds, vsb)
+> -> ((VGS 마디), x, y, z) | None(영역 curve)를 `memo.lookup` 으로 담는다(같은 인자 재계산 0). `memo.call` 형식 전환은 U17 ③. `EdgeCost` 는 `lut_types.py` 값 형식이다.
+
 - 대상: `gmid_engine/lut/` 공개 API(`gmid_engine.lut.__all__`). test 는 `from gmid_engine.lut import ...` 만 쓴다
   (파일 모듈 직접 import·`_` 이름 사용 금지). test 배치 규칙 D: `gmid_engine/tests/lut/test_<파일>.py`
   (helper 는 `test__helpers_interp.py` 처럼 글자 그대로).

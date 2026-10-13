@@ -1,9 +1,15 @@
 """스펙에서 gm/ID·L·전류 출발 구간 (설계 41 §6, 40 §11 U13 · §7.1 면적 예산 출발점, 단계 A8; D-SIa~g).
 
-진입점: `start_intervals(s1v, ach, kctx, spec, pdk_decl, domain) -> StartIntervals`.
+진입점: `start_intervals`(`@compute_block`, writer `start_intervals`) -- `start_intervals(snapshot, spec, inputs, pdk_decl, lut)`.
 
-**쓰임**: 출발값과 보고에만 쓴다(EP-7 -- 판정은 외층 봉인·metric 이 한다). 층 0(`layer0_start`)이 상자 중심 대신 이 구간의 선택점을 출발 θ 로 쓴다(`build_search_context(s1v=, ach=)`).
-입력: `s1v`(단계 A -- 전달 뷰·블록·극점 노드·L 동치류), `ach`(U9 `Achievability` 또는 None), `kctx`(쓰기 계획·전류 기저·θ 스키마), `spec`, `pdk_decl`, `domain`(`search_domain` -- L 칸·θ 상자).
+**쓰임**: 출발값과 보고에만 쓴다(EP-7 -- 판정은 외층 봉인·metric 이 한다). 층 0(`layer0_start`)이 상자 중심 대신 이 구간의 선택점(`graph/start: rungs` 칸 0)을 출발 θ 로 쓴다.
+**입력**(설계 40 §2.4.7 `StartContext` 행 -- 블록이 선언한 S0 수준 필드를 투영으로 읽는다, `READS`): S1 소자·노드 열, 대칭 블록 `dc_colour`, 쓰기 계획 `dc_coord`·`dc_current_basis`,
+`graph/kernel: theta_schema·l_ties·search_domain(L 칸·θ 상자)·passive_area_decl`, S1v `graph/s1v: views`(전달 뷰·블록·극점 노드), GB4 `graph/ach: gain_checks·local_inputs`(없으면 이득 L 하한 비활성).
+extras: `spec`, `inputs`(sizing `DcInputs`), `pdk_decl`(core `PdkDecl`), `lut`(sizing `LutAccess` -- 곡선은 LUT memo, 기준 VDS·tol_vdsat·엣지 비용은 LUT 파생 `lut.derived`).
+블록 안 읽기 묶음은 `iv_context.start_view`(`StartView`, 호출 안에서 만들고 버린다).
+**출력**(S0 수준 필드, 설계 40 §2.4.8 v1.9.1 D3, 묶음 객체 없음): `device: start.row`(`StartRow`)·`start.point`((VDS, VSB) -- 곡선을 읽은 소자 동작점),
+`graph/start`(key `START_KEY`): `conflicts`, `inactive`, `macro`, `rungs`(출발 사다리 `StartRung` tuple, 칸 0 = 선택점), `records`(매크로 모델 기록), `area_est_m2`, `area_fraction`(t),
+`uncovered`(구간이 정하지 못해 상자 중심으로 남은 θ 성분). 면적 예산은 spec 선언이라 필드로 두지 않는다(소비자가 spec 을 읽는다).
 
 **계산 순서**(41 §6.1, 순환 없음):
 0. 주극점 노드(`dominant_node`, 구조 판정, 매크로 모델을 쓰지 않는다).
@@ -25,20 +31,21 @@
 **충돌**(41 §6.6): 하한 > 상한이면 자르지 않고 `StartConflict` 를 남긴다 -- 선택은 헤드룸 하한 쪽(포화 유지 = 봉인 7)으로 간다.
 **불변식**: 같은 입력이면 같은 표. 소자 순회·합산은 구조 색 순이고 이름은 행 이름에만 쓰인다(이름 전단사).
 """
+import dataclasses
 import math
 import sys
 
 import numpy as np
 
-from gmid_engine.sizing import THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, bracket_root
+from gmid_engine.core import compute_block
+from gmid_engine.sizing import KERNEL_KEY, THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, bracket_root
 
 from ._helpers_area import area_estimate
-from ._helpers_curves import hull
+from ._helpers_curves import QUANTITY_FT, QUANTITY_IDU, curve_bundle, curve_bundle_of, curve_value, edge_cost, l_anchors, slice_of, snap_vds
 from .dominant_node import RULE_NONE, DominantNode, dominant_node
 from .iv_area import area_bounds
-from .iv_context import build_start_context
+from .iv_context import start_view
 from .iv_currents import current_model
-from .iv_curves import QUANTITY_FT, QUANTITY_IDU
 from .iv_domain import domain_bounds
 from .iv_gain_l import gain_l_bounds
 from .iv_headroom import headroom_bounds
@@ -46,6 +53,7 @@ from .iv_matching_l import matching_bounds
 from .iv_noise import noise_bounds
 from .iv_speed import speed_bounds
 from .macro_poles import macro_solve
+from .s0_fields import START_INTERVALS_WRITER, START_KEY, START_WRITES
 from .start_values import (
     EDGE_VDS,
     MACRO_NONCONVERGENT,
@@ -62,7 +70,6 @@ from .start_values import (
     WHY_NO_CURRENT,
     Bound,
     StartConflict,
-    StartIntervals,
     StartRow,
     StartRung,
 )
@@ -116,9 +123,9 @@ def _state(ctx, gm_id, lengths, refine=True):
     scale = math.exp(sum(math.log(v) for v in known) / len(known)) if known else 0.0
     refs = {}
     for d in ctx.devices:
-        bundle = ctx.curves.bundle_of(d.name, d.kind, lengths[d.name])
+        bundle = curve_bundle_of(ctx, d.name, d.kind, lengths[d.name])
         if currents[d.name] is None and bundle is not None:
-            refs[d.name] = max(scale, ctx.w_min_m * ctx.curves.value(bundle, QUANTITY_IDU, gm_id[d.name]) / lengths[d.name])
+            refs[d.name] = max(scale, ctx.w_min_m * curve_value(bundle, QUANTITY_IDU, gm_id[d.name]) / lengths[d.name])
     merged = {n: currents[n] if currents[n] is not None else refs.get(n) for n in currents}
     area, passive, per_device = (None, None, None)
     if all(v is not None for v in merged.values()):
@@ -127,13 +134,13 @@ def _state(ctx, gm_id, lengths, refine=True):
 
 
 def _width_floor_gm_id(ctx, d, length, current, g0):
-    """전류 `current` 에서 폭 W(g) = I·L/IDu(g) (보고가 읽는 `CurveBook.value` 와 같은 값) 가 W_min 이상이 되는 g0 이상의 최소 gm/ID. 이미 만족하면 g0, 곡선 끝까지 못 미치면 None.
+    """전류 `current` 에서 폭 W(g) = I·L/IDu(g) (보고가 읽는 `curve_value` 와 같은 값) 가 W_min 이상이 되는 g0 이상의 최소 gm/ID. 이미 만족하면 g0, 곡선 끝까지 못 미치면 None.
     곡선은 약반전 쪽에서 gm/ID 가 비단조일 수 있어(포화 근처) 마디 교차 대신 g0 ~ 곡선 최댓값을 촘촘히 훑어 처음 만족하는 칸을 `bracket_root` 로 다듬는다."""
-    bundle = ctx.curves.bundle_of(d.name, d.kind, length)
+    bundle = curve_bundle_of(ctx, d.name, d.kind, length)
     target = ctx.w_min_m * (1 + _REL)
 
     def excess(x):
-        return target - current * length / ctx.curves.value(bundle, QUANTITY_IDU, x)       # > 0 : 폭 부족
+        return target - current * length / curve_value(bundle, QUANTITY_IDU, x)       # > 0 : 폭 부족
 
     if excess(g0) <= 0:
         return g0
@@ -178,7 +185,7 @@ def _placed(ctx, gm_id, lengths, refine=True):
 def _first_defined(ctx, d, cells):
     """소자 d 의 L 칸에서 곡선이 정의된 첫 앵커(L 앵커 오름차순)."""
     lo, hi = cells[0][0], cells[-1][1]
-    return next((L for L in ctx.curves.l_anchors(d.kind) if lo <= L <= hi and ctx.curves.bundle(d.kind, L) is not None), None)
+    return next((L for L in l_anchors(ctx, d.kind) if lo <= L <= hi and curve_bundle(ctx, d.kind, L) is not None), None)
 
 
 def _snap(ctx, d, L, cells):
@@ -187,12 +194,18 @@ def _snap(ctx, d, L, cells):
         if hi < L:
             continue
         pick = max(L, lo)
-        if ctx.curves.bundle(d.kind, pick) is not None:
+        if curve_bundle(ctx, d.kind, pick) is not None:
             return pick, j
-        for anchor in ctx.curves.l_anchors(d.kind):
-            if pick <= anchor <= hi and ctx.curves.bundle(d.kind, anchor) is not None:
+        for anchor in l_anchors(ctx, d.kind):
+            if pick <= anchor <= hi and curve_bundle(ctx, d.kind, anchor) is not None:
                 return anchor, j
     return None, None
+
+
+def _curve_range(bundle):
+    """곡선 분지의 gm/ID 범위 (최솟값, 최댓값). 분지 맨 앞 마디가 gm/ID 정점이다."""
+    g = np.asarray(bundle[QUANTITY_FT].gm_id, dtype=float)
+    return float(g.min()), float(g.max())
 
 
 def _side(items, quantity, side):
@@ -218,8 +231,29 @@ def _owner_groups(ctx):
     return groups
 
 
-def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
-    ctx = build_start_context(s1v, ach, kctx, spec, pdk_decl, domain)
+READS = (
+    ("device", "element_class"), ("device", "kind"), ("device", "pins"), ("device", "bulk"), ("device", "dc_colour"), ("device", "dc_coord"),
+    ("node", "is_rail"), ("node", "dc_colour"), ("node", "port_direction"), ("node", "port_role"),
+    ("graph", "dc_current_basis"), ("graph", "theta_schema"), ("graph", "l_ties"), ("graph", "search_domain"), ("graph", "passive_area_decl"),
+    ("graph", "views"), ("graph", "gain_checks"), ("graph", "local_inputs"),
+)
+
+
+def _fields(rows, points, conflicts, inactive, macro, rungs, records, area, t, uncovered):
+    """출력 필드 열 -- `START_WRITES` 와 같은 (kind, field)."""
+    graph = {"conflicts": tuple(conflicts), "inactive": tuple(inactive), "macro": macro, "rungs": tuple(rungs), "records": tuple(records),
+             "area_est_m2": area, "area_fraction": t, "uncovered": tuple(uncovered)}
+    out = {("device", "start.row"): {r.device: r for r in rows}, ("device", "start.point"): dict(points)}
+    out.update({("graph", name): {START_KEY: value} for name, value in graph.items()})
+    return out
+
+
+@compute_block(START_INTERVALS_WRITER, reads=READS, writes=START_WRITES)
+def start_intervals(projection):
+    spec, inputs, pdk_decl, lut = projection.extras
+    ctx = start_view(projection, spec, inputs, pdk_decl, lut)
+    domain = projection.value("graph", KERNEL_KEY, "search_domain")
+    schema = projection.value("graph", KERNEL_KEY, "theta_schema")
     devices = ctx.devices
     inactive, conflicts, records = [], [], []
     first_L, cells = {}, {}
@@ -227,8 +261,8 @@ def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
         cells[d.name] = ctx.l_cells[d.owner]
         first_L[d.name] = _first_defined(ctx, d, cells[d.name])
     if not devices or any(v is None for v in first_L.values()):
-        return StartIntervals((), (), (("start_intervals", "lut_curve_undefined_for_all_l"),), None, (), (), None, ctx.area_budget_m2, None, ())
-    lut_range = {d.name: ctx.curves.gm_id_range(ctx.curves.bundle(d.kind, first_L[d.name])) for d in devices}
+        return _fields((), {}, (), (("start_intervals", "lut_curve_undefined_for_all_l"),), None, (), (), None, None, ())
+    lut_range = {d.name: _curve_range(curve_bundle(ctx, d.kind, first_L[d.name])) for d in devices}
 
     # ---- 0, 1: 주극점 노드 · gm/ID 하한
     dominant = dominant_node(ctx.transfer) if ctx.transfer is not None else DominantNode((), RULE_NONE)
@@ -243,9 +277,9 @@ def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
     points = {}
     for d in devices:
         budget = head.budgets.get((d.name, EDGE_VDS))
-        low = ctx.curves.edge(d.kind).vds_min_v
-        points[d.name] = (ctx.curves.snap_vds(d.kind, low if budget is None else (low + budget) / 2), ctx.curves.vsb_ref(d.kind))
-    ctx.curves.assign(points)
+        low = edge_cost(ctx, d.kind).vds_min_v
+        points[d.name] = (snap_vds(ctx, d.kind, low if budget is None else (low + budget) / 2), float(slice_of(ctx, d.kind).grids[3][0]))
+    ctx = dataclasses.replace(ctx, points=points)
 
     # ---- 4: 1회차 매크로 전류
     first = _state(ctx, g_lo0, first_L)
@@ -279,7 +313,7 @@ def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
             chosen_L[n], cell_index[n], l_range[n] = pick, j, (lo, hi)
 
     # ---- 6: 그 L 에서 gm/ID 경계
-    bundles = {d.name: ctx.curves.bundle_of(d.name, d.kind, chosen_L[d.name]) for d in devices}
+    bundles = {d.name: curve_bundle_of(ctx, d.name, d.kind, chosen_L[d.name]) for d in devices}
     head2 = headroom_bounds(ctx, chosen_L, head.budgets)
     conflicts.extend(head2.conflicts)
     dom2 = domain_bounds(ctx, chosen_L, vds_budget)
@@ -364,11 +398,11 @@ def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
     if final.refs:
         inactive.append(("current_from_macro", WHY_NO_CURRENT))
     # 출발 사다리: 실행 가능한 최대 t 에서 시작해 t 를 절반씩 줄인 점들(층 0 이 커널로 봉인 여부를 확인한다)
-    rungs = [_rung(ctx, domain, kctx, final, final.g, chosen_L, cell_index, bundles, t)]
+    rungs = [_rung(ctx, domain, schema, final, final.g, chosen_L, cell_index, bundles, t)]
     for k in range(1, (steps if t > 0 else 0) + 1):
         lower = t / 2 ** k
         state = solve(lower, refine=False)          # 사다리의 아래 칸은 대안 출발점 -- 전원 전류 최소화 없이 실행 가능한 출발점의 전류로 충분하다
-        rungs.append(_rung(ctx, domain, kctx, state, state.g, chosen_L, cell_index, bundles, lower))
+        rungs.append(_rung(ctx, domain, schema, state, state.g, chosen_L, cell_index, bundles, lower))
     for d in devices:         # 최소 폭 보정이 상한을 넘겼다면 숨기지 않고 충돌로 남긴다(W_min 은 경성 제약이라 상한보다 우선)
         if final.g[d.name] > g_hi[d.name] * (1 + _REL) and d.name == d.group:
             conflicts.append(StartConflict(d.name, QUANTITY_GM_ID, (("w_min_at_fixed_current", final.g[d.name]), ("upper", g_hi[d.name])), final.g[d.name] - g_hi[d.name]))
@@ -376,16 +410,16 @@ def start_intervals(s1v, ach, kctx, spec, pdk_decl, domain):
                    (conflicts, inactive, records), t, tuple(rungs))
 
 
-def _rung(ctx, domain, kctx, state, g, L, cell_index, bundles, t):
+def _rung(ctx, domain, schema, state, g, L, cell_index, bundles, t):
     """한 사다리 칸의 출발 θ -- 구간이 값을 정한 성분(ln_idu·θ 전류·보상 커패시터·L 과 L 칸)만."""
     wanted = {v.component for v in domain.variables}
     theta = []
-    for component in kctx.schema.components:
+    for component in schema.components:
         kind, key = component
         if component not in wanted:
             continue
         if kind == THETA_LN_IDU and key in ctx.by_name:
-            theta.append((component, math.log(ctx.curves.value(bundles[key], QUANTITY_IDU, g[key]))))
+            theta.append((component, math.log(curve_value(bundles[key], QUANTITY_IDU, g[key]))))
         elif kind == THETA_CURRENT and key in state.elements:
             theta.append((component, state.elements[key]))
         elif kind == THETA_CAPACITANCE and key in state.cap_values:
@@ -408,7 +442,7 @@ def _report(ctx, domain, state, g, L, cell_index, ranges, items, bundles, notes,
     for d in ctx.devices:
         current = state.currents.get(d.name)
         current = state.refs.get(d.name) if current is None else current
-        idu = ctx.curves.value(bundles[d.name], QUANTITY_IDU, g[d.name])
+        idu = curve_value(bundles[d.name], QUANTITY_IDU, g[d.name])
         lut = (Bound(QUANTITY_GM_ID, SIDE_LO, SRC_LUT_RANGE, lut_range[d.name][0]), Bound(QUANTITY_GM_ID, SIDE_HI, SRC_LUT_RANGE, lut_range[d.name][1]),
                Bound(QUANTITY_L, SIDE_LO, SRC_LUT_L, ctx.l_cells[d.owner][0][0]), Bound(QUANTITY_L, SIDE_HI, SRC_LUT_L, ctx.l_cells[d.owner][-1][1]))
         mine = tuple(c for c in conflicts if c.device in (d.name, d.owner))
@@ -417,5 +451,4 @@ def _report(ctx, domain, state, g, L, cell_index, ranges, items, bundles, notes,
                              lut + tuple(g_items[d.name]) + tuple(l_items[d.name]), tuple(inactive), mine))
     wanted = {v.component for v in domain.variables}
     covered = {c for c, _v in rungs[0].theta}
-    return StartIntervals(tuple(rows), tuple(conflicts), tuple(inactive), state.macro, rungs[0].theta, rungs[0].cells, state.area, ctx.area_budget_m2, t,
-                          tuple(sorted(c for c in wanted if c not in covered)), tuple(records), rungs[0].current_ref, rungs)
+    return _fields(rows, ctx.points, conflicts, inactive, state.macro, rungs, records, state.area, t, tuple(sorted(c for c in wanted if c not in covered)))

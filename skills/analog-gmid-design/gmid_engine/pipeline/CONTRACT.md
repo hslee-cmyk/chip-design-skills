@@ -2,7 +2,14 @@
 
 ng-bridge 브랜치(`oracle_input` 등 오라클 생산자)가 같은 파일을 쓴다. 병합 때 이 절을 그 파일의 새 절로 합친다. 이 문서는 단계 A 만 다룬다.
 
-## 1. `run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, supplies_v=None, structure_path=None) -> StageAResult`
+## 1. `run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule_decl, supplies_v=None, structure_path=None) -> StageAResult`
+
+[U17 ①-b] (설계 40 §2.4.1~§2.4.3·§2.4.7·§2.4.8 v1.9.1 D1·D6·D8) `lut_rule_decl`(core `read_pdk_decl(LUT 생성 규칙 선언)` 결과)도 **필수**다(PdkDecl 아니면 `TypeError`) -- S0 키 입력에
+`lut_rule_decl_fp`(`decl_sha256`), sources 에 `lut_rule_decl`(`decl_path`, `decl_sha256`)가 더해진다(S0 필드 `graph/kernel: junction_source` 가 그 선언을 읽는다). 키는 core `S0Slot`
+(`StageAResult.s0`)로 묶어 넘긴다. **단계 A 는 S0 스냅샷을 읽기만 한다**: 적중이면 그 스냅샷, 아니면 빈 S0 수준 스냅샷(권한표 search `S0_WRITERS`) 위에서 `build_s1` ->
+`build_s1v`(필드 `graph/s1v`) -> 계산 블록 `coupling_vars`(필드 `graph/coupling`)를 부르고(적중이면 계산 0), 쓰기는 `search.build_search_context(s0=)` 끝에서 한 번이다(v1.9.1 D6).
+보고서의 `views`·`applied_facts`·`ff_ratio_candidates`·`tables`·`coupling` 은 필드를 읽어 만든다. `tables` 에서 옛 `key`(S1v 묶음 키) 칸은 없어지고 `facts_applied` 는
+`applied_facts` 로 이름이 바뀐다(묶음 객체 없음, 사본·별칭 없음).
 
 [U17 ①-a] `pdk_decl`(core `read_pdk_decl` 결과)은 **필수**다 -- 빠지면 파이썬 `TypeError`, PdkDecl 아니면(None 포함) `TypeError`(S0 키의 PDK 선언 해시, 40 §2.4.12 Q1 fail-closed). S0 수준 스냅샷 영속화(설계 40 §2.4.3, core CONTRACT §11): `structure.json` 로드 뒤 키 입력 {`topology_fp`(정규화 연결 지문), `supplies_v_fp`, `spec_fp`(spec 없으면 None), `structure_facts_fp`(`fp_of(StructureFacts)`), `derivation_rule_fp`(`structure_rule_fp()`), `lut_fp`(`lut.fp`), `pdk_decl_fp`(`pdk_decl.decl_sha256`)} + 입력 파일 sources {`topology`(경로, `file_sha256`), `spec`(경로, `file_sha256` | spec 없으면 (None, None)), `structure`(경로, 원본 sha256 | 파일 없으면 None), `pdk_decl`(`decl_path`, `decl_sha256`), `lut_manifest`·`lut_cap`·`lut_midpoints`·`lut_noise`·`lut_mismatch`(LUT 출처의 경로·sha256, 없으면 (None, None))} + 엔진 코드 지문으로 `S0SnapshotStore.default` 를 읽는다. hit 이면 `build_s1(previous=읽은 스냅샷)` -- S1 블록 12개가 모두 재사용(계산 0), 결과 `s1.snapshot.fp` 는 계산했을 때와 같다. miss·corrupt 면 계산한 S1 스냅샷을 쓴다(`save`). 보고서 `s0_snapshot` = "hit" | "miss" | "corrupt"(S1 단계 전 정지면 None). 엔진 코드 지문은 호출마다 한 번 재 `StageAResult.code_fp`(정지 결과 포함)로 돌려준다 -- `search.build_search_context(..., code_fp=)` 가 받는다.
 
@@ -32,15 +39,24 @@ JSON 키(키 정렬): `circuit`, `status`, `exit_code`, `count_budget`(정지 �
 뷰별 셀·구동 종류·stage·블록·극점 노드·출력 방향·루프·끊는 점·`unreduced_diff`·기록, L 동치류, declared 요약, 적용한 ratified 사실; 로드 정지면 None), `coupling`([U10] GB3 결합 변수: `kind_counts`·`bias_columns`·`column_block_map`·`column_mate_devices`·`vars`[kind,members,nets,blocks,domain,init_rule] -- `graph.coupling_vars`, 단계 A4; 구조 정지·로드 정지면 None; 바이어스 기둥 의사 블록은 `blocks` 에 `bias:<기둥 id>` 키로 나온다, graph CONTRACT §11). `.md` 는 같은 정보의
 사람용 요약. 기존 파일은 덮어쓴다.
 
-## 3. 결과 `StageAResult(exit_code, status, s1v, report, report_paths, s1=None, spec=None)`
+## 3. 결과 `StageAResult(exit_code, status, report, report_paths, s1=None, spec=None, code_fp=None, s0=None)`
 
-`s1v`·`s1`·`spec` 은 정지 전 단계(A1·A2·structure)에서는 None(`s1`·`spec` 은 단계 B 가 이어 쓴다, U9). 후속 단계: `s1v.l_classes` -> `sizing.build_kernel_context(..., l_classes=)`.
+[U17 ①-b] 묶음 `S1v` 칸은 없다(설계 40 §2.4.7). `s1` = S0 수준 스냅샷 위 `S1Graph`(S1 + `graph/s1v` + `graph/coupling` 필드, `column_unassigned` 정지면 결합 필드 없음; S1 전 정지면 None),
+`spec`(로드 정지면 None), `code_fp`(엔진 코드 지문), `s0`(core `S0Slot` -- 키를 만들기 전 정지면 None). 후속 단계: 커널 컨텍스트는 L 동치류를 필드 `graph/s1v: l_classes` 에서 읽는다
+(`sizing.build_kernel_context(stage_a.s1, ...)`), 탐색 컨텍스트는 `build_search_context(..., code_fp=stage_a.code_fp, s0=stage_a.s0)`.
 
 ## 4. 불변량
 
 같은 입력 -> 같은 `report["tables"]`. `exit_code == 0` 이면 `stop_reasons`·`review_needed` 가 비어 있다. `exit_code` 는 `ok` 이면 0, 로드 거부면 7, 그 밖 정지면 2. 보고서 파일은 항상 쓰인다.
 
-## 5. 단계 B -- `run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False) -> StageBResult` (U9, 설계 41 §0 A5~A7, 41 §4, 40 §3.4)
+## 5. 단계 B -- `run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False, settings=None) -> StageBResult` (U9, 설계 41 §0 A5~A7, 41 §4, 40 §3.4)
+
+[U17 ①-b] (설계 40 §2.4.7·§2.4.8 v1.9.1 D2·D6) 커널 컨텍스트(`build_kernel_context(stage_a.s1, inputs, lut)` -- L 동치류는 필드에서) 뒤 스냅샷을 S0 수준 권한표(`S0_WRITERS`)로 넓히고
+계산 블록 `search_domain` -> `passive_area_decl` -> `achievability`(필드 `graph/ach`)를 부른다(같은 S0 면 재사용). 정지 판정은 필드 `graph/ach: reasons` 를 읽어 한다(비면 ok, 있으면 exit 3).
+`settings`(`SearchSettings`) = 탐색 실행 설정 -- `build_search_context` 와 같은 값을 넘기면 정의역 블록이 한 번만 계산된다(수동소자 상자가 정의역 입력이라 다른 값이면 그 블록이 다시 계산된다).
+None 이면 옛 동작(spec `search` 의 벽시계만, 수동소자 상자는 spec `theta_bounds`). 보고서 `achievability` 칸은 필드에서 같은 키(`gain`·`area`·`headroom`·`buffer_window_report`·`warnings`·`dof`·`curves`
+요약·`count_budget`·`verdict`·`reasons`)로 만든다. 결과 `StageBResult(exit_code, status, diagnostic, report, report_paths, s1=None)` -- `s1` = S0 수준 스냅샷 위 S1Graph(GB4 필드 포함, 건너뛰거나
+정지했으면 단계 A 의 것). 묶음 `Achievability` 칸은 없다.
 
 파일 `stage_b.py`. GB4 달성가능성(`metrics.achievability`)을 단계 A 결과 위에서 한 번 돌린다(탐색 앞, S0 당 1회).
 
@@ -57,6 +73,6 @@ JSON 키(키 정렬): `circuit`, `status`, `exit_code`, `count_budget`(정지 �
   `gain`{view, blocks[], ff[], sum_db, b_db, target_db, verdict, n_unknown, found_sum_db}, `area`{a_lb_m2, terms, budget_m2, b_a_m2, verdict, not_certified}, `headroom[]`, `buffer_window_report[]`, `warnings`,
   `dof`, `curves`{요약: 슬라이스·축별 칸 개수, 격자 전용 칸은 (kind, w_key, 축)별 개수}, `count_budget`). 블록 행 `BlockBound`: `status`(certified|unknown), `a_max_db`·`b_db`(인증만), `pi`(격자 곱), `axes`, `row_condition`,
   `reason`(미상 사유), `found_db`(하한 추정 -- 상한이 아니다).
-* 결과 `StageBResult(exit_code, status, diagnostic, achievability, report, report_paths)`.
+* 결과 `StageBResult(exit_code, status, diagnostic, report, report_paths, s1=None)`([U17 ①-b] -- 위 머리 단락).
 * 소비처(배선): `achievability.area.a_lb_m2` 는 U11 `search.front_diagnosis` 의 `front_missing` 노트 `A_lb` 자리(지금 `not_computed:achievability_u9_missing`)에 들어간다 -- U11(`budget_report.py`)이 이 브랜치에 병합되면
   `front_diagnosis` 가 `StageBResult.achievability.area` 를 받아 `A_lb` 와 `A_lb/예산` 을 채운다(설계 40 §7.1-4 (i)).

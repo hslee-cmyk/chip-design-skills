@@ -1,6 +1,8 @@
 """GB3 결합 변수 y (설계 40 §3.3, 계획 DEC-71 (2)(7), N3.7 결합 표, 41 §5.5 조립의 입력).
 
-진입점: `coupling_vars(s1, s1v) -> Coupling`  (`Coupling(vars, column_block_map)`; 매핑표는 `column_block_map` 가 만들고 여기서 같이 돌려준다).
+진입점: `coupling_vars`(`@compute_block`, writer `coupling_vars`) -- `coupling_vars(snapshot)`. reads = S1 필드 전부 + `graph/s1v: views·l_classes`,
+writes `graph/coupling`(key `COUPLING_KEY`): `vars`(CouplingVar tuple), `column_block_map`(매핑표 행 tuple -- `column_block_map` 이 만든다), `bias_columns`(바이어스 기둥 id)
+(설계 40 §2.4.8 v1.9.1 D8 -- 묶음 객체 없음). 매핑표의 `column_unassigned` 정지는 블록에서 그대로 전파된다(쓰지 않는다).
 
 블록 경계를 넘는 관계를 S1 관계 엣지·S1v 블록·기둥↔블록 매핑표를 대조해 `CouplingVar` 로 모은다. '블록 경계를 넘는다'는 **한 뷰 안에서** 관계에 든 소자들의 블록이 서로 다르다는 뜻이다
 (`_crosses`: 그 뷰에 블록이 있는 소자가 둘 이상이고 그 소자들의 블록 키 합집합이 교집합과 다를 때) -- 같은 키 블록도 뷰가 다르면 다른 블록이라 `BlockRef` 가 뷰 id 를 가진다.
@@ -14,9 +16,11 @@
 * K8: 셀 c 의 DC 역할이 바이어스 전류원이고 AC 셀이 gate 로 신호를 받는 CS 이며, drain 노드 k 에 신호 CD 셀의 source 가 붙고, c 의 gate 가 그 CD 입력 넷에서 CD 엣지로 닿지
   않고, k 가 이득 블록의 출력노드가 아니다(40 §3.3 K8 정의). members = (c, 그 CD 셀들), nets = (k). 영역 dc.
 
-결과 `vars` 는 (kind, members, nets, domain) 순 정렬이고 같은 (kind, members, nets, domain)은 한 번만 낸다. 호출자: 파이프라인 단계 A4(`run_stage_a`, 보고서 `coupling` 키).
-소비자는 U15 층 0 조립(41 §5.5)이다.
+결과 `vars` 는 (kind, members, nets, domain) 순 정렬이고 같은 (kind, members, nets, domain)은 한 번만 낸다. 호출자: 파이프라인 단계 A4(`run_stage_a` -- 필드를 읽어 보고서
+`coupling` 키를 쓴다). 소비자는 U15 층 0 조립(41 §5.5)이다.
 """
+from gmid_engine.core import compute_block
+
 from .column_block_map import column_block_map
 from .coupling_values import (
     BIAS_PREFIX,
@@ -34,26 +38,26 @@ from .coupling_values import (
     KIND_K7,
     KIND_K8,
     BlockRef,
-    Coupling,
     CouplingVar,
 )
 from .net_model import net_model
-from .s1_values import DOMAIN_DC, DOMAIN_GEOM, GRAPH_KEY, MATCH_MIRROR, REL_EQUAL_VGS, ROLE_BIAS
+from .s1_values import (COUPLING_KEY, COUPLING_VARS_WRITER, COUPLING_WRITES, DOMAIN_DC, DOMAIN_GEOM, GRAPH_KEY, MATCH_MIRROR, REL_EQUAL_VGS, ROLE_BIAS,
+                        S1_READS, S1V_KEY)
 from .s1v_values import BLOCK_GAIN, CELL_CD, CELL_CS, ROLE_DIODE_LOAD, ROLE_LOAD, ROLE_MIRROR, ROLE_TAIL
 
 LOAD_ROLES = (ROLE_LOAD, ROLE_MIRROR, ROLE_DIODE_LOAD, ROLE_TAIL)
 
 
-def _keys_by_view(cbm, s1v):
+def _keys_by_view(rows, views):
     """{소자: {뷰 id: 블록 키 frozenset}} -- 매핑표의 블록 귀속(멤버 + 기둥 이웃) + 바이어스 기둥 의사 블록.
 
     바이어스 기둥(행 block 이 None)의 소자는 모든 뷰에서 의사 블록 키 `(bias:<기둥 id>,)` 를 갖는다(판정이 뷰 단위라 블록 소자와 같은 뷰에서 비교된다)."""
     table = {}
-    for row in cbm.rows:
+    for row in rows:
         if row.block is not None:
             table.setdefault(row.device, {}).setdefault(row.block.view, set()).add(row.block.key)
         else:
-            for view in s1v.views:
+            for view in views:
                 table.setdefault(row.device, {}).setdefault(view.id, set()).add((BIAS_PREFIX + str(row.column),))
     return table
 
@@ -71,19 +75,19 @@ def _crosses(members, keys_by_view):
     return tuple(sorted(refs))
 
 
-def _roles(s1v):
-    return {(name, BlockRef(view.id, block.key)): role for view in s1v.views for block in view.blocks for name, role in block.roles}
+def _roles(views):
+    return {(name, BlockRef(view.id, block.key)): role for view in views for block in view.blocks for name, role in block.roles}
 
 
-def _classes(s1, s1v):
+def _classes(s1, l_classes):
     """K1 후보 류: (members, domain) -- mirror matching 그룹(dc)과 L 동치류(geom)."""
     mirrors = tuple((g.members, DOMAIN_DC) for g in s1.value("graph", GRAPH_KEY, "matching_groups") if g.kind == MATCH_MIRROR)
-    return mirrors + tuple((c.members, DOMAIN_GEOM) for c in s1v.l_classes)
+    return mirrors + tuple((c.members, DOMAIN_GEOM) for c in l_classes)
 
 
-def _k1_k2(s1, s1v, keys, roles):
+def _k1_k2(s1, l_classes, keys, roles):
     out = []
-    for members, domain in _classes(s1, s1v):
+    for members, domain in _classes(s1, l_classes):
         refs = _crosses(members, keys)
         if refs and any(roles.get((name, ref)) in LOAD_ROLES for name in members for ref in refs):
             out.append(CouplingVar(KIND_K1, tuple(members), refs, domain, INIT_CLASS_OWNER))
@@ -122,9 +126,9 @@ def _k4(s1, keys):
     return out
 
 
-def _k7(cbm, model):
+def _k7(rows, model):
     refs = {}
-    for row in cbm.rows:
+    for row in rows:
         if row.basis == BASIS_BLOCK_MEMBER and row.device in model.mos_by_name:
             refs.setdefault(row.device, set()).add(row.block)
     return [CouplingVar(KIND_K7, (name,), tuple(sorted(found)), DOMAIN_DC, INIT_VIEW_SPLIT)
@@ -146,9 +150,9 @@ def _cd_reach(cds, model, start):
     return seen
 
 
-def _k8(model, s1v, keys):
+def _k8(model, views, keys):
     out = []
-    for view in s1v.views:
+    for view in views:
         gain_outputs = {net for b in view.blocks if b.kind == BLOCK_GAIN for net in b.outputs}
         cds = tuple(c for c in view.cells if c.kind == CELL_CD)
         for cell in view.cells:
@@ -163,10 +167,18 @@ def _k8(model, s1v, keys):
     return out
 
 
-def coupling_vars(s1, s1v):
-    cbm = column_block_map(s1, s1v)
+READS = S1_READS + (("graph", "views"), ("graph", "l_classes"))
+
+
+@compute_block(COUPLING_VARS_WRITER, reads=READS, writes=COUPLING_WRITES)
+def coupling_vars(projection):
+    s1 = projection                     # S1 필드 투영 -- `column`·`value` 질의만 쓴다
+    views = projection.value("graph", S1V_KEY, "views")
+    l_classes = projection.value("graph", S1V_KEY, "l_classes")
+    rows, bias_columns = column_block_map(s1, views)
     model = net_model(s1)
-    keys = _keys_by_view(cbm, s1v)
-    found = _k1_k2(s1, s1v, keys, _roles(s1v)) + _k3(model, keys) + _k4(s1, keys) + _k7(cbm, model) + _k8(model, s1v, keys)
+    keys = _keys_by_view(rows, views)
+    found = _k1_k2(s1, l_classes, keys, _roles(views)) + _k3(model, keys) + _k4(s1, keys) + _k7(rows, model) + _k8(model, views, keys)
     unique = {(v.kind, v.members, v.nets, v.domain): v for v in found}
-    return Coupling(tuple(unique[k] for k in sorted(unique)), cbm)
+    return {("graph", "vars"): {COUPLING_KEY: tuple(unique[k] for k in sorted(unique))}, ("graph", "column_block_map"): {COUPLING_KEY: rows},
+            ("graph", "bias_columns"): {COUPLING_KEY: bias_columns}}

@@ -25,8 +25,7 @@ import math
 import numpy as np
 
 from ._helpers_area import area_estimate
-from ._helpers_curves import hull
-from .iv_curves import QUANTITY_IDU
+from ._helpers_curves import QUANTITY_IDU, curve_bundle_of, curve_value, hull, l_anchors
 from .start_values import (
     QUANTITY_AREA,
     QUANTITY_GM_ID,
@@ -57,7 +56,7 @@ def _per_amp(ctx, name, kind, L, currents, gm_id_lo):
     """gm = I·gm/ID_lo 일 때의 (gm/ID 마디 배열, IDu 마디 배열, gm). 전류를 모르면 None."""
     if currents.get(name) is None:
         return None
-    bundle = ctx.curves.bundle_of(name, kind, L)
+    bundle = curve_bundle_of(ctx, name, kind, L)
     curve = bundle[QUANTITY_IDU]
     return np.asarray(curve.gm_id, dtype=float), np.asarray(curve.values, dtype=float), currents[name] * gm_id_lo[name]
 
@@ -97,9 +96,9 @@ def area_bounds(ctx, currents, lengths, gm_id_lo):
         gm = currents[d.name] * gm_id_lo[d.name]
         found = []
         reach = []
-        for L in ctx.curves.l_anchors(d.kind):
-            anchor = ctx.curves.bundle_of(d.name, d.kind, L)
-            if anchor is not None and gm * L ** 2 / (gm_id_lo[d.name] * ctx.curves.value(anchor, QUANTITY_IDU, gm_id_lo[d.name])) <= avail:
+        for L in l_anchors(ctx, d.kind):
+            anchor = curve_bundle_of(ctx, d.name, d.kind, L)
+            if anchor is not None and gm * L ** 2 / (gm_id_lo[d.name] * curve_value(anchor, QUANTITY_IDU, gm_id_lo[d.name])) <= avail:
                 reach.append(L)
         if reach:
             found.append(Bound(QUANTITY_L, SIDE_HI, SRC_AREA_L, max(reach)))

@@ -1,12 +1,12 @@
 """이득 L 하한 (설계 41 §6.4-1, H3; D-SIc).
 
-진입점: `gain_l_bounds(ctx, elements, resistors, gm_id_lo) -> GainLBounds`(1회차 매크로 뒤). 입력 묶음 `GainInputs` 는 S0 당 1회 `iv_context.build_start_context` 가 만든다(`ctx.gain`).
+진입점: `gain_l_bounds(ctx, elements, resistors, gm_id_lo) -> GainLBounds`(1회차 매크로 뒤). 입력 묶음 `GainInputs` 는 출발 구간 블록 호출 안에서 `iv_context.start_view` 가 만든다(`ctx.gain`).
 
 41 §6.4-1: 블록 목표 g_i = G·A_i,max / Σ A_max (dB 영역) 를 만족하는 최소 L(블록 국소 모델 gain ≥ g_i; bin 오름차순으로 훑고 bin 안에서 풀이). **A_max 가 하나라도 미상이거나 gain 제약이
 없으면 비활성**이다(H3) -- 사유(`constraint_not_declared`·`u9_value_not_certified`)는 보고 표 `inactive` 로 간다.
 
-* **블록 국소 모델**: U9 와 같은 모델(`metrics.block_gain_model_of` -> `BlockModel`, 파라미터 표 `ParamTables`, 행 풀이 `row_gains`)을 그대로 쓴다. 입력 묶음 `LocalInputs`·블록 대상 `BlockSpec` 은
-  U9 `achievability` 가 만드는 것과 같은 함수(`local_inputs`·`block_spec`)로 만든다 -- 복제하지 않는다.
+* **블록 국소 모델**: U9 와 같은 모델(`metrics.block_gain_model_of` -> `BlockModel`, 파라미터 표 `ParamTables`, 행 풀이 `row_gains`)을 그대로 쓴다. 입력 묶음은 U9 가 쓴 S0 수준 필드
+  `graph/ach: local_inputs`(`LocalInputs.view`), 블록 대상 `BlockSpec` 은 U9 와 같은 함수(`block_spec`)로 만든다 -- 복제하지 않는다.
 * **한 행**: 블록의 모든 L 축을 같은 LUT L 앵커(색인 j)로 두고(L 하한은 블록 소자 모두에 걸린다), 전류 축·저항 축은 1회차 매크로 상태의 θ 전류·저항 값(연속 축 `cont`), VGS 축(= gm/ID)은 그룹 멤버 모두의
   gm/ID ≥ gm/ID_lo 인 마디 중 **진성 이득 gm/gds 의 최솟값(멤버 중)이 가장 큰 마디**(41 §6.1 순서 2 '[gm/ID_lo, LUT 최대] 에서 intrinsic gain 이 가장 큰 gm/ID'), VDS 축은 소자 동작점의 가장
   가까운 LUT 격자, VSB 는 격자 0. 전류 공통 배율로 뺀 축(`BlockModel.normalized`)은 기준 원소 대비 비로 준다.
@@ -22,6 +22,7 @@ import numpy as np
 from gmid_engine.core import AMPLITUDE_DB_PER_DECADE
 from gmid_engine.metrics import block_gain_model_of, row_gains
 
+from ._helpers_curves import slice_of
 from .start_values import QUANTITY_L, SIDE_LO, SRC_GAIN_L, Bound, StartConflict
 
 # U9 축 어휘(metrics/achievability_types.py 의 AXIS_KIND_*) -- metrics 공개 API 가 이 상수를 내보내지 않아 같은 문자열을 둔다(`iv_headroom` 과 같은 사정)
@@ -56,7 +57,7 @@ def _row(ctx, inputs, model, j_l, g_lo, elements, resistors):
         if axis.kind == AXIS_KIND_L:
             idx[0, i] = j_l
         elif axis.kind == AXIS_KIND_VDS:
-            idx[0, i] = _nearest(grids[2], ctx.curves.points.get(axis.label[0], (grids[2][0], 0.0))[0])
+            idx[0, i] = _nearest(grids[2], ctx.points.get(axis.label[0], (grids[2][0], 0.0))[0])
         elif axis.kind == AXIS_KIND_CURRENT:
             ref = model.normalized[0] if model.normalized else None
             source = axis.label[0]
@@ -108,7 +109,7 @@ def gain_l_bounds(ctx, elements, resistors, gm_id_lo):
             continue
         if not members:
             continue
-        bins = ctx.curves.slice_of(ctx.by_name[members[0]].kind).l_bins
+        bins = slice_of(ctx, ctx.by_name[members[0]].kind).l_bins
         previous = None                         # (앵커 색인, L, gain dB) 앞 유효 앵커
         found = None
         for j, L in enumerate(anchors):

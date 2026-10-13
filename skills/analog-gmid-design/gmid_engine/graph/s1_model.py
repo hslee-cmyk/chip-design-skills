@@ -2,7 +2,7 @@
 
 진입점: `S1Graph(key, snapshot)` -- `build_s1` 이 만든다(직접 만들지 않는다).
 
-* `key`: `S1Key`. `snapshot`: core `GraphSnapshot`(권한표 `S1_WRITERS`). 값·writer·입력 버전·쓰기 횟수는
+* `key`: `S1Key`. `snapshot`: core `GraphSnapshot`(권한표가 `S1_WRITERS` 를 덮는다 -- S0 수준 스냅샷이면 S1v·커널·GB4·출발 구간 필드도 담는다, 설계 40 §2.4.1). 값·writer·입력 버전·쓰기 횟수는
   `snapshot.field(kind, key, field)`(core `FieldValue`)로 본다 -- 필드가 곧 캐시다.
 * `column(kind, field)` -> 그 필드가 있는 레코드의 ((key, value), ...) key 정렬 tuple.
 * `value(kind, key, field)` -> 값 하나(그 레코드에 필드가 없으면 `KeyError`).
@@ -34,7 +34,7 @@ class S1Graph:
     def _require_computed(self, kind, field):
         writer = self.snapshot.writers.writer_of(kind, field)
         if writer is None:
-            raise KeyError("S1 필드가 아니다(권한표 S1_WRITERS 밖): " + repr((kind, field)))
+            raise KeyError("이 스냅샷 권한표 밖 필드: " + repr((kind, field)))
         if self.snapshot.block_version(writer) is None:
             raise FieldNotComputed("필드 " + repr((kind, field)) + " 의 writer " + repr(writer)
                                    + " 가 이 스냅샷에서 아직 돌지 않았다")

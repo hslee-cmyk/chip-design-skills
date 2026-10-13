@@ -7,7 +7,7 @@
 
 * 인자:
   - `theta_block` = {"종류:키": 값} -- 이 블록이 정하는 θ 성분. `fixed` = 같은 형식 -- 블록 밖 성분(블록을 가로지르는 L 동치류 L, 이웃 블록의
-    y·전류 등. 첫 회차는 41 §6 출발값, 이후 회차는 직전 조립점 값 -- 값을 고르는 일은 부르는 쪽 몫). 둘의 합집합이 `ctx.schema.components` 와
+    y·전류 등. 첫 회차는 41 §6 출발값, 이후 회차는 직전 조립점 값 -- 값을 고르는 일은 부르는 쪽 몫). 둘의 합집합이 θ 스키마(`graph/kernel: theta_schema`) 성분과
     정확히 같아야 한다(겹침·빠짐·모르는 키 -> `ValueError`, 호출 계약 위반). 키 문자열 = `theta_name(종류, 키)`.
   - `columns` = {str(기둥 id)} -- S1 `graph.columns` 의 기둥 id(`Column.id`). 덮는 소자 = 그 기둥 경로 가지의 segment 원소 전부, 덮는 넷 =
     그 가지의 끝·segment 넷 중 레일이 아닌 것. 비었거나 모르는 id 면 `ValueError`.
@@ -29,6 +29,7 @@ from gmid_engine.core import NonconvergentError, SealViolationError
 from gmid_engine.graph import ELEMENT_MOS, GRAPH_KEY
 
 from .s2_values import (
+    KERNEL_KEY,
     SEAL_BULK_REVERSE,
     SEAL_FAIL,
     SEAL_KCL,
@@ -52,7 +53,7 @@ def theta_name(kind, key):
 
 
 def _merge_theta(ctx, theta_block, fixed):
-    names = {theta_name(kind, key): (kind, key) for kind, key in ctx.schema.components}
+    names = {theta_name(kind, key): (kind, key) for kind, key in ctx.base.value("graph", KERNEL_KEY, "theta_schema").components}
     overlap = sorted(set(theta_block) & set(fixed))
     unknown = sorted((set(theta_block) | set(fixed)) - set(names))
     missing = sorted(set(names) - set(theta_block) - set(fixed))

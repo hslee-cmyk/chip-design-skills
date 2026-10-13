@@ -1,14 +1,16 @@
 """파이프라인 단계 A 진입점 (설계 40 §2.1 GB0~GB2, 41 §0 단계 A1~A3).
 
-진입점: `run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, supplies_v=None, structure_path=None) -> StageAResult`.
+진입점: `run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule_decl, supplies_v=None, structure_path=None) -> StageAResult`.
 
 순서(40 §3.2-3): A1 `load_topology`·`load_sizing_spec`(spec_path 가 None 이면 구조만 -- 기본 전달 뷰) -> `structure.json` 사실 로드(ratified 사실, 기본 경로 = topology 파일 옆
 `<회로>.structure.json`, 없으면 사실 0 이고 declared 대조는 하지 않았다고 보고서에 적는다; topology 지문 = `doc.connectivity_fp` 라 `build_s1` 전에 이미 있고, rule_hash 는
 `structure_rule_fp()`) -> A2 `build_s1(structure=)`(`dc_role`·`matching_pair` 소비) -> A3 `build_s1v`(N_S = `structure_count_budget`, `structure=`, spec 에서 직접 모은 `declared_loop_cuts`)
--> A4 `coupling_vars(s1, s1v)`(GB3: 결합 변수 y K1~K4·K7·K8 + 기둥↔블록 매핑표; 어느 블록에도 기둥에도 속하지 않는 소자가 있으면 `column_unassigned` 정지, exit 2)
+-> A4 계산 블록 `coupling_vars`(GB3: 결합 변수 y K1~K4·K7·K8 + 기둥↔블록 매핑표 -> S0 수준 필드 `graph/coupling`; 어느 블록에도 기둥에도 속하지 않는 소자가 있으면
+`column_unassigned` 정지, exit 2)
 -> 보고서(`write_stage_a_report`: 구조 표 + review_needed + 정지 사유 + N_S + declared 대조 여부 + 적용한 사실 + feedforward 비율 후보 + 루프 역할 + `coupling`).
 * `coupling` 보고 키: `{"vars": [{kind, members, blocks[[뷰, 블록 키]], domain, init_rule, nets}], "column_block_map": [{column, block, device, shared, basis}], "bias_columns": [...],
-  "kind_counts": {kind: 수}}` (정지 전 단계거나 `column_unassigned` 정지면 None). 소비자는 U15 층 0 조립(41 §5.5)이다 -- 아직 읽는 코드가 없고 보고서가 유일한 출구다.
+  "kind_counts": {kind: 수}}` (정지 전 단계거나 `column_unassigned` 정지면 None) -- 필드 `graph/coupling: vars·column_block_map·bias_columns` 를 읽어 쓴다. 소비자는 U15 층 0
+  조립(41 §5.5)이다.
 * A2 의 `build_s1(marks=)`: 대칭 블록(정준형·궤도·전류 부호)이 보존할 선언 표시 = `sizing.symmetry_marks(dc_inputs_from_spec(spec))`(spec 이 없으면 `NO_MARKS`) --
   커널 컨텍스트가 같은 표시로 같은 블록을 재사용한다(40 §6-8 D-2 그래프 하나). 자기 맞바꿈 정지(`ds_self_swap_zero_current`)는 A2 정지로 보고된다.
 * `orbit_matching_crosstab` 의 `diff_pair_orbit_split`(40 §6-5 (나') -- 차동 출력 회로의 차동 입력 diff_pair 궤도 불일치)은 review 목록에 오른다.
@@ -20,14 +22,17 @@
   보고서에는 정지 여부와 무관하게 전체 구조 표를 쓴다(`build_s1v(stop_on_unsupported=False)` 로 기록을 받아 여기서 판정한다).
 * ratified 사실 개념: `drive_kind`(대상 = 넷, 값 = voltage|current)는 구동 종류를 고정하고, `stage_members`(대상 = stage 이름, 값 = 공백으로 이은 소자 이름)는
   유도 stage 와 대조하는 declared 로 쓴다. topology 태그 섹션은 읽지 않는다(IC4).
-* [U17 ①-a] S0 수준 스냅샷 영속화(설계 40 §2.4.3): `structure.json` 로드 뒤 S0 키 입력(`_s0_inputs`: topology 정규화 지문, 레일 전압, spec 전체 지문,
-  `structure.json` 사실 지문, 대칭 선언 표시 지문(`symmetry_marks_fp` -- `build_s1(marks=)` 가 S1 키 `marks_fp` 로 읽는 것과 같은 값), 유도 규칙 코드 지문 `structure_rule_fp()`, LUT 지문, PDK 선언 파일 내용 해시(`pdk_decl` = core `read_pdk_decl` 결과, **필수** --
-  None·다른 형식이면 `TypeError`, 설계 40 §2.4.12 Q1 fail-closed)) + 입력 파일 원본(`_s0_sources`: topology·spec·structure·PDK 선언·LUT 파일의 경로와 원본
-  바이트 sha256, U-68 정리가 checkout 마다 키 재현을 판정하는 재료)
-  + 엔진 코드 지문으로 core `S0SnapshotStore.default` 에서 S0 수준 스냅샷을 읽고, 적중이면 `build_s1(previous=스냅샷)` 이 모든 블록을 재사용한다(계산 0).
-  적중이 아니면(miss·corrupt) 계산한 S1 스냅샷을 같은 키로 원자적으로 쓴다. 결과는 보고서 `s0_snapshot`(hit|miss|corrupt, 정지 전 단계면 None)에 남긴다.
+* [U17 ①-a·①-b] S0 수준 스냅샷 영속화(설계 40 §2.4.3, v1.9.1 D6): `structure.json` 로드 뒤 S0 키 입력(`_s0_inputs`: topology 정규화 지문, 레일 전압, spec 전체 지문,
+  `structure.json` 사실 지문, 대칭 선언 표시 지문(`symmetry_marks_fp` -- `build_s1(marks=)` 가 S1 키 `marks_fp` 로 읽는 것과 같은 값), 유도 규칙 코드 지문 `structure_rule_fp()`, LUT 지문,
+  PDK 선언 파일 내용 해시(`pdk_decl` = core `read_pdk_decl` 결과, **필수** -- None·다른 형식이면 `TypeError`, 설계 40 §2.4.12 Q1 fail-closed), LUT 생성 규칙 선언 파일 내용 해시
+  (`lut_rule_decl`, **필수** -- 접합 출처 S0 필드 `graph/kernel: junction_source` 가 읽는다)) + 입력 파일 원본(`_s0_sources`: topology·spec·structure·PDK 선언·LUT 생성 규칙 선언·LUT 파일의
+  경로와 원본 바이트 sha256, U-68 정리가 checkout 마다 키 재현을 판정하는 재료) + 엔진 코드 지문으로 core `S0Slot`(저장소 `S0SnapshotStore.default`)을 만들어 S0 수준 스냅샷을 읽는다.
+  적중이면 그 스냅샷 위에서(아니면 빈 S0 수준 스냅샷 -- 권한표 search `S0_WRITERS` 위에서) `build_s1`·`build_s1v`·`coupling_vars` 가 모든 블록을 부른다(적중이면 계산 0).
+  단계 A 는 **읽기만** 한다: 쓰기는 S0 수준 블록이 모두 끝나는 `search.build_search_context` 끝에서 한 번(`StageAResult.s0` 로 넘긴다, v1.9.1 D6).
+  결과는 보고서 `s0_snapshot`(hit|miss|corrupt, 정지 전 단계면 None)에 남긴다.
 * 엔진 코드 지문 `engine_code_fp()` 은 실행마다 여기서 한 번 재고 `StageAResult.code_fp` 로 넘긴다 -- `search.build_search_context(code_fp=)` 가 그 값을 받는다(재계산 0).
-* 결과 `StageAResult` 는 `S1v`(`l_classes` 를 `sizing.build_kernel_context(..., l_classes=)` 가 받는다)와 보고서 경로를 담는다.
+* 결과 `StageAResult` 는 S0 수준 스냅샷 참조(`s1` = 그 스냅샷 위 `S1Graph` -- S1·S1v·결합 필드)와 S0 키 자리(`s0`)·보고서 경로를 담는다. 묶음 `S1v` 는 없다(설계 40 §2.4.7 v1.9.1 D1):
+  커널 컨텍스트는 L 동치류를 필드 `graph/s1v: l_classes` 에서 읽는다.
 """
 import dataclasses
 import hashlib
@@ -35,8 +40,9 @@ from pathlib import Path
 
 from gmid_engine.authoring import BETA_DECLARED, load_sizing_spec, load_topology
 from gmid_engine.core import (
-    OUTCOME_HIT,
+    GraphSnapshot,
     PdkDecl,
+    S0Slot,
     S0SnapshotStore,
     SchemaRejectedError,
     StructureUnresolvedError,
@@ -51,16 +57,21 @@ from gmid_engine.graph import (
     SPEC_VIEW_LOOP,
     Finding,
     BASIS_COLUMN_MATE,
+    COUPLING_KEY,
     NO_MARKS,
+    S1V_KEY,
+    S1Graph,
     build_s1,
     build_s1v,
     coupling_vars,
     load_structure_facts,
     orbit_matching_crosstab,
+    s1v_findings,
     structure_rule_fp,
     structure_tables,
 )
 from gmid_engine.metrics import metric_catalog
+from gmid_engine.search import S0_WRITERS
 from gmid_engine.sizing import dc_inputs_from_spec, symmetry_marks
 
 from .stage_a_budget import structure_count_budget
@@ -77,17 +88,19 @@ STATUS_STOPPED = "stopped"
 
 @dataclasses.dataclass(frozen=True)
 class StageAResult:
-    """`exit_code`, `status`(ok|review_needed|stopped), `s1v`(정지 전이면 None), `report`(dict), `report_paths`((json, md)), `s1`·`spec`(단계 B 가 이어 쓴다, 정지 전이면 None),
-    `code_fp`(이 실행의 엔진 코드 지문 -- `build_search_context(code_fp=)` 로 넘긴다)."""
+    """`exit_code`, `status`(ok|review_needed|stopped), `report`(dict), `report_paths`((json, md)), `s1` = S0 수준 스냅샷 위 `S1Graph`(S1 + S1v 필드 `graph/s1v` +
+    결합 필드 `graph/coupling` -- 단계 B 가 이어 쓴다; S1v 를 만들기 전에 정지했으면 None 또는 S1 만), `spec`(정지 전이면 None),
+    `code_fp`(이 실행의 엔진 코드 지문 -- `build_search_context(code_fp=)` 로 넘긴다), `s0`(core `S0Slot` -- 이 S0 의 스냅샷 키 자리, `build_search_context(s0=)` 가 저장에 쓴다;
+    키를 만들기 전에 정지했으면 None)."""
 
     exit_code: int
     status: str
-    s1v: object
     report: object
     report_paths: tuple
     s1: object = None
     spec: object = None
     code_fp: object = None
+    s0: object = None
 
 
 def _stopped(circuit, exc, stage):
@@ -116,35 +129,37 @@ def _view_summary(view):
             "polarity": view.polarity}
 
 
-def _ff_ratio_rows(s1v):
+def _ff_ratio_rows(views):
     return [{"view": v.id, "ff": c.ff, "bypassed_block": list(c.bypassed_block), "relation": c.relation, "source": c.source}
-            for v in s1v.views for c in v.ff_ratio_candidates]
+            for v in views for c in v.ff_ratio_candidates]
 
 
 def _ref_row(ref):
     return None if ref is None else [ref.view, list(ref.key)]
 
 
-def _coupling_report(coupling):
-    """JSON 으로 쓸 수 있는 GB3 결과(결합 변수 + 기둥↔블록 매핑표)."""
+def _coupling_report(s1):
+    """JSON 으로 쓸 수 있는 GB3 결과(결합 변수 + 기둥↔블록 매핑표) -- 필드 `graph/coupling` 에서."""
+    variables = s1.value("graph", COUPLING_KEY, "vars")
+    rows = s1.value("graph", COUPLING_KEY, "column_block_map")
     counts = {}
-    for v in coupling.vars:
+    for v in variables:
         counts[v.kind] = counts.get(v.kind, 0) + 1
-    cbm = coupling.column_block_map
     return {"vars": [{"kind": v.kind, "members": list(v.members), "blocks": [_ref_row(b) for b in v.blocks], "domain": v.domain,
-                      "init_rule": v.init_rule, "nets": list(v.nets)} for v in coupling.vars],
+                      "init_rule": v.init_rule, "nets": list(v.nets)} for v in variables],
             "column_block_map": [{"column": r.column, "block": _ref_row(r.block), "device": r.device, "shared": r.shared, "basis": r.basis}
-                                 for r in cbm.rows],
-            "bias_columns": list(cbm.bias_columns), "kind_counts": counts,
-            "column_mate_devices": sorted({r.device for r in cbm.rows if r.basis == BASIS_COLUMN_MATE})}
+                                 for r in rows],
+            "bias_columns": list(s1.value("graph", COUPLING_KEY, "bias_columns")), "kind_counts": counts,
+            "column_mate_devices": sorted({r.device for r in rows if r.basis == BASIS_COLUMN_MATE})}
 
 
-def _coupling_stage(s1, s1v):
-    """A4: (보고용 dict 또는 None, 정지 사유 목록). 소자가 귀속되지 않으면(`column_unassigned`) 보고서에는 정지 사유만 적는다."""
+def _coupling_stage(s1):
+    """A4: (결합 필드를 담은 S1Graph, 보고용 dict 또는 None, 정지 사유 목록). 소자가 귀속되지 않으면(`column_unassigned`) 필드를 쓰지 않고 보고서에는 정지 사유만 적는다."""
     try:
-        return _coupling_report(coupling_vars(s1, s1v)), []
+        s1 = S1Graph(s1.key, coupling_vars(s1.snapshot))
+        return s1, _coupling_report(s1), []
     except StructureUnresolvedError as exc:
-        return None, ["A4_coupling: " + str(exc.record.to_json())]
+        return s1, None, ["A4_coupling: " + str(exc.record.to_json())]
 
 
 def _declared_loop_cuts(spec):
@@ -158,10 +173,10 @@ def _declared_loop_cuts(spec):
                          for _, net in c.view.cuts}))
 
 
-def _unmatched_loop_cuts(s1v, declared_cuts):
+def _unmatched_loop_cuts(views, declared_cuts):
     """spec 루프 뷰 선언의 끊는 넷 중 엔진 루프 뷰의 끊는 gate 넷(`ViewS1v.cuts[*][1]`, 보고서 `views[].cuts`)과 맞지 않는 것마다 `loop_cut_unmatched`(review_needed) --
     어느 뷰에도 걸리지 않는 선언이 조용히 무동작이 되지 않게 한다(U1b-jrules 결정, graph CONTRACT)."""
-    engine = {cut[1] for v in s1v.views for cut in v.cuts}
+    engine = {cut[1] for v in views for cut in v.cuts}
     return tuple(Finding(F_LOOP_CUT_UNMATCHED, SEVERITY_REVIEW, "", (net,),
                          "spec 루프 뷰 선언의 끊는 넷이 엔진 루프 뷰의 끊는 gate 넷과 맞지 않아 선언이 아무 뷰에도 걸리지 않는다(보고서 views[].cuts 의 gate 넷을 쓴다)",
                          ("41 §1.8", "U-24")) for net in sorted(set(declared_cuts) - engine))
@@ -181,26 +196,26 @@ def _net_names(topology):
     return tuple(sorted(nets))
 
 
-def _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, supplies, marks):
+def _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, lut_rule_decl, supplies, marks):
     """S0 수준 스냅샷 키 입력(설계 40 §2.4.3 키 (i)(ii), §2.4.12 Q1). 엔진 코드 지문 (iii)은 `S0SnapshotStore` 가 더한다 -- 그 지문이 gmid_engine
     test 밖 모든 패키지를 덮으므로 metric 정의 코드도 (iii) 안에 있다."""
     return {"topology_fp": topology.connectivity_fp, "supplies_v_fp": fp_of(supplies),
             "spec_fp": None if spec is None else fp_of(spec), "structure_facts_fp": fp_of(structure), "symmetry_marks_fp": fp_of(marks),
-            "derivation_rule_fp": rule_fp, "lut_fp": lut.fp, "pdk_decl_fp": pdk_decl.decl_sha256}
+            "derivation_rule_fp": rule_fp, "lut_fp": lut.fp, "pdk_decl_fp": pdk_decl.decl_sha256, "lut_rule_decl_fp": lut_rule_decl.decl_sha256}
 
 
 def _structure_sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
 
 
-def _s0_sources(topology_path, topology, spec_path, spec, structure_path, pdk_decl, lut):
+def _s0_sources(topology_path, topology, spec_path, spec, structure_path, pdk_decl, lut_rule_decl, lut):
     """S0 키의 입력 파일 {역할: (경로 | None, 원본 바이트 sha256 | None)} -- 이미 잰 sha 를 쓴다(topology·spec = 로더의 `file_sha256`,
     PDK 선언 = `decl_sha256`, LUT = 출처 기록의 sha256). `structure.json` 은 없으면 (경로, None)."""
     prov = lut.provenance
     return {"topology": (str(topology_path), topology.file_sha256),
             "spec": (None, None) if spec is None else (str(spec_path), spec.file_sha256),
             "structure": (str(structure_path), _structure_sha(structure_path)),
-            "pdk_decl": (pdk_decl.decl_path, pdk_decl.decl_sha256),
+            "pdk_decl": (pdk_decl.decl_path, pdk_decl.decl_sha256), "lut_rule_decl": (lut_rule_decl.decl_path, lut_rule_decl.decl_sha256),
             "lut_manifest": (prov.manifest_path, prov.manifest_sha256), "lut_cap": (prov.cap_path, prov.cap_sha256),
             "lut_midpoints": (prov.midpoints_path, prov.midpoints_sha256), "lut_noise": (prov.noise_path, prov.noise_sha256),
             "lut_mismatch": (prov.mismatch_path, prov.mismatch_sha256)}
@@ -210,14 +225,16 @@ def _finding_line(f):
     return f.severity + "|" + f.code + "|" + f.view + "|" + ",".join(f.subject) + "|" + f.detail
 
 
-def _finish(report, s1v, output_dir, circuit, code_fp, s1=None, spec=None):
+def _finish(report, output_dir, circuit, code_fp, s1=None, spec=None, s0=None):
     paths = write_stage_a_report(report, output_dir, circuit)
-    return StageAResult(report["exit_code"], report["status"], s1v, report, paths, s1, spec, code_fp)
+    return StageAResult(report["exit_code"], report["status"], report, paths, s1, spec, code_fp, s0)
 
 
-def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, supplies_v=None, structure_path=None):
+def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule_decl, supplies_v=None, structure_path=None):
     if not isinstance(pdk_decl, PdkDecl):
         raise TypeError("run_stage_a: pdk_decl 은 core read_pdk_decl 결과여야 한다(S0 키의 PDK 선언 해시, 설계 40 §2.4.12 Q1)")
+    if not isinstance(lut_rule_decl, PdkDecl):
+        raise TypeError("run_stage_a: lut_rule_decl 은 core read_pdk_decl 결과여야 한다(S0 키의 LUT 생성 규칙 선언 해시, 설계 40 §2.4.3 키 (i))")
     code_fp = engine_code_fp()
     circuit = Path(topology_path).name.removesuffix(TOPOLOGY_SUFFIX)
     try:
@@ -225,49 +242,50 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, supplies
         spec = None if spec_path is None else load_sizing_spec(str(spec_path), topology, metric_catalog())
         marks = NO_MARKS if spec is None else symmetry_marks(dc_inputs_from_spec(spec))
     except SchemaRejectedError as exc:
-        return _finish(_stopped(circuit, exc, "A1_load"), None, output_dir, circuit, code_fp)
+        return _finish(_stopped(circuit, exc, "A1_load"), output_dir, circuit, code_fp)
     path = Path(structure_path) if structure_path is not None else Path(topology_path).with_name(circuit + STRUCTURE_SUFFIX)
     rule_fp = structure_rule_fp()
     try:
         structure = load_structure_facts(path, topology.connectivity_fp, rule_fp, _net_names(topology))
     except SchemaRejectedError as exc:
-        return _finish(_stopped(circuit, exc, "A2_structure_json"), None, output_dir, circuit, code_fp)
+        return _finish(_stopped(circuit, exc, "A2_structure_json"), output_dir, circuit, code_fp)
     supplies = _supplies(spec, supplies_v)
-    store = S0SnapshotStore.default(code_fp)
-    s0_inputs = _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, supplies, marks)
-    s0_sources = _s0_sources(topology_path, topology, spec_path, spec, path, pdk_decl, lut)
-    stored, s0_outcome = store.load(s0_inputs, s0_sources)
+    s0_inputs = _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, lut_rule_decl, supplies, marks)
+    s0_sources = _s0_sources(topology_path, topology, spec_path, spec, path, pdk_decl, lut_rule_decl, lut)
+    s0 = S0Slot(S0SnapshotStore.default(code_fp), tuple(sorted(s0_inputs.items())), tuple(sorted(s0_sources.items())))
+    stored, s0_outcome = s0.load()
+    base = GraphSnapshot.empty(S0_WRITERS) if stored is None else stored
     try:
-        s1 = build_s1(topology, supplies, previous=stored, structure=structure, marks=marks)
+        s1 = build_s1(topology, supplies, previous=base, structure=structure, marks=marks)
     except (SchemaRejectedError, StructureUnresolvedError) as exc:
-        return _finish(dict(_stopped(circuit, exc, "A2_build_s1"), s0_snapshot=s0_outcome), None, output_dir, circuit, code_fp)
-    if s0_outcome != OUTCOME_HIT:
-        store.save(s0_inputs, s0_sources, s1.snapshot)
+        return _finish(dict(_stopped(circuit, exc, "A2_build_s1"), s0_snapshot=s0_outcome), output_dir, circuit, code_fp, s0=s0)
     classes = dict(s1.column("device", "element_class"))
     kinds = {kind for name, kind in s1.column("device", "kind") if classes[name] == ELEMENT_MOS}
     try:
         budget = structure_count_budget(lut, kinds, None if spec is None else spec.structure_count_budget)
     except ValueError as exc:   # N_S 정의역 밖(MOS 없음·LUT 슬라이스 없음) -- 보고서를 쓰고 정지
         return _finish(dict(_stopped(circuit, StructureUnresolvedError(detail={"reason": "count_budget_undefined", "message": str(exc)}),
-                                     "A2_count_budget"), s0_snapshot=s0_outcome), None, output_dir, circuit, code_fp)
+                                     "A2_count_budget"), s0_snapshot=s0_outcome), output_dir, circuit, code_fp, s1, s0=s0)
     groups = tuple(tuple(f.value.split()) for f in structure.facts if f.concept == CONCEPT_STAGE_MEMBERS)
     declared = ((path.name, groups),) if groups else ()
     declared_cuts = _declared_loop_cuts(spec)
-    s1v = build_s1v(s1, spec, count_budget=budget, declared=declared, structure=structure,
-                    declared_loop_cuts=declared_cuts, stop_on_unsupported=False)
-    unsupported = [_finding_line(f) for f in s1v.unsupported]
+    s1 = build_s1v(s1, spec, count_budget=budget, declared=declared, structure=structure,
+                   declared_loop_cuts=declared_cuts, stop_on_unsupported=False)
+    views = s1.value("graph", S1V_KEY, "views")
+    _every, review_found, unsupported_found = s1v_findings(s1)
+    unsupported = [_finding_line(f) for f in unsupported_found]
     crosstab = orbit_matching_crosstab(s1)
-    review = ([_finding_line(f) for f in s1v.review_needed] + [_finding_line(f) for f in _unmatched_loop_cuts(s1v, declared_cuts)]
+    review = ([_finding_line(f) for f in review_found] + [_finding_line(f) for f in _unmatched_loop_cuts(views, declared_cuts)]
               + [_finding_line(f) for f in crosstab.findings])
     note = " has no stage_members facts" if path.is_file() else " absent"
     comparison = "performed" if declared else "not_performed: " + path.name + note
-    coupling, coupling_stop = _coupling_stage(s1, s1v)
+    s1, coupling, coupling_stop = _coupling_stage(s1)
     unsupported += coupling_stop
     status = STATUS_STOPPED if unsupported else STATUS_REVIEW if review else STATUS_OK
     code = 0 if status == STATUS_OK else exit_code_for(StructureUnresolvedError())
     report = {"circuit": circuit, "status": status, "exit_code": code, "count_budget": budget, "declared_comparison": comparison,
-              "stop_reasons": unsupported, "review_needed": review, "views": [_view_summary(v) for v in s1v.views],
-              "applied_facts": [list(f) for f in s1v.facts_applied], "ff_ratio_candidates": _ff_ratio_rows(s1v),
-              "coupling": coupling, "tables": structure_tables(s1v), "orbit_matching_crosstab": _crosstab_report(crosstab),
+              "stop_reasons": unsupported, "review_needed": review, "views": [_view_summary(v) for v in views],
+              "applied_facts": [list(f) for f in s1.value("graph", S1V_KEY, "applied_facts")], "ff_ratio_candidates": _ff_ratio_rows(views),
+              "coupling": coupling, "tables": structure_tables(s1), "orbit_matching_crosstab": _crosstab_report(crosstab),
               "s0_snapshot": s0_outcome}
-    return _finish(report, s1v, output_dir, circuit, code_fp, s1, spec)
+    return _finish(report, output_dir, circuit, code_fp, s1, spec, s0)

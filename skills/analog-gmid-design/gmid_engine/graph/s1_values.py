@@ -203,6 +203,20 @@ S1_WRITERS = WriterTable(
                                  (S1_SYMMETRY_WRITER, SYMMETRY_WRITES))
           for kind, field in writes)
 )
+S1_READS = tuple(key for key, _writer in S1_WRITERS.entries)      # S1 필드 전부(S1 만 읽는 S0 수준 블록의 reads)
+
+# ---- S0 수준 graph 층 레코드(설계 40 §2.4.2·§2.4.8, v1.9.1 D1·D8): S1v 와 결합 변수. 레코드 key 하나에 필드 묶음.
+S1V_KEY = "s1v"                                        # graph/s1v: views·l_classes·findings·declared·applied_facts (writer build_s1v, GB2)
+COUPLING_KEY = "coupling"                              # graph/coupling: vars·column_block_map·bias_columns (writer coupling_vars, GB3)
+BUILD_S1V_WRITER = "build_s1v"
+COUPLING_VARS_WRITER = "coupling_vars"
+S1V_WRITES = (("graph", "views"), ("graph", "l_classes"), ("graph", "findings"), ("graph", "declared"), ("graph", "applied_facts"))
+COUPLING_WRITES = (("graph", "vars"), ("graph", "column_block_map"), ("graph", "bias_columns"))
+S1V_WRITERS = WriterTable(
+    tuple((kind, field, writer) for (kind, field), writer in S1_WRITERS.entries)
+    + tuple((kind, field, writer) for writer, writes in ((BUILD_S1V_WRITER, S1V_WRITES), (COUPLING_VARS_WRITER, COUPLING_WRITES))
+            for kind, field in writes)
+)
 
 # ---- rule_fp 대상: S1 필드 값을 정하는 graph 파일(이 패키지 안 basename). s1_key 가 파일 바이트로 지문한다.
 S1_RULE_FILES = ("ac_ground_static.py", "automorphism_orbits.py", "branches.py", "bulk_default.py", "canonical_form.py", "columns.py",

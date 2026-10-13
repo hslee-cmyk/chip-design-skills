@@ -1,5 +1,10 @@
 # gmid_engine.core 동작 계약 (test 작성용)
 
+> **[U17 ①-b]**(설계 40 §2.4.1·§2.4.3 v1.9.1 D5·D6, 2026-10-13): `WriterTable.covers(other)`·`union(other)`(같은 필드 다른 writer 는 `WriterPermissionError`), `GraphSnapshot.widen(writers)`
+> (= `extend_writers(writers 합)`), `S0SnapshotStore.save(inputs, sources, snapshot, transient=())`(`transient` writer 가 쓴 필드·block_version 을 빼고 쓴다 -- 단계 B 층), 코덱은 float 부분형(numpy 실수)을
+> float 로 인코드(같은 `fp_of`), 새 진입점 `S0Slot(store, inputs, sources)`(`load()`·`save(snapshot, transient=())` -- 단계 A 가 만들고 `build_search_context` 끝에서 한 번 쓴다).
+> core `__init__` 이 `PdkDecl`·`PdkQuantity`·`PdkRule`·`PdkMismatchModel`·`PdkMismatchBlock` 을 타입 등록부에 올린다(S0 필드 `junction_source`·`mismatch_source` 가 닿는다).
+
 - 대상: `gmid_engine/core/` 공개 API(`gmid_engine.core.__all__`). test 는 `from gmid_engine.core import ...` 만 쓴다
   (파일 모듈 직접 import·`_` 이름 사용 금지). 경로: `gmid_engine/tests/conftest.py` 가 패키지 부모 디렉터리를
   `sys.path` 앞에 넣는다(설치 불필요). test 파일 배치는 규칙 D: `gmid_engine/tests/core/test_<파일>.py`.

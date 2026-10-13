@@ -11,7 +11,7 @@ import dataclasses
 # ---- 상태
 STATUS_CERTIFIED = "certified"
 STATUS_UNKNOWN = "unknown"
-# ---- 판정(`GainCheck.verdict`·`AreaBound.verdict`·`HeadroomRow.verdict`·`Achievability.verdict`)
+# ---- 판정(`GainCheck.verdict`·`AreaBound.verdict`·`HeadroomRow.verdict`·`graph/ach: verdict`)
 VERDICT_INFEASIBLE = "infeasible"            # 인증된 상한/하한이 목표를 넘지 못한다 -> INFEASIBLE_TARGET(exit 3)
 VERDICT_NOT_EXCLUDED = "not_excluded"        # 인증된 값이 목표를 막지 않는다(달성이 보증된다는 뜻이 아니다)
 VERDICT_UNDETERMINED = "undetermined"        # 미상이라 판정하지 않고 보고만 한다
@@ -151,19 +151,6 @@ class AreaBound:
 
 
 @dataclasses.dataclass(frozen=True)
-class EdgeCost:
-    """kind 하나의 헤드룸 경로 엣지 비용 최솟값(41 §4.6). `vgs_min_v` = 전도 봉인(9)을 지키는 격자 행의 |VGS| 최솟값, `vgs_min_by_bin` = ((L bin 번호, 그 bin 의 최솟값), ...),
-    `vds_min_v` = VDSAT 최솟값 + tol_vdsat 최솟값, `best_row` = ((키, 값), ...) VGS 최솟값을 낸 행(gm/ID·L·VSB)."""
-
-    kind: str
-    w_key: int
-    vgs_min_v: float
-    vgs_min_by_bin: tuple
-    vds_min_v: float
-    best_row: tuple
-
-
-@dataclasses.dataclass(frozen=True)
 class HeadroomRow:
     """헤드룸 창 하나의 상한(41 §4.6). `path` = 경로 엣지((소자, 엣지 종류 vgs|vds, 아랫 넷, 윗 넷, 비용 V), ...), `window_kind` ∈ {output, input, buffer}, `net` = 창이 걸린 넷,
     `upper_bound_v` = 창 폭 상한(V), `lo_edge_v`·`hi_edge_v` = 창 경계의 바깥 한계(V), `binding_devices`, `best_row` = VGS 비용을 낸 행, `status`, `verdict`,
@@ -200,35 +187,52 @@ class DofReport:
 
 
 @dataclasses.dataclass(frozen=True)
-class Achievability:
-    """GB4 산출(41 §4.3~4.6). `verdict` ∈ {ok, infeasible}, `reasons` = 정지 근거 tuple(`reason` 코드 + 상세 쌍들), `gain` = `GainCheck`(gain 제약이 없으면 None), `area` = `AreaBound`,
-    `headroom` = `HeadroomRow` tuple, `warnings` = 경고((코드, 상세 쌍들), ...)(`icmr_window_short_l_bin` 등), `buffer_window_report` = 버퍼 창 `HeadroomRow` tuple(선언 제약이 없어도 보고),
-    `dof` = `DofReport`, `curves` = `CurveChecks`, `count_budget` = 쓴 N_S."""
+class LocalInputs:
+    """블록 국소 모델 조립에 필요한 회로 전체 표 -- S0 수준 필드 `graph/ach: local_inputs`(writer `achievability`, 설계 40 §2.4.8 v1.9.1 D9; 출발 구간이 같은 필드를 읽는다).
+    필드 값이라 모든 칸이 불변 tuple 이다(이름순 (이름, 값) 쌍; S0 수준 스냅샷 코덱이 직렬화). LUT memo 는 칸이 아니다(LUT 손잡이는 부르는 쪽이 따로 준다, §2.4.6).
+    사전 질의는 `view`(`LocalView`, 부르는 블록 안에서 한 번 만들고 버리는 작업 값)로 한다.
 
-    verdict: str
-    reasons: tuple
-    gain: object
-    area: object
-    headroom: tuple
-    warnings: tuple
-    buffer_window_report: tuple
-    dof: object
-    curves: object
-    count_budget: int
+    `kind`·`pins`·`cls` = 원소별 kind·핀(((단자, 넷), ...) {d,g,s} 또는 {t0,t1})·element_class, `bulk` = MOS 별 bulk 넷(None 이면 교류접지로 둔다), `rails` = 레일 넷 frozenset,
+    `orbit` = MOS 별 자기동형 궤도 id(graph `orbits.devices`, 묶지 않을 원소는 자기 고유 값으로 이미 바꿔 둔다), `l_label` = MOS 별 L 동치류 id(모든 derived·ratified 동치류 멤버, 없으면 행 없음),
+    `basis_rows` = MOS(및 수동소자) 전류 = ((원천 원소, 계수), ...) (`CurrentBasis.rows`), `free` = θ 전류 원소(기저), `fixed` = (값 선언 이상 전류원, A),
+    `cur_rep` = (θ 전류 원소, (대표 원소, 부호 ±1) 또는 (None, 0)=구조적 0)(자기동형 묶음 -- 탐색 변수와 같은 묶음, 없는 원소는 자기 자신 +1),
+    `current_box` = (대표 θ 전류 원소, (하한 A, 상한 A)), `element_value` = (수동소자, 선언값 또는 None), `resistor_box` = (θ 저항, (하한 Ω, 상한 Ω)),
+    `w_keys` = (kind, 레이아웃 전 폭 슬라이스 키), `grids` = (L, VGS, VDS, VS) LUT 격자 float tuple 넷(모든 슬라이스 공통, lut 불변식),
+    `attach` = (넷, 전체 회로에서 그 넷에 닿는 DC 전도 소자 단자 수(MOS drain·source, 저항 단자))(블록 밖 넷이 다른 DC 가지를 가지는지 -- 아니면 DC 에 뜬 막다른 넷),
+    `node_colour`·`device_colour` = (이름, 구조 색 순위)(`dc_colour` -- 정점마다 유일하고 이름이 정하지 않는다; 순회·합산 순서를 이름이 아니라 이 순위로 정해 이름 치환에 결과가 비트 단위로 같게 한다)."""
+
+    kind: tuple
+    pins: tuple
+    cls: tuple
+    bulk: tuple
+    rails: frozenset
+    orbit: tuple
+    l_label: tuple
+    basis_rows: tuple
+    free: tuple
+    fixed: tuple
+    cur_rep: tuple
+    current_box: tuple
+    element_value: tuple
+    resistor_box: tuple
+    w_keys: tuple
+    grids: tuple
+    node_colour: tuple
+    device_colour: tuple
+    attach: tuple
+
+    @property
+    def view(self):
+        """사전 질의용 `LocalView`(읽을 때마다 새로 만든다 -- 부르는 블록이 호출 안에서 한 번 읽어 넘긴다)."""
+        return LocalView(dict(self.kind), {n: dict(p) for n, p in self.pins}, dict(self.cls), dict(self.bulk), self.rails, dict(self.orbit),
+                         dict(self.l_label), dict(self.basis_rows), self.free, dict(self.fixed), dict(self.cur_rep), dict(self.current_box),
+                         dict(self.element_value), dict(self.resistor_box), dict(self.w_keys), self.grids, dict(self.node_colour),
+                         dict(self.device_colour), dict(self.attach))
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
-class LocalInputs:
-    """블록 국소 모델 조립에 필요한 회로 전체 표(S0 당 1회 `achievability` 가 만든다; 이름 → 값 사전이라 `eq=False`).
-
-    `kind`·`pins`·`cls` = 원소별 kind·핀({d,g,s} 또는 {t0,t1})·element_class, `bulk` = MOS 별 bulk 넷(None 이면 교류접지로 둔다), `rails` = 레일 넷 집합,
-    `orbit` = MOS 별 자기동형 궤도 id(graph `orbits.devices`, 묶지 않을 원소는 자기 고유 값으로 이미 바꿔 둔다), `l_label` = MOS 별 L 동치류 id(모든 derived·ratified 동치류 멤버, 없으면 키 없음),
-    `basis_rows` = MOS(및 수동소자) 전류 = Σ (원천 원소, 계수) (`CurrentBasis.rows`), `free` = θ 전류 원소(기저), `fixed` = {값 선언 이상 전류원: A},
-    `cur_rep` = {θ 전류 원소: (대표 원소, 부호 ±1) 또는 (None, 0)=구조적 0}(자기동형 묶음 -- 탐색 변수와 같은 묶음, 없는 원소는 자기 자신 +1),
-    `current_box` = {대표 θ 전류 원소: (하한 A, 상한 A)}, `element_value` = {수동소자: 선언값 또는 None}, `resistor_box` = {θ 저항: (하한 Ω, 상한 Ω)},
-    `w_keys` = {kind: 레이아웃 전 폭 슬라이스 키}, `memo` = `lut.LutMemo`, `grids` = (L, VGS, VDS, VS) LUT 격자(모든 슬라이스 공통, lut 불변식),
-    `attach` = {넷: 전체 회로에서 그 넷에 닿는 DC 전도 소자 단자 수(MOS drain·source, 저항 단자)}(블록 밖 넷이 다른 DC 가지를 가지는지 -- 아니면 DC 에 뜬 막다른 넷),
-    `node_colour`·`device_colour` = {이름: 구조 색 순위}(`dc_colour` -- 정점마다 유일하고 이름이 정하지 않는다; 순회·합산 순서를 이름이 아니라 이 순위로 정해 이름 치환에 결과가 비트 단위로 같게 한다)."""
+class LocalView:
+    """`LocalInputs.view` -- 같은 칸을 이름 → 값 사전으로 편 작업 값(필드 값이 아니다; 블록 국소 모델 조립·헤드룸 경로가 읽는다). 칸 뜻은 `LocalInputs` 와 같다."""
 
     kind: dict
     pins: dict
@@ -245,11 +249,10 @@ class LocalInputs:
     element_value: dict
     resistor_box: dict
     w_keys: dict
-    memo: object
     grids: tuple
-    node_colour: dict = None
-    device_colour: dict = None
-    attach: dict = None
+    node_colour: dict
+    device_colour: dict
+    attach: dict
 
 
 @dataclasses.dataclass(frozen=True)

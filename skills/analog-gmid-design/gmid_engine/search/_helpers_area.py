@@ -8,7 +8,8 @@ A = Σ_MOS W·L + Σ_수동소자 (단위 면적 × 값) + 접촉 머리. W = I�
 """
 import math
 
-from .iv_curves import QUANTITY_IDU
+from ._helpers_curves import QUANTITY_IDU, curve_bundle_of, curve_value
+
 
 _BOX_KEYS = ("capacitance", "resistance", "ss_resistance")
 
@@ -28,11 +29,11 @@ def area_estimate(ctx, currents, gm_id, lengths, cap_values, res_values):
     per_device, gate = {}, 0.0
     for d in ctx.devices:
         current = currents.get(d.name)
-        bundle = ctx.curves.bundle_of(d.name, d.kind, lengths[d.name])
+        bundle = curve_bundle_of(ctx, d.name, d.kind, lengths[d.name])
         if current is None or bundle is None:
             per_device[d.name] = None
             continue
-        per_device[d.name] = current * lengths[d.name] ** 2 / ctx.curves.value(bundle, QUANTITY_IDU, gm_id[d.name])
+        per_device[d.name] = current * lengths[d.name] ** 2 / curve_value(bundle, QUANTITY_IDU, gm_id[d.name])
         gate += per_device[d.name]
     heads = dict(ctx.passive_area.head_area)
     passive = 0.0

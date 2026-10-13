@@ -93,6 +93,18 @@ class SearchDomain:
 
 
 @dataclasses.dataclass(frozen=True)
+class ConstraintClasses:
+    """spec 판정 제약의 분류 -- S0 수준 필드 `graph/kernel: constraint_classes`(writer `constraint_classes`, 설계 40 §2.4.7 'SearchContext 칸 배정', v1.9.1 D8).
+    `judged` = ((목적 축 metric, op, 값), ...) 커널 결과로 재는 목적 축 제약, `ss` = 점마다 `ss_constraint_rows` 가 재는 제약의 spec `judged_constraints` 위치(index) tuple
+    (spec 선언 객체를 사본으로 두지 않는다 -- 소비자가 spec 에서 읽는다), `notes` = 미측정·결정 대기 기록 ((키, 값) 쌍 tuple, ...) -- 키 = metric·op·verdict·reason·
+    value·decision 중 그 기록에 있는 것(보고서에서 사전으로 편다)."""
+
+    judged: tuple
+    ss: tuple
+    notes: tuple
+
+
+@dataclasses.dataclass(frozen=True)
 class EvalKey:
     """평가 키(설계 7.1): (S0 지문, 스키마 지문, L 칸 벡터, 고정 W 지문, θ 값 `float.hex`). ε·출처는 넣지 않는다."""
 

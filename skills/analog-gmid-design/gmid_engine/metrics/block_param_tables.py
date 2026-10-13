@@ -2,15 +2,14 @@
 
 진입점: `ParamTables(memo, w_keys, grids)`  (`memo` = `lut.LutMemo`, `w_keys` = {kind: 폭 슬라이스 키}, `grids` = (L, VGS, VDS, VS) LUT 격자).
 
-표 항목 (kind, L 앵커, VDS, VS) 마다 곡선 한 개를 `lut.intrinsic_gain_curve`(강반전 분지 VGS 마디, 마디의 gm/ID 와 gm/gds)와 `lut.gmb`(마디의 GMBS)로 만든다:
+표 항목 (kind, L 앵커, VDS, VS) 마다 LUT 파생 행 `lut.derived(memo, "param_row", ...)`(강반전 분지 VGS 마디의 x·y·z -- LUT memo 가 담는다, 설계 40 §2.4.6 v1.9.1 D10)을 읽는다:
 `x = gm/ID`, `y = gds/ID = (gm/ID) / (gm/gds)`, `z = gmb/ID` (모두 1/V, 전류 규모와 무관 -- 소자 gm = x·ID 등). 분지 밖 마디(곡선 정점 아래)와 곡선을 만들 수 없는 항목
 (`lut_curve_undefined` 등 `SealViolationError`)은 NaN 이라 그 행은 유효하지 않다. 항목은 처음 읽을 때 만들고(지연) 배열은 격자 크기로 정해져 상한이 있다(행 memo 상한 =
 kind 마다 |L|·|VDS|·|VS|·|VGS|·3 개 실수 -- LUT 격자에서 유도). 조회 호출은 곡선 memo(`LutMemo` curve 영역)에 의해서도 중복되지 않는다. `loads` = 만든 곡선 수.
 """
 import numpy as np
 
-from gmid_engine.core import SealViolationError
-from gmid_engine.lut import gmb, intrinsic_gain_curve, op_point
+from gmid_engine.lut import derived
 
 
 PARAMETERS = ("x", "y", "z")             # gm/ID, gds/ID, gmb/ID
@@ -37,21 +36,15 @@ class ParamTables:
     def _load(self, kind, i_l, i_d, i_s):
         values, loaded = self._kind_arrays(kind)
         loaded[i_l, i_d, i_s] = True
-        w_key = self._w_keys[kind]
-        w_m = self._memo.lut.slice_map[(kind, w_key)].w_m
-        length, vds, vsb = float(self.grids[0][i_l]), float(self.grids[2][i_d]), float(self.grids[3][i_s])
-        try:
-            curve = intrinsic_gain_curve(self._memo, kind, w_key, length, vds, vsb)
-            nodes = np.searchsorted(self.grids[1], np.asarray(curve.vgs, dtype=float))
-            ids = [op_point(self._memo, kind, w_key, length, float(v), vds, vsb).IDu * w_m / length for v in curve.vgs]
-            body = [gmb(self._memo, kind, w_key, length, float(v), vds, vsb) for v in curve.vgs]
-        except SealViolationError:
+        row = derived(self._memo, "param_row", kind, self._w_keys[kind], float(self.grids[0][i_l]), float(self.grids[2][i_d]), float(self.grids[3][i_s]))
+        if row is None:
             return
         self.loads += 1
-        x = np.asarray(curve.gm_id, dtype=float)
+        vgs, x, y, z = (np.asarray(part, dtype=float) for part in row)
+        nodes = np.searchsorted(self.grids[1], vgs)
         values[i_l, i_d, i_s, nodes, 0] = x
-        values[i_l, i_d, i_s, nodes, 1] = x / np.asarray(curve.values, dtype=float)
-        values[i_l, i_d, i_s, nodes, 2] = np.asarray(body, dtype=float) / np.asarray(ids, dtype=float)
+        values[i_l, i_d, i_s, nodes, 1] = y
+        values[i_l, i_d, i_s, nodes, 2] = z
 
     def lookup(self, kind, i_l, i_d, i_s, i_v):
         """같은 모양 정수 배열 (L, VDS, VS, VGS index) -> (x, y, z) 배열 셋. 유효하지 않은 항목은 NaN."""

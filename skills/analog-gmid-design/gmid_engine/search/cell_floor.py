@@ -7,10 +7,11 @@
   어느 격자 동작점에서도 강반전 분지 시작 위다. 칸 안 앵커 사이 L(선형 보간)의 정점은 따로 묶지 않는다(앵커 최댓값).
 * `variables` 의 `ln_idu` 성분(= 쓰기 소자 m)마다 m 의 칸(`cells` = `domain.l_cells` 순 칸 index)으로 하한을 고르고, 원래 lo < 하한 <
   hi 일 때만 돌려준다. `one_var_only` 면 1변수 노드 writer(diode 의 gate 쓰기·소스 추종의 source 쓰기 = writer 소자의 d·s·bulk 가
-  그 노드를 포함 -- sizing `dc_columns.self_referential` 과 같은 판정)만. 이 소자들은 정점 아래 좌표에서 노드 근이 늘 없다(분지 규칙).
+  그 노드를 포함)만 -- 쓰기 계획이 S0 당 한 번 쓴 소자 필드 `device.dc_self_referential`(설계 40 §2.4.8 '1변수 writer 집합')을 읽는다(sizing `dc_columns` 와 같은 필드).
+  이 소자들은 정점 아래 좌표에서 노드 근이 늘 없다(분지 규칙).
 * `start`(θ Mapping)가 있으면 하한 = min(칸 정점 하한, 시작 좌표) -- 받아들인 시작점 자체를 상자 밖으로 내몰지 않는다.
-* 캐시: `sctx.cell_floors`(S0 수명, (kind, w_key, 칸) 마다 1회, 1변수 writer 집합 1회). LUT memo 의 derived 영역은 쓰지 않는다(상한이
-  슬라이스 × 파생표 수라 tol_V 표를 밀어낼 수 있다).
+* 캐시: `sctx.cell_floors`(S0 수명, (kind, w_key, 칸) 마다 1회 -- LUT 파생이라 U17 ③에서 LUT memo 함수로 옮긴다, 설계 40 §2.4.6). LUT memo 의 derived 영역은
+  쓰지 않는다(상한이 슬라이스 × 파생표 수라 tol_V 표를 밀어낼 수 있다).
 * **[r9] 전도 하한**(sizing r8 봉인 9, CONTRACT §6·O17): 전도 MOS 는 I_off ≤ ε·ID, I_off = IDu(VGS=0)·W/L, ε = (gm/ID)·tol_V 이고 W/L 이
   지워져 ln IDu(VGS) + ln(gm/ID(VGS)·tol_V) ≥ ln IDu(0) -- 좌표 하한이다. 칸 전도 하한(kind, w_key, 칸) = 그 칸 안 L 앵커 × VDS·VS 전
   격자의 곡선마다 f(VGS) = log_GM(VGS) + ln tol_V(L, VDS) − log_ID(VGS = 0)(= ln(gm·tol_V / I_off), 같은 슬라이스 폭)가 처음 0 이상이
@@ -24,14 +25,11 @@ import math
 
 import numpy as np
 
-from gmid_engine.graph import MOS_TERMINAL_NAMES
 from gmid_engine.lut import tol_v_table
-from gmid_engine.sizing import REL_VGS_GATE, REL_VGS_SOURCE, THETA_LN_IDU
+from gmid_engine.sizing import KERNEL_KEY, THETA_LN_IDU
 
 _ID_EQUIVALENT = "id_equivalent"          # 봉인 9·dc_tol_v 와 같은 tol_V 지표(lut TOL_V_METRICS)
 
-_ONE_VAR_KEY = ("one_var_writers",)
-_SELF_RELATIONS = (REL_VGS_GATE, REL_VGS_SOURCE)
 
 
 def _peak_floor(sctx, kind, w_key, cell):
@@ -88,24 +86,15 @@ def _conduction_floor(sctx, kind, w_key, cell):
 
 
 def _one_var_writers(sctx):
-    if _ONE_VAR_KEY not in sctx.cell_floors:
-        pins = {n: dict(p) for n, p in sctx.dc.base.column("device", "pins")}
-        bulk = {n: b.net for n, b in sctx.dc.base.column("device", "bulk")}
-        out = set()
-        for net, w in sctx.dc.base.column("node", "dc_writer"):
-            if w.relation in _SELF_RELATIONS:
-                d, _g, s = (pins[w.element][t] for t in MOS_TERMINAL_NAMES)
-                if net in (d, s, bulk[w.element]):
-                    out.add(w.element)
-        sctx.cell_floors[_ONE_VAR_KEY] = frozenset(out)
-    return sctx.cell_floors[_ONE_VAR_KEY]
+    """1변수 노드 writer 소자 집합 -- 쓰기 계획 필드 `device.dc_self_referential`(S0 수준, 설계 40 §2.4.8)."""
+    return frozenset(name for name, flag in sctx.dc.base.column("device", "dc_self_referential") if flag)
 
 
 def ln_idu_floors(sctx, variables, cells, one_var_only=False, start=None):
     kinds = dict(sctx.dc.base.column("device", "kind"))
     w_keys = dict(sctx.dc.lut.w_keys)
     cell_of = {mos: table[j] for (mos, table), j in zip(sctx.domain.l_cells, cells)}
-    for member, owner in sctx.dc.l_ties:        # L 동치류 멤버의 L 은 주인 θ L (θ 스키마에 멤버 L 성분 없음, 설계 40 §3.7)
+    for member, owner in sctx.dc.base.value("graph", KERNEL_KEY, "l_ties"):        # L 동치류 멤버의 L 은 주인 θ L (θ 스키마에 멤버 L 성분 없음, 설계 40 §3.7)
         cell_of[member] = cell_of[owner]
     chosen = _one_var_writers(sctx) if one_var_only else None
     out = {}

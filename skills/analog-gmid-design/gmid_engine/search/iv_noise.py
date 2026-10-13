@@ -18,8 +18,8 @@ import dataclasses
 from gmid_engine.core import SchemaRejectedError, SealViolationError
 from gmid_engine.lut import noise_params
 
+from ._helpers_curves import QUANTITY_IDU, QUANTITY_VGS, curve_bundle_of, curve_value
 from ._helpers_guard import Tolerant, guard_bounds, guard_devices, guard_input_gm_id
-from .iv_curves import QUANTITY_IDU, QUANTITY_VGS
 from .start_values import (
     SRC_NOISE_FLICKER_L,
     SRC_NOISE_GUARD,
@@ -53,12 +53,12 @@ class _WhiteLevelUnknown(Exception):
 def _white_density(ctx, name, g, L, current):
     """소자의 게이트 환산 열잡음 밀도 S_vg(V²/Hz) -- 기준 폭의 B 를 W 로 환산."""
     d = ctx.by_name[name]
-    bundle = ctx.curves.bundle_of(d.name, d.kind, L)
+    bundle = curve_bundle_of(ctx, d.name, d.kind, L)
     curve = bundle[QUANTITY_IDU]
-    params = noise_params(ctx.memo, d.kind, d.w_key, L, ctx.curves.value(bundle, QUANTITY_VGS, g), curve.vds, curve.vsb)
+    params = noise_params(ctx.memo, d.kind, d.w_key, L, curve_value(bundle, QUANTITY_VGS, g), curve.vds, curve.vsb)
     if params.B is None:
         raise _WhiteLevelUnknown(params.b_status)
-    w = max(current * L / ctx.curves.value(bundle, QUANTITY_IDU, g), ctx.w_min_m)          # 실현 폭은 PDK 최소 finger 폭 이상
+    w = max(current * L / curve_value(bundle, QUANTITY_IDU, g), ctx.w_min_m)          # 실현 폭은 PDK 최소 finger 폭 이상
     return params.B * params.w_m / w
 
 

@@ -1,6 +1,6 @@
 """기둥↔블록 매핑표 (설계 40 §3.3, 계획 DEC-71 (2)).
 
-진입점: `column_block_map(s1, s1v) -> ColumnBlockMap`.
+진입점: `column_block_map(s1, views) -> (rows, bias_columns)`  (`views` = `graph/s1v: views` 필드 값, 결과는 `graph/coupling` 의 두 필드 값).
 
 S1 기둥(레일 쌍 노드-단순 경로, `graph.columns`)과 S1v 블록(모든 뷰의 `Block.roles`)을 교차해 행 `ColumnBlockRow(column, block, device, shared, basis)` 를 만든다:
 
@@ -23,7 +23,6 @@ from .coupling_values import (
     BASIS_COLUMN_MATE,
     REASON_COLUMN_UNASSIGNED,
     BlockRef,
-    ColumnBlockMap,
     ColumnBlockRow,
 )
 from .s1_values import GRAPH_KEY
@@ -33,10 +32,10 @@ def _row_key(row):
     return (-1 if row.column is None else row.column, row.block is not None, row.block or BlockRef("", ()), row.device)
 
 
-def _direct_blocks(s1v):
+def _direct_blocks(views):
     """{소자: {BlockRef}} -- 모든 뷰 블록의 멤버 소자."""
     direct = {}
-    for view in s1v.views:
+    for view in views:
         for block in view.blocks:
             ref = BlockRef(view.id, block.key)
             for name, _ in block.roles:
@@ -59,8 +58,8 @@ def _multi_block_in_view(refs):
     return False
 
 
-def column_block_map(s1, s1v):
-    direct = _direct_blocks(s1v)
+def column_block_map(s1, views):
+    direct = _direct_blocks(views)
     branches = {b.id: b for b in s1.value("graph", GRAPH_KEY, "branches")}
     columns = _column_devices(branches, s1)
     column_count = {}
@@ -92,4 +91,4 @@ def column_block_map(s1, s1v):
     for name in sorted(universe):
         if name in direct and name not in column_count:
             rows.extend(ColumnBlockRow(None, ref, name, shared[name], BASIS_BLOCK_MEMBER) for ref in sorted(direct[name]))
-    return ColumnBlockMap(tuple(sorted(rows, key=_row_key)), tuple(sorted(bias)))
+    return tuple(sorted(rows, key=_row_key)), tuple(sorted(bias))

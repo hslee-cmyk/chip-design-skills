@@ -612,6 +612,14 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 
 ### 10.1 공개 API (`gmid_engine.graph.__all__`)
 
+[U17 ①-b] (설계 40 §2.4.2·§2.4.8 v1.9.1 D1) S1v 는 묶음 객체가 아니라 S0 수준 graph 필드다: 레코드 `("graph", S1V_KEY="s1v")` 의 `views`(ViewS1v tuple -- 블록·복합 블록·극점 노드·루프·끊는 점은
+뷰 안 칸), `l_classes`, `findings`(뷰 밖 기록), `declared`(((출처, stage 묶음 수), ...)), `applied_facts`((개념, 대상) tuple). writer = 계산 블록 `s1v_fields`(writer 이름 `build_s1v`,
+reads = S1 필드 전부 `S1_READS`, extras = (spec 판정 제약, N_S, declared, 사실, stale 기록, 선언 루프 끊는 넷)) -- 입력 버전이 같으면 재사용(옛 `previous`·`S1v.key` 재사용은 없앴다).
+권한표 `S1V_WRITERS` = `S1_WRITERS` + S1v 필드 + 결합 필드(11절). `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True) -> S1Graph`
+(같은 S1 키, 스냅샷 권한표를 `S1V_WRITERS` 로 넓혀 블록을 부른 것; `s1` 은 권한표가 S1_WRITERS 를 덮는 S1Graph -- S0 수준 스냅샷 위의 것 포함). 기록 묶음은
+`s1v_findings(source) -> (all_findings, review_needed, unsupported)`(옛 `S1v.all_findings`·`review_needed`·`unsupported` 속성), 구조 표는 `structure_tables(source)`(필드를 읽는다 -- 옛 `key` 칸 없음,
+`facts_applied` -> `applied_facts`). `build_s1(previous=)` 는 권한표가 S1_WRITERS 를 **덮는** 스냅샷을 받는다(S0 수준 스냅샷 포함). 아래 표의 옛 서명·`S1v` 행은 이 단락이 대체한다.
+
 | 이름 | 설명 |
 |---|---|
 | `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), previous=None, stop_on_unsupported=True) -> S1v` | 진입점. `s1` = `build_s1` 결과, `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`) |
@@ -675,7 +683,7 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 
 * `structure_count_budget(lut, kinds)` 는 합이 1 미만(kinds 가 비었거나 LUT 슬라이스 없음)이면 `ValueError` -- N_S 는 1 이상 int 여야 하므로 정의역 밖이다. `run_stage_a` 는 이를 잡아 `count_budget_undefined`(StructureUnresolvedError, exit 2)로 보고서에 쓴다.
 * **U1b 로 미룬 것 -> 닫힘**: `schema_version` 값 검사·알 수 없는 개념 거부·`drive_kind` 값 범위·J 판정 규칙은 U1b 가 구현했다(10.6).
-* S1v 저장은 core `GraphSnapshot` 이 아니라 frozen dataclass 트리(`S1v`)이고 재사용은 키(`S1v.key`) 일치로 한다.
+* [U17 ①-b 대체] S1v 저장은 core `GraphSnapshot` 의 S0 수준 필드(`graph/s1v`)이고 재사용은 계산 블록 `s1v_fields` 의 입력 버전 일치로 한다(설계 40 §2.4.2, v1.9.1 D1).
 * 입력 포트 role 문자열(`differential_input_p/n`, `differential_output_p/n`)과 spec 뷰 mode 문자열은 `s1v_values.py` 에 같은 값으로 복제했다(authoring 이 `__all__` 로 내보내지 않는다 -- U5 요청).
 * declared stage 의 생산자(topology 의 `compensation.stage_devices` 등 태그 읽기)는 엔진 안에 없다(태그 키는 규칙 I·IC4 로 읽기 금지). `declared` 인자로만 받는다.
 * 복합 블록은 묶음 경계를 J12 ratify 전 `composite_block_pending_ratify`(review_needed)로 남기고 격자 곱 Π 는 LUT 축이 필요해 U9 몫이다(`CompositeBlock.cells` = 밑). [U1b] feedforward 합류는 복합 블록이 아니다(10.6).
@@ -739,8 +747,10 @@ confirm 이 일치한 유도 레코드는 status 를 올린다: `dc_role` -> `Dc
 
 ## 11. GB3 -- 결합 변수 y와 기둥↔블록 매핑표 (U10, 설계 40 §3.3, 41 §0 단계 A4, 계획 DEC-71 (2)(7))
 
-파일: `coupling_values.py`(값 형식·어휘), `column_block_map.py`(진입 `column_block_map(s1, s1v) -> ColumnBlockMap`), `coupling_vars.py`(진입 `coupling_vars(s1, s1v) -> Coupling`).
-호출자: `pipeline.run_stage_a` A4(보고서 `coupling` 키). 소비자: U15 층 0 조립(41 §5.5) -- 아직 읽는 코드가 없고 보고서가 유일한 출구다.
+파일: `coupling_values.py`(값 형식·어휘), `column_block_map.py`(진입 `column_block_map(s1, views) -> (rows, bias_columns)`), `coupling_vars.py`(계산 블록 `coupling_vars`,
+writer `coupling_vars`: reads = S1 필드 전부 + `graph/s1v: views·l_classes`, writes S0 수준 필드 `("graph", COUPLING_KEY="coupling")`: `vars`·`column_block_map`(행 tuple)·`bias_columns`
+-- [U17 ①-b] 설계 40 §2.4.8 v1.9.1 D8, 묶음 `Coupling`·`ColumnBlockMap` 없음). 호출자: `pipeline.run_stage_a` A4(필드를 읽어 보고서 `coupling` 키). 소비자: U15 층 0 조립(41 §5.5).
+`column_unassigned` 정지는 블록에서 전파된다(필드를 쓰지 않는다).
 
 ### 11.1 값 형식
 * `BlockRef(view, key)` -- 뷰 id 와 블록 키(출력노드 이름 정렬 tuple). 같은 키의 블록도 뷰가 다르면 다른 블록. 정렬 가능(frozen order).
@@ -748,8 +758,8 @@ confirm 이 일치한 유도 레코드는 status 를 올린다: `dc_role` -> `Dc
   판정이 뷰 단위라 의사 블록은 모든 뷰에 기둥마다 하나씩 놓이고, 바이어스 기둥 소자는 모든 뷰에서 그 키를 갖는다. `repr` 에 `bias:<기둥 id>` 가 든다. 기둥 id 는 열거 순서에 따르므로
   이름 전단사 불변은 '기둥 소자 집합'으로 대응시켜 본다(레코드의 members·nets 는 이름만으로 정해져 영향 없음). 매핑표 행의 `block` 은 계속 None(`bias_column`).
 * `ColumnBlockRow(column, block, device, shared, basis)` -- `column` = S1 기둥 id 또는 None(어느 기둥에도 안 든 블록 멤버, 예: 커패시터), `block` = BlockRef 또는 None(바이어스 기둥),
-  `basis` ∈ `block_member | column_mate | bias_column`. `ColumnBlockMap(rows, bias_columns)` -- rows 는 (column(None 먼저), block, device) 순.
-* `CouplingVar(kind, members, blocks, domain, init_rule, nets)` -- 40 §3.3 레코드에 `nets` 를 더했다. `Coupling(vars, column_block_map)` -- vars 는 (kind, members, nets, domain) 순, 같은 키 중복 없음.
+  `basis` ∈ `block_member | column_mate | bias_column`. 필드 `column_block_map` = 행 tuple -- (column(None 먼저), block, device) 순, 필드 `bias_columns` = 바이어스 기둥 id 정렬 tuple.
+* `CouplingVar(kind, members, blocks, domain, init_rule, nets)` -- 40 §3.3 레코드에 `nets` 를 더했다. 필드 `vars` -- (kind, members, nets, domain) 순, 같은 키 중복 없음.
 
 ### 11.2 매핑표 규칙(DEC-71 (2))
 * 소자 범위 = 어느 DC 가지(`graph.branches`)에 든 원소. 커패시터·DEC-70 가지치기로 빠진 저항은 DC 전류가 없어 KVL 이 없으므로 대상 밖(블록 멤버면 column=None 행).

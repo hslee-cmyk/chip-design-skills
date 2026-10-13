@@ -1,5 +1,17 @@
 # gmid_engine.metrics 동작 계약 (test 작성용) -- 1단계: 엔진 상태와 독립인 수치 핵심 + 2단계: ss_linearize 배선(7절)
 
+> **[U17 ①-b] S0 수준 필드 이동**(설계 40 §2.4.6~§2.4.8 v1.9.1 D2·D7·D9·D10, 2026-10-13) -- 이 단락이 아래 옛 서술보다 우선한다.
+> * `achievability` = 계산 블록(writer `achievability`) -- `achievability(snapshot, spec, element_values, lut, count_budget)`: reads S1·대칭·쓰기 계획 열, `graph/kernel: fixed_values·l_ties·search_domain·
+>   passive_area_decl`, `graph/s1v: views·l_classes`; writes `graph/ach(ACH_KEY="ach")`: `curve_checks`, `gain_checks`(GainCheck|None), `area_bound`, `headroom_rows`, `buffer_window_report`, `warnings`, `reasons`,
+>   `verdict`, `dof`(구조 DOF만, `numeric_ranks=()`), `count_budget`, `local_inputs`. `cur_rep`·`current_box`·b_A 는 `search_domain` 필드에서 유도한다. 묶음 `Achievability`·`stop=` 인자·`local_inputs` 공개 함수는 없다 --
+>   정지(exit 3)는 파이프라인 단계 B 가 `reasons` 필드를 읽어 한다.
+> * `LocalInputs` = 필드 값(모든 칸 이름순 (이름, 값) tuple, `grids` = float tuple, LUT memo 칸 없음, 타입 등록부). 사전 질의는 `.view` -> `LocalView`(작업 값). `block_gain_model_of`·`headroom_bound` 는 `LocalView` 를 받는다.
+> * `edge_costs` 는 lut 로 옮겼다(`lut.derived(memo, "edge_costs", kind, w_key)`, `EdgeCost` = lut 값 형식). `ParamTables` 의 행은 LUT 파생 `lut.derived(memo, "param_row", ...)`(memo) -- 객체는 블록 호출 안 작업 배열.
+> * 새 계산 블록(S0 수준 필드): `metric_structure`(writer `metric_structure`, reads `graph/s1v: views` -> `graph/s1v: metric_structure` -- 뷰 필드가 없으면 None), `junction_field`(writer `junction_source`,
+>   extras (pdk_decl, lut_rule_decl, lut) -> `graph/kernel: junction_source`), `mismatch_field`(writer `mismatch_source`, extras (pdk_decl,)), `model_error_field`(writer `model_error`, extras (쌍,)).
+>   writer·필드 이름과 권한표 조각 = `s0_fields.py`(`METRICS_S0_WRITERS`). `ss_evaluate` 는 θ 스키마를 `ctx.base` 의 `graph/kernel: theta_schema` 필드에서 읽는다.
+> * metrics `__init__` 이 S0 수준 스냅샷 값 형식(`LocalInputs`·`MetricStructure`·`ViewStruct`·`BlockStruct`·`FfStruct`·`NoiseDecl`·`JunctionSource`·`JunctionParams`·`MismatchSource`·`PassiveAreaDecl` 등)을 올린다.
+
 - 대상: `gmid_engine.metrics.__all__`(이 단계 파일 27개 + 접합 용량 `junction_cap.py`(8절) + 분해능 `lut_parameters.py`·`sensitivity.py`·
   `resolution.py`·`_helpers_dc.py`(9절, 2026-10-08), 아래 0절). test 는 `from gmid_engine.metrics import ...` 와
   `from gmid_engine.core import ...` 만 쓴다(`_` 이름 금지). test 배치(규칙 H): `gmid_engine/tests/metrics/test_<파일>.py`.

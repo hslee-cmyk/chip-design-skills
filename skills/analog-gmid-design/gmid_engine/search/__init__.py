@@ -1,7 +1,8 @@
 """MOD6 search -- θ 탐색으로 (전력, 면적) 비지배 front (계획 N3.5·N3.7·DEC-54·77·79·80·95, 설계 design_mod6_search_front).
 계약: `CONTRACT.md`. 다른 패키지와 test 는 이 `__all__` 만 쓴다.
 
-공개 흐름: `build_search_context(dc_ctx, spec, settings, archive_root)`(S0 당 1회) -> `find_front(sctx, given_starts)`.
+공개 흐름: `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, *, code_fp, s0=None)`(S0 당 1회 -- S0 수준 블록, 끝에서 S0 스냅샷 1회 저장)
+-> `find_front(sctx, given_starts)`.
 봉인 7 이 VDSAT 접근자 부재로 미정인 동안 모든 점은 '봉인 7 대기'(`seal_status`)라 최종 front 는 비어 있다.
 """
 from gmid_engine.core import type_registry
@@ -12,6 +13,7 @@ from .cell_floor import ln_idu_floors
 from .cone_rows import cone_rows
 from .canonical_order import canonical_order
 from .canonical_rows import canonical_row_key
+from .constraint_classes import constraint_classes
 from .constraints import constraint_rows
 from .count_budget import count_budget
 from .current_symmetry import CurrentSymmetry, current_symmetry
@@ -28,9 +30,25 @@ from .l_bin_search import polish_l_cells
 from .layer0_center import ROW_SEAL_ITEM, SOURCE_LAYER0, STAGE_LAYER0, Layer0Result, layer0_start
 from .l_cells import l_cells
 from .objectives import objective_values
+from .noise_decl import noise_decl
 from .orbit_ties import orbit_ties
 from .pareto import nondominated
 from .seal7_pending import seal_status
+from .s0_fields import (
+    CONSTRAINT_CLASSES_WRITER,
+    DOF_NUMERIC_WRITER,
+    NOISE_DECL_WRITER,
+    PASSIVE_AREA_WRITER,
+    RESIDUAL_PROBE_WRITER,
+    S0_WRITERS,
+    SEARCH_DOMAIN_WRITER,
+    SEARCH_S0_WRITERS,
+    STAGE_B_KEY,
+    STAGE_B_WRITERS,
+    START_INTERVALS_WRITER,
+    START_KEY,
+    START_WRITES,
+)
 from .search_context import SearchContext, build_search_context
 from .tie_expand import expand_ties
 from .search_domain import search_domain
@@ -53,6 +71,7 @@ from .search_values import (
     STATUS_PENDING_SEAL7,
     STATUS_SEALED,
     STATUS_UNDEFINED,
+    ConstraintClasses,
     ConstraintRow,
     EvalKey,
     EvalResult,
@@ -76,15 +95,14 @@ from .start_values import (
     Bound,
     MacroResult,
     StartConflict,
-    StartIntervals,
     StartRow,
     StartRung,
 )
 
-# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 search 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식' -- `start_values.py` 의
-# `StartRow`·`StartConflict`·`MacroResult`·`StartRung` 과 `StartRow.sources` 의 `Bound`). 묶음 `StartIntervals` 와 계산용 입력(`StartContext`·`DeviceInfo`·
-# `GainInputs`)은 필드 값이 아니라 올리지 않는다.
-for _field_value_type in (StartRow, StartConflict, MacroResult, StartRung, Bound):
+# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 search 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식', §2.4.8 v1.9.1 D3·D8):
+# `graph/start`·`device: start.row` 의 `StartRow`·`StartConflict`·`MacroResult`·`StartRung` 과 `StartRow.sources` 의 `Bound`, `graph/kernel: search_domain`(`SearchDomain`·`Variable`)·
+# `constraint_classes`(`ConstraintClasses`). 계산용 입력(`StartView`·`DeviceInfo`·`GainInputs`)은 필드 값이 아니라 올리지 않는다.
+for _field_value_type in (StartRow, StartConflict, MacroResult, StartRung, Bound, SearchDomain, Variable, ConstraintClasses):
     type_registry.type_registry().register(_field_value_type)
 
 __all__ = (
@@ -98,7 +116,21 @@ __all__ = (
     "CON_INVERSION",
     "CON_SEAL6",
     "CON_WMIN",
+    "CONSTRAINT_CLASSES_WRITER",
+    "ConstraintClasses",
     "ConstraintRow",
+    "DOF_NUMERIC_WRITER",
+    "NOISE_DECL_WRITER",
+    "PASSIVE_AREA_WRITER",
+    "RESIDUAL_PROBE_WRITER",
+    "S0_WRITERS",
+    "SEARCH_DOMAIN_WRITER",
+    "SEARCH_S0_WRITERS",
+    "STAGE_B_KEY",
+    "STAGE_B_WRITERS",
+    "START_INTERVALS_WRITER",
+    "START_KEY",
+    "START_WRITES",
     "EvalKey",
     "EvalResult",
     "FrontPoint",
@@ -127,7 +159,6 @@ __all__ = (
     "SearchSettings",
     "SolveResult",
     "StartConflict",
-    "StartIntervals",
     "StartPoint",
     "StartRow",
     "StartRung",
@@ -143,7 +174,9 @@ __all__ = (
     "expand_ties",
     "orbit_ties",
     "passive_area_decl",
+    "constraint_classes",
     "constraint_rows",
+    "noise_decl",
     "count_budget",
     "dominant_node",
     "current_box",

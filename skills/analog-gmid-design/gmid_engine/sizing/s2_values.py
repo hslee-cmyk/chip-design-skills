@@ -14,6 +14,7 @@ from gmid_engine.core import WriterTable
 from gmid_engine.graph import S1_WRITERS
 
 DC_KEY = "dc"                                          # S2 dc graph 레코드의 유일 key(S1 은 graph.GRAPH_KEY)
+KERNEL_KEY = "kernel"                                  # S0 수준 graph/kernel 레코드 key -- 커널 컨텍스트 구조 파생(설계 40 §2.4.7·§2.4.8, v1.9.1 D8)
 
 # ---- 원소 kind 어휘(스키마 낱말) -- graph 가 공개하지 않는 지원 kind 를 여기서 이름 붙인다
 RESISTOR = "resistor"
@@ -123,6 +124,7 @@ DC_CURRENT_BASIS_WRITER = "dc_current_basis"
 DC_WRITER_PLAN_WRITER = "dc_writer_plan"
 DC_SCC_ORDER_WRITER = "dc_scc_order"
 DC_THETA_SCHEMA_WRITER = "dc_theta_schema"
+KERNEL_CONTEXT_WRITER = "kernel_context"               # graph/kernel: fixed_values·resistor_values·l_ties (`build_kernel_context` 의 계산 블록)
 DC_CURRENTS_WRITER = "dc_currents"
 DC_LENGTHS_WRITER = "dc_lengths"
 DC_COLUMNS_WRITER = "dc_columns"
@@ -141,9 +143,10 @@ DC_SEAL_REPORT_WRITER = "dc_seal_report"
 DC_WRITES = (
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
-    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"))),
+    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))),
+    (KERNEL_CONTEXT_WRITER, (("graph", "fixed_values"), ("graph", "resistor_values"), ("graph", "l_ties"))),
     (DC_SCC_ORDER_WRITER, (("graph", "dc_scc_order"), ("node", "dc_column_nbrs"))),
-    (DC_THETA_SCHEMA_WRITER, (("graph", "dc_theta_schema"),)),
+    (DC_THETA_SCHEMA_WRITER, (("graph", "theta_schema"),)),          # graph/kernel: theta_schema (옛 graph/dc: dc_theta_schema 를 옮김, v1.9.1 D8)
     (DC_CURRENTS_WRITER, (("device", "dc_current"), ("device", "dc_drop_current"))),
     (DC_LENGTHS_WRITER, (("device", "dc_L"),)),
     (DC_COLUMNS_WRITER, (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"),
@@ -426,20 +429,14 @@ class SealedSnapshot:
 
 @dataclasses.dataclass(frozen=True)
 class KernelContext:
-    """S0 당 1회 만드는 평가 커널 컨텍스트(루프 불변 입력). `base` = S1 + 쓰기 계획 블록까지 쓴 스냅샷, `inputs` = DcInputs,
-    `lut` = LutAccess, `schema` = ThetaSchema, `fixed_values` = ((넷, V), ...) W3·입력 DC 고정 노드,
-    `resistor_values` = ((저항, Ω), ...) spec 선언값(DC 경로 저항만), `plan_versions` = ((writer, 입력 버전), ...) 계획 블록,
-    `l_ties` = ((멤버, 주인), ...) S1v derived L 동치류의 비주인 멤버(LR1 L 공유 -- θ 스키마에는 동치류당 L 성분이 주인 하나만 있고
-    `size_and_seal` 이 멤버 L 을 주인 값으로 둔다)."""
+    """S0 당 1회 만드는 평가 커널 컨텍스트 -- **참조만** 담는다(설계 40 §2.4.7 `KernelContext` 행). `base` = S0 수준 스냅샷(S1 + 쓰기 계획 블록 + 커널 구조
+    파생 필드 `graph/kernel: theta_schema·fixed_values·resistor_values·l_ties`, 탐색 컨텍스트가 만든 뒤에는 그 S0 수준 필드도), `inputs` = DcInputs(spec 파싱 결과),
+    `lut` = LutAccess(LUT memo 와 폭 키). 설계 값(θ 스키마·고정 노드·저항 값·L 묶음·계획 블록 입력 버전)은 사본으로 두지 않고 `base` 필드와
+    `base.block_version` 에서 읽는다."""
 
     base: object
     inputs: DcInputs
     lut: LutAccess
-    schema: ThetaSchema
-    fixed_values: tuple
-    resistor_values: tuple
-    plan_versions: tuple
-    l_ties: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)

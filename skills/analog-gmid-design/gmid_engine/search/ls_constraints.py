@@ -4,7 +4,7 @@
 
 * `driving` = spec `DrivingDecl`(슬루율 `slew_rate_v_per_s`·피크 부하 전류 `load_peak_amp`; `load_dc_amp` 는 DC 봉인의 KCL 입력이라 여기 행이 없다). 없으면 행도 미측정도 없다.
 * `bundle` = 그 점의 `MetricBundle`(`ss_evaluate(...).ss`). 봉인 안 된 점(None)이면 선언마다 미측정 `ss_requires_sealed_snapshot`. 보고 `ls_fields` 가 없으면 `ls_fields_unavailable`
-  (구조 입력 없음 -- `build_search_context(s1v=)` 를 안 줬거나 전달 뷰 제약이 없다).
+  (구조 입력 없음 -- S0 수준 필드 `graph/s1v: metric_structure` 가 None(S1v 를 만들지 않은 컨텍스트)이거나 전달 뷰 제약이 없다).
 * **슬루율 행**: 극점 노드 k·방향 d(충전·방전)마다 I_max,k,d ≥ SR · C_k,total ⇔ c = (I_max − SR·C)/s. s = 그 방향 전류의 분해능(`ls_fields` 가 낸 값 -- β 셀 합이면 부동소수 해상도),
   `active` = c ≤ 1. 전류가 미상(κ 셀·공급 셀 없음)이거나 분해능이 없으면 행 없이 미측정(`slew_current_unbounded`·`slew_resolution_undefined`). 행 이름 `ls:<net>:<방향>:slew_rate>=`.
 * **피크 전류 행**: `load_peak_margin_a`(출력 노드 방향 전류 최솟값 − 피크 전류) / 출력 노드 전류 분해능 최대값, 이름 `ls:load_peak_amp>=`. 출력 노드 전류가 미상이면 미측정

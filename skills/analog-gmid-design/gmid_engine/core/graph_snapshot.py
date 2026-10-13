@@ -141,6 +141,11 @@ class GraphSnapshot:
                 )
         return GraphSnapshot(writers, self.tables, self.block_versions)
 
+    def widen(self, writers):
+        """권한표를 이 표와 `writers` 의 합(`WriterTable.union`)으로 넓힌 스냅샷(`extend_writers`). 이미 덮으면 `self` 그대로.
+        S0 수준 층(설계 40 §2.4.1)은 층마다 자기 필드 표를 더하며 한 스냅샷 위에 산다."""
+        return self.extend_writers(self.writers.union(writers))
+
     def block_version(self, writer):
         """`writer` 의 마지막 쓰기 입력 버전, 쓴 적 없으면 None."""
         return self.block_versions.get(writer)

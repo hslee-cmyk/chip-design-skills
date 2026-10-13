@@ -18,7 +18,10 @@ import math
 
 import numpy as np
 
-from .iv_curves import QUANTITY_IDU, QUANTITY_VDSAT
+from gmid_engine.core import SchemaRejectedError, SealViolationError
+from gmid_engine.lut import idu_curve
+
+from ._helpers_curves import QUANTITY_IDU, QUANTITY_VDSAT, curve_bundle_of, snap_vds, tol_vdsat, slice_of
 from .start_values import QUANTITY_GM_ID, SIDE_HI, SIDE_LO, SRC_LUT_DOMAIN, Bound, StartConflict
 
 
@@ -38,11 +41,32 @@ def _monotone_end(values):
     return end
 
 
+_UNDEFINED = (SealViolationError, SchemaRejectedError, KeyError, ValueError)
+
+
+def _vds_grid(ctx, kind):
+    return tuple(float(a) for a in slice_of(ctx, kind).grids[2])
+
+
+def _snap_up_vds(ctx, kind, target):
+    """LUT VDS 격자 중 `target` 이상인 첫 점(없으면 마지막 점)."""
+    grid = _vds_grid(ctx, kind)
+    return next((x for x in grid if x >= target), grid[-1])
+
+
+def _idu_curve(ctx, kind, L, vds):
+    """(kind, L, VDS, 첫 VS 격자점)의 IDu 곡선(`lut.idu_curve`), 정의되지 않으면 None."""
+    try:
+        return idu_curve(ctx.memo, kind, ctx.w_keys[kind], float(L), float(vds), float(slice_of(ctx, kind).grids[3][0]))
+    except _UNDEFINED:
+        return None
+
+
 def _window(ctx, cache, kind, L, vds):
     """(kind, L, VDS) 곡선의 ln IDu 역산 창 (정점 ln IDu, 단조 끝 ln IDu). 곡선이 정의되지 않으면 None. 같은 인자는 한 번만."""
     key = (kind, L, vds)
     if key not in cache:
-        curve = ctx.curves.curve(QUANTITY_IDU, kind, L, vds)
+        curve = _idu_curve(ctx, kind, L, vds)
         if curve is None:
             cache[key] = None
         else:
@@ -55,15 +79,15 @@ def domain_bounds(ctx, lengths, vds_budget):
     bounds, conflicts, cache = {}, [], {}
     for d in ctx.devices:
         L = lengths[d.name]
-        ref = ctx.curves.bundle_of(d.name, d.kind, L)
+        ref = curve_bundle_of(ctx, d.name, d.kind, L)
         if ref is None:
             continue
         curve, vdsat = ref[QUANTITY_IDU], ref[QUANTITY_VDSAT]
-        top = ctx.curves.snap_vds(d.kind, min(vds_budget[d.name], max(ctx.curves.vds_grid(d.kind)))) if vds_budget.get(d.name) is not None else None
+        top = snap_vds(ctx, d.kind, min(vds_budget[d.name], max(_vds_grid(ctx, d.kind)))) if vds_budget.get(d.name) is not None else None
         usable = []
         for j in range(len(curve.gm_id)):
             # 그 gm/ID 의 포화 경계 VDS(VDSAT + tol_vdsat, 격자 위로 올림) -- 그보다 낮은 VDS 에서는 소자가 포화에 있지 않으므로 탐침이 아니다
-            lowest = ctx.curves.snap_up_vds(d.kind, float(vdsat.values[j]) + ctx.curves.tol_vdsat(d.kind, L, vdsat.vds))
+            lowest = _snap_up_vds(ctx, d.kind, float(vdsat.values[j]) + tol_vdsat(ctx, d.kind, L, vdsat.vds))
             probes = {lowest} | ({top} if top is not None and top >= lowest else set())
             windows = [_window(ctx, cache, d.kind, L, v) for v in sorted(probes)]
             if any(w is None for w in windows):

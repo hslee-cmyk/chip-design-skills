@@ -15,8 +15,7 @@
 import dataclasses
 import math
 
-from ._helpers_curves import at_gm_id, hull
-from .iv_curves import QUANTITY_FT
+from ._helpers_curves import QUANTITY_FT, curve_bundle_of, curve_value, hull, l_anchors
 from .start_values import (
     QUANTITY_GM_ID,
     QUANTITY_L,
@@ -61,7 +60,7 @@ def speed_bounds(ctx, dominant, lengths, gm_id_lo):
     for d in _providers(ctx, dominant):
         names.append(d.name)
         found = []
-        bundle = ctx.curves.bundle_of(d.name, d.kind, lengths[d.name])
+        bundle = curve_bundle_of(ctx, d.name, d.kind, lengths[d.name])
         if bundle is not None:
             curve = bundle[QUANTITY_FT]
             top = hull(curve.gm_id, curve.values, f_np, below=False)
@@ -70,13 +69,13 @@ def speed_bounds(ctx, dominant, lengths, gm_id_lo):
             else:
                 found.append(Bound(QUANTITY_GM_ID, SIDE_HI, SRC_SPEED_FT, top[1]))
         reach = []
-        for L in ctx.curves.l_anchors(d.kind):
-            anchor = ctx.curves.bundle_of(d.name, d.kind, L)
+        for L in l_anchors(ctx, d.kind):
+            anchor = curve_bundle_of(ctx, d.name, d.kind, L)
             if anchor is None:
                 continue
             ft = anchor[QUANTITY_FT]
             g = min(max(gm_id_lo.get(d.name, float(min(ft.gm_id))), float(min(ft.gm_id))), float(max(ft.gm_id)))
-            if at_gm_id(ft.gm_id, ft.values, g, log=True) >= f_np:
+            if curve_value(anchor, QUANTITY_FT, g) >= f_np:
                 reach.append(L)
         if reach:
             found.append(Bound(QUANTITY_L, SIDE_HI, SRC_SPEED_L, max(reach)))

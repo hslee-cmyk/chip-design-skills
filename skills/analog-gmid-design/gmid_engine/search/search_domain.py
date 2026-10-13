@@ -1,6 +1,11 @@
 """탐색 정의역 -- θ 스키마 위 연속 변수·bounds·L 칸·면적 축 분해능 (설계 design_mod6_search_front 4.1·4.2·5절, DEC-80·88).
 
-진입점: `search_domain(dc_ctx, settings) -> SearchDomain`(S0 당 1회, 루프 밖).
+진입점: `search_domain`(`@compute_block`, writer `search_domain`) -- `search_domain(snapshot, lut, resistance_bounds_ohm, capacitance_bounds_f, pdk_decl, spec_bounds,
+area_budget_m2, untie)`. S0 수준 필드 `graph/kernel: search_domain`(설계 40 §2.4.7 'SearchContext 칸 배정'·§2.4.8) -- S0 당 1회, 입력이 같으면 재사용.
+reads = S1 `element_class`·`kind`, graph 대칭 블록 `orbits`·`current_symmetry`·`dc_colour`, 쓰기 계획 `dc_current_basis`, θ 스키마 `graph/kernel: theta_schema`.
+extras: `lut` = sizing `LutAccess`, `resistance_bounds_ohm`·`capacitance_bounds_f` = 실행 설정(`SearchSettings`)의 θ 수동소자 상자(run 단위 명시 재정의, None 이면 spec 상자) --
+벽시계·평가 예산 같은 다른 실행 설정은 정의역을 바꾸지 않아 extras 에 넣지 않는다(설정은 S0 키 밖 -- 그 상자가 바뀌면 블록 입력 버전이 재계산을 보장한다, v1.9.1 D6),
+`pdk_decl` = core `PdkDecl`, `spec_bounds` = spec `search.theta_bounds`(authoring ThetaBound tuple), `area_budget_m2` = 면적 예산 또는 None, `untie` = 묶음을 푼 원소 이름 tuple.
 
 * `ln_idu`(쓰기 소자 반전 좌표, DEC-88 (라)): bounds = kind 별 LUT 포락선. 상한 = 레이아웃 전 폭 슬라이스 전 격자점 ln IDu
   최댓값(설계 4.2 'VGS 축 끝 ln IDu 의 포락선'), 하한 = (L, VDS, VS) 곡선마다 gm/ID 정점의 ln IDu 중 최솟값 -- 그 아래 r 은
@@ -13,7 +18,7 @@
   기본값 없음.
 * `L`: 연속 변수는 칸이 정해진 뒤(분지마다) 칸 [lo, hi] 로 만든다(lo == hi 칸은 고정). 여기서는 `l_cells` 표만 둔다.
 * `area_resolution_m2` = b_A = PDK 선언 `manufacturing_grid_m` × `min_finger_w_m`(difftap.2)(DEC-80 (i), 설계 6.4 'Σ W·L 축
-  한 칸') -- 같은 두 값을 W 하한 제약(S-18)이 `w_min_m`·`grid_m` 으로 읽는다. 진입점은 `search_domain(dc_ctx, settings, pdk_decl)`.
+  한 칸') -- 같은 두 값을 W 하한 제약(S-18)이 `w_min_m`·`grid_m` 으로 읽는다.
   면적 모델 오차가 미측정이라 (ii) = (i) 이고 '추정'이다(DEC-72·80). 전력 분해능 b_P 는 점마다(`objectives`).
 * 묶음 상자(CONTRACT 3.24-4, 40 §6-8 D-1): 같은 자기동형 궤도 안 구성원(부호 +1)의 상자가 대표와 다르면 `tied_orbit_bounds_differ` 로 거부한다. 궤도를 넘는(KCL 이 유도한 --
   graph `orbits` 에서 대표와 다른 궤도) θ 전류 구성원(부호 +1)은 대표 변수의 상자를 대표·구성원 상자의 **교집합**으로 줄이고, 교집합이 비면 `tied_current_box_empty`
@@ -23,16 +28,17 @@ import math
 
 import numpy as np
 
-from gmid_engine.core import PdkDecl, SchemaRejectedError
+from gmid_engine.core import PdkDecl, SchemaRejectedError, compute_block
 from gmid_engine.graph import ELEMENT_MOS, GRAPH_KEY
-from gmid_engine.sizing import (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE,
+from gmid_engine.sizing import (KERNEL_KEY, THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE,
                                 THETA_SS_RESISTANCE, THETA_Y)
 
 from .current_box import current_box
 from .l_cells import l_cells
 from .current_symmetry import current_symmetry
 from .orbit_ties import orbit_ties
-from .search_values import SearchDomain, SearchSettings, Variable
+from .s0_fields import SEARCH_DOMAIN_WRITER, SEARCH_DOMAIN_WRITES
+from .search_values import SearchDomain, Variable
 
 _PDK_QUANTITIES = ("manufacturing_grid_m", "min_finger_w_m")   # PDK 선언 이름(core CONTRACT 9.4) -- 값은 선언 파일이 계산
 
@@ -52,10 +58,10 @@ def _ln_idu_envelope(lut_access, kind):
     return lo, hi
 
 
-def _current_bounds(dc_ctx, kinds, classes, boxes, key):
+def _current_bounds(schema, kinds, classes, boxes, key):
     if classes[key] == ELEMENT_MOS:
         return boxes[kinds[key]]
-    users = [mos for mos, terms in dc_ctx.schema.current_cone if any(t.source == key for t in terms)]
+    users = [mos for mos, terms in schema.current_cone if any(t.source == key for t in terms)]
     if not users:
         raise ValueError("search_domain: θ 전류 " + repr(key) + " 를 지나는 MOS 행이 없다")
     return min(boxes[kinds[m]][0] for m in users), max(boxes[kinds[m]][1] for m in users)
@@ -76,49 +82,55 @@ def _budget_i_max(lut_access, kind, l_lo_m, area_budget_m2):
     return math.exp(hi) * area_budget_m2 / (l_lo_m * l_lo_m)
 
 
-def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=None, untie=()):
-    if not isinstance(settings, SearchSettings):
-        raise TypeError("search_domain: settings 는 SearchSettings 여야 한다(기본값 없음)")
+READS = (("device", "element_class"), ("device", "kind"), ("device", "dc_colour"), ("node", "dc_colour"), ("graph", "orbits"),
+         ("graph", "current_symmetry"), ("graph", "dc_current_basis"), ("graph", "theta_schema"))
+
+
+@compute_block(SEARCH_DOMAIN_WRITER, reads=READS, writes=SEARCH_DOMAIN_WRITES)
+def search_domain(projection):
+    lut, resistance_bounds_ohm, capacitance_bounds_f, pdk_decl, spec_bounds, area_budget_m2, untie = projection.extras
     if not isinstance(pdk_decl, PdkDecl):
         raise TypeError("search_domain: pdk_decl 은 core read_pdk_decl 결과여야 한다")
+    base = projection
+    schema = base.value("graph", KERNEL_KEY, "theta_schema")
     declared = {b.element: (b.lo, b.hi) for b in spec_bounds}          # authoring ThetaBound(kind 단위 Ω·F)
-    kinds = dict(dc_ctx.base.column("device", "kind"))
-    classes = dict(dc_ctx.base.column("device", "element_class"))
+    kinds = dict(base.column("device", "kind"))
+    classes = dict(base.column("device", "element_class"))
     mos_kinds = sorted({kinds[m] for m, c in classes.items() if c == ELEMENT_MOS})
-    boxes = {k: current_box(dc_ctx.lut, k) for k in mos_kinds}
+    boxes = {k: current_box(lut, k) for k in mos_kinds}
     if area_budget_m2 is not None:
-        boxes = {k: (lo, _budget_i_max(dc_ctx.lut, k, l_cells(dc_ctx.lut, k)[0][0], area_budget_m2))
+        boxes = {k: (lo, _budget_i_max(lut, k, l_cells(lut, k)[0][0], area_budget_m2))
                  for k, (lo, _peak) in boxes.items()}
     envelopes = {}
     variables, mos = [], []
-    resistors = [key for kind, key in dc_ctx.schema.components if kind in (THETA_RESISTANCE, THETA_SS_RESISTANCE)]
-    missing = tuple(r for r in resistors if _passive_box(settings.resistance_bounds_ohm, declared, r) is None)
+    resistors = [key for kind, key in schema.components if kind in (THETA_RESISTANCE, THETA_SS_RESISTANCE)]
+    missing = tuple(r for r in resistors if _passive_box(resistance_bounds_ohm, declared, r) is None)
     if missing:
         raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "theta_resistance_bounds_undeclared",
                                           "resistors": missing})
-    capacitors = [key for kind, key in dc_ctx.schema.components if kind == THETA_CAPACITANCE]
-    missing = tuple(c for c in capacitors if _passive_box(settings.capacitance_bounds_f, declared, c) is None)
+    capacitors = [key for kind, key in schema.components if kind == THETA_CAPACITANCE]
+    missing = tuple(c for c in capacitors if _passive_box(capacitance_bounds_f, declared, c) is None)
     if missing:
         # 커패시터 상자는 PDK 선언에서 유도할 수 없다(capm.* 규칙값 N/A, cap_mim 셀 원본 없음 -- sizing CONTRACT O13)
         raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "theta_capacitance_bounds_undeclared",
                                           "capacitors": missing})
-    for component in dc_ctx.schema.components:
+    for component in schema.components:
         ckind, key = component
         if ckind == THETA_LN_IDU:
             if kinds[key] not in envelopes:
-                envelopes[kinds[key]] = _ln_idu_envelope(dc_ctx.lut, kinds[key])
+                envelopes[kinds[key]] = _ln_idu_envelope(lut, kinds[key])
             lo, hi = envelopes[kinds[key]]
             variables.append(Variable(component, False, lo, hi))
         elif ckind == THETA_Y:
             variables.append(Variable(component, False, 0.0, 1.0))
         elif ckind == THETA_CURRENT:
-            lo, hi = _current_bounds(dc_ctx, kinds, classes, boxes, key)
+            lo, hi = _current_bounds(schema, kinds, classes, boxes, key)
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
         elif ckind in (THETA_RESISTANCE, THETA_SS_RESISTANCE):
-            lo, hi = _passive_box(settings.resistance_bounds_ohm, declared, key)
+            lo, hi = _passive_box(resistance_bounds_ohm, declared, key)
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
         elif ckind == THETA_CAPACITANCE:
-            lo, hi = _passive_box(settings.capacitance_bounds_f, declared, key)
+            lo, hi = _passive_box(capacitance_bounds_f, declared, key)
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
         elif ckind == THETA_L:
             mos.append(key)
@@ -128,11 +140,11 @@ def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=Non
         if not var.lo < var.hi:
             raise ValueError("search_domain: 빈 bounds " + repr(var))
     # [r12] 같은 자기동형 궤도 원소의 같은 종류 θ 성분은 변수 하나로 묶는다(3.24) -- 묶인 구성원은 같은 bounds 여야 한다
-    symmetry = current_symmetry(dc_ctx, tuple(untie))
-    reps, ties = orbit_ties(dc_ctx, tuple(dc_ctx.schema.components), tuple(untie), symmetry)
+    symmetry = current_symmetry(base, tuple(untie))
+    reps, ties = orbit_ties(base, tuple(schema.components), tuple(untie), symmetry)
     by_component = {v.component: v for v in variables}
     negated = frozenset(symmetry.negated)
-    orbit = dict(dc_ctx.base.value("graph", GRAPH_KEY, "orbits").devices)
+    orbit = dict(base.value("graph", GRAPH_KEY, "orbits").devices)
     for rep, members in ties:
         if rep not in by_component:
             continue
@@ -155,7 +167,8 @@ def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=(), area_budget_m2=Non
     variables = [v for v in variables if v.component not in tied]
     mos = [m for m in mos if (THETA_L, m) not in tied]
     cells = {}
-    table = tuple((m, cells.setdefault(kinds[m], l_cells(dc_ctx.lut, kinds[m]))) for m in sorted(mos))
+    table = tuple((m, cells.setdefault(kinds[m], l_cells(lut, kinds[m]))) for m in sorted(mos))
     grid, w_min = pdk_decl.values(_PDK_QUANTITIES)
-    return SearchDomain(tuple(variables), table, float(grid * w_min), tuple(sorted(boxes.items())), float(w_min),
-                        float(grid), area_budget_m2, ties, symmetry.negated, symmetry.zeros)
+    domain = SearchDomain(tuple(variables), table, float(grid * w_min), tuple(sorted(boxes.items())), float(w_min),
+                          float(grid), area_budget_m2, ties, symmetry.negated, symmetry.zeros)
+    return {("graph", "search_domain"): {KERNEL_KEY: domain}}

@@ -1,6 +1,6 @@
 """θ 성분의 자기동형 궤도 묶음 (사용자 결정 2026-10-08, CONTRACT 3.24).
 
-진입점: `orbit_ties(dc_ctx, components, untied, symmetry=None) -> (대표 성분 tuple, ties)`.
+진입점: `orbit_ties(base, components, untied, symmetry=None) -> (대표 성분 tuple, ties)`  (`base` = 필드 질의가 되는 스냅샷 또는 계산 블록 투영).
 
 * `components` = θ 스키마 성분 (종류, 키) 열.
 * **θ 전류 성분**: 자기동형이 만드는 부호 묶음·구조적 0(`current_symmetry`) -- `symmetry` 를 안 주면 여기서 만든다. 묶인 구성원은 ties 에, 구조적 0 은 대표에서
@@ -25,11 +25,11 @@ def _orbit_of(component, device_orbit, node_orbit):
     return None
 
 
-def orbit_ties(dc_ctx, components, untied, symmetry=None):
-    symmetry = current_symmetry(dc_ctx, untied) if symmetry is None else symmetry
-    orbits = dc_ctx.base.value("graph", GRAPH_KEY, "orbits")          # graph 대칭 블록 필드(40 §2.4.8)
+def orbit_ties(base, components, untied, symmetry=None):
+    symmetry = current_symmetry(base, untied) if symmetry is None else symmetry
+    orbits = base.value("graph", GRAPH_KEY, "orbits")          # graph 대칭 블록 필드(40 §2.4.8)
     device_orbit, node_orbit = dict(orbits.devices), dict(orbits.nodes)
-    colour = {**dict(dc_ctx.base.column("node", "dc_colour")), **dict(dc_ctx.base.column("device", "dc_colour"))}
+    colour = {**dict(base.column("node", "dc_colour")), **dict(base.column("device", "dc_colour"))}
     free = {device_orbit[name] for name in untied}
     dropped = {m for _rep, members in symmetry.ties for m in members} | set(symmetry.zeros)
     groups = {}
