@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.9
+version: 1.9.1
 plan_version: 6.8
 ---
 
@@ -265,8 +265,8 @@ plan_version: 6.8
 | D-IC | IC1~IC11 계약 test(패키지별 폴더) | 40 §10.3 | MISS | `rg "def test_ic"` 0 |
 | D-T | test 폴더 체계 | 40 §8 R26 | N/A | 축소 유지 승인(2026-10-08). 현행 체계를 쓴다 |
 | D-GR1 | graph 밖 저장소는 넷뿐(LUT memo·S3 기록과 색인·실행 계수·S0 수준 스냅샷 직렬화) | 40 §2.4.1 | DEV | bd19cc6 `E/search/search_context.py:65-89`(cache·cell_floors·local_seal_memo 등) |
-| D-GR2 | S0 수준 층 필드화(S1v·결합 변수·GB4·출발 구간·metric 구조 입력) | 40 §2.4.2·2.4.8 | MISS | bd19cc6 `sctx.s1v`·`sctx.ach`·`sctx.start` 객체, `E/search/start_values.py:186-235` `StartContext` |
-| D-GR3 | S0 수준 스냅샷 디스크 영속화(키·타입 있는 코덱·원자적 쓰기·검증), 단계 A 보고서 `s0_snapshot` 키(hit\|miss\|corrupt), `run_stage_a` PDK 선언 필수 인자, U-68 재현 판정 = 입력 파일 원본 sha(`structure.json` 포함) + 엔진 코드 지문, U-68 정리 = 프로세스당 첫 실제 쓰기 1회(`core/snapshot_codec.py` `_CLEANUP_STARTED`), 위치 환경 변수 `GMID_S0_SNAPSHOT_DIR`(test 격리) | 40 §2.4.3 | MISS | `rg "snapshot_codec"` 0 |
+| D-GR2 | S0 수준 층 필드화(S1v·결합 변수·GB4·출발 구간·metric 구조 입력). 레코드별 필드 = 40 §2.4.8(v1.9.1 D1~D4·D7~D9: `graph/s1v` `coverage`·`graph/ach` `block_bounds` 없음, `graph/start` `rungs` = as-built `ladder`, `noise_inputs`·`placement`는 U17 ②, `local_inputs` dict→tuple·memo 제외) | 40 §2.4.2·2.4.8 | MISS | bd19cc6 `sctx.s1v`·`sctx.ach`·`sctx.start` 객체, `E/search/start_values.py:186-235` `StartContext` |
+| D-GR3 | S0 수준 스냅샷 디스크 영속화(키·타입 있는 코덱·원자적 쓰기·검증), 단계 A 보고서 `s0_snapshot` 키(hit\|miss\|corrupt), `run_stage_a` PDK 선언 필수 인자, U-68 재현 판정 = 입력 파일 원본 sha(`structure.json` 포함) + 엔진 코드 지문, U-68 정리 = 프로세스당 첫 실제 쓰기 1회(`core/snapshot_codec.py` `_CLEANUP_STARTED`), 위치 환경 변수 `GMID_S0_SNAPSHOT_DIR`(test 격리), 저장 시점 = `build_search_context` 끝 1회(단계 A·B만 도는 실행은 읽기만, 탐색 설정은 키 밖 -- v1.9.1 D6) | 40 §2.4.3 | MISS | `rg "snapshot_codec"` 0 |
 | D-GR4 | 분할 계산 블록과 이식(graft). 분할 대상에 GB5 `passive_values`(읽는 레코드 = 영점 상쇄 셀 소자의 `dc_gm`, 전류 θ만 바뀐 자식의 재계산 해소, U17 ② 이월) | 40 §2.4.4 | MISS | `rg "def graft"` 0, `E/core/compute_block.py:73-90`(블록 이름 하나의 버전) |
 | D-GR5 | S3 메모리 색인·스냅샷 보존(`sctx.cache`·`local_seal_memo` 대체, G-5) | 40 §2.4.5 | DEV | bd19cc6 `E/search/kernel.py:102-121`, `E/search/local_candidates.py:141-144` |
 | D-GR6 | LUT memo 순수성(`call`)·S0당 인스턴스 하나·상한 B_r(층 0 항) | 40 §2.4.6 | DEV | bd19cc6 `E/search/search_context.py:105-121`(두 번째 인스턴스, 첫 평가 버림), `E/lut/lut_memo.py:25-36,60-62` |
@@ -276,7 +276,7 @@ plan_version: 6.8
 | D-GR10 | G-7 SearchContext = 참조 + S3 색인 + 실행 계수, `__slots__`·frozen | 40 §2.4.7 | DEV | bd19cc6 `E/search/search_context.py:51-89` |
 | D-GR11 | G-8 강제 장치 4종(규칙 G 확장·설계 값 타입 위치·SC-a/SC-b lint·9회로 test). 허용 모듈에 `core/snapshot_codec.py`(U-68 1회 표시 `_CLEANUP_STARTED`, §2.4.1 (d) 범주) | 40 §2.4.10 | PART | bd19cc6 규칙 G = 모듈 가변·데코레이터·global만(`E/tests/structure/structure_checks.py:880-920`) |
 | D-GR12 | G-10 계수(블록·분할별 grafts 포함, `perf.s0_snapshot` 포함)와 9회로·두 번째 실행 test(`test_g10_second_run_s0_zero`는 U17 단계 ②) | 40 §2.4.9 | PART | bd19cc6 `E/core/compute_block.py:30-38` `BlockStats`, `E/search/kernel.py:120-121` `recompute_same_key` |
-| D-GR13 | 단계 B 층(r̂·수치 rank, 직렬화 제외), `ach.dof` = 구조 DOF만, KernelContext·SearchContext 선언 파생의 S0 수준 필드, `metrics_dc` `gate_area_m2`·`power_resolution_w`(제약 행 `constraint_rows`는 U17 ②로 이월, `unmeasured` 자리 40 §2.4.12 Q8 열림) | 40 §2.4.1·2.4.7·2.4.8 | DEV | bd19cc6 `E/search/objectives.py:31-45`, `E/sizing/s2_values.py:429-443` |
+| D-GR13 | 단계 B 층(r̂·수치 rank, 직렬화 제외. ①-b는 필드 자리·제외 규칙만, 블록 배선은 소비자 층 0과 함께 U17 ② -- v1.9.1 D5), `ach.dof` = 구조 DOF만, KernelContext·SearchContext 선언 파생의 S0 수준 필드, `metrics_dc` `gate_area_m2`·`power_resolution_w`(제약 행 `constraint_rows`는 U17 ②로 이월, `unmeasured` 자리 40 §2.4.12 Q8 열림) | 40 §2.4.1·2.4.7·2.4.8 | DEV | bd19cc6 `E/search/objectives.py:31-45`, `E/sizing/s2_values.py:429-443` |
 | D-GR14 | 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 색인 `local`·`solved` | 40 §2.4.5·2.4.8, 41 §5.3.9·§5.3.11·§5.5 | MISS | `rg "comp_approx_gap"` 0(엔진 .py) |
 | D-GR15 | 계수 소유 `RunCounters`(블록 무상태, `_evicted`·`events` 이동), LUT memo 퇴출 판정(U-60 결정 (가): 퇴출 뒤 재계산 0) | 40 §2.4.6·2.4.9 | DEV | bd19cc6 `E/core/compute_block.py:67-71`, `E/core/bounded_lru.py:38`, `E/lut/table_cache.py:199` |
 | D-P2 | 소자별 폭 슬라이스(`LutAccess.w_keys` 소자 키, `w_key_of(lut, device)`), LY2 행별 finger 폭 | 40 §3.10.1 | DEV | bd19cc6 `LutAccess.w_keys` = kind 키, `convergence/place_layout` `layout_score` 최소 키 |
@@ -300,6 +300,8 @@ plan_version: 6.8
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
 | 설계 항목 | 157 | 0 | 23 | 16 | 117 | 1 |
 | **합계** | 254 | 27 | 30 | 51 | 139 | 7 |
+
+v1.9.1(2026-10-13, 오케스트레이터 기본안 2026-10-13 U17 ①-b D1~D10, 사용자 결정 아님): D-GR2·D-GR3·D-GR13 문구를 40 v1.9.1 §2.4.3·§2.4.8에 맞춤(상태 불변, 행 수 불변).
 
 v1.9(2026-10-13, 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①): 설계 항목 1행 추가(D-AP1 A' 판정 기준, MISS -- master `3151392`에서 잰, 40 §10.5). 다른 행 불변.
 
