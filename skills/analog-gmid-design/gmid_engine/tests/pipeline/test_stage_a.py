@@ -671,3 +671,51 @@ def test_diff_pair_members_in_different_orbits_is_review_needed(tmp_path, real_l
     assert len(pair_reviews(asym.report)) == 1, asym.report["review_needed"]
     assert pair_reviews(asym.report)[0].split("|")[1] == "diff_pair_orbit_split"          # [U17 ①-d] 실제 API 의 기록 코드(graph CONTRACT 4.8)
     assert asym.status == "review_needed"
+
+
+def _loose_design_values(value, path="result"):
+    """GraphSnapshot 밖에 실린 설계 값: 타입 등록부(설계 40 §2.4.3·§2.4.10 ② '설계 값 타입')에 오른 형식의 인스턴스와 그 경로.
+    GraphSnapshot 안은 보지 않는다(필드가 정본). tuple·list·frozenset·dict 값·dataclass 칸은 따라 들어간다."""
+    from gmid_engine.core import GraphSnapshot, type_registry
+    names = set(type_registry.type_registry().names())
+    out, stack, seen = [], [(value, path)], set()
+    while stack:
+        v, p = stack.pop()
+        if isinstance(v, GraphSnapshot) or isinstance(v, (str, bytes, int, float, bool, type(None))) or id(v) in seen:
+            continue
+        seen.add(id(v))
+        cls = type(v)
+        if cls.__module__ + "." + cls.__qualname__ in names:
+            out.append((p, cls.__qualname__))
+        if isinstance(v, (tuple, list, frozenset, set)):
+            stack.extend((x, p + "[]") for x in v)
+        elif isinstance(v, dict):
+            stack.extend((x, p + "[" + repr(k) + "]") for k, x in v.items())
+        elif dataclasses.is_dataclass(v):
+            stack.extend((getattr(v, f.name), p + "." + f.name) for f in dataclasses.fields(v))
+    return sorted(out)
+
+
+def test_stage_a_result_carries_s0_snapshot_reference_only(tmp_path, real_lut):
+    """[U17 ①-b] 설계 40 v1.9 §2.4.7 'S1v·Achievability·StartIntervals 묶음 객체' 행: '단계 결과는 S0 수준 스냅샷 참조만 넘긴다'(§2.4.2 묶음 객체는
+    필드 묶음으로 푼다, 오케스트레이터 기본안 D1: graph/s1v = views·l_classes·findings·declared·applied_facts).
+    oracle (d): StageAResult 칸에 `s1v` 가 없고, 등록된 설계 값 형식이 GraphSnapshot 밖에 실리지 않으며, 실린 GraphSnapshot 하나 이상이
+    `graph/s1v` 레코드(views·l_classes·findings·declared·applied_facts)를 가진다. 손 회로 CS(정지 없음)."""
+    from gmid_engine.core import GraphSnapshot
+    r = _run(tmp_path, real_lut, H.CS)
+    assert (r.exit_code, r.status) == (0, "ok")
+    assert "s1v" not in {f.name for f in dataclasses.fields(StageAResult)}
+    assert _loose_design_values(r) == []
+    snaps = [getattr(r, f.name) for f in dataclasses.fields(r) if isinstance(getattr(r, f.name), GraphSnapshot)]
+    snaps += [getattr(r, f.name).snapshot for f in dataclasses.fields(r)
+              if isinstance(getattr(getattr(r, f.name), "snapshot", None), GraphSnapshot)]
+    with_s1v = [s for s in snaps if s.record("graph", "s1v") is not None]
+    assert with_s1v, "S0 수준 스냅샷 참조(graph/s1v 레코드)가 결과에 없다"
+    fields = {name for name, _fv in with_s1v[0].record("graph", "s1v").fields}
+    assert {"views", "l_classes", "findings", "declared", "applied_facts"} <= fields, fields
+
+
+def test_loose_design_values_scanner():
+    from gmid_engine.graph import LClass             # 등록부에 오른 graph 값 형식(①-a 등록)
+    probe = LClass(*([None] * len(dataclasses.fields(LClass))))
+    assert _loose_design_values({"a": (1, probe)}) == [("result['a'][]", "LClass")]

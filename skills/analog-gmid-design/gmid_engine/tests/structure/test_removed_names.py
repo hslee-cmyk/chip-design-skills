@@ -23,7 +23,13 @@ import pytest
 # 'search/objectives.py 의 _power_resolution' 으로 범위를 적었으므로 search/ 안에서만 폐기 이름이다(b_P 의 정본은 metrics_dc 로
 # 옮겨졌고, 그 파일 안의 `_` helper 이름은 설계가 정하지 않는다 -- 파일 분할 규칙 (B)).
 REMOVED_SCOPES = (("dc_gm_bound", None), ("previous_gm_id", None), ("inherited_gm_id", None), ("canonical_gm_id", None),
-                  ("gm_grid_max", None), ("_power_resolution", "search/"), ("spec_passive_values", None))
+                  ("gm_grid_max", None), ("_power_resolution", "search/"), ("spec_passive_values", None),
+                  # [U17 ①-b] 설계 40 v1.9 §2.4.2 '묶음 객체(S1v, Achievability, StartIntervals)는 필드 묶음으로 풀고 사본을 두지 않는다',
+                  # §2.4.7 StartContext·CurveBook '없앤다', §11 U17 ① 지우는 것(StartContext, CurveBook, S1v·Achievability·StartIntervals 묶음 전달).
+                  ("S1v", None), ("Achievability", None), ("StartIntervals", None), ("StartContext", None), ("CurveBook", None),
+                  # [U17 ①-b] §2.4.6 끝·§2.4.7 SearchContext 칸 배정 `cell_floors`: 1변수 writer 집합(`cell_floor.py` 의 `_ONE_VAR_KEY` 칸)은
+                  # S0 수준 필드 `device: dc_self_referential`(§2.4.8) -- search 쪽 사본 키를 지운다.
+                  ("_ONE_VAR_KEY", "search/"))
 REMOVED = tuple(n for n, _s in REMOVED_SCOPES)
 
 
@@ -94,9 +100,43 @@ def test_scope_of_power_resolution_is_search_only():
     assert "_power_resolution" in removed_names_for("search/objectives.py")
     assert "_power_resolution" in removed_names_for("search\\kernel.py")
     assert "_power_resolution" not in removed_names_for("metrics/dc_metrics.py")
-    assert removed_names_for("metrics/dc_metrics.py") == frozenset(REMOVED) - {"_power_resolution"}
+    assert removed_names_for("metrics/dc_metrics.py") == frozenset(n for n, scope in REMOVED_SCOPES if scope is None)
+    assert "_ONE_VAR_KEY" in removed_names_for("search/cell_floor.py") and "_ONE_VAR_KEY" not in removed_names_for("sizing/writer_plan.py")
 
 
 def test_scanner_ignores_docstring_and_comment_mentions():
     src = '"""옛 `dc_gm_bound` 와 previous_gm_id 는 폐기됐다."""\n# gm_grid_max 는 지웠다\nx = "dc_gm"\n'
     assert removed_name_hits(ast.parse(src)) == []
+
+
+def local_inputs_rebuild_hits(tree):
+    """-> [(줄, 형식)]: `local_inputs` 를 **부르거나 import** 하는 곳(필드 이름 문자열 `"local_inputs"` 읽기는 해당 없음)."""
+    out = []
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Call):
+            f = n.func
+            name = f.id if isinstance(f, ast.Name) else f.attr if isinstance(f, ast.Attribute) else None
+            if name == "local_inputs":
+                out.append((n.lineno, "call"))
+        elif isinstance(n, ast.alias) and (n.asname or n.name).rsplit(".", 1)[-1] == "local_inputs":
+            out.append((getattr(n, "lineno", 0), "import"))
+    return sorted(out)
+
+
+def test_local_inputs_not_rebuilt_in_search(checks, engine_root, report):
+    """[U17 ①-b] 설계 40 v1.9 §2.4.8 '블록 국소 모델 입력 LocalInputs(achievability.py:77-113, iv_context.py:63-69 에서 두 번)' 행:
+    `graph/ach: local_inputs` 의 writer 는 achievability(GB4) 하나이고 '출발 구간이 같은 필드를 읽는다'. 그래서 search 패키지(출발 구간·층 0)는
+    `local_inputs` 를 다시 만들지(호출·import) 않는다 -- 필드를 읽는다."""
+    files = [p for p in checks.engine_files(engine_root) if checks.rel(engine_root, p).replace("\\", "/").startswith("search/")]
+    hits = ["%s:%d (%s)" % (checks.rel(engine_root, p), line, form)
+            for p in files for line, form in local_inputs_rebuild_hits(checks.parse(p))]
+    report(len(files), len(hits))
+    assert files
+    assert not hits, "search 가 LocalInputs 를 다시 만든다 %d건:\n%s" % (len(hits), "\n".join(hits))
+
+
+@pytest.mark.parametrize("src, n", [("x = local_inputs(a, b)\n", 1), ("x = metrics.local_inputs(a)\n", 1),
+                                    ("from gmid_engine.metrics import local_inputs\n", 1),
+                                    ("x = s.value('graph', 'ach', 'local_inputs')\n", 0)])
+def test_local_inputs_scanner(src, n):
+    assert len(local_inputs_rebuild_hits(ast.parse(src))) == n
