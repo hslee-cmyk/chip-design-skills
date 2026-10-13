@@ -60,10 +60,26 @@ def test_same_input_same_fingerprint_and_shuffle_invariant(tmp_path):
 
 
 def test_different_input_different_fingerprint(tmp_path):
+    # [U17 ①-b 기준 변경, 설계 40 v1.9.1 §2.4.8 'graph/s1v: views, l_classes, findings, declared, applied_facts'(D1, 옛 key 칸 없음),
+    #  graph CONTRACT 10.1 'structure_tables(source)(필드를 읽는다 -- 옛 key 칸 없음)'] 표는 S1v 필드 값만 담는다.
+    # oracle (a) 구성: 입력 차이가 S1v 필드 값을 바꾸는 쌍 -- b = CMFB 에서 소자 M9 이름만 M19 로(표에는 모든 소자 이름이 나타난다,
+    # 위 test_tables_mention_views_cells_classes_and_records), c = 다른 회로(MILLER). 세 표 지문이 모두 다르다.
     _, a = H.build(tmp_path, H.CMFB)
-    _, b = H.build(tmp_path, H.CMFB, declared_loop_cuts=("cm",))
+    _, b = H.build(tmp_path, H.rename(H.CMFB, {}, {"M9": "M19"}, seed=3), stem="cmfb_m19")
     _, c = H.build(tmp_path, H.MILLER)
+    assert '"M19"' in json.dumps(structure_tables(b)) and '"M19"' not in json.dumps(structure_tables(a))
     assert len({fp_of(structure_tables(x)) for x in (a, b, c)}) == 3
+
+
+def test_tables_carry_no_reuse_key(tmp_path):
+    # [U17 ①-b, 설계 40 v1.9.1 D1] 옛 표의 `key`(S1v 재사용 키) 칸은 없앴다 -- 블록 입력만 다르고 S1v 필드 값이 같은 두 입력은 같은 표다.
+    # oracle (a) 구성: CMFB 의 CM 루프는 넷 cm 에서 끊긴다(위 test 의 뷰 id 'loop:M5:cm'). 같은 끊는 점을 선언(`declared_loop_cuts=("cm",)`)하면
+    # 블록 입력(선언 끊는 넷)은 다르지만 뷰·셀·L 동치류·기록은 같다 -> 블록 입력 버전 다름, 표 지문 같음.
+    _, a = H.build(tmp_path, H.CMFB, stem="nocut")
+    _, b = H.build(tmp_path, H.CMFB, declared_loop_cuts=("cm",), stem="cut")
+    assert a.key != b.key
+    assert fp_of(structure_tables(a)) == fp_of(structure_tables(b))
+    assert "key" not in structure_tables(a)
 
 
 SCRIPT = r"""
