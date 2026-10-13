@@ -448,7 +448,9 @@ def test_orbit_matching_crosstab_is_reported(tmp_path, real_lut):
 
 
 def test_diff_pair_members_in_different_orbits_is_review_needed(tmp_path, real_lut):
-    # 40 §6-5: "`review_needed`로 올리는 것은 하나뿐이다. `diff_pair` 레코드의 두 멤버가 같은 궤도에 들지 않는 경우다."
+    # [U17 ①-d] 40 v1.8 §6-5 (나')(사용자 결정 2026-10-12 "나'로 진행해"): review 는 `diff_pair` 두 멤버가 다른 궤도이고 (a) 출력 포트가 차동 쌍,
+    # (b) 두 gate 가 차동 입력 포트 p/n 일 때만(코드 diff_pair_orbit_split). FDIFF/FDIFF_CX 는 출력 op/om = differential_output_p/n, diff_pair {M1, M2}
+    # gate inp/inn = differential_input_p/n 이라 (a)(b) 를 만족한다 -> 아래 판정은 v1.8 에서도 그대로다.
     # 합성 최소쌍: FDIFF(완전 차동, M1<->M2 반사가 자기동형 -> diff_pair {M1, M2} 같은 궤도 -> 이 review 없음)와 FDIFF_CX(op 쪽에만 Cx ->
     # op<->om 반사가 자기동형이 아니다 -> M1·M2 다른 궤도 -> review). diff_pair 레코드 {M1, M2}(공통 source tail, gate inp/inn)는 둘에 같다.
     # review 코드 이름은 design 에 없다 -> 'M1·M2 둘을 함께 적은 review 항목'으로 본다(FDIFF_CX 의 다른 review 는 l_owner_name_order {M3, M4}).
@@ -459,4 +461,5 @@ def test_diff_pair_members_in_different_orbits_is_review_needed(tmp_path, real_l
     asym = _run(tmp_path, real_lut, J.FDIFF_CX, out="o_asym")
     assert pair_reviews(sym.report) == []
     assert len(pair_reviews(asym.report)) == 1, asym.report["review_needed"]
+    assert pair_reviews(asym.report)[0].split("|")[1] == "diff_pair_orbit_split"          # [U17 ①-d] 실제 API 의 기록 코드(graph CONTRACT 4.8)
     assert asym.status == "review_needed"

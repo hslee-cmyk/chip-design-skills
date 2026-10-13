@@ -616,8 +616,7 @@ def test_cm_direct_closed_form_s23(cm_direct):
     assert rel_close(rep["dc_db"], ref["gain_db"], 1e-12)
 
 
-@pytest.mark.parametrize("variant", ["direct", "ref_rc", "err_amp", "sf_buffer", "dda", "triode", "cascode_ideal", "degen",
-                                     "pass_device"])
+@pytest.mark.parametrize("variant", ["direct", "ref_rc", "err_amp", "sf_buffer", "dda", "triode", "cascode_ideal", "degen"])
 def test_cm_variants_match_independent_middlebrook(tmp_path, variant):
     """S-21·S-29 일반성(연속시간 CMFB 변형 -- 저항 평균 직접, 감지 넷 기준 R·C, 저항 평균 -> 오차 증폭 2단, 소스 팔로어 버퍼 -> 저항 평균,
     DDA, [6a6e4c7] triode 평균(소비자), 출력 캐스코드 + 이상 전류원, 소스 축퇴 출력 단, 출력 사이 통과 소자): T_cm(0) dB = 손유도
@@ -635,6 +634,19 @@ def test_cm_variants_match_independent_middlebrook(tmp_path, variant):
     assert rel_close(rep["ugf_hz"], ugf, 1e-9)
     assert rep["pm_deg"] == r.value and rep["undefined"] == ()
     assert rep["break_nets"] == ("om", "op")
+
+
+def test_cm_pass_device_variant_stops_ds_self_swap(tmp_path):
+    """[U17 ①-d 다시 씀] 옛 판정 'pass_device 변형(출력 사이 통과 소자 Mx(op, vbx, om))의 T_cm·PM 이 독립 Middlebrook 와 같다'는 design 이 폐기한
+    동작이다: 40 v1.8 §6-8 'MOS 는 d/s 에 대해 대칭 -- 자기동형이 전도 MOS 하나를 자기 자신으로 보내며 d/s 를 맞바꾸면 I = −I 로 구조적 0, 계산 규칙을 만들지
+    않고 unsupported_rule_branch(ds_self_swap_zero_current)로 탐색 전에 정지'. 이 변형은 op<->om 반사가 Mx 를 자기 맞바꿈한다(손 유도, 변형 주석
+    'CM 에서 Mx 에 전류 없음'과 같은 사실) -> 회로 준비 단계에서 그 정지가 나야 한다."""
+    from gmid_engine.core import StructureUnresolvedError
+    with pytest.raises(StructureUnresolvedError) as e:
+        cm_case(tmp_path, "pass_device", CM_REQ)
+    det = dict(e.value.record.detail)
+    assert (det["reason"], det["rule_branch"]) == ("unsupported_rule_branch", "ds_self_swap_zero_current")
+    assert tuple(e.value.record.devices) == ("Mx",)
 
 
 def test_cm_triode_average_equals_resistor_average(tmp_path, cm_direct):

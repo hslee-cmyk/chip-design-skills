@@ -8,6 +8,9 @@ oracle:
 - (a) 구성: 손 회로 셋 -- 직렬 감지 저항(o1 -R1- m -R2- o2, m 은 게이트만 구동) -> 대칭·KCL 로 I = 0(구조적 0), 끝을 뒤집어 그린 부하 저항 -> 부호 −1 묶음,
   선언 꼬리 전류원이 상수를 남기는 행(x = I1 − x) -> 묶지 않음.
 search `.py` 소스는 열람하지 않았다.
+[U17 ①-d] 40 v1.8 §2.4.8·§6-8: 생성자와 전류 부호의 출처가 sizing `graph.dc_symmetry`(정점 사상) -> graph 대칭 블록 필드 `graph/s1: current_symmetry`
+(생성자마다 (원소, 상, 부호))로 바뀌었다. 부호 유도(수동소자 앞 끝·MOS d/s 맞바꿈)는 graph 의 책임이고 tests/graph/test_s1_symmetry.py 가 손 유도로
+본다 -- 여기 oracle 은 그 필드의 (원소, 상, 부호)를 입력으로 받아 계약 3.24 2 의 연립·RREF·행 분류만 독립으로 다시 한다(판정 내용 불변).
 """
 from __future__ import annotations
 
@@ -63,10 +66,8 @@ def _case(tmp, doc, lut, untie=None):
 def expected_symmetry(dc):
     b = dc.base
     basis = b.value("graph", DC_KEY, "dc_current_basis")
-    gens = b.value("graph", DC_KEY, "dc_symmetry")
+    gens = b.value("graph", "s1", "current_symmetry").generators      # [U17 ①-d] ((원소, 상, 부호), ...) 생성자마다
     colour = dict(b.column("device", "dc_colour"))
-    cls = dict(b.column("device", "element_class"))
-    pins = {k: dict(v) for k, v in b.column("device", "pins")}
     fixed = dict(basis.fixed)
     rows = {el: {t.source: Fraction(t.num, t.den) for t in terms} for el, terms in basis.rows}
     free = list(basis.free)
@@ -82,14 +83,11 @@ def expected_symmetry(dc):
 
     eqs = []
     for g in gens:
-        m = dict(g)
+        acts = {el: (img, sg) for el, img, sg in g}
         for el in rows:
-            img = m.get(("e", el), ("e", el))[1]
-            sign = 1
-            if cls[el] == "passive":
-                front = ("n", pins[el]["t0"])
-                if m.get(front, front) != ("n", pins[img]["t0"]):
-                    sign = -1
+            img, sign = acts.get(el, (el, 1))
+            if img not in rows:
+                continue
             a, ca = expr(img)
             e, ce = expr(el)
             row = dict(a)
@@ -177,7 +175,7 @@ def test_asymmetric_circuit_empty(tmp_path, lut_sealed):
     case = make_case(tmp_path, asym_doc(), lut_sealed)
     cs = current_symmetry(case.dc, ())
     assert (cs.ties, cs.negated, cs.zeros) == ((), (), ())
-    assert case.dc.base.value("graph", DC_KEY, "dc_symmetry") == ()
+    assert case.dc.base.value("graph", "s1", "current_symmetry").generators == ()      # [U17 ①-d] graph 필드
 
 
 def test_each_component_one_role(tmp_path, lut_sealed):

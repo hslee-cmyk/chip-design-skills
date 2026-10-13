@@ -476,8 +476,12 @@ def test_ds_self_swap_zero_current_stops_before_search(tmp_path, lut_sealed):
     assert det["reason"] == "unsupported_rule_branch"
     assert det["rule_branch"] == "ds_self_swap_zero_current"
     assert tuple(e.value.record.devices) == ("Mx",)
-    rest = repr({k: v for k, v in det.items() if k not in ("reason", "rule_branch")})
-    assert "op" in rest and "om" in rest                                    # 생성자 기록(op<->om 반사) -- 키 이름은 design 미정
+    # 생성자 기록(op<->om 반사): [U17 ①-d 관찰 방법을 실제 API 에 맞춤] graph CONTRACT 4.8 의 기록 형식은 detail generators = 그 소자의 부호 궤도에
+    # 닿는 생성자들의 (원소, 상, 부호) 행이다(넷 사상은 적지 않는다) -- op<->om 반사의 원소 대응 M1<->M2·M3<->M4 와 Mx 자기 맞바꿈(−1)이 있어야 한다
+    gens = dict(det["generators"])["Mx"]
+    rows = {r for g in gens for r in g}
+    assert ("Mx", "Mx", -1) in rows
+    assert {("M1", "M2", 1), ("M3", "M4", 1)} <= rows
 
 
 def test_pass_circuit_without_self_swap_device_builds(tmp_path, lut_sealed):
@@ -500,7 +504,10 @@ def test_graph_s1_symmetry_fields_present(tmp_path, lut_sealed):
 
 
 def test_search_domain_does_not_recompute_symmetry(tmp_path, lut_sealed, monkeypatch):
-    """소비자(search_domain)는 graph/s1 필드를 읽는다 -- 정준형·궤도·전류 대칭 계산 함수를 부르지 않는다."""
+    """소비자(search_domain)는 graph/s1 필드를 읽는다 -- 정준형·궤도·전류 부호 계산(graph 대칭 블록)을 다시 하지 않는다.
+    [U17 ①-d 관찰 방법을 실제 API 에 맞춤] search 의 `current_symmetry` 는 graph 필드 `current_symmetry`(생성자별 부호)를 읽어 θ 전류 묶음 연립을 푸는
+    search 자신의 함수(search CONTRACT 3.24 2)라 관찰 대상이 아니다 -- 대칭 계산은 graph `canonical_form`·`automorphism_orbits` 호출과
+    `s1_symmetry` 블록 compute 계수로 본다."""
     import sys
     import types
     case = _sym_case(tmp_path, lut_sealed)
@@ -514,11 +521,102 @@ def test_search_domain_does_not_recompute_symmetry(tmp_path, lut_sealed, monkeyp
     for modname, mod in list(sys.modules.items()):
         if not modname.startswith("gmid_engine.") or mod is None:
             continue
-        for attr in ("canonical_form", "automorphism_orbits", "current_symmetry"):
+        for attr in ("canonical_form", "automorphism_orbits"):
             fn = getattr(mod, attr, None)
             if isinstance(fn, types.FunctionType):
                 monkeypatch.setattr(mod, attr, wrap(attr, fn))
+    from gmid_engine.graph import s1_symmetry
+    before = s1_symmetry.stats().computes
     d = search_domain(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
     assert d.ties == case.sctx.domain.ties                                   # 같은 결과(공허하지 않음: SYM 은 묶음이 있다)
     assert d.ties
     assert calls == []
+    assert s1_symmetry.stats().computes == before
+
+
+# ---------------------------------------------------------------- [U17 ①-d] 40 v1.8 §6-8 D-1 궤도를 넘는 전류 묶음 상자 (§10.2 행 '궤도 넘는 전류 상자')
+# toy(손 유도): 완전 차동 직렬 가지 op: M1(nmos, gnd)·M3(pmos, vdd), om: M2·M4, 두 출력 사이 저항 R1(op, om, 값 선언).
+# op<->om 반사는 R1 의 단자 순서를 뒤집는다 -> I_R1 = −I_R1 = 0. KCL op: I_M3 = I_M1 + I_R1, om: I_M4 + I_R1 = I_M2 -> I_M3 = I_M1, I_M4 = I_M2,
+# 대칭 I_M4 = I_M3 -> 네 전류가 모두 같다. 궤도는 {M1, M2}(nmos)·{M3, M4}(pmos) 둘이라 nmos 와 pmos 전류가 궤도를 넘어 묶인다(+1).
+# 묶음 상자 = 구성원 상자의 교집합(nmos 상자 ∩ pmos 상자, 상자 = 3.19 독립 계산 expect_box), 비면 tied_current_box_empty.
+# 같은 궤도 안 불일치는 기존 test_bounds_differ_rejected(test_orbit_ties.py)가 tied_orbit_bounds_differ 로 본다.
+# (design 이 적은 toy 'U11 pass_device 변형'(통과 MOS Mx 포함)은 §6-8 자기 맞바꿈 정지에 먼저 걸려 search_domain 에 닿지 않는다 -- 결함 후보로 보고.)
+
+_X_PORTS = {"ip": ("input", "differential_input"), "im": ("input", "differential_input"),
+            "op": ("output", "differential_output"), "om": ("output", "differential_output")}
+_ALL4 = {"M1", "M2", "M3", "M4"}
+
+
+def _bridge_doc():
+    return topo("hand_xorbit", [mos("M1", "nmos", "op", "ip", "gnd"), mos("M2", "nmos", "om", "im", "gnd"),
+                                mos("M3", "pmos", "op", "vb", "vdd"), mos("M4", "pmos", "om", "vb", "vdd")], _X_PORTS,
+                passives=[two("R1", "resistor", "op", "om")], bias=["vb"])
+
+
+def _scaled_r4_lut(root, pmos_scale):
+    """sizing conftest write_r4_lut 와 같은 toy LUT, pmos ID·GM·GDS 만 pmos_scale 배(상자를 nmos 상자와 떼어 놓는 입력)."""
+    import json as _json
+    import numpy as _np
+    from gmid_engine.lut import load_lut_set
+    from sizing.conftest import DEVICE_OF, R4_GRIDS, SUFFIX, TOY_SPEC, W_M, _sha
+    root.mkdir(parents=True, exist_ok=True)
+    entries, arrays = [], {}
+    for kind in ("nmos", "pmos"):
+        a = dict(r4_arrays(kind))
+        if kind == "pmos":
+            for col in ("ID", "GM", "GDS"):                                 # 전류 단위 열을 함께(gm/ID·gds/ID 불변 -- LUT 단위 검사 통과)
+                a[col] = _np.asarray(a[col]) * pmos_scale
+        arrays[kind] = a
+        p = root / ("r4_%s.npz" % kind)
+        _np.savez(p, **a)
+        entries.append({"device": DEVICE_OF[kind], "file": p.name, "sha256": _sha(p)})
+    (root / "manifest.json").write_text(_json.dumps({"generator_sha256": "0" * 64, "slices": entries}), encoding="utf-8")
+    gL, gG, gD, gS = (_np.asarray(g, dtype=float) for g in R4_GRIDS)
+    shp = (len(gL), len(gG), len(gD), len(gS))
+    cap = {"L": gL, "VGS": gG, "VDS": gD, "VS": gS, "w_ref_m": _np.float64(W_M), "corner": _np.str_("tt"),
+           "temp_c": _np.float64(27.0)}
+    for kind in ("nmos", "pmos"):
+        cap["CGG" + SUFFIX[kind]] = _np.full(shp, 1e-15)
+        cap["CGD" + SUFFIX[kind]] = _np.full(shp, 2e-16)
+    _np.savez(root / "cap.npz", **cap)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC), arrays
+
+
+def _bridge_case(tmp_path, lut):
+    from gmid_engine.graph import GRAPH_KEY
+    from .canon_cases import make_case
+    case = make_case(tmp_path, _bridge_doc(), lut, elements=(("R1", "resistor", 1e5),), build_sctx=False)
+    orb = dict(case.dc.base.value("graph", GRAPH_KEY, "orbits").devices)
+    assert orb["M1"] == orb["M2"] and orb["M3"] == orb["M4"] and orb["M1"] != orb["M3"]          # 전제(손 유도 궤도)
+    return case
+
+
+def test_cross_orbit_current_tie_box_is_intersection(tmp_path, lut_sealed):
+    case = _bridge_case(tmp_path, lut_sealed)
+    d = search_domain(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
+    cur = [(rep, members) for rep, members in d.ties if rep[0] == "current"]
+    assert len(cur) == 1
+    rep, members = cur[0]
+    group = {rep[1]} | {m[1] for m in members}
+    assert group <= _ALL4 and group & {"M1", "M2"} and group & {"M3", "M4"}       # 궤도를 넘는 묶음(nmos·pmos 둘 다)
+    arr = {k: r4_arrays(k) for k in ("nmos", "pmos")}
+    boxes = {k: expect_box(arr[k], [arr[k]]) for k in arr}
+    lo = max(boxes["nmos"][0], boxes["pmos"][0])
+    hi = min(boxes["nmos"][1], boxes["pmos"][1])
+    assert lo < hi                                                           # 전제: 이 LUT 에서 교집합이 비지 않는다
+    v = next(x for x in d.variables if x.component == rep)
+    assert v.log is True
+    assert (v.lo, v.hi) == (pytest.approx(math.log(lo), rel=1e-12), pytest.approx(math.log(hi), rel=1e-12))
+
+
+def test_cross_orbit_current_tie_empty_box_rejected(tmp_path):
+    lut, arrays = _scaled_r4_lut(tmp_path / "lut", 1e16)
+    boxes = {k: expect_box(arrays[k], [arrays[k]]) for k in arrays}
+    assert boxes["pmos"][0] > boxes["nmos"][1]                               # 전제: 두 kind 상자가 떨어져 있다
+    case = _bridge_case(tmp_path / "c", lut)
+    with pytest.raises(SchemaRejectedError) as e:
+        search_domain(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
+    det = dict(e.value.record.detail)
+    assert (det["gate"], det["reason"]) == ("search_domain", "tied_current_box_empty")
+    names = {x[1] for x in det["elements"]}
+    assert names <= _ALL4 and names & {"M1", "M2"} and names & {"M3", "M4"}

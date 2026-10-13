@@ -110,9 +110,9 @@ def test_asymmetric_circuit_no_ties(tmp_path, lut_sealed):
 
 
 def test_dc_orbit_pairs_follow_construction(tmp_path, lut_sealed):
-    """입력 확인: 묶음의 근거인 dc_orbit 이 σ 짝에서 같고 고정점끼리 다르다(sizing 3.0b)."""
+    """입력 확인: 묶음의 근거인 궤도(graph/s1 orbits -- [U17 ①-d] 옛 sizing dc_orbit 대체, 40 §2.4.8)가 σ 짝에서 같고 고정점끼리 다르다."""
     case = _sym(tmp_path, lut_sealed)
-    orb = dict(case.dc.base.column("device", "dc_orbit"))
+    orb = dict(case.dc.base.value("graph", "s1", "orbits").devices)
     assert orb["M1"] == orb["M2"] and orb["M3"] == orb["M4"] and orb["CL1"] == orb["CL2"]
     assert len({orb["M1"], orb["M3"], orb["M5"], orb["CL1"]}) == 4
 
@@ -255,7 +255,7 @@ def test_b_reversed_resistor_same_ties_as_drawn_alike(tmp_path, lut_sealed):
     same = make_case(tmp_path / "s", _rload(False), lut_sealed, elements=R_ELEMENTS, boxes=R_BOXES)
     flip = make_case(tmp_path / "f", _rload(True), lut_sealed, elements=R_ELEMENTS, boxes=R_BOXES)
     assert frozenset({("resistance", "R1"), ("resistance", "R2")}) in tie_groups(same.sctx.domain.ties)   # 대조(현재도 통과)
-    orb = dict(flip.dc.base.column("device", "dc_orbit"))
+    orb = dict(flip.dc.base.value("graph", "s1", "orbits").devices)
     assert orb["R1"] == orb["R2"] and orb["M1"] == orb["M2"]
     assert frozenset({("resistance", "R1"), ("resistance", "R2")}) in tie_groups(flip.sctx.domain.ties)
     assert _dimension(flip.sctx.domain) == _dimension(same.sctx.domain)
@@ -295,7 +295,7 @@ def test_b_pilot_current_reuse_r1_r2_tied(tmp_path, lut_sealed):
     flipped = build_library_case(tmp_path / "f", flip_terminals(raw, "R2"), spec, lut_sealed)
     assert flipped.domain.ties                                                     # 전제(현재 코드도 통과)
     assert _dimension(flipped.domain) < len(flipped.dc.schema.components)
-    orb = dict(orig.dc.base.column("device", "dc_orbit"))
+    orb = dict(orig.dc.base.value("graph", "s1", "orbits").devices)
     assert orb["R1"] == orb["R2"]
     assert orig.domain.ties
     assert _dimension(orig.domain) == _dimension(flipped.domain)
@@ -307,6 +307,9 @@ def test_b_pilot_current_reuse_r1_r2_tied(tmp_path, lut_sealed):
 # 해시)를 낸다" + §6-3 θ 묶기는 같은 궤도 원소를 묶는다 -> d/s 뒤집기 전후 묶음 그룹(ties)이 같다. 이름이 같으므로 ties 가 그대로 같아야 한다.
 # 부호(negated)는 비교하지 않는다(§6-8 '전류 부호': drain 이 상 drain 으로 가지 않으면 −1 -- 표기를 뒤집은 소자는 전류 기준 방향이 바뀐다).
 # 뒤집기 대상 = gate 가 drain·source 어느 쪽도 아닌 MOS(SYM 의 다섯 MOS 모두).
+# [U17 ①-d 통합 test agent] M1·M3·전부 뒤집기에서 실패한다(M5 만 통과): 궤도·dc_colour 는 비트 동일하나 sizing writer 계획이 표기된 source 를 읽어
+# (뒤집은 M1 의 source = o1 -> o1 이 W2 vgs_source 로 쓰임) θ 스키마 성분이 바뀐다(y(o1) <-> ln_idu(M2)). 40 §6-8 D-3 '비트 동일(front 정규화 해시)'과
+# 어긋나는 구현 결함 후보로 보고했다 -- 판정을 약화하지 않는다.
 
 def _flip_ds(doc, names, new_name):
     import json
@@ -325,5 +328,5 @@ def test_ds_flip_ties_bit_identical(names, tmp_path, lut_sealed):
                      boxes=BOXES)
     assert base.sctx.domain.ties                                            # 공허한 비교 아님
     assert flip.sctx.domain.ties == base.sctx.domain.ties
-    assert dict(flip.dc.base.column("device", "dc_orbit")) == dict(base.dc.base.column("device", "dc_orbit"))
+    assert dict(flip.dc.base.value("graph", "s1", "orbits").devices) == dict(base.dc.base.value("graph", "s1", "orbits").devices)
     assert dict(flip.dc.base.column("device", "dc_colour")) == dict(base.dc.base.column("device", "dc_colour"))

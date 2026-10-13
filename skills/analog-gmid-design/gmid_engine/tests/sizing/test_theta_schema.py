@@ -393,7 +393,7 @@ HAND_DOCS = {
 def test_hand_renaming_zero_cancel_follows_sigma(case, seed, tmp_path, toy_access):
     """이름 전단사 σ(넷·원소): engine_elements 를 σ 로 옮기면 zero_cancel(resistor·end·far·cells·reason)과 수동 θ 성분이
     σ 로 옮겨진 것과 같다(구조 규칙은 연결만 쓴다 -- 이름이 결정을 가르지 않는다)."""
-    from .test_struct_colour import rename
+    from .conftest import rename
     doc = HAND_DOCS[case]()
     eng = tuple(sorted(e["name"] for e in doc["passive_elements"] if e["name"] not in ("RL", "R0", "RL2")))
     ctx = ctx_of(tmp_path, doc, toy_access, eng)

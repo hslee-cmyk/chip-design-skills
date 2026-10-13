@@ -138,13 +138,16 @@ def test_deterministic(name):
     assert list(r1.position.items()) == list(r2.position.items())
 
 
-def test_marks_enter_initial_colour_not_wl():
-    """선언 표시는 처음 색에만: wl(표시 없는 1-WL)은 같고, 표시된 원소는 어떤 생성자도 움직이지 않는다(링에서 홀로 표시)."""
+def test_marks_enter_initial_colour_and_wl_same_graph():
+    """[U17 ①-d 다시 씀] 40 v1.8 §6-8 D-2 '그래프 하나': `wl`·`position`·생성자를 모두 선언 표시를 넣은 같은 그래프에서 정한다 -- 옛 판정
+    'wl 은 표시 없는 1-WL'은 design 이 폐기했다. 남는 판정: wl 분할 = 표시를 넣은 그래프의 독립 1-WL 분할, 표시된 원소는 어떤 생성자도 움직이지
+    않는다(링에서 홀로 표시), 생성자는 표시를 넣은 그래프의 자기동형."""
     c = ring(4)
     em = (("E00", (("value", 1e-12),)),)
     plain, marked = _cf(c), _cf(c, em, ())
-    assert marked.wl == plain.wl
     col, nb = labeled_graph(c, em, ())
+    assert partition(marked.wl) == partition(wl_classes(col, nb))
+    assert partition(marked.wl) != partition(plain.wl)                      # 표시가 1-WL 분할을 실제로 바꾼다(링 대칭이 깨짐)
     assert all(is_automorphism(col, nb, dict(g)) for g in marked.generators)
     assert ("e", "E00") not in {v for g in marked.generators for v, _ in g}
 

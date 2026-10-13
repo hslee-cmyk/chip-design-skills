@@ -2,7 +2,7 @@
 
 oracle (a) 손 유도. 규칙: 1 여기 포트·source 진입 = 전압, drain 진입만 = 전류 후보. 3 전류 진입 노드는 나가는 쪽으로 -- gate 로만
 = 전압, 채널로만 = 전류, 둘 다면 gate 쪽 셀 출력이 순방향 위일 때 전압 아니면 tap(전류로 기록, gate 쪽 셀은 9 (a) 기록만).
-4 혼재(source 진입 + 다른 소자 drain) = drain 쪽 DC 역할: 바이어스 전류원 -> 전압, 신호 소자 -> mixed_drive_signal_drain.
+4 혼재(source 진입 + 다른 소자 drain) = 41 v1.8 §1.5-4: (i) source 쪽 follower -> 전압(`follower`), (ii) drain 쪽 gate 신호 -> 전류(`cascode`), 아니면 전압.
 2·5 저항·pass 로만 들어오면 이웃 종류 상속(저항은 value_dependent). ratified `drive_kind` 사실은 그 넷을 고정(근거 ratified_fact).
 """
 from __future__ import annotations
@@ -63,21 +63,55 @@ def test_tap_node_and_gate_on_current_node(tmp_path):
     assert "Mt" in hits[0].subject
 
 
-def test_mixed_node_with_signal_drain_is_review_needed(tmp_path):
+# [U17 ①-d 다시 씀] 41 v1.8 §1.5-4 혼재 노드 C-1 + 보완 (가)(사용자 결정 2026-10-12 "7절 권고대로"·"1, 가로 해"): 옛 규칙 4 'drain 쪽 DC
+# 역할로 가름(신호 소자 -> mixed_drive_signal_drain review)'은 design 이 통째로 대체했다. 41 §9 표 toy 셋(이름 없는 구조):
+#  (i) source 쪽 소자 drain = 교류 접지(레일), gate = 그 뷰의 신호 넷 -> follower, 전압 구동(근거 `follower`)
+#  (ii) 아니면 drain 쪽 소자 gate 가 신호 넷 -> 전류 구동(근거 `cascode`), 신호 넷이 아니면 전압 구동(그 뷰에서 고정 전류원)
+# 혼재 판정에서 review 기록은 더 나오지 않는다(옛 코드 mixed_drive_signal_drain·mixed_drive_unresolved_group 없음).
+_OLD_MIXED_CODES = ("mixed_drive_signal_drain", "mixed_drive_unresolved_group")
+
+# 둘째 toy: x = M1 drain(gate in = 신호) + M2 source(gate in 신호, drain out -- 레일 아님 -> follower 아님)
+CASCODE_MIX = H.topo("cascmix", (("M1", "nmos", "x", "in", "gnd"), ("M2", "nmos", "out", "in", "x"), ("M3", "pmos", "out", "vbp", "vdd")),
+                     {"in": H.SE_IN, "out": H.SE_OUT}, bias=("vbp",))
+# 셋째 toy: x = M1 drain(CG, gate vb = 바이어스 넷 -- 신호 아님) + M2 source(drain out -- 레일 아님)
+BIAS_MIX = H.topo("biasmix", (("M1", "nmos", "x", "vb", "in"), ("M2", "nmos", "out", "in", "x"), ("M3", "pmos", "out", "vbp", "vdd"),
+                              ("M4", "nmos", "in", "vb2", "gnd")),
+                  {"in": H.SE_IN, "out": H.SE_OUT}, bias=("vb", "vbp", "vb2"))
+
+
+def test_mixed_node_source_follower_is_voltage(tmp_path):
+    # 첫째 toy(H.MIXED): out = M1 source(drain vdd 레일, gate in = 입력 포트 신호) + M2 drain -> (i) follower, 전압, review 없음
     _, s1v = H.build(tmp_path, H.MIXED)
     v = H.view(s1v)
-    # out: M1 source 진입 + M2 drain. M2 DC 역할 = 신호(gate 가 입력 포트 -> G 밖, gs 묶음 없음) -> review_needed
-    hits = [f for f in v.findings if f.code == "mixed_drive_signal_drain"]
-    assert [h.severity for h in hits] == ["review_needed"]
-    assert "out" in hits[0].subject
+    info = {i.net: i for i in v.drive_kind}
+    assert (info["out"].kind, info["out"].basis) == ("voltage", "follower")
+    assert not set(_OLD_MIXED_CODES) & set(H.codes(v))
+
+
+def test_mixed_node_signal_drain_gate_is_current(tmp_path):
+    _, s1v = H.build(tmp_path, CASCODE_MIX)
+    v = H.view(s1v)
+    info = {i.net: i for i in v.drive_kind}
+    assert "x" in v.forward_nets                                            # 전제: x 는 신호 경로 위
+    assert (info["x"].kind, info["x"].basis) == ("current", "cascode")
+    assert not set(_OLD_MIXED_CODES) & set(H.codes(v))
+
+
+def test_mixed_node_bias_drain_gate_is_voltage(tmp_path):
+    _, s1v = H.build(tmp_path, BIAS_MIX)
+    v = H.view(s1v)
+    info = {i.net: i for i in v.drive_kind}
+    assert "vb" not in v.signal_nets and "x" in v.forward_nets              # 전제: drain 쪽 gate 는 신호 넷 아님
+    assert info["x"].kind == "voltage" and info["x"].basis not in ("follower", "cascode")
+    assert not set(_OLD_MIXED_CODES) & set(H.codes(v))
 
 
 def test_bias_drain_on_mixed_node_gives_voltage_without_record(tmp_path):
     _, s1v = H.build(tmp_path, H.OTA5)
-    # OTA5 tail 이 혼재 노드(4)이고 drain 쪽 M5 가 바이어스 전류원 -> 기록 없이 전압
+    # OTA5 tail: 꼬리 M5 는 바이어스 전류원 -> 전압, 혼재 기록 없음
     v = H.view(s1v)
     assert H.drive(v)["tail"] == "voltage"
-    assert "mixed_drive_signal_drain" not in H.codes(v)
+    assert not set(_OLD_MIXED_CODES) & set(H.codes(v))
 
 
 def test_ratified_drive_fact_fixes_net(tmp_path):
