@@ -288,7 +288,7 @@ plan_version: 6.8
 | D-P11 | 최종 해 활성 제약 여유 판정·활성/비활성/보류 보고(NFR-5) | 40 §3.10.6 | MISS | front 표 `constraints[].state` 없음 |
 | D-P12 | 규칙 분기 발동표 결과 JSON `rule_branches`(DEC-59) | 40 §3.10.7 | MISS | `rg "rule_branches"` 0 |
 | D-P13 | 누락 항목 일괄: `dc_id_source`, tol_V 정의, 결합 잔차 쓰임(`residual_table`·`trust_limits`), LY8 3열, 근방 반경 확장, IC3·IC7·IC11, T1·T7·T8 형식, `layer0.ac_inactive`, bisection 켜기 경로, TS7 strict xfail | 40 §3.10.8 | MISS | 항목별 grep 0(`dc_id_source`, `trust_limits`, `metric_columns`, `ac_inactive`) |
-| D-AP1 | A' 판정 기준(P DEC-98, 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①): 판정자 ngspice·독립 대조군 AI 손분석(엔진 코드 미열람, 회로마다 1회 고정 문서, 엔진 입력 아님)·피검 엔진 시작점·front, 판정 규칙(엔진만 실패 = 엔진 결함 대조표, AI만 실패 = 공동분석, 둘 다 통과 = 전력·면적 차), U17 단계 ② 완료 조건(library 9회로 + held-out 회로에서 시작점 봉인 통과·spec 제약 행 c ≥ 0·ngspice 통과, 실패 회로 A' 대조표, 9회로 도달률 회귀 지표). held-out 선정 P U-75(사용자 몫), 세부 P U-76 열림 | 40 §10.5 | MISS | 저장소 안 손분석·A' 대조표 문서 0, held-out 회로 0(U-75 미정), `constraint_rows` 미구현(D-GR13) |
+| D-AP1 | A' 판정 기준(P DEC-98, 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①): 판정자 ngspice·독립 대조군 AI 손분석(엔진 코드 미열람, 회로마다 1회 고정 문서, 엔진 입력 아님)·피검 엔진 시작점·front, 판정 규칙(엔진만 실패 = 엔진 결함 대조표, AI만 실패 = 공동분석, 둘 다 통과 = 전력·면적 차), U17 단계 ② 완료 조건(library 9회로 + held-out 회로에서 시작점 봉인 통과·spec 제약 행 c ≥ 0·ngspice 통과, 실패 회로 A' 대조표, 9회로 도달률 회귀 지표). held-out 선정 P U-75(사용자 몫), 세부 P U-76 기본안(fail-closed, 둘 다 실패 = 판정 불능, 시작점 판정 T4-pre = sizing W + `DUT_LINE` 비례 접합 기하, 미측정·측정 불가 제약 행 제외·목록, held-out 개발 전환, `docs/03-analysis/aprime/<회로>.md`, front 비적용) | 40 §10.5 | MISS | 저장소 안 손분석·A' 대조표 문서 0, held-out 회로 0(U-75 미정), `docs/03-analysis/aprime/` 0, T4-pre 오라클 입력(비례 접합 기하) 0, `constraint_rows` 미구현(D-GR13) |
 
 ## 4. 상태 집계
 
