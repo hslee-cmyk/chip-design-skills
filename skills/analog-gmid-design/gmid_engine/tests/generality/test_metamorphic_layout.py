@@ -17,6 +17,9 @@ oracle 종류 (a) -- 변형 관계(원래 결과에 치환표를 적용한 것 �
   `outline_area_m2`)과 소자별 배치(폭 키·finger 수·실현 W·허용오차·origin)가 치환표를 따라가야 한다. 행 id 는 이름을 담아 소자별
   행 finger 수의 다중집합으로 비교한다.
 - 순서 섞기·태그 잡음: 같은 이름이라 결과가 같다(4.13 9).
+- [U17 1-e] design 40 v1.6 §2.4.7·§2.4.8: 레이아웃 결과는 그 **설계점(봉인) 스냅샷**의 S2 `layout` 필드다. `run_layout(layout_input, memo,
+  sealed_snapshot)` 으로 봉인 스냅샷 위에 놓고, 비교 값은 스냅샷 `ly_*` 필드(floorplan·groups·rows·diffusion)와 필드 파생 출력
+  `layout_outputs`(devices·w_requests·coverage·불변식)에서 읽는다. 옛 결과 칸이 비교하던 열은 그대로다.
 """
 from __future__ import annotations
 
@@ -27,7 +30,9 @@ import math
 import pytest
 
 from gmid_engine.graph import GRAPH_KEY
-from gmid_engine.layout import LayoutDevice, LayoutInput, LayoutPdk, MatchingGroup, RowGroup, run_layout
+from gmid_engine.layout import (F_DIFFUSION, F_FLOORPLAN, F_GROUPS, LAYOUT_KEY, LayoutDevice, LayoutInput, LayoutPdk, MatchingGroup,
+                                RowGroup, layout_outputs, run_layout)
+from gmid_engine.layout._ly_fields import F_ROWS, LY_WRITERS
 from gmid_engine.layout.contract_input import PATTERNS
 from gmid_engine.sizing import size_and_seal
 
@@ -49,6 +54,7 @@ def _compress(ws):
 
 
 def layout_input(pipe, case, theta):
+    """(LayoutInput, 봉인 스냅샷) -- 봉인 스냅샷이 레이아웃 필드를 쓸 설계점이다(§2.4.7)."""
     ev = size_and_seal(case.ctx, theta)
     assert ev.sealed is not None, ev.report
     snap = ev.sealed.snapshot
@@ -75,7 +81,7 @@ def layout_input(pipe, case, theta):
             groups.append(MatchingGroup("%s|%s" % (g.kind, "+".join(sorted(g.members))), tuple(sorted(g.members)), g.kind,
                                         None, tuple(PATTERNS)))
     row_groups = tuple(RowGroup("%s|%s" % key, key[0], key[1], tuple(sorted(v))) for key, v in sorted(rows.items()))
-    return LayoutInput(tuple(devs), tuple(groups), row_groups, _pdk(pipe))
+    return LayoutInput(tuple(devs), tuple(groups), row_groups, _pdk(pipe)), snap
 
 
 def _pdk(pipe):
@@ -92,7 +98,28 @@ def _pdk(pipe):
 
 
 def _run(pipe, case, theta):
-    return run_layout(layout_input(pipe, case, theta), pipe.env.memo)
+    li, sealed = layout_input(pipe, case, theta)
+    return run_layout(li, pipe.env.memo, sealed)
+
+
+def _g(res, field):
+    return res.snapshot.value("graph", LAYOUT_KEY, field)
+
+
+def _floorplan(res):
+    return _g(res, F_FLOORPLAN)
+
+
+def _groups(res):
+    return _g(res, F_GROUPS)
+
+
+def _rows(res):
+    return _g(res, F_ROWS).rows
+
+
+def _diffusion(res):
+    return _g(res, F_DIFFUSION)
 
 
 def _device_rows(d, nm):
@@ -113,20 +140,21 @@ def test_floorplan_follows_renaming(pipe, name, seed):
     a, b = pipe.case(name), pipe.case(name, ("ren", seed))
     th = _theta0(pipe, name)
     ra, rb = _run(pipe, a, th), _run(pipe, b, map_theta(th, b))
-    assert rb.floorplan.outline_area_m2 == ra.floorplan.outline_area_m2
-    assert (rb.floorplan.bbox_width_m, rb.floorplan.bbox_height_m) == (ra.floorplan.bbox_width_m, ra.floorplan.bbox_height_m)
-    assert sorted(_device_rows(d, lambda x: x) for d in rb.devices) == sorted(_device_rows(d, b.nm) for d in ra.devices)
-    assert len(rb.rows) == len(ra.rows)
+    fa, fb = _floorplan(ra), _floorplan(rb)
+    oa, ob = layout_outputs(ra.snapshot), layout_outputs(rb.snapshot)
+    assert fb.outline_area_m2 == fa.outline_area_m2
+    assert (fb.bbox_width_m, fb.bbox_height_m) == (fa.bbox_width_m, fa.bbox_height_m)
+    assert sorted(_device_rows(d, lambda x: x) for d in ob.devices) == sorted(_device_rows(d, b.nm) for d in oa.devices)
+    assert len(_rows(rb)) == len(_rows(ra))
     # [U12] `GroupLayout.relaxed` 삭제(LY5 즉시 완화 제거, D-LY2) -> 비교 열에서 빼고 LY4 `l_mismatch` 를 치환표로 따라가게 비교
     def grp(g, nm):
         return (g.role, g.pattern, g.method, g.finger_w_m, g.dx, g.dy, g.ok, g.pending, g.reason,
                 tuple(sorted((nm(m), L) for m, L in g.l_mismatch)))
-    assert sorted(map(repr, (grp(g, lambda x: x) for g in rb.groups))) == sorted(map(repr, (grp(g, b.nm) for g in ra.groups)))
-    assert sorted((b.nm(w.device), w.reason) for w in ra.w_requests) == sorted((w.device, w.reason) for w in rb.w_requests)
-    assert (rb.coverage_ok, rb.w_invariant_ok) == (ra.coverage_ok, ra.w_invariant_ok)
+    assert sorted(map(repr, (grp(g, lambda x: x) for g in _groups(rb)))) == sorted(map(repr, (grp(g, b.nm) for g in _groups(ra))))
+    assert sorted((b.nm(w.device), w.reason) for w in oa.w_requests) == sorted((w.device, w.reason) for w in ob.w_requests)
+    assert (ob.coverage_ok, ob.w_invariant_ok) == (oa.coverage_ok, oa.w_invariant_ok)
     # [U12] 새 판정 축 면적 항목(grid_m, passive_area_m2, included)도 치환표를 따라간다
-    assert (rb.floorplan.grid_m, rb.floorplan.passive_area_m2, rb.floorplan.included) == (
-        ra.floorplan.grid_m, ra.floorplan.passive_area_m2, ra.floorplan.included)
+    assert (fb.grid_m, fb.passive_area_m2, fb.included) == (fa.grid_m, fa.passive_area_m2, fa.included)
 
 
 @pytest.mark.parametrize("seed", SEEDS)
@@ -141,7 +169,7 @@ def test_diffusion_follows_renaming(pipe, name, seed):
     th = _theta0(pipe, name)
     ra, rb = _run(pipe, a, th), _run(pipe, b, map_theta(th, b))
     dif = lambda d, nm: (nm(d.name), d.finger_w_m, d.n_fingers, d.ad_m2, d.as_m2, d.pd_m, d.ps_m)  # noqa: E731
-    assert sorted(dif(d, lambda x: x) for d in rb.diffusion) == sorted(dif(d, b.nm) for d in ra.diffusion)
+    assert sorted(dif(d, lambda x: x) for d in _diffusion(rb)) == sorted(dif(d, b.nm) for d in _diffusion(ra))
 
 
 @pytest.mark.parametrize("name", CIRCUITS)
@@ -149,9 +177,10 @@ def test_floorplan_same_after_shuffle_and_tag_noise(pipe, name):
     a, b = pipe.case(name), pipe.case(name, ("shuf", 1))
     th = _theta0(pipe, name)
     ra, rb = _run(pipe, a, th), _run(pipe, b, th)
-    assert rb.floorplan == ra.floorplan
-    assert rb.devices == ra.devices and rb.groups == ra.groups and rb.rows == ra.rows
-    assert rb.diffusion == ra.diffusion                                      # [U12] ly.diffusion 도 같은 입력 = 같은 결과
+    assert _floorplan(rb) == _floorplan(ra)
+    assert layout_outputs(rb.snapshot).devices == layout_outputs(ra.snapshot).devices
+    assert _groups(rb) == _groups(ra) and _rows(rb) == _rows(ra)
+    assert _diffusion(rb) == _diffusion(ra)                                 # [U12] ly.diffusion 도 같은 입력 = 같은 결과
 
 
 def test_layout_inputs_are_nontrivial(pipe):
@@ -159,6 +188,26 @@ def test_layout_inputs_are_nontrivial(pipe):
     roles = collections.Counter()
     for name in CIRCUITS:
         r = _run(pipe, pipe.case(name), _theta0(pipe, name))
-        assert r.floorplan.outline_area_m2 > 0
-        roles.update(g.role for g in r.groups)
+        assert _floorplan(r).outline_area_m2 > 0
+        roles.update(g.role for g in _groups(r))
     assert roles["diff_pair"] > 0 and roles["mirror"] > 0 and roles["branch_symmetric"] > 0, roles
+
+
+def test_layout_fields_live_on_sealed_snapshot(pipe):
+    """[U17 1-e] §2.4.7·§2.4.8: 레이아웃 필드는 봉인 스냅샷(설계점) 위의 S2 필드다 -- 봉인 writer 의 block_version·`dc_op` 레코드 유지,
+    레이아웃 writer(`_ly_fields.LY_WRITERS`)가 더해지고 같은 소자 레코드에 `dc_op` 와 `ly_finger` 가 함께 있다. 같은 입력으로 다시 놓으면 계산 0."""
+    name = CIRCUITS[0]
+    case, th = pipe.case(name), _theta0(pipe, name)
+    li, sealed = layout_input(pipe, case, th)
+    r = run_layout(li, pipe.env.memo, sealed)
+    ly_writers = {w for _f, w in LY_WRITERS.entries}
+    for writer, version in sealed.block_versions.items():
+        assert writer not in ly_writers
+        assert r.snapshot.block_version(writer) == version, writer
+    assert ly_writers <= set(r.snapshot.block_versions)
+    assert r.snapshot.column("device", "dc_op") == sealed.column("device", "dc_op")
+    for dev_name, _op in sealed.column("device", "dc_op"):
+        rec = r.snapshot.record("device", dev_name)
+        assert rec.get("dc_op") is not None and rec.get("ly_finger") is not None, dev_name
+    again = run_layout(li, pipe.env.memo, sealed, previous=r)
+    assert again.computed_blocks == () and again.snapshot is r.snapshot
