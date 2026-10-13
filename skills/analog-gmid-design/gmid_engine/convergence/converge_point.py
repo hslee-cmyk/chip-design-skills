@@ -22,9 +22,8 @@ import dataclasses
 
 from gmid_engine.core import NonconvergentError
 from gmid_engine.layout import F_FLOORPLAN, F_GROUPS, LAYOUT_KEY, passives_from_decl
-from gmid_engine.metrics import PassiveAreaDecl, passive_values
+from gmid_engine.metrics import PassiveAreaDecl
 from gmid_engine.search import STATUS_SEALED, evaluate
-from gmid_engine.sizing import check_theta
 
 from .convergence_values import (
     STATUS_CONVERGED,
@@ -45,9 +44,9 @@ _ORIGIN = (("stage", "mod8"),)
 
 
 def _passives(sctx, result):
+    """판정 축 면적 입력의 수동소자 값 = 그 평가 스냅샷의 GB5 필드 `device.passive_value`(다시 계산하지 않는다, 설계 40 §2.4.8)."""
     decl = sctx.area_decl if sctx.area_decl is not None else PassiveAreaDecl()
-    theta = check_theta(sctx.dc.schema, dict(result.theta))
-    return passives_from_decl(decl, dict(passive_values(result.evaluation.snapshot, sctx.dc, theta)))
+    return passives_from_decl(decl, dict(result.evaluation.snapshot.column("device", "passive_value")))
 
 
 def _accepted(result, start):

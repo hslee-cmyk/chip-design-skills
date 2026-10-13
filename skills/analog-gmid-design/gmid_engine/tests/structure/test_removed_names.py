@@ -1,0 +1,102 @@
+"""[U17 ①] 폐기 이름 부재 -- 설계 40 v1.6 §3.7-3 '폐기', §11 U17 ① '같은 변경에서 지우는 것'.
+
+대상 이름과 근거:
+- `dc_gm_bound`(필드), `previous_gm_id`·`inherited_gm_id`·`canonical_gm_id`(as-built U4 S2p 경로), `gm_grid_max`(곡선 격자 최대 gm 상계)
+  -- §3.7-3 "폐기: 옛 문언 'S2p ss gm, 첫 평가만 격자 최대 gm'과 as-built U4 경로(previous_gm_id·inherited_gm_id·canonical_gm_id,
+  gm_grid_max, dc_gm_bound 필드)", §11 U17 ① 지우는 것 목록.
+- `_power_resolution`(search 의 b_P 재계산) -- §2.4.7 Objectives 행 "search의 재계산(`_power_resolution`)을 지운다", §11 U17 ①.
+- `spec_passive_values`(SearchContext 의 수동소자 값 사본) -- §2.4.7 '수동소자 값' 행·SearchContext 칸 배정, §11 U17 ① `sctx.spec_passive_values`.
+
+판정(AST, 엔진 소스 = tests/ 밖 `*.py` 전부, structure_checks.engine_files): 이름이 **코드로** 남아 있으면 위반 --
+식별자(Name), 속성 이름(Attribute), def·class 이름, 인자 이름, import 이름·별칭, 키워드 인자 이름, 그리고 이름과 정확히 같은 문자열
+상수(필드 이름 `("device", "dc_gm_bound")` 같은 선언). 주석·docstring 안의 언급(경위 설명)은 코드가 아니라 보지 않는다(문자열 상수가
+이름과 '정확히 같을' 때만 센다).
+검사기가 공허하지 않다는 증거: `test_scanner_rejects_each_form` 이 형식마다 위반 소스 조각을 실제로 잡는지 본다.
+"""
+from __future__ import annotations
+
+import ast
+
+import pytest
+
+# 이름 -> 설계가 삭제를 적은 범위(엔진 상대 경로 접두사; None = 엔진 전체). `_power_resolution` 은 설계 §2.4.7·§11 U17 ① 이
+# 'search/objectives.py 의 _power_resolution' 으로 범위를 적었으므로 search/ 안에서만 폐기 이름이다(b_P 의 정본은 metrics_dc 로
+# 옮겨졌고, 그 파일 안의 `_` helper 이름은 설계가 정하지 않는다 -- 파일 분할 규칙 (B)).
+REMOVED_SCOPES = (("dc_gm_bound", None), ("previous_gm_id", None), ("inherited_gm_id", None), ("canonical_gm_id", None),
+                  ("gm_grid_max", None), ("_power_resolution", "search/"), ("spec_passive_values", None))
+REMOVED = tuple(n for n, _s in REMOVED_SCOPES)
+
+
+def removed_names_for(rel_path):
+    """엔진 상대 경로(`/` 구분)에 적용되는 폐기 이름 집합."""
+    rel_path = rel_path.replace("\\", "/")
+    return frozenset(n for n, scope in REMOVED_SCOPES if scope is None or rel_path.startswith(scope))
+
+
+def removed_name_hits(tree, names=REMOVED):
+    """-> [(줄, 이름, 형식)] 정렬."""
+    names = frozenset(names)
+    out = []
+    for n in ast.walk(tree):
+        found = []
+        if isinstance(n, ast.Name):
+            found.append((n.id, "name"))
+        elif isinstance(n, ast.Attribute):
+            found.append((n.attr, "attribute"))
+        elif isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            found.append((n.name, "definition"))
+        elif isinstance(n, ast.arg):
+            found.append((n.arg, "argument"))
+        elif isinstance(n, ast.alias):
+            found.append((n.name.rsplit(".", 1)[-1], "import"))
+            if n.asname:
+                found.append((n.asname, "import_alias"))
+        elif isinstance(n, ast.keyword) and n.arg is not None:
+            found.append((n.arg, "keyword"))
+        elif isinstance(n, ast.Constant) and isinstance(n.value, str):
+            found.append((n.value, "string"))
+        for name, form in found:
+            if name in names:
+                out.append((getattr(n, "lineno", 0), name, form))
+    return sorted(out)
+
+
+def test_removed_names_absent_from_engine(checks, engine_root, report):
+    files = checks.engine_files(engine_root)
+    hits = []
+    for p in files:
+        rel = checks.rel(engine_root, p)
+        for line, name, form in removed_name_hits(checks.parse(p), removed_names_for(rel)):
+            hits.append("%s:%d %s (%s)" % (rel, line, name, form))
+    report(len(files), len(hits))
+    assert len(files) > 0
+    assert not hits, "폐기 이름이 엔진 코드에 남아 있다 %d건:\n%s" % (len(hits), "\n".join(hits))
+
+
+@pytest.mark.parametrize("src, form", [
+    ("x = dc_gm_bound\n", "name"),
+    ("y = snap.previous_gm_id\n", "attribute"),
+    ("def inherited_gm_id(p):\n    return p\n", "definition"),
+    ("def f(canonical_gm_id):\n    return 0\n", "argument"),
+    ("from gmid_engine.sizing import gm_grid_max\n", "import"),
+    ("import os as _power_resolution\n", "import_alias"),
+    ("f(spec_passive_values=0)\n", "keyword"),
+    ("W = ((\"device\", \"dc_gm_bound\"),)\n", "string"),
+])
+def test_scanner_rejects_each_form(src, form):
+    hits = removed_name_hits(ast.parse(src))
+    assert hits and all(h[2] == form for h in hits), hits
+
+
+def test_scope_of_power_resolution_is_search_only():
+    """§2.4.7·§11 U17 ①: `_power_resolution` 삭제 범위는 search/objectives.py -- search/ 밖(metrics 의 b_P 정본 파일)에는 적용하지
+    않고, 범위 없는 이름(dc_gm_bound 등)은 모든 파일에 적용한다."""
+    assert "_power_resolution" in removed_names_for("search/objectives.py")
+    assert "_power_resolution" in removed_names_for("search\\kernel.py")
+    assert "_power_resolution" not in removed_names_for("metrics/dc_metrics.py")
+    assert removed_names_for("metrics/dc_metrics.py") == frozenset(REMOVED) - {"_power_resolution"}
+
+
+def test_scanner_ignores_docstring_and_comment_mentions():
+    src = '"""옛 `dc_gm_bound` 와 previous_gm_id 는 폐기됐다."""\n# gm_grid_max 는 지웠다\nx = "dc_gm"\n'
+    assert removed_name_hits(ast.parse(src)) == []

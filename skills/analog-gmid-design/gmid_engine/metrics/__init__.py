@@ -141,7 +141,7 @@ from .records import (
     SmallSignalCircuit,
     StampSet,
 )
-from .passive_values import passive_values
+from .passive_values import passive_values, theta_passive_pairs
 from .registry import RegisteredMetric, metric_registry
 from .resolution import metric_resolutions
 from .rout import output_resistance
@@ -319,6 +319,7 @@ __all__ = (
     "ss_dev",
     "ss_evaluate",
     "supply_currents",
+    "theta_passive_pairs",
     "two_terminal_stamps",
     "verified_by",
 )

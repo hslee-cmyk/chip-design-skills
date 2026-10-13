@@ -167,17 +167,18 @@ def test_real_converges_and_front_kept(real, name):
 
 
 def test_real_two_stage_passives_feed_judged_axis(real):
-    from gmid_engine.metrics import passive_values
-    from gmid_engine.sizing import check_theta
+    """[U17 ①] 설계 40 v1.6 §2.4.7·§2.4.8: 수동소자 값은 설계점 스냅샷의 S2 필드 `device.passive_value`(spec ∪ θ ∪ 영점 상쇄
+    R = 1/Σ`dc_gm`)이고 MOD8 판정 축 면적 입력이 같은 필드를 읽는다(다시 만들지 않는다). Rz·dc_gm(M6) = 1, ss_dev gm = 같은 필드(§3.7-3)."""
     r = real.run("two_stage_ota")
     cp = r.point
     snap = cp.result.evaluation.snapshot
-    values = dict(passive_values(snap, r.sctx.dc, check_theta(r.sctx.dc.schema, dict(cp.result.theta))))
+    values = dict(snap.column("device", "passive_value"))
     spec = json.loads((LIBRARY / "two_stage_ota.sizing_spec.json").read_text(encoding="utf-8"))
     doc = json.loads((LIBRARY / "two_stage_ota.topology.json").read_text(encoding="utf-8"))
     second = [d["name"] for d in doc["netlist"] if d["gate"] == "O1"]           # 2단 소자(1단 출력 O1 을 gate 로)
     assert second == ["M6"]
-    gm = dict(snap.column("device", "ss_dev"))["M6"].gm
+    gm = dict(snap.column("device", "dc_gm"))["M6"]
+    assert dict(snap.column("device", "ss_dev"))["M6"].gm == gm                 # ss gm = dc_gm 필드 하나(§3.7-3)
     assert values["CL"] == spec["human"]["element_values"]["CL"]["value_farad"]
     assert values["Cc"] == dict(cp.result.theta)[("capacitance", "Cc")]
     assert values["Rz"] * gm == pytest.approx(1.0, rel=1e-12)                   # Miller 영점 상쇄 Rz = 1/gm2

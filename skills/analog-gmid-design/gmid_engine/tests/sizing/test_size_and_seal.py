@@ -385,8 +385,8 @@ import math as _math                                                            
 
 from gmid_engine.sizing import OrderHints                                                  # noqa: E402
 
-from .conftest import (B as _B, C as _C, LClassStub, build_ctx_u4, circuit_mirror, mos_table, node_voltages,  # noqa: E402
-                       r4_ln_idu, rel_close, terminal_mag, theta_mirror, theta_r4c, with_hand_ss)
+from .conftest import (B as _B, C as _C, LClassStub, build_ctx_u4, circuit_mirror, mirror_w_request, mos_table,  # noqa: E402
+                       node_voltages, r4_ln_idu, rel_close, terminal_mag, theta_mirror, theta_r4c, with_hand_ss)
 
 
 @pytest.fixture(scope="module")
@@ -440,7 +440,9 @@ def _ic1_points(ctx_r4c, mir_tied, mir_plain, mir_hint):
     th = _tied_theta(2e-6)
     pts.append((mir_tied, th, {}, size_and_seal(mir_tied, th)))
     th = theta_mirror()
-    for wr in ({"M3": 1e-5}, {"M1": 2e-5}, {"M2": 3e-5}):
+    # [U17 ①] 종속 소자 M2 의 요청은 봉인 3 허용오차 안(δ = 0.05 < δ_max, conftest `mirror_w_request` 주석) -- 옛 3e-5(δ ≈ 0.27)는
+    # 자기 동작점 gm 의 tol_I(설계 40 §3.7-3)에서 봉인 3 위반이라 봉인 점이 아니다(판정 변화).
+    for wr in ({"M3": 1e-5}, {"M1": 2e-5}, {"M2": mirror_w_request()}):
         pts.append((mir_plain, th, wr, size_and_seal(mir_plain, th, w_request=wr)))
     th = theta_mirror()
     th[("ln_idu", "M2")] = th.pop(("ln_idu", "M1"))
@@ -500,6 +502,7 @@ def test_ic2_order_shuffle_invariance(tmp_path, r4_access):
     _, b = build_ctx_u4(tmp_path / "b", doc_b, r4_access, l_classes=lc_b, order_hints=h_b, element_values=(("I1", 1e-5),))
     assert a.base.fp == b.base.fp and a.schema == b.schema and a.l_ties == b.l_ties
     th = _tied_theta(2e-6)
-    ea = size_and_seal(a, th, w_request={"M3": 1e-5, "M2": 3e-5})
-    eb = size_and_seal(b, th, w_request=(("M2", 3e-5), ("M3", 1e-5)))
+    w2 = mirror_w_request(l=2e-6)                             # [U17 ①] 종속 소자 M2 요청 = 봉인 3 허용오차 안(L = 주인 2e-6; 옛 3e-5 는 위반)
+    ea = size_and_seal(a, th, w_request={"M3": 1e-5, "M2": w2})
+    eb = size_and_seal(b, th, w_request=(("M2", w2), ("M3", 1e-5)))
     assert ea.snapshot.fp == eb.snapshot.fp and ea.report == eb.report

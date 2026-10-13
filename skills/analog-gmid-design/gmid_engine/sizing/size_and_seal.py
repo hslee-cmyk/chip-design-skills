@@ -13,9 +13,8 @@
   [DEC-92] θ `capacitance`·`ss_resistance`(DC 전류가 흐르지 않는 수동소자)는 어느 DC 블록에도 넘기지 않는다 -- 그 성분만
   바꾼 θ 는 parent 에서 DC·봉인 블록 계산 0(소신호 값은 metrics `ss_evaluate` 가 θ 에서 읽는다).
 * **L 동치류**(설계 40 §3.2-1): θ 의 L 성분은 동치류당 주인 하나이고(`ctx.schema`), `ctx.l_ties` = ((멤버, 주인), ...) 의 멤버 L = 주인 θ L.
-* **S2p tol_I**(설계 40 §3.7-3, 계획 N3.6): `parent` 가 봉인 점이고 소자의 `ss_dev` gm 이 있으면 그 소자의 tol_I gm = (그 gm/ID) × 이번 후보 ID
-  (`dc_tolerances` 의 `gm_id_prev`), 없으면(첫 평가 등) LUT 격자 최대 gm. 결과가 parent 에도 의존하므로(N3.6 규칙 그대로) 같은 θ 라도
-  다른 parent 에서 봉인 3 경계 점의 판정이 다를 수 있다.
+* **tol_I**(설계 40 §3.7-3, 계획 N3.6 v6.4): 봉인 3 의 gm 은 후보 자기 동작점의 `device.dc_gm`(`dc_tolerances` 가 쓴 ID × LUT gm/ID) 하나다.
+  parent 에 의존하지 않으므로 같은 θ 는 parent 와 무관하게 같은 봉인 결과를 낸다. 수동소자 θ 만 바뀐 자식의 DC 재사용은 입력 버전 일치로 성립한다.
 * **W_request**(설계 40 §3.7, 계획 N3.17 LY3): `w_request` = {MOS: W(m)} 또는 ((MOS, W), ...) -- 그 소자의 W 는 고정 입력이다. 쓰기 소자의 θ
   ln IDu 는 무시되고 ln(ID·L/W) 로 대체되며(ID·L 은 ②③ 이 정한 값), 종속 소자는 요청 W 로 `dc_widths` 가 쓰고 봉인 3 이 어긋남을 판정한다.
 * 실패: 후보 실패 = `SealViolationError`·`NonconvergentError`(core `CANDIDATE_FAILURE_CLASSES`) -- 탐색 층이 이름으로 잡아 S3

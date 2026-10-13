@@ -1,8 +1,8 @@
 """`converge_point(sctx, pdk, point) -> ConvergedPoint` -- front 점 하나의 W_request 루프 (CONTRACT 7절·11절 불변식 2~6, 계획 LY3·LY5·LY7, N3.6 K_max).
 
 oracle (a) 합성 픽스처: `place_layout` 을 스크립트 가짜(호출마다 손으로 정한 배치 -> 실현 기하)로, `evaluate` 를 가짜 커널(기하 지문마다 처음 한 번만
-`sctx.counters["kernel_calls"] += 1` -- 캐시 모형, 결과의 통과·실패는 스크립트)로 바꾼다. 수동소자 입력(`passive_values`·`passives_from_decl`·`check_theta`)도
-가짜(빈 값)다. 기대 상태·반복 수·K_max·margin 은 스크립트와 계획 N3.6(반감 횟수) 에서 손으로 센다.
+`sctx.counters["kernel_calls"] += 1` -- 캐시 모형, 결과의 통과·실패는 스크립트)로 바꾼다. 수동소자 값은 [U17 ①] 평가 스냅샷의 S2 필드
+`device.passive_value`(설계 40 §2.4.8 -- 가짜 스냅샷엔 열이 없어 빈 값)이고, 면적 입력 변환 `passives_from_decl` 만 가짜(빈 값)다. 기대 상태·반복 수·K_max·margin 은 스크립트와 계획 N3.6(반감 횟수) 에서 손으로 센다.
 
 oracle (b)·(d) 실경로(뒤쪽): 실 LUT v2 + sky130 + common_gate_amplifier·two_stage_ota 손 봉인 점에서 스파이로 커널 계수를 잰다(불변식 2·3·4·8),
 접합 용량은 BSIM4 폐형식(metrics CONTRACT 8.2, ngspice 대조식)을 test 가 직접 계산해 맞춘다.
@@ -110,9 +110,9 @@ def run(monkeypatch):
     def go(loop, start=None):
         monkeypatch.setattr(mod, "place_layout", loop.place_layout)
         monkeypatch.setattr(mod, "evaluate", loop.evaluate)
-        monkeypatch.setattr(mod, "passive_values", lambda snapshot, dc, theta: ())
+        # [U17 ①, 설계 40 §2.4.7·§2.4.8] 수동소자 값은 평가 스냅샷의 S2 필드 `device.passive_value` 를 읽는다(converge_point 가
+        # passive_values·check_theta 를 다시 부르지 않는다) -- 가짜 스냅샷에는 그 열이 없어 빈 값이고, 면적 입력 변환만 가짜로 둔다.
         monkeypatch.setattr(mod, "passives_from_decl", lambda decl, values: ())
-        monkeypatch.setattr(mod, "check_theta", lambda schema, theta: theta)
         sctx = SimpleNamespace(counters={"kernel_calls": 0}, area_decl=None,
                                dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO", w_keys=(("nmos", 30),))))
         start = start or eval_result(snap(), power=2e-3, area=7e-11, constraints=rows(3.0), tag="start")

@@ -1,7 +1,7 @@
 """봉인 게이트 -- 9항목을 모두 재고 봉인 스냅샷으로 승격하거나 구조화 실패를 낸다 (계획 N3.6, DEC-67, N3.14, 설계 3.6).
 
-진입점: `seal_dc(snapshot, calls, lut, resistances, linear_devices, gm_id_prev=(), raise_on_violation=True) -> DcEvaluation`.
-`gm_id_prev` = `dc_tolerances` 의 S2p gm/ID 표(tol_I). `raise_on_violation=False` 면 violated 도 예외 없이 `DcEvaluation(sealed=None)` 으로 낸다
+진입점: `seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True) -> DcEvaluation`.
+tol_I 의 gm 은 `dc_tolerances` 가 쓴 자기 동작점 `dc_gm`(parent 무관, 설계 40 §3.7-3). `raise_on_violation=False` 면 violated 도 예외 없이 `DcEvaluation(sealed=None)` 으로 낸다
 (`size_and_seal_local` 이 항목별 위반 대상을 읽는다 -- 판정 식은 같다).
 
 1. `dc_tolerances` -> 봉인 1·2·3·6·7·8·[r8] 9(전도 여유) 계산 블록(필드마다 기록, 첫 실패에서 멈추지 않는다).
@@ -29,9 +29,9 @@ from .seal_vgs_match import dc_seal_vgs_match
 from .seal_writers import seal_writers
 
 
-def seal_dc(snapshot, calls, lut, resistances, linear_devices, gm_id_prev=(), raise_on_violation=True):
+def seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True):
     steps = (
-        (dc_tolerances, (lut, gm_id_prev) if gm_id_prev else (lut,)),
+        (dc_tolerances, (lut,)),
         (dc_seal_node_conflict, ()),
         (dc_seal_vgs_match, ()),
         (dc_seal_kcl, (resistances,)),
