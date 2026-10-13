@@ -5,8 +5,9 @@
 * 미지수 = DC 원소(S1 `device.dc_nets` 가 있는 MOS·저항·이상원, 잎 가지치기된 저항 제외) 전류. 양의 방향 = nmos d->s,
   pmos s->d(전도 방향), 2단자 t0->t1(이상 전류원은 SPICE 규약: t0 에서 source 를 지나 t1 로).
 * 방정식 = 레일이 아닌 넷마다 KCL(나가는 전류 합 − 들어오는 전류 합 = 0). 값이 선언된 이상 전류원은 고정값(DEC-08).
-* 유리수(Fraction) 기약 행사다리꼴로 푼다(부동소수 허용오차 상수 없음). 열 순서 = (원소 구조 색 `dc_colour`, 이름) --
-  이름은 같은 구조 색 안에서만 순서를 정한다. pivot 이 아닌 열 = θ 전류 성분(독립 기저), pivot 열 = 기저와 고정값의 선형식.
+* 유리수(Fraction) 기약 행사다리꼴로 푼다(부동소수 허용오차 상수 없음). 열 키 = (그 원소의 자기동형 궤도가 비자명인가, 원소 구조 색 `dc_colour`, 이름)
+  (40 §6-3 전류 기저 열 순서 규칙, 사용자 결정 2026-10-12 "3번 권고대로" (가); 궤도 = graph 대칭 블록 필드 `graph/s1: orbits`). 행사다리꼴은 왼쪽 열부터 pivot(종속)을
+  잡으므로 비자명 궤도 열을 **뒤에** 두어 **자유 열 선택에서 먼저** 남긴다 -- '대칭 궤도 원소를 자유 열로 먼저 남겨 대칭인 것끼리 묶는다'. 이름은 같은 키 안에서만 순서를 정한다. pivot 이 아닌 열 = θ 전류 성분(독립 기저), pivot 열 = 기저와 고정값의 선형식.
   같은 구조 색 열이 기저/종속으로 갈리면 `ties` 에 `TieBreak(current_pivot, 후보, 기저로 고른 쪽)` 을 남긴다.
 * `matching_ratio` 관계는 비율 값 선언이 어디에도 없어(S1·spec) 전류를 강제하지 않는다 -- 미러 출력 전류도 기저에 든다.
 * 정지/실패: 고정값끼리 KCL 이 어긋남 -> `InfeasibleTargetError`(reason `declared_source_kcl_conflict`). KCL 상 전류가
@@ -38,7 +39,7 @@ from .s2_values import (
 
 READS = (
     ("device", "dc_nets"), ("device", "element_class"), ("device", "kind"), ("device", "pins"),
-    ("node", "is_rail"), ("graph", "dc_pruned"), ("device", "dc_colour"),
+    ("node", "is_rail"), ("graph", "dc_pruned"), ("device", "dc_colour"), ("graph", "orbits"),
 )
 WRITES = (("graph", "dc_current_basis"),)
 _PMOS = "pmos"
@@ -89,7 +90,12 @@ def dc_current_basis(projection):
                   if classes[name] == ELEMENT_SOURCE and kinds[name] == CURRENT_SOURCE and name in declared)
     fixed_names = tuple(name for name, _v in fixed)
     colour = dict(projection.column("device", "dc_colour"))
-    unknown = tuple(sorted((name for name in elements if name not in fixed_names), key=lambda n: (colour[n], n)))
+    orbit = dict(projection.value("graph", GRAPH_KEY, "orbits").devices)
+    size = {}
+    for o in orbit.values():
+        size[o] = size.get(o, 0) + 1
+    unknown = tuple(sorted((name for name in elements if name not in fixed_names),
+                           key=lambda n: (size[orbit[n]] > 1, colour[n], n)))         # 비자명 궤도 열을 뒤에 -> 자유 열로 먼저 남는다
     nets = sorted({net for _e, a, b in ends for net in (a, b)} - rails)
     col = {name: i for i, name in enumerate(unknown + fixed_names)}
     rows = []

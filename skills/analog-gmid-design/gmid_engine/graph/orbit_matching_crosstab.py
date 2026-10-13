@@ -6,19 +6,26 @@
 * 읽는 것: S1 대칭 블록 필드 `graph/s1: orbits`(원소 궤도), `graph/s1: matching_groups`, `device.element_class`. 다시 계산하지 않는다.
 * `orbits` = MOS 궤도마다 (궤도 멤버 이름 tuple, 그 궤도가 걸친 matching 레코드 ((kind, 멤버), ...)) -- 궤도 멤버 이름순. 수동소자·이상원 궤도는 matching 대상이 아니므로 뺀다.
 * `records` = matching 레코드마다 (kind, 멤버, 그 레코드의 MOS 멤버가 걸친 궤도 (궤도 멤버 tuple, ...)) -- 레코드 순서는 S1 그대로.
+* `findings` = `review_needed`(`diff_pair_orbit_split`) -- **이것 하나뿐이다**(40 §6-5 (나'), 사용자 결정 2026-10-12 "나'로 진행해"): `diff_pair` 레코드의 두 멤버가
+  다른 궤도이고 (a) 회로 출력 포트(`node.port_role`)가 차동 쌍(`differential_output_p`·`differential_output_n` 둘 다 있음)이며 (b) 그 두 멤버의 gate 가 차동 입력 포트
+  p/n(`differential_input_p`·`differential_input_n` 각 하나)일 때. 그 밖의 `diff_pair` 궤도 불일치는 표에 기록만 한다. 단계 A 가 review 목록에 올린다.
 * 이름을 판정에 쓰지 않는다(이름은 표의 표시일 뿐이고 궤도 id 가 같은지만 본다).
 """
 import dataclasses
 
-from .s1_values import ELEMENT_MOS, GRAPH_KEY
+from .s1_values import ELEMENT_MOS, GRAPH_KEY, MATCH_DIFF_PAIR
+from .s1v_values import (F_DIFF_PAIR_ORBIT_SPLIT, PORT_ROLE_DIFF_N, PORT_ROLE_DIFF_OUT_N, PORT_ROLE_DIFF_OUT_P, PORT_ROLE_DIFF_P,
+                         SEVERITY_REVIEW, Finding)
 
 
 @dataclasses.dataclass(frozen=True)
 class OrbitMatchingCrosstab:
-    """`orbits` = ((궤도 멤버 tuple, ((kind, 멤버 tuple), ...)), ...), `records` = ((kind, 멤버 tuple, (궤도 멤버 tuple, ...)), ...)."""
+    """`orbits` = ((궤도 멤버 tuple, ((kind, 멤버 tuple), ...)), ...), `records` = ((kind, 멤버 tuple, (궤도 멤버 tuple, ...)), ...),
+    `findings` = `diff_pair_orbit_split` review 기록 tuple."""
 
     orbits: tuple
     records: tuple
+    findings: tuple = ()
 
 
 def orbit_matching_crosstab(s1):
@@ -32,4 +39,14 @@ def orbit_matching_crosstab(s1):
     records = tuple((g.kind, g.members, tuple(sorted({label[orbit[m]] for m in g.members if m in orbit}))) for g in groups)
     rows = tuple((label[o], tuple((g.kind, g.members) for g in groups if any(orbit.get(m) == o for m in g.members)))
                  for o in sorted(label, key=lambda o: label[o]))
-    return OrbitMatchingCrosstab(rows, records)
+    roles = {net: role for net, role in s1.column("node", "port_role") if role is not None}
+    diff_out = {PORT_ROLE_DIFF_OUT_P, PORT_ROLE_DIFF_OUT_N} <= set(roles.values())
+    pins = {name: dict(p) for name, p in s1.column("device", "pins")}
+    findings = tuple(
+        Finding(F_DIFF_PAIR_ORBIT_SPLIT, SEVERITY_REVIEW, "", g.members,
+                "차동 출력 회로에서 차동 입력 포트 p/n 을 gate 로 받는 diff_pair 두 멤버가 다른 자기동형 궤도다 -- 대칭 차동쌍의 정의와 모순",
+                ("40 §6-5", "DEC-97 (5)"))
+        for g in groups
+        if diff_out and g.kind == MATCH_DIFF_PAIR and len({orbit.get(m) for m in g.members}) > 1
+        and sorted(roles.get(pins[m]["g"]) or "" for m in g.members) == sorted((PORT_ROLE_DIFF_P, PORT_ROLE_DIFF_N)))
+    return OrbitMatchingCrosstab(rows, records, findings)

@@ -425,8 +425,10 @@ review_needed 는 정지가 아니라 기록이다(DcRole 묶음·matching_offse
 - 소비자: `l_equivalence_classes`(궤도), sizing `build_kernel_context`(같은 블록을 `symmetry_marks(inputs)` 로 재호출 -- 같은 표시면 재사용), search `current_symmetry`·`orbit_ties`·
   `canonical_order`·`search_domain`(궤도·부호), metrics `achievability`(궤도).
 - `orbit_matching_crosstab(s1) -> OrbitMatchingCrosstab(orbits, records)`: MOS 궤도마다 걸친 matching 레코드, 레코드마다 걸친 MOS 궤도(40 §6-5). 단계 A 보고서 키
-  `orbit_matching_crosstab`. **`diff_pair` 두 멤버가 다른 궤도일 때의 review_needed 는 구현하지 않았다**(단일 종단 차동쌍은 정의상 다른 궤도라 9회로 중 6회로가 GB4 앞 정지 --
-  design 모순 보고, U17 ①-d 보고서).
+  `orbit_matching_crosstab`. `findings` = `diff_pair_orbit_split`(review_needed, 40 §6-5 (나') v1.8): `diff_pair` 두 멤버가 다른 궤도이고 (a) 출력 포트 role 에
+  `differential_output_p`·`_n` 이 둘 다 있으며 (b) 두 멤버 gate 넷의 포트 role 이 `differential_input_p`·`_n` 일 때만. 그 밖은 표에 기록만. 단계 A 가 review 목록에 올린다.
+- [U17-1d] 혼재 노드 구동 종류(`drive_kinds`, 41 §1.5-4 C-1 + 보완 (가)): (i) source 쪽 소자 drain 이 그 뷰 교류 접지이고 gate 가 순방향 신호 넷이면 전압(근거 `follower`),
+  (ii) 아니면 drain 쪽 소자 gate 가 순방향 신호 넷이면 전류(근거 `cascode`), 그 밖 전압(`mixed_bias_drain`). 옛 DC 역할 판정과 기록 `mixed_drive_signal_drain`·`mixed_drive_unresolved_group` 삭제.
 
 ## 5. `S1Graph(key, snapshot)` 질의
 

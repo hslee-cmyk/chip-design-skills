@@ -228,6 +228,8 @@ metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여�
 > `s1_symmetry(base, supplies, symmetry_marks(inputs))`(새 `symmetry_marks.py`, 선언 표시 형식은 아래 3.0b 그대로이고 레일 전위 표시는 블록이 supplies 에서 만든다)로
 > 재호출한다 -- S1 이 같은 표시로 만들어졌으면 재사용(계산 0). 계획 블록 버전 목록의 `dc_struct_colour` 자리는 `s1_symmetry` 다. 아래 3.0·3.0b 는 그 블록의 규칙 기록으로 남긴다
 > (writer 이름만 바뀜, 그래프 라벨은 graph CONTRACT 4.7·4.8 이 정본).
+> **[U17-1d] 전류 기저 열 순서**(40 §6-3 v1.8, 사용자 결정 "3번 권고대로" (가)): `dc_current_basis` 는 `graph.orbits` 를 더 읽고 열 키 = (궤도 비자명인가, `dc_colour`, 이름)으로
+> 정렬한다. 행사다리꼴은 왼쪽 열부터 pivot 을 잡으므로 비자명 궤도 열을 뒤에 두어 자유 열(θ 전류)로 먼저 남긴다.
 
 ## 3.0 [r2] 구조 색 `dc_struct_colour(snapshot)` (θ 무관) -- 이름 없는 정준 tie-break 키
 

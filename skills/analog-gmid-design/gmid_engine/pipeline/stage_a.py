@@ -11,6 +11,7 @@
   "kind_counts": {kind: 수}}` (정지 전 단계거나 `column_unassigned` 정지면 None). 소비자는 U15 층 0 조립(41 §5.5)이다 -- 아직 읽는 코드가 없고 보고서가 유일한 출구다.
 * A2 의 `build_s1(marks=)`: 대칭 블록(정준형·궤도·전류 부호)이 보존할 선언 표시 = `sizing.symmetry_marks(dc_inputs_from_spec(spec))`(spec 이 없으면 `NO_MARKS`) --
   커널 컨텍스트가 같은 표시로 같은 블록을 재사용한다(40 §6-8 D-2 그래프 하나). 자기 맞바꿈 정지(`ds_self_swap_zero_current`)는 A2 정지로 보고된다.
+* `orbit_matching_crosstab` 의 `diff_pair_orbit_split`(40 §6-5 (나') -- 차동 출력 회로의 차동 입력 diff_pair 궤도 불일치)은 review 목록에 오른다.
 * 보고 키 `orbit_matching_crosstab`(40 §6-5): `{"orbits": [{"members", "records": [[kind, members]]}], "records": [{"kind", "members", "orbits"}]}`(MOS 궤도만).
 * `declared_loop_cuts` = spec 제약 중 안정도 metric(`pm_*`)의 내부 루프 뷰 선언(`ViewDecl` mode loop, `beta != declared`)의 끊는 넷 -- feedback 소자에서 유도된 β 루프(beta declared)는 제외 -- 안정도 제약이 걸린 루프 뷰는 `undeclared_loop_constraint` 정지가 풀린다.
   선언 끊는 넷은 엔진 루프 뷰의 끊는 gate 넷(보고서 `views[].cuts[*][1]`)이어야 하고, 어느 뷰에도 맞지 않은 선언은 `loop_cut_unmatched`(review_needed)로 보고서 `review_needed` 에 오른다.
@@ -147,8 +148,7 @@ def _unmatched_loop_cuts(s1v, declared_cuts):
                          ("41 §1.8", "U-24")) for net in sorted(set(declared_cuts) - engine))
 
 
-def _crosstab_report(s1):
-    table = orbit_matching_crosstab(s1)
+def _crosstab_report(table):
     return {"orbits": [{"members": list(names), "records": [[kind, list(members)] for kind, members in records]} for names, records in table.orbits],
             "records": [{"kind": kind, "members": list(members), "orbits": [list(o) for o in orbits]} for kind, members, orbits in table.records]}
 
@@ -201,7 +201,9 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
     s1v = build_s1v(s1, spec, count_budget=budget, declared=declared, structure=structure,
                     declared_loop_cuts=declared_cuts, stop_on_unsupported=False)
     unsupported = [_finding_line(f) for f in s1v.unsupported]
-    review = [_finding_line(f) for f in s1v.review_needed] + [_finding_line(f) for f in _unmatched_loop_cuts(s1v, declared_cuts)]
+    crosstab = orbit_matching_crosstab(s1)
+    review = ([_finding_line(f) for f in s1v.review_needed] + [_finding_line(f) for f in _unmatched_loop_cuts(s1v, declared_cuts)]
+              + [_finding_line(f) for f in crosstab.findings])
     note = " has no stage_members facts" if path.is_file() else " absent"
     comparison = "performed" if declared else "not_performed: " + path.name + note
     coupling, coupling_stop = _coupling_stage(s1, s1v)
@@ -211,5 +213,5 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
     report = {"circuit": circuit, "status": status, "exit_code": code, "count_budget": budget, "declared_comparison": comparison,
               "stop_reasons": unsupported, "review_needed": review, "views": [_view_summary(v) for v in s1v.views],
               "applied_facts": [list(f) for f in s1v.facts_applied], "ff_ratio_candidates": _ff_ratio_rows(s1v),
-              "coupling": coupling, "tables": structure_tables(s1v), "orbit_matching_crosstab": _crosstab_report(s1)}
+              "coupling": coupling, "tables": structure_tables(s1v), "orbit_matching_crosstab": _crosstab_report(crosstab)}
     return _finish(report, s1v, output_dir, circuit, s1, spec)
