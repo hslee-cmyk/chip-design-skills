@@ -548,7 +548,7 @@ None 을 주지만 봉인에서는 '허용오차 0 을 넘은 위반' = 무한 �
 | tol | `dc_tolerances` | dc_tol_v = lut `tol_v_table(kind, w_key).at(L, vds, "id_equivalent")`(None 가능), dc_gm = dc_op.gm_id × dc_op.current(자기 동작점 gm, 봉인 3 tol_I·`ss_dev`·b_P·영점 상쇄 R 공용, 설계 40 §3.7-3 v1.6) |
 | 1 | `dc_seal_node_conflict` | 노드마다 spread = max − min of {노드 값} ∪ path_values; tol = 닿는 PATH_MOS 소자 tol_v 최댓값(정의된 것), 없으면 None; MOS 관계가 없는 노드는 n·eps·max|V|(n = 값 수) |
 | 2 | `dc_seal_vgs_match` | MOS 마다 |ln idu_forward − ln_idu| / gm_id ≤ tol_v |
-| 3 | `dc_seal_kcl` | [r3] 행 = DC 원소(`basis.ends` -- MOS·DC 저항·이상원, 가지치기 저항 제외)의 from·to 로 한 번이라도 나오는 레일 아닌 넷마다(DC 원소가 닿지 않는 넷 -- gate 전용 넷·커패시터만 닿는 넷 -- 은 행이 없고 n_checked 에 들지 않는다) |Σ from − Σ to|, MOS = idu_forward·W/L, 저항 = (V(from) − V(to))/R, 이상원 = dc_current; tol = 채널이 닿는 MOS 의 tol_v·gm_bound 최댓값(정의된 것; MOS 는 있는데 모두 None 이면 None), MOS 없는 넷은 n·eps·Σ|I| |
+| 3 | `dc_seal_kcl` | [r3] 행 = DC 원소(`basis.ends` -- MOS·DC 저항·이상원, 가지치기 저항 제외)의 from·to 로 한 번이라도 나오는 레일 아닌 넷마다(DC 원소가 닿지 않는 넷 -- gate 전용 넷·커패시터만 닿는 넷 -- 은 행이 없고 n_checked 에 들지 않는다) |Σ from − Σ to|, MOS = idu_forward·W/L, 저항 = (V(from) − V(to))/R, 이상원 = dc_current; tol = tol_I = 채널이 닿는 MOS 의 tol_V·dc_gm 최댓값(설계 40 §3.7-3 v1.6 -- `dc_gm` = 자기 동작점 gm, `dc_tolerances` 필드; 정의된 것; MOS 는 있는데 모두 None 이면 None), MOS 없는 넷은 n·eps·Σ|I| |
 | 4 | `seal_versions` | calls 의 블록마다 fp_of((이름, code_hash, Projection.from_snapshot(snapshot, reads, extras).fp)) == block_version 이고 그 블록 writes 필드의 input_version == block_version. 위반 블록 = detail `blocks`. magnitude = 위반 수, tol 0 |
 | 5 | `seal_writers` | 모든 필드 writer == 권한표 writer; 노드마다 dc_writer 있음, (tier == W0) == is_rail, dc_rail_v·dc_v 중 정확히 하나, dc_rail_v 있음 == is_rail. 위반 노드 = nodes, 위반 필드 = detail `fields` |
 | 6 | `dc_seal_bulk_reverse` | MOS 마다 max(0, −vsb, −(vds + vsb)) ≤ tol_v |
@@ -896,8 +896,9 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   S = ∅(θ 폴백)이 된다 -- 어느 쪽인지는 사용자 ratify.
 - **O16 [r5] search(ng-mod6) 병합 시 바뀌어야 할 호출부**: `ss_evaluate` 의 6번째 위치 인자 `passive_theta` 삭제(metrics 7.6) --
   ng-mod6 `search/kernel.py` 의 `ss_evaluate(..., sctx.ss_constraints, (), (), **extra)` 는 `()` 하나를 지워야 한다. 봉인 아닌 점의
-  `metrics_dc` 수동 값(`spec_passive_values + θ resistance`)에 θ `capacitance`·`ss_resistance` 를 더해야 면적이 같은 값을 쓴다
-  (봉인 점과 같은 입력 -> 재사용). `search_domain` 은 지금 모르는 θ 종류를 조용히 건너뛴다(코드 읽기로 확인, 변수 없음) --
+  `metrics_dc` 수동 값(당시 `spec_passive_values + θ resistance`)에 θ `capacitance`·`ss_resistance` 를 더해야 면적이 같은 값을 쓴다
+  (봉인 점과 같은 입력 -> 재사용). **[U17 ① 폐기됨]** `spec_passive_values` 칸과 그 합산은 지웠다 -- 봉인·봉인 아닌 점 모두 GB5 블록
+  `passive_values` 가 쓴 `device.passive_value` 필드를 읽는다(설계 40 §2.4.8). `search_domain` 은 지금 모르는 θ 종류를 조용히 건너뛴다(코드 읽기로 확인, 변수 없음) --
   그 θ 가 빠진 후보는 `check_theta` 키 불일치가 될 것으로 본다(ng-mod6 에서 실행해 보지는 않았다). O13 상자 배선이 필요하다.
 - **O17 [r8] search 쪽 일관 조임 (search 몫 기록 -- search 는 고치지 않았다)**: 봉인 9 가 내는 소자별 ID 하한
   `device.dc_conduction_floor` = I_off/ε 는 **그 점의 W 에 비례**한다(I_off = IDu(VGS=0)·W/L, ID = IDu(VGS)·W/L). 그래서

@@ -611,8 +611,10 @@ reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v,
 ### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, ..., diffusion=()) -> SsEvaluation`
 [U14] `diffusion` = ((MOS, `DiffusionGeometry`), ...) -- 레이아웃 뒤 실현 확산 기하(MOD7 `ly.diffusion`). 있는 소자의 `ss_dev` cdb·csb 는 그 기하로, `junction_model` = `JUNCTION_LAYOUT_DIFFUSION`
 (없는 소자는 LUT 생성 규칙·`JUNCTION_LUT_RULE`). `ss_dev` 의 추가 extra 이며 빈 값은 넘기지 않는다(입력 버전이 종전과 같다). 수동소자 값 정본은 [U17 ①] GB5 계산 블록
-`passive_values(snapshot, element_values, zero_cancel, theta)`(`passive_values.py`)가 쓰는 S2 필드 `device.passive_value`이고(설계 40 §2.4.8), MOD8 판정 축 면적 입력(`layout.passives_from_decl`)·
+`passive_values(snapshot, element_values, zero_cancel, theta_passive_pairs(θ))`(`passive_values.py`)가 쓰는 S2 필드 `device.passive_value`이고(설계 40 §2.4.8), MOD8 판정 축 면적 입력(`layout.passives_from_decl`)·
 `metrics_ss`·`metrics_aux`·`metrics_dc` 가 그 필드를 읽는다. 영점 상쇄 R = 1/Σ`dc_gm`(dc 단계 필드)이라 봉인 전 점에서도 정의되며 search 의 봉인 아닌 점 경로도 같은 블록을 부른다.
+extras 의 θ 칸은 블록이 읽는 수동소자 성분(θ `resistance`·`capacitance`·`ss_resistance`)만 -- 두 호출부(`ss_evaluate`·search `kernel`) 모두
+같은 `theta_passive_pairs` 로 고른다(설계 40 §2.4.1, WP-23 (5): MOS θ 만 바뀐 FD 스텝은 입력 버전이 같아 이 블록을 재사용한다).
 
 - **[r5 2026-10-08, DEC-92 / 7.9 Q5 해결] 인자 `passive_theta` 삭제**: engine 보상 수동소자 값은 이제 sizing θ 스키마 성분
   (`capacitance`·`ss_resistance`, sizing CONTRACT 4.4 r5)이라 θ 에서 읽는다(값의 출처 하나). 6번째 위치 인자를 넘기던 호출은 TypeError.
@@ -627,7 +629,7 @@ reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v,
   아니거나 같은 소자 값이 두 출처면 ValueError(스키마가 S1·spec 에서 나오므로 정상 경로에서는 생기지 않는 계약 위반 표지). 정렬 tuple.
   어느 출처에도 없는 수동소자(spec mode pending 등)는 그대로 `missing` -> `passive_value_undeclared`(7.4 (2)).
 - requests = constraints 의 (metric, view) 중 metric 이 None 아닌 것, 중복 제거·문서 순서. view_kind 가 있는 것만 `metrics_ss` 로.
-- 순서 [U17 ①] `passive_values(sealed.snapshot, ctx.inputs.element_values, ctx.schema.zero_cancel, θ)` -> `ss_dev(..., ctx.lut, junction)` ->
+- 순서 [U17 ①] `passive_values(sealed.snapshot, ctx.inputs.element_values, ctx.schema.zero_cancel, theta_passive_pairs(θ))` -> `ss_dev(..., ctx.lut, junction)` ->
   `metrics_ss(..., ss_requests)` -> `metrics_dc(..., tuple(counted_rails))`. `ss`·`dc` = 그 필드 값,
   `lineage` = 7.1.
 - [r5] θ `capacitance`·`ss_resistance` 성분만 바꾼 θ' 로 `size_and_seal(ctx, θ', parent=res.lineage)` -> dc 블록 computes 0(sizing 7절

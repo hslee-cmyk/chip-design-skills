@@ -27,7 +27,7 @@
   (결정 대기 등)는 `metrics_ss` 가 `passive_value_undeclared` 로 보고한다.
 * 요청 = 제약의 (metric, view) 중복 제거(문서 순서). view_kind 가 있는 metric -> `metrics_ss`, 없는 metric(전력·면적)은
   `metrics_dc` 묶음이 늘 낸다(목적 축). 미등록 metric 은 `KeyError`(spec 로드가 `metric_unknown` 으로 먼저 거른다).
-* 블록 순서: `passive_values(element_values, zero_cancel, θ)` -> `ss_dev(lut)` -> `metrics_ss(requests)` -> `metrics_dc(counted_rails)`.
+* 블록 순서: `passive_values(element_values, zero_cancel, theta_passive_pairs(θ))` -> `ss_dev(lut)` -> `metrics_ss(requests)` -> `metrics_dc(counted_rails)`.
   입력 버전이 같으면 재사용, FD 로 θ 한 성분이 바뀌면 그 성분을 읽는 블록만 다시: DC 성분이면 dc_op·dc_gm 을 읽는 블록(바뀌지 않은 소자의
   LUT 조회는 memo 적중), θ 수동소자 성분이면 `ss_dev` 재사용·`passive_values`·`metrics_ss`·`metrics_dc` 만.
 * 재사용은 필드가 든 lineage 에서만 일어난다(core 6.2): 결과 `lineage`(ss 필드를 담은 `DcEvaluation`)를 다음 `size_and_seal` 의
@@ -41,7 +41,7 @@ from .junction_source import JunctionSource
 from .metrics_aux import AUX_TYPES, metrics_aux
 from .noise_devices import noise_devices
 from .noise_types import NoiseAnalysis, NoiseDecl
-from .passive_values import passive_values
+from .passive_values import passive_values, theta_passive_pairs
 from .registry import metric_registry
 from .ss_linearize import ss_dev
 from .ss_metrics import metrics_ss
@@ -90,7 +90,7 @@ def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, 
     registry = metric_registry()
     aux_requests = tuple(r for r in requests if registry[r.metric].source_type in AUX_TYPES)
     ss_requests = tuple(r for r in requests if registry[r.metric].signature.view_kind is not None and r not in aux_requests)
-    snapshot = passive_values(sealed.snapshot, ctx.inputs.element_values, ctx.schema.zero_cancel, theta.values)
+    snapshot = passive_values(sealed.snapshot, ctx.inputs.element_values, ctx.schema.zero_cancel, theta_passive_pairs(theta.values))
     snapshot = ss_dev(snapshot, ctx.lut, junction, *((diffusion,) if diffusion else ()))
     noisy = any(registry[r.metric].source_type is NoiseAnalysis for r in ss_requests)
     extra = (noise_devices(snapshot, ctx.lut, junction, NoiseDecl() if noise_decl is None else noise_decl),) if noisy else ()
