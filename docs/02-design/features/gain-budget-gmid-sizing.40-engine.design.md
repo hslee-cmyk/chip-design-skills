@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.8.2
-plan_version: 6.7
+version: 1.9
+plan_version: 6.8
 ---
 
 # gain-budget-gmid-sizing -- 40-engine Design Document (새 엔진 `gmid_engine`, 색인·아키텍처)
@@ -9,7 +9,9 @@ plan_version: 6.7
 > **Summary**: 새 gm/ID 사이징 엔진(`skills/analog-gmid-design/gmid_engine/`)의 설계 정본이다. 계획서 N3.1 흐름 GB0~GB9를 패키지·파일에 대응시키고, 단계마다 알고리즘·입출력·불변식·실패 코드·as-built 상태를 적는다. 계획서가 요구하고 실행 로드맵에서 빠졌던 gain-budget 흐름(FR-1·FR-2·FR-4·FR-8)은 `41-gain-budget`에서 전부 설계한다. gap 분석 기준표는 `42-gap-checklist`다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Date**: 2026-10-13 · **Status**: v1.8.2 -- 사용자 결정 2026-10-13 "1은 권고"(d/s 비트 동일 범위 (라))와 U17 ①-a·①-c·①-d 실측 정정 반영: §6-8 D-2·D-3·§3.10.11 U-62·§10.2 -- topology d/s 표기 = 물리 방향 선언(사용자만 수정하는 정본), d/s 표기 맞바꿈에 대해 대칭 결과(궤도·정준 위치·`dc_colour`)는 비트 동일, 전류 부호는 표기 기준 방향 변환 뒤 동일, 사이징 결과(writer 계획·θ 스키마·ties·front)는 선언 방향을 따르고 틀린 선언은 봉인 7이 거부(`no_root_in_window`). 정정(결정 아님): §2.4.8 `dc_colour` 소유자 = graph 대칭 블록 `s1_symmetry`, §6-8 D-1 예시 toy 교체(완전 차동 직렬 가지 + 출력 사이 R1), §2.4.10 허용 모듈에 `core/snapshot_codec.py`, §2.4.3 U-68 정리 = 프로세스당 첫 실제 쓰기 1회·환경 변수 `GMID_S0_SNAPSHOT_DIR`, §2.4.4 분할 대상에 GB5 `passive_values`(단계 ② 이월 기록). 경위는 history.
+> **Date**: 2026-10-13 · **Status**: v1.9 -- 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ① 반영: §10.5 A' 판정 기준 신설(판정자 ngspice·독립 대조군 AI 손분석·피검 엔진 시작점·front, 판정 규칙, U17 단계 ② 완료 조건 -- 시작점과 front 점(U-45)의 ngspice 판정, MOD8 전 점은 T4-pre), §11 U17 ② 행 확인 행 D-AP1·test 열 완료 조건 인용. 결정 원문 밖 세부는 계획 U-76 기본안(사용자 변경 가능). 계획 v6.8 DEC-98·U-75·U-76. 경위는 history.
+>
+> v1.8.2 -- 사용자 결정 2026-10-13 "1은 권고"(d/s 비트 동일 범위 (라))와 U17 ①-a·①-c·①-d 실측 정정 반영: §6-8 D-2·D-3·§3.10.11 U-62·§10.2 -- topology d/s 표기 = 물리 방향 선언(사용자만 수정하는 정본), d/s 표기 맞바꿈에 대해 대칭 결과(궤도·정준 위치·`dc_colour`)는 비트 동일, 전류 부호는 표기 기준 방향 변환 뒤 동일, 사이징 결과(writer 계획·θ 스키마·ties·front)는 선언 방향을 따르고 틀린 선언은 봉인 7이 거부(`no_root_in_window`). 정정(결정 아님): §2.4.8 `dc_colour` 소유자 = graph 대칭 블록 `s1_symmetry`, §6-8 D-1 예시 toy 교체(완전 차동 직렬 가지 + 출력 사이 R1), §2.4.10 허용 모듈에 `core/snapshot_codec.py`, §2.4.3 U-68 정리 = 프로세스당 첫 실제 쓰기 1회·환경 변수 `GMID_S0_SNAPSHOT_DIR`, §2.4.4 분할 대상에 GB5 `passive_values`(단계 ② 이월 기록). 경위는 history.
 >
 > v1.8.1 -- U17 ①-d·①-e 실측에 문구를 맞춘 정정(사용자 결정 변경 아님): §6-3·§6-8·§10.2 (전류 묶음 수, 탐색 θ 변수 수) 정의를 `len(SearchDomain.ties)`(전체 묶음 수)·`len(SearchDomain.variables)`로(파일럿 29/38, 그중 전류 묶음 7), §6-3 열 순서 방향(자유 열 선택에서 비자명 궤도 우선 = 열 정렬 키에서는 비자명 궤도 원소를 뒤로), §6-5·§10.2 review 기록 코드 `diff_pair_orbit_split`, §2.3·§3.9 `LayoutResult` 칸 문구 → 설계점 스냅샷 `ly_*` 필드·`layout_outputs(snapshot)`. 경위는 history.
 >
@@ -1581,6 +1583,39 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | P N6.2 단위 10(IC11 2·3레일, push-pull 등식 잔차 ≤ 멤버 수 × tol_V) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration -q -k "ic11 or kvl_branch_residual"` |
 | 공유 블록 전후 대조(DEC-51) | `$PY tools/compare_runs.py --before <base 결과 디렉터리> --after <변경 결과 디렉터리>`: 9회로 노드전압·front·SPICE verdict 차 표를 쓴다. verdict 차가 있으면 보고 맨 앞 |
 
+### 10.5 A' 판정 기준 (P DEC-98, U17 단계 ② 완료 조건)
+
+사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①. 이 절은 규칙만 적는다. 첫 사례(nmcnr 시범)의 경위·수치는 계획 history H1·H4에 있다. 'P U-76 (n)'은 결정 원문 밖이라 원칙으로 정한 기본안(사용자 변경 가능)이다.
+
+| 역할 | 누구 | 규칙 |
+|---|---|---|
+| 판정자 | ngspice(`tools/spice_oracle/`, §4) | 합격 정의 = P N6.2 T4·T5(DEC-90). MOD8 전 점(시작점, MOD8 전 front 점)은 T4-pre 기하(아래). 엔진 점과 손분석 설계를 같은 정의로 판정한다 |
+| 독립 대조군 | AI 손분석 | 결정 원문 "코드 없음"(해석: 엔진 코드를 보지 않는다. LUT 조회·계산 보조 스크립트는 허용). 회로마다 1회 문서로 고정한다. 값마다 유도 근거(회로 원리·LUT 조회·spec 값)를 적고 상수를 발명하지 않는다(P WP-03). 결과는 엔진 입력(spec·topology·`structure.json`·출발값)으로 쓰지 않고 판정 기준으로도 쓰지 않는다(판정은 ngspice). 손분석 작성 주체 ≠ 엔진 코드 작성 주체(P WP-13) |
+| 피검 | 엔진 시작점(층 0·출발 구간, 41 §5·§6)과 front 점(P U-45 대상: 양 끝점 + 예산 점) | 둘 다 아래 완료 조건에서 ngspice로 판정한다 |
+
+**판정 규칙**(결정 (3), 실패 정의는 P U-76 (7) 결정 문언 풀이)
+
+| 엔진 | AI 손분석 | 분류 | 기록 | 그 회로의 완료 |
+|---|---|---|---|---|
+| 실패 | 통과 | 엔진 결함 | A' 대조표로 원인 | 아님(P U-76 (1)) |
+| 통과 | 실패 | AI 해석 오류 | 사용자 공동분석(P N7.1) 기록 | 완료(P U-76 (8)) |
+| 통과 | 통과 | -- | 전력·면적 차(출처 아래) | 완료 |
+| 실패 | 실패 | 판정 불능(P U-76 (2)) | 사용자 공동분석(AI만 실패와 같은 경로) | 원인 확정 전 아님 |
+
+* 엔진 쪽 조건(P U-76 (7)) = 봉인 통과(P N3.6) + spec 제약 행(`graph/metrics: constraint_rows`, §2.4.8) 전부 c ≥ 0. 엔진 실패 = 그런 점을 내지 못함 또는 그 점의 ngspice 불합격. AI 실패 = 손분석 설계의 ngspice 불합격. front 점(P U-45)에도 엔진 쪽 조건(봉인 통과 + c ≥ 0)을 적용하고, front 점의 ngspice 불합격도 엔진 실패로 A' 대조표 대상이다. 근거: 엔진 자기 예측도 spec 충족을 주장해야 ngspice 통과가 우연이 아니다.
+* **T4-pre** = T4·T5와 같은 판정 정의에 MOD8 전 기하를 쓴 판정: 넷리스트 W = sizing W 그대로(레이아웃 전), 접합 기하 ad/as/pd/ps = LUT 특성화와 같은 규칙 -- `assets/sky130_lut_sweep.py` `DUT_LINE`(W = 5 µm 기준 ad = as = 2.5e-12 m²(= 2.5 µm², ngspice `2.5p`), pd = ps = 7e-6 m)을 W에 비례시킨다. 전도 문턱 `off_current_A`(DEC-90 (1))는 같은 엔진 코드로 sizing W에서 계산한다. 손분석 설계의 전도 집합은 손분석 문서가 선언한 집합이다. 그 점의 T5도 T4-pre 기하로 잰다(P U-76 (3)). MOD8 수렴 뒤 front 점은 기존 T4·T5다.
+* 미측정 제약 행(§2.4.12 Q8)과 `spice_unverifiable[]` 제약은 c ≥ 0 판정에서 빼고 보고서에 목록으로 낸다. ngspice는 측정할 수 있는 항목만 판정한다(P U-76 (4)).
+* 전력·면적 차의 출처(P U-76 (9)): 전력 = ngspice 측정, 면적 = 엔진 면적 코드(P DEC-79)에 손분석 W/L/finger를 넣은 값. 손계산 수치는 A' 문서 참고값으로만 쓴다(P WP-21). 손분석점과 front 점의 전력·면적 차는 기록만 하고 A' 판정 기준값이 아니다(P U-76 (6)).
+* A' 대조표 = 같은 항목(소자 L·gm/ID·ID·W, 노드전압, 보상 소자 값, spec 제약 행 c 등)에서 손분석 값과 엔진 값을 맞대고, 갈린 항목마다 회로 원리 근거의 원인 가설을 적은 표. 손분석과 대조표는 `docs/03-analysis/aprime/<회로>.md` 한 문서이고 실측 원본(넷리스트·로그)은 그 문서에서 경로로 참조한다(P U-76 (6)).
+
+**U17 단계 ② 완료 조건**
+
+1. 대상 = library 9회로 + held-out 회로. held-out = library 9회로 밖이고 엔진 개발(코드·test 픽스처·`structure.json` 사실·spec 값 조정·발동표 측정)에 쓰지 않은 회로(P DEC-98 (4)). **선정은 사용자 몫**(P U-75).
+2. 회로마다 (가) 엔진 시작점(층 0·출발 구간)이 엔진 쪽 조건을 만족하는 점을 내고 그 점이 ngspice T4-pre·T5를 통과하고 (나) 엔진 front 점(P U-45 대상)도 ngspice를 통과한다 -- MOD8 전 점은 T4-pre, MOD8 수렴 뒤 점은 T4·T5.
+3. 엔진 실패 회로(엔진만 실패·판정 불능)는 A' 대조표를 남기고, 그런 회로가 남으면 완료가 아니다(fail-closed). 회로별 예외는 그 회로의 대조표 + 사용자 결정으로만 둔다(P U-76 (1)). AI만 실패한 회로는 그 회로 완료로 보되 공동분석 기록을 남긴다(P U-76 (8)).
+4. library 9회로 도달률(2를 만족한 회로 수 / 9)은 회귀 지표로만 기록한다. 일반성의 근거는 held-out 회로다.
+5. held-out 정의 세부: held-out 회로의 실패를 고치려고 엔진을 바꾸면 그 회로는 개발 회로로 옮기고, 다음 일반성 판정에는 새 held-out 회로가 필요하다(P U-76 (5) 기본안).
+
 ---
 
 ## 11. 구현 단위 (병렬 배분용)
@@ -1631,7 +1666,7 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | 단계 | 범위(소유 파일) | 재작성 범위 | 같은 변경에서 지우는 것 | 선행 | 확인 행 | test |
 |---|---|---|---|---|---|---|
 | **① graph 층 이동** | S1v 저장(`E/graph/s1v_build.py` 출력층, `s1v_values.py`의 `S1v` 묶음), GB3 출력(`coupling_vars.py`), U9 출력층(`E/metrics/achievability.py`·`achievability_types.py`의 `Achievability` 묶음), U13 데이터 흐름(`E/search/start_intervals.py`, `iv_context.py`, `iv_curves.py`, `start_values.py`의 `StartContext`·`StartIntervals`), S0 수준 스냅샷 직렬화(신규 `E/core/snapshot_codec.py`·`type_registry.py`, 패키지마다 `__init__` 등록, `E/pipeline/stage_a.py`·`stage_b.py` 배선), 단계 B 층(`residual_probe`·`dof_numeric` 필드, 직렬화 제외), 커널 컨텍스트 구조 파생과 SearchContext 선언 파생의 S0 수준 필드(`E/sizing/kernel_context.py`, `E/search/search_domain.py`, 제약 분류, 접합·mismatch 출처, 면적 선언, 모델 오차), CurveBook·ParamTables의 LUT 파생을 `E/lut/derived_fns.py`로(호출 형식은 ③에서 `call`로), `metrics_dc`의 `gate_area_m2`·`power_resolution_w`(search `_power_resolution` 삭제), 수동소자 값 블록(`E/metrics/passive_values.py` → 계산 블록, 소비자 `ss_evaluate.py`·`search/kernel.py`·`convergence/converge_point.py`. `search/_helpers_area.py`는 출발 구간(S0 층) 추정이라 S2 필드 `device.passive_value`를 읽을 수 없으므로 ①-b(S0 필드 이동)로 이월), tol_I gm 필드(`E/sizing/seal_tolerances.py`, `seal_kcl.py`, `kernel_run.py`, `seal.py`, `E/metrics/ss_linearize.py`, `search/objectives.py`·`search_values.py` b_P), 레이아웃 필드(`E/layout/run.py`, `contract_output.py`의 `LayoutResult`, `E/convergence/` 어댑터) | **전체 재작성**: S1v 저장, U9 출력층, U13 데이터 흐름(`StartContext`·`CurveBook` 폐기), S0 수준 스냅샷 경로. **부분 수정**: 수동소자 값(R = 1/Σ`dc_gm`), tol_I, 레이아웃 출력, `metrics_dc` | `StartContext`, `CurveBook`, `ParamTables` 두 벌 생성, `search/objectives.py`의 `_power_resolution`·`gate_area_m2` 계산, `S1v`·`Achievability`·`StartIntervals` 묶음 전달, `previous_gm_id`·`inherited_gm_id`·`canonical_gm_id`·`gm_grid_max`와 `dc_gm_bound` 필드, `kernel.py:146-150` 수동소자 규칙 사본, `sctx.spec_passive_values`, 레이아웃 별도 lineage(`GraphSnapshot.empty(LY_WRITERS)`), 이것들을 직접 단언하던 test | U9·U13 병합(as-built) | D-GR2·3·7·8·13, D-GR9(레이아웃 부분) | `test_s0_snapshot_roundtrip`, 수동소자 필드 단일 writer, tol_I parent 무관(같은 θ·다른 parent → 같은 봉인 결과), 9회로 front 재측정 기록(Q7) |
-| **② search 상태·층 0** | core 분할 계산 블록과 `graft`(`E/core/compute_block.py`, `graph_snapshot.py`의 `block_versions` 키, 신규 `core/graft.py`), 평가 커널 ②~⑤·봉인 블록의 분할 선언(`E/sizing/block_*.py`, `seal_*.py`), S3 메모리 색인과 보존(신규 `E/search/s3_index.py`, `local`·`solved` 분리, 보존 소유자 5종, `archive.py` 타입 있는 직렬화), 계수 소유 이동(`ComputeBlock` 무상태화, 신규 `core/run_counters.py`, `BoundedLRU._evicted`·`TableCache.events` 이동), 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 제약 행 `graph/metrics: constraint_rows`(①-c에서 이월, `unmeasured` 자리는 §2.4.12 Q8), 결과 JSON 계수 `perf.s0_snapshot`(①에서는 단계 A 보고서 `s0_snapshot` 키), `SearchContext`(G-7), `kernel.evaluate`, `EvalResult`·`SsEvaluation` 사본 제거, 층 0의 이식 사용(`layer0_budget.py`, `local_candidates.py`, `local_front.py`, `combo_dp.py`, `assembly.py`, `size_and_seal_local.py`의 `LocalSeal`) | **전체 재작성**: search 상태층(`search_context.py`, `kernel.py`의 캐시·기록 부분, `EvalResult`), 층 0 데이터 흐름(41 §5 v1.6 U15 재구현과 한 변경). **부분 수정**: core 블록(분할 추가, 분할 없는 블록은 `*` 하나로 as-built와 같은 동작), 커널 블록 분할 선언 | `sctx.cache`·`disk_failures`·`computed_keys`·`cell_floors`·`local_seal_memo`, `_disk_failures`, `ComputeBlock`의 계수 칸·`_seen_inputs`·`reset_stats`, `SsEvaluation.ss/dc`, `EvalResult`의 값 칸, `LocalSeal.snapshot_fragment`·`power_w`·`area_m2`, 오케스트레이터 초안 EvalCache, 이것들을 단언하던 test | ①, U15 design(41 §5 v1.6) 승인 | D-GR1·4·5·9·10·14 | `test_g10_second_run_s0_zero`(`RunCounters` 필요, §2.4.9에서 ①에서 옮김), `test_graft_equals_compute`, `test_graft_donor_order_invariant`, `test_partition_scc_not_split`, 분할 블록 시드 금지(같은 θ·다른 parent → 같은 분할 값), 보존 규칙(풀이 중 기준점 유지·끝나면 놓음), 색인 적중 = 커널 0, 층 0 조립점에서 비공유 분할 `computes` 0 |
+| **② search 상태·층 0** | core 분할 계산 블록과 `graft`(`E/core/compute_block.py`, `graph_snapshot.py`의 `block_versions` 키, 신규 `core/graft.py`), 평가 커널 ②~⑤·봉인 블록의 분할 선언(`E/sizing/block_*.py`, `seal_*.py`), S3 메모리 색인과 보존(신규 `E/search/s3_index.py`, `local`·`solved` 분리, 보존 소유자 5종, `archive.py` 타입 있는 직렬화), 계수 소유 이동(`ComputeBlock` 무상태화, 신규 `core/run_counters.py`, `BoundedLRU._evicted`·`TableCache.events` 이동), 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 제약 행 `graph/metrics: constraint_rows`(①-c에서 이월, `unmeasured` 자리는 §2.4.12 Q8), 결과 JSON 계수 `perf.s0_snapshot`(①에서는 단계 A 보고서 `s0_snapshot` 키), `SearchContext`(G-7), `kernel.evaluate`, `EvalResult`·`SsEvaluation` 사본 제거, 층 0의 이식 사용(`layer0_budget.py`, `local_candidates.py`, `local_front.py`, `combo_dp.py`, `assembly.py`, `size_and_seal_local.py`의 `LocalSeal`) | **전체 재작성**: search 상태층(`search_context.py`, `kernel.py`의 캐시·기록 부분, `EvalResult`), 층 0 데이터 흐름(41 §5 v1.6 U15 재구현과 한 변경). **부분 수정**: core 블록(분할 추가, 분할 없는 블록은 `*` 하나로 as-built와 같은 동작), 커널 블록 분할 선언 | `sctx.cache`·`disk_failures`·`computed_keys`·`cell_floors`·`local_seal_memo`, `_disk_failures`, `ComputeBlock`의 계수 칸·`_seen_inputs`·`reset_stats`, `SsEvaluation.ss/dc`, `EvalResult`의 값 칸, `LocalSeal.snapshot_fragment`·`power_w`·`area_m2`, 오케스트레이터 초안 EvalCache, 이것들을 단언하던 test | ①, U15 design(41 §5 v1.6) 승인 | D-GR1·4·5·9·10·14, D-AP1 | `test_g10_second_run_s0_zero`(`RunCounters` 필요, §2.4.9에서 ①에서 옮김), `test_graft_equals_compute`, `test_graft_donor_order_invariant`, `test_partition_scc_not_split`, 분할 블록 시드 금지(같은 θ·다른 parent → 같은 분할 값), 보존 규칙(풀이 중 기준점 유지·끝나면 놓음), 색인 적중 = 커널 0, 층 0 조립점에서 비공유 분할 `computes` 0. **완료 조건 = A' 판정 기준**(§10.5, P DEC-98: library 9회로 + held-out 회로에서 시작점이 봉인 통과·spec 제약 행 c ≥ 0이고 ngspice(T4-pre·T5) 통과, front 점(P U-45)도 ngspice 통과, 엔진 실패 회로가 남으면 미완료·A' 대조표, 9회로 도달률은 회귀 지표) |
 | **③ LUT memo·lint·G-10** | `E/lut/lut_memo.py`(`call`·계수 상태·상한 B_r), `sweep_memo.py`, LUT 순수 함수로 옮기는 것(`E/search/cell_floor.py`, `E/metrics/block_param_tables.py`, `edge_costs` 호출처, `E/sizing/block_columns.py`의 `solve_self`·`tol_cells`), 구조 규칙 G 확장·설계 값 타입 위치 검사·SC-a/SC-b lint(`E/tests/structure/structure_checks.py`, `_module_map.py` 필드 형식 열), memo 상한·퇴출 판정(§2.4.6 사용자 결정 (가)/(나)에 따라 -- 결정이 착수 조건), G-10 test(`E/tests/perf/`, `E/tests/integration/`) | **전체 재작성**: memo 생성·상한 배선(`_wire_sweep_memo`, `sweep_memo`), `ParamTables`. **부분 수정**: `cell_floor`·`solve_self`·`tol_cells`(memo 함수로 옮김), 구조 검사(규칙 추가) | `LutMemo.lookup`(클로저형), `_Unmemoized`, `_CountingMemo`·`sweep_memo.py`, 두 번째 memo 인스턴스, `ParamTables` 클래스와 두 벌 생성, `CurveBook`의 LUT 사전(①에서 클래스 삭제), §2.4.10 실측 위반 줄 전부, 이것들을 단언하던 test | ②, §2.4.6 사용자 결정 | D-GR6·11·12·15 | `test_lut_memo_single_instance`, `test_lut_memo_purity`, `test_g10_no_recompute_9circuits`, 구조 규칙 G 확장의 거부 확인 픽스처(규칙마다 위반 예 1개가 실제로 거부됨) |
 
 **U17과 다른 단위의 관계**:
