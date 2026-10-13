@@ -6,7 +6,7 @@
 >   untie -- 벽시계 등 다른 실행 설정은 넣지 않는다) -> `junction_field` -> `mismatch_field` -> `model_error_field` -> `constraint_classes` -> `passive_area_decl` -> `metric_structure` -> `noise_decl` ->
 >   (`graph/s1v: views` 필드가 있으면) `start_intervals`. 끝에서 `s0`(core `S0Slot`, `StageAResult.s0`)로 S0 수준 스냅샷을 **한 번** 쓴다(단계 B 층 writer `residual_probe`·`dof_numeric` 은 `transient`,
 >   v1.9.1 D6). 같은 S0 의 다음 실행(디스크 적중)은 모든 S0 블록이 재사용이다(계산 0).
-> * `SearchContext` 칸 = 참조(`dc` -- base 가 S0 수준 스냅샷, `spec`, `settings`, `archive`, `context_fp` = (S0 스냅샷 fp, LUT 손잡이, DcInputs) 지문, `code_fp`) + 실행 수명 상태(cache·counters·예산·
+> * `SearchContext` 칸 = 참조(`dc` -- base 가 S0 수준 스냅샷, `spec`, `settings`, `archive`, `context_fp` = (S1 블록·커널 계획 블록 `PLAN_WRITERS` 입력 버전, LUT 손잡이, DcInputs) 지문 -- 평가 커널이 읽는 S0 입력만(θ 상자·출발 구간·접합 선언 경로는 평가 결과를 바꾸지 않아 뺀다), `code_fp`) + 실행 수명 상태(cache·counters·예산·
 >   `cell_floors`). 옛 S0 칸(`domain`·`junction`·`mismatch`·`model_error`·`area_decl`·`structure`·`noise_decl`·`judged_constraints`·`ss_constraints`·`constraint_notes`·`start`·`element_values`·
 >   `driving`·`schema_fp`)은 같은 이름의 **읽기 속성**이 부를 때마다 필드에서 읽는다(`start` 대신 `rungs` = `graph/start: rungs` 또는 None, 칸 0 = 선택점).
 > * 새/바뀐 계산 블록: `search_domain`(-> `graph/kernel: search_domain`), `constraint_classes`(-> `graph/kernel: constraint_classes` = `ConstraintClasses(judged, ss = spec judged_constraints 위치, notes = (키, 값) 쌍)`),

@@ -15,7 +15,8 @@
   부를 때마다 S0 수준 필드를 읽는다(사본 없음): `domain`(`graph/kernel: search_domain`), `junction`·`mismatch`·`model_error`·`area_decl`(graph/kernel), `structure`·`noise_decl`
   (graph/s1v), `judged_constraints`·`ss_constraints`·`constraint_notes`(`constraint_classes` -- ss 는 spec 위치에서 spec 선언을 읽는다), `rungs`(`graph/start: rungs` 또는 None),
   `schema_fp`(θ 스키마 필드의 값 지문), `element_values`·`driving`(spec 파싱 결과 참조).
-* 지문: `context_fp` = (S0 수준 스냅샷 fp, LUT 손잡이, DcInputs) 지문, `schema_fp` = θ 스키마 필드 값 지문, `code_fp` = 호출자가 넘긴 core `engine_code_fp()` 값(단계 A 가 실행마다
+* 지문: `context_fp` = (S1 블록·커널 계획 블록(`PLAN_WRITERS`)의 입력 버전, LUT 손잡이, DcInputs) 지문 -- 평가 커널이 읽는 S0 입력만이다(정의역 상자·출발 구간·접합 선언
+  경로 같은 탐색 쪽 S0 필드는 평가 결과를 바꾸지 않아 넣지 않는다: θ 상자만 바뀐 실행도 S3 평가 키·실패 기록이 그대로 맞는다), `schema_fp` = θ 스키마 필드 값 지문, `code_fp` = 호출자가 넘긴 core `engine_code_fp()` 값(단계 A 가 실행마다
   한 번 재 `StageAResult.code_fp` 로 넘긴다 -- 여기서 다시 재지 않는다).
 * **평가 캐시**(설계 7.2): `cache` = {EvalKey: EvalResult}(실패 포함). 상한 = 실행이 만드는 고유 키 수. `disk_failures` = S3 evals 실패 줄에서 재구성한 {EvalKey: FailureRecord}
   (같은 S0·코드 지문만, 설계 7.3). 계수 `counters`(설계 7.4): requests, kernel_calls, hits, fail_hits, disk_hits, outside_domain, recompute_same_key.
@@ -26,10 +27,10 @@ import dataclasses
 
 from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 from gmid_engine.core import FailureRecord, PdkDecl, S0Slot, fp_of
-from gmid_engine.graph import ELEMENT_MOS, S1V_KEY
+from gmid_engine.graph import ELEMENT_MOS, S1_WRITERS, S1V_KEY
 from gmid_engine.lut import require_lut_data, sweep_memo
 from gmid_engine.metrics import (NoiseAnalysis, junction_field, metric_registry, metric_structure, mismatch_field, model_error_field)
-from gmid_engine.sizing import KERNEL_KEY, LutAccess
+from gmid_engine.sizing import KERNEL_KEY, PLAN_WRITERS, LutAccess
 
 from .archive import S3Archive
 from .area_decl import passive_area_decl
@@ -41,6 +42,10 @@ from .s0_fields import S0_WRITERS, STAGE_B_WRITERS, START_KEY
 from .search_domain import search_domain
 from .search_values import AXIS_AREA, EvalKey
 from .start_intervals import start_intervals
+
+
+# 평가 키 지문(`context_fp`)이 읽는 블록 -- S1 블록과 커널 계획·구조 파생 블록(평가 커널의 S0 입력)
+_CONTEXT_WRITERS = tuple(sorted({writer for _kind_field, writer in S1_WRITERS.entries} | set(PLAN_WRITERS)))
 
 
 class SearchContext:
@@ -221,7 +226,7 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     if s0 is not None:
         s0.save(base, STAGE_B_WRITERS)             # v1.9.1 D6: S0 수준 블록이 모두 끝난 한 시점에 한 번(단계 B 층은 직렬화하지 않는다)
     dc = dataclasses.replace(dc_ctx, base=base)
-    context_fp = fp_of((base.fp, dc.lut, dc.inputs))
+    context_fp = fp_of((tuple((w, base.block_version(w)) for w in _CONTEXT_WRITERS), dc.lut, dc.inputs))
     archive = None if archive_root is None else S3Archive(archive_root, context_fp, code_fp)
     ctx = SearchContext(dc, spec, settings, context_fp, code_fp, archive)
     if archive is not None:
