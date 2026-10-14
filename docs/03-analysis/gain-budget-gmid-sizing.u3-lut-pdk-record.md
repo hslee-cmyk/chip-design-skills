@@ -106,7 +106,9 @@
 - **곡선 표 4종**: 300점/kind 모두 생성, 평균 마디 49(nmos)·48.8(pmos), `monotone` nmos 300/300·pmos 74/300(pfet 중반전 gm/ID 한 번 올라감 -- 소비자는 격자 전수로), 표 하나 0.8–4.7 ms.
 - **기울기 열 단위 검사**: 실데이터 32개 슬라이스의 최대 |로그| GM 1.9e-4, GDS 8.0e-5 (경계 1; GMBS/ID 대 VS 도 2.9e-4 지만 toy 슬라이스 호환을 위해 검사하지 않는다).
 - **저항 면적**(Q9): R□ = `rp1` 48.2 Ω/□ (`res_typical__cap_typical.spice` 21행), W_min = `poly.3` 0.33 µm (periphery.csv 403행), 본체 Ω당 면적 W_min²/R□ = (0.33e-6)²/48.2 = 2.2593e-15 m²/Ω (손계산 일치),
-  머리 면적 2·W_min·(licon.1 + 2·licon.8a) = 2·0.33·(0.17 + 0.16) µm² = 0.2178 µm². 후보 종류는 `poly_generic`(res_generic_po) 하나 -- 정밀 poly 저항(res_high_po·res_xhigh_po) 모델 파일은 로컬 sparse checkout 에 없다.
+  머리 면적 2·W_min·(licon.1 + 2·licon.8a) = 2·0.33·(0.17 + 0.16) µm² = 0.2178 µm². 후보 종류는 `poly_generic`(res_generic_po) 하나 -- U3 측정 당시 정밀 poly 저항(res_high_po·res_xhigh_po) 모델 파일은 로컬 sparse checkout 에 없었다.
+  (2026-10-14 정정: res_high_po 모델 파일 6개를 사용자 D-R 승인으로 `google/skywater-pdk-libs-sky130_fd_pr` 커밋 f62031a 에서 `C:/pdk/sky130_fd_pr/cells/res_high_po/` 에 받아
+  held-out D 저항 값 계산에 썼다(master 6a22538). res_xhigh_po 는 여전히 없고, `sky130_pdk_decl.json` `resistor_types` 후보는 그대로 `poly_generic` 하나다.)
 - **로드 시간**(32 슬라이스, 부하 중 비교): 마스터 26.0 s → U3 36.4 s (같은 부하; 단위 검사·VS FC 검사 추가분 포함, 무부하 U3 로드 11~15 s).
 
 ## 8. 재현

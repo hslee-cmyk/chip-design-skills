@@ -484,8 +484,10 @@ bin 소속 판정(`bin_index`, 양끝 닫힘·경계 공유 시 아래 bin)은 l
 후보마다 본체 Ω당 면적 W_min²/R□ [m²/Ω]를 계산해 가장 작은 후보(동률은 이름 순)의 세 양을 `<접두>_sheet_ohm_per_sq`·`<접두>_min_w_m`·`<접두>_head_area_m2` 이름의
 `PdkQuantity`(식 = `select_min_area_per_ohm(<후보>.<양>)`, `rules` = 그 후보 양의 규칙, `basis` = 선택 규칙 + 후보별 m²/Ω)로 `quantities` 에 더한다 -- **고정 상수가 아니라 규칙**(사용자 결정 Q9).
 거부: 키 위반 `pdk_decl_keys`/`pdk_decl_shape`, 후보가 가리키는 양이 없음 `pdk_quantity_undeclared`, R□ <= 0 `pdk_quantity_invalid`, 이름이 이미 있음 `pdk_quantity_duplicate`.
-sky130 로컬 PDK(sparse checkout)에는 `cells/` 에 nfet_01v8·pfet_01v8 만 있어 정밀 poly 저항(res_high_po·res_xhigh_po)의 시트 저항을 읽을 수 없다 -- 후보는 `poly_generic`(res_generic_po) 하나뿐이고,
-다른 후보는 선언만 더하면 같은 규칙이 고른다(모델 파일 확보 뒤 사용자 결정).
+sky130 로컬 PDK(sparse checkout) `cells/` 에는 nfet_01v8·pfet_01v8 과, 2026-10-14 사용자 D-R 승인으로 `google/skywater-pdk-libs-sky130_fd_pr` 커밋 f62031a 에서 받은
+res_high_po 모델 파일 6개(`C:/pdk/sky130_fd_pr/cells/res_high_po/`, held-out D 저항 값 계산에 사용 -- master 6a22538, 출처 표 `assets/heldout/cnr_ota.spec_source.md` 4.2절)가 있다.
+res_xhigh_po 모델 파일은 없다. 이 PDK 선언(`assets/sky130_pdk_decl.json`)의 `resistor_types` 후보는 아직 `poly_generic`(res_generic_po) 하나뿐이고(res_high_po 시트 저항은 선언하지 않음),
+다른 후보는 선언만 더하면 같은 규칙이 고른다(선언 추가는 사용자 결정 -- 선언 파일 바이트가 바뀌면 `decl_sha256`·S0 키가 바뀐다).
 
 ### 9.5 소비자 호출 (layout 브랜치 병합 시 `LayoutPdk` 를 만드는 쪽)
 ```python
