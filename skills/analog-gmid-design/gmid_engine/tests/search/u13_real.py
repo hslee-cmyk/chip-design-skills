@@ -85,7 +85,9 @@ def real_case(name, extra=()):
     tp.write_text((LIBRARY / (name + ".topology.json")).read_text(encoding="utf-8"), encoding="utf-8")
     sp = d / (name + ".sizing_spec.json")
     sp.write_text(json.dumps(library_spec(name, extra), indent=1, ensure_ascii=False), encoding="utf-8")
-    a = run_stage_a(tp, sp, env.lut, pdk_decl=env.pdk, lut_rule_decl=env.rule, output_dir=d / "out")
+    a = run_stage_a(tp, sp, env.lut, pdk_decl=env.pdk, lut_rule_decl=env.rule, output_dir=d / "out",
+                    pdk_decl_path=str(SKILL / "assets" / "sky130_pdk_decl.json"),
+                    lut_rule_decl_path=str(SKILL / "assets" / "sky130_lut_rule_decl.json"))
     assert a.s1 is not None and a.s1.snapshot.record("graph", "s1v") is not None and a.status == "ok", (a.status, a.report.get("stop_reasons"))
     # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- build_search_context 와 같은 값(한 실행 = 한 설정, pipeline CONTRACT 5절)
     settings = SearchSettings(600.0, EVAL_BUDGET, RBOX, (("front_budget_s", "u13 test fixture"),), CBOX)

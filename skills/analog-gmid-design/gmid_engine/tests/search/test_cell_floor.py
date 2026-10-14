@@ -527,7 +527,9 @@ def test_library_real_path_find_front_with_l_classes(tmp_path, lib_env, name):
     spec = load_sizing_spec(str(LIBRARY / (name + ".sizing_spec.json")), td, env.catalog)
     inputs = dc_inputs_from_spec(spec)
     sup = dict(inputs.supplies_v)
-    stage_a = run_stage_a(tp, None, env.lut, pdk_decl=env.pdk, lut_rule_decl=env.lut_rule, output_dir=tmp_path / "a", supplies_v=sup)
+    stage_a = run_stage_a(tp, None, env.lut, pdk_decl=env.pdk, lut_rule_decl=env.lut_rule, output_dir=tmp_path / "a", supplies_v=sup,
+                          pdk_decl_path=str(SKILL_DIR / "assets" / "sky130_pdk_decl.json"),
+                          lut_rule_decl_path=str(SKILL_DIR / "assets" / "sky130_lut_rule_decl.json"))
     # [U17 ①-b] 단계 A 의 L 동치류 = S1v 필드 `graph/s1v: l_classes`(D1) -- 같은 build_s1(td, sup) 에 그 필드를 넣어 커널 컨텍스트를 만든다(옛 l_classes= 입력과 같은 값).
     l_classes = stage_a.s1.value("graph", "s1v", "l_classes")
     dc = build_kernel_context(inject_l_classes(build_s1(td, sup), l_classes), inputs, env.access)

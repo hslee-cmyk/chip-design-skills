@@ -294,7 +294,10 @@ def _stage_a_ok(tmp_path, toy, pdk):
     """단계 A 만(입력 helper): 팔로워 + 이상 전류원, gain 제약 없음(위 test 와 같은 입력 -- 단계 A ok)."""
     tp, sp = write_case(tmp_path, follower(), elements=(("I1", "current_source", None),))
     (tmp_path / "_rule").mkdir(parents=True, exist_ok=True)
-    a = run_stage_a(tp, sp, toy, pdk_decl=pdk, lut_rule_decl=toy_rule(tmp_path / "_rule"), output_dir=tmp_path / "out")
+    from search.conftest import decl_path
+    rule = toy_rule(tmp_path / "_rule")
+    a = run_stage_a(tp, sp, toy, pdk_decl=pdk, lut_rule_decl=rule, pdk_decl_path=decl_path(pdk), lut_rule_decl_path=decl_path(rule),
+                    output_dir=tmp_path / "out")
     assert (a.status, a.exit_code) == ("ok", 0)
     return a
 

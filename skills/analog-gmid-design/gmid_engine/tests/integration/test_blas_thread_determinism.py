@@ -75,7 +75,9 @@ lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_r
 env = SimpleNamespace(lut=lut, pdk=pdk, rule=read_pdk_decl(str(M.SKILL / "assets" / "sky130_lut_rule_decl.json"), dm))
 out = Path({out!r})
 a = run_stage_a(M.LIBRARY / ({circuit!r} + ".topology.json"), M.LIBRARY / ({circuit!r} + ".sizing_spec.json"), env.lut, pdk_decl=env.pdk,
-                lut_rule_decl=env.rule, output_dir=out)
+                lut_rule_decl=env.rule, output_dir=out,
+                pdk_decl_path=str(M.SKILL / "assets" / "sky130_pdk_decl.json"),
+                lut_rule_decl_path=str(M.SKILL / "assets" / "sky130_lut_rule_decl.json"))
 env.memo = LutMemo(env.lut, point=1 << 16, curve=1 << 14, root=1 << 16)
 b = run_stage_b(a, env.memo, env.pdk, output_dir=out, diagnostic=True, settings=M._settings())
 assert (a.status, b.status) == ("ok", "ok"), (a.status, b.status)

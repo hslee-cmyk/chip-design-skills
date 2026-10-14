@@ -31,6 +31,9 @@ PDK_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "s
 # [U17 ①-b] run_stage_a(lut_rule_decl=) 필수(설계 40 §2.4.7 SearchContext 칸 배정 `junction` -> S0 필드 junction_source = PDK 선언·LUT 생성 규칙 선언의 파생,
 # S0 키 입력). 저장소 LUT 생성 규칙 선언 원본.
 LUT_RULE_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(4))
+# [U17 ①-b 3차, 사용자 결정 2026-10-14 "(가) 경로 인자 필수"] run_stage_a(pdk_decl_path=, lut_rule_decl_path=) 필수 -- 위 두 선언을 읽어 온 파일
+PDK_DECL_PATH = str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json")
+LUT_RULE_DECL_PATH = str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json")
 
 CMFB_SE = H.topo("cmfbse", tuple((e["name"], e["kind"], e["drain"], e["gate"], e["source"]) for e in H.CMFB["netlist"]),
                  {"inp": H.DIFF_P, "inn": H.DIFF_N, "op": H.SE_OUT, "om": H.SE_OUT},
@@ -61,7 +64,7 @@ def _codes(lines):
 
 def _go(tmp_path, real_lut, doc, loop_cut, out="o", stem=None):
     tp, sp = _pair(tmp_path, doc, loop_cut, stem=stem)
-    return run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
+    return run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
 
 
 # ------------------------------------------------------------------ 해제·불일치·거부
