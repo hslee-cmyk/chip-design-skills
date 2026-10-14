@@ -1,0 +1,413 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "erfc_ota",
+  "_topology_name_comment": "판독 작업 이름 B_erfc(wt/_heldout/B_erfc/B_erfc.topology.json) -> 저장소 이름 erfc_ota. connectivity는 판독본과 같다(이름·주석 키만 바꿈).",
+  "source": "C. Wu, P. Cai, J. Li, J. Xie, Z. Luo, 'Power-Efficient Recycling Folded Cascode OTA Based on Nested Local Feedback and Adaptive Biasing', Sensors 25(8):2523, 2025 (PMC12031453). 회로도 PDF p.8 Figure 6(트랜지스터 수준 ERFC OTA). 치수 PDF p.9 Table 1. 대조: p.5 Fig.3b(adaptive biasing), p.6 Fig.4a(NLF), 본문 식 (10) gm,ERFC = 2(gm1B*gm4B*RY + gm2A).",
+  "_status": "held-out 시험 회로 B(2026-10-13). library 밖 assets/heldout/ 에 둔다(계획 DEC-98 (4)·U-76 (5) -- 엔진 개발 회로와 분리, test 픽스처로 쓰지 않는다). connectivity 사용자 확인 끝: user_decisions.md 2026-10-13 held-out B 'B-1~B-8 모두 네 판단대로', '9,10,13,14는 네 판단대로', '12는 가로, B-5도 네 판단대로'(확인 항목 전부 종결). 판독 기록 wt/_heldout/B_erfc/VERIFY.md.",
+  "_schema_note": "연결만 담는다. 소자 치수는 B_erfc.sizes.md(참고용). 사람 태그(symmetry/sizing_roles/device_roles/fold 등)는 넣지 않았다. 내부 넷 이름(n_*)은 그림에 이름이 없는 노드에 붙인 이름이다(접속 소자 단자 기준); A/B/X/Y/Z/VCN/VCP/Vin+/Vin-/VOUT은 그림 표기.",
+  "linked_topology_files": [],
+  "compensation": null,
+  "_compensation_status": "not_applicable",
+  "_compensation_status_comment": "단일 이득단(RFC 계열 OTA, 부하 CL이 우세 극점). 판정은 사용자 검토 대상.",
+  "supply_nets": [
+    "vdd",
+    "gnd",
+    "vcp",
+    "vcn"
+  ],
+  "_supply_nets_comment": "VCP(1.1 V)·VCN(0.7 V)는 Fig.6에 이상 전압 단자로만 표기된 바이어스 전압이다. 두 넷 모두 MOS source 단자(M21 source=VCP, M19/M20 source=VCN)에 붙어 gate 전용 넷이 아니므로 bias_inputs로 선언할 수 없고(bias_input_not_gate_only), 엔진은 이상 전압원 kind를 지원하지 않는다(graph source_kind_unsupported). 그래서 DC 고정·교류접지 레일로 선언했다. VERIFY.md 모호점 참조.",
+  "bias_inputs": [],
+  "_bias_inputs_comment": "gate 전용 넷 없음(VCN은 M19/M20 source, Z는 R1/R2 단자).",
+  "ports": {
+    "_comment": "Fig.6 표기: Vin+ -> vin_p (M1A/M1B/M11 gate), Vin- -> vin_n (M2A/M2B/M12 gate), VOUT -> out (M8 drain = M6 drain). 극성(vin_p->out 동상 여부)은 그림 이름 그대로이며 소신호 검증 전.",
+    "vin_p": {
+      "role": "differential_input_p",
+      "direction": "input"
+    },
+    "vin_n": {
+      "role": "differential_input_n",
+      "direction": "input"
+    },
+    "out": {
+      "role": "single_ended_output",
+      "direction": "output"
+    }
+  },
+  "source_manifest": {
+    "figure": "Sensors 2025 25(8) 2523, PDF p.8 Figure 6 (+CL from p.13 text / p.14 Table 2)",
+    "device_count": 29,
+    "passive_count": 6
+  },
+  "_bulk_comment": "Fig.6은 3단자 MOS 기호라 bulk가 그려져 있지 않다(그림 근거 없음). 0.18 um 표준 p-기판 CMOS 가정으로 NMOS bulk=gnd, PMOS bulk=vdd를 명시했다. 명시하지 않으면 graph 기본 규칙이 M19/M20/M21(source가 vcn/vcp 레일)에서 bulk_multi_domain으로 정지한다(_engine_load_check.txt). PMOS bulk의 source 연결 여부(특히 M1A~M2B, M11/M12, M15/M16, M19~M21)는 사용자 확인 필요(VERIFY.md).",
+  "netlist": [
+    {
+      "name": "M9",
+      "kind": "pmos",
+      "drain": "n_m9d",
+      "gate": "n_m7d",
+      "source": "vdd",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 좌상단"
+    },
+    {
+      "name": "M10",
+      "kind": "pmos",
+      "drain": "n_m10d",
+      "gate": "n_m7d",
+      "source": "vdd",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 우상단"
+    },
+    {
+      "name": "M7",
+      "kind": "pmos",
+      "drain": "n_m7d",
+      "gate": "n_m8g",
+      "source": "n_m9d",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 좌상단 M9 아래"
+    },
+    {
+      "name": "M8",
+      "kind": "pmos",
+      "drain": "out",
+      "gate": "n_m8g",
+      "source": "n_m10d",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 우상단 M10 아래"
+    },
+    {
+      "name": "M21",
+      "kind": "pmos",
+      "drain": "n_m8g",
+      "gate": "vcn",
+      "source": "vcp",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 우상단 CBAT2 아래"
+    },
+    {
+      "name": "M13",
+      "kind": "pmos",
+      "drain": "A",
+      "gate": "n_m13g",
+      "source": "vdd",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 Adaptive biasing 좌상"
+    },
+    {
+      "name": "M14",
+      "kind": "pmos",
+      "drain": "B",
+      "gate": "n_m14g",
+      "source": "vdd",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 Adaptive biasing 우상"
+    },
+    {
+      "name": "M11",
+      "kind": "pmos",
+      "drain": "n_m11d",
+      "gate": "vin_p",
+      "source": "A",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 Adaptive biasing 좌중"
+    },
+    {
+      "name": "M12",
+      "kind": "pmos",
+      "drain": "n_m12d",
+      "gate": "vin_n",
+      "source": "B",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 Adaptive biasing 우중"
+    },
+    {
+      "name": "M15",
+      "kind": "pmos",
+      "drain": "gnd",
+      "gate": "n_m11d",
+      "source": "n_m13g",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 Adaptive biasing 좌측"
+    },
+    {
+      "name": "M16",
+      "kind": "pmos",
+      "drain": "gnd",
+      "gate": "n_m12d",
+      "source": "n_m14g",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 Adaptive biasing 우측"
+    },
+    {
+      "name": "M1A",
+      "kind": "pmos",
+      "drain": "n_m5s",
+      "gate": "vin_p",
+      "source": "B",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 Adaptive biasing 하단 좌"
+    },
+    {
+      "name": "M1B",
+      "kind": "pmos",
+      "drain": "Y",
+      "gate": "vin_p",
+      "source": "B",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 Adaptive biasing 하단 중좌"
+    },
+    {
+      "name": "M2B",
+      "kind": "pmos",
+      "drain": "X",
+      "gate": "vin_n",
+      "source": "A",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 Adaptive biasing 하단 중우"
+    },
+    {
+      "name": "M2A",
+      "kind": "pmos",
+      "drain": "n_m6s",
+      "gate": "vin_n",
+      "source": "A",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 Adaptive biasing 하단 우"
+    },
+    {
+      "name": "M5",
+      "kind": "nmos",
+      "drain": "n_m7d",
+      "gate": "n_m5g",
+      "source": "n_m5s",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 좌상"
+    },
+    {
+      "name": "M6",
+      "kind": "nmos",
+      "drain": "out",
+      "gate": "n_m6g",
+      "source": "n_m6s",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 우상"
+    },
+    {
+      "name": "M19",
+      "kind": "pmos",
+      "drain": "n_m5g",
+      "gate": "Z",
+      "source": "vcn",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 NLF 좌상 M5 위"
+    },
+    {
+      "name": "M20",
+      "kind": "pmos",
+      "drain": "n_m6g",
+      "gate": "Z",
+      "source": "vcn",
+      "bulk": "vdd",
+      "_fig": "p.8 Fig.6 NLF 우상 M6 위"
+    },
+    {
+      "name": "M3B",
+      "kind": "nmos",
+      "drain": "n_m5s",
+      "gate": "X",
+      "source": "gnd",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 좌하"
+    },
+    {
+      "name": "M4B",
+      "kind": "nmos",
+      "drain": "n_m6s",
+      "gate": "Y",
+      "source": "gnd",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 우하"
+    },
+    {
+      "name": "M17B",
+      "kind": "nmos",
+      "drain": "X",
+      "gate": "vcn",
+      "source": "n_m17ad",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 중좌 상"
+    },
+    {
+      "name": "M17A",
+      "kind": "nmos",
+      "drain": "n_m17ad",
+      "gate": "Y",
+      "source": "gnd",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 중좌 하"
+    },
+    {
+      "name": "M3C",
+      "kind": "nmos",
+      "drain": "X",
+      "gate": "vcn",
+      "source": "n_m3ad",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 중좌 상(X 아래)"
+    },
+    {
+      "name": "M3A",
+      "kind": "nmos",
+      "drain": "n_m3ad",
+      "gate": "Z",
+      "source": "gnd",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 중앙 하 좌"
+    },
+    {
+      "name": "M4C",
+      "kind": "nmos",
+      "drain": "Y",
+      "gate": "vcn",
+      "source": "n_m4ad",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 중우 상(Y 아래)"
+    },
+    {
+      "name": "M4A",
+      "kind": "nmos",
+      "drain": "n_m4ad",
+      "gate": "Z",
+      "source": "gnd",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 중앙 하 우"
+    },
+    {
+      "name": "M18B",
+      "kind": "nmos",
+      "drain": "Y",
+      "gate": "vcn",
+      "source": "n_m18ad",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 중우 상"
+    },
+    {
+      "name": "M18A",
+      "kind": "nmos",
+      "drain": "n_m18ad",
+      "gate": "X",
+      "source": "gnd",
+      "bulk": "gnd",
+      "_fig": "p.8 Fig.6 NLF 중우 하"
+    }
+  ],
+  "passive_elements": [
+    {
+      "name": "R1",
+      "kind": "resistor",
+      "value_ohm": 52000.0,
+      "terminals": [
+        "X",
+        "Z"
+      ],
+      "_comment": "p.8 Fig.6 NLF 중앙 X-Z; 값 p.9 Table 1 R1,2 = 52 kOhm"
+    },
+    {
+      "name": "R2",
+      "kind": "resistor",
+      "value_ohm": 52000.0,
+      "terminals": [
+        "Z",
+        "Y"
+      ],
+      "_comment": "p.8 Fig.6 NLF 중앙 Z-Y; 값 p.9 Table 1"
+    },
+    {
+      "name": "CBAT1_L",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "n_m5g",
+        "X"
+      ],
+      "_comment": "p.8 Fig.6 NLF 좌, 그림 표기 'CBAT1'(오른쪽 것과 같은 이름이라 _L 접미) -- 값 미기재"
+    },
+    {
+      "name": "CBAT1_R",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "n_m6g",
+        "Y"
+      ],
+      "_comment": "p.8 Fig.6 NLF 우, 그림 표기 'CBAT1'(왼쪽 것과 같은 이름이라 _R 접미) -- 값 미기재"
+    },
+    {
+      "name": "CBAT2",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "n_m7d",
+        "n_m8g"
+      ],
+      "_comment": "p.8 Fig.6 우상단 M10 게이트선-M8 게이트 사이 -- 값 미기재"
+    },
+    {
+      "name": "CL",
+      "kind": "capacitor",
+      "value_farad": 7e-11,
+      "terminals": [
+        "out",
+        "gnd"
+      ],
+      "_comment": "그림에 없음. 본문 4절(p.13) 'load capacitance CL is 70 pF', p.14 Table 2 CL 70 pF. library 관례(two_stage_ota·folded_cascode)대로 out-gnd 수동소자로 둠"
+    }
+  ],
+  "ideal_sources": [
+    {
+      "name": "IC_L",
+      "kind": "current_source",
+      "value_amp": 2e-07,
+      "implementable": false,
+      "terminals": [
+        "vdd",
+        "n_m13g"
+      ],
+      "_comment": "p.8 Fig.6 Adaptive biasing 좌상 'IC'(아래 화살표, VDD->M13 gate/M15 source); 값 Fig.6 우상 표 IC=0.2 uA (terminals t0->t1 = 전류 방향, library 관례)"
+    },
+    {
+      "name": "IC_R",
+      "kind": "current_source",
+      "value_amp": 2e-07,
+      "implementable": false,
+      "terminals": [
+        "vdd",
+        "n_m14g"
+      ],
+      "_comment": "p.8 Fig.6 Adaptive biasing 우상 'IC'; 값 0.2 uA (terminals t0->t1 = 전류 방향, library 관례)"
+    },
+    {
+      "name": "I05B_L",
+      "kind": "current_source",
+      "value_amp": 1e-06,
+      "implementable": false,
+      "terminals": [
+        "n_m11d",
+        "gnd"
+      ],
+      "_comment": "p.8 Fig.6 Adaptive biasing 좌중 '0.5IB'(아래 화살표, M11 drain->GND); IB=2 uA(Fig.6 표) -> 1 uA (terminals t0->t1 = 전류 방향, library 관례)"
+    },
+    {
+      "name": "I05B_R",
+      "kind": "current_source",
+      "value_amp": 1e-06,
+      "implementable": false,
+      "terminals": [
+        "n_m12d",
+        "gnd"
+      ],
+      "_comment": "p.8 Fig.6 Adaptive biasing 우중 '0.5IB'; 1 uA (terminals t0->t1 = 전류 방향, library 관례)"
+    }
+  ]
+}

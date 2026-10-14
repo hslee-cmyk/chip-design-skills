@@ -1,0 +1,241 @@
+{
+  "_comment": "회로 사이징 spec(사람 선언, 정본) -- 형식 gmid_engine/authoring/SPEC_CONTRACT.md, 값 출처 = 각 source. 미정 칸은 {\"pending\": <결정 ID>}. held-out 회로 A(library 밖, 엔진 개발·test 픽스처에 쓰지 않는다 -- 계획 DEC-98·U-75·U-76). 원문 수치·쪽 = rfc_ota.spec_source.md",
+  "meta": {
+    "schema_version": "5",
+    "circuit": "rfc_ota",
+    "topology_fp": "5b919adfbd2425a481eb90b361b6d0a1a33ea7085de21a37694e74924f9de9cf",
+    "origin": "canonical"
+  },
+  "human": {
+    "supplies_v": {
+      "values": {
+        "vdd": 1.8,
+        "gnd": 0.0
+      },
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" -- VDD 는 동작 조건(공급 1.8 V, gnd 0)",
+        "decided": "2026-10-13",
+        "origin": "paper",
+        "citation": "P. J. I. Matibag, 'Design and test of a CMOS folded cascode OTA with current recycling', UPC 석사논문 2024 p.11 §1.3.2 명세 1 'Supply voltage: 1.8V', p.56 Table 17 조건"
+      }
+    },
+    "input_dc": {
+      "value_v": 1.02,
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-13 \"HA-1, HA-2, HB-1, HB-2 모두 권고대로 해\" -- HA-1: 입력 공통모드 DC = 원문 ICMR [0.3, 1.74] V 의 중앙값 (0.3 + 1.74) / 2 = 1.02 V (원문에 입력 CM 값 없음, 유도값)",
+        "decided": "2026-10-13",
+        "origin": "paper",
+        "citation": "Matibag, UPC 석사논문 2024 p.47 Table 12 ICMR [0.3; 1.74] V (Recycling 열)"
+      }
+    },
+    "element_values": {
+      "CL": {
+        "measurement_load": true,
+        "value_farad": 2.75e-12,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"held-out A는 나\" -- A-6: 부하 CL 2.75 pF(out-gnd), Table 17 측정 조건. 측정 부하",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "P. J. I. Matibag, 'Design and test of a CMOS folded cascode OTA with current recycling', UPC 석사논문 2024 p.35 본문 '500fF were added for a total of 2.75pF', p.37 Fig.11 testbench (요구사항 2.25 pF p.11 와의 관계는 rfc_ota.spec_source.md)"
+        }
+      },
+      "RB": {
+        "value_ohm": 1412.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "held-out A connectivity 사용자 확인(user_decisions.md 2026-10-13 \"A-1~A-5은 네 판독으로\", \"A7~A9는 권고\" A-7 (가) 바이어스 회로 포함, \"A-10도 권고대로\") -- 값은 원문 그대로",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "P. J. I. Matibag, 'Design and test of a CMOS folded cascode OTA with current recycling', UPC 석사논문 2024 p.34 Fig.9 좌하 R_B = 1412 Ω (p.33: 처음 353 Ω, 소자 1/4 축소에 맞춰 4배)"
+        }
+      }
+    },
+    "feedback": {
+      "elements": [],
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-07 \"9, 10, 11번은 기본안대로 해\" 9번 PM 정의 -- 선언된 되먹임 수동소자가 없으면 beta=1 루프. 이 회로에는 되먹임 수동소자 선언이 없다(오케스트레이터 적용)",
+        "decided": "2026-10-07"
+      }
+    },
+    "constraints": [
+      {
+        "metric": "gain_ss_db",
+        "op": ">=",
+        "value": 57.91,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" -- held-out A spec 제약 선택 기준: 소신호(DC gain, GBW, PM)와 정지 전류는 제약, CL·VDD·입력 CM은 동작 조건, SR·정착·입력 잡음·offset·PVT·MC는 보고만; 기준값 = p.56 Table 17 Recycling 열 pre-layout 결과값(user_decisions.md 2026-10-13 \"held-out A는 나\" A-6)",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "P. J. I. Matibag, 'Design and test of a CMOS folded cascode OTA with current recycling', UPC 석사논문 2024 p.56 Table 17 Recycling Structure 열 DC Gain 57.91 dB (Table 5 p.37)"
+        }
+      },
+      {
+        "metric": "gbw_ss_hz",
+        "op": ">=",
+        "value": 133200000.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" -- held-out A spec 제약 선택 기준: 소신호(DC gain, GBW, PM)와 정지 전류는 제약, CL·VDD·입력 CM은 동작 조건, SR·정착·입력 잡음·offset·PVT·MC는 보고만; 기준값 = p.56 Table 17 Recycling 열 pre-layout 결과값(user_decisions.md 2026-10-13 \"held-out A는 나\" A-6)",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "P. J. I. Matibag, 'Design and test of a CMOS folded cascode OTA with current recycling', UPC 석사논문 2024 p.56 Table 17 Recycling Structure 열 GBW 133.2 MHz (CL 2.75 pF, Table 7 p.39)"
+        }
+      },
+      {
+        "metric": "pm_ss_deg",
+        "op": ">=",
+        "value": 62.77,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" -- held-out A spec 제약 선택 기준: 소신호(DC gain, GBW, PM)와 정지 전류는 제약, CL·VDD·입력 CM은 동작 조건, SR·정착·입력 잡음·offset·PVT·MC는 보고만; 기준값 = p.56 Table 17 Recycling 열 pre-layout 결과값(user_decisions.md 2026-10-13 \"held-out A는 나\" A-6)",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "P. J. I. Matibag, 'Design and test of a CMOS folded cascode OTA with current recycling', UPC 석사논문 2024 p.56 Table 17 Recycling Structure 열 Phase Margin 62.77° (Table 8 p.40)"
+        }
+      }
+    ],
+    "pending_constraints": [
+      {
+        "metric": "supply_current_dc",
+        "decision": "U-75"
+      }
+    ],
+    "_pending_constraints_comment": "정지 전류 457.2 µA(p.56 Table 17 Recycling 열 Bias Current, user_decisions.md 2026-10-13 \"A, B 모두 권고대로 해\" 기준으로는 제약 대상)는 판정 제약으로 넣지 않았다: 원문 값은 'only the amplifier current is considered'(p.54) -- 바이어스 회로 전류를 뺀 증폭기 전류인데, 엔진 metric supply_current_dc 는 선언 레일(counted_rails)로 들어가는 레일 전류 합(metrics/supply.py, DEC-78)이라 이 topology(A-7 (가) 바이어스·시동 회로 Q1~Q18·RB 포함)에서는 바이어스 회로 전류까지 센다. 소자 일부만 세는 선언 방법이 엔진에 없어 정의가 어긋난다 -> 결정 대기(U-75, 사용자 몫). 값 457.2e-6 A 는 바꾸지 않고 rfc_ota.spec_source.md 에 둔다.",
+    "driving_spec": {
+      "slew_rate_v_per_s": 18950000.0,
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-13 \"A도 넣어.\" -- held-out A driving_spec.slew_rate_v_per_s = 18.95e6 (SR+ 19.16 / SR- -18.95 중 작은 크기)",
+        "decided": "2026-10-13",
+        "origin": "paper",
+        "citation": "P. J. I. Matibag, 'Design and test of a CMOS folded cascode OTA with current recycling', UPC 석사논문 2024 p.49 Table 13 Current Recycling Structure SR+ 19.16 V/µs, SR- -18.95 V/µs (p.56 Table 17 같은 값)"
+      }
+    },
+    "node_voltage_targets_v": {
+      "pending": "CI-15"
+    },
+    "intended_region": {
+      "pending": "CI-18"
+    },
+    "objective": {
+      "budgets": {
+        "pending": "PA-1"
+      },
+      "_budgets_comment": "기본안 = 예산 미선언(front 제시 후 정지, DEC-77). 논문 전력·면적 값은 채택 기록이 없어 넣지 않는다."
+    },
+    "search": {
+      "wall_clock_budget_s": {
+        "value": 300,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-34",
+          "record": "U-26(c) 기본안: 파일럿 선언값 300 s 를 전 회로 공통(회로별 변경은 PA-2)"
+        }
+      },
+      "front_budget_s": {
+        "pending": "PA-2"
+      },
+      "search_method": {
+        "value": "default",
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-73"
+        }
+      },
+      "optional_stages": {
+        "value": {},
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-75",
+          "record": "기본 비활성"
+        }
+      },
+      "dof_rank_sample_count": {
+        "value": 10,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "N3.7",
+          "record": "기본 10"
+        }
+      }
+    },
+    "spice_check": {
+      "acceptance_rule": {
+        "rule": "free_spec_and_all_saturated",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "saturation_rule": {
+        "rule": "vds_ge_vdsat",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화(VDS - VDsat >= 0, 여유 0)",
+          "decided": "2026-10-07"
+        }
+      },
+      "node_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "device_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "forced_warn_rule": {
+        "rule": "forced_device_diff_gt_lut_tolerance",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "front_points_rule": {
+        "pending": "AC-3"
+      },
+      "_front_points_rule_comment": "기본안 endpoints_and_budget_point(AC-3·U-45 결정 대기)."
+    },
+    "front_refilter": {
+      "axis_rule": {
+        "rule": "layout_floorplan_outline",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "tie_rule": {
+        "rule": "manufacturing_grid_cell_area",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "cycle_cap_rule": {
+        "rule": "k_max_n3_6",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      }
+    },
+    "_constraints_comment": "held-out A: 판정 제약 3개(gain·GBW·PM) + 결정 대기 1개(정지 전류) + driving_spec slew. 사용자 2026-10-13 \"A, B 모두 권고대로 해\", \"A도 넣어.\". 정착 시간·잡음·offset·PSRR·CMRR·ICMR·HD 는 보고만 -- rfc_ota.spec_source.md 에 원문 수치. 원문 공정 UMC 180 nm, 엔진 PDK 는 sky130 -- 값은 원문 그대로 두고 조정하지 않는다. 면적 예산(area_search_m2) 등 다른 제약은 사용자 결정 밖이라 넣지 않았다."
+  }
+}

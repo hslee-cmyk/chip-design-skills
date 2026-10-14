@@ -164,7 +164,7 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
   `dc_theta_schema` 순).
 
 ### 1.5 `lift_s1(s1graph) -> GraphSnapshot`
-- `S1_WRITERS` 권한표의 `S1Graph` 가 아니면 `TypeError`, S1 writer 중 돌지 않은 것이 있으면 `ValueError`.
+- 권한표가 S1 필드(`S1_WRITERS`)를 덮지 않으면 `TypeError`(S1 권한표를 넓힌 S0 수준 스냅샷은 받는다 -- graph CONTRACT 10.1·설계 40 §2.4.1, v1.9.2 결정 9), S1 writer 중 돌지 않은 것이 있으면 `ValueError`.
 - 결과 `writers == S2_WRITERS`. 모든 S1 필드 값이 원본과 같고 `block_version(w)` 가 원본과 같다(그래서 S1 블록을 이
   스냅샷에 다시 부르면 reuse). [2026-10-08, O7 닫음] 결과 = core `S1Graph.snapshot.extend_writers(S2_WRITERS)` -- **레코드
   객체를 원본과 공유한다**(`is`), `fp`·필드 메타(writer·input_version·write_count)도 원본과 같다(r8 까지는 setter 로 다시 써서
