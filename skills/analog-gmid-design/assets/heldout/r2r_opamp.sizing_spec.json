@@ -1,0 +1,297 @@
+{
+  "_comment": "회로 사이징 spec(사람 선언, 정본) -- 형식 gmid_engine/authoring/SPEC_CONTRACT.md, 값 출처 = 각 source. 미정 칸은 {\"pending\": <결정 ID>}. held-out 회로 C(library 밖, 엔진 개발·test 픽스처에 쓰지 않는다 -- 계획 DEC-98·U-75·U-76). 원문 수치·쪽 = r2r_opamp.spec_source.md",
+  "meta": {
+    "schema_version": "5",
+    "circuit": "r2r_opamp",
+    "topology_fp": "c3d35d157ccf7fa14ba49e0825f5c4d55edae5951fbd7ac4568733af1d547bef",
+    "origin": "canonical"
+  },
+  "human": {
+    "supplies_v": {
+      "values": {
+        "VDD": 1.8,
+        "VSS": 0.0
+      },
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-14 held-out C D-9 확정 \"sky130 1.8 V로 옮기고 spec을 다시 정함 (권고안)\" -- 공급 VDD 1.8 V, VSS 0 V(원 설계 3.3 V 를 sky130 1.8 V 로 이식, 넷 이름은 topology 그대로)",
+        "decided": "2026-10-14",
+        "origin": "paper",
+        "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) 원 측정 조건은 PDF p.8 (JSSC p.1512) Table I 머리 'Vsupply = 3.3 V', 동작 범위 2.5-6 V(Table I) -- 1.8 V 는 사용자 이식 결정값"
+      }
+    },
+    "input_dc": {
+      "pending": "U-75"
+    },
+    "_input_dc_comment": "원문에 측정 입력 공통모드 DC 값이 없다(PDF p.8 Table I 은 CMR 'VSS-0.4 to VDD+0.5 V'(3~6 V)·'VSS-0.4 to VDD-1.4 V'(2.5~2.9 V) 범위만, p.7 본문도 범위만). 결정 대기 U-75.",
+    "element_values": {
+      "CL": {
+        "measurement_load": true,
+        "value_farad": 1e-11,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out C \"C1~C3 모두 권고대로\" C-1 (가) -- 측정 부하 CL 10 pF(Vo-VSS)·RL 10 kΩ(Vo-VSS)를 topology passive_elements 에 넣고 measurement_load 로 표시(D-6 (가) 변경: spec 스키마가 topology 밖 부하를 받지 않음). RL 다른 끝은 원문 미기재라 VSS -- CL 10 pF Vo-VSS, 측정 부하",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.8 (JSSC p.1512) Table I 머리 'Cload = 10 pF'; PDF p.7 (JSSC p.1511) 본문 'with a load capacitor of 10 pF'"
+        }
+      },
+      "CM1": {
+        "value_farad": 2e-12,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"D1~D8은 권고대로\" -- held-out C connectivity 사용자 확인, 값은 원문 그대로",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.6 (JSSC p.1510) Fig.13 우측 '2p CM1'"
+        }
+      },
+      "CM2": {
+        "value_farad": 2e-12,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-13 \"D1~D8은 권고대로\" -- held-out C connectivity 사용자 확인, 값은 원문 그대로",
+          "decided": "2026-10-13",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.6 (JSSC p.1510) Fig.13 우측 'CM2 2p'"
+        }
+      },
+      "Ib1": {
+        "value_dc_amp": 4e-06,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out C \"C1~C3 모두 권고대로\" C-2 -- Ib 원 값 선언(Fig.13 4/7/4/7/2 µA, topology value_amp 유지); 이상 전류원 Ib1",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.6 (JSSC p.1510) Fig.13 중앙 상단 M7 오른쪽 'Ib1 4u'"
+        }
+      },
+      "Ib2": {
+        "value_dc_amp": 7e-06,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out C \"C1~C3 모두 권고대로\" C-2 -- Ib 원 값 선언(Fig.13 4/7/4/7/2 µA, topology value_amp 유지); 이상 전류원 Ib2",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.6 (JSSC p.1510) Fig.13 우상 'Ib2 7u'"
+        }
+      },
+      "Ib4": {
+        "value_dc_amp": 4e-06,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out C \"C1~C3 모두 권고대로\" C-2 -- Ib 원 값 선언(Fig.13 4/7/4/7/2 µA, topology value_amp 유지); 이상 전류원 Ib4",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.6 (JSSC p.1510) Fig.13 중앙 하단 'Ib4 4u'"
+        }
+      },
+      "Ib5": {
+        "value_dc_amp": 7e-06,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out C \"C1~C3 모두 권고대로\" C-2 -- Ib 원 값 선언(Fig.13 4/7/4/7/2 µA, topology value_amp 유지); 이상 전류원 Ib5",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.6 (JSSC p.1510) Fig.13 우하 'Ib5 7u'"
+        }
+      },
+      "Ib6": {
+        "value_dc_amp": 2e-06,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out C \"C1~C3 모두 권고대로\" C-2 -- Ib 원 값 선언(Fig.13 4/7/4/7/2 µA, topology value_amp 유지); 이상 전류원 Ib6",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.6 (JSSC p.1510) Fig.13 좌하 'Ib6 2u'"
+        }
+      },
+      "RL": {
+        "measurement_load": true,
+        "value_ohm": 10000.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out C \"C1~C3 모두 권고대로\" C-1 (가) -- 측정 부하 CL 10 pF(Vo-VSS)·RL 10 kΩ(Vo-VSS)를 topology passive_elements 에 넣고 measurement_load 로 표시(D-6 (가) 변경: spec 스키마가 topology 밖 부하를 받지 않음). RL 다른 끝은 원문 미기재라 VSS -- RL 10 kΩ Vo-VSS, 측정 부하",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.8 (JSSC p.1512) Table I 머리 'Rload = 10 kΩ' (다른 끝 미기재)"
+        }
+      }
+    },
+    "feedback": {
+      "elements": [],
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-07 \"9, 10, 11번은 기본안대로 해\" 9번 PM 정의 -- 선언된 되먹임 수동소자가 없으면 beta=1 루프. 이 회로에는 되먹임 수동소자 선언이 없다(오케스트레이터 적용)",
+        "decided": "2026-10-07"
+      }
+    },
+    "constraints": [
+      {
+        "metric": "gain_ss_db",
+        "op": ">=",
+        "value": 85.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out C D-9 확정 \"sky130 1.8 V로 옮기고 spec을 다시 정함 (권고안)\" -- 제약 gain >= 85 dB(원 Table I 3.3 V 측정값을 목표로 유지)",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.8 (JSSC p.1512) Table I opamp1 'Open-loop gain 85 dB'"
+        }
+      },
+      {
+        "metric": "gbw_ss_hz",
+        "op": ">=",
+        "value": 2600000.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out C D-9 확정 \"sky130 1.8 V로 옮기고 spec을 다시 정함 (권고안)\" -- 제약 UGF >= 2.6 MHz(원 Table I 3.3 V 측정값을 목표로 유지)",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.8 (JSSC p.1512) Table I opamp1 'Unity-gain frequency 2.6 MHz' (CL 10 pF); p.7 본문 'unity-gain frequency of 2.6 MHz, with a load capacitor of 10 pF'"
+        }
+      },
+      {
+        "metric": "pm_ss_deg",
+        "op": ">=",
+        "value": 66.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out C D-9 확정 \"sky130 1.8 V로 옮기고 spec을 다시 정함 (권고안)\" -- 제약 PM >= 66 deg(원 Table I 3.3 V 측정값을 목표로 유지)",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "R. Hogervorst, J. P. Tero, R. G. H. Eschauzier, J. H. Huijsing, 'A Compact Power-Efficient 3 V CMOS Rail-to-Rail Input/Output Operational Amplifier for VLSI Cell Libraries', IEEE JSSC 29(12), 1994, pp.1505-1513 (https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171, 로컬 wt/_heldout/tudelft_0fc1.pdf) PDF p.8 (JSSC p.1512) Table I opamp1 'Unity-gain phase margin 66°' (CL 10 pF); p.7 본문 'phase margin is 66°'"
+        }
+      }
+    ],
+    "pending_constraints": [
+      {
+        "metric": "supply_current_dc",
+        "decision": "U-75"
+      }
+    ],
+    "_pending_constraints_comment": "정지 전류 180 µA(PDF p.8 Table I 'Quiescent current 180 µA', 3.3 V) 는 판정 제약으로 넣지 않았다: 엔진 metric supply_current_dc 는 선언 레일(counted_rails)로 들어가는 레일 전류 합(metrics/supply.py, DEC-78)인데 이 topology 의 이상 전류원 Ib1~Ib6 와 바이어스 입력(bias_inputs, 이상 전압원 자리)을 어느 레일 전류로 셀지 선언하는 경로가 없다(N12) -- held-out A·B 와 같은 이유. 결정 대기(U-75, 사용자 몫). 값은 r2r_opamp.spec_source.md 에 둔다.",
+    "node_voltage_targets_v": {
+      "pending": "CI-15"
+    },
+    "intended_region": {
+      "pending": "CI-18"
+    },
+    "objective": {
+      "budgets": {
+        "pending": "PA-1"
+      },
+      "_budgets_comment": "기본안 = 예산 미선언(front 제시 후 정지, DEC-77). 논문 전력·면적 값은 채택 기록이 없어 넣지 않는다."
+    },
+    "search": {
+      "wall_clock_budget_s": {
+        "value": 300,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-34",
+          "record": "U-26(c) 기본안: 파일럿 선언값 300 s 를 전 회로 공통(회로별 변경은 PA-2)"
+        }
+      },
+      "front_budget_s": {
+        "pending": "PA-2"
+      },
+      "search_method": {
+        "value": "default",
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-73"
+        }
+      },
+      "optional_stages": {
+        "value": {},
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-75",
+          "record": "기본 비활성"
+        }
+      },
+      "dof_rank_sample_count": {
+        "value": 10,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "N3.7",
+          "record": "기본 10"
+        }
+      }
+    },
+    "spice_check": {
+      "acceptance_rule": {
+        "rule": "free_spec_and_all_saturated",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "saturation_rule": {
+        "rule": "vds_ge_vdsat",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화(VDS - VDsat >= 0, 여유 0)",
+          "decided": "2026-10-07"
+        }
+      },
+      "node_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "device_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "forced_warn_rule": {
+        "rule": "forced_device_diff_gt_lut_tolerance",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "front_points_rule": {
+        "pending": "AC-3"
+      },
+      "_front_points_rule_comment": "기본안 endpoints_and_budget_point(AC-3·U-45 결정 대기)."
+    },
+    "front_refilter": {
+      "axis_rule": {
+        "rule": "layout_floorplan_outline",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "tie_rule": {
+        "rule": "manufacturing_grid_cell_area",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "cycle_cap_rule": {
+        "rule": "k_max_n3_6",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      }
+    },
+    "_constraints_comment": "held-out C: 판정 제약 3개(gain·UGF·PM, 사용자 D-9 권고안) + 결정 대기 1개(정지 전류). slew 제외(D-9). 측정 부하 CL 10 pF·RL 10 kΩ(Vo-VSS, measurement_load, C-1 (가)). Ib 원 값(C-2), Vb 엔진 도출(C-3). 원문 공정 1 µm BiCMOS(CMOS 소자만), 엔진 PDK sky130.",
+    "_node_voltage_targets_v_comment": "user_decisions.md 2026-10-14 \"C1~C3 모두 권고대로\" C-3 -- Vb1~Vb6 는 엔진 도출(미선언, CI-15 대기, library·A·B 와 같음). bias_inputs 넷 vb1·vb3·vb4·vb5n·vb6n 은 쓰기 계획이 MOS VGS 로 쓴다(W2 vgs_gate)."
+  }
+}
