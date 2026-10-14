@@ -346,12 +346,12 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
   (layout `LayoutPdk` 길이는 >= 0).
 
 ### 9.2 결과
-- `PdkDecl(pdk, decl_path, decl_sha256, sources, quantities, mismatch_models=())` -- frozen, `require_immutable` 통과, `fp_of` 결정론.
+- `PdkDecl(pdk, decl_sha256, sources, quantities, mismatch_models=())` -- frozen, `require_immutable` 통과, `fp_of` 결정론. 값에 파일 경로는 없다(사용자 결정 7: checkout 마다 달라 S0 값이 checkout 에 묶인다. 원본 파일 경로는 로딩 중 선언 폴더 기준으로 해석해 쓰고 버린다).
   [U3] `mismatch_models` = ((kind, `PdkMismatchModel`), ...) kind 정렬; `decl.mismatch_model(kind)` (선언에 없으면 `pdk_mismatch_undeclared`).
-  `sources` = ((원본 이름, 경로, sha256), ...) 이름 정렬, `quantities` = ((이름, `PdkQuantity`), ...) 이름 정렬.
+  `sources` = ((원본 이름, sha256), ...) 이름 정렬(경로 없음), `quantities` = ((이름, `PdkQuantity`), ...) 이름 정렬.
 - `PdkQuantity(name, value_m, expression, rules, basis)`: `value_m` = 식에 규칙 값(m)을 넣은 float, `expression` = 선언 글 그대로,
   `rules` = 식에 나온 규칙 `PdkRule` 들(첫 등장 순, 중복 없음).
-- `PdkRule(rule_id, value_m, value_text, unit_text, source, path, sha256, line)`: `value_m = float(value_text) x units_m[unit_text]`.
+- `PdkRule(rule_id, value_m, value_text, unit_text, source, sha256, line)`: `value_m = float(value_text) x units_m[unit_text]`.
 - `decl.quantity(name)` / `value(name)` / `values(names)`(순서 그대로 tuple) / `rule_ids(names)` = `((name, expression), ...)`.
   선언에 없는 이름 -> `pdk_quantity_undeclared`.
 - 캐시: 원본마다 매 호출 sha256 을 다시 재고, 파싱 결과는 `memo.lookup((format, sha256, 파싱 인자), ...)` -- 같은 원본·같은 파싱 인자로
@@ -460,7 +460,7 @@ ngspice 쌍 MC(`assets/sky130_pair_mc.py`, 같은 난수·같은 전류에서 σ
 
 ### 9.6 [U3] `mismatch_models` -- bin 별 mismatch slope 지도
 `"mismatch_models": {<kind>: {"model_source": <원본 이름>, "slope_source": <원본 이름>, "parameters": [<BSIM4 변수 이름>, ...]}}`. `model_source` = `spice_model_card` 원본,
-`slope_source` = `.param 이름=값` 줄을 규칙으로 읽는 `spice_instance_line` 원본. 결과 `PdkMismatchModel(kind, parameters, blocks, model_path, model_sha256, slope_path, slope_sha256)`,
+`slope_source` = `.param 이름=값` 줄을 규칙으로 읽는 `spice_instance_line` 원본. 결과 `PdkMismatchModel(kind, parameters, blocks, model_sha256, slope_sha256)`(원본 경로 없음),
 `blocks` = `PdkMismatchBlock(model, lmin_m, lmax_m, wmin_m, wmax_m, slopes, line)` ((wmin, wmax, lmin, lmax, 이름) 정렬; `.model` 블록마다 하나).
 `slopes` = ((변수, slope 이름, slope 값, slope 원본 행), ...) 선언 순서 -- 블록의 변수 식 `{p0 + <..._slope_spectre>*(<slope 이름>/sqrt(l*w*mult))}` 에서 slope 이름을
 정규식 `([A-Za-z_]\w*_slope\d*)\s*/\s*sqrt` 로 읽고(이름은 bin 마다 `slope`·`slope1` 로 다르다), 식이 없으면 (변수, None, None, None). 경계 `lmin·lmax·wmin·wmax` 는 모델 카드 값(단위 표 `""`).

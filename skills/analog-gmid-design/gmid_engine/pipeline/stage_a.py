@@ -1,6 +1,6 @@
 """파이프라인 단계 A 진입점 (설계 40 §2.1 GB0~GB2, 41 §0 단계 A1~A3).
 
-진입점: `run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule_decl, supplies_v=None, structure_path=None) -> StageAResult`.
+진입점: `run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule_decl, pdk_decl_path, lut_rule_decl_path, supplies_v=None, structure_path=None) -> StageAResult`.
 
 순서(40 §3.2-3): A1 `load_topology`·`load_sizing_spec`(spec_path 가 None 이면 구조만 -- 기본 전달 뷰) -> `structure.json` 사실 로드(ratified 사실, 기본 경로 = topology 파일 옆
 `<회로>.structure.json`, 없으면 사실 0 이고 declared 대조는 하지 않았다고 보고서에 적는다; topology 지문 = `doc.connectivity_fp` 라 `build_s1` 전에 이미 있고, rule_hash 는
@@ -25,7 +25,7 @@
 * [U17 ①-a·①-b] S0 수준 스냅샷 영속화(설계 40 §2.4.3, v1.9.1 D6): `structure.json` 로드 뒤 S0 키 입력(`_s0_inputs`: topology 정규화 지문, 레일 전압, spec 전체 지문,
   `structure.json` 사실 지문, 대칭 선언 표시 지문(`symmetry_marks_fp` -- `build_s1(marks=)` 가 S1 키 `marks_fp` 로 읽는 것과 같은 값), 유도 규칙 코드 지문 `structure_rule_fp()`, LUT 지문,
   PDK 선언 파일 내용 해시(`pdk_decl` = core `read_pdk_decl` 결과, **필수** -- None·다른 형식이면 `TypeError`, 설계 40 §2.4.12 Q1 fail-closed), LUT 생성 규칙 선언 파일 내용 해시
-  (`lut_rule_decl`, **필수** -- 접합 출처 S0 필드 `graph/kernel: junction_source` 가 읽는다)) + 입력 파일 원본(`_s0_sources`: topology·spec·structure·LUT 파일의
+  (`lut_rule_decl`, **필수** -- 접합 출처 S0 필드 `graph/kernel: junction_source` 가 읽는다); 두 선언 값에는 파일 경로가 없으므로(사용자 결정 7) 호출자가 `pdk_decl_path`·`lut_rule_decl_path`(**필수**)로 위치를 따로 넘긴다) + 입력 파일 원본(`_s0_sources`: topology·spec·structure·PDK 선언·LUT 생성 규칙 선언·LUT 파일의
   경로와 원본 바이트 sha256, U-68 정리가 checkout 마다 키 재현을 판정하는 재료) + 엔진 코드 지문으로 core `S0Slot`(저장소 `S0SnapshotStore.default`)을 만들어 S0 수준 스냅샷을 읽는다.
   적중이면 그 스냅샷 위에서(아니면 빈 S0 수준 스냅샷 -- 권한표 search `S0_WRITERS` 위에서) `build_s1`·`build_s1v`·`coupling_vars` 가 모든 블록을 부른다(적중이면 계산 0).
   단계 A 는 **읽기만** 한다: 쓰기는 S0 수준 블록이 모두 끝나는 `search.build_search_context` 끝에서 한 번(`StageAResult.s0` 로 넘긴다, v1.9.1 D6).
@@ -208,14 +208,16 @@ def _structure_sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
 
 
-def _s0_sources(topology_path, topology, spec_path, spec, structure_path, lut):
+def _s0_sources(topology_path, topology, spec_path, spec, structure_path, pdk_decl, pdk_decl_path, lut_rule_decl, lut_rule_decl_path, lut):
     """S0 키의 입력 파일 {역할: (경로 | None, 원본 바이트 sha256 | None)} -- 이미 잰 sha 를 쓴다(topology·spec = 로더의 `file_sha256`,
-    LUT = 출처 기록의 sha256). `structure.json` 은 없으면 (경로, None). PDK 선언·LUT 생성 규칙 선언은 파일 경로를 값(`PdkDecl`)에 담지 않으므로
-    여기에 없다 -- 내용(sha256)은 `_s0_inputs` 의 `pdk_decl_fp`·`lut_rule_decl_fp` 가 키에 넣는다."""
+    PDK 선언·LUT 생성 규칙 선언 = `decl_sha256`, LUT = 출처 기록의 sha256). `structure.json` 은 없으면 (경로, None).
+    PDK 선언 두 개의 **경로**는 값(`PdkDecl`)에 없으므로(사용자 결정 7) 호출자가 `pdk_decl_path`·`lut_rule_decl_path` 로 넘긴다 -- 이 칸은 U-68 정리가
+    '그 선언 파일의 현재 바이트로 키를 만들 수 있나' 를 판정하는 위치 기록(키 메타)일 뿐 S0 값·스냅샷 지문·`context_fp` 에 들어가지 않는다."""
     prov = lut.provenance
     return {"topology": (str(topology_path), topology.file_sha256),
             "spec": (None, None) if spec is None else (str(spec_path), spec.file_sha256),
             "structure": (str(structure_path), _structure_sha(structure_path)),
+            "pdk_decl": (str(pdk_decl_path), pdk_decl.decl_sha256), "lut_rule_decl": (str(lut_rule_decl_path), lut_rule_decl.decl_sha256),
             "lut_manifest": (prov.manifest_path, prov.manifest_sha256), "lut_cap": (prov.cap_path, prov.cap_sha256),
             "lut_midpoints": (prov.midpoints_path, prov.midpoints_sha256), "lut_noise": (prov.noise_path, prov.noise_sha256),
             "lut_mismatch": (prov.mismatch_path, prov.mismatch_sha256)}
@@ -230,7 +232,7 @@ def _finish(report, output_dir, circuit, code_fp, s1=None, spec=None, s0=None):
     return StageAResult(report["exit_code"], report["status"], report, paths, s1, spec, code_fp, s0)
 
 
-def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule_decl, supplies_v=None, structure_path=None):
+def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule_decl, pdk_decl_path, lut_rule_decl_path, supplies_v=None, structure_path=None):
     if not isinstance(pdk_decl, PdkDecl):
         raise TypeError("run_stage_a: pdk_decl 은 core read_pdk_decl 결과여야 한다(S0 키의 PDK 선언 해시, 설계 40 §2.4.12 Q1)")
     if not isinstance(lut_rule_decl, PdkDecl):
@@ -251,7 +253,7 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule
         return _finish(_stopped(circuit, exc, "A2_structure_json"), output_dir, circuit, code_fp)
     supplies = _supplies(spec, supplies_v)
     s0_inputs = _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, lut_rule_decl, supplies, marks)
-    s0_sources = _s0_sources(topology_path, topology, spec_path, spec, path, lut)
+    s0_sources = _s0_sources(topology_path, topology, spec_path, spec, path, pdk_decl, pdk_decl_path, lut_rule_decl, lut_rule_decl_path, lut)
     s0 = S0Slot(S0SnapshotStore.default(code_fp), tuple(sorted(s0_inputs.items())), tuple(sorted(s0_sources.items())))
     stored, s0_outcome = s0.load()
     base = GraphSnapshot.empty(S0_WRITERS) if stored is None else stored
