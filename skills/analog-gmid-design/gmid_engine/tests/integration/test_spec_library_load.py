@@ -58,12 +58,16 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
 # [U5 후속 2026-10-09] 설계 40 §9.2·§11 'J 추가 범위' U5 행 'sf_pushpull spec에 icm_margin_v >= 0(user_spec J-E)', 41 §4.6 '선언 입력 DC
 # 유지 ... icm_margin_v >= 0 을 제약으로 둔다', 사용자 결정 J-E(_drafts/user_decisions.md 2026-10-08 "j해석은 네의견에 모두 동의해."):
 #   sf_pushpull(6,6)  + icm_margin_v>=0(user_spec -> 판정)                                       = (7,7), pending 불변
+# [U17 ①-b 2차, 2026-10-14 오케스트레이터 지시] 커밋 0cbc0d2(사용자 2026-10-13 Q1-2 (i) "nmcnr은 승인", "ngcc는 논문값 참조")가 spec 에
+# user_spec 제약 하나씩 추가(oracle (d) 사용자 선언 스펙값, diff 근거 -- 피검 로더 출력 아님):
+#   ngcc  (6,6)  + gain_ss_db>=111(user_spec -> 판정, NGCC 논문 Table 5 α=0.3)                         = (7,7), pending 불변(추가만, 표지 변경 없음)
+#   nmcnr (7,7)  + gain_ss_db>=100(user_spec -> 판정, NMCNR 논문 Table 1 '> 100 dB')                    = (8,8), pending 불변
 TABLE = {
     "common_gate_amplifier": (2, 2, 6),
     "current_reuse_telescopic_ota": (13, 12, 11),
     "folded_cascode": (3, 3, 7),
-    "ngcc_3stage_ff": (6, 6, 6),
-    "nmcnr_amplifier": (7, 7, 6),
+    "ngcc_3stage_ff": (7, 7, 6),
+    "nmcnr_amplifier": (8, 8, 6),
     "pushpull_follower_buffer": (2, 2, 5),
     "sf_pushpull_output_opamp": (7, 7, 6),
     "two_stage_ota": (5, 5, 7),

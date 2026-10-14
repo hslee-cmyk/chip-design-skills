@@ -87,11 +87,12 @@ def real_case(name, extra=()):
     sp.write_text(json.dumps(library_spec(name, extra), indent=1, ensure_ascii=False), encoding="utf-8")
     a = run_stage_a(tp, sp, env.lut, pdk_decl=env.pdk, lut_rule_decl=env.rule, output_dir=d / "out")
     assert a.s1 is not None and a.s1.snapshot.record("graph", "s1v") is not None and a.status == "ok", (a.status, a.report.get("stop_reasons"))
-    b = run_stage_b(a, env.memo, env.pdk, output_dir=d / "out")
+    # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- build_search_context 와 같은 값(한 실행 = 한 설정, pipeline CONTRACT 5절)
+    settings = SearchSettings(600.0, EVAL_BUDGET, RBOX, (("front_budget_s", "u13 test fixture"),), CBOX)
+    b = run_stage_b(a, env.memo, env.pdk, output_dir=d / "out", settings=settings)
     assert b.status == "ok", (b.status, b.report.get("stop_reasons"))
     from .u13_hand import read_s1v, start_of
     kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo))
-    settings = SearchSettings(600.0, EVAL_BUDGET, RBOX, (("front_budget_s", "u13 test fixture"),), CBOX)
     sctx = build_search_context(kctx, a.spec, settings, None, env.pdk, env.rule, code_fp=a.code_fp)
     case = SimpleNamespace(a=a, b=b, s1v=read_s1v(b.s1), ach=b.s1, spec=a.spec, kctx=kctx, sctx=sctx, start=start_of(sctx),
                            topology=json.loads(tp.read_text(encoding="utf-8")), settings=settings, pdk=env.pdk, rule=env.rule)

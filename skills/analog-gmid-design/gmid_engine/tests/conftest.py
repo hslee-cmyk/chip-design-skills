@@ -14,6 +14,18 @@ import shutil
 import sys
 import tempfile
 
+# [U17 ①-b 2차, 사용자 결정 8(2026-10-14)] 판정 환경 OpenBLAS 스레드 수 1 고정 -- NFR-4 결정론 결함 우회, 엔진 원인 수정은 U17 ② 착수 전
+# (wt/_drafts/engine/U17_FOLLOWUPS.md 2026-10-14 항목: 미지정 시 two_stage_ota·two_stage_ota_sf·sf_pushpull 의 start.row·rungs·macro·
+# area_est_m2 지문이 비트 단위로 달라진다). 이 고정은 결함을 고친 것이 아니다 -- 결함 자체는
+# tests/integration/test_blas_thread_determinism.py 의 xfail(strict) test 가 계속 드러내고, 엔진이 고쳐지면 XPASS(=FAIL)로 알린다.
+# 판정 재현성을 위해 바깥 환경 값을 존중하지 않고 1 로 강제한다(하위 프로세스도 물려받는다). numpy 가 이미 import 됐으면 OpenBLAS 가
+# 스레드 수를 이미 정해 고정이 듣지 않으므로 조용히 넘어가지 않고 멈춘다.
+_BLAS_THREAD_ENV = ("OPENBLAS_NUM_THREADS",)
+if "numpy" in sys.modules:
+    raise RuntimeError("numpy 가 gmid_engine tests conftest 보다 먼저 import 됐다 -- OPENBLAS_NUM_THREADS=1 고정이 듣지 않는다")
+for _name in _BLAS_THREAD_ENV:
+    os.environ[_name] = "1"
+
 # tests -> gmid_engine -> analog-gmid-design(패키지 부모)
 _SKILL_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if _SKILL_DIR not in sys.path:

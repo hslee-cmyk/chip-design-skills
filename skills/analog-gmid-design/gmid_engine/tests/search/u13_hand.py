@@ -103,12 +103,13 @@ def build(root, lut, decls, topo_doc, *, elements=(), constraints=(), supplies=N
                         input_dc_v=input_dc_v, count_budget=count_budget, node_targets=node_targets)
     a = run_stage_a(tp, sp, lut, pdk_decl=pdk, lut_rule_decl=rule, output_dir=root / "out")
     assert a.s1 is not None and a.s1.snapshot.record("graph", "s1v") is not None, a.report.get("stop_reasons")
-    b = run_stage_b(a, memo_of(lut), pdk, output_dir=root / "out") if with_ach else None
+    # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- build_search_context 와 같은 값(한 실행 = 한 설정, pipeline CONTRACT 5절)
+    settings = SearchSettings(600.0, eval_budget, rbounds, (("front_budget_s", "u13 test fixture"),), cbounds)
+    b = run_stage_b(a, memo_of(lut), pdk, output_dir=root / "out", settings=settings) if with_ach else None
     s0 = b.s1 if b is not None else a.s1
     ach = s0 if b is not None and s0.snapshot.record("graph", "ach") is not None else None
     inputs = dc_inputs_from_spec(a.spec)
     kctx = build_kernel_context(s0, inputs, pre_layout_lut_access(memo_of(lut)))
-    settings = SearchSettings(600.0, eval_budget, rbounds, (("front_budget_s", "u13 test fixture"),), cbounds)
     sctx = build_search_context(kctx, a.spec, settings, None, pdk, rule, code_fp=a.code_fp)
     return SimpleNamespace(a=a, b=b, s1v=read_s1v(s0), ach=ach, spec=a.spec, kctx=kctx, sctx=sctx, start=start_of(sctx), pdk=pdk,
                            rule=rule, settings=settings, lut=lut)
