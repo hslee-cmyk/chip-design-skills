@@ -205,6 +205,7 @@ def _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, lut_rule_decl,
 
 
 def _structure_sha(path):
+    """파일 원본 바이트 sha256, 파일이 없으면 None(structure.json 칸과 선언 경로 대조가 함께 쓴다)."""
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
 
 
@@ -237,6 +238,14 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule
         raise TypeError("run_stage_a: pdk_decl 은 core read_pdk_decl 결과여야 한다(S0 키의 PDK 선언 해시, 설계 40 §2.4.12 Q1)")
     if not isinstance(lut_rule_decl, PdkDecl):
         raise TypeError("run_stage_a: lut_rule_decl 은 core read_pdk_decl 결과여야 한다(S0 키의 LUT 생성 규칙 선언 해시, 설계 40 §2.4.3 키 (i))")
+    # 선언을 읽은 그 파일의 경로만 받는다(U-68 정리가 경로의 현재 파일로 키 재현을 판정) -- 보고서·S0 정리 전에 거부(core 9.3 과 같은 reason)
+    for role, decl, decl_path in (("pdk_decl", pdk_decl, pdk_decl_path), ("lut_rule_decl", lut_rule_decl, lut_rule_decl_path)):
+        actual = _structure_sha(Path(decl_path))
+        if actual is None:
+            raise SchemaRejectedError(detail={"reason": "pdk_decl_missing", "role": role, "path": str(decl_path)})
+        if actual != decl.decl_sha256:
+            raise SchemaRejectedError(detail={"reason": "pdk_source_sha256_mismatch", "role": role, "path": str(decl_path),
+                                              "declared": decl.decl_sha256, "actual": actual})
     code_fp = engine_code_fp()
     circuit = Path(topology_path).name.removesuffix(TOPOLOGY_SUFFIX)
     try:
