@@ -107,7 +107,8 @@ def _run(env, circuit, tmp_path_factory):
     if circuit not in env["cache"]:
         out = tmp_path_factory.mktemp("sbl_" + circuit)
         a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env["lut"], pdk_decl=env["pdk"],
-                        lut_rule_decl=env["rule"], output_dir=out)
+                        lut_rule_decl=env["rule"], output_dir=out, pdk_decl_path=str(SKILL / "assets" / "sky130_pdk_decl.json"),
+                        lut_rule_decl_path=str(SKILL / "assets" / "sky130_lut_rule_decl.json"))
         memo = LutMemo(env["lut"], point=200000, curve=200000, root=4096)
         # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- 탐색 설정 입력(test_s0_layer_9circuits `_settings` 와 같은 값)
         b = run_stage_b(a, memo, env["pdk"], output_dir=out, diagnostic=True, settings=_settings())

@@ -356,7 +356,9 @@ def stage_ab(root, lut, tp, sp, pdk, diagnostic=False, out="out", rule=None, set
         rule = toy_rule(Path(root) / "_rule")
     if settings is None:
         settings = toy_settings()
-    a = run_stage_a(tp, sp, lut, pdk_decl=pdk, lut_rule_decl=rule, output_dir=Path(root) / out)
+    from search.conftest import decl_path   # [U17 ①-b 3차] 두 선언을 읽어 온 파일 경로(필수 인자)
+    a = run_stage_a(tp, sp, lut, pdk_decl=pdk, lut_rule_decl=rule, pdk_decl_path=decl_path(pdk), lut_rule_decl_path=decl_path(rule),
+                    output_dir=Path(root) / out)
     b = run_stage_b(a, memo_of(lut), pdk, output_dir=Path(root) / out, diagnostic=diagnostic, settings=settings)
     return a, b
 

@@ -57,6 +57,9 @@ PDK_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "s
 # [U17 ①-b] run_stage_a(lut_rule_decl=) 필수(설계 40 §2.4.7 SearchContext 칸 배정 `junction` -> S0 필드 junction_source = PDK 선언·LUT 생성 규칙 선언의 파생,
 # S0 키 입력). 저장소 LUT 생성 규칙 선언 원본.
 LUT_RULE_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(4))
+# [U17 ①-b 3차, 사용자 결정 2026-10-14 "(가) 경로 인자 필수"] run_stage_a(pdk_decl_path=, lut_rule_decl_path=) 필수 -- 위 두 선언을 읽어 온 파일
+PDK_DECL_PATH = str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json")
+LUT_RULE_DECL_PATH = str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json")
 
 NINE = ("common_gate_amplifier", "current_reuse_telescopic_ota", "folded_cascode", "ngcc_3stage_ff", "nmcnr_amplifier",
         "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota", "two_stage_ota_sf")
@@ -122,7 +125,7 @@ def test_firing_table_totals():
 @pytest.mark.parametrize("name", NINE)
 def test_firing_table_stage_a_without_spec(name, real_lut, tmp_path):
     status, stops, reviews = TABLE[name]["stage_a"]
-    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, output_dir=tmp_path, supplies_v=H.lib_supplies(name),
+    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path, supplies_v=H.lib_supplies(name),
                     structure_path=_absent_structure(tmp_path, name))
     assert r.status == status
     assert r.exit_code == (0 if status == "ok" else 2)
@@ -151,7 +154,7 @@ def test_stage_a_with_library_spec(name, status, reviews, real_lut, tmp_path):
     #   name_order 동률(한 궤도 아님 -- test_l_classes 손 확인).
     # - 나머지 6회로: pm_* 제약 없음 -> 단계 A 는 spec 없는 표(TABLE)와 같은 ok.
     # - 어느 회로도 내부 루프 선언이 없으므로 loop_cut_unmatched 는 0.
-    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), H.LIBRARY / (name + ".sizing_spec.json"), real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, output_dir=tmp_path,
+    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), H.LIBRARY / (name + ".sizing_spec.json"), real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path,
                     supplies_v=H.lib_supplies(name))
     assert r.status == status, r.report["stop_reasons"]
     assert r.report["stop_reasons"] == []
@@ -167,9 +170,9 @@ def test_pilot_stage_a_with_spec_has_no_unmatched_cut(real_lut, tmp_path):
     topo = H.LIBRARY / (name + ".topology.json")
     # [C-6] 이 test 는 사실 파일 없는 상태(41 1.12.6 '사실 없이 남는')를 본다 -- library 기본 structure.json 을 읽지 않게 없는 경로를 준다
     absent = _absent_structure(tmp_path, name)
-    with_spec = run_stage_a(topo, H.LIBRARY / (name + ".sizing_spec.json"), real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, output_dir=tmp_path / "a",
+    with_spec = run_stage_a(topo, H.LIBRARY / (name + ".sizing_spec.json"), real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "a",
                             supplies_v=H.lib_supplies(name), structure_path=absent)
-    plain = run_stage_a(topo, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, output_dir=tmp_path / "b", supplies_v=H.lib_supplies(name), structure_path=absent)
+    plain = run_stage_a(topo, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "b", supplies_v=H.lib_supplies(name), structure_path=absent)
     assert (with_spec.exit_code, with_spec.status) == (2, "stopped")
     stops = [x.split("|") for x in with_spec.report["stop_reasons"]]
     reviews = [x.split("|") for x in with_spec.report["review_needed"]]
@@ -189,7 +192,7 @@ def test_pilot_stage_a_library_default_facts_ok(real_lut, tmp_path, with_spec):
     # 전부 지운다(41 1.12.6) -> spec 유무와 무관하게 ok/0, 적용 사실 [(ac_ground_exception, Vbias2)], 정지·review 0.
     name = "current_reuse_telescopic_ota"
     sp = H.LIBRARY / (name + ".sizing_spec.json") if with_spec else None
-    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, output_dir=tmp_path, supplies_v=H.lib_supplies(name))
+    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path, supplies_v=H.lib_supplies(name))
     assert (r.exit_code, r.status) == (0, "ok"), r.report["stop_reasons"] + r.report["review_needed"]
     assert [tuple(x) for x in r.report["applied_facts"]] == [("ac_ground_exception", "Vbias2")]
     assert r.report["stop_reasons"] == []

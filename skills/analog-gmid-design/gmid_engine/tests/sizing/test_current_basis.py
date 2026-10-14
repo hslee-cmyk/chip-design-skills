@@ -329,7 +329,8 @@ def _measured_domain(name, lut, tmp_path):
     rule = read_pdk_decl(str(skill / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(8))
     # [U17 ①-a 병합] run_stage_a(pdk_decl=) 필수(40 §2.4.12 Q1) -- 아래 search_domain 이 쓰는 같은 PDK 선언을 넘긴다(판정 내용 변경 없음)
     r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, pdk_decl=pdk,
-                    lut_rule_decl=rule, output_dir=tmp_path)
+                    lut_rule_decl=rule, output_dir=tmp_path, pdk_decl_path=str(skill / "assets" / "sky130_pdk_decl.json"),
+                    lut_rule_decl_path=str(skill / "assets" / "sky130_lut_rule_decl.json"))
     spec = r.spec
     k = build_kernel_context(r.s1, dc_inputs_from_spec(spec), pre_layout_lut_access(LutMemo(lut, point=4096, curve=4096, root=4096)))
     search = spec.search if isinstance(spec.search, tuple) else ()

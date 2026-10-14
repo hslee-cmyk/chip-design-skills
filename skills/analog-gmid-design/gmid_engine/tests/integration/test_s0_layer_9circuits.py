@@ -151,7 +151,9 @@ def _chain(env, circuit, tag, monkeypatch_dir):
     out = env.root / circuit / tag
     os.environ[S0_ENV] = str(monkeypatch_dir)
     a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env.lut, pdk_decl=env.pdk,
-                    lut_rule_decl=env.rule, output_dir=out)          # [이름 정정] run_stage_a(lut_rule_decl=) 필수
+                    lut_rule_decl=env.rule, output_dir=out,
+                    pdk_decl_path=str(SKILL / "assets" / "sky130_pdk_decl.json"),
+                    lut_rule_decl_path=str(SKILL / "assets" / "sky130_lut_rule_decl.json"))          # [이름 정정] run_stage_a(lut_rule_decl=) 필수
     env.memo = LutMemo(env.lut, point=1 << 16, curve=1 << 14, root=1 << 16)
     b = run_stage_b(a, env.memo, env.pdk, output_dir=out, diagnostic=True, settings=_settings())
     sctx = _search_context(env, a, b) if (a.status, b.status) == ("ok", "ok") else None

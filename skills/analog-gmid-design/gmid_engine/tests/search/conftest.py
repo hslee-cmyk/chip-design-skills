@@ -118,12 +118,35 @@ def _decl_paths(root, grid_um=GRID_UM, minw_um=MINW_UM, with_minw=True):
     return pp, rp
 
 
+# [U17 ①-b 3차, 사용자 결정 2026-10-14 "(가) 경로 인자 필수"] run_stage_a(pdk_decl_path=, lut_rule_decl_path=) 필수 -- PdkDecl 값에는 경로가
+# 없으므로(결정 7) toy 선언을 만든 helper 가 '그 선언 바이트를 가진 파일' 을 기록해 두고 단계 A 를 부르는 helper 가 `decl_path(decl)` 로 찾는다.
+# 키 = decl_sha256(선언 파일 원본 바이트 sha256, core 9.2). 찾은 파일은 매번 바이트를 다시 해시해 같은지 확인한다(다르면 실패 -- 조용한 틀린 경로 없음).
+_DECL_FILES = {}
+_REPO_DECL_FILES = (SKILL_DIR / "assets" / "sky130_pdk_decl.json", SKILL_DIR / "assets" / "sky130_lut_rule_decl.json")
+
+
+def _read_recorded(path, memo):
+    from gmid_engine.core import read_pdk_decl
+    decl = read_pdk_decl(str(path), memo)
+    _DECL_FILES[decl.decl_sha256] = str(path)
+    return decl
+
+
+def decl_path(decl):
+    """선언 값 `decl` 을 읽어 온 파일 경로(입력 준비 -- 기대값 아님): toy helper 가 기록한 파일, 없으면 저장소 선언 원본 중 바이트 sha 가 같은 것."""
+    cands = [_DECL_FILES[decl.decl_sha256]] if decl.decl_sha256 in _DECL_FILES else [str(p) for p in _REPO_DECL_FILES]
+    for c in cands:
+        if hashlib.sha256(Path(c).read_bytes()).hexdigest() == decl.decl_sha256:
+            return c
+    raise AssertionError("선언 sha %s 의 파일을 찾지 못했다" % decl.decl_sha256)
+
+
 def write_decls(root, **kw):
     """-> (PdkDecl, LUT 규칙 PdkDecl)."""
-    from gmid_engine.core import BoundedLRU, read_pdk_decl
+    from gmid_engine.core import BoundedLRU
     pp, rp = _decl_paths(root, **kw)
     memo = BoundedLRU(8)
-    return read_pdk_decl(pp, memo), read_pdk_decl(rp, memo)
+    return _read_recorded(pp, memo), _read_recorded(rp, memo)
 
 
 def write_pdk(root, **kw):
@@ -138,7 +161,7 @@ TOY_MIM_DENSITY = 4.0e-3                # F/m² = 4.0e-15 F/µm² x 1e12 µm²/m
 
 def write_decls_mim(root, camimc=TOY_CAMIMC_F_PER_UM2, **kw):
     """write_decls + PDK 선언에 원본 `toy_rc` 와 quantity `mim_cap_density_f_per_m2`(식 `camimc`) 추가. -> (PdkDecl, 규칙 PdkDecl)."""
-    from gmid_engine.core import BoundedLRU, read_pdk_decl
+    from gmid_engine.core import BoundedLRU
     pp, rp = _decl_paths(root, **kw)
     root = Path(root)
     rc = root / "toy_rc.spice"
@@ -151,7 +174,7 @@ def write_decls_mim(root, camimc=TOY_CAMIMC_F_PER_UM2, **kw):
     decl["quantities"]["mim_cap_density_f_per_m2"] = {"source": "toy_rc", "expression": "camimc", "basis": "toy MIM"}
     Path(pp).write_text(json.dumps(decl), encoding="utf-8")
     memo = BoundedLRU(8)
-    return read_pdk_decl(pp, memo), read_pdk_decl(rp, memo)
+    return _read_recorded(pp, memo), _read_recorded(rp, memo)
 
 
 # ---------------------------------------------------------------- LUT

@@ -29,6 +29,9 @@ PDK_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "s
 # [U17 ①-b] run_stage_a(lut_rule_decl=) 필수(설계 40 §2.4.7 SearchContext 칸 배정 `junction` -> S0 필드 junction_source = PDK 선언·LUT 생성 규칙 선언의 파생,
 # S0 키 입력). 저장소 LUT 생성 규칙 선언 원본.
 LUT_RULE_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(4))
+# [U17 ①-b 3차, 사용자 결정 2026-10-14 "(가) 경로 인자 필수"] run_stage_a(pdk_decl_path=, lut_rule_decl_path=) 필수 -- 위 두 선언을 읽어 온 파일
+PDK_DECL_PATH = str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json")
+LUT_RULE_DECL_PATH = str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json")
 
 # [U1b] applied_facts·ff_ratio_candidates (pipeline CONTRACT 2절), [U10] coupling (설계 40 §3.3 as-built: 단계 A 보고서 `coupling` 이
 # U15 전까지 유일한 출구)
@@ -41,7 +44,7 @@ KEYS = ["applied_facts", "circuit", "count_budget", "coupling", "declared_compar
 def _run(tmp_path, real_lut, doc, out="out"):
     p = tmp_path / (doc["topology_name"] + ".topology.json")
     p.write_text(json.dumps(doc), encoding="utf-8")
-    return run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
+    return run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
 
 
 def _pairs_hook(seen):
