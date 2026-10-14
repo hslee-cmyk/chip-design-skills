@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.9.1
+version: 1.9.2
 plan_version: 6.8
 ---
 
@@ -39,7 +39,7 @@ plan_version: 6.8
 | NFR-1 조용한 실패 불가 | 전체 | PART | `E/core/failure_errors.py:20-60`. 아카이브 문자열 복원 결함 |
 | NFR-2 같은 키 재계산 0, LUT memo 상한 | 40 §7.3 | PART | `E/core/compute_block.py:77`. `rg "from_sweep\("` 호출부 0(`E/lut/lut_memo.py:34`) |
 | NFR-3 IC1~IC11 강제 test | 40 §10.3 | MISS | 패키지별 test 폴더(R26 현행 체계 유지)에서 `rg "def test_ic"` 0 |
-| NFR-4 결정론 | 전체 | OK | `E/core/determinism.py`. 구조 규칙 test `tests/structure/test_structure_rules.py` |
+| NFR-4 결정론 | 전체 | OK | `E/core/determinism.py`. 구조 규칙 test `tests/structure/test_structure_rules.py`. v1.9.2 결함 기록(결정 8): OpenBLAS 스레드 수 의존(40 §11 U17 ② 선행) -- 상태는 다음 gap 분석에서 다시 잰다 |
 | NFR-5 스펙 맞춤, 여유 바닥 | 40 §3.6 | PART | 분해능은 있다(`E/metrics/sensitivity.py:1-15`, `MetricResult.resolution`). 모델 오차와 예산 점이 없다 |
 | NFR-6 기능별 파일 | 40 §1.2 EP-3 | OK | `E/tests/structure/structure_checks.py:312-1114`(규칙 A~I) |
 
@@ -266,7 +266,7 @@ plan_version: 6.8
 | D-T | test 폴더 체계 | 40 §8 R26 | N/A | 축소 유지 승인(2026-10-08). 현행 체계를 쓴다 |
 | D-GR1 | graph 밖 저장소는 넷뿐(LUT memo·S3 기록과 색인·실행 계수·S0 수준 스냅샷 직렬화) | 40 §2.4.1 | DEV | bd19cc6 `E/search/search_context.py:65-89`(cache·cell_floors·local_seal_memo 등) |
 | D-GR2 | S0 수준 층 필드화(S1v·결합 변수·GB4·출발 구간·metric 구조 입력). 레코드별 필드 = 40 §2.4.8(v1.9.1 D1~D4·D7~D9: `graph/s1v` `coverage`·`graph/ach` `block_bounds` 없음, `graph/start` `rungs` = as-built `ladder`, `noise_inputs`·`placement`는 U17 ②, `local_inputs` dict→tuple·memo 제외) | 40 §2.4.2·2.4.8 | MISS | bd19cc6 `sctx.s1v`·`sctx.ach`·`sctx.start` 객체, `E/search/start_values.py:186-235` `StartContext` |
-| D-GR3 | S0 수준 스냅샷 디스크 영속화(키·타입 있는 코덱·원자적 쓰기·검증), 단계 A 보고서 `s0_snapshot` 키(hit\|miss\|corrupt), `run_stage_a` PDK 선언 필수 인자, U-68 재현 판정 = 입력 파일 원본 sha(`structure.json` 포함) + 엔진 코드 지문, U-68 정리 = 프로세스당 첫 실제 쓰기 1회(`core/snapshot_codec.py` `_CLEANUP_STARTED`), 위치 환경 변수 `GMID_S0_SNAPSHOT_DIR`(test 격리), 저장 시점 = `build_search_context` 끝 1회(단계 A·B만 도는 실행은 읽기만, 탐색 설정은 키 밖 -- v1.9.1 D6) | 40 §2.4.3 | MISS | `rg "snapshot_codec"` 0 |
+| D-GR3 | S0 수준 스냅샷 디스크 영속화(키·타입 있는 코덱·원자적 쓰기·검증), 단계 A 보고서 `s0_snapshot` 키(hit\|miss\|corrupt), `run_stage_a` PDK 선언 필수 인자, U-68 재현 판정 = 입력 파일 원본 sha(`structure.json` 포함) + 엔진 코드 지문, U-68 정리 = 프로세스당 첫 실제 쓰기 1회(`core/snapshot_codec.py` `_CLEANUP_STARTED`), 위치 환경 변수 `GMID_S0_SNAPSHOT_DIR`(test 격리), 저장 시점 = `build_search_context` 끝 1회(단계 A·B만 도는 실행은 읽기만, 탐색 설정은 키 밖 -- v1.9.1 D6). v1.9.2: 단계 A가 ok가 아닌 회로는 스냅샷 없음(결정 6), `run_stage_b` `settings` 필수 인자(결정 4), S0 값에 checkout 경로 없음(`PdkDecl`·`PdkRule`·`PdkMismatchModel` 경로 속성 없음, 결정 7) | 40 §2.4.3 | MISS | `rg "snapshot_codec"` 0 |
 | D-GR4 | 분할 계산 블록과 이식(graft). 분할 대상에 GB5 `passive_values`(읽는 레코드 = 영점 상쇄 셀 소자의 `dc_gm`, 전류 θ만 바뀐 자식의 재계산 해소, U17 ② 이월) | 40 §2.4.4 | MISS | `rg "def graft"` 0, `E/core/compute_block.py:73-90`(블록 이름 하나의 버전) |
 | D-GR5 | S3 메모리 색인·스냅샷 보존(`sctx.cache`·`local_seal_memo` 대체, G-5) | 40 §2.4.5 | DEV | bd19cc6 `E/search/kernel.py:102-121`, `E/search/local_candidates.py:141-144` |
 | D-GR6 | LUT memo 순수성(`call`)·S0당 인스턴스 하나·상한 B_r(층 0 항) | 40 §2.4.6 | DEV | bd19cc6 `E/search/search_context.py:105-121`(두 번째 인스턴스, 첫 평가 버림), `E/lut/lut_memo.py:25-36,60-62` |
@@ -300,6 +300,8 @@ plan_version: 6.8
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
 | 설계 항목 | 157 | 0 | 23 | 16 | 117 | 1 |
 | **합계** | 254 | 27 | 30 | 51 | 139 | 7 |
+
+v1.9.2(2026-10-14, 사용자 결정 2026-10-14 "3~9 모두 권고대로" 4·6·7·8): D-GR3 문구를 40 v1.9.2 §2.4.3에 맞춤, NFR-4 증거 칸에 결함 기록(상태 불변, 행 수 불변).
 
 v1.9.1(2026-10-13, 오케스트레이터 기본안 2026-10-13 U17 ①-b D1~D10, 사용자 결정 아님): D-GR2·D-GR3·D-GR13 문구를 40 v1.9.1 §2.4.3·§2.4.8에 맞춤(상태 불변, 행 수 불변).
 
