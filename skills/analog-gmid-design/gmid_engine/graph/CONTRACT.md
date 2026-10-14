@@ -618,15 +618,15 @@ reads = S1 필드 전부 `S1_READS`, extras = (spec 판정 제약, N_S, declared
 권한표 `S1V_WRITERS` = `S1_WRITERS` + S1v 필드 + 결합 필드(11절). `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True) -> S1Graph`
 (같은 S1 키, 스냅샷 권한표를 `S1V_WRITERS` 로 넓혀 블록을 부른 것; `s1` 은 권한표가 S1_WRITERS 를 덮는 S1Graph -- S0 수준 스냅샷 위의 것 포함). 기록 묶음은
 `s1v_findings(source) -> (all_findings, review_needed, unsupported)`(옛 `S1v.all_findings`·`review_needed`·`unsupported` 속성), 구조 표는 `structure_tables(source)`(필드를 읽는다 -- 옛 `key` 칸 없음,
-`facts_applied` -> `applied_facts`). `build_s1(previous=)` 는 권한표가 S1_WRITERS 를 **덮는** 스냅샷을 받는다(S0 수준 스냅샷 포함). 아래 표의 옛 서명·`S1v` 행은 이 단락이 대체한다.
+`facts_applied` -> `applied_facts`). `build_s1(previous=)` 는 권한표가 S1_WRITERS 를 **덮는** 스냅샷을 받는다(S0 수준 스냅샷 포함). 표는 이 단락과 같은 현재 서명이다.
 
 | 이름 | 설명 |
 |---|---|
-| `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), previous=None, stop_on_unsupported=True) -> S1v` | 진입점. `s1` = `build_s1` 결과, `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`) |
-| `S1v`, `ViewS1v`, `ViewSeed`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `Finding`, `StructureFact`, `CellInfo`, `DriveInfo`, `PoleNode`, `PassBundle`, `OutputDirection` | frozen dataclass(`fp_of` 가능). 필드 뜻과 어휘(`Block.kind`·AC 역할·`DriveInfo.basis`·`LClass.owner_rule`·`OutputDirection.topology`·`unreduced_diff` 형식)는 `s1v_values.py` docstring 이 정본이고 10.5 에 요약한다 |
+| `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True) -> S1Graph` | 진입점. `s1` = `build_s1` 결과(권한표가 `S1_WRITERS` 를 덮는 S1Graph), `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`). 결과는 S1v 필드를 쓴 같은 S1 키의 S1Graph(`previous` 인자·`S1v` 묶음 객체는 없다) |
+| `ViewS1v`, `ViewSeed`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `Finding`, `StructureFact`, `CellInfo`, `DriveInfo`, `PoleNode`, `PassBundle`, `OutputDirection` | frozen dataclass(`fp_of` 가능). 필드 뜻과 어휘(`Block.kind`·AC 역할·`DriveInfo.basis`·`LClass.owner_rule`·`OutputDirection.topology`·`unreduced_diff` 형식)는 `s1v_values.py` docstring 이 정본이고 10.5 에 요약한다 |
 | `load_structure_facts(path, topology_fp, rule_fp, net_names=()) -> StructureFacts` | `structure.json` ratified 사실 로더(파일 없음 = 사실 0, 형식 위반 = `SchemaRejectedError` gate `structure_json`, 해시 불일치 = 사실 미적용 + `structure_fact_stale` review_needed). [U1b] `schema_version`·concept 어휘·값 범위·`->` 모호 거부는 10.6 |
-| `structure_tables(s1v) -> dict` | JSON 으로 쓸 수 있는 구조 표(뷰·셀·구동 종류·블록·극점 노드·루프·L 동치류·기록) |
-| `s1v_rule_fp() -> str` | S1v 규칙 코드 지문(`S1V_RULE_FILES` 바이트). `build_s1v` 의 재사용 키가 쓴다 |
+| `structure_tables(source) -> dict` | `source`(S1v 필드를 가진 S1Graph)의 필드를 읽어 만든 JSON 으로 쓸 수 있는 구조 표(뷰·셀·구동 종류·블록·극점 노드·루프·L 동치류·기록) |
+| `s1v_rule_fp() -> str` | S1v 규칙 코드 지문(`S1V_RULE_FILES` 바이트). `structure_rule_fp()` 가 부른다(재사용은 블록 입력 버전이 정한다 -- 옛 `build_s1v` 재사용 키는 없다) |
 | `structure_rule_fp() -> str` [U1b] | `s1v_rule_fp()` + S1 쪽 소비 파일(`STRUCTURE_RULE_EXTRA_FILES` = composite_diode·dc_roles·gs_groups·matching_groups) 지문. `structure.json` 의 `rule_hash` |
 | `composite_diodes(projection)`, `feedforward_cells(model, view, blocks, cells, stage)`, `loop_roles(view_loops, transfer_views, declared_pm_views)` [U1b] | J 구조 규칙(10.6). 모두 단계 A 경로(`build_s1` -> `s1_dc_roles`, `analyze_view`)에서 불린다 |
 | `LoopRole`, `FeedforwardCell`, `FfRatioCandidate`, `CompositeDiode`, `FeedforwardResult` [U1b] | frozen dataclass |
