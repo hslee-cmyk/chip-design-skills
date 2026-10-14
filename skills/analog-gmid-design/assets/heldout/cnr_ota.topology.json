@@ -1,0 +1,908 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "cnr_ota",
+  "_topology_name_comment": "판독 작업 이름 D_cnr_ota_sky130(wt/_heldout/D_cnr/D_cnr.topology.json) -> 저장소 이름 cnr_ota. connectivity 는 판독본과 같다(이름·주석 키만 바꿈; U5 C1/C2 값은 spec element_values 에만 둔다 -- topology 값 칸 null 유지).",
+  "source": "wulffern/cnr_ota_sky130nm @8c839f7 (2024-03-01) design/CNR_OTA_SKY130NM/CNR_OTA.sch -- 하위 셀 wulffern/cnr_atr_sky130nm (CNRATR_*: MOS 1개씩), wulffern/sun_tr_sky130nm (SUNTR_RPPO*: res_high_po 직렬) 를 extract_xschem.py 로 기계적으로 펼침. held-out 시험 회로 D -- library 에 넣지 않음.",
+  "_status": "held-out 시험 회로 D(2026-10-14). library 밖 assets/heldout/ 에 둔다(계획 DEC-98 (4)·U-76 (5) -- 엔진 개발 회로와 분리, test 픽스처로 쓰지 않는다). connectivity 사용자 확인 끝: user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" (U1 (a) LPCI-LPCO 합침, U2 (a) IDC 2 uA [VSS, IBPSR], U3 (a) CL1/CL2 5 pF 만(저항 귀환망 제외), U4 (a) 버스 병렬 펼침·원본 이름, U5 (a) R/C 값은 PDK 모델로 계산, U6 (a) 2024-02 라이브러리 값, U7 bulk 판독대로, U8 beta=1 해석, U9 VIP->VOP 비반전). 판독 기록 wt/_heldout/D_cnr/VERIFY.md. 사람 태그(symmetry/device_roles/sizing_roles/compensation) 없음.",
+  "_naming": "소자 이름 = 원본 인스턴스 경로. 버스 인스턴스 x2[1:0] 는 x2[1].M1, x2[0].M1 로 펼친 병렬 소자(스키마에 배수 필드가 없다). 주의: 원본에 x1/x1[3:0], x2/x2[1:0], x3/x3[1:0], x4/x4[3:0] 가 서로 다른 소자로 공존한다. 이름 없는 넷 net1~net7 = xschem 이 저장한 #net1~#net7 (같은 선분, 자체 점검 일치).",
+  "_decisions": {
+    "U1_LPCI": "LPCI(x42 gate) 를 LPCO 와 같은 넷으로 합침 -- README Signal interface 'LPCI ... Short to LCPO', TB lstb.spi:30 `vlp1 lpci lpco dc 0`, tran.spi:50 (사용자 U1 (a))",
+    "U2_IBPSR": "IBPSR 핀 = 이상 전류원 IDC 2 uA (t0=VSS -> t1=IBPSR) -- load.spi:3 `IDC 0 IBPSR dc 2u`; IBPSR 는 ports 에 넣지 않음 (사용자 U2 (a))",
+    "U3_load": "CL1/CL2 5 pF(VOP/VON-VSS)만 측정 부하로 넣고 저항 귀환망(load.spi:5-8 R1~R4)·balun 은 제외 (사용자 U3 (a); spec element_values measurement_load)",
+    "U4_bus": "버스 인스턴스 x2[1:0] 등을 병렬 소자 x2[1].M1, x2[0].M1 로 펼침, 이름은 원본 그대로(x1/x1[3:0] 등 동명 공존) (사용자 U4 (a))",
+    "U5_values": "C1/C2 = sky130 cap_mim_m3_1 W=L=5 um MF=1 -> PDK camimc·cpmimc 로 계산(cnr_ota.spec_source.md 4절). 저항 6개는 res_high_po 셀 모델이 로컬 PDK 에 없어 값 null, spec 은 결정 대기 U-75 (사용자 U5 (a))",
+    "U6_lib": "하위 라이브러리 = 결과표 시점(2024-02) 값: CNRATR *_1F2 셀 L=0.252 um, SUNTR 저항 세그먼트 L=8.8 um (사용자 U6 (a)); 크기는 topology 에 넣지 않음(wt/_heldout/D_cnr/D_cnr.sizes.md)",
+    "U7_bulk": "bulk 판독대로: SF x31/x33/x35 bulk=VSS, x42/x43 bulk=VDD_1V8, 그 밖 NMOS=VSS·PMOS=VDD_1V8 (사용자 U7)",
+    "U9_polarity": "VIP->VOP 비반전, role 은 이름대로 differential_input_p/n, differential_output_p/n (사용자 U9)"
+  },
+  "supply_nets": [
+    "VDD_1V8",
+    "VSS"
+  ],
+  "ports": {
+    "_comment": "원본 ipin/opin. VIP/VIN/VOP/VON 이름·README Signal interface 표(Positive/Negative) 그대로. 극성은 경로로 확인: VIP->x2(D=VBP2)->x7/x8 diode->x5/x6 -> VOP 상승 (VERIFY.md 4절).",
+    "VIP": {
+      "direction": "input",
+      "role": "differential_input_p"
+    },
+    "VIN": {
+      "direction": "input",
+      "role": "differential_input_n"
+    },
+    "VOP": {
+      "direction": "output",
+      "role": "differential_output_p"
+    },
+    "VON": {
+      "direction": "output",
+      "role": "differential_output_n"
+    }
+  },
+  "bias_inputs": [],
+  "source_manifest": {
+    "figure": "cnr_ota_sky130nm@8c839f7 CNR_OTA.sch (documents/CNR_OTA_SKY130NM/CNR_OTA.svg), 계층 펼침 MOS 72개(MOS 셀 인스턴스 47개, 버스 펼침) + R 6 + C 2 + TB 부하 C 2",
+    "device_count": 72,
+    "passive_count": 10
+  },
+  "netlist": [
+    {
+      "name": "x1.M1",
+      "kind": "nmos",
+      "drain": "net2",
+      "gate": "VBN2",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:569"
+    },
+    {
+      "name": "x2[1].M1",
+      "kind": "nmos",
+      "drain": "VCOPN",
+      "gate": "VBN2",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:570"
+    },
+    {
+      "name": "x2[0].M1",
+      "kind": "nmos",
+      "drain": "VCOPN",
+      "gate": "VBN2",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:570"
+    },
+    {
+      "name": "x3[1].M1",
+      "kind": "nmos",
+      "drain": "VOP",
+      "gate": "VCN",
+      "source": "VCOPN",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C1F2 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:571"
+    },
+    {
+      "name": "x3[0].M1",
+      "kind": "nmos",
+      "drain": "VOP",
+      "gate": "VCN",
+      "source": "VCOPN",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C1F2 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:571"
+    },
+    {
+      "name": "x4.M1",
+      "kind": "nmos",
+      "drain": "VBN2",
+      "gate": "VCN",
+      "source": "net2",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C1F2 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:572"
+    },
+    {
+      "name": "x5[1].M1",
+      "kind": "pmos",
+      "drain": "VCOPP",
+      "gate": "VBP2",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:573"
+    },
+    {
+      "name": "x5[0].M1",
+      "kind": "pmos",
+      "drain": "VCOPP",
+      "gate": "VBP2",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:573"
+    },
+    {
+      "name": "x6[1].M1",
+      "kind": "pmos",
+      "drain": "VOP",
+      "gate": "VCP",
+      "source": "VCOPP",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C1F2 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:574"
+    },
+    {
+      "name": "x6[0].M1",
+      "kind": "pmos",
+      "drain": "VOP",
+      "gate": "VCP",
+      "source": "VCOPP",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C1F2 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:574"
+    },
+    {
+      "name": "x7.M1",
+      "kind": "pmos",
+      "drain": "net1",
+      "gate": "VBP2",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:575"
+    },
+    {
+      "name": "x8.M1",
+      "kind": "pmos",
+      "drain": "VBP2",
+      "gate": "VCP",
+      "source": "net1",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C1F2 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:576"
+    },
+    {
+      "name": "x11.M1",
+      "kind": "pmos",
+      "drain": "net3",
+      "gate": "VBP2",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:577"
+    },
+    {
+      "name": "x12.M1",
+      "kind": "pmos",
+      "drain": "VBN1",
+      "gate": "VCP",
+      "source": "net3",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C1F2 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:578"
+    },
+    {
+      "name": "x2.M1",
+      "kind": "nmos",
+      "drain": "VBP2",
+      "gate": "VIP",
+      "source": "VS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C2F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:579"
+    },
+    {
+      "name": "x10.M1",
+      "kind": "nmos",
+      "drain": "net5",
+      "gate": "VBN1",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:588"
+    },
+    {
+      "name": "x13[1].M1",
+      "kind": "nmos",
+      "drain": "VCONN",
+      "gate": "VBN1",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:589"
+    },
+    {
+      "name": "x13[0].M1",
+      "kind": "nmos",
+      "drain": "VCONN",
+      "gate": "VBN1",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:589"
+    },
+    {
+      "name": "x14[1].M1",
+      "kind": "nmos",
+      "drain": "VON",
+      "gate": "VCN",
+      "source": "VCONN",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C1F2 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:590"
+    },
+    {
+      "name": "x14[0].M1",
+      "kind": "nmos",
+      "drain": "VON",
+      "gate": "VCN",
+      "source": "VCONN",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C1F2 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:590"
+    },
+    {
+      "name": "x15.M1",
+      "kind": "nmos",
+      "drain": "VBN1",
+      "gate": "VCN",
+      "source": "net5",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C1F2 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:591"
+    },
+    {
+      "name": "x16[1].M1",
+      "kind": "pmos",
+      "drain": "VCONP",
+      "gate": "VBP1",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:592"
+    },
+    {
+      "name": "x16[0].M1",
+      "kind": "pmos",
+      "drain": "VCONP",
+      "gate": "VBP1",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:592"
+    },
+    {
+      "name": "x17[1].M1",
+      "kind": "pmos",
+      "drain": "VON",
+      "gate": "VCP",
+      "source": "VCONP",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C1F2 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:593"
+    },
+    {
+      "name": "x17[0].M1",
+      "kind": "pmos",
+      "drain": "VON",
+      "gate": "VCP",
+      "source": "VCONP",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C1F2 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:593"
+    },
+    {
+      "name": "x18.M1",
+      "kind": "pmos",
+      "drain": "net4",
+      "gate": "VBP1",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:594"
+    },
+    {
+      "name": "x19.M1",
+      "kind": "pmos",
+      "drain": "VBP1",
+      "gate": "VCP",
+      "source": "net4",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C1F2 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:595"
+    },
+    {
+      "name": "x20.M1",
+      "kind": "pmos",
+      "drain": "net6",
+      "gate": "VBP1",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:596"
+    },
+    {
+      "name": "x21.M1",
+      "kind": "pmos",
+      "drain": "VBN2",
+      "gate": "VCP",
+      "source": "net6",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C1F2 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:597"
+    },
+    {
+      "name": "x22.M1",
+      "kind": "nmos",
+      "drain": "VBP1",
+      "gate": "VIN",
+      "source": "VS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C2F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:598"
+    },
+    {
+      "name": "x23[3].M1",
+      "kind": "nmos",
+      "drain": "VS",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:607"
+    },
+    {
+      "name": "x23[2].M1",
+      "kind": "nmos",
+      "drain": "VS",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:607"
+    },
+    {
+      "name": "x23[1].M1",
+      "kind": "nmos",
+      "drain": "VS",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:607"
+    },
+    {
+      "name": "x23[0].M1",
+      "kind": "nmos",
+      "drain": "VS",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:607"
+    },
+    {
+      "name": "x24.M1",
+      "kind": "nmos",
+      "drain": "IBPSR",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:615"
+    },
+    {
+      "name": "x25.M1",
+      "kind": "nmos",
+      "drain": "VBP",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:618"
+    },
+    {
+      "name": "x26.M1",
+      "kind": "pmos",
+      "drain": "VBP",
+      "gate": "VBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:619"
+    },
+    {
+      "name": "x27.M1",
+      "kind": "pmos",
+      "drain": "VCP",
+      "gate": "VCP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C8F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:620"
+    },
+    {
+      "name": "x28[5].M1",
+      "kind": "pmos",
+      "drain": "VCN",
+      "gate": "VBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:621"
+    },
+    {
+      "name": "x28[4].M1",
+      "kind": "pmos",
+      "drain": "VCN",
+      "gate": "VBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:621"
+    },
+    {
+      "name": "x28[3].M1",
+      "kind": "pmos",
+      "drain": "VCN",
+      "gate": "VBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:621"
+    },
+    {
+      "name": "x28[2].M1",
+      "kind": "pmos",
+      "drain": "VCN",
+      "gate": "VBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:621"
+    },
+    {
+      "name": "x28[1].M1",
+      "kind": "pmos",
+      "drain": "VCN",
+      "gate": "VBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:621"
+    },
+    {
+      "name": "x28[0].M1",
+      "kind": "pmos",
+      "drain": "VCN",
+      "gate": "VBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:621"
+    },
+    {
+      "name": "x29.M1",
+      "kind": "nmos",
+      "drain": "VCP",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:622"
+    },
+    {
+      "name": "x30.M1",
+      "kind": "nmos",
+      "drain": "VCN",
+      "gate": "VCN",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_2C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:623"
+    },
+    {
+      "name": "x31.M1",
+      "kind": "nmos",
+      "drain": "VDD_1V8",
+      "gate": "VCR",
+      "source": "VCREF",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_12C2F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:626"
+    },
+    {
+      "name": "x36[3].M1",
+      "kind": "nmos",
+      "drain": "VCREF",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:627"
+    },
+    {
+      "name": "x36[2].M1",
+      "kind": "nmos",
+      "drain": "VCREF",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:627"
+    },
+    {
+      "name": "x36[1].M1",
+      "kind": "nmos",
+      "drain": "VCREF",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:627"
+    },
+    {
+      "name": "x36[0].M1",
+      "kind": "nmos",
+      "drain": "VCREF",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:627"
+    },
+    {
+      "name": "x33.M1",
+      "kind": "nmos",
+      "drain": "VDD_1V8",
+      "gate": "VOP",
+      "source": "VCOP",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_12C2F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:628"
+    },
+    {
+      "name": "x1[3].M1",
+      "kind": "nmos",
+      "drain": "VCOP",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:629"
+    },
+    {
+      "name": "x1[2].M1",
+      "kind": "nmos",
+      "drain": "VCOP",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:629"
+    },
+    {
+      "name": "x1[1].M1",
+      "kind": "nmos",
+      "drain": "VCOP",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:629"
+    },
+    {
+      "name": "x1[0].M1",
+      "kind": "nmos",
+      "drain": "VCOP",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:629"
+    },
+    {
+      "name": "x35.M1",
+      "kind": "nmos",
+      "drain": "VDD_1V8",
+      "gate": "VON",
+      "source": "VCON",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_12C2F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:630"
+    },
+    {
+      "name": "x4[3].M1",
+      "kind": "nmos",
+      "drain": "VCON",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:631"
+    },
+    {
+      "name": "x4[2].M1",
+      "kind": "nmos",
+      "drain": "VCON",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:631"
+    },
+    {
+      "name": "x4[1].M1",
+      "kind": "nmos",
+      "drain": "VCON",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:631"
+    },
+    {
+      "name": "x4[0].M1",
+      "kind": "nmos",
+      "drain": "VCON",
+      "gate": "IBPSR",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:631"
+    },
+    {
+      "name": "x42.M1",
+      "kind": "pmos",
+      "drain": "VCBN1",
+      "gate": "LPCO",
+      "source": "VSC",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C1F2 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:654"
+    },
+    {
+      "name": "x43.M1",
+      "kind": "pmos",
+      "drain": "VCBN2",
+      "gate": "VCREF",
+      "source": "VSC",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C1F2 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:655"
+    },
+    {
+      "name": "x44.M1",
+      "kind": "pmos",
+      "drain": "VSC",
+      "gate": "VBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:657"
+    },
+    {
+      "name": "x45.M1",
+      "kind": "nmos",
+      "drain": "VCBN1",
+      "gate": "VCBN1",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:658"
+    },
+    {
+      "name": "x46.M1",
+      "kind": "nmos",
+      "drain": "VCBN2",
+      "gate": "VCBN2",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:659"
+    },
+    {
+      "name": "x47.M1",
+      "kind": "nmos",
+      "drain": "VCONN",
+      "gate": "VCBN2",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:660"
+    },
+    {
+      "name": "x48.M1",
+      "kind": "nmos",
+      "drain": "VCOPN",
+      "gate": "VCBN2",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:661"
+    },
+    {
+      "name": "x49.M1",
+      "kind": "pmos",
+      "drain": "VCONP",
+      "gate": "VCBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:662"
+    },
+    {
+      "name": "x50.M1",
+      "kind": "pmos",
+      "drain": "VCOPP",
+      "gate": "VCBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:663"
+    },
+    {
+      "name": "x51.M1",
+      "kind": "pmos",
+      "drain": "VCBP",
+      "gate": "VCBP",
+      "source": "VDD_1V8",
+      "bulk": "VDD_1V8",
+      "_cell": "CNRATR_PCH_4C4F0 (sky130 pfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:664"
+    },
+    {
+      "name": "x52.M1",
+      "kind": "nmos",
+      "drain": "VCBP",
+      "gate": "VCBN1",
+      "source": "VSS",
+      "bulk": "VSS",
+      "_cell": "CNRATR_NCH_4C8F0 (sky130 nfet_01v8)",
+      "_src": "wulff/CNR_OTA.sch:665"
+    }
+  ],
+  "passive_elements": [
+    {
+      "name": "C1",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "LPCO",
+        "VCOP"
+      ],
+      "_cell": "sky130_fd_pr cap_mim_m3_1 W=5um L=5um MF=1",
+      "_src": "wulff/CNR_OTA.sch:632",
+      "_value_note": "값 정본 = spec element_values(F5). U5 (a): MF*(camimc*W*L + cpmimc*2*(W+L)), camimc=2.00e-15 F/um^2, cpmimc=0.19e-15 F/um (C:/pdk/sky130_fd_pr/models/r+c/res_typical__cap_typical__lin.spice 7·8행), W=L=5 um, MF=1 -> 5.38e-14 F. 같은 식·값이 원본 SVG 글자 'C=5.38e-14'(documents/CNR_OTA_SKY130NM/CNR_OTA.svg)와 xschem cap_mim_m3_1.sym 표시식에 있다 -- cnr_ota.spec_source.md 4절. topology 값 칸은 판독본처럼 null 로 두어 connectivity_fp 를 판독본과 같게 한다"
+    },
+    {
+      "name": "C2",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "VCON",
+        "LPCO"
+      ],
+      "_cell": "sky130_fd_pr cap_mim_m3_1 W=5um L=5um MF=1",
+      "_src": "wulff/CNR_OTA.sch:633",
+      "_value_note": "값 정본 = spec element_values(F5). U5 (a): MF*(camimc*W*L + cpmimc*2*(W+L)), camimc=2.00e-15 F/um^2, cpmimc=0.19e-15 F/um (C:/pdk/sky130_fd_pr/models/r+c/res_typical__cap_typical__lin.spice 7·8행), W=L=5 um, MF=1 -> 5.38e-14 F. 같은 식·값이 원본 SVG 글자 'C=5.38e-14'(documents/CNR_OTA_SKY130NM/CNR_OTA.svg)와 xschem cap_mim_m3_1.sym 표시식에 있다 -- cnr_ota.spec_source.md 4절. topology 값 칸은 판독본처럼 null 로 두어 connectivity_fp 를 판독본과 같게 한다"
+    },
+    {
+      "name": "x37",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "VCOP",
+        "LPCO"
+      ],
+      "_cell": "SUNTR_RPPO16 = 16 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
+      "_body_terminal": "B = VSS (2단자 모델이라 버림)",
+      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_src": "wulff/CNR_OTA.sch:634"
+    },
+    {
+      "name": "x38",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "LPCO",
+        "VCON"
+      ],
+      "_cell": "SUNTR_RPPO16 = 16 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
+      "_body_terminal": "B = VSS (2단자 모델이라 버림)",
+      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_src": "wulff/CNR_OTA.sch:635"
+    },
+    {
+      "name": "x39",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "net7",
+        "VCR"
+      ],
+      "_cell": "SUNTR_RPPO16 = 16 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
+      "_body_terminal": "B = VSS (2단자 모델이라 버림)",
+      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_src": "wulff/CNR_OTA.sch:642"
+    },
+    {
+      "name": "x40",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "VCR",
+        "VDD_1V8"
+      ],
+      "_cell": "SUNTR_RPPO16 = 16 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
+      "_body_terminal": "B = VSS (2단자 모델이라 버림)",
+      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_src": "wulff/CNR_OTA.sch:643"
+    },
+    {
+      "name": "x9",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "VCREF",
+        "VSS"
+      ],
+      "_cell": "SUNTR_RPPO16 = 16 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
+      "_body_terminal": "B = VSS (2단자 모델이라 버림)",
+      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_src": "wulff/CNR_OTA.sch:681"
+    },
+    {
+      "name": "x3",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "VSS",
+        "net7"
+      ],
+      "_cell": "SUNTR_RPPO4 = 4 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
+      "_body_terminal": "B = VSS (2단자 모델이라 버림)",
+      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_src": "wulff/CNR_OTA.sch:701"
+    },
+    {
+      "name": "CL1",
+      "kind": "capacitor",
+      "value_farad": 5e-12,
+      "terminals": [
+        "VOP",
+        "VSS"
+      ],
+      "_src": "cnr_ota_sky130nm@8c839f7 sim/CNR_OTA/load.spi (`CL1 VOP 0 5p`; 노드 0 = VSS, TB `VSS VSS 0 dc 0`)",
+      "_note": "테스트벤치 부하(회로도 밖) -- VERIFY.md U3"
+    },
+    {
+      "name": "CL2",
+      "kind": "capacitor",
+      "value_farad": 5e-12,
+      "terminals": [
+        "VON",
+        "VSS"
+      ],
+      "_src": "cnr_ota_sky130nm@8c839f7 sim/CNR_OTA/load.spi (`CL2 VON 0 5p`; 노드 0 = VSS, TB `VSS VSS 0 dc 0`)",
+      "_note": "테스트벤치 부하(회로도 밖) -- VERIFY.md U3"
+    }
+  ],
+  "ideal_sources": [
+    {
+      "name": "IDC",
+      "kind": "current_source",
+      "value_amp": 2e-06,
+      "terminals": [
+        "VSS",
+        "IBPSR"
+      ],
+      "implementable": false,
+      "_src": "cnr_ota_sky130nm@8c839f7 sim/CNR_OTA/load.spi `IDC 0 IBPSR dc 2u`; README 'IBPSR Bias current (2 uA)'"
+    }
+  ]
+}
