@@ -709,3 +709,10 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | θ 전류 대표·상자(`cur_rep`·`current_box`) | `pipeline.stage_b._theta_currents` (정본), `search.iv_context._theta_currents` (같은 규칙의 사본) | 파일당 진입점 하나·패키지 공개 API 규칙(구조 test A·C)으로 한 곳에 모으지 못했다 -- 한쪽을 바꾸면 다른 쪽도 바꾼다 |
 | 평가 예산 N_T | `search.EvalBudget` | `kernel.evaluate` 의 E_B 유도가 `limit()` 을 쓴다 |
 | mv -> V 환산 | `core.MILLI` | `core/units.py` (단위 환산 계수는 한 곳) |
+
+## 16. 새 엔진 블록 코드 해시 정본 (2026-10-14, 설계 40 v1.9.3 결정 10 -- 새로 만들기 전에 여기 먼저)
+
+| 개념 | 정본 | 비고 |
+|---|---|---|
+| 계산 블록 코드 해시(checkout 경로·줄 정보 무관, `__wrapped__` 사슬 포함) | `core.compute_block._code_hash` (`ComputeBlock.code_hash`, 데코레이트 시점 1회) | 옛 `hashlib.sha256(marshal.dumps(fn.__code__))` 는 삭제했다(경로 의존·참조 수 의존). 지문 인코더는 `core.fp_of` 하나 -- 코드 지문용 인코더를 새로 만들지 않는다 |
+| 실행 사이 재사용용 엔진 코드 지문 | `core.engine_code_fp` | 블록 코드 해시가 덮지 않는 것(부르는 함수·전역·closure·기본 인자)을 덮는다 |
