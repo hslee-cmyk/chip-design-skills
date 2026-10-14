@@ -62,6 +62,14 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
 # user_spec 제약 하나씩 추가(oracle (d) 사용자 선언 스펙값, diff 근거 -- 피검 로더 출력 아님):
 #   ngcc  (6,6)  + gain_ss_db>=111(user_spec -> 판정, NGCC 논문 Table 5 α=0.3)                         = (7,7), pending 불변(추가만, 표지 변경 없음)
 #   nmcnr (7,7)  + gain_ss_db>=100(user_spec -> 판정, NMCNR 논문 Table 1 '> 100 dB')                    = (8,8), pending 불변
+# [library spec card, 2026-10-14] oracle (d) 사용자 결정 Q-S2(_drafts/user_decisions.md 2026-10-14 step-2 Q-S "Q-S는 모두 권고대로, Q-S2는
+# 70도 이상" + 같은 날 library spec card U-2 "자기 파일에 70 리터럴"): 3회로에 pm_ss_deg >= 70(user_spec -> 판정) 1개씩 추가, SP-3 표지는
+# compensation_targets.pm_target_deg 의 {"pending": "SP-3"} 가 value_from_constraint 로 바뀌어 빠진다(two_stage_ota_sf 는 그 칸이 없었다 --
+# pending_constraints 항목은 _markers 가 세지 않는다). 손 집계 = 커밋 cf1365d 의 spec diff:
+#   sf_pushpull (7,7)  + pm_ss_deg>=70, pending 6 - SP-3 1                                            = (8,8), 5
+#   two_stage   (5,5)  + pm_ss_deg>=70, pending 7 - SP-3 1                                            = (6,6), 6
+#   two_stage_sf(6,6)  + pm_ss_deg>=70, pending 불변(SP-3 은 pending_constraints 에만 있었다)            = (7,7), 6
+#   파일럿 (13,12,11) 불변(Q-S3 는 noise_out_int_vrms 값·출처만 바꾼다, 제약 수·표지 수 변화 없음)
 TABLE = {
     "common_gate_amplifier": (2, 2, 6),
     "current_reuse_telescopic_ota": (13, 12, 11),
@@ -69,9 +77,9 @@ TABLE = {
     "ngcc_3stage_ff": (7, 7, 6),
     "nmcnr_amplifier": (8, 8, 6),
     "pushpull_follower_buffer": (2, 2, 5),
-    "sf_pushpull_output_opamp": (7, 7, 6),
-    "two_stage_ota": (5, 5, 7),
-    "two_stage_ota_sf": (6, 6, 6),
+    "sf_pushpull_output_opamp": (8, 8, 5),
+    "two_stage_ota": (6, 6, 6),
+    "two_stage_ota_sf": (7, 7, 6),
 }
 # oracle (d) 사용자 결정 11 문장(_drafts/user_decisions.md 2026-10-08 "B으로 표의 값을 그대로 써. Cl을 빼는 것에 동의해")의 표 값 [mm²].
 # m² 환산은 1 mm² = 1e-6 m² (단위 정의, 피검 식 아님).
@@ -92,9 +100,10 @@ MEASUREMENT_LOADS = {
 # 5절 ID 합계: SP-10 2 가 빠지고(65 -> 63), CI-10 해소로 CI-10 1·MOD5 1(파일럿 pm_ss_deg 뷰)이 빠진다(63 -> 61, MOD5 7 -> 6 =
 # 파일럿 뷰 4·metric 1 + ngcc metric 1). 5절 문장 '남은 표지 61개' 와 JSON 직접 집계가 같음.
 # [U5] ngcc metric 표지 MOD5 해소(설계 40 §9 Q5 ngcc 'icmr_v >= 0.6 V(값 유지, 이름 부여)') -> MOD5 6 -> 5, 합계 61 -> 60.
-ID_TOTALS = {"AC-3": 9, "PA-1": 9, "PA-2": 9, "CI-15": 9, "CI-18": 9, "SP-2": 7, "MOD5": 5, "SP-3": 2,
+# [library spec card, 2026-10-14] Q-S2 로 SP-3 표지 2개(sf_pushpull·two_stage_ota 의 pm_target_deg)가 해소 -> SP-3 키 없음, 합계 60 -> 58.
+ID_TOTALS = {"AC-3": 9, "PA-1": 9, "PA-2": 9, "CI-15": 9, "CI-18": 9, "SP-2": 7, "MOD5": 5,
              "CI-17": 1}
-ID_TOTAL_SUM = 60
+ID_TOTAL_SUM = 58
 PILOT = "current_reuse_telescopic_ota"
 SP10_ELEMENTS = ("CL1", "CL2")
 SP10_FARAD = 1e-12  # 사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF"
@@ -367,9 +376,14 @@ PILOT_PENDING = 11                                          # (d) 5절 표 파�
 PILOT_MOD5 = 5                                              # (d) 5절 '파일럿 뷰 4·metric 1'
 # β = 1 루프(feedback []) 회로: (d) UD 9번 PM 정의 + 3절 'unity 면 weights·sense 가 port 와 같다'. 기대 weights·sense 는 손으로
 # 읽은 ports role 에 3절 가중 규칙을 적용한 리터럴(출력 포트 1개 single_ended_output -> single_ended).
+# [library spec card, 2026-10-14] Q-S2 3회로 추가 -- 손으로 읽은 topology ports: 3회로 모두 vin_p(differential_input_p)·
+# vin_n(differential_input_n) + 단일 출력 1개(sf·two_stage_sf = vout, two_stage = OUT, single_ended_output), feedback [] (β = 1).
 UNITY_LOOP = {
     "ngcc_3stage_ff": ((("Vinn", -0.5), ("Vinp", 0.5)), SenseDecl("Vout", None, "single_ended")),
     "nmcnr_amplifier": ((("Vin_n", -0.5), ("Vin_p", 0.5)), SenseDecl("Vout", None, "single_ended")),
+    "sf_pushpull_output_opamp": ((("vin_n", -0.5), ("vin_p", 0.5)), SenseDecl("vout", None, "single_ended")),
+    "two_stage_ota": ((("vin_n", -0.5), ("vin_p", 0.5)), SenseDecl("OUT", None, "single_ended")),
+    "two_stage_ota_sf": ((("vin_n", -0.5), ("vin_p", 0.5)), SenseDecl("vout", None, "single_ended")),
 }
 
 
@@ -462,7 +476,7 @@ def test_non_pilot_pm_loop_beta_unity(name):
 
 @pytest.mark.parametrize("name", sorted(set(TABLE) - {PILOT} - set(UNITY_LOOP)))
 def test_other_circuits_have_no_loop_view(name):
-    """loop 뷰는 pm_ss_deg 기본뿐(3절) -- JSON 에 pm_ss_deg 제약이 없는 6회로는 loop 뷰가 없다."""
+    """loop 뷰는 pm_ss_deg 기본뿐(3절) -- JSON 에 pm_ss_deg 제약이 없는 3회로(common_gate·folded·pushpull, Q-S2 뒤)는 loop 뷰가 없다."""
     assert not [c for c in _spec(name)["human"]["constraints"] if c.get("metric") == "pm_ss_deg"]
     assert all(c.view is None or c.view.mode != "loop" for c in _load(name).constraints)
 
@@ -526,9 +540,14 @@ def test_measurement_loads_declared_per_circuit(name):
 
 # =====================================================================================================================
 # [U5 2026-10-08] 설계 40 §9.2(Q3·Q4 회로별 선언)·§9 Q5 표·41 §7.1(Q11 회로별 잡음 선언) 과 library spec 대조
-# oracle (d) 설계 표 값을 리터럴로 옮겼다(√2 = 가드 '<= √2', 300 µVrms = 300e-6 V, 2.4 V = ±1.2 V 차동 p-p).
+# oracle (d) 설계 표 값을 리터럴로 옮겼다(√2 = 가드 '<= √2', 2.4 V = ±1.2 V 차동 p-p).
 # 비교 대상 = U5 어휘 12개 metric(후속 ff_gm_ratio 포함) 제약 전부(JSON 직접 + 로드 결과). 참조 제약은 ('ref', 대상) 로 적는다.
+# [library spec card, 2026-10-14] 파일럿 잡음 행: oracle (d) 사용자 결정 Q-S3(_drafts/user_decisions.md 2026-10-14 step-2 Q-S "Q-S는 모두
+# 권고대로" -- C1 <= 450 uVrms 차동 출력, library spec card U-1 "기본 포트 뷰 + 출처 문구 + test 단언")가 옛 Q11 값 300 µVrms(논문 Table I)를
+# 대체. 450 µVrms = 450e-6 V(metric 단위 V, 단위 정의).
 # =====================================================================================================================
+Q_S3_NOISE_VRMS = 450e-6
+Q_S3_DECIDED = "2026-10-14"
 SQRT2 = math.sqrt(2.0)
 U5_METRICS = frozenset(u5_design_signatures())
 OFFSET_GUARD = ("offset_excess", "<=", SQRT2)
@@ -538,7 +557,7 @@ DESIGN_U5_ROWS = {
     "current_reuse_telescopic_ota": {("offset_in_sigma_mv", "<=", PILOT_OFFSET_MV),
                                      ("offset_sys_mv", "<=", ("ref", "offset_in_sigma_mv")),
                                      ("swing_out_v", ">=", 2.4), ("icm_margin_v", ">=", 0.0),
-                                     ("noise_out_int_vrms", "<=", 300e-6)},
+                                     ("noise_out_int_vrms", "<=", Q_S3_NOISE_VRMS)},
     "two_stage_ota": {OFFSET_GUARD, NOISE_GUARD},
     "two_stage_ota_sf": {OFFSET_GUARD, NOISE_GUARD},
     "folded_cascode": {OFFSET_GUARD, NOISE_GUARD},
@@ -554,6 +573,8 @@ NOISE_GUARD_CIRCUITS = OFFSET_GUARD_CIRCUITS | {"common_gate_amplifier"}   # 41 
 LEGACY_METRICS = ("mismatch_sigma_mv", "mirror_ratio_error_mv", "mismatch_sigma_v")
 # 출처 날짜: §9.2·Q11 로 새로 들어간 행은 결정일 2026-10-08. ngcc icmr_v 는 '값·출처 유지'(기존 사용자 확정)라 날짜를 보지 않는다.
 KEEP_OLD_SOURCE = {("ngcc_3stage_ff", "icmr_v")}
+# Q-S3 로 다시 결정된 행은 그 결정일(2026-10-14)을 본다(날짜 대조를 빼지 않고 기대 날짜만 바꾼다).
+DECIDED_LATER = {("current_reuse_telescopic_ota", "noise_out_int_vrms"): Q_S3_DECIDED}
 
 
 def _row(c):
@@ -585,7 +606,7 @@ def test_u5_rows_match_design_tables_json(name):
             continue
         assert src["kind"] == "user_spec", (name, c["metric"])
         if (name, c["metric"]) not in KEEP_OLD_SOURCE:
-            assert src["decided"] == "2026-10-08", (name, c["metric"])
+            assert src["decided"] == DECIDED_LATER.get((name, c["metric"]), "2026-10-08"), (name, c["metric"])
         assert "view" not in c                      # 설계 표가 뷰를 정하지 않는다 -- 유도(transfer)·없음(ls)
 
 
@@ -635,6 +656,67 @@ def test_q5_two_stage_gbw_promoted():
         got = [c for c in doc.constraints if c.metric == "gbw_ss_hz"]
         assert len(got) == 1 and got[0].value == Q5_TWO_STAGE_GBW_HZ and got[0].judged is True
         assert "gbw_ss_hz" not in [m for m, _ in doc.pending_constraints], name
+
+
+# ---------------------------------------------------------------- [library spec card, 2026-10-14] Q-S2·Q-S3
+# oracle (d) 사용자 결정(_drafts/user_decisions.md 2026-10-14 step-2 Q-S "Q-S는 모두 권고대로, Q-S2는 70도 이상" + 같은 날 library spec card
+# U-1 "기본 포트 뷰 + 출처 문구 + test 단언", U-2 "자기 파일에 70 리터럴"). 기대 뷰는 손으로 읽은 topology ports role(UNITY_LOOP 주석,
+# 아래 전제 test 가 고정)에 SPEC_CONTRACT 3절 규칙을 적용한 리터럴 -- 피검 로더 출력으로 만들지 않았다.
+Q_S2_PM_DEG = 70.0
+Q_S2_CIRCUITS = ("sf_pushpull_output_opamp", "two_stage_ota", "two_stage_ota_sf")
+# 파일럿 출력 포트(손으로 읽은 topology): Vop = differential_output_p, Vom = differential_output_n -> 기본 포트 뷰 감지 = v(Vop) - v(Vom) 차동.
+Q_S3_SENSE = SenseDecl("Vop", "Vom", "differential")
+
+
+@pytest.mark.parametrize("name", Q_S2_CIRCUITS)
+def test_qs2_pm_constraint_70_user_spec(name):
+    """Q-S2: pm_ss_deg >= 70 판정 제약 정확히 1개(JSON 리터럴 70, user_spec 2026-10-14, view 키 없음), SP-3 는 어디에도 없다
+    (pending 표지·pending_constraints 둘 다), compensation_targets.pm_target_deg 는 그 제약을 참조해 70 으로 해석된다."""
+    raw = _spec(name)["human"]
+    pm = [c for c in raw["constraints"] if c.get("metric") == "pm_ss_deg"]
+    assert len(pm) == 1
+    assert (pm[0]["op"], pm[0]["value"], pm[0]["source"]["kind"], pm[0]["source"]["decided"]) == (">=", 70, "user_spec", "2026-10-14")
+    assert "view" not in pm[0]
+    assert "pm_ss_deg" not in [c.get("metric") for c in raw.get("pending_constraints", [])]
+    assert "SP-3" not in _markers(_spec(name))
+    assert "SP-3" not in [c.get("decision") for c in raw.get("pending_constraints", [])]
+    doc = _load(name)
+    got = [c for c in doc.constraints if c.metric == "pm_ss_deg"]
+    assert len(got) == 1 and (got[0].op, got[0].value, got[0].judged) == (">=", Q_S2_PM_DEG, True)
+    assert len([c for c in doc.judged_constraints if c.metric == "pm_ss_deg"]) == 1
+    assert "pm_ss_deg" not in [m for m, _ in doc.pending_constraints]
+    assert "SP-3" not in [d for _, d in doc.pending_constraints]
+    assert "SP-3" not in {p.decision for p in doc.pending}
+    assert dict(doc.compensation_targets)["pm_target_deg"].value == Q_S2_PM_DEG
+
+
+def test_qs3_pilot_ports_are_differential_output_pair():
+    """입력 사실 확인(Q_S3_SENSE 리터럴의 근거): 파일럿 출력 포트 = Vop(_p)·Vom(_n) 차동쌍, 단일 출력 포트 없음."""
+    ports = _topo_json(PILOT)["ports"]
+    roles = {k: v["role"] for k, v in ports.items() if isinstance(v, dict)}
+    assert roles["Vop"] == "differential_output_p" and roles["Vom"] == "differential_output_n"
+    assert "single_ended_output" not in roles.values()
+
+
+def test_qs3_pilot_noise_450uv_differential_sense():
+    """Q-S3 (U-1): 파일럿 noise_out_int_vrms <= 4.5e-4 V 정확히 1개, user_spec 2026-10-14, 논문 출처 칸(origin·citation) 없음(논문 값이
+    아니다), JSON 에 view 를 적지 않는다(기본 포트 뷰). 로드 결과의 뷰는 port 이고 감지 = v(Vop) - v(Vom) 차동 -- '차동 출력' 결정의
+    실행 증거(단일 출력 감지가 아니다)."""
+    raw = [c for c in _spec(PILOT)["human"]["constraints"] if c.get("metric") == "noise_out_int_vrms"]
+    assert len(raw) == 1
+    (c,) = raw
+    assert (c["op"], c["source"]["kind"], c["source"]["decided"]) == ("<=", "user_spec", Q_S3_DECIDED)
+    assert math.isclose(c["value"], Q_S3_NOISE_VRMS, rel_tol=1e-12)
+    assert "origin" not in c["source"] and "citation" not in c["source"]
+    assert "view" not in c
+    got = [x for x in _load(PILOT).constraints if x.metric == "noise_out_int_vrms"]
+    assert len(got) == 1
+    g = got[0]
+    assert g.op == "<=" and g.judged is True
+    assert math.isclose(g.value, Q_S3_NOISE_VRMS, rel_tol=1e-12)
+    assert g.view.mode == "port"
+    assert g.view.sense == Q_S3_SENSE                         # (p, n, mode) = (Vop, Vom, differential)
+    assert g.view.sense != SenseDecl("Vop", None, "single_ended")   # 거부 방향: 단일 출력 감지가 아니다
 
 
 def _strings_and_keys(obj):

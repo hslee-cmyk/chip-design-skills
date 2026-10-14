@@ -30,7 +30,8 @@ nmcnr = review_needed(l_owner_name_order).
 | ngcc_3stage_ff | pm_ss_deg unity | review_needed {dc_role_unresolved_group} |
 | nmcnr_amplifier | pm_ss_deg unity | review_needed {l_owner_name_order} |
 | current_reuse_telescopic_ota | pm_ss_deg β(Cf1·Cf2), pm_cm_ss_deg(cm_output) | stopped {cs_output_low_impedance} + review 혼재(loop:M37a:Voc 한정) |
-| 나머지 6회로 | 없음 | ok |
+| sf_pushpull_output_opamp·two_stage_ota·two_stage_ota_sf | pm_ss_deg unity(Q-S2, 2026-10-14) | ok |
+| 나머지 3회로(common_gate·folded·pushpull) | 없음 | ok |
 """
 from __future__ import annotations
 
@@ -152,7 +153,10 @@ def test_stage_a_with_library_spec(name, status, reviews, real_lut, tmp_path):
     # - ngcc·nmcnr: pm_ss_deg 는 feedback 없음 -> beta unity·cuts () -> declared_loop_cuts 없음, 전체 PM 선언이라 compensation_internal
     #   정지가 풀리고(41 1.12.3) 남는 review 는 구조 것뿐: ngcc {M8, M14} 기준 없는 gs 묶음(41 1.13 '남는다'), nmcnr {M104, M105}
     #   name_order 동률(한 궤도 아님 -- test_l_classes 손 확인).
-    # - 나머지 6회로: pm_* 제약 없음 -> 단계 A 는 spec 없는 표(TABLE)와 같은 ok.
+    # - [library spec card, 2026-10-14 Q-S2] sf_pushpull·two_stage·two_stage_sf: pm_ss_deg >= 70 은 feedback 없음 -> beta unity·cuts () ->
+    #   declared_loop_cuts 없음. 위 발동표의 루프 역할이 없거나(two_stage·two_stage_sf) composite_diode_internal 뿐(sf)이라 PM 선언이 풀 정지도
+    #   새로 생길 정지도 없다 -> ok 유지.
+    # - 나머지 3회로(common_gate·folded·pushpull): pm_* 제약 없음 -> 단계 A 는 spec 없는 표(TABLE)와 같은 ok.
     # - 어느 회로도 내부 루프 선언이 없으므로 loop_cut_unmatched 는 0.
     r = run_stage_a(H.LIBRARY / (name + ".topology.json"), H.LIBRARY / (name + ".sizing_spec.json"), real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path,
                     supplies_v=H.lib_supplies(name))
