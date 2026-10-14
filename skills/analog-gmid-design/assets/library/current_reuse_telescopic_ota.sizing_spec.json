@@ -267,13 +267,11 @@
       {
         "metric": "noise_out_int_vrms",
         "op": "<=",
-        "value": 0.0003,
+        "value": 0.00045,
         "source": {
           "kind": "user_spec",
-          "record": "user_decisions.md 2026-10-08 \"Q1~Q11 모두 네 의견대로 진행해\" 결정 Q11 -- 파일럿 폐루프 적분 출력 잡음 <= 300 uVrms(CMFB·바이어스·스위치 포함, 하한 LUT 최저 잡음 주파수·상한 유도, design 41 §7.1)",
-          "decided": "2026-10-08",
-          "origin": "paper",
-          "citation": "Xie & Chen 논문 Table I 적분 출력 잡음 300 uVrms"
+          "record": "user_decisions.md 2026-10-14 step-2 Q-S \"Q-S는 모두 권고대로\" -- Q-S3 C1: 폐루프 적분 출력 잡음 <= 450 uVrms, 차동 출력 v(Vop)−v(Vom)(기본 포트 뷰 감지), 적분 대역 design 41 §7.1 대역, 근거 _pilot_current_reuse/noise_basis.md §4(c) C1(SPICE 438.5 uV @ 282 uW)·§2. 옛 값 300 uVrms(Xie & Chen Table I, 2026-10-08 Q11)는 논문 값이라 사용자 결정으로 대체",
+          "decided": "2026-10-14"
         }
       },
       {

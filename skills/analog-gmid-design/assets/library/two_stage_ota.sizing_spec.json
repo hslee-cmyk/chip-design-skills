@@ -106,12 +106,16 @@
           "record": "user_decisions.md 2026-10-08 결정 11 \"B으로 표의 값을 그대로 써. Cl을 빼는 것에 동의해\" -- 회로별 면적 예산 0.015 mm² = MOS 게이트 면적 + 회로 안 커패시터(PDK 단위 면적 선언) 면적, 측정 부하(measurement_load)는 제외",
           "decided": "2026-10-08"
         }
-      }
-    ],
-    "pending_constraints": [
+      },
       {
         "metric": "pm_ss_deg",
-        "decision": "SP-3"
+        "op": ">=",
+        "value": 70,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 step-2 Q-S \"Q-S는 모두 권고대로, Q-S2는 70도 이상\" -- Q-S2 PM 목표 pm_ss_deg >= 70 deg (SP-3 해소, 파일럿 PM 70과 같은 값)",
+          "decided": "2026-10-14"
+        }
       }
     ],
     "compensation_targets": {
@@ -122,7 +126,10 @@
         }
       },
       "pm_target_deg": {
-        "pending": "SP-3"
+        "value_from_constraint": "pm_ss_deg",
+        "source": {
+          "kind": "reference"
+        }
       }
     },
     "_compensation_targets_comment": "옛 Z 10·NDP 4(회로 전용 인자)는 이관하지 않는다 -- GB5 일반 규칙(원칙 3).",
