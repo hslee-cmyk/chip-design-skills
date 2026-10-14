@@ -8,7 +8,7 @@
 계산 블록 `search_domain`(θ 전류 상자·자기동형 묶음·b_A) -> `passive_area_decl` -> `search.count_budget`(N_S) -> 계산 블록 `metrics.achievability`(S0 수준 필드 `graph/ach`) ->
 `graph/ach: reasons` 가 있으면 `InfeasibleTargetError` 분류로 정지(exit 3). 모든 블록은 입력 버전이 같으면 재사용(같은 S0 의 디스크 스냅샷 위에서 계산 0).
 `settings` = 탐색 실행 설정(`SearchSettings`, **필수** 키워드 인자 -- `build_search_context` 와 같은 값을 넘기면 정의역 블록이 한 번만 계산된다;
-수동소자 상자가 정의역 입력이다, v1.9.1 D6). 기본값이 없다: 빠지면 `TypeError`.
+수동소자 상자가 정의역 입력이다, v1.9.1 D6). 기본값이 없다: 빠지거나 `SearchSettings` 가 아니면 `TypeError`(진입 맨 앞, `build_search_context` 와 같은 규칙).
 `InfeasibleTargetError` 는 전파하지 않고 보고서에 정지 사유와 모든 인증/미상 수치를 쓴 뒤 그 분류의 exit code(3)를 낸다(단계 A 와 같은 방식, 보고서는 항상 기록).
 커널 컨텍스트·search 정의역의 정지(`StructureUnresolvedError`·`SchemaRejectedError`·`InfeasibleTargetError`)도 같은 방식으로 보고서에 정지 사유로 쓰고 exit code 를 낸다.
 산출 `<회로>.stage_b.json`(전체)·`<회로>.stage_b.md`(요약): 블록별 A_i,max·Π·미상 사유, Σ 판정, A_lb 대 예산, 헤드룸 창 상한(유도 포함), 경고, 버퍼 창 보고, DOF, 곡선 검사.
@@ -22,7 +22,7 @@ from pathlib import Path
 from gmid_engine.core import InfeasibleTargetError, SchemaRejectedError, StructureUnresolvedError, exit_code_for
 from gmid_engine.graph import ELEMENT_MOS, S1V_KEY, S1Graph
 from gmid_engine.metrics import ACH_KEY, achievability
-from gmid_engine.search import S0_WRITERS, count_budget, passive_area_decl, search_domain
+from gmid_engine.search import S0_WRITERS, SearchSettings, count_budget, passive_area_decl, search_domain
 from gmid_engine.sizing import (
     build_kernel_context,
     dc_inputs_from_spec,
@@ -132,6 +132,8 @@ def _finish(circuit, status, code, diagnostic, s1, computed, reasons, budget, ou
 
 
 def run_stage_b(stage_a, memo, pdk_decl, *, output_dir, settings, diagnostic=False):
+    if not isinstance(settings, SearchSettings):
+        raise TypeError("run_stage_b: settings 는 SearchSettings 여야 한다(기본값 없음)")
     circuit = stage_a.report["circuit"]
     budget = stage_a.report["count_budget"]
     s1 = stage_a.s1
