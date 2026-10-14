@@ -1363,7 +1363,9 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 | Q8 | U-57 | 면적 예산은 그대로 둔다. 진단(§7.1-4) 결과를 보고 다시 논의한다 |
 | Q9 | U-36 확장 | 저항 면적을 면적 축에 넣는다. 저항 단위 면적은 PDK에서 유도한다(§7.1) |
 | Q10 | U-58 | 오라클 최종 판정은 Nyquist Z = N + P(`.pz`로 독립 측정)와 폐루프 과도로 한다. 둘 다 판정할 수 없을 때만 INCOMPLETE다. 탐색은 결정 A의 보수 규칙을 유지한다(§4-5~7) |
-| Q11 | U-59 | 잡음: 파일럿은 `noise_out_int_vrms ≤ 300 µVrms`(CMFB·바이어스 포함, 하한 1 Hz, 상한은 유도값)이다. 스위치 kT/C 항은 파일럿이 `sampling_caps`를 선언하지 않아 0이다(41 §7, 결정 C-2). 나머지 7회로는 `noise_excess_th ≤ 2`에 열잡음 평탄값·1/f corner 보고를 더한다. pushpull_follower는 보고만 한다. LUT에 저주파 점을 추가한다. DEC-96을 고친다(41 §7) |
+| Q11 | U-59 | 잡음: 파일럿은 `noise_out_int_vrms ≤ 300 µVrms`[^qs3](CMFB·바이어스 포함, 하한 1 Hz, 상한은 유도값)이다. 스위치 kT/C 항은 파일럿이 `sampling_caps`를 선언하지 않아 0이다(41 §7, 결정 C-2). 나머지 7회로는 `noise_excess_th ≤ 2`에 열잡음 평탄값·1/f corner 보고를 더한다. pushpull_follower는 보고만 한다. LUT에 저주파 점을 추가한다. DEC-96을 고친다(41 §7) |
+
+[^qs3]: 2026-10-14 Q-S3 로 이 값은 450 µVrms 차동 출력으로 대체됐다(결정 원문은 보존, 경위는 history).
 
 **Q5 회로별 성능 제약 현황**(spec `constraints` + `_declared_target_spec`):
 
