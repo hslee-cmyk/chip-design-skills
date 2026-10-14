@@ -29,7 +29,7 @@ REF = {"vth0": 3e-3, "toxe": 2e-3, "voff": 1e-3}
 def _model(wmax=10e-6, lmin=0.5e-6):
     rows = tuple((p, "toy_%s_slope" % p, REF[p], 1 + i) for i, p in enumerate(("toxe", "voff", "vth0")))
     return PdkMismatchModel("nmos", ("toxe", "voff", "vth0"), (PdkMismatchBlock("toy.1", lmin, 5e-6, 0.5e-6, wmax, rows, 10),),
-                            "toy.pm3", "0" * 64, "toy.mm", "0" * 64)
+                            "0" * 64, "0" * 64)  # [U17 ①-b 3차, 결정 7] 경로 칸 없음: (model_sha256, slope_sha256)
 
 
 @pytest.fixture(scope="module")

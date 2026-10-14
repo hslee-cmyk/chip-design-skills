@@ -274,9 +274,8 @@ def test_sky130_decl_record_shape(sky_decl):
     assert sky_decl.decl_sha256 == _sha256(SKY130_DECL)
     # sources: 원본 이름 순, 항목마다 이름 + 그 원본 바이트 sha256(test 가 직접 해시), 경로 성분 없음
     exp_sources = tuple(sorted((n, _sha256(_src_path(SKY, n))) for n in SKY["sources"]))
-    assert tuple(s[0] for s in sky_decl.sources) == tuple(n for n, _ in exp_sources)
-    for s, (n, sha) in zip(sky_decl.sources, exp_sources):
-        assert s[0] == n and sha in tuple(s), (s, n, sha)
+    # [U17 ①-b 3차] tuple 동등: 항목 = (이름, sha256) 두 칸뿐(core 9.2 as-built), 다른 칸(경로 등)이 끼면 실패
+    assert sky_decl.sources == exp_sources
     assert_path_free(sky_decl, [SKY["pdk_root"], SKY130_DECL, SKILL_DIR] + [_src_path(SKY, n) for n in SKY["sources"]])
     names = tuple(n for n, _ in sky_decl.quantities)
     # [U3, 계약 9.7·설계 40 §7.1 Q9] resistor_types 규칙이 고른 후보의 세 양을 `<selected_as>_*` 이름으로 quantities 에 더한다
