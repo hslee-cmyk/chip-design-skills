@@ -17,7 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from gmid_engine.metrics import EdgeCost, HeadroomResult, HeadroomRow, headroom_bound
+from gmid_engine.lut import EdgeCost  # [U17 ①-b] EdgeCost 는 lut 값 형식(lut/derived_fns.edge_costs, 40 v1.9.1 §2.4.6 D10)
+from gmid_engine.metrics import HeadroomResult, HeadroomRow, headroom_bound
 
 from .gb4_hand import local_inputs
 
@@ -169,7 +170,8 @@ def test_deterministic():
 _CYCLE_CHILD = r"""
 import json, sys
 sys.path[:0] = [%(skill)r, %(tests)r]
-from gmid_engine.metrics import EdgeCost, headroom_bound
+from gmid_engine.lut import EdgeCost
+from gmid_engine.metrics import headroom_bound
 from metrics.gb4_hand import local_inputs
 E = {"nmos": EdgeCost("nmos", 100, 0.5, ((0, 0.5),), 0.2, ()), "pmos": EdgeCost("pmos", 100, 0.6, ((0, 0.6),), 0.3, ())}
 loc = local_inputs((("M1", "nmos", "vdd", "in", "out"), ("M2", "pmos", "gnd", "in", "out")))

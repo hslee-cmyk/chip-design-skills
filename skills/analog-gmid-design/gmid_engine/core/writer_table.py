@@ -65,3 +65,16 @@ class WriterTable:
             raise WriterPermissionError(
                 "필드 " + repr((kind, field)) + " 의 writer 는 " + repr(owner) + " -- " + repr(writer) + " 는 쓸 수 없다"
             )
+
+    def covers(self, other):
+        """`other`(WriterTable)의 모든 ((kind, field), writer) 가 이 표에 같은 writer 로 있는가."""
+        return all(self._index.get(key) == writer for key, writer in other.entries)
+
+    def union(self, other):
+        """이 표와 `other`(WriterTable)의 합 -- 같은 (kind, field) 에 writer 가 다르면 `WriterPermissionError`. `other` 를 이미 덮으면 `self` 그대로.
+        층마다 자기 필드 표를 선언하고 S0 수준 스냅샷(설계 40 §2.4.1)이 그 합 아래에 산다(`GraphSnapshot.extend_writers`)."""
+        if not isinstance(other, WriterTable):
+            raise TypeError("WriterTable.union: other 는 WriterTable 이어야 한다")
+        if self.covers(other):
+            return self
+        return WriterTable(tuple((kind, field, writer) for (kind, field), writer in self.entries + other.entries))

@@ -24,7 +24,7 @@ from collections.abc import Mapping
 
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, fp_of
 from gmid_engine.metrics import REPORT_BLOCK_RESIDUAL, metrics_dc, passive_values, ss_evaluate, theta_passive_pairs
-from gmid_engine.sizing import METRICS_KEY, DcEvaluation, LutAccess, size_and_seal
+from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, DcEvaluation, LutAccess, size_and_seal
 
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
@@ -103,7 +103,8 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
             sctx.counters["fail_hits"] += 1
         return hit
     disk = sctx.disk_failures.get(key)
-    cone = cone_rows(dc.schema, pairs)
+    schema = dc.base.value("graph", KERNEL_KEY, "theta_schema")       # S0 수준 필드(설계 40 §2.4.7)
+    cone = cone_rows(schema, pairs)
     if disk is not None:
         sctx.counters["disk_hits"] += 1
         result = EvalResult(key, pairs, STATUS_FAILED, None, None, (), cone, disk, -1)
@@ -141,7 +142,7 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
                 evaluation, failure, status = None, exc.record, STATUS_FAILED
         else:
             # 봉인 아닌 점도 수동소자 값 필드는 같은 GB5 블록이 쓴다(영점 상쇄 R = 1/Σdc_gm 은 dc 단계 필드라 봉인 전에도 정의, 설계 40 §2.4.7)
-            snap = passive_values(evaluation.snapshot, dc.inputs.element_values, dc.schema.zero_cancel, theta_passive_pairs(pairs))
+            snap = passive_values(evaluation.snapshot, dc.inputs.element_values, schema.zero_cancel, theta_passive_pairs(pairs))
             snap = metrics_dc(snap, (), sctx.area_decl)
             evaluation = DcEvaluation(snap, evaluation.report, evaluation.sealed)
     if evaluation is not None:

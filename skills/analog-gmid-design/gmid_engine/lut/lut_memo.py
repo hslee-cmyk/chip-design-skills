@@ -17,8 +17,8 @@ from gmid_engine.core import BoundedLRU, LruStats
 from .table_cache import TableCache
 
 REGIONS = ("curve", "derived", "point", "root")
-DERIVED_TABLES = ("curve_report", "midpoint_l_bin_checks", "noise_planes", "tol_mismatch_table", "tol_noise_table",
-                  "tol_v_table", "tol_vdsat_table")
+DERIVED_TABLES = ("curve_report", "edge_costs", "midpoint_l_bin_checks", "noise_planes", "tol_mismatch_table", "tol_noise_table",
+                  "tol_v_table", "tol_vdsat_table")      # edge_costs: lut.derived_fns(슬라이스당 하나, 설계 40 §2.4.6 v1.9.1 D10)
 SWEEP_REGIONS = ("curve", "point", "root")
 
 

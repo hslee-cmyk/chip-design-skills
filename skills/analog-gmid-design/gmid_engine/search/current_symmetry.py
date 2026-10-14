@@ -1,6 +1,6 @@
 """θ 전류 성분의 대칭 관계 -- 자기동형이 만드는 부호 묶음과 구조적 0 (사용자 결정 2026-10-08 '대칭 묶음 방식: b', search CONTRACT 3.24).
 
-진입점: `current_symmetry(dc_ctx, untied) -> CurrentSymmetry(ties, negated, zeros)`.
+진입점: `current_symmetry(base, untied) -> CurrentSymmetry(ties, negated, zeros)`  (`base` = 필드 질의(`value`·`column`)가 되는 스냅샷 또는 계산 블록 투영).
 
 * 입력: sizing 의 전류 기저 `graph.dc_current_basis`(원소 전류 = 독립 θ 전류와 선언 전류원의 선형식 `rows`)와 graph 대칭 블록(`s1_symmetry`, S1 하나에서 한 번)의
   필드 `graph/s1: current_symmetry`(생성자마다 (원소, 상, 부호 σ)) · `graph/s1: orbits`(원소 궤도), 원소 구조 색 `device.dc_colour`. 부호를 여기서 다시 계산하지 않는다
@@ -72,8 +72,7 @@ def _reduce(rows, width):
     return rows[:r], pivots
 
 
-def current_symmetry(dc_ctx, untied):
-    base = dc_ctx.base
+def current_symmetry(base, untied):
     orbit, free_orbits = _free_orbits(base, untied)
     basis = base.value("graph", DC_KEY, "dc_current_basis")
     generators = base.value("graph", GRAPH_KEY, "current_symmetry").generators

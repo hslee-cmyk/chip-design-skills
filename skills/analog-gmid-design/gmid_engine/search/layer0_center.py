@@ -42,7 +42,7 @@ import time
 import numpy as np
 from scipy.optimize import minimize as scipy_minimize
 
-from gmid_engine.sizing import REASON_NO_ROOT, THETA_CURRENT, THETA_L, THETA_LN_IDU
+from gmid_engine.sizing import KERNEL_KEY, REASON_NO_ROOT, THETA_CURRENT, THETA_L, THETA_LN_IDU
 
 from .canonical_order import canonical_order
 from .canonical_rows import canonical_row_key
@@ -107,13 +107,24 @@ class _Abort(Exception):
         self.column = column
 
 
+def _schema(sctx):
+    """θ 스키마(S0 수준 필드 `graph/kernel: theta_schema`)."""
+    return sctx.dc.base.value("graph", KERNEL_KEY, "theta_schema")
+
+
+def _selected(sctx):
+    """출발 구간의 선택점 = 출발 사다리 칸 0(`StartRung`), 사다리가 없으면 None."""
+    rungs = sctx.rungs
+    return rungs[0] if rungs else None
+
+
 def _box_centre(sctx, rung=None):
-    """출발 θ 의 기반. [U13] `sctx.start`(`start_intervals` -- 스펙에서 유도한 gm/ID·L·전류 출발 구간의 선택점)가 값을 정한 성분(ln_idu·θ 전류·보상 커패시터·L 과 그 L 칸)은 그 값을 쓴다.
+    """출발 θ 의 기반. [U13] 출발 사다리 칸 0(`graph/start: rungs` -- `start_intervals` 가 스펙에서 유도한 gm/ID·L·전류 출발 구간의 선택점)이 값을 정한 성분(ln_idu·θ 전류·보상 커패시터·L 과 그 L 칸)은 그 값을 쓴다.
     구간이 값을 정하지 못한 성분(`y`, 저항, 또는 `start` 가 None 인 컨텍스트 전부)은 상자 중심 -- bounds 중점(ln 좌표 변수는 ln 중점, `y` 는 창 중앙), L 은 칸 ln 중점이
     전체 L 범위의 ln 중점에 가장 가까운 칸의 중점. 이 상자 기하 중점은 ln IDu 가 LUT 가 정의되지 않는 영역(예: −26~−34)으로 가고 면적이 예산의 12~99 배인 퇴화점을 만들었다(41 §6 상태 MISS)."""
     variables = list(sctx.domain.variables)
     theta = {v.component: (math.exp((v.lo + v.hi) / 2) if v.log else (v.lo + v.hi) / 2) for v in variables}
-    start = sctx.start if rung is None else rung          # StartRung 과 StartIntervals 는 같은 이름의 theta·cells·current_ref 를 가진다
+    start = _selected(sctx) if rung is None else rung          # 선택점 = 사다리 칸 0(StartRung)
     given = {} if start is None else dict(start.theta)
     chosen_cell = {} if start is None else dict(start.cells)
     theta.update({component: value for component, value in given.items() if component in theta})
@@ -141,7 +152,7 @@ def _box_centre(sctx, rung=None):
 def _cone_canonical(sctx):
     """원뿔 행·항을 이름 없는 정준 순서로(행 = MOS 궤도 id, 항 = 원천 원소 궤도 id) -- SLSQP 제약·합산 순서가 이름을 따르지 않게(3.25)."""
     key = canonical_row_key(sctx)
-    rows = sorted(sctx.dc.schema.current_cone, key=lambda row: key(CON_CONE + ":" + row[0]))
+    rows = sorted(_schema(sctx).current_cone, key=lambda row: key(CON_CONE + ":" + row[0]))
     return tuple((m, tuple(sorted(terms, key=lambda t: key(CON_CONE + ":" + t.source)))) for m, terms in rows)
 
 
@@ -158,17 +169,17 @@ def _current_alias(sctx):
 
 def _current_fixed(sctx):
     """고정 전류원 값 ∪ 구조적 0 θ 전류(값 0): 원뿔 행에서 변수가 아닌 상수로 읽히는 항."""
-    out = {name: float(v) for name, v in sctx.dc.schema.fixed}
+    out = {name: float(v) for name, v in _schema(sctx).fixed}
     out.update({component[1]: 0.0 for component in sctx.domain.zeros if component[0] == THETA_CURRENT})
     return out
 
 
 def _current_centre(sctx, variables, theta, rung=None):
-    schema = sctx.dc.schema
+    schema = _schema(sctx)
     index = [i for i, v in enumerate(variables) if v.component[0] == THETA_CURRENT]
     if not index or not schema.current_cone:
         return theta, None
-    start = sctx.start if rung is None else rung
+    start = _selected(sctx) if rung is None else rung
     covered = set() if start is None else {c for c, _v in start.theta}
     fixed = _current_fixed(sctx)
     fixed.update({variables[i].component[1]: theta[variables[i].component] for i in index if variables[i].component in covered})
@@ -224,7 +235,7 @@ def _current_centre(sctx, variables, theta, rung=None):
     out = scipy_minimize(lambda v: v[n], np.asarray(z0 + [u0], dtype=float), jac=lambda v: grad, method="SLSQP",
                          bounds=bounds, constraints=[{"type": "ineq", "fun": cons, "jac": cons_jac}])
     u = float(out.x[n])
-    # [U13] 기준 전류가 '폭 = W_min 인 전류 이상'(`StartIntervals.current_ref`)이면 Chebyshev 해의 MOS 전류는 기준의 e^±u 배 안에 든다 -- 움직이는 θ 전류를 모두 e^u 배 올려 모든 MOS 가
+    # [U13] 기준 전류가 '폭 = W_min 인 전류 이상'(`StartRung.current_ref`)이면 Chebyshev 해의 MOS 전류는 기준의 e^±u 배 안에 든다 -- 움직이는 θ 전류를 모두 e^u 배 올려 모든 MOS 가
     # 기준 이상(= 폭 ≥ W_min)이 되게 한다. 원뿔(행 합이 양수)이 깨지면(고정 전류·음의 계수) 올리지 않는다.
     lift = u if start is not None and start.current_ref else 0.0
     for scale in ((lift, 0.0) if lift else (0.0,)):
@@ -533,7 +544,7 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     좌표), 현재 점 p 에서 상자·원뿔 행(Σ w·I + 고정 > 0)이 허용하는 열린 현 (t_lo, t_hi) 위 t = t_lo + φ_s·(t_hi − t_lo)(φ_s =
     마지막 Halton 좌표)로 한 걸음, 새 p 가 다음 시험의 출발(사슬). 받아들이지 못한 점도 사슬은 이어간다(원뿔 안이므로). 다른
     변수는 위 Halton 좌표 그대로. 전류 중심이 원뿔 밖이면 전류도 상자 Halton(원뿔 밖 점은 커널 0)."""
-    schema = sctx.dc.schema
+    schema = _schema(sctx)
     cur = [i for i, v in enumerate(variables) if v.component[0] == THETA_CURRENT]
     inside = bool(cur) and bool(schema.current_cone) and all(
         r.c > 0 for r in cone_rows(schema, tuple(sorted(_expanded(sctx, theta0).items()))))
@@ -627,15 +638,15 @@ def centre_start(sctx, rung=None):
 def layer0_start(sctx, origin=()):
     calls0 = sctx.counters["kernel_calls"]
     tag = origin + (("stage", STAGE_LAYER0),)
-    # [U13] 출발 사다리(`StartIntervals.ladder`: 실행 가능한 최대 gm/ID 위치에서 구간 하한 쪽으로 반씩)를 칸 순서로 커널에 확인해 처음 받아들일 상태인 칸에서 출발한다.
-    # 사다리가 없으면(start 가 None) 상자 중심 한 점이다.
-    rungs = sctx.start.ladder if sctx.start is not None and sctx.start.ladder else (None,)
+    # [U13] 출발 사다리(`graph/start: rungs`: 실행 가능한 최대 gm/ID 위치에서 구간 하한 쪽으로 반씩)를 칸 순서로 커널에 확인해 처음 받아들일 상태인 칸에서 출발한다.
+    # 사다리가 없으면(출발 구간 필드가 없거나 칸이 없음) 상자 중심 한 점이다.
+    rungs = sctx.rungs or (None,)
     failure, probes, source, repairs = None, 0, "centre", ()
     first, start_status, base, best = None, "centre_outside_cone", None, None
     for k, rung in enumerate(rungs):
         variables, theta, cells, centre_u = centre_start(sctx, rung)
         base = (variables, theta, cells, centre_u) if base is None else base
-        if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(_expanded(sctx, theta).items())))):
+        if any(r.c <= 0 for r in cone_rows(_schema(sctx), tuple(sorted(_expanded(sctx, theta).items())))):
             start_status = "centre_outside_cone"
             continue
         first = evaluate(sctx, theta, cells, origin=tag)

@@ -7,6 +7,7 @@ from .axis_guard import check_axes
 from .cap_query import caps
 from .curve_check import curve_report
 from .data_location import resolve_lut_location
+from .derived_fns import DERIVED_FUNCTIONS, derived
 from .fingerprint import lut_fingerprint
 from .ft_curve import ft_curve
 from .gm_id_curve import gm_id_curve
@@ -36,6 +37,7 @@ from .lut_types import (
     CurveReport,
     CurveRow,
     DcSlice,
+    EdgeCost,
     GmIdAxisCurve,
     LBin,
     LBinMap,
@@ -94,6 +96,9 @@ __all__ = (
     "DERIVED_COLUMNS",
     "DERIVED_TABLES",
     "DcSlice",
+    "EdgeCost",
+    "DERIVED_FUNCTIONS",
+    "derived",
     "GmIdAxisCurve",
     "LBin",
     "LBinMap",

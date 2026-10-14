@@ -20,9 +20,18 @@ DC_TABLE = {
     ("node", "dc_writer"): "dc_writer_plan",
     ("device", "dc_coord"): "dc_writer_plan",
     ("graph", "dc_tie_breaks"): "dc_writer_plan",           # [r2]
+    # [U17 ①-b] 설계 40 v1.9.1 §2.4.8 '1변수 writer 집합(sctx.cell_floors[("one_var_writers",)]) -> device: dc_self_referential, writer 쓰기 계획 블록(sizing)'
+    ("device", "dc_self_referential"): "dc_writer_plan",
+    # [U17 ①-b] §2.4.8 '커널 컨텍스트 구조 파생 -> graph/kernel: fixed_values·resistor_values·l_ties, writer build_kernel_context 를 블록으로(sizing)'
+    # -- writer 이름은 design 미정이라 구현 이름(kernel_context)에 맞춘다(이름만).
+    ("graph", "fixed_values"): "kernel_context",
+    ("graph", "resistor_values"): "kernel_context",
+    ("graph", "l_ties"): "kernel_context",
     ("graph", "dc_scc_order"): "dc_scc_order",
     ("node", "dc_column_nbrs"): "dc_scc_order",
-    ("graph", "dc_theta_schema"): "dc_theta_schema",
+    # [U17 ①-b] 설계 40 v1.9 §2.4.8 커널 컨텍스트 구조 파생 행 + 오케스트레이터 기본안 D8(2026-10-13): θ 스키마 필드는 graph/kernel 의
+    # `theta_schema`(옛 graph/dc `dc_theta_schema` 를 옮김, writer dc_theta_schema 유지).
+    ("graph", "theta_schema"): "dc_theta_schema",
     ("device", "dc_current"): "dc_currents",
     ("device", "dc_drop_current"): "dc_currents",
     ("device", "dc_L"): "dc_lengths",
@@ -58,11 +67,12 @@ BLOCKS = {
 }
 
 
-def test_dc_table_has_29_fields():
+def test_dc_table_has_33_fields():
     # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28, [r8] dc_seal_9·dc_off_current·dc_conduction_floor 3 = 31,
     # [r11] 3.0b node.dc_orbit·device.dc_orbit 2 = 33, [U2] graph.dc_symmetry 1 = 34, [U17 ①-d] 대칭 블록 graph 이동 −5
-    # (node/device dc_colour·dc_orbit, graph.dc_symmetry) = 29).
-    assert len(DC_TABLE) == 29
+    # (node/device dc_colour·dc_orbit, graph.dc_symmetry) = 29, [U17 ①-b] 설계 40 v1.9.1 §2.4.8 S0 행 +4: device.dc_self_referential(1변수 writer 집합),
+    # graph/kernel fixed_values·resistor_values·l_ties(커널 컨텍스트 구조 파생) = 33. theta_schema 는 dc_theta_schema 를 옮긴 것이라 ±0).
+    assert len(DC_TABLE) == 33
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -129,7 +139,8 @@ READS = {
                          ("device", "dc_colour"), ("node", "is_rail"), ("graph", "dc_pruned"), ("graph", "orbits")},
     "dc_writer_plan": {("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
                        ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
-                       ("node", "dc_colour")},
+                       ("node", "dc_colour"),
+                       ("device", "bulk")},      # [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
     "dc_scc_order": {("node", "dc_writer"), ("device", "pins"), ("device", "bulk"), ("device", "element_class"),
                      ("graph", "columns"), ("graph", "branches")},
     "dc_currents": {("graph", "dc_current_basis")},
@@ -138,6 +149,7 @@ READS = {
                    ("device", "dc_drop_current"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"),
                    ("device", "bulk"), ("device", "element_class"), ("device", "dc_coord"),
                    ("graph", "dc_scc_order"),
+                   ("device", "dc_self_referential"),   # [U17 ①-b] §2.4.8 1변수 writer 집합은 S0 필드 -- 기둥 블록이 읽는다
                    ("device", "dc_colour"), ("node", "dc_colour")},     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
     "dc_widths": {("node", "dc_v"), ("node", "dc_rail_v"), ("device", "dc_current"), ("device", "dc_L"),
                   ("device", "dc_ln_idu"), ("device", "pins"), ("device", "kind"), ("device", "bulk")},
@@ -265,11 +277,7 @@ def test_value_fields_as_contract():
     assert names(S.SealReport) == ("items", "status")
     assert names(S.SealedSnapshot) == ("snapshot", "report")
     assert names(S.DcEvaluation) == ("snapshot", "report", "sealed")
-    # [U4] l_ties 추가(CONTRACT 14.1, 설계 40 §3.7-1·§3.2 보완 1 'θ 스키마는 동치류당 L 변수 하나', 확인 행 D-GB7a): 기본값 () --
-    # 옛 7칸 생성 호환
-    assert names(S.KernelContext) == ("base", "inputs", "lut", "schema", "fixed_values", "resistor_values",
-                                      "plan_versions", "l_ties")
-    assert S.KernelContext(*([None] * 7)).l_ties == ()
+    # [U17 ①-b] KernelContext 칸은 아래 test_kernel_context_holds_only_references 가 본다(옛 8칸 단언 대체).
     # [U4] 국소 봉인 값 형식(41 §5.3 LocalSeal{ok, failures, snapshot_fragment, gain_db, power_w, area_m2})
     assert names(S.LocalSeal) == ("ok", "failures", "snapshot_fragment", "gain_db", "power_w", "area_m2")
     assert names(S.SnapshotFragment) == ("devices", "nodes")
@@ -277,3 +285,12 @@ def test_value_fields_as_contract():
     assert S.NO_ORDER_HINTS == S.OrderHints((), (), ())
     assert names(S.DcInputs) == ("supplies_v", "input_dc_v", "node_targets", "element_values", "linear_devices",
                                  "pending", "engine_elements")                                   # [r5]
+
+
+def test_kernel_context_holds_only_references():
+    """[U17 ①-b] 설계 40 v1.9 §2.4.7 KernelContext 행: 설계 값 사본(`schema`(θ 스키마)·`fixed_values`·`resistor_values`·`l_ties`)은 S0 수준
+    필드 `graph/kernel: theta_schema·fixed_values·resistor_values·l_ties`(§2.4.8)로 가고 `plan_versions` 는 쓰기 계획 블록의 block_version
+    읽기로 대체된다. '남는 칸은 참조(`base` = S0 수준 스냅샷, `lut` = LUT memo 와 폭 키, `inputs` = spec 파싱 결과)' -> 칸 이름은 그 셋 안."""
+    fields = {f.name for f in dataclasses.fields(S.KernelContext)}
+    assert not fields & {"schema", "fixed_values", "resistor_values", "plan_versions", "l_ties"}, fields
+    assert fields <= {"base", "inputs", "lut"}, fields

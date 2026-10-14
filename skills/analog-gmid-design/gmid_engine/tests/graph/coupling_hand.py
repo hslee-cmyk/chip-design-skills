@@ -12,7 +12,28 @@ import random
 import re
 
 import s1v_hand as H
-from gmid_engine.graph import GRAPH_KEY
+from types import SimpleNamespace
+
+from gmid_engine.graph import COUPLING_KEY, GRAPH_KEY
+from gmid_engine.graph import column_block_map as _column_block_map
+from gmid_engine.graph import coupling_vars as _coupling_vars
+
+
+# ---------------------------------------------------------------- [U17 ①-b] 결합 필드 읽기
+# 설계 40 v1.9.1 §2.4.8 D8: 묶음 `Coupling`·`ColumnBlockMap` 은 없고 계산 블록 `coupling_vars`(writer coupling_vars)가 S0 수준 필드
+# `graph/coupling: vars·column_block_map(=옛 rows)·bias_columns` 를 쓴다. `column_block_map(s1, views) -> (rows, bias_columns)`.
+# 아래 두 helper 는 값을 담지 않고 그 필드(또는 함수 반환)를 옛 test 가 읽던 이름(.vars, .column_block_map.rows/.bias_columns)으로 보여 준다.
+def cbm(s1, s1v):
+    rows, bias = _column_block_map(s1, s1v.views)
+    return SimpleNamespace(rows=rows, bias_columns=bias)
+
+
+def coupling(s1, s1v):
+    """S1v 필드가 있는 스냅샷 위에서 계산 블록 `coupling_vars` 를 부르고 `graph/coupling` 필드를 읽는다. `.fields` = (vars, column_block_map, bias_columns)."""
+    snap = _coupling_vars(s1v.graph.snapshot)
+    f = lambda n: snap.value("graph", COUPLING_KEY, n)  # noqa: E731
+    return SimpleNamespace(vars=f("vars"), column_block_map=SimpleNamespace(rows=f("column_block_map"), bias_columns=f("bias_columns")),
+                           fields=(f("vars"), f("column_block_map"), f("bias_columns")), snapshot=snap)
 
 # ---------------------------------------------------------------- 손 회로
 # 기둥 이웃(column_mate): CS M1 + PMOS 캐스코드 부하 M2(gate vbc) 위의 PMOS 전류원 M3(gate vbp). M3 는 블록 밖이고 같은 기둥에 블록 소자가 있다.

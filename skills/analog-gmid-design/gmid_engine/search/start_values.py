@@ -5,7 +5,9 @@
 * 경계 어휘: `Bound(quantity, side, source, value)` -- 한 소자의 gm/ID(1/V) 또는 L(m) 경계 하나와 그 출처(식 이름). 구간은 경계들의 교집합이다.
 * 충돌 `StartConflict` (41 §6.6): 하한 > 상한, 전류 > 상자 상한, 면적 추정 > 예산(보고만). **충돌이 있어도 구간을 자르지 않는다** -- 양 끝 후보를 '충돌' 표시와 함께 낸다.
 * 비활성 `inactive`: 입력이 없어(선언 제약·LUT 데이터·U9 인증 값 없음) 계산하지 않은 경계 -- ((경계 식 이름, 사유), ...). 조용히 빠지지 않고 보고에 남는다.
-* `StartRow` = 소자 하나의 보고 행(41 §6.6 `start_intervals[{device, gm_id_lo/hi/chosen, L_lo/hi/chosen, bin, I_start, sources, inactive_reasons, conflicts}]`).
+* `StartRow` = 소자 하나의 보고 행(41 §6.6 `start_intervals[{device, gm_id_lo/hi/chosen, L_lo/hi/chosen, bin, I_start, sources, inactive_reasons, conflicts}]`) --
+  S0 수준 필드 `device: start.row`. 묶음 `StartIntervals` 는 없다: 결과는 `graph/start` 필드(`conflicts`·`inactive`·`macro`·`rungs`·`records`·`area_est_m2`·`area_fraction`·
+  `uncovered`)와 소자 필드 `start.row`·`start.point` 로 쓴다(설계 40 §2.4.8 v1.9.1 D3). `StartView` = 블록 안 읽기 묶음.
 """
 import dataclasses
 import math
@@ -129,8 +131,9 @@ class MacroResult:
 
 @dataclasses.dataclass(frozen=True)
 class StartRung:
-    """출발 사다리의 한 칸: 구간 안 위치 `t`(0 = gm/ID 하한 끝, 1 = 상한 끝)에서의 출발 θ. `theta` = ((성분, 값), ...), `cells` = ((MOS, L 칸 index), ...), `current_ref` = ((MOS, A), ...)
-    -- `StartIntervals` 의 같은 이름 필드와 같은 뜻."""
+    """출발 사다리의 한 칸: 구간 안 위치 `t`(0 = gm/ID 하한 끝, 1 = 상한 끝)에서의 출발 θ. `theta` = ((θ 성분 (kind, key), 자연 좌표 값), ...)(구간이 정한 성분만:
+    ln IDu·θ 전류·보상 커패시터·L 동치류 L), `cells` = ((MOS, L 칸 index), ...), `current_ref` = ((MOS, A), ...) 전류를 정하지 못한 소자의 자리값(W = W_min 전류 -- 층 0 Chebyshev 중심의
+    기준 전류). 칸 목록은 S0 수준 필드 `graph/start: rungs`(칸 0 = 선택점, 41 §6.1-9)."""
 
     t: float
     theta: tuple
@@ -138,49 +141,22 @@ class StartRung:
     current_ref: tuple
 
 
-@dataclasses.dataclass(frozen=True)
-class StartIntervals:
-    """`start_intervals` 결과(41 §6.6 보고 표 + 층 0 입력).
-
-    `rows` = StartRow tuple(색 순서), `conflicts` = StartConflict tuple, `inactive` = ((경계 식, 사유), ...) 회로 전체 비활성, `macro` = MacroResult 또는 None,
-    `theta` = ((θ 성분 (kind, key), 자연 좌표 값), ...) 층 0 이 상자 중심 대신 쓰는 출발 θ(구간이 정의된 성분만), `cells` = ((MOS, L 칸 index), ...),
-    `area_est_m2`·`area_budget_m2` = 출발점의 면적 추정(MOS W·L + 수동소자)·선언 예산(없으면 None), `area_fraction` = 구간 안 위치 t(0 = gm/ID 하한 끝, 1 = 상한 끝)
-    -- 면적 예산에 들어가는 최대 t, `uncovered` = θ 성분 중 구간이 값을 정하지 못해 상자 중심으로 남은 것((kind, key), ...), `records` = 매크로 모델 기록((코드, 상세 쌍들), ...)
-    -- 1회차와 확정 풀이의 `macro_nonconvergent`·`macro_root_missing`·`macro_inactive`·`pm_floor_pole_at_ugf`,
-    `ladder` = StartRung tuple -- 출발 사다리: 칸 0 = 실행 가능한 최대 t(위 `theta`·`cells`·`current_ref` 와 같다), 다음 칸은 t 를 절반씩 줄인 점(gm/ID 하한 쪽으로, 강반전). 층 0 이 칸 순서로
-    커널 봉인 여부를 확인해 처음 봉인되는 칸에서 출발한다. 사다리 길이 = ⌈log2(gm/ID 구간 폭 최댓값 / LUT 곡선 gm/ID 최솟값)⌉ + 1(구간을 LUT 곡선 gm/ID 최솟값 단위까지 반으로 가르는 횟수; 선택 t = 0 이면 1칸),
-    `current_ref` = ((MOS, A), ...) 전류를 정하지 못한 소자의 자리값 -- 선택 gm/ID·L 에서 폭이 PDK 최소 finger 폭 W_min 일 때의 전류 I = W_min·IDu/L (가장 작은 실현 가능 소자 = front 의
-    최소 전력·면적 쪽 끝점; 층 0 Chebyshev 중심의 기준 전류)."""
-
-    rows: tuple
-    conflicts: tuple
-    inactive: tuple
-    macro: object
-    theta: tuple
-    cells: tuple
-    area_est_m2: object
-    area_budget_m2: object
-    area_fraction: object
-    uncovered: tuple
-    records: tuple = ()
-    current_ref: tuple = ()
-    ladder: tuple = ()
-
-
 @dataclasses.dataclass(frozen=True, eq=False)
-class StartContext:
-    """`iv_context.build_start_context` 가 S0 당 한 번 만드는 읽기 전용 입력 묶음(사전을 담아 `eq=False`).
+class StartView:
+    """출발 구간 계산 블록(`start_intervals`)이 **한 블록 호출 안에서** 투영(블록이 선언한 S0 수준 필드)과 extras(spec·DcInputs·PDK 선언·LUT 손잡이)에서 만들고 버리는
+    읽기 묶음(설계 40 §2.4.7 `StartContext` 행 -- 옛 `StartContext`·`CurveBook` 을 없앤 것: graph 열 사본·LUT 캐시를 오래 들고 있지 않는다). 사전을 담아 `eq=False`.
 
-    `curves` = `CurveBook`, `devices` = DeviceInfo tuple(구조 색 순), `by_name` = {이름: DeviceInfo}, `cls`·`kinds`·`pins` = 원소별 element_class·kind·{단자: 넷},
+    `devices` = DeviceInfo tuple(구조 색 순), `by_name` = {이름: DeviceInfo}, `cls`·`kinds`·`pins` = 원소별 element_class·kind·{단자: 넷},
     `rails`·`rail_v` = 레일 넷 집합·{레일: V}, `node_colour` = {넷: 구조 색}, `constraints` = ((metric, op, 값), ...) 값이 있는 판정 제약, `gbw_hz`·`pm_deg` = 보상 목표(없으면 None),
     `area_budget_m2` = 면적 예산(없으면 None), `transfer` = gain 제약 전달 뷰(`ViewS1v`, 없으면 None), `l_owner` = {MOS: L 주인}, `basis` = `CurrentBasis`,
     `element_values` = {수동소자·이상원: 선언값 또는 None}, `zero_cancel` = {저항: ZeroCancel}, `node_targets` = {넷: 선언 노드 전위 V}, `input_dc_v` = 선언 입력 DC(없으면 None),
-    `passive_area` = `PassiveAreaDecl`, `theta_bounds` = {수동소자: (하한, 상한)}, `l_cells` = {L 주인 소자: L 칸 ((lo, hi), ...)}, `ach` = U9 `Achievability` 또는 None,
+    `passive_area` = `PassiveAreaDecl`, `theta_bounds` = {수동소자: (하한, 상한)}, `l_cells` = {L 주인 소자: L 칸 ((lo, hi), ...)},
     `port_direction`·`port_role` = {포트 넷: 방향·역할}, `box` = {θ 성분 (kind, key): (하한, 상한) 자연 좌표 값}(`SearchDomain.variables` 의 ln 좌표는 exp 로 되돌린다),
     `current_box` = {kind: (I_off, I_max) A}(`search.current_box` -- LUT 가 특성화한 단일 finger 범위. 면적 예산이 닫은 `SearchDomain.current_box` 상한은 W 상한이 없어 매크로 근 범위로 너무 넓다),
-    `w_min_m` = PDK 최소 finger 폭(`SearchDomain.w_min_m`, W 하한 제약 S-18), `pdk` = core `PdkDecl`(mismatch 모델 bin 지도), `memo`·`w_keys` = LUT 손잡이, `gain` = `iv_gain_l.GainInputs`(이득 L 하한 입력; 비활성이면 None)·`gain_inactive` = 그 비활성 사유."""
+    `w_min_m` = PDK 최소 finger 폭(`SearchDomain.w_min_m`, W 하한 제약 S-18), `pdk` = core `PdkDecl`(mismatch 모델 bin 지도), `memo`·`w_keys` = LUT 손잡이,
+    `gain` = `GainInputs`(이득 L 하한 입력; 비활성이면 None)·`gain_inactive` = 그 비활성 사유, `points` = {소자: (VDS, VSB)} 곡선을 읽는 소자 동작점(블록이 정한 뒤
+    `dataclasses.replace` 로 채운다 -- 결과는 필드 `device: start.point`)."""
 
-    curves: object
     devices: tuple
     by_name: object
     cls: object
@@ -203,7 +179,6 @@ class StartContext:
     passive_area: object
     theta_bounds: object
     l_cells: object
-    ach: object
     port_direction: object
     port_role: object
     box: object
@@ -214,11 +189,13 @@ class StartContext:
     w_keys: object
     gain: object = None
     gain_inactive: tuple = ()
+    points: object = None
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
 class GainInputs:
-    """`local` = `LocalInputs`, `tables` = `ParamTables`, `blocks` = ((BlockSpec, 목표 g_i dB), ...) 전달 뷰의 블록 순서."""
+    """`local` = metrics `LocalView`(필드 `graph/ach: local_inputs` 의 `view`), `tables` = `ParamTables`(블록 호출 안 작업 배열 -- 행은 LUT memo 파생),
+    `blocks` = ((BlockSpec, 목표 g_i dB), ...) 전달 뷰의 블록 순서."""
 
     local: object
     tables: object

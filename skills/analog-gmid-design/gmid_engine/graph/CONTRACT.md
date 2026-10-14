@@ -612,13 +612,21 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 
 ### 10.1 공개 API (`gmid_engine.graph.__all__`)
 
+[U17 ①-b] (설계 40 §2.4.2·§2.4.8 v1.9.1 D1) S1v 는 묶음 객체가 아니라 S0 수준 graph 필드다: 레코드 `("graph", S1V_KEY="s1v")` 의 `views`(ViewS1v tuple -- 블록·복합 블록·극점 노드·루프·끊는 점은
+뷰 안 칸), `l_classes`, `findings`(뷰 밖 기록), `declared`(((출처, stage 묶음 수), ...)), `applied_facts`((개념, 대상) tuple). writer = 계산 블록 `s1v_fields`(writer 이름 `build_s1v`,
+reads = S1 필드 전부 `S1_READS`, extras = (spec 판정 제약, N_S, declared, 사실, stale 기록, 선언 루프 끊는 넷)) -- 입력 버전이 같으면 재사용(옛 `previous`·`S1v.key` 재사용은 없앴다).
+권한표 `S1V_WRITERS` = `S1_WRITERS` + S1v 필드 + 결합 필드(11절). `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True) -> S1Graph`
+(같은 S1 키, 스냅샷 권한표를 `S1V_WRITERS` 로 넓혀 블록을 부른 것; `s1` 은 권한표가 S1_WRITERS 를 덮는 S1Graph -- S0 수준 스냅샷 위의 것 포함). 기록 묶음은
+`s1v_findings(source) -> (all_findings, review_needed, unsupported)`(옛 `S1v.all_findings`·`review_needed`·`unsupported` 속성), 구조 표는 `structure_tables(source)`(필드를 읽는다 -- 옛 `key` 칸 없음,
+`facts_applied` -> `applied_facts`). `build_s1(previous=)` 는 권한표가 S1_WRITERS 를 **덮는** 스냅샷을 받는다(S0 수준 스냅샷 포함). 표는 이 단락과 같은 현재 서명이다.
+
 | 이름 | 설명 |
 |---|---|
-| `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), previous=None, stop_on_unsupported=True) -> S1v` | 진입점. `s1` = `build_s1` 결과, `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`) |
-| `S1v`, `ViewS1v`, `ViewSeed`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `Finding`, `StructureFact`, `CellInfo`, `DriveInfo`, `PoleNode`, `PassBundle`, `OutputDirection` | frozen dataclass(`fp_of` 가능). 필드 뜻과 어휘(`Block.kind`·AC 역할·`DriveInfo.basis`·`LClass.owner_rule`·`OutputDirection.topology`·`unreduced_diff` 형식)는 `s1v_values.py` docstring 이 정본이고 10.5 에 요약한다 |
+| `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True) -> S1Graph` | 진입점. `s1` = `build_s1` 결과(권한표가 `S1_WRITERS` 를 덮는 S1Graph), `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`). 결과는 S1v 필드를 쓴 같은 S1 키의 S1Graph(`previous` 인자·`S1v` 묶음 객체는 없다) |
+| `ViewS1v`, `ViewSeed`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `Finding`, `StructureFact`, `CellInfo`, `DriveInfo`, `PoleNode`, `PassBundle`, `OutputDirection` | frozen dataclass(`fp_of` 가능). 필드 뜻과 어휘(`Block.kind`·AC 역할·`DriveInfo.basis`·`LClass.owner_rule`·`OutputDirection.topology`·`unreduced_diff` 형식)는 `s1v_values.py` docstring 이 정본이고 10.5 에 요약한다 |
 | `load_structure_facts(path, topology_fp, rule_fp, net_names=()) -> StructureFacts` | `structure.json` ratified 사실 로더(파일 없음 = 사실 0, 형식 위반 = `SchemaRejectedError` gate `structure_json`, 해시 불일치 = 사실 미적용 + `structure_fact_stale` review_needed). [U1b] `schema_version`·concept 어휘·값 범위·`->` 모호 거부는 10.6 |
-| `structure_tables(s1v) -> dict` | JSON 으로 쓸 수 있는 구조 표(뷰·셀·구동 종류·블록·극점 노드·루프·L 동치류·기록) |
-| `s1v_rule_fp() -> str` | S1v 규칙 코드 지문(`S1V_RULE_FILES` 바이트). `build_s1v` 의 재사용 키가 쓴다 |
+| `structure_tables(source) -> dict` | `source`(S1v 필드를 가진 S1Graph)의 필드를 읽어 만든 JSON 으로 쓸 수 있는 구조 표(뷰·셀·구동 종류·블록·극점 노드·루프·L 동치류·기록) |
+| `s1v_rule_fp() -> str` | S1v 규칙 코드 지문(`S1V_RULE_FILES` 바이트). `structure_rule_fp()` 가 부른다(재사용은 블록 입력 버전이 정한다 -- 옛 `build_s1v` 재사용 키는 없다) |
 | `structure_rule_fp() -> str` [U1b] | `s1v_rule_fp()` + S1 쪽 소비 파일(`STRUCTURE_RULE_EXTRA_FILES` = composite_diode·dc_roles·gs_groups·matching_groups) 지문. `structure.json` 의 `rule_hash` |
 | `composite_diodes(projection)`, `feedforward_cells(model, view, blocks, cells, stage)`, `loop_roles(view_loops, transfer_views, declared_pm_views)` [U1b] | J 구조 규칙(10.6). 모두 단계 A 경로(`build_s1` -> `s1_dc_roles`, `analyze_view`)에서 불린다 |
 | `LoopRole`, `FeedforwardCell`, `FfRatioCandidate`, `CompositeDiode`, `FeedforwardResult` [U1b] | frozen dataclass |
@@ -649,17 +657,17 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
   포트쌍 CM 루프 대응(R31): 루프 뷰의 루프 노드가 차동 출력 포트쌍 두 넷을 모두 포함하면 `cm_pair`, 기록은 `cm_loop_unconstrained`(info). 그 밖의 루프 뷰는
   `declared_loop_cuts` 에 gate 넷이 없으면 `undeclared_loop_constraint`(기록만).
   **선언 끊는 넷 = 엔진 루프 뷰의 끊는 gate 넷**(U1b-jrules 결정): spec 루프 뷰 선언의 `cuts` 는 입력 포트가 아니라 엔진 루프 뷰 `cuts[*][1]`(단계 A 보고서 `views[]` 에 나오는 끊는 gate 넷)를 가리켜야 한다.
-  단계 A(`pipeline.stage_a`)는 spec `feedback` 소자에서 유도된 β 루프 선언(`ViewDecl.beta == declared`; 입력 포트 절단)을 `declared_loop_cuts` 와 이 대조에서 제외한다(내부 루프 뷰가 아니다). 나머지 `declared_loop_cuts` 를 엔진 루프 뷰 끊는 넷 집합과 대조해 어느 뷰에도 맞지 않은 선언 넷마다 `loop_cut_unmatched`(review_needed, 뷰 "", subject = 그 넷)를 보고서 `review_needed` 에 올린다(`build_s1v` 결과 `S1v` 에는 넣지 않는다) -- 맞지 않는 선언이 조용히 무동작이 되지 않게 한다.
-* **L 동치류**: `S1v.l_classes` = S1 `rel_l_class` 마다 주인(DEC-17: tail -> 첫 전달 뷰 최전단 stage tail -> diode 기준(복합 diode 포함) -> [U1b] `main_path_signal` -> 이름 순)과 규칙 이름. 멤버 DC 역할 미확정이면 status
+  단계 A(`pipeline.stage_a`)는 spec `feedback` 소자에서 유도된 β 루프 선언(`ViewDecl.beta == declared`; 입력 포트 절단)을 `declared_loop_cuts` 와 이 대조에서 제외한다(내부 루프 뷰가 아니다). 나머지 `declared_loop_cuts` 를 엔진 루프 뷰 끊는 넷 집합과 대조해 어느 뷰에도 맞지 않은 선언 넷마다 `loop_cut_unmatched`(review_needed, 뷰 "", subject = 그 넷)를 보고서 `review_needed` 에 올린다(`build_s1v` 결과 S1Graph 의 `graph/s1v` 필드 `findings` 에는 넣지 않는다) -- 맞지 않는 선언이 조용히 무동작이 되지 않게 한다.
+* **L 동치류**: `graph/s1v` 필드 `l_classes`(레코드 `("graph", S1V_KEY)`) = S1 `rel_l_class` 마다 주인(DEC-17: tail -> 첫 전달 뷰 최전단 stage tail -> diode 기준(복합 diode 포함) -> [U1b] `main_path_signal` -> 이름 순)과 규칙 이름. 멤버 DC 역할 미확정이면 status
   review_needed. S1 의 `rel_l_class` 필드는 proposed 그대로다(소비자는 S1v 를 읽는다).
 * **declared 대조**: `declared` = ((출처, (소자 이름 tuple, ...)), ...) 를 첫 전달 뷰 블록과 대조해 불일치를 `declared_stage_mismatch`(review_needed). 유도의 입력이 아니다(U-50).
-* **기록과 정지**: `Finding.severity` ∈ review_needed / unsupported_rule_branch / info. `S1v.unsupported`(기록만)가 하나라도 있고 `stop_on_unsupported` 이면
+* **기록과 정지**: `Finding.severity` ∈ review_needed / unsupported_rule_branch / info. `s1v_findings(source)` 의 `unsupported`(기록만)가 하나라도 있고 `stop_on_unsupported` 이면
   `StructureUnresolvedError`(detail reason `unsupported_rule_branch`, `rule_branch` = 첫 분기, `branches`, `findings`). `False` 는 진단 모드(기록을 돌려받음). review_needed 는 정지가
-  아니라 `S1v.review_needed` 로 GB4 앞 정지 대상.
+  아니라 `s1v_findings(source)` 의 `review_needed` 로 GB4 앞 정지 대상.
 
 ### 10.3 불변량 (test 대상)
 
-1. 같은 입력이면 `fp_of(structure_tables(s1v))` 가 같다(프로세스·`PYTHONHASHSEED`·netlist 순서 무관). 같은 키 `previous` 는 `is` 같은 객체.
+1. 같은 입력이면 `fp_of(structure_tables(s1v))` 가 같다(프로세스·`PYTHONHASHSEED`·netlist 순서 무관).  (`build_s1v` 에는 `previous` 인자가 없다 -- 재사용은 계산 블록 입력 버전 일치로 판정하고, 같은 입력의 두 번째 호출은 블록 호출 0 이다.)
 2. 원소·넷 이름을 전단사로 바꾸면 모든 구조 필드(접지·셀·구동 종류·시작 셀·블록 키·역할·루프 노드 집합·분류·끊는 점·극점 노드·출력 방향)가 그 사상으로만 바뀐다. 예외(이름이 마지막
    tie-break 인 곳): L 동치류에 tail·diode 기준이 없을 때의 주인(DEC-17 '이름 정렬 첫 멤버'), 전달 뷰 순번(여기 이름 정렬 순서).
 3. 접지 집합은 정적 집합의 초집합이고 여기 넷·감지 넷은 접지가 아니다. 순방향 넷 ⊆ 신호 넷. 모든 MOS 에 셀이 정확히 하나 있다.
@@ -675,7 +683,7 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 
 * `structure_count_budget(lut, kinds)` 는 합이 1 미만(kinds 가 비었거나 LUT 슬라이스 없음)이면 `ValueError` -- N_S 는 1 이상 int 여야 하므로 정의역 밖이다. `run_stage_a` 는 이를 잡아 `count_budget_undefined`(StructureUnresolvedError, exit 2)로 보고서에 쓴다.
 * **U1b 로 미룬 것 -> 닫힘**: `schema_version` 값 검사·알 수 없는 개념 거부·`drive_kind` 값 범위·J 판정 규칙은 U1b 가 구현했다(10.6).
-* S1v 저장은 core `GraphSnapshot` 이 아니라 frozen dataclass 트리(`S1v`)이고 재사용은 키(`S1v.key`) 일치로 한다.
+* [U17 ①-b 대체] S1v 저장은 core `GraphSnapshot` 의 S0 수준 필드(`graph/s1v`)이고 재사용은 계산 블록 `s1v_fields` 의 입력 버전 일치로 한다(설계 40 §2.4.2, v1.9.1 D1).
 * 입력 포트 role 문자열(`differential_input_p/n`, `differential_output_p/n`)과 spec 뷰 mode 문자열은 `s1v_values.py` 에 같은 값으로 복제했다(authoring 이 `__all__` 로 내보내지 않는다 -- U5 요청).
 * declared stage 의 생산자(topology 의 `compensation.stage_devices` 등 태그 읽기)는 엔진 안에 없다(태그 키는 규칙 I·IC4 로 읽기 금지). `declared` 인자로만 받는다.
 * 복합 블록은 묶음 경계를 J12 ratify 전 `composite_block_pending_ratify`(review_needed)로 남기고 격자 곱 Π 는 LUT 축이 필요해 U9 몫이다(`CompositeBlock.cells` = 밑). [U1b] feedforward 합류는 복합 블록이 아니다(10.6).
@@ -739,8 +747,10 @@ confirm 이 일치한 유도 레코드는 status 를 올린다: `dc_role` -> `Dc
 
 ## 11. GB3 -- 결합 변수 y와 기둥↔블록 매핑표 (U10, 설계 40 §3.3, 41 §0 단계 A4, 계획 DEC-71 (2)(7))
 
-파일: `coupling_values.py`(값 형식·어휘), `column_block_map.py`(진입 `column_block_map(s1, s1v) -> ColumnBlockMap`), `coupling_vars.py`(진입 `coupling_vars(s1, s1v) -> Coupling`).
-호출자: `pipeline.run_stage_a` A4(보고서 `coupling` 키). 소비자: U15 층 0 조립(41 §5.5) -- 아직 읽는 코드가 없고 보고서가 유일한 출구다.
+파일: `coupling_values.py`(값 형식·어휘), `column_block_map.py`(진입 `column_block_map(s1, views) -> (rows, bias_columns)`), `coupling_vars.py`(계산 블록 `coupling_vars`,
+writer `coupling_vars`: reads = S1 필드 전부 + `graph/s1v: views·l_classes`, writes S0 수준 필드 `("graph", COUPLING_KEY="coupling")`: `vars`·`column_block_map`(행 tuple)·`bias_columns`
+-- [U17 ①-b] 설계 40 §2.4.8 v1.9.1 D8, 묶음 `Coupling`·`ColumnBlockMap` 없음). 호출자: `pipeline.run_stage_a` A4(필드를 읽어 보고서 `coupling` 키). 소비자: U15 층 0 조립(41 §5.5).
+`column_unassigned` 정지는 블록에서 전파된다(필드를 쓰지 않는다).
 
 ### 11.1 값 형식
 * `BlockRef(view, key)` -- 뷰 id 와 블록 키(출력노드 이름 정렬 tuple). 같은 키의 블록도 뷰가 다르면 다른 블록. 정렬 가능(frozen order).
@@ -748,8 +758,8 @@ confirm 이 일치한 유도 레코드는 status 를 올린다: `dc_role` -> `Dc
   판정이 뷰 단위라 의사 블록은 모든 뷰에 기둥마다 하나씩 놓이고, 바이어스 기둥 소자는 모든 뷰에서 그 키를 갖는다. `repr` 에 `bias:<기둥 id>` 가 든다. 기둥 id 는 열거 순서에 따르므로
   이름 전단사 불변은 '기둥 소자 집합'으로 대응시켜 본다(레코드의 members·nets 는 이름만으로 정해져 영향 없음). 매핑표 행의 `block` 은 계속 None(`bias_column`).
 * `ColumnBlockRow(column, block, device, shared, basis)` -- `column` = S1 기둥 id 또는 None(어느 기둥에도 안 든 블록 멤버, 예: 커패시터), `block` = BlockRef 또는 None(바이어스 기둥),
-  `basis` ∈ `block_member | column_mate | bias_column`. `ColumnBlockMap(rows, bias_columns)` -- rows 는 (column(None 먼저), block, device) 순.
-* `CouplingVar(kind, members, blocks, domain, init_rule, nets)` -- 40 §3.3 레코드에 `nets` 를 더했다. `Coupling(vars, column_block_map)` -- vars 는 (kind, members, nets, domain) 순, 같은 키 중복 없음.
+  `basis` ∈ `block_member | column_mate | bias_column`. 필드 `column_block_map` = 행 tuple -- (column(None 먼저), block, device) 순, 필드 `bias_columns` = 바이어스 기둥 id 정렬 tuple.
+* `CouplingVar(kind, members, blocks, domain, init_rule, nets)` -- 40 §3.3 레코드에 `nets` 를 더했다. 필드 `vars` -- (kind, members, nets, domain) 순, 같은 키 중복 없음.
 
 ### 11.2 매핑표 규칙(DEC-71 (2))
 * 소자 범위 = 어느 DC 가지(`graph.branches`)에 든 원소. 커패시터·DEC-70 가지치기로 빠진 저항은 DC 전류가 없어 KVL 이 없으므로 대상 밖(블록 멤버면 column=None 행).

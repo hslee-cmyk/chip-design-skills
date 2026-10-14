@@ -12,11 +12,12 @@ from gmid_engine.core import (InfeasibleTargetError, SchemaRejectedError, Struct
                               require_immutable)
 from gmid_engine.graph import build_s1
 from gmid_engine.lut import LutMemo, op_point
-from gmid_engine.sizing import (DC_KEY, S2_WRITERS, DcInputs, KernelContext, LutAccess, ThetaSchema,
+from gmid_engine.sizing import (DC_KEY, KERNEL_KEY, S2_WRITERS, DcInputs, KernelContext, LutAccess, ThetaSchema,
                                 build_kernel_context)
 
 from .conftest import (NINE, SUPPLIES, W_KEYS, build_ctx, circuit_cs_pmos_load, detail, library_ctx, load_doc,
                        mos, new_access, topo, two)
+from .conftest import inject_l_classes, kfixed, kplan, kres, kschema, kties  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 # [U17 ①-d] 40 §6-8 D-2: 구조 색 블록 = graph 대칭 블록 s1_symmetry(S1 이 같은 표시로 계산했으면 재사용)
 PLAN = ("dc_rails", "s1_symmetry", "dc_current_basis", "dc_writer_plan", "dc_scc_order", "dc_theta_schema")
@@ -35,12 +36,14 @@ def test_returns_context(parts):
     assert isinstance(ctx, KernelContext)
     assert ctx.inputs is inputs and ctx.lut is acc
     assert ctx.base.writers == S2_WRITERS
-    assert isinstance(ctx.schema, ThetaSchema)
-    assert ctx.base.value("graph", DC_KEY, "dc_theta_schema") == ctx.schema
-    assert tuple(w for w, _ in ctx.plan_versions) == PLAN
-    for w, v in ctx.plan_versions:
-        assert v == ctx.base.block_version(w) and v is not None
-    assert ctx.fixed_values == () and ctx.resistor_values == ()
+    assert isinstance(kschema(ctx), ThetaSchema)
+    # [U17 ①-b] 설계 40 v1.9.1 §2.4.8 D8: θ 스키마 필드는 graph/kernel `theta_schema`(옛 graph/dc `dc_theta_schema` 를 옮김), writer dc_theta_schema 유지.
+    assert ctx.base.field("graph", KERNEL_KEY, "theta_schema").writer == "dc_theta_schema"
+    assert ctx.base.record("graph", DC_KEY) is None or "dc_theta_schema" not in {n for n, _ in ctx.base.record("graph", DC_KEY).fields}
+    # 옛 plan_versions = 계획 블록 (writer, block_version) -- §2.4.7 'plan_versions 는 쓰기 계획 블록의 block_version 읽기로 대체'
+    for w in PLAN:
+        assert ctx.base.block_version(w) is not None
+    assert kfixed(ctx) == () and kres(ctx) == ()
 
 
 def test_type_errors(parts):
@@ -96,13 +99,13 @@ def test_fixed_values_w3_and_input_dc(tmp_path, toy_access):
                bias=["vb"])                                                                  # vb: M5 gate 에만(o1 은 M3 drain)
     # input_dc 만
     _, _, ctx = build_ctx(tmp_path, doc, toy_access, input_dc_v=0.9)
-    assert ctx.fixed_values == (("inn", 0.9), ("inp", 0.9))
+    assert kfixed(ctx) == (("inn", 0.9), ("inp", 0.9))
     # W3 가 입력 포트 값보다 우선, 이름순
     _, _, ctx = build_ctx(tmp_path, doc, toy_access, input_dc_v=0.9, node_targets=(("t", 0.3), ("inp", 1.0)))
-    assert ctx.fixed_values == (("inn", 0.9), ("inp", 1.0), ("t", 0.3))
+    assert kfixed(ctx) == (("inn", 0.9), ("inp", 1.0), ("t", 0.3))
     # input_dc 없음 + W3 만
     _, _, ctx = build_ctx(tmp_path, doc, toy_access, node_targets=(("t", 0.3),))
-    assert ctx.fixed_values == (("t", 0.3),)
+    assert kfixed(ctx) == (("t", 0.3),)
 
 
 def test_resistor_values_exclude_pruned_and_undeclared(tmp_path, toy_access):
@@ -113,7 +116,7 @@ def test_resistor_values_exclude_pruned_and_undeclared(tmp_path, toy_access):
                          two("R3", "resistor", "sdeg", "gnd"), two("C1", "capacitor", "out", "gnd")])
     _, _, ctx = build_ctx(tmp_path, doc, toy_access,
                           element_values=(("C1", 1e-12), ("R1", 1e4), ("R2", 5e3), ("R3", None)))
-    assert ctx.resistor_values == (("R1", 1e4),)
+    assert kres(ctx) == (("R1", 1e4),)
 
 
 def test_resistor_cycle_stops_before_search(tmp_path, toy_access):
@@ -228,7 +231,7 @@ def test_library_plan_netlist_order_invariant(name, tmp_path, toy_access):
         td2 = load_doc(tmp_path, d)
         ctx2 = build_kernel_context(build_s1(td2, dict(inputs.supplies_v)), inputs, toy_access)
         assert ctx2.base.fp == ctx.base.fp
-        assert ctx2.schema == ctx.schema
+        assert kschema(ctx2) == kschema(ctx)
 
 
 def test_same_inputs_same_base_fp(parts):
@@ -236,7 +239,7 @@ def test_same_inputs_same_base_fp(parts):
     a = build_kernel_context(s1, inputs, acc)
     b = build_kernel_context(s1, inputs, new_access(acc.memo.lut))
     assert a.base.fp == b.base.fp
-    assert a.plan_versions == b.plan_versions
+    assert kplan(a) == kplan(b)
 
 
 # ====================================================================
@@ -254,7 +257,7 @@ _MIR_VALUES = (("I1", 1e-5),)
 
 
 def _l_components(ctx):
-    return sorted(k for t, k in ctx.schema.components if t == "L")
+    return sorted(k for t, k in kschema(ctx).components if t == "L")
 
 
 @pytest.mark.parametrize("members", [("M1", "M2"), ("M2", "M1"), ("M2",)])
@@ -263,7 +266,7 @@ def test_l_class_derived_ties_member_to_owner(tmp_path, r4_access, members):
     있든 없든·순서가 어떻든 같다."""
     _, ctx = build_ctx_u4(tmp_path, circuit_mirror(), r4_access, l_classes=(LClassStub("M1", members),),
                           element_values=_MIR_VALUES)
-    assert ctx.l_ties == (("M2", "M1"),)
+    assert kties(ctx) == (("M2", "M1"),)
     assert _l_components(ctx) == ["M1", "M3"]
 
 
@@ -272,7 +275,7 @@ def test_l_class_not_derived_is_not_tied(tmp_path, r4_access, status):
     """derived 가 아닌 동치류는 묶지 않는다(설계 40 §3.2 'review_needed 가 남으면 정지' 는 GB4 앞 U1 몫, 여기서는 소자마다 L)."""
     _, ctx = build_ctx_u4(tmp_path, circuit_mirror(), r4_access, l_classes=(LClassStub("M1", ("M1", "M2"), status),),
                           element_values=_MIR_VALUES)
-    assert ctx.l_ties == ()
+    assert kties(ctx) == ()
     assert _l_components(ctx) == ["M1", "M2", "M3"]
 
 
@@ -280,7 +283,7 @@ def test_no_l_classes_same_plan_as_before(tmp_path, r4_access):
     """동치류가 없으면 l_ties = () 이고 계획 스냅샷이 인자 없는 호출과 비트 같다(CONTRACT 14.1 'extras 를 3번째까지 주지 않는다')."""
     s1, a = build_ctx_u4(tmp_path / "a", circuit_mirror(), r4_access, element_values=_MIR_VALUES)
     b = build_kernel_context(s1, a.inputs, r4_access)
-    assert a.l_ties == () == b.l_ties and a.base.fp == b.base.fp and a.schema == b.schema
+    assert kties(a) == () == kties(b) and a.base.fp == b.base.fp and kschema(a) == kschema(b)
 
 
 def test_member_l_component_rejected(tmp_path, r4_access):
@@ -289,11 +292,11 @@ def test_member_l_component_rejected(tmp_path, r4_access):
                           element_values=_MIR_VALUES)
     th = theta_mirror()
     with pytest.raises(ValueError):
-        check_theta(ctx.schema, th)
+        check_theta(kschema(ctx), th)
     with pytest.raises(ValueError):
         size_and_seal(ctx, th)
     del th[("L", "M2")]
-    check_theta(ctx.schema, th)                                     # 멤버 L 을 빼면 통과
+    check_theta(kschema(ctx), th)                                     # 멤버 L 을 빼면 통과
 
 
 @pytest.mark.parametrize("classes", [
@@ -317,7 +320,9 @@ def test_l_class_order_invariance(tmp_path, r4_access):
                      l_classes=(LClassStub("M1", ("M1", "M2")), LClassStub("M3", ("M3",))), element_values=_MIR_VALUES)[1]
     b = build_ctx_u4(tmp_path / "b", circuit_mirror(), r4_access,
                      l_classes=(LClassStub("M3", ("M3",)), LClassStub("M1", ("M2", "M1"))), element_values=_MIR_VALUES)[1]
-    assert a.base.fp == b.base.fp and a.schema == b.schema and a.l_ties == b.l_ties == (("M2", "M1"),)
+    # [U17 ①-b] L 동치류는 이제 S0 수준 필드 graph/s1v: l_classes 입력이다(설계 40 v1.9.1 §2.4.8 D1). 이 test 가 순서를 섞어 넣은 그 입력 필드 자체가
+    # 스냅샷 지문에 들어가므로 base.fp 비교는 입력 차이를 잰다(정준 순서는 build_s1v 몫). 커널 구조 파생 결과(θ 스키마·l_ties)가 같은지만 본다.
+    assert kschema(a) == kschema(b) and kties(a) == kties(b) == (("M2", "M1"),)
 
 
 def test_l_ties_name_bijection(tmp_path, r4_access):
@@ -326,7 +331,7 @@ def test_l_ties_name_bijection(tmp_path, r4_access):
     names = ("Q9", "Q1", "Q5", "J2")
     _, ctx = build_ctx_u4(tmp_path, circuit_mirror(names, ("n7", "o2", "i4")), r4_access,
                           l_classes=(LClassStub("Q9", ("Q1", "Q9")),), element_values=(("J2", 1e-5),))
-    assert ctx.l_ties == (("Q1", "Q9"),)
+    assert kties(ctx) == (("Q1", "Q9"),)
     assert _l_components(ctx) == ["Q5", "Q9"]
 
 # ---- [U1] sizing CONTRACT 13절: build_kernel_context(..., l_classes=()) 와 KernelContext.l_ties
@@ -346,29 +351,27 @@ def test_l_ties_default_empty_and_schema_drops_member_l(tmp_path, toy_access):
     (U1 시절 'schema 불변' 단언은 D-GB7a 와 모순 -- 오케스트레이터 결정으로 교체.)"""
     from gmid_engine.graph import LClass
     s1, inputs, plain = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
-    assert plain.l_ties == ()
-    tied = build_kernel_context(s1, inputs, toy_access,
-                                l_classes=(LClass(("M2", "M3", "M4"), "M2", "hand", "derived"),))
-    assert tied.l_ties == (("M3", "M2"), ("M4", "M2"))
+    assert kties(plain) == ()
+    tied = build_kernel_context(inject_l_classes(s1, (LClass(("M2", "M3", "M4"), "M2", "hand", "derived"),)), inputs, toy_access)
+    assert kties(tied) == (("M3", "M2"), ("M4", "M2"))
     removed = {("L", "M3"), ("L", "M4")}
-    assert removed <= set(plain.schema.components)
-    assert tied.schema.components == tuple(c for c in plain.schema.components if c not in removed)
-    assert ("L", "M2") in tied.schema.components
-    assert (tied.schema.current_cone, tied.schema.fixed, tied.schema.zero_cancel) == (
-        plain.schema.current_cone, plain.schema.fixed, plain.schema.zero_cancel)
+    assert removed <= set(kschema(plain).components)
+    assert kschema(tied).components == tuple(c for c in kschema(plain).components if c not in removed)
+    assert ("L", "M2") in kschema(tied).components
+    assert (kschema(tied).current_cone, kschema(tied).fixed, kschema(tied).zero_cancel) == (
+        kschema(plain).current_cone, kschema(plain).fixed, kschema(plain).zero_cancel)
 
 
 def test_l_ties_only_derived_classes(tmp_path, toy_access):
     from gmid_engine.graph import LClass
     s1, inputs, _ = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
-    ctx = build_kernel_context(s1, inputs, toy_access,
-                               l_classes=(LClass(("M2", "M3", "M4"), "M2", "hand", "review_needed"),
-                                          LClass(("M5", "M6"), "M6", "hand", "derived")))
-    assert ctx.l_ties == (("M5", "M6"),)
+    ctx = build_kernel_context(inject_l_classes(s1, (LClass(("M2", "M3", "M4"), "M2", "hand", "review_needed"),
+                                                     LClass(("M5", "M6"), "M6", "hand", "derived"))), inputs, toy_access)
+    assert kties(ctx) == (("M5", "M6"),)
 
 
 def test_l_ties_unknown_member_rejected(tmp_path, toy_access):
     from gmid_engine.graph import LClass
     s1, inputs, _ = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
     with pytest.raises(ValueError):
-        build_kernel_context(s1, inputs, toy_access, l_classes=(LClass(("M2", "Mzz"), "M2", "hand", "derived"),))
+        build_kernel_context(inject_l_classes(s1, (LClass(("M2", "Mzz"), "M2", "hand", "derived"),)), inputs, toy_access)

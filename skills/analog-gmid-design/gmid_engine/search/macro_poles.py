@@ -31,8 +31,8 @@ from gmid_engine.core import AMPLITUDE_DB_PER_DECADE
 from gmid_engine.metrics import Excitation, Factor, MnaSystem, Sense, analyze_loop, solve_responses
 from gmid_engine.sizing import bracket_root
 
+from ._helpers_curves import QUANTITY_GAIN, curve_bundle_of, curve_value
 from .dominant_node import dominant_node
-from .iv_curves import QUANTITY_GAIN
 from .start_values import MACRO_INACTIVE, MACRO_NONCONVERGENT, MACRO_ROOT_MISSING, PM_FLOOR_DEG, WHY_NO_GBW, MacroResult
 
 _CAPACITOR = "capacitor"
@@ -81,14 +81,14 @@ class _Network:
         given = _declared_gains(ctx)
         for b in self.blocks:
             d = ctx.by_name[b.inputs[0]]
-            bundle = ctx.curves.bundle_of(d.name, d.kind, lengths[d.name])
+            bundle = curve_bundle_of(ctx, d.name, d.kind, lengths[d.name])
             # 버퍼(팔로어) 블록의 출력 컨덕턴스는 gm 이라 이득 1; 이득 블록은 41 §6.5 순서로 g_i(목표 블록 이득) -> A_i,max(U9 인증) -> 입력 소자의 LUT 진성 이득
             if b.buffer:
                 self.a_intr.append(1.0)
             elif b.key in given:
                 self.a_intr.append(given[b.key])
             else:
-                self.a_intr.append(None if bundle is None else ctx.curves.value(bundle, QUANTITY_GAIN, gm_id[d.name]))
+                self.a_intr.append(None if bundle is None else curve_value(bundle, QUANTITY_GAIN, gm_id[d.name]))
         self.fixed = {}
         self.variables = {}
         self.stamps = []

@@ -21,6 +21,7 @@ from gmid_engine.sizing import LocalSeal, SnapshotFragment, size_and_seal_local,
 
 from .conftest import (R4_L, build_ctx_u4, circuit_mirror, mos, r4_ln_idu, r4_tol_vdsat, r4_vdsat_at, rel_close,
                        theta_mirror, topo, two)
+from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 ID = 1e-5
 
@@ -155,7 +156,7 @@ def test_whole_circuit_candidate_failure(tmp_path, r4_access):
           ("ln_idu", "MB"): r4_ln_idu("nmos", 0.6, 0.3, 0.0), ("y", "input_common_mode"): 0.5}
     from .conftest import free_currents
     th.update(free_currents(ctx, {"MA": ID, "MB": ID, "IX": ID, "IY": ID}))
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     for c in s1.value("graph", GRAPH_KEY, "columns"):
         res = size_and_seal_local(ctx, *as_block(th), frozenset({str(c.id)}))
         assert res.ok is False and len(res.failures) == 1

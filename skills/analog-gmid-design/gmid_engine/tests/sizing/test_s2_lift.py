@@ -1,11 +1,11 @@
 """`lift_s1(s1graph) -> GraphSnapshot` -- CONTRACT 1.5: 결과 writers == S2_WRITERS, S1 필드 값·block_version 이 원본과 같고
 (그래서 S1 블록을 다시 부르면 reuse). [2026-10-08 O7 닫음, 사용자 승인 1] 레코드 객체를 원본과 공유하고(`is`) 필드 메타
-(writer·input_version·write_count)·fp 가 원본과 같다. S1_WRITERS 의 S1Graph 아님 -> TypeError, 돌지 않은 S1 writer 가 있으면
-ValueError.
+(writer·input_version·write_count)·fp 가 원본과 같다. S1Graph 아님 또는 권한표가 S1_WRITERS 를 덮지 않음 -> TypeError
+([U17 ①-b] 설계 40 v1.9.1 §2.4.1: S0 수준 스냅샷처럼 넓은 표는 받는다), 돌지 않은 S1 writer 가 있으면 ValueError.
 """
 import pytest
 
-from gmid_engine.core import GraphSnapshot, fp_of
+from gmid_engine.core import GraphSnapshot, WriterTable, fp_of
 from gmid_engine.graph import S1Graph, S1_WRITERS, build_s1, s1_gs_groups, s1_rel_vgs, s1_structure
 from gmid_engine.sizing import S2_WRITERS, lift_s1
 
@@ -101,10 +101,33 @@ def test_type_error_non_s1graph(bad):
         lift_s1(bad)
 
 
-def test_type_error_other_writer_table(s1):
-    other = S1Graph(s1.key, lift_s1(s1))            # 권한표가 S2_WRITERS 인 스냅샷
+def _without_one_s1_entry():
+    (kind, field), _writer = S1_WRITERS.entries[0]
+    return WriterTable([(k, f, w) for (k, f), w in S1_WRITERS.entries if (k, f) != (kind, field)])
+
+
+@pytest.mark.parametrize("table", [
+    pytest.param(lambda: WriterTable([("node", "terminals", "someone_else")]), id="s1_field_other_writer"),
+    pytest.param(_without_one_s1_entry, id="s1_entry_missing"),
+])
+def test_type_error_table_not_covering_s1(s1, table):
+    # [U17 ①-b 기준 변경, 설계 40 v1.9.1 §2.4.1 '설계점 층(S2)… 평가마다 S0 수준 스냅샷 위에 쓴다' + graph CONTRACT 10.1 '권한표가
+    #  S1_WRITERS 를 덮는 스냅샷'] 거부 대상 = 권한표가 S1_WRITERS 를 덮지 않는 S1Graph(옛 '권한표가 S1_WRITERS 와 같지 않음'에서 좁아짐).
+    # oracle (a) 구성: (1) S1 필드 node.terminals 를 다른 writer 가 가진 표 (2) S1_WRITERS 에서 항목 하나를 뺀 표 -- 둘 다 S1 을 덮지 않는다.
+    other = S1Graph(s1.key, GraphSnapshot.empty(table()))
     with pytest.raises(TypeError):
         lift_s1(other)
+
+
+def test_wider_table_covering_s1_is_accepted(s1):
+    # [U17 ①-b, §2.4.1] S0 수준 스냅샷(권한표가 S1_WRITERS 보다 넓다 -- 여기서는 lift 결과 S2_WRITERS)도 받는다. 옛 test 는 이것을 TypeError 로 봤다.
+    # oracle (a): 결과 권한표 = S2_WRITERS(넓은 표 ∪ S2 = S2), S1 필드 값·block_version 은 원본 그대로.
+    wide = lift_s1(s1)
+    again = lift_s1(S1Graph(s1.key, wide))
+    assert again.writers == S2_WRITERS
+    for (kind, field), writer in S1_WRITERS.entries:
+        assert again.column(kind, field) == s1.snapshot.column(kind, field)
+        assert again.block_version(writer) == s1.snapshot.block_version(writer)
 
 
 def test_value_error_when_s1_writer_not_run(tmp_path):

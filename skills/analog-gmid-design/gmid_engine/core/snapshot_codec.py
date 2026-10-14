@@ -13,13 +13,14 @@
 * `load(inputs, sources) -> (GraphSnapshot | None, outcome)`: outcome ∈ {`OUTCOME_HIT`, `OUTCOME_MISS`, `OUTCOME_CORRUPT`}. 파일이 없으면 miss.
   읽은 뒤 본문 sha256(`body_sha256`), 형식 판(`schema_version`), 저장된 키, writer 권한표 대조, 스냅샷 `fp` 재계산을 확인한다 --
   하나라도 틀리면(디코더가 등록부 밖 타입을 만난 경우 포함) 손상(corrupt, RuntimeWarning)이고 스냅샷을 돌려주지 않는다.
-* `save(inputs, sources, snapshot) -> 경로 | None`: 키 파일이 이미 있고 검증을 통과하면 쓰지 않는다. 아니면(없음·손상) 같은 폴더의 임시 파일에
+* `save(inputs, sources, snapshot, transient=()) -> 경로 | None`: `transient` = 직렬화하지 않는 writer 이름(설계 40 §2.4.1 단계 B 층 -- 그 writer 가 쓴 필드와
+  block_version 을 뺀 스냅샷을 쓴다). 키 파일이 이미 있고 검증을 통과하면 쓰지 않는다. 아니면(없음·손상) 같은 폴더의 임시 파일에
   쓰고 fsync 뒤 `os.replace` 로 교체한다(원자적, 손상 파일은 같은 키로 교체된다). 쓰기 실패는 RuntimeWarning 뒤 None(계산 결과는 그대로).
   쓴 뒤 옛 파일 정리(U-68, 아래 -- 프로세스의 첫 쓰기에서만).
 * 형식: gzip(mtime 0) JSON 하나 `{schema_version, key{...}, writers[[kind, field, writer]...], block_versions{writer: 입력 버전},
   records[{kind, key, fields{name: {value, writer, input_version, write_count}}}], fp, body_sha256}`. `body_sha256` = 그 칸을 뺀
   문서의 정준 JSON 바이트(키 정렬·구분자 고정·ASCII) sha256. 값은 타입 있는 인코딩이다: None·bool·int·str 는 JSON 그대로,
-  float = `{"__type__": "float", "hex": float.hex}`, bytes = `{"__type__": "bytes", "hex": ...}`, tuple = `{"__type__": "tuple", "items": [...]}`,
+  float(numpy 실수 같은 float 부분형 포함 -- `fp_of` 와 같은 값) = `{"__type__": "float", "hex": float.hex}`, bytes = `{"__type__": "bytes", "hex": ...}`, tuple = `{"__type__": "tuple", "items": [...]}`,
   frozenset = `{"__type__": "frozenset", "items": [...]}`(원소 `fp_of` 정렬 = 정준 순서), frozen dataclass =
   `{"__type__": "<모듈>.<클래스>", "fields": {이름: 값}}`(init 필드만 -- 디코더가 생성자로 다시 만든다). dataclass 는 타입 등록부
   (`type_registry`)에 있는 것만 인코드·디코드한다(목록 밖은 인코드 `TypeError`, 디코드 = 손상). 옛 S3 `_plain`(repr 직렬화)은 쓰지 않는다.
@@ -97,7 +98,7 @@ def _encode(value):
     kind = type(value)
     if value is None or kind in (bool, int, str):
         return value
-    if kind is float:
+    if kind is float or isinstance(value, float):        # float 부분형(numpy 실수)도 float 로 -- `fp_of` 가 같은 지문을 낸다(float.hex)
         return {_TYPE: _T_FLOAT, _HEX: float.hex(value)}
     if kind is bytes:
         return {_TYPE: _T_BYTES, _HEX: value.hex()}
@@ -138,6 +139,26 @@ def _decode(obj):
 
 def _canonical_json(doc):
     return json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False).encode("ascii")
+
+
+def _persisted(snapshot, transient):
+    """`transient`(writer 이름 집합)가 쓴 필드와 그 writer 의 block_version 을 뺀 스냅샷 -- 직렬화하지 않는 층(설계 40 §2.4.1 단계 B 층)을
+    S0 수준 층에서 떼어 낸다. 비어 있으면 `snapshot` 그대로."""
+    if not transient:
+        return snapshot
+    tables = {}
+    for kind in snapshot.kinds():
+        kept = {}
+        for record_key in snapshot.keys(kind):
+            record = snapshot.record(kind, record_key)
+            fields = tuple((name, fv) for name, fv in record.fields if fv.writer not in transient)
+            if len(fields) == len(record.fields):
+                kept[record_key] = record
+            elif fields:
+                kept[record_key] = GraphRecord(kind, record_key, fields)
+        tables[kind] = kept
+    versions = {writer: version for writer, version in snapshot.block_versions.items() if writer not in transient}
+    return GraphSnapshot(snapshot.writers, tables, versions)
 
 
 def _document(key, snapshot):
@@ -344,15 +365,17 @@ class S0SnapshotStore:
         key = self.key_of(inputs, sources)
         return self._load_path(self._path_for(key), key)
 
-    def save(self, inputs, sources, snapshot):
-        """`snapshot`(GraphSnapshot)을 키 파일로 쓴다. 이미 검증되는 파일이 있으면 쓰지 않는다. 쓴 경로 또는 None."""
+    def save(self, inputs, sources, snapshot, transient=()):
+        """`snapshot`(GraphSnapshot)을 키 파일로 쓴다. 이미 검증되는 파일이 있으면 쓰지 않는다. 쓴 경로 또는 None.
+        `transient` = 직렬화하지 않는 writer 이름들(설계 40 §2.4.1 단계 B 층 -- 그 writer 가 쓴 필드와 block_version 을 빼고 쓴다)."""
         if not isinstance(snapshot, GraphSnapshot):
             raise TypeError("S0SnapshotStore.save: snapshot 은 GraphSnapshot 이어야 한다")
         key = self.key_of(inputs, sources)
         path = self._path_for(key)
         if os.path.isfile(path) and self._load_path(path, key)[1] == OUTCOME_HIT:
             return path
-        blob = gzip.compress(_canonical_json(_document(key, snapshot)), mtime=0)   # 인코드 실패(TypeError)는 전파 -- 등록부 밖 값
+        persisted = _persisted(snapshot, frozenset(transient))
+        blob = gzip.compress(_canonical_json(_document(key, persisted)), mtime=0)   # 인코드 실패(TypeError)는 전파 -- 등록부 밖 값
         tmp = None
         try:
             os.makedirs(self.directory, exist_ok=True)

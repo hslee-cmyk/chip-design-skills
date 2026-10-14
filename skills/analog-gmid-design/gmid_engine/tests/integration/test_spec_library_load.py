@@ -58,12 +58,16 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
 # [U5 후속 2026-10-09] 설계 40 §9.2·§11 'J 추가 범위' U5 행 'sf_pushpull spec에 icm_margin_v >= 0(user_spec J-E)', 41 §4.6 '선언 입력 DC
 # 유지 ... icm_margin_v >= 0 을 제약으로 둔다', 사용자 결정 J-E(_drafts/user_decisions.md 2026-10-08 "j해석은 네의견에 모두 동의해."):
 #   sf_pushpull(6,6)  + icm_margin_v>=0(user_spec -> 판정)                                       = (7,7), pending 불변
+# [U17 ①-b 2차, 2026-10-14 오케스트레이터 지시] 커밋 0cbc0d2(사용자 2026-10-13 Q1-2 (i) "nmcnr은 승인", "ngcc는 논문값 참조")가 spec 에
+# user_spec 제약 하나씩 추가(oracle (d) 사용자 선언 스펙값, diff 근거 -- 피검 로더 출력 아님):
+#   ngcc  (6,6)  + gain_ss_db>=111(user_spec -> 판정, NGCC 논문 Table 5 α=0.3)                         = (7,7), pending 불변(추가만, 표지 변경 없음)
+#   nmcnr (7,7)  + gain_ss_db>=100(user_spec -> 판정, NMCNR 논문 Table 1 '> 100 dB')                    = (8,8), pending 불변
 TABLE = {
     "common_gate_amplifier": (2, 2, 6),
     "current_reuse_telescopic_ota": (13, 12, 11),
     "folded_cascode": (3, 3, 7),
-    "ngcc_3stage_ff": (6, 6, 6),
-    "nmcnr_amplifier": (7, 7, 6),
+    "ngcc_3stage_ff": (7, 7, 6),
+    "nmcnr_amplifier": (8, 8, 6),
     "pushpull_follower_buffer": (2, 2, 5),
     "sf_pushpull_output_opamp": (7, 7, 6),
     "two_stage_ota": (5, 5, 7),
@@ -314,20 +318,25 @@ def toy_access_lib(tmp_path_factory):
 def test_boxes_cover_exactly_theta_passive_components(name, toy_access_lib, tmp_path):
     """9회로: sizing θ 스키마(sizing CONTRACT 4.4 -- 의존 층 입력)의 수동소자 성분 원소 = spec 상자 원소, 그리고 search_domain 이
     재정의 없이(SearchSettings 상자 None) spec 상자만으로 변수를 만든다(거부 없음, 변수 = 상자의 ln)."""
-    from gmid_engine.search import SearchSettings, search_domain
+    from gmid_engine.search import S0_WRITERS, SearchSettings, search_domain
+    from gmid_engine.sizing import KERNEL_KEY
     from search.conftest import write_decls
     from sizing.conftest import library_ctx
     ctx = library_ctx(name, toy_access_lib)[5]
     kind_of = {"resistance": "resistor", "ss_resistance": "resistor", "capacitance": "capacitor"}
-    theta_passive = {k: kind_of[t] for t, k in ctx.schema.components if t in kind_of}
+    theta_passive = {k: kind_of[t] for t, k in ctx.base.value("graph", "kernel", "theta_schema").components if t in kind_of}   # [U17 ①-b] graph/kernel: theta_schema
     want = _expected_boxes(name)
     assert set(theta_passive) == set(want)
     assert theta_passive == {n: k for n, k in _engine_rc(name).items() if n in want}
     for r in DEC9_STRUCTURAL_R.get(name, set()):
         assert r not in theta_passive                            # 구조 규칙 저항은 θ 아님(결정 9)
     pdk, _ = write_decls(tmp_path / "pdk")
-    dom = search_domain(ctx, SearchSettings(600.0, 40, None, (("front_budget_s", "test"),)), pdk,
-                        _theta_bounds_of(_load(name)))
+    # [U17 ①-b] search_domain 은 계산 블록(writer search_domain) -> S0 수준 필드 graph/kernel: search_domain(설계 40 v1.9.1 §2.4.7 'SearchContext 칸 배정' domain 행).
+    # 옛 호출(설정 None 상자 = spec 상자만, 면적 예산 없음, untie 없음)과 같은 입력을 extras 로 넘긴다.
+    settings = SearchSettings(600.0, 40, None, (("front_budget_s", "test"),))
+    snap = search_domain(ctx.base.widen(S0_WRITERS), ctx.lut, settings.resistance_bounds_ohm, settings.capacitance_bounds_f, pdk,
+                         _theta_bounds_of(_load(name)), None, ())
+    dom = snap.value("graph", KERNEL_KEY, "search_domain")
     got = {v.component[1]: (v.log, v.lo, v.hi) for v in dom.variables if v.component[0] in kind_of}
     # [U2] search CONTRACT 3.24: 같은 자기동형 궤도의 수동소자 θ 성분은 대표 하나로 묶인다(current_reuse 의 R1/R2·Cc1/Cc2) -- 구성원은 변수에서 빠지고
     # 대표의 상자를 쓴다(상자가 같아야 받는다). 변수 ∪ 묶인 구성원 = spec 상자 원소.

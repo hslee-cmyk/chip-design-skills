@@ -65,7 +65,7 @@ def test_missing_inputs_are_undefined_not_silent(case):
 def test_mismatch_source_without_lut_table(case):
     spec, ctx, sealed, js = case
     rows = (("toxe", "toy_toxe_slope", 1e-3, 1),)
-    model = PdkMismatchModel("nmos", ("toxe",), (PdkMismatchBlock("b", 1e-7, 1e-4, 1e-7, 1e-4, rows, 1),), "a", "0" * 64, "b", "0" * 64)
+    model = PdkMismatchModel("nmos", ("toxe",), (PdkMismatchBlock("b", 1e-7, 1e-4, 1e-7, 1e-4, rows, 1),), "0" * 64, "0" * 64)  # [U17 ①-b 3차] 경로 칸 없음
     res = ss_evaluate(sealed, ctx, theta(), spec.constraints, junction=js, mismatch=MismatchSource((("nmos", model),), "1" * 64))
     assert _codes_by_metric(res.ss)["offset_in_sigma_mv"] == {"mismatch_lut_missing"}
 

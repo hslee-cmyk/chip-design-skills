@@ -25,6 +25,7 @@ from gmid_engine.sizing.input_window import saturation_window
 
 from .conftest import (R4_L, build_ctx, detail, free_currents, mos, node_voltages, r4_ln_idu, r4_tol_vdsat,
                        r4_vdsat_at, r4_vgs_of, seal_item, topo, two)
+from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 # ===========================================================================
 # 단위: saturation_window(unknown, root, values, gradient, rows) -> (lo, hi) | None
@@ -135,7 +136,7 @@ def _theta(ctx, vgs_a, vgs_b, y=None):
     if y is not None:
         th[("y", INPUT_GROUP_KEY)] = y
     th.update(free_currents(ctx, {"MA": 1e-5, "MB": 1e-5, "IX": 1e-5, "IY": 1e-5}))
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     return th
 
 

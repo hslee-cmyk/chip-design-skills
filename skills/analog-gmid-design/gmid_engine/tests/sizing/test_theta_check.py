@@ -126,13 +126,13 @@ def test_cone_uses_exact_rationals():
 
 
 def test_cone_in_real_context(ctx_c):
-    from .conftest import theta_c
+    from .conftest import kschema, theta_c  # [U17 ①-b] kschema = graph/kernel theta_schema 읽기(설계 40 v1.9.1 §2.4.7)
     ctx = ctx_c[2]
     th = theta_c()
-    check_theta(ctx.schema, th)
+    check_theta(kschema(ctx), th)
     th[("current", "M2")] = -1e-6
     with pytest.raises(ValueError):
-        check_theta(ctx.schema, th)
+        check_theta(kschema(ctx), th)
 
 
 def test_ln_idu_may_be_any_finite_sign():

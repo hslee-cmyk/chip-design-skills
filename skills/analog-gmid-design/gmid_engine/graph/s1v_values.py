@@ -1,12 +1,12 @@
 """S1v(SP1 뷰 구조) 값 형식·어휘 -- 데이터 선언 모듈 (설계 41 §1, 계획 N3.2).
 
-공개 정의는 frozen dataclass 와 상수뿐이다(규칙 A 데이터 선언 모듈). S1v 는 `build_s1v` 가 만들고 모든 값은 tuple·frozenset·
-frozen dataclass 라 `fp_of` 로 지문한다(같은 입력 = 같은 S1v, 이름 전단사에는 그 사상으로만 바뀐다).
+공개 정의는 frozen dataclass 와 상수뿐이다(규칙 A 데이터 선언 모듈). S1v 는 `build_s1v`(writer)가 S0 수준 graph 필드 `graph/s1v: views·l_classes·findings·
+declared·applied_facts`(설계 40 §2.4.8, v1.9.1 D1 -- 묶음 객체 없음)로 쓰고, 모든 값은 tuple·frozenset·frozen dataclass 라 `fp_of` 로 지문한다
+(같은 입력 = 같은 필드 값, 이름 전단사에는 그 사상으로만 바뀐다).
 
 * `Mos`·`TwoTerm`·`NetModel` -- S1 필드를 뷰 계산용으로 한 번 풀어 놓은 읽기 전용 모형(`net_model` 이 만든다).
 * `ViewSeed` -- 수집한 뷰 하나(여기·감지). `ViewS1v` -- 뷰 하나의 유도 결과 전부.
 * `Finding` -- `review_needed`·`unsupported_rule_branch` 기록 하나(항상 근거 코드와 대상 소자·넷이 있다).
-* `S1v` -- 전체 결과와 키.
 """
 import dataclasses
 
@@ -14,7 +14,7 @@ import dataclasses
 S1V_RULE_FILES = (
     "ac_ground_view.py", "blocks.py", "buffer_bundles.py", "cells.py", "composite_blocks.py", "declared_compare.py",
     "drive_kind.py", "feedforward_cells.py", "l_classes.py", "loop_classify.py", "loop_cuts.py", "loop_roles.py", "loops.py",
-    "net_model.py", "node_impedance.py", "output_direction.py", "polarity.py", "pole_nodes.py", "s1v_build.py", "s1v_values.py",
+    "net_model.py", "node_impedance.py", "output_direction.py", "polarity.py", "pole_nodes.py", "s1v_build.py", "s1v_fields.py", "s1v_values.py",
     "signal_reach.py", "stage_bfs.py", "structure_load.py", "view_analysis.py", "views.py", "virtual_ground.py",
 )
 # ---- `structure_rule_fp` 대상 = S1V_RULE_FILES 합집합 이 파일들: 사실이 대조하거나 덮어쓰는 값을 만드는 S1 쪽 소비 파일(40 §3.2-3 `rule_hash`)
@@ -479,38 +479,3 @@ class LClass:
     owner: str
     owner_rule: str
     status: str
-
-
-@dataclasses.dataclass(frozen=True)
-class S1v:
-    """SP1 전체 결과. `key` = 7원소 (S1 지문, 뷰 입력 지문, 계수 예산, 규칙 코드 지문, declared 지문, ratified 지문, declared_loop_cuts 지문), `views` = ViewS1v:
-    전달 뷰(`transfer:<순번>`, 뷰 수집 순서 = 여기·관측 정렬 순) 다음에 루프 뷰(`loop:<소자>:<gate 넷>`, 끊는 점 (소자, 넷) 정렬 순) -- 결정적이고 이름과 무관하다,
-    `l_classes` = LClass(주인 포함), `findings` = 뷰 밖 기록(뷰 수집·declared 대조·structure 사실), `declared` = declared 대조 결과 요약,
-    `facts_applied` = 적용한 ratified 사실 (개념, 대상) tuple."""
-
-    key: tuple
-    views: tuple
-    l_classes: tuple
-    findings: tuple
-    declared: tuple
-    facts_applied: tuple
-
-    @property
-    def loop_roles(self):
-        """전달 뷰들의 `LoopRole` 전부(뷰 순서, 중복 제거 없음)."""
-        return tuple(r for v in self.views for r in v.loop_roles)
-
-    @property
-    def all_findings(self):
-        """뷰 안팎 기록 전부."""
-        return self.findings + tuple(f for v in self.views for f in v.findings)
-
-    @property
-    def review_needed(self):
-        """severity 가 review_needed 인 기록(GB4 앞 정지 대상, DEC-59 안전망)."""
-        return tuple(f for f in self.all_findings if f.severity == SEVERITY_REVIEW)
-
-    @property
-    def unsupported(self):
-        """severity 가 unsupported_rule_branch 인 기록(`기록만` 분기 -- 항상 탐색 전 정지)."""
-        return tuple(f for f in self.all_findings if f.severity == SEVERITY_UNSUPPORTED)

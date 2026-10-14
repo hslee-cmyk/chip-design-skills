@@ -1601,3 +1601,9 @@ def ref_pm(tfun, w_lo=1.0, w_hi=1e13, n=4000):
             assert abs(ph[0]) < 1e-3, ph[0]                                # T(0) 은 양의 실수(음되먹임) -- 위상 기준 0
             return wu / TWO_PI, 180.0 + math.degrees(p)
     return None, None
+
+
+def schema_of(kctx):
+    """[U17 ①-b] θ 스키마 = S0 수준 필드 `graph/kernel: theta_schema`(설계 40 v1.9.1 §2.4.7 KernelContext 행·§2.4.8 D8 -- 옛 `KernelContext.schema` 칸 대체)."""
+    from gmid_engine.sizing import KERNEL_KEY
+    return kctx.base.value("graph", KERNEL_KEY, "theta_schema")

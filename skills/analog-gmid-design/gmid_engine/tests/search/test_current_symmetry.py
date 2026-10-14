@@ -1,4 +1,5 @@
 """search CONTRACT 3.24 [U2] 2·3 `current_symmetry(dc_ctx, untied) -> CurrentSymmetry(ties, negated, zeros)` + `expand_ties(..., negated, zeros)`.
+[U17 ①-b] 첫 인자 = 필드 질의가 되는 스냅샷(`dc.base`) 또는 블록 투영(search_domain 블록 안에서 부른다) -- 커널 컨텍스트 객체가 아니다.
 
 oracle:
 - (b) 계약 3.24 2 문장의 독립 구현(`expected_symmetry`): 입력 = 스냅샷 입력 열(sizing `graph.dc_current_basis` 의 rows·ends·free·fixed,
@@ -23,6 +24,7 @@ from gmid_engine.search import CurrentSymmetry, current_symmetry, evaluate, expa
 from gmid_engine.sizing import DC_KEY
 
 from .canon_cases import make_case, mid_theta, tie_groups
+from .conftest import schema_of  # [U17 ①-b] graph/kernel 필드 읽기
 from .conftest import mos, topo, two
 
 DIFF = [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"), mos("M5", "nmos", "t", "vb", "gnd")]
@@ -131,7 +133,7 @@ def expected_symmetry(dc):
 
 
 def got_symmetry(dc, untied=()):
-    cs = current_symmetry(dc, untied)
+    cs = current_symmetry(dc.base, untied)
     return tie_groups(cs.ties), set(cs.negated), set(cs.zeros)
 
 
@@ -139,7 +141,7 @@ def got_symmetry(dc, untied=()):
 
 def test_series_sense_resistors_structural_zero(tmp_path, lut_sealed):
     case = _case(tmp_path, series_sense(), lut_sealed)
-    cs = current_symmetry(case.dc, ())
+    cs = current_symmetry(case.dc.base, ())
     assert isinstance(cs, CurrentSymmetry)
     g, neg, zeros = got_symmetry(case.dc)
     eg, eneg, ezeros, _ = expected_symmetry(case.dc)
@@ -173,7 +175,7 @@ def test_multi_term_rows_left_untied(tmp_path, lut_sealed):
 def test_asymmetric_circuit_empty(tmp_path, lut_sealed):
     from .canon_cases import asym_doc
     case = make_case(tmp_path, asym_doc(), lut_sealed)
-    cs = current_symmetry(case.dc, ())
+    cs = current_symmetry(case.dc.base, ())
     assert (cs.ties, cs.negated, cs.zeros) == ((), (), ())
     assert case.dc.base.value("graph", "s1", "current_symmetry").generators == ()      # [U17 ①-d] graph 필드
 
@@ -182,7 +184,7 @@ def test_each_component_one_role(tmp_path, lut_sealed):
     """3.24 3: 한 성분은 대표·구성원·구조적 0·묶이지 않음 중 하나(사슬 없음); negated ⊆ 구성원."""
     for doc in (series_sense(), reversed_load(), multi_term()):
         case = _case(tmp_path / doc["topology_name"], doc, lut_sealed)
-        cs = current_symmetry(case.dc, ())
+        cs = current_symmetry(case.dc.base, ())
         reps = [r for r, _ in cs.ties]
         mem = [m for _, ms in cs.ties for m in ms]
         allc = reps + mem + list(cs.zeros)
@@ -197,10 +199,10 @@ def test_untie_removes_relations_of_orbit(tmp_path, lut_sealed):
     involved = {c for grp in g for c in grp} | zeros
     assert not involved & {("current", "R1"), ("current", "R2")}
     with pytest.raises(SchemaRejectedError) as e:
-        current_symmetry(case.dc, ("Nope",))
+        current_symmetry(case.dc.base, ("Nope",))
     assert dict(e.value.record.detail)["reason"] == "untie_element_unknown"
     with pytest.raises(SchemaRejectedError) as e:
-        current_symmetry(case.dc, ("M5",))
+        current_symmetry(case.dc.base, ("M5",))
     assert dict(e.value.record.detail)["reason"] == "untie_orbit_trivial"
 
 
@@ -210,7 +212,7 @@ def test_dimension_accounting(tmp_path, lut_sealed):
         case = _case(tmp_path / doc["topology_name"], doc, lut_sealed)
         d = case.sctx.domain
         members = sum(len(ms) for _, ms in d.ties)
-        assert len(d.variables) + len(d.l_cells) + members + len(d.zeros) == len(case.dc.schema.components)
+        assert len(d.variables) + len(d.l_cells) + members + len(d.zeros) == len(schema_of(case.dc).components)
 
 
 # ---------------------------------------------------------------- expand_ties negated·zeros (3.24 3·5·9 (b))

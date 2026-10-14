@@ -1,4 +1,5 @@
-"""pipeline/stage_b.py -- `run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False) -> StageBResult`
+"""pipeline/stage_b.py -- `run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False, settings) -> StageBResult`
+([U17 ①-b 2차, 사용자 결정 4] settings 필수 -- 기본값 없음)
 (pipeline CONTRACT 5절, 설계 41 0절 A5~A7·4절, 40 3.4, FR-8).
 
 입력은 해석식 toy LUT(metrics/gb4_hand: x = gm/ID = 20 − 8·VGS, y = gds/ID = 0.1, z = gmb/ID = 4·VS; VGS 0..1.8/0.1, L 2 점, VDS 7 점,
@@ -30,13 +31,23 @@ TESTS = Path(__file__).resolve().parents[1]
 if str(TESTS) not in sys.path:
     sys.path.insert(0, str(TESTS))
 from metrics.gb4_hand import (A, GRIDS, I0, L_GRID, LAM, TOY_MIM_DENSITY, VDS_GRID, VGS_GRID, VS_GRID, db, f_default,  # noqa: E402
-                              gain_blocks, memo_of, mos_e, stage_ab, toy_pdk, topology, two_e, write_case, write_lut)
+                              gain_blocks, memo_of, mos_e, stage_ab, toy_pdk, toy_rule, toy_settings, topology, two_e, write_case,
+                              write_lut)
 
 PI_FOL = 19 * 2 * 7 * 6
 PI_CS = 19 ** 2 * 2 ** 2 * 7 ** 2
 FOL_AMAX_DB = db(5.6 / 3.9)
 FOL_B_DB = db((5.6 / 3.9) / (5.6 / 5.7))
 CS_B_DB = db(20.0 / 19.2)
+
+
+
+def _ach(b):
+    """[U17 ①-b] GB4 결과 = 결과 S0 수준 스냅샷의 graph/ach 레코드(설계 40 v1.9.1 §2.4.7 '단계 결과는 S0 수준 스냅샷 참조만', §2.4.8 GB4 행 D2).
+    옛 `StageBResult.achievability` 묶음 대신 읽는다. 레코드가 없으면(GB4 를 계산하지 않았으면) None."""
+    if b.s1 is None or b.s1.snapshot.record("graph", "ach") is None:
+        return None
+    return b.s1.snapshot
 
 
 @pytest.fixture(scope="module")
@@ -76,7 +87,7 @@ def test_follower_gain_target_above_certified_bound_is_exit_3(tmp_path, toy, pdk
     g = b.report["achievability"]["gain"]
     assert g["verdict"] == "infeasible" and g["target_db"] == 10.0
     assert g["sum_db"] == pytest.approx(FOL_AMAX_DB, abs=1e-9)
-    assert b.achievability is not None and b.achievability.verdict == "infeasible"
+    assert _ach(b) is not None and _ach(b).value("graph", "ach", "verdict") == "infeasible"
     # 보고서는 항상 쓴다(json·md)
     jp, mp = (Path(p) for p in b.report_paths)
     assert jp.name == "sbfol.stage_b.json" and mp.name == "sbfol.stage_b.md"
@@ -194,7 +205,7 @@ def test_skipped_when_stage_a_is_not_ok(tmp_path, toy, pdk):
     a, b = stage_ab(tmp_path, toy, tp, sp, pdk)
     assert a.status == "review_needed" and a.exit_code == 2
     assert b.status == "skipped" and b.exit_code == a.exit_code
-    assert b.achievability is None and b.diagnostic is False
+    assert _ach(b) is None and b.diagnostic is False
     assert all(Path(p).is_file() for p in b.report_paths)
 
 
@@ -204,7 +215,7 @@ def test_diagnostic_measures_but_keeps_stage_a_stop(tmp_path, toy, pdk):
     tp, sp = write_case(tmp_path, H.FOLDED)
     a, b = stage_ab(tmp_path, toy, tp, sp, pdk, diagnostic=True)
     assert a.exit_code == 2
-    assert b.diagnostic is True and b.achievability is not None
+    assert b.diagnostic is True and _ach(b) is not None
     assert b.exit_code == a.exit_code
     assert b.status != "ok"
 
@@ -229,3 +240,90 @@ def test_deterministic_and_name_bijection_invariant(tmp_path, toy, pdk):
     tp, sp = write_case(tmp_path / "b", cs("sbcsr", ren, dev), constraints=cons, count_budget=10 ** 6)
     _, b3 = stage_ab(tmp_path / "b", toy, tp, sp, pdk)
     assert _numbers(b3.report) == _numbers(b1.report)
+
+
+def _loose_design_values(value, path="result"):
+    """GraphSnapshot 밖에 실린 설계 값(타입 등록부 형식, 설계 40 §2.4.3·§2.4.10 ②) -- tests/pipeline/test_stage_a.py 의 같은 이름 helper 와 같은 정의."""
+    import dataclasses
+    from gmid_engine.core import GraphSnapshot, type_registry
+    names = set(type_registry.type_registry().names())
+    out, stack, seen = [], [(value, path)], set()
+    while stack:
+        v, p = stack.pop()
+        if isinstance(v, GraphSnapshot) or isinstance(v, (str, bytes, int, float, bool, type(None))) or id(v) in seen:
+            continue
+        seen.add(id(v))
+        cls = type(v)
+        if cls.__module__ + "." + cls.__qualname__ in names:
+            out.append((p, cls.__qualname__))
+        if isinstance(v, (tuple, list, frozenset, set)):
+            stack.extend((x, p + "[]") for x in v)
+        elif isinstance(v, dict):
+            stack.extend((x, p + "[" + repr(k) + "]") for k, x in v.items())
+        elif dataclasses.is_dataclass(v):
+            stack.extend((getattr(v, f.name), p + "." + f.name) for f in dataclasses.fields(v))
+    return sorted(out)
+
+
+def test_stage_b_result_carries_s0_snapshot_reference_only(tmp_path, toy, pdk):
+    """[U17 ①-b] 설계 40 v1.9 §2.4.7 'S1v·Achievability·StartIntervals 묶음 객체' 행 '단계 결과는 S0 수준 스냅샷 참조만 넘긴다', §2.4.8 GB4 행
+    (오케스트레이터 기본안 D2 2026-10-13: graph/ach = curve_checks·gain_checks·area_bound·headroom_rows·buffer_window_report·warnings·reasons·
+    verdict·dof·count_budget·local_inputs, block_bounds 없음).
+    oracle (d): StageBResult 칸에 `achievability` 가 없고, 등록된 설계 값 형식이 GraphSnapshot 밖에 실리지 않으며, 실린 GraphSnapshot 하나 이상이
+    graph/ach 레코드(위 11 필드)를 가지고 verdict·count_budget 이 보고서와 같다. 입력 = 팔로워 + gain ≥ 10 dB(손 계산 exit 3, 첫 test 와 같은 입력)."""
+    import dataclasses
+    from gmid_engine.core import GraphSnapshot
+    tp, sp = write_case(tmp_path, follower(), elements=(("I1", "current_source", None),), constraints=(("gain_ss_db", ">=", 10.0),))
+    _, b = stage_ab(tmp_path, toy, tp, sp, pdk)
+    assert (b.status, b.exit_code) == ("infeasible", 3)
+    assert "achievability" not in {f.name for f in dataclasses.fields(StageBResult)}
+    assert _loose_design_values(b) == []
+    snaps = [getattr(b, f.name) for f in dataclasses.fields(b) if isinstance(getattr(b, f.name), GraphSnapshot)]
+    snaps += [getattr(b, f.name).snapshot for f in dataclasses.fields(b)
+              if isinstance(getattr(getattr(b, f.name), "snapshot", None), GraphSnapshot)]   # [이름 정정] 결과 칸 = S1Graph(.snapshot) -- test_stage_a 같은 helper 형식
+    with_ach = [s for s in snaps if s.record("graph", "ach") is not None]
+    assert with_ach, "S0 수준 스냅샷 참조(graph/ach 레코드)가 결과에 없다"
+    fields = {name for name, _fv in with_ach[0].record("graph", "ach").fields}
+    assert fields == {"curve_checks", "gain_checks", "area_bound", "headroom_rows", "buffer_window_report", "warnings", "reasons",
+                      "verdict", "dof", "count_budget", "local_inputs"}, fields
+    assert with_ach[0].value("graph", "ach", "verdict") == "infeasible"
+    assert with_ach[0].value("graph", "ach", "count_budget") == b.report["count_budget"]
+
+
+def _stage_a_ok(tmp_path, toy, pdk):
+    """단계 A 만(입력 helper): 팔로워 + 이상 전류원, gain 제약 없음(위 test 와 같은 입력 -- 단계 A ok)."""
+    tp, sp = write_case(tmp_path, follower(), elements=(("I1", "current_source", None),))
+    (tmp_path / "_rule").mkdir(parents=True, exist_ok=True)
+    from search.conftest import decl_path
+    rule = toy_rule(tmp_path / "_rule")
+    a = run_stage_a(tp, sp, toy, pdk_decl=pdk, lut_rule_decl=rule, pdk_decl_path=decl_path(pdk), lut_rule_decl_path=decl_path(rule),
+                    output_dir=tmp_path / "out")
+    assert (a.status, a.exit_code) == ("ok", 0)
+    return a
+
+
+def test_settings_is_required_argument_without_default(tmp_path, toy, pdk):
+    """[U17 ①-b 2차] oracle (d) 사용자 결정 4(2026-10-14, wt/_drafts/user_decisions.md 'U17 1-b 병합 전 3~9'): `run_stage_b` 의 `settings` 는
+    필수 인자, 기본값 없음 -- 없이 부르면 파이썬 인자 누락 TypeError(단계 B 가 돌지 않아 보고서도 없다). 서명에도 기본값이 없다."""
+    import inspect
+    param = inspect.signature(run_stage_b).parameters["settings"]
+    assert param.default is inspect.Parameter.empty
+    a = _stage_a_ok(tmp_path, toy, pdk)
+    with pytest.raises(TypeError) as ei:
+        run_stage_b(a, memo_of(toy), pdk, output_dir=tmp_path / "out")
+    assert "settings" in str(ei.value)
+    with pytest.raises(TypeError) as ei:
+        run_stage_b(a, memo_of(toy), pdk, output_dir=tmp_path / "out", diagnostic=True)
+    assert "settings" in str(ei.value)
+    assert not list((tmp_path / "out").glob("*.stage_b.*"))
+    # 대조군: 같은 입력에 settings 를 명시하면 단계 B 가 돈다(위 test_follower_without_gain_constraint_is_ok 와 같은 결과)
+    b = run_stage_b(a, memo_of(toy), pdk, output_dir=tmp_path / "out", settings=toy_settings())
+    assert (b.status, b.exit_code) == ("ok", 0)
+
+
+@pytest.mark.parametrize("bad", ["settings", (600.0, 40), {"eval_budget": 40}], ids=["str", "tuple", "dict"])
+def test_settings_of_wrong_type_rejected(tmp_path, toy, pdk, bad):
+    """[U17 ①-b 2차] oracle (d) interface card(4) '형식이 틀린 settings 는 기존대로 TypeError'(pipeline CONTRACT 5절 `settings`(`SearchSettings`))."""
+    a = _stage_a_ok(tmp_path, toy, pdk)
+    with pytest.raises(TypeError):
+        run_stage_b(a, memo_of(toy), pdk, output_dir=tmp_path / "out", settings=bad)

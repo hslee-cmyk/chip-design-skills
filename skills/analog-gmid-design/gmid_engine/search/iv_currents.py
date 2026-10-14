@@ -25,7 +25,8 @@ import numpy as np
 from gmid_engine.core import SchemaRejectedError, SealViolationError
 from gmid_engine.lut import caps
 
-from .iv_curves import QUANTITY_IDU, QUANTITY_VGS
+from ._helpers_curves import QUANTITY_IDU, QUANTITY_VGS, curve_bundle_of, curve_value
+
 
 _KIND_BUFFER = "buffer"
 _BLOCK_KINDS = ("gain", _KIND_BUFFER, "composite")
@@ -96,14 +97,14 @@ def _blocks(ctx):
 def _per_amp(ctx, gm_id, lengths):
     out, lacking = {}, []
     for d in ctx.devices:
-        bundle = ctx.curves.bundle_of(d.name, d.kind, lengths[d.name])
+        bundle = curve_bundle_of(ctx, d.name, d.kind, lengths[d.name])
         if bundle is None:
             lacking.append(d.name)
             continue
-        idu = ctx.curves.value(bundle, QUANTITY_IDU, gm_id[d.name])
+        idu = curve_value(bundle, QUANTITY_IDU, gm_id[d.name])
         w_per_a = lengths[d.name] / idu
         try:
-            c = caps(ctx.memo, d.kind, lengths[d.name], ctx.curves.value(bundle, QUANTITY_VGS, gm_id[d.name]), bundle[QUANTITY_IDU].vds,
+            c = caps(ctx.memo, d.kind, lengths[d.name], curve_value(bundle, QUANTITY_VGS, gm_id[d.name]), bundle[QUANTITY_IDU].vds,
                      bundle[QUANTITY_IDU].vsb, w_per_a)
         except _LUT_ERRORS:
             lacking.append(d.name)

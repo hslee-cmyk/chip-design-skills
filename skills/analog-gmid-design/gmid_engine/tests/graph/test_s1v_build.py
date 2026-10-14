@@ -1,9 +1,9 @@
-"""graph/s1v_build.py -- `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), previous=None,
-stop_on_unsupported=True)`(계약 10.1·10.2 '기록과 정지', 10.3 불변량 1·2·8).
+"""graph/s1v_build.py -- `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(),
+stop_on_unsupported=True) -> S1Graph`(계약 10.1·10.2 '기록과 정지', 10.3 불변량 1·2·8).
 
 oracle (a):
 - 인자: count_budget 은 1 이상 int(bool 거부) -- 그 밖 TypeError.
-- 결정론·재사용(불변량 1): 같은 입력 두 번 -> `==`, 같은 키 previous -> `is`.
+- 결정론·재사용(불변량 1): 같은 입력 두 번 -> S1v 필드 값 `==`, 같은 입력 재호출 -> 블록 재사용(계산 0) [U17 ①-b, previous= 삭제].
 - 정지(불변량 8): `기록만` 코드가 하나라도 있으면 기본 모드에서 core `StructureUnresolvedError`(exit 2, detail reason
   `unsupported_rule_branch`, rule_branch = 첫 분기, branches, findings), `stop_on_unsupported=False` 는 기록을 돌려준다. review_needed 는
   정지가 아니다. 각 코드를 일으키는 손 회로는 해당 test 파일의 손 유도를 따른다.
@@ -43,14 +43,22 @@ def test_count_budget_is_keyword_only(tmp_path):
         build_s1v(s1, None, H.BIG_BUDGET)          # noqa -- 위치 인자 금지(시그니처 `*, count_budget`)
 
 
-def test_deterministic_and_previous_reuse(tmp_path):
+def test_deterministic_and_field_reuse(tmp_path):
+    """[U17 ①-b] 옛 `previous=` 인자(같은 키면 그 객체 `is`)는 설계 40 v1.9.1 §2.4.2 로 없어졌다 -- 재사용은 계산 블록 입력 버전으로 한다
+    ('입력 버전이 같으면 다시 계산하지 않는다'). 같은 입력의 두 결과는 S1v 필드 값이 같고(결정론), S1v 필드가 이미 있는 S1Graph 위에 같은
+    입력으로 다시 부르면 블록 `s1v_fields` 는 계산하지 않고(computes 0, reuses 1) 같은 스냅샷을 돌려준다. 예산이 다르면 다시 계산한다."""
+    from gmid_engine.graph import s1v_fields
     s1, first = H.build(tmp_path, H.CMFB)
-    again = build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False)
-    assert again == first and again is not first
-    reused = build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, previous=first)
-    assert reused is first
-    other = build_s1v(s1, None, count_budget=H.BIG_BUDGET + 1, stop_on_unsupported=False, previous=first)
-    assert other is not first and other.key != first.key
+    fields = ("views", "l_classes", "findings", "declared", "applied_facts")
+    again = H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False))
+    assert [getattr(again, f) for f in fields] == [getattr(first, f) for f in fields]
+    s1v_fields.reset_stats()
+    reused = build_s1v(first.graph, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False)
+    st = s1v_fields.stats()
+    assert (st.computes, st.reuses) == (0, 1)
+    assert reused.snapshot is first.graph.snapshot
+    other = build_s1v(first.graph, None, count_budget=H.BIG_BUDGET + 1, stop_on_unsupported=False)
+    assert s1v_fields.stats().computes == 1 and other.snapshot is not first.graph.snapshot
 
 
 STOPPERS = [
@@ -165,7 +173,7 @@ def _lib_facts(name, *rows):
     from gmid_engine.authoring import load_topology
     from gmid_engine.graph import build_s1
     s1 = build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), structure=st)
-    return build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=st)
+    return H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=st))
 
 
 def _review(s1v, code):

@@ -25,6 +25,7 @@ from gmid_engine.sizing import (DC_KEY, REASON_NEWTON_CAP, REASON_NEWTON_LINE_SE
 
 from .conftest import (B, C, I0, LAM, TOY_VGS, TOY_VS, W_KEY, W_M, Oracle, build_ctx, detail, free_currents, mos,
                        new_access, node_voltages, r4_arrays, r4_ln_idu, r4_vds_floor, r4_vgs_of, topo, two, write_r4_lut)
+from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 
 def kmax_ref(width, tol):
@@ -426,7 +427,7 @@ def theta_s(ctx, y1, y2):
           ("ln_idu", "M3"): Oracle.ln_idu("pmos", 0.7, 1.8 - vout, 0.0),
           ("y", "input_common_mode"): y1, ("y", "vout"): y2}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5}))
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     return th, (vin, vout)
 
 
@@ -439,7 +440,7 @@ def theta_q(ctx, y, z_star):
           ("ln_idu", "M3"): Oracle.ln_idu("nmos", 0.6, z_star, 0.0),
           ("ln_idu", "M2"): Oracle.ln_idu("pmos", 0.7, 1.8 - x_star, 0.0), ("y", "input_common_mode"): y}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5}))
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     assert abs(_vgs("nmos", T, c, z_star) - c) <= 1e-12                   # 전제: 그 해가 writer 식의 고정점
     return th, (z_star, x_star), T
 
@@ -584,7 +585,7 @@ def test_methods_direct_and_bisection(tmp_path, toy_access):
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6, ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.6, 0.0),
           ("ln_idu", "M3"): Oracle.ln_idu("pmos", 0.7, 1.35, 0.0), ("y", "out"): 0.25}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5, "I1": 1e-5}))
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     snap = size_and_seal(ctx, th).snapshot
     order = ctx.base.value("graph", DC_KEY, "dc_scc_order")
     logs = {tuple(e.nodes): e for e in snap.value("graph", DC_KEY, "dc_scc_log")}
@@ -856,7 +857,7 @@ def test_case_two_seal_violation_kept_with_newton_cause(tmp_path, acc_floor):
     th = {("L", "MA"): 1e-6, ("L", "MB"): 1e-6, ("ln_idu", "MA"): r4_ln_idu("nmos", 0.6, 0.25, 0.0),
           ("ln_idu", "MB"): t_mb}
     th.update(free_currents(ctx, {"MA": 1e-5, "MB": 1e-5, "IX": 1e-5, "IY": 1e-5}))
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     # 전제: VDS(MB) ∈ [0.25, 2.0](켜진 열) 어디서도 VGS(MB) > vin − 0.25 -> V(y) = vin − VGS < 하한: 정의역 안 해 없음
     assert all(r4_vgs_of("nmos", t_mb, 0.25 + 0.05 * i, 0.0) > vin - floor for i in range(36))
     with pytest.raises(SealViolationError) as ei:

@@ -1,4 +1,4 @@
-"""`metric_structure` -- metrics CONTRACT 10.0·10.1: S1v -> 전달 뷰마다 `ViewStruct`(주경로 블록 사슬 stage 순, FF 묶음(merge 블록·처음 우회 블록 B_b·
+"""`metric_structure` -- [U17 ①-b] 계산 블록 -> 필드 `graph/s1v: metric_structure`(40 v1.9.1 §2.4.8; 읽기 = u7_ngcc.structure_of). metrics CONTRACT 10.0·10.1: S1v -> 전달 뷰마다 `ViewStruct`(주경로 블록 사슬 stage 순, FF 묶음(merge 블록·처음 우회 블록 B_b·
 그 input 셀), 첫 이득 블록 input 셀, 순방향 신호 셀 MOS, 극점 넷, 방향 셀).
 
 oracle:
@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import sys
 
-from gmid_engine.metrics import BlockStruct, FfStruct, MetricStructure, ViewStruct, metric_structure
+from gmid_engine.metrics import BlockStruct, FfStruct, MetricStructure, ViewStruct
 
 from . import u7_ngcc as N
 
@@ -23,7 +23,7 @@ assert "s1v_hand" in sys.modules
 
 
 def test_ngcc_view_struct():
-    ms = metric_structure(N.s1v())
+    ms = N.structure_of(N.s1v())
     assert isinstance(ms, MetricStructure)
     (v,) = ms.views
     assert isinstance(v, ViewStruct) and v.id == "transfer:0"
@@ -47,7 +47,7 @@ def test_ngcc_view_struct():
 
 def test_ff3_hand_circuit(tmp_path):
     _s1, s1v = SH.build(tmp_path, J.FF3)
-    (v,) = metric_structure(s1v).views
+    (v,) = N.structure_of(s1v).views
     assert [b.key for b in v.blocks] == [("a",), ("b",), ("out",)]
     ff = {(f.tap, f.merge): f for f in v.ff}
     assert ff[("in", "out")].members == ("M5", "Nb", "Pd", "Pm") and ff[("in", "out")].bypassed == ("a",)
@@ -65,8 +65,8 @@ def test_name_bijection(tmp_path):
     devs = {"M1": "Z1", "M2": "Y2", "M3": "X3", "M4": "W4", "M5": "V5", "Pd": "A1", "Pm": "A2", "Nb": "B9",
             "P1": "C1", "P2": "C2", "P3": "C3"}
     _s1b, s1v_b = SH.build(tmp_path / "b", SH.rename(J.FF3, nets, devs, seed=3), stem="ff3r")
-    (a,) = metric_structure(s1v).views
-    (b,) = metric_structure(s1v_b).views
+    (a,) = N.structure_of(s1v).views
+    (b,) = N.structure_of(s1v_b).views
     f = lambda n: nets.get(n, n)  # noqa: E731
     g = lambda d: devs.get(d, d)  # noqa: E731
     assert sorted(tuple(map(f, x.key)) for x in a.blocks) == sorted(x.key for x in b.blocks)
@@ -78,7 +78,7 @@ def test_name_bijection(tmp_path):
 
 def test_deterministic_and_hashable_values():
     s1v = N.s1v()
-    a, b = metric_structure(s1v), metric_structure(s1v)
+    a, b = N.structure_of(s1v), N.structure_of(s1v)
     assert a == b
     hash(a)                                                    # 블록 입력 버전 지문에 드는 불변 값(tuple·str·float)
 
@@ -87,6 +87,6 @@ def test_non_transfer_views_skipped(tmp_path):
     """루프 뷰 등 transfer 가 아닌 뷰는 구조 입력이 없다 -- CMFB 손 회로(루프 뷰 있음)는 전달 뷰 수만큼만."""
     _s1, s1v = SH.build(tmp_path, SH.CMFB)
     kinds = [v.kind for v in s1v.views]
-    ms = metric_structure(s1v)
+    ms = N.structure_of(s1v)
     assert len(ms.views) == kinds.count("transfer")
     assert len(kinds) > len(ms.views)

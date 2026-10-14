@@ -8,10 +8,9 @@ oracle (a) 물리 불변식·구성:
 """
 import pytest
 
-from gmid_engine.search.iv_context import build_start_context
 from gmid_engine.search.iv_currents import current_model
 
-from .u13_hand import cs_chain, rows_by_name, toy_case
+from .u13_hand import cs_chain, rows_by_name, start_view_of, toy_case
 
 TARGETS = (("gbw_ss_hz", ">=", 1e6), ("pm_ss_deg", ">=", 60.0))
 ELS2 = (("C1", "capacitor", 1e-12), ("C2", "capacitor", 2e-12))
@@ -23,7 +22,7 @@ def _case():
 
 def test_affine_currents_follow_block_gm_and_kcl():
     c = _case()
-    ctx = build_start_context(c.s1v, c.ach, c.kctx, c.spec, c.pdk, c.sctx.domain)
+    ctx = start_view_of(c)
     names = [d.name for d in ctx.devices]
     g = {n: 12.0 for n in names}                        # VGS 1.0 마디(20 − 8·1.0)
     lengths = {n: 1e-6 for n in names}

@@ -10,9 +10,7 @@ oracle:
 import pytest
 
 from gmid_engine.search._helpers_guard import guard_bounds, guard_devices, guard_input_gm_id
-from gmid_engine.search.iv_context import build_start_context
-
-from .u13_hand import cs_chain, toy_case
+from .u13_hand import cs_chain, start_view_of, toy_case
 
 ELS = (("C1", "capacitor", 1e-12), ("C2", "capacitor", 1e-12))
 
@@ -20,7 +18,7 @@ ELS = (("C1", "capacitor", 1e-12), ("C2", "capacitor", 1e-12))
 @pytest.fixture(scope="module")
 def ctx():
     c = toy_case(cs_chain(2), elements=ELS, constraints=(("gbw_ss_hz", ">=", 1e6), ("pm_ss_deg", ">=", 60.0)))
-    return build_start_context(c.s1v, c.ach, c.kctx, c.spec, c.pdk, c.sctx.domain)
+    return start_view_of(c)
 
 
 def test_guard_devices_first_gain_block(ctx):

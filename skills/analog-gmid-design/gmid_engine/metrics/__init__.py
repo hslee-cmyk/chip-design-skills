@@ -7,9 +7,8 @@
 
 from gmid_engine.core import type_registry
 
-from .achievability import achievability, block_spec, local_inputs
+from .achievability import achievability, block_spec
 from .achievability_types import (
-    Achievability,
     AreaBound,
     AxisSpec,
     BlockBound,
@@ -18,10 +17,10 @@ from .achievability_types import (
     CurveCheck,
     CurveChecks,
     DofReport,
-    EdgeCost,
     GainCheck,
     HeadroomRow,
     LocalInputs,
+    LocalView,
     MosLocal,
     ResLocal,
     SliceCurveCheck,
@@ -33,8 +32,20 @@ from .block_gain_rows import row_gains
 from .block_param_tables import ParamTables
 from .curve_checks import curve_checks
 from .dof_report import dof_report
-from .edge_cost_bounds import edge_costs
 from .headroom_bound import HeadroomResult, headroom_bound
+from .junction_field import junction_field
+from .mismatch_field import mismatch_field
+from .model_error_field import model_error_field
+from .s0_fields import (
+    ACH_KEY,
+    ACH_WRITES,
+    ACHIEVABILITY_WRITER,
+    JUNCTION_SOURCE_WRITER,
+    METRIC_STRUCTURE_WRITER,
+    METRICS_S0_WRITERS,
+    MISMATCH_SOURCE_WRITER,
+    MODEL_ERROR_WRITER,
+)
 from .aux_types import (
     BlockGain,
     BlockResidual,
@@ -160,15 +171,29 @@ from .supply import supply_currents
 from .verified_by import VerifiedBy, verified_by
 from .block_gain_model import block_gain_model_of
 
-# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 metrics 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식'): 묶음 `Achievability` 를
-# 필드로 풀었을 때 그 필드 값에서 닿는 frozen dataclass(GB4 `gain`·`area`·`headroom`·`dof`·`curves`). 묶음 자체와 계산용 입력(`LocalInputs`·`BlockSpec`·
-# `AxisSpec`·`MosLocal`·`ResLocal`·`BlockModel`·`EdgeCost`)은 필드 값이 아니라 올리지 않는다.
-for _field_value_type in (GainCheck, BlockBound, AreaBound, HeadroomRow, DofReport, CurveChecks, CurveCheck, SliceCurveCheck):
+# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 metrics 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식', §2.4.8 v1.9.1 D2·D7·D9):
+# `graph/ach` 필드 값(`GainCheck`·`BlockBound`·`AreaBound`·`HeadroomRow`·`DofReport`·`CurveChecks`·`CurveCheck`·`SliceCurveCheck`·`LocalInputs`),
+# `graph/s1v: metric_structure`(`MetricStructure`·`ViewStruct`·`BlockStruct`·`FfStruct`)·`noise_input_cells`(`NoiseDecl`),
+# `graph/kernel: junction_source`(`JunctionSource`·`JunctionParams`)·`mismatch_source`(`MismatchSource`)·`passive_area_decl`(`PassiveAreaDecl`).
+# 계산용 입력(`LocalView`·`BlockSpec`·`AxisSpec`·`MosLocal`·`ResLocal`·`BlockModel`)은 필드 값이 아니라 올리지 않는다.
+for _field_value_type in (GainCheck, BlockBound, AreaBound, HeadroomRow, DofReport, CurveChecks, CurveCheck, SliceCurveCheck, LocalInputs,
+                          MetricStructure, ViewStruct, BlockStruct, FfStruct, NoiseDecl, JunctionSource, JunctionParams, MismatchSource,
+                          PassiveAreaDecl):
     type_registry.type_registry().register(_field_value_type)
 
 __all__ = (
+    "ACH_KEY",
+    "ACH_WRITES",
+    "ACHIEVABILITY_WRITER",
+    "JUNCTION_SOURCE_WRITER",
+    "METRIC_STRUCTURE_WRITER",
+    "METRICS_S0_WRITERS",
+    "MISMATCH_SOURCE_WRITER",
+    "MODEL_ERROR_WRITER",
+    "junction_field",
+    "mismatch_field",
+    "model_error_field",
     "AUX_TYPES",
-    "Achievability",
     "AreaBound",
     "AreaSearch",
     "AxisSpec",
@@ -190,7 +215,6 @@ __all__ = (
     "DcOperatingPoint",
     "DiffusionGeometry",
     "DofReport",
-    "EdgeCost",
     "Excitation",
     "Factor",
     "FfContribution",
@@ -210,6 +234,7 @@ __all__ = (
     "JunctionSource",
     "LUT_PARAMETERS",
     "LocalInputs",
+    "LocalView",
     "LoopAnalysis",
     "LoopCut",
     "LsFields",
@@ -268,7 +293,6 @@ __all__ = (
     "ViewStruct",
     "achievability",
     "block_spec",
-    "local_inputs",
     "analyze_loop",
     "area_lower_bound",
     "area_search",
@@ -282,7 +306,6 @@ __all__ = (
     "cut_circuit",
     "device_sigmas",
     "dof_report",
-    "edge_costs",
     "ff_gm_ratio",
     "find_crossing",
     "headroom_bound",

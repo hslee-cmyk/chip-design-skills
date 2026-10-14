@@ -41,6 +41,25 @@ import s1v_hand as H
 
 # [U17 ①-a] run_stage_a(pdk_decl=) 필수(설계 40 §2.4.12 Q1 fail-closed -- S0 키의 PDK 선언 파일 내용 해시). 저장소 PDK 선언 원본.
 PDK_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json"), BoundedLRU(4))
+# [U17 ①-b] run_stage_a(lut_rule_decl=) 필수(설계 40 §2.4.7 SearchContext 칸 배정 `junction` -> S0 필드 junction_source = PDK 선언·LUT 생성 규칙 선언의 파생,
+# S0 키 입력). 저장소 LUT 생성 규칙 선언 원본.
+LUT_RULE_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(4))
+# [U17 ①-b 3차, 사용자 결정 2026-10-14 "(가) 경로 인자 필수"] run_stage_a(pdk_decl_path=, lut_rule_decl_path=) 필수 -- 위 두 선언을 읽어 온 파일
+PDK_DECL_PATH = str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json")
+LUT_RULE_DECL_PATH = str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json")
+
+
+def _s1v(r):
+    """[U17 ①-b] 단계 A 결과의 S1v 필드 읽기(설계 40 v1.9.1 §2.4.7 '단계 결과는 S0 수준 스냅샷 참조만', §2.4.8 graph/s1v 행 D1).
+    옛 `StageAResult.s1v` 묶음 대신 `r.s1`(S0 수준 스냅샷 위 S1Graph)의 graph/s1v 레코드를 읽는다. 레코드가 없으면(S1v 전에 정지) None."""
+    if r.s1 is None or r.s1.snapshot.record("graph", "s1v") is None:
+        return None
+    return H.read_s1v(r.s1)
+
+
+def _s1v_version(g):
+    """build_s1v 계산 블록의 입력 버전(옛 `S1v.key` 의 대체 -- 입력(선언 루프 끊는 넷·사실 등)이 바뀌면 바뀐다, 설계 40 §2.4.2 블록 입력 버전)."""
+    return g.snapshot.block_version("build_s1v")
 
 
 def _write(tmp_path, doc):
@@ -50,7 +69,7 @@ def _write(tmp_path, doc):
 
 
 def _run(tmp_path, real_lut, doc, out="out", **kw):
-    return run_stage_a(_write(tmp_path, doc), None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / out, supplies_v=H.SUPPLIES, **kw)
+    return run_stage_a(_write(tmp_path, doc), None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / out, supplies_v=H.SUPPLIES, **kw)
 
 
 def test_clean_circuit_is_ok_exit_0(tmp_path, real_lut):
@@ -58,7 +77,7 @@ def test_clean_circuit_is_ok_exit_0(tmp_path, real_lut):
     assert isinstance(r, StageAResult)
     assert (r.exit_code, r.status) == (0, "ok")
     assert r.report["stop_reasons"] == [] and r.report["review_needed"] == []
-    assert r.s1v is not None and [v.id for v in r.s1v.views] == ["transfer:0"]
+    assert _s1v(r) is not None and [v.id for v in _s1v(r).views] == ["transfer:0"]
 
 
 def test_review_needed_only_is_exit_2(tmp_path, real_lut):
@@ -78,7 +97,7 @@ def test_record_only_branch_stops_exit_2(tmp_path, real_lut):
     r = _run(tmp_path, real_lut, H.XCOUP)
     assert (r.exit_code, r.status) == (2, "stopped")
     assert any("loop_record_only" in x for x in r.report["stop_reasons"])
-    assert r.s1v is not None                                   # 진단 모드로 기록을 받아 단계 A 가 판정한다
+    assert _s1v(r) is not None                                   # 진단 모드로 기록을 받아 단계 A 가 판정한다
 
 
 def test_topology_rejection_is_exit_7(tmp_path, real_lut):
@@ -86,7 +105,7 @@ def test_topology_rejection_is_exit_7(tmp_path, real_lut):
     bad["topology_name"] = "cs_bad"
     r = _run(tmp_path, real_lut, bad)
     assert r.exit_code == 7
-    assert r.s1v is None
+    assert _s1v(r) is None
     assert r.report["count_budget"] == 0 and r.report["tables"] is None
     assert len(r.report["stop_reasons"]) == 1 and r.report["stop_reasons"][0].startswith("A1_load: ")
     assert all((tmp_path / "out" / name).is_file() for name in ("cs_bad.stage_a.json", "cs_bad.stage_a.md"))
@@ -119,7 +138,7 @@ def _structure(path, s1_fp, facts, topology_hash=None):
 def test_declared_comparison_states(tmp_path, real_lut):
     absent = _run(tmp_path, real_lut, H.MILLER, out="o0")
     assert absent.report["declared_comparison"] == "not_performed: miller.structure.json absent"
-    s1_fp = absent.s1v.key[0].topology_fp
+    s1_fp = absent.s1.key.topology_fp
     side = tmp_path / "miller.structure.json"                       # 기본 경로 = topology 옆 <회로>.structure.json
     _structure(side, s1_fp, [("stage_one", "M1 M2"), ("stage_two", "M6")])
     good = _run(tmp_path, real_lut, H.MILLER, out="o1")
@@ -152,7 +171,7 @@ def test_malformed_structure_file_is_rejected(tmp_path, real_lut):
     r = _run(tmp_path, real_lut, H.CS)
     # 계약 1절: structure 거부 -> 7 또는 2(정지 전 단계라 s1v None), 보고서는 항상 쓰인다(4절)
     assert r.exit_code in (2, 7) and r.status == "stopped"
-    assert r.s1v is None
+    assert _s1v(r) is None
     assert all(Path(p).is_file() for p in r.report_paths)
 
 
@@ -160,7 +179,7 @@ def test_malformed_structure_file_is_rejected(tmp_path, real_lut):
                                      "pushpull_follower_buffer", "sf_pushpull_output_opamp"])     # [U1b] sf: 41 1.13 sf 행
 def test_library_circuits_without_stop(tmp_path, real_lut, circuit):
     # oracle (a)·(d): 아래 회로의 구조 유도 손 요약은 tests/integration/test_sp1_library_summary.py -- 정지 분기·review_needed 없음
-    r = run_stage_a(H.LIBRARY / (circuit + ".topology.json"), None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path,
+    r = run_stage_a(H.LIBRARY / (circuit + ".topology.json"), None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path,
                     supplies_v=H.lib_supplies(circuit))
     assert (r.exit_code, r.status) == (0, "ok"), r.report["stop_reasons"] + r.report["review_needed"]
 
@@ -180,7 +199,7 @@ RECORD_ONLY = {"cell_ambiguous", "pass_group_unsupported", "gate_on_current_node
 def test_library_stopping_circuits(tmp_path, real_lut, circuit, expected):
     # [C-6] 파일럿은 library 에 structure.json(ac_ground_exception Vbias2)이 생겼다. 이 test 의 대상은 '사실 없음 -> 정지'이므로
     # 존재하지 않는 경로를 structure_path 로 주어 사실 파일 없는 상태를 그대로 검사한다(기준 불변). 사실 있는 기본 상태는 아래 test.
-    r = run_stage_a(H.LIBRARY / (circuit + ".topology.json"), None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path,
+    r = run_stage_a(H.LIBRARY / (circuit + ".topology.json"), None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path,
                     supplies_v=H.lib_supplies(circuit), structure_path=tmp_path / "absent" / (circuit + ".structure.json"))
     assert (r.exit_code, r.status) == (2, "stopped")
     codes = {s.split("|")[1] for s in r.report["stop_reasons"]}
@@ -198,7 +217,7 @@ def test_library_pilot_default_structure_facts_give_ok(tmp_path, real_lut, with_
     # 적용 사실은 그 1건, 정지·review 기록 0(spec 의 안정도 제약은 내부 루프 선언이 아니라 loop_cut_unmatched 도 없다).
     assert (H.LIBRARY / (PILOT + ".structure.json")).is_file()
     sp = H.LIBRARY / (PILOT + ".sizing_spec.json") if with_spec else None
-    r = run_stage_a(H.LIBRARY / (PILOT + ".topology.json"), sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path, supplies_v=H.lib_supplies(PILOT))
+    r = run_stage_a(H.LIBRARY / (PILOT + ".topology.json"), sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path, supplies_v=H.lib_supplies(PILOT))
     assert (r.exit_code, r.status) == (0, "ok"), r.report["stop_reasons"] + r.report["review_needed"]
     assert [tuple(x) for x in r.report["applied_facts"]] == [("ac_ground_exception", "Vbias2")]
     assert r.report["stop_reasons"] == []
@@ -258,8 +277,8 @@ def test_beta_loop_declaration_does_not_reach_build_s1v(tmp_path, real_lut, monk
     # 다른 두 build_s1v 호출의 키가 정답 후보 둘이다(넘기지 않은 쪽 = 단계 A).
     seen = _spy_build_s1v(monkeypatch)
     tp, sp = J.write_pair(tmp_path, J.UGB, feedback=("Rf",))
-    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
-    assert r.s1v is not None
+    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    assert _s1v(r) is not None
     assert seen and all("inn" not in cuts for cuts in seen)
     monkeypatch.undo()
     topo = load_topology(str(tp))
@@ -268,8 +287,8 @@ def test_beta_loop_declaration_does_not_reach_build_s1v(tmp_path, real_lut, monk
     kw = {"count_budget": r.report["count_budget"], "stop_on_unsupported": False}
     with_cut = build_s1v(s1, spec, declared_loop_cuts=("inn",), **kw)
     without = build_s1v(s1, spec, **kw)
-    assert with_cut.key[-1] != without.key[-1]                    # 전제: 인자가 키를 바꾼다
-    assert r.s1v.key[-1] == without.key[-1]
+    assert _s1v_version(with_cut) != _s1v_version(without)        # 전제: 인자가 S1v 블록 입력 버전을 바꾼다(옛 S1v 키 끝 칸)
+    assert seen and all(cuts == () for cuts in seen)              # [U17 ①-b] 옛 키 대조 대체: 단계 A 가 넘긴 끊는 넷 = 없음(without 과 같음)
     assert "loop_cut_unmatched" not in _codes(r.report["review_needed"])      # 대조에서도 뺀다
 
 
@@ -279,8 +298,8 @@ def test_internal_loop_declaration_reaches_build_s1v(tmp_path, real_lut, monkeyp
     seen = _spy_build_s1v(monkeypatch)
     _internal_loop_decl(monkeypatch, (("M5", "cm"),))
     tp, sp = J.write_pair(tmp_path, H.CMFB)
-    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
-    assert r.s1v is not None
+    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    assert _s1v(r) is not None
     assert seen and all(set(cuts) == {"cm"} for cuts in seen)
 
 
@@ -290,17 +309,17 @@ def test_unmatched_internal_loop_cut_is_review(tmp_path, real_lut, monkeypatch):
     # cmfb 는 루프 위 넷이지만 끊는 점(M5 gate cm)이 아니다 -> 불일치. 회로 자체는 기록 없는 ok(아래 일치 test)이므로 상태는 review_needed/2.
     _internal_loop_decl(monkeypatch, (("M3", "cmfb"),))
     tp, sp = J.write_pair(tmp_path, H.CMFB)
-    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
     assert (r.exit_code, r.status) == (2, "review_needed")
     hits = [x.split("|")[:4] for x in r.report["review_needed"] if x.split("|")[1] == "loop_cut_unmatched"]
     assert hits == [["review_needed", "loop_cut_unmatched", "", "cmfb"]]
-    assert "loop_cut_unmatched" not in {f.code for f in r.s1v.findings} | {f.code for v in r.s1v.views for f in v.findings}
+    assert "loop_cut_unmatched" not in {f.code for f in _s1v(r).findings} | {f.code for v in _s1v(r).views for f in v.findings}
 
 
 def test_matching_internal_loop_cut_leaves_no_record(tmp_path, real_lut, monkeypatch):
     _internal_loop_decl(monkeypatch, (("M5", "cm"),))
     tp, sp = J.write_pair(tmp_path, H.CMFB)
-    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
     assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
     assert "loop_cut_unmatched" not in _codes(r.report["review_needed"])
 
@@ -309,22 +328,25 @@ def test_matching_internal_loop_cut_leaves_no_record(tmp_path, real_lut, monkeyp
 def test_real_spec_beta_loops_never_report_unmatched(tmp_path, real_lut, feedback):
     # 실 spec 파일 그대로(조작 없음): β 루프(declared, 끊는 넷 inn 은 엔진 루프 뷰에 없음)와 unity(cuts 없음) 모두 대조 대상이 아니다
     tp, sp = J.write_pair(tmp_path, J.UGB, feedback=feedback)
-    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
-    assert r.s1v is not None
+    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    assert _s1v(r) is not None
     assert "loop_cut_unmatched" not in _codes(r.report["review_needed"])
 
 
-def test_cuts_only_from_pm_constraints(tmp_path, real_lut):
+def test_cuts_only_from_pm_constraints(tmp_path, real_lut, monkeypatch):
     # 40 3.2-3 파이프라인 2: cuts 는 안정도 제약(pm_*) 행이 가리키는 루프 뷰의 끊는 넷만. pm 제약이 없으면(feedback 선언만) 넘기지 않는다
+    seen = _spy_build_s1v(monkeypatch)
     tp, sp = J.write_pair(tmp_path, J.UGB, feedback=("Rf",), pm=False)
-    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
     topo = load_topology(str(tp))
     spec = load_sizing_spec(str(sp), topo, metric_catalog())
     s1 = build_s1(topo, H.SUPPLIES)
     kw = {"count_budget": r.report["count_budget"], "stop_on_unsupported": False}
+    monkeypatch.undo()
     without = build_s1v(s1, spec, **kw)
     with_cut = build_s1v(s1, spec, declared_loop_cuts=("inn",), **kw)
-    assert r.s1v.key[-1] == without.key[-1] != with_cut.key[-1]
+    assert _s1v_version(without) != _s1v_version(with_cut)        # 전제: 인자가 S1v 블록 입력 버전을 바꾼다(옛 S1v 키 끝 칸)
+    assert seen and all(cuts == () for cuts in seen)              # [U17 ①-b] 옛 키 대조 대체: 단계 A 가 넘긴 끊는 넷 = 없음
 
 
 def _lib_copy(tmp_path, circuit, spec=True):
@@ -342,25 +364,25 @@ def test_dc_role_facts_are_loaded_before_build_s1(tmp_path, real_lut):
     # M8·M14 = signal 을 주면 남은 review(dc_role_unresolved_group)가 사라져 ok/0. 사실이 build_s1 전에 로드되지 않으면 S1 DC 역할이
     # 그대로라 review 가 남는다. 사실 없이 같은 입력이면 review_needed/2.
     tp, sp = _lib_copy(tmp_path, "ngcc_3stage_ff")
-    plain = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    plain = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
     assert (plain.exit_code, plain.status) == (2, "review_needed")
     assert [x.split("|")[1] for x in plain.report["review_needed"]] == ["dc_role_unresolved_group"]
-    topo_fp = plain.s1v.key[0].topology_fp
+    topo_fp = plain.s1.key.topology_fp
     J.write_structure(tp.parent / "ngcc_3stage_ff.structure.json", topo_fp, structure_rule_fp(),
                       [J.fact_dict("dc_role", "M8", "signal", "F-3"), J.fact_dict("dc_role", "M14", "signal", "F-3")])
-    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
     assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
     assert sorted(map(tuple, r.report["applied_facts"])) == [("dc_role", "M14"), ("dc_role", "M8")]
-    assert r.s1v.key[0].facts_fp != "none"                        # 40 3.2-3 파이프라인 3: S1 키에 사실 지문
+    assert r.s1.key.facts_fp != "none"                        # 40 3.2-3 파이프라인 3: S1 키에 사실 지문
 
 
 def test_view_scoped_ground_fact_clears_pilot_stop(tmp_path, real_lut):
     # 40 3.2-3 사실 표 파일럿 ac_ground_exception Vbias2 @ loop:M37a:Voc -> 41 1.12.6 정지·혼재 해소 -> ok/0(spec 없이)
     tp, _ = _lib_copy(tmp_path, "current_reuse_telescopic_ota", spec=False)
-    plain = run_stage_a(tp, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("current_reuse_telescopic_ota"))
-    J.write_structure(tp.parent / "current_reuse_telescopic_ota.structure.json", plain.s1v.key[0].topology_fp, structure_rule_fp(),
+    plain = run_stage_a(tp, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("current_reuse_telescopic_ota"))
+    J.write_structure(tp.parent / "current_reuse_telescopic_ota.structure.json", plain.s1.key.topology_fp, structure_rule_fp(),
                       [J.fact_dict("ac_ground_exception", "Vbias2", "loop:M37a:Voc", "C-6")])
-    r = run_stage_a(tp, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("current_reuse_telescopic_ota"))
+    r = run_stage_a(tp, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("current_reuse_telescopic_ota"))
     assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
     assert [tuple(x) for x in r.report["applied_facts"]] == [("ac_ground_exception", "Vbias2")]
 
@@ -368,10 +390,10 @@ def test_view_scoped_ground_fact_clears_pilot_stop(tmp_path, real_lut):
 def test_fact_file_written_with_old_s1v_rule_fp_is_stale(tmp_path, real_lut):
     # 40 3.2-3 rule_hash: 단계 A 는 structure_rule_fp 로 stale 을 판정한다 -- s1v_rule_fp 로 쓴 파일은 적용하지 않고 stale(review)
     tp, sp = _lib_copy(tmp_path, "ngcc_3stage_ff")
-    first = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
-    J.write_structure(tp.parent / "ngcc_3stage_ff.structure.json", first.s1v.key[0].topology_fp, s1v_rule_fp(),
+    first = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    J.write_structure(tp.parent / "ngcc_3stage_ff.structure.json", first.s1.key.topology_fp, s1v_rule_fp(),
                       [J.fact_dict("dc_role", "M8", "signal", "F-3"), J.fact_dict("dc_role", "M14", "signal", "F-3")])
-    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
     assert r.status == "review_needed"
     codes = [x.split("|")[1] for x in r.report["review_needed"]]
     assert "structure_fact_stale" in codes and "dc_role_unresolved_group" in codes
@@ -385,7 +407,7 @@ def test_structure_rejection_stops_before_build_s1(tmp_path, real_lut):
     J.write_structure(side, "0" * 64, structure_rule_fp(), [J.fact_dict("frobnicate", "M1", "M1")])
     r = _run(tmp_path, real_lut, H.CS)
     assert (r.exit_code, r.status) == (7, "stopped")
-    assert r.s1v is None and r.report["tables"] is None
+    assert _s1v(r) is None and r.report["tables"] is None
     assert len(r.report["stop_reasons"]) == 1
     assert "structure_concept_unknown" in r.report["stop_reasons"][0]
     assert r.report["stop_reasons"][0].startswith("A2_structure_json")     # pipeline 계약 1절 [U1b] 단계 이름
@@ -451,11 +473,21 @@ def _computes():
     return {b.name: b.stats().computes for b in _S1_BLOCKS}
 
 
+def _save(r):
+    """[U17 ①-b] 설계 40 v1.9.1 §2.4.3 '저장 시점(D6)': S0 수준 스냅샷은 S0 수준 블록이 모두 끝나는 `build_search_context` 끝에서 1회 쓰고,
+    단계 A·B 만 도는 실행은 읽기만 한다. 손 회로는 spec 이 없어 탐색 컨텍스트를 만들 수 없으므로, 그 저장이 부르는 것과 같은 자리
+    (`StageAResult.s0` = core `S0Slot`, 단계 B 층 writer 는 transient)를 test 가 직접 불러 디스크 스냅샷을 준비한다(입력 준비 -- 기대값 아님).
+    전체 사슬(단계 A -> B -> 탐색 컨텍스트) 저장은 tests/integration/test_s0_layer_9circuits.py 가 본다."""
+    from gmid_engine.search import STAGE_B_WRITERS
+    return r.s0.save(r.s1.snapshot, STAGE_B_WRITERS)
+
+
 def test_pdk_decl_required_missing_keyword_type_error(tmp_path, real_lut):
     # 설계 40 §2.4.12 Q1(결정, fail-closed): PDK 선언 파일 내용 해시는 S0 키 (i) 의 필수 부분 -- 없으면 실행하지 않는다.
     p = _write(tmp_path, H.CS)
     with pytest.raises(TypeError):
-        run_stage_a(p, None, real_lut, output_dir=tmp_path / "out", supplies_v=H.SUPPLIES)
+        run_stage_a(p, None, real_lut, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH,
+                    output_dir=tmp_path / "out", supplies_v=H.SUPPLIES)
     assert not (tmp_path / "out").exists(), "PDK 선언 없이 보고서를 썼다(fail-closed 아님)"
 
 
@@ -465,13 +497,33 @@ def test_pdk_decl_required_wrong_type_error(tmp_path, real_lut, bad):
     if bad == "sky130_pdk_decl.json":
         bad = str(_PDK_DECL_FILE)
     with pytest.raises(TypeError):
-        run_stage_a(p, None, real_lut, pdk_decl=bad, output_dir=tmp_path / "out", supplies_v=H.SUPPLIES)
+        run_stage_a(p, None, real_lut, pdk_decl=bad, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH,
+                    lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "out", supplies_v=H.SUPPLIES)
     assert not (tmp_path / "out").exists()
 
+
+
+@pytest.mark.parametrize("missing", ["pdk_decl_path", "lut_rule_decl_path", "both"])
+def test_decl_path_required_missing_keyword_type_error(tmp_path, real_lut, missing):
+    # [U17 ①-b 3차] oracle (d): 사용자 결정 2026-10-14 "(가) 경로 인자 필수" + pipeline CONTRACT 1절 -- 두 선언 경로는 기본값 없는 키워드 전용
+    # 필수 인자(U-68 정리가 그 파일의 현재 바이트로 판정하는 위치). 하나라도 빠지면 파이썬 TypeError, 보고서도 쓰지 않는다(fail-closed).
+    p = _write(tmp_path, H.CS)
+    kw = {"pdk_decl_path": PDK_DECL_PATH, "lut_rule_decl_path": LUT_RULE_DECL_PATH}
+    for name in (("pdk_decl_path", "lut_rule_decl_path") if missing == "both" else (missing,)):
+        del kw[name]
+    with pytest.raises(TypeError):
+        run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, output_dir=tmp_path / "out", supplies_v=H.SUPPLIES, **kw)
+    assert not (tmp_path / "out").exists(), "선언 경로 없이 보고서를 썼다(fail-closed 아님)"
+    # 대조군: 두 경로를 모두 넘기면 같은 입력이 실행된다(위 TypeError 가 다른 인자 때문이 아님)
+    ok = run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH,
+                     lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "ok", supplies_v=H.SUPPLIES)
+    assert (ok.status, ok.exit_code) == ("ok", 0)
 
 def test_s0_snapshot_miss_then_hit(tmp_path, real_lut, s0_dir):
     first = _run(tmp_path, real_lut, H.CS, out="a")
     assert first.report["s0_snapshot"] == "miss"
+    assert _snapshots(s0_dir) == []                              # [U17 ①-b] D6: 단계 A 는 읽기만 한다
+    _save(first)
     assert len(_snapshots(s0_dir)) == 1
     path = s0_dir / _snapshots(s0_dir)[0]
     data, mtime = path.read_bytes(), path.stat().st_mtime_ns
@@ -485,7 +537,7 @@ def test_s0_snapshot_miss_then_hit(tmp_path, real_lut, s0_dir):
 
 def test_s0_hit_computes_no_s1_block(tmp_path, real_lut, s0_dir):
     # §2.4.3 '계수': 적중이면 S0 수준 블록 계산 수 0(G-10 판정 2 의 이 단위 부분 -- S1 12블록).
-    _run(tmp_path, real_lut, H.MILLER, out="a")
+    _save(_run(tmp_path, real_lut, H.MILLER, out="a"))
     before = _computes()
     r = _run(tmp_path, real_lut, H.MILLER, out="b")
     after = _computes()
@@ -504,24 +556,27 @@ def test_s0_miss_computes_s1_blocks(tmp_path, real_lut, s0_dir):
 
 def test_s0_pdk_decl_change_is_a_miss(tmp_path, real_lut, s0_dir):
     # §2.4.3 키 (i) PDK 선언 파일 내용 해시: 선언 바이트가 바뀌면 다른 키(없는 것으로 본다).
-    _run(tmp_path, real_lut, H.CS, out="a")
+    _save(_run(tmp_path, real_lut, H.CS, out="a"))
     other = tmp_path / "decl" / "sky130_pdk_decl.json"
     other.parent.mkdir()
     doc = json.loads(_PDK_DECL_FILE.read_text(encoding="utf-8"))
     doc["note"] = doc["note"] + " (test copy)"
     other.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
     decl = _read_pdk_decl(str(other), _BoundedLRU(4))
-    r = run_stage_a(_write(tmp_path, H.CS), None, real_lut, pdk_decl=decl, output_dir=tmp_path / "b", supplies_v=H.SUPPLIES)
+    r = run_stage_a(_write(tmp_path, H.CS), None, real_lut, pdk_decl=decl, lut_rule_decl=LUT_RULE_DECL,
+                    pdk_decl_path=str(other), lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "b", supplies_v=H.SUPPLIES)
     assert r.report["s0_snapshot"] == "miss"
+    _save(r)
     assert len(_snapshots(s0_dir)) == 2
 
 
 def test_s0_structure_facts_change_is_a_miss(tmp_path, real_lut, s0_dir):
     # §2.4.3 키 (ii) structure.json 사실 지문.
     absent = _run(tmp_path, real_lut, H.MILLER, out="o0")
-    _structure(tmp_path / "miller.structure.json", absent.s1v.key[0].topology_fp, [("stage_one", "M1 M2"), ("stage_two", "M6")])
+    _structure(tmp_path / "miller.structure.json", absent.s1.key.topology_fp, [("stage_one", "M1 M2"), ("stage_two", "M6")])
     r = _run(tmp_path, real_lut, H.MILLER, out="o1")
     assert r.report["s0_snapshot"] == "miss"
+    _save(r)
     again = _run(tmp_path, real_lut, H.MILLER, out="o2")
     assert again.report["s0_snapshot"] == "hit"
 
@@ -529,20 +584,22 @@ def test_s0_structure_facts_change_is_a_miss(tmp_path, real_lut, s0_dir):
 def test_s0_supplies_change_is_a_miss(tmp_path, real_lut, s0_dir):
     # S0 = 같은 topology·레일 전압·spec·구조 사실·LUT·PDK 선언·코드. 레일 전압이 다르면 다른 S0.
     p = _write(tmp_path, H.CS)
-    run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "a", supplies_v=H.SUPPLIES)
+    run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "a", supplies_v=H.SUPPLIES)
     shifted = {k: v + 0.5 for k, v in H.SUPPLIES.items()}
-    r = run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "b", supplies_v=shifted)
+    r = run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "b", supplies_v=shifted)
     assert r.report["s0_snapshot"] == "miss"
 
 
 def test_s0_corrupt_file_is_reported_recomputed_and_replaced(tmp_path, real_lut, s0_dir):
     first = _run(tmp_path, real_lut, H.CS, out="a")
+    _save(first)
     path = s0_dir / _snapshots(s0_dir)[0]
     path.write_bytes(b"not a gzip file")
     with pytest.warns(RuntimeWarning):
         r = _run(tmp_path, real_lut, H.CS, out="b")
     assert r.report["s0_snapshot"] == "corrupt"                  # 손상 사실은 실행 기록(보고서)에 남는다
     assert r.s1.snapshot.fp == first.s1.snapshot.fp
+    _save(r)                                                     # [U17 ①-b] D6: 교체는 저장 시점(같은 키 파일)
     assert _snapshots(s0_dir) == [path.name]                     # 같은 키 파일을 교체
     assert _run(tmp_path, real_lut, H.CS, out="c").report["s0_snapshot"] == "hit"
 
@@ -551,7 +608,8 @@ def test_s0_key_records_engine_code_fp_and_input_file_sha(tmp_path, real_lut, s0
     # U-68 재현 재료(사용자 원문 '현재 파일(topology·spec·LUT·PDK 선언·...) + writer 코드 지문'): 키에 엔진 코드 지문과 입력 파일
     # 원본 sha256 이 있다. 값은 hashlib 로 직접 잰다. structure.json 이 없으면 그 칸은 '없음'.
     tp, sp = _lib_copy(tmp_path, "ngcc_3stage_ff")
-    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    _save(r)
     key = _stored_key(s0_dir / _snapshots(s0_dir)[0])
     values = set(v for v in key.values() if isinstance(v, str))
     for f in (tp, sp, _PDK_DECL_FILE, Path(real_lut.provenance.manifest_path)):
@@ -563,22 +621,170 @@ def test_s0_key_records_engine_code_fp_and_input_file_sha(tmp_path, real_lut, s0
 def test_s0_input_file_edit_makes_old_snapshot_unreproducible_and_removed(tmp_path, real_lut, s0_dir, arm_cleanup):
     # U-68: topology 파일 원본이 바뀌면(정규화 지문이 같은 공백 변경이라도) 옛 키는 어떤 checkout 으로도 만들 수 없다 -> 쓰기 시점에 삭제.
     p = _write(tmp_path, H.CS)
-    run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "a", supplies_v=H.SUPPLIES)
+    _save(run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "a", supplies_v=H.SUPPLIES))
     old = _snapshots(s0_dir)
     p.write_text(json.dumps(H.CS, indent=2), encoding="utf-8")
     arm_cleanup()
-    r = run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "b", supplies_v=H.SUPPLIES)
+    r = run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "b", supplies_v=H.SUPPLIES)
     assert r.report["s0_snapshot"] == "miss"
+    _save(r)
     now = _snapshots(s0_dir)
     assert len(old) == 1 and len(now) == 1 and now != old
 
 
 def test_s0_other_circuit_snapshot_is_kept(tmp_path, real_lut, s0_dir, arm_cleanup):
     # U-68 대조: 다른 회로의 스냅샷은 그 입력 파일이 그대로라 다시 만들 수 있다 -> 보존(정리가 도는 첫 쓰기에서도).
-    _run(tmp_path, real_lut, H.CS, out="a")
+    _save(_run(tmp_path, real_lut, H.CS, out="a"))
     arm_cleanup()
-    _run(tmp_path, real_lut, H.MILLER, out="b")
+    _save(_run(tmp_path, real_lut, H.MILLER, out="b"))
     assert len(_snapshots(s0_dir)) == 2
+
+
+
+# ---------------------------------------------------------------- [U17 ①-b 3차] U-68: PDK 선언·LUT 생성 규칙 선언 원본 변경도 정리 대상
+# oracle (d): 사용자 결정 U-68 원문 '현재 파일(topology·spec·LUT·PDK 선언·...) + writer 코드 지문'으로 다시 만들 수 없는 스냅샷은 지운다
+# (설계 40 v1.9.2 §2.4.3 '무효화' 행: 재현 판정 = 입력 파일 원본 sha -- topology·spec·LUT·**PDK 선언**·structure.json). LUT 생성 규칙
+# 선언은 S0 필드 junction_source 의 입력(§2.4.7)이라 같은 규칙. 기대값 = 파일 개수·이름 대조뿐(피검 함수로 만든 값 없음).
+# 선언 사본은 tmp_path 에 두고 끝 개행 1개만 더한다(값·지문 정규화와 무관한 원본 바이트 변경 -- 옛 키는 어떤 checkout 으로도 재현 불가).
+_LUT_RULE_DECL_FILE = Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json"
+
+
+def _decl_copies(tmp_path):
+    d = tmp_path / "decl_copy"
+    d.mkdir()
+    pdk, rule = d / _PDK_DECL_FILE.name, d / _LUT_RULE_DECL_FILE.name
+    pdk.write_bytes(_PDK_DECL_FILE.read_bytes())
+    rule.write_bytes(_LUT_RULE_DECL_FILE.read_bytes())
+    # 선언 파일 옆 기준(base decl_dir) 원본은 사본 옆에 같은 바이트로 둔다(입력 준비 -- 원본 내용은 바꾸지 않는다)
+    for src in json.loads(_LUT_RULE_DECL_FILE.read_text(encoding="utf-8"))["sources"].values():
+        if src.get("base") == "decl_dir":
+            (d / src["path"]).write_bytes((_LUT_RULE_DECL_FILE.parent / src["path"]).read_bytes())
+    return {"pdk": pdk, "lut_rule": rule}
+
+
+def _run_with_decls(tmp_path, real_lut, doc, copies, out):
+    pdk = _read_pdk_decl(str(copies["pdk"]), _BoundedLRU(4))
+    rule = _read_pdk_decl(str(copies["lut_rule"]), _BoundedLRU(4))
+    return run_stage_a(_write(tmp_path, doc), None, real_lut, pdk_decl=pdk, lut_rule_decl=rule, output_dir=tmp_path / out,
+                       pdk_decl_path=str(copies["pdk"]), lut_rule_decl_path=str(copies["lut_rule"]),
+                       supplies_v=H.SUPPLIES)
+
+
+@pytest.mark.parametrize("which", ["pdk", "lut_rule"])
+def test_s0_decl_file_edit_removes_old_snapshot(tmp_path, real_lut, s0_dir, arm_cleanup, which):
+    copies = _decl_copies(tmp_path)
+    first = _run_with_decls(tmp_path, real_lut, H.CS, copies, "a")
+    _save(first)
+    old = _snapshots(s0_dir)
+    assert len(old) == 1
+    before = _sha(copies[which])
+    copies[which].write_bytes(copies[which].read_bytes() + b"\n")       # 무해한 원본 바이트 변경(끝 개행)
+    assert _sha(copies[which]) != before                                # 전제: 원본 sha 가 실제로 바뀌었다
+    arm_cleanup()
+    r = _run_with_decls(tmp_path, real_lut, H.CS, copies, "b")
+    assert r.report["s0_snapshot"] == "miss"                            # 키에 선언 내용 지문 -- 옛 스냅샷에 잘못 적중하지 않는다
+    _save(r)
+    now = _snapshots(s0_dir)
+    assert old[0] not in now, "옛 %s 선언으로 만든 스냅샷이 정리되지 않았다(U-68): %r" % (which, now)
+    assert len(now) == 1 and now != old
+
+
+def test_s0_unchanged_decl_copies_keep_snapshot(tmp_path, real_lut, s0_dir, arm_cleanup):
+    # 대조군: 선언 사본을 바꾸지 않으면 정리가 도는 첫 쓰기(다른 회로)에서도 그 사본으로 만든 스냅샷은 다시 만들 수 있다 -> 보존.
+    # 위 test 의 삭제가 '사본 경로라서'·'정리가 무조건 지워서'가 아니라 원본 바이트 변경 때문임을 보인다.
+    copies = _decl_copies(tmp_path)
+    _save(_run_with_decls(tmp_path, real_lut, H.CS, copies, "a"))
+    old = _snapshots(s0_dir)
+    assert len(old) == 1
+    arm_cleanup()
+    _save(_run_with_decls(tmp_path, real_lut, H.MILLER, copies, "b"))
+    now = _snapshots(s0_dir)
+    assert old[0] in now and len(now) == 2
+    assert _run_with_decls(tmp_path, real_lut, H.CS, copies, "c").report["s0_snapshot"] == "hit"
+
+
+# ---------------------------------------------------------------- [U17 ①-b 4차] 선언 경로 <-> 선언 sha 불일치 거부(감사 3차 N-1)
+# oracle (d): 사용자 결정 2026-10-14 "(가) 경로 인자 필수"(경로 = U-68 정리가 '그 파일의 현재 바이트로 키를 만들 수 있나'를 판정하는 위치)
+# + 설계 40 §2.4.12 Q1 fail-closed + interface card(4차): run_stage_a 진입에서 `pdk_decl_path` 파일 원본 바이트 sha256 == `pdk_decl.decl_sha256`,
+# `lut_rule_decl_path` 파일 sha256 == `lut_rule_decl.decl_sha256` 을 확인하고 다르거나 파일이 없으면 거부한다.
+# 예외 종류: 같은 조건(선언 파일 없음 `pdk_decl_missing`, 원본 sha256 이 선언과 다름 `pdk_source_sha256_mismatch`)의 기존 입력 거부 관례 =
+# core CONTRACT 9.3 `SchemaRejectedError`(TypeError 는 pipeline 에서 인자 형식 위반 전용 -- 경로는 형식이 맞는 str 이다). reason 키는
+# 계약에 없어 단언하지 않는다. 기대값 = 예외 발생·보고서 폴더 없음·S0 폴더 파일 이름과 바이트(전부 test 가 hashlib/파일로 직접 잰 값).
+# 감사 run8·run10 재현 조건: 수정 사본에서 읽은 선언 + 저장소 원본 경로 -> 그 실행의 첫 쓰기 정리가 다른 회로 스냅샷을 지웠다.
+from gmid_engine.core import SchemaRejectedError as _SchemaRejectedError
+
+_DECL_ARGS = {"pdk": ("pdk_decl", "pdk_decl_path", _PDK_DECL_FILE), "lut_rule": ("lut_rule_decl", "lut_rule_decl_path", _LUT_RULE_DECL_FILE)}
+
+
+def _mismatch_kwargs(tmp_path, which, direction):
+    """`which` 선언 하나만 경로와 sha 가 어긋난 run_stage_a 키워드(다른 하나는 맞는 원본). 사본 = 원본 바이트 + 끝 개행 1개.
+    direction: edited_decl_original_path(사본에서 읽은 선언 + 원본 경로, 감사 run8) | original_decl_edited_path(원본 선언 + 사본 경로)."""
+    copies = _decl_copies(tmp_path)
+    copies[which].write_bytes(copies[which].read_bytes() + b"\n")
+    decl_name, path_name, original = _DECL_ARGS[which]
+    kw = {"pdk_decl": PDK_DECL, "lut_rule_decl": LUT_RULE_DECL, "pdk_decl_path": PDK_DECL_PATH, "lut_rule_decl_path": LUT_RULE_DECL_PATH}
+    if direction == "edited_decl_original_path":
+        kw[decl_name] = _read_pdk_decl(str(copies[which]), _BoundedLRU(4))
+    else:
+        kw[path_name] = str(copies[which])
+    assert _sha(kw[path_name]) != kw[decl_name].decl_sha256, "전제: 넘긴 경로 파일 sha 가 선언 sha 와 달라야 한다"
+    assert _sha(original) == {"pdk": PDK_DECL, "lut_rule": LUT_RULE_DECL}[which].decl_sha256, "전제: 원본 선언 sha = 원본 파일 sha"
+    return kw
+
+
+@pytest.mark.parametrize("direction", ["edited_decl_original_path", "original_decl_edited_path"])
+@pytest.mark.parametrize("which", ["pdk", "lut_rule"])
+def test_decl_path_sha_mismatch_rejected(tmp_path, real_lut, s0_dir, which, direction):
+    kw = _mismatch_kwargs(tmp_path, which, direction)
+    with pytest.raises(_SchemaRejectedError):
+        run_stage_a(_write(tmp_path, H.CS), None, real_lut, output_dir=tmp_path / "out", supplies_v=H.SUPPLIES, **kw)
+    assert not (tmp_path / "out").exists(), "경로-sha 불일치에서 보고서를 썼다(진입 거부 아님)"
+
+
+@pytest.mark.parametrize("which", ["pdk", "lut_rule"])
+def test_decl_path_missing_file_rejected(tmp_path, real_lut, s0_dir, which):
+    _decl_name, path_name, _original = _DECL_ARGS[which]
+    kw = {"pdk_decl": PDK_DECL, "lut_rule_decl": LUT_RULE_DECL, "pdk_decl_path": PDK_DECL_PATH, "lut_rule_decl_path": LUT_RULE_DECL_PATH}
+    kw[path_name] = str(tmp_path / "absent" / Path(kw[path_name]).name)
+    assert not Path(kw[path_name]).exists()                             # 전제: 그 경로에 파일이 없다
+    with pytest.raises(_SchemaRejectedError):
+        run_stage_a(_write(tmp_path, H.CS), None, real_lut, output_dir=tmp_path / "out", supplies_v=H.SUPPLIES, **kw)
+    assert not (tmp_path / "out").exists(), "선언 파일 없는 경로에서 보고서를 썼다(진입 거부 아님)"
+
+
+@pytest.mark.parametrize("which", ["pdk", "lut_rule"])
+def test_decl_path_sha_mismatch_keeps_other_circuit_snapshots(tmp_path, real_lut, s0_dir, arm_cleanup, which):
+    # 감사 run8·run10: 원본 선언으로 만든 다른 회로(CS·MILLER) 스냅샷은 현재 파일로 재현 가능하다 -> U-68 결정 '보존'. 불일치 입력은 진입에서
+    # 거부되므로 그 실행의 첫 쓰기(정리)가 일어나지 않아야 한다. 거부되지 않으면 아래 _save 가 정리를 돌린다(감사에서 둘 다 지워진 경로).
+    _save(_run(tmp_path, real_lut, H.CS, out="a"))
+    _save(_run(tmp_path, real_lut, H.MILLER, out="b"))
+    kept = {name: (s0_dir / name).read_bytes() for name in _snapshots(s0_dir)}
+    assert len(kept) == 2                                               # 전제: 서로 다른 회로 스냅샷 2개
+    kw = _mismatch_kwargs(tmp_path, which, "edited_decl_original_path")
+    arm_cleanup()
+    with pytest.raises(_SchemaRejectedError):
+        r = run_stage_a(_write(tmp_path, H.FOLLOWER), None, real_lut, output_dir=tmp_path / "c", supplies_v=H.SUPPLIES, **kw)
+        _save(r)
+    assert {name: (s0_dir / name).read_bytes() for name in _snapshots(s0_dir)} == kept, "불일치 입력이 기존 스냅샷을 바꾸거나 지웠다"
+
+
+def test_decl_paths_matching_sha_run_normally(tmp_path, real_lut, s0_dir, arm_cleanup):
+    # 대조군: 경로 파일 sha = 선언 sha 이면(원본, 그리고 끝 개행을 더한 사본에서 읽은 선언 + 그 사본 경로) 정상 실행·보고서 작성이고, 저장해도
+    # 다른 회로 스냅샷이 남는다 -- 위 거부가 '사본 경로라서'·'바이트가 원본과 달라서'가 아니라 경로-sha 불일치 때문임을 보인다.
+    assert _sha(PDK_DECL_PATH) == PDK_DECL.decl_sha256 and _sha(LUT_RULE_DECL_PATH) == LUT_RULE_DECL.decl_sha256
+    _save(_run(tmp_path, real_lut, H.MILLER, out="a"))
+    kept = _snapshots(s0_dir)
+    base = _run(tmp_path, real_lut, H.CS, out="b")
+    assert (base.status, base.exit_code) == ("ok", 0) and all(Path(p).is_file() for p in base.report_paths)
+    copies = _decl_copies(tmp_path)
+    for f in copies.values():
+        f.write_bytes(f.read_bytes() + b"\n")
+    arm_cleanup()
+    edited = _run_with_decls(tmp_path, real_lut, H.CS, copies, "c")
+    assert (edited.status, edited.exit_code) == ("ok", 0) and all(Path(p).is_file() for p in edited.report_paths)
+    _save(edited)
+    now = _snapshots(s0_dir)
+    assert set(kept) <= set(now) and len(now) == 2
 
 
 def test_engine_code_fp_measured_once_per_run(tmp_path, real_lut, s0_dir, monkeypatch):
@@ -605,17 +811,17 @@ def test_nmcnr_l_owner_fact_clears_name_order_review(tmp_path, real_lut):
     # S1 키, rule_hash = structure_rule_fp() -- 기존 test_dc_role_facts_are_loaded_before_build_s1 과 같은 준비).
     tp, sp = _lib_copy(tmp_path, "nmcnr_amplifier")
     sup = H.lib_supplies("nmcnr_amplifier")
-    plain = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o0", supplies_v=sup)
+    plain = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o0", supplies_v=sup)
     assert any("|l_owner_name_order|" in x for x in plain.report["review_needed"])          # 전제: 사실 없이는 review
-    J.write_structure(tp.parent / "nmcnr_amplifier.structure.json", plain.s1v.key[0].topology_fp, structure_rule_fp(),
+    J.write_structure(tp.parent / "nmcnr_amplifier.structure.json", plain.s1.key.topology_fp, structure_rule_fp(),
                       [J.fact_dict("l_owner", '["M104","M105"]', "M105", "C-3")])
-    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, output_dir=tmp_path / "o1", supplies_v=sup)
+    r = run_stage_a(tp, sp, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / "o1", supplies_v=sup)
     assert plain.report["stop_reasons"] == [] and len(plain.report["review_needed"]) == 1   # 전제: 남은 review 는 이것 하나
     assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
     assert not any("l_owner_name_order" in x for x in r.report["review_needed"]), r.report["review_needed"]
     assert ("l_owner", '["M104","M105"]') in [tuple(x) for x in r.report["applied_facts"]]
-    assert {lc.members: lc.owner for lc in r.s1v.l_classes}[("M104", "M105")] == "M105"
-    assert r.s1v.key != plain.s1v.key                                       # 같은 topology 라도 사실이 다르면 다른 키
+    assert {lc.members: lc.owner for lc in _s1v(r).l_classes}[("M104", "M105")] == "M105"
+    assert _s1v_version(r.s1) != _s1v_version(plain.s1)                     # [U17 ①-b] 같은 topology 라도 사실이 다르면 S1v 블록 입력 버전이 다르다(옛 S1v 키)
 
 
 FDIFF_CL = H.topo("fdiffcl", tuple((e["name"], e["kind"], e["drain"], e["gate"], e["source"]) for e in J.FDIFF["netlist"]),
@@ -671,3 +877,51 @@ def test_diff_pair_members_in_different_orbits_is_review_needed(tmp_path, real_l
     assert len(pair_reviews(asym.report)) == 1, asym.report["review_needed"]
     assert pair_reviews(asym.report)[0].split("|")[1] == "diff_pair_orbit_split"          # [U17 ①-d] 실제 API 의 기록 코드(graph CONTRACT 4.8)
     assert asym.status == "review_needed"
+
+
+def _loose_design_values(value, path="result"):
+    """GraphSnapshot 밖에 실린 설계 값: 타입 등록부(설계 40 §2.4.3·§2.4.10 ② '설계 값 타입')에 오른 형식의 인스턴스와 그 경로.
+    GraphSnapshot 안은 보지 않는다(필드가 정본). tuple·list·frozenset·dict 값·dataclass 칸은 따라 들어간다."""
+    from gmid_engine.core import GraphSnapshot, type_registry
+    names = set(type_registry.type_registry().names())
+    out, stack, seen = [], [(value, path)], set()
+    while stack:
+        v, p = stack.pop()
+        if isinstance(v, GraphSnapshot) or isinstance(v, (str, bytes, int, float, bool, type(None))) or id(v) in seen:
+            continue
+        seen.add(id(v))
+        cls = type(v)
+        if cls.__module__ + "." + cls.__qualname__ in names:
+            out.append((p, cls.__qualname__))
+        if isinstance(v, (tuple, list, frozenset, set)):
+            stack.extend((x, p + "[]") for x in v)
+        elif isinstance(v, dict):
+            stack.extend((x, p + "[" + repr(k) + "]") for k, x in v.items())
+        elif dataclasses.is_dataclass(v):
+            stack.extend((getattr(v, f.name), p + "." + f.name) for f in dataclasses.fields(v))
+    return sorted(out)
+
+
+def test_stage_a_result_carries_s0_snapshot_reference_only(tmp_path, real_lut):
+    """[U17 ①-b] 설계 40 v1.9 §2.4.7 'S1v·Achievability·StartIntervals 묶음 객체' 행: '단계 결과는 S0 수준 스냅샷 참조만 넘긴다'(§2.4.2 묶음 객체는
+    필드 묶음으로 푼다, 오케스트레이터 기본안 D1: graph/s1v = views·l_classes·findings·declared·applied_facts).
+    oracle (d): StageAResult 칸에 `s1v` 가 없고, 등록된 설계 값 형식이 GraphSnapshot 밖에 실리지 않으며, 실린 GraphSnapshot 하나 이상이
+    `graph/s1v` 레코드(views·l_classes·findings·declared·applied_facts)를 가진다. 손 회로 CS(정지 없음)."""
+    from gmid_engine.core import GraphSnapshot
+    r = _run(tmp_path, real_lut, H.CS)
+    assert (r.exit_code, r.status) == (0, "ok")
+    assert "s1v" not in {f.name for f in dataclasses.fields(StageAResult)}
+    assert _loose_design_values(r) == []
+    snaps = [getattr(r, f.name) for f in dataclasses.fields(r) if isinstance(getattr(r, f.name), GraphSnapshot)]
+    snaps += [getattr(r, f.name).snapshot for f in dataclasses.fields(r)
+              if isinstance(getattr(getattr(r, f.name), "snapshot", None), GraphSnapshot)]
+    with_s1v = [s for s in snaps if s.record("graph", "s1v") is not None]
+    assert with_s1v, "S0 수준 스냅샷 참조(graph/s1v 레코드)가 결과에 없다"
+    fields = {name for name, _fv in with_s1v[0].record("graph", "s1v").fields}
+    assert {"views", "l_classes", "findings", "declared", "applied_facts"} <= fields, fields
+
+
+def test_loose_design_values_scanner():
+    from gmid_engine.graph import LClass             # 등록부에 오른 graph 값 형식(①-a 등록)
+    probe = LClass(*([None] * len(dataclasses.fields(LClass))))
+    assert _loose_design_values({"a": (1, probe)}) == [("result['a'][]", "LClass")]

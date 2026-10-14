@@ -40,7 +40,7 @@ def test_miller_rows_hand_derived(tmp_path):
         (c, out, "M6", False, "block_member"),
         (c, out, "M7", False, "block_member"),
     ]
-    cbm = column_block_map(s1, s1v)
+    cbm = C.cbm(s1, s1v)
     assert sorted(C.rows(cbm), key=repr) == sorted(expected, key=repr)
     assert cbm.bias_columns == ()
 
@@ -48,7 +48,7 @@ def test_miller_rows_hand_derived(tmp_path):
 def test_rows_are_sorted_column_none_first(tmp_path):
     # interface 11.1: rows 는 (column(None 먼저), block, device) 순
     s1, s1v = H.build(tmp_path, H.MILLER)
-    got = [(r.column, r.block, r.device) for r in column_block_map(s1, s1v).rows]
+    got = [(r.column, r.block, r.device) for r in C.cbm(s1, s1v).rows]
     key = [(-1 if col is None else col, blk, dev) for col, blk, dev in got]
     assert key == sorted(key)
 
@@ -58,7 +58,7 @@ def test_column_mate_is_attributed_and_shared(tmp_path):
     # 손 유도: 기둥 하나 {M1, M2, M3}. M1(CS 입력)·M2(부하)는 블록 out 멤버, 전류원 M3 는 블록 밖 -> 같은 기둥 블록 out 에 귀속.
     col = C.column_id(s1, {"M1", "M2", "M3"})
     out = (T0, ("out",))
-    cbm = column_block_map(s1, s1v)
+    cbm = C.cbm(s1, s1v)
     assert sorted(C.rows(cbm), key=repr) == sorted([
         (col, out, "M1", False, "block_member"),
         (col, out, "M2", False, "block_member"),
@@ -71,7 +71,7 @@ def test_bias_column_rows_have_no_block(tmp_path):
     s1, s1v = H.build(tmp_path, C.BCS)
     # 손 유도: 기둥 {M1, M2}(블록 out) 와 {Mi, Mr}(기준 diode + 전류원, 둘 다 블록 밖) -> 뒤의 것이 바이어스 기둥.
     sig, bias = C.column_id(s1, {"M1", "M2"}), C.column_id(s1, {"Mi", "Mr"})
-    cbm = column_block_map(s1, s1v)
+    cbm = C.cbm(s1, s1v)
     assert sorted(C.rows(cbm), key=repr) == sorted([
         (sig, (T0, ("out",)), "M1", False, "block_member"),
         (sig, (T0, ("out",)), "M2", False, "block_member"),
@@ -87,7 +87,7 @@ def test_capacitor_and_pruned_resistor_are_out_of_scope(tmp_path):
     s1, s1v = H.build(tmp_path, C.CAPOR)
     pruned = {e for e, _round in C.gval(s1, "dc_pruned")}
     assert "Rx" in pruned                                    # 전제: Rx 는 가지치기됨(S1 공개 필드)
-    cbm = column_block_map(s1, s1v)
+    cbm = C.cbm(s1, s1v)
     devices = {r[2] for r in C.rows(cbm)}
     assert devices == {"M1", "M2", "Mi", "Mr"}
     assert "Cb" not in devices and "Rx" not in devices
@@ -97,7 +97,7 @@ def test_orphan_branch_device_stops_column_unassigned(tmp_path):
     # DEC-71 (2) 정지: Mx 는 가지 (vbp, z) 에 들었으나 그 가지는 어느 기둥에도 없고(z 막다른 넷) Mx 는 블록 밖
     s1, s1v = H.build(tmp_path, C.ORPHAN)
     assert len(C.gval(s1, "column_orphans")) == 1             # 전제: S1 이 orphan 가지 하나를 기록
-    for fn in (column_block_map, coupling_vars):
+    for fn in (C.cbm, C.coupling):
         with pytest.raises(StructureUnresolvedError) as ei:
             fn(s1, s1v)
         exc = ei.value
@@ -110,7 +110,7 @@ def test_orphan_branch_device_stops_column_unassigned(tmp_path):
 def test_library_map_matches_oracle(name):
     s1, s1v = H.build_lib(name)
     o = O.CouplingOracle(s1, s1v)
-    cbm = column_block_map(s1, s1v)
+    cbm = C.cbm(s1, s1v)
     assert O.engine_map_rows(cbm) == o.map_rows
     assert tuple(cbm.bias_columns) == o.bias_columns
     assert o.unassigned == ()                                # 설계 40 §3.3: 9회로 column_unassigned 없음
@@ -130,7 +130,7 @@ def test_library_shared_flag_rule(name):
         for b in v.blocks:
             for d, _r in b.roles:
                 nblk[(v.id, d)] = nblk.get((v.id, d), 0) + 1
-    for r in column_block_map(s1, s1v).rows:
+    for r in C.cbm(s1, s1v).rows:
         multi_block = any(n >= 2 for (vid, d), n in nblk.items() if d == r.device)
         expected = ncol.get(r.device, 0) >= 2 or multi_block or r.basis == "column_mate"
         assert r.shared == expected, (name, r)
@@ -139,7 +139,7 @@ def test_library_shared_flag_rule(name):
 @pytest.mark.parametrize("name", C.NINE)
 def test_coupling_carries_same_map(name):
     s1, s1v = H.build_lib(name)
-    assert coupling_vars(s1, s1v).column_block_map == column_block_map(s1, s1v)
+    assert C.coupling(s1, s1v).column_block_map == C.cbm(s1, s1v)
 
 
 def test_library_bias_columns_literal():
@@ -152,7 +152,7 @@ def test_library_bias_columns_literal():
     counts = {}
     for name in C.NINE:
         s1, s1v = H.build_lib(name)
-        bc = column_block_map(s1, s1v).bias_columns
+        bc = C.cbm(s1, s1v).bias_columns
         counts[name] = len(bc)
         if expect.get(name):
             assert [C.column_devices(s1)[c] for c in bc] == [frozenset(expect[name])], name

@@ -24,6 +24,7 @@ import pytest
 
 from gmid_engine.sizing import (COORD_DEPENDENT, COORD_WRITER, DC_KEY, SCC_GAUSS_SEIDEL, SCC_NEWTON, TIER_W4,
                                 size_and_seal)
+from gmid_engine.sizing import KERNEL_KEY   # [U17 ①-b] θ 스키마 = S0 수준 필드 graph/kernel: theta_schema(설계 40 v1.9.1 §2.4.7 KernelContext 행, D8)
 
 from .pipeline import map_theta
 
@@ -70,8 +71,8 @@ def test_structure_colour_follows_renaming(pipe, name, seed):
 def test_writer_plan_and_theta_schema_follow_renaming(pipe, name, seed):
     a, b = pipe.case(name), pipe.case(name, ("ren", seed))
     allowed = {b.nm(x) for x in _tie_candidates(a.ctx)}
-    comps_a = {(k, b.nm(n)) for k, n in a.ctx.schema.components}
-    comps_b = set(b.ctx.schema.components)
+    comps_a = {(k, b.nm(n)) for k, n in a.ctx.base.value("graph", KERNEL_KEY, "theta_schema").components}
+    comps_b = set(b.ctx.base.value("graph", KERNEL_KEY, "theta_schema").components)
     diff = comps_a ^ comps_b
     assert {n for _, n in diff} <= allowed, (sorted(diff), sorted(allowed))
     wa = dict(a.ctx.base.column("node", "dc_writer"))
@@ -89,8 +90,8 @@ def test_writer_plan_and_theta_schema_follow_renaming(pipe, name, seed):
     if not _tie_candidates(a.ctx):
         assert cb == {b.nm(k): type(v)(v.role, v.relation, b.nm(v.partner) if v.partner else None) for k, v in ca.items()}
     zc_a = {(b.nm(z.resistor), b.nm(z.end_net) if z.end_net else None, tuple(sorted(b.nm(x) for x in z.far_nets)),
-             frozenset(b.nm(c) for c in z.cells), z.reason) for z in a.ctx.schema.zero_cancel}
-    zc_b = {(z.resistor, z.end_net, tuple(sorted(z.far_nets)), frozenset(z.cells), z.reason) for z in b.ctx.schema.zero_cancel}
+             frozenset(b.nm(c) for c in z.cells), z.reason) for z in a.ctx.base.value("graph", KERNEL_KEY, "theta_schema").zero_cancel}
+    zc_b = {(z.resistor, z.end_net, tuple(sorted(z.far_nets)), frozenset(z.cells), z.reason) for z in b.ctx.base.value("graph", KERNEL_KEY, "theta_schema").zero_cancel}
     assert zc_b == zc_a
 
 
@@ -101,7 +102,7 @@ def test_polarity_flip_keeps_kind_free_plan_counts(pipe, name):
     def counts(case):
         coords = collections.Counter(c.role for _, c in case.ctx.base.column("device", "dc_coord"))
         w4 = sum(1 for _, w in case.ctx.base.column("node", "dc_writer") if w.tier == TIER_W4)
-        comps = collections.Counter(k for k, _ in case.ctx.schema.components)
+        comps = collections.Counter(k for k, _ in case.ctx.base.value("graph", KERNEL_KEY, "theta_schema").components)
         return coords[COORD_WRITER], coords[COORD_DEPENDENT], w4, comps, len(_plan(case.ctx.base, "dc_current_basis").free)
 
     assert counts(b) == counts(a)
@@ -127,7 +128,7 @@ def test_dc_solution_follows_renaming(pipe, name, seed):
     a, b = pipe.case(name), pipe.case(name, ("ren", seed))
     th = _theta0(pipe, name)
     th_b = map_theta(th, b)
-    assert set(th_b) == set(b.ctx.schema.components), "θ 키가 옮겨지지 않음(동률 후보 차이) -- 계획 test 참조"
+    assert set(th_b) == set(b.ctx.base.value("graph", KERNEL_KEY, "theta_schema").components), "θ 키가 옮겨지지 않음(동률 후보 차이) -- 계획 test 참조"
     ea, eb = size_and_seal(a.ctx, th), size_and_seal(b.ctx, th_b)
     assert eb.report.status == ea.report.status
     assert [(i.item, i.status) for i in eb.report.items] == [(i.item, i.status) for i in ea.report.items]

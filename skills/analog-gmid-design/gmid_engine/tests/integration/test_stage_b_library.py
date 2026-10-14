@@ -47,6 +47,8 @@ def env():
     lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, LutSpec(grid, tuple(sorted(mins.items())), DEVICE_KINDS, (("nmos", "_n"), ("pmos", "_p"))),
                        pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path)
     pdk = read_pdk_decl(str(SKILL / "assets" / "sky130_pdk_decl.json"), BoundedLRU(8))
+    # [U17 ①-b] run_stage_a(lut_rule_decl=) 필수 -- 저장소 LUT 생성 규칙 선언 원본
+    rule = read_pdk_decl(str(SKILL / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(8))
     # 원시 npz 통계(엔진 미사용)
     root = Path(loc.manifest_path).parent
     stats = {"count": {}, "idu_max": {}, "l_min": {}, "axes": None, "follower": None}
@@ -63,7 +65,7 @@ def env():
             stats["l_min"][kind] = min(stats["l_min"].get(kind, np.inf), float(L.min()))
             if kind == "nmos" and int(round(W / grid)) == PRE_LAYOUT_W_KEY:
                 stats["follower"] = _follower_anchor(z)
-    return {"lut": lut, "pdk": pdk, "stats": stats, "cache": {}}
+    return {"lut": lut, "pdk": pdk, "rule": rule, "stats": stats, "cache": {}}
 
 
 def _follower_anchor(z):
@@ -95,13 +97,21 @@ def _follower_anchor(z):
     return 20.0 * math.log10(r[i]), b
 
 
+def _settings():
+    """탐색 실행 설정(입력, 기대값 아님) -- tests/search/u13_real.py·integration/test_s0_layer_9circuits.py 와 같은 값."""
+    from gmid_engine.search import SearchSettings
+    return SearchSettings(600.0, 40, (1e2, 1e5), (("front_budget_s", "stage_b library test fixture"),), (1e-13, 1e-10))
+
+
 def _run(env, circuit, tmp_path_factory):
     if circuit not in env["cache"]:
         out = tmp_path_factory.mktemp("sbl_" + circuit)
         a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env["lut"], pdk_decl=env["pdk"],
-                        output_dir=out)
+                        lut_rule_decl=env["rule"], output_dir=out, pdk_decl_path=str(SKILL / "assets" / "sky130_pdk_decl.json"),
+                        lut_rule_decl_path=str(SKILL / "assets" / "sky130_lut_rule_decl.json"))
         memo = LutMemo(env["lut"], point=200000, curve=200000, root=4096)
-        b = run_stage_b(a, memo, env["pdk"], output_dir=out, diagnostic=True)
+        # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- 탐색 설정 입력(test_s0_layer_9circuits `_settings` 와 같은 값)
+        b = run_stage_b(a, memo, env["pdk"], output_dir=out, diagnostic=True, settings=_settings())
         env["cache"][circuit] = (a, b)
     return env["cache"][circuit]
 
@@ -223,7 +233,8 @@ def test_area_lower_bound_from_declared_values(env, circuit, tmp_path_factory):
 @pytest.mark.parametrize("circuit", CIRCUITS)
 def test_diagnostic_mode_keeps_stage_a_exit_code(env, circuit, tmp_path_factory):
     a, b = _run(env, circuit, tmp_path_factory)
-    assert b.achievability is not None                                   # 진단 모드: s1v 가 있으면 계산한다
+    # [U17 ①-b] StageBResult.achievability 묶음 삭제 -> 결과 S0 수준 스냅샷의 graph/ach 레코드(설계 40 v1.9.1 §2.4.7·§2.4.8 GB4 행, D2)
+    assert b.s1 is not None and b.s1.snapshot.record("graph", "ach") is not None    # 진단 모드: s1v 가 있으면 계산한다
     if a.status != "ok":
         assert b.exit_code == a.exit_code, (a.status, b.status)
     else:

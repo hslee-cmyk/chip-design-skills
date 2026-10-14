@@ -7,7 +7,7 @@
 생략하면 `NoiseDecl()`(되먹임 미제공 -> 출력 적분 정의 불가, 입력 셀 미제공 -> excess 정의 불가)).
 
 * [U7] `driving` = 선택 spec `DrivingDecl`(선언되면 슬루·방향별 전류 `ls_fields` 보고), `mismatch` = 선택 `MismatchSource`(`MismatchSource.from_decl(pdk_decl)` -- offset·미러비의 PDK bin slope 입력, 없으면 그 metric 은 정의 불가
-  `mismatch_source_missing`), `structure` = 선택 `MetricStructure`(`metric_structure(s1v)` -- offset_excess 입력 셀·FF 비·블록 잔차의 구조 사실. 없으면 그 값들은 정의 불가).
+  `mismatch_source_missing`), `structure` = 선택 `MetricStructure`(S0 수준 필드 `graph/s1v: metric_structure` -- offset_excess 입력 셀·FF 비·블록 잔차의 구조 사실. 없으면 그 값들은 정의 불가).
   제약 metric 중 레지스트리 결과 형식이 `AUX_TYPES` 인 것(offset·미러비·스윙·ICMR·FF 비)은 `metrics_ss` 가 아니라 계산 블록 `metrics_aux` 가 계산하고, 두 묶음의
   entries·reports 를 합쳐 `SsEvaluation.ss` 로 낸다(`metrics_aux` 가 돌지 않으면 묶음 그대로). `structure` 가 있으면 전달 뷰 제약마다 블록 잔차 보고(`reports` 의
   `block_residual`·`nqs_ratio`)를 항상 낸다. 판정 제약에 `ugf_ss_hz` 가 있으면 그 값이 `nqs_ratio` 분자다.
@@ -34,7 +34,7 @@
   parent 로, 같은 θ 를 다시 볼 때는 `ss_evaluate(lineage.sealed, ...)` 로 넘긴다. 그 lineage 에서 `size_and_seal` 이 낸 스냅샷에는
   앞 점의 ss 필드가 입력 버전과 함께 남아 있다 -- `ss_evaluate` 를 거치기 전에는 읽지 않는다(값의 정본은 이 함수의 결과).
 """
-from gmid_engine.sizing import METRICS_KEY, DcEvaluation, KernelContext, SealedSnapshot, Theta, check_theta
+from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, DcEvaluation, KernelContext, SealedSnapshot, Theta, check_theta
 
 from .dc_metrics import metrics_dc
 from .junction_source import JunctionSource
@@ -85,12 +85,13 @@ def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, 
         raise TypeError("ss_evaluate: junction 은 JunctionSource 여야 한다(DEC-91 접합 용량 입력)")
     if noise_decl is not None and not isinstance(noise_decl, NoiseDecl):
         raise TypeError("ss_evaluate: noise_decl 은 NoiseDecl 이어야 한다")
-    theta = check_theta(ctx.schema, theta.values if isinstance(theta, Theta) else theta)
+    schema = ctx.base.value("graph", KERNEL_KEY, "theta_schema")
+    theta = check_theta(schema, theta.values if isinstance(theta, Theta) else theta)
     requests = _requests(tuple(constraints))
     registry = metric_registry()
     aux_requests = tuple(r for r in requests if registry[r.metric].source_type in AUX_TYPES)
     ss_requests = tuple(r for r in requests if registry[r.metric].signature.view_kind is not None and r not in aux_requests)
-    snapshot = passive_values(sealed.snapshot, ctx.inputs.element_values, ctx.schema.zero_cancel, theta_passive_pairs(theta.values))
+    snapshot = passive_values(sealed.snapshot, ctx.inputs.element_values, schema.zero_cancel, theta_passive_pairs(theta.values))
     snapshot = ss_dev(snapshot, ctx.lut, junction, *((diffusion,) if diffusion else ()))
     noisy = any(registry[r.metric].source_type is NoiseAnalysis for r in ss_requests)
     extra = (noise_devices(snapshot, ctx.lut, junction, NoiseDecl() if noise_decl is None else noise_decl),) if noisy else ()

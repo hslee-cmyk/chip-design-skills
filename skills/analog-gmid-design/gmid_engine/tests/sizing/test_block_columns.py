@@ -17,12 +17,13 @@ from gmid_engine.sizing import (DC_KEY, REASON_NO_ROOT, REASON_TOL_UNDEFINED, SC
 from .conftest import (LAM, R4_L, W_KEYS, Oracle, build_ctx, circuit_cs_res, circuit_empty_window, detail,
                        expected_columns, free_currents, mos, new_access, node_voltages, r4_arrays, r4_ln_idu, r4_vds_floor,
                        r4_vgs_of, rel_close, run_blocks, theta_a, theta_c, theta_r4c, topo, two, write_r4_lut)
+from .conftest import kfixed, kres, kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 TOL = 1e-12
 
 
 def assert_voltages(snap, ctx, theta):
-    V_exp, win_exp, ln_exp = expected_columns(snap, theta, ctx.fixed_values, ctx.resistor_values)
+    V_exp, win_exp, ln_exp = expected_columns(snap, theta, kfixed(ctx), kres(ctx))
     V = node_voltages(snap)
     assert set(V) == set(V_exp)
     for n in V_exp:
@@ -126,7 +127,7 @@ def test_declared_resistor_value_used(tmp_path, toy_access):
     doc = circuit_cs_res()
     doc["topology_name"] = "hand_cs_res_declared"
     ctx = build_ctx(tmp_path, doc, toy_access, element_values=(("R1", 6e4),))[2]
-    assert ctx.resistor_values == (("R1", 6e4),)
+    assert kres(ctx) == (("R1", 6e4),)
     th = {("L", "M1"): 1e-6, ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 1.2, 0.0), ("current", "R1"): 1e-5}
     snap = run_blocks(ctx, th, upto="columns")
     assert abs(node_voltages(snap)["out"] - (1.8 - 1e-5 * 6e4)) <= TOL
@@ -142,7 +143,7 @@ def test_zero_current_drop_is_zero_and_cycle_dependent(tmp_path, toy_access):
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.72, 0.0),
           ("y", "out"): 0.4}
     th.update(free_currents(ctx, {"M1": 1e-6, "M2": 1e-6, "R2": 0.0}))
-    assert set(dict(th)) == set(ctx.schema.components)
+    assert set(dict(th)) == set(kschema(ctx).components)
     snap = run_blocks(ctx, th, upto="columns")
     V = assert_voltages(snap, ctx, th)
     assert V["g3"] == 1.8
@@ -159,7 +160,7 @@ def test_parallel_dependent_ln_idu(tmp_path, toy_access):
                 mos("M3", "pmos", "o1", "pb", "vdd"), mos("M4", "pmos", "o2", "pb", "vdd")],
                {"in": ("input", "x"), "o1": ("output", "y")}, bias=["pb"])                 # pb: M3·M4 gate 에만
     ctx = build_ctx(tmp_path, doc, toy_access)[2]
-    comps = dict.fromkeys(ctx.schema.components)
+    comps = dict.fromkeys(kschema(ctx).components)
     th = {}
     for kind, key in comps:
         th[(kind, key)] = {"L": 1e-6, "current": 1e-5, "y": 0.3 if key == "o1" else 0.7}.get(kind)
@@ -183,7 +184,7 @@ def test_window_with_declared_target(tmp_path, toy_access):
                 mos("M5", "nmos", "s1", "vb5", "gnd")],
                {"in": ("input", "x"), "out": ("output", "y")}, bias=["pb", "vb5"])        # pb: M2 gate, vb5: M5 gate
     ctx = build_ctx(tmp_path, doc, toy_access, node_targets=(("s1", 0.3),))[2]
-    assert ctx.fixed_values == (("s1", 0.3),)
+    assert kfixed(ctx) == (("s1", 0.3),)
     y = 0.4
     vout = 0.3 + y * 1.5
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M5"): 2e-6,
@@ -191,7 +192,7 @@ def test_window_with_declared_target(tmp_path, toy_access):
           ("ln_idu", "M2"): Oracle.ln_idu("pmos", 0.7, 1.8 - vout, 0.0),
           ("ln_idu", "M5"): Oracle.ln_idu("nmos", 0.65, 0.3, 0.0), ("y", "out"): y}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M5": 1e-5}))   # KCL: 세 소자 같은 전류
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     snap = run_blocks(ctx, th, upto="columns")
     V = assert_voltages(snap, ctx, th)
     w = dict(snap.column("node", "dc_window"))["out"]
@@ -211,7 +212,7 @@ def test_window_with_declared_target(tmp_path, toy_access):
 def test_empty_window(tmp_path, toy_access):
     ctx = build_ctx(tmp_path, circuit_empty_window(), toy_access)[2]
     th = {}
-    for kind, key in ctx.schema.components:
+    for kind, key in kschema(ctx).components:
         if kind != "current":
             th[(kind, key)] = {"L": 1e-6, "y": 0.5, "ln_idu": Oracle.ln_idu("nmos", 0.6, 0.9, 0.0)}[kind]
     # KCL x: MA + MC = MB (MB 는 pmos, x 로 들어옴)
@@ -219,7 +220,7 @@ def test_empty_window(tmp_path, toy_access):
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     with pytest.raises(SealViolationError) as ei:
-        dc_columns(snap, items, ctx.fixed_values, ctx.resistor_values, ctx.lut)
+        dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut)
     d = detail(ei.value)
     assert d["reason"] == "empty_window" and d["item"] == 7
     assert d["node"] == "x" and d["lo"] == 1.8 and d["hi"] == 0.0
@@ -231,7 +232,7 @@ def _lut_fail(ctx, th):
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     with pytest.raises(SealViolationError) as ei:
-        dc_columns(snap, items, ctx.fixed_values, ctx.resistor_values, ctx.lut)
+        dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut)
     return ei.value
 
 
@@ -279,7 +280,7 @@ def _mirror_theta(ctx, v_diode):
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6, ("ln_idu", "M1"): x1,
           ("ln_idu", "M3"): Oracle.ln_idu("pmos", 0.7, 0.9, 0.0), ("y", "out"): 0.5}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5, "I1": 1e-5}))
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     return th
 
 
@@ -310,11 +311,11 @@ def test_source_follower_one_variable(tmp_path, toy_access):
     x1 = Oracle.ln_idu("nmos", 0.6, 0.9, 0.5)
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("ln_idu", "M1"): x1,
           ("ln_idu", "M2"): Oracle.ln_idu("nmos", 0.55, 0.6, 0.0)}
-    for k, key in ctx.schema.components:
+    for k, key in kschema(ctx).components:
         if k == "y":
             th[(k, key)] = 0.7
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5}))
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     snap = run_blocks(ctx, th, upto="columns")
     V = node_voltages(snap)
     vin = V["in"]
@@ -340,7 +341,7 @@ def test_no_root_in_window(tmp_path, toy_access, v_star):
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     with pytest.raises(SealViolationError) as ei:
-        dc_columns(snap, items, ctx.fixed_values, ctx.resistor_values, ctx.lut)
+        dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut)
     d = detail(ei.value)
     assert d["reason"] == "no_root_in_window"
     assert d["item"] in (6, 7)
@@ -425,7 +426,7 @@ def _diode_theta(ctx, kind, vgs1):
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6, ("ln_idu", "M1"): r4_ln_idu(kind, vgs1, vgs1, 0.0),
           ("ln_idu", "M3"): r4_ln_idu(other, 0.7, 1.35, 0.0), ("y", "out"): 0.25}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5, "I1": 1e-5}))
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     return th
 
 
@@ -575,7 +576,7 @@ def test_cyclic_transient_below_floor_tolerated(tmp_path, acc_f):
     assert 0.9 < _floor("pmos", "F")                           # 전제: 2단계 시작 VDS 가 하한 아래
     ctx = _cycle_ctx(tmp_path, acc_f, "pmos", 1.1)
     th = _cycle_theta("pmos", 1.1, 1.2, 0.5)
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     snap = run_blocks(ctx, th, upto="columns")
     V = node_voltages(snap)
     log = [e for e in snap.value("graph", DC_KEY, "dc_scc_log") if set(e.nodes) == {"x", "y"}][0]
@@ -589,7 +590,7 @@ def test_cyclic_strict_recheck_below_floor_fails(tmp_path, acc_f, vin, ok):
     ctx = _cycle_ctx(tmp_path, acc_f, "nmos", vin)
     y = vin - 0.6
     th = _cycle_theta("nmos", vin, 0.6, y)
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     if ok:
         V = node_voltages(run_blocks(ctx, th, upto="columns"))
         assert V["y"] >= _floor("nmos", "F") and abs(V["y"] - y) <= 0.01 and abs(V["x"] - 0.6) <= 0.01
@@ -818,7 +819,7 @@ def _tolrep_ctx(tmp_path, toy_lut):
     assert (w["w"].relation, w["w"].element) == ("vgs_source", "MC")
     cyc = [e for e in ctx.base.value("graph", DC_KEY, "dc_scc_order") if e.cyclic]
     assert [set(e.nodes) for e in cyc] == [{"w", "g"}]
-    assert set(ctx.schema.components) == set(_tolrep_theta())
+    assert set(kschema(ctx).components) == set(_tolrep_theta())
     return memo, ctx
 
 
@@ -885,7 +886,7 @@ def test_tol_undefined_before_convergence_propagates(tmp_path, acc_two_point, y1
           ("ln_idu", "M1"): r4_ln_idu("nmos", 0.6, vin, 0.0), ("ln_idu", "M2"): r4_ln_idu("nmos", 0.7, vout - vin, vin),
           ("ln_idu", "M3"): r4_ln_idu("pmos", 0.7, 1.8 - vout, 0.0), ("y", "input_common_mode"): y1, ("y", "vout"): y2}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5}))
-    assert set(th) == set(ctx.schema.components)
+    assert set(th) == set(kschema(ctx).components)
     for call in (lambda: run_blocks(ctx, th, upto="columns"), lambda: size_and_seal(ctx, th)):
         with pytest.raises(SealViolationError) as ei:
             call()
@@ -929,7 +930,7 @@ def _reversed_c():
 def _theta_for(ctx, v1=0.6, v2=0.6, y=0.5):
     from .conftest import r4_ln_idu
     th = {}
-    for t, k in ctx.schema.components:
+    for t, k in kschema(ctx).components:
         if t == "L":
             th[(t, k)] = 1e-6
         elif t == "current":

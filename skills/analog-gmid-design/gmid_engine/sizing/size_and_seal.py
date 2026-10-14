@@ -12,7 +12,7 @@
   `dc_widths`(LUT) -> `seal_dc`.
   [DEC-92] θ `capacitance`·`ss_resistance`(DC 전류가 흐르지 않는 수동소자)는 어느 DC 블록에도 넘기지 않는다 -- 그 성분만
   바꾼 θ 는 parent 에서 DC·봉인 블록 계산 0(소신호 값은 metrics `ss_evaluate` 가 θ 에서 읽는다).
-* **L 동치류**(설계 40 §3.2-1): θ 의 L 성분은 동치류당 주인 하나이고(`ctx.schema`), `ctx.l_ties` = ((멤버, 주인), ...) 의 멤버 L = 주인 θ L.
+* **L 동치류**(설계 40 §3.2-1): θ 의 L 성분은 동치류당 주인 하나이고(`graph/kernel: theta_schema`), `graph/kernel: l_ties` = ((멤버, 주인), ...) 의 멤버 L = 주인 θ L.
 * **tol_I**(설계 40 §3.7-3, 계획 N3.6 v6.4): 봉인 3 의 gm 은 후보 자기 동작점의 `device.dc_gm`(`dc_tolerances` 가 쓴 ID × LUT gm/ID) 하나다.
   parent 에 의존하지 않으므로 같은 θ 는 parent 와 무관하게 같은 봉인 결과를 낸다. 수동소자 θ 만 바뀐 자식의 DC 재사용은 입력 버전 일치로 성립한다.
 * **W_request**(설계 40 §3.7, 계획 N3.17 LY3): `w_request` = {MOS: W(m)} 또는 ((MOS, W), ...) -- 그 소자의 W 는 고정 입력이다. 쓰기 소자의 θ

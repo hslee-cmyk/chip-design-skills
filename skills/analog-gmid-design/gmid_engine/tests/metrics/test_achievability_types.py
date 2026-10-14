@@ -12,8 +12,10 @@ import pytest
 import gmid_engine.metrics as M
 from gmid_engine.core import fp_of
 
-RECORDS = ("CurveCheck", "SliceCurveCheck", "CurveChecks", "BlockBound", "GainCheck", "AreaBound", "EdgeCost", "HeadroomRow",
-           "HeadroomResult", "DofReport", "Achievability", "BlockSpec", "AxisSpec", "MosLocal", "ResLocal", "BlockModel", "LocalInputs")
+# [U17 ①-b] 설계 40 v1.9.1 §2.4.2·§2.4.8 D2: 묶음 `Achievability` 는 필드 `graph/ach` 로 풀려 없어졌다(필드 11개는 test_s0_fields·
+# tests/pipeline/test_stage_b 가 본다). `EdgeCost` 는 LUT 파생 값이라 lut 값 형식으로 옮겼다(§2.4.6 D10 -- tests/lut/test_derived_fns 가 본다).
+RECORDS = ("CurveCheck", "SliceCurveCheck", "CurveChecks", "BlockBound", "GainCheck", "AreaBound", "HeadroomRow",
+           "HeadroomResult", "DofReport", "BlockSpec", "AxisSpec", "MosLocal", "ResLocal", "BlockModel", "LocalInputs")
 
 
 @pytest.mark.parametrize("name", RECORDS)

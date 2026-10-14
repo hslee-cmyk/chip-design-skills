@@ -28,10 +28,11 @@ from gmid_engine.search import (
     solve_eps,
 )
 
+from .conftest import l_ties_of  # [U17 ①-b] graph/kernel 필드 읽기
 from .conftest import (R4_GRIDS, R4_L, SKILL_DIR, W_M, build_case, circuit_c, circuit_diode, conduction_floor, expected_floor,
                        peak_floor, r4_arrays, tol_v_at)
 from .conftest import CODE_FP, SRC, load_spec, new_access, write_decls
-from sizing.conftest import LClassStub, mos, topo
+from sizing.conftest import LClassStub, inject_l_classes, mos, topo
 
 KIND = {"M1": "nmos", "M2": "pmos"}
 DIODE_ONE_VAR = ("M1",)
@@ -427,6 +428,7 @@ def test_layer0_maxmin_respects_one_var_floor(tmp_path, lut_sealed, short_root):
 # θ 는 동치류마다 주인 L 하나(멤버 ("L", m) 성분 없음, sctx.dc.l_ties = ((멤버, 주인), ...)) -> l_cells 에 멤버 칸이 없다.
 # 멤버의 ("ln_idu", m) 성분 하한은 주인 L 칸에서 계산한다(멤버 L = 주인 L). 이 절 test 는 모두 l_classes 를 넘겨 l_ties 가 비지
 # 않은 경로를 쓴다 -- l_classes 없는 build_case(l_ties = ()) 로는 고치기 전 KeyError(멤버 이름)가 재현되지 않는다.
+# [U17 ①-b] l_classes 는 S1v 필드로 넣는다(sizing conftest `inject_l_classes`), l_ties 는 graph/kernel 필드(conftest `l_ties_of`).
 
 TIED_KIND = {"M1": "nmos", "M2": "pmos", "M3": "nmos", "M4": "pmos"}     # 아래 손 회로의 MOS kind(입력 선언)
 
@@ -450,7 +452,8 @@ def _tied_case(tmp, lut):
     td, spec = load_spec(Path(tmp) / "case", circuit_tied_cs2())
     inputs = dc_inputs_from_spec(spec)
     s1 = build_s1(td, dict(inputs.supplies_v))
-    dc = build_kernel_context(s1, inputs, acc, l_classes=(LClassStub("M1", ("M1", "M3")),))
+    # [U17 ①-b] L 동치류 입력 = S1v 필드 `graph/s1v: l_classes`(설계 40 v1.9.1 §2.4.8 D1; build_kernel_context(l_classes=) 삭제)
+    dc = build_kernel_context(inject_l_classes(s1, (LClassStub("M1", ("M1", "M3")),)), inputs, acc)
     pdk, rule = write_decls(Path(tmp) / "pdk")
     sctx = build_search_context(dc, spec, SearchSettings(600.0, 40, None, tuple(SRC), None), None, pdk, rule, code_fp=CODE_FP)
     return SimpleNamespace(acc=acc, dc=dc, sctx=sctx)
@@ -461,7 +464,7 @@ def test_l_class_member_floor_in_owner_cell(tmp_path, floor_lut, owner_cell):
     case = _tied_case(tmp_path, floor_lut)
     s = case.sctx
     V = s.domain.variables
-    ties = dict(case.dc.l_ties)
+    ties = dict(l_ties_of(case.dc))
     # 전제(비공허): 멤버 M3 는 l_ties 에 있고 l_cells 에 칸이 없으며 ln_idu 성분은 있다.
     assert ties == {"M3": "M1"}
     order = [m for m, _ in s.domain.l_cells]
@@ -524,18 +527,22 @@ def test_library_real_path_find_front_with_l_classes(tmp_path, lib_env, name):
     spec = load_sizing_spec(str(LIBRARY / (name + ".sizing_spec.json")), td, env.catalog)
     inputs = dc_inputs_from_spec(spec)
     sup = dict(inputs.supplies_v)
-    stage_a = run_stage_a(tp, None, env.lut, pdk_decl=env.pdk, output_dir=tmp_path / "a", supplies_v=sup)
-    dc = build_kernel_context(build_s1(td, sup), inputs, env.access, l_classes=stage_a.s1v.l_classes)
+    stage_a = run_stage_a(tp, None, env.lut, pdk_decl=env.pdk, lut_rule_decl=env.lut_rule, output_dir=tmp_path / "a", supplies_v=sup,
+                          pdk_decl_path=str(SKILL_DIR / "assets" / "sky130_pdk_decl.json"),
+                          lut_rule_decl_path=str(SKILL_DIR / "assets" / "sky130_lut_rule_decl.json"))
+    # [U17 ①-b] 단계 A 의 L 동치류 = S1v 필드 `graph/s1v: l_classes`(D1) -- 같은 build_s1(td, sup) 에 그 필드를 넣어 커널 컨텍스트를 만든다(옛 l_classes= 입력과 같은 값).
+    l_classes = stage_a.s1.value("graph", "s1v", "l_classes")
+    dc = build_kernel_context(inject_l_classes(build_s1(td, sup), l_classes), inputs, env.access)
     settings = SearchSettings(60.0, 40, RESISTANCE_BOX, (("cellfloor_lclass", "test_fixture"),), CAPACITANCE_BOX)
     sctx = build_search_context(dc, spec, settings, None, env.pdk, env.lut_rule, code_fp=stage_a.code_fp)
     comps = {v.component for v in sctx.domain.variables}
     # 전제(비공허): 동치류 멤버가 있고 그중 하나 이상이 ln_idu 성분을 가지며 l_cells 에는 멤버가 없다(하한 계산이 멤버를 만난다).
-    assert dc.l_ties
+    assert l_ties_of(dc)
     # [U17 ①-d] 40 v1.8 §6-8 D-2(MOS d·s 같은 라벨 c)로 정준 순서·dc_colour 순서가 바뀌어 two_stage_ota_sf 의 writer 계획이 달라졌고, 그 회로에서는
     # 동치류 멤버에 ln_idu 성분이 더 이상 없다(§6-8 '이 순서를 기대값으로 쓰는 test 는 독립 test 작성 주체가 다시 만든다'). 비공허 전제는 나머지 두 회로
     # (folded_cascode·ngcc_3stage_ff)가 지키고, two_stage_ota_sf 는 '예외 없음'만 본다.
     if name != "two_stage_ota_sf":
-        assert any(("ln_idu", m) in comps for m, _ in dc.l_ties)
-    assert not {m for m, _ in dc.l_ties} & {m for m, _ in sctx.domain.l_cells}
+        assert any(("ln_idu", m) in comps for m, _ in l_ties_of(dc))
+    assert not {m for m, _ in l_ties_of(dc)} & {m for m, _ in sctx.domain.l_cells}
     fr = find_front(sctx, [])
     assert isinstance(fr, SearchFront)

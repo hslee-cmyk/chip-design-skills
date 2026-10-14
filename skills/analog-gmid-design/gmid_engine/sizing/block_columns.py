@@ -82,7 +82,7 @@ from .s2_values import (
 READS = (
     ("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"),
     ("device", "dc_drop_current"), ("node", "dc_colour"), ("device", "dc_colour"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"), ("device", "bulk"),
-    ("device", "element_class"), ("device", "dc_coord"), ("graph", "dc_scc_order"),
+    ("device", "element_class"), ("device", "dc_coord"), ("graph", "dc_scc_order"), ("device", "dc_self_referential"),
 )
 WRITES = (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), ("device", "dc_ln_idu"),
           ("graph", "dc_scc_log"))
@@ -162,6 +162,7 @@ class _Circuit:
         self.net_colour = dict(projection.column("node", "dc_colour"))
         self.device_colour = dict(projection.column("device", "dc_colour"))
         self.coord = dict(projection.column("device", "dc_coord"))
+        self.self_ref = frozenset(m for m, flag in projection.column("device", "dc_self_referential") if flag)   # 쓰기 계획 파생 S0 필드(1변수 writer)
         self.order = projection.value("graph", DC_KEY, "dc_scc_order")
         self.resistance = {n: v for n, v in resistor_values if v is not None}
         self.resistance.update({key: v for (kind, key), v in self.theta.items() if kind == THETA_RESISTANCE})
@@ -311,12 +312,10 @@ class _Circuit:
         return values[net]
 
     def self_referential(self, net):
-        """writer 소자의 VDS·VSB 가 x 자신을 읽는가(diode 의 gate 쓰기, 소스 추종의 source 쓰기) -- 1변수 방정식 노드."""
+        """writer 소자의 VDS·VSB 가 x 자신을 읽는가(diode 의 gate 쓰기, 소스 추종의 source 쓰기) -- 1변수 방정식 노드. 판정은 쓰기 계획이 S0 당 한 번 쓴
+        `device.dc_self_referential`(설계 40 §2.4.8)을 읽는다(소자는 노드 하나만 쓴다)."""
         w = self.writers[net]
-        if w.relation not in (REL_VGS_GATE, REL_VGS_SOURCE):
-            return False
-        d, _g, s = (self.pins[w.element][t] for t in MOS_TERMINAL_NAMES)
-        return net in (d, s, self.bulk[w.element])
+        return w.relation in (REL_VGS_GATE, REL_VGS_SOURCE) and w.element in self.self_ref
 
     def _vgs_signed(self, m, vds, vsb):
         """bisection 용 VGS: 목표 전류가 그 (vds, vsb) 곡선의 강반전 분지 위 범위 밖이면 부호가 정해진 무한대

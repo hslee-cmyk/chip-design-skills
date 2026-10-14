@@ -2,8 +2,8 @@
 
 진입점: `lift_s1(s1graph) -> GraphSnapshot`.
 
-core `GraphSnapshot.extend_writers(S2_WRITERS)`(권한표 확장 API, sizing O7 -- 2026-10-08 사용자 승인)로 S1 스냅샷을 그대로
-더 넓은 권한표 아래로 옮긴다. 그래서
+core `GraphSnapshot.widen(S2_WRITERS)`(권한표 확장 API `extend_writers`, sizing O7 -- 2026-10-08 사용자 승인)로 S1 스냅샷을 그대로
+더 넓은 권한표(지금 표 ∪ `S2_WRITERS`) 아래로 옮긴다. S0 수준 스냅샷(권한표가 이미 S1·S1v 등을 덮는 것, 설계 40 §2.4.1)도 받는다. 그래서
 * 값·writer·입력 버전·쓰기 횟수·`block_version` 이 S1 과 같고 레코드 객체를 공유한다(구조 공유) -- S1 계산 블록을 이 스냅샷에
   다시 부르면 재사용(계산 0)이다.
 * 그 뒤 dc 계산 블록이 같은 스냅샷에 S2 필드를 더한다(필드마다 writer 하나 -- 권한표가 강제).
@@ -15,10 +15,10 @@ from .s2_values import S2_WRITERS
 
 
 def lift_s1(s1graph):
-    if not isinstance(s1graph, S1Graph) or s1graph.snapshot.writers != S1_WRITERS:
-        raise TypeError("lift_s1: S1_WRITERS 권한표의 S1Graph 여야 한다")
+    if not isinstance(s1graph, S1Graph) or not s1graph.snapshot.writers.covers(S1_WRITERS):
+        raise TypeError("lift_s1: 권한표가 S1_WRITERS 를 덮는 S1Graph 여야 한다")
     source = s1graph.snapshot
     for writer in sorted({writer for _kind_field, writer in S1_WRITERS.entries}):
         if source.block_version(writer) is None:
             raise ValueError("lift_s1: S1 writer " + repr(writer) + " 가 돌지 않은 S1Graph 다(build_s1 결과만 받는다)")
-    return source.extend_writers(S2_WRITERS)
+    return source.widen(S2_WRITERS)

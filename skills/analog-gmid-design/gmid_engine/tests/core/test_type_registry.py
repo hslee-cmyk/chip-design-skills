@@ -238,10 +238,12 @@ def test_library_has_nine_circuits():
 @pytest.mark.parametrize("name", _library_names())
 def test_s1_and_s1v_field_value_types_are_registered(name):
     import gmid_engine.pipeline  # noqa: F401  (design §2.4.3: pipeline 이 모든 패키지를 import 해 등록부를 채운다)
-    from gmid_engine.graph import S1v
-    s1, s1v = _library_s1_s1v(name)
+    # [U17 ①-b] build_s1v 는 S1Graph(필드 graph/s1v: views·l_classes·findings·declared·applied_facts, 40 v1.9.1 §2.4.8 D1) -- 묶음 없음.
+    s1, g = _library_s1_s1v(name)
     s1_types = _reachable_dataclass_types(_field_values(s1.snapshot))
-    s1v_types = _reachable_dataclass_types([getattr(s1v, f.name) for f in dataclasses.fields(s1v)], skip=(S1v,))
+    rec = g.snapshot.record("graph", "s1v")
+    assert rec is not None, "graph/s1v 레코드가 없다"
+    s1v_types = _reachable_dataclass_types([rec.get(n).value for n in rec.field_names()])
     names = set(_api("registered_names")())
     missing = sorted(_qualified(t) for t in s1_types | s1v_types if _qualified(t) not in names)
     assert not missing, "S0 수준 필드 값 형식인데 등록부에 없다(코덱이 거부): %s" % missing

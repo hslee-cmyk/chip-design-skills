@@ -9,8 +9,7 @@
 """
 from gmid_engine.core import SchemaRejectedError, SealViolationError
 
-from ._helpers_curves import hull
-from .iv_curves import QUANTITY_FT
+from ._helpers_curves import QUANTITY_FT, curve_bundle_of, hull
 from .start_values import QUANTITY_GM_ID, SIDE_HI, Bound, StartConflict
 
 _BLOCK_KINDS = ("gain", "composite")
@@ -53,7 +52,7 @@ def guard_input_gm_id(ctx, term, inputs, lengths, gm_id_lo, gm_id_cap):
     out = {}
     for n in inputs:
         d = ctx.by_name[n]
-        nodes = [float(g) for g in ctx.curves.bundle_of(d.name, d.kind, lengths[n])[QUANTITY_FT].gm_id if gm_id_lo[n] <= g <= gm_id_cap[n]] + [gm_id_lo[n]]
+        nodes = [float(g) for g in curve_bundle_of(ctx, d.name, d.kind, lengths[n])[QUANTITY_FT].gm_id if gm_id_lo[n] <= g <= gm_id_cap[n]] + [gm_id_lo[n]]
         scored = [(v, g) for g in nodes for v in [term(n, g)] if v is not None]
         out[n] = max(scored)[1] if scored else gm_id_lo[n]
     return out
@@ -69,7 +68,7 @@ def guard_bounds(ctx, inputs, loads, term, ratio, lengths, gm_id_lo, g_in, sourc
     low = {}
     for n in loads:
         d = ctx.by_name[n]
-        nodes = ctx.curves.bundle_of(d.name, d.kind, lengths[n])[QUANTITY_FT].gm_id
+        nodes = curve_bundle_of(ctx, d.name, d.kind, lengths[n])[QUANTITY_FT].gm_id
         at_lo = term(n, gm_id_lo[n])
         around = [v for v in [term(n, float(g)) for g in nodes if g >= gm_id_lo[n]] if v is not None]
         if at_lo is None and not around:
@@ -79,7 +78,7 @@ def guard_bounds(ctx, inputs, loads, term, ratio, lengths, gm_id_lo, g_in, sourc
     for name in loads:
         level = base - (sum(low.values()) - low[name])
         d = ctx.by_name[name]
-        nodes = ctx.curves.bundle_of(d.name, d.kind, lengths[name])[QUANTITY_FT].gm_id
+        nodes = curve_bundle_of(ctx, d.name, d.kind, lengths[name])[QUANTITY_FT].gm_id
         pairs = [(float(g), v) for g in nodes for v in [term(name, float(g))] if v is not None]
         if not pairs:
             raise term.last

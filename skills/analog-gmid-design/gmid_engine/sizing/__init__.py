@@ -5,6 +5,8 @@ design_gb7_dc_canonical; [r8] 9 = 전도 여유). 계약: `CONTRACT.md`.
 `dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, pre_layout_lut_access(memo))` (S0 당 1회) ->
 `size_and_seal(ctx, theta, parent=None)` (θ 마다).
 """
+from gmid_engine.core import type_registry
+
 from .bracket_root import bracket_root
 from .block_columns import dc_columns
 from .block_currents import dc_currents
@@ -14,7 +16,8 @@ from .current_basis import dc_current_basis
 from .dc_inputs import dc_inputs_from_spec
 from .fixed_point import gauss_seidel
 from .k_max import k_max
-from .kernel_context import build_kernel_context
+from .kernel_context import PLAN_WRITERS, build_kernel_context
+from .kernel_fields import kernel_fields
 from .pre_layout_widths import pre_layout_lut_access
 from .s2_lift import lift_s1
 from .s2_values import (
@@ -24,6 +27,8 @@ from .s2_values import (
     COORD_WRITER,
     CURRENT_SOURCE,
     DC_KEY,
+    KERNEL_CONTEXT_WRITER,
+    KERNEL_KEY,
     DC_WRITES,
     DEP_CYCLE,
     DEP_FIXED,
@@ -155,6 +160,12 @@ from .theta_schema import dc_theta_schema
 from .w0_rails import dc_rails
 from .writer_plan import dc_writer_plan
 
+# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 sizing 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.8): S0 수준 스냅샷에 드는 θ 무관 계획 블록 필드
+# (`dc_current_basis` 의 `CurrentBasis`·`CurrentTerm`, `dc_writer` 의 `NodeWrite`, `dc_coord` 의 `DeviceCoord`, `dc_tie_breaks` 의 `TieBreak`, `dc_scc_order` 의 `SccEntry`,
+# `dc_column_nbrs` 의 `ColumnNeighbor`)와 커널 구조 파생 `graph/kernel: theta_schema`(`ThetaSchema`·`ZeroCancel`). 설계점(S2) 필드 형식은 S0 스냅샷에 들지 않아 올리지 않는다.
+for _field_value_type in (CurrentBasis, CurrentTerm, NodeWrite, DeviceCoord, TieBreak, SccEntry, ColumnNeighbor, ThetaSchema, ZeroCancel):
+    type_registry.type_registry().register(_field_value_type)
+
 __all__ = (
     "BRANCH_MOS_ZERO_CURRENT",
     "BRANCH_RESISTOR_CYCLE",
@@ -165,6 +176,9 @@ __all__ = (
     "CurrentBasis",
     "CurrentTerm",
     "DC_KEY",
+    "KERNEL_CONTEXT_WRITER",
+    "KERNEL_KEY",
+    "PLAN_WRITERS",
     "DC_WRITES",
     "DEP_CYCLE",
     "DEP_FIXED",
@@ -272,6 +286,7 @@ __all__ = (
     "Window",
     "bracket_root",
     "build_kernel_context",
+    "kernel_fields",
     "check_theta",
     "dc_columns",
     "dc_current_basis",

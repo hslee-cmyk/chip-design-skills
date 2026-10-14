@@ -12,7 +12,7 @@ as-built `DcSlice` 의 칸 분류 자료(`on_mask`·`vds_slope_ok`·`vs_slope_ok
 * **단위 불일치**: 로드 거부(`SchemaRejectedError` reason `lut_unit_mismatch`, lut `load_lut_set` 1.4). 로드된 LUT 에는 없으므로 `n_unit_mismatch` 는 늘 0 이다.
 
 격자 통계(전 슬라이스 배열 한 번 훑기)이고 보간 조회가 아니다 -- 보간이 필요한 값은 lut 곡선 API 를 쓴다. 같은 LUT 면 결과가 같다(결정론, 시간 무관).
-소비처: `achievability`(보고·`Achievability.curves`), U15 층 0 국소 후보의 역산 가능 칸 판정(41 §5.3).
+소비처: `achievability`(보고·필드 `graph/ach: curve_checks`), U15 층 0 국소 후보의 역산 가능 칸 판정(41 §5.3).
 """
 import numpy as np
 

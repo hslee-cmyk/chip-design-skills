@@ -18,6 +18,7 @@ from gmid_engine.sizing import (DC_KEY, INPUT_GROUP_KEY, DeviceCoord, NodeWrite,
 
 from .conftest import (NINE, build_ctx, circuit_cs_pmos_load, circuit_cs_res, circuit_empty_window, detail,
                        library_ctx, load_doc, mos, topo, two)
+from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 from .conftest import rename
 
 
@@ -207,8 +208,8 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
     w1 = {t1(m) for m, c in ctx.base.column("device", "dc_coord") if c.role == "writer"}
     w2 = {t2(m) for m, c in ctx2.base.column("device", "dc_coord") if c.role == "writer"}
     assert w1 == w2, "정준 대응 아래 writer 선택이 다르다"
-    k1 = {(k, t1(key)) for k, key in ctx.schema.components}
-    k2 = {(k, t2(key)) for k, key in ctx2.schema.components}
+    k1 = {(k, t1(key)) for k, key in kschema(ctx).components}
+    k2 = {(k, t2(key)) for k, key in kschema(ctx2).components}
     assert k1 == k2, "정준 대응 아래 θ 키가 다르다"
     # 개수 구조는 항상 같다
     assert len(w1) == len(w2) and len(k1) == len(k2)
@@ -216,12 +217,12 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
     assert tiers(ctx) == tiers(ctx2)
     # [r5] 수동소자 θ 성분과 영점 상쇄 판정(연결만으로 정해짐 -- 동률 기록 없음)은 σ 를 그대로 따른다(9절 + 4.4)
     pk = ("capacitance", "ss_resistance")
-    assert {(t, sigma[k]) for t, k in ctx.schema.components if t in pk} == {
-        (t, k) for t, k in ctx2.schema.components if t in pk}
+    assert {(t, sigma[k]) for t, k in kschema(ctx).components if t in pk} == {
+        (t, k) for t, k in kschema(ctx2).components if t in pk}
     zc1 = {(sigma[z.resistor], sigma[z.end_net] if z.end_net is not None else None,
             tuple(sorted(sigma[n] for n in z.far_nets)), tuple(sorted(sigma[c] for c in z.cells)), z.reason)
-           for z in ctx.schema.zero_cancel}
-    zc2 = {(z.resistor, z.end_net, tuple(z.far_nets), tuple(z.cells), z.reason) for z in ctx2.schema.zero_cancel}
+           for z in kschema(ctx).zero_cancel}
+    zc2 = {(z.resistor, z.end_net, tuple(z.far_nets), tuple(z.cells), z.reason) for z in kschema(ctx2).zero_cancel}
     assert zc1 == zc2
 
 
@@ -282,7 +283,7 @@ def test_dec95_order_symmetric_pair(tmp_path, r4_access, hints, writer):
     other = "MB" if writer == "MA" else "MA"
     assert _writer_of(ctx, "pb") == writer
     assert _roles(ctx)[writer] == "writer" and _roles(ctx)[other] == "dependent"
-    assert ("ln_idu", writer) in ctx.schema.components and ("ln_idu", other) not in ctx.schema.components
+    assert ("ln_idu", writer) in kschema(ctx).components and ("ln_idu", other) not in kschema(ctx).components
 
 
 @pytest.mark.parametrize("hints,writer", [
@@ -313,7 +314,7 @@ def test_hint_on_tree_only_device_changes_nothing(tmp_path, r4_access):
     b = _mir(tmp_path / "b", r4_access, OrderHints(independent=("M3",), gm_required=("M3",), stage=(("M3", 9),)))
     for f in (("node", "dc_writer"), ("device", "dc_coord")):
         assert a.base.column(*f) == b.base.column(*f)
-    assert a.schema == b.schema
+    assert kschema(a) == kschema(b)
 
 
 @pytest.mark.parametrize("names", [("MA", "MB", "MC", "MD"), ("Z1", "A1", "MC", "MD")], ids=["ab", "swapped_order"])

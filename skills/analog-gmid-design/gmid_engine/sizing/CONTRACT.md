@@ -1,5 +1,18 @@
 # gmid_engine.sizing 동작 계약 (MOD4 GB7 DC 정본 풀이 + 봉인, test 작성용)
 
+> **[U17 ①-b] S0 수준 필드 이동**(설계 40 §2.4.7 `KernelContext` 행·§2.4.8 v1.9.1 D8, 2026-10-13) -- 이 단락이 아래 옛 서술보다 우선한다.
+> * `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext` -- `l_classes` 인자는 없다: L 동치류는 S1v 필드 `graph/s1v: l_classes`(있으면)에서 읽는다.
+>   순서 = lift(`widen(S2_WRITERS)` -- 권한표가 S1_WRITERS 를 덮는 S0 수준 스냅샷도 받는다) -> `dc_rails` -> `s1_symmetry` -> `dc_current_basis` -> `dc_writer_plan` -> `dc_scc_order` ->
+>   **`kernel_fields`**(writer `kernel_context`, 새 계산 블록: `graph/kernel(KERNEL_KEY="kernel")`: `fixed_values`·`resistor_values`·`l_ties` -- L 묶음 검사 `ValueError` 포함) ->
+>   `dc_theta_schema`(extras = engine 수동소자만; reads 에 `resistor_values`·`l_ties` 필드).
+> * `KernelContext(base, inputs, lut)` -- **참조만**. 옛 칸 `schema`·`fixed_values`·`resistor_values`·`plan_versions`·`l_ties` 는 없다: θ 스키마 = `base.value("graph", KERNEL_KEY, "theta_schema")`
+>   (옛 `graph/dc: dc_theta_schema` 를 `graph/kernel: theta_schema` 로 옮김, writer `dc_theta_schema` 그대로), 고정 노드·저항·L 묶음 = 같은 레코드의 필드, 계획 블록 입력 버전 =
+>   `base.block_version(w)`(`PLAN_WRITERS` = 위 계획 블록 + `kernel_context`·`dc_theta_schema`). `run_kernel` 의 parent 검사는 `PLAN_WRITERS` block_version 이 `base` 와 같은지로 한다.
+> * `dc_writer_plan` 은 `device.dc_self_referential`(MOS 마다 bool -- 그 소자가 쓰는 노드가 자기 d·s·bulk 중 하나인가: diode gate 쓰기·소스 추종 source 쓰기)도 쓴다(S0 수준 필드,
+>   설계 40 §2.4.8 '1변수 writer 집합'). `dc_columns` 의 1변수 노드 판정과 search `cell_floor` 가 이 필드를 읽는다(reads 에 `device.dc_self_referential`).
+> * 권한표: `S2_WRITERS` 에 `kernel_context` 필드·`theta_schema`·`dc_self_referential` 이 든다. sizing `__init__` 이 S0 수준 스냅샷 값 형식(`CurrentBasis`·`CurrentTerm`·`NodeWrite`·`DeviceCoord`·
+>   `TieBreak`·`SccEntry`·`ColumnNeighbor`·`ThetaSchema`·`ZeroCancel`)을 core 타입 등록부에 올린다.
+
 - 대상: `gmid_engine/sizing/` 공개 API(`gmid_engine.sizing.__all__`). test 는 `from gmid_engine.sizing import ...`,
   `from gmid_engine.graph import ...`, `from gmid_engine.authoring import ...`, `from gmid_engine.lut import ...`,
   `from gmid_engine.core import ...` 만 쓴다(파일 모듈 직접 import·`_` 이름 금지). 배치는 규칙 D(H):
@@ -151,7 +164,7 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
   `dc_theta_schema` 순).
 
 ### 1.5 `lift_s1(s1graph) -> GraphSnapshot`
-- `S1_WRITERS` 권한표의 `S1Graph` 가 아니면 `TypeError`, S1 writer 중 돌지 않은 것이 있으면 `ValueError`.
+- 권한표가 S1 필드(`S1_WRITERS`)를 덮지 않으면 `TypeError`(S1 권한표를 넓힌 S0 수준 스냅샷은 받는다 -- graph CONTRACT 10.1·설계 40 §2.4.1, v1.9.2 결정 9), S1 writer 중 돌지 않은 것이 있으면 `ValueError`.
 - 결과 `writers == S2_WRITERS`. 모든 S1 필드 값이 원본과 같고 `block_version(w)` 가 원본과 같다(그래서 S1 블록을 이
   스냅샷에 다시 부르면 reuse). [2026-10-08, O7 닫음] 결과 = core `S1Graph.snapshot.extend_writers(S2_WRITERS)` -- **레코드
   객체를 원본과 공유한다**(`is`), `fp`·필드 메타(writer·input_version·write_count)도 원본과 같다(r8 까지는 setter 로 다시 써서

@@ -25,8 +25,7 @@ import types
 from gmid_engine.authoring import INPUT_DIRECTION, OUTPUT_DIRECTION, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P
 from gmid_engine.metrics import headroom_bound
 
-from ._helpers_curves import hull
-from .iv_curves import QUANTITY_FT, QUANTITY_VDSAT
+from ._helpers_curves import QUANTITY_FT, QUANTITY_VDSAT, curve_bundle, edge_cost, hull, tol_vdsat
 from .start_values import (
     EDGE_VDS,
     EDGE_VGS,
@@ -141,7 +140,7 @@ def _lower_bound(ctx, d, bundle, edge, budget, L):
     """엣지 예산 -> (하한 gm/ID 또는 None, 출처 식 이름, 어긋남 V). 어긋남 = 곡선 전체에서 가장 가까운 값이 예산을 넘는 크기(하한이 없을 때만 양수)."""
     if edge == EDGE_VDS:
         curve = bundle[QUANTITY_VDSAT]
-        level = budget - ctx.curves.tol_vdsat(d.kind, L, curve.vds)
+        level = budget - tol_vdsat(ctx, d.kind, L, curve.vds)
         values, source = curve.values, SRC_HEADROOM_VDSAT
     else:
         curve = bundle[QUANTITY_FT]
@@ -153,11 +152,11 @@ def _lower_bound(ctx, d, bundle, edge, budget, L):
 def headroom_bounds(ctx, lengths, budgets=None):
     if ctx.rail_v == {} or not ctx.devices:
         return HeadroomBounds({}, (), ((SRC_HEADROOM_VDSAT, WHY_NO_RAILS),), {})
-    edges = {k: ctx.curves.edge(k) for k in sorted({d.kind for d in ctx.devices})}
+    edges = {k: edge_cost(ctx, k) for k in sorted({d.kind for d in ctx.devices})}
     budgets = _budgets(ctx, edges) if budgets is None else budgets
     out, conflicts = {}, []
     for d in ctx.devices:
-        bundle = ctx.curves.bundle(d.kind, lengths[d.name])
+        bundle = curve_bundle(ctx, d.kind, lengths[d.name])
         if bundle is None:
             continue
         found = []

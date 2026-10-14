@@ -5,10 +5,9 @@
 * `BlockRef(view, key)` -- 블록 하나를 가리키는 값: 뷰 id 와 블록 키(출력노드 이름 정렬 tuple). 같은 키의 블록도 뷰가 다르면 다른 블록이다.
 * `ColumnBlockRow(column, block, device, shared, basis)` -- 매핑표 한 행(DEC-71 (2)): S1 기둥 id, 블록(바이어스 기둥이면 None), 소자, 공유 소자 표시, 귀속 근거.
   `column` 이 None 이면 어느 기둥에도 들지 않지만(DC 엣지가 없는 커패시터 등) 블록 멤버인 소자의 행이다.
-* `ColumnBlockMap(rows, bias_columns)` -- 매핑표와 바이어스 기둥 id 목록.
 * `CouplingVar(kind, members, blocks, domain, init_rule, nets)` -- 결합 변수 y 한 개(40 §3.3). `kind` ∈ COUPLING_KINDS, `members` = 관련 소자,
   `blocks` = 블록 경계를 실제로 가로지른 뷰들의 블록 `BlockRef` 정렬 tuple, `domain` = S1 영역 어휘(dc·geom), `init_rule` = 조립(41 §5.5)이 y 초기값을 정하는 규칙 이름, `nets` = 관련 넷.
-* `Coupling(vars, column_block_map)` -- `coupling_vars` 의 결과.
+결과는 묶음 객체 없이 S0 수준 필드 `graph/coupling: vars·column_block_map(행 tuple)·bias_columns` 로 쓴다(설계 40 §2.4.8 v1.9.1 D8).
 """
 import dataclasses
 
@@ -61,14 +60,6 @@ class ColumnBlockRow:
 
 
 @dataclasses.dataclass(frozen=True)
-class ColumnBlockMap:
-    """기둥↔블록 매핑표. `rows` = (column, block, device) 정렬 tuple, `bias_columns` = 바이어스 기둥 id 정렬 tuple."""
-
-    rows: tuple
-    bias_columns: tuple
-
-
-@dataclasses.dataclass(frozen=True)
 class CouplingVar:
     """결합 변수 y 한 개. `kind` ∈ COUPLING_KINDS, `members` = 소자 이름 tuple, `blocks` = BlockRef 정렬 tuple, `domain` ∈ {dc, geom}, `init_rule` = INIT_*, `nets` = 관련 넷 정렬 tuple."""
 
@@ -78,11 +69,3 @@ class CouplingVar:
     domain: str
     init_rule: str
     nets: tuple = ()
-
-
-@dataclasses.dataclass(frozen=True)
-class Coupling:
-    """`coupling_vars` 결과: `vars` = CouplingVar (kind, members, nets) 정렬 tuple, `column_block_map` = ColumnBlockMap."""
-
-    vars: tuple
-    column_block_map: object

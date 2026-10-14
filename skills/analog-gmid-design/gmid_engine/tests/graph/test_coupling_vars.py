@@ -61,12 +61,12 @@ def by_key(cpl):
 def test_single_block_has_no_coupling(tmp_path):
     # 5T OTA: 모든 소자가 블록 out 하나 -> 횡단 없음, 뷰 하나 -> K7 없음, 측면 주입 구조 없음 (무동작 증거)
     s1, s1v = H.build(tmp_path, H.OTA5)
-    assert coupling_vars(s1, s1v).vars == ()
+    assert C.coupling(s1, s1v).vars == ()
 
 
 def test_miller_k1_k2_across_stages(tmp_path):
     s1, s1v = H.build(tmp_path, H.MILLER)
-    cpl = coupling_vars(s1, s1v)
+    cpl = C.coupling(s1, s1v)
     # 손 유도: 꼬리 M5(블록 o1, tail_source) 와 2단 전류원 M7(블록 out, load) 이 같은 (vb, gnd) gs 묶음
     #  -> mirror 그룹 {M5,M7}: 블록 o1/out 횡단 + 부하 역할 M7 -> K1 dc; L 동치류 {M5,M7} -> K1 geom; equal_vgs -> K2 nets (vb, gnd).
     #  {M3,M4} 미러는 둘 다 o1 -> 없음. 기둥 {M5,M2,M4}·{M5,M1,M3}·{M7,M6} 은 각자 한 블록 -> K4 없음. 뷰 하나 -> K7 없음.
@@ -86,7 +86,7 @@ def test_stack_k3_and_k4(tmp_path):
     # 전제(S1v 블록, 입력 데이터): M1·M2 는 블록 a, M3·M4·M5 는 블록 out
     owner = {d: k for b in v.blocks for d, _r in b.roles for k in [b.key]}
     assert (owner["M1"], owner["M2"], owner["M3"], owner["M4"], owner["M5"]) == (("a",), ("a",), ("out",), ("out",), ("out",))
-    cpl = coupling_vars(s1, s1v)
+    cpl = C.coupling(s1, s1v)
     # 손 유도:
     #  K3: 비레일 넷 s 에서 M5 drain 과 M2 source 가 만남, 블록 out != a -> (e, d) = (M5, M2), nets (s,).
     #      같은 s 의 M3 source 는 M5 와 같은 블록 -> 없음. 넷 a 의 M1/M2 drain 에 source 없음.
@@ -105,7 +105,7 @@ def test_stack_k3_and_k4(tmp_path):
 
 def test_side_injection_k8(tmp_path):
     s1, s1v = H.build(tmp_path, C.SIDE)
-    cpl = coupling_vars(s1, s1v)
+    cpl = C.coupling(s1, s1v)
     # 손 유도:
     #  K8: Mc = DC 바이어스 전류원(복합 diode M6 의 (q, vdd) 묶음), 셀 CS(gate q 신호), drain n. n 에 CD Ms(gate y) 의 source.
     #      y 에서 CD 엣지(y->n Ms, n->out Mf)로 q 에 닿지 않음, n 은 이득 블록(y) 출력 아님 -> (Mc, Ms), nets (n,).
@@ -131,7 +131,7 @@ def test_side_injection_k8(tmp_path):
 def test_k7_counts_mos_shared_by_views(tmp_path):
     s1, s1v = H.build(tmp_path, H.CMFB)
     assert [v.id for v in s1v.views] == [T0, "loop:M5:cm"]   # 전제: 전달 뷰 + CMFB 루프 뷰
-    cpl = coupling_vars(s1, s1v)
+    cpl = C.coupling(s1, s1v)
     ecls = dict(s1.column("device", "element_class"))
     k7 = {v.members: v for v in cpl.vars if v.kind == "K7" and all(ecls[m] == "mos" for m in v.members)}
     # 손 유도: 두 뷰 블록에 함께 있는 MOS = M1·M2(입력/부하)·M3·M4(부하/미러). M0 은 전달 뷰만, M5~M8 은 루프 뷰만.
@@ -144,7 +144,7 @@ def test_k7_counts_mos_shared_by_views(tmp_path):
 def test_k7_excludes_shared_resistors(tmp_path):
     # 설계 as-built (iii): K7 은 MOS 만. R1·R2 는 두 뷰 블록의 부하지만 값이 뷰마다 같아 나눌 것이 없다.
     s1, s1v = H.build(tmp_path, H.CMFB)
-    members = {v.members for v in coupling_vars(s1, s1v).vars if v.kind == "K7"}
+    members = {v.members for v in C.coupling(s1, s1v).vars if v.kind == "K7"}
     assert ("R1",) not in members and ("R2",) not in members
 
 
@@ -152,14 +152,14 @@ def test_k7_excludes_shared_capacitor(tmp_path):
     s1, s1v = H.build(tmp_path, C.CMFB_C)
     # 전제: Cx 는 두 뷰의 블록 멤버
     assert all("Cx" in dict(b.roles) for v in s1v.views for b in v.blocks)
-    k7 = sorted(v.members for v in coupling_vars(s1, s1v).vars if v.kind == "K7")
+    k7 = sorted(v.members for v in C.coupling(s1, s1v).vars if v.kind == "K7")
     assert k7 == [("M1",), ("M2",), ("M3",), ("M4",)]       # Cx·R1·R2 없음 (as-built (iii))
 
 
 def test_bias_column_pseudo_block_k1_k2(tmp_path):
     s1, s1v = H.build(tmp_path, C.BCS)
     bias = C.column_id(s1, {"Mi", "Mr"})
-    cpl = coupling_vars(s1, s1v)
+    cpl = C.coupling(s1, s1v)
     # 손 유도(as-built (i)): 기준 diode Mr 는 바이어스 기둥 {Mi, Mr} = 의사 블록 bias:<그 기둥>. 부하 M2 는 블록 out.
     #  equal_vgs {M2, Mr}(vbp, vdd) -> out / bias 횡단 -> K2. L 동치류 {M2, Mr} + 부하 역할 M2 -> K1 geom.
     #  mirror matching 그룹은 S1 에 없다(gate vbp 가 바이어스 넷이라 bias_distribution 처리) -> K1 dc 없음.
@@ -176,7 +176,7 @@ def test_bias_column_pseudo_block_k1_k2(tmp_path):
 def test_bias_columns_sharing_a_branch_k4(tmp_path):
     s1, s1v = H.build(tmp_path, C.BIASNET)
     ca, cb = C.column_id(s1, {"Mt", "Ma"}), C.column_id(s1, {"Mt", "Mb", "Mc"})
-    cpl = coupling_vars(s1, s1v)
+    cpl = C.coupling(s1, s1v)
     # 손 유도(as-built (i) K4): 바이어스 기둥 둘 A={Mt,Ma}, B={Mt,Mb,Mc} 가 가지 Mt(gnd-t) 를 공유.
     #  가지 Mt: 기둥 A·B 소자 -> Mt{A,B}, Ma{A}, Mb·Mc{B} -> 합집합 != 교집합 -> K4 (Mt,) nets {gnd, t}.
     #  가지 Ma(t-vdd): 기둥 A 소자 Mt{A,B}·Ma{A} -> 횡단 -> K4 (Ma,) nets {t, vdd}.
@@ -196,7 +196,7 @@ def test_bias_pseudo_block_key_format(tmp_path):
     # 손 유도(BCS): 바이어스 기둥은 {Mi, Mr} 하나 -> 의사 블록 키 ("bias:<그 기둥>",). K1 geom·K2 의 blocks = {out, 의사 블록} 정확히.
     s1, s1v = H.build(tmp_path, C.BCS)
     bias = C.column_id(s1, {"Mi", "Mr"})
-    cpl = coupling_vars(s1, s1v)
+    cpl = C.coupling(s1, s1v)
     assert cpl.column_block_map.bias_columns == (bias,)
     want = (BlockRef(T0, ("bias:%s" % (bias,),)), BlockRef(T0, ("out",)))
     assert len(cpl.vars) == 2
@@ -216,7 +216,7 @@ def test_bias_pseudo_block_one_per_view(lib):
     s1, s1v = lib["current_reuse_telescopic_ota"]
     bias = C.column_id(s1, {"Iref", "M18_bg"})
     pk = ("bias:%s" % (bias,),)
-    hit = [v for v in coupling_vars(s1, s1v).vars if v.kind == "K1" and v.domain == "dc" and v.members == ("M18_bg", "M6")]
+    hit = [v for v in C.coupling(s1, s1v).vars if v.kind == "K1" and v.domain == "dc" and v.members == ("M18_bg", "M6")]
     assert len(hit) == 1
     assert set(hit[0].blocks) == {BlockRef(T0, ("Vom1", "Vop1")), BlockRef(T0, pk),
                                   BlockRef("loop:M37a:Voc", ("N1a2a", "N1b2b")), BlockRef("loop:M37a:Voc", pk)}
@@ -230,7 +230,7 @@ def test_tail_mirrored_from_bias_diode_is_k1(tmp_path):
     v = H.view(s1v)
     roles = {d: r for b in v.blocks for d, r in b.roles}
     assert [b.key for b in v.blocks] == [("out",)] and roles["M5"] == "tail_source" and "Mr" not in roles   # 전제(S1v)
-    cpl = coupling_vars(s1, s1v)
+    cpl = C.coupling(s1, s1v)
     # 손 유도: Mr 는 바이어스 기둥 = 의사 블록 bias:<기둥>, M5 는 블록 out 의 tail_source -> {M5, Mr} 횡단.
     #  (nb, gnd) gs 묶음 -> mirror 그룹·L 동치류 {M5, Mr} + 부하 역할 tail_source -> K1 dc·geom, equal_vgs -> K2 nets (nb, gnd).
     #  {M3, M4} 는 둘 다 out -> 없음. 기둥 {M5,M1,M3}·{M5,M2,M4} 는 out 하나, {Mr,Mi} 는 의사 블록 하나 -> K4 없음. 뷰 하나 -> K7 없음.
@@ -250,7 +250,7 @@ def test_bias_columns_k4_blocks_are_pseudo_only(tmp_path):
     #  가지 Ma 의 기둥 A 소자 Mt{A,B}·Ma{A} -> 횡단 블록 {A, B}. 가지 Mb-Mc 도 {A, B}.
     s1, s1v = H.build(tmp_path, C.BIASNET)
     ca, cb = C.column_id(s1, {"Mt", "Ma"}), C.column_id(s1, {"Mt", "Mb", "Mc"})
-    cpl = coupling_vars(s1, s1v)
+    cpl = C.coupling(s1, s1v)
     assert set(cpl.column_block_map.bias_columns) == {ca, cb}
     want = {BlockRef(T0, ("bias:%s" % (ca,),)), BlockRef(T0, ("bias:%s" % (cb,),))}
     k4 = [v for v in cpl.vars if v.kind == "K4"]
@@ -264,7 +264,7 @@ def test_bias_columns_k4_blocks_are_pseudo_only(tmp_path):
 def test_hand_circuits_match_oracle(tmp_path, doc):
     # 손 회로 전부에서 (b) oracle 과 레코드 키가 같다(손 리터럴과 oracle 의 교차 확인 포함)
     s1, s1v = H.build(tmp_path, doc)
-    assert O.engine_records(coupling_vars(s1, s1v)) == O.CouplingOracle(s1, s1v).records()
+    assert O.engine_records(C.coupling(s1, s1v)) == O.CouplingOracle(s1, s1v).records()
 
 
 # ---------------------------------------------------------------- 형식 불변식
@@ -277,7 +277,7 @@ def _all_inputs(tmp_path):
 
 def test_vars_sorted_unique_and_table_vocabulary(tmp_path):
     for name, (s1, s1v) in _all_inputs(tmp_path):
-        cpl = coupling_vars(s1, s1v)
+        cpl = C.coupling(s1, s1v)
         keys = [(v.kind, tuple(v.members), tuple(v.nets), v.domain) for v in cpl.vars]
         assert keys == sorted(keys), name                      # interface 11.1: (kind, members, nets, domain) 순
         assert len(set(keys)) == len(keys), name              # 같은 키 중복 없음
@@ -298,7 +298,7 @@ def lib():
 
 def _split(name, lib, kinds):
     s1, s1v = lib[name]
-    eng = {r for r in O.engine_records(coupling_vars(s1, s1v)) if r[0] in kinds}
+    eng = {r for r in O.engine_records(C.coupling(s1, s1v)) if r[0] in kinds}
     orc = {r for r in O.CouplingOracle(s1, s1v).records() if r[0] in kinds}
     return eng, orc
 
@@ -328,7 +328,7 @@ def test_library_k1_k2_blocks_match_oracle(name, lib):
     # K1·K2 blocks(의사 블록 포함) = oracle 횡단 블록(뷰별, 의사 블록 키 ("bias:<기둥 id>",))
     s1, s1v = lib[name]
     orc = O.CouplingOracle(s1, s1v)
-    for v in coupling_vars(s1, s1v).vars:
+    for v in C.coupling(s1, s1v).vars:
         if v.kind in ("K1", "K2"):
             assert {(b.view, tuple(b.key)) for b in v.blocks} == orc.crossing_refs(v.members), (name, v)
 
@@ -337,7 +337,7 @@ def test_library_tail_source_k1_records(lib):
     # 21bde21 로 생긴 K1(topology 직접 읽기): 꼬리 전류원이 바이어스 기둥의 기준 diode 와 같은 gate·source.
     #  sf: M3(d TAIL, g NB, s vss) <- M4(d NB, g NB, s vss) / folded: M11(d tail, g vb2, s gnd) <- MN(d vb2, g vb2, s gnd)
     #  pilot: M6(d Vx, g Vbias1, s vdd) <- M18_bg(d Vbias1, g Vbias1, s vdd).
-    got = {n: {(v.members, v.domain) for v in coupling_vars(*lib[n]).vars if v.kind == "K1"} for n in C.NINE}
+    got = {n: {(v.members, v.domain) for v in C.coupling(*lib[n]).vars if v.kind == "K1"} for n in C.NINE}
     assert {(("M3", "M4"), "dc"), (("M3", "M4"), "geom")} <= got["sf_pushpull_output_opamp"]
     assert {(("M11", "MN"), "dc"), (("M11", "MN"), "geom")} <= got["folded_cascode"]
     assert (("M18_bg", "M6"), "dc") in got["current_reuse_telescopic_ota"]
@@ -363,17 +363,17 @@ def test_library_kind_count_table(lib):
     }
     oracle_got = {n: dict(collections.Counter(r[0] for r in O.CouplingOracle(*lib[n]).records())) for n in C.NINE}
     assert oracle_got == expect                                # oracle 자체의 회귀 고정
-    engine_got = {n: dict(collections.Counter(v.kind for v in coupling_vars(*lib[n]).vars)) for n in C.NINE}
+    engine_got = {n: dict(collections.Counter(v.kind for v in C.coupling(*lib[n]).vars)) for n in C.NINE}
     assert engine_got == expect
 
 
 def test_library_k3_absent(lib):
     # 설계 as-built (ii): K3 9회로 0건
-    assert [n for n in C.NINE if any(v.kind == "K3" for v in coupling_vars(*lib[n]).vars)] == []
+    assert [n for n in C.NINE if any(v.kind == "K3" for v in C.coupling(*lib[n]).vars)] == []
 
 
 def test_sf_side_injection_and_column_mate_k2(lib):
-    cpl = coupling_vars(*lib["sf_pushpull_output_opamp"])
+    cpl = C.coupling(*lib["sf_pushpull_output_opamp"])
     got = {(v.kind, tuple(v.members), tuple(v.nets)) for v in cpl.vars if v.kind in ("K2", "K8")}
     # 손 유도(topology 직접 읽기): M17(PMOS, gate N5 = 복합 diode 넷)이 레벨 시프트 CD M18(gate Y)의 source N17 에 전류를 넣고
     # N17 은 출력 CD M22 로 간다 -> K8 (M17, M18)@N17. 대칭으로 M20(gate N13)·CD M19@N20. members 순서 = (c, CD 셀들)(interface 11.3).
@@ -385,8 +385,8 @@ def test_sf_side_injection_and_column_mate_k2(lib):
 def test_design_named_bias_reference_examples(lib):
     # 설계 40 §3.3 as-built (i) 의 예: sf M3<->M4(NB 기준 diode M4 는 바이어스 기둥 {IBias, M4}), ngcc M6A<->M7(NX diode M6A 는
     # 바이어스 기둥 {M5, M6A, M6B}) -> equal_vgs 가 의사 블록과 블록을 가로지른다 -> K2.
-    sf = {(v.kind, tuple(v.members), tuple(v.nets)) for v in coupling_vars(*lib["sf_pushpull_output_opamp"]).vars}
-    ngcc = {(v.kind, tuple(v.members), tuple(v.nets)) for v in coupling_vars(*lib["ngcc_3stage_ff"]).vars}
+    sf = {(v.kind, tuple(v.members), tuple(v.nets)) for v in C.coupling(*lib["sf_pushpull_output_opamp"]).vars}
+    ngcc = {(v.kind, tuple(v.members), tuple(v.nets)) for v in C.coupling(*lib["ngcc_3stage_ff"]).vars}
     assert ("K2", ("M3", "M4"), ("NB", "vss")) in sf
     assert ("K2", ("M6A", "M7"), ("NX", "gnd")) in ngcc
 
@@ -422,29 +422,28 @@ def _canon(s1, s1v, cpl, netmap=None, elmap=None):
 def test_name_bijection_and_order_invariance(tmp_path, name):
     raw = C.lib_raw(name)
     s1, s1v = H.build_lib(name)
-    base = _canon(s1, s1v, coupling_vars(s1, s1v))
+    base = _canon(s1, s1v, C.coupling(s1, s1v))
     for seed in (3, 11):
         netmap, elmap = C.bijection(raw, seed)
         doc = C.rename_all(raw, netmap, elmap, seed)
         sup = {netmap[k]: v for k, v in H.lib_supplies(name).items()}
         from gmid_engine.graph import build_s1, build_s1v
         r1 = build_s1(H.load(tmp_path, doc, stem="ren%d_%s" % (seed, name)), sup)
-        r1v = build_s1v(r1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False)
+        r1v = H.read_s1v(build_s1v(r1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False))
         inv_n = {v: k for k, v in netmap.items()}
         inv_e = {v: k for k, v in elmap.items()}
-        back = _canon(r1, r1v, coupling_vars(r1, r1v), inv_n, inv_e)
+        back = _canon(r1, r1v, C.coupling(r1, r1v), inv_n, inv_e)
         assert back == base, (name, seed)
 
 
 _HASHSEED_SCRIPT = r"""
 import sys
 sys.path[:0] = [{skill!r}, {graph!r}]
-import s1v_hand as H
+import s1v_hand as H, coupling_hand as C
 from gmid_engine.core import fp_of
-from gmid_engine.graph import coupling_vars
 for n in {names!r}:
     s1, s1v = H.build_lib(n)
-    print(n, fp_of(coupling_vars(s1, s1v)))
+    print(n, fp_of(C.coupling(s1, s1v).fields))
 """
 
 
@@ -457,7 +456,7 @@ for n in {names!r}:
     s1, s1v = H.build_lib(n)
     cols = {{str(k): sorted(v) for k, v in C.column_devices(s1).items()}}
     out = []
-    for v in coupling_vars(s1, s1v).vars:
+    for v in C.coupling(s1, s1v).vars:
         for b in v.blocks:
             if b.key and str(b.key[0]).startswith("bias:"):
                 out.append((v.kind, v.members, v.domain, b.view, b.key, cols[str(b.key[0])[5:]]))
@@ -484,7 +483,7 @@ def test_pseudo_block_keys_deterministic_across_hashseed():
 def test_determinism_across_hashseed_and_repeat(lib):
     names = ("current_reuse_telescopic_ota", "sf_pushpull_output_opamp", "ngcc_3stage_ff")
     for n in names:
-        assert fp_of(coupling_vars(*lib[n])) == fp_of(coupling_vars(*lib[n]))
+        assert fp_of(C.coupling(*lib[n]).fields) == fp_of(C.coupling(*lib[n]).fields)
     here = Path(__file__).resolve().parent
     script = _HASHSEED_SCRIPT.format(skill=str(here.parents[2]), graph=str(here), names=names)
     outs = []
@@ -494,5 +493,5 @@ def test_determinism_across_hashseed_and_repeat(lib):
         assert p.returncode == 0, p.stderr[-2000:]
         outs.append(p.stdout.split())
     assert outs[0] == outs[1]
-    here_fp = [x for n in names for x in (n, fp_of(coupling_vars(*lib[n])))]
+    here_fp = [x for n in names for x in (n, fp_of(C.coupling(*lib[n]).fields))]
     assert outs[0] == here_fp

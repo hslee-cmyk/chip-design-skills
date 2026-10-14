@@ -1,4 +1,5 @@
-"""search/iv_context.py -- `build_start_context(s1v, ach, kctx, spec, pdk_decl, domain) -> StartContext` (설계 41 §6 입력 묶음).
+"""search/iv_context.py -- `start_view(projection, spec, inputs, pdk_decl, lut) -> StartView` (설계 41 §6 입력 묶음).
+[U17 ①-b] 옛 `build_start_context(s1v, ach, kctx, ...) -> StartContext` 는 `iv_context.start_view(projection, ...) -> StartView` 가 됐다(40 §2.4.7 StartContext 행) -- u13_hand `start_view_of` 가 투영을 만들어 부른다.
 
 oracle (d) spec 선언값과 (a) 구성:
 - 보상 목표: 판정 제약 `gbw_ss_hz >= v`·`pm_ss_deg >= v` 의 값(compensation_targets 없음), 없으면 None(41 §6.3 전제).
@@ -8,16 +9,14 @@ oracle (d) spec 선언값과 (a) 구성:
 """
 import pytest
 
-from gmid_engine.search.iv_context import build_start_context
-
-from .u13_hand import W_MIN, cs_chain, toy_case
+from .u13_hand import W_MIN, cs_chain, start_view_of, toy_case
 
 ELS = (("C1", "capacitor", 1e-12), ("C2", "capacitor", 1e-12))
 
 
 def _ctx(constraints):
     c = toy_case(cs_chain(2), elements=ELS, constraints=constraints)
-    return build_start_context(c.s1v, c.ach, c.kctx, c.spec, c.pdk, c.sctx.domain)
+    return start_view_of(c)
 
 
 def test_targets_and_budget_from_spec():

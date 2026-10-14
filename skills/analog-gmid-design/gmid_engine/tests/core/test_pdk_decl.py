@@ -117,6 +117,48 @@ def reason(excinfo):
     return dict(excinfo.value.record.detail)["reason"]
 
 
+# ---------------------------------------------------------------- 값 객체에 경로 없음 (U17 ①-b 2차)
+# 사용자 결정 7(2026-10-14, wt/_drafts/user_decisions.md 'U17 1-b 병합 전 3~9'): checkout 경로를 S0 값에서도 제거 -- PdkDecl·PdkRule·
+# PdkMismatchModel 은 파일시스템 경로를 담는 속성이 없다(decl_path·PdkRule.path·model_path·slope_path 삭제, sources 항목은 경로 성분 없음).
+# '어느 선언·원본 파일에서 왔나'(옛 경로 단언이 지키던 성질)는 원본 이름(source)과 그 파일 바이트를 이 test 가 직접 해시한 sha256 으로 확인한다.
+# oracle: (d) 사용자 결정 + (a) 구성 -- 금지 문자열은 이 test 가 로더에 넘긴/선언에 적은 경로 문자열 그 자체(피검 함수 출력이 아니다).
+PATH_ATTRS = ("decl_path", "path", "model_path", "slope_path")
+
+
+def _norm_path(p):
+    return os.path.abspath(str(p)).replace("\\", "/").lower()
+
+
+def _strings_in(obj, depth=0):
+    """값 객체 트리(dataclass 필드·tuple·list·set·dict)의 모든 문자열."""
+    assert depth < 64
+    if isinstance(obj, str):
+        yield obj
+    elif dataclasses.is_dataclass(obj) and not isinstance(obj, type):
+        for f in dataclasses.fields(obj):
+            yield from _strings_in(getattr(obj, f.name), depth + 1)
+    elif isinstance(obj, dict):
+        for k, v in obj.items():
+            yield from _strings_in(k, depth + 1)
+            yield from _strings_in(v, depth + 1)
+    elif isinstance(obj, (tuple, list, set, frozenset)):
+        for v in obj:
+            yield from _strings_in(v, depth + 1)
+
+
+def assert_path_free(obj, paths):
+    """obj 에 경로 속성(PATH_ATTRS)이 없고, 필드 트리의 문자열·repr 어디에도 `paths`(test 가 넘긴 경로) 가 없다."""
+    assert dataclasses.is_dataclass(obj), type(obj)
+    names = {f.name for f in dataclasses.fields(obj)}
+    assert not names & set(PATH_ATTRS), (type(obj).__name__, sorted(names & set(PATH_ATTRS)))
+    for a in PATH_ATTRS:
+        assert not hasattr(obj, a), (type(obj).__name__, a)
+    bad = [_norm_path(p) for p in paths]
+    texts = [s.replace("\\", "/").lower() for s in _strings_in(obj)] + [repr(obj).replace("\\\\", "/").replace("\\", "/").lower()]
+    hits = [(b, t[:200]) for t in texts for b in bad if b in t]
+    assert not hits, (type(obj).__name__, hits[:5])
+
+
 # ---------------------------------------------------------------- sky130 손계산 (규칙마다 식을 손으로)
 
 def _sky_expected():
@@ -210,8 +252,9 @@ def test_sky130_rules_carry_provenance(sky_decl, name):
         assert math.isclose(r.value_m, value_m, rel_tol=REL)
         assert r.value_m == float(text) * SKY["sources"][source]["units_m"][unit]
         assert r.source == source
-        assert r.path == path
-        assert r.sha256 == sha
+        # [U17 ①-b 2차, 결정 7] 경로 대신 내용: 원본 이름 + 그 파일 바이트 sha256(test 가 직접 해시) = 선언의 sha256
+        assert r.sha256 == sha == SKY["sources"][source]["sha256"]
+        assert_path_free(r, (SKY["pdk_root"], path, SKILL_DIR))
 
 
 @needs_sky130
@@ -227,10 +270,13 @@ def test_sky130_empty_unit_rows_read_as_declared_unit(sky_decl):
 def test_sky130_decl_record_shape(sky_decl):
     assert isinstance(sky_decl, PdkDecl)
     assert sky_decl.pdk == "sky130"
-    assert os.path.normcase(os.path.abspath(sky_decl.decl_path)) == os.path.normcase(os.path.abspath(SKY130_DECL))
+    # [U17 ①-b 2차, 결정 7] 어느 선언 파일인지 = 선언 파일 바이트 sha256(경로 속성 decl_path 없음)
     assert sky_decl.decl_sha256 == _sha256(SKY130_DECL)
-    exp_sources = tuple(sorted((n, _src_path(SKY, n), _sha256(_src_path(SKY, n))) for n in SKY["sources"]))
-    assert tuple(tuple(s) for s in sky_decl.sources) == exp_sources
+    # sources: 원본 이름 순, 항목마다 이름 + 그 원본 바이트 sha256(test 가 직접 해시), 경로 성분 없음
+    exp_sources = tuple(sorted((n, _sha256(_src_path(SKY, n))) for n in SKY["sources"]))
+    # [U17 ①-b 3차] tuple 동등: 항목 = (이름, sha256) 두 칸뿐(core 9.2 as-built), 다른 칸(경로 등)이 끼면 실패
+    assert sky_decl.sources == exp_sources
+    assert_path_free(sky_decl, [SKY["pdk_root"], SKY130_DECL, SKILL_DIR] + [_src_path(SKY, n) for n in SKY["sources"]])
     names = tuple(n for n, _ in sky_decl.quantities)
     # [U3, 계약 9.7·설계 40 §7.1 Q9] resistor_types 규칙이 고른 후보의 세 양을 `<selected_as>_*` 이름으로 quantities 에 더한다
     sel = SKY["resistor_types"]["selected_as"]
@@ -441,8 +487,10 @@ def test_generality_second_pdk_without_code_change(tmp_path, csv_encoding):
             vm, text, unit, line = my_rule_m(decl, src, r.rule_id)
             assert (r.value_text, r.unit_text, r.line, r.source) == (text, unit, line, src)
             assert math.isclose(r.value_m, vm, rel_tol=REL)
-            assert r.path == _src_path(decl, src)
-            assert r.sha256 == decl["sources"][src]["sha256"]
+            # [U17 ①-b 2차, 결정 7] 경로 대신 내용: sha256 = 이 test 가 쓴 원본 바이트의 해시(_toy_decl 이 직접 계산)
+            assert r.sha256 == decl["sources"][src]["sha256"] == _sha256(_src_path(decl, src))
+            assert_path_free(r, (tmp_path,))
+    assert_path_free(d, (tmp_path,))
     lines = {r.rule_id: r.line for n in TOY_QUANTITIES for r in d.quantity(n).rules}
     for rid, ln in {**TOY_LEF_LINES, **TOY_CSV_LINES}.items():
         assert lines[rid] == ln, rid
@@ -824,10 +872,6 @@ def my_spice_rule_m(decl, name, decl_path, rule_id):
     return float(v) * decl["sources"][name]["units_m"][u], v, u, n
 
 
-def _same_path(a, b):
-    return os.path.normcase(os.path.abspath(a)) == os.path.normcase(os.path.abspath(b))
-
-
 # ---------------------------------------------------------------- sky130 접합 파라미터 (9.4 DEC-91 표)
 
 JUNCTION_FIELDS = ("cjs", "cjd", "cjsws", "cjswd", "cjswgs", "cjswgd", "mjs", "mjd", "mjsws", "mjswd", "mjswgs", "mjswgd",
@@ -918,7 +962,9 @@ def test_sky130_junction_rules_are_bin_common_with_first_block_line(sky_decl, ki
             vm, text, unit, line = my_spice_rule_m(SKY, src_name, str(SKY130_DECL), r.rule_id)
             assert (r.value_text, r.unit_text, r.line, r.source) == (text, unit, line, src_name)
             assert r.value_m == float(text) * SKY["sources"][src_name]["units_m"][unit]
-            assert r.path == path and r.sha256 == sha
+            # [U17 ①-b 2차, 결정 7] 경로 대신 내용(원본 이름 + 원본 바이트 sha256)
+            assert r.sha256 == sha == SKY["sources"][src_name]["sha256"]
+            assert_path_free(r, (SKY["pdk_root"], path, SKILL_DIR))
             seen[r.rule_id] = r.line
     for rid, ln in JUNCTION_RULE_LINES[kind].items():
         assert seen[rid] == ln, (kind, rid)
@@ -999,13 +1045,17 @@ def test_lut_rule_decl_values_and_provenance():
     lf_sha = hashlib.sha256(_source_bytes(gen, {"newline": "lf"})).hexdigest()
     assert lf_sha == LUT["sources"]["lut_generator"]["sha256"]
     (src,) = d.sources
-    assert src[0] == "lut_generator" and _same_path(src[1], gen) and src[2] == lf_sha
+    # [U17 ①-b 2차, 결정 7] 어느 원본인지 = 이름 + 생성기 파일 LF 바이트 sha256(test 가 직접 해시), 경로 성분 없음
+    assert src[0] == "lut_generator" and lf_sha in tuple(src)
+    assert d.decl_sha256 == _sha256(LUT_RULE_DECL)
     for n in LUT_TABLE:
         for r in d.quantity(n).rules:
             vm, text, unit, line = my_spice_rule_m(LUT, "lut_generator", str(LUT_RULE_DECL), r.rule_id)
             assert (r.value_text, r.unit_text, r.line) == (text, unit, line) and line == 90
             assert math.isclose(r.value_m, vm, rel_tol=REL)
-            assert _same_path(r.path, gen) and r.sha256 == lf_sha
+            assert r.source == "lut_generator" and r.sha256 == lf_sha
+            assert_path_free(r, (gen, LUT_RULE_DECL, SKILL_DIR))
+    assert_path_free(d, (gen, LUT_RULE_DECL, SKILL_DIR))
     ad = d.quantity("lut_diffusion_ad_per_w_m").rules
     assert [(r.rule_id, r.value_text, r.unit_text) for r in ad] == [("ad", "2.5", "p"), ("w", "5", "u")]
     # 원본 DUT 줄(9.4 글자 그대로)
@@ -1039,15 +1089,25 @@ def test_newline_lf_accepts_crlf_and_lf_checkouts_with_same_sha(tmp_path):
     lf = _gen_lf_bytes()
     crlf = lf.replace(b"\n", b"\r\n")
     vals = []
+    decls = []
     for i, b in enumerate((lf, crlf)):
         p, d = _lut_copy(tmp_path, b, sub="c%d" % i)
         decl = read_pdk_decl(p, BoundedLRU(1))
-        assert decl.sources[0][2] == LUT["sources"]["lut_generator"]["sha256"]
-        assert _same_path(decl.sources[0][1], d / "gen.py")   # base decl_dir: 선언 폴더 + "/" + path
+        # base decl_dir: 원본은 선언 폴더 d 에만 있다(pdk_root 는 없는 폴더) -- 읽기 성공이 선언 폴더 해석의 증거.
+        # [U17 ①-b 2차, 결정 7] 경로 대신 내용: sha256 = 선언 값(LF 정규화 바이트, test 가 _gen_lf_bytes 로 만든 것과 같은 바이트)
+        assert decl.sources[0][0] == "lut_generator"
+        assert LUT["sources"]["lut_generator"]["sha256"] in tuple(decl.sources[0])
+        assert hashlib.sha256(lf).hexdigest() == LUT["sources"]["lut_generator"]["sha256"]
         r = decl.quantity("lut_diffusion_pd_extra_m").rules[0]
-        assert r.line == 90 and _same_path(r.path, d / "gen.py")
+        assert r.line == 90 and r.sha256 == LUT["sources"]["lut_generator"]["sha256"]
+        assert_path_free(decl, (d, tmp_path))
+        assert_path_free(r, (d, tmp_path))
         vals.append(decl.values(tuple(LUT_TABLE)))
+        decls.append(decl)
     assert vals[0] == vals[1]
+    # 같은 선언 바이트 + 같은 정규화 원본 내용을 서로 다른 폴더(c0·c1 = 서로 다른 checkout 모사)에서 읽으면 값 객체·지문이 같다(경로 무관)
+    assert decls[0] == decls[1]
+    assert fp_of(decls[0]) == fp_of(decls[1])
 
 
 def test_without_newline_key_crlf_bytes_are_hashed_raw(tmp_path):
@@ -1098,7 +1158,11 @@ def test_base_decl_dir_missing_file_and_explicit_pdk_root(tmp_path):
         else:
             s["base"] = base
         got = read_pdk_decl(_dump(tmp_path, decl, "b_%s.json" % base), BoundedLRU(1))
-        assert got.sources[0][1] == root.as_posix() + "/gen.py"
+        # gen.py 는 root 에만 있다(선언 폴더 tmp_path 와 옛 decl 폴더의 gen.py 는 위에서 지웠다) -- 읽기 성공이 pdk_root + "/" + path 해석의 증거.
+        # [U17 ①-b 2차, 결정 7] 경로 대신 내용: sha256 = test 가 root/gen.py 에 쓴 바이트의 해시
+        assert not os.path.exists(tmp_path / "gen.py") and not os.path.exists(d / "gen.py")
+        assert got.sources[0][0] == "lut_generator" and _sha256(root / "gen.py") in tuple(got.sources[0])
+        assert_path_free(got, (root, tmp_path))
         assert math.isclose(got.value("lut_diffusion_ad_per_w_m"), 5e-7, rel_tol=1e-12)
 
 
@@ -1428,6 +1492,10 @@ def test_sky130_mismatch_blocks_match_independent_parse(sky_decl, kind, dev, n_b
     """9.6: 블록마다 경계·변수별 slope 이름·값이 원본과 같다(bin 마다 이름이 다르다 -- 설계 41 §6.4-2)."""
     mm = sky_decl.mismatch_model(kind)
     assert isinstance(mm, PdkMismatchModel) and mm.kind == kind
+    # [U17 ①-b 2차, 결정 7] 어느 모델 카드인지 = 카드 원본 바이트 sha256(test 가 직접 해시), 경로 속성 없음
+    card_src = SKY["mismatch_models"][kind]["model_source"]
+    assert mm.model_sha256 == _sha256(_src_path(SKY, card_src)) == SKY["sources"][card_src]["sha256"]
+    assert_path_free(mm, (SKY["pdk_root"], SKILL_DIR))
     exp = {b[0]: b for b in _card_blocks(_card_text(dev))}
     vals = _slope_values(dev)
     assert len(mm.blocks) == len(exp) == n_blocks
@@ -1606,6 +1674,9 @@ def test_toy_mismatch_model_blocks(tmp_path):
     assert s1 == {"vth0": ("toy__vth0_slope1", 7e-3), "toxe": (None, None)}       # bin 마다 slope 이름이 다르다, 식 없음 -> None
     assert [p for p, *_ in b0.slopes] == ["vth0", "toxe"]                           # 선언 순서
     assert mm.model_sha256 == _sha256(tmp_path / "pdk" / "models" / "toy.pm3.spice")
+    # [U17 ①-b 2차, 결정 7] model_path·slope_path 속성 없음, 값 트리에 test 가 쓴 원본 경로 없음
+    assert_path_free(mm, (tmp_path,))
+    assert_path_free(d, (tmp_path,))
 
 
 def test_toy_mismatch_undeclared_kind(tmp_path):

@@ -1,6 +1,6 @@
 """U13 실경로 test 공용 -- 실 LUT v2(데이터 위치 선언 `assets/lut_v2_location.json`, lut CONTRACT 1.8 의 정본 호출: noise·mismatch 파일까지
 `load_lut_set(..., noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)`)와 sky130 PDK·LUT 규칙 선언, library 회로 -> 단계 A(s1v) -> 단계 B(ach)
--> `build_search_context(s1v=, ach=)` 공개 진입점 묶음. 기대값을 만들지 않는다(입력 생성).
+-> `build_search_context` 공개 진입점 묶음([U17 ①-b] S1v·GB4·출발 구간은 S0 수준 필드 -- u13_hand `S1vRead`·`StartRead` 로 읽는다). 기대값을 만들지 않는다(입력 생성).
 
 측정 harness tests/generality/pipeline.py 도 noise·mismatch npz 를 싣는다(search CONTRACT 11절 시작 검사); tests/pipeline/conftest.py 는 싣지 않는다
 -- 여기서는 명시적으로 싣는다.
@@ -85,16 +85,19 @@ def real_case(name, extra=()):
     tp.write_text((LIBRARY / (name + ".topology.json")).read_text(encoding="utf-8"), encoding="utf-8")
     sp = d / (name + ".sizing_spec.json")
     sp.write_text(json.dumps(library_spec(name, extra), indent=1, ensure_ascii=False), encoding="utf-8")
-    a = run_stage_a(tp, sp, env.lut, pdk_decl=env.pdk, output_dir=d / "out")
-    assert a.s1v is not None and a.status == "ok", (a.status, a.report.get("stop_reasons"))
-    b = run_stage_b(a, env.memo, env.pdk, output_dir=d / "out")
-    assert b.status == "ok", (b.status, b.report.get("stop_reasons"))
-    kctx = build_kernel_context(a.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo), l_classes=a.s1v.l_classes)
+    a = run_stage_a(tp, sp, env.lut, pdk_decl=env.pdk, lut_rule_decl=env.rule, output_dir=d / "out",
+                    pdk_decl_path=str(SKILL / "assets" / "sky130_pdk_decl.json"),
+                    lut_rule_decl_path=str(SKILL / "assets" / "sky130_lut_rule_decl.json"))
+    assert a.s1 is not None and a.s1.snapshot.record("graph", "s1v") is not None and a.status == "ok", (a.status, a.report.get("stop_reasons"))
+    # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- build_search_context 와 같은 값(한 실행 = 한 설정, pipeline CONTRACT 5절)
     settings = SearchSettings(600.0, EVAL_BUDGET, RBOX, (("front_budget_s", "u13 test fixture"),), CBOX)
-    sctx = build_search_context(kctx, a.spec, settings, None, env.pdk, env.rule, s1v=a.s1v, ach=b.achievability,
-                                code_fp=a.code_fp)
-    case = SimpleNamespace(a=a, b=b, s1v=a.s1v, ach=b.achievability, spec=a.spec, kctx=kctx, sctx=sctx, start=sctx.start,
-                           topology=json.loads(tp.read_text(encoding="utf-8")), settings=settings)
+    b = run_stage_b(a, env.memo, env.pdk, output_dir=d / "out", settings=settings)
+    assert b.status == "ok", (b.status, b.report.get("stop_reasons"))
+    from .u13_hand import read_s1v, start_of
+    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo))
+    sctx = build_search_context(kctx, a.spec, settings, None, env.pdk, env.rule, code_fp=a.code_fp)
+    case = SimpleNamespace(a=a, b=b, s1v=read_s1v(b.s1), ach=b.s1, spec=a.spec, kctx=kctx, sctx=sctx, start=start_of(sctx),
+                           topology=json.loads(tp.read_text(encoding="utf-8")), settings=settings, pdk=env.pdk, rule=env.rule)
     if len(_CASES) >= _CASE_CAP:
         _CASES.pop(next(iter(_CASES)))
     _CASES[key] = case

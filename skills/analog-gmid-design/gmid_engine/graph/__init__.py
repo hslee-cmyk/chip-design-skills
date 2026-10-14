@@ -20,9 +20,7 @@ from .coupling_values import (
     COUPLING_KINDS,
     REASON_COLUMN_UNASSIGNED,
     BlockRef,
-    ColumnBlockMap,
     ColumnBlockRow,
-    Coupling,
     CouplingVar,
 )
 from .coupling_vars import coupling_vars
@@ -44,6 +42,8 @@ from .s1_model import S1Graph
 from .s1_structure import s1_structure
 from .s1_symmetry import s1_symmetry
 from .s1v_build import build_s1v
+from .s1v_fields import s1v_fields
+from .s1v_findings import s1v_findings
 from .s1v_key import s1v_rule_fp, structure_rule_fp
 from .s1_values import (
     AC_GROUND_GATE_ONLY,
@@ -134,7 +134,15 @@ from .s1_values import (
     S1_REL_VGS_WRITER,
     S1_RULE_FILES,
     S1_STRUCTURE_WRITER,
+    S1_READS,
     S1_WRITERS,
+    S1V_KEY,
+    S1V_WRITERS,
+    S1V_WRITES,
+    BUILD_S1V_WRITER,
+    COUPLING_KEY,
+    COUPLING_VARS_WRITER,
+    COUPLING_WRITES,
     SIBLING_RULE_GROUND_GATE,
     SIBLING_RULE_OWN_BRANCH_GATE,
     SIBLING_RULE_ROLE,
@@ -176,7 +184,6 @@ from .s1v_values import (
     VIEW_TRANSFER,
     F_LOOP_CUT_UNMATCHED,
     SEVERITY_REVIEW,
-    S1v,
     ViewS1v,
     ViewSeed,
     Finding,
@@ -199,13 +206,13 @@ from .structure_tables import structure_tables
 from .supplies import supplies_declaration
 
 # S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 graph 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식'):
-# (1) S1 필드(`S1_WRITERS`)의 값 형식 전부(대칭 블록 `s1_symmetry` 의 `Orbits`·`CurrentSigns` 포함 -- 선언 표시 `SymmetryMarks` 는 블록 extras 라 필드 값이 아니다), (2) S1v 필드 값 형식 -- 묶음 `S1v` 를 필드로 풀었을 때 그 필드 값에서 닿는 frozen dataclass
-# (`S1v.key` 의 `S1Key`, `views` 의 `ViewS1v` 와 그 안의 값, `l_classes`·`findings`). 묶음 `S1v` 자체와 계산용 입력 모형(`NetModel`·`Mos`·`TwoTerm`·
-# `ViewSeed`·`StructureFact`·`LoopEdge`)은 필드 값이 아니라 올리지 않는다. 새 S0 수준 필드가 graph 로 옮겨 오면 그 값 형식을 여기 더한다.
+# (1) S1 필드(`S1_WRITERS`)의 값 형식 전부(대칭 블록 `s1_symmetry` 의 `Orbits`·`CurrentSigns` 포함 -- 선언 표시 `SymmetryMarks` 는 블록 extras 라 필드 값이 아니다), (2) S1v 필드
+# `graph/s1v`(v1.9.1 D1)의 값 형식 -- `views` 의 `ViewS1v` 와 그 안의 값, `l_classes`·`findings`, (3) 결합 필드 `graph/coupling`(v1.9.1 D8)의 `CouplingVar`·`BlockRef`·
+# `ColumnBlockRow`. 계산용 입력 모형(`NetModel`·`Mos`·`TwoTerm`·`ViewSeed`·`StructureFact`·`LoopEdge`)·`S1Key` 는 필드 값이 아니라 올리지 않는다.
 for _field_value_type in (BulkResult, Evidence, Segment, Branch, Column, ColumnOrphan, GsGroup, DcRole, RelEdge,
                           MatchingGroup, MatchingDisposition, GvgsSummary, Orbits, CurrentSigns,
-                          S1Key, ViewS1v, Finding, Block, CompositeBlock, Loop, LClass, CellInfo, DriveInfo, PoleNode, PassBundle,
-                          OutputDirection, LoopRole, FeedforwardCell, FfRatioCandidate):
+                          ViewS1v, Finding, Block, CompositeBlock, Loop, LClass, CellInfo, DriveInfo, PoleNode, PassBundle,
+                          OutputDirection, LoopRole, FeedforwardCell, FfRatioCandidate, CouplingVar, BlockRef, ColumnBlockRow):
     type_registry.type_registry().register(_field_value_type)
 
 __all__ = (
@@ -323,7 +330,15 @@ __all__ = (
     "S1_REL_VGS_WRITER",
     "S1_RULE_FILES",
     "S1_STRUCTURE_WRITER",
+    "S1_READS",
     "S1_WRITERS",
+    "S1V_KEY",
+    "S1V_WRITERS",
+    "S1V_WRITES",
+    "BUILD_S1V_WRITER",
+    "COUPLING_KEY",
+    "COUPLING_VARS_WRITER",
+    "COUPLING_WRITES",
     "SIBLING_RULE_GROUND_GATE",
     "SIBLING_RULE_OWN_BRANCH_GATE",
     "SIBLING_RULE_ROLE",
@@ -342,9 +357,7 @@ __all__ = (
     "COUPLING_KINDS",
     "REASON_COLUMN_UNASSIGNED",
     "BlockRef",
-    "ColumnBlockMap",
     "ColumnBlockRow",
-    "Coupling",
     "CouplingVar",
     "column_block_map",
     "coupling_vars",
@@ -363,11 +376,12 @@ __all__ = (
     "FeedforwardCell",
     "FfRatioCandidate",
     "structure_tables",
+    "s1v_fields",
+    "s1v_findings",
     "S1V_RULE_FILES",
     "SPEC_VIEW_LOOP",
     "F_LOOP_CUT_UNMATCHED",
     "SEVERITY_REVIEW",
-    "S1v",
     "ViewS1v",
     "ViewSeed",
     "Finding",

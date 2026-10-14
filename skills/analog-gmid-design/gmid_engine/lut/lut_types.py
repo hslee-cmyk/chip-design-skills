@@ -574,3 +574,16 @@ class MismatchSigma:
     sigma_v: float
     parts: tuple
     model: str
+
+
+@dataclasses.dataclass(frozen=True)
+class EdgeCost:
+    """kind 하나의 헤드룸 경로 엣지 비용 최솟값(41 §4.6). `vgs_min_v` = 전도 봉인(9)을 지키는 격자 행의 |VGS| 최솟값, `vgs_min_by_bin` = ((L bin 번호, 그 bin 의 최솟값), ...),
+    `vds_min_v` = VDSAT 최솟값 + tol_vdsat 최솟값, `best_row` = ((키, 값), ...) VGS 최솟값을 낸 행(gm/ID·L·VSB)."""
+
+    kind: str
+    w_key: int
+    vgs_min_v: float
+    vgs_min_by_bin: tuple
+    vds_min_v: float
+    best_row: tuple
