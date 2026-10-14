@@ -1,0 +1,275 @@
+{
+  "_comment": "회로 사이징 spec(사람 선언, 정본) -- 형식 gmid_engine/authoring/SPEC_CONTRACT.md, 값 출처 = 각 source. 미정 칸은 {\"pending\": <결정 ID>}. held-out 회로 D(library 밖, 엔진 개발·test 픽스처에 쓰지 않는다 -- 계획 DEC-98·U-75·U-76). 원문 수치·줄 = cnr_ota.spec_source.md",
+  "meta": {
+    "schema_version": "5",
+    "circuit": "cnr_ota",
+    "topology_fp": "2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96",
+    "origin": "canonical"
+  },
+  "human": {
+    "supplies_v": {
+      "values": {
+        "VDD_1V8": 1.8,
+        "VSS": 0.0
+      },
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" -- 공급 VDD_1V8 1.8 V(typ), VSS 0",
+        "decided": "2026-10-14",
+        "origin": "paper",
+        "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/README.md#L67-L76 Key parameters 'AVDD 1.7/1.8/1.9 V'; sim/CNR_OTA/lstb.spi:26-27 `VSS VSS 0 dc 0`, `VDD VDD_1V8 0 dc {AVDD}` (Sch_typ 코너 Vt = 1.8 V)"
+      }
+    },
+    "input_dc": {
+      "pending": "U-75"
+    },
+    "_input_dc_comment": "입력 공통모드 DC 결정 대기(U-75): 결과표 측정 TB(sim/CNR_OTA/lstb.spi)에는 입력 CM 을 정하는 소스가 없다 -- 입력 DC 는 500k 귀환으로 출력 CM(회로 안 CMFB 가 정함)을 따라간다. tran.spi:37 `VCM VCM 0 dc {AVDD/2}` 는 100k 입력 저항 바깥 소스 쪽 CM 이고, 설계 문서 CNR_OTA.md 17행 'The input common mode cannot be VDD/2' 라 OTA 입력 핀 DC 로 옮길 수 없다. cnr_ota.spec_source.md 3절.",
+    "element_values": {
+      "C1": {
+        "value_farad": 5.38e-14,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" U5 (a) -- cap_mim_m3_1 W=5 L=5 MF=1 을 PDK 파라미터로 계산: MF*(camimc*W*L + cpmimc*2*(W+L)) = 1*(2.00e-15*25 + 0.19e-15*20) = 5.38e-14 F",
+          "decided": "2026-10-14",
+          "origin": "drawing",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/design/CNR_OTA_SKY130NM/CNR_OTA.sch#L632-L633 (W=5 L=5 MF=1); C:/pdk/sky130_fd_pr/models/r+c/res_typical__cap_typical__lin.spice 7행 camimc=2.00e-15 F/um^2, 8행 cpmimc=0.19e-15 F/um; 원본 그림 documents/CNR_OTA_SKY130NM/CNR_OTA.svg 글자 'C=5.38e-14'"
+        }
+      },
+      "C2": {
+        "value_farad": 5.38e-14,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" U5 (a) -- cap_mim_m3_1 W=5 L=5 MF=1 을 PDK 파라미터로 계산: MF*(camimc*W*L + cpmimc*2*(W+L)) = 1*(2.00e-15*25 + 0.19e-15*20) = 5.38e-14 F",
+          "decided": "2026-10-14",
+          "origin": "drawing",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/design/CNR_OTA_SKY130NM/CNR_OTA.sch#L632-L633 (W=5 L=5 MF=1); C:/pdk/sky130_fd_pr/models/r+c/res_typical__cap_typical__lin.spice 7행 camimc=2.00e-15 F/um^2, 8행 cpmimc=0.19e-15 F/um; 원본 그림 documents/CNR_OTA_SKY130NM/CNR_OTA.svg 글자 'C=5.38e-14'"
+        }
+      },
+      "CL1": {
+        "measurement_load": true,
+        "value_farad": 5e-12,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" U3 (a) -- 부하 CL1 5 pF(VOP-VSS)만, 저항 귀환망 제외. 측정 부하",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/sim/CNR_OTA/load.spi#L10-L11 `CL1 VOP 0 5p`, `CL2 VON 0 5p`; README.md#L76 'Load capacitance min 5 pF'"
+        }
+      },
+      "CL2": {
+        "measurement_load": true,
+        "value_farad": 5e-12,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" U3 (a) -- 부하 CL2 5 pF(VON-VSS)만, 저항 귀환망 제외. 측정 부하",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/sim/CNR_OTA/load.spi#L10-L11 `CL1 VOP 0 5p`, `CL2 VON 0 5p`; README.md#L76 'Load capacitance min 5 pF'"
+        }
+      },
+      "IDC": {
+        "value_dc_amp": 2e-06,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" U2 (a) -- IBPSR 바이어스 = 이상 전류원 2 uA, terminals [VSS, IBPSR]",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/sim/CNR_OTA/load.spi#L3 `IDC 0 IBPSR dc 2u`; README.md#L52 'IBPSR ... Bias current (2 uA)', #L74 'Bias current 2 uA'"
+        }
+      },
+      "x3": {
+        "pending": "U-75"
+      },
+      "x37": {
+        "pending": "U-75"
+      },
+      "x38": {
+        "pending": "U-75"
+      },
+      "x39": {
+        "pending": "U-75"
+      },
+      "x40": {
+        "pending": "U-75"
+      },
+      "x9": {
+        "pending": "U-75"
+      }
+    },
+    "_element_values_comment": "저항 x37·x38·x39·x40·x9·x3 값 결정 대기(U-75): 사용자 U5 (a) 'PDK 모델로 계산' 인데 sky130 res_high_po 셀 모델(sky130_fd_pr/cells/res_high_po/*.model.spice, models/sky130_fd_pr__model__linear.model.spice 30·37~41행이 include)이 로컬 PDK(C:/pdk, sparse checkout -- cells/ 에 nfet_01v8·pfet_01v8 만)에 없다. 값을 지어내지 않는다. 후보(xschem res_high_po.sym 표시식, PDK 모델 아님)는 cnr_ota.spec_source.md 4절.",
+    "feedback": {
+      "elements": [],
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-07 \"9, 10, 11번은 기본안대로 해\" 9번 PM 정의 -- 선언된 되먹임 수동소자가 없으면 beta=1 루프; user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" U3 (a) 저항 귀환망 제외·U8 beta=1 해석과 같다",
+        "decided": "2026-10-14"
+      }
+    },
+    "constraints": [
+      {
+        "metric": "gain_ss_db",
+        "op": ">=",
+        "value": 68.58,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" U8 -- spec 제약 선택: beta=1 해석(lstb.spi 에 VSIP/VSIN/VCM 소스가 없어 입력 저항 R1/R2 끝이 떠 있으므로 AC 귀환 계수 = 1, 루프 이득 = 개방 이득), 기준값 = sim/CNR_OTA/README.md lstb 표 Sch_typ 열",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/sim/CNR_OTA/README.md#L34-L45 lstb 표 lf_gain(lstb.meas:20 `find lg_mag at=1`) Sch_typ 68.58 dB (README.md#L67-L76 'Loop gain 63/68/72 dB')"
+        }
+      },
+      {
+        "metric": "gbw_ss_hz",
+        "op": ">=",
+        "value": 8150000.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" U8 -- spec 제약 선택: beta=1 해석(lstb.spi 에 VSIP/VSIN/VCM 소스가 없어 입력 저항 R1/R2 끝이 떠 있으므로 AC 귀환 계수 = 1, 루프 이득 = 개방 이득), 기준값 = sim/CNR_OTA/README.md lstb 표 Sch_typ 열",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/sim/CNR_OTA/README.md#L34-L45 lstb 표 ug(lstb.meas:19 `when lg_mag=0`, beta=1 단위이득 주파수) Sch_typ 8.15 MHz"
+        }
+      },
+      {
+        "metric": "pm_ss_deg",
+        "op": ">=",
+        "value": 54.92,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 held-out D \"U1~U9 모두 권고대로\" U8 -- spec 제약 선택: beta=1 해석(lstb.spi 에 VSIP/VSIN/VCM 소스가 없어 입력 저항 R1/R2 끝이 떠 있으므로 AC 귀환 계수 = 1, 루프 이득 = 개방 이득), 기준값 = sim/CNR_OTA/README.md lstb 표 Sch_typ 열",
+          "decided": "2026-10-14",
+          "origin": "paper",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/sim/CNR_OTA/README.md#L34-L45 lstb 표 pm_deg(lstb.meas:17 `find lg_phase when lg_mag=0`) Sch_typ 54.92 deg"
+        }
+      }
+    ],
+    "pending_constraints": [
+      {
+        "metric": "supply_current_dc",
+        "decision": "U-75"
+      }
+    ],
+    "_pending_constraints_comment": "VDD 전류 92 uA(README.md#L75 'Current from VDD 92 uA'; sim/CNR_OTA/README.md#L22-L25 idd Sch_typ 90.682 uA)는 판정 제약에서 결정 대기로 둔다(held-out A·B·C 와 같은 처리): supply_current_dc 는 합산 레일 선언(counted_rails, DEC-78)이 있어야 정의되는데 spec 선언 칸이 아직 없어 늘 미측정이다(설계 gap N12). 또 IDC(2 uA, VSS->IBPSR)는 레일 VDD_1V8 전류에 들어가지 않는다(TB `-i(vdd)` 와 같은 기준). 값은 cnr_ota.spec_source.md 에 둔다.",
+    "node_voltage_targets_v": {
+      "pending": "CI-15"
+    },
+    "intended_region": {
+      "pending": "CI-18"
+    },
+    "objective": {
+      "budgets": {
+        "pending": "PA-1"
+      },
+      "_budgets_comment": "기본안 = 예산 미선언(front 제시 후 정지, DEC-77). 논문 전력·면적 값은 채택 기록이 없어 넣지 않는다."
+    },
+    "search": {
+      "wall_clock_budget_s": {
+        "value": 300,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-34",
+          "record": "U-26(c) 기본안: 파일럿 선언값 300 s 를 전 회로 공통(회로별 변경은 PA-2)"
+        }
+      },
+      "front_budget_s": {
+        "pending": "PA-2"
+      },
+      "search_method": {
+        "value": "default",
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-73"
+        }
+      },
+      "optional_stages": {
+        "value": {},
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-75",
+          "record": "기본 비활성"
+        }
+      },
+      "dof_rank_sample_count": {
+        "value": 10,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "N3.7",
+          "record": "기본 10"
+        }
+      }
+    },
+    "spice_check": {
+      "acceptance_rule": {
+        "rule": "free_spec_and_all_saturated",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "saturation_rule": {
+        "rule": "vds_ge_vdsat",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화(VDS - VDsat >= 0, 여유 0)",
+          "decided": "2026-10-07"
+        }
+      },
+      "node_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "device_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "forced_warn_rule": {
+        "rule": "forced_device_diff_gt_lut_tolerance",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "front_points_rule": {
+        "pending": "AC-3"
+      },
+      "_front_points_rule_comment": "기본안 endpoints_and_budget_point(AC-3·U-45 결정 대기)."
+    },
+    "front_refilter": {
+      "axis_rule": {
+        "rule": "layout_floorplan_outline",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "tie_rule": {
+        "rule": "manufacturing_grid_cell_area",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "cycle_cap_rule": {
+        "rule": "k_max_n3_6",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      }
+    },
+    "_constraints_comment": "held-out D: 판정 제약 3개(gain·GBW·PM, beta=1 해석 U8) + 결정 대기 1개(VDD 전류). slew 는 원문에 없어 driving_spec 없음. f3db·gain margin·CMFB 루프(lstbcmfb)·PVT(Sch_etc)·MC(Sch_std)는 보고만 -- cnr_ota.spec_source.md. 원문 PDK 가 엔진 PDK 와 같은 sky130 이다."
+  }
+}
