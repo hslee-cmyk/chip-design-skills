@@ -3,7 +3,7 @@
   "topology_name": "erfc_ota",
   "_topology_name_comment": "판독 작업 이름 B_erfc(wt/_heldout/B_erfc/B_erfc.topology.json) -> 저장소 이름 erfc_ota. connectivity는 판독본과 같다(이름·주석 키만 바꿈).",
   "source": "C. Wu, P. Cai, J. Li, J. Xie, Z. Luo, 'Power-Efficient Recycling Folded Cascode OTA Based on Nested Local Feedback and Adaptive Biasing', Sensors 25(8):2523, 2025 (PMC12031453). 회로도 PDF p.8 Figure 6(트랜지스터 수준 ERFC OTA). 치수 PDF p.9 Table 1. 대조: p.5 Fig.3b(adaptive biasing), p.6 Fig.4a(NLF), 본문 식 (10) gm,ERFC = 2(gm1B*gm4B*RY + gm2A).",
-  "_status": "held-out 시험 회로 B(2026-10-13). library 밖 assets/heldout/ 에 둔다(계획 DEC-98 (4)·U-76 (5) -- 엔진 개발 회로와 분리, test 픽스처로 쓰지 않는다). connectivity 사용자 확인 끝: user_decisions.md 2026-10-13 held-out B 'B-1~B-8 모두 네 판단대로', '9,10,13,14는 네 판단대로', '12는 가로, B-5도 네 판단대로'(확인 항목 전부 종결). 판독 기록 wt/_heldout/B_erfc/VERIFY.md.",
+  "_status": "held-out 시험 회로 B(2026-10-13). library 밖 assets/heldout/ 에 둔다(계획 DEC-98 (4)·U-76 (5) -- 엔진 개발 회로와 분리, test 픽스처로 쓰지 않는다). connectivity 사용자 확인 끝: user_decisions.md 2026-10-13 held-out B 'B-1~B-8 모두 네 판단대로', '9,10,13,14는 네 판단대로', '12는 가로, B-5도 네 판단대로'(확인 항목 전부 종결). 판독 기록 wt/_heldout/B_erfc/VERIFY.md. | 2026-10-14 사용자 최종 확정: \"held-out 4개 연결성 모두 확정\" (연결성 확인 페이지 heldout_topology_review.html, 정본 json에서 생성한 소자·넷 표 대조). 이후 connectivity 수정은 사용자만.",
   "_schema_note": "연결만 담는다. 소자 치수는 B_erfc.sizes.md(참고용). 사람 태그(symmetry/sizing_roles/device_roles/fold 등)는 넣지 않았다. 내부 넷 이름(n_*)은 그림에 이름이 없는 노드에 붙인 이름이다(접속 소자 단자 기준); A/B/X/Y/Z/VCN/VCP/Vin+/Vin-/VOUT은 그림 표기.",
   "linked_topology_files": [],
   "compensation": null,
