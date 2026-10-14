@@ -702,6 +702,91 @@ def test_s0_unchanged_decl_copies_keep_snapshot(tmp_path, real_lut, s0_dir, arm_
     assert old[0] in now and len(now) == 2
     assert _run_with_decls(tmp_path, real_lut, H.CS, copies, "c").report["s0_snapshot"] == "hit"
 
+
+# ---------------------------------------------------------------- [U17 ①-b 4차] 선언 경로 <-> 선언 sha 불일치 거부(감사 3차 N-1)
+# oracle (d): 사용자 결정 2026-10-14 "(가) 경로 인자 필수"(경로 = U-68 정리가 '그 파일의 현재 바이트로 키를 만들 수 있나'를 판정하는 위치)
+# + 설계 40 §2.4.12 Q1 fail-closed + interface card(4차): run_stage_a 진입에서 `pdk_decl_path` 파일 원본 바이트 sha256 == `pdk_decl.decl_sha256`,
+# `lut_rule_decl_path` 파일 sha256 == `lut_rule_decl.decl_sha256` 을 확인하고 다르거나 파일이 없으면 거부한다.
+# 예외 종류: 같은 조건(선언 파일 없음 `pdk_decl_missing`, 원본 sha256 이 선언과 다름 `pdk_source_sha256_mismatch`)의 기존 입력 거부 관례 =
+# core CONTRACT 9.3 `SchemaRejectedError`(TypeError 는 pipeline 에서 인자 형식 위반 전용 -- 경로는 형식이 맞는 str 이다). reason 키는
+# 계약에 없어 단언하지 않는다. 기대값 = 예외 발생·보고서 폴더 없음·S0 폴더 파일 이름과 바이트(전부 test 가 hashlib/파일로 직접 잰 값).
+# 감사 run8·run10 재현 조건: 수정 사본에서 읽은 선언 + 저장소 원본 경로 -> 그 실행의 첫 쓰기 정리가 다른 회로 스냅샷을 지웠다.
+from gmid_engine.core import SchemaRejectedError as _SchemaRejectedError
+
+_DECL_ARGS = {"pdk": ("pdk_decl", "pdk_decl_path", _PDK_DECL_FILE), "lut_rule": ("lut_rule_decl", "lut_rule_decl_path", _LUT_RULE_DECL_FILE)}
+
+
+def _mismatch_kwargs(tmp_path, which, direction):
+    """`which` 선언 하나만 경로와 sha 가 어긋난 run_stage_a 키워드(다른 하나는 맞는 원본). 사본 = 원본 바이트 + 끝 개행 1개.
+    direction: edited_decl_original_path(사본에서 읽은 선언 + 원본 경로, 감사 run8) | original_decl_edited_path(원본 선언 + 사본 경로)."""
+    copies = _decl_copies(tmp_path)
+    copies[which].write_bytes(copies[which].read_bytes() + b"\n")
+    decl_name, path_name, original = _DECL_ARGS[which]
+    kw = {"pdk_decl": PDK_DECL, "lut_rule_decl": LUT_RULE_DECL, "pdk_decl_path": PDK_DECL_PATH, "lut_rule_decl_path": LUT_RULE_DECL_PATH}
+    if direction == "edited_decl_original_path":
+        kw[decl_name] = _read_pdk_decl(str(copies[which]), _BoundedLRU(4))
+    else:
+        kw[path_name] = str(copies[which])
+    assert _sha(kw[path_name]) != kw[decl_name].decl_sha256, "전제: 넘긴 경로 파일 sha 가 선언 sha 와 달라야 한다"
+    assert _sha(original) == {"pdk": PDK_DECL, "lut_rule": LUT_RULE_DECL}[which].decl_sha256, "전제: 원본 선언 sha = 원본 파일 sha"
+    return kw
+
+
+@pytest.mark.parametrize("direction", ["edited_decl_original_path", "original_decl_edited_path"])
+@pytest.mark.parametrize("which", ["pdk", "lut_rule"])
+def test_decl_path_sha_mismatch_rejected(tmp_path, real_lut, s0_dir, which, direction):
+    kw = _mismatch_kwargs(tmp_path, which, direction)
+    with pytest.raises(_SchemaRejectedError):
+        run_stage_a(_write(tmp_path, H.CS), None, real_lut, output_dir=tmp_path / "out", supplies_v=H.SUPPLIES, **kw)
+    assert not (tmp_path / "out").exists(), "경로-sha 불일치에서 보고서를 썼다(진입 거부 아님)"
+
+
+@pytest.mark.parametrize("which", ["pdk", "lut_rule"])
+def test_decl_path_missing_file_rejected(tmp_path, real_lut, s0_dir, which):
+    _decl_name, path_name, _original = _DECL_ARGS[which]
+    kw = {"pdk_decl": PDK_DECL, "lut_rule_decl": LUT_RULE_DECL, "pdk_decl_path": PDK_DECL_PATH, "lut_rule_decl_path": LUT_RULE_DECL_PATH}
+    kw[path_name] = str(tmp_path / "absent" / Path(kw[path_name]).name)
+    assert not Path(kw[path_name]).exists()                             # 전제: 그 경로에 파일이 없다
+    with pytest.raises(_SchemaRejectedError):
+        run_stage_a(_write(tmp_path, H.CS), None, real_lut, output_dir=tmp_path / "out", supplies_v=H.SUPPLIES, **kw)
+    assert not (tmp_path / "out").exists(), "선언 파일 없는 경로에서 보고서를 썼다(진입 거부 아님)"
+
+
+@pytest.mark.parametrize("which", ["pdk", "lut_rule"])
+def test_decl_path_sha_mismatch_keeps_other_circuit_snapshots(tmp_path, real_lut, s0_dir, arm_cleanup, which):
+    # 감사 run8·run10: 원본 선언으로 만든 다른 회로(CS·MILLER) 스냅샷은 현재 파일로 재현 가능하다 -> U-68 결정 '보존'. 불일치 입력은 진입에서
+    # 거부되므로 그 실행의 첫 쓰기(정리)가 일어나지 않아야 한다. 거부되지 않으면 아래 _save 가 정리를 돌린다(감사에서 둘 다 지워진 경로).
+    _save(_run(tmp_path, real_lut, H.CS, out="a"))
+    _save(_run(tmp_path, real_lut, H.MILLER, out="b"))
+    kept = {name: (s0_dir / name).read_bytes() for name in _snapshots(s0_dir)}
+    assert len(kept) == 2                                               # 전제: 서로 다른 회로 스냅샷 2개
+    kw = _mismatch_kwargs(tmp_path, which, "edited_decl_original_path")
+    arm_cleanup()
+    with pytest.raises(_SchemaRejectedError):
+        r = run_stage_a(_write(tmp_path, H.FOLLOWER), None, real_lut, output_dir=tmp_path / "c", supplies_v=H.SUPPLIES, **kw)
+        _save(r)
+    assert {name: (s0_dir / name).read_bytes() for name in _snapshots(s0_dir)} == kept, "불일치 입력이 기존 스냅샷을 바꾸거나 지웠다"
+
+
+def test_decl_paths_matching_sha_run_normally(tmp_path, real_lut, s0_dir, arm_cleanup):
+    # 대조군: 경로 파일 sha = 선언 sha 이면(원본, 그리고 끝 개행을 더한 사본에서 읽은 선언 + 그 사본 경로) 정상 실행·보고서 작성이고, 저장해도
+    # 다른 회로 스냅샷이 남는다 -- 위 거부가 '사본 경로라서'·'바이트가 원본과 달라서'가 아니라 경로-sha 불일치 때문임을 보인다.
+    assert _sha(PDK_DECL_PATH) == PDK_DECL.decl_sha256 and _sha(LUT_RULE_DECL_PATH) == LUT_RULE_DECL.decl_sha256
+    _save(_run(tmp_path, real_lut, H.MILLER, out="a"))
+    kept = _snapshots(s0_dir)
+    base = _run(tmp_path, real_lut, H.CS, out="b")
+    assert (base.status, base.exit_code) == ("ok", 0) and all(Path(p).is_file() for p in base.report_paths)
+    copies = _decl_copies(tmp_path)
+    for f in copies.values():
+        f.write_bytes(f.read_bytes() + b"\n")
+    arm_cleanup()
+    edited = _run_with_decls(tmp_path, real_lut, H.CS, copies, "c")
+    assert (edited.status, edited.exit_code) == ("ok", 0) and all(Path(p).is_file() for p in edited.report_paths)
+    _save(edited)
+    now = _snapshots(s0_dir)
+    assert set(kept) <= set(now) and len(now) == 2
+
+
 def test_engine_code_fp_measured_once_per_run(tmp_path, real_lut, s0_dir, monkeypatch):
     # 엔진 코드 지문은 단계 A 가 실행마다 한 번 재고 StageAResult.code_fp 로 넘긴다(계산값 재사용 -- 다시 재지 않는다).
     calls = []
