@@ -1,0 +1,377 @@
+# K. N. Leung, P. K. T. Mok, W.-H. Ki, Right-Half-Plane Zero Removal Technique for Low-Voltage Low-Power Nested Miller Compensation CMOS Amplifier (ICECS 1999)
+
+- 원본 PDF: `G:\내 드라이브\work\Todoc\기술문서\Gm_over_Id\(Bible-concept) RIGHT-HALF-PLANE_ZERO_REMOVAL_TECHNIQUE.pdf`
+- 사본: `source.pdf` (sha256 `85697ea3d095a9f3ccc5fe8ced0e353950fb8654bf262ffa2286c0569a57823d`)
+- 웹 출처: IEEE ICECS'99(6th Int. Conf. Electronics, Circuits and Systems, Pafos, Cyprus) vol.2 pp.599-602 -- IEEE Xplore 유료, 공개 PDF·Xplore 문서 번호 찾지 못함(2026-10-14 웹 검색)
+- 그림·표 위치: Fig. 3 'Circuit diagram of the three-stage NMCNR amplifier' = 저널 p.602 = PDF p.4 왼쪽 위 (topology.json의 'Fig.3 p.601'은 쪽 오기 -- p.601은 PDF p.3 본문 4절·5절) · Table 1 'Measured results ... 100pF//25kΩ' = p.602 = PDF p.4 오른쪽 아래 · 식 (6)~(11) p.601 = PDF p.3
+- 엔진 연결: `assets/library/nmcnr_amplifier.topology.json`, `nmcnr_amplifier.sizing_spec.json`, `nmcnr_amplifier.structure.json`
+- 쪽 수: 4
+- 변환: PyMuPDF 텍스트 추출(쪽 단위). 수식·표·그림은 텍스트가 깨질 수 있으니 같은 쪽의 렌더 PNG(`pages/`)로 확인할 것.
+
+---
+
+## p.1
+
+![p.1](pages/p01.png)
+
+![p.1 내장 이미지 1](images/p01_1.png)
+
+```text
+RIGHT-HALF-PLANE ZERO REMOVAL TECHNIQUE 
+FOR LOW-VOLTAGE LOW-POWER 
+NESTED MILLER COMPENSATION CMOS AMPLIFIER 
+Ku Nuizg Leung, Philip K. T. Mok and Wing-Hung Ki 
+Department of Electrical and Electronic Engineering 
+The Hong Kong University of Science and Technology 
+Clear Water Bay, Hong Kong, China 
+Tel:(852)2358-8517 Fax:(852)2358-1485 E-mail:eemok@ee.ust.hk 
+ABSTRACT 
+The stability of a low-power CMOS three-stage nested 
+Miller compensated (NMC) amplifier is deteriorated by a 
+right-half-plane (RHP) zero. A technique using only one 
+null resistor in the NMC amplifier to eliminate the RHP 
+zero is developed. Both theory and experimental result 
+show that the RHP zero is effectively eliminated by the 
+proposed technique. The NMC amplifier using this 
+technique has about 30% improvement on the bandwidth, 
+slew rate and settling time with an improvement on the 
+phase margin and no increase on the power consumption. 
+Moreover, there is at least 49dB enhancement on the 
+negative power supply rejection ratio. 
+1. INTRODUCTION 
+The trend of low-voltage design is an unjustified fact in 
+today's circuit design world, and the demand of low- 
+voltage cascade amplifiers in analog systems is increasing. 
+Therefore, frequency compensation technique to stabilize 
+multiple-stage amplifiers becomes more important. Nested 
+Miller compensation (NMC) is a well-known frequency 
+compensation technique, and it is good for stabilizing 
+general-purpose operational amplifiers. 
+Although NMC can stabilize multiple-stage amplifiers, 
+the NMC amplifiers considered in the literature are having 
+high output current capability [I], [2] and the amplifiers are 
+not supposed for low-power CMOS design. As will be 
+shown in the paper, in low-power CMOS design, the 
+stability of the NMC amplifier is deteriorated by a right- 
+half-plane (RHP) zero [3], [4]. As a result, the closed loop 
+stability of a low-power CMOS NMC amplifier is 
+degraded. 
+In order to enhance the stability of an NMC amplifier, a 
+technique called NMCNR, which is similar to the case of a 
+two-stage amplifier, using a null resistor on the structure of 
+the NMC amplifier to eliminate the RHP zero is presented 
+in this paper. Moreover, as an amplifier with three gain 
+stages can generally provide sufficient DC voltage gain 
+(-100dB) with a good compromise on the power 
+consumption, the discussion in this paper is focused on 
+three-stage NMC amplifiers. 
+Vout 
+p 
+Fig. 1: Structure of the three-stage NMC amplifier 
+The organization of this paper is as follows. In the next 
+section, the stability problems of 
+nested Miller 
+compensation in low-power CMOS design are presented. 
+In section 3, four different possible structures of NMC 
+amplifier using null resistor to eliminate the RIB zero are 
+discussed, and an optimum structure is obtained from the 
+analysis. The proposed structure NMCNR is presented in 
+section 4 with detail theoretical analysis. Experimental 
+results which show the improvement on both stability and 
+performances of the NMCNR amplifier are included in 
+section 5. Finally, conclusion is given. 
+2. STABILITY PROBLEMS OF NMC IN 
+LOW-POWER CMOS DESIGN 
+In this section, the stability problems of NMC in low- 
+power CMOS design will be illustrated by a three-stage 
+NMC amplifier. The structure of a three-stage NMC 
+amplifier is shown in Fig. 1. The voltage gains of the gain 
+stages are Av(l.-3j. The capacitors C,,zl and Cl,r2 are the 
+compensation capacitors, and C, is the loading capacitor. 
+For the structure of the NMC amplifier, the small-signal 
+voltage gain transfer function, Av(s)= L&(S)N~,~(S), 
+is given 
+by 
+0-7a03-56a2-9/99/$io. 
+0001 999 I E E E. 
+599
+```
+
+---
+
+## p.2
+
+![p.2](pages/p02.png)
+
+![p.2 내장 이미지 1](images/p02_1.png)
+
+```text
+I I C ~ I  
+11 Cml 
+II 
+II 
+vout 
+(a) Structure 1 
+(c) Structure 3 
+11 Cml 
+II 
+VOUt 
+(b) Structure 2 
+Fig. 2: Four possible structures 
+where AD~=g,,,lg,,,2g,,13Rl~*R3 
+is the DC gain of the 
+amplifier, ~-J~B=(C,,1~g,,22g,r1~RIR2R3)-1 
+is the dominant 
+pole, and g,,,(l.J) and R(1-3) are the transconductance and 
+the output resistance of the gain stages, respectively. From 
+(l), it shows that there are three poles and two zeros. If the 
+amplifier has high quiescent current in the output stage, 
+g,,? 
+is large and the zeros, which are located at high 
+frequencies, can be neglected. However, since grid is small 
+and may be comparable to g,,,l and grIl2 in low-power 
+CMOS design, the effect of the zeros cannot be ignored. 
+From the numerator of (1), since the s and s2 terms are 
+both negative, the RHP zero locates at a lower frequency 
+than the left-half-plane (LHP) zero and the effect of the 
+RHP zero dominates. As a result, the phase margin of the 
+NMC amplifier is reduced, and the closed loop stability of 
+the amplifier in low-power CMOS design is degraded. 
+3. FOUR POSSIBLE STRUCTURES 
+USING NULL RESISTOR TO ELMINATE 
+THE RHP ZERO 
+The RHP zero of the NMC amplifier is introduced by 
+the direct feed-forward capacitive paths, C,,I~ and C,,12, 
+from the outputs of the input and intermediate gain stages 
+to the output of the amplifier. A null resistor connected in 
+series with the compensation capacitor can increase the 
+impedance of the direct paths at high frequency, and this 
+can reduce the feed-forward current. As a result, the RHP 
+zero can be moved to a higher frequency or completely 
+eliminated with an appropriate value of the null resistor. 
+Four different possible structures to eliminate the RHP 
+zero in a three.-stage NMC amplifier are shown in Fig. 2(a) 
+to (d), respectively. Let Z(l-d,(s) be the functions of the 
+zeros of the possible structures 1 to 4, by solving the circuit 
+networks without losing accuracy, Z(I.d)(s) are given by 
+--I 
+(d) Structure 4 
+In order to ease the prediction of the position of the 
+zeros and eliminate the RHP zero at the same time, we 
+want to minimize the number of the zeros. For the second- 
+order functions shown in (2) to (3, 
+this can be achieved by 
+ensuring the s term to be positive and the s2 term to be zero. 
+As a result, only one LHP zero which increases the phase 
+margin of the NMC amplifier is left. 
+As (2) is complex, it is very complicated to find out 
+optimum values of R,,,l and Rn12 to eliminate the RHP zero 
+when using structure 1. Moreover, matching of R,,,I and 
+Rm2 is required. Thus, it is not a good choice. From (3) and 
+(4), the RHP zero cannot be eliminated as the s2 term is 
+always negative for any value of Rlnl and R,l12. Therefore, 
+structure 2 and 3 are also not suitable. 
+For the structure 4, the s2 term can be adjusted to zero 
+by setting R,,1=l/g,,13. When R,,, is equal to the inverse of 
+gn13, the amplifier has no RHP zero and it only has a LHP 
+zero which helps to increase the phase margin. 
+From the above analysis, it is concluded that structure 4 
+is the best among the four structures to eliminate the RHP 
+zero of the amplifier, and the structure 4 will be used for the 
+discussion in the next section. 
+600
+```
+
+---
+
+## p.3
+
+![p.3](pages/p03.png)
+
+![p.3 내장 이미지 1](images/p03_1.png)
+
+```text
+4. NESTED MILLER COMPENSATION 
+USING NULL RESISTOR 
+From the previous section, we know that structure 4 is 
+the optimum frequency compensation network to 
+eliminate the R" zero effect. In this section, the 
+frequency compensation technique using this structure 
+called NMCNR will be presented. 
+By solving the circuit network without losing accuracy, 
+the small-signal transfer function of the NMCNR amplifier 
+with Rltl=l/g,,l~ is calculated as 
+Defining kg=g,n2/g,,d, the transfer function shown in (6) is 
+re-written as 
+The stability of the NMCNR amplifier is obtained by 
+considering that the poles of the amplifier has third-order 
+Butterworth frequency response [5] in unity-gain 
+configuration, and this is achieved by the following two 
+dimension conditions for CItII and Cln2. 
+CttI1 = 4 - 
+c 
+(2 
+(9) 
+Using (8) and (9), the gain-bandwidth product (GBW) and 
+the phase margin (PM) are given by 
+where z ~ p = g , , ~ I C l n l .  
+As shown from (lo), the GBW is controlled by Ct,lI, 
+and from (7), the positions of the second and third pole are 
+controlled by CIt12. Since it is generally not requiring an 
+amplifier with a phase margin greater than 60°, we can 
+reduce CInI to increase the GBW and reduce the die size at 
+the same time. Moreover, the slew rate (SR) of the 
+NMCNR amplifier is better since the compensation 
+capacitors are smaller and the time required to charge or 
+discharge the compensation capacitors is shorter. As the 
+settling time (T,) is composed of the slewing and quasi- 
+linear period [6], the overall settling behaviour of the 
+NMCNR amplifier is also improved. 
+5. EXPERIMENTAL RESULTS 
+Low-voltage low-power NMCNR amplifier shown in 
+Fig. 3 and the NMC counterpart were fabricated using a 
+double-metal double-poly 0.8pn CMOS process from 
+AMS (Austria Miko Systeme Group, Austria) with 
+optimum stability conditions. The first, second and third 
+gain stage are implemented by M101-M109, M201-M204 
+and M301-M302, respectively. The micrograph of the 
+amplifiers is shown in Fig.4. Both amplifiers have a supply 
+voltage of +/-1V and a load of IOOpF in parallel with 25kQ 
+The frequency responses of the NMCNR amplifier were 
+measured by HP41 94A impedancelgain-phase analyzer, 
+and the frequency response of the NMCNR amplifier is 
+shown in Fig. 5. The transient responses were measured by 
+LeCroy 9354A oscilloscope and are shown in Fig. 6. The 
+performances of the both amplifiers is summarized in 
+Table 1. 
+The DC gain of both amplifiers are greater than 100dB, 
+and the power consumption are the same. For the AC 
+response, comparing the NMCNR amplifier to the NMC 
+amplifier, both the GBW and PM are improved by 38% 
+and 3', 
+respectively. Thus, NMCNR provides a wider 
+bandwidth and better stability. For the transient response, 
+the slew rate and settling time were measured in unity-gain 
+configuration with a 0.5V step input. As shown in Table 1 
+and Fig. 6, the slew rate is enhanced by about 34%, and the 
+settling time is reduced by 29%. Thus, NMCNR can settle 
+the output voltage with shorter time. 
+Both the positive and negative power supply rejection 
+ratio (PSRR) have significant improvement by NMCNR. It 
+is due to NMCNR having smaller compensation capacitors 
+and larger high frequency input-to-output voltage gain. 
+Moreover, the null resistor helps to block the supply noise 
+at high frequency. 
+The die of the NMCNR amplifier is smaller than that of 
+the NMC amplifier. It is due to the smaller values of the 
+compensation capacitors used in NMCNR, and they can be 
+integrated by poly-poly capacitors with smaller area. 
+6. CONCLUSION 
+A novel frequency compensation technique NMCNR 
+which eliminates the RHP zero in an NMC amplifier has 
+been presented and proved by experimental results. The 
+technique can improve the frequency and transient 
+responses of low-voltage low-power CMOS NMC 
+amplifiers for analog systems without an increase on 
+circuit complexity and power consumption. Moreover, the 
+area occupied by the NMCNR amplifier is smaller than 
+that of the NMC amplifier. 
+60 I
+```
+
+---
+
+## p.4
+
+![p.4](pages/p04.png)
+
+![p.4 내장 이미지 1](images/p04_1.png)
+
+```text
+Vdd 
+SR+ISR- (vlps) 
+T,CITs- (PS) 
+PSRRf@ 1 kHz 
+PSRR+@ lOkHz 
+PSRR-@ lkHz 
+PSRR-@ 1 OkHz 
+Pconsumptlon 
+I,.._ 
+~~ 
+~~ 
+0.2310.23 
+0.3610.3 1 
+4.2514.36 
+3.0313.04 
+85.80dB 
+92.61dB 
+64.1 OdB 
+75.62dB 
+53.66dB 
+106.44dB 
+35.6 1 dB 
+84.62dB 
+400pW 
+Fig. 3: Circuit diagram of the three-stage NMCNR 
+amplifier 
+A/OIV 
+20.00 
+d8 
+START 
+100.000 Hz 
+B/DIV 
+20.00 
+deg 
+STOP 
+5 000 000.000 Hz 
+Fig. 5: Measured frequency response of the NMCNR 
+amplifier 
+Fig. 4: Micrograph of the amplifiers 
+ACKNOWLEDGMENT 
+The work was supported by the RGC Competitive 
+Earmarked 
+Research 
+Grant, 
+Hong 
+Kong 
+S A R  
+Government, HKUST6007197E. 
+REFERENCE 
+[l] R.G.H. Eschauzier, L.P.T. Kerklaan and J.H. Huijsing, “A 
+100-MHz 100-dB Operational Amplifier with Multipath 
+Nested Miller Compensation Structure”, IEEE Journal of 
+Solid-state Circuits, vol. 27, pp.1709-1717, 1992. 
+[2] S. Pemici, G. Nicollini and R. Castello, “A CMOS Low- 
+Distortion Fully Differential Power Amplifier with Double 
+Nested Miller Compensation”, IEEE Journal Solid-state 
+Circuits, vol. 28, pp.758-763, 1993. 
+[3] P.R. Gray and R.G. Meyer, Analysis and Design ofAnalog 
+Integrated Circuit, 2nd edition. New York: Wiley, 1984. 
+[4] R. Gregorian and G.C. Temes, Analog MOS Integrared 
+Circuits for Signal Processing, 1st edition. New York: Wiley, 
+1986. 
+[5] G.C. Temes and J.W. LaPatra, Introduction to Circuit 
+Synthesis and Design, 1st edition. USA:McGraw-Hill, 1977. 
+[6] B.Y. Kamath, R.G. Meyer and P.R. Gray, “Relationship 
+between Frequency Response and Settling Time of 
+Operational Amplifier”, IEEE Journal of Solid-State 
+Circuits, vol. 9, pp.347-352, 1974. 
+Fig. 6: Measured transient responses 
+Table 1: Measured results of the NMC and NMCNR 
+amplifier with loading condition 100pF//25kQ 
+> 1 OOdB 
+590kHz 
+8 1 6kHz 
+DC Gain 
+I Powersupply 
+I 
++I- 1 v 
+I Area 
+I 
+0.23mm2 
+I 
+0.18mrn2 
+Note: Slew rate and settling time were measured at unity- 
+feedback configuration with 0.5V step input 
+60 2
+```
