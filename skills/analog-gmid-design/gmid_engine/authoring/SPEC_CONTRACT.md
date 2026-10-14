@@ -226,7 +226,7 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
   noise_th_in_v2hz·noise_fc_in_hz·noise_excess_th·noise_out_int_vrms -- 서명만, 계산은 U7·U8). 로더는 이 이름의 제약을 받는다.
   카탈로그에 있고 레지스트리에 없는 이름이 계산 대기이며, 탐색 문맥이 `constraint_notes` 에 `unmeasured`/`metric_computation_pending` 으로 남긴다.
 
-## 5. 9회로 spec 로드 결과 (2026-10-07, 이 커밋 코드 + library, 픽스처 이름표)
+## 5. 9회로 spec 로드 결과 (2026-10-14 현재 library 실측, 픽스처 이름표 -- 이 표는 2026-10-14 Q-S2·Q-S3 반영 뒤 값이며 아래 [U5] 문단 이후의 변경 사용자 결정은 history)
 
 픽스처 이름표 = gain_ss_db·ugf_ss_hz·gbw_ss_hz·parasitic_pm_ss_deg(transfer), pm_ss_deg(loop), rout_ss_ohm(output_port), ratio_ss_db(ratio),
 mismatch_sigma_mv·mirror_ratio_error_mv·power_dc_w·area_search_m2(None), supply_current_dc(power), area_layout_m2(area).
@@ -238,25 +238,25 @@ mismatch_sigma_mv·mirror_ratio_error_mv·power_dc_w·area_search_m2(None), supp
 | common_gate_amplifier | 2(2) | 6 |
 | current_reuse_telescopic_ota | 13(12) | 11 |
 | folded_cascode | 3(3) | 7 |
-| ngcc_3stage_ff | 6(6) | 6 |
-| nmcnr_amplifier | 7(7) | 6 |
+| ngcc_3stage_ff | 7(7) | 6 |
+| nmcnr_amplifier | 8(8) | 6 |
 | pushpull_follower_buffer | 2(2) | 5 |
-| sf_pushpull_output_opamp | 6(6) | 6 |
-| two_stage_ota | 5(5) | 7 |
-| two_stage_ota_sf | 6(6) | 6 |
+| sf_pushpull_output_opamp | 8(8) | 5 |
+| two_stage_ota | 6(6) | 6 |
+| two_stage_ota_sf | 7(7) | 6 |
 
 [U5 2026-10-08] 위 표는 U5 반영 뒤 실측이다(옛 표 값 -- 파일럿 9(6)·ngcc 3(2) 등 -- 은 면적 예산 제약(결정 11)·`[CM]` 제약을 반영하기
 전이라 낡았고, U5 직전 master 실측은 파일럿 10(7)이었다). 변경(설계 40 §9·§9.2, 픽스처 이름표가 아니라 `metrics.metric_catalog()` 로 로드):
 * 파일럿 +3(=10(7) → 13(12)): 옛 `mismatch_sigma_mv`(pending_spice)·`mirror_ratio_error_mv`(참조)를 지우고 `offset_in_sigma_mv <= 3.3`,
   `offset_sys_mv <= (value_from_constraint offset_in_sigma_mv)`, `swing_out_v >= 2.4`, `icm_margin_v >= 0`(입력 DC SP-2 대기 -- 계산은
-  `input_dc_pending` 보고), `noise_out_int_vrms <= 3e-4` 를 더했다. 판정 7 → 12(옛 두 줄은 판정 밖이었다).
+  `input_dc_pending` 보고), `noise_out_int_vrms <= 3e-4`(2026-10-14 Q-S3 로 `4.5e-4` 차동 출력으로 대체)를 더했다. 판정 7 → 12(옛 두 줄은 판정 밖이었다).
 * two_stage_ota 2(1) → 5(5): `mismatch_sigma_mv` 폐기, `gbw_ss_hz >= 7e6`(Q5, 보상 목표를 제약으로 승격 -- `compensation_targets.gbw_target_hz` 는
   `value_from_constraint: gbw_ss_hz` 로 바꿨다), `offset_excess <= sqrt(2)`, `noise_excess_th <= 2`. pending_constraints 에서 `gbw_ss_hz`(SP-5) 삭제.
 * two_stage_ota_sf: `mismatch_sigma_mv` 참조 폐기, `gbw_ss_hz`(`value_from_file two_stage_ota#gbw_ss_hz`), `offset_excess`, `noise_excess_th`.
 * ngcc: 제약 `metric: {"pending": "MOD5"}` → `icmr_v >= 0.6`(값·출처 유지), 가드 `offset_excess`·`noise_excess_th`. pending 표지 7 → 6.
 * nmcnr: `icmr_v >= 0.5`, `swing_out_v >= 0.5`, 가드 `offset_excess`·`noise_excess_th`. folded·sf_pushpull: 두 가드. common_gate: `noise_excess_th` 만.
   pushpull_follower_buffer: 변경 없음(offset·잡음 제약 없음, 보고만).
-* 남은 표지 총 60(옛 61 -- ngcc MOD5 metric 표지 1개 해소, MOD5 6 → 5).
+* 남은 표지 총 60(2026-10-14 Q-S2 로 SP-3 2개가 해소돼 지금은 58; 옛 61 -- ngcc MOD5 metric 표지 1개 해소, MOD5 6 → 5).
 * 가드 6회로(offset) = two_stage·two_stage_sf·folded·ngcc·nmcnr·sf_pushpull, 잡음 가드 7회로 = 위 6 + common_gate. 새 제약의 기본 뷰는 전부
   `port`(차동/단일 입력·출력 포트 유도)로 풀렸고 `view_required` 는 없다. swing·icmr·icm_margin 은 뷰가 없다(`none`).
 

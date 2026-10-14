@@ -1369,12 +1369,12 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 
 | 회로 | 이미 제약에 있는 것 | 이번에 올리는 것 | 아직 없는 값 |
 |---|---|---|---|
-| current_reuse(파일럿) | gain ≥ 54, PM ≥ 70, CMRR·PSRR ≥ 60 | 잡음 ≤ 300 µVrms. Q3·Q4(§9.2): offset σ ≤ 3.3 mV(옛 mismatch ≤ 5 대체), 출력 스윙 ±1.2 V | 입력 DC(SP-2) |
-| two_stage_ota | gain ≥ 57 | GBW ≥ 7 MHz(보상 목표 `user_spec`을 제약으로). Q3: 옛 mismatch ≤ 5 폐기 → 가드 `offset_excess ≤ √2` | PM(SP-3) |
-| two_stage_ota_sf | rout ≤ 1 kΩ, gain은 two_stage_ota를 참조 | GBW는 두 회로 상속. Q3: 옛 mismatch 참조 폐기 → 가드 | PM |
+| current_reuse(파일럿) | gain ≥ 54, PM ≥ 70, CMRR·PSRR ≥ 60 | 잡음 ≤ 450 µVrms 차동 출력(2026-10-14 Q-S3). Q3·Q4(§9.2): offset σ ≤ 3.3 mV(옛 mismatch ≤ 5 대체), 출력 스윙 ±1.2 V | 입력 DC(SP-2) |
+| two_stage_ota | gain ≥ 57 | GBW ≥ 7 MHz(보상 목표 `user_spec`을 제약으로). Q3: 옛 mismatch ≤ 5 폐기 → 가드 `offset_excess ≤ √2`. PM ≥ 70°(2026-10-14 Q-S2) | -- |
+| two_stage_ota_sf | rout ≤ 1 kΩ, gain은 two_stage_ota를 참조 | GBW는 두 회로 상속. Q3: 옛 mismatch 참조 폐기 → 가드. PM ≥ 70°(2026-10-14 Q-S2) | -- |
 | ngcc_3stage_ff | GBW ≥ 10 MHz, PM ≥ 63.4 | `icmr_v ≥ 0.6 V`(값 유지, 이름 부여). Q3: 가드 | gain |
 | nmcnr_amplifier | GBW ≥ 816 kHz, PM ≥ 70 | Q4: `icmr_v ≥ 0.5 V`, `swing_out_v ≥ 0.5 V`. Q3: 가드 | gain(논문 > 100 dB는 채택하지 않음) |
-| sf_pushpull_output_opamp | gain ≥ 65, GBW ≥ 60 MHz, rout ≤ 1 kΩ | Q3: 가드 `offset_excess ≤ √2` | PM(SP-3) |
+| sf_pushpull_output_opamp | gain ≥ 65, GBW ≥ 60 MHz, rout ≤ 1 kΩ | Q3: 가드 `offset_excess ≤ √2`. PM ≥ 70°(2026-10-14 Q-S2) | -- |
 | pushpull_follower_buffer | rout ≤ 1 kΩ | -- | (버퍼, 다른 값 불필요) |
 | folded_cascode | 없음 | Q3: 가드 `offset_excess ≤ √2` | gain·GBW·PM 모두 → Q5b 판정 보류 |
 | common_gate_amplifier | 없음 | -- | gain·GBW 모두 → Q5b 판정 보류 |
