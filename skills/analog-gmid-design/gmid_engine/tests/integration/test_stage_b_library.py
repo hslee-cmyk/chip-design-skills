@@ -97,13 +97,20 @@ def _follower_anchor(z):
     return 20.0 * math.log10(r[i]), b
 
 
+def _settings():
+    """탐색 실행 설정(입력, 기대값 아님) -- tests/search/u13_real.py·integration/test_s0_layer_9circuits.py 와 같은 값."""
+    from gmid_engine.search import SearchSettings
+    return SearchSettings(600.0, 40, (1e2, 1e5), (("front_budget_s", "stage_b library test fixture"),), (1e-13, 1e-10))
+
+
 def _run(env, circuit, tmp_path_factory):
     if circuit not in env["cache"]:
         out = tmp_path_factory.mktemp("sbl_" + circuit)
         a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env["lut"], pdk_decl=env["pdk"],
                         lut_rule_decl=env["rule"], output_dir=out)
         memo = LutMemo(env["lut"], point=200000, curve=200000, root=4096)
-        b = run_stage_b(a, memo, env["pdk"], output_dir=out, diagnostic=True)
+        # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- 탐색 설정 입력(test_s0_layer_9circuits `_settings` 와 같은 값)
+        b = run_stage_b(a, memo, env["pdk"], output_dir=out, diagnostic=True, settings=_settings())
         env["cache"][circuit] = (a, b)
     return env["cache"][circuit]
 

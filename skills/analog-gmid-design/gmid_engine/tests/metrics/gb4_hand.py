@@ -340,15 +340,24 @@ def toy_rule(root):
     return write_decls_mim(Path(root))[1]
 
 
-def stage_ab(root, lut, tp, sp, pdk, diagnostic=False, out="out", rule=None):
+def toy_settings():
+    """탐색 실행 설정(입력, 기대값 아님) -- tests/search/u13_hand.build 기본값과 같은 값(평가 예산 40, R 상자 1e2..1e5 Ω, C 상자 1e-13..1e-10 F).
+    [U17 ①-b 2차, 사용자 결정 4(2026-10-14)] `run_stage_b(settings=)` 는 필수 인자(기본값 없음)라 단계 B 를 부르는 helper 가 명시한다."""
+    from gmid_engine.search import SearchSettings
+    return SearchSettings(600.0, 40, (1e2, 1e5), (("front_budget_s", "gb4 test fixture"),), (1e-13, 1e-10))
+
+
+def stage_ab(root, lut, tp, sp, pdk, diagnostic=False, out="out", rule=None, settings=None):
     """단계 A -> 단계 B(공개 진입점 두 개를 부르는 입력 helper -- 기대값을 만들지 않는다). `rule` = LUT 생성 규칙 선언(None 이면 toy 규칙 선언을
-    `root/_rule` 에 써서 읽는다)."""
+    `root/_rule` 에 써서 읽는다). `settings` = 탐색 실행 설정(None 이면 `toy_settings()` -- 단계 B 에는 늘 명시해 넘긴다)."""
     from gmid_engine.pipeline import run_stage_a, run_stage_b
     if rule is None:
         (Path(root) / "_rule").mkdir(parents=True, exist_ok=True)
         rule = toy_rule(Path(root) / "_rule")
+    if settings is None:
+        settings = toy_settings()
     a = run_stage_a(tp, sp, lut, pdk_decl=pdk, lut_rule_decl=rule, output_dir=Path(root) / out)
-    b = run_stage_b(a, memo_of(lut), pdk, output_dir=Path(root) / out, diagnostic=diagnostic)
+    b = run_stage_b(a, memo_of(lut), pdk, output_dir=Path(root) / out, diagnostic=diagnostic, settings=settings)
     return a, b
 
 

@@ -1,4 +1,5 @@
-"""pipeline/stage_b.py -- `run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False) -> StageBResult`
+"""pipeline/stage_b.py -- `run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False, settings) -> StageBResult`
+([U17 ①-b 2차, 사용자 결정 4] settings 필수 -- 기본값 없음)
 (pipeline CONTRACT 5절, 설계 41 0절 A5~A7·4절, 40 3.4, FR-8).
 
 입력은 해석식 toy LUT(metrics/gb4_hand: x = gm/ID = 20 − 8·VGS, y = gds/ID = 0.1, z = gmb/ID = 4·VS; VGS 0..1.8/0.1, L 2 점, VDS 7 점,
@@ -30,7 +31,8 @@ TESTS = Path(__file__).resolve().parents[1]
 if str(TESTS) not in sys.path:
     sys.path.insert(0, str(TESTS))
 from metrics.gb4_hand import (A, GRIDS, I0, L_GRID, LAM, TOY_MIM_DENSITY, VDS_GRID, VGS_GRID, VS_GRID, db, f_default,  # noqa: E402
-                              gain_blocks, memo_of, mos_e, stage_ab, toy_pdk, topology, two_e, write_case, write_lut)
+                              gain_blocks, memo_of, mos_e, stage_ab, toy_pdk, toy_rule, toy_settings, topology, two_e, write_case,
+                              write_lut)
 
 PI_FOL = 19 * 2 * 7 * 6
 PI_CS = 19 ** 2 * 2 ** 2 * 7 ** 2
@@ -286,3 +288,39 @@ def test_stage_b_result_carries_s0_snapshot_reference_only(tmp_path, toy, pdk):
                       "verdict", "dof", "count_budget", "local_inputs"}, fields
     assert with_ach[0].value("graph", "ach", "verdict") == "infeasible"
     assert with_ach[0].value("graph", "ach", "count_budget") == b.report["count_budget"]
+
+
+def _stage_a_ok(tmp_path, toy, pdk):
+    """단계 A 만(입력 helper): 팔로워 + 이상 전류원, gain 제약 없음(위 test 와 같은 입력 -- 단계 A ok)."""
+    tp, sp = write_case(tmp_path, follower(), elements=(("I1", "current_source", None),))
+    (tmp_path / "_rule").mkdir(parents=True, exist_ok=True)
+    a = run_stage_a(tp, sp, toy, pdk_decl=pdk, lut_rule_decl=toy_rule(tmp_path / "_rule"), output_dir=tmp_path / "out")
+    assert (a.status, a.exit_code) == ("ok", 0)
+    return a
+
+
+def test_settings_is_required_argument_without_default(tmp_path, toy, pdk):
+    """[U17 ①-b 2차] oracle (d) 사용자 결정 4(2026-10-14, wt/_drafts/user_decisions.md 'U17 1-b 병합 전 3~9'): `run_stage_b` 의 `settings` 는
+    필수 인자, 기본값 없음 -- 없이 부르면 파이썬 인자 누락 TypeError(단계 B 가 돌지 않아 보고서도 없다). 서명에도 기본값이 없다."""
+    import inspect
+    param = inspect.signature(run_stage_b).parameters["settings"]
+    assert param.default is inspect.Parameter.empty
+    a = _stage_a_ok(tmp_path, toy, pdk)
+    with pytest.raises(TypeError) as ei:
+        run_stage_b(a, memo_of(toy), pdk, output_dir=tmp_path / "out")
+    assert "settings" in str(ei.value)
+    with pytest.raises(TypeError) as ei:
+        run_stage_b(a, memo_of(toy), pdk, output_dir=tmp_path / "out", diagnostic=True)
+    assert "settings" in str(ei.value)
+    assert not list((tmp_path / "out").glob("*.stage_b.*"))
+    # 대조군: 같은 입력에 settings 를 명시하면 단계 B 가 돈다(위 test_follower_without_gain_constraint_is_ok 와 같은 결과)
+    b = run_stage_b(a, memo_of(toy), pdk, output_dir=tmp_path / "out", settings=toy_settings())
+    assert (b.status, b.exit_code) == ("ok", 0)
+
+
+@pytest.mark.parametrize("bad", ["settings", (600.0, 40), {"eval_budget": 40}], ids=["str", "tuple", "dict"])
+def test_settings_of_wrong_type_rejected(tmp_path, toy, pdk, bad):
+    """[U17 ①-b 2차] oracle (d) interface card(4) '형식이 틀린 settings 는 기존대로 TypeError'(pipeline CONTRACT 5절 `settings`(`SearchSettings`))."""
+    a = _stage_a_ok(tmp_path, toy, pdk)
+    with pytest.raises(TypeError):
+        run_stage_b(a, memo_of(toy), pdk, output_dir=tmp_path / "out", settings=bad)
