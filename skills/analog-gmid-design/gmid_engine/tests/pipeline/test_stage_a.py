@@ -617,6 +617,67 @@ def test_s0_other_circuit_snapshot_is_kept(tmp_path, real_lut, s0_dir, arm_clean
     assert len(_snapshots(s0_dir)) == 2
 
 
+
+# ---------------------------------------------------------------- [U17 ①-b 3차] U-68: PDK 선언·LUT 생성 규칙 선언 원본 변경도 정리 대상
+# oracle (d): 사용자 결정 U-68 원문 '현재 파일(topology·spec·LUT·PDK 선언·...) + writer 코드 지문'으로 다시 만들 수 없는 스냅샷은 지운다
+# (설계 40 v1.9.2 §2.4.3 '무효화' 행: 재현 판정 = 입력 파일 원본 sha -- topology·spec·LUT·**PDK 선언**·structure.json). LUT 생성 규칙
+# 선언은 S0 필드 junction_source 의 입력(§2.4.7)이라 같은 규칙. 기대값 = 파일 개수·이름 대조뿐(피검 함수로 만든 값 없음).
+# 선언 사본은 tmp_path 에 두고 끝 개행 1개만 더한다(값·지문 정규화와 무관한 원본 바이트 변경 -- 옛 키는 어떤 checkout 으로도 재현 불가).
+_LUT_RULE_DECL_FILE = Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json"
+
+
+def _decl_copies(tmp_path):
+    d = tmp_path / "decl_copy"
+    d.mkdir()
+    pdk, rule = d / _PDK_DECL_FILE.name, d / _LUT_RULE_DECL_FILE.name
+    pdk.write_bytes(_PDK_DECL_FILE.read_bytes())
+    rule.write_bytes(_LUT_RULE_DECL_FILE.read_bytes())
+    # 선언 파일 옆 기준(base decl_dir) 원본은 사본 옆에 같은 바이트로 둔다(입력 준비 -- 원본 내용은 바꾸지 않는다)
+    for src in json.loads(_LUT_RULE_DECL_FILE.read_text(encoding="utf-8"))["sources"].values():
+        if src.get("base") == "decl_dir":
+            (d / src["path"]).write_bytes((_LUT_RULE_DECL_FILE.parent / src["path"]).read_bytes())
+    return {"pdk": pdk, "lut_rule": rule}
+
+
+def _run_with_decls(tmp_path, real_lut, doc, copies, out):
+    pdk = _read_pdk_decl(str(copies["pdk"]), _BoundedLRU(4))
+    rule = _read_pdk_decl(str(copies["lut_rule"]), _BoundedLRU(4))
+    return run_stage_a(_write(tmp_path, doc), None, real_lut, pdk_decl=pdk, lut_rule_decl=rule, output_dir=tmp_path / out,
+                       supplies_v=H.SUPPLIES)
+
+
+@pytest.mark.parametrize("which", ["pdk", "lut_rule"])
+def test_s0_decl_file_edit_removes_old_snapshot(tmp_path, real_lut, s0_dir, arm_cleanup, which):
+    copies = _decl_copies(tmp_path)
+    first = _run_with_decls(tmp_path, real_lut, H.CS, copies, "a")
+    _save(first)
+    old = _snapshots(s0_dir)
+    assert len(old) == 1
+    before = _sha(copies[which])
+    copies[which].write_bytes(copies[which].read_bytes() + b"\n")       # 무해한 원본 바이트 변경(끝 개행)
+    assert _sha(copies[which]) != before                                # 전제: 원본 sha 가 실제로 바뀌었다
+    arm_cleanup()
+    r = _run_with_decls(tmp_path, real_lut, H.CS, copies, "b")
+    assert r.report["s0_snapshot"] == "miss"                            # 키에 선언 내용 지문 -- 옛 스냅샷에 잘못 적중하지 않는다
+    _save(r)
+    now = _snapshots(s0_dir)
+    assert old[0] not in now, "옛 %s 선언으로 만든 스냅샷이 정리되지 않았다(U-68): %r" % (which, now)
+    assert len(now) == 1 and now != old
+
+
+def test_s0_unchanged_decl_copies_keep_snapshot(tmp_path, real_lut, s0_dir, arm_cleanup):
+    # 대조군: 선언 사본을 바꾸지 않으면 정리가 도는 첫 쓰기(다른 회로)에서도 그 사본으로 만든 스냅샷은 다시 만들 수 있다 -> 보존.
+    # 위 test 의 삭제가 '사본 경로라서'·'정리가 무조건 지워서'가 아니라 원본 바이트 변경 때문임을 보인다.
+    copies = _decl_copies(tmp_path)
+    _save(_run_with_decls(tmp_path, real_lut, H.CS, copies, "a"))
+    old = _snapshots(s0_dir)
+    assert len(old) == 1
+    arm_cleanup()
+    _save(_run_with_decls(tmp_path, real_lut, H.MILLER, copies, "b"))
+    now = _snapshots(s0_dir)
+    assert old[0] in now and len(now) == 2
+    assert _run_with_decls(tmp_path, real_lut, H.CS, copies, "c").report["s0_snapshot"] == "hit"
+
 def test_engine_code_fp_measured_once_per_run(tmp_path, real_lut, s0_dir, monkeypatch):
     # 엔진 코드 지문은 단계 A 가 실행마다 한 번 재고 StageAResult.code_fp 로 넘긴다(계산값 재사용 -- 다시 재지 않는다).
     calls = []

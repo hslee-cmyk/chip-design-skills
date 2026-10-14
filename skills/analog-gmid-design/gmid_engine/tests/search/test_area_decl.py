@@ -9,6 +9,7 @@ oracle:
 - 저항: PDK 선언에 poly 저항 양(`poly_res_*`, core 9.7 resistor_types)이 없으면 면적에 넣지 않고 `passive_area_undeclared` 로 보고(3.22).
   [U3] 사용자 결정 Q9(설계 40 §7.1)가 구현돼 그 양이 있으면 본체 W_min²/R□·값 + 머리 면적이 들어간다 -- 파일 끝 '[U3] 저항 면적' 절.
 """
+import hashlib
 import math
 import os
 import re
@@ -190,7 +191,12 @@ def test_sky130_mim_density_read_from_pdk_file():
     q = decl.quantity("mim_cap_density_f_per_m2")
     assert q.expression == "camimc"
     (rule,) = q.rules
-    assert Path(rule.path).as_posix().endswith("models/r+c/res_typical__cap_typical__lin.spice")
+    # [U17 ①-b 3차, 결정 7] 출처 파일 = 경로 대신 내용: 규칙의 원본 이름이 선언에서 이 r+c 파일을 가리키는 항목이고, 규칙 sha256 =
+    # 이 test 가 _RC_FILE 바이트를 직접 해시한 값(같은 파일이 아니면 다르다). 원본 이름 'mim_cap_params' 는 선언 파일 sources 키.
+    rc_sha = hashlib.sha256(Path(_RC_FILE).read_bytes()).hexdigest()
+    assert rule.source == "mim_cap_params"
+    assert rule.sha256 == rc_sha
+    assert dict(decl.sources)["mim_cap_params"] == rc_sha
     lines = text.splitlines()
     assert rule.line >= 1 and re.match(r"^\+\s*camimc\s*=", lines[rule.line - 1])
     assert math.isfinite(decl.value("mim_cap_density_f_per_m2"))

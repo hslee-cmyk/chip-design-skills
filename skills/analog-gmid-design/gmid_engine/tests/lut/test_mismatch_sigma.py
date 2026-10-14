@@ -30,7 +30,7 @@ def _block(name="toy_model.1", lmin=0.5e-6, lmax=5e-6, wmin=0.5e-6, wmax=10e-6, 
 
 
 def _model(*blocks):
-    return PdkMismatchModel("nmos", ("toxe", "voff", "vth0"), tuple(blocks), "toy.pm3", "0" * 64, "toy.mm", "0" * 64)
+    return PdkMismatchModel("nmos", ("toxe", "voff", "vth0"), tuple(blocks), "0" * 64, "0" * 64)  # [U17 ①-b 3차, 결정 7] 경로 칸 없음: (model_sha256, slope_sha256)
 
 
 @pytest.fixture
