@@ -657,17 +657,17 @@ reads = S1 필드 전부 `S1_READS`, extras = (spec 판정 제약, N_S, declared
   포트쌍 CM 루프 대응(R31): 루프 뷰의 루프 노드가 차동 출력 포트쌍 두 넷을 모두 포함하면 `cm_pair`, 기록은 `cm_loop_unconstrained`(info). 그 밖의 루프 뷰는
   `declared_loop_cuts` 에 gate 넷이 없으면 `undeclared_loop_constraint`(기록만).
   **선언 끊는 넷 = 엔진 루프 뷰의 끊는 gate 넷**(U1b-jrules 결정): spec 루프 뷰 선언의 `cuts` 는 입력 포트가 아니라 엔진 루프 뷰 `cuts[*][1]`(단계 A 보고서 `views[]` 에 나오는 끊는 gate 넷)를 가리켜야 한다.
-  단계 A(`pipeline.stage_a`)는 spec `feedback` 소자에서 유도된 β 루프 선언(`ViewDecl.beta == declared`; 입력 포트 절단)을 `declared_loop_cuts` 와 이 대조에서 제외한다(내부 루프 뷰가 아니다). 나머지 `declared_loop_cuts` 를 엔진 루프 뷰 끊는 넷 집합과 대조해 어느 뷰에도 맞지 않은 선언 넷마다 `loop_cut_unmatched`(review_needed, 뷰 "", subject = 그 넷)를 보고서 `review_needed` 에 올린다(`build_s1v` 결과 `S1v` 에는 넣지 않는다) -- 맞지 않는 선언이 조용히 무동작이 되지 않게 한다.
-* **L 동치류**: `S1v.l_classes` = S1 `rel_l_class` 마다 주인(DEC-17: tail -> 첫 전달 뷰 최전단 stage tail -> diode 기준(복합 diode 포함) -> [U1b] `main_path_signal` -> 이름 순)과 규칙 이름. 멤버 DC 역할 미확정이면 status
+  단계 A(`pipeline.stage_a`)는 spec `feedback` 소자에서 유도된 β 루프 선언(`ViewDecl.beta == declared`; 입력 포트 절단)을 `declared_loop_cuts` 와 이 대조에서 제외한다(내부 루프 뷰가 아니다). 나머지 `declared_loop_cuts` 를 엔진 루프 뷰 끊는 넷 집합과 대조해 어느 뷰에도 맞지 않은 선언 넷마다 `loop_cut_unmatched`(review_needed, 뷰 "", subject = 그 넷)를 보고서 `review_needed` 에 올린다(`build_s1v` 결과 S1Graph 의 `graph/s1v` 필드 `findings` 에는 넣지 않는다) -- 맞지 않는 선언이 조용히 무동작이 되지 않게 한다.
+* **L 동치류**: `graph/s1v` 필드 `l_classes`(레코드 `("graph", S1V_KEY)`) = S1 `rel_l_class` 마다 주인(DEC-17: tail -> 첫 전달 뷰 최전단 stage tail -> diode 기준(복합 diode 포함) -> [U1b] `main_path_signal` -> 이름 순)과 규칙 이름. 멤버 DC 역할 미확정이면 status
   review_needed. S1 의 `rel_l_class` 필드는 proposed 그대로다(소비자는 S1v 를 읽는다).
 * **declared 대조**: `declared` = ((출처, (소자 이름 tuple, ...)), ...) 를 첫 전달 뷰 블록과 대조해 불일치를 `declared_stage_mismatch`(review_needed). 유도의 입력이 아니다(U-50).
-* **기록과 정지**: `Finding.severity` ∈ review_needed / unsupported_rule_branch / info. `S1v.unsupported`(기록만)가 하나라도 있고 `stop_on_unsupported` 이면
+* **기록과 정지**: `Finding.severity` ∈ review_needed / unsupported_rule_branch / info. `s1v_findings(source)` 의 `unsupported`(기록만)가 하나라도 있고 `stop_on_unsupported` 이면
   `StructureUnresolvedError`(detail reason `unsupported_rule_branch`, `rule_branch` = 첫 분기, `branches`, `findings`). `False` 는 진단 모드(기록을 돌려받음). review_needed 는 정지가
-  아니라 `S1v.review_needed` 로 GB4 앞 정지 대상.
+  아니라 `s1v_findings(source)` 의 `review_needed` 로 GB4 앞 정지 대상.
 
 ### 10.3 불변량 (test 대상)
 
-1. 같은 입력이면 `fp_of(structure_tables(s1v))` 가 같다(프로세스·`PYTHONHASHSEED`·netlist 순서 무관). 같은 키 `previous` 는 `is` 같은 객체.
+1. 같은 입력이면 `fp_of(structure_tables(s1v))` 가 같다(프로세스·`PYTHONHASHSEED`·netlist 순서 무관).  (`build_s1v` 에는 `previous` 인자가 없다 -- 재사용은 계산 블록 입력 버전 일치로 판정하고, 같은 입력의 두 번째 호출은 블록 호출 0 이다.)
 2. 원소·넷 이름을 전단사로 바꾸면 모든 구조 필드(접지·셀·구동 종류·시작 셀·블록 키·역할·루프 노드 집합·분류·끊는 점·극점 노드·출력 방향)가 그 사상으로만 바뀐다. 예외(이름이 마지막
    tie-break 인 곳): L 동치류에 tail·diode 기준이 없을 때의 주인(DEC-17 '이름 정렬 첫 멤버'), 전달 뷰 순번(여기 이름 정렬 순서).
 3. 접지 집합은 정적 집합의 초집합이고 여기 넷·감지 넷은 접지가 아니다. 순방향 넷 ⊆ 신호 넷. 모든 MOS 에 셀이 정확히 하나 있다.
