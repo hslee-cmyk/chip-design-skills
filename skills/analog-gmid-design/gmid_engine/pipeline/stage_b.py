@@ -1,14 +1,14 @@
 """파이프라인 단계 B 진입점 -- GB4 달성가능성 (설계 41 §0 단계 A5~A7, 40 §3.4; 단계 A 보고서 뒤, 탐색 앞).
 
-진입점: `run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False, settings=None) -> StageBResult`.
+진입점: `run_stage_b(stage_a, memo, pdk_decl, *, output_dir, settings, diagnostic=False) -> StageBResult`.
 
 순서: 단계 A 결과(`StageAResult`: s1(S0 수준 스냅샷 위 S1Graph, S1v 필드 포함)·spec)가 `ok` 일 때만(`review_needed`·정지는 GB4 앞 정지라 그 exit code 를 그대로 낸다;
 `diagnostic=True` 면 S1v 필드가 있는 한 정지 상태에서도 GB4 를 계산해 측정만 한다 -- 정지 판정은 바뀌지 않고 `StageBResult.diagnostic` 이 True) -> `dc_inputs_from_spec` ->
 `build_kernel_context`(쓰기 계획·전류 기저·커널 구조 파생·θ 스키마 -- L 동치류는 필드 `graph/s1v: l_classes`) -> S0 수준 권한표(search `S0_WRITERS`)로 넓힘 ->
 계산 블록 `search_domain`(θ 전류 상자·자기동형 묶음·b_A) -> `passive_area_decl` -> `search.count_budget`(N_S) -> 계산 블록 `metrics.achievability`(S0 수준 필드 `graph/ach`) ->
 `graph/ach: reasons` 가 있으면 `InfeasibleTargetError` 분류로 정지(exit 3). 모든 블록은 입력 버전이 같으면 재사용(같은 S0 의 디스크 스냅샷 위에서 계산 0).
-`settings` = 탐색 실행 설정(`SearchSettings`, `build_search_context` 와 같은 값을 넘기면 정의역 블록이 한 번만 계산된다 -- 수동소자 상자가 정의역 입력이다, v1.9.1 D6) 또는 None
-(spec `search` 의 벽시계만으로 만든 설정 -- 수동소자 상자는 spec `theta_bounds`).
+`settings` = 탐색 실행 설정(`SearchSettings`, **필수** 키워드 인자 -- `build_search_context` 와 같은 값을 넘기면 정의역 블록이 한 번만 계산된다;
+수동소자 상자가 정의역 입력이다, v1.9.1 D6). 기본값이 없다: 빠지면 `TypeError`.
 `InfeasibleTargetError` 는 전파하지 않고 보고서에 정지 사유와 모든 인증/미상 수치를 쓴 뒤 그 분류의 exit code(3)를 낸다(단계 A 와 같은 방식, 보고서는 항상 기록).
 커널 컨텍스트·search 정의역의 정지(`StructureUnresolvedError`·`SchemaRejectedError`·`InfeasibleTargetError`)도 같은 방식으로 보고서에 정지 사유로 쓰고 exit code 를 낸다.
 산출 `<회로>.stage_b.json`(전체)·`<회로>.stage_b.md`(요약): 블록별 A_i,max·Π·미상 사유, Σ 판정, A_lb 대 예산, 헤드룸 창 상한(유도 포함), 경고, 버퍼 창 보고, DOF, 곡선 검사.
@@ -22,7 +22,7 @@ from pathlib import Path
 from gmid_engine.core import InfeasibleTargetError, SchemaRejectedError, StructureUnresolvedError, exit_code_for
 from gmid_engine.graph import ELEMENT_MOS, S1V_KEY, S1Graph
 from gmid_engine.metrics import ACH_KEY, achievability
-from gmid_engine.search import S0_WRITERS, SearchSettings, count_budget, passive_area_decl, search_domain
+from gmid_engine.search import S0_WRITERS, count_budget, passive_area_decl, search_domain
 from gmid_engine.sizing import (
     build_kernel_context,
     dc_inputs_from_spec,
@@ -34,8 +34,6 @@ STAGE_OK = "ok"
 STAGE_SKIPPED = "skipped"
 STAGE_INFEASIBLE = "infeasible"
 STAGE_STOPPED = "stopped"
-SETTING_WALL = "wall_clock_budget_s"
-SETTING_FRONT = "front_budget_s"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -49,11 +47,6 @@ class StageBResult:
     report: object
     report_paths: tuple
     s1: object = None
-
-
-def _setting(spec, name):
-    section = spec.search if isinstance(spec.search, tuple) else ()
-    return next((s.value for s in section if s.field == name and s.value is not None), None)
 
 
 def _jsonable(value):
@@ -138,7 +131,7 @@ def _finish(circuit, status, code, diagnostic, s1, computed, reasons, budget, ou
     return StageBResult(code, status, diagnostic, report, _write(report, output_dir, circuit), s1)
 
 
-def run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False, settings=None):
+def run_stage_b(stage_a, memo, pdk_decl, *, output_dir, settings, diagnostic=False):
     circuit = stage_a.report["circuit"]
     budget = stage_a.report["count_budget"]
     s1 = stage_a.s1
@@ -159,9 +152,6 @@ def run_stage_b(stage_a, memo, pdk_decl, *, output_dir, diagnostic=False, settin
         search = spec.search if isinstance(spec.search, tuple) else ()
         spec_bounds = next((s.value for s in search if s.field == THETA_BOUNDS and s.value), ())
         untie = tuple(name for name, _source in next((s.value for s in search if s.field == UNTIE_ORBITS and s.value), ()))
-        if settings is None:
-            wall = _setting(spec, SETTING_FRONT) or _setting(spec, SETTING_WALL)
-            settings = SearchSettings(0.0 if wall is None else float(wall), None, None, ((SETTING_WALL, "spec.search"),))   # 정의역 계산은 벽시계를 읽지 않는다
         graph = kctx.base.widen(S0_WRITERS)
         graph = search_domain(graph, kctx.lut, settings.resistance_bounds_ohm, settings.capacitance_bounds_f, pdk_decl, spec_bounds,
                               min(budgets) if budgets else None, untie)

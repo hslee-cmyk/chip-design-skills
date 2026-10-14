@@ -25,7 +25,7 @@
 * [U17 ①-a·①-b] S0 수준 스냅샷 영속화(설계 40 §2.4.3, v1.9.1 D6): `structure.json` 로드 뒤 S0 키 입력(`_s0_inputs`: topology 정규화 지문, 레일 전압, spec 전체 지문,
   `structure.json` 사실 지문, 대칭 선언 표시 지문(`symmetry_marks_fp` -- `build_s1(marks=)` 가 S1 키 `marks_fp` 로 읽는 것과 같은 값), 유도 규칙 코드 지문 `structure_rule_fp()`, LUT 지문,
   PDK 선언 파일 내용 해시(`pdk_decl` = core `read_pdk_decl` 결과, **필수** -- None·다른 형식이면 `TypeError`, 설계 40 §2.4.12 Q1 fail-closed), LUT 생성 규칙 선언 파일 내용 해시
-  (`lut_rule_decl`, **필수** -- 접합 출처 S0 필드 `graph/kernel: junction_source` 가 읽는다)) + 입력 파일 원본(`_s0_sources`: topology·spec·structure·PDK 선언·LUT 생성 규칙 선언·LUT 파일의
+  (`lut_rule_decl`, **필수** -- 접합 출처 S0 필드 `graph/kernel: junction_source` 가 읽는다)) + 입력 파일 원본(`_s0_sources`: topology·spec·structure·LUT 파일의
   경로와 원본 바이트 sha256, U-68 정리가 checkout 마다 키 재현을 판정하는 재료) + 엔진 코드 지문으로 core `S0Slot`(저장소 `S0SnapshotStore.default`)을 만들어 S0 수준 스냅샷을 읽는다.
   적중이면 그 스냅샷 위에서(아니면 빈 S0 수준 스냅샷 -- 권한표 search `S0_WRITERS` 위에서) `build_s1`·`build_s1v`·`coupling_vars` 가 모든 블록을 부른다(적중이면 계산 0).
   단계 A 는 **읽기만** 한다: 쓰기는 S0 수준 블록이 모두 끝나는 `search.build_search_context` 끝에서 한 번(`StageAResult.s0` 로 넘긴다, v1.9.1 D6).
@@ -208,14 +208,14 @@ def _structure_sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
 
 
-def _s0_sources(topology_path, topology, spec_path, spec, structure_path, pdk_decl, lut_rule_decl, lut):
+def _s0_sources(topology_path, topology, spec_path, spec, structure_path, lut):
     """S0 키의 입력 파일 {역할: (경로 | None, 원본 바이트 sha256 | None)} -- 이미 잰 sha 를 쓴다(topology·spec = 로더의 `file_sha256`,
-    PDK 선언 = `decl_sha256`, LUT = 출처 기록의 sha256). `structure.json` 은 없으면 (경로, None)."""
+    LUT = 출처 기록의 sha256). `structure.json` 은 없으면 (경로, None). PDK 선언·LUT 생성 규칙 선언은 파일 경로를 값(`PdkDecl`)에 담지 않으므로
+    여기에 없다 -- 내용(sha256)은 `_s0_inputs` 의 `pdk_decl_fp`·`lut_rule_decl_fp` 가 키에 넣는다."""
     prov = lut.provenance
     return {"topology": (str(topology_path), topology.file_sha256),
             "spec": (None, None) if spec is None else (str(spec_path), spec.file_sha256),
             "structure": (str(structure_path), _structure_sha(structure_path)),
-            "pdk_decl": (pdk_decl.decl_path, pdk_decl.decl_sha256), "lut_rule_decl": (lut_rule_decl.decl_path, lut_rule_decl.decl_sha256),
             "lut_manifest": (prov.manifest_path, prov.manifest_sha256), "lut_cap": (prov.cap_path, prov.cap_sha256),
             "lut_midpoints": (prov.midpoints_path, prov.midpoints_sha256), "lut_noise": (prov.noise_path, prov.noise_sha256),
             "lut_mismatch": (prov.mismatch_path, prov.mismatch_sha256)}
@@ -251,7 +251,7 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule
         return _finish(_stopped(circuit, exc, "A2_structure_json"), output_dir, circuit, code_fp)
     supplies = _supplies(spec, supplies_v)
     s0_inputs = _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, lut_rule_decl, supplies, marks)
-    s0_sources = _s0_sources(topology_path, topology, spec_path, spec, path, pdk_decl, lut_rule_decl, lut)
+    s0_sources = _s0_sources(topology_path, topology, spec_path, spec, path, lut)
     s0 = S0Slot(S0SnapshotStore.default(code_fp), tuple(sorted(s0_inputs.items())), tuple(sorted(s0_sources.items())))
     stored, s0_outcome = s0.load()
     base = GraphSnapshot.empty(S0_WRITERS) if stored is None else stored

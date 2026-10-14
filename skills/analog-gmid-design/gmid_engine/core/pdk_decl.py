@@ -106,13 +106,8 @@ class PdkRule:
     value_text: str
     unit_text: str
     source: str
-    path: str
     sha256: str
     line: int
-
-    def __canonical__(self):
-        """지문 = 내용만(경로 제외). 파일 위치는 checkout 마다 달라 값 지문에 들이지 않는다 -- 내용 동일성은 `sha256`·`line` 이 맡는다."""
-        return (self.rule_id, self.value_m, self.value_text, self.unit_text, self.source, self.sha256, self.line)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -145,44 +140,31 @@ class PdkMismatchBlock:
 @dataclasses.dataclass(frozen=True)
 class PdkMismatchModel:
     """kind 하나의 mismatch 모델 bin 지도: `parameters` = 흔드는 변수(모델 카드 BSIM 파라미터 이름), `blocks` = PdkMismatchBlock
-    ((wmin, wmax, lmin, lmax, 이름) 정렬), 원본 경로·sha256."""
+    ((wmin, wmax, lmin, lmax, 이름) 정렬), 원본 sha256(파일 경로는 값에 담지 않는다 -- checkout 마다 달라 S0 값이 checkout 에 묶인다)."""
 
     kind: str
     parameters: tuple
     blocks: tuple
-    model_path: str
     model_sha256: str
-    slope_path: str
     slope_sha256: str
-
-    def __canonical__(self):
-        """지문 = 내용만(`model_path`·`slope_path` 제외 -- checkout 마다 다른 위치). 내용 동일성은 두 sha256 이 맡는다."""
-        return (self.kind, self.parameters, self.blocks, self.model_sha256, self.slope_sha256)
 
 
 @dataclasses.dataclass(frozen=True)
 class PdkDecl:
-    """선언 파일 하나의 결과. `quantities` = ((이름, PdkQuantity), ...) 이름 정렬, `sources` = ((이름, 경로, sha256), ...).
+    """선언 파일 하나의 결과. `quantities` = ((이름, PdkQuantity), ...) 이름 정렬, `sources` = ((이름, sha256), ...)(경로 없음).
     [U3] `mismatch_models` = ((kind, PdkMismatchModel), ...) kind 정렬(선언에 없으면 ())."""
 
     pdk: str
-    decl_path: str
     decl_sha256: str
     sources: tuple
     quantities: tuple
     mismatch_models: tuple = ()
 
-    def __canonical__(self):
-        """지문 = 내용만: `decl_path` 와 `sources` 의 경로 칸을 뺀다(checkout 마다 다른 위치 -- S0 스냅샷 지문이 checkout 에 묶이지 않게).
-        내용 동일성은 `decl_sha256`·원본 sha256·양·규칙이 맡는다."""
-        return (self.pdk, self.decl_sha256, tuple((name, digest) for name, _path, digest in self.sources), self.quantities,
-                self.mismatch_models)
-
     def quantity(self, name):
         """이름의 PdkQuantity. 선언에 없으면 `SchemaRejectedError(pdk_quantity_undeclared)`."""
         found = dict(self.quantities).get(name)
         if found is None:
-            raise _reject("pdk_quantity_undeclared", quantity=name, decl=self.decl_path)
+            raise _reject("pdk_quantity_undeclared", quantity=name, decl=self.decl_sha256)
         return found
 
     def value(self, name):
@@ -201,7 +183,7 @@ class PdkDecl:
         """kind 의 PdkMismatchModel. 선언에 없으면 `SchemaRejectedError(pdk_mismatch_undeclared)`."""
         found = dict(self.mismatch_models).get(kind)
         if found is None:
-            raise _reject("pdk_mismatch_undeclared", kind=kind, decl=self.decl_path)
+            raise _reject("pdk_mismatch_undeclared", kind=kind, decl=self.decl_sha256)
         return found
 
 
@@ -407,7 +389,7 @@ def _rule(source_name, source, units_m, rule_id):
     factor = units_m.get(unit_text)
     if factor is None:
         raise _reject("pdk_rule_unit_unknown", source=source_name, rule=rule_id, unit=unit_text, line=line)
-    return PdkRule(rule_id, float(value_text) * factor, value_text, unit_text, source_name, path, digest, line)
+    return PdkRule(rule_id, float(value_text) * factor, value_text, unit_text, source_name, digest, line)
 
 
 def _evaluate(node, values, expression):
@@ -554,7 +536,7 @@ def _mismatch_blocks(kind, item, sources, source_specs):
     if unused:
         raise _reject("pdk_mismatch_parameter_unused", kind=kind, parameters=tuple(unused), path=model_path)
     blocks.sort(key=lambda b: (b.wmin_m, b.wmax_m, b.lmin_m, b.lmax_m, b.model))
-    return PdkMismatchModel(kind, tuple(params), tuple(blocks), model_path, model_sha, slope_path, slope_sha)
+    return PdkMismatchModel(kind, tuple(params), tuple(blocks), model_sha, slope_sha)
 
 
 def _mismatch_models(spec, sources, source_specs):
@@ -634,6 +616,6 @@ def read_pdk_decl(decl_path, memo):
     if clash:
         raise _reject("pdk_quantity_duplicate", quantities=tuple(clash))
     quantities = tuple(sorted(quantities + selected, key=lambda item: item[0]))
-    return PdkDecl(decl["pdk"], decl_path, hashlib.sha256(raw).hexdigest(),
-                   tuple((name, path, digest) for name, (path, digest, _) in sorted_items(sources)), quantities,
+    return PdkDecl(decl["pdk"], hashlib.sha256(raw).hexdigest(),
+                   tuple((name, digest) for name, (_path, digest, _) in sorted_items(sources)), quantities,
                    _mismatch_models(decl.get("mismatch_models"), sources, source_specs))
