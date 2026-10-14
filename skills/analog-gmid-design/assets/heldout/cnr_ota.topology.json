@@ -10,7 +10,7 @@
     "U2_IBPSR": "IBPSR 핀 = 이상 전류원 IDC 2 uA (t0=VSS -> t1=IBPSR) -- load.spi:3 `IDC 0 IBPSR dc 2u`; IBPSR 는 ports 에 넣지 않음 (사용자 U2 (a))",
     "U3_load": "CL1/CL2 5 pF(VOP/VON-VSS)만 측정 부하로 넣고 저항 귀환망(load.spi:5-8 R1~R4)·balun 은 제외 (사용자 U3 (a); spec element_values measurement_load)",
     "U4_bus": "버스 인스턴스 x2[1:0] 등을 병렬 소자 x2[1].M1, x2[0].M1 로 펼침, 이름은 원본 그대로(x1/x1[3:0] 등 동명 공존) (사용자 U4 (a))",
-    "U5_values": "C1/C2 = sky130 cap_mim_m3_1 W=L=5 um MF=1 -> PDK camimc·cpmimc 로 계산(cnr_ota.spec_source.md 4절). 저항 6개는 res_high_po 셀 모델이 로컬 PDK 에 없어 값 null, spec 은 결정 대기 U-75 (사용자 U5 (a))",
+    "U5_values": "C1/C2 = sky130 cap_mim_m3_1 W=L=5 um MF=1 -> PDK camimc·cpmimc 로 계산, 저항 6개 = res_high_po 셀 모델(sky130_fd_pr @f62031a) 식으로 계산(D-R 2026-10-14, cnr_ota.spec_source.md 4절). 값 정본 = spec element_values, topology 값 칸은 null 유지 (사용자 U5 (a))",
     "U6_lib": "하위 라이브러리 = 결과표 시점(2024-02) 값: CNRATR *_1F2 셀 L=0.252 um, SUNTR 저항 세그먼트 L=8.8 um (사용자 U6 (a)); 크기는 topology 에 넣지 않음(wt/_heldout/D_cnr/D_cnr.sizes.md)",
     "U7_bulk": "bulk 판독대로: SF x31/x33/x35 bulk=VSS, x42/x43 bulk=VDD_1V8, 그 밖 NMOS=VSS·PMOS=VDD_1V8 (사용자 U7)",
     "U9_polarity": "VIP->VOP 비반전, role 은 이름대로 differential_input_p/n, differential_output_p/n (사용자 U9)"
@@ -801,7 +801,7 @@
       ],
       "_cell": "SUNTR_RPPO16 = 16 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
       "_body_terminal": "B = VSS (2단자 모델이라 버림)",
-      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_value_note": "값 정본 = spec element_values(F5): 70134.2 ohm = 16 x res_high_po(W=0.72,L=8.8) 세그먼트 4383.3857 ohm, tt·27 C (D-R 2026-10-14, cnr_ota.spec_source.md 4.2절). topology 값 칸은 C1/C2 처럼 null 유지 -- connectivity_fp 판독본과 같게",
       "_src": "wulff/CNR_OTA.sch:634"
     },
     {
@@ -814,7 +814,7 @@
       ],
       "_cell": "SUNTR_RPPO16 = 16 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
       "_body_terminal": "B = VSS (2단자 모델이라 버림)",
-      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_value_note": "값 정본 = spec element_values(F5): 70134.2 ohm = 16 x res_high_po(W=0.72,L=8.8) 세그먼트 4383.3857 ohm, tt·27 C (D-R 2026-10-14, cnr_ota.spec_source.md 4.2절). topology 값 칸은 C1/C2 처럼 null 유지 -- connectivity_fp 판독본과 같게",
       "_src": "wulff/CNR_OTA.sch:635"
     },
     {
@@ -827,7 +827,7 @@
       ],
       "_cell": "SUNTR_RPPO16 = 16 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
       "_body_terminal": "B = VSS (2단자 모델이라 버림)",
-      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_value_note": "값 정본 = spec element_values(F5): 70134.2 ohm = 16 x res_high_po(W=0.72,L=8.8) 세그먼트 4383.3857 ohm, tt·27 C (D-R 2026-10-14, cnr_ota.spec_source.md 4.2절). topology 값 칸은 C1/C2 처럼 null 유지 -- connectivity_fp 판독본과 같게",
       "_src": "wulff/CNR_OTA.sch:642"
     },
     {
@@ -840,7 +840,7 @@
       ],
       "_cell": "SUNTR_RPPO16 = 16 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
       "_body_terminal": "B = VSS (2단자 모델이라 버림)",
-      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_value_note": "값 정본 = spec element_values(F5): 70134.2 ohm = 16 x res_high_po(W=0.72,L=8.8) 세그먼트 4383.3857 ohm, tt·27 C (D-R 2026-10-14, cnr_ota.spec_source.md 4.2절). topology 값 칸은 C1/C2 처럼 null 유지 -- connectivity_fp 판독본과 같게",
       "_src": "wulff/CNR_OTA.sch:643"
     },
     {
@@ -853,7 +853,7 @@
       ],
       "_cell": "SUNTR_RPPO16 = 16 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
       "_body_terminal": "B = VSS (2단자 모델이라 버림)",
-      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_value_note": "값 정본 = spec element_values(F5): 70134.2 ohm = 16 x res_high_po(W=0.72,L=8.8) 세그먼트 4383.3857 ohm, tt·27 C (D-R 2026-10-14, cnr_ota.spec_source.md 4.2절). topology 값 칸은 C1/C2 처럼 null 유지 -- connectivity_fp 판독본과 같게",
       "_src": "wulff/CNR_OTA.sch:681"
     },
     {
@@ -866,7 +866,7 @@
       ],
       "_cell": "SUNTR_RPPO4 = 4 x sky130 res_high_po W=0.72um L=8.8um 직렬(U6 (a) 2024-02 라이브러리; 현재 HEAD 는 L=8.96um)",
       "_body_terminal": "B = VSS (2단자 모델이라 버림)",
-      "_value_note": "U5 (a): 값은 res_high_po PDK 셀 모델(면저항·끝저항)로 계산해야 하는데 그 모델 파일(sky130_fd_pr/cells/res_high_po/*.model.spice)이 이 PC 에 없다 -> null, spec 은 결정 대기 U-75",
+      "_value_note": "값 정본 = spec element_values(F5): 17533.5 ohm = 4 x res_high_po(W=0.72,L=8.8) 세그먼트 4383.3857 ohm, tt·27 C (D-R 2026-10-14, cnr_ota.spec_source.md 4.2절). topology 값 칸은 C1/C2 처럼 null 유지 -- connectivity_fp 판독본과 같게",
       "_src": "wulff/CNR_OTA.sch:701"
     },
     {
