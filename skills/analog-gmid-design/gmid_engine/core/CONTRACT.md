@@ -235,6 +235,14 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 ### 6.1 선언 (데코레이트 시점)
 - `name`: 비어 있지 않은 문자열 = 이 블록의 writer 이름. `reads`·`writes`: (kind, field) 쌍들. 반환 객체는 `ComputeBlock`
   (속성 `name`, `reads`, `writes`(정규화 tuple, 선언 순서), `code_hash`(64자 hex), `fn`).
+- **`code_hash`**(설계 40 v1.9.3 결정 10): 블록 함수 code 객체의 코드 내용만의 지문(64자 소문자 hex, 데코레이트 시점 1회 계산). 넣는 칸 13개 =
+  `co_code`·`co_consts`·`co_names`·`co_varnames`·`co_freevars`·`co_cellvars`·`co_argcount`·`co_posonlyargcount`·`co_kwonlyargcount`·
+  `co_flags`·`co_exceptiontable`·`co_name`·`co_qualname`(중첩 code 는 재귀). 뺀 칸 9개 = `co_filename`·`co_firstlineno`·`co_linetable`·
+  `co_lnotab`·`co_lines`·`co_positions`·`co_branches`·`co_nlocals`·`co_stacksize`(13+9 = code 타입 `co_*` 전체, 모르는 칸이 있으면 import
+  시 `RuntimeError`). marshal 을 쓰지 않고 정규화 결과를 `fp_of` 로 지문화한다(상수는 타입 이름을 감싸고 tuple·frozenset 원소에 재귀,
+  모르는 상수 타입 -> `TypeError`). `functools.wraps` 로 감싼 함수는 `__wrapped__` 사슬 전체를 순서대로 넣는다(순환 -> `ValueError`,
+  사슬 원소에 `__code__` 없음 -> `TypeError`). 덮지 않는 것: 부르는 다른 함수·모듈 전역 값·closure 셀 값·기본 인자 값(실행 사이 재사용은
+  `engine_code_fp` 가 덮는다).
 - 실패 -> `ValueError`: name 빈/비문자열; writes 비어 있음; kind 가 ENTITY_KINDS 밖; field 빈/비문자열; 같은 쌍 중복; 쌍이 str 이거나 원소 수 ≠ 2.
 
 ### 6.2 호출 `block(snapshot, *extras) -> GraphSnapshot`
@@ -243,6 +251,7 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
   - `projection.column(kind, field)` = 선언한 열의 `snapshot.column(kind, field)` 와 같은 값. 선언 밖 열 -> `KeyError`.
   - `projection.value(kind, key, field)`, `projection.extras` = extras tuple.
 - 입력 버전 `v = fp_of((name, code_hash, projection.fp))`. `projection.fp` 는 (선언 열의 값 지문, extras) 만의 지문(8절).
+- **checkout 무관**: `code_hash` 에 파일 경로·줄 정보가 없으므로 같은 엔진 파일 바이트면 어느 경로에서 import 해도 `v`·`context_fp` 가 같다.
 - **재사용**: `snapshot.block_version(name) == v` 이면 블록 함수를 부르지 않고 `snapshot` 을 그대로(`is`) 돌려준다.
   -> 같은 스냅샷에 두 번 부르면 두 번째는 함수 호출 0. 선언하지 않은 필드·다른 블록 필드만 바뀐 스냅샷에서도 재사용.
   선언한 열의 값이나 extras 중 하나라도 바뀌면 재계산(IC10: 읽는 상태를 놓친 키 없음). 값이 같은 새 객체(다른
