@@ -78,25 +78,67 @@
         }
       },
       "x3": {
-        "pending": "U-75"
+        "value_ohm": 17533.5,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 D-R \"D-R은 승인\" (U5 (a) PDK 모델로 계산, U6 (a) 2024-02 세그먼트 L=8.8 um) -- x3 = 4 x res_high_po(w=0.72,l=8.8) = rbody + rhead; weff = w + rbody_dw - 0.0672*max(0.69-w,0) = 0.719 um, leff = l + 0.247 = 9.047 um; rbody = rsheet*leff/weff*(1+tc1rpolybody*dT+tc2rpolybody*dT^2) = 317.3885*9.047/0.719*(1+0.514e-3*dT+0.122e-5*dT^2); rhead = 345.8312*1.0/(weff+0.1558)*(1-4.3e-4*dT+12e-6*dT^2); dT = 27-30 C (LUT 측정 온도 27 C, 모델 tnom 30); tt: sky130_fd_pr__res_high_po__var = 0, slope_spectre = con_slope_spectre = 0 -> 세그먼트 4383.3857 ohm; 4 x 4383.3857 = 17533.5 ohm",
+          "decided": "2026-10-14",
+          "origin": "drawing",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/design/CNR_OTA_SKY130NM/CNR_OTA.sch#L701 (SUNTR_RPPO4); sun_tr_sky130nm @ccd959e (2024-02-09) SUNTR_RES4.sch res_high_po W=0.72 L=8.8 4개 직렬(판독 wt/_heldout/D_cnr/D_cnr.flat_lib20240301.json); https://github.com/google/skywater-pdk-libs-sky130_fd_pr/blob/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po.model.spice#L24-L54 (sha256 5d5f46fc322ff3aa83222a588c712b758a3863b8aed3eea6ca637b120ddf411f); C:/pdk/sky130_fd_pr/models/sky130_fd_pr__model__r+c.model.spice 62·63행 tc1rpolybody·tc2rpolybody; ngspice-46 DC 대조 일치 -- cnr_ota.spec_source.md 4.2절"
+        }
       },
       "x37": {
-        "pending": "U-75"
+        "value_ohm": 70134.2,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 D-R \"D-R은 승인\" (U5 (a) PDK 모델로 계산, U6 (a) 2024-02 세그먼트 L=8.8 um) -- x37 = 16 x res_high_po(w=0.72,l=8.8) = rbody + rhead; weff = w + rbody_dw - 0.0672*max(0.69-w,0) = 0.719 um, leff = l + 0.247 = 9.047 um; rbody = rsheet*leff/weff*(1+tc1rpolybody*dT+tc2rpolybody*dT^2) = 317.3885*9.047/0.719*(1+0.514e-3*dT+0.122e-5*dT^2); rhead = 345.8312*1.0/(weff+0.1558)*(1-4.3e-4*dT+12e-6*dT^2); dT = 27-30 C (LUT 측정 온도 27 C, 모델 tnom 30); tt: sky130_fd_pr__res_high_po__var = 0, slope_spectre = con_slope_spectre = 0 -> 세그먼트 4383.3857 ohm; 16 x 4383.3857 = 70134.2 ohm",
+          "decided": "2026-10-14",
+          "origin": "drawing",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/design/CNR_OTA_SKY130NM/CNR_OTA.sch#L634 (SUNTR_RPPO16); sun_tr_sky130nm @ccd959e (2024-02-09) SUNTR_RES16.sch res_high_po W=0.72 L=8.8 16개 직렬(판독 wt/_heldout/D_cnr/D_cnr.flat_lib20240301.json); https://github.com/google/skywater-pdk-libs-sky130_fd_pr/blob/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po.model.spice#L24-L54 (sha256 5d5f46fc322ff3aa83222a588c712b758a3863b8aed3eea6ca637b120ddf411f); C:/pdk/sky130_fd_pr/models/sky130_fd_pr__model__r+c.model.spice 62·63행 tc1rpolybody·tc2rpolybody; ngspice-46 DC 대조 일치 -- cnr_ota.spec_source.md 4.2절"
+        }
       },
       "x38": {
-        "pending": "U-75"
+        "value_ohm": 70134.2,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 D-R \"D-R은 승인\" (U5 (a) PDK 모델로 계산, U6 (a) 2024-02 세그먼트 L=8.8 um) -- x38 = 16 x res_high_po(w=0.72,l=8.8) = rbody + rhead; weff = w + rbody_dw - 0.0672*max(0.69-w,0) = 0.719 um, leff = l + 0.247 = 9.047 um; rbody = rsheet*leff/weff*(1+tc1rpolybody*dT+tc2rpolybody*dT^2) = 317.3885*9.047/0.719*(1+0.514e-3*dT+0.122e-5*dT^2); rhead = 345.8312*1.0/(weff+0.1558)*(1-4.3e-4*dT+12e-6*dT^2); dT = 27-30 C (LUT 측정 온도 27 C, 모델 tnom 30); tt: sky130_fd_pr__res_high_po__var = 0, slope_spectre = con_slope_spectre = 0 -> 세그먼트 4383.3857 ohm; 16 x 4383.3857 = 70134.2 ohm",
+          "decided": "2026-10-14",
+          "origin": "drawing",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/design/CNR_OTA_SKY130NM/CNR_OTA.sch#L635 (SUNTR_RPPO16); sun_tr_sky130nm @ccd959e (2024-02-09) SUNTR_RES16.sch res_high_po W=0.72 L=8.8 16개 직렬(판독 wt/_heldout/D_cnr/D_cnr.flat_lib20240301.json); https://github.com/google/skywater-pdk-libs-sky130_fd_pr/blob/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po.model.spice#L24-L54 (sha256 5d5f46fc322ff3aa83222a588c712b758a3863b8aed3eea6ca637b120ddf411f); C:/pdk/sky130_fd_pr/models/sky130_fd_pr__model__r+c.model.spice 62·63행 tc1rpolybody·tc2rpolybody; ngspice-46 DC 대조 일치 -- cnr_ota.spec_source.md 4.2절"
+        }
       },
       "x39": {
-        "pending": "U-75"
+        "value_ohm": 70134.2,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 D-R \"D-R은 승인\" (U5 (a) PDK 모델로 계산, U6 (a) 2024-02 세그먼트 L=8.8 um) -- x39 = 16 x res_high_po(w=0.72,l=8.8) = rbody + rhead; weff = w + rbody_dw - 0.0672*max(0.69-w,0) = 0.719 um, leff = l + 0.247 = 9.047 um; rbody = rsheet*leff/weff*(1+tc1rpolybody*dT+tc2rpolybody*dT^2) = 317.3885*9.047/0.719*(1+0.514e-3*dT+0.122e-5*dT^2); rhead = 345.8312*1.0/(weff+0.1558)*(1-4.3e-4*dT+12e-6*dT^2); dT = 27-30 C (LUT 측정 온도 27 C, 모델 tnom 30); tt: sky130_fd_pr__res_high_po__var = 0, slope_spectre = con_slope_spectre = 0 -> 세그먼트 4383.3857 ohm; 16 x 4383.3857 = 70134.2 ohm",
+          "decided": "2026-10-14",
+          "origin": "drawing",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/design/CNR_OTA_SKY130NM/CNR_OTA.sch#L642 (SUNTR_RPPO16); sun_tr_sky130nm @ccd959e (2024-02-09) SUNTR_RES16.sch res_high_po W=0.72 L=8.8 16개 직렬(판독 wt/_heldout/D_cnr/D_cnr.flat_lib20240301.json); https://github.com/google/skywater-pdk-libs-sky130_fd_pr/blob/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po.model.spice#L24-L54 (sha256 5d5f46fc322ff3aa83222a588c712b758a3863b8aed3eea6ca637b120ddf411f); C:/pdk/sky130_fd_pr/models/sky130_fd_pr__model__r+c.model.spice 62·63행 tc1rpolybody·tc2rpolybody; ngspice-46 DC 대조 일치 -- cnr_ota.spec_source.md 4.2절"
+        }
       },
       "x40": {
-        "pending": "U-75"
+        "value_ohm": 70134.2,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 D-R \"D-R은 승인\" (U5 (a) PDK 모델로 계산, U6 (a) 2024-02 세그먼트 L=8.8 um) -- x40 = 16 x res_high_po(w=0.72,l=8.8) = rbody + rhead; weff = w + rbody_dw - 0.0672*max(0.69-w,0) = 0.719 um, leff = l + 0.247 = 9.047 um; rbody = rsheet*leff/weff*(1+tc1rpolybody*dT+tc2rpolybody*dT^2) = 317.3885*9.047/0.719*(1+0.514e-3*dT+0.122e-5*dT^2); rhead = 345.8312*1.0/(weff+0.1558)*(1-4.3e-4*dT+12e-6*dT^2); dT = 27-30 C (LUT 측정 온도 27 C, 모델 tnom 30); tt: sky130_fd_pr__res_high_po__var = 0, slope_spectre = con_slope_spectre = 0 -> 세그먼트 4383.3857 ohm; 16 x 4383.3857 = 70134.2 ohm",
+          "decided": "2026-10-14",
+          "origin": "drawing",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/design/CNR_OTA_SKY130NM/CNR_OTA.sch#L643 (SUNTR_RPPO16); sun_tr_sky130nm @ccd959e (2024-02-09) SUNTR_RES16.sch res_high_po W=0.72 L=8.8 16개 직렬(판독 wt/_heldout/D_cnr/D_cnr.flat_lib20240301.json); https://github.com/google/skywater-pdk-libs-sky130_fd_pr/blob/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po.model.spice#L24-L54 (sha256 5d5f46fc322ff3aa83222a588c712b758a3863b8aed3eea6ca637b120ddf411f); C:/pdk/sky130_fd_pr/models/sky130_fd_pr__model__r+c.model.spice 62·63행 tc1rpolybody·tc2rpolybody; ngspice-46 DC 대조 일치 -- cnr_ota.spec_source.md 4.2절"
+        }
       },
       "x9": {
-        "pending": "U-75"
+        "value_ohm": 70134.2,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-14 D-R \"D-R은 승인\" (U5 (a) PDK 모델로 계산, U6 (a) 2024-02 세그먼트 L=8.8 um) -- x9 = 16 x res_high_po(w=0.72,l=8.8) = rbody + rhead; weff = w + rbody_dw - 0.0672*max(0.69-w,0) = 0.719 um, leff = l + 0.247 = 9.047 um; rbody = rsheet*leff/weff*(1+tc1rpolybody*dT+tc2rpolybody*dT^2) = 317.3885*9.047/0.719*(1+0.514e-3*dT+0.122e-5*dT^2); rhead = 345.8312*1.0/(weff+0.1558)*(1-4.3e-4*dT+12e-6*dT^2); dT = 27-30 C (LUT 측정 온도 27 C, 모델 tnom 30); tt: sky130_fd_pr__res_high_po__var = 0, slope_spectre = con_slope_spectre = 0 -> 세그먼트 4383.3857 ohm; 16 x 4383.3857 = 70134.2 ohm",
+          "decided": "2026-10-14",
+          "origin": "drawing",
+          "citation": "https://github.com/wulffern/cnr_ota_sky130nm/blob/8c839f7/design/CNR_OTA_SKY130NM/CNR_OTA.sch#L681 (SUNTR_RPPO16); sun_tr_sky130nm @ccd959e (2024-02-09) SUNTR_RES16.sch res_high_po W=0.72 L=8.8 16개 직렬(판독 wt/_heldout/D_cnr/D_cnr.flat_lib20240301.json); https://github.com/google/skywater-pdk-libs-sky130_fd_pr/blob/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po.model.spice#L24-L54 (sha256 5d5f46fc322ff3aa83222a588c712b758a3863b8aed3eea6ca637b120ddf411f); C:/pdk/sky130_fd_pr/models/sky130_fd_pr__model__r+c.model.spice 62·63행 tc1rpolybody·tc2rpolybody; ngspice-46 DC 대조 일치 -- cnr_ota.spec_source.md 4.2절"
+        }
       }
     },
-    "_element_values_comment": "저항 x37·x38·x39·x40·x9·x3 값 결정 대기(U-75): 사용자 U5 (a) 'PDK 모델로 계산' 인데 sky130 res_high_po 셀 모델(sky130_fd_pr/cells/res_high_po/*.model.spice, models/sky130_fd_pr__model__linear.model.spice 30·37~41행이 include)이 로컬 PDK(C:/pdk, sparse checkout -- cells/ 에 nfet_01v8·pfet_01v8 만)에 없다. 값을 지어내지 않는다. 후보(xschem res_high_po.sym 표시식, PDK 모델 아님)는 cnr_ota.spec_source.md 4절.",
+    "_element_values_comment": "저항 x37·x38·x39·x40·x9·x3 = sky130 res_high_po 셀 모델(google/skywater-pdk-libs-sky130_fd_pr @f62031a, 로컬 PDK 와 같은 커밋) 식으로 계산(user_decisions.md 2026-10-14 D-R 승인), tt·27 C, ngspice-46 DC 대조 일치. 식·파일 sha256·대조는 cnr_ota.spec_source.md 4.2절.",
     "feedback": {
       "elements": [],
       "source": {

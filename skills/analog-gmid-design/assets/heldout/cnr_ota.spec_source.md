@@ -13,7 +13,7 @@
 > | `element_values.CL1`·`CL2` (measurement_load) | 5e-12 F 각각 | `sim/CNR_OTA/load.spi` 10·11행 (U3 (a)) |
 > | `element_values.IDC` | 2e-6 A, [VSS, IBPSR] | `sim/CNR_OTA/load.spi` 3행 (U2 (a)) |
 > | `element_values.C1`·`C2` | 5.38e-14 F 각각 | PDK 파라미터로 계산 (U5 (a), 아래 4절) |
-> | `element_values.x37`·`x38`·`x39`·`x40`·`x9`·`x3` | 결정 대기 U-75 | res_high_po PDK 셀 모델이 이 PC 에 없음 (U5 (a), 아래 4절) |
+> | `element_values.x37`·`x38`·`x39`·`x40`·`x9` / `x3` | 70134.2 Ω 각각 / 17533.5 Ω | res_high_po PDK 셀 모델 식으로 계산, ngspice 대조 일치 (U5 (a), D-R 2026-10-14, 아래 4.2절) |
 > | `input_dc` | 결정 대기 U-75 | 측정 TB 에 OTA 입력 CM 값 없음 (아래 3.2절) |
 > | `feedback.elements` | [] (beta=1 루프) | U3 (a) 저항 귀환망 제외 + U8 beta=1 해석 (아래 3.1절) |
 > | `driving_spec` | 없음 | 원문에 slew 없음 |
@@ -97,13 +97,53 @@ spec 제약은 Sch_typ 열(굵게)만 옮겼다. README Key parameters 의 "Loop
 * 식의 근거: cap_mim_m3_1 셀 모델 원본(`cells/cap_mim_m3/sky130_fd_pr__cap_mim_m3_1.model.spice`, `models/capacitors/sky130_fd_pr__model__cap_mim.model.spice` 16행이 include)은 로컬에 없다. 그래서 (1) 파라미터 단위(F/um², F/um)대로 면적 x 면적 용량 + 둘레 x 둘레 용량으로 묶고, (2) 같은 식이 xschem sky130 심볼 `cap_mim_m3_1.sym` 24행 표시식 `C=expr_eng(@MF * (@W * @L * 2e-15 + ( @W + @L ) * 0.38e-15) )`(0.38e-15 = 2 x cpmimc)와 같음을, (3) 원본 그림 `documents/CNR_OTA_SKY130NM/CNR_OTA.svg` 302·309행 글자 `C=5.38e-14`(xschem 이 C1·C2 에 대해 계산해 그린 값)와 값이 같음을 확인했다. 심볼 사본: `wt/_scratch_heldout_d/src/cap_mim_m3_1.sym`(이전 판독 세션이 받은 xschem sky130 심볼, 받은 저장소 커밋 기록 없음).
 * 값은 spec `element_values.C1/C2.value_farad` 에만 둔다(F5 요소 값 정본 = spec). topology 값 칸은 판독본처럼 null -- topology 에 값을 채우면 connectivity_fp 가 바뀐다(2456805b... -> c59c8f57..., 실측).
 
-### 4.2 저항 x37, x38, x39, x40, x9, x3 -- 계산 못 함 (결정 대기 U-75)
+### 4.2 저항 x37, x38, x39, x40, x9, x3 -- 계산함 (D-R 2026-10-14)
 
-* 소자: `CNR_OTA.sch` 634행 x37, 635행 x38, 642행 x39, 643행 x40, 681행 x9 = `SUNTR_RPPO16`(res_high_po W=0.72 um 16개 직렬), 701행 x3 = `SUNTR_RPPO4`(4개 직렬). 세그먼트 L = 8.8 um (U6 (a) 2024-02 라이브러리; sun_tr `294c65b` 2024-10-04 뒤 HEAD 는 8.96 um). 판독 기록 `wt/_heldout/D_cnr/D_cnr.flat_lib20240301.json`.
-* 필요한 PDK 모델: `sky130_fd_pr/cells/res_high_po/sky130_fd_pr__res_high_po.model.spice`(및 `_0p35`~`_5p73`) -- `C:/pdk/sky130_fd_pr/models/sky130_fd_pr__model__linear.model.spice` 30·37~41행이 include 하는 파일. **로컬 PDK 에 없다**(`C:/pdk/sky130_fd_pr/cells/` 에 nfet_01v8·pfet_01v8 만; `C:/Users/HSLEE`, `C:/ngspice`, `C:/oss-cad-suite`, `C:/pdk` 전체 검색 결과 0건). 엔진 core CONTRACT 9.7 도 같은 사실을 적어 두었다(res_high_po 시트 저항 읽을 수 없음).
-* 로컬 `res_typical__cap_typical__lin.spice` 4·5행의 `sky130_fd_pr__res_high_po__var(_mult) = 0.0` 은 공정 변동 파라미터일 뿐 면저항·끝저항이 아니다.
-* 참고 후보(PDK 모델 아님, spec 에 넣지 않음): xschem 심볼 `res_high_po.sym` 49행 표시식 `R=expr_eng( (378.3 + 317.17 * @L ) / @W / @mult )` 로 세그먼트(W=0.72, L=8.8)는 약 4.40 kΩ -> RPPO16 약 70.4 kΩ, RPPO4 약 17.6 kΩ. 이 식의 PDK 근거를 이 PC 에서 확인할 수 없어 쓰지 않았다 -- 사용자 결정 또는 PDK 모델 파일 확보 뒤 계산.
-* spec: `element_values.<x37|x38|x39|x40|x9|x3> = {"pending": "U-75"}`. 로더 영향: `load_sizing_spec` 은 통과(pending 6건으로 모임), `build_s1` 통과, `run_stage_a` 는 아래 6절 결과.
+* 결정: user_decisions.md 2026-10-14 D-R "D-R은 승인" -- 공개 저장소 `google/skywater-pdk-libs-sky130_fd_pr` 의 `cells/res_high_po` 셀 모델 파일을 받아 `C:/pdk/sky130_fd_pr/cells/res_high_po/` 에 두고 PDK 근거로 계산.
+* 소자: `CNR_OTA.sch` 634행 x37, 635행 x38, 642행 x39, 643행 x40, 681행 x9 = `SUNTR_RPPO16`, 701행 x3 = `SUNTR_RPPO4`. 셀 구성(U6 (a) 2024-02 라이브러리, `wulffern/sun_tr_sky130nm` @`ccd959e` 2024-02-09): `SUNTR_RPPO16` -> `SUNTR_RES16` = `sky130_fd_pr__res_high_po W=0.72 L=8.8 mult=1` 16개 직렬, `SUNTR_RPPO4` -> `SUNTR_RES4` = 같은 세그먼트 4개 직렬 (sun_tr `294c65b` 2024-10-04 뒤 HEAD 는 L=8.96 um). 판독 기록 `wt/_heldout/D_cnr/D_cnr.flat_lib20240301.json` 에서 사슬 확인: 6개 셀 모두 세그먼트 수 16/4, 내부 노드 차수 2, (W, L, mult) = (0.72, 8.8, 1) 한 종류, 몸체 b = 셀 핀 B(= VSS, 2단자 모델이라 버림; 모델에서 b 는 기생 C 단자뿐이라 DC 값에 영향 없음). 확인 스크립트 `wt/_scratch_heldout_d_res/chk_chain.py` -> `chain.json`.
+
+**받은 PDK 파일 (커밋 고정)**
+
+* 커밋 선택: 로컬 `C:/pdk/sky130_fd_pr` 는 같은 저장소(`origin` = https://github.com/google/skywater-pdk-libs-sky130_fd_pr.git, blob:none 부분 복제 + sparse checkout)의 `f62031a1be9aefe902d6d54cddd6f59b57627436`(2020-11-10 "spice: Remove `.param TEMP=27`.") 이다(`git rev-parse HEAD`). 그래서 같은 커밋에서 받았고, 받은 파일마다 git blob sha1 이 로컬 커밋 tree 항목(`git ls-tree HEAD cells/res_high_po`)과 같음을 확인했다 -- 로컬 `models/` 파일과 짝이 맞는 판.
+* 받은 파일 = `models/sky130_fd_pr__model__linear.model.spice`(sha256 715933557b35a83526337fcaf1e4cc7d147868926f58555420963c8655b5ea4e) 30·37~41행이 include 하는 res_high_po 파일 6개. 기존 PDK 파일은 고치지 않았다.
+
+| 파일 (`C:/pdk/sky130_fd_pr/cells/res_high_po/`) | URL (커밋 고정) | sha256 | git blob (= tree 항목) |
+|---|---|---|---|
+| `sky130_fd_pr__res_high_po.model.spice` | https://raw.githubusercontent.com/google/skywater-pdk-libs-sky130_fd_pr/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po.model.spice | 5d5f46fc322ff3aa83222a588c712b758a3863b8aed3eea6ca637b120ddf411f | 600a0077 |
+| `sky130_fd_pr__res_high_po_0p35.model.spice` | https://raw.githubusercontent.com/google/skywater-pdk-libs-sky130_fd_pr/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po_0p35.model.spice | b734c53d9317e2b9397c4322bfba943c15c8fad6450164dd8205b537344f0d2a | 7a245885 |
+| `sky130_fd_pr__res_high_po_0p69.model.spice` | https://raw.githubusercontent.com/google/skywater-pdk-libs-sky130_fd_pr/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po_0p69.model.spice | cdc156f6d1f0009d7e7783fe692395a27568e29fbf3acc2f493233d0ee43a0d3 | 4da55bc9 |
+| `sky130_fd_pr__res_high_po_1p41.model.spice` | https://raw.githubusercontent.com/google/skywater-pdk-libs-sky130_fd_pr/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po_1p41.model.spice | 10e284a92450c4e6f7cb0662d3580f156bf8f037aa99991a7f04ba24399aad1d | 41219cb1 |
+| `sky130_fd_pr__res_high_po_2p85.model.spice` | https://raw.githubusercontent.com/google/skywater-pdk-libs-sky130_fd_pr/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po_2p85.model.spice | dc066401f00c16ae38ed9946163e9d1ba480dd6d88cb5edd45bffef55474cd4a | ba1a95fb |
+| `sky130_fd_pr__res_high_po_5p73.model.spice` | https://raw.githubusercontent.com/google/skywater-pdk-libs-sky130_fd_pr/f62031a1be9aefe902d6d54cddd6f59b57627436/cells/res_high_po/sky130_fd_pr__res_high_po_5p73.model.spice | 7474ba669a8144316c2e4a79523a99643ea331bbc7e53b9efc3cb33a03fb254d | 97d0a86b |
+
+* 쓰는 셀: 원본 넷리스트가 `sky130_fd_pr__res_high_po W=0.72 L=8.8`(xschem `res_high_po.sym` format 줄)을 부르므로 W·L 매개변수 일반 셀 `sky130_fd_pr__res_high_po`(위 표 1행)다. `_0p35`~`_5p73` 은 폭 고정 셀(W=0.69 등)이라 W=0.72 에는 쓰지 않는다(받은 것은 include 완전성 때문).
+
+**모델 식 (`sky130_fd_pr__res_high_po.model.spice` 24~54행)**
+
+* 26행 `rsheet = 317.3885`, 27행 `rbody_dw = -0.001`, 28행 `rhead_ps = 345.8312`(rhead_model rsh 43행과 같은 값)
+* 36행 `weff = {w+rbody_dw-0.0672*max(0.69-w,0)}` -> W=0.72: 0.72 - 0.001 - 0 = **0.719 um**; 37행 `leff = {l+0.247}` -> **9.047 um**
+* 39행 `rhead r0 rb rhead_model w = {weff+0.1558} l = 1.0`; 40행 `rbody rb r1 rbody_model w = {weff} l = {leff}` (둘 직렬; 41행 `xc0` 은 b 로 가는 기생 C 뿐)
+* 43행 rhead rsh = `345.8312*(1+sky130_fd_pr__res_high_po__var)*(1+rend_match)`, 46행 `tc1 = -4.3e-4 tc2 = 12e-6 tnom = 30.0`
+* 48행 rbody rsh = `rsheet*(1+sky130_fd_pr__res_high_po__var)*(1+res_match)`, 53행 `tc1 = {tc1rpolybody} tc2 = {tc2rpolybody} tnom = 30.0` -- `C:/pdk/sky130_fd_pr/models/sky130_fd_pr__model__r+c.model.spice`(sha256 54c67cfaa82cf4cd961b0780cb66392cd2f2031df6ae2773bd4f79d7587683f9) 62·63행 `tc1rpolybody= .514e-3`, `tc2rpolybody= .122e-5`
+* 코너 tt: `models/r+c/res_typical__cap_typical__lin.spice`(sha256 dc4243210bb6bf59d31a1cdc935b6116cfcb1c6e4d6213d7bbc0c7ebaa5f0848) 4·5행 `sky130_fd_pr__res_high_po__var(_mult) = 0.0`; `sky130_fd_pr__model__linear.model.spice` 16·17행 `..._slope_spectre = 0.0`, `..._con_slope_spectre = 0.0` -> res_match = rend_match = 0 (mismatch 없음).
+* 온도: 엔진 기준 온도 = LUT 측정 온도 `temp_c` = **27 °C** (`gmid_engine/metrics/junction_source.py` -- `JunctionSource.temp_c` 는 LUT `provenance.cap_conditions["temp_c"]`; `lut_v2_location.json` cap_npz `sky130_nfet_pfet_lut_v2_r2.npz` 의 `temp_c = 27.0`, `corner = tt` 실측). 모델 tnom = 30 °C(모델 카드 값) -> dT = -3 K, 보정 R(T) = R(tnom)·(1 + tc1·dT + tc2·dT²).
+* 계산 (세그먼트 1개):
+  * rbody = 317.3885 × 9.047 / 0.719 = 3993.621 Ω (30 °C) × (1 + 0.514e-3·(-3) + 0.122e-5·9 = 0.998469) = **3987.507 Ω**
+  * rhead = 345.8312 × 1.0 / (0.719 + 0.1558) = 395.326 Ω (30 °C) × (1 + 4.3e-4·3 + 12e-6·9 = 1.001398) = **395.879 Ω**
+  * 세그먼트 = **4383.386 Ω** (30 °C 값 4388.947 Ω)
+* 결과(6유효자리, spec `element_values.<이름>.value_ohm`): `SUNTR_RPPO16`(x37·x38·x39·x40·x9) = 16 × 4383.386 = **70134.2 Ω**, `SUNTR_RPPO4`(x3) = 4 × 4383.386 = **17533.5 Ω**. 계산 스크립트(모델 파일에서 값을 읽어 계산) `wt/_scratch_heldout_d_res/apply.py`, 기록 `apply_log.jsonl`.
+* 모델 해석 주의: `rhead_model`·`rbody_model` 의 `p2`·`q2`·`p3`·`q3`·`sw_et`·`isnoisy` 는 ngspice 저항 모델 파라미터가 아니다 -- ngspice-46 은 "unrecognized parameter ... - ignored" 로 버린다. 다른 시뮬레이터용 비선형(전압·형상 의존) 항으로 보이며 의미를 이 파일만으로 확정할 수 없다. 엔진 SPICE 기준(ngspice)과 같은 해석, 즉 R = rsh·l/w·(1+tc1·dT+tc2·dT²) 를 썼다. DC 1.8 V 까지 ngspice 값이 일정한 것(아래)도 이 해석의 결과다.
+
+**ngspice 대조 (ngspice-46, `C:/ngspice/Spice64/bin/ngspice_con.exe -b`)**
+
+* 넷리스트 `wt/_scratch_heldout_d_res/res_dc.cir`(sha256 5c73d6f325fc34e28a0f3690648320321a19a9fdd68637a5854769da942dc729): 위 셀 모델 + 기생 `models/parasitics/sky130_fd_pr__model__parasitic__res_po.model.spice` + `res_typical__cap_typical__lin.spice` 를 include, `slope_spectre`·`con_slope_spectre`·`tc1rpolybody`·`tc2rpolybody` 는 원본 줄 값 그대로 `.param`(`res_typical__cap_typical.spice` 는 로컬에 없는 res_generic 셀 파일을 include 해서 직접 못 쓰므로 기생 C 값 `crpf_precision`·`crpfsw_precision_1_1` 만 그 파일 40·41행 값으로 `.param` -- DC 무관), `.option temp=27`, 0.1 V 를 걸어 V/I.
+* 결과(로그 `res_dc.log`): 세그먼트 1개 **4383.386 Ω**, 4개 직렬 **17533.54 Ω**, 16개 직렬 **70134.17 Ω** -- 손계산과 표시 자리수(7자리) 안에서 같다(차이 0). DC 0.1 / 0.95 / 1.8 V 에서 16개 직렬 값 같음(70134.17 Ω). 30 °C 판(`res_dc_t30.cir`): 4388.947 / 17555.79 / 70223.16 Ω = 손계산 30 °C 값과 같음 -- 모델 카드 tnom 30 이 쓰였다(로그의 "TNOM = 27" 은 시뮬레이터 기본값이고 모델 카드 tnom 이 우선).
+
+**xschem 심볼 표시식과의 차이 (참고, 정본 아님)**
+
+* `res_high_po.sym` 49행 `R=expr_eng( (378.3 + 317.17 * @L ) / @W / @mult )` -> 세그먼트 4401.94 Ω, RPPO16 70431.0 Ω, RPPO4 17607.8 Ω. 모델 계산(27 °C) 대비 **+0.42 %** (30 °C 모델 값 대비 +0.30 %). 표시식은 끝저항·폭 보정(weff, leff, rhead 의 w+0.1558)과 온도 보정을 단순화한 근사라 spec 에 쓰지 않는다.
+
+* spec: `element_values.<x37|x38|x39|x40|x9> = {"value_ohm": 70134.2, source: user_spec, record = D-R, decided 2026-10-14, origin drawing, citation = 회로도 줄·sun_tr 셀·PDK 모델 URL·sha256}`, `x3 = 17533.5`. topology 값 칸은 C1/C2 와 같은 방식으로 null 유지(주석 `_value_note`·`_decisions.U5_values` 만 갱신) -- connectivity_fp 변경 전·후 `2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96` 같음(실측).
 
 ## 5. sim/CNR_OTA/README.md -- 공통모드 루프 `lstbcmfb` (CMFB 루프 이득, 47~75행) -- 보고만
 
@@ -121,8 +161,10 @@ spec 제약은 Sch_typ 열(굵게)만 옮겼다. README Key parameters 의 "Loop
 
 * `load_topology`: 통과 -- MOS 72, 수동소자 10, 이상원 1, bias_inputs []. connectivity_fp `2456805b2986b5decfcc0e27e9005deab1607d3bd380a78b940110e021755c96` = 판독본 `wt/_heldout/D_cnr/D_cnr.topology.json` 과 같음.
 * `load_sizing_spec(metric_catalog())`: 통과 -- pending 12건(element_values x3·x37·x38·x39·x40·x9, input_dc = U-75; intended_region CI-18, node_voltage_targets_v CI-15, objective.budgets PA-1, search.front_budget_s PA-2, spice_check.front_points_rule AC-3).
+  * D-R 반영 뒤(2026-10-14) 재실행: pending **6건**(input_dc = U-75; intended_region CI-18, node_voltage_targets_v CI-15, objective.budgets PA-1, search.front_budget_s PA-2, spice_check.front_points_rule AC-3) -- 저항 6건 해소. spec_fp 8f053698... -> d2619d21...; connectivity_fp 그대로.
 * `build_s1(VDD_1V8 1.8, VSS 0)`: 통과.
 * `run_stage_a`(S1v): status `stopped`, exit 2. 정지 9건 = x47.M1·x48.M1 루프(VCBN2) 각각 `cs_output_low_impedance`, `loop_record_only`(global_feedback_or_cross_coupled, VOP 쪽·VON 쪽 CMFB 루프) 2건, `undeclared_loop_constraint` + `A4_coupling` STRUCTURE_UNRESOLVED(IDC, x24.M1 column_unassigned). 검토 8건 = 버스 펼침 쌍 x3[0:1]·x6[0:1]·x14[0:1]·x17[0:1] 의 `dc_role_unresolved_group`, `l_owner_name_order`. held-out 판정 자료로 기록만 한다(실행 스크립트·결과 `wt/_scratch_heldout_d/build_assets.py`, `results.jsonl`).
+  * D-R 반영 뒤(2026-10-14) 재실행: status·exit·정지 9건·검토 8건 모두 그대로(문자열 같음). stage_a.json 차이는 `tables/key[0]/marks_fp` 하나(spec 지문 변경). 실행 `wt/_scratch_heldout_d_res/run_checks.py`, 결과 `results.jsonl`.
 
 ## 7. 없는 것 (명시)
 
