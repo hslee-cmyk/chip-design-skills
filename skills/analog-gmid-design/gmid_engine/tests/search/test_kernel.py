@@ -69,7 +69,8 @@ def test_sealed_point_objectives_and_constraint_rows(case_c):
     r = evaluate(s, th_sorted(th), CELLS_C)
     assert isinstance(r, EvalResult)
     assert r.status == STATUS_SEALED and r.seq == 1 and r.failure is None
-    assert counters(s) == {"requests": 1, "kernel_calls": 1, "hits": 0, "fail_hits": 0, "disk_hits": 0,
+    # [xrun] 계수 6키(interface card C1 -- 디스크 실패 적중 계수 삭제, 설계 40 v1.10 §2.4.3 '디스크 실패 기록 읽기' 삭제)
+    assert counters(s) == {"requests": 1, "kernel_calls": 1, "hits": 0, "fail_hits": 0,
                            "outside_domain": 0, "recompute_same_key": 0}
     snap = snap_of(r)
     e = expected_objectives(snap)
@@ -144,29 +145,36 @@ def test_candidate_failure_recorded_and_cached(case_c):
     assert (c["hits"], c["fail_hits"], c["kernel_calls"]) == (1, 1, 1)
 
 
-def test_disk_failure_hit_same_code_and_invalid_when_code_differs(tmp_path, lut_sealed, short_root):
-    """I-3: 같은 S0·code_fp 의 새 context 는 디스크 실패 적중(커널 0, seq −1). code_fp 가 다른 줄은 무효."""
-    th = th_sorted(theta_r4c(y=0.1, v1=1.5))
+def _as_failure_line(line):
+    """엔진이 쓴 성공 evals 줄(같은 schema·code·cells·θ hex)을 ok 아닌 줄로 손으로 바꾼다 -- 옛 '디스크 실패 적중'이 받던 입력 형식
+    (옛 tests/search/test_layer0_center.py 디스크 주입 helper 가 쓰던 구성, 0538dec). 이 줄을 엔진이 읽지 않아야 한다(C5)."""
+    d = {k: v for k, v in line.items() if k not in ("objectives", "power_resolution_w", "snapshot_fp")}
+    d.update(ok=False, status=STATUS_FAILED, constraints=[], unmeasured=[],
+             fail={"class": "SEAL_VIOLATION", "devices": [], "margin": None,
+                   "detail": {"reason": "empty_window", "node": "out", "lo": 1.8, "hi": 0.0, "item": 7, "constraints": 3}})
+    return d
+
+
+def test_hand_written_failure_line_is_not_read_by_new_context(tmp_path, lut_sealed, short_root):
+    """[xrun XR-3] interface card C5 '두 번째 실행의 탐색은 첫 실행(또는 누가 써 넣은) 실패 줄을 실패로 받지 않는다'(설계 40 v1.10 §2.4.3
+    'S3' 행: 엔진은 S3 evals·runs 를 실행 사이에 읽지 않는다). oracle (a) 구성: 같은 θ 를 같은 입력으로 새 컨텍스트에서 평가하면 결과 상태는
+    첫 평가와 같아야 하고(S3 폴더 내용과 무관), 커널을 한 번 부르고, S3 에는 계속 쓴다(evals 줄 1개 추가)."""
+    th = th_sorted(theta_r4c())
     a = build_case(tmp_path / "a", circuit_c(), lut_sealed, archive_root=short_root)
     ra = evaluate(a.sctx, th, CELLS_C)
-    assert ra.status == STATUS_FAILED
-    b = build_case(tmp_path / "b", circuit_c(), lut_sealed, archive_root=short_root)
-    assert b.sctx.context_fp == a.sctx.context_fp
-    assert ra.key in dict(b.sctx.disk_failures)
-    rb = evaluate(b.sctx, th, CELLS_C)
-    assert rb.status == STATUS_FAILED and rb.seq == -1 and rb.failure is not None
-    c = counters(b.sctx)
-    assert (c["disk_hits"], c["kernel_calls"]) == (1, 0)
-    # code_fp 를 바꾼 줄만 남기면 디스크 적중 없음 -> 커널 1.
+    assert ra.status == STATUS_SEALED                                    # 전제: 성공 평가
     p = Path(short_root) / a.sctx.context_fp / "evals.jsonl"
-    recs = [json.loads(x) for x in p.read_text(encoding="utf-8").splitlines() if x.strip()]
-    for rec in recs:
-        rec["code_fp"] = "0" * 64
-    p.write_text("".join(json.dumps(rec) + "\n" for rec in recs), encoding="utf-8")
-    d = build_case(tmp_path / "d", circuit_c(), lut_sealed, archive_root=short_root)
-    assert dict(d.sctx.disk_failures) == {}
-    rd = evaluate(d.sctx, th, CELLS_C)
-    assert rd.status == STATUS_FAILED and counters(d.sctx)["kernel_calls"] == 1 and counters(d.sctx)["disk_hits"] == 0
+    (ok_line,) = read_evals(short_root, a.sctx.context_fp)
+    with open(p, "a", encoding="utf-8") as fh:                           # 같은 θ 의 실패 줄을 손으로 붙인다
+        fh.write(json.dumps(_as_failure_line(ok_line)) + "\n")
+    n_before = len(read_evals(short_root, a.sctx.context_fp))
+    b = build_case(tmp_path / "b", circuit_c(), lut_sealed, archive_root=short_root)
+    assert b.sctx.context_fp == a.sctx.context_fp                        # 전제: 같은 S3 실행 폴더
+    rb = evaluate(b.sctx, th, CELLS_C)
+    assert rb.status == ra.status and rb.failure is None
+    assert counters(b.sctx)["kernel_calls"] == 1
+    after = read_evals(short_root, a.sctx.context_fp)
+    assert len(after) == n_before + 1 and after[-1]["ok"] is True       # S3 는 출력으로 계속 쓴다(C5)
 
 
 def test_kernel_value_error_propagates(case_c):

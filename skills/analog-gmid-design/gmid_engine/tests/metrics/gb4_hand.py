@@ -330,16 +330,6 @@ TOY_MIM_DENSITY = 4.0e-3            # F/m² -- search conftest TOY_CAMIMC_F_PER_
 TOY_B_A = GRID_M * 5e-7             # b_A = 제조 격자 × 최소 finger 폭(search 3.7) -- toy 선언 값의 곱
 
 
-def toy_rule(root):
-    """toy LUT 생성 규칙 선언(search conftest `write_decls_mim` 의 두 번째 값) -- [U17 ①-b] `run_stage_a(lut_rule_decl=)` 필수 인자(40 v1.9.1 §2.4.3 키 (i))."""
-    import sys
-    tests_dir = str(Path(__file__).resolve().parents[1])
-    if tests_dir not in sys.path:
-        sys.path.insert(0, tests_dir)
-    from search.conftest import write_decls_mim
-    return write_decls_mim(Path(root))[1]
-
-
 def toy_settings():
     """탐색 실행 설정(입력, 기대값 아님) -- tests/search/u13_hand.build 기본값과 같은 값(평가 예산 40, R 상자 1e2..1e5 Ω, C 상자 1e-13..1e-10 F).
     [U17 ①-b 2차, 사용자 결정 4(2026-10-14)] `run_stage_b(settings=)` 는 필수 인자(기본값 없음)라 단계 B 를 부르는 helper 가 명시한다."""
@@ -347,18 +337,14 @@ def toy_settings():
     return SearchSettings(600.0, 40, (1e2, 1e5), (("front_budget_s", "gb4 test fixture"),), (1e-13, 1e-10))
 
 
-def stage_ab(root, lut, tp, sp, pdk, diagnostic=False, out="out", rule=None, settings=None):
-    """단계 A -> 단계 B(공개 진입점 두 개를 부르는 입력 helper -- 기대값을 만들지 않는다). `rule` = LUT 생성 규칙 선언(None 이면 toy 규칙 선언을
-    `root/_rule` 에 써서 읽는다). `settings` = 탐색 실행 설정(None 이면 `toy_settings()` -- 단계 B 에는 늘 명시해 넘긴다)."""
+def stage_ab(root, lut, tp, sp, pdk, diagnostic=False, out="out", settings=None):
+    """단계 A -> 단계 B(공개 진입점 두 개를 부르는 입력 helper -- 기대값을 만들지 않는다). `pdk` = 단계 B 의 PDK 선언.
+    `settings` = 탐색 실행 설정(None 이면 `toy_settings()` -- 단계 B 에는 늘 명시해 넘긴다).
+    [xrun, 사용자 결정 J-1 2026-10-15] run_stage_a 는 PDK 선언·LUT 생성 규칙 선언과 그 경로 인자를 받지 않는다(S0 키에만 쓰이던 인자)."""
     from gmid_engine.pipeline import run_stage_a, run_stage_b
-    if rule is None:
-        (Path(root) / "_rule").mkdir(parents=True, exist_ok=True)
-        rule = toy_rule(Path(root) / "_rule")
     if settings is None:
         settings = toy_settings()
-    from search.conftest import decl_path   # [U17 ①-b 3차] 두 선언을 읽어 온 파일 경로(필수 인자)
-    a = run_stage_a(tp, sp, lut, pdk_decl=pdk, lut_rule_decl=rule, pdk_decl_path=decl_path(pdk), lut_rule_decl_path=decl_path(rule),
-                    output_dir=Path(root) / out)
+    a = run_stage_a(tp, sp, lut, output_dir=Path(root) / out)
     b = run_stage_b(a, memo_of(lut), pdk, output_dir=Path(root) / out, diagnostic=diagnostic, settings=settings)
     return a, b
 

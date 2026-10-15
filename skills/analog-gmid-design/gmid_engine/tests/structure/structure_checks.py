@@ -73,6 +73,15 @@ COPY_SOURCE_KINDS = ("copy_source_missing", "copy_source_in_engine", "copy_sourc
 # (H) 엔진 하위 패키지가 아닌 tests/ 하위 폴더(교차 관심사). 출처: D 3.1 'test 배치'(162행).
 CROSS_CUTTING_TEST_DIRS = ("structure", "contracts", "integration", "regression", "oracles", "perf", "unit")
 
+# (K) front 조회(다른 실행의 출력 조회) 전용 읽기 경로를 엔진 안에서 부르지 않는다. 출처: 설계 40 v1.10 §2.4.3 'front 조회 전용 읽기 경로'
+#   표 '검사' 행(사용자 결정 2026-10-15 "나로 해" -- 실행 사이 재사용 제거, U-90 front 조회 유지) + '부를 수 있는 곳' 행
+#   "엔진 안에서는 없다. 정의(search/front_query.py, search/front_entries.py)와 재수출(search/__init__.py)만 이름을 가진다".
+FRONT_QUERY_ALLOWED_FILES = ("search/front_query.py", "search/front_entries.py", "search/__init__.py")
+FRONT_QUERY_NAMES = ("node_across_front", "read_front_entries")          # (K-a) 공개 이름
+FRONT_QUERY_MODULES = ("front_query", "front_entries")                   # (K-b) 모듈 이름(상대·절대 import)
+SNAPSHOT_READ_ATTRS = ("read_snapshot", "_read_snapshot_file")           # (K-c) 속성 이름(호출 아닌 참조 포함)
+SNAPSHOT_READ_NAMES = ("_read_snapshot_file",)                           # (K-c) 이름
+
 
 @dataclass(frozen=True, order=True)
 class Violation:
@@ -1128,3 +1137,55 @@ def check_i(root: Path, names=()) -> tuple[int, list[Violation]]:
             if rest:
                 out.append(Violation("name_branch", r, line, "%s: %s" % (form, rest)))
     return len(targets), out
+
+
+# ---------------------------------------------------------------- (K)
+
+def _front_query_refs(root: Path, p: Path, tree: ast.Module):
+    """(종류, 행, 설명) -- 규칙 K 의 세 형식. 같은 노드가 두 형식에 걸리면 둘 다 낸다(check_k 가 (종류, 경로, 행, 설명) 중복을 하나로)."""
+    names, modules = set(FRONT_QUERY_NAMES), set(FRONT_QUERY_MODULES)
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import):
+            for a in n.names:
+                if modules & set(a.name.split(".")):
+                    yield "front_query_module", n.lineno, "import %s" % a.name
+                if a.asname in names:
+                    yield "front_query_name", n.lineno, "import 별칭 %s" % a.asname
+                if a.asname in SNAPSHOT_READ_NAMES:
+                    yield "snapshot_read", n.lineno, "import 별칭 %s" % a.asname
+        elif isinstance(n, ast.ImportFrom):
+            mod = resolve_from(root, p, n)
+            if modules & set(mod.split(".")):
+                yield "front_query_module", n.lineno, "from %s import ..." % mod
+            for a in n.names:
+                if a.name in modules:
+                    yield "front_query_module", n.lineno, "from %s import %s(모듈)" % (mod, a.name)
+                for x in (a.name, a.asname):
+                    if x in names:
+                        yield "front_query_name", n.lineno, "import 이름 %s" % x
+                    if x in SNAPSHOT_READ_NAMES:
+                        yield "snapshot_read", n.lineno, "import 이름 %s" % x
+        elif isinstance(n, ast.Name):
+            if n.id in names:
+                yield "front_query_name", n.lineno, "이름 %s" % n.id
+            if n.id in SNAPSHOT_READ_NAMES:
+                yield "snapshot_read", n.lineno, "이름 %s" % n.id
+        elif isinstance(n, ast.Attribute):
+            if n.attr in names:
+                yield "front_query_name", n.lineno, "속성 .%s" % n.attr
+            if n.attr in SNAPSHOT_READ_ATTRS:
+                yield "snapshot_read", n.lineno, "속성 .%s" % n.attr
+
+
+def check_k(root: Path) -> tuple[int, list[Violation]]:
+    """규칙 K. 대상 = 엔진 소스(tests/ 제외) 중 허용 파일(FRONT_QUERY_ALLOWED_FILES) 밖 전부. 거부: (K-a) front 조회 공개 이름
+    참조(import 이름·별칭, 이름, 속성), (K-b) front 조회 모듈 import(상대·절대), (K-c) 스냅샷 파일 읽기 속성 참조(호출 아닌 참조 포함)와
+    이름 `_read_snapshot_file`."""
+    root = Path(root)
+    targets = [p for p in engine_files(root) if rel(root, p) not in FRONT_QUERY_ALLOWED_FILES]
+    out = set()
+    for p in targets:
+        r = rel(root, p)
+        for kind, line, detail in _front_query_refs(root, p, parse(p)):
+            out.add(Violation(kind, r, line, detail))
+    return len(targets), sorted(out)

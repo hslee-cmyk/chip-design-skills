@@ -60,6 +60,13 @@ def test_rule_i_no_circuit_specific_behavior(checks, engine_root, library, repor
     _assert_clean(n, v, report, "I")
 
 
+def test_rule_k_front_query_not_called_in_engine(checks, engine_root, report):
+    """규칙 K(설계 40 v1.10 §2.4.3 'front 조회 전용 읽기 경로'): 허용 파일(search/front_query.py·front_entries.py·__init__.py) 밖 엔진 소스에
+    front 조회 이름·모듈 참조와 스냅샷 파일 읽기 참조가 없다 -- 다른 실행의 출력이 계산으로 새지 않는다."""
+    n, v = checks.check_k(engine_root)
+    _assert_clean(n, v, report, "K")
+
+
 def test_rule_i_exemptions_are_used(checks, engine_root, library, monkeypatch):
     """예외 목록이 낡지 않았다: 지금 있는 예외 파일마다 예외를 빼면 실제로 걸리는 조회가 있다(쓰이지 않는 예외 0).
     폴더 접두 예외(`report/`)는 그 폴더에 파일이 생기기 전까지 대상이 없을 수 있어 존재하는 파일 항목만 본다."""

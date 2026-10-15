@@ -1,44 +1,41 @@
-"""[U17 ①-b] S0 수준 층 필드 이동 -- 9 library 회로 통합 test (설계 40 v1.9 §2.4.2·§2.4.3·§2.4.7·§2.4.8 S0·B 층 행·§2.4.9 판정 2,
-오케스트레이터 기본안 D1~D10(2026-10-13, `wt/_drafts/user_decisions.md`)).
+"""[U17 ①-b] S0 수준 층 필드 -- 9 library 회로 통합 test. [xrun] 실행 사이 재사용 제거(설계 40 v1.10 §2.4.3 '수명 -- 실행 안에서만',
+§2.4.9 판정 1, 사용자 결정 2026-10-15 "나로 해", interface card C3·C4)에 맞춰 파일 단위로 다시 썼다.
 
-무엇을 보나(회로마다):
-1. 필드 존재·writer 유일성(§2.4.8): S0 수준 스냅샷 파일(§2.4.3 형식 -- 이 test 가 gzip JSON 을 직접 읽는다)에 아래 `GRAPH_ROWS`·`DEVICE_ROWS`
-   필드가 있고, 필드마다 writer 가 파일 권한표(`writers`)의 그 (kind, field) 항목 하나와 같으며, design 이 이름을 적은 writer 는 그 이름이고,
-   writer 는 계산 블록(`block_versions` 에 있고 같은 이름의 `ComputeBlock` 이 엔진에 있다)이다. 단계 B 층(residual_probe·dof_numeric)은
-   파일에 없다(§2.4.3 '단계 B 층 … 쓰지 않는다', D5).
-2. 디스크 왕복 비트 동일(§2.4.3): 파일의 모든 필드 값을 이 test 의 독립 디코더(design 형식: float.hex·tuple·frozenset·`<모듈>.<클래스>`)로
-   되살린 값의 `fp_of` 가 실행 중 S0 수준 스냅샷(SearchContext `dc.base` = §2.4.7 '참조(S0 수준 스냅샷 뿌리)')의 같은 필드 value_fp 와 같다.
-3. 소비자 필드 읽기(§2.4.2 '읽기: 소비자는 S0 수준 스냅샷의 필드를 읽는다'): 첫 실행(빈 S0 폴더)에서 S0 행 writer 블록마다 computes = 1·
-   recomputes_same_input = 0 -- 단계 B·출발 구간·탐색 컨텍스트가 같은 값을 다시 계산하지 않는다(블록 계수, §2.4.9).
-4. S0 스냅샷 재사용(§2.4.2 '같은 S0 의 다음 실행은 … 모든 블록이 재사용으로 끝난다(계산 0)', §2.4.9 판정 2 의 S0 부분 -- RunCounters 는 ②라
-   as-built 블록 계수로 본다): 두 번째 실행은 단계 A 보고서 `s0_snapshot` = hit, 파일 바이트 불변, 파일 `block_versions` 의 모든 writer 블록
-   computes = 0, S0 행 writer 블록은 한 번 이상 불린다(calls ≥ 1 -- 읽기가 블록 재사용으로 일어남).
-5. 결과 불변(이 이동은 값 정의를 바꾸지 않는다): 단계 A·B 보고서의 기준선 키마다 정준 JSON sha256 이 base master a5d8ccb 코드로 이 test 작성
-   주체가 직접 잰 값(`fixtures/u17_1b_s0_baseline.json`)과 같고, S0 필드 값 지문(`fp_of`)이 base 의 같은 값(StartIntervals·KernelContext·
-   SearchContext 칸)의 지문과 같다. 기준선 측정 스크립트는 `wt/_scratch_u17_1b_tests/baseline.py`(엔진 밖) -- 피검 코드로 기대값을 만들지 않았다.
-   [U17 ①-b 판정 후 2026-10-14] 단계 A 보고서 `tables` 기준선은 옛 기준선 표에서 design 이 바꾼 만큼만 변환했다: 설계 40 v1.9.1 D1(§2.4.8
-   graph/s1v 5필드 -- 최상위 `key` 칸 폐기) + 추가 결정 (c)(`facts_applied` -> `applied_facts` 이름 하나). 변환 스크립트
-   `wt/_scratch_u17_1b_fix_tests/transform_tables_baseline.py`(head 출력 복사 아님). `junction_source` 는 경로 아닌 내용(params·온도·PDK 선언 sha)으로 대조한다(아래 6).
-   [library spec card 2026-10-14, 사용자 U-3 '4회로만 재측정'] spec 입력이 바뀐 4회로(Q-S2 pm_ss_deg >= 70: sf_pushpull_output_opamp·
-   two_stage_ota·two_stage_ota_sf, Q-S3 잡음 450 uVrms: current_reuse_telescopic_ota) 항목은 base 41a2c4a 코드로 이 test 작성 주체가 엔진 밖
-   스크립트 `wt/_scratch_libspec_tests/remeasure.py`·`merge.py`(OPENBLAS_NUM_THREADS=1)로 다시 잰 값이다. 나머지 5회로 항목은 바이트 그대로이고
-   같은 스크립트의 재측정값이 그 항목과 같음을 확인했다(측정 방법이 기준선을 재현한다는 근거). current_reuse 는 재측정값이 옛 항목과 같아 바이트 불변.
+무엇을 보나(회로마다, 같은 프로세스에서 사슬 단계 A -> B -> 커널 컨텍스트 -> 탐색 컨텍스트를 두 번 -- 사이에 블록 계수 reset_stats()):
+1. 필드 존재·writer 유일성(§2.4.8): 탐색 컨텍스트의 S0 수준 스냅샷(`dc.base`, 메모리)에 아래 `GRAPH_ROWS`·`DEVICE_START` 필드가 있고, 필드마다
+   writer 가 스냅샷 권한표(`writers`)의 그 (kind, field) 항목 하나와 같으며, design 이 이름을 적은 writer 는 그 이름이고, writer 는 계산 블록
+   (`block_versions` 에 있고 같은 이름의 `ComputeBlock` 이 엔진에 있다)이다.
+2. 실행 안 G-10(C4, §2.4.9 판정 1): 첫 실행에서 S0 행 writer 블록마다 computes = 1·recomputes_same_input = 0.
+3. [XR-1] 반복 실행은 다시 계산한다(C3): 두 번째 실행도 S0 행 writer 블록마다 computes = 1·recomputes_same_input = 0 -- 앞 실행이 남긴 것
+   (디스크·S3)으로 계산을 건너뛰지 않는다. writer 목록은 디스크 파일이 아니라 두 번째 실행 `dc.base` 의 graph S0 레코드 필드 writer 에서 모은다.
+4. 반복 실행 출력 비트 동일(C3, 같은 BLAS 설정 -- conftest 가 OPENBLAS_NUM_THREADS=1 고정): 단계 A·B 보고서 JSON 바이트, `dc.base` 필드
+   (kind, key, field) -> value_fp 표, context_fp, schema_fp.
+5. 결과 불변(base 기준선, 이 card 는 값 정의를 바꾸지 않는다): 단계 A·B 보고서의 기준선 키마다 정준 JSON sha256 이 기준선
+   (`fixtures/u17_1b_s0_baseline.json`, oracle (c) -- 아래 '기준선 출처')과 같고, S0 필드 값 지문(`fp_of`)이 기준선과 같다.
+6. junction_source: 내용(params 지문·온도·PDK 선언 sha)이 기준선과 같고, 값(메모리)의 문자열 어디에도 이 checkout 의 저장소 경로가 없다.
 
-S0 스냅샷 저장 시점 = build_search_context 끝 1회(D6)라 실행 사슬은 단계 A -> 단계 B -> 커널 컨텍스트 -> 탐색 컨텍스트다. 단계 A 가 ok 가
-아닌 회로(기준선 ngcc_3stage_ff = review_needed)는 탐색 컨텍스트를 만들지 않으므로 5 의 보고서 대조만 한다.
+[xrun] 지운 것(이유 = 설계 40 v1.10 §2.4.3 '디스크: S0 수준 층을 디스크에 쓰지도 읽지도 않는다', test 삭제 목록):
+- 두 번째 실행 S0 적중·계산 0 test(옛 4) -- 판정 2 폐지(§2.4.9). XR-1(위 3)이 반대 성질(다시 계산)을 본다.
+- S0 폴더 조작(S0 위치 환경 변수), S0 파일 읽기(`_doc`·`_files`), 독립 디코더와 그 자기 test, 디스크 왕복 비트 동일 test(옛 2) -- 파일이 없다.
+- 옛 1 의 '단계 B 층 필드가 S0 파일에 없다' 확인 -- 직렬화 대상이 없어졌다(메모리 스냅샷에는 단계 B 층이 있을 수 있다).
+옛 1·3·6 은 파일 대신 메모리 `dc.base` 로 같은 성질을 본다.
 
-이름 미정(interface card 가 정하면 아래 한 곳만 고친다): `_search_context` 의 ①-b 뒤 커널·탐색 컨텍스트 생성 호출 형식(as-built 에서 `s1v=`·
-`ach=` 를 뺐다), `graph/kernel` 의 fixed_values·resistor_values·l_ties(design '`build_kernel_context`를 블록으로')·constraint_classes
-('제약 분류 블록')·junction_source·mismatch_source·passive_area_decl·model_error('각각 search·metrics의 S0 블록') writer 이름 -- None 은 이름을
-단언하지 않고 '권한표 항목 하나 = 계산 블록 하나'만 본다.
-실 LUT 데이터가 없으면 FAIL(skip 아님).
+기준선 출처(옛 문서 그대로): 단계 A·B 보고서의 기준선 키마다 정준 JSON sha256 은 base master a5d8ccb 코드로 이 test 작성 주체가 직접 잰 값
+(`wt/_scratch_u17_1b_tests/baseline.py`, 엔진 밖). [U17 ①-b 판정 후 2026-10-14] `tables` 는 설계 40 v1.9.1 D1 + 추가 결정 (c) 만큼만 변환
+(`wt/_scratch_u17_1b_fix_tests/transform_tables_baseline.py`). [library spec card 2026-10-14, U-3] spec 입력이 바뀐 4회로는 base 41a2c4a 코드로
+다시 잰 값(`wt/_scratch_libspec_tests/remeasure.py`·`merge.py`, OPENBLAS_NUM_THREADS=1). junction 내용은 base 9255a22 코드로 잰 값
+(`wt/_scratch_u17_1b_fix_tests/junction_content_base.py`). 피검 코드로 기대값을 만들지 않았다.
+
+단계 A 가 ok 가 아닌 회로(기준선 ngcc_3stage_ff = review_needed)는 탐색 컨텍스트를 만들지 않으므로 5 의 보고서 대조만 한다.
+이름 미정(interface card 가 정하지 않은 writer 이름): `graph/kernel` 의 fixed_values·resistor_values·l_ties·constraint_classes·junction_source·
+mismatch_source·passive_area_decl·model_error -- None 은 이름을 단언하지 않고 '권한표 항목 하나 = 계산 블록 하나'만 본다.
+tests/integration/test_blas_thread_determinism.py 가 이 모듈의 `SKILL`·`LIBRARY`·`DEVICE_KINDS`·`CAP_SUFFIX`·`BASELINE`·`_settings`·
+`_search_context` 를 하위 프로세스에서 쓴다(이름 유지). 실 LUT 데이터가 없으면 FAIL(skip 아님).
 """
 from __future__ import annotations
 
 import dataclasses
-import gzip
 import hashlib
-import importlib
 import json
 import os
 import sys
@@ -57,8 +54,6 @@ CIRCUITS = sorted(p.name.removesuffix(".topology.json") for p in LIBRARY.glob("*
 BASELINE = json.loads((Path(__file__).resolve().parent / "fixtures" / "u17_1b_s0_baseline.json").read_text(encoding="utf-8"))
 DEVICE_KINDS = (("nfet_01v8", "nmos"), ("pfet_01v8", "pmos"))
 CAP_SUFFIX = (("nmos", "_n"), ("pmos", "_p"))
-S0_ENV = "GMID_S0_SNAPSHOT_DIR"
-SUFFIX = ".json.gz"
 
 # 설계 40 v1.9 §2.4.8 S0 행 + 기본안 D1·D2·D3·D7·D8 -- (record key, 필드들, design 이 적은 writer 이름 또는 None(이름 미정)).
 GRAPH_ROWS = (
@@ -82,7 +77,6 @@ GRAPH_ROWS = (
 # (필드들, writer) -- start.* 는 기준선 출발 구간 행이 있는 소자마다, dc_self_referential 은 권한표·블록 선언만(값이 소자마다 있는지는 design 미정).
 DEVICE_START = (("start.row", "start.point"), "start_intervals")
 DEVICE_SELF_REF = ("dc_self_referential", "dc_writer_plan")         # §2.4.8 '쓰기 계획 블록(sizing)' = as-built dc_writer_plan
-STAGE_B_FIELDS = ("residual_probe", "dof_numeric")                   # §2.4.8 B 층 -- 직렬화하지 않는다(§2.4.3, D5)
 
 
 # ---------------------------------------------------------------- 실행 환경
@@ -129,15 +123,13 @@ def _s0_of(result):
 
 
 def _search_context(env, a, b):
-    """이름 미정 -- ①-b 뒤 커널 컨텍스트·탐색 컨텍스트 생성. 임시 형식: as-built 호출에서 `s1v=`·`ach=` 를 빼고(그 값은 S0 필드), L 동치류는
-    S0 필드 `graph/s1v: l_classes` 에서 읽는다. 탐색 설정은 tests/search/u13_real.py 와 같은 입력."""
+    """①-b 뒤 커널 컨텍스트·탐색 컨텍스트 생성. L 동치류는 S0 필드 `graph/s1v: l_classes` 에서 읽는다. 탐색 설정은 tests/search/u13_real.py 와
+    같은 입력. [xrun] interface card C1: build_search_context 는 s0 키워드를 받지 않는다(S0 저장 폐지) -- 같은 실행 안 단계 B 결과를 메모리로 넘긴다."""
     from gmid_engine.search import build_search_context
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
     _s0_of(b)                             # 결과가 S0 수준 스냅샷 참조를 싣는다(§2.4.7)
-    # [이름 정정, interface 확정] build_kernel_context(l_classes=) 삭제 -- L 동치류는 엔진이 S0 필드 graph/s1v: l_classes 에서 읽는다. 커널 컨텍스트는 단계 B 결과
-    # S1Graph(S0 수준 스냅샷 위, GB4 필드 포함) 위에 만든다(엔진 단계 B 와 같은 호출 형식). 저장 시점 D6: build_search_context(s0=단계 A 의 S0Slot) 끝 1회.
     kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo))
-    return build_search_context(kctx, a.spec, _settings(), None, env.pdk, env.rule, code_fp=a.code_fp, s0=a.s0)
+    return build_search_context(kctx, a.spec, _settings(), None, env.pdk, env.rule, code_fp=a.code_fp)
 
 
 def _settings():
@@ -147,51 +139,31 @@ def _settings():
     return SearchSettings(600.0, 40, (1e2, 1e5), (("front_budget_s", "u17-1b test fixture"),), (1e-13, 1e-10))
 
 
-def _chain(env, circuit, tag, monkeypatch_dir):
-    """단계 A -> B -> (둘 다 ok 면) 탐색 컨텍스트. 블록 계수를 비우고 돌린 뒤 {이름: BlockStats}."""
+def _chain(env, circuit, tag):
+    """단계 A -> B -> (둘 다 ok 면) 탐색 컨텍스트. 블록 계수를 비우고(실행 경계 = reset_stats, interface card C4) 돌린 뒤 {이름: BlockStats}.
+    [xrun J-1] run_stage_a 는 선언 값·선언 경로 인자를 받지 않는다."""
     blocks = _blocks()
     for blk in blocks.values():
         blk.reset_stats()
     out = env.root / circuit / tag
-    os.environ[S0_ENV] = str(monkeypatch_dir)
-    a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env.lut, pdk_decl=env.pdk,
-                    lut_rule_decl=env.rule, output_dir=out,
-                    pdk_decl_path=str(SKILL / "assets" / "sky130_pdk_decl.json"),
-                    lut_rule_decl_path=str(SKILL / "assets" / "sky130_lut_rule_decl.json"))          # [이름 정정] run_stage_a(lut_rule_decl=) 필수
+    a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env.lut, output_dir=out)
     env.memo = LutMemo(env.lut, point=1 << 16, curve=1 << 14, root=1 << 16)
     b = run_stage_b(a, env.memo, env.pdk, output_dir=out, diagnostic=True, settings=_settings())
     sctx = _search_context(env, a, b) if (a.status, b.status) == ("ok", "ok") else None
     blocks = _blocks()
     return SimpleNamespace(a=a, b=b, sctx=sctx, stats={n: blk.stats() for n, blk in blocks.items()},
                            report_a=json.loads(Path(a.report_paths[0]).read_text(encoding="utf-8")),
-                           report_b=json.loads(Path(b.report_paths[0]).read_text(encoding="utf-8")))
-
-
-def _files(directory):
-    return sorted(p for p in Path(directory).glob("*" + SUFFIX))
+                           report_b=json.loads(Path(b.report_paths[0]).read_text(encoding="utf-8")),
+                           bytes_a=Path(a.report_paths[0]).read_bytes(), bytes_b=Path(b.report_paths[0]).read_bytes())
 
 
 def _run(env, circuit):
-    """회로마다 한 번: 빈 S0 폴더에서 첫 실행(miss) -> 같은 폴더로 두 번째 실행. 결과는 모듈 캐시."""
+    """회로마다 한 번: 같은 프로세스에서 같은 입력의 사슬 두 번(first, second). 결과는 모듈 캐시."""
     if circuit not in env.runs:
-        s0_dir = env.root / circuit / "s0"
-        s0_dir.mkdir(parents=True)
-        old = os.environ.get(S0_ENV)
         try:
-            first = _chain(env, circuit, "first", s0_dir)
-            files = _files(s0_dir)
-            blob = files[0].read_bytes() if len(files) == 1 else None
-            mtime = files[0].stat().st_mtime_ns if len(files) == 1 else None
-            second = _chain(env, circuit, "second", s0_dir)
-            env.runs[circuit] = SimpleNamespace(first=first, second=second, files=files, blob=blob, mtime=mtime,
-                                                files_after=_files(s0_dir))
+            env.runs[circuit] = SimpleNamespace(first=_chain(env, circuit, "first"), second=_chain(env, circuit, "second"))
         except Exception as exc:          # test harness: 첫 실패를 저장해 같은 회로의 다른 test 가 같은 원인으로 실패하게 한다(재실행 없음)
             env.runs[circuit] = exc
-        finally:
-            if old is None:
-                os.environ.pop(S0_ENV, None)
-            else:
-                os.environ[S0_ENV] = old
     if isinstance(env.runs[circuit], Exception):
         raise env.runs[circuit]
     return env.runs[circuit]
@@ -204,50 +176,38 @@ def _searched(circuit):
 SEARCHED = [c for c in CIRCUITS if _searched(c)]
 
 
-def _doc(run):
-    assert len(run.files) == 1, "S0 수준 스냅샷 파일은 S0 하나에 하나(§2.4.3): " + repr([p.name for p in run.files])
-    return json.loads(gzip.decompress(run.blob).decode("ascii"))
+def _records(base):
+    """S0 수준 스냅샷(메모리)의 레코드 {(kind, key): {field: FieldValue}}."""
+    out = {}
+    for kind in base.kinds():
+        for key in base.keys(kind):
+            rec = base.record(kind, key)
+            out[(kind, key)] = {name: rec.get(name) for name in rec.field_names()}
+    return out
 
 
-# ---------------------------------------------------------------- 독립 디코더 (§2.4.3 형식)
-
-def _decode(obj):
-    if obj is None or isinstance(obj, (bool, int, str)):
-        return obj
-    tag = obj["__type__"]
-    if tag == "float":
-        return float.fromhex(obj["hex"])
-    if tag == "bytes":
-        return bytes.fromhex(obj["hex"])
-    if tag == "tuple":
-        return tuple(_decode(x) for x in obj["items"])
-    if tag == "frozenset":
-        return frozenset(_decode(x) for x in obj["items"])
-    module, _, cls_name = tag.rpartition(".")
-    cls = getattr(importlib.import_module(module), cls_name)
-    return cls(**{name: _decode(v) for name, v in obj["fields"].items()})
+def _s0_writers(base):
+    """S0 행 writer 블록 = 탐색 컨텍스트 `dc.base` 의 graph S0 레코드(GRAPH_ROWS 의 key) 필드 writer + 출발 구간 소자 필드 writer."""
+    keys = {k for k, _f, _w in GRAPH_ROWS}
+    return sorted({fv.writer for (kind, key), fields in _records(base).items() if kind == "graph" and key in keys
+                   for fv in fields.values()} | {DEVICE_START[1]})
 
 
-def test_independent_decoder_roundtrips_design_format():
-    @dataclasses.dataclass(frozen=True)
-    class _P:
-        x: float
-    enc = {"__type__": "tuple", "items": [{"__type__": "float", "hex": (0.1).hex()}, {"__type__": "frozenset", "items": ["a", 1]}, None]}
-    assert _decode(enc) == (0.1, frozenset({"a", 1}), None)
-    assert fp_of(_decode({"__type__": "float", "hex": (-0.0).hex()})) == fp_of(-0.0)
+def _value_fps(base):
+    return {(kind, key, name): fv.value_fp for (kind, key), fields in _records(base).items() for name, fv in fields.items()}
 
 
-# ---------------------------------------------------------------- 1. 필드 존재·writer 유일성
+# ---------------------------------------------------------------- 1. 필드 존재·writer 유일성 (메모리 S0 수준 스냅샷)
 
 @pytest.mark.parametrize("circuit", SEARCHED)
 def test_s0_fields_present_with_single_block_writer(env, circuit):
     run = _run(env, circuit)
-    doc = _doc(run)
+    base = run.first.sctx.dc.base                        # §2.4.7: KernelContext.base = S0 수준 스냅샷(참조)
     table = {}
-    for kind, field, writer in doc["writers"]:
+    for (kind, field), writer in base.writers.entries:
         assert (kind, field) not in table, "권한표에 같은 (kind, field) 두 번: " + repr((kind, field))
         table[(kind, field)] = writer
-    records = {(r["kind"], r["key"]): r["fields"] for r in doc["records"]}
+    records = _records(base)
     blocks = _blocks()
     problems = []
     for key, fields, named in GRAPH_ROWS:
@@ -258,15 +218,15 @@ def test_s0_fields_present_with_single_block_writer(env, circuit):
                 problems.append("없음 graph/%s: %s" % (key, field))
                 continue
             owner = table.get(("graph", field))
-            row_writers.add(cell["writer"])
-            if cell["writer"] != owner:
-                problems.append("graph/%s: %s writer %r != 권한표 %r" % (key, field, cell["writer"], owner))
-            if named is not None and cell["writer"] != named:
-                problems.append("graph/%s: %s writer %r != design %r" % (key, field, cell["writer"], named))
+            row_writers.add(cell.writer)
+            if cell.writer != owner:
+                problems.append("graph/%s: %s writer %r != 권한표 %r" % (key, field, cell.writer, owner))
+            if named is not None and cell.writer != named:
+                problems.append("graph/%s: %s writer %r != design %r" % (key, field, cell.writer, named))
         if len(row_writers) > 1:
             problems.append("graph/%s %s: 한 블록이 쓰는 행인데 writer 여럿 %r" % (key, fields, sorted(row_writers)))
         for w in row_writers:
-            if w not in doc["block_versions"] or w not in blocks:
+            if w not in base.block_versions or w not in blocks:
                 problems.append("writer %r 가 계산 블록이 아니다(block_versions·ComputeBlock)" % w)
     devices = set(BASELINE[circuit]["start"]["row_fp"])
     assert devices
@@ -274,73 +234,56 @@ def test_s0_fields_present_with_single_block_writer(env, circuit):
         have = {k for (kind, k), f in records.items() if kind == "device" and field in f}
         if have != devices:
             problems.append("device %s 소자 %r != 기준선 출발 구간 행 %r" % (field, sorted(have), sorted(devices)))
-        writers = {f[field]["writer"] for (kind, k), f in records.items() if kind == "device" and field in f}
+        writers = {f[field].writer for (kind, k), f in records.items() if kind == "device" and field in f}
         if writers - {DEVICE_START[1]} or table.get(("device", field)) != DEVICE_START[1]:
             problems.append("device %s writer %r / 권한표 %r" % (field, sorted(writers), table.get(("device", field))))
     if table.get(("device", DEVICE_SELF_REF[0])) != DEVICE_SELF_REF[1]:
         problems.append("device %s 권한표 writer %r" % (DEVICE_SELF_REF[0], table.get(("device", DEVICE_SELF_REF[0]))))
-    for (kind, key), fields in records.items():
-        if key == "stage_b" or set(fields) & set(STAGE_B_FIELDS):
-            problems.append("단계 B 층 필드가 S0 파일에 있다: %s/%s %r" % (kind, key, sorted(set(fields) & set(STAGE_B_FIELDS))))
     assert not problems, "\n".join(problems)
 
 
-# ---------------------------------------------------------------- 2. 디스크 왕복 비트 동일
+# ---------------------------------------------------------------- 2·3. 실행 안 G-10, 반복 실행도 다시 계산 (XR-1)
 
-@pytest.mark.parametrize("circuit", SEARCHED)
-def test_s0_file_values_roundtrip_bit_identical(env, circuit):
-    run = _run(env, circuit)
-    doc = _doc(run)
-    base = run.first.sctx.dc.base                        # §2.4.7: KernelContext.base = S0 수준 스냅샷(참조)
-    bad, n = [], 0
-    for r in doc["records"]:
-        for name, cell in r["fields"].items():
-            mem = base.field(r["kind"], r["key"], name)
-            n += 1
-            if mem is None or fp_of(_decode(cell["value"])) != mem.value_fp:
-                bad.append("%s/%s: %s" % (r["kind"], r["key"], name))
-    assert n and not bad, "디스크 왕복 값이 실행 중 S0 필드와 다르다 %d/%d:\n%s" % (len(bad), n, "\n".join(bad[:40]))
-    for key, fields, _w in GRAPH_ROWS:                  # 실행 중 S0 필드가 파일에 다 있다(부분 저장 금지)
-        for field in fields:
-            if base.field("graph", key, field) is not None:
-                assert field in {nm for r in doc["records"] if (r["kind"], r["key"]) == ("graph", key) for nm in r["fields"]}
-
-
-# ---------------------------------------------------------------- 3. 소비자 필드 읽기 (첫 실행 블록 계수)
-
-def _s0_writers(doc):
-    return sorted({cell["writer"] for r in doc["records"] if r["kind"] == "graph" and r["key"] in {k for k, _f, _w in GRAPH_ROWS}
-                   for cell in r["fields"].values()} | {DEVICE_START[1]})
+def _bad_counts(stats, writers):
+    return ["%s computes=%s recomputes_same_input=%s" % (w, getattr(stats.get(w), "computes", None),
+                                                        getattr(stats.get(w), "recomputes_same_input", None))
+            for w in writers if w not in stats or stats[w].computes != 1 or stats[w].recomputes_same_input != 0]
 
 
 @pytest.mark.parametrize("circuit", SEARCHED)
 def test_cold_run_computes_each_s0_block_once(env, circuit):
+    # interface card C4 / §2.4.9 판정 1: 한 실행에서 S0 행 writer 블록마다 computes = 1, recomputes_same_input = 0(소비자는 필드를 읽는다).
     run = _run(env, circuit)
-    stats = run.first.stats
-    bad = ["%s computes=%s recomputes_same_input=%s" % (w, getattr(stats.get(w), "computes", None),
-                                                         getattr(stats.get(w), "recomputes_same_input", None))
-           for w in _s0_writers(_doc(run))
-           if w not in stats or stats[w].computes != 1 or stats[w].recomputes_same_input != 0]
+    bad = _bad_counts(run.first.stats, _s0_writers(run.first.sctx.dc.base))
     assert not bad, "S0 블록은 실행 하나에서 한 번만 계산된다(소비자는 필드를 읽는다):\n" + "\n".join(bad)
 
 
-# ---------------------------------------------------------------- 4. 두 번째 실행 = S0 계산 0
+@pytest.mark.parametrize("circuit", SEARCHED)
+def test_second_run_computes_each_s0_block_once_again(env, circuit):
+    # [xrun XR-1] interface card C3: 같은 입력으로 같은 프로세스에서 두 번째 실행(사이에 reset_stats)도 S0 행 writer 블록마다 computes = 1,
+    # recomputes_same_input = 0 -- 앞 실행이 남긴 것으로 계산을 건너뛰지 않는다(옛 '두 번째 실행 = 계산 0' 의 반대, §2.4.9 판정 2 폐지).
+    # writer 목록 = 두 번째 실행 dc.base 의 graph S0 레코드 필드 writer(디스크 파일이 아님).
+    run = _run(env, circuit)
+    writers = _s0_writers(run.second.sctx.dc.base)
+    assert writers == _s0_writers(run.first.sctx.dc.base)
+    bad = _bad_counts(run.second.stats, writers)
+    assert not bad, "두 번째 실행에서 S0 블록이 계산되지 않았거나 두 번 계산됐다:\n" + "\n".join(bad)
+
 
 @pytest.mark.parametrize("circuit", SEARCHED)
-def test_second_run_hits_s0_snapshot_with_zero_block_computes(env, circuit):
+def test_second_run_outputs_bit_identical(env, circuit):
+    # interface card C3: 같은 BLAS 설정이면 두 실행의 단계 A·B 보고서 JSON(바이트), dc.base 필드 value_fp 표, context_fp, schema_fp 가 같다.
     run = _run(env, circuit)
-    doc = _doc(run)
-    assert run.second.report_a["s0_snapshot"] == "hit"
-    assert run.files_after == run.files and run.files[0].read_bytes() == run.blob and run.files[0].stat().st_mtime_ns == run.mtime
-    stats = run.second.stats
-    computed = sorted("%s computes=%d" % (w, stats[w].computes) for w in doc["block_versions"] if w in stats and stats[w].computes)
-    assert not computed, "두 번째 실행에서 S0 수준 블록이 계산됐다:\n" + "\n".join(computed)
-    unread = [w for w in _s0_writers(doc) if w not in stats or stats[w].calls < 1]
-    assert not unread, "S0 행 writer 블록이 두 번째 실행에서 불리지 않았다(필드 읽기가 블록 재사용이 아님): %r" % unread
-    assert run.second.sctx.dc.base.fp == run.first.sctx.dc.base.fp
+    first, second = run.first, run.second
+    assert second.bytes_a == first.bytes_a
+    assert second.bytes_b == first.bytes_b
+    fa, fb = _value_fps(first.sctx.dc.base), _value_fps(second.sctx.dc.base)
+    assert fa and fb.keys() == fa.keys()
+    assert sorted(k for k in fa if fa[k] != fb[k]) == []
+    assert (second.sctx.context_fp, second.sctx.schema_fp) == (first.sctx.context_fp, first.sctx.schema_fp)
 
 
-# ---------------------------------------------------------------- 5. 결과 불변 (base a5d8ccb 기준선)
+# ---------------------------------------------------------------- 5. 결과 불변 (기준선)
 
 def _sha(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode("ascii")).hexdigest()
@@ -387,21 +330,30 @@ def test_s0_field_values_unchanged_from_base(env, circuit):
     assert not diff, "base 와 다른 S0 필드 값: %r" % diff
 
 
-# [U17 ①-b 판정 후] graph/kernel: junction_source 는 전체 지문이 아니라 내용으로 대조한다. 판정(audit 8절): 옛 값의 LUT 규칙 PdkDecl 이
-# checkout 절대 경로를 담아 지문이 경로마다 달랐다 -- S0 키(§2.4.3 키 (i) 'PDK 선언 파일 내용 해시')와 같이 값도 내용만이어야 다른 checkout 에서
-# 같은 S0 값이 된다(§2.4.2 '입력 버전이 같으면 다시 계산하지 않는다').
-# oracle: params(core fp_of)·temp_c = base 9255a22 코드로 잰 기준선(c) `kernel.junction_content`(wt/_scratch_u17_1b_fix_tests/junction_content_base.py),
+# ---------------------------------------------------------------- 6. junction_source
+# [U17 ①-b 판정 후] graph/kernel: junction_source 는 전체 지문이 아니라 내용으로 대조한다(옛 값의 LUT 규칙 PdkDecl 이 checkout 절대 경로를 담아
+# 지문이 경로마다 달랐다). oracle: params(core fp_of)·temp_c = base 9255a22 코드로 잰 기준선(c) `kernel.junction_content`,
 # pdk_decl_sha256 = 이 test 가 PDK 선언 파일 바이트를 직접 해시한 값(a, metrics CONTRACT 'pdk_decl_sha256 = PDK 선언 파일 sha256').
 
-def _strings(node):
+def _strings(node, seen=None):
+    """값 안의 모든 문자열(dataclass 칸·tuple·list·frozenset·dict 키와 값을 따라 내려간다)."""
+    seen = set() if seen is None else seen
     if isinstance(node, str):
         yield node
+        return
+    if id(node) in seen or isinstance(node, (bytes, int, float, bool, type(None))):
+        return
+    seen.add(id(node))
+    if dataclasses.is_dataclass(node) and not isinstance(node, type):
+        for f in dataclasses.fields(node):
+            yield from _strings(getattr(node, f.name), seen)
     elif isinstance(node, dict):
-        for v in node.values():
-            yield from _strings(v)
-    elif isinstance(node, list):
+        for k, v in node.items():
+            yield from _strings(k, seen)
+            yield from _strings(v, seen)
+    elif isinstance(node, (tuple, list, frozenset, set)):
         for v in node:
-            yield from _strings(v)
+            yield from _strings(v, seen)
 
 
 @pytest.mark.parametrize("circuit", SEARCHED)
@@ -419,11 +371,12 @@ def test_junction_source_content_unchanged_from_base(env, circuit):
 
 @pytest.mark.parametrize("circuit", SEARCHED)
 def test_junction_source_value_has_no_checkout_path(env, circuit):
-    # 디스크 S0 파일(§2.4.3 형식)의 junction_source 칸 문자열 어디에도 이 checkout 의 저장소 경로가 없다(audit 8절 결함 -- 코드 수정 뒤 green).
+    # [xrun] 옛: 디스크 S0 파일의 junction_source 칸 문자열. 지금: 메모리 값(dc.base 필드) 안 문자열 어디에도 이 checkout 의 저장소 경로가 없다.
     run = _run(env, circuit)
-    cells = [r["fields"]["junction_source"] for r in _doc(run)["records"]
-             if (r["kind"], r["key"]) == ("graph", "kernel") and "junction_source" in r["fields"]]
-    assert len(cells) == 1
+    got = run.first.sctx.dc.base.field("graph", "kernel", "junction_source")
+    assert got is not None
+    strings = list(_strings(got.value))
+    assert strings, "junction_source 값에서 문자열을 하나도 못 찾았다(검사가 공허)"
     root = str(SKILL.parents[1]).replace("\\", "/").lower()
-    hits = [s for s in _strings(cells[0]["value"]) if root in s.replace("\\", "/").lower()]
+    hits = [s for s in strings if root in s.replace("\\", "/").lower()]
     assert not hits, "junction_source 값에 checkout 경로: %r" % hits[:5]

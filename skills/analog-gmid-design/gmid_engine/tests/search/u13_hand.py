@@ -101,9 +101,7 @@ def build(root, lut, decls, topo_doc, *, elements=(), constraints=(), supplies=N
     pdk, rule = decls
     tp, sp = write_case(root, topo_doc, supplies=supplies, elements=elements, constraints=constraints,
                         input_dc_v=input_dc_v, count_budget=count_budget, node_targets=node_targets)
-    from search.conftest import decl_path   # [U17 ①-b 3차] 두 선언을 읽어 온 파일 경로(필수 인자)
-    a = run_stage_a(tp, sp, lut, pdk_decl=pdk, lut_rule_decl=rule, pdk_decl_path=decl_path(pdk), lut_rule_decl_path=decl_path(rule),
-                    output_dir=root / "out")
+    a = run_stage_a(tp, sp, lut, output_dir=root / "out")      # [xrun J-1] 선언·경로 인자 없음(pdk·rule 은 단계 B·탐색 컨텍스트 몫)
     assert a.s1 is not None and a.s1.snapshot.record("graph", "s1v") is not None, a.report.get("stop_reasons")
     # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- build_search_context 와 같은 값(한 실행 = 한 설정, pipeline CONTRACT 5절)
     settings = SearchSettings(600.0, eval_budget, rbounds, (("front_budget_s", "u13 test fixture"),), cbounds)

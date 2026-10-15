@@ -8,10 +8,13 @@
 - 3 Halton·hit-and-run: 이 파일의 근기 역순 `phi`·소수 열과 선형 전류 좌표의 열린 현 걸음을 S3 evals 줄(origin probe k)과 대조.
   ln_idu 시험 하한 = [r9] max(칸 전도 하한, 칸 정점 하한)(conftest `conduction_floor`·`peak_floor`, 모든 쓰기 소자 -- 3.21 3 r8 의
   `ln_idu_floors` 위임 + 3.22 r9 전도 하한).
-- 3b 수리: 디스크 실패 줄(3.10 3 -- 같은 schema·code 의 ok 아닌 줄은 커널 0 실패)로 위반 크기·h 를 정한 `no_root_in_window` 를 시험
-  점에 심고, ⌈log2(|끝 − x|/res)⌉ bisection 의 평가 좌표를 계산한다(res = tol_V·gm/ID 최대, tol_V = 끝 |h| 최솟값/margin).
+- 3b 수리: 위반 크기·h 를 정한 `no_root_in_window` 실패를 시험 점에 심고, ⌈log2(|끝 − x|/res)⌉ bisection 의 평가 좌표를 계산한다
+  (res = tol_V·gm/ID 최대, tol_V = 끝 |h| 최솟값/margin). [xrun J-5, 사용자 결정 2026-10-15 "권장대로 해"] 실패를 심는 수단은 옛 '디스크 실패 줄'
+  (엔진이 S3 evals 를 실행 사이에 읽던 경로 -- 설계 40 v1.10 §2.4.3 에서 삭제) 대신 공개 대체 지점 `gmid_engine.search.layer0_center.evaluate`
+  (interface card J-5 절)를 test 안에서 감싸는 `inject_failures` 다. 아래 그 helper 의 docstring 이 커널 수·S3 줄 수 단언을 바꾼 근거를 적는다.
 - 4·5 최대-최소: t = 출발점 봉인 보고 항목 중 margin 유한한 i 의 min(1 − margin_i), 경성 행 ≥ 0.
 """
+import dataclasses
 import json
 import math
 import os
@@ -32,6 +35,10 @@ from gmid_engine.search import (
     layer0_start,
     start_points,
 )
+
+import gmid_engine.search.layer0_center as layer0_module
+from gmid_engine.core import FailureRecord
+from gmid_engine.sizing import REASON_NO_ROOT
 
 from .conftest import schema_of  # [U17 ①-b] graph/kernel 필드 읽기
 from .conftest import (
@@ -141,40 +148,57 @@ def box_centre_ln(kind, grids=GRIDS4):
     return 0.5 * (math.log(i_off) + math.log(i_max))
 
 
-def write_failures(root, ctx_fp, lines):
-    d = Path(root) / ctx_fp
-    d.mkdir(parents=True, exist_ok=True)
-    with open(d / "evals.jsonl", "w", encoding="utf-8") as f:
-        for ln in lines:
-            f.write(json.dumps(ln) + "\n")
+def theta_key(theta):
+    """θ(매핑 또는 (key, value) 쌍들) -> 비교 키(성분 키 tuple, float.hex). evaluate 인자 θ 와 S3 줄 θ 를 같은 형식으로 맞춘다."""
+    pairs = theta.items() if hasattr(theta, "items") else theta
+    return tuple(sorted((tuple(k), float(v).hex()) for k, v in pairs))
 
 
-def as_failure(line, fail):
-    """엔진이 쓴 evals 줄(같은 schema·code·cells·θ hex)을 ok 아닌 줄로 -- 3.9/3.10 3 디스크 실패 적중 입력."""
-    d = {k: v for k, v in line.items() if k not in ("objectives", "power_resolution_w", "snapshot_fp")}
-    d.update(ok=False, status=STATUS_FAILED, fail=fail, constraints=[], unmeasured=[])
-    return d
+def line_key(line):
+    """S3 evals 줄의 θ(`theta` 칸 -- JSON float 는 repr 왕복이라 비트 그대로) -> theta_key 형식."""
+    return theta_key(line["theta"])
 
 
 def no_root(dev, node, margin, h_lo, h_hi):
-    return {"class": "SEAL_VIOLATION", "devices": [dev], "margin": margin,
-            "detail": {"reason": "no_root_in_window", "node": node, "lo": 0.0, "hi": 1.8, "h_lo": h_lo, "h_hi": h_hi,
-                       "item": 7, "bounds": ["vds_axis", "rail"]}}
+    return FailureRecord("SEAL_VIOLATION", devices=(dev,), margin=margin,
+                         detail={"reason": REASON_NO_ROOT, "node": node, "lo": 0.0, "hi": 1.8, "h_lo": h_lo, "h_hi": h_hi,
+                                 "item": 7, "bounds": ("vds_axis", "rail")})
 
 
 def empty_window(node):
-    return {"class": "SEAL_VIOLATION", "devices": [], "margin": None,
-            "detail": {"reason": "empty_window", "node": node, "lo": 1.8, "hi": 0.0, "item": 7, "constraints": 3}}
+    return FailureRecord("SEAL_VIOLATION", devices=(), margin=None,
+                         detail={"reason": "empty_window", "node": node, "lo": 1.8, "hi": 0.0, "item": 7, "constraints": 3})
 
 
-def run_l0(tmp, topo_doc, lut, root, eval_budget=40, inject=(), constraints=()):
-    """root 에 실패 줄을 미리 쓴 뒤 새 컨텍스트로 layer0_start. -> (case, result, 이 실행이 새로 쓴 줄)."""
-    if inject:
-        probe = build_case(Path(tmp) / "fp", topo_doc, lut, eval_budget=eval_budget, constraints=constraints)
-        write_failures(root, probe.sctx.context_fp, inject)
+def inject_failures(monkeypatch, failures):
+    """[xrun J-5] layer0_center 의 평가 대체 지점(`layer0_module.evaluate`, 서명 evaluate(sctx, theta, cells, parent=None, origin=(),
+    geometry=None) -> EvalResult)을 감싼다. failures = {theta_key: FailureRecord}. 지정 θ 에서는 **진짜 evaluate 를 부른 뒤** 결과를
+    dataclasses.replace 로 실패로 바꾼다: status = STATUS_FAILED, failure = 합성 FailureRecord, 실패 결과의 모양(evaluation·objectives None,
+    constraints·unmeasured·warnings 빈 tuple -- 엔진이 실제로 낸 실패 EvalResult 와 같은 칸 값, cone·key·seq 는 진짜 결과 그대로).
+    진짜 evaluate 를 부르는 쪽을 고른 이유: EvalResult.key(평가 키)를 test 가 만들지 않아도 되고(공개 생성 경로 없음), 커널·S3 계수 관계
+    (kernel_calls = S3 evals 줄 수 = 고유 θ 수)가 그대로 성립한다. 그 대가로 옛 디스크 적중(커널 0, S3 줄 없음)과 달리 심은 점도 커널을 한 번
+    부르고 S3 줄(진짜 결과)을 남긴다 -- 각 test 의 줄 순서 단언은 이 줄을 넣어 고쳤다(test 주석). -> 실제로 바꾼 호출 [(theta_key, origin)] 목록."""
+    real = layer0_module.evaluate
+    hits = []
+
+    def wrapped(sctx, theta, cells, parent=None, origin=(), geometry=None):
+        r = real(sctx, theta, cells, parent=parent, origin=origin, geometry=geometry)
+        rec = failures.get(theta_key(theta))
+        if rec is None:
+            return r
+        hits.append((theta_key(theta), origin))
+        return dataclasses.replace(r, status=STATUS_FAILED, failure=rec, evaluation=None, objectives=None, constraints=(),
+                                   unmeasured=(), warnings=())
+
+    monkeypatch.setattr(layer0_module, "evaluate", wrapped)
+    return hits
+
+
+def run_l0(tmp, topo_doc, lut, root, eval_budget=40, constraints=()):
+    """새 컨텍스트로 layer0_start. -> (case, result, 이 실행이 쓴 S3 줄)."""
     case = build_case(tmp, topo_doc, lut, eval_budget=eval_budget, archive_root=root, constraints=constraints)
     r = layer0_start(case.sctx)
-    return case, r, lines_of(root, case.sctx.context_fp)[len(inject):]
+    return case, r, lines_of(root, case.sctx.context_fp)
 
 
 # ---------------------------------------------------------------- 형식
@@ -332,20 +356,28 @@ def test_halton_hit_and_run_probe_points(tmp_path, lut4, roots):
     assert outside >= 1
 
 
-def test_single_current_first_probe_direction_zero(tmp_path, lut4, roots):
+def test_single_current_first_probe_direction_zero(tmp_path, lut4, roots, monkeypatch):
     """θ 전류 변수 하나(변수 0, 기저 2): k = 1 이면 d = 2·φ_2(1) − 1 = 0 -- 걸음이 없어 시험 1 의 θ 전류 = 전류 중심 그대로이고
-    모든 시험 점은 상자 안 유한 값이다(3.21 3 'θ 전류 = p(상자로 자름)', I-18). 중심은 디스크 실패 줄로 실패시킨다."""
+    모든 시험 점은 상자 안 유한 값이다(3.21 3 'θ 전류 = p(상자로 자름)', I-18). 중심은 평가 대체 지점에서 빈 창 실패로 바꿔 실패시킨다
+    ([xrun J-5] -- 옛 디스크 실패 줄 대신)."""
     root0 = roots()
     case0, _, lines0 = run_l0(tmp_path / "a", circuit_c(), lut4, root0)
     centre = lines0[0]
+    assert centre["origin"] == {"stage": "layer0"}                       # 전제: 첫 줄 = 중심 점
+    hits = inject_failures(monkeypatch, {line_key(centre): empty_window("out")})
     root = roots()
-    case, r, lines = run_l0(tmp_path / "b", circuit_c(), lut4, root, eval_budget=3,
-                            inject=[as_failure(centre, empty_window("out"))])
+    case, r, lines = run_l0(tmp_path / "b", circuit_c(), lut4, root, eval_budget=3)
     s = case.sctx
-    assert dict(s.counters)["disk_hits"] >= 1
+    # [xrun J-5] 옛 단언 '디스크 실패 적중 계수 >= 1'의 대체: 대체 지점이 중심 점에서 실제로 실패를 냈다(주입이 공허하지 않다).
+    assert [h[0] for h in hits] and all(h[0] == line_key(centre) for h in hits)
+    assert r.start_status == STATUS_FAILED
     v = [x for x in s.domain.variables if x.component[0] == "current"][0]
-    assert lines and lines[0]["origin"] == {"stage": "layer0", "probe": 1}
-    assert th_of(lines[0])[v.component] == th_of(centre)[v.component]
+    # [xrun J-5] 심은 중심도 진짜 evaluate 를 한 번 불러 S3 줄을 남긴다(inject_failures docstring) -- 옛 '첫 줄 = 시험 1' 은
+    # '중심 줄 다음 첫 시험 줄 = 시험 1' 이 된다.
+    assert lines and lines[0]["origin"] == {"stage": "layer0"} and line_key(lines[0]) == line_key(centre)
+    probes = [ln for ln in lines if "probe" in ln["origin"]]
+    assert probes and probes[0]["origin"] == {"stage": "layer0", "probe": 1}
+    assert th_of(probes[0])[v.component] == th_of(centre)[v.component]
     for ln in lines:
         if "probe" in ln["origin"]:
             x = th_of(ln)[v.component]
@@ -354,26 +386,30 @@ def test_single_current_first_probe_direction_zero(tmp_path, lut4, roots):
 
 # ---------------------------------------------------------------- 3b 1단계 수리 (bisection)
 
-def _window_with_probe_failures(tmp_path, lut4, roots, fails):
-    """빈 창 회로: 1차 실행으로 시험 점 줄을 얻고, fails = {k: 실패 dict} 를 그 시험 점의 디스크 실패로 심어 다시 실행."""
+def _window_with_probe_failures(tmp_path, lut4, roots, fails, monkeypatch):
+    """빈 창 회로: 1차 실행으로 시험 점 줄을 얻고, fails = {k: FailureRecord} 를 그 시험 점의 평가 결과로 심어(평가 대체 지점,
+    [xrun J-5] -- 옛 디스크 실패 줄 대신) 다시 실행. 심은 시험 점마다 대체 지점이 실제로 실패를 냈는지 확인한다(주입 비공허)."""
     topo_doc = circuit_window()
     _, _, base = run_l0(tmp_path / "a", topo_doc, lut4, roots(), eval_budget=8)
     by_k = {ln["origin"].get("probe"): ln for ln in base}
-    inject = [as_failure(by_k[k], f) for k, f in sorted(fails.items())]
-    case, r, lines = run_l0(tmp_path / "b", topo_doc, lut4, roots(), eval_budget=60, inject=inject)
+    hits = inject_failures(monkeypatch, {line_key(by_k[k]): f for k, f in fails.items()})
+    case, r, lines = run_l0(tmp_path / "b", topo_doc, lut4, roots(), eval_budget=60)
+    assert {h[0] for h in hits} == {line_key(by_k[k]) for k in fails}
     return _attach_netlist(case, topo_doc), r, lines, by_k
 
 
-def test_repair_bisection_count_and_points(tmp_path, lut4, roots):
+def test_repair_bisection_count_and_points(tmp_path, lut4, roots, monkeypatch):
     """묶음 = n + 1 = 5 시험. 수리 가능 실패 둘(시험 2 margin 3, 시험 4 margin 2) 중 margin 최소 = 시험 4 에서 MC 좌표 수리:
     끝 = 칸 하한([r9] max(전도, 정점) -- 빈 창 실패 = 'MC 의 같은 실패' 아님 -> 통과 끝), 이어 ⌈log2(|끝 − x|/res)⌉ 번 bisection, 중점은 모두
     통과 쪽(빈 창)이라 좌표 = x + (끝 − x)/2^j. 마지막 점도 빈 창 실패(위반 크기 없음) -> 사슬 끝, 시험 6 으로 이어진다."""
     h_lo, h_hi, margin = -0.004, 0.01, 2.0
     fails = {2: no_root("MC", "inp", 3.0, -0.003, 0.02), 4: no_root("MC", "inp", margin, h_lo, h_hi)}
-    case, r, lines, by_k = _window_with_probe_failures(tmp_path, lut4, roots, fails)
+    case, r, lines, by_k = _window_with_probe_failures(tmp_path, lut4, roots, fails, monkeypatch)
     s = case.sctx
     seq_of = [ln["origin"].get("probe") for ln in lines]
-    assert seq_of[:4] == [None, 1, 3, 5]                   # 중심 + 커널 시험 1·3·5 (2·4 는 디스크 실패, 커널 0)
+    # [xrun J-5] 옛 [None, 1, 3, 5](2·4 는 디스크 실패 적중 -- 커널 0, S3 줄 없음). 지금 2·4 는 대체 지점이 진짜 evaluate 뒤 실패로 바꾸므로
+    # 커널 1회·S3 줄 1개씩 남는다(inject_failures docstring) -> 중심 + 시험 1~5 가 차례로.
+    assert seq_of[:6] == [None, 1, 2, 3, 4, 5]
     i5 = seq_of.index(5)
     x_th = th_of(by_k[4])
     comp = ("ln_idu", "MC")
@@ -411,10 +447,10 @@ def test_repair_bisection_count_and_points(tmp_path, lut4, roots):
     assert dict(s.counters)["kernel_calls"] == len(lines) == len({tuple(ln["theta_hex"]) for ln in lines})
 
 
-def test_no_repair_without_finite_window_ends(tmp_path, lut4, roots):
+def test_no_repair_without_finite_window_ends(tmp_path, lut4, roots, monkeypatch):
     """h 끝이 무한이면 위반 크기 없음 -> 수리하지 않는다: 시험 5 다음 줄이 곧 시험 6."""
     fails = {2: no_root("MC", "inp", 3.0, -0.003, math.inf), 4: no_root("MC", "inp", 2.0, -math.inf, 0.01)}
-    _, r, lines, _ = _window_with_probe_failures(tmp_path, lut4, roots, fails)
+    _, r, lines, _ = _window_with_probe_failures(tmp_path, lut4, roots, fails, monkeypatch)
     seq_of = [ln["origin"].get("probe") for ln in lines]
     i5 = seq_of.index(5)
     assert seq_of[i5 + 1] == 6

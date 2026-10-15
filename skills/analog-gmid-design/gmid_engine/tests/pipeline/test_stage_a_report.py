@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from gmid_engine.core import BoundedLRU, fp_of, read_pdk_decl
+from gmid_engine.core import fp_of
 from gmid_engine.graph import structure_tables
 from gmid_engine.pipeline import run_stage_a
 
@@ -24,27 +24,21 @@ import coupling_hand as CH
 import jrules_hand as J
 import s1v_hand as H
 
-# [U17 ①-a] run_stage_a(pdk_decl=) 필수(설계 40 §2.4.12 Q1 fail-closed -- S0 키의 PDK 선언 파일 내용 해시). 저장소 PDK 선언 원본.
-PDK_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json"), BoundedLRU(4))
-# [U17 ①-b] run_stage_a(lut_rule_decl=) 필수(설계 40 §2.4.7 SearchContext 칸 배정 `junction` -> S0 필드 junction_source = PDK 선언·LUT 생성 규칙 선언의 파생,
-# S0 키 입력). 저장소 LUT 생성 규칙 선언 원본.
-LUT_RULE_DECL = read_pdk_decl(str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(4))
-# [U17 ①-b 3차, 사용자 결정 2026-10-14 "(가) 경로 인자 필수"] run_stage_a(pdk_decl_path=, lut_rule_decl_path=) 필수 -- 위 두 선언을 읽어 온 파일
-PDK_DECL_PATH = str(Path(__file__).resolve().parents[3] / "assets" / "sky130_pdk_decl.json")
-LUT_RULE_DECL_PATH = str(Path(__file__).resolve().parents[3] / "assets" / "sky130_lut_rule_decl.json")
+# [xrun, 사용자 결정 J-1 2026-10-15] run_stage_a 는 PDK 선언·LUT 생성 규칙 선언과 두 선언 경로 인자를 받지 않는다(S0 키에만 쓰이던 인자 --
+# 설계 40 v1.10 §2.4.3 'PDK 선언 경로 인자와 진입 sha 대조' 삭제, interface card C1). 옛 상수 PDK_DECL·LUT_RULE_DECL·두 경로를 지웠다.
 
 # [U1b] applied_facts·ff_ratio_candidates (pipeline CONTRACT 2절), [U10] coupling (설계 40 §3.3 as-built: 단계 A 보고서 `coupling` 이
 # U15 전까지 유일한 출구)
-# [U17 ①-a] s0_snapshot (설계 40 §2.4.3 '손상 처리'·'계수': S0 수준 스냅샷 hit|miss|corrupt 를 실행 기록에 남긴다, pipeline CONTRACT 1절)
+# [xrun] 옛 S0 적중 칸은 없어졌다(설계 40 v1.10 §2.4.3 '단계 사이 전달': 단계 A 보고서에 S0 스냅샷 키를 두지 않는다, interface card C1 보고서 키 13개)
 # [U17 ①-d] 40 v1.8 §6-5 '대조 표 orbit_matching_crosstab 을 보고한다' -- 단계 A 보고서 키(pipeline CONTRACT 1절 [U17-1d])
 KEYS = ["applied_facts", "circuit", "count_budget", "coupling", "declared_comparison", "exit_code", "ff_ratio_candidates",
-        "orbit_matching_crosstab", "review_needed", "s0_snapshot", "status", "stop_reasons", "tables", "views"]
+        "orbit_matching_crosstab", "review_needed", "status", "stop_reasons", "tables", "views"]
 
 
 def _run(tmp_path, real_lut, doc, out="out"):
     p = tmp_path / (doc["topology_name"] + ".topology.json")
     p.write_text(json.dumps(doc), encoding="utf-8")
-    return run_stage_a(p, None, real_lut, pdk_decl=PDK_DECL, lut_rule_decl=LUT_RULE_DECL, pdk_decl_path=PDK_DECL_PATH, lut_rule_decl_path=LUT_RULE_DECL_PATH, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
+    return run_stage_a(p, None, real_lut, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
 
 
 def _pairs_hook(seen):
@@ -65,7 +59,7 @@ def test_files_and_sorted_keys(tmp_path, real_lut):
     assert all(keys == sorted(keys) for keys in seen)          # 하위 객체도 키 정렬
     assert data == json.loads(json.dumps(r.report))            # 결과의 report 와 같은 내용
     assert data["circuit"] == "cs" and data["exit_code"] == 0 and data["status"] == "ok"
-    assert data["s0_snapshot"] in ("hit", "miss", "corrupt")
+    assert len(KEYS) == 13                                     # [xrun] interface card C1: 정상·정지 경로 모두 같은 13개
 
 
 def test_stop_reason_format(tmp_path, real_lut):

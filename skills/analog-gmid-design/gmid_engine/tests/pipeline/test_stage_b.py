@@ -31,7 +31,7 @@ TESTS = Path(__file__).resolve().parents[1]
 if str(TESTS) not in sys.path:
     sys.path.insert(0, str(TESTS))
 from metrics.gb4_hand import (A, GRIDS, I0, L_GRID, LAM, TOY_MIM_DENSITY, VDS_GRID, VGS_GRID, VS_GRID, db, f_default,  # noqa: E402
-                              gain_blocks, memo_of, mos_e, stage_ab, toy_pdk, toy_rule, toy_settings, topology, two_e, write_case,
+                              gain_blocks, memo_of, mos_e, stage_ab, toy_pdk, toy_settings, topology, two_e, write_case,
                               write_lut)
 
 PI_FOL = 19 * 2 * 7 * 6
@@ -242,34 +242,11 @@ def test_deterministic_and_name_bijection_invariant(tmp_path, toy, pdk):
     assert _numbers(b3.report) == _numbers(b1.report)
 
 
-def _loose_design_values(value, path="result"):
-    """GraphSnapshot 밖에 실린 설계 값(타입 등록부 형식, 설계 40 §2.4.3·§2.4.10 ②) -- tests/pipeline/test_stage_a.py 의 같은 이름 helper 와 같은 정의."""
-    import dataclasses
-    from gmid_engine.core import GraphSnapshot, type_registry
-    names = set(type_registry.type_registry().names())
-    out, stack, seen = [], [(value, path)], set()
-    while stack:
-        v, p = stack.pop()
-        if isinstance(v, GraphSnapshot) or isinstance(v, (str, bytes, int, float, bool, type(None))) or id(v) in seen:
-            continue
-        seen.add(id(v))
-        cls = type(v)
-        if cls.__module__ + "." + cls.__qualname__ in names:
-            out.append((p, cls.__qualname__))
-        if isinstance(v, (tuple, list, frozenset, set)):
-            stack.extend((x, p + "[]") for x in v)
-        elif isinstance(v, dict):
-            stack.extend((x, p + "[" + repr(k) + "]") for k, x in v.items())
-        elif dataclasses.is_dataclass(v):
-            stack.extend((getattr(v, f.name), p + "." + f.name) for f in dataclasses.fields(v))
-    return sorted(out)
-
-
 def test_stage_b_result_carries_s0_snapshot_reference_only(tmp_path, toy, pdk):
     """[U17 ①-b] 설계 40 v1.9 §2.4.7 'S1v·Achievability·StartIntervals 묶음 객체' 행 '단계 결과는 S0 수준 스냅샷 참조만 넘긴다', §2.4.8 GB4 행
     (오케스트레이터 기본안 D2 2026-10-13: graph/ach = curve_checks·gain_checks·area_bound·headroom_rows·buffer_window_report·warnings·reasons·
     verdict·dof·count_budget·local_inputs, block_bounds 없음).
-    oracle (d): StageBResult 칸에 `achievability` 가 없고, 등록된 설계 값 형식이 GraphSnapshot 밖에 실리지 않으며, 실린 GraphSnapshot 하나 이상이
+    oracle (d): StageBResult 칸에 `achievability` 가 없고, 실린 GraphSnapshot 하나 이상이
     graph/ach 레코드(위 11 필드)를 가지고 verdict·count_budget 이 보고서와 같다. 입력 = 팔로워 + gain ≥ 10 dB(손 계산 exit 3, 첫 test 와 같은 입력)."""
     import dataclasses
     from gmid_engine.core import GraphSnapshot
@@ -277,7 +254,8 @@ def test_stage_b_result_carries_s0_snapshot_reference_only(tmp_path, toy, pdk):
     _, b = stage_ab(tmp_path, toy, tp, sp, pdk)
     assert (b.status, b.exit_code) == ("infeasible", 3)
     assert "achievability" not in {f.name for f in dataclasses.fields(StageBResult)}
-    assert _loose_design_values(b) == []
+    # [xrun] 옛 단언 '타입 등록부에 오른 형식이 GraphSnapshot 밖에 없다'는 지웠다 -- 설계 40 v1.10 §2.4.3 타입 등록부 삭제(test 변경 목록
+    # 'pipeline/test_stage_b.py:248-249 ... 그 단언을 지운다'). 등록부 없이 '설계 값 형식'을 정할 독립 기준이 없다.
     snaps = [getattr(b, f.name) for f in dataclasses.fields(b) if isinstance(getattr(b, f.name), GraphSnapshot)]
     snaps += [getattr(b, f.name).snapshot for f in dataclasses.fields(b)
               if isinstance(getattr(getattr(b, f.name), "snapshot", None), GraphSnapshot)]   # [이름 정정] 결과 칸 = S1Graph(.snapshot) -- test_stage_a 같은 helper 형식
@@ -293,11 +271,7 @@ def test_stage_b_result_carries_s0_snapshot_reference_only(tmp_path, toy, pdk):
 def _stage_a_ok(tmp_path, toy, pdk):
     """단계 A 만(입력 helper): 팔로워 + 이상 전류원, gain 제약 없음(위 test 와 같은 입력 -- 단계 A ok)."""
     tp, sp = write_case(tmp_path, follower(), elements=(("I1", "current_source", None),))
-    (tmp_path / "_rule").mkdir(parents=True, exist_ok=True)
-    from search.conftest import decl_path
-    rule = toy_rule(tmp_path / "_rule")
-    a = run_stage_a(tp, sp, toy, pdk_decl=pdk, lut_rule_decl=rule, pdk_decl_path=decl_path(pdk), lut_rule_decl_path=decl_path(rule),
-                    output_dir=tmp_path / "out")
+    a = run_stage_a(tp, sp, toy, output_dir=tmp_path / "out")          # [xrun J-1] 선언·경로 인자 없음(pdk 는 단계 B 몫)
     assert (a.status, a.exit_code) == ("ok", 0)
     return a
 
