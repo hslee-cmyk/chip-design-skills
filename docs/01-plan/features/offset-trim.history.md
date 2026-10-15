@@ -1,0 +1,74 @@
+---
+title: offset-trim -- 계획 이력
+plan: offset-trim.plan.md
+date: 2026-10-15
+---
+
+# offset-trim 계획 이력
+
+> 계획서(`offset-trim.plan.md`)에 넣지 않는 **경위·제안 원문 요지·원문 검토 기록·버전 이력**을 둔다. 현행 규칙·정의·게이트·완료조건은 계획서가 정본이다.
+
+## H1. 결정 경위
+
+### 2026-10-15 착수 결정 T-1~T-4
+
+- 원문: `wt/_drafts/user_decisions.md` '## offset trim 착수 결정 (2026-10-15 사용자 "권고대로 해")'.
+- 앞선 제안(오케스트레이터가 사용자에게 한 보고 요지, 계획 초안의 출발점):
+  - 주입 노드 = 입력 셀(S1v gain 뷰 첫 이득 블록 input 셀) drain 쪽 차동 노드 쌍 후보 가운데, 기존 수반 offset 해석(σ_in = √Σ(Z_i·gm_i·σ_VGS,i)²/A_dm)으로 단위 전류당 보정 t_n = z[n]/A_dm 이 크고 headroom 여유가 있는 쌍.
+  - 범위 I_range ≥ k·σ_in/|t_n|, LSB I_LSB ≤ V_res/|t_n|, N = ⌈log2(2·I_range/I_LSB)⌉, 단위 소자 W·L은 DAC mismatch DNL < LSB/2(Pelgrom, mismatch LUT).
+  - 구조 역할 trim_dac(신호 경로 제외, 바이어스·잡음·커패시턴스 기여는 남김), θ 변수 I_LSB 또는 I_T·단위 gm/ID·L, 제약 trim_range ≥ k·σ_in, metric trim_lsb·trim_dnl·trim_power·trim_area, 코드 양 끝 DC 동작점 검사.
+  - offset spec 의미 전환(σ_in ≤ spec → 잔여 offset, iv_matching_l 완화), drift·1/f는 유지. CMOS는 offset trim이 drift를 trim하지 않음(TI SBOA590 §1.2). 상보 입력쌍은 trim 각각. 단일 입력 회로는 spec에 offset 항목이 있을 때만.
+- 계획 초안 반영: 위 제안 가운데 사용자 결정 T-1~T-4로 확정된 것만 계획서 '확정'으로 두고, 나머지(설계식 형태, θ 변수 선택, iv_matching_l 완화 범위, 주입 노드 순위 기준 등)는 계획서 N7 '사용자 결정 필요'로 모았다.
+
+## H2. 원문 검토 기록 (2026-10-15)
+
+검토한 원문 7편(앞선 2편 Srinivasan 2007·Kay 2024 + 이번 5편). 보관 위치 `skills/analog-gmid-design/assets/technique/sources/`, 목록은 그 폴더 README.
+
+| 원문 | 계획 근거로 쓴 것 | 쓰지 않은 것(이유) |
+|---|---|---|
+| Mohamed 2013 (SIECPC) | 한 입력 단자에 DC 전압을 더하는 방식의 존재와 비용: 신호 경로 안 두 단 level shifter(식 (7) 버퍼 이득 < 1, 대역 제한), ΔV_GS가 I_Trim의 제곱근 함수(식 (4)) -- 기본안(전류 주입)과의 비교 근거 | 표 I의 W·L, I_optimum 5.41 µA, 200 µV 등 수치(원문 값 인용 금지). '온도 무관' 주장(식 (4)는 ΔV_TH 항을 남겨 V_TH 온도계수가 같을 때만 성립) |
+| von Staudt 2011 (IMS3TW) | trim 범위가 미보정 분포를 덮어야 한다는 조건(R = 2^n·LSB), 이진 가중 주 전이 DNL σ_U·√(2^n−1) 대 thermometer σ_U(Table I), 양의 DNL이 trim 뒤 분포 꼬리를 만든다는 것, 범위 손실과 bit 추가의 교환 | '±5σ_V' 범위 관례·5 % 단위 σ·Table II/III 수치(상수 발명 금지 -- 범위 배수는 사용자 spec k). 자기 trim·비교기 잡음 모델(이번 범위는 sizing, trim 알고리즘 밖) |
+| Zhou·Kay 2017 (TI SBOT037A) | e-Trim = 패키지 뒤 내부 보정 전류원 조정(p.1, 'low offset voltage and drift' 제품군으로 소개), Fig.2 입력쌍 쪽 trim 소자, chopper는 시간·온도 drift를 평균해 없애고 1/f를 제거(p.2, Table 1). v0.1의 'drift·1/f 제거는 chopper만' 표현은 v0.2에서 완화 -- 한 온도 trim의 drift 미보정 근거는 Kay 2024 p.7 | 제품 수치(OPA2191 등) |
+| Bertotti 2012 (ARS) | 차동 출력 전류 steering 단위 셀(Fig.3, Iout+/Iout−, 전류원을 끄지 않음 -- T-3 'I_A+I_B 일정'과 같은 구조), 최악 INL·DNL 분산식 (2)(3)(분할 m비트), 단위 전류 상대 σ의 Pelgrom 식 (4)(강반전)·(5)(약반전), 공통중심 배치 | 10 µA·40 nA·1.904 %·m ≤ 5 등 수치, 배치 그림의 계수 |
+| Lu 2007 (ICICDT) | 1단 출력(R1) 노드에 보조 transconductor 전류를 넣는 구조(Fig.2·3), 주입 소자를 더할 때 부하 전류 균형을 맞추는 크기 관계(식 (10)) -- 코드 중간점 계통 offset 검사의 근거, 주입 오차가 G_m,aux/G_m1에 비례(식 (9)) -- 주입 소자 gm을 작게 둘 근거 | 클럭·저장 커패시터 동적 기법 자체(trim 범위 밖), 1.898 mV 등 수치 |
+| Srinivasan 2007 (JSSC, 앞서 보관) | 'current-mode DAC로 증폭기 부하 전류를 조정해 offset 보상'(§I, p.1) -- 주입 노드 = 부하 쪽 근거 | floating-gate 프로그래밍 |
+| Kay 2024 (TI SBOA590, 앞서 보관) | CMOS drift는 offset에 비례하지 않아 한 온도 offset trim이 drift를 trim하지 않는다(§1.2, **PDF p.7** Figure 1-8 문단; 오케스트레이터 보고의 '§1.2'는 맞고 쪽은 p.7), CMOS 입력 모델의 trim 저항(Figure 1-6, p.6) | 제품 표 수치 |
+
+### 2026-10-15 v0.1 독립 검증(72/100, 차단 4건) 반영 → v0.2
+
+| 지적 | v0.1 | v0.2 반영 |
+|---|---|---|
+| B1 쌍 선택 | '같은 자기동형 궤도의 두 drain 넷' -- 단일 종단(미러 부하) 회로에서 두 drain 넷이 다른 궤도라 성립 안 함(`E/tests/graph/test_automorphism_orbits.py:125-129`) | N3.2: 쌍 = 입력 셀 안 derived `diff_pair` 두 소자의 drain 넷. 미러 부하 원리 문장(z[diode] ≈ −z[out]). N4에 9회로 적용 예상 표(차동 7회로) |
+| B2 DNL 식 | 이진 주 전이 σ_U·√(2^m_b−1) | N3.4: Bertotti 식(3) E[DNL²] = (2^(m+1) − 1 − 1/(2^N−1))·σ_U², 최악 전이 = thermometer 하나 켜짐 + 이진 전체 꺼짐, I_LSB = 2·I_u, 분할 규칙 다시 유도 |
+| B3 N·m 순환 | N을 I_FS/I_LSB에서, m을 DNL에서 매 평가 유도 | N3.1·N3.4: N·m은 1단계 추천 → 승인 고정값, 2단계는 I_u만 유도, 불가능하면 `trim_config_infeasible`로 멈추고 재승인 |
+| B4 해시 결속 | 파생 topology 해시 대조만 | N3.3 결속(spec `meta.topology_fp` F-10, structure.json stale F-8, 규칙 지문 F-9), D-13·D-14, TR-4 착수·병합 조건, N9 위험, 완료 조건 (1) 범위 |
+| 비차단 | -- | 1단계가 파생 topology·connectivity 표 제시(FR-T2), δ=0 코드 없음·게이트 넷 코드·꺼진 셀 포화 제외(N0.1·N3.3·N3.5), 보정 구간 = 균형 풀이 판정(N3.4), I_FS = I_T, 잔여 0.75·LSB 근거(X-12), σ_in은 파생 topology 값, 극성 규칙(N3.2), 선례와 다른 fail-closed 명시(X-13), 입력 셀은 `metric_structure` 하나만(F-5), D-3 한계 문구, R3 표현 완화, README Kay p.7 |
+| 범위 이탈 | -- | X-8(D-2), X-9(서명), X-10(승인 대상), X-11(D-8) 추가. v0.1 X-2(계통 offset 항)는 X-14로 합쳤다 |
+
+### 2026-10-15 v0.2 재검증(84/100, 차단 2건) 반영 → v0.3
+
+| 지적 | v0.2 | v0.3 반영 |
+|---|---|---|
+| C1 계통 offset 이중 계산 | 포함 조건 [V_sys ± k·σ_in] ⊆ [V_in(−end), V_in(+end)] -- 균형 풀이 끝 코드 전압이 이미 계통 offset을 품어 두 번 셈 | N3.4: [−k·σ_in, +k·σ_in] ⊆ [V_in(−end), V_in(+end)], 부호 규약(V_sys,s = `output_error_v`/A_dm, `E/metrics/offset_systematic.py:7-8`), 선형 하한 \|t\|·I_T ≥ k·σ_in + \|V_sys,s\|와의 동치 명시. N0.1·N3.6·X-14 정정 |
+| C2 유도 안 된 상수 1/2 | DNL 제약 k·σ_DNL ≤ 1/2, m 선택도 그 식 | N3.4: DNL 별도 제약 삭제, 잔여 판정 Δ_max/2 ≤ V_res 하나, m = 잔여 창이 열리는 가장 큰 m, 음의 DNL 무해 근거(Staudt §III, paper.md 696-712행), 0.75·LSB 문장 삭제. X-12 정정, X-16(해소) |
+| 비차단 | 코드 상태 '셋'과 넷 나열 불일치, 코드 표현이 connectivity 안 | 상태 넷으로 정정(D-17 정합), 전용 게이트 넷 + `trim_decl` DC 값 벡터(D-10), N7.3 G-1~G-5(전류 0 MOS, 구조 동일 비교 필드, 지문 제외 필드, N 추천 입력점·순서, σ_U 기준), N9 위험 2행, X-15 |
+
+### 2026-10-15 v0.3 재확인(92/100, 차단 0) 뒤 사용자 결정 T-5 → v0.4
+
+- 원문: `wt/_drafts/user_decisions.md` '## NFR-4 card 2·offset trim 결정 (2026-10-15 사용자 "1~3 권장대로")' T-5.
+- 반영: N2 T-5 행, FR-T9 단일 온도 trim 한계 문구, N5.1 TR-7 검증 항목(판정 27 °C·TT, 보고 전용 온도 sweep·코너 보정 구간·끝 코드 headroom 온도 의존, σ_in 일치 첫 확인, 샘플 수 비용 한계, 샘플마다 trim 절차 흉내, 패키징 응력·장기 drift·측정 잡음 범위 밖), D-9 온도 영향 문장, G-6(단일 종단 출력 균형 기준)·G-7(코드 DC 값 벡터 해시 대 규칙 유도)·G-8(바이어스 원천별 온도 의존 보고), N9 위험 5행.
+- 근거: Kay 2024 §1.2 PDF p.7, Zhou 2017 p.1.
+
+## H3. 측정 근거
+
+- 엔진 현황 사실 문장의 파일:줄은 2026-10-15 base `cfe2e31` 기준 읽기 확인(계획서 N3.0 표). 엔진 코드 변경 없음.
+- 계획서 N4 '적용 예상' 표는 2026-10-15 `assets/library/*.topology.json`의 ports(differential_input_p/n 게이트)와 netlist drain 연결을 읽어 만든 것이다. 엔진 실행 결과가 아니다(S1 `diff_pair` 생성 여부는 TR-2 측정).
+
+## Version History
+
+| 버전 | 날짜 | 변경 |
+|---|---|---|
+| 0.1 | 2026-10-15 | 초안: 계획서·history 신설, 원문 5편 보관(누적 7편). 사용자 승인 전 |
+| 0.2 | 2026-10-15 | 독립 검증 차단 B1~B4·비차단 반영, D-13~D-17·X-8~X-14 추가. 사용자 승인 전 |
+| 0.3 | 2026-10-15 | 재검증 차단 C1(계통 offset 이중 계산)·C2(DNL 상수 1/2) 반영, G-1~G-5·X-15·X-16 추가, D-3·D-10·D-14 갱신. 사용자 승인 전 |
+| 0.4 | 2026-10-15 | 사용자 결정 T-5(온도 한계) 반영, N5.1 신설, G-6~G-8 추가, D-9 설명 보강. 사용자 승인 전(D-1~D-17·X 결정 대기) |
