@@ -10,7 +10,7 @@ plan_version: 0.4
 > **Summary**: 승인된 계획 `offset-trim.plan.md` v0.4(사용자 결정 T-1~T-6)를 엔진 `gmid_engine` 설계로 옮긴다. 계획 N7.3의 TR-0 닫을 항목 G-1~G-8과 TR-7 샘플 수 규칙을 닫고(§3, §17), 결정적 변환 `augment_trim`, `trim_decl`·승인 기록·결속, 1단계 후보·추천, 2단계 θ·유도·코드 상태·균형 풀이·제약·metric, 구조 역할 `trim_dac`, graph 필드 소유, 결과 JSON, 파일 분할, card 범위와 test 초안, 9회로 적용 판정을 정한다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (design 작성자 역할)
-> **Status**: design 초안 v0.2 (2026-10-15). v0.1 독립 검증 66/100의 차단 B1·B3·B4와 비차단 N1~N13을 반영했다. 같은 날 사용자 결정 T-7~T-13(TD-1 θ안 등)을 반영해 B2는 소멸, B5는 시험 회로(T-9)로 정리했다. 열린 사용자 값은 TD-3·TD-6이다(§18.1). 재검증·사용자 승인 전이다. 사용자 결정이 더 필요한 곳과 원래 취지와 다른 판단은 정하지 않고 §18에 모았다.
+> **Status**: design 초안 v0.2 (2026-10-15). v0.1 독립 검증 66/100의 차단 B1·B3·B4와 비차단 N1~N13을 반영했다. 같은 날 사용자 결정 T-7~T-13(TD-1 θ안 등)을 반영해 B2는 소멸, B5는 시험 회로(T-9)로 정리했다. 열린 사용자 값은 TD-3이다(TD-6은 T-14로 닫힘, §18.1). 재검증·사용자 승인 전이다. 사용자 결정이 더 필요한 곳과 원래 취지와 다른 판단은 정하지 않고 §18에 모았다.
 > **기준**: 엔진 인용은 `944020f`(worktree `wt/trim-design`)의 `파일:줄`이다. `E/` = `skills/analog-gmid-design/gmid_engine/`. 엔진 design 인용은 `40 §x`(`gain-budget-gmid-sizing.40-engine.design.md`), `41 §x`.
 > **전제(T-4)**: 엔진 구현은 NFR-4 card 2 → XRUN-F1 card A·B·C 병합 뒤다. 이 문서는 그 병합 뒤 구조(40 §2.4.4~§2.4.14: `donors`·`counters` 필수 블록 호출, 블록 결과 색인, `RunCounters`, E_total, `search_ceiling`·`search_stop`, BLAS 고정, `ThetaCoords`)를 전제로 쓰고 충돌하지 않게 했다(§12.4).
 
@@ -53,6 +53,7 @@ plan_version: 0.4
 | T-11 | structure.json 2개 재승인은 TR-4 착수 전 | §11 절차 |
 | T-12 | TR-7 식 S + 검증자 조건 3개 채택 | §17 |
 | T-13 | connectivity 표 도구를 새 엔진 로더로 이식 | TR-T |
+| T-14 | 보고 전용 온도 sweep 범위 −40 ~ 80 °C | §17 |
 
 원문: `wt/_drafts/user_decisions.md` '## offset trim design 결정 (2026-10-15 사용자 "TD-1은 θ안, TD-8은 다로 해, TD2~TD7은 제안대로")'.
 
@@ -775,7 +776,7 @@ v0.2 초안의 `cone`·`cone_trim` 분리, `check_theta` 서명 확장, `trim_co
 | **TR-5b** DAC 값·제약·metric | §10.3, §10.3a, §10.4, §10.6, §10.7 | TR-5a, **시험 회로 승인**(T-9, §16.1) | **시험 회로**에서 2단계 front 생성, θ 하나 = 커널 1회(`kernel_calls` == 고유 키 수), 판정 1·5(재계산 0), card C 예산 규칙 그대로 동작, 결과 JSON `trim.stage2`, front 점에서 `trim_range` 활성(전력·면적이 I_u를 하한으로 미는지) 보고 | 제약 행 c 부호: 손 계산 / I_u 상자 = w_c로 나눈 셀 상자 ∩ 원천 행 상자(손 계산) / `trim_point_blocks`는 선언 없는 실행에서 불리지 않음 |
 | **TR-5c** 코드 상태 균형 풀이 | §10.5 | TR-5b | **시험 회로**에서 세 상태 풀이 수렴, 포화 행에서 off·triode 제외, 실패 사유 | 오라클: 같은 고정 기하에서 SPICE `.op` + 입력 차 sweep으로 V_in 대조(오라클 측 독립, 허용폭 = 노드 tol 전파) / 선형 예측과의 차 보고 |
 | **TR-6** 의미 전환 | §10.8 | TR-5c | `iv_matching_l` 하한 꺼짐(선언 시), 보고 문구, 선언 없는 실행 비트 동일 | 선언 유무 두 spec에서 출발값 차이가 L 하한 행에만 있음 |
-| **TR-7** 검증 | §17 전부(식 S + 검증자 조건 셋, T-12), 9회로 일반성(§16), 오라클 확장(레인 P: 코드 입력·표본별 코드 선택·온도), `verified_by` 붙이기 | TR-6, 오라클 확장, **시험 회로 승인**(T-9), 온도 sweep 범위(TD-6, 착수 전 사용자 결정) | 2단계 판정(§17-1·2)은 **시험 회로**에서 통과, 9회로는 일반성(사유 코드·선언 없음 무동작), 완료 조건 (1)~(5)(계획 N5) | §17 |
+| **TR-7** 검증 | §17 전부(식 S + 검증자 조건 셋, T-12), 9회로 일반성(§16), 오라클 확장(레인 P: 코드 입력·표본별 코드 선택·온도), `verified_by` 붙이기 | TR-6, 오라클 확장, **시험 회로 승인**(T-9), 온도 sweep 범위 −40 ~ 80 °C(T-14, 닫힘) | 2단계 판정(§17-1·2)은 **시험 회로**에서 통과, 9회로는 일반성(사유 코드·선언 없음 무동작), 완료 조건 (1)~(5)(계획 N5) | §17 |
 | **TR-L** LUT VGS 음수 축(사용자 결정 T-10) | LUT 생성 규칙 변경: 꺼진 스위치 VGS 범위(음수, 크기 = 레일 전위 폭까지 -- 레일 선언에서 유도)를 VGS 축에 더해 진성 용량(cgg·cgd·cgs·cgb) 열을 만든다. 기존 VGS ≥ 0 격자·값은 비트 동일, 새 버전 파일(`lut_v2_location.json` 새 항목·sha256), `lut/CONTRACT.md` 축 절, 축 검사(`axis_guard`)는 새 축 범위로. 엔진 조회는 off 소자 용량에만 쓴다 | TR-0 승인(TR-1과 병렬) | 기존 축 값 비트 동일(재생성 대조), 새 축에서 ngspice `.op` 진성 용량 대조, 생성 규칙 문서 | 생성기와 독립인 ngspice 직접 조회로 표본 대조 |
 | **TR-T** connectivity 표 도구 이식(사용자 결정 T-13) | `assets/topology_to_markdown.py`가 옛 엔진 로더(`legacy/stick_diagram.py`) 대신 새 엔진 로더(`load_topology`, 파생 topology는 `topology_from_data`)를 쓰게 옮긴다. 표 형식(넷 기준 표·dangling·gate 전용 넷 표지)은 그대로 | TR-3(`topology_from_data`) | library 9회로 표가 이식 전과 같은 내용, 파생 topology 표 생성, `legacy` import 0 | 이식 전 도구 출력(기존 `*.topology.md`)과 대조 |
 
@@ -829,7 +830,7 @@ v0.2 초안의 `cone`·`cone_trim` 분리, `check_theta` 서명 확장, `trim_co
 |---|---|---|---|
 | 1 | σ_in 일치 | 파생 topology 판정 점(코드 seal_plus, trim 없는 MC)에서 SPICE MC 표본 n개의 입력 환산 offset 표준편차 σ̂. 합격: \|σ_eng − σ̂\| ≤ k·σ̂/√(2(n − 1)) + 엔진 분해능(`offset_analysis` resolution). k = spec 배수(새 신뢰 상수 없음) | 판정 전제 |
 | 2 | 27 °C 잔여 | 표본마다 trim 절차 흉내: seal_plus에서 offset 측정 → 모든 코드 c의 잔여를 오라클 DC로 재고 \|잔여\| 최소 코드 선택 → 잔여. **표본 선택 창(검증 N6)**: 중심 = **공칭 offset**(소자 mismatch 0인 같은 파생 회로의 δ = 0 기준 입력 환산 offset, 오라클 공칭 DC로 잰 값 V_nom -- 0이 아니다), 창 = [V_nom − k·σ̂, V_nom + k·σ̂]. **합격: trim 전 offset이 창 안인 표본 전부가 잔여 ≤ V_res(실패 0)**. 창 밖 표본 수와 그 잔여는 보고만. 더해 **결정적 끝 표본 둘**: 소자 공칭 + 입력에 직렬 이상 전압 ±k·σ_eng를 넣은 회로(trim 전 offset = V_nom ± k·σ_eng, 창의 두 끝)에서 같은 절차 → 잔여 ≤ V_res | 판정(완료 조건 (3)) |
-| 3 | 고정 코드 온도 sweep | 2의 표본·코드를 고정하고 온도 점마다 잔여. 온도 점 = 사용자가 정하는 온도 범위의 끝점과 판정 온도(TD-6, TR-7 착수 전 사용자 결정 -- 새 온도 상수 없음). §3.8 분해 표 | 보고 |
+| 3 | 고정 코드 온도 sweep | 2의 표본·코드를 고정하고 온도 점마다 잔여. 온도 점 = 사용자 결정 T-14의 보고 전용 범위 −40 ~ 80 °C의 두 끝점과 판정 온도(LUT `temp_c`). 범위 값은 사용자 값이고 판정에 쓰지 않는다(T-5). §3.8 분해 표 | 보고 |
 | 4 | 코너별 보정 구간 | PDK 선언 코너마다 공칭 소자의 end_plus·end_minus 균형 V_in | 보고 |
 | 5 | 끝 코드 headroom 온도 의존 | 3의 온도 점마다 끝 코드 포화 여유(off 소자 제외) | 보고 |
 
@@ -874,13 +875,13 @@ v0.2 초안의 `cone`·`cone_trim` 분리, `check_theta` 서명 확장, `trim_co
 | TD-4 → T-11 | structure.json 2개 재승인은 TR-4 착수 전 | §11 절차 |
 | TD-5 → T-12 | 식 S + 검증자 조건 셋 | §17 |
 | TD-7 → T-13 | 표 도구를 새 엔진 로더로 이식 | TR-T |
+| TD-6 → T-14 | 보고 전용 온도 sweep 범위 = −40 ~ 80 °C(2026-10-15 사용자 "TD-6은 -40~80") | §17-3·5, TR-7 |
 
 **열림**(사용자 값):
 
 | ID | 질문 | 막는 것 |
 |---|---|---|
-| TD-3 | 단일 출력 6회로의 출력 기준 DC 값(`node_voltage_targets_v`, CI-15) | 그 회로들의 추천·2단계(값이 정해질 때까지 후보표까지만) |
-| TD-6 | TR-7 온도 sweep 범위 | TR-7 착수(착수 전 사용자 결정) |
+| TD-3 | 단일 출력 6회로의 출력 기준 DC 값(`node_voltage_targets_v`, CI-15) -- 오케스트레이터가 회로별 선택지를 제안하고 사용자가 고른다(T-14 원문) | 그 회로들의 추천·2단계(값이 정해질 때까지 후보표까지만) |
 | (절차) | 시험 회로 topology·spec 승인(§16.1) | TR-5b·5c·7의 2단계 완료 조건 |
 
 ### 18.2 원래 취지와 다름(따로 보고)
