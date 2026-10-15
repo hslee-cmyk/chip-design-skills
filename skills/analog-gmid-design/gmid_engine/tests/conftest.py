@@ -12,17 +12,8 @@ import json
 import os
 import sys
 
-# [U17 ①-b 2차, 사용자 결정 8(2026-10-14)] 판정 환경 OpenBLAS 스레드 수 1 고정 -- NFR-4 결정론 결함 우회, 엔진 원인 수정은 U17 ② 착수 전
-# (wt/_drafts/engine/U17_FOLLOWUPS.md 2026-10-14 항목: 미지정 시 two_stage_ota·two_stage_ota_sf·sf_pushpull 의 start.row·rungs·macro·
-# area_est_m2 지문이 비트 단위로 달라진다). 이 고정은 결함을 고친 것이 아니다 -- 결함 자체는
-# tests/integration/test_blas_thread_determinism.py 의 xfail(strict) test 가 계속 드러내고, 엔진이 고쳐지면 XPASS(=FAIL)로 알린다.
-# 판정 재현성을 위해 바깥 환경 값을 존중하지 않고 1 로 강제한다(하위 프로세스도 물려받는다). numpy 가 이미 import 됐으면 OpenBLAS 가
-# 스레드 수를 이미 정해 고정이 듣지 않으므로 조용히 넘어가지 않고 멈춘다.
-_BLAS_THREAD_ENV = ("OPENBLAS_NUM_THREADS",)
-if "numpy" in sys.modules:
-    raise RuntimeError("numpy 가 gmid_engine tests conftest 보다 먼저 import 됐다 -- OPENBLAS_NUM_THREADS=1 고정이 듣지 않는다")
-for _name in _BLAS_THREAD_ENV:
-    os.environ[_name] = "1"
+# [NFR-4 card 2, interface card 3.2] 옛 OPENBLAS_NUM_THREADS=1 강제(와 numpy 선행 import 거부)를 지웠다 -- BLAS 스레드 고정은 이제
+# 엔진이 import 때 한다(interface card C1 `gmid_engine.core.pin_blas_threads`, 설계 40 §2.4.13 (1)). test 는 바깥 값을 덮지 않는다.
 
 # tests -> gmid_engine -> analog-gmid-design(패키지 부모)
 _SKILL_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -45,3 +36,31 @@ def _isolate_table_cache():
 
 
 _isolate_table_cache()
+
+
+# ---------------------------------------------------------------- 무거운 test 마커 (interface card C6, 사용자 결정 N-2)
+# 마커 `slow` + 옵션 `--run-slow`. `--run-slow` 가 없으면 `slow` 표시 항목을 수집 뒤 `pytest_deselected` 로 뺀다(요약에 deselected 로 보인다).
+# `-m` 식과 무관하게 옵션으로만 가른다(설계 40 §2.4.13 (5) '무거운 test 마커' -- `-m` 을 주면 규칙 H 마커의 기본 제외가 꺼져 suite 구성이 바뀐다).
+# 반드시 포함 실행(판정 agent 전체 suite, 병합 직전): `python -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow`.
+SLOW_MARKER = "slow"
+RUN_SLOW_OPTION = "--run-slow"
+
+
+def pytest_addoption(parser):
+    parser.addoption(RUN_SLOW_OPTION, action="store_true", default=False,
+                     help="slow 표시 test(9회로 BLAS 스레드 결정성 등)도 실행한다. 없으면 수집 뒤 deselected")
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", SLOW_MARKER + ": 무거운 test -- " + RUN_SLOW_OPTION + " 를 줄 때만 실행(없으면 deselected)")
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption(RUN_SLOW_OPTION):
+        return
+    keep, drop = [], []
+    for it in items:
+        (drop if it.get_closest_marker(SLOW_MARKER) else keep).append(it)
+    if drop:
+        config.hook.pytest_deselected(items=drop)
+        items[:] = keep
