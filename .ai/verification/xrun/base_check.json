@@ -15,8 +15,11 @@
     "test_commit_trailers": "4/4 'Role: test' + 'Change-Id: xrun'",
     "test_diff_scope": "git diff --name-only 0538dec e86b454 -> 51 files, all under skills/analog-gmid-design/gmid_engine/tests/ (engine source 0)",
     "test_diff_patch_sha256": "34f5152c9ab3289c807300943fa18dbb3efacc003f5c057f0f586224b2c9e026",
-    "code_commit": null,
-    "note": "code branch not yet frozen; step 6 judges the merged result"
+    "code_commit": "7e1b4bed88130f69e52c0594633350f60a19280c",
+    "note": "step 6 judged the merged result 8f1afc5",
+    "code_commit_trailers": "Role: code, Change-Id: xrun",
+    "merged_head": "8f1afc5d4ed5d97af77e48ea62d5d5db3c8076e5",
+    "merged_check": "integ/xrun 8f1afc5 = 0538dec + e86b454 + 7e1b4be, no conflict; tests tree == e86b454 (diff 0), non-test tree == 7e1b4be (diff 0); 7e1b4be touches 0 test files"
   },
   "red": {
     "setup": "isolated clone (git clone --no-hardlinks --no-local <xrun-audit>, origin removed) detached at 0538dec + 'git diff --binary 0538dec e86b454 | git apply --index' (index tests == e86b454, non-test paths == 0538dec: both diffs 0 files)",
@@ -426,5 +429,90 @@
     },
     "independence": "expected values = design formulas / hand LUT (I-17 phi_2(1)=0 step, ceil(log2(|end-x|/res)) bisection with res from r4_arrays GM/ID max, conduction/peak floor helpers in conftest) unchanged from 0538dec; new expectations (seq [None,1..5], centre line first, probe 1 after centre, start_status failed, hits set) follow from the J-5 injection mechanics written in inject_failures docstring, not from engine output. No disk_* name used."
   },
-  "deleted_name_grep_tests": "e86b454 tests: 0 hits for every 1.3.5 name except s0_snapshot 1 (fixtures/u17_1b_s0_baseline.json _source, out of scope)"
+  "deleted_name_grep_tests": "e86b454 tests: 0 hits for every 1.3.5 name except s0_snapshot 1 (fixtures/u17_1b_s0_baseline.json _source, out of scope)",
+  "head": {
+    "suite": {
+      "per_package_passed": {
+        "authoring": 1547,
+        "convergence": 93,
+        "core": 979,
+        "generality": 802,
+        "graph": 1928,
+        "integration": 428,
+        "layout": 493,
+        "lut": 1047,
+        "metrics": 1213,
+        "pipeline": 81,
+        "search": 509,
+        "sizing": 811,
+        "structure": 63
+      },
+      "passed": 9994,
+      "failed": 0,
+      "xfailed": 3,
+      "skipped": 0,
+      "deselected_by_conftest": "structure 1 (rule H marker, run separately: 6 violations == base 6)"
+    },
+    "collect_delta": {
+      "base_0538dec": 10114,
+      "head": 9997,
+      "removed": 159,
+      "added": 42,
+      "removed_by_file": [
+        "      7 gmid_engine/tests/core/test_s0_slot.py",
+        "     71 gmid_engine/tests/core/test_snapshot_codec.py",
+        "     22 gmid_engine/tests/core/test_type_registry.py",
+        "      5 gmid_engine/tests/integration/test_code_hash_checkout.py",
+        "     17 gmid_engine/tests/integration/test_s0_layer_9circuits.py",
+        "     30 gmid_engine/tests/pipeline/test_stage_a.py",
+        "      1 gmid_engine/tests/search/test_constraint_classes.py",
+        "      1 gmid_engine/tests/search/test_kernel.py",
+        "      1 gmid_engine/tests/search/test_s0_fields.py",
+        "      3 gmid_engine/tests/search/test_start_intervals.py",
+        "      1 gmid_engine/tests/search/test_start_points.py",
+        ""
+      ],
+      "added_by_file": [
+        "      4 gmid_engine/tests/integration/test_no_s0_files_written.py",
+        "      3 gmid_engine/tests/integration/test_rerun_s3_independence.py",
+        "     16 gmid_engine/tests/integration/test_s0_layer_9circuits.py",
+        "      5 gmid_engine/tests/pipeline/test_stage_a.py",
+        "      1 gmid_engine/tests/search/test_find_front.py",
+        "      6 gmid_engine/tests/search/test_front_entries.py",
+        "      1 gmid_engine/tests/search/test_kernel.py",
+        "      2 gmid_engine/tests/search/test_search_context.py",
+        "      1 gmid_engine/tests/search/test_start_points.py",
+        "      1 gmid_engine/tests/structure/test_structure_rules.py",
+        "      2 gmid_engine/tests/structure/test_structure_rules_reject_fixtures.py",
+        ""
+      ]
+    },
+    "green_of_red": {
+      "head_status_of_red": {
+        "passed": 279
+      },
+      "missing": []
+    },
+    "measure_summary": {
+      "g10_bad": [],
+      "a3_bit_identical_diffs": [],
+      "a4_prior_s3_diffs": [],
+      "engine_new_entries": [],
+      "engine_removed_entries": [],
+      "s0_snapshot_in_engine": false,
+      "process_exits": [],
+      "tmp_nonempty": [],
+      "n_process_runs": 36
+    },
+    "evidence_files_sha256": {
+      "measure_compare.json": "f6033d44cae79f4550d3372b40cf0f5987886c7ba5b101be73d1f6db6f477c38",
+      "ast_stores.json": "cee48e383d386f239c3ddf6726be50be5a8327c529a456ed356945ebbf7724e9",
+      "v5_removed_tests.json": "4dc4ebd7a2322f5fe07d19a0cfcac796e2d58f53e6a64983bf3e46e509b49ded",
+      "v5_weakening_diff.txt": "a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54",
+      "ruleH_head.txt": "c537a9a510fa76c43d879f9dcde67e10713f50493b883834b4644865fb6b8c0b",
+      "ruleH_base.txt": "e079e5e22a77c4c2b5f1877706019baaee0aa78641a04d1e5209867fff57f54a",
+      "collect_base.txt": "0ffe5c2a3853da31967f8c0c3a092eff285f4cd21d7f695654bf2e935fc21efe",
+      "collect_head.txt": "106749445e18bf14afd7b2b3513c922500996c8ae070c403e21526b07ccf9829"
+    }
+  }
 }

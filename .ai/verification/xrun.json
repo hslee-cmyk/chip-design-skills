@@ -4,7 +4,7 @@
   "evidence_type": "red-green",
   "base_commit": "0538decfae6661449795c0446fc4f97e905420e0",
   "test_commit": "e86b4541ff26a15bd3e026e2acb211dac3b61285",
-  "code_commit": null,
+  "code_commit": "7e1b4bed88130f69e52c0594633350f60a19280c",
   "red": {
     "test_ids": [
       "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[common_gate_amplifier]",
@@ -103,18 +103,132 @@
       "name": "rule_k_bad_fixture_violations",
       "value": 13,
       "command": "pytest tests/structure -k rule_k_"
+    },
+    {
+      "name": "head_passed",
+      "value": 9994,
+      "command": "scripts/run_suite.sh (병합본 8f1afc5)"
+    },
+    {
+      "name": "head_failed",
+      "value": 0,
+      "command": "scripts/run_suite.sh"
+    },
+    {
+      "name": "head_xfailed",
+      "value": 3,
+      "command": "scripts/run_suite.sh"
+    },
+    {
+      "name": "head_skipped",
+      "value": 0,
+      "command": "scripts/run_suite.sh"
+    },
+    {
+      "name": "collected_base",
+      "value": 10114,
+      "command": "pytest gmid_engine/tests --collect-only (base 0538dec)"
+    },
+    {
+      "name": "collected_head",
+      "value": 9997,
+      "command": "pytest gmid_engine/tests --collect-only (head)"
+    },
+    {
+      "name": "rule_h_violations_head",
+      "value": 6,
+      "command": "pytest gmid_engine/tests/structure -m structure_test_mapping"
+    },
+    {
+      "name": "red_ids_green_at_head",
+      "value": 279,
+      "command": "results/green_of_red.json (suite junit)"
+    },
+    {
+      "name": "measure_processes",
+      "value": 36,
+      "command": "scripts/run_measure.sh"
+    },
+    {
+      "name": "a3_a4_output_diffs",
+      "value": 0,
+      "command": "scripts/compare_runs.py"
+    },
+    {
+      "name": "s0_writers_per_searched_circuit",
+      "value": 31,
+      "command": "scripts/compare_runs.py"
+    },
+    {
+      "name": "engine_new_entries",
+      "value": 0,
+      "command": "scripts/run_measure.sh engine listing before/after"
+    },
+    {
+      "name": "graph_outside_new_stores",
+      "value": 0,
+      "command": "scripts/ast_stores.py (counters 칸 1 = 같은 칸 키 변경)"
     }
   ],
   "approvals": [],
   "auditor_run": {
-    "time": "2026-10-15T15:20:00+09:00",
-    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrun-audit (isolated clones C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrun_audit/{red,base})",
+    "time": "2026-10-15T16:20:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrun-audit (격리 복제본 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrun_audit/{head,red,base})",
     "commands": [
-      "격리: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrun-audit _scratch_xrun_audit/red && git -C red checkout --detach 0538dec && git -C red diff --binary 0538dec e86b454 > test_diff.patch && git -C red apply --index test_diff.patch && git -C red remote remove origin; base = same clone at 0538dec",
+      "V1: cd <head clone>/skills/analog-gmid-design && for p in authoring convergence core generality graph integration layout lut metrics pipeline search sizing structure; do (unset OPENBLAS_NUM_THREADS GMID_S0_SNAPSHOT_DIR; PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -m pytest gmid_engine/tests/$p -q -p no:cacheprovider -rfEX --durations=5 --junitxml=results/suite_head/$p.xml); done",
+      "격리: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrun-integ _scratch_xrun_audit/head && git -C head checkout --detach 8f1afc5 && git -C head remote remove origin; red·base 복제본은 순서 3(xrun-audit 에서 clone, origin 제거)",
       "red: cd <red>/skills/analog-gmid-design && PYTHONDONTWRITEBYTECODE=1 python -m pytest <27 added/modified test files of e86b454> -q -p no:cacheprovider -rfE --tb=short --continue-on-collection-errors --junitxml=results/red.xml (GMID_S0_SNAPSHOT_DIR, OPENBLAS_NUM_THREADS unset outside; conftest fixes OPENBLAS=1)",
       "red hash: PYTHONPATH=<gate cache 6df4bd7f> python -P scripts/red_hashes.py results/red.xml results/red_hashes.json",
       "adapters: python scripts/make_adapters.py red/.../tests/integration base/.../tests/integration; pytest test_adapt_xr2.py test_adapt_xr5.py test_adapt_xr1.py (base clone); python scripts/make_adapter_xr6.py; pytest test_audit_adapt_xr6.py -k 'report_key_set_exact or unknown_keyword_rejected'; probes test_audit_probe_xr3.py, test_audit_probe_xr5.py",
-      "rule K: pytest gmid_engine/tests --collect-only -k rule_k_ / -k rule_k; structure_checks.check_k(base engine)"
+      "rule K: pytest gmid_engine/tests --collect-only -k rule_k_ / -k rule_k; structure_checks.check_k(base engine)",
+      "규칙 H: pytest gmid_engine/tests/structure -m structure_test_mapping (head, base)",
+      "수집 대조: pytest gmid_engine/tests --collect-only (base, head) -> results/collect_*.txt",
+      "A-1·A-3·A-4·A-5·A-9: bash scripts/run_measure.sh (scripts/measure_run.py 회로당 새 프로세스 4개 순차, scripts/make_fail_s3.py); python scripts/compare_runs.py m results/measure_compare.json",
+      "A-2: git grep -n -w --text <이름> -- gmid_engine (이름 20개 + s0_snapshot·pdk_decl_missing·pdk_source_sha256_mismatch·read_snapshot)",
+      "V5: python <게이트 캐시 6df4bd7f>/weakening_diff.py --root head --base 0538dec --head 8f1afc5; python scripts/removed_tests.py head results/v5_removed_tests.json",
+      "graph 정본: python scripts/ast_stores.py <scratch> ast_stores.json base"
     ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "병합본 8f1afc5 격리 복제본, 패키지 13개를 하나씩 순차 실행(-k·--deselect·-x 없음, slow 포함, 바깥 OPENBLAS 미지정 -- conftest 가 1 고정): 9994 passed / 0 failed / 3 xfailed(integration 1·layout 2) / 0 skipped, 13 패키지 exit 0. structure 의 1 deselected 는 conftest 가 규칙 H 마커를 기본 실행에서 빼는 것(옵션 아님) -- 따로 -m structure_test_mapping 실행: 위반 6 = base 0538dec 6 과 같은 목록(기존 결함). 직전 master 10110/0/3/1 대비: 수집 base 10114 -> head 9997(-159 +42). 삭제 159 = core/test_snapshot_codec 71(base skip 1 = 이 파일 심볼릭 링크 test)·test_type_registry 22·test_s0_slot 7, integration/test_code_hash_checkout 5·test_s0_layer_9circuits 17, pipeline/test_stage_a 30, search/test_start_intervals 3·test_constraint_classes 1·test_kernel 1·test_s0_fields 1·test_start_points 1 (전부 design 40 §2.4.3 test 삭제·변경 목록 + J-1·J-4). 신규 42 = test_s0_layer_9circuits 16·test_no_s0_files_written 4·test_rerun_s3_independence 3·test_stage_a 5·test_front_entries 6·test_kernel 1·test_start_points 1·test_find_front 1·test_search_context 2·구조 K 3. skipped 1->0 = 삭제된 코덱 test 의 skip."
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red: base 0538dec + 고정 test e86b454(순서 3, base_check.json) -> 263 failed + 수집 오류 2, XR 21 id(XR-1 8·XR-2 1·XR-3 1·XR-4 1·XR-5 2·XR-6 4·XR-7 3·K-4 1). 직접 card 이유로 실패: XR-3(base disk_hits 1·kernel_calls 0·STATUS_FAILED), XR-4(출처 layer0·s3·s3·given), XR-6 칸 s0·키워드 4개, XR-7 disk_hits·s0= DID NOT RAISE. 서명 때문에 먼저 실패한 XR-1·2·5·6 은 auditor 옛 API 어댑터(단언 불변)로 card 이유 재현: XR-1 8/8 회로 두 번째 실행 S0 writer 14개 computes 0, XR-2 엔진 복사본 .s0_snapshot 생성, XR-5 s3 시작점·디스크 실패 적중, XR-6 보고서 s0_snapshot 키. 오케스트레이터 판단 J-7(user_decisions.md, 2026-10-15): 순서 3 독립 어댑터 재현 기록(xrun/base_check.json, 4d515c1)을 XR-1·2·5·6 red 증거로, K-4 신규 공개 함수 read_front_entries ImportError 를 red 로 인정. green: 병합본 전체 실행에서 base red id 267 + 수집 오류 모듈 2개의 test 12 = 279 전부 passed(results/green_of_red.json)."
+    },
+    "V3": {
+      "verdict": "N/A",
+      "basis": "도입 U17: spec card 파일 없음(초안 _drafts/engine/XRUN_SPEC_CARD.md) -- mutate_changed.py 대상(assets/tests) 밖. 대신 삭제 경로마다 되돌림 뮤턴트에 해당하는 base 엔진이 red(V2)로 잡힌다: S0 디스크(XR-1·2), S3 실패 줄(XR-3), 이전 front 시작점(XR-4), 둘 다(XR-5), 서명·키(XR-6·7), 읽기 함수(K-4)."
+    },
+    "V4": {
+      "verdict": "N/A",
+      "basis": "도입 U17: test_lint.py 대상(assets/tests) 밖. oracle 대조: XR-1·3·5 와 비트 동일 test 는 같은 함수의 여러 실행이 같은지(불변식 oracle (a))만 보고 기대값을 피검 출력에서 만들지 않는다. XR-6·7 키·칸 집합은 interface card C1·C7 문장 그대로(13·6·21개, test 가 길이 단언). K-4 기대값은 test 가 쓴 runs.jsonl 또는 json 직접 읽기에서 계약 C6 문장대로 조립. 규칙 K bad 기대 13개는 auditor 가 픽스처 줄을 손으로 K-a·K-b·K-c 에 대조해 일치. J-5 재작성 3개: bisection 좌표·횟수는 design 식과 손 LUT(r4_arrays, conftest 전도·정점 하한) 그대로이고 base 에서도 통과, 새 기대(seq [None,1..5], 중심 줄 먼저, start_status failed, hits)는 inject_failures 주입 방식에서 따라온다 -- 엔진 disk_* 줄과 무관. UNJUDGED 없음."
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "gate weakening_diff.py(범위 assets/tests) 0538dec..8f1afc5 PASS 발견 0(assets 변경 0). gmid_engine/tests AST 비교(scripts/removed_tests.py, results/v5_removed_tests.json): 삭제 test 함수와 단언 감소는 모두 지운 기능(S0 디스크·코덱·키 자리·타입 등록부·경로 인자·S3 실행 사이 읽기)의 test 이고 design 40 §2.4.3 'test 삭제·변경 목록'(281행) 또는 J-1·J-4 결정 안에 있다. 순서 3에서 짚은 _loose_design_values 단언 삭제(pipeline/test_stage_a.py test_stage_a_result_carries_s0_snapshot_reference_only 단언 5->4, test_loose_design_values_scanner 삭제, test_stage_b.py 7->6)는 design 281행 '타입 등록부 이름을 읽는 단언 … pipeline/test_stage_a.py:885-886·pipeline/test_stage_b.py:248-249(등록부가 없어지므로 그 단언을 지운다)'와 같은 줄(base 0538dec 885·248 = 그 helper)이라 승인 범위 안. 등록부 없는 대체 검사는 design 40 §2.4.10 ②(AST 설계 값 타입 위치 검사, U17 ③ 몫)이고 이 card 에는 없다 -- 승인된 공백으로 기록. test_start_intervals 2·test_constraint_classes 1·test_s0_fields 1 삭제도 같은 목록(216-217·81·51). 그 밖의 대체 없는 단언 삭제 0. 기준선 픽스처(u17_1b_s0_baseline.json 등) diff 0 -- 기준선 값 변화 없음(사용자 승인 대상 없음)."
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "구조 규칙 A~I·K: tests/structure 63 passed(V1 안, K 3개 포함 -- 엔진 트리 check_k 위반 0, rule_k bad 기대 13 정확히, good 0, -k rule_k_ = 3개만, -k rule_k 는 test_cases_cover_all_32_rule_kinds 도 골라 접두가 충돌을 막음). 규칙 H 위반 6 = base 와 같은 목록(새 search/front_entries.py 는 tests/search/test_front_entries.py 1:1, 지운 core 3파일의 test 도 삭제). _module_map: type_registry·snapshot_codec·s0_slot 항목·층 목록 삭제, front_entries.py entry 행(read_front_entries, N3.3·U-90) 추가, 함수 레지스트리 §2 read_front_entries 행 추가. graph 단일 정본: 엔진 non-test AST 저장소 전수 head 대 base 새 저장소 0(counters dict 는 disk_hits 키만 빠진 같은 칸), 사라진 것 = disk_failures dict·S0Slot·S0SnapshotStore 칸·type_registry._types·StageAResult.s0 -- 옛 (d) 저장소 0. 엔진 graph 코드(필드 writer) 변경 0(graph 패키지 diff 는 __init__ 등록 호출 삭제·docstring), S0 writer 31개(9회로 공통) = 각 1 계산 -> 40 §2.4.8 소유표 변화 없음."
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "배선: run_stage_a 서명 = (topology, spec, lut, *, output_dir, supplies_v=None, structure_path=None) -- base = GraphSnapshot.empty(S0_WRITERS) 직접, S0 키·디스크 읽기 경로 삭제(stage_a.py _s0_inputs·_s0_sources·_structure_sha·진입 대조 삭제, 남은 소비자 0). build_search_context s0 인자·저장·_disk_failures 삭제, kernel.evaluate 디스크 분기 삭제, start_points _s3_thetas 삭제, S3Archive load_evals·load_runs·read_snapshot 삭제 -- 엔진 안 S3 읽기 경로 0(삭제 이름 grep 0). read_front_entries 는 정의·재수출만, 엔진 안 호출 0(규칙 K 가 강제, U-90 출력 조회 전용 -- design 대로 배선 대상 아님), front_query._from_file 이 _read_snapshot_file(archive.dir/ref)로 읽음. .gitignore .s0_snapshot 줄 삭제(J-3)."
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 U17: 폴백 경로 대상 아님(이 card 는 경로 삭제뿐, 새 폴백·조용한 대체 없음 -- 디스크 실패 줄을 읽지 않고 평가한다)."
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 U17: 물리 불변식 대신 값 불변 -- 단계 A 진입 base 기준선 대조 test(test_s0_layer_9circuits test_stage_reports_unchanged_from_base·test_s0_field_values_unchanged_from_base, 기준선 픽스처 diff 0)가 병합본에서 통과(V1)."
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "auditor 측정(scripts/measure_run.py·run_measure.sh·compare_runs.py, 회로마다 새 프로세스 4개를 하나씩: P1 빈 S3, P2 다른 빈 S3, R2 = P1 의 S3 폴더 그대로, R3 = P1 평가 성공 줄을 실패 줄로 바꿔 손으로 넣고 runs.jsonl 복사한 S3; 환경 = 허용 목록 env -i, TEMP 새 빈 폴더, OPENBLAS 1, 선언 평가 예산 40) 36 프로세스 exit 0. A-1 G-10: 단계 A ok 8회로 모두 S0 writer 31개(dc.base 필드 writer 전부) computes 1·recomputes_same_input 0(4 프로세스 모두), perf.recompute_same_key 0, 벽시계 정지 0·예산 출처 declared. J-2 기록만: perf.block_recomputes_same_input = {\"common_gate_amplifier\": 21, \"current_reuse_telescopic_ota\": 21, \"folded_cascode\": 16, \"nmcnr_amplifier\": 64, \"pushpull_follower_buffer\": 12, \"sf_pushpull_output_opamp\": 9, \"two_stage_ota\": 56, \"two_stage_ota_sf\": 66}. A-3: P1 대 P2 9/9 회로 C3 출력(단계 A·B 보고서 sha, value_fp 표 sha, context_fp, schema_fp, front·pending·unmeasured θ hex, failed_eps, 시간 칸 뺀 perf, 새 evals 줄, 시간 칸 뺀 새 runs 줄, run_id, 시작점 출처) 차이 0. A-4: R2(이전 evals 40~66줄·runs 1줄 있음)·R3(손 실패 줄 72~104줄, current_reuse·sf_pushpull 은 성공 줄이 없어 0줄 + runs 2줄) 9/9 P1 과 차이 0, 시작점 출처는 4 프로세스 모두 layer0 하나(current_reuse·sf_pushpull 은 층 0 시작점 없음 -- given 없는 실행), s3 출처 0. A-5: 엔진 폴더 목록 실행 전후 같음(새 0·삭제 0), .s0_snapshot 없음, 36 프로세스 TEMP 모두 빈 채로 끝남; XR-2 test 도 V1 에서 통과. A-6: lut/table_cache.py·core/compute_block.py·core/pdk_decl.py diff 0줄, node_across_front 인자 (front, node, archive=None) 그대로. A-2: 1.3.5 이름 20개 엔진 전체(tests 포함) git grep -w 0, s0_snapshot 은 범위 밖 기준선 픽스처 _source 1곳만, pdk_decl_missing·pdk_source_sha256_mismatch 는 core/pdk_decl.py:340·592·core/CONTRACT.md 4줄(문장 base 와 같음)·tests/core/test_pdk_decl.py 8줄만, 엔진 소스 read_snapshot 0. A-9(보고만): 사슬 시간 합(LUT 로드 제외) P1 224.6 s, P2 238.7 s, R2 205.8 s, R3 194.4 s(9회로). kernel_calls P1 = {\"common_gate_amplifier\": 43, \"current_reuse_telescopic_ota\": 40, \"folded_cascode\": 64, \"nmcnr_amplifier\": 66, \"pushpull_follower_buffer\": 40, \"sf_pushpull_output_opamp\": 40, \"two_stage_ota\": 49, \"two_stage_ota_sf\": 40}."
+    }
   }
 }
