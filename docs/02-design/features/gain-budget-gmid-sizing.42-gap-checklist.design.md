@@ -37,7 +37,7 @@ plan_version: 6.11
 | FR-8 탐색 전 달성 불가 판정 | 41 §4 | MISS | `InfeasibleTargetError` 사용처가 `E/sizing/current_basis.py:109` 하나다(KCL 충돌) |
 | FR-9 명명 규칙, 옛 이름 거부 | 40 §3.1 | DEV | 정본 이름 거부는 U5에서 고쳐졌다(bd19cc6 `_spec_fields.py:28`). 남은 것: topology가 `direction`을 필수로 받는다(`E/authoring/ports.py:22,57-59`). 설계 = role 유도·`direction` 거부·옛 이름 표 ∩ 정본 = ∅ test(사용자 승인(2026-10-12 P), P-4) |
 | NFR-1 조용한 실패 불가 | 전체 | PART | `E/core/failure_errors.py:20-60`. 아카이브 문자열 복원 결함 |
-| NFR-2 같은 키 재계산 0, LUT memo 상한(v1.11: 같은 입력이면 계보 무관 재사용, 계수 범위 = 실행 전체 모든 (블록, 분할) -- 40 §2.4.14, D-XR1~D-XR5) | 40 §7.3 | PART | `E/core/compute_block.py:77`. `rg "from_sweep\("` 호출부 0(`E/lut/lut_memo.py:34`) |
+| NFR-2 같은 키 재계산 0, LUT memo 상한(v1.11: 같은 입력이면 계보 무관 재사용, 계수 범위 = 실행 전체 모든 (블록, 분할) -- 40 §2.4.14, D-XR1~D-XR5) | 40 §7.3 | PART | `E/core/compute_block.py:77`. f23aec8 사실 정정(v1.11): `from_sweep` 정의 `E/lut/lut_memo.py:54`, 호출 `E/lut/sweep_memo.py:33`(옛 문구 '호출부 0'은 틀림). `from_sweep`은 v1.11 대상 소멸 → D-XR2 |
 | NFR-3 IC1~IC11 강제 test | 40 §10.3 | MISS | 패키지별 test 폴더(R26 현행 체계 유지)에서 `rg "def test_ic"` 0 |
 | NFR-4 결정론 | 전체 | PART | `E/core/determinism.py`. 구조 규칙 test `tests/structure/test_structure_rules.py`. v1.9.2 결함 기록(결정 8): OpenBLAS 스레드 수 의존(40 §11 U17 ② 선행) -- 상태는 다음 gap 분석에서 다시 잰다. v1.9.4(사용자 결정 2026-10-15): 설계 = 40 §2.4.13·41 §5.13, 설계 항목 D-ND1~D-ND5(D-ND5는 v1.10 대상 소멸, N/A). PART 근거: 엔진 안 BLAS 고정 없음(D-ND1), 경계 배치 결함(D-ND2), 알려진 다른 환경 결함(D-ND4) |
 | NFR-5 스펙 맞춤, 여유 바닥 | 40 §3.6 | PART | 분해능은 있다(`E/metrics/sensitivity.py:1-15`, `MetricResult.resolution`). 모델 오차와 예산 점이 없다 |
@@ -253,7 +253,7 @@ plan_version: 6.11
 | D-M8 | MOD8 수렴과 재필터 | 40 §3.9 | PART | `E/convergence/converge.py`(U14 구현·`E/convergence/CONTRACT.md`). 호출자(U16 `run_gmid_design_pipeline`)가 아직 없어 파이프라인 배선은 U16 몫 |
 | D-M9 | MOD9 결과 JSON | 40 §3.9 | MISS | `E/report/__init__.py` |
 | D-M10 | `run_gmid_design_pipeline` | 40 §3.9 | MISS | `E/pipeline/__init__.py`. 일부가 `[ng-bridge]`에 있다 |
-| D-PF1 | `LutMemo.from_sweep` 배선 | 40 §7.3 | PART | `E/lut/lut_memo.py:34`, 호출부 0 |
+| D-PF1 | **대상 소멸**(v1.11 → D-XR2: `from_sweep`·`sweep_memo`를 지우고 계수 상태 memo로 대체). 옛 항목: `LutMemo.from_sweep` 배선 | 40 §7.3, §2.4.6 | N/A | f23aec8 사실 정정: 정의 `E/lut/lut_memo.py:54`, 호출 `E/lut/sweep_memo.py:33`(옛 증거 '`lut_memo.py:34`, 호출부 0'은 틀림) |
 | D-PF2 | tol_V 디스크 캐시와 정리(v1.10: 실행 사이 유지 -- U-87 결정, 원래 취지의 예외, 40 §2.4.12 Q9) | 40 §7.3 | PART(브랜치) | `[ng-tolv-cache] E/lut/table_cache.py:217,230-254` |
 | D-GB7a | L 동치류의 L 공유 | 40 §3.2 | DEV | `E/graph/CONTRACT.md:220` |
 | D-GB7b | 미러 비율 강제 | 40 §3.7 | MISS | `E/sizing/CONTRACT.md:276` |
@@ -308,12 +308,12 @@ plan_version: 6.11
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 2 | 1 | 7 | 5 | 0 |
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
-| 설계 항목 | 167 | 0 | 30 | 16 | 119 | 2 |
-| **합계** | 264 | 26 | 37 | 52 | 141 | 8 |
+| 설계 항목 | 167 | 1 | 29 | 15 | 119 | 3 |
+| **합계** | 264 | 27 | 36 | 51 | 141 | 9 |
 
-v1.11(2026-10-15, XRUN-F1 design, 사용자 결정 2026-10-15 "권고대로 진행해" X-1~X-5): 설계 항목 5행 추가(D-XR1·D-XR2·D-XR4·D-XR5 DEV -- 옛 구조가 as-built에 있음, D-XR3 MISS), D-GR4·5·6·9·12·15와 NFR-2 행 문구(상태 불변). 집계는 직전 표에 이번 증감만 더했다: 설계 항목 162 → 167, DEV 26 → 30, MISS 118 → 119. (확인 사항: 아래 v1.10.1 줄의 증감 'DEV 26 → 25, OK 27 → 28'은 표에 반영돼 있지 않다 -- 이 개정에서는 고치지 않았다.)
+v1.11(2026-10-15, XRUN-F1 design, 사용자 결정 2026-10-15 "권고대로 진행해" X-1~X-5): 설계 항목 5행 추가(D-XR1·D-XR2·D-XR4·D-XR5 DEV -- 옛 구조가 as-built에 있음, D-XR3 MISS), D-GR4·5·6·9·12·15와 NFR-2 행 문구(상태 불변). D-PF1 대상 소멸(PART → N/A, → D-XR2)과 NFR-2·D-PF1 증거의 `from_sweep` 사실 정정. 집계(v1.10.1 증감을 함께 반영): 설계 항목 162 → 167, OK 0 → 1, DEV 26 → 29(v1.10.1 −1, 이번 +4), PART 16 → 15, MISS 118 → 119, N/A 2 → 3. 합계 OK 27, DEV 36, PART 51, MISS 141, N/A 9.
 
-v1.10.1(2026-10-15, card 1 xrun 구현 7e1b4be·판정 029f9b7 뒤, 사용자 결정 J-8 "권고대로 진행해"): D-GR3 DEV → OK(병합 직전 갱신, 증거는 판정 기록). 집계: DEV 26 → 25, OK 27 → 28.
+v1.10.1(2026-10-15, card 1 xrun 구현 7e1b4be·판정 029f9b7 뒤, 사용자 결정 J-8 "권고대로 진행해"): D-GR3 DEV → OK(병합 직전 갱신, 증거는 판정 기록). 집계: 설계 항목 DEV 26 → 25, OK 0 → 1(합계 DEV 33 → 32, OK 26 → 27). (v1.11 정정: 옛 문구 'OK 27 → 28'은 표와 맞지 않았고 표에도 반영되지 않았다 -- v1.11 표에 반영)
 
 v1.10(2026-10-15, 사용자 결정 2026-10-15 "나로 해", 실행 사이 재사용 제거): D-GR3을 제거 항목으로 다시 씀(MISS → DEV, 옛 구조가 as-built에 있음), D-ND5 대상 소멸(MISS → N/A), D-GR1·D-GR11·D-GR12·D-ND1·D-ND3·D-PF2 문구. 집계: 설계 항목 DEV 25 → 26, MISS 120 → 118, N/A 1 → 2.
 

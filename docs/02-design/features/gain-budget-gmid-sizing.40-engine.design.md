@@ -9,7 +9,7 @@ plan_version: 6.11
 > **Summary**: 새 gm/ID 사이징 엔진(`skills/analog-gmid-design/gmid_engine/`)의 설계 정본이다. 계획서 N3.1 흐름 GB0~GB9를 패키지·파일에 대응시키고, 단계마다 알고리즘·입출력·불변식·실패 코드·as-built 상태를 적는다. 계획서가 요구하고 실행 로드맵에서 빠졌던 gain-budget 흐름(FR-1·FR-2·FR-4·FR-8)은 `41-gain-budget`에서 전부 설계한다. gap 분석 기준표는 `42-gap-checklist`다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Date**: 2026-10-15 · **Status**: v1.11 -- XRUN-F1 실행 안 재사용 완성(사용자 결정 2026-10-15 "권고대로 진행해", X-1~X-5, 원문 `_drafts/user_decisions.md` 'XRUN-F1 design 착수 결정'. 사용자 취지 "계산 재사용은 처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용되게 한다는 것이 원래 취지였어"): §2.4.5 블록 결과 색인((블록, 분할, 입력 버전) → 그 값을 담은 스냅샷 참조, 계보 무관, 실행 수명, 상한 = §2.4.9 증거 집합 식)과 보존 규칙 = 실행 수명 동안 계산 원천 보존(보존 소유자 표·`retain`·`release`·`regenerated_after_release` 폐지), §2.4.4 호출 규칙(`donors`·`counters` 필수, 원천 = 블록 결과 색인, 키마다 원천 하나), §2.4.6 첫 평가 버림 제거(U17 ③에서 XRUN-F1 card A로 앞당김), §2.4.7 실패 평가의 부분 스냅샷·`KernelContext` 참조 칸, §2.4.9 계수 = 실행 전체 모든 (블록, 분할)·결과 JSON `perf.blocks`·판정 6 대상 소멸, §2.4.12 Q3 대상 소멸·Q12·Q13 열림, §2.4.13 (4)·(7), §2.4.14 신설(출처별 처리, ln 좌표 원값 보존 정본 `ThetaCoords`, 재작성 범위, 삭제·변경 목록, card A·B), §2.2·§2.3·§2.4.1·§2.4.10·§7.3·§11 U17 ②·③. 옛 문장·측정은 history.
+> **Date**: 2026-10-15 · **Status**: v1.11 -- XRUN-F1 실행 안 재사용 완성(사용자 결정 2026-10-15 "권고대로 진행해", X-1~X-5, 원문 `_drafts/user_decisions.md` 'XRUN-F1 design 착수 결정'. 사용자 취지 "계산 재사용은 처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용되게 한다는 것이 원래 취지였어"): §2.4.5 블록 결과 색인((블록, 분할, 입력 버전) → 그 값을 담은 스냅샷 참조, 계보 무관, 실행 수명, 상한 = §2.4.9 증거 집합 식)과 보존 규칙 = 실행 수명 동안 계산 원천 보존(보존 소유자 표·`retain`·`release`·`regenerated_after_release` 폐지), §2.4.4 호출 규칙(`donors`·`counters` 필수, 원천 = 블록 결과 색인, 키마다 원천 하나), §2.4.6 첫 평가 버림 제거(U17 ③에서 XRUN-F1 card A로 앞당김), §2.4.7 실패 평가의 부분 스냅샷·`KernelContext` 참조 칸, §2.4.9 계수 = 실행 전체 모든 (블록, 분할)·결과 JSON `perf.blocks`·판정 6 대상 소멸, §2.4.12 Q3 대상 소멸·Q12·Q13 열림, §2.4.13 (4)·(7), §2.4.14 신설(출처별 처리, ln 좌표 원값 보존 정본 `ThetaCoords`, 재작성 범위, 삭제·변경 목록, card A·B), §2.2·§2.3·§2.4.1·§2.4.10·§7.3·§11 U17 ②·③. 옛 문장·측정은 history. 같은 v1.11에 design 독립 검증(81, 조건부) 반영: 이식 전제를 모든 블록의 의무로(`*` 블록도 이식 대상, 섞인 성공·예외 fail-closed), §2.4.6 계수 창·`LutMemo.counting`·`open_count`·`fix_bound`·n_θ 출처·옮기는 순서·커널 평가 없는 실행·독립 계수 test, card A 판정을 단위 test 기준으로(블록 재계산은 보고만), `Donors`를 `core/donors.py`로, 감도 게이트는 clip 없이 원값 보존만(`clip=False`), `perf.block_index_entries`·`block_index_bound`·`recomputes_same_input_failed`(Q13 결정 전 규칙), 레지스트리·`centre_start` docstring 갱신 목록, 줄 번호 f23aec8 기준.
 >
 > v1.10 -- 사용자 결정 2026-10-15 "나로 해"(실행 사이 재사용 제거, 사용자 취지 "계산 재사용은 처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용되게 한다는 것이 원래 취지였어"): §2.4.3 전체 재작성(S0 수준 층 = 실행 수명, 디스크 스냅샷·S0 키·코덱·타입 등록부·U-68 정리·PDK 선언 경로 인자 삭제), §2.4.1 (d) 폐지(graph 밖 허용은 셋), §2.4.2·§2.4.5(S3를 실행 사이에 읽지 않음, `regenerated_from_prior_run` 폐지)·§2.4.6 U_S0·§2.4.9 판정 2·test·§2.4.10 허용 모듈·§2.4.12 Q1·Q2·Q4·Q9·Q10·§2.4.13(NFR-4 나머지: 키 (iv)·Q-N1·Q-N5·Q-N8 대상 소멸, 실행 환경 지문 = 결과 기록 칸)·§11 행. 삭제 목록은 §2.4.3 '삭제·변경 목록'. 옛 문장은 history. 원래 취지와 다른 판단 후보(LUT 파생표 디스크 캐시)는 결정 대기(Q9)(이후 결정: U-87 유지). 같은 v1.10에 3차 검증 남은 지적 반영: `env_fp` 단일 출처(N-6), 보존되지 않는 평가점 θ·`centre_u` 판정 불능(N-8), MOS가 닿지 않는 노드 판정 불능(N-10), S3 읽기 API 삭제에 딸린 CONTRACT·docstring·test 위치(N-4), conftest 인용 23-27(N-11). 같은 v1.10에 design 검증(91, 차단 0) 비차단 지적 반영: 삭제 목록 완료 규칙(이름 grep 0)과 빠진 소비자(모듈 지도·재수출·CONTRACT·docstring·`disk_hits`·결과 JSON 칸), front 조회 파일 경로 행(사용자 결정 대기, U-90)(이후 결정: 유지), S3 `snapshots/` 인코딩은 U17 ② 착수 전 정의, 옛 문장 대상 소멸 표시, Q9 결정 대기 표시(test 쪽 LUT 캐시 포함)(이후 결정: 유지), NFR4-F2·Q10 사용자 결정 대기(이후 결정: 분리 승인·유지). 같은 v1.10에 사용자 결정 2026-10-15 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따라 유지. 나머지는 기본안대로": Q9 유지(원래 취지의 예외), Q10 유지, Q11 제거 확정, NFR4-F2 분리 승인, front 조회 유지(조회 전용 읽기 경로) -- 결정 대기 표시를 모두 결정 규칙으로 바꿨다. 같은 v1.10에 델타 검증(84) 반영: grep 0 규칙을 이름별 범위로(살아 있는 PDK 선언 검사의 거부 사유 2개는 남김), front 조회 전용 읽기 경로의 구현 규칙(`read_front_entries`, `read_snapshot`을 `front_query.py`로 이동, 구조 규칙 J), `snapshots/` 인코딩 제약, 목록 줄 보강. 같은 v1.10에 델타 검증(86) 반영: 읽기 함수를 새 파일 `search/front_entries.py`로(규칙 A), `node_across_front` 서명 유지(`archive.dir`), 구조 규칙 글자 J → K와 하위 검사 K-a~K-c(K-c는 모든 `ast.Attribute`), `runs.jsonl` 단일 독자 범위 = 엔진 소스(기계 강제 아님), `STAGE_B_WRITERS` 무조건 삭제, CONTRACT 위치 추가.
 >
@@ -302,18 +302,18 @@ S0 수준 값은 계산 블록(`core.compute_block`)으로 만들고 S0 수준 �
 - 입력 버전: 분할마다 `fp_of((name, 코드 해시, 그 분할의 투영 지문))`. 기록은 `block_versions[(writer, 분할 key)]`다.
 - **투영 지문 = 값 기반 정준 사상**(design-validator N1): 분할이 읽는 모든 양을 `{(kind, key, field): value_fp}` 하나로 모은 정준 사상(키 정렬)의 지문 + 그 분할에 배정된 θ 성분 + 나머지 extras다. writer·input_version·쓰기 횟수는 넣지 않는다. 그래서 같은 양이 스냅샷 행에서 오든(조립점: 이웃 분할이 쓴 행) 국소 봉인의 `fixed` extras에서 오든(국소 후보: 이웃 값을 고정 입력으로 받음) 같은 값이면 같은 지문이다. 이것이 국소 스냅샷 → 조립점 이식이 맞는 조건이다.
 - **`fixed`는 extras로만 넘긴다**: 국소 봉인(41 §5.3.9)은 `fixed` 값을 graph 행으로 쓰지 않는다(그 행의 writer는 다른 분할·블록이다). 분할 블록은 읽는 양을 투영에서 찾고, 행에 없으면 `fixed` extras의 같은 (kind, key, field) 칸에서 읽는다. 둘 다 있으면 호출 계약 위반(`ValueError`)이다.
-- **이식이 비트 동일인 전제**(분할 블록의 의무): 분할 블록은 투영 밖의 어떤 입력도 읽지 않는다. 반복 풀이의 초기값도 투영의 함수다. 직전 스냅샷(S2p)·parent·이전 반복의 값을 시드로 쓰지 않는다. 시드가 필요한 블록은 분할 블록이 될 수 없고 `*` 하나로 남는다(이식 대상 아님). 구조 test가 분할 블록 함수의 인자가 `Projection` 하나뿐인지 확인한다(as-built 규칙 그대로, `E/core/compute_block.py:12-13`).
+- **이식이 비트 동일인 전제**(v1.11: 분할 블록만이 아니라 `*` 블록을 포함한 **모든 계산 블록의 의무**): 블록은 투영(선언한 열 + extras) 밖의 어떤 입력도 읽지 않는다. 반복 풀이의 초기값도 투영의 함수다. 직전 스냅샷(S2p)·parent·이전 반복의 값을 시드로 쓰지 않는다. as-built 블록은 모두 이 전제를 만족한다: 블록 함수의 인자는 `Projection` 하나이고(`E/core/compute_block.py:12-13`), extras는 투영 지문에 들어가며(`E/core/projection.py:8-11`), 평가 커널의 `parent`는 같은 lineage 재사용에만 쓰인다(`E/sizing/kernel_run.py:6`). 그래서 `*` 블록도 이식 대상이다(옛 문장 '시드가 필요한 블록은 `*` 하나로 남는다(이식 대상 아님)'은 삭제 -- 그런 블록은 없다). 시드가 필요한 블록을 새로 만들 때는 그 시드를 extras로 넘겨 입력 버전에 넣어야 하고, 넣지 못하면 계산 블록으로 만들지 않는다. **fail-closed**: 구조 test가 블록 함수의 인자가 `Projection` 하나뿐인지 확인하고(as-built 규칙 그대로) 규칙 G가 모듈 수준 상태를 막는다. 실행 중에 같은 (블록, 분할, 입력 버전)에서 성공과 예외가 섞이면 전제 위반이므로 `RunCounters`가 그 결과를 기록하는 순간 `ValueError`를 낸다(§2.4.9 '실패 재계산').
 - 쓰기: graph setter 서명을 `GraphSnapshot.write(name, part, input_version, rows)`로 바꾼다. `rows` = `{(kind, field): {key: value}}`이고 key는 그 분할의 쓰는 레코드 key 집합과 정확히 같아야 한다(다르면 `ValueError`). 분할 밖 행은 건드리지 않는다. `block_version(name, part)`가 `input_version`이 된다. 분할 없는 블록은 `part = "*"`이고 동작은 as-built `write`와 같다. 한 블록의 분할들은 서로 다른 행을 쓰므로 writer 하나 규칙(SC-a)은 그대로다.
 - 대상: 평가 커널 ②~⑤와 봉인 항목 블록, 층 0 블록 범위 metric, GB5 수동소자 블록 `passive_values`(§2.4.8 `device: passive_value`. 읽는 레코드 = 영점 상쇄 셀 소자의 `dc_gm`. 분할이 없으면 전류 θ만 바뀐 자식에서도 블록 전체가 다시 계산되므로 이 분할로 해소한다 -- U17 ①-c 재검증 기록, **U17 단계 ②로 이월**). 분할이 정의되지 않는 블록(전회로 MNA, 전역 metric)은 `*`이다.
 
-**API**(`E/core/graft.py`, 신규):
+**API**(`E/core/graft.py`·`E/core/donors.py`, 신규. v1.11: 규칙 A(파일당 진입점 하나)에 맞춰 `graft`와 `Donors`를 두 파일로 나눈다 -- `graft`는 `Donors`를 이름으로 참조하지 않아 한 파일에 두면 진입점이 둘이 된다):
 
 ```python
 def graft(target: GraphSnapshot, block: ComputeBlock, part: str, donor: GraphSnapshot) -> GraphSnapshot
 # donor.block_version(block.name, part) 가 target 위에서 계산한 그 분할 입력 버전과 같을 때만, donor 의 그 분할 행(block.writes 열)을
 # target.write(block.name, part, 같은 입력 버전, 그 행) 로 쓴다. 다르면 ValueError(호출 계약 위반 -- 판정은 아래 호출 규칙이 먼저 한다).
 
-class Donors(abc.ABC):          # core/graft.py. v1.11: 추상 기반(구현 = search `S3Index`, §2.4.5). 옛 `Protocol` 대체
+class Donors(abc.ABC):          # core/donors.py. v1.11: 추상 기반(구현 = search `S3Index`, §2.4.5). 옛 `Protocol` 대체
     def find(self, writer: str, part: str, input_version: str) -> GraphSnapshot | None: ...
     def register(self, writer: str, part: str, input_version: str, snapshot: GraphSnapshot) -> None: ...
 # ComputeBlock.__call__(snapshot, *extras, donors: Donors, counters: RunCounters)
@@ -324,7 +324,7 @@ class Donors(abc.ABC):          # core/graft.py. v1.11: 추상 기반(구현 = s
 **호출 규칙**(v1.11 갱신): 계산 블록은 분할마다 위상 순서로 다음을 판정한다.
 1. 같은 lineage 재사용: `snapshot.block_version(name, part)`가 입력 버전과 같으면 아무것도 하지 않는다(as-built와 같다). 계수 `reuse`.
 2. 이식: `donors.find(name, part, 입력 버전)`가 스냅샷을 주면 `graft`로 그 행을 가져온다. 계수 `graft`. 받은 스냅샷의 그 블록(분할) `block_version`이 입력 버전과 다르면 `ValueError`(색인 손상, fail-closed).
-3. 계산: 둘 다 아니면 그 분할만 계산한다. 계수 `compute`는 블록 함수를 부르기 **전에** 센다(예외로 끝난 계산도 계산이다 -- §2.4.9 `recomputes_same_input`). 결과를 쓴 스냅샷을 `donors.register(name, part, 입력 버전, 그 스냅샷)`으로 한 번 등록한다. 계산이 예외로 끝나면 등록하지 않는다(실패의 같은 입력 재호출은 §2.4.12 Q13 -- 열림).
+3. 계산: 둘 다 아니면 그 분할만 계산한다. 계수 `compute`는 블록 함수를 부르기 **전에** 센다(예외로 끝난 계산도 계산이다). 함수가 끝나면 결과(성공·예외)를 `counters.result(block, part, 입력 버전, ok)`로 알린다 -- 재계산이 성공 키인지 실패 키인지 가르는 데 쓴다(§2.4.9 '실패 재계산'). 결과를 쓴 스냅샷을 `donors.register(name, part, 입력 버전, 그 스냅샷)`으로 한 번 등록한다. 계산이 예외로 끝나면 등록하지 않는다(실패의 같은 입력 재호출은 §2.4.12 Q13 -- 열림).
 
 공유량(공유 소자, 결합 변수 y, 블록을 가로지르는 L 동치류, 기둥 경계 넷)이 바뀐 분할은 투영이 달라져 입력 버전이 어느 원천과도 맞지 않는다. 그래서 '공유량이 닿는 필드만 계산'은 별도 규칙 없이 위 판정에서 나온다. 앞 분할이 계산되어 값이 바뀌면 그 행을 읽는 뒤 분할의 투영도 바뀌어 계산된다(위상 순서라 판정 시점에 입력이 확정되어 있다).
 
@@ -353,7 +353,7 @@ class Donors(abc.ABC):          # core/graft.py. v1.11: 추상 기반(구현 = s
 | 조회 | 모든 계산 블록 호출이 같은 lineage 재사용 다음에 `find`로 찾는다(§2.4.4 호출 규칙 2). parent 유무·lineage와 무관하다 |
 | 수명 | 실행 하나. 실행 경계(`run_stage_a` 진입)에서 `RunCounters`(§2.4.9)와 함께 새로 만들고, 그 실행의 모든 블록 호출에 같은 객체를 넘기며, 실행이 끝나면 버린다. 모듈·프로세스 수준에 두지 않는다(규칙 G). 실행 사이에 넘기지 않는다(§2.4.3 -- 원래 취지 '처음 topology를 실행할 때는 항상 계산') |
 | 전달 | 단계 A는 `build_s1`·`build_s1v` 등 자기가 부르는 블록에 넘기고 단계 결과(`StageAResult`)에 참조로 싣는다. 단계 B의 `build_kernel_context`가 받아 `KernelContext`의 참조 칸 `donors`·`counters`에 둔다(§2.4.7). 그 뒤의 블록 호출(탐색 컨텍스트의 S0 블록, 평가 커널 ②~⑤·봉인·GB5·`metrics_dc`·`ss_evaluate`, MOD7 레이아웃 블록)은 `KernelContext`에서 꺼내 넘긴다 |
-| 상한 | §2.4.9 증거 집합 식 '블록·분할별 계산한 입력 버전 ≤ Σ_블록 분할 수 × (E_total + 1)'(사용자 결정 X-1 (3) -- 새 상수 없음). 키 집합은 그 증거 집합의 부분집합이다(계산이 성공한 키만). 퇴출하지 않는다(퇴출하면 같은 입력 재계산이 생겨 §2.4.9 판정 1을 깬다). 식의 전제(실행의 커널 평가 수 ≤ E_total)는 as-built에서 성립하지 않는다(history H4: 선언 E_B 40에서 커널 평가 43·49·64·66, 블록별 서로 다른 입력 버전 최대 63 -- 외층 FD 한 묶음과 감도 게이트가 예산 검사 없이 돈다). 그래서 실행 중 강제 방식(넘으면 거부할지)은 **§2.4.12 Q12 -- 사용자 결정 대기**다. 결정 전에는 판정 기록이 실행 끝 항목 수와 식의 값을 보고만 한다 |
+| 상한 | §2.4.9 증거 집합 식 '블록·분할별 계산한 입력 버전 ≤ Σ_블록 분할 수 × (E_total + 1)'(사용자 결정 X-1 (3) -- 새 상수 없음). 키 집합은 그 증거 집합의 부분집합이다(계산이 성공한 키만). 퇴출하지 않는다(퇴출하면 같은 입력 재계산이 생겨 §2.4.9 판정 1을 깬다). 식의 전제(실행의 커널 평가 수 ≤ E_total)는 as-built에서 성립하지 않는다(history H4: 선언 E_B 40에서 커널 평가 43·49·64·66, 블록별 서로 다른 입력 버전 최대 63 -- 외층 FD 한 묶음과 감도 게이트가 예산 검사 없이 돈다). 그래서 실행 중 강제 방식(넘으면 거부할지)은 **§2.4.12 Q12 -- 사용자 결정 대기**다. 결정 전에는 판정 기록이 실행 끝 항목 수와 식의 값을 보고만 한다. 결과 JSON 키: `perf.block_index_entries`(실행 끝 항목 수), `perf.block_index_bound`(식의 값 = (그 실행에서 불린 (블록, 분할) 수) × (E_total + 1). E_total이 정해지지 않은 실행(E_B 미선언·유도 전)은 null) |
 | 결정성 | 조회는 키 일치뿐이고 색인을 순회하지 않는다. 블록은 투영만의 순수 함수라(§2.4.4 '이식이 비트 동일인 전제') 이식한 행과 계산한 행의 `value_fp`·스냅샷 `fp`가 같다. 그래서 색인 적중 여부는 평가 결과를 바꾸지 않는다(바뀌는 것은 계수와 시간 칸뿐 -- §2.4.13 T 부류) |
 | fail-closed | (1) `donors`·`counters` 없는 블록 호출, `Donors` 하위가 아닌 `donors` → `TypeError`(§2.4.4) (2) `find`가 준 스냅샷의 그 블록(분할) `block_version` ≠ 요청 입력 버전 → `ValueError` (3) 같은 키 재등록 → `ValueError` (4) 등록하는 스냅샷의 `block_version` ≠ 키의 입력 버전 → `ValueError` |
 
@@ -406,12 +406,21 @@ v1.11: 옛 `retain(key, owner)`·`release(owner)`는 없앤다(아래 보존 규
 
 `one_var_writers`(`cell_floor.py:38`의 `_ONE_VAR_KEY`)는 LUT 함수가 아니라 쓰기 계획의 파생이므로 S0 수준 필드다(§2.4.8).
 
-**인스턴스 하나**: S0마다 `LutMemo` 하나를 만들고 준비 단계(GB4·출발 구간)와 탐색이 같은 것을 쓴다. as-built는 둘이다. 준비 memo는 `StartContext.memo`·`LocalInputs.memo`·`ParamTables._memo`가 계속 쥐고 있고, `_wire_sweep_memo`(`E/search/search_context.py:105-121`)가 탐색용 새 memo를 만들며 계수용 첫 평가를 임시 컨텍스트에서 돌리고 버린다(:112-121). (v1.11: 첫 평가 버림과 `sweep_memo.py`(`_CountingMemo`)는 XRUN-F1 card A가 없앤다 -- 아래 '첫 평가 버림 제거'. 인스턴스 하나는 단계 ③ 그대로.)
+**인스턴스 하나**: S0마다 `LutMemo` 하나를 만들고 준비 단계(GB4·출발 구간)와 탐색이 같은 것을 쓴다. as-built는 둘이다. 준비 memo는 `StartContext.memo`·`LocalInputs.memo`·`ParamTables._memo`가 계속 쥐고 있고, `_wire_sweep_memo`(f23aec8 `E/search/search_context.py:134-150`)가 탐색용 새 memo를 만들며 계수용 첫 평가를 임시 컨텍스트에서 돌리고 버린다(:141-147). (v1.11: 첫 평가 버림과 `sweep_memo.py`(`_CountingMemo`)는 XRUN-F1 card A가 없앤다 -- 아래 '첫 평가 버림 제거'. 인스턴스 하나는 단계 ③ 그대로.)
 
 **첫 평가 버림 제거**(v1.11, 사용자 결정 X-1 (2) -- U17 ③에서 XRUN-F1 card A로 앞당김. 아래 '공통 규칙'의 '계수 평가가 곧 실제 첫 평가'를 지금 구현한다). as-built는 `E/search/search_context.py:134-150`(f23aec8)이다.
-- 탐색 memo는 `build_search_context`가 **계수 상태**로 만든다: 상한 없이 값을 모으며 영역(point·curve·root)마다 서로 다른 키를 센다. `build_search_context` 안에서는 커널 평가가 0이다(임시 컨텍스트·버리는 평가 없음).
-- 그 실행의 **첫 커널 평가**(`evaluate`가 커널을 부른 첫 평가 -- 실제 평가이고 평가 캐시·S3 evals에 남는다)가 끝나면 상한을 고정한다: 영역 r 상한 = (n_θ + 1)·U_eval,r. U_eval,r = 그 평가가 센 서로 다른 키 수, n_θ = as-built와 같은 값(`centre_start`의 변수 수 -- 커널을 부르지 않는다). 식은 as-built `LutMemo.from_sweep`과 같다. 이미 모은 항목은 그대로 둔다. 실패로 끝난 첫 평가도 그 평가가 센 키로 고정한다(as-built와 같다).
-- U_eval,r = 0인 영역의 처리(as-built `_Unmemoized`), B_r의 나머지 항(U_S0,r·층 0 항), 인스턴스 하나, `call` 형식은 단계 ③ 그대로다(이 card는 바꾸지 않는다).
+| 항목 | 규칙 |
+|---|---|
+| 만들기 | `_wire_sweep_memo`가 먼저 n_θ를 정하고(아래), 그다음 `LutMemo.counting(lut, n_theta, *, table_cache)`(classmethod, 신규)로 **계수 상태** memo를 만들어 `ctx.dc`의 `LutAccess`에 넣는다. 영역 point·curve·root는 상한 없이 값을 모은다. derived 영역은 as-built처럼 처음부터 `BoundedLRU(슬라이스 수 × len(DERIVED_TABLES))`다(`E/lut/lut_memo.py:50`, 계수 대상 아님). `build_search_context` 안 커널 평가 = 0(임시 컨텍스트·버리는 평가 없음) |
+| n_θ | as-built와 같은 값: `len(centre_start(ctx)[0])`(`E/search/search_context.py:138·149`, 상자 중심 변수 = 정의역 변수 + 구간인 L 칸 변수, 정준 순서). 계수 상태 memo를 넣기 **전에** 잰다 -- 그 사이 LUT 조회는 as-built처럼 호출자가 준 memo로 간다 |
+| U_eval,r에 넣는 조회 | **as-built `_CountingMemo` 의미를 보존한다**(`E/lut/sweep_memo.py:14-25`: 첫 평가 안의 조회만 센다). 계수 창 = 그 실행의 **첫 커널 평가** 하나 -- `evaluate`가 커널을 부르는 평가(평가 캐시 적중·정의역 밖은 아님) 중 처음 것의 커널 호출 직전부터 그 `evaluate`가 결과를 만들 때까지(ss·제약 행 조회 포함, as-built 첫 평가가 `evaluate` 전체였던 것과 같다). 창 밖 조회(memo를 넣은 뒤 첫 커널 평가 전의 조회 -- 예: 층 0의 칸 하한 `ln_idu_floors`)는 값을 모으되 U_eval,r에 세지 않는다. U_eval,r = 창 안에서 조회한 서로 다른 키 수(영역별) |
+| 창 열기·닫기 | `memo.open_count()`(창 열기), `memo.fix_bound()`(창 닫기와 상한 고정). `evaluate`가 첫 커널 평가에서 커널 호출 직전에 `open_count`, 결과를 만든 직후(성공·후보 실패 모두) `fix_bound`를 부른다. 두 메서드는 계수 상태가 아닌 memo에서는 아무것도 하지 않는다. 두 번째 `open_count`·`fix_bound`는 `ValueError`(한 실행에 창 하나) |
+| 상한 고정 | 영역 r 상한 = (n_θ + 1)·U_eval,r(as-built `LutMemo.from_sweep` 식 그대로). U_eval,r = 0이면 as-built처럼 `_Unmemoized`(이 card는 바꾸지 않는다 -- ③). 그 밖은 `BoundedLRU(상한)`을 만들어 모은 항목을 옮긴다 |
+| 옮기는 순서(결정성) | 계수 상태는 영역마다 마지막 접근 순서(`OrderedDict` + 적중 때 `move_to_end` -- `BoundedLRU`와 같은 최근성 규칙, `E/core/bounded_lru.py:37·55`)를 지킨다. 고정 때 오래된 것부터 새 `BoundedLRU`에 넣는다. 모은 항목이 상한보다 많으면 가장 오래된 것부터 퇴출되고 그 수는 `BoundedLRU`의 퇴출 계수에 든다(as-built에서도 첫 평가 밖의 조회는 상한 있는 memo에 들어갔다 -- 퇴출 시점은 다를 수 있고 값은 같다). 순서는 조회 순서만의 함수라 결정론적이다 |
+| 첫 커널 평가가 없는 실행 | 상한을 고정하지 않은 채 끝난다(계수 상태 유지). 커널 평가가 없으면 조회는 창 밖 조회뿐이라 유한하다. 거부하지 않고 결과 JSON `perf.lut_memo_bound` = `"unfixed_no_kernel_eval"`(고정됐으면 `"fixed"`)로 보고한다. 근거: 시작점이 모두 정의역 밖인 실행도 정상 결과(시작점 없음)라 예외로 바꾸지 않는다 |
+| 독립 계수(test) | test의 기대 U_eval,r은 피검 memo의 자기 계수를 읽지 않고 만든다: test가 `LutMemo.lookup`을 클래스 수준에서 감싸 (영역, `(lut.fp, fn_name) + key`)를 기록하고, `evaluate`(또는 `size_and_seal`)를 감싸 첫 커널 평가 구간을 표시해, 그 구간의 서로 다른 키 수를 센다. 단언은 고정된 영역별 용량 = (n_θ + 1) × 그 수, n_θ = test가 `centre_start`로 따로 잰 값 |
+
+- B_r의 나머지 항(U_S0,r·층 0 항), 인스턴스 하나, `call` 형식, `_Unmemoized` 제거는 단계 ③ 그대로다(이 card는 바꾸지 않는다).
 - 삭제: `E/lut/sweep_memo.py` 전체(`_CountingMemo`·`sweep_memo`), `LutMemo.from_sweep`, `_wire_sweep_memo`의 임시 컨텍스트 평가(`first_eval`, `copy.copy(ctx)`). 이름별 grep 범위는 §2.4.14 (4).
 
 **상한과 퇴출 판정 -- 결정(사용자 결정 2026-10-12 "U-60은 (가)로", U-60 = (가))**
@@ -520,7 +529,7 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 
 결정 4절이다. 시간은 판정에 쓰지 않고 계수만 쓴다(WP-23).
 
-**계수의 소유**(M8): 실행 하나에 `RunCounters` 하나(`core/run_counters.py`)가 모든 계수와 그 증거 집합을 가진다. 계산 블록 객체(`ComputeBlock`)는 상태가 없다: as-built `_calls`·`_reuses`·`_computes`·`_recomputes`·`_seen_inputs`(`E/core/compute_block.py:67-71`)를 지우고, 호출이 `counters`를 인자로 받는다(§2.4.4 API). 다른 곳의 증거 상태도 옮긴다.
+**계수의 소유**(M8): 실행 하나에 `RunCounters` 하나(`core/run_counters.py`)가 모든 계수와 그 증거 집합을 가진다. 계산 블록 객체(`ComputeBlock`)는 상태가 없다: as-built `_calls`·`_reuses`·`_computes`·`_recomputes`·`_seen_inputs`(f23aec8 `E/core/compute_block.py:129-133`)를 지우고, 호출이 `counters`를 인자로 받는다(§2.4.4 API). 다른 곳의 증거 상태도 옮긴다.
 
 | 증거 집합 | as-built | 상한(실행 평가 수로) |
 |---|---|---|
@@ -531,26 +540,28 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 **E_total**(이 문서의 유일한 정의): 실행 하나의 커널 평가 수 상한 = E_B(외층 평가 예산, §3.6) + N_T(층 0 평가 예산, 41 §5.8). 이 문서의 다른 곳과 41은 이 정의를 인용한다.
 
 `RunCounters`는 실행 경계에서 새로 만든다(as-built `reset_stats`를 대체). 실행 계수는 graph 밖 (c)이다. v1.11: 실행 경계 = `run_stage_a` 진입이고 블록 결과 색인과 같은 때 만든다(§2.4.5 '수명'). 블록 계수 부분(`record`·`snapshot`의 블록 행)은 XRUN-F1 card B가 만들고, `evicted`·`recomputed`·`table_event`·`count`는 U17 ②·③이 더한다. **API**(바꾸는 길은 이것뿐):
-- `record(block, part, outcome, input_version)`: outcome ∈ {`reuse`, `graft`, `compute`}. `compute`면 (block, part, input_version)이 이미 있었는지 보고 `recomputes_same_input`을 센다.
+- `record(block, part, outcome, input_version)`: outcome ∈ {`reuse`, `graft`, `compute`}. `compute`면 (block, part, input_version)이 이미 있었는지 보고 재계산을 센다.
+- `result(block, part, input_version, ok)`(v1.11): `compute` 뒤 블록 함수가 성공(`ok` = True)했는지 예외로 끝났는지 알린다. 키마다 성공·예외 중 하나만 있어야 한다 -- 섞이면 `ValueError`(§2.4.4 '이식이 비트 동일인 전제'의 fail-closed).
 - `evicted(region, key)`, `recomputed(region, key) -> bool`: LUT memo가 퇴출·재계산을 알린다.
 - `table_event(event, fn_name)`: 디스크 파생표 사건.
 - `count(name, n=1)`: 그 밖의 이름 있는 계수(평가 수, 색인 적중 등).
 - `snapshot() -> PerfCounters`: 불변 값으로 내보낸다(결과 JSON `perf`). 읽기는 이것으로만 한다.
 
 **계수**(결과 JSON `perf`, D0 계측 형식에 더한다):
-- (블록, 분할)마다: `calls`, `reuses`(같은 lineage), `grafts`, `computes`, `recomputes_same_input`. 마지막은 실행 안에서 이미 계산한 (블록, 분할, 입력 버전)을 다시 계산한 수다. `computes`·`recomputes_same_input`은 블록 함수를 부르기 전에 센다(예외로 끝난 계산도 센다, §2.4.4 호출 규칙 3).
+- (블록, 분할)마다: `calls`, `reuses`(같은 lineage), `grafts`, `computes`, `recomputes_same_input`. 마지막은 실행 안에서 이미 계산한 (블록, 분할, 입력 버전)을 다시 계산한 수다. `computes`는 블록 함수를 부르기 전에 센다(예외로 끝난 계산도 센다, §2.4.4 호출 규칙 3).
+- **실패 재계산**(v1.11, §2.4.12 Q13 결정 전 규칙): 예외로 끝난 키의 재계산은 `recomputes_same_input`에 넣지 않고 따로 **`recomputes_same_input_failed`** 칸에 센다(행마다). 성공 키의 재계산만 `recomputes_same_input`이다(블록이 순수하므로 한 키는 성공·예외 중 하나다 -- `result`). 판정 1은 `recomputes_same_input`만 본다. `recomputes_same_input_failed`는 판정 기록에 건수를 따로 보고하고 FAIL로 세지 않는다. Q13이 (가)로 정해지면 그 칸은 구조상 0이 되고 판정에 넣는다.
 - **범위**(v1.11, 사용자 결정 X-5): 실행 전체 -- 단계 A부터 탐색 끝까지 그 실행에서 불린 **모든 계산 블록·분할**이다. 옛 범위(as-built `E/search/find_front.py:44-59·131-133`: sizing 계산 블록 12개의 `find_front` 구간 차 합)를 대체한다. `RunCounters`가 실행 경계에서 만들어지므로 구간 차를 계산하지 않는다.
-- **결과 JSON 형식**(v1.11, X-5 -- **형식 변경**): `perf.blocks` = 행 목록 `{block, part, calls, reuses, grafts, computes, recomputes_same_input}`((block, part) 정렬, 그 실행에서 한 번이라도 불린 (블록, 분할)만), `perf.block_totals` = 다섯 칸의 합. 옛 칸 `block_calls`·`block_reuses`·`block_computes`·`block_recomputes_same_input`은 지운다.
+- **결과 JSON 형식**(v1.11, X-5 -- **형식 변경**): `perf.blocks` = 행 목록 `{block, part, calls, reuses, grafts, computes, recomputes_same_input, recomputes_same_input_failed}`((block, part) 정렬, 그 실행에서 한 번이라도 불린 (블록, 분할)만), `perf.block_totals` = 여섯 계수 칸의 합. 옛 칸 `block_calls`·`block_reuses`·`block_computes`·`block_recomputes_same_input`은 지운다.
 - 의도적 재계산은 `computes`에 들어가되 원인을 나눠 센다: `fd_step`(θ가 다름). (v1.11: 이 원인 칸은 U17 ②. XRUN-F1은 더하지 않는다)
 - LUT memo: 영역마다 `hits`, `misses`, `evictions`, `recomputes_after_eviction`(as-built `LruStats`), 상한 B_r의 항.
-- S3 색인: `hits`, `fail_hits`, `kernel_calls`, `outside_domain`(v1.11: 옛 `regenerated_after_release`는 대상 소멸 -- §2.4.5 보존 규칙). 블록 결과 색인: 실행 끝 항목 수와 상한 식의 값(보고, §2.4.12 Q12).
+- S3 색인: `hits`, `fail_hits`, `kernel_calls`, `outside_domain`(v1.11: 옛 `regenerated_after_release`는 대상 소멸 -- §2.4.5 보존 규칙). 블록 결과 색인: `perf.block_index_entries`(실행 끝 항목 수)와 `perf.block_index_bound`(상한 식의 값, §2.4.5 '상한') -- 보고, §2.4.12 Q12.
 
 **판정**(FAIL 조건):
 1. 실행 안에서 (블록, 분할)마다 `recomputes_same_input` = 0(v1.11: 실행 전체의 모든 (블록, 분할) -- 위 '범위'. 계보와 무관하게 같은 입력이면 재사용하므로 lineage가 달라도 예외가 아니다).
 2. (v1.10 폐지) 옛 판정 '같은 S0로 두 번째 실행하면 S0 수준 블록 계산 0'은 실행 사이 재사용 제거(사용자 결정 2026-10-15 "나로 해")로 대상이 없다. S0 수준 블록은 실행마다 한 번 계산하고, 그 실행 안 재계산 0은 판정 1이 본다. 번호는 다른 문서의 인용 때문에 비워 둔다.
 3. LUT memo `recomputes_after_eviction` = 0(U-60 결정 (가), "U-60은 (가)로"). `evictions`는 보고만 한다.
 4. 층 0 조립점 평가에서 공유량이 닿지 않는 분할의 `computes` = 0(모두 `grafts`).
-5. as-built `recompute_same_key`(`E/search/kernel.py:120-121`)는 S3 색인 `get` 적중 판정으로 대체되며 0이어야 한다.
+5. as-built `recompute_same_key`(f23aec8 `E/search/kernel.py:111-112`)는 S3 색인 `get` 적중 판정으로 대체되며 0이어야 한다.
 6. (v1.11 대상 소멸) 옛 판정 '`regenerated_after_release` = 0'은 실행 안에서 스냅샷을 놓지 않아(§2.4.5 보존 규칙, 사용자 결정 X-2) 대상이 없다. 같은 입력 재계산은 판정 1이 본다. 번호는 비워 둔다.
 
 **test**(R26에 따라 패키지 폴더 체계를 따르고, 9회로 실행은 `E/tests/integration/`):
@@ -578,7 +589,7 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 | memo 호출 형식 | `memo.call`의 첫 인자가 모듈 수준 이름이 아님(§2.4.6) |
 
 **허용 모듈 목록**(고정, 이 밖은 예외 없음):
-- core graph 모듈: `core/graph_snapshot.py`, `core/compute_block.py`, `core/projection.py`, `core/graft.py`, `core/field_value.py`, `core/graph_record.py`, `core/writer_table.py`
+- core graph 모듈: `core/graph_snapshot.py`, `core/compute_block.py`, `core/projection.py`, `core/graft.py`, `core/donors.py`(v1.11), `core/field_value.py`, `core/graph_record.py`, `core/writer_table.py`
 - LUT memo와 디스크 캐시: `lut/lut_memo.py`, `lut/table_cache.py`, `core/bounded_lru.py`
 - S3: `search/archive.py`, `search/s3_index.py`
 - 실행 계수 모듈 하나: `core/run_counters.py`(신규)
@@ -628,7 +639,7 @@ design-validator 지적(2026-10-12)에 따라 기본안을 정했다. 사용자 
 | Q11 | S3 기록의 실행 사이 재사용 제거(이전 실행 front 점 시작점, 디스크 실패 기록) | **제거**(U-89, 사용자 결정 2026-10-15 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따라 유지. 나머지는 기본안대로" -- 오케스트레이터 기본안 채택). §2.4.3 'S3'. 다른 실행 결과의 출력 조회(`node_across_front`)는 계산 재사용이 아니라 남긴다(U-90, §2.4.3 'front 조회' 행) |
 | Q8 | `graph/metrics: constraint_rows`(§2.4.8)에서 미측정(`unmeasured`) 값의 자리 | **열림**: U17 단계 ②로 이월하면서 ② design 보완 때 정한다(①-c 구현에서 드러남). 정하기 전에는 `constraint_rows`를 쓰지 않는다 |
 | Q12 | 블록 결과 색인 상한(§2.4.5, = §2.4.9 증거 집합 식 Σ_블록 분할 수 × (E_total + 1))의 실행 중 강제. 사실: 식의 전제 '실행의 커널 평가 수 ≤ E_total'이 as-built에서 깨진다 -- 선언 E_B 40에서 커널 평가 43·49·64·66(4회로), 블록별 서로 다른 입력 버전 최대 63(history H4). 원인: 외층·층 0의 FD 한 묶음(`E/search/fd_jacobian.py:86-111`)과 감도 게이트(`E/search/gate_run.py`, `E/search/find_front.py:84`)가 예산 검사 없이 돈다. 합계(Σ)로는 9회로 모두 식 안이다(최대 1036 ≤ 49 × 41) | **열림 -- 사용자 결정 필요**(U-96). 선택지: (가) 실행 끝 보고만(판정에 쓰지 않음) (나) 커널 평가 수를 E_total 이하로 강제(FD 한 묶음·감도 게이트에도 예산 검사 -- 탐색 동작 변경) (다) 식의 E_total을 그 실행의 실제 커널 평가 수로 읽고 넘으면 `RuntimeError`(사용자 결정 X-1 (3) 문구 '§2.4.9 식'과 다름 -- 원래 결정 문구와 다름). 결정 전 card B는 (가)처럼 보고만 한다 |
-| Q13 | 블록 계산이 예외(후보 실패)로 끝난 (블록, 분할, 입력 버전)을 같은 실행에서 같은 입력으로 다시 부를 때. as-built: 다시 계산해 같은 예외를 내고 계수상 `recomputes_same_input`에 든다. 측정: 9회로 297건 중 2건(current_reuse·sf_pushpull의 `dc_columns` 봉인 위반), 둘 다 W 출처라 card A 뒤 0으로 예상(history H4) | **열림 -- 사용자 결정 필요**(U-97). 선택지: (가) 실패도 블록 결과 색인에 (블록, 분할, 입력 버전) → 실패 기록으로 등록해 다시 계산하지 않고 같은 실패를 다시 낸다(사용자 결정 X-1 (3) '값이 담긴 스냅샷 참조'를 실패로 넓힘 -- 원래 결정 범위 밖) (나) 등록하지 않고 판정 1에 그대로 센다. 결정 전 규칙 = (나)(§2.4.4 호출 규칙 3의 현행 문언). 9회로 판정은 card A 뒤 이 경우가 0이면 결정과 무관하다 |
+| Q13 | 블록 계산이 예외(후보 실패)로 끝난 (블록, 분할, 입력 버전)을 같은 실행에서 같은 입력으로 다시 부를 때. as-built: 다시 계산해 같은 예외를 내고 계수상 `recomputes_same_input`에 든다(v1.11 계수는 `recomputes_same_input_failed`로 가른다 -- §2.4.9). 측정: 9회로 297건 중 2건(current_reuse·sf_pushpull의 `dc_columns` 봉인 위반), 둘 다 W 출처라 card A 뒤 0으로 예상(history H4) | **열림 -- 사용자 결정 필요**(U-97). 선택지: (가) 실패도 블록 결과 색인에 (블록, 분할, 입력 버전) → 실패 기록으로 등록해 다시 계산하지 않고 같은 실패를 다시 낸다(사용자 결정 X-1 (3) '값이 담긴 스냅샷 참조'를 실패로 넓힘 -- 원래 결정 범위 밖) (나) 등록하지 않고 다시 계산하며, 그 건수를 `recomputes_same_input_failed` 칸에 따로 센다(판정 1 밖, 보고만) (다) 등록하지 않고 판정 1에 넣어 FAIL로 본다. 결정 전 규칙 = (나)(§2.4.4 호출 규칙 3, §2.4.9 '실패 재계산'): card B 판정에서 실패 재계산이 생기면 건수를 판정 기록에 따로 보고하고 판정 1 실패로 세지 않는다. 9회로는 card A 뒤 이 경우가 0일 것으로 예상한다 |
 
 #### 2.4.13 결정성(NFR-4): 실행 환경 고정과 검증 기준 (v1.9.4, v1.10 정정)
 
@@ -778,8 +789,8 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력 
 | 항목 | 규칙 |
 |---|---|
 | 위치·이름 | 새 파일 `E/search/theta_coords.py`, 진입점 하나 = frozen dataclass `ThetaCoords`(규칙 A). 함수 레지스트리(`docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`) §2 개념별 정본표에 행 '탐색 좌표 x ↔ θ 값(ln 좌표 원값 보존)'을 더한다. 2026-10-15 확인: 엔진·test에서 `theta_coords`·`ThetaCoords` 0건, 레지스트리 §2에 같은 개념 없음. test `E/tests/search/test_theta_coords.py`(규칙 H), `E/_module_map.py` 항목 하나 |
-| 만들기 | `ThetaCoords.start(variables, theta)`. `variables` = 그 풀이의 변수(상자 하한 조정 뒤 -- as-built `ln_idu_floors` 적용 뒤), `theta` = 시작 θ 전체 사전. 변수마다 시작 좌표 x0ᵢ = clip(log 변수면 ln θᵢ, 아니면 θᵢ; loᵢ, hiᵢ), 원값 rawᵢ = θᵢ(clip이 좌표를 바꾸지 않았을 때만, 바꿨으면 없음). 변수 밖 성분은 `theta`의 값 그대로 고정한다. 외층은 L 단일 칸 고정값(as-built `_layout`의 `fixed`)을 넣은 시작 θ를 넘긴다(동작 그대로) |
-| 되돌리기 | `to_theta(x)`: 변수마다 v = clip(float(xᵢ); loᵢ, hiᵢ). v == x0ᵢ(float 정확 일치)이고 rawᵢ가 있으면 rawᵢ, 아니면 log 변수는 exp(v), 아니면 v. 고정 성분은 그대로. 규칙은 as-built `E/search/slsqp_outer.py:110-118` 그대로다(사용자 결정 X-1 (1): 그 규칙을 공용 정본 하나로) |
+| 만들기 | `ThetaCoords.start(variables, theta, *, clip)`(`clip`은 키워드 필수 bool). `variables` = 그 풀이의 변수(외층·층 0은 상자 하한 조정 뒤 -- as-built `ln_idu_floors` 적용 뒤. 감도 게이트는 as-built처럼 조정 없는 `sctx.domain.variables`), `theta` = 시작 θ 전체 사전. 변수마다 좌표 cᵢ = log 변수면 ln θᵢ, 아니면 θᵢ. `clip=True`(외층·층 0 -- as-built 동작)면 x0ᵢ = clip(cᵢ; loᵢ, hiᵢ)이고 원값 rawᵢ = θᵢ(clip이 좌표를 바꾸지 않았을 때만, 바꿨으면 없음). `clip=False`(감도 게이트 -- as-built `E/search/gate_run.py:55`는 clip하지 않는다)면 x0ᵢ = cᵢ, rawᵢ = θᵢ. 감도 게이트에 clip·하한 조정을 더하지 않는다(사용자 결정 X-1 (1)의 범위는 원값 보존뿐). 변수 밖 성분은 `theta`의 값 그대로 고정한다. 외층은 L 단일 칸 고정값(as-built `_layout`의 `fixed`)을 넣은 시작 θ를 넘긴다(동작 그대로) |
+| 되돌리기 | `to_theta(x)`: 변수마다 v = `clip=True`면 clip(float(xᵢ); loᵢ, hiᵢ), `clip=False`면 float(xᵢ)(as-built 게이트와 같다). v == x0ᵢ(float 정확 일치)이고 rawᵢ가 있으면 rawᵢ, 아니면 log 변수는 exp(v), 아니면 v. 고정 성분은 그대로. 규칙은 as-built `E/search/slsqp_outer.py:110-118` 그대로다(사용자 결정 X-1 (1): 그 규칙을 공용 정본 하나로) |
 | 성질 | `to_theta(x0)`는 시작 θ와 성분마다 비트가 같다. 좌표 하나만 움직인 x(FD 시험점)의 나머지 성분은 시작 θ와 비트가 같다 |
 | 쓰는 곳 | 시작 θ에서 좌표를 만들어 θ로 되돌리는 곳 전부(같은 변경에서 사본을 지운다, 레지스트리 §0 규칙 4): 외층 `solve_eps`(`_layout`의 x0·원값 계산과 `to_theta` 대체), 층 0 `_maxmin`(`to_theta`와 시작 좌표 `_coord` 대체), 감도 게이트 `run_sensitivity_gate`(x 계산과 `to_theta` 대체 -- 같은 결함의 세 번째 자리, 2026-10-15 grep `def to_theta` 3건). 새 점을 만드는 곳(상자 중심 `_box_centre`, Halton 시험점, 수리 bisection의 좌표 값)은 시작 θ의 왕복이 없어 대상이 아니다. `fd_jacobian`은 받은 `to_theta`를 그대로 부른다(서명 불변) |
 
@@ -796,13 +807,15 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력 
 | `search/search_context.py` `_wire_sweep_memo` | A | 단위 재작성(그 함수 전체) | 임시 컨텍스트·버리는 평가가 구조 결함이다. 남는 일 = 계수 상태 memo 설치와 n_θ 전달 |
 | `search/kernel.py` | A·B | 부분 수정(A: 첫 커널 평가 뒤 상한 고정 호출 / B: 부분 스냅샷·S3 evals 실패 줄 `snapshot_fp`·블록 호출 인자) | 평가 흐름은 그대로다 |
 | `core/compute_block.py` | B | 단위 재작성(`ComputeBlock.__call__`와 계수 상태 전부, `BlockStats`·`stats`·`reset_stats` 삭제). 코드 해시 부분(`_norm_const`·`_norm_code`·`_code_hash`)은 그대로 | 블록 객체가 프로세스 수준 계수를 쥐는 구조가 틀렸다(§2.4.9 M8) |
-| `core/run_counters.py`, `core/graft.py`, `search/s3_index.py` | B | 신규(각 진입점 하나: `RunCounters`, `graft`(+`Donors` 추상 기반), `S3Index`) | §2.4.4·§2.4.5·§2.4.9. `S3Index`는 `find`·`register`만(나머지 메서드는 U17 ②) |
+| `core/run_counters.py`, `core/graft.py`, `core/donors.py`, `search/s3_index.py` | B | 신규(각 진입점 하나: `RunCounters`, `graft`, `Donors`(추상 기반 -- `graft`와 한 파일이면 규칙 A 진입점이 둘), `S3Index`) | §2.4.4·§2.4.5·§2.4.9. `S3Index`는 `find`·`register`만(나머지 메서드는 U17 ②) |
 | `core/failure_errors.py` | B | 부분 수정(`partial`·`attach_partial`) | §2.4.7 부분 스냅샷 |
 | `sizing/s2_values.py`(`KernelContext`), `sizing/kernel_context.py`, `sizing/kernel_run.py`, `sizing/seal.py` | B | 부분 수정(참조 칸 2개, 블록 호출 인자 전달, 부분 스냅샷 부착) | 블록 순서·봉인 판정은 그대로다 |
 | `graph/s1_build.py`, `graph/s1v_build.py`, `metrics/ss_evaluate.py`, `layout/run.py`, `pipeline/stage_a.py`, `pipeline/stage_b.py`, `search/search_context.py`(S0 블록 호출) | B | 부분 수정(블록 호출에 `donors`·`counters`, 단계 A에서 두 객체 생성·`StageAResult` 참조) | 계산 내용은 그대로다 |
 | `search/search_values.py`(`EvalResult`) | B | 부분 수정(칸 `partial`) | §2.4.7 |
 | `search/find_front.py` | B | 부분 수정(`perf` 블록 계수 재작성: `_BLOCKS`·`_block_totals`·구간 차 삭제, `perf.blocks`·`perf.block_totals`) | 계수 출처가 `RunCounters`로 바뀐다 |
 | `core/__init__.py`, `search/__init__.py`, `lut/__init__.py`, `_module_map.py`, CONTRACT(`core`·`lut`·`search`·`sizing`·`graph`·`metrics`·`layout`·`pipeline`), 함수 레지스트리 §2 | A·B | 갱신 | 공개 이름·모듈 지도·계약을 같은 변경에서 맞춘다 |
+| 함수 레지스트리 `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:633` 'LUT memo 상한 배선' 행(정본 `lut.sweep_memo`) | A | 고침: 정본을 `LutMemo.counting`·`open_count`·`fix_bound`(배선 = `_wire_sweep_memo`와 `evaluate`의 첫 커널 평가)로 바꾸고 `sweep_memo`·`from_sweep` 문구를 지운다. 새 행 '탐색 좌표 x ↔ θ 값(ln 좌표 원값 보존)' = `ThetaCoords` | 레지스트리 §0 규칙 4(대체하면 같은 커밋에서 갱신) |
+| `search/layer0_center.py:631-632` `centre_start` docstring('`build_search_context`가 LUT memo 상한을 정하는 첫 평가도 이 점을 쓴다') | A | 고침: 첫 평가 버림이 없어졌으므로 'n_θ(변수 수)만 `_wire_sweep_memo`가 이 함수로 잰다'로 | 문구가 삭제된 동작을 가리킨다 |
 
 **(4) 삭제·변경 목록**(2026-10-15 `grep -rlw`, f23aec8. 완료 규칙: 이름마다 정한 범위에서 단어 단위 grep 0 -- history·design의 '옛' 문장 제외)
 
@@ -821,8 +834,8 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력 
 
 | card | 범위 | 선행 | 완료 조건 | test 초안(이름은 착수 때 glob·규칙 A~K 충돌 확인) | 판정 측정 |
 |---|---|---|---|---|---|
-| **A** RT + W | (2) 정본과 세 자리 대체, §2.4.6 '첫 평가 버림 제거', (4)의 A 행 삭제 | 실행 사이 재사용 제거 card(병합 f23aec8) | (i) (4) A 행 grep 0 (ii) `build_search_context` 안 커널 평가 0, 실행의 첫 커널 평가 뒤 상한 고정(as-built 식) (iii) 9회로에서 출처 W·RT의 재계산 0 (iv) (6) 기준선 재측정과 값 변화 목록 | `test_theta_coords.py`: `to_theta(x0)` 비트 동일(ln·선형·clip된 성분), 좌표 하나 이동 시 나머지 비트 동일, 고정 성분 그대로 / `test_layer0_center.py`·`test_slsqp_outer.py`·`test_gate_run.py`: 시작점 재평가가 평가 캐시 적중(커널 0), 층 0 FD 시험점과 같은 좌표의 외층 FD 시험점이 같은 θ 비트 / `test_search_context.py`: 컨텍스트 생성 커널 0·`seq` 0, 첫 평가 뒤 상한 = (n_θ + 1)·U_eval, S3 evals 첫 줄이 층 0 첫 평가 / `test_lut_memo.py`: 계수 상태 → 고정, 이미 모은 항목 유지 | auditor가 격리 복제본에서 9회로(평가 예산 E_B 40 선언 = card 1 판정과 같음) 실행: `ComputeBlock.__call__` 클래스 수준 감쌈 계측(엔진 코드 무변경, `_scratch_xrunf1/scripts` 방식)으로 재계산 출처 분해 -- W·RT = 0. 남는 L·R·X 수는 보고만(card B 기준) |
-| **B** 색인 + 부분 스냅샷 + 계수 | §2.4.4 호출 규칙(v1.11), §2.4.5 블록 결과 색인·보존 규칙, §2.4.7 부분 스냅샷·`KernelContext` 참조, §2.4.9 계수 범위·`perf` 형식, (4)의 B 행 삭제 | card A 병합. §2.4.12 Q12·Q13은 착수를 막지 않는다(결정 전 규칙대로 하고, 결정이 나면 그 결정의 card) | (i) (4) B 행 grep 0 (ii) 9회로 각각 한 실행에서 `perf.blocks` 모든 행 `recomputes_same_input` = 0과 `recompute_same_key` = 0(판정 1·5, ngcc_3stage_ff는 단계 A까지의 `RunCounters`) (iii) card A 병합본 대비 같은 환경 비트 동일 집합(§2.4.13 (2))이 `perf` 블록 계수 칸·시간 칸·evals 실패 줄의 새 `snapshot_fp` 칸 말고 비트 동일(색인은 궤적을 바꾸지 않는다) (iv) 블록 결과 색인 실행 끝 항목 수와 상한 식 값 보고(Q12) | `test_run_counters.py`·`test_graft.py`·`test_s3_index.py`(신규, 규칙 H): 기록·스냅샷, `test_graft_equals_compute`(`*`), `test_index_single_source`, fail-closed 네 가지(§2.4.5 표) / `test_compute_block.py` 다시 쓰기: 인자 없으면 `TypeError`, 같은 lineage `reuse`·다른 lineage `graft`·처음 `compute`, 블록 객체 무상태 / 계보 무관: parent 없는 두 평가가 같은 블록 입력이면 두 번째는 `graft` / 실행 격리: 한 프로세스 두 실행이 색인·계수를 나누지 않는다(두 번째 실행도 S0 블록 `computes` 1) / 부분 스냅샷: DC 블록 실패·봉인 위반·ss 실패 각각 `EvalResult.partial`의 `block_versions`, 실패 줄 `snapshot_fp` / `test_find_front.py`: `perf.blocks`·`perf.block_totals`, 옛 네 칸 없음 / `E/tests/integration/test_g10_no_recompute_9circuits.py`(판정 1·5) | auditor가 9회로를 card A 병합본과 B 병합본에서 각각 실행(E_B 40 선언, 같은 환경): (ii) 결과 JSON으로, (iii) §2.4.13 비교기 1차 검사로. 독립 계측(A와 같은 감쌈)으로 `perf.blocks` 합과 대조 |
+| **A** RT + W | (2) 정본과 세 자리 대체, §2.4.6 '첫 평가 버림 제거', (4)의 A 행 삭제 | 실행 사이 재사용 제거 card(병합 f23aec8) | (i) (4) A 행 grep 0 (ii) `build_search_context` 안 커널 평가 0, 첫 커널 평가 창의 독립 계수로 잰 U_eval,r에 대해 고정 용량 = (n_θ + 1)·U_eval,r(§2.4.6 표) (iii) `ThetaCoords`: 시작 좌표면 `to_theta` 결과가 시작 θ와 성분마다 비트 동일 -- 외층 `solve_eps`·층 0 `_maxmin`·감도 게이트 세 경로 모두 단위 test로 (iv) (6) 기준선 재측정과 값 변화 목록. **블록 재계산 계수는 card A의 기준이 아니다** -- 9회로 총계·블록별 값을 보고만 한다(출처 분류 없이). '재계산 0'은 card B 판정 1에서만 기준이다 | `test_theta_coords.py`: `to_theta(x0)` 비트 동일(ln·선형 성분, `clip=True`에서 clip된 성분은 원값 없음, `clip=False`에서 clip 없음), 좌표 하나 이동 시 나머지 비트 동일, 고정 성분 그대로 / `test_slsqp_outer.py`·`test_layer0_center.py`·`test_gate_run.py`: 각 경로가 `ThetaCoords`를 쓰고 그 경로의 시작 좌표 `to_theta`가 시작 θ와 비트 동일(경로마다 시작 θ를 log 왕복이 비트를 바꾸는 값으로 고른다 -- 옛 코드에서는 실패해야 한다) / `test_search_context.py`: 컨텍스트 생성 뒤 `kernel_calls` 0·`seq` 0, 계수 상태 memo, 첫 커널 평가 뒤 고정 용량 = (n_θ + 1) × 독립 계수(§2.4.6 '독립 계수'), 두 번째 `open_count`·`fix_bound` `ValueError`, 커널 평가 없는 실행의 `perf.lut_memo_bound` = `"unfixed_no_kernel_eval"` / `test_lut_memo.py`: 계수 상태 → 고정, 접근 순서대로 옮김, 넘치면 오래된 것부터 퇴출 | auditor가 격리 복제본에서 (ii)·(iii)·(iv)를 판정한다. 9회로(E_B 40 선언 = card 1 판정과 같음) 실행에서 블록 재계산을 `ComputeBlock.__call__` 클래스 수준 감쌈 계측(엔진 코드 무변경)으로 세어 총계·블록별로 **보고만** 한다(판정 아님, card B의 비교 자료) |
+| **B** 색인 + 부분 스냅샷 + 계수 | §2.4.4 호출 규칙(v1.11), §2.4.5 블록 결과 색인·보존 규칙, §2.4.7 부분 스냅샷·`KernelContext` 참조, §2.4.9 계수 범위·`perf` 형식, (4)의 B 행 삭제 | card A 병합. §2.4.12 Q12·Q13은 착수를 막지 않는다(결정 전 규칙대로 하고, 결정이 나면 그 결정의 card) | (i) (4) B 행 grep 0 (ii) 9회로 각각 한 실행에서 `perf.blocks` 모든 행 `recomputes_same_input` = 0과 `recompute_same_key` = 0(판정 1·5, ngcc_3stage_ff는 단계 A까지의 `RunCounters`). `recomputes_same_input_failed`는 건수를 따로 보고하고 판정에 넣지 않는다(§2.4.12 Q13 결정 전 규칙) (iii) card A 병합본 대비 같은 환경 비트 동일 집합(§2.4.13 (2))이 `perf` 블록 계수 칸·시간 칸·evals 실패 줄의 새 `snapshot_fp` 칸 말고 비트 동일(색인은 궤적을 바꾸지 않는다) (iv) `perf.block_index_entries`·`perf.block_index_bound` 보고(Q12) | `test_run_counters.py`·`test_graft.py`·`test_donors.py`·`test_s3_index.py`(신규, 규칙 H): 기록·스냅샷, 실패 재계산은 `recomputes_same_input_failed`로 가름, 같은 키 성공·예외 섞임 `ValueError`, `Donors` 하위 아닌 객체 거부, `test_graft_equals_compute`(`*`), `test_index_single_source`, fail-closed 네 가지(§2.4.5 표) / `test_compute_block.py` 다시 쓰기: 인자 없으면 `TypeError`, 같은 lineage `reuse`·다른 lineage `graft`·처음 `compute`, 블록 객체 무상태 / 계보 무관: parent 없는 두 평가가 같은 블록 입력이면 두 번째는 `graft` / 실행 격리: 한 프로세스 두 실행이 색인·계수를 나누지 않는다(두 번째 실행도 S0 블록 `computes` 1) / 부분 스냅샷: DC 블록 실패·봉인 위반·ss 실패 각각 `EvalResult.partial`의 `block_versions`, 실패 줄 `snapshot_fp` / `test_find_front.py`: `perf.blocks`·`perf.block_totals`, 옛 네 칸 없음 / `E/tests/integration/test_g10_no_recompute_9circuits.py`(판정 1·5) | auditor가 9회로를 card A 병합본과 B 병합본에서 각각 실행(E_B 40 선언, 같은 환경): (ii) 결과 JSON으로, (iii) §2.4.13 비교기 1차 검사로. 독립 계측(A와 같은 감쌈)으로 `perf.blocks` 합과 대조 |
 
 배선(사용자 원칙 '만들면 반드시 배선'): `ThetaCoords`는 세 풀이가, 계수 상태 memo는 `build_search_context`와 `evaluate`가, `S3Index`·`RunCounters`·`graft`는 모든 블록 호출이, `partial`은 `evaluate`·S3 evals가 같은 card 안에서 쓴다. 쓰이지 않는 새 이름을 남기지 않는다.
 
