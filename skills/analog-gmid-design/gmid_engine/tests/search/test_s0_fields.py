@@ -6,7 +6,9 @@
   * `graph/s1v: noise_input_cells`(writer `noise_decl`, D7).
   * 출발 구간 행(D3): `device: start.row`·`start.point`, `graph/start: conflicts·inactive·macro·rungs·records·area_est_m2·area_fraction·uncovered`
     (writer `start_intervals`). `theta`·`cells`·`current_ref` 는 `rungs` 칸 0 의 사본이라 필드가 아니다(D3), `kvl_*`·`noise_inputs`·`placement` 는 U17 ②.
-  * 단계 B 층 `graph/stage_b: residual_probe`(writer `residual_probe`), `dof_numeric`(writer `dof_numeric`) -- §2.4.1 '직렬화하지 않는다'(D5).
+  * 단계 B 층 `graph/stage_b: residual_probe`(writer `residual_probe`), `dof_numeric`(writer `dof_numeric`).
+    [xrun] 옛 '직렬화 제외 writer 목록' 단언은 지웠다 -- 설계 40 v1.10 §2.4.3 '직렬화 제외 writer 목록' 행: 디스크 S0 저장이 없어져 그 목록이
+    삭제됐다(유일한 쓰임이 저장의 transient 인자였다).
 - §2.4.1 표 첫 행·§2.4.3: S0 수준 스냅샷 권한표는 S1·S1v·결합·GB4·커널 구조 파생·탐색 S0 필드를 모두 덮는다(필드마다 writer 하나).
 """
 from gmid_engine.graph import S1_WRITERS, S1V_WRITERS
@@ -45,10 +47,6 @@ def test_start_writes_exact_and_no_copy_fields():
 def test_search_table_has_no_extra_writer():
     writers = {w for _kf, w in F.SEARCH_S0_WRITERS.entries}
     assert writers == set(WRITER_OF.values())
-
-
-def test_stage_b_writers_are_transient_list():
-    assert set(F.STAGE_B_WRITERS) == {"residual_probe", "dof_numeric"}
 
 
 def test_s0_table_covers_every_layer():

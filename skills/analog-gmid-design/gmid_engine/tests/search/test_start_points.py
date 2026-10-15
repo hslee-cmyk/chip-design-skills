@@ -1,6 +1,8 @@
-"""CONTRACT 3.12 `start_points(sctx, given) -> (starts, log)`: 후보 = S3 runs(같은 schema·code) front·pending 점 다음 given,
+"""CONTRACT 3.12 `start_points(sctx, given) -> (starts, log)`: 후보 = (층 0 출발점) 다음 given,
 칸 = L 마다 [lo − ulp, hi + ulp] 가 품는 첫 칸(없으면 ValueError), 후보마다 evaluate 1회(id s1..), 받아들일 상태이고 처음 보는 키만
-StartPoint."""
+StartPoint.
+[xrun] 설계 40 v1.10 §2.4.3 'S3' 행·'이전 실행 front 점 시작점' 삭제(사용자 결정 2026-10-15 "나로 해"): 이전 실행의 S3 runs front·pending 점은
+후보가 아니다 -- 시작점 기록의 출처는 층 0 과 "given" 뿐(interface card C5)."""
 import json
 import math
 from pathlib import Path
@@ -58,22 +60,18 @@ def _runs(root, ctx_fp):
     return [json.loads(x) for x in p.read_text(encoding="utf-8").splitlines() if x.strip()]
 
 
-def test_previous_run_front_points_come_first(tmp_path, lut_sealed, short_root):
+def test_previous_run_front_points_are_not_start_candidates(tmp_path, lut_sealed, short_root):
+    """[xrun XR-4] interface card C5: 같은 archive_root 로 같은 입력의 find_front 를 두 번 돌리면, 두 번째 실행은 첫 실행의 front 점을
+    시작점으로 쓰지 않는다. oracle (a) 구성: 첫 실행은 빈 S3 폴더에서 돈 실행이다 -- 두 번째 실행의 시작점 기록(runs.jsonl 줄 `starts`)은
+    출처가 층 0(`SOURCE_LAYER0` = "layer0", test_layer0_center 가 값 고정)과 "given" 뿐이고 시작점 수가 빈 S3 실행과 같다."""
     a = build_case(tmp_path / "a", circuit_c(), lut_sealed, archive_root=short_root, eval_budget=30)
-    fr = find_front(a.sctx, [theta_r4c()])
-    assert len(fr.front) >= 1
-    (run,) = _runs(short_root, a.sctx.context_fp)
-    prev = [tuple((tuple(k), float.fromhex(h)) for k, h in p["theta_hex"]) for p in run["front"] + run["pending_front"]]
+    fa = find_front(a.sctx, [theta_r4c()])
+    assert len(fa.front) >= 1                                           # 전제: 첫 실행이 front 점을 S3 에 남겼다
     b = build_case(tmp_path / "b", circuit_c(), lut_sealed, archive_root=short_root, eval_budget=30)
-    given = theta_r4c(i2=2e-5)
-    starts, log = start_points(b.sctx, [given])
-    log = [dict(e) for e in log]
-    assert len(log) == len(prev) + 1
-    assert [e["id"] for e in log] == ["s%d" % (i + 1) for i in range(len(log))]
-    assert all(e["source"] != log[-1]["source"] for e in log[:-1])     # 출처 구분
-    st = {sp.start_id: sp for sp in starts}
-    for i, th in enumerate(prev):
-        sp = st.get("s%d" % (i + 1))
-        if sp is not None:
-            assert tuple(sp.theta) == th
-    assert st["s%d" % len(log)].theta == tuple(sorted(given.items()))
+    assert b.sctx.context_fp == a.sctx.context_fp                        # 전제: 같은 S3 실행 폴더(첫 실행 줄이 있다)
+    find_front(b.sctx, [theta_r4c()])
+    first, second = _runs(short_root, a.sctx.context_fp)
+    sources = [dict(e)["source"] for e in second["starts"]]
+    assert set(sources) <= {"layer0", "given"}, sources
+    assert len(second["starts"]) == len(first["starts"])
+    assert [dict(e)["source"] for e in first["starts"]] == sources

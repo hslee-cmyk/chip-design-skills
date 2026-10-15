@@ -2,7 +2,7 @@
 
 - 정의역 = domain_of(dc, settings, pdk), 제약 분류(목적 축 -> judged_constraints, 레지스트리 view 있는 판정 제약 ->
   ss_constraints + notes verdict unmeasured, view 없는 판정 제약 -> notes metric_not_in_registry_or_no_ss_view),
-  counters 7키 0, eval_budget = settings, deadline None, archive None/S3Archive, spec_passive_values.
+  counters 6키 0([xrun] interface card C1), eval_budget = settings, deadline None, archive None/S3Archive, spec_passive_values.
 - I-11: θ 저항이 있고 상자 미선언 -> SchemaRejectedError(theta_resistance_bounds_undeclared), 커널(sizing 평가 블록) 호출 0.
 """
 import ast
@@ -18,7 +18,8 @@ from gmid_engine.sizing import dc_columns, dc_currents, dc_widths
 from .conftest import domain_of  # [U17 ①-b] graph/kernel: search_domain 필드 읽기
 from .conftest import CODE_FP, SRC, build_case, circuit_c, circuit_p, write_pdk
 
-COUNTERS = ("requests", "kernel_calls", "hits", "fail_hits", "disk_hits", "outside_domain", "recompute_same_key")
+# [xrun] interface card C1: SearchContext.counters 키 집합 = 이 6개(디스크 실패 적중 계수 삭제 -- 설계 40 v1.10 §2.4.3 '디스크 실패 기록 읽기')
+COUNTERS = ("requests", "kernel_calls", "hits", "fail_hits", "outside_domain", "recompute_same_key")
 CONS = (("power_dc_w", "<=", 1e-3, None), ("gain_ss_db", ">=", 10.0, None), ("supply_current_dc", "<=", 1e-3, None),
         ("area_search_m2", "<=", 1e-9, None))
 
@@ -73,7 +74,29 @@ def test_fingerprints_deterministic_and_input_sensitive(tmp_path, lut_sealed, lu
 def test_archive_created(tmp_path, lut_sealed, short_root):
     case = build_case(tmp_path, circuit_c(), lut_sealed, archive_root=short_root)
     assert isinstance(case.sctx.archive, S3Archive)
-    assert dict(case.sctx.disk_failures) == {}
+    # [xrun] 옛 단언 '디스크 실패 표가 비어 있다'는 지웠다 -- 그 칸이 없어졌다(설계 40 v1.10 §2.4.3 '디스크 실패 기록 읽기' 삭제).
+    # S3Archive 공개 메서드(interface card C6): 쓰기 셋과 폴더 .dir 만, 읽기 API 는 없다.
+    methods = {n for n in dir(S3Archive) if not n.startswith("_") and callable(getattr(S3Archive, n))}
+    assert methods == {"append_eval", "append_run", "write_snapshot"}
+    assert Path(case.sctx.archive.dir) == Path(short_root) / case.sctx.context_fp
+
+
+def test_counters_key_set_exact(tmp_path, lut_sealed):
+    """[xrun XR-7] interface card C1: SearchContext.counters 키 집합 = {requests, kernel_calls, hits, fail_hits, outside_domain,
+    recompute_same_key} 정확히(양성 형식)."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    assert set(dict(case.sctx.counters)) == set(COUNTERS)
+    assert len(COUNTERS) == 6
+
+
+def test_s0_keyword_rejected(tmp_path, lut_sealed):
+    """[xrun XR-7] interface card C1: build_search_context 는 s0 키워드를 받지 않는다(모르는 키워드 TypeError) -- S0 저장 폐지
+    (설계 40 v1.10 §2.4.3 'S0 저장' 삭제). 대조군: 같은 인자에서 s0 만 빼면 만들어진다(TypeError 가 다른 인자 때문이 아님)."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    with pytest.raises(TypeError):
+        build_search_context(case.dc, case.spec, case.settings, None, case.pdk, case.rule, code_fp=CODE_FP, s0=None)
+    s = build_search_context(case.dc, case.spec, case.settings, None, case.pdk, case.rule, code_fp=CODE_FP)
+    assert s.code_fp == CODE_FP
 
 
 def test_theta_resistance_without_bounds_rejected_before_kernel(tmp_path, lut_sealed):

@@ -1,10 +1,9 @@
-"""core/engine_code_fp.py -- 엔진 코드 지문 (design 40 v1.6 §2.4.3 키 (iii), §2.4.12 Q2·U-68).
+"""core/engine_code_fp.py -- 엔진 코드 지문 (design 40 v1.10 §2.4.3 '엔진 코드 지문' 행, §2.4.12 Q2).
 
-design 근거(§2.4.3 '키' 행 (iii) 문언): "엔진 코드 지문 = `gmid_engine` 아래 **test가 아닌 모든 패키지**의 `.py` 파일 바이트
-sha256(파일 경로 정렬). 블록 입력 버전의 코드 해시는 블록 함수 자신의 코드 객체만 덮으므로 실행 사이 재사용에는 (iii)이 필요하다.
-as-built `search_context._code_fp`는 6개 패키지만 덮어 범위가 좁다".
-U-68(사용자 결정 원문): 저장소·**모든 worktree** 의 현재 파일로 만들 수 있는 키는 보존 -- 다른 checkout 의 같은 코드가 같은 지문을
-내야 이 판정이 성립한다(위치 무관).
+[xrun] 설계 40 v1.10 §2.4.3(사용자 결정 2026-10-15 "나로 해"): 엔진 코드 지문은 S0 키에서 빠지고 결과 기록의 출처 칸(S3 줄 `code_fp`,
+`run_id`)으로만 남는다 -- 출력에 어느 코드가 만들었는지 적는 일. 값과 덮는 범위는 바뀌지 않는다(interface card C8 'engine_code_fp() 값').
+덮는 범위 근거(옛 §2.4.3 '키' 행 (iii) 문언, 범위 정의는 그대로): "엔진 코드 지문 = `gmid_engine` 아래 **test가 아닌 모든 패키지**의 `.py`
+파일 바이트 sha256(파일 경로 정렬)". 위치 무관: 같은 코드는 어느 checkout 에서든 같은 출처 칸을 내야 결과 기록을 서로 대조할 수 있다.
 
 판정(피검 함수로 기대값을 만들지 않는다 -- 같은 함수의 두 출력이 같은가/다른가만 본다):
 * 덮는 범위: test 가 아닌 모든 패키지의 `.py`(옛 6개 패키지 밖 `authoring`·`layout`·`convergence`·`report`·`pipeline` 과 최상위
@@ -12,7 +11,6 @@ U-68(사용자 결정 원문): 저장소·**모든 worktree** 의 현재 파일�
 * 덮지 않는 범위: `tests/` 아래 파일, `.py` 가 아닌 파일 -- 바뀌어도 지문이 같다.
 * 위치 무관: 같은 트리를 다른 폴더에 두어도 같은 지문.
 * 기본 대상 = 이 `gmid_engine` 폴더.
-red-first `tests/core/test_snapshot_codec.py` 의 '엔진 코드 지문 (iii)' 절을 원본 1:1(규칙 H)에 따라 이 파일로 옮기고 위 범위를 보탰다.
 """
 from pathlib import Path
 
@@ -68,7 +66,7 @@ def test_engine_code_fp_is_deterministic(tmp_path):
 
 
 def test_engine_code_fp_is_independent_of_checkout_location(tmp_path):
-    # U-68: 다른 worktree 의 같은 코드로 같은 키를 만들 수 있어야 보존 판정이 성립한다 -> 위치 무관.
+    # 위치 무관: 다른 checkout(worktree)의 같은 코드는 같은 출처 칸(S3 줄 code_fp)을 낸다.
     a = _make_tree(tmp_path / "wt_a" / "gmid_engine")
     b = _make_tree(tmp_path / "wt_b" / "deeper" / "gmid_engine")
     assert _code_fp(a) == _code_fp(b)

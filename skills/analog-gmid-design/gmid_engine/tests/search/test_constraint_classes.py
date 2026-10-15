@@ -7,7 +7,7 @@ oracle (d) 설계·계약 문장(선언 순서대로 하나씩):
 - 목적 축(`power_dc_w`·`area_search_m2`, search AXES)이면 judged 에 (metric, op, float 값).
 - 레지스트리에 있고 ss 뷰가 있으면 ss 에 그 제약의 spec 위치(index) -- 선언 객체 사본을 두지 않는다(D8).
 - 그 밖은 notes 에 unmeasured(`metric_not_in_registry_or_no_ss_view`) -- 조용히 통과하지 않는다(S-1).
-- 값 형식 = 새 frozen dataclass `ConstraintClasses`(D8: dict 행은 S0 스냅샷 코덱이 받지 않는다), 타입 등록부에 오른다.
+- 값 형식 = 새 frozen dataclass `ConstraintClasses`(D8). [xrun] 옛 '타입 등록부에 오른다' 단언은 지웠다(설계 40 v1.10 §2.4.3 타입 등록부 삭제).
 - 계산 블록: writer = `constraint_classes`(필드 하나 = writer 하나), 같은 입력은 재사용(계산 0, 40 §2.4.2).
 입력 metric 이름: `gain_ss_db`(전달 뷰가 있는 ss metric), `supply_current_dc`(레지스트리에 있으나 ss 뷰가 없는 metric) -- 기대 분류는 위 문장에서 손으로 정한다.
 """
@@ -15,7 +15,7 @@ import dataclasses
 
 import pytest
 
-from gmid_engine.core import GraphSnapshot, type_registry
+from gmid_engine.core import GraphSnapshot
 from gmid_engine.search.constraint_classes import constraint_classes
 from gmid_engine.search.s0_fields import S0_WRITERS
 from gmid_engine.search.search_values import ConstraintClasses
@@ -75,11 +75,6 @@ def test_writer_is_constraint_classes_and_reuse_computes_nothing():
     again = constraint_classes(snap, DECLS)
     st = constraint_classes.stats()
     assert again is snap and (st.calls, st.reuses, st.computes) == (1, 1, 0)
-
-
-def test_value_type_registered_for_s0_codec():
-    names = set(type_registry.type_registry().names())
-    assert ConstraintClasses.__module__ + "." + ConstraintClasses.__qualname__ in names
 
 
 def test_mutable_extras_rejected():

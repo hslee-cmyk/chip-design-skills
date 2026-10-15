@@ -314,7 +314,7 @@ BASELINE_8E46548 = {
 
 
 def _measured_domain(name, lut, tmp_path):
-    """[U17 ①-b] 같은 측정 경로를 새 API 로: run_stage_a(lut_rule_decl= 필수) -> 커널 컨텍스트(L 동치류는 S1Graph 의 S0 수준 필드
+    """[U17 ①-b] 같은 측정 경로를 새 API 로: run_stage_a -> 커널 컨텍스트(L 동치류는 S1Graph 의 S0 수준 필드
     `graph/s1v: l_classes` 에서 -- build_kernel_context(l_classes=) 삭제, 설계 40 v1.9.1 §2.4.7·§2.4.8) -> 계산 블록 search_domain 이 쓴
     `graph/kernel: search_domain` 필드(§2.4.7 'SearchContext 칸 배정' domain 행)를 읽는다."""
     from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
@@ -326,11 +326,8 @@ def _measured_domain(name, lut, tmp_path):
     from .conftest import LIBRARY
     skill = LIBRARY.parents[1]
     pdk = read_pdk_decl(str(skill / "assets" / "sky130_pdk_decl.json"), BoundedLRU(8))
-    rule = read_pdk_decl(str(skill / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(8))
-    # [U17 ①-a 병합] run_stage_a(pdk_decl=) 필수(40 §2.4.12 Q1) -- 아래 search_domain 이 쓰는 같은 PDK 선언을 넘긴다(판정 내용 변경 없음)
-    r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, pdk_decl=pdk,
-                    lut_rule_decl=rule, output_dir=tmp_path, pdk_decl_path=str(skill / "assets" / "sky130_pdk_decl.json"),
-                    lut_rule_decl_path=str(skill / "assets" / "sky130_lut_rule_decl.json"))
+    # [xrun J-1] run_stage_a 는 PDK 선언·LUT 생성 규칙 선언과 경로 인자를 받지 않는다(S0 키에만 쓰이던 인자) -- pdk 는 아래 search_domain 몫
+    r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, output_dir=tmp_path)
     spec = r.spec
     k = build_kernel_context(r.s1, dc_inputs_from_spec(spec), pre_layout_lut_access(LutMemo(lut, point=4096, curve=4096, root=4096)))
     search = spec.search if isinstance(spec.search, tuple) else ()
