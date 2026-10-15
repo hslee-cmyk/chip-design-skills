@@ -281,9 +281,10 @@ plan_version: 6.11
 | D-GR15 | 계수 소유 `RunCounters`(블록 무상태, `_evicted`·`events` 이동), LUT memo 퇴출 판정(U-60 결정 (가): 퇴출 뒤 재계산 0). v1.11: 블록 계수 부분과 블록 무상태화는 XRUN-F1 B(D-XR5), `_evicted`·`events` 이동은 U17 ②·③ | 40 §2.4.6·2.4.9 | DEV | bd19cc6 `E/core/compute_block.py:67-71`, `E/core/bounded_lru.py:38`, `E/lut/table_cache.py:199` |
 | D-XR1 | ln 좌표 원값 보존 정본 `ThetaCoords`(`E/search/theta_coords.py`): 시작 좌표면 시작 θ 원값. 외층 `solve_eps`·층 0 `_maxmin`·감도 게이트가 같은 정본을 쓰고 사본(`_coord`·`to_theta` 세 개·`_layout` 원값 목록)은 지운다(사용자 결정 X-1 (1), XRUN-F1 A) | 40 §2.4.14 (2) | DEV | f23aec8 `E/search/layer0_center.py:283-288·411-412`, `E/search/gate_run.py:55-61`(원값 보존 없음), `E/search/slsqp_outer.py:70-75·110-118`(있음). `rg "ThetaCoords"` 0 |
 | D-XR2 | 첫 평가 버림 제거: 탐색 memo는 계수 상태로 시작하고 실행의 첫 커널 평가(실제 평가) 뒤 상한 (n_θ + 1)·U_eval 고정, `build_search_context` 커널 평가 0, `sweep_memo.py`·`from_sweep` 삭제(사용자 결정 X-1 (2), XRUN-F1 A) | 40 §2.4.6 | DEV | f23aec8 `E/search/search_context.py:134-150`(임시 컨텍스트 첫 평가), `E/lut/sweep_memo.py` |
-| D-XR3 | 블록 결과 색인: (블록, 분할, 입력 버전) → 그 값을 담은 스냅샷 참조, 계보 무관, 실행 수명, 상한 = 40 §2.4.9 증거 집합 식(강제 방식 Q12 열림), fail-closed 네 가지, 모든 블록 호출이 `donors`·`counters` 필수(사용자 결정 X-1 (3), XRUN-F1 B) | 40 §2.4.4·2.4.5 | MISS | f23aec8 `E/core/compute_block.py:139`(같은 lineage `block_version` 하나만). `rg "class S3Index\|def graft\|class RunCounters"` 0 |
+| D-XR3 | 블록 결과 색인: (블록, 분할, 입력 버전) → 그 값을 담은 스냅샷 참조, 계보 무관, 실행 수명, 상한 = 40 §2.4.9 증거 집합 식(등록 때 fail-closed는 card C 뒤, X-8), 결정적 도메인 실패 기록 등록·재연(X-9), fail-closed 네 가지, 모든 블록 호출이 `donors`·`counters` 필수(사용자 결정 X-1 (3), XRUN-F1 B) | 40 §2.4.4·2.4.5 | MISS | (v1.11: Q12 → 사용자 결정 X-8 card C, 실패 기록 등록·재연 X-9) f23aec8 `E/core/compute_block.py:139`(같은 lineage `block_version` 하나만). `rg "class S3Index\|def graft\|class RunCounters"` 0 |
 | D-XR4 | 실패 평가의 부분 스냅샷: 예외 `partial`·`attach_partial`, `EvalResult.partial`, S3 evals 실패 줄 `snapshot_fp`(사용자 결정 X-3, XRUN-F1 B) | 40 §2.4.7 | DEV | f23aec8 `E/search/kernel.py:119-122·129-135`(실패면 평가 스냅샷 없음), `E/sizing/seal.py:50-58`(보고서 쓴 뒤 예외) |
 | D-XR5 | perf 재계산 계수 = 실행 전체 모든 (블록, 분할), 결과 JSON `perf.blocks`·`perf.block_totals`, 옛 `block_calls`·`block_reuses`·`block_computes`·`block_recomputes_same_input` 삭제(사용자 결정 X-5, XRUN-F1 B) | 40 §2.4.9 | DEV | f23aec8 `E/search/find_front.py:44-59·131-133`(sizing 블록 12개의 `find_front` 구간 차) |
+| D-XR6 | 모든 커널 평가를 E_total에 넣음: FD 묶음·감도 게이트는 시작 전 묶음 상계가 남은 예산에 들어가는지 확인, 안 들어가면 시작 안 함(평가 수 ≤ E_total), 색인 상한 등록 때 fail-closed(사용자 결정 X-8, XRUN-F1 C) | 40 §2.4.14 (5) C, §2.4.12 Q12 | DEV | f23aec8 `E/search/fd_jacobian.py:86-111`(묶음 예산 검사 없음), `E/search/find_front.py:84`(게이트 예산 밖). 측정: E_B 40에서 커널 평가 43·49·64·66(history H4) |
 | D-P2 | 소자별 폭 슬라이스(`LutAccess.w_keys` 소자 키, `w_key_of(lut, device)`), LY2 행별 finger 폭 | 40 §3.10.1 | DEV | bd19cc6 `LutAccess.w_keys` = kind 키, `convergence/place_layout` `layout_score` 최소 키 |
 | D-P3 | LY5 nf → W → 완화, 종속 소자 W 고정 입력(봉인 2 판정) | 40 §3.10.2 | DEV | MOD8 gap (b)(종속 소자 W 고정 불가) |
 | D-P6 | MOD8 열린 항목 닫음: 쌍 전류비 보장 규칙, `key_exclusion` 삭제, 면적 모델 오차 기록만, front 뒤 재측정 | 40 §3.10.3 | MISS | `rg "key_exclusion"` (convergence) |
@@ -308,10 +309,10 @@ plan_version: 6.11
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 2 | 1 | 7 | 5 | 0 |
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
-| 설계 항목 | 167 | 1 | 29 | 15 | 119 | 3 |
-| **합계** | 264 | 27 | 36 | 51 | 141 | 9 |
+| 설계 항목 | 168 | 1 | 30 | 15 | 119 | 3 |
+| **합계** | 265 | 27 | 37 | 51 | 141 | 9 |
 
-v1.11(2026-10-15, XRUN-F1 design, 사용자 결정 2026-10-15 "권고대로 진행해" X-1~X-5): 설계 항목 5행 추가(D-XR1·D-XR2·D-XR4·D-XR5 DEV -- 옛 구조가 as-built에 있음, D-XR3 MISS), D-GR4·5·6·9·12·15와 NFR-2 행 문구(상태 불변). D-PF1 대상 소멸(PART → N/A, → D-XR2)과 NFR-2·D-PF1 증거의 `from_sweep` 사실 정정. 집계(v1.10.1 증감을 함께 반영): 설계 항목 162 → 167, OK 0 → 1, DEV 26 → 29(v1.10.1 −1, 이번 +4), PART 16 → 15, MISS 118 → 119, N/A 2 → 3. 합계 OK 27, DEV 36, PART 51, MISS 141, N/A 9.
+v1.11(2026-10-15, XRUN-F1 design, 사용자 결정 2026-10-15 "권고대로 진행해" X-1~X-5): 설계 항목 5행 추가(D-XR1·D-XR2·D-XR4·D-XR5 DEV -- 옛 구조가 as-built에 있음, D-XR3 MISS), D-GR4·5·6·9·12·15와 NFR-2 행 문구(상태 불변). D-PF1 대상 소멸(PART → N/A, → D-XR2)과 NFR-2·D-PF1 증거의 `from_sweep` 사실 정정. 집계(v1.10.1 증감을 함께 반영): 설계 항목 162 → 167, OK 0 → 1, DEV 26 → 29(v1.10.1 −1, 이번 +4), PART 16 → 15, MISS 118 → 119, N/A 2 → 3. 합계 OK 27, DEV 36, PART 51, MISS 141, N/A 9. 이어서 사용자 결정 X-8로 D-XR6(DEV) 추가: 설계 항목 168·DEV 30, 합계 265·DEV 37.
 
 v1.10.1(2026-10-15, card 1 xrun 구현 7e1b4be·판정 029f9b7 뒤, 사용자 결정 J-8 "권고대로 진행해"): D-GR3 DEV → OK(병합 직전 갱신, 증거는 판정 기록). 집계: 설계 항목 DEV 26 → 25, OK 0 → 1(합계 DEV 33 → 32, OK 26 → 27). 이 증감은 v1.11 표에 함께 반영했다(위 v1.11 줄).
 
