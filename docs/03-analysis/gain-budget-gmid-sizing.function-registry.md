@@ -58,6 +58,7 @@
 | diode 고정점 | `solve_diode_connected_vds` | 계획 §7.3/§8.4의 `_solve_diode_connected_vgs_fixed_point` | 이름만 다름 -- **새로 만들지 않는다** |
 | L grid 스냅 | `quantize_L` | SD `_quantize_to_grid`(의도적 사본) | 모듈 경계 결정 후 |
 | 비싼 파생 표(tol_V·tol_VDsat·곡선 보고)의 프로세스 간 재사용 | `gmid_engine.lut.LutMemo.lookup_persistent` -> `TableCache.fetch`(lut/CONTRACT 2.1, 키 = 코드 버전 + 입력 내용 + 설정, 원자적 쓰기, 읽을 때 검증) | 호출부마다 파일 캐시·pickle·모듈 전역 dict 를 따로 만드는 것 | **새로 만들지 않는다** -- 새 비싼 파생 표는 `memo.lookup` 대신 `memo.lookup_persistent(region, fn, key, compute, inputs, settings)` 만 쓴다. 옛 `id(lut)` 키 캐시는 쓰지 않는다 |
+| 다른 실행의 S3 front 항목 조회(출력 조회 전용) | `gmid_engine.search.read_front_entries(run_dir)` (`search/front_entries.py`, 설계 40 §2.4.3 U-90) | 엔진 계산 경로는 부르지 않는다(구조 규칙 K). 스냅샷 파일 읽기는 `front_query._read_snapshot_file`(비공개)로 `node_across_front` 만 쓴다. S3Archive 의 읽기 메서드 셋과 S0 디스크 스냅샷 코덱·키 자리·타입 등록부는 삭제했다(실행 사이 재사용 제거, NFR-2·U-89) -- **새로 만들지 않는다** |
 
 ## 3. R0 -- 수정 없이 그대로 재사용 (새로 만들면 중복)
 
@@ -715,4 +716,4 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 개념 | 정본 | 비고 |
 |---|---|---|
 | 계산 블록 코드 해시(checkout 경로·줄 정보 무관, `__wrapped__` 사슬 포함) | `core.compute_block._code_hash` (`ComputeBlock.code_hash`, 데코레이트 시점 1회) | 옛 `hashlib.sha256(marshal.dumps(fn.__code__))` 는 삭제했다(경로 의존·참조 수 의존). 지문 인코더는 `core.fp_of` 하나 -- 코드 지문용 인코더를 새로 만들지 않는다 |
-| 실행 사이 재사용용 엔진 코드 지문 | `core.engine_code_fp` | 블록 코드 해시가 덮지 않는 것(부르는 함수·전역·closure·기본 인자)을 덮는다 |
+| 엔진 코드 지문(S3 줄 `code_fp`·`run_id` 의 출처 칸 -- 실행 사이 재사용 키 아님) | `core.engine_code_fp` | 블록 코드 해시가 덮지 않는 것(부르는 함수·전역·closure·기본 인자)을 덮는다 |

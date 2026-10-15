@@ -1,12 +1,10 @@
 """MOD6 search -- θ 탐색으로 (전력, 면적) 비지배 front (계획 N3.5·N3.7·DEC-54·77·79·80·95, 설계 design_mod6_search_front).
 계약: `CONTRACT.md`. 다른 패키지와 test 는 이 `__all__` 만 쓴다.
 
-공개 흐름: `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, *, code_fp, s0=None)`(S0 당 1회 -- S0 수준 블록, 끝에서 S0 스냅샷 1회 저장)
+공개 흐름: `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, *, code_fp)`(실행당 1회 -- S0 수준 블록, 디스크 저장 없음)
 -> `find_front(sctx, given_starts)`.
 봉인 7 이 VDSAT 접근자 부재로 미정인 동안 모든 점은 '봉인 7 대기'(`seal_status`)라 최종 front 는 비어 있다.
 """
-from gmid_engine.core import type_registry
-
 from .archive import S3Archive
 from .area_decl import passive_area_decl
 from .cell_floor import ln_idu_floors
@@ -24,6 +22,7 @@ from .eps_sweep import sweep_front
 from .eval_key import eval_key
 from .fd_jacobian import fd_jacobian
 from .find_front import find_front
+from .front_entries import read_front_entries
 from .front_query import node_across_front
 from .kernel import evaluate
 from .l_bin_search import polish_l_cells
@@ -44,7 +43,6 @@ from .s0_fields import (
     SEARCH_DOMAIN_WRITER,
     SEARCH_S0_WRITERS,
     STAGE_B_KEY,
-    STAGE_B_WRITERS,
     START_INTERVALS_WRITER,
     START_KEY,
     START_WRITES,
@@ -99,12 +97,6 @@ from .start_values import (
     StartRung,
 )
 
-# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 search 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식', §2.4.8 v1.9.1 D3·D8):
-# `graph/start`·`device: start.row` 의 `StartRow`·`StartConflict`·`MacroResult`·`StartRung` 과 `StartRow.sources` 의 `Bound`, `graph/kernel: search_domain`(`SearchDomain`·`Variable`)·
-# `constraint_classes`(`ConstraintClasses`). 계산용 입력(`StartView`·`DeviceInfo`·`GainInputs`)은 필드 값이 아니라 올리지 않는다.
-for _field_value_type in (StartRow, StartConflict, MacroResult, StartRung, Bound, SearchDomain, Variable, ConstraintClasses):
-    type_registry.type_registry().register(_field_value_type)
-
 __all__ = (
     "ACCEPTED_STATUSES",
     "AXES",
@@ -127,7 +119,6 @@ __all__ = (
     "SEARCH_DOMAIN_WRITER",
     "SEARCH_S0_WRITERS",
     "STAGE_B_KEY",
-    "STAGE_B_WRITERS",
     "START_INTERVALS_WRITER",
     "START_KEY",
     "START_WRITES",
@@ -188,6 +179,7 @@ __all__ = (
     "layer0_start",
     "ln_idu_floors",
     "node_across_front",
+    "read_front_entries",
     "nondominated",
     "objective_values",
     "polish_l_cells",

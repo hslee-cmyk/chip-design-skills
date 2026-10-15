@@ -2,11 +2,14 @@
 
 진입점: `node_across_front(front, node, archive=None) -> tuple[NodeRow]`.
 
-* `front` 원소 = `FrontPoint`(실행 안 -- 메모리 스냅샷을 읽는다) 또는 `runs.jsonl` 의 front 항목 dict(다른 실행 -- `archive`
-  의 `snapshots/<fp>.json.gz` 를 읽는다). 어느 쪽도 재계산(커널 호출)은 0 이다.
+* `front` 원소 = `FrontPoint`(실행 안 -- 메모리 스냅샷을 읽는다) 또는 `runs.jsonl` 의 front 항목 dict(다른 실행 -- `archive.dir` 의
+  `snapshots/<fp>.json.gz` 를 비공개 `_read_snapshot_file` 로 읽는다; 그 dict 는 `front_entries.read_front_entries(archive.dir)` 가 준다). 어느 쪽도 재계산(커널 호출)은 0 이다.
 * 줄 = (point_id, 상태, 노드 전압(레일이면 `dc_rail_v`, 아니면 `dc_v`), writer 티어, 그 노드에 단자가 닿는 MOS 마다
   (소자, 단자들, (vgs, vds, vsb, current, gm_id, W, L))). 노드가 스냅샷에 없으면 `KeyError`.
 """
+import gzip
+import json
+
 from .search_values import FrontPoint, NodeRow
 
 _OP_FIELDS = ("vgs", "vds", "vsb", "current", "gm_id", "W", "L")
@@ -27,8 +30,14 @@ def _from_snapshot(point_id, status, snap, node):
     return NodeRow(point_id, status, float(voltage), None if writer is None else writer.value.tier, tuple(devices))
 
 
+def _read_snapshot_file(path):
+    """`S3Archive.write_snapshot` 이 쓴 gzip JSON 파일 -> dict(재계산 없음)."""
+    with gzip.open(path, "rt", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
 def _from_file(entry, archive, node):
-    data = archive.read_snapshot(entry["snapshot_ref"])
+    data = _read_snapshot_file(archive.dir / entry["snapshot_ref"])
     records = {(r["kind"], r["key"]): r["fields"] for r in data["records"]}
     fields = records.get(("node", node))
     if fields is None:

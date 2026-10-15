@@ -6,7 +6,7 @@
 `diagnostic=True` 면 S1v 필드가 있는 한 정지 상태에서도 GB4 를 계산해 측정만 한다 -- 정지 판정은 바뀌지 않고 `StageBResult.diagnostic` 이 True) -> `dc_inputs_from_spec` ->
 `build_kernel_context`(쓰기 계획·전류 기저·커널 구조 파생·θ 스키마 -- L 동치류는 필드 `graph/s1v: l_classes`) -> S0 수준 권한표(search `S0_WRITERS`)로 넓힘 ->
 계산 블록 `search_domain`(θ 전류 상자·자기동형 묶음·b_A) -> `passive_area_decl` -> `search.count_budget`(N_S) -> 계산 블록 `metrics.achievability`(S0 수준 필드 `graph/ach`) ->
-`graph/ach: reasons` 가 있으면 `InfeasibleTargetError` 분류로 정지(exit 3). 모든 블록은 입력 버전이 같으면 재사용(같은 S0 의 디스크 스냅샷 위에서 계산 0).
+`graph/ach: reasons` 가 있으면 `InfeasibleTargetError` 분류로 정지(exit 3). 모든 블록은 입력 버전이 같으면 같은 실행 안에서 재사용(단계 A 가 이미 부른 블록은 계산 0; 디스크 스냅샷·실행 사이 재사용 없음).
 `settings` = 탐색 실행 설정(`SearchSettings`, **필수** 키워드 인자 -- `build_search_context` 와 같은 값을 넘기면 정의역 블록이 한 번만 계산된다;
 수동소자 상자가 정의역 입력이다, v1.9.1 D6). 기본값이 없다: 빠지거나 `SearchSettings` 가 아니면 `TypeError`(진입 맨 앞, `build_search_context` 와 같은 규칙).
 `InfeasibleTargetError` 는 전파하지 않고 보고서에 정지 사유와 모든 인증/미상 수치를 쓴 뒤 그 분류의 exit code(3)를 낸다(단계 A 와 같은 방식, 보고서는 항상 기록).
