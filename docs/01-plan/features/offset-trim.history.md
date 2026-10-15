@@ -28,18 +28,31 @@ date: 2026-10-15
 |---|---|---|
 | Mohamed 2013 (SIECPC) | 한 입력 단자에 DC 전압을 더하는 방식의 존재와 비용: 신호 경로 안 두 단 level shifter(식 (7) 버퍼 이득 < 1, 대역 제한), ΔV_GS가 I_Trim의 제곱근 함수(식 (4)) -- 기본안(전류 주입)과의 비교 근거 | 표 I의 W·L, I_optimum 5.41 µA, 200 µV 등 수치(원문 값 인용 금지). '온도 무관' 주장(식 (4)는 ΔV_TH 항을 남겨 V_TH 온도계수가 같을 때만 성립) |
 | von Staudt 2011 (IMS3TW) | trim 범위가 미보정 분포를 덮어야 한다는 조건(R = 2^n·LSB), 이진 가중 주 전이 DNL σ_U·√(2^n−1) 대 thermometer σ_U(Table I), 양의 DNL이 trim 뒤 분포 꼬리를 만든다는 것, 범위 손실과 bit 추가의 교환 | '±5σ_V' 범위 관례·5 % 단위 σ·Table II/III 수치(상수 발명 금지 -- 범위 배수는 사용자 spec k). 자기 trim·비교기 잡음 모델(이번 범위는 sizing, trim 알고리즘 밖) |
-| Zhou·Kay 2017 (TI SBOT037A) | e-Trim = 패키지 뒤 내부 보정 전류원 조정(p.1), Fig.2 입력쌍 쪽 trim 소자, Table 1 drift·1/f 제거는 chopper만 | 제품 수치(OPA2191 등) |
+| Zhou·Kay 2017 (TI SBOT037A) | e-Trim = 패키지 뒤 내부 보정 전류원 조정(p.1, 'low offset voltage and drift' 제품군으로 소개), Fig.2 입력쌍 쪽 trim 소자, chopper는 시간·온도 drift를 평균해 없애고 1/f를 제거(p.2, Table 1). v0.1의 'drift·1/f 제거는 chopper만' 표현은 v0.2에서 완화 -- 한 온도 trim의 drift 미보정 근거는 Kay 2024 p.7 | 제품 수치(OPA2191 등) |
 | Bertotti 2012 (ARS) | 차동 출력 전류 steering 단위 셀(Fig.3, Iout+/Iout−, 전류원을 끄지 않음 -- T-3 'I_A+I_B 일정'과 같은 구조), 최악 INL·DNL 분산식 (2)(3)(분할 m비트), 단위 전류 상대 σ의 Pelgrom 식 (4)(강반전)·(5)(약반전), 공통중심 배치 | 10 µA·40 nA·1.904 %·m ≤ 5 등 수치, 배치 그림의 계수 |
 | Lu 2007 (ICICDT) | 1단 출력(R1) 노드에 보조 transconductor 전류를 넣는 구조(Fig.2·3), 주입 소자를 더할 때 부하 전류 균형을 맞추는 크기 관계(식 (10)) -- 코드 중간점 계통 offset 검사의 근거, 주입 오차가 G_m,aux/G_m1에 비례(식 (9)) -- 주입 소자 gm을 작게 둘 근거 | 클럭·저장 커패시터 동적 기법 자체(trim 범위 밖), 1.898 mV 등 수치 |
 | Srinivasan 2007 (JSSC, 앞서 보관) | 'current-mode DAC로 증폭기 부하 전류를 조정해 offset 보상'(§I, p.1) -- 주입 노드 = 부하 쪽 근거 | floating-gate 프로그래밍 |
 | Kay 2024 (TI SBOA590, 앞서 보관) | CMOS drift는 offset에 비례하지 않아 한 온도 offset trim이 drift를 trim하지 않는다(§1.2, **PDF p.7** Figure 1-8 문단; 오케스트레이터 보고의 '§1.2'는 맞고 쪽은 p.7), CMOS 입력 모델의 trim 저항(Figure 1-6, p.6) | 제품 표 수치 |
 
+### 2026-10-15 v0.1 독립 검증(72/100, 차단 4건) 반영 → v0.2
+
+| 지적 | v0.1 | v0.2 반영 |
+|---|---|---|
+| B1 쌍 선택 | '같은 자기동형 궤도의 두 drain 넷' -- 단일 종단(미러 부하) 회로에서 두 drain 넷이 다른 궤도라 성립 안 함(`E/tests/graph/test_automorphism_orbits.py:125-129`) | N3.2: 쌍 = 입력 셀 안 derived `diff_pair` 두 소자의 drain 넷. 미러 부하 원리 문장(z[diode] ≈ −z[out]). N4에 9회로 적용 예상 표(차동 7회로) |
+| B2 DNL 식 | 이진 주 전이 σ_U·√(2^m_b−1) | N3.4: Bertotti 식(3) E[DNL²] = (2^(m+1) − 1 − 1/(2^N−1))·σ_U², 최악 전이 = thermometer 하나 켜짐 + 이진 전체 꺼짐, I_LSB = 2·I_u, 분할 규칙 다시 유도 |
+| B3 N·m 순환 | N을 I_FS/I_LSB에서, m을 DNL에서 매 평가 유도 | N3.1·N3.4: N·m은 1단계 추천 → 승인 고정값, 2단계는 I_u만 유도, 불가능하면 `trim_config_infeasible`로 멈추고 재승인 |
+| B4 해시 결속 | 파생 topology 해시 대조만 | N3.3 결속(spec `meta.topology_fp` F-10, structure.json stale F-8, 규칙 지문 F-9), D-13·D-14, TR-4 착수·병합 조건, N9 위험, 완료 조건 (1) 범위 |
+| 비차단 | -- | 1단계가 파생 topology·connectivity 표 제시(FR-T2), δ=0 코드 없음·게이트 넷 코드·꺼진 셀 포화 제외(N0.1·N3.3·N3.5), 보정 구간 = 균형 풀이 판정(N3.4), I_FS = I_T, 잔여 0.75·LSB 근거(X-12), σ_in은 파생 topology 값, 극성 규칙(N3.2), 선례와 다른 fail-closed 명시(X-13), 입력 셀은 `metric_structure` 하나만(F-5), D-3 한계 문구, R3 표현 완화, README Kay p.7 |
+| 범위 이탈 | -- | X-8(D-2), X-9(서명), X-10(승인 대상), X-11(D-8) 추가. v0.1 X-2(계통 offset 항)는 X-14로 합쳤다 |
+
 ## H3. 측정 근거
 
 - 엔진 현황 사실 문장의 파일:줄은 2026-10-15 base `cfe2e31` 기준 읽기 확인(계획서 N3.0 표). 엔진 코드 변경 없음.
+- 계획서 N4 '적용 예상' 표는 2026-10-15 `assets/library/*.topology.json`의 ports(differential_input_p/n 게이트)와 netlist drain 연결을 읽어 만든 것이다. 엔진 실행 결과가 아니다(S1 `diff_pair` 생성 여부는 TR-2 측정).
 
 ## Version History
 
 | 버전 | 날짜 | 변경 |
 |---|---|---|
 | 0.1 | 2026-10-15 | 초안: 계획서·history 신설, 원문 5편 보관(누적 7편). 사용자 승인 전 |
+| 0.2 | 2026-10-15 | 독립 검증 차단 B1~B4·비차단 반영, D-13~D-17·X-8~X-14 추가. 사용자 승인 전 |

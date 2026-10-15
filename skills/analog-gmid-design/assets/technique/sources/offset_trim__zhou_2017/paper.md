@@ -3,7 +3,7 @@
 - 원본 PDF: `G:\내 드라이브\work\Todoc\논문모음\(Reference - trim) Offset Correction Methods_Laser Trim, e-Trim , and Chopper.pdf`
 - 사본: `source.pdf` (sha256 `dbcfad180d8c7eb2dbdeeffc960de422a52d2538b050149fc07eb77983743fc3`)
 - 웹 출처: https://www.ti.com/lit/SBOT037
-- 그림·표 위치: PDF p.1 laser trim(패키지 뒤 offset 이동), e-Trim(내부 보정 전류원을 패키지 최종 시험에서 조정); p.2 Fig.2(입력쌍 소스 쪽 trim 저항·Trim Control), Fig.3 chopper, Table 1(방법 비교: chopper만 drift·1/f 제거)
+- 그림·표 위치: PDF p.1 laser trim(패키지 뒤 offset 이동), e-Trim(내부 보정 전류원을 패키지 최종 시험에서 조정); p.2 Fig.2(입력쌍 소스 쪽 trim 저항·Trim Control), Fig.3 chopper, Table 1(방법 비교: chopper는 시간·온도 drift를 평균해 없애고 1/f를 제거; e-Trim은 p.1에서 low offset and drift로 소개)
 - 엔진 연결: 아직 없음 -- 계획 `docs/01-plan/features/offset-trim.plan.md` 근거표(R-행)에서 인용
 - 쪽 수: 3
 - 변환: PyMuPDF 텍스트 추출(쪽 단위). 수식·표·그림은 텍스트가 깨질 수 있으니 같은 쪽의 렌더 PNG(`pages/`)로 확인할 것.
