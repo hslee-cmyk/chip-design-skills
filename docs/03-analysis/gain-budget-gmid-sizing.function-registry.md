@@ -59,6 +59,8 @@
 | L grid 스냅 | `quantize_L` | SD `_quantize_to_grid`(의도적 사본) | 모듈 경계 결정 후 |
 | 비싼 파생 표(tol_V·tol_VDsat·곡선 보고)의 프로세스 간 재사용 | `gmid_engine.lut.LutMemo.lookup_persistent` -> `TableCache.fetch`(lut/CONTRACT 2.1, 키 = 코드 버전 + 입력 내용 + 설정, 원자적 쓰기, 읽을 때 검증) | 호출부마다 파일 캐시·pickle·모듈 전역 dict 를 따로 만드는 것 | **새로 만들지 않는다** -- 새 비싼 파생 표는 `memo.lookup` 대신 `memo.lookup_persistent(region, fn, key, compute, inputs, settings)` 만 쓴다. 옛 `id(lut)` 키 캐시는 쓰지 않는다 |
 | 다른 실행의 S3 front 항목 조회(출력 조회 전용) | `gmid_engine.search.read_front_entries(run_dir)` (`search/front_entries.py`, 설계 40 §2.4.3 U-90) | 엔진 계산 경로는 부르지 않는다(구조 규칙 K). 스냅샷 파일 읽기는 `front_query._read_snapshot_file`(비공개)로 `node_across_front` 만 쓴다. S3Archive 의 읽기 메서드 셋과 S0 디스크 스냅샷 코덱·키 자리·타입 등록부는 삭제했다(실행 사이 재사용 제거, NFR-2·U-89) -- **새로 만들지 않는다** |
+| BLAS 스레드 고정·확인·실행 환경 값(`env_fp` 의 출처) | `gmid_engine.core.pin_blas_threads`(import 때 1회 고정+확인)·`gmid_engine.core.blas_environment`(무상태 확인, 재확인 지점 (a)~(e)가 부름, 지문 `fp_of(반환값)` 이 단계 A 보고서·S3 runs 줄 `env_fp`) (`core/blas_env.py`, 설계 40 §2.4.13 (1)) | 엔진 안에서 스레드 수를 따로 설정·조회하는 곳은 없다(`threadpoolctl` 미사용). test 의 `OPENBLAS_NUM_THREADS` 고정은 이 변경에서 거둔다 | NFR-4 card 2 |
+| 층 0 끌어올림(경계 배치점 닫힌 식, BP1) | `layer0_center._current_centre` 안 `lift_exponent`(e^s = max_{A_m>0}(1 + √ε − F_m)/A_m, √ε = `math.sqrt(sys.float_info.epsilon)` 정의식) | 옛 `lift = u`(풀이기 목적값 u 로 올림)는 삭제 | NFR-4 card 2 |
 
 ## 3. R0 -- 수정 없이 그대로 재사용 (새로 만들면 중복)
 
