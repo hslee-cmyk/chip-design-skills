@@ -1,0 +1,45 @@
+description: |
+  ---
+  layout: post
+  title: CNR_OTA simulation
+  categories: sim
+  permalink: posts/cnr_ota
+  ---
+
+  Electrical verification of the top level bias block
+
+  To run all simulations do `make all`
+
+simulations:
+  lstb:
+    name: Loop stability analysis differential loop
+    description: |
+
+      Uses Tian/Middelbrook to check the phase-margin of the CNR_OTA circuit
+
+    data:
+      - name: Sch_typ
+        src: results/lstb_Sch_typical
+        method: typical
+      - name: Sch_etc
+        src: results/lstb_Sch_etc
+        method: minmax
+      - name: Sch_std
+        src: results/lstb_Sch_mc
+        method: std
+  lstbcmfb:
+    name: Loop stability analysis common mode feedback loop
+    description: |
+
+      Uses Tian/Middelbrook to check the phase-margin of the CNR_OTA CMFB circuit
+
+    data:
+      - name: Sch_typ
+        src: results/lstbcmfb_Sch_typical
+        method: typical
+      - name: Sch_etc
+        src: results/lstbcmfb_Sch_etc
+        method: minmax
+      - name: Sch_std
+        src: results/lstbcmfb_Sch_mc
+        method: std
