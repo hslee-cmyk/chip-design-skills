@@ -1,6 +1,6 @@
 ---
 template: design
-version: 0.1
+version: 0.2
 plan: ../../01-plan/features/offset-trim.plan.md
 plan_version: 0.4
 ---
@@ -10,7 +10,7 @@ plan_version: 0.4
 > **Summary**: 승인된 계획 `offset-trim.plan.md` v0.4(사용자 결정 T-1~T-6)를 엔진 `gmid_engine` 설계로 옮긴다. 계획 N7.3의 TR-0 닫을 항목 G-1~G-8과 TR-7 샘플 수 규칙을 닫고(§3, §17), 결정적 변환 `augment_trim`, `trim_decl`·승인 기록·결속, 1단계 후보·추천, 2단계 θ·유도·코드 상태·균형 풀이·제약·metric, 구조 역할 `trim_dac`, graph 필드 소유, 결과 JSON, 파일 분할, card 범위와 test 초안, 9회로 적용 판정을 정한다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (design 작성자 역할)
-> **Status**: design 초안 v0.1 (2026-10-15). 독립 검증·사용자 승인 전이다. 사용자 결정이 더 필요한 곳과 원래 취지와 다른 판단은 정하지 않고 §18에 모았다.
+> **Status**: design 초안 v0.2 (2026-10-15). v0.1 독립 검증 66/100의 차단 B1·B3·B4와 비차단 N1~N13을 반영했다. B2(예산 충돌)·B5(실행 회로)와 TD-1~TD-9는 사용자 결정 대기로 표시만 했다(§18.1). 재검증·사용자 승인 전이다. 사용자 결정이 더 필요한 곳과 원래 취지와 다른 판단은 정하지 않고 §18에 모았다.
 > **기준**: 엔진 인용은 `944020f`(worktree `wt/trim-design`)의 `파일:줄`이다. `E/` = `skills/analog-gmid-design/gmid_engine/`. 엔진 design 인용은 `40 §x`(`gain-budget-gmid-sizing.40-engine.design.md`), `41 §x`.
 > **전제(T-4)**: 엔진 구현은 NFR-4 card 2 → XRUN-F1 card A·B·C 병합 뒤다. 이 문서는 그 병합 뒤 구조(40 §2.4.4~§2.4.14: `donors`·`counters` 필수 블록 호출, 블록 결과 색인, `RunCounters`, E_total, `search_ceiling`·`search_stop`, BLAS 고정, `ThetaCoords`)를 전제로 쓰고 충돌하지 않게 했다(§12.4).
 
@@ -81,7 +81,7 @@ D-1(V_res = 최악 한계), D-2(k만), D-3(DNL 배수 = k), D-4(공존 거부), 
 | E-7 | 의도 영역 선언 `intended_region`(어휘 `triode`)의 소자는 봉인 7(포화)에서 빠진다. 선언은 spec(사용자)에만 있다 | `E/authoring/spec_regions.py:6, :16-17` |
 | E-8 | 넷 전압 고정은 커널 필드 `graph/kernel: fixed_values` = W3 노드 목표 + 입력 DC다. 이상 전압원은 지원 밖(기록만) | `E/sizing/kernel_fields.py:8, :21, :55`, `E/graph/s1_values.py:29` |
 | E-9 | gate 전용 넷은 `bias_inputs`에 선언해야 하고(없으면 `gate_only_undeclared`), `bias_inputs`는 `connectivity_fp`에 들어가지 않는다 | `E/authoring/bias_inputs.py:1-13, :23-30` |
-| E-10 | 감쇠 Newton `newton_solve(nodes, values, evaluate, tolerance, width)`가 있다(LU, 역추적, 반복 상한 `k_max`, 실패 사유 `newton_*`) | `E/sizing/scc_newton.py:1-17, :33` |
+| E-10 | 감쇠 Newton `newton_solve(nodes, values, evaluate, tolerance, width, devices=())`가 있다(LU, 역추적, 반복 상한 `k_max`, 실패 사유 `newton_*`, `devices`는 실패 기록에 붙일 소자 이름) | `E/sizing/scc_newton.py:1-17, :33` |
 | E-11 | `offset_analysis`의 노드 수반 벡터 z는 지역 변수다(:71). 결과에는 소자별 Z_i(`z_ohm`)만 남는다(:81, :100) | `E/metrics/offset_analysis.py:71, :81, :100`, `E/metrics/aux_types.py:110-121` |
 | E-12 | `offset_systematic` 단일 출력의 기준은 spec `node_voltage_targets_v`의 출력 넷 값, 없으면 `reference_undeclared` | `E/metrics/offset_systematic.py:6, :28, :42` |
 | E-13 | library 9회로 spec의 `node_voltage_targets_v`는 모두 `{"pending": "CI-15"}`. 차동 출력 회로는 current_reuse_telescopic_ota 하나다(그 밖의 차동 입력 6회로는 단일 출력) | `assets/library/*.sizing_spec.json`, `*.topology.json` `ports` (2026-10-15 읽기) |
@@ -117,7 +117,8 @@ D-1(V_res = 최악 한계), D-2(k만), D-3(DNL 배수 = k), D-4(공존 거부), 
 | 잡음원 | off 소자는 채널 잡음원을 만들지 않는다(전류 0). LUT 잡음 조회를 하지 않는다 | 물리적으로 0이고 조회가 축 밖이다 |
 | offset 수반 | off 소자의 σ_VGS는 조회하지 않고 기여 항을 0으로 둔다(항 = Z·gm·σ, gm = 0이라 σ 값과 무관하게 정확히 0). `sigma_missing` 검사는 off 표지 소자를 빼고 한다 | E-11 식 |
 | 포화 검사(코드 상태 −1, ±end) | §10.5 균형 풀이 해에서 off 소자를 빼고 포화 여유를 잰다 | 계획 N3.5 |
-| 켜진 스위치 영역 | 켜진 스위치는 gate가 on 레일이라 대개 triode다. 그래서 trim 선언이 스위치를 `intended_region` triode로 더한다(§6.3 합성, 사용자 spec이 아니라 `trim_decl` 출처). 셀 전류원은 포화를 요구한다 | E-7. on 레벨 = 레일(D-10) |
+| 켜진 스위치 영역 | 켜진 스위치는 gate가 on 레일이라 대개 triode다. 그래서 `trim_decl.dacs[*].triode_devices`(스위치 전부)를 봉인 7의 선형 영역 집합에 합친다. **경로**(검증 B4): `E/sizing/dc_inputs.py:37-38`이 spec `intended_region`에서 `linear_devices`를 만드는 자리에서 `trim_decl` triode 목록과 합집합(이름 정렬)을 만든다 -- `DcInputs.linear_devices` 하나가 정본이고 소비 경로(`kernel_run.py:82·88` → `seal_dc` → `dc_seal_saturation`, `metrics_aux`의 `linear_devices`)는 바뀌지 않는다. spec 선언과 trim 목록이 같은 소자를 담는 경우는 없다(trim 소자는 사용자 topology 원소가 아니고 spec `intended_region_device` 검사가 topology 밖 이름을 거부). `spec_regions.py`는 고치지 않는다(사용자 선언 어휘 그대로). 셀 전류원은 포화를 요구한다 | E-7. on 레벨 = 레일(D-10) |
+| 스위치 게이트 DC 레벨(검증 B4) | 봉인 코드 상태의 스위치 게이트 넷 전압(on/off 레벨, §7.4)은 고정 노드다. **규칙**: `kernel_fields`(writer `kernel_context`, `E/sizing/kernel_fields.py`)가 extras로 봉인 상태의 `gate_levels`를 받아 `graph/kernel: fixed_values`에 합친다(쓰기 열은 그대로 `fixed_values` 하나 -- 새 열 없음). W3 목표·입력 DC와 같은 넷이 겹치면 `trim_fixed_net_conflict`(`ValueError` 아님, `SchemaRejectedError` -- 설정 충돌). 다른 코드 상태의 레벨은 `trim_code_states`가 `balance_solve` 고정 넷으로 직접 쓴다(§10.5, `fixed_values`에 넣지 않는다). DAC 바이어스 넷은 고정하지 않는다(셀 전류원 writer가 쓴다) | E-8 |
 
 **바뀌는 엔진 지점**(TR-5a): `sizing/current_basis.py`(off 고정 0·`trim_unit` 항), `sizing/theta_check.py`·`block_currents.py`(원뿔 = off 밖), 쓰기 계획, `block_widths.py`(off 경로), 봉인 3·7·8, `metrics` 소신호·잡음원·`device_sigmas`. off 집합은 블록 extras(코드 상태 = `trim_decl`의 값)로 들어가므로 입력 버전에 포함된다.
 
@@ -156,7 +157,7 @@ D-1(V_res = 최악 한계), D-2(k만), D-3(DNL 배수 = k), D-4(공존 거부), 
 | 지문 F2: 블록 코드 해시에서 온 입력 버전 | `FieldValue.input_version`, 스냅샷 `block_versions`, 스냅샷 `fp`, S3 evals `snapshot_fp`, `context_fp`(S1 블록·커널 계획 블록 입력 버전 지문, `E/search/search_context.py:211`) | 뺀다(`ComputeBlock.code_hash`가 바뀐 블록 파일마다 바뀐다) |
 | 지문 F3: 코드·실행 지문 | `code_fp`·`engine_code_fp`, `run_id`(`E/search/find_front.py:138`), S1 지문 묶음 `S1Key` 자체 | 뺀다 |
 | 지문 F4: 위 지문을 담은 키 | S3 줄의 `s0`(= `context_fp`), 평가 키 `EvalKey`의 지문 칸 | 뺀다 |
-| 새 필드 N | 이 기능이 더하는 필드(§12.1 표 전부)와 결과 JSON 새 칸(§13) | base에 없으므로 비교 집합 밖. 대신 **선언 없는 실행에서 값이 비어 있음(None 또는 빈 tuple)을 단언**한다 |
+| 새 필드 N | **선언 없는 실행의 정의(검증 N3, 하나로 통일)**: 새 계산 블록(§12.1의 새 writer 전부)은 **아예 불리지 않는다** -- 스냅샷에 그 필드가 쓰이지 않고 `perf.blocks`에 그 행이 생기지 않으며 결과 JSON에 `trim` 키가 없다. 예외는 기존 writer에 열을 더한 둘뿐이다: `metrics_aux`의 `graph/metrics: offset_adjoint`(값 None), `kernel_fields`의 `fixed_values`(extras 없으면 기존 값 그대로 -- 값 부류라 비트 동일 비교 대상) | `offset_adjoint` 열 하나만 비교 집합 밖이고 **값 None을 단언**한다. 새 블록 행·`trim` 키·새 필드는 '없음'을 단언한다 |
 | 시간 T | 40 §2.4.13 (2) T 부류 | 뺀다(기존 규칙) |
 | 값 V | 그 밖의 모든 칸(노드 전압·소자 동작점·metric 값·제약 행·front·ε 기록·`perf` 계수·S3 줄 값 칸·단계 A·B 보고서의 값 칸) | **비트 동일** |
 
@@ -164,14 +165,19 @@ D-1(V_res = 최악 한계), D-2(k만), D-3(DNL 배수 = k), D-4(공존 거부), 
 
 ### 3.4 G-4 1단계 N 추천의 입력점과 순서
 
-* **입력점: front 점마다 따로 계산한 뒤 front 위 최악으로 모은다.**
-  - 점 p마다 (t_p, σ_in,p, V_sys,s,p)로 그 점에서 가능한 (N_p, m_p)를 정한다(§9.4).
-  - 추천 N = max_p N_p, 추천 m = min_p m_max,p(N)(그 N에서 모든 점이 가능한 가장 큰 m).
+* **입력점: front 점마다 따로 계산한 뒤 front 위에서 함께 가능한 구성으로 모은다.**
+  - 점 p마다 (t_p, σ_in,p, V_sys,s,p)로 가능 여부 가능_p(N, m)(§9.4)를 정한다.
   - 근거: 승인된 N·m은 2단계에서 front 전체에 고정값이다(N3.1-3). front 한 점에서만 가능한 구성은 다른 점에서 `trim_config_infeasible`가 된다. 점별 값은 표로 함께 낸다(D-6: 거르지 않고 표시).
-  - 추천 불가 점(§9.4 종료 조건)은 목록으로 내고 집계에서 뺀다. 남는 점이 없으면 `trim_config_unrecommendable`.
-* **순서: N 먼저, 그다음 m.** (N, m) 쌍 전수가 아니다.
-  - 계획 N3.4 규칙 그대로다(N = 어떤 m에서라도 성립하는 최소 정수, m = 그 N에서 성립하는 가장 큰 m).
-  - 성립 여부는 m에 대해 단조다(σ_DNL(m)이 m에 대해 증가). N에 대해서도 단조다(I_lb(N)가 감소). 그래서 순서대로 찾은 답이 쌍 전수의 답과 같다. test가 쌍 전수 결과와 대조한다(§15 TR-2).
+* **집계 규칙(검증 N2 반영)**:
+  1. 점마다 N_p = 가능_p(N, m)인 m이 있는 최소 N. 그런 N이 없으면(§9.4 종료 조건) 그 점은 '추천 불가 점'으로 목록에 내고 집계에서 뺀다.
+  2. m_max,p(N) = 가능_p(N, m)인 가장 큰 m(0 ≤ m ≤ N − 1). **가능한 m이 하나도 없으면 m_max,p(N)은 정의되지 않는다**(값 없음, 0이 아니다).
+  3. 추천 N = max_p N_p부터 1씩 올리며, 집계 대상 모든 점에서 m_max,p(N)이 정의되는 첫 N. 그 사이에 어떤 점이 그 N 이상 모든 N에서 불가능해지면(§9.4 종료 조건 = 그 N에서 W_u ≥ W_min 마디 없음) 그 점을 추천 불가 점으로 옮기고 다시 본다.
+  4. 추천 m = min_p m_max,p(추천 N).
+  5. 남는 점이 없으면 `trim_config_unrecommendable`.
+* **순서: N 먼저, 그다음 m.** (N, m) 쌍 전수가 아니다(계획 N3.4 규칙: N = 어떤 m에서라도 성립하는 최소 정수, m = 그 N에서 성립하는 가장 큰 m).
+  - m에 대해서는 같은 N·같은 σ_U에서 σ_DNL(m)이 m에 대해 증가하므로 가장 큰 가능한 m을 위에서부터 찾는다.
+  - **N에 대한 단조성은 주장하지 않는다**(v0.1 문장 삭제): σ_U 최솟값을 고르는 마디 집합이 W_min 조건으로 N마다 달라져 가능 여부가 N에 대해 단조라는 보장이 없다. 그래서 위 3이 N을 하나씩 올리고, 종료는 §9.4의 W_min 조건으로만 한다.
+  - test는 (N, m) 쌍 전수(N은 종료 조건까지) 결과에서 같은 규칙(가능한 최소 N, 그 N의 최대 m)을 뽑은 값과 대조한다(§15 TR-2).
 
 ### 3.5 G-5 σ_U의 기준점
 
@@ -206,7 +212,7 @@ D-9로 셀 바이어스 원천은 새 `bias_inputs` 넷 하나(외부 gate 전�
 |---|---|
 | 바이어스 모델 | 오라클에서 DAC 바이어스 넷 = 27 °C 봉인 전압의 이상 전압원(온도 무관). 이것이 D-9 원천의 정의다 |
 | 표본·온도별 값 | t(T)(오라클 소신호로 잰 주입 쌍 전달), I_u(T)(LSB 셀 전류), δ_code(T) = 고정 코드의 δ, 잔여 V_res,meas(T) |
-| 분해 | 잔여 변화 = (i) 원본 offset drift(DAC를 27 °C δ로 고정한 이상 전류원으로 바꾼 재측정) + (ii) DAC 전류 drift 몫(δ(T) − δ(27 °C))·t(T) + (iii) 전달 drift 몫 δ(27 °C)·(t(T) − t(27 °C)). 세 몫과 합을 표로 낸다 |
+| 분해(검증 N8) | 잔여 R(T) = V_os(T) + s·t(T)·δ(T)를 표본·온도마다 다음 세 몫으로 쓴다(δ₂₇ = 27 °C의 고정 코드 δ, t₂₇ = 27 °C t). (i) 원본 offset drift 몫 = **R(T) − s·δ₂₇·t(T)**(측정 잔여에서 '27 °C DAC 전류가 그 온도의 전달로 준 보정'을 뺀 값 -- 별도 재측정 없이 측정값에서 계산) 의 27 °C 대비 변화 (ii) DAC 전류 drift 몫 = s·(δ(T) − δ₂₇)·t(T) (iii) 전달 drift 몫 = s·δ₂₇·(t(T) − t₂₇). **닫힘 잔차** = (R(T) − R₂₇) − [(i) + (ii) + (iii)]를 함께 낸다. 정의상 0에 가까워야 하고, 크면 t(T)·δ(T) 측정(소신호 선형 근사)과 실제 DC 잔여가 어긋난다는 표지다(문턱은 두지 않고 값만 보고) |
 | 참고 괄호 | 같은 sweep을 바이어스 넷 대신 셀 전류를 이상 전류원 I_u(27 °C)로 고정해 한 번 더 잰다(DAC 전류 온도 계수 0인 경우). 설계 대상이 아니라 D-9 원천의 온도 몫을 드러내는 기준이다 |
 | 한계 문구 | '바이어스 원천의 온도 특성은 27 °C 판정에 드러나지 않는다. 위 (ii)가 그 몫이다'(계획 N5.1 한계, N9) |
 
@@ -224,13 +230,13 @@ D-9로 셀 바이어스 원천은 새 `bias_inputs` 넷 하나(외부 gate 전�
 [2단계]  run_stage_a(..., trim_approval_path=<circuit>.trim.json)
   bind_trim: spec trim 섹션 + 승인 → trim_decl → augment_trim → 결속 검사(지문·규칙)      (§8.3)
   S0(원본)과 S0(파생, 봉인 코드 상태) → compare_trim_structure                            (§3.2)
-  run_stage_b → build_search_context(파생) → find_front: 평가마다 trim_evaluate              (§10)
+  run_stage_b → build_search_context(파생) → find_front: 평가마다 kernel.evaluate → (TD-1 (가)) trim_kernel.solve_unit_current (§10.3a)
      pass 0(원본) → I_u 유도 반복(파생) → 코드 상태 균형 풀이 → trim 제약·metric
   불가능 → trim_config_infeasible 보고, 1단계로(엔진이 N·m을 바꾸지 않음)                   (N3.1-4)
 ```
 
 * 단계 선택은 진입 인자로만 한다: spec에 `offset_trim` 섹션이 있고 `trim_approval_path`가 없으면 1단계, 있으면 2단계다. 섹션이 없는데 승인 경로가 오면 `trim_approval_without_decl`(`SchemaRejectedError`).
-* 선언이 없으면 새 경로는 하나도 돌지 않는다(새 필드는 빈 값, §3.3 N 부류).
+* 선언이 없으면 새 블록은 하나도 불리지 않는다(§3.3 N 부류 정의 -- 스냅샷 필드·`perf.blocks` 행·결과 `trim` 키 모두 없음).
 
 ---
 
@@ -457,8 +463,9 @@ I_lb(N) = (k·σ_in + |V_sys,s|) / (|t|·(2^N − 1))
 σ_DNL(m; N, σ_U) = σ_U·√(2^(m+1) − 1 − 1/(2^N − 1))          (Bertotti 2012 식(3))
 가능(N, m) ⇔ 셀 θ 상자 격자 마디 가운데 W_u(마디, I_lb(N)) ≥ W_min 인 마디가 있고,
              그 마디들의 최소 σ_U로 |t|·I_lb(N)·(1 + k·σ_DNL(m; N, σ_U)) ≤ V_res
-N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 가장 큰 m(m = N−1부터 내려감)
-종료: 어떤 N에서 W_u ≥ W_min 인 마디가 하나도 없으면(I_lb가 N에 대해 감소하므로 이후 N도 없다) → trim_config_unrecommendable
+N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에서 가능한 가장 큰 m(m = N−1부터 내려감), 없으면 정의 안 됨
+종료: 어떤 N에서 W_u ≥ W_min 인 마디가 하나도 없으면 그 N과 이후 N은 불가능(I_lb(N)가 N에 대해 감소하고 W_u = I_lb·L/IDu가
+      같은 마디에서 I_lb에 비례하므로 W_min 조건만은 N에 대해 단조) → 점 하나면 trim_config_unrecommendable, 집계는 §3.4
 ```
 
 * 숫자 상수 없음. N 상한은 W_min 조건이 만든다.
@@ -480,35 +487,64 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 
 ### 10.1 S0 두 개
 
-2단계 단계 A는 원본 S0와 파생 S0(봉인 코드 상태 = seal_plus)를 만든다. 원본 S0는 구조 동일 검사(§3.2)와 pass 0(§10.3)에 쓴다. 둘 다 실행 수명이고 같은 블록 결과 색인·`RunCounters`를 쓴다(40 §2.4.5 '수명'). 원본 S0의 블록 입력은 1단계와 같은 topology라도 실행이 다르므로 다시 계산한다(실행 사이 재사용 없음, 40 §2.4.3).
+2단계 단계 A는 원본 S0와 파생 S0(봉인 코드 상태 = seal_plus)를 만든다. 원본 S0는 구조 동일 검사(§3.2)와 (TD-1 (가)일 때) pass 0(§10.3)에 쓴다. 둘 다 실행 수명이고 같은 블록 결과 색인·`RunCounters`를 쓴다(40 §2.4.5 '수명'). 원본 S0의 블록 입력은 1단계와 같은 topology라도 실행이 다르므로 다시 계산한다(실행 사이 재사용 없음, 40 §2.4.3).
 
-### 10.2 θ
+**색인 상한**(v0.2, 검증 N4): 40 §2.4.5 식 'Σ 분할 수 × (E_total + 1)'의 +1은 S0 수준 계산 한 번이다. 2단계 trim 실행은 S0를 두 벌 계산하므로 같은 블록이 S0 수준에서 서로 다른 입력으로 두 번 계산된다. 그래서 trim 2단계 실행의 상한은 **Σ 분할 수 × (E_total + 2)**이다. `perf.block_index_bound`는 이 식으로 낸다(card C의 등록 시 fail-closed 검사도 이 식). 1단계·선언 없는 실행은 기존 식 그대로다.
+
+### 10.2 θ와 정의역(검증 B1)
 
 * 원본 성분: 원본 θ 스키마 성분 그대로(키 동일). **스키마 확장 성질**: 파생 스키마 ⊇ 원본 스키마이고 공통 키의 뜻이 같아야 한다. 단계 A가 두 스키마를 대조하고 어기면 `trim_schema_not_extension`(`StructureUnresolvedError`)으로 정지한다(TR-M이 미리 잰다).
 * trim 성분(DAC마다): 셀 전류원 묶음의 ln IDu 하나·L 하나, 켜진 스위치 묶음의 ln IDu 하나·L 하나.
   - 셀 전류원은 gate·source 공유라 LR1 L 동치류와 equal_vgs로 이미 하나로 묶인다(writer 하나, 나머지 순방향).
   - 스위치는 게이트 넷이 서로 달라 구조 규칙으로 묶이지 않는다. 그래서 `trim_decl`의 셀 표에서 '스위치 묶음'을 선언 묶음으로 넘겨, 쓰기 스위치들의 ln IDu와 L을 θ 하나로 묶는다(`search/trim_ties.py`, 묶음 확장은 기존 궤도 묶음 `tie_expand`와 같은 형식).
   - 계획 N3.4 θ 행 '단위 셀 gm/ID·L만'을 셀의 두 소자 종류로 읽은 것이다(§18.2 X-T2).
-* I_u·I_T는 θ가 아니다(D-16, X-3). 셀 전류는 KCL 기저의 `trim_unit` 항 × w_c다. `trim_unit` 값은 평가마다 §10.3이 정해 커널 extras로 준다(θ 스키마 구조는 S0에 고정, 값만 평가마다).
-* θ 상자: ln IDu는 kind별 LUT 포락선, L은 PDK 칸(E-18). 선언이 필요 없다.
+  - 켜진 스위치의 ln IDu 상자(kind LUT 포락선) 가운데 gate = on 레일 고정에서 실현할 수 없는 부분(VGS가 레일로 정해져 IDu 범위가 좁다)의 비율을 TR-M·TR-5a에서 잰다(검증 N12). 실현 불가 점은 평가에서 쓰기 계획 근 없음(기존 후보 실패)이 된다.
+* θ 상자: ln IDu는 kind별 LUT 포락선, L은 PDK 칸(E-18).
+* **I_u의 자리**: **사용자 결정 대기 TD-1**. 아래 두 안이 정의역을 각각 정한다.
 
-### 10.3 I_u 유도(D-16 하한, 자기일관)
+**봉인 상태의 KCL과 원뿔**: 봉인 코드(δ = +I_u)에서 주입 넷 KCL에 DAC 전류 s·I_A, s·I_B(I_A = 2^(N−1)·I_u, I_B = (2^(N−1) − 1)·I_u)가 들어간다. 그래서 원본 MOS(입력쌍·부하·꼬리 쪽) 전류의 기저 식에 `trim_unit`(I_u) 항이 생긴다. 원뿔 행 = 원본·trim 전도 MOS마다 Σ 항(θ 전류, 고정값, I_u) > 0이다. 셀 전류원 행 = w_c·I_u > 0, 켜진 스위치 행도 같다, 꺼진 스위치는 행이 없다(§3.1).
 
-평가 하나(θ 하나)는 `trim_evaluate(sctx, theta)`(search)가 다음 순서로 한다.
+| 항목 | TD-1 (가) 하한 유도안(계획 D-16·X-3) | TD-1 (나) θ안(원래 취지와 다름 후보) |
+|---|---|---|
+| I_u | θ가 아니다. KCL 기저 항 `trim_unit`(원천 종류 `trim_unit`, 이름 `trim<d>:unit`), 값은 평가 안에서 §10.3 풀이가 정해 커널 extras로 넘긴다 | θ 전류 성분 하나(kind `current`, 키 `trim<d>:unit`). 기저에서 셀 전류 = w_c × 그 성분(셀 전류원의 자유 열을 이 성분 하나로 묶는다) |
+| 정의역 | (θ, I_u) 쌍의 집합: 원뿔 행 전부 > 0. `check_theta(schema, values, trim_units=())`로 서명을 넓혀 `trim_unit` 값을 받는다(`E/sizing/theta_check.py`) | θ만의 집합. as-built 원뿔 그대로(I_u가 θ 전류라 모든 행이 θ 선형) |
+| search가 쓰는 원뿔(θ 선형 제약) | I_u 항이 있는 행은 θ만의 선형식이 아니다 → **search 원뿔에서 뺀다**: `schema.current_cone`을 θ 행(`cone`)과 I_u 행(`cone_trim`)으로 나눠 싣고, search 다섯 자리(`cone_rows.py:21`, `layer0_center.py:155-191`(정준 순서·전류 중심)·`:549`(hit-and-run 원뿔 안 판정), `fd_jacobian.py:49`(원천→MOS 표), `gate_run.py:41`(영향 MOS), `search_domain.py:64`(`_current_bounds` 사용 행))는 `cone`만 읽는다. `cone_trim` 행은 평가 안에서 I_u가 정해진 뒤 `check_theta`가 판정한다 | 다섯 자리 **변경 없음**. `search_domain.py:64` `_current_bounds`는 `trim<d>:unit` 원천을 쓰는 MOS 행(셀 전류원·켜진 스위치·원본 MOS)의 kind 상자 합집합 규칙 그대로 상자를 정한다(셀 전류원 행 w_c·I_u의 상자는 w_c로 나눈 값으로 교집합 -- 기존 '궤도를 넘는 묶음 교집합' 규칙과 같은 처리, `tied_current_box_empty`면 거부) |
+| 원뿔 밖의 실패 분류 | 평가 안 `check_theta`가 `cone_trim` 행 위반을 내면 **후보 실패** `trim_cone_outside`(`InfeasibleSizingError` 하위, 결정적 도메인 실패 → 색인 등록, S3 실패 줄). `ValueError`로 올리지 않는다(실행 정지 금지). §10.3 풀이의 브래킷 끝점이 원뿔 밖이면 브래킷을 그 점 쪽에서 좁히지 않고 같은 후보 실패다 | as-built처럼 search가 원뿔 밖 θ를 커널 전에 `STATUS_OUTSIDE_DOMAIN`(커널 0)으로 거른다. 커널 안 `check_theta` `ValueError`는 search가 걸렀으므로 생기지 않는다(생기면 결함 -- 지금 규칙 그대로) |
+| §14.2 수정 | `sizing/theta_schema.py`(`cone`·`cone_trim` 분리), `sizing/theta_check.py`(서명·`trim_cone_outside`), `sizing/block_currents.py`(같은 판정), `core/failure_classes.py`(새 후보 실패 class), 다섯 search 자리(필드 이름 `cone`으로 읽기) | `sizing/current_basis.py`(셀 전류 묶음), `search/search_domain.py`(묶음 상자 교집합 행 -- 기존 규칙 재사용, 코드는 묶음 표 입력만) |
 
-1. **pass 0**: 원본 컨텍스트에서 θ의 원본 성분으로 `evaluate` → 원본 봉인 점의 t₀, σ₀, V_sys,s,0. I_u⁽⁰⁾ = (k·σ₀ + \|V_sys,s,0\|)/(\|t₀\|·(2^N − 1)). 출발값이 θ만의 함수라 결정적이다.
-   - pass 0이 실패(후보 실패)하면 그 평가는 같은 사유의 후보 실패다.
-2. **반복** i = 0, 1, …: 파생 컨텍스트에서 (θ, I_u⁽ⁱ⁾)로 커널 평가 → 봉인 점의 t, σ_in(DAC mismatch 포함), V_sys,s → I_u⁽ⁱ⁺¹⁾ = (k·σ_in + \|V_sys,s\|)/(\|t\|·(2^N − 1)).
-   - 수렴: \|ln I_u⁽ⁱ⁺¹⁾ − ln I_u⁽ⁱ⁾\| ≤ ln(1 + ε_I), ε_I = 그 평가에서 LSB 셀 전류원의 상대 전류 분해능 (gm/ID)·tol_V(봉인 3이 쓰는 tol_I/I와 같은 양). 수렴하면 판정 점 = 마지막으로 평가한 점(I_u⁽ⁱ⁾)이다.
-   - 반복 상한 K_trim = `k_max(width, tol)`, width = 셀 전류원 kind `current_box`의 ln(I_max/I_off), tol = 그 상자 안 LUT 격자 마디의 ln(1 + min (gm/ID)·tol_V). 둘 다 S0 값이라 평가 전에 정해진다.
-   - 상한에 닿으면 `trim_iu_unconverged`(`InfeasibleSizingError` 하위 = 결정적 도메인 실패, 색인에 실패 기록으로 등록 -- X-9).
-3. 판정은 마지막 평가의 봉인 점에서 한다(DEC-74: 유도값과 판정값이 다르면 판정값이 이긴다).
+### 10.3 I_u 정하기 (사용자 결정 대기 TD-1, 두 안 비교 -- 검증 B2·N1)
 
-**E_total 계산**(XRUN-F1 X-8 '모든 커널 평가를 E_total에'): pass 0과 반복 하나하나가 커널 평가다(`perf.kernel_calls`에 센다). 평가 시작 전에 남은 탐색 예산 ≥ 1 + K_trim(묶음 상계, FD 묶음 규칙 40 §2.4.14 (5) C (5)와 같은 방식)인지 `search_ceiling`으로 확인하고, 아니면 평가 0으로 정지 사유 `eval_budget`이다. 색인 상한 식(40 §2.4.5)은 커널 평가 수 E_total에 대해 그대로 성립한다(반복마다 커널 평가로 세므로).
+**(가) 하한 유도안**(계획 D-16·X-3 충실). 평가 하나(θ 하나)를 `kernel.evaluate`가 받고, trim 선언 실행이면 `trim_kernel.solve_unit_current`(§10.3a 배선)가 다음을 한다.
+1. **pass 0**: 원본 컨텍스트에서 θ의 원본 성분으로 커널 한 번 → t₀, σ₀, V_sys0,₀. 하한 I₀ = (k·σ₀ + \|V_sys0,₀\|)/(\|t₀\|·(2^N − 1)). θ만의 함수다.
+2. **고정점 = ln I 이분법**(검증 N1): f(I) = 파생 회로 (θ, I)의 봉인 점에서 잰 하한 (k·σ_in + \|V_sys0\|)/(\|t\|·(2^N − 1)). h(x) = x − ln f(eˣ), x = ln I. 브래킷 [x_lo, x_hi] = [ln I₀, ln I_max](I_max = 셀 전류원 kind `current_box` 상한). 두 끝을 평가해 h(x_lo) ≤ 0 ≤ h(x_hi)를 확인하고(아니면 `trim_iu_no_bracket` 후보 실패), 중점 이분을 \|x_hi − x_lo\| ≤ tol까지 한다. 판정 점 = 마지막 h ≥ 0 쪽 끝(보정 구간 하한을 만족하는 쪽, 그 점에서 평가된 스냅샷).
+   - tol = ln(1 + ε_min), ε_min = 셀 전류원 kind 상자 안 LUT 격자 마디의 min (gm/ID)·tol_V(봉인 3의 상대 전류 분해능과 같은 양). S0 값.
+   - 이분 반복 수 상한 = `k_max(width, tol)`(`E/sizing/k_max.py`, 이분법 정의 그대로라 맞는 상한), width = ln(I_max/I_off)(브래킷 폭의 S0 상계). **K_trim = 2 + k_max(width, tol)**(두 끝 + 이분).
+   - 각 회차는 extras `trim_unit` 값이 달라 입력 버전이 다르다. 같은 (θ, I)가 다시 오면 블록 결과 색인이 이식한다(판정 1 그대로).
+3. **V_sys0 정의**(검증 N1): 봉인 점의 V_sys,s에는 DAC 자신의 δ = +I_u 몫(반 LSB, 입력 환산 s·t·I_u)이 들어 있다. 하한 식에는 δ = 0 기준 계통 offset V_sys0 = V_sys,s(seal) − s·t·I_u를 쓴다(§0 V_in(c) = −(V_sys0 + s·t·δ(c))에서 c = seal을 넣은 것). pass 0(원본 회로)에는 DAC가 없으므로 V_sys0,₀ = V_sys,s.
+4. 판정은 판정 점의 봉인 점에서 한다(DEC-74).
+5. **커널 평가 수**(검증 N13 표기 = `perf.kernel_calls`): θ 하나에 **1 + K_trim**회(pass 0 한 번 + 파생 회로 K_trim회 이하).
 
-**같은 입력 재계산**: 반복의 각 회차는 extras `trim_unit` 값이 달라 입력 버전이 다르다. 같은 θ의 같은 I_u가 다시 오면(다른 lineage의 FD 시험점 등) 블록 결과 색인이 이식한다. 그래서 판정 1(재계산 0)은 그대로 성립한다.
+**(나) θ안**(D-16 선택지 'θ로 둘지'를 사용자가 고르지 않음 → 원래 취지와 다름 후보 X-T1). I_u는 θ 전류 성분이고 보정 구간 하한은 제약 `trim_range`(§10.6)가 판정한다. 전력·면적 축이 모두 I_u에 대해 증가하므로 front 점은 하한 쪽으로 밀린다(D-16의 '전력 최소' 효과). pass 0·고정점·K_trim 없음. **커널 평가 수 = θ 하나에 1회**. §10.4의 `i_lower_amp`는 그 점의 유도값으로 보고만 한다.
 
-비용·대안은 §18.1 TD-1(원래 취지와 다름 후보)에 따로 둔다.
+| 비교 | (가) 하한 유도안 | (나) θ안 |
+|---|---|---|
+| θ당 커널 평가 | 1 + K_trim | 1 |
+| 고정점·K_trim | 있음(ln I 이분) | 없음 |
+| 평가 예산 충돌(검증 B2) | 있음: 묶음 상계 1 + K_trim이 E_total을 소비하고 FD 묶음은 (변수 수 × 2) × (1 + K_trim)가 된다. 선언 E_B(card 1·A·B·C 판정값)로는 탐색이 거의 못 돈다 → **TD-9 사용자 결정 대기** | 소멸(as-built 예산 규칙 그대로) |
+| 정의역 | (θ, I_u) -- search 원뿔 분리 필요(§10.2) | θ -- 변경 없음 |
+| 계획 결정과의 관계 | D-16·X-3 그대로 | D-16 선택지 밖(사용자 결정 필요) |
+| 결정성 | 출발·브래킷이 θ만의 함수 | 자연 |
+
+**E_total 계산**(XRUN-F1 X-8). (가): pass 0과 파생 회차 하나하나가 커널 평가다. 평가 시작 전에 남은 탐색 예산 ≥ 1 + K_trim인지 `search_ceiling`으로 확인하고(FD 묶음 규칙 40 §2.4.14 (5) C (5)와 같은 방식), 아니면 평가 0, 정지 사유 `eval_budget`. (나): 기존 규칙 그대로. **예산 크기 충돌 자체(TD-9)는 사용자 결정 대기다** -- 현 문구는 그대로 두고 해법(예: E_B 선언값을 커널 평가 단위로 다시 정함, θ 평가 단위 예산을 따로 둠, TD-1 (나))은 정하지 않는다.
+
+**계수 위치**(검증 N5): `perf.kernel_calls`는 as-built처럼 커널 본체 진입(`E/search/kernel.py:114`)에서 센다. (가)에서는 그 본체를 pass 0·파생 회차마다 부르므로 모두 들어간다. 내역 `perf.trim_kernel_passes` = pass 0 수 + 파생 회차 수. as-built 불변식 '`kernel_calls` == 고유 키 수'(`E/search/find_front.py:15`)는 trim 실행에서 '`kernel_calls` − `trim_kernel_passes` + (trim 평가한 θ 수) == 고유 키 수'로 읽는다(평가 키 = θ 하나).
+
+### 10.3a 커널 감싸기 방향(검증 B3)
+
+* 평가 진입은 지금처럼 `kernel.evaluate`(`E/search/kernel.py:91`) 하나다. search 호출자(층 0, 외층, FD, 감도 게이트, 시작점)는 바뀌지 않는다(NFR-4 관찰 지점 계약 유지).
+* (가)일 때: `kernel.evaluate`가 trim 선언 실행(`sctx`의 trim 칸이 있음)이면 `trim_kernel.solve_unit_current(sctx, theta, run_once)`를 부른다. `run_once`는 `kernel.py` 안의 비공개 커널 본체(평가 캐시 조회·`check_theta`·`size_and_seal`·metric까지, 지금 `evaluate` 본문)를 함수로 넘긴 것이다. `trim_kernel.py`는 `kernel.py`를 import하지 않는다(콜백만 받음) → import 순환 없음, `evaluate` 재귀 없음. 방향: `kernel.evaluate` → `trim_kernel.solve_unit_current` → `run_once`(kernel 본체). 두 파일 모두 search 층.
+* (나)일 때: `trim_kernel.py`는 커널 본체 뒤 판정 점 블록(`trim_dac_values`·`trim_code_states`)만 부르는 함수 `trim_point_blocks(snapshot, ...)`를 두고 `kernel.py` 본체가 부른다.
+* 1단계 후보: `run_trim_candidates`(pipeline, `E/pipeline/trim_stage1.py`)가 `find_front`(search) 결과를 받아 front 점마다 `trim_candidates` 블록(metrics)을 부른다. **방향 pipeline → search·metrics**. `find_front`는 trim을 모른다(v0.1의 'find_front가 부른다'는 삭제).
 
 ### 10.4 판정 점의 trim 값 `trim_dac_values`(S2 블록)
 
@@ -535,7 +571,7 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
   - 고정 넷: 레일, gate 전용 넷(봉인 점 전압, 스위치 게이트는 그 상태의 on/off 레벨), 입력 포트 = 입력 공통모드(봉인 점 입력 DC) ± V_id/2, 값 선언 이상 전류원.
   - 미지수: 나머지 넷 전압 + V_id.
   - 방정식: 미지 넷마다 KCL(순방향 LUT 전류 IDu·W/L의 합 = 0) + 출력 균형 1개(§3.6: 차동 V(out_p) − V(out_n) = 0, 단일 V(out) = 기준).
-  - 풀이: `newton_solve`(E-10). 야코비안 = LUT gm·gds·gmb(순방향 조회 한 번에 함께). 시작점 = 봉인 점 전압 + V_id 선형 예측 −(V_sys,s + s·t·δ(c)). 허용오차: 넷 KCL 잔차 ≤ 그 넷에 닿은 소자 tol_I 합(봉인 3과 같은 양), 노드 걸음 ≤ 그 넷 tol_V. 폭 = 레일 전위 폭. 상수 없음.
+  - 풀이: `newton_solve(nodes, values, evaluate, tolerance, width, devices=켜진 MOS 이름 tuple)`(E-10). 야코비안 = LUT gm·gds·gmb(순방향 조회 한 번에 함께). 시작점 = 봉인 점 전압 + V_id 선형 예측 −(V_sys,s + s·t·δ(c)). 허용오차: 넷 KCL 잔차 ≤ 그 넷에 닿은 소자 tol_I 합(봉인 3과 같은 양), 노드 걸음 ≤ 그 넷 tol_V. 폭 = 레일 전위 폭. 상수 없음.
   - W3 노드 목표(`fixed_values`의 목표 넷)는 고정하지 않는다(목표는 사이징 입력이지 회로 소자가 아니다). 그 넷이 풀이에서 결정되지 않으면(특이) `trim_balance_singular`.
   - 켜진 소자가 풀이 중 VGS < 0이 되면 LUT 축 밖 → `trim_balance_outside_lut`(클램프 없음).
 * **포화 검사**: 해에서 off 소자와 triode 선언 소자(§3.1 스위치)를 빼고 봉인 7과 같은 식(VDS ≥ VDSAT + tol_vdsat)으로 행을 만든다.
@@ -563,7 +599,7 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 | `trim_range_linear_gap_mv` | mv | dc | 판정 구간 − 선형 구간(양 끝 중 큰 차) | 보고(N3.4) |
 | `trim_residual_mv` | mv | ss | `residual_bound_v` | 제약 `trim_residual` |
 | `trim_dnl_sigma_lsb` | lsb | ss | `sigma_dnl_lsb` | 보고 |
-| `trim_power_w` | w | dc | DAC 소자 공급 전류 × 레일 전압 | 보고(`power_dc_w`에 이미 포함) |
+| `trim_power_w` | w | dc | I_T·(V(R_max) − V(R_min))(검증 N9: steering 총전류는 코드와 무관하게 두 극단 레일 사이를 흐른다 -- 주입 넷을 거쳐 원본 회로 쪽 레일로 돌아가는 몫도 결국 두 레일 사이 전류다) | 보고(`power_dc_w`에 이미 포함) |
 | `trim_area_m2` | m2 | geom | trim 소자 Σ W·L(같은 면적 식) | 보고(`area_search_m2`에 이미 포함) |
 
 * `lsb`는 새 단위 어휘다(N3.16 정본 표에 행 추가, TR-5). mv 접두는 기존 offset metric과 같다(DEC-68 표시 단위 허용).
@@ -598,16 +634,17 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 
 | 필드(kind/key: field) | 값 형식 | writer(계산 블록, 파일) | 층 | 선언 없을 때 |
 |---|---|---|---|---|
-| `device: trim_role` | `TrimRole` \| None | `s1_trim_roles`(`graph/s1_trim_roles.py`) | S0 | 모두 None |
-| `graph/trim: pairs` | `TrimPair` tuple | `trim_pairs`(`metrics/trim_pairs.py`) | S0 | () |
+| `device: trim_role` | `TrimRole` \| None | `s1_trim_roles`(`graph/s1_trim_roles.py`) | S0 | 블록 안 불림(필드 없음) |
+| `graph/trim: pairs` | `TrimPair` tuple | `trim_pairs`(`metrics/trim_pairs.py`) | S0 | 블록 안 불림(필드 없음) |
 | `graph/trim: structure_diff` | `TrimStructureDiff` | `compare_trim_structure` 호출 결과를 단계 A가 보고서에 싣는다 -- graph 필드 아님(두 S0의 비교 출력, 판정은 정지) | -- | -- |
 | `graph/metrics: offset_adjoint` | (view id, A_dm, ((넷, z), …)) \| None | `metrics_aux`(기존 writer, 쓰기 열 추가) | S2 | None |
-| `graph/trim: candidates` | `TrimCandidate` tuple | `trim_candidates`(`metrics/trim_candidates.py`) | S2(1단계 front 점) | () |
-| `graph/trim: dac` | `TrimDacValues` tuple | `trim_dac_values`(`metrics/trim_dac_values.py`) | S2(2단계 판정 점) | () |
-| `graph/trim: code_states` | `CodeStateSolution` tuple(분할 = 상태) | `trim_code_states`(`sizing/trim_code_states.py`) | S2 | () |
-| `graph/trim: range` | `TrimRange` | `trim_dac_values`가 code_states를 읽어 같이 쓴다 | S2 | None |
-| `graph/kernel: trim_ties` | 스위치 묶음 | `kernel_fields`(기존 writer, 쓰기 열 추가) | S0 | () |
-| 제약 행 trim 3종 | 기존 제약 행 형식 | 기존 search 제약 블록(행 생성 함수 `trim_constraint_rows` 추가) | S2 | 행 없음 |
+| `graph/trim: candidates` | `TrimCandidate` tuple | `trim_candidates`(`metrics/trim_candidates.py`) | S2(1단계 front 점) | 블록 안 불림(필드 없음) |
+| `graph/trim: dac` | `TrimDacValues` tuple | `trim_dac_values`(`metrics/trim_dac_values.py`) | S2(2단계 판정 점) | 블록 안 불림(필드 없음) |
+| `graph/trim: code_states` | `CodeStateSolution` tuple(분할 = 상태) | `trim_code_states`(`sizing/trim_code_states.py`) | S2 | 블록 안 불림(필드 없음) |
+| `graph/trim: range` | `TrimRange` | `trim_dac_values`가 code_states를 읽어 같이 쓴다 | S2 | 블록 안 불림(필드 없음) |
+| `graph/kernel: trim_ties` | 스위치 묶음 | 새 블록 `trim_ties`(`search/trim_ties.py` 진입점 `trim_theta_ties`를 블록으로) -- v0.1의 '`kernel_fields` 열 추가'는 선언 없는 실행에 빈 필드가 생겨 N3 정의와 어긋나 바꿨다 | S0 | 블록 안 불림(필드 없음) |
+| `graph/kernel: fixed_values`(기존 필드, 값 확장) | 기존 (넷, V) + 봉인 상태 스위치 게이트 레벨 | `kernel_fields`(기존 writer, 같은 열, extras `gate_levels` 추가) | S0 | 기존 값 그대로(extras 없음) |
+| 제약 행 trim 3종 | 기존 제약 행 형식 | 기존 search 제약 블록(행 생성 함수 `trim_constraint_rows` 추가) | S2 | 행 생성 함수 안 불림(행 없음) |
 
 * `offset_adjoint`는 `offset_analysis`가 이미 계산한 z(E-11)를 그대로 담는다(같은 LU, 재계산 없음). `OffsetAnalysis` 값 형식은 바꾸지 않는다(바꾸면 선언 없는 실행의 `metrics_aux` 값이 바뀌어 §3.3 V 부류를 깬다).
 * 출처 기록 `TrimProvenance`와 `TrimDecl`은 S0 입력(graph 밖, spec과 같은 지위)이다. 둘의 지문이 쓰는 블록의 입력 버전에 들어간다.
@@ -615,9 +652,9 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 
 ### 12.2 계산 블록 규칙
 
-* 새 블록은 모두 `compute_block`이고 `Projection` 하나만 읽는다. 반복의 출발값(§10.3)은 블록 밖 `trim_evaluate`가 extras로 넘긴다 -- 블록이 parent·이전 회차 값을 읽지 않는다(40 §2.4.4 '이식이 비트 동일인 전제').
+* 새 블록은 모두 `compute_block`이고 `Projection` 하나만 읽는다. I_u 값(§10.3 (가))은 블록 밖 `trim_kernel.solve_unit_current`가 extras로 넘긴다 -- 블록이 parent·이전 회차 값을 읽지 않는다(40 §2.4.4 '이식이 비트 동일인 전제').
 * `trim_code_states`의 newton 시작점은 봉인 점 스냅샷(투영 안)의 함수다.
-* `metrics_aux`가 `offset_adjoint`를 쓰는 것은 trim 선언(extras 플래그)이 있을 때만이다.
+* `metrics_aux`는 `offset_adjoint` 열을 늘 쓰지만 값을 채우는 것은 trim 선언(extras 플래그)이 있을 때만이고, 없으면 None이다(§3.3 N 부류의 유일한 예외 열).
 
 ### 12.3 실행 안 재사용(XRUN-F1 정합)
 
@@ -636,7 +673,7 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 | 결정적 도메인 실패 등록·재연(X-9) | `trim_iu_unconverged`·`trim_balance_*`는 `InfeasibleSizingError` 하위로 만들어 등록 대상 |
 | `ThetaCoords`(card A) | trim θ 성분도 같은 정본으로 좌표 변환(새 사본 금지) |
 | BLAS 고정·`env_fp`(NFR-4 card 2) | 새 선형 풀이(newton LU)는 scipy `lu_factor`(실수, 엔진 크기) -- 40 §2.4.13 표 '실수 lu' 묶음에 자리를 더한다(TR-5에서 표 갱신) |
-| 관찰 지점 계약(J-3·J-7·J-16) | `find_front`·`layer0_center`의 모듈 전역 호출 방식 유지. `trim_evaluate`는 `kernel.evaluate`를 감싸는 새 파일이고 그 둘을 바꾸지 않는다 |
+| 관찰 지점 계약(J-3·J-7·J-16) | `find_front`·`layer0_center`의 모듈 전역 호출 방식 유지. `kernel.evaluate`가 `trim_kernel`을 콜백으로 부르는 한 방향이고(§10.3a) 호출자 쪽 이름·호출 방식은 바꾸지 않는다 |
 | 결과 JSON 형식 변경 | §13 새 칸만 더한다. 기존 칸의 뜻은 그대로 |
 
 ---
@@ -645,14 +682,14 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 
 | 위치 | 칸 | 내용 |
 |---|---|---|
-| 단계 A 보고서 | `trim` | `{mode: "none"\|"stage1"\|"stage2", spec: TrimSpec 값, pairs, temperature: {declared_c, lut_temp_c, lut_corner}, demoted_constraints, structure_diff(2단계), approval: {approval_id, path, binding_checks[]}, provenance(2단계)}` |
+| 단계 A 보고서 | `trim` | `{mode: "stage1"\|"stage2", spec: TrimSpec 값, pairs, temperature: {declared_c, lut_temp_c, lut_corner}, demoted_constraints, structure_diff(2단계), approval: {approval_id, path, binding_checks[]}, provenance(2단계)}` |
 | `find_front` 결과(runs 줄) | `trim.stage1` | front 점마다 후보표(§9.2), 순위(§9.3), 추천 (N, m)과 점별 (N_p, m_p), `t_varies` 표지, 추천 불가 점, 출력 파일 경로·sha256(파생 topology·md·승인 초안), 사유 코드 |
 | 〃 | `trim.stage2` | front 점마다 `trim/dac`·`trim/range`·`code_states` 요약, I_u 반복 기록, 불가능이면 `trim_config_infeasible`과 위반 경계(하한 > 상한의 두 값) |
 | 〃 | `trim.reports` | §10.8 보고 문구 목록, D-3 한계, 단일 온도 한계(FR-T9) |
 | `perf` | `trim_kernel_passes` | pass 0·반복 커널 평가 수(합은 `kernel_calls`에 이미 포함, 내역) |
 | S3 evals 줄 | `trim_iu_amp` | 그 평가의 판정 I_u(없으면 null) |
 
-선언 없는 실행에서는 `trim`이 `{mode: "none"}`이고 나머지 새 칸은 없다(§3.3 N 부류 단언 대상).
+선언 없는 실행에서는 `trim` 키 자체와 `perf.trim_kernel_passes`·S3 `trim_iu_amp` 칸이 없다(§3.3 N 부류 -- '없음' 단언).
 
 ---
 
@@ -680,8 +717,8 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 | `metrics/trim_recommend.py` | `recommend_trim_config(...)` | metrics | TR-2 |
 | `metrics/trim_dac_values.py` | `trim_dac_values`(블록) | metrics | TR-5b |
 | `metrics/trim_types.py` | (값 형식: `TrimPair`·`TrimCandidate`·`TrimDacValues`·`TrimRange`) | metrics | TR-2 |
-| `search/trim_ties.py` | `trim_theta_ties(...)` | search | TR-5a |
-| `search/trim_kernel.py` | `trim_evaluate(sctx, theta)` | search | TR-5b |
+| `search/trim_ties.py` | `trim_theta_ties`(블록, writes `graph/kernel: trim_ties`, 선언 실행에서만 `build_search_context`가 부른다) | search | TR-5a |
+| `search/trim_kernel.py` | TD-1 (가): `solve_unit_current(sctx, theta, run_once)`(판정 점 블록 호출은 같은 파일 비진입 함수) / (나): `trim_point_blocks(snapshot, ...)` -- 진입점 하나는 TD-1 결정으로 정해진다. `kernel.py`를 import하지 않는다(§10.3a) | search | TR-5b |
 | `search/trim_constraints.py` | `trim_constraint_rows(...)` | search | TR-5b |
 | `pipeline/trim_binding.py` | `bind_trim(...)` | pipeline | TR-3 |
 | `pipeline/trim_stage1.py` | `run_trim_candidates(...)` | pipeline | TR-2(표)·TR-3(파생 출력) |
@@ -697,7 +734,12 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 | `pipeline/stage_a.py`(`trim_approval_path` 인자, 온도 대조, 두 S0, 구조 검사, 보고서 `trim`) | TR-1·TR-3·TR-4 | 부분 |
 | `metrics/offset_analysis.py`(z를 반환값 밖 두 번째 결과로 넘김 -- 형식 `OffsetAnalysis`는 그대로), `metrics/metrics_aux.py`(쓰기 열 `offset_adjoint`) | TR-2 | 부분 |
 | `graph/signal_reach.py`·`cells.py`·`s1v_build.py`(trim 소자 제외), `graph/s1_build.py`(블록 추가·S1 키), `graph/s1_values.py`(`TrimRole`, 규칙 파일 목록) | TR-4 | 부분 |
-| `sizing/current_basis.py`, `theta_check.py`, `block_currents.py`, 쓰기 계획(`writer_plan.py`), `block_widths.py`, 봉인 1·2·3·7·8 파일, `kernel_fields.py`, `theta_schema.py`, `dc_inputs.py`(`trim_unit` 값) | TR-5a | 부분 |
+| `sizing/current_basis.py`(off 고정 0·셀 전류 항), `block_currents.py`, 쓰기 계획(`writer_plan.py`), `block_widths.py`, 봉인 1·2·3·7·8 파일 | TR-5a | 부분 |
+| `sizing/kernel_fields.py`(extras `gate_levels` → `fixed_values` 합침, 충돌 거부 -- B4) | TR-5a | 부분 |
+| `sizing/dc_inputs.py:37-38`(`linear_devices` = spec triode ∪ `trim_decl` triode 목록 -- B4), `DcInputs`에 `trim_unit` 값 칸(TD-1 (가)) | TR-5a | 부분 |
+| B1 정의역(TD-1 (가)일 때): `sizing/theta_schema.py`(`current_cone` → `cone`·`cone_trim` 분리), `sizing/theta_check.py`(서명 `trim_units`, `cone_trim` 위반 = 후보 실패 `trim_cone_outside`), `sizing/block_currents.py:32-34`(같은 판정), `core/failure_classes.py`·`failure_errors.py`(새 후보 실패 class), search 다섯 자리 `search/cone_rows.py:21`, `search/layer0_center.py:155-191·549`, `search/fd_jacobian.py:49`, `search/gate_run.py:41`, `search/search_domain.py:64`(`cone`만 읽기) | TR-5a | 부분 |
+| B1 정의역(TD-1 (나)일 때): `sizing/current_basis.py`(셀 전류 = w_c × θ 성분 `trim<d>:unit`), `search/search_domain.py`(묶음 상자 교집합 입력) -- search 원뿔 다섯 자리는 변경 없음 | TR-5a | 부분 |
+| `sizing/theta_schema.py`(trim 성분) | TR-5a | 부분 |
 | `metrics/ss_linearize.py`·`noise_sources.py`·`device_sigma.py`(off 소자) | TR-5a | 부분 |
 | `metrics/registry.py`·`verified_by.py`·`catalog.py`(trim metric) | TR-5b | 부분 |
 | `search/kernel.py`(trim 평가 분기 호출만), `search/search_context.py`(원본 컨텍스트 참조), `search/find_front.py`(결과 칸) | TR-5b | 부분 |
@@ -724,9 +766,9 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 | `trim_pairs` | 단계 A S0 블록 열 |
 | `trim_candidates`·`dnl_sigma`·`recommend_trim_config` | `run_trim_candidates`(front 점마다) / `trim_dac_values`(`dnl_sigma`) |
 | `trim_theta_ties` | `build_search_context`(도메인 묶음) |
-| `trim_evaluate` | `kernel.evaluate`(trim 선언 실행에서 평가 진입) |
-| `trim_dac_values`·`trim_code_states`·`balance_solve`·`trim_constraint_rows` | `trim_evaluate` 판정 점 / 제약 블록 |
-| `run_trim_candidates` | `find_front` 뒤 1단계 진입(파이프라인 U16 전까지는 `find_front`가 결과 칸을 쓰는 지점에서 부른다) |
+| `solve_unit_current`(가) / `trim_point_blocks`(나) | `kernel.evaluate`(`E/search/kernel.py`) 본체가 trim 선언 실행에서만 부른다(§10.3a) |
+| `trim_dac_values`·`trim_code_states`·`balance_solve`·`trim_constraint_rows` | `trim_kernel`의 판정 점 처리 / search 제약 블록 |
+| `run_trim_candidates` | 1단계 진입: 파이프라인(지금은 `pipeline/trim_stage1.py` 진입을 부르는 실행 스크립트·test, U16 뒤 `run_gmid_design_pipeline`)이 `find_front` 결과를 넘겨 부른다. 방향 pipeline → search·metrics, `find_front`는 trim을 모른다(검증 B3) |
 
 ---
 
@@ -736,13 +778,13 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 
 | card | 범위 | 선행 | 완료 조건 | test 초안(독립 oracle) |
 |---|---|---|---|---|
-| **TR-M** 측정(엔진 코드 무변경) | G-2 표(§3.2)와 G-1 측정 항목(§3.1)·스키마 확장 성질(§10.2)을 9회로 후보 7회로 × 쌍 × 극성에서 잰다. 파생 topology는 측정 스크립트가 §7 규칙을 **독립 구현**해 만든다(구성: 이진·thermometer 셀을 모두 갖는 최소 구성 N = 2, m = 1). 결과 기록 `.ai/verification/trim/tr_m.json` | design 승인 | 비교 행 차이 목록, DC 역할·셀 분류(trim 소자), KCL 기저 풀림 여부, 원본 θ 키 보존 여부가 회로별로 있다. 차이가 있으면 TR-4 design 보완 전 사용자 보고 | 스크립트 자체가 TR-3 `augment_trim` test의 독립 oracle이 된다(같은 규칙의 다른 구현) |
+| **TR-M** 측정(엔진 코드 무변경) | G-2 표(§3.2)와 G-1 측정 항목(§3.1)·스키마 확장 성질(§10.2)을 9회로 후보 7회로 × 쌍 × 극성에서 잰다. 파생 topology는 측정 스크립트가 §7 규칙을 **독립 구현**해 만든다(구성 둘: 이진·thermometer 셀을 모두 갖는 최소 구성 N = 2, m = 1과, thermometer 셀이 여럿인 구성 N = 3, m = 1 -- 검증 N10). 결과 기록 `.ai/verification/trim/tr_m.json`. 켜진 스위치 ln IDu θ 상자의 실현 불가 비율(§10.2, 검증 N12)도 잰다. **작성자 조건(검증 N11)**: 이 스크립트의 작성자는 TR-3 `augment_trim` 구현자와 다른 agent여야 한다(같은 규칙의 독립 구현이 TR-3 test oracle이 되기 때문) | design 승인 | 비교 행 차이 목록, DC 역할·셀 분류(trim 소자), KCL 기저 풀림 여부, 원본 θ 키 보존 여부가 회로별로 있다. 차이가 있으면 TR-4 design 보완 전 사용자 보고 | 스크립트 자체가 TR-3 `augment_trim` test의 독립 oracle이 된다(같은 규칙의 다른 구현) |
 | **TR-1** spec·승인·합성 | §5 전부, §6, §8.1·§8.2, 승인 로더, 온도 대조 | TR-0 승인, T-4 순서 | 섹션 검사·거부 사유 전수, D-4 공존 처리, 온도 대조 거부가 실제로 거부함, 선언 없는 spec 로드 결과 비트 동일 | 형식 위반 픽스처마다 사유 코드 / `offset_in_sigma_mv`와 공존 거부 / `offset_excess` 강등 / 온도 ≠ LUT `temp_c` 거부(LUT 메타를 test가 직접 읽음) / 셀 표·코드 벡터: test가 손으로 쓴 N = 3, m = 1·N = 2, m = 0 표와 대조(§7.4 검산식) / `trim_rule_fp` 파일 바이트 변경 시 변함 |
 | **TR-2** z·쌍·후보·추천(보고만) | §9.1~§9.4, `offset_adjoint` 쓰기, 결과 JSON `trim.stage1` 표(파생 topology 제외) | TR-1, TR-M | 7회로 후보표, 사유 코드 9회로(§16), 선언 없는 실행 무동작(§3.3) | t: 작은 손 회로(저항 + 이상 전류원 + 선형 MOS 소신호)에서 손으로 푼 z와 대조 / `dnl_sigma`: 단위 셀 전수 합으로 독립 계산한 최악 전이 분산과 대조 / `recommend_trim_config`: (N, m) 쌍 전수 결과와 순서 규칙 결과 일치, W_min 종료 / 쌍 규칙: matching group 손 픽스처 |
 | **TR-3** 변환·출처·결속·출력 | §7, §8.3(1~5), §9.5, `topology_from_data` | TR-2 | 파생 topology가 로드 게이트 통과, 결정성(두 번 비트 동일), 이름 충돌 거부, 승인 stale 다섯 경로 각각 정지, 1단계 출력 파일 | TR-M 독립 구현과 소자·넷·`bias_inputs` 비교 / 입력 dict 순서 섞기 → 같은 출력 / 결속 경로마다 지문 하나만 바꾼 픽스처 → 해당 detail로 정지 |
 | **TR-4** 역할·구조 검사 | §11, §3.2 검사(§8.3-6), structure.json 재승인 | TR-3, **착수 조건: 재승인 계획 사용자 승인** | 9회로에서 trim 소자 셀 종류 `off`·블록 역할 없음, 구조 검사 통과(TR-M 차이 0 회로), 차이 주입 픽스처에서 정지. **병합 조건: structure.json 2개 재승인 완료** | 손 회로: trim 소자가 신호 도달에서 빠짐 / 부하 역할 집합에 trim 소자 없음 / 원본 matching group에 trim 소자를 섞은 픽스처 → `trim_structure_divergent` |
 | **TR-5a** 전류 0 소자·trim 전류 | §3.1 sizing·metrics 경로, `trim_unit` 기저 항, 스위치 묶음, 스키마 확장 검사 | TR-4, TD-2 결정 | 봉인 상태 파생 회로가 봉인 1~9 통과(픽스처 회로), off 소자 LUT 조회 0(조회 계측), 선언 없는 실행 비트 동일 | off 소자: W = 짝 W, 소신호 gm = 0, 잡음원 없음, σ 항 0 / 원뿔: off 스위치 행 없음 / KCL: 손으로 푼 셀 전류 = w_c·I_u |
-| **TR-5b** I_u 유도·DAC 값·제약·metric | §10.3, §10.4, §10.6, §10.7, E_total 계상 | TR-5a, TD-1 결정 | 픽스처 회로 2단계 front 생성, 반복 수렴 기록, 묶음 상계 확인, 판정 1·5(재계산 0), 결과 JSON `trim.stage2` | 반복: 해석해가 있는 toy(σ_in이 I_u에 선형)에서 고정점 = 닫힌 식 / 예산: 남은 예산 = 1 + K_trim이면 평가, −1이면 평가 0 / 제약 행 c 부호: 손 계산 |
+| **TR-5b** I_u 유도·DAC 값·제약·metric | §10.3, §10.4, §10.6, §10.7, E_total 계상 | TR-5a, TD-1 결정 | 픽스처 회로 2단계 front 생성, 반복 수렴 기록, 묶음 상계 확인, 판정 1·5(재계산 0), 결과 JSON `trim.stage2` | (가)일 때 이분: 해석해가 있는 toy(σ_in이 I_u에 선형)에서 해 = 닫힌 식, 이분 회차 ≤ `k_max(width, tol)`, 브래킷 부호가 맞지 않으면 `trim_iu_no_bracket`, `cone_trim` 위반이면 후보 실패 `trim_cone_outside`(실행 정지 없음) / 예산: 남은 예산 = 1 + K_trim이면 평가, −1이면 평가 0 / 제약 행 c 부호: 손 계산 |
 | **TR-5c** 코드 상태 균형 풀이 | §10.5 | TR-5b | 세 상태 풀이 수렴(픽스처), 포화 행에서 off·triode 제외, 실패 사유 | 오라클: 같은 고정 기하에서 SPICE `.op` + 입력 차 sweep으로 V_in 대조(오라클 측 독립, 허용폭 = 노드 tol 전파) / 선형 예측과의 차 보고 |
 | **TR-6** 의미 전환 | §10.8 | TR-5c | `iv_matching_l` 하한 꺼짐(선언 시), 보고 문구, 선언 없는 실행 비트 동일 | 선언 유무 두 spec에서 출발값 차이가 L 하한 행에만 있음 |
 | **TR-7** 검증 | §17 전부, 9회로 일반성(§16), 오라클 확장(레인 P: 코드 입력·표본별 코드 선택·온도), `verified_by` 붙이기 | TR-6, 오라클 확장 | §17 판정 통과, 완료 조건 (1)~(5)(계획 N5) | §17 |
@@ -765,8 +807,9 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 | common_gate_amplifier | 단일 | 단일 | `trim_single_input_unsupported` | D-8 |
 | pushpull_follower_buffer | 단일 | 단일 | `trim_single_input_unsupported` | D-8 |
 
-* 선언이 없는 9회로는 모두 무동작(§3.3 N 부류 빈 값)이고 이것을 TR-7이 측정한다.
+* 선언이 없는 9회로는 모두 무동작(§3.3 N 부류: 새 블록 호출 0, `offset_adjoint` = None)이고 이것을 TR-7이 측정한다.
 * 단일 출력 6회로가 추천까지 가려면 출력 넷 `node_voltage_targets_v`가 필요하다(§3.6, TD-3).
+* 그래서 지금 2단계를 바로 돌릴 수 있는 library 회로가 없다(current_reuse는 공존 거부). 실행 회로는 TD-8 사용자 결정 대기다.
 * 계획 N4 표의 '후보'와 다른 점: 단일 출력 회로는 후보표까지만 나온다(§18.2 X-T6).
 
 ---
@@ -780,17 +823,32 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 | # | 항목 | 규칙 | 성격 |
 |---|---|---|---|
 | 1 | σ_in 일치 | 파생 topology 판정 점(코드 seal_plus, trim 없는 MC)에서 SPICE MC 표본 n개의 입력 환산 offset 표준편차 σ̂. 합격: \|σ_eng − σ̂\| ≤ k·σ̂/√(2(n − 1)) + 엔진 분해능(`offset_analysis` resolution). k = spec 배수(새 신뢰 상수 없음) | 판정 전제 |
-| 2 | 27 °C 잔여 | 표본마다 trim 절차 흉내: seal_plus에서 offset 측정 → 모든 코드 c의 잔여를 오라클 DC로 재고 \|잔여\| 최소 코드 선택 → 잔여. **합격: 'trim 전 offset이 [−k·σ̂, +k·σ̂] 안인 표본' 전부가 잔여 ≤ V_res(실패 0)**. 구간 밖 표본 수와 그 잔여는 보고만. 더해 **결정적 끝 표본 둘**: 소자 공칭(mismatch 0) + 입력에 직렬 이상 전압 ±k·σ_eng를 넣은 회로에서 같은 절차 → 잔여 ≤ V_res(구간 끝을 직접 확인 -- MC가 꼬리에 닿지 않는 문제를 대신한다) | 판정(완료 조건 (3)) |
+| 2 | 27 °C 잔여 | 표본마다 trim 절차 흉내: seal_plus에서 offset 측정 → 모든 코드 c의 잔여를 오라클 DC로 재고 \|잔여\| 최소 코드 선택 → 잔여. **표본 선택 창(검증 N6)**: 중심 = **공칭 offset**(소자 mismatch 0인 같은 파생 회로의 δ = 0 기준 입력 환산 offset, 오라클 공칭 DC로 잰 값 V_nom -- 0이 아니다), 창 = [V_nom − k·σ̂, V_nom + k·σ̂]. **합격: trim 전 offset이 창 안인 표본 전부가 잔여 ≤ V_res(실패 0)**. 창 밖 표본 수와 그 잔여는 보고만. 더해 **결정적 끝 표본 둘**: 소자 공칭 + 입력에 직렬 이상 전압 ±k·σ_eng를 넣은 회로(trim 전 offset = V_nom ± k·σ_eng, 창의 두 끝)에서 같은 절차 → 잔여 ≤ V_res | 판정(완료 조건 (3)) |
 | 3 | 고정 코드 온도 sweep | 2의 표본·코드를 고정하고 온도 점마다 잔여. 온도 점 = LUT·PDK가 선언한 온도 범위의 끝점과 판정 온도(새 온도 상수 없음 -- 범위 선언이 없으면 사용자에게 범위를 묻는다, TD-6). §3.8 분해 표 | 보고 |
 | 4 | 코너별 보정 구간 | PDK 선언 코너마다 공칭 소자의 end_plus·end_minus 균형 V_in | 보고 |
 | 5 | 끝 코드 headroom 온도 의존 | 3의 온도 점마다 끝 코드 포화 여유(off 소자 제외) | 보고 |
 
 **샘플 수 규칙**:
-* n = 1 + ⌈k²·(2·k·σ_eng / LSB_in)² / 2⌉ … (식 S)
-* 유도: σ 추정의 표준오차 σ/√(2(n − 1))에 k배를 한 값이 '보정 구간 요구량 k·σ를 반 LSB(LSB_in/2) 이상 옮기지 않을 σ 오차'(LSB_in/(2k))보다 작아야 한다: k·σ/√(2(n − 1)) ≤ LSB_in/(2k). 모든 양은 spec(k)·엔진(σ_eng, LSB_in = \|t\|·I_LSB)에서 온다.
-* 같은 n개 표본을 1과 2에 같이 쓴다(표본마다 trim 절차를 하므로 추가 비용 없음).
-* 한계 문구(보고서): 'MC는 분포 내부를 확인한다. k 꼬리(구간 끝)는 결정적 끝 표본으로만 확인한다. 수율 확률은 주장하지 않는다(D-2: 분포 가정 없음)'. 비용이 실행 한도를 넘으면 n을 줄이지 않고 '판정 불능(표본 부족)'으로 보고한다(기준 약화 금지).
-* 이 식의 양식(반 LSB 기준)은 검증자 확정 대상이다(§18.1 TD-5).
+* n = 1 + ⌈2·k⁴·σ_eng² / LSB_in²⌉ … (식 S)
+* 유도: σ 추정의 표준오차 σ/√(2(n − 1))의 k배가, 보정 구간 요구량 k·σ를 반 LSB(LSB_in/2) 이상 옮기지 않을 σ 오차 LSB_in/(2k)보다 작아야 한다: k·σ/√(2(n − 1)) ≤ LSB_in/(2k). 모든 양은 spec(k)·엔진(σ_eng, LSB_in = \|t\|·I_LSB)에서 온다. k가 이 식에서 두 번(신뢰 배수, 구간 배수) 쓰이는 점은 X-T13.
+* 같은 n개 표본을 1과 2에 같이 쓴다.
+
+**비용 표(검증 N7, 실행 전에 낸다)**:
+
+| 항목 | 오라클 DC 풀이 수 |
+|---|---|
+| 1 σ 일치 | n(표본마다 seal_plus offset 1회 -- 2의 첫 측정과 같은 풀이를 쓴다) |
+| 2 잔여 | n·2^N(표본마다 코드 전수) + 결정적 끝 표본 2·(1 + 2^N) |
+| 3 온도 sweep | n·(온도 점 수) |
+| 4 코너 구간 | (코너 수)·2 |
+| 5 headroom 온도 | (온도 점 수)·2 |
+| 합 | 위 합. 한 풀이 시간은 오라클이 공칭 1회를 재서 곱한다 |
+
+**판정 불능 규칙(기준 약화 금지)**: 합 시간이 TR-7 실행 한도를 넘으면 n·창·코드 전수를 줄이지 않는다. 결과는 '판정 불능(표본 부족)'이고 비용 표와 함께 사용자에게 올린다(한도를 늘릴지 결정). 일부 표본만 돈 결과로 합격을 선언하지 않는다.
+
+**검증자 확정 조건(TD-5, 검증 보고 반영 세 가지)**: (1) n은 실행 전에 식 S로 고정하고 실행 중 바꾸지 않는다 (2) 표본 선택 창은 공칭 offset 중심이다 (3) 표본 부족·한도 초과는 판정 불능이고 합격선을 낮추거나 n을 줄이지 않는다. 이 셋은 독립 검증자가 확정·소유한다.
+
+* 한계 문구(보고서): 'MC는 분포 내부를 확인한다. k 꼬리(구간 끝)는 결정적 끝 표본으로만 확인한다. 수율 확률은 주장하지 않는다(D-2: 분포 가정 없음)'.
 
 **9회로 일반성**: §16 표의 사유 코드를 9회로 전수로 재고, 선언 없는 실행의 무동작(새 필드 빈 값, §3.3 비교)을 보인다.
 
@@ -798,25 +856,27 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 
 ## 18. 결정 필요·원래 취지와 다름
 
-### 18.1 사용자 결정 필요(이 design이 정하지 않음)
+### 18.1 사용자 결정 필요(이 design이 정하지 않음 -- 모두 **사용자 결정 대기**)
 
-| ID | 질문 | 선택지·근거 | 막는 card |
-|---|---|---|---|
-| TD-1 | **I_u 결정 방식**(원래 취지와 다름 후보). 계획 D-16(하한)·X-3(θ에서 뺌)을 지키는 기본 설계(§10.3)는 평가마다 pass 0 + 고정점 반복이 필요해 커널 평가가 θ 하나에 2 + 반복 수다(예산 E_total을 그만큼 먹는다) | (가) 기본 설계 그대로(계획 결정 충실, 비용 큼). (나) I_u를 θ 성분으로 두고 보정 구간을 제약으로 판정 -- 전력·면적 최소화가 I_u를 하한으로 민다(면적도 I_u에 대해 증가). 커널 평가 1회, 반복·pass 0 없음, 결정성 자연. **D-16 선택지 'θ로 둘지'를 사용자가 고르지 않았으므로 (나)는 원래 취지와 다르다** | TR-5b |
-| TD-2 | **꺼진 스위치의 진성 용량**: VGS < 0이 LUT 축 밖(E-5)이라 cgs·cgd·cgb가 정의되지 않는다 | (가) 접합 용량만 넣고 진성 용량 누락을 결과에 기록, 판정은 오라클(PM·극점이 낙관 쪽으로 틀릴 수 있다 -- 근사라 원칙 'LUT가 출처'와 다름) (나) LUT 재생성으로 VGS 음수 축 추가(레인 LUT, 비용·일정) (다) VGS = 0에서 조회(클램프 -- DF-27 위반이라 권하지 않음). 권고 (나), 그 전까지 TR-5a 대기 | TR-5a |
-| TD-3 | 단일 출력 6회로의 출력 기준 DC(`node_voltage_targets_v`, CI-15) | 값은 사용자 몫. 선언 전에는 그 회로들이 후보표까지만 간다(§3.6) | 해당 회로 2단계 |
-| TD-4 | TR-4의 structure.json 2개 재승인 계획 | 계획 N3.3·N9 그대로(사실 내용 동일, `rule_hash`만 갱신) | TR-4 착수 |
-| TD-5 | TR-7 규칙(§17) 확정 | 소유자 = 독립 검증자. 사용자 결정이 아니라 검증자 확정 사항이지만 판정 기준이므로 보고 | TR-7 |
-| TD-6 | 온도 sweep 범위(§17-3) | LUT·PDK에 온도 범위 선언이 없으면 범위 값은 사용자 몫(T-5는 '선언 온도 범위'를 말하나 spec 필드는 trim 온도 하나뿐) | TR-7 보고 |
-| TD-7 | 1단계 connectivity 표 도구가 옛 엔진 로더에 기댄다(E-16) | (가) 지금 도구 그대로 하위 프로세스 (나) 도구를 새 엔진 로더로 옮기는 별도 card. legacy 삭제 전에 (나)가 필요하다 | TR-3 출력 |
+| ID | 질문 | 선택지·기본안·근거 | 막는 card | 상태 |
+|---|---|---|---|---|
+| TD-1 | **I_u 결정 방식**(원래 취지와 다름 후보 X-T1). §10.3 비교표 | (가) 하한 유도안(계획 D-16·X-3 그대로, design 기본안): θ당 커널 평가 1 + K_trim, ln I 이분 고정점, search 원뿔 분리(§10.2). (나) θ안: θ당 1회, 고정점·K_trim 없음, 예산 충돌(B2) 소멸, 원뿔 변경 없음 -- D-16 선택지 'θ로 둘지'를 사용자가 고르지 않았으므로 원래 취지와 다르다. 기본안은 (가)로 두되 비용 때문에 (나)를 함께 올린다 | TR-5a(정의역)·TR-5b | 사용자 결정 대기 |
+| TD-2 | **꺼진 스위치의 진성 용량**: VGS < 0이 LUT 축 밖(E-5) | (가) 접합 용량만 + 누락 기록, 판정은 오라클(근사라 'LUT가 출처' 원칙과 다름) (나) LUT 재생성으로 VGS 음수 축 추가 (다) VGS = 0 조회(클램프, DF-27 위반이라 권하지 않음). 권고 (나), 기본안 없음(결정 전 TR-5a 대기) | TR-5a | 사용자 결정 대기 |
+| TD-3 | 단일 출력 6회로의 출력 기준 DC(`node_voltage_targets_v`, CI-15) | 값은 사용자 몫. 선언 전에는 그 회로들이 후보표까지만 간다(§3.6) | 해당 회로 2단계 | 사용자 결정 대기 |
+| TD-4 | TR-4의 structure.json 2개 재승인 계획 | 기본안: 계획 N3.3·N9 그대로(사실 내용 동일, `rule_hash`만 갱신, 같은 approval_id) | TR-4 착수 | 사용자 결정 대기 |
+| TD-5 | TR-7 규칙(§17) 확정 | 소유자 = 독립 검증자(검증자 확정 조건 세 가지는 §17에 반영). 판정 기준이므로 사용자에게도 보고 | TR-7 | 검증자 확정 대기 |
+| TD-6 | 온도 sweep 범위(§17-3) | LUT·PDK에 온도 범위 선언이 없으면 범위 값은 사용자 몫 | TR-7 보고 | 사용자 결정 대기 |
+| TD-7 | 1단계 connectivity 표 도구가 옛 엔진 로더에 기댄다(E-16) | 기본안 (가) 지금 도구 하위 프로세스. (나) 도구를 새 엔진 로더로 옮기는 별도 card -- legacy 삭제 전에 필요 | TR-3 출력 | 사용자 결정 대기 |
+| TD-8 | **2단계를 실제로 돌릴 회로**(검증 B5). 지금 library에서 2단계가 바로 가능한 회로가 없다: current_reuse는 `offset_in_sigma_mv <= 3.3`과 공존 거부(D-4), 나머지 차동 입력 6회로는 단일 출력 기준 없음(TD-3) | (가) current_reuse spec에서 `offset_in_sigma_mv` 제약을 빼고 `offset_sys_mv`의 `value_from_constraint` 참조(그 제약을 가리킴)를 고친다 -- spec 수정은 사용자 몫 (나) 단일 출력 회로 하나에 출력 기준 DC를 선언(TD-3의 부분 결정) (다) 시험용 회로·spec(`origin: fixture`)을 따로 승인. 기본안 없음(D-11: 선언 회로·값은 사용자) | TR-5b 이후 E2E, TR-7 | 사용자 결정 대기 |
+| TD-9 | **평가 예산 충돌 해법**(검증 B2, TD-1과 연동). TD-1 (가)이면 θ 하나가 커널 평가 1 + K_trim을 먹어 선언 E_B로 탐색이 거의 돌지 않는다 | TD-1 (나)를 고르면 대부분 사라진다(§10.3 비교표). (가)를 고르면 예: E_B를 θ 평가 단위로 다시 정함, trim 회차를 E_total 밖 별도 예산으로 둠(X-8 '모든 커널 평가' 결정과 다름) 등 -- design은 정하지 않는다. 현 문구(§10.3 'E_total 계산')는 그대로 둔다 | TR-5b | 사용자 결정 대기 |
 
 ### 18.2 원래 취지와 다름(따로 보고)
 
 | ID | 내용 |
 |---|---|
-| X-T1 | TD-1 (나)는 D-16/X-3과 다르다(위). 기본 설계는 (가)다 |
+| X-T1 | TD-1 (나)는 D-16/X-3과 다르다(위). design 기본안은 (가)다 |
 | X-T2 | 계획 θ 행 '단위 셀 gm/ID·L만'을 셀의 두 소자 종류(전류원, 스위치)의 ln IDu·L로 읽어 DAC마다 θ 성분 넷이다(§10.2). 스위치 크기를 θ 밖 규칙으로 정하는 안은 상수(폭 비 등)를 발명해야 해서 택하지 않았다 |
-| X-T3 | 2단계 평가마다 원본 topology pass 0을 한다(§10.3). 계획에 없던 단계이고, I_u 출발값을 θ만의 함수로 만들기 위해서다(결정성) |
+| X-T3 | TD-1 (가)에서 2단계 평가마다 원본 topology pass 0을 한다(§10.3). 계획에 없던 단계이고, 이분 브래킷 하단을 θ만의 함수로 만들기 위해서다(결정성). (나)면 없다 |
 | X-T4 | G-1 표현: 구조(S1·S1v)는 모든 스위치를 가진 파생 topology 하나로 만들고 코드 상태는 sizing 층의 off 집합으로만 표현한다. 계획은 '소자 제외, 별도 포화 검사 경로' 중 택하라고만 했다 |
 | X-T5 | 완료 조건 (1) 비교 제외(G-3)가 계획 D-14 문언('규칙 지문')보다 넓다: 블록 코드 해시에서 온 입력 버전·스냅샷 지문·코드 지문(F2~F4)도 뺀다. 코드가 바뀌는 card에서 이 칸들은 필연적으로 바뀌기 때문이다. 값 부류는 비트 동일 그대로라 기준 약화는 아니라고 보지만, 판정 기준 변경이라 보고한다 |
 | X-T6 | 계획 N4 표의 단일 출력 6회로 '후보'는 G-6 fail-closed 때문에 후보표까지만 나오고 추천·2단계는 TD-3 전까지 막힌다 |
@@ -824,6 +884,9 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N. m = 그 N에서 가능한 
 | X-T8 | 켜진 스위치를 `trim_decl`이 triode 의도 영역으로 더한다(§3.1). 지금 `intended_region`은 사용자 spec에만 있는 선언인데, trim 소자 한정으로 엔진 출처 선언이 생긴다(trim 소자는 사용자 topology 원소가 아니므로 사용자 선언 자리가 없다) |
 | X-T9 | card 분할: 계획 TR-5를 TR-5a·b·c로 나누고 측정 card TR-M을 더했다 |
 | X-T10 | TR-7 표본 수 식(§17)은 '반 LSB' 기준을 쓴다. 반(1/2)은 '최적 코드 선택의 잔여 = 간격/2'(계획 N3.4 잔여 판정)와 같은 정의에서 왔으나, 검증 기준으로 쓰는 것은 이 design의 선택이다(TD-5) |
+| X-T11 | 승인 결속에 `spec_trim_fp`(spec `offset_trim` 섹션 지문)를 넣었다(§8.3-4). 계획 N3.3 결속은 원본·파생 지문과 변환 규칙 해시뿐이라 이 design이 계획보다 엄격하다: V_res·k·온도가 바뀌면 추천 (N, m)이 달라지므로 재승인을 요구한다 |
+| X-T12 | K_trim(v0.1 고정점 반복 상한)은 `k_max`가 이분법 반복 수 정의라 고정점 반복의 상한으로 맞지 않았다. v0.2는 풀이를 ln I 이분법으로 바꿔 `k_max`가 맞는 상한이 되었다(§10.3 (가)) -- 이 점은 해소. 남는 것은 TD-1 (가)의 비용(1 + K_trim)과 TD-9 |
+| X-T13 | §17 식 S에서 spec k를 두 번 쓴다: (1) 보정 구간 배수(계획 정의) (2) σ 추정 오차의 신뢰 배수. (2)는 '새 신뢰 상수를 만들지 않기 위해' 같은 선언값을 재사용한 design 선택이다. 별도 신뢰 배수를 spec에 두는 안은 사용자·검증자 몫(TD-5) |
 
 ---
 
