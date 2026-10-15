@@ -14,7 +14,7 @@ plan_version: 6.10
 > - 스펙에서 gm/ID·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-10-15 · **Status**: v1.10 -- 사용자 결정 2026-10-15 "나로 해"(실행 사이 재사용 제거, 40 v1.10과 같은 변경): mismatch·잡음 tol의 '디스크 캐시 대상' 문구에 LUT 파생표 디스크 캐시 결정 대기(40 §2.4.12 Q9) 표시. 경위는 history.
+> **Date**: 2026-10-15 · **Status**: v1.10 -- 사용자 결정 2026-10-15 "나로 해"(실행 사이 재사용 제거, 40 v1.10과 같은 변경): mismatch·잡음 tol의 '디스크 캐시 대상' 문구에 LUT 파생표 디스크 캐시 결정(U-87 유지, 사용자 결정 2026-10-15 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따라 유지. 나머지는 기본안대로") 표시. 경위는 history.
 >
 > v1.9.4 -- 사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해"(원문 `_drafts/user_decisions.md` 'NFR-4 BLAS 결정성')의 3안: §5.13 신설 -- 판정 경계 위에 일부러 놓는 점의 규칙(BP1 닫힌 식 배치 + 판정 쪽 √ε 여유, BP2 판정 c ≥ 0 그대로, BP3 자기 판정식 확인), 층 0 끌어올림 식, 같은 종류 자리 목록, 검토한 안((a)·(a2)·(b)·(c))과 측정, 남은 위험(풀이기 잡음이 가르는 탐색 경로 -- pushpull의 스레드 간 결정 차이는 이 규칙으로 없어지지 않는다), 끌어올림 식 가장자리와 Q-N9(사용자 결정 2026-10-15 "기본안대로 진행해"로 확정: s = max(0, ·)), `iv_matching_l.py:99` 해당 없음 확인. 같은 날 독립 검증 지적 반영(B-2·N1·N9·N10, 규칙 이름 B → BP, 41 §6의 'B3'와 겹침 회피). 1안·③은 40 §2.4.3·§2.4.13(40 v1.9.4와 같은 변경). 경위·측정 조건은 history.
 >
@@ -1388,7 +1388,7 @@ VDSAT_j,min은 LUT 최대 gm/ID에서의 VDSAT를 L 점 전체에서 최소로 �
 2b. **LUT mismatch 감도 열**(U3): 생성기 `assets/sky130_lut_sweep.py`에 mismatch 모드를 더한다.
    - 방법(제안서 §0.3과 같음): pm3 카드 복사본에서 변수 k의 `*_slope_spectre`를 0 → 1(인스턴스 기하의 1σ)로 바꾼 섭동 곡선과 기준 곡선을 같은 include·DUT 줄로 돌리고, 기준 곡선의 칸 ID에서 두 곡선의 VGS 차를 DVGS_k로 둔다(W_ref·각 L·DC LUT 축 격자).
    - **저장**: 새 버전 파일 `..._mismatch_r1.npz`(sha256, 생성 메타: 모델 경로·sha, ngspice 버전, 온도, 섭동 변수 목록)에 둔다. **공유 `lut_data`의 기존 v2 r2 파일은 고치지 않는다.** `lut_v2_location.json`에 새 항목으로 더한다. 로더는 v2 칸과 같은 키로 합쳐 노출한다.
-   - **tol**: 칸별 `tol_mismatch`를 LOO로 계산한다(DEC-87 방법, 디스크 캐시 대상 -- v1.10: 실행 사이 유지 여부는 사용자 결정 대기, 40 §2.4.12 Q9).
+   - **tol**: 칸별 `tol_mismatch`를 LOO로 계산한다(DEC-87 방법, 디스크 캐시 대상 -- v1.10: 실행 사이 유지, U-87 원래 취지의 예외, 40 §2.4.12 Q9).
    - 감도 데이터가 없는데 offset 제약이 선언되면 `SchemaRejectedError(mismatch_lut_missing)`이다.
    - 한계 기록: 제안서 실측은 W 5 µm·|VDS| 0.9 V·VS 0 한 슬라이스였다. 생성기는 DC LUT 축(VDS·VS·W 슬라이스) 전체에서 잰다.
    - API(신규): `mismatch_dvgs(kind, w_key, L, VGS, VDS, VS) -> MismatchSens{dvgs: {param: V}, slope_ref: {param: value}}`.
@@ -1617,7 +1617,7 @@ metric 이름은 주파수를 숫자로 고르지 않도록 '평탄값'과 'corn
 - 로더는 v2의 `SVG2_*`와 새 파일의 점을 합쳐 노출한다.
 - 잡음 데이터가 없는데 잡음 제약이 선언되면 `SchemaRejectedError(noise_lut_missing)`이다.
 
-**tol**: 칸별 `tol_noise`를 LOO로 계산한다(DEC-87 방법). 디스크 캐시 대상이다(v1.10: 실행 사이 유지 여부는 사용자 결정 대기, 40 §2.4.12 Q9).
+**tol**: 칸별 `tol_noise`를 LOO로 계산한다(DEC-87 방법). 디스크 캐시 대상이다(v1.10: 실행 사이 유지, U-87 원래 취지의 예외, 40 §2.4.12 Q9).
 
 **API**(신규): `noise_params(kind, w_key, L, VGS, VDS, VS) -> NoiseParams{A, B, ef, b_status}`. 옛 `SID_1F`는 단위가 잘못되어 있으므로 읽지 않는다.
 
