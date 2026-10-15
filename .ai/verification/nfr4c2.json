@@ -1,0 +1,350 @@
+{
+  "id": "20261015-nfr4c2",
+  "spec_card": "docs/02-design/specs/20261015-nfr4c2.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "e8b619f7629d0a5c634a58d7c064a82c3e01d644",
+  "test_commit": "64c77c17e35ad79436173f0b02308704ab3a4a65",
+  "code_commit": "8ff81e2fcefe3a08be19edf1238235a96451adba",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_core_public_names",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_environment_value_shape",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_holds_when_numpy_imported_first",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_import_sets_every_openblas_to_one_outer_8",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_missing_info_symbols_are_none_not_rejected",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_new_openblas_module_changes_environment_fp",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_outer_setting_does_not_change_environment_value",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_recheck_points_reject_changed_threads[a]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_recheck_points_reject_changed_threads[b]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_recheck_points_reject_changed_threads[c]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_recheck_points_reject_changed_threads[d]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_recheck_points_reject_changed_threads[e]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_rejects_missing_thread_symbols[no_get]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_rejects_missing_thread_symbols[no_set]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_rejects_mkl_and_blis_records[blis]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_rejects_mkl_and_blis_records[mkl]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_rejects_non_openblas_build_config",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_rejects_setting_that_does_not_take",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_rejects_unsupported_platform",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_blas_thread_determinism.py::test_blas_thread_count_does_not_change_run[common_gate_amplifier]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_blas_thread_determinism.py::test_blas_thread_count_does_not_change_run[current_reuse_telescopic_ota]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_blas_thread_determinism.py::test_blas_thread_count_does_not_change_run[folded_cascode]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_blas_thread_determinism.py::test_blas_thread_count_does_not_change_run[ngcc_3stage_ff]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_blas_thread_determinism.py::test_blas_thread_count_does_not_change_run[nmcnr_amplifier]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_blas_thread_determinism.py::test_blas_thread_count_does_not_change_run[pushpull_follower_buffer]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_blas_thread_determinism.py::test_blas_thread_count_does_not_change_run[sf_pushpull_output_opamp]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_blas_thread_determinism.py::test_blas_thread_count_does_not_change_run[two_stage_ota]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_blas_thread_determinism.py::test_blas_thread_count_does_not_change_run[two_stage_ota_sf]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_layer0_boundary_rows.py::test_layer0_boundary_rows_positive_9circuits",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[nmcnr_amplifier]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[sf_pushpull_output_opamp]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[two_stage_ota]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[two_stage_ota_sf]",
+      "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py::test_report_key_set_exact_on_ok_and_stop_paths",
+      "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a_report.py::test_env_fp_recorded",
+      "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a_report.py::test_files_and_sorted_keys",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_env_fp_in_runs_line_not_in_evals",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_lb_stop_notes_empty_when_lb_never_runs",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_lb_stop_notes_line_exactly_once",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_l_bin_search.py::test_area_moves_m2_down_one_cell",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_l_bin_search.py::test_lb_stop_both_budgets_prefers_eval_budget",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_l_bin_search.py::test_lb_stop_checked_at_return_after_no_accept_round",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_l_bin_search.py::test_lb_stop_converged",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_l_bin_search.py::test_lb_stop_eval_budget",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_l_bin_search.py::test_lb_stop_wall_budget",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_l_bin_search.py::test_stops_at_eval_budget",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_l_bin_search.py::test_stops_at_wall_budget",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_lift_closed_form[C_f0]",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_lift_closed_form[FN_neg]",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_lift_closed_form[FP_numer_le0]",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_lift_closed_form[FP_pos]",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_lift_edges[formula_negative_no_lowering]"
+    ],
+    "failure_hashes": [
+      "67b3e98f6cc1aeb6a0842fb30a047f1f5eeeca1105cecddd24f2dd1e5371c557",
+      "9bf4affa7f9ba70cf129dce43706f6c42546d16b2c8e951e46a2e2067eb7084e",
+      "864d65bee94e654512279b51ea6618d81f60f80d55e634b3aa87f6eb47b94389",
+      "35b6b2f77b899fd64a00895441904cb523af795b128bff83b449180b3db54b5e",
+      "4c6dca63da000014c3777cb7d10124e89817439cdadcbc402eb35bff559b57a5",
+      "be5a20cc9976ef3263d1a1f81cca09821927a41fbd78c4ee2a3bf7319c5f3769",
+      "c30005b550a58acf5bfe127aa6c3cc1c2d0063b78ec416b68bac94947a3e0c94",
+      "7f3da69f00cf51793bd7a0a4d71f14464129af22eb4b2d39477445bd42417622",
+      "d07d69278519c2f9f61ac82ab77bac38dd0cbe232d6270421c4c11d85de4a29d",
+      "da88572132c81d4fab5513ca1805706a113050938616a0a40c185008e57e2e3e",
+      "44a20be0d460b15492dc0e0da8eefb536a39659c5725b7a2e128cb66f4966eaf",
+      "bf8ff0c0d170c7431f17ff84268953c5ac641a8c16e1d6c445e1b17dfda46ad1",
+      "1a3363918c0cae48dbc34207d366c0ebc7c3153c82577e3d196f3c451bb37c76",
+      "837c50bc92581cf725ba593f1e1dac913b2d3824abff431a249fd93b79cfe896",
+      "6b3b6d5a81dfe19cc7317c6689c68efcb4476d60d95777e28ae0dad5e52dda7b",
+      "dce132d854c381f1f4258c7c67f80300e8434b558831f33ea9247c28cbe6fc69",
+      "e81ee38dcd8b688b08656670ddfc7368f7b2e1a38103a27db9c556a50d2e02d7",
+      "bfd170a14be690807af3349d3a7e5ee4038ac46d9b6a32a07ed4256fb1ba40e6",
+      "01c174cf75630c4e8a0955e9f4d27052ef3dd9ce30f1e9a0892f73a872031276",
+      "527cb5ddb31ba9ff79e67ca5bced6bf6f4f9509ef827bfef1c8f35ea15363dd1",
+      "403f4dedd7da04f940e4560b943a3fa048ea3f3480a310e4e07d4b9ccc410283",
+      "d2e5b1bdb91bc7a9f3a196454a87dbed2167b66cd15ef38a5272997fea4d0881",
+      "d751e91ccd431f66fac3e38191efdc9695d90cbeb31668cb6d024a188b76de8d",
+      "8d783d430f310f4114512b82b646e7ab2691450acd89cb4a809a18f52a97cd13",
+      "cc5a650215220c1619b380c32e1c3e1ab1d72eaf9d1cb90a54148f5ce01b3c37",
+      "65c4f2dd94e6497a4f7fec8f7b1f1672fb961527ab8fd2cf666434791cd7ce7d",
+      "c9e594a34aaed17a1711a91a203fe523d13a34577d558341186f04f39b862409",
+      "f500019c35694b636ea3c0c5a0dddb162aeb6d617f6044fb09744f6c5e517af4",
+      "d31ac85fd83c9c5b51725689b70035c00f71a3cf39290cc64f2568da0a49a08e",
+      "b481c92bc2c1f585aa6fd1cbc602b756ec97b71d55aab3afdde8e29392587a01",
+      "1c777132e58a8c4dde59ddfb4a270231c018dc6deead7c79191f5b473ade4c0a",
+      "3ac6342f419b03fc28cec8ff97c3deaf32f802b6fe3bedf130b5e89889cbfa8a",
+      "cc3ed1d325bc87ac91e8543334e0e928b5a5325f65fd8eb617bb5f91c5ea0a1a",
+      "b3a90630156488364024b6fcc5fca71bdd7f5318b8515904c94b62a4f5811f34",
+      "b22ca40f806616e7cd0a515bf3e94729ede91e89b9dd2a0f95a5b66689854532",
+      "9e799f6551b84c097049d57c76eabd3e0c5f6685a017a3843b3e7e413c77569d",
+      "ac09e2545d7c66a25bb2a228927756cd09e99fb7ae6f2098c8b9857e7cb571a3",
+      "c9e685e35217f191098b2e602c35880b549ad57b3652df60798e715650589303",
+      "ea260566db5aa2e27f8aafcd73e97da5caf9842ab84d523a3797c7a36f2001c7",
+      "f0ead474b710aa7bcbca88a8cf5189f8af6091c6e959cf2e7025fbd9e761adb4",
+      "a9b9fa226d6869be33e04b1ba824a01b3160934f326e263d92fc8a8e16d9118d",
+      "9a5d64b35047c8d14e4765a699b8eb548a851f171725faa037235529986777c9",
+      "17b45c48574647c2778c5cb667612455fe3462238f8536293e56bf674f95b1e7",
+      "7630a9abff7de1d54ba8126cade82f2be99b6d5540bb7e49e352465aab2aebd5",
+      "8005ce4cee39521a63a7019df8c340a1d0f03ef3b713b70096cdcce319aa2ff8",
+      "68a94046a9d7edb049b5a645fd7fcab7d73e226618b07a9126535ca142e3180d",
+      "d2fc2399a80127633e4be24e8c69b8fc1a82be9c032ca9b4ede392e68e2a77e9",
+      "f5a435abba4f3d1b77d94810b2ae1c1d4182367a57e3ae0bab3ed84b1f25bc3b",
+      "335df272560d96ec520e5aa6e213c50789bf5ae4b72ee9bb8e1d494cfe147876",
+      "10d853f5562086f8c0facf1e58ce7f72a252ef201616aa7dba541fd949488b13",
+      "a90a720d1132481bab7d473b585fc320068c88d3ed1ebb2d9ac24546972fa52d",
+      "ea3aa731c7d43ddac3528969ed5e8d850560e2f1ef9373f261f0914b63164c52"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "FAIL",
+      "basis": "병합본 a34054d 격리 복제본(_scratch_nfr4c2_audit/head, origin 제거), 바깥 OPENBLAS_NUM_THREADS 미지정 셸, 명령 1개(-k·--deselect·-x 없음, --run-slow): 10 failed / 10077 passed / 1 deselected(규칙 H 마커 -- structure conftest 기본 제외) / 2 xfailed(layout) in 2496.78 s. 실패 10개 = tests/integration/test_blas_thread_determinism.py 전부(N-T29 9회로 + test_single_thread_start_fp_matches_base), 모두 같은 줄 :83 `assert out[threads][\"threads_env\"] == threads` -> '1' == '18'. 원인 = test 쪽 하네스 결함: nfr4_run_dump.py 가 record['threads_env'] 를 `import gmid_engine.search` 뒤에 os.environ 에서 읽는데, 엔진 import 가 계약 C1 대로 OPENBLAS_NUM_THREADS 를 '1' 로 바꾸므로 언제나 '1' 이 기록된다(같은 하네스의 progress.log 'start threads_env=' 줄은 import 전에 써서 바깥 값 18 이 맞게 남는다). 엔진 결함 아님: auditor 가 같은 하네스·같은 비교기로 잰 A-4(R1 바깥 1 대 R4 바깥 18 포함 36 비교 PASS·판정 불능 0·env_fp 같음)와 기준선 대조(R1·R4·R5 two_stage_ota 출발 구간 S0 칸 8+7 = 기준선과 같음)가 N-T29 의 판정 내용은 성립함을 보인다. 조건부 -- test 쪽 수정 뒤 test_blas_thread_determinism.py(--run-slow)와 전체 suite 재실행으로 재판정. 나머지: 3안 영향 toy 고정값 후보 4파일(test_layer0_center·test_find_front·test_residual_probe·test_converge_point)과 범위 밖 후보(test_eps_sweep·test_slsqp_outer·test_search_context) 모두 통과 -- 고칠 toy 단언 0. 기본 실행(--run-slow 없음) 수집 10079/10090(11 deselected = slow 10 + H 1), --run-slow 10089/10090. base e8b619f 수집 9998."
+    },
+    "V2": {
+      "verdict": "FAIL",
+      "basis": "red: base e8b619f + 동결 test 64c77c1(순서 3, nfr4c2/base_check.json): 52 failed / 209 passed, 유형 AssertionError 36·ModuleNotFoundError 6·ImportError 1(새 공개 심볼 blas_env·blas_environment -- A-3 허용)·ValueError 9(N-T15~N-T18 'not enough values to unpack' = 옛 반환 형식, card base 열 'red(반환 형식)', card 1 J-7 의 서명 TypeError 선례와 같은 성격 -- 오케스트레이터 확인 대상). card 이유 일치: N-T1 조회 8·8, N-T2 numpy 선행 18·18, N-T5 (a)~(e) 재확인 없음, N-T10 거부 없음, N-T13 보고서 13키, N-T14 runs env_fp 없음, N-T20 C_f0 min q-1 = 7.47e-13(as-built ≈ 1), N-T29 7회로 비트 차이(1 대 18). J-14: N-T23 base 를 바깥 1 로 다시 재어 folded_cascode w_min:M7·M8·M9 c = -4.684409835671501e-10(design B-2 '-4.68e-10' 과 같음) -- 멈춤 조건 해당 없음. N-T19·N-T24~N-T28 은 test 쪽 도구(conftest 마커·비교기)를 시험하므로 base+test 에서 green 이 구조상 정상(card A-3 의 red 기대는 spec card 결함) -- N-T19 는 conftest 를 e8b619f 판으로 바꾸면 2 failed(AssertionError: --run-slow 인식 못 함)로 공허 아님 확인. green: 병합본 전체 실행에서 red id 52 중 43 passed, 9 = N-T29 9회로가 V1 의 하네스 결함으로 failed -> green 미완(조건부)."
+    },
+    "V3": {
+      "verdict": "N/A",
+      "basis": "도입 U17: spec card 파일 없음(초안 _drafts/engine/NFR4C2_SPEC_CARD.md) -- mutate_changed.py 대상(assets/tests) 밖. 대신 뮤턴트에 해당하는 base 엔진 (고정 없음·재확인 없음·env_fp 없음·as-built 끌어올림·옛 L-b 반환)이 red(V2)로 잡히고, 끌어올림 한 줄만 as-built 로 되돌린 head 대조군(head_nobp1)은 9회로 값이 base 와 같아(변화 0) N-T20·N-T22·N-T23 이 보는 차이가 그 한 줄에서 나옴을 보였다."
+    },
+    "V4": {
+      "verdict": "N/A",
+      "basis": "도입 U17: test_lint.py 대상(assets/tests) 밖. oracle 대조(기대값마다): N-T1·N-T2·N-T3 = ctypes 로 numpy·scipy .libs OpenBLAS 를 직접 조회(엔진 경유 없음, auditor A-2 와 같은 값 1). N-T4 = Python 표준 값(sys·platform·numpy·scipy 판)과 .libs glob 파일 이름, ctypes corename -- fp_of 는 두 호출 비교만. N-T5·N-T6 = ctypes 설정 2·DLL 복사본 적재 뒤 거부/항목 수(손 전제 단언 포함). N-T7~N-T9 = 손으로 만든 가짜 BlasModule. N-T10 = 하위 프로세스 show_config·sys.platform 대입. N-T11 = AST. N-T12 = interface C1 문장. N-T13 = interface C3 14키 목록 그대로·파일 JSON 직접 읽기. N-T14 = runs.jsonl 직접 읽기. N-T15~N-T18 = C5 사유 규칙(예산·마감을 test 가 정함). N-T20 = 손 toy 원뿔·ref·고정 전류, q_m 을 test 가 θ 에서 다시 계산, γ_n 은 C4 셈 규칙(auditor 가 op_count 식을 C4 문장과 대조: s 계산 3k+(k-1)+2j+max(j-1,0)+4, θ 2, q 재계산 2(k+j)+(k+j-1) -- 문장 그대로). N-T21 = c 부호(판정식). N-T22 = exp(clip(x)) 손 계산. N-T23 = 판정식 c > 0·|c| ≤ 1 대역(design (4) 분해능 1). N-T24~N-T28 = 손으로 만든 기록·design (4) 분해능 식 독립 구현(엔진 import 없음 -- auditor 가 nfr4_compare.py import 목록 json·sys 뿐 확인). N-T29 = 같은 하네스 두 실행 비교 + 기준선 파일. UNJUDGED: N-T22 'R 빔'·'분자 모두 ≤ 0' 두 경우는 공개 toy 로 만들 수 없다는 test 작성자 판단(θ 전류 변수의 자기 행이 언제나 R) -- auditor 는 그 논리를 _current_centre 행 구성(움직이는 θ 를 읽는 행만 rows)과 대조해 맞다고 보지만 경우 자체는 미시험으로 남는다."
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "gate weakening_diff.py(범위 assets/tests) e8b619f..a34054d PASS 발견 0. gmid_engine/tests AST(scripts/removed_tests_n.py): 지운 test 함수 1개 = test_blas_thread_determinism.py::test_start_fp_independent_of_blas_thread_count(strict xfail) -> test_blas_thread_count_does_not_change_run 로 대체(design 40 §2.4.13 (5) '승인 불필요: strict xfail 제거·범위 확장(기준 강화)'), 단언 수 감소 함수 0. 바뀐 단언 = 보고서 키 13 -> 14(강화), polish_l_cells 호출 형식. 기준선 픽스처 u17_1b_s0_baseline.json 값 diff 0(_source 문자열만, J-12 승인 불필요) -- B-1 재측정: test_s0_layer_9circuits 병합본 전부 통과. test 쪽 스레드 고정 3곳 삭제는 card 1.4.3 지시대로."
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "tests/structure 전부 통과(V1 안). 규칙 H(-m structure_test_mapping) 위반 6 = base e8b619f 6 과 같은 목록(검사 대상 397 -> 398, 새 core/blas_env.py 는 tests/core/test_blas_env.py 1:1). _module_map: core 층 표에 blas_env.py, ModuleEntry('core/blas_env.py', 'entry', 'pin_blas_threads', (NFR-4, EP-9)) -- 진입점 하나(규칙 A). E/core/*.py 모듈 수준 numpy·scipy import 0(AST). 함수 레지스트리 §2 두 행(BLAS 고정·실행 환경 값, 층 0 끌어올림) 같은 변경. graph 단일 정본: 엔진 non-test AST 저장소 head 대 base 새 것 = BlasModule·BlasEnvironment frozen dataclass 칸 14개뿐(값 형식, 보관 안 함), module_mutable·global·lru_cache·attr_container 새 것 0 -> 재확인 무상태. 캐시 키 불변: archive.py·compute_block.py·table_cache.py·macro_poles.py·fd_jacobian.py·start_intervals.py·iv_*.py diff 0줄, 대조군(head_nobp1) 9회로 값 변화 0 = context_fp·snapshot_fp·evals 키 칸이 base 와 같다(env_fp 는 출력 칸만). -k 식 11개 --collect-only 수 head = base(A-9)."
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "배선: gmid_engine/__init__.py 가 import 때 pin_blas_threads() 1회(A-2: 바깥 1·8·18·미지정·미지정+numpy 선행 다섯 하위 프로세스 모두 ctypes 조회 1·1, os.environ '1', fp_of(blas_environment()) 한 값 65cd4a29…). 재확인 (a) stage_a.py:200(보고서 env_fp, 정상·정지 4곳), (b) search_context.py:204, (c) find_front.py:78(runs 줄 env_fp :153), (d) layer0_center.py:657, (e) slsqp_outer.py:104 -- N-T5 가 다섯 지점 각각 RuntimeError 확인(병합본 통과). L-b: l_bin_search 반환 (수락, 사유) -> eps_sweep.py lb_stops -> find_front notes l_search 한 줄(runs 줄·SearchFront.notes). 끌어올림: lift_exponent 가 lift = u 를 대체(옛 줄 0), centre_start·layer0_start 경로에서 쓰임(N-T20·N-T23 통과). 서명·칸 불변(A-8): build_search_context·find_front·solve_eps·layer0_start·centre_start·run_stage_a·run_stage_b·evaluate·fd_jacobian·S3Archive·polish_l_cells·sweep_front 서명, StageAResult·SearchContext·SearchFront 칸 head = base. 관찰 지점 계약 넷(loaded_blas_modules 모듈 전역 호출, layer0_center.scipy_minimize, find_front 모듈 속성 layer0_start·sweep_front, SearchContext.cache) 유지 -- test·하네스가 그 지점으로 동작."
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 U17: 폴백 경로 대상 아님(이 card 는 거부 RuntimeError·조용한 대체 없음 -- 지원 밖 BLAS·플랫폼·설정 안 듣는 경우 모두 거부, N-T7~N-T10 통과)."
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 U17: 물리 불변식 대신 값 불변·판정식 -- S0 수준 기준선(u17_1b_s0_baseline.json) 대조 test 병합본 통과, 판정식 c ≥ 0(hard_ok) 그대로(N-T23 hard_ok 일치 단언 통과), BP1 경계 행 c > 0: 병합본 N-T23 통과(base 스레드 1 에서 folded w_min:M8 c = -4.68e-10)."
+    },
+    "V10": {
+      "verdict": "FAIL",
+      "basis": "[A-4 PASS] 병합본 9회로 x R1(바깥 1)·R2(1)·R3(8)·R4(18)·R5(미지정+numpy 선행) = 45 프로세스 순차(+ 예비 R0 9) 모두 rc 0·TEMP 잔여 0, 동결 비교기 first_pass R1 대 R2~R5 36 비교 PASS·판정 불능 0, auditor 독립 비트 비교(T 칸만 뺀 fields + 기록 머리 칸) 차이 0, env_fp 한 값 65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26, 엔진 코드 지문 한 값 0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319, 보고 nfr4c2/a4_compare.json. [A-2 PASS] 위 V7. [A-8·A-9 PASS] V6·V7. [A-5 범위 밖 있음 -> 사용자 결정] base(바깥 1) 대 head 같은 하네스 값 변화(nfr4c2/a5_changes.json, T·형식·run_id·code_fp 제외): two_stage_ota·two_stage_ota_sf·current_reuse·ngcc 0. 범위 안: folded_cascode 5936칸 -- (가) 층 0 hard_ok False -> True (notes 의 층 0 줄 포함), 층 0 시작점 θ 전류 5개 x(1+√ε)(상대 1.491e-8), 그 뒤 평가 64개·S3 evals, perf block_recomputes_same_input 16 -> 15·lut_memo_evictions 393 -> 354, front 0 그대로 = (라) 같은 회로·층 0 시작점에서 이어짐. common_gate_amplifier 2512칸 -- (나) EA:s1 best seq 34 -> 23·stop converged -> slsqp_8 재현, 층 0 시작점 current:M3 상대 1.165e-8, EP:s1 C 칸 35, front 점(θ·목적값·active·snapshot) seq 34 -> 23, lut_memo_evictions 1573 -> 1567 = (라). 범위 밖(다른 회로, 원인은 같은 BP1 √ε 여유 -- 대조군이 증명): nmcnr_amplifier 4874칸(층 0 시작점 θ 8개 상대 ~1.8e-7, 평가 66개 전부의 C 칸과 seal 항목 worst 노드 agnd -> NodeF1/NodeC 35칸, perf block_computes 516 -> 534·block_reuses 42 -> 24·block_recomputes_same_input 64 -> 80), pushpull_follower_buffer 2890칸(층 0 θ 3개 x(1+√ε), 평가 40개, worst M5 -> M2 15칸, lut_memo_evictions 105 -> 107), sf_pushpull_output_opamp 858칸(층 0 시작점 없음, 첫 평가부터 θ 상대 ~2e-5, 평가 40개). 세 회로 모두 front·pending·unmeasured·failed_eps·hard_ok·층 0 stop·kernel_calls 는 그대로. design 41 §5.13 (a2) 실측 '나머지 7회로 0건'과 다르다. 원인 대조: head 에서 끌어올림 한 줄만 as-built 로 되돌린 복제본은 9회로 모두 base 와 값 변화 0 -> 변화 전부가 BP1 한 줄 때문. 한 실행 안 재계산 계수: recompute_same_key 0·kernel_calls = unique_keys 9회로 유지, 그러나 nmcnr block_recomputes_same_input 64 -> 80(증가, 범위 밖 변화의 일부, 캐시 키 불변 -- 방문 점이 바뀐 결과). [A-1 문구 불일치] 1.4.5 grep: lift = u 0, _BLAS_THREAD_ENV 0, test_converge·test_no_s0_files_written OPENBLAS 0, _REL 0, blas_env.py 밖 설정 기호(.py) 0, core 모듈 수준 numpy·scipy 0 -- 그러나 tests/conftest.py OPENBLAS_NUM_THREADS 1(15행 주석), test_blas_thread_determinism.py xfail 4(4·5·6·15행 docstring) -- 코드 토큰은 0, 기대 0 문구와 다름(test 쪽 문구 정리 또는 오케스트레이터 수용). [A-10 보고] import gmid_engine.core 0.054 -> 0.394 s, 재확인 1회 중앙값 4.6 ms, 9회로 사슬 합 base 310 s / head 295 s. [A-6] 다른 판 venv 미측정(보고만 항목)."
+    }
+  },
+  "reproduced_numbers": [
+    {
+      "name": "red_base_failed_total",
+      "value": 52,
+      "command": "red: pytest <13 test files of 64c77c1> --run-slow --continue-on-collection-errors (base_check red.command)"
+    },
+    {
+      "name": "red_base_assertion_errors",
+      "value": 36,
+      "command": "same, scripts/red_hashes.py type_counts"
+    },
+    {
+      "name": "red_base_new_symbol_import_errors",
+      "value": 7,
+      "command": "same"
+    },
+    {
+      "name": "red_base_valueerror_return_format",
+      "value": 9,
+      "command": "same"
+    },
+    {
+      "name": "nt23_base_thread1_folded_w_min_M8_c_e10",
+      "value": -4.684409835671501,
+      "command": "OPENBLAS_NUM_THREADS=1 pytest tests/integration/test_layer0_boundary_rows.py (red clone), c x 1e10"
+    },
+    {
+      "name": "head_passed",
+      "value": 10077,
+      "command": "python -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow (head clone)"
+    },
+    {
+      "name": "head_failed",
+      "value": 10,
+      "command": "same"
+    },
+    {
+      "name": "head_xfailed",
+      "value": 2,
+      "command": "same"
+    },
+    {
+      "name": "head_deselected",
+      "value": 1,
+      "command": "same"
+    },
+    {
+      "name": "collected_head",
+      "value": 10090,
+      "command": "pytest gmid_engine/tests --collect-only --run-slow"
+    },
+    {
+      "name": "collected_base",
+      "value": 9998,
+      "command": "pytest gmid_engine/tests --collect-only (base clone)"
+    },
+    {
+      "name": "default_deselected_head",
+      "value": 11,
+      "command": "pytest gmid_engine/tests --collect-only (no --run-slow)"
+    },
+    {
+      "name": "red_ids_green_at_head",
+      "value": 43,
+      "command": "results/green_of_red.json"
+    },
+    {
+      "name": "rule_h_violations_head",
+      "value": 6,
+      "command": "pytest gmid_engine/tests/structure -m structure_test_mapping"
+    },
+    {
+      "name": "rule_h_violations_base",
+      "value": 6,
+      "command": "same (base clone)"
+    },
+    {
+      "name": "a4_comparisons",
+      "value": 36,
+      "command": "scripts/compare_a4.py R1_t1 vs R2_t1 R3_t8 R4_t18 R5_unset_numpyfirst"
+    },
+    {
+      "name": "a4_pass",
+      "value": 36,
+      "command": "same"
+    },
+    {
+      "name": "a4_undecidable_total",
+      "value": 0,
+      "command": "same"
+    },
+    {
+      "name": "a4_own_bit_diffs",
+      "value": 0,
+      "command": "same"
+    },
+    {
+      "name": "a4_env_fp_distinct",
+      "value": 1,
+      "command": "same"
+    },
+    {
+      "name": "a2_env_fp_distinct_5_settings",
+      "value": 1,
+      "command": "scripts/a2_driver.py"
+    },
+    {
+      "name": "a5_value_changes_folded_cascode",
+      "value": 5936,
+      "command": "scripts/diff_base_head.py base_t1 R1_t1"
+    },
+    {
+      "name": "a5_value_changes_common_gate_amplifier",
+      "value": 2512,
+      "command": "same"
+    },
+    {
+      "name": "a5_value_changes_nmcnr_amplifier",
+      "value": 4874,
+      "command": "same"
+    },
+    {
+      "name": "a5_value_changes_pushpull_follower_buffer",
+      "value": 2890,
+      "command": "same"
+    },
+    {
+      "name": "a5_value_changes_sf_pushpull_output_opamp",
+      "value": 858,
+      "command": "same"
+    },
+    {
+      "name": "a5_value_changes_other_4_circuits",
+      "value": 0,
+      "command": "same"
+    },
+    {
+      "name": "a5_control_asbuilt_lift_value_changes_9circuits",
+      "value": 0,
+      "command": "scripts/diff_base_head.py base_t1 ctrl_nobp1_t1"
+    },
+    {
+      "name": "nmcnr_block_recomputes_same_input_base",
+      "value": 64,
+      "command": "scripts/perf_table.py"
+    },
+    {
+      "name": "nmcnr_block_recomputes_same_input_head",
+      "value": 80,
+      "command": "same"
+    },
+    {
+      "name": "measure_processes",
+      "value": 72,
+      "command": "scripts/run_measure.sh 8 labels x 9 (R0 smoke, base_t1, R1..R5, ctrl_nobp1_t1), all rc 0, TEMP left 0"
+    },
+    {
+      "name": "import_core_s_head",
+      "value": 0.394,
+      "command": "python -P -c 'import gmid_engine.core' timing"
+    },
+    {
+      "name": "recheck_median_ms",
+      "value": 4.6,
+      "command": "20 x blas_environment()"
+    }
+  ],
+  "approvals": [],
+  "auditor_run": {
+    "time": "2026-10-15T22:50:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/nfr4c2-audit (격리 복제본 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/{red,head,base,head_nobp1})",
+    "commands": [
+      "V1: cd <head clone a34054d>/skills/analog-gmid-design && (unset OPENBLAS_NUM_THREADS OMP_NUM_THREADS; PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow -rfEX --durations=25 --junitxml=results/suite_head/suite.xml)",
+      "격리: for n in red head base head_nobp1: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/nfr4c2-audit _scratch_nfr4c2_audit/$n && git -C $n remote remove origin; red=64c77c1, head=a34054d, base=e8b619f, head_nobp1=a34054d + layer0_center.py:258 'lift = u ...'(as-built 대조군, 커밋 없음)",
+      "red: cd <red>/skills/analog-gmid-design && PYTHONDONTWRITEBYTECODE=1 python -m pytest <13 test files of 64c77c1> -q -p no:cacheprovider -rfE --tb=short --continue-on-collection-errors --run-slow --junitxml=results/red/red.xml (OPENBLAS_NUM_THREADS unset)",
+      "red hash: PYTHONPATH=<gate cache 6df4bd7f> python -P scripts/red_hashes.py results/red/red.xml results/red/red_hashes.json",
+      "J-14: cd <red>/skills/analog-gmid-design && OPENBLAS_NUM_THREADS=1 python -m pytest gmid_engine/tests/integration/test_layer0_boundary_rows.py -q -p no:cacheprovider",
+      "N-T19 비공허: <red> conftest 를 git show e8b619f:.../tests/conftest.py 로 잠시 바꿔 pytest gmid_engine/tests/test_conftest_slow_marker.py, 뒤 git checkout -- conftest.py",
+      "A-4·A-5: bash scripts/run_measure.sh <label> <clone> <threads> [numpy_first] (nfr4_run_dump.py, 회로마다 새 프로세스 순차, env -i 허용 목록, 빈 TEMP·표 캐시, --eval-budget 40 --front-budget-s 7200) x base_t1(red,1) R1_t1 R2_t1 R3_t8 R4_t18 R5_unset_numpyfirst ctrl_nobp1_t1",
+      "A-4 비교: python -P scripts/compare_a4.py <head skill> results/measure R1_t1 results/a4_compare.json R2_t1 R3_t8 R4_t18 R5_unset_numpyfirst",
+      "A-5 비교: python scripts/diff_base_head.py results/measure/base_t1 results/measure/R1_t1 results/a5_base_vs_R1.json; 같은 스크립트 base_t1 대 ctrl_nobp1_t1; python scripts/perf_table.py",
+      "A-2: python scripts/a2_driver.py <scratch> <head skill> (바깥 1·8·18·미지정·미지정+numpy 선행, ctypes 직접 조회)",
+      "A-1: git grep -c <이름> a34054d -- <범위> (1.4.5 7항목), tokenize 로 코드 토큰 수 확인",
+      "A-8: git diff --stat e8b619f a34054d -- <9 files>; python -P scripts/sigs.py <base|head skill> (inspect.signature·dataclasses.fields)",
+      "A-9: pytest gmid_engine/tests --collect-only -q -k <11 식> (base, head)",
+      "규칙 H: pytest gmid_engine/tests/structure -m structure_test_mapping (base, head)",
+      "V5: python <gate cache 6df4bd7f>/weakening_diff.py --root head --base e8b619f --head a34054d; python scripts/removed_tests_n.py head results/v5_removed_tests.json",
+      "graph 정본: python scripts/ast_stores.py <scratch> ast_stores.json base"
+    ]
+  }
+}

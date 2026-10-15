@@ -1,0 +1,1168 @@
+{
+ "summary": {
+  "comparisons": 36,
+  "pass": 36,
+  "undecidable_total": 0,
+  "env_fp_values": [
+   "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+  ],
+  "code_fp_values": [
+   "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+  ],
+  "own_bit_diff_total": 0
+ },
+ "results": {
+  "R2_t1|common_gate_amplifier": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    11073,
+    11073
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R2_t1_common_gate_amplifier.json"
+  },
+  "R2_t1|current_reuse_telescopic_ota": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    32322,
+    32322
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R2_t1_current_reuse_telescopic_ota.json"
+  },
+  "R2_t1|folded_cascode": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    26825,
+    26825
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R2_t1_folded_cascode.json"
+  },
+  "R2_t1|ngcc_3stage_ff": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    2648,
+    2648
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R2_t1_ngcc_3stage_ff.json"
+  },
+  "R2_t1|nmcnr_amplifier": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    29913,
+    29913
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R2_t1_nmcnr_amplifier.json"
+  },
+  "R2_t1|pushpull_follower_buffer": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    11855,
+    11855
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R2_t1_pushpull_follower_buffer.json"
+  },
+  "R2_t1|sf_pushpull_output_opamp": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    15103,
+    15103
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R2_t1_sf_pushpull_output_opamp.json"
+  },
+  "R2_t1|two_stage_ota": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    17315,
+    17315
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R2_t1_two_stage_ota.json"
+  },
+  "R2_t1|two_stage_ota_sf": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    16062,
+    16062
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R2_t1_two_stage_ota_sf.json"
+  },
+  "R3_t8|common_gate_amplifier": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    11073,
+    11073
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R3_t8_common_gate_amplifier.json"
+  },
+  "R3_t8|current_reuse_telescopic_ota": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    32322,
+    32322
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R3_t8_current_reuse_telescopic_ota.json"
+  },
+  "R3_t8|folded_cascode": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    26825,
+    26825
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R3_t8_folded_cascode.json"
+  },
+  "R3_t8|ngcc_3stage_ff": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    2648,
+    2648
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R3_t8_ngcc_3stage_ff.json"
+  },
+  "R3_t8|nmcnr_amplifier": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    29913,
+    29913
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R3_t8_nmcnr_amplifier.json"
+  },
+  "R3_t8|pushpull_follower_buffer": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    11855,
+    11855
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R3_t8_pushpull_follower_buffer.json"
+  },
+  "R3_t8|sf_pushpull_output_opamp": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    15103,
+    15103
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R3_t8_sf_pushpull_output_opamp.json"
+  },
+  "R3_t8|two_stage_ota": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    17315,
+    17315
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R3_t8_two_stage_ota.json"
+  },
+  "R3_t8|two_stage_ota_sf": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    16062,
+    16062
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R3_t8_two_stage_ota_sf.json"
+  },
+  "R4_t18|common_gate_amplifier": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    11073,
+    11073
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R4_t18_common_gate_amplifier.json"
+  },
+  "R4_t18|current_reuse_telescopic_ota": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    32322,
+    32322
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R4_t18_current_reuse_telescopic_ota.json"
+  },
+  "R4_t18|folded_cascode": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    26825,
+    26825
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R4_t18_folded_cascode.json"
+  },
+  "R4_t18|ngcc_3stage_ff": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    2648,
+    2648
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R4_t18_ngcc_3stage_ff.json"
+  },
+  "R4_t18|nmcnr_amplifier": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    29913,
+    29913
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R4_t18_nmcnr_amplifier.json"
+  },
+  "R4_t18|pushpull_follower_buffer": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    11855,
+    11855
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R4_t18_pushpull_follower_buffer.json"
+  },
+  "R4_t18|sf_pushpull_output_opamp": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    15103,
+    15103
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R4_t18_sf_pushpull_output_opamp.json"
+  },
+  "R4_t18|two_stage_ota": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    17315,
+    17315
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R4_t18_two_stage_ota.json"
+  },
+  "R4_t18|two_stage_ota_sf": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    false
+   ],
+   "n_fields": [
+    16062,
+    16062
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R4_t18_two_stage_ota_sf.json"
+  },
+  "R5_unset_numpyfirst|common_gate_amplifier": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    true
+   ],
+   "n_fields": [
+    11073,
+    11073
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R5_unset_numpyfirst_common_gate_amplifier.json"
+  },
+  "R5_unset_numpyfirst|current_reuse_telescopic_ota": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    true
+   ],
+   "n_fields": [
+    32322,
+    32322
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R5_unset_numpyfirst_current_reuse_telescopic_ota.json"
+  },
+  "R5_unset_numpyfirst|folded_cascode": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    true
+   ],
+   "n_fields": [
+    26825,
+    26825
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R5_unset_numpyfirst_folded_cascode.json"
+  },
+  "R5_unset_numpyfirst|ngcc_3stage_ff": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    true
+   ],
+   "n_fields": [
+    2648,
+    2648
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R5_unset_numpyfirst_ngcc_3stage_ff.json"
+  },
+  "R5_unset_numpyfirst|nmcnr_amplifier": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    true
+   ],
+   "n_fields": [
+    29913,
+    29913
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R5_unset_numpyfirst_nmcnr_amplifier.json"
+  },
+  "R5_unset_numpyfirst|pushpull_follower_buffer": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    true
+   ],
+   "n_fields": [
+    11855,
+    11855
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R5_unset_numpyfirst_pushpull_follower_buffer.json"
+  },
+  "R5_unset_numpyfirst|sf_pushpull_output_opamp": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    true
+   ],
+   "n_fields": [
+    15103,
+    15103
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R5_unset_numpyfirst_sf_pushpull_output_opamp.json"
+  },
+  "R5_unset_numpyfirst|two_stage_ota": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    true
+   ],
+   "n_fields": [
+    17315,
+    17315
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R5_unset_numpyfirst_two_stage_ota.json"
+  },
+  "R5_unset_numpyfirst|two_stage_ota_sf": {
+   "verdict": "PASS",
+   "undecidable": 0,
+   "diffs": 0,
+   "preconditions": {
+    "base": [],
+    "other": []
+   },
+   "env_fp": [
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26",
+    "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+   ],
+   "code_fp": [
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319",
+    "0152a1c903f31b12b2656a32eaa92b8d46cbd9223aa99ccd6817b945401e4319"
+   ],
+   "own_bit_diffs": 0,
+   "own_first": [],
+   "threads_env": [
+    "1",
+    "1"
+   ],
+   "numpy_first": [
+    false,
+    true
+   ],
+   "n_fields": [
+    16062,
+    16062
+   ],
+   "report": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/results/measure\\reports\\R1_t1_vs_R5_unset_numpyfirst_two_stage_ota_sf.json"
+  }
+ }
+}

@@ -1,0 +1,55 @@
+[
+ {
+  "outer": "1",
+  "env": "1",
+  "pre": {},
+  "threads": {
+   "libscipy_openblas64_-63c857e738469261263c764a36be9436.dll": 1,
+   "libscipy_openblas-197ee2fc9b4d071f7e048078cac74115.dll": 1
+  },
+  "fp": "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+ },
+ {
+  "outer": "8",
+  "env": "1",
+  "pre": {},
+  "threads": {
+   "libscipy_openblas64_-63c857e738469261263c764a36be9436.dll": 1,
+   "libscipy_openblas-197ee2fc9b4d071f7e048078cac74115.dll": 1
+  },
+  "fp": "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+ },
+ {
+  "outer": "18",
+  "env": "1",
+  "pre": {},
+  "threads": {
+   "libscipy_openblas64_-63c857e738469261263c764a36be9436.dll": 1,
+   "libscipy_openblas-197ee2fc9b4d071f7e048078cac74115.dll": 1
+  },
+  "fp": "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+ },
+ {
+  "outer": "unset",
+  "env": "1",
+  "pre": {},
+  "threads": {
+   "libscipy_openblas64_-63c857e738469261263c764a36be9436.dll": 1,
+   "libscipy_openblas-197ee2fc9b4d071f7e048078cac74115.dll": 1
+  },
+  "fp": "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+ },
+ {
+  "outer": "unset+numpy",
+  "env": "1",
+  "pre": {
+   "libscipy_openblas64_-63c857e738469261263c764a36be9436.dll": 18,
+   "libscipy_openblas-197ee2fc9b4d071f7e048078cac74115.dll": 18
+  },
+  "threads": {
+   "libscipy_openblas64_-63c857e738469261263c764a36be9436.dll": 1,
+   "libscipy_openblas-197ee2fc9b4d071f7e048078cac74115.dll": 1
+  },
+  "fp": "65cd4a2961d931804c4bacfbe36b58d16c1d1b5b1c8df45018224eccf3226e26"
+ }
+]

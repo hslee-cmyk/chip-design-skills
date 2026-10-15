@@ -1,0 +1,218 @@
+{
+ "ruleH_base": [
+  "E     layout/_helpers_alias.py",
+  "E     layout/canonical_naming.py",
+  "E     tests/authoring/test_spec_loop_cut.py",
+  "E     tests/lut/test_slope_unit_check.py",
+  "E     tests/pipeline/test_stage_a_loop_cut.py",
+  "E     tests/search/test_sweep_memo_wiring.py"
+ ],
+ "ruleH_head": [
+  "E     layout/_helpers_alias.py",
+  "E     layout/canonical_naming.py",
+  "E     tests/authoring/test_spec_loop_cut.py",
+  "E     tests/lut/test_slope_unit_check.py",
+  "E     tests/pipeline/test_stage_a_loop_cut.py",
+  "E     tests/search/test_sweep_memo_wiring.py"
+ ],
+ "a9_collect": [
+  "base|test_ic|7/9998 tests collected (9991 deselected) in 11.11s",
+  "base|g10|no tests collected (9998 deselected) in 10.31s",
+  "base|ic11 or kvl_branch_residual|no tests collected (9998 deselected) in 11.10s",
+  "base|ic1 or ic2 or ic9 or ic10 or shared_gate_net or kcl_residual|4/9998 tests collected (9994 deselected) in 10.49s",
+  "base|rule_g or design_value_location|4/9998 tests collected (9994 deselected) in 10.78s",
+  "base|rule_k_|3/9998 tests collected (9995 deselected) in 10.77s",
+  "base|duplicate_args or loop_invariant|no tests collected (9998 deselected) in 10.93s",
+  "base|mna_assembly_count or mna_solve_count|no tests collected (9998 deselected) in 10.65s",
+  "base|dup_w_calc or dup_kcl_edges|no tests collected (9998 deselected) in 10.70s",
+  "base|dup_|16/9998 tests collected (9982 deselected) in 10.93s",
+  "base|new_topology|no tests collected (9998 deselected) in 11.03s",
+  "head|test_ic|7/10090 tests collected (10083 deselected) in 11.06s",
+  "head|g10|no tests collected (10090 deselected) in 11.03s",
+  "head|ic11 or kvl_branch_residual|no tests collected (10090 deselected) in 10.19s",
+  "head|ic1 or ic2 or ic9 or ic10 or shared_gate_net or kcl_residual|4/10090 tests collected (10086 deselected) in 10.30s",
+  "head|rule_g or design_value_location|4/10090 tests collected (10086 deselected) in 10.52s",
+  "head|rule_k_|3/10090 tests collected (10087 deselected) in 10.72s",
+  "head|duplicate_args or loop_invariant|no tests collected (10090 deselected) in 10.76s",
+  "head|mna_assembly_count or mna_solve_count|no tests collected (10090 deselected) in 10.99s",
+  "head|dup_w_calc or dup_kcl_edges|no tests collected (10090 deselected) in 10.83s",
+  "head|dup_|16/10090 tests collected (10074 deselected) in 10.76s",
+  "head|new_topology|no tests collected (10090 deselected) in 10.48s"
+ ],
+ "sigs_base": {
+  "sig:build_search_context": "(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, model_error=(), *, code_fp)",
+  "sig:find_front": "(sctx, given_starts)",
+  "sig:solve_eps": "(sctx, start, minimize, eps, origin)",
+  "sig:layer0_start": "(sctx, origin=())",
+  "sig:centre_start": "(sctx, rung=None)",
+  "sig:run_stage_a": "(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None)",
+  "sig:run_stage_b": "(stage_a, memo, pdk_decl, *, output_dir, settings, diagnostic=False)",
+  "sig:evaluate": "(sctx, theta, cells, parent=None, origin=(), geometry=None)",
+  "sig:fd_jacobian": "(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset())",
+  "sig:S3Archive": "(root, context_fp, code_fp)",
+  "sig:polish_l_cells": "(sctx, solved, origin)",
+  "sig:sweep_front": "(sctx, starts)",
+  "fields:StageAResult": [
+   "exit_code",
+   "status",
+   "report",
+   "report_paths",
+   "s1",
+   "spec",
+   "code_fp"
+  ],
+  "fields:SearchContext": "<Signature (dc, spec, settings, context_fp, code_fp, archive)>",
+  "fields:SearchFront": [
+   "run_id",
+   "front",
+   "pending_front",
+   "failed_eps",
+   "resolution",
+   "perf",
+   "notes",
+   "unmeasured_front"
+  ]
+ },
+ "sigs_head": {
+  "sig:build_search_context": "(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, model_error=(), *, code_fp)",
+  "sig:find_front": "(sctx, given_starts)",
+  "sig:solve_eps": "(sctx, start, minimize, eps, origin)",
+  "sig:layer0_start": "(sctx, origin=())",
+  "sig:centre_start": "(sctx, rung=None)",
+  "sig:run_stage_a": "(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None)",
+  "sig:run_stage_b": "(stage_a, memo, pdk_decl, *, output_dir, settings, diagnostic=False)",
+  "sig:evaluate": "(sctx, theta, cells, parent=None, origin=(), geometry=None)",
+  "sig:fd_jacobian": "(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset())",
+  "sig:S3Archive": "(root, context_fp, code_fp)",
+  "sig:polish_l_cells": "(sctx, solved, origin)",
+  "sig:sweep_front": "(sctx, starts)",
+  "fields:StageAResult": [
+   "exit_code",
+   "status",
+   "report",
+   "report_paths",
+   "s1",
+   "spec",
+   "code_fp"
+  ],
+  "fields:SearchContext": "<Signature (dc, spec, settings, context_fp, code_fp, archive)>",
+  "fields:SearchFront": [
+   "run_id",
+   "front",
+   "pending_front",
+   "failed_eps",
+   "resolution",
+   "perf",
+   "notes",
+   "unmeasured_front"
+  ]
+ },
+ "ast_stores": {
+  "summary": {
+   "head_total": {
+    "dc_field": 2043,
+    "attr_container": 65,
+    "id_call": 4,
+    "cached_property": 3,
+    "default_factory": 5,
+    "module_mutable": 2
+   },
+   "base_total": {
+    "dc_field": 2029,
+    "attr_container": 65,
+    "id_call": 4,
+    "cached_property": 3,
+    "default_factory": 5,
+    "module_mutable": 2
+   }
+  },
+  "new_in_head": [
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasModule.path:str",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasModule.family:str",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasModule.set_threads:object",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasModule.get_threads:object",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasModule.config:object",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasModule.corename:object",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasModule.parallel:object",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasEnvironment.python_implementation:str",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasEnvironment.python_version:str",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasEnvironment.platform:str",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasEnvironment.machine:str",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasEnvironment.numpy_version:str",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasEnvironment.scipy_version:str",
+    "count": 1
+   },
+   {
+    "file": "core/blas_env.py",
+    "kind": "dc_field",
+    "text": "BlasEnvironment.blas:tuple",
+    "count": 1
+   }
+  ],
+  "gone_in_head": []
+ },
+ "weakening_diff": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+}
