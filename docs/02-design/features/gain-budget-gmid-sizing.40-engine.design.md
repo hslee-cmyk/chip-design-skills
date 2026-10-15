@@ -79,6 +79,7 @@ plan_version: 6.11
 | `40-engine`(이 문서) | §1 범위·원칙 / §2 아키텍처(흐름·상태 층·패키지 API·§2.4 graph 단일 정본·재사용 규칙) / §3 단계별 설계 GB0~GB9(gain-budget 외, §3.2-3 `structure.json` 개념·파이프라인) / §4 SPICE 오라클 / §5 CM(CMFB) 루프 / §6 대칭 / §7 면적 예산·성능 / §8 승인 없이 축소된 범위와 계획 이탈 / §9 사용자 결정(2026-10-08 확정, Q3·Q4 포함, §9.2 회로별 offset·스윙·ICMR 선언, §9.3 J 결정) / §10 신규 API·검증(오라클·DoD·IC test) / §11 구현 단위(병렬 배분) |
 | `41-gain-budget` | FR-1(SP1 stage 유도, §1.12 J 구조 규칙), FR-2(블록 gain 모델과 MNA 잔차), FR-3 연계, FR-8(탐색 전 달성 불가), FR-4(층 0 gain 예산 조합 front와 `gain_budget_db`), 스펙에서 gm/ID·L 출발값 유도 |
 | `42-gap-checklist` | FR·NFR·DEC·설계 항목마다 한 행: 설계 절, as-built 상태, 증거 위치 |
+| `offset-trim.design.md`(별도 기능) | offset 전류 주입 trim(계획 `offset-trim.plan.md`). 이 문서의 §2.4(graph 단일 정본·XRUN-F1 색인·E_total)를 전제로 trim 필드·블록·card를 정한다 |
 
 **표기**: `E/` = `skills/analog-gmid-design/gmid_engine/`. `P` = 계획서. 상태 어휘는 **OK**(as-built가 설계와 같음) / **DEV**(as-built가 설계와 다름. 어떻게 다른지 함께 적음) / **PART**(일부만 있음) / **MISS**(없음). 브랜치에만 있는 것은 `[브랜치명]`을 붙인다.
 
