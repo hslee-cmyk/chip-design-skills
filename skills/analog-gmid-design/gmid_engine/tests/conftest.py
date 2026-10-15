@@ -12,7 +12,7 @@ import json
 import os
 import sys
 
-# [NFR-4 card 2, interface card 3.2] 옛 OPENBLAS_NUM_THREADS=1 강제(와 numpy 선행 import 거부)를 지웠다 -- BLAS 스레드 고정은 이제
+# [NFR-4 card 2, interface card 3.2] 이 conftest 는 BLAS 스레드 환경 변수를 정하지 않는다(numpy 선행 import 도 거부하지 않는다) -- BLAS 스레드 고정은
 # 엔진이 import 때 한다(interface card C1 `gmid_engine.core.pin_blas_threads`, 설계 40 §2.4.13 (1)). test 는 바깥 값을 덮지 않는다.
 
 # tests -> gmid_engine -> analog-gmid-design(패키지 부모)
