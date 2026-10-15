@@ -1,6 +1,6 @@
 """파이프라인 단계 A 진입점 (설계 40 §2.1 GB0~GB2, 41 §0 단계 A1~A3).
 
-진입점: `run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule_decl, pdk_decl_path, lut_rule_decl_path, supplies_v=None, structure_path=None) -> StageAResult`.
+진입점: `run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None) -> StageAResult`.
 
 순서(40 §3.2-3): A1 `load_topology`·`load_sizing_spec`(spec_path 가 None 이면 구조만 -- 기본 전달 뷰) -> `structure.json` 사실 로드(ratified 사실, 기본 경로 = topology 파일 옆
 `<회로>.structure.json`, 없으면 사실 0 이고 declared 대조는 하지 않았다고 보고서에 적는다; topology 지문 = `doc.connectivity_fp` 라 `build_s1` 전에 이미 있고, rule_hash 는
@@ -22,33 +22,22 @@
   보고서에는 정지 여부와 무관하게 전체 구조 표를 쓴다(`build_s1v(stop_on_unsupported=False)` 로 기록을 받아 여기서 판정한다).
 * ratified 사실 개념: `drive_kind`(대상 = 넷, 값 = voltage|current)는 구동 종류를 고정하고, `stage_members`(대상 = stage 이름, 값 = 공백으로 이은 소자 이름)는
   유도 stage 와 대조하는 declared 로 쓴다. topology 태그 섹션은 읽지 않는다(IC4).
-* [U17 ①-a·①-b] S0 수준 스냅샷 영속화(설계 40 §2.4.3, v1.9.1 D6): `structure.json` 로드 뒤 S0 키 입력(`_s0_inputs`: topology 정규화 지문, 레일 전압, spec 전체 지문,
-  `structure.json` 사실 지문, 대칭 선언 표시 지문(`symmetry_marks_fp` -- `build_s1(marks=)` 가 S1 키 `marks_fp` 로 읽는 것과 같은 값), 유도 규칙 코드 지문 `structure_rule_fp()`, LUT 지문,
-  PDK 선언 파일 내용 해시(`pdk_decl` = core `read_pdk_decl` 결과, **필수** -- None·다른 형식이면 `TypeError`, 설계 40 §2.4.12 Q1 fail-closed), LUT 생성 규칙 선언 파일 내용 해시
-  (`lut_rule_decl`, **필수** -- 접합 출처 S0 필드 `graph/kernel: junction_source` 가 읽는다); 두 선언 값에는 파일 경로가 없으므로(사용자 결정 7) 호출자가 `pdk_decl_path`·`lut_rule_decl_path`(**필수**)로 위치를 따로 넘긴다) + 입력 파일 원본(`_s0_sources`: topology·spec·structure·PDK 선언·LUT 생성 규칙 선언·LUT 파일의
-  경로와 원본 바이트 sha256, U-68 정리가 checkout 마다 키 재현을 판정하는 재료) + 엔진 코드 지문으로 core `S0Slot`(저장소 `S0SnapshotStore.default`)을 만들어 S0 수준 스냅샷을 읽는다.
-  적중이면 그 스냅샷 위에서(아니면 빈 S0 수준 스냅샷 -- 권한표 search `S0_WRITERS` 위에서) `build_s1`·`build_s1v`·`coupling_vars` 가 모든 블록을 부른다(적중이면 계산 0).
-  단계 A 는 **읽기만** 한다: 쓰기는 S0 수준 블록이 모두 끝나는 `search.build_search_context` 끝에서 한 번(`StageAResult.s0` 로 넘긴다, v1.9.1 D6).
-  결과는 보고서 `s0_snapshot`(hit|miss|corrupt, 정지 전 단계면 None)에 남긴다.
+* [NFR-2·U-89] S0 수준 층은 실행마다 처음부터 계산한다: 빈 S0 수준 스냅샷(`GraphSnapshot.empty(S0_WRITERS)`, 권한표 search `S0_WRITERS`) 위에서 `build_s1`·`build_s1v`·`coupling_vars` 가
+  모든 블록을 부르고, 그 실행 안에서는 입력 버전이 같으면 다시 계산하지 않는다(필드가 곧 캐시). 디스크 스냅샷을 읽거나 쓰지 않는다(설계 40 §2.4.3).
 * 엔진 코드 지문 `engine_code_fp()` 은 실행마다 여기서 한 번 재고 `StageAResult.code_fp` 로 넘긴다 -- `search.build_search_context(code_fp=)` 가 그 값을 받는다(재계산 0).
-* 결과 `StageAResult` 는 S0 수준 스냅샷 참조(`s1` = 그 스냅샷 위 `S1Graph` -- S1·S1v·결합 필드)와 S0 키 자리(`s0`)·보고서 경로를 담는다. 묶음 `S1v` 는 없다(설계 40 §2.4.7 v1.9.1 D1):
+* 결과 `StageAResult` 는 S0 수준 스냅샷 참조(`s1` = 그 스냅샷 위 `S1Graph` -- S1·S1v·결합 필드)와 보고서 경로를 담는다. 묶음 `S1v` 는 없다(설계 40 §2.4.7 v1.9.1 D1):
   커널 컨텍스트는 L 동치류를 필드 `graph/s1v: l_classes` 에서 읽는다.
 """
 import dataclasses
-import hashlib
 from pathlib import Path
 
 from gmid_engine.authoring import BETA_DECLARED, load_sizing_spec, load_topology
 from gmid_engine.core import (
     GraphSnapshot,
-    PdkDecl,
-    S0Slot,
-    S0SnapshotStore,
     SchemaRejectedError,
     StructureUnresolvedError,
     engine_code_fp,
     exit_code_for,
-    fp_of,
 )
 from gmid_engine.graph import (
     ELEMENT_MOS,
@@ -90,8 +79,7 @@ STATUS_STOPPED = "stopped"
 class StageAResult:
     """`exit_code`, `status`(ok|review_needed|stopped), `report`(dict), `report_paths`((json, md)), `s1` = S0 수준 스냅샷 위 `S1Graph`(S1 + S1v 필드 `graph/s1v` +
     결합 필드 `graph/coupling` -- 단계 B 가 이어 쓴다; S1v 를 만들기 전에 정지했으면 None 또는 S1 만), `spec`(정지 전이면 None),
-    `code_fp`(이 실행의 엔진 코드 지문 -- `build_search_context(code_fp=)` 로 넘긴다), `s0`(core `S0Slot` -- 이 S0 의 스냅샷 키 자리, `build_search_context(s0=)` 가 저장에 쓴다;
-    키를 만들기 전에 정지했으면 None)."""
+    `code_fp`(이 실행의 엔진 코드 지문 -- `build_search_context(code_fp=)` 로 넘긴다)."""
 
     exit_code: int
     status: str
@@ -100,14 +88,13 @@ class StageAResult:
     s1: object = None
     spec: object = None
     code_fp: object = None
-    s0: object = None
 
 
 def _stopped(circuit, exc, stage):
     return {"circuit": circuit, "status": STATUS_STOPPED, "exit_code": exit_code_for(exc), "count_budget": 0,
             "declared_comparison": "not_performed", "stop_reasons": [stage + ": " + str(exc.record.to_json())],
             "review_needed": [], "views": [], "applied_facts": [], "ff_ratio_candidates": [], "coupling": None, "tables": None,
-            "s0_snapshot": None, "orbit_matching_crosstab": None}
+            "orbit_matching_crosstab": None}
 
 
 def _supplies(spec, supplies_v):
@@ -196,56 +183,16 @@ def _net_names(topology):
     return tuple(sorted(nets))
 
 
-def _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, lut_rule_decl, supplies, marks):
-    """S0 수준 스냅샷 키 입력(설계 40 §2.4.3 키 (i)(ii), §2.4.12 Q1). 엔진 코드 지문 (iii)은 `S0SnapshotStore` 가 더한다 -- 그 지문이 gmid_engine
-    test 밖 모든 패키지를 덮으므로 metric 정의 코드도 (iii) 안에 있다."""
-    return {"topology_fp": topology.connectivity_fp, "supplies_v_fp": fp_of(supplies),
-            "spec_fp": None if spec is None else fp_of(spec), "structure_facts_fp": fp_of(structure), "symmetry_marks_fp": fp_of(marks),
-            "derivation_rule_fp": rule_fp, "lut_fp": lut.fp, "pdk_decl_fp": pdk_decl.decl_sha256, "lut_rule_decl_fp": lut_rule_decl.decl_sha256}
-
-
-def _structure_sha(path):
-    """파일 원본 바이트 sha256, 파일이 없으면 None(structure.json 칸과 선언 경로 대조가 함께 쓴다)."""
-    return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
-
-
-def _s0_sources(topology_path, topology, spec_path, spec, structure_path, pdk_decl, pdk_decl_path, lut_rule_decl, lut_rule_decl_path, lut):
-    """S0 키의 입력 파일 {역할: (경로 | None, 원본 바이트 sha256 | None)} -- 이미 잰 sha 를 쓴다(topology·spec = 로더의 `file_sha256`,
-    PDK 선언·LUT 생성 규칙 선언 = `decl_sha256`, LUT = 출처 기록의 sha256). `structure.json` 은 없으면 (경로, None).
-    PDK 선언 두 개의 **경로**는 값(`PdkDecl`)에 없으므로(사용자 결정 7) 호출자가 `pdk_decl_path`·`lut_rule_decl_path` 로 넘긴다 -- 이 칸은 U-68 정리가
-    '그 선언 파일의 현재 바이트로 키를 만들 수 있나' 를 판정하는 위치 기록(키 메타)일 뿐 S0 값·스냅샷 지문·`context_fp` 에 들어가지 않는다."""
-    prov = lut.provenance
-    return {"topology": (str(topology_path), topology.file_sha256),
-            "spec": (None, None) if spec is None else (str(spec_path), spec.file_sha256),
-            "structure": (str(structure_path), _structure_sha(structure_path)),
-            "pdk_decl": (str(pdk_decl_path), pdk_decl.decl_sha256), "lut_rule_decl": (str(lut_rule_decl_path), lut_rule_decl.decl_sha256),
-            "lut_manifest": (prov.manifest_path, prov.manifest_sha256), "lut_cap": (prov.cap_path, prov.cap_sha256),
-            "lut_midpoints": (prov.midpoints_path, prov.midpoints_sha256), "lut_noise": (prov.noise_path, prov.noise_sha256),
-            "lut_mismatch": (prov.mismatch_path, prov.mismatch_sha256)}
-
-
 def _finding_line(f):
     return f.severity + "|" + f.code + "|" + f.view + "|" + ",".join(f.subject) + "|" + f.detail
 
 
-def _finish(report, output_dir, circuit, code_fp, s1=None, spec=None, s0=None):
+def _finish(report, output_dir, circuit, code_fp, s1=None, spec=None):
     paths = write_stage_a_report(report, output_dir, circuit)
-    return StageAResult(report["exit_code"], report["status"], report, paths, s1, spec, code_fp, s0)
+    return StageAResult(report["exit_code"], report["status"], report, paths, s1, spec, code_fp)
 
 
-def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule_decl, pdk_decl_path, lut_rule_decl_path, supplies_v=None, structure_path=None):
-    if not isinstance(pdk_decl, PdkDecl):
-        raise TypeError("run_stage_a: pdk_decl 은 core read_pdk_decl 결과여야 한다(S0 키의 PDK 선언 해시, 설계 40 §2.4.12 Q1)")
-    if not isinstance(lut_rule_decl, PdkDecl):
-        raise TypeError("run_stage_a: lut_rule_decl 은 core read_pdk_decl 결과여야 한다(S0 키의 LUT 생성 규칙 선언 해시, 설계 40 §2.4.3 키 (i))")
-    # 선언을 읽은 그 파일의 경로만 받는다(U-68 정리가 경로의 현재 파일로 키 재현을 판정) -- 보고서·S0 정리 전에 거부(core 9.3 과 같은 reason)
-    for role, decl, decl_path in (("pdk_decl", pdk_decl, pdk_decl_path), ("lut_rule_decl", lut_rule_decl, lut_rule_decl_path)):
-        actual = _structure_sha(Path(decl_path))
-        if actual is None:
-            raise SchemaRejectedError(detail={"reason": "pdk_decl_missing", "role": role, "path": str(decl_path)})
-        if actual != decl.decl_sha256:
-            raise SchemaRejectedError(detail={"reason": "pdk_source_sha256_mismatch", "role": role, "path": str(decl_path),
-                                              "declared": decl.decl_sha256, "actual": actual})
+def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None):
     code_fp = engine_code_fp()
     circuit = Path(topology_path).name.removesuffix(TOPOLOGY_SUFFIX)
     try:
@@ -261,22 +208,18 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule
     except SchemaRejectedError as exc:
         return _finish(_stopped(circuit, exc, "A2_structure_json"), output_dir, circuit, code_fp)
     supplies = _supplies(spec, supplies_v)
-    s0_inputs = _s0_inputs(topology, spec, structure, rule_fp, lut, pdk_decl, lut_rule_decl, supplies, marks)
-    s0_sources = _s0_sources(topology_path, topology, spec_path, spec, path, pdk_decl, pdk_decl_path, lut_rule_decl, lut_rule_decl_path, lut)
-    s0 = S0Slot(S0SnapshotStore.default(code_fp), tuple(sorted(s0_inputs.items())), tuple(sorted(s0_sources.items())))
-    stored, s0_outcome = s0.load()
-    base = GraphSnapshot.empty(S0_WRITERS) if stored is None else stored
+    base = GraphSnapshot.empty(S0_WRITERS)
     try:
         s1 = build_s1(topology, supplies, previous=base, structure=structure, marks=marks)
     except (SchemaRejectedError, StructureUnresolvedError) as exc:
-        return _finish(dict(_stopped(circuit, exc, "A2_build_s1"), s0_snapshot=s0_outcome), output_dir, circuit, code_fp, s0=s0)
+        return _finish(_stopped(circuit, exc, "A2_build_s1"), output_dir, circuit, code_fp)
     classes = dict(s1.column("device", "element_class"))
     kinds = {kind for name, kind in s1.column("device", "kind") if classes[name] == ELEMENT_MOS}
     try:
         budget = structure_count_budget(lut, kinds, None if spec is None else spec.structure_count_budget)
     except ValueError as exc:   # N_S 정의역 밖(MOS 없음·LUT 슬라이스 없음) -- 보고서를 쓰고 정지
-        return _finish(dict(_stopped(circuit, StructureUnresolvedError(detail={"reason": "count_budget_undefined", "message": str(exc)}),
-                                     "A2_count_budget"), s0_snapshot=s0_outcome), output_dir, circuit, code_fp, s1, s0=s0)
+        return _finish(_stopped(circuit, StructureUnresolvedError(detail={"reason": "count_budget_undefined", "message": str(exc)}),
+                                "A2_count_budget"), output_dir, circuit, code_fp, s1)
     groups = tuple(tuple(f.value.split()) for f in structure.facts if f.concept == CONCEPT_STAGE_MEMBERS)
     declared = ((path.name, groups),) if groups else ()
     declared_cuts = _declared_loop_cuts(spec)
@@ -297,6 +240,5 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule
     report = {"circuit": circuit, "status": status, "exit_code": code, "count_budget": budget, "declared_comparison": comparison,
               "stop_reasons": unsupported, "review_needed": review, "views": [_view_summary(v) for v in views],
               "applied_facts": [list(f) for f in s1.value("graph", S1V_KEY, "applied_facts")], "ff_ratio_candidates": _ff_ratio_rows(views),
-              "coupling": coupling, "tables": structure_tables(s1), "orbit_matching_crosstab": _crosstab_report(crosstab),
-              "s0_snapshot": s0_outcome}
-    return _finish(report, output_dir, circuit, code_fp, s1, spec, s0)
+              "coupling": coupling, "tables": structure_tables(s1), "orbit_matching_crosstab": _crosstab_report(crosstab)}
+    return _finish(report, output_dir, circuit, code_fp, s1, spec)

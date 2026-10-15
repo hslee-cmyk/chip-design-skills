@@ -4,7 +4,7 @@
 area_budget_m2, untie)`. S0 수준 필드 `graph/kernel: search_domain`(설계 40 §2.4.7 'SearchContext 칸 배정'·§2.4.8) -- S0 당 1회, 입력이 같으면 재사용.
 reads = S1 `element_class`·`kind`, graph 대칭 블록 `orbits`·`current_symmetry`·`dc_colour`, 쓰기 계획 `dc_current_basis`, θ 스키마 `graph/kernel: theta_schema`.
 extras: `lut` = sizing `LutAccess`, `resistance_bounds_ohm`·`capacitance_bounds_f` = 실행 설정(`SearchSettings`)의 θ 수동소자 상자(run 단위 명시 재정의, None 이면 spec 상자) --
-벽시계·평가 예산 같은 다른 실행 설정은 정의역을 바꾸지 않아 extras 에 넣지 않는다(설정은 S0 키 밖 -- 그 상자가 바뀌면 블록 입력 버전이 재계산을 보장한다, v1.9.1 D6),
+벽시계·평가 예산 같은 다른 실행 설정은 정의역을 바꾸지 않아 extras 에 넣지 않는다(실행 설정은 블록 입력이 아니다 -- 그 상자가 바뀌면 블록 입력 버전이 재계산을 보장한다, v1.9.1 D6),
 `pdk_decl` = core `PdkDecl`, `spec_bounds` = spec `search.theta_bounds`(authoring ThetaBound tuple), `area_budget_m2` = 면적 예산 또는 None, `untie` = 묶음을 푼 원소 이름 tuple.
 
 * `ln_idu`(쓰기 소자 반전 좌표, DEC-88 (라)): bounds = kind 별 LUT 포락선. 상한 = 레이아웃 전 폭 슬라이스 전 격자점 ln IDu

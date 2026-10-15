@@ -5,8 +5,6 @@ design_gb7_dc_canonical; [r8] 9 = 전도 여유). 계약: `CONTRACT.md`.
 `dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, pre_layout_lut_access(memo))` (S0 당 1회) ->
 `size_and_seal(ctx, theta, parent=None)` (θ 마다).
 """
-from gmid_engine.core import type_registry
-
 from .bracket_root import bracket_root
 from .block_columns import dc_columns
 from .block_currents import dc_currents
@@ -159,12 +157,6 @@ from .theta_check import check_theta
 from .theta_schema import dc_theta_schema
 from .w0_rails import dc_rails
 from .writer_plan import dc_writer_plan
-
-# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 sizing 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.8): S0 수준 스냅샷에 드는 θ 무관 계획 블록 필드
-# (`dc_current_basis` 의 `CurrentBasis`·`CurrentTerm`, `dc_writer` 의 `NodeWrite`, `dc_coord` 의 `DeviceCoord`, `dc_tie_breaks` 의 `TieBreak`, `dc_scc_order` 의 `SccEntry`,
-# `dc_column_nbrs` 의 `ColumnNeighbor`)와 커널 구조 파생 `graph/kernel: theta_schema`(`ThetaSchema`·`ZeroCancel`). 설계점(S2) 필드 형식은 S0 스냅샷에 들지 않아 올리지 않는다.
-for _field_value_type in (CurrentBasis, CurrentTerm, NodeWrite, DeviceCoord, TieBreak, SccEntry, ColumnNeighbor, ThetaSchema, ZeroCancel):
-    type_registry.type_registry().register(_field_value_type)
 
 __all__ = (
     "BRANCH_MOS_ZERO_CURRENT",
