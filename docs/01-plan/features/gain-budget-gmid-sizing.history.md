@@ -1306,6 +1306,7 @@ U-38(`jsonschema` 의존성)을 Phase 0.5 착수 조건으로 올렸다.
 | U-87~U-90·NFR4-F2 결정 (계획 v6.10·design 40·41·42 v1.10 버전 번호 불변) | 2026-10-15 | 사용자 원문 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따라 유지. 나머지는 기본안대로"(`_drafts/user_decisions.md` 'U-87~U-89·NFR4-F2·front 조회'). U-87 유지: LUT 파생표 디스크 캐시(엔진 `GMID_LUT_TABLE_CACHE_DIR`, test 쪽 `lut_table_cache_tests`) -- 원래 취지('처음 topology를 실행할 때는 항상 계산')의 예외로 기록, 근거 = 입력 파일(LUT)의 순수 함수 파생표라 키가 LUT 내용 + LUT 코드 버전으로 완결, S0 같은 키 관리 부담 없음. U-88 유지: 블록 코드 해시 checkout 무관 성질. U-89 제거: S3 실행 사이 재사용(오케스트레이터 기본안 채택). U-90 유지: front 조회 `node_across_front`(출력 조회, 계산 재사용 아님) -- `load_runs` 삭제와 별개로 조회 전용 읽기 경로를 `search/front_query.py` 안에 두고 탐색·계산 경로는 import하지 못하게 구조 test로 막는다. NFR4-F2 분리 승인: 매크로 해 주입 진입은 후속 card, 그동안 다른 환경 비교의 매크로·출발 구간 칸은 판정 불능. design·계획의 '결정 대기' 표시를 모두 결정 규칙으로 바꿨다 |
 | 실행 사이 재사용 제거 design 델타 검증(84, 차단 2) 반영 (design 40·계획 버전 번호 불변) | 2026-10-15 | 사용자 결정 아님. B-1: grep 0 완료 규칙을 이름별 범위로 -- `pdk_decl_missing`·`pdk_source_sha256_mismatch`는 `pipeline/stage_a.py`·`pipeline/CONTRACT.md`·`tests/pipeline/test_stage_a.py`만 범위이고, PDK 선언을 읽는 살아 있는 검사(`core/pdk_decl.py:340·592`, `core/CONTRACT.md:317·372·376·420`, `tests/core/test_pdk_decl.py`)는 남긴다. 다른 이름은 `grep -rlw`로 재확인해 `s0_snapshot`만 범위를 좁힘(기준선 픽스처 `_source` 설명은 재측정 때 다시 씀), `disk_hits` test 2곳 추가. B-2: U-90 구현 규칙 -- `read_front_entries(run_dir)`가 `runs.jsonl`의 유일한 독자, `S3Archive.read_snapshot`을 `front_query._read_snapshot_file`로 이동, `node_across_front(front, node, run_dir=None)`, `search/__init__.py` 재수출 유지, 엔진 안 호출자 0(test만), 새 구조 규칙 J(J1 공개 이름 참조, J2 `front_query` import, J3 `.read_snapshot(` 속성 호출) -- 원래 취지 보호 장치. N-1~N-6: 상태 줄 '(이후 결정)', Q10 → 유지(U-88), `snapshots/` 인코딩은 `_from_file` 형식 유지 제약, 계획 S3 제거에 (U-89 확정), 목록 줄 보강, front 조회 행의 결정 인용 중복 삭제 |
 | 실행 사이 재사용 제거 design 델타 검증(86, 차단 1) 마지막 회차 반영 (design 40·계획 버전 번호 불변) | 2026-10-15 | 사용자 결정 아님. B-3: 규칙 A(파일당 진입점 하나) 때문에 `read_front_entries`를 새 파일 `search/front_entries.py`로, `_module_map` 항목·규칙 H test `tests/search/test_front_entries.py` 추가. 스냅샷 파일 읽기는 검증 안 (가)와 달리 `front_query.py`의 비공개 함수로 둠(근거: 비공개 이름의 파일 밖 import 회피, 스냅샷을 읽는 곳은 `node_across_front`뿐). N-7: `node_across_front(front, node, archive=None)` 서명 유지 -- `S3Archive`가 쓰기 전용으로 남아 `.dir`을 가지므로 가능, `search/CONTRACT.md:172·206·524-525` 변경 목록. N-8 CONTRACT 위치. N-9 `STAGE_B_WRITERS` 무조건 삭제, `tests/search/test_s0_fields.py:51`. N-10 구조 규칙 글자 J가 J 공동분석·`test_j_rules_library.py`·41 'J3'과 겹쳐 K로, 하위 검사 K-a~K-c(grep 0건 확인). N-11 '구조 규칙 A~I' → A~K(4곳). N-12 `runs.jsonl` 단일 독자 = 엔진 소스 한정, 기계 강제 아님(쓰기 쪽 문자열과 구분 어려움) -- 규칙 K와 리뷰로 지킴. N-13 K-c는 호출뿐 아니라 모든 `ast.Attribute` |
+| XRUN-F1 실행 안 재사용 완성 (계획 v6.11 U-91~U-97, design 40·41·42 v1.11) | 2026-10-15 | 경위: card 1 xrun 판정 뒤 J-2(첫 평가 버림은 범위 밖, 후속 XRUN-F1)·J-9(범위 확대 "한 실행 안, 계보와 무관하게 같은 입력이면 재사용", 사용자 취지와 다름 표시)를 거쳐 출처 조사(`wt/_scratch_xrunf1/`, master f23aec8)를 보고했다. 조사 결과 실행 안 재계산 9~66건의 출처 = W(첫 평가 버림, 12 이하) · RT(층 0 `_maxmin.to_theta`의 ln↔exp 왕복 1~3 ulp -- 외층 `slsqp_outer.py:110-118`만 원값 보호; two_stage_ota_sf 52·nmcnr 46·two_stage_ota 41) · L(사다리 parent 없음) · R(수리 parent 없음, 실패 평가는 스냅샷 없음) · X(서로 다른 풀이 FD 시험점 우연 일치). **정정**: J-9의 '계보 단절(`compute_block.py:139` 단일 슬롯)이 주원인' 추정은 재계산이 가장 많은 3회로에서 틀렸다(주원인은 RT). 사용자 결정 원문 "권고대로 진행해"(`_drafts/user_decisions.md` 'XRUN-F1 design 착수 결정'): X-1 권고안 (다) -- (1) RT 공용 정본 (2) W 앞당겨 제거 (3) 실행 수명 블록 결과 색인(값 사본 금지, 상한 = design 40 §2.4.9 증거 집합 식, 계보 무관). 권고 근거: 우연 일치 X까지 0을 보장하는 것은 계보 무관 색인뿐(RT 결함과 무관한 논리). X-2 보존 = 실행 수명(원래 취지 회복), X-3 실패 평가 부분 스냅샷, X-4 기준선 재측정, X-5 계수 범위 확대(JSON 형식 변경). design 작성 중 새로 연 질문: U-96(상한 식 전제가 as-built에서 깨짐), U-97(블록 계산 실패의 같은 입력 재호출) -- 둘 다 열림. 감도 게이트 `gate_run.py:55-61`의 같은 결함(세 번째 `to_theta`)은 레지스트리 §0 규칙 4(DUP는 정본만)로 정본 대체 범위에 넣었다 |
 
 ## H2. 정정·폐기 이력
 
@@ -1313,6 +1314,9 @@ U-38(`jsonschema` 의존성)을 Phase 0.5 착수 조건으로 올렸다.
 
 | 항목 | 무엇이 어떻게 틀렸나 / 무엇이 폐기됐나 | 언제·무엇으로 대체 | 현행 위치 |
 |---|---|---|---|
+| 스냅샷 보존 소유자 표(design 40 v1.6~v1.10 §2.4.5, 계획 N3.3 S3 행 '그 뒤에는 front·채택 점만')·`retain`·`release`·`regenerated_after_release`(판정 6)·§2.4.12 Q3, §2.4.4 '원천이 여럿이면 seq 최소'·`test_graft_donor_order_invariant`, 41 §5.3.9 '보존 소유자'·`local`의 '놓았으면 요약' | 원래 취지('처음 계산한 값을 나머지 최적화에서 재사용')와 달리 풀이가 끝나면 계산 원천을 놓아, 같은 실행 안에서도 다른 lineage의 같은 입력을 다시 계산할 수 있게 했다 | 2026-10-15 사용자 결정 X-2 "권고대로 진행해" -- 실행 수명 동안 계산 원천 보존, 블록 결과 색인은 키마다 원천 하나 | design 40 v1.11 §2.4.4·§2.4.5, 41 v1.11 §5.3.9 |
+| LUT memo 첫 평가를 임시 컨텍스트에서 돌리고 버리는 배선(`_wire_sweep_memo`·`sweep_memo.py`, design 40 v1.6~v1.10 §2.4.6 '단계 ③에서 지운다') | 상한을 재려고 같은 점을 두 번 계산했다(W 출처) | 2026-10-15 사용자 결정 X-1 (2) -- XRUN-F1 card A로 앞당겨 제거 | design 40 v1.11 §2.4.6 |
+| perf 블록 계수 범위 'sizing 계산 블록 12개의 `find_front` 구간 차'(`block_calls`·`block_reuses`·`block_computes`·`block_recomputes_same_input`) | 단계 A·B·탐색 컨텍스트와 sizing 밖 블록(GB5·metrics·ss)의 재계산을 세지 않았다 | 2026-10-15 사용자 결정 X-5 -- 실행 전체 모든 (블록, 분할), `perf.blocks` | design 40 v1.11 §2.4.9 |
 | S0 수준 graph 스냅샷 디스크 영속화(G-2', NFR-2 (d), design 40 v1.6~v1.9.4 §2.4.3)와 S3 실행 사이 재사용 | 사용자 원래 취지('처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용')와 달리 실행 사이 재사용을 설계·구현했다 | 2026-10-15 사용자 결정 2026-10-15 "나로 해"(S3 쪽은 오케스트레이터 기본안). 실행 수명 S0·S3 출력 전용 | design 40 v1.10 §2.4.3 |
 | 전력 축 '레일 공급 전류의 합'(DEC-78, U-10 확정 2026-09) | 3레일 회로에서 레일 전압 차이를 반영하지 않는다. 구현(`power_dc_w`)과도 달랐다 | 2026-10-08 사용자 Q6 -- Σ_레일 V·I. 전류 합·기둥마다 전류 한 번 규칙은 대조용으로 남김 | 계획서 DEC-78, U-10 |
 | gate 전용 바이어스 넷 선언 위치 '`ports` role'(DEC-94 (1) 옛 기본안) | 구현과 사용자 결정(Q9 (i) B)이 최상위 키 `bias_inputs`였다 | 2026-10-08 -- `bias_inputs` + 로더 거부 이름 + 오라클 C15 엄격 대조 | 계획서 DEC-94, N3.16 |
@@ -1433,6 +1437,36 @@ I-A10, I-A11, I-B22, I-C10, I-C11은 v5.0에서 새로 연 항목이고 아직 �
 > | 불일치 동작 | **miss**다(그 줄을 없는 것으로 본다, 예외 아님). 근거: S3는 재사용 캐시라 다른 환경의 줄은 '재사용할 수 없는 기록'일 뿐 손상이 아니다. `code_fp` 불일치와 같은 동작이다(REQ E3). 거른 줄 수는 결과 `perf`에 `s3_rows_other_env`로 보고한다(판정 아님) |
 > | fail-closed | `env_fp`가 빈 문자열·None이면 생성자에서 `ValueError`다(키 없는 기록을 만들지 않는다). `read_snapshot`은 `runs` 줄의 `snapshot_ref`로만 닿고 스냅샷 파일 이름이 내용 지문이라 따로 거르지 않는다 |
 > | test | (7) `test_s3_env_fp_filter` |
+
+### 옛 design 40 §2.4.4·§2.4.5·§2.4.9·§2.4.12 Q3, 41 §5.3.9 보존 문장 (v1.10까지, 2026-10-15 사용자 결정 X-2 "권고대로 진행해"로 폐지)
+
+아래는 폐지 직전 원문이다(인용 그대로, 현행 규칙 아님). 현행은 design 40 v1.11 §2.4.4·§2.4.5.
+
+> (40 §2.4.4 불변식) - 원천 순서 무관: 같은 입력 버전의 원천이 여럿이면 S3 색인 순번(seq)이 가장 작은 것을 쓴다. 원천 목록 순서를 섞어도 결과 `fp`가 같다(test).
+>
+> (40 §2.4.5) **보존 규칙**(결정 1절 #2): 스냅샷은 소유자가 있는 동안만 메모리에 둔다.
+>
+> | 소유자 | 보존하는 것 | 놓는 때 |
+> |---|---|---|
+> | 진행 중인 SLSQP 풀이 | 현재 반복점, 직전 채택점(FD 스텝의 parent와 다음 반복의 기준점) | 그 풀이가 끝날 때 |
+> | 외층 시작점 대기열 | 대기 중인 시작점(층 0 조립점, 출발 구간 후보 등)의 스냅샷 | 그 시작점의 풀이가 끝날 때 |
+> | 층 0 단계(모든 회차) | 블록 국소 front 점의 국소 스냅샷, 조립점 스냅샷(조립의 이식 원천이고 다음 회차의 고정 입력 출처) | 층 0 단계가 끝날 때. 조립점은 그때 '외층 시작점 대기열'로 넘어간다 |
+> | front | front 점(DEC-77) | 실행 끝 |
+> | 채택 | 채택 해 | 실행 끝 |
+>
+> 소유자가 없는 스냅샷은 색인에서 참조를 지우고 요약만 남긴다.
+>
+> (40 §2.4.5 Q4) - 같은 실행에서 만든 θ를 다시 기준점으로 쓰느라 스냅샷을 재생성하면 **FAIL**이다(보존 소유자 누락이라는 설계 결함). 계수 `regenerated_after_release`.
+>
+> (40 §2.4.5 API) `def retain(self, key: EvalKey, owner: str) -> None`, `def release(self, owner: str) -> None`, `local(...) -> GraphSnapshot | IndexEntry | None  # 보존 중이면 스냅샷, 놓았으면 요약 항목`, `find(...)  # §2.4.4 Donors. 보존 중인 스냅샷만`
+>
+> (40 §2.4.9 판정) 6. `regenerated_after_release` = 0(§2.4.5 Q4 기본안).
+>
+> (40 §2.4.12) | Q3 | 층 0 국소 스냅샷의 보존 | §2.4.5 보존 표의 '층 0 단계(모든 회차)'와 '외층 시작점 대기열' 소유자(M9) -- design 기본안(최종 승인에 포함) |
+>
+> (41 §5.3.9) - **보존 소유자**(40 §2.4.5 보존 표): '층 0 단계(모든 회차)'는 국소 front 점의 국소 스냅샷을 층 0이 끝날 때까지 쥔다(조립의 이식 원천, 회차 사이 재사용). '외층 시작점 대기열'은 조립점 스냅샷을 그 시작점의 풀이가 시작될 때까지 쥔다.
+>
+> (계획 v6.10 N3.3 S3 행) 스냅샷 보존: 진행 중인 풀이가 기준점으로 쓸 수 있는 점(현재 반복점·직전 채택점, 층 0 조립 중의 국소 front 점)은 그 풀이가 끝날 때까지, 그 뒤에는 front·채택 점만 전체 스냅샷을 남긴다(design 40 §2.4.5).
 
 ## H3. 옛 번호 대응
 
@@ -1582,6 +1616,12 @@ I-A10, I-A11, I-B22, I-C10, I-C11은 v5.0에서 새로 연 항목이고 아직 �
 | 실행 사이 재사용 제거의 시간 영향: S0 디스크 적중이면 9회로 단계 A+B+탐색 컨텍스트 합 284.8 s, 미적중 687.6 s(차 402.8 s, 회로당 평균 약 45 s). 제거 뒤 같은 회로를 다시 실행하면 이 차만큼 늘어난다 | 측정 3 `t1_s0hit`·`t1_s0miss` 쌍(같은 S0 폴더로 두 번, 스레드 1), `meta.phase_s`의 `stage_a`+`stage_b`+`search_context` 합 | `wt/_nfr4_probe/measure3/runs/*__t1_s0{hit,miss}/record.json` | NFR-2(design 40 §2.4.3) |
 | test 세션의 S0 디스크 캐시 의존(정적, 2026-10-15): 세션 공유 폴더(`E/tests/conftest.py:52-61`)에 library 회로 키로 쓰는 test는 없다 -- 적중을 일부러 보는 test 셋(`test_s0_layer_9circuits.py`는 자기 폴더 `:152·175-190`, `test_code_hash_checkout.py`·`test_blas_thread_determinism.py:106`은 하위 프로세스 자기 폴더)은 다른 test에 적중을 주지 않고, S0 스냅샷을 저장하는 `build_search_context(..., s0=...)` 호출은 test 전체에 둘뿐이고(`integration/test_code_hash_checkout.py:73`, `integration/test_s0_layer_9circuits.py:136`) 둘 다 자기 폴더를 쓴다. 그래서 세션 공유 폴더에는 스냅샷이 저장되지 않고 다른 test의 단계 A 읽기는 언제나 miss다. 제거로 다른 test가 잃는 적중은 0이고, 늘어나는 시간은 일부러 두 번 돌리던 적중 test의 삭제로 오히려 줄어든다(정적 판단, 실행 측정은 안 함) | grep `GMID_S0_SNAPSHOT_DIR`·`run_stage_a(`·`build_search_context(`·`scope=` | -- | design 40 §2.4.3 test 목록 |
 | NFR-4 N-9 감도 전파 폭 선형 추정: 측정 3 스레드 1 대 8에서 선언 분해능을 넘은 것은 nmcnr 하나(`w_m` 15 격자, `area_est_m2` 14.8 b_A; sf_pushpull·two_stage_ota·two_stage_ota_sf `w_m` 0.0006·0.0004·0.0001 격자, 면적 0·0.04·0 b_A). nmcnr 매크로 gm 최대 \|Δln gm\| = 2.02e-6, √tol = 1.22e-4, 비 60.4 -> 선형이면 폭 ≈ 903 격자·895 b_A | `start/macro.gm.*`·`start/row.*.w_m`·`start/area_est_m2` 같은 점 비교 | `wt/_nfr4_probe/measure3/runs/<회로>__t{1,8}/record.json` | design 40 §2.4.13 (4) |
+| XRUN-F1 실행 안 재계산 출처(`find_front` 구간 sizing 블록 12개, as-built `perf.block_recomputes_same_input`과 독립 계측 일치 8/8): two_stage_ota_sf 66(W12 RT52 X2) · nmcnr_amplifier 64(W12 RT46 L6) · two_stage_ota 56(W12 RT41 X3) · common_gate_amplifier 21(W12 X9) · current_reuse_telescopic_ota 21(W3 L6 R12) · folded_cascode 16(W12 X4) · pushpull_follower_buffer 12(W12) · sf_pushpull_output_opamp 9(W3 L6). ngcc_3stage_ff는 단계 A `review_needed`라 탐색 없음. 실행 전체·전 블록으로 세면 27·21·22·67·17·9·62·72(합 297) | master f23aec8, 회로마다 새 프로세스 1개(단계 A → B → 탐색 컨텍스트 → `find_front`), E_B 40 선언(card 1 판정과 같음), `ComputeBlock.__call__`을 클래스 수준에서 감싼 계측(엔진 코드 무변경) -- 계산마다 (블록, 입력 버전, 호출 스택, parent 유무)를 기록하고 첫 계산과 재계산의 호출 스택으로 출처를 나눔 | `wt/_scratch_xrunf1/m/analysis.json`·`analysis_print.txt`, `scripts/measure_src.py`·`analyze.py` | design 40 §2.4.14 (1), 계획 U-91 |
+| 재계산 297건의 결과 = 첫 계산 결과(바이트 동일 297/297) | 위와 같은 실행. 결과 dict의 pickle sha256 비교, 블록이 예외로 끝난 계산은 실패 기록 지문으로 비교 | 같은 `analysis.json`의 `recompute_result_bit_same`·`n_diff` = 0 | design 40 §2.4.5 '결정성'(이식 = 계산의 근거 사례) |
+| RT 반사실: 층 0 `_maxmin.to_theta`에 외층 원값 보존 규칙만 적용(프로세스 안 소스 치환, 파일 무변경)하면 재계산이 66→14, 64→18, 56→15, 나머지 회로는 그대로(21·21·16·12·9). 남는 것은 W·L·R·X | 위와 같은 조건 | `wt/_scratch_xrunf1/m_cf/analysis.json`, `scripts/measure_cf.py`·`run_cf.sh` | design 40 §2.4.14 (1) RT 행 |
+| 블록 계산이 예외로 끝난 같은 입력의 재계산 2건: current_reuse·sf_pushpull의 `dc_columns`(`SealViolationError`) -- 첫 계산 = `_wire_sweep_memo` 임시 평가, 재계산 = 층 0 사다리 칸 0(둘 다 W 출처) | 위와 같은 실행, 계산 기록의 `re`·`raised` 칸 | `wt/_scratch_xrunf1/m/json/*.json` | design 40 §2.4.12 Q13, 계획 U-97 |
+| 커널 평가 수가 선언 E_B를 넘는다: E_B 40에서 common_gate 43 · folded 64 · nmcnr 66 · two_stage_ota 49(나머지 40). 블록별 서로 다른 입력 버전 최대: folded `dc_widths` 63, nmcnr `dc_columns` 57, two_stage_ota `passive_values` 48(> E_total + 1 = 41). 합계는 9회로 모두 Σ_블록 × 41 안(최대 1036, 블록 49개) | 위와 같은 실행, 결과 `perf.kernel_calls`·`eval_budget`, 계산 기록 | `wt/_scratch_xrunf1/m/json/*.json` | design 40 §2.4.5 '상한'·§2.4.12 Q12, 계획 U-96 |
+| 블록 결과 색인 크기(실행 전체 서로 다른 (블록, 입력 버전)): 133~1036 항목, 결과 pickle 합 0.47~1.23 MB, 한 결과 최대 0.31 MB | 위와 같은 실행(ngcc_3stage_ff 24 항목) | `wt/_scratch_xrunf1/m/analysis.json`의 `index_entries_all`·`index_bytes_all`·`max_result_bytes` | design 40 §2.4.5 보존 규칙(보존 비용) |
 
 **어느 감사가 어느 버전의 근거인가**: `review6_compute_scope_audit.md`·`review6_results.md` = v5.12 /
 `review6_objective_axes_audit.md`(목적·축 정의 15곳 전수 감사) = v5.13 /
