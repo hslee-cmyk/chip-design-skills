@@ -16,9 +16,12 @@ from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED, SearchFront,
 from .conftest import PENDING, SKILL_DIR, TESTS_DIR, build_case, circuit_c, front_signature, theta_r4c, write_pdk
 
 SS = (("gain_ss_db", ">=", 10.0, None),)
-PERF_KEYS = ("requests", "kernel_calls", "hits", "fail_hits", "disk_hits", "outside_domain", "recompute_same_key",
+PERF_KEYS = ("requests", "kernel_calls", "hits", "fail_hits", "outside_domain", "recompute_same_key",
              "unique_keys", "eval_time_median_s", "wall_s", "lut_memo_evictions", "n_starts", "n_solves", "eval_budget",
              "eval_budget_source", "frozen_columns", "stops_eval_budget", "stops_wall_budget")
+# [xrun] interface card C7: find_front perf(그리고 runs.jsonl 줄 perf) 키 집합 = 이 21개 정확히(as-built 에서 디스크 실패 적중 계수 하나만 빠짐,
+# 설계 40 v1.10 §2.4.3 '결과 JSON perf' 삭제 행 -- 결과 JSON 형식 변경). 위 PERF_KEYS + 블록 계수 4개.
+PERF_KEYS_C7 = PERF_KEYS + ("block_calls", "block_reuses", "block_computes", "block_recomputes_same_input")
 
 
 def _run(tmp, lut, **kw):
@@ -49,6 +52,16 @@ def test_sealed_run_perf_and_invariants(tmp_path, lut_sealed, short_root):
     for p in fr.front:
         assert p.result.status == STATUS_SEALED and tuple(p.result.unmeasured) == ()
     assert re.fullmatch(r"[0-9a-f]{64}", fr.run_id)
+
+
+def test_perf_key_set_exact_in_result_and_runs_line(tmp_path, lut_sealed, short_root):
+    """[xrun XR-7] interface card C7(양성 형식): find_front perf 키 집합과 runs.jsonl 줄 perf 키 집합이 정확히 21개 목록과 같다."""
+    assert len(PERF_KEYS_C7) == len(set(PERF_KEYS_C7)) == 21
+    case, fr = _run(tmp_path, lut_sealed, eval_budget=30, archive_root=short_root)
+    assert set(dict(fr.perf)) == set(PERF_KEYS_C7)
+    (run,) = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "runs.jsonl").read_text(encoding="utf-8")
+              .splitlines() if x.strip()]
+    assert set(dict(run["perf"])) == set(PERF_KEYS_C7)
 
 
 def test_notes_record_open_items(tmp_path, lut_sealed):

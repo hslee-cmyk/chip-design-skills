@@ -5,7 +5,9 @@
 area_est_m2 지문이 비트 단위로 다르다, 1 고정 시 일치).
 
 무엇을 보나: two_stage_ota 의 출발 구간 S0 필드(`device: start.row` 소자마다 + `graph/start` 8 필드)의 값 지문(value_fp)을 BLAS 스레드 수만
-다르게 한 별도 프로세스 둘(1 과 max(2, cpu 수))에서 잰다. 두 프로세스는 각자 빈 S0 폴더·빈 표 캐시 폴더를 써서 서로의 결과를 읽지 않는다.
+다르게 한 별도 프로세스 둘(1 과 max(2, cpu 수))에서 잰다. 두 프로세스는 각자 빈 표 캐시 폴더를 써서 서로의 결과를 읽지 않는다
+([xrun] S0 수준 층은 디스크에 쓰지도 읽지도 않는다 -- 설계 40 v1.10 §2.4.3. 옛 S0 폴더 환경 변수 고정을 지웠다. run_stage_a 는 선언 값·선언 경로
+인자를 받지 않는다 -- 사용자 결정 J-1).
 - `test_single_thread_start_fp_matches_base` (정상 test): 스레드 1 프로세스의 지문 = base 기준선(oracle (c),
   `fixtures/u17_1b_s0_baseline.json` -- base master a5d8ccb 코드로 측정, test_s0_layer_9circuits 와 같은 기준선). 고정이 기준선을 재현함을 본다.
 - `test_start_fp_independent_of_blas_thread_count` (xfail strict): 두 프로세스의 지문이 같다(oracle (a) 불변식 NFR-4 '같은 입력 -> 같은
@@ -74,10 +76,7 @@ lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_r
                    noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)
 env = SimpleNamespace(lut=lut, pdk=pdk, rule=read_pdk_decl(str(M.SKILL / "assets" / "sky130_lut_rule_decl.json"), dm))
 out = Path({out!r})
-a = run_stage_a(M.LIBRARY / ({circuit!r} + ".topology.json"), M.LIBRARY / ({circuit!r} + ".sizing_spec.json"), env.lut, pdk_decl=env.pdk,
-                lut_rule_decl=env.rule, output_dir=out,
-                pdk_decl_path=str(M.SKILL / "assets" / "sky130_pdk_decl.json"),
-                lut_rule_decl_path=str(M.SKILL / "assets" / "sky130_lut_rule_decl.json"))
+a = run_stage_a(M.LIBRARY / ({circuit!r} + ".topology.json"), M.LIBRARY / ({circuit!r} + ".sizing_spec.json"), env.lut, output_dir=out)
 env.memo = LutMemo(env.lut, point=1 << 16, curve=1 << 14, root=1 << 16)
 b = run_stage_b(a, env.memo, env.pdk, output_dir=out, diagnostic=True, settings=M._settings())
 assert (a.status, b.status) == ("ok", "ok"), (a.status, b.status)
@@ -94,16 +93,14 @@ print("@@" + json.dumps({{"env": os.environ.get("OPENBLAS_NUM_THREADS"), "blas_t
 
 
 def _launch(threads, work):
-    s0 = work / "s0"
     out = work / "out"
-    s0.mkdir(parents=True)
     out.mkdir(parents=True)
     # 표 캐시: 프로세스마다 빈 폴더(다른 스레드 수의 계산 결과를 읽거나 세션 공용 test 캐시를 오염시키지 않게). conftest 의 MAX_PATH 제약(60자 미만)
     # 때문에 세션 test 캐시 폴더의 부모(저장소 밖)에 짧은 이름으로 만든다.
     shared = os.environ["GMID_LUT_TABLE_CACHE_DIR"]
     cache = tempfile.mkdtemp(prefix="ltc_b%s_" % threads, dir=os.path.dirname(shared))
     assert len(cache) < 60, cache
-    env = dict(os.environ, OPENBLAS_NUM_THREADS=threads, GMID_S0_SNAPSHOT_DIR=str(s0), GMID_LUT_TABLE_CACHE_DIR=cache,
+    env = dict(os.environ, OPENBLAS_NUM_THREADS=threads, GMID_LUT_TABLE_CACHE_DIR=cache,
                PYTHONIOENCODING="utf-8", PYTHONUTF8="1", PYTHONDONTWRITEBYTECODE="1")
     code = CODE.format(tests=str(TESTS), skill=str(SKILL), out=str(out), circuit=CIRCUIT, fields=START_FIELDS)
     proc = subprocess.Popen([sys.executable, "-P", "-c", code], cwd=str(SKILL), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,

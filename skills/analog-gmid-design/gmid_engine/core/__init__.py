@@ -27,23 +27,9 @@ from .margin import normalized_margin
 from .metric_signature import OBJECTIVE_AXES, VIEW_KINDS, MetricSignature
 from .pdk_decl import PdkDecl, PdkMismatchBlock, PdkMismatchModel, PdkQuantity, PdkRule, read_pdk_decl
 from .projection import Projection
-from .s0_slot import S0Slot
-from .snapshot_codec import (
-    KEY_CODE_FP,
-    OUTCOME_CORRUPT,
-    OUTCOME_HIT,
-    OUTCOME_MISS,
-    S0SnapshotStore,
-)
-from . import type_registry   # 모듈 그대로 내보낸다(등록부는 `type_registry.type_registry()`) -- 같은 이름 함수로 패키지 속성을 가리지 않는다
 from .units import AMPLITUDE_DB_PER_DECADE, DOMAINS, METRIC_UNITS, MILLI, MV_PER_V, PCT_PER_UNIT
 from .writer_error import WriterPermissionError
 from .writer_table import ENTITY_KINDS, WriterTable
-
-# S0 수준 스냅샷 코덱이 받는 core 값 형식(설계 40 §2.4.3 '타입 등록부'): S0 수준 필드 `graph/kernel: junction_source`(LUT 생성 규칙 선언 `PdkDecl` 과 그 양·규칙)·
-# `mismatch_source`(PDK mismatch 모델 bin)에서 닿는 PDK 선언 값 형식.
-for _field_value_type in (PdkDecl, PdkQuantity, PdkRule, PdkMismatchModel, PdkMismatchBlock):
-    type_registry.type_registry().register(_field_value_type)
 
 __all__ = (
     "AMPLITUDE_DB_PER_DECADE",
@@ -62,7 +48,6 @@ __all__ = (
     "GraphSnapshot",
     "InfeasibleSizingError",
     "InfeasibleTargetError",
-    "KEY_CODE_FP",
     "LruStats",
     "METRIC_UNITS",
     "MILLI",
@@ -70,9 +55,6 @@ __all__ = (
     "MetricSignature",
     "NonconvergentError",
     "OBJECTIVE_AXES",
-    "OUTCOME_CORRUPT",
-    "OUTCOME_HIT",
-    "OUTCOME_MISS",
     "PCT_PER_UNIT",
     "PdkDecl",
     "PdkMismatchBlock",
@@ -80,8 +62,6 @@ __all__ = (
     "PdkQuantity",
     "PdkRule",
     "Projection",
-    "S0Slot",
-    "S0SnapshotStore",
     "SchemaRejectedError",
     "SealViolationError",
     "SearchFailedError",
@@ -99,5 +79,4 @@ __all__ = (
     "read_pdk_decl",
     "require_immutable",
     "sorted_items",
-    "type_registry",
 )

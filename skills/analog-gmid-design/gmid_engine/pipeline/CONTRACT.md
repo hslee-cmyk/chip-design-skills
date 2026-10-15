@@ -2,16 +2,14 @@
 
 ng-bridge 브랜치(`oracle_input` 등 오라클 생산자)가 같은 파일을 쓴다. 병합 때 이 절을 그 파일의 새 절로 합친다. 이 문서는 단계 A 만 다룬다.
 
-## 1. `run_stage_a(topology_path, spec_path, lut, *, output_dir, pdk_decl, lut_rule_decl, pdk_decl_path, lut_rule_decl_path, supplies_v=None, structure_path=None) -> StageAResult`
+## 1. `run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None) -> StageAResult`
 
-[U17 ①-b] (설계 40 §2.4.1~§2.4.3·§2.4.7·§2.4.8 v1.9.1 D1·D6·D8) `lut_rule_decl`(core `read_pdk_decl(LUT 생성 규칙 선언)` 결과)도 **필수**다(PdkDecl 아니면 `TypeError`) -- S0 키 입력에
-`lut_rule_decl_fp`(`decl_sha256`), sources 에 `lut_rule_decl`(`lut_rule_decl_path`, `decl_sha256`)가 더해진다(S0 필드 `graph/kernel: junction_source` 가 그 선언을 읽는다). `PdkDecl` 값에는 파일 경로가 없으므로(사용자 결정 7, core CONTRACT 9.2) 두 선언의 위치는 호출자가 `pdk_decl_path`·`lut_rule_decl_path`(**필수** 키워드 인자, 기본값 없음)로 넘긴다. sources 는 S0 키 메타(U-68 정리가 '그 선언 파일의 현재 바이트로 키를 만들 수 있나' 를 판정하는 위치 기록 -- 저장소 안이면 `repo:` 상대 위치)일 뿐 S0 값·스냅샷 `fp`·`context_fp` 에 들어가지 않는다: PDK 선언을 바꾸면 옛 선언으로 만든 스냅샷이 다음 첫 쓰기에서 정리된다. 두 경로의 파일 원본 바이트 sha256 이 각각 `pdk_decl.decl_sha256`·`lut_rule_decl.decl_sha256` 과 다르거나 파일이 없으면 진입에서(보고서 폴더 쓰기·S0 정리 전) `SchemaRejectedError` 로 거부한다(없으면 reason `pdk_decl_missing`, sha 다르면 `pdk_source_sha256_mismatch`, core CONTRACT 9.3 과 같다; fail-closed; 선언을 읽은 그 파일의 경로만 받는다 -- U-68 정리가 경로의 현재 파일로 키 재현을 판정하므로). 키는 core `S0Slot`
-(`StageAResult.s0`)로 묶어 넘긴다. **단계 A 는 S0 스냅샷을 읽기만 한다**: 적중이면 그 스냅샷, 아니면 빈 S0 수준 스냅샷(권한표 search `S0_WRITERS`) 위에서 `build_s1` ->
-`build_s1v`(필드 `graph/s1v`) -> 계산 블록 `coupling_vars`(필드 `graph/coupling`)를 부르고(적중이면 계산 0), 쓰기는 `search.build_search_context(s0=)` 끝에서 한 번이다(v1.9.1 D6).
+[NFR-2·U-89, 2026-10-15] **S0 수준 층은 실행마다 처음부터 계산하고 그 실행 안에서만 재사용한다**(설계 40 §2.4.3). 단계 A 는 디스크 스냅샷을 읽거나 쓰지 않고, S0 키·키 입력·sources 도 만들지 않는다.
+빈 S0 수준 스냅샷(`GraphSnapshot.empty(S0_WRITERS)`, 권한표 search `S0_WRITERS`) 위에서 `build_s1` -> `build_s1v`(필드 `graph/s1v`) -> 계산 블록 `coupling_vars`(필드 `graph/coupling`)를 부르고,
+단계 B·`build_search_context` 가 그 스냅샷을 이어받아 입력 버전이 같은 블록은 다시 계산하지 않는다(필드가 곧 캐시). PDK 선언 값과 그 파일 경로는 받지 않는다(S0 키에만 쓰였다, 사용자 결정 J-1): 그런 키워드를 주면 파이썬 `TypeError`(모르는 키워드). PDK 선언은 `build_search_context(pdk_decl, lut_rule_decl)` 와 단계 B(`run_stage_b(pdk_decl)`)가 읽는다.
 보고서의 `views`·`applied_facts`·`ff_ratio_candidates`·`tables`·`coupling` 은 필드를 읽어 만든다. `tables` 에서 옛 `key`(S1v 묶음 키) 칸은 없어지고 `facts_applied` 는
-`applied_facts` 로 이름이 바뀐다(묶음 객체 없음, 사본·별칭 없음).
-
-[U17 ①-a] `pdk_decl`(core `read_pdk_decl` 결과)은 **필수**다 -- 빠지면 파이썬 `TypeError`, PdkDecl 아니면(None 포함) `TypeError`(S0 키의 PDK 선언 해시, 40 §2.4.12 Q1 fail-closed). S0 수준 스냅샷 영속화(설계 40 §2.4.3, core CONTRACT §11): `structure.json` 로드 뒤 키 입력 {`topology_fp`(정규화 연결 지문), `supplies_v_fp`, `spec_fp`(spec 없으면 None), `structure_facts_fp`(`fp_of(StructureFacts)`), `derivation_rule_fp`(`structure_rule_fp()`), `lut_fp`(`lut.fp`), `pdk_decl_fp`(`pdk_decl.decl_sha256`)} + 입력 파일 sources {`topology`(경로, `file_sha256`), `spec`(경로, `file_sha256` | spec 없으면 (None, None)), `structure`(경로, 원본 sha256 | 파일 없으면 None), `pdk_decl`(`pdk_decl_path`, `decl_sha256`), `lut_manifest`·`lut_cap`·`lut_midpoints`·`lut_noise`·`lut_mismatch`(LUT 출처의 경로·sha256, 없으면 (None, None))} + 엔진 코드 지문으로 `S0SnapshotStore.default` 를 읽는다. hit 이면 `build_s1(previous=읽은 스냅샷)` -- S1 블록 12개가 모두 재사용(계산 0), 결과 `s1.snapshot.fp` 는 계산했을 때와 같다. miss·corrupt 면 계산한 S1 스냅샷을 쓴다(`save`). 보고서 `s0_snapshot` = "hit" | "miss" | "corrupt"(S1 단계 전 정지면 None). 엔진 코드 지문은 호출마다 한 번 재 `StageAResult.code_fp`(정지 결과 포함)로 돌려준다 -- `search.build_search_context(..., code_fp=)` 가 받는다.
+`applied_facts` 로 이름이 바뀐다(묶음 객체 없음, 사본·별칭 없음). 보고서 키 집합은 정상·정지 경로 모두 같은 13개다(§2). 엔진 코드 지문은 호출마다 한 번 재 `StageAResult.code_fp`(정지 결과 포함)로 돌려준다 --
+`search.build_search_context(..., code_fp=)` 가 받는다(S3 줄·`run_id` 의 출처 칸).
 
 설계 40 §2.1 GB0~GB2, 41 §0 단계 A1~A3. 파일: `stage_a.py`(진입), `stage_a_budget.py`(`structure_count_budget`), `stage_a_report.py`(`write_stage_a_report`).
 
@@ -22,7 +20,7 @@ ng-bridge 브랜치(`oracle_input` 등 오라클 생산자)가 같은 파일을 
   -> 보고서. `declared_loop_cuts` = spec 제약 중 안정도 metric(`pm_` 접두)의 **내부** 루프 뷰 선언(`ViewDecl` mode loop, `beta != declared`)의 끊는 넷. spec `feedback` 소자에서 유도된 β 루프(`beta == declared`, 입력 포트에서 되먹임 수동소자를 거쳐 끊는 테스트벤치 루프)는 metric 의 되먹임 뷰가 평가하는 것이라 엔진 루프 뷰 대조(`loop_cut_unmatched`)와 `build_s1v` 전달 양쪽에서 제외한다 -- 단계 A 가 spec 에서 직접 모은다(authoring 파일을 고치지 않는다).
   끊는 넷은 **엔진 루프 뷰의 끊는 gate 넷**(보고서 `views[].cuts[*][1]`)이어야 하고, 맞지 않는 선언은 단계 A 가 `loop_cut_unmatched`(review_needed)로 보고서에 올린다(graph CONTRACT).
 * **N_S**(41 §0): `structure_count_budget(lut, kinds, declared=None)` = `search.count_budget` 한 곳(U9): 회로가 쓰는 kind 의 모든 폭 슬라이스에 대한 |L|·|VGS|·|VDS|·|VS| 합. 시간 무관·LUT 에서만 정해진다.
-  spec `structure_count_budget{value, source}` 선언(`CountBudgetDecl`)이 있으면 단계 A 가 `declared=spec.structure_count_budget` 로 넘겨 그 값이 대체한다(S0 지문은 spec 지문).
+  spec `structure_count_budget{value, source}` 선언(`CountBudgetDecl`)이 있으면 단계 A 가 `declared=spec.structure_count_budget` 로 넘겨 그 값이 대체한다.
 * ratified 사실(structure.json): 개념 7개와 소비 방식은 graph CONTRACT 10.6(`drive_kind`·`ac_ground_exception`·`dc_role` override, `loop_role`·`feedforward_cell` confirm, `matching_pair` override).
   `stage_members`(대상 stage 이름, 값 = 공백으로 이은 소자 이름)는 declared stage 로 유도와 대조(`declared_stage_mismatch` review_needed). topology 태그는 읽지 않는다. 파일이 없거나 `stage_members` 사실이 없으면 `declared_comparison` =
   `not_performed: <파일> absent|has no stage_members facts`. 해시 불일치 사실은 적용하지 않고 `structure_fact_stale`(review_needed).
@@ -39,11 +37,11 @@ JSON 키(키 정렬): `circuit`, `status`, `exit_code`, `count_budget`(정지 �
 뷰별 셀·구동 종류·stage·블록·극점 노드·출력 방향·루프·끊는 점·`unreduced_diff`·기록, L 동치류, declared 요약, 적용한 ratified 사실; 로드 정지면 None), `coupling`([U10] GB3 결합 변수: `kind_counts`·`bias_columns`·`column_block_map`·`column_mate_devices`·`vars`[kind,members,nets,blocks,domain,init_rule] -- `graph.coupling_vars`, 단계 A4; 구조 정지·로드 정지면 None; 바이어스 기둥 의사 블록은 `blocks` 에 `bias:<기둥 id>` 키로 나온다, graph CONTRACT §11). `.md` 는 같은 정보의
 사람용 요약. 기존 파일은 덮어쓴다.
 
-## 3. 결과 `StageAResult(exit_code, status, report, report_paths, s1=None, spec=None, code_fp=None, s0=None)`
+## 3. 결과 `StageAResult(exit_code, status, report, report_paths, s1=None, spec=None, code_fp=None)`
 
 [U17 ①-b] 묶음 `S1v` 칸은 없다(설계 40 §2.4.7). `s1` = S0 수준 스냅샷 위 `S1Graph`(S1 + `graph/s1v` + `graph/coupling` 필드, `column_unassigned` 정지면 결합 필드 없음; S1 전 정지면 None),
-`spec`(로드 정지면 None), `code_fp`(엔진 코드 지문), `s0`(core `S0Slot` -- 키를 만들기 전 정지면 None). 후속 단계: 커널 컨텍스트는 L 동치류를 필드 `graph/s1v: l_classes` 에서 읽는다
-(`sizing.build_kernel_context(stage_a.s1, ...)`), 탐색 컨텍스트는 `build_search_context(..., code_fp=stage_a.code_fp, s0=stage_a.s0)`.
+`spec`(로드 정지면 None), `code_fp`(엔진 코드 지문). 후속 단계: 커널 컨텍스트는 L 동치류를 필드 `graph/s1v: l_classes` 에서 읽는다
+(`sizing.build_kernel_context(stage_a.s1, ...)`), 탐색 컨텍스트는 `build_search_context(..., code_fp=stage_a.code_fp)`.
 
 ## 4. 불변량
 

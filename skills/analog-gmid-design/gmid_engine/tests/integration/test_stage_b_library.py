@@ -47,8 +47,6 @@ def env():
     lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, LutSpec(grid, tuple(sorted(mins.items())), DEVICE_KINDS, (("nmos", "_n"), ("pmos", "_p"))),
                        pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path)
     pdk = read_pdk_decl(str(SKILL / "assets" / "sky130_pdk_decl.json"), BoundedLRU(8))
-    # [U17 ①-b] run_stage_a(lut_rule_decl=) 필수 -- 저장소 LUT 생성 규칙 선언 원본
-    rule = read_pdk_decl(str(SKILL / "assets" / "sky130_lut_rule_decl.json"), BoundedLRU(8))
     # 원시 npz 통계(엔진 미사용)
     root = Path(loc.manifest_path).parent
     stats = {"count": {}, "idu_max": {}, "l_min": {}, "axes": None, "follower": None}
@@ -65,7 +63,7 @@ def env():
             stats["l_min"][kind] = min(stats["l_min"].get(kind, np.inf), float(L.min()))
             if kind == "nmos" and int(round(W / grid)) == PRE_LAYOUT_W_KEY:
                 stats["follower"] = _follower_anchor(z)
-    return {"lut": lut, "pdk": pdk, "rule": rule, "stats": stats, "cache": {}}
+    return {"lut": lut, "pdk": pdk, "stats": stats, "cache": {}}
 
 
 def _follower_anchor(z):
@@ -106,9 +104,8 @@ def _settings():
 def _run(env, circuit, tmp_path_factory):
     if circuit not in env["cache"]:
         out = tmp_path_factory.mktemp("sbl_" + circuit)
-        a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env["lut"], pdk_decl=env["pdk"],
-                        lut_rule_decl=env["rule"], output_dir=out, pdk_decl_path=str(SKILL / "assets" / "sky130_pdk_decl.json"),
-                        lut_rule_decl_path=str(SKILL / "assets" / "sky130_lut_rule_decl.json"))
+        # [xrun J-1] run_stage_a 는 선언 값·선언 경로 인자를 받지 않는다(S0 키에만 쓰이던 인자, interface card C1)
+        a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env["lut"], output_dir=out)
         memo = LutMemo(env["lut"], point=200000, curve=200000, root=4096)
         # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- 탐색 설정 입력(test_s0_layer_9circuits `_settings` 와 같은 값)
         b = run_stage_b(a, memo, env["pdk"], output_dir=out, diagnostic=True, settings=_settings())

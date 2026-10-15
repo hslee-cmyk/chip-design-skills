@@ -266,7 +266,7 @@ plan_version: 6.10
 | D-T | test 폴더 체계 | 40 §8 R26 | N/A | 축소 유지 승인(2026-10-08). 현행 체계를 쓴다 |
 | D-GR1 | graph 밖 저장소는 셋뿐(LUT memo·S3 기록과 색인·실행 계수 -- v1.10 S0 직렬화 폐지) | 40 §2.4.1 | DEV | bd19cc6 `E/search/search_context.py:65-89`(cache·cell_floors·local_seal_memo 등) |
 | D-GR2 | S0 수준 층 필드화(S1v·결합 변수·GB4·출발 구간·metric 구조 입력). 레코드별 필드 = 40 §2.4.8(v1.9.1 D1~D4·D7~D9: `graph/s1v` `coverage`·`graph/ach` `block_bounds` 없음, `graph/start` `rungs` = as-built `ladder`, `noise_inputs`·`placement`는 U17 ②, `local_inputs` dict→tuple·memo 제외) | 40 §2.4.2·2.4.8 | MISS | bd19cc6 `sctx.s1v`·`sctx.ach`·`sctx.start` 객체, `E/search/start_values.py:186-235` `StartContext` |
-| D-GR3 | 실행 사이 재사용 제거(v1.10, 사용자 결정 2026-10-15 "나로 해"): S0 수준 층 = 실행 수명, 디스크 스냅샷·S0 키·코덱·타입 등록부·U-68 정리·`run_stage_a` PDK 선언 경로 인자와 진입 sha 대조·`GMID_S0_SNAPSHOT_DIR`·S3 실행 사이 읽기(이전 front 점 시작점, 디스크 실패 기록) 삭제. 엔진 코드 지문은 결과 기록 출처 칸으로만, 블록 코드 해시는 실행 안 입력 버전으로 유지(checkout 무관 성질은 Q10). 옛 항목(S0 스냅샷 영속화, v1.9.1~v1.9.3 문구)은 history | 40 §2.4.3 | DEV | 34932a9 as-built에 옛 구조가 있다: `E/core/snapshot_codec.py`(431줄), `E/core/s0_slot.py`, `E/core/type_registry.py`, `E/pipeline/stage_a.py:236·242-248·265-268`, `E/search/search_context.py:137-149·225-229`, `E/search/start_points.py:33-47`, `E/search/kernel.py:105` |
+| D-GR3 | 실행 사이 재사용 제거(v1.10, 사용자 결정 2026-10-15 "나로 해"): S0 수준 층 = 실행 수명, 디스크 스냅샷·S0 키·코덱·타입 등록부·U-68 정리·`run_stage_a` PDK 선언 경로 인자와 진입 sha 대조·`GMID_S0_SNAPSHOT_DIR`·S3 실행 사이 읽기(이전 front 점 시작점, 디스크 실패 기록) 삭제. 엔진 코드 지문은 결과 기록 출처 칸으로만, 블록 코드 해시는 실행 안 입력 버전으로 유지(checkout 무관 성질은 Q10). 옛 항목(S0 스냅샷 영속화, v1.9.1~v1.9.3 문구)은 history | 40 §2.4.3 | OK | [xrun 7e1b4be, 판정 029f9b7] 엔진 소스·CONTRACT에서 삭제 이름 20개 `rg -w` 0(`snapshot_codec`, `S0Slot`, `type_registry`, `disk_failures`, `_s3_thetas`, `load_evals`, `pdk_decl_path` 등), 9회로 새 프로세스 두 번 비트 동일·`.s0_snapshot` 생성 0, S3 미리 채움 = 빈 S3 |
 | D-GR4 | 분할 계산 블록과 이식(graft). 분할 대상에 GB5 `passive_values`(읽는 레코드 = 영점 상쇄 셀 소자의 `dc_gm`, 전류 θ만 바뀐 자식의 재계산 해소, U17 ② 이월) | 40 §2.4.4 | MISS | `rg "def graft"` 0, `E/core/compute_block.py:73-90`(블록 이름 하나의 버전) |
 | D-GR5 | S3 메모리 색인·스냅샷 보존(`sctx.cache`·`local_seal_memo` 대체, G-5) | 40 §2.4.5 | DEV | bd19cc6 `E/search/kernel.py:102-121`, `E/search/local_candidates.py:141-144` |
 | D-GR6 | LUT memo 순수성(`call`)·S0당 인스턴스 하나·상한 B_r(층 0 항) | 40 §2.4.6 | DEV | bd19cc6 `E/search/search_context.py:105-121`(두 번째 인스턴스, 첫 평가 버림), `E/lut/lut_memo.py:25-36,60-62` |
@@ -305,6 +305,8 @@ plan_version: 6.10
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
 | 설계 항목 | 162 | 0 | 26 | 16 | 118 | 2 |
 | **합계** | 259 | 26 | 33 | 52 | 140 | 8 |
+
+v1.10.1(2026-10-15, card 1 xrun 구현 7e1b4be·판정 029f9b7 뒤, 사용자 결정 J-8 "권고대로 진행해"): D-GR3 DEV → OK(병합 직전 갱신, 증거는 판정 기록). 집계: DEV 26 → 25, OK 27 → 28.
 
 v1.10(2026-10-15, 사용자 결정 2026-10-15 "나로 해", 실행 사이 재사용 제거): D-GR3을 제거 항목으로 다시 씀(MISS → DEV, 옛 구조가 as-built에 있음), D-ND5 대상 소멸(MISS → N/A), D-GR1·D-GR11·D-GR12·D-ND1·D-ND3·D-PF2 문구. 집계: 설계 항목 DEV 25 → 26, MISS 120 → 118, N/A 1 → 2.
 

@@ -1,11 +1,16 @@
 """CONTRACT 3.18·6절 `S3Archive(root, context_fp, code_fp)` -- `<root>/<context_fp>/` 아래 evals.jsonl·runs.jsonl·
-snapshots/<fp>.json.gz 형식, 줄마다 flush(평가 직후 읽힘), 스냅샷 왕복(read_snapshot)."""
+snapshots/<fp>.json.gz 형식, 줄마다 flush(평가 직후 읽힘), 스냅샷 왕복(front 조회 `node_across_front` 의 파일 항목 읽기).
+
+[xrun, 설계 40 v1.10 §2.4.3 'S3 읽기 API'·'front 조회 전용 읽기 경로'] S3Archive 는 쓰기(append_eval·append_run·write_snapshot)와 `.dir` 만
+남고 `read_snapshot` 은 없어졌다 -- 스냅샷 파일 읽기는 front_query 의 비공개 함수로 옮겨졌다. 왕복은 공개 경로로 본다(interface card 3.2
+'test 주체 선택' (나)): 파일 항목 dict 를 `node_across_front(..., archive)` 로 읽은 행 = 메모리 FrontPoint 의 행. (가) 비공개
+`_read_snapshot_file` import 는 쓰지 않는다 -- 비공개 이름에 test 를 묶지 않고, 이 왕복이 실제로 쓰이는 공개 조회 경로를 본다."""
 import gzip
 import json
 from pathlib import Path
 
 
-from gmid_engine.search import S3Archive, evaluate, find_front
+from gmid_engine.search import S3Archive, evaluate, find_front, node_across_front
 
 from .conftest import CELLS_C, build_case, circuit_c, theta_r4c
 
@@ -68,10 +73,16 @@ def test_runs_and_snapshot_files(tmp_path, lut_sealed, short_root):
         assert body["records"] and {"kind", "key", "fields"} <= set(body["records"][0])
         f0 = next(iter(body["records"][0]["fields"].values()))
         assert {"value", "writer", "input_version"} <= set(f0)
-        # 왕복: read_snapshot(ref) = 그 파일 내용(6절 형식), 노드전압 = 메모리 스냅샷
-        back = s.archive.read_snapshot(entry["snapshot_ref"])
-        assert back == body
+        # 파일 내용(6절 형식, test 가 gzip 으로 직접 읽음)의 노드전압 = 메모리 스냅샷
         mem = p.result.evaluation.snapshot
-        dv = {r["key"]: r["fields"]["dc_v"]["value"] for r in back["records"]
+        dv = {r["key"]: r["fields"]["dc_v"]["value"] for r in body["records"]
               if r["kind"] == "node" and "dc_v" in r["fields"]}
         assert dv == dict(mem.column("node", "dc_v"))
+        # 왕복(공개 경로): 파일 항목 dict 를 front 조회가 archive.dir/snapshot_ref 에서 읽은 행 = 메모리 FrontPoint 의 행(커널 0)
+        before = dict(s.counters)
+        for node in sorted(dv):
+            (disk_row,) = node_across_front((entry,), node, s.archive)
+            (mem_row,) = node_across_front((p,), node)
+            got = (disk_row.point_id, disk_row.voltage, disk_row.tier, sorted(disk_row.devices))
+            assert got == (mem_row.point_id, mem_row.voltage, mem_row.tier, sorted(mem_row.devices)), node
+        assert dict(s.counters) == before

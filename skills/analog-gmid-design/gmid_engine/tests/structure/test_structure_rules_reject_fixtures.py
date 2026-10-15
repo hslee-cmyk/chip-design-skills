@@ -95,12 +95,28 @@ EXPECTED_BAD = {
         ("tag_key_lookup", "sizing/roles.py", 7),     # case {"gm_id_role": value}
         ("tag_key_lookup", "sizing/roles.py", 9),     # dev.vertical_stack_id
     ],
+    "rule_k": [                                       # 허용 파일(search/__init__·front_query)은 bad 트리에도 있으나 위반 0
+        ("front_query_module", "convergence/peek.py", 1),     # from gmid_engine.search.front_query import ... (K-b)
+        ("front_query_module", "layout/view.py", 1),          # import gmid_engine.search.front_entries as fe (K-b)
+        ("front_query_module", "search/kernel.py", 7),        # from . import front_query (K-b, 모듈 객체)
+        ("front_query_module", "search/start_points.py", 1),  # from .front_entries import ... (K-b)
+        ("front_query_name", "layout/view.py", 5),            # search.read_front_entries(d) (K-a, 속성)
+        ("front_query_name", "pipeline/run.py", 1),           # from gmid_engine.search import node_across_front (K-a)
+        ("front_query_name", "pipeline/run.py", 5),           # node_across_front(front, node) (K-a, 이름)
+        ("front_query_name", "report/table.py", 1),           # import node_across_front as across (K-a, 별칭 원 이름)
+        ("front_query_name", "search/start_points.py", 1),    # import 이름 read_front_entries (K-a)
+        ("front_query_name", "search/start_points.py", 5),    # read_front_entries(run_dir) (K-a, 이름)
+        ("snapshot_read", "convergence/peek.py", 1),          # import 이름 _read_snapshot_file (K-c)
+        ("snapshot_read", "search/kernel.py", 2),             # reader = sctx.archive.read_snapshot (K-c, 호출 아닌 참조)
+        ("snapshot_read", "search/kernel.py", 8),             # front_query._read_snapshot_file(path) (K-c, 속성)
+    ],
 }
 
 CHECKERS = {
     "rule_a": "check_a", "rule_b": "check_b", "rule_c": "check_c", "rule_d": "check_d",
     "rule_f": "check_f", "rule_g": "check_g", "rule_h": "check_h", "rule_i": "check_i",
 }
+# 규칙 K 는 위 매개변수 test 대신 이름에 `rule_k_` 접두가 붙은 아래 두 test 로 건다(`-k rule_k_` 선택, 식별자 충돌 회피 -- README K 행).
 
 
 @pytest.mark.parametrize("rule", sorted(CHECKERS))
@@ -114,6 +130,23 @@ def test_rejects_bad_fixture(checks, fixture_tree, rule):
 def test_accepts_good_fixture(checks, fixture_tree, rule):
     n, v = getattr(checks, CHECKERS[rule])(fixture_tree(rule, "good"))
     assert n > 0
+    assert v == [], "\n".join(str(x) for x in v)
+
+
+def test_rule_k_rejects_bad_fixture(checks, fixture_tree):
+    """규칙 K(설계 40 v1.10 §2.4.3 'front 조회 전용 읽기 경로' 검사 행): K-a·K-b·K-c 를 하나 이상씩 담은 bad 트리를 기대 목록과 정확히
+    같게 거부한다. bad 트리에 있는 허용 파일(search/__init__.py 재수출, search/front_query.py 의 정의·_read_snapshot_file 사용)은 대상 밖."""
+    n, v = checks.check_k(fixture_tree("rule_k", "bad"))
+    assert n == 6                                           # 허용 파일 2개를 뺀 대상 파일 수(픽스처 트리 구성)
+    assert _keys(v) == sorted(EXPECTED_BAD["rule_k"]), "\n".join(str(x) for x in v)
+    assert {x.kind for x in v} == {"front_query_name", "front_query_module", "snapshot_read"}
+
+
+def test_rule_k_accepts_good_fixture(checks, fixture_tree):
+    """허용 파일 셋 안의 정의·재수출·_read_snapshot_file 사용, 허용 파일 밖의 무관한 이름(`front_entries_count`, 문자열 안 언급,
+    `write_snapshot`)은 통과한다."""
+    n, v = checks.check_k(fixture_tree("rule_k", "good"))
+    assert n == 2                                           # search/archive.py, pipeline/run.py
     assert v == [], "\n".join(str(x) for x in v)
 
 

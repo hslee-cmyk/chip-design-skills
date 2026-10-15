@@ -178,59 +178,6 @@ def test_without_s1v_start_is_none_and_layer0_uses_box_centre(tmp_path):
     assert not str(res.origin_point).startswith("ladder")
 
 
-def _reachable_dataclass_types(roots, skip=()):
-    """값들에서 닿는 dataclass 인스턴스의 타입 집합(필드 값·tuple·list·frozenset·dict 값을 따라 내려간다). `skip` 타입은 세지 않고 안으로만 간다."""
-    import dataclasses as _dc
-    seen, found, stack = set(), set(), list(roots)
-    while stack:
-        v = stack.pop()
-        if id(v) in seen:
-            continue
-        seen.add(id(v))
-        if _dc.is_dataclass(v) and not isinstance(v, type):
-            if type(v) not in skip:
-                found.add(type(v))
-            stack.extend(getattr(v, f.name) for f in _dc.fields(v))
-        elif isinstance(v, (tuple, list, frozenset, set)):
-            stack.extend(v)
-        elif hasattr(v, "items") and hasattr(v, "keys"):
-            stack.extend(v.values())
-            stack.extend(v.keys())
-    return found
-
-
-# ---------- [U17 ①-a 통합] metrics·search 묶음을 필드로 풀었을 때 닿는 값 형식이 등록부에 있다(design 40 §2.4.2·§2.4.3) ----------
-# 묶음 Achievability(GB4)·StartIntervals(출발 구간)는 필드로 풀고, 그 필드 값에서 닿는 frozen dataclass 는 코덱이 받아야 한다(목록 밖 = 거부).
-# 독립 도출: 실제 단계 A·B·출발 구간 산출물을 걸어 닿는 타입을 모은다(구현 등록 목록을 쓰지 않는다).
-
-
-# [U17 ①-b] 묶음은 없어졌다 -- 필드 목록은 설계 40 v1.9.1 §2.4.8 GB4 행(D2)·출발 구간 행(D3) 그대로(구현 목록을 쓰지 않는다).
-ACH_FIELDS = ("curve_checks", "gain_checks", "area_bound", "headroom_rows", "buffer_window_report", "warnings", "reasons", "verdict", "dof",
-              "count_budget", "local_inputs")
-START_GRAPH_FIELDS = ("conflicts", "inactive", "macro", "rungs", "records", "area_est_m2", "area_fraction", "uncovered")
-START_DEVICE_FIELDS = ("start.row", "start.point")
-
-
-def _assert_bundle_values_registered(ach, start):
-    import gmid_engine.pipeline  # noqa: F401
-    from gmid_engine.core.type_registry import type_registry
-    names = set(type_registry().names())
-    values = [ach.value("graph", "ach", f) for f in ACH_FIELDS]
-    values += [start.snapshot.value("graph", "start", f) for f in START_GRAPH_FIELDS]
-    values += [v for f in START_DEVICE_FIELDS for _n, v in start.snapshot.column("device", f)]
-    reach = _reachable_dataclass_types(values)
-    missing = sorted(t.__module__ + "." + t.__qualname__ for t in reach if t.__module__ + "." + t.__qualname__ not in names)
-    assert not missing, "S0 수준 필드 값 형식인데 등록부에 없다(코덱이 거부): %s" % missing
-    return reach
-
-
-def test_toy_ach_and_start_value_types_are_registered():
-    c = toy_case(cs_chain(2), elements=TOY_ELS, constraints=TOY_CONS)
-    reach = _assert_bundle_values_registered(c.ach, c.start)
-    assert {t.__name__ for t in reach} >= {"StartRow"}, sorted(t.__name__ for t in reach)
-
-
-@pytest.mark.parametrize("name", REAL)
-def test_real_ach_and_start_value_types_are_registered(name):
-    c = real_case(name)
-    _assert_bundle_values_registered(c.ach, c.start)
+# [xrun] 옛 '[U17 ①-a 통합] 묶음 필드 값 형식이 타입 등록부에 있다' test 2개(toy·실경로)와 그 helper 를 지웠다 -- 설계 40 v1.10 §2.4.3
+# '타입 등록부' 삭제 행과 test 변경 목록('타입 등록부 이름을 읽는 단언 search/test_start_intervals.py:216-217 ... 그 단언을 지운다'):
+# 등록부의 소비자는 디스크 S0 코덱뿐이었고 코덱이 없어졌다.

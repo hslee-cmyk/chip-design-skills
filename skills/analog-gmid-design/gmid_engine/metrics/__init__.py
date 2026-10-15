@@ -5,8 +5,6 @@
 계약: `metrics/CONTRACT.md`.
 """
 
-from gmid_engine.core import type_registry
-
 from .achievability import achievability, block_spec
 from .achievability_types import (
     AreaBound,
@@ -170,16 +168,6 @@ from .stamp_two_terminal import two_terminal_stamps
 from .supply import supply_currents
 from .verified_by import VerifiedBy, verified_by
 from .block_gain_model import block_gain_model_of
-
-# S0 수준 스냅샷 코덱(core.snapshot_codec)이 받는 metrics 필드 값 형식(설계 40 §2.4.3 '타입 등록부', §2.4.2 '값 형식', §2.4.8 v1.9.1 D2·D7·D9):
-# `graph/ach` 필드 값(`GainCheck`·`BlockBound`·`AreaBound`·`HeadroomRow`·`DofReport`·`CurveChecks`·`CurveCheck`·`SliceCurveCheck`·`LocalInputs`),
-# `graph/s1v: metric_structure`(`MetricStructure`·`ViewStruct`·`BlockStruct`·`FfStruct`)·`noise_input_cells`(`NoiseDecl`),
-# `graph/kernel: junction_source`(`JunctionSource`·`JunctionParams`)·`mismatch_source`(`MismatchSource`)·`passive_area_decl`(`PassiveAreaDecl`).
-# 계산용 입력(`LocalView`·`BlockSpec`·`AxisSpec`·`MosLocal`·`ResLocal`·`BlockModel`)은 필드 값이 아니라 올리지 않는다.
-for _field_value_type in (GainCheck, BlockBound, AreaBound, HeadroomRow, DofReport, CurveChecks, CurveCheck, SliceCurveCheck, LocalInputs,
-                          MetricStructure, ViewStruct, BlockStruct, FfStruct, NoiseDecl, JunctionSource, JunctionParams, MismatchSource,
-                          PassiveAreaDecl):
-    type_registry.type_registry().register(_field_value_type)
 
 __all__ = (
     "ACH_KEY",

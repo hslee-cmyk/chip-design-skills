@@ -1,11 +1,11 @@
 # gmid_engine.search 동작 계약 (MOD6 θ 탐색 -> (전력, 면적) 비지배 front, test 작성용)
 
 > **[U17 ①-b] S0 수준 필드 이동**(설계 40 §2.4.1~§2.4.3·§2.4.7·§2.4.8 v1.9.1 D3~D8·D10, 2026-10-13) -- 이 단락이 아래 옛 서술보다 우선한다.
-> * `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, model_error=(), *, code_fp, s0=None)` -- `s1v`·`ach` 인자는 없다. `dc_ctx.base` 를 S0 수준 권한표
+> * `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, model_error=(), *, code_fp)` -- `s1v`·`ach` 인자는 없다. `dc_ctx.base` 를 S0 수준 권한표
 >   `S0_WRITERS`(= S2 ∪ graph S1V ∪ metrics S0 ∪ search S0 표, `s0_fields.py`)로 넓히고 계산 블록을 차례로 부른다: `search_domain`(extras: lut, 실행 설정의 수동소자 상자 둘, pdk_decl, spec θ 상자, 면적 예산,
 >   untie -- 벽시계 등 다른 실행 설정은 넣지 않는다) -> `junction_field` -> `mismatch_field` -> `model_error_field` -> `constraint_classes` -> `passive_area_decl` -> `metric_structure` -> `noise_decl` ->
->   (`graph/s1v: views` 필드가 있으면) `start_intervals`. 끝에서 `s0`(core `S0Slot`, `StageAResult.s0`)로 S0 수준 스냅샷을 **한 번** 쓴다(단계 B 층 writer `residual_probe`·`dof_numeric` 은 `transient`,
->   v1.9.1 D6). 같은 S0 의 다음 실행(디스크 적중)은 모든 S0 블록이 재사용이다(계산 0).
+>   (`graph/s1v: views` 필드가 있으면) `start_intervals`. 디스크에 저장하지 않는다(NFR-2·U-89, 2026-10-15): S0 수준 층은 실행마다 처음부터 계산하고
+>   그 실행 안에서만 재사용한다(단계 A·B 가 이미 부른 블록은 입력 버전이 같아 재사용, 계산 0). `s0=` 키워드는 없다(주면 `TypeError`).
 > * `SearchContext` 칸 = 참조(`dc` -- base 가 S0 수준 스냅샷, `spec`, `settings`, `archive`, `context_fp` = (S1 블록·커널 계획 블록 `PLAN_WRITERS` 입력 버전, LUT 손잡이, DcInputs) 지문 -- 평가 커널이 읽는 S0 입력만(θ 상자·출발 구간·접합 선언 경로는 평가 결과를 바꾸지 않아 뺀다), `code_fp`) + 실행 수명 상태(cache·counters·예산·
 >   `cell_floors`). 옛 S0 칸(`domain`·`junction`·`mismatch`·`model_error`·`area_decl`·`structure`·`noise_decl`·`judged_constraints`·`ss_constraints`·`constraint_notes`·`start`·`element_values`·
 >   `driving`·`schema_fp`)은 같은 이름의 **읽기 속성**이 부를 때마다 필드에서 읽는다(`start` 대신 `rungs` = `graph/start: rungs` 또는 None, 칸 0 = 선택점).
@@ -15,7 +15,6 @@
 >   `uncovered`). 묶음 `StartIntervals`·`StartContext`·`CurveBook`(`iv_curves.py`)·`build_start_context` 는 없다: 블록 안 읽기 묶음 = `iv_context.start_view(projection, spec, inputs, pdk_decl, lut) -> StartView`,
 >   곡선 읽기 = `_helpers_curves`(LUT 파생 기준 VDS·tol_vdsat·엣지 비용은 `lut.derived`), 이득 L 하한 입력은 필드 `graph/ach: local_inputs`. `current_symmetry`·`orbit_ties` 는 첫 인자로 필드 질의가 되는
 >   스냅샷(또는 투영)을 받는다. `cell_floor` 의 1변수 writer 집합은 `device.dc_self_referential` 필드다.
-> * search `__init__` 이 S0 수준 스냅샷 값 형식(`SearchDomain`·`Variable`·`ConstraintClasses`·`StartRow`·`StartConflict`·`MacroResult`·`StartRung`·`Bound`)을 올린다.
 
 - 대상: `gmid_engine/search/` 공개 API(`gmid_engine.search.__all__`). test 는 `from gmid_engine.search import ...` 와 그보다 앞
   패키지(`core`·`lut`·`authoring`·`graph`·`sizing`·`metrics`)의 공개 이름만 쓴다(`_` 이름·파일 모듈 직접 import 금지).
@@ -169,7 +168,6 @@
   "start_constraint_set_changed", "start_eval_budget", "start_wall_budget". 그 밖 "converged", "slsqp_<status>", "eval_budget",
   "wall_budget", "restart_cap", "all_columns_frozen", 그리고 중단 사유 그대로("candidate_failure"·"constraint_set_changed" -- 재시작
   상한 전 SLSQP 가 끝났을 때 마지막 사유). `perf.stops_eval_budget`·`stops_wall_budget` 은 "eval_budget"·"wall_budget" 만 센다.
-- **`S3Archive.read_snapshot(rel)`** → dict(`json.load` 결과: {fp, records[{kind, key, fields}]}).
 - **`SearchDomain.current_box`** 의 kind = 그 회로 S1 의 MOS kind 집합(이름순) -- LUT 의 모든 kind 가 아니다.
 - **효율 수정(r5)**: `solve_eps` 가 시작 좌표 x0 를 θ 로 되돌릴 때 bounds 로 잘리지 않은 성분은 시작 θ 원값을 그대로 쓴다(ln→exp
   왕복 1 ulp 차이로 시작점이 다른 평가 키가 되어 커널을 한 번 더 부르던 결함).
@@ -204,6 +202,7 @@
 | 4 | `kernel.py` | `evaluate` |
 | 5 | `fd_jacobian.py` | `fd_jacobian` |
 | 5 | `front_query.py` | `node_across_front` |
+| 1 | `front_entries.py` [U-90] | `read_front_entries` |
 | 5 | `start_points.py` | `start_points` |
 | 6 | `layer0_center.py` [r5] | `layer0_start`(+ 비진입 공개 클래스 `Layer0Result`, 상수 `SOURCE_LAYER0`·`STAGE_LAYER0`·`ROW_SEAL_ITEM`) |
 | 6 | `slsqp_outer.py` | `solve_eps` |
@@ -435,9 +434,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   `constraint_value_pending`, decision), metric ∈ AXES -> `judged_constraints` ((metric, op, value), ...), 그 밖 ->
   `ss_constraints`(같은 형식) + `constraint_notes`(verdict `unmeasured`).
 - `eval_budget` = settings.eval_budget, `deadline` = None(find_front 가 정함).
-- `archive_root` 가 None 이면 S3 없음. 아니면 `S3Archive(root, context_fp, code_fp)` 이고 `disk_failures` = evals 의 ok 아닌 줄
-  (같은 schema_fp·code_fp) -> {EvalKey: FailureRecord}.
-- `counters` 키: requests, kernel_calls, hits, fail_hits, disk_hits, outside_domain, recompute_same_key(모두 0 시작).
+- `archive_root` 가 None 이면 S3 없음. 아니면 `S3Archive(root, context_fp, code_fp)` 이다(S3 는 출력이다 -- 시작할 때 읽지 않고 실패 캐시를 재구성하지 않는다, NFR-2·U-89).
+- `counters` 키: requests, kernel_calls, hits, fail_hits, outside_domain, recompute_same_key(6개, 모두 0 시작).
 
 ### 3.10 `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`
 [U14] `geometry` = `RealizedGeometry(w_request, w_keys, diffusion=())`(search_values, `search.__all__`; MOD8 `convergence` 의 재검증 입력, LY7·LY8): 있으면 1 의 키 `w_fixed_fp = fp_of(geometry)`,
@@ -447,11 +445,10 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 순서와 계수(정확히 이 순서):
 1. requests +1. 키 = `eval_key(..., 키 정렬 θ, cells, None)`.
 2. 메모리 캐시 적중 -> hits +1(실패면 fail_hits 도 +1), 같은 객체(`is`) 반환. 커널 0.
-3. 디스크 실패 적중 -> disk_hits +1, `STATUS_FAILED`(failure = 디스크 레코드, seq −1), 캐시 저장. 커널 0.
-4. `cone_rows` 에 c ≤ 0 -> outside_domain +1, `STATUS_OUTSIDE_DOMAIN`(seq −1), 캐시 저장. 커널 0, S3 줄 없음.
-5. kernel_calls +1, seq +1, `size_and_seal(dc, θ, parent=parent.evaluation)`. `NonconvergentError`·`SealViolationError` 만
+3. `cone_rows` 에 c ≤ 0 -> outside_domain +1, `STATUS_OUTSIDE_DOMAIN`(seq −1), 캐시 저장. 커널 0, S3 줄 없음.
+4. kernel_calls +1, seq +1, `size_and_seal(dc, θ, parent=parent.evaluation)`. `NonconvergentError`·`SealViolationError` 만
    잡아 `STATUS_FAILED` + `exc.record`. 그 밖 예외는 전파(캐시·계수는 kernel_calls 까지 증가한 채).
-6. 성공: 상태 = `seal_status`. 목적 = `objective_values`(저항 = dc resistor_values + θ resistance). [r2] b_P 가 None 이면
+5. 성공: 상태 = `seal_status`. 목적 = `objective_values`(저항 = dc resistor_values + θ resistance). [r2] b_P 가 None 이면
    상태 = `STATUS_UNDEFINED`. `STATUS_UNDEFINED` 가 아니면 제약 = `constraint_rows` 행 + 목적 축 spec 행(`spec:<m><op>`,
    c = (값 − 목표)/분해능(>=) 또는 (목표 − 값)/분해능(<=), 분해능 = 그 점의 b_P 또는 b_A) + `ss_constraint_rows` 행,
    `unmeasured` = ss_constraint_rows 의 미측정 목록.
@@ -471,8 +468,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   상태인 것을 (결과, 실제 스텝)으로. 둘 다 아니면 (None, h).
 
 ### 3.12 `start_points(sctx, given, layer0=()) -> (starts, log)`
-- [r5] 후보 = `layer0`(StartPoint iterable -- 그 `source`·`theta` 를 쓴다, 보통 `layer0_start` 결과 0 또는 1개) 다음 S3 runs(같은
-  schema_fp·code_fp)의 front·pending_front 점 θ(`theta_hex` 복원) 다음 `given`. `layer0` 기본값 () 이면 r4 와 같다.
+- [r5] 후보 = `layer0`(StartPoint iterable -- 그 `source`·`theta` 를 쓴다, 보통 `layer0_start` 결과 0 또는 1개) 다음 `given`
+  (이전 실행의 S3 front 점은 시작점이 아니다 -- S3 는 출력, 실행 사이 재사용 없음; 시작점 `source` 는 `layer0` 출처와 `"given"` 뿐). `layer0` 기본값 () 이면 r4 와 같다.
   층 0 점의 평가는 이미 캐시에 있어 여기서 커널 0(hits +1). 칸 = L 마다 [lo − ulp, hi + ulp]
   가 품는 첫 칸(없으면 `ValueError`). 후보마다 `evaluate`(id "s<n>", 1부터) 1회 -> log 항목 {id, source, status, seq, fail?}.
   받아들일 상태이고 처음 보는 키면 `StartPoint`.
@@ -522,11 +519,18 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 - `run_id` = fp_of((context_fp, code_fp, settings, E_B, 시작 θ들)). archive 가 있으면 runs 한 줄 + front·대기 front 점 스냅샷 파일.
 
 ### 3.17 `node_across_front(front, node, archive=None) -> (NodeRow, ...)`
-- 원소가 `FrontPoint` 면 메모리 스냅샷, dict(runs front 항목)면 `archive.read_snapshot(entry["snapshot_ref"])`(archive 없으면
-  `ValueError`). 노드 없음 -> `KeyError`. 전압 = dc_rail_v 또는 dc_v, tier = dc_writer.tier, devices = pins 에 그 넷이 있는 MOS
+- 원소가 `FrontPoint` 면 메모리 스냅샷, dict(`read_front_entries` 가 준 항목)면 `archive.dir / entry["snapshot_ref"]` 파일을 비공개 `_read_snapshot_file`(gzip JSON)로 읽는다(archive 없으면
+  `ValueError`). S3Archive 에는 스냅샷 읽기 메서드가 없다(U-90). 노드 없음 -> `KeyError`. 전압 = dc_rail_v 또는 dc_v, tier = dc_writer.tier, devices = pins 에 그 넷이 있는 MOS
   ((소자, 단자들, ((vgs, vds, vsb, current, gm_id, W, L) 쌍))). 커널 호출 0.
 
 ### 3.18 `S3Archive(root, context_fp, code_fp)` -- 8절.
+- 공개 = `append_eval`·`append_run`·`write_snapshot` 과 속성 `dir`. 읽기 메서드는 없다(S3 는 출력, 엔진은 실행 사이에 읽지 않는다).
+
+### 3.17b [U-90] `read_front_entries(run_dir) -> tuple[dict, ...]` (`front_entries.py`)
+- `run_dir` = `<archive_root>/<context_fp>`(= `S3Archive.dir`). `runs.jsonl` 을 줄 순서대로 읽어 각 줄의 `front` 다음 `pending_front` 항목을 원래 dict 그대로 내고, 항목마다 그 줄의 `run_id`·`code_fp` 키를 더한다.
+  `code_fp`·`schema_fp` 로 거르지 않는다(조회 결과를 보는 쪽이 판단). 파일이 없으면 `()`.
+- 출력 조회 전용이다: 엔진 소스(`tests/` 제외)에서 이 함수와 `node_across_front`·`_read_snapshot_file` 을 부르는 곳은 정의 파일(`front_query.py`·`front_entries.py`)과 재수출(`search/__init__.py`)뿐이다
+  (구조 규칙 K). 결과는 graph 필드·시작점·실패 캐시·S3 메모리 색인에 넣지 않는다. 엔진 소스에서 `runs.jsonl` 을 읽는 곳은 이 함수 하나다.
 
 ### 3.22 [r11, 사용자 결정 11] 면적 예산 `passive_area_decl(dc_ctx, spec, pdk_decl) -> PassiveAreaDecl` (`area_decl.py`)
 - 면적 예산 = spec 일반 제약 `area_search_m2 <= v`(판정 축). 새 제약 종류가 아니다: `build_search_context` 가 `judged`(AXES)로 받고
@@ -618,7 +622,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 |---|---|
 | I-1 | 중복 평가 0: 한 실행에서 `kernel_calls == unique_keys`, `recompute_same_key == 0`(같은 θ 의 fun·jac·cons·ε 재방문은 hits) |
 | I-2 | 캐시 적중은 커널·S3 줄 0, 같은 객체 반환. evals 줄 수 = kernel_calls(archive 있을 때) |
-| I-3 | 같은 code_fp·S0 면 디스크 실패 적중(커널 0), code_fp 가 다르면 무효 |
+| I-3 | S3 에 이전 내용(이전 실행의 evals·runs 줄, 손으로 넣은 실패 줄 포함)이 있든 없든 같은 입력의 탐색 결과가 같다(엔진은 S3 를 실행 사이에 읽지 않는다) |
 | I-4 | FD 열 parent = base: 전류 성분 열에서 sizing `dc_columns` computes 0(DC 저항 전류가 같을 때) |
 | I-5 | 넓은 except 없음: 커널이 낸 ValueError·TypeError 는 evaluate 밖으로 전파 |
 | I-6 | 봉인 7 대기 점은 `SearchFront.front` 에 0개(4절) |
