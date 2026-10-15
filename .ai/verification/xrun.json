@@ -1,0 +1,120 @@
+{
+  "id": "20261015-xrun",
+  "spec_card": "docs/02-design/specs/20261015-xrun.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "0538decfae6661449795c0446fc4f97e905420e0",
+  "test_commit": "e86b4541ff26a15bd3e026e2acb211dac3b61285",
+  "code_commit": null,
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[common_gate_amplifier]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[current_reuse_telescopic_ota]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[folded_cascode]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[nmcnr_amplifier]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[pushpull_follower_buffer]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[sf_pushpull_output_opamp]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[two_stage_ota]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[two_stage_ota_sf]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_no_s0_files_written.py::test_no_new_file_in_engine_folder",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_kernel.py::test_hand_written_failure_line_is_not_read_by_new_context",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_start_points.py::test_previous_run_front_points_are_not_start_candidates",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_rerun_s3_independence.py::test_outputs_independent_of_previous_s3_content[s3_with_previous_run]",
+      "skills/analog-gmid-design/gmid_engine/tests/integration/test_rerun_s3_independence.py::test_outputs_independent_of_previous_s3_content[s3_with_hand_failures]",
+      "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py::test_stage_a_result_fields_exact",
+      "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py::test_report_key_set_exact_on_ok_and_stop_paths",
+      "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py::test_run_stage_a_keywords_exact",
+      "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py::test_unknown_keyword_rejected_before_report",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py::test_counters_key_set_exact",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py::test_s0_keyword_rejected",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_perf_key_set_exact_in_result_and_runs_line",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_front_entries.py"
+    ],
+    "failure_hashes": [
+      "d702f529055be0c698f6a9aa6d50f85dadfd57ba1aa23bb76fe1579ddcf01a28",
+      "adac0c36c05695a2f48798ba770fc58705ab295107c0472510b8b22dd76dc7f6",
+      "b8d03a3185b0b30b8ea8cebf412d2172b047c88644fb6d7916ebc64a5a959756",
+      "707e6db820aedbabfac3b3e6b8f45d4239c7b7e9db7e9568884d4610d15a7b9f",
+      "bf012d27942ebfdc143b23931be1ba2c35a46298f1473f097db53aadec214e0f",
+      "fc355ebdfcf5e818939860f9a19c2b752695a3e538a3e64d08667ca736cbb622",
+      "d12ec56f28db6d914e3209cc1660825b5bd5fcf228129d01ee5c106a61be1472",
+      "7e1de3aee97fd9e88d478185b14304cd8583606ecfb461268091d8cd539294f1",
+      "2713327d0e1934c48b367ef0ae4b7d59a48cd5bbaf6cf500b89ff9ed4568b426",
+      "15e4006acc6eaa8fe1ea09f5b4cb3b0787e413ae449bd11fab99cc38324053e6",
+      "7b2de078f4f2dcda789888fb6539de680841659bd6810fe2e9ebf1256977e552",
+      "01a04397c0c66e77119a1088620178a1104188fd187b1d3f15bf0444f8996d51",
+      "69ff0923b61e92c7bbe602e19863a656b0fcec0eea11c2a81b16c51425860b95",
+      "d0b8a76f86a674967615f84e160177adef11ae5d98f0214231dfdc16a97acf14",
+      "596f26326ae597919a7704a93110d6e6e7602e2bbc19d36c7779bc62f4195fc4",
+      "ee756a687cb49f9d0e9caf6e159f0eb9098ebaafc5cbcb894754014dad8c7420",
+      "e3098067d7118026e922cb1fcded97253497b284a95024b02204c77412bfc90a",
+      "ee5c99d950f06cca321746f01befa5591bedffb1ce1aa201751396526697cf43",
+      "6ea72266440a6d754670e5c4623595f056e23d1cf2e1bae3159a7d675667a437",
+      "1bb78307eccf2d83f9e0babc5c030c57239499a29560df47e033ecaa66f4e65c",
+      "ebeef8b7892f3d953062c61cbac9f3d5ccbf699fa455892aa2d6c9c61161d011"
+    ]
+  },
+  "reproduced_numbers": [
+    {
+      "name": "red_base_failed_total",
+      "value": 263,
+      "command": "red: pytest <27 test files> --continue-on-collection-errors (base_check red.command)"
+    },
+    {
+      "name": "red_base_collection_errors",
+      "value": 2,
+      "command": "same"
+    },
+    {
+      "name": "xr1_second_run_zero_compute_circuits",
+      "value": 8,
+      "command": "pytest tests/integration/test_adapt_xr1.py (auditor old-API adapter, base clone)"
+    },
+    {
+      "name": "xr1_second_run_zero_compute_writers_per_circuit",
+      "value": 14,
+      "command": "same"
+    },
+    {
+      "name": "xr2_new_engine_entries_at_base",
+      "value": 2,
+      "command": "pytest tests/integration/test_adapt_xr2.py"
+    },
+    {
+      "name": "xr3_base_kernel_calls_second_context",
+      "value": 0,
+      "command": "pytest tests/search/test_audit_probe_xr3.py"
+    },
+    {
+      "name": "xr5_base_n_starts_B",
+      "value": 3,
+      "command": "pytest tests/integration/test_audit_probe_xr5.py"
+    },
+    {
+      "name": "xr5_base_kernel_calls_C",
+      "value": 20,
+      "command": "same"
+    },
+    {
+      "name": "rule_k_base_engine_violations",
+      "value": 0,
+      "command": "structure_checks.check_k(<base engine>)"
+    },
+    {
+      "name": "rule_k_bad_fixture_violations",
+      "value": 13,
+      "command": "pytest tests/structure -k rule_k_"
+    }
+  ],
+  "approvals": [],
+  "auditor_run": {
+    "time": "2026-10-15T15:20:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrun-audit (isolated clones C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrun_audit/{red,base})",
+    "commands": [
+      "격리: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrun-audit _scratch_xrun_audit/red && git -C red checkout --detach 0538dec && git -C red diff --binary 0538dec e86b454 > test_diff.patch && git -C red apply --index test_diff.patch && git -C red remote remove origin; base = same clone at 0538dec",
+      "red: cd <red>/skills/analog-gmid-design && PYTHONDONTWRITEBYTECODE=1 python -m pytest <27 added/modified test files of e86b454> -q -p no:cacheprovider -rfE --tb=short --continue-on-collection-errors --junitxml=results/red.xml (GMID_S0_SNAPSHOT_DIR, OPENBLAS_NUM_THREADS unset outside; conftest fixes OPENBLAS=1)",
+      "red hash: PYTHONPATH=<gate cache 6df4bd7f> python -P scripts/red_hashes.py results/red.xml results/red_hashes.json",
+      "adapters: python scripts/make_adapters.py red/.../tests/integration base/.../tests/integration; pytest test_adapt_xr2.py test_adapt_xr5.py test_adapt_xr1.py (base clone); python scripts/make_adapter_xr6.py; pytest test_audit_adapt_xr6.py -k 'report_key_set_exact or unknown_keyword_rejected'; probes test_audit_probe_xr3.py, test_audit_probe_xr5.py",
+      "rule K: pytest gmid_engine/tests --collect-only -k rule_k_ / -k rule_k; structure_checks.check_k(base engine)"
+    ]
+  }
+}
