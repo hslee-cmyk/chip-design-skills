@@ -1018,7 +1018,7 @@ MODULES = (
     ModuleEntry("pipeline/stage_a_report.py", "entry", "write_stage_a_report",
                 "단계 A 보고서 쓰기(json 전체 + md 요약)", ("40 §2.1", "41 §0")),
     ModuleEntry("pipeline/stage_a.py", "entry", "run_stage_a",
-                "파이프라인 단계 A 진입점: 로드 -> 빈 S0 수준 스냅샷 -> build_s1 -> structure.json -> build_s1v -> coupling_vars -> 보고서·exit code", ("GB0", "GB1", "GB2", "GB3", "41 §0")),
+                "파이프라인 단계 A 진입점: 로드 -> structure.json -> 빈 S0 수준 스냅샷 -> build_s1 -> build_s1v -> coupling_vars -> 보고서·exit code", ("GB0", "GB1", "GB2", "GB3", "41 §0")),
     ModuleEntry("pipeline/stage_b.py", "entry", "run_stage_b",
                 "단계 B 진입점: GB4 달성가능성(커널 컨텍스트 -> 정의역·면적 선언·achievability 계산 블록 -> 보고서, exit 3)", ("FR-8", "41 §4", "D-GB4c")),
     ModuleEntry("convergence/convergence_values.py", "data", None,
