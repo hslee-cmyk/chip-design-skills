@@ -24,7 +24,7 @@ import copy
 import dataclasses
 
 from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
-from gmid_engine.core import PdkDecl, fp_of
+from gmid_engine.core import PdkDecl, blas_environment, fp_of
 from gmid_engine.graph import ELEMENT_MOS, S1_WRITERS, S1V_KEY
 from gmid_engine.lut import require_lut_data, sweep_memo
 from gmid_engine.metrics import (NoiseAnalysis, junction_field, metric_registry, metric_structure, mismatch_field, model_error_field)
@@ -198,7 +198,10 @@ def _s0_blocks(dc_ctx, spec, settings, pdk_decl, lut_rule_decl, model_error):
 
 def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, model_error=(), *, code_fp):
     """`model_error` = ((metric, 값), ...) DEC-72 오라클 대조 모델 오차(`verified_by.model_error_pairs` 가 `derived.model_error_<metric>` 에서 만든다) -- 분해능 바닥
-    (`ss_constraint_rows`). 잡음 제약이 있으면 LUT 잡음 r1 데이터, offset 제약이 있으면 mismatch r1 데이터가 있어야 한다."""
+    (`ss_constraint_rows`). 잡음 제약이 있으면 LUT 잡음 r1 데이터, offset 제약이 있으면 mismatch r1 데이터가 있어야 한다.
+
+    [NFR-4 재확인 (b)] 진입에서 BLAS 스레드 1 을 다시 확인한다(`core.blas_environment()` -- 무상태, 값은 기록하지 않는다. 확인 실패는 RuntimeError)."""
+    blas_environment()
     if not isinstance(code_fp, str) or not code_fp:
         raise TypeError("build_search_context: code_fp 는 단계 A 가 잰 엔진 코드 지문(StageAResult.code_fp) 문자열이어야 한다")
     if not isinstance(settings, SearchSettings):

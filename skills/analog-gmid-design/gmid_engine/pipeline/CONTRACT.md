@@ -8,7 +8,7 @@ ng-bridge 브랜치(`oracle_input` 등 오라클 생산자)가 같은 파일을 
 빈 S0 수준 스냅샷(`GraphSnapshot.empty(S0_WRITERS)`, 권한표 search `S0_WRITERS`) 위에서 `build_s1` -> `build_s1v`(필드 `graph/s1v`) -> 계산 블록 `coupling_vars`(필드 `graph/coupling`)를 부르고,
 단계 B·`build_search_context` 가 그 스냅샷을 이어받아 입력 버전이 같은 블록은 다시 계산하지 않는다(필드가 곧 캐시). PDK 선언 값과 그 파일 경로는 받지 않는다(S0 키에만 쓰였다, 사용자 결정 J-1): 그런 키워드를 주면 파이썬 `TypeError`(모르는 키워드). PDK 선언은 `build_search_context(pdk_decl, lut_rule_decl)` 와 단계 B(`run_stage_b(pdk_decl)`)가 읽는다.
 보고서의 `views`·`applied_facts`·`ff_ratio_candidates`·`tables`·`coupling` 은 필드를 읽어 만든다. `tables` 에서 옛 `key`(S1v 묶음 키) 칸은 없어지고 `facts_applied` 는
-`applied_facts` 로 이름이 바뀐다(묶음 객체 없음, 사본·별칭 없음). 보고서 키 집합은 정상·정지 경로 모두 같은 13개다(§2). 엔진 코드 지문은 호출마다 한 번 재 `StageAResult.code_fp`(정지 결과 포함)로 돌려준다 --
+`applied_facts` 로 이름이 바뀐다(묶음 객체 없음, 사본·별칭 없음). 보고서 키 집합은 정상·정지 경로 모두 같은 14개다(§2; [NFR-4] 13개에 `env_fp` 를 더했다). 엔진 코드 지문은 호출마다 한 번 재 `StageAResult.code_fp`(정지 결과 포함)로 돌려준다 --
 `search.build_search_context(..., code_fp=)` 가 받는다(S3 줄·`run_id` 의 출처 칸).
 
 설계 40 §2.1 GB0~GB2, 41 §0 단계 A1~A3. 파일: `stage_a.py`(진입), `stage_a_budget.py`(`structure_count_budget`), `stage_a_report.py`(`write_stage_a_report`).
@@ -32,7 +32,10 @@ ng-bridge 브랜치(`oracle_input` 등 오라클 생산자)가 같은 파일을 
 - [U17-1d] A2 `build_s1(marks=)`: spec 이 있으면 `sizing.symmetry_marks(dc_inputs_from_spec(spec))`, 없으면 `NO_MARKS`(대칭 블록의 선언 표시 -- 커널 컨텍스트와 같은 그래프 하나, 40 §6-8 D-2).
   보고서 키 `orbit_matching_crosstab` = `{"orbits": [{"members", "records": [[kind, members]]}], "records": [{"kind", "members", "orbits"}]}`(MOS 궤도만, 40 §6-5; 정지 전 단계면 None).
 
-JSON 키(키 정렬): `circuit`, `status`, `exit_code`, `count_budget`(정지 전 단계면 0), `declared_comparison`, `stop_reasons`(`severity|code|view|대상,...|근거` 문자열 목록,
+[NFR-4 재확인 (a)·`env_fp`] `run_stage_a` 는 진입에서 `core.blas_environment()` 를 한 번 부른다(BLAS 스레드 1 확인 -- 실패는 `RuntimeError`). 그 반환값의 core `fp_of` 가 보고서 최상위 키 `env_fp` 다
+(정상·정지 경로 모두, dict 와 파일 JSON 같은 값). `StageAResult` 칸은 늘지 않는다.
+
+JSON 키(키 정렬): `circuit`, `status`, `exit_code`, `env_fp`, `count_budget`(정지 전 단계면 0), `declared_comparison`, `stop_reasons`(`severity|code|view|대상,...|근거` 문자열 목록,
 로드 거부는 `A1_load: <FailureRecord>`), `review_needed`(같은 형식), `views`(id·kind·blocks[kind,key,stage]·loop_count·cuts + [U1b] feedforward[id,cells,bias_cells,load_cells,bypassed_blocks,sign]·loop_roles[loop_id,role,reason]·polarity), `applied_facts`([U1b] 적용·확인한 (concept, subject) 목록), `ff_ratio_candidates`([U1b] [{view, ff, bypassed_block, relation, source}] -- 영점 상쇄 비율 제약 후보, 값은 spec 이 선언할 때만 제약), `tables`(= `graph.structure_tables(s1v)`:
 뷰별 셀·구동 종류·stage·블록·극점 노드·출력 방향·루프·끊는 점·`unreduced_diff`·기록, L 동치류, declared 요약, 적용한 ratified 사실; 로드 정지면 None), `coupling`([U10] GB3 결합 변수: `kind_counts`·`bias_columns`·`column_block_map`·`column_mate_devices`·`vars`[kind,members,nets,blocks,domain,init_rule] -- `graph.coupling_vars`, 단계 A4; 구조 정지·로드 정지면 None; 바이어스 기둥 의사 블록은 `blocks` 에 `bias:<기둥 id>` 키로 나온다, graph CONTRACT §11). `.md` 는 같은 정보의
 사람용 요약. 기존 파일은 덮어쓴다.
