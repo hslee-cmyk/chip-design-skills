@@ -240,7 +240,7 @@ def test_real_hash_seed_independent():
     code = SEED_CODE.format(tests=str(tests), skill=str(skill))
     out = []
     for seed in ("0", "12345"):
-        env = dict(os.environ, PYTHONHASHSEED=seed, PYTHONIOENCODING="utf-8", OPENBLAS_NUM_THREADS="1")
+        env = dict(os.environ, PYTHONHASHSEED=seed, PYTHONIOENCODING="utf-8")   # [NFR-4 card 2] BLAS 스레드는 엔진 import 가 고정(C1)
         proc = subprocess.run([sys.executable, "-P", "-c", code], cwd=str(skill), env=env, capture_output=True, text=True,
                               encoding="utf-8", timeout=1800)
         assert proc.returncode == 0, proc.stderr[-4000:]
