@@ -10,7 +10,7 @@ plan_version: 0.4
 > **Summary**: 승인된 계획 `offset-trim.plan.md` v0.4(사용자 결정 T-1~T-6)를 엔진 `gmid_engine` 설계로 옮긴다. 계획 N7.3의 TR-0 닫을 항목 G-1~G-8과 TR-7 샘플 수 규칙을 닫고(§3, §17), 결정적 변환 `augment_trim`, `trim_decl`·승인 기록·결속, 1단계 후보·추천, 2단계 θ·유도·코드 상태·균형 풀이·제약·metric, 구조 역할 `trim_dac`, graph 필드 소유, 결과 JSON, 파일 분할, card 범위와 test 초안, 9회로 적용 판정을 정한다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (design 작성자 역할)
-> **Status**: design 초안 v0.2 (2026-10-15). v0.1 독립 검증 66/100의 차단 B1·B3·B4와 비차단 N1~N13을 반영했다. 같은 날 사용자 결정 T-7~T-13(TD-1 θ안 등)을 반영해 B2는 소멸, B5는 시험 회로(T-9)로 정리했다. 열린 사용자 값은 TD-3이다(TD-6은 T-14로 닫힘, §18.1). 재검증 82점의 차단 B6(I_u θ 키)과 M1~M6을 반영했고 TD-10·X-T15는 사용자 결정·확인 대기다. 경위는 [offset-trim.design.history.md](offset-trim.design.history.md). 재검증·사용자 승인 전이다. 사용자 결정이 더 필요한 곳과 원래 취지와 다른 판단은 정하지 않고 §18에 모았다.
+> **Status**: design 초안 v0.2 (2026-10-15). v0.1 독립 검증 66/100의 차단 B1·B3·B4와 비차단 N1~N13을 반영했다. 같은 날 사용자 결정 T-7~T-13(TD-1 θ안 등)을 반영해 B2는 소멸, B5는 시험 회로(T-9)로 정리했다. 열린 사용자 값은 TD-3이다(TD-6은 T-14로 닫힘, §18.1). 재검증 82점의 차단 B6(I_u θ 키)과 M1~M6을 반영했고 TD-10·X-T15는 사용자 결정 T-15·T-16으로 닫혔다. 경위는 [offset-trim.design.history.md](offset-trim.design.history.md). 재검증·사용자 승인 전이다. 사용자 결정이 더 필요한 곳과 원래 취지와 다른 판단은 정하지 않고 §18에 모았다.
 > **기준**: 엔진 인용은 `944020f`(worktree `wt/trim-design`)의 `파일:줄`이다. `E/` = `skills/analog-gmid-design/gmid_engine/`. 엔진 design 인용은 `40 §x`(`gain-budget-gmid-sizing.40-engine.design.md`), `41 §x`.
 > **전제(T-4)**: 엔진 구현은 NFR-4 card 2 → XRUN-F1 card A·B·C 병합 뒤다. 이 문서는 그 병합 뒤 구조(40 §2.4.4~§2.4.14: `donors`·`counters` 필수 블록 호출, 블록 결과 색인, `RunCounters`, E_total, `search_ceiling`·`search_stop`, BLAS 고정, `ThetaCoords`)를 전제로 쓰고 충돌하지 않게 했다(§12.4).
 
@@ -54,6 +54,8 @@ plan_version: 0.4
 | T-12 | TR-7 식 S + 검증자 조건 3개 채택 | §17 |
 | T-13 | connectivity 표 도구를 새 엔진 로더로 이식 | TR-T |
 | T-14 | 보고 전용 온도 sweep 범위 −40 ~ 80 °C | §17 |
+| T-15 | TR-2 병합은 U16 뒤(TR-M·TR-1·TR-L 먼저 가능) | §15 |
+| T-16 | X-T15 해석 확인: 재승인 결정은 TR-4 착수 전, `rule_hash` 갱신은 TR-4 병합 때 | §11 |
 
 원문: `wt/_drafts/user_decisions.md` '## offset trim design 결정 (2026-10-15 사용자 "TD-1은 θ안, TD-8은 다로 해, TD2~TD7은 제안대로")'.
 
@@ -774,7 +776,7 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 |---|---|---|---|---|
 | **TR-M** 측정(엔진 코드 무변경) | G-2 표(§3.2)와 G-1 측정 항목(§3.1)·스키마 확장 성질(§10.2)을 9회로 후보 7회로 × 쌍 × 극성에서 잰다. 파생 topology는 측정 스크립트가 §7 규칙을 **독립 구현**해 만든다(구성 둘: 이진·thermometer 셀을 모두 갖는 최소 구성 N = 2, m = 1과, thermometer 셀이 여럿인 구성 N = 3, m = 1 -- 검증 N10). 결과 기록 `.ai/verification/trim/tr_m.json`. 켜진 스위치 ln IDu θ 상자의 실현 불가 비율(§10.2, 검증 N12)도 잰다. **방법(엔진 무변경, 재검증 M4)**: 스크립트가 LUT npz를 직접 읽는다. 원본 회로 1단계 front 점(또는 TR-M 시점의 원본 탐색 front 점)의 주입 넷 전압 V(n)을 그대로 두고, gate = on 레일(극성별)·source = 셀 공통 넷이 V(n) − VDS(sink) 범위를 움직일 때 LUT 격자의 (L, VDS, VSB) 마디마다 VGS = V_on − V_X가 축 안이고 그 마디 ln IDu가 kind 상자 안인지 센다. 비율 = 상자 격자 마디 가운데 어떤 V_X로도 닿지 않는 마디 수 / 전체 마디 수, 회로·쌍·극성별. **작성자 조건(검증 N11)**: 이 스크립트의 작성자는 TR-3 `augment_trim` 구현자와 다른 agent여야 한다(같은 규칙의 독립 구현이 TR-3 test oracle이 되기 때문) | design 승인 | 비교 행 차이 목록, DC 역할·셀 분류(trim 소자), KCL 기저 풀림 여부, 원본 θ 키 보존 여부가 회로별로 있다. 차이가 있으면 TR-4 design 보완 전 사용자 보고 | 스크립트 자체가 TR-3 `augment_trim` test의 독립 oracle이 된다(같은 규칙의 다른 구현) |
 | **TR-1** spec·승인·합성 | §5 전부, §6, §8.1·§8.2, 승인 로더, 온도 대조 | TR-0 승인, T-4 순서 | 섹션 검사·거부 사유 전수, D-4 공존 처리, 온도 대조 거부가 실제로 거부함, 선언 없는 spec 로드 결과 비트 동일 | 형식 위반 픽스처마다 사유 코드 / `offset_in_sigma_mv`와 공존 거부 / `offset_excess` 강등 / 온도 ≠ LUT `temp_c` 거부(LUT 메타를 test가 직접 읽음) / 셀 표·코드 벡터: test가 손으로 쓴 N = 3, m = 1·N = 2, m = 0 표와 대조(§7.4 검산식) / `trim_rule_fp` 파일 바이트 변경 시 변함 |
-| **TR-2** z·쌍·후보·추천(보고만) | §9.1~§9.4, `offset_adjoint` 쓰기, 결과 JSON `trim.stage1` 표(파생 topology 제외) | TR-1, TR-M | 7회로 후보표, 사유 코드 9회로(§16), 선언 없는 실행 무동작(§3.3) | t: 작은 손 회로(저항 + 이상 전류원 + 선형 MOS 소신호)에서 손으로 푼 z와 대조 / `dnl_sigma`: 단위 셀 전수 합으로 독립 계산한 최악 전이 분산과 대조 / `recommend_trim_config`: (N, m) 쌍 전수 결과와 순서 규칙 결과 일치, W_min 종료 / 쌍 규칙: matching group 손 픽스처 |
+| **TR-2** z·쌍·후보·추천(보고만) | §9.1~§9.4, `offset_adjoint` 쓰기, 결과 JSON `trim.stage1` 표(파생 topology 제외) | TR-1, TR-M. **병합 조건: U16(파이프라인 배선) 병합 뒤**(사용자 결정 T-15 -- `run_trim_candidates`를 제품 경로에서 부르기 위해. 착수·test 작성은 먼저 해도 된다) | 7회로 후보표, 사유 코드 9회로(§16), 선언 없는 실행 무동작(§3.3) | t: 작은 손 회로(저항 + 이상 전류원 + 선형 MOS 소신호)에서 손으로 푼 z와 대조 / `dnl_sigma`: 단위 셀 전수 합으로 독립 계산한 최악 전이 분산과 대조 / `recommend_trim_config`: (N, m) 쌍 전수 결과와 순서 규칙 결과 일치, W_min 종료 / 쌍 규칙: matching group 손 픽스처 |
 | **TR-3** 변환·출처·결속·출력 | §7, §8.3(1~5), §9.5, `topology_from_data` | TR-2 | 파생 topology가 로드 게이트 통과, 결정성(두 번 비트 동일), 이름 충돌 거부, 승인 stale 다섯 경로 각각 정지, 1단계 출력 파일 | TR-M 독립 구현과 소자·넷·`bias_inputs` 비교 / 입력 dict 순서 섞기 → 같은 출력 / 결속 경로마다 지문 하나만 바꾼 픽스처 → 해당 detail로 정지 |
 | **TR-4** 역할·구조 검사 | §11, §3.2 검사(§8.3-6), structure.json 재승인 | TR-3, **착수 조건: structure.json 2개(current_reuse_telescopic_ota, nmcnr_amplifier) 재승인 완료**(사용자 결정 T-11, 절차 §11) | 9회로에서 trim 소자 셀 종류 `off`·블록 역할 없음, 구조 검사 통과(TR-M 차이 0 회로), 차이 주입 픽스처에서 정지. **병합 조건: structure.json 2개 재승인 완료** | 손 회로: trim 소자가 신호 도달에서 빠짐 / 부하 역할 집합에 trim 소자 없음 / 원본 matching group에 trim 소자를 섞은 픽스처 → `trim_structure_divergent` |
 | **TR-5a** 전류 0 소자·trim 전류 | §3.1 sizing·metrics 경로(꺼진 스위치 진성 용량은 TR-L의 VGS 음수 축 LUT로), I_u θ 성분과 셀 전류 묶음, 스위치 묶음, 스키마 확장 검사 | TR-4, **TR-L**(T-10) | 봉인 상태 파생 회로가 봉인 1~9 통과(시험 회로, T-9), off 소자 DC·잡음·σ LUT 조회 0(조회 계측), off 소자 진성 용량은 VGS 음수 축 조회, 선언 없는 실행 비트 동일 | off 소자: W = 짝 W, 소신호 gm = 0, 잡음원 없음, σ 항 0, 진성 용량 = TR-L 축의 LUT 값(test가 LUT 배열을 직접 읽어 대조) / 원뿔: off 스위치 행 없음, I_u 항이 원본 MOS 행에 θ 선형으로 들어감 / KCL: 손으로 푼 셀 전류 = w_c·I_u |
@@ -881,6 +883,8 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 | TD-4 → T-11 | structure.json 2개 재승인은 TR-4 착수 전 | §11 절차 |
 | TD-5 → T-12 | 식 S + 검증자 조건 셋 | §17 |
 | TD-7 → T-13 | 표 도구를 새 엔진 로더로 이식 | TR-T |
+| TD-10 → T-15 | `run_trim_candidates` 제품 경로 배선: (다) TR-2 병합을 U16 뒤로. TR-M·TR-1·TR-L은 먼저 진행 가능(2026-10-15 사용자 "TD-10은 다") | §15 TR-2 행 |
+| X-T15 → T-16 | structure.json 재승인 결정은 TR-4 착수 전, `rule_hash` 파일 갱신은 TR-4 병합 때(사용자 확인) | §11 절차 |
 | TD-6 → T-14 | 보고 전용 온도 sweep 범위 = −40 ~ 80 °C(2026-10-15 사용자 "TD-6은 -40~80") | §17-3·5, TR-7 |
 
 **열림**(사용자 값):
@@ -889,7 +893,6 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 |---|---|---|
 | TD-3 | 단일 출력 6회로의 출력 기준 DC 값(`node_voltage_targets_v`, CI-15) -- 오케스트레이터가 회로별 선택지를 제안하고 사용자가 고른다(T-14 원문) | 그 회로들의 추천·2단계(값이 정해질 때까지 후보표까지만) |
 | (절차) | 시험 회로 topology·spec 승인(§16.1) | TR-5b·5c·7의 2단계 완료 조건 |
-| TD-10 | `run_trim_candidates`(1단계 진입)의 제품 경로 배선 -- 지금 파이프라인 진입(U16 `run_gmid_design_pipeline`)이 없다. (가) U16 전에는 실행 스크립트·test 진입을 배선 증거로 인정 (나) `run_stage_b` 뒤에 `find_front`·trim 1단계 진입을 부르는 배선을 TR-2 범위에 넣음 (다) TR-2 병합을 U16 뒤로 미룸. **사용자 결정 대기** | TR-2 병합(배선 증거) |
 
 ### 18.2 원래 취지와 다름(따로 보고)
 
@@ -909,7 +912,7 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 | X-T12 | (해소) K_trim 상한 문제는 T-7로 고정점·K_trim 자체가 없어져 대상이 사라졌다 |
 | X-T13 | §17 식 S에서 spec k를 두 번 쓴다: (1) 보정 구간 배수(계획 정의) (2) σ 추정 오차의 신뢰 배수. (2)는 '새 신뢰 상수를 만들지 않기 위해' 같은 선언값을 재사용한 design 선택이다. 별도 신뢰 배수를 spec에 두는 안은 사용자·검증자 몫(TD-5) |
 | X-T14 | **I_u = θ 변수**(§10.2·§10.3): 계획 D-16(I_u = 하한값)·X-3(I_u를 θ에서 뺀다)과 다르다. **사용자 결정 T-7로 승인됨**. 하한은 제약 `trim_range` + 전력·면적 최소화로 얻는다. 계획 D-16 행은 같은 브랜치에서 T-7로 한 줄 정정했다 |
-| X-T15 | structure.json 재승인(T-11 'TR-4 착수 전'): 새 `rule_hash` 값은 TR-4 코드에서만 계산되므로, 착수 전에는 재승인 **결정**을 받고 파일의 `rule_hash` 갱신은 TR-4 병합에서 한다(§11 절차, 40 §3.2-3 작성 순서). 결정 문언과 시점 해석이 다를 수 있어 보고한다 -- **사용자 확인 대기** |
+| X-T15 | structure.json 재승인(T-11 'TR-4 착수 전'): 새 `rule_hash` 값은 TR-4 코드에서만 계산되므로, 착수 전에는 재승인 **결정**을 받고 파일의 `rule_hash` 갱신은 TR-4 병합에서 한다(§11 절차, 40 §3.2-3 작성 순서). 결정 문언과 시점 해석이 다를 수 있어 보고한다 -- **사용자 확인됨(T-16)** |
 | X-T16 | 2단계는 원본 회로를 다시 평가하지 않으므로(§10.1) '원본 대비 DAC가 더한 offset 분산' 보고는 1단계 front 점(원본 회로, 그 θ)과 2단계 front 점(파생 회로, 다른 θ)의 값 비교다. 같은 θ의 쌍 비교가 아니라는 문구를 보고에 함께 싣는다 |
 
 ---
