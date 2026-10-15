@@ -137,7 +137,9 @@ def runs(tmp_path_factory):
 
 
 def test_single_thread_start_fp_matches_base(runs):
-    # oracle (c): base 기준선(fixtures/u17_1b_s0_baseline.json, base master a5d8ccb 측정) -- 스레드 1 고정이 기준선을 재현한다
+    # oracle (c): base 기준선(fixtures/u17_1b_s0_baseline.json, base master a5d8ccb 측정) -- 스레드 1 고정이 기준선을 재현한다.
+    # [library spec card 2026-10-14, U-3] two_stage_ota 항목은 Q-S2(pm_ss_deg >= 70) spec 변경 뒤 base 41a2c4a 코드로 재측정
+    # (wt/_scratch_libspec_tests/remeasure.py, OPENBLAS_NUM_THREADS=1) -- test_s0_layer_9circuits 와 같은 기준선.
     want = BASELINE[CIRCUIT]["start"]
     exp = {"device/%s: start.row" % d: fp for d, fp in want["row_fp"].items()}
     exp.update({"graph/start: " + f: want[BASE_KEYS[f]] for f in START_FIELDS})

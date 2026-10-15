@@ -192,6 +192,18 @@ def bsim4_junction(params, fw, ad, as_, pd, ps, m, v_db, v_sb, temp_c):
 
 REAL_LN_IDU = -14.0             # 손 봉인 점: 모든 ln_idu 성분(= ln(ID·L/W)) -- 실측(2026-10-09) 두 회로 모두 봉인·제약 행 c >= 0 인 값
 REAL_CURRENT_SCALE = 3e5        # 손 봉인 점: 층 0 θ 의 current 성분 배율(층 0 은 전류 하한 근처 ~5e-11 A -> ~1.5e-5 A)
+# [library spec card 2026-10-14] two_stage_ota spec 에 pm_ss_deg >= 70(사용자 Q-S2)이 들어와 위 공통 규칙의 점은 PM 행만 c = -3.21 로 출발 조건
+# (봉인 + 모든 제약 행 c >= 0)을 잃었다. 출발 조건이지 기대값이 아니므로 다시 잡았다 -- 고른 방법(엔진 밖 스크립트, 피검 함수 출력은 출발 조건
+# 확인에만 씀): wt/_scratch_libspec_tests/conv_p0_diag2.py(결과 conv_diag2.json·txt).
+#  1. 축 선택: 성분 하나씩 x10^(±1/8)(ln_idu ±0.5) 바꾼 민감도 진단(conv_p0_sens.py)에서 PM 행 c 를 올리는 성분 = Cc 증가·2단 소자(M6, gate = O1,
+#     drain = OUT) current 증가(회로 해석: Miller 보상 2단 OTA 의 비주극점 gm6/CL 상승·주극점 하강). 공통 배율 축(current 전부·ln_idu 전부)과
+#     단일 축(M6 만 -- c 가 -1.07 에서 포화, Cc 만 -- 상자 상한 전에 gbw 행이 깨짐)은 모두 실패.
+#  2. 탐색: (i, j) = (M6 current 배율 10^(i/16), Cc 배율 10^(j/16)), j <= 8(Cc 상자 [1e-13, 1e-11] F 상한, 층 0 Cc = 3.16 pF), i + j 를 0 부터
+#     늘리고 같은 합에서는 j 오름차순으로 돌아 '봉인 + 모든 제약 행 c >= 0' 인 첫 점 -> (i, j) = (10, 6). 그 점 PM 행 c = 0.117, gbw 행 c = 0.055.
+# common_gate_amplifier 는 항목이 없어 옛 점 그대로다.
+REAL_EXTRA_FACTORS = {
+    "two_stage_ota": ((("current", "M6"), 10 ** (10 / 16)), (("capacitance", "Cc"), 10 ** (6 / 16))),
+}
 REAL_CIRCUITS = ("common_gate_amplifier", "two_stage_ota")
 
 
@@ -216,6 +228,8 @@ class RealPath:
         theta = {}
         for (kind, key), v in th.items():
             theta[(kind, key)] = REAL_LN_IDU if kind == "ln_idu" else (v * REAL_CURRENT_SCALE if kind == "current" else v)
+        for comp, factor in REAL_EXTRA_FACTORS.get(name, ()):      # 회로별 추가 배율(아래 상수 주석) -- 이름 전단사 변형도 원 이름 θ 에서 곱한 뒤 사상
+            theta[comp] *= factor
         sctx = self.pipe.fresh_sctx(case)
         theta = map_theta(theta, case)
         result = evaluate(sctx, theta, map_cells(cells, case, sctx.domain))

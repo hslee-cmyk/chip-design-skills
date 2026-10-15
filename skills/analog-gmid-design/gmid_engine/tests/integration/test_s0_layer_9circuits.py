@@ -19,6 +19,10 @@
    [U17 ①-b 판정 후 2026-10-14] 단계 A 보고서 `tables` 기준선은 옛 기준선 표에서 design 이 바꾼 만큼만 변환했다: 설계 40 v1.9.1 D1(§2.4.8
    graph/s1v 5필드 -- 최상위 `key` 칸 폐기) + 추가 결정 (c)(`facts_applied` -> `applied_facts` 이름 하나). 변환 스크립트
    `wt/_scratch_u17_1b_fix_tests/transform_tables_baseline.py`(head 출력 복사 아님). `junction_source` 는 경로 아닌 내용(params·온도·PDK 선언 sha)으로 대조한다(아래 6).
+   [library spec card 2026-10-14, 사용자 U-3 '4회로만 재측정'] spec 입력이 바뀐 4회로(Q-S2 pm_ss_deg >= 70: sf_pushpull_output_opamp·
+   two_stage_ota·two_stage_ota_sf, Q-S3 잡음 450 uVrms: current_reuse_telescopic_ota) 항목은 base 41a2c4a 코드로 이 test 작성 주체가 엔진 밖
+   스크립트 `wt/_scratch_libspec_tests/remeasure.py`·`merge.py`(OPENBLAS_NUM_THREADS=1)로 다시 잰 값이다. 나머지 5회로 항목은 바이트 그대로이고
+   같은 스크립트의 재측정값이 그 항목과 같음을 확인했다(측정 방법이 기준선을 재현한다는 근거). current_reuse 는 재측정값이 옛 항목과 같아 바이트 불변.
 
 S0 스냅샷 저장 시점 = build_search_context 끝 1회(D6)라 실행 사슬은 단계 A -> 단계 B -> 커널 컨텍스트 -> 탐색 컨텍스트다. 단계 A 가 ok 가
 아닌 회로(기준선 ngcc_3stage_ff = review_needed)는 탐색 컨텍스트를 만들지 않으므로 5 의 보고서 대조만 한다.

@@ -1497,7 +1497,7 @@ metric 이름은 주파수를 숫자로 고르지 않도록 '평탄값'과 'corn
 
 | 회로 | 잡음 선언 |
 |---|---|
-| current_reuse_telescopic_ota(파일럿) | `noise_out_int_vrms <= 300e-6`. 출처: `user_spec`(논문 Xie & Chen Table I 값 채택, 사용자 결정) |
+| current_reuse_telescopic_ota(파일럿) | `noise_out_int_vrms <= 450e-6`(V). 감지 = 차동 출력 v(Vop)−v(Vom)(view 미적음, 기본 포트 뷰), 대역 = 이 절의 적분 대역. 출처: `user_spec`(사용자 결정 2026-10-14 Q-S3, 근거 `_pilot_current_reuse/noise_basis.md` §4(c) C1: SPICE 438.5 µV @ 282 µW) |
 | two_stage_ota, two_stage_ota_sf, folded_cascode, ngcc_3stage_ff, nmcnr_amplifier, sf_pushpull_output_opamp, common_gate_amplifier | `noise_excess_th <= 2`(가드: 부하 잡음 ≤ 입력 잡음, `user_spec`). 그리고 `noise_th_in_v2hz`·`noise_fc_in_hz` 보고 |
 | pushpull_follower_buffer | 제약 없음, 보고만(이득 ~1 버퍼라 잡음 스펙이 의미가 없음) |
 
