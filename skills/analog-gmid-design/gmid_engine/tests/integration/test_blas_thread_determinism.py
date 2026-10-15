@@ -1,9 +1,9 @@
 """[NFR-4 card 2, N-T29] BLAS 스레드 수 결정성 -- 9 library 회로, 바깥 OPENBLAS_NUM_THREADS 1 대 max(2, cpu) (interface card nfr4c2 C1·C3·C6·C7,
 설계 40 §2.4.13 (5) '실행 하네스와 9회로 test 실행 방식', 사용자 결정 N-2·N-2 정정).
 
-[NFR-4 card 2] 다시 썼다(3.2 표): 옛 docstring·`CODE`(출발 구간 지문만)·병렬 `_launch`(Popen 둘 동시)·strict xfail 을 지웠다. 엔진이 import 때 BLAS 스레드를
-1 로 고정하므로(C1) 바깥 스레드 설정은 결과를 바꾸지 않아야 한다 -- strict xfail 이 기다리던 '엔진 원인 수정'이 이 card 다(설계 40 §2.4.13 (5)
-'승인 불필요: strict xfail 제거·범위 확장(기준 강화)').
+[NFR-4 card 2] 다시 썼다(3.2 표): 옛 docstring·`CODE`(출발 구간 지문만)·병렬 `_launch`(Popen 둘 동시)·예상 실패 표시를 지웠다. 엔진이 import 때 BLAS
+스레드를 1 로 고정하므로(C1) 바깥 스레드 설정은 결과를 바꾸지 않아야 하고, 이 test 는 그것을 통과 조건으로 단언한다(설계 40 §2.4.13 (5)
+'승인 불필요: 예상 실패 표시 제거·범위 확장(기준 강화)').
 
 무엇을 보나(회로마다): 하네스 `nfr4_run_dump.py` 를 새 프로세스로 둘 -- 바깥 스레드 1, max(2, cpu) -- **순차**로 돌려(subprocess.run, 병렬 금지)
 실행 기록을 받고,
@@ -12,7 +12,7 @@
   T 시간 칸만 뺌)이 같고(diffs 빈 목록), 판정 불능 0, PASS.
 - `test_single_thread_start_fp_matches_base`(유지): 스레드 1 실행의 two_stage_ota 출발 구간 S0 필드 값 지문 = 기준선
   (`fixtures/u17_1b_s0_baseline.json`, oracle (c) 독립 기준선 파일 -- test_s0_layer_9circuits 와 같은 기준선).
-oracle: (비교) 같은 하네스의 두 실행 출력을 맞댄다, (독립) 기준선 파일. strict xfail 없음.
+oracle: (비교) 같은 하네스의 두 실행 출력을 맞댄다, (독립) 기준선 파일. 모든 test 는 예상 실패 표시 없이 통과해야 한다.
 실행 방식(C7): 환경 = 허용 목록 dict(PATH·SYSTEMROOT·APPDATA·TEMP/TMP·GMID_LUT_TABLE_CACHE_DIR·PYTHONDONTWRITEBYTECODE·PYTHONIOENCODING
 + 바깥 OPENBLAS_NUM_THREADS + LUT·PDK 데이터 위치 변수(있으면)), TEMP 와 표 캐시는 회로마다 한 경로를 실행마다 비워서 쓴다(빈 폴더 -- 경로 문자열이 실행
 사이에 같아 S0 값 지문에 경로 차이가 끼지 않는다), 실행마다 별도 작업 폴더(S3·보고서), E_B 40 선언, front_budget_s 7200 s, 회로마다 기록 파일.

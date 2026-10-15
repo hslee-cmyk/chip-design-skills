@@ -286,6 +286,9 @@ def _lines(path):
 
 
 def main(argv=None):
+    # 바깥 스레드 설정은 엔진 import 전에 읽어 둔다 -- 엔진이 import 때 OPENBLAS_NUM_THREADS 를 1 로 고정하므로(interface card C1)
+    # import 뒤에 읽으면 항상 '1' 이 된다. progress.log 의 `start threads_env=` 와 기록의 `threads_env` 가 이 값 하나를 쓴다.
+    threads_env = os.environ.get("OPENBLAS_NUM_THREADS")
     ap = argparse.ArgumentParser()
     ap.add_argument("circuit")
     ap.add_argument("out_json")
@@ -302,7 +305,7 @@ def main(argv=None):
         with open(log, "a", encoding="utf-8") as f:
             f.write("%s %s %s\n" % (time.strftime("%H:%M:%S"), a_.circuit, msg))
 
-    note("start threads_env=%s numpy_first=%s" % (os.environ.get("OPENBLAS_NUM_THREADS"), a_.numpy_first))
+    note("start threads_env=%s numpy_first=%s" % (threads_env, a_.numpy_first))
     if a_.numpy_first:
         import numpy  # noqa: F401
         import scipy.linalg  # noqa: F401
@@ -358,7 +361,7 @@ def main(argv=None):
               "eval_budget_source": None, "stops_wall_budget": None, "stop_values": [],
               "context": {"grid_m": float(q["manufacturing_grid_m"].value_m) if "manufacturing_grid_m" in q else grid,
                           "w_min_m": None, "rails": {}, "node_mos": {}, "mos_tol_v": {}},
-              "threads_env": os.environ.get("OPENBLAS_NUM_THREADS"), "numpy_first": a_.numpy_first, "fields": d.fields}
+              "threads_env": threads_env, "numpy_first": a_.numpy_first, "fields": d.fields}
     out_json = Path(a_.out_json)
 
     def save():
