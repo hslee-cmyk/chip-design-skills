@@ -4,7 +4,7 @@
   "evidence_type": "red-green",
   "base_commit": "0538decfae6661449795c0446fc4f97e905420e0",
   "test_commit": "e86b4541ff26a15bd3e026e2acb211dac3b61285",
-  "code_commit": "7e1b4bed88130f69e52c0594633350f60a19280c",
+  "code_commit": "cc30be6d690ba0ba0d61b0414a8e1c59726e1fd8",
   "red": {
     "test_ids": [
       "skills/analog-gmid-design/gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[common_gate_amplifier]",
@@ -168,12 +168,32 @@
       "name": "graph_outside_new_stores",
       "value": 0,
       "command": "scripts/ast_stores.py (counters 칸 1 = 같은 칸 키 변경)"
+    },
+    {
+      "name": "j8_changed_py_ast_same_without_docstring",
+      "value": 3,
+      "command": "python scripts/ast_nodoc.py head2 8f1afc5 dd2d984 <4 .py>"
+    },
+    {
+      "name": "j8_module_map_constant_diffs",
+      "value": 1,
+      "command": "ast.walk 노드 비교 _module_map.py 8f1afc5 vs dd2d984"
+    },
+    {
+      "name": "j8_graph_dir_diff_files",
+      "value": 0,
+      "command": "git diff --stat 8f1afc5 dd2d984 -- gmid_engine/graph"
+    },
+    {
+      "name": "j8_tests_passed",
+      "value": 154,
+      "command": "pytest structure, graph/test_s1v_key, search/test_search_context, search/test_s0_fields, pipeline/test_stage_a (dd2d984, 순차)"
     }
   ],
   "approvals": [],
   "auditor_run": {
-    "time": "2026-10-15T16:20:00+09:00",
-    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrun-audit (격리 복제본 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrun_audit/{head,red,base})",
+    "time": "2026-10-15T16:50:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrun-audit (격리 복제본 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrun_audit/{head,red,base}) + J-8 재확인 복제본 _scratch_xrun_audit/head2 (dd2d984)",
     "commands": [
       "V1: cd <head clone>/skills/analog-gmid-design && for p in authoring convergence core generality graph integration layout lut metrics pipeline search sizing structure; do (unset OPENBLAS_NUM_THREADS GMID_S0_SNAPSHOT_DIR; PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -m pytest gmid_engine/tests/$p -q -p no:cacheprovider -rfEX --durations=5 --junitxml=results/suite_head/$p.xml); done",
       "격리: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrun-integ _scratch_xrun_audit/head && git -C head checkout --detach 8f1afc5 && git -C head remote remove origin; red·base 복제본은 순서 3(xrun-audit 에서 clone, origin 제거)",
@@ -186,13 +206,15 @@
       "A-1·A-3·A-4·A-5·A-9: bash scripts/run_measure.sh (scripts/measure_run.py 회로당 새 프로세스 4개 순차, scripts/make_fail_s3.py); python scripts/compare_runs.py m results/measure_compare.json",
       "A-2: git grep -n -w --text <이름> -- gmid_engine (이름 20개 + s0_snapshot·pdk_decl_missing·pdk_source_sha256_mismatch·read_snapshot)",
       "V5: python <게이트 캐시 6df4bd7f>/weakening_diff.py --root head --base 0538dec --head 8f1afc5; python scripts/removed_tests.py head results/v5_removed_tests.json",
-      "graph 정본: python scripts/ast_stores.py <scratch> ast_stores.json base"
+      "graph 정본: python scripts/ast_stores.py <scratch> ast_stores.json base",
+      "J-8 격리: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrun-integ _scratch_xrun_audit/head2 && git -C head2 checkout --detach dd2d984 && git -C head2 remote remove origin",
+      "J-8: python scripts/ast_nodoc.py head2 8f1afc5 dd2d984 <_module_map.py s0_fields.py search_context.py kernel_context.py>; for t in structure graph/test_s1v_key.py search/test_search_context.py search/test_s0_fields.py pipeline/test_stage_a.py; do pytest gmid_engine/tests/$t -q -p no:cacheprovider; done"
     ]
   },
   "checks": {
     "V1": {
       "verdict": "PASS",
-      "basis": "병합본 8f1afc5 격리 복제본, 패키지 13개를 하나씩 순차 실행(-k·--deselect·-x 없음, slow 포함, 바깥 OPENBLAS 미지정 -- conftest 가 1 고정): 9994 passed / 0 failed / 3 xfailed(integration 1·layout 2) / 0 skipped, 13 패키지 exit 0. structure 의 1 deselected 는 conftest 가 규칙 H 마커를 기본 실행에서 빼는 것(옵션 아님) -- 따로 -m structure_test_mapping 실행: 위반 6 = base 0538dec 6 과 같은 목록(기존 결함). 직전 master 10110/0/3/1 대비: 수집 base 10114 -> head 9997(-159 +42). 삭제 159 = core/test_snapshot_codec 71(base skip 1 = 이 파일 심볼릭 링크 test)·test_type_registry 22·test_s0_slot 7, integration/test_code_hash_checkout 5·test_s0_layer_9circuits 17, pipeline/test_stage_a 30, search/test_start_intervals 3·test_constraint_classes 1·test_kernel 1·test_s0_fields 1·test_start_points 1 (전부 design 40 §2.4.3 test 삭제·변경 목록 + J-1·J-4). 신규 42 = test_s0_layer_9circuits 16·test_no_s0_files_written 4·test_rerun_s3_independence 3·test_stage_a 5·test_front_entries 6·test_kernel 1·test_start_points 1·test_find_front 1·test_search_context 2·구조 K 3. skipped 1->0 = 삭제된 코덱 test 의 skip."
+      "basis": "병합본 8f1afc5 격리 복제본, 패키지 13개를 하나씩 순차 실행(-k·--deselect·-x 없음, slow 포함, 바깥 OPENBLAS 미지정 -- conftest 가 1 고정): 9994 passed / 0 failed / 3 xfailed(integration 1·layout 2) / 0 skipped, 13 패키지 exit 0. structure 의 1 deselected 는 conftest 가 규칙 H 마커를 기본 실행에서 빼는 것(옵션 아님) -- 따로 -m structure_test_mapping 실행: 위반 6 = base 0538dec 6 과 같은 목록(기존 결함). 직전 master 10110/0/3/1 대비: 수집 base 10114 -> head 9997(-159 +42). 삭제 159 = core/test_snapshot_codec 71(base skip 1 = 이 파일 심볼릭 링크 test)·test_type_registry 22·test_s0_slot 7, integration/test_code_hash_checkout 5·test_s0_layer_9circuits 17, pipeline/test_stage_a 30, search/test_start_intervals 3·test_constraint_classes 1·test_kernel 1·test_s0_fields 1·test_start_points 1 (전부 design 40 §2.4.3 test 삭제·변경 목록 + J-1·J-4). 신규 42 = test_s0_layer_9circuits 16·test_no_s0_files_written 4·test_rerun_s3_independence 3·test_stage_a 5·test_front_entries 6·test_kernel 1·test_start_points 1·test_find_front 1·test_search_context 2·구조 K 3. skipped 1->0 = 삭제된 코덱 test 의 skip. [J-8 재확인, 최종 판정 대상 dd2d984] 8f1afc5..dd2d984 = design 문서(49867a7)와 엔진 문구(cc30be6): .py 4개 docstring 제거 AST 비교 3개 같음, _module_map.py 는 ModuleEntry 역할 문자열 1개만 다름(동작 0), graph/ diff 0(structure_rule_fp 불변). dd2d984 격리 복제본 순차 실행: structure 63 passed(H 6 = 같은 목록), graph/test_s1v_key 15, search/test_search_context 29, search/test_s0_fields 5, pipeline/test_stage_a 42 passed. 새 문장 사실 대조 맞음(search_context context_fp, core CONTRACT 243·489, _module_map stage_a 순서, STAGE_B_WRITES 실재), design 40 v1.10.1·42 D-GR3 OK 는 이 판정 증거와 같음."
     },
     "V2": {
       "verdict": "PASS",
@@ -212,7 +234,7 @@
     },
     "V6": {
       "verdict": "PASS",
-      "basis": "구조 규칙 A~I·K: tests/structure 63 passed(V1 안, K 3개 포함 -- 엔진 트리 check_k 위반 0, rule_k bad 기대 13 정확히, good 0, -k rule_k_ = 3개만, -k rule_k 는 test_cases_cover_all_32_rule_kinds 도 골라 접두가 충돌을 막음). 규칙 H 위반 6 = base 와 같은 목록(새 search/front_entries.py 는 tests/search/test_front_entries.py 1:1, 지운 core 3파일의 test 도 삭제). _module_map: type_registry·snapshot_codec·s0_slot 항목·층 목록 삭제, front_entries.py entry 행(read_front_entries, N3.3·U-90) 추가, 함수 레지스트리 §2 read_front_entries 행 추가. graph 단일 정본: 엔진 non-test AST 저장소 전수 head 대 base 새 저장소 0(counters dict 는 disk_hits 키만 빠진 같은 칸), 사라진 것 = disk_failures dict·S0Slot·S0SnapshotStore 칸·type_registry._types·StageAResult.s0 -- 옛 (d) 저장소 0. 엔진 graph 코드(필드 writer) 변경 0(graph 패키지 diff 는 __init__ 등록 호출 삭제·docstring), S0 writer 31개(9회로 공통) = 각 1 계산 -> 40 §2.4.8 소유표 변화 없음."
+      "basis": "구조 규칙 A~I·K: tests/structure 63 passed(V1 안, K 3개 포함 -- 엔진 트리 check_k 위반 0, rule_k bad 기대 13 정확히, good 0, -k rule_k_ = 3개만, -k rule_k 는 test_cases_cover_all_32_rule_kinds 도 골라 접두가 충돌을 막음). 규칙 H 위반 6 = base 와 같은 목록(새 search/front_entries.py 는 tests/search/test_front_entries.py 1:1, 지운 core 3파일의 test 도 삭제). _module_map: type_registry·snapshot_codec·s0_slot 항목·층 목록 삭제, front_entries.py entry 행(read_front_entries, N3.3·U-90) 추가, 함수 레지스트리 §2 read_front_entries 행 추가. graph 단일 정본: 엔진 non-test AST 저장소 전수 head 대 base 새 저장소 0(counters dict 는 disk_hits 키만 빠진 같은 칸), 사라진 것 = disk_failures dict·S0Slot·S0SnapshotStore 칸·type_registry._types·StageAResult.s0 -- 옛 (d) 저장소 0. 엔진 graph 코드(필드 writer) 변경 0(graph 패키지 diff 는 __init__ 등록 호출 삭제·docstring), S0 writer 31개(9회로 공통) = 각 1 계산 -> 40 §2.4.8 소유표 변화 없음. [J-8] dd2d984 tests/structure 63 passed·규칙 H 6 같은 목록, _module_map 문구만 변경."
     },
     "V7": {
       "verdict": "PASS",
