@@ -39,7 +39,7 @@ plan_version: 6.10
 | NFR-1 조용한 실패 불가 | 전체 | PART | `E/core/failure_errors.py:20-60`. 아카이브 문자열 복원 결함 |
 | NFR-2 같은 키 재계산 0, LUT memo 상한 | 40 §7.3 | PART | `E/core/compute_block.py:77`. `rg "from_sweep\("` 호출부 0(`E/lut/lut_memo.py:34`) |
 | NFR-3 IC1~IC11 강제 test | 40 §10.3 | MISS | 패키지별 test 폴더(R26 현행 체계 유지)에서 `rg "def test_ic"` 0 |
-| NFR-4 결정론 | 전체 | PART | `E/core/determinism.py`. 구조 규칙 test `tests/structure/test_structure_rules.py`. v1.9.2 결함 기록(결정 8): OpenBLAS 스레드 수 의존(40 §11 U17 ② 선행) -- 상태는 다음 gap 분석에서 다시 잰다. v1.9.4(사용자 결정 2026-10-15): 설계 = 40 §2.4.13·41 §5.13, 설계 항목 D-ND1~D-ND4. PART 근거: 엔진 안 BLAS 고정 없음(D-ND1), 경계 배치 결함(D-ND2), 알려진 다른 환경 결함(D-ND4) |
+| NFR-4 결정론 | 전체 | PART | `E/core/determinism.py`. 구조 규칙 test `tests/structure/test_structure_rules.py`. v1.9.2 결함 기록(결정 8): OpenBLAS 스레드 수 의존(40 §11 U17 ② 선행) -- 상태는 다음 gap 분석에서 다시 잰다. v1.9.4(사용자 결정 2026-10-15): 설계 = 40 §2.4.13·41 §5.13, 설계 항목 D-ND1~D-ND5(D-ND5는 v1.10 대상 소멸, N/A). PART 근거: 엔진 안 BLAS 고정 없음(D-ND1), 경계 배치 결함(D-ND2), 알려진 다른 환경 결함(D-ND4) |
 | NFR-5 스펙 맞춤, 여유 바닥 | 40 §3.6 | PART | 분해능은 있다(`E/metrics/sensitivity.py:1-15`, `MetricResult.resolution`). 모델 오차와 예산 점이 없다 |
 | NFR-6 기능별 파일 | 40 §1.2 EP-3 | OK | `E/tests/structure/structure_checks.py:312-1114`(규칙 A~I) |
 
