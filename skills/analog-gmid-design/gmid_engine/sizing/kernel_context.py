@@ -10,7 +10,7 @@ WP-23 (3) 루프 불변 입력은 S0 수준 필드로, 설계 3.1, 40 §2.4.7 `K
 `kernel_fields`(writer `kernel_context`: `graph/kernel: fixed_values·resistor_values·l_ties` -- L 동치류는 S1v 필드 `graph/s1v: l_classes` 에서 읽는다(derived 와
 ratified(`l_owner` 사실) 만 L 공유), S1v 필드가 없으면 소자마다 L) -> `dc_theta_schema`(`graph/kernel: theta_schema` -- engine 수동소자, DEC-92).
 계획 블록의 정지(`StructureUnresolvedError`)·KCL 선언 충돌(`InfeasibleTargetError`)은 그대로 전파된다(탐색 전 정지).
-모든 블록은 입력 버전이 같으면 재사용이라 같은 S0 의 다음 호출(디스크 S0 수준 스냅샷 위 포함)은 계산 0 이다.
+모든 블록은 입력 버전이 같으면 재사용이라 같은 실행 안에서 같은 S0 수준 스냅샷 위의 다음 호출은 계산 0 이다(디스크 스냅샷·실행 사이 재사용은 없다).
 결과 `KernelContext(base, inputs, lut)` 는 참조만 담는다 -- θ 스키마·고정 노드·저항 값·L 묶음은 `base` 의 `graph/kernel` 필드, 계획 블록 입력 버전은
 `base.block_version(writer)`(writer = `PLAN_WRITERS`)로 읽는다(사본 없음).
 * `lut.w_keys` 에 S1 MOS kind 가 모두 있어야 하고 그 (kind, w_key) 슬라이스가 LUT 에 있어야 한다(`ValueError`).

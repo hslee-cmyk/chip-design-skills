@@ -14,7 +14,7 @@
   (graph/s1v), `judged_constraints`·`ss_constraints`·`constraint_notes`(`constraint_classes` -- ss 는 spec 위치에서 spec 선언을 읽는다), `rungs`(`graph/start: rungs` 또는 None),
   `schema_fp`(θ 스키마 필드의 값 지문), `element_values`·`driving`(spec 파싱 결과 참조).
 * 지문: `context_fp` = (S1 블록·커널 계획 블록(`PLAN_WRITERS`)의 입력 버전, LUT 손잡이, DcInputs) 지문 -- 평가 커널이 읽는 S0 입력만이다(정의역 상자·출발 구간·접합 선언
-  경로 같은 탐색 쪽 S0 필드는 평가 결과를 바꾸지 않아 넣지 않는다: θ 상자만 바뀐 실행도 S3 평가 키·실패 기록이 그대로 맞는다), `schema_fp` = θ 스키마 필드 값 지문, `code_fp` = 호출자가 넘긴 core `engine_code_fp()` 값(단계 A 가 실행마다
+  경로 같은 탐색 쪽 S0 필드는 평가 결과를 바꾸지 않아 넣지 않는다: 평가 키 `EvalKey` 가 `context_fp` 를 담으므로, θ 상자만 바뀌면 같은 θ 의 한 실행 안 캐시 키와 S3 줄의 `context_fp` 가 그대로다), `schema_fp` = θ 스키마 필드 값 지문, `code_fp` = 호출자가 넘긴 core `engine_code_fp()` 값(단계 A 가 실행마다
   한 번 재 `StageAResult.code_fp` 로 넘긴다 -- 여기서 다시 재지 않는다).
 * **평가 캐시**(설계 7.2): `cache` = {EvalKey: EvalResult}(그 실행에서 평가한 성공·실패만 -- S3 기록은 출력이고 시작할 때 읽지 않는다, U-89). 계수 `counters`(설계 7.4):
   requests, kernel_calls, hits, fail_hits, outside_domain, recompute_same_key.

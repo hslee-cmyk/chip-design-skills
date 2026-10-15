@@ -240,8 +240,8 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
   `co_lnotab`·`co_lines`·`co_positions`·`co_branches`·`co_nlocals`·`co_stacksize`(13+9 = code 타입 `co_*` 전체, 모르는 칸이 있으면 import
   시 `RuntimeError`). marshal 을 쓰지 않고 정규화 결과를 `fp_of` 로 지문화한다(상수는 타입 이름을 감싸고 tuple·frozenset 원소에 재귀,
   모르는 상수 타입 -> `TypeError`). `functools.wraps` 로 감싼 함수는 `__wrapped__` 사슬 전체를 순서대로 넣는다(순환 -> `ValueError`,
-  사슬 원소에 `__code__` 없음 -> `TypeError`). 덮지 않는 것: 부르는 다른 함수·모듈 전역 값·closure 셀 값·기본 인자 값(실행 사이 재사용은
-  `engine_code_fp` 가 덮는다).
+  사슬 원소에 `__code__` 없음 -> `TypeError`). 덮지 않는 것: 부르는 다른 함수·모듈 전역 값·closure 셀 값·기본 인자 값(그 밖 코드 변화는
+  `engine_code_fp` 가 덮는다 -- S3 줄 `code_fp`·`run_id` 의 출처 칸).
 - 실패 -> `ValueError`: name 빈/비문자열; writes 비어 있음; kind 가 ENTITY_KINDS 밖; field 빈/비문자열; 같은 쌍 중복; 쌍이 str 이거나 원소 수 ≠ 2.
 
 ### 6.2 호출 `block(snapshot, *extras) -> GraphSnapshot`
@@ -486,7 +486,7 @@ bin 소속 판정(`bin_index`, 양끝 닫힘·경계 공유 시 아래 bin)은 l
 sky130 로컬 PDK(sparse checkout) `cells/` 에는 nfet_01v8·pfet_01v8 과, 2026-10-14 사용자 D-R 승인으로 `google/skywater-pdk-libs-sky130_fd_pr` 커밋 f62031a 에서 받은
 res_high_po 모델 파일 6개(`C:/pdk/sky130_fd_pr/cells/res_high_po/`, held-out D 저항 값 계산에 사용 -- master 6a22538, 출처 표 `assets/heldout/cnr_ota.spec_source.md` 4.2절)가 있다.
 res_xhigh_po 모델 파일은 없다. 이 PDK 선언(`assets/sky130_pdk_decl.json`)의 `resistor_types` 후보는 아직 `poly_generic`(res_generic_po) 하나뿐이고(res_high_po 시트 저항은 선언하지 않음),
-다른 후보는 선언만 더하면 같은 규칙이 고른다(선언 추가는 사용자 결정 -- 선언 파일 바이트가 바뀌면 `decl_sha256`·S0 키가 바뀐다).
+다른 후보는 선언만 더하면 같은 규칙이 고른다(선언 추가는 사용자 결정 -- 선언 파일 바이트가 바뀌면 `decl_sha256` 이 바뀌고, 그 선언을 읽는 S0 수준 블록의 입력 버전이 달라져 다음 실행에서 다시 계산된다).
 
 ### 9.5 소비자 호출 (layout 브랜치 병합 시 `LayoutPdk` 를 만드는 쪽)
 ```python
