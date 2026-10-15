@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.9.3
-plan_version: 6.8
+version: 1.9.4
+plan_version: 6.9
 ---
 
 # gain-budget-gmid-sizing -- 40-engine Design Document (새 엔진 `gmid_engine`, 색인·아키텍처)
@@ -9,7 +9,9 @@ plan_version: 6.8
 > **Summary**: 새 gm/ID 사이징 엔진(`skills/analog-gmid-design/gmid_engine/`)의 설계 정본이다. 계획서 N3.1 흐름 GB0~GB9를 패키지·파일에 대응시키고, 단계마다 알고리즘·입출력·불변식·실패 코드·as-built 상태를 적는다. 계획서가 요구하고 실행 로드맵에서 빠졌던 gain-budget 흐름(FR-1·FR-2·FR-4·FR-8)은 `41-gain-budget`에서 전부 설계한다. gap 분석 기준표는 `42-gap-checklist`다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Date**: 2026-10-14 · **Status**: v1.9.3 -- 사용자 결정 10(2026-10-14 "10도 권고대로", 방식 "재귀 정규화, marshal 없음"·"줄 번호 빼기"·"감싼 블록(__wrapped__) 포함", 원문 `_drafts/user_decisions.md` '결정 10' 두 항목): §2.4.3 '블록 코드 해시' 행 신설 -- `ComputeBlock.code_hash` = 블록 함수 code 객체(중첩 code 재귀, `__wrapped__` 사슬 포함)의 코드 내용 지문(파일 경로·줄 번호 제외, marshal 미사용, core `fp_of`, 상수 타입 명시 인코딩·미지원 타입 fail-closed `TypeError`), §2.4.3 'checkout 무관' 행의 미결 문구 삭제, §2.4.3 키 (iii) 문장, §2.4.9 판정 2 다른 checkout 단서를 결정 결과로, §11 U17 ② 선행에 결정 10 card(방식 확정). 같은 v1.9.3에 U-68 복구 정정(3차 판정 `wt/_audit_u17_1b_r3/audit_report.md` N-2, 사용자 결정 2026-10-14 "U-68은 권고대로 복구해"·"(가) 경로 인자 필수"·거부 기록 `decl=` "그대로 둠"): §2.4.3 '무효화' 행 -- PDK 선언·LUT 생성 규칙 선언이 U-68 정리 대상 입력 파일, `run_stage_a` 키워드 전용 필수 인자 `pdk_decl_path`·`lut_rule_decl_path`(경로는 키 메타 위치에만, S0 값·스냅샷 `fp`·`context_fp` 밖), 진입에서 경로 파일 sha ≠ `decl_sha256`이면 거부(fail-closed, 구현 7eb4865). 같은 v1.9.3에 as-built 문서 정정(판정 u17-1b-r4 988eef4·codehash ecda471의 경미 지적, 버전 번호 불변): '블록 코드 해시' 행 (2) import 시점 `RuntimeError`·(3) 상수 전 타입 (타입 이름, 값) 감쌈, '무효화' 행·§11 U17 ② 선행의 상태 문장을 구현·판정 결과로. 경위는 history.
+> **Date**: 2026-10-15 · **Status**: v1.9.4 -- 사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해"(원문 `_drafts/user_decisions.md` 'NFR-4 BLAS 결정성'; 2안 = 순수 Python SQP 교체는 하지 않음): §1.2 EP-9 신설(결정성의 범위), §2.4.3 키 (iv) 실행 환경 지문과 'BLAS 스레드 고정'·'실행 환경 지문' 행(1안), §2.4.9 판정 2의 '같은 S0' = 같은 실행 환경, §2.4.13 신설 -- BLAS 고정 규칙(1안), 검증 기준(③: 같은 환경·같은 코드 = 비트 동일, 다른 환경·수치 보존 리팩터링 = 필드별), 필드 분류(D·C·K), 분해능 출처 표, 비교기 위치와 감사 사용, 캐시 키 비트 지문 유지 근거, 영향, 열린 질문 Q-N1~Q-N6, §11 U17 ② 선행의 'NFR-4 결정론 원인 수정'을 이 결정의 card로 교체. 3안(판정 경계 위 배치점 규칙)은 41 §5.13. 경위·측정은 history.
+>
+> v1.9.3 -- 사용자 결정 10(2026-10-14 "10도 권고대로", 방식 "재귀 정규화, marshal 없음"·"줄 번호 빼기"·"감싼 블록(__wrapped__) 포함", 원문 `_drafts/user_decisions.md` '결정 10' 두 항목): §2.4.3 '블록 코드 해시' 행 신설 -- `ComputeBlock.code_hash` = 블록 함수 code 객체(중첩 code 재귀, `__wrapped__` 사슬 포함)의 코드 내용 지문(파일 경로·줄 번호 제외, marshal 미사용, core `fp_of`, 상수 타입 명시 인코딩·미지원 타입 fail-closed `TypeError`), §2.4.3 'checkout 무관' 행의 미결 문구 삭제, §2.4.3 키 (iii) 문장, §2.4.9 판정 2 다른 checkout 단서를 결정 결과로, §11 U17 ② 선행에 결정 10 card(방식 확정). 같은 v1.9.3에 U-68 복구 정정(3차 판정 `wt/_audit_u17_1b_r3/audit_report.md` N-2, 사용자 결정 2026-10-14 "U-68은 권고대로 복구해"·"(가) 경로 인자 필수"·거부 기록 `decl=` "그대로 둠"): §2.4.3 '무효화' 행 -- PDK 선언·LUT 생성 규칙 선언이 U-68 정리 대상 입력 파일, `run_stage_a` 키워드 전용 필수 인자 `pdk_decl_path`·`lut_rule_decl_path`(경로는 키 메타 위치에만, S0 값·스냅샷 `fp`·`context_fp` 밖), 진입에서 경로 파일 sha ≠ `decl_sha256`이면 거부(fail-closed, 구현 7eb4865). 같은 v1.9.3에 as-built 문서 정정(판정 u17-1b-r4 988eef4·codehash ecda471의 경미 지적, 버전 번호 불변): '블록 코드 해시' 행 (2) import 시점 `RuntimeError`·(3) 상수 전 타입 (타입 이름, 값) 감쌈, '무효화' 행·§11 U17 ② 선행의 상태 문장을 구현·판정 결과로. 경위는 history.
 >
 > v1.9.2 -- U17 ①-b 독립 판정(`wt/_audit_u17_1b/audit_report.md`) 뒤 사용자 결정 2026-10-14 "3~9 모두 권고대로" 중 4~9 반영(원문 `_drafts/user_decisions.md` 마지막 항목: "4 run_stage_b settings 필수 인자(기본값 제거). 5 as-built b(context_fp)·c(SearchContext 옛 이름 읽기 속성) 수용, design 정정 v1.9.2 기록. 6 D6로 단계 A non-ok 회로 S0 24블록 재계산 수용(fail-closed), 정정 기록. 7 checkout 경로를 S0 값에서도 제거(로딩 시 해석) ... 8 test 환경 OPENBLAS 스레드 1 고정 + 엔진 결정론 원인 수정은 2 착수 전(백로그). 9 sizing CONTRACT 1.5 '덮지 않으면 TypeError'로 정정(v1.9.2)."): §2.4.3 `run_stage_b`의 `settings` 필수 인자(결정 4), §2.4.7 `context_fp` 문언을 as-built(평가 커널의 S0 입력 지문)로 정정·`SearchContext` 옛 칸 이름 읽기 속성 과도기 주석(결정 5), §2.4.3·§2.4.9 D6 저장 시점의 결과(단계 A가 ok가 아닌 회로는 스냅샷 없음, fail-closed 수용)와 G-10 판정 2 적용 범위 = 단계 A ok 회로(결정 6), §2.4.3 S0 값에 checkout 경로 없음(결정 7), §11 U17 ② 선행에 NFR-4 결정론 원인 수정(결정 8), sizing CONTRACT 1.5 TypeError 문구(결정 9, 이 문서 밖). core `ComputeBlock.code_hash`의 `co_filename` 경로 의존은 v1.9.3(결정 10)에서 정한다. 경위는 history.
 >
@@ -96,6 +98,7 @@ plan_version: 6.8
 | EP-6 | **LUT·PDK가 출처다.** 공정량(VDSAT·fT·gm/gds·IDu·잡음·용량·격자·MIM 밀도·mismatch 계수)은 LUT 열이나 PDK 선언에서 읽는다. 출처(파일·sha256·행)를 함께 기록한다 | DEC-87, DEC-91, N3.16 PDK 상수 |
 | EP-7 | **판정과 출발값을 구분한다.** 근사식·구간·예산 배분은 출발점(층 0)과 보고에만 쓴다. 판정은 언제나 봉인된 스냅샷의 전회로 계산(DEC-74)과 SPICE 오라클이 한다 | DEC-67, DEC-74, DEC-92 (2) |
 | EP-8 | **충돌은 보고하고 조용히 풀지 않는다.** 구간이 비거나 선언과 유도가 어긋나면 레코드로 남긴다(`review_needed`·실패 레코드·충돌 표) | DEC-44, WP-02 |
+| EP-9 | **결정성의 범위.** 엔진은 실행 환경을 고정하고(BLAS 스레드 1, 확인 못 하면 거부) 그 지문을 S0 키에 넣는다. 같은 실행 환경·같은 코드의 산출물은 비트 동일이다. 다른 실행 환경이나 수치 보존 리팩터링의 산출물은 이산 판단이 정확히 같고 연속값이 선언 분해능 이내다(§2.4.13). 판정 경계 위에 일부러 놓는 점은 선언량의 닫힌 식으로 만들고 판정 쪽으로 √ε 여유를 둔다(41 §5.13). 캐시 키(블록 입력 버전)는 비트 지문 그대로다 | 계획 NFR-4, 사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해" |
 
 ---
 
@@ -217,7 +220,9 @@ S0 수준 값은 계산 블록(`core.compute_block`)으로 만들고 S0 수준 �
 | 항목 | 규칙 |
 |---|---|
 | 대상 | S0 수준 층 전체(§2.4.1 표 첫 행). 단계 B 층·설계점 층·층 0 층은 쓰지 않는다 |
-| 키 | (i) S0 전체 지문(P N3.3 v6.4: topology 정규화 해시, LUT 내용 해시 + 생성 메타, spec 전체 해시, PDK 선언 파일 내용 해시, 유도 규칙 코드 해시, metric 정의 코드 해시) (ii) `structure.json` 사실 지문(as-built S1 키에 포함) (iii) 엔진 코드 지문 = `gmid_engine` 아래 **test가 아닌 모든 패키지**의 `.py` 파일 바이트 sha256(파일 경로 정렬). 블록 입력 버전의 코드 해시는 블록 함수 자신의 코드 객체(중첩 code와 `__wrapped__` 사슬 포함)만 덮으므로(아래 '블록 코드 해시' 행, `E/core/compute_block.py`) 실행 사이 재사용에는 (iii)이 필요하다. as-built `search_context._code_fp`(`E/search/search_context.py:39-48`)는 6개 패키지만 덮어 범위가 좁다. (i)의 PDK 선언 해시 때문에 `run_stage_a`의 PDK 선언은 **필수 인자**다(기본값 없음, 없으면 키를 만들지 않고 거부 -- Q1 fail-closed) |
+| 키 | (i) S0 전체 지문(P N3.3 v6.4: topology 정규화 해시, LUT 내용 해시 + 생성 메타, spec 전체 해시, PDK 선언 파일 내용 해시, 유도 규칙 코드 해시, metric 정의 코드 해시) (ii) `structure.json` 사실 지문(as-built S1 키에 포함) (iii) 엔진 코드 지문 = `gmid_engine` 아래 **test가 아닌 모든 패키지**의 `.py` 파일 바이트 sha256(파일 경로 정렬). 블록 입력 버전의 코드 해시는 블록 함수 자신의 코드 객체(중첩 code와 `__wrapped__` 사슬 포함)만 덮으므로(아래 '블록 코드 해시' 행, `E/core/compute_block.py`) 실행 사이 재사용에는 (iii)이 필요하다. as-built `search_context._code_fp`(`E/search/search_context.py:39-48`)는 6개 패키지만 덮어 범위가 좁다. (i)의 PDK 선언 해시 때문에 `run_stage_a`의 PDK 선언은 **필수 인자**다(기본값 없음, 없으면 키를 만들지 않고 거부 -- Q1 fail-closed). (iv) **실행 환경 지문**(v1.9.4, 사용자 결정 2026-10-15 1안) = 아래 '실행 환경 지문' 행. 값이 같아도 실행 환경이 다르면 다른 키다 |
+| BLAS 스레드 고정(v1.9.4) | 엔진은 프로세스의 모든 BLAS 라이브러리 스레드 수를 1로 고정하고 확인한다. 확인하지 못하면 거부한다(fail-closed). 규칙 전문은 §2.4.13 (1) |
+| 실행 환경 지문(v1.9.4) | 키 이름 `KEY_ENV_FP`(신규, `E/core/snapshot_codec.py`). 값 = core `fp_of`((("python", 구현 이름, 판 3칸), ("platform", `sys.platform`, `platform.machine()`), ("numpy", 판), ("scipy", 판), ("blas", BLAS 라이브러리마다 (소유 패키지, 실행 시 `get_config` 문자열, `get_corename`, `get_parallel`, 확인한 스레드 수) tuple, 소유 패키지 이름 순))). 넣는 이유: 같은 키 = 같은 비트 결과여야 S0 적중이 재계산을 대신할 수 있다(EP-2). 실행 시 `get_config`·corename을 넣는 것은 DYNAMIC_ARCH OpenBLAS가 CPU마다 다른 커널을 고르기 때문이다(실측 2026-10-15: 빌드 설정 문자열은 SkylakeX·Haswell, 실행 시 corename은 두 라이브러리 모두 Haswell). 넣지 않는 것: 코어 수(`get_num_procs`, 스레드 1이면 결과에 닿지 않음), 경로. 값은 §2.4.13 (1)의 고정·확인이 끝난 뒤 그 확인 결과로 만든다(따로 재지 않는다). U-68 정리와의 관계는 §2.4.13 (8) Q-N1 |
 | 형식 | gzip JSON 하나: `{schema_version, key{...}, writers, block_versions, records[{kind, key, fields{name: {value, writer, input_version, write_count}}}], fp, body_sha256}`. 값은 타입 있는 인코딩이다: float = `float.hex`, tuple·frozenset(정준 순서)·frozen dataclass = `{"__type__": "<모듈>.<클래스>", ...}`. 옛 S3 `_plain`(repr로 떨어지는 직렬화, `E/search/archive.py:19-37`)은 쓰지 않는다 |
 | 타입 등록부 | 디코더는 **실행 시 타입 등록부**(`core/type_registry.py`)에 있는 타입만 받는다. 목록 밖 타입은 거부한다. import 계층(P N3.10)을 지키기 위해 등록은 아래에서 위로 한다: 각 패키지의 `__init__`이 자기 필드 값 형식을 `register(cls)`로 올린다. `pipeline`이 모든 패키지를 import해 등록부를 채운 뒤 코덱을 부른다. core는 상위 패키지(`graph`·`metrics`·`search` 등)를 import하지 않는다. `_module_map` test는 등록부를 읽기만 한다(§2.4.10 ②) |
 | 검증 | 읽은 뒤 스냅샷 `fp`를 다시 계산해 저장된 `fp`와 비교한다. 다르거나 `body_sha256`이 틀리면 손상으로 본다 |
@@ -463,7 +468,7 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 
 **판정**(FAIL 조건):
 1. 실행 안에서 (블록, 분할)마다 `recomputes_same_input` = 0.
-2. 같은 S0로 두 번째 실행하면 S0 수준 블록의 `computes` = 0(모두 `reuses`). 적용 범위 = 단계 A가 `ok`인 회로(v1.9.2 결정 6: 단계 A가 ok가 아닌 회로는 §2.4.3 저장 시점 규칙으로 스냅샷이 없어 재실행마다 S0 수준 블록을 다시 계산한다 -- fail-closed 수용). 다른 checkout(같은 커밋)이 같은 S0 폴더를 읽어도 같다: S0 수준 블록의 `computes` = 0이고 `context_fp`가 같다(v1.9.3 결정 10, §2.4.3 'checkout 무관'·'블록 코드 해시' 행).
+2. 같은 S0로 두 번째 실행하면 S0 수준 블록의 `computes` = 0(모두 `reuses`). '같은 S0' = 같은 S0 키이므로 같은 실행 환경이다(v1.9.4 §2.4.3 키 (iv)). 실행 환경이 다른 두 번째 실행은 키 miss라 판정 2의 대상이 아니다. 적용 범위 = 단계 A가 `ok`인 회로(v1.9.2 결정 6: 단계 A가 ok가 아닌 회로는 §2.4.3 저장 시점 규칙으로 스냅샷이 없어 재실행마다 S0 수준 블록을 다시 계산한다 -- fail-closed 수용). 다른 checkout(같은 커밋)이 같은 S0 폴더를 읽어도 같다: S0 수준 블록의 `computes` = 0이고 `context_fp`가 같다(v1.9.3 결정 10, §2.4.3 'checkout 무관'·'블록 코드 해시' 행).
 3. LUT memo `recomputes_after_eviction` = 0(U-60 결정 (가), "U-60은 (가)로"). `evictions`는 보고만 한다.
 4. 층 0 조립점 평가에서 공유량이 닿지 않는 분할의 `computes` = 0(모두 `grafts`).
 5. as-built `recompute_same_key`(`E/search/kernel.py:120-121`)는 S3 색인 `get` 적중 판정으로 대체되며 0이어야 한다.
@@ -476,6 +481,7 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 - `test_s0_snapshot_roundtrip`: 직렬화 → 읽기 → `fp` 비트 동일. 손상 파일은 재계산 후 같은 키로 교체. 등록부 밖 타입은 거부.
 - `test_lut_memo_single_instance`: 실행 하나에서 만들어진 `LutMemo` 인스턴스 수 = 1(생성 계수).
 - `test_lut_memo_purity`: lambda·중첩 함수·`lut` 밖 함수를 `call`에 주면 `TypeError`.
+- NFR-4 결정성 test(BLAS 고정·실행 환경 지문·비교기)는 §2.4.13 (5)·(7)에 있다.
 
 #### 2.4.10 강제 장치 (G-8, 사용자 승인 2026-10-12)
 
@@ -541,6 +547,105 @@ design-validator 지적(2026-10-12)에 따라 기본안을 정했다. 사용자 
 | Q6 | LUT memo 상한·퇴출 판정 | **결정**(사용자 결정 2026-10-12 "U-60은 (가)로"): §2.4.6 (가) |
 | Q7 | tol_I가 자기 동작점 gm으로 바뀌면 b_P와 봉인 3 판정이 바뀐다 | 단계 ①에서 9회로 front를 다시 재고, 봉인 3 판정이 바뀐 점(옛 상계로 통과·새 gm으로 거부, 또는 반대)을 회로별로 기록한다 -- **결정**(사용자 결정 2026-10-12 "K-2 권고대로, GQ1/GQ3/GQ4, U-14,U-20,U-32,U-45 권고대로")(GQ4, U-74). **측정 완료(①-c)**: 결과는 history에 기록했다 |
 | Q8 | `graph/metrics: constraint_rows`(§2.4.8)에서 미측정(`unmeasured`) 값의 자리 | **열림**: U17 단계 ②로 이월하면서 ② design 보완 때 정한다(①-c 구현에서 드러남). 정하기 전에는 `constraint_rows`를 쓰지 않는다 |
+
+#### 2.4.13 결정성(NFR-4): 실행 환경 고정과 검증 기준 (v1.9.4)
+
+사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해"(원문 `_drafts/user_decisions.md` 'NFR-4 BLAS 결정성')다. 1안 = (1)과 §2.4.3 '실행 환경 지문' 행이다. 3안 = 41 §5.13이다. ③ = (2)~(6)이다. 2안(SLSQP를 순수 Python SQP로 교체)은 하지 않는다. 원인은 history에 있다: scipy SLSQP(`E/search/macro_poles.py:345`, `E/search/layer0_center.py:235`·`:374`, `E/search/slsqp_outer.py:195`)와 복소 `scipy.linalg.lu_solve`(`E/metrics/point_solve.py:46-47`, `E/metrics/sensitivity.py:81-83`, `E/metrics/_helpers_probe.py:125·128·139·140`)가 BLAS 스레드 수에 따라 다른 비트를 낸다.
+
+**(1) BLAS 스레드 고정 (1안)**
+
+| 항목 | 규칙 |
+|---|---|
+| 대상 | 프로세스에 적재된 BLAS 라이브러리 전부다. 지금 환경에서는 numpy와 scipy가 각자 싣는 OpenBLAS 둘이다(실측 2026-10-15: numpy 2.4.6 `libscipy_openblas64_`, scipy 1.18.0 `libscipy_openblas`. 실행 시 `get_config`는 각각 'OpenBLAS 0.3.31.188.0 … Haswell'·'OpenBLAS 0.3.31.dev … Haswell') |
+| 시점·위치 | `gmid_engine` 최상위 패키지를 import할 때 1회 한다. `gmid_engine/__init__.py`가 신규 `E/core/blas_env.py`의 `pin_blas_threads()`를 부른다. 하위 패키지 import는 언제나 최상위 `__init__`을 먼저 실행하므로 고정이 엔진의 모든 계산보다 앞선다. `blas_env`는 numpy·scipy를 모듈 수준이 아니라 함수 안에서 import한다(지금 core 모듈은 어느 것도 numpy·scipy를 모듈 수준에서 import하지 않는다 -- 2026-10-15 grep, 그 상태를 지킨다). 모듈 이름은 착수 때 test glob·구조 규칙 충돌을 확인해 정한다 |
+| 방법 | (i) 환경 변수 `OPENBLAS_NUM_THREADS`를 "1"로 둔다. 이것은 이 뒤에 적재되는 라이브러리와 하위 프로세스를 위한 것이다. (ii) numpy와 `scipy.linalg`를 import해 두 라이브러리를 싣는다. 각 라이브러리의 스레드 설정 API로 1을 넣는다. 기호 이름은 라이브러리마다 접두 `scipy_`·접미 `64_`가 다르다(실측: `scipy_openblas_set_num_threads64_`, `scipy_openblas_set_num_threads`). (iii) 같은 라이브러리의 조회 API로 1인지 확인한다. 환경 변수만으로는 고정되지 않는다. 호출자가 numpy를 먼저 import했으면 OpenBLAS가 이미 스레드 수를 정했기 때문이다(실측 아래) |
+| 확인 실패 = 거부 | 다음이면 import 시점에 `RuntimeError`를 낸다(fail-closed, 조용한 대체 금지 -- `ComputeBlock.code_hash`의 import 시점 거부와 같은 방식). numpy·scipy 빌드 설정(`show_config`)의 BLAS 이름이 OpenBLAS 계열이 아니다. 그 패키지의 BLAS 공유 라이브러리를 찾지 못한다. 설정·조회 기호가 없다. 설정 뒤 조회 값이 1이 아니다. 지원 범위 밖 BLAS(MKL·Accelerate 등)를 쓰려면 이 표에 그 BLAS의 고정·확인 방법을 더하는 design 변경이 먼저다 |
+| 재확인 | S0 키를 만들 때(`run_stage_a` 진입, `E/pipeline/stage_a.py`)와 `build_search_context` 진입(`E/search/search_context.py`)에서 조회만 다시 한다. 다시 설정하지는 않는다. 1이 아니면 같은 `RuntimeError`를 낸다. import 뒤에 누가 스레드 수를 바꿨다는 뜻이므로 조용히 고쳐 덮지 않는다 |
+| 결과 값 | `blas_environment()`는 확인 결과를 불변 값으로 돌려준다. §2.4.3 '실행 환경 지문'은 이 값만 쓴다 |
+| 비용 | 측정 3(9회로 단계 A → `find_front`, 순차 실행, LUT 적재 포함) 합: 스레드 1 = 896.4 s, 스레드 18 = 899.4 s. 고정 비용은 잡음 수준이다 |
+| 쓰지 않는 것 | `threadpoolctl`은 이 환경에 설치돼 있지 않다(2026-10-15 확인). 쓰려면 새 의존성이 되므로 쓰지 않는다. 기존 test 환경 고정(`E/tests/conftest.py:17-27`, `E/tests/convergence/test_converge.py:243`)은 이 card의 같은 변경에서 거둔다 |
+
+고정 방법 실측(2026-10-15, `wt/_nfr4_design_scratch/pin/pin_probe.py`, 프로세스마다 장난감 SLSQP 60문제와 복소 `lu_solve` 300회의 결과 해시):
+
+| 바깥 `OPENBLAS_NUM_THREADS` | 프로세스 안 조치 | 두 라이브러리 조회 값 | 결과 해시 |
+|---|---|---|---|
+| 1 | 없음 | 1·1 | 기준(스레드 1 경로) |
+| 8 | 없음 | 8·8 | 다름 |
+| 미지정 | 없음 | 18·18 | 다름(8과 같음) |
+| 미지정, 8 | numpy import 전에 환경 변수 1 | 1·1 | 기준과 같음 |
+| 미지정 | numpy import 뒤에 환경 변수 1 | 18·18 | 다름 → 환경 변수 방식은 import 순서에 기댄다 |
+| 미지정, 8 | import 뒤 설정 API 1 | 1·1 | 기준과 같음 |
+
+**(2) 검증 기준 (③)**
+
+| 비교하는 두 실행 | 판정 |
+|---|---|
+| 같은 실행 환경(§2.4.3 실행 환경 지문 같음) · 같은 코드(엔진 코드 지문 같음) | **1차 검사: 산출물 비트 동일.** 다르면 FAIL이다. 필드별 비교로 넘어가지 않는다 |
+| 다른 실행 환경, 또는 수치 보존 리팩터링(코드가 다르고 spec card가 '수치 보존'이라고 선언한 변경) | **필드별 비교.** 이산(D)은 정확히 같다. 연속(C)은 \|Δ\| ≤ 분해능이다(같은 구역의 D가 모두 같을 때만 C를 비교한다 -- D가 다르면 이미 FAIL). 경로 계수(K)는 (8) Q-N2 |
+
+비교 대상 산출물은 회로마다 S0 수준 스냅샷의 모든 필드 값, 단계 A·B 보고서, 층 0 결과(`Layer0Result`), 탐색 결과(front·pending·unmeasured 점, ε 풀이 기록, `failed_eps`), S3 evals·runs 줄이다. 측정 3(9회로 × 스레드 1·8·18·미지정 각 3회)에서 같은 스레드 반복은 9/9 회로에서 그 측정이 기록한 칸 전부(이산·연속, S0 `search_base.fp`, 단계 A·B 스냅샷 지문, `context_fp`)가 비트 동일했다. 그래서 1차 검사는 지금 엔진에서 성립할 것으로 본다. S3 줄과 보고서 전체의 비트 동일은 비교기 첫 실행에서 확인한다.
+
+**(3) 필드 분류**
+
+| 부류 | 정의 | 예 |
+|---|---|---|
+| **D 이산** | 값 형식이 bool·int·str·이름 tuple·frozenset·enum인 엔진 출력 칸, 그리고 연속 칸이 정의되었는가(None·NaN·무한 대 유한) | 단계 상태·정지 사유, 매크로 기록 코드·선택된 다중 출발·`macro_failed`, 출발 구간 충돌(소자, 양, 경계 키)·비활성·`uncovered`·사다리 칸 수와 `cells`·행 bin·경계 출처, 층 0 `hard_ok`·`stop`·`start_status`·`origin_point`·`aborts`·`frozen`·`restarts`, 시작점 목록(id·출처·`cells`), ε 풀이 `stop`·`aborts`·`frozen`·`restarts`·`best`(status, seq), front·pending·unmeasured 점 집합(점 id = 출처 tag), 평가마다 status·실패 class·실패 소자·active 제약 집합·cone active·미측정 목록·제약 행 이름, `failure.margin`이 있는가, S0 수준의 구조 값 전부(S1·S1v·θ 스키마·묶음·변수 목록 등) |
+| **C 연속** | D·K가 아닌 float 칸 | (4) 표 |
+| **K 경로 계수** | 풀이기·탐색이 걸은 길이를 세는 정수 | SLSQP `nit`, 층 0·ε 풀이 `iterations`, 풀이 이력 길이(`n_history`), `MacroResult.sweeps`, 커널 호출 수·평가 수·고유 키 수, `perf` 계수, 시간, 기록 detail 안의 풀이기 원문 메시지 |
+
+엔진 출력이 아닌 것(풀이기 호출마다의 x·`status`·`success` 같은 관찰 기록)은 비교 대상이 아니다. 엔진이 그 결과로 내린 판단(D)만 비교한다.
+
+**(4) 연속 필드의 분해능** -- 출처가 있는 것(비교는 절대차 \|Δ\|, 좌표가 ln이면 ln 좌표에서 잰다):
+
+| 필드 | 좌표·단위 | 분해능 | 출처 |
+|---|---|---|---|
+| `ConstraintRow.c`(평가 c·cone, 층 0 경성 행) | 분해능 단위(여유 / 그 행 분해능) | 1 | `E/search/constraints.py:27-37`, `E/search/cone_rows.py:17-29` |
+| W(`start.row` `w_m`, `dc_op.W`) | m | 제조 격자 `grid_m` | PDK `manufacturing_grid_m`, `E/search/search_values.py:79-80` |
+| 면적(`area_m2`·`gate_area_m2`·`area_est_m2`·출발 구간 상태 면적) | m² | b_A = `grid_m` × `w_min_m` | `E/search/search_domain.py:172`, `E/search/search_values.py:76·80` |
+| 전력 `power_w` | W | b_P = Σ_레일 \|V_k\|·tol_I,k | `E/metrics/dc_metrics.py:11` |
+| metric 값(평가의 metric 열) | 그 metric 단위 | 그 값의 `MetricResult.resolution`(None이면 Q-N3) | `E/metrics/mna_types.py:365`(NFR-5 '격자 분해능') |
+| `kcl_residual_a`(레일 전류 합, 0이어야 함) | A | Σ_레일 tol_I,k(b_P와 같은 tol_I,k) | `E/metrics/supply.py:70`, `E/metrics/dc_metrics.py:11` |
+| θ 성분(평가 θ, 층 0·탐색 시작점 θ, 층 0 최대-최소·외층 풀이의 x) | 변수 좌표(전류·저항·수동소자 = ln, `ln_idu`, `y`, L) | 그 점의 FD 스텝 hᵢ(기준 실행의 같은 점) | `E/search/fd_jacobian.py:9-20`(규칙), `:41-82`(`_steps`) |
+| 층 0 `t`, 층 0 최대-최소 x의 t 성분 | 봉인 허용오차 단위 | 1 | `E/search/layer0_center.py` 모듈 docstring 3('t 의 단위 = 허용오차 한 칸', ftol 1) |
+| `failure.margin` | 그 실패 class 허용오차 단위 | 1 | `E/core/margin.py:1-8`(P N3.14 정규화식) |
+| 매크로 gm·용량·저항·`ugf_hz`, 매크로 풀이의 x | ln 좌표 | √tol = ε^(1/4)(tol = √ε) | `E/search/macro_poles.py:282`(tol), `:353`(채택 판정 \|ln \|H\|\| ≤ √tol) |
+| 매크로 `pm_deg` | 도 | √tol 도 | `E/search/macro_poles.py:353`(pm ≥ 목표 − √tol) |
+| 매크로 극점 | rad/s | √tol × ω_np | `E/search/macro_poles.py:354`, `:383-386`(두 번째 극점 여유 = \|p₂\|/ω_np − 1) |
+| 노드 전압·소자 전류 | V·A | tol_V·tol_I | 계획 IC2(같은 출처), `E/sizing/seal_tolerances.py:5-11`. 노드마다 어느 소자의 tol_V를 쓰는지는 Q-N3 |
+
+출처가 없는 것: 측정 3에서 차이가 났고 선언 분해능이 없는 필드다. `layer0/centre_u`, `layer0_center:235`의 x(ln 전류 비), 출발 구간 행 `ln_idu`·`i_start`·`gm_id_lo`·`gm_id_hi`·`gm_id_chosen`·`source[].value`, 사다리 θ(L 성분 밖)·`current_ref`, `conflicts`의 `gap`·`bound`가 여기에 든다. 위 표의 '평가 θ'·`kcl_residual_a`·`failure.margin`·매크로 칸은 이 절에서 출처를 찾았다. 나머지는 상수를 짓지 않고 Q-N3으로 올린다.
+
+출처가 있어도 측정 차이가 분해능을 넘는 필드가 있다. 측정 3에서 스레드 1 대 8의 같은 점 비교로 `start.row` `w_m`은 최대 15 격자 칸, `area_est_m2`는 최대 14.8 b_A였다(nmcnr·sf_pushpull·two_stage_ota·two_stage_ota_sf). 이 필드는 매크로 풀이(√tol 허용) 하류라 선언 분해능보다 덜 재현된다. 문언대로 하면 다른 환경 비교가 이 4회로에서 FAIL이다 → Q-N4.
+
+**(5) 비교기 위치와 감사 사용**
+
+- **위치**: test 기반이다(`E/tests/integration/` 아래 도우미 모듈 하나. 이름은 착수 때 test glob·구조 규칙 A~I 충돌을 확인해 정한다). 엔진 런타임은 비교기를 부르지 않는다. 엔진에는 비교용 칸을 더하지 않는다. 다만 (2)의 비교 대상 중 지금 결과 기록에 없는 D·C 칸이 있으면 결과 기록에 더하는 것은 code 몫이다(착수 때 목록화).
+- **작성 주체**: test 작성 주체다. 분해능 식은 (4) 표를 독립 구현한다. 엔진 함수를 불러 폭을 만들지 않는다(WP-13 작성자 ≠ 검증자). 예외는 Q-N3·Q-N4 (가)를 채택할 때의 감도 전파뿐이다. 이것은 엔진의 출발 구간 블록을 섭동 입력으로 다시 부른다. 입력 생성일 뿐 기대값을 만들지 않는다.
+- **입력·출력**: 입력은 실행 기록 두 개(회로마다 S0 스냅샷 파일 §2.4.3 형식, 단계 보고서, 결과 JSON, S3 evals·runs)와 비교 종류(같은 환경 / 다른 환경 / 수치 보존 리팩터링)다. 출력은 비교 보고 JSON이다: 필드마다 부류, 기준 값, 비교 값, \|Δ\|, 분해능, 출처, 판정. D 불일치·C 초과는 FAIL이고 K는 보고다.
+- **감사 사용**: auditor는 격리 복제본에서 9회로를 실행해 판정 기록에 두 실행의 실행 환경 지문, 엔진 코드 지문, 비교 보고 경로를 남긴다. (a) 같은 환경 재현: 같은 커밋을 같은 환경에서 두 번 실행한다(별도 프로세스, 빈 S0, 빈 표 캐시). 1차 검사만 한다. (b) 환경 비교: 같은 커밋을 환경 A(기준)·B에서 실행한다. 환경 B의 예는 numpy·scipy 판이 다른 venv, corename이 다른 CPU다. 스레드 수는 엔진이 1로 고정하므로 환경 축이 아니다. (c) 수치 보존 리팩터링: base·head를 같은 환경에서 실행해 비교기를 돌린다.
+
+**(6) 캐시 키는 비트 지문 그대로**
+
+블록 입력 버전 = 값 지문 합성(§2.4.4 `fp_of`, float = `float.hex`)은 바꾸지 않는다. ③의 허용은 검증 기준에만 있다. 캐시·재사용·이식 판정에는 없다. 근거(사용자 결정 2026-10-15): 같은 환경에서는 결과가 비트 재현되므로 반올림 키의 재사용 이득이 0이다. 반올림 키는 블록마다 '반올림한 입력이면 같은 출력'을 증명할 의무를 만든다. pushpull 사례는 결함(41 §5.13)이라 이 근거에 쓰지 않는다(사용자 2026-10-15).
+
+**(7) 영향**
+
+- **S0 스냅샷**: 키 (iv)가 생기고 엔진 코드 지문도 바뀌므로 기존 S0 스냅샷 파일은 모두 키 miss다. 이전(migration) 작업은 두지 않는다. 옛 파일 정리는 U-68 규칙과 Q-N1을 따른다.
+- **기준선 재측정**: `E/tests/integration/fixtures/u17_1b_s0_baseline.json`(단계 A·B·달성가능성·출발 구간·커널 칸 지문)은 다시 잰다. 1안은 스레드 1 경로를 고정하므로 이 값들이 바뀌지 않을 것으로 본다. 기존 기준선이 test 환경 스레드 1 고정(conftest) 안에서 잰 값이기 때문이다. 3안은 층 0 이후만 바꾸므로 이 기준선에 닿지 않을 것으로 본다(실측: 41 §5.13 채택안 (a2) 적용에서 `search_base.fp`·`context_fp`가 비교할 수 있는 7회로 모두 불변). 그래도 키가 바뀌는 변경이므로 test 작성 주체가 새 코드에서 독립으로 다시 재고, 옛 값과 다르면 사용자 승인 대상으로 보고한다. 층 0·탐색 결과에 기대는 기준선·기대값(시작점·front·평가 수)은 3안으로 바뀐다(실측 41 §5.13 (a2): 스레드 1에서 folded 1건(`hard_ok` False → True), common_gate 2건(ε 풀이 best·stop)이 바뀌고 나머지 7회로는 0건). 그래서 다시 잰다.
+- **다시 쓸 test**: `E/tests/conftest.py`의 스레드 1 강제(17-27행)와 numpy 선행 import 거부를 지운다. `E/tests/integration/test_blas_thread_determinism.py`는 strict xfail을 지우고 범위를 9회로 · S0 전 필드 · 층 0 · 탐색 결과로 넓힌다. 비교는 1차 검사(바깥 스레드 1 대 max(2, cpu), 엔진 고정 뒤라 같은 환경)로 한다. `E/tests/convergence/test_converge.py:243`의 `OPENBLAS_NUM_THREADS="1"`을 지운다.
+- **새 test**: `test_blas_pin_verified`(import 뒤 두 라이브러리 조회 = 1, numpy를 먼저 import한 하위 프로세스에서도 1), `test_blas_pin_fail_closed`(가짜 라이브러리·설정 실패 → `RuntimeError`, 조회 ≠ 1 재확인 → `RuntimeError`), `test_env_fp_in_s0_key`(실행 환경 지문 칸 하나만 바꾼 키 → miss), 비교기 단위 test(D 불일치·C 초과 FAIL, 분해능 식이 (4) 표와 같음), 41 §5.13의 test.
+- **바꿀 코드 위치**: `gmid_engine/__init__.py`, 신규 `E/core/blas_env.py`, `E/core/snapshot_codec.py`(`KEY_ENV_FP`, U-68 정리 판정), `E/pipeline/stage_a.py`(재확인·키 입력), `E/search/search_context.py`(재확인), `E/search/layer0_center.py:238-245`(41 §5.13), `E/search/archive.py`(Q-N5를 채택하면), `_module_map.py` 등록, `E/core/CONTRACT.md`, 함수 레지스트리 §2.
+
+**(8) 열린 질문(사용자 결정 필요 -- 결정 전에는 해당 부분을 구현하지 않는다)**
+
+| # | 질문 | 기본안(권고) | 근거 |
+|---|---|---|---|
+| Q-N1 | U-68 옛 S0 파일 정리가 실행 환경 지문 칸을 어떻게 보나 | 정리 판정에서 환경 칸은 보지 않는다. 다른 환경의 파일은 남긴다 | U-68 원문은 '어떤 checkout으로도 재현할 수 없는 키만 지운다'이고 실행 환경은 checkout 속성이 아니다. 삭제 규칙을 넓히는 것은 사용자 몫이다 |
+| Q-N2 | K(경로 계수)를 비교에서 빼고 보고만 하나 | 뺀다(보고만) | 측정 3에서 스레드 1 대 8의 경로 계수·풀이기 관찰 기록 차이가 5회로(키 수: current_reuse 7, nmcnr 8, sf_pushpull 8, two_stage_ota 7 -- 그중 1건은 매크로 SLSQP 종료 상태 9 대 8로 둘 다 실패, two_stage_ota_sf 2)에 있었다. 그런데 엔진 결정(D)은 바뀌지 않았다. 결과에 닿는 길이 차이(예산 소진 등)는 D 차이로 드러난다. 비교 항목을 빼는 것이라 기준 약화로 보고 사용자 결정으로 올린다 |
+| Q-N3 | 선언 분해능이 없는 필드((4) '출처가 없는 것')의 비교 폭, 노드 전압에 쓸 tol_V의 소자 | (가) 계획 IC2의 '그 밖의 연속 필드' 규칙과 같은 형식: 상류 허용오차 섭동의 감도 전파값. 출발 구간 필드의 상류 = 매크로 √tol이고, 층 0 전류 중심의 상류 = 그 점 θ 전류 FD 스텝이다. 노드 전압 = 그 노드에 채널이 닿는 MOS의 `dc_tol_v` 최솟값 | 새 상수를 만들지 않고 계획에 이미 있는 비교 규칙(IC2)을 쓴다. 대안 (나)는 비교에서 빼기(기준 약화), (다)는 사용자가 분해능 값을 선언하기다 |
+| Q-N4 | 선언 분해능이 있으나 상류 풀이기 허용오차 때문에 그보다 덜 재현되는 필드(`w_m` 15 격자, `area_est_m2` 14.8 b_A)의 비교 폭 | (가) max(선언 분해능, Q-N3 (가)의 감도 전파값) | 엔진 스스로 매크로 해를 √tol 안에서 같은 해로 본다(`E/search/macro_poles.py:353`). 그 하류 값은 그보다 더 재현될 수 없다. (나) 문언대로 선언 분해능만 쓰면 numpy·scipy 판을 바꿀 때마다 이 4회로가 FAIL이고 기준선을 다시 재야 한다 |
+| Q-N5 | S3 실행 간 재사용(`E/search/archive.py` `load_evals`·`load_runs`의 `code_fp` 거르기)에도 실행 환경 지문을 넣나 | 넣는다 | 같은 이유(EP-2: 재사용은 같은 비트 결과일 때만). 결정 원문은 S0 키만 말하므로 범위를 넓히는 것이라 사용자 결정으로 올린다 |
+| Q-N6 | LUT 파생표 디스크 캐시 키(지금 numpy·python 판 포함, `E/lut/table_cache.py` 머리 설명)에 BLAS 정보를 더하나 | 착수 때 파생표 계산 경로의 BLAS 호출 여부를 잰다. 있으면 실행 환경 지문을 넣고, 없으면 그대로 둔다 | 결정 원문 범위 밖이다. 측정 전이라 결론을 짓지 않는다 |
 
 ---
 
@@ -1676,7 +1781,7 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | 단계 | 범위(소유 파일) | 재작성 범위 | 같은 변경에서 지우는 것 | 선행 | 확인 행 | test |
 |---|---|---|---|---|---|---|
 | **① graph 층 이동** | S1v 저장(`E/graph/s1v_build.py` 출력층, `s1v_values.py`의 `S1v` 묶음), GB3 출력(`coupling_vars.py`), U9 출력층(`E/metrics/achievability.py`·`achievability_types.py`의 `Achievability` 묶음), U13 데이터 흐름(`E/search/start_intervals.py`, `iv_context.py`, `iv_curves.py`, `start_values.py`의 `StartContext`·`StartIntervals`. `graph/start`의 `noise_inputs`·`placement`와 KVL 기록은 ② -- v1.9.1 D3·D4), S0 수준 스냅샷 직렬화(신규 `E/core/snapshot_codec.py`·`type_registry.py`, 패키지마다 `__init__` 등록, `E/pipeline/stage_a.py`·`stage_b.py` 배선, 저장 시점 = `build_search_context` 끝 1회 -- §2.4.3 v1.9.1 D6), 단계 B 층(`residual_probe`·`dof_numeric` 필드 자리와 직렬화 제외 규칙만. 블록 배선은 ② -- v1.9.1 D5), 커널 컨텍스트 구조 파생과 SearchContext 선언 파생의 S0 수준 필드(`E/sizing/kernel_context.py`, `E/search/search_domain.py`, 제약 분류, 접합·mismatch 출처, 면적 선언, 모델 오차), CurveBook·ParamTables의 LUT 파생과 `edge_costs`(metrics → lut)를 `E/lut/derived_fns.py` 모듈 함수로(as-built `memo.lookup` 형식으로 호출, `call` 형식 전환은 ③ -- v1.9.1 D10), `metrics_dc`의 `gate_area_m2`·`power_resolution_w`(search `_power_resolution` 삭제), 수동소자 값 블록(`E/metrics/passive_values.py` → 계산 블록, 소비자 `ss_evaluate.py`·`search/kernel.py`·`convergence/converge_point.py`. `search/_helpers_area.py`는 출발 구간(S0 층) 추정이라 S2 필드 `device.passive_value`를 읽을 수 없으므로 ①-b(S0 필드 이동)로 이월), tol_I gm 필드(`E/sizing/seal_tolerances.py`, `seal_kcl.py`, `kernel_run.py`, `seal.py`, `E/metrics/ss_linearize.py`, `search/objectives.py`·`search_values.py` b_P), 레이아웃 필드(`E/layout/run.py`, `contract_output.py`의 `LayoutResult`, `E/convergence/` 어댑터) | **전체 재작성**: S1v 저장, U9 출력층, U13 데이터 흐름(`StartContext`·`CurveBook` 폐기), S0 수준 스냅샷 경로. **부분 수정**: 수동소자 값(R = 1/Σ`dc_gm`), tol_I, 레이아웃 출력, `metrics_dc` | `StartContext`, `CurveBook`, `ParamTables` 두 벌 생성, `search/objectives.py`의 `_power_resolution`·`gate_area_m2` 계산, `S1v`·`Achievability`·`StartIntervals` 묶음 전달, `previous_gm_id`·`inherited_gm_id`·`canonical_gm_id`·`gm_grid_max`와 `dc_gm_bound` 필드, `kernel.py:146-150` 수동소자 규칙 사본, `sctx.spec_passive_values`, 레이아웃 별도 lineage(`GraphSnapshot.empty(LY_WRITERS)`), 이것들을 직접 단언하던 test | U9·U13 병합(as-built) | D-GR2·3·7·8·13, D-GR9(레이아웃 부분) | `test_s0_snapshot_roundtrip`, 수동소자 필드 단일 writer, tol_I parent 무관(같은 θ·다른 parent → 같은 봉인 결과), 9회로 front 재측정 기록(Q7) |
-| **② search 상태·층 0** | core 분할 계산 블록과 `graft`(`E/core/compute_block.py`, `graph_snapshot.py`의 `block_versions` 키, 신규 `core/graft.py`), 평가 커널 ②~⑤·봉인 블록의 분할 선언(`E/sizing/block_*.py`, `seal_*.py`), S3 메모리 색인과 보존(신규 `E/search/s3_index.py`, `local`·`solved` 분리, 보존 소유자 5종, `archive.py` 타입 있는 직렬화), 계수 소유 이동(`ComputeBlock` 무상태화, 신규 `core/run_counters.py`, `BoundedLRU._evicted`·`TableCache.events` 이동), 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 제약 행 `graph/metrics: constraint_rows`(①-c에서 이월, `unmeasured` 자리는 §2.4.12 Q8), 단계 B 층 블록 배선(`residual_probe`·`dof_numeric`, 소비자 층 0과 함께 -- ①에서 이월, v1.9.1 D5), `graph/start`의 `placement`(U15 `placer`와 함께, v1.9.1 D4)·`noise_inputs`(β·C_eff 계산과 함께)·KVL 기록(`records`에 추가, v1.9.1 D3), 결과 JSON 계수 `perf.s0_snapshot`(①에서는 단계 A 보고서 `s0_snapshot` 키), `SearchContext`(G-7), `kernel.evaluate`, `EvalResult`·`SsEvaluation` 사본 제거, 층 0의 이식 사용(`layer0_budget.py`, `local_candidates.py`, `local_front.py`, `combo_dp.py`, `assembly.py`, `size_and_seal_local.py`의 `LocalSeal`) | **전체 재작성**: search 상태층(`search_context.py`, `kernel.py`의 캐시·기록 부분, `EvalResult`), 층 0 데이터 흐름(41 §5 v1.6 U15 재구현과 한 변경). **부분 수정**: core 블록(분할 추가, 분할 없는 블록은 `*` 하나로 as-built와 같은 동작), 커널 블록 분할 선언 | `sctx.cache`·`disk_failures`·`computed_keys`·`cell_floors`·`local_seal_memo`, `_disk_failures`, `ComputeBlock`의 계수 칸·`_seen_inputs`·`reset_stats`, `SsEvaluation.ss/dc`, `EvalResult`의 값 칸, `LocalSeal.snapshot_fragment`·`power_w`·`area_m2`, 오케스트레이터 초안 EvalCache, 이것들을 단언하던 test | ①(①-b 완료: 병합 eadb729, 4차 판정 988eef4 -- 차단 0), U15 design(41 §5 v1.6) 승인, **NFR-4 결정론 원인 수정**(v1.9.2 결정 8: `OPENBLAS_NUM_THREADS` 미지정 시 `two_stage_ota`·`two_stage_ota_sf`·`sf_pushpull`의 `start.row`·`rungs`·`macro`·`area_est_m2` 지문이 base와 비트 단위로 달라지는 결함. ①-b의 test·판정 환경 스레드 1 고정은 우회이고, 엔진의 원인 연산 수정은 ② 착수 전에 한다), **결정 10 code_hash card**(상태: 완료(af10c9b, 판정 ecda471 -- gap 15/15, 차단 0). 방식 v1.9.3 -- §2.4.3 '블록 코드 해시' 행. 순서: design 정정 → test·code → 독립 판정, ②의 `RunCounters`·G-10 test 전에 끝낸다. 완료 조건은 그 행 (9). 판정 2의 다른 checkout 부분은 (9) (b)가 ② 전에 판정한다. code 범위에 `E/core/engine_code_fp.py:8` 주석과 `E/core/CONTRACT.md:237,245` 갱신을 포함한다) | D-GR1·4·5·9·10·14, D-AP1 | `test_g10_second_run_s0_zero`(`RunCounters` 필요, §2.4.9에서 ①에서 옮김), `test_graft_equals_compute`, `test_graft_donor_order_invariant`, `test_partition_scc_not_split`, 분할 블록 시드 금지(같은 θ·다른 parent → 같은 분할 값), 보존 규칙(풀이 중 기준점 유지·끝나면 놓음), 색인 적중 = 커널 0, 층 0 조립점에서 비공유 분할 `computes` 0. **완료 조건 = A' 판정 기준**(§10.5, P DEC-98: library 9회로 + held-out 회로에서 시작점이 봉인 통과·spec 제약 행 c ≥ 0이고 ngspice(T4-pre·T5) 통과, front 점(P U-45)도 ngspice 통과, 엔진 실패 회로가 남으면 미완료·A' 대조표, 9회로 도달률은 회귀 지표) |
+| **② search 상태·층 0** | core 분할 계산 블록과 `graft`(`E/core/compute_block.py`, `graph_snapshot.py`의 `block_versions` 키, 신규 `core/graft.py`), 평가 커널 ②~⑤·봉인 블록의 분할 선언(`E/sizing/block_*.py`, `seal_*.py`), S3 메모리 색인과 보존(신규 `E/search/s3_index.py`, `local`·`solved` 분리, 보존 소유자 5종, `archive.py` 타입 있는 직렬화), 계수 소유 이동(`ComputeBlock` 무상태화, 신규 `core/run_counters.py`, `BoundedLRU._evicted`·`TableCache.events` 이동), 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 제약 행 `graph/metrics: constraint_rows`(①-c에서 이월, `unmeasured` 자리는 §2.4.12 Q8), 단계 B 층 블록 배선(`residual_probe`·`dof_numeric`, 소비자 층 0과 함께 -- ①에서 이월, v1.9.1 D5), `graph/start`의 `placement`(U15 `placer`와 함께, v1.9.1 D4)·`noise_inputs`(β·C_eff 계산과 함께)·KVL 기록(`records`에 추가, v1.9.1 D3), 결과 JSON 계수 `perf.s0_snapshot`(①에서는 단계 A 보고서 `s0_snapshot` 키), `SearchContext`(G-7), `kernel.evaluate`, `EvalResult`·`SsEvaluation` 사본 제거, 층 0의 이식 사용(`layer0_budget.py`, `local_candidates.py`, `local_front.py`, `combo_dp.py`, `assembly.py`, `size_and_seal_local.py`의 `LocalSeal`) | **전체 재작성**: search 상태층(`search_context.py`, `kernel.py`의 캐시·기록 부분, `EvalResult`), 층 0 데이터 흐름(41 §5 v1.6 U15 재구현과 한 변경). **부분 수정**: core 블록(분할 추가, 분할 없는 블록은 `*` 하나로 as-built와 같은 동작), 커널 블록 분할 선언 | `sctx.cache`·`disk_failures`·`computed_keys`·`cell_floors`·`local_seal_memo`, `_disk_failures`, `ComputeBlock`의 계수 칸·`_seen_inputs`·`reset_stats`, `SsEvaluation.ss/dc`, `EvalResult`의 값 칸, `LocalSeal.snapshot_fragment`·`power_w`·`area_m2`, 오케스트레이터 초안 EvalCache, 이것들을 단언하던 test | ①(①-b 완료: 병합 eadb729, 4차 판정 988eef4 -- 차단 0), U15 design(41 §5 v1.6) 승인, **NFR-4 결정성 card**(v1.9.4, 사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해" -- v1.9.2 결정 8의 '엔진의 원인 연산 수정'을 이 결정으로 대체한다. 결함 자체는 v1.9.2 기록 그대로다: 스레드 수에 따라 출발 구간 필드 지문이 비트 단위로 달라진다. 범위: 1안 BLAS 스레드 고정·실행 환경 지문(§2.4.3, §2.4.13 (1)), 3안 판정 경계 배치 규칙(41 §5.13), ③ 검증 기준·필드 분류·비교기(§2.4.13 (2)~(5)). 2안(순수 Python SQP)은 하지 않는다. 순서: design → test·code → 독립 판정이다. ②의 기준선 측정 전에 끝낸다. §2.4.13 (8) Q-N1~Q-N6이 결정되기 전에는 그 부분을 구현하지 않는다. test 환경의 스레드 1 고정은 이 card의 같은 변경에서 거둔다), **결정 10 code_hash card**(상태: 완료(af10c9b, 판정 ecda471 -- gap 15/15, 차단 0). 방식 v1.9.3 -- §2.4.3 '블록 코드 해시' 행. 순서: design 정정 → test·code → 독립 판정, ②의 `RunCounters`·G-10 test 전에 끝낸다. 완료 조건은 그 행 (9). 판정 2의 다른 checkout 부분은 (9) (b)가 ② 전에 판정한다. code 범위에 `E/core/engine_code_fp.py:8` 주석과 `E/core/CONTRACT.md:237,245` 갱신을 포함한다) | D-GR1·4·5·9·10·14, D-AP1 | `test_g10_second_run_s0_zero`(`RunCounters` 필요, §2.4.9에서 ①에서 옮김), `test_graft_equals_compute`, `test_graft_donor_order_invariant`, `test_partition_scc_not_split`, 분할 블록 시드 금지(같은 θ·다른 parent → 같은 분할 값), 보존 규칙(풀이 중 기준점 유지·끝나면 놓음), 색인 적중 = 커널 0, 층 0 조립점에서 비공유 분할 `computes` 0. **완료 조건 = A' 판정 기준**(§10.5, P DEC-98: library 9회로 + held-out 회로에서 시작점이 봉인 통과·spec 제약 행 c ≥ 0이고 ngspice(T4-pre·T5) 통과, front 점(P U-45)도 ngspice 통과, 엔진 실패 회로가 남으면 미완료·A' 대조표, 9회로 도달률은 회귀 지표) |
 | **③ LUT memo·lint·G-10** | `E/lut/lut_memo.py`(`call`·계수 상태·상한 B_r), `sweep_memo.py`, LUT 순수 함수로 옮기는 것(`E/search/cell_floor.py`, `E/metrics/block_param_tables.py`, `edge_costs` 호출처, `E/sizing/block_columns.py`의 `solve_self`·`tol_cells`), 구조 규칙 G 확장·설계 값 타입 위치 검사·SC-a/SC-b lint(`E/tests/structure/structure_checks.py`, `_module_map.py` 필드 형식 열), memo 상한·퇴출 판정(§2.4.6 사용자 결정 (가)/(나)에 따라 -- 결정이 착수 조건), G-10 test(`E/tests/perf/`, `E/tests/integration/`) | **전체 재작성**: memo 생성·상한 배선(`_wire_sweep_memo`, `sweep_memo`), `ParamTables`. **부분 수정**: `cell_floor`·`solve_self`·`tol_cells`(memo 함수로 옮김), 구조 검사(규칙 추가) | `LutMemo.lookup`(클로저형), `_Unmemoized`, `_CountingMemo`·`sweep_memo.py`, 두 번째 memo 인스턴스, `ParamTables` 클래스와 두 벌 생성, `CurveBook`의 LUT 사전(①에서 클래스 삭제), §2.4.10 실측 위반 줄 전부, 이것들을 단언하던 test | ②, §2.4.6 사용자 결정 | D-GR6·11·12·15 | `test_lut_memo_single_instance`, `test_lut_memo_purity`, `test_g10_no_recompute_9circuits`, 구조 규칙 G 확장의 거부 확인 픽스처(규칙마다 위반 예 1개가 실제로 거부됨) |
 
 **U17과 다른 단위의 관계**:
