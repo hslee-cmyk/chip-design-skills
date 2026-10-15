@@ -39,7 +39,7 @@ plan_version: 6.9
 | NFR-1 조용한 실패 불가 | 전체 | PART | `E/core/failure_errors.py:20-60`. 아카이브 문자열 복원 결함 |
 | NFR-2 같은 키 재계산 0, LUT memo 상한 | 40 §7.3 | PART | `E/core/compute_block.py:77`. `rg "from_sweep\("` 호출부 0(`E/lut/lut_memo.py:34`) |
 | NFR-3 IC1~IC11 강제 test | 40 §10.3 | MISS | 패키지별 test 폴더(R26 현행 체계 유지)에서 `rg "def test_ic"` 0 |
-| NFR-4 결정론 | 전체 | OK | `E/core/determinism.py`. 구조 규칙 test `tests/structure/test_structure_rules.py`. v1.9.2 결함 기록(결정 8): OpenBLAS 스레드 수 의존(40 §11 U17 ② 선행) -- 상태는 다음 gap 분석에서 다시 잰다. v1.9.4(사용자 결정 2026-10-15): 설계 = 40 §2.4.13·41 §5.13, 설계 항목 D-ND1~D-ND3 |
+| NFR-4 결정론 | 전체 | PART | `E/core/determinism.py`. 구조 규칙 test `tests/structure/test_structure_rules.py`. v1.9.2 결함 기록(결정 8): OpenBLAS 스레드 수 의존(40 §11 U17 ② 선행) -- 상태는 다음 gap 분석에서 다시 잰다. v1.9.4(사용자 결정 2026-10-15): 설계 = 40 §2.4.13·41 §5.13, 설계 항목 D-ND1~D-ND4. PART 근거: 엔진 안 BLAS 고정 없음(D-ND1), 경계 배치 결함(D-ND2), 알려진 다른 환경 결함(D-ND4) |
 | NFR-5 스펙 맞춤, 여유 바닥 | 40 §3.6 | PART | 분해능은 있다(`E/metrics/sensitivity.py:1-15`, `MetricResult.resolution`). 모델 오차와 예산 점이 없다 |
 | NFR-6 기능별 파일 | 40 §1.2 EP-3 | OK | `E/tests/structure/structure_checks.py:312-1114`(규칙 A~I) |
 
@@ -290,8 +290,9 @@ plan_version: 6.9
 | D-P13 | 누락 항목 일괄: `dc_id_source`, tol_V 정의, 결합 잔차 쓰임(`residual_table`·`trust_limits`), LY8 3열, 근방 반경 확장, IC3·IC7·IC11, T1·T7·T8 형식, `layer0.ac_inactive`, bisection 켜기 경로, TS7 strict xfail | 40 §3.10.8 | MISS | 항목별 grep 0(`dc_id_source`, `trust_limits`, `metric_columns`, `ac_inactive`) |
 | D-AP1 | A' 판정 기준(P DEC-98, 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①): 판정자 ngspice(MOD8 전 점은 T4-pre), 독립 대조군 AI 손분석(결정 원문 "코드 없음" -- 엔진 코드 미열람, LUT 조회·계산 보조 스크립트 허용; 회로마다 1회 고정 문서; 엔진 입력 아님; 작성 주체 ≠ 엔진 코드 작성 주체), 피검 엔진 시작점·front 점(P U-45). 판정 규칙(엔진만 실패 = 엔진 결함 대조표, AI만 실패 = 공동분석 기록·그 회로 완료, 둘 다 통과 = 전력(ngspice)·면적(엔진 면적 코드에 손분석 W/L/finger) 차, 둘 다 실패 = 판정 불능). U17 단계 ② 완료 조건: library 9회로 + held-out 회로에서 시작점 봉인 통과·spec 제약 행 c ≥ 0·ngspice(T4-pre·T5) 통과, front 점도 ngspice 통과, 엔진 실패 회로가 남으면 미완료(fail-closed), 9회로 도달률 회귀 지표. held-out 선정 P U-75(사용자 몫), 세부 P U-76 (1)~(9) 기본안 | 40 §10.5, §11 U17 ② | MISS | 저장소 안 손분석·A' 대조표 문서 0, held-out 회로 0(U-75 미정), `docs/03-analysis/aprime/` 0, T4-pre 오라클 입력(sizing W·비례 접합 기하) 0, `constraint_rows` 미구현(D-GR13) |
 | D-ND1 | BLAS 스레드 고정·확인(fail-closed)과 S0 키 (iv) 실행 환경 지문(사용자 결정 2026-10-15 1안) | 40 §2.4.3, §2.4.13 (1) | MISS | `rg "set_num_threads\|blas_env\|KEY_ENV_FP\|env_fp" E/`(tests 제외) 0 -- 34932a9에서 잰. 고정은 test 환경(`E/tests/conftest.py:23-27`)에만 있다 |
-| D-ND2 | 판정 경계 위 배치점 규칙 B1~B3, 층 0 끌어올림 닫힌 식(3안) | 41 §5.13 | DEV | `E/search/layer0_center.py:240` `lift = u`(풀이기 목적값으로 끌어올림 -- B1 위반) -- 34932a9 |
+| D-ND2 | 판정 경계 위 배치점 규칙 BP1~BP3, 층 0 끌어올림 닫힌 식(3안) | 41 §5.13 | DEV | `E/search/layer0_center.py:240` `lift = u`(풀이기 목적값으로 끌어올림 -- BP1 위반) -- 34932a9 |
 | D-ND3 | NFR-4 검증 기준(③): 같은 환경·같은 코드 비트 동일, 다른 환경·수치 보존 리팩터링 필드별(D·C·K), 분해능 출처 표, test 기반 비교기와 감사 사용 | 40 §2.4.13 (2)~(5) | MISS | `rg -l "nfr4_compare\|field_class" E/tests` 0 -- 34932a9. 열린 질문 Q-N1~Q-N6 |
+| D-ND4 | 알려진 잔여 결함: pushpull_follower_buffer의 다른 실행 환경 비교 이산 갈림(외층 ε 풀이 `EP:s1` FD 열 실패 `frozen:L:M1`·재시작 2 대 6, 시작점 경계 밖 성분의 풀이기 잡음). 3안으로 없어지지 않는다. 처리 = 40 §2.4.13 (8) Q-N7(기본안: 결함 기록, 원인은 별도 card) | 40 §2.4.13 (5)(b)·(8), 41 §5.13 '남은 위험' | DEV | 대리 측정(고정 전 스레드 1 대 8·18, 41 §5.13 (a2)): 엔진 결정 차이 125/125, `wt/_nfr4_design_scratch/all_variant_a2.json` -- 34932a9 복제 |
 
 ## 4. 상태 집계
 
@@ -299,12 +300,12 @@ plan_version: 6.9
 
 | 구분 | 행 수 | OK | DEV | PART | MISS | N/A |
 |---|---|---|---|---|---|---|
-| FR·NFR | 15 | 3 | 1 | 6 | 5 | 0 |
+| FR·NFR | 15 | 2 | 1 | 7 | 5 | 0 |
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
-| 설계 항목 | 160 | 0 | 24 | 16 | 119 | 1 |
-| **합계** | 257 | 27 | 31 | 51 | 141 | 7 |
+| 설계 항목 | 161 | 0 | 25 | 16 | 119 | 1 |
+| **합계** | 258 | 26 | 32 | 52 | 141 | 7 |
 
-v1.9.4(2026-10-15, 사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해"): 설계 항목 3행 추가(D-ND1 MISS, D-ND2 DEV, D-ND3 MISS -- 34932a9에서 잰, 40 §2.4.3·§2.4.13, 41 §5.13), NFR-4 증거 칸에 설계 절·행 추가(상태 불변). 집계: 설계 항목 157 → 160(DEV +1, MISS +2).
+v1.9.4(2026-10-15, 사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해"): 설계 항목 3행 추가(D-ND1 MISS, D-ND2 DEV, D-ND3 MISS -- 34932a9에서 잰, 40 §2.4.3·§2.4.13, 41 §5.13), NFR-4 증거 칸에 설계 절·행 추가(상태 불변). 집계: 설계 항목 157 → 160(DEV +1, MISS +2). 같은 v1.9.4에 독립 검증 지적 B-2 반영: D-ND4(알려진 잔여 결함, DEV) 추가, NFR-4 상태 OK → PART(근거 D-ND1·2·4). 집계: FR·NFR OK 3 → 2·PART 6 → 7, 설계 항목 160 → 161(DEV +1).
 
 40 v1.9.3 as-built 문서 정정 동기화(2026-10-14, 4차 판정 `wt/_audit_u17_1b_r4/audit_report.md` 988eef4·code_hash 판정 `wt/_audit_codehash/audit_report.md` ecda471의 경미 지적): D-GR3의 'N-1 반영 예정' 시점 문장을 구현 7eb4865로. 상태 칸(MISS, 증거 `rg "snapshot_codec"` 0)은 두 판정 모두 기준 시점 004b7d2 '상태 불변' 원칙의 옛 칸으로 일치 판정했으므로 바꾸지 않는다(재측정은 다음 기준 시점 갱신 때, 상태 불변, 행 수 불변, 이 문서 버전 번호 불변).
 
