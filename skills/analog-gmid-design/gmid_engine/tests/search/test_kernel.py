@@ -147,7 +147,7 @@ def test_candidate_failure_recorded_and_cached(case_c):
 
 def _as_failure_line(line):
     """엔진이 쓴 성공 evals 줄(같은 schema·code·cells·θ hex)을 ok 아닌 줄로 손으로 바꾼다 -- 옛 '디스크 실패 적중'이 받던 입력 형식
-    (tests/search/test_layer0_center.py `as_failure`·`empty_window` 와 같은 구성). 이 줄을 엔진이 읽지 않아야 한다(C5)."""
+    (옛 tests/search/test_layer0_center.py 디스크 주입 helper 가 쓰던 구성, 0538dec). 이 줄을 엔진이 읽지 않아야 한다(C5)."""
     d = {k: v for k, v in line.items() if k not in ("objectives", "power_resolution_w", "snapshot_fp")}
     d.update(ok=False, status=STATUS_FAILED, constraints=[], unmeasured=[],
              fail={"class": "SEAL_VIOLATION", "devices": [], "margin": None,

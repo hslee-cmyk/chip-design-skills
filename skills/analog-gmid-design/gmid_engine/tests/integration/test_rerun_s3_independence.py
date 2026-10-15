@@ -6,7 +6,7 @@
 - 실행 A: 빈 S3 루트.
 - 실행 B: A 가 쓴 S3 폴더 그대로(A 의 front 점·평가 줄이 있다).
 - 실행 C: 새 S3 루트에 A 의 평가 줄을 모두 실패 줄로 바꿔 손으로 넣은 폴더(옛 '디스크 실패 적중' 입력 형식,
-  tests/search/test_layer0_center.py `as_failure` 와 같은 구성).
+  tests/search/test_kernel.py `_as_failure_line` 과 같은 구성).
 oracle (a) 불변식(C3·C5): 세 실행의 C3 출력 -- 단계 A·B 보고서 JSON 바이트, dc.base 필드 value_fp 표, context_fp, schema_fp, find_front 결과
 (front·pending·unmeasured 점 θ 의 float.hex, 시간 칸을 뺀 perf), 그 실행이 S3 에 새로 붙인 줄(evals 줄 전부, runs 줄은 perf 시간 칸
 `wall_s`·`eval_time_median_s` 를 뺀 내용, 이 줄의 failed_eps 포함) -- 이 모두 같다. 기대값은 A 의 출력이다(피검 함수로 정답을 만들지 않고, 같은
