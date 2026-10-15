@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.9.4
-plan_version: 6.9
+version: 1.10
+plan_version: 6.10
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
@@ -254,7 +254,7 @@ plan_version: 6.9
 | D-M9 | MOD9 결과 JSON | 40 §3.9 | MISS | `E/report/__init__.py` |
 | D-M10 | `run_gmid_design_pipeline` | 40 §3.9 | MISS | `E/pipeline/__init__.py`. 일부가 `[ng-bridge]`에 있다 |
 | D-PF1 | `LutMemo.from_sweep` 배선 | 40 §7.3 | PART | `E/lut/lut_memo.py:34`, 호출부 0 |
-| D-PF2 | tol_V 디스크 캐시와 정리 | 40 §7.3 | PART(브랜치) | `[ng-tolv-cache] E/lut/table_cache.py:217,230-254` |
+| D-PF2 | tol_V 디스크 캐시와 정리(v1.10: 실행 사이 유지 여부는 사용자 결정 대기 -- 40 §2.4.12 Q9) | 40 §7.3 | PART(브랜치) | `[ng-tolv-cache] E/lut/table_cache.py:217,230-254` |
 | D-GB7a | L 동치류의 L 공유 | 40 §3.2 | DEV | `E/graph/CONTRACT.md:220` |
 | D-GB7b | 미러 비율 강제 | 40 §3.7 | MISS | `E/sizing/CONTRACT.md:276` |
 | D-GB7c | DEC-95 (3) 전체 순서 | 40 §3.7 | PART | `E/sizing/writer_plan.py:13-17` |
@@ -264,9 +264,9 @@ plan_version: 6.9
 | D-GB8c | `verified_by`, 모델 오차, `spice_unverifiable` | 40 §3.8 | MISS | -- |
 | D-IC | IC1~IC11 계약 test(패키지별 폴더) | 40 §10.3 | MISS | `rg "def test_ic"` 0 |
 | D-T | test 폴더 체계 | 40 §8 R26 | N/A | 축소 유지 승인(2026-10-08). 현행 체계를 쓴다 |
-| D-GR1 | graph 밖 저장소는 넷뿐(LUT memo·S3 기록과 색인·실행 계수·S0 수준 스냅샷 직렬화) | 40 §2.4.1 | DEV | bd19cc6 `E/search/search_context.py:65-89`(cache·cell_floors·local_seal_memo 등) |
+| D-GR1 | graph 밖 저장소는 셋뿐(LUT memo·S3 기록과 색인·실행 계수 -- v1.10 S0 직렬화 폐지) | 40 §2.4.1 | DEV | bd19cc6 `E/search/search_context.py:65-89`(cache·cell_floors·local_seal_memo 등) |
 | D-GR2 | S0 수준 층 필드화(S1v·결합 변수·GB4·출발 구간·metric 구조 입력). 레코드별 필드 = 40 §2.4.8(v1.9.1 D1~D4·D7~D9: `graph/s1v` `coverage`·`graph/ach` `block_bounds` 없음, `graph/start` `rungs` = as-built `ladder`, `noise_inputs`·`placement`는 U17 ②, `local_inputs` dict→tuple·memo 제외) | 40 §2.4.2·2.4.8 | MISS | bd19cc6 `sctx.s1v`·`sctx.ach`·`sctx.start` 객체, `E/search/start_values.py:186-235` `StartContext` |
-| D-GR3 | S0 수준 스냅샷 디스크 영속화(키·타입 있는 코덱·원자적 쓰기·검증), 단계 A 보고서 `s0_snapshot` 키(hit\|miss\|corrupt), `run_stage_a` PDK 선언 필수 인자, U-68 재현 판정 = 입력 파일 원본 sha(`structure.json` 포함) + 엔진 코드 지문, U-68 정리 = 프로세스당 첫 실제 쓰기 1회(`core/snapshot_codec.py` `_CLEANUP_STARTED`), 위치 환경 변수 `GMID_S0_SNAPSHOT_DIR`(test 격리), 저장 시점 = `build_search_context` 끝 1회(단계 A·B만 도는 실행은 읽기만, 탐색 설정은 키 밖 -- v1.9.1 D6). v1.9.2: 단계 A가 ok가 아닌 회로는 스냅샷 없음(결정 6), `run_stage_b` `settings` 필수 인자(결정 4), S0 값에 checkout 경로 없음(`PdkDecl`·`PdkRule`·`PdkMismatchModel` 경로 속성 없음, 결정 7). v1.9.3(결정 10): `ComputeBlock.code_hash` = 코드 내용만의 지문 -- 넣는 칸(바이트코드·상수·이름·변수 이름·인자 수·플래그·예외표·`co_name`·`co_qualname`, 중첩 code와 tuple·frozenset 원소 재귀), 빼는 칸(`co_filename`·줄 정보·`co_nlocals`·`co_stacksize`, `co_*` 전수 분할), marshal 없음(core `fp_of`), `__wrapped__` 사슬 포함, 미지원 상수 타입 `TypeError`, 다른 checkout(같은 커밋)에서 `context_fp` 같음·S0 블록 `computes` = 0. v1.9.3(U-68 복구, 사용자 결정 "(가) 경로 인자 필수"): U-68 정리 대상 입력 파일에 PDK 선언·LUT 생성 규칙 선언(sources `pdk_decl`·`lut_rule_decl` = (위치, `decl_sha256`)), `run_stage_a` 키워드 전용 필수 인자 `pdk_decl_path`·`lut_rule_decl_path`(기본값 없음, 누락 `TypeError`), 경로는 키 메타 위치(`repo:`/`abs:`)에만 -- S0 값·스냅샷 `fp`·`context_fp`에 없음, 진입에서 경로 파일 원본 sha256 ≠ 선언 `decl_sha256`이면 거부(fail-closed, 3차 판정 N-1 -- 구현 7eb4865, 4차 판정 988eef4 닫힘), PDK 선언 조회 거부 기록 `decl=` = `decl_sha256` 그대로 | 40 §2.4.3 | MISS | `rg "snapshot_codec"` 0 |
+| D-GR3 | 실행 사이 재사용 제거(v1.10, 사용자 결정 2026-10-15 "나로 해"): S0 수준 층 = 실행 수명, 디스크 스냅샷·S0 키·코덱·타입 등록부·U-68 정리·`run_stage_a` PDK 선언 경로 인자와 진입 sha 대조·`GMID_S0_SNAPSHOT_DIR`·S3 실행 사이 읽기(이전 front 점 시작점, 디스크 실패 기록) 삭제. 엔진 코드 지문은 결과 기록 출처 칸으로만, 블록 코드 해시는 실행 안 입력 버전으로 유지(checkout 무관 성질은 Q10). 옛 항목(S0 스냅샷 영속화, v1.9.1~v1.9.3 문구)은 history | 40 §2.4.3 | DEV | 34932a9 as-built에 옛 구조가 있다: `E/core/snapshot_codec.py`(431줄), `E/core/s0_slot.py`, `E/core/type_registry.py`, `E/pipeline/stage_a.py:236·242-248·265-268`, `E/search/search_context.py:137-149·225-229`, `E/search/start_points.py:33-47`, `E/search/kernel.py:105` |
 | D-GR4 | 분할 계산 블록과 이식(graft). 분할 대상에 GB5 `passive_values`(읽는 레코드 = 영점 상쇄 셀 소자의 `dc_gm`, 전류 θ만 바뀐 자식의 재계산 해소, U17 ② 이월) | 40 §2.4.4 | MISS | `rg "def graft"` 0, `E/core/compute_block.py:73-90`(블록 이름 하나의 버전) |
 | D-GR5 | S3 메모리 색인·스냅샷 보존(`sctx.cache`·`local_seal_memo` 대체, G-5) | 40 §2.4.5 | DEV | bd19cc6 `E/search/kernel.py:102-121`, `E/search/local_candidates.py:141-144` |
 | D-GR6 | LUT memo 순수성(`call`)·S0당 인스턴스 하나·상한 B_r(층 0 항) | 40 §2.4.6 | DEV | bd19cc6 `E/search/search_context.py:105-121`(두 번째 인스턴스, 첫 평가 버림), `E/lut/lut_memo.py:25-36,60-62` |
@@ -274,8 +274,8 @@ plan_version: 6.9
 | D-GR8 | tol_I = tol_V × `dc_gm`(자기 동작점, writer 1개, `ss_dev` 공용) | 40 §3.7-3, §2.4.11 | DEV | bd19cc6 `E/sizing/seal_tolerances.py:36-45`, `E/sizing/kernel_run.py:51-96` |
 | D-GR9 | 값 사본 제거(`SsEvaluation`·`EvalResult`·`LayoutResult`), 레이아웃 = 설계점 필드 | 40 §2.4.7 | DEV | bd19cc6 `E/metrics/ss_types.py:79-88`, `E/search/search_values.py:146-162`, `E/layout/run.py:109` |
 | D-GR10 | G-7 SearchContext = 참조 + S3 색인 + 실행 계수, `__slots__`·frozen | 40 §2.4.7 | DEV | bd19cc6 `E/search/search_context.py:51-89` |
-| D-GR11 | G-8 강제 장치 4종(규칙 G 확장·설계 값 타입 위치·SC-a/SC-b lint·9회로 test). 허용 모듈에 `core/snapshot_codec.py`(U-68 1회 표시 `_CLEANUP_STARTED`, §2.4.1 (d) 범주) | 40 §2.4.10 | PART | bd19cc6 규칙 G = 모듈 가변·데코레이터·global만(`E/tests/structure/structure_checks.py:880-920`) |
-| D-GR12 | G-10 계수(블록·분할별 grafts 포함, `perf.s0_snapshot` 포함)와 9회로·두 번째 실행 test(`test_g10_second_run_s0_zero`는 U17 단계 ②) | 40 §2.4.9 | PART | bd19cc6 `E/core/compute_block.py:30-38` `BlockStats`, `E/search/kernel.py:120-121` `recompute_same_key` |
+| D-GR11 | G-8 강제 장치 4종(규칙 G 확장·설계 값 타입 위치·SC-a/SC-b lint·9회로 test). 허용 모듈(v1.10: `core/snapshot_codec.py`·`core/type_registry.py`는 목록에서 빠짐) | 40 §2.4.10 | PART | bd19cc6 규칙 G = 모듈 가변·데코레이터·global만(`E/tests/structure/structure_checks.py:880-920`) |
+| D-GR12 | G-10 계수(블록·분할별 grafts 포함)와 9회로 test(v1.10: `perf.s0_snapshot`·두 번째 실행 test 폐지) | 40 §2.4.9 | PART | bd19cc6 `E/core/compute_block.py:30-38` `BlockStats`, `E/search/kernel.py:120-121` `recompute_same_key` |
 | D-GR13 | 단계 B 층(r̂·수치 rank, 직렬화 제외. ①-b는 필드 자리·제외 규칙만, 블록 배선은 소비자 층 0과 함께 U17 ② -- v1.9.1 D5), `ach.dof` = 구조 DOF만, KernelContext·SearchContext 선언 파생의 S0 수준 필드, `metrics_dc` `gate_area_m2`·`power_resolution_w`(제약 행 `constraint_rows`는 U17 ②로 이월, `unmeasured` 자리 40 §2.4.12 Q8 열림) | 40 §2.4.1·2.4.7·2.4.8 | DEV | bd19cc6 `E/search/objectives.py:31-45`, `E/sizing/s2_values.py:429-443` |
 | D-GR14 | 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 색인 `local`·`solved` | 40 §2.4.5·2.4.8, 41 §5.3.9·§5.3.11·§5.5 | MISS | `rg "comp_approx_gap"` 0(엔진 .py) |
 | D-GR15 | 계수 소유 `RunCounters`(블록 무상태, `_evicted`·`events` 이동), LUT memo 퇴출 판정(U-60 결정 (가): 퇴출 뒤 재계산 0) | 40 §2.4.6·2.4.9 | DEV | bd19cc6 `E/core/compute_block.py:67-71`, `E/core/bounded_lru.py:38`, `E/lut/table_cache.py:199` |
@@ -289,11 +289,11 @@ plan_version: 6.9
 | D-P12 | 규칙 분기 발동표 결과 JSON `rule_branches`(DEC-59) | 40 §3.10.7 | MISS | `rg "rule_branches"` 0 |
 | D-P13 | 누락 항목 일괄: `dc_id_source`, tol_V 정의, 결합 잔차 쓰임(`residual_table`·`trust_limits`), LY8 3열, 근방 반경 확장, IC3·IC7·IC11, T1·T7·T8 형식, `layer0.ac_inactive`, bisection 켜기 경로, TS7 strict xfail | 40 §3.10.8 | MISS | 항목별 grep 0(`dc_id_source`, `trust_limits`, `metric_columns`, `ac_inactive`) |
 | D-AP1 | A' 판정 기준(P DEC-98, 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①): 판정자 ngspice(MOD8 전 점은 T4-pre), 독립 대조군 AI 손분석(결정 원문 "코드 없음" -- 엔진 코드 미열람, LUT 조회·계산 보조 스크립트 허용; 회로마다 1회 고정 문서; 엔진 입력 아님; 작성 주체 ≠ 엔진 코드 작성 주체), 피검 엔진 시작점·front 점(P U-45). 판정 규칙(엔진만 실패 = 엔진 결함 대조표, AI만 실패 = 공동분석 기록·그 회로 완료, 둘 다 통과 = 전력(ngspice)·면적(엔진 면적 코드에 손분석 W/L/finger) 차, 둘 다 실패 = 판정 불능). U17 단계 ② 완료 조건: library 9회로 + held-out 회로에서 시작점 봉인 통과·spec 제약 행 c ≥ 0·ngspice(T4-pre·T5) 통과, front 점도 ngspice 통과, 엔진 실패 회로가 남으면 미완료(fail-closed), 9회로 도달률 회귀 지표. held-out 선정 P U-75(사용자 몫), 세부 P U-76 (1)~(9) 기본안 | 40 §10.5, §11 U17 ② | MISS | 저장소 안 손분석·A' 대조표 문서 0, held-out 회로 0(U-75 미정), `docs/03-analysis/aprime/` 0, T4-pre 오라클 입력(sizing W·비례 접합 기하) 0, `constraint_rows` 미구현(D-GR13) |
-| D-ND1 | BLAS 스레드 고정·확인(fail-closed)과 S0 키 (iv) 실행 환경 지문(사용자 결정 2026-10-15 1안) | 40 §2.4.3, §2.4.13 (1) | MISS | `rg "set_num_threads\|blas_env\|KEY_ENV_FP\|env_fp" E/`(tests 제외) 0 -- 34932a9에서 잰. 고정은 test 환경(`E/tests/conftest.py:23-27`)에만 있다 |
+| D-ND1 | BLAS 스레드 고정·확인(fail-closed)과 결과 기록 칸 실행 환경 지문 `env_fp`(사용자 결정 2026-10-15 1안, v1.10: S0 키 (iv)는 대상 소멸) | 40 §2.4.13 (1) | MISS | `rg "set_num_threads\|blas_env\|KEY_ENV_FP\|env_fp" E/`(tests 제외) 0 -- 34932a9에서 잰. 고정은 test 환경(`E/tests/conftest.py:23-27`)에만 있다 |
 | D-ND2 | 판정 경계 위 배치점 규칙 BP1~BP3, 층 0 끌어올림 닫힌 식(3안) | 41 §5.13 | DEV | `E/search/layer0_center.py:240` `lift = u`(풀이기 목적값으로 끌어올림 -- BP1 위반) -- 34932a9 |
-| D-ND3 | NFR-4 검증 기준(③): 같은 환경·같은 코드 비트 동일, 다른 환경·수치 보존 리팩터링 필드별(D·C·K), 분해능 출처 표, test 기반 비교기와 감사 사용 | 40 §2.4.13 (2)~(5) | MISS | `rg -l "nfr4_compare\|field_class" E/tests` 0 -- 34932a9. Q-N1~Q-N10 결정(사용자 결정 2026-10-15 "기본안대로 진행해"), 완료 조건은 40 §2.4.13 (5) |
+| D-ND3 | NFR-4 검증 기준(③): 같은 환경·같은 코드 비트 동일, 다른 환경·수치 보존 리팩터링 필드별(D·C·K), 분해능 출처 표, test 기반 비교기와 감사 사용 | 40 §2.4.13 (2)~(5) | MISS | `rg -l "nfr4_compare\|field_class" E/tests` 0 -- 34932a9. Q-N1~Q-N10 결정(사용자 결정 2026-10-15 "기본안대로 진행해"), 완료 조건은 40 §2.4.13 (5)(v1.10: Q-N1·N5·N8 대상 소멸, 매크로 해 주입 진입은 후속 card NFR4-F2 -- 승인 대기) |
 | D-ND4 | 알려진 잔여 결함: pushpull_follower_buffer의 다른 실행 환경 비교 이산 갈림(외층 ε 풀이 `EP:s1` FD 열 실패 `frozen:L:M1`·재시작 2 대 6, 시작점 경계 밖 성분의 풀이기 잡음). 3안으로 없어지지 않는다. 처리 = Q-N7 확정(사용자 결정 2026-10-15 "기본안대로 진행해"): 알려진 결함으로 남기고 원인은 후속 card NFR4-F1(40 §2.4.13 (8)) | 40 §2.4.13 (5)(b)·(8), 41 §5.13 '남은 위험' | DEV | 대리 측정(고정 전 스레드 1 대 8·18, 41 §5.13 (a2)): 엔진 결정 차이 125/125, `wt/_nfr4_design_scratch/all_variant_a2.json` -- 34932a9 복제 |
-| D-ND5 | S3 실행 간 재사용의 실행 환경 지문(Q-N5, 사용자 결정 2026-10-15 "기본안대로 진행해"): `S3Archive(..., *, env_fp)`, 줄마다 `env_fp`, `load_evals`·`load_runs`가 `code_fp`·`env_fp` 둘 다 같은 줄만, 불일치 = miss, 빈 `env_fp` = `ValueError` | 40 §2.4.13 (8) Q-N5 명세 | MISS | `rg "env_fp" E/search/archive.py` 0 -- 34932a9. `E/search/archive.py:42`는 `(root, context_fp, code_fp)`만 받는다 |
+| D-ND5 | **대상 소멸**(v1.10, 사용자 결정 2026-10-15 "나로 해" -- S3 실행 사이 읽기 없음). 옛 항목: S3 실행 간 재사용의 실행 환경 지문(Q-N5, 사용자 결정 2026-10-15 "기본안대로 진행해"): `S3Archive(..., *, env_fp)`, 줄마다 `env_fp`, `load_evals`·`load_runs`가 `code_fp`·`env_fp` 둘 다 같은 줄만, 불일치 = miss, 빈 `env_fp` = `ValueError` | 40 §2.4.13 (8) Q-N5(대상 소멸) | N/A | `rg "env_fp" E/search/archive.py` 0 -- 34932a9. `E/search/archive.py:42`는 `(root, context_fp, code_fp)`만 받는다 |
 
 ## 4. 상태 집계
 
@@ -303,8 +303,10 @@ plan_version: 6.9
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 2 | 1 | 7 | 5 | 0 |
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
-| 설계 항목 | 162 | 0 | 25 | 16 | 120 | 1 |
-| **합계** | 259 | 26 | 32 | 52 | 142 | 7 |
+| 설계 항목 | 162 | 0 | 26 | 16 | 118 | 2 |
+| **합계** | 259 | 26 | 33 | 52 | 140 | 8 |
+
+v1.10(2026-10-15, 사용자 결정 2026-10-15 "나로 해", 실행 사이 재사용 제거): D-GR3을 제거 항목으로 다시 씀(MISS → DEV, 옛 구조가 as-built에 있음), D-ND5 대상 소멸(MISS → N/A), D-GR1·D-GR11·D-GR12·D-ND1·D-ND3·D-PF2 문구. 집계: 설계 항목 DEV 25 → 26, MISS 120 → 118, N/A 1 → 2.
 
 v1.9.4(2026-10-15, 사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해"): 설계 항목 3행 추가(D-ND1 MISS, D-ND2 DEV, D-ND3 MISS -- 34932a9에서 잰, 40 §2.4.3·§2.4.13, 41 §5.13), NFR-4 증거 칸에 설계 절·행 추가(상태 불변). 집계: 설계 항목 157 → 160(DEV +1, MISS +2). 같은 v1.9.4에 사용자 결정 2026-10-15 "기본안대로 진행해"(Q-N1~Q-N10): D-ND3·D-ND4 문구를 결정으로, D-ND5(Q-N5 S3 실행 환경 지문, MISS) 추가. 집계: 설계 항목 161 → 162(MISS +1). 같은 v1.9.4에 독립 검증 지적 B-2 반영: D-ND4(알려진 잔여 결함, DEV) 추가, NFR-4 상태 OK → PART(근거 D-ND1·2·4). 집계: FR·NFR OK 3 → 2·PART 6 → 7, 설계 항목 160 → 161(DEV +1).
 
