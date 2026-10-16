@@ -1,7 +1,8 @@
 """MOD7 레이아웃 공개 진입점 (design_mod7_layout.md 1절 `run.py`, 3절 7단계, 4절 graph 필드, 사용자 결정 2026-10-07 Q4·Q8,
 설계 40 v1.6 §2.4.7 `LayoutResult` 행·§2.4.8 '레이아웃 결과' 행 -- 레이아웃 필드는 그 설계점 스냅샷의 S2 `layout` 필드, 별도 lineage 없음).
 
-진입점: `run_layout(layout_input, memo, design_point, previous=None) -> LayoutResult`.
+진입점: `run_layout(layout_input, memo, design_point, previous=None, *, donors, counters) -> LayoutResult`.
+`donors`·`counters` = 필수 키워드(기본값 없음) -- 호출자(`place_layout` <- `converge_point` 의 `sctx.dc`)가 넘기는 실행 하나의 블록 결과 색인·계수. 네 계산 블록에 그대로 넘긴다.
 
 1. 쓸 스냅샷 = `previous.snapshot`(같은 설계점 위 앞 호출 -- 레이아웃 재시도는 같은 설계점 lineage 의 새 스냅샷) 또는 설계점 스냅샷
    `design_point`(봉인 S2). 권한표는 설계점 권한표에 레이아웃 권한표(`LY_WRITERS`)를 더한 것으로 넓힌다(core `extend_writers` -- 레코드·
@@ -12,7 +13,7 @@
    `ly_slice_density`)로 쓴다. 입력 버전 = (LUT 지문, 폭 키, 소자별 (kind, L, ID, gm/ID, VDS, VSB)) -- 같으면 다시 조회하지 않는다.
    같은 보존량·동작점의 소자는 한 번만 조회한다. `memo.lut.fp` 가 `pdk.source_fp` 와 다르면 `ValueError`.
 4. 계산 블록을 차례로: `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`(행 + floorplan + ly.diffusion).
-5. 결과 = `LayoutResult(snapshot, computed_blocks)` -- 레이아웃 값은 스냅샷의 `ly_*` 필드에서 읽는다(사본 없음). 필드에서 파생하는
+5. 결과 = `LayoutResult(snapshot, computed_blocks)`(`computed_blocks` = 이번 호출에서 값을 쓴 writer -- 계산 또는 이식) -- 레이아웃 값은 스냅샷의 `ly_*` 필드에서 읽는다(사본 없음). 필드에서 파생하는
    review_needed·W_requests·coverage·불변식·재검증 요청은 `layout_outputs(snapshot)`.
 """
 from gmid_engine.core import GraphSnapshot, WriterTable, fp_of
@@ -90,7 +91,7 @@ def _base(design_point, previous):
     return snapshot
 
 
-def run_layout(layout_input, memo, design_point, previous=None):
+def run_layout(layout_input, memo, design_point, previous=None, *, donors, counters):
     """레이아웃을 설계점 스냅샷의 `ly_*` 필드로 실행하고 `LayoutResult(snapshot, computed_blocks)` 를 돌려준다."""
     if memo.lut.fp != layout_input.pdk.source_fp:
         raise ValueError("run_layout: LUT memo 지문이 pdk.source_fp 와 다르다(다른 LUT 로 만든 PDK 폭 키)")
@@ -100,7 +101,7 @@ def run_layout(layout_input, memo, design_point, previous=None):
     computed = [WRITER_SLICES] if sliced else []
     for block in _BLOCKS:
         before = snapshot.block_version(block.name)
-        snapshot = block(snapshot)
+        snapshot = block(snapshot, donors=donors, counters=counters)
         if snapshot.block_version(block.name) != before:
             computed.append(block.name)
     return LayoutResult(snapshot, tuple(computed))

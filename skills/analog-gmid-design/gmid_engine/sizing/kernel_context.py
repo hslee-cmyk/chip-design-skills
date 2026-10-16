@@ -1,7 +1,9 @@
 """평가 커널 컨텍스트 -- S0 당 1회: S1 을 S2 권한표로 넓히고 θ 무관 계획 블록과 커널 구조 파생 블록을 돌린다 (계획 N3.5 평가 커널 컨텍스트,
 WP-23 (3) 루프 불변 입력은 S0 수준 필드로, 설계 3.1, 40 §2.4.7 `KernelContext` 행·§2.4.8 v1.9.1 D8).
 
-진입점: `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext`.
+진입점: `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext`.
+`donors`·`counters` = 필수 키워드(기본값 없음) -- 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수(단계 B 는 `StageAResult` 의 두 칸을 넘긴다).
+7개 블록에 넘기고 `KernelContext.donors`·`.counters` 에 참조로 둔다.
 `order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
 
 순서: 인자 검사 -> `supplies_declaration`(graph, 레일 집합과 대조) + S1 키의 supplies 지문 대조 -> `lift_s1` ->
@@ -48,7 +50,7 @@ PLAN_WRITERS = (DC_RAILS_WRITER, S1_SYMMETRY_WRITER, DC_CURRENT_BASIS_WRITER, DC
                 KERNEL_CONTEXT_WRITER, DC_THETA_SCHEMA_WRITER)
 
 
-def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS):
+def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters):
     if not isinstance(s1graph, S1Graph):
         raise TypeError("build_kernel_context: s1graph 는 graph.build_s1 결과 S1Graph 여야 한다")
     if not isinstance(inputs, DcInputs) or not isinstance(lut, LutAccess):
@@ -77,13 +79,13 @@ def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS):
     sources = tuple((n, values.get(n)) for n in sorted(classes)
                     if classes[n] == ELEMENT_SOURCE and kinds[n] == CURRENT_SOURCE)
     base = lift_s1(s1graph)
-    base = dc_rails(base, supplies)
-    base = s1_symmetry(base, supplies, symmetry_marks(inputs))     # S1 의 대칭 블록 -- 같은 표시면 재사용(계산 0)
-    base = dc_current_basis(base, sources)
+    base = dc_rails(base, supplies, donors=donors, counters=counters)
+    base = s1_symmetry(base, supplies, symmetry_marks(inputs), donors=donors, counters=counters)     # S1 의 대칭 블록 -- 같은 표시면 재사용(계산 0)
+    base = dc_current_basis(base, sources, donors=donors, counters=counters)
     base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None,
-                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)))      # 힌트 없음 = 생략(블록 입력 버전 불변)
-    base = dc_scc_order(base)
-    base = kernel_fields(base, tuple(sorted(targets.items())), inputs.input_dc_v, tuple(inputs.element_values))
+                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)), donors=donors, counters=counters)      # 힌트 없음 = 생략(블록 입력 버전 불변)
+    base = dc_scc_order(base, donors=donors, counters=counters)
+    base = kernel_fields(base, tuple(sorted(targets.items())), inputs.input_dc_v, tuple(inputs.element_values), donors=donors, counters=counters)
     engine_passives = tuple(n for n in sorted(inputs.engine_elements) if classes[n] == ELEMENT_PASSIVE)
-    base = dc_theta_schema(base, engine_passives)
-    return KernelContext(base, inputs, lut)
+    base = dc_theta_schema(base, engine_passives, donors=donors, counters=counters)
+    return KernelContext(base, inputs, lut, donors, counters)

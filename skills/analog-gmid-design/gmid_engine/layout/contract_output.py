@@ -366,7 +366,7 @@ class Revalidation:
 @dataclasses.dataclass(frozen=True)
 class LayoutResult:
     """`run_layout` 반환(설계 40 v1.6 §2.4.7): `snapshot` = 레이아웃 `ly_*` 필드를 쓴 설계점 스냅샷(같은 설계점 위 다음 호출의 `previous`),
-    `computed_blocks` = 이번 호출에서 다시 계산한 writer 이름(나머지는 graph 필드 재사용). 레이아웃 값은 스냅샷 필드에서 읽는다."""
+    `computed_blocks` = 이번 호출에서 값을 쓴 writer 이름(계산 또는 이식 -- 계산·이식 구분은 `RunCounters` 행이 맡는다. 나머지는 graph 필드 재사용). 레이아웃 값은 스냅샷 필드에서 읽는다."""
 
     snapshot: object = dataclasses.field(repr=False)
     computed_blocks: tuple

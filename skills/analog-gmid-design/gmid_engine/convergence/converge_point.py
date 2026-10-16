@@ -97,7 +97,7 @@ def converge_point(sctx, pdk, point):
     iterations, k_bound, layouts, visited = [], None, 0, []
     while True:
         placed = place_layout(memo, current.evaluation.snapshot, pdk_now, _passives(sctx, current), rejected, relaxed, first_seen,
-                              previous_layout, kinds, keys_now)
+                              previous_layout, kinds, keys_now, donors=sctx.dc.donors, counters=sctx.dc.counters)
         layouts += placed.layout_calls
         pdk_now, relaxed, first_seen, previous_layout = placed.pdk, placed.relaxed, placed.first_seen, placed.layout
         narrowed.update(placed.narrowed)
