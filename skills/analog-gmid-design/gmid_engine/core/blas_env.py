@@ -11,11 +11,11 @@
   `/proc/self/maps`, 그 밖 플랫폼 `RuntimeError`). **test 교체 지점**: 이름·인자 없는 서명·`BlasModule` tuple 반환·`blas_environment`·
   `pin_blas_threads` 가 모듈 전역 이름으로 부르는 방식은 바꾸지 않는다.
 * `blas_environment() -> BlasEnvironment` -- 설정하지 않고 열거·조회만 해 확인하고 값을 돌려준다. 재확인 지점((a)~(e))이 부르며 **무상태**다
-  (고정 때 모듈 집합을 보관하지 않는다 -- 지금 적재된 모듈 전부가 조건을 만족하는지만 본다).
+  (모듈 집합을 보관하지 않는다 -- 지금 적재된 모듈 전부가 조건을 만족하는지와 numpy·scipy 각각의 소유 BLAS 항목이 있는지만 본다).
 * `pin_blas_threads()` -- 환경 변수 `OPENBLAS_NUM_THREADS` = "1" -> numpy·`scipy.linalg` 적재 -> 적재된 OpenBLAS 모듈마다 설정 API 로 1 -> `blas_environment()` 로 확인.
 
 거부(`RuntimeError`, 조용한 대체 없음): numpy·scipy 빌드 설정(`show_config(mode="dicts")`)의 BLAS 이름에 `openblas`(대소문자 무시)가 없음, 그 패키지의
-BLAS 라이브러리를 못 찾음(고정 때), OpenBLAS 기록의 설정·조회 기호 없음, 조회 값 != 1, MKL·BLIS 기호 모듈이 있음, 열거 미구현 플랫폼.
+BLAS 라이브러리를 못 찾음(고정·재확인 (a)~(e) 모두), OpenBLAS 기록의 설정·조회 기호 없음, 조회 값 != 1, MKL·BLIS 기호 모듈이 있음, 열거 미구현 플랫폼.
 `config`·`corename`·`parallel` 기호가 없는 것은 거부 사유가 아니다(해당 항목 값이 None). 알려진 스레드 API 기호를 내보내지 않는 BLAS 는 찾을 수 없다(범위 밖).
 numpy·scipy 는 함수 안에서 import 한다(core 는 모듈 수준에서 numpy·scipy 를 import 하지 않는다).
 """
@@ -237,6 +237,10 @@ def blas_environment():
     _require_openblas_build(packages)
     folders = _package_folders()
     entries = sorted((_entry(module, folders) for module in loaded_blas_modules()), key=_sort_key)
+    owners = {entry[1] for entry in entries}
+    for name in _BUILD_PACKAGES:
+        if name not in owners:
+            raise RuntimeError("BLAS 스레드 고정: " + name + " 의 BLAS 라이브러리를 적재 모듈에서 찾지 못했다")
     return BlasEnvironment(platform.python_implementation(), platform.python_version(), sys.platform, platform.machine(),
                            numpy.__version__, scipy.__version__, tuple(entries))
 
@@ -248,9 +252,4 @@ def pin_blas_threads():
     for module in loaded_blas_modules():
         if module.family == _OPENBLAS and module.set_threads is not None:
             module.set_threads(1)
-    environment = blas_environment()
-    owners = {entry[1] for entry in environment.blas}
-    for name in _BUILD_PACKAGES:
-        if name not in owners:
-            raise RuntimeError("BLAS 스레드 고정: " + name + " 의 BLAS 라이브러리를 적재 모듈에서 찾지 못했다")
-    return environment
+    return blas_environment()
