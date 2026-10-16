@@ -509,7 +509,7 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 * **v0.5 card 순서**: TR-0T(design 보완) → … → TR-6 → TR-7 → TR-TL(보정 루프).
   * 외부 선행: oracle-portability 계획 승인과, 그 계획의 능력 확인 card가 만든 sky130 능력 기록이다. 이것이 있어야 TR-7·TR-TL의 오라클 판정이 판정으로 센다(N3.9. card 이름·시점은 그 계획 소유).
   * TR-TL의 matching 쪽 적용은 offset-strategy OS-2 뒤다.
-  * TR-TL은 안 B(D-24, T-35 확정)이므로 offset-strategy 실행 계획의 '실행 중 변형 추가' 인터페이스가 선행이다.
+  * TR-TL은 안 B(D-24, T-35 확정)다. offset-strategy 실행 계획의 '실행 중 변형 추가' 인터페이스(card OS-L)는 TR-TL과 **같은 변경(OS-L과 함께)**에서 병합한다. offset-strategy v0.6이 '만들면 배선'을 근거로 그렇게 정했다. 따라서 선행이 아니다.
 * design 문서 `docs/02-design/features/offset-trim.design.md`가 있고, 독립 검증과 사용자 승인을 받았다(bkit PDCA).
 * 그 card가 읽는 N7 결정이 닫혀 있다.
 
@@ -524,7 +524,7 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 | TR-6 | offset spec 의미 전환(N3.6), `iv_matching_l` 변경 | TR-5 | D-4 |
 | TR-7 | 9회로 일반성 측정(N4 사유표), 선언 회로 E2E, SPICE 오라클 대조(코드 스윕·Monte-Carlo 잔여 분포), 온도 검증(N5.1: v0.5부터 trim 잔여는 범위 판정, 나머지는 보고) | TR-6, 오라클 확장(레인 P: 코드 입력·표본별 코드 선택·LUT와 따로 받는 온도 입력), **외부 선행: oracle-portability 계획 승인 + 능력 기록(sky130)**(N3.9) | D-11, D-18 |
 | **TR-0T** (문서, v0.5) | design `offset-trim.design.md` 보완: §3.8(분해를 범위 판정·정지 판정에 씀, '27 °C' → T_j), §5.3(엔진 판정 온도는 그대로, 범위는 오라클), §10.6(문턱 = spec − Δ_T 합성. 옛 이름 `value_from_spec` 표기 정정, `verified_by`), §17(3번 판정 승격, 범위 판정·같은 seed 네이티브 MC 표본 정체 보존, 결정적 끝 표본은 범위 판정·Δ_T에서 빼고 진단만(G-14 닫힘, T-35), T_j 판정의 끝 표본 역할을 oracle-portability v0.4 O-1(결정적 섭동은 진단만)과 맞춤, §17-1에 '크기 일관'(선언 계수 대비 σ) 판정 이관, **§17-3·5의 T-14 숫자 표기를 spec 판정 온도 범위 선언 참조로 바꿈**(T-34)), 새 절(Δ_T 기록 형식·지문, 구동기·실행 중 변형 추가 서명·사유 코드, 능력 기록 의존 검사의 위치). G-9~G-13, G-15를 닫는다. 독립 검증과 사용자 승인 | 이 계획 v0.5.4 승인. **D-25 사용자 확인 뒤**(D-24·X-20은 T-35로 닫힘). 능력 기록 형식은 oracle-portability design을 인용 | D-18~D-20, D-22, D-24, D-25, O-1, O-3~O-8, G-9~G-15 |
-| **TR-TL** (보정 루프) | 범위 판정(N3.8.2), **Δ_T 입력 경로 배선(D-24 안 B)**: 구동기 → 다음 변형 제약 입력 → 제약 행 문턱(만들면 배선. spec 측정 선언 절은 범위 밖, DEC-72 몫), Δ_T 지문 대조(fail-closed, 주체 = 구동기, 원문 항목 처리는 D-25), 문턱 합성(엔진 쪽 제약 행), **오라클 V_sys(T) 측정**(matching, F-20a), 불합격 몫 분해 정지(N3.8.4), 구동기(엔진 밖, 순차 실행)와 멈춤 규칙(N3.8.5), 기록(N3.8.6), 능력 기록 의존 거부(N3.9), 실행 계획 '실행 중 변형 추가' 연결. matching 쪽 적용은 offset-strategy OS-2 병합과 matching 유도 제약의 `verified_by`가 생긴 뒤 | **TR-7 뒤**(T-30), oracle-portability 승인·능력 기록, OS-2(matching 쪽만), offset-strategy 실행 중 변형 추가 인터페이스 | D-18~D-20, D-22, D-24, D-25, O-1, O-3~O-8, G-9~G-15 |
+| **TR-TL** (보정 루프) | 범위 판정(N3.8.2), **Δ_T 입력 경로 배선(D-24 안 B)**: 구동기 → 다음 변형 제약 입력 → 제약 행 문턱(만들면 배선. spec 측정 선언 절은 범위 밖, DEC-72 몫), Δ_T 지문 대조(fail-closed, 주체 = 구동기, 원문 항목 처리는 D-25), 문턱 합성(엔진 쪽 제약 행), **오라클 V_sys(T) 측정**(matching, F-20a), 불합격 몫 분해 정지(N3.8.4), 구동기(엔진 밖, 순차 실행)와 멈춤 규칙(N3.8.5), 기록(N3.8.6), 능력 기록 의존 거부(N3.9), 실행 계획 '실행 중 변형 추가' 연결(offset-strategy card OS-L과 같은 변경에서 병합). matching 쪽 적용은 offset-strategy OS-2 병합과 matching 유도 제약의 `verified_by`가 생긴 뒤 | **TR-7 뒤**(T-30), oracle-portability 승인·능력 기록, OS-2(matching 쪽만). 실행 중 변형 추가 인터페이스(OS-L)는 선행이 아니라 같은 변경 | D-18~D-20, D-22, D-24, D-25, O-1, O-3~O-8, G-9~G-15 |
 
 **완료 조건**(기능 전체):
 1. **trim 선언이 없는 실행**에서 9회로 결과가 base와 비트 동일하다. 범위는 D-14다. 기본안은 structure.json 2개를 새 `rule_hash`로 재승인한 뒤에 잰다. 그 두 회로 결과 가운데 `rule_hash` 값 자체를 담는 필드는 비교에서 뺀다.
