@@ -32,6 +32,19 @@ model: sonnet
 4. 병합·push·worktree·브랜치 조작·`reset`·`rebase`·`stash`·`--no-verify`는 쓰지 않는다(오케스트레이터 몫, 게이트가 거부).
 5. 실행 산출물은 `.gitignore` 대상(`runs/` 등)이나 worktree 밖 임시 디렉터리에 둔다.
 
+## 계산식을 쓰기 전 graph 정본 확인 (사용자 2026-10-16)
+
+값을 얻으려고 계산식(전압·전류·VGS·VDS·미러 비·diode 판정·묶음·영역 등)을 쓰기 전에, 그 값이나 그 값을 정하는 관계가
+이미 graph·스냅샷 필드에 계산돼 있는지 먼저 확인한다 -- `gmid_engine/search/s0_fields.py` `S0_WRITERS`, `gmid_engine/layout/_ly_fields.py`
+`LY_WRITERS`, `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` §2, design 40 §2.4.8 필드 소유표, 그리고 `grep`.
+* 있으면 그 필드를 블록 READS로 선언하고 읽는다. 같은 값을 핀·연결에서 다시 계산하지 않는다(정본 우회 금지, 예: `pins["g"] == pins["d"]` 대신
+  `is_diode`, 핀으로 묶음을 다시 만드는 대신 `gs_groups`).
+* 없으면 spec card 범위 안에서 graph 블록으로 계산해 필드로 두고, 그 필드를 쓰는 엔진 소비자를 같은 변경에서 배선한다(만들면 배선).
+  card 범위 밖이면 정하지 말고 handoff로 멈춘다.
+* graph 값은 KVL·KCL을 만족하는 관계로 계산된 것이다. 엔진 계산(노드 전압·가지 전류)은 그 관계식을 실제로 풀어 결과를 내야 하고,
+  관계를 건너뛴 근사·고정값으로 대신하지 않는다.
+* 보고에 '계산식별 정본 확인표'(계산한 값, 읽은 정본 필드 또는 '정본 없음'과 그 근거, 새 필드면 소비자)를 넣는다.
+
 ## 쓸 수 있는 경로 (계획 N3.12.2 쓰기 경로표 인용 -- 정본은 계획서)
 
 | 경로 glob | 제외 | 조건 |
