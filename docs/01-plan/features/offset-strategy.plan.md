@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 0.5.1
+version: 0.5.2
 ---
 
 # offset-strategy Planning Document
@@ -8,7 +8,7 @@ version: 0.5.1
 > **Summary**: spec이 offset을 **수단**(`offset_in_sigma_mv <=` 제약이나 `offset_trim` 선언)이 아니라 **요구**로 쓰게 한다. 요구는 `offset_requirement{offset_in_max_v, coverage_multiple, strategy}` 하나다. 엔진은 요구와 방식(`matching`·`trim`·`compare`)에서 판정 제약을 유도하고, **실행 계획**(변형 목록, 변형 = (topology 변형, 제약 집합))을 만들어 한 실행 안에서 차례로 돈다. 변형들은 단계 A·S0·블록 결과 색인을 공유한다. 이 일은 파이프라인 층 모듈을 다시 쓰는 것이고(S-2), 핵심 층(graph·블록·kernel·search)은 유지한다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: 계획 v0.5.1 (2026-10-16). v0.4는 사용자 결정 S-5(XS-1~XS-14 승인)·S-6(DS-U 결정)으로 승인됐다. v0.5는 사용자 결정 S-7("계획과 다른 부분이 생기면 계획부터 수정해서 bkit절차대로 진행해")에 따라, design v0.1(`offset-strategy.design.md`, 브랜치 `ostrat-design` `aef46c7`)이 계획과 다르게 간 점과 그 독립 검증(82점) 지적을 계획 쪽 결정 항목 PD-1~PD-9·W-1·F-1로 정리하고(N11), SPICE 온도 보정 루프(T-29~T-33)와의 연결점을 정한 개정이다(N3.11). PD-1~PD-8은 사용자 결정 S-8("PD1~PD8은 권고대로"), W-1·F-1·T-30 연결은 S-9("W-1,F-1,T-30을 권고대로 진행")로 승인돼 해당 자리의 규칙을 고쳤다. PD-9는 S-10("pd9도 권고대로")으로 승인돼 N3.2 로더 규칙·DS-U2에 반영했다. 남은 것은 v0.5.1에서 더한 확인 항목 V-1(matching 오라클 측정 card 배정)과 offset-trim D-18 연결(그 계획의 사용자 결정 대기)이다. v0.5.1은 v0.5 검증(84점, 차단 B-1~B-3, 비차단 N-1~N-6)을 반영했고 재검증 전이다. 근거는 사용자 결정 S-1~S-4(원문 `wt/_drafts/user_decisions.md` '## offset 방식 선택·실행 계획 (2026-10-16 사용자 "권고대로 해")')다.
+> **Status**: 계획 v0.5.2 (2026-10-16). **사용자 승인(S-11, "offset-strategy 권고대로")**: V-1(OS-V card)과 F-1 fixture 위치(저장소 안·library 밖) 확인, 재확인 94점 비차단 반영. 남은 대기는 다른 계획의 결정뿐이다: offset-trim D-18(판정 온도 범위 칸)과 D-24(반복 구조 -- 안 B가 정해지면 '실행 중 변형 추가' 개정이 이 계획에 따로 온다). 아래는 v0.5.1까지의 경위다. v0.4는 사용자 결정 S-5(XS-1~XS-14 승인)·S-6(DS-U 결정)으로 승인됐다. v0.5는 사용자 결정 S-7("계획과 다른 부분이 생기면 계획부터 수정해서 bkit절차대로 진행해")에 따라, design v0.1(`offset-strategy.design.md`, 브랜치 `ostrat-design` `aef46c7`)이 계획과 다르게 간 점과 그 독립 검증(82점) 지적을 계획 쪽 결정 항목 PD-1~PD-9·W-1·F-1로 정리하고(N11), SPICE 온도 보정 루프(T-29~T-33)와의 연결점을 정한 개정이다(N3.11). PD-1~PD-8은 사용자 결정 S-8("PD1~PD8은 권고대로"), W-1·F-1·T-30 연결은 S-9("W-1,F-1,T-30을 권고대로 진행")로 승인돼 해당 자리의 규칙을 고쳤다. PD-9는 S-10("pd9도 권고대로")으로 승인돼 N3.2 로더 규칙·DS-U2에 반영했다. 남은 것은 v0.5.1에서 더한 확인 항목 V-1(matching 오라클 측정 card 배정)과 offset-trim D-18 연결(그 계획의 사용자 결정 대기)이다. v0.5.1은 v0.5 검증(84점, 차단 B-1~B-3, 비차단 N-1~N-6)을 반영했고 재검증 전이다. 근거는 사용자 결정 S-1~S-4(원문 `wt/_drafts/user_decisions.md` '## offset 방식 선택·실행 계획 (2026-10-16 사용자 "권고대로 해")')다.
 > **이력**: 경위, 결정 원문, 측정 조건, 버전 이력은 [offset-strategy.history.md](offset-strategy.history.md)에 있다.
 > **상위 계획**: [gain-budget-gmid-sizing.plan.md](gain-budget-gmid-sizing.plan.md)(원칙 N1.4 NFR, N2 결정, N6.3 병합 전 확인). **관련 계획**: [offset-trim.plan.md](offset-trim.plan.md)(trim 방식의 규칙 정본). 충돌하면 상위 계획이 이기고, offset-trim과의 충돌은 N5(원래 취지와 다름)와 N9에 올린다.
 
@@ -123,6 +123,8 @@ version: 0.5.1
 | S-8 | PD-1~PD-8 권고대로: PD-1 `derived` 별도 입력, PD-2 승인 로더 TR-3·N-22 배정·OD-3 기간 수용, PD-3 DS-2 '대상 없음'으로 닫음, PD-4 XS-10 범위 서술, PD-5 비교 제외 범위를 넓히지 않음(요구 섹션이 있을 때만 지문에 넣음), PD-6 공통 판정 검사 OS-5, PD-7 B_S0 = 변형 수와 card C `S3Index` 인터페이스 변경 확인, PD-8 `run_stage_a` 필수 키워드와 40 design '전달' 행 개정 확인(사용자 2026-10-16 "PD1~PD8은 권고대로") | N11 |
 | S-9 | W-1 (i): `run_plan`을 엔진 사슬 진입점 정본으로 병합하고 하네스·test의 수작업 사슬을 같은 변경에서 대체, U16은 나중에 제품 CLI를 `run_plan`에 배선(사슬 두 벌 방지). F-1: OS-2 matching 검증 fixture = library current_reuse_telescopic_ota 사본(library 밖 fixture), offset 제약 둘을 요구로 바꿈 {strategy: matching, coverage_multiple = 3, offset_in_max_v = 3 × 3.3 mV(2026-10-08 Q3 (2)의 3.3 mV 유래, 사용자 승인 값)}, library spec 무변경. T-30 연결: 온도 보정 루프는 offset-trim 계획이 소유하고, 이 계획은 연결점만(사용자 2026-10-16 "W-1,F-1,T-30을 권고대로 진행") | N3.11, N7, N11 |
 | S-10 | PD-9 (가): 공존 거부는 판정 제약(`judged` 참: `user_spec`, 판정 대상을 가리키는 `reference`)만, `pending_spice` offset 항목과 `pending_constraints`는 허용(판정 제약이 되면 같은 로더 검사가 거부해 fail-closed 유지). design OB-6 수정은 design v0.2 몫(사용자 2026-10-16 "pd9도 권고대로") | N3.2, N10.1 DS-U2, N11 |
+| S-11 | V-1 = OS-V card(선행 OS-2 + oracle-portability 코어, TR-TL 앞), F-1 fixture 위치 = 저장소 안·library 밖 확인, 계획 v0.5.x 권고대로 승인(사용자 2026-10-16 "offset-strategy 권고대로") | N3.11, N7, N11 |
+| O-1 | oracle-portability 계획 승인: 오라클 MC = 시뮬레이터·PDK 네이티브 MC, PC-4 삭제, 크기 확인 = TR-7의 엔진 σ 대 오라클 MC σ 비교 | N7.2 OS-V |
 | T-29~T-33 | offset·trim 잔여 합격 = SPICE 오라클 온도 범위 판정(T-29), SPICE 온도 보정 루프(T-30, offset-trim 계획 보완, 순서 TR-7 뒤), 공정 무관 방법론(T-31), 처음 범위 = offset·trim 잔여(T-32), 오라클 시뮬레이터 무관(T-33) | N3.11 |
 
 ---
@@ -309,7 +311,7 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 | Δ_T의 정의·측정 선언 형식·출처 지문·무효 규칙, 문턱 합성 형식(spec 참조 − Δ_T 선언 참조, 숫자 사본 금지), 루프·멈춤·분해 정지 규칙, 범위 판정, 오라클 표본 수 | **offset-trim 계획 v0.5**(N3.8, design G-9·G-10) | 쓰지 않는다. 문턱 합성은 offset-trim이 정하는 함수 하나를 matching 합성 행이 부른다(사본 함수 금지) |
 | 반복 하나 = 실행 계획 하나를 처음부터 다시 도는 것, 변형 정체(제약 집합 지문)가 반복마다 바뀜, 반복 사이 공유 없음 | 두 계획이 같은 문장으로 적는다(offset-trim N3.8 '관계' 항, 이 계획 N3.5·N3.6) | 변형 정체 지문(G-S3)과 `run_id`에 문턱 합성 결과(Δ_T 선언 지문 포함)가 들어가야 한다. 반복이 같은 S3 루트에 쓰여도 runs 줄이 겹치지 않게 한다 |
 | 요구 스키마 안 판정 온도 범위 칸(offset-trim v0.5 D-18이 `offset_requirement` 안 새 칸으로 제안) | 스키마(칸 이름·형식·로더 검사)는 **이 계획**(N3.2), 값과 채택 여부는 **offset-trim D-18**(사용자 결정 대기) | D-18이 채택되면 N3.2 스키마 표에 칸을 더한다(이 계획 개정). 채택 전에는 칸을 두지 않는다 |
-| matching 유도 제약의 `verified_by`(오라클 measure) | 측정 규칙은 offset-trim N3.8(범위 판정·표본 수 G-10), 오라클 코어는 oracle-portability 계획(T-31·T-33) | **권고: 이 계획 쪽 card 하나**(가칭 OS-V: matching 합성 판정에 오라클 측정을 붙임)를 둔다. 선행은 OS-2와 oracle-portability 코어이고, offset-trim TR-TL의 선행이다. 그 전에는 합성 판정 metric이 `spice_unverifiable` 목록에 실행 전 출력된다(DEC-90 (3), OT §10.6 선례). card 배정은 사용자 확인 항목(N11 V-1) |
+| matching 유도 제약의 `verified_by`(오라클 measure) | 측정 규칙은 offset-trim N3.8(범위 판정·표본 수 G-10), 오라클 코어는 oracle-portability 계획(T-31·T-33) | **이 계획 쪽 card OS-V**(matching 합성 판정에 오라클 측정을 붙임, 승인 S-11)를 둔다. 선행은 OS-2와 oracle-portability 코어이고, offset-trim TR-TL의 선행이다. 그 전에는 합성 판정 metric이 `spice_unverifiable` 목록에 실행 전 출력된다(DEC-90 (3), OT §10.6 선례). card 배정은 V-1(승인됨, N7.2 OS-V 행) |
 | 엔진 결과의 합격 표기 | 이 계획(결과 JSON) | T-29 뒤에는 엔진 front의 matching 판정(LUT 한 조건)이 최종 합격이 아니다. 결과 JSON에 '최종 합격은 오라클 범위 판정' 표기를 싣는다 |
 
 **순서**: T-30 원문은 '순서 = TR-7 뒤'다. 그래서 matching만 쓰는 회로의 보정 루프도 TR-7 뒤에 열린다. matching에 한해 앞당기지 않는다(DS-T1, S-9로 권고대로 닫힘). OS-2는 Δ_T 입력 없이 요구 문턱만 쓰며, 문턱 합성 입력 자리는 보정 루프가 열릴 때(offset-trim 해당 card) 같은 변경에서 배선한다(만들면 배선 -- OS-2에서 빈 자리를 미리 만들지 않는다).
@@ -389,7 +391,7 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 
 ### N7.1 순서(S-4)
 
-NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS-2)** → trim TR-1. 이 계획 문서(OS-0 전 단계)와 M2 준비(OS-M)는 card A 진행 중에 한다.
+NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS-2)** → trim TR-1. 이 계획 문서(OS-0 전 단계)와 M2 준비(OS-M)는 card A 진행 중에 한다. **OS-V**(V-1, S-11)는 OS-2와 oracle-portability 코어 뒤, offset-trim TR-TL 앞이다.
 
 **권고안(XS-11, 승인 필요)**: S-4의 '실행 계획 구현'을 둘로 나눈다.
 * **TR-1 앞(OS-2, 옛 OS-1 합침)**: 단일 변형 실행 계획(요구 없음·`matching`)과 trim·compare 거부까지. 국면 규칙·승인 기록 로더·낡은 승인 정지는 여기에 넣지 않는다. 이 셋은 trim·compare에서만 쓰이고, 그 방식은 이 card에서 거부되기 때문이다. OT §4의 단계 선택 흐름은 코드에 없으므로(F-7) 이 card에서 대체할 옛 코드 경로도 없다. OT §4 개정은 design 문서에서만 한다(N3.9). 이 범위는 병합 즉시 엔진 사슬 진입점(`run_plan`, W-1)과 그것을 부르는 하네스·test에서 쓰인다(`matching` 요구 spec, 요구 없는 spec).
@@ -407,9 +409,10 @@ NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS
 
 | card | 범위 | 선행 | 읽는 결정 |
 |---|---|---|---|
-| OS-0 (문서) | design: 요구 스키마·사유 코드·유도 제약의 metric/행 형식(G-S1)·출발값 규칙(G-S2)·변형 유도 제약의 별도 입력 `derived`(N3.10, PD-1)·`RunPlan` 형식·계획 함수와 실행기 서명·결과 JSON 칸·비교 도구 위치와 칸·예산 식·파일 분할·배선표·test 목록. OS-5 몫(변형 정체 지문·S3 변형 칸·Σ 상한)은 형식만 정한다. OT §4·§5.1·§5.2·§9.4·§9.5·§10.1과 40 §2.4.5 수명 문구 개정안, T-27·T-28 시험 회로 spec 재작성안(XS-9)을 같이 낸다. 독립 검증 | 이 계획 승인, M2 결과 | XS-1~XS-14, DS-1·DS-2, DS-U1~DS-U9 |
+| OS-0 (문서) | design: 요구 스키마·사유 코드·유도 제약의 metric/행 형식(G-S1)·출발값 규칙(G-S2)·변형 유도 제약의 별도 입력 `derived`(N3.10, PD-1)·`RunPlan` 형식·계획 함수와 실행기 서명·결과 JSON 칸·비교 도구 위치와 칸·예산 식·파일 분할·배선표·test 목록. OS-5 몫(변형 정체 지문·S3 변형 칸·Σ 상한)은 형식만 정한다. OT §4·§5.1·§5.2·§9.4·§9.5·§10.1과 40 §2.4.5 수명 문구 개정안, T-27·T-28 시험 회로 spec 재작성안(XS-9)을 같이 낸다. 독립 검증 | 이 계획 승인, M2 결과 | XS-1~XS-15, DS-1·DS-2, DS-U1~DS-U9, DS-T1, PD-1~PD-9, W-1, F-1, V-1 |
 | OS-M (측정) | N6 M2. 엔진 무변경, 읽기 전용 스크립트와 임시 spec(저장소 밖). 2차 측정(평가별 시간·블록별 수)은 card B 뒤 | 준비: 이 계획(초안이어도 됨). 실행: card A 병합 | -- |
 | OS-2 (옛 OS-1 합침) | 한 card로 함께 병합한다. 옛 OS-1의 유도 제약·G-S1·G-S2는 유도 제약 입력(`derived`)이 있어야 탐색에 들어가기 때문이다(나눠 병합하면 앞 card의 함수가 쓰이지 않는다).<br>• 요구 스키마 로더(N3.2, `offset_trim` 단독 거부 포함)<br>• matching 유도 제약(N3.3, G-S1 핵심 층 확장), 출발값(G-S2)<br>• 유도 제약의 별도 입력 `derived`(`build_search_context` 키워드와 전달 자리, N3.10·PD-1·PD-4)<br>• 파이프라인 층 재작성(단일 변형): `build_run_plan`(요구 없음·`matching` 행 + trim·compare fail-closed 거부, 승인 기록 입력 없음), 실행기 `run_plan`(엔진 사슬 진입점 정본, 하네스·test 수작업 사슬 대체, W-1), 블록 결과 색인·`RunCounters` 수명을 실행 계획 진입으로(`run_stage_a` 필수 키워드, PD-8), 결과 JSON<br>• 요구 없는 spec 무동작. 진입 흐름을 바꾸는 부분의 옛 코드는 같은 변경에서 지운다<br>• 공통 판정 검사(N3.4)는 이 card에 없다(OS-5, PD-6) | OS-0, XRUN-F1 C, F-1 fixture | XS-1·XS-6·XS-7·XS-9·XS-10·XS-11, DS-U1~DS-U3, PD-1·PD-4·PD-5·PD-8, W-1, F-1 |
+| OS-V (V-1, S-11) | matching 합성 판정(k·σ_in + \|V_sys\| ≤ 문턱)의 `verified_by`를 붙인다. oracle-portability 계획(승인됨 O-1)의 오라클 코어 위에서 matching σ_in·V_sys 측정을 붙인다. 그 코어의 오라클 MC는 시뮬레이터·PDK 네이티브 MC다. 크기 확인은 그 계획대로 TR-7에서 엔진 σ 대 오라클 MC σ로 한다. 이 card 전까지 합성 판정 metric은 `spice_unverifiable` 목록에 나간다 | OS-2, oracle-portability 코어 | V-1, N3.11 |
 | OS-3 | 읽기 전용 비교 도구(N3.8). **TR-1 뒤, trim 국면 2(TR-6) 병합 뒤**에 한다. 비교 입력인 trim 국면 2 결과 JSON은 TR-6 뒤에야 생기기 때문이다(그 전에 만들면 쓰는 곳이 없다) | OS-2, OS-5, TR-6 | XS-3 |
 | OS-5 (TR card에 묶음) | **TR-1 뒤**, trim 국면 1을 처음 제품 경로에 여는 TR card(TR-2, U16 뒤, T-15)와 함께:<br>• 다변형 실행(compare 국면 1 = matching + trim 국면 1), 변형 사이 공유, DS-1 처리(모든 선택지가 핵심 층 변경을 포함)<br>• 변형 정체 칸, Σ 색인 상한과 card C `S3Index` 인터페이스 변경(B_S0, PD-7), 변형별 예산<br>• 공통 판정 검사(N3.4, DS-U4, PD-6)<br>국면 2 일은 N3.5 TR card별 배정(PD-2)을 따른다: TR-2 = '승인 기록 없음 → 국면 1'과 '승인 파일이 있으면 국면 2 미구현으로 fail-closed', TR-3 = 승인 기록 로더·결속·낡은 승인 정지·국면 2 분기, TR-4 = 구조 동일 검사, TR-5b = 국면 2 탐색 게이트 해제 | OS-2, TR-2, DS-1 결정, XS-12·XS-13 확인 | XS-4·XS-5·XS-8·XS-11·XS-12·XS-13, PD-2·PD-6·PD-7 |
 | (TR 연결) | TR card가 trim 국면 1·2 변형을 계획에 연결하고 거부를 푼다. 범위 조정은 OS-0의 OT 개정안이 정한다 | 각 TR card 선행 그대로 | XS-2·XS-4 |
@@ -507,7 +510,8 @@ matching 유도식 k·σ_in + |V_sys| ≤ `offset_in_max_v`는 사용자 결정 
 | DS-U5 | 기존 library spec(특히 `offset_in_sigma_mv`를 가진 spec, F-9)을 요구 형식으로 옮길지와 그 값 | 사용자 몫. 이 기능은 옮기지 않는다 |
 | DS-T1 | matching만 쓰는 회로의 SPICE 온도 보정 루프를 T-30 순서(TR-7 뒤)보다 앞당길지(N3.11) | **닫힘(S-9, 권고대로)**: 앞당기지 않는다(T-30 원문 순서). matching 루프에는 DAC 분해 정지가 없어 기술적으로 앞당길 수는 있지만, 보정 루프의 정본(Δ_T·문턱 합성·멈춤 규칙)이 offset-trim 계획 card에 있어 한 번만 구현하려면 그 card 순서를 따르는 것이 낫다 |
 | PD-9 | 공존 거부의 '판정 제약' 범위(N11). PD-1~PD-8은 S-8, W-1·F-1·T-30 연결은 S-9로 닫힘 | **닫힘(S-10, 권고대로)**: 판정 제약만 거부, `pending_spice`·`pending_constraints` 허용(N3.2) |
-| V-1 | matching 유도 제약의 오라클 측정 card 배정(N3.11) | **확인 대기**. 권고: 이 계획 쪽 card 하나(가칭 OS-V), OS-2·oracle-portability 코어 뒤, offset-trim TR-TL 앞 |
+| V-1 | matching 유도 제약의 오라클 측정 card 배정(N3.11) | **승인됨(S-11)**: OS-V card, OS-2·oracle-portability 코어 뒤, offset-trim TR-TL 앞(N7.2) |
+| D-24 연결 | offset-trim D-24(반복 구조)가 안 B로 정해지면 이 계획에 '실행 중 변형 추가' 개정이 따로 온다 | **대기**(offset-trim 계획의 사용자 결정) |
 
 ### N10.2 오케스트레이터 기본안(원칙으로 확정, 사용자가 바꿀 수 있음)
 
@@ -548,7 +552,9 @@ S-7에 따라 design이 계획과 다르게 간 점은 design에서 승인받지
 | W-1·F-1 | **사용자 승인됨**(S-9, 권고대로). N7.1·N7.2·완료 조건 1에 반영함 |
 | T-30 연결(DS-T1 포함) | **사용자 승인됨**(S-9). N3.11에 반영함 |
 | PD-9 | **사용자 승인됨**(S-10, 권고대로). N3.2 로더 규칙과 DS-U2 문언에 반영했다. design OB-6 수정은 design v0.2 몫이다 |
-| V-1(v0.5.1, 검증 B-3) | **확인 대기**. matching 유도 제약의 `verified_by`(오라클 측정)를 붙이는 card의 배정. 권고: 이 계획 쪽 card 하나(가칭 OS-V). 선행은 OS-2와 oracle-portability 코어이고, offset-trim TR-TL의 선행이다(N3.11 소유 경계 표) |
+| V-1(v0.5.1, 검증 B-3) | **사용자 승인됨(S-11)**. matching 유도 제약의 `verified_by`(오라클 측정)를 붙이는 card = OS-V(N7.2). 선행은 OS-2와 oracle-portability 코어이고, offset-trim TR-TL의 선행이다 |
+| F-1 위치 정정 | **사용자 확인됨(S-11)**: 저장소 안·library 밖 fixture(`assets/fixture/` 계열) |
+| D-24 연결 | **대기**(offset-trim 결정). 안 B면 '실행 중 변형 추가' 개정이 이 계획에 따로 온다 |
 | D-18 연결(v0.5.1, 검증 B-3) | 판정 온도 범위 칸의 값·채택은 offset-trim D-18(사용자 결정 대기)이다. 채택되면 이 계획 N3.2에 칸을 더한다(N3.11) |
 
 * 입력: design v0.1 `docs/02-design/features/offset-strategy.design.md`(브랜치 `ostrat-design`, `aef46c7`)와 그 history, design 독립 검증(82점) 지적.
@@ -573,7 +579,7 @@ S-7에 따라 design이 계획과 다르게 간 점은 design에서 승인받지
 
 ### N11.2 반영 위치
 
-PD-9는 승인되면 바뀌는 곳이다. 나머지 항목은 v0.5에서 이미 반영한 곳이고, 표에 없는 세부는 design v0.2가 옮긴다.
+아래 항목은 모두 승인됐고(S-8·S-9·S-10·S-11) 표의 자리에 반영했다. 표에 없는 세부는 design v0.2가 옮긴다.
 
 | ID | 바뀌는 곳 |
 |---|---|
@@ -585,6 +591,7 @@ PD-9는 승인되면 바뀌는 곳이다. 나머지 항목은 v0.5에서 이미 
 | PD-6 | N3.4, N7.2 OS-2·OS-5 행 |
 | PD-7 | N3.7 색인 상한, N7.2 OS-5 행(card C test 영향) |
 | PD-8 | N3.6 블록 결과 색인 행, N3.9 개정 표(40 §2.4.5 '전달') |
-| PD-9 | N3.2 로더 규칙 첫 행 |
+| PD-9 | N3.2 로더 규칙 첫 행, N10.1 DS-U2 |
+| V-1 | N3.11 소유 경계 표, N7.1, N7.2 OS-V 행 |
 | W-1 | N7.2 OS-2 행(진입점·하네스 대체·진단 모드·결과 참조), 완료 조건 7 |
 | F-1 | N7.1 추가 의존, N7.2 OS-2 선행 |
