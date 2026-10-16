@@ -1,6 +1,6 @@
 ---
 template: design
-version: 0.2
+version: 0.2.1
 plan: ../../01-plan/features/oracle-portability.plan.md
 plan_version: 0.5
 ---
@@ -19,7 +19,8 @@ plan_version: 0.5
 > * 상위 문서 개정 문안(계획 N3.7)
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (design 작성자 역할)
-> **Status**: design 초안 v0.2 (2026-10-16). 독립 검증과 사용자 승인 전이다.
+> **Status**: design 초안 v0.2.1 (2026-10-16). 독립 검증과 사용자 승인 전이다.
+> * v0.2.1: 사용자 결정 O-4("TR-0T 승인, X-D4 권고대로 해")로 X-D4를 수용했다. offset-trim TR-0T design이 master에 병합됐다(T-40). 그래서 PC-10과 `dc_tolerance_undeclared`의 대조 기준은 master `offset-trim.design.md` §20이다.
 > * v0.2 반영 1: offset-trim design TR-0T(`trim-design-r1`, 미병합)가 G-15를 닫았다. 그래서 PC-10을 정의한다(§12.2, 기준은 새 입력 칸 `output_reference`로 받는다, §11.1).
 > * v0.2 반영 2: 사용자 결정 T-39로 trim 잔여 수렴 분해능 = 오라클 DC 풀이 허용오차의 입력 환산 전파값이 됐다. 그래서 DC 풀이 허용오차를 반드시 선언하게 하고, 그 전파값을 결과에 낸다(§6, §8.3, §13.4).
 > * v0.1 멈춤 항목 DV-1·DV-2는 사용자 결정 O-3으로 닫혔다. DV-1 (가)는 계획 v0.5(`oport-plan-r1`)에 반영됐고, DV-2 상위 문서 개정은 별도 card(`gb-oracle-rev`)다(§19.2).
@@ -799,7 +800,7 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | PC-3 표본 수 기본값의 실행 비용 | OP-1 | §12.3 |
 | 차동 이득 실수 판정 변경이 기준선 `status`를 바꾸는 사례 | OP-1 | §13.2, §14 |
 | ngspice 오류 로그 → 오류 코드 대응표 | OP-1 기준선 로그 | §7 |
-| ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호 | OP-0 원문 보관(검증자 아닌 문서 작업) | §14 |
+| ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호 | OP-0 card 범위(원문 보관, 검증자 아닌 문서 작업, X-D4 수용 O-4) | §14 |
 | 기준선 입력 가운데 DC 풀이 허용오차 선언이 없는 것(X-D4) | OP-1 | §8.3 |
 
 ### 19.4 원래 취지와 다름(따로 보고)
@@ -809,7 +810,7 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | X-D1 | 계획이 다루지 않은 옛 반복 상한 상수 다섯(S-8)을 출처 확인 없이 그대로 옮긴다(B-8). '상수 발명 금지' 원칙에서 보면 기존 위반을 이 기능이 정리하지 않고 넘기는 것이다. 정리하면 N4 동일성이 깨질 수 있어서다 |
 | X-D2 | 옛 진입점 여섯을 `oracle_run` 하위 명령으로 합친다(B-2). README의 '파일마다 독립 진입점 1개' 원칙(`O/README.md` '파일' 절)과 다르다 |
 | X-D3 | (v0.2에서 해소) PC-10은 offset-trim design TR-0T가 G-15를 닫아(선언 기준을 온도 무관하게 그대로) 정의했다(§12.2). 단 그 design은 아직 미병합(`trim-design-r1`)이라 OP-6 착수는 그 병합 뒤다 |
-| X-D4 | (v0.2) T-39에 따라 DC 풀이 허용오차를 선언 없이 쓰지 않게 했다. 그래서 지금 기본 허용오차(`_NGSPICE_DEFAULT_TOL`)의 출처(매뉴얼 쪽)가 채워지기 전에는, 입력에 허용오차 선언이 없는 기존 오라클 입력이 `dc_tolerance_undeclared`로 멈춘다. 지금 smoke 입력은 `testbench.options`에 reltol·vntol·abstol을 가진다(S-6 사례). 영향받는 기준선 입력이 있는지는 OP-1에서 잰다 |
+| X-D4 | (v0.2, **수용(O-4)**. 할 일: ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호 채우기 = OP-0 card 범위, 영향받는 기준선 입력 측정 = OP-1) T-39에 따라 DC 풀이 허용오차를 선언 없이 쓰지 않게 했다. 그래서 지금 기본 허용오차(`_NGSPICE_DEFAULT_TOL`)의 출처(매뉴얼 쪽)가 채워지기 전에는, 입력에 허용오차 선언이 없는 기존 오라클 입력이 `dc_tolerance_undeclared`로 멈춘다. 지금 smoke 입력은 `testbench.options`에 reltol·vntol·abstol을 가진다(S-6 사례). 영향받는 기준선 입력이 있는지는 OP-1에서 잰다 |
 
 ---
 
@@ -822,7 +823,7 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | OP-3 | §3, §4, §5, §6, §7, §8.1~8.3, §9, §12.5, §15.1 OP-3 행 | OP-2 | -- |
 | OP-4 | §8.4, §8.5, §15.1 OP-4 행 | OP-3 | G-13 측정 |
 | OP-5 | §10.4, §10.5, §13, §15.1 OP-5 행 | OP-4 | OP-1 (i) 결과(독립 아니면 사용자 결정) |
-| OP-6 | §12 | OP-5 | offset-trim design TR-0T 병합(G-15 닫힘, PC-10의 기준 정의) |
+| OP-6 | §12 | OP-5 | (충족, T-40) offset-trim design TR-0T가 master에 병합됨. PC-10 기준의 대조 정본 = master `offset-trim.design.md` §20 |
 | OP-7 | §16 | OP-3, XRUN-F1 C | OP-1 (iii), 경계 재측정 |
 | OP-8 | §15.3, §16 | OP-6 | -- |
 | OP-9 | §18 전부 | -- | -- |
