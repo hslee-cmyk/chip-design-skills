@@ -1,13 +1,13 @@
 ---
 template: design
-version: 0.2.1
+version: 0.2.2
 plan: ../../01-plan/features/oracle-portability.plan.md
-plan_version: 0.5
+plan_version: 0.5.1
 ---
 
 # oracle-portability Design Document (card OP-0)
 
-> **Summary**: 승인된 계획 `oracle-portability.plan.md` v0.4.2를 오라클 설계로 옮긴다. 계획의 결정은 사용자 결정 O-1·O-2, D-1~D-9이다. 이 문서가 정하는 것은 다음과 같다.
+> **Summary**: 계획 `oracle-portability.plan.md` v0.5.1(승인 v0.4.2 + 사용자 결정 O-3·O-4와 design 검증 정합 개정)을 오라클 설계로 옮긴다. 계획의 결정은 사용자 결정 O-1~O-4, D-1~D-9이다. 이 문서가 정하는 것은 다음과 같다.
 > * 3층 구조(코어 / 시뮬레이터 어댑터 / PDK·오라클 기술자)의 파일 분할과 import 금지
 > * 회로 IR, 해석 요청, 정규화 결과의 형식
 > * 어댑터 능력 선언 스키마
@@ -19,9 +19,10 @@ plan_version: 0.5
 > * 상위 문서 개정 문안(계획 N3.7)
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (design 작성자 역할)
-> **Status**: design 초안 v0.2.1 (2026-10-16). 독립 검증과 사용자 승인 전이다.
+> **Status**: design 초안 v0.2.2 (2026-10-16). 독립 검증과 사용자 승인 전이다.
+> * v0.2.2: v0.2 검증(87점, 차단 B-1, 비차단 N-1~N-9)을 반영했다. B-1은 계획 v0.5.1의 완료 조건 8a 예외(`oport-plan-r2` `d9f37c4`)를 따른다.
 > * v0.2.1: 사용자 결정 O-4("TR-0T 승인, X-D4 권고대로 해")로 X-D4를 수용했다. offset-trim TR-0T design이 master에 병합됐다(T-40). 그래서 PC-10과 `dc_tolerance_undeclared`의 대조 기준은 master `offset-trim.design.md` §20이다.
-> * v0.2 반영 1: offset-trim design TR-0T(`trim-design-r1`, 미병합)가 G-15를 닫았다. 그래서 PC-10을 정의한다(§12.2, 기준은 새 입력 칸 `output_reference`로 받는다, §11.1).
+> * v0.2 반영 1: offset-trim design TR-0T(v0.2 작성 때 `trim-design-r1`, 지금은 master 병합, T-40)가 G-15를 닫았다. 그래서 PC-10을 정의한다(§12.2, 기준은 새 입력 칸 `output_reference`로 받는다, §11.1).
 > * v0.2 반영 2: 사용자 결정 T-39로 trim 잔여 수렴 분해능 = 오라클 DC 풀이 허용오차의 입력 환산 전파값이 됐다. 그래서 DC 풀이 허용오차를 반드시 선언하게 하고, 그 전파값을 결과에 낸다(§6, §8.3, §13.4).
 > * v0.1 멈춤 항목 DV-1·DV-2는 사용자 결정 O-3으로 닫혔다. DV-1 (가)는 계획 v0.5(`oport-plan-r1`)에 반영됐고, DV-2 상위 문서 개정은 별도 card(`gb-oracle-rev`)다(§19.2).
 > **기준**: 코드 인용은 base `6093d07`(worktree `wt/oport-design`)의 `파일:줄`이다. 경로 약어는 계획 N0과 같다: `O/` = `skills/analog-gmid-design/tools/spice_oracle/`, `E/` = `skills/analog-gmid-design/gmid_engine/`, `A/` = `skills/analog-gmid-design/assets/`. 계획 인용은 `P N3.5`, `P D-7` 식으로 쓴다.
@@ -85,7 +86,7 @@ plan_version: 0.5
 ### 1.3 선행 전제
 
 * 상위 문서 개정(P N3.7)은 아직 반영되지 않았다(base `6093d07`의 상위 계획에 `run_ngspice_op_ac`가 남아 있다). 이 문서 §17은 그 개정 **문안**만 낸다. 반영은 상위 계획 개정 절차(독립 검증 → 사용자 승인)를 거친다. 구현 card(OP-2~)의 공통 착수 조건이다(P N5.1).
-* offset-trim G-15(출력 기준 DC)는 base에서는 열려 있었지만, offset-trim design TR-0T(`trim-design-r1`, 미병합)가 닫았다(선언 기준을 온도 무관하게 그대로, 없으면 `reference_undeclared`). 그래서 v0.2에서 PC-10을 정의했다(§12.2). OP-6 착수는 그 design 병합 뒤다.
+* offset-trim G-15(출력 기준 DC)는 base에서는 열려 있었지만, offset-trim design TR-0T가 닫았고 master에 병합됐다(T-40). 내용은 선언 기준을 온도 무관하게 그대로 쓰고, 없으면 `reference_undeclared`다. 그래서 v0.2에서 PC-10을 정의했다(§12.2). 대조 정본은 master `offset-trim.design.md` §20이다.
 
 ---
 
@@ -114,7 +115,7 @@ plan_version: 0.5
 ```
 O/
   oracle_run.py            진입점(CLI). 입력 검증 -> 기술자 읽기 -> 어댑터 선택·주입 -> 코어 측정 -> 판정 -> 출력
-  oracle_capability.py     진입점(CLI). 능력 확인 실행(검증자용) -> 능력 기록
+                           (능력 확인 실행도 `oracle_run capability` 하위 명령이다 -- 진입점 하나, X-D2 결정 O-3. 검증자가 실행해 능력 기록을 만든다)
   oracle_input.schema.json 입력 스키마(새 형식, §11)
   core/                    코어 모듈 집합(완료 조건 1의 검사 대상, .py만)
     ir.py                  회로 IR 자료형(§4)
@@ -237,7 +238,7 @@ Expr = NodeV(net) | DiffV(net_p, net_n) | BranchI(element) | Ratio(Expr, Expr)
 ```
 
 * 요청은 방언을 모른다. 출력은 IR 넷·원소 이름의 식(`Expr`)이다. 옛 `let hout = ...` 같은 방언식은 어댑터가 만든다.
-* `EarlyStopRule`은 코어 규칙 자체(창 경계, floor', reltol, g↑·g↓·한계 사이클 판정에 필요한 값)를 담는 자료다. 능력이 있는 어댑터는 이것을 방언 스크립트로 옮긴다. 능력이 없는 어댑터는 무시하고 전체 창을 실행한다(§8.4).
+* `EarlyStopRule`은 코어 규칙 자체(창 경계, floor', reltol, g↑·g↓·한계 사이클 판정에 필요한 값)를 담는 자료다. 능력이 있는 어댑터는 이것을 방언 스크립트로 옮긴다. 능력이 없는 어댑터에서는 코어가 이 규칙을 사후에 적용한다. 실행 방식(전체 창 한 번 / 창별 재실행)은 §8.4의 G-13 **측정 대기**로 정한다.
 * `keep_identity`: 같은 `seed`·같은 `n_samples`로 다른 `Condition`(온도)을 요청하면 같은 표본(같은 불일치 값)을 재야 한다는 요구다(PC-6, offset-trim N3.8.2). 어댑터가 이 능력을 선언하지 않으면 코어가 거부한다.
 
 ---
@@ -279,6 +280,8 @@ ResultBundle(bench_id, adapter_fp, descriptor_fp, status: RunStatus, by_request:
 | `adapter_calibration_missing` | 보정값 없음(예: 창당 상한, §8.3) | 코어 |
 | `ir_name_collision` | 대소문자 접기 충돌(§4.1) | 코어 |
 | `oracle_input_format_old` | 옛 입력 형식(D-5) | 코어 |
+| `oracle_condition_missing` | LUT 메타와 입력 모두 온도·코너가 없음(§11.2) | 코어 |
+| `descriptor_source_duplicated` | 같은 원본 파일(경로 또는 sha256)이 엔진 선언 `sources`와 기술자 `extra_sources` 두 곳에 있음(§10.1, 계획 N3.4) | 코어 |
 | `pdk_descriptor_stale` | 기술자가 참조한 sha256과 실제 파일 sha256이 다름 | 코어 |
 | `model_bundle_mismatch` | 모델 묶음 비교 규칙 위반(§12.5) | 코어 |
 | `lut_model_provenance_missing` | LUT 슬라이스 meta 모델 기록이 빈 표 | 코어 |
@@ -332,8 +335,18 @@ Calibration = {   # 모든 값은 출처 칸 필수
 ```
 
 * ngspice 어댑터의 보정값은 지금 코드 값을 그대로 옮긴다. 출처 칸도 함께 옮긴다. 출처가 없던 값의 처리는 §14에서 정한다.
-* **DC 풀이 허용오차(T-39)**: 쓰는 값의 순서는 (1) 입력 `simulator.options`의 선언값, (2) 어댑터 `default_tolerances` 선언값(출처 필수: 시뮬레이터 문서 쪽 번호 또는 측정 조건)이다. 둘 다 없거나, (2)에 출처가 없으면 실행하지 않고 `dc_tolerance_undeclared`로 멈춘다. 시뮬레이터 내부 기본값을 선언 없이 쓰지 않는다(숨은 상수 금지). 그래서 지금 `_NGSPICE_DEFAULT_TOL`(S-8)은 출처(R6 매뉴얼 쪽)가 채워져야 어댑터 선언값으로 쓸 수 있다. 채워지기 전에는 입력 `simulator.options`에 값이 있어야 한다(§14).
-* 이 허용오차는 시뮬레이터 성질이지 PDK 성질이 아니므로 오라클 기술자에는 두지 않는다(§10).
+* **DC 풀이 허용오차(T-39)**: 쓰는 값의 순서는 (1) 입력 `simulator.options`의 선언값, (2) 어댑터 `default_tolerances` 선언값(출처 필수: 시뮬레이터 문서 쪽 번호 또는 측정 조건)이다. 둘 다 없거나, (2)에 출처가 없으면 실행하지 않고 `dc_tolerance_undeclared`로 멈춘다. 시뮬레이터 내부 기본값을 선언 없이 쓰지 않는다(숨은 상수 금지). 그래서 지금 `_NGSPICE_DEFAULT_TOL`(S-8)은 출처(R6 매뉴얼 쪽)가 채워져야 어댑터 선언값으로 쓸 수 있다. 채워지기 전에는 입력 `simulator.options`에 값이 있어야 한다(§14). 매뉴얼 원문 보관과 쪽 번호 채움은 **OP-2 병합 조건**이다(X-D4, v0.2.2).
+* **필요한 키 집합은 양 종류마다 다르다**(N-2). 어느 측정이 어떤 키를 요구하는지 정해 두고, 그 측정에 필요한 키만 검사한다. 쓰지 않는 키가 없다고 멈추지 않는다.
+
+  | 양 종류 | 필요한 허용오차 키 | 쓰는 곳 |
+  |---|---|---|
+  | 노드 전압과 그 차·비(V_os, V_sys, 스윙 경계, 노드 전압 비교) | reltol, vntol | §13.4 전파, §18.3 |
+  | 전류(ID, 레일 전류, 전력) | reltol, abstol | §18.3 |
+  | 파생 측정(dB·위상·교차 주파수·PM) | 원천 양의 키 + 데이터 자릿수(`data_digits`) | 옛 `data_rel_resolution`·`mp_resolution` |
+  | 과도 창 판정(n_pp, floor') | reltol, vntol | C10 계약 §1(a)·(b) |
+
+  `dc_tolerance_undeclared`는 요청된 측정에 필요한 키 가운데 하나라도 (1)·(2) 어디에도 없을 때 낸다.
+* 이 허용오차는 시뮬레이터 성질이지 PDK 성질이 아니므로 오라클 기술자에는 두지 않는다(§10, 계획 v0.5.1 N0).
 * `wall_s_per_window`가 없는 어댑터에서 C10 과도를 요청하면, 사용자 `--timeout-s`가 있을 때만 실행하고 없으면 `adapter_calibration_missing`이다(P N3.3).
 
 ### 8.4 C10 조기 종결(D-1, G-13)
@@ -344,6 +357,7 @@ Calibration = {   # 모든 값은 출처 칸 필수
 | 거짓 | **측정 대기(G-13)**: (가) tstop까지 전체 창을 한 번 실행하고 코어가 사후 판정 / (나) 창 j마다 tstop = t_end + j·W로 처음부터 다시 실행 | 코어가 같은 기준 적용 |
 
 * 어느 쪽을 기본으로 할지는 OP-1 기준선의 창당 시간으로 비용을 재고 정한다. 이 문서는 고르지 않는다.
+* **독립 기준으로 남기는 것**(N-9): 지금 ngspice nutmeg 스크립트(`stability_control`)는 Python `early_window`와 같은 판정을 따로 구현한 것이다. 재구성 뒤에도 이 둘의 일치를 test로 둔다. 어댑터 방언 스크립트의 창 판정 결과를 코어 `early_window`와 비교하는 것이 oracle 종류 (b) '다른 방법의 참조구현' 독립 기준이다(`adapters/ngspice/test_dialect_stability.py`).
 * 창 판정 규칙의 정본은 계약 문서와 design 40 §4다. 이 문서는 위치(코어)만 바꾸고 식은 바꾸지 않는다.
 
 ### 8.5 회로 이론 규칙 대 회피책 분리표(G-3)
@@ -462,8 +476,9 @@ Calibration = {   # 모든 값은 출처 칸 필수
 "simulator": {"adapter": "<이름>", "exe": "<경로>", "options": {...}},
 "output_reference": {"kind": "differential"}
                   | {"kind": "net_value", "value_V": <선언값>, "source": "<출처>"}
-                  | {"kind": "net", "net": "<참조 넷>"}
-                  | {"kind": "rule_e_input_cm"}            # 규칙 (e): 출력 = 입력 공통모드
+                  | {"kind": "net", "net": "<참조 넷>", "source": "<출처>"}
+                  | {"kind": "rule_e_input_cm", "source": "<출처>"}   # 규칙 (e): 출력 = 입력 공통모드
+                  # 단일 출력 기준 셋 모두 source 필수(엔진 결과 `output_reference`의 출처를 그대로 옮긴다). 없으면 reference_undeclared
 ```
 
 * `output_reference`(v0.2, offset-trim G-15): V_sys 측정의 출력 기준이다. 선언 기준을 온도와 무관하게 그대로 쓰고, 온도마다 다시 풀지 않는다(offset-trim design §20.1). 오라클은 이 값을 엔진 결과 JSON에서 직접 읽지 않고 입력으로만 받는다. 엔진 결과 `output_reference` 칸(offset-trim design §13)을 오라클 입력으로 옮기는 일은 입력 생산자가 한다(§11.4). 이 칸이 없는데 V_sys 측정을 요청하면 `reference_undeclared`로 멈춘다.
@@ -506,7 +521,7 @@ Calibration = {   # 모든 값은 출처 칸 필수
 | PC-6 | PC-3 벤치, 같은 seed로 기준 온도 단독 실행과 온도 여러 점 실행 | 같은 표본의 기준 온도 값이 두 실행에서 비트 동일 | 온도마다 재추출하는 어댑터 stub |
 | PC-7 | 소자 하나, LUT 격자 점 몇 개 | 모델 묶음 비교 규칙(§12.5) 통과. 공칭 op(VDSAT 포함)가 LUT 점과 LUT 허용오차 안 | 다른 모델 파일, vdsat 정의가 다른 표 |
 | PC-8 | 소자 하나, LUT `temp_c`와 다른 온도 | 그 온도로 실행됨(PC-5의 읽은 온도로 확인) | 입력 온도 무시 |
-| PC-10 | 차동 입력쌍 + 출력 부하 + DC servo의 최소 IR(회로·PDK 이름 없음). 불일치는 끈다. 입력 `output_reference` 네 종류마다 하나씩 | (a) 온도 점마다 V_sys(T)를 낸다. V_sys(T)는 servo가 출력을 선언 기준에 붙들 때의 입력 차동 전압이고, 부호 규약은 offset-trim design의 V_sys,s 규약(§20.1, 계획 N3.4)을 따른다. 기준은 선언값을 온도와 무관하게 그대로 쓴다(offset-trim G-15) (b) 온도 sweep 실행의 T_j 값 = T_j 단독 실행 값(비트 동일) (c) `output_reference`가 없으면 `reference_undeclared`로 멈춘다 (d) 각 값에 DC 풀이 허용오차의 입력 환산 전파값(§13.4)을 함께 낸다 | 기준 해를 버리고 흔들림만 내는 경로, 온도마다 기준을 다시 푸는 경로, `output_reference` 없이 기본 기준을 몰래 쓰는 경로 |
+| PC-10 | 차동 입력쌍 + 출력 부하 + DC servo의 최소 IR(회로·PDK 이름 없음). 불일치는 끈다. 입력 `output_reference` 네 종류마다 하나씩 | (a) 온도 점마다 V_sys(T)를 낸다. 부호 규약은 offset-trim 계획 N0.1(V_sys,s = `output_error_v` / A_dm, 부호 있는 계통 offset)과 offset-trim design §0의 V_in(c) = −(V_sys0 + s·t·δ(c))를 따른다. 즉 servo가 출력을 선언 기준에 붙들 때의 입력 차동 전압이 V_in이고, 불일치·DAC가 없으면 V_sys(T) = −V_in(T)다. 기준은 선언값을 온도와 무관하게 그대로 쓴다(offset-trim G-15) (b) 온도 sweep 실행의 T_j 값 = T_j 단독 실행 값(비트 동일) (c) `output_reference`가 없으면 `reference_undeclared`로 멈춘다 (d) 각 값에 DC 풀이 허용오차의 입력 환산 전파값(§13.4)을 함께 낸다 | 기준 해를 버리고 흔들림만 내는 경로, 온도마다 기준을 다시 푸는 경로, `output_reference` 없이 기본 기준을 몰래 쓰는 경로 |
 
 * PC-4는 삭제됐다(O-1). MC 크기 판정은 offset-trim TR-7 §17-1 비교가 맡는다.
 * PC-9는 LUT 생성 측정으로 옮겼다(D-4, §16).
@@ -514,7 +529,7 @@ Calibration = {   # 모든 값은 출처 칸 필수
 
 ### 12.3 PC-3 표본 수
 
-* 기본안(P 계획): `sample_count(r)` = ceil(1 + 1/(2 r²))를 재사용한다. r = 입력 `offset_mc.rel_resolution`이다.
+* 기본안(P 계획): `sample_count(r)` = ceil(1 + 1/(2 r²))를 재사용한다. **r의 출처**(N-5): 능력 확인은 특정 회로 입력에 묶이지 않으므로, r은 `oracle_run capability` 실행 인자 `--rel-resolution`으로 검증자가 선언한다. 기본값은 없고, 없으면 실행을 거부한다. 같은 r을 쓰는 소비 측정(MC offset 판정의 입력 `offset_mc.rel_resolution`)과 비교할 수 있도록 n·r을 능력 기록 지문에 넣는다(§12.4).
 * 이 규칙은 σ 추정용이라 존재 판정에는 과하다. 예를 들어 r = 0.05면 201 표본이다.
 * 대안(존재 판정 최소 수)은 P G-11에 열려 있다. 기준 확률의 출처를 새 상수 없이 정하지 못해 이 문서도 대안을 고르지 않는다. 비용은 OP-1에서 기록한다(**측정 대기**: 첫 조합에서 r 기본값의 PC-3 실행 시간).
 
@@ -527,6 +542,7 @@ Calibration = {   # 모든 값은 출처 칸 필수
   "lut": {"path", "slice_model_files_sha256": {...}},
   "checks": {"PC-1": {"bench_ir_fp", "requests", "measured", "resolution", "n", "verdict", "notes"}, ...},
   "conditions": {"temps_c": [...], "corner": "..."},
+  "mc_sampling": {"rel_resolution": r, "n": n, "seed": ...},     # PC-3·PC-6 표본 규모. record_id 계산에 들어간다(지문)
   "created_by": "verifier", "date": "..."
 }
 ```
@@ -725,7 +741,7 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 
 | 완료 조건 | test(위치 `O/tests/`) | 기준 소유 | 내용 |
 |---|---|---|---|
-| 1 무방언 | `core/test_no_dialect.py` | 토큰 목록 = 검증자(OP-1) | T1-1 `O/core/` 문자열 리터럴(docstring 제외)의 토큰 정규식 적중 0. T1-2 PDK 이름(모든 기술자·엔진 선언 `pdk` 값과 모델 이름 패턴) 0. T1-3 AST import 금지(§3.2) 0. T1-4 `O/core/` 안 비-.py 파일 0, 코어의 파일 열기 경로 = 입력·기술자·출력만. T1-0(먼저) 토큰 목록이 기준선 넷리스트와 옛 코드 리터럴에서 적중함을 보인다 |
+| 1 무방언 | `core/test_no_dialect.py` | 토큰 목록 = 검증자(OP-1) | T1-1 `O/core/` 문자열 리터럴(docstring 제외)의 토큰 정규식 적중 0. T1-2 PDK 이름(모든 기술자·엔진 선언 `pdk` 값과 모델 이름 패턴) 0. T1-3 AST import 금지(§3.2) 0. T1-4 `O/core/` 안 비-.py 파일 0. 코어의 파일 열기 경로가 입력·기술자(와 그것이 sha256으로 가리키는 원본)·출력 디렉터리뿐인지는 **실행 중 기록**으로 잰다: 코어 test 전체를 도는 동안 `builtins.open`·`io.open`·`os.open`·`numpy.load`·`pathlib.Path.open`을 감싸 연 경로를 모으고, 모든 경로가 그 test가 넘긴 허용 뿌리(입력 파일, 기술자 파일·원본 뿌리, 출력 tmp 디렉터리) 아래인지 확인한다. 보조로 AST에서 코어 모듈의 열기 호출 인자가 문자열 리터럴 경로가 아님(경로를 코드에 두지 않음)을 본다. T1-0(먼저) 토큰 목록이 기준선 넷리스트와 옛 코드 리터럴에서 적중함을 보인다 |
 | 2 stub | `core/test_*_stub.py` | test 작성자 | §3.3 표의 stub 실행 항목 전부, '능력 없음 거부' 항목 전부, D-1 전체 창 경로(G-13 결정된 방식) |
 | 3 동일성 | `adapters/ngspice/test_equivalence.py`(검증자 실행) | 기준선 = 검증자(OP-1) | 계획 N4: 이산 칸 정확, 연속 칸 비트 동일 또는 분해능 안(§18.3 식), MC 연속 칸 제외 + §13.2 MC 수학 비트 동일, 입력 변환 = 검증자 스크립트 |
 | 4 거부 | `core/test_capability_rejects.py`, `core/test_gates.py` | test 작성자 | PC-1~3·5~8마다 §12.2 깨진 변형 거부(먼저), 기록 없음 → `oracle_capability_unverified`, 지문 하나 바꾼 기록 → `oracle_capability_stale`, 모델 묶음 불일치 → `model_bundle_mismatch`, LUT 기록 빈 표 → `lut_model_provenance_missing`, 진단 결과가 판정 입력으로 → `diagnostic_not_a_gate`. 같은 확인 코드가 sky130 기술자와 손 모델 기술자 둘에서 돈다 |
@@ -733,8 +749,8 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | 6 삭제 | `test_deleted_names.py` | test 작성자 | §15.1 옛 이름 grep 0(card별로 그 card 몫만) |
 | 7 배선 | `test_wiring.py` | test 작성자 | `oracle_run` 경로에서 코어·어댑터·기술자 읽기·자동 대조·MC·온도 게이트·진단 입력이 호출됨(호출 기록 증거) + 검증자 MC 수학 동일성 판정 기록 존재 |
 | 8 엔진(D-4 승인 시) | 엔진 쪽 OP-7 test | 엔진 test 작성자 | 9회로 비트 동일, bin 규칙 선언 없음 → 경계 L 거부 |
-| 8a 엔진 무변경 | `test_engine_untouched.py`(검증자 git diff) | 검증자 | OP-2~OP-6·OP-8에서 `E/`와 `A/sky130_pdk_decl.json` diff 0 |
-| X-13 | `test_descriptor_engine_sha.py`(엔진 suite에서도 도는 위치, 기본안: `E/tests/` 쪽에 읽기 전용 test 하나) | test 작성자 | 엔진 선언 sha256 ≠ 기술자 참조 sha256이면 실패 |
+| 8a 엔진 무변경 | `test_engine_untouched.py`(검증자 git diff) | 검증자 | OP-2~OP-6·OP-8에서 엔진 소스(`E/` 아래 test 밖 파일)·기존 test 파일·`A/sky130_pdk_decl.json` diff 0. **예외**(계획 v0.5.1 8a): `E/tests/` 아래에 엔진 선언·오라클 기술자만 읽는 새 test 파일 추가는 허용(아래 X-13 test 하나) |
+| X-13 | `E/tests/core/test_oracle_descriptor_engine_sha.py`(엔진 suite에서 돈다, 계획 v0.5.1 8a 예외) | test 작성자 | (a) 엔진 선언 파일 sha256 ≠ 기술자 `engine_decl.sha256`이면 실패 (b) 엔진 선언 `sources` 파일 집합 ∩ 기술자 `extra_sources` 파일 집합 = ∅(경로와 sha256 둘 다). 엔진 코드를 import하지 않고 JSON만 읽는다 |
 
 ### 18.2 옛 test 이전표
 
@@ -769,13 +785,13 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | ID | 내용 | 절 |
 |---|---|---|
 | B-1 | 파일 분할과 이름(`core/*.py` 목록, `adapters/ngspice/*`, `descriptors/`, `capability/`) | §3.1 |
-| B-2 | 옛 진입점 CLI를 `oracle_run` 하위 명령으로 합침 | §3.1 |
+| B-2 | 옛 진입점 CLI를 `oracle_run` 하위 명령으로 합침(능력 확인 `oracle_run capability` 포함). **결정(O-3, X-D2 수용)** | §3.1 |
 | B-3 | 테스트벤치 원소 IR 이름 `tb:<용도>:<대상>` | §4.1 |
 | B-4 | 스키마 이름 `oracle_pdk_descriptor/1`, `oracle_capability/1`, `oracle_diagnostic/1`, `lut_bin_rule/1`, 저장 위치 | §10, §12.4, §13, §16 |
 | B-5 | `simulator.options` 키 검증은 어댑터 | §11.1 |
 | B-6 | LUT 메타·입력 모두 온도·코너가 없으면 `oracle_condition_missing` | §11.2 |
 | B-7 | 차동 이득 실수 판정 = `data_rel` 유도 | §14 |
-| B-8 | 계획이 다루지 않은 반복 상한 상수 다섯은 그대로 옮기고 표시만 | §14 |
+| B-8 | 계획이 다루지 않은 반복 상한 상수 다섯은 그대로 옮기고 표시만. **결정(O-3, X-D1 수용, 계획 NFR-P2 허용 예외 목록)** | §14 |
 | B-9 | X-13 test를 엔진 suite 쪽에 둠 | §18.1 |
 | B-10 | 식이 없는 연속 칸은 비트 동일만 | §18.3 |
 
@@ -800,7 +816,7 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | PC-3 표본 수 기본값의 실행 비용 | OP-1 | §12.3 |
 | 차동 이득 실수 판정 변경이 기준선 `status`를 바꾸는 사례 | OP-1 | §13.2, §14 |
 | ngspice 오류 로그 → 오류 코드 대응표 | OP-1 기준선 로그 | §7 |
-| ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호 | OP-0 card 범위(원문 보관, 검증자 아닌 문서 작업, X-D4 수용 O-4) | §14 |
+| ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호 | 원문 보관 문서 작업(X-D4 수용 O-4). **OP-2 병합 조건**(v0.2.2) | §8.3, §14 |
 | 기준선 입력 가운데 DC 풀이 허용오차 선언이 없는 것(X-D4) | OP-1 | §8.3 |
 
 ### 19.4 원래 취지와 다름(따로 보고)
@@ -809,8 +825,8 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 |---|---|
 | X-D1 | 계획이 다루지 않은 옛 반복 상한 상수 다섯(S-8)을 출처 확인 없이 그대로 옮긴다(B-8). '상수 발명 금지' 원칙에서 보면 기존 위반을 이 기능이 정리하지 않고 넘기는 것이다. 정리하면 N4 동일성이 깨질 수 있어서다 |
 | X-D2 | 옛 진입점 여섯을 `oracle_run` 하위 명령으로 합친다(B-2). README의 '파일마다 독립 진입점 1개' 원칙(`O/README.md` '파일' 절)과 다르다 |
-| X-D3 | (v0.2에서 해소) PC-10은 offset-trim design TR-0T가 G-15를 닫아(선언 기준을 온도 무관하게 그대로) 정의했다(§12.2). 단 그 design은 아직 미병합(`trim-design-r1`)이라 OP-6 착수는 그 병합 뒤다 |
-| X-D4 | (v0.2, **수용(O-4)**. 할 일: ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호 채우기 = OP-0 card 범위, 영향받는 기준선 입력 측정 = OP-1) T-39에 따라 DC 풀이 허용오차를 선언 없이 쓰지 않게 했다. 그래서 지금 기본 허용오차(`_NGSPICE_DEFAULT_TOL`)의 출처(매뉴얼 쪽)가 채워지기 전에는, 입력에 허용오차 선언이 없는 기존 오라클 입력이 `dc_tolerance_undeclared`로 멈춘다. 지금 smoke 입력은 `testbench.options`에 reltol·vntol·abstol을 가진다(S-6 사례). 영향받는 기준선 입력이 있는지는 OP-1에서 잰다 |
+| X-D3 | (v0.2에서 해소) PC-10은 offset-trim design TR-0T가 G-15를 닫아(선언 기준을 온도 무관하게 그대로) 정의했다(§12.2). 그 design은 master에 병합됐다(T-40) |
+| X-D4 | (v0.2, **수용(O-4)**. 할 일: ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호 채우기 = 원문 보관 문서 작업이고 **OP-2 병합 조건**(v0.2.2), 영향받는 기준선 입력 측정 = OP-1) T-39에 따라 DC 풀이 허용오차를 선언 없이 쓰지 않게 했다. 그래서 지금 기본 허용오차(`_NGSPICE_DEFAULT_TOL`)의 출처(매뉴얼 쪽)가 채워지기 전에는, 입력에 허용오차 선언이 없는 기존 오라클 입력이 `dc_tolerance_undeclared`로 멈춘다. 지금 smoke 입력은 `testbench.options`에 reltol·vntol·abstol을 가진다(S-6 사례). 영향받는 기준선 입력이 있는지는 OP-1에서 잰다 |
 
 ---
 
@@ -819,7 +835,7 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | card | 이 문서 절 | 선행(계획) | 추가 선행(이 문서) |
 |---|---|---|---|
 | OP-1 | §19.3 측정 전부, §18.1 T1-0 토큰 목록, §13.2 절차 준비, N4 입력 변환 스크립트 | 계획 승인 | -- |
-| OP-2 | §10, §11 | OP-0, OP-1 | 상위 문서 개정 card(`gb-oracle-rev`) 승인·병합 |
+| OP-2 | §10, §11 | OP-0, OP-1 | 상위 문서 개정 card(`gb-oracle-rev`) 승인·병합. **병합 조건**: ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호(R6) 채움(X-D4) |
 | OP-3 | §3, §4, §5, §6, §7, §8.1~8.3, §9, §12.5, §15.1 OP-3 행 | OP-2 | -- |
 | OP-4 | §8.4, §8.5, §15.1 OP-4 행 | OP-3 | G-13 측정 |
 | OP-5 | §10.4, §10.5, §13, §15.1 OP-5 행 | OP-4 | OP-1 (i) 결과(독립 아니면 사용자 결정) |
