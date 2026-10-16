@@ -1,16 +1,23 @@
 ---
 template: design
-version: 0.2
+version: 0.3.2
 plan: ../../01-plan/features/offset-trim.plan.md
-plan_version: 0.4
+plan_version: 0.5.5
 ---
 
 # offset-trim Design Document (card TR-0)
 
 > **Summary**: 승인된 계획 `offset-trim.plan.md` v0.4(사용자 결정 T-1~T-6)를 엔진 `gmid_engine` 설계로 옮긴다. 계획 N7.3의 TR-0 닫을 항목 G-1~G-8과 TR-7 샘플 수 규칙을 닫고(§3, §17), 결정적 변환 `augment_trim`, `trim_decl`·승인 기록·결속, 1단계 후보·추천, 2단계 θ·유도·코드 상태·균형 풀이·제약·metric, 구조 역할 `trim_dac`, graph 필드 소유, 결과 JSON, 파일 분할, card 범위와 test 초안, 9회로 적용 판정을 정한다.
 >
+>
+> **v0.3 (card TR-0T)**: 승인된 계획 v0.5.5(사용자 결정 T-29~T-38, master `6093d07`)의 'SPICE 온도 보정 루프'를 반영한다.
+> * 판정 온도 범위는 spec 선언 하나를 참조한다(숫자 없음).
+> * 오라클 범위 판정, 방향 여유 Δ_T, 보정 루프를 정한다. 루프 구조는 안 B다: 엔진 밖 구동기가 같은 실행 계획 세션에 변형을 추가하고, Δ_T는 변형 제약 입력 하나로만 들어간다.
+> * 계획 G-9~G-15를 닫는다(§3.9, §20). G-9의 trim 잔여 수렴 분해능은 S7-1 (가)로 닫혔다: 사용자 결정 T-39, 계획 v0.5.6 문언 정정(`trim-plan-r2`)(§18.3).
+>
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (design 작성자 역할)
-> **Status**: design 초안 v0.2 (2026-10-15). v0.1 독립 검증 66/100의 차단 B1·B3·B4와 비차단 N1~N13을 반영했다. 같은 날 사용자 결정 T-7~T-13(TD-1 θ안 등)을 반영해 B2는 소멸, B5는 시험 회로(T-9)로 정리했다. 열린 사용자 값은 TD-3이다(TD-6은 T-14로 닫힘, §18.1). 재검증 82점의 차단 B6(I_u θ 키)과 M1~M6을 반영했고 TD-10·X-T15는 사용자 결정 T-15·T-16으로 닫혔다. 경위는 [offset-trim.design.history.md](offset-trim.design.history.md). 재검증·사용자 승인 전이다. 사용자 결정이 더 필요한 곳과 원래 취지와 다른 판단은 정하지 않고 §18에 모았다.
+> **Status (v0.3.2)**: design 개정 초안 (2026-10-16, card TR-0T). 독립 검증은 86점(v0.3)에서 94점(v0.3.1, 차단 0)으로 올랐고, v0.3.2는 그 비차단 3건을 반영했다. 사용자 승인 전이다. 관련 계획은 offset-strategy v0.6.2(master `fbeb1c7`, 실행 계획 세션·변형 추가 OS-L·matching 오라클 측정 OS-V·OB-20)와 oracle-portability v0.4.2(master `d579939`, 오라클 MC = 네이티브 MC, 능력 기록, PC-10은 이 design G-15에 의존)다. v0.2까지의 상태 문장은 아래에 그대로 둔다.
+> **Status (v0.2)**: design 초안 v0.2 (2026-10-15). v0.1 독립 검증 66/100의 차단 B1·B3·B4와 비차단 N1~N13을 반영했다. 같은 날 사용자 결정 T-7~T-13(TD-1 θ안 등)을 반영해 B2는 소멸, B5는 시험 회로(T-9)로 정리했다. 열린 사용자 값은 TD-3이다(TD-6은 T-14로 닫힘, §18.1). 재검증 82점의 차단 B6(I_u θ 키)과 M1~M6을 반영했고 TD-10·X-T15는 사용자 결정 T-15·T-16으로 닫혔다. 경위는 [offset-trim.design.history.md](offset-trim.design.history.md). 재검증·사용자 승인 전이다. 사용자 결정이 더 필요한 곳과 원래 취지와 다른 판단은 정하지 않고 §18에 모았다.
 > **기준**: 엔진 인용은 `944020f`(worktree `wt/trim-design`)의 `파일:줄`이다. `E/` = `skills/analog-gmid-design/gmid_engine/`. 엔진 design 인용은 `40 §x`(`gain-budget-gmid-sizing.40-engine.design.md`), `41 §x`.
 > **전제(T-4)**: 엔진 구현은 NFR-4 card 2 → XRUN-F1 card A·B·C 병합 뒤다. 이 문서는 그 병합 뒤 구조(40 §2.4.4~§2.4.14: `donors`·`counters` 필수 블록 호출, 블록 결과 색인, `RunCounters`, E_total, `search_ceiling`·`search_stop`, BLAS 고정, `ThetaCoords`)를 전제로 쓰고 충돌하지 않게 했다(§12.4).
 
@@ -44,7 +51,7 @@ plan_version: 0.4
 | T-2 | `augment_trim(topology, trim_decl)` 결정적 변환, 엔진이 후보·순위 제시, 사용자 승인 뒤에만 사용, topology.json 무변경 | §6~§9 |
 | T-3 | 차동 전류 steering 이진 가중, DNL 부족이면 상위 비트 thermometer | §7, §9.4 |
 | T-4 | 엔진 구현은 NFR-4 card 2 → XRUN-F1 A·B·C 뒤 | 머리·§15 |
-| T-5 | 판정 27 °C·TT(= 엔진 합격 조건), 온도 의존은 보고 전용 | §5.3, §17 |
+| T-5 | 판정 27 °C·TT(= 엔진 합격 조건), 온도 의존은 보고 전용. **v0.3**: offset·trim 잔여의 합격은 T-29로 오라클 범위 판정이 더해졌다(엔진 판정·trim 코드 결정은 T_j 한 조건 그대로) | §5.3, §17, §20 |
 | T-6 | 계획 v0.4 승인: D-1~D-17 기본안 전부, X-1·X-3~X-16 수용 | 아래 표 |
 | T-7 | I_u를 θ 변수로. 범위·잔여 조건은 I_u 제약, 전력 최소화가 하한으로. 평가당 커널 1회(계획 D-16·X-3 변경) | §10.2·§10.3, X-T14 |
 | T-8 | 예산 충돌 소멸, X-16·X-17 변경 없음 | §10.3 |
@@ -53,9 +60,17 @@ plan_version: 0.4
 | T-11 | structure.json 2개 재승인은 TR-4 착수 전 | §11 절차 |
 | T-12 | TR-7 식 S + 검증자 조건 3개 채택 | §17 |
 | T-13 | connectivity 표 도구를 새 엔진 로더로 이식 | TR-T |
-| T-14 | 보고 전용 온도 sweep 범위 −40 ~ 80 °C | §17 |
+| T-14 | 보고 전용 온도 sweep 범위. **v0.3**: T-34로 판정 온도 범위의 값이 되었고, spec 선언 하나를 참조한다. 이 문서에는 숫자를 두지 않는다 | §17, §20 |
 | T-15 | TR-2 병합은 U16 뒤(TR-M·TR-1·TR-L 먼저 가능) | §15 |
 | T-16 | X-T15 해석 확인: 재승인 결정은 TR-4 착수 전, `rule_hash` 갱신은 TR-4 병합 때 | §11 |
+| T-29~T-32 | offset·trim 잔여 합격 = 오라클 온도 범위 판정. SPICE 온도 보정 루프(TR-7 뒤). 오라클 능력은 공정 무관 방법론. 처음 범위 = offset·trim 잔여 | §20 |
+| T-33 | 오라클 시뮬레이터 무관. 능력 확인 절차는 oracle-portability 계획 소유이고, 이 design은 의존만 둔다 | §20.9 |
+| T-34 | 판정 온도 범위 = T-14 범위. spec 한 곳에 선언하고, 보고 sweep·범위 판정이 모두 참조한다 | §5.3, §17, §20.1 |
+| T-35 | D-19 반복 상한 = 실행 설정(기본값 없음), D-22 정지·보고, D-24 안 B, X-20 (ii) 지배 정의, G-14 = 네이티브 MC 표본 안 | §20 |
+| T-36 | D-20 (가): 사용자 선언 결정적 규칙으로 front 점 하나. D-25: (c) 출처 무결성 + (c-2) 엔진 밖 구동기 대조 | §20.4, §20.7 |
+| T-37 | X-23 수용: 직전 변형 결과로 잰 Δ_T를 다음 변형 입력으로 넣는 것은 S-3 취지 안이다(offset-strategy XS-18) | §20.7 |
+| T-39 | S7-1 (가): trim 잔여 Δ_T 수렴 분해능 = 오라클 DC 풀이 허용오차 입력 환산 전파값. X-T17~X-T20 수용. 계획 v0.5.6에서 T-30 문언 정정 | §18.2, §18.3, §20.6 |
+| T-38 | X-28 수용: 범위 판정 꼬리는 네이티브 MC 표본이 닿은 데까지다. T_j 판정은 결정적 끝 표본으로 k·σ 경계까지 본다. 식 S를 유지하고 한계를 보고한다. k·σ 꼬리가 꼭 필요하면 비용 표를 보고 사용자가 표본 수 증가를 고른다 | §17, §20.1 |
 
 원문: `wt/_drafts/user_decisions.md` '## offset trim design 결정 (2026-10-15 사용자 "TD-1은 θ안, TD-8은 다로 해, TD2~TD7은 제안대로")'.
 
@@ -217,15 +232,29 @@ D-1(V_res = 최악 한계), D-2(k만), D-3(DNL 배수 = k), D-4(공존 거부), 
 
 ### 3.8 G-8 바이어스 원천별 t(T)·δ(T) 온도 의존 보고
 
-D-9로 셀 바이어스 원천은 새 `bias_inputs` 넷 하나(외부 gate 전압)다. TR-7 온도 sweep(N5.1 3번, 보고 전용)은 다음을 낸다.
+D-9로 셀 바이어스 원천은 새 `bias_inputs` 넷 하나(외부 gate 전압)다. TR-7 고정 코드 온도 sweep(계획 N5.1 3번)은 다음을 낸다. **v0.3**: 이 sweep은 trim 잔여에서 범위 판정이 된다(T-29, §20.1). 아래 분해는 보정 루프의 정지 판정(§20.5)에도 쓴다. 'T_j'는 그 실행 LUT 묶음의 `temp_c`이고, 이 문서는 온도 숫자를 쓰지 않는다.
 
 | 항목 | 내용 |
 |---|---|
-| 바이어스 모델 | 오라클에서 DAC 바이어스 넷 = 27 °C 봉인 전압의 이상 전압원(온도 무관). 이것이 D-9 원천의 정의다 |
+| 바이어스 모델 | 오라클에서 DAC 바이어스 넷 = T_j 봉인 전압의 이상 전압원(온도 무관). 이것이 D-9 원천의 정의다 |
+| 온도 점 | 판정 온도 범위 spec 선언(§5.3)의 두 끝점과 T_j, 그리고 §20.1 G-11 규칙이 더하는 점 |
 | 표본·온도별 값 | t(T)(오라클 소신호로 잰 주입 쌍 전달), I_u(T)(LSB 셀 전류), δ_code(T) = 고정 코드의 δ, 잔여 V_res,meas(T) |
-| 분해(검증 N8) | 잔여 R(T) = V_os(T) + s·t(T)·δ(T)를 표본·온도마다 다음 세 몫으로 쓴다(δ₂₇ = 27 °C의 고정 코드 δ, t₂₇ = 27 °C t). (i) 원본 offset drift 몫 = **R(T) − s·δ₂₇·t(T)**(측정 잔여에서 '27 °C DAC 전류가 그 온도의 전달로 준 보정'을 뺀 값 -- 별도 재측정 없이 측정값에서 계산) 의 27 °C 대비 변화 (ii) DAC 전류 drift 몫 = s·(δ(T) − δ₂₇)·t(T) (iii) 전달 drift 몫 = s·δ₂₇·(t(T) − t₂₇). **닫힘 잔차** = (R(T) − R₂₇) − [(i) + (ii) + (iii)]를 함께 낸다. 정의상 0에 가까워야 하고, 크면 t(T)·δ(T) 측정(소신호 선형 근사)과 실제 DC 잔여가 어긋난다는 표지다(문턱은 두지 않고 값만 보고) |
-| 참고 괄호 | 같은 sweep을 바이어스 넷 대신 셀 전류를 이상 전류원 I_u(27 °C)로 고정해 한 번 더 잰다(DAC 전류 온도 계수 0인 경우). 설계 대상이 아니라 D-9 원천의 온도 몫을 드러내는 기준이다 |
-| 한계 문구 | '바이어스 원천의 온도 특성은 27 °C 판정에 드러나지 않는다. 위 (ii)가 그 몫이다'(계획 N5.1 한계, N9) |
+| 분해(검증 N8) | 잔여 R(T) = V_os(T) + s·t(T)·δ(T)를 표본·온도마다 다음 세 몫으로 쓴다(δ_j = T_j의 고정 코드 δ, t_j = T_j의 t).<br>(i) 원본 offset drift 몫: **R(T) − s·δ_j·t(T)**의 T_j 대비 변화. 측정 잔여에서 'T_j DAC 전류가 그 온도의 전달로 준 보정'을 뺀 값이라 별도 재측정 없이 측정값에서 계산한다.<br>(ii) DAC 전류 drift 몫 = s·(δ(T) − δ_j)·t(T)<br>(iii) 전달 drift 몫 = s·δ_j·(t(T) − t_j)<br>**닫힘 잔차** = (R(T) − R_j) − [(i) + (ii) + (iii)]를 함께 낸다. 정의상 0에 가까워야 하고, 크면 t(T)·δ(T) 측정(소신호 선형 근사)과 실제 DC 잔여가 어긋난다는 표지다(문턱은 두지 않고 값만 보고) |
+| 정지 판정에 쓰는 법(v0.3) | §20.5: (ii) 지배(T-35 X-20 정의) = 불합격 표본·온도 점 가운데 하나라도 \|R_j + (ii)\| > V_res인 곳이 있다. 닫힘 잔차가 분해 몫의 절댓값 합보다 크면 분해로 판정하지 않고 정지한다(비교 대상은 측정값끼리이고 문턱 상수는 없다) |
+| 참고 괄호 | 같은 sweep을 바이어스 넷 대신 셀 전류를 이상 전류원 I_u(T_j)로 고정해 한 번 더 잰다(DAC 전류 온도 계수 0인 경우). 설계 대상이 아니라 D-9 원천의 온도 몫을 드러내는 기준이다(보고 전용, 판정에 쓰지 않음) |
+| 한계 문구 | '바이어스 원천의 온도 특성은 T_j 엔진 판정에 드러나지 않는다. 위 (ii)가 그 몫이고, (ii) 지배면 보정 루프는 멈추고 바이어스 원천 변경은 사용자 결정이다(D-22)'(계획 N5.1 한계, N9) |
+
+### 3.9 v0.3에서 닫는 항목 G-9~G-15(계획 v0.5.5 N7.3)
+
+| ID | 닫음 | 위치 |
+|---|---|---|
+| G-9 | Δ_T 식: trim 잔여는 (나) 표본별 증가량의 최댓값, matching은 합성량의 온도 최악 − T_j다. 문턱 합성 함수 하나와 분해능 식을 정한다. matching σ 항은 MC 표준오차, trim 잔여는 오라클 DC 풀이 허용오차를 입력 환산으로 전파한 값이다(S7-1 (가), 사용자 결정 T-39) | §20.2, §20.3, §20.6 |
+| G-10 | matching 범위 판정 표본 수 = 엔진 offset 분해능의 상대값에서 유도한 기존 오라클 식 | §20.1 |
+| G-11 | 온도 점 = 끝점 + T_j. 범위 안 극값 표지가 뜨면 세 점 2차 보간의 꼭짓점 온도를 한 점 더한다 | §20.1 |
+| G-12 | 구동기 위치·구조(안 B, offset-strategy 세션 인터페이스 사용), 정지 사유 코드, 반복 이력, 실행 설정 칸, 문턱 의존 블록 목록 | §20.7 |
+| G-13 | 출처 지문 필드, 원문 항목 = (c) 출처 무결성, 대조 주체 = 구동기 | §20.4 |
+| G-14 | (계획에서 이미 닫힘, T-35·T-38) 범위 판정·Δ_T는 같은 seed 네이티브 MC 표본으로 한다. 결정적 끝 표본은 범위 판정에서 진단만 하고, T_j 판정에는 남는다 | §17, §20.1 |
+| G-15 | 단일 종단 출력의 V_sys(T) 기준 = 그 실행의 선언 기준(온도 무관 선언) 그대로다. 온도마다 다시 풀지 않는다. oracle-portability PC-10 정의의 입력이다 | §20.1 |
 
 ---
 
@@ -291,6 +320,13 @@ D-9로 셀 바이어스 원천은 새 `bias_inputs` 넷 하나(외부 gate 전�
 * 대조 기준 = 그 실행 LUT 묶음의 측정 조건 `temp_c`(E-15)다. 숫자 27을 코드에 두지 않는다.
 * 로더는 LUT를 모르므로 대조는 `run_stage_a`가 LUT를 받은 직후 한다: `trim_temperature_c` ≠ LUT `temp_c`이면 `trim_temperature_mismatch`(`SchemaRejectedError`, detail = 두 값). 비교는 float 정확 일치다(둘 다 선언값). spec에는 코너 필드가 없으므로 코너는 대조하지 않고 LUT `corner`를 그대로 보고한다(판정 코너 = LUT 코너가 엔진 합격 조건이다).
 * 결과 보고에 '판정과 코드 결정은 이 한 조건이다' 문구(FR-T9)와 그 조건 값(LUT provenance)을 싣는다.
+* **v0.3 -- 엔진 쪽은 바뀌지 않는다**: 엔진 탐색·엔진 제약 판정·trim 코드 결정은 위 한 조건(T_j = LUT `temp_c`, LUT 코너)이다.
+* **v0.3 -- 판정 온도 범위**:
+  * offset·trim 잔여의 합격은 오라클 범위 판정이 정한다(T-29, §20).
+  * 판정 온도 범위는 spec의 offset 요구 안 칸 하나다. 칸 이름·형식·로더 검사는 offset-strategy 계획 N3.2와 그 design이 소유하고, 계획 후보는 `judgment_temperature_range_c` = {하한, 상한}이다.
+  * TR-7 온도 보고 sweep과 보정 루프 범위 판정은 모두 그 선언을 읽는다. 이 design과 코드에는 온도 숫자를 두지 않는다(T-34, 숫자 사본 금지).
+  * 엔진 로더는 이 칸을 판정에 쓰지 않는다. 결과 JSON `trim.temperature`에 선언 값을 그대로 실어 오라클·구동기가 읽게 한다(§13).
+* **v0.3 -- T_j 포함 검사(계획 O-8)**: 범위 판정을 시작하는 구동기가 'T_j ∈ [하한, 상한]'을 검사한다. 벗어나면 `judgment_range_excludes_tj`로 거부한다(fail-closed). 엔진 로더가 아니라 구동기인 이유: 엔진은 이 범위를 판정에 쓰지 않고, T_j는 LUT를 받은 뒤에야 정해진다.
 
 ### 5.4 spec 지문 결속(N3.3-1, D-13)
 
@@ -583,10 +619,11 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 | 이름(행) | 정의 | 판정 |
 |---|---|---|
 | `trim_range` | lo = min(V_in(end_minus), V_in(end_plus)), hi = max(…). margin = min(hi − k·σ_in, −k·σ_in − lo) | margin ≥ 0. 행 c = margin / 분해능(분해능 = 두 끝 V_in의 newton 노드 오차 추정 + k·`offset_analysis` 분해능) |
-| `trim_residual` | `residual_bound_v` | ≤ V_res(spec `residual_offset_v`, `value_from_spec`). 분해능 = \|t\|·I_u·k·(σ_DNL 분해능) + I_u·(t 분해능) |
+| `trim_residual` | `residual_bound_v` | ≤ 문턱. 문턱 = V_res(spec `offset_trim.residual_offset_v` 참조)이고, 보정 루프 변형에서는 V_res − Δ_T(잔여)다(§20.3 합성 함수 하나). 참조 형식은 offset-strategy 유도 제약 입력 `derived` 형식을 따른다. v0.2의 `value_from_spec` 표기는 옛 이름이라 로더가 거부하므로 지웠다(계획 F-23). 분해능 = \|t\|·I_u·k·(σ_DNL 분해능) + I_u·(t 분해능) |
 | `trim_states_saturation` | 세 상태의 포화 행 | 기존 봉인 7 행과 같은 margin 규칙 |
 
 * '0 이상'·'V_res 이하'는 정의에서 나오는 문턱이고 새 상수가 아니다.
+* **v0.3**: 보정 루프는 `trim_residual`의 문턱만 조인다. `trim_range`와 `trim_states_saturation`은 범위 판정 대상이 아니고 T_j 판정 그대로다. 코드를 고르는 온도는 T_j 하나이기 때문이다(계획 N3.8.1, X-24).
 * 계획 N3.4: metric이 `verified_by`(SPICE 오라클)를 가진 뒤에만 판정 제약이다. TR-5 병합 때는 오라클 측정이 없으므로 metric 서명 `oracle_measure` = None이고 spec 로더의 `spice_unverifiable` 목록에 실행 전 출력된다(DEC-90 (3)). 판정 경로는 그대로 동작한다(제약 행 계산·front 판정). TR-7이 오라클 측정을 붙여 `verified_by` = `spice_oracle`로 바꾼다. 이 처리는 기존 `spice_unverifiable` 규칙 그대로다.
 
 ### 10.7 metric(레지스트리 `_ROWS`, DEC-68 명명)
@@ -688,7 +725,10 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 | 단계 A 보고서 | `trim` | `{mode: "stage1"\|"stage2", spec: TrimSpec 값, pairs, temperature: {declared_c, lut_temp_c, lut_corner}, demoted_constraints, structure_diff(2단계), approval: {approval_id, path, binding_checks[]}, provenance(2단계)}` |
 | `find_front` 결과(runs 줄) | `trim.stage1` | front 점마다 후보표(§9.2), 순위(§9.3), 추천 (N, m)과 점별 (N_p, m_p), `t_varies` 표지, 추천 불가 점, 출력 파일 경로·sha256(파생 topology·md·승인 초안), 사유 코드 |
 | 〃 | `trim.stage2` | front 점마다 `trim/dac`·`trim/range`·`code_states` 요약, 그 점의 I_u(θ 성분)·`i_lower_amp`, 불가능이면 `trim_config_infeasible`과 위반 경계(하한 > 상한의 두 값) |
-| 〃 | `trim.reports` | §10.8 보고 문구 목록, D-3 한계, 단일 온도 한계(FR-T9) |
+| 〃 | `trim.reports` | §10.8 보고 문구 목록, D-3 한계, 단일 온도 한계(FR-T9, v0.3 문구 §17 끝), 범위 판정 상태(합격·불합격·'범위 미판정'·'판정 불능(사유)') |
+| 단계 A 보고서 `trim.temperature`(v0.3 확장) | `judgment_range` | spec 판정 온도 범위 선언 값과 그 출처(선언 위치). 오라클·구동기가 이 칸을 읽는다(숫자 사본 아님: spec 선언을 그대로 옮긴 출력) |
+| 〃 | `output_reference` | V_sys 기준(G-15, §20.1): 차동 출력이면 `differential`, 단일 출력이면 선언 기준(넷 값 또는 참조형 `{"net": …}`·규칙 (e) 입력 CM)과 그 출처 |
+| 구동기 출력(보정 루프, §20.8) | `temperature_loop` | 반복 이력: 반복 번호, 변형 정체, 적용 Δ_T와 지문, 판정 대상 점, 범위 판정 표, 분해표, 비용 표·실제 시간·반복당 색인 항목 수·프로세스 최대 메모리(offset-strategy XS-19), 정지 사유 |
 
 선언 없는 실행에서는 `trim` 키 자체가 없다(I_u는 θ라 S3 줄 θ 칸에 이미 있다)(§3.3 N 부류 -- '없음' 단언).
 
@@ -723,6 +763,21 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 | `search/trim_constraints.py` | `trim_constraint_rows(...)` | search | TR-5b |
 | `pipeline/trim_binding.py` | `bind_trim(...)` | pipeline | TR-3 |
 | `pipeline/trim_stage1.py` | `run_trim_candidates(...)` | pipeline | TR-2(표)·TR-3(파생 출력) |
+
+**v0.3 새 파일(card TR-TL)**:
+
+| 파일 | 진입점 | 층 | card |
+|---|---|---|---|
+| `E/authoring/temperature_threshold.py` | `tightened_threshold(spec_threshold_ref, delta_record)`: 문턱 합성 함수 하나(§20.3). 순수 함수이고, 결과는 조인 문턱 항목(값 + 두 출처 참조, 형식은 offset-strategy design `derived` 항목 자리)이다. 값 형식 `TemperatureMargin`도 이 파일에 둔다(엔진 인자 형식이라 엔진 쪽, v0.3.1) | authoring | TR-TL |
+| `tools/temperature_loop/run_loop.py` | `run_temperature_loop(spec_path, topology_path, settings)`: 구동기(§20.7). 엔진 공개 세션 인터페이스(offset-strategy OS-L)를 import하고, 오라클은 별도 프로세스로 부른다 | 엔진 밖 도구 | TR-TL |
+| `tools/temperature_loop/range_verdict.py` | `range_verdict(oracle_records, rule)`: 범위 판정 규칙(§20.1). 오라클 결과 기록만 읽는다 | 엔진 밖 | TR-TL |
+| `tools/temperature_loop/delta_t.py` | `measure_delta_t(oracle_records, metric)`: Δ_T 측정 기록(§20.2) | 엔진 밖 | TR-TL |
+| `tools/temperature_loop/provenance_check.py` | `check_delta_provenance(record, current, oracle_record)`: 지문 대조(§20.4) | 엔진 밖 | TR-TL |
+| `tools/temperature_loop/decomposition.py` | `decomposition_verdict(table, v_res)`: 분해 정지 판정(§20.5) | 엔진 밖 | TR-TL |
+| `tools/temperature_loop/stop_rules.py` | `stop_reason(history, settings)`: 멈춤 규칙(§20.6) | 엔진 밖 | TR-TL |
+
+* 구동기 패키지는 엔진 공개 진입(세션 인터페이스, `tightened_threshold`)만 import하고 오라클 모듈은 import하지 않는다. 오라클은 엔진을 import하지 않는다(계획 N6). 규칙 A(파일당 진입점 하나)·규칙 H(test 1:1)를 `tools/temperature_loop/tests/`에도 건다.
+* 이름에 PDK·시뮬레이터·회로 이름을 쓰지 않는다(계획 NFR-T7). 리터럴 lint 대상에 이 패키지를 더한다.
 
 값 형식은 writer 층에 둔다: `TrimRole`은 graph가 쓰는 필드 값이라 `graph/s1_values.py`, `CodeStateSolution`은 sizing이 쓰므로 `sizing/s2_values.py`에 둔다(층 순서상 metrics 값 모듈에 두면 graph·sizing이 import할 수 없다).
 
@@ -770,6 +825,8 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 | `trim_point_blocks` | `kernel.evaluate`(`E/search/kernel.py`) 본체가 trim 선언 실행에서만 부른다(§10.3a) |
 | `trim_dac_values`·`trim_code_states`·`balance_solve`·`trim_constraint_rows` | `trim_kernel`의 판정 점 처리 / search 제약 블록 |
 | `run_trim_candidates` | 1단계 진입: 파이프라인(지금은 `pipeline/trim_stage1.py` 진입을 부르는 실행 스크립트·test, U16 뒤 `run_gmid_design_pipeline`)이 `find_front` 결과를 넘겨 부른다. 방향 pipeline → search·metrics, `find_front`는 trim을 모른다(검증 B3) |
+| (v0.3) `tightened_threshold` | 구동기가 변형을 추가할 때 부른다. 결과를 offset-strategy 세션의 '변형 추가'에 그대로 넘긴다. Δ_T가 문턱에 들어가는 길은 이것 하나다 |
+| (v0.3) `run_temperature_loop` | 사용자 실행 진입(도구 CLI). offset-strategy OS-L과 같은 변경에서 병합한다(그 인터페이스를 처음 쓰는 곳이 여기다). 호출 사슬(v0.3.1, §20.7 순서):<br>1. 세션 열기(offset-strategy OS-L)<br>2. 변형 실행(OS-L) → front<br>3. 판정 대상 점 고르기(`target_rule`, 구동기 안 함수)<br>4. 오라클 T_j 판정(§17-1·2, 오라클 프로세스)<br>5. 비용 표 → 오라클 범위 판정 → `range_verdict`<br>6. `decomposition_verdict`<br>7. `measure_delta_t`<br>8. `stop_reason`<br>9. `check_delta_provenance`<br>10. `tightened_threshold`(한 번)<br>11. 변형 추가(OS-L) → 2로<br>12. 세션 닫기(OS-L) |
 
 ---
 
@@ -788,11 +845,12 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 | **TR-5b** DAC 값·제약·metric | §10.3, §10.3a, §10.4, §10.6, §10.7 | TR-5a, **시험 회로 승인**(T-9, §16.1) | **시험 회로**에서 2단계 front 생성, θ 하나 = 커널 1회(`kernel_calls` == 고유 키 수), 판정 1·5(재계산 0), card C 예산 규칙 그대로 동작, 결과 JSON `trim.stage2`, front 점에서 `trim_range` 활성(전력·면적이 I_u를 하한으로 미는지) 보고 | 제약 행 c 부호: 손 계산 / I_u 상자 = w_c로 나눈 셀 상자 ∩ 원천 행 상자(손 계산) / `trim_point_blocks`는 선언 없는 실행에서 불리지 않음 |
 | **TR-5c** 코드 상태 균형 풀이 | §10.5 | TR-5b | **시험 회로**에서 세 상태 풀이 수렴, 포화 행에서 off·triode 제외, 실패 사유 | 오라클: 같은 고정 기하에서 SPICE `.op` + 입력 차 sweep으로 V_in 대조(오라클 측 독립, 허용폭 = 노드 tol 전파) / 선형 예측과의 차 보고 |
 | **TR-6** 의미 전환 | §10.8 | TR-5c | `iv_matching_l` 하한 꺼짐(선언 시), 보고 문구, 선언 없는 실행 비트 동일 | 선언 유무 두 spec에서 출발값 차이가 L 하한 행에만 있음 |
-| **TR-7** 검증 | §17 전부(식 S + 검증자 조건 셋, T-12), 9회로 일반성(§16), 오라클 확장(레인 P: 코드 입력·표본별 코드 선택·온도), `verified_by` 붙이기 | TR-6, 오라클 확장, **시험 회로 승인**(T-9), 온도 sweep 범위 −40 ~ 80 °C(T-14, 닫힘) | 2단계 판정(§17-1·2)은 **시험 회로**에서 통과, 9회로는 일반성(사유 코드·선언 없음 무동작), 완료 조건 (1)~(5)(계획 N5) | §17 |
+| **TR-7** 검증 | §17 전부(식 S + 검증자 조건 셋, T-12. v0.3: §17-1의 크기 일관 판정, §17-3의 trim 잔여 범위 판정, X-28 보고 문구), 9회로 일반성(§16), 오라클 확장(레인 P: 코드 입력·표본별 코드 선택·LUT와 따로 받는 온도), `verified_by` 붙이기 | TR-6, 오라클 확장, **시험 회로 승인**(T-9), 판정 온도 범위 spec 선언(T-34), **oracle-portability 계획 승인 + 그 계획 OP-6이 만든 sky130 능력 기록**(§20.9). OP-6은 이 design의 G-15(§20.1)가 닫혀야 착수하므로, 이 design v0.3 승인이 TR-7 판정의 임계 경로다 | 2단계 판정(§17-1·2)은 **시험 회로**에서 통과, §17-3 범위 판정 결과(합격·불합격·'판정 불능(사유)')를 결과에 낸다, 9회로는 일반성(사유 코드·선언 없음 무동작), 완료 조건 (1)~(6)(계획 N5) | §17 |
+| **TR-TL** SPICE 온도 보정 루프(v0.3) | §20 전부: 범위 판정 규칙(trim 잔여·matching), Δ_T 측정 기록, 문턱 합성 함수, 지문 대조, 분해 정지, 멈춤 규칙, 구동기, 반복 이력, 능력 기록 의존 거부. 오라클 V_sys(T) 온도 점 확장(T_j 측정·`verified_by`는 offset-strategy OS-V 소유) | **TR-7 뒤**(T-30), oracle-portability 능력 기록, offset-strategy OS-2·OS-V(matching 쪽). offset-strategy **OS-L과 같은 변경**에서 병합한다(선행 아님, 만들면 배선) | 계획 완료 조건 7 전부. Δ_T가 문턱에 들어가는 길 = `tightened_threshold` → 변형 추가 하나(grep·실행 경로 test). 지문 불일치는 구동기 거부(엔진 입력 0). 문턱 의존 블록 목록(§20.7) 밖 블록의 변형 사이 재계산 0. (ii) 지배 픽스처에서 변형 추가 0. 반복 상한 선언이 없으면 첫 범위 판정만. 비용 표가 오라클 실행 전에 나온다. 반복마다 메모리 보고(XS-19) | 판정 규칙·합격선은 독립 검증자 소유(NFR-T6). 손 계산 픽스처: 표본 3개·온도 점 3개의 잔여 표에서 Δ_T (나)와 분해·정지 결과. 지문 필드마다 하나만 바꾼 기록 → 거부. 구동기 test는 오라클을 가짜 프로세스(기록 파일 재생)로 둔다 |
 | **TR-L** LUT VGS 음수 축(사용자 결정 T-10) | LUT 생성 규칙 변경: 꺼진 스위치 VGS 범위(음수, 크기 = 레일 전위 폭까지 -- 레일 선언에서 유도)를 VGS 축에 더해 진성 용량(cgg·cgd·cgs·cgb) 열을 만든다. 기존 VGS ≥ 0 격자·값은 비트 동일, 새 버전 파일(`lut_v2_location.json` 새 항목·sha256), `lut/CONTRACT.md` 축 절, 축 검사(`axis_guard`)는 새 축 범위로. 엔진 조회는 off 소자 용량에만 쓴다 | TR-0 승인(TR-1과 병렬) | 기존 축 값 비트 동일(재생성 대조), 새 축에서 ngspice `.op` 진성 용량 대조, 생성 규칙 문서 | 생성기와 독립인 ngspice 직접 조회로 표본 대조 |
 | **TR-T** connectivity 표 도구 이식(사용자 결정 T-13) | `assets/topology_to_markdown.py`가 옛 엔진 로더(`legacy/stick_diagram.py`) 대신 새 엔진 로더(`load_topology`, 파생 topology는 `topology_from_data`)를 쓰게 옮긴다. 표 형식(넷 기준 표·dangling·gate 전용 넷 표지)은 그대로 | TR-3(`topology_from_data`) | library 9회로 표가 이식 전과 같은 내용, 파생 topology 표 생성, `legacy` import 0 | 이식 전 도구 출력(기존 `*.topology.md`)과 대조 |
 
-계획 N5의 TR-5를 셋(a·b·c)으로 나누고, TR-M(측정 단계 G-2의 자리), TR-L(사용자 결정 T-10), TR-T(사용자 결정 T-13)를 더했다. 시험 회로·spec 승인(§16.1)은 card가 아니라 사용자 승인 절차다.
+계획 N5의 TR-5를 셋(a·b·c)으로 나누고, TR-M(측정 단계 G-2의 자리), TR-L(사용자 결정 T-10), TR-T(사용자 결정 T-13)를 더했다. v0.3은 계획 v0.5.5의 TR-TL을 더했다(TR-0T는 이 개정 자체다). 시험 회로·spec 승인(§16.1)은 card가 아니라 사용자 승인 절차다.
 
 ---
 
@@ -839,18 +897,22 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 
 **순서**(N5.1): 1 → 2 → 3·4·5. 1이 실패하면 2 이후는 해석하지 않고 보고만 한다.
 
+**v0.3 전제**:
+* MC는 oracle-portability v0.4.2의 네이티브 MC다(기술자에 선언된 시뮬레이터·PDK MC). 1~3의 MC 판정은 유효한 능력 기록이 있을 때만 판정으로 센다(§20.9).
+* 온도 점은 판정 온도 범위 spec 선언을 참조하고, 이 절에는 숫자를 두지 않는다(T-34).
+
 | # | 항목 | 규칙 | 성격 |
 |---|---|---|---|
-| 1 | σ_in 일치 | 파생 topology 판정 점(코드 seal_plus, trim 없는 MC)에서 SPICE MC 표본 n개의 입력 환산 offset 표준편차 σ̂. 합격: \|σ_eng − σ̂\| ≤ k·σ̂/√(2(n − 1)) + 엔진 분해능(`offset_analysis` resolution). k = spec 배수(새 신뢰 상수 없음) | 판정 전제 |
-| 2 | 27 °C 잔여 | 표본마다 trim 절차 흉내: seal_plus에서 offset 측정 → 모든 코드 c의 잔여를 오라클 DC로 재고 \|잔여\| 최소 코드 선택 → 잔여. **표본 선택 창(검증 N6·재검증 M3)**: 중심 = **공칭 offset V_nom** = 소자 mismatch 0인 같은 파생 회로를 **seal_plus 코드**에 두고 오라클 공칭 DC로 잰 입력 환산 offset(0이 아니다). 표본의 trim 전 offset도, 결정적 끝 표본도 모두 같은 seal_plus 코드 기준으로 잰다, 창 = [V_nom − k·σ̂, V_nom + k·σ̂]. **합격: trim 전 offset이 창 안인 표본 전부가 잔여 ≤ V_res(실패 0)**. 창 밖 표본 수와 그 잔여는 보고만. 더해 **결정적 끝 표본 둘**: 소자 공칭 + 입력에 직렬 이상 전압 ±k·σ_eng를 넣은 회로(seal_plus 코드에서 잰 trim 전 offset = V_nom ± k·σ_eng, 창의 두 끝)에서 같은 절차 → 잔여 ≤ V_res | 판정(완료 조건 (3)) |
-| 3 | 고정 코드 온도 sweep | 2의 표본·코드를 고정하고 온도 점마다 잔여. 온도 점 = 사용자 결정 T-14의 보고 전용 범위 −40 ~ 80 °C의 두 끝점과 판정 온도(LUT `temp_c`). 범위 값은 사용자 값이고 판정에 쓰지 않는다(T-5). §3.8 분해 표 | 보고 |
+| 1 | σ_in 일치 | 파생 topology 판정 점(코드 seal_plus, trim 없는 MC)에서 SPICE MC 표본 n개의 입력 환산 offset 표준편차 σ̂. 합격: \|σ_eng − σ̂\| ≤ k·σ̂/√(2(n − 1)) + 엔진 분해능(`offset_analysis` resolution). k = spec 배수(새 신뢰 상수 없음). **v0.3: 이 비교가 '크기 일관'(공정 문서 선언 계수 대비 MC 분산 크기) 판정 자체다.** oracle-portability v0.4 O-1 (2)로 능력 기록 항목에서 이리로 옮겨졌다. 실패하면 엔진 σ 기하 전제 또는 오라클 MC 크기 가운데 하나가 틀린 것이다. 원인 가르기는 oracle-portability의 결정적 섭동 진단 도구가 맡는다(진단만, 게이트 아님) | 판정 전제 |
+| 2 | T_j 잔여 | 표본마다 trim 절차 흉내: seal_plus에서 offset 측정 → 모든 코드 c의 잔여를 오라클 DC로 재고 \|잔여\| 최소 코드 선택 → 잔여. **표본 선택 창(검증 N6·재검증 M3)**: 중심 = **공칭 offset V_nom** = 소자 mismatch 0인 같은 파생 회로를 **seal_plus 코드**에 두고 오라클 공칭 DC로 잰 입력 환산 offset(0이 아니다). 표본의 trim 전 offset도, 결정적 끝 표본도 모두 같은 seal_plus 코드 기준으로 잰다, 창 = [V_nom − k·σ̂, V_nom + k·σ̂]. **합격: trim 전 offset이 창 안인 표본 전부가 잔여 ≤ V_res(실패 0)**. 창 밖 표본 수와 그 잔여는 보고만. 더해 **결정적 끝 표본 둘**: 소자 공칭 + 입력에 직렬 이상 전압 ±k·σ_eng를 넣은 회로(seal_plus 코드에서 잰 trim 전 offset = V_nom ± k·σ_eng, 창의 두 끝)에서 같은 절차 → 잔여 ≤ V_res | 판정(완료 조건 (3)) |
+| 3 | 고정 코드 온도 sweep(범위 판정) | 2의 **창 안 네이티브 MC 표본**과 그 코드를 고정하고, 같은 seed 표본(같은 불일치 값)을 온도 점마다 다시 잰 잔여다. 온도 점은 판정 온도 범위 spec 선언의 두 끝점, T_j, G-11 추가 점(§20.1)이다. **합격: 모든 온도 점에서 창 안 표본 전부의 잔여 ≤ V_res**(v0.3, T-29). 결정적 끝 표본은 이 판정과 Δ_T에 넣지 않고, 같은 온도 점에서 재서 진단으로만 보고한다(G-14, T-35). §3.8 분해 표를 함께 낸다 | **판정**(v0.3, 범위 판정. 결과: 합격·불합격·'판정 불능(사유)') |
 | 4 | 코너별 보정 구간 | PDK 선언 코너마다 공칭 소자의 end_plus·end_minus 균형 V_in | 보고 |
-| 5 | 끝 코드 headroom 온도 의존 | 3의 온도 점마다 끝 코드 포화 여유(off 소자 제외) | 보고 |
+| 5 | 끝 코드 headroom 온도 의존 | 3과 같은 온도 점(판정 온도 범위 선언 참조)마다 끝 코드 포화 여유(off 소자 제외) | 보고 |
 
 **샘플 수 규칙**:
 * n = 1 + ⌈2·k⁴·σ_eng² / LSB_in²⌉ … (식 S)
 * 유도: σ 추정의 표준오차 σ/√(2(n − 1))의 k배가, 보정 구간 요구량 k·σ를 반 LSB(LSB_in/2) 이상 옮기지 않을 σ 오차 LSB_in/(2k)보다 작아야 한다: k·σ/√(2(n − 1)) ≤ LSB_in/(2k). 모든 양은 spec(k)·엔진(σ_eng, LSB_in = \|t\|·I_LSB)에서 온다. k가 이 식에서 두 번(신뢰 배수, 구간 배수) 쓰이는 점은 X-T13.
-* 같은 n개 표본을 1과 2에 같이 쓴다.
+* 같은 n개 표본을 1과 2에 같이 쓴다. v0.3: 3도 같은 seed의 같은 n개 표본을 온도 점마다 다시 잰다(표본 정체 보존 = oracle-portability PC-6). n은 늘리지도 줄이지도 않는다(T-38).
 
 **비용 표(검증 N7, 실행 전에 낸다)**:
 
@@ -858,7 +920,7 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 |---|---|
 | 1 σ 일치 | n(표본마다 seal_plus offset 1회 -- 2의 첫 측정과 같은 풀이를 쓴다) |
 | 2 잔여 | n·2^N(표본마다 코드 전수) + 결정적 끝 표본 2·(1 + 2^N) |
-| 3 온도 sweep | n·(온도 점 수) |
+| 3 온도 sweep | n·(온도 점 수) + 결정적 끝 표본 진단 2·(온도 점 수) |
 | 4 코너 구간 | (코너 수)·2 |
 | 5 headroom 온도 | (온도 점 수)·2 |
 | 합 | 위 합. 한 풀이 시간은 오라클이 공칭 1회를 재서 곱한다 |
@@ -868,6 +930,8 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 **검증자 조건 셋(사용자 결정 T-12로 채택)**: (1) 표본 선택 창 중심 = 공칭 offset(§17-2) (2) 비용 표를 실행 전에 먼저 보고한다 (3) 실행 한도 초과·표본 부족은 '판정 불능(표본 부족)'이고 n·창·합격선을 줄이지 않는다(기준 약화 금지). n은 실행 전에 식 S로 고정하고 실행 중 바꾸지 않는다. 독립 검증자가 이 규칙의 판정 실행·소유를 맡는다.
 
 * 한계 문구(보고서): 'MC는 분포 내부를 확인한다. k 꼬리(구간 끝)는 결정적 끝 표본으로만 확인한다. 수율 확률은 주장하지 않는다(D-2: 분포 가정 없음)'.
+* **v0.3 꼬리 범위 문구(X-28, 사용자 결정 T-38)**: '온도 범위 합격은 네이티브 MC 표본이 닿은 꼬리까지만 확인한 것이다. k·σ 경계는 판정 온도 T_j에서만 결정적 끝 표본으로 확인했다. 표본 수는 식 S 그대로다.' k·σ 꼬리를 온도 범위에서도 확인하려면 표본 수를 늘려야 한다. 그 선택은 사용자가 비용 표를 보고 한다(기본은 늘리지 않음). 결정적 섭동은 진단 전용이라 그 대안이 되지 않는다(oracle-portability O-1 (5)).
+* **v0.3 단일 온도 trim 한계 문구(FR-T9)**: 'trim 코드 결정과 엔진 판정은 T_j·LUT 코너 한 조건이다. CMOS offset trim은 drift를 보정하지 않는다(R7 Kay 2024 §1.2 p.7). offset·trim 잔여의 합격은 오라클 범위 판정이 정한다. 범위 판정을 하지 못한 실행은 범위 미판정이다.'
 
 **9회로 일반성**: §16 표의 사유 코드를 9회로 전수로 재고, 선언 없는 실행의 무동작(§3.3 N 부류 정의: 새 블록 호출 0·새 필드·`trim` 키 없음, `offset_adjoint` = None)을 보인다.
 
@@ -890,7 +954,7 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 | TD-7 → T-13 | 표 도구를 새 엔진 로더로 이식 | TR-T |
 | TD-10 → T-15 | `run_trim_candidates` 제품 경로 배선: (다) TR-2 병합을 U16 뒤로. TR-M·TR-1·TR-L은 먼저 진행 가능(2026-10-15 사용자 "TD-10은 다") | §15 TR-2 행 |
 | X-T15 → T-16 | structure.json 재승인 결정은 TR-4 착수 전, `rule_hash` 파일 갱신은 TR-4 병합 때(사용자 확인) | §11 절차 |
-| TD-6 → T-14 | 보고 전용 온도 sweep 범위 = −40 ~ 80 °C(2026-10-15 사용자 "TD-6은 -40~80") | §17-3·5, TR-7 |
+| TD-6 → T-14 | 보고 전용 온도 sweep 범위(값은 결정 기록 원문 `wt/_drafts/user_decisions.md` T-14). **v0.3**: T-34로 이 값이 판정 온도 범위가 되었고, spec 선언 하나를 참조한다. 이 문서에는 숫자를 두지 않는다 | §5.3, §17-3·5, §20.1 |
 
 **열림**(사용자 값):
 
@@ -898,6 +962,10 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 |---|---|---|
 | TD-3 | 단일 출력 6회로의 출력 기준 DC 값(`node_voltage_targets_v`, CI-15) -- 오케스트레이터가 회로별 선택지를 제안하고 사용자가 고른다(T-14 원문) | 그 회로들의 추천·2단계(값이 정해질 때까지 후보표까지만) |
 | (절차) | 시험 회로 topology·spec 승인(§16.1) | TR-5b·5c·7의 2단계 완료 조건 |
+
+**v0.3에서 닫힌 것(계획 v0.5.5 사용자 결정 T-29~T-38)**: 판정 온도 범위(T-34), 반복 상한·정지 행동·반복 구조 안 B·(ii) 지배 정의·G-14(T-35), 판정 대상 점·지문 대조(T-36), S-3 경계(T-37), 꼬리 범위 문구(T-38). 반영 위치는 §3.9·§20이다.
+
+**v0.3 사용자 값(시험 회로 실행 때 선언)**: D-20 판정 대상 점 선택 규칙의 값, D-19 반복 상한 값. 둘 다 기본값이 없다(§20.7). 선언이 없으면 각각 범위 판정 안 함 / 첫 범위 판정만으로 동작한다.
 
 ### 18.2 원래 취지와 다름(따로 보고)
 
@@ -919,6 +987,18 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 | X-T14 | **I_u = θ 변수**(§10.2·§10.3): 계획 D-16(I_u = 하한값)·X-3(I_u를 θ에서 뺀다)과 다르다. **사용자 결정 T-7로 승인됨**. 하한은 제약 `trim_range` + 전력·면적 최소화로 얻는다. 계획 D-16 행은 같은 브랜치에서 T-7로 한 줄 정정했다 |
 | X-T15 | structure.json 재승인(T-11 'TR-4 착수 전'): 새 `rule_hash` 값은 TR-4 코드에서만 계산되므로, 착수 전에는 재승인 **결정**을 받고 파일의 `rule_hash` 갱신은 TR-4 병합에서 한다(§11 절차, 40 §3.2-3 작성 순서). 결정 문언과 시점 해석이 다를 수 있어 보고한다 -- **사용자 확인됨(T-16)** |
 | X-T16 | 2단계는 원본 회로를 다시 평가하지 않으므로(§10.1) '원본 대비 DAC가 더한 offset 분산' 보고는 1단계 front 점(원본 회로, 그 θ)과 2단계 front 점(파생 회로, 다른 θ)의 값 비교다. 같은 θ의 쌍 비교가 아니라는 문구를 보고에 함께 싣는다 |
+| X-T17 | (v0.3) 계획의 'T_j 포함 검사(O-8)'를 엔진 로더가 아니라 구동기에 두었다(§5.3). 엔진은 범위를 판정에 쓰지 않고 T_j는 LUT를 받은 뒤 정해지기 때문이다. TR-7 보고 sweep만 도는 실행(구동기 없음)에서는 이 검사가 없다. 그래서 보고 sweep에는 'T_j가 범위 밖'이라는 표지를 결과에 낸다. **수용(T-39)** |
+| X-T18 | (v0.3) Δ_T(trim 잔여)를 계획 G-9의 두 정의 가운데 (나) 표본별 증가량의 최댓값으로 정했다(§20.2). (가)보다 클 수 있어 과하게 조일 수 있다. 대신 'T_j 문턱을 지킨 점은 범위에서도 지킨다'의 충분조건이 된다. 계획이 design에 맡긴 선택이라 계획과 다르지 않지만, 판정을 엄하게 하는 쪽이라 보고한다. **수용(T-39)** |
+| X-T19 | (v0.3) G-11의 범위 안 극값 대응으로 온도 점을 '꼭짓점 한 점'만 더한다(§20.1). 반복 세분은 하지 않는다. 그래서 극값이 둘 이상인 경우는 놓칠 수 있고, 이 한계를 보고 문구로 적는다. **수용(T-39)**. v0.3.1에서 한계 문구를 넓혔다(검증 N-2): 세 점이 단조로 보여도 T_j와 한 끝점 사이에 극값 하나가 있으면 놓칠 수 있다. 판정 규칙은 그대로이고 보고 문구만 넓혔다 |
+| X-T20 | (v0.3) G-15: 단일 종단 출력의 V_sys(T) 기준을 온도마다 다시 풀지 않고 선언 기준 그대로 둔다(§20.1). 계획 T-19~T-23의 기준 선언(넷 값, 참조형 넷, 규칙 (e) 입력 CM)은 모두 온도 무관 선언이기 때문이다. 그래서 '온도마다 다시 풀기'는 대상이 없다. **수용(T-39)** |
+
+### 18.3 계획과 다른 결정이 필요한 곳(S-7: design에서 정하지 않고 멈춤)
+
+사용자 지시 S-7("계획과 다른 부분이 생기면 계획부터 수정해서 bkit 절차대로 진행해")에 따라 아래는 design에서 정하지 않고 사용자 결정을 받았다. **S7-1은 (가)로 닫혔다**(사용자 결정 T-39 "모두 권고대로", 계획 v0.5.6 `trim-plan-r2` `86e5adc`에서 T-30 문언 정정). 아래 표는 기록이다.
+
+| ID | 내용 | 계획 문언 | 선택지(권고) | 정해지기 전 동작 |
+|---|---|---|---|---|
+| S7-1 | **trim 잔여 Δ_T의 수렴 분해능**. 범위 판정은 같은 seed의 고정 표본 집합으로 하므로(G-14), trim 잔여 Δ_T(표본별 증가량의 최댓값)는 그 표본 집합의 통계량이다. 반복 사이에 바뀌는 것은 설계 점뿐이고 표본 추출 잡음은 없다. 그래서 'MC 신뢰 구간'(모집단 추정의 오차)은 이 양의 측정 분해능이 아니다. 모집단 분위수의 신뢰 구간(순서 통계량)은 신뢰 수준 상수가 필요하다 | T-30 '멈춤 = Δ_T 변화가 오라클 측정 분해능(MC 신뢰 구간) 안' | (가) **권고**: trim 잔여 분해능 = 오라클 DC 풀이 허용오차를 입력 환산으로 전파한 값(두 반복 몫의 합). 같은 표본 집합의 결정적 측정 분해능이고 상수가 없다. 그러나 문언 '(MC 신뢰 구간)'과 다르다 (나) trim 잔여에는 '수렴' 정지를 쓰지 않고 front 빔·반복 상한으로만 멈춘다(지금 계획의 임시 규칙을 정식으로) | **닫힘 (가)(T-39)**. §20.6 수렴 정지가 trim 잔여에도 적용된다 |
 
 ---
 
@@ -937,3 +1017,196 @@ N = 1, 2, … 순서로: 가능한 m이 있는 첫 N(= N_p). m_max(N) = 그 N에
 | R6 | Srinivasan et al. 2007, IEEE JSSC 42(2) ([doi:10.1109/JSSC.2006.889365](https://doi.org/10.1109/JSSC.2006.889365)), `offset_trim__srinivasan_2007/source.pdf` p.1 Fig.1 | §9.1 주입 쌍 = 입력쌍 drain |
 
 원문 수치는 인용하지 않는다(계획 N0).
+
+v0.3(§20)은 새 원문을 쓰지 않는다. 'CMOS offset trim은 drift를 보정하지 않음'은 R7(Kay 2024 §1.2 p.7, [ti.com/lit/pdf/sboa590](https://www.ti.com/lit/pdf/sboa590), `assets/technique/sources/offset_trim__kay_2024/source.pdf`)이다. 표본 수·표준오차 식은 §17 식 S와 오라클 기존 식(계획 F-21)의 유도식이다.
+
+---
+
+## 20. SPICE 온도 보정 루프 (card TR-TL, 계획 v0.5.5 N3.8·N3.9, v0.3)
+
+이 절의 범위 판정 규칙과 합격선은 §17처럼 design 작성자가 초안을 쓰고 독립 검증자가 확정·소유한다(NFR-T6). 온도 숫자는 두지 않는다. 온도는 모두 판정 온도 범위 spec 선언(§5.3)과 T_j(LUT `temp_c`)에서 온다.
+
+### 20.1 범위 판정(T-29, T-32, G-10, G-11, G-14, G-15)
+
+**대상**(계획 N3.8.1):
+
+| 대상 | 범위 판정 | 측정 |
+|---|---|---|
+| trim 잔여 `trim_residual` | 판정 | §17-3(창 안 네이티브 MC 표본, 고정 코드, 온도 점마다 잔여) |
+| matching 유도 제약 k·σ_in + \|V_sys\| ≤ `offset_in_max_v`(offset-strategy N3.3) | 판정 | 온도 점마다 σ̂(T)(네이티브 MC, 같은 seed 표본)와 V_sys(T)(불일치를 끈 공칭, oracle-portability PC-10) |
+| `trim_range`, `trim_states_saturation`, 코너 구간, 끝 코드 headroom 온도 의존, 그 밖 metric | 하지 않음(T_j 판정 또는 보고) | -- |
+
+**온도 점(G-11 닫음, 오케스트레이터 기본안)**:
+* 기본 점은 판정 온도 범위 선언의 두 끝점과 T_j다(계획 O-4).
+* **극값 표지**: metric마다 집계 최악값 곡선 W(T)를 쓴다. trim은 창 안 표본 \|잔여\|의 최댓값, matching은 k·σ̂(T) + \|V_sys(T)\|다. W(T_j)가 두 끝점 값보다 모두 제약을 어기는 방향으로 크면 '범위 안 극값 가능' 표지를 낸다.
+* **추가 점**: 표지가 서면 세 점 (T, W)을 지나는 2차식의 꼭짓점 온도를 계산한다. 그 온도가 범위 안(열린 구간)이고 기존 점과 다르면, 그 온도 점 하나를 더해 같은 표본을 다시 잰다. 이 점은 측정값에서 유도한 것이고 고정 간격 상수가 아니다. 결정적이다.
+* 한 판정에서 더하는 점은 metric마다 이 하나뿐이다.
+* X-T19 한계 문구(v0.3.1 넓힘): '범위 안 극값은 세 점의 모양으로만 찾는다. 극값이 둘 이상이면 놓칠 수 있다. 세 점이 단조로 보여도 T_j와 한 끝점 사이에 극값 하나가 있으면 표지가 서지 않아 놓칠 수 있다.'
+
+**표본**:
+* trim 잔여: §17 식 S, 같은 seed, 같은 표본을 모든 온도 점에서 다시 잰다(표본 정체 보존 = oracle-portability PC-6).
+* **matching(G-10 닫음)**: n = 1 + ⌈1/(2r²)⌉, r = (엔진 `offset_analysis` 분해능) / σ_eng(상대 분해능).
+  * 오라클의 기존 표본 수 식(계획 F-21)이다. σ̂의 상대 표준오차 1/√(2(n − 1))이 엔진 분해능과 같아지는 최소 n이다.
+  * 새 상수가 없고, 모든 양이 엔진 값이다. 같은 seed 표본을 온도 점마다 다시 잰다.
+* 비용 표를 오라클 실행 전에 낸다. 행은 §17 비용 표에 matching 행 n·(온도 점 수) + (온도 점 수)(V_sys 공칭)을 더한 것이다. 한도를 넘으면 '판정 불능(표본 부족)'이고 n·창·온도 점을 줄이지 않는다(T-12 (3)).
+
+**꼬리(G-14, 계획에서 닫힘 T-35·T-38)**:
+* 범위 판정과 Δ_T는 네이티브 MC 표본으로만 한다.
+* 결정적 끝 표본(§17-2)은 T_j 판정에만 남고, 온도 점에서는 진단으로만 재서 보고한다. 꼬리 범위 문구는 §17 끝 X-28 문구다.
+
+**V_sys(T) 출력 기준(G-15 닫음 -- oracle-portability PC-10·OP-6의 선행)**:
+* V_sys(T) = 그 온도에서 불일치를 끈 공칭 회로의 입력 환산 offset이다. 출력을 기준에 묶는 입력 차동 전압으로 잰다(오라클 free 넷리스트의 DC 되먹임 방식, 계획 F-20a 참고).
+* **기준은 그 실행의 선언 기준을 온도와 무관하게 그대로 쓴다**:
+  * 차동 출력: 차동 출력 = 0.
+  * 단일 출력: spec `node_voltage_targets_v`의 출력 넷 값, 참조형 `{"net": …}`(T-22), 또는 규칙 (e) 출력 = 입력 CM(T-20). 이 셋은 모두 spec·레일·입력 선언값이라 온도에 따라 바뀌지 않는다. 그래서 '온도마다 다시 풀기'는 대상이 없다(X-T20).
+* 기준 선언이 없으면 엔진 `offset_systematic`과 같이 `reference_undeclared`로 범위 판정을 하지 않는다(fail-closed, §3.6 G-6과 같음).
+* 기준은 결과 JSON `trim.temperature.output_reference`(§13)에 있다. 오라클은 이 칸을 직접 읽지 않는다. 구동기(또는 오라클 입력 변환 단계)가 oracle-portability 새 입력 형식(D-5)의 해당 칸에 옮기고, 오라클은 그 입력과 어댑터를 거쳐 받는다. 엔진 import는 없다.
+* T_j 단독 실행 값과 온도 sweep 실행의 T_j 값은 비트 동일해야 한다(PC-10).
+
+**합격**:
+* trim: 모든 온도 점에서 창 안 표본 전부의 잔여 ≤ V_res다.
+* matching: 모든 온도 점에서 k·σ̂(T) + \|V_sys(T)\| ≤ `offset_in_max_v`다(spec 값 참조. 보정 루프 변형에서도 판정 문턱은 spec 값이고, 조인 문턱은 엔진 탐색용이다).
+
+**결과 상태와 사유 코드(오케스트레이터 기본안, 이름은 DEC-68 검토 대상)**:
+
+| 상태 | 사유 |
+|---|---|
+| 합격 | `range_pass` |
+| 불합격 | `range_fail`(metric·온도 점·표본) |
+| 판정 불능 | `range_undetermined_samples`(비용 한도), `oracle_cost_limit_undeclared`, `oracle_capability_unverified`/`..._stale`(§20.9), `reference_undeclared`, `judgment_range_excludes_tj`(§5.3), `target_rule_undeclared`(§20.7) |
+| 시작 거부(v0.3.1) | `simulator_parallel_undeclared`(§20.7), `dc_tolerance_undeclared`(반복 상한이 선언된 루프 실행의 시작에서만 검사, §20.6) |
+| T_j 판정 실패(계획 O-7, 루프 안 돎) | `tj_model_error`(§17-1 σ 불일치 또는 엔진·오라클 차), `tj_mc_tail`(창 안 MC 표본 잔여 > V_res), `tj_end_sample`(결정적 끝 표본 잔여 > V_res) |
+
+### 20.2 방향 여유 Δ_T 측정 기록(G-9 닫음, 분해능은 §20.6, T-39)
+
+* **trim 잔여**(계획 G-9 (나), X-T18): Δ_T = max(0, max_s [max_T \|R_s(T)\| − \|R_s(T_j)\|])다. s는 창 안 표본, T는 §20.1 온도 점이다.
+  * 근거: 모든 s에 대해 \|R_s(T)\| ≤ \|R_s(T_j)\| + Δ_T ≤ max_s \|R_s(T_j)\| + Δ_T다. 그래서 T_j 쪽 잔여 상한이 V_res − Δ_T 이하면 범위 합격의 충분조건이 된다.
+* **matching**: Δ_T = max(0, max_T [k·σ̂(T) + \|V_sys(T)\|] − [k·σ̂(T_j) + \|V_sys(T_j)\|])다.
+* **기록 형식**(계획 O-1): `TemperatureMargin` 값 형식이다. 엔진 `tightened_threshold`의 인자이므로 형식 선언은 엔진 쪽 `E/authoring/temperature_threshold.py`에 둔다(v0.3.1). tools는 그 형식을 import해 값을 만들기만 한다. 필드는 다음과 같다.
+  * `metric`, `value_v`(≥ 0), `definition`(`per_sample_increase` | `aggregate`)
+  * 판정 대상 점(front 점 id, θ 지문), 표본 수 n, seed, 온도 점
+  * 오라클 결과 기록(경로, sha256, 실행 id). 경로는 구동기가 대조(§20.4)에 쓴다. `tightened_threshold`는 경로를 읽지 않고, id·sha256만 출처로 조인 문턱 항목에 담는다(v0.3.2).
+  * 환경 지문(§20.4), 반복 번호
+  * 키 이름은 DEC-68 규칙으로 `temp_margin_<metric>_v`다(계획 후보 가운데 단위 접미가 있는 꼴).
+* **갱신**(계획 O-6): 반복마다 새 값으로 바꾸고, 누적하지 않는다.
+
+### 20.3 문턱 합성 함수 하나
+
+* `tightened_threshold(spec_threshold_ref, delta_record) -> 조인 문턱 항목`(`E/authoring/temperature_threshold.py`, 순수 함수)
+* 값 = spec 문턱 값 − `delta_record.value_v`다. 항목에는 값과 두 출처 참조(spec 선언 위치, Δ_T 기록 id·sha256)를 함께 담는다. 숫자만 옮기지 않는다.
+* **조인 문턱 항목은 spec 문턱 참조를 따로 들고 다닌다**(v0.3.1). 엔진 안에서 조인 값을 읽는 곳은 커널 요청·제약 행(탐색 문턱)뿐이다. 출발값과 판정은 spec 값만 읽는다.
+  * 출발값은 요구 값 (k, limit_v)만 읽는다(offset-strategy OB-20).
+  * 판정 문턱은 §20.1 '합격'대로 spec 값이다.
+* **호출 횟수**: 구동기가 변형을 추가할 때 한 번 부르고, 그 결과를 offset-strategy 세션의 `derived` 자리로 넘긴다. 엔진은 평가마다 합성하지 않는다(offset-strategy v0.6.2, master `fbeb1c7`).
+* 중복 변형의 키는 offset-strategy가 정한 (topology 지문, `constraint_set_fp`, Δ_T 기록 지문)이다.
+* **형식 소유**: 조인 문턱 항목의 형식(`derived` 항목 자리)은 offset-strategy design이 정의한다. 이 design이 정하는 것은 합성 함수 `tightened_threshold`와 Δ_T 기록 `TemperatureMargin`뿐이다.
+* 대상과 spec 참조:
+  * trim: `offset_trim.residual_offset_v`
+  * matching: 요구 `offset_in_max_v`(S-9 연결점)
+* 거부(fail-closed):
+  * `delta_record.value_v` < 0 → `temp_margin_negative`. 정의상 생기지 않는다. 생기면 구현 결함이다.
+  * 결과 문턱 ≤ 0 → `tightened_threshold_nonpositive`. 루프 정지 사유 '크기 조정 범위 밖'으로 보고한다.
+* Δ_T가 엔진 문턱에 들어가는 길은 이 함수 → offset-strategy 세션의 변형 추가 하나뿐이다(계획 D-24 표, offset-strategy N3.12). graph에서는 그 변형의 `derived` 입력 한 자리에 writer 하나로 들어간다(계획 NFR-T3).
+
+### 20.4 출처 지문과 대조(G-13 닫음, T-36 D-25 (c) + (c-2))
+
+**주체·시점**: 엔진 밖 구동기가 변형을 추가하기 직전에 대조한다. 실패하면 거부하고 그 Δ_T는 엔진에 들어가지 않는다(엔진 입력 0). 엔진은 오라클 결과 파일을 읽지 않는다.
+
+**어떤 대조가 의미 있는가(v0.3.1)**: (c-2)에서는 Δ_T를 잰 세션과 그것을 쓰는 세션이 같은 프로세스의 같은 세션이다. 그래서 아래 환경 항목 가운데 엔진 쪽 항목(`code_fp`, LUT, topology, spec)은 구조상 자명하게 통과한다. 이 항목들은 반복 이력의 출처 기록으로 남긴다. 의미 있는 대조는 다음 둘이다.
+* 오라클 결과 기록의 무결성(원문 항목)
+* 오라클 쪽 환경(능력 기록 id, 오라클 코드 지문)
+
+| 묶음 | 필드 | 대조 대상 | 실패 사유 |
+|---|---|---|---|
+| 환경 | 엔진 코드 지문(`code_fp`) | 현재 세션의 결과 JSON | `temp_margin_stale` |
+| 〃 | LUT 묶음 지문(slice sha256 묶음, `temp_c`, 코너) | 현재 세션의 LUT provenance | 〃 |
+| 〃 | topology 지문: 원본 `connectivity_fp`. trim이면 파생 지문과 승인 기록 id | 현재 세션 단계 A 보고서 | 〃 |
+| 〃 | spec 지문(spec 전체 -- Δ_T는 spec에 없다) | 현재 세션 | 〃 |
+| 〃 | 오라클 능력 기록 id, 오라클 코드 지문 | 이번 오라클 실행 결과 기록 | 〃 |
+| 〃 | 판정 온도 범위 선언 값, 온도 점 목록, k | 현재 spec 선언과 §20.1 규칙의 결과 | 〃 |
+| 원문(출처 무결성) | 판정 대상 점(front 점 id, θ 지문), n, seed, 오라클 실행 id | Δ_T 기록이 인용한 오라클 결과 기록(sha256이 맞는지부터 확인) | `temp_margin_source_missing`(기록 없음·sha 불일치), `temp_margin_provenance_mismatch`(내용 불일치) |
+
+### 20.5 불합격 몫 분해와 정지(T-35 X-20, D-22, 계획 O-7)
+
+* trim 잔여가 범위 불합격이면 §3.8 분해를 불합격 표본·온도 점마다 계산한다.
+* **(ii) 지배**: 하나라도 \|R_s(T_j) + (ii)_s(T)\| > V_res인 곳이 있으면 변형을 추가하지 않고 `bias_drift_dominant`로 정지한다. 분해표를 보고하고, 다음 행동(바이어스 원천)은 사용자 결정이다(D-22).
+* **닫힘 실패**: 어느 곳에서든 \|닫힘 잔차\| > \|(i)\| + \|(ii)\| + \|(iii)\|이면 `decomposition_not_closed`로 정지한다(측정값끼리 비교, 상수 없음).
+* matching에는 분해가 없다(DAC 없음).
+* T_j 판정 실패는 §20.1 표의 `tj_*`로 보고하고 루프를 돌지 않는다.
+
+### 20.6 멈춤 규칙(계획 N3.8.5)
+
+| 사유 | 조건 |
+|---|---|
+| `range_pass` | 범위 합격 |
+| `converged_fail` | 모든 대상 metric에서 \|Δ_T(j) − Δ_T(j−1)\| ≤ ρ(j) + ρ(j−1)이다.<br>• ρ = 온도 T*(최악 온도)와 T_j 두 점의 측정 분해능 합이다.<br>• matching 각 점의 분해능 = k·(k·σ̂(T)/√(2(n − 1))) + (V_sys DC 풀이 허용오차를 입력 환산한 값)이다.<br>• matching의 신뢰 배수 k는 계획 O-5다. 한계 문구(O-5): 'k는 덮을 분포 폭의 배수이고 신뢰 수준이 아니다. k를 바꾸면 이 기준도 바뀐다'.<br>• **trim 잔여 각 점의 분해능(S7-1 (가), T-39)** = 오라클 DC 풀이 허용오차를 입력 환산으로 전파한 값이다. 같은 seed의 고정 표본 집합이라 추출 잡음이 없고, 새 상수도 없다. **k를 곱하지 않는다**(전파값 그대로). 전파식은 잔여 측정(입력 환산 offset)과 같이 노드 허용오차를 차동 이득으로 나눈다.<br>• **허용오차의 출처(v0.3.1)**: 지금 오라클 입력의 `testbench.options`는 자유 문자열이라 허용오차 선언 칸이 없다. 그래서 oracle-portability 기술자·어댑터 능력에 'DC 풀이 허용오차 선언(노드 전압 허용오차)' 칸을 요구한다. **검사 시점은 하나다(v0.3.2)**: 반복 상한이 선언된 루프 실행의 시작에서만 검사하고, 선언이 없으면 `dc_tolerance_undeclared`로 거부한다(fail-closed, matching V_sys 항도 같은 칸을 쓴다). 첫 범위 판정만 하는 실행(반복 상한 없음)은 수렴 판정이 없어 허용오차가 필요 없으므로 막지 않는다 |
+| `front_empty` | 조인 문턱으로 돈 변형의 front가 비었다 |
+| `iteration_cap` | 반복 수 = 실행 설정의 반복 상한(D-19) |
+| `loop_not_configured` | 반복 상한 선언이 없다. 첫 범위 판정만 하고 변형을 추가하지 않는다(D-19) |
+| `tightened_threshold_nonpositive`, `bias_drift_dominant`, `decomposition_not_closed` | §20.3·§20.5 |
+| 판정 불능·지문·능력 | §20.1 표, §20.4, §20.9 |
+
+* 분해능 정의는 계획 v0.5.6 T-30·T-39 문언과 같다(matching σ 항 = MC 표준오차, trim 잔여 = DC 풀이 허용오차 전파).
+* 수렴·front 빔·상한 정지는 '범위 불합격'이고 합격으로 세지 않는다.
+
+### 20.7 구동기(G-12 닫음, 안 B)
+
+* **위치**: `tools/temperature_loop/`(엔진 밖). 엔진 공개 진입만 import한다: offset-strategy 실행 계획 세션 인터페이스(OS-L, XS-17)와 `tightened_threshold`. 오라클은 별도 프로세스로 부르고 import하지 않는다.
+* **순서**(반복 j):
+  1. 세션 열기(처음 j = 0만)
+  2. 변형 실행 → front
+  3. 판정 대상 점 고르기
+  4. 오라클 T_j 판정(§17-1·2. 실패면 `tj_*` 정지)
+  5. 비용 표 → 오라클 범위 판정(§20.1)
+  6. 합격이면 정지
+  7. 분해 정지(§20.5)
+  8. Δ_T 측정(§20.2)
+  9. 멈춤 규칙(§20.6)
+  10. 지문 대조(§20.4)
+  11. `tightened_threshold` → 변형 추가 → 2로
+  12. 끝나면 세션 닫기
+* **순차 실행·메모리**: 엔진 계산과 오라클 실행을 동시에 띄우지 않는다(NFR-T9). 반복마다 색인 항목 수와 프로세스 최대 메모리를 기록한다(offset-strategy XS-19).
+* **시작점**: 이전 변형의 front 점을 다음 변형의 시작점으로 주지 않는다(U-89).
+* **판정 대상 점(D-20 (가))**: 실행 설정에 선언한 결정적 규칙 하나로 front 점 하나를 고른다.
+  * 규칙 형식: (목적 축 이름, `min`|`max`)이다. 동률이면 front 점 정렬 순서에서 첫 점이다.
+  * 규칙 값은 시험 회로 실행 때 사용자가 선언한다. 선언이 없으면 `target_rule_undeclared`(범위 판정 안 함)다.
+* **실행 설정 칸**(이름은 구현 card가 DEC-68로 확정):
+  * `iteration_cap`(D-19, 기본값 없음)
+  * `target_rule`(D-20, 기본값 없음)
+  * `simulator_parallel`(NFR-T9, 오라클 안 병렬 수)
+  * `oracle_cost_limit`(§17 '실행 한도', 사용자 값)
+  * 넷 모두 출처를 기록한다.
+  * **미선언 처리(v0.3.1)**: 넷 모두 기본값이 없다.
+    * `iteration_cap` 없음 → `loop_not_configured`(첫 범위 판정만)
+    * `target_rule` 없음 → `target_rule_undeclared`(범위 판정 안 함)
+    * `simulator_parallel` 없음 → 구동기가 시작 전에 `simulator_parallel_undeclared`로 거부. 병렬 수는 메모리를 정하므로 추정값을 만들지 않는다.
+    * `oracle_cost_limit` 없음 → 비용 표를 낸 뒤 `oracle_cost_limit_undeclared`로 '판정 불능'. 한도 없이 무한정 돌리지 않는다.
+* **문턱 의존 블록 목록**(계획 G-12. 완료 조건 7 '문턱 무관 블록 재계산 0'의 측정용):
+  * 정의: 블록 extras·입력 버전에 변형 유도 제약 입력 `derived`가 들어가는 계산 블록 전부.
+  * 목록은 커널 요청·제약 행과 LUT mismatch 필수 검사다. trim의 `trim_constraint_rows`는 제약 행에 든다.
+  * **`start_intervals`는 빠진다**(v0.3.1). 출발값은 요구 값 (k, limit_v)만 읽고 조인 문턱을 읽지 않는다(offset-strategy OB-20). 그래서 matching 쪽 S0 수준 문턱 의존 블록은 없다. v0.3의 '출발 구간 포함'은 offset-strategy 계획 v0.6.1 N3.10 문장을 따른 것이었고 v0.6.2·OB-20으로 바뀌었다.
+  * 측정 방법: test가 블록 레지스트리를 정적으로 훑어 extras에 `derived`를 받는 블록 집합을 뽑고 위 목록과 대조한다. 실행에서는 변형 사이에 목록 밖 블록의 재계산이 0인지 블록 결과 색인 계수로 단언한다.
+* 루프의 반복 = 같은 세션 안의 변형이다. 엔진은 이전 결과 파일·S3·front 점을 읽지 않는다(X-23 수용 T-37, offset-strategy XS-18).
+
+### 20.8 반복 이력과 보고
+
+결과 JSON `temperature_loop`(§13)에 반복마다 다음을 남긴다.
+* 반복 번호, 변형 정체(반복 번호·원인 지문, offset-strategy N3.12)
+* 적용 Δ_T 기록과 지문 대조 결과, 판정 대상 점
+* 범위 판정 표(온도 점 × metric 최악값, 극값 표지·추가 점), 분해표(trim)
+* 비용 표·실제 오라클 시간, 메모리, 정지 사유
+
+보고서 문구는 §17 끝의 v0.3 문구(X-28, 단일 온도 trim 한계)와 X-T19(극값 하나) 한계다.
+
+### 20.9 오라클 능력 의존(T-31, T-33)
+
+* 절차·기록 형식·게이트는 oracle-portability 계획 v0.4.2가 소유한다(OP-6, D-7).
+* 이 design의 요구:
+  * MC 판정(§17-1~3, matching σ̂)에는 PC-3(네이티브 MC: 분산 존재·소자별 독립·끄면 공칭)이 필요하다.
+  * 온도 판정(§17-3·5, §20.1)에는 PC-5(온도가 동작점을 바꿈)·PC-6(표본 정체 보존)·PC-8(LUT `temp_c`와 따로 받는 온도)·PC-10(V_sys(T), 정의 = G-15 위)이 필요하다.
+  * 크기 일관은 능력 기록이 아니라 §17-1 판정이다.
+  * (v0.3.1) 오라클 기술자·어댑터 능력에 'DC 풀이 허용오차 선언' 칸이 필요하다(§20.6 수렴 분해능의 입력). oracle-portability 계획·design에 알릴 항목이다.
+  * (v0.3.1) G-15 기준과 판정 온도 범위는 oracle-portability 새 입력 형식(D-5)으로 오라클에 들어간다(§20.1). 오라클이 엔진 결과 JSON 칸을 직접 읽지 않는다.
+  * PC-10의 '정의 대기'는 이 design의 G-15(§20.1)로 해소된다. oracle-portability design에 알리는 일은 코디네이터 몫이다.
+* 유효한 능력 기록이 없으면 오라클 게이트가 거부한다(`oracle_capability_unverified`). 구동기는 그 결과를 '판정 불능'으로 보고하고, T_j 한 조건으로 내려가 합격을 내지 않는다.
+* 능력 기록 id는 Δ_T 환경 지문에 들어간다(§20.4).

@@ -20,6 +20,25 @@ date: 2026-10-15
 | v0.2 | aea7e7a | 사용자 결정 T-15(TR-2 병합 U16 뒤)·T-16(X-T15 확인) 반영 |
 | v0.2 | c27a8c5 | 재확인 88점 차단 B7(KCL 기저 열 순서 규칙) 반영 |
 | v0.2 | (이 커밋) | 92점 비차단: off 스위치 basis.mos 제외(§14.2 (f)) |
+| v0.3.2 | (이 커밋) | 재확인 94점(차단 0) 비차단 3건 반영.<br>• N-a: `dc_tolerance_undeclared` 검사 시점을 하나로 정했다(오케스트레이터 판단): 반복 상한이 선언된 루프 실행의 시작에서만 검사하고, 첫 범위 판정만 하는 실행은 막지 않는다. §20.1 표와 §20.6을 맞췄다.<br>• N-b: Status를 v0.3.2로, offset-strategy 참조를 v0.6.2(`fbeb1c7`)로 바꿨다.<br>• N-c: `tightened_threshold`는 오라클 결과 기록 경로를 읽지 않고 id·sha256만 출처로 담는다. |
+| v0.3.1 | a6a17d4 | TR-0T 검증 86점(차단 1, 비차단 8) 반영.<br>• B-1: 조인 문턱 항목이 spec 문턱 참조를 따로 들고, 출발값·판정은 spec 값만 읽는다. 문턱 의존 블록 목록에서 `start_intervals`를 빼고 offset-strategy OB-20을 인용했다. 구동기가 `tightened_threshold`를 한 번 부르고 엔진은 평가마다 합성하지 않는다. 중복 키를 적었다(offset-strategy v0.6.2 `fbeb1c7`). 항목 형식은 offset-strategy design 소유다.<br>• N-1: trim 분해능은 k를 곱하지 않는다. DC 풀이 허용오차 선언 칸을 oracle-portability에 요구하고, 없으면 `dc_tolerance_undeclared`로 정지한다.<br>• N-2: X-T19 한계 문구를 넓혔다.<br>• N-3: `simulator_parallel`·`oracle_cost_limit` 미선언 처리를 정했다.<br>• N-4: `TemperatureMargin`을 엔진 authoring 쪽에 둔다.<br>• N-5: §14.4 구동기 호출 사슬을 §20.7 순서로 적었다.<br>• N-6: G-15 기준은 oracle-portability 새 입력 형식(D-5)·어댑터로 넘긴다.<br>• N-7: 코디네이터가 알림.<br>• N-8: (c-2)에서 의미 있는 대조는 오라클 기록 무결성과 오라클 쪽 환경임을 명시했다.<br>• 덧붙여 §20.6 수렴 행에서 k 문장이 trim 항목에 잘못 섞인 것을 matching 항목으로 옮겼다. |
+| v0.3 | 5c93cb6 | 사용자 결정 T-39: S7-1 (가) 닫음(trim 잔여 수렴 분해능 = 오라클 DC 풀이 허용오차 입력 환산 전파), X-T17~X-T20 수용. §20.6 수렴 정지를 trim 잔여에도 적용. 계획 쪽 문언 정정은 `trim-plan-r2` `86e5adc`(v0.5.6) |
+| v0.3 | 2cdeaa6(card TR-0T) | 계획 v0.5.5(사용자 결정 T-29~T-38, master `6093d07`) 반영: §3.8 온도 이름 T_j·분해의 정지 판정 용도, §3.9 G-9~G-15 닫음 표, §5.3 판정 온도 범위 선언 참조·T_j 포함 검사(구동기), §10.6 `value_from_spec` 표기 정정·문턱 합성, §13 칸, §14 새 파일·배선, §15 TR-7·TR-TL, §17 크기 일관 = §17-1·§17-3 범위 판정 승격·X-28 문구, §18 닫힘·X-T17~X-T20·§18.3 S7-1, §20 신설 |
+
+## H3. v0.3 경위(card TR-0T, 2026-10-16)
+
+- **근거**:
+  - 계획 `offset-trim.plan.md` v0.5.5(master `6093d07`, 사용자 승인 T-29~T-38)의 TR-0T 범위.
+  - offset-strategy 계획 v0.6.1(master `194981f`): N3.10 PD-1 `derived`, N3.12 세션·변형 추가 OS-L, OS-V.
+  - oracle-portability 계획 v0.4.2(master `d579939`): O-1 네이티브 MC, PC-3·5·6·8·10, OP-6이 이 design G-15에 의존.
+- **옛 문장 처리(본문에서 바뀐 것)**:
+  - §3.8: '27 °C'를 T_j로 바꿨다(숫자 제거).
+  - §17-3: '사용자 결정 T-14의 보고 전용 범위 숫자의 두 끝점'을 '판정 온도 범위 spec 선언의 두 끝점'으로, 성격을 '보고'에서 '판정'으로 바꿨다.
+  - §17-2 제목 '27 °C 잔여'를 'T_j 잔여'로 바꿨다.
+  - §10.6: `value_from_spec`(옛 이름, 로더 거부)을 지웠다.
+  - §18.1 TD-6 행의 숫자를 결정 기록 참조로 바꿨다.
+- **멈춤(S-7)**: trim 잔여 Δ_T 수렴 분해능(S7-1)은 계획 문언 '(MC 신뢰 구간)'과 다른 정의가 필요해 정하지 않았다. 계획의 임시 규칙(trim 잔여에는 수렴 정지를 쓰지 않음)으로 동작한다.
+- **G-12 문턱 의존 블록 목록**: offset-strategy 계획 N3.10의 확인(`derived`를 읽는 소비자)을 인용했다. 블록 레지스트리 실측은 하지 않았고(무거운 실행 금지), TR-TL test가 정적으로 뽑아 대조한다.
 
 ## H2. 본문에서 옮긴 경위 문장
 
@@ -27,3 +46,7 @@ date: 2026-10-15
 - **원뿔 분리**(v0.2 초안, TD-1 (가) 하한 유도안 전제): `current_cone`을 `cone`·`cone_trim`으로 나누고 `check_theta` 서명을 넓혀 `cone_trim` 위반을 후보 실패 `trim_cone_outside`로 두었다. T-7로 I_u가 θ 전류가 되어 대상이 없어 삭제했다.
 - **고정점 반복·K_trim·ln I 이분**(v0.1 고정점 반복, v0.2 초안 ln I 이분 + K_trim = 2 + k_max): T-7로 평가당 커널 1회가 되어 모두 삭제했다. 관련 실패 사유 `trim_iu_unconverged`·`trim_iu_no_bracket`, 결과 칸 `perf.trim_kernel_passes`·S3 `trim_iu_amp`, 'I_u 반복 기록'도 같이 지웠다.
 - **I_u θ 키**(v0.2, bd695f2): `trim<d>:unit`이라는 원소가 아닌 키를 썼다. `search_domain.py:62` `_current_bounds`가 `classes[key]`에서 KeyError가 나는 결함(재검증 B6)이라, 가중치 1 셀 전류원 `trim<d>_c0_src`의 전류로 바꿨다.
+
+
+## TR-0T 승인 (2026-10-16)
+- 사용자 "TR-0T 승인, X-D4 권고대로 해"(결정 기록 T-40). design v0.3.2 승인. 독립 검증 86 -> 94.
