@@ -3,8 +3,8 @@
   "spec_card": "docs/02-design/specs/20261015-nfr4c2.spec.md",
   "evidence_type": "red-green",
   "base_commit": "e8b619f7629d0a5c634a58d7c064a82c3e01d644",
-  "test_commit": "6b9e30463171c4808f84f15a0b3dd8d91d18983d",
-  "code_commit": "8ff81e2fcefe3a08be19edf1238235a96451adba",
+  "test_commit": "4091436c75f269b8956fa5bf5637a09f6b5f6527",
+  "code_commit": "69c75dd9cf0d2e6ccd367ab363c7bfe199b8c56c",
   "red": {
     "test_ids": [
       "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_pin_core_public_names",
@@ -58,7 +58,9 @@
       "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_lift_closed_form[FN_neg]",
       "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_lift_closed_form[FP_numer_le0]",
       "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_lift_closed_form[FP_pos]",
-      "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_lift_edges[formula_negative_no_lowering]"
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_lift_edges[formula_negative_no_lowering]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_recheck_rejects_missing_owned_blas[numpy]",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_recheck_rejects_missing_owned_blas[scipy]"
     ],
     "failure_hashes": [
       "67b3e98f6cc1aeb6a0842fb30a047f1f5eeeca1105cecddd24f2dd1e5371c557",
@@ -112,17 +114,19 @@
       "335df272560d96ec520e5aa6e213c50789bf5ae4b72ee9bb8e1d494cfe147876",
       "10d853f5562086f8c0facf1e58ce7f72a252ef201616aa7dba541fd949488b13",
       "a90a720d1132481bab7d473b585fc320068c88d3ed1ebb2d9ac24546972fa52d",
-      "ea3aa731c7d43ddac3528969ed5e8d850560e2f1ef9373f261f0914b63164c52"
+      "ea3aa731c7d43ddac3528969ed5e8d850560e2f1ef9373f261f0914b63164c52",
+      "015995e6c0d4646a0e35e0407051a6e8cf842a8343ddcb309620bce83d28923c",
+      "e1ea9bf55659d0f2252edb48d1cd0fbddd32d68d3ccf139933c296bb2cdc788e"
     ]
   },
   "checks": {
     "V1": {
       "verdict": "PASS",
-      "basis": "[재판정 2bdc926 = a34054d + role/test/nfr4c2 6b9e304] 격리 복제본 _scratch_nfr4c2_audit/head2(origin 제거), 바깥 OPENBLAS_NUM_THREADS 미지정, 명령 하나(-k·--deselect·-x 없음, --run-slow): 10087 passed / 0 failed / 1 deselected(규칙 H 마커) / 2 xfailed(layout) in 2291.53 s, exit 0. 그 전에 따로 test_blas_thread_determinism.py --run-slow: 10 passed in 566.85 s(N-T29 9회로 + test_single_thread_start_fp_matches_base). 3안 영향 toy 고정값 후보 7파일 모두 통과 -- 고칠 toy 단언 0. [이전 a34054d 판정] 10 failed(하네스가 threads_env 를 엔진 import 뒤에 읽던 test 쪽 결함) -> 6b9e304 가 import 전에 읽도록 고침. 수집 head 10090(--run-slow 1 deselected), 기본 11 deselected."
+      "basis": "[r1 판정 ebd7b3c = 2bdc926 + design 33a06e5 + test 4091436 + code 69c75dd] 격리 복제본 _scratch_nfr4c2_audit/head3(origin 제거), 바깥 OPENBLAS_NUM_THREADS 미지정, 명령 하나(-k·--deselect·-x 없음, --run-slow): 10089 passed / 0 failed / 1 deselected(규칙 H 마커) / 2 xfailed(layout) in 2708.88 s, exit 0 (2bdc926 10087 + 새 test 2). 그 전에 tests/core/test_blas_env.py 22 passed. [이전] 2bdc926 10087 passed/0 failed, a34054d 10 failed(하네스 결함, 6b9e304 로 해소)."
     },
     "V2": {
       "verdict": "PASS",
-      "basis": "red: base e8b619f + 동결 test 64c77c1(순서 3, nfr4c2/base_check.json) 52 failed -- AssertionError 36·새 심볼 Import/ModuleNotFoundError 7·ValueError 9(오케스트레이터 J-O1: J-7 선례대로 red 인정), card 이유 일치. J-14: base 스레드 1 folded w_min:M8 c = -4.684409835671501e-10 재현. N-T19·N-T24~N-T28 base green 은 card A-3 결함(J-O2, 감점 없음), N-T19 비공허 확인. 6b9e304 는 red 단언을 바꾸지 않는다(하네스 기록 칸 읽는 시점·주석·docstring 만) -> red 기록 재사용. green: 병합본 2bdc926 전체 실행에서 red id 52/52 passed(nfr4c2/green_of_red_2bdc926.json)."
+      "basis": "red(원 card): base e8b619f + 동결 test 64c77c1 52 failed(base_check.json, J-O1 ValueError 9 인정, J-O2 card A-3 결함 기록). red(r1): base = 2bdc926(code 8ff81e2 계열) + 4091436 test 파일 -> test_blas_recheck_rejects_missing_owned_blas[numpy|scipy] 2 failed 'Failed: DID NOT RAISE RuntimeError' = card 이유(재확인 blas_environment() 가 소유 BLAS 항목을 보지 않음), 대조군 단언(둘 다 있으면 거부 없음)은 base 에서 통과해 실패 지점이 거부 단언임을 보인다; 같은 파일 나머지 20 passed. r1 red 묶음 sha256 54ff0ee146b9609f640e32509645aaa2979665798a46ffeaca2f50608a3c603b(builtins.Failed 2). green: ebd7b3c 전체 실행에서 red id 54/54 passed."
     },
     "V3": {
       "verdict": "N/A",
@@ -134,7 +138,7 @@
     },
     "V5": {
       "verdict": "PASS",
-      "basis": "gate weakening_diff.py(범위 assets/tests) e8b619f..a34054d PASS 발견 0. gmid_engine/tests AST(scripts/removed_tests_n.py): 지운 test 함수 1개 = test_blas_thread_determinism.py::test_start_fp_independent_of_blas_thread_count(strict xfail) -> test_blas_thread_count_does_not_change_run 로 대체(design 40 §2.4.13 (5) '승인 불필요: strict xfail 제거·범위 확장(기준 강화)'), 단언 수 감소 함수 0. 바뀐 단언 = 보고서 키 13 -> 14(강화), polish_l_cells 호출 형식. 기준선 픽스처 u17_1b_s0_baseline.json 값 diff 0(_source 문자열만, J-12 승인 불필요) -- B-1 재측정: test_s0_layer_9circuits 병합본 전부 통과. test 쪽 스레드 고정 3곳 삭제는 card 1.4.3 지시대로. [재판정] 6b9e304 diff(3파일 +10 -7): conftest.py 주석 1줄, nfr4_run_dump.py threads_env 를 main() 첫머리(엔진 import 전)에서 읽어 progress.log·기록에 같은 값을 씀(기록 fields·비교기 판정 경로 불변), test_blas_thread_determinism.py docstring 3줄 -- 단언·허용 폭·test 함수 변경 0, 약화 0."
+      "basis": "gate weakening_diff.py(범위 assets/tests) e8b619f..a34054d PASS 발견 0. gmid_engine/tests AST(scripts/removed_tests_n.py): 지운 test 함수 1개 = test_blas_thread_determinism.py::test_start_fp_independent_of_blas_thread_count(strict xfail) -> test_blas_thread_count_does_not_change_run 로 대체(design 40 §2.4.13 (5) '승인 불필요: strict xfail 제거·범위 확장(기준 강화)'), 단언 수 감소 함수 0. 바뀐 단언 = 보고서 키 13 -> 14(강화), polish_l_cells 호출 형식. 기준선 픽스처 u17_1b_s0_baseline.json 값 diff 0(_source 문자열만, J-12 승인 불필요) -- B-1 재측정: test_s0_layer_9circuits 병합본 전부 통과. test 쪽 스레드 고정 3곳 삭제는 card 1.4.3 지시대로. [재판정] 6b9e304 diff(3파일 +10 -7): conftest.py 주석 1줄, nfr4_run_dump.py threads_env 를 main() 첫머리(엔진 import 전)에서 읽어 progress.log·기록에 같은 값을 씀(기록 fields·비교기 판정 경로 불변), test_blas_thread_determinism.py docstring 3줄 -- 단언·허용 폭·test 함수 변경 0, 약화 0. [r1] gate weakening_diff 2bdc926..ebd7b3c PASS 발견 0. 4091436 = test_blas_env.py 새 test 1개(+17, 매개변수 2) 추가만 -- 지운 단언·허용 폭 변경 0. 69c75dd 는 test 파일 0개."
     },
     "V6": {
       "verdict": "PASS",
@@ -142,7 +146,7 @@
     },
     "V7": {
       "verdict": "PASS",
-      "basis": "배선: gmid_engine/__init__.py 가 import 때 pin_blas_threads() 1회(A-2: 바깥 1·8·18·미지정·미지정+numpy 선행 다섯 하위 프로세스 모두 ctypes 조회 1·1, os.environ '1', fp_of(blas_environment()) 한 값 65cd4a29…). 재확인 (a) stage_a.py:200(보고서 env_fp, 정상·정지 4곳), (b) search_context.py:204, (c) find_front.py:78(runs 줄 env_fp :153), (d) layer0_center.py:657, (e) slsqp_outer.py:104 -- N-T5 가 다섯 지점 각각 RuntimeError 확인(병합본 통과). L-b: l_bin_search 반환 (수락, 사유) -> eps_sweep.py lb_stops -> find_front notes l_search 한 줄(runs 줄·SearchFront.notes). 끌어올림: lift_exponent 가 lift = u 를 대체(옛 줄 0), centre_start·layer0_start 경로에서 쓰임(N-T20·N-T23 통과). 서명·칸 불변(A-8): build_search_context·find_front·solve_eps·layer0_start·centre_start·run_stage_a·run_stage_b·evaluate·fd_jacobian·S3Archive·polish_l_cells·sweep_front 서명, StageAResult·SearchContext·SearchFront 칸 head = base. 관찰 지점 계약 넷(loaded_blas_modules 모듈 전역 호출, layer0_center.scipy_minimize, find_front 모듈 속성 layer0_start·sweep_front, SearchContext.cache) 유지 -- test·하네스가 그 지점으로 동작."
+      "basis": "배선: gmid_engine/__init__.py 가 import 때 pin_blas_threads() 1회(A-2: 바깥 1·8·18·미지정·미지정+numpy 선행 다섯 하위 프로세스 모두 ctypes 조회 1·1, os.environ '1', fp_of(blas_environment()) 한 값 65cd4a29…). 재확인 (a) stage_a.py:200(보고서 env_fp, 정상·정지 4곳), (b) search_context.py:204, (c) find_front.py:78(runs 줄 env_fp :153), (d) layer0_center.py:657, (e) slsqp_outer.py:104 -- N-T5 가 다섯 지점 각각 RuntimeError 확인(병합본 통과). L-b: l_bin_search 반환 (수락, 사유) -> eps_sweep.py lb_stops -> find_front notes l_search 한 줄(runs 줄·SearchFront.notes). 끌어올림: lift_exponent 가 lift = u 를 대체(옛 줄 0), centre_start·layer0_start 경로에서 쓰임(N-T20·N-T23 통과). 서명·칸 불변(A-8): build_search_context·find_front·solve_eps·layer0_start·centre_start·run_stage_a·run_stage_b·evaluate·fd_jacobian·S3Archive·polish_l_cells·sweep_front 서명, StageAResult·SearchContext·SearchFront 칸 head = base. 관찰 지점 계약 넷(loaded_blas_modules 모듈 전역 호출, layer0_center.scipy_minimize, find_front 모듈 속성 layer0_start·sweep_front, SearchContext.cache) 유지 -- test·하네스가 그 지점으로 동작. [r1] 69c75dd(blas_env.py +5 -6, CONTRACT.md 2줄): 소유 패키지 {numpy, scipy} 확인을 pin_blas_threads 에서 blas_environment() 안으로 옮김(검사 한 곳) -> 재확인 (a)~(e) 모두 같은 거부(N-6). 서명·BlasEnvironment 칸·반환값·loaded_blas_modules 교체 지점 불변, 새 상태 0. code worktree reflog 'reset: moving to HEAD' 11:18:55(= git stash) 뒤 커밋 11:20:04, stash 목록 비어 있음·작업 트리 깨끗 -> 69c75dd 내용 = 보고 diff(위 두 파일만)."
     },
     "V8": {
       "verdict": "N/A",
@@ -153,8 +157,8 @@
       "basis": "도입 U17: 물리 불변식 대신 값 불변·판정식 -- S0 수준 기준선(u17_1b_s0_baseline.json) 대조 test 병합본 통과, 판정식 c ≥ 0(hard_ok) 그대로(N-T23 hard_ok 일치 단언 통과), BP1 경계 행 c > 0: 병합본 N-T23 통과(base 스레드 1 에서 folded w_min:M8 c = -4.68e-10)."
     },
     "V10": {
-      "verdict": "FAIL",
-      "basis": "A-5 사용자 결정 대기 -- 범위 밖 3회로(nmcnr_amplifier 4874칸·pushpull_follower_buffer 2890칸·sf_pushpull_output_opamp 858칸, 원인 BP1 √ε 여유, 대조군으로 증명, front·pending·failed_eps·hard_ok·stop·kernel_calls 불변, nmcnr block_recomputes_same_input 64 -> 80)가 사용자 결정 전이라 통과로 세지 않는다(오케스트레이터 지시: 이 항목은 결정 대기로 표시, 승인되면 아래 근거로 PASS). 나머지(측정 재사용 -- 엔진 코드 a34054d = 2bdc926, non-test diff 0줄): [A-4 PASS] 45 프로세스, R1 대 R2~R5 36 비교 PASS·판정 불능 0·독립 비트 비교 차이 0·env_fp 한 값 65cd4a29…·코드 지문 한 값 0152a1c9…(6b9e304 의 하네스 변경은 threads_env 칸만이라 기록 fields 재사용 유효, 병합본 N-T29 도 통과). [A-5 범위 안 PASS] folded_cascode (가) hard_ok False -> True 와 (라), common_gate_amplifier (나) EA:s1 best seq 34 -> 23·stop converged -> slsqp_8 와 (라); 다른 4회로 변화 0. [A-1 PASS, J-O3 재확인] 2bdc926 git grep: lift = u 0, OPENBLAS_NUM_THREADS(conftest·test_converge·test_no_s0_files_written) 0·0·0, _BLAS_THREAD_ENV 0, determinism xfail 0, _REL 0, blas_env.py 밖 설정 기호(.py) 0. [A-2·A-8·A-9 PASS] V6·V7. [A-10 보고] import 0.054 -> 0.394 s, 재확인 4.6 ms, 사슬 합 310 / 295 s."
+      "verdict": "PASS",
+      "basis": "[A-5] 사용자 결정 N-5(2026-10-16, _drafts/user_decisions.md): 범위 밖 3회로(nmcnr_amplifier 4874칸·pushpull_follower_buffer 2890칸·sf_pushpull_output_opamp 858칸, 원인 BP1 √ε 여유, 대조군 증명) 수용 -- nmcnr block_recomputes_same_input 64 -> 80 은 XRUN-F1 card B 에서 해소로 기록. 범위 안: folded_cascode (가)+(라), common_gate_amplifier (나)+(라), 다른 4회로 변화 0. [재사용 판단 확인] 69c75dd 는 blas_environment() 의 거부 조건만 더하고(정상 환경에서 numpy·scipy 소유 항목이 있어 통과) 반환값·수치 경로를 바꾸지 않는다: ebd7b3c A-2 다섯 설정 env_fp 한 값 65cd4a29…(이전과 같음), 조회 1·1 -> A-4(36/36 PASS·판정 불능 0)·A-5 측정 재사용 유효(엔진 코드 지문은 코드 변경으로 바뀌나 판정 대상 아님). [A-1 PASS] 2bdc926 grep 1.4.5 전부 0, r1 은 해당 파일 무변경. [A-2·A-8·A-9 PASS] V6·V7. [A-10 보고] import 0.394 s, 재확인 4.6 ms, 사슬 합 310 / 295 s."
     }
   },
   "reproduced_numbers": [
@@ -185,23 +189,23 @@
     },
     {
       "name": "head_passed",
-      "value": 10087,
-      "command": "python -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow (head clone) [재판정 2bdc926, head2]"
+      "value": 10089,
+      "command": "python -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow (head clone) [r1 ebd7b3c, head3]"
     },
     {
       "name": "head_failed",
       "value": 0,
-      "command": "same [재판정 2bdc926, head2]"
+      "command": "same [r1 ebd7b3c, head3]"
     },
     {
       "name": "head_xfailed",
       "value": 2,
-      "command": "same [재판정 2bdc926, head2]"
+      "command": "same [r1 ebd7b3c, head3]"
     },
     {
       "name": "head_deselected",
       "value": 1,
-      "command": "same [재판정 2bdc926, head2]"
+      "command": "same [r1 ebd7b3c, head3]"
     },
     {
       "name": "collected_head",
@@ -220,8 +224,8 @@
     },
     {
       "name": "red_ids_green_at_head",
-      "value": 52,
-      "command": "results/green_of_red.json [재판정 2bdc926, head2]"
+      "value": 54,
+      "command": "results/green_of_red.json [r1 ebd7b3c, head3]"
     },
     {
       "name": "rule_h_violations_head",
@@ -327,14 +331,29 @@
       "name": "determinism_file_passed_2bdc926",
       "value": 10,
       "command": "python -m pytest -q gmid_engine/tests/integration/test_blas_thread_determinism.py --run-slow (head2)"
+    },
+    {
+      "name": "r1_red_failed",
+      "value": 2,
+      "command": "pytest gmid_engine/tests/core/test_blas_env.py (red_r1 = 2bdc926 + 4091436 test)"
+    },
+    {
+      "name": "r1_test_blas_env_passed_head",
+      "value": 22,
+      "command": "pytest gmid_engine/tests/core/test_blas_env.py (head3 ebd7b3c)"
+    },
+    {
+      "name": "r1_env_fp_distinct_5_settings",
+      "value": 1,
+      "command": "scripts/a2_driver.py (head3)"
     }
   ],
   "approvals": [],
   "auditor_run": {
-    "time": "2026-10-15T23:45:00+09:00",
-    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/nfr4c2-audit (격리 복제본 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/{red,head,base,head_nobp1,head2})",
+    "time": "2026-10-16T12:30:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/nfr4c2-audit (격리 복제본 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_nfr4c2_audit/{red,head,base,head_nobp1,head2,red_r1,head3})",
     "commands": [
-      "V1: cd <head2 clone 2bdc926>/skills/analog-gmid-design && (unset OPENBLAS_NUM_THREADS OMP_NUM_THREADS; PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow -rfEX --durations=25 --junitxml=results/rejudge/suite.xml)",
+      "V1: cd <head3 clone ebd7b3c>/skills/analog-gmid-design && (unset OPENBLAS_NUM_THREADS OMP_NUM_THREADS; PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow -rfEX --durations=25 --junitxml=results/r1/suite/suite.xml)",
       "격리: for n in red head base head_nobp1: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/nfr4c2-audit _scratch_nfr4c2_audit/$n && git -C $n remote remove origin; red=64c77c1, head=a34054d, base=e8b619f, head_nobp1=a34054d + layer0_center.py:258 'lift = u ...'(as-built 대조군, 커밋 없음)",
       "재판정 격리: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/nfr4c2-audit _scratch_nfr4c2_audit/head2 && git -C head2 remote remove origin && git -C head2 checkout --detach 2bdc926",
       "red: cd <red>/skills/analog-gmid-design && PYTHONDONTWRITEBYTECODE=1 python -m pytest <13 test files of 64c77c1> -q -p no:cacheprovider -rfE --tb=short --continue-on-collection-errors --run-slow --junitxml=results/red/red.xml (OPENBLAS_NUM_THREADS unset)",
@@ -353,7 +372,10 @@
       "graph 정본: python scripts/ast_stores.py <scratch> ast_stores.json base",
       "재판정: python -m pytest -q gmid_engine/tests/integration/test_blas_thread_determinism.py -p no:cacheprovider --run-slow (head2, suite 전에 순차)",
       "재판정 A-1: git -C head2 grep -n -F <이름> HEAD -- <범위> (1.4.5 항목)",
-      "이전 판정(a34054d, 기록 0305b8c): 같은 suite 명령을 head 복제본에서 -> 10 failed / 10077 passed"
+      "이전 판정(a34054d, 기록 0305b8c): 같은 suite 명령을 head 복제본에서 -> 10 failed / 10077 passed",
+      "r1 격리: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/nfr4c2-audit _scratch_nfr4c2_audit/{red_r1,head3}, origin 제거; red_r1 = checkout --detach 2bdc926 + 'git diff --binary 6b9e304 4091436 | git apply --index'; head3 = checkout --detach ebd7b3c",
+      "r1 red: pytest gmid_engine/tests/core/test_blas_env.py --junitxml=results/r1/red.xml (red_r1); red hash: PYTHONPATH=<gate cache> python -P scripts/red_hashes.py",
+      "r1 V5: python <gate cache>/weakening_diff.py --root head3 --base 2bdc926 --head ebd7b3c; git show 69c75dd / 4091436; git -C nfr4c2-code reflog·stash list"
     ]
   }
 }
