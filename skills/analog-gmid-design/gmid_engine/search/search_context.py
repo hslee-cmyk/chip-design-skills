@@ -20,13 +20,12 @@
   requests, kernel_calls, hits, fail_hits, outside_domain, recompute_same_key.
 * 예산: `eval_budget`(커널 평가 수 E_B, 선언 또는 find_front 가 한 번 유도), `deadline`(벽시계 바깥 정지).
 """
-import copy
 import dataclasses
 
 from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 from gmid_engine.core import PdkDecl, blas_environment, fp_of
 from gmid_engine.graph import ELEMENT_MOS, S1_WRITERS, S1V_KEY
-from gmid_engine.lut import require_lut_data, sweep_memo
+from gmid_engine.lut import LutMemo, require_lut_data
 from gmid_engine.metrics import (NoiseAnalysis, junction_field, metric_registry, metric_structure, mismatch_field, model_error_field)
 from gmid_engine.sizing import KERNEL_KEY, PLAN_WRITERS, LutAccess
 
@@ -34,7 +33,6 @@ from .archive import S3Archive
 from .area_decl import passive_area_decl
 from .constraint_classes import constraint_classes
 from .layer0_center import centre_start
-from .kernel import evaluate
 from .noise_decl import noise_decl
 from .s0_fields import S0_WRITERS, START_KEY
 from .search_domain import search_domain
@@ -132,21 +130,13 @@ class SearchContext:
 
 
 def _wire_sweep_memo(ctx):
-    """[설계 40 §7.3, D-PF1] 평가 sweep LUT memo 를 만들어 `ctx.dc` 의 것으로 바꾼다. 상한 = (n_θ + 1)·U_eval, U_eval = layer0 첫 점의
-    첫 평가가 센 서로 다른 키 수(`sweep_memo`). 호출자가 준 memo 는 S0 준비(domain 등) 조회에만 쓰이고 상한 상수는 탐색에 영향이 없다.
-    첫 평가는 임시 컨텍스트(archive 없음·빈 캐시)에서 돈다 -- 본 컨텍스트의 캐시·계수·S3 기록은 건드리지 않는다."""
-    variables, theta, cells, _centre_u = centre_start(ctx)
+    """[설계 40 §2.4.6 '첫 평가 버림 제거'] 평가 sweep LUT memo 를 **계수 상태**로 만들어 `ctx.dc` 의 것으로 바꾼다. 상한 (n_θ + 1)·U_eval 은 실행의 첫 커널 평가가
+    끝날 때 `evaluate` 가 고정한다(`LutMemo.open_count`·`fix_bound`) -- 여기서는 커널 평가를 하지 않는다(임시 컨텍스트·버리는 평가 없음).
+    n_θ = `centre_start` 변수 수(계수 memo 를 넣기 전에 재므로 그 사이 LUT 조회는 호출자가 준 memo 로 간다). 호출자가 준 memo 는 S0 준비(domain 등) 조회에만 쓰이고
+    상한 상수는 탐색에 영향이 없다."""
+    n_theta = len(centre_start(ctx)[0])
     old = ctx.dc.lut
-
-    def first_eval(probe):
-        tmp = copy.copy(ctx)
-        tmp.dc = dataclasses.replace(ctx.dc, lut=LutAccess(probe, old.w_keys))
-        tmp.cache, tmp.computed_keys = {}, set()
-        tmp.counters = dict(ctx.counters)
-        tmp.eval_times, tmp.archive, tmp.eval_budget = [], None, ctx.eval_budget
-        evaluate(tmp, theta, cells)
-
-    memo = sweep_memo(old.memo.lut, len(variables), first_eval, table_cache=old.memo.table_cache)
+    memo = LutMemo.counting(old.memo.lut, n_theta, table_cache=old.memo.table_cache)
     ctx.dc = dataclasses.replace(ctx.dc, lut=LutAccess(memo, old.w_keys))
 
 

@@ -61,6 +61,7 @@
 | 다른 실행의 S3 front 항목 조회(출력 조회 전용) | `gmid_engine.search.read_front_entries(run_dir)` (`search/front_entries.py`, 설계 40 §2.4.3 U-90) | 엔진 계산 경로는 부르지 않는다(구조 규칙 K). 스냅샷 파일 읽기는 `front_query._read_snapshot_file`(비공개)로 `node_across_front` 만 쓴다. S3Archive 의 읽기 메서드 셋과 S0 디스크 스냅샷 코덱·키 자리·타입 등록부는 삭제했다(실행 사이 재사용 제거, NFR-2·U-89) -- **새로 만들지 않는다** |
 | BLAS 스레드 고정·확인·실행 환경 값(`env_fp` 의 출처) | `gmid_engine.core.pin_blas_threads`(import 때 1회 고정+확인)·`gmid_engine.core.blas_environment`(무상태 확인, 재확인 지점 (a)~(e)가 부름, 지문 `fp_of(반환값)` 이 단계 A 보고서·S3 runs 줄 `env_fp`) (`core/blas_env.py`, 설계 40 §2.4.13 (1)) | 엔진 안에서 스레드 수를 따로 설정·조회하는 곳은 없다(`threadpoolctl` 미사용). test 의 `OPENBLAS_NUM_THREADS` 고정은 이 변경에서 거둔다 | NFR-4 card 2 |
 | 층 0 끌어올림(경계 배치점 닫힌 식, BP1) | `layer0_center._current_centre` 안 `lift_exponent`(e^s = max_{A_m>0}(1 + √ε − F_m)/A_m, √ε = `math.sqrt(sys.float_info.epsilon)` 정의식) | 옛 `lift = u`(풀이기 목적값 u 로 올림)는 삭제 | NFR-4 card 2 |
+| 탐색 좌표 x ↔ θ 값(ln 좌표 원값 보존) | `gmid_engine.search.theta_coords.ThetaCoords`(`start(variables, theta)`·`to_theta(x)`, clip 없음 -- 외층·층 0 은 호출부가 자기 상자로 자름, 감도 게이트는 안 자름). 쓰는 곳 = 외층 `solve_eps`·층 0 `_maxmin`·감도 게이트 `run_sensitivity_gate` (설계 40 §2.4.14 (2)) | 사본 `slsqp_outer._layout`의 `x0`·`exact`와 `to_theta`, `layer0_center._maxmin.to_theta`·`_coord`, `gate_run.to_theta` 는 삭제 | XRUN-F1 card A |
 
 ## 3. R0 -- 수정 없이 그대로 재사용 (새로 만들면 중복)
 
@@ -632,7 +633,7 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | mismatch 식 l·w 단위(µm) | PDK 양 `mismatch_slope_geometry_unit_m`(= all.spice `.option scale`) | 쌍 MC 확인: `assets/sky130_pair_mc.py`, 기록 `docs/03-analysis/gain-budget-gmid-sizing.u3-lut-pdk-record.md` |
 | 1/f 지수 EF | PDK 양 `noise_ef_nmos`·`noise_ef_pmos`(모델 카드 `ef`) -> `LutSpec.noise_ef` | 상수를 코드에 쓰지 않는다 |
 | poly 저항 시트 R□·최소 폭·접촉 머리 면적 | PDK 양 `poly_res_sheet_ohm_per_sq`·`poly_res_min_w_m`·`poly_res_head_area_m2`(`resistor_types` 규칙: Ω당 면적이 가장 작은 종류) | `search.passive_area_decl` 이 저항 단위 면적 W_min²/R□ 와 머리를 `PassiveAreaDecl` 로 낸다 -> `metrics.area_search`. `passive_area_undeclared` 는 PDK 양이 없을 때만 |
-| LUT memo 상한 배선 | `lut.sweep_memo`(첫 평가 키 수 -> `LutMemo.from_sweep`) | 배선됨(2026-10-09): `search.search_context._wire_sweep_memo`(첫 평가 = `layer0_center.centre_start` 점), pipeline(U16)은 아직 memo 를 만들지 않음. 첫 평가가 안 쓴 영역은 상한 0 = memo 없음 |
+| LUT memo 상한 배선 | `lut.LutMemo.counting`·`open_count`·`fix_bound`·`bound_state`(+ `core.BoundedLRU.adopt`) | 배선됨(XRUN-F1 card A): `search.search_context._wire_sweep_memo`가 계수 상태 memo 를 설치(커널 평가 0, n_θ = `layer0_center.centre_start` 변수 수), `search.kernel.evaluate`가 실행의 첫 커널 평가에서 창을 열고 닫아 상한 (n_θ + 1)·U_eval 을 고정, `find_front`가 `perf.lut_memo_bound` 로 보고. 옛 `lut.sweep_memo`·`LutMemo.from_sweep`(첫 평가를 따로 돌려 버림)은 삭제. pipeline(U16)은 아직 memo 를 만들지 않음. 창 안에서 안 쓴 영역은 상한 0 = memo 없음 |
 | 잡음·mismatch 특성화(ngspice) | `assets/sky130_lut_sweep.py noise`·`mismatch` 부명령 | 산출은 새 버전 파일 `..._noise_r1.npz`·`..._mismatch_r1.npz`(기존 r2 불변). 다른 생성기를 만들지 않는다 |
 | mismatch 단위·합성 확인 | `assets/sky130_pair_mc.py` | 오라클 쪽 도구(엔진 비의존) |
 

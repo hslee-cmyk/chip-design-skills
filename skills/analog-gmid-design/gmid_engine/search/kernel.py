@@ -113,6 +113,9 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
     sctx.computed_keys.add(key)
     sctx.counters["kernel_calls"] += 1
     sctx.seq += 1
+    memo = dc.lut.memo
+    if memo.bound_state == "counting":
+        memo.open_count()        # 그 컨텍스트의 첫 커널 평가 -- LUT memo 상한을 재는 창 열기(설계 40 §2.4.6). 생성자 memo("fixed")는 부르지 않는다
     start = time.perf_counter()
     base = None if parent is None else parent.evaluation
     evaluation, failure, objectives, rows, status = None, None, None, (), STATUS_FAILED
@@ -158,6 +161,8 @@ def evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None):
             sctx.eval_budget_source = "derived_once:floor(B/median_t_eval)@n_evals=" + str(len(sctx.eval_times))
     result = EvalResult(key, pairs, status, evaluation, objectives, rows, cone, failure, sctx.seq, unmeasured,
                         () if bundle is None else bundle.warnings)
+    if memo.bound_state == "window_open":
+        memo.fix_bound()         # 결과를 만든 직후(성공·후보 실패 모두) 창 닫기 + 상한 (n_θ + 1)·U_eval 고정
     sctx.cache[key] = result
     _record(sctx, result, origin)
     return result

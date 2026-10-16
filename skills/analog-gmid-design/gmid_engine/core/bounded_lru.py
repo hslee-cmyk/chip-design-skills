@@ -59,12 +59,24 @@ class BoundedLRU:
             self._recomputes_after_eviction += 1
             self._evicted.discard(memo_key)
         value = compute()
+        self._store(memo_key, value)
+        return value
+
+    def adopt(self, key, value):
+        """이미 계산한 `value` 를 **원 key** 로 넣는다(`lookup` 과 같은 `canonical_key` 를 안에서 적용 -- 부르는 쪽이 정규화한 키를 넘기지 않는다).
+        `hits`·`misses` 를 바꾸지 않는다(miss = 실제 계산이므로 이미 계산한 항목을 다시 세지 않는다). 상한을 넘으면 `lookup` 과 같은 규칙으로
+        가장 오래된 것을 퇴출하고 `evictions` 에 세며 퇴출 기록에 남긴다. 쓰는 곳: `LutMemo.fix_bound`(계수 상태 항목을 상한 LRU 로 옮김)."""
+        memo_key = canonical_key(key)
+        self._evicted.discard(memo_key)
+        self._store(memo_key, value)
+
+    def _store(self, memo_key, value):
         self._entries[memo_key] = value
+        self._entries.move_to_end(memo_key)
         if len(self._entries) > self._capacity:
             evicted_key, _ = self._entries.popitem(last=False)
             self._evicted.add(evicted_key)
             self._evictions += 1
-        return value
 
     def stats(self):
         """현재 계수의 LruStats."""
