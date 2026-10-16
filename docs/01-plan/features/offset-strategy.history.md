@@ -72,6 +72,16 @@ v0.2 때 받지 못한 비차단 지적 원문을 받아 반영했다(N-8·N-9·
 | N-20 | 'TR-1 앞/뒤' 문단이 표 행 사이에 끼어 표가 깨짐 | 표 밖으로 옮김 |
 | N-21 | F-13 칸 목록에 `block_residual`·`code_fp` 누락, history 'v0.2 검증 N-5' | 추가(`kernel.py:85-87`, `archive.py:53`), 'v0.1 검증 N-5'로 정정 |
 
+### 2026-10-16 사용자 결정 S-7·S-8·S-9와 design v0.1 차이 → v0.5
+
+- S-7 원문(`wt/_drafts/user_decisions.md`): "계획과 다른 부분이 생기면 계획부터 수정해서 bkit절차대로 진행해." 그래서 offset-strategy design v0.1(`ostrat-design` `aef46c7`)이 계획과 다르게 간 점(design §16.2 PD-1~PD-4)과 design 독립 검증(82점) 지적(B-1 → W-1 요구, B-2 → PD-5, N-5 → PD-9, N-8 → PD-7, N-9 → T-30 연결, N-10 → PD-6, N-11 → PD-8)을 계획 결정 항목으로 정리했다. 새 worktree `wt/ostrat-plan-r1`(master `d783efe`, v0.4 병합본).
+- S-8 원문: "PD1~PD8은 권고대로". PD-1~PD-8을 권고대로 승인하고 해당 자리를 고쳤다.
+- S-9 원문: "W-1,F-1,T-30을 권고대로 진행". W-1 (i), F-1(fixture = current_reuse_telescopic_ota 사본, {matching, k = 3, offset_in_max_v = 3 × 3.3 mV}, 3.3 mV는 2026-10-08 Q3 (2) 유래), T-30 연결(루프는 offset-trim 계획 소유, 이 계획은 연결점만)을 반영했다. 이 계획이 더한 DS-T1(matching 루프를 앞당길지)은 권고대로(앞당기지 않음) 닫았다.
+- 남은 결정: PD-9(사용자가 권고 사유 설명 요청).
+- PD-1로 대체된 v0.4 N3.10 첫 행 원문: "변형마다 spec 객체의 `constraints`를 바꾼 사본을 만들어 단계 A·`build_search_context`에 넘긴다. … 기존 생성자 `SizingSpecDoc.from_sections`가 섹션 매핑에서 `section_fps`·`spec_fp`를 계산하므로(`spec_model.py:293-302`) 이것을 재사용하는 것이 기본이다. … | pipeline(+ 기존 authoring 생성자 재사용). 핵심 층 무변경". 대체 이유: design 검증 확인 -- spec을 extras로 받는 `achievability`(`stage_b.py:168`)가 사본 방식이면 `spec_fp`가 달라져 변형마다 다시 계산된다.
+- v0.4 N3.6 단계 A 행 원문 "S1v는 제약 tuple이 extras라 변형마다 입력이 다르면 다시 계산된다(F-3). 이 몫을 받아들일지 투영을 좁힐지는 DS-2"는 PD-1·PD-3으로 바뀌었다.
+- 확인한 코드(master `d783efe`): `E/authoring/spec_model.py:302`(`fp_of(fps)`), `:306-321`(`SECTION_GROUPS`), `E/tests/integration/nfr4_run_dump.py:387`(`run_stage_b(..., diagnostic=True)`), `:401-421`(`sctx.domain.w_min_m`·`sctx.dc.base`·`sctx.cache` 읽기), `E/pipeline/stage_b.py:129`(보고서 `diagnostic` 칸), `E/pipeline/__init__.py:1-4`(U16 자리만). offset-trim 계획 v0.5(`trim-plan-r1`) N3.8·142행(해석 X-21, 정본 경계)도 읽었다.
+
 ## H2. 측정 근거
 
 ### M1 (2026-10-16, 읽기 확인, base `067614c`, worktree `wt/ostrat-plan`)
@@ -97,6 +107,7 @@ v0.2 때 받지 못한 비차단 지적 원문을 받아 반영했다(N-8·N-9·
 
 | 버전 | 날짜 | 변경 |
 |---|---|---|
+| 0.5 | 2026-10-16 | 사용자 결정 S-7 절차로 design v0.1 차이 정리(N11 PD-1~PD-9·W-1·F-1), T-29~T-33 연결점(N3.11). S-8로 PD-1~PD-8, S-9로 W-1·F-1·T-30 연결 승인 반영. 남은 결정 PD-9. 독립 검증 전 |
 | 0.4 | 2026-10-16 | 재검증 86점 차단 B-7(국면 규칙·승인 로더·낡은 승인 정지를 OS-5로, OS-2 범위 축소)과 비차단 N-11·N-14~N-21 반영: OS-1·OS-2 합침, DS-U9 기본안 삭제, NFR-S5 범위, `from_sections` 재사용, XS-14, 표 정리. 사용자 승인 전 |
 | 0.3 | 2026-10-16 | 비차단 N-1~N-7·N-10·N-12·N-13 반영: F-3·F-4·F-5 근거 보강, F-3a 신설, DS-1 표를 card B 뒤 구조로, XS-12·XS-13(확인 요청), DS-U9, DO-9, 완료 조건 2 범위, G-S1 단위·view 출처, card 시점. 재검증·사용자 승인 전 |
 | 0.2 | 2026-10-16 | 독립 검증 72점 차단 B-1~B-6 반영: DS-1·DS-2 기본안 삭제, DS-1 (다) 추가와 완료 조건 3 표, 층 분류표 N3.10, F-12·F-13, `offset_trim` 단독 거부, XS-8~XS-11, DS-U6~DS-U8, M2 측정 칸 축소·base 고정, card 재구성(OS-5). 비차단은 N-8·N-9·N-11만 반영. 재검증·사용자 승인 전 |
