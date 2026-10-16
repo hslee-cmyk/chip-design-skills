@@ -16,6 +16,11 @@ from .conftest import (PENDING, build_case, expected_objectives, circuit_c, circ
                        with_passive_value)
 
 
+def _run(case):
+    """[XRUN-F1 card B C4·C6] 그 case 의 실행(커널 컨텍스트의 두 객체)."""
+    return dict(donors=case.dc.donors, counters=case.dc.counters)
+
+
 def _check(o, e, passive_area=0.0):
     assert isinstance(o, Objectives)
     assert o.power_w == pytest.approx(e["power"], rel=1e-12)
@@ -34,7 +39,7 @@ def _check(o, e, passive_area=0.0):
 def test_circuit_c_two_rails(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     ev = size_and_seal(case.dc, theta_r4c(i2=2e-5, y=0.6))
-    snap = metrics_dc(with_passive_value(ev.snapshot, ()), ())
+    snap = metrics_dc(with_passive_value(ev.snapshot, ()), (), **_run(case))
     e = expected_objectives(snap)
     o = objective_values(snap)
     _check(o, e)
@@ -49,7 +54,7 @@ def test_resistor_circuit_bp_uses_only_mos_on_rails(tmp_path, lut_sealed):
                       rbounds=(1e3, 1e6))
     th = theta_p(case.dc)
     ev = size_and_seal(case.dc, th)
-    snap = metrics_dc(with_passive_value(ev.snapshot, (("R1", th[("resistance", "R1")]),)), ())
+    snap = metrics_dc(with_passive_value(ev.snapshot, (("R1", th[("resistance", "R1")]),)), (), **_run(case))
     o = objective_values(snap)
     _check(o, expected_objectives(snap))
     assert o.power_resolution_w is not None and o.power_resolution_w > 0
@@ -61,7 +66,7 @@ def test_zero_volt_rail_only_gives_none(tmp_path, lut_sealed):
                       rbounds=(1e3, 1e6))
     th = theta_n(case.dc)
     ev = size_and_seal(case.dc, th)
-    snap = metrics_dc(with_passive_value(ev.snapshot, (("R1", th[("resistance", "R1")]),)), ())
+    snap = metrics_dc(with_passive_value(ev.snapshot, (("R1", th[("resistance", "R1")]),)), (), **_run(case))
     o = objective_values(snap)
     assert o.power_resolution_w is None
     assert o.power_w == pytest.approx(expected_objectives(snap)["power"], rel=1e-12)
@@ -70,14 +75,14 @@ def test_zero_volt_rail_only_gives_none(tmp_path, lut_sealed):
 def test_passive_without_value_is_undetermined(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(with_cap=True), lut_sealed, elements=(("CL", "capacitor", PENDING),))
     ev = size_and_seal(case.dc, theta_r4c())
-    o = objective_values(metrics_dc(with_passive_value(ev.snapshot, ()), ()))
+    o = objective_values(metrics_dc(with_passive_value(ev.snapshot, ()), (), **_run(case)))
     assert o.passive_value_undetermined == ("CL",)
 
 
 def test_passive_with_value_but_no_unit_area_is_undeclared(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(with_cap=True), lut_sealed, elements=(("CL", "capacitor", 1e-12),))
     ev = size_and_seal(case.dc, theta_r4c())
-    snap = metrics_dc(with_passive_value(ev.snapshot, (("CL", 1e-12),)), ())
+    snap = metrics_dc(with_passive_value(ev.snapshot, (("CL", 1e-12),)), (), **_run(case))
     o = objective_values(snap)
     assert o.passive_area_undeclared == ("CL",)
     assert o.passive_value_undetermined == ()

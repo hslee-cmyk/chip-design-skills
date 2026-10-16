@@ -49,7 +49,9 @@ from sizing.conftest import (  # noqa: F401  (다른 test 파일이 여기서 �
     write_r4_lut,
 )
 from sizing.conftest import I0, LAM, r4_vs_term  # noqa: E402
+from sizing.conftest import COUNT_FIELDS, block_row, row_delta  # noqa: E402,F401  [XRUN-F1 card B C1] 실행 계수 행
 from metrics.conftest import spec_json, toy_junction_decls  # noqa: E402
+from metrics.conftest import fresh_run  # noqa: E402,F401  [XRUN-F1 card B C0] 새 실행 하나의 두 객체
 
 HERE = Path(__file__).resolve().parent
 SKILL_DIR = HERE.parents[2]
@@ -85,7 +87,8 @@ def domain_of(dc, settings, pdk_decl, spec_bounds=(), area_budget_m2=None, untie
     from gmid_engine.search.s0_fields import S0_WRITERS
     from gmid_engine.sizing import KERNEL_KEY
     snap = search_domain(dc.base.widen(S0_WRITERS), dc.lut, settings.resistance_bounds_ohm, settings.capacitance_bounds_f, pdk_decl,
-                         tuple(spec_bounds), area_budget_m2, tuple(untie))
+                         tuple(spec_bounds), area_budget_m2, tuple(untie),
+                         donors=dc.donors, counters=dc.counters)       # [XRUN-F1 card B C4·C6] 커널 컨텍스트의 실행
     return snap.value("graph", KERNEL_KEY, "search_domain")
 
 
@@ -96,7 +99,8 @@ def area_decl_of(dc, spec, pdk_decl):
     from gmid_engine.search.s0_fields import S0_WRITERS
     from gmid_engine.sizing import KERNEL_KEY
     loads = tuple(sorted(e.name for e in spec.element_values if e.measurement_load))
-    return passive_area_decl(dc.base.widen(S0_WRITERS), loads, pdk_decl).value("graph", KERNEL_KEY, "passive_area_decl")
+    return passive_area_decl(dc.base.widen(S0_WRITERS), loads, pdk_decl, donors=dc.donors,
+                             counters=dc.counters).value("graph", KERNEL_KEY, "passive_area_decl")
 
 
 def _decl_paths(root, grid_um=GRID_UM, minw_um=MINW_UM, with_minw=True):
@@ -408,9 +412,10 @@ def load_spec(tmp, topo_doc, elements=(), constraints=(), measurement_loads=()):
 
 
 def build_case(tmp, topo_doc, lut, constraints=(), elements=(), budget_s=600.0, eval_budget=40, rbounds=None,
-               archive_root=None, pdk=None, sources=SRC, cbounds=None, rule=None, measurement_loads=()):
+               archive_root=None, pdk=None, sources=SRC, cbounds=None, rule=None, measurement_loads=(), run=None):
     """topology·spec -> KernelContext -> SearchContext([r6] PDK 선언 + LUT 규칙 선언).
-    반환 SimpleNamespace(td, spec, dc, acc, pdk, rule, settings, sctx)."""
+    반환 SimpleNamespace(td, spec, dc, acc, pdk, rule, settings, sctx).
+    [XRUN-F1 card B C0] run = 실행 두 객체 키워드(dict) -- 없으면 새 실행 하나(거부 test 가 그 실행 계수를 보려면 넘긴다)."""
     from gmid_engine.graph import build_s1
     from gmid_engine.search import SearchSettings, build_search_context
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
@@ -419,8 +424,10 @@ def build_case(tmp, topo_doc, lut, constraints=(), elements=(), budget_s=600.0, 
     td, spec = load_spec(tmp / "case", topo_doc, elements=elements, constraints=constraints,
                          measurement_loads=measurement_loads)
     inputs = dc_inputs_from_spec(spec)
-    s1 = build_s1(td, dict(inputs.supplies_v))
-    dc = build_kernel_context(s1, inputs, acc)
+    if run is None:
+        run = fresh_run()             # [XRUN-F1 card B C0·C6] 이 case 하나 = 실행 하나(S1·커널 컨텍스트·탐색 컨텍스트가 같은 두 객체)
+    s1 = build_s1(td, dict(inputs.supplies_v), **run)
+    dc = build_kernel_context(s1, inputs, acc, **run)
     if pdk is None or rule is None:
         p2, r2 = write_decls(tmp / "pdk")
         pdk = p2 if pdk is None else pdk

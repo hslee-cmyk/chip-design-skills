@@ -93,26 +93,57 @@ def build(root, lut, decls, topo_doc, *, elements=(), constraints=(), supplies=N
     [U17 ①-b] 묶음 객체(S1v·Achievability·StartIntervals)는 없다(설계 40 v1.9.1 §2.4.2·§2.4.7): 커널 컨텍스트는 S0 수준 S1Graph(단계 B 를 돌렸으면 GB4 필드
     `graph/ach` 까지 담은 `b.s1`, 아니면 `a.s1`)에서 만들고 L 동치류는 그 S1Graph 의 `graph/s1v: l_classes` 필드에서 읽힌다. `s1v` = S1v 필드 읽기(`S1vRead`),
     `ach` = GB4 필드가 있는 S1Graph(또는 None), `start` = 출발 구간 필드 읽기(`StartRead`, 필드가 없으면 None).
-    -> SimpleNamespace(a, b, s1v, ach, spec, kctx, sctx, start, pdk, rule)."""
+    -> SimpleNamespace(a, b, s1v, ach, spec, kctx, sctx, start, pdk, rule).
+    [XRUN-F1 card B C0·C6] 이 호출 하나 = 실행 하나: 단계 A 앞 open_run() 튜플 풀기(규칙 M M-c 1:1), 단계 B·커널·탐색 컨텍스트가 같은 두 객체."""
+    a, b, settings = _stage_ab(root, lut, decls, topo_doc, elements=elements, constraints=constraints, supplies=supplies,
+                               input_dc_v=input_dc_v, node_targets=node_targets, count_budget=count_budget, with_ach=with_ach,
+                               eval_budget=eval_budget, cbounds=cbounds, rbounds=rbounds)
+    case = contexts_of(recipe_of(a, b, decls, settings, lut), kernel=dict(donors=a.donors, counters=a.counters))
+    case.a, case.b = a, b
+    return case
+
+
+def _stage_ab(root, lut, decls, topo_doc, *, elements, constraints, supplies, input_dc_v, node_targets, count_budget, with_ach,
+              eval_budget, cbounds, rbounds):
+    """단계 A -> 단계 B 를 한 실행으로 돌린다 -> (StageAResult, StageBResult|None, SearchSettings). 단계 A 앞 open_run() 튜플 풀기(규칙 M M-c)."""
     from gmid_engine.pipeline import run_stage_a, run_stage_b
-    from gmid_engine.search import SearchSettings, build_search_context
-    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from gmid_engine.search import SearchSettings, open_run
     root = Path(root)
-    pdk, rule = decls
+    pdk, _rule = decls
     tp, sp = write_case(root, topo_doc, supplies=supplies, elements=elements, constraints=constraints,
                         input_dc_v=input_dc_v, count_budget=count_budget, node_targets=node_targets)
-    a = run_stage_a(tp, sp, lut, output_dir=root / "out")      # [xrun J-1] 선언·경로 인자 없음(pdk·rule 은 단계 B·탐색 컨텍스트 몫)
+    donors, counters = open_run()
+    a = run_stage_a(tp, sp, lut, output_dir=root / "out", donors=donors, counters=counters)   # [xrun J-1] 선언·경로 인자 없음
     assert a.s1 is not None and a.s1.snapshot.record("graph", "s1v") is not None, a.report.get("stop_reasons")
     # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- build_search_context 와 같은 값(한 실행 = 한 설정, pipeline CONTRACT 5절)
     settings = SearchSettings(600.0, eval_budget, rbounds, (("front_budget_s", "u13 test fixture"),), cbounds)
     b = run_stage_b(a, memo_of(lut), pdk, output_dir=root / "out", settings=settings) if with_ach else None
+    return a, b, settings
+
+
+def recipe_of(a, b, decls, settings, lut):
+    """실행과 무관한 입력 묶음(recipe) = S0 수준 S1Graph·S1v 읽기·ach·spec·DcInputs·code_fp·pdk·rule·settings·lut -- 두 객체를 담지 않는다
+    (스냅샷·선언 값뿐, [XRUN-F1 card B 규칙 M M-d] test 사이에 둘 수 있는 것)."""
+    from gmid_engine.sizing import dc_inputs_from_spec
+    pdk, rule = decls
     s0 = b.s1 if b is not None else a.s1
     ach = s0 if b is not None and s0.snapshot.record("graph", "ach") is not None else None
-    inputs = dc_inputs_from_spec(a.spec)
-    kctx = build_kernel_context(s0, inputs, pre_layout_lut_access(memo_of(lut)))
-    sctx = build_search_context(kctx, a.spec, settings, None, pdk, rule, code_fp=a.code_fp)
-    return SimpleNamespace(a=a, b=b, s1v=read_s1v(s0), ach=ach, spec=a.spec, kctx=kctx, sctx=sctx, start=start_of(sctx), pdk=pdk,
-                           rule=rule, settings=settings, lut=lut)
+    return SimpleNamespace(s0=s0, s1v=read_s1v(s0), ach=ach, spec=a.spec, inputs=dc_inputs_from_spec(a.spec), code_fp=a.code_fp,
+                           pdk=pdk, rule=rule, settings=settings, lut=lut)
+
+
+def contexts_of(recipe, kernel=None):
+    """recipe(실행과 무관한 입력) -> 커널·탐색 컨텍스트 묶음 SimpleNamespace(s1v, ach, spec, kctx, sctx, start, pdk, rule, settings, lut).
+    kernel = 실행 두 객체 키워드(dict), 없으면 새 실행 하나(새 open_run() 쌍 -- card B C0)."""
+    from gmid_engine.search import build_search_context, open_run
+    from gmid_engine.sizing import build_kernel_context, pre_layout_lut_access
+    if kernel is None:
+        donors, counters = open_run()
+        kernel = dict(donors=donors, counters=counters)
+    kctx = build_kernel_context(recipe.s0, recipe.inputs, pre_layout_lut_access(memo_of(recipe.lut)), **kernel)
+    sctx = build_search_context(kctx, recipe.spec, recipe.settings, None, recipe.pdk, recipe.rule, code_fp=recipe.code_fp)
+    return SimpleNamespace(s1v=recipe.s1v, ach=recipe.ach, spec=recipe.spec, kctx=kctx, sctx=sctx, start=start_of(sctx),
+                           pdk=recipe.pdk, rule=recipe.rule, settings=recipe.settings, lut=recipe.lut)
 
 
 def read_s1v(graph):
@@ -188,7 +219,7 @@ def rows_by_name(start):
 # ---------------------------------------------------------------- 프로세스 캐시 (입력 재사용, 메모리·시간 한계)
 
 _TOY = {}
-_TOY_CASES = {}
+_TOY_RECIPES = {}                     # [XRUN-F1 card B 규칙 M M-d] 실행과 무관한 입력(recipe)만 -- 커널·탐색 컨텍스트(두 객체)는 부를 때마다 새로
 _TOY_CASE_CAP = 24
 
 
@@ -204,19 +235,21 @@ def toy_env(cap_scale=1.0):
 
 
 def toy_case(topo_doc, *, cap_scale=1.0, elements=(), constraints=(), fresh=False, **kw):
-    """toy 회로 한 건(같은 입력은 한 번만 만든다; fresh=True 면 새로 만든다 -- 결정론 test 용)."""
+    """toy 회로 한 건(단계 A·B 는 같은 입력에 한 번만; fresh=True 면 새로 -- 결정론 test 용).
+    [XRUN-F1 card B 규칙 M M-d] 프로세스 캐시는 실행과 무관한 입력(recipe -- S0 수준 S1Graph·spec 등)뿐이고, 커널·탐색 컨텍스트는 부를 때마다
+    새 실행(새 open_run() 쌍)으로 만든다(실행의 두 객체를 test 사이에 보관하지 않는다)."""
     key = (cap_scale, json.dumps(topo_doc, sort_keys=True), tuple(elements), tuple(constraints),
            tuple(sorted((k, repr(v)) for k, v in kw.items())))
-    if not fresh and key in _TOY_CASES:
-        return _TOY_CASES[key]
+    if not fresh and key in _TOY_RECIPES:
+        return contexts_of(_TOY_RECIPES[key])
     env = toy_env(cap_scale)
     env.n += 1
     case = build(env.root / ("c%03d" % env.n), env.lut, env.decls, topo_doc, elements=elements, constraints=constraints, **kw)
     if not fresh:
-        if len(_TOY_CASES) >= _TOY_CASE_CAP:
-            _TOY_CASES.pop(next(iter(_TOY_CASES)))
-        _TOY_CASES[key] = case
-    return case
+        if len(_TOY_RECIPES) >= _TOY_CASE_CAP:
+            _TOY_RECIPES.pop(next(iter(_TOY_RECIPES)))
+        _TOY_RECIPES[key] = recipe_of(case.a, case.b, env.decls, case.settings, env.lut)
+    return case                       # 처음 부른 test 는 단계 A 의 실행 그대로(build 가 a.donors·a.counters 로 컨텍스트를 만든다)
 
 
 def transfer_view(s1v):

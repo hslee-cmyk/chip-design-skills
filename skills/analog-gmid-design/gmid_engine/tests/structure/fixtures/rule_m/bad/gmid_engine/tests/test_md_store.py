@@ -54,3 +54,10 @@ def _ctx_helper():
 @pytest.fixture(scope="package")
 def via_helper():
     return _ctx_helper()
+
+
+SCTX = []
+
+
+def test_context_attr(case):
+    SCTX.append(case.sctx)

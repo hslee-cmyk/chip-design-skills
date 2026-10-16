@@ -71,13 +71,14 @@ def library_spec(name, extra=()):
 
 
 def real_case(name, extra=()):
-    """library 회로 + 추가 제약 -> SimpleNamespace(a, b, s1v, ach, spec, kctx, sctx, start). 같은 키는 한 번만 만든다."""
+    """library 회로 + 추가 제약 -> SimpleNamespace(s1v, ach, spec, kctx, sctx, start, topology, settings, pdk, rule)(처음 부를 때는 a·b 도).
+    단계 A·B 는 같은 키에 한 번만 돈다. [XRUN-F1 card B 규칙 M M-d] 프로세스 캐시(_CASES)는 실행과 무관한 입력(S0 수준 S1Graph·spec·code_fp 등)
+    뿐이고, 커널·탐색 컨텍스트는 부를 때마다 새 실행(새 open_run() 쌍)으로 만든다 -- 실행의 두 객체를 test 사이에 보관하지 않는다."""
     key = (name, tuple(extra))
     if key in _CASES:
-        return _CASES[key]
+        return _contexts(_CASES[key], None)
     from gmid_engine.pipeline import run_stage_a, run_stage_b
-    from gmid_engine.search import SearchSettings, build_search_context
-    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from gmid_engine.search import SearchSettings, open_run
     env = real_env()
     d = env.root / ("c%02d" % (len(_CASES) + len(os.listdir(env.root))))
     d.mkdir(parents=True, exist_ok=True)
@@ -85,21 +86,42 @@ def real_case(name, extra=()):
     tp.write_text((LIBRARY / (name + ".topology.json")).read_text(encoding="utf-8"), encoding="utf-8")
     sp = d / (name + ".sizing_spec.json")
     sp.write_text(json.dumps(library_spec(name, extra), indent=1, ensure_ascii=False), encoding="utf-8")
-    a = run_stage_a(tp, sp, env.lut, output_dir=d / "out")      # [xrun J-1] 선언·경로 인자 없음
+    donors, counters = open_run()      # [card B 규칙 M M-c] 단계 A 와 1:1
+    a = run_stage_a(tp, sp, env.lut, output_dir=d / "out", donors=donors, counters=counters)      # [xrun J-1] 선언·경로 인자 없음
     assert a.s1 is not None and a.s1.snapshot.record("graph", "s1v") is not None and a.status == "ok", (a.status, a.report.get("stop_reasons"))
     # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- build_search_context 와 같은 값(한 실행 = 한 설정, pipeline CONTRACT 5절)
     settings = SearchSettings(600.0, EVAL_BUDGET, RBOX, (("front_budget_s", "u13 test fixture"),), CBOX)
     b = run_stage_b(a, env.memo, env.pdk, output_dir=d / "out", settings=settings)
     assert b.status == "ok", (b.status, b.report.get("stop_reasons"))
-    from .u13_hand import read_s1v, start_of
-    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo))
-    sctx = build_search_context(kctx, a.spec, settings, None, env.pdk, env.rule, code_fp=a.code_fp)
-    case = SimpleNamespace(a=a, b=b, s1v=read_s1v(b.s1), ach=b.s1, spec=a.spec, kctx=kctx, sctx=sctx, start=start_of(sctx),
-                           topology=json.loads(tp.read_text(encoding="utf-8")), settings=settings, pdk=env.pdk, rule=env.rule)
+    recipe = _recipe(a, b, json.loads(tp.read_text(encoding="utf-8")), settings)
     if len(_CASES) >= _CASE_CAP:
         _CASES.pop(next(iter(_CASES)))
-    _CASES[key] = case
+    _CASES[key] = recipe
+    case = _contexts(recipe, dict(donors=a.donors, counters=a.counters))   # 처음 부른 test 는 단계 A 의 실행 그대로
+    case.a, case.b = a, b
     return case
+
+
+def _recipe(a, b, topology, settings):
+    """실행과 무관한 입력 묶음 -- S0 수준 S1Graph(b.s1)·spec·DcInputs·code_fp·topology·settings(두 객체를 담지 않는다)."""
+    from gmid_engine.sizing import dc_inputs_from_spec
+    return SimpleNamespace(s0=b.s1, spec=a.spec, inputs=dc_inputs_from_spec(a.spec), code_fp=a.code_fp, topology=topology,
+                           settings=settings)
+
+
+def _contexts(recipe, kernel):
+    """recipe -> 커널·탐색 컨텍스트 묶음. kernel = 실행 두 객체 키워드(dict), None 이면 새 실행 하나(새 open_run() 쌍 -- card B C0)."""
+    from gmid_engine.search import build_search_context, open_run
+    from gmid_engine.sizing import build_kernel_context, pre_layout_lut_access
+    from .u13_hand import read_s1v, start_of
+    env = real_env()
+    if kernel is None:
+        donors, counters = open_run()
+        kernel = dict(donors=donors, counters=counters)
+    kctx = build_kernel_context(recipe.s0, recipe.inputs, pre_layout_lut_access(env.memo), **kernel)
+    sctx = build_search_context(kctx, recipe.spec, recipe.settings, None, env.pdk, env.rule, code_fp=recipe.code_fp)
+    return SimpleNamespace(s1v=read_s1v(recipe.s0), ach=recipe.s0, spec=recipe.spec, kctx=kctx, sctx=sctx, start=start_of(sctx),
+                           topology=recipe.topology, settings=recipe.settings, pdk=env.pdk, rule=env.rule)
 
 
 def input_gate_devices(topology):

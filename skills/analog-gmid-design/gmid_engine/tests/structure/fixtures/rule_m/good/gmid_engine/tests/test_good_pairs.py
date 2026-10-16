@@ -54,3 +54,12 @@ def test_report_counters_snapshot(tmp_path):
 
 def test_helper_run():
     assert run_one("a") is not run_one("b")
+
+
+S1_CACHE = {}
+
+
+def test_snapshot_cache_is_not_a_run(tmp_path):
+    donors, counters = open_run()
+    res = run_stage_a("a", "s", None, output_dir="o", donors=donors, counters=counters)
+    S1_CACHE["a"] = res.s1

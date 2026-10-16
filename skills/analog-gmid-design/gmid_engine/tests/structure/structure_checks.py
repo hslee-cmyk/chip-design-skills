@@ -94,7 +94,10 @@ RUN_OBJECT_HOMES = {                                                        # (M
 RUN_ENTRY = "run_stage_a"                                                   # (M-c) C9 대상 호출
 RUN_PAIR_KEYWORDS = ("donors", "counters")                                  # (M-c) C6 run_stage_a 필수 키워드(튜플 풀기 순서 그대로)
 PAIR_ATTRS = ("donors", "counters")                                         # C6 결과 칸(StageAResult·KernelContext·sctx.dc)
-PAIR_HOLDER_PRODUCERS = ("run_stage_a", "build_kernel_context", "build_search_context")   # C6: 결과 칸이 두 객체를 쥐는 진입
+PAIR_HOLDER_PRODUCERS = ("run_stage_a", "run_stage_b", "build_kernel_context", "build_search_context")   # C6: 결과가 두 객체를 쥐는 진입
+# C6: 두 객체를 칸으로 쥔 값에 이르는 속성 -- `sctx.dc`(KernelContext). test 가 쓰는 컨텍스트 칸 이름(sctx·kctx·ctx·stage_a)도 같은 값으로 본다.
+# 그 밖 속성(결과의 s1·spec·report·base 스냅샷 등)은 두 객체를 담지 않는다.
+CONTEXT_ATTRS = ("dc", "sctx", "kctx", "ctx", "stage_a")
 CONTAINER_BUILDERS = ("dict", "list", "tuple", "set", "frozenset", "partial", "SimpleNamespace", "deque", "OrderedDict",
                       "defaultdict", "ChainMap")                            # 인자를 그대로 쥐는 생성 호출
 LONG_FIXTURE_SCOPES = ("session", "module", "package", "class")             # (M-d) C9 'session·module·package 범위 fixture'(+ class: test 하나보다 김)
@@ -1225,9 +1228,9 @@ def check_k(root: Path) -> tuple[int, list[Violation]]:
 #   run_pair_packed    (M-c) run_stage_a(*args)·run_stage_a(**kw)
 #   run_pair_stored    (M-d) 두 객체(또는 그것을 쥔 값)를 수명이 test 하나보다 긴 곳에 둔다
 #   run_pair_persisted (M-f) 두 객체·내부 칸을 pickle·json·shelve·marshal 쓰기에 넘긴다
-# '쥔 값'(holder) = open_run() 결과와 그 이름, 두 객체를 결과 칸으로 쥐는 진입(PAIR_HOLDER_PRODUCERS)의 결과, 속성 donors·counters,
-#   그 값들의 속성·첨자, 그 값을 담은 tuple·list·dict·set·생성 호출(CONTAINER_BUILDERS), 그 이름을 닫아 쥔 lambda.
-#   그 밖 함수 호출의 결과는 쥔 값이 아니다(예: build_s1 결과 스냅샷 -- 실행 하나 안에서 쓰고 버린 두 객체를 담지 않는다).
+# '쥔 값'(holder) = open_run() 결과와 그 이름, 두 객체를 결과 칸으로 쥐는 진입(PAIR_HOLDER_PRODUCERS)의 결과, 속성 donors·counters와
+#   컨텍스트 칸 속성(CONTEXT_ATTRS), 쥔 값의 첨자, 그 값을 담은 tuple·list·dict·set·생성 호출(CONTAINER_BUILDERS), 그 이름을 닫아 쥔 lambda.
+#   그 밖 함수 호출의 결과와 쥔 값의 그 밖 속성(res.s1·res.spec 같은 스냅샷·선언 칸)은 쥔 값이 아니다(두 객체를 담지 않는다).
 # 한계(정적 검사): getattr·exec 같은 동적 호출, 다른 파일 helper 를 거친 보관은 보지 못한다 -- 리뷰 항목(spec card 1.7.1).
 
 _SCOPE_NODES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)
@@ -1341,7 +1344,7 @@ def _holder(e, tainted, producers=PAIR_HOLDER_PRODUCERS) -> bool:
     if isinstance(e, ast.Name):
         return e.id in tainted
     if isinstance(e, ast.Attribute):
-        return e.attr in PAIR_ATTRS or _holder(e.value, tainted, producers)
+        return e.attr in PAIR_ATTRS or e.attr in CONTEXT_ATTRS
     if isinstance(e, ast.Subscript):
         return _holder(e.value, tainted, producers)
     if isinstance(e, ast.Call):

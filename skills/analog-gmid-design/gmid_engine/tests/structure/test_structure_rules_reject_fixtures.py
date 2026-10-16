@@ -191,6 +191,7 @@ EXPECTED_BAD_M = [
     ("run_pair_stored", "tests/test_md_store.py", 36),       # (M-d) 모듈 수준 객체(BOX)의 인스턴스 속성
     ("run_pair_stored", "tests/test_md_store.py", 46),       # (M-d) session fixture 가 KernelContext(두 객체를 쥔 값) 반환
     ("run_pair_stored", "tests/test_md_store.py", 56),       # (M-d) package fixture 가 helper 한 겹을 거친 KernelContext 반환
+    ("run_pair_stored", "tests/test_md_store.py", 63),       # (M-d) 컨텍스트 칸(case.sctx)을 모듈 리스트에 append
 ]
 
 
@@ -208,12 +209,13 @@ def test_rule_m_rejects_bad_fixture(checks, fixture_tree):
 def test_rule_m_accepts_good_fixture(checks, fixture_tree):
     """허용: 튜플 풀기 1:1(결과 칸 is 확인 포함), 호출마다 자기 open_run(), 반복문 안 open_run, function fixture 가 open_run() 반환,
     단위 test 한 쌍으로 감쌈 함수 여러 번, 스스로 open_run 하는 helper, session fixture 가 지역 쌍으로 만든 S1 스냅샷만 반환,
-    키워드 하나 빠진 TypeError 꼴, 계수 snapshot 값의 json 출력, 정의 모듈의 생성 호출, 엔진 진입이 두 객체를 받기만 함."""
+    키워드 하나 빠진 TypeError 꼴, 계수 snapshot 값의 json 출력, 정의 모듈의 생성 호출, 엔진 진입이 두 객체를 받기만 함,
+    실행 결과의 스냅샷 칸(res.s1 -- 두 객체를 담지 않음)을 모듈 캐시에 둠."""
     root = fixture_tree("rule_m", "good")
     n, v = checks.check_m(root)
     assert n == 7
     assert v == [], "\n".join(str(x) for x in v)
-    assert checks.m_run_stage_a_calls(root) == 6
+    assert checks.m_run_stage_a_calls(root) == 7
 
 
 def test_rule_m_targets_tests_but_not_fixtures(checks, engine_root):

@@ -451,9 +451,11 @@ def _tied_case(tmp, lut):
     acc = new_access(lut)
     td, spec = load_spec(Path(tmp) / "case", circuit_tied_cs2())
     inputs = dc_inputs_from_spec(spec)
-    s1 = build_s1(td, dict(inputs.supplies_v))
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C0·C6] 이 case 하나 = 실행 하나
+    s1 = build_s1(td, dict(inputs.supplies_v), donors=donors, counters=counters)
     # [U17 ①-b] L 동치류 입력 = S1v 필드 `graph/s1v: l_classes`(설계 40 v1.9.1 §2.4.8 D1; build_kernel_context(l_classes=) 삭제)
-    dc = build_kernel_context(inject_l_classes(s1, (LClassStub("M1", ("M1", "M3")),)), inputs, acc)
+    dc = build_kernel_context(inject_l_classes(s1, (LClassStub("M1", ("M1", "M3")),)), inputs, acc, donors=donors, counters=counters)
     pdk, rule = write_decls(Path(tmp) / "pdk")
     sctx = build_search_context(dc, spec, SearchSettings(600.0, 40, None, tuple(SRC), None), None, pdk, rule, code_fp=CODE_FP)
     return SimpleNamespace(acc=acc, dc=dc, sctx=sctx)
@@ -518,7 +520,7 @@ def test_library_real_path_find_front_with_l_classes(tmp_path, lib_env, name):
     from gmid_engine.authoring import load_sizing_spec, load_topology
     from gmid_engine.graph import build_s1
     from gmid_engine.pipeline import run_stage_a
-    from gmid_engine.search import SearchFront, SearchSettings, build_search_context, find_front
+    from gmid_engine.search import SearchFront, SearchSettings, build_search_context, find_front, open_run
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
 
     env = lib_env
@@ -527,10 +529,12 @@ def test_library_real_path_find_front_with_l_classes(tmp_path, lib_env, name):
     spec = load_sizing_spec(str(LIBRARY / (name + ".sizing_spec.json")), td, env.catalog)
     inputs = dc_inputs_from_spec(spec)
     sup = dict(inputs.supplies_v)
-    stage_a = run_stage_a(tp, None, env.lut, output_dir=tmp_path / "a", supplies_v=sup)      # [xrun J-1] 선언·경로 인자 없음
+    donors, counters = open_run()          # [XRUN-F1 card B 규칙 M M-c] 단계 A 와 1:1, 같은 실행을 커널·탐색 컨텍스트가 잇는다
+    stage_a = run_stage_a(tp, None, env.lut, output_dir=tmp_path / "a", supplies_v=sup, donors=donors, counters=counters)
     # [U17 ①-b] 단계 A 의 L 동치류 = S1v 필드 `graph/s1v: l_classes`(D1) -- 같은 build_s1(td, sup) 에 그 필드를 넣어 커널 컨텍스트를 만든다(옛 l_classes= 입력과 같은 값).
     l_classes = stage_a.s1.value("graph", "s1v", "l_classes")
-    dc = build_kernel_context(inject_l_classes(build_s1(td, sup), l_classes), inputs, env.access)
+    run = dict(donors=stage_a.donors, counters=stage_a.counters)
+    dc = build_kernel_context(inject_l_classes(build_s1(td, sup, **run), l_classes), inputs, env.access, **run)
     settings = SearchSettings(60.0, 40, RESISTANCE_BOX, (("cellfloor_lclass", "test_fixture"),), CAPACITANCE_BOX)
     sctx = build_search_context(dc, spec, settings, None, env.pdk, env.lut_rule, code_fp=stage_a.code_fp)
     comps = {v.component for v in sctx.domain.variables}
