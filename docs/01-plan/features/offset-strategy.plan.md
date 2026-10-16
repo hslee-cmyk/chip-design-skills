@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 0.5
+version: 0.5.1
 ---
 
 # offset-strategy Planning Document
@@ -8,7 +8,7 @@ version: 0.5
 > **Summary**: spec이 offset을 **수단**(`offset_in_sigma_mv <=` 제약이나 `offset_trim` 선언)이 아니라 **요구**로 쓰게 한다. 요구는 `offset_requirement{offset_in_max_v, coverage_multiple, strategy}` 하나다. 엔진은 요구와 방식(`matching`·`trim`·`compare`)에서 판정 제약을 유도하고, **실행 계획**(변형 목록, 변형 = (topology 변형, 제약 집합))을 만들어 한 실행 안에서 차례로 돈다. 변형들은 단계 A·S0·블록 결과 색인을 공유한다. 이 일은 파이프라인 층 모듈을 다시 쓰는 것이고(S-2), 핵심 층(graph·블록·kernel·search)은 유지한다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: 계획 v0.5 (2026-10-16). v0.4는 사용자 결정 S-5(XS-1~XS-14 승인)·S-6(DS-U 결정)으로 승인됐다. v0.5는 사용자 결정 S-7("계획과 다른 부분이 생기면 계획부터 수정해서 bkit절차대로 진행해")에 따라, design v0.1(`offset-strategy.design.md`, 브랜치 `ostrat-design` `aef46c7`)이 계획과 다르게 간 점과 그 독립 검증(82점) 지적을 계획 쪽 결정 항목 PD-1~PD-9·W-1·F-1로 정리하고(N11), SPICE 온도 보정 루프(T-29~T-33)와의 연결점을 정한 개정이다(N3.11). PD-1~PD-8은 사용자 결정 S-8("PD1~PD8은 권고대로"), W-1·F-1·T-30 연결은 S-9("W-1,F-1,T-30을 권고대로 진행")로 승인돼 해당 자리의 규칙을 고쳤다. 남은 결정은 PD-9 하나다(사용자가 권고 사유 설명을 요청해 대기). PD-9는 승인 전에는 계획 규칙을 바꾸지 않는다('결정 대기' 표지만 둔다). v0.5 전체는 독립 검증 전이다. 근거는 사용자 결정 S-1~S-4(원문 `wt/_drafts/user_decisions.md` '## offset 방식 선택·실행 계획 (2026-10-16 사용자 "권고대로 해")')다.
+> **Status**: 계획 v0.5.1 (2026-10-16). v0.4는 사용자 결정 S-5(XS-1~XS-14 승인)·S-6(DS-U 결정)으로 승인됐다. v0.5는 사용자 결정 S-7("계획과 다른 부분이 생기면 계획부터 수정해서 bkit절차대로 진행해")에 따라, design v0.1(`offset-strategy.design.md`, 브랜치 `ostrat-design` `aef46c7`)이 계획과 다르게 간 점과 그 독립 검증(82점) 지적을 계획 쪽 결정 항목 PD-1~PD-9·W-1·F-1로 정리하고(N11), SPICE 온도 보정 루프(T-29~T-33)와의 연결점을 정한 개정이다(N3.11). PD-1~PD-8은 사용자 결정 S-8("PD1~PD8은 권고대로"), W-1·F-1·T-30 연결은 S-9("W-1,F-1,T-30을 권고대로 진행")로 승인돼 해당 자리의 규칙을 고쳤다. 남은 결정은 PD-9(사용자가 권고 사유 설명을 요청해 대기)이다. v0.5.1에서 matching 오라클 측정 card 배정 V-1(확인 대기)이 더해졌다. PD-9는 승인 전에는 계획 규칙을 바꾸지 않는다('결정 대기' 표지만 둔다). v0.5.1은 v0.5 검증(84점, 차단 B-1~B-3, 비차단 N-1~N-6)을 반영했고 재검증 전이다. 근거는 사용자 결정 S-1~S-4(원문 `wt/_drafts/user_decisions.md` '## offset 방식 선택·실행 계획 (2026-10-16 사용자 "권고대로 해")')다.
 > **이력**: 경위, 결정 원문, 측정 조건, 버전 이력은 [offset-strategy.history.md](offset-strategy.history.md)에 있다.
 > **상위 계획**: [gain-budget-gmid-sizing.plan.md](gain-budget-gmid-sizing.plan.md)(원칙 N1.4 NFR, N2 결정, N6.3 병합 전 확인). **관련 계획**: [offset-trim.plan.md](offset-trim.plan.md)(trim 방식의 규칙 정본). 충돌하면 상위 계획이 이기고, offset-trim과의 충돌은 N5(원래 취지와 다름)와 N9에 올린다.
 
@@ -22,6 +22,7 @@ version: 0.5
   * `offset_in_max_v`·`coverage_multiple`(k)·방식 선택, 1/f·면적 판정 값, trim 잔여 V_res·온도는 사용자 spec 값이다.
   * 예산은 선언(E_B)이나 정의(E_total, 상위 design 40 §2.4.9)에서 온다.
   * 나머지는 엔진 해석값·LUT·PDK 선언에서 유도한다. 원문 수치는 인용하지 않는다.
+  * 예외: 사용자가 결정한 값과 fixture 지정(예: F-1의 회로·k·`offset_in_max_v`)은 출처(결정 기록)와 함께 적는다.
 * **이름 원칙**: 규칙에 회로·소자·넷 이름을 쓰지 않는다. 회로 이름은 사실 표(N3.0)와 측정 대상(N6 M2)에만 나온다.
 * **인용 규칙**: 코드는 `파일:줄`이고 기준은 base `067614c`(worktree `wt/ostrat-plan`)다. 경로에서 `skills/analog-gmid-design/`은 뺐고 `E/` = `gmid_engine/`이다. design 인용은 `40 §x`(`gain-budget-gmid-sizing.40-engine.design.md`), `OT §x`(`offset-trim.design.md` v0.2, 사용자 승인 T-18)다.
 
@@ -224,7 +225,7 @@ spec 사람 선언의 선택 섹션이다. 형식은 기존 spec 값 칸(`value`
 * **승인 파일이 있는 상태에서 국면 1을 다시 돌기**: 국면은 승인 기록 유무로만 정하므로, 사용자가 승인 기록 파일을 정해진 위치에서 치우면(이름 바꾸기·옮기기) 국면 1이 돈다. 엔진은 승인 파일을 지우거나 고치지 않는다. 진입 인자로 국면을 강제하는 길은 두지 않는다(S-2 인자 분기 삭제). 이 방법은 DO-9(오케스트레이터 기본안)다.
 * 변형 순서는 위 표 순서로 고정한다(결정성, NFR-S5). 순서가 결과 값을 바꾸지 않음은 완료 조건 2가 확인한다.
 * trim·compare 변형은 TR card가 그 경로를 만든 뒤에만 실행된다. 그 전에는 계획 함수가 `strategy`를 거부한다(fail-closed, 조용한 생략 금지). 거부 사유 코드는 design이 정한다.
-* **구현 시점**: 위 표의 trim·compare 행과 그것만 쓰는 세 가지는 trim 국면을 처음 제품 경로에 여는 TR card와 함께 구현한다(OS-5, N7.2). 세 가지는 ① 국면 규칙(승인 기록 유무 → 국면 2), ② 승인 기록 로더, ③ 낡은 승인 정지다. 그 전의 계획 함수(OS-2)는 요구 없음·`matching` 행과 trim·compare 거부만 가진다. 그래서 그 전에는 `approvals` 입력도 없다. **TR card별 배정(PD-2 승인, S-8)**: 한 card에 몰지 않고 나눈다.
+* **구현 시점**: 계획 함수의 trim·compare 행과 그것만 쓰는 일(① 국면 규칙(승인 기록 유무 → 국면 2), ② 승인 기록 로더, ③ 낡은 승인 정지, ④ 국면 2 분기)은 OS-2에 넣지 않는다. OS-2의 계획 함수는 요구 없음·`matching` 행과 trim·compare 거부만 가지고, `approvals` 입력도 없다. 이 일들은 아래 **TR card별 배정(PD-2 승인, S-8)**으로 나눠 들어간다. compare 다변형은 OS-5(TR-2와 함께)다.
   * TR-2: 국면 1 행, 그리고 승인 파일이 있으면 내용을 읽지 않고 국면 2 미구현으로 fail-closed.
   * TR-3: 승인 기록 로더, 결속·낡은 승인 정지, 국면 2 분기(파생 topology 단계 A). OT §14.1의 'TR-1 로더' 배정을 바꾼 것이다(TR-1에는 부르는 곳이 없다).
   * TR-4: 구조 동일 검사.
@@ -296,7 +297,7 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 
 사용자 결정 T-29는 offset·trim 잔여의 합격을 SPICE 오라클의 온도 범위 판정으로 바꾸고, T-30은 'SPICE 온도 보정 루프'를 offset-trim 계획 보완으로 진행하게 했다(offset-trim 계획 v0.5, 브랜치 `trim-plan-r1`, N3.8). 그 계획은 T-29의 'offset 판정'을 이 계획의 matching 유도 제약으로 읽는다(그 계획의 해석 X-21).
 
-**연결점**: 보정 루프는 matching 유도 제약의 문턱을 조인다. 보정 루프의 반복 j에서 엔진 문턱은 `offset_in_max_v` − Δ_T(matching)이다(offset-trim N3.8.3 '문턱 적용'). 여기서 Δ_T(matching)은 오라클이 잰 k·σ̂(T) + \|V_sys(T)\|의 온도 점 최댓값 − T_j 값이고, 조이는 방향으로만 쓴다.
+**연결점**: 보정 루프는 matching 유도 제약의 문턱을 조인다. 보정 루프의 반복 j에서 엔진 문턱은 `offset_in_max_v` − Δ_T(matching)이다(offset-trim N3.8.3 '문턱 적용'). Δ_T(matching)의 정의·방향·갱신 규칙은 offset-trim 계획 v0.5 N3.8.3이 정본이고, 이 계획은 사본을 두지 않는다.
 
 **소유 경계**(한 규칙에 정본 하나):
 
@@ -306,6 +307,8 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 | 그 문턱 값의 출처: 요구 `offset_in_max_v` 참조 | **이 계획**(N3.2) | 정의한다 |
 | Δ_T의 정의·측정 선언 형식·출처 지문·무효 규칙, 문턱 합성 형식(spec 참조 − Δ_T 선언 참조, 숫자 사본 금지), 루프·멈춤·분해 정지 규칙, 범위 판정, 오라클 표본 수 | **offset-trim 계획 v0.5**(N3.8, design G-9·G-10) | 쓰지 않는다. 문턱 합성은 offset-trim이 정하는 함수 하나를 matching 합성 행이 부른다(사본 함수 금지) |
 | 반복 하나 = 실행 계획 하나를 처음부터 다시 도는 것, 변형 정체(제약 집합 지문)가 반복마다 바뀜, 반복 사이 공유 없음 | 두 계획이 같은 문장으로 적는다(offset-trim N3.8 '관계' 항, 이 계획 N3.5·N3.6) | 변형 정체 지문(G-S3)과 `run_id`에 문턱 합성 결과(Δ_T 선언 지문 포함)가 들어가야 한다. 반복이 같은 S3 루트에 쓰여도 runs 줄이 겹치지 않게 한다 |
+| 요구 스키마 안 판정 온도 범위 칸(offset-trim v0.5 D-18이 `offset_requirement` 안 새 칸으로 제안) | 스키마(칸 이름·형식·로더 검사)는 **이 계획**(N3.2), 값과 채택 여부는 **offset-trim D-18**(사용자 결정 대기) | D-18이 채택되면 N3.2 스키마 표에 칸을 더한다(이 계획 개정). 채택 전에는 칸을 두지 않는다 |
+| matching 유도 제약의 `verified_by`(오라클 measure) | 측정 규칙은 offset-trim N3.8(범위 판정·표본 수 G-10), 오라클 코어는 oracle-portability 계획(T-31·T-33) | **권고: 이 계획 쪽 card 하나**(가칭 OS-V: matching 합성 판정에 오라클 측정을 붙임)를 둔다. 선행은 OS-2와 oracle-portability 코어이고, offset-trim TR-TL의 선행이다. 그 전에는 합성 판정 metric이 `spice_unverifiable` 목록에 실행 전 출력된다(DEC-90 (3), OT §10.6 선례). card 배정은 사용자 확인 항목(N11 V-1) |
 | 엔진 결과의 합격 표기 | 이 계획(결과 JSON) | T-29 뒤에는 엔진 front의 matching 판정(LUT 한 조건)이 최종 합격이 아니다. 결과 JSON에 '최종 합격은 오라클 범위 판정' 표기를 싣는다 |
 
 **순서**: T-30 원문은 '순서 = TR-7 뒤'다. 그래서 matching만 쓰는 회로의 보정 루프도 TR-7 뒤에 열린다. matching에 한해 앞당기지 않는다(DS-T1, S-9로 권고대로 닫힘). OS-2는 Δ_T 입력 없이 요구 문턱만 쓰며, 문턱 합성 입력 자리는 보정 루프가 열릴 때(offset-trim 해당 card) 같은 변경에서 배선한다(만들면 배선 -- OS-2에서 빈 자리를 미리 만들지 않는다).
@@ -342,10 +345,11 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 | XS-8 | **DS-1 (가)·(다), DS-2 (가)는 같은 실행 안 변형 사이 재계산을 받아들이는 편차**: (가)는 같은 topology 변형이 같은 θ를 밟으면 같은 평가 키를 변형마다 다시 계산한다(완료 조건 3과 모순, N3.1 표). (다)는 키를 나눠 형식상 조건 3을 지키지만, 같은 θ의 커널 평가와 요청이 다른 metric 블록 계산이 변형마다 남는다. DS-2 (가)는 같은 topology의 S1v를 변형마다 다시 계산한다. 셋 다 '처음 계산한 값을 나머지 최적화에서 재사용'과 거리가 있다 | 원래 취지 문장(N1.1) | **필요**(결정은 M2 숫자와 함께) |
 | XS-9 | **trim 시험 회로 spec 영향**: 승인된 T-27은 시험 회로 spec에 `offset_excess` 제약을 유지한다(강등 경로 확인용). T-28은 그 spec(`offset_trim` 섹션 = residual_offset_v·coverage_multiple·trim_temperature_c, T-25)을 TR-1 병합 뒤 `assets/fixture/trim/`에 둔다. 이 계획의 로더 규칙에서는 (1) 요구 없는 `offset_trim` 단독은 거부(N3.2), (2) 요구와 `offset_excess` 공존은 거부(DS-U2), (3) k는 요구로 옮긴다(XS-6). 그래서 그 spec은 요구 섹션(`strategy: trim`, k, `offset_in_max_v` ≥ V_res)으로 다시 써야 하고, '강등 경로 확인'이라는 T-27의 목적은 대상이 사라진다. `offset_in_max_v` 값은 사용자 몫이다 | T-25·T-27·T-28 | **필요**(재승인) |
 | XS-10 | **matching 합성 판정과 출발값은 핵심 층 확장**: G-S1(새 metric 또는 합성 제약 행)과 G-S2(`iv_matching_l`이 합성 판정에서 σ 목표를 읽게 함)는 metrics·search 층을 고친다(N3.10). S-2 '핵심 유지'와 다르다. 확장 없이 기존 `offset_in_sigma_mv`·`offset_sys_mv` 두 제약으로 쓰려면 한계를 나누는 비율을 발명해야 해서 택하지 않는다 | S-2 | **필요** |
-| XS-11 | **S-4 순서 문구를 나눈다**(권고안, N7.1): '실행 계획 구현 → TR-1'에서 TR-1 앞에는 단일 변형 실행 계획(요구 없음·matching)과 trim·compare 거부까지만 구현한다(OS-2). 국면 규칙·승인 기록 로더·낡은 승인 정지·다변형 공유·변형 정체 칸·Σ 상한은 trim·compare를 처음 여는 TR card에 묶어 그때 배선한다(OS-5). 이유: 이것들은 trim·compare에서만 쓰이고, TR card 전에는 그 방식이 거부되므로 제품 경로에서 쓰는 곳이 없어 '만들면 배선'을 지킬 수 없다. OT §4 흐름은 코드에 없어(F-7) TR-1 앞에 대체할 옛 경로도 없다. 대안 (ii): 다변형 경로를 TR-1 앞에 다 구현하고, TR card 전까지는 fixture spec으로만 실행하는 것을 승인받는다 | S-4 | **필요** |
+| XS-11 | **S-4 순서 문구를 나눈다**(권고안, N7.1): '실행 계획 구현 → TR-1'에서 TR-1 앞에는 단일 변형 실행 계획(요구 없음·matching)과 trim·compare 거부까지만 구현한다(OS-2). 다변형 공유·변형 정체 칸·Σ 상한·공통 판정 검사는 trim·compare를 처음 여는 TR card에 묶어 그때 배선한다(OS-5). 국면 규칙·승인 기록 로더·낡은 승인 정지·국면 2 분기는 N3.5 TR card별 배정(PD-2: TR-2 국면 1과 국면 2 미구현 fail-closed, TR-3 로더·결속·낡은 승인 정지·국면 2 분기, TR-5b 게이트 해제)을 따른다. 이유: 이것들은 trim·compare에서만 쓰이고, TR card 전에는 그 방식이 거부되므로 제품 경로에서 쓰는 곳이 없어 '만들면 배선'을 지킬 수 없다. OT §4 흐름은 코드에 없어(F-7) TR-1 앞에 대체할 옛 경로도 없다. 대안 (ii): 다변형 경로를 TR-1 앞에 다 구현하고, TR card 전까지는 fixture spec으로만 실행하는 것을 승인받는다 | S-4 | **필요** |
 | XS-12 | **변형별 E_total**(N3.7): 40 §2.4.9 E_total('실행 하나의 커널 평가 수 상한', 유일한 정의)과 §2.4.5 색인 상한 식의 '실행 하나' 단위를 '변형 하나' 단위로 바꾸고, 실행 전체 상한은 Σ_v E_total,v가 된다. 식(E_B + N_T + R)은 X-17 그대로다 | X-17, 40 §2.4.9·§2.4.5 | 확인 요청 |
 | XS-13 | **S3 evals·runs 줄에 변형 정체 칸 추가**: 같은 topology 변형은 `context_fp`가 같아 줄만으로 구분되지 않는다(F-5). S3 줄 형식 변경은 앞서 사용자 승인으로 처리했던 종류다(X-10: 실패 줄 `snapshot_fp` 칸) | X-10 선례 | 확인 요청 |
 | XS-14 | **M2 실행 시점**: S-4 원문은 'card A 진행 중 실측'인데, 실행은 card A 병합 뒤 master에서 한다(준비만 진행 중에). 근거: card A의 θ 좌표 왕복 수정(X-1 (1)) 전후로 θ 키가 달라진다(N6 M2-3·8) | S-4 | 보고(확인) |
+| XS-15 | **국면 2 탐색 게이트 기간(OD-3, PD-2)**: TR-3~TR-5b 사이에는 승인된 파생 topology가 단계 A까지만 돌고 국면 2 탐색 미개방으로 멈춰 사이징되지 않는다. OT 원래 흐름에 없던 정지다(추적 행) | OT §4·§14.1, T-2 | **수용됨(S-8)**. TR-5b 병합 때 정지가 지워졌는지 확인한다 |
 | XS-7 | **색인 수명 경계 문구**: 40 §2.4.5의 '실행 경계 = `run_stage_a` 진입'을 '실행 계획 진입'으로 바꾼다. 수명 단위('실행 하나, 실행 사이에 넘기지 않음')는 그대로라서 원래 취지와 맞는다고 보지만, 승인된 design 문구를 바꾸므로 보고한다 | X-12, 원래 취지 문장 | 확인 요청 |
 
 **사용자 몫(이 계획이 하지 않음)**: 기존 library spec을 요구 형식으로 옮기는 것(DS-U5).
@@ -387,12 +391,13 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS-2)** → trim TR-1. 이 계획 문서(OS-0 전 단계)와 M2 준비(OS-M)는 card A 진행 중에 한다.
 
 **권고안(XS-11, 승인 필요)**: S-4의 '실행 계획 구현'을 둘로 나눈다.
-* **TR-1 앞(OS-2, 옛 OS-1 합침)**: 단일 변형 실행 계획(요구 없음·`matching`)과 trim·compare 거부까지. 국면 규칙·승인 기록 로더·낡은 승인 정지는 여기에 넣지 않는다. 이 셋은 trim·compare에서만 쓰이고, 그 방식은 이 card에서 거부되기 때문이다. OT §4의 단계 선택 흐름은 코드에 없으므로(F-7) 이 card에서 대체할 옛 코드 경로도 없다. OT §4 개정은 design 문서에서만 한다(N3.9). 이 범위는 병합 즉시 제품 경로(`matching` 요구 spec, 요구 없는 spec)에서 쓰인다.
-* **trim·compare를 처음 여는 TR card에 묶음(OS-5)**: 국면 규칙·승인 기록 로더·낡은 승인 정지(N3.5), 다변형 실행(변형 사이 공유), 변형 정체 칸(S3·결과 JSON), Σ 색인 상한(N3.7), DS-1·DS-2 처리. 이 경로를 쓰는 변형은 trim·compare뿐이라 TR card 전에 만들면 쓰는 곳이 없다(만들면 배선, NFR-S7).
+* **TR-1 앞(OS-2, 옛 OS-1 합침)**: 단일 변형 실행 계획(요구 없음·`matching`)과 trim·compare 거부까지. 국면 규칙·승인 기록 로더·낡은 승인 정지는 여기에 넣지 않는다. 이 셋은 trim·compare에서만 쓰이고, 그 방식은 이 card에서 거부되기 때문이다. OT §4의 단계 선택 흐름은 코드에 없으므로(F-7) 이 card에서 대체할 옛 코드 경로도 없다. OT §4 개정은 design 문서에서만 한다(N3.9). 이 범위는 병합 즉시 엔진 사슬 진입점(`run_plan`, W-1)과 그것을 부르는 하네스·test에서 쓰인다(`matching` 요구 spec, 요구 없는 spec).
+* **trim·compare를 처음 여는 TR card에 묶음(OS-5)**: 다변형 실행(변형 사이 공유), 변형 정체 칸(S3·결과 JSON), Σ 색인 상한(N3.7)과 card C `S3Index` 인터페이스 변경(PD-7), 공통 판정 검사(PD-6), DS-1 처리. 이 경로를 쓰는 변형은 trim·compare뿐이라 TR card 전에 만들면 쓰는 곳이 없다(만들면 배선, NFR-S7).
+* **국면 2 일의 TR card별 배정(PD-2, N3.5)**: TR-2 = '승인 기록 없음 → 국면 1'과 '승인 파일이 있으면 국면 2 미구현으로 fail-closed', TR-3 = 승인 기록 로더·결속·낡은 승인 정지·국면 2 분기, TR-4 = 구조 동일 검사, TR-5b = 국면 2 탐색 게이트 해제.
 * **대안 (ii)**: 다변형 경로를 TR-1 앞에 다 구현하고, TR card 전까지는 fixture spec으로만 실행하는 것을 사용자 승인으로 받는다.
 
 추가 의존:
-* matching 유도 제약의 V_sys는 단일 출력 회로에서 '출력 기준 DC' 기능(T-19~T-23, XRUN-F1 뒤·TR-6 전)이 있어야 정의된다. 그 전에는 해당 회로가 N4-3 사유로 멈춘다(fail-closed). OS-2의 검증 fixture는 기준이 이미 정의되는 회로로 고른다. **F-1(사용자 승인 S-9)**: library current_reuse_telescopic_ota의 사본이다. 차동 출력이라 단일 출력 기준 DC 검사(design L4)에 걸리지 않는다. 사본은 library 밖 fixture 위치(`origin: fixture`)에 둔다. 사본 spec은 offset 판정 제약 둘(`offset_in_sigma_mv`, 그것을 참조하는 `offset_sys_mv`)을 요구 `offset_requirement`로 바꾼다. 값은 사용자 승인 값으로 {`strategy`: matching, `coverage_multiple` = 3, `offset_in_max_v` = 3 × 3.3 mV}이고, 3.3 mV는 사용자 결정 2026-10-08 Q3 (2)에서 왔다. 값마다 출처(사용자 결정)를 spec `source`에 적는다. library spec은 바꾸지 않는다(DS-U5).
+* matching 유도 제약의 V_sys는 단일 출력 회로에서 '출력 기준 DC' 기능(T-19~T-23, XRUN-F1 뒤·TR-6 전)이 있어야 정의된다. 그 전에는 해당 회로가 N4-3 사유로 멈춘다(fail-closed). OS-2의 검증 fixture는 기준이 이미 정의되는 회로로 고른다. **F-1(사용자 승인 S-9)**: library current_reuse_telescopic_ota의 사본이다. 차동 출력이라 단일 출력 기준 DC 검사(design L4)에 걸리지 않는다. 사본은 library 밖 fixture 위치(`origin: fixture`, 저장소 안, T-28 선례 `assets/fixture/` 계열)에 둔다. 사본 spec은 offset 판정 제약 둘(`offset_in_sigma_mv`, 그것을 참조하는 `offset_sys_mv`)을 요구 `offset_requirement`로 바꾼다. 값은 사용자 승인 값으로 {`strategy`: matching, `coverage_multiple` = 3, `offset_in_max_v` = 3 × 3.3 mV}이고, 3.3 mV는 사용자 결정 2026-10-08 Q3 (2)에서 왔다. 값마다 출처(사용자 결정)를 spec `source`에 적는다. library spec은 바꾸지 않는다(DS-U5). **비교 한계**: 이 요구(k·σ_in + \|V_sys\| ≤ 3 × 3.3 mV)는 library 원 제약(σ_in ≤ 3.3 mV이고 \|V_sys\| ≤ 3.3 mV)과 같은 제약이 아니다. 그래서 fixture 결과를 library 기준선과 비교할 수 없다. fixture 판정은 OS-2 완료 조건(유도 제약·로더·출발값이 실제 경로에서 동작함)에만 쓴다.
 * trim·compare 변형은 TR card(TR-1 → … → TR-6)가 경로를 만든 뒤에 열린다(N3.5 마지막 항목). TR-2 병합은 U16 뒤다(T-15).
 
 ### N7.2 card 초안
@@ -401,11 +406,11 @@ NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS
 
 | card | 범위 | 선행 | 읽는 결정 |
 |---|---|---|---|
-| OS-0 (문서) | design: 요구 스키마·사유 코드·유도 제약의 metric/행 형식(G-S1)·출발값 규칙(G-S2)·변형 spec 생성(지문 재계산)·`RunPlan` 형식·계획 함수와 실행기 서명·결과 JSON 칸·비교 도구 위치와 칸·예산 식·파일 분할·배선표·test 목록. OS-5 몫(변형 정체 지문·S3 변형 칸·Σ 상한)은 형식만 정한다. OT §4·§5.1·§5.2·§9.4·§9.5·§10.1과 40 §2.4.5 수명 문구 개정안, T-27·T-28 시험 회로 spec 재작성안(XS-9)을 같이 낸다. 독립 검증 | 이 계획 승인, M2 결과 | XS-1~XS-14, DS-1·DS-2, DS-U1~DS-U9 |
+| OS-0 (문서) | design: 요구 스키마·사유 코드·유도 제약의 metric/행 형식(G-S1)·출발값 규칙(G-S2)·변형 유도 제약의 별도 입력 `derived`(N3.10, PD-1)·`RunPlan` 형식·계획 함수와 실행기 서명·결과 JSON 칸·비교 도구 위치와 칸·예산 식·파일 분할·배선표·test 목록. OS-5 몫(변형 정체 지문·S3 변형 칸·Σ 상한)은 형식만 정한다. OT §4·§5.1·§5.2·§9.4·§9.5·§10.1과 40 §2.4.5 수명 문구 개정안, T-27·T-28 시험 회로 spec 재작성안(XS-9)을 같이 낸다. 독립 검증 | 이 계획 승인, M2 결과 | XS-1~XS-14, DS-1·DS-2, DS-U1~DS-U9 |
 | OS-M (측정) | N6 M2. 엔진 무변경, 읽기 전용 스크립트와 임시 spec(저장소 밖). 2차 측정(평가별 시간·블록별 수)은 card B 뒤 | 준비: 이 계획(초안이어도 됨). 실행: card A 병합 | -- |
-| OS-2 (옛 OS-1 합침) | 한 card로 함께 병합한다. 옛 OS-1의 유도 제약·G-S1·G-S2는 변형 spec 주입이 있어야 탐색에 들어가기 때문이다(나눠 병합하면 앞 card의 함수가 쓰이지 않는다).<br>• 요구 스키마 로더(N3.2, `offset_trim` 단독 거부 포함)<br>• matching 유도 제약(N3.3, G-S1 핵심 층 확장), 출발값(G-S2), 공통 판정 검사(N3.4)<br>• 파이프라인 층 재작성(단일 변형): `build_run_plan`(요구 없음·`matching` 행 + trim·compare fail-closed 거부, 승인 기록 입력 없음), 실행기, 변형 spec 생성(N3.10), 블록 결과 색인·`RunCounters` 수명을 실행 계획 진입으로, 결과 JSON<br>• 요구 없는 spec 무동작. 진입 흐름을 바꾸는 부분의 옛 코드는 같은 변경에서 지운다 | OS-0, XRUN-F1 C | XS-1·XS-6·XS-7·XS-9·XS-10·XS-11, DS-U1~DS-U4 |
+| OS-2 (옛 OS-1 합침) | 한 card로 함께 병합한다. 옛 OS-1의 유도 제약·G-S1·G-S2는 유도 제약 입력(`derived`)이 있어야 탐색에 들어가기 때문이다(나눠 병합하면 앞 card의 함수가 쓰이지 않는다).<br>• 요구 스키마 로더(N3.2, `offset_trim` 단독 거부 포함)<br>• matching 유도 제약(N3.3, G-S1 핵심 층 확장), 출발값(G-S2)<br>• 유도 제약의 별도 입력 `derived`(`build_search_context` 키워드와 전달 자리, N3.10·PD-1·PD-4)<br>• 파이프라인 층 재작성(단일 변형): `build_run_plan`(요구 없음·`matching` 행 + trim·compare fail-closed 거부, 승인 기록 입력 없음), 실행기 `run_plan`(엔진 사슬 진입점 정본, 하네스·test 수작업 사슬 대체, W-1), 블록 결과 색인·`RunCounters` 수명을 실행 계획 진입으로(`run_stage_a` 필수 키워드, PD-8), 결과 JSON<br>• 요구 없는 spec 무동작. 진입 흐름을 바꾸는 부분의 옛 코드는 같은 변경에서 지운다<br>• 공통 판정 검사(N3.4)는 이 card에 없다(OS-5, PD-6) | OS-0, XRUN-F1 C, F-1 fixture | XS-1·XS-6·XS-7·XS-9·XS-10·XS-11, DS-U1~DS-U3, PD-1·PD-4·PD-5·PD-8, W-1, F-1 |
 | OS-3 | 읽기 전용 비교 도구(N3.8). **TR-1 뒤, trim 국면 2(TR-6) 병합 뒤**에 한다. 비교 입력인 trim 국면 2 결과 JSON은 TR-6 뒤에야 생기기 때문이다(그 전에 만들면 쓰는 곳이 없다) | OS-2, OS-5, TR-6 | XS-3 |
-| OS-5 (TR card에 묶음) | **TR-1 뒤**, trim 국면 1을 처음 제품 경로에 여는 TR card(TR-2, U16 뒤, T-15)와 함께: 국면 규칙·승인 기록 로더·낡은 승인 정지(N3.5), 다변형 실행(compare 국면 1 = matching + trim 국면 1), 변형 사이 공유, DS-1·DS-2 처리(모든 선택지가 핵심 층 변경을 포함), 변형 정체 칸, Σ 색인 상한, 변형별 예산 | OS-2, TR-2, DS-1·DS-2 결정, XS-12·XS-13 확인 | XS-4·XS-5·XS-8·XS-11·XS-12·XS-13 |
+| OS-5 (TR card에 묶음) | **TR-1 뒤**, trim 국면 1을 처음 제품 경로에 여는 TR card(TR-2, U16 뒤, T-15)와 함께:<br>• 다변형 실행(compare 국면 1 = matching + trim 국면 1), 변형 사이 공유, DS-1 처리(모든 선택지가 핵심 층 변경을 포함)<br>• 변형 정체 칸, Σ 색인 상한과 card C `S3Index` 인터페이스 변경(B_S0, PD-7), 변형별 예산<br>• 공통 판정 검사(N3.4, DS-U4, PD-6)<br>국면 2 일은 N3.5 TR card별 배정(PD-2)을 따른다: TR-2 = '승인 기록 없음 → 국면 1'과 '승인 파일이 있으면 국면 2 미구현으로 fail-closed', TR-3 = 승인 기록 로더·결속·낡은 승인 정지·국면 2 분기, TR-4 = 구조 동일 검사, TR-5b = 국면 2 탐색 게이트 해제 | OS-2, TR-2, DS-1 결정, XS-12·XS-13 확인 | XS-4·XS-5·XS-8·XS-11·XS-12·XS-13, PD-2·PD-6·PD-7 |
 | (TR 연결) | TR card가 trim 국면 1·2 변형을 계획에 연결하고 거부를 푼다. 범위 조정은 OS-0의 OT 개정안이 정한다 | 각 TR card 선행 그대로 | XS-2·XS-4 |
 
 **TR-1 앞/뒤**: OS-0·OS-M·OS-2는 TR-1 앞, OS-5는 TR-1 뒤(TR-2와 함께), OS-3은 TR-6 뒤다.
@@ -413,19 +418,26 @@ NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS
 **v0.5 반영**(N11):
 * **W-1 (i)(사용자 승인 S-9)**: OS-2의 `run_plan`이 엔진 사슬 진입점의 정본이다. 하네스(`tests/integration/nfr4_run_dump.py` 등)와 test의 수작업 사슬(`run_stage_a` → `run_stage_b` → `build_kernel_context` → `build_search_context` → `find_front`)을 같은 변경에서 `run_plan` 호출로 대체하고 옛 수작업 사슬을 지운다. U16은 나중에 제품 CLI를 `run_plan`에 배선한다(사슬을 두 벌 두지 않는다). design이 정할 요구(검증 B-1):
   * 단계 B 진단 모드: 하네스는 `run_stage_b(..., diagnostic=True)`를 부르고(`nfr4_run_dump.py:387`) 보고서 `diagnostic` 칸(`stage_b.py:129`)을 쓴다. `run_plan`은 진단 모드를 같은 뜻(측정만 하고 단계 A 상태·exit code 유지)으로 단계 B에 넘기고 결과에 그 표지를 싣는다.
-  * 탐색 컨텍스트 값 노출: 하네스는 `sctx.cache`, `sctx.domain.w_min_m`, `sctx.dc.base`를 읽는다(`nfr4_run_dump.py:401-421`). `run_plan` 결과 객체는 변형마다 이 값들(card B 뒤에는 `S3Index` 평가 키 부분)을 읽기 전용 참조로 낸다. 칸 이름·형식은 design이 정한다.
+  * 사슬 값 노출: 하네스가 지금 사슬에서 읽거나 넘기는 값 **전부**를 `run_plan`이 같은 뜻으로 받거나 결과 객체에서 읽기 전용 참조로 내야 한다. 목록은 design이 하네스를 전수로 읽어 만든다. 지금 보이는 것(`nfr4_run_dump.py:316-329, :377-424`)은 다음과 같다.
+    * 단계 A의 `code_fp`, 단계 A·B `report_paths`, 단계 A·B S1 스냅샷 지문
+    * `sctx.context_fp`, `sctx.cache`(card B 뒤에는 `S3Index` 평가 키 부분), `sctx.domain.w_min_m`, `sctx.dc.base`
+    * `find_front` 결과 객체
+    * 입력 쪽: `LutMemo` 크기 인자, S3 루트, `settings` 전달
+    * `find_front` 모듈 속성(`layer0_start`·`sweep_front`)을 감싸는 관찰 방식. 이 관찰 지점 계약(NFR-4 card 2 J-3·J-7)이 `run_plan` 경로에서도 그대로 동작해야 한다.
   * 완료 조건 1의 base 사슬: base = XRUN-F1 card C 병합 뒤 master의 수작업 사슬(위 순서, 하네스와 같은 인자·같은 진단 설정)이다. 비교 대상은 OS-2 병합본의 `run_plan`이다.
 * **F-1(사용자 승인 S-9)**: OS-2 검증 fixture는 N7.1 '추가 의존'의 F-1 문단이다. OS-2 선행 조건이다.
 * **승인됨(S-8)**:
-  * PD-6: 공통 판정 검사는 OS-5다(OS-2 행의 '공통 판정 검사(N3.4)'는 OS-5 행으로 옮긴 것으로 읽는다).
-  * PD-2: 국면 2 일들의 TR card 배정은 N11.1 PD-2 행(design OB-18)이다. TR-2 = 국면 1과 '승인 파일 있으면 국면 2 미구현 fail-closed', TR-3 = 승인 기록 로더·결속·낡은 승인 정지·국면 2 분기, TR-4 = 구조 동일 검사, TR-5b = 국면 2 탐색 게이트 해제. TR-3~TR-5b 사이 승인 회로가 사이징되지 않는 기간(OD-3)은 수용됐다.
-  * PD-7: OS-5가 card C `S3Index` 생성자·상한 검사 인터페이스를 바꾸고 card C test를 같은 변경에서 고친다.
+  * PD-1·PD-2·PD-6·PD-7은 위 card 표 본문에 반영했다. TR-3~TR-5b 사이 승인 회로가 사이징되지 않는 기간(OD-3)은 수용됐다(N5 XS-15).
   * PD-8: `run_stage_a`는 `donors`·`counters`를 필수 키워드로 받는다. 40 §2.4.5 '전달' 행 개정이 필요하다(N3.9). card B가 아직 코드에 들어가지 않았으면 card B design 쪽을 먼저 고쳐 서명을 두 번 바꾸지 않는다. 이미 들어갔으면 OS-2가 바꾸고 card B·C의 `run_stage_a` 호출 test를 같은 변경에서 고친다.
 
 완료 조건이 걸리는 card: 1·5·7·8은 OS-2부터, 2·3·4는 OS-5부터(변형이 둘 이상인 계획이 생길 때), 6은 OS-3.
 
 **완료 조건**(기능 전체):
-1. **요구가 없는 실행**에서 9회로 결과가 base와 비트 동일하다(**PD-5 승인, S-8**: 비교 제외 범위를 넓히지 않는다. 요구 섹션은 있을 때만 spec 지문 묶음에 넣어(OT §3.3 선례) 요구 없는 spec의 `spec_fp`·`section_fps`가 바뀌지 않게 한다. 블록 코드 해시 입력 버전(F2)·코드 지문(F3)의 제외는 코드가 바뀌는 card에서 필연적인 판정 기준 변경으로 보고하고, 목록은 검증자가 소유한다). base는 XRUN-F1 card C 병합 뒤 기준선이고, base 쪽 실행은 그 master의 수작업 사슬이다(W-1, N7.2 'v0.5 반영'). 비교에서 빼는 칸은 계수·시간 칸(40 §2.4.13 T 부류)과, 실행 경계 문구 변경으로 바뀌는 칸이 있으면 그 목록이다(design이 정하고 검증자가 소유).
+1. **요구가 없는 실행**에서 9회로 결과가 base와 비트 동일하다. 비교 제외 범위(PD-5, S-8):
+   * spec 지문(`spec_fp`·`section_fps`)은 **제외하지 않는다**. 요구 섹션은 있을 때만 spec 지문 묶음에 넣으므로(OT §3.3 선례) 요구 없는 spec의 지문이 바뀌지 않는다.
+   * 블록 코드 해시 입력 버전(F2)·코드 지문(F3)은 코드가 바뀌는 card에서 필연적으로 바뀐다. 이 제외는 **판정 기준 변경으로 보고**하고, 목록은 검증자가 소유한다.
+   * 그 밖에 빼는 칸: 계수·시간 칸(40 §2.4.13 T 부류)과, 실행 경계 문구 변경으로 바뀌는 칸이 있으면 그 목록(design이 정하고 검증자가 소유).
+   * base는 XRUN-F1 card C 병합 뒤 기준선이고, base 쪽 실행은 그 master의 수작업 사슬이다(W-1, N7.2 'v0.5 반영').
 2. **계획 안 결과 = 단독 결과**: 변형이 둘 이상인 계획에서 각 변형의 결과가 그 변형만 담은 계획으로 돈 결과와 비트 동일하다(T 부류 제외). 변형 순서를 바꿔도 같다. **범위는 E_B를 선언한 실행이다.** 시간 예산에서 E_B를 유도하는 실행(X-17 후반)은 유도값이 평가 시간 중앙값에 의존하고(`kernel.py:153-158`, card C 뒤 `search_ceiling`), 앞 변형의 블록 결과 적중으로 뒤 변형의 평가 시간이 짧아지면 유도 E_B가 달라진다. 벽시계 정지(F-6)도 같다. 이런 실행에서 비트 동일을 요구하려면 계획 순서·구성과 무관한 유도 규칙이 따로 있어야 한다. 그 규칙은 DS-U9(열림)로 두고, 정해지기 전에는 유도 실행을 조건 2에서 빼고 결과에 '유도 예산 -- 단독과 다를 수 있음'을 적는다. 이 제외는 기준 약화가 아니라 범위 표기이고, 검증자가 확인한다.
 3. **재계산 0**: 실행 계획 전체에서 같은 입력의 블록 재계산 0, 같은 평가 키 재계산 0(40 §2.4.9 판정 1을 실행 전체에).
 4. **공유 증거**: 같은 topology 변형 둘을 담은 계획에서 S1 블록 계산 수가 변형 하나일 때와 같다. 블록 결과 색인 적중 수와 S1v 재계산 수(DS-2)를 결과에 낸다.
@@ -494,6 +506,7 @@ matching 유도식 k·σ_in + |V_sys| ≤ `offset_in_max_v`는 사용자 결정 
 | DS-U5 | 기존 library spec(특히 `offset_in_sigma_mv`를 가진 spec, F-9)을 요구 형식으로 옮길지와 그 값 | 사용자 몫. 이 기능은 옮기지 않는다 |
 | DS-T1 | matching만 쓰는 회로의 SPICE 온도 보정 루프를 T-30 순서(TR-7 뒤)보다 앞당길지(N3.11) | **닫힘(S-9, 권고대로)**: 앞당기지 않는다(T-30 원문 순서). matching 루프에는 DAC 분해 정지가 없어 기술적으로 앞당길 수는 있지만, 보정 루프의 정본(Δ_T·문턱 합성·멈춤 규칙)이 offset-trim 계획 card에 있어 한 번만 구현하려면 그 card 순서를 따르는 것이 낫다 |
 | PD-9 | 공존 거부의 '판정 제약' 범위(N11). PD-1~PD-8은 S-8, W-1·F-1·T-30 연결은 S-9로 닫힘 | **결정 대기**(사용자가 권고 사유 설명 요청). 권고는 N11.1 PD-9 행 |
+| V-1 | matching 유도 제약의 오라클 측정 card 배정(N3.11) | **확인 대기**. 권고: 이 계획 쪽 card 하나(가칭 OS-V), OS-2·oracle-portability 코어 뒤, offset-trim TR-TL 앞 |
 
 ### N10.2 오케스트레이터 기본안(원칙으로 확정, 사용자가 바꿀 수 있음)
 
@@ -534,6 +547,8 @@ S-7에 따라 design이 계획과 다르게 간 점은 design에서 승인받지
 | W-1·F-1 | **사용자 승인됨**(S-9, 권고대로). N7.1·N7.2·완료 조건 1에 반영함 |
 | T-30 연결(DS-T1 포함) | **사용자 승인됨**(S-9). N3.11에 반영함 |
 | PD-9 | **결정 대기**. 사용자가 권고 사유 설명을 요청했다. 그 전에는 N3.2 로더 규칙과 DS-U2 문언을 바꾸지 않는다 |
+| V-1(v0.5.1, 검증 B-3) | **확인 대기**. matching 유도 제약의 `verified_by`(오라클 측정)를 붙이는 card의 배정. 권고: 이 계획 쪽 card 하나(가칭 OS-V). 선행은 OS-2와 oracle-portability 코어이고, offset-trim TR-TL의 선행이다(N3.11 소유 경계 표) |
+| D-18 연결(v0.5.1, 검증 B-3) | 판정 온도 범위 칸의 값·채택은 offset-trim D-18(사용자 결정 대기)이다. 채택되면 이 계획 N3.2에 칸을 더한다(N3.11) |
 
 * 입력: design v0.1 `docs/02-design/features/offset-strategy.design.md`(브랜치 `ostrat-design`, `aef46c7`)와 그 history, design 독립 검증(82점) 지적.
 * 코드 인용 기준: master `d783efe`.
@@ -553,7 +568,7 @@ S-7에 따라 design이 계획과 다르게 간 점은 design에서 승인받지
 | PD-8 `run_stage_a`의 `donors`·`counters` | 계획에는 문언 없음(N3.6 '색인을 만드는 자리를 실행 계획 진입으로') | design OB-9: `run_stage_a`가 `donors`·`counters`를 필수 키워드로 받고 `StageAResult.topology` 칸을 더한다. 승인된 40 §2.4.5 '전달' 행은 '`run_stage_a`가 두 객체를 만든다'(card B design)라서 다르다 | (ii) card B가 아직 코드에 들어가지 않았으면 card B design(40 §2.4.5) 자체를 지금 고쳐 `run_stage_a`가 처음부터 두 객체를 받게 한다(같은 서명을 두 번 바꾸지 않음) | **(ii)를 먼저 확인하고, card B 구현이 이미 시작됐으면 design안**(OS-2가 서명을 바꾸고 card B·C의 `run_stage_a` 호출 test를 같은 변경에서 고친다). 어느 쪽이든 40 §2.4.5 '전달' 행 개정이 필요하다 | 다르지 않음 | 필요(승인된 40 design 개정, card B·C test 영향) |
 | PD-9 공존 거부의 '판정 제약' 범위 | DS-U2(S-6 결정): 요구와 offset 판정 제약 셋의 공존 거부 | design OB-6(§4.2 L2): `human.constraints` 항목 전부를 출처 kind와 무관하게 거부한다. `judged` = 거짓인 `pending_spice` 항목까지 거부하고, `pending_constraints`(값 없는 이름 목록)는 허용 | design안(넓힘) | **결정 문언에 맞춘다**: `judged` = 참인 offset 제약만 거부한다. `pending_spice` 항목은 판정 제약이 아니므로 거부하지 않는다. 그 항목이 나중에 판정 제약이 되는 순간에는 같은 로더 검사가 거부하므로 fail-closed는 유지된다. `pending_constraints`는 허용 그대로 | 넓히면 결정(S-6) 문언과 다름 | 확인(넓히려면 승인) |
 | W-1 사슬 진입점 | N7.2 OS-2: 실행기를 만들고 '옛 진입 흐름은 같은 변경에서 지운다'. 엔진에 제품 사슬 진입점이 없다는 사실은 적지 않았다 | design E-S13: 단계 A → B → 커널 컨텍스트 → 탐색 컨텍스트 → `find_front`를 잇는 제품 진입점이 없다(`run_gmid_design_pipeline`은 자리만, U16 미병합). 사슬은 test 하네스가 만든다(`tests/integration/nfr4_run_dump.py:376-401`). design 기본안 (i) | (i) OS-2 `run_plan`을 사슬 진입점으로 병합하고 하네스·test의 수작업 사슬을 같은 변경에서 대체한다. U16 `run_gmid_design_pipeline`은 `run_plan`을 부른다고 계약에 적는다. 병합 즉시 제품 CLI에서는 쓰이지 않는다. (ii) OS-2를 U16과 함께 병합한다 | **(i)**. 하네스 사슬이 지금 실제로 쓰이는 유일한 사슬이고, 대체하면 옛 수작업 사슬이 사라진다. **계획 요구로 더한다**(검증 B-1): 하네스는 `run_stage_b(..., diagnostic=True)`를 부르고(`nfr4_run_dump.py:387`), 단계 B 보고서 `diagnostic` 칸(`stage_b.py:129`)을 쓰며, `sctx.cache`·`sctx.domain.w_min_m`·`sctx.dc.base`를 읽는다(`nfr4_run_dump.py:401-421`). 그래서 `run_plan`은 (1) 진단 모드를 단계 B에 같은 뜻(측정만, 단계 A 상태·exit code 유지)으로 넘기고 결과에 그 표지를 싣고, (2) 변형마다 탐색 컨텍스트에서 하네스가 읽는 값(평가 결과 목록 -- card B 뒤 `S3Index` 평가 키 부분, 정의역, S0 수준 스냅샷)을 결과 객체로 읽기 전용 참조로 내야 한다. 세부 형식은 design | (i)은 '만들면 배선'의 제품 경로가 test 하네스라는 점에서 예외 | **필요**('만들면 배선' 승인) |
-| F-1 OS-2 matching 검증 fixture | N7.1: 'OS-2의 검증 fixture는 기준이 이미 정의되는 회로로 고른다' | design §16.4 F-1: 차동 출력 회로여야 L4(단일 출력 기준 DC 검사) 없이 돈다. library 차동 출력 회로는 하나다(OT E-13). 값 `offset_in_max_v`·k는 사용자 값 | 단일 출력 회로를 고르고 '출력 기준 DC' 기능 뒤로 미룬다 | 오케스트레이터가 회로·spec 초안을 만들고 사용자가 회로와 값을 승인한다(T-9와 같은 절차, `origin: fixture`, library 밖). 승인 전에는 쓰지 않는다 | 다르지 않음 | **필요**(사용자 값) |
+| F-1 OS-2 matching 검증 fixture | N7.1: 'OS-2의 검증 fixture는 기준이 이미 정의되는 회로로 고른다' | design §16.4 F-1: 차동 출력 회로여야 L4(단일 출력 기준 DC 검사) 없이 돈다. library 차동 출력 회로는 하나다(OT E-13). 값 `offset_in_max_v`·k는 사용자 값 | 단일 출력 회로를 고르고 '출력 기준 DC' 기능 뒤로 미룬다 | 오케스트레이터가 회로·spec 초안을 만들고 사용자가 회로와 값을 승인한다(T-9와 같은 절차, `origin: fixture`, library 밖·저장소 안) | 다르지 않음 | **승인됨(S-9)**: current_reuse_telescopic_ota 사본, {matching, k = 3, `offset_in_max_v` = 3 × 3.3 mV}, 위치 = library 밖 fixture(저장소 안, `assets/fixture/` 계열). 결정 기록의 '저장소 밖'은 오기였고 정정됐다(history) |
 
 ### N11.2 반영 위치
 
