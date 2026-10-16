@@ -20,6 +20,13 @@ import gmid_engine.graph as graph_pkg
 from gmid_engine.core import fp_of
 from gmid_engine.graph import NO_SUPPLIES_FP, S1_RULE_FILES, S1Key, build_s1, s1_key, supplies_declaration
 
+
+def _build(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
+
 GRAPH_DIR = Path(graph_pkg.__file__).resolve().parent
 ENGINE_DIR = GRAPH_DIR.parent
 SIX = (
@@ -52,7 +59,7 @@ def test_key_parts(gh, name):
         assert key.supplies_v_fp == NO_SUPPLIES_FP
     else:
         assert key.supplies_v_fp == fp_of(tuple(sorted((k, float(v)) for k, v in sv.items())))
-    assert build_s1(doc, sv).key == key
+    assert _build(doc, sv).key == key
 
 
 def test_supplies_fp_hand_built(gh):
@@ -64,7 +71,7 @@ def test_supplies_fp_hand_built(gh):
 
 def test_int_and_float_supplies_same_key(gh):
     doc = gh.load_lib("common_gate_amplifier")
-    assert build_s1(doc, {"vdd": 2, "gnd": 0}).key == build_s1(doc, {"vdd": 2.0, "gnd": 0.0}).key
+    assert _build(doc, {"vdd": 2, "gnd": 0}).key == _build(doc, {"vdd": 2.0, "gnd": 0.0}).key
 
 
 @pytest.mark.parametrize("delta", [1e-12, 0.1, -0.5])   # agnd 를 vss·vdd 사이에 둔다(정지 조건 회피)
@@ -72,7 +79,7 @@ def test_any_potential_change_changes_only_supplies_part(gh, delta):
     doc = gh.load_lib("sf_pushpull_output_opamp")
     sv = gh.supplies_for("sf_pushpull_output_opamp")
     sv2 = dict(sv, agnd=sv["agnd"] + delta)
-    a, b = build_s1(doc, sv).key, build_s1(doc, sv2).key
+    a, b = _build(doc, sv).key, _build(doc, sv2).key
     assert a != b
     assert (a.topology_fp, a.rule_fp) == (b.topology_fp, b.rule_fp)
     assert a.supplies_v_fp != b.supplies_v_fp
@@ -80,7 +87,7 @@ def test_any_potential_change_changes_only_supplies_part(gh, delta):
 
 def test_none_vs_supplies_differ(gh):
     doc = gh.load_lib("two_stage_ota_sf")
-    assert build_s1(doc, None).key != build_s1(doc, {"vdd": 1.8, "gnd": 0.0}).key
+    assert _build(doc, None).key != _build(doc, {"vdd": 1.8, "gnd": 0.0}).key
 
 
 # ------------------------------------------------------------------ 주석·태그는 불변, 연결은 변경 (계약 1절 마지막 항목)
@@ -106,8 +113,8 @@ def _annotate(raw: dict, tags) -> dict:
 def test_annotation_tags_order_do_not_change_key(gh, tmp_path, name):
     raw = gh.raw(name)
     sv = gh.supplies_for(name, raw)
-    a = build_s1(gh.load_lib(name), sv)
-    b = build_s1(gh.load_raw(tmp_path, _annotate(raw, gh.TAG_KEYS)), sv)
+    a = _build(gh.load_lib(name), sv)
+    b = _build(gh.load_raw(tmp_path, _annotate(raw, gh.TAG_KEYS)), sv)
     assert a.key == b.key
     assert a.snapshot.fp == b.snapshot.fp
 
@@ -140,8 +147,8 @@ def test_connection_change_changes_key(gh, tmp_path, edit):
     raw2 = json.loads(json.dumps(raw))
     CONNECTION_EDITS[edit](raw2)
     assert raw2 != raw
-    a = build_s1(gh.load_lib(name), sv)
-    b = build_s1(gh.load_raw(tmp_path, raw2), sv)
+    a = _build(gh.load_lib(name), sv)
+    b = _build(gh.load_raw(tmp_path, raw2), sv)
     assert a.key != b.key
     assert a.key.topology_fp != b.key.topology_fp
     assert (a.key.rule_fp, a.key.supplies_v_fp) == (b.key.rule_fp, b.key.supplies_v_fp)

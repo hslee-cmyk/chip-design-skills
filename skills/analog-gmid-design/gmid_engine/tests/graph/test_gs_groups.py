@@ -9,6 +9,13 @@ import pytest
 from gmid_engine.core import ComputeBlock
 from gmid_engine.graph import S1_GS_GROUPS_WRITER, GsGroup, build_s1, s1_gs_groups
 
+
+def _build(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
+
 SIX = (
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
@@ -20,7 +27,7 @@ TABLE = {"common_gate_amplifier": 0, "current_reuse_telescopic_ota": 3, "folded_
 
 
 def _s1(gh, name):
-    return build_s1(gh.load_lib(name), gh.supplies_for(name))
+    return _build(gh.load_lib(name), gh.supplies_for(name))
 
 
 def _json_groups(raw):
@@ -50,7 +57,7 @@ def test_rail_gate_group_included(gh, tmp_path):
     raw["netlist"] += [{"name": "Mg1", "kind": "nmos", "drain": "A", "gate": "vdd", "source": "vss"},
                        {"name": "Mg2", "kind": "nmos", "drain": "B", "gate": "vdd", "source": "vss"}]
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    s1 = build_s1(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
+    s1 = _build(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
     assert ("nmos", "vdd", "vss", ("Mg1", "Mg2")) in [gh.gs_plain(g) for g in gh.gval(s1, "gs_groups")]
 
 
@@ -59,7 +66,7 @@ def test_kind_separates_groups(gh, tmp_path):
     raw["netlist"] += [{"name": "Mk1", "kind": "nmos", "drain": "A", "gate": "VNB1", "source": "B"},
                        {"name": "Mk2", "kind": "pmos", "drain": "vout", "gate": "VNB1", "source": "B"}]
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    s1 = build_s1(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
+    s1 = _build(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
     assert all({"Mk1", "Mk2"} - set(g.members) for g in gh.gval(s1, "gs_groups"))
 
 

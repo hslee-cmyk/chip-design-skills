@@ -31,7 +31,7 @@ def _raw(name):
 
 
 def _s1(tmp_path, doc, name):
-    return build_s1(H.load(tmp_path, doc), H.lib_supplies(name))
+    return build_s1(H.load(tmp_path, doc), H.lib_supplies(name), **H.fresh_run())
 
 
 def _passive_names(doc):

@@ -21,6 +21,13 @@ from gmid_engine.graph import (
     s1_bulk,
 )
 
+
+def _s1(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
+
 SIX = (
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
@@ -68,7 +75,7 @@ def test_library_bulk_matches_json_rule(gh, name):
     sv = gh.supplies_for(name, raw)
     exp = agg.expected_bulk(sv)
     assert _dist(exp) == TABLE_BULK[name]                     # 집계를 계약 표와 교차 확인
-    s1 = build_s1(gh.load_lib(name), sv)
+    s1 = _s1(gh.load_lib(name), sv)
     got = _bulk(s1)
     assert got == exp
     assert tuple(got) == tuple(sorted(agg.mos))               # MOS 레코드에만, key 정렬
@@ -78,7 +85,7 @@ def test_library_bulk_matches_json_rule(gh, name):
 
 
 def test_two_stage_ota_sf_needs_supplies(gh):
-    s1 = build_s1(gh.load_lib("two_stage_ota_sf"), None)
+    s1 = _s1(gh.load_lib("two_stage_ota_sf"), None)
     assert set(_bulk(s1).values()) == {(None, "undetermined", "needs_supplies_v")}
     assert len(_bulk(s1)) == 9
 
@@ -86,7 +93,7 @@ def test_two_stage_ota_sf_needs_supplies(gh):
 @pytest.mark.parametrize("name", NINE)
 def test_without_supplies_every_default_device_needs_supplies(gh, name):
     agg = gh.agg(gh.raw(name))
-    got = _bulk(build_s1(gh.load_lib(name), None))
+    got = _bulk(_s1(gh.load_lib(name), None))
     assert got == {n: (None, "undetermined", "needs_supplies_v") for n in agg.mos}
 
 
@@ -100,8 +107,8 @@ def test_rail_names_renamed_same_result(gh, tmp_path):
     mapping = {"vdd": "aaa", "vss": "zzz", "agnd": "mmm"}
     raw2 = gh.rename_nets(raw, mapping)
     sv2 = {mapping[k]: v for k, v in sv.items()}
-    base = _bulk(build_s1(gh.load_raw(tmp_path, raw), sv))
-    ren = _bulk(build_s1(gh.load_raw(tmp_path, raw2, "renamed"), sv2))
+    base = _bulk(_s1(gh.load_raw(tmp_path, raw), sv))
+    ren = _bulk(_s1(gh.load_raw(tmp_path, raw2, "renamed"), sv2))
     assert ren == {k: (mapping.get(v[0], v[0]),) + v[1:] for k, v in base.items()}
     assert ren == gh.agg(raw2).expected_bulk(sv2)
 
@@ -112,7 +119,7 @@ def test_name_says_vdd_but_potential_is_lowest(gh, tmp_path):
     raw = gh.raw("common_gate_amplifier")
     agg = gh.agg(raw)
     sv = {"vdd": 0.0, "gnd": 1.8}
-    got = _bulk(build_s1(gh.load_lib("common_gate_amplifier"), sv))
+    got = _bulk(_s1(gh.load_lib("common_gate_amplifier"), sv))
     assert got == agg.expected_bulk(sv)
     assert {v[0] for n, v in got.items() if agg.mos[n]["kind"] == "nmos"} == {"vdd"}
     assert {v[0] for n, v in got.items() if agg.mos[n]["kind"] == "pmos"} == {"gnd"}
@@ -125,8 +132,8 @@ def test_origin_shift_invariant(gh, name, offset):
     doc = gh.load_lib(name)
     sv = gh.supplies_for(name)
     shifted = {k: v + offset for k, v in sv.items()}
-    a = build_s1(doc, sv)
-    b = build_s1(doc, shifted)
+    a = _s1(doc, sv)
+    b = _s1(doc, shifted)
     assert a.key.supplies_v_fp != b.key.supplies_v_fp          # 다른 supplies 로 실제 다시 계산했다
     assert _bulk(a) == _bulk(b)
 
@@ -134,7 +141,7 @@ def test_origin_shift_invariant(gh, name, offset):
 def test_origin_shift_pm09_vs_0_18(gh):
     # 계약 4.2: ±0.9 와 0/1.8 이 같은 넷을 고른다
     doc = gh.load_lib("ngcc_3stage_ff")
-    assert _bulk(build_s1(doc, {"vdd": 0.9, "gnd": -0.9})) == _bulk(build_s1(doc, {"vdd": 1.8, "gnd": 0.0}))
+    assert _bulk(_s1(doc, {"vdd": 0.9, "gnd": -0.9})) == _bulk(_s1(doc, {"vdd": 1.8, "gnd": 0.0}))
 
 
 # ------------------------------------------------------------------ 우선순위 1·2
@@ -148,9 +155,9 @@ def test_declared_bulk_wins_and_skips_stop_check(gh, tmp_path):
     raw["netlist"][0]["bulk"] = "agnd"                            # 선언이면 레일 아무거나 그대로
     doc = gh.load_raw(tmp_path, raw)
     sv = {"vdd": 1.8, "vss": 0.0, "agnd": 0.0}                    # 동률(정지 조건) 이지만 대상 없음
-    got = _bulk(build_s1(doc, sv))
+    got = _bulk(_s1(doc, sv))
     assert got == {e["name"]: (e["bulk"], "declared", None) for e in raw["netlist"]}
-    assert _bulk(build_s1(doc, None)) == got                      # supplies 없어도 declared
+    assert _bulk(_s1(doc, None)) == got                      # supplies 없어도 declared
 
 
 def test_partial_declared_mixed(gh, tmp_path):
@@ -158,10 +165,10 @@ def test_partial_declared_mixed(gh, tmp_path):
     raw["netlist"][0]["bulk"] = "vdd"                             # nmos 에 일부러 vdd 선언
     doc = gh.load_raw(tmp_path, raw)
     agg = gh.agg(raw)
-    got = _bulk(build_s1(doc, {"vdd": 1.8, "gnd": 0.0}))
+    got = _bulk(_s1(doc, {"vdd": 1.8, "gnd": 0.0}))
     assert got == agg.expected_bulk({"vdd": 1.8, "gnd": 0.0})
     assert got[raw["netlist"][0]["name"]] == ("vdd", "declared", None)
-    got_none = _bulk(build_s1(doc, None))
+    got_none = _bulk(_s1(doc, None))
     assert got_none[raw["netlist"][0]["name"]] == ("vdd", "declared", None)
     assert {v for k, v in got_none.items() if k != raw["netlist"][0]["name"]} == {
         (None, "undetermined", "needs_supplies_v")}
@@ -179,7 +186,7 @@ def test_unsupported_kind_bulk_undetermined(gh, tmp_path):
         assert got[name] == (None, "undetermined", "unsupported_kind")
         assert got == gh.agg(raw).expected_bulk(sv)
         # build_s1 은 U2 s1_dc_conduction 에서 정지한다(계약 4.6, DU 대비 9절 10)
-        d, devices = _stop(lambda: build_s1(doc, sv))
+        d, devices = _stop(lambda: _s1(doc, sv))
         assert d["rule_branch"] == "mos_kind_unsupported" and devices == (name,)
 
 
@@ -193,14 +200,14 @@ def test_multi_domain_pushpull_nmos_source_to_agnd(gh, tmp_path):
     m6["source"] = "agnd"
     agg = gh.agg(raw)
     doc = gh.load_raw(tmp_path, raw)
-    d, devices = _stop(lambda: build_s1(doc, {"vdd": 1.8, "vss": 0.0, "agnd": 0.9}))
+    d, devices = _stop(lambda: _s1(doc, {"vdd": 1.8, "vss": 0.0, "agnd": 0.9}))
     assert d["rule_branch"] == BRANCH_MULTI_DOMAIN
     assert d["channel_rails"] == tuple(sorted(agg.channel_rails)) == ("agnd", "vdd", "vss")
     assert d["bulk_rails"] == ("vss", "vdd")
     assert d["outside_rails"] == ("agnd",)
     assert devices == ("M6",)
     # supplies 없으면 검사 미적용 -> 정지하지 않는다
-    assert set(_bulk(build_s1(doc, None)).values()) == {(None, "undetermined", "needs_supplies_v")}
+    assert set(_bulk(_s1(doc, None)).values()) == {(None, "undetermined", "needs_supplies_v")}
 
 
 def _sf_with_vddx(gh, potential):
@@ -216,7 +223,7 @@ def _sf_with_vddx(gh, potential):
 def test_multi_domain_sf_extra_mid_rail(gh, tmp_path):
     raw, moved, sv = _sf_with_vddx(gh, 1.5)
     doc = gh.load_raw(tmp_path, raw)
-    d, devices = _stop(lambda: build_s1(doc, sv))
+    d, devices = _stop(lambda: _s1(doc, sv))
     assert d["rule_branch"] == BRANCH_MULTI_DOMAIN
     assert d["bulk_rails"] == ("vss", "vdd")
     assert d["outside_rails"] == ("vddx",)
@@ -230,7 +237,7 @@ def test_multi_domain_sf_extra_rail_becomes_highest(gh, tmp_path):
                           if e["kind"] in ("nmos", "pmos") and "vdd" in (e["drain"], e["source"])))
     assert len(on_vdd) == 6                                         # 계약 7.3 '소자 6개' 를 JSON 으로 교차 확인
     doc = gh.load_raw(tmp_path, raw)
-    d, devices = _stop(lambda: build_s1(doc, sv))
+    d, devices = _stop(lambda: _s1(doc, sv))
     assert d["rule_branch"] == BRANCH_MULTI_DOMAIN
     assert d["bulk_rails"] == ("vss", "vddx")
     assert d["outside_rails"] == ("vdd",)
@@ -242,13 +249,13 @@ def test_capacitor_only_rail_is_not_channel_rail(gh):
     for name in ("pushpull_follower_buffer", "sf_pushpull_output_opamp"):
         agg = gh.agg(gh.raw(name))
         assert "agnd" in agg.rails and "agnd" not in agg.channel_rails
-        build_s1(gh.load_lib(name), gh.supplies_for(name))
+        _s1(gh.load_lib(name), gh.supplies_for(name))
 
 
 @pytest.mark.parametrize("agnd,rails,pot", [(0.0, ("agnd", "vss"), 0.0), (1.8, ("agnd", "vdd"), 1.8)])
 def test_potential_tie_pushpull(gh, agnd, rails, pot):
     doc = gh.load_lib("pushpull_follower_buffer")
-    d, _ = _stop(lambda: build_s1(doc, {"vdd": 1.8, "vss": 0.0, "agnd": agnd}))
+    d, _ = _stop(lambda: _s1(doc, {"vdd": 1.8, "vss": 0.0, "agnd": agnd}))
     assert d["rule_branch"] == BRANCH_POTENTIAL_TIE
     assert d["rails"] == rails
     assert d["potential"] == pot
@@ -256,7 +263,7 @@ def test_potential_tie_pushpull(gh, agnd, rails, pot):
 
 def test_potential_tie_two_rails_equal(gh):
     doc = gh.load_lib("common_gate_amplifier")
-    d, _ = _stop(lambda: build_s1(doc, {"vdd": 1.0, "gnd": 1.0}))
+    d, _ = _stop(lambda: _s1(doc, {"vdd": 1.0, "gnd": 1.0}))
     assert d["rule_branch"] == BRANCH_POTENTIAL_TIE
     assert d["rails"] == ("gnd", "vdd")
 
@@ -271,7 +278,7 @@ def test_tie_needs_default_rule_user(gh, tmp_path):
     sv = {"vdd": 1.0, "gnd": 1.0}
     snap = gh.structure_and_bulk(doc, sv)
     assert {v for _, v in snap.column("device", "bulk")} == {BulkResult(None, "undetermined", "unsupported_kind")}
-    d, devices = _stop(lambda: build_s1(doc, sv))
+    d, devices = _stop(lambda: _s1(doc, sv))
     assert d["rule_branch"] == "mos_kind_unsupported"
     assert devices == tuple(sorted(e["name"] for e in raw["netlist"]))
 
@@ -287,7 +294,7 @@ def test_nine_originals_never_falsely_stop(gh, name):
         assert len(lo) == 1 and len(hi) == 1
         assert agg.channel_rails <= {lo[0], hi[0]}
     doc = gh.load_lib(name)
-    got = _bulk(build_s1(doc, sv))
+    got = _bulk(_s1(doc, sv))
     assert got == agg.expected_bulk(sv)
     assert all(v[1] == "default_rule" for v in got.values())   # 9회로 모두 supplies 있음
 
@@ -304,8 +311,9 @@ def test_block_declaration():
 
 
 def test_block_rejects_mutable_supplies(gh):
-    s1 = build_s1(gh.load_lib("common_gate_amplifier"), None)
-    before = s1_bulk.stats()
+    # card B C4: extras 불변 검사 TypeError 는 그대로이고 그 호출은 계수에 들지 않는다 -- 새 실행 계수에 행이 생기지 않는다
+    s1 = _s1(gh.load_lib("common_gate_amplifier"), None)
+    run = gh.fresh_run()
     with pytest.raises(TypeError):
-        s1_bulk(s1.snapshot, {"vdd": 1.8, "gnd": 0.0})
-    assert s1_bulk.stats().calls == before.calls
+        s1_bulk(s1.snapshot, {"vdd": 1.8, "gnd": 0.0}, **run)
+    assert gh.block_row(run["counters"], s1_bulk.name) == (0, 0, 0, 0, 0, 0)

@@ -119,7 +119,7 @@ def test_build_s1_rejects_bad_supplies(gh):
                      ({"vdd": 1.8, "gnd": 0.0, "vss": 0.0}, "supplies_unknown_net"),
                      ({"vdd": float("inf"), "gnd": 0.0}, "supplies_value")):
         with pytest.raises(SchemaRejectedError) as ei:
-            build_s1(doc, sv)
+            build_s1(doc, sv, **gh.fresh_run())
         d = dict(ei.value.record.detail)
         assert d["gate"] == "supplies_v"
         assert [h.rule for h in d["hits"]] == [rule]
