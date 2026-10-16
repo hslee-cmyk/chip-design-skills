@@ -14,7 +14,25 @@ date: 2026-10-16
 |---|---|---|
 | v0.1 | aef46c7 | card OS-0 초안. 계획 v0.4(사용자 승인 S-5 XS-1~XS-14, S-6 DS-U1~DS-U9) 기준. 독립 검증 82점(차단 B-1·B-2) |
 | v0.2 | 8f9b5a8 | 계획 v0.6.1(S-7~S-12, T-34~T-37, O-1) 반영. 세션 인터페이스·하네스 노출·OS-V·OS-L·판정 온도 범위 칸·F-1 fixture. 독립 검증 전 |
-| v0.2.1 | (이 커밋) | v0.1 검증 비차단 N-1~N-4·N-6·N-7·N-12 반영(H4) |
+| v0.2.1 | 8d60a7f | v0.1 검증 비차단 N-1~N-4·N-6·N-7·N-12 반영(H4). S-13 기록 ddf1b55 |
+| v0.2.2 | (이 커밋) | 계획 v0.6.2·v0.2.1 검증(84점) 반영(H5) |
+
+## H5. v0.2.2 -- v0.2.1 검증(84점) 반영(2026-10-16, base `30e287d` = master 계획 v0.6.2·offset-trim v0.5.6 병합)
+
+| 지적 | 반영 |
+|---|---|
+| B-1 정체 키 | §3.3: 중복 판정 키 = (topology, `constraint_set_fp`, `cause_fp` = Δ_T 기록 지문), 반복 번호는 표시 칸, 같은 원인 지문 재추가 거부. §6.5 `run_id`에 키(`variant_key`). §10 놓기 근거를 이 키로 다시 씀((다)는 키 지문을 평가 키에 넣어야 근거 성립) |
+| B-2 문턱 자리 | §3.4 `derived` 항목 형식(`ThresholdItem` + `OffsetBound.threshold` 자리, trim 잔여는 최상위 항목). §13.1 `add_variant(base_index, threshold_item)`, 항목은 구동기가 OT §20.3 `tightened_threshold`를 한 번 불러 만든다. 커널·`ss_constraint_rows`는 합성하지 않는다. `tightened_threshold_nonpositive`는 구동기 거부. `wt/trim-design-r1` `5c93cb6` §20.3('형식은 offset-strategy `derived` 항목 형식')·§20.7(구동기 순서 11)과 대조 일치 |
+| B-3 OS-V 경계 | §12: OP-5 공칭 표본 offset 출력(PC-10)과 G-15(OT §20.1) V_sys 정의 재사용, `O/core` 파일 안 만듦, 엔진은 `verified_by`·합성 행 결속만. '어댑터 무변경' 문장은 확인 근거가 없어 뺐다. measure 이름 = OP-5 출력 키(확인 대기) |
+| N-1 | §3.2: `start_intervals` 입력이 같은 범위를 OS-L 반복 사이(출발 구간이 문턱을 안 읽음)로 한정, compare 국면 1은 입력이 다름 |
+| N-2 | §3.2: OT §20.7 목록의 `start_intervals`는 문턱 무관 -- **OT 쪽 목록 정정 필요**로 보고 |
+| N-3 | §13.4·OB-31: `iteration_cap` 채택(OS-L 필수 키워드, 사유 `iteration_cap`) |
+| N-4 | §6.1 계획 생성 조건 하나(`stage_a.spec is not None`), spec 없으면 `run_stage_b`(skipped) 한 번 → `stage_b_unplanned`. §6.4 노출표에 행 |
+| N-5 | §18.4 Q-1 행에 '부분 사슬 test가 `S3Index`·`RunCounters`를 직접 만든다(세션 열기 일부의 두 번째 구현, test 쪽)' 사실 |
+| N-6 | §1.1에 T-29~T-33 행 |
+| N-7 | §12: `model_error_offset_sys_mv` 이름은 규칙(`verified_by.py:22, :59`)으로 확인, 값을 만드는 주체·경로는 확인 대기 |
+| N-8 | §3.4·§13.3: 단위 = V(`target` 키 접미 `_v`, Δ_T 기록 `temp_margin_<metric>_v`), 위반 `threshold_unit` |
+| N-9 | §16.2: `offset_in_max_v` record에 유도식과 두 출처 |
 
 ## H4. v0.2.1 -- v0.1 검증(82점) 비차단 원문 반영(2026-10-16, 오케스트레이터 전달)
 

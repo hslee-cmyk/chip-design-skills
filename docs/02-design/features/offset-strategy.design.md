@@ -1,8 +1,8 @@
 ---
 template: design
-version: 0.2.1
+version: 0.2.2
 plan: ../../01-plan/features/offset-strategy.plan.md
-plan_version: 0.6.1
+plan_version: 0.6.2
 ---
 
 # offset-strategy Design Document (card OS-0)
@@ -50,6 +50,7 @@ plan_version: 0.6.1
 | S-10 | PD-9 (가) 공존 거부 = 판정 제약만 | §4.2 L2 |
 | S-11 | V-1 = OS-V card, F-1 위치 = 저장소 안·library 밖 | §12, §14 |
 | S-12·T-37 | XS-16(실행 중 목록 증가)·XS-17(공개 진입 `run_plan` + 세션, 사슬 하나)·XS-18(= OTP X-23, Δ_T 입력은 S-3 취지 안)·XS-19(메모리 동시 점유, 반복마다 메모리 보고, OS-L 병합 전 반복당 색인 크기 측정) 허용 | §6, §13 |
+| T-29~T-33 | offset·trim 잔여 합격 = SPICE 오라클 온도 범위 판정(T-29), SPICE 온도 보정 루프는 offset-trim 계획 소유·순서 TR-7 뒤(T-30), 공정 무관 방법론(T-31), 처음 범위 = offset·trim 잔여(T-32), 오라클 시뮬레이터 무관(T-33) | §8 합격 표기, §12, §13 |
 | T-34 | 판정 온도 범위 = T-14 범위, spec 한 곳 선언, 모든 소비자가 참조(숫자 사본 금지), 위치 = 요구 안 칸 | §4.1 |
 | T-35 | OTP D-24 안 B: 반복 = 같은 실행 안 변형, D-19 반복 상한 = 실행 설정(기본값 없음) | §13 |
 | T-36 | OTP D-20 (가), D-25 (c)+(c-2): 출처 무결성, 대조 주체 = 엔진 밖 구동기, 엔진에는 통과한 값만 | §13(인터페이스 서명을 닫는다) |
@@ -112,7 +113,7 @@ plan_version: 0.6.1
 |---|---|
 | 요청 | `MetricRequest(b.sigma_metric, b.view)`, `MetricRequest(b.sys_metric, b.view)`. 커널이 `sctx.ss_constraints`와 함께 `ss_evaluate`에 넘긴다(E-S8) |
 | 값 | v = k·σ + \|V_sys\|(V). σ = `sigma_in_mv`·u, \|V_sys\| = `sys_mv`·u |
-| 문턱 | L = b.limit_v(요구 `offset_in_max_v`). OS-L 뒤 Δ_T가 있으면 L = OTP G-9 문턱 합성 함수(spec 참조 − Δ_T 입력)의 값이고, 합성은 이 행 계산 한 곳에서만 부른다(OTP NFR-T3, §13.2) |
+| 문턱 | L = b.threshold.value_v(§3.4 문턱 항목). 처음 변형은 요구 `offset_in_max_v`의 해석된 값, OS-L 추가 변형은 구동기가 OT §20.3 `tightened_threshold`를 한 번 불러 만든 조인 문턱 항목의 값이다. **커널·`ss_constraint_rows`는 문턱을 합성하지 않고 항목 값을 읽기만 한다**(평가마다 합성하지 않음 = 같은 입력 재계산 0, 계획 v0.6.2 N3.12 ③) |
 | 분해능 | s = k·s_σ + s_sys, s_x = max(결과 `resolution`, 그 metric 모델 오차 선언)·u. 선형 오차 전파 상계이고 기존 ss 행 규칙(`E/search/ss_constraints.py:15-18, :82`)을 항마다 쓴 것이다 |
 | 행 | 이름 `req:offset_matching<=`, c = (L − v)/s, `active` = c ≤ 1 |
 | 봉인 안 된 점 | 미측정 (`offset_matching`, `<=`, `ss_requires_sealed_snapshot`) |
@@ -128,10 +129,12 @@ plan_version: 0.6.1
 
 ### 3.2 G-S2 matching 출발값
 
-* **규칙(OB-5)**: 출발값 σ 목표 집합 Σ_t(V) = {사용자 판정 제약 `offset_in_sigma_mv <=` 값 × `MILLI`} ∪ {유도 제약마다 b.limit_v / b.k}. matching L 하한 σ_share = min(Σ_t)/√2(`E/search/iv_matching_l.py:123`의 `min(absolute) * MILLI`를 `min(Σ_t)`로). 두 경로는 로더가 함께 두지 않는다(L2).
+* **규칙(OB-5)**: 출발값 σ 목표 집합 Σ_t(V) = {사용자 판정 제약 `offset_in_sigma_mv <=` 값 × `MILLI`} ∪ {matching `OffsetBound`마다 (요구 `offset_in_max_v`) / b.k}. matching L 하한 σ_share = min(Σ_t)/√2(`E/search/iv_matching_l.py:123`의 `min(absolute) * MILLI`를 `min(Σ_t)`로). 두 경로는 로더가 함께 두지 않는다(L2).
 * **L/k인 근거**: k·σ_in + \|V_sys\| ≤ L, \|V_sys\| ≥ 0이므로 σ_in ≤ L/k는 필요조건이다. 몫을 나누는 비율을 만들지 않는다. 출발값 전용이다.
-* **Δ_T와 무관(OB-20)**: 출발값은 요구 값 L(= `offset_in_max_v`)만 쓰고 Δ_T가 들어간 문턱을 쓰지 않는다. 근거: 문턱 합성은 제약 행 한 곳에서만 한다(OTP NFR-T3). 그 결과 `start_intervals` 입력이 반복 사이에 같아 S0 수준 블록이 모두 색인 적중이다. 이 사실을 OTP G-12 '문턱에 의존하는 블록' 목록의 입력으로 알린다: **matching 쪽 S0 수준 문턱 의존 블록 없음**(문턱은 커널 안 합성 행에서만 읽힌다).
-* **전달 형식**: `start_intervals` 블록 extras에는 `OffsetBound` 전체가 아니라 (k, limit_v) 쌍 tuple `offset_start_targets`만 넣는다(`build_search_context`가 `derived`에서 만든다). 그래서 Δ_T 칸(OS-L)이 바뀌어도 이 블록 입력은 같다.
+* **문턱과 무관(OB-20)**: 출발값은 요구 값(spec `offset_in_max_v`)만 쓰고 조인 문턱(문턱 항목 값)을 쓰지 않는다.
+* **전달 형식**: `start_intervals` 블록 extras에는 `OffsetBound`나 문턱 항목이 아니라 (k, 요구 `offset_in_max_v`) 쌍 tuple `offset_start_targets`만 넣는다(`build_search_context`가 `derived`의 matching `OffsetBound` 유무·k와 spec 요구 값에서 만든다).
+* **입력이 같은 범위(검증 v0.2.1 N-1로 한정)**: (1) **OS-L 반복 사이**(같은 base에서 문턱 항목만 다른 변형): `offset_start_targets`가 같아 `start_intervals`는 색인 적중이다 -- 출발 구간이 문턱을 읽지 않기 때문이다. (2) **compare 국면 1**(matching 변형과 trim 국면 1 변형): matching 변형에만 `OffsetBound`가 있어 `offset_start_targets`가 다르다. 그래서 `start_intervals`는 두 변형에서 각각 계산된다(정당한 계산, 입력이 다름).
+* **OT §20.7 목록과의 정합(검증 v0.2.1 N-2)**: OT §20.7은 '문턱 의존 블록'을 'extras에 `derived`가 들어가는 블록'으로 정의하고 `start_intervals`를 목록에 넣었다. 이 design에서 `start_intervals`는 `derived`의 문턱과 무관한 투영만 받으므로 OS-L 반복 사이에 계산 0이어야 한다. 그래서 **OT §20.7 목록에서 `start_intervals`를 '`derived`를 읽지만 문턱 무관(반복 사이 재계산 0 대상)'으로 옮기는 정정이 필요하다**(목록이 넓으면 '목록 밖 재계산 0' 판정이 약해진다). matching 쪽 문턱 의존 계산은 커널 안 합성 행 하나다(블록 아님).
 * **요구 없는 spec의 비트 동일**: 양의 계수 곱은 단조라 min(vᵢ·`MILLI`) = min(vᵢ)·`MILLI`.
 * **바뀌는 곳**: `E/search/iv_context.py`(`StartView.sigma_targets_v`), `E/search/iv_matching_l.py`(:107·:123), `E/search/start_intervals.py`(:253 extras), `E/search/search_context.py`(:195 호출).
 
@@ -139,31 +142,42 @@ plan_version: 0.6.1
 
 | 이름 | 정의 |
 |---|---|
-| `constraint_set_fp` | `fp_of((spec 섹션 지문 'constraints_fp', derived 중 Δ_T 칸을 뺀 형태, trim_decl.decl_fp 또는 None))` |
-| `variant_fp` | `fp_of((토폴로지 변형 connectivity_fp, constraint_set_fp, 반복 번호, 원인 지문))`. 반복 번호 = 처음 목록 0, 추가될 때마다 1씩(계획 N3.12). 원인 지문 = Δ_T 입력 지문(처음 목록은 None) |
-| 중복 | 같은 `variant_fp`가 계획에 두 번이면 처음 목록은 `ValueError`(계획 함수 결함), 추가는 L-A6 거부(§13.3) |
-| S3 칸(XS-13) | evals·runs 줄 최상위 키 `variant` = `variant_fp`. **OS-5에서 구현**(계획 XS-13·N7.2 배정 그대로). 싣는 조건 = 계획의 변형이 둘 이상이거나 반복 번호가 1 이상인 변형(OS-L). 변형 하나인 실행(요구 없음, OS-2 matching 단일 변형)은 칸이 없다 -- 그 실행의 줄은 S3 폴더·runs 줄 `run_id`(§6.5, 유도 제약 지문 포함)와 evals 행 이름 `req:`로 구분된다. 요구 없는 실행의 줄은 그대로(완료 조건 1) |
+| `constraint_set_fp` | `fp_of((spec 섹션 지문 'constraints_fp', derived의 형태(문턱 항목은 `target`만, 값·출처 참조 제외), trim_decl.decl_fp 또는 None))` |
+| `cause_fp`(원인 지문) | 문턱 항목의 Δ_T 기록 지문(`margin_ref`의 sha256, §3.4). 처음 변형은 None |
+| **중복 판정 키**(계획 v0.6.2 N3.12) | (토폴로지 변형 connectivity_fp, `constraint_set_fp`, `cause_fp`). `variant_fp` = `fp_of(이 키)`. **반복 번호는 키에 넣지 않는다**(넣으면 추가마다 키가 달라 중복 거부가 걸리지 않는다) |
+| 반복 번호 `iteration` | 처음 목록 0, 추가될 때마다 1씩. **표시(보고) 칸**으로만 S3 줄·결과 JSON에 싣는다 |
+| 중복 | 같은 키가 처음 목록에 두 번이면 `ValueError`(계획 함수 결함). 추가에서 같은 키(같은 원인 지문 포함)면 거부 `duplicate`(§13.3) |
+| S3 칸(XS-13) | evals·runs 줄 최상위 키 `variant` = `variant_fp`, 같은 줄에 표시 칸 `iteration`. **OS-5에서 구현**(계획 XS-13·N7.2 배정 그대로). 싣는 조건 = 계획의 변형이 둘 이상이거나 반복 번호가 1 이상인 변형(OS-L). 변형 하나인 실행(요구 없음, OS-2 matching 단일 변형)은 칸이 없다 -- 그 실행의 줄은 S3 폴더·runs 줄 `run_id`(§6.5, 유도 제약 지문 포함)와 evals 행 이름 `req:`로 구분된다. 요구 없는 실행의 줄은 그대로(완료 조건 1) |
 | `run_id` | §6.5 |
 
 ### 3.4 G-S4 유도 제약 기록 형식
 
-`OffsetBound`(search 값 모듈 `E/search/search_values.py`, frozen dataclass):
+**`derived` 항목 형식**(이 design 소유, 계획 v0.6.2 N3.12 '형식 소유'): `derived` = 항목 tuple이고 항목은 두 종류다.
 
 ```python
+# 문턱 항목 -- authoring 값 모듈(E/authoring/spec_model.py). OT §20.3 tightened_threshold 의 반환 형식이 이것이다
+ThresholdItem(target: str,          # 문턱의 spec 선언 위치: "human.offset_requirement.offset_in_max_v"
+                                    #   | "human.offset_trim.residual_offset_v"(키 접미 `_v` -- 단위 V)
+              value_v: float,       # 문턱 값(V). 처음 변형 = 선언의 해석된 값, 추가 변형 = 선언 값 − Δ_T
+              spec_ref: str,        # = target(선언 위치 참조)
+              margin_ref: tuple | None)   # Δ_T 기록 참조 (기록 키 temp_margin_<metric>_v, 기록 id, sha256). 처음 변형 None
+
+# matching 유도 제약 -- search 값 모듈(E/search/search_values.py)
 OffsetBound(name: str,              # "offset_matching"
-            sigma_metric: str,      # "offset_in_sigma_mv"(레지스트리 이름)
+            sigma_metric: str,      # "offset_in_sigma_mv"
             sys_metric: str,        # "offset_sys_mv"
             k: float,               # 요구 coverage_multiple 의 해석된 값
-            limit_v: float,         # 요구 offset_in_max_v 의 해석된 값
-            view: ViewDecl,         # OffsetRequirement.view
-            refs: tuple,            # (("k", "human.offset_requirement.coverage_multiple"),
-                                    #  ("limit_v", "human.offset_requirement.offset_in_max_v"))
+            k_ref: str,             # "human.offset_requirement.coverage_multiple"
+            threshold: ThresholdItem,   # 문턱 자리(entry 자리) -- target = 요구 offset_in_max_v
+            view: ViewDecl,
             source_fp: str)         # 요구 섹션 지문
 ```
 
-* OS-L이 칸 `margin`(Δ_T 입력, 값과 지문, None이면 없음)을 더한다(§13.2). OS-2에서는 빈 자리를 미리 만들지 않는다(계획 N3.11 '순서').
+* **항목 자리**: matching 문턱은 `OffsetBound.threshold` 자리, trim 잔여 문턱(target = `offset_trim.residual_offset_v`)은 `derived` 최상위의 `ThresholdItem` 항목으로 둔다(OT `trim_constraint_rows`가 읽는다, TR-TL 몫). 한 변형의 `derived`에 같은 `target`의 문턱이 둘이면 거부(`ValueError`, 형식 결함).
+* **단위(검증 v0.2.1 N-8)**: `value_v`는 V다. `target` 키는 접미 `_v`여야 하고(DEC-68), Δ_T 기록 키도 `temp_margin_<metric>_v`(OT §20.2)라 같은 단위다. 접미가 `_v`가 아닌 `target`은 추가 거부 `threshold_unit`(§13.3).
+* 처음 변형의 문턱 항목은 OS-2부터 실제로 쓰인다(합성 행의 L). 빈 자리를 미리 만드는 것이 아니다(계획 N3.11 '순서'와 정합). `margin_ref`가 None이 아닌 항목은 OS-L 전에는 생기지 않는다.
 * 결과 JSON에는 같은 칸 이름으로 싣는다(§8).
-* trim 국면 2 유도 제약은 OT §10.6대로 `trim_decl`에서 만든다(`OffsetBound` 아님). k·V_res 출처만 §17.1로 바뀐다.
+* trim 국면 2 유도 제약 자체는 OT §10.6대로 `trim_decl`에서 만든다. k·V_res 출처만 §17.1로 바뀐다.
 
 ### 3.5 G-S5 S1v 계산 수 칸(사실 확인용)
 
@@ -279,7 +293,7 @@ RunPlan(strategy: str | None, phase: int | None, requirement: OffsetRequirement 
 | `compare` | 없음 | `matching`, `trim_phase1`(원본 topology 둘). L4·L5·L11 | OS-5 |
 | `compare` | 있음 | 승인된 구성마다 `trim_phase2` | TR-3·OS-5 |
 
-* matching `OffsetBound`(같은 파일 비공개 함수): `name` = `offset_matching`, metric 이름은 레지스트리 이름, k·limit_v·view·refs·source_fp는 `spec.offset_requirement`에서.
+* matching `OffsetBound`(같은 파일 비공개 함수): `name` = `offset_matching`, metric 이름은 레지스트리 이름, k·k_ref·view·source_fp는 `spec.offset_requirement`에서, `threshold` = `ThresholdItem(target = spec_ref = "human.offset_requirement.offset_in_max_v", value_v = 요구 값, margin_ref = None)`.
 * 처음 순서는 표 순서 고정(DO-3). 변형 정체 중복이면 `ValueError`(§3.3).
 
 ### 5.3 변형 제약 주입(PD-1, S-8)
@@ -289,7 +303,7 @@ RunPlan(strategy: str | None, phase: int | None, requirement: OffsetRequirement 
 | 소비자 | 읽는 방식 |
 |---|---|
 | 커널 요청·합성 행(§3.1) | `SearchContext.offset_bounds`(참조 칸 `derived`, `driving`이 `spec.driving_spec`을 읽는 방식과 같다, `E/search/search_context.py:129-131`) |
-| 출발 구간(§3.2) | `start_intervals` extras `offset_start_targets` = ((k, limit_v), ...) |
+| 출발 구간(§3.2) | `start_intervals` extras `offset_start_targets` = ((k, 요구 `offset_in_max_v`), ...) -- 문턱 항목 값은 넣지 않는다 |
 | LUT mismatch 필수 검사(E-S12) | `derived`가 비지 않으면 같은 검사(합성 행의 σ 항 `offset_in_sigma_mv`가 mismatch 데이터를 쓴다. V_sys 항은 쓰지 않으므로 검사 근거는 σ 항이다) |
 
 그래서 S1v·`constraint_classes`·`search_domain`·`achievability`·`start_intervals`의 입력은 같은 topology 변형 사이(그리고 OS-L 반복 사이)에 같다.
@@ -304,16 +318,17 @@ RunPlan(strategy: str | None, phase: int | None, requirement: OffsetRequirement 
 def open_plan_session(topology_path, spec_path, lut, memo, pdk_decl, lut_rule_decl, *, output_dir, settings,
                       archive_root, supplies_v=None, structure_path=None, given_starts=(), model_error=(),
                       diagnostic=False) -> PlanSession
+# OS-L이 필수 키워드 iteration_cap(int | None, 기본값 없음)을 더한다(§13.4). OS-2에서는 빈 자리를 만들지 않는다
 
 class PlanSession:
     plan: RunPlan                                   # 지금 목록(읽기 전용, 추가 때 새 값으로 바뀐다)
     stage_a: StageAResult                           # 원본 단계 A(읽기 전용)
     def run_variant(self, index) -> VariantResult   # 변형 하나 실행(같은 index 두 번이면 ValueError)
-    def add_variant(self, base_index, margin) -> PlanVariant   # OS-L(§13)
+    def add_variant(self, base_index, threshold_item) -> PlanVariant   # OS-L(§13)
     def close(self) -> PlanResult                   # 결과 JSON을 쓰고 색인·계수를 놓는다
 ```
 
-* **열기**(실행 경계, XS-7): `S3Index`(블록 결과 부분)와 `RunCounters`를 여기서 한 번 만든다. 원본 단계 A `run_stage_a(..., donors=, counters=)`를 돈다(`donors`·`counters` 필수 키워드, PD-8. 빠지면 `TypeError`). 결과에 칸 `topology`(로드한 `TopologyDoc`)를 더한다. 단계 A가 spec을 로드했으면 `build_run_plan(stage_a.spec, stage_a.topology)`(TR-2부터 `approvals`)로 처음 목록을 만든다. 계획 함수 거부(`SchemaRejectedError`)는 세션을 '거부 상태'로 열어 두고(`plan` = None, 사유 기록) `close`가 결과 JSON에 쓴다 -- 변형 실행은 0이다.
+* **열기**(실행 경계, XS-7): `S3Index`(블록 결과 부분)와 `RunCounters`를 여기서 한 번 만든다. 원본 단계 A `run_stage_a(..., donors=, counters=)`를 돈다(`donors`·`counters` 필수 키워드, PD-8. 빠지면 `TypeError`). 결과에 칸 `topology`(로드한 `TopologyDoc`)를 더한다. **계획 생성 조건은 하나다(검증 v0.2.1 N-4)**: `stage_a.spec is not None`이면 `build_run_plan(stage_a.spec, stage_a.topology)`(TR-2부터 `approvals`)로 처음 목록을 만든다(단계 A가 끝까지 가서 spec을 결과에 실은 경우 -- `E/pipeline/stage_a.py:194-196, :250`. 그 전 정지 경로는 spec을 싣지 않는다). spec이 None이면 계획 없이 원본 topology로 `run_stage_b`를 한 번 불러(`skipped`를 돌려준다, `E/pipeline/stage_b.py:141-142`) `PlanResult.stage_b_unplanned`에 둔다 -- 하네스가 단계 A 실패 때도 단계 B 보고서를 쓰는 것과 같은 출력 파일을 내기 위해서다(완료 조건 1의 출력 집합 정합). 계획 함수 거부(`SchemaRejectedError`)는 세션을 '거부 상태'로 열어 두고(`plan` = None, 사유 기록) `close`가 결과 JSON에 쓴다 -- 변형 실행은 0이다.
 * **변형 실행 `run_variant(i)`**:
   1. 단계 B: 변형마다 `run_stage_b`를 부른다. 별도 pipeline 수준 캐시(토폴로지 지문 키 사전)는 두지 않는다(검증 N-7): 재사용 경로는 블록 결과 색인 하나이고(단계 B 블록은 입력이 `derived`와 무관해 같은 토폴로지 변형끼리 모두 색인 적중), 두 번째 재사용 경로를 만들지 않는다. OS-2는 변형이 하나라 한 번 부른다. `diagnostic`은 그대로 넘긴다: `run_stage_b(stage_a, memo, pdk_decl, output_dir=, settings=, diagnostic=diagnostic)`(`E/pipeline/stage_b.py:134` 서명 그대로, 진단 뜻 = 측정만, 단계 A 상태·exit code 유지).
   2. **탐색 조건**: 단계 A `ok`이고 단계 B `ok`일 때만 커널 컨텍스트 → `build_search_context(kctx, stage_a.spec, settings, archive_root, pdk_decl, lut_rule_decl, model_error, code_fp=stage_a.code_fp, derived=variant.derived)` → `find_front(sctx, given_starts)`. 아니면 `VariantResult.stop` = `stage_a_<상태>` 또는 `stage_b_<상태>`(하네스 :395와 같은 조건).
@@ -351,6 +366,7 @@ E-S18의 하네스가 읽거나 넘기는 값마다 `run_plan` 경로의 자리�
 | 입력 `lut`·`LutMemo`(크기 인자는 호출자)·`pdk`·`rule`·`settings`·S3 루트·output_dir·`given_starts` | `run_plan` 인자 그대로(호출자가 만든다) |
 | 진단 모드 `diagnostic=True` | `run_plan(..., diagnostic=True)` → 단계 B에 같은 뜻으로. `PlanResult.diagnostic`과 결과 JSON `run_plan.diagnostic`에 표지 |
 | `find_front` 모듈 속성 감싸기 | 그대로 동작(§6.1 4) |
+| 단계 A가 A1_load 등에서 spec 없이 멈춰도 하네스는 `run_stage_b`를 불러(`skipped`) 단계 B 보고서를 쓴다(`nfr4_run_dump.py:387-393`) | `PlanResult.stage_b_unplanned`(§6.1 '계획 생성 조건' -- spec이 None이면 원본 topology로 한 번 불러 같은 보고서 파일을 쓴다) |
 | `a.code_fp`·`a.report_paths`·`a.status`·`a.s1.snapshot.fp` | `PlanResult.stage_a`(`StageAResult` 참조) |
 | `b.report_paths`·`b.status`·`b.s1.snapshot.fp` | `VariantResult.stage_b`(그 변형의 `StageBResult` 참조) |
 | `sctx.domain.w_min_m`·`sctx.dc.base`·`sctx.context_fp`·`sctx.cache`(card B 뒤 `S3Index` 평가 키 부분) | `VariantResult.search_context`(`SearchContext` 참조, 탐색하지 않았으면 None). 평가 결과 목록은 그 객체의 기존 읽기 경로(card B 뒤 `S3Index` 평가 키 부분의 API)로 읽는다 |
@@ -363,7 +379,7 @@ E-S18의 하네스가 읽거나 넘기는 값마다 `run_plan` 경로의 자리�
 
 ### 6.5 `run_id`(OB-11)
 
-`find_front`의 `run_id` 지문 tuple 끝에 `sctx.offset_bounds`가 비지 않을 때만 `fp_of(sctx.offset_bounds)`를 더한다(`E/search/find_front.py:142`). 비면 지금 식 그대로(완료 조건 1). OS-L 반복 변형은 `margin`이 `OffsetBound` 안에 있으므로 반복마다 `run_id`가 다르다.
+`find_front`의 `run_id` 지문 tuple 끝에, 변형에 `derived`나 `trim_decl`이 있을 때만 그 변형의 **중복 판정 키**(§3.3: topology 지문, `constraint_set_fp`, `cause_fp`)의 `fp_of`를 더한다(`E/search/find_front.py:142`, 계획 v0.6.2 N3.12 '`run_id`에 키 반영'). `build_search_context`가 그 키를 키워드 `variant_key`로 받아 `SearchContext`의 참조 칸에 둔다. 요구 없는 실행은 칸이 None이라 지금 식 그대로(완료 조건 1). 키가 다르면 같은 S3 루트에서도 runs 줄이 겹치지 않는다. 반복 번호는 키에 없으므로 `run_id`에 들어가지 않는다.
 
 ### 6.6 정지 처리
 
@@ -401,7 +417,7 @@ E-S18의 하네스가 읽거나 넘기는 값마다 `run_plan` 경로의 자리�
 | `requirement` | `{offset_in_max_v, coverage_multiple, strategy, view, judgment_temperature_range_c, sources}` 또는 null | OS-2 |
 | `rejected` | 계획 함수 거부 사유(`exc.record.to_json()`) 또는 null | OS-2 |
 | `variants[]` | `{index, label, iteration, cause_fp, topology_fp, variant_fp, derived: [OffsetBound 칸], budget: {eval_budget, eval_budget_source, e_total, gate_reserve}, stage_a_status, stage_b_status, run_id, s3_dir, stop, front_points}` | OS-2(OS-5·OS-L에서 여러 개) |
-| `variants[].front_points[]` | `{point_id, power_w, area_m2, derived_rows: [{name, c, active, value_v, limit_v, margin_v}]}`. `margin_v` = limit_v − value_v(보고). 값은 커널 결과의 합성 행 보고 칸을 옮겨 쓴 것 | OS-2 |
+| `variants[].front_points[]` | `{point_id, power_w, area_m2, derived_rows: [{name, c, active, value_v, limit_v, margin_v}]}`. `limit_v` = 그 변형 문턱 항목 값(L), `margin_v` = limit_v − value_v(보고). 판정 문턱이 조인 문턱이면 `threshold_margin_ref`(Δ_T 기록 참조)를 함께 싣는다 -- 최종 합격 판정 문턱은 spec 값이다(OT §20.1 '합격'). 값은 커널 결과의 합성 행 보고 칸을 옮겨 쓴 것 | OS-2 |
 | `variants[].memory` | OS-L: 그 변형 끝의 색인 항목 수, 프로세스 최대 메모리(XS-19) | OS-L |
 | `shared` | `{block_index_entries, block_index_bound, b_s0, s1v_computes, s1v_inputs, kernel_calls_total}` | OS-2(OS-5 다변형 의미) |
 | `notes[]` | matching 변형이 있으면 `{"verdict": "final_acceptance_is_oracle_range_judgment"}`(계획 N3.11 '합격 표기', T-29). `budget_derived`(§7.2). compare 국면 1이면 `{"verdict": "not_a_recommendation"}`와 R1·R2 한계 문구. 합성 행 검증 출처 `{"verdict": "verified_by", "rows": [["req:offset_matching", 종류, 항 metric별 종류]]}`(§12) | OS-2 / OS-5 / OS-V |
@@ -428,20 +444,20 @@ DS-1은 M2 뒤 사용자가 고른다(S-5). 필요한 시점은 OS-5(compare)와
 
 * 바뀌는 곳: card B `S3Index`를 블록 결과 부분과 평가 키 부분 두 객체로 나눈다. 세션은 블록 결과 부분 하나를 모든 변형에, 평가 키 부분은 변형마다 `build_search_context`가 새로 만든다.
 * 완료 조건 3: 같은 topology 변형이 같은 θ를 밟으면 같은 평가 키가 변형마다 다시 계산된다 -- 모순. **DS-U7(조건 3 약화 안 함, S-6)과 충돌**하므로 (가)를 고르려면 DS-U7도 다시 결정해야 한다(§18.3 OD-2).
-* 놓기(계획 N9 메모리 행): 끝난 변형의 평가 키 부분은 다시 쓰이지 않으므로 그 변형이 끝나면 놓을 수 있다(같은 정체 재추가는 거부되므로 같은 입력이 다시 오지 않는다). 블록 결과 부분은 놓지 않는다.
+* 놓기(계획 N9 메모리 행): 끝난 변형의 평가 키 부분은 그 변형의 중복 판정 키(§3.3)에만 매여 있다. 같은 키(같은 원인 지문)의 재추가는 거부되므로 그 평가 키 부분을 다시 쓸 변형이 오지 않는다 -- 놓아도 같은 입력 재계산이 생기지 않는다. 블록 결과 부분은 놓지 않는다.
 
 ### 10.2 (나) 평가 분리
 
 * 바뀌는 곳: (i) 커널 요청 = 계획 안 모든 변형 요청의 합집합(세션이 만들어 모든 변형 `SearchContext`에 같은 값으로 넘긴다. OS-L 추가 변형은 문턱만 다르므로 요청이 같다) (ii) 평가 캐시 값(봉인·metric·spec 행·ls 행)은 변형과 무관, `S3Index` 하나를 공유 (iii) 합성 행(`req:`)은 변형별 판정 단계가 캐시 값의 묶음에서 만든다(`ss_constraint_rows`의 bounds 부분을 커널 밖 변형별 함수로 분리). `EvalResult`는 변형 무관 부분과 변형별 행으로 나뉜다.
 * 이 design에서 범위: spec 판정 제약이 변형 사이에 같으므로 (iii)은 합성 행 하나다. 이 design의 전제(OB-4·L2)에서는 S1v 투영을 좁힐 대상이 없다(PD-3으로 DS-2가 '대상 없음'으로 닫힌 근거와 같다). 그 전제가 깨지면(유도 제약이 뷰 씨앗을 요구하게 되면) DS-2를 다시 연다.
 * 완료 조건 3: 지킨다. S3: evals 줄은 평가 키마다 한 줄 + 변형별 행 칸 `rows_by_variant`(XS-13 범위).
-* 놓기: 끝난 변형의 변형별 행은 놓을 수 있다. 공유 평가 키 부분은 놓지 않는다(다음 반복이 같은 θ를 밟으면 재사용).
+* 놓기: 끝난 변형의 변형별 행은 그 변형의 중복 판정 키에만 매여 있고 같은 키 재추가는 거부되므로 놓을 수 있다. 공유 평가 키 부분은 놓지 않는다(다른 키의 다음 반복이 같은 θ를 밟으면 재사용).
 
 ### 10.3 (다) 키 분리
 
-* 바뀌는 곳: `EvalKey`에 칸 `constraint_set_fp`와 OS-L 문턱 지문을 더하거나 `context_fp` 지문에 넣는다(`E/search/eval_key.py`, `E/search/search_context.py:214`). `S3Index` 하나를 공유한다. 요구 없는 실행은 칸을 넣지 않아 완료 조건 1을 지킨다.
+* 바뀌는 곳: `EvalKey`에 변형의 중복 판정 키 지문(§3.3: topology, `constraint_set_fp`, `cause_fp`)을 칸으로 더하거나 `context_fp` 지문에 넣는다(`E/search/eval_key.py`, `E/search/search_context.py:214`). 문턱 값의 지문이 아니라 이 키를 넣어야 아래 놓기 근거가 성립한다. `S3Index` 하나를 공유한다. 요구 없는 실행은 칸을 넣지 않아 완료 조건 1을 지킨다.
 * 완료 조건 3: 형식상 지킨다. 같은 θ의 커널 평가가 변형마다 남고, 크기 결정 블록은 색인 적중, offset metric 블록은 요청이 같아도(OS-L) 행이 달라 커널은 돈다(XS-8).
-* 놓기: 끝난 변형 키의 평가 키 항목은 다시 오지 않으므로 놓을 수 있다. 블록 결과 부분은 놓지 않는다.
+* 놓기: 끝난 변형의 키가 든 평가 키 항목은 같은 키 재추가가 거부되므로 다시 오지 않는다 -- 놓을 수 있다. 블록 결과 부분은 놓지 않는다.
 
 **놓기 공통 규칙**(계획 N9): 위 '놓을 수 있다'는 DS-1 결정 뒤 design 개정에서 구현 여부를 정하고 검증한다. 어느 경우든 θ 무관 블록(단계 A·S0·커널 안 크기 결정 블록)은 놓지 않는다. 메모리 한도 위험이 실측되면 사용자에게 올린다(조용히 비우지 않음).
 
@@ -469,18 +485,17 @@ DS-1은 M2 뒤 사용자가 고른다(S-5). 필요한 시점은 OS-5(compare)와
 
 **범위**: matching 합성 판정 k·σ_in + \|V_sys\| ≤ 문턱의 검증 출처를 붙인다. **판정 조건 하나**(LUT 측정 조건 `temp_c`·`corner` = 엔진 합격 조건)의 측정만이다. 판정 온도 범위의 온도 점으로 넓히는 몫은 offset-trim TR-TL이 맡는다(OTP TR-TL 행 '소유 경계').
 
-**경계**(OPP O-1, oracle-portability 3층 구조):
+**경계(계획 v0.6.2 N7.2 OS-V 행)**: OS-V는 **새로 만들지 않고 재사용한다**. 오라클 코어(`O/core/`) 파일을 만들지 않고, oracle-portability와 파일이 겹치지 않는다.
 
-| 층 | OS-V가 하는 일 | 하지 않는 일 |
+| 대상 | 재사용하는 것 | OS-V가 하는 일 |
 |---|---|---|
-| 오라클 코어(`O/core/`) | 측정 정의 둘: (1) σ_in -- 기존 measure `offset_in_sigma_mv`를 그대로 쓴다(네이티브 MC, O-1). (2) V_sys -- 입력 차 0에서 DC 동작점의 출력 오차(차동 = 두 출력 차, 단일 = 출력 − 선언 기준 DC)를 A_dm으로 나눈 값. 엔진 `offset_systematic`과 같은 정의(E-S5)이고 measure 이름 `offset_sys_mv`. 기준 DC 값은 오라클 입력(엔진이 넘기는 spec 노드 목표)에서 읽는다. 합성 값 k·σ̂ + \|V̂_sys\|를 코어 비교 수학으로 만든다(k는 오라클 입력의 요구 값) | 방언 토큰·PDK 이름(OPP FR-P1), MC 방법 정의(어댑터·기술자 몫), 표본 수 규칙의 새 정의(코어의 기존 표본 수 규칙을 쓴다) |
-| 어댑터·기술자 | 바꾸지 않는다(DC 동작점·네이티브 MC는 이미 요구되는 능력) | -- |
-| 엔진 | `E/metrics/verified_by.py` 표의 `offset_sys_mv` 행을 `spice_oracle`(measure `offset_sys_mv`)로 바꾼다. 합성 행의 검증 출처는 항 metric의 종류에서 정한다: 두 항이 모두 `spice_oracle`이면 행도 `spice_oracle`, 아니면 `spice_unverifiable`(규칙 = `find_front` notes의 `verified_by` 기록에 `rows`를 더하는 자리, `E/search/find_front.py:97`). 엔진은 오라클을 import하지 않는다 | 엔진 판정 값을 바꾸지 않는다 |
+| σ_in 오라클 값 | 기존 measure `offset_in_sigma_mv`(네이티브 MC, O-1). 크기 일관 확인은 TR-7 §17-1(O-1 (2)) | 대조에 쓴다 |
+| V_sys 오라클 값 | oracle-portability OP-5의 **공칭 표본 offset 출력**(PC-10의 실체, OPP N5.1 OP-5 행)과 그 값의 정의 = offset-trim G-15(OT §20.1 'V_sys(T) 출력 기준': 불일치를 끈 공칭 회로의 입력 환산 offset, 기준 = 그 실행의 선언 기준. 판정 조건 하나에서는 T = LUT `temp_c`) | 대조에 쓴다 |
+| 엔진 | -- | (1) `E/metrics/verified_by.py` 표의 `offset_sys_mv` 행을 `spice_oracle`로 바꾸고 measure 이름을 OP-5 출력 키로 단다(키 이름은 oracle-portability OP-0 design이 정한다 -- **확인 대기**). (2) 합성 행의 측정 결속: 합성 행 검증 출처는 항 metric 종류에서 정한다 -- 두 항이 모두 `spice_oracle`이면 행도 `spice_oracle`, 아니면 `spice_unverifiable`(`find_front` notes `verified_by` 기록에 `rows`를 더하는 자리, `E/search/find_front.py:97`). 엔진은 오라클을 import하지 않는다 |
 
-* **OS-V 전까지**: `offset_sys_mv`가 `spice_unverifiable`이므로 합성 행 검증 출처도 `spice_unverifiable`이고 결과 notes에 실행 전부터 나간다(DEC-90 (3), OT §10.6 선례).
-* **크기 확인**: σ의 크기 일관은 OS-V 몫이 아니다. TR-7 §17-1의 엔진 σ_in 대 오라클 MC σ_in 비교가 맡는다(O-1 (2)).
-* **모델 오차**: 오라클 대조 결과는 `model_error_offset_in_sigma_mv`·`model_error_offset_sys_mv`(DEC-72)로 기록되고, 합성 행 분해능(§3.1)이 항마다 그 값을 바닥으로 쓴다.
-* **선행**: OS-2, oracle-portability 코어(OP card, OPP N5.1). OS-V는 TR-TL의 선행이다.
+* **OS-V 전까지**: `offset_sys_mv`가 `spice_unverifiable`(`E/metrics/verified_by.py:45`)이므로 합성 행 검증 출처도 `spice_unverifiable`이고 결과 notes에 실행 전부터 나간다(DEC-90 (3), OT §10.6 선례).
+* **모델 오차**: 기록 키 이름은 `verified_by`의 규칙 `model_error_` + metric 이름(`E/metrics/verified_by.py:22, :59`)으로 `model_error_offset_in_sigma_mv`·`model_error_offset_sys_mv`다(이름은 확인됨). 그 값을 오라클 대조에서 만들어 `derived` 모델 오차 매핑에 넣는 주체·경로는 **확인 대기**(OP-5·OS-V 구현 때 대조 기록 형식이 정해진 뒤). 합성 행 분해능(§3.1)은 항마다 그 값을 바닥으로 쓴다.
+* **선행**: OS-2, oracle-portability OP-5(공칭 표본 offset 출력)와 그 선행. OS-V는 TR-TL의 선행이다. 판정 온도 범위의 온도 점으로 넓히는 몫은 TR-TL이다.
 
 ---
 
@@ -489,16 +504,17 @@ DS-1은 M2 뒤 사용자가 고른다(S-5). 필요한 시점은 OS-5(compare)와
 ### 13.1 서명(D-25 결정 T-36으로 닫음)
 
 ```python
-PlanSession.add_variant(base_index: int, margin) -> PlanVariant
+PlanSession.add_variant(base_index: int, threshold_item: ThresholdItem) -> PlanVariant
 ```
 
-* `margin` = 구동기가 출처 무결성 대조(D-25 (c)+(c-2))를 통과시킨 Δ_T 입력 하나다. 형식은 OTP G-9(offset-trim design TR-0T)가 정하고, 엔진이 읽는 칸은 둘이다: Δ_T 값(V, 문턱과 같은 단위)과 그 지문. 엔진은 대조하지 않고 오라클 결과 파일을 읽지 않는다(XS-18 = X-23 수용).
-* 결과: 새 `PlanVariant`(base 변형과 같은 topology·같은 `trim_decl`, `derived`의 각 `OffsetBound`에 `margin`을 단 것, `iteration` = 지금 최대 + 1, `cause_fp` = margin 지문). 세션의 `plan`이 새 값으로 바뀐다. 실행은 `run_variant(새 index)`로 따로 부른다.
-* 부르는 주체는 엔진 밖 구동기뿐이다(엔진 안 search·kernel·블록은 부르지 않는다 -- 호출 grep으로 확인).
+* `threshold_item` = 구동기가 출처 무결성 대조(D-25 (c)+(c-2), OT §20.4)를 통과시킨 Δ_T 기록으로 OT §20.3 `tightened_threshold(spec_threshold_ref, delta_record)`를 **추가 한 번에 한 번** 불러 만든 조인 문턱 항목(§3.4 `ThresholdItem`, `margin_ref` 있음)이다. Δ_T 기록 형식(`TemperatureMargin`, 키 `temp_margin_<metric>_v`)과 합성 함수는 offset-trim 소유이고, 항목 형식은 이 design 소유다(OT §20.3 '형식은 offset-strategy의 `derived` 항목 형식'과 대조 일치, `wt/trim-design-r1` `5c93cb6`).
+* 결과 문턱 ≤ 0(`tightened_threshold_nonpositive`)은 `tightened_threshold`가 던지고 **구동기가 추가 전에 거부**한다(OT §20.3). 엔진이 `value_v` ≤ 0인 항목을 받으면 호출 계약 위반 `ValueError`다(사유 코드 아님 -- 구동기 경로에서는 생기지 않는다).
+* 결과: 새 `PlanVariant` = base 변형과 같은 topology·같은 `trim_decl`이고, `derived`에서 `threshold_item.target`과 같은 target의 문턱 자리(matching = `OffsetBound.threshold`, trim 잔여 = 최상위 `ThresholdItem`)를 그 항목으로 바꾼 것. `cause_fp` = `threshold_item.margin_ref`의 sha256, `iteration` = 지금 최대 + 1(표시 칸). 세션의 `plan`이 새 값으로 바뀐다. 실행은 `run_variant(새 index)`로 따로 부른다.
+* 엔진은 대조하지 않고 Δ_T 기록·오라클 결과 파일을 읽지 않는다(XS-18 = X-23 수용). 부르는 주체는 엔진 밖 구동기(OT §20.7 `tools/temperature_loop/`)뿐이다(엔진 안 search·kernel·블록은 부르지 않는다 -- 호출 grep).
 
 ### 13.2 문턱 경로(Δ_T가 들어가는 길은 하나)
 
-구동기 → `add_variant(margin)` → `OffsetBound.margin` → 합성 행(§3.1)이 OTP G-9 문턱 합성 함수(spec 참조 − Δ_T)를 한 번 부른다 → 행 c. spec 측정 선언 절·오라클 결과 파일 읽기·출발값(§3.2)·S0 블록으로는 들어가지 않는다. trim 변형의 문턱(V_res − Δ_T(잔여))은 OT 경로(`trim_constraint_rows`)에서 같은 합성 함수를 부르고, `margin`은 그 변형의 trim 유도 입력으로 들어간다(세부는 offset-trim design).
+구동기 → `tightened_threshold`(한 번) → `add_variant(base_index, threshold_item)` → 그 변형 `derived`의 문턱 자리 → 합성 행(§3.1)·`trim_constraint_rows`가 **항목 값을 읽기만** 한다(평가마다 합성하지 않음). spec 측정 선언 절·오라클 결과 파일 읽기·출발값(§3.2)·S0 블록으로는 들어가지 않는다.
 
 ### 13.3 추가 허용 범위(fail-closed, 사유 코드 `run_plan_variant_add_rejected`, detail `reason`)
 
@@ -507,14 +523,17 @@ PlanSession.add_variant(base_index: int, margin) -> PlanVariant
 | `session_closed` | 닫힌 세션 |
 | `session_rejected` | 계획 함수가 거부한 세션 |
 | `base_unknown` | base index가 계획에 없음 |
-| `no_threshold_bound` | base 변형에 문턱을 가진 유도 제약(matching `OffsetBound` 또는 trim 국면 2 유도 입력)이 없음 |
-| `margin_unit` | Δ_T 값의 단위가 문턱 단위와 다름 |
-| `duplicate` | 같은 `variant_fp`가 이미 있음 |
+| `no_threshold_slot` | base 변형 `derived`에 `threshold_item.target`과 같은 target의 문턱 자리가 없음 |
+| `threshold_not_tightened` | `threshold_item.margin_ref`가 None(조인 문턱이 아님 -- 처음 문턱과 같은 항목을 추가하려는 것) |
+| `threshold_unit` | `target` 키 접미가 `_v`가 아님(§3.4) |
+| `iteration_cap` | 세션 열기에서 받은 반복 상한(§13.4)을 넘음, 또는 상한이 None(선언 없음 = 추가 없음, D-19) |
+| `duplicate` | 같은 중복 판정 키(같은 원인 지문 포함, §3.3)가 이미 있음 |
 
-topology·사용자 판정 제약·요구·`strategy`·국면은 서명상 바꿀 수 없다(입력이 margin 하나라 base 값을 그대로 쓴다). 그래서 계획 N3.12의 '다른 topology·판정 제약 변경' 거부는 서명으로 보장되고, test는 그런 추가를 시도할 입력 자리가 없음을 확인한다.
+topology·사용자 판정 제약·요구·`strategy`·국면·문턱 밖 유도 제약 형태는 서명상 바꿀 수 없다(입력이 문턱 항목 하나이고 나머지는 base 값을 그대로 쓴다). 그래서 계획 N3.12의 '다른 topology·판정 제약 변경' 거부는 서명으로 보장되고, test는 그런 추가를 시도할 입력 자리가 없음을 확인한다.
 
 ### 13.4 예산·메모리
 
+* **반복 상한 이중 확인(OB-31, 계획 v0.6.2 N3.12 '예산'의 design 몫 -- 채택)**: OS-L이 `open_plan_session`에 필수 키워드 `iteration_cap`(int | None, 기본값 없음)을 더한다. 값은 구동기가 실행 설정(OT §20.7 `iteration_cap`, D-19)에서 읽은 그 값을 넘긴다(정본은 실행 설정 하나, 세션은 받은 값을 칸으로만 든다). `run_plan`은 None을 넘긴다(추가 없음). 추가 수가 상한을 넘으면 `iteration_cap`으로 거부한다. 구동기 쪽 상한 검사와 이중이고, 엔진 혼자서도 상한 밖 색인 증가를 막는다.
 * 추가 때 E_total,v·B_S0·색인 상한이 늘어난다(§7.3).
 * 결과 JSON `variants[].memory`에 그 변형 끝의 색인 항목 수와 프로세스 최대 메모리를 싣는다(XS-19). OS-L 병합 전에 반복당 색인 크기(바이트)를 잰다.
 * 놓기는 §10의 DS-1 선택지별 조건을 따른다.
@@ -536,7 +555,7 @@ topology·사용자 판정 제약·요구·`strategy`·국면은 서명상 바�
 | `tools/offset_compare/compare.py` | `compare_offset_results(result_paths)` | 도구 | OS-3 |
 | `assets/fixture/offset_strategy/current_reuse_telescopic_ota.topology.json`·`.sizing_spec.json` | (fixture, §16.2) | 자산 | OS-2 |
 
-값 형식 자리: `OffsetRequirement` → `E/authoring/spec_model.py`, `OffsetBound` → `E/search/search_values.py`.
+값 형식 자리: `OffsetRequirement`·`ThresholdItem` → `E/authoring/spec_model.py`(OT §20.3 `tightened_threshold`가 authoring 층이라 같은 층에 둔다), `OffsetBound` → `E/search/search_values.py`.
 
 ### 14.2 고치는 파일
 
@@ -550,8 +569,8 @@ topology·사용자 판정 제약·요구·`strategy`·국면은 서명상 바�
 | `E/search/s3_index.py`(`s0_sets` 필수 인자, `add_eval_ceiling`) + card C test | OS-5 | 부분 |
 | `E/search/kernel.py` `_record`, `find_front.py` runs 줄(`variant` 칸) | OS-5 | 부분 |
 | DS-1 선택지 파일(§10) | OS-5 | 선택에 따름 |
-| `E/search/s3_index.py`(`grow`), `pipeline/plan_session.py`(`add_variant`), `search_values.py`(`OffsetBound.margin`), `ss_constraints.py`(문턱 합성 호출) | OS-L | 부분 |
-| `E/metrics/verified_by.py`(`offset_sys_mv` 행), `find_front.py`(notes rows), `O/core/`(V_sys·합성 측정 정의) | OS-V | 부분 |
+| `E/search/s3_index.py`(`grow`), `pipeline/plan_session.py`(`add_variant`), `plan_session.py`(`iteration_cap` 키워드) | OS-L | 부분. `ThresholdItem`·`OffsetBound.threshold`는 OS-2부터 있고(처음 문턱), OS-L은 커널·`ss_constraint_rows`를 바꾸지 않는다(합성 없음) |
+| `E/metrics/verified_by.py`(`offset_sys_mv` 행, measure 이름 = OP-5 출력 키), `find_front.py`(notes rows) | OS-V | 부분. 오라클 파일은 만들지 않는다 |
 | CONTRACT(`authoring`·`SPEC_CONTRACT`·`search`·`pipeline`·`metrics`), `_module_map.py`, 함수 레지스트리 §2 | 각 card | 갱신 |
 
 ### 14.3 층·모듈 지도·test·레지스트리
@@ -599,7 +618,7 @@ topology·사용자 판정 제약·요구·`strategy`·국면은 서명상 바�
 
 * 위치: `skills/analog-gmid-design/assets/fixture/offset_strategy/`(저장소 안·library 밖, T-28 선례 `assets/fixture/` 계열).
 * topology: library `current_reuse_telescopic_ota.topology.json`의 사본(연결 그대로, `connectivity_fp` 같음).
-* spec: library spec 사본에 다음만 바꾼다. `meta.origin` = `fixture`. offset 판정 제약 둘(`offset_in_sigma_mv`, 그것을 참조하는 `offset_sys_mv`)을 지우고 `offset_requirement` = {`strategy`: `matching`, `coverage_multiple`: 3, `offset_in_max_v`: 3 × 3.3 mV를 V로 적은 값}. 각 `source` = `user_spec`, record = S-9(2026-10-16) 결정 원문, 3.3 mV는 2026-10-08 Q3 (2) 유래. `judgment_temperature_range_c`는 넣지 않는다(OS-2에 소비자가 없다, OB-21).
+* spec: library spec 사본에 다음만 바꾼다. `meta.origin` = `fixture`. offset 판정 제약 둘(`offset_in_sigma_mv`, 그것을 참조하는 `offset_sys_mv`)을 지우고 `offset_requirement` = {`strategy`: `matching`, `coverage_multiple`: 3, `offset_in_max_v`: 3 × 3.3 mV를 V로 적은 값}. 각 `source` = `user_spec`, record = S-9(2026-10-16) 결정 원문, 3.3 mV는 2026-10-08 Q3 (2) 유래. **`offset_in_max_v`의 `source.record`에는 유도식 '3 × 3.3 mV'와 두 출처(S-9의 k = 3, Q3 (2)의 3.3 mV)를 문장으로 남긴다**(검증 v0.2.1 N-9) -- `value` 칸의 숫자만으로는 어디서 왔는지 보이지 않기 때문이다. `judgment_temperature_range_c`는 넣지 않는다(OS-2에 소비자가 없다, OB-21).
 * structure 사실: fixture에 `structure.json` 사본을 두지 않는다. 실행은 `structure_path` = library `current_reuse_telescopic_ota.structure.json`을 넘긴다(승인 사실의 사본을 만들지 않음, OB-23. 연결이 같아 `connectivity_fp` 결속이 성립한다).
 * library spec은 바꾸지 않는다. **비교 한계**(계획 N7.1): fixture 결과는 library 기준선과 비교하지 않는다. OS-2 완료 조건(유도 제약·로더·출발값이 실제 경로에서 동작)에만 쓴다.
 
@@ -619,9 +638,9 @@ topology·사용자 판정 제약·요구·`strategy`·국면은 서명상 바�
 | OS-2 | `tests/pipeline/test_run_plan.py` | `run_plan` = 세션 사용(세션 함수 호출 관찰), 결과 JSON 칸(§8), `PlanResult`·`VariantResult` 노출 칸이 E-S18 목록을 모두 덮음 |
 | OS-2 | `tests/integration/test_run_plan_baseline_9circuits.py` | 완료 조건 1(비교 제외는 검증자 소유) -- 판정은 auditor 격리 복제본 |
 | OS-2 | `tests/integration/test_run_plan_matching_fixture.py` | F-1 fixture 실행: `req:` 행, `derived_rows` c = S3 evals 행 c, notes `final_acceptance_is_oracle_range_judgment` |
-| OS-V | `E/tests/metrics/test_verified_by.py`(추가), 오라클 `O/core/` test(OPP 규칙) | `offset_sys_mv` = `spice_oracle`, 합성 행 출처 규칙(항 하나라도 unverifiable이면 행 unverifiable), stub 어댑터에서 V_sys 측정 = 손 회로 값 |
+| OS-V | `E/tests/metrics/test_verified_by.py`(추가) | `offset_sys_mv` = `spice_oracle`, 합성 행 출처 규칙(항 하나라도 unverifiable이면 행 unverifiable), measure 이름이 OP-5 출력 키와 같음(오라클 쪽 측정 test는 oracle-portability 소관) |
 | OS-5 | `tests/pipeline/test_run_plan_multi.py`, `tests/integration/test_run_plan_compare_phase1.py` | 완료 조건 2(순서 뒤집기 포함), 3, 4, L11, `variant` 칸, `S3Index` 상한 B_S0 |
-| OS-L | `tests/pipeline/test_plan_session_add.py`, `tests/integration/test_run_plan_iteration.py` | §13.3 reason마다 거부를 먼저 확인, Δ_T가 들어가는 길 하나(호출 grep + 실행 경로), 추가 변형에서 θ 무관 블록 계산 0(OTP G-12 목록 밖 S0 블록 계산이면 FAIL -- matching 목록은 비어 있음, §3.2), 새 세션 단독 추가 실행과 비트 동일(E_B 선언), `grow` 상한 늘어남, memory 칸 |
+| OS-L | `tests/pipeline/test_plan_session_add.py`, `tests/integration/test_run_plan_iteration.py` | §13.3 reason마다 거부를 먼저 확인(같은 원인 지문 재추가 → `duplicate`, 반복 번호만 다른 같은 키도 `duplicate`, 상한 None·초과 → `iteration_cap`), Δ_T가 들어가는 길 하나(`tightened_threshold` → `add_variant`, 호출 grep + 실행 경로), 커널·`ss_constraint_rows`에 합성 호출 0(grep), `run_id`가 중복 판정 키마다 다르고 반복 번호와 무관, 추가 변형에서 θ 무관 블록 계산 0(`start_intervals` 포함 -- §3.2, OT §20.7 목록 정정 전제), 새 세션 단독 추가 실행과 비트 동일(E_B 선언), `grow` 상한 늘어남, memory 칸 |
 | OS-3 | `tools/offset_compare/tests/test_compare.py` | 엔진 import 0, 권고 어휘 0, 불일치 표시, 손 결과 JSON 대조 |
 
 ---
@@ -702,7 +721,7 @@ T-24·T-25·T-27·T-28에서 바뀌는 것만:
 | OB-16 | compare와 DS-1 | DS-1 미결이면 compare 거부 유지 |
 | OB-17 | `given_starts` | 원본 topology 변형에만 |
 | OB-19 | 승인 형식 | 구성 목록 |
-| OB-20 | 출발값과 Δ_T | 출발값은 요구 값만, 문턱 합성은 행 한 곳(→ matching S0 문턱 의존 블록 없음) |
+| OB-20 | 출발값과 문턱 | 출발값은 요구 값만(→ `start_intervals`는 `derived`를 읽지만 문턱 무관, OS-L 반복 사이 재계산 0. OT §20.7 목록 정정 필요) |
 | OB-21 | 판정 온도 범위 칸 | 선택 칸, 필요한 소비자가 없으면 거부. 값 모양 `{"lo", "hi"}` |
 | OB-22 | 사슬 대체 범위 | 전체 사슬 셋만(§6.4) -- Q-1로 확인 |
 | OB-23 | fixture structure 사실 | 사본 없이 `structure_path`로 library 파일 |
@@ -713,6 +732,9 @@ T-24·T-25·T-27·T-28에서 바뀌는 것만:
 | OB-28 | 합성 행 분해능 0·None | 항마다 판정, 한 항이라도 0(모델 오차 미선언)·None이면 행 없이 미측정(§3.1, 검증 N-2) |
 | OB-29 | S3 `variant` 칸 | OS-5에서 구현, 변형 둘 이상 또는 반복 번호 1 이상일 때만(§3.3, 검증 N-4) |
 | OB-30 | 단계 B 재사용 | pipeline 수준 캐시 없이 블록 결과 색인만(§6.1, 검증 N-7) |
+| OB-31 | 반복 상한 이중 확인 | 채택: OS-L `open_plan_session(iteration_cap=)` 필수 키워드, 사유 `iteration_cap`(§13.4) |
+| OB-32 | `derived` 항목 형식 | `ThresholdItem`(authoring 값) + `OffsetBound.threshold` 자리, trim 잔여 문턱은 최상위 항목(§3.4) |
+| OB-33 | 변형 추가 거부 reason | `no_threshold_slot`·`threshold_not_tightened`·`threshold_unit`·`iteration_cap`·`duplicate` 등(§13.3) |
 
 (v0.1의 OB-6은 PD-9 승인 문언으로 바뀌어 지웠고, OB-8·OB-10·OB-12·OB-18은 PD-1·PD-8·PD-7·PD-2로 승인되어 기본안 목록에서 뺐다.)
 
@@ -733,7 +755,7 @@ T-24·T-25·T-27·T-28에서 바뀌는 것만:
 | ID | 질문 | 막는 것 |
 |---|---|---|
 | DS-1 | 평가 캐시 (가)/(나)/(다)(§10) | OS-5 compare, OS-L |
-| Q-1 | **결정됨(S-13, 2026-10-16 "모두 권고대로")**: 부분 사슬 test(`test_layer0_boundary_rows`, `test_s0_layer_9circuits`, `u13_hand`, `u13_real`)와 단계 B 없는 test(`test_cell_floor`, `test_blas_env`)는 W-1 대체 범위 밖(OB-22 그대로) | -- |
+| Q-1 | **결정됨(S-13, 2026-10-16 "모두 권고대로")**: 부분 사슬 test(`test_layer0_boundary_rows`, `test_s0_layer_9circuits`, `u13_hand`, `u13_real`)와 단계 B 없는 test(`test_cell_floor`, `test_blas_env`)는 W-1 대체 범위 밖(OB-22 그대로). **기록할 사실(검증 v0.2.1 N-5)**: PD-8 뒤에는 `run_stage_a`가 `donors`·`counters`를 필수로 받으므로 이 범위 밖 test들은 `S3Index`·`RunCounters`를 직접 만들어 넘긴다. 이것은 세션 열기의 일부(실행 경계 객체 만들기)를 test 안에서 두 번째로 구현하는 것이다. 엔진 제품 경로의 사슬은 하나(세션)로 남고, 두 번째 구현은 test 쪽 단위 시험 준비에만 있다 | -- |
 | Q-2 | (닫힘, v0.2.1) v0.1 검증 비차단 N-1~N-4·N-6·N-7·N-12 원문을 받아 반영했다(history H4) | -- |
 | DS-U8 | trim 시험 회로 `offset_in_max_v` 값 | TR-1 뒤 반영 |
 | DS-U5 | library spec 이전 | -- |
