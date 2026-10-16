@@ -9,13 +9,16 @@ from gmid_engine.core import GraphSnapshot, WriterTable, fp_of
 from gmid_engine.graph import S1Graph, S1_WRITERS, build_s1, s1_gs_groups, s1_rel_vgs, s1_structure
 from gmid_engine.sizing import S2_WRITERS, lift_s1
 
-from .conftest import SUPPLIES, circuit_cs_pmos_load, circuit_cs_res, load_doc
+from gmid_engine.search import open_run
+
+from .conftest import SUPPLIES, block_row, circuit_cs_pmos_load, circuit_cs_res, load_doc
 
 
 @pytest.fixture(params=["C", "A"])
 def s1(request, tmp_path):
     doc = circuit_cs_pmos_load() if request.param == "C" else circuit_cs_res()
-    return build_s1(load_doc(tmp_path, doc), dict(SUPPLIES))
+    donors, counters = open_run()
+    return build_s1(load_doc(tmp_path, doc), dict(SUPPLIES), donors=donors, counters=counters)
 
 
 def test_writers_are_s2(s1):
@@ -86,13 +89,13 @@ def test_write_count_above_one_preserved(s1):
 
 
 def test_s1_block_on_lifted_snapshot_is_reused(s1):
+    # oracle 대조: card B C4 판정 1(같은 lineage -> reuse) -- 새 실행 계수(C1)에서 그 블록 행 = (calls 1, reuses 1, computes 0)
     lifted = lift_s1(s1)
     for blk in (s1_gs_groups, s1_rel_vgs):
-        blk.reset_stats()
-        out = blk(lifted)
+        donors, counters = open_run()
+        out = blk(lifted, donors=donors, counters=counters)
         assert out is lifted
-        st = blk.stats()
-        assert (st.calls, st.reuses, st.computes) == (1, 1, 0)
+        assert block_row(counters, blk.name) == (1, 1, 0, 0, 0, 0)
 
 
 @pytest.mark.parametrize("bad", [None, "s1", 3])
@@ -132,9 +135,11 @@ def test_wider_table_covering_s1_is_accepted(s1):
 
 def test_value_error_when_s1_writer_not_run(tmp_path):
     td = load_doc(tmp_path, circuit_cs_pmos_load())
-    full = build_s1(td, dict(SUPPLIES))
+    donors, counters = open_run()
+    full = build_s1(td, dict(SUPPLIES), donors=donors, counters=counters)
     rails = tuple(sorted(td.rails))
-    partial = s1_structure(GraphSnapshot.empty(S1_WRITERS), td.devices, td.passives, td.sources, rails, td.ports)
+    partial = s1_structure(GraphSnapshot.empty(S1_WRITERS), td.devices, td.passives, td.sources, rails, td.ports,
+                           donors=donors, counters=counters)
     assert partial.block_version("s1_bulk") is None
     with pytest.raises(ValueError):
         lift_s1(S1Graph(full.key, partial))

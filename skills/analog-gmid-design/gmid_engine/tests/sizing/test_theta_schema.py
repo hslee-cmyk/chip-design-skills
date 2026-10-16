@@ -15,7 +15,7 @@ import pytest
 from gmid_engine.sizing import (DC_KEY, KERNEL_KEY, ZC_MIXED_DIRECTION, ZC_MULTIPLE_RESISTORS, ZC_NO_CAPACITOR, ZC_NO_CELL,
                                 ZC_RESISTOR_END, ThetaSchema, ZeroCancel, dc_theta_schema)
 
-from .conftest import NINE, build_ctx, circuit_cs_res, library_ctx, mos, topo, two
+from .conftest import NINE, block_row, build_ctx, circuit_cs_res, library_ctx, mos, row_delta, run_of, topo, two
 from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 
@@ -213,10 +213,12 @@ def test_library_zero_cancel_hand(name, toy_access):
 
 
 def test_block_reuse(ctx_c):
-    base = ctx_c[2].base
-    dc_theta_schema.reset_stats()
-    assert dc_theta_schema(base, ()) is base              # [U17 ①-b] extras = (engine_passives,) -- 선언 저항은 graph/kernel resistor_values 필드
-    assert dc_theta_schema.stats().reuses == 1
+    # oracle 대조: card B C4 판정 1 -- 같은 lineage 재호출 = reuse, ctx 실행 계수(C1) 증분 = (calls 1, reuses 1)
+    ctx = ctx_c[2]
+    base = ctx.base
+    before = block_row(ctx.counters, dc_theta_schema.name)
+    assert dc_theta_schema(base, (), **run_of(ctx)) is base   # [U17 ①-b] extras = (engine_passives,) -- 선언 저항은 graph/kernel resistor_values 필드
+    assert row_delta(block_row(ctx.counters, dc_theta_schema.name), before) == (1, 1, 0, 0, 0, 0)
 
 
 # ---------------------------------------------------------------------------

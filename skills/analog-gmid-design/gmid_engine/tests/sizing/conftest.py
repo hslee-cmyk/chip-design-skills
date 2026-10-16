@@ -27,6 +27,7 @@ import pytest
 from gmid_engine.authoring import load_topology
 from gmid_engine.graph import build_s1
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set
+from gmid_engine.search import open_run
 from gmid_engine.sizing import KERNEL_KEY, PLAN_WRITERS, DcInputs, LutAccess, build_kernel_context
 
 HERE = Path(__file__).resolve().parent
@@ -499,30 +500,53 @@ def circuit_empty_window():
 
 
 def build_ctx(tmp_path, doc, access, supplies=None, **inputs_kw):
+    """(S1, DcInputs, KernelContext). [XRUN-F1 card B C0·C6] 실행 하나 = 이 호출 하나 -- 스스로 open_run() 한 쌍을 S1·커널 컨텍스트에 쓴다."""
+    donors, counters = open_run()
     td = load_doc(tmp_path, doc)
     sup = dict(SUPPLIES if supplies is None else supplies)
-    s1 = build_s1(td, sup)
+    s1 = build_s1(td, sup, donors=donors, counters=counters)
     inputs = DcInputs(tuple(sorted(sup.items())), **inputs_kw)
-    return s1, inputs, build_kernel_context(s1, inputs, access)
+    return s1, inputs, build_kernel_context(s1, inputs, access, donors=donors, counters=counters)
 
 
 def detail(exc):
     return dict(exc.record.detail)
 
 
-@pytest.fixture(scope="session")
+def run_of(ctx):
+    """[XRUN-F1 card B C4·C6] ctx 의 실행 두 객체를 블록 호출 키워드로(`block(snap, ..., **run_of(ctx))`) -- 단위 test 는 그 실행 하나 안에서 부른다."""
+    return dict(donors=ctx.donors, counters=ctx.counters)
+
+
+COUNT_FIELDS = ("calls", "reuses", "grafts", "replays", "computes", "recomputes_same_input")
+
+
+def block_row(counters, name):
+    """[card B C1] 실행 계수 (name, "*") 행의 여섯 칸 tuple(COUNT_FIELDS 순서), 기록이 없으면 0 여섯."""
+    for r in counters.snapshot().blocks:
+        if (r.block, r.part) == (name, "*"):
+            return tuple(getattr(r, f) for f in COUNT_FIELDS)
+    return (0,) * len(COUNT_FIELDS)
+
+
+def row_delta(after, before):
+    return tuple(a - b for a, b in zip(after, before))
+
+
+# [XRUN-F1 card B 규칙 M M-d] KernelContext 는 실행의 두 객체를 칸으로 쥔다(C6) -- test 하나보다 긴 범위 fixture 에 두지 않는다(function 범위).
+@pytest.fixture
 def ctx_c(tmp_path_factory, toy_access):
     """회로 C 의 (S1, DcInputs, KernelContext)."""
     return build_ctx(tmp_path_factory.mktemp("ctx_c"), circuit_cs_pmos_load(), toy_access)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def ev_c(ctx_c):
     from gmid_engine.sizing import size_and_seal
     return size_and_seal(ctx_c[2], theta_c())
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def ctx_r4c(tmp_path_factory, r4_access):
     """회로 C 를 VDSAT 열이 있는 r4 toy LUT 로 만든 KernelContext."""
     return build_ctx(tmp_path_factory.mktemp("ctx_r4c"), circuit_cs_pmos_load(), r4_access)[2]
@@ -535,7 +559,7 @@ def theta_r4c(y=0.5, v1=0.6, v2=0.7, l1=1e-6, l2=2e-6, i2=1e-5):
             ("ln_idu", "M2"): r4_ln_idu("pmos", v2, 1.8 - vout, 0.0), ("current", "M2"): i2, ("y", "out"): y}
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def ctx_a(tmp_path_factory, toy_access):
     """회로 A(저항 부하) -- R1 값은 θ resistance."""
     return build_ctx(tmp_path_factory.mktemp("ctx_a"), circuit_cs_res(), toy_access)
@@ -575,7 +599,9 @@ _LIB = {}
 
 
 def library_ctx(name, access):
-    """library 회로: (topology raw dict, TopologyDoc, SizingSpecDoc, DcInputs, S1Graph, KernelContext). 프로세스당 1회."""
+    """library 회로: (topology raw dict, TopologyDoc, SizingSpecDoc, DcInputs, S1Graph, KernelContext).
+    입력·S1 은 프로세스당 1회(_LIB). [XRUN-F1 card B 규칙 M M-d] KernelContext 는 실행의 두 객체를 칸으로 쥐므로(C6) 모듈 캐시에 두지 않고
+    부를 때마다 새 open_run() 쌍으로 만든다(실행 하나 = 이 호출 하나). S1 은 지역 쌍으로 만든 스냅샷이라 두 객체를 담지 않는다."""
     if name not in _LIB:
         from gmid_engine.authoring import load_sizing_spec
         from gmid_engine.sizing import dc_inputs_from_spec
@@ -583,9 +609,12 @@ def library_ctx(name, access):
         td = load_topology(str(LIBRARY / (name + ".topology.json")))
         spec = load_sizing_spec(str(LIBRARY / (name + ".sizing_spec.json")), td, spec_catalog())
         inputs = dc_inputs_from_spec(spec)
-        s1 = build_s1(td, dict(inputs.supplies_v))
-        _LIB[name] = (raw, td, spec, inputs, s1, build_kernel_context(s1, inputs, access))
-    return _LIB[name]
+        s1_donors, s1_counters = open_run()
+        s1 = build_s1(td, dict(inputs.supplies_v), donors=s1_donors, counters=s1_counters)
+        _LIB[name] = (raw, td, spec, inputs, s1)
+    raw, td, spec, inputs, s1 = _LIB[name]
+    donors, counters = open_run()
+    return raw, td, spec, inputs, s1, build_kernel_context(s1, inputs, access, donors=donors, counters=counters)
 
 
 def free_currents(ctx, targets):
@@ -710,16 +739,17 @@ def expected_columns(snap, theta, fixed_values=(), resistor_values=()):
 def run_blocks(ctx, theta, upto="widths"):
     """size_and_seal 의 평가 블록 4개를 계약 7절 호출 순서대로 직접 부른다(봉인 전 스냅샷)."""
     from gmid_engine.sizing import dc_columns, dc_currents, dc_lengths, dc_widths
+    run = dict(donors=ctx.donors, counters=ctx.counters)          # [card B C6] ctx 의 실행(두 객체) 그대로
     th = dict(theta)
-    snap = dc_currents(ctx.base, tuple(sorted((k, v) for (t, k), v in th.items() if t == "current")))
-    snap = dc_lengths(snap, tuple(sorted((k, v) for (t, k), v in th.items() if t == "L")))
+    snap = dc_currents(ctx.base, tuple(sorted((k, v) for (t, k), v in th.items() if t == "current")), **run)
+    snap = dc_lengths(snap, tuple(sorted((k, v) for (t, k), v in th.items() if t == "L")), **run)
     if upto == "lengths":
         return snap
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
-    snap = dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut)
+    snap = dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run)
     if upto == "columns":
         return snap
-    return dc_widths(snap, ctx.lut)
+    return dc_widths(snap, ctx.lut, **run)
 
 
 def eval_calls(ctx, theta):
@@ -734,14 +764,14 @@ def eval_calls(ctx, theta):
              (dc_columns, (items, kfixed(ctx), kres(ctx), ctx.lut)), (dc_widths, (ctx.lut,)))
     snap = ctx.base
     for blk, ex in calls:
-        snap = blk(snap, *ex)
+        snap = blk(snap, *ex, donors=ctx.donors, counters=ctx.counters)
     return snap, calls
 
 
 def with_tol(ctx, theta):
     from gmid_engine.sizing import dc_tolerances
     snap, calls = eval_calls(ctx, theta)
-    return dc_tolerances(snap, ctx.lut), calls
+    return dc_tolerances(snap, ctx.lut, donors=ctx.donors, counters=ctx.counters), calls
 
 
 def resistances_of(ctx, theta):
@@ -940,14 +970,15 @@ def build_ctx_u4(tmp_path, doc, access, l_classes=(), order_hints=None, supplies
     """`build_ctx` 와 같되 U4 인자(l_classes·order_hints)를 넘긴다. order_hints None = 인자를 주지 않는다(기본값 경로).
     [U17 ①-b] l_classes 는 `inject_l_classes` 로 S1 의 `graph/s1v: l_classes` 필드에 넣는다. 반환 (S1Graph, KernelContext)."""
     Path(tmp_path).mkdir(parents=True, exist_ok=True)
+    donors, counters = open_run()          # [card B C0] 실행 하나 = 이 호출 하나
     td = load_doc(tmp_path, doc)
     sup = dict(SUPPLIES if supplies is None else supplies)
-    s1 = inject_l_classes(build_s1(td, sup), tuple(l_classes))
+    s1 = inject_l_classes(build_s1(td, sup, donors=donors, counters=counters), tuple(l_classes))
     inputs = DcInputs(tuple(sorted(sup.items())), **inputs_kw)
     kw = {}
     if order_hints is not None:
         kw["order_hints"] = order_hints
-    return s1, build_kernel_context(s1, inputs, access, **kw)
+    return s1, build_kernel_context(s1, inputs, access, donors=donors, counters=counters, **kw)
 
 
 def circuit_mirror(names=("M1", "M2", "M3", "I1"), nets=("nb", "out", "in")):

@@ -122,7 +122,7 @@ def _doc():
     return topo("u4_icm_follower", net, {"in": ("input", "x"), "y": ("output", "y")}, sources=src)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture          # [XRUN-F1 card B 규칙 M M-d] KernelContext(실행 두 객체를 칸으로 쥠)는 function 범위
 def pend(tmp_path_factory, r4_access):
     ctx = build_ctx(tmp_path_factory.mktemp("icm_pend"), _doc(), r4_access)[2]
     w = dict(ctx.base.column("node", "dc_writer"))["in"]

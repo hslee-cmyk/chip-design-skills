@@ -14,11 +14,11 @@ import pytest
 from gmid_engine.core import SealViolationError
 from gmid_engine.sizing import DC_KEY, DcEvaluation, PathValue, SealReport, SealedSnapshot, seal_dc, size_and_seal
 
-from .conftest import (eval_calls, node_voltages, resistances_of, tamper, theta_a, theta_c, theta_r4c)
+from .conftest import (eval_calls, node_voltages, resistances_of, run_of, tamper, theta_a, theta_c, theta_r4c)
 
 
 def _seal(ctx, snap, calls, th, lin=()):
-    return seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), tuple(lin))
+    return seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), tuple(lin), **run_of(ctx))
 
 
 def test_undefined_evaluation(ctx_c):
@@ -151,3 +151,13 @@ def test_linear_declared_failing_device_still_sealed(ctx_r4c):
     ev = _seal(ctx_r4c, snap, calls, th, ("M1",))
     assert ev.report.status == "sealed" and isinstance(ev.sealed, SealedSnapshot)
     assert dict(ev.report.items[6].detail)["n_checked"] == 1
+
+
+@pytest.mark.parametrize("missing", ["donors", "counters", "both"])
+def test_seal_dc_run_pair_keywords_required(ctx_c, missing):
+    """B-T16(XRUN-F1 card B C6): seal_dc 의 donors·counters 는 필수 키워드(기본값 없음) -- 빠지면 TypeError."""
+    ctx, th = ctx_c[2], theta_c()
+    snap, calls = eval_calls(ctx, th)
+    kw = {k: v for k, v in run_of(ctx).items() if missing != "both" and k != missing}
+    with pytest.raises(TypeError):
+        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), **kw)
