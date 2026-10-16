@@ -19,7 +19,7 @@ plan_version: 0.5.1
 > * 상위 문서 개정 문안(계획 N3.7)
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (design 작성자 역할)
-> **Status**: design 초안 v0.2.2 (2026-10-16). 독립 검증과 사용자 승인 전이다.
+> **Status**: **design v0.2.3 -- 사용자 승인됨**(2026-10-16 "모두 권고대로", 결정 기록 O-5). 독립 검증 87 → 95점(차단 0). 다음 card는 OP-1(검증자 측정)이다.
 > * v0.2.2: v0.2 검증(87점, 차단 B-1, 비차단 N-1~N-9)을 반영했다. B-1은 계획 v0.5.1의 완료 조건 8a 예외(`oport-plan-r2` `d9f37c4`)를 따른다.
 > * v0.2.1: 사용자 결정 O-4("TR-0T 승인, X-D4 권고대로 해")로 X-D4를 수용했다. offset-trim TR-0T design이 master에 병합됐다(T-40). 그래서 PC-10과 `dc_tolerance_undeclared`의 대조 기준은 master `offset-trim.design.md` §20이다.
 > * v0.2 반영 1: offset-trim design TR-0T(v0.2 작성 때 `trim-design-r1`, 지금은 master 병합, T-40)가 G-15를 닫았다. 그래서 PC-10을 정의한다(§12.2, 기준은 새 입력 칸 `output_reference`로 받는다, §11.1).
