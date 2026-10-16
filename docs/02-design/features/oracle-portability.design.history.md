@@ -19,7 +19,23 @@ date: 2026-10-16
 | v0.2.3 | (이 커밋) | 재확인 95점(차단 0)의 문구 3건을 고쳤다: §0 값 원칙 '입력 `testbench.options`' → '`simulator.options` 또는 출처 있는 어댑터 보정값', §3.1 CLI 통합 '(기본안)' → '결정(O-3)', §19.1 B-9를 '계획 v0.5.1 8a 예외에 따름'으로 표시 |
 | v0.2.3 승인 | (이 커밋) | 사용자 승인(2026-10-16 "모두 권고대로", 결정 기록 O-5). 독립 검증 87 → 95점(차단 0). Status를 '승인됨'으로 바꿨다. 본문 규칙 변경 없음 |
 | v0.2.4 | `cbf06d1`(브랜치 `design/oracle-op0-v024`, base `1ba9461`) | 계획 v0.6~v0.6.2(사용자 O-6 D-a·D-b·D-c, 승인 O-7)와 OP-1 측정을 반영한 개정 초안. 독립 검증·사용자 승인 전. 경위는 H3 |
-| v0.2.5 | (이 커밋, 브랜치 `design/oracle-op0-v025`, base `9069e10` + v0.2.4 병합 `9d7ee5f`) | v0.2.4 독립 검증 결함(B-1·B-2, M-1~M-6, 경미)과 계획 v0.6.3~v0.6.4(L-1·L-2·L-3·O-8) 반영 개정 초안. 새 멈춤 DV-4·DV-5. 독립 검증·사용자 승인 전. 경위는 H6 |
+| v0.2.5 | `564245f`(브랜치 `design/oracle-op0-v025`, base `9069e10` + v0.2.4 병합 `9d7ee5f`) | v0.2.4 독립 검증 결함(B-1·B-2, M-1~M-6, 경미)과 계획 v0.6.3~v0.6.4(L-1·L-2·L-3·O-8) 반영 개정 초안. 새 멈춤 DV-4·DV-5. 경위는 H4 |
+| v0.2.6 | (이 커밋, 같은 브랜치, master `52945ce` 병합 `dea6549`) | v0.2.5 검증 중간 지적 다섯·경미 일곱, 소비자 미정 칸, 계획 v0.6.5(O-9·O-10) 반영 개정 초안. DV-4·DV-5 닫힘, 새 멈춤 없음. 독립 검증·사용자 승인 전. 경위는 H5 |
+
+(v0.2.6 번호 정리: 절을 판 순서대로 H2 작성 → H3 v0.2.4 → H4 v0.2.5 → H5 v0.2.6으로 놓았다. 옛 'H6'(v0.2.5)는 H4다. design 본문 Status의 인용도 같이 고쳤다.)
+
+## H2. 작성 경위 (2026-10-16)
+
+- 지시: 오케스트레이터 'oracle-portability card OP-0(design) 작성'. 범위는 계획 OP-0이다(G 항목 중 OP-0 몫, 형식·스키마·PC 벤치·진단 배선·파일 분할·삭제 목록·test 목록·상위 문서 개정 문안). OP-1 측정이 필요한 칸은 '측정 대기'로 두고, 계획과 다른 결정이 필요하면 멈추고 보고한다(S-7).
+- 읽은 것(base `6093d07`):
+  - 오라클 8개 파일의 함수·상수 목록
+  - `oracle_run.run_one`, `simulate` 결과 칸, `offset_mc_measure` 전체(표본 RNG 순서·V_os 식)
+  - 입력 스키마 최상위 칸, `oracle_config.json`
+  - smoke 입력 `process` 블록(pmos `lod.spice` include)
+  - 엔진 선언 `sources` 목록
+  - offset-trim v0.5.5 G-14(닫힘, T-35)·G-15(열림)·N6 오라클 확장 목록
+- 실행: 코드 실행·ngspice 실행 없음.
+- 멈춤 항목: DV-1(엔진 선언에 없는 include 파일, 계획 N3.4 단일 정본과 D-9의 충돌)과 DV-2(상위 문서 개정 미반영, 구현 card 착수 조건)를 본문 §19.2에 올렸다. DV-1은 임시안만 적고 확정하지 않았다.
 
 ## H3. v0.2.4 경위 (2026-10-16)
 
@@ -39,7 +55,7 @@ date: 2026-10-16
 - 멈춘 항목: DV-3(계획 N3.5 (ii)·N4 MC 수학 '끝까지 비트 동일'과 D-b 넷리스트 변화의 충돌). 권고 (가)는 적었지만 정하지 않았다.
 - 알림(다른 문서 소유): 계획 N3.5.1 기준 커밋 문구, offset-trim N3.9 '순서 의존'의 '초안' 문구, `b105b65` 병합본 대 §17 문안 미대조.
 
-## H6. v0.2.5 경위 (2026-10-16)
+## H4. v0.2.5 경위 (2026-10-16)
 
 - 지시: 오케스트레이터 'OP-0 design 개정 v0.2.4 → v0.2.5'. v0.2.4(`cbf06d1`)가 master에 없어 worktree `wt/oracle-op0-v025`에서 `design/oracle-op0-v024`를 `--no-ff`로 병합(`9d7ee5f`, 충돌 없음)한 뒤 개정. 기준 계획 v0.6.4(승인). 계획과 다르게 가야 할 것은 정하지 말고 멈추고 목록으로(S-7), as-built 결정 금지.
 - 반영 (A) v0.2.4 독립 검증(오케스트레이터 전달):
@@ -57,15 +73,18 @@ date: 2026-10-16
 - 실행: 코드·시뮬레이터 실행 없음(읽기·grep·작은 JSON 집계만).
 - 멈춘 항목: DV-4(엔진 test가 최상위 `oracle_*.py`를 glob, 완료 조건 8a와 충돌), DV-5(기준선에 표본별 V_os 칸 없음, (가-1)(가-2) 표본별 비교의 기준값 미정).
 
-## H2. 작성 경위 (2026-10-16)
+## H5. v0.2.6 경위 (2026-10-16)
 
-- 지시: 오케스트레이터 'oracle-portability card OP-0(design) 작성'. 범위는 계획 OP-0이다(G 항목 중 OP-0 몫, 형식·스키마·PC 벤치·진단 배선·파일 분할·삭제 목록·test 목록·상위 문서 개정 문안). OP-1 측정이 필요한 칸은 '측정 대기'로 두고, 계획과 다른 결정이 필요하면 멈추고 보고한다(S-7).
-- 읽은 것(base `6093d07`):
-  - 오라클 8개 파일의 함수·상수 목록
-  - `oracle_run.run_one`, `simulate` 결과 칸, `offset_mc_measure` 전체(표본 RNG 순서·V_os 식)
-  - 입력 스키마 최상위 칸, `oracle_config.json`
-  - smoke 입력 `process` 블록(pmos `lod.spice` include)
-  - 엔진 선언 `sources` 목록
-  - offset-trim v0.5.5 G-14(닫힘, T-35)·G-15(열림)·N6 오라클 확장 목록
-- 실행: 코드 실행·ngspice 실행 없음.
-- 멈춤 항목: DV-1(엔진 선언에 없는 include 파일, 계획 N3.4 단일 정본과 D-9의 충돌)과 DV-2(상위 문서 개정 미반영, 구현 card 착수 조건)를 본문 §19.2에 올렸다. DV-1은 임시안만 적고 확정하지 않았다.
+- 지시: 오케스트레이터 'OP-0 design v0.2.5 → v0.2.6'. 같은 worktree에서 master `52945ce`(계획 v0.6.5, 사용자 O-9·O-10)를 `--no-ff`로 병합(`dea6549`, 충돌 없음)한 뒤 개정. 계획과 다르게 가야 할 것은 멈추고 목록으로.
+- 반영 (A) v0.2.5 검증 중간 지적 다섯:
+  1. §11.5 실행 전 반환 경로(S-31)의 사유 대응표 규칙, 옛 상태 칸 `log`·`log_errors`·`op_ok`·`skipped`·`cache`·`stability_cache`와 `RunStatus` 대응·소비자(S-32), 시뮬레이터 이름이 든 사유 문장(S-33)
+  2. B-18 `lut_record_root` → 기존 정본 `A/lut_v2_location.json` `pdk_root` 참조(S-35, 엔진 무변경)
+  3. 어댑터 지문 = 제외 목록 방식(§0, §8.3), 측정 도구 폴더 `calibration_tools/`(B-25), §3.2 import 방향
+  4. `u6_selfchecks.py`의 conftest 소비와 conftest 옛 형식 입력 생성기·`make_lut`(S-34)를 §15.4·§18.2·§20에, u6 삭제 = O-10 승인, 삭제 card를 OP-3으로 고침
+  5. §7.2 `lut_record_root` 교차 검사 = 8단계 `lut_record_root_mismatch`(값 불일치), `pdk_descriptor_stale`를 2단계 하나로
+- 경미 일곱: §10.6 지시 줄 값·문법 출처와 `name_map` 의존 기록, §13.2 재구현 스크립트 표기, offset_mc 옛 rc 비교 제외(P-1) + `n_failed`, §7.1 주입 증거 단계 = B-24, B-20 '승인됨', history 번호 정리(H2를 앞으로, 옛 H6 → H4, 이 절 H5)·§19.3 머리, 엔진 쪽 낡은 인용 알림(S-36)
+- 소비자 미정 칸: §6.1 신설(칸마다 소비자 또는 출력 전용). `RunStatus.cache_hit: bool`을 `cache_state` 넷 값으로 바꿈(옛 `'off(…)'` 상태, `O/oracle_simulate.py:105-110`), `mc_identity_lost` 새 코드, 시드 적용 = 5단계 능력 확인
+- 반영 (B) 계획 v0.6.5: DV-4·DV-5 닫힘(§19.2), 8a 예외 둘째 행(§18.1), 기준선 표본별 V_os(§13.2), (d) 선택 대조 = `run_ngspice` 이름 교체 경로, conftest 손 넷리스트 기준 경로 `O/tests/adapters/ngspice/`
+- 다시 잰 것(base `52945ce`, `9069e10..HEAD` `skills/` 차이 0): `O/oracle_noise.py:114-130`, `O/oracle_offset_mc.py:109-196`, `O/oracle_simulate.py:86-125, :1025-1060, :1084-1170, :1270-1320, :1369-1375`, `O/oracle_compare.py:374-390`, `O/oracle_run.py:40-60`, `O/tests/conftest.py`, 캐시 단언 test 넷, `A/lut_v2_location.json`, `E/lut/data_location.py:32-41, :58-83`, `git grep spice_oracle -- '*.py'`(엔진 쪽 인용)
+- 실행: 코드·시뮬레이터 실행 없음.
+- 멈춘 항목: 없음.
