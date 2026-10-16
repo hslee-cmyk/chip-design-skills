@@ -1,7 +1,8 @@
 """[U17 ①-b] S0 수준 층 필드 -- 9 library 회로 통합 test. [xrun] 실행 사이 재사용 제거(설계 40 v1.10 §2.4.3 '수명 -- 실행 안에서만',
 §2.4.9 판정 1, 사용자 결정 2026-10-15 "나로 해", interface card C3·C4)에 맞춰 파일 단위로 다시 썼다.
 
-무엇을 보나(회로마다, 같은 프로세스에서 사슬 단계 A -> B -> 커널 컨텍스트 -> 탐색 컨텍스트를 두 번 -- 사이에 블록 계수 reset_stats()):
+무엇을 보나(회로마다, 같은 프로세스에서 사슬 단계 A -> B -> 커널 컨텍스트 -> 탐색 컨텍스트를 두 번 -- 사이에 블록 계수 reset_stats()
+[XRUN-F1 card B C1·C6: 사슬마다 새 open_run() 쌍, 계수 = 그 실행 RunCounters 행]):
 1. 필드 존재·writer 유일성(§2.4.8): 탐색 컨텍스트의 S0 수준 스냅샷(`dc.base`, 메모리)에 아래 `GRAPH_ROWS`·`DEVICE_START` 필드가 있고, 필드마다
    writer 가 스냅샷 권한표(`writers`)의 그 (kind, field) 항목 하나와 같으며, design 이 이름을 적은 writer 는 그 이름이고, writer 는 계산 블록
    (`block_versions` 에 있고 같은 이름의 `ComputeBlock` 이 엔진에 있다)이다.
@@ -128,7 +129,8 @@ def _search_context(env, a, b):
     from gmid_engine.search import build_search_context
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
     _s0_of(b)                             # 결과가 S0 수준 스냅샷 참조를 싣는다(§2.4.7)
-    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo))
+    # [XRUN-F1 card B C6] 커널 컨텍스트 = 단계 A 와 같은 실행(단계 A 결과의 두 칸)
+    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(env.memo), donors=a.donors, counters=a.counters)
     return build_search_context(kctx, a.spec, _settings(), None, env.pdk, env.rule, code_fp=a.code_fp)
 
 
@@ -140,18 +142,24 @@ def _settings():
 
 
 def _chain(env, circuit, tag):
-    """단계 A -> B -> (둘 다 ok 면) 탐색 컨텍스트. 블록 계수를 비우고(실행 경계 = reset_stats, interface card C4) 돌린 뒤 {이름: BlockStats}.
+    """단계 A -> B -> (둘 다 ok 면) 탐색 컨텍스트. 실행 경계 = 새 `open_run()` 쌍([XRUN-F1 card B C1·C6] -- 옛 블록 객체 reset_stats·stats 는
+    없어졌다). 블록 계수 = 이 실행 RunCounters 의 (블록, "*") 행 {이름: 행}.
+    [XRUN-F1 card B 규칙 M M-d] 모듈 캐시(env.runs)에 두므로 실행의 두 객체를 쥔 값(StageAResult·탐색 컨텍스트)은 두지 않고, 쓰는 값만 꺼내 둔다:
+    상태, 보고서, S0 수준 스냅샷(dc.base -- GraphSnapshot, 두 객체가 아니다), context_fp·schema_fp, 계수 행(불변 값).
     [xrun J-1] run_stage_a 는 선언 값·선언 경로 인자를 받지 않는다."""
-    blocks = _blocks()
-    for blk in blocks.values():
-        blk.reset_stats()
+    from gmid_engine.search import open_run
     out = env.root / circuit / tag
-    a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env.lut, output_dir=out)
+    donors, counters = open_run()
+    a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env.lut, output_dir=out,
+                    donors=donors, counters=counters)
     env.memo = LutMemo(env.lut, point=1 << 16, curve=1 << 14, root=1 << 16)
     b = run_stage_b(a, env.memo, env.pdk, output_dir=out, diagnostic=True, settings=_settings())
     sctx = _search_context(env, a, b) if (a.status, b.status) == ("ok", "ok") else None
-    blocks = _blocks()
-    return SimpleNamespace(a=a, b=b, sctx=sctx, stats={n: blk.stats() for n, blk in blocks.items()},
+    rows = {r.block: r for r in a.counters.snapshot().blocks if r.part == "*"}       # card B: part 는 늘 "*"
+    return SimpleNamespace(status=[a.status, b.status], stats=rows,
+                           base=None if sctx is None else sctx.dc.base,
+                           context_fp=None if sctx is None else sctx.context_fp,
+                           schema_fp=None if sctx is None else sctx.schema_fp,
                            report_a=json.loads(Path(a.report_paths[0]).read_text(encoding="utf-8")),
                            report_b=json.loads(Path(b.report_paths[0]).read_text(encoding="utf-8")),
                            bytes_a=Path(a.report_paths[0]).read_bytes(), bytes_b=Path(b.report_paths[0]).read_bytes())
@@ -202,7 +210,7 @@ def _value_fps(base):
 @pytest.mark.parametrize("circuit", SEARCHED)
 def test_s0_fields_present_with_single_block_writer(env, circuit):
     run = _run(env, circuit)
-    base = run.first.sctx.dc.base                        # §2.4.7: KernelContext.base = S0 수준 스냅샷(참조)
+    base = run.first.base                        # §2.4.7: KernelContext.base = S0 수준 스냅샷(참조)
     table = {}
     for (kind, field), writer in base.writers.entries:
         assert (kind, field) not in table, "권한표에 같은 (kind, field) 두 번: " + repr((kind, field))
@@ -254,7 +262,7 @@ def _bad_counts(stats, writers):
 def test_cold_run_computes_each_s0_block_once(env, circuit):
     # interface card C4 / §2.4.9 판정 1: 한 실행에서 S0 행 writer 블록마다 computes = 1, recomputes_same_input = 0(소비자는 필드를 읽는다).
     run = _run(env, circuit)
-    bad = _bad_counts(run.first.stats, _s0_writers(run.first.sctx.dc.base))
+    bad = _bad_counts(run.first.stats, _s0_writers(run.first.base))
     assert not bad, "S0 블록은 실행 하나에서 한 번만 계산된다(소비자는 필드를 읽는다):\n" + "\n".join(bad)
 
 
@@ -264,8 +272,8 @@ def test_second_run_computes_each_s0_block_once_again(env, circuit):
     # recomputes_same_input = 0 -- 앞 실행이 남긴 것으로 계산을 건너뛰지 않는다(옛 '두 번째 실행 = 계산 0' 의 반대, §2.4.9 판정 2 폐지).
     # writer 목록 = 두 번째 실행 dc.base 의 graph S0 레코드 필드 writer(디스크 파일이 아님).
     run = _run(env, circuit)
-    writers = _s0_writers(run.second.sctx.dc.base)
-    assert writers == _s0_writers(run.first.sctx.dc.base)
+    writers = _s0_writers(run.second.base)
+    assert writers == _s0_writers(run.first.base)
     bad = _bad_counts(run.second.stats, writers)
     assert not bad, "두 번째 실행에서 S0 블록이 계산되지 않았거나 두 번 계산됐다:\n" + "\n".join(bad)
 
@@ -277,10 +285,10 @@ def test_second_run_outputs_bit_identical(env, circuit):
     first, second = run.first, run.second
     assert second.bytes_a == first.bytes_a
     assert second.bytes_b == first.bytes_b
-    fa, fb = _value_fps(first.sctx.dc.base), _value_fps(second.sctx.dc.base)
+    fa, fb = _value_fps(first.base), _value_fps(second.base)
     assert fa and fb.keys() == fa.keys()
     assert sorted(k for k in fa if fa[k] != fb[k]) == []
-    assert (second.sctx.context_fp, second.sctx.schema_fp) == (first.sctx.context_fp, first.sctx.schema_fp)
+    assert (second.context_fp, second.schema_fp) == (first.context_fp, first.schema_fp)
 
 
 # ---------------------------------------------------------------- 5. 결과 불변 (기준선)
@@ -293,7 +301,7 @@ def _sha(value):
 def test_stage_reports_unchanged_from_base(env, circuit):
     run = _run(env, circuit)
     want = BASELINE[circuit]
-    assert [run.first.a.status, run.first.b.status] == want["status"]
+    assert run.first.status == want["status"]
     diff = [k for k, sha in want["stage_a_sha"].items() if _sha(run.first.report_a.get(k)) != sha]
     diff += ["stage_b." + k for k, sha in want["stage_b_sha"].items() if _sha(run.first.report_b.get(k)) != sha]
     ach = run.first.report_b.get("achievability") or {}
@@ -304,7 +312,7 @@ def test_stage_reports_unchanged_from_base(env, circuit):
 @pytest.mark.parametrize("circuit", SEARCHED)
 def test_s0_field_values_unchanged_from_base(env, circuit):
     run = _run(env, circuit)
-    base = run.first.sctx.dc.base
+    base = run.first.base
     want = BASELINE[circuit]
     diff = []
     for device, fp in want["start"]["row_fp"].items():
@@ -359,7 +367,7 @@ def _strings(node, seen=None):
 @pytest.mark.parametrize("circuit", SEARCHED)
 def test_junction_source_content_unchanged_from_base(env, circuit):
     run = _run(env, circuit)
-    got = run.first.sctx.dc.base.field("graph", "kernel", "junction_source")
+    got = run.first.base.field("graph", "kernel", "junction_source")
     assert got is not None
     want = BASELINE[circuit]["kernel"]["junction_content"]
     js = got.value
@@ -373,7 +381,7 @@ def test_junction_source_content_unchanged_from_base(env, circuit):
 def test_junction_source_value_has_no_checkout_path(env, circuit):
     # [xrun] 옛: 디스크 S0 파일의 junction_source 칸 문자열. 지금: 메모리 값(dc.base 필드) 안 문자열 어디에도 이 checkout 의 저장소 경로가 없다.
     run = _run(env, circuit)
-    got = run.first.sctx.dc.base.field("graph", "kernel", "junction_source")
+    got = run.first.base.field("graph", "kernel", "junction_source")
     assert got is not None
     strings = list(_strings(got.value))
     assert strings, "junction_source 값에서 문자열을 하나도 못 찾았다(검사가 공허)"
