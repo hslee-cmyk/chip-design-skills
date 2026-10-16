@@ -455,7 +455,7 @@ reads device `ly_device`·`ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_ro
    `block_version("ly_slice_density")` 가 같으면 건너뛰고, 다르면 소자마다 `slice_density(memo, 소자, 그 kind 폭 키)`(같은 (kind, L, ID, gm_id,
    vds, vsb) 는 한 번) 를 device `ly_slices` 에 쓴다.
 4. 블록 순서 `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`. `computed_blocks` = 이번 호출에서 값을 쓴 writer 이름 -- 계산 또는 이식
-   (`"ly_slice_density"` 를 다시 계산했으면 맨 앞, 그다음 block_version 이 바뀐 블록 순서대로; 판정은 호출 전후 block_version 비교 그대로이고 계산·이식 구분은 `RunCounters` 행이 맡는다).
+   (`"ly_slice_density"` 를 다시 계산했으면 맨 앞, 그다음 block_version 이 바뀐 블록 순서대로; 판정은 호출 전후 block_version 비교 그대로이고 계산·이식 구분은 `RunCounters` 행이 맡는다). `computed_blocks` 는 **출력 전용**이다 -- 엔진 소비자는 없고 test·보고가 읽는다(값은 스냅샷 필드가 정본).
 5~8 은 `run_layout` 결과가 아니라 **필드 파생 출력** `layout_outputs(snapshot) -> LayoutOutputs(review_needed, devices, coverage_ok,
 coverage_missing, w_requests, w_invariant_ok, revalidation)` 이다(필드에서 읽어 만드는 반환값, 저장하지 않는다). `LayoutResult` =
 `(snapshot, computed_blocks)` 뿐이고, groups·dispositions·rows·box·folds·merges·floorplan·diffusion 은 스냅샷의 `ly_groups`·`ly_dispositions`·

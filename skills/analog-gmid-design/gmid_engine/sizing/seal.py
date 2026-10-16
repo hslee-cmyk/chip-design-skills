@@ -15,7 +15,7 @@ tol_I 의 gm 은 `dc_tolerances` 가 쓴 자기 동작점 `dc_gm`(parent 무관,
 """
 import math
 
-from gmid_engine.core import SealViolationError, attach_partial
+from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, SealViolationError, attach_partial
 
 from .s2_values import DC_KEY, REPORT_SEALED, REPORT_VIOLATED, SEAL_FAIL, DcEvaluation, SealedSnapshot
 from .seal_bulk_reverse import dc_seal_bulk_reverse
@@ -44,11 +44,19 @@ def seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violatio
     )
     calls = tuple(calls)
     for block, extras in steps:
-        snapshot = block(snapshot, *extras, donors=donors, counters=counters)
+        try:
+            snapshot = block(snapshot, *extras, donors=donors, counters=counters)
+        except CANDIDATE_FAILURE_CLASSES as exc:
+            attach_partial(exc, snapshot)      # 봉인 항목 블록 단계 실패: 그 블록에 들어간 스냅샷이 부분 스냅샷(X-3)
+            raise
         calls += ((block, extras),)
     item4 = seal_versions(snapshot, calls)
     item5 = seal_writers(snapshot)
-    snapshot = dc_seal_report(snapshot, item4, item5, donors=donors, counters=counters)
+    try:
+        snapshot = dc_seal_report(snapshot, item4, item5, donors=donors, counters=counters)
+    except CANDIDATE_FAILURE_CLASSES as exc:
+        attach_partial(exc, snapshot)
+        raise
     report = snapshot.value("graph", DC_KEY, "dc_seal_report")
     if report.status == REPORT_VIOLATED and raise_on_violation:
         failed = [item for item in report.items if item.status == SEAL_FAIL]
