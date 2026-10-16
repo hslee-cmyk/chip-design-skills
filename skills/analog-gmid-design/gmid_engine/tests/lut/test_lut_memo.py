@@ -401,15 +401,18 @@ QUERIES = (
     ("vgs_for_gm_id", lambda m: vgs_for_gm_id(m,"nmos", 100, 15.0, 1e-6, 0.5, 0.0)),
 )
 QUERIES_AFTER = (
-    ("op_point", lambda m: op_point(m, "nmos", 100, 1e-6, 0.35, 0.6, 0.0)),
-    ("gm_id_curve", lambda m: gm_id_curve(m, "nmos", 100, 1e-6, 0.6, 0.0)),
+    ("op_point_after_fix", lambda m: op_point(m, "nmos", 100, 1e-6, 0.35, 0.6, 0.0)),
+    ("gm_id_curve_after_fix", lambda m: gm_id_curve(m, "nmos", 100, 1e-6, 0.6, 0.0)),
 )
+# 두 목록의 이름은 모두 서로 달라야 한다(비교 dict 키 -- 겹치면 다른 인자 값으로 덮인다). 아래 test 가 먼저 단언한다.
 
 
 def test_counting_memo_values_equal_constructor_memo(toy):
     """A-T17: 같은 인자의 조회 값이 counting memo(창 전·창 안·고정 뒤)와 생성자 memo 에서 비트 같다(memo 는 값을 바꾸지 않는다). 고정 뒤 처음
     부르는 인자(QUERIES_AFTER)도 같다. derived 영역 capacity = 슬라이스 수 × len(DERIVED_TABLES)(계수 상태부터, 고정 뒤도)."""
     from .test_table_cache import assert_bit_identical
+    names = [name for name, _ in QUERIES + QUERIES_AFTER]
+    assert len(names) == len(set(names)) == 5                           # 전제: 모든 질의가 따로 비교된다(키 덮어쓰기 없음)
     ref_memo = LutMemo(toy, point=64, curve=64, root=64, table_cache=TableCache(None))
     ref = {name: q(ref_memo) for name, q in QUERIES + QUERIES_AFTER}
     m = _counting(toy, 2)
