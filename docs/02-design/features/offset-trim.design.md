@@ -1,6 +1,6 @@
 ---
 template: design
-version: 0.3.1
+version: 0.3.2
 plan: ../../01-plan/features/offset-trim.plan.md
 plan_version: 0.5.5
 ---
@@ -16,7 +16,7 @@ plan_version: 0.5.5
 > * 계획 G-9~G-15를 닫는다(§3.9, §20). G-9의 trim 잔여 수렴 분해능은 S7-1 (가)로 닫혔다: 사용자 결정 T-39, 계획 v0.5.6 문언 정정(`trim-plan-r2`)(§18.3).
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (design 작성자 역할)
-> **Status (v0.3)**: design 개정 초안 (2026-10-16, card TR-0T). 독립 검증과 사용자 승인 전이다. 관련 계획은 offset-strategy v0.6.1(master `194981f`, 실행 계획 세션·변형 추가 OS-L·matching 오라클 측정 OS-V)과 oracle-portability v0.4.2(master `d579939`, 오라클 MC = 네이티브 MC, 능력 기록, PC-10은 이 design G-15에 의존)다. v0.2까지의 상태 문장은 아래에 그대로 둔다.
+> **Status (v0.3.2)**: design 개정 초안 (2026-10-16, card TR-0T). 독립 검증은 86점(v0.3)에서 94점(v0.3.1, 차단 0)으로 올랐고, v0.3.2는 그 비차단 3건을 반영했다. 사용자 승인 전이다. 관련 계획은 offset-strategy v0.6.2(master `fbeb1c7`, 실행 계획 세션·변형 추가 OS-L·matching 오라클 측정 OS-V·OB-20)와 oracle-portability v0.4.2(master `d579939`, 오라클 MC = 네이티브 MC, 능력 기록, PC-10은 이 design G-15에 의존)다. v0.2까지의 상태 문장은 아래에 그대로 둔다.
 > **Status (v0.2)**: design 초안 v0.2 (2026-10-15). v0.1 독립 검증 66/100의 차단 B1·B3·B4와 비차단 N1~N13을 반영했다. 같은 날 사용자 결정 T-7~T-13(TD-1 θ안 등)을 반영해 B2는 소멸, B5는 시험 회로(T-9)로 정리했다. 열린 사용자 값은 TD-3이다(TD-6은 T-14로 닫힘, §18.1). 재검증 82점의 차단 B6(I_u θ 키)과 M1~M6을 반영했고 TD-10·X-T15는 사용자 결정 T-15·T-16으로 닫혔다. 경위는 [offset-trim.design.history.md](offset-trim.design.history.md). 재검증·사용자 승인 전이다. 사용자 결정이 더 필요한 곳과 원래 취지와 다른 판단은 정하지 않고 §18에 모았다.
 > **기준**: 엔진 인용은 `944020f`(worktree `wt/trim-design`)의 `파일:줄`이다. `E/` = `skills/analog-gmid-design/gmid_engine/`. 엔진 design 인용은 `40 §x`(`gain-budget-gmid-sizing.40-engine.design.md`), `41 §x`.
 > **전제(T-4)**: 엔진 구현은 NFR-4 card 2 → XRUN-F1 card A·B·C 병합 뒤다. 이 문서는 그 병합 뒤 구조(40 §2.4.4~§2.4.14: `donors`·`counters` 필수 블록 호출, 블록 결과 색인, `RunCounters`, E_total, `search_ceiling`·`search_stop`, BLAS 고정, `ThetaCoords`)를 전제로 쓰고 충돌하지 않게 했다(§12.4).
@@ -1074,7 +1074,7 @@ v0.3(§20)은 새 원문을 쓰지 않는다. 'CMOS offset trim은 drift를 보�
 | 합격 | `range_pass` |
 | 불합격 | `range_fail`(metric·온도 점·표본) |
 | 판정 불능 | `range_undetermined_samples`(비용 한도), `oracle_cost_limit_undeclared`, `oracle_capability_unverified`/`..._stale`(§20.9), `reference_undeclared`, `judgment_range_excludes_tj`(§5.3), `target_rule_undeclared`(§20.7) |
-| 시작 거부(v0.3.1) | `simulator_parallel_undeclared`(§20.7), `dc_tolerance_undeclared`(수렴 판정 쪽, §20.6) |
+| 시작 거부(v0.3.1) | `simulator_parallel_undeclared`(§20.7), `dc_tolerance_undeclared`(반복 상한이 선언된 루프 실행의 시작에서만 검사, §20.6) |
 | T_j 판정 실패(계획 O-7, 루프 안 돎) | `tj_model_error`(§17-1 σ 불일치 또는 엔진·오라클 차), `tj_mc_tail`(창 안 MC 표본 잔여 > V_res), `tj_end_sample`(결정적 끝 표본 잔여 > V_res) |
 
 ### 20.2 방향 여유 Δ_T 측정 기록(G-9 닫음, 분해능은 §20.6, T-39)
@@ -1085,7 +1085,7 @@ v0.3(§20)은 새 원문을 쓰지 않는다. 'CMOS offset trim은 drift를 보�
 * **기록 형식**(계획 O-1): `TemperatureMargin` 값 형식이다. 엔진 `tightened_threshold`의 인자이므로 형식 선언은 엔진 쪽 `E/authoring/temperature_threshold.py`에 둔다(v0.3.1). tools는 그 형식을 import해 값을 만들기만 한다. 필드는 다음과 같다.
   * `metric`, `value_v`(≥ 0), `definition`(`per_sample_increase` | `aggregate`)
   * 판정 대상 점(front 점 id, θ 지문), 표본 수 n, seed, 온도 점
-  * 오라클 결과 기록(경로, sha256, 실행 id)
+  * 오라클 결과 기록(경로, sha256, 실행 id). 경로는 구동기가 대조(§20.4)에 쓴다. `tightened_threshold`는 경로를 읽지 않고, id·sha256만 출처로 조인 문턱 항목에 담는다(v0.3.2).
   * 환경 지문(§20.4), 반복 번호
   * 키 이름은 DEC-68 규칙으로 `temp_margin_<metric>_v`다(계획 후보 가운데 단위 접미가 있는 꼴).
 * **갱신**(계획 O-6): 반복마다 새 값으로 바꾸고, 누적하지 않는다.
@@ -1139,7 +1139,7 @@ v0.3(§20)은 새 원문을 쓰지 않는다. 'CMOS offset trim은 drift를 보�
 | 사유 | 조건 |
 |---|---|
 | `range_pass` | 범위 합격 |
-| `converged_fail` | 모든 대상 metric에서 \|Δ_T(j) − Δ_T(j−1)\| ≤ ρ(j) + ρ(j−1)이다.<br>• ρ = 온도 T*(최악 온도)와 T_j 두 점의 측정 분해능 합이다.<br>• matching 각 점의 분해능 = k·(k·σ̂(T)/√(2(n − 1))) + (V_sys DC 풀이 허용오차를 입력 환산한 값)이다.<br>• matching의 신뢰 배수 k는 계획 O-5다. 한계 문구(O-5): 'k는 덮을 분포 폭의 배수이고 신뢰 수준이 아니다. k를 바꾸면 이 기준도 바뀐다'.<br>• **trim 잔여 각 점의 분해능(S7-1 (가), T-39)** = 오라클 DC 풀이 허용오차를 입력 환산으로 전파한 값이다. 같은 seed의 고정 표본 집합이라 추출 잡음이 없고, 새 상수도 없다. **k를 곱하지 않는다**(전파값 그대로). 전파식은 잔여 측정(입력 환산 offset)과 같이 노드 허용오차를 차동 이득으로 나눈다.<br>• **허용오차의 출처(v0.3.1)**: 지금 오라클 입력의 `testbench.options`는 자유 문자열이라 허용오차 선언 칸이 없다. 그래서 oracle-portability 기술자·어댑터 능력에 'DC 풀이 허용오차 선언(노드 전압 허용오차)' 칸을 요구한다. 선언이 없으면 수렴 판정을 하지 않고 `dc_tolerance_undeclared`로 정지한다(fail-closed, 같은 칸을 matching V_sys 항도 쓴다) |
+| `converged_fail` | 모든 대상 metric에서 \|Δ_T(j) − Δ_T(j−1)\| ≤ ρ(j) + ρ(j−1)이다.<br>• ρ = 온도 T*(최악 온도)와 T_j 두 점의 측정 분해능 합이다.<br>• matching 각 점의 분해능 = k·(k·σ̂(T)/√(2(n − 1))) + (V_sys DC 풀이 허용오차를 입력 환산한 값)이다.<br>• matching의 신뢰 배수 k는 계획 O-5다. 한계 문구(O-5): 'k는 덮을 분포 폭의 배수이고 신뢰 수준이 아니다. k를 바꾸면 이 기준도 바뀐다'.<br>• **trim 잔여 각 점의 분해능(S7-1 (가), T-39)** = 오라클 DC 풀이 허용오차를 입력 환산으로 전파한 값이다. 같은 seed의 고정 표본 집합이라 추출 잡음이 없고, 새 상수도 없다. **k를 곱하지 않는다**(전파값 그대로). 전파식은 잔여 측정(입력 환산 offset)과 같이 노드 허용오차를 차동 이득으로 나눈다.<br>• **허용오차의 출처(v0.3.1)**: 지금 오라클 입력의 `testbench.options`는 자유 문자열이라 허용오차 선언 칸이 없다. 그래서 oracle-portability 기술자·어댑터 능력에 'DC 풀이 허용오차 선언(노드 전압 허용오차)' 칸을 요구한다. **검사 시점은 하나다(v0.3.2)**: 반복 상한이 선언된 루프 실행의 시작에서만 검사하고, 선언이 없으면 `dc_tolerance_undeclared`로 거부한다(fail-closed, matching V_sys 항도 같은 칸을 쓴다). 첫 범위 판정만 하는 실행(반복 상한 없음)은 수렴 판정이 없어 허용오차가 필요 없으므로 막지 않는다 |
 | `front_empty` | 조인 문턱으로 돈 변형의 front가 비었다 |
 | `iteration_cap` | 반복 수 = 실행 설정의 반복 상한(D-19) |
 | `loop_not_configured` | 반복 상한 선언이 없다. 첫 범위 판정만 하고 변형을 추가하지 않는다(D-19) |
