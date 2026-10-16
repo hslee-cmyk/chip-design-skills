@@ -319,3 +319,64 @@ def test_more_mutable_keys_rejected_without_compute(key):
     assert calls == []
     assert lru.stats() == before
     assert len(lru) == 1
+
+
+# =====================================================================================================================
+# [XRUN-F1 card A] `BoundedLRU.adopt(key, value)` -- interface card xrunf1a C3b: 원 key 를 받아 lookup 과 같은 canonical_key 로 넣는다,
+# 그 뒤 같은 원 key 의 lookup 은 적중(compute 미호출), adopt 는 hits·misses 를 바꾸지 않는다, 상한을 넘으면 lookup 과 같은 규칙으로 가장
+# 오래된 것을 퇴출해 evictions 에 세고 퇴출 키를 기록한다(그 키를 lookup 으로 다시 계산하면 recomputes_after_eviction).
+# oracle (손): 넣는 순서·상한은 이 test 가 정하고 계수를 손으로 센다. 이름은 test_bounded_lru_adopt_…(CanonPointer.adopt 와 구분).
+# =====================================================================================================================
+
+def test_bounded_lru_adopt_then_lookup_hits_without_compute():
+    lru = BoundedLRU(3)
+    c = _Counter()
+    v = ["adopted"]
+    lru.adopt(("k", 1.0), v)
+    st = lru.stats()
+    assert (st.hits, st.misses, st.size, st.evictions) == (0, 0, 1, 0)        # adopt 는 hits·misses 불변
+    assert lru.lookup(("k", 1.0), c.for_key("k")) is v
+    assert c.total() == 0
+    st = lru.stats()
+    assert (st.hits, st.misses) == (1, 0)
+
+
+def test_bounded_lru_adopt_canonical_equivalent_key_hits():
+    """같은 내용 NaN(다른 비트) 키로 넣고 부르면 적중 -- adopt 도 lookup 과 같은 canonical_key 를 쓴다."""
+    nan_other = struct.unpack("<d", struct.pack("<Q", 0x7FF8000000000777))[0]
+    lru = BoundedLRU(2)
+    c = _Counter()
+    v = ("nan-value",)
+    lru.adopt(("x", float("nan")), v)
+    assert lru.lookup(("x", nan_other), c.for_key("n")) is v
+    assert c.total() == 0
+
+
+def test_bounded_lru_adopt_keeps_tag_distinctions():
+    """adopt 로 (0.0,) 를 넣어도 (-0.0,)·(False,) 는 다른 키 -- 그 조회는 compute 한다(키 구분이 lookup 과 같다)."""
+    lru = BoundedLRU(4)
+    c = _Counter()
+    lru.adopt((0.0,), "pos")
+    lru.lookup((-0.0,), c.for_key("neg"))
+    lru.lookup((False,), c.for_key("false"))
+    assert c.calls == {"neg": 1, "false": 1}
+    assert lru.lookup((0.0,), c.for_key("pos")) == "pos" and "pos" not in c.calls
+
+
+def test_bounded_lru_adopt_over_capacity_evicts_oldest_and_records():
+    """capacity 2 에 a, b, c 를 차례로 adopt -> a 퇴출(evictions 1), size 2, hits·misses 0. b·c 는 적중, a 는 lookup 으로 다시 계산되고
+    recomputes_after_eviction 1(퇴출 기록)."""
+    lru = BoundedLRU(2)
+    c = _Counter()
+    for k in ("a", "b", "c"):
+        lru.adopt(k, "adopted-" + k)
+    st = lru.stats()
+    assert (st.hits, st.misses, st.evictions, st.size, st.recomputes_after_eviction) == (0, 0, 1, 2, 0)
+    assert lru.lookup("c", c.for_key("c")) == "adopted-c"
+    assert lru.lookup("b", c.for_key("b")) == "adopted-b"
+    assert c.total() == 0
+    lru.lookup("a", c.for_key("a"))
+    assert c.calls == {"a": 1}
+    st = lru.stats()
+    assert (st.hits, st.misses, st.recomputes_after_eviction) == (2, 1, 1)
+    assert st.evictions == 2                                     # a 를 다시 넣으며 가장 오래 접근하지 않은 c 퇴출(b 는 방금 적중)

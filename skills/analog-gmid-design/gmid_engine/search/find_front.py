@@ -132,6 +132,7 @@ def find_front(sctx, given_starts):
     perf.update(unique_keys=len(sctx.computed_keys),
                 eval_time_median_s=statistics.median(sctx.eval_times) if sctx.eval_times else None,
                 wall_s=time.perf_counter() - t_start, lut_memo_evictions=memo_evictions,
+                lut_memo_bound="fixed" if sctx.dc.lut.memo.bound_state == "fixed" else "unfixed_no_kernel_eval",
                 block_calls=blocks_after[0] - blocks_before[0], block_reuses=blocks_after[1] - blocks_before[1],
                 block_computes=blocks_after[2] - blocks_before[2],
                 block_recomputes_same_input=blocks_after[3] - blocks_before[3], n_starts=len(starts),

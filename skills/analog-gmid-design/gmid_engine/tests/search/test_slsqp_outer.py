@@ -6,6 +6,7 @@
   새 x 평가 전 kernel_calls ≥ E_B -> stop eval_budget, perf_counter > deadline -> wall_budget.
 - FD 열 양방향 실패 -> 열 고정(aborts "frozen:<kind>:<key>", frozen) (S-16).
 """
+import importlib
 import math
 import time
 
@@ -24,6 +25,7 @@ from gmid_engine.search import (
 
 from .conftest import (
     CELLS_C,
+    CELLS_P,
     build_case,
     circuit_c,
     circuit_p,
@@ -101,7 +103,9 @@ def test_wall_budget_stop(tmp_path, lut_sealed):
     sp = _start(case, theta_r4c())
     s.deadline = time.perf_counter() - 1.0
     r = solve_eps(s, sp, AXIS_POWER, None, ("t",))
-    # x0 = exp(ln θ) 가 시작 θ 와 1 ulp 달라 첫 평가도 '새 x' -> 'start_' 접두가 붙을 수 있다(계약 문장은 wall_budget, 모호점 보고).
+    # 이 test 는 solve_eps 전에 시작점을 평가하지 않아 시작점이 평가 캐시에 없다 -> 시작점 평가가 첫 '새 평가'라 deadline 이 지났으면
+    # "start_wall_budget"(CONTRACT 3.13: 시작점이 캐시에 없을 때만 start_ 접두). 시작점이 캐시에 있으면 그 점을 받아들이고 첫 새 평가(FD 열)에서
+    # "wall_budget". 시작 좌표 -> θ 는 원값 보존(interface card xrunf1a C2)이라 1 ulp 옆 점이 생기지 않는다(아래 test_start_theta_reused_no_extra_kernel).
     assert r.stop in ("wall_budget", "start_wall_budget")
     assert r.best is None
 
@@ -206,3 +210,92 @@ def test_large_area_row_best_judged_on_raw_c(tmp_path, lut_sealed, axis):
     feas = [h for h in r.history if _feasible(h)]
     assert feas                                                     # 시작점이 예산 안 -> 적어도 시작점
     assert getattr(r.best.objectives, key) <= min(getattr(h.objectives, key) for h in feas)
+
+
+# ---------------------------------------------------------------- [XRUN-F1 card A] 외층 시작 좌표 원값 보존 (interface card xrunf1a C2)
+# 외층 행: 풀이·FD 에 들어가는 시작 좌표 = clip(x0ᵢ; loᵢ, hiᵢ), 좌표 -> θ = clip 뒤 ThetaCoords.to_theta. 결과: 시작 좌표가 상자 안인 성분은
+# 시작 θ 원값(비트), 상자 밖 log 성분은 math.exp(clip 좌표)(원값 아님). 관찰 지점(J-3) = 모듈 속성 `slsqp_outer.fd_jacobian`(첫 호출 =
+# 시작점 FD, x = 시작 좌표). base 실패 요구 없음(as-built 외층이 이미 원값 보존 -- card A-T7).
+# oracle: (Py) 기대값 = 시작 θ 원값 또는 math.exp(min(max(math.log θ, lo), hi)) -- lo·hi 는 FD 호출에 넘어온 변수의 bounds(ln 좌표).
+# θ 는 math.exp(math.log(θ)) != θ 인 성분이 있게 골랐고(회로 C 전류 1e-5, 회로 P 저항 9e4) 그 전제를 test 가 먼저 단언한다.
+
+_SO = importlib.import_module("gmid_engine.search.slsqp_outer")
+
+
+def _record_outer_fd(monkeypatch, store, coords_log=None):
+    real = _SO.fd_jacobian
+
+    def rec(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()):
+        store.append((tuple(variables), [float(v) for v in x], to_theta, coords_log[-1] if coords_log else None))
+        return real(sctx, variables, x, base, cells, to_theta, origin, skip)
+    monkeypatch.setattr(_SO, "fd_jacobian", rec)
+
+
+def _hexes(d, comps):
+    return {c: float(d[c]).hex() for c in comps}
+
+
+def test_outer_start_inside_box_theta_bits_preserved(tmp_path, lut_sealed, monkeypatch):
+    """A-T7 (상자 안): 첫 fd_jacobian 호출의 to_theta(x) 변수 성분 = 시작 θ 원값(비트)."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
+    sp = _start(case, theta_r4c())
+    th0 = dict(sp.theta)
+    calls = []
+    _record_outer_fd(monkeypatch, calls)
+    solve_eps(case.sctx, sp, AXIS_POWER, None, ("t",))
+    assert calls
+    variables, x, to_theta, _ = calls[0]
+    comps = [v.component for v in variables]
+    # 전제: 모든 시작 좌표가 상자 안, 왕복이 원값을 잃는 log 성분이 있다(공허 방지)
+    assert all(v.lo <= (math.log(th0[v.component]) if v.log else th0[v.component]) <= v.hi for v in variables)
+    assert any(v.log and math.exp(math.log(th0[v.component])) != th0[v.component] for v in variables)
+    assert _hexes(to_theta(x), comps) == _hexes(th0, comps)
+
+
+def test_outer_start_outside_box_component_is_exp_of_clipped(tmp_path, lut_sealed, monkeypatch):
+    """A-T7 (상자 밖): 회로 P, θ 저항 상자 (1e3, 3e4) Ω 에 시작 저항 9e4 Ω(상자 밖, 구성 입력). 첫 FD 의 to_theta(x) 저항 성분 =
+    math.exp(min(max(math.log 9e4, lo), hi))(원값 아님), 상자 안 성분은 시작 θ 원값(비트)."""
+    rv = 9e4
+    case = build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=(1e3, 3e4), eval_budget=200)
+    th0 = theta_p(case.dc, r=rv)
+    sp = StartPoint("sx", tuple(sorted(th0.items())), CELLS_P, "given")
+    calls = []
+    _record_outer_fd(monkeypatch, calls)
+    solve_eps(case.sctx, sp, AXIS_POWER, None, ("t",))
+    assert calls, "시작점이 받아들여지지 않았다(전제)"
+    variables, x, to_theta, _ = calls[0]
+    got = to_theta(x)
+    (rvar,) = [v for v in variables if v.component == ("resistance", "R1")]
+    assert rvar.log and not (rvar.lo <= math.log(rv) <= rvar.hi)                    # 전제: log 변수, 시작 좌표가 상자 밖
+    want = math.exp(min(max(math.log(rv), rvar.lo), rvar.hi))                       # (Py)
+    assert want != rv
+    assert float(got[rvar.component]).hex() == float(want).hex()
+    inside = [v.component for v in variables
+              if v.component != rvar.component and v.lo <= (math.log(th0[v.component]) if v.log else th0[v.component]) <= v.hi]
+    assert inside                                                                    # 비교할 상자 안 성분이 있다
+    assert _hexes(got, inside) == _hexes(th0, inside)
+
+
+def test_theta_coords_used_by_outer(tmp_path, lut_sealed, monkeypatch):
+    """A-T8(외층 경로): ThetaCoords.start 를 클래스 수준에서 감싸(원래 것을 부름) solve_eps 가 한 번 이상 부르고, 첫 FD 에 넘긴 변환 출력
+    (시작 좌표 x, 상자 안 -- 자르기 = 항등)이 그 직전에 만든 객체의 to_theta(x) 출력과 비트 같다. oracle (비교)."""
+    from gmid_engine.search import ThetaCoords
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
+    sp = _start(case, theta_r4c())
+    made = []
+    orig = ThetaCoords.start
+
+    def start(cls, variables, theta):
+        c = orig(variables, theta)
+        made.append(c)
+        return c
+    monkeypatch.setattr(ThetaCoords, "start", classmethod(start))
+    calls = []
+    _record_outer_fd(monkeypatch, calls, made)
+    solve_eps(case.sctx, sp, AXIS_POWER, None, ("t",))
+    assert made and calls
+    variables, x, to_theta, coords = calls[0]
+    assert coords is not None
+    assert all(v.lo <= xi <= v.hi for v, xi in zip(variables, x))
+    a, b = to_theta(x), coords.to_theta(x)
+    assert {k: float(v).hex() for k, v in a.items()} == {k: float(v).hex() for k, v in b.items()}

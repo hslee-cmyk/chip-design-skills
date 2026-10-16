@@ -64,6 +64,7 @@ from .search_values import (
     StartPoint,
     Variable,
 )
+from .theta_coords import ThetaCoords
 
 SOURCE_LAYER0 = "layer0"
 STAGE_LAYER0 = "layer0"
@@ -292,18 +293,15 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
         variables[i] = Variable(variables[i].component, variables[i].log, floor, variables[i].hi)   # S-4f, solve_eps 와 같은 규칙
     lo = np.asarray([v.lo for v in variables], dtype=float)
     hi = np.asarray([v.hi for v in variables], dtype=float)
-    fixed = {k: v for k, v in theta0.items() if k not in {v.component for v in variables}}
+    coords = ThetaCoords.start(variables, theta0)         # 시작 좌표 원값 보존 정본(설계 40 §2.4.14 (2)) -- 자르지 않은 시작 좌표
     t_names = tuple(name for name, _s in _item_slacks(first))
     h_names = tuple(name for name, _c in _hard(first, row_key))
     n = len(variables)
     state = {"parent": first, "points": {}, "accepted": [], "frozen": set()}
 
-    def to_theta(x):
-        out = dict(fixed)
-        for v, value in zip(variables, x):
-            value = min(max(float(value), v.lo), v.hi)
-            out[v.component] = math.exp(value) if v.log else value
-        return out
+    def theta_of(x):
+        """풀이기·FD 가 준 x 를 상자로 자른 뒤(X-14) θ 로 -- 자른 좌표가 자르지 않은 시작 좌표와 같을 때만 시작 θ 원값(`ThetaCoords.to_theta`)."""
+        return coords.to_theta([min(max(float(value), v.lo), v.hi) for v, value in zip(variables, x)])
 
     def rows_of(res):
         if res.status not in ACCEPTED_STATUSES:
@@ -323,7 +321,7 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
             stop = _budget_stop(sctx)
             if stop is not None:
                 raise _Abort(stop, x)
-            res = evaluate(sctx, to_theta(x), cells, parent=state["parent"], origin=tag)
+            res = evaluate(sctx, theta_of(x), cells, parent=state["parent"], origin=tag)
         rows = rows_of(res)
         if rows is None:
             raise _Abort("candidate_failure", x)
@@ -337,7 +335,7 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
         entry = point(x)
         skip = frozenset(state["frozen"])
         if entry["jac"] is None or entry["jac"][2] != skip:
-            cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], cells, to_theta, tag, skip)
+            cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], cells, theta_of, tag, skip)
             gs = np.zeros((len(t_names), n))
             gc = np.zeros((len(h_names), n))
             for i, (col, step) in enumerate(cols):
@@ -368,9 +366,9 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
         state["parent"] = entry["res"]
         state["accepted"].append(entry)
 
-    start = point(np.asarray([_coord(v, theta0[v.component]) for v in variables], dtype=float), first)
+    start = point(np.asarray([min(max(c, v.lo), v.hi) for v, c in zip(variables, coords.x0)], dtype=float), first)       # 상자 자르기(X-14): clip(x0ᵢ)
     accept(start["x"])
-    steps0 = fd_jacobian(sctx, variables, start["x"], first, cells, to_theta, tag, frozenset())
+    steps0 = fd_jacobian(sctx, variables, start["x"], first, cells, theta_of, tag, frozenset())
     h = np.asarray([abs(step) for _col, step in steps0], dtype=float)
     resolved = [int(math.ceil(math.log2((hi[i] - lo[i]) / h[i]))) for i in range(n) if h[i] > 0]
     maxiter = max(1, sum(max(r, 1) for r in resolved))
@@ -424,10 +422,6 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
             centre = state["accepted"][-1]["x"]
     best = max(state["accepted"], key=lambda e: (bool(np.all(e["c"] >= 0)), float(np.min(e["s"])), -e["res"].seq))
     return best, stop, iterations, restarts, tuple(aborts), tuple(frozen_log), t_names
-
-
-def _coord(var, value):
-    return min(max(math.log(value) if var.log else value, var.lo), var.hi)
 
 
 def _primes(count):
@@ -646,8 +640,8 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
 
 
 def centre_start(sctx, rung=None):
-    """layer0 가 처음 평가하는 점 `(variables, theta, cells, centre_u)` -- 상자 중심 + 전류 중심. `build_search_context` 가 LUT memo 상한을 정하는
-    첫 평가(설계 40 §7.3)도 이 점을 쓴다(`variables` 길이 = n_θ)."""
+    """layer0 가 처음 평가하는 점 `(variables, theta, cells, centre_u)` -- 상자 중심 + 전류 중심. n_θ(`variables` 길이)만 `_wire_sweep_memo` 가 이 함수로
+    잰다(LUT memo 상한 (n_θ + 1)·U_eval 의 n_θ -- 설계 40 §2.4.6 '첫 평가 버림 제거')."""
     variables, theta, cells = _box_centre(sctx, rung)
     theta, centre_u = _current_centre(sctx, variables, theta, rung)
     return variables, theta, cells, centre_u

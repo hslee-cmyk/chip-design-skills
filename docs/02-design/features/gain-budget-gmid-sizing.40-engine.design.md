@@ -1616,7 +1616,7 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 
 | 항목 | 설계 | 상태 |
 |---|---|---|
-| LUT memo 상한 | v1.6: S0당 인스턴스 하나, 계수 상태로 시작해 고정(첫 평가를 버리지 않는다), `memo.call(fn, *args)` 순수성(`lut` 패키지 함수만). 상한 식과 퇴출 판정은 U-60 결정 (가)(§2.4.6): 상한 N_T 무관, 퇴출 허용, 퇴출 뒤 재계산 0. test의 상수 4096을 지운다 | DEV(bd19cc6: `_wire_sweep_memo`가 sweep 항만으로 두 번째 인스턴스를 만들고 계수용 첫 평가를 버린다, `E/search/search_context.py:105-121`). v1.11: 첫 평가 버림은 XRUN-F1 card A가 없앤다(§2.4.6 '첫 평가 버림 제거'), 인스턴스 하나·B_r 전체 항은 U17 ③ |
+| LUT memo 상한 | v1.6: S0당 인스턴스 하나, 계수 상태로 시작해 고정(첫 평가를 버리지 않는다), `memo.call(fn, *args)` 순수성(`lut` 패키지 함수만). 상한 식과 퇴출 판정은 U-60 결정 (가)(§2.4.6): 상한 N_T 무관, 퇴출 허용, 퇴출 뒤 재계산 0. test의 상수 4096을 지운다 | OK(XRUN-F1 card A, 판정 9930c28: `LutMemo.counting`·`open_count`·`fix_bound`, 컨텍스트 생성 커널 평가 0, 상한 (n_θ+1)·U 9회로 확인) |
 | tol_V 디스크 캐시 | 키 = 코드 버전 + 입력 내용 sha + 설정 지문. 저장소 밖 경로, 원자적 쓰기, 깨지면 재계산. 정리는 첫 쓰기 때만, 저장소와 모든 worktree의 `lut_v2_location.json`이 가리키지 않는 자료 id만 지우고, 사용 중·링크·폴더 밖 파일은 건너뛴다(사용자 결정 2026-10-08) | PART `[ng-tolv-cache]`: `TableCache`가 `__all__`에 없고 test가 없다. 계획서 N3.5 '디스크 캐시 위치' 문구를 갱신해야 한다 |
 | 1변수 풀이 | Brent `bracket_root` + 입력 재사용 memo + 평가 안 tol_V 셀 재사용. v1.6: `solve_self` 근은 LUT memo 순수 함수, `tol_cells`는 memo로(§2.4.6) | OK(master `004b7d2`, `E/sizing/bracket_root.py`). v1.6 형태는 DEV(클로저 memo, `block_columns.py:177,397-398`) |
 | core 성능 2~5 | memo 키, 레코드 지문 보관, 투영 지문, 열 키 캐시 | OK(master 병합) |

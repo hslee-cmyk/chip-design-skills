@@ -281,6 +281,9 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
   - 미적중: `compute()`(인자 없음) 1회 호출, 결과 저장·반환. 크기가 capacity 를 넘으면 가장 오래 안 쓴 항목 1개 퇴출.
     캐싱을 멈추지 않는다(DF-07): 상한 도달 뒤에도 새 키는 저장된다.
   - compute 가 예외를 내면 저장하지 않고 전파(misses 는 +1).
+- `adopt(key, value)` [XRUN-F1 A]: 이미 계산한 `value` 를 **원 key** 로 넣는다 -- 안에서 `lookup` 과 같은 `canonical_key` 를 적용한다(부르는 쪽이 정규화한 키를 넘기지 않는다, 이중 정규화 금지).
+  그 뒤 같은 원 key 의 `lookup` 은 적중(compute 미호출). `hits`·`misses` 는 바뀌지 않는다. 크기가 capacity 를 넘으면 `lookup` 과 같은 규칙으로 가장 오래 안 쓴 항목을 퇴출하고 `evictions` 에 세며
+  퇴출 기록에 남긴다(그 키를 나중에 `lookup` 으로 다시 계산하면 `recomputes_after_eviction` +1). 쓰는 곳: `LutMemo.fix_bound`(계수 상태 항목 옮기기).
 - `len(lru)` ≤ capacity 항상.
 - `stats() -> LruStats(capacity, size, hits, misses, evictions, recomputes_after_eviction)`:
   `hits + misses` = 유효 lookup 수, `evictions` = 퇴출 수, `recomputes_after_eviction` = 퇴출됐던 키가 다시 미적중한 횟수.

@@ -738,3 +738,76 @@ def test_layer0_lift_edges(tmp_path, lut4, monkeypatch, name):
     assert seen
     want = math.exp(min(max(x_inj, v.lo), v.hi))
     assert math.isclose(th[v.component], want, rel_tol=4 * _sys.float_info.epsilon, abs_tol=0.0), (name, th[v.component], want)
+
+
+# =====================================================================================================================
+# [XRUN-F1 card A] interface card xrunf1a C2 층 0 행: 최대-최소의 시작 좌표 = clip(x0ᵢ), 좌표 -> θ = clip 뒤 ThetaCoords.to_theta. 결과: 시작
+# 좌표가 상자 안이면 시작 좌표에서 만든 θ 는 출발점 θ 와 변수 성분마다 비트 동일. 관찰 지점(J-3) = 모듈 속성 `layer0_center.fd_jacobian`
+# (서명 fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()), 시작점 FD 에서 x = 시작 좌표, base = 출발점 평가 결과).
+# 케이스: 회로 C(toy lut4). 상자 중심 출발이면 θ 전류가 exp(ln 좌표)로 만든 값이라 왕복이 원값을 잃지 않는다(전제가 서지 않음) -- 그래서
+# 중심 점을 평가 대체 지점(`inject_failures`, card 1 J-5)에서 빈 창 실패로 바꿔 Halton·hit-and-run 시험 점(θ 전류 = 선형 좌표 값)에서
+# 출발하게 한다. 전제(공허 방지)는 test 안에서 단언: 출발점이 시험 점, log 변수 하나 이상이 math.exp(math.log(θ)) != θ 이고 그 x 가 상자 안.
+# oracle: (비교) 같은 엔진이 낸 출발점 평가 결과 θ(base.theta) 와 FD 에 넘긴 변환 출력의 비트 비교 + (Py) 전제. ThetaCoords 는 import 하지
+# 않는다(A-T5 의 base 실패 사유가 import 오류가 아니라 비트 단언이어야 한다 -- 감사 A-3).
+# =====================================================================================================================
+
+def _record_fd(monkeypatch, module, store, coords_log=None):
+    """module.fd_jacobian 을 진짜 함수를 부르는 기록기로 바꾼다. store 에 (variables, x 사본, base, to_theta, 그 시점 ThetaCoords 객체)."""
+    real = module.fd_jacobian
+
+    def rec(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()):
+        store.append((tuple(variables), [float(v) for v in x], base, to_theta,
+                      coords_log[-1] if coords_log else None))
+        return real(sctx, variables, x, base, cells, to_theta, origin, skip)
+    monkeypatch.setattr(module, "fd_jacobian", rec)
+
+
+def _layer0_from_probe(tmp_path, lut, roots, monkeypatch, store, coords_log=None):
+    """중심 점을 빈 창 실패로 바꾼 층 0 실행(위 test_single_current_first_probe_direction_zero 와 같은 주입). -> (case, result, hits)."""
+    _, _, lines0 = run_l0(tmp_path / "a", circuit_c(), lut, roots(), eval_budget=3)
+    centre = lines0[0]
+    assert centre["origin"] == {"stage": "layer0"}                                  # 전제: 첫 줄 = 중심 점
+    hits = inject_failures(monkeypatch, {line_key(centre): empty_window("out")})
+    _record_fd(monkeypatch, layer0_module, store, coords_log)
+    case, r, _ = run_l0(tmp_path / "b", circuit_c(), lut, roots(), eval_budget=40)
+    return case, r, hits
+
+
+def test_layer0_start_fd_theta_bits_equal_start_theta(tmp_path, lut4, roots, monkeypatch):
+    """A-T5: 층 0 최대-최소 첫 FD 호출 -- to_theta(x) 의 변수 성분이 출발점 평가 결과 θ(dict(base.theta))와 비트 동일."""
+    calls = []
+    _, r, hits = _layer0_from_probe(tmp_path, lut4, roots, monkeypatch, calls)
+    assert hits                                                                     # 주입 비공허: 중심이 실제로 실패로 바뀌었다
+    assert r.origin_point is not None and r.origin_point.startswith("halton:")      # 전제: 시험 점 출발
+    assert calls, "층 0 최대-최소가 fd_jacobian 을 부르지 않았다"
+    variables, x, base, to_theta, _ = calls[0]
+    th = dict(base.theta)
+    # 전제(공허 방지): 왕복이 원값을 잃는 log 변수가 있고 그 시작 좌표가 상자 안
+    lossy = [v.component for i, v in enumerate(variables)
+             if v.log and math.exp(math.log(th[v.component])) != th[v.component] and v.lo <= x[i] <= v.hi]
+    assert lossy, [(v.component, v.log) for v in variables]
+    got = to_theta(x)
+    assert {v.component: float(got[v.component]).hex() for v in variables} == \
+        {v.component: float(th[v.component]).hex() for v in variables}
+
+
+def test_theta_coords_used_by_layer0(tmp_path, lut4, roots, monkeypatch):
+    """A-T8(층 0 경로): ThetaCoords.start 를 클래스 수준에서 감싸(원래 것을 부름) 층 0 이 한 번 이상 부르고, 첫 FD 에 넘긴 변환의 출력
+    (시작 좌표 x, 상자 안)이 그 직전에 만든 객체의 to_theta(x) 출력과 비트 같다. oracle (비교)."""
+    from gmid_engine.search import ThetaCoords
+    made = []
+    orig = ThetaCoords.start
+
+    def start(cls, variables, theta):
+        c = orig(variables, theta)
+        made.append(c)
+        return c
+    monkeypatch.setattr(ThetaCoords, "start", classmethod(start))
+    calls = []
+    _layer0_from_probe(tmp_path, lut4, roots, monkeypatch, calls, made)
+    assert made and calls
+    variables, x, _base, to_theta, coords = calls[0]
+    assert coords is not None
+    assert all(v.lo <= xi <= v.hi for v, xi in zip(variables, x))                  # 전제: 시작 좌표가 상자 안(자르기 = 항등)
+    a, b = to_theta(x), coords.to_theta(x)
+    assert {k: float(v).hex() for k, v in a.items()} == {k: float(v).hex() for k, v in b.items()}

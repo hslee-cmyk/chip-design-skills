@@ -279,8 +279,8 @@ plan_version: 6.11
 | D-GR13 | 단계 B 층(r̂·수치 rank, 직렬화 제외(v1.10: S0 직렬화 폐지로 이 구분은 대상 소멸). ①-b는 필드 자리·제외 규칙만, 블록 배선은 소비자 층 0과 함께 U17 ② -- v1.9.1 D5), `ach.dof` = 구조 DOF만, KernelContext·SearchContext 선언 파생의 S0 수준 필드, `metrics_dc` `gate_area_m2`·`power_resolution_w`(제약 행 `constraint_rows`는 U17 ②로 이월, `unmeasured` 자리 40 §2.4.12 Q8 열림) | 40 §2.4.1·2.4.7·2.4.8 | DEV | bd19cc6 `E/search/objectives.py:31-45`, `E/sizing/s2_values.py:429-443` |
 | D-GR14 | 층 0 필드(`graph/layer0: macro`·`comp_approx_gap`·`rounds`, `graph/local` 블록 범위 metric), 색인 `local`·`solved` | 40 §2.4.5·2.4.8, 41 §5.3.9·§5.3.11·§5.5 | MISS | `rg "comp_approx_gap"` 0(엔진 .py) |
 | D-GR15 | 계수 소유 `RunCounters`(블록 무상태, `_evicted`·`events` 이동), LUT memo 퇴출 판정(U-60 결정 (가): 퇴출 뒤 재계산 0). v1.11: 블록 계수 부분과 블록 무상태화는 XRUN-F1 B(D-XR5), `_evicted`·`events` 이동은 U17 ②·③ | 40 §2.4.6·2.4.9 | DEV | bd19cc6 `E/core/compute_block.py:67-71`, `E/core/bounded_lru.py:38`, `E/lut/table_cache.py:199` |
-| D-XR1 | ln 좌표 원값 보존 정본 `ThetaCoords`(`E/search/theta_coords.py`): 시작 좌표면 시작 θ 원값. 외층 `solve_eps`·층 0 `_maxmin`·감도 게이트가 같은 정본을 쓰고 사본(`_coord`·`to_theta` 세 개·`_layout` 원값 목록)은 지운다(사용자 결정 X-1 (1), XRUN-F1 A) | 40 §2.4.14 (2) | DEV | f23aec8 `E/search/layer0_center.py:283-288·411-412`, `E/search/gate_run.py:55-61`(원값 보존 없음), `E/search/slsqp_outer.py:70-75·110-118`(있음). `rg "ThetaCoords"` 0 |
-| D-XR2 | 첫 평가 버림 제거: 탐색 memo는 계수 상태로 시작하고 실행의 첫 커널 평가(실제 평가) 뒤 상한 (n_θ + 1)·U_eval 고정, `build_search_context` 커널 평가 0, `sweep_memo.py`·`from_sweep` 삭제(사용자 결정 X-1 (2), XRUN-F1 A) | 40 §2.4.6 | DEV | f23aec8 `E/search/search_context.py:134-150`(임시 컨텍스트 첫 평가), `E/lut/sweep_memo.py` |
+| D-XR1 | ln 좌표 원값 보존 정본 `ThetaCoords`(`E/search/theta_coords.py`): 시작 좌표면 시작 θ 원값. 외층 `solve_eps`·층 0 `_maxmin`·감도 게이트가 같은 정본을 쓰고 사본(`_coord`·`to_theta` 세 개·`_layout` 원값 목록)은 지운다(사용자 결정 X-1 (1), XRUN-F1 A) | 40 §2.4.14 (2) | OK | `E/search/theta_coords.py`(ThetaCoords), 세 경로 `slsqp_outer.py`·`layer0_center.py`·`gate_run.py`, 사본 grep 0 -- 판정 기록 `.ai/verification/xrunf1a.json`(audit 9930c28, 병합본 1670330: suite 10118 passed/0 failed, 9회로 A-5 범위 밖 변화 0) |
+| D-XR2 | 첫 평가 버림 제거: 탐색 memo는 계수 상태로 시작하고 실행의 첫 커널 평가(실제 평가) 뒤 상한 (n_θ + 1)·U_eval 고정, `build_search_context` 커널 평가 0, `sweep_memo.py`·`from_sweep` 삭제(사용자 결정 X-1 (2), XRUN-F1 A) | 40 §2.4.6 | OK | `E/lut/lut_memo.py`(counting·open_count·fix_bound·bound_state), `search_context.py` 커널 평가 0, `kernel.py` 배선, `sweep_memo.py` 삭제, `perf.lut_memo_bound` -- 판정 기록 `.ai/verification/xrunf1a.json`(audit 9930c28, 병합본 1670330: suite 10118 passed/0 failed, 9회로 A-5 범위 밖 변화 0) |
 | D-XR3 | 블록 결과 색인: (블록, 분할, 입력 버전) → 그 값을 담은 스냅샷 참조, 계보 무관, 실행 수명, 상한 = 40 §2.4.9 증거 집합 식(등록 때 fail-closed는 card C 뒤, X-8), 결정적 도메인 실패 기록 등록·재연(X-9), fail-closed 네 가지, 모든 블록 호출이 `donors`·`counters` 필수(사용자 결정 X-1 (3), XRUN-F1 B) | 40 §2.4.4·2.4.5 | MISS | (v1.11: Q12 → 사용자 결정 X-8 card C, 실패 기록 등록·재연 X-9) f23aec8 `E/core/compute_block.py:139`(같은 lineage `block_version` 하나만). `rg "class S3Index\|def graft\|class RunCounters"` 0 |
 | D-XR4 | 실패 평가의 부분 스냅샷: 예외 `partial`·`attach_partial`, `EvalResult.partial`, S3 evals 실패 줄 `snapshot_fp`(사용자 결정 X-3, XRUN-F1 B) | 40 §2.4.7 | DEV | f23aec8 `E/search/kernel.py:119-122·129-135`(실패면 평가 스냅샷 없음), `E/sizing/seal.py:50-58`(보고서 쓴 뒤 예외) |
 | D-XR5 | perf 재계산 계수 = 실행 전체 모든 (블록, 분할), 결과 JSON `perf.blocks`·`perf.block_totals`, 옛 `block_calls`·`block_reuses`·`block_computes`·`block_recomputes_same_input` 삭제(사용자 결정 X-5, XRUN-F1 B) | 40 §2.4.9 | DEV | f23aec8 `E/search/find_front.py:44-59·131-133`(sizing 블록 12개의 `find_front` 구간 차) |
@@ -309,8 +309,10 @@ plan_version: 6.11
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 2 | 1 | 7 | 5 | 0 |
 | DEC | 82 | 24 | 6 | 29 | 17 | 6 |
-| 설계 항목 | 168 | 4 | 29 | 15 | 117 | 3 |
-| **합계** | 265 | 30 | 36 | 51 | 139 | 9 |
+| 설계 항목 | 168 | 6 | 27 | 15 | 117 | 3 |
+| **합계** | 265 | 32 | 34 | 51 | 139 | 9 |
+
+v1.11.3(2026-10-16, XRUN-F1 card A 병합 직전, 판정 9930c28): D-XR1·D-XR2 DEV → OK. 집계: 설계 항목 OK 4 → 6, DEV 29 → 27(합계 OK 30 → 32, DEV 36 → 34).
 
 v1.11.2(2026-10-16, NFR-4 card 2 병합 직전, 판정 a18c6b2·사용자 결정 N-5·N-6): D-ND1 MISS → OK, D-ND2 DEV → OK, D-ND3 MISS → OK. NFR-4 행은 D-ND4(알려진 잔여 결함) 때문에 PART 유지. 집계: 설계 항목 OK 1 → 4, DEV 30 → 29, MISS 119 → 117(합계 OK 27 → 30, DEV 37 → 36, MISS 141 → 139).
 

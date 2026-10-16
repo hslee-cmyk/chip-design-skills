@@ -71,7 +71,6 @@ from .noise_query import noise_params
 from .noise_tolerance import TolNoiseTable, tol_noise_table
 from .point_query import op_point
 from .provenance import lut_provenance
-from .sweep_memo import sweep_memo
 from .table_cache import TableCache
 from .tolerance import TolVTable, tol_v_table
 from .vdsat_curve import vdsat_curve
@@ -154,7 +153,6 @@ __all__ = (
     "op_point",
     "require_lut_data",
     "resolve_lut_location",
-    "sweep_memo",
     "tol_mismatch_table",
     "tol_noise_table",
     "tol_v_table",

@@ -169,8 +169,8 @@
   "wall_budget", "restart_cap", "all_columns_frozen", 그리고 중단 사유 그대로("candidate_failure"·"constraint_set_changed" -- 재시작
   상한 전 SLSQP 가 끝났을 때 마지막 사유). `perf.stops_eval_budget`·`stops_wall_budget` 은 "eval_budget"·"wall_budget" 만 센다.
 - **`SearchDomain.current_box`** 의 kind = 그 회로 S1 의 MOS kind 집합(이름순) -- LUT 의 모든 kind 가 아니다.
-- **효율 수정(r5)**: `solve_eps` 가 시작 좌표 x0 를 θ 로 되돌릴 때 bounds 로 잘리지 않은 성분은 시작 θ 원값을 그대로 쓴다(ln→exp
-  왕복 1 ulp 차이로 시작점이 다른 평가 키가 되어 커널을 한 번 더 부르던 결함).
+- **효율 수정(r5, XRUN-F1 A에서 정본 `ThetaCoords`(3.26)로 이동)**: 시작 좌표 x0 를 θ 로 되돌릴 때 시작 θ 원값을 그대로 쓴다(ln→exp
+  왕복 1 ulp 차이로 시작점이 다른 평가 키가 되어 커널을 한 번 더 부르던 결함). `solve_eps`·층 0 최대-최소·감도 게이트가 모두 `ThetaCoords` 를 쓴다(사본 없음).
 - **열린 항목 S-21(관찰, 알고리즘 변경 없음)**: 전력 최소 끝점 E_P(SLSQP 국소해)가 같은 실행의 ε 점에 지배당하는 경우가 있다(설계 PA 2.4
   국소해 실례와 같음) -- front 필터가 지배당한 끝점을 `removed` 로 뺀다. 끝점 multi-start 수·재시도 규칙은 결정 대기.
 
@@ -182,6 +182,7 @@
 |---|---|---|
 | 0 | `search_values.py` | 데이터 선언 모듈(상태·단계·축·제약 접두 어휘, 2절 형식) |
 | 1 | `archive.py` | `S3Archive` |
+| 0 | `theta_coords.py` [XRUN-F1 A] | `ThetaCoords`(3.26) |
 | 1 | `canonical_order.py` [r11] | `canonical_order` |
 | 1 | `canonical_rows.py` [r12] | `canonical_row_key` |
 | 1 | `current_symmetry.py` [r12] | `current_symmetry` |
@@ -388,6 +389,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
    원뿔 행. SLSQP: 최소화 −t, 제약 [s − t ; c] ≥ 0, bounds = 변수 bounds + t 무한, ftol 1. 행 이름 집합이 출발점과 다르거나 점이
    받아들일 상태가 아니면 중단 -> `solve_eps`(3.13)와 같은 재시작·열 고정·한도·예산 규칙(maxiter·재시작 상한 식 동일, stop 어휘
    동일: converged / slsqp_<status> / eval_budget / wall_budget / restart_cap / all_columns_frozen). 출발 t = 그 중심점의 min s.
+   [XRUN-F1 A] 좌표 변환 = `ThetaCoords.start(변수(하한 조정 뒤), 출발점 θ)`(3.26): 풀이 시작 좌표 = clip(x0ᵢ; 변수 loᵢ, hiᵢ), 풀이기·FD 가 준 x 는 clip 한 뒤 `ThetaCoords.to_theta`
+   (자르지 않은 시작 좌표와 같은 성분은 출발점 θ 원값). 좌표 변환 사본 없음.
 5. 결과 = 수락 반복 중 키 (경성 행 모두 ≥ 0, min s, −seq) 최대인 점. `start = StartPoint("layer0", 그 점 θ, cells, "layer0")`,
    `t` = 그 점 min s, `hard_ok` = 그 점 경성 행 모두 ≥ 0, `kernel_calls` = 이 호출 동안 늘어난 `counters["kernel_calls"]`,
    `rows` = t 행 이름.
@@ -439,6 +442,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 - `eval_budget` = settings.eval_budget, `deadline` = None(find_front 가 정함).
 - `archive_root` 가 None 이면 S3 없음. 아니면 `S3Archive(root, context_fp, code_fp)` 이다(S3 는 출력이다 -- 시작할 때 읽지 않고 실패 캐시를 재구성하지 않는다, NFR-2·U-89).
 - `counters` 키: requests, kernel_calls, hits, fail_hits, outside_domain, recompute_same_key(6개, 모두 0 시작).
+- [XRUN-F1 A] 탐색 LUT memo = **계수 상태 memo**(`LutMemo.counting(호출자 lut, n_θ, table_cache=호출자 memo 의 것)`, lut CONTRACT 2.2). n_θ = `len(layer0_center.centre_start(sctx)[0])`(상자 중심 변수 = 정의역 변수 + 구간인 L 칸 변수),
+  계수 memo 를 넣기 전에 잰다. 이 호출 안의 커널 평가는 **0**이다(`kernel.size_and_seal` 호출 0, 임시 컨텍스트·버리는 평가 없음; 반환 직후 `kernel_calls == 0`, `seq == 0`, `cache` 비어 있음). 호출자 memo(`dc_ctx` 의 것)는 바꾸지 않는다.
 
 ### 3.10 `evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None) -> EvalResult`
 [U14] `geometry` = `RealizedGeometry(w_request, w_keys, diffusion=())`(search_values, `search.__all__`; MOD8 `convergence` 의 재검증 입력, LY7·LY8): 있으면 1 의 키 `w_fixed_fp = fp_of(geometry)`,
@@ -449,8 +454,9 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 1. requests +1. 키 = `eval_key(..., 키 정렬 θ, cells, None)`.
 2. 메모리 캐시 적중 -> hits +1(실패면 fail_hits 도 +1), 같은 객체(`is`) 반환. 커널 0.
 3. `cone_rows` 에 c ≤ 0 -> outside_domain +1, `STATUS_OUTSIDE_DOMAIN`(seq −1), 캐시 저장. 커널 0, S3 줄 없음.
-4. kernel_calls +1, seq +1, `size_and_seal(dc, θ, parent=parent.evaluation)`. `NonconvergentError`·`SealViolationError` 만
-   잡아 `STATUS_FAILED` + `exc.record`. 그 밖 예외는 전파(캐시·계수는 kernel_calls 까지 증가한 채).
+4. kernel_calls +1, seq +1, [XRUN-F1 A] `dc.lut.memo.bound_state == "counting"` 이면 `open_count()`(그 컨텍스트의 첫 커널 평가 -- 계수 창 열기), `size_and_seal(dc, θ, parent=parent.evaluation)`. `NonconvergentError`·`SealViolationError` 만
+   잡아 `STATUS_FAILED` + `exc.record`. 그 밖 예외는 전파(캐시·계수는 kernel_calls 까지 증가한 채). 결과(`EvalResult`)를 만든 직후(성공·후보 실패 모두) `bound_state == "window_open"` 이면 `fix_bound()`
+   (상한 (n_θ + 1)·U_eval 고정, lut CONTRACT 2.2). 생성자 memo(`"fixed"`)로 도는 경로는 두 메서드를 부르지 않는다.
 5. 성공: 상태 = `seal_status`. 목적 = `objective_values`(저항 = dc resistor_values + θ resistance). [r2] b_P 가 None 이면
    상태 = `STATUS_UNDEFINED`. `STATUS_UNDEFINED` 가 아니면 제약 = `constraint_rows` 행 + 목적 축 spec 행(`spec:<m><op>`,
    c = (값 − 목표)/분해능(>=) 또는 (목표 − 값)/분해능(<=), 분해능 = 그 점의 b_P 또는 b_A) + `ss_constraint_rows` 행,
@@ -480,8 +486,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 ### 3.13 [r2] `solve_eps(sctx, start, minimize, eps, origin) -> SolveResult`
 - [NFR-4 재확인 (e)] 호출마다 진입에서 `core.blas_environment()` 로 BLAS 스레드 1 을 다시 확인한다(무상태, 값 기록 없음, 실패는 `RuntimeError`). 끝점·ε 풀이·L-b 가 모두 이 함수를 부른다.
 - 변수 = domain.variables + 시작 칸이 구간인 MOS 의 L(칸 bounds). 칸이 한 점인 L 은 칸 lo 로 고정. [r8, S-4f] 1변수 노드 writer 의
-  ln_idu 하한 = `ln_idu_floors(sctx, 변수, start.cells, one_var_only=True, start=시작 θ)`(3.22). x0 = 시작 θ(log 변수는 ln),
-  bounds 로 자름. 축 분해능 = {power: 첫 받아들인 점(시작점)의 b_P, area: b_A} -- 풀이 하나 동안 고정. 목적 = 축 값/분해능,
+  ln_idu 하한 = `ln_idu_floors(sctx, 변수, start.cells, one_var_only=True, start=시작 θ)`(3.22). [XRUN-F1 A] 좌표 = `ThetaCoords.start(변수, 시작 θ + 칸이 한 점인 L 의 고정값)`(3.26):
+  풀이 시작 좌표 x0 = clip(시작 좌표; loᵢ, hiᵢ)(호출부가 bounds 로 자름), 풀이기·FD 가 준 x 는 clip 한 뒤 `ThetaCoords.to_theta`(자르지 않은 시작 좌표와 같은 성분은 시작 θ 원값). 축 분해능 = {power: 첫 받아들인 점(시작점)의 b_P, area: b_A} -- 풀이 하나 동안 고정. 목적 = 축 값/분해능,
   제약 = 커널 행 + 원뿔 행 (+ ε 행 (ε − 값)/분해능).
 - 시작점이 받아들일 상태가 아니면 즉시 `SolveResult(None, eps, minimize, 0, 0, "start_<사유>", ())`.
 - 같은 x(float.hex)는 한 번만 평가. x 평가 parent = 직전 수락 반복, FD parent = 그 x 평가.
@@ -511,7 +517,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 
 ### 3.16 [r2] `find_front(sctx, given_starts) -> SearchFront`
 - [NFR-4 재확인 (c)] 진입에서 `blas_environment()` 를 한 번 불러(실패는 `RuntimeError`) 그 값의 core `fp_of` 를 runs 줄 최상위 키 `env_fp` 에 둔다. notes 에는 언제나 정확히 한 줄
-  `{verdict "l_search", rule "LR10", stops [...]}`(= `sweep_front` 의 `lb_stops`, L-b 가 돌지 않았으면 빈 목록)가 더해진다 -- runs 줄 notes 와 `SearchFront.notes` 에 함께. `perf` 키는 바뀌지 않는다.
+  `{verdict "l_search", rule "LR10", stops [...]}`(= `sweep_front` 의 `lb_stops`, L-b 가 돌지 않았으면 빈 목록)가 더해진다 -- runs 줄 notes 와 `SearchFront.notes` 에 함께. NFR-4 card 2 는 `perf` 키를 바꾸지 않았다(card A 가 `lut_memo_bound` 를 더했다, §3.16 아래).
 - [r5] 순서: deadline 설정 -> `layer0_start(sctx)` -> `start_points(sctx, given_starts, (층 0 start,) 또는 ())` -> 스윕. notes 의
   옛 `{verdict "blocked", reason "layer0_inputs_missing"}` 대신 `{verdict "layer0_minimal"(시작점 있음) | "layer0_no_start",
   rule "DEC-71", reason "seal_margin_maxmin_centre", stop, t, hard_ok, start_status, centre_u, kernel_calls, probes,
@@ -522,7 +528,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 - `front` = 봉인된 점만(지금은 항상 ()), `pending_front` = 봉인 7 대기 비지배 점. `notes` 에 판정 보류 사유: constraint_notes,
   DEC-79 review_needed, DEC-72 추정, MOD8 재필터 미실행, 층 0 막힘(`layer0_inputs_missing` + 빠진 입력 목록), supply_current_dc
   미계산, ss 미측정(`unmeasured` -- 제약 목록과 점 수), 봉인 7 대기.
-  `perf` = counters + unique_keys, eval_time_median_s, wall_s, lut_memo_evictions, block_*(sizing 계산 블록 12개), n_starts, n_solves,
+  `perf` = counters + unique_keys, eval_time_median_s, wall_s, lut_memo_evictions, [XRUN-F1 A] lut_memo_bound(탐색 memo `bound_state` 가 `"fixed"` 면 `"fixed"`, 첫 커널 평가 없이 끝났으면 `"unfixed_no_kernel_eval"`), block_*(sizing 계산 블록 12개), n_starts, n_solves,
   eval_budget, eval_budget_source, frozen_columns, stops_eval_budget, stops_wall_budget.
 - `run_id` = fp_of((context_fp, code_fp, settings, E_B, 시작 θ들)). archive 가 있으면 runs 한 줄 + front·대기 front 점 스냅샷 파일.
 
@@ -608,6 +614,16 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 제약 행 이름 `<접두>:<소자>`(`w_min`·`seal6_bulk`·`inversion_floor`·`current_cone`)와 `<접두>:<번호>:<metric>`(`ss`·`spec`)의 정렬 키 = (접두, 소자 구조 색 `dc_colour`
 (정점마다 유일, 없으면 -1), 나머지 이름). `solve_eps`(`_rows`)와 `layer0_start`(`_hard`·원뿔 행·원뿔 항 `_cone_canonical`)가 SLSQP 에 넘기는 제약 벡터·Jacobian 행 순서를 이 키로 정렬한다
 (이름 순서에 따라 합산 순서가 바뀌어 끝자리가 달라지는 일을 막는다). 불변식: 이름 치환 σ 에 대해 정렬 결과가 σ 로 옮겨진다; 접두 순서는 사전식; 같은 궤도 행 사이만 이름.
+
+### 3.26 [XRUN-F1 A] `ThetaCoords.start(variables, theta) -> ThetaCoords` · `coords.to_theta(x) -> dict` (`theta_coords.py`) -- 탐색 좌표 x ↔ θ 값(ln 좌표 원값 보존) 정본
+- `variables` = `Variable`(component, log, lo, hi) 의 순서 있는 묶음, `theta` = 시작 θ 전체 사전. frozen dataclass(칸 `variables`·`x0`·`raw`·`fixed`; 계약 면 = `start`·`to_theta`·읽기 전용 `x0` tuple). 다른 인자(예 `clip=`)는 없다 -- `TypeError`(사용자 결정 X-14).
+- 시작 좌표 x0ᵢ = log 변수면 `math.log(θᵢ)`, 아니면 θᵢ. **자르지 않는다**(변수 bounds 밖이어도 그대로). 변수 밖 성분은 `theta` 의 값 그대로 고정한다.
+- `to_theta(x)`: 변수마다 v = `float(xᵢ)`. v == x0ᵢ(float 정확 일치)면 θᵢ 원값(비트 그대로), 아니면 log 변수는 `math.exp(v)`, 아니면 v. 고정 성분 그대로. 반환은 호출마다 새 dict(키 = `theta` 의 키 전부).
+- 성질: `to_theta(x0)` 는 `theta` 와 성분마다 비트 동일. 좌표 하나만 바꾼 x(FD 시험점)의 나머지 성분도 `theta` 와 비트 동일.
+- **쓰는 곳 3 (사본 없음)**: 외층 `solve_eps`(3.13), 층 0 최대-최소(3.21 4), 감도 게이트 `run_sensitivity_gate`. 외층·층 0 은 `ThetaCoords` 밖 호출부에서 자기 상자로 자른다(풀이 시작 좌표 = clip(x0ᵢ; loᵢ, hiᵢ), 풀이기·FD 가 준 x 는 clip 뒤 `to_theta`).
+  **감도 게이트 좌표 규칙(X-14)**: `ThetaCoords.start(sctx.domain.variables, dict(base.theta))`(조정 없는 정의역 변수), FD 기준 좌표 = x0 그대로(**자르지 않는다**: `fd_jacobian` 이 움직이는 좌표만 상자 안으로 맞춘다), `fd_jacobian(..., coords.to_theta, ...)`.
+  기준점이 상자 밖일 때 '검사 못 함' 보고는 후속 항목이다(이 card 밖).
+- 새 점을 만드는 곳(상자 중심 `_box_centre`, Halton 시험점, 수리 bisection)은 대상이 아니다. 관찰 지점: 세 모듈(`layer0_center`·`slsqp_outer`·`gate_run`)의 모듈 속성 `fd_jacobian`(이름·서명·호출 방식 불변), `kernel.size_and_seal`.
 
 ## 4. ★ 봉인 7 대기 스위치 (`seal7_pending.seal_status`, sizing O1)
 
