@@ -46,3 +46,7 @@ date: 2026-10-15
 - **원뿔 분리**(v0.2 초안, TD-1 (가) 하한 유도안 전제): `current_cone`을 `cone`·`cone_trim`으로 나누고 `check_theta` 서명을 넓혀 `cone_trim` 위반을 후보 실패 `trim_cone_outside`로 두었다. T-7로 I_u가 θ 전류가 되어 대상이 없어 삭제했다.
 - **고정점 반복·K_trim·ln I 이분**(v0.1 고정점 반복, v0.2 초안 ln I 이분 + K_trim = 2 + k_max): T-7로 평가당 커널 1회가 되어 모두 삭제했다. 관련 실패 사유 `trim_iu_unconverged`·`trim_iu_no_bracket`, 결과 칸 `perf.trim_kernel_passes`·S3 `trim_iu_amp`, 'I_u 반복 기록'도 같이 지웠다.
 - **I_u θ 키**(v0.2, bd695f2): `trim<d>:unit`이라는 원소가 아닌 키를 썼다. `search_domain.py:62` `_current_bounds`가 `classes[key]`에서 KeyError가 나는 결함(재검증 B6)이라, 가중치 1 셀 전류원 `trim<d>_c0_src`의 전류로 바꿨다.
+
+
+## TR-0T 승인 (2026-10-16)
+- 사용자 "TR-0T 승인, X-D4 권고대로 해"(결정 기록 T-40). design v0.3.2 승인. 독립 검증 86 -> 94.
