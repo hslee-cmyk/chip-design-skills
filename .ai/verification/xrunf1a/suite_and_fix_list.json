@@ -1,0 +1,35 @@
+{
+ "suite": "1 failed, 10117 passed, 1 deselected, 2 xfailed in 2830.95 s (exit 1)",
+ "classification": {
+  "(가) 새 계약에 따른 정당한 탐색 값 변화": [],
+  "(나) 코드 결함": [],
+  "(다) test 결함": [
+   {
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_values_equal_constructor_memo",
+    "junit": "gmid_engine.tests.lut.test_lut_memo::test_counting_memo_values_equal_constructor_memo",
+    "failure": "AssertionError ('op_point.IDu', 2.4715112706762353e-05, 5.5835781366498464e-05)",
+    "cause": "ref = {name: q(ref_memo) for name, q in QUERIES + QUERIES_AFTER} -- QUERIES_AFTER 가 이름 'op_point'·'gm_id_curve' 를 다시 써서 ref 의 QUERIES 값이 QUERIES_AFTER(다른 인자 vgs 0.35·vds 0.6) 값으로 덮인다. pre/win(QUERIES 인자)을 덮인 ref 와 비교해 실패. post 비교도 같은 이름 덮어씀으로 QUERIES 인자의 고정 뒤 값은 검사되지 않는다",
+    "auditor_probe": {
+     "overlap": [
+      "gm_id_curve",
+      "op_point"
+     ],
+     "pre_op_point_IDu": 2.4715112706762353e-05,
+     "ref_queries_op_point_IDu": 2.4715112706762353e-05,
+     "ref_after_op_point_IDu": 5.5835781366498464e-05,
+     "pre_equals_ref_queries_repr": {
+      "op_point": true,
+      "gm_id_curve": true,
+      "vgs_for_gm_id": true
+     }
+    },
+    "engine_ok": "probe: counting memo 창 전 값이 생성자 memo 의 같은 인자 값과 repr 동일(op_point·gm_id_curve·vgs_for_gm_id 모두 True) -- memo 값 불변 계약은 지켜짐(코드 결함 아님)",
+    "fix_for_test_author": "QUERIES·QUERIES_AFTER 의 이름을 겹치지 않게(예 'op_point_after') 하거나 비교 dict 를 (목록, 순번) 키로. 허용 폭·기대값 변경 없음(기준 약화 아님)"
+   }
+  ]
+ },
+ "fixed_value_assertion_fix_list": {
+  "items": [],
+  "basis": "card 1.3.3 후보 전부 병합본 통과(junit): test_layer0_center 23, test_kernel 104, test_find_front 21, test_slsqp_outer 16, test_eps_sweep 6, convergence/test_converge_point 19, integration/test_layer0_boundary_rows 1, test_l_bin_search 8 -- 다시 쓸 고정값 단언 0. 9회로 하네스에서도 탐색 값이 바뀐 회로(nmcnr·two_stage_ota·two_stage_ota_sf)의 단언은 이 하네스 값을 고정하지 않는다"
+ }
+}

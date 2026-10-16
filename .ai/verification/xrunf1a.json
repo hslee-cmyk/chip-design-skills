@@ -1,0 +1,331 @@
+{
+  "id": "20261015-xrunf1a",
+  "spec_card": "docs/02-design/specs/20261015-xrunf1a.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "6be811b6c9fceeee1379b0eae1c3e507eb6cfcd5",
+  "test_commit": "11ddbb107e5128c56a076d68d0af4af9e92f19f0",
+  "code_commit": "c7211e6c65a1f2b086325a0b7fecade0aadf9c08",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_theta_coords.py",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_layer0_start_fd_theta_bits_equal_start_theta",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_gate_run.py::test_gate_start_coordinates_unclipped_and_theta_bits_preserved",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_gate_run.py::test_theta_coords_used_by_gate",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_layer0_center.py::test_theta_coords_used_by_layer0",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_slsqp_outer.py::test_theta_coords_used_by_outer",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py::test_build_search_context_runs_no_kernel",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py::test_first_kernel_eval_fixes_capacity_from_independent_count",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py::test_search_memo_rejects_second_window_after_first_kernel_eval",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_perf_key_set_exact_in_result_and_runs_line",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_lb_stop_notes_line_exactly_once",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_sealed_run_perf_and_invariants",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_lut_memo_bound_fixed_after_kernel_eval",
+      "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py::test_lut_memo_bound_unfixed_without_kernel_eval",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_capacity_from_window_keys[0]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_capacity_from_window_keys[1]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_capacity_from_window_keys[4]",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_constructor_memo_is_fixed",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_failed_compute_not_in_window_count",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_fix_evicts_window_outsider",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_same_nan_is_one_window_key",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_state_transitions_and_errors",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_stats_counting_then_fixed",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_values_equal_constructor_memo",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_window_hit_refreshes_recency",
+      "skills/analog-gmid-design/gmid_engine/tests/lut/test_lut_memo.py::test_counting_memo_zero_and_negzero_are_two_window_keys",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_bounded_lru.py::test_bounded_lru_adopt_canonical_equivalent_key_hits",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_bounded_lru.py::test_bounded_lru_adopt_keeps_tag_distinctions",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_bounded_lru.py::test_bounded_lru_adopt_over_capacity_evicts_oldest_and_records",
+      "skills/analog-gmid-design/gmid_engine/tests/core/test_bounded_lru.py::test_bounded_lru_adopt_then_lookup_hits_without_compute"
+    ],
+    "failure_hashes": [
+      "2286560918e942ffd3931f0224ed1819364e8b084e2bd20109defbacff5c5224",
+      "0aaf39fb66993e8970032a55ad5819de0b73a75d02b30614256c25a3f5c5365c",
+      "a4ee83c184aaedcce725b89400e2b2a8ea47286b8e3fd7d9740796785eefd453",
+      "931721232fedb38b5ae1aab5fab483be4b9991917eee6361af9d5976565ff92b",
+      "a2811034e2bf78435c5aae1411ebbff81d61682cbeb18fbd25655c8a66f40682",
+      "bb6cb0014af65426a2c161480e659eb497bd34444788dd5a21c415e5c0d6cf74",
+      "565348fee3d8173455d1e67583cc10d68657a19d880a4f1761e9c336f58616de",
+      "3556a768c93a57c38a0625fe8e6a43686ade45df2372e479ce0ab230150b0f78",
+      "32604b534d047a628c6368017dc9af98f3f5f421a7084a0f6348753ded61aac4",
+      "1bb78307eccf2d83f9e0babc5c030c57239499a29560df47e033ecaa66f4e65c",
+      "14b6ac914370f5549d626301c1fda0dd87c7bccc32afc18e7730528400d8d4ef",
+      "2f18c2f7dceb5dcab56a55c2f1f181f077f0d2c2a1cae02cc04b1c95fcc91f70",
+      "60ac2c076aea6469828886afd3e9502987764866348a98eb200e928067257d44",
+      "a755bf08ec2f4b8855e6e52e94a507d8e673c3821c578f42e4b3f769167bff33",
+      "8c5e4c64c31cd2e28130921075f6a61a5a5237ea8fb8e2032db2cc19f6c5f3f5",
+      "6cfbf7f139004ea79f7eef78e97043f11bcac05a7507cab34009ce06d4d6a01f",
+      "d58574dab419d31778fed3f4d85e8b23900daea683e46615e9c9bdb83eebc1dc",
+      "7e5077e7c1886a6d1b2060532b5130fea1edb4d87a8af08a019d9088d1f48c98",
+      "53db1426e8f16a00e0b252f995a0d4b84e97c88a891137d4764b75b6cff7a089",
+      "ee9ca52fe3a7e1e9b0a5a92e1de87e8f3a2e4cdc50b1f8d60c3592f9323c4bf8",
+      "c958eb9f9dbdc94544e971218b495aecd99fbedc1a6bfe5eb33228447da514dc",
+      "48c861be9412af61ec8c820796640a84eaa76ae0107c6a7241e7210cea1d2262",
+      "72b6fc7a50cdc8e637bb3cdfa8dfca7fde996543c3a0c080e9ef4d02515a4957",
+      "23800ee3dfa1d66613785c73adcd03f99ef915f13951caf0be1216aa240497d0",
+      "9e8eae014aaa8df6e9f0b83ec8ed3cd9ce1a37b32329c83050a9bca258509cd0",
+      "a31aa91c1d66bf678018150ca55bffb3b0ba5418928efe72c2f1ce31d95773b4",
+      "34908d3cbc73923339a18d801a355c33097c8fb008f0463f3e97a2e7d8d4f835",
+      "ad45cd5f043ac347641cd409ad22c8a5bcff5f86418b0844996c5ae0ecce2af5",
+      "d0a60afd72a8417fca3c4e273e2d53d8eb26febd691af1b3318a992622736e0b",
+      "9d47c614ff6e3648e64784e2fb1a7e38b3dfb1d4613621efef5f3a228a07bb63"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "FAIL",
+      "basis": "병합본 980ff5f(485520d + 문서 c7211e6) 격리 복제본, 명령 하나 --run-slow(-k·--deselect·-x 없음): 1 failed, 10117 passed, 1 deselected, 2 xfailed in 2830.95 s (exit 1). 실패 1 = tests/lut/test_lut_memo.py::test_counting_memo_values_equal_constructor_memo -- (다) test 결함(기대 dict 이름 겹침, suite_and_fix_list.json). (가) 0·(나) 0. tests/structure 63 통과, card 1.3.3 고정값 후보 test 전부 통과. test 작성자 수정 뒤 그 파일 + suite 재실행 필요(엔진 무변경이면 A-5 측정은 재사용)."
+    },
+    "V2": {
+      "verdict": "FAIL",
+      "basis": "red(base 6be811b + test 11ddbb1): 29 failed + 수집 오류 1 = 30행(base_check.json) -- merge_gate 기준 AssertionError 7(A-T5·A-T6 비트 단언, A-T9 1==0, A-T10 0.0/-0.0 키 동치, PERF_KEYS 22개 셋) + gate 범위 밖 23(AttributeError 17·ImportError 4·KeyError 2) -- 오케스트레이터 J-O1 이 red 로 인정. green: 30행 중 29 병합본 통과, A-T17(test_counting_memo_values_equal_constructor_memo) 1행이 병합본에서 실패(V1 의 test 결함) -> red-green 미완. A-T7·A-T12 base green(card 허용)."
+    },
+    "V3": {
+      "verdict": "N/A",
+      "basis": "도입 U17: spec card 파일 없음(초안 _drafts/engine/XRUNF1A_SPEC_CARD.md) -- mutate_changed.py 대상(assets/tests) 밖. 대신 뮤턴트에 해당하는 base 엔진(exp(ln θ) 사본·임시 평가·== 동치·perf 키 없음)이 red(V2)로 잡혔다."
+    },
+    "V4": {
+      "verdict": "N/A",
+      "basis": "도입 U17: test_lint.py 대상(assets/tests) 밖. oracle 대조: A-T1~A-T4 = test 가 math.log/math.exp 로 만든 x0·값(float.hex) + C1 문장(clip TypeError). A-T5 = 같은 엔진이 낸 출발점 θ 와 FD 변환 출력 비교 + 전제(왕복 손실·상자 안) 단언, ThetaCoords import 없음. A-T6 = 손 SimpleNamespace 변수·θ, math.log 기대 x. A-T7 = math.exp(clip(log θ)) 손 식. A-T8 = 감싼 ThetaCoords.start 객체 출력 비교. A-T9 = size_and_seal 독립 계수. A-T10 = LutMemo.lookup 클래스 감쌈 독립 계수 + test 자체 canonical 구현(_canon) -- auditor probe 와 같은 13. A-T12 = 같은 입력 두 실행 비교. A-T13·A-T14 = C6 키 목록 그대로. A-T15·A-T16·A-T19·A-T20 = 손 조회 순서·손 계수(auditor 가 C3 문장과 대조, 예 U={b,c,d}=3). A-T17 = 생성자 memo 와 비트 비교 -- 그러나 이름 겹침으로 기대값 dict 가 덮여 oracle 이 틀렸다(UNJUDGED: 고친 뒤 재판정). A-T21 = 손 compute 계수."
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "gate weakening_diff.py --base 6be811b --head 980ff5f PASS 발견 0. gmid_engine/tests AST: 지운 test = test_sweep_memo.py 5·test_sweep_memo_wiring.py 3·test_lut_memo.py::test_from_sweep_capacity(card 3.2 지시, 성질은 A-T10·A-T12·A-T15~A-T20 으로 옮김), 남은 test 단언 수 감소 0, 허용 폭 변경 0, 기존 고정값 단언 변경 0."
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "tests/structure 63 통과(V1 안). 규칙 H 위반 base 6 -> head 5(test_sweep_memo_wiring 고아 해소, 대상 398 = sweep_memo.py 삭제·theta_coords.py 추가, theta_coords.py <-> tests/search/test_theta_coords.py 1:1). _module_map: sweep_memo.py 두 곳 삭제, theta_coords.py ModuleEntry('entry','ThetaCoords',(U-91,NFR-2,40 §2.4.14)) + search 층 0. graph 밖 새 저장소 0(새 칸은 LUT memo 계수 상태 안·ThetaCoords 변환 값, static_checks.json). A-9 -k 식 8개 수집 수 head = base, adopt +4(test_bounded_lru_adopt_*). CONTRACT: lut 2.2 계수 상태 절, core adopt, search 3.9·3.10·3.13·3.16·3.21·3.26 -- §3.16 perf 문장은 c7211e6 로 범위 한정(해소 확인)."
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "배선: ThetaCoords.start = gate_run.py:53·layer0_center.py:296·slsqp_outer.py:98(사본 to_theta·_coord·exact 삭제), LutMemo.counting = search_context._wire_sweep_memo:139(호출 :207), open_count·fix_bound = kernel.evaluate:117-118·164-165, BoundedLRU.adopt = lut_memo._Counting.fixed:94, bound_state = evaluate·find_front.py:135(perf.lut_memo_bound). 9회로 실측(A-2): 탐색 컨텍스트 생성 안 size_and_seal base 1 -> head 0(8/8), 반환 직후 kernel_calls 0·seq 0·cache 0·bound_state counting, 첫 커널 평가 창 독립 계수 U 로 capacity = (n_θ+1)·U 8/8(U 합 4~463 > 0), lut_memo_bound 'fixed' 8/8. A-4(보고만, J-6): head 세 모듈 FD 호출 변환 출력 == base.theta 비트 일치 100 %(불일치 0, 자른 성분 0), base 는 nmcnr·two_stage_ota·two_stage_ota_sf 층 0 FD 2/2 불일치. 서명 불변(A-8 AST), NFR-4 보존 계약(재확인 다섯 지점·env_fp·l_search·모듈 전역 호출·BP1·_budget_stop 3곳) 유지, test_blas_env 22/22."
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 U17: 폴백 경로 대상 아님(계수 상태 전이 위반은 ValueError, 조용한 대체 없음 -- A-T19 통과)."
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 U17: 물리 불변식 대신 값 불변 -- S0 수준 칸 9회로 diff 0, u17_1b_s0_baseline.json 대조 test_s0_layer_9circuits 65/65 병합본 통과, memo 값 불변(A-T17 probe: 계수 상태 값 = 생성자 memo 값), front·pending·unmeasured·층 0 결과 9회로 diff 0."
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "[A-5] 같은 하네스 base 6be811b 대 head 980ff5f 9회로(a5_changes.json): 형식 변경 = perf.lut_memo_bound 만. 값 변화 = (W) 블록 재계산 감소 전 8회로 (합 280 -> 47: cga 21->9, crto 21->18, folded 15->3, nmcnr 80->6, pp 12->0, sfpp 9->6, tso 56->3, tsosf 66->2), (키 동치) current_reuse 상한 curve 1890->1953·root 2772->2835·퇴출 8940->8814, (RT) nmcnr 평가 36개 ulp·two_stage_ota 평가 49개·kernel 49->50·EP:s1 재시작 1->2·퇴출 972->2242, two_stage_ota_sf 평가 42개·kernel 40->43·EP:s1 stop eval_budget->slsqp_4·퇴출 0->306. front·pending·unmeasured·층 0 결과·S0 칸 9회로 변화 0. 전부 card 허용(X-4) 안 -- 범위 밖 0. 주의: two_stage_ota_sf kernel 43 > E_B 40 은 card C 예산 결함(기존). [A-6 보고만] 프로세스 전체 블록 recomputes_same_input head: cga dc_lengths 9, crto dc_currents 6·dc_lengths 12, folded dc_seal_report 3, nmcnr dc_lengths 6, sfpp dc_lengths 6, tso dc_seal_report 3, tsosf dc_seal_report 2, pp 0 (card B 비교 자료). [A-10] 사슬 시간 base/head(s): cga 27.7/29.2, crto 41.0/44.4, folded 40.4/39.0, nmcnr 58.7/43.9, pp 22.8/24.8, sfpp 26.1/27.5, tso 38.3/34.1, tsosf 67.4/72.2, ngcc 탐색 없음."
+    }
+  },
+  "reproduced_numbers": [
+    {
+      "name": "head_suite_passed",
+      "value": 10117,
+      "command": "V1"
+    },
+    {
+      "name": "head_suite_failed",
+      "value": 1,
+      "command": "V1"
+    },
+    {
+      "name": "red_base_failed_total",
+      "value": 29,
+      "command": "red: pytest <8 test files of 11ddbb1> --run-slow --continue-on-collection-errors"
+    },
+    {
+      "name": "red_base_collection_errors",
+      "value": 1,
+      "command": "same"
+    },
+    {
+      "name": "red_gate_assertion_errors",
+      "value": 7,
+      "command": "PYTHONPATH=<gate cache> pytest -p merge_gate <same> (GMID_RED_CAPTURE)"
+    },
+    {
+      "name": "at10_base_window_point_keys_canonical",
+      "value": 13,
+      "command": "probe scripts/test_audit_probe_at10.py (red clone)"
+    },
+    {
+      "name": "at10_base_window_point_keys_python_eq",
+      "value": 12,
+      "command": "same"
+    },
+    {
+      "name": "build_kernel_evals_base_8circuits_each",
+      "value": 1,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "build_kernel_evals_head_8circuits_total",
+      "value": 0,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "head_capacity_eq_n1_times_U_circuits",
+      "value": 8,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "a4_head_fd_mismatch_calls_total",
+      "value": 0,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "a4_base_fd_mismatch_calls_total",
+      "value": 6,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "rule_h_violations_base",
+      "value": 6,
+      "command": "pytest gmid_engine/tests/structure -m structure_test_mapping (base)"
+    },
+    {
+      "name": "rule_h_violations_head",
+      "value": 5,
+      "command": "same (head)"
+    },
+    {
+      "name": "s0_field_diff_9circuits",
+      "value": 0,
+      "command": "scripts/diff_base_head.py"
+    },
+    {
+      "name": "kernel_calls_head_common_gate_amplifier",
+      "value": 43,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "block_recomputes_same_input_head_common_gate_amplifier",
+      "value": 9,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "lut_memo_evictions_head_common_gate_amplifier",
+      "value": 1567,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "kernel_calls_head_current_reuse_telescopic_ota",
+      "value": 40,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "block_recomputes_same_input_head_current_reuse_telescopic_ota",
+      "value": 18,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "lut_memo_evictions_head_current_reuse_telescopic_ota",
+      "value": 8814,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "kernel_calls_head_folded_cascode",
+      "value": 64,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "block_recomputes_same_input_head_folded_cascode",
+      "value": 3,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "lut_memo_evictions_head_folded_cascode",
+      "value": 354,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "kernel_calls_head_nmcnr_amplifier",
+      "value": 66,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "block_recomputes_same_input_head_nmcnr_amplifier",
+      "value": 6,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "lut_memo_evictions_head_nmcnr_amplifier",
+      "value": 81,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "kernel_calls_head_pushpull_follower_buffer",
+      "value": 40,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "block_recomputes_same_input_head_pushpull_follower_buffer",
+      "value": 0,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "lut_memo_evictions_head_pushpull_follower_buffer",
+      "value": 107,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "kernel_calls_head_sf_pushpull_output_opamp",
+      "value": 40,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "block_recomputes_same_input_head_sf_pushpull_output_opamp",
+      "value": 6,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "lut_memo_evictions_head_sf_pushpull_output_opamp",
+      "value": 709,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "kernel_calls_head_two_stage_ota",
+      "value": 50,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "block_recomputes_same_input_head_two_stage_ota",
+      "value": 3,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "lut_memo_evictions_head_two_stage_ota",
+      "value": 2242,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "kernel_calls_head_two_stage_ota_sf",
+      "value": 43,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "block_recomputes_same_input_head_two_stage_ota_sf",
+      "value": 2,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "lut_memo_evictions_head_two_stage_ota_sf",
+      "value": 306,
+      "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    }
+  ],
+  "approvals": [],
+  "auditor_run": {
+    "time": "2026-10-16T14:20:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrunf1a-audit (격리 복제본 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1a_audit/{red,head,base})",
+    "commands": [
+      "V1: cd <head clone 980ff5f>/skills/analog-gmid-design && (unset OPENBLAS_NUM_THREADS OMP_NUM_THREADS GMID_S0_SNAPSHOT_DIR; PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow -rfEX --durations=25 --junitxml=results/suite_head/suite.xml)",
+      "격리: for n in red head base: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrunf1a-audit _scratch_xrunf1a_audit/$n && git -C $n remote remove origin; red = checkout --detach 11ddbb1, base = 6be811b, head = 485520d 뒤 'git -C head fetch <xrunf1a-audit> integ/xrunf1a && checkout --detach 980ff5f'",
+      "red: cd <red>/skills/analog-gmid-design && PYTHONDONTWRITEBYTECODE=1 python -m pytest <8 changed test files of 11ddbb1> -q -p no:cacheprovider -rfE --tb=short --continue-on-collection-errors --run-slow --junitxml=results/red/red.xml (OPENBLAS_NUM_THREADS unset)",
+      "red hash: PYTHONPATH=<gate cache 6df4bd7f> python -P scripts/red_hashes.py results/red/red.xml results/red/red_hashes.json; merge_gate capture: bash scripts/run_red_capture.sh",
+      "A-T10 probe: tests/search/test_audit_probe_at10.py (red clone, 실행 뒤 삭제); A-T17 probe: tests/lut/test_audit_probe_at17.py (head clone, 실행 뒤 삭제)",
+      "A-2·A-4·A-5·A-6·A-10: bash scripts/run_measure.sh head head; bash scripts/run_measure.sh base base (첫 시도는 driver LruStats 버그로 rc=1 -> measure_try1_driver_bug, astuple 로 고친 뒤 재실행)",
+      "A-5 비교: python scripts/diff_base_head.py results/measure/base results/measure/head results/a5_base_vs_head.json; python scripts/summarize_extra.py results/measure/base results/measure/head results/a2_a4_a6_summary.json",
+      "규칙 H·A-9: bash scripts/run_struct_collect.sh (base·head, pytest structure -m structure_test_mapping, --collect-only -k <11 식>)",
+      "A-8: python -P scripts/ast_compare.py <base skill> <head skill>; git diff --numstat 6be811b 485520d -- <파일>; graph 정본: python -P scripts/ast_stores.py <scratch> ast_stores.json base",
+      "V5: python <gate cache>/weakening_diff.py --root head --base 6be811b --head 980ff5f; python -P scripts/removed_tests_n.py head results/v5_removed_tests.json",
+      "A-1: git -C head grep -nw <이름> -- <범위> (1.3.5 7항목)"
+    ]
+  }
+}
