@@ -1,6 +1,6 @@
 ---
 template: design
-version: 0.2.2
+version: 0.2.3
 plan: ../../01-plan/features/oracle-portability.plan.md
 plan_version: 0.5.1
 ---
@@ -33,7 +33,7 @@ plan_version: 0.5.1
 ## 0. 문서 안내
 
 * **담는 것**: 계획 결정을 오라클 구조로 옮긴 규칙, 자료 형식, 함수 서명, 실패 코드, 파일 분할, card별 범위, test 목록, 상위 문서 개정 문안.
-* **담지 않는 것**: 경위(history 몫)와 수치 상수. 허용 폭은 시뮬레이터 해 정확도 선언(입력 `testbench.options` 또는 어댑터 보정값), MC 표본 수 규칙, 기술자가 원본 파일에서 계산한 값에서만 온다(P N0 값 원칙).
+* **담지 않는 것**: 경위(history 몫)와 수치 상수. 허용 폭은 시뮬레이터 해 정확도 선언(입력 `simulator.options` 또는 출처 있는 어댑터 보정값, §8.3), MC 표본 수 규칙, 기술자가 원본 파일에서 계산한 값에서만 온다(P N0 값 원칙).
 * **이름 원칙**: 회로·PDK·시뮬레이터 이름은 '사례'로만 쓴다. 코어 규칙·스키마 필드 이름에는 넣지 않는다.
 * **측정 대기**: OP-1(검증자 측정)이 정해야 하는 칸은 '**측정 대기**'로 두고 값이나 하나의 안을 고르지 않는다. 목록은 §19.3에 있다.
 * **오케스트레이터 기본안**: 계획이 정하지 않은 세부를 이 문서가 정할 때 '(기본안)'으로 표시한다. 목록은 §19.1에 있다.
@@ -154,7 +154,7 @@ O/
     fixtures/              손 모델 기술자 픽스처 포함
 ```
 
-* 옛 파일 `oracle_netlist.py`, `oracle_simulate.py`, `oracle_noise.py`, `oracle_offset_mc.py`, `oracle_swing.py`, `oracle_compare.py`, `oracle_config.json`은 대체 card에서 삭제한다(§15). 각 진입점의 CLI 기능은 `oracle_run`의 하위 명령으로 합친다(기본안). 이유는 진입점 정본을 하나로 두기 위해서다. 단 `--bias`별 단독 실행처럼 test가 쓰는 기능은 하위 명령으로 남긴다.
+* 옛 파일 `oracle_netlist.py`, `oracle_simulate.py`, `oracle_noise.py`, `oracle_offset_mc.py`, `oracle_swing.py`, `oracle_compare.py`, `oracle_config.json`은 대체 card에서 삭제한다(§15). 각 진입점의 CLI 기능은 `oracle_run`의 하위 명령으로 합친다(결정(O-3), X-D2 수용). 이유는 진입점 정본을 하나로 두기 위해서다. 단 `--bias`별 단독 실행처럼 test가 쓰는 기능은 하위 명령으로 남긴다.
 * `legacy_adapter.py`·`legacy_testbench.json`은 `O/` 최상위에 남는다(생산자, §11.4).
 
 ### 3.2 import 금지(완료 조건 1)
@@ -792,7 +792,7 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | B-6 | LUT 메타·입력 모두 온도·코너가 없으면 `oracle_condition_missing` | §11.2 |
 | B-7 | 차동 이득 실수 판정 = `data_rel` 유도 | §14 |
 | B-8 | 계획이 다루지 않은 반복 상한 상수 다섯은 그대로 옮기고 표시만. **결정(O-3, X-D1 수용, 계획 NFR-P2 허용 예외 목록)** | §14 |
-| B-9 | X-13 test를 엔진 suite 쪽에 둠 | §18.1 |
+| B-9 | X-13 test를 엔진 suite 쪽(`E/tests/` 아래 읽기 전용 test)에 둠. **계획 v0.5.1 완료 조건 8a 예외에 따름** | §18.1 |
 | B-10 | 식이 없는 연속 칸은 비트 동일만 | §18.3 |
 
 ### 19.2 계획과 다른 결정이 필요한 곳(S-7: 멈추고 보고)
