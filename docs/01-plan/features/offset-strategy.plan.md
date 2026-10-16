@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 0.3
+version: 0.4
 ---
 
 # offset-strategy Planning Document
@@ -8,7 +8,7 @@ version: 0.3
 > **Summary**: spec이 offset을 **수단**(`offset_in_sigma_mv <=` 제약이나 `offset_trim` 선언)이 아니라 **요구**로 쓰게 한다. 요구는 `offset_requirement{offset_in_max_v, coverage_multiple, strategy}` 하나다. 엔진은 요구와 방식(`matching`·`trim`·`compare`)에서 판정 제약을 유도하고, **실행 계획**(변형 목록, 변형 = (topology 변형, 제약 집합))을 만들어 한 실행 안에서 차례로 돈다. 변형들은 단계 A·S0·블록 결과 색인을 공유한다. 이 일은 파이프라인 층 모듈을 다시 쓰는 것이고(S-2), 핵심 층(graph·블록·kernel·search)은 유지한다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: 계획 초안 v0.3 (2026-10-16). v0.1 독립 검증(72/100, 차단 B-1~B-6, 비차단 N-1~N-13)을 반영했다. 재검증·사용자 승인 전이다. 근거는 사용자 결정 S-1~S-4(원문 `wt/_drafts/user_decisions.md` '## offset 방식 선택·실행 계획 (2026-10-16 사용자 "권고대로 해")')다.
+> **Status**: 계획 초안 v0.4 (2026-10-16). v0.1 독립 검증(72/100, 차단 B-1~B-6, 비차단 N-1~N-13)과 재검증(86/100, 차단 B-7, 비차단 N-11·N-14~N-21)을 반영했다. 사용자 승인 전이다. 근거는 사용자 결정 S-1~S-4(원문 `wt/_drafts/user_decisions.md` '## offset 방식 선택·실행 계획 (2026-10-16 사용자 "권고대로 해")')다.
 > **이력**: 경위, 결정 원문, 측정 조건, 버전 이력은 [offset-strategy.history.md](offset-strategy.history.md)에 있다.
 > **상위 계획**: [gain-budget-gmid-sizing.plan.md](gain-budget-gmid-sizing.plan.md)(원칙 N1.4 NFR, N2 결정, N6.3 병합 전 확인). **관련 계획**: [offset-trim.plan.md](offset-trim.plan.md)(trim 방식의 규칙 정본). 충돌하면 상위 계획이 이기고, offset-trim과의 충돌은 N5(원래 취지와 다름)와 N9에 올린다.
 
@@ -90,7 +90,7 @@ version: 0.3
 | NFR-S2 | **graph 단일 정본**: 요구 값은 spec 선언 한 곳에만 있다. 유도 제약은 그 선언을 참조하고(`value_from_spec`), 숫자 사본을 만들지 않는다. 실행 계획은 출력·실행 입력이고 graph 필드가 아니다. 새 graph 필드는 writer가 하나다(상위 DEC-83) |
 | NFR-S3 | **topology 무관**: 유도 규칙·계획 규칙은 구조와 선언만 읽는다. 회로·소자·넷 이름 리터럴은 금지다. 9회로에서 요구가 없으면 무동작임을 측정해 증거로 낸다 |
 | NFR-S4 | **fail-closed**: 요구와 수단 제약이 함께 있거나, 방식에 필요한 선언이 없거나, 유도 제약을 잴 수 없으면(예: 계통 offset 기준 미선언) 탐색 전에 사유 코드로 멈춘다. 조용한 대체·생략은 금지다 |
-| NFR-S5 | **결정성**: 같은 입력이면 같은 실행 계획·같은 변형 순서다. 계획 안에서 돈 변형의 결과는 그 변형만 따로 돈 결과와 비트 동일하다. 다를 수 있는 것은 계수·시간 칸(40 §2.4.13 T 부류)뿐이다 |
+| NFR-S5 | **결정성**: 같은 입력이면 같은 실행 계획·같은 변형 순서다. 계획 안에서 돈 변형의 결과는 그 변형만 따로 돈 결과와 비트 동일하다(범위: E_B를 선언한 실행. 시간 예산에서 E_B를 유도하는 실행은 DS-U9가 정해질 때까지 이 요구에서 빼고 결과에 표기한다 -- 완료 조건 2와 같은 범위). 다를 수 있는 것은 계수·시간 칸(40 §2.4.13 T 부류)뿐이다 |
 | NFR-S6 | **상수 발명 금지**: 배수·한계·예산·판정 문턱은 선언이나 정의에서 온다. 비교 도구에 '어느 쪽이 낫다'를 가르는 가중치나 문턱을 두지 않는다 |
 | NFR-S7 | **만들면 배선**: 계획 함수·실행기·유도 함수·비교 도구는 진입점의 실제 경로에서 쓰인다. 옛 경로는 같은 변경에서 지운다. 배선이 불가능하면 사용자 승인을 받는다 |
 | NFR-S8 | **작성자≠검증자**: design은 독립 검증 agent가 검증한다. test·기대값·판정 기준은 구현자가 소유하지 않는다 |
@@ -139,7 +139,7 @@ version: 0.3
 | F-10 | 1/f·면적 metric은 레지스트리에 있다: `noise_fc_in_hz`, `noise_out_int_vrms`, `area_search_m2`. offset metric은 `offset_in_sigma_mv`·`offset_excess`(`OffsetAnalysis`), `offset_sys_mv`(`OffsetSystematic`)다 | `E/metrics/registry.py:49, :52, :54, :56-58` |
 | F-11 | 승인된 trim design은 2단계 실행에서 S0를 두 벌(원본·파생) 계산하므로 색인 상한을 Σ 분할 수 × (E_total + 2)로 둔다 | OT §10.1 |
 | F-12 | **제약을 읽는 핵심 층 지점**: `SearchContext.ss_constraints`는 `constraint_classes`의 위치 index로 `self.spec.judged_constraints`를 고른다. 출발값 규칙은 `spec.judged_constraints`에서 (metric, op, 값) 목록을 만들고, `iv_matching_l`은 그 목록에서 이름 `offset_in_sigma_mv`(L 하한)·`offset_excess`(부하 가드)를 찾는다. `judged_constraints`는 `SizingSpecDoc.constraints`에서 뽑는 속성이고, spec 객체는 `spec_fp`·`section_fps` 지문을 칸으로 들고 있다 | `E/search/search_context.py:110-113`, `E/search/iv_context.py:89`, `E/search/iv_matching_l.py:40-41, :107-108`, `E/search/start_intervals.py:295, :332`, `E/authoring/spec_model.py:280-281, :287-290` |
-| F-13 | **base에서 나오는 측정 칸**: S3 evals 한 줄 = `seq`, `schema_fp`, `cells`, `w_fixed_fp`, `theta_hex`, `theta`, `status`, `ok`, `origin`, (`fail`), (`objectives`), `constraints`, `unmeasured`, (`power_resolution_w`), (`snapshot_fp`)이다. **평가별 시간 칸은 없다**. S3 폴더 이름이 `context_fp`다. `find_front` 결과 `perf`는 실행 합계(계수, `unique_keys`, `eval_time_median_s`, `wall_s`, `block_calls`·`block_reuses`·`block_computes`·`block_recomputes_same_input` 합계)이고 블록별 수는 없다 | `E/search/kernel.py:68-88`, `E/search/archive.py:42-43`, `E/search/find_front.py:127-133` |
+| F-13 | **base에서 나오는 측정 칸**: S3 evals 한 줄 = `seq`, `schema_fp`, `cells`, `w_fixed_fp`, `theta_hex`, `theta`, `status`, `ok`, `origin`, (`fail`), (`objectives`), `constraints`, `unmeasured`, (`power_resolution_w`), (`snapshot_fp`), (`block_residual`)에 기록기가 덧붙이는 `code_fp`이다(`kernel.py:85-87`, `archive.py:53`). **평가별 시간 칸은 없다**. S3 폴더 이름이 `context_fp`다. `find_front` 결과 `perf`는 실행 합계(계수, `unique_keys`, `eval_time_median_s`, `wall_s`, `block_calls`·`block_reuses`·`block_computes`·`block_recomputes_same_input` 합계)이고 블록별 수는 없다 | `E/search/kernel.py:68-88`, `E/search/archive.py:42-43`, `E/search/find_front.py:127-133` |
 
 ### N3.1 M1 결과와 그 뜻
 
@@ -219,6 +219,7 @@ spec 사람 선언의 선택 섹션이다. 형식은 기존 spec 값 칸(`value`
 * **승인 파일이 있는 상태에서 국면 1을 다시 돌기**: 국면은 승인 기록 유무로만 정하므로, 사용자가 승인 기록 파일을 정해진 위치에서 치우면(이름 바꾸기·옮기기) 국면 1이 돈다. 엔진은 승인 파일을 지우거나 고치지 않는다. 진입 인자로 국면을 강제하는 길은 두지 않는다(S-2 인자 분기 삭제). 이 방법은 DO-9(오케스트레이터 기본안)다.
 * 변형 순서는 위 표 순서로 고정한다(결정성, NFR-S5). 순서가 결과 값을 바꾸지 않음은 완료 조건 2가 확인한다.
 * trim·compare 변형은 TR card가 그 경로를 만든 뒤에만 실행된다. 그 전에는 계획 함수가 `strategy`를 거부한다(fail-closed, 조용한 생략 금지). 거부 사유 코드는 design이 정한다.
+* **구현 시점**: 위 표의 trim·compare 행과 그것만 쓰는 세 가지는 trim 국면을 처음 제품 경로에 여는 TR card와 함께 구현한다(OS-5, N7.2). 세 가지는 ① 국면 규칙(승인 기록 유무 → 국면 2), ② 승인 기록 로더, ③ 낡은 승인 정지다. 그 전의 계획 함수(OS-2)는 요구 없음·`matching` 행과 trim·compare 거부만 가진다. 그래서 그 전에는 `approvals` 입력도 없다.
 
 ### N3.6 실행기와 공유 범위
 
@@ -268,7 +269,7 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 
 | 일 | 필요한 변경 | 분류 | S-2와의 관계 |
 |---|---|---|---|
-| 변형별 제약 집합 주입 | 변형마다 spec 객체의 `constraints`를 바꾼 사본을 만들어 단계 A·`build_search_context`에 넘긴다. 그러면 `ss_constraints`(`search_context.py:110-113`)·`_s0_blocks`(`:156-196`)·출발값(`iv_context.py:89`)이 변형 제약을 그대로 읽는다. 단, spec 객체는 `spec_fp`·`section_fps`를 칸으로 들고 있으므로(`spec_model.py:280-281`) 사본의 지문을 다시 계산하는 생성 함수가 authoring에 필요하다 | pipeline + authoring 확장. 핵심 층 무변경 | 맞음. 지문을 다시 계산하지 않고 `dataclasses.replace`만 쓰는 것은 금지(옛 지문이 남는 값 사본) |
+| 변형별 제약 집합 주입 | 변형마다 spec 객체의 `constraints`를 바꾼 사본을 만들어 단계 A·`build_search_context`에 넘긴다. 그러면 `ss_constraints`(`search_context.py:110-113`)·`_s0_blocks`(`:156-196`)·출발값(`iv_context.py:89`)이 변형 제약을 그대로 읽는다. 단, spec 객체는 `spec_fp`·`section_fps`를 칸으로 들고 있으므로(`spec_model.py:280-281`) 사본의 지문을 다시 계산해야 한다. 기존 생성자 `SizingSpecDoc.from_sections`가 섹션 매핑에서 `section_fps`·`spec_fp`를 계산하므로(`spec_model.py:293-302`) 이것을 재사용하는 것이 기본이다. 새 함수는 이 생성자로 안 될 때만 만들고, 그 전에 함수 레지스트리(`docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` §2)와 호출부를 확인한다 | pipeline(+ 기존 authoring 생성자 재사용). 핵심 층 무변경 | 맞음. 지문을 다시 계산하지 않고 `dataclasses.replace`만 쓰는 것은 금지(옛 지문이 남는 값 사본) |
 | 유도 제약을 기존 metric으로 표현할 수 있는 경우(trim 국면 2의 `trim_range`·`trim_residual`, 공통 판정) | 위 주입으로 끝난다. trim metric 자체는 TR card 몫이다 | pipeline(+TR card) | 맞음 |
 | G-S1 matching 합성 판정 k·σ_in + \|V_sys\| ≤ `offset_in_max_v` | 지금 레지스트리에 이 양의 metric이 없다(F-10). (i) k를 입력으로 받는 새 metric을 레지스트리에 더하거나(metrics), (ii) 두 metric을 읽는 합성 제약 행을 `ss_constraint_rows`에 더해야 한다(search). 한계를 σ와 V_sys 몫으로 나눠 기존 metric 두 개로 쓰는 것은 나누는 비율을 발명해야 해서 택하지 않는다(NFR-S6) | **핵심 층 확장**(metrics 또는 search) | 다름 → XS-10 |
 | G-S2 matching 출발값 | `iv_matching_l`은 이름 `offset_in_sigma_mv`로 L 하한을 켠다(`iv_matching_l.py:40, :107`). 합성 판정만 있으면 L 하한이 꺼진다. 합성 판정에서 σ 목표를 읽게 하려면 `iv_matching_l`(search)을 고친다. 출발값 전용이라 판정은 바뀌지 않는다 | **핵심 층 확장**(search 출발값) | 다름 → XS-10 |
@@ -306,9 +307,10 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 | XS-8 | **DS-1 (가)·(다), DS-2 (가)는 같은 실행 안 변형 사이 재계산을 받아들이는 편차**: (가)는 같은 topology 변형이 같은 θ를 밟으면 같은 평가 키를 변형마다 다시 계산한다(완료 조건 3과 모순, N3.1 표). (다)는 키를 나눠 형식상 조건 3을 지키지만, 같은 θ의 커널 평가와 요청이 다른 metric 블록 계산이 변형마다 남는다. DS-2 (가)는 같은 topology의 S1v를 변형마다 다시 계산한다. 셋 다 '처음 계산한 값을 나머지 최적화에서 재사용'과 거리가 있다 | 원래 취지 문장(N1.1) | **필요**(결정은 M2 숫자와 함께) |
 | XS-9 | **trim 시험 회로 spec 영향**: 승인된 T-27은 시험 회로 spec에 `offset_excess` 제약을 유지한다(강등 경로 확인용). T-28은 그 spec(`offset_trim` 섹션 = residual_offset_v·coverage_multiple·trim_temperature_c, T-25)을 TR-1 병합 뒤 `assets/fixture/trim/`에 둔다. 이 계획의 로더 규칙에서는 (1) 요구 없는 `offset_trim` 단독은 거부(N3.2), (2) 요구와 `offset_excess` 공존은 거부(DS-U2), (3) k는 요구로 옮긴다(XS-6). 그래서 그 spec은 요구 섹션(`strategy: trim`, k, `offset_in_max_v` ≥ V_res)으로 다시 써야 하고, '강등 경로 확인'이라는 T-27의 목적은 대상이 사라진다. `offset_in_max_v` 값은 사용자 몫이다 | T-25·T-27·T-28 | **필요**(재승인) |
 | XS-10 | **matching 합성 판정과 출발값은 핵심 층 확장**: G-S1(새 metric 또는 합성 제약 행)과 G-S2(`iv_matching_l`이 합성 판정에서 σ 목표를 읽게 함)는 metrics·search 층을 고친다(N3.10). S-2 '핵심 유지'와 다르다. 확장 없이 기존 `offset_in_sigma_mv`·`offset_sys_mv` 두 제약으로 쓰려면 한계를 나누는 비율을 발명해야 해서 택하지 않는다 | S-2 | **필요** |
-| XS-11 | **S-4 순서 문구를 나눈다**(권고안, N7.1): '실행 계획 구현 → TR-1'에서 TR-1 앞에는 단일 변형 실행 계획(matching)과 trim 단계 선택 흐름 대체까지만 구현한다. 다변형 공유·변형 정체 칸·Σ 상한은 trim·compare를 처음 여는 TR card에 묶어 그때 배선한다. 이유: 다변형 경로는 TR card 전에는 제품 경로에서 쓰이는 변형이 없어 '만들면 배선'을 지킬 수 없다. 대안 (ii): 다변형 경로를 TR-1 앞에 다 구현하고, TR card 전까지는 fixture spec으로만 실행하는 것을 승인받는다 | S-4 | **필요** |
+| XS-11 | **S-4 순서 문구를 나눈다**(권고안, N7.1): '실행 계획 구현 → TR-1'에서 TR-1 앞에는 단일 변형 실행 계획(요구 없음·matching)과 trim·compare 거부까지만 구현한다(OS-2). 국면 규칙·승인 기록 로더·낡은 승인 정지·다변형 공유·변형 정체 칸·Σ 상한은 trim·compare를 처음 여는 TR card에 묶어 그때 배선한다(OS-5). 이유: 이것들은 trim·compare에서만 쓰이고, TR card 전에는 그 방식이 거부되므로 제품 경로에서 쓰는 곳이 없어 '만들면 배선'을 지킬 수 없다. OT §4 흐름은 코드에 없어(F-7) TR-1 앞에 대체할 옛 경로도 없다. 대안 (ii): 다변형 경로를 TR-1 앞에 다 구현하고, TR card 전까지는 fixture spec으로만 실행하는 것을 승인받는다 | S-4 | **필요** |
 | XS-12 | **변형별 E_total**(N3.7): 40 §2.4.9 E_total('실행 하나의 커널 평가 수 상한', 유일한 정의)과 §2.4.5 색인 상한 식의 '실행 하나' 단위를 '변형 하나' 단위로 바꾸고, 실행 전체 상한은 Σ_v E_total,v가 된다. 식(E_B + N_T + R)은 X-17 그대로다 | X-17, 40 §2.4.9·§2.4.5 | 확인 요청 |
 | XS-13 | **S3 evals·runs 줄에 변형 정체 칸 추가**: 같은 topology 변형은 `context_fp`가 같아 줄만으로 구분되지 않는다(F-5). S3 줄 형식 변경은 앞서 사용자 승인으로 처리했던 종류다(X-10: 실패 줄 `snapshot_fp` 칸) | X-10 선례 | 확인 요청 |
+| XS-14 | **M2 실행 시점**: S-4 원문은 'card A 진행 중 실측'인데, 실행은 card A 병합 뒤 master에서 한다(준비만 진행 중에). 근거: card A의 θ 좌표 왕복 수정(X-1 (1)) 전후로 θ 키가 달라진다(N6 M2-3·8) | S-4 | 보고(확인) |
 | XS-7 | **색인 수명 경계 문구**: 40 §2.4.5의 '실행 경계 = `run_stage_a` 진입'을 '실행 계획 진입'으로 바꾼다. 수명 단위('실행 하나, 실행 사이에 넘기지 않음')는 그대로라서 원래 취지와 맞는다고 보지만, 승인된 design 문구를 바꾸므로 보고한다 | X-12, 원래 취지 문장 | 확인 요청 |
 
 **사용자 몫(이 계획이 하지 않음)**: 기존 library spec을 요구 형식으로 옮기는 것(DS-U5).
@@ -329,7 +331,7 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 1. **대상 회로 1개**: library에서 `offset_in_sigma_mv` 판정 제약을 가진 spec(F-9 기준 하나). 이 제약이 있어야 matching 쪽 L 하한 출발값이 켜져(offset-trim 계획 F-4) 두 변형의 출발이 실제로 갈린다.
 2. **spec 두 개**(저장소 밖, 측정 agent 전용 임시 경로에 둔다. library spec은 고치지 않는다):
    * A(matching 대리) = 원본 spec 그대로.
-   * B(trim 국면 1 대리) = A에서 offset 판정 제약(`offset_in_sigma_mv`·`offset_sys_mv`·`offset_excess`)을 뺀 것. OT §10.8의 국면 1 의미 전환(σ_in 판정 없음, 나머지는 보고)과 같은 제약 집합이다. 지금 엔진은 trim 경로가 없으므로 이 대리가 국면 1의 탐색 궤적을 대신한다. 한계는 결과와 함께 적는다(DAC 관련 계산은 국면 1에 없으므로 대리와 실제의 차이는 후보 계산 블록뿐이다).
+   * B(trim 국면 1 대리) = A에서 offset 판정 제약(`offset_in_sigma_mv`·`offset_sys_mv`·`offset_excess`)을 뺀 것. OT §10.8의 국면 1 의미 전환(σ_in 판정 없음, 나머지는 보고)과 같은 제약 집합이다. 지금 엔진은 trim 경로가 없으므로 이 대리가 국면 1의 탐색 궤적을 대신한다. 한계는 결과와 함께 적는다: θ 궤적은 대리와 실제가 같다고 보지만(국면 1에는 DAC θ가 없고 판정 제약 집합이 같다), 실제 국면 1은 강등된 offset metric(`offset_excess`·`offset_sys_mv`)을 보고 요청으로 계속 계산하므로(OT §5.2) 요청 목록이 다르다. 그래서 metric 블록 겹침은 대리 B와 실제 국면 1이 다르다(F-2). 후보 계산 블록도 대리에는 없다. 이 측정은 θ 수준 겹침만 대표하고, metric 블록 겹침은 대표하지 않는다.
 3. **측정 base 고정**: XRUN-F1 card A 병합 뒤의 master 커밋 하나에 고정한다(측정 agent가 측정 시작 때 해시를 기록하고, A·B 두 실행이 같은 해시·같은 worktree를 쓴다). card A가 θ 좌표 왕복(ln↔exp)을 고치므로(X-1 (1)) 그 전 base의 θ 키는 비교 근거로 쓰지 않는다.
 4. **실행**: 같은 `SearchSettings`(선언 E_B, 같은 BLAS 스레드 설정), 같은 LUT로 A, B를 **별도 프로세스에서 차례로 한 번씩** 돈다(동시 실행 금지). 각 실행은 자기 S3 루트에 evals를 쓴다.
 5. **측정값**(base에서 실제로 나오는 칸만, F-13. 읽기 전용 스크립트가 케이스마다 결과 파일에 append):
@@ -339,7 +341,7 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
    * `perf` 합계(`find_front.py:127-133`): `kernel_calls`, `unique_keys`, `block_computes`, `block_recomputes_same_input`, `wall_s`, `eval_time_median_s`. 겹친 키 수 × `eval_time_median_s`로 겹침의 시간 규모를 어림한다(평가별 시간은 base에 없다).
 6. **card B 뒤로 미루는 측정**: 평가별 커널 시간과 블록별 계산 수, 블록 결과 색인 키 집합의 교집합은 base에 칸이 없다(F-13, F-8). XRUN-F1 card B(색인·`RunCounters`) 병합 뒤 같은 방법으로 다시 잰다.
 7. **보고**: 숫자만 보고하고 판정 문턱을 두지 않는다(NFR-S6). DS-1 (가)·(나)·(다), DS-2 선택은 이 숫자와 각 선택지의 범위(N3.1 표)를 함께 사용자에게 올린다.
-8. **시점**: 방법·스크립트·대리 spec 준비는 S-4대로 XRUN-F1 card A 진행 중에 한다. 실제 실행은 위 3의 base(card A 병합 뒤)에서 한다. 엔진은 바꾸지 않고 출력만 읽는다. 다른 무거운 실행과 겹치지 않게 순서를 잡는다.
+8. **시점**: 방법·스크립트·대리 spec 준비는 S-4대로 XRUN-F1 card A 진행 중에 한다. 실제 실행은 위 3의 base(card A 병합 뒤)에서 한다. **원래 결정과 시점 다름**: S-4 원문은 'card A 진행 중에 실측'이다. card A가 θ 좌표 왕복을 고치므로(X-1 (1)) 그 전 base의 θ 키는 비교 근거가 될 수 없어 실행을 병합 뒤로 옮겼다. 이 차이를 사용자에게 보고한다(XS-14). 엔진은 바꾸지 않고 출력만 읽는다. 다른 무거운 실행과 겹치지 않게 순서를 잡는다.
 
 ---
 
@@ -347,15 +349,15 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 
 ### N7.1 순서(S-4)
 
-NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS-1·OS-2)** → trim TR-1. 이 계획 문서(OS-0 전 단계)와 M2 준비(OS-M)는 card A 진행 중에 한다.
+NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS-2)** → trim TR-1. 이 계획 문서(OS-0 전 단계)와 M2 준비(OS-M)는 card A 진행 중에 한다.
 
 **권고안(XS-11, 승인 필요)**: S-4의 '실행 계획 구현'을 둘로 나눈다.
-* **TR-1 앞(OS-1·OS-2)**: 단일 변형 실행 계획(요구 없음·`matching`)과, OT §4의 단계 선택 흐름을 실행 계획의 국면 규칙으로 대체하는 것까지. 이 범위는 병합 즉시 제품 경로(`matching` 요구 spec, 요구 없는 spec)에서 쓰인다.
-* **trim·compare를 처음 여는 TR card에 묶음(OS-5)**: 다변형 실행(변형 사이 공유), 변형 정체 칸(S3·결과 JSON), Σ 색인 상한(N3.7), DS-1·DS-2 처리. 이 경로를 쓰는 변형은 trim·compare뿐이라 TR card 전에 만들면 쓰는 곳이 없다(만들면 배선, NFR-S7).
+* **TR-1 앞(OS-2, 옛 OS-1 합침)**: 단일 변형 실행 계획(요구 없음·`matching`)과 trim·compare 거부까지. 국면 규칙·승인 기록 로더·낡은 승인 정지는 여기에 넣지 않는다. 이 셋은 trim·compare에서만 쓰이고, 그 방식은 이 card에서 거부되기 때문이다. OT §4의 단계 선택 흐름은 코드에 없으므로(F-7) 이 card에서 대체할 옛 코드 경로도 없다. OT §4 개정은 design 문서에서만 한다(N3.9). 이 범위는 병합 즉시 제품 경로(`matching` 요구 spec, 요구 없는 spec)에서 쓰인다.
+* **trim·compare를 처음 여는 TR card에 묶음(OS-5)**: 국면 규칙·승인 기록 로더·낡은 승인 정지(N3.5), 다변형 실행(변형 사이 공유), 변형 정체 칸(S3·결과 JSON), Σ 색인 상한(N3.7), DS-1·DS-2 처리. 이 경로를 쓰는 변형은 trim·compare뿐이라 TR card 전에 만들면 쓰는 곳이 없다(만들면 배선, NFR-S7).
 * **대안 (ii)**: 다변형 경로를 TR-1 앞에 다 구현하고, TR card 전까지는 fixture spec으로만 실행하는 것을 사용자 승인으로 받는다.
 
 추가 의존:
-* matching 유도 제약의 V_sys는 단일 출력 회로에서 '출력 기준 DC' 기능(T-19~T-23, XRUN-F1 뒤·TR-6 전)이 있어야 정의된다. 그 전에는 해당 회로가 N4-3 사유로 멈춘다(fail-closed). OS-1의 검증 fixture는 기준이 이미 정의되는 회로로 고른다.
+* matching 유도 제약의 V_sys는 단일 출력 회로에서 '출력 기준 DC' 기능(T-19~T-23, XRUN-F1 뒤·TR-6 전)이 있어야 정의된다. 그 전에는 해당 회로가 N4-3 사유로 멈춘다(fail-closed). OS-2의 검증 fixture는 기준이 이미 정의되는 회로로 고른다.
 * trim·compare 변형은 TR card(TR-1 → … → TR-6)가 경로를 만든 뒤에 열린다(N3.5 마지막 항목). TR-2 병합은 U16 뒤다(T-15).
 
 ### N7.2 card 초안
@@ -364,21 +366,20 @@ NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS
 
 | card | 범위 | 선행 | 읽는 결정 |
 |---|---|---|---|
-| OS-0 (문서) | design: 요구 스키마·사유 코드·유도 제약의 metric/행 형식(G-S1)·출발값 규칙(G-S2)·변형 spec 생성(지문 재계산)·`RunPlan` 형식·계획 함수와 실행기 서명·결과 JSON 칸·비교 도구 위치와 칸·예산 식·파일 분할·배선표·test 목록. OS-5 몫(변형 정체 지문·S3 변형 칸·Σ 상한)은 형식만 정한다. OT §4·§5.1·§5.2·§9.4·§9.5·§10.1과 40 §2.4.5 수명 문구 개정안, T-27·T-28 시험 회로 spec 재작성안(XS-9)을 같이 낸다. 독립 검증 | 이 계획 승인, M2 결과 | XS-1~XS-13, DS-1·DS-2, DS-U1~DS-U9 |
+| OS-0 (문서) | design: 요구 스키마·사유 코드·유도 제약의 metric/행 형식(G-S1)·출발값 규칙(G-S2)·변형 spec 생성(지문 재계산)·`RunPlan` 형식·계획 함수와 실행기 서명·결과 JSON 칸·비교 도구 위치와 칸·예산 식·파일 분할·배선표·test 목록. OS-5 몫(변형 정체 지문·S3 변형 칸·Σ 상한)은 형식만 정한다. OT §4·§5.1·§5.2·§9.4·§9.5·§10.1과 40 §2.4.5 수명 문구 개정안, T-27·T-28 시험 회로 spec 재작성안(XS-9)을 같이 낸다. 독립 검증 | 이 계획 승인, M2 결과 | XS-1~XS-14, DS-1·DS-2, DS-U1~DS-U9 |
 | OS-M (측정) | N6 M2. 엔진 무변경, 읽기 전용 스크립트와 임시 spec(저장소 밖). 2차 측정(평가별 시간·블록별 수)은 card B 뒤 | 준비: 이 계획(초안이어도 됨). 실행: card A 병합 | -- |
-| OS-1 | 요구 스키마 로더(N3.2, `offset_trim` 단독 거부 포함), matching 유도 제약(N3.3, G-S1 핵심 층 확장), 출발값(G-S2), 공통 판정 검사(N3.4). 요구 없는 spec 무동작 | OS-0, XRUN-F1 C | XS-1·XS-6·XS-9·XS-10, DS-U1~DS-U4 |
-| OS-2 | 파이프라인 층 재작성(단일 변형): `build_run_plan`(요구 없음·`matching`, 국면 규칙), 실행기, 변형 spec 생성, 블록 결과 색인·`RunCounters` 수명을 실행 계획 진입으로, 결과 JSON. 옛 진입 흐름은 같은 변경에서 지운다. trim·compare 요청은 fail-closed 거부 | OS-1 | XS-4·XS-7·XS-11 |
+| OS-2 (옛 OS-1 합침) | 한 card로 함께 병합한다. 옛 OS-1의 유도 제약·G-S1·G-S2는 변형 spec 주입이 있어야 탐색에 들어가기 때문이다(나눠 병합하면 앞 card의 함수가 쓰이지 않는다).<br>• 요구 스키마 로더(N3.2, `offset_trim` 단독 거부 포함)<br>• matching 유도 제약(N3.3, G-S1 핵심 층 확장), 출발값(G-S2), 공통 판정 검사(N3.4)<br>• 파이프라인 층 재작성(단일 변형): `build_run_plan`(요구 없음·`matching` 행 + trim·compare fail-closed 거부, 승인 기록 입력 없음), 실행기, 변형 spec 생성(N3.10), 블록 결과 색인·`RunCounters` 수명을 실행 계획 진입으로, 결과 JSON<br>• 요구 없는 spec 무동작. 진입 흐름을 바꾸는 부분의 옛 코드는 같은 변경에서 지운다 | OS-0, XRUN-F1 C | XS-1·XS-6·XS-7·XS-9·XS-10·XS-11, DS-U1~DS-U4 |
 | OS-3 | 읽기 전용 비교 도구(N3.8). **TR-1 뒤, trim 국면 2(TR-6) 병합 뒤**에 한다. 비교 입력인 trim 국면 2 결과 JSON은 TR-6 뒤에야 생기기 때문이다(그 전에 만들면 쓰는 곳이 없다) | OS-2, OS-5, TR-6 | XS-3 |
-| OS-5 (TR card에 묶음) | **TR-1 뒤**, trim 국면 1을 처음 제품 경로에 여는 TR card(TR-2, U16 뒤, T-15)와 함께: 다변형 실행(compare 국면 1 = matching + trim 국면 1), 변형 사이 공유, DS-1·DS-2 처리(모든 선택지가 핵심 층 변경을 포함), 변형 정체 칸, Σ 색인 상한, 변형별 예산 | OS-2, TR-2, DS-1·DS-2 결정, XS-12·XS-13 확인 | XS-5·XS-8·XS-11·XS-12·XS-13 |
-
-**TR-1 앞/뒤**: OS-0·OS-M·OS-1·OS-2는 TR-1 앞, OS-5는 TR-1 뒤(TR-2와 함께), OS-3은 TR-6 뒤다.
+| OS-5 (TR card에 묶음) | **TR-1 뒤**, trim 국면 1을 처음 제품 경로에 여는 TR card(TR-2, U16 뒤, T-15)와 함께: 국면 규칙·승인 기록 로더·낡은 승인 정지(N3.5), 다변형 실행(compare 국면 1 = matching + trim 국면 1), 변형 사이 공유, DS-1·DS-2 처리(모든 선택지가 핵심 층 변경을 포함), 변형 정체 칸, Σ 색인 상한, 변형별 예산 | OS-2, TR-2, DS-1·DS-2 결정, XS-12·XS-13 확인 | XS-4·XS-5·XS-8·XS-11·XS-12·XS-13 |
 | (TR 연결) | TR card가 trim 국면 1·2 변형을 계획에 연결하고 거부를 푼다. 범위 조정은 OS-0의 OT 개정안이 정한다 | 각 TR card 선행 그대로 | XS-2·XS-4 |
 
-완료 조건이 걸리는 card: 1·5·7·8은 OS-1·OS-2부터, 2·3·4는 OS-5부터(변형이 둘 이상인 계획이 생길 때), 6은 OS-3.
+**TR-1 앞/뒤**: OS-0·OS-M·OS-2는 TR-1 앞, OS-5는 TR-1 뒤(TR-2와 함께), OS-3은 TR-6 뒤다.
+
+완료 조건이 걸리는 card: 1·5·7·8은 OS-2부터, 2·3·4는 OS-5부터(변형이 둘 이상인 계획이 생길 때), 6은 OS-3.
 
 **완료 조건**(기능 전체):
 1. **요구가 없는 실행**에서 9회로 결과가 base와 비트 동일하다. base는 XRUN-F1 card C 병합 뒤 기준선이다. 비교에서 빼는 칸은 계수·시간 칸(40 §2.4.13 T 부류)과, 실행 경계 문구 변경으로 바뀌는 칸이 있으면 그 목록이다(design이 정하고 검증자가 소유).
-2. **계획 안 결과 = 단독 결과**: 변형이 둘 이상인 계획에서 각 변형의 결과가 그 변형만 담은 계획으로 돈 결과와 비트 동일하다(T 부류 제외). 변형 순서를 바꿔도 같다. **범위는 E_B를 선언한 실행이다.** 시간 예산에서 E_B를 유도하는 실행(X-17 후반)은 유도값이 평가 시간 중앙값에 의존하고(`kernel.py:153-158`, card C 뒤 `search_ceiling`), 앞 변형의 블록 결과 적중으로 뒤 변형의 평가 시간이 짧아지면 유도 E_B가 달라진다. 벽시계 정지(F-6)도 같다. 이런 실행에서 비트 동일을 요구하려면 유도 규칙을 따로 정해야 한다(예: 계획 안 첫 변형의 유도값을 모든 변형에 쓰는 규칙). 그 규칙은 DS-U9로 두고, 정해지기 전에는 유도 실행을 조건 2에서 빼고 결과에 '유도 예산 -- 단독과 다를 수 있음'을 적는다. 이 제외는 기준 약화가 아니라 범위 표기이고, 검증자가 확인한다.
+2. **계획 안 결과 = 단독 결과**: 변형이 둘 이상인 계획에서 각 변형의 결과가 그 변형만 담은 계획으로 돈 결과와 비트 동일하다(T 부류 제외). 변형 순서를 바꿔도 같다. **범위는 E_B를 선언한 실행이다.** 시간 예산에서 E_B를 유도하는 실행(X-17 후반)은 유도값이 평가 시간 중앙값에 의존하고(`kernel.py:153-158`, card C 뒤 `search_ceiling`), 앞 변형의 블록 결과 적중으로 뒤 변형의 평가 시간이 짧아지면 유도 E_B가 달라진다. 벽시계 정지(F-6)도 같다. 이런 실행에서 비트 동일을 요구하려면 계획 순서·구성과 무관한 유도 규칙이 따로 있어야 한다. 그 규칙은 DS-U9(열림)로 두고, 정해지기 전에는 유도 실행을 조건 2에서 빼고 결과에 '유도 예산 -- 단독과 다를 수 있음'을 적는다. 이 제외는 기준 약화가 아니라 범위 표기이고, 검증자가 확인한다.
 3. **재계산 0**: 실행 계획 전체에서 같은 입력의 블록 재계산 0, 같은 평가 키 재계산 0(40 §2.4.9 판정 1을 실행 전체에).
 4. **공유 증거**: 같은 topology 변형 둘을 담은 계획에서 S1 블록 계산 수가 변형 하나일 때와 같다. 블록 결과 색인 적중 수와 S1v 재계산 수(DS-2)를 결과에 낸다.
 5. **fail-closed 증거**: N3.2 로더 규칙과 N3.3 정지 조건마다 거부 test가 실제로 거부한다(통과가 아니라 거부를 먼저 확인).
@@ -409,7 +410,7 @@ matching 유도식 k·σ_in + |V_sys| ≤ `offset_in_max_v`는 사용자 결정 
 |---|---|
 | 같은 topology 변형이 평가 캐시를 공유해 다른 변형의 제약 행이 적중한다(F-1·F-2) | 지금 키 그대로의 공유는 금지(N3.6). 나누는 방식은 DS-1. 완료 조건 2(계획 안 = 단독)가 잡는다 |
 | DS-1 (가)를 고르면 완료 조건 3(같은 평가 키 재계산 0)과 모순된다 | 조건을 약화하지 않는다. 약화는 DS-U7로 사용자 승인을 받을 때만 |
-| matching 합성 판정·출발값이 핵심 층을 건드린다(N3.10) | XS-10 승인 뒤에만 OS-1 착수. 범위는 metrics 레지스트리 또는 `ss_constraint_rows` 한 곳과 `iv_matching_l` 한 곳으로 design이 닫는다 |
+| matching 합성 판정·출발값이 핵심 층을 건드린다(N3.10) | XS-10 승인 뒤에만 OS-2 착수. 범위는 metrics 레지스트리 또는 `ss_constraint_rows` 한 곳과 `iv_matching_l` 한 곳으로 design이 닫는다 |
 | S1v·metric 블록이 제약 extras 때문에 변형마다 다시 계산돼 공유 효과가 줄어든다(F-2·F-3) | 완료 조건 4로 수를 드러내고 M2와 함께 DS-1·DS-2로 사용자에게 올린다. 숨기지 않는다 |
 | 실행 계획 전체로 색인 수명이 길어져 메모리가 는다 | 상한 식(N3.7)으로 등록 때 fail-closed. M2의 θ 겹침 수와 블록 수로 미리 잰다. 변형 수는 방식 표(N3.5)로 닫혀 있다 |
 | 실행 전체 시간이 변형 시간의 합이 된다 | 변형별 예산(N3.7)을 결과에 낸다. 시간 예산 유도는 변형마다 |
@@ -419,7 +420,7 @@ matching 유도식 k·σ_in + |V_sys| ≤ `offset_in_max_v`는 사용자 결정 
 | 국면 2만 돈 compare에서 matching 결과가 다른 코드·다른 선언으로 만든 것이다 | 비교 도구가 `code_fp`·공통 판정 선언 불일치를 표에 적는다(N3.8) |
 | 승인된 offset-trim design(§4·§5.1·§5.2·§9.4·§10.1)을 고쳐 TR-1 착수가 늦어진다 | OS-0이 개정안을 같이 내고 한 번에 재승인받는다(S-4). TR-M·TR-L처럼 영향 없는 card는 그대로 진행 |
 | library spec이 요구 형식이 아니어서 기능이 library에서 쓰이지 않는다 | 검증은 fixture spec으로 한다(N4). 옮기는 것은 사용자 몫(DS-U5)이고 보고에 적는다 |
-| 계획 안 변형 순서가 결과를 바꾼다(숨은 상태) | 블록 순수성(40 §2.4.5 결정성)과 변형별 캐시. 완료 조건 2의 순서 뒤집기 test |
+| 계획 안 변형 순서가 결과를 바꾼다(숨은 상태) | 블록 순수성(40 §2.4.5 결정성)과, DS-1 선택지에 따라 정해지는 평가 키 부분의 공유 방식. 완료 조건 2의 순서 뒤집기 test |
 
 ---
 
@@ -427,7 +428,7 @@ matching 유도식 k·σ_in + |V_sys| ≤ `offset_in_max_v`는 사용자 결정 
 
 ### N10.1 사용자 결정 필요
 
-기본안은 원칙으로 정한 것이고 사용자가 바꿀 수 있다. N5의 XS-1~XS-13 승인·확인도 사용자 몫이다.
+기본안은 원칙으로 정한 것이고 사용자가 바꿀 수 있다. N5의 XS-1~XS-14 승인·확인도 사용자 몫이다.
 
 | ID | 질문 | 기본안 |
 |---|---|---|
@@ -439,7 +440,7 @@ matching 유도식 k·σ_in + |V_sys| ≤ `offset_in_max_v`는 사용자 결정 
 | DS-U4 | compare에서 공통 판정이 없을 때. '있음'의 정의: 1/f는 `noise_fc_in_hz`나 `noise_out_int_vrms` 가운데 하나 이상이 값이 있는(결정 대기 아님) 판정 제약으로 선언됨, 면적은 `area_search_m2 <=`가 값이 있는 판정 제약으로 선언됨. 둘 다 있어야 한다 | 하나라도 없으면 탐색 전 거부(같은 기준 없이는 나란히 놓을 수 없음). `matching`·`trim` 단독은 요구하지 않는다 |
 | DS-U6 | N+1 구성의 m 규칙(XS-2). OT §3.4 집계는 추천 N 하나에 대해 m = min_p m_max,p(N)이다 | N+1에도 같은 집계 규칙을 그대로 쓴다: m = min_p m_max,p(N+1). 어떤 집계 점에서 m_max,p(N+1)이 정의되지 않으면 N+1 구성은 내지 않고 사유를 후보표에 적는다(새 상수 없음) |
 | DS-U7 | (DS-1 (가)를 고를 때만) 완료 조건 3을 '변형 안 같은 평가 키 재계산 0 + 변형 사이 수는 보고'로 바꾸는 것 | 바꾸지 않는다. **기준 약화**라 사용자 승인 없이는 하지 않는다 |
-| DS-U9 | 시간 예산에서 E_B를 유도하는 실행의 다변형 규칙(완료 조건 2) | 계획 안 첫 변형의 유도 규칙으로 정한 평가 수를 같은 계획의 모든 변형에 쓴다(새 상수 없음, 유도 근거가 결과에 남음). 정해지기 전에는 유도 실행을 조건 2에서 빼고 결과에 표기 |
+| DS-U9 | 시간 예산에서 E_B를 유도하는 실행의 다변형 규칙(완료 조건 2, NFR-S5) | **기본안 없음(열림)**. '첫 변형의 유도값을 모든 변형에 쓴다'는 안은 조건 2를 지키지 못한다: 변형 2를 단독으로 돌리면 자기 유도값을 쓰고, 순서가 바뀌면 결과가 바뀐다. 후보는 계획 순서·계획 구성과 무관한 규칙뿐이다(예: 변형마다 자기 단독 실행과 같은 조건에서 유도값을 정하는 규칙이 있는지 design이 조사). 정해지기 전에는 유도 실행을 조건 2·NFR-S5에서 빼고 결과에 표기 |
 | DS-U8 | trim 시험 회로 spec을 요구 형식으로 다시 쓸 때 `offset_in_max_v` 값과 `offset_excess` 처리(XS-9) | 사용자 몫. `offset_excess`는 DS-U2 기본안대로 빼고, `offset_in_max_v` ≥ 승인된 V_res(T-25) 조건만 로더가 본다 |
 | DS-U5 | 기존 library spec(특히 `offset_in_sigma_mv`를 가진 spec, F-9)을 요구 형식으로 옮길지와 그 값 | 사용자 몫. 이 기능은 옮기지 않는다 |
 
