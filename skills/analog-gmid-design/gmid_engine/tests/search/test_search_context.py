@@ -346,3 +346,204 @@ def test_stored_attrs_scanner():
     src = ("class C:\n    __slots__ = ('a', 'b')\n    c: int\n    d = 1\n    def f(self):\n        self.e = 0\n        self.g.h = 1\n"
            "ctx.i = 2\nctx.j += 1\nx = ctx.k\n")
     assert _stored_attrs(ast.parse(src)) == {"a", "b", "c", "d", "e", "h", "i", "j"}
+
+
+# =====================================================================================================================
+# [XRUN-F1 card A] 첫 평가 버림 제거 -- interface card xrunf1a C3(계수 상태 memo)·C4(build_search_context 안 커널 평가 0, 탐색 memo =
+# LutMemo.counting(호출자 lut, n_θ, table_cache=호출자 memo 의 table_cache))·C5(evaluate 의 첫 커널 평가가 창). 옛 test_sweep_memo_wiring.py 의
+# 성질(탐색 memo ≠ 호출자 memo, 상한 = (n_θ + 1)·U, 값 비트 동일, 호출자 상한 상수 무영향)을 여기로 옮겼다(원본 없는 test 파일 삭제, 규칙 H).
+# 관찰 지점(J-3): 모듈 속성 `gmid_engine.search.kernel.size_and_seal`(커널 평가 1회 = 호출 1회), 클래스 속성 `LutMemo.lookup`(모든 조회가 거친다).
+# oracle:
+# - (독립) 커널 호출 수·창 안 서로 다른 키 수 U_r 는 이 파일이 감싼 함수로 따로 센다(엔진 계수·stats 의 hits/misses 를 쓰지 않는다).
+#   '서로 다름'의 동치 = C3 문장(0.0 과 −0.0 은 다른 키, NaN 은 같은 내용이면 같은 키, 1·1.0·True 는 서로 다른 키)을 이 파일의 `_canon` 이 따로 구현.
+# - (식) 상한 = (n_θ + 1)·U_r, n_θ = len(centre_start(sctx)[0])(C4 정의 -- 첫 점의 변수 수를 읽을 뿐 상한 계산은 쓰지 않는다).
+# - (비교) 같은 입력 두 실행의 front·평가 결과 비트 비교(memo 는 값을 바꾸지 않는다, C3 '값').
+# 엔진 소스는 열람하지 않았다(interface card 만).
+# =====================================================================================================================
+
+import dataclasses
+import importlib
+import math
+
+from gmid_engine.lut import LutMemo
+from gmid_engine.search import cone_rows, evaluate, find_front
+from gmid_engine.search.layer0_center import centre_start
+
+from .conftest import front_signature, schema_of, theta_r4c
+
+SWEEP = ("point", "curve", "root")
+_KERNEL = importlib.import_module("gmid_engine.search.kernel")
+
+
+def _canon(v):
+    """C3 키 동치의 독립 구현: 형 태그 + 값(float 은 hex, NaN 은 하나로). tuple·frozenset 은 재귀."""
+    if isinstance(v, bool):
+        return ("bool", v)
+    if isinstance(v, int):
+        return ("int", v)
+    if isinstance(v, float):
+        return ("float", "nan" if math.isnan(v) else v.hex())
+    if isinstance(v, (str, bytes)):
+        return (type(v).__name__, v)
+    if isinstance(v, tuple):
+        return ("tuple", tuple(_canon(x) for x in v))
+    if isinstance(v, frozenset):
+        return ("frozenset", tuple(sorted(repr(_canon(x)) for x in v)))
+    if v is None:
+        return ("none",)
+    return ("obj", type(v).__module__, type(v).__qualname__, repr(v))
+
+
+def _caps(memo):
+    return {r: s.capacity for r, s in memo.stats() if r in SWEEP}
+
+
+def _count_kernel(monkeypatch):
+    calls = []
+    real = _KERNEL.size_and_seal
+
+    def counted(*a, **k):
+        calls.append(1)
+        return real(*a, **k)
+    monkeypatch.setattr(_KERNEL, "size_and_seal", counted)
+    return calls
+
+
+def _centre_in_cone(sctx):
+    """전제: 상자 중심(centre_start 의 θ)이 원뿔 안 -- as-built 가 컨텍스트 생성 안에서 이 점을 커널로 평가했을 조건."""
+    _v, theta, _cells, _u = centre_start(sctx)
+    return all(row.c > 0 for row in cone_rows(schema_of(sctx.dc), tuple(sorted(dict(theta).items()))))
+
+
+def test_build_search_context_runs_no_kernel(tmp_path, lut_sealed, monkeypatch):
+    """A-T9: build_search_context 동안 kernel.size_and_seal 호출 0(임시 컨텍스트·버리는 평가 없음). 반환 뒤 kernel_calls 0·seq 0·cache 빔."""
+    calls = _count_kernel(monkeypatch)
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    n_build = len(calls)
+    s = case.sctx
+    assert _centre_in_cone(s)                                       # 전제(공허 방지)
+    assert n_build == 0, n_build
+    assert dict(s.counters)["kernel_calls"] == 0 and s.seq == 0 and len(s.cache) == 0
+    # 감싼 계수가 실제로 센다(대조군): 첫 커널 평가 한 번 -> 1
+    _v, theta, cells, _u = centre_start(s)
+    evaluate(s, theta, cells)
+    assert len(calls) == 1 and dict(s.counters)["kernel_calls"] == 1
+
+
+def _lookups_during(monkeypatch, memo, fn):
+    """fn() 이 도는 동안 memo(그 객체)의 영역 point·curve·root 조회 중 정상 반환한 것을 (영역, _canon((lut.fp, fn_name) + tuple(key)))로
+    기록한다(LutMemo.lookup 클래스 수준 감쌈, 원래 것을 부름). compute 예외로 끝난 조회는 기록하지 않는다(C3)."""
+    seen = []
+    real = LutMemo.lookup
+
+    def wrapped(self, region, fn_name, key, compute):
+        out = real(self, region, fn_name, key, compute)
+        if self is memo and region in SWEEP:
+            seen.append((region, _canon((self.lut.fp, fn_name) + tuple(key))))
+        return out
+    monkeypatch.setattr(LutMemo, "lookup", wrapped)
+    try:
+        fn()
+    finally:
+        monkeypatch.setattr(LutMemo, "lookup", real)
+    return seen
+
+
+def test_first_kernel_eval_fixes_capacity_from_independent_count(tmp_path, lut_sealed, monkeypatch):
+    """A-T10: build 뒤 첫 커널 평가(상자 중심 θ·cells) 한 번의 호출 구간에서 탐색 memo 조회를 따로 세어 U_r -> stats capacity = (n_θ + 1)·U_r
+    (영역 point·curve·root). n_θ = len(centre_start(sctx)[0])."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    s = case.sctx
+    memo = s.dc.lut.memo
+    variables, theta, cells, _u = centre_start(s)                   # 창 밖(첫 커널 평가 전) -- 이 조회는 U 에 세지 않는다
+    n_theta = len(variables)
+    assert dict(s.counters)["kernel_calls"] == 0                    # 전제: 아직 커널 평가 없음 -> 다음 evaluate 가 첫 커널 평가
+    seen = _lookups_during(monkeypatch, memo, lambda: evaluate(s, theta, cells))
+    assert dict(s.counters)["kernel_calls"] == 1                    # 전제: 정말 커널 평가였다(원뿔 밖·캐시 적중 아님)
+    assert seen                                                     # 공허 방지: 창 안 조회가 있다
+    u = {r: len({k for rr, k in seen if rr == r}) for r in SWEEP}
+    assert _caps(s.dc.lut.memo) == {r: (n_theta + 1) * u[r] for r in SWEEP}   # (식)
+
+
+def test_search_memo_rejects_second_window_after_first_kernel_eval(tmp_path, lut_sealed):
+    """A-T11: 첫 커널 평가 뒤 탐색 memo 는 고정(bound_state "fixed") -- open_count()·fix_bound() 각각 ValueError(C3 한 방향 전이)."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    s = case.sctx
+    _v, theta, cells, _u = centre_start(s)
+    evaluate(s, theta, cells)
+    assert dict(s.counters)["kernel_calls"] == 1
+    memo = s.dc.lut.memo
+    assert memo.bound_state == "fixed"
+    with pytest.raises(ValueError):
+        memo.open_count()
+    with pytest.raises(ValueError):
+        memo.fix_bound()
+    assert memo.bound_state == "fixed"
+
+
+def _eval_table(sctx):
+    """sctx.cache 의 평가 결과 -> {키 repr: 비트 비교용 repr}. float repr 은 왕복 정확(비트 동일 ⇔ repr 동일)."""
+    out = {}
+    for k, r in sctx.cache.items():
+        fail = None if r.failure is None else repr(r.failure)
+        out[repr(k)] = repr((r.theta, r.status, r.objectives, r.constraints, r.cone, r.unmeasured, r.warnings, r.seq, fail))
+    return out
+
+
+def _build_with_caller_cap(tmp, lut, cap, **kw):
+    """search conftest `build_case` 와 같은 입력, 호출자 memo 상한만 `cap`(영역 셋 모두)."""
+    from gmid_engine.graph import build_s1
+    from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
+    from .conftest import load_spec, write_decls
+    tmp = Path(tmp)
+    acc = pre_layout_lut_access(LutMemo(lut, point=cap, curve=cap, root=cap))
+    td, spec = load_spec(tmp / "case", circuit_c())
+    inputs = dc_inputs_from_spec(spec)
+    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, acc)
+    pdk, rule = write_decls(tmp / "pdk")
+    settings = SearchSettings(600.0, kw.get("eval_budget", 30), None, tuple(SRC), None)
+    return acc, build_search_context(dc, spec, settings, None, pdk, rule, code_fp=CODE_FP)
+
+
+def test_search_memo_is_not_callers_and_caller_untouched(tmp_path, lut_sealed):
+    """A-T12 (옮겨 온 성질 1): 탐색 memo ≠ 호출자 memo, 호출자가 넘긴 커널 컨텍스트의 memo 는 그대로."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    assert case.sctx.dc.lut.memo is not case.acc.memo
+    assert case.dc.lut.memo is case.acc.memo
+
+
+def test_eval_results_identical_search_memo_vs_caller_memo(tmp_path, lut_sealed):
+    """A-T12 (옮겨 온 성질 2): 같은 입력의 탐색을 (A) 탐색 memo(배선 그대로), (B) 호출자 memo(상한 4096 생성자 memo)로 돌린다 ->
+    front·모든 평가 결과·run_id 비트 동일."""
+    a = build_case(tmp_path / "a", circuit_c(), lut_sealed, eval_budget=30)
+    b = build_case(tmp_path / "b", circuit_c(), lut_sealed, eval_budget=30)
+    assert b.dc.lut.memo is b.acc.memo
+    # (B) 탐색이 호출자 memo 를 쓴다. 커널 컨텍스트 `base` 는 S0 수준 스냅샷이라 LUT 손잡이만 호출자 것으로 바꾼다.
+    b.sctx.dc = dataclasses.replace(b.sctx.dc, lut=b.dc.lut)
+    fa = find_front(a.sctx, [theta_r4c()])
+    fb = find_front(b.sctx, [theta_r4c()])
+    assert a.sctx.dc.lut.memo is not a.acc.memo and b.sctx.dc.lut.memo is b.acc.memo
+    assert dict(fa.perf)["stops_wall_budget"] == 0 and dict(fb.perf)["stops_wall_budget"] == 0
+    assert front_signature(fa) == front_signature(fb)
+    assert fa.front or fa.pending_front or fa.unmeasured_front        # 공허한 비교 방지
+    ta, tb = _eval_table(a.sctx), _eval_table(b.sctx)
+    assert len(ta) > 1
+    assert ta == tb
+    assert fa.run_id == fb.run_id
+
+
+def test_caller_capacity_constant_does_not_influence_search(tmp_path, lut_sealed):
+    """A-T12 (옮겨 온 성질 3): 호출자 memo 상한 1 과 4096 -> 탐색 memo 상한(탐색 뒤)·정의역·front·평가 결과 모두 같다, 탐색 memo 상한은
+    호출자 상수가 아니다."""
+    acc1, s1 = _build_with_caller_cap(tmp_path / "c1", lut_sealed, 1)
+    acc2, s2 = _build_with_caller_cap(tmp_path / "c4096", lut_sealed, 4096)
+    assert s1.dc.lut.memo is not acc1.memo and s2.dc.lut.memo is not acc2.memo
+    assert s1.domain == s2.domain
+    f1 = find_front(s1, [theta_r4c()])
+    f2 = find_front(s2, [theta_r4c()])
+    assert dict(f1.perf)["stops_wall_budget"] == 0 and dict(f2.perf)["stops_wall_budget"] == 0
+    assert dict(f1.perf)["kernel_calls"] > 0                          # 전제: 커널 평가가 있었다(상한이 정해진 뒤 비교)
+    assert _caps(s1.dc.lut.memo) == _caps(s2.dc.lut.memo)
+    assert all(v != 1 and v != 4096 for v in _caps(s1.dc.lut.memo).values())
+    assert front_signature(f1) == front_signature(f2)
+    assert _eval_table(s1) == _eval_table(s2)
