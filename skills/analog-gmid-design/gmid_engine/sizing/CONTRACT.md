@@ -1,11 +1,14 @@
 # gmid_engine.sizing 동작 계약 (MOD4 GB7 DC 정본 풀이 + 봉인, test 작성용)
 
 > **[U17 ①-b] S0 수준 필드 이동**(설계 40 §2.4.7 `KernelContext` 행·§2.4.8 v1.9.1 D8, 2026-10-13) -- 이 단락이 아래 옛 서술보다 우선한다.
+> * [XRUN-F1 B] `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext` -- `donors`·`counters` 는 필수 키워드(기본값 없음, 빠지면 `TypeError`)이고
+>   7개 블록에 넘긴다. 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수다(단계 B 는 `StageAResult` 의 두 칸을 넘긴다). 결과 `KernelContext.donors`·`.counters` 는 넘긴 객체 그대로(`is`)다.
+>   커널 단계의 블록 호출(`run_kernel` 의 ②~⑤, `seal_dc` 의 봉인 블록)과 `metrics.ss_evaluate`·search 평가 커널은 이 두 칸으로 부른다.
 > * `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext` -- `l_classes` 인자는 없다: L 동치류는 S1v 필드 `graph/s1v: l_classes`(있으면)에서 읽는다.
 >   순서 = lift(`widen(S2_WRITERS)` -- 권한표가 S1_WRITERS 를 덮는 S0 수준 스냅샷도 받는다) -> `dc_rails` -> `s1_symmetry` -> `dc_current_basis` -> `dc_writer_plan` -> `dc_scc_order` ->
 >   **`kernel_fields`**(writer `kernel_context`, 새 계산 블록: `graph/kernel(KERNEL_KEY="kernel")`: `fixed_values`·`resistor_values`·`l_ties` -- L 묶음 검사 `ValueError` 포함) ->
 >   `dc_theta_schema`(extras = engine 수동소자만; reads 에 `resistor_values`·`l_ties` 필드).
-> * `KernelContext(base, inputs, lut)` -- **참조만**. 옛 칸 `schema`·`fixed_values`·`resistor_values`·`plan_versions`·`l_ties` 는 없다: θ 스키마 = `base.value("graph", KERNEL_KEY, "theta_schema")`
+> * `KernelContext(base, inputs, lut, donors, counters)` -- **참조만**(`donors`·`counters` = XRUN-F1 card B 의 과도기 참조 칸, U17 ② G-7 재작성에서 정리). 옛 칸 `schema`·`fixed_values`·`resistor_values`·`plan_versions`·`l_ties` 는 없다: θ 스키마 = `base.value("graph", KERNEL_KEY, "theta_schema")`
 >   (옛 `graph/dc: dc_theta_schema` 를 `graph/kernel: theta_schema` 로 옮김, writer `dc_theta_schema` 그대로), 고정 노드·저항·L 묶음 = 같은 레코드의 필드, 계획 블록 입력 버전 =
 >   `base.block_version(w)`(`PLAN_WRITERS` = 위 계획 블록 + `kernel_context`·`dc_theta_schema`). `run_kernel` 의 parent 검사는 `PLAN_WRITERS` block_version 이 `base` 와 같은지로 한다.
 > * `dc_writer_plan` 은 `device.dc_self_referential`(MOS 마다 bool -- 그 소자가 쓰는 노드가 자기 d·s·bulk 중 하나인가: diode gate 쓰기·소스 추종 source 쓰기)도 쓴다(S0 수준 필드,
@@ -109,8 +112,11 @@
 | 4 | `size_and_seal.py` | `size_and_seal` | -- |
 
 계산 블록은 모두 core `compute_block`(core CONTRACT 6절)이다: 블록 함수는 선언 reads 투영 + 불변 extras 만 받고, 입력 버전 =
-fp_of((이름, 코드 해시, 투영 지문)), 같으면 재사용(스냅샷 `is` 반환), 결과는 `snapshot.write` 로만 쓴다(열 교체 의미).
-`stats()`·`reset_stats()` 로 calls·reuses·computes·recomputes_same_input 을 잰다.
+fp_of((이름, 코드 해시, 투영 지문)) = `block.input_version(snapshot, *extras)`(정본), 같으면 재사용(스냅샷 `is` 반환), 결과는 `snapshot.write` 로만 쓴다(열 교체 의미).
+[XRUN-F1 B] 호출은 `block(snapshot, *extras, donors, counters)`(필수 키워드 둘)이고 계수는 실행 하나의 `RunCounters`(`counters.snapshot()` 의 `blocks` 행)가 잰다 -- 블록 객체의 `stats()`·`reset_stats()` 는 없다.
+**봉인 4**(`seal_versions`)는 입력 버전 식을 사본으로 두지 않고 `block.input_version(snapshot, *extras)` 를 부른다(판정은 그대로). **부분 스냅샷**: `run_kernel` 은 블록 단계마다 후보 실패 클래스
+(`NonconvergentError`·`SealViolationError`)를 이름으로 잡아 그 블록에 들어간 스냅샷을 `core.attach_partial` 로 붙인 뒤 다시 낸다. `seal_dc` 는 스스로 내는 `SealViolationError` 에 `dc_seal_report` 까지 쓴
+스냅샷을 붙여 낸다(`exc.partial`). `seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, donors, counters)`: 필수 키워드 둘.
 
 ## 1. 공개 흐름과 입력
 

@@ -56,7 +56,11 @@
 | metric_signature.py | 1 | (데이터 선언 모듈) `MetricSignature(unit, domain, view_kind=None, objective_axis=None)` + 어휘 `VIEW_KINDS`(transfer, loop, cm_loop, output_port, ratio)·`OBJECTIVE_AXES`(power, area) -- unit ∈ `METRIC_UNITS`, domain ∈ `DOMAINS`(units 표), view_kind ∈ {None} ∪ `VIEW_KINDS`(None = 뷰 없음, 문자열 `"none"` 은 어휘 밖), objective_axis ∈ {None} ∪ `OBJECTIVE_AXES`; 밖이면 `ValueError`. 뷰 종류 어휘는 이 파일 한 곳 |
 | projection.py | 1 | `Projection` |
 | writer_table.py | 1 | `WriterTable` (+ 상수 `ENTITY_KINDS`) |
-| compute_block.py | 2 | `compute_block` (`ComputeBlock`·`BlockStats` 는 비진입 공개 이름) |
+| donors.py | 0 | `Donors` (추상 기반, 6.4절) |
+| graft.py | 0 | `graft` (6.5절) |
+| run_counters.py | 0 | `RunCounters` (`PerfCounters`·행 타입은 같은 파일 비진입 공개 이름, 6.3절) |
+| compute_block.py | 4 | `compute_block` (`ComputeBlock` 은 비진입 공개 이름) |
+| failure_partial.py | 4 | `attach_partial` (4.2절) |
 | failure_errors.py | 2 | (데이터 선언 모듈) N3.14 예외 클래스 7개 |
 | graph_record.py | 2 | `GraphRecord` |
 | failure_classes.py | 3 | (데이터 선언 모듈) `FailureClass` + 상수 `FAILURE_CLASSES`·`CANDIDATE_FAILURE_CLASSES`·`UNEXPECTED_EXIT_CODE` |
@@ -137,6 +141,11 @@
   | SearchFailedError | `SEARCH_FAILED` |
   | SchemaRejectedError | `SCHEMA_REJECTED` |
 - 실패: `InfeasibleSizingError()` 직접 생성 -> `TypeError`(기반 클래스). 위치 인자 -> `TypeError`.
+- [XRUN-F1 B] **`partial`**: `InfeasibleSizingError` 하위 인스턴스의 칸 `partial`(생성 직후 `None`) = 후보 실패가 난 평가가 실패 직전까지 쓴 마지막 `GraphSnapshot`(부분 스냅샷, 설계 40 §2.4.7).
+  부착은 `failure_errors.py` 밖의 함수 `attach_partial(exc, snapshot) -> None`(파일 `failure_partial.py`, 같은 패키지 `gmid_engine.core`): `exc` 가 `InfeasibleSizingError` 하위가 아니면
+  `TypeError`, `snapshot` 이 `GraphSnapshot` 이 아니면 `TypeError`, 이미 `exc.partial` 이 있으면 바꾸지 않는다(가장 안쪽 부착이 이긴다). `SchemaRejectedError` 에는 `partial` 이 없다.
+- [XRUN-F1 B] **`from_record(record)`**: 두 기반 `InfeasibleSizingError`·`SchemaRejectedError` 모두의 classmethod. 하위 클래스에서 부르면 그 클래스의 새 예외이고 `.record is record`
+  (등록된 실패 기록을 다시 던질 때 쓴다 -- 실패 재연, 6.2절). 기반 클래스 자체에서 부르면 `TypeError`, `record` 가 `FailureRecord` 가 아니면 `TypeError`.
 
 ### 4.3 `FAILURE_CLASSES` (읽기 전용 Mapping) / `FailureClass(exc, exit_code, parent, recorded_in_search)`
 - 키 정확히 8개: 위 6개 분류 키 + 후보 실패 레코드 `structure_inconsistent`(parent `STRUCTURE_UNRESOLVED`),
@@ -246,30 +255,52 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
   `engine_code_fp` 가 덮는다 -- S3 줄 `code_fp`·`run_id` 의 출처 칸).
 - 실패 -> `ValueError`: name 빈/비문자열; writes 비어 있음; kind 가 ENTITY_KINDS 밖; field 빈/비문자열; 같은 쌍 중복; 쌍이 str 이거나 원소 수 ≠ 2.
 
-### 6.2 호출 `block(snapshot, *extras) -> GraphSnapshot`
+### 6.2 호출 `block(snapshot, *extras, donors, counters) -> GraphSnapshot`
+- [XRUN-F1 B] `donors`·`counters` 는 **필수 키워드**(기본값 없음): 하나라도 빠지면 `TypeError`, `donors` 가 `Donors` 하위가 아니면 `TypeError`(블록 함수 호출 0). 두 객체는
+  실행 하나의 것이다(`search.open_run()` 이 만든다, 6.3·6.4절). 블록 객체는 상태가 없다 -- 계수·색인은 두 객체에만 산다(`stats`·`reset_stats`·`BlockStats` 없음).
 - `extras` 는 각각 불변이어야 한다: dict·list·set·가변 객체 -> `TypeError`(계수 변화 없음, 블록 함수 미호출).
 - 블록 함수는 `Projection` 하나를 위치 인자로 받는다:
   - `projection.column(kind, field)` = 선언한 열의 `snapshot.column(kind, field)` 와 같은 값. 선언 밖 열 -> `KeyError`.
   - `projection.value(kind, key, field)`, `projection.extras` = extras tuple.
-- 입력 버전 `v = fp_of((name, code_hash, projection.fp))`. `projection.fp` 는 (선언 열의 값 지문, extras) 만의 지문(8절).
+- 입력 버전 `v = fp_of((name, code_hash, projection.fp))` = **`block.input_version(snapshot, *extras)`**(공개 메서드, 입력 버전의 유일한 정본 -- 호출과 봉인 4 가 같은 식을 쓴다, 사본 없음).
+  `projection.fp` 는 (선언 열의 값 지문, extras) 만의 지문(8절). 호출 하나가 투영과 `v` 를 한 번만 만든다. extras 불변 검사(`TypeError`)는 이 투영에서 한 번.
 - **checkout 무관**: `code_hash` 에 파일 경로·줄 정보가 없으므로 같은 엔진 파일 바이트면 어느 경로에서 import 해도 `v`·`context_fp` 가 같다.
-- **재사용**: `snapshot.block_version(name) == v` 이면 블록 함수를 부르지 않고 `snapshot` 을 그대로(`is`) 돌려준다.
-  -> 같은 스냅샷에 두 번 부르면 두 번째는 함수 호출 0. 선언하지 않은 필드·다른 블록 필드만 바뀐 스냅샷에서도 재사용.
-  선언한 열의 값이나 extras 중 하나라도 바뀌면 재계산(IC10: 읽는 상태를 놓친 키 없음). 값이 같은 새 객체(다른
-  lineage 에서 같은 값으로 만든 스냅샷)도 block_version 이 그 v 이면 재사용.
-- **재계산**: 함수 결과는 키가 `writes` 와 정확히 같은 Mapping `{(kind, field): {key: value}}` 이어야 하고,
-  `snapshot.write(name, v, result)` 로만 기록된다(5.6 의 열 교체·메타 규칙 그대로). 결과 스냅샷의 해당 필드는
-  `writer == name`, `input_version == v`, `block_version(name) == v`.
-  - 실패: 결과가 Mapping 아님·키 집합 ≠ writes -> `ValueError`; 권한표가 그 열을 name 에 배정하지 않음 ->
-    `WriterPermissionError`; 블록 함수가 낸 예외는 그대로 전파(스냅샷 변화 없음).
+- **판정 순서**(분할 `"*"` 하나 -- 분할 도입은 U17 ②): 1 같은 lineage 재사용 -> 2 이식 -> 실패 재연 -> 3 계산.
+  1. **재사용**: `snapshot.block_version(name) == v` 이면 `donors` 를 부르지 않고 블록 함수를 부르지 않고 `snapshot` 을 그대로(`is`) 돌려준다. 계수 `reuse`.
+     선언하지 않은 필드·다른 블록 필드만 바뀐 스냅샷에서도 재사용. 선언한 열의 값이나 extras 중 하나라도 바뀌면 `v` 가 달라진다(IC10: 읽는 상태를 놓친 키 없음).
+  2. **이식**: `donors.find(name, "*", v)` 가 스냅샷을 주면 `graft(snapshot, block, "*", 그 스냅샷, v)` 의 결과를 돌려준다(블록 함수 0, `find_failure` 미호출). 계수 `graft`.
+     준 스냅샷의 `block_version(name) != v` 면 `ValueError`(색인 손상 -- 검사는 `graft` 가 한다).
+  3. **실패 재연**: `donors.find_failure(name, "*", v)` 가 기록을 주면 블록 함수를 부르지 않고 `FAILURE_CLASSES[record.failure_class].exc.from_record(record)` 를 던진다
+     (`.record is` 등록된 그 기록, `partial` None). 계수 `replay`. `exc` 가 없는 분류 키(후보 실패 레코드 행)는 던져진 적이 없어 등록되지 않으므로 그런 기록이 오면 `ValueError`.
+  4. **계산**: 계수 `compute` 는 블록 함수를 부르기 **전에** 센다(예외로 끝난 계산도 계산이다). 함수 결과는 키가 `writes` 와 정확히 같은 Mapping `{(kind, field): {key: value}}` 이어야 하고,
+     `snapshot.write(name, v, result)` 로만 기록된다(5.6 의 열 교체·메타 규칙 그대로). 결과 스냅샷의 해당 필드는 `writer == name`, `input_version == v`, `block_version(name) == v`.
+     성공이면 `donors.register(name, "*", v, 결과)` 한 번 + `counters.result(name, "*", v, True)`. **결정적 도메인 실패**(`InfeasibleSizingError` 하위·`SchemaRejectedError`)면
+     `donors.register_failure(name, "*", v, exc.record)` + `counters.result(..., False)` 뒤 같은 예외 객체를 그대로 올린다. 그 밖 예외(`ValueError`·`TypeError`·`MemoryError`·`KeyboardInterrupt` 등
+     입력의 함수가 아닌 것)는 등록·알림 없이 그대로 올린다(같은 입력 재호출은 다시 계산하고 `recomputes_same_input` +1). 판정 순서: 먼저 분류 예외인지 `isinstance` 로 본다
+     (`InfeasibleSizingError` 가 `ValueError` 하위이므로).
+  - 실패: 결과가 Mapping 아님·키 집합 ≠ writes -> `ValueError`(등록·알림 없음); 권한표가 그 열을 name 에 배정하지 않음 -> `WriterPermissionError`; 블록 함수가 낸 그 밖 예외는 그대로 전파(스냅샷 변화 없음).
+- 이식한 행은 계산한 행과 값이 같다(블록은 투영만의 순수 함수) -- 같은 입력이면 경로와 무관하게 스냅샷 `fp`·필드 `value_fp` 가 같다.
 - 블록 함수가 graph 를 쓰는 다른 길은 없다(Projection 은 스냅샷을 노출하지 않는다).
 
-### 6.3 계수 `block.stats() -> BlockStats(name, calls, reuses, computes, recomputes_same_input)`
-- 불변식: `calls == reuses + computes`(extras 검사로 거부된 호출은 세지 않는다; 블록 함수가 예외를 낸 호출은 computes 에 센다).
-- `recomputes_same_input`: 이 블록 객체가 이전에 이미 계산한 v 로 다시 계산한 횟수. 예: 블록 결과가 없는 다른
-  lineage 스냅샷에 같은 입력으로 부르면 +1. 블록 함수가 예외로 끝난 계산도 이력에 들어가므로, 같은 입력으로 다시
-  부르면 +1(실패 캐시는 search 층 몫이다). 정상 파이프라인 기대값 0(확정 사항 5 '입력 버전 같은데 재계산하면 FAIL' 의 측정치).
-- `reset_stats()`: 계수 전부 0, 계산 이력 비움(직후 같은 v 계산은 recompute 로 세지 않음).
+### 6.3 실행 계수 `RunCounters` / `PerfCounters` (파일 `run_counters.py`, 층 0)
+- 실행 하나에 `RunCounters` 하나. 생성은 비공개 계약 -- `gmid_engine.search.open_run()` 만 부른다(구조 규칙 M (M-b)). 블록 호출이 `counters` 키워드로 받는다.
+- `record(block, part, outcome, input_version) -> None`: outcome ∈ {`reuse`, `graft`, `replay`, `compute`}(아니면 `ValueError`). (block, part)마다 `calls`·`reuses`·`grafts`·`replays`·`computes`·
+  `recomputes_same_input` 를 센다. 불변식 `calls == reuses + grafts + replays + computes`. `recomputes_same_input` = `compute` 때 같은 (block, part, input_version) 의 `compute` 가
+  이미 있었으면 +1(reuse·graft·replay 는 바꾸지 않는다).
+- `result(block, part, input_version, ok) -> None`: compute 뒤 블록 함수가 성공(True)했는지 결정적 도메인 실패(False)로 끝났는지 알린다. 한 키에 True 와 False 가 섞이면 섞이는 그 호출에서 `ValueError`.
+- `snapshot() -> PerfCounters`: 불변 값(frozen). `blocks` = 행 tuple(행 = frozen `BlockRow(block, part, calls, reuses, grafts, replays, computes, recomputes_same_input)`,
+  (block, part) 정렬, 한 번이라도 `record` 된 것만), `block_totals` = 여섯 계수 칸의 행 합(`BlockTotals`, 같은 이름 속성). 이후 기록에 따라 바뀌지 않는다.
+- 서로 다른 `open_run()` 의 계수는 서로 보지 않는다. graph 밖 허용 저장소 (c).
+
+### 6.4 `Donors` (파일 `donors.py`, 층 0) -- 블록 결과 원천 조회의 추상 기반
+- `abc.ABC`, 상태·생성자 인자 없음. 추상 메서드 넷: `find(writer, part, input_version) -> GraphSnapshot | None`, `register(writer, part, input_version, snapshot)`,
+  `find_failure(writer, part, input_version) -> FailureRecord | None`, `register_failure(writer, part, input_version, record)`. 하나라도 빠뜨린 하위 클래스는 생성 때 `TypeError`.
+- 구현은 search `S3Index`(실행 수명 메모리 색인, search CONTRACT). 키 = (writer, part, input_version) 뿐이다.
+
+### 6.5 `graft(target, block, part, donor, input_version) -> GraphSnapshot` (파일 `graft.py`, 층 0)
+- `part != "*"` -> `ValueError`. `donor.block_version(block.name) != input_version` -> `ValueError`(블록 호출 fail-closed 의 유일한 검사 자리).
+- 결과: donor 의 `block.writes` 열 전부를 `target.write(block.name, input_version, 그 열)` 로 쓴 스냅샷. 결과 `block_version(block.name) == input_version`, 그 열 필드의 `value_fp` 가 donor 와 같다.
+  블록이 쓰지 않는 열은 target 그대로. 투영을 다시 만들지 않는다. 쓰는 길은 `GraphSnapshot.write`(graph setter) 하나 -- 새 쓰기 경로 없음.
 
 ## 7. LUT memo `BoundedLRU(capacity)`
 

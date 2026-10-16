@@ -208,7 +208,7 @@ core 계약 5·6절(GraphSnapshot·`compute_block`), lut 계약 1.6(`widths`)·4
 공개 API(`gmid_engine.layout.__all__`): `LayoutDevice`, `LayoutInput`, `LayoutPdk`, `LayoutResult`, `LayoutOutputs`, `MatchingGroup`, `RowGroup`,
 `run_layout`, `layout_outputs`, 소비자가 읽는 필드 이름 `LAYOUT_KEY`(= graph 레코드 key `"layout"`)·`F_DEVICE`·`F_GROUPS_IN`·`F_GROUPS`·`F_FINGER`·
 `F_FLOORPLAN`·`F_DIFFUSION`. 파일별 test 는 파일 모듈을 직접 import 해도 된다(1단계와 같다). 계산 블록은 core `ComputeBlock` 이라
-`block(snapshot)` 으로 부르고 `block.stats()` 로 계수를 본다. `_ly_fields.BLOCK_WRITERS` = (`ly_finger_candidates`, `ly_pattern_select`,
+`block(snapshot, donors=, counters=)` 으로 부르고(필수 키워드 둘, core 6.2) 계수는 실행 하나의 `RunCounters` 행으로 본다(블록 객체의 `stats()` 는 없다). `_ly_fields.BLOCK_WRITERS` = (`ly_finger_candidates`, `ly_pattern_select`,
 `ly_finger_geometry`, `ly_rows`). 옛 `floorplan` 계산 블록·`ly_floorplan` writer 는 없다(`ly_floorplan` 필드는 writer `ly_rows`).
 
 ### 4.1 입력 계약 (`contract_input.py`, 전부 frozen dataclass, 값은 불변)
@@ -442,7 +442,8 @@ reads device `ly_device`·`ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_ro
    초기 행이 하나도 없으면(모든 소자에 사용 가능 슬라이스 없음) `ValueError`.
    같은 행 집합 내용의 `floorplan_of` 와 같은 행 내용의 `row_euler` 는 블록 호출 안에서 한 번만 계산한다(memo).
 
-### 4.12 `run_layout(layout_input, memo, design_point, previous=None) -> LayoutResult` (설계 40 v1.6 §2.4.7·§2.4.8, U17 ①)
+### 4.12 `run_layout(layout_input, memo, design_point, previous=None, *, donors, counters) -> LayoutResult` (설계 40 v1.6 §2.4.7·§2.4.8, U17 ①)
+[XRUN-F1 B] `donors`·`counters` = 필수 키워드(기본값 없음, 빠지면 `TypeError`) -- 실행 하나의 블록 결과 색인·계수(`place_layout` 이 `converge_point` 의 `sctx.dc` 에서 받아 넘긴다). 네 계산 블록 호출에 그대로 쓴다.
 레이아웃 필드는 그 **설계점 스냅샷**(봉인 S2)의 S2 `layout` 필드다. 별도 lineage(옛 `GraphSnapshot.empty(LY_WRITERS)`)는 없다.
 1. `memo.lut.fp != layout_input.pdk.source_fp` -> `ValueError`. `design_point` 가 GraphSnapshot 이 아니면 `TypeError`.
 2. 스냅샷 = `previous.snapshot`(있으면 -- 같은 설계점 위 앞 호출. 레이아웃 재시도는 같은 설계점 lineage 의 새 스냅샷이다. 레이아웃 writer 를 뺀
@@ -453,8 +454,8 @@ reads device `ly_device`·`ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_ro
 3. 슬라이스: 버전 = `fp_of((memo.lut.fp, pdk.slice_width_keys, ((이름, kind, L, ID, gm_id, vds, vsb), ...) 입력 순))`. 스냅샷의
    `block_version("ly_slice_density")` 가 같으면 건너뛰고, 다르면 소자마다 `slice_density(memo, 소자, 그 kind 폭 키)`(같은 (kind, L, ID, gm_id,
    vds, vsb) 는 한 번) 를 device `ly_slices` 에 쓴다.
-4. 블록 순서 `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`. `computed_blocks` = 이번 호출에서 쓴 writer 이름
-   (`"ly_slice_density"` 를 다시 계산했으면 맨 앞, 그다음 block_version 이 바뀐 블록 순서대로).
+4. 블록 순서 `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`. `computed_blocks` = 이번 호출에서 값을 쓴 writer 이름 -- 계산 또는 이식
+   (`"ly_slice_density"` 를 다시 계산했으면 맨 앞, 그다음 block_version 이 바뀐 블록 순서대로; 판정은 호출 전후 block_version 비교 그대로이고 계산·이식 구분은 `RunCounters` 행이 맡는다).
 5~8 은 `run_layout` 결과가 아니라 **필드 파생 출력** `layout_outputs(snapshot) -> LayoutOutputs(review_needed, devices, coverage_ok,
 coverage_missing, w_requests, w_invariant_ok, revalidation)` 이다(필드에서 읽어 만드는 반환값, 저장하지 않는다). `LayoutResult` =
 `(snapshot, computed_blocks)` 뿐이고, groups·dispositions·rows·box·folds·merges·floorplan·diffusion 은 스냅샷의 `ly_groups`·`ly_dispositions`·
@@ -488,7 +489,7 @@ coverage_missing, w_requests, w_invariant_ok, revalidation)` 이다(필드에서
 9. **결정론(NFR-4)**: 같은 입력이면 `PYTHONHASHSEED` 와 무관하게 레이아웃 필드 값(`value_fp`)과 `layout_outputs` 가 같다.
 10. **필드 = 캐시(L11)**: 같은 설계점·같은 입력·같은 memo LUT 로 `previous` 를 주면 `computed_blocks == ()` 이고 스냅샷이 `previous.snapshot` 그대로다.
     `rejected_requests` 만 바꾸면 `ly_slice_density`·`ly_finger_candidates` 는 재사용, `ly_pattern_select` 부터 다시 계산될 수 있다.
-    소자 하나의 ID 만 바꾸면 `ly_slice_density` 부터 다시 계산한다. 각 블록 `stats().recomputes_same_input == 0`.
+    소자 하나의 ID 만 바꾸면 `ly_slice_density` 부터 다시 계산한다. 각 블록 행 `recomputes_same_input == 0`(`RunCounters`).
 11. coverage: 모든 소자에 사용 가능 슬라이스가 있으면 `coverage_ok` 이고 `coverage_missing == ()`.
 12. **재검증 요청(Q4 (ii))**: `revalidation.required is True` 가 W_request 유무와 무관하게 항상 참.
 

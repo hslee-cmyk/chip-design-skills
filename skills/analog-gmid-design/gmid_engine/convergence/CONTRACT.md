@@ -97,7 +97,8 @@
 
 ## 7. `place_layout` · `converge_point`
 
-`place_layout(memo, snapshot, pdk, passives, rejected, relaxed, first_seen, previous, kinds, current_keys) -> PlacedLayout` -- 평가 커널 호출 0.
+`place_layout(memo, snapshot, pdk, passives, rejected, relaxed, first_seen, previous, kinds, current_keys, *, donors, counters) -> PlacedLayout` -- 평가 커널 호출 0.
+[XRUN-F1 B] `donors`·`counters` = 필수 키워드(기본값 없음) -- `converge_point` 가 `sctx.dc.donors`·`.counters` 에서 꺼내 넘기고 `run_layout` 에 그대로 쓴다.
 `run_layout` 의 **유일한 프로덕션 호출처**. 반복(상태는 `pdk`·`relaxed` 뿐이고 둘 다 단조: 폭 키 집합은 줄고 완화 집합은 는다):
 1. `layout_input_of` -> `run_layout(layout_input, memo, snapshot, previous)`(레이아웃 필드는 설계점 `snapshot` 위, 재시도는 같은 설계점 lineage) -> `effective_placement`.
    `unplaced` 가 있으면 멈춘다. `PlacedLayout` 은 입력 사본(`layout_input`)을 두지 않는다(입력은 스냅샷의 `ly_*` 입력 필드).
