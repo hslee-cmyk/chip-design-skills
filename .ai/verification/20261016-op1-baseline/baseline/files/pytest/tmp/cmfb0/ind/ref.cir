@@ -1,0 +1,35 @@
+* independent reference
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27.0
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vdd vdd 0 DC 1.8
+Vip ip 0 DC 0.6
+Vim im 0 DC 0.6
+R1 op c 1000000.0
+R2 c om 1000000.0
+XM1_0 op ip 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM2_0 om im 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM3_0 op c vdd vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06
+XM4_0 om c vdd vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06
+XM1_1 op ip 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM2_1 om im 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM3_1 op c vdd vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06
+XM4_1 om c vdd vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06
+.control
+set noaskquit
+op
+print @m.xm1_0.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm1_0.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm1_1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm1_1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm3_0.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm3_0.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm3_1.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm3_1.msky130_fd_pr__pfet_01v8[gds]
+quit
+.endc
+.end

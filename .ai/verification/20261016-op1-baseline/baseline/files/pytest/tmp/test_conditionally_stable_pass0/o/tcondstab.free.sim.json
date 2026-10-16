@@ -1,0 +1,284 @@
+{
+ "devices": {
+  "M1": {
+   "id": 6.800138e-05,
+   "gm": 0.001102452,
+   "gds": 8.341086e-06,
+   "vth": 0.6326438,
+   "vdsat": 0.09483317,
+   "vgs": 0.7,
+   "vds": 0.7000006,
+   "vbs": 1.338125e-13
+  },
+  "M2": {
+   "id": 8.50031e-06,
+   "gm": 0.0001378083,
+   "gds": 1.042605e-06,
+   "vth": 0.6326436,
+   "vdsat": 0.09483358,
+   "vgs": 0.7000006,
+   "vds": 0.7000599,
+   "vbs": 1.338134e-13
+  },
+  "M3": {
+   "id": 4.250086e-06,
+   "gm": 6.890325e-05,
+   "gds": 5.213179e-07,
+   "vth": 0.6326438,
+   "vdsat": 0.09483317,
+   "vgs": 0.7,
+   "vds": 0.7000006,
+   "vbs": 1.338125e-13
+  }
+ },
+ "nodes": {
+  "n1": 0.7000006,
+  "nin": 0.7,
+  "n2": 0.7000599,
+  "n3": 0.7,
+  "vdd": 1.8,
+  "vb": 0.7
+ },
+ "rail_current_A": {
+  "vdd": 8.07518e-05,
+  "vb": -0.0
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_conditionally_stable_pass0\\o\\tcondstab.free.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 232.37253300000057,
+  "dc_gain_db": 47.3236958417057,
+  "phase_dc_deg": 3.99398644527255e-06,
+  "reference_point": "first",
+  "f3db_hz": 167880.402,
+  "ugf_hz": 150055429.18740124,
+  "phase_lag_at_ugf_deg": -245.8082394474603,
+  "pm_deg": 425.8082394474603,
+  "a0_f3db_hz": 39010794.253798366,
+  "pm_open_loop_deg": 425.8082394474603,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": 57.74444065102367,
+  "pm_crosscheck_note": null,
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": 0.500691690306221,
+  "closed_loop_peak_hz": 13335214.3,
+  "pm_crosscheck_gap_deg": -368.06379879643663,
+  "pm_undefined": null,
+  "pm_deg_raw": 425.8082394474603,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_1",
+   "closure_sign": 1.0,
+   "nyquist": {
+    "encirclements_cw": -2,
+    "reason": null,
+    "max_step_deg": 2.8635792458725042,
+    "max_step_hz": 2818382.93,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     232.372533,
+     1.61982742e-05
+    ],
+    "L_last": [
+     0.00211614729,
+     0.00310620032
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     7.95374446156638e-06,
+     0.3551915597220994
+    ],
+    "refinement": {
+     "rounds": 0,
+     "samples_added": 0,
+     "k_max": 10,
+     "history": []
+    }
+   },
+   "pz": {
+    "status": "ok",
+    "P": 2,
+    "rhp": [
+     [
+      1014988.0,
+      0.0
+     ],
+     [
+      41670750.0,
+      0.0
+     ]
+    ],
+    "beyond_sweep": [],
+    "n_poles": 12,
+    "reason": null,
+    "netlist": "tcondstab.free.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "main netlist, inputs driven (beta=1)",
+    "omega_stop": 62831853071.79586,
+    "poles": [
+     [
+      41670750.0,
+      0.0
+     ],
+     [
+      1014988.0,
+      0.0
+     ],
+     [
+      -2983280000.0,
+      0.0
+     ],
+     [
+      -20297800000000.0,
+      0.0
+     ],
+     [
+      -20307400000000.0,
+      0.0
+     ],
+     [
+      -21681200000000.0,
+      0.0
+     ],
+     [
+      -104921000000000.0,
+      0.0
+     ],
+     [
+      -104923000000000.0,
+      0.0
+     ],
+     [
+      -106408000000000.0,
+      0.0
+     ],
+     [
+      -138569000000000.0,
+      0.0
+     ],
+     [
+      -138600000000000.0,
+      0.0
+     ],
+     [
+      -167887000000000.0,
+      0.0
+     ]
+    ]
+   },
+   "transient": {
+    "status": "stable",
+    "reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+    "op_pass": {
+     "netlist": "tcondstab.free.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "ldc_nin": 0.0
+     },
+     "node_V": {
+      "nin": 0.7,
+      "n2": 0.7000599
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 1.0606410174811463e-09,
+     "tr": 1.0606410174811463e-09,
+     "pw": 1.0606410174811463e-09,
+     "tmax": 2.8294051365918394e-11,
+     "window_s": 6.664204057229545e-09,
+     "windows": 6,
+     "windows_planned": 6,
+     "t_kick_end": 4.242564069924585e-09,
+     "tstop": 4.4227788413301854e-08,
+     "f_lo_hz": 150055429.18740124,
+     "f_hi_hz": 150055429.18740124,
+     "f_crit_hz": 158489319.0,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 7.01e-05,
+     "wall_cap_s": 1836.6000000000001,
+     "sign": 1.0,
+     "observe": [
+      [
+       "nin",
+       1
+      ]
+     ]
+    },
+    "M": [
+     0.011088174999999922,
+     1.2518000000016904e-05,
+     1.1858000000031232e-05,
+     1.1054000000010333e-05,
+     1.0305000000099263e-05,
+     9.607000000078081e-06
+    ],
+    "floor_V": 7.010361728894999e-05,
+    "windows_run": 6,
+    "netlist": "tcondstab.free.stab.cir",
+    "file": "tcondstab.free.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1836.6000000000001,
+    "first_status": "stable"
+   },
+   "closed_loop": "stable",
+   "open_loop_rhp_poles": 2,
+   "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+   "pm_valid": true,
+   "pm_undefined": null,
+   "Z": 0,
+   "P_pz": 2,
+   "P_eff": 2,
+   "pz_conflict": null,
+   "conditionally_stable": true,
+   "verdict": "stable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": 27.25846563850297,
+   "low_side_crossings": [
+    -23.063397380593166
+   ],
+   "low_side_crossing_hz": [
+    3474975.1021113913
+   ],
+   "gain_crossings_hz": [
+    150055429.18740124
+   ]
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_conditionally_stable_pass0\\o\\tcondstab.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null,
+ "stability_cache": {
+  "op_pass": null,
+  "transient": null
+ }
+}

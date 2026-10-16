@@ -1,0 +1,6 @@
+{
+ "sat_margin_V": 0.05,
+ "tolerances": {
+  "rout_ohm_rel": 0.1
+ }
+}

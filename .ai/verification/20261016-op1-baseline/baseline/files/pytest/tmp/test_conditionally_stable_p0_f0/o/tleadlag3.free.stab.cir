@@ -1,0 +1,97 @@
+* spice_oracle: tleadlag3 bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XM1 n1 nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM2 n2 n1 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM3 n3 n2 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+Rp_R1 vdd n1 129409.146
+Rp_Rz1 n1 z1 6470.4573
+Cp_Cz1 z1 0 1e-09
+Rp_R2 vdd n2 129409.146
+Rp_Rz2 n2 z2 6470.4573
+Cp_Cz2 z2 0 1e-09
+Rp_R3 vdd n3 129409.146
+Rp_Rz3 n3 z3 6470.4573
+Cp_Cz3 z3 0 1e-09
+Ecl_nin nin ecl_nin n3 0 1
+Vcl_nin ecl_nin 0 PULSE(-1.01e-05 0.02585482579 4.121516091e-06 4.121516091e-06 4.121516091e-06 4.121516091e-06 0.0003437271209)
+.save v(nin)
+.control
+set noaskquit
+set numdgt=8
+set wr_singlescale
+let sw_tke = 1.648606436e-05
+let sw_w = 2.589624935e-05
+let sw_k = 6
+let sw_rt = 0.0001
+let sw_fl0 = 7.01e-05
+let sw_u = 5e-09
+let sw_j = 0
+let sw_m1 = 0
+let sw_p1 = 0
+let sw_p2 = 0
+let sw_fin = 0
+let sw_kind = 0
+stop when time > 4.238231371e-05
+tran 1.591091432e-07 0.0001718635604 0 1.591091432e-07
+while sw_fin = 0
+  let sw_j = sw_j + 1
+  let hst = v(nin)
+  let sw_lo = sw_tke + (sw_j - 1) * sw_w
+  let sw_hi = sw_tke + sw_j * sw_w
+  let sw_tl = time[length(time) - 1]
+  if sw_tl >= sw_hi * (1 - 2 * sw_u)
+    let sw_m = maximum(abs(hst - (hst[0])) * (time >= sw_lo) * (time <= sw_hi))
+    echo STABWIN $&sw_j $&sw_m
+    if sw_j = 1
+      let sw_m1 = sw_m
+    end
+    let sw_fl = sw_fl0 + sw_u * maximum(abs(hst))
+    let sw_up = (sw_m * (1 - sw_rt) >= sw_p1 * (1 + sw_rt) + sw_fl)
+    let sw_dn = (sw_p1 * (1 - sw_rt) >= sw_m * (1 + sw_rt) + sw_fl)
+    let sw_up0 = (sw_p1 * (1 - sw_rt) >= sw_p2 * (1 + sw_rt) + sw_fl)
+    let sw_dn0 = (sw_p2 * (1 - sw_rt) >= sw_p1 * (1 + sw_rt) + sw_fl)
+    let sw_upf = (sw_m * (1 - sw_rt) >= sw_m1 * (1 + sw_rt) + sw_fl)
+    let sw_ab1 = (sw_m * (1 - sw_rt) >= sw_fl)
+    let sw_ab0 = (sw_p1 * (1 - sw_rt) >= sw_fl)
+    let sw_fl1 = sw_ab1 * (1 - sw_dn)
+    let sw_fl0f = sw_ab0 * (1 - sw_dn0)
+    let sw_gr = sw_up0 * sw_up * sw_upf
+    let sw_lc = sw_fl0f * sw_fl1
+    if sw_j >= 3
+      if sw_gr >= 1
+        let sw_fin = 1
+        let sw_kind = 1
+      end
+      if sw_lc >= 1
+        let sw_fin = 1
+        let sw_kind = 2
+      end
+    end
+    if sw_fin = 0
+      if sw_j >= sw_k
+        let sw_fin = 2
+      else
+        let sw_p2 = sw_p1
+        let sw_p1 = sw_m
+        let sw_nb = sw_tke + (sw_j + 1) * sw_w
+        delete all
+        if sw_k >= sw_j + 2
+          stop when time > $&sw_nb
+        end
+        resume
+      end
+    end
+  else
+    let sw_fin = 3
+  end
+end
+echo STABEND $&sw_j $&sw_fin $&sw_kind
+let hst = v(nin)
+wrdata tleadlag3.free.stab.txt hst
+quit
+.endc
+.end

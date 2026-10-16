@@ -1,0 +1,18 @@
+* m1b pfet
+.include "C:\pdk\sky130_fd_pr\models\parameters\lod.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.option scale=1u
+Vdd vdd 0 1.8
+Ia ga 0 DC 10u
+Ib gb 0 DC 10u
+XA ga ga vdd vdd sky130_fd_pr__pfet_01v8 w=5 l=0.5
+XB gb gb vdd vdd sky130_fd_pr__pfet_01v8 w=5 l=0.5
+.control
+op
+print v(ga) v(gb) v(ga)-v(gb)
+showmod m.xa.msky130_fd_pr__pfet_01v8 : vth0 toxe voff nfactor
+showmod m.xb.msky130_fd_pr__pfet_01v8 : vth0 toxe voff nfactor
+quit
+.endc
+.end

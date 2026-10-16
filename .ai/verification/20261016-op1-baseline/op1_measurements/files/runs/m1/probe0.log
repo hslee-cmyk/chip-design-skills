@@ -1,0 +1,29 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: * probe0: syntax check -- global agauss redefinition, option seed, showmod
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+v(ga) = 6.998997e-01
+v(gb) = 7.007581e-01
+v(ga)-v(gb) = -8.58380e-04
+@m.xa.msky130_fd_pr__nfet_01v8[vth] = 5.880068e-01
+@m.xb.msky130_fd_pr__nfet_01v8[vth] = 5.888728e-01
+ BSIM4v5 models (Berkeley Short Channel IGFET Model-4)
+      model xa:sky130_fd_pr__nfet
+
+       vth0              0.482714
+       lmin                 5e-07
+       lmax                 1e-06
+
+ BSIM4v5 models (Berkeley Short Channel IGFET Model-4)
+      model xb:sky130_fd_pr__nfet
+
+       vth0               0.48358
+
+ngspice-46 done

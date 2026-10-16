@@ -1,0 +1,6 @@
+{
+ "sat_margin_V": 0.05,
+ "tolerances": {
+  "ratio_db_abs": 0.1
+ }
+}

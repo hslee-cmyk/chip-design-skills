@@ -1,0 +1,543 @@
+{
+ "circuit": "tcs_nmos_rload",
+ "bias": "free",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "judge_config": {
+  "tolerances": {},
+  "sat_margin_V": 0.05,
+  "off_current_A": null
+ },
+ "notes": [
+  "resistor RL=100000 (test)",
+  "capacitor CL=1e-12 (근거 미기재)",
+  "resistor RP=10000 (근거 미기재)",
+  "게이트 전용 넷 pb = 0.3 V (bias_voltages 선언)"
+ ],
+ "blockers": [],
+ "summary": {
+  "verdict": "FAIL",
+  "verdict_reason": "선언 제약 불만족 ['ro']",
+  "warnings": [],
+  "limit_cycle_vs_slow_decay_unresolved": null,
+  "acceptance": {
+   "constraints_failed": [
+    "ro"
+   ],
+   "constraints_unmeasured": [],
+   "closed_loop_unstable": false,
+   "conducting_devices": 2,
+   "unsaturated_conducting": [],
+   "sat_margin_V": 0.05,
+   "off_current_A": null,
+   "off_in_spice": [],
+   "conduction_not_evaluated": {}
+  },
+  "junction_capacitance": {
+   "included": true,
+   "by_source": {
+    "device": 2,
+    "process_rule": 0,
+    "none": 0
+   },
+   "missing": [],
+   "zero_area": [
+    "M1",
+    "MP1"
+   ]
+  },
+  "transient": {
+   "status": "not_measured",
+   "measures": [
+    "slew_rate_v_per_s",
+    "settle_s"
+   ],
+   "reason": "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)"
+  },
+  "record_counts": {
+   "PASS": 2,
+   "FAIL": 0,
+   "N/A": 20
+  },
+  "devices": 2,
+  "sat_in_spice": 2,
+  "not_sat": [],
+  "spice_ac": {
+   "f_first_hz": 0.01,
+   "gain_dc": 12.8807966,
+   "dc_gain_db": 22.19885444725587,
+   "phase_dc_deg": 179.99999967023962,
+   "reference_point": "first",
+   "f3db_hz": 1778279.41,
+   "ugf_hz": 22320180.34870019,
+   "phase_lag_at_ugf_deg": 85.78473793435435,
+   "pm_deg": 94.21526206564565,
+   "a0_f3db_hz": 22905655.378178004,
+   "pm_open_loop_deg": 94.21526206564565,
+   "dc_path_isolation": [
+    {
+     "net": "nin",
+     "choke_H": 1000000000000.0,
+     "couple_F": 1.0,
+     "f_hz": 0.01,
+     "omega2_LC": 3947841760.4357433,
+     "output_feedback": false
+    }
+   ],
+   "pm_definition": "beta_1",
+   "loop_break_nets": [],
+   "loop_weights": {
+    "nin": 1.0
+   },
+   "loop_choke_ratio": null,
+   "pm_crosscheck_deg": null,
+   "pm_crosscheck_note": "peaking 없음(Mp-1 = 2.88e-10, 데이터 분해능 2e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+   "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+   "pm_crosscheck_mp_resolution": 2e-08,
+   "closed_loop_peaking_db": null,
+   "closed_loop_peak_hz": null,
+   "pm_crosscheck_gap_deg": null,
+   "pm_undefined": null,
+   "pm_deg_raw": 94.21526206564565,
+   "stability": {
+    "method": "nyquist_count + closed_loop_transient",
+    "loop": "beta_1",
+    "closure_sign": -1.0,
+    "nyquist": {
+     "encirclements_cw": 0,
+     "reason": null,
+     "max_step_deg": 1.4280616385246767,
+     "max_step_hz": 28183829.3,
+     "f_first_hz": 0.01,
+     "f_last_hz": 10000000000.0,
+     "L_first": [
+      12.8807966,
+      -7.4134197e-08
+     ],
+     "L_last": [
+      -0.00416055532,
+      -0.00224139541
+     ],
+     "bad_intervals_hz": [],
+     "closing_step_deg": [
+      6.120076242501998e-07,
+      0.25791764132332273
+     ],
+     "refinement": {
+      "rounds": 0,
+      "samples_added": 0,
+      "k_max": 10,
+      "history": []
+     }
+    },
+    "pz": {
+     "status": "ok",
+     "P": 0,
+     "rhp": [],
+     "beyond_sweep": [],
+     "n_poles": 8,
+     "reason": null,
+     "netlist": "tcs_nmos_rload.free.pz.cir",
+     "ngspice_rc": 0,
+     "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+     "open_loop": "main netlist, inputs driven (beta=1)",
+     "omega_stop": 62831853071.79586,
+     "poles": [
+      [
+       -10920500.0,
+       0.0
+      ],
+      [
+       -90388600000.0,
+       0.0
+      ],
+      [
+       -20404600000000.0,
+       0.0
+      ],
+      [
+       -31479900000000.0,
+       0.0
+      ],
+      [
+       -105396000000000.0,
+       0.0
+      ],
+      [
+       -113152000000000.0,
+       0.0
+      ],
+      [
+       -152193000000000.0,
+       0.0
+      ],
+      [
+       -419474000000000.0,
+       0.0
+      ]
+     ]
+    },
+    "transient": {
+     "status": "stable",
+     "reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+     "op_pass": {
+      "netlist": "tcs_nmos_rload.free.stabop.cir",
+      "ngspice_rc": 0,
+      "choke_current_A": {
+       "ldc_nin": 0.0
+      },
+      "node_V": {
+       "nin": 0.7,
+       "nout": 0.9275921
+      }
+     },
+     "plan": {
+      "kick_V": 0.025864925786328753,
+      "td": 7.130540193021499e-09,
+      "tr": 7.130540193021499e-09,
+      "pw": 7.130540193021499e-09,
+      "tmax": 2.0030654343735844e-10,
+      "window_s": 4.480250537304617e-08,
+      "windows": 6,
+      "windows_planned": 6,
+      "t_kick_end": 2.8522160772085997e-08,
+      "tstop": 2.97337193010363e-07,
+      "f_lo_hz": 22320180.34870019,
+      "f_hi_hz": 22320180.34870019,
+      "f_crit_hz": 22387211.4,
+      "n_pp": 223,
+      "reltol": 0.0001,
+      "floor_V": 7.01e-05,
+      "wall_cap_s": 1836.6000000000001,
+      "sign": -1.0,
+      "observe": [
+       [
+        "nin",
+        1
+       ]
+      ]
+     },
+     "M": [
+      0.01348345399999995,
+      1.591899999997537e-05,
+      1.7999999935014444e-08,
+      0.0,
+      0.0,
+      0.0
+     ],
+     "floor_V": 7.010358032832999e-05,
+     "windows_run": 6,
+     "netlist": "tcs_nmos_rload.free.stab.cir",
+     "file": "tcs_nmos_rload.free.stab.txt",
+     "ngspice_rc": 0,
+     "wall_cap_s": 1836.6000000000001,
+     "first_status": "stable"
+    },
+    "closed_loop": "stable",
+    "open_loop_rhp_poles": 0,
+    "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+    "pm_valid": true,
+    "pm_undefined": null,
+    "Z": 0,
+    "P_pz": 0,
+    "P_eff": 0,
+    "pz_conflict": null,
+    "conditionally_stable": false,
+    "verdict": "stable",
+    "verdict_basis": "transient+nyquist",
+    "low_side_gain_margin_db": null,
+    "low_side_crossings": [],
+    "low_side_crossing_hz": [],
+    "gain_crossings_hz": [
+     22320180.34870019
+    ]
+   }
+  },
+  "spice_ratio": [],
+  "spice_rout": [
+   {
+    "view": {
+     "sense_p": "nout",
+     "sense_n": null,
+     "sense_mode": "single_ended"
+    },
+    "f_hz": 0.01,
+    "re": 91430.5553,
+    "im": -0.000526049914,
+    "mag": 91430.5553,
+    "rout_ohm": 91430.5553,
+    "undefined": null
+   }
+  ],
+  "pm_loop": {
+   "pm_definition": "beta_1",
+   "feedback_passives": [],
+   "feedback_passives_basis": null,
+   "loop_break_nets": [],
+   "loop_weights": {
+    "nin": 1.0
+   }
+  },
+  "stability": {
+   "pm_valid": true,
+   "pm_undefined": null,
+   "pm_deg_raw": 94.21526206564565,
+   "loop": "beta_1",
+   "closed_loop": "stable",
+   "open_loop_rhp_poles": 0,
+   "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+   "nyquist_encirclements_cw": 0,
+   "nyquist_reason": null,
+   "nyquist_refinement_rounds": 0,
+   "pz_status": "ok",
+   "pz_P": 0,
+   "pz_reason": null,
+   "pz_validated": null,
+   "pz_conflict": null,
+   "Z": 0,
+   "verdict": "stable",
+   "verdict_basis": "transient+nyquist",
+   "conditionally_stable": false,
+   "low_side_gain_margin_db": null,
+   "transient_status": "stable",
+   "transient_reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+   "early_stop": null,
+   "limit_cycle_vs_slow_decay_unresolved": null,
+   "reason": null
+  },
+  "cm_loop": null,
+  "u6": null,
+  "rail_current_A": {
+   "vdd": 8.72408e-06,
+   "vsp": 1.64734e-05
+  },
+  "topology_identity": {
+   "status": "unverified",
+   "required": false,
+   "diff_count": 0,
+   "path": null
+  },
+  "z1": null
+ },
+ "performance": [],
+ "constraints": [
+  {
+   "name": "ro",
+   "measure": "rout_ohm",
+   "op": "<=",
+   "limit": 90516.25534800209,
+   "view": {
+    "sense_p": "nout",
+    "sense_mode": "single_ended"
+   },
+   "spice": 91430.5553,
+   "judge": "FAIL",
+   "undefined": null
+  }
+ ],
+ "kcl_residual": [],
+ "devices": [
+  {
+   "name": "M1",
+   "kind": "nmos",
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "W_rel": 0.0,
+   "ID_pred": 8.724078e-06,
+   "ID_spice": 8.724078e-06,
+   "ID_spice_op_id": 8.724078e-06,
+   "ID_rel": 0.0,
+   "VGS_pred": 0.7,
+   "VGS_spice": 0.7,
+   "VGS_err_V": 0.0,
+   "VDS_pred": 0.9275921,
+   "VDS_spice": 0.9275921,
+   "VDS_err_V": 0.0,
+   "VSB_pred": -4.209857e-13,
+   "VSB_spice": -4.209857e-13,
+   "VSB_err_V": 0.0,
+   "gm_pred": 0.00014088066,
+   "gm_spice": 0.0001408807,
+   "gm_rel": 2.8392825513234503e-07,
+   "gds_pred": 9.37262e-07,
+   "gds_spice": 9.372621e-07,
+   "gds_rel": 1.0669375258917239e-07,
+   "gm_id_pred": 16.148486980515308,
+   "gm_id_spice": 16.14849156552704,
+   "VTH_spice": 0.6318912,
+   "VDSAT_spice": 0.09524582,
+   "vov_spice": 0.06810879999999997,
+   "below_vth_spice": false,
+   "sat_margin_spice_V": 0.83234628,
+   "region_spice": "sat",
+   "region_pred": "sat",
+   "gm_id_rel": 2.839282550629703e-07,
+   "tol_ID_rel": null,
+   "tol_gm_rel": null,
+   "tol_source": "none",
+   "off_current_A_pred": 0.0,
+   "conduction_threshold_A": 0.0,
+   "predicted_conducting": true,
+   "conduction_check": "PASS",
+   "diffusion": {
+    "source": "device",
+    "ad": 0.0,
+    "as": 0.0,
+    "pd": 0.0,
+    "ps": 0.0
+   },
+   "judge": {
+    "W": "N/A(tol 미설정)",
+    "ID": "N/A(tol 미설정)",
+    "VGS": "N/A(tol 미설정)",
+    "VDS": "N/A(tol 미설정)",
+    "VSB": "N/A(tol 미설정)",
+    "gm": "N/A(tol 미설정)",
+    "gds": "N/A(tol 미설정)",
+    "gm_id": "N/A(tol 미설정)",
+    "region": "PASS"
+   }
+  },
+  {
+   "name": "MP1",
+   "kind": "pmos",
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 3,
+   "W_from_fingers": 6e-06,
+   "W_declared": 6e-06,
+   "W_rel": 0.0,
+   "ID_pred": 1.6473387e-05,
+   "ID_spice": 1.647339e-05,
+   "ID_spice_op_id": 1.647339e-05,
+   "ID_rel": 1.821119116655844e-07,
+   "VGS_pred": 1.2,
+   "VGS_spice": 1.2,
+   "VGS_err_V": 0.0,
+   "VDS_pred": 1.335266,
+   "VDS_spice": 1.335266,
+   "VDS_err_V": 0.0,
+   "VSB_pred": 0.3,
+   "VSB_spice": 0.3,
+   "VSB_err_V": 0.0,
+   "gm_pred": 0.00015244191,
+   "gm_spice": 0.0001524419,
+   "gm_rel": -6.559875833523787e-08,
+   "gds_pred": 1.2465792e-06,
+   "gds_spice": 1.246579e-06,
+   "gds_rel": -1.6043906403237277e-07,
+   "gm_id_pred": 9.253829221640942,
+   "gm_id_spice": 9.253826929369122,
+   "VTH_spice": 1.025898,
+   "VDSAT_spice": 0.1965495,
+   "vov_spice": 0.17410199999999998,
+   "below_vth_spice": false,
+   "sat_margin_spice_V": 1.1387165000000001,
+   "region_spice": "sat",
+   "region_pred": "sat",
+   "gm_id_rel": -2.477106249281086e-07,
+   "tol_ID_rel": null,
+   "tol_gm_rel": null,
+   "tol_source": "none",
+   "off_current_A_pred": 0.0,
+   "conduction_threshold_A": 0.0,
+   "predicted_conducting": true,
+   "conduction_check": "PASS",
+   "diffusion": {
+    "source": "device",
+    "ad": 0.0,
+    "as": 0.0,
+    "pd": 0.0,
+    "ps": 0.0
+   },
+   "judge": {
+    "W": "N/A(tol 미설정)",
+    "ID": "N/A(tol 미설정)",
+    "VGS": "N/A(tol 미설정)",
+    "VDS": "N/A(tol 미설정)",
+    "VSB": "N/A(tol 미설정)",
+    "gm": "N/A(tol 미설정)",
+    "gds": "N/A(tol 미설정)",
+    "gm_id": "N/A(tol 미설정)",
+    "region": "PASS"
+   }
+  }
+ ],
+ "nodes": [
+  {
+   "net": "nout",
+   "V_pred": 0.9275921,
+   "V_spice": 0.9275921,
+   "err_V": 0.0,
+   "held_by_testbench": false,
+   "judge": "N/A(tol 미설정)"
+  },
+  {
+   "net": "nin",
+   "V_pred": 0.7,
+   "V_spice": 0.7,
+   "err_V": 0.0,
+   "held_by_testbench": true,
+   "judge": "N/A(테스트벤치가 고정)"
+  },
+  {
+   "net": "pout",
+   "V_pred": 0.1647339,
+   "V_spice": 0.1647339,
+   "err_V": 0.0,
+   "held_by_testbench": false,
+   "judge": "N/A(tol 미설정)"
+  },
+  {
+   "net": "pb",
+   "V_pred": null,
+   "V_spice": 0.3,
+   "err_V": null,
+   "held_by_testbench": true,
+   "judge": "N/A(테스트벤치가 고정)"
+  },
+  {
+   "net": "vsp",
+   "V_pred": null,
+   "V_spice": 1.5,
+   "err_V": null,
+   "held_by_testbench": false,
+   "judge": "N/A"
+  },
+  {
+   "net": "vdd",
+   "V_pred": null,
+   "V_spice": 1.8,
+   "err_V": null,
+   "held_by_testbench": false,
+   "judge": "N/A"
+  }
+ ],
+ "topology_identity": {
+  "status": "unverified",
+  "topology_path": null,
+  "sha256_actual": null,
+  "sha256_declared": null,
+  "diffs": [],
+  "compared": 0,
+  "excluded_testbench": [],
+  "declared_not_in_topology": {},
+  "bulk_compared": [],
+  "notes": [
+   "topology 미지정(입력 topology.path 도 --topology 도 없음) -- 연결 동일성 미검증"
+  ],
+  "required": false
+ },
+ "provenance": null,
+ "netlist": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_constraint_judged____0_991\\o\\tcs_nmos_rload.free.cir",
+ "stem": "tcs_nmos_rload.free",
+ "diagnosis_free": {
+  "classification": "unknown",
+  "reason": "forced 결과 없음 또는 막힘 -- 분류 불가(--bias free forced 로 함께 실행)"
+ }
+}

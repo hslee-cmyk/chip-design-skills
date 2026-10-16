@@ -1,0 +1,23 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: * m1 bench
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+ BSIM4v5 models (Berkeley Short Channel IGFET Model-4)
+      model xa:sky130_fd_pr__nfet
+
+       vth0              0.486377
+       lmin                 5e-07
+       lmax                 1e-06
+       wmin                 3e-06
+       wmax                 5e-06
+
+ngspice-46 done
+Error: no such parameter vth0.
+Warning from checkvalid: vector @m.xa.msky130_fd_pr__nfet_01v8[vth0] is not available or has zero length.

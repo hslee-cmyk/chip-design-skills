@@ -1,0 +1,60 @@
+* spice_oracle: tdiff_fb bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XMp op nip 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XMn on nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+Rp_RLp vdd op 100000
+Cp_CLp op 0 1e-11
+Rp_Rfp op nip 1000000
+Cp_Cinp nip 0 1e-11
+Rp_RLn vdd on 100000
+Cp_CLn on 0 1e-11
+Rp_Rfn on nin 1000000
+Cp_Cinn nin 0 1e-11
+Efb_nip fbs_nip 0 on op 0.5
+Vofs_nip fbs_nip fbd_nip DC -0.7
+Lfb_nip fbd_nip nip 1e+12
+Cac_nip nip acs_nip 1
+Vac_nip acs_nip 0 DC 0 AC 0.5
+Efb_nin fbs_nin 0 op on 0.5
+Vofs_nin fbs_nin fbd_nin DC -0.7
+Lfb_nin fbd_nin nin 1e+12
+Cac_nin nin acs_nin 1
+Vac_nin acs_nin 0 DC 0 AC 0.5
+.control
+set noaskquit
+op
+echo OPSTART
+print @m.xmp.msky130_fd_pr__nfet_01v8[id]
+print @m.xmp.msky130_fd_pr__nfet_01v8[gm]
+print @m.xmp.msky130_fd_pr__nfet_01v8[gds]
+print @m.xmp.msky130_fd_pr__nfet_01v8[vth]
+print @m.xmp.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xmp.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xmp.msky130_fd_pr__nfet_01v8[vds]
+print @m.xmp.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xmn.msky130_fd_pr__nfet_01v8[id]
+print @m.xmn.msky130_fd_pr__nfet_01v8[gm]
+print @m.xmn.msky130_fd_pr__nfet_01v8[gds]
+print @m.xmn.msky130_fd_pr__nfet_01v8[vth]
+print @m.xmn.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xmn.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xmn.msky130_fd_pr__nfet_01v8[vds]
+print @m.xmn.msky130_fd_pr__nfet_01v8[vbs]
+print v(op)
+print v(nip)
+print v(on)
+print v(nin)
+print v(vdd)
+print i(vrail_vdd)
+echo OPEND
+ac dec 40 0.01 1e+10
+let hout = v(op) - v(on)
+set wr_singlescale
+wrdata t.free.ac.txt hout
+quit
+.endc
+.end

@@ -1,0 +1,17 @@
+{
+ "skipped": "넷리스트 막힘: feedback_passives 의 Cx 은 두 단자 ['nin', 'nin'] 가 모두 입력 포트 넷이다 -- 절단 단자가 하나로 정해지지 않는다(엔진 feedback_cut_ambiguous 와 같은 조건)",
+ "devices": {},
+ "nodes": {},
+ "rail_current_A": {},
+ "hold_current_A": {},
+ "ngspice_rc": null,
+ "log": null,
+ "log_errors": [],
+ "op_ok": false,
+ "ac": null,
+ "ac_file": null,
+ "loop": null,
+ "cm_loop": null,
+ "ratio": [],
+ "rout": []
+}

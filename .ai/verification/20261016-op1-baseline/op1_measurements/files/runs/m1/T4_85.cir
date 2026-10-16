@@ -1,0 +1,21 @@
+* m1 bench
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.param sky130_fd_pr__nfet_01v8__toxe_slope_spectre = agauss(0,1,1)
+.param sky130_fd_pr__nfet_01v8__vth0_slope_spectre = agauss(0,1,1)
+.param sky130_fd_pr__nfet_01v8__voff_slope_spectre = agauss(0,1,1)
+.option scale=1u seed=21
+.temp 85
+
+Ia 0 ga DC 10u
+Ib 0 gb DC 10u
+XA ga ga 0 0 sky130_fd_pr__nfet_01v8 w=5 l=1
+XB gb gb 0 0 sky130_fd_pr__nfet_01v8 w=5 l=1
+.control
+op
+print v(ga) v(gb) v(ga)-v(gb)
+showmod m.xa.msky130_fd_pr__nfet_01v8 : vth0 toxe voff
+showmod m.xb.msky130_fd_pr__nfet_01v8 : vth0 toxe voff
+quit
+.endc
+.end

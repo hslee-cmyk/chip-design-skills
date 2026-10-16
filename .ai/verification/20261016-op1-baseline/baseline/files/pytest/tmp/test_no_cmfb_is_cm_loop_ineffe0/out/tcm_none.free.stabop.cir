@@ -1,0 +1,36 @@
+* spice_oracle: tcm_none bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XM1 op ip 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM2 om im 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+Cp_CL1 op 0 1e-11
+Cp_CL2 om 0 1e-11
+Rp_RL1 vdd op 200000
+Rp_RL2 vdd om 200000
+Efb_ip fbs_ip 0 om op 0.5
+Vofs_ip fbs_ip fbd_ip DC -0.6
+Lfb_ip fbd_ip ip 1e+12
+Cac_ip ip acs_ip 1
+Vac_ip acs_ip 0 DC 0 AC 0.5
+Efb_im fbs_im 0 op om 0.5
+Vofs_im fbs_im fbd_im DC -0.6
+Lfb_im fbd_im im 1e+12
+Cac_im im acs_im 1
+Vac_im acs_im 0 DC 0 AC -0.5
+.control
+set noaskquit
+op
+echo OPSTART
+print i(lfb_ip)
+print i(lfb_im)
+print v(ip)
+print v(im)
+print v(op)
+print v(om)
+echo OPEND
+quit
+.endc
+.end

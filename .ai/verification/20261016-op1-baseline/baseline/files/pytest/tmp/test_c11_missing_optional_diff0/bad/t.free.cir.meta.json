@@ -1,0 +1,185 @@
+{
+ "bias": "free",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "geometry": {
+  "M1": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1e-12,
+    "as": 1e-12,
+    "pd": 4e-06,
+    "ps": 4e-06
+   }
+  },
+  "MP1": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 3,
+   "W_from_fingers": 6e-06,
+   "W_declared": 6e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1e-12,
+    "as": 1e-12,
+    "pd": 4e-06,
+    "ps": 4e-06
+   }
+  },
+  "M2": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1e-12,
+    "as": 1e-12,
+    "pd": 4e-06,
+    "ps": 4e-06
+   }
+  }
+ },
+ "probes": {
+  "M1": {
+   "id": "@m.xm1.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm1.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm1.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm1.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm1.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm1.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm1.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm1.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "MP1": {
+   "id": "@m.xmp1.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xmp1.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xmp1.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xmp1.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xmp1.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xmp1.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xmp1.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xmp1.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M2": {
+   "id": "@m.xm2.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm2.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm2.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm2.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm2.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm2.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm2.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm2.msky130_fd_pr__nfet_01v8[vbs]"
+  }
+ },
+ "nets": [
+  "nout",
+  "nin",
+  "pout",
+  "pb",
+  "vsp",
+  "vdd",
+  "nout2",
+  "nin2"
+ ],
+ "spice_node": {
+  "nout": "nout",
+  "nin": "nin",
+  "pout": "pout",
+  "pb": "pb",
+  "vsp": "vsp",
+  "vdd": "vdd",
+  "nout2": "nout2",
+  "nin2": "nin2"
+ },
+ "rail_sources": {
+  "vdd": "Vrail_vdd",
+  "vsp": "Vrail_vsp"
+ },
+ "held": [],
+ "unheld": [],
+ "gate_bias": {
+  "pb": 0.3
+ },
+ "inputs": [
+  "nin",
+  "nin2"
+ ],
+ "has_ac": true,
+ "ac_file": "t.free.ac.txt",
+ "outputs": [
+  "nout",
+  "nout2"
+ ],
+ "output_nodes": [
+  "nout",
+  "nout2"
+ ],
+ "tb_options": {
+  "gmin": "1e-15",
+  "reltol": "1e-4",
+  "abstol": "1e-14",
+  "vntol": "1e-7"
+ },
+ "ratio_runs": [],
+ "rout_runs": [],
+ "input_ac_weights": {
+  "nin": 0.5,
+  "nin2": -0.5
+ },
+ "dc_path_isolation": [
+  {
+   "net": "nin",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": true
+  },
+  {
+   "net": "nin2",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": true
+  }
+ ],
+ "notes": [
+  "resistor RL=100000 (test)",
+  "capacitor CL=1e-12 (근거 미기재)",
+  "resistor RP=10000 (근거 미기재)",
+  "resistor RL2=100000 (근거 미기재)",
+  "게이트 전용 넷 pb = 0.3 V (bias_voltages 선언)"
+ ],
+ "blockers": [
+  "testbench.ac.diff_feedback_gain 없음 -- free 차동 되먹임을 만들 수 없다",
+  "testbench.ac.diff_feedback_gain 없음 -- free 차동 되먹임을 만들 수 없다"
+ ],
+ "z1": null,
+ "topology_identity": {
+  "status": "unverified",
+  "topology_path": null,
+  "sha256_actual": null,
+  "sha256_declared": null,
+  "diffs": [],
+  "compared": 0,
+  "excluded_testbench": [],
+  "declared_not_in_topology": {},
+  "bulk_compared": [],
+  "notes": [
+   "topology 미지정(입력 topology.path 도 --topology 도 없음) -- 연결 동일성 미검증"
+  ],
+  "required": false
+ },
+ "cm_loop": null,
+ "loop": null
+}

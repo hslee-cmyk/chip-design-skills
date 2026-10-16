@@ -1,0 +1,6 @@
+{
+ "tolerances": {
+  "ID_rel": 0.04,
+  "gm_rel": 0.04
+ }
+}

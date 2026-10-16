@@ -1,0 +1,337 @@
+* spice_oracle: t5ota bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XM1 d1 inp tail 0 sky130_fd_pr__nfet_01v8 l=1e-06 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM2 out inn tail 0 sky130_fd_pr__nfet_01v8 l=1e-06 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM3 d1 d1 vdd vdd sky130_fd_pr__pfet_01v8 l=1e-06 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM4 out d1 vdd vdd sky130_fd_pr__pfet_01v8 l=1e-06 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+Isrc_IT tail 0 DC 2e-05
+Cp_CL out 0 1e-12
+Vdc_inp dcs_inp 0 DC 0.9
+Ldc_inp dcs_inp inp 1e+12
+Cac_inp inp acs_inp 1
+Vac_inp acs_inp 0 DC 0 AC 0.5
+Efb_inn fbs_inn 0 out 0 1
+Vofs_inn fbs_inn fbd_inn DC 0.004031
+Lfb_inn fbd_inn inn 1e+12
+Cac_inn inn acs_inn 1
+Vac_inn acs_inn 0 DC 0 AC -0.5
+.control
+set noaskquit
+alter vofs_inn dc = -0.5693665375
+echo SWP 0
+op
+echo OPSTART
+print @m.xm1.msky130_fd_pr__nfet_01v8[id]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[id]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[id]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[id]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vbs]
+print v(d1)
+print v(inp)
+print v(tail)
+print v(out)
+print v(inn)
+print v(vdd)
+print i(vrail_vdd)
+echo OPEND
+alter vofs_inn dc = -0.569416760714
+echo SWP 1
+op
+echo OPSTART
+print @m.xm1.msky130_fd_pr__nfet_01v8[id]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[id]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[id]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[id]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vbs]
+print v(d1)
+print v(inp)
+print v(tail)
+print v(out)
+print v(inn)
+print v(vdd)
+print i(vrail_vdd)
+echo OPEND
+alter vofs_inn dc = -0.569466983929
+echo SWP 2
+op
+echo OPSTART
+print @m.xm1.msky130_fd_pr__nfet_01v8[id]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[id]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[id]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[id]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vbs]
+print v(d1)
+print v(inp)
+print v(tail)
+print v(out)
+print v(inn)
+print v(vdd)
+print i(vrail_vdd)
+echo OPEND
+alter vofs_inn dc = -0.569517207143
+echo SWP 3
+op
+echo OPSTART
+print @m.xm1.msky130_fd_pr__nfet_01v8[id]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[id]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[id]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[id]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vbs]
+print v(d1)
+print v(inp)
+print v(tail)
+print v(out)
+print v(inn)
+print v(vdd)
+print i(vrail_vdd)
+echo OPEND
+alter vofs_inn dc = -0.569567430357
+echo SWP 4
+op
+echo OPSTART
+print @m.xm1.msky130_fd_pr__nfet_01v8[id]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[id]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[id]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[id]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vbs]
+print v(d1)
+print v(inp)
+print v(tail)
+print v(out)
+print v(inn)
+print v(vdd)
+print i(vrail_vdd)
+echo OPEND
+alter vofs_inn dc = -0.569617653571
+echo SWP 5
+op
+echo OPSTART
+print @m.xm1.msky130_fd_pr__nfet_01v8[id]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[id]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[id]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[id]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vbs]
+print v(d1)
+print v(inp)
+print v(tail)
+print v(out)
+print v(inn)
+print v(vdd)
+print i(vrail_vdd)
+echo OPEND
+alter vofs_inn dc = -0.569667876786
+echo SWP 6
+op
+echo OPSTART
+print @m.xm1.msky130_fd_pr__nfet_01v8[id]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[id]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm2.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm2.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[id]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm3.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm3.msky130_fd_pr__pfet_01v8[vbs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[id]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm4.msky130_fd_pr__pfet_01v8[gds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vth]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vds]
+print @m.xm4.msky130_fd_pr__pfet_01v8[vbs]
+print v(d1)
+print v(inp)
+print v(tail)
+print v(out)
+print v(inn)
+print v(vdd)
+print i(vrail_vdd)
+echo OPEND
+quit
+.endc
+.end

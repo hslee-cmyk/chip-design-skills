@@ -1,0 +1,24 @@
+* spice_oracle: tfb_cs_rfeedback bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XM1 nout nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+Rp_RL vdd nout 100000
+Cp_CL nout 0 1e-11
+Rp_Rf nout lbx_nin 1000000
+Cp_Cin lbx_nin 0 1e-12
+Vdc_nin dcs_nin 0 DC 0.7
+Ldc_nin dcs_nin nin 1e+20
+Vlb_nin nin lbx_nin DC 0 AC 1
+Ilb_nin 0 nin DC 0 AC 0
+.control
+set noaskquit
+set wr_singlescale
+noise v(nout) Vlb_nin dec 40 1 1e+14 1
+setplot noise1
+wrdata tfb_cs_rfeedback.free.loop.noise4_0.txt onoise_spectrum
+quit
+.endc
+.end

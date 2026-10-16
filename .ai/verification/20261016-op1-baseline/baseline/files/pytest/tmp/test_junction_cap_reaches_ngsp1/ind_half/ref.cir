@@ -1,0 +1,32 @@
+* independent reference
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27.0
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vdd vdd 0 DC 1.8
+Vsp vsp 0 DC 1.5
+Vin nin 0 DC 0.7 AC 1
+Vpb pb 0 DC 0.3
+RL vdd nout 100000.0
+CL nout 0 5e-15
+RP pout 0 10000.0
+XM1_0 nout nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 ad=5e-12 as=5e-12 pd=6e-06 ps=6e-06
+XM1_1 nout nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 ad=5e-12 as=5e-12 pd=6e-06 ps=6e-06
+XMP1_0 pout pb vsp vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06
+XMP1_1 pout pb vsp vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06
+XMP1_2 pout pb vsp vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06
+.control
+set noaskquit
+op
+print v(nout)
+ac dec 40 0.01 10000000000.0
+let hr = real(v(nout))
+let hi = imag(v(nout))
+set wr_singlescale
+wrdata ref_ac.txt hr hi
+quit
+.endc
+.end

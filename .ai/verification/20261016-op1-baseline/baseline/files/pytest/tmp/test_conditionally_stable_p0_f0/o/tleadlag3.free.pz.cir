@@ -1,0 +1,29 @@
+* spice_oracle: tleadlag3 bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XM1 n1 nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM2 n2 n1 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM3 n3 n2 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+Rp_R1 vdd n1 129409.146
+Rp_Rz1 n1 z1 6470.4573
+Cp_Cz1 z1 0 1e-09
+Rp_R2 vdd n2 129409.146
+Rp_Rz2 n2 z2 6470.4573
+Cp_Cz2 z2 0 1e-09
+Rp_R3 vdd n3 129409.146
+Rp_Rz3 n3 z3 6470.4573
+Cp_Cz3 z3 0 1e-09
+Vpz_nin nin 0 DC 0.7
+.control
+set noaskquit
+op
+echo PZSTART
+pz n3 0 n3 0 cur pol
+print all
+echo PZEND
+quit
+.endc
+.end

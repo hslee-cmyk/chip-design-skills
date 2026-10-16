@@ -1,0 +1,6 @@
+{
+ "tolerances": {
+  "W_rel": 0.01
+ },
+ "sat_margin_V": 0.05
+}

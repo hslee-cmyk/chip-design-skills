@@ -1,0 +1,467 @@
+{
+ "devices": {
+  "M1": {
+   "id": 1.275256e-06,
+   "gm": 2.740152e-05,
+   "gds": 1.791749e-07,
+   "vth": 0.6321977,
+   "vdsat": 0.05456934,
+   "vgs": 0.6,
+   "vds": 0.834897,
+   "vbs": 1.445557e-13
+  },
+  "M2": {
+   "id": 1.275256e-06,
+   "gm": 2.740152e-05,
+   "gds": 1.791749e-07,
+   "vth": 0.6321977,
+   "vdsat": 0.05456934,
+   "vgs": 0.6,
+   "vds": 0.834897,
+   "vbs": 1.445557e-13
+  },
+  "M3": {
+   "id": 1.275256e-06,
+   "gm": 2.063316e-05,
+   "gds": 1.500371e-07,
+   "vth": 0.9573921,
+   "vdsat": 0.08381922,
+   "vgs": 0.965103,
+   "vds": 0.965103,
+   "vbs": 2.013945e-13
+  },
+  "M4": {
+   "id": 1.275256e-06,
+   "gm": 2.063316e-05,
+   "gds": 1.500371e-07,
+   "vth": 0.9573921,
+   "vdsat": 0.08381922,
+   "vgs": 0.965103,
+   "vds": 0.965103,
+   "vbs": 2.013945e-13
+  }
+ },
+ "nodes": {
+  "op": 0.834897,
+  "ip": 0.6,
+  "om": 0.834897,
+  "im": 0.6,
+  "c": 0.834897,
+  "vdd": 1.8
+ },
+ "rail_current_A": {
+  "vdd": 2.55051e-06
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 20.6148584000023,
+  "dc_gain_db": 26.283607121036322,
+  "phase_dc_deg": 179.99997290922553,
+  "reference_point": "first",
+  "f3db_hz": 22387.2114,
+  "ugf_hz": 435488.6676450218,
+  "phase_lag_at_ugf_deg": 87.23924571282774,
+  "pm_deg": 92.76075428717226,
+  "a0_f3db_hz": 461509.1929819173,
+  "pm_open_loop_deg": 92.76075428717226,
+  "dc_path_isolation": [
+   {
+    "net": "ip",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": true
+   },
+   {
+    "net": "im",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": true
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "ip": 0.5,
+   "im": -0.5
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": null,
+  "pm_crosscheck_note": "peaking 없음(Mp-1 = 0, 데이터 분해능 2e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": null,
+  "closed_loop_peak_hz": null,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": null,
+  "pm_deg_raw": 92.76075428717226,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_1",
+   "closure_sign": -1.0,
+   "nyquist": {
+    "encirclements_cw": 0,
+    "reason": null,
+    "max_step_deg": 1.5030669721441408,
+    "max_step_hz": 19952.6231,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     20.6148584,
+     -9.74718355e-06
+    ],
+    "L_last": [
+     -0.000364078937,
+     -4.37832244e-05
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     5.1674868206851065e-05,
+     0.005019015257729955
+    ],
+    "refinement": {
+     "rounds": 0,
+     "samples_added": 0,
+     "k_max": 10,
+     "history": []
+    }
+   },
+   "pz": {
+    "status": "ok",
+    "P": 0,
+    "rhp": [],
+    "beyond_sweep": [],
+    "n_poles": 15,
+    "reason": null,
+    "netlist": "tcm_cmfb.free.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "main netlist, inputs driven (beta=1)",
+    "omega_stop": 62831853071.79586,
+    "poles": [
+     [
+      -132889.0,
+      0.0
+     ],
+     [
+      -265752.0,
+      874395.7
+     ],
+     [
+      -265752.0,
+      -874396.0
+     ],
+     [
+      -20064900000000.0,
+      0.0
+     ],
+     [
+      -20064900000000.0,
+      0.0
+     ],
+     [
+      -24272100000000.0,
+      0.0
+     ],
+     [
+      -24279400000000.0,
+      0.0
+     ],
+     [
+      -105138000000000.0,
+      0.0
+     ],
+     [
+      -105138000000000.0,
+      0.0
+     ],
+     [
+      -137803000000000.0,
+      0.0
+     ],
+     [
+      -137803000000000.0,
+      0.0
+     ],
+     [
+      -146437000000000.0,
+      0.0
+     ],
+     [
+      -146437000000000.0,
+      0.0
+     ],
+     [
+      -155928000000000.0,
+      0.0
+     ],
+     [
+      -155934000000000.0,
+      0.0
+     ]
+    ]
+   },
+   "transient": {
+    "status": "stable",
+    "reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+    "op_pass": {
+     "netlist": "tcm_cmfb.free.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "lfb_ip": 0.0,
+      "lfb_im": 0.0
+     },
+     "node_V": {
+      "ip": 0.6,
+      "im": 0.6,
+      "op": 0.834897,
+      "om": 0.834897
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 3.6546288093454295e-07,
+     "tr": 3.6546288093454295e-07,
+     "pw": 3.6546288093454295e-07,
+     "tmax": 1.0039108248093935e-08,
+     "window_s": 2.2962710038074425e-06,
+     "windows": 6,
+     "windows_planned": 6,
+     "t_kick_end": 1.4618515237381718e-06,
+     "tstop": 1.5239477546582826e-05,
+     "f_lo_hz": 435488.6676450218,
+     "f_hi_hz": 435488.6676450218,
+     "f_crit_hz": 446683.592,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 0.00012020000000000001,
+     "wall_cap_s": 1836.6000000000001,
+     "sign": -1.0,
+     "observe": [
+      [
+       "ip",
+       1
+      ],
+      [
+       "im",
+       -1
+      ]
+     ]
+    },
+    "M": [
+     0.013367641,
+     1.82414835e-05,
+     2.47731853e-08,
+     3.37507799e-11,
+     4.70734562e-14,
+     3.88578059e-15
+    ],
+    "floor_V": 0.00012020008229022701,
+    "windows_run": 6,
+    "netlist": "tcm_cmfb.free.stab.cir",
+    "file": "tcm_cmfb.free.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1836.6000000000001,
+    "first_status": "stable"
+   },
+   "closed_loop": "stable",
+   "open_loop_rhp_poles": 0,
+   "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+   "pm_valid": true,
+   "pm_undefined": null,
+   "Z": 0,
+   "P_pz": 0,
+   "P_eff": 0,
+   "pz_conflict": null,
+   "conditionally_stable": false,
+   "verdict": "stable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": null,
+   "low_side_crossings": [],
+   "low_side_crossing_hz": [],
+   "gain_crossings_hz": [
+    435488.6676450218
+   ]
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": {
+  "ngspice_rc": 0,
+  "cache": null,
+  "break_nets": [
+   "op",
+   "om"
+  ],
+  "weights": [
+   0.5,
+   0.5
+  ],
+  "log_errors": [],
+  "measures": {
+   "f_first_hz": 0.01,
+   "gain_dc": 62.67435095845278,
+   "dc_gain_db": 35.9417969039423,
+   "phase_dc_deg": -0.0001459066303920399,
+   "reference_point": "first",
+   "f3db_hz": 4216.96503,
+   "ugf_hz": 133510.7841970794,
+   "phase_lag_at_ugf_deg": 147.15300805259557,
+   "pm_deg": 32.84699194740443,
+   "a0_f3db_hz": 264295.54626974236
+  },
+  "singular": null,
+  "pm_deg": 32.84699194740443,
+  "pm_deg_raw": 32.84699194740443,
+  "pm_undefined": null,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_loop",
+   "closure_sign": 1.0,
+   "nyquist": {
+    "encirclements_cw": 0,
+    "reason": null,
+    "max_step_deg": 9.815768091885827,
+    "max_step_hz": 149623.566,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     62.67435095824957,
+     -0.00015960343742697655
+    ],
+    "L_last": [
+     -2.0788970061296053e-10,
+     1.6848017150869963e-09
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     0.0002872303595503799,
+     1.9306404560807716e-07
+    ],
+    "refinement": {
+     "rounds": 0,
+     "samples_added": 0,
+     "k_max": 10,
+     "history": []
+    }
+   },
+   "pz": {
+    "status": "failed",
+    "P": null,
+    "rhp": [],
+    "beyond_sweep": [],
+    "n_poles": 5,
+    "reason": "Warning: singular matrix:  check node c; Warning: singular matrix:  check node c; Warning: singular matrix:  check node c",
+    "netlist": "tcm_cmfb.free.cmloop.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "forward input (lbx) driven, driver output free"
+   },
+   "transient": {
+    "status": "stable",
+    "reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+    "op_pass": {
+     "netlist": "tcm_cmfb.free.cmloop.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "lfb_ip": 0.0,
+      "lfb_im": 0.0
+     },
+     "node_V": {
+      "ip": 0.6,
+      "im": 0.6,
+      "op": 0.834897,
+      "om": 0.834897,
+      "lbx_op": 0.834897,
+      "lbx_om": 0.834897
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 1.1920755619033877e-06,
+     "tr": 1.1920755619033877e-06,
+     "pw": 1.1920755619033877e-06,
+     "tmax": 3.174644783412571e-08,
+     "window_s": 7.4900316555992144e-06,
+     "windows": 6,
+     "windows_planned": 6,
+     "t_kick_end": 4.768302247613551e-06,
+     "tstop": 4.970849218120884e-05,
+     "f_lo_hz": 133510.7841970794,
+     "f_hi_hz": 133510.7841970794,
+     "f_crit_hz": 141253.754,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 0.00016717940000000002,
+     "wall_cap_s": 1836.6000000000001,
+     "sign": 1.0,
+     "observe": [
+      [
+       "op",
+       1
+      ],
+      [
+       "om",
+       1
+      ]
+     ]
+    },
+    "M": [
+     0.0006172499999999026,
+     9.144999999999293e-05,
+     1.3540000000089591e-05,
+     2.0000000000575113e-06,
+     2.9000000001389026e-07,
+     3.0000000039720476e-08
+    ],
+    "floor_V": 0.00016718775353045002,
+    "windows_run": 6,
+    "netlist": "tcm_cmfb.free.cmloop.stab.cir",
+    "file": "tcm_cmfb.free.cmloop.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1836.6000000000001,
+    "first_status": "stable"
+   },
+   "closed_loop": "stable",
+   "open_loop_rhp_poles": 0,
+   "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+   "pm_valid": true,
+   "pm_undefined": null,
+   "Z": 0,
+   "P_pz": null,
+   "P_eff": 0,
+   "pz_conflict": null,
+   "conditionally_stable": false,
+   "verdict": "stable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": null,
+   "low_side_crossings": [],
+   "low_side_crossing_hz": [],
+   "gain_crossings_hz": [
+    133510.7841970794
+   ]
+  },
+  "stability_cache": {
+   "op_pass": null,
+   "transient": null
+  }
+ },
+ "stability_cache": {
+  "op_pass": null,
+  "transient": null
+ }
+}

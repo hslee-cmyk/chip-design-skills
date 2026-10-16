@@ -1,0 +1,27 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: * m1 bench
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+v(ga) = 7.028279e-01
+v(gb) = 6.998520e-01
+v(ga)-v(gb) = 2.975854e-03
+ BSIM4v5 models (Berkeley Short Channel IGFET Model-4)
+      model xa.x1:sky130_fd_pr__n
+
+       vth0              0.485668
+
+ BSIM4v5 models (Berkeley Short Channel IGFET Model-4)
+      model xb.x1:sky130_fd_pr__n
+
+       vth0              0.482666
+
+@m.xa.x1.msky130_fd_pr__nfet_01v8[vth] = 5.909604e-01
+@m.xb.x1.msky130_fd_pr__nfet_01v8[vth] = 5.879588e-01
+ngspice-46 done

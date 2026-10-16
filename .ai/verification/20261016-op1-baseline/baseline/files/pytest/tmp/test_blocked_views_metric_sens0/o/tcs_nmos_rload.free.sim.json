@@ -1,0 +1,17 @@
+{
+ "skipped": "넷리스트 막힘: C24 ratio_db 뷰 0 num: sense_p nosuch 이 회로 넷(reference 제외)이 아니다",
+ "devices": {},
+ "nodes": {},
+ "rail_current_A": {},
+ "hold_current_A": {},
+ "ngspice_rc": null,
+ "log": null,
+ "log_errors": [],
+ "op_ok": false,
+ "ac": null,
+ "ac_file": null,
+ "loop": null,
+ "cm_loop": null,
+ "ratio": [],
+ "rout": []
+}

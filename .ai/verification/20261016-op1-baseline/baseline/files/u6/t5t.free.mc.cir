@@ -1,0 +1,4109 @@
+* spice_oracle: t5t_ota bias=free
+.subckt mmv_M1 d g s b params: v0=0 v1=0 v2=0
+.param sky130_fd_pr__nfet_01v8__toxe_slope_spectre={v0}
+.param sky130_fd_pr__nfet_01v8__vth0_slope_spectre={v1}
+.param sky130_fd_pr__nfet_01v8__voff_slope_spectre={v2}
+X1 d g s b sky130_fd_pr__nfet_01v8 l=1e-06 w=4e-06 m=2 ad=0 as=0 pd=0 ps=0
+.ends
+.subckt mmv_M2 d g s b params: v0=0 v1=0 v2=0
+.param sky130_fd_pr__nfet_01v8__toxe_slope_spectre={v0}
+.param sky130_fd_pr__nfet_01v8__vth0_slope_spectre={v1}
+.param sky130_fd_pr__nfet_01v8__voff_slope_spectre={v2}
+X1 d g s b sky130_fd_pr__nfet_01v8 l=1e-06 w=4e-06 m=2 ad=0 as=0 pd=0 ps=0
+.ends
+.subckt mmv_M3 d g s b params: v0=0 v1=0 v2=0 v3=0
+.param sky130_fd_pr__pfet_01v8__toxe_slope_spectre={v0}
+.param sky130_fd_pr__pfet_01v8__vth0_slope_spectre={v1}
+.param sky130_fd_pr__pfet_01v8__voff_slope_spectre={v2}
+.param sky130_fd_pr__pfet_01v8__nfactor_slope_spectre={v3}
+X1 d g s b sky130_fd_pr__pfet_01v8 l=1e-06 w=4e-06 m=2 ad=0 as=0 pd=0 ps=0
+.ends
+.subckt mmv_M4 d g s b params: v0=0 v1=0 v2=0 v3=0
+.param sky130_fd_pr__pfet_01v8__toxe_slope_spectre={v0}
+.param sky130_fd_pr__pfet_01v8__vth0_slope_spectre={v1}
+.param sky130_fd_pr__pfet_01v8__voff_slope_spectre={v2}
+.param sky130_fd_pr__pfet_01v8__nfactor_slope_spectre={v3}
+X1 d g s b sky130_fd_pr__pfet_01v8 l=1e-06 w=4e-06 m=2 ad=0 as=0 pd=0 ps=0
+.ends
+.param pv_M1_0=0
+.param pv_M1_1=0
+.param pv_M1_2=0
+.param pv_M2_0=0
+.param pv_M2_1=0
+.param pv_M2_2=0
+.param pv_M3_0=0
+.param pv_M3_1=0
+.param pv_M3_2=0
+.param pv_M3_3=0
+.param pv_M4_0=0
+.param pv_M4_1=0
+.param pv_M4_2=0
+.param pv_M4_3=0
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XM1 n1 inp tail 0 mmv_M1 v0={pv_M1_0} v1={pv_M1_1} v2={pv_M1_2}
+XM2 out inn tail 0 mmv_M2 v0={pv_M2_0} v1={pv_M2_1} v2={pv_M2_2}
+XM3 n1 n1 vdd vdd mmv_M3 v0={pv_M3_0} v1={pv_M3_1} v2={pv_M3_2} v3={pv_M3_3}
+XM4 out n1 vdd vdd mmv_M4 v0={pv_M4_0} v1={pv_M4_1} v2={pv_M4_2} v3={pv_M4_3}
+Isrc_It tail 0 DC 2e-05
+Cp_CL out 0 1e-12
+Vdc_inp dcs_inp 0 DC 0.9
+Ldc_inp dcs_inp inp 1e+12
+Cac_inp inp acs_inp 1
+Vac_inp acs_inp 0 DC 0 AC 0.5
+Efb_inn fbs_inn 0 out 0 1
+Vofs_inn fbs_inn fbd_inn DC 0
+Lfb_inn fbd_inn inn 1e+12
+Cac_inn inn acs_inn 1
+Vac_inn acs_inn 0 DC 0 AC -0.5
+.control
+set noaskquit
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 0
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 8.698497809753e-10
+alterparam pv_M1_1 = 2.112449954215e-07
+alterparam pv_M1_2 = -1.938447365066e-07
+alterparam pv_M2_0 = -6.297435284547e-07
+alterparam pv_M2_1 = -3.215007954023e-07
+alterparam pv_M2_2 = -7.012000035783e-07
+alterparam pv_M3_0 = 4.252794924164e-08
+alterparam pv_M3_1 = 9.476752883812e-07
+alterparam pv_M3_2 = -3.480425670119e-07
+alterparam pv_M3_3 = -4.387420092187e-07
+alterparam pv_M4_0 = 3.463706353963e-07
+alterparam pv_M4_1 = 2.523572235874e-07
+alterparam pv_M4_2 = 7.453913030010e-08
+alterparam pv_M4_3 = -6.579402640906e-07
+reset
+op
+echo MCS 1
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.068416202585e-08
+alterparam pv_M1_1 = 4.916536037821e-07
+alterparam pv_M1_2 = -9.505032217549e-07
+alterparam pv_M2_0 = -3.235832078094e-07
+alterparam pv_M2_1 = -1.344367491859e-06
+alterparam pv_M2_2 = -9.118408803979e-07
+alterparam pv_M3_0 = -1.302303334371e-06
+alterparam pv_M3_1 = -1.662345329797e-07
+alterparam pv_M3_2 = -8.962200018199e-07
+alterparam pv_M3_3 = 1.918128676170e-07
+alterparam pv_M4_0 = 1.108397563103e-07
+alterparam pv_M4_1 = -1.321801385614e-07
+alterparam pv_M4_2 = -1.779617858138e-06
+alterparam pv_M4_3 = -3.809133996302e-07
+reset
+op
+echo MCS 2
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.429534738706e-08
+alterparam pv_M1_1 = 8.012155237231e-08
+alterparam pv_M1_2 = -1.081969375925e-06
+alterparam pv_M2_0 = -3.378225812177e-07
+alterparam pv_M2_1 = -6.919174756143e-07
+alterparam pv_M2_2 = -5.719342968740e-07
+alterparam pv_M3_0 = 7.501686107478e-07
+alterparam pv_M3_1 = -5.710132449705e-07
+alterparam pv_M3_2 = -2.299631810273e-08
+alterparam pv_M3_3 = 6.253580724393e-07
+alterparam pv_M4_0 = -4.126678234962e-07
+alterparam pv_M4_1 = -7.898520602272e-08
+alterparam pv_M4_2 = 7.810994476967e-08
+alterparam pv_M4_3 = 4.510052509186e-08
+reset
+op
+echo MCS 3
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -8.662452821920e-07
+alterparam pv_M1_1 = 5.383927322069e-08
+alterparam pv_M1_2 = 9.608332559485e-07
+alterparam pv_M2_0 = -1.093996493381e-06
+alterparam pv_M2_1 = 6.076753263344e-07
+alterparam pv_M2_2 = 8.439604093197e-08
+alterparam pv_M3_0 = -4.535880656036e-07
+alterparam pv_M3_1 = 1.414508105117e-06
+alterparam pv_M3_2 = 5.389990114404e-07
+alterparam pv_M3_3 = -8.480253152804e-07
+alterparam pv_M4_0 = 5.269093067275e-08
+alterparam pv_M4_1 = 4.077811152528e-07
+alterparam pv_M4_2 = -1.334891210023e-07
+alterparam pv_M4_3 = 4.828904808756e-07
+reset
+op
+echo MCS 4
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -4.703484814401e-08
+alterparam pv_M1_1 = 4.718152749961e-07
+alterparam pv_M1_2 = 1.017189079450e-06
+alterparam pv_M2_0 = -4.777653594779e-07
+alterparam pv_M2_1 = 1.436406889273e-07
+alterparam pv_M2_2 = -3.276079291454e-07
+alterparam pv_M3_0 = 8.999235660862e-08
+alterparam pv_M3_1 = -8.394733012304e-07
+alterparam pv_M3_2 = -4.096280872392e-07
+alterparam pv_M3_3 = -1.387315028116e-07
+alterparam pv_M4_0 = 6.355220286477e-07
+alterparam pv_M4_1 = 8.097942474349e-07
+alterparam pv_M4_2 = -9.358754771545e-07
+alterparam pv_M4_3 = -5.618970056076e-07
+reset
+op
+echo MCS 5
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.574297968745e-07
+alterparam pv_M1_1 = -1.408853540360e-06
+alterparam pv_M1_2 = -3.275105523491e-07
+alterparam pv_M2_0 = -6.879224486211e-08
+alterparam pv_M2_1 = 8.888438144926e-07
+alterparam pv_M2_2 = 4.874821730700e-07
+alterparam pv_M3_0 = -2.313748283344e-07
+alterparam pv_M3_1 = -2.606225141000e-07
+alterparam pv_M3_2 = -1.769148643279e-07
+alterparam pv_M3_3 = 1.077297970400e-06
+alterparam pv_M4_0 = -3.026593394103e-07
+alterparam pv_M4_1 = -2.147344619261e-07
+alterparam pv_M4_2 = 2.493181204497e-07
+alterparam pv_M4_3 = -8.539760068755e-08
+reset
+op
+echo MCS 6
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.395010154157e-07
+alterparam pv_M1_1 = -7.877644316192e-07
+alterparam pv_M1_2 = -8.146908179281e-09
+alterparam pv_M2_0 = -3.136592907722e-07
+alterparam pv_M2_1 = 8.245768582741e-07
+alterparam pv_M2_2 = 4.618033089750e-07
+alterparam pv_M3_0 = -1.707211248167e-08
+alterparam pv_M3_1 = 4.726167539687e-07
+alterparam pv_M3_2 = -2.403240647352e-07
+alterparam pv_M3_3 = 7.439656827088e-07
+alterparam pv_M4_0 = -3.818065966335e-09
+alterparam pv_M4_1 = 4.125136186655e-07
+alterparam pv_M4_2 = -9.127993675561e-07
+alterparam pv_M4_3 = 2.451398134640e-07
+reset
+op
+echo MCS 7
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.193740579417e-06
+alterparam pv_M1_1 = -1.439194898912e-06
+alterparam pv_M1_2 = -2.152976649443e-07
+alterparam pv_M2_0 = -6.363449139100e-07
+alterparam pv_M2_1 = 1.160028443207e-07
+alterparam pv_M2_2 = 1.587282632702e-06
+alterparam pv_M3_0 = -5.881171016465e-07
+alterparam pv_M3_1 = -4.411947410523e-07
+alterparam pv_M3_2 = 1.452425231448e-07
+alterparam pv_M3_3 = 3.486130415728e-07
+alterparam pv_M4_0 = -1.247379254444e-07
+alterparam pv_M4_1 = -1.456147329740e-07
+alterparam pv_M4_2 = 4.967163190981e-07
+alterparam pv_M4_3 = 3.676302157373e-07
+reset
+op
+echo MCS 8
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.309191904080e-07
+alterparam pv_M1_1 = -5.598964733655e-08
+alterparam pv_M1_2 = 2.495156997523e-08
+alterparam pv_M2_0 = -7.456332269079e-07
+alterparam pv_M2_1 = 1.837339901043e-07
+alterparam pv_M2_2 = -6.066668429745e-07
+alterparam pv_M3_0 = 6.873549609338e-07
+alterparam pv_M3_1 = 1.362919418490e-07
+alterparam pv_M3_2 = 6.314922169124e-08
+alterparam pv_M3_3 = -4.179201561782e-07
+alterparam pv_M4_0 = -8.386981077926e-08
+alterparam pv_M4_1 = -1.412619950805e-06
+alterparam pv_M4_2 = -8.000258946920e-07
+alterparam pv_M4_3 = 2.565664824907e-07
+reset
+op
+echo MCS 9
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.505124189483e-06
+alterparam pv_M1_1 = 5.986426265496e-07
+alterparam pv_M1_2 = -1.234676658343e-06
+alterparam pv_M2_0 = 5.350949268189e-07
+alterparam pv_M2_1 = -5.978566854221e-07
+alterparam pv_M2_2 = 5.508298782224e-07
+alterparam pv_M3_0 = 9.259648688778e-08
+alterparam pv_M3_1 = -1.086706407845e-06
+alterparam pv_M3_2 = 8.832815515235e-07
+alterparam pv_M3_3 = 1.019440906155e-06
+alterparam pv_M4_0 = -4.653109526809e-08
+alterparam pv_M4_1 = -1.936880535304e-07
+alterparam pv_M4_2 = -1.130430157256e-07
+alterparam pv_M4_3 = -6.895368201267e-07
+reset
+op
+echo MCS 10
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 7.768181475459e-07
+alterparam pv_M1_1 = -3.838825663779e-07
+alterparam pv_M1_2 = -3.619708794602e-08
+alterparam pv_M2_0 = -5.609452661958e-07
+alterparam pv_M2_1 = -4.427005343306e-07
+alterparam pv_M2_2 = -9.034881192252e-07
+alterparam pv_M3_0 = 8.888822361490e-07
+alterparam pv_M3_1 = -1.089563679106e-07
+alterparam pv_M3_2 = 6.830097266978e-07
+alterparam pv_M3_3 = 9.421912833943e-09
+alterparam pv_M4_0 = -4.910174433186e-07
+alterparam pv_M4_1 = -2.310013626613e-07
+alterparam pv_M4_2 = -3.961431748419e-07
+alterparam pv_M4_3 = 5.627933005789e-09
+reset
+op
+echo MCS 11
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.653537270900e-07
+alterparam pv_M1_1 = -2.120766791676e-07
+alterparam pv_M1_2 = -9.747995075246e-07
+alterparam pv_M2_0 = -5.705262267936e-07
+alterparam pv_M2_1 = 1.169595309230e-06
+alterparam pv_M2_2 = -4.746335589692e-07
+alterparam pv_M3_0 = -7.453568652352e-07
+alterparam pv_M3_1 = 2.385257372366e-07
+alterparam pv_M3_2 = 9.950917152817e-07
+alterparam pv_M3_3 = -1.028150444295e-06
+alterparam pv_M4_0 = -1.474472129240e-07
+alterparam pv_M4_1 = -4.469286469536e-07
+alterparam pv_M4_2 = -1.245228812098e-06
+alterparam pv_M4_3 = 5.196716597917e-07
+reset
+op
+echo MCS 12
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.657735378772e-08
+alterparam pv_M1_1 = 5.051701255977e-08
+alterparam pv_M1_2 = -5.319645437307e-07
+alterparam pv_M2_0 = 3.215809656314e-07
+alterparam pv_M2_1 = -3.813408128984e-07
+alterparam pv_M2_2 = -1.010478277814e-07
+alterparam pv_M3_0 = -7.836587214747e-07
+alterparam pv_M3_1 = -8.599145083629e-07
+alterparam pv_M3_2 = 9.443636313733e-07
+alterparam pv_M3_3 = -3.585771753508e-07
+alterparam pv_M4_0 = 2.062491579181e-07
+alterparam pv_M4_1 = -2.389344556325e-08
+alterparam pv_M4_2 = -3.119367643611e-07
+alterparam pv_M4_3 = -3.591826467035e-07
+reset
+op
+echo MCS 13
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.455356731188e-07
+alterparam pv_M1_1 = -2.134526301865e-07
+alterparam pv_M1_2 = -1.070868305896e-07
+alterparam pv_M2_0 = 1.571301378074e-08
+alterparam pv_M2_1 = 8.319170113726e-07
+alterparam pv_M2_2 = 4.811939248350e-07
+alterparam pv_M3_0 = 2.705392437943e-07
+alterparam pv_M3_1 = -3.985051539228e-07
+alterparam pv_M3_2 = -9.771994533043e-07
+alterparam pv_M3_3 = 6.714190536696e-07
+alterparam pv_M4_0 = 6.833813222659e-07
+alterparam pv_M4_1 = -9.949586319002e-08
+alterparam pv_M4_2 = 3.831697390133e-07
+alterparam pv_M4_3 = 5.525636825135e-07
+reset
+op
+echo MCS 14
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.877361628962e-07
+alterparam pv_M1_1 = 6.515165020058e-07
+alterparam pv_M1_2 = -3.221703304108e-07
+alterparam pv_M2_0 = 1.071247669357e-06
+alterparam pv_M2_1 = -8.814744048939e-07
+alterparam pv_M2_2 = 6.093302312471e-07
+alterparam pv_M3_0 = 3.492627225282e-07
+alterparam pv_M3_1 = 6.177419993474e-07
+alterparam pv_M3_2 = 1.328659515854e-06
+alterparam pv_M3_3 = 1.049661460528e-06
+alterparam pv_M4_0 = -8.097623567318e-07
+alterparam pv_M4_1 = -1.194071125604e-06
+alterparam pv_M4_2 = 5.776277931340e-07
+alterparam pv_M4_3 = -7.177221622544e-07
+reset
+op
+echo MCS 15
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -8.771934435911e-09
+alterparam pv_M1_1 = 5.937769933390e-07
+alterparam pv_M1_2 = -1.162340253920e-06
+alterparam pv_M2_0 = -1.491981487413e-06
+alterparam pv_M2_1 = 1.833520956355e-07
+alterparam pv_M2_2 = 3.138556353456e-08
+alterparam pv_M3_0 = -1.738090186106e-07
+alterparam pv_M3_1 = 2.724819277334e-08
+alterparam pv_M3_2 = -6.084764212863e-07
+alterparam pv_M3_3 = -1.070202158670e-06
+alterparam pv_M4_0 = -1.178427751751e-07
+alterparam pv_M4_1 = -6.871018047789e-07
+alterparam pv_M4_2 = -1.162116787830e-06
+alterparam pv_M4_3 = 3.575705146999e-07
+reset
+op
+echo MCS 16
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -4.341538651287e-08
+alterparam pv_M1_1 = 2.874590849989e-07
+alterparam pv_M1_2 = -6.995371616758e-07
+alterparam pv_M2_0 = -4.653178341271e-07
+alterparam pv_M2_1 = -7.064300992445e-07
+alterparam pv_M2_2 = -6.269504766806e-07
+alterparam pv_M3_0 = 1.381742637381e-07
+alterparam pv_M3_1 = -5.536466607074e-07
+alterparam pv_M3_2 = 2.517768873767e-07
+alterparam pv_M3_3 = 2.402437188115e-07
+alterparam pv_M4_0 = 1.432005066817e-06
+alterparam pv_M4_1 = -9.848505790948e-07
+alterparam pv_M4_2 = 6.278417923988e-07
+alterparam pv_M4_3 = -6.327754468586e-08
+reset
+op
+echo MCS 17
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -9.920517313845e-09
+alterparam pv_M1_1 = -1.025208540267e-06
+alterparam pv_M1_2 = -3.254061656377e-07
+alterparam pv_M2_0 = 5.255198247405e-07
+alterparam pv_M2_1 = -5.832101615466e-08
+alterparam pv_M2_2 = 5.731409496261e-08
+alterparam pv_M3_0 = -2.055677362567e-07
+alterparam pv_M3_1 = 8.164040974468e-07
+alterparam pv_M3_2 = -1.518339776594e-08
+alterparam pv_M3_3 = -1.555928843441e-06
+alterparam pv_M4_0 = -4.893691935136e-07
+alterparam pv_M4_1 = -1.392149431644e-06
+alterparam pv_M4_2 = -2.299114152208e-06
+alterparam pv_M4_3 = -3.748481586351e-07
+reset
+op
+echo MCS 18
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 9.429692131258e-07
+alterparam pv_M1_1 = 3.331880515382e-08
+alterparam pv_M1_2 = -8.291150209572e-07
+alterparam pv_M2_0 = -6.651752558672e-07
+alterparam pv_M2_1 = 7.994642820090e-07
+alterparam pv_M2_2 = 1.114588543006e-07
+alterparam pv_M3_0 = 3.394058920034e-08
+alterparam pv_M3_1 = -3.780319342175e-08
+alterparam pv_M3_2 = 2.715308534512e-08
+alterparam pv_M3_3 = 5.695077945599e-07
+alterparam pv_M4_0 = 3.907240830224e-07
+alterparam pv_M4_1 = 1.525262561211e-07
+alterparam pv_M4_2 = -7.374192875368e-07
+alterparam pv_M4_3 = 3.614084735915e-07
+reset
+op
+echo MCS 19
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -4.838357488556e-07
+alterparam pv_M1_1 = 7.734656950008e-07
+alterparam pv_M1_2 = -8.987686552739e-07
+alterparam pv_M2_0 = -9.731272555798e-08
+alterparam pv_M2_1 = -5.203094134470e-09
+alterparam pv_M2_2 = -9.366658515291e-07
+alterparam pv_M3_0 = 1.217617826382e-06
+alterparam pv_M3_1 = 1.032663528420e-06
+alterparam pv_M3_2 = -3.278032214818e-07
+alterparam pv_M3_3 = 5.456892693559e-07
+alterparam pv_M4_0 = 2.677644167369e-07
+alterparam pv_M4_1 = -1.848065619566e-06
+alterparam pv_M4_2 = 1.770581353055e-07
+alterparam pv_M4_3 = -4.337681483574e-08
+reset
+op
+echo MCS 20
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.884355495424e-08
+alterparam pv_M1_1 = -7.614655582995e-07
+alterparam pv_M1_2 = -1.904571228750e-07
+alterparam pv_M2_0 = -1.260479803936e-07
+alterparam pv_M2_1 = 8.401094776794e-07
+alterparam pv_M2_2 = 2.364756422148e-07
+alterparam pv_M3_0 = -3.927999526000e-09
+alterparam pv_M3_1 = 1.081145053754e-06
+alterparam pv_M3_2 = -3.926195763757e-07
+alterparam pv_M3_3 = -2.753688093769e-07
+alterparam pv_M4_0 = -1.284639788272e-06
+alterparam pv_M4_1 = 1.109525384307e-06
+alterparam pv_M4_2 = 6.818859568680e-07
+alterparam pv_M4_3 = 6.483094695919e-07
+reset
+op
+echo MCS 21
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.729826274078e-07
+alterparam pv_M1_1 = 7.788681327509e-08
+alterparam pv_M1_2 = 1.523736901665e-07
+alterparam pv_M2_0 = -1.781955688817e-07
+alterparam pv_M2_1 = -1.439672416812e-07
+alterparam pv_M2_2 = 3.839845208567e-08
+alterparam pv_M3_0 = 1.069024899625e-06
+alterparam pv_M3_1 = 3.929306835918e-07
+alterparam pv_M3_2 = -4.133755135311e-08
+alterparam pv_M3_3 = -4.096920478341e-07
+alterparam pv_M4_0 = -4.490117364920e-07
+alterparam pv_M4_1 = 1.133283581642e-06
+alterparam pv_M4_2 = 3.582820287601e-07
+alterparam pv_M4_3 = 4.776545785440e-08
+reset
+op
+echo MCS 22
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.447875281098e-07
+alterparam pv_M1_1 = -7.842191881115e-07
+alterparam pv_M1_2 = -4.727826068766e-08
+alterparam pv_M2_0 = 6.177695206120e-07
+alterparam pv_M2_1 = -2.775657491071e-07
+alterparam pv_M2_2 = -1.606847714140e-07
+alterparam pv_M3_0 = -1.562948887777e-07
+alterparam pv_M3_1 = 7.749492079136e-08
+alterparam pv_M3_2 = -1.126428794865e-06
+alterparam pv_M3_3 = -1.664517709547e-07
+alterparam pv_M4_0 = -6.041488647021e-07
+alterparam pv_M4_1 = 6.254960750611e-07
+alterparam pv_M4_2 = -5.448955497724e-07
+alterparam pv_M4_3 = 4.080336680780e-07
+reset
+op
+echo MCS 23
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.077940060318e-06
+alterparam pv_M1_1 = -2.217460429070e-07
+alterparam pv_M1_2 = -4.253786472773e-07
+alterparam pv_M2_0 = 1.353630485659e-07
+alterparam pv_M2_1 = -1.434739181559e-09
+alterparam pv_M2_2 = -7.025928571017e-07
+alterparam pv_M3_0 = 3.259192444315e-07
+alterparam pv_M3_1 = 1.425185069003e-06
+alterparam pv_M3_2 = -1.825127421580e-07
+alterparam pv_M3_3 = -1.434551339787e-07
+alterparam pv_M4_0 = -7.388785197447e-07
+alterparam pv_M4_1 = 2.256296079859e-07
+alterparam pv_M4_2 = -8.817453444692e-07
+alterparam pv_M4_3 = -7.827184336247e-07
+reset
+op
+echo MCS 24
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 9.048614055832e-07
+alterparam pv_M1_1 = -6.402519983441e-07
+alterparam pv_M1_2 = 7.646352701616e-07
+alterparam pv_M2_0 = 1.077883881431e-06
+alterparam pv_M2_1 = 1.833714966229e-07
+alterparam pv_M2_2 = 3.913068136062e-07
+alterparam pv_M3_0 = 1.380449880859e-06
+alterparam pv_M3_1 = -1.391079871527e-07
+alterparam pv_M3_2 = -4.193184203003e-07
+alterparam pv_M3_3 = -9.568788624203e-07
+alterparam pv_M4_0 = 2.949135933639e-08
+alterparam pv_M4_1 = 1.045912901893e-06
+alterparam pv_M4_2 = 6.785364013838e-07
+alterparam pv_M4_3 = -6.661591053031e-07
+reset
+op
+echo MCS 25
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -6.048417343681e-07
+alterparam pv_M1_1 = -3.565028951462e-07
+alterparam pv_M1_2 = 2.066647430568e-07
+alterparam pv_M2_0 = -1.451771023601e-07
+alterparam pv_M2_1 = 1.516418390750e-07
+alterparam pv_M2_2 = 2.098264264610e-07
+alterparam pv_M3_0 = -2.112648291798e-07
+alterparam pv_M3_1 = -2.840726653443e-08
+alterparam pv_M3_2 = 1.460828708709e-07
+alterparam pv_M3_3 = -5.937554678253e-08
+alterparam pv_M4_0 = 3.560430181062e-07
+alterparam pv_M4_1 = 1.322908946078e-06
+alterparam pv_M4_2 = 4.185876168359e-07
+alterparam pv_M4_3 = 3.946401582721e-08
+reset
+op
+echo MCS 26
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.192265912464e-06
+alterparam pv_M1_1 = 2.743270863307e-07
+alterparam pv_M1_2 = -1.376509505750e-06
+alterparam pv_M2_0 = -9.963375572440e-07
+alterparam pv_M2_1 = 6.043212108889e-07
+alterparam pv_M2_2 = 4.993836001343e-07
+alterparam pv_M3_0 = -1.060228824968e-07
+alterparam pv_M3_1 = -1.209160449065e-06
+alterparam pv_M3_2 = -2.625830544771e-07
+alterparam pv_M3_3 = -4.799404674617e-07
+alterparam pv_M4_0 = 4.503144101246e-07
+alterparam pv_M4_1 = 1.596456569571e-06
+alterparam pv_M4_2 = 1.533930190788e-07
+alterparam pv_M4_3 = -5.510561832856e-07
+reset
+op
+echo MCS 27
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -8.277049248057e-07
+alterparam pv_M1_1 = -3.966464631703e-08
+alterparam pv_M1_2 = -1.250116660011e-07
+alterparam pv_M2_0 = -8.142470063681e-07
+alterparam pv_M2_1 = 8.227557618450e-08
+alterparam pv_M2_2 = -8.138187554782e-07
+alterparam pv_M3_0 = 7.863785932467e-07
+alterparam pv_M3_1 = 7.514074493848e-07
+alterparam pv_M3_2 = 7.670349755918e-07
+alterparam pv_M3_3 = -3.352043023920e-07
+alterparam pv_M4_0 = 3.638209793821e-07
+alterparam pv_M4_1 = -9.338724272856e-08
+alterparam pv_M4_2 = -2.749316452248e-07
+alterparam pv_M4_3 = -2.398121939751e-07
+reset
+op
+echo MCS 28
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -9.190374831742e-07
+alterparam pv_M1_1 = -1.020965810477e-06
+alterparam pv_M1_2 = 5.616653750252e-07
+alterparam pv_M2_0 = -1.352238509144e-07
+alterparam pv_M2_1 = 1.530354798496e-07
+alterparam pv_M2_2 = 7.083162084609e-07
+alterparam pv_M3_0 = -1.225509739921e-06
+alterparam pv_M3_1 = -5.544636925275e-07
+alterparam pv_M3_2 = 1.239804567924e-07
+alterparam pv_M3_3 = 2.772528825191e-07
+alterparam pv_M4_0 = -2.666319008908e-07
+alterparam pv_M4_1 = 7.277396144970e-07
+alterparam pv_M4_2 = 1.487716879738e-07
+alterparam pv_M4_3 = -8.579907385358e-07
+reset
+op
+echo MCS 29
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -6.581493776858e-07
+alterparam pv_M1_1 = 5.695540489253e-07
+alterparam pv_M1_2 = 3.279783681877e-07
+alterparam pv_M2_0 = -1.342839079990e-06
+alterparam pv_M2_1 = 9.529765091497e-07
+alterparam pv_M2_2 = 4.228689690193e-07
+alterparam pv_M3_0 = 9.498869360596e-07
+alterparam pv_M3_1 = -2.713174949554e-07
+alterparam pv_M3_2 = -2.090958743431e-07
+alterparam pv_M3_3 = -7.965254433433e-07
+alterparam pv_M4_0 = 1.793880102433e-06
+alterparam pv_M4_1 = -1.240648725732e-07
+alterparam pv_M4_2 = 1.122555485480e-06
+alterparam pv_M4_3 = -4.577048817868e-07
+reset
+op
+echo MCS 30
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.158532181364e-07
+alterparam pv_M1_1 = -1.181824677007e-06
+alterparam pv_M1_2 = -2.707279571865e-07
+alterparam pv_M2_0 = 6.956197667552e-07
+alterparam pv_M2_1 = -8.851165403010e-07
+alterparam pv_M2_2 = 7.581793679983e-07
+alterparam pv_M3_0 = 2.384631464590e-07
+alterparam pv_M3_1 = -7.381847782823e-07
+alterparam pv_M3_2 = -3.546828320498e-07
+alterparam pv_M3_3 = -3.246084530084e-07
+alterparam pv_M4_0 = -3.501545965901e-08
+alterparam pv_M4_1 = -3.791110340106e-07
+alterparam pv_M4_2 = -5.849808846525e-07
+alterparam pv_M4_3 = -2.153760299143e-07
+reset
+op
+echo MCS 31
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.261206977013e-07
+alterparam pv_M1_1 = -9.118329840362e-07
+alterparam pv_M1_2 = -3.406591747467e-08
+alterparam pv_M2_0 = 6.242863518245e-07
+alterparam pv_M2_1 = -1.081429103643e-06
+alterparam pv_M2_2 = 2.480637689596e-09
+alterparam pv_M3_0 = -4.595884328182e-07
+alterparam pv_M3_1 = -6.909461648034e-07
+alterparam pv_M3_2 = 6.034715515544e-07
+alterparam pv_M3_3 = -3.664013009613e-07
+alterparam pv_M4_0 = 1.059459280358e-06
+alterparam pv_M4_1 = -5.514297026241e-07
+alterparam pv_M4_2 = 2.732981806349e-07
+alterparam pv_M4_3 = -1.607133551851e-07
+reset
+op
+echo MCS 32
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -5.331739343958e-07
+alterparam pv_M1_1 = 4.155490077408e-07
+alterparam pv_M1_2 = -1.095892283869e-07
+alterparam pv_M2_0 = 4.265342921061e-07
+alterparam pv_M2_1 = -3.344014544567e-08
+alterparam pv_M2_2 = -7.677880372462e-07
+alterparam pv_M3_0 = -7.217385400945e-08
+alterparam pv_M3_1 = 3.673785268256e-08
+alterparam pv_M3_2 = 6.777356542055e-07
+alterparam pv_M3_3 = -6.408289606659e-07
+alterparam pv_M4_0 = -2.781040594838e-08
+alterparam pv_M4_1 = -1.217552126527e-06
+alterparam pv_M4_2 = 4.606751608647e-07
+alterparam pv_M4_3 = -7.647239451062e-07
+reset
+op
+echo MCS 33
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.277289066619e-06
+alterparam pv_M1_1 = -4.187262507607e-08
+alterparam pv_M1_2 = 7.818373321265e-07
+alterparam pv_M2_0 = -1.077946774640e-06
+alterparam pv_M2_1 = -7.693573406004e-07
+alterparam pv_M2_2 = -5.255747157495e-07
+alterparam pv_M3_0 = -7.986747379559e-07
+alterparam pv_M3_1 = 2.682960328127e-07
+alterparam pv_M3_2 = -5.708949953002e-07
+alterparam pv_M3_3 = -5.101879628770e-07
+alterparam pv_M4_0 = 4.124592029110e-07
+alterparam pv_M4_1 = -5.342295188436e-07
+alterparam pv_M4_2 = 3.060217419033e-07
+alterparam pv_M4_3 = -6.868730421819e-07
+reset
+op
+echo MCS 34
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -8.571113631390e-07
+alterparam pv_M1_1 = -1.297858638911e-06
+alterparam pv_M1_2 = 1.316069111789e-06
+alterparam pv_M2_0 = -2.264573333561e-07
+alterparam pv_M2_1 = 1.724869386340e-07
+alterparam pv_M2_2 = -2.195531835284e-08
+alterparam pv_M3_0 = 1.131100431104e-07
+alterparam pv_M3_1 = 3.513364649890e-08
+alterparam pv_M3_2 = 1.349313208396e-06
+alterparam pv_M3_3 = -7.346320376208e-07
+alterparam pv_M4_0 = -1.101292016663e-06
+alterparam pv_M4_1 = -7.155635438726e-07
+alterparam pv_M4_2 = -9.437817917110e-07
+alterparam pv_M4_3 = 5.281819325990e-07
+reset
+op
+echo MCS 35
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.800949951018e-07
+alterparam pv_M1_1 = -6.797527408358e-07
+alterparam pv_M1_2 = -9.831865663414e-07
+alterparam pv_M2_0 = -2.508791193784e-07
+alterparam pv_M2_1 = 9.836731275169e-07
+alterparam pv_M2_2 = -1.993736655351e-06
+alterparam pv_M3_0 = 3.723813595255e-07
+alterparam pv_M3_1 = -7.606738162258e-07
+alterparam pv_M3_2 = 7.356506642430e-07
+alterparam pv_M3_3 = -7.622073281973e-07
+alterparam pv_M4_0 = -2.018194668823e-07
+alterparam pv_M4_1 = -1.065100166422e-06
+alterparam pv_M4_2 = -6.910256530550e-07
+alterparam pv_M4_3 = 9.799362698238e-07
+reset
+op
+echo MCS 36
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.802367532900e-07
+alterparam pv_M1_1 = -2.840222741724e-07
+alterparam pv_M1_2 = -6.153047837726e-07
+alterparam pv_M2_0 = -1.339123868487e-06
+alterparam pv_M2_1 = -2.783573304448e-07
+alterparam pv_M2_2 = -2.185189946449e-08
+alterparam pv_M3_0 = -5.943540641304e-08
+alterparam pv_M3_1 = -6.632090829251e-08
+alterparam pv_M3_2 = -7.932391946125e-07
+alterparam pv_M3_3 = -4.686271375761e-08
+alterparam pv_M4_0 = -2.734620892067e-08
+alterparam pv_M4_1 = 9.125651684726e-07
+alterparam pv_M4_2 = 1.319979884240e-06
+alterparam pv_M4_3 = -9.686586988172e-08
+reset
+op
+echo MCS 37
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -5.418601345401e-07
+alterparam pv_M1_1 = -4.594930461063e-08
+alterparam pv_M1_2 = -4.296531241256e-07
+alterparam pv_M2_0 = -5.249799856964e-07
+alterparam pv_M2_1 = -4.147192014177e-08
+alterparam pv_M2_2 = -7.377276381098e-07
+alterparam pv_M3_0 = 4.285821938647e-07
+alterparam pv_M3_1 = -7.347938949879e-08
+alterparam pv_M3_2 = 1.767825691336e-07
+alterparam pv_M3_3 = -1.293581399854e-07
+alterparam pv_M4_0 = -5.142465513003e-07
+alterparam pv_M4_1 = -6.703086329890e-07
+alterparam pv_M4_2 = -1.677794716707e-07
+alterparam pv_M4_3 = -3.880321558414e-07
+reset
+op
+echo MCS 38
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.653932188411e-07
+alterparam pv_M1_1 = -3.133687383257e-09
+alterparam pv_M1_2 = -9.632963395124e-07
+alterparam pv_M2_0 = 4.746192598784e-08
+alterparam pv_M2_1 = -9.495457071472e-07
+alterparam pv_M2_2 = -4.359155094545e-07
+alterparam pv_M3_0 = -2.081394331447e-07
+alterparam pv_M3_1 = -1.467439807626e-06
+alterparam pv_M3_2 = 6.470553691087e-08
+alterparam pv_M3_3 = 1.067613504293e-07
+alterparam pv_M4_0 = -1.117399787621e-07
+alterparam pv_M4_1 = -3.000376207392e-07
+alterparam pv_M4_2 = -2.641776815386e-07
+alterparam pv_M4_3 = -6.905176803512e-07
+reset
+op
+echo MCS 39
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.907069603238e-07
+alterparam pv_M1_1 = -3.907555536291e-07
+alterparam pv_M1_2 = 6.483136290501e-08
+alterparam pv_M2_0 = -8.514527943886e-07
+alterparam pv_M2_1 = 1.665872222409e-07
+alterparam pv_M2_2 = 1.012710507721e-07
+alterparam pv_M3_0 = -1.001000385975e-07
+alterparam pv_M3_1 = -3.105647087342e-07
+alterparam pv_M3_2 = 3.905632834855e-07
+alterparam pv_M3_3 = -1.177051154849e-06
+alterparam pv_M4_0 = 3.255896778224e-07
+alterparam pv_M4_1 = 1.718534404256e-07
+alterparam pv_M4_2 = 2.003772980787e-07
+alterparam pv_M4_3 = 2.710429334233e-07
+reset
+op
+echo MCS 40
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -4.621963923865e-07
+alterparam pv_M1_1 = -1.834659666720e-07
+alterparam pv_M1_2 = 4.504682660145e-07
+alterparam pv_M2_0 = 3.045079297362e-07
+alterparam pv_M2_1 = 1.461679982023e-07
+alterparam pv_M2_2 = -1.070786114212e-06
+alterparam pv_M3_0 = 3.803436264468e-07
+alterparam pv_M3_1 = 8.269408688393e-07
+alterparam pv_M3_2 = 7.139455595014e-07
+alterparam pv_M3_3 = 1.653767542553e-07
+alterparam pv_M4_0 = -1.101445103518e-06
+alterparam pv_M4_1 = 6.664798297128e-07
+alterparam pv_M4_2 = -1.041247521857e-07
+alterparam pv_M4_3 = -1.790761816636e-06
+reset
+op
+echo MCS 41
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.667259126509e-07
+alterparam pv_M1_1 = -1.055124786511e-06
+alterparam pv_M1_2 = -9.167219256614e-07
+alterparam pv_M2_0 = -4.489837385723e-07
+alterparam pv_M2_1 = 8.998578515592e-07
+alterparam pv_M2_2 = -2.622272647111e-07
+alterparam pv_M3_0 = 1.916199893331e-07
+alterparam pv_M3_1 = 1.236000000466e-06
+alterparam pv_M3_2 = 1.127149254587e-06
+alterparam pv_M3_3 = -7.308190119032e-08
+alterparam pv_M4_0 = -1.707811524981e-07
+alterparam pv_M4_1 = -8.915701755637e-07
+alterparam pv_M4_2 = -4.910560135036e-07
+alterparam pv_M4_3 = 3.007737720313e-07
+reset
+op
+echo MCS 42
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.798239051997e-07
+alterparam pv_M1_1 = 7.795020080912e-08
+alterparam pv_M1_2 = 7.034309979991e-07
+alterparam pv_M2_0 = -5.461466595873e-07
+alterparam pv_M2_1 = -3.965208768707e-08
+alterparam pv_M2_2 = 5.170668758598e-07
+alterparam pv_M3_0 = 4.130535314961e-07
+alterparam pv_M3_1 = 7.572730203035e-07
+alterparam pv_M3_2 = 2.807358218930e-07
+alterparam pv_M3_3 = -2.187806451790e-07
+alterparam pv_M4_0 = 2.561086033248e-07
+alterparam pv_M4_1 = -7.089418621483e-07
+alterparam pv_M4_2 = -1.159272810814e-06
+alterparam pv_M4_3 = 4.105969539161e-07
+reset
+op
+echo MCS 43
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.899010325462e-08
+alterparam pv_M1_1 = 2.180785382227e-07
+alterparam pv_M1_2 = -1.200444125987e-06
+alterparam pv_M2_0 = -2.581746027897e-07
+alterparam pv_M2_1 = -4.241630328626e-07
+alterparam pv_M2_2 = -6.110902467139e-07
+alterparam pv_M3_0 = -1.594536402747e-06
+alterparam pv_M3_1 = -2.367913100587e-07
+alterparam pv_M3_2 = 6.344899469501e-07
+alterparam pv_M3_3 = 2.694060727465e-07
+alterparam pv_M4_0 = -4.249334228258e-07
+alterparam pv_M4_1 = -1.051890043067e-08
+alterparam pv_M4_2 = 5.351384687388e-07
+alterparam pv_M4_3 = -1.951910189591e-06
+reset
+op
+echo MCS 44
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -8.806063675253e-08
+alterparam pv_M1_1 = 3.841005076135e-07
+alterparam pv_M1_2 = 4.823377765445e-07
+alterparam pv_M2_0 = 1.202597862346e-06
+alterparam pv_M2_1 = 8.025984966456e-07
+alterparam pv_M2_2 = 2.210152999960e-07
+alterparam pv_M3_0 = 2.135292816798e-07
+alterparam pv_M3_1 = 5.564543919902e-07
+alterparam pv_M3_2 = -3.813617752593e-07
+alterparam pv_M3_3 = -2.841724617302e-08
+alterparam pv_M4_0 = 6.408077444526e-07
+alterparam pv_M4_1 = 1.384122785253e-06
+alterparam pv_M4_2 = -1.126189919042e-07
+alterparam pv_M4_3 = -3.422445563925e-08
+reset
+op
+echo MCS 45
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.403466909585e-07
+alterparam pv_M1_1 = 9.497884405479e-07
+alterparam pv_M1_2 = -2.143474252805e-08
+alterparam pv_M2_0 = 1.038993738686e-06
+alterparam pv_M2_1 = -6.835298735268e-07
+alterparam pv_M2_2 = -1.315475262625e-07
+alterparam pv_M3_0 = -1.401239260872e-07
+alterparam pv_M3_1 = 5.561435309505e-07
+alterparam pv_M3_2 = 7.391107006669e-07
+alterparam pv_M3_3 = -1.067338341449e-06
+alterparam pv_M4_0 = -6.470858787945e-07
+alterparam pv_M4_1 = 2.381906720023e-07
+alterparam pv_M4_2 = -4.657667437303e-07
+alterparam pv_M4_3 = -1.076519004027e-06
+reset
+op
+echo MCS 46
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 7.343162303442e-07
+alterparam pv_M1_1 = 3.492895962083e-07
+alterparam pv_M1_2 = 3.487291523588e-07
+alterparam pv_M2_0 = -3.361908901851e-07
+alterparam pv_M2_1 = 7.275693569511e-07
+alterparam pv_M2_2 = -1.696773406871e-07
+alterparam pv_M3_0 = 7.752968200808e-07
+alterparam pv_M3_1 = -6.446446104030e-07
+alterparam pv_M3_2 = -6.039649671090e-07
+alterparam pv_M3_3 = 1.447187440730e-07
+alterparam pv_M4_0 = -4.966238229384e-07
+alterparam pv_M4_1 = 4.776160286820e-07
+alterparam pv_M4_2 = 1.839098075772e-07
+alterparam pv_M4_3 = -6.526392069910e-07
+reset
+op
+echo MCS 47
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.152376054351e-08
+alterparam pv_M1_1 = -2.483908353968e-07
+alterparam pv_M1_2 = 6.475916039444e-07
+alterparam pv_M2_0 = -4.472825038651e-07
+alterparam pv_M2_1 = -3.105422739236e-07
+alterparam pv_M2_2 = 8.564738294150e-07
+alterparam pv_M3_0 = 1.582924565853e-06
+alterparam pv_M3_1 = 1.413512582126e-06
+alterparam pv_M3_2 = 4.470542027225e-08
+alterparam pv_M3_3 = 1.547536474625e-07
+alterparam pv_M4_0 = 1.084319018769e-06
+alterparam pv_M4_1 = -8.798869531121e-08
+alterparam pv_M4_2 = -6.903830956755e-07
+alterparam pv_M4_3 = 8.264352750244e-08
+reset
+op
+echo MCS 48
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 3.192705773338e-07
+alterparam pv_M1_1 = -5.862973173775e-07
+alterparam pv_M1_2 = -1.164061203555e-06
+alterparam pv_M2_0 = -1.015921182472e-06
+alterparam pv_M2_1 = 4.705295592384e-07
+alterparam pv_M2_2 = -5.362531773767e-07
+alterparam pv_M3_0 = -9.994748751662e-08
+alterparam pv_M3_1 = 1.503016870954e-07
+alterparam pv_M3_2 = 4.377987141177e-07
+alterparam pv_M3_3 = -2.368120400087e-07
+alterparam pv_M4_0 = 3.526452536940e-07
+alterparam pv_M4_1 = -6.293676682235e-07
+alterparam pv_M4_2 = -2.557704404072e-07
+alterparam pv_M4_3 = -7.243712088780e-07
+reset
+op
+echo MCS 49
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 8.002802734141e-07
+alterparam pv_M1_1 = -1.915073422259e-08
+alterparam pv_M1_2 = -5.227693378854e-07
+alterparam pv_M2_0 = -2.491644879108e-07
+alterparam pv_M2_1 = -1.567857123016e-07
+alterparam pv_M2_2 = 4.953422948013e-07
+alterparam pv_M3_0 = -1.128285161901e-06
+alterparam pv_M3_1 = -7.334152840996e-07
+alterparam pv_M3_2 = -2.673622015921e-07
+alterparam pv_M3_3 = 1.790610626388e-06
+alterparam pv_M4_0 = 6.757670255462e-07
+alterparam pv_M4_1 = -7.880823808812e-08
+alterparam pv_M4_2 = 5.034597329247e-07
+alterparam pv_M4_3 = 1.454827067404e-06
+reset
+op
+echo MCS 50
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.652819156841e-07
+alterparam pv_M1_1 = -2.590933603286e-07
+alterparam pv_M1_2 = 8.569734978275e-07
+alterparam pv_M2_0 = 3.494348458260e-07
+alterparam pv_M2_1 = 4.747042265639e-07
+alterparam pv_M2_2 = -3.593675048822e-07
+alterparam pv_M3_0 = 1.360617083260e-06
+alterparam pv_M3_1 = 1.208863248861e-06
+alterparam pv_M3_2 = 4.001855193095e-07
+alterparam pv_M3_3 = 4.838659848510e-07
+alterparam pv_M4_0 = -1.433489909997e-06
+alterparam pv_M4_1 = 4.509289194109e-07
+alterparam pv_M4_2 = -1.372554983136e-07
+alterparam pv_M4_3 = 3.068176669867e-07
+reset
+op
+echo MCS 51
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.825716780010e-07
+alterparam pv_M1_1 = -2.413297235925e-07
+alterparam pv_M1_2 = -1.195351144385e-06
+alterparam pv_M2_0 = 2.601265995900e-07
+alterparam pv_M2_1 = -5.242374081015e-07
+alterparam pv_M2_2 = -2.334824820731e-07
+alterparam pv_M3_0 = -4.274530100530e-07
+alterparam pv_M3_1 = -2.415294721697e-07
+alterparam pv_M3_2 = -1.633077930175e-06
+alterparam pv_M3_3 = 8.605115660109e-07
+alterparam pv_M4_0 = 1.791427469422e-07
+alterparam pv_M4_1 = 7.858779554157e-07
+alterparam pv_M4_2 = 1.399959583535e-06
+alterparam pv_M4_3 = 1.597575017230e-08
+reset
+op
+echo MCS 52
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.274514899161e-06
+alterparam pv_M1_1 = -6.320734535169e-07
+alterparam pv_M1_2 = -8.534103426865e-07
+alterparam pv_M2_0 = -3.548789634734e-07
+alterparam pv_M2_1 = 5.631962539825e-08
+alterparam pv_M2_2 = -1.415760193717e-06
+alterparam pv_M3_0 = 2.421667437320e-07
+alterparam pv_M3_1 = -1.067983431549e-06
+alterparam pv_M3_2 = 2.102689938152e-07
+alterparam pv_M3_3 = -7.742193123452e-08
+alterparam pv_M4_0 = -2.217707760250e-07
+alterparam pv_M4_1 = -5.164924017469e-08
+alterparam pv_M4_2 = -3.816806952593e-07
+alterparam pv_M4_3 = -4.330827109142e-07
+reset
+op
+echo MCS 53
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.189888455068e-06
+alterparam pv_M1_1 = -2.094967523831e-08
+alterparam pv_M1_2 = 1.304989401690e-06
+alterparam pv_M2_0 = 1.400421489072e-06
+alterparam pv_M2_1 = 9.346661860086e-07
+alterparam pv_M2_2 = 4.990770981345e-07
+alterparam pv_M3_0 = -4.783436830749e-07
+alterparam pv_M3_1 = 1.020178865910e-06
+alterparam pv_M3_2 = -3.968817435663e-08
+alterparam pv_M3_3 = -4.870234001115e-08
+alterparam pv_M4_0 = -2.059286797891e-07
+alterparam pv_M4_1 = 6.502688240663e-08
+alterparam pv_M4_2 = -3.077434081864e-07
+alterparam pv_M4_3 = -5.924294010624e-08
+reset
+op
+echo MCS 54
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.669273846499e-07
+alterparam pv_M1_1 = -2.642201395053e-07
+alterparam pv_M1_2 = 1.612596944780e-06
+alterparam pv_M2_0 = -4.921040910198e-08
+alterparam pv_M2_1 = -1.687585037519e-07
+alterparam pv_M2_2 = 3.764454628845e-07
+alterparam pv_M3_0 = 5.007177420327e-07
+alterparam pv_M3_1 = -7.875535129950e-07
+alterparam pv_M3_2 = -1.464833801025e-07
+alterparam pv_M3_3 = 6.493190741248e-07
+alterparam pv_M4_0 = 1.908040173362e-07
+alterparam pv_M4_1 = 8.623453115322e-08
+alterparam pv_M4_2 = 1.098856431557e-06
+alterparam pv_M4_3 = -4.792577144447e-07
+reset
+op
+echo MCS 55
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.851018354596e-08
+alterparam pv_M1_1 = -3.677370088167e-07
+alterparam pv_M1_2 = 1.053807054838e-06
+alterparam pv_M2_0 = -1.380173724258e-06
+alterparam pv_M2_1 = -4.738617372324e-07
+alterparam pv_M2_2 = -3.741704789904e-07
+alterparam pv_M3_0 = 4.691933671306e-07
+alterparam pv_M3_1 = 4.287015004241e-07
+alterparam pv_M3_2 = 9.865513224874e-07
+alterparam pv_M3_3 = -1.113009296627e-06
+alterparam pv_M4_0 = 5.306659679965e-07
+alterparam pv_M4_1 = -2.073801808237e-07
+alterparam pv_M4_2 = -4.706681189942e-07
+alterparam pv_M4_3 = 3.815325688626e-07
+reset
+op
+echo MCS 56
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -6.506369385905e-07
+alterparam pv_M1_1 = -1.468599475053e-06
+alterparam pv_M1_2 = -2.617840040378e-07
+alterparam pv_M2_0 = -1.059083925860e-06
+alterparam pv_M2_1 = -4.588527774983e-07
+alterparam pv_M2_2 = 2.627288930306e-07
+alterparam pv_M3_0 = 2.206171358522e-07
+alterparam pv_M3_1 = 1.122107361434e-06
+alterparam pv_M3_2 = -1.411772254598e-07
+alterparam pv_M3_3 = -1.084229165484e-06
+alterparam pv_M4_0 = -5.346412145609e-07
+alterparam pv_M4_1 = -6.501028197492e-07
+alterparam pv_M4_2 = -8.611324278454e-07
+alterparam pv_M4_3 = 3.078510959016e-07
+reset
+op
+echo MCS 57
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -4.562481616161e-07
+alterparam pv_M1_1 = -1.398213727613e-06
+alterparam pv_M1_2 = 4.927988400491e-07
+alterparam pv_M2_0 = -7.879048233686e-08
+alterparam pv_M2_1 = 2.523220593032e-07
+alterparam pv_M2_2 = 7.475642117487e-08
+alterparam pv_M3_0 = 4.466473458849e-07
+alterparam pv_M3_1 = 2.688331382690e-08
+alterparam pv_M3_2 = 8.741271589871e-07
+alterparam pv_M3_3 = 3.005082126805e-07
+alterparam pv_M4_0 = 2.772336751816e-07
+alterparam pv_M4_1 = 2.898196768774e-07
+alterparam pv_M4_2 = -1.029998425503e-06
+alterparam pv_M4_3 = -1.164150565262e-07
+reset
+op
+echo MCS 58
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.833644482339e-07
+alterparam pv_M1_1 = 1.467576939456e-07
+alterparam pv_M1_2 = -9.607418571325e-07
+alterparam pv_M2_0 = 1.155493639978e-06
+alterparam pv_M2_1 = 7.381393230409e-08
+alterparam pv_M2_2 = -8.565308471643e-07
+alterparam pv_M3_0 = -1.208365560228e-06
+alterparam pv_M3_1 = -1.989001528515e-07
+alterparam pv_M3_2 = -6.341009258601e-08
+alterparam pv_M3_3 = -5.079092048651e-07
+alterparam pv_M4_0 = 6.513431236606e-08
+alterparam pv_M4_1 = -4.533797329476e-07
+alterparam pv_M4_2 = 3.900812906790e-07
+alterparam pv_M4_3 = -5.123284330360e-07
+reset
+op
+echo MCS 59
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.722377024890e-08
+alterparam pv_M1_1 = 6.921438171754e-07
+alterparam pv_M1_2 = 1.818444506072e-06
+alterparam pv_M2_0 = -7.125113345256e-07
+alterparam pv_M2_1 = -3.284565941424e-07
+alterparam pv_M2_2 = -5.938535169969e-07
+alterparam pv_M3_0 = 5.546038749997e-07
+alterparam pv_M3_1 = -8.118288045485e-07
+alterparam pv_M3_2 = -3.424921514544e-07
+alterparam pv_M3_3 = -2.093126810907e-08
+alterparam pv_M4_0 = -6.920302318679e-07
+alterparam pv_M4_1 = -6.769310292165e-07
+alterparam pv_M4_2 = -3.363161694785e-07
+alterparam pv_M4_3 = -1.485235537420e-06
+reset
+op
+echo MCS 60
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.022107449350e-06
+alterparam pv_M1_1 = -2.920592043398e-07
+alterparam pv_M1_2 = 1.048148881370e-07
+alterparam pv_M2_0 = -1.313521457409e-07
+alterparam pv_M2_1 = -1.254385293734e-06
+alterparam pv_M2_2 = -3.279464319249e-07
+alterparam pv_M3_0 = 5.645806699565e-07
+alterparam pv_M3_1 = 3.930562729568e-07
+alterparam pv_M3_2 = -5.568314689027e-08
+alterparam pv_M3_3 = -6.274652561026e-07
+alterparam pv_M4_0 = 4.463373762963e-07
+alterparam pv_M4_1 = -4.093646084390e-07
+alterparam pv_M4_2 = -8.267834742809e-07
+alterparam pv_M4_3 = -5.672313266574e-07
+reset
+op
+echo MCS 61
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.024134777313e-06
+alterparam pv_M1_1 = 1.556907980943e-07
+alterparam pv_M1_2 = 8.197114522806e-07
+alterparam pv_M2_0 = -3.389419576100e-07
+alterparam pv_M2_1 = 6.633717595035e-07
+alterparam pv_M2_2 = -4.253275881535e-07
+alterparam pv_M3_0 = -1.113179601875e-07
+alterparam pv_M3_1 = 1.758115129220e-06
+alterparam pv_M3_2 = 5.424560000770e-07
+alterparam pv_M3_3 = -3.543809709240e-07
+alterparam pv_M4_0 = -5.997611766952e-08
+alterparam pv_M4_1 = 2.306747930901e-07
+alterparam pv_M4_2 = 8.559227698854e-07
+alterparam pv_M4_3 = -3.458693260227e-07
+reset
+op
+echo MCS 62
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.231298532933e-06
+alterparam pv_M1_1 = -1.977366223649e-07
+alterparam pv_M1_2 = 1.087916109215e-08
+alterparam pv_M2_0 = 7.745504049009e-08
+alterparam pv_M2_1 = 9.310405240162e-07
+alterparam pv_M2_2 = 2.239315805843e-07
+alterparam pv_M3_0 = 5.748191031854e-07
+alterparam pv_M3_1 = -7.786049598316e-07
+alterparam pv_M3_2 = 6.136990278669e-07
+alterparam pv_M3_3 = 1.482251257822e-06
+alterparam pv_M4_0 = 5.465294003780e-07
+alterparam pv_M4_1 = 1.792909689787e-07
+alterparam pv_M4_2 = 1.088860922457e-07
+alterparam pv_M4_3 = 1.263700396160e-06
+reset
+op
+echo MCS 63
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -6.556163142963e-07
+alterparam pv_M1_1 = -7.856123071512e-08
+alterparam pv_M1_2 = 3.254159097201e-07
+alterparam pv_M2_0 = 5.260882285450e-07
+alterparam pv_M2_1 = -3.092375277285e-07
+alterparam pv_M2_2 = 2.173090422153e-07
+alterparam pv_M3_0 = -1.965201641008e-07
+alterparam pv_M3_1 = 8.518595494101e-08
+alterparam pv_M3_2 = -9.340282393576e-08
+alterparam pv_M3_3 = -8.072286309714e-07
+alterparam pv_M4_0 = -1.492955914524e-08
+alterparam pv_M4_1 = 6.202397893780e-07
+alterparam pv_M4_2 = -6.837851914805e-07
+alterparam pv_M4_3 = -1.704776104468e-07
+reset
+op
+echo MCS 64
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.700704915753e-07
+alterparam pv_M1_1 = -7.565088719358e-07
+alterparam pv_M1_2 = 1.291448069567e-07
+alterparam pv_M2_0 = -7.496249839200e-07
+alterparam pv_M2_1 = 8.023049212807e-07
+alterparam pv_M2_2 = 1.635411682800e-06
+alterparam pv_M3_0 = 1.429950424781e-06
+alterparam pv_M3_1 = -1.549841435584e-07
+alterparam pv_M3_2 = 5.233998233609e-07
+alterparam pv_M3_3 = 8.555831433063e-08
+alterparam pv_M4_0 = 7.219977150972e-08
+alterparam pv_M4_1 = 1.094429513418e-06
+alterparam pv_M4_2 = -9.328008239226e-07
+alterparam pv_M4_3 = 7.462059660178e-07
+reset
+op
+echo MCS 65
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.463125828998e-08
+alterparam pv_M1_1 = 9.959886244059e-07
+alterparam pv_M1_2 = 1.323939848132e-07
+alterparam pv_M2_0 = -4.756509288437e-07
+alterparam pv_M2_1 = 1.959678397415e-07
+alterparam pv_M2_2 = 5.204073236257e-07
+alterparam pv_M3_0 = 2.528873648417e-08
+alterparam pv_M3_1 = 3.450951748318e-07
+alterparam pv_M3_2 = -3.688800543156e-07
+alterparam pv_M3_3 = -1.508883776552e-06
+alterparam pv_M4_0 = 6.364127793139e-07
+alterparam pv_M4_1 = 4.943805905885e-07
+alterparam pv_M4_2 = 1.047779405861e-07
+alterparam pv_M4_3 = 4.837357244370e-08
+reset
+op
+echo MCS 66
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 7.327717658257e-07
+alterparam pv_M1_1 = -3.232232653105e-07
+alterparam pv_M1_2 = -4.995950287543e-07
+alterparam pv_M2_0 = -1.333248913125e-07
+alterparam pv_M2_1 = 8.408186855146e-07
+alterparam pv_M2_2 = -9.808369408768e-07
+alterparam pv_M3_0 = 8.427510697989e-07
+alterparam pv_M3_1 = -4.520200281016e-07
+alterparam pv_M3_2 = -7.783431930019e-07
+alterparam pv_M3_3 = 8.909982690506e-07
+alterparam pv_M4_0 = -6.851164306020e-08
+alterparam pv_M4_1 = -9.194045361884e-07
+alterparam pv_M4_2 = -2.536625786946e-07
+alterparam pv_M4_3 = 6.583534875204e-07
+reset
+op
+echo MCS 67
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 8.429237452803e-07
+alterparam pv_M1_1 = -3.020043742222e-07
+alterparam pv_M1_2 = 2.873121640945e-07
+alterparam pv_M2_0 = 5.049340859072e-07
+alterparam pv_M2_1 = -4.558197650393e-07
+alterparam pv_M2_2 = 2.510484163160e-07
+alterparam pv_M3_0 = -2.254108969374e-08
+alterparam pv_M3_1 = -3.790264955270e-07
+alterparam pv_M3_2 = -3.480011424534e-07
+alterparam pv_M3_3 = 4.740053670163e-08
+alterparam pv_M4_0 = 2.110960307051e-08
+alterparam pv_M4_1 = -3.998617806885e-07
+alterparam pv_M4_2 = -3.011886745630e-07
+alterparam pv_M4_3 = 7.872483109780e-07
+reset
+op
+echo MCS 68
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.511986172853e-07
+alterparam pv_M1_1 = 6.258562286046e-07
+alterparam pv_M1_2 = 8.498166499837e-07
+alterparam pv_M2_0 = 4.163743548403e-07
+alterparam pv_M2_1 = 1.605759111496e-06
+alterparam pv_M2_2 = -5.835780774008e-07
+alterparam pv_M3_0 = 5.716319052447e-07
+alterparam pv_M3_1 = -2.249617607239e-07
+alterparam pv_M3_2 = 1.312236929942e-06
+alterparam pv_M3_3 = 1.202392740838e-06
+alterparam pv_M4_0 = -1.381835978668e-06
+alterparam pv_M4_1 = -6.850918901429e-07
+alterparam pv_M4_2 = 4.697401640525e-07
+alterparam pv_M4_3 = 5.585204603462e-07
+reset
+op
+echo MCS 69
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.208295520256e-07
+alterparam pv_M1_1 = -5.010935410238e-08
+alterparam pv_M1_2 = 3.218190213080e-07
+alterparam pv_M2_0 = 4.617558855047e-07
+alterparam pv_M2_1 = -5.506330274945e-08
+alterparam pv_M2_2 = 7.264121881548e-07
+alterparam pv_M3_0 = -1.597705826917e-06
+alterparam pv_M3_1 = 4.481596955600e-07
+alterparam pv_M3_2 = -7.311856142509e-07
+alterparam pv_M3_3 = 6.778875789882e-07
+alterparam pv_M4_0 = -1.617043075923e-07
+alterparam pv_M4_1 = -6.284675064158e-07
+alterparam pv_M4_2 = 2.643887505341e-07
+alterparam pv_M4_3 = -6.444100962492e-07
+reset
+op
+echo MCS 70
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -6.454243700108e-07
+alterparam pv_M1_1 = -1.108244467210e-06
+alterparam pv_M1_2 = -1.888523452801e-08
+alterparam pv_M2_0 = 3.513072812406e-07
+alterparam pv_M2_1 = 7.233886121235e-07
+alterparam pv_M2_2 = -1.002167321541e-07
+alterparam pv_M3_0 = 7.409455235950e-07
+alterparam pv_M3_1 = 1.270032731454e-08
+alterparam pv_M3_2 = -6.596491750724e-08
+alterparam pv_M3_3 = 4.055702498676e-07
+alterparam pv_M4_0 = 7.483967091574e-07
+alterparam pv_M4_1 = -2.414306180784e-07
+alterparam pv_M4_2 = -1.723654958781e-07
+alterparam pv_M4_3 = -1.137249768910e-07
+reset
+op
+echo MCS 71
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.852661096882e-08
+alterparam pv_M1_1 = -6.366847508478e-07
+alterparam pv_M1_2 = 7.269100561737e-07
+alterparam pv_M2_0 = -2.831323658829e-07
+alterparam pv_M2_1 = 3.269969042030e-07
+alterparam pv_M2_2 = -5.836972535030e-07
+alterparam pv_M3_0 = 2.537127081477e-07
+alterparam pv_M3_1 = 2.768980769024e-07
+alterparam pv_M3_2 = -2.974666754655e-07
+alterparam pv_M3_3 = 1.428984622101e-06
+alterparam pv_M4_0 = 2.623648726853e-07
+alterparam pv_M4_1 = 1.256478491124e-06
+alterparam pv_M4_2 = 6.782136371883e-07
+alterparam pv_M4_3 = -4.682990070784e-07
+reset
+op
+echo MCS 72
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.702468890318e-07
+alterparam pv_M1_1 = 3.083707291178e-07
+alterparam pv_M1_2 = 4.325551208553e-08
+alterparam pv_M2_0 = 3.497430874297e-08
+alterparam pv_M2_1 = -2.023774640474e-07
+alterparam pv_M2_2 = -1.278785894760e-06
+alterparam pv_M3_0 = -1.594049508636e-07
+alterparam pv_M3_1 = -1.568448728635e-06
+alterparam pv_M3_2 = 2.629161384657e-07
+alterparam pv_M3_3 = -5.134003850234e-07
+alterparam pv_M4_0 = -5.058760184506e-07
+alterparam pv_M4_1 = -1.550712010299e-07
+alterparam pv_M4_2 = 1.928084651079e-07
+alterparam pv_M4_3 = -1.012581278978e-06
+reset
+op
+echo MCS 73
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.236447758724e-06
+alterparam pv_M1_1 = -7.538224069291e-07
+alterparam pv_M1_2 = -1.443719377696e-06
+alterparam pv_M2_0 = -6.836659155403e-07
+alterparam pv_M2_1 = 1.124924178957e-06
+alterparam pv_M2_2 = -7.471190664613e-07
+alterparam pv_M3_0 = 4.606130164719e-07
+alterparam pv_M3_1 = -9.698922742358e-07
+alterparam pv_M3_2 = 2.115098882736e-07
+alterparam pv_M3_3 = -2.260859467902e-07
+alterparam pv_M4_0 = -4.229402625294e-08
+alterparam pv_M4_1 = 4.021864939643e-07
+alterparam pv_M4_2 = 1.241849302003e-06
+alterparam pv_M4_3 = 1.376781803072e-07
+reset
+op
+echo MCS 74
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 8.793505783343e-08
+alterparam pv_M1_1 = -6.882749136198e-07
+alterparam pv_M1_2 = 4.124834260205e-07
+alterparam pv_M2_0 = -1.739994135909e-07
+alterparam pv_M2_1 = 5.883178220355e-07
+alterparam pv_M2_2 = -3.090512751952e-08
+alterparam pv_M3_0 = 1.230970873231e-06
+alterparam pv_M3_1 = -1.402133705895e-06
+alterparam pv_M3_2 = -2.097274188612e-07
+alterparam pv_M3_3 = 6.233016442878e-07
+alterparam pv_M4_0 = -2.479768306680e-07
+alterparam pv_M4_1 = -5.601509489671e-07
+alterparam pv_M4_2 = -1.880059793044e-07
+alterparam pv_M4_3 = -9.757569749874e-07
+reset
+op
+echo MCS 75
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 8.411301860955e-08
+alterparam pv_M1_1 = 1.725667116413e-06
+alterparam pv_M1_2 = 8.096595370683e-07
+alterparam pv_M2_0 = -7.841878596146e-07
+alterparam pv_M2_1 = -6.175454016031e-07
+alterparam pv_M2_2 = -2.861857782946e-07
+alterparam pv_M3_0 = 7.102294550538e-07
+alterparam pv_M3_1 = -5.808790348402e-07
+alterparam pv_M3_2 = -4.880673169258e-07
+alterparam pv_M3_3 = 6.256123240893e-07
+alterparam pv_M4_0 = 6.114016959534e-07
+alterparam pv_M4_1 = -2.643268812683e-07
+alterparam pv_M4_2 = -7.903780900652e-07
+alterparam pv_M4_3 = -1.095835073638e-06
+reset
+op
+echo MCS 76
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -4.942606587206e-07
+alterparam pv_M1_1 = -1.577222112429e-06
+alterparam pv_M1_2 = 5.302027231670e-07
+alterparam pv_M2_0 = -4.454989801875e-07
+alterparam pv_M2_1 = 3.403260137299e-07
+alterparam pv_M2_2 = 1.321105197482e-06
+alterparam pv_M3_0 = 8.294332188164e-07
+alterparam pv_M3_1 = -8.139752499724e-07
+alterparam pv_M3_2 = 6.146518528772e-07
+alterparam pv_M3_3 = 8.187285558014e-07
+alterparam pv_M4_0 = -5.277537551285e-07
+alterparam pv_M4_1 = -6.740827187885e-07
+alterparam pv_M4_2 = -7.756388444930e-08
+alterparam pv_M4_3 = -1.132377309993e-06
+reset
+op
+echo MCS 77
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.039966655979e-06
+alterparam pv_M1_1 = -1.700849049272e-06
+alterparam pv_M1_2 = -7.826310291388e-07
+alterparam pv_M2_0 = -1.906113554425e-07
+alterparam pv_M2_1 = -1.605748221999e-07
+alterparam pv_M2_2 = 1.174675293482e-07
+alterparam pv_M3_0 = 1.919431236534e-07
+alterparam pv_M3_1 = -1.510465040846e-07
+alterparam pv_M3_2 = 8.039000254404e-07
+alterparam pv_M3_3 = -1.512767397059e-06
+alterparam pv_M4_0 = -1.163289062824e-10
+alterparam pv_M4_1 = -5.052874832542e-07
+alterparam pv_M4_2 = 9.370114858828e-08
+alterparam pv_M4_3 = 1.561007784255e-07
+reset
+op
+echo MCS 78
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -6.447603818512e-07
+alterparam pv_M1_1 = -4.532193818450e-07
+alterparam pv_M1_2 = 5.604434466898e-07
+alterparam pv_M2_0 = 2.468200545788e-07
+alterparam pv_M2_1 = -4.810082824132e-07
+alterparam pv_M2_2 = 1.442420730232e-06
+alterparam pv_M3_0 = 1.632835174215e-06
+alterparam pv_M3_1 = -1.034117136104e-06
+alterparam pv_M3_2 = 2.134012629563e-07
+alterparam pv_M3_3 = 1.774126979395e-06
+alterparam pv_M4_0 = 5.543000364595e-07
+alterparam pv_M4_1 = 1.563131261035e-07
+alterparam pv_M4_2 = -1.471183977407e-07
+alterparam pv_M4_3 = -3.826821494828e-07
+reset
+op
+echo MCS 79
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.502705873243e-07
+alterparam pv_M1_1 = -3.894245021127e-07
+alterparam pv_M1_2 = 5.267297516989e-07
+alterparam pv_M2_0 = -2.815371477723e-07
+alterparam pv_M2_1 = -3.119412256730e-07
+alterparam pv_M2_2 = -8.500559737327e-07
+alterparam pv_M3_0 = -3.506533645250e-08
+alterparam pv_M3_1 = -6.322394984946e-07
+alterparam pv_M3_2 = -1.278096700090e-07
+alterparam pv_M3_3 = 7.366748420750e-07
+alterparam pv_M4_0 = 2.587479685155e-07
+alterparam pv_M4_1 = 3.568946785792e-07
+alterparam pv_M4_2 = 2.517942899376e-07
+alterparam pv_M4_3 = 4.184356010007e-08
+reset
+op
+echo MCS 80
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -9.003465534439e-08
+alterparam pv_M1_1 = -2.176518625554e-07
+alterparam pv_M1_2 = 5.367767846599e-07
+alterparam pv_M2_0 = -7.666733215801e-07
+alterparam pv_M2_1 = 9.480340324100e-07
+alterparam pv_M2_2 = 2.409682921413e-08
+alterparam pv_M3_0 = -5.294111232543e-07
+alterparam pv_M3_1 = -3.458785094800e-07
+alterparam pv_M3_2 = -4.787045034783e-07
+alterparam pv_M3_3 = 1.132831018529e-07
+alterparam pv_M4_0 = -5.075916845853e-07
+alterparam pv_M4_1 = 8.076087156647e-07
+alterparam pv_M4_2 = -5.527022321174e-07
+alterparam pv_M4_3 = -1.606915667391e-06
+reset
+op
+echo MCS 81
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -5.168939912436e-07
+alterparam pv_M1_1 = -1.420238941797e-06
+alterparam pv_M1_2 = -2.819153459804e-08
+alterparam pv_M2_0 = 7.489377888542e-07
+alterparam pv_M2_1 = 4.580353473479e-07
+alterparam pv_M2_2 = -9.458186093922e-07
+alterparam pv_M3_0 = -5.389958785920e-07
+alterparam pv_M3_1 = 1.257683834245e-06
+alterparam pv_M3_2 = 2.252215770013e-07
+alterparam pv_M3_3 = 2.912355491166e-09
+alterparam pv_M4_0 = 7.467489983772e-07
+alterparam pv_M4_1 = 1.734349882287e-06
+alterparam pv_M4_2 = 9.168157568819e-07
+alterparam pv_M4_3 = 9.858147204913e-08
+reset
+op
+echo MCS 82
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.508024144456e-07
+alterparam pv_M1_1 = 4.363413048187e-07
+alterparam pv_M1_2 = -4.332432617051e-07
+alterparam pv_M2_0 = -7.486277185327e-07
+alterparam pv_M2_1 = 3.708710260236e-08
+alterparam pv_M2_2 = -6.697794835694e-07
+alterparam pv_M3_0 = -4.346049328783e-08
+alterparam pv_M3_1 = 6.796925340667e-08
+alterparam pv_M3_2 = 1.655363365314e-06
+alterparam pv_M3_3 = -6.017832223504e-07
+alterparam pv_M4_0 = -8.611777967012e-08
+alterparam pv_M4_1 = -1.161796873938e-07
+alterparam pv_M4_2 = 3.092252436340e-07
+alterparam pv_M4_3 = 7.401458728957e-07
+reset
+op
+echo MCS 83
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.468242100603e-07
+alterparam pv_M1_1 = -5.807835902286e-07
+alterparam pv_M1_2 = -1.160157602490e-06
+alterparam pv_M2_0 = -6.549254804548e-07
+alterparam pv_M2_1 = 3.793209518345e-07
+alterparam pv_M2_2 = 3.227733281429e-08
+alterparam pv_M3_0 = -7.180202636455e-07
+alterparam pv_M3_1 = -2.635864104282e-07
+alterparam pv_M3_2 = 2.225473480643e-08
+alterparam pv_M3_3 = 3.561547880815e-07
+alterparam pv_M4_0 = -4.195931708099e-07
+alterparam pv_M4_1 = -1.770878630506e-07
+alterparam pv_M4_2 = -1.285827531090e-06
+alterparam pv_M4_3 = -8.141527085244e-07
+reset
+op
+echo MCS 84
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.143897711930e-06
+alterparam pv_M1_1 = -1.547249107853e-06
+alterparam pv_M1_2 = -2.388624756696e-07
+alterparam pv_M2_0 = 1.549965543934e-07
+alterparam pv_M2_1 = -2.647048899028e-07
+alterparam pv_M2_2 = -5.714536650386e-07
+alterparam pv_M3_0 = -4.318904443600e-08
+alterparam pv_M3_1 = -3.511069073576e-09
+alterparam pv_M3_2 = -5.806577388079e-08
+alterparam pv_M3_3 = -1.327742973983e-06
+alterparam pv_M4_0 = -1.042301048988e-07
+alterparam pv_M4_1 = -6.046559819838e-07
+alterparam pv_M4_2 = -3.873077513798e-07
+alterparam pv_M4_3 = 1.604953943170e-07
+reset
+op
+echo MCS 85
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.530636443660e-07
+alterparam pv_M1_1 = 6.341173342568e-07
+alterparam pv_M1_2 = -3.510170388593e-07
+alterparam pv_M2_0 = 6.533686292540e-07
+alterparam pv_M2_1 = 8.299506975838e-07
+alterparam pv_M2_2 = 8.037243842003e-07
+alterparam pv_M3_0 = 9.827143338092e-07
+alterparam pv_M3_1 = -1.030130878355e-07
+alterparam pv_M3_2 = -1.231298579693e-07
+alterparam pv_M3_3 = 5.833990009330e-07
+alterparam pv_M4_0 = -9.662786098833e-07
+alterparam pv_M4_1 = 1.480886995009e-07
+alterparam pv_M4_2 = -3.751618611828e-07
+alterparam pv_M4_3 = -2.607732386915e-07
+reset
+op
+echo MCS 86
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.231436675643e-06
+alterparam pv_M1_1 = -6.297099175805e-07
+alterparam pv_M1_2 = -1.449139649228e-08
+alterparam pv_M2_0 = 6.282312641683e-07
+alterparam pv_M2_1 = 7.000545149254e-07
+alterparam pv_M2_2 = -5.679939517842e-08
+alterparam pv_M3_0 = -1.338470809963e-07
+alterparam pv_M3_1 = -5.873788861298e-07
+alterparam pv_M3_2 = 2.845090074663e-07
+alterparam pv_M3_3 = -1.750640830315e-07
+alterparam pv_M4_0 = 4.284250662483e-07
+alterparam pv_M4_1 = 1.238629617712e-06
+alterparam pv_M4_2 = -2.289255182045e-08
+alterparam pv_M4_3 = -1.058789502529e-06
+reset
+op
+echo MCS 87
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -6.087131858531e-07
+alterparam pv_M1_1 = -1.031065943739e-06
+alterparam pv_M1_2 = -8.464843792095e-07
+alterparam pv_M2_0 = 9.229657798608e-07
+alterparam pv_M2_1 = 1.602725214133e-07
+alterparam pv_M2_2 = -1.074925649154e-06
+alterparam pv_M3_0 = 4.621877370016e-07
+alterparam pv_M3_1 = 8.912196202983e-07
+alterparam pv_M3_2 = -2.544697399394e-07
+alterparam pv_M3_3 = -4.779977063737e-07
+alterparam pv_M4_0 = -2.385620683193e-07
+alterparam pv_M4_1 = 2.012471933706e-07
+alterparam pv_M4_2 = 4.525272330033e-07
+alterparam pv_M4_3 = 8.359535430112e-07
+reset
+op
+echo MCS 88
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 8.573515614421e-07
+alterparam pv_M1_1 = 8.382070995259e-07
+alterparam pv_M1_2 = 9.630238798550e-07
+alterparam pv_M2_0 = 4.676717911618e-07
+alterparam pv_M2_1 = -1.082514441286e-06
+alterparam pv_M2_2 = -9.260569478195e-08
+alterparam pv_M3_0 = 2.219753232296e-07
+alterparam pv_M3_1 = -2.709111800376e-07
+alterparam pv_M3_2 = 6.443587299310e-07
+alterparam pv_M3_3 = -2.547097424105e-07
+alterparam pv_M4_0 = -6.546020025506e-07
+alterparam pv_M4_1 = 1.021273616564e-06
+alterparam pv_M4_2 = 4.709361637635e-07
+alterparam pv_M4_3 = 1.550358376089e-07
+reset
+op
+echo MCS 89
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 6.552822827585e-07
+alterparam pv_M1_1 = 7.513251658769e-07
+alterparam pv_M1_2 = 2.411487345662e-07
+alterparam pv_M2_0 = -1.737829055161e-06
+alterparam pv_M2_1 = -4.777138818652e-07
+alterparam pv_M2_2 = -3.228501986731e-07
+alterparam pv_M3_0 = -6.959351269844e-07
+alterparam pv_M3_1 = 1.404861607938e-07
+alterparam pv_M3_2 = 8.430142126842e-07
+alterparam pv_M3_3 = -3.428800275351e-07
+alterparam pv_M4_0 = -8.024478762363e-07
+alterparam pv_M4_1 = 1.434037167277e-06
+alterparam pv_M4_2 = -3.192145925542e-07
+alterparam pv_M4_3 = -8.718378592299e-07
+reset
+op
+echo MCS 90
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.680631949390e-07
+alterparam pv_M1_1 = 3.010030400750e-07
+alterparam pv_M1_2 = -4.985456994894e-07
+alterparam pv_M2_0 = 5.589350828045e-07
+alterparam pv_M2_1 = -3.445868794165e-07
+alterparam pv_M2_2 = -6.526248509749e-07
+alterparam pv_M3_0 = 1.262828141919e-07
+alterparam pv_M3_1 = 5.450159704533e-07
+alterparam pv_M3_2 = -4.482006876890e-07
+alterparam pv_M3_3 = 2.337875726912e-07
+alterparam pv_M4_0 = -6.610857220777e-08
+alterparam pv_M4_1 = 1.997176186740e-06
+alterparam pv_M4_2 = -5.010273554258e-07
+alterparam pv_M4_3 = 9.787571250673e-07
+reset
+op
+echo MCS 91
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.701441552508e-08
+alterparam pv_M1_1 = -8.963427239347e-08
+alterparam pv_M1_2 = 5.102942941132e-07
+alterparam pv_M2_0 = 6.321467919176e-07
+alterparam pv_M2_1 = 8.959153515876e-07
+alterparam pv_M2_2 = 2.323918705628e-07
+alterparam pv_M3_0 = -4.245443585978e-07
+alterparam pv_M3_1 = -3.801732061471e-07
+alterparam pv_M3_2 = 3.603792273270e-07
+alterparam pv_M3_3 = 4.107582376971e-07
+alterparam pv_M4_0 = 9.885713006107e-07
+alterparam pv_M4_1 = 2.958750124815e-07
+alterparam pv_M4_2 = 7.496521695625e-07
+alterparam pv_M4_3 = 1.072519084203e-06
+reset
+op
+echo MCS 92
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.165315825812e-07
+alterparam pv_M1_1 = -1.050448596390e-06
+alterparam pv_M1_2 = -8.338748247625e-07
+alterparam pv_M2_0 = -1.016680158107e-06
+alterparam pv_M2_1 = 1.125424351286e-06
+alterparam pv_M2_2 = -5.992083638393e-07
+alterparam pv_M3_0 = 8.710435242505e-07
+alterparam pv_M3_1 = 4.141750066242e-07
+alterparam pv_M3_2 = 1.212878431148e-06
+alterparam pv_M3_3 = 7.092944419262e-07
+alterparam pv_M4_0 = -7.238670589583e-08
+alterparam pv_M4_1 = -1.414428879169e-07
+alterparam pv_M4_2 = 6.022267231212e-08
+alterparam pv_M4_3 = 1.239282075649e-07
+reset
+op
+echo MCS 93
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.752924489232e-07
+alterparam pv_M1_1 = -2.307169048351e-08
+alterparam pv_M1_2 = 1.137961128941e-06
+alterparam pv_M2_0 = -1.203593542102e-06
+alterparam pv_M2_1 = 1.827787163157e-07
+alterparam pv_M2_2 = -6.413124793252e-07
+alterparam pv_M3_0 = 1.322551895847e-07
+alterparam pv_M3_1 = 5.938677138684e-07
+alterparam pv_M3_2 = -4.073654926701e-08
+alterparam pv_M3_3 = 5.465842927933e-07
+alterparam pv_M4_0 = -1.124186221716e-06
+alterparam pv_M4_1 = 7.827595082654e-07
+alterparam pv_M4_2 = -4.264767774084e-07
+alterparam pv_M4_3 = 4.401089668154e-07
+reset
+op
+echo MCS 94
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.290102858795e-07
+alterparam pv_M1_1 = -1.828268550038e-06
+alterparam pv_M1_2 = -5.346180673034e-07
+alterparam pv_M2_0 = 1.559229622755e-07
+alterparam pv_M2_1 = 1.098827025079e-06
+alterparam pv_M2_2 = 2.031293529823e-07
+alterparam pv_M3_0 = 1.822185040697e-07
+alterparam pv_M3_1 = -9.989184994513e-07
+alterparam pv_M3_2 = 1.011973533984e-06
+alterparam pv_M3_3 = 1.277796397424e-06
+alterparam pv_M4_0 = 2.020560676566e-08
+alterparam pv_M4_1 = -1.553916990100e-07
+alterparam pv_M4_2 = -1.144841033127e-06
+alterparam pv_M4_3 = 6.246023107530e-07
+reset
+op
+echo MCS 95
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.910800035857e-06
+alterparam pv_M1_1 = 5.070755180591e-07
+alterparam pv_M1_2 = 8.935733270954e-07
+alterparam pv_M2_0 = 3.833136013761e-07
+alterparam pv_M2_1 = -6.965114129692e-07
+alterparam pv_M2_2 = 9.451702816206e-07
+alterparam pv_M3_0 = -8.729762832977e-07
+alterparam pv_M3_1 = -1.489625833524e-07
+alterparam pv_M3_2 = 1.971779598370e-07
+alterparam pv_M3_3 = 6.243114083103e-07
+alterparam pv_M4_0 = 2.941462849026e-07
+alterparam pv_M4_1 = 2.735332987362e-07
+alterparam pv_M4_2 = -5.384533769786e-07
+alterparam pv_M4_3 = -9.117232702795e-07
+reset
+op
+echo MCS 96
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.347339744080e-08
+alterparam pv_M1_1 = -5.021835429517e-07
+alterparam pv_M1_2 = -9.247440859461e-07
+alterparam pv_M2_0 = -8.951593346182e-07
+alterparam pv_M2_1 = -3.465731677404e-07
+alterparam pv_M2_2 = -1.309971074712e-06
+alterparam pv_M3_0 = -9.528042572179e-07
+alterparam pv_M3_1 = -1.156216410713e-06
+alterparam pv_M3_2 = 1.288769027754e-07
+alterparam pv_M3_3 = 2.884884153096e-07
+alterparam pv_M4_0 = 1.419262985864e-06
+alterparam pv_M4_1 = -1.058913476066e-06
+alterparam pv_M4_2 = -4.805476181188e-07
+alterparam pv_M4_3 = 6.453137019782e-07
+reset
+op
+echo MCS 97
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.532822274913e-07
+alterparam pv_M1_1 = -2.312224598943e-07
+alterparam pv_M1_2 = 1.208565487430e-06
+alterparam pv_M2_0 = -2.392892901924e-07
+alterparam pv_M2_1 = -8.175532324792e-07
+alterparam pv_M2_2 = -9.312171760375e-07
+alterparam pv_M3_0 = 2.373717317140e-07
+alterparam pv_M3_1 = 2.158384076686e-07
+alterparam pv_M3_2 = -9.699400477990e-07
+alterparam pv_M3_3 = -6.967803759941e-07
+alterparam pv_M4_0 = 3.780989321856e-07
+alterparam pv_M4_1 = 4.081892494062e-07
+alterparam pv_M4_2 = -4.548266971253e-07
+alterparam pv_M4_3 = 4.399732956937e-07
+reset
+op
+echo MCS 98
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.043622565258e-07
+alterparam pv_M1_1 = -1.260829195930e-06
+alterparam pv_M1_2 = -2.206623941048e-07
+alterparam pv_M2_0 = 2.935381205258e-07
+alterparam pv_M2_1 = -4.052257151334e-07
+alterparam pv_M2_2 = -1.512453229043e-06
+alterparam pv_M3_0 = -2.001216287243e-07
+alterparam pv_M3_1 = 5.318101734786e-07
+alterparam pv_M3_2 = 1.117515506754e-06
+alterparam pv_M3_3 = -1.549117275879e-06
+alterparam pv_M4_0 = 1.847897244868e-06
+alterparam pv_M4_1 = -7.970057429925e-07
+alterparam pv_M4_2 = 6.766805921415e-07
+alterparam pv_M4_3 = 8.727098250022e-07
+reset
+op
+echo MCS 99
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 6.950981989483e-07
+alterparam pv_M1_1 = 1.057962414880e-07
+alterparam pv_M1_2 = -8.212463050765e-07
+alterparam pv_M2_0 = 4.430439677970e-07
+alterparam pv_M2_1 = -5.057462294276e-07
+alterparam pv_M2_2 = -1.783814701370e-06
+alterparam pv_M3_0 = 2.000333407190e-06
+alterparam pv_M3_1 = 5.007037415003e-07
+alterparam pv_M3_2 = 1.285574666273e-06
+alterparam pv_M3_3 = -6.446146690636e-07
+alterparam pv_M4_0 = 1.037681197845e-06
+alterparam pv_M4_1 = 1.124207262927e-06
+alterparam pv_M4_2 = 1.099232510465e-06
+alterparam pv_M4_3 = -1.499514201841e-08
+reset
+op
+echo MCS 100
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -8.502690652498e-07
+alterparam pv_M1_1 = -1.253790881245e-07
+alterparam pv_M1_2 = -1.557592977733e-06
+alterparam pv_M2_0 = -1.203504502211e-06
+alterparam pv_M2_1 = 6.501053560538e-08
+alterparam pv_M2_2 = -7.010245780026e-07
+alterparam pv_M3_0 = -1.162814866369e-07
+alterparam pv_M3_1 = -7.707446336355e-08
+alterparam pv_M3_2 = 1.365230188628e-06
+alterparam pv_M3_3 = 9.175605469187e-07
+alterparam pv_M4_0 = -3.172970855090e-08
+alterparam pv_M4_1 = 8.548210583844e-07
+alterparam pv_M4_2 = -5.513404519908e-07
+alterparam pv_M4_3 = -2.382221702991e-07
+reset
+op
+echo MCS 101
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 6.436257820849e-07
+alterparam pv_M1_1 = -8.779866143325e-07
+alterparam pv_M1_2 = -1.972691648015e-07
+alterparam pv_M2_0 = -9.339790645704e-07
+alterparam pv_M2_1 = 8.306553617747e-08
+alterparam pv_M2_2 = 1.154362961171e-06
+alterparam pv_M3_0 = -5.318128103926e-07
+alterparam pv_M3_1 = 1.597209232917e-07
+alterparam pv_M3_2 = -6.345024015544e-07
+alterparam pv_M3_3 = -8.128538530711e-07
+alterparam pv_M4_0 = -8.738775763598e-07
+alterparam pv_M4_1 = 1.028665061710e-06
+alterparam pv_M4_2 = 1.670494141389e-06
+alterparam pv_M4_3 = 3.415634796310e-07
+reset
+op
+echo MCS 102
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -5.064956157933e-07
+alterparam pv_M1_1 = 4.984336546457e-07
+alterparam pv_M1_2 = -2.364024325874e-07
+alterparam pv_M2_0 = 5.666742059754e-07
+alterparam pv_M2_1 = 2.057635748530e-07
+alterparam pv_M2_2 = 1.977807017957e-07
+alterparam pv_M3_0 = 4.294090196365e-07
+alterparam pv_M3_1 = -4.097638803610e-07
+alterparam pv_M3_2 = -2.859312298167e-07
+alterparam pv_M3_3 = -1.217104428815e-06
+alterparam pv_M4_0 = -3.124488784509e-07
+alterparam pv_M4_1 = -1.005741090248e-06
+alterparam pv_M4_2 = -1.023050569513e-07
+alterparam pv_M4_3 = -6.771473381851e-07
+reset
+op
+echo MCS 103
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 7.158354509869e-08
+alterparam pv_M1_1 = 3.204885870669e-07
+alterparam pv_M1_2 = -1.004178300116e-06
+alterparam pv_M2_0 = -5.750751625386e-07
+alterparam pv_M2_1 = -6.670222425618e-07
+alterparam pv_M2_2 = 5.278505629841e-07
+alterparam pv_M3_0 = 1.206580160724e-06
+alterparam pv_M3_1 = 6.021273151566e-07
+alterparam pv_M3_2 = -2.470764932510e-07
+alterparam pv_M3_3 = 1.035915952593e-06
+alterparam pv_M4_0 = -1.070635847885e-06
+alterparam pv_M4_1 = 1.060206246086e-06
+alterparam pv_M4_2 = -4.640135151870e-07
+alterparam pv_M4_3 = -1.965964186123e-06
+reset
+op
+echo MCS 104
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.874402006608e-06
+alterparam pv_M1_1 = 1.115830816723e-06
+alterparam pv_M1_2 = -7.296519808427e-07
+alterparam pv_M2_0 = 1.195071607923e-07
+alterparam pv_M2_1 = -1.516740172490e-07
+alterparam pv_M2_2 = 7.228102318818e-08
+alterparam pv_M3_0 = -1.048841898427e-06
+alterparam pv_M3_1 = -4.818890164815e-07
+alterparam pv_M3_2 = 3.308985963636e-07
+alterparam pv_M3_3 = 1.574699719199e-07
+alterparam pv_M4_0 = 8.479896826857e-07
+alterparam pv_M4_1 = 5.639194782807e-08
+alterparam pv_M4_2 = 1.661150584609e-06
+alterparam pv_M4_3 = -5.060986375832e-07
+reset
+op
+echo MCS 105
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.833756929317e-07
+alterparam pv_M1_1 = -1.355041379124e-06
+alterparam pv_M1_2 = -8.860989330789e-07
+alterparam pv_M2_0 = 9.394097159569e-07
+alterparam pv_M2_1 = -6.666622302056e-07
+alterparam pv_M2_2 = 3.752440141438e-07
+alterparam pv_M3_0 = -4.367859211288e-08
+alterparam pv_M3_1 = -7.386076512622e-07
+alterparam pv_M3_2 = -2.462494233210e-07
+alterparam pv_M3_3 = -3.636180901729e-07
+alterparam pv_M4_0 = -3.446197105055e-07
+alterparam pv_M4_1 = 5.328814763047e-07
+alterparam pv_M4_2 = 4.612772580981e-07
+alterparam pv_M4_3 = -4.083016257164e-07
+reset
+op
+echo MCS 106
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -6.414185438280e-07
+alterparam pv_M1_1 = 1.996426438200e-07
+alterparam pv_M1_2 = -7.072157587201e-08
+alterparam pv_M2_0 = 7.271055021734e-07
+alterparam pv_M2_1 = 1.877576089822e-06
+alterparam pv_M2_2 = 5.960375836096e-07
+alterparam pv_M3_0 = -2.455801018195e-08
+alterparam pv_M3_1 = -1.216534584708e-07
+alterparam pv_M3_2 = -6.057742219829e-07
+alterparam pv_M3_3 = -6.411144741542e-07
+alterparam pv_M4_0 = -7.095219118231e-07
+alterparam pv_M4_1 = -2.795441805423e-07
+alterparam pv_M4_2 = -3.020360270369e-07
+alterparam pv_M4_3 = 5.258970259865e-07
+reset
+op
+echo MCS 107
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.821349091936e-07
+alterparam pv_M1_1 = -1.396180334353e-07
+alterparam pv_M1_2 = -8.614498248139e-07
+alterparam pv_M2_0 = 1.162890579579e-06
+alterparam pv_M2_1 = 3.584935281881e-07
+alterparam pv_M2_2 = 1.264924348641e-06
+alterparam pv_M3_0 = 5.634833473799e-07
+alterparam pv_M3_1 = 1.053331683097e-06
+alterparam pv_M3_2 = -1.757072142824e-07
+alterparam pv_M3_3 = 5.071092705075e-07
+alterparam pv_M4_0 = 1.913081900424e-06
+alterparam pv_M4_1 = -8.651695148169e-07
+alterparam pv_M4_2 = 8.317477546251e-07
+alterparam pv_M4_3 = 1.200627870916e-06
+reset
+op
+echo MCS 108
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.977821659430e-07
+alterparam pv_M1_1 = 5.410869023437e-07
+alterparam pv_M1_2 = 9.048382095599e-07
+alterparam pv_M2_0 = -4.739702572507e-07
+alterparam pv_M2_1 = 2.951546635173e-07
+alterparam pv_M2_2 = -6.279143117031e-07
+alterparam pv_M3_0 = -4.887854703935e-07
+alterparam pv_M3_1 = -4.465823001667e-07
+alterparam pv_M3_2 = -1.034272874931e-07
+alterparam pv_M3_3 = 1.059073696282e-07
+alterparam pv_M4_0 = 3.274138923131e-07
+alterparam pv_M4_1 = -1.025947373451e-06
+alterparam pv_M4_2 = 1.433146644726e-06
+alterparam pv_M4_3 = 8.368813510530e-07
+reset
+op
+echo MCS 109
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.257782764755e-07
+alterparam pv_M1_1 = -2.591761254161e-07
+alterparam pv_M1_2 = -6.456356321531e-08
+alterparam pv_M2_0 = 3.968045814040e-07
+alterparam pv_M2_1 = 2.980030722433e-07
+alterparam pv_M2_2 = -1.216974920810e-06
+alterparam pv_M3_0 = 5.368915165797e-07
+alterparam pv_M3_1 = 2.113010133624e-06
+alterparam pv_M3_2 = -1.338758162505e-06
+alterparam pv_M3_3 = 7.210209608816e-07
+alterparam pv_M4_0 = 2.676413132687e-07
+alterparam pv_M4_1 = -8.090377772898e-08
+alterparam pv_M4_2 = 9.949103710060e-07
+alterparam pv_M4_3 = -8.581421826020e-07
+reset
+op
+echo MCS 110
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.181540024960e-07
+alterparam pv_M1_1 = 1.062042319413e-06
+alterparam pv_M1_2 = -1.429052515190e-07
+alterparam pv_M2_0 = -3.035348015658e-07
+alterparam pv_M2_1 = 8.342249398314e-08
+alterparam pv_M2_2 = -3.229748039174e-07
+alterparam pv_M3_0 = 1.123711985640e-06
+alterparam pv_M3_1 = -6.589158797965e-07
+alterparam pv_M3_2 = 6.342261835090e-07
+alterparam pv_M3_3 = -9.098228399163e-07
+alterparam pv_M4_0 = 4.861871085213e-07
+alterparam pv_M4_1 = -7.622573594506e-08
+alterparam pv_M4_2 = -1.877483035070e-06
+alterparam pv_M4_3 = -4.343865394293e-09
+reset
+op
+echo MCS 111
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.755432209502e-07
+alterparam pv_M1_1 = -3.229933050757e-07
+alterparam pv_M1_2 = 1.118326001623e-06
+alterparam pv_M2_0 = -8.121694753891e-07
+alterparam pv_M2_1 = -7.707113371884e-07
+alterparam pv_M2_2 = 1.047142310237e-06
+alterparam pv_M3_0 = 8.428495075962e-08
+alterparam pv_M3_1 = 1.120573978185e-06
+alterparam pv_M3_2 = 2.351889297100e-07
+alterparam pv_M3_3 = -6.413915802676e-07
+alterparam pv_M4_0 = -4.820161089455e-08
+alterparam pv_M4_1 = 8.938737854599e-07
+alterparam pv_M4_2 = 6.841295053257e-07
+alterparam pv_M4_3 = 6.445505120722e-10
+reset
+op
+echo MCS 112
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 3.545692959435e-08
+alterparam pv_M1_1 = -8.181256579171e-08
+alterparam pv_M1_2 = -4.204931893373e-07
+alterparam pv_M2_0 = 1.404229037404e-06
+alterparam pv_M2_1 = 5.227760758052e-09
+alterparam pv_M2_2 = -8.223009238018e-07
+alterparam pv_M3_0 = -3.467775742402e-07
+alterparam pv_M3_1 = 5.280813878712e-07
+alterparam pv_M3_2 = 4.663789468767e-07
+alterparam pv_M3_3 = -9.970137355818e-08
+alterparam pv_M4_0 = -4.859640544541e-07
+alterparam pv_M4_1 = 1.738218441246e-08
+alterparam pv_M4_2 = -1.216709834946e-06
+alterparam pv_M4_3 = -9.464222735889e-07
+reset
+op
+echo MCS 113
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.808172230799e-07
+alterparam pv_M1_1 = -3.484401563689e-07
+alterparam pv_M1_2 = 2.725783036940e-07
+alterparam pv_M2_0 = 8.857166741981e-07
+alterparam pv_M2_1 = 4.722854526858e-07
+alterparam pv_M2_2 = 1.498334755223e-08
+alterparam pv_M3_0 = 1.547136813523e-06
+alterparam pv_M3_1 = 4.854279542198e-07
+alterparam pv_M3_2 = -2.577123806750e-07
+alterparam pv_M3_3 = 5.322369594546e-07
+alterparam pv_M4_0 = 2.965227495012e-07
+alterparam pv_M4_1 = -6.222440483492e-07
+alterparam pv_M4_2 = 5.304375949528e-08
+alterparam pv_M4_3 = -1.199424223501e-07
+reset
+op
+echo MCS 114
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.429453370756e-06
+alterparam pv_M1_1 = -1.253357074112e-07
+alterparam pv_M1_2 = -2.058072089915e-07
+alterparam pv_M2_0 = -3.186501296653e-07
+alterparam pv_M2_1 = -1.195786013644e-06
+alterparam pv_M2_2 = -2.578465006651e-07
+alterparam pv_M3_0 = -2.885143503790e-08
+alterparam pv_M3_1 = 7.410163747316e-08
+alterparam pv_M3_2 = -8.254478895666e-07
+alterparam pv_M3_3 = 4.597796799515e-07
+alterparam pv_M4_0 = -8.836510918240e-07
+alterparam pv_M4_1 = -1.626637031457e-07
+alterparam pv_M4_2 = 9.486959792730e-07
+alterparam pv_M4_3 = -5.032884148096e-07
+reset
+op
+echo MCS 115
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.712322466260e-07
+alterparam pv_M1_1 = 7.801884430284e-07
+alterparam pv_M1_2 = -2.791045888113e-07
+alterparam pv_M2_0 = -2.158488599369e-07
+alterparam pv_M2_1 = 1.607668679320e-07
+alterparam pv_M2_2 = 7.625574631635e-07
+alterparam pv_M3_0 = -1.601332338488e-06
+alterparam pv_M3_1 = -6.018688939072e-07
+alterparam pv_M3_2 = -7.317943119407e-07
+alterparam pv_M3_3 = -7.880093295198e-07
+alterparam pv_M4_0 = -6.206866478297e-07
+alterparam pv_M4_1 = -6.092066515467e-07
+alterparam pv_M4_2 = 2.186487666554e-07
+alterparam pv_M4_3 = -6.449716787761e-07
+reset
+op
+echo MCS 116
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 8.880149455695e-08
+alterparam pv_M1_1 = 2.909182784116e-07
+alterparam pv_M1_2 = -5.289534767483e-07
+alterparam pv_M2_0 = 9.466475147413e-08
+alterparam pv_M2_1 = 1.186185142102e-06
+alterparam pv_M2_2 = 2.333833962519e-07
+alterparam pv_M3_0 = -4.617261785866e-07
+alterparam pv_M3_1 = -4.703717518274e-08
+alterparam pv_M3_2 = -6.632251717472e-07
+alterparam pv_M3_3 = 1.959648986086e-07
+alterparam pv_M4_0 = 6.239857705554e-07
+alterparam pv_M4_1 = -5.925160930759e-07
+alterparam pv_M4_2 = -1.512811367198e-07
+alterparam pv_M4_3 = 8.041898135564e-07
+reset
+op
+echo MCS 117
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.595536931066e-07
+alterparam pv_M1_1 = 1.358369825615e-07
+alterparam pv_M1_2 = -7.397261827268e-07
+alterparam pv_M2_0 = -5.916968974890e-07
+alterparam pv_M2_1 = -3.701443710423e-07
+alterparam pv_M2_2 = 1.538890646447e-06
+alterparam pv_M3_0 = -2.892421287844e-07
+alterparam pv_M3_1 = -3.747373806685e-07
+alterparam pv_M3_2 = -3.982379631066e-07
+alterparam pv_M3_3 = -1.170985475351e-07
+alterparam pv_M4_0 = 4.638126346718e-07
+alterparam pv_M4_1 = 1.339899729752e-07
+alterparam pv_M4_2 = 1.455094710906e-06
+alterparam pv_M4_3 = 1.511755030649e-07
+reset
+op
+echo MCS 118
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.023469289128e-06
+alterparam pv_M1_1 = 1.956643065709e-07
+alterparam pv_M1_2 = 4.282107841133e-07
+alterparam pv_M2_0 = -1.020779306692e-06
+alterparam pv_M2_1 = -8.984459739303e-08
+alterparam pv_M2_2 = -4.875341494611e-08
+alterparam pv_M3_0 = -1.717965471140e-07
+alterparam pv_M3_1 = -1.522315076358e-06
+alterparam pv_M3_2 = 6.226955286689e-07
+alterparam pv_M3_3 = -2.737566234569e-07
+alterparam pv_M4_0 = -3.097632026037e-07
+alterparam pv_M4_1 = -1.804334704668e-07
+alterparam pv_M4_2 = -1.612763411006e-07
+alterparam pv_M4_3 = 2.878620539501e-07
+reset
+op
+echo MCS 119
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -8.987555241886e-07
+alterparam pv_M1_1 = -6.583461520159e-07
+alterparam pv_M1_2 = 2.055087743691e-07
+alterparam pv_M2_0 = 1.029425931088e-07
+alterparam pv_M2_1 = -2.663351695459e-07
+alterparam pv_M2_2 = -4.058173538358e-07
+alterparam pv_M3_0 = -5.900273660010e-07
+alterparam pv_M3_1 = -4.126333210788e-08
+alterparam pv_M3_2 = 8.349039385608e-07
+alterparam pv_M3_3 = -7.481548611396e-07
+alterparam pv_M4_0 = 1.077148520690e-06
+alterparam pv_M4_1 = 5.967850173663e-07
+alterparam pv_M4_2 = -3.202937302835e-07
+alterparam pv_M4_3 = 5.537175546168e-07
+reset
+op
+echo MCS 120
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.036550246628e-06
+alterparam pv_M1_1 = -1.224408385856e-06
+alterparam pv_M1_2 = -9.120137795786e-07
+alterparam pv_M2_0 = -2.897345041909e-07
+alterparam pv_M2_1 = -2.300995957100e-07
+alterparam pv_M2_2 = -3.642606964384e-07
+alterparam pv_M3_0 = 7.030245870215e-08
+alterparam pv_M3_1 = -1.509781807025e-06
+alterparam pv_M3_2 = 3.502649242879e-07
+alterparam pv_M3_3 = -1.003597063877e-06
+alterparam pv_M4_0 = -4.672919443061e-07
+alterparam pv_M4_1 = -2.919293643318e-07
+alterparam pv_M4_2 = -8.175643817206e-07
+alterparam pv_M4_3 = -9.694431626981e-07
+reset
+op
+echo MCS 121
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.114071679005e-07
+alterparam pv_M1_1 = -8.431288214469e-09
+alterparam pv_M1_2 = 4.171803995921e-07
+alterparam pv_M2_0 = 3.989745203385e-07
+alterparam pv_M2_1 = -7.032113569903e-07
+alterparam pv_M2_2 = -5.597295693330e-07
+alterparam pv_M3_0 = -6.509647405058e-07
+alterparam pv_M3_1 = 3.180653361446e-07
+alterparam pv_M3_2 = -1.440673625771e-06
+alterparam pv_M3_3 = 8.756380885672e-07
+alterparam pv_M4_0 = -3.428088148696e-07
+alterparam pv_M4_1 = -5.540357444215e-07
+alterparam pv_M4_2 = 2.400300809858e-07
+alterparam pv_M4_3 = 7.301719362481e-07
+reset
+op
+echo MCS 122
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.422429440643e-07
+alterparam pv_M1_1 = 7.444027446265e-07
+alterparam pv_M1_2 = 9.500603036808e-08
+alterparam pv_M2_0 = 8.694857965047e-07
+alterparam pv_M2_1 = 8.804611069698e-07
+alterparam pv_M2_2 = -7.034212652093e-08
+alterparam pv_M3_0 = 1.017672242877e-06
+alterparam pv_M3_1 = 1.164843172887e-07
+alterparam pv_M3_2 = 6.144278531470e-08
+alterparam pv_M3_3 = -6.515802810582e-07
+alterparam pv_M4_0 = -2.041983003632e-07
+alterparam pv_M4_1 = 5.498340325197e-07
+alterparam pv_M4_2 = -9.281815311782e-07
+alterparam pv_M4_3 = 4.593535422155e-07
+reset
+op
+echo MCS 123
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.465087031724e-07
+alterparam pv_M1_1 = 1.962655596262e-07
+alterparam pv_M1_2 = -1.560225594019e-06
+alterparam pv_M2_0 = -7.300376858312e-08
+alterparam pv_M2_1 = 4.583890474103e-07
+alterparam pv_M2_2 = -5.394906237767e-07
+alterparam pv_M3_0 = 6.385647931862e-08
+alterparam pv_M3_1 = -1.681551734717e-06
+alterparam pv_M3_2 = 4.747465688010e-07
+alterparam pv_M3_3 = -4.684107318022e-07
+alterparam pv_M4_0 = 6.161424064584e-07
+alterparam pv_M4_1 = -1.303046671989e-06
+alterparam pv_M4_2 = 4.895069646794e-07
+alterparam pv_M4_3 = -1.675413770285e-07
+reset
+op
+echo MCS 124
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.710621218437e-07
+alterparam pv_M1_1 = -6.545756678777e-07
+alterparam pv_M1_2 = -4.373151560684e-07
+alterparam pv_M2_0 = 1.585652552405e-06
+alterparam pv_M2_1 = -5.868647936345e-07
+alterparam pv_M2_2 = -4.992366260603e-07
+alterparam pv_M3_0 = -1.955730340338e-07
+alterparam pv_M3_1 = -7.230582091891e-07
+alterparam pv_M3_2 = 8.417800663378e-07
+alterparam pv_M3_3 = 1.219768612111e-06
+alterparam pv_M4_0 = -4.978781743557e-07
+alterparam pv_M4_1 = -1.220489058326e-06
+alterparam pv_M4_2 = 8.287130983415e-07
+alterparam pv_M4_3 = 7.837504470908e-07
+reset
+op
+echo MCS 125
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.810007866137e-07
+alterparam pv_M1_1 = 8.177770780307e-07
+alterparam pv_M1_2 = -6.134329983147e-07
+alterparam pv_M2_0 = -1.191449531775e-07
+alterparam pv_M2_1 = -9.787132871346e-07
+alterparam pv_M2_2 = -1.002792553627e-06
+alterparam pv_M3_0 = 6.937433874013e-07
+alterparam pv_M3_1 = -4.751144242427e-07
+alterparam pv_M3_2 = 1.611900532332e-06
+alterparam pv_M3_3 = 5.245325879784e-08
+alterparam pv_M4_0 = -4.528487296919e-07
+alterparam pv_M4_1 = 5.641900381492e-07
+alterparam pv_M4_2 = 1.273684827755e-06
+alterparam pv_M4_3 = 3.437464979542e-07
+reset
+op
+echo MCS 126
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -8.606516039566e-07
+alterparam pv_M1_1 = 2.623385970521e-07
+alterparam pv_M1_2 = 9.726947171674e-07
+alterparam pv_M2_0 = -3.487740198154e-07
+alterparam pv_M2_1 = -5.470474742959e-07
+alterparam pv_M2_2 = 7.187372108476e-07
+alterparam pv_M3_0 = 9.897213845631e-08
+alterparam pv_M3_1 = -7.796149973506e-07
+alterparam pv_M3_2 = -2.685213971109e-07
+alterparam pv_M3_3 = -5.343340716503e-07
+alterparam pv_M4_0 = 2.094935819830e-07
+alterparam pv_M4_1 = 7.755866328243e-08
+alterparam pv_M4_2 = 8.134889055439e-07
+alterparam pv_M4_3 = 5.018089635560e-07
+reset
+op
+echo MCS 127
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.105585489794e-06
+alterparam pv_M1_1 = 2.877857646707e-07
+alterparam pv_M1_2 = 6.342269255064e-07
+alterparam pv_M2_0 = 3.223553211213e-07
+alterparam pv_M2_1 = 7.283621701032e-07
+alterparam pv_M2_2 = -3.886096183011e-07
+alterparam pv_M3_0 = -6.723396328418e-07
+alterparam pv_M3_1 = 6.576588218273e-07
+alterparam pv_M3_2 = -7.533972943222e-07
+alterparam pv_M3_3 = -1.527023633654e-06
+alterparam pv_M4_0 = 7.249965436172e-07
+alterparam pv_M4_1 = -5.120760717734e-07
+alterparam pv_M4_2 = -2.164214862259e-07
+alterparam pv_M4_3 = -9.885206770925e-07
+reset
+op
+echo MCS 128
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -9.372895454212e-07
+alterparam pv_M1_1 = -8.178318132056e-07
+alterparam pv_M1_2 = -2.550179557935e-07
+alterparam pv_M2_0 = 2.616288557826e-07
+alterparam pv_M2_1 = -1.624797892549e-06
+alterparam pv_M2_2 = 5.318667523990e-07
+alterparam pv_M3_0 = -8.357989162579e-07
+alterparam pv_M3_1 = -7.539962749083e-07
+alterparam pv_M3_2 = 4.793161415717e-07
+alterparam pv_M3_3 = -5.277415978755e-08
+alterparam pv_M4_0 = -1.086422749095e-06
+alterparam pv_M4_1 = 1.304323997671e-06
+alterparam pv_M4_2 = -6.085513728893e-07
+alterparam pv_M4_3 = 1.748787867177e-07
+reset
+op
+echo MCS 129
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.413438209944e-07
+alterparam pv_M1_1 = 9.979590066262e-07
+alterparam pv_M1_2 = -3.222065235192e-07
+alterparam pv_M2_0 = 7.128270518711e-07
+alterparam pv_M2_1 = -5.245951121224e-07
+alterparam pv_M2_2 = 7.934649252120e-07
+alterparam pv_M3_0 = -5.395116055184e-07
+alterparam pv_M3_1 = -2.561205098378e-07
+alterparam pv_M3_2 = 1.340650802922e-06
+alterparam pv_M3_3 = 2.241326179806e-07
+alterparam pv_M4_0 = 7.761131389414e-08
+alterparam pv_M4_1 = 1.585368246115e-06
+alterparam pv_M4_2 = 2.555177546361e-07
+alterparam pv_M4_3 = -5.770962246742e-07
+reset
+op
+echo MCS 130
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.194604392435e-07
+alterparam pv_M1_1 = -8.355745896152e-07
+alterparam pv_M1_2 = 7.978402758708e-07
+alterparam pv_M2_0 = 8.527550519290e-07
+alterparam pv_M2_1 = -4.051433204896e-07
+alterparam pv_M2_2 = -4.439936555482e-07
+alterparam pv_M3_0 = 1.248073608167e-07
+alterparam pv_M3_1 = 1.000920381163e-08
+alterparam pv_M3_2 = -6.913295437683e-07
+alterparam pv_M3_3 = 4.016987825838e-07
+alterparam pv_M4_0 = -1.443824151168e-06
+alterparam pv_M4_1 = -3.060778582343e-07
+alterparam pv_M4_2 = -2.856293954494e-07
+alterparam pv_M4_3 = -1.932279245462e-07
+reset
+op
+echo MCS 131
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.172401068338e-07
+alterparam pv_M1_1 = -8.683429851701e-07
+alterparam pv_M1_2 = 4.161430061866e-07
+alterparam pv_M2_0 = -1.273881258919e-07
+alterparam pv_M2_1 = -4.597722219002e-07
+alterparam pv_M2_2 = -9.664920284048e-07
+alterparam pv_M3_0 = -8.365845889268e-07
+alterparam pv_M3_1 = 2.547880897314e-07
+alterparam pv_M3_2 = -6.815442413978e-07
+alterparam pv_M3_3 = 4.539533459446e-08
+alterparam pv_M4_0 = 7.509353488140e-07
+alterparam pv_M4_1 = 7.301885958535e-07
+alterparam pv_M4_2 = 1.103367272298e-06
+alterparam pv_M4_3 = -2.095110182797e-07
+reset
+op
+echo MCS 132
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.673162672814e-07
+alterparam pv_M1_1 = 7.216205087691e-07
+alterparam pv_M1_2 = 2.189229821732e-07
+alterparam pv_M2_0 = 7.947531263888e-07
+alterparam pv_M2_1 = 7.817822815574e-09
+alterparam pv_M2_2 = 8.454494117963e-07
+alterparam pv_M3_0 = 5.984862842314e-07
+alterparam pv_M3_1 = 5.065860789904e-07
+alterparam pv_M3_2 = 3.560444413725e-07
+alterparam pv_M3_3 = 2.812156686305e-07
+alterparam pv_M4_0 = 1.647811993994e-07
+alterparam pv_M4_1 = 1.597398338833e-07
+alterparam pv_M4_2 = 7.001733132145e-07
+alterparam pv_M4_3 = -3.620242992521e-07
+reset
+op
+echo MCS 133
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.227314729737e-06
+alterparam pv_M1_1 = -7.512482427402e-08
+alterparam pv_M1_2 = 6.967704322078e-07
+alterparam pv_M2_0 = -6.381015582782e-08
+alterparam pv_M2_1 = -1.744191980569e-07
+alterparam pv_M2_2 = 1.437011735569e-06
+alterparam pv_M3_0 = -2.187397953406e-07
+alterparam pv_M3_1 = -9.031286339331e-07
+alterparam pv_M3_2 = -5.049323369679e-07
+alterparam pv_M3_3 = -2.243140371076e-07
+alterparam pv_M4_0 = 1.523950773815e-06
+alterparam pv_M4_1 = 1.461985217136e-07
+alterparam pv_M4_2 = 6.609421834640e-07
+alterparam pv_M4_3 = -7.082381215461e-07
+reset
+op
+echo MCS 134
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.493317127927e-07
+alterparam pv_M1_1 = 4.748068935711e-07
+alterparam pv_M1_2 = 1.273942637377e-06
+alterparam pv_M2_0 = -4.923375555497e-07
+alterparam pv_M2_1 = 4.267314914454e-07
+alterparam pv_M2_2 = 2.139591335453e-07
+alterparam pv_M3_0 = -7.224614002552e-07
+alterparam pv_M3_1 = -1.375763611935e-08
+alterparam pv_M3_2 = -1.863048952057e-07
+alterparam pv_M3_3 = -1.644281661424e-06
+alterparam pv_M4_0 = 4.233229975377e-07
+alterparam pv_M4_1 = 3.820097855921e-07
+alterparam pv_M4_2 = -3.103737693333e-07
+alterparam pv_M4_3 = -9.465062280753e-07
+reset
+op
+echo MCS 135
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.046433796498e-06
+alterparam pv_M1_1 = 1.880898999069e-07
+alterparam pv_M1_2 = 7.189163794368e-07
+alterparam pv_M2_0 = 9.972481061032e-07
+alterparam pv_M2_1 = -3.683367195609e-07
+alterparam pv_M2_2 = 5.742799774017e-07
+alterparam pv_M3_0 = -1.705181028426e-07
+alterparam pv_M3_1 = -4.422856855857e-08
+alterparam pv_M3_2 = -6.053938310068e-08
+alterparam pv_M3_3 = -9.326260828835e-10
+alterparam pv_M4_0 = 7.876888111298e-07
+alterparam pv_M4_1 = 8.755928688792e-08
+alterparam pv_M4_2 = -1.087054686423e-07
+alterparam pv_M4_3 = -1.955413516560e-07
+reset
+op
+echo MCS 136
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.413455494179e-07
+alterparam pv_M1_1 = -6.327672758323e-07
+alterparam pv_M1_2 = -3.554331848625e-07
+alterparam pv_M2_0 = -3.696795342531e-08
+alterparam pv_M2_1 = -4.001151786855e-07
+alterparam pv_M2_2 = -8.377529115056e-08
+alterparam pv_M3_0 = -4.318844615619e-07
+alterparam pv_M3_1 = 1.417012134763e-06
+alterparam pv_M3_2 = 9.397878623209e-07
+alterparam pv_M3_3 = 3.181642257124e-07
+alterparam pv_M4_0 = -3.791401777316e-08
+alterparam pv_M4_1 = 1.549104195496e-06
+alterparam pv_M4_2 = 2.283621913028e-07
+alterparam pv_M4_3 = -6.140904752966e-08
+reset
+op
+echo MCS 137
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.143427166048e-07
+alterparam pv_M1_1 = 2.163345159118e-07
+alterparam pv_M1_2 = 9.972452138821e-07
+alterparam pv_M2_0 = -1.341006265850e-08
+alterparam pv_M2_1 = 1.484446819004e-06
+alterparam pv_M2_2 = -6.236832140979e-07
+alterparam pv_M3_0 = 4.907676148673e-07
+alterparam pv_M3_1 = -7.083985073419e-07
+alterparam pv_M3_2 = 1.284884408529e-06
+alterparam pv_M3_3 = -2.337450634673e-07
+alterparam pv_M4_0 = -4.114602869087e-08
+alterparam pv_M4_1 = 6.535341838694e-07
+alterparam pv_M4_2 = 8.876599103757e-07
+alterparam pv_M4_3 = -7.862156509958e-07
+reset
+op
+echo MCS 138
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.447713703584e-07
+alterparam pv_M1_1 = -9.863597054316e-07
+alterparam pv_M1_2 = 9.708940362948e-08
+alterparam pv_M2_0 = -7.168120702451e-08
+alterparam pv_M2_1 = -2.467336136800e-07
+alterparam pv_M2_2 = -4.839872541966e-07
+alterparam pv_M3_0 = -2.728770774905e-07
+alterparam pv_M3_1 = -5.277812054623e-07
+alterparam pv_M3_2 = 3.740325054856e-07
+alterparam pv_M3_3 = 1.071938558319e-06
+alterparam pv_M4_0 = -1.365228109770e-06
+alterparam pv_M4_1 = -8.200141701147e-08
+alterparam pv_M4_2 = -2.956920971627e-07
+alterparam pv_M4_3 = 3.481571677725e-07
+reset
+op
+echo MCS 139
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -6.730009120734e-07
+alterparam pv_M1_1 = -1.035457688915e-07
+alterparam pv_M1_2 = -7.351026818991e-07
+alterparam pv_M2_0 = 4.926397695577e-07
+alterparam pv_M2_1 = 7.019776404329e-08
+alterparam pv_M2_2 = -1.141797602991e-07
+alterparam pv_M3_0 = 2.617623949166e-07
+alterparam pv_M3_1 = -1.742900161538e-07
+alterparam pv_M3_2 = -1.098717353813e-06
+alterparam pv_M3_3 = 4.212450126229e-07
+alterparam pv_M4_0 = 2.038377923443e-07
+alterparam pv_M4_1 = -1.089507310949e-07
+alterparam pv_M4_2 = 6.964470974107e-07
+alterparam pv_M4_3 = 8.616064661035e-07
+reset
+op
+echo MCS 140
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.723604575596e-07
+alterparam pv_M1_1 = -5.523041871233e-07
+alterparam pv_M1_2 = 1.094095783646e-06
+alterparam pv_M2_0 = 1.003279776366e-06
+alterparam pv_M2_1 = -5.221227884048e-07
+alterparam pv_M2_2 = -8.348880845517e-07
+alterparam pv_M3_0 = -4.508283407112e-07
+alterparam pv_M3_1 = -3.522214890810e-07
+alterparam pv_M3_2 = -1.120103691573e-06
+alterparam pv_M3_3 = 2.203857576996e-08
+alterparam pv_M4_0 = -9.052231882102e-07
+alterparam pv_M4_1 = -8.558747294224e-07
+alterparam pv_M4_2 = 6.477850634729e-07
+alterparam pv_M4_3 = -4.830877695264e-07
+reset
+op
+echo MCS 141
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -5.053775753254e-08
+alterparam pv_M1_1 = 4.448382991180e-07
+alterparam pv_M1_2 = 5.750362559998e-07
+alterparam pv_M2_0 = -2.383092184657e-07
+alterparam pv_M2_1 = 3.119576832552e-08
+alterparam pv_M2_2 = -5.836501723330e-07
+alterparam pv_M3_0 = 1.235584032674e-06
+alterparam pv_M3_1 = 4.595839235713e-07
+alterparam pv_M3_2 = -7.801083296605e-07
+alterparam pv_M3_3 = 2.869417296163e-09
+alterparam pv_M4_0 = 5.045572368590e-07
+alterparam pv_M4_1 = 3.389947454360e-07
+alterparam pv_M4_2 = 1.293418594410e-06
+alterparam pv_M4_3 = 9.703761508839e-07
+reset
+op
+echo MCS 142
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.813472534668e-07
+alterparam pv_M1_1 = -6.306013662648e-08
+alterparam pv_M1_2 = -9.061866093447e-07
+alterparam pv_M2_0 = 1.763898957883e-07
+alterparam pv_M2_1 = 1.067880153072e-07
+alterparam pv_M2_2 = 1.911651064980e-06
+alterparam pv_M3_0 = 6.899601786160e-08
+alterparam pv_M3_1 = -1.480152953093e-06
+alterparam pv_M3_2 = -4.752369122926e-07
+alterparam pv_M3_3 = 7.944288933034e-08
+alterparam pv_M4_0 = -8.881369306664e-07
+alterparam pv_M4_1 = -6.132084340899e-07
+alterparam pv_M4_2 = -2.585435594427e-07
+alterparam pv_M4_3 = 2.416973246191e-07
+reset
+op
+echo MCS 143
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.169144573432e-07
+alterparam pv_M1_1 = -6.287823219251e-07
+alterparam pv_M1_2 = 5.569747423249e-07
+alterparam pv_M2_0 = -3.815812999410e-07
+alterparam pv_M2_1 = -3.530646690829e-07
+alterparam pv_M2_2 = -9.755609963436e-07
+alterparam pv_M3_0 = -5.557970609778e-07
+alterparam pv_M3_1 = 4.608721152352e-07
+alterparam pv_M3_2 = -1.143854932221e-06
+alterparam pv_M3_3 = -5.032740211760e-08
+alterparam pv_M4_0 = 5.075082309849e-07
+alterparam pv_M4_1 = -2.666560533442e-07
+alterparam pv_M4_2 = 1.695575016284e-07
+alterparam pv_M4_3 = -7.896926186374e-07
+reset
+op
+echo MCS 144
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 9.265063898737e-07
+alterparam pv_M1_1 = 7.785601590860e-07
+alterparam pv_M1_2 = 1.665229986821e-07
+alterparam pv_M2_0 = -1.241028163364e-06
+alterparam pv_M2_1 = -7.396070618513e-07
+alterparam pv_M2_2 = 6.906333582973e-07
+alterparam pv_M3_0 = 1.211359539930e-06
+alterparam pv_M3_1 = 2.097387890180e-07
+alterparam pv_M3_2 = 8.819876765590e-07
+alterparam pv_M3_3 = -4.297524218349e-07
+alterparam pv_M4_0 = -1.339169427092e-07
+alterparam pv_M4_1 = 8.116903937638e-10
+alterparam pv_M4_2 = 2.991745836640e-07
+alterparam pv_M4_3 = -1.081031628547e-06
+reset
+op
+echo MCS 145
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 6.651519031962e-07
+alterparam pv_M1_1 = 9.351817006673e-07
+alterparam pv_M1_2 = -8.122784135321e-07
+alterparam pv_M2_0 = -9.583698723590e-07
+alterparam pv_M2_1 = 2.478834342597e-07
+alterparam pv_M2_2 = -4.626683858232e-07
+alterparam pv_M3_0 = -1.676429745603e-06
+alterparam pv_M3_1 = 5.717548873372e-07
+alterparam pv_M3_2 = 1.100218673055e-07
+alterparam pv_M3_3 = -3.370403243821e-07
+alterparam pv_M4_0 = 1.494430791036e-06
+alterparam pv_M4_1 = 9.822013829833e-08
+alterparam pv_M4_2 = -5.327555047916e-07
+alterparam pv_M4_3 = 7.152513226546e-08
+reset
+op
+echo MCS 146
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.354400319041e-07
+alterparam pv_M1_1 = -5.386080251999e-07
+alterparam pv_M1_2 = 2.731997573810e-07
+alterparam pv_M2_0 = -3.918773097341e-07
+alterparam pv_M2_1 = -3.188868258437e-07
+alterparam pv_M2_2 = 1.180122228527e-06
+alterparam pv_M3_0 = 6.078634840299e-07
+alterparam pv_M3_1 = 5.676835815092e-07
+alterparam pv_M3_2 = 3.739298761291e-07
+alterparam pv_M3_3 = 3.423822077563e-07
+alterparam pv_M4_0 = 1.029961059391e-06
+alterparam pv_M4_1 = -1.382109922801e-08
+alterparam pv_M4_2 = 1.312046620304e-06
+alterparam pv_M4_3 = -6.727425710483e-07
+reset
+op
+echo MCS 147
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.803388784458e-07
+alterparam pv_M1_1 = -9.748148356480e-07
+alterparam pv_M1_2 = -2.430842334139e-07
+alterparam pv_M2_0 = 3.665941599969e-07
+alterparam pv_M2_1 = 1.026186516547e-06
+alterparam pv_M2_2 = -4.690434004068e-07
+alterparam pv_M3_0 = 3.750829252546e-09
+alterparam pv_M3_1 = -2.540001095960e-07
+alterparam pv_M3_2 = -5.222690267130e-07
+alterparam pv_M3_3 = -8.410182770073e-07
+alterparam pv_M4_0 = 4.289392133958e-08
+alterparam pv_M4_1 = -1.224754907264e-06
+alterparam pv_M4_2 = 7.816581156173e-08
+alterparam pv_M4_3 = 1.481525566237e-08
+reset
+op
+echo MCS 148
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -4.650996966966e-07
+alterparam pv_M1_1 = -7.148167694090e-07
+alterparam pv_M1_2 = -9.788530660717e-07
+alterparam pv_M2_0 = 1.323229009229e-06
+alterparam pv_M2_1 = -9.489175467508e-07
+alterparam pv_M2_2 = 1.101461901508e-06
+alterparam pv_M3_0 = 4.243805715315e-07
+alterparam pv_M3_1 = -2.574016951683e-07
+alterparam pv_M3_2 = -8.181768825495e-07
+alterparam pv_M3_3 = 7.371542209726e-07
+alterparam pv_M4_0 = 1.223048090304e-06
+alterparam pv_M4_1 = -6.604549932632e-07
+alterparam pv_M4_2 = -2.112447609250e-07
+alterparam pv_M4_3 = 7.436102953426e-07
+reset
+op
+echo MCS 149
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.374346908846e-07
+alterparam pv_M1_1 = 1.414185954206e-06
+alterparam pv_M1_2 = -4.031530064771e-07
+alterparam pv_M2_0 = 3.834577908159e-07
+alterparam pv_M2_1 = -8.845396503217e-07
+alterparam pv_M2_2 = 1.482019255269e-06
+alterparam pv_M3_0 = -5.164289409463e-07
+alterparam pv_M3_1 = -1.561268459051e-06
+alterparam pv_M3_2 = -8.892859226197e-08
+alterparam pv_M3_3 = -9.859233769428e-08
+alterparam pv_M4_0 = 1.354513606380e-06
+alterparam pv_M4_1 = -2.395816688501e-07
+alterparam pv_M4_2 = -8.940477222464e-09
+alterparam pv_M4_3 = 4.196246505492e-07
+reset
+op
+echo MCS 150
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.121662756824e-06
+alterparam pv_M1_1 = -4.471008912310e-08
+alterparam pv_M1_2 = 7.350218674495e-07
+alterparam pv_M2_0 = 3.663411254462e-07
+alterparam pv_M2_1 = -2.094700140373e-07
+alterparam pv_M2_2 = 5.483927184303e-08
+alterparam pv_M3_0 = 2.027549418253e-08
+alterparam pv_M3_1 = -6.477272316498e-07
+alterparam pv_M3_2 = 8.582018916644e-07
+alterparam pv_M3_3 = -9.797814768111e-07
+alterparam pv_M4_0 = 8.281414870506e-07
+alterparam pv_M4_1 = 6.748763797195e-07
+alterparam pv_M4_2 = -6.579576137265e-08
+alterparam pv_M4_3 = -5.412508887196e-07
+reset
+op
+echo MCS 151
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.601067135023e-07
+alterparam pv_M1_1 = 3.343021666416e-07
+alterparam pv_M1_2 = 5.254216612921e-07
+alterparam pv_M2_0 = 2.028823447700e-07
+alterparam pv_M2_1 = 7.015463311467e-07
+alterparam pv_M2_2 = -3.941657659484e-07
+alterparam pv_M3_0 = 1.658705620857e-07
+alterparam pv_M3_1 = -1.108987958111e-06
+alterparam pv_M3_2 = 5.399655887588e-07
+alterparam pv_M3_3 = 1.083119664717e-07
+alterparam pv_M4_0 = -2.938553187663e-07
+alterparam pv_M4_1 = 8.213345209122e-07
+alterparam pv_M4_2 = 4.889828291818e-07
+alterparam pv_M4_3 = -1.991491466832e-06
+reset
+op
+echo MCS 152
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.820171530560e-08
+alterparam pv_M1_1 = -1.028857334875e-06
+alterparam pv_M1_2 = 7.542424304562e-07
+alterparam pv_M2_0 = 1.760041686157e-06
+alterparam pv_M2_1 = -3.666585616993e-07
+alterparam pv_M2_2 = 5.273542446926e-08
+alterparam pv_M3_0 = -1.775075424163e-07
+alterparam pv_M3_1 = 2.480623305801e-07
+alterparam pv_M3_2 = 4.557649797441e-07
+alterparam pv_M3_3 = 9.101835612299e-07
+alterparam pv_M4_0 = -6.982123215117e-07
+alterparam pv_M4_1 = 1.111313632989e-06
+alterparam pv_M4_2 = -6.586797643777e-07
+alterparam pv_M4_3 = 1.959312983147e-07
+reset
+op
+echo MCS 153
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 8.192373983690e-07
+alterparam pv_M1_1 = 5.043076642549e-07
+alterparam pv_M1_2 = -6.636727054246e-07
+alterparam pv_M2_0 = -4.963349493316e-07
+alterparam pv_M2_1 = -3.269173164733e-07
+alterparam pv_M2_2 = -3.618214567257e-08
+alterparam pv_M3_0 = 8.110184195901e-07
+alterparam pv_M3_1 = -9.134486274719e-07
+alterparam pv_M3_2 = 3.300077987016e-07
+alterparam pv_M3_3 = 4.313156431263e-07
+alterparam pv_M4_0 = 3.947697412977e-07
+alterparam pv_M4_1 = 3.297283712055e-07
+alterparam pv_M4_2 = 1.073613039584e-06
+alterparam pv_M4_3 = 3.449325875136e-07
+reset
+op
+echo MCS 154
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 6.059616930289e-07
+alterparam pv_M1_1 = 3.984875551481e-07
+alterparam pv_M1_2 = 1.267922243455e-06
+alterparam pv_M2_0 = -1.343364814275e-06
+alterparam pv_M2_1 = 9.065876690985e-07
+alterparam pv_M2_2 = -1.845766305730e-07
+alterparam pv_M3_0 = -1.984967956080e-07
+alterparam pv_M3_1 = -6.855235793380e-07
+alterparam pv_M3_2 = -1.321367237400e-06
+alterparam pv_M3_3 = -2.700404364082e-07
+alterparam pv_M4_0 = -4.859897598242e-07
+alterparam pv_M4_1 = 3.494337719626e-07
+alterparam pv_M4_2 = -1.041046778301e-06
+alterparam pv_M4_3 = 1.012303387292e-06
+reset
+op
+echo MCS 155
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.922862645710e-07
+alterparam pv_M1_1 = -1.752936742558e-07
+alterparam pv_M1_2 = -5.016380609414e-07
+alterparam pv_M2_0 = -5.566394471083e-07
+alterparam pv_M2_1 = -7.990922974351e-07
+alterparam pv_M2_2 = -3.849211599935e-07
+alterparam pv_M3_0 = 4.278289400900e-09
+alterparam pv_M3_1 = -1.254148978362e-07
+alterparam pv_M3_2 = -1.000193967474e-06
+alterparam pv_M3_3 = -1.879689518729e-07
+alterparam pv_M4_0 = -6.315756962748e-07
+alterparam pv_M4_1 = 1.130537772483e-07
+alterparam pv_M4_2 = 1.318507985509e-06
+alterparam pv_M4_3 = 4.419577854030e-07
+reset
+op
+echo MCS 156
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.214092320659e-07
+alterparam pv_M1_1 = -1.148965910600e-06
+alterparam pv_M1_2 = -1.000361152176e-06
+alterparam pv_M2_0 = -1.192693501429e-06
+alterparam pv_M2_1 = 5.133372233983e-07
+alterparam pv_M2_2 = -5.409857254941e-07
+alterparam pv_M3_0 = 4.426506773079e-08
+alterparam pv_M3_1 = -4.398304464699e-07
+alterparam pv_M3_2 = 6.448569317952e-08
+alterparam pv_M3_3 = 9.911354042860e-07
+alterparam pv_M4_0 = -4.843299133463e-07
+alterparam pv_M4_1 = -2.410918324500e-07
+alterparam pv_M4_2 = -5.701712476701e-07
+alterparam pv_M4_3 = 6.184178449341e-07
+reset
+op
+echo MCS 157
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.252915805680e-07
+alterparam pv_M1_1 = -8.011401351630e-07
+alterparam pv_M1_2 = -9.812258929571e-07
+alterparam pv_M2_0 = -9.959411730056e-07
+alterparam pv_M2_1 = 3.329725800969e-07
+alterparam pv_M2_2 = 1.816645723468e-06
+alterparam pv_M3_0 = -7.038373431638e-07
+alterparam pv_M3_1 = 6.728445042696e-07
+alterparam pv_M3_2 = 1.775594919702e-07
+alterparam pv_M3_3 = -7.792476296174e-07
+alterparam pv_M4_0 = -1.956561281753e-07
+alterparam pv_M4_1 = -1.646969608182e-07
+alterparam pv_M4_2 = -4.883999913455e-07
+alterparam pv_M4_3 = 1.365145212208e-06
+reset
+op
+echo MCS 158
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.347830780564e-06
+alterparam pv_M1_1 = 2.694334563923e-07
+alterparam pv_M1_2 = 2.344232083854e-07
+alterparam pv_M2_0 = -4.098505442434e-07
+alterparam pv_M2_1 = 1.057144899138e-07
+alterparam pv_M2_2 = 6.205604245679e-07
+alterparam pv_M3_0 = 1.080000499948e-07
+alterparam pv_M3_1 = 2.950935655294e-07
+alterparam pv_M3_2 = 4.899627267818e-07
+alterparam pv_M3_3 = -1.436880570574e-06
+alterparam pv_M4_0 = 1.045371197679e-06
+alterparam pv_M4_1 = 1.611004186867e-06
+alterparam pv_M4_2 = 6.935268334370e-07
+alterparam pv_M4_3 = 7.167691356519e-07
+reset
+op
+echo MCS 159
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -9.957809872461e-07
+alterparam pv_M1_1 = -8.374150246074e-08
+alterparam pv_M1_2 = -5.742016865388e-07
+alterparam pv_M2_0 = -4.152090433603e-07
+alterparam pv_M2_1 = 6.837983559879e-07
+alterparam pv_M2_2 = -5.684435566375e-07
+alterparam pv_M3_0 = -9.199550630593e-08
+alterparam pv_M3_1 = -1.349570370531e-06
+alterparam pv_M3_2 = -1.120283429044e-07
+alterparam pv_M3_3 = 6.365146133558e-08
+alterparam pv_M4_0 = -4.983619354888e-07
+alterparam pv_M4_1 = -5.090368375691e-07
+alterparam pv_M4_2 = 1.333902414864e-06
+alterparam pv_M4_3 = -8.554183880651e-07
+reset
+op
+echo MCS 160
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.428984354650e-07
+alterparam pv_M1_1 = -5.720567931367e-07
+alterparam pv_M1_2 = 8.476930603064e-07
+alterparam pv_M2_0 = 1.486014912978e-06
+alterparam pv_M2_1 = 2.348837973160e-07
+alterparam pv_M2_2 = -5.072204333388e-07
+alterparam pv_M3_0 = -3.024524530951e-07
+alterparam pv_M3_1 = 7.529360103837e-07
+alterparam pv_M3_2 = -6.442222753005e-07
+alterparam pv_M3_3 = 1.027388412811e-06
+alterparam pv_M4_0 = 1.001672040140e-06
+alterparam pv_M4_1 = 4.964456359937e-08
+alterparam pv_M4_2 = 4.568828828265e-07
+alterparam pv_M4_3 = 5.301504438788e-07
+reset
+op
+echo MCS 161
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.098992512525e-06
+alterparam pv_M1_1 = -7.434886615750e-07
+alterparam pv_M1_2 = 8.352378183490e-07
+alterparam pv_M2_0 = -2.653262644498e-07
+alterparam pv_M2_1 = -5.428889978167e-07
+alterparam pv_M2_2 = 7.260037281022e-08
+alterparam pv_M3_0 = -1.515642985541e-07
+alterparam pv_M3_1 = -6.982629813858e-07
+alterparam pv_M3_2 = -1.129483177530e-06
+alterparam pv_M3_3 = -6.661616908277e-07
+alterparam pv_M4_0 = 1.026971642971e-06
+alterparam pv_M4_1 = 1.387746204437e-06
+alterparam pv_M4_2 = 4.597017475446e-07
+alterparam pv_M4_3 = 8.385759382208e-07
+reset
+op
+echo MCS 162
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.654560947097e-07
+alterparam pv_M1_1 = -5.455447263022e-08
+alterparam pv_M1_2 = 1.999448596756e-07
+alterparam pv_M2_0 = -7.645871979133e-07
+alterparam pv_M2_1 = -6.999962333830e-07
+alterparam pv_M2_2 = 6.871473254868e-08
+alterparam pv_M3_0 = -2.264890787572e-07
+alterparam pv_M3_1 = -7.520482109891e-07
+alterparam pv_M3_2 = 2.733194897554e-07
+alterparam pv_M3_3 = -1.861665787129e-07
+alterparam pv_M4_0 = 7.222063046445e-07
+alterparam pv_M4_1 = -3.663592229396e-09
+alterparam pv_M4_2 = -2.123487336776e-07
+alterparam pv_M4_3 = 9.027857466356e-08
+reset
+op
+echo MCS 163
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.216106665745e-07
+alterparam pv_M1_1 = -4.723798904675e-07
+alterparam pv_M1_2 = -2.842258739721e-07
+alterparam pv_M2_0 = 5.299192865397e-07
+alterparam pv_M2_1 = 4.571563545990e-07
+alterparam pv_M2_2 = 9.095004061521e-07
+alterparam pv_M3_0 = -1.197127497801e-06
+alterparam pv_M3_1 = -2.779570846879e-07
+alterparam pv_M3_2 = -2.931490377971e-07
+alterparam pv_M3_3 = 1.214615082743e-07
+alterparam pv_M4_0 = -3.197234632237e-07
+alterparam pv_M4_1 = -3.628751847075e-07
+alterparam pv_M4_2 = 5.536468778753e-07
+alterparam pv_M4_3 = 1.259268897388e-07
+reset
+op
+echo MCS 164
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -8.247439096274e-07
+alterparam pv_M1_1 = 9.436384692251e-07
+alterparam pv_M1_2 = 7.048101339348e-07
+alterparam pv_M2_0 = -4.058507584047e-07
+alterparam pv_M2_1 = 5.878040188106e-07
+alterparam pv_M2_2 = -5.198389122499e-07
+alterparam pv_M3_0 = 7.959889796098e-07
+alterparam pv_M3_1 = -1.540299470206e-07
+alterparam pv_M3_2 = -5.676953020274e-07
+alterparam pv_M3_3 = -2.638246483725e-07
+alterparam pv_M4_0 = -5.415238482076e-07
+alterparam pv_M4_1 = 1.358632584013e-07
+alterparam pv_M4_2 = 1.238180981973e-07
+alterparam pv_M4_3 = 2.531651953479e-08
+reset
+op
+echo MCS 165
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.935865561405e-07
+alterparam pv_M1_1 = -2.588775774476e-06
+alterparam pv_M1_2 = 6.564469313033e-08
+alterparam pv_M2_0 = -1.340840187358e-06
+alterparam pv_M2_1 = 1.726672392812e-07
+alterparam pv_M2_2 = 7.995919214809e-07
+alterparam pv_M3_0 = 1.936663923129e-07
+alterparam pv_M3_1 = -2.753732571320e-07
+alterparam pv_M3_2 = -1.271926734709e-07
+alterparam pv_M3_3 = -9.408948581307e-08
+alterparam pv_M4_0 = -3.883724782392e-07
+alterparam pv_M4_1 = -4.128015096810e-07
+alterparam pv_M4_2 = -6.532931016808e-07
+alterparam pv_M4_3 = 8.401575817658e-07
+reset
+op
+echo MCS 166
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.099782494097e-08
+alterparam pv_M1_1 = 6.761859885498e-07
+alterparam pv_M1_2 = -1.768127878263e-07
+alterparam pv_M2_0 = 5.103030545353e-08
+alterparam pv_M2_1 = -1.204787247250e-07
+alterparam pv_M2_2 = 3.272745130874e-07
+alterparam pv_M3_0 = 5.845196756799e-07
+alterparam pv_M3_1 = 1.694967632007e-07
+alterparam pv_M3_2 = -4.764599797582e-07
+alterparam pv_M3_3 = -5.515106400485e-07
+alterparam pv_M4_0 = 1.173210738495e-06
+alterparam pv_M4_1 = -1.980165393673e-07
+alterparam pv_M4_2 = -2.058403044646e-07
+alterparam pv_M4_3 = 1.035916672613e-06
+reset
+op
+echo MCS 167
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 7.692339994128e-07
+alterparam pv_M1_1 = 3.774804259650e-07
+alterparam pv_M1_2 = -2.824159985740e-07
+alterparam pv_M2_0 = 1.663961974778e-06
+alterparam pv_M2_1 = 2.778744300476e-07
+alterparam pv_M2_2 = 3.867771411556e-07
+alterparam pv_M3_0 = -1.209903060033e-07
+alterparam pv_M3_1 = -1.000066383683e-06
+alterparam pv_M3_2 = -9.438193074489e-07
+alterparam pv_M3_3 = 2.877770391720e-07
+alterparam pv_M4_0 = 2.770652471073e-07
+alterparam pv_M4_1 = -1.697044423537e-07
+alterparam pv_M4_2 = -8.285055552870e-07
+alterparam pv_M4_3 = -1.019406050767e-06
+reset
+op
+echo MCS 168
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.318254279604e-07
+alterparam pv_M1_1 = -1.029637934980e-06
+alterparam pv_M1_2 = 6.356291297613e-07
+alterparam pv_M2_0 = 8.150570836457e-07
+alterparam pv_M2_1 = 2.000429240932e-06
+alterparam pv_M2_2 = 6.210642261557e-07
+alterparam pv_M3_0 = -4.192079758232e-07
+alterparam pv_M3_1 = -6.163602224564e-07
+alterparam pv_M3_2 = -2.440740338492e-06
+alterparam pv_M3_3 = -4.206501438889e-07
+alterparam pv_M4_0 = -1.251394287124e-07
+alterparam pv_M4_1 = 6.843430743310e-07
+alterparam pv_M4_2 = 4.324666156933e-07
+alterparam pv_M4_3 = 4.160260911319e-07
+reset
+op
+echo MCS 169
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.510575268823e-07
+alterparam pv_M1_1 = 4.673339642730e-07
+alterparam pv_M1_2 = 1.023607777481e-06
+alterparam pv_M2_0 = -7.529816692318e-07
+alterparam pv_M2_1 = -3.233602030812e-07
+alterparam pv_M2_2 = -9.818400853718e-07
+alterparam pv_M3_0 = 1.144565681569e-06
+alterparam pv_M3_1 = 9.170249513460e-07
+alterparam pv_M3_2 = 5.319452333765e-07
+alterparam pv_M3_3 = -8.475038363460e-07
+alterparam pv_M4_0 = 1.222904433227e-07
+alterparam pv_M4_1 = -1.659150824171e-07
+alterparam pv_M4_2 = 5.715335415971e-08
+alterparam pv_M4_3 = -1.330196051128e-07
+reset
+op
+echo MCS 170
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 3.676621682962e-07
+alterparam pv_M1_1 = -2.791939488352e-07
+alterparam pv_M1_2 = 6.042725998587e-07
+alterparam pv_M2_0 = 1.706919412144e-07
+alterparam pv_M2_1 = -2.072361487823e-07
+alterparam pv_M2_2 = -7.909227425072e-08
+alterparam pv_M3_0 = -3.115423459717e-07
+alterparam pv_M3_1 = 5.755029289198e-07
+alterparam pv_M3_2 = -1.919543781730e-07
+alterparam pv_M3_3 = 2.085189995076e-07
+alterparam pv_M4_0 = -2.774719454792e-07
+alterparam pv_M4_1 = -1.050125606858e-06
+alterparam pv_M4_2 = 6.407125695042e-07
+alterparam pv_M4_3 = -7.482084325648e-07
+reset
+op
+echo MCS 171
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.802393262823e-07
+alterparam pv_M1_1 = 2.970928769665e-07
+alterparam pv_M1_2 = -1.170992476013e-06
+alterparam pv_M2_0 = -6.679907409702e-07
+alterparam pv_M2_1 = -3.635240489383e-07
+alterparam pv_M2_2 = -5.803352931107e-07
+alterparam pv_M3_0 = -8.358502331876e-07
+alterparam pv_M3_1 = 5.233266739833e-07
+alterparam pv_M3_2 = -1.693558935992e-07
+alterparam pv_M3_3 = 2.727244245485e-07
+alterparam pv_M4_0 = -3.044154471934e-07
+alterparam pv_M4_1 = 2.158999069362e-07
+alterparam pv_M4_2 = -5.311438948555e-07
+alterparam pv_M4_3 = -1.875019120429e-08
+reset
+op
+echo MCS 172
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.114271063411e-07
+alterparam pv_M1_1 = 3.187129305946e-08
+alterparam pv_M1_2 = -3.232257473446e-07
+alterparam pv_M2_0 = -7.683892494708e-07
+alterparam pv_M2_1 = 1.185344041760e-07
+alterparam pv_M2_2 = 2.439133058707e-07
+alterparam pv_M3_0 = -1.826877189719e-07
+alterparam pv_M3_1 = -5.439916228991e-07
+alterparam pv_M3_2 = 3.836641424259e-07
+alterparam pv_M3_3 = 1.754848424735e-06
+alterparam pv_M4_0 = -2.138729165827e-07
+alterparam pv_M4_1 = 2.381107448836e-07
+alterparam pv_M4_2 = 2.668571373322e-07
+alterparam pv_M4_3 = -1.814764708759e-06
+reset
+op
+echo MCS 173
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 8.758390435296e-08
+alterparam pv_M1_1 = -4.995841654486e-07
+alterparam pv_M1_2 = 9.791222632080e-07
+alterparam pv_M2_0 = -1.795950964194e-07
+alterparam pv_M2_1 = -5.498008410904e-07
+alterparam pv_M2_2 = -1.545023622254e-07
+alterparam pv_M3_0 = 1.177764536575e-07
+alterparam pv_M3_1 = -3.959130257683e-07
+alterparam pv_M3_2 = -3.723820838938e-08
+alterparam pv_M3_3 = -9.575355996943e-07
+alterparam pv_M4_0 = -1.592782397951e-07
+alterparam pv_M4_1 = 5.484835506632e-07
+alterparam pv_M4_2 = 1.392415069449e-06
+alterparam pv_M4_3 = 4.995814539667e-07
+reset
+op
+echo MCS 174
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.922862763638e-07
+alterparam pv_M1_1 = 8.370488654826e-07
+alterparam pv_M1_2 = 7.206186442237e-07
+alterparam pv_M2_0 = 1.176514457134e-06
+alterparam pv_M2_1 = 7.655532959478e-07
+alterparam pv_M2_2 = -8.334213762858e-08
+alterparam pv_M3_0 = 1.827500594751e-07
+alterparam pv_M3_1 = 1.266861383346e-07
+alterparam pv_M3_2 = 2.136446796608e-07
+alterparam pv_M3_3 = 1.416484004750e-07
+alterparam pv_M4_0 = -5.532607087234e-07
+alterparam pv_M4_1 = -1.487495201986e-06
+alterparam pv_M4_2 = -4.749485012310e-07
+alterparam pv_M4_3 = -1.432622725643e-06
+reset
+op
+echo MCS 175
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.805434567349e-08
+alterparam pv_M1_1 = 3.207710825248e-09
+alterparam pv_M1_2 = -1.184810093853e-06
+alterparam pv_M2_0 = 4.866083775729e-07
+alterparam pv_M2_1 = 6.129612300285e-07
+alterparam pv_M2_2 = 6.777745005671e-08
+alterparam pv_M3_0 = 1.179218150792e-06
+alterparam pv_M3_1 = 1.323467398124e-06
+alterparam pv_M3_2 = -8.527665328584e-07
+alterparam pv_M3_3 = 7.330612372727e-07
+alterparam pv_M4_0 = 3.117265245102e-07
+alterparam pv_M4_1 = 2.957967507006e-07
+alterparam pv_M4_2 = 6.607541763908e-07
+alterparam pv_M4_3 = -5.085284253332e-07
+reset
+op
+echo MCS 176
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -4.188705645214e-07
+alterparam pv_M1_1 = -5.845454562804e-07
+alterparam pv_M1_2 = -5.337965873383e-07
+alterparam pv_M2_0 = -6.965831526453e-08
+alterparam pv_M2_1 = -1.026594714442e-06
+alterparam pv_M2_2 = -7.394409195418e-07
+alterparam pv_M3_0 = 4.083741695220e-07
+alterparam pv_M3_1 = -5.017821712212e-08
+alterparam pv_M3_2 = 2.707899295319e-07
+alterparam pv_M3_3 = -1.335908899108e-06
+alterparam pv_M4_0 = -5.542679599571e-07
+alterparam pv_M4_1 = -3.927431241769e-07
+alterparam pv_M4_2 = 2.300558813939e-08
+alterparam pv_M4_3 = -4.145655134790e-07
+reset
+op
+echo MCS 177
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 6.598823907052e-07
+alterparam pv_M1_1 = -4.120743696989e-08
+alterparam pv_M1_2 = 1.203082833475e-08
+alterparam pv_M2_0 = 9.572933927875e-09
+alterparam pv_M2_1 = 5.006213122763e-07
+alterparam pv_M2_2 = -3.334862037545e-07
+alterparam pv_M3_0 = 7.936522546071e-07
+alterparam pv_M3_1 = 3.253105577048e-07
+alterparam pv_M3_2 = 1.089205623865e-07
+alterparam pv_M3_3 = 2.951215336801e-08
+alterparam pv_M4_0 = 3.679104639681e-07
+alterparam pv_M4_1 = 7.179902420291e-07
+alterparam pv_M4_2 = 6.685889426759e-07
+alterparam pv_M4_3 = 2.657732663659e-07
+reset
+op
+echo MCS 178
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 6.199337768096e-07
+alterparam pv_M1_1 = 8.369187574819e-08
+alterparam pv_M1_2 = 8.856443133041e-07
+alterparam pv_M2_0 = -1.881364167171e-08
+alterparam pv_M2_1 = -1.467345053064e-06
+alterparam pv_M2_2 = 9.460258355233e-07
+alterparam pv_M3_0 = 7.626223570105e-08
+alterparam pv_M3_1 = -8.280775098072e-07
+alterparam pv_M3_2 = -1.401653275762e-07
+alterparam pv_M3_3 = -6.249647153908e-07
+alterparam pv_M4_0 = 1.485072296843e-06
+alterparam pv_M4_1 = 3.519164013307e-07
+alterparam pv_M4_2 = -1.109246309314e-06
+alterparam pv_M4_3 = 3.861966543811e-07
+reset
+op
+echo MCS 179
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.819517259841e-07
+alterparam pv_M1_1 = 1.355370494880e-06
+alterparam pv_M1_2 = -7.443689044537e-07
+alterparam pv_M2_0 = -1.588889799325e-06
+alterparam pv_M2_1 = 4.657654365681e-08
+alterparam pv_M2_2 = -2.460924989050e-07
+alterparam pv_M3_0 = -2.945705980924e-07
+alterparam pv_M3_1 = -1.514084730992e-06
+alterparam pv_M3_2 = 3.017997865055e-07
+alterparam pv_M3_3 = 1.183233701305e-06
+alterparam pv_M4_0 = -1.349901550726e-06
+alterparam pv_M4_1 = 8.281802116630e-07
+alterparam pv_M4_2 = -4.021435459859e-07
+alterparam pv_M4_3 = 1.660997556890e-06
+reset
+op
+echo MCS 180
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 3.083041576247e-07
+alterparam pv_M1_1 = -1.328260287864e-07
+alterparam pv_M1_2 = 7.816229424595e-07
+alterparam pv_M2_0 = 3.719582846222e-07
+alterparam pv_M2_1 = -4.189296381717e-07
+alterparam pv_M2_2 = 5.021992167132e-07
+alterparam pv_M3_0 = -3.611165130450e-07
+alterparam pv_M3_1 = -1.264651969638e-06
+alterparam pv_M3_2 = 1.436552616451e-06
+alterparam pv_M3_3 = -2.471925811227e-07
+alterparam pv_M4_0 = -4.306379297096e-07
+alterparam pv_M4_1 = 2.395126680065e-07
+alterparam pv_M4_2 = -1.102826262843e-06
+alterparam pv_M4_3 = -9.571246410108e-07
+reset
+op
+echo MCS 181
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.533035698161e-07
+alterparam pv_M1_1 = -3.674988137441e-07
+alterparam pv_M1_2 = 5.083339206951e-08
+alterparam pv_M2_0 = 7.937681712247e-07
+alterparam pv_M2_1 = -3.351876871691e-07
+alterparam pv_M2_2 = 3.484611418398e-07
+alterparam pv_M3_0 = 4.253565493277e-07
+alterparam pv_M3_1 = -7.665570536453e-07
+alterparam pv_M3_2 = 1.615425908725e-07
+alterparam pv_M3_3 = -6.665664963226e-07
+alterparam pv_M4_0 = 7.522900167656e-07
+alterparam pv_M4_1 = 3.217971388344e-07
+alterparam pv_M4_2 = 1.167017118232e-08
+alterparam pv_M4_3 = -9.473107099207e-07
+reset
+op
+echo MCS 182
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 8.201732282265e-08
+alterparam pv_M1_1 = -5.423703562067e-07
+alterparam pv_M1_2 = 4.991909703282e-07
+alterparam pv_M2_0 = -8.437657899792e-08
+alterparam pv_M2_1 = -5.744143490777e-07
+alterparam pv_M2_2 = 6.544399814397e-07
+alterparam pv_M3_0 = 5.102023392441e-07
+alterparam pv_M3_1 = -4.195243877814e-07
+alterparam pv_M3_2 = 8.216777604145e-07
+alterparam pv_M3_3 = -2.109968982928e-07
+alterparam pv_M4_0 = -2.186032029543e-07
+alterparam pv_M4_1 = 8.754056074849e-08
+alterparam pv_M4_2 = -5.321924297134e-07
+alterparam pv_M4_3 = -3.122865693435e-07
+reset
+op
+echo MCS 183
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.134759861981e-07
+alterparam pv_M1_1 = 1.082073493264e-06
+alterparam pv_M1_2 = 1.060412501945e-06
+alterparam pv_M2_0 = -1.830488742847e-07
+alterparam pv_M2_1 = 1.138751447007e-06
+alterparam pv_M2_2 = -3.060835439626e-08
+alterparam pv_M3_0 = 2.691111780691e-07
+alterparam pv_M3_1 = 6.247838779677e-07
+alterparam pv_M3_2 = 2.065089983370e-07
+alterparam pv_M3_3 = 1.707791714378e-06
+alterparam pv_M4_0 = 1.720718289739e-07
+alterparam pv_M4_1 = -8.468234765768e-07
+alterparam pv_M4_2 = 9.231073787212e-07
+alterparam pv_M4_3 = -2.913728905418e-07
+reset
+op
+echo MCS 184
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -2.151643425322e-07
+alterparam pv_M1_1 = -2.115432183019e-06
+alterparam pv_M1_2 = 7.078039175170e-07
+alterparam pv_M2_0 = 5.787309416194e-07
+alterparam pv_M2_1 = 5.649920879191e-07
+alterparam pv_M2_2 = 6.918374441865e-07
+alterparam pv_M3_0 = 1.195717710612e-06
+alterparam pv_M3_1 = -3.252821940627e-08
+alterparam pv_M3_2 = 6.629949840080e-07
+alterparam pv_M3_3 = -5.259741751555e-07
+alterparam pv_M4_0 = -2.501752161608e-07
+alterparam pv_M4_1 = 7.472422712141e-07
+alterparam pv_M4_2 = 2.765663116745e-07
+alterparam pv_M4_3 = -9.428669248091e-07
+reset
+op
+echo MCS 185
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 2.554984545201e-07
+alterparam pv_M1_1 = -1.293379201889e-07
+alterparam pv_M1_2 = -5.788844859992e-07
+alterparam pv_M2_0 = 3.070873182586e-07
+alterparam pv_M2_1 = -2.860287217230e-07
+alterparam pv_M2_2 = -1.110503908530e-06
+alterparam pv_M3_0 = -7.857054324999e-07
+alterparam pv_M3_1 = 1.250992158196e-06
+alterparam pv_M3_2 = -1.071216509609e-06
+alterparam pv_M3_3 = 1.575449373478e-07
+alterparam pv_M4_0 = 4.313746739104e-07
+alterparam pv_M4_1 = 4.519749090991e-07
+alterparam pv_M4_2 = -8.665393199753e-07
+alterparam pv_M4_3 = -2.273618199615e-07
+reset
+op
+echo MCS 186
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 9.959367444635e-08
+alterparam pv_M1_1 = 5.658333944529e-07
+alterparam pv_M1_2 = -4.560561773511e-07
+alterparam pv_M2_0 = -8.227007119584e-07
+alterparam pv_M2_1 = 7.089269088031e-07
+alterparam pv_M2_2 = 7.814616373323e-07
+alterparam pv_M3_0 = 2.616808139133e-07
+alterparam pv_M3_1 = -4.304775268002e-07
+alterparam pv_M3_2 = 2.876239248757e-07
+alterparam pv_M3_3 = 7.729433953556e-08
+alterparam pv_M4_0 = 5.922929170512e-07
+alterparam pv_M4_1 = -8.832562486636e-07
+alterparam pv_M4_2 = 8.220878036546e-08
+alterparam pv_M4_3 = -1.124751260334e-07
+reset
+op
+echo MCS 187
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -7.846648795995e-07
+alterparam pv_M1_1 = 1.524863395077e-07
+alterparam pv_M1_2 = 2.469063853436e-08
+alterparam pv_M2_0 = -2.901673962329e-07
+alterparam pv_M2_1 = 2.800346145892e-07
+alterparam pv_M2_2 = -1.003240987414e-06
+alterparam pv_M3_0 = -3.793047570659e-08
+alterparam pv_M3_1 = 3.050558821223e-07
+alterparam pv_M3_2 = 2.008309534587e-07
+alterparam pv_M3_3 = 7.611493840801e-07
+alterparam pv_M4_0 = -8.493148461725e-07
+alterparam pv_M4_1 = -1.066232473476e-06
+alterparam pv_M4_2 = 1.690464215724e-07
+alterparam pv_M4_3 = 3.218414386242e-07
+reset
+op
+echo MCS 188
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.498941779076e-06
+alterparam pv_M1_1 = 4.360108632902e-07
+alterparam pv_M1_2 = -6.179747674762e-07
+alterparam pv_M2_0 = 5.699490913870e-07
+alterparam pv_M2_1 = -5.979508118475e-07
+alterparam pv_M2_2 = -1.050644672904e-06
+alterparam pv_M3_0 = 1.844912924845e-06
+alterparam pv_M3_1 = 2.303933352546e-07
+alterparam pv_M3_2 = 5.055464399645e-07
+alterparam pv_M3_3 = 3.984902052219e-07
+alterparam pv_M4_0 = 1.281331774989e-06
+alterparam pv_M4_1 = 2.008936443788e-07
+alterparam pv_M4_2 = 8.610425363453e-07
+alterparam pv_M4_3 = -7.263993765370e-07
+reset
+op
+echo MCS 189
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -9.844064769199e-07
+alterparam pv_M1_1 = 1.008728135695e-06
+alterparam pv_M1_2 = 1.042883308186e-06
+alterparam pv_M2_0 = 3.611376873352e-07
+alterparam pv_M2_1 = 1.598531577805e-07
+alterparam pv_M2_2 = 1.175045969535e-07
+alterparam pv_M3_0 = -4.866036125969e-07
+alterparam pv_M3_1 = 1.087981292871e-06
+alterparam pv_M3_2 = 4.658990921613e-07
+alterparam pv_M3_3 = 3.577291704467e-07
+alterparam pv_M4_0 = 2.659607272049e-07
+alterparam pv_M4_1 = 7.409862620738e-07
+alterparam pv_M4_2 = 3.570926720689e-07
+alterparam pv_M4_3 = 5.270489475016e-07
+reset
+op
+echo MCS 190
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -8.265589483621e-07
+alterparam pv_M1_1 = 3.606477918427e-07
+alterparam pv_M1_2 = 1.546585020291e-06
+alterparam pv_M2_0 = -3.666511332128e-07
+alterparam pv_M2_1 = -9.109576646334e-08
+alterparam pv_M2_2 = 6.306994450070e-07
+alterparam pv_M3_0 = 6.769155600511e-07
+alterparam pv_M3_1 = 4.415366311045e-07
+alterparam pv_M3_2 = -1.143816115323e-06
+alterparam pv_M3_3 = 3.547768795796e-07
+alterparam pv_M4_0 = -8.369842761753e-07
+alterparam pv_M4_1 = -5.831523188908e-07
+alterparam pv_M4_2 = 3.875325487042e-07
+alterparam pv_M4_3 = -2.091792438079e-07
+reset
+op
+echo MCS 191
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.724898520201e-07
+alterparam pv_M1_1 = 2.226070190183e-06
+alterparam pv_M1_2 = 5.495492838294e-07
+alterparam pv_M2_0 = 5.111340127452e-07
+alterparam pv_M2_1 = -6.333749744659e-07
+alterparam pv_M2_2 = -4.546443978043e-07
+alterparam pv_M3_0 = -7.521225328700e-07
+alterparam pv_M3_1 = -3.766021276394e-07
+alterparam pv_M3_2 = -7.719852821225e-07
+alterparam pv_M3_3 = -4.664712845485e-07
+alterparam pv_M4_0 = -1.475886251351e-07
+alterparam pv_M4_1 = -7.075125671210e-07
+alterparam pv_M4_2 = -1.003453183253e-06
+alterparam pv_M4_3 = -9.627000905670e-07
+reset
+op
+echo MCS 192
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 3.209706966973e-07
+alterparam pv_M1_1 = 4.224717747842e-08
+alterparam pv_M1_2 = 7.254493632442e-07
+alterparam pv_M2_0 = 7.385300539153e-07
+alterparam pv_M2_1 = -2.408680916476e-07
+alterparam pv_M2_2 = 4.737923551519e-07
+alterparam pv_M3_0 = -1.018601846910e-06
+alterparam pv_M3_1 = 1.614341424648e-06
+alterparam pv_M3_2 = 8.452784862154e-07
+alterparam pv_M3_3 = -1.520515719095e-07
+alterparam pv_M4_0 = -8.225062077269e-07
+alterparam pv_M4_1 = 2.687349261198e-07
+alterparam pv_M4_2 = -1.322341673308e-06
+alterparam pv_M4_3 = -5.510500371660e-07
+reset
+op
+echo MCS 193
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 5.294515474368e-07
+alterparam pv_M1_1 = 5.335049960024e-08
+alterparam pv_M1_2 = -3.471644905030e-07
+alterparam pv_M2_0 = 6.722744035501e-07
+alterparam pv_M2_1 = -7.344251522747e-07
+alterparam pv_M2_2 = 2.013137360605e-07
+alterparam pv_M3_0 = -3.520582142491e-07
+alterparam pv_M3_1 = -5.991813961920e-07
+alterparam pv_M3_2 = 3.276702842340e-07
+alterparam pv_M3_3 = -7.020717807744e-07
+alterparam pv_M4_0 = 1.344921657768e-06
+alterparam pv_M4_1 = -4.134572465044e-07
+alterparam pv_M4_2 = 1.407015203302e-06
+alterparam pv_M4_3 = -7.735541635504e-07
+reset
+op
+echo MCS 194
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 4.284723569701e-07
+alterparam pv_M1_1 = -8.482281061065e-07
+alterparam pv_M1_2 = -9.483131427692e-07
+alterparam pv_M2_0 = 1.129287310791e-07
+alterparam pv_M2_1 = 4.791064434953e-07
+alterparam pv_M2_2 = -9.010399753574e-07
+alterparam pv_M3_0 = 8.373184211443e-07
+alterparam pv_M3_1 = -5.639876721576e-07
+alterparam pv_M3_2 = 9.278845399047e-08
+alterparam pv_M3_3 = 2.685442070814e-07
+alterparam pv_M4_0 = 4.205034496089e-07
+alterparam pv_M4_1 = -1.271245197576e-06
+alterparam pv_M4_2 = 1.144496602810e-06
+alterparam pv_M4_3 = 3.972477118083e-07
+reset
+op
+echo MCS 195
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -3.009400363498e-07
+alterparam pv_M1_1 = -7.241861696415e-07
+alterparam pv_M1_2 = -1.197889466171e-06
+alterparam pv_M2_0 = -9.626715881625e-07
+alterparam pv_M2_1 = 3.853296938803e-07
+alterparam pv_M2_2 = -2.411752328913e-07
+alterparam pv_M3_0 = -8.001026011020e-07
+alterparam pv_M3_1 = -3.725992873641e-07
+alterparam pv_M3_2 = 1.105994583917e-06
+alterparam pv_M3_3 = -2.338224644377e-07
+alterparam pv_M4_0 = -4.132673176308e-07
+alterparam pv_M4_1 = 9.550227095263e-07
+alterparam pv_M4_2 = 3.266067478159e-07
+alterparam pv_M4_3 = 3.131127452326e-08
+reset
+op
+echo MCS 196
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -4.297666983330e-07
+alterparam pv_M1_1 = -1.097720190889e-06
+alterparam pv_M1_2 = -8.276985546120e-07
+alterparam pv_M2_0 = -3.397376571851e-07
+alterparam pv_M2_1 = -1.552988220771e-07
+alterparam pv_M2_2 = 2.519013347812e-07
+alterparam pv_M3_0 = 3.901565803251e-07
+alterparam pv_M3_1 = 1.576293463929e-07
+alterparam pv_M3_2 = 1.558523486180e-07
+alterparam pv_M3_3 = -7.124275416491e-07
+alterparam pv_M4_0 = -1.523641832116e-06
+alterparam pv_M4_1 = -3.683148281238e-07
+alterparam pv_M4_2 = -6.746853859560e-07
+alterparam pv_M4_3 = -4.614769437271e-07
+reset
+op
+echo MCS 197
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = -1.941389776322e-07
+alterparam pv_M1_1 = -8.793629960274e-07
+alterparam pv_M1_2 = -7.852494497811e-07
+alterparam pv_M2_0 = -7.093487653995e-08
+alterparam pv_M2_1 = 8.186212162712e-08
+alterparam pv_M2_2 = -4.638608307604e-07
+alterparam pv_M3_0 = 3.523407510876e-07
+alterparam pv_M3_1 = -1.551779152680e-07
+alterparam pv_M3_2 = -7.211874604255e-07
+alterparam pv_M3_3 = 2.880093149218e-08
+alterparam pv_M4_0 = 1.331067410941e-06
+alterparam pv_M4_1 = -4.772448930470e-07
+alterparam pv_M4_2 = 8.245853238659e-07
+alterparam pv_M4_3 = 9.742346765949e-07
+reset
+op
+echo MCS 198
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 1.059360227458e-06
+alterparam pv_M1_1 = -5.816858473772e-07
+alterparam pv_M1_2 = 1.425084573499e-06
+alterparam pv_M2_0 = 8.227149093213e-08
+alterparam pv_M2_1 = -1.794558569240e-07
+alterparam pv_M2_2 = -1.628805727306e-07
+alterparam pv_M3_0 = 4.253767293492e-07
+alterparam pv_M3_1 = 3.615262504002e-08
+alterparam pv_M3_2 = -1.250848425008e-07
+alterparam pv_M3_3 = 9.076344267214e-07
+alterparam pv_M4_0 = -5.110703859265e-07
+alterparam pv_M4_1 = -7.376141460590e-07
+alterparam pv_M4_2 = 5.608099939217e-07
+alterparam pv_M4_3 = 4.975184791848e-07
+reset
+op
+echo MCS 199
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 7.735589338440e-07
+alterparam pv_M1_1 = -7.581597208642e-07
+alterparam pv_M1_2 = 7.646592338272e-07
+alterparam pv_M2_0 = 3.408405474033e-07
+alterparam pv_M2_1 = 1.246329042822e-06
+alterparam pv_M2_2 = -8.826726696476e-07
+alterparam pv_M3_0 = 1.543192303670e-07
+alterparam pv_M3_1 = -1.962698045480e-07
+alterparam pv_M3_2 = -1.124134264035e-06
+alterparam pv_M3_3 = -5.055021093045e-07
+alterparam pv_M4_0 = 7.969547040758e-07
+alterparam pv_M4_1 = -3.316052754366e-07
+alterparam pv_M4_2 = -5.109536238935e-07
+alterparam pv_M4_3 = 6.139528109392e-07
+reset
+op
+echo MCS 200
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 6.992414017066e-07
+alterparam pv_M1_1 = 6.977616246945e-07
+alterparam pv_M1_2 = -5.583975403142e-07
+alterparam pv_M2_0 = -4.101838256087e-08
+alterparam pv_M2_1 = 7.287860668070e-07
+alterparam pv_M2_2 = -4.638861811988e-07
+alterparam pv_M3_0 = -5.298571523611e-07
+alterparam pv_M3_1 = 5.856484473177e-07
+alterparam pv_M3_2 = 1.104747356208e-06
+alterparam pv_M3_3 = -8.146398638327e-07
+alterparam pv_M4_0 = -1.836758241020e-06
+alterparam pv_M4_1 = -1.025528594722e-06
+alterparam pv_M4_2 = -7.159119919340e-07
+alterparam pv_M4_3 = -9.735212710245e-08
+reset
+op
+echo MCS 201
+print v(inn)
+print v(inp)
+print v(out)
+quit
+.endc
+.end

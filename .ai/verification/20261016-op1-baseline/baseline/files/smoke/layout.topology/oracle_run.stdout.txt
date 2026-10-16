@@ -1,0 +1,5 @@
+[free] verdict=FAIL (선언 제약 불만족 ['gain_db']; 포화 아닌 전도 MOS ['M6', 'M7', 'M1a', 'M1b', 'M3a', 'M3b', 'M4a', 'M4b', 'M5', 'M15', 'M9b', 'M10', 'M25', 'M18b', 'M19', 'M63', 'M37a']) gain_db=-169.40919330820944 ugf_hz=None pm_deg=None(beta_loop) rail_I={'vdd': 0.000244963} topology=verified
+[forced] verdict=INCOMPLETE (forced 는 진단 모드 -- 합격 판정은 free 모드에서만 한다) gain_db=61.785971084478064 ugf_hz=58982562.113921024 pm_deg=50.77171061919938(beta_loop) rail_I={'vdd': 8.7636e-05} topology=verified
+  diagnosis(free): unknown -- 판정 가능한 forced KCL 넷이 없다(소자 허용오차 없음 등)
+
+--stderr--

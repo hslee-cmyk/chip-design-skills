@@ -1,0 +1,284 @@
+{
+ "devices": {
+  "M1": {
+   "id": 1.004868e-05,
+   "gm": 0.0001261958,
+   "gds": 1.67219e-06,
+   "vth": 0.6376623,
+   "vdsat": 0.1378368,
+   "vgs": 0.7554978,
+   "vds": 0.4109226,
+   "vbs": -0.144502
+  },
+  "M2": {
+   "id": 9.951324e-06,
+   "gm": 0.0001271815,
+   "gds": 9.328162e-07,
+   "vth": 0.6376608,
+   "vdsat": 0.1350863,
+   "vgs": 0.7514659,
+   "vds": 0.7554969,
+   "vbs": -0.144502
+  },
+  "M3": {
+   "id": 1.004868e-05,
+   "gm": 7.06068e-05,
+   "gds": 2.445647e-07,
+   "vth": 0.9907468,
+   "vdsat": 0.2499011,
+   "vgs": 1.244575,
+   "vds": 1.244575,
+   "vbs": 1.798339e-12
+  },
+  "M4": {
+   "id": 9.951324e-06,
+   "gm": 6.989445e-05,
+   "gds": 3.307828e-07,
+   "vth": 0.9907831,
+   "vdsat": 0.2498719,
+   "vgs": 1.244575,
+   "vds": 0.9000009,
+   "vbs": 1.469935e-13
+  }
+ },
+ "nodes": {
+  "d1": 0.5554248,
+  "inp": 0.9,
+  "tail": 0.1445022,
+  "out": 0.8999991,
+  "inn": 0.8959681,
+  "vdd": 1.8
+ },
+ "rail_current_A": {
+  "vdd": 2e-05
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\mc5t0\\o\\t5ota.free.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 99.87852430000012,
+  "dc_gain_db": 39.989442340966775,
+  "phase_dc_deg": -2.8997834206479016e-06,
+  "reference_point": "first",
+  "f3db_hz": 199526.231,
+  "ugf_hz": 19704964.280712947,
+  "phase_lag_at_ugf_deg": 92.17949375339428,
+  "pm_deg": 87.82050624660572,
+  "a0_f3db_hz": 19928385.51142094,
+  "pm_open_loop_deg": 87.82050624660572,
+  "dc_path_isolation": [
+   {
+    "net": "inp",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   },
+   {
+    "net": "inn",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": true
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "inp": 0.5,
+   "inn": -0.5
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": null,
+  "pm_crosscheck_note": "peaking 없음(Mp-1 = 0, 데이터 분해능 2e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": null,
+  "closed_loop_peak_hz": null,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": null,
+  "pm_deg_raw": 87.82050624660572,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_1",
+   "closure_sign": 1.0,
+   "nyquist": {
+    "encirclements_cw": 0,
+    "reason": null,
+    "max_step_deg": 1.6306140485072103,
+    "max_step_hz": 22387211.4,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     99.8785243,
+     -5.05492885e-06
+    ],
+    "L_last": [
+     -0.00321050342,
+     -0.000690426995
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     5.742076249607605e-06,
+     0.07937191690895586
+    ],
+    "refinement": {
+     "rounds": 0,
+     "samples_added": 0,
+     "k_max": 10,
+     "history": []
+    }
+   },
+   "pz": {
+    "status": "failed",
+    "P": null,
+    "rhp": [],
+    "beyond_sweep": [],
+    "n_poles": 7,
+    "reason": "Warning: Pole-zero iteration limit reached; giving up after 300 trials",
+    "netlist": "t5ota.free.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "main netlist, inputs driven (beta=1)"
+   },
+   "transient": {
+    "status": "stable",
+    "reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+    "op_pass": {
+     "netlist": "t5ota.free.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "ldc_inp": 0.0,
+      "lfb_inn": 0.0
+     },
+     "node_V": {
+      "inp": 0.9,
+      "inn": 0.8959681,
+      "out": 0.8999991
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 8.076895792583337e-09,
+     "tr": 8.076895792583337e-09,
+     "pw": 8.076895792583337e-09,
+     "tmax": 2.2474763895757775e-10,
+     "window_s": 5.0748632971580244e-08,
+     "windows": 5,
+     "windows_planned": 5,
+     "t_kick_end": 3.2307583170333346e-08,
+     "tstop": 2.8605074802823453e-07,
+     "f_lo_hz": 19704964.280712947,
+     "f_hi_hz": 19704964.280712947,
+     "f_crit_hz": 19952623.1,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 0.00017979681000000001,
+     "wall_cap_s": 1530.5,
+     "sign": 1.0,
+     "observe": [
+      [
+       "inp",
+       1
+      ],
+      [
+       "inn",
+       -1
+      ]
+     ]
+    },
+    "M": [
+     0.01460366711,
+     1.789405999999983e-05,
+     2.192999999997558e-08,
+     1.9999999920083944e-11,
+     1.000000082740371e-11
+    ],
+    "floor_V": 0.000179796914339269,
+    "windows_run": 5,
+    "netlist": "t5ota.free.stab.cir",
+    "file": "t5ota.free.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1530.5,
+    "first_status": "stable"
+   },
+   "closed_loop": "stable",
+   "open_loop_rhp_poles": 0,
+   "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+   "pm_valid": true,
+   "pm_undefined": null,
+   "Z": 0,
+   "P_pz": null,
+   "P_eff": 0,
+   "pz_conflict": null,
+   "conditionally_stable": false,
+   "verdict": "stable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": null,
+   "low_side_crossings": [],
+   "low_side_crossing_hz": [],
+   "gain_crossings_hz": [
+    19704964.280712947
+   ]
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\mc5t0\\o\\t5ota.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null,
+ "stability_cache": {
+  "op_pass": null,
+  "transient": null
+ },
+ "offset_mc": {
+  "status": "ok",
+  "reason": null,
+  "sigma_in_mV": 3.6758284804311394,
+  "mean_in_mV": 0.2481398885434242,
+  "n_samples": 201,
+  "method": "ngspice Monte-Carlo (소자별 독립 mismatch 변수, alterparam+reset+op)",
+  "ngspice_rc": 0,
+  "n_requested": 201,
+  "n_failed": 0,
+  "n_capped": false,
+  "rel_se_achieved": 0.05,
+  "rel_resolution": 0.05,
+  "seed": 0,
+  "a_dc_signed": 99.8785243,
+  "mismatch_vars": {
+   "M1": [
+    "sky130_fd_pr__nfet_01v8__toxe_slope_spectre",
+    "sky130_fd_pr__nfet_01v8__vth0_slope_spectre",
+    "sky130_fd_pr__nfet_01v8__voff_slope_spectre"
+   ],
+   "M2": [
+    "sky130_fd_pr__nfet_01v8__toxe_slope_spectre",
+    "sky130_fd_pr__nfet_01v8__vth0_slope_spectre",
+    "sky130_fd_pr__nfet_01v8__voff_slope_spectre"
+   ],
+   "M3": [
+    "sky130_fd_pr__pfet_01v8__toxe_slope_spectre",
+    "sky130_fd_pr__pfet_01v8__vth0_slope_spectre",
+    "sky130_fd_pr__pfet_01v8__voff_slope_spectre",
+    "sky130_fd_pr__pfet_01v8__nfactor_slope_spectre"
+   ],
+   "M4": [
+    "sky130_fd_pr__pfet_01v8__toxe_slope_spectre",
+    "sky130_fd_pr__pfet_01v8__vth0_slope_spectre",
+    "sky130_fd_pr__pfet_01v8__voff_slope_spectre",
+    "sky130_fd_pr__pfet_01v8__nfactor_slope_spectre"
+   ]
+  },
+  "unit_note": "변수값 = z·1e-6/sqrt(m) (모듈 머리말)"
+ }
+}

@@ -1,0 +1,201 @@
+{
+ "schema": "spice_oracle_input/1",
+ "circuit": "tcm_cmfb",
+ "process": {
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_cmloop_driver_not_on_outp1\\lut.npz",
+  "models": {
+   "nmos": {
+    "subckt": "sky130_fd_pr__nfet_01v8",
+    "includes": [
+     "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__{corner}.pm3.spice",
+     "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__nfet_01v8[{param}]"
+   },
+   "pmos": {
+    "subckt": "sky130_fd_pr__pfet_01v8",
+    "includes": [
+     "C:/pdk/sky130_fd_pr/models/parameters/lod.spice",
+     "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__{corner}.pm3.spice",
+     "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__pfet_01v8[{param}]"
+   }
+  }
+ },
+ "rails": [
+  {
+   "net": "vdd",
+   "voltage": 1.8
+  },
+  {
+   "net": "gnd",
+   "voltage": 0.0,
+   "reference": true
+  }
+ ],
+ "devices": [
+  {
+   "name": "M1",
+   "kind": "nmos",
+   "drain": "op",
+   "gate": "ip",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W": 4e-06,
+   "diffusion": {
+    "ad_m2": 0.0,
+    "as_m2": 0.0,
+    "pd_m": 0.0,
+    "ps_m": 0.0,
+    "basis": "test: \uba74\uc801 0 \uba85\uc2dc(\ub3c5\ub9bd \ub137\ub9ac\uc2a4\ud2b8\uc5d0 ad/pd \uc5c6\uc74c\uacfc \uac19\uc740 \ud68c\ub85c)"
+   }
+  },
+  {
+   "name": "M2",
+   "kind": "nmos",
+   "drain": "om",
+   "gate": "im",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W": 4e-06,
+   "diffusion": {
+    "ad_m2": 0.0,
+    "as_m2": 0.0,
+    "pd_m": 0.0,
+    "ps_m": 0.0,
+    "basis": "test: \uba74\uc801 0 \uba85\uc2dc(\ub3c5\ub9bd \ub137\ub9ac\uc2a4\ud2b8\uc5d0 ad/pd \uc5c6\uc74c\uacfc \uac19\uc740 \ud68c\ub85c)"
+   }
+  },
+  {
+   "name": "M3",
+   "kind": "pmos",
+   "drain": "op",
+   "gate": "c",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W": 4e-06,
+   "diffusion": {
+    "ad_m2": 0.0,
+    "as_m2": 0.0,
+    "pd_m": 0.0,
+    "ps_m": 0.0,
+    "basis": "test: \uba74\uc801 0 \uba85\uc2dc(\ub3c5\ub9bd \ub137\ub9ac\uc2a4\ud2b8\uc5d0 ad/pd \uc5c6\uc74c\uacfc \uac19\uc740 \ud68c\ub85c)"
+   }
+  },
+  {
+   "name": "M4",
+   "kind": "pmos",
+   "drain": "om",
+   "gate": "c",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W": 4e-06,
+   "diffusion": {
+    "ad_m2": 0.0,
+    "as_m2": 0.0,
+    "pd_m": 0.0,
+    "ps_m": 0.0,
+    "basis": "test: \uba74\uc801 0 \uba85\uc2dc(\ub3c5\ub9bd \ub137\ub9ac\uc2a4\ud2b8\uc5d0 ad/pd \uc5c6\uc74c\uacfc \uac19\uc740 \ud68c\ub85c)"
+   }
+  }
+ ],
+ "sources": [],
+ "passives": [
+  {
+   "name": "CL1",
+   "kind": "capacitor",
+   "terminals": [
+    "op",
+    "gnd"
+   ],
+   "value": 1e-11
+  },
+  {
+   "name": "CL2",
+   "kind": "capacitor",
+   "terminals": [
+    "om",
+    "gnd"
+   ],
+   "value": 1e-11
+  },
+  {
+   "name": "R1",
+   "kind": "resistor",
+   "terminals": [
+    "op",
+    "c"
+   ],
+   "value": 1000000.0
+  },
+  {
+   "name": "R2",
+   "kind": "resistor",
+   "terminals": [
+    "c",
+    "om"
+   ],
+   "value": 1000000.0
+  },
+  {
+   "name": "Cg",
+   "kind": "capacitor",
+   "terminals": [
+    "c",
+    "gnd"
+   ],
+   "value": 5e-12
+  }
+ ],
+ "ports": {
+  "input_p": "ip",
+  "input_n": "im",
+  "output_p": "op",
+  "output_n": "om"
+ },
+ "predictions": {
+  "nodes": {
+   "ip": 0.6,
+   "im": 0.6
+  },
+  "devices": {},
+  "metrics": []
+ },
+ "testbench": {
+  "dc_choke_H": 1000000000000.0,
+  "ac_couple_F": 1.0,
+  "options": {
+   "gmin": "1e-15",
+   "reltol": "1e-4",
+   "abstol": "1e-14",
+   "vntol": "1e-7"
+  },
+  "ac": {
+   "fstart_hz": 0.01,
+   "fstop_hz": 10000000000.0,
+   "points_per_decade": 40,
+   "input_ac": 1.0,
+   "input_p_ac": 0.5,
+   "input_n_ac": -0.5,
+   "diff_feedback_gain": 0.5
+  }
+ },
+ "cm_output_loop": {
+  "drivers": [
+   "Mzz"
+  ]
+ }
+}

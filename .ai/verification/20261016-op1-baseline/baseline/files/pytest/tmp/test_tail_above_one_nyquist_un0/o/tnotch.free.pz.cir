@@ -1,0 +1,25 @@
+* spice_oracle: tnotch bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XM1 n1 nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+Rp_RL vdd n1 129409.146
+Rp_Rt1 n1 nm 10000000
+Rp_Rt2 nm no 10000000
+Cp_Ctm nm 0 3.2e-12
+Cp_Ct1 n1 nc 1.6e-12
+Cp_Ct2 nc no 1.6e-12
+Rp_Rts nc 0 5000000
+Vpz_nin nin 0 DC 0.7
+.control
+set noaskquit
+op
+echo PZSTART
+pz no 0 no 0 cur pol
+print all
+echo PZEND
+quit
+.endc
+.end

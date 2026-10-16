@@ -1,0 +1,369 @@
+* spice_oracle: t5t_ota bias=free
+.subckt mmv_M1 d g s b params: v0=0 v1=0 v2=0
+.param sky130_fd_pr__nfet_01v8__toxe_slope_spectre={v0}
+.param sky130_fd_pr__nfet_01v8__vth0_slope_spectre={v1}
+.param sky130_fd_pr__nfet_01v8__voff_slope_spectre={v2}
+X1 d g s b sky130_fd_pr__nfet_01v8 l=1e-06 w=4e-06 m=2 ad=0 as=0 pd=0 ps=0
+.ends
+.subckt mmv_M2 d g s b params: v0=0 v1=0 v2=0
+.param sky130_fd_pr__nfet_01v8__toxe_slope_spectre={v0}
+.param sky130_fd_pr__nfet_01v8__vth0_slope_spectre={v1}
+.param sky130_fd_pr__nfet_01v8__voff_slope_spectre={v2}
+X1 d g s b sky130_fd_pr__nfet_01v8 l=1e-06 w=4e-06 m=2 ad=0 as=0 pd=0 ps=0
+.ends
+.subckt mmv_M3 d g s b params: v0=0 v1=0 v2=0 v3=0
+.param sky130_fd_pr__pfet_01v8__toxe_slope_spectre={v0}
+.param sky130_fd_pr__pfet_01v8__vth0_slope_spectre={v1}
+.param sky130_fd_pr__pfet_01v8__voff_slope_spectre={v2}
+.param sky130_fd_pr__pfet_01v8__nfactor_slope_spectre={v3}
+X1 d g s b sky130_fd_pr__pfet_01v8 l=1e-06 w=4e-06 m=2 ad=0 as=0 pd=0 ps=0
+.ends
+.subckt mmv_M4 d g s b params: v0=0 v1=0 v2=0 v3=0
+.param sky130_fd_pr__pfet_01v8__toxe_slope_spectre={v0}
+.param sky130_fd_pr__pfet_01v8__vth0_slope_spectre={v1}
+.param sky130_fd_pr__pfet_01v8__voff_slope_spectre={v2}
+.param sky130_fd_pr__pfet_01v8__nfactor_slope_spectre={v3}
+X1 d g s b sky130_fd_pr__pfet_01v8 l=1e-06 w=4e-06 m=2 ad=0 as=0 pd=0 ps=0
+.ends
+.param pv_M1_0=0
+.param pv_M1_1=0
+.param pv_M1_2=0
+.param pv_M2_0=0
+.param pv_M2_1=0
+.param pv_M2_2=0
+.param pv_M3_0=0
+.param pv_M3_1=0
+.param pv_M3_2=0
+.param pv_M3_3=0
+.param pv_M4_0=0
+.param pv_M4_1=0
+.param pv_M4_2=0
+.param pv_M4_3=0
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XM1 n1 inp tail 0 mmv_M1 v0={pv_M1_0} v1={pv_M1_1} v2={pv_M1_2}
+XM2 out inn tail 0 mmv_M2 v0={pv_M2_0} v1={pv_M2_1} v2={pv_M2_2}
+XM3 n1 n1 vdd vdd mmv_M3 v0={pv_M3_0} v1={pv_M3_1} v2={pv_M3_2} v3={pv_M3_3}
+XM4 out n1 vdd vdd mmv_M4 v0={pv_M4_0} v1={pv_M4_1} v2={pv_M4_2} v3={pv_M4_3}
+Isrc_It tail 0 DC 2e-05
+Cp_CL out 0 1e-12
+Vdc_inp dcs_inp 0 DC 0.9
+Ldc_inp dcs_inp inp 1e+12
+Cac_inp inp acs_inp 1
+Vac_inp acs_inp 0 DC 0 AC 0.5
+Efb_inn fbs_inn 0 out 0 1
+Vofs_inn fbs_inn fbd_inn DC 0
+Lfb_inn fbd_inn inn 1e+12
+Cac_inn inn acs_inn 1
+Vac_inn acs_inn 0 DC 0 AC -0.5
+.control
+set noaskquit
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 0
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 7.071067811865e-07
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 1
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 7.071067811865e-07
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 2
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 7.071067811865e-07
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 3
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 7.071067811865e-07
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 4
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 7.071067811865e-07
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 5
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 7.071067811865e-07
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 6
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 7.071067811865e-07
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 7
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 7.071067811865e-07
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 8
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 7.071067811865e-07
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 9
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 7.071067811865e-07
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 10
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 7.071067811865e-07
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 11
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 7.071067811865e-07
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 12
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 7.071067811865e-07
+alterparam pv_M4_3 = 0.000000000000e+00
+reset
+op
+echo MCS 13
+print v(inn)
+print v(inp)
+print v(out)
+alterparam pv_M1_0 = 0.000000000000e+00
+alterparam pv_M1_1 = 0.000000000000e+00
+alterparam pv_M1_2 = 0.000000000000e+00
+alterparam pv_M2_0 = 0.000000000000e+00
+alterparam pv_M2_1 = 0.000000000000e+00
+alterparam pv_M2_2 = 0.000000000000e+00
+alterparam pv_M3_0 = 0.000000000000e+00
+alterparam pv_M3_1 = 0.000000000000e+00
+alterparam pv_M3_2 = 0.000000000000e+00
+alterparam pv_M3_3 = 0.000000000000e+00
+alterparam pv_M4_0 = 0.000000000000e+00
+alterparam pv_M4_1 = 0.000000000000e+00
+alterparam pv_M4_2 = 0.000000000000e+00
+alterparam pv_M4_3 = 7.071067811865e-07
+reset
+op
+echo MCS 14
+print v(inn)
+print v(inp)
+print v(out)
+quit
+.endc
+.end

@@ -1,0 +1,32 @@
+* independent C10 reference
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27.0
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vdd vdd 0 DC 1.8
+Vb vb 0 DC 0.7
+Ecl nin cl n2 0 -1
+R1 vdd n1 51764.70588
+R2 vdd n2 129400.0
+Rb vb n3 10000000.0
+Cc n2 n3 1e-12
+XM1_0 n1 nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM2_0 n2 n1 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM2_1 n2 n1 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM3_0 n1 n3 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM3_1 n1 n3 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM3_2 n1 n3 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM3_3 n1 n3 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+Vcl cl 0 DC 1.400376 PULSE(1.400376 1.410376 1e-06 1e-08 1e-08 1e-06)
+.save v(n2)
+.control
+set noaskquit
+tran 5e-07 0.00021344737082013506 0 5e-07
+meas tran vmax MAX v(n2) from=0.00010773368541006754 to=0.00021344737082013506
+meas tran vmin MIN v(n2) from=0.00010773368541006754 to=0.00021344737082013506
+quit
+.endc
+.end

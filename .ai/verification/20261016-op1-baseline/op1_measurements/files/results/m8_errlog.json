@@ -1,0 +1,271 @@
+{
+ "n_logs": 860,
+ "n_groups": 25,
+ "groups": {
+  "Warning: Pole-zero iteration limit reached; giving up after # trials": {
+   "n": 43,
+   "files": [
+    "baseline\\pytest\\tmp\\c27_diff0\\t.free.pz.log",
+    "baseline\\pytest\\tmp\\c27_fb0\\t.free.pz.log",
+    "baseline\\pytest\\tmp\\cache0\\a\\tfb_cs_rfeedback.free.pz.log"
+   ],
+   "old_regex": false,
+   "pz_regex": true,
+   "draft_code": "sim_convergence_failed",
+   "example": "Warning: Pole-zero iteration limit reached; giving up after 303 trials"
+  },
+  "Warning: singular matrix:  check node c": {
+   "n": 6,
+   "files": [
+    "baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.cmloop.pz.log",
+    "baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.cmloop.pz.log",
+    "baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.cmloop.pz.log"
+   ],
+   "old_regex": true,
+   "pz_regex": true,
+   "draft_code": "sim_singular_matrix",
+   "example": "Warning: singular matrix:  check node c"
+  },
+  "Note: Starting dynamic gmin stepping": {
+   "n": 2,
+   "files": [
+    "baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.cmloop.pz.log",
+    "baseline\\pytest\\tmp\\mc5t0\\o\\t5ota.free.mc.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Note: Starting dynamic gmin stepping"
+  },
+  "Warning: Dynamic gmin stepping failed": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.cmloop.pz.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "sim_convergence_failed",
+   "example": "Warning: Dynamic gmin stepping failed"
+  },
+  "Note: Starting true gmin stepping": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.cmloop.pz.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Note: Starting true gmin stepping"
+  },
+  "Warning: True gmin stepping failed": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.cmloop.pz.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "sim_convergence_failed",
+   "example": "Warning: True gmin stepping failed"
+  },
+  "Note: Starting source stepping": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.cmloop.pz.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Note: Starting source stepping"
+  },
+  "Warning: source stepping failed": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\cmfb0\\out\\tcm_cmfb.free.cmloop.pz.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "sim_convergence_failed",
+   "example": "Warning: source stepping failed"
+  },
+  "Warning: Source conductance reset to # mho.": {
+   "n": 2952,
+   "files": [
+    "baseline\\pytest\\tmp\\fb_noise0\\o\\tfb_cs_rfeedback.free.loop.noise0_0.log",
+    "baseline\\pytest\\tmp\\fb_noise0\\o\\tfb_cs_rfeedback.free.loop.noise0_1.log",
+    "baseline\\pytest\\tmp\\fb_noise0\\o\\tfb_cs_rfeedback.free.loop.noise0_2.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning: Source conductance reset to 1.0e3 mho."
+  },
+  "Warning: Drain conductance reset to # mho.": {
+   "n": 2952,
+   "files": [
+    "baseline\\pytest\\tmp\\fb_noise0\\o\\tfb_cs_rfeedback.free.loop.noise0_0.log",
+    "baseline\\pytest\\tmp\\fb_noise0\\o\\tfb_cs_rfeedback.free.loop.noise0_1.log",
+    "baseline\\pytest\\tmp\\fb_noise0\\o\\tfb_cs_rfeedback.free.loop.noise0_2.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning: Drain conductance reset to 1.0e3 mho."
+  },
+  "Note: Dynamic gmin stepping completed": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\mc5t0\\o\\t5ota.free.mc.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Note: Dynamic gmin stepping completed"
+  },
+  "Circuit: * spice_oracle: tsingular bias=free": {
+   "n": 12,
+   "files": [
+    "baseline\\pytest\\tmp\\singular0\\o\\tsingular.free.log",
+    "baseline\\pytest\\tmp\\singular0\\o\\tsingular.free.loop.log",
+    "baseline\\pytest\\tmp\\test_gate_on_input_control_not0\\o\\tsingular.free.log"
+   ],
+   "old_regex": true,
+   "pz_regex": false,
+   "draft_code": "sim_singular_matrix",
+   "example": "Circuit: * spice_oracle: tsingular bias=free"
+  },
+  "Error: Could not find include file C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op#/baseline/pytest/tmp/test_missing_model_file_cache_#/nope.spice": {
+   "n": 2,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_model_file_cache_0\\a\\tfb_cs_rfeedback.free.log",
+    "baseline\\pytest\\tmp\\test_missing_model_file_cache_0\\a\\tfb_cs_rfeedback.free.loop.log"
+   ],
+   "old_regex": true,
+   "pz_regex": false,
+   "draft_code": "sim_model_not_found",
+   "example": "Error: Could not find include file C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1/baseline/pytest/tmp/test_missing_model_file_cache_0/nope.spice"
+  },
+  "ERROR: fatal error in ngspice, exit(#)": {
+   "n": 2,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_model_file_cache_0\\a\\tfb_cs_rfeedback.free.log",
+    "baseline\\pytest\\tmp\\test_missing_model_file_cache_0\\a\\tfb_cs_rfeedback.free.loop.log"
+   ],
+   "old_regex": true,
+   "pz_regex": false,
+   "draft_code": "sim_failed_other",
+   "example": "ERROR: fatal error in ngspice, exit(1)"
+  },
+  "Error: no such device or model name <path>#.mnonexistent": {
+   "n": 8,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log",
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log",
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log"
+   ],
+   "old_regex": true,
+   "pz_regex": false,
+   "draft_code": "sim_failed_other",
+   "example": "Error: no such device or model name m.xmp1.mnonexistent"
+  },
+  "Warning from checkvalid: vector @<path>#.mnonexistent[id] is not available or has zero length.": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning from checkvalid: vector @m.xmp1.mnonexistent[id] is not available or has zero length."
+  },
+  "Warning from checkvalid: vector @<path>#.mnonexistent[gm] is not available or has zero length.": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning from checkvalid: vector @m.xmp1.mnonexistent[gm] is not available or has zero length."
+  },
+  "Warning from checkvalid: vector @<path>#.mnonexistent[gds] is not available or has zero length.": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning from checkvalid: vector @m.xmp1.mnonexistent[gds] is not available or has zero length."
+  },
+  "Warning from checkvalid: vector @<path>#.mnonexistent[vth] is not available or has zero length.": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning from checkvalid: vector @m.xmp1.mnonexistent[vth] is not available or has zero length."
+  },
+  "Warning from checkvalid: vector @<path>#.mnonexistent[vdsat] is not available or has zero length.": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning from checkvalid: vector @m.xmp1.mnonexistent[vdsat] is not available or has zero length."
+  },
+  "Warning from checkvalid: vector @<path>#.mnonexistent[vgs] is not available or has zero length.": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning from checkvalid: vector @m.xmp1.mnonexistent[vgs] is not available or has zero length."
+  },
+  "Warning from checkvalid: vector @<path>#.mnonexistent[vds] is not available or has zero length.": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning from checkvalid: vector @m.xmp1.mnonexistent[vds] is not available or has zero length."
+  },
+  "Warning from checkvalid: vector @<path>#.mnonexistent[vbs] is not available or has zero length.": {
+   "n": 1,
+   "files": [
+    "baseline\\pytest\\tmp\\test_missing_spice_id_incomple0\\o\\tcs_nmos_rload.free.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning from checkvalid: vector @m.xmp1.mnonexistent[vbs] is not available or has zero length."
+  },
+  "Error: no such parameter vth#.": {
+   "n": 1,
+   "files": [
+    "runs\\m1\\T11c_read.log"
+   ],
+   "old_regex": true,
+   "pz_regex": false,
+   "draft_code": "sim_failed_other",
+   "example": "Error: no such parameter vth0."
+  },
+  "Warning from checkvalid: vector @<path>#_fd_pr__nfet_#v#[vth#] is not available or has zero length.": {
+   "n": 1,
+   "files": [
+    "runs\\m1\\T11c_read.log"
+   ],
+   "old_regex": false,
+   "pz_regex": false,
+   "draft_code": "(warning/info)",
+   "example": "Warning from checkvalid: vector @m.xa.msky130_fd_pr__nfet_01v8[vth0] is not available or has zero length."
+  }
+ }
+}

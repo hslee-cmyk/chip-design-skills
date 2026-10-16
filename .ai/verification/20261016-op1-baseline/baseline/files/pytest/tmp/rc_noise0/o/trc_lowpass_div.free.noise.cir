@@ -1,0 +1,2189 @@
+* spice_oracle: trc_lowpass_div bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XMD ndio ndio 0 0 sky130_fd_pr__nfet_01v8 l=1e-06 w=1e-06 m=1 ad=0 as=0 pd=0 ps=0
+Rp_Ra rin rout 2000
+Rp_Rb rout 0 2000
+Cp_C1 rout 0 1e-09
+Rp_R1 vdd dmid 3000
+Rp_R2 dmid 0 1000
+Rp_Rd vdd ndio 100000
+Vdc_rin dcs_rin 0 DC 0.6
+Ldc_rin dcs_rin rin 1e+12
+Cac_rin rin acs_rin 1
+Vac_rin acs_rin 0 DC 0 AC 1
+.control
+set noaskquit
+set wr_singlescale
+echo NZF 10
+ac lin 1 10 10
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 10 10.001 1
+print all
+echo NZF 10.5925372518
+ac lin 1 10.5925372518 10.5925372518
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 10.5925372518 10.5935965055 1
+print all
+echo NZF 11.220184543
+ac lin 1 11.220184543 11.220184543
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 11.220184543 11.2213065615 1
+print all
+echo NZF 11.8850222744
+ac lin 1 11.8850222744 11.8850222744
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 11.8850222744 11.8862107766 1
+print all
+echo NZF 12.5892541179
+ac lin 1 12.5892541179 12.5892541179
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 12.5892541179 12.5905130434 1
+print all
+echo NZF 13.3352143216
+ac lin 1 13.3352143216 13.3352143216
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 13.3352143216 13.3365478431 1
+print all
+echo NZF 14.1253754462
+ac lin 1 14.1253754462 14.1253754462
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 14.1253754462 14.1267879838 1
+print all
+echo NZF 14.9623565609
+ac lin 1 14.9623565609 14.9623565609
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 14.9623565609 14.9638527966 1
+print all
+echo NZF 15.8489319246
+ac lin 1 15.8489319246 15.8489319246
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 15.8489319246 15.8505168178 1
+print all
+echo NZF 16.7880401812
+ac lin 1 16.7880401812 16.7880401812
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 16.7880401812 16.7897189852 1
+print all
+echo NZF 17.7827941004
+ac lin 1 17.7827941004 17.7827941004
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 17.7827941004 17.7845723798 1
+print all
+echo NZF 18.8364908949
+ac lin 1 18.8364908949 18.8364908949
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 18.8364908949 18.838374544 1
+print all
+echo NZF 19.9526231497
+ac lin 1 19.9526231497 19.9526231497
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 19.9526231497 19.954618412 1
+print all
+echo NZF 21.1348903984
+ac lin 1 21.1348903984 21.1348903984
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 21.1348903984 21.1370038874 1
+print all
+echo NZF 22.3872113857
+ac lin 1 22.3872113857 22.3872113857
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 22.3872113857 22.3894501068 1
+print all
+echo NZF 23.7137370566
+ac lin 1 23.7137370566 23.7137370566
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 23.7137370566 23.7161084303 1
+print all
+echo NZF 25.1188643151
+ac lin 1 25.1188643151 25.1188643151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 25.1188643151 25.1213762015 1
+print all
+echo NZF 26.607250598
+ac lin 1 26.607250598 26.607250598
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 26.607250598 26.609911323 1
+print all
+echo NZF 28.1838293126
+ac lin 1 28.1838293126 28.1838293126
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 28.1838293126 28.1866476956 1
+print all
+echo NZF 29.8538261892
+ac lin 1 29.8538261892 29.8538261892
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 29.8538261892 29.8568115718 1
+print all
+echo NZF 31.6227766017
+ac lin 1 31.6227766017 31.6227766017
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 31.6227766017 31.6259388793 1
+print all
+echo NZF 33.4965439158
+ac lin 1 33.4965439158 33.4965439158
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 33.4965439158 33.4998935702 1
+print all
+echo NZF 35.4813389234
+ac lin 1 35.4813389234 35.4813389234
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 35.4813389234 35.4848870572 1
+print all
+echo NZF 37.5837404288
+ac lin 1 37.5837404288 37.5837404288
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 37.5837404288 37.5874988029 1
+print all
+echo NZF 39.8107170553
+ac lin 1 39.8107170553 39.8107170553
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 39.8107170553 39.8146981271 1
+print all
+echo NZF 42.1696503429
+ac lin 1 42.1696503429 42.1696503429
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 42.1696503429 42.1738673079 1
+print all
+echo NZF 44.6683592151
+ac lin 1 44.6683592151 44.6683592151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 44.6683592151 44.672826051 1
+print all
+echo NZF 47.3151258961
+ac lin 1 47.3151258961 47.3151258961
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 47.3151258961 47.3198574087 1
+print all
+echo NZF 50.1187233627
+ac lin 1 50.1187233627 50.1187233627
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 50.1187233627 50.1237352351 1
+print all
+echo NZF 53.0884444231
+ac lin 1 53.0884444231 53.0884444231
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 53.0884444231 53.0937532675 1
+print all
+echo NZF 56.234132519
+ac lin 1 56.234132519 56.234132519
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 56.234132519 56.2397559323 1
+print all
+echo NZF 59.5662143529
+ac lin 1 59.5662143529 59.5662143529
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 59.5662143529 59.5721709743 1
+print all
+echo NZF 63.095734448
+ac lin 1 63.095734448 63.095734448
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 63.095734448 63.1020440215 1
+print all
+echo NZF 66.8343917569
+ac lin 1 66.8343917569 66.8343917569
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 66.8343917569 66.841075196 1
+print all
+echo NZF 70.7945784384
+ac lin 1 70.7945784384 70.7945784384
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 70.7945784384 70.8016578963 1
+print all
+echo NZF 74.9894209332
+ac lin 1 74.9894209332 74.9894209332
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 74.9894209332 74.9969198753 1
+print all
+echo NZF 79.4328234724
+ac lin 1 79.4328234724 79.4328234724
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 79.4328234724 79.4407667548 1
+print all
+echo NZF 84.1395141645
+ac lin 1 84.1395141645 84.1395141645
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 84.1395141645 84.1479281159 1
+print all
+echo NZF 89.1250938134
+ac lin 1 89.1250938134 89.1250938134
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 89.1250938134 89.1340063228 1
+print all
+echo NZF 94.4060876286
+ac lin 1 94.4060876286 94.4060876286
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 94.4060876286 94.4155282374 1
+print all
+echo NZF 100
+ac lin 1 100 100
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 100 100.01 1
+print all
+echo NZF 105.925372518
+ac lin 1 105.925372518 105.925372518
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 105.925372518 105.935965055 1
+print all
+echo NZF 112.20184543
+ac lin 1 112.20184543 112.20184543
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 112.20184543 112.213065615 1
+print all
+echo NZF 118.850222744
+ac lin 1 118.850222744 118.850222744
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 118.850222744 118.862107766 1
+print all
+echo NZF 125.892541179
+ac lin 1 125.892541179 125.892541179
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 125.892541179 125.905130434 1
+print all
+echo NZF 133.352143216
+ac lin 1 133.352143216 133.352143216
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 133.352143216 133.365478431 1
+print all
+echo NZF 141.253754462
+ac lin 1 141.253754462 141.253754462
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 141.253754462 141.267879838 1
+print all
+echo NZF 149.623565609
+ac lin 1 149.623565609 149.623565609
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 149.623565609 149.638527966 1
+print all
+echo NZF 158.489319246
+ac lin 1 158.489319246 158.489319246
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 158.489319246 158.505168178 1
+print all
+echo NZF 167.880401812
+ac lin 1 167.880401812 167.880401812
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 167.880401812 167.897189852 1
+print all
+echo NZF 177.827941004
+ac lin 1 177.827941004 177.827941004
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 177.827941004 177.845723798 1
+print all
+echo NZF 188.364908949
+ac lin 1 188.364908949 188.364908949
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 188.364908949 188.38374544 1
+print all
+echo NZF 199.526231497
+ac lin 1 199.526231497 199.526231497
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 199.526231497 199.54618412 1
+print all
+echo NZF 211.348903984
+ac lin 1 211.348903984 211.348903984
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 211.348903984 211.370038874 1
+print all
+echo NZF 223.872113857
+ac lin 1 223.872113857 223.872113857
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 223.872113857 223.894501068 1
+print all
+echo NZF 237.137370566
+ac lin 1 237.137370566 237.137370566
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 237.137370566 237.161084303 1
+print all
+echo NZF 251.188643151
+ac lin 1 251.188643151 251.188643151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 251.188643151 251.213762015 1
+print all
+echo NZF 266.07250598
+ac lin 1 266.07250598 266.07250598
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 266.07250598 266.09911323 1
+print all
+echo NZF 281.838293126
+ac lin 1 281.838293126 281.838293126
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 281.838293126 281.866476956 1
+print all
+echo NZF 298.538261892
+ac lin 1 298.538261892 298.538261892
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 298.538261892 298.568115718 1
+print all
+echo NZF 316.227766017
+ac lin 1 316.227766017 316.227766017
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 316.227766017 316.259388793 1
+print all
+echo NZF 334.965439158
+ac lin 1 334.965439158 334.965439158
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 334.965439158 334.998935702 1
+print all
+echo NZF 354.813389234
+ac lin 1 354.813389234 354.813389234
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 354.813389234 354.848870572 1
+print all
+echo NZF 375.837404288
+ac lin 1 375.837404288 375.837404288
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 375.837404288 375.874988029 1
+print all
+echo NZF 398.107170553
+ac lin 1 398.107170553 398.107170553
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 398.107170553 398.146981271 1
+print all
+echo NZF 421.696503429
+ac lin 1 421.696503429 421.696503429
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 421.696503429 421.738673079 1
+print all
+echo NZF 446.683592151
+ac lin 1 446.683592151 446.683592151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 446.683592151 446.72826051 1
+print all
+echo NZF 473.151258961
+ac lin 1 473.151258961 473.151258961
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 473.151258961 473.198574087 1
+print all
+echo NZF 501.187233627
+ac lin 1 501.187233627 501.187233627
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 501.187233627 501.237352351 1
+print all
+echo NZF 530.884444231
+ac lin 1 530.884444231 530.884444231
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 530.884444231 530.937532675 1
+print all
+echo NZF 562.34132519
+ac lin 1 562.34132519 562.34132519
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 562.34132519 562.397559323 1
+print all
+echo NZF 595.662143529
+ac lin 1 595.662143529 595.662143529
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 595.662143529 595.721709743 1
+print all
+echo NZF 630.95734448
+ac lin 1 630.95734448 630.95734448
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 630.95734448 631.020440215 1
+print all
+echo NZF 668.343917569
+ac lin 1 668.343917569 668.343917569
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 668.343917569 668.41075196 1
+print all
+echo NZF 707.945784384
+ac lin 1 707.945784384 707.945784384
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 707.945784384 708.016578963 1
+print all
+echo NZF 749.894209332
+ac lin 1 749.894209332 749.894209332
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 749.894209332 749.969198753 1
+print all
+echo NZF 794.328234724
+ac lin 1 794.328234724 794.328234724
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 794.328234724 794.407667548 1
+print all
+echo NZF 841.395141645
+ac lin 1 841.395141645 841.395141645
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 841.395141645 841.479281159 1
+print all
+echo NZF 891.250938134
+ac lin 1 891.250938134 891.250938134
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 891.250938134 891.340063228 1
+print all
+echo NZF 944.060876286
+ac lin 1 944.060876286 944.060876286
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 944.060876286 944.155282374 1
+print all
+echo NZF 1000
+ac lin 1 1000 1000
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1000 1000.1 1
+print all
+echo NZF 1059.25372518
+ac lin 1 1059.25372518 1059.25372518
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1059.25372518 1059.35965055 1
+print all
+echo NZF 1122.0184543
+ac lin 1 1122.0184543 1122.0184543
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1122.0184543 1122.13065615 1
+print all
+echo NZF 1188.50222744
+ac lin 1 1188.50222744 1188.50222744
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1188.50222744 1188.62107766 1
+print all
+echo NZF 1258.92541179
+ac lin 1 1258.92541179 1258.92541179
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1258.92541179 1259.05130434 1
+print all
+echo NZF 1333.52143216
+ac lin 1 1333.52143216 1333.52143216
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1333.52143216 1333.65478431 1
+print all
+echo NZF 1412.53754462
+ac lin 1 1412.53754462 1412.53754462
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1412.53754462 1412.67879838 1
+print all
+echo NZF 1496.23565609
+ac lin 1 1496.23565609 1496.23565609
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1496.23565609 1496.38527966 1
+print all
+echo NZF 1584.89319246
+ac lin 1 1584.89319246 1584.89319246
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1584.89319246 1585.05168178 1
+print all
+echo NZF 1678.80401812
+ac lin 1 1678.80401812 1678.80401812
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1678.80401812 1678.97189852 1
+print all
+echo NZF 1778.27941004
+ac lin 1 1778.27941004 1778.27941004
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1778.27941004 1778.45723798 1
+print all
+echo NZF 1883.64908949
+ac lin 1 1883.64908949 1883.64908949
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1883.64908949 1883.8374544 1
+print all
+echo NZF 1995.26231497
+ac lin 1 1995.26231497 1995.26231497
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1995.26231497 1995.4618412 1
+print all
+echo NZF 2113.48903984
+ac lin 1 2113.48903984 2113.48903984
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2113.48903984 2113.70038874 1
+print all
+echo NZF 2238.72113857
+ac lin 1 2238.72113857 2238.72113857
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2238.72113857 2238.94501068 1
+print all
+echo NZF 2371.37370566
+ac lin 1 2371.37370566 2371.37370566
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2371.37370566 2371.61084303 1
+print all
+echo NZF 2511.88643151
+ac lin 1 2511.88643151 2511.88643151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2511.88643151 2512.13762015 1
+print all
+echo NZF 2660.7250598
+ac lin 1 2660.7250598 2660.7250598
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2660.7250598 2660.9911323 1
+print all
+echo NZF 2818.38293126
+ac lin 1 2818.38293126 2818.38293126
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2818.38293126 2818.66476956 1
+print all
+echo NZF 2985.38261892
+ac lin 1 2985.38261892 2985.38261892
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2985.38261892 2985.68115718 1
+print all
+echo NZF 3162.27766017
+ac lin 1 3162.27766017 3162.27766017
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3162.27766017 3162.59388793 1
+print all
+echo NZF 3349.65439158
+ac lin 1 3349.65439158 3349.65439158
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3349.65439158 3349.98935702 1
+print all
+echo NZF 3548.13389234
+ac lin 1 3548.13389234 3548.13389234
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3548.13389234 3548.48870572 1
+print all
+echo NZF 3758.37404288
+ac lin 1 3758.37404288 3758.37404288
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3758.37404288 3758.74988029 1
+print all
+echo NZF 3981.07170553
+ac lin 1 3981.07170553 3981.07170553
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3981.07170553 3981.46981271 1
+print all
+echo NZF 4216.96503429
+ac lin 1 4216.96503429 4216.96503429
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 4216.96503429 4217.38673079 1
+print all
+echo NZF 4466.83592151
+ac lin 1 4466.83592151 4466.83592151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 4466.83592151 4467.2826051 1
+print all
+echo NZF 4731.51258961
+ac lin 1 4731.51258961 4731.51258961
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 4731.51258961 4731.98574087 1
+print all
+echo NZF 5011.87233627
+ac lin 1 5011.87233627 5011.87233627
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5011.87233627 5012.37352351 1
+print all
+echo NZF 5308.84444231
+ac lin 1 5308.84444231 5308.84444231
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5308.84444231 5309.37532675 1
+print all
+echo NZF 5623.4132519
+ac lin 1 5623.4132519 5623.4132519
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5623.4132519 5623.97559323 1
+print all
+echo NZF 5956.62143529
+ac lin 1 5956.62143529 5956.62143529
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5956.62143529 5957.21709743 1
+print all
+echo NZF 6309.5734448
+ac lin 1 6309.5734448 6309.5734448
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 6309.5734448 6310.20440215 1
+print all
+echo NZF 6683.43917569
+ac lin 1 6683.43917569 6683.43917569
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 6683.43917569 6684.1075196 1
+print all
+echo NZF 7079.45784384
+ac lin 1 7079.45784384 7079.45784384
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 7079.45784384 7080.16578963 1
+print all
+echo NZF 7498.94209332
+ac lin 1 7498.94209332 7498.94209332
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 7498.94209332 7499.69198753 1
+print all
+echo NZF 7943.28234724
+ac lin 1 7943.28234724 7943.28234724
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 7943.28234724 7944.07667548 1
+print all
+echo NZF 8413.95141645
+ac lin 1 8413.95141645 8413.95141645
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 8413.95141645 8414.79281159 1
+print all
+echo NZF 8912.50938134
+ac lin 1 8912.50938134 8912.50938134
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 8912.50938134 8913.40063228 1
+print all
+echo NZF 9440.60876286
+ac lin 1 9440.60876286 9440.60876286
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 9440.60876286 9441.55282374 1
+print all
+echo NZF 10000
+ac lin 1 10000 10000
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 10000 10001 1
+print all
+echo NZF 10592.5372518
+ac lin 1 10592.5372518 10592.5372518
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 10592.5372518 10593.5965055 1
+print all
+echo NZF 11220.184543
+ac lin 1 11220.184543 11220.184543
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 11220.184543 11221.3065615 1
+print all
+echo NZF 11885.0222744
+ac lin 1 11885.0222744 11885.0222744
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 11885.0222744 11886.2107766 1
+print all
+echo NZF 12589.2541179
+ac lin 1 12589.2541179 12589.2541179
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 12589.2541179 12590.5130434 1
+print all
+echo NZF 13335.2143216
+ac lin 1 13335.2143216 13335.2143216
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 13335.2143216 13336.5478431 1
+print all
+echo NZF 14125.3754462
+ac lin 1 14125.3754462 14125.3754462
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 14125.3754462 14126.7879838 1
+print all
+echo NZF 14962.3565609
+ac lin 1 14962.3565609 14962.3565609
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 14962.3565609 14963.8527966 1
+print all
+echo NZF 15848.9319246
+ac lin 1 15848.9319246 15848.9319246
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 15848.9319246 15850.5168178 1
+print all
+echo NZF 16788.0401812
+ac lin 1 16788.0401812 16788.0401812
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 16788.0401812 16789.7189852 1
+print all
+echo NZF 17782.7941004
+ac lin 1 17782.7941004 17782.7941004
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 17782.7941004 17784.5723798 1
+print all
+echo NZF 18836.4908949
+ac lin 1 18836.4908949 18836.4908949
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 18836.4908949 18838.374544 1
+print all
+echo NZF 19952.6231497
+ac lin 1 19952.6231497 19952.6231497
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 19952.6231497 19954.618412 1
+print all
+echo NZF 21134.8903984
+ac lin 1 21134.8903984 21134.8903984
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 21134.8903984 21137.0038874 1
+print all
+echo NZF 22387.2113857
+ac lin 1 22387.2113857 22387.2113857
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 22387.2113857 22389.4501068 1
+print all
+echo NZF 23713.7370566
+ac lin 1 23713.7370566 23713.7370566
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 23713.7370566 23716.1084303 1
+print all
+echo NZF 25118.8643151
+ac lin 1 25118.8643151 25118.8643151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 25118.8643151 25121.3762015 1
+print all
+echo NZF 26607.250598
+ac lin 1 26607.250598 26607.250598
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 26607.250598 26609.911323 1
+print all
+echo NZF 28183.8293126
+ac lin 1 28183.8293126 28183.8293126
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 28183.8293126 28186.6476956 1
+print all
+echo NZF 29853.8261892
+ac lin 1 29853.8261892 29853.8261892
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 29853.8261892 29856.8115718 1
+print all
+echo NZF 31622.7766017
+ac lin 1 31622.7766017 31622.7766017
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 31622.7766017 31625.9388793 1
+print all
+echo NZF 33496.5439158
+ac lin 1 33496.5439158 33496.5439158
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 33496.5439158 33499.8935702 1
+print all
+echo NZF 35481.3389234
+ac lin 1 35481.3389234 35481.3389234
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 35481.3389234 35484.8870572 1
+print all
+echo NZF 37583.7404288
+ac lin 1 37583.7404288 37583.7404288
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 37583.7404288 37587.4988029 1
+print all
+echo NZF 39810.7170553
+ac lin 1 39810.7170553 39810.7170553
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 39810.7170553 39814.6981271 1
+print all
+echo NZF 42169.6503429
+ac lin 1 42169.6503429 42169.6503429
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 42169.6503429 42173.8673079 1
+print all
+echo NZF 44668.3592151
+ac lin 1 44668.3592151 44668.3592151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 44668.3592151 44672.826051 1
+print all
+echo NZF 47315.1258961
+ac lin 1 47315.1258961 47315.1258961
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 47315.1258961 47319.8574087 1
+print all
+echo NZF 50118.7233627
+ac lin 1 50118.7233627 50118.7233627
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 50118.7233627 50123.7352351 1
+print all
+echo NZF 53088.4444231
+ac lin 1 53088.4444231 53088.4444231
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 53088.4444231 53093.7532675 1
+print all
+echo NZF 56234.132519
+ac lin 1 56234.132519 56234.132519
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 56234.132519 56239.7559323 1
+print all
+echo NZF 59566.2143529
+ac lin 1 59566.2143529 59566.2143529
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 59566.2143529 59572.1709743 1
+print all
+echo NZF 63095.734448
+ac lin 1 63095.734448 63095.734448
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 63095.734448 63102.0440215 1
+print all
+echo NZF 66834.3917569
+ac lin 1 66834.3917569 66834.3917569
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 66834.3917569 66841.075196 1
+print all
+echo NZF 70794.5784384
+ac lin 1 70794.5784384 70794.5784384
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 70794.5784384 70801.6578963 1
+print all
+echo NZF 74989.4209332
+ac lin 1 74989.4209332 74989.4209332
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 74989.4209332 74996.9198753 1
+print all
+echo NZF 79432.8234724
+ac lin 1 79432.8234724 79432.8234724
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 79432.8234724 79440.7667548 1
+print all
+echo NZF 84139.5141645
+ac lin 1 84139.5141645 84139.5141645
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 84139.5141645 84147.9281159 1
+print all
+echo NZF 89125.0938134
+ac lin 1 89125.0938134 89125.0938134
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 89125.0938134 89134.0063228 1
+print all
+echo NZF 94406.0876286
+ac lin 1 94406.0876286 94406.0876286
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 94406.0876286 94415.5282374 1
+print all
+echo NZF 100000
+ac lin 1 100000 100000
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 100000 100010 1
+print all
+echo NZF 105925.372518
+ac lin 1 105925.372518 105925.372518
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 105925.372518 105935.965055 1
+print all
+echo NZF 112201.84543
+ac lin 1 112201.84543 112201.84543
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 112201.84543 112213.065615 1
+print all
+echo NZF 118850.222744
+ac lin 1 118850.222744 118850.222744
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 118850.222744 118862.107766 1
+print all
+echo NZF 125892.541179
+ac lin 1 125892.541179 125892.541179
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 125892.541179 125905.130434 1
+print all
+echo NZF 133352.143216
+ac lin 1 133352.143216 133352.143216
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 133352.143216 133365.478431 1
+print all
+echo NZF 141253.754462
+ac lin 1 141253.754462 141253.754462
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 141253.754462 141267.879838 1
+print all
+echo NZF 149623.565609
+ac lin 1 149623.565609 149623.565609
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 149623.565609 149638.527966 1
+print all
+echo NZF 158489.319246
+ac lin 1 158489.319246 158489.319246
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 158489.319246 158505.168178 1
+print all
+echo NZF 167880.401812
+ac lin 1 167880.401812 167880.401812
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 167880.401812 167897.189852 1
+print all
+echo NZF 177827.941004
+ac lin 1 177827.941004 177827.941004
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 177827.941004 177845.723798 1
+print all
+echo NZF 188364.908949
+ac lin 1 188364.908949 188364.908949
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 188364.908949 188383.74544 1
+print all
+echo NZF 199526.231497
+ac lin 1 199526.231497 199526.231497
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 199526.231497 199546.18412 1
+print all
+echo NZF 211348.903984
+ac lin 1 211348.903984 211348.903984
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 211348.903984 211370.038874 1
+print all
+echo NZF 223872.113857
+ac lin 1 223872.113857 223872.113857
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 223872.113857 223894.501068 1
+print all
+echo NZF 237137.370566
+ac lin 1 237137.370566 237137.370566
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 237137.370566 237161.084303 1
+print all
+echo NZF 251188.643151
+ac lin 1 251188.643151 251188.643151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 251188.643151 251213.762015 1
+print all
+echo NZF 266072.50598
+ac lin 1 266072.50598 266072.50598
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 266072.50598 266099.11323 1
+print all
+echo NZF 281838.293126
+ac lin 1 281838.293126 281838.293126
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 281838.293126 281866.476956 1
+print all
+echo NZF 298538.261892
+ac lin 1 298538.261892 298538.261892
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 298538.261892 298568.115718 1
+print all
+echo NZF 316227.766017
+ac lin 1 316227.766017 316227.766017
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 316227.766017 316259.388793 1
+print all
+echo NZF 334965.439158
+ac lin 1 334965.439158 334965.439158
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 334965.439158 334998.935702 1
+print all
+echo NZF 354813.389234
+ac lin 1 354813.389234 354813.389234
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 354813.389234 354848.870572 1
+print all
+echo NZF 375837.404288
+ac lin 1 375837.404288 375837.404288
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 375837.404288 375874.988029 1
+print all
+echo NZF 398107.170553
+ac lin 1 398107.170553 398107.170553
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 398107.170553 398146.981271 1
+print all
+echo NZF 421696.503429
+ac lin 1 421696.503429 421696.503429
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 421696.503429 421738.673079 1
+print all
+echo NZF 446683.592151
+ac lin 1 446683.592151 446683.592151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 446683.592151 446728.26051 1
+print all
+echo NZF 473151.258961
+ac lin 1 473151.258961 473151.258961
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 473151.258961 473198.574087 1
+print all
+echo NZF 501187.233627
+ac lin 1 501187.233627 501187.233627
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 501187.233627 501237.352351 1
+print all
+echo NZF 530884.444231
+ac lin 1 530884.444231 530884.444231
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 530884.444231 530937.532675 1
+print all
+echo NZF 562341.32519
+ac lin 1 562341.32519 562341.32519
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 562341.32519 562397.559323 1
+print all
+echo NZF 595662.143529
+ac lin 1 595662.143529 595662.143529
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 595662.143529 595721.709743 1
+print all
+echo NZF 630957.34448
+ac lin 1 630957.34448 630957.34448
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 630957.34448 631020.440215 1
+print all
+echo NZF 668343.917569
+ac lin 1 668343.917569 668343.917569
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 668343.917569 668410.75196 1
+print all
+echo NZF 707945.784384
+ac lin 1 707945.784384 707945.784384
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 707945.784384 708016.578963 1
+print all
+echo NZF 749894.209332
+ac lin 1 749894.209332 749894.209332
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 749894.209332 749969.198753 1
+print all
+echo NZF 794328.234724
+ac lin 1 794328.234724 794328.234724
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 794328.234724 794407.667548 1
+print all
+echo NZF 841395.141645
+ac lin 1 841395.141645 841395.141645
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 841395.141645 841479.281159 1
+print all
+echo NZF 891250.938134
+ac lin 1 891250.938134 891250.938134
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 891250.938134 891340.063228 1
+print all
+echo NZF 944060.876286
+ac lin 1 944060.876286 944060.876286
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 944060.876286 944155.282374 1
+print all
+echo NZF 1000000
+ac lin 1 1000000 1000000
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1000000 1000100 1
+print all
+echo NZF 1059253.72518
+ac lin 1 1059253.72518 1059253.72518
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1059253.72518 1059359.65055 1
+print all
+echo NZF 1122018.4543
+ac lin 1 1122018.4543 1122018.4543
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1122018.4543 1122130.65615 1
+print all
+echo NZF 1188502.22744
+ac lin 1 1188502.22744 1188502.22744
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1188502.22744 1188621.07766 1
+print all
+echo NZF 1258925.41179
+ac lin 1 1258925.41179 1258925.41179
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1258925.41179 1259051.30434 1
+print all
+echo NZF 1333521.43216
+ac lin 1 1333521.43216 1333521.43216
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1333521.43216 1333654.78431 1
+print all
+echo NZF 1412537.54462
+ac lin 1 1412537.54462 1412537.54462
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1412537.54462 1412678.79838 1
+print all
+echo NZF 1496235.65609
+ac lin 1 1496235.65609 1496235.65609
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1496235.65609 1496385.27966 1
+print all
+echo NZF 1584893.19246
+ac lin 1 1584893.19246 1584893.19246
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1584893.19246 1585051.68178 1
+print all
+echo NZF 1678804.01812
+ac lin 1 1678804.01812 1678804.01812
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1678804.01812 1678971.89852 1
+print all
+echo NZF 1778279.41004
+ac lin 1 1778279.41004 1778279.41004
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1778279.41004 1778457.23798 1
+print all
+echo NZF 1883649.08949
+ac lin 1 1883649.08949 1883649.08949
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1883649.08949 1883837.4544 1
+print all
+echo NZF 1995262.31497
+ac lin 1 1995262.31497 1995262.31497
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1995262.31497 1995461.8412 1
+print all
+echo NZF 2113489.03984
+ac lin 1 2113489.03984 2113489.03984
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2113489.03984 2113700.38874 1
+print all
+echo NZF 2238721.13857
+ac lin 1 2238721.13857 2238721.13857
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2238721.13857 2238945.01068 1
+print all
+echo NZF 2371373.70566
+ac lin 1 2371373.70566 2371373.70566
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2371373.70566 2371610.84303 1
+print all
+echo NZF 2511886.43151
+ac lin 1 2511886.43151 2511886.43151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2511886.43151 2512137.62015 1
+print all
+echo NZF 2660725.0598
+ac lin 1 2660725.0598 2660725.0598
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2660725.0598 2660991.1323 1
+print all
+echo NZF 2818382.93126
+ac lin 1 2818382.93126 2818382.93126
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2818382.93126 2818664.76956 1
+print all
+echo NZF 2985382.61892
+ac lin 1 2985382.61892 2985382.61892
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2985382.61892 2985681.15718 1
+print all
+echo NZF 3162277.66017
+ac lin 1 3162277.66017 3162277.66017
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3162277.66017 3162593.88793 1
+print all
+echo NZF 3349654.39158
+ac lin 1 3349654.39158 3349654.39158
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3349654.39158 3349989.35702 1
+print all
+echo NZF 3548133.89234
+ac lin 1 3548133.89234 3548133.89234
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3548133.89234 3548488.70572 1
+print all
+echo NZF 3758374.04288
+ac lin 1 3758374.04288 3758374.04288
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3758374.04288 3758749.88029 1
+print all
+echo NZF 3981071.70553
+ac lin 1 3981071.70553 3981071.70553
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3981071.70553 3981469.81271 1
+print all
+echo NZF 4216965.03429
+ac lin 1 4216965.03429 4216965.03429
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 4216965.03429 4217386.73079 1
+print all
+echo NZF 4466835.92151
+ac lin 1 4466835.92151 4466835.92151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 4466835.92151 4467282.6051 1
+print all
+echo NZF 4731512.58961
+ac lin 1 4731512.58961 4731512.58961
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 4731512.58961 4731985.74087 1
+print all
+echo NZF 5011872.33627
+ac lin 1 5011872.33627 5011872.33627
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5011872.33627 5012373.52351 1
+print all
+echo NZF 5308844.44231
+ac lin 1 5308844.44231 5308844.44231
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5308844.44231 5309375.32675 1
+print all
+echo NZF 5623413.2519
+ac lin 1 5623413.2519 5623413.2519
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5623413.2519 5623975.59323 1
+print all
+echo NZF 5956621.43529
+ac lin 1 5956621.43529 5956621.43529
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5956621.43529 5957217.09743 1
+print all
+echo NZF 6309573.4448
+ac lin 1 6309573.4448 6309573.4448
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 6309573.4448 6310204.40215 1
+print all
+echo NZF 6683439.17569
+ac lin 1 6683439.17569 6683439.17569
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 6683439.17569 6684107.5196 1
+print all
+echo NZF 7079457.84384
+ac lin 1 7079457.84384 7079457.84384
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 7079457.84384 7080165.78963 1
+print all
+echo NZF 7498942.09332
+ac lin 1 7498942.09332 7498942.09332
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 7498942.09332 7499691.98753 1
+print all
+echo NZF 7943282.34724
+ac lin 1 7943282.34724 7943282.34724
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 7943282.34724 7944076.67548 1
+print all
+echo NZF 8413951.41645
+ac lin 1 8413951.41645 8413951.41645
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 8413951.41645 8414792.81159 1
+print all
+echo NZF 8912509.38134
+ac lin 1 8912509.38134 8912509.38134
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 8912509.38134 8913400.63228 1
+print all
+echo NZF 9440608.76286
+ac lin 1 9440608.76286 9440608.76286
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 9440608.76286 9441552.82374 1
+print all
+echo NZF 10000000
+ac lin 1 10000000 10000000
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 10000000 10001000 1
+print all
+echo NZF 10592537.2518
+ac lin 1 10592537.2518 10592537.2518
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 10592537.2518 10593596.5055 1
+print all
+echo NZF 11220184.543
+ac lin 1 11220184.543 11220184.543
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 11220184.543 11221306.5615 1
+print all
+echo NZF 11885022.2744
+ac lin 1 11885022.2744 11885022.2744
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 11885022.2744 11886210.7766 1
+print all
+echo NZF 12589254.1179
+ac lin 1 12589254.1179 12589254.1179
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 12589254.1179 12590513.0434 1
+print all
+echo NZF 13335214.3216
+ac lin 1 13335214.3216 13335214.3216
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 13335214.3216 13336547.8431 1
+print all
+echo NZF 14125375.4462
+ac lin 1 14125375.4462 14125375.4462
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 14125375.4462 14126787.9838 1
+print all
+echo NZF 14962356.5609
+ac lin 1 14962356.5609 14962356.5609
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 14962356.5609 14963852.7966 1
+print all
+echo NZF 15848931.9246
+ac lin 1 15848931.9246 15848931.9246
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 15848931.9246 15850516.8178 1
+print all
+echo NZF 16788040.1812
+ac lin 1 16788040.1812 16788040.1812
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 16788040.1812 16789718.9852 1
+print all
+echo NZF 17782794.1004
+ac lin 1 17782794.1004 17782794.1004
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 17782794.1004 17784572.3798 1
+print all
+echo NZF 18836490.8949
+ac lin 1 18836490.8949 18836490.8949
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 18836490.8949 18838374.544 1
+print all
+echo NZF 19952623.1497
+ac lin 1 19952623.1497 19952623.1497
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 19952623.1497 19954618.412 1
+print all
+echo NZF 21134890.3984
+ac lin 1 21134890.3984 21134890.3984
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 21134890.3984 21137003.8874 1
+print all
+echo NZF 22387211.3857
+ac lin 1 22387211.3857 22387211.3857
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 22387211.3857 22389450.1068 1
+print all
+echo NZF 23713737.0566
+ac lin 1 23713737.0566 23713737.0566
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 23713737.0566 23716108.4303 1
+print all
+echo NZF 25118864.3151
+ac lin 1 25118864.3151 25118864.3151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 25118864.3151 25121376.2015 1
+print all
+echo NZF 26607250.598
+ac lin 1 26607250.598 26607250.598
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 26607250.598 26609911.323 1
+print all
+echo NZF 28183829.3126
+ac lin 1 28183829.3126 28183829.3126
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 28183829.3126 28186647.6956 1
+print all
+echo NZF 29853826.1892
+ac lin 1 29853826.1892 29853826.1892
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 29853826.1892 29856811.5718 1
+print all
+echo NZF 31622776.6017
+ac lin 1 31622776.6017 31622776.6017
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 31622776.6017 31625938.8793 1
+print all
+echo NZF 33496543.9158
+ac lin 1 33496543.9158 33496543.9158
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 33496543.9158 33499893.5702 1
+print all
+echo NZF 35481338.9234
+ac lin 1 35481338.9234 35481338.9234
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 35481338.9234 35484887.0572 1
+print all
+echo NZF 37583740.4288
+ac lin 1 37583740.4288 37583740.4288
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 37583740.4288 37587498.8029 1
+print all
+echo NZF 39810717.0553
+ac lin 1 39810717.0553 39810717.0553
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 39810717.0553 39814698.1271 1
+print all
+echo NZF 42169650.3429
+ac lin 1 42169650.3429 42169650.3429
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 42169650.3429 42173867.3079 1
+print all
+echo NZF 44668359.2151
+ac lin 1 44668359.2151 44668359.2151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 44668359.2151 44672826.051 1
+print all
+echo NZF 47315125.8961
+ac lin 1 47315125.8961 47315125.8961
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 47315125.8961 47319857.4087 1
+print all
+echo NZF 50118723.3627
+ac lin 1 50118723.3627 50118723.3627
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 50118723.3627 50123735.2351 1
+print all
+echo NZF 53088444.4231
+ac lin 1 53088444.4231 53088444.4231
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 53088444.4231 53093753.2675 1
+print all
+echo NZF 56234132.519
+ac lin 1 56234132.519 56234132.519
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 56234132.519 56239755.9323 1
+print all
+echo NZF 59566214.3529
+ac lin 1 59566214.3529 59566214.3529
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 59566214.3529 59572170.9743 1
+print all
+echo NZF 63095734.448
+ac lin 1 63095734.448 63095734.448
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 63095734.448 63102044.0215 1
+print all
+echo NZF 66834391.7569
+ac lin 1 66834391.7569 66834391.7569
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 66834391.7569 66841075.196 1
+print all
+echo NZF 70794578.4384
+ac lin 1 70794578.4384 70794578.4384
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 70794578.4384 70801657.8963 1
+print all
+echo NZF 74989420.9332
+ac lin 1 74989420.9332 74989420.9332
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 74989420.9332 74996919.8753 1
+print all
+echo NZF 79432823.4724
+ac lin 1 79432823.4724 79432823.4724
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 79432823.4724 79440766.7548 1
+print all
+echo NZF 84139514.1645
+ac lin 1 84139514.1645 84139514.1645
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 84139514.1645 84147928.1159 1
+print all
+echo NZF 89125093.8134
+ac lin 1 89125093.8134 89125093.8134
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 89125093.8134 89134006.3228 1
+print all
+echo NZF 94406087.6286
+ac lin 1 94406087.6286 94406087.6286
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 94406087.6286 94415528.2374 1
+print all
+echo NZF 100000000
+ac lin 1 100000000 100000000
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 100000000 100010000 1
+print all
+echo NZF 105925372.518
+ac lin 1 105925372.518 105925372.518
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 105925372.518 105935965.055 1
+print all
+echo NZF 112201845.43
+ac lin 1 112201845.43 112201845.43
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 112201845.43 112213065.615 1
+print all
+echo NZF 118850222.744
+ac lin 1 118850222.744 118850222.744
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 118850222.744 118862107.766 1
+print all
+echo NZF 125892541.179
+ac lin 1 125892541.179 125892541.179
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 125892541.179 125905130.434 1
+print all
+echo NZF 133352143.216
+ac lin 1 133352143.216 133352143.216
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 133352143.216 133365478.431 1
+print all
+echo NZF 141253754.462
+ac lin 1 141253754.462 141253754.462
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 141253754.462 141267879.838 1
+print all
+echo NZF 149623565.609
+ac lin 1 149623565.609 149623565.609
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 149623565.609 149638527.966 1
+print all
+echo NZF 158489319.246
+ac lin 1 158489319.246 158489319.246
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 158489319.246 158505168.178 1
+print all
+echo NZF 167880401.812
+ac lin 1 167880401.812 167880401.812
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 167880401.812 167897189.852 1
+print all
+echo NZF 177827941.004
+ac lin 1 177827941.004 177827941.004
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 177827941.004 177845723.798 1
+print all
+echo NZF 188364908.949
+ac lin 1 188364908.949 188364908.949
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 188364908.949 188383745.44 1
+print all
+echo NZF 199526231.497
+ac lin 1 199526231.497 199526231.497
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 199526231.497 199546184.12 1
+print all
+echo NZF 211348903.984
+ac lin 1 211348903.984 211348903.984
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 211348903.984 211370038.874 1
+print all
+echo NZF 223872113.857
+ac lin 1 223872113.857 223872113.857
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 223872113.857 223894501.068 1
+print all
+echo NZF 237137370.566
+ac lin 1 237137370.566 237137370.566
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 237137370.566 237161084.303 1
+print all
+echo NZF 251188643.151
+ac lin 1 251188643.151 251188643.151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 251188643.151 251213762.015 1
+print all
+echo NZF 266072505.98
+ac lin 1 266072505.98 266072505.98
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 266072505.98 266099113.23 1
+print all
+echo NZF 281838293.126
+ac lin 1 281838293.126 281838293.126
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 281838293.126 281866476.956 1
+print all
+echo NZF 298538261.892
+ac lin 1 298538261.892 298538261.892
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 298538261.892 298568115.718 1
+print all
+echo NZF 316227766.017
+ac lin 1 316227766.017 316227766.017
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 316227766.017 316259388.793 1
+print all
+echo NZF 334965439.158
+ac lin 1 334965439.158 334965439.158
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 334965439.158 334998935.702 1
+print all
+echo NZF 354813389.234
+ac lin 1 354813389.234 354813389.234
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 354813389.234 354848870.572 1
+print all
+echo NZF 375837404.288
+ac lin 1 375837404.288 375837404.288
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 375837404.288 375874988.029 1
+print all
+echo NZF 398107170.553
+ac lin 1 398107170.553 398107170.553
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 398107170.553 398146981.271 1
+print all
+echo NZF 421696503.429
+ac lin 1 421696503.429 421696503.429
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 421696503.429 421738673.079 1
+print all
+echo NZF 446683592.151
+ac lin 1 446683592.151 446683592.151
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 446683592.151 446728260.51 1
+print all
+echo NZF 473151258.961
+ac lin 1 473151258.961 473151258.961
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 473151258.961 473198574.087 1
+print all
+echo NZF 501187233.627
+ac lin 1 501187233.627 501187233.627
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 501187233.627 501237352.351 1
+print all
+echo NZF 530884444.231
+ac lin 1 530884444.231 530884444.231
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 530884444.231 530937532.675 1
+print all
+echo NZF 562341325.19
+ac lin 1 562341325.19 562341325.19
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 562341325.19 562397559.323 1
+print all
+echo NZF 595662143.529
+ac lin 1 595662143.529 595662143.529
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 595662143.529 595721709.743 1
+print all
+echo NZF 630957344.48
+ac lin 1 630957344.48 630957344.48
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 630957344.48 631020440.215 1
+print all
+echo NZF 668343917.569
+ac lin 1 668343917.569 668343917.569
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 668343917.569 668410751.96 1
+print all
+echo NZF 707945784.384
+ac lin 1 707945784.384 707945784.384
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 707945784.384 708016578.963 1
+print all
+echo NZF 749894209.332
+ac lin 1 749894209.332 749894209.332
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 749894209.332 749969198.753 1
+print all
+echo NZF 794328234.724
+ac lin 1 794328234.724 794328234.724
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 794328234.724 794407667.548 1
+print all
+echo NZF 841395141.645
+ac lin 1 841395141.645 841395141.645
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 841395141.645 841479281.159 1
+print all
+echo NZF 891250938.134
+ac lin 1 891250938.134 891250938.134
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 891250938.134 891340063.228 1
+print all
+echo NZF 944060876.286
+ac lin 1 944060876.286 944060876.286
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 944060876.286 944155282.374 1
+print all
+echo NZF 1000000000
+ac lin 1 1000000000 1000000000
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1000000000 1000100000 1
+print all
+echo NZF 1059253725.18
+ac lin 1 1059253725.18 1059253725.18
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1059253725.18 1059359650.55 1
+print all
+echo NZF 1122018454.3
+ac lin 1 1122018454.3 1122018454.3
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1122018454.3 1122130656.15 1
+print all
+echo NZF 1188502227.44
+ac lin 1 1188502227.44 1188502227.44
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1188502227.44 1188621077.66 1
+print all
+echo NZF 1258925411.79
+ac lin 1 1258925411.79 1258925411.79
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1258925411.79 1259051304.34 1
+print all
+echo NZF 1333521432.16
+ac lin 1 1333521432.16 1333521432.16
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1333521432.16 1333654784.31 1
+print all
+echo NZF 1412537544.62
+ac lin 1 1412537544.62 1412537544.62
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1412537544.62 1412678798.38 1
+print all
+echo NZF 1496235656.09
+ac lin 1 1496235656.09 1496235656.09
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1496235656.09 1496385279.66 1
+print all
+echo NZF 1584893192.46
+ac lin 1 1584893192.46 1584893192.46
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1584893192.46 1585051681.78 1
+print all
+echo NZF 1678804018.12
+ac lin 1 1678804018.12 1678804018.12
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1678804018.12 1678971898.52 1
+print all
+echo NZF 1778279410.04
+ac lin 1 1778279410.04 1778279410.04
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1778279410.04 1778457237.98 1
+print all
+echo NZF 1883649089.49
+ac lin 1 1883649089.49 1883649089.49
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1883649089.49 1883837454.4 1
+print all
+echo NZF 1995262314.97
+ac lin 1 1995262314.97 1995262314.97
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 1995262314.97 1995461841.2 1
+print all
+echo NZF 2113489039.84
+ac lin 1 2113489039.84 2113489039.84
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2113489039.84 2113700388.74 1
+print all
+echo NZF 2238721138.57
+ac lin 1 2238721138.57 2238721138.57
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2238721138.57 2238945010.68 1
+print all
+echo NZF 2371373705.66
+ac lin 1 2371373705.66 2371373705.66
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2371373705.66 2371610843.03 1
+print all
+echo NZF 2511886431.51
+ac lin 1 2511886431.51 2511886431.51
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2511886431.51 2512137620.15 1
+print all
+echo NZF 2660725059.8
+ac lin 1 2660725059.8 2660725059.8
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2660725059.8 2660991132.3 1
+print all
+echo NZF 2818382931.26
+ac lin 1 2818382931.26 2818382931.26
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2818382931.26 2818664769.56 1
+print all
+echo NZF 2985382618.92
+ac lin 1 2985382618.92 2985382618.92
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 2985382618.92 2985681157.18 1
+print all
+echo NZF 3162277660.17
+ac lin 1 3162277660.17 3162277660.17
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3162277660.17 3162593887.93 1
+print all
+echo NZF 3349654391.58
+ac lin 1 3349654391.58 3349654391.58
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3349654391.58 3349989357.02 1
+print all
+echo NZF 3548133892.34
+ac lin 1 3548133892.34 3548133892.34
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3548133892.34 3548488705.72 1
+print all
+echo NZF 3758374042.88
+ac lin 1 3758374042.88 3758374042.88
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3758374042.88 3758749880.29 1
+print all
+echo NZF 3981071705.53
+ac lin 1 3981071705.53 3981071705.53
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 3981071705.53 3981469812.71 1
+print all
+echo NZF 4216965034.29
+ac lin 1 4216965034.29 4216965034.29
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 4216965034.29 4217386730.79 1
+print all
+echo NZF 4466835921.51
+ac lin 1 4466835921.51 4466835921.51
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 4466835921.51 4467282605.1 1
+print all
+echo NZF 4731512589.61
+ac lin 1 4731512589.61 4731512589.61
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 4731512589.61 4731985740.87 1
+print all
+echo NZF 5011872336.27
+ac lin 1 5011872336.27 5011872336.27
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5011872336.27 5012373523.51 1
+print all
+echo NZF 5308844442.31
+ac lin 1 5308844442.31 5308844442.31
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5308844442.31 5309375326.75 1
+print all
+echo NZF 5623413251.9
+ac lin 1 5623413251.9 5623413251.9
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5623413251.9 5623975593.23 1
+print all
+echo NZF 5956621435.29
+ac lin 1 5956621435.29 5956621435.29
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 5956621435.29 5957217097.43 1
+print all
+echo NZF 6309573444.8
+ac lin 1 6309573444.8 6309573444.8
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 6309573444.8 6310204402.15 1
+print all
+echo NZF 6683439175.69
+ac lin 1 6683439175.69 6683439175.69
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 6683439175.69 6684107519.6 1
+print all
+echo NZF 7079457843.84
+ac lin 1 7079457843.84 7079457843.84
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 7079457843.84 7080165789.63 1
+print all
+echo NZF 7498942093.32
+ac lin 1 7498942093.32 7498942093.32
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 7498942093.32 7499691987.53 1
+print all
+echo NZF 7943282347.24
+ac lin 1 7943282347.24 7943282347.24
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 7943282347.24 7944076675.48 1
+print all
+echo NZF 8413951416.45
+ac lin 1 8413951416.45 8413951416.45
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 8413951416.45 8414792811.59 1
+print all
+echo NZF 8912509381.34
+ac lin 1 8912509381.34 8912509381.34
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 8912509381.34 8913400632.28 1
+print all
+echo NZF 9440608762.86
+ac lin 1 9440608762.86 9440608762.86
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 9440608762.86 9441552823.74 1
+print all
+echo NZF 10000000000
+ac lin 1 10000000000 10000000000
+let hout = v(rout)
+print hout
+noise v(rout) Vac_rin lin 2 10000000000 10001000000 1
+print all
+quit
+.endc
+.end

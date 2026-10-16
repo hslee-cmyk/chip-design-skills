@@ -1,0 +1,94 @@
+{
+ "devices": {
+  "M1": {
+   "id": 9.473253e-06,
+   "gm": 0.0001504852,
+   "gds": 8.163378e-07,
+   "vth": 0.6290064,
+   "vdsat": 0.09683917,
+   "vgs": 0.7,
+   "vds": 1.8,
+   "vbs": 3.942738e-08
+  },
+  "MP1": {
+   "id": 1.647339e-05,
+   "gm": 0.0001524419,
+   "gds": 1.246579e-06,
+   "vth": 1.025898,
+   "vdsat": 0.1965495,
+   "vgs": 1.2,
+   "vds": 1.335266,
+   "vbs": -0.3
+  }
+ },
+ "nodes": {
+  "nout": 1.8,
+  "nin": 0.7,
+  "pout": 0.1647339,
+  "pb": 0.3,
+  "vsp": 1.5,
+  "vdd": 1.8
+ },
+ "rail_current_A": {
+  "vdd": 9.47641e-06,
+  "vsp": 1.64734e-05
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_short_rl_hand_value_and_v0\\o\\tcs_nmos_rload.z1.free.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 0.0,
+  "dc_gain_db": -Infinity,
+  "phase_dc_deg": 0.0,
+  "reference_point": "first",
+  "f3db_hz": null,
+  "ugf_hz": null,
+  "phase_lag_at_ugf_deg": null,
+  "pm_deg": null,
+  "a0_f3db_hz": null,
+  "pm_open_loop_deg": null,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": null,
+  "pm_crosscheck_note": "폐루프 첫 점 크기 0 -- 계산 불가",
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": null,
+  "closed_loop_peak_hz": 0.01,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": null,
+  "pm_deg_raw": null,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "pm_valid": null,
+   "pm_undefined": null,
+   "reason": "PM 값 없음(|L|=1 하강 교차 없음 또는 루프 측정 없음) -- 검사 대상 아님"
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_short_rl_hand_value_and_v0\\o\\tcs_nmos_rload.z1.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null
+}

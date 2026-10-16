@@ -1,0 +1,2879 @@
+{
+ "junit": "pytest/junit.xml",
+ "n_tests": 699,
+ "n_tmp_dirs": 473,
+ "status_counts": {
+  "passed": 694,
+  "skipped": 5,
+  "failed": 0
+ },
+ "tmp_path_map": [
+  {
+   "dir": "test_accept_unmeasured_constra0",
+   "test": "tools.spice_oracle.tests.test_oracle_compare::test_accept_unmeasured_constraint_is_incomplete",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bad_z1_blocks_omit_and_sh0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_bad_z1_blocks[omit_and_short_same]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bad_z1_blocks_omit_dup_0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_bad_z1_blocks[omit_dup]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bad_z1_blocks_omit_unknow0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_bad_z1_blocks[omit_unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bad_z1_blocks_short_devic0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_bad_z1_blocks[short_device]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bad_z1_blocks_short_sourc0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_bad_z1_blocks[short_source]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bad_z1_blocks_short_unkno0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_bad_z1_blocks[short_unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_basis_empty_string_reject0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_basis_empty_string_rejected_by_schema",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_beta1_loop_records0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_beta1_loop_records",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bias_inputs_key_absent_an0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_bias_inputs_key_absent_and_no_bias_voltages_verified[input_key_absent]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bias_inputs_key_absent_an1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_bias_inputs_key_absent_and_no_bias_voltages_verified[input_empty_list]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bias_inputs_key_absent_st0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_bias_inputs_key_absent_strict_mismatch",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bias_inputs_net_missing_f0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_bias_inputs_net_missing_from_input_named_in_diff",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bias_mismatch_blocked_in_0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_bias_mismatch_blocked_in_run",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bias_voltages_equal_bias_0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_bias_voltages_equal_bias_inputs_verified[free]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bias_voltages_equal_bias_1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_bias_voltages_equal_bias_inputs_verified[forced]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bias_voltages_extra_net_b0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_bias_voltages_extra_net_blocks",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bias_voltages_missing_dec0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_bias_voltages_missing_declared_net_blocks[key_absent]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_bias_voltages_missing_dec1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_bias_voltages_missing_declared_net_blocks[empty_list]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_control_valid_vie0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_control_valid_view_not_blocked",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_views[constraint-internal_net]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_1",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_views[constraint-reference_rail]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_2",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_views[constraint-sense_not_net]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_3",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_views[constraint-sense_n_not_net]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_4",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_views[constraint-sense_reference]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_5",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-input_net]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_6",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-rail]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_7",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-rail_vsp]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_8",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-gate_bias]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_9",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-reference]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_10",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-nonexistent]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_11",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-diff_n_input]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_12",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-diff_n_rail]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_13",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-diff_n_reference]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_14",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-diff_n_nonexistent]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_15",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-diff_p_gate_bias]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_constraint_16",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[constraint-diff_same]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_diff0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-diff_n_input]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_diff1",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-diff_n_rail]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_diff2",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-diff_n_reference]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_diff3",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-diff_n_nonexistent]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_diff4",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-diff_p_gate_bias]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_diff5",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-diff_same]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_gate0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-gate_bias]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_inpu0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-input_net]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_inte0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_views[metric-internal_net]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_none0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-nonexistent]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_rail0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-rail]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_rail1",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-rail_vsp]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_refe0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_views[metric-reference_rail]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_refe1",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_blocked_views[metric-reference]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_sens0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_views[metric-sense_not_net]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_sens1",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_views[metric-sense_n_not_net]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_blocked_views_metric_sens2",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_blocked_views[metric-sense_reference]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c10_gain_never_below_one_0",
+   "test": "tools.spice_oracle.tests.test_oracle_simulate::test_c10_gain_never_below_one_no_ugf_pm",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c11_missing_optional_diff0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c11_missing_optional_diff_values_block[diff_feedback_gain]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c11_missing_optional_diff1",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c11_missing_optional_diff_values_block[input_p_ac]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c11_missing_optional_inpu0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c11_missing_optional_input_ac_blocks",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c11_missing_required_test0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c11_missing_required_testbench_value_rejected[fstop_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c11_missing_required_test1",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c11_missing_required_testbench_value_rejected[points_per_decade]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c11_no_default_sat_margin0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c11_no_default_sat_margin_or_tolerance",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_accepts_valid0",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_accepts_valid_input",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem0",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[L_is_string]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem1",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[constraint_op_eq]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem2",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[device_missing_finger_w]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem3",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[metric_measure_unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem4",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[missing_ac_fstart]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem5",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[missing_devices]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem6",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[missing_testbench_choke]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem7",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[n_fingers_fraction]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem8",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[n_fingers_zero]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem9",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[passive_kind_inductor]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem10",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[passive_one_terminal]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem11",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[rails_empty]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem12",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[region_unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_compare_rejects_schem13",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[schema_tag_wrong]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem0",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[L_is_string]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem1",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[constraint_op_eq]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem2",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[device_missing_finger_w]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem3",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[metric_measure_unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem4",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[missing_ac_fstart]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem5",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[missing_devices]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem6",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[missing_testbench_choke]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem7",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[n_fingers_fraction]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem8",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[n_fingers_zero]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem9",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[passive_kind_inductor]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem10",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[passive_one_terminal]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem11",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[rails_empty]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem12",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[region_unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_netlist_rejects_schem13",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_netlist_rejects_schema_violation[schema_tag_wrong]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi0",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[L_is_string]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi1",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[constraint_op_eq]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi2",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[device_missing_finger_w]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi3",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[metric_measure_unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi4",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[missing_ac_fstart]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi5",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[missing_devices]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi6",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[missing_testbench_choke]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi7",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[n_fingers_fraction]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi8",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[n_fingers_zero]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi9",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[passive_kind_inductor]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi10",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[passive_one_terminal]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi11",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[rails_empty]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi12",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[region_unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c13_run_rejects_schema_vi13",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_run_rejects_schema_violation[schema_tag_wrong]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c14_bad_declaration_block0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c14_bad_declaration_blocks[unknown_name]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c14_bad_declaration_block1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c14_bad_declaration_blocks[not_on_input_net]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c14_bad_declaration_block2",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c14_bad_declaration_blocks[only_not_on_input_net]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c14_bad_declaration_block3",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c14_bad_declaration_blocks[no_loop_choke]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c14_between_two_input_net0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_c14_between_two_input_nets_blocks",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c14_both_terminals_same_i0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_c14_both_terminals_same_input_net_blocks",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c14_input_to_input_passiv0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_c14_input_to_input_passive_not_declared_is_fine",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c14_loop_netlist_breaks_f0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c14_loop_netlist_breaks_feedback_at_input[free]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c14_loop_netlist_breaks_f1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c14_loop_netlist_breaks_feedback_at_input[forced]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c14_no_feedback_passives_0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c14_no_feedback_passives_no_loop_netlist",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c15_irout_is_testbench_el0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_c15_irout_is_testbench_element[free]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c15_irout_is_testbench_el1",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_c15_irout_is_testbench_element[forced]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c2_corner_temp_reach_simu0",
+   "test": "tools.spice_oracle.tests.test_oracle_simulate::test_c2_corner_temp_reach_simulation[ff-50.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c2_missing_npz_meta_block0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c2_missing_npz_meta_blocks[corner]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c2_missing_npz_meta_block1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c2_missing_npz_meta_blocks[temp_c]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c2_npz_without_temp_block0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c2_npz_without_temp_blocked_returns_2",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c2_temp_and_corner_from_n0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c2_temp_and_corner_from_npz[tt-27.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c2_temp_and_corner_from_n1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c2_temp_and_corner_from_npz[ff-50.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c2_temp_and_corner_from_n2",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c2_temp_and_corner_from_npz[ss--40.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c3_declared_W_does_not_ch0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c3_declared_W_does_not_change_instance",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c3_diffusion_rule0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c3_diffusion_rule",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c3_no_diffusion_no_area_p0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c3_no_diffusion_no_area_params",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c3_one_instance_w_finger_0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c3_one_instance_w_finger_m_nfingers_no_nf[free]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c3_one_instance_w_finger_1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c3_one_instance_w_finger_m_nfingers_no_nf[forced]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c4_case_alias_of_rail_wit0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c4_case_alias_of_rail_with_same_voltage_is_not_blocked",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c4_case_alias_of_rail_wit1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c4_case_alias_of_rail_with_other_voltage_blocks",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c4_case_only_different_ne0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c4_case_only_different_nets_block",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c4_reference_count_not_on0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c4_reference_count_not_one_blocks[none]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c4_reference_count_not_on1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c4_reference_count_not_one_blocks[two]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c4_reference_is_node0_oth0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c4_reference_is_node0_other_rails_sources",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c5_forced_holds_device_ne0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c5_forced_holds_device_nets_except_rails_inputs_gate_bias",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c5_forced_unpredicted_net0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c5_forced_unpredicted_net_not_held",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c5_free_diff_out_feeds_di0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c5_free_diff_out_feeds_differential_component",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c5_free_nodeset_from_pred0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c5_free_nodeset_from_predictions",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c5_free_single_input_dc_s0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c5_free_single_input_dc_source_and_choke",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c5_free_single_output_fee0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c5_free_single_output_feeds_back_to_input_n",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c6_gate_only_net_from_bia0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c6_gate_only_net_from_bias_voltages",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c6_gate_only_net_from_pre0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c6_gate_only_net_from_predictions_with_warning",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c6_gate_only_net_without_0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_c6_gate_only_net_without_value_blocks",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c8_blocked_beats_fail_ret0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c8_blocked_beats_fail_returns_2",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c8_blocked_without_fail_r0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c8_blocked_without_fail_returns_2[npz_no_corner]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c8_blocked_without_fail_r1",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c8_blocked_without_fail_returns_2[two_references]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c8_blocked_without_fail_r2",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c8_blocked_without_fail_returns_2[gate_net_no_value]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c8_constraint_fail_return0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c8_constraint_fail_returns_1",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c8_forced_only_is_incompl0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c8_forced_only_is_incomplete_returns_0",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c8_incomplete_returns_00",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c8_incomplete_returns_0",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c8_pass_returns_00",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c8_pass_returns_0",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c8_unsaturated_returns_10",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c8_unsaturated_returns_1",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_c8_worst_bias_decides_ret0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_c8_worst_bias_decides_return_code",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cache_key_distinguishes_r0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_cache_key_distinguishes_rout_view",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cache_restores_ratio0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_cache_restores_ratio",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cache_restores_rout0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_cache_restores_rout",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cache_stability_outside_a0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_cache_stability_outside_ac[fb_beta_loop]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cache_stability_outside_a1",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_cache_stability_outside_ac[three_lowpm]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_classic_sparse_sweep_refi0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_classic_sparse_sweep_refined_count",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cli_topology_overrides_in0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_cli_topology_overrides_input_path",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cm_output_loop_schema_sha0",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cm_output_loop_schema_shape[bool_true]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cm_output_loop_schema_sha1",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cm_output_loop_schema_shape[bool_false]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cm_output_loop_schema_sha2",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cm_output_loop_schema_shape[no_drivers]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cm_output_loop_schema_sha3",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cm_output_loop_schema_shape[empty_drivers]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cm_output_loop_schema_sha4",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cm_output_loop_schema_shape[extra_key]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cmloop_cuts_only_listed_d0",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cmloop_cuts_only_listed_drivers",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cmloop_driver_not_on_outp0",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cmloop_driver_not_on_output_blocks[passive]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cmloop_driver_not_on_outp1",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cmloop_driver_not_on_output_blocks[unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cmloop_driver_not_on_outp2",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cmloop_driver_not_on_output_blocks[mixed]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cmloop_netlist_cuts_drive0",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cmloop_netlist_cuts_driver_channel_terminals",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_cmloop_without_output_pai0",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_cmloop_without_output_pair_blocks",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_conditionally_stable_p0_f0",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_conditionally_stable_p0_flag_pm_and_low_side_gain_margin",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_conditionally_stable_pass0",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_conditionally_stable_passes",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_constraint_judged____0_990",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_constraint_judged[>=-0.99-PASS-0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_constraint_judged____0_991",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_constraint_judged[<=-0.99-FAIL-1]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_constraint_judged____1_010",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_constraint_judged[>=-1.01-FAIL-1]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_constraint_judged____1_011",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_constraint_judged[<=-1.01-PASS-0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_constraint_judged____1_0_0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_constraint_judged[>=-1.0-FAIL-1]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_constraint_judged____1_0_1",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_constraint_judged[<=-1.0-PASS-0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_constraint_judged_____1_00",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_constraint_judged[>=--1.0-PASS-0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_constraint_judged_____1_01",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_constraint_judged[<=--1.0-FAIL-1]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_constraint_unmeasurable_d0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_constraint_unmeasurable_den_zero_incomplete",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_dc_consistent_none_withou0",
+   "test": "tools.spice_oracle.tests.test_oracle_diagnosis::test_dc_consistent_none_without_any_tol",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_dc_consistent_true_when_s0",
+   "test": "tools.spice_oracle.tests.test_oracle_diagnosis::test_dc_consistent_true_when_self_consistent",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_dc_path_isolation_forced_0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_dc_path_isolation_forced_has_no_output_feedback",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_deterministic_same_input_0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_deterministic_same_input_same_outputs",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weight_check0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weight_check_absent_without_gain_measure",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_dc_g0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[dc_gain_db-pn0-True]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_dc_g1",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[dc_gain_db-pn1-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_dc_g2",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[dc_gain_db-pn2-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_dc_g3",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[dc_gain_db-pn3-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_dc_g4",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[dc_gain_db-pn4-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_dc_g5",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[dc_gain_db-pn5-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_pm_d0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[pm_deg-pn0-True]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_pm_d1",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[pm_deg-pn1-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_pm_d2",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[pm_deg-pn2-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_pm_d3",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[pm_deg-pn3-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_pm_d4",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[pm_deg-pn4-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_pm_d5",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[pm_deg-pn5-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_ugf_0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[ugf_hz-pn0-True]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_ugf_1",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[ugf_hz-pn1-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_ugf_2",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[ugf_hz-pn2-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_ugf_3",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[ugf_hz-pn3-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_ugf_4",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[ugf_hz-pn4-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_differential_weights_ugf_5",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_differential_weights[ugf_hz-pn5-False]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_feedback_passive_change_b0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_feedback_passive_change_blocks[args0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_feedback_passive_change_b1",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_feedback_passive_change_blocks[args1]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_fixture_inputs_conform0",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_fixture_inputs_conform",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_forced_and_iso_rows_carry0",
+   "test": "tools.spice_oracle.tests.test_oracle_conduction::test_forced_and_iso_rows_carry_fields",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_forced_and_iso_runs_not_b0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_forced_and_iso_runs_not_blocked_and_recorded",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_forced_held_net_excite_bl0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_forced_held_net_excite_blocked",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_forced_held_net_is_measur0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_forced_held_net_is_measurable[forced]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_free_fail_with_consistent0",
+   "test": "tools.spice_oracle.tests.test_oracle_diagnosis::test_free_fail_with_consistent_forced_is_boundary_condition",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_free_fail_with_inconsiste0",
+   "test": "tools.spice_oracle.tests.test_oracle_diagnosis::test_free_fail_with_inconsistent_forced_is_engine_dc_inconsistent",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_free_fail_without_forced_0",
+   "test": "tools.spice_oracle.tests.test_oracle_diagnosis::test_free_fail_without_forced_run_is_unknown",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_free_fail_without_tol_is_0",
+   "test": "tools.spice_oracle.tests.test_oracle_diagnosis::test_free_fail_without_tol_is_unknown",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_free_not_fail_is_not_appl0",
+   "test": "tools.spice_oracle.tests.test_oracle_diagnosis::test_free_not_fail_is_not_applicable",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_free_partial_missing_bloc0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_free_partial_missing_blocks_only_that_device",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_free_without_any_source_b0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_free_without_any_source_blocked_sorted_names",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_gate_on_input_control_not0",
+   "test": "tools.spice_oracle.tests.test_oracle_loop_singular::test_gate_on_input_control_not_singular",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_gate_shared_nets_dvgs_and0",
+   "test": "tools.spice_oracle.tests.test_oracle_diagnosis::test_gate_shared_nets_dvgs_and_order",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_icm_margin_pending_not_re0",
+   "test": "tools.spice_oracle.tests.test_oracle_swing_icmr::test_icm_margin_pending_not_reported",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_input_extra_element_block0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_input_extra_element_blocks",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_has_no_circuit_or_tes0",
+   "test": "tools.spice_oracle.tests.test_oracle_iso::test_iso_has_no_circuit_or_testbench",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_no_device_built_block0",
+   "test": "tools.spice_oracle.tests.test_oracle_iso::test_iso_no_device_built_blocks",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_not_applicable0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_iso_not_applicable",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_skips_device_without_0",
+   "test": "tools.spice_oracle.tests.test_oracle_iso::test_iso_skips_device_without_prediction",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_skips_kind_without_po0",
+   "test": "tools.spice_oracle.tests.test_oracle_iso::test_iso_skips_kind_without_polarity",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_spice_values_match_in0",
+   "test": "tools.spice_oracle.tests.test_oracle_iso::test_iso_spice_values_match_independent",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_summary_verdict_all_w0",
+   "test": "tools.spice_oracle.tests.test_oracle_iso::test_iso_summary_verdict[all_within]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_summary_verdict_none_0",
+   "test": "tools.spice_oracle.tests.test_oracle_iso::test_iso_summary_verdict[none_judged]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_summary_verdict_one_n0",
+   "test": "tools.spice_oracle.tests.test_oracle_iso::test_iso_summary_verdict[one_not_judged]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_summary_verdict_one_o0",
+   "test": "tools.spice_oracle.tests.test_oracle_iso::test_iso_summary_verdict[one_outside]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_terminal_voltages_and0",
+   "test": "tools.spice_oracle.tests.test_oracle_iso::test_iso_terminal_voltages_and_polarity",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_iso_uses_same_diffusion_r0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_iso_uses_same_diffusion_rule_and_is_not_blocked",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_junction_cap_reaches_ngsp0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_junction_cap_reaches_ngspice_with_m_scaling[device]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_junction_cap_reaches_ngsp1",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_junction_cap_reaches_ngspice_with_m_scaling[process_rule]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_kcl_net_with_untoleranced0",
+   "test": "tools.spice_oracle.tests.test_oracle_diagnosis::test_kcl_net_with_untoleranced_device_not_judged",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_kcl_nets_against_tol_I_ha0",
+   "test": "tools.spice_oracle.tests.test_oracle_diagnosis::test_kcl_nets_against_tol_I_hand",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_loop_i_file_columns_diff_0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_loop_i_file_columns[diff]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_loop_i_file_columns_fb_0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_loop_i_file_columns[fb]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mc_unavailable_without_di0",
+   "test": "tools.spice_oracle.tests.test_oracle_offset_mc::test_mc_unavailable_without_differential_input",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_metric_record_only_0_01_F0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_metric_record_only[0.01-FAIL]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_metric_record_only_0_1_FA0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_metric_record_only[0.1-FAIL]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_metric_record_only_0_1_PA0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_metric_record_only[0.1-PASS]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_metric_record_only_1_0_PA0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_metric_record_only[1.0-PASS]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_miller_compensation_loop_0",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_miller_compensation_loop_pz_p_zero",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mismatch_blocked_in_run0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_mismatch_blocked_in_run",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mismatch_blocks_bulk_decl0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_mismatch_blocks[bulk_declared_wrong]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mismatch_blocks_drain_sou0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_mismatch_blocks[drain_source_swapped]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mismatch_blocks_gate_net_0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_mismatch_blocks[gate_net_changed]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mismatch_blocks_kind_chan0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_mismatch_blocks[kind_changed]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mismatch_blocks_passive_k0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_mismatch_blocks[passive_kind_changed]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mismatch_blocks_passive_n0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_mismatch_blocks[passive_net_changed]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mismatch_blocks_topology_0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_mismatch_blocks[topology_has_extra_element]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mismatch_blocks_topology_1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_mismatch_blocks[topology_missing_device]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_mismatch_blocks_topology_2",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_mismatch_blocks[topology_missing_element]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_missing_file_unverified0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_missing_file_unverified",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_missing_model_file_cache_0",
+   "test": "tools.spice_oracle.tests.test_oracle_simulate_cache::test_missing_model_file_cache_off",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_missing_spice_id_incomple0",
+   "test": "tools.spice_oracle.tests.test_oracle_conduction::test_missing_spice_id_incomplete",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_missing_weight_key_is_c110",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_missing_weight_key_is_c11_not_c27",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_model_file_change_misses0",
+   "test": "tools.spice_oracle.tests.test_oracle_simulate_cache::test_model_file_change_misses",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_multi_crossing_plan_uses_0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_multi_crossing_plan_uses_f_lo",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_negative_rout_constraint_0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_constraint_never_pass[>=--1000000000.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_negative_rout_constraint_1",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_constraint_never_pass[<=-1000000000.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_negative_rout_constraint_2",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_constraint_never_pass[>=-0.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_negative_rout_constraint_3",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_constraint_never_pass[<=-0.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_negative_rout_control_pas0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_control_pass_without_it",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_negative_rout_with_other_0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_with_other_fail_is_fail",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_nested_include_change_mis0",
+   "test": "tools.spice_oracle.tests.test_oracle_simulate_cache::test_nested_include_change_misses",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_netlist_deterministic_for0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_netlist_deterministic[forced]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_netlist_deterministic_fre0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist::test_netlist_deterministic[free]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_no_cmfb_is_cm_loop_ineffe0",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_no_cmfb_is_cm_loop_ineffective",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_no_cmloop_files_without_f0",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_no_cmloop_files_without_flag[None]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_no_fstart_is_schema_or_bl0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_no_fstart_is_schema_or_block",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_no_pm_raw_not_checked0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_no_pm_raw_not_checked",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_no_ratio_in_iso_or_loop_n0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_no_ratio_in_iso_or_loop_netlists",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_no_rout_in_iso_or_loop_ne0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_no_rout_in_iso_or_loop_netlists",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_no_topology_unverified_no0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_no_topology_unverified_not_blocking",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_noise_block_schema_reject0",
+   "test": "tools.spice_oracle.tests.test_oracle_noise::test_noise_block_schema_rejected[blk0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_noise_block_schema_reject1",
+   "test": "tools.spice_oracle.tests.test_oracle_noise::test_noise_block_schema_rejected[blk1]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_noise_block_schema_reject2",
+   "test": "tools.spice_oracle.tests.test_oracle_noise::test_noise_block_schema_rejected[blk2]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_noise_excess_th_maps_pass0",
+   "test": "tools.spice_oracle.tests.test_oracle_noise::test_noise_excess_th_maps_passive_and_mos_names",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_noise_excess_th_none_when0",
+   "test": "tools.spice_oracle.tests.test_oracle_noise::test_noise_excess_th_none_when_no_input_cell_found[cells0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_noise_excess_th_none_when1",
+   "test": "tools.spice_oracle.tests.test_oracle_noise::test_noise_excess_th_none_when_no_input_cell_found[cells1]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_noise_excess_th_reports_m0",
+   "test": "tools.spice_oracle.tests.test_oracle_noise::test_noise_excess_th_reports_missing_name",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_not_in_topology_reason_ex0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_not_in_topology_reason_excluded",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_offset_mc_block_schema_re0",
+   "test": "tools.spice_oracle.tests.test_oracle_offset_mc::test_offset_mc_block_schema_rejected[blk0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_offset_mc_block_schema_re1",
+   "test": "tools.spice_oracle.tests.test_oracle_offset_mc::test_offset_mc_block_schema_rejected[blk1]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_offset_mc_block_schema_re2",
+   "test": "tools.spice_oracle.tests.test_oracle_offset_mc::test_offset_mc_block_schema_rejected[blk2]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_omit_device_no_row_and_li0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_omit_device_no_row_and_listed_verdict_incomplete",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_omit_removes_elements0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_omit_removes_elements",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_one_blocked_view_removes_0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_one_blocked_view_removes_all_rout_runs",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_outputs_named_by_circuit_0",
+   "test": "tools.spice_oracle.tests.test_oracle_run::test_outputs_named_by_circuit_tag_bias",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_partial_zero_is_not_zero_0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_partial_zero_is_not_zero_area",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_plan_default_reltol0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_plan_default_reltol",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_pm_crosscheck_matches_han0",
+   "test": "tools.spice_oracle.tests.test_oracle_simulate_pm_crosscheck::test_pm_crosscheck_matches_hand_2nd_order[z_low]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_pm_crosscheck_matches_han1",
+   "test": "tools.spice_oracle.tests.test_oracle_simulate_pm_crosscheck::test_pm_crosscheck_matches_hand_2nd_order[z_mid]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_pm_crosscheck_matches_han2",
+   "test": "tools.spice_oracle.tests.test_oracle_simulate_pm_crosscheck::test_pm_crosscheck_matches_hand_2nd_order[no_peak]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_pm_is_minimum_over_all_cr0",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_pm_is_minimum_over_all_crossings",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_pm_loop_summary_carries_b0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_pm_loop_summary_carries_basis_verbatim[spec_feedback_elements]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_pm_loop_summary_carries_b1",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_pm_loop_summary_carries_basis_verbatim[legacy_c12_input_net_passives]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_pm_loop_summary_carries_b2",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_pm_loop_summary_carries_basis_verbatim[\\uc784\\uc758 \\ud45c\\uc9c0 x]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_pm_loop_summary_carries_b3",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_pm_loop_summary_carries_basis_verbatim[None]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_ratio_db_without_view_rej0",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_db_without_view_rejected_by_schema[constraint]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_ratio_db_without_view_rej1",
+   "test": "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_db_without_view_rejected_by_schema[metric]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_rc_noise_metric_constrain0",
+   "test": "tools.spice_oracle.tests.test_oracle_noise::test_rc_noise_metric_constraint_judged",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_readme_drain_cap_claim_re0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_readme_drain_cap_claim_reproduced",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_reason_on_element_that_to0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_reason_on_element_that_topology_has_is_a_diff",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_repo_relative_path_verifi0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_repo_relative_path_verified[free]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_repo_relative_path_verifi1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_repo_relative_path_verified[forced]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_repo_root_from_input_fold0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_repo_root_from_input_folder_git",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_require_topology_blocks_u0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_require_topology_blocks_unverified[none]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_require_topology_blocks_u1",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_require_topology_blocks_unverified[missing_file]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_require_topology_verified0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_require_topology_verified_passes",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_resistor_order_free_sourc0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_resistor_order_free_source_order_matters",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_rhp_closed_loop_unstable_0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_closed_loop_unstable_fails_without_pm_constraint",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_rhp_constraint_never_pass0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_constraint_never_pass[>=--1000000000.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_rhp_constraint_never_pass1",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_constraint_never_pass[<=-1000000000.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_rhp_constraint_never_pass2",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_constraint_never_pass[>=-0.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_rhp_variants_never_pass_r0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_variants_never_pass[rb1e5]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_rhp_variants_never_pass_r1",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_variants_never_pass[rb1e6]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_rhp_variants_never_pass_r2",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_variants_never_pass[rb1e7]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_rhp_with_other_fail_is_fa0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_with_other_fail_is_fail",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_rout_and_ratio_measures_d0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_rout_and_ratio_measures_do_not_trigger_check",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_run_return_code_1_on_c23_0",
+   "test": "tools.spice_oracle.tests.test_oracle_conduction::test_run_return_code_1_on_c23_fail",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_scale_free_measures_do_no0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_scale_free_measures_do_not_trigger_check[f3db_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_scale_free_measures_do_no1",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_scale_free_measures_do_not_trigger_check[supply_current_A]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_scale_free_measures_do_no2",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_scale_free_measures_do_not_trigger_check[None]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_accepts_valid_sens0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_accepts_valid_sense_views[view0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_accepts_valid_sens1",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_accepts_valid_sense_views[view1]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_accepts_valid_sens2",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_accepts_valid_sense_views[view2]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_constraint0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[constraint-ac_excite_in_sense_view]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_constraint1",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[constraint-differential_without_sense_n]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_constraint2",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[constraint-differential_null_sense_n]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_constraint3",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[constraint-differential_empty_sense_n]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_constraint4",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[constraint-single_ended_with_sense_n]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_constraint5",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[constraint-empty_sense_p]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_constraint6",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[constraint-bad_mode]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_constraint7",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[constraint-ratio_view_shape]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_constraint8",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[constraint-no_view]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_metric_ac_0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[metric-ac_excite_in_sense_view]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_metric_bad0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[metric-bad_mode]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_metric_dif0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[metric-differential_without_sense_n]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_metric_dif1",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[metric-differential_null_sense_n]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_metric_dif2",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[metric-differential_empty_sense_n]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_metric_emp0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[metric-empty_sense_p]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_metric_no_0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[metric-no_view]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_metric_rat0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[metric-ratio_view_shape]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_metric_sin0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_schema_rejects[metric-single_ended_with_sense_n]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_schema_rejects_old_cm_loo0",
+   "test": "tools.spice_oracle.tests.test_oracle_cm_loop::test_schema_rejects_old_cm_loop_passives",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_sha256_match_no_note0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_sha256_match_no_note",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_sha256_mismatch_noted_onl0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_sha256_mismatch_noted_only",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_short_replaces_passive_wi0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_short_replaces_passive_with_zero_volt_source",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_short_rl_hand_value_and_v0",
+   "test": "tools.spice_oracle.tests.test_oracle_z1::test_short_rl_hand_value_and_verdict_incomplete",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[2.0-constraint-dc_gain_db]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o1",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[2.0-constraint-ugf_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o2",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[2.0-constraint-pm_deg]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o3",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[2.0-metric-dc_gain_db]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o4",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[2.0-metric-ugf_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o5",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[2.0-metric-pm_deg]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o6",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[0.5-constraint-dc_gain_db]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o7",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[0.5-constraint-ugf_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o8",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[0.5-constraint-pm_deg]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o9",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[0.5-metric-dc_gain_db]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o10",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[0.5-metric-ugf_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o11",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[0.5-metric-pm_deg]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o12",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[-1.0-constraint-dc_gain_db]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o13",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[-1.0-constraint-ugf_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o14",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[-1.0-constraint-pm_deg]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o15",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[-1.0-metric-dc_gain_db]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o16",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[-1.0-metric-ugf_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o17",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[-1.0-metric-pm_deg]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o18",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[1.000000000001-constraint-dc_gain_db]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o19",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[1.000000000001-constraint-ugf_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o20",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[1.000000000001-constraint-pm_deg]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o21",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[1.000000000001-metric-dc_gain_db]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o22",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[1.000000000001-metric-ugf_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_not_o23",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_not_one_blocks[1.000000000001-metric-pm_deg]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_one_n0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_one_not_blocked[dc_gain_db]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_one_n1",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_one_not_blocked[ugf_hz]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_single_input_weight_one_n2",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_single_input_weight_one_not_blocked[pm_deg]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_singular_never_pass____100",
+   "test": "tools.spice_oracle.tests.test_oracle_loop_singular::test_singular_never_pass[<=-1000000000.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_singular_never_pass_____10",
+   "test": "tools.spice_oracle.tests.test_oracle_loop_singular::test_singular_never_pass[>=--1000000000.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_singular_with_other_fail_0",
+   "test": "tools.spice_oracle.tests.test_oracle_loop_singular::test_singular_with_other_fail_is_fail",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_loop_netlist_regene0",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_loop_netlist_regenerates_identically[free-sizing.engine]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_loop_netlist_regene1",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_loop_netlist_regenerates_identically[free-layout.engine]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_loop_netlist_regene2",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_loop_netlist_regenerates_identically[free-layout.topology]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_loop_netlist_regene3",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_loop_netlist_regenerates_identically[forced-sizing.engine]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_loop_netlist_regene4",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_loop_netlist_regenerates_identically[forced-layout.engine]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_loop_netlist_regene5",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_loop_netlist_regenerates_identically[forced-layout.topology]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_netlist_regenerates0",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_netlist_regenerates_identically[free-sizing.engine]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_netlist_regenerates1",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_netlist_regenerates_identically[free-layout.engine]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_netlist_regenerates2",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_netlist_regenerates_identically[free-layout.topology]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_netlist_regenerates3",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_netlist_regenerates_identically[forced-sizing.engine]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_netlist_regenerates4",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_netlist_regenerates_identically[forced-layout.engine]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_smoke_netlist_regenerates5",
+   "test": "tools.spice_oracle.tests.test_legacy_adapter::test_smoke_netlist_regenerates_identically[forced-layout.topology]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_source1_device_diffusion_0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_source1_device_diffusion_overrides_process_rule",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_source3_none_no_area_para0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_source3_none_no_area_params_forced_with_note",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_source_follower_rout0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_source_follower_rout",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_stability_config_without_0",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_stability_config_without_wall_cap_rejected",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_stable_beta_loop_value_un0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_stable_beta_loop_value_unchanged",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_stable_cs_beta1_value_unc0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_stable_cs_beta1_value_unchanged",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_stable_sparse_sweep_refin0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_stable_sparse_sweep_refined_count_pass",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_summary_counts_and_zero_a0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_summary_counts_and_zero_area",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_sustained_oscillation_rb10",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_sustained_oscillation_rb1e6_limit_cycle_fail",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_tail_above_one_nyquist_un0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_tail_above_one_nyquist_unavailable",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_timeout_s_overrides_defau0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_timeout_s_overrides_default_cap",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_tiny_nonzero_denominator_0",
+   "test": "tools.spice_oracle.tests.test_oracle_loop_singular::test_tiny_nonzero_denominator_computed",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_transient_constraint_reje0",
+   "test": "tools.spice_oracle.tests.test_oracle_transient::test_transient_constraint_rejected_by_schema[slew_rate_v_per_s]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_transient_constraint_reje1",
+   "test": "tools.spice_oracle.tests.test_oracle_transient::test_transient_constraint_rejected_by_schema[settle_s]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_transient_decision_synthe0",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_transient_decision_synthetic_file[sustained_sine]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_transient_decision_synthe1",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_transient_decision_synthetic_file[growth]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_transient_decision_synthe2",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_transient_decision_synthetic_file[relaxation_rb1e6_shape]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_transient_decision_synthe3",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_transient_decision_synthetic_file[decay_to_floor]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_transient_decision_synthe4",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_transient_decision_synthetic_file[decaying]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_transient_decision_synthe5",
+   "test": "tools.spice_oracle.tests.test_oracle_u6_stability::test_transient_decision_synthetic_file[truncated]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_truncated_transient_faile0",
+   "test": "tools.spice_oracle.tests.test_oracle_c10_stability::test_truncated_transient_failed_never_pass",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_valid_input_accepted_by_n0",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_valid_input_accepted_by_netlist",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_valid_views_not_blocked_c0",
+   "test": "tools.spice_oracle.tests.test_oracle_rout::test_valid_views_not_blocked_control",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch0",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[L_is_string]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch1",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[constraint_op_eq]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch2",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[device_missing_finger_w]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch3",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[metric_measure_unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch4",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[missing_ac_fstart]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch5",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[missing_devices]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch6",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[missing_testbench_choke]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch7",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[n_fingers_fraction]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch8",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[n_fingers_zero]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch9",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[passive_kind_inductor]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch10",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[passive_one_terminal]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch11",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[rails_empty]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch12",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[region_unknown]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_violation_is_really_a_sch13",
+   "test": "tools.spice_oracle.tests.test_oracle_input_schema::test_violation_is_really_a_schema_violation[schema_tag_wrong]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_w_rel_recorded_2e_06_1_0_0",
+   "test": "tools.spice_oracle.tests.test_oracle_compare::test_w_rel_recorded[2e-06-1.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_w_rel_recorded_4e_06_0_0_0",
+   "test": "tools.spice_oracle.tests.test_oracle_compare::test_w_rel_recorded[4e-06-0.0]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_w_rel_recorded_8e_06__0_50",
+   "test": "tools.spice_oracle.tests.test_oracle_compare::test_w_rel_recorded[8e-06--0.5]",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_weight_block_in_run_is_bl0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_weight_block_in_run_is_blocked_rc2",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_weight_check_also_with_be0",
+   "test": "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_weight_check_also_with_beta_loop",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_z1_compares_unmodified_ne0",
+   "test": "tools.spice_oracle.tests.test_oracle_netlist_topology::test_z1_compares_unmodified_netlist",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  },
+  {
+   "dir": "test_z1_free_also_blocked0",
+   "test": "tools.spice_oracle.tests.test_oracle_junction_cap::test_z1_free_also_blocked",
+   "rule": "tmp_path 이름 규칙, 그룹 크기 일치"
+  }
+ ],
+ "tmp_path_ambiguous_groups": [],
+ "mktemp_map": [
+  {
+   "name": "independent",
+   "file": "tools/spice_oracle/tests/conftest.py",
+   "line": 447,
+   "def": "ref_root",
+   "is_fixture": true,
+   "module": "conftest",
+   "dirs": [
+    "independent0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_fixture_has_open_loop_rhp_pole[rb1e5]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_fixture_has_open_loop_rhp_pole[rb1e6]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_fixture_has_open_loop_rhp_pole[rb1e7]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_fixture_closed_loop_oscillates_and_n_is_zero[rb1e5]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_fixture_closed_loop_oscillates_and_n_is_zero[rb1e6]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_fixture_closed_loop_oscillates_and_n_is_zero[rb1e7]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_variants_never_pass[rb1e5]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_variants_never_pass[rb1e6]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_variants_never_pass[rb1e7]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_sustained_oscillation_rb1e6_limit_cycle_fail",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_classic_fixture_premise",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_classic_sparse_sweep_refined_count",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_stable_sparse_sweep_refined_count_pass",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_extension_decaying_to_stable",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_growing_fixture_premise_independent",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_multi_crossing_plan_uses_f_lo",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_tail_above_one_nyquist_unavailable",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_truncated_transient_failed_never_pass",
+    "tools.spice_oracle.tests.test_oracle_loop_singular::test_singular_never_pass[>=--1000000000.0]",
+    "tools.spice_oracle.tests.test_oracle_loop_singular::test_singular_never_pass[<=-1000000000.0]",
+    "tools.spice_oracle.tests.test_oracle_loop_singular::test_singular_with_other_fail_is_fail",
+    "tools.spice_oracle.tests.test_oracle_loop_singular::test_gate_on_input_control_not_singular",
+    "tools.spice_oracle.tests.test_oracle_loop_singular::test_tiny_nonzero_denominator_computed",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_matches_independent_two_run_netlist[psrr_vdd_se]",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_matches_independent_two_run_netlist[neg_amp_multi]",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_matches_independent_two_run_netlist[sum_two_nets]",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_matches_independent_two_run_netlist[diff_sense]",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_matches_independent_two_run_netlist[gate_bias_vsp]",
+    "tools.spice_oracle.tests.test_oracle_rout::test_rout_matches_independent_netlist[cs_nout]",
+    "tools.spice_oracle.tests.test_oracle_rout::test_rout_matches_independent_netlist[pmos_pout]",
+    "tools.spice_oracle.tests.test_oracle_rout::test_rout_matches_independent_netlist[diff_np]",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_c2_corner_temp_reach_simulation[ff-50.0]",
+    "tools.spice_oracle.tests.test_oracle_u6_stability::test_pm_is_minimum_over_all_crossings"
+   ],
+   "note": null
+  },
+  {
+   "name": "legacy_fresh",
+   "file": "tools/spice_oracle/tests/test_legacy_adapter.py",
+   "line": 109,
+   "def": "fresh",
+   "is_fixture": true,
+   "module": "test_legacy_adapter",
+   "dirs": [],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_legacy_adapter::test_c12_same_dump_twice_same_input[sizing-engine]",
+    "tools.spice_oracle.tests.test_legacy_adapter::test_c12_same_dump_twice_same_input[layout-engine]",
+    "tools.spice_oracle.tests.test_legacy_adapter::test_c12_same_dump_twice_same_input[layout-topology]",
+    "tools.spice_oracle.tests.test_legacy_adapter::test_c12_fresh_engine_equals_from_dump",
+    "tools.spice_oracle.tests.test_legacy_adapter::test_c12_fresh_engine_equals_committed_smoke_input"
+   ],
+   "note": null
+  },
+  {
+   "name": "rhp",
+   "file": "tools/spice_oracle/tests/test_oracle_c10_stability.py",
+   "line": 778,
+   "def": "rhp_run",
+   "is_fixture": true,
+   "module": "test_oracle_c10_stability",
+   "dirs": [
+    "rhp0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_nyquist_count_from_oracle_data",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_transient_plan_and_decision",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_pm_undefined_open_loop_rhp_poles",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_crosscheck_invalidated",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_constraint_and_metric_na[free]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_constraint_and_metric_na[forced]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_forced_stab_netlist_freezes_chokes",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_constraint_never_pass[>=--1000000000.0]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_constraint_never_pass[<=-1000000000.0]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_constraint_never_pass[>=-0.0]",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_with_other_fail_is_fail",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_rhp_closed_loop_unstable_fails_without_pm_constraint"
+   ],
+   "note": null
+  },
+  {
+   "name": "classic",
+   "file": "tools/spice_oracle/tests/test_oracle_c10_stability.py",
+   "line": 1071,
+   "def": "classic_run",
+   "is_fixture": true,
+   "module": "test_oracle_c10_stability",
+   "dirs": [
+    "classic0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_classic_negative_pm_kept_and_fail",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_extension_record_absent_when_not_decaying",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_growing_fixture_early_stop"
+   ],
+   "note": null
+  },
+  {
+   "name": "lowpm",
+   "file": "tools/spice_oracle/tests/test_oracle_c10_stability.py",
+   "line": 1143,
+   "def": "lowpm_run",
+   "is_fixture": true,
+   "module": "test_oracle_c10_stability",
+   "dirs": [
+    "lowpm0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_stable_lowpm_value_unchanged_and_pass",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_stable_sparse_sweep_refined_count_pass",
+    "tools.spice_oracle.tests.test_oracle_c10_stability::test_extension_decaying_to_stable"
+   ],
+   "note": null
+  },
+  {
+   "name": "fbstab",
+   "file": "tools/spice_oracle/tests/test_oracle_c10_stability.py",
+   "line": 1546,
+   "def": "fb_stab_run",
+   "is_fixture": true,
+   "module": "test_oracle_c10_stability",
+   "dirs": [
+    "fbstab0"
+   ],
+   "used_by_tests": [],
+   "note": "인자로 직접 받는 test 0 -- request.getfixturevalue 간접 사용 등은 AST 대응 밖(원문 확인)"
+  },
+  {
+   "name": "c27_fb",
+   "file": "tools/spice_oracle/tests/test_oracle_c27_loop_defs.py",
+   "line": 201,
+   "def": "fb_free",
+   "is_fixture": true,
+   "module": "test_oracle_c27_loop_defs",
+   "dirs": [
+    "c27_fb0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_dc_path_isolation_record[fb]",
+    "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_dc_path_isolation_record[diff]",
+    "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_loop_choke_ratio_matches_hand_impedance[fb]",
+    "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_loop_choke_ratio_matches_hand_impedance[diff]"
+   ],
+   "note": null
+  },
+  {
+   "name": "c27_diff",
+   "file": "tools/spice_oracle/tests/test_oracle_c27_loop_defs.py",
+   "line": 207,
+   "def": "diff_free",
+   "is_fixture": true,
+   "module": "test_oracle_c27_loop_defs",
+   "dirs": [
+    "c27_diff0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_dc_path_isolation_record[fb]",
+    "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_dc_path_isolation_record[diff]",
+    "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_loop_choke_ratio_matches_hand_impedance[fb]",
+    "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_loop_choke_ratio_matches_hand_impedance[diff]",
+    "tools.spice_oracle.tests.test_oracle_c27_loop_defs::test_diff_beta_loop_pm_equals_half_circuit_T"
+   ],
+   "note": null
+  },
+  {
+   "name": "cmfb",
+   "file": "tools/spice_oracle/tests/test_oracle_cm_loop.py",
+   "line": 157,
+   "def": "cmfb_run",
+   "is_fixture": true,
+   "module": "test_oracle_cm_loop",
+   "dirs": [
+    "cmfb0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_cm_loop::test_cm_loop_gain_and_pm_match_hand_closed_form",
+    "tools.spice_oracle.tests.test_oracle_cm_loop::test_cm_constraint_judged_with_value",
+    "tools.spice_oracle.tests.test_oracle_cm_loop::test_engine_mna_matches_ngspice_cm_pm"
+   ],
+   "note": null
+  },
+  {
+   "name": "cmp_free",
+   "file": "tools/spice_oracle/tests/test_oracle_compare.py",
+   "line": 56,
+   "def": "free_case",
+   "is_fixture": true,
+   "module": "test_oracle_compare",
+   "dirs": [
+    "cmp_free0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_compare::test_accept_no_sat_margin_no_constraints_is_incomplete",
+    "tools.spice_oracle.tests.test_oracle_compare::test_accept_all_conducting_saturated_is_pass",
+    "tools.spice_oracle.tests.test_oracle_compare::test_accept_unsaturated_conducting_mos_fails",
+    "tools.spice_oracle.tests.test_oracle_compare::test_accept_off_device_excluded_from_saturation_check",
+    "tools.spice_oracle.tests.test_oracle_compare::test_accept_sat_margin_cli_overrides_input",
+    "tools.spice_oracle.tests.test_oracle_compare::test_accept_constraints_decide_with_saturation",
+    "tools.spice_oracle.tests.test_oracle_compare::test_accept_constraint_fail_without_sat_margin_is_fail",
+    "tools.spice_oracle.tests.test_oracle_compare::test_accept_record_fails_do_not_change_verdict",
+    "tools.spice_oracle.tests.test_oracle_compare::test_c7_error_definitions",
+    "tools.spice_oracle.tests.test_oracle_compare::test_c7_record_node_abs_tolerance_boundary[0.012-PASS]",
+    "tools.spice_oracle.tests.test_oracle_compare::test_c7_record_node_abs_tolerance_boundary[0.008-FAIL]",
+    "tools.spice_oracle.tests.test_oracle_compare::test_c7_record_rel_tolerance_boundary[0.06-PASS]",
+    "tools.spice_oracle.tests.test_oracle_compare::test_c7_record_rel_tolerance_boundary[0.04-FAIL]",
+    "tools.spice_oracle.tests.test_oracle_compare::test_c7_record_missing_tol_key_is_na",
+    "tools.spice_oracle.tests.test_oracle_compare::test_c7_record_fixed_nets_are_na_testbench",
+    "tools.spice_oracle.tests.test_oracle_compare::test_c7_region_record_compares_prediction",
+    "tools.spice_oracle.tests.test_oracle_compare::test_pmos_magnitude_convention",
+    "tools.spice_oracle.tests.test_oracle_compare::test_pmos_prediction_in_magnitude_form[1-PASS]",
+    "tools.spice_oracle.tests.test_oracle_compare::test_pmos_prediction_in_magnitude_form[-1-FAIL]",
+    "tools.spice_oracle.tests.test_oracle_compare::test_free_mode_never_warns"
+   ],
+   "note": null
+  },
+  {
+   "name": "cmp_forced_ok",
+   "file": "tools/spice_oracle/tests/test_oracle_compare.py",
+   "line": 293,
+   "def": "forced_consistent",
+   "is_fixture": true,
+   "module": "test_oracle_compare",
+   "dirs": [
+    "cmp_forced_ok0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_compare::test_forced_verdict_always_incomplete",
+    "tools.spice_oracle.tests.test_oracle_compare::test_forced_warnings_when_device_diff_exceeds_tolerance",
+    "tools.spice_oracle.tests.test_oracle_compare::test_forced_no_warnings_when_within_tolerance",
+    "tools.spice_oracle.tests.test_oracle_compare::test_kcl_list_is_held_nets_only",
+    "tools.spice_oracle.tests.test_oracle_compare::test_kcl_residual_zero_when_prediction_self_consistent"
+   ],
+   "note": null
+  },
+  {
+   "name": "cmp_forced_off",
+   "file": "tools/spice_oracle/tests/test_oracle_compare.py",
+   "line": 304,
+   "def": "forced_off",
+   "is_fixture": true,
+   "module": "test_oracle_compare",
+   "dirs": [
+    "cmp_forced_off0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_compare::test_kcl_residual_matches_hand_calculation"
+   ],
+   "note": null
+  },
+  {
+   "name": "c16_free",
+   "file": "tools/spice_oracle/tests/test_oracle_compare_device_tol.py",
+   "line": 32,
+   "def": "free_case",
+   "is_fixture": true,
+   "module": "test_oracle_compare_device_tol",
+   "dirs": [
+    "c16_free0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_compare_device_tol::test_device_mode_uses_device_tol_not_scalar[0.9950248756218907-PASS]",
+    "tools.spice_oracle.tests.test_oracle_compare_device_tol::test_device_mode_uses_device_tol_not_scalar[0.9803921568627451-FAIL]",
+    "tools.spice_oracle.tests.test_oracle_compare_device_tol::test_device_mode_missing_device_is_na_no_scalar_fallback",
+    "tools.spice_oracle.tests.test_oracle_compare_device_tol::test_device_tol_only_ID_leaves_gm_na",
+    "tools.spice_oracle.tests.test_oracle_compare_device_tol::test_scalar_mode_when_no_device_tol",
+    "tools.spice_oracle.tests.test_oracle_compare_device_tol::test_no_tol_anywhere_is_none"
+   ],
+   "note": null
+  },
+  {
+   "name": "c16_forced",
+   "file": "tools/spice_oracle/tests/test_oracle_compare_device_tol.py",
+   "line": 38,
+   "def": "forced_case",
+   "is_fixture": true,
+   "module": "test_oracle_compare_device_tol",
+   "dirs": [
+    "c16_forced0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_compare_device_tol::test_forced_warnings_use_device_tol"
+   ],
+   "note": null
+  },
+  {
+   "name": "c23_free",
+   "file": "tools/spice_oracle/tests/test_oracle_conduction.py",
+   "line": 53,
+   "def": "case",
+   "is_fixture": true,
+   "module": "test_oracle_conduction",
+   "dirs": [
+    "c23_free0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_conduction::test_baseline_all_conducting_pass",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_predicted_conducting_below_threshold_fails[1.2-FAIL]",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_predicted_conducting_below_threshold_fails[0.8-PASS]",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_missing_threshold_incomplete_not_pass",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_judge_scalar_does_not_replace_engine_threshold",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_missing_prediction_incomplete",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_region_off_prediction_no_effect",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_fail_dominates_incomplete",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_per_device_threshold_beats_judge_in_saturation_check",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_threshold_fallback_judge_then_zero[1.0-1.0-0-PASS]",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_threshold_fallback_judge_then_zero[None-0.0-2-FAIL]",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_judge_scalar_fallback_excludes_off_device",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_c7_region_off_uses_device_threshold"
+   ],
+   "note": null
+  },
+  {
+   "name": "c23_rev",
+   "file": "tools/spice_oracle/tests/test_oracle_conduction.py",
+   "line": 128,
+   "def": "rev_case",
+   "is_fixture": true,
+   "module": "test_oracle_conduction",
+   "dirs": [
+    "c23_rev0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_conduction::test_reverse_current_counts_as_off",
+    "tools.spice_oracle.tests.test_oracle_conduction::test_reverse_device_predicted_off_not_c23"
+   ],
+   "note": null
+  },
+  {
+   "name": "c13_cmp",
+   "file": "tools/spice_oracle/tests/test_oracle_input_schema.py",
+   "line": 126,
+   "def": "good_sim",
+   "is_fixture": true,
+   "module": "test_oracle_input_schema",
+   "dirs": [
+    "c13_cmp0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_accepts_valid_input",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[L_is_string]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[constraint_op_eq]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[device_missing_finger_w]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[metric_measure_unknown]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[missing_ac_fstart]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[missing_devices]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[missing_testbench_choke]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[n_fingers_fraction]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[n_fingers_zero]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[passive_kind_inductor]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[passive_one_terminal]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[rails_empty]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[region_unknown]",
+    "tools.spice_oracle.tests.test_oracle_input_schema::test_c13_compare_rejects_schema_violation[schema_tag_wrong]"
+   ],
+   "note": null
+  },
+  {
+   "name": "singular",
+   "file": "tools/spice_oracle/tests/test_oracle_loop_singular.py",
+   "line": 91,
+   "def": "singular_run",
+   "is_fixture": true,
+   "module": "test_oracle_loop_singular",
+   "dirs": [
+    "singular0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_loop_singular::test_singular_detected_from_data",
+    "tools.spice_oracle.tests.test_oracle_loop_singular::test_singular_pm_undefined_not_blocked"
+   ],
+   "note": null
+  },
+  {
+   "name": "rc_noise",
+   "file": "tools/spice_oracle/tests/test_oracle_noise.py",
+   "line": 35,
+   "def": "rc_noise",
+   "is_fixture": true,
+   "module": "test_oracle_noise",
+   "dirs": [
+    "rc_noise0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_noise::test_rc_input_referred_thermal_hand_calc",
+    "tools.spice_oracle.tests.test_oracle_noise::test_rc_contributions_split_evenly_and_no_flicker",
+    "tools.spice_oracle.tests.test_oracle_noise::test_rc_noise_metric_constraint_judged"
+   ],
+   "note": null
+  },
+  {
+   "name": "fb_noise",
+   "file": "tools/spice_oracle/tests/test_oracle_noise.py",
+   "line": 111,
+   "def": "fb_noise",
+   "is_fixture": true,
+   "module": "test_oracle_noise",
+   "dirs": [
+    "fb_noise0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_noise::test_closed_loop_integral_matches_independent_integration",
+    "tools.spice_oracle.tests.test_oracle_noise::test_closed_loop_ktc_not_measured_is_explicit"
+   ],
+   "note": null
+  },
+  {
+   "name": "mc5t",
+   "file": "tools/spice_oracle/tests/test_oracle_offset_mc.py",
+   "line": 57,
+   "def": "mc_run",
+   "is_fixture": true,
+   "module": "test_oracle_offset_mc",
+   "dirs": [
+    "mc5t0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_offset_mc::test_mc_sample_count_and_record",
+    "tools.spice_oracle.tests.test_oracle_offset_mc::test_input_pair_vth0_sensitivity_unit_hand_calc",
+    "tools.spice_oracle.tests.test_oracle_offset_mc::test_mc_sigma_matches_deterministic_rss"
+   ],
+   "note": null
+  },
+  {
+   "name": "ratio",
+   "file": "tools/spice_oracle/tests/test_oracle_ratio_db.py",
+   "line": 101,
+   "def": "run_views",
+   "is_fixture": true,
+   "module": "test_oracle_ratio_db",
+   "dirs": [
+    "ratio0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_psrr_matches_hand_calc",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_matches_independent_two_run_netlist[psrr_vdd_se]",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_matches_independent_two_run_netlist[neg_amp_multi]",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_matches_independent_two_run_netlist[sum_two_nets]",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_matches_independent_two_run_netlist[diff_sense]",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_ratio_matches_independent_two_run_netlist[gate_bias_vsp]",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_negative_amplitude_and_superposition_hand",
+    "tools.spice_oracle.tests.test_oracle_ratio_db::test_sim_ratio_record_shape_and_dedup"
+   ],
+   "note": null
+  },
+  {
+   "name": "rout",
+   "file": "tools/spice_oracle/tests/test_oracle_rout.py",
+   "line": 179,
+   "def": "run_views",
+   "is_fixture": true,
+   "module": "test_oracle_rout",
+   "dirs": [
+    "rout0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_rout::test_cs_rout_matches_hand_calc",
+    "tools.spice_oracle.tests.test_oracle_rout::test_differential_rout_is_sum_of_halves",
+    "tools.spice_oracle.tests.test_oracle_rout::test_rout_matches_independent_netlist[cs_nout]",
+    "tools.spice_oracle.tests.test_oracle_rout::test_rout_matches_independent_netlist[pmos_pout]",
+    "tools.spice_oracle.tests.test_oracle_rout::test_rout_matches_independent_netlist[diff_np]",
+    "tools.spice_oracle.tests.test_oracle_rout::test_sim_rout_record_shape_and_dedup",
+    "tools.spice_oracle.tests.test_oracle_rout::test_netlist_rout_sources_and_alters",
+    "tools.spice_oracle.tests.test_oracle_rout::test_cross_coupled_negative_real_part",
+    "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_forced_incomplete"
+   ],
+   "note": null
+  },
+  {
+   "name": "xc_lut",
+   "file": "tools/spice_oracle/tests/test_oracle_rout.py",
+   "line": 328,
+   "def": "xc_lut",
+   "is_fixture": true,
+   "module": "test_oracle_rout",
+   "dirs": [
+    "xc_lut0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_constraint_never_pass[>=--1000000000.0]",
+    "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_constraint_never_pass[<=-1000000000.0]",
+    "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_constraint_never_pass[>=-0.0]",
+    "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_constraint_never_pass[<=-0.0]",
+    "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_control_pass_without_it",
+    "tools.spice_oracle.tests.test_oracle_rout::test_negative_rout_with_other_fail_is_fail"
+   ],
+   "note": null
+  },
+  {
+   "name": "sim_cs",
+   "file": "tools/spice_oracle/tests/test_oracle_simulate.py",
+   "line": 30,
+   "def": "cs_sim",
+   "is_fixture": true,
+   "module": "test_oracle_simulate",
+   "dirs": [
+    "sim_cs0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_simulate::test_op_nodes_match_independent",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_op_device_values_match_parallel_fingers[M1]",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_op_device_values_match_parallel_fingers[MP1]",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_op_hand_kcl_nmos_load",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_op_hand_rail_current",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_ac_cs_matches_independent_measurement",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_ac_cs_hand_small_signal"
+   ],
+   "note": null
+  },
+  {
+   "name": "sim_rc",
+   "file": "tools/spice_oracle/tests/test_oracle_simulate.py",
+   "line": 38,
+   "def": "rc_sim",
+   "is_fixture": true,
+   "module": "test_oracle_simulate",
+   "dirs": [
+    "sim_rc0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_simulate::test_op_rc_hand_values",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_ac_rc_hand_gain_and_f3db",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_c10_rc_first_point_below_one_no_ugf_pm"
+   ],
+   "note": null
+  },
+  {
+   "name": "sim_fb",
+   "file": "tools/spice_oracle/tests/test_oracle_simulate.py",
+   "line": 162,
+   "def": "fb_sim",
+   "is_fixture": true,
+   "module": "test_oracle_simulate",
+   "dirs": [
+    "sim_fb0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_simulate::test_c14_dc_operating_point_matches_independent",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_c14_beta_loop_pm_matches_analytic_T",
+    "tools.spice_oracle.tests.test_oracle_simulate::test_c14_open_loop_pm_still_reported"
+   ],
+   "note": null
+  },
+  {
+   "name": "sim_fb_b1",
+   "file": "tools/spice_oracle/tests/test_oracle_simulate.py",
+   "line": 168,
+   "def": "fb_sim_beta1",
+   "is_fixture": true,
+   "module": "test_oracle_simulate",
+   "dirs": [
+    "sim_fb_b10"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_simulate::test_c14_undeclared_feedback_is_beta_1"
+   ],
+   "note": null
+  },
+  {
+   "name": "cache",
+   "file": "tools/spice_oracle/tests/test_oracle_simulate_cache.py",
+   "line": 47,
+   "def": "setup",
+   "is_fixture": true,
+   "module": "test_oracle_simulate_cache",
+   "dirs": [
+    "cache0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_simulate_cache::test_cache_hit_on_rerun_same_results",
+    "tools.spice_oracle.tests.test_oracle_simulate_cache::test_no_cache_dir_is_none",
+    "tools.spice_oracle.tests.test_oracle_simulate_cache::test_netlist_change_misses",
+    "tools.spice_oracle.tests.test_oracle_simulate_cache::test_model_file_change_misses",
+    "tools.spice_oracle.tests.test_oracle_simulate_cache::test_nested_include_change_misses",
+    "tools.spice_oracle.tests.test_oracle_simulate_cache::test_missing_model_file_cache_off"
+   ],
+   "note": null
+  },
+  {
+   "name": "sw5t",
+   "file": "tools/spice_oracle/tests/test_oracle_swing_icmr.py",
+   "line": 28,
+   "def": "sw_run",
+   "is_fixture": true,
+   "module": "test_oracle_swing_icmr",
+   "dirs": [
+    "sw5t0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_swing_icmr::test_swing_window_matches_independent_sweep",
+    "tools.spice_oracle.tests.test_oracle_swing_icmr::test_icmr_window_matches_independent_sweep",
+    "tools.spice_oracle.tests.test_oracle_swing_icmr::test_window_edges_hand_limiter[swing-lo-M2]",
+    "tools.spice_oracle.tests.test_oracle_swing_icmr::test_window_edges_hand_limiter[swing-hi-M4]",
+    "tools.spice_oracle.tests.test_oracle_swing_icmr::test_window_edges_hand_limiter[icmr-lo-rail:tail]",
+    "tools.spice_oracle.tests.test_oracle_swing_icmr::test_window_edges_hand_limiter[icmr-hi-M1]"
+   ],
+   "note": null
+  },
+  {
+   "name": "cs_single",
+   "file": "tools/spice_oracle/tests/test_oracle_swing_icmr.py",
+   "line": 98,
+   "def": "cs_single_run",
+   "is_fixture": true,
+   "module": "test_oracle_swing_icmr",
+   "dirs": [
+    "cs_single0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_swing_icmr::test_swing_unavailable_without_servo",
+    "tools.spice_oracle.tests.test_oracle_swing_icmr::test_icmr_unavailable_without_differential_input"
+   ],
+   "note": null
+  },
+  {
+   "name": "tran",
+   "file": "tools/spice_oracle/tests/test_oracle_transient.py",
+   "line": 27,
+   "def": "ran",
+   "is_fixture": true,
+   "module": "test_oracle_transient",
+   "dirs": [
+    "tran0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_transient::test_rows_not_measured[free]",
+    "tools.spice_oracle.tests.test_oracle_transient::test_rows_not_measured[forced]",
+    "tools.spice_oracle.tests.test_oracle_transient::test_summary_transient[free]",
+    "tools.spice_oracle.tests.test_oracle_transient::test_summary_transient[forced]",
+    "tools.spice_oracle.tests.test_oracle_transient::test_record_only_verdict_unaffected",
+    "tools.spice_oracle.tests.test_oracle_transient::test_no_tran_analysis_in_netlist"
+   ],
+   "note": null
+  },
+  {
+   "name": "t5stab",
+   "file": "tools/spice_oracle/tests/test_oracle_u6_stability.py",
+   "line": 740,
+   "def": "t5_stab_run",
+   "is_fixture": true,
+   "module": "test_oracle_u6_stability",
+   "dirs": [
+    "t5stab0"
+   ],
+   "used_by_tests": [
+    "tools.spice_oracle.tests.test_oracle_u6_stability::test_differential_beta1_observe_weighted_sign_sum_and_floor"
+   ],
+   "note": null
+  }
+ ],
+ "unmapped_dirs": []
+}

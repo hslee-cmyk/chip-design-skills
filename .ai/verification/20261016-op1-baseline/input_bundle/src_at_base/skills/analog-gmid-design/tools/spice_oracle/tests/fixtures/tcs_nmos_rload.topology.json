@@ -1,0 +1,17 @@
+{
+ "_comment": "spice_oracle C15 test 픽스처: conftest.cs_input 회로(tcs_nmos_rload)의 손으로 쓴 topology. 라이브러리 회로 아님.",
+ "topology_name": "tcs_nmos_rload",
+ "netlist": [
+  {"name": "M1", "kind": "nmos", "drain": "nout", "gate": "nin", "source": "gnd"},
+  {"name": "MP1", "kind": "pmos", "drain": "pout", "gate": "pb", "source": "vsp", "bulk": "vdd"}
+ ],
+ "passive_elements": [
+  {"name": "RL", "kind": "resistor", "terminals": ["vdd", "nout"]},
+  {"name": "CL", "kind": "capacitor", "terminals": ["nout", "gnd"]},
+  {"name": "RP", "kind": "resistor", "terminals": ["pout", "gnd"]}
+ ],
+ "bias_inputs": ["pb"],
+ "ideal_sources": [
+  {"name": "I1", "kind": "current_source", "terminals": ["vdd", "nout"]}
+ ]
+}

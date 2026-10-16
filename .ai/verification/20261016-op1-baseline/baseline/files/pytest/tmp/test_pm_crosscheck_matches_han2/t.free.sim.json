@@ -1,0 +1,244 @@
+{
+ "devices": {
+  "M1": {
+   "id": 8.706154e-06,
+   "gm": 0.0001406393,
+   "gds": 9.436076e-07,
+   "vth": 0.6319543,
+   "vdsat": 0.09521121,
+   "vgs": 0.7,
+   "vds": 0.9085315,
+   "vbs": 3.038459e-13
+  }
+ },
+ "nodes": {
+  "nout": 0.9085315,
+  "nin": 0.7,
+  "vdd": 1.8
+ },
+ "rail_current_A": {
+  "vdd": 8.91469e-06
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_pm_crosscheck_matches_han2\\t.free.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 11.691548038388445,
+  "dc_gain_db": 21.357440368692963,
+  "phase_dc_deg": -179.98842971064633,
+  "reference_point": "first",
+  "f3db_hz": 199526.231,
+  "ugf_hz": 2213935.4022429646,
+  "phase_lag_at_ugf_deg": 85.12747553501656,
+  "pm_deg": 77.39946212005019,
+  "a0_f3db_hz": 2332770.51465509,
+  "pm_open_loop_deg": 94.87252446498344,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_loop",
+  "loop_ugf_hz": 59263.85918132701,
+  "loop_gain_dc_db": 22.17892147524229,
+  "loop_break_nets": [
+   "nin"
+  ],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": [
+   {
+    "net": "nin",
+    "f_hz": 0.01,
+    "choke_H": 1e+20,
+    "node_impedance_ohm": 78792.5932000004,
+    "ratio": 79743349622100.7
+   }
+  ],
+  "pm_crosscheck_deg": null,
+  "pm_crosscheck_note": "peaking 없음(Mp-1 = 1.47e-11, 데이터 분해능 6e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 6.000000000000001e-08,
+  "closed_loop_peaking_db": null,
+  "closed_loop_peak_hz": null,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": null,
+  "pm_deg_raw": 77.39946212005019,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_loop",
+   "closure_sign": 1.0,
+   "nyquist": {
+    "encirclements_cw": 0,
+    "reason": null,
+    "max_step_deg": 2.2544991499519993,
+    "max_step_hz": 105925.373,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     12.851270761235437,
+     -2.719612554275206e-05
+    ],
+    "L_last": [
+     5.697697305142942e-11,
+     1.6981990504544265e-10
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     0.0002249935387913156,
+     1.9459931207503833e-08
+    ],
+    "refinement": {
+     "rounds": 0,
+     "samples_added": 0,
+     "k_max": 10,
+     "history": []
+    }
+   },
+   "pz": {
+    "status": "failed",
+    "P": null,
+    "rhp": [],
+    "beyond_sweep": [],
+    "n_poles": 3,
+    "reason": "Warning: Pole-zero iteration limit reached; giving up after 310 trials",
+    "netlist": "t.free.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "both cut ends (n and lbx) AC-grounded at the bias point"
+   },
+   "transient": {
+    "status": "stable",
+    "reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+    "op_pass": {
+     "netlist": "t.free.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "ldc_nin": -2.08531e-07
+     },
+     "node_V": {
+      "nin": 0.7,
+      "nout": 0.9085315,
+      "lbx_nin": 0.7
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 2.6855312038477954e-06,
+     "tr": 2.6855312038477954e-06,
+     "pw": 2.6855312038477954e-06,
+     "tmax": 7.528269133610456e-08,
+     "window_s": 1.6873690201988772e-05,
+     "windows": 6,
+     "windows_planned": 6,
+     "t_kick_end": 1.0742124815391182e-05,
+     "tstop": 0.00011198426602732382,
+     "f_lo_hz": 59263.85918132701,
+     "f_hi_hz": 59263.85918132701,
+     "f_crit_hz": 59566.2144,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 7.01e-05,
+     "wall_cap_s": 1836.6000000000001,
+     "sign": 1.0,
+     "observe": [
+      [
+       "nin",
+       1
+      ]
+     ]
+    },
+    "M": [
+     0.017528129999999975,
+     2.9599999995522097e-07,
+     3.800000003550963e-08,
+     3.800000003550963e-08,
+     3.800000003550963e-08,
+     3.800000003550963e-08
+    ],
+    "floor_V": 7.010359433599e-05,
+    "windows_run": 6,
+    "netlist": "t.free.stab.cir",
+    "file": "t.free.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1836.6000000000001,
+    "first_status": "stable"
+   },
+   "closed_loop": "stable",
+   "open_loop_rhp_poles": 0,
+   "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+   "pm_valid": true,
+   "pm_undefined": null,
+   "Z": 0,
+   "P_pz": null,
+   "P_eff": 0,
+   "pz_conflict": null,
+   "conditionally_stable": false,
+   "verdict": "stable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": null,
+   "low_side_crossings": [],
+   "low_side_crossing_hz": [],
+   "gain_crossings_hz": [
+    59263.85918132701
+   ]
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_pm_crosscheck_matches_han2\\t.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": {
+  "ngspice_rc": 0,
+  "break_nets": [
+   "nin"
+  ],
+  "log_errors": [],
+  "measures": {
+   "f_first_hz": 0.01,
+   "gain_dc": 12.851270761264212,
+   "dc_gain_db": 22.17892147524229,
+   "phase_dc_deg": -0.00012125051612837584,
+   "reference_point": "first",
+   "f3db_hz": 5011.87234,
+   "ugf_hz": 59263.85918132701,
+   "phase_lag_at_ugf_deg": 102.60053787994981,
+   "pm_deg": 77.39946212005019,
+   "a0_f3db_hz": 64408.92846223085
+  },
+  "pm_crosscheck": {
+   "closed_loop_peaking_db": null,
+   "closed_loop_peak_hz": null,
+   "pm_crosscheck_deg": null,
+   "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+   "pm_crosscheck_mp_resolution": 6.000000000000001e-08,
+   "pm_crosscheck_note": "peaking 없음(Mp-1 = 1.47e-11, 데이터 분해능 6e-08 이하) -- 2차 근사로 PM >= 65.53 deg"
+  },
+  "choke_ratio": [
+   {
+    "net": "nin",
+    "f_hz": 0.01,
+    "choke_H": 1e+20,
+    "node_impedance_ohm": 78792.5932000004,
+    "ratio": 79743349622100.7
+   }
+  ]
+ },
+ "cm_loop": null,
+ "stability_cache": {
+  "op_pass": null,
+  "transient": null
+ }
+}

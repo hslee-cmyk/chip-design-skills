@@ -1,0 +1,253 @@
+* spice_oracle: current_reuse_telescopic_ota bias=forced
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:\pdk\sky130_fd_pr\models\parameters\lod.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7 itl1=500 itl2=500
+Vrail_vdd vdd 0 DC 1.8
+XM6 Vx Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=5.145216315e-06 m=28 ad=2.572608158e-12 as=2.572608158e-12 pd=7.145216315e-06 ps=7.145216315e-06
+XM7 Vx Vcmfb vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=5.035993293e-06 m=5 ad=2.517996647e-12 as=2.517996647e-12 pd=7.035993293e-06 ps=7.035993293e-06
+XM1a N1a2a Vip Vx vdd sky130_fd_pr__pfet_01v8 l=5.35e-07 w=5.145216315e-06 m=14 ad=2.572608158e-12 as=2.572608158e-12 pd=7.145216315e-06 ps=7.145216315e-06
+XM1b N1b2b Vim Vx vdd sky130_fd_pr__pfet_01v8 l=5.35e-07 w=5.145216315e-06 m=14 ad=2.572608158e-12 as=2.572608158e-12 pd=7.145216315e-06 ps=7.145216315e-06
+XM2a Vom1 Vbias2 N1a2a vdd sky130_fd_pr__pfet_01v8 l=1e-06 w=5.145216315e-06 m=14 ad=2.572608158e-12 as=2.572608158e-12 pd=7.145216315e-06 ps=7.145216315e-06
+XM2b Vop1 Vbias2 N1b2b vdd sky130_fd_pr__pfet_01v8 l=1e-06 w=5.145216315e-06 m=14 ad=2.572608158e-12 as=2.572608158e-12 pd=7.145216315e-06 ps=7.145216315e-06
+XM3a Vom1 Vbias3 N3a4a 0 sky130_fd_pr__nfet_01v8 l=1e-06 w=3.494657581e-06 m=1 ad=1.74732879e-12 as=1.74732879e-12 pd=5.494657581e-06 ps=5.494657581e-06
+XM3b Vop1 Vbias3 N3b4b 0 sky130_fd_pr__nfet_01v8 l=1e-06 w=3.392639495e-06 m=1 ad=1.696319748e-12 as=1.696319748e-12 pd=5.392639495e-06 ps=5.392639495e-06
+XM4a N3a4a Vip Vy 0 sky130_fd_pr__nfet_01v8 l=1.4e-06 w=5.21516271e-06 m=1 ad=2.607581355e-12 as=2.607581355e-12 pd=7.21516271e-06 ps=7.21516271e-06
+XM4b N3b4b Vim Vy 0 sky130_fd_pr__nfet_01v8 l=1.4e-06 w=5.21516271e-06 m=1 ad=2.607581355e-12 as=2.607581355e-12 pd=7.21516271e-06 ps=7.21516271e-06
+XM5 Vy Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=5.057403952e-06 m=13 ad=2.528701976e-12 as=2.528701976e-12 pd=7.057403952e-06 ps=7.057403952e-06
+XM8 Vg15 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=5.236262384e-06 m=13 ad=2.618131192e-12 as=2.618131192e-12 pd=7.236262384e-06 ps=7.236262384e-06
+XM11a N11a11b N11a11b vdd vdd sky130_fd_pr__pfet_01v8 l=2.45e-07 w=5.980787025e-06 m=2 ad=2.990393512e-12 as=2.990393512e-12 pd=7.980787025e-06 ps=7.980787025e-06
+XM11b N11b N11b N11a11b vdd sky130_fd_pr__pfet_01v8 l=2.45e-07 w=5.145216315e-06 m=14 ad=2.572608158e-12 as=2.572608158e-12 pd=7.145216315e-06 ps=7.145216315e-06
+XM15 Vom Vg15 vdd vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5.854268741e-06 m=1 ad=2.92713437e-12 as=2.92713437e-12 pd=7.854268741e-06 ps=7.854268741e-06
+XM9a Vop1 N11b Vg15 vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5.145216315e-06 m=14 ad=2.572608158e-12 as=2.572608158e-12 pd=7.145216315e-06 ps=7.145216315e-06
+XM9b Vg15 N14a14b Vop1 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=1.05058008e-06 m=1 ad=5.252900399e-13 as=5.252900399e-13 pd=3.05058008e-06 ps=3.05058008e-06
+XM12 N11b Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=1.295555046e-06 m=1 ad=6.477775232e-13 as=6.477775232e-13 pd=3.295555046e-06 ps=3.295555046e-06
+XM10 Vop1 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=5.962317346e-06 m=3 ad=2.981158673e-12 as=2.981158673e-12 pd=7.962317346e-06 ps=7.962317346e-06
+XM14a N14a14b N14a14b N14a_14b 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=1.915632331e-06 m=1 ad=9.578161653e-13 as=9.578161653e-13 pd=3.915632331e-06 ps=3.915632331e-06
+XM14b N14a_14b N14a_14b 0 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=1.835406758e-06 m=1 ad=9.177033791e-13 as=9.177033791e-13 pd=3.835406758e-06 ps=3.835406758e-06
+XM16 Vom Vop1 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=9.097708152e-06 m=1 ad=4.548854076e-12 as=4.548854076e-12 pd=1.109770815e-05 ps=1.109770815e-05
+XM13 N14a14b Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=4.732943971e-06 m=1 ad=2.366471985e-12 as=2.366471985e-12 pd=6.732943971e-06 ps=6.732943971e-06
+XM22 N24b23a Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=4.732943971e-06 m=1 ad=2.366471985e-12 as=2.366471985e-12 pd=6.732943971e-06 ps=6.732943971e-06
+XM20a N20a20b N20a20b vdd vdd sky130_fd_pr__pfet_01v8 l=2.45e-07 w=5.980787025e-06 m=2 ad=2.990393512e-12 as=2.990393512e-12 pd=7.980787025e-06 ps=7.980787025e-06
+XM20b N20b N20b N20a20b vdd sky130_fd_pr__pfet_01v8 l=2.45e-07 w=5.145216315e-06 m=14 ad=2.572608158e-12 as=2.572608158e-12 pd=7.145216315e-06 ps=7.145216315e-06
+XM25 Vop Vg25 vdd vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5.854268741e-06 m=1 ad=2.92713437e-12 as=2.92713437e-12 pd=7.854268741e-06 ps=7.854268741e-06
+XM18a Vom1 N20b Vg25 vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=5.145216315e-06 m=14 ad=2.572608158e-12 as=2.572608158e-12 pd=7.145216315e-06 ps=7.145216315e-06
+XM18b Vg25 N24b23a Vom1 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=1.05058008e-06 m=1 ad=5.252900399e-13 as=5.252900399e-13 pd=3.05058008e-06 ps=3.05058008e-06
+XM21 N20b Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=1.295555046e-06 m=1 ad=6.477775232e-13 as=6.477775232e-13 pd=3.295555046e-06 ps=3.295555046e-06
+XM19 Vom1 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=5.962317346e-06 m=3 ad=2.981158673e-12 as=2.981158673e-12 pd=7.962317346e-06 ps=7.962317346e-06
+XM23a N24b23a N24b23a N23a24b 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=1.915632331e-06 m=1 ad=9.578161653e-13 as=9.578161653e-13 pd=3.915632331e-06 ps=3.915632331e-06
+XM24b N23a24b N23a24b 0 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=1.835406758e-06 m=1 ad=9.177033791e-13 as=9.177033791e-13 pd=3.835406758e-06 ps=3.835406758e-06
+XM26 Vop Vom1 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=9.097708152e-06 m=1 ad=4.548854076e-12 as=4.548854076e-12 pd=1.109770815e-05 ps=1.109770815e-05
+XM17 Vg25 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=5.236262384e-06 m=13 ad=2.618131192e-12 as=2.618131192e-12 pd=7.236262384e-06 ps=7.236262384e-06
+XM18_bg Vbias1 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=4.512604564e-06 m=1 ad=2.256302282e-12 as=2.256302282e-12 pd=6.512604564e-06 ps=6.512604564e-06
+XM60 Vbias4 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=4.279846563e-06 m=1 ad=2.139923281e-12 as=2.139923281e-12 pd=6.279846563e-06 ps=6.279846563e-06
+XM61 Vbias3 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=4.963819858e-06 m=1 ad=2.481909929e-12 as=2.481909929e-12 pd=6.963819858e-06 ps=6.963819858e-06
+XM64 Vbias3 Vbias3 N64_63 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=2.159522006e-06 m=1 ad=1.079761003e-12 as=1.079761003e-12 pd=4.159522006e-06 ps=4.159522006e-06
+XM63 N64_63 Vbias3 Vy 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=1.087291223e-06 m=1 ad=5.436456115e-13 as=5.436456115e-13 pd=3.087291223e-06 ps=3.087291223e-06
+XM58 N58_57 Vbias2 Vx vdd sky130_fd_pr__pfet_01v8 l=3.4e-07 w=1.686119609e-06 m=1 ad=8.430598045e-13 as=8.430598045e-13 pd=3.686119609e-06 ps=3.686119609e-06
+XM57 Vbias2 Vbias2 N58_57 vdd sky130_fd_pr__pfet_01v8 l=3.4e-07 w=5.129958851e-06 m=32 ad=2.564979425e-12 as=2.564979425e-12 pd=7.129958851e-06 ps=7.129958851e-06
+XM66 Vbias4 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=1.21950152e-06 m=1 ad=6.0975076e-13 as=6.0975076e-13 pd=3.21950152e-06 ps=3.21950152e-06
+XM68 Vbias2 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=1.291250561e-06 m=1 ad=6.456252806e-13 as=6.456252806e-13 pd=3.291250561e-06 ps=3.291250561e-06
+XM36a Vcmfb Vcmfb vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=5.00229364e-06 m=36 ad=2.50114682e-12 as=2.50114682e-12 pd=7.00229364e-06 ps=7.00229364e-06
+XM36b N36b N36b vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=5.00229364e-06 m=36 ad=2.50114682e-12 as=2.50114682e-12 pd=7.00229364e-06 ps=7.00229364e-06
+XM37a Vcmfb Voc Ncmfb_tail 0 sky130_fd_pr__nfet_01v8 l=3.5e-07 w=5e-06 m=1 ad=2.5e-12 as=2.5e-12 pd=7e-06 ps=7e-06
+XM37b N36b Voc_des Ncmfb_tail 0 sky130_fd_pr__nfet_01v8 l=3.5e-07 w=4.485373229e-06 m=1 ad=2.242686615e-12 as=2.242686615e-12 pd=6.485373229e-06 ps=6.485373229e-06
+XM38 Ncmfb_tail Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=5.228433217e-06 m=18 ad=2.614216608e-12 as=2.614216608e-12 pd=7.228433217e-06 ps=7.228433217e-06
+XM39 Voc_des Voc_des vdd vdd sky130_fd_pr__pfet_01v8 l=3.4e-07 w=5.364324111e-06 m=2 ad=2.682162056e-12 as=2.682162056e-12 pd=7.364324111e-06 ps=7.364324111e-06
+XM40 0 0 Voc_des vdd sky130_fd_pr__pfet_01v8 l=3.4e-07 w=4.536322669e-06 m=1 ad=2.268161334e-12 as=2.268161334e-12 pd=6.536322669e-06 ps=6.536322669e-06
+Isrc_Iref Vbias1 0 DC 1.992901379e-07
+Rp_R1 Vom Voc 1000000000
+Rp_R2 Voc Vop 1000000000
+Cp_Cc1 Vom N_cc_rz1 5e-13
+Rp_Rz1 N_cc_rz1 Vop1 2118.522643
+Cp_Cc2 Vop N_cc_rz2 5e-13
+Rp_Rz2 N_cc_rz2 Vom1 2118.522643
+Cp_CL1 Vop 0 1e-12
+Cp_CL2 Vom 0 1e-12
+Cp_Cf1 Vom lbx_Vip 5e-13
+Cp_Cf2 Vop lbx_Vim 5e-13
+Cp_Cs1 lbx_Vip 0 5e-13
+Cp_Cs2 lbx_Vim 0 5e-13
+Vdc_Vip dcs_Vip 0 DC 0.6381178828
+Itb_Ldc_Vip dcs_Vip Vip DC 0
+Vlb_Vip Vip lbx_Vip DC 0 PULSE(0 0.01293246289 3.747339178e-08 3.747339178e-08 3.747339178e-08 3.747339178e-08 3.12521431e-06)
+Ilb_Vip 0 Vip DC 0 AC 0
+Vdc_Vim dcs_Vim 0 DC 0.6381178828
+Itb_Ldc_Vim dcs_Vim Vim DC 0
+Vlb_Vim Vim lbx_Vim DC 0 PULSE(0 -0.01293246289 3.747339178e-08 3.747339178e-08 3.747339178e-08 3.747339178e-08 3.12521431e-06)
+Ilb_Vim 0 Vim DC 0 AC 0
+Vhold_Vx hs_Vx 0 DC 1.55
+Itb_Lhold_Vx hs_Vx Vx DC 8.751967e-06
+Vhold_Vbias1 hs_Vbias1 0 DC 0.9375
+Itb_Lhold_Vbias1 hs_Vbias1 Vbias1 DC -3.69441e-09
+Vhold_Vcmfb hs_Vcmfb 0 DC 0.9375
+Itb_Lhold_Vcmfb hs_Vcmfb Vcmfb DC 1.103081e-06
+Vhold_N1a2a hs_N1a2a 0 DC 0.8772784768
+Itb_Lhold_N1a2a hs_N1a2a N1a2a DC -1.76756e-06
+Vhold_N1b2b hs_N1b2b 0 DC 0.8772784768
+Itb_Lhold_N1b2b hs_N1b2b N1b2b DC -1.76756e-06
+Vhold_Vom1 hs_Vom1 0 DC 0.6772784768
+Itb_Lhold_Vom1 hs_Vom1 Vom1 DC 3.795943e-05
+Vhold_Vbias2 hs_Vbias2 0 DC 0.3125
+Itb_Lhold_Vbias2 hs_Vbias2 Vbias2 DC -3.32688e-08
+Vhold_Vop1 hs_Vop1 0 DC 0.6772784768
+Itb_Lhold_Vop1 hs_Vop1 Vop1 DC 3.683078e-05
+Vhold_Vbias3 hs_Vbias3 0 DC 1.4875
+Itb_Lhold_Vbias3 hs_Vbias3 Vbias3 DC 1.779875e-05
+Vhold_N3a4a hs_N3a4a 0 DC 0.4772784768
+Itb_Lhold_N3a4a hs_N3a4a N3a4a DC -3.49063e-05
+Vhold_N3b4b hs_N3b4b 0 DC 0.4772784768
+Itb_Lhold_N3b4b hs_N3b4b N3b4b DC -3.37777e-05
+Vhold_Vy hs_Vy 0 DC 0.02727847682
+Itb_Lhold_Vy hs_Vy Vy DC -0.000197704
+Vhold_Vbias4 hs_Vbias4 0 DC 0.5625
+Itb_Lhold_Vbias4 hs_Vbias4 Vbias4 DC -4.67225e-08
+Vhold_Vg15 hs_Vg15 0 DC 0.9750317455
+Itb_Lhold_Vg15 hs_Vg15 Vg15 DC -1.12038e-06
+Vhold_N11a11b hs_N11a11b 0 DC 1.125
+Itb_Lhold_N11a11b hs_N11a11b N11a11b DC 9.641684e-07
+Vhold_N11b hs_N11b 0 DC 0.3
+Itb_Lhold_N11b hs_N11b N11b DC -9.96377e-07
+Vhold_Vom hs_Vom 0 DC 0.9
+Itb_Lhold_Vom hs_Vom Vom DC 7.528728e-06
+Vhold_N14a14b hs_N14a14b 0 DC 1.2375
+Itb_Lhold_N14a14b hs_N14a14b N14a14b DC -2.52423e-08
+Vhold_N14a_14b hs_N14a_14b 0 DC 0.5625
+Itb_Lhold_N14a_14b hs_N14a_14b N14a_14b DC 2.566844e-09
+Vhold_N24b23a hs_N24b23a 0 DC 1.2375
+Itb_Lhold_N24b23a hs_N24b23a N24b23a DC -2.52423e-08
+Vhold_N20a20b hs_N20a20b 0 DC 1.125
+Itb_Lhold_N20a20b hs_N20a20b N20a20b DC 9.641684e-07
+Vhold_N20b hs_N20b 0 DC 0.3
+Itb_Lhold_N20b hs_N20b N20b DC -9.96377e-07
+Vhold_Vop hs_Vop 0 DC 0.9
+Itb_Lhold_Vop hs_Vop Vop DC 7.528728e-06
+Vhold_Vg25 hs_Vg25 0 DC 0.9750317455
+Itb_Lhold_Vg25 hs_Vg25 Vg25 DC -1.12038e-06
+Vhold_N23a24b hs_N23a24b 0 DC 0.5625
+Itb_Lhold_N23a24b hs_N23a24b N23a24b DC 2.566844e-09
+Vhold_N64_63 hs_N64_63 0 DC 0.5897784768
+Itb_Lhold_N64_63 hs_N64_63 N64_63 DC 0.0001820475
+Vhold_N58_57 hs_N58_57 0 DC 1.1
+Itb_Lhold_N58_57 hs_N58_57 N58_57 DC -1.15807e-05
+Vhold_N36b hs_N36b 0 DC 0.9375
+Itb_Lhold_N36b hs_N36b N36b DC -7.84224e-06
+Vhold_Voc hs_Voc 0 DC 1.558774902
+Itb_Lhold_Voc hs_Voc Voc DC 1.31755e-09
+Vhold_Ncmfb_tail hs_Ncmfb_tail 0 DC 0.7375
+Itb_Lhold_Ncmfb_tail hs_Ncmfb_tail Ncmfb_tail DC 6.943299e-06
+Vhold_Voc_des hs_Voc_des 0 DC 1.0125
+Itb_Lhold_Voc_des hs_Voc_des Voc_des DC 1.540078e-08
+.ic v(Vip)=0.6381179
+.ic v(Vim)=0.6381179
+.ic v(Vx)=1.55
+.ic v(Vbias1)=0.9375
+.ic v(Vcmfb)=0.9375
+.ic v(N1a2a)=0.8772785
+.ic v(N1b2b)=0.8772785
+.ic v(Vom1)=0.6772785
+.ic v(Vbias2)=0.3125
+.ic v(Vop1)=0.6772785
+.ic v(Vbias3)=1.4875
+.ic v(N3a4a)=0.4772785
+.ic v(N3b4b)=0.4772785
+.ic v(Vy)=0.02727848
+.ic v(Vbias4)=0.5625
+.ic v(Vg15)=0.9750317
+.ic v(N11a11b)=1.125
+.ic v(N11b)=0.3
+.ic v(Vom)=0.9
+.ic v(N14a14b)=1.2375
+.ic v(N14a_14b)=0.5625
+.ic v(N24b23a)=1.2375
+.ic v(N20a20b)=1.125
+.ic v(N20b)=0.3
+.ic v(Vop)=0.9
+.ic v(Vg25)=0.9750317
+.ic v(N23a24b)=0.5625
+.ic v(N64_63)=0.5897785
+.ic v(N58_57)=1.1
+.ic v(N36b)=0.9375
+.ic v(Voc)=1.558775
+.ic v(Ncmfb_tail)=0.7375
+.ic v(Voc_des)=1.0125
+.save v(Vip) v(Vim)
+.control
+set noaskquit
+set numdgt=8
+set wr_singlescale
+let sw_tke = 1.498935671e-07
+let sw_w = 2.354522647e-07
+let sw_k = 6
+let sw_rt = 0.0001
+let sw_fl0 = 0.00012782358
+let sw_u = 5e-09
+let sw_j = 0
+let sw_m1 = 0
+let sw_p1 = 0
+let sw_p2 = 0
+let sw_fin = 0
+let sw_kind = 0
+stop when time > 3.853458318e-07
+tran 1.003910825e-09 1.562607155e-06 0 1.003910825e-09
+while sw_fin = 0
+  let sw_j = sw_j + 1
+  let hst = v(Vip) - v(Vim)
+  let sw_lo = sw_tke + (sw_j - 1) * sw_w
+  let sw_hi = sw_tke + sw_j * sw_w
+  let sw_tl = time[length(time) - 1]
+  if sw_tl >= sw_hi * (1 - 2 * sw_u)
+    let sw_m = maximum(abs(hst - (hst[0])) * (time >= sw_lo) * (time <= sw_hi))
+    echo STABWIN $&sw_j $&sw_m
+    if sw_j = 1
+      let sw_m1 = sw_m
+    end
+    let sw_fl = sw_fl0 + sw_u * maximum(abs(hst))
+    let sw_up = (sw_m * (1 - sw_rt) >= sw_p1 * (1 + sw_rt) + sw_fl)
+    let sw_dn = (sw_p1 * (1 - sw_rt) >= sw_m * (1 + sw_rt) + sw_fl)
+    let sw_up0 = (sw_p1 * (1 - sw_rt) >= sw_p2 * (1 + sw_rt) + sw_fl)
+    let sw_dn0 = (sw_p2 * (1 - sw_rt) >= sw_p1 * (1 + sw_rt) + sw_fl)
+    let sw_upf = (sw_m * (1 - sw_rt) >= sw_m1 * (1 + sw_rt) + sw_fl)
+    let sw_ab1 = (sw_m * (1 - sw_rt) >= sw_fl)
+    let sw_ab0 = (sw_p1 * (1 - sw_rt) >= sw_fl)
+    let sw_fl1 = sw_ab1 * (1 - sw_dn)
+    let sw_fl0f = sw_ab0 * (1 - sw_dn0)
+    let sw_gr = sw_up0 * sw_up * sw_upf
+    let sw_lc = sw_fl0f * sw_fl1
+    if sw_j >= 3
+      if sw_gr >= 1
+        let sw_fin = 1
+        let sw_kind = 1
+      end
+      if sw_lc >= 1
+        let sw_fin = 1
+        let sw_kind = 2
+      end
+    end
+    if sw_fin = 0
+      if sw_j >= sw_k
+        let sw_fin = 2
+      else
+        let sw_p2 = sw_p1
+        let sw_p1 = sw_m
+        let sw_nb = sw_tke + (sw_j + 1) * sw_w
+        delete all
+        if sw_k >= sw_j + 2
+          stop when time > $&sw_nb
+        end
+        resume
+      end
+    end
+  else
+    let sw_fin = 3
+  end
+end
+echo STABEND $&sw_j $&sw_fin $&sw_kind
+let hst = v(Vip) - v(Vim)
+wrdata current_reuse_telescopic_ota.forced.stab.txt hst
+quit
+.endc
+.end

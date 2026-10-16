@@ -1,0 +1,52 @@
+{
+ "devices": {
+  "M1": {
+   "id": null,
+   "gm": null,
+   "gds": null,
+   "vth": null,
+   "vdsat": null,
+   "vgs": null,
+   "vds": null,
+   "vbs": null
+  }
+ },
+ "nodes": {
+  "nout": null,
+  "nin": null,
+  "vdd": null
+ },
+ "rail_current_A": {
+  "vdd": null
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 1,
+ "cache": {
+  "main": "off(모델 파일 못 찾음)",
+  "loop": "off(모델 파일 못 찾음)"
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_missing_model_file_cache_0\\a\\tfb_cs_rfeedback.free.log",
+ "log_errors": [
+  "Error: Could not find include file C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1/baseline/pytest/tmp/test_missing_model_file_cache_0/nope.spice",
+  "ERROR: fatal error in ngspice, exit(1)"
+ ],
+ "op_ok": false,
+ "ac": null,
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_missing_model_file_cache_0\\a\\tfb_cs_rfeedback.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": {
+  "ngspice_rc": 1,
+  "break_nets": [
+   "nin"
+  ],
+  "log_errors": [
+   "Error: Could not find include file C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1/baseline/pytest/tmp/test_missing_model_file_cache_0/nope.spice",
+   "ERROR: fatal error in ngspice, exit(1)"
+  ],
+  "measures": null,
+  "pm_crosscheck": null,
+  "choke_ratio": null
+ },
+ "cm_loop": null
+}

@@ -1,0 +1,41 @@
+{
+ "devices": {
+  "M1": {
+   "id": 8.724078e-06,
+   "gm": 0.0001408807,
+   "gds": 9.372621e-07,
+   "vth": 0.6318912,
+   "vdsat": 0.09524582,
+   "vgs": 0.7,
+   "vds": 0.9275921,
+   "vbs": 8.419711e-13
+  },
+  "MP1": {
+   "id": 1.647339e-05,
+   "gm": 0.0001524419,
+   "gds": 1.246579e-06,
+   "vth": 1.025898,
+   "vdsat": 0.1965495,
+   "vgs": 1.2,
+   "vds": 1.335266,
+   "vbs": -0.3
+  }
+ },
+ "nodes": {},
+ "rail_current_A": {},
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_forced_and_iso_rows_carry0\\o\\tcs_nmos_rload.iso.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": null,
+ "ac_file": null,
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null
+}

@@ -1,0 +1,102 @@
+* spice_oracle: current_reuse_telescopic_ota bias=free
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\nfet_01v8\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:\pdk\sky130_fd_pr\models\parameters\lod.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:\pdk\sky130_fd_pr\cells\pfet_01v8\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7 itl1=500 itl2=500
+Vrail_vdd vdd 0 DC 1.8
+XM6 Vx Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=3.601651421e-05 m=4 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM7 Vx Vcmfb vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=6.294991617e-06 m=4 ad=3.147495808e-12 as=3.147495808e-12 pd=8.294991617e-06 ps=8.294991617e-06
+XM1a N1a2a Vip Vx vdd sky130_fd_pr__pfet_01v8 l=5.35e-07 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM1b N1b2b Vim Vx vdd sky130_fd_pr__pfet_01v8 l=5.35e-07 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM2a Vom1 Vbias2 N1a2a vdd sky130_fd_pr__pfet_01v8 l=1e-06 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM2b Vop1 Vbias2 N1b2b vdd sky130_fd_pr__pfet_01v8 l=1e-06 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM3a Vom1 Vbias3 N3a4a 0 sky130_fd_pr__nfet_01v8 l=1e-06 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM3b Vop1 Vbias3 N3b4b 0 sky130_fd_pr__nfet_01v8 l=1e-06 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM4a N3a4a Vip Vy 0 sky130_fd_pr__nfet_01v8 l=1.4e-06 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM4b N3b4b Vim Vy 0 sky130_fd_pr__nfet_01v8 l=1.4e-06 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM5 Vy Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM8 Vg15 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM11a N11a11b N11a11b vdd vdd sky130_fd_pr__pfet_01v8 l=2.45e-07 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM11b N11b N11b N11a11b vdd sky130_fd_pr__pfet_01v8 l=2.45e-07 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM15 Vom Vg15 vdd vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=2.92713437e-06 m=2 ad=1.463567185e-12 as=1.463567185e-12 pd=4.92713437e-06 ps=4.92713437e-06
+XM9a Vop1 N11b Vg15 vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM9b Vg15 N14a14b Vop1 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM12 N11b Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=1.295555046e-06 m=1 ad=6.477775232e-13 as=6.477775232e-13 pd=3.295555046e-06 ps=3.295555046e-06
+XM10 Vop1 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM14a N14a14b N14a14b N14a_14b 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=2.366471985e-06 m=1 ad=1.183235993e-12 as=1.183235993e-12 pd=4.366471985e-06 ps=4.366471985e-06
+XM14b N14a_14b N14a_14b 0 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=2.366471985e-06 m=1 ad=1.183235993e-12 as=1.183235993e-12 pd=4.366471985e-06 ps=4.366471985e-06
+XM16 Vom Vop1 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.548854076e-06 m=2 ad=2.274427038e-12 as=2.274427038e-12 pd=6.548854076e-06 ps=6.548854076e-06
+XM13 N14a14b Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=2.366471985e-06 m=2 ad=1.183235993e-12 as=1.183235993e-12 pd=4.366471985e-06 ps=4.366471985e-06
+XM22 N24b23a Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=2.366471985e-06 m=2 ad=1.183235993e-12 as=1.183235993e-12 pd=4.366471985e-06 ps=4.366471985e-06
+XM20a N20a20b N20a20b vdd vdd sky130_fd_pr__pfet_01v8 l=2.45e-07 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM20b N20b N20b N20a20b vdd sky130_fd_pr__pfet_01v8 l=2.45e-07 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM25 Vop Vg25 vdd vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=2.92713437e-06 m=2 ad=1.463567185e-12 as=1.463567185e-12 pd=4.92713437e-06 ps=4.92713437e-06
+XM18a Vom1 N20b Vg25 vdd sky130_fd_pr__pfet_01v8 l=1.5e-07 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM18b Vg25 N24b23a Vom1 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM21 N20b Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=1.295555046e-06 m=1 ad=6.477775232e-13 as=6.477775232e-13 pd=3.295555046e-06 ps=3.295555046e-06
+XM19 Vom1 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM23a N24b23a N24b23a N23a24b 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=2.366471985e-06 m=1 ad=1.183235993e-12 as=1.183235993e-12 pd=4.366471985e-06 ps=4.366471985e-06
+XM24b N23a24b N23a24b 0 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=2.366471985e-06 m=1 ad=1.183235993e-12 as=1.183235993e-12 pd=4.366471985e-06 ps=4.366471985e-06
+XM26 Vop Vom1 0 0 sky130_fd_pr__nfet_01v8 l=1.5e-07 w=4.548854076e-06 m=2 ad=2.274427038e-12 as=2.274427038e-12 pd=6.548854076e-06 ps=6.548854076e-06
+XM17 Vg25 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=3.601651421e-05 m=2 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM18_bg Vbias1 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=4.548854076e-06 m=1 ad=2.274427038e-12 as=2.274427038e-12 pd=6.548854076e-06 ps=6.548854076e-06
+XM60 Vbias4 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=4.548854076e-06 m=1 ad=2.274427038e-12 as=2.274427038e-12 pd=6.548854076e-06 ps=6.548854076e-06
+XM61 Vbias3 Vbias1 vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=4.548854076e-06 m=1 ad=2.274427038e-12 as=2.274427038e-12 pd=6.548854076e-06 ps=6.548854076e-06
+XM64 Vbias3 Vbias3 N64_63 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=2.366471985e-06 m=1 ad=1.183235993e-12 as=1.183235993e-12 pd=4.366471985e-06 ps=4.366471985e-06
+XM63 N64_63 Vbias3 Vy 0 sky130_fd_pr__nfet_01v8 l=2.45e-07 w=2.366471985e-06 m=1 ad=1.183235993e-12 as=1.183235993e-12 pd=4.366471985e-06 ps=4.366471985e-06
+XM58 N58_57 Vbias2 Vx vdd sky130_fd_pr__pfet_01v8 l=3.4e-07 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM57 Vbias2 Vbias2 N58_57 vdd sky130_fd_pr__pfet_01v8 l=3.4e-07 w=3.601651421e-05 m=5 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM66 Vbias4 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=1.21950152e-06 m=1 ad=6.0975076e-13 as=6.0975076e-13 pd=3.21950152e-06 ps=3.21950152e-06
+XM68 Vbias2 Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=1.291250561e-06 m=1 ad=6.456252806e-13 as=6.456252806e-13 pd=3.291250561e-06 ps=3.291250561e-06
+XM36a Vcmfb Vcmfb vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=3.601651421e-05 m=5 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM36b N36b N36b vdd vdd sky130_fd_pr__pfet_01v8 l=4.739047237e-07 w=3.601651421e-05 m=5 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM37a Vcmfb Voc Ncmfb_tail 0 sky130_fd_pr__nfet_01v8 l=3.5e-07 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM37b N36b Voc_des Ncmfb_tail 0 sky130_fd_pr__nfet_01v8 l=3.5e-07 w=3.601651421e-05 m=1 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM38 Ncmfb_tail Vbias4 0 0 sky130_fd_pr__nfet_01v8 l=5.109106823e-07 w=3.601651421e-05 m=3 ad=1.80082571e-11 as=1.80082571e-11 pd=3.801651421e-05 ps=3.801651421e-05
+XM39 Voc_des Voc_des vdd vdd sky130_fd_pr__pfet_01v8 l=3.4e-07 w=4.548854076e-06 m=2 ad=2.274427038e-12 as=2.274427038e-12 pd=6.548854076e-06 ps=6.548854076e-06
+XM40 0 0 Voc_des vdd sky130_fd_pr__pfet_01v8 l=3.4e-07 w=4.548854076e-06 m=1 ad=2.274427038e-12 as=2.274427038e-12 pd=6.548854076e-06 ps=6.548854076e-06
+Isrc_Iref Vbias1 0 DC 1.992901379e-07
+Rp_R1 Vom Voc 1000000000
+Rp_R2 Voc Vop 1000000000
+Cp_Cc1 Vom N_cc_rz1 5e-13
+Rp_Rz1 N_cc_rz1 Vop1 2118.522643
+Cp_Cc2 Vop N_cc_rz2 5e-13
+Rp_Rz2 N_cc_rz2 Vom1 2118.522643
+Cp_CL1 Vop 0 1e-12
+Cp_CL2 Vom 0 1e-12
+Cp_Cf1 Vom lbx_Vip 5e-13
+Cp_Cf2 Vop lbx_Vim 5e-13
+Cp_Cs1 lbx_Vip 0 5e-13
+Cp_Cs2 lbx_Vim 0 5e-13
+Efb_Vip fbs_Vip 0 Vom Vop 0.5
+Vofs_Vip fbs_Vip fbd_Vip DC -0.6381178828
+Lfb_Vip fbd_Vip Vip 1e+20
+Vlb_Vip Vip lbx_Vip DC 0 AC 0.5
+Ilb_Vip 0 Vip DC 0 AC 0
+Efb_Vim fbs_Vim 0 Vop Vom 0.5
+Vofs_Vim fbs_Vim fbd_Vim DC -0.6381178828
+Lfb_Vim fbd_Vim Vim 1e+20
+Vlb_Vim Vim lbx_Vim DC 0 AC -0.5
+Ilb_Vim 0 Vim DC 0 AC 0
+.nodeset v(Vx)=1.55 v(Vbias1)=0.9375 v(Vcmfb)=0.9375 v(N1a2a)=0.8772784768 v(Vip)=0.6381178828 v(N1b2b)=0.8772784768 v(Vim)=0.6381178828 v(Vom1)=0.6772784768
+.nodeset v(Vbias2)=0.3125 v(Vop1)=0.6772784768 v(Vbias3)=1.4875 v(N3a4a)=0.4772784768 v(N3b4b)=0.4772784768 v(Vy)=0.02727847682 v(Vbias4)=0.5625 v(Vg15)=0.9750317455
+.nodeset v(N11a11b)=1.125 v(N11b)=0.3 v(Vom)=0.9 v(N14a14b)=1.2375 v(N14a_14b)=0.5625 v(N24b23a)=1.2375 v(N20a20b)=1.125 v(N20b)=0.3
+.nodeset v(Vop)=0.9 v(Vg25)=0.9750317455 v(N23a24b)=0.5625 v(N64_63)=0.5897784768 v(N58_57)=1.1 v(N36b)=0.9375 v(Voc)=1.558774902 v(Ncmfb_tail)=0.7375
+.nodeset v(Voc_des)=1.0125
+.control
+set noaskquit
+set wr_singlescale
+ac dec 40 0.01 1e+10
+wrdata current_reuse_telescopic_ota.layout.engine.free.loop.v.txt v(lbx_Vip) v(Vip) v(lbx_Vim) v(Vim)
+alter @vlb_vip[acmag] = 0
+alter @ilb_vip[acmag] = 0.5
+alter @vlb_vim[acmag] = 0
+alter @ilb_vim[acmag] = -0.5
+ac dec 40 0.01 1e+10
+wrdata current_reuse_telescopic_ota.layout.engine.free.loop.i.txt i(vlb_vip) i(vlb_vim) v(Vip) v(Vim)
+quit
+.endc
+.end

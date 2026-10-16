@@ -1,0 +1,6 @@
+{
+ "tolerances": {
+  "VGS_abs_V": 0.0001,
+  "VSB_abs_V": 0.0001
+ }
+}

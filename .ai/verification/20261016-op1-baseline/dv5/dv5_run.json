@@ -1,0 +1,43 @@
+{
+ "card": "oracle-portability OP-1a (a)(b)(c)(d) -- 계획 v0.6.6 N0.1 '기준선'·OP-1a 행, design v0.2.6 §13.2·B-26, 사용자 결정 O-9 (DV-5 (가))",
+ "auditor": "gmid-verification-auditor",
+ "time": "2026-10-16T21:17:32+09:00",
+ "base_commit": "5fea301e35c1461be10d9969bfccdd827b668c98",
+ "reimplemented_lines": "5fea301e35c1461be10d9969bfccdd827b668c98:skills/analog-gmid-design/tools/spice_oracle/oracle_offset_mc.py:166-195 (보조 :40, :43-49, :130-140, oracle_simulate.py:120-121, :161-174)",
+ "old_blob": {"oracle_offset_mc.py": "274559cc3c308ff2518552f35ffe329d18d5b029", "oracle_simulate.py": "4e87024aa56dd490a66d69f3d0426c82f2c9f11b"},
+ "old_code_unchanged_since": "tools/spice_oracle 아래 .py 마지막 변경 66f045117584a458de5e67c1986e882d7095a2f7 (2026-10-09T05:40:12+09:00), 기준선 실행 2026-10-16 15:59 이전 -- ../base_check.json",
+ "environment": {"python": "3.14.2 (C:/Python314/python.exe)", "numpy": "2.4.6"},
+ "scripts": {
+  "dv5_vos_recompute.py": "89ad8753c760c36e340693e676bd0aedfe692b570e785398d91a93fe46f0971b",
+  "dv5_d_old_function.py": "9e60654f6da569613885ebfcd42f052cf1a53069b1ebc25b5d556681c1e2b5a1"
+ },
+ "commands": [
+  "cd C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a && PYTHONPYCACHEPREFIX=C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/pyc C:/Python314/python.exe -P <record>/dv5/dv5_vos_recompute.py <record> <record>/dv5/dv5_result.json",
+  "cd C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a && PYTHONPYCACHEPREFIX=C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/pyc C:/Python314/python.exe -P <record>/dv5/dv5_d_old_function.py C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/iso/skills/analog-gmid-design/tools/spice_oracle <record> C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/dwork <record>/dv5/dv5_d_result.json"
+ ],
+ "record_dir": "<record> = .ai/verification/20261016-op1-baseline (커밋된 텍스트만 읽음; (d)만 옛 mismatch_vars가 C:/pdk/sky130_fd_pr 모델 카드 머리를 읽음)",
+ "input_logs_sha256": {
+  "baseline/files/pytest/tmp/mc5t0/o/t5ota.free.mc.log": "f24257cb94120a40afb7f73f90a6fecdc78c689679e98dd16ce849c87c288e5b",
+  "baseline/files/u6/t5t.free.mc.log": "c77823b646c0303738314bdf9862c1ae58bfd7ee1a369eb2dd6079d03fd0ca32"
+ },
+ "results": {
+  "pytest/mc5t0": {
+   "seed": 0, "n_requested": 201, "a_dc_signed": 99.8785243,
+   "recomputed_sigma_in_mV": 3.6758284804311394, "baseline_sigma_in_mV": 3.6758284804311394, "sigma_bit_identical": true,
+   "recomputed_mean_in_mV": 0.2481398885434242, "baseline_mean_in_mV": 0.2481398885434242, "mean_bit_identical": true,
+   "a_from_ac_first_point_bit_identical_to_baseline_a_dc_signed": true,
+   "verdict": "BIT_IDENTICAL -- 표본별 V_os 201개를 기준선 표본별 V_os(N0.1)로 쓴다",
+   "optional_d_old_function": "offset_mc dict 전체 일치(다른 키 0), σ_in·mean_in 비트 동일, 옛 함수가 쓴 .mc.cir = 기준선 .mc.cir 바이트 동일, run_ngspice 교체 호출 1, subprocess 호출 0"
+  },
+  "u6/mc_5t": {
+   "seed": 7, "n_requested": 201, "a_source": "기준선 .ac 첫 점(기준선 출력 u6_selfchecks.json에 a 칸 없음)",
+   "recomputed_sigma_in_mV": 3.2359547011756025, "baseline_sigma_in_mV": 3.2359547011756025, "sigma_bit_identical": true,
+   "recomputed_mean_in_mV": 0.3803997575397021, "baseline_mean_in_mV": null,
+   "mean_note": "기준선 출력(u6_selfchecks.json mc_5t)에 mean 칸이 없다 -- 비트 동일 판정 대상 아님. (d) 옛 함수 mean_in_mV 0.3803997575397021과 비트 동일(보조)",
+   "verdict": "BIT_IDENTICAL(σ_in·n·rel_se) -- 표본별 V_os 201개를 기준선 표본별 V_os(N0.1)로 쓴다. mean은 기준선 칸 없음",
+   "optional_d_old_function": "σ_in 비트 동일, n_samples·rel_se 같음, .mc.cir 바이트 동일, run_ngspice 교체 호출 1, subprocess 호출 0"
+  }
+ },
+ "per_sample_values": "dv5_result.json cases[].per_sample_vos (k, V_id, V_out, V_os_V, V_os_hex), sample0",
+ "s22_row2": "S-22 2행(m13_vos_from_log: σ_in·mean_in 비트 동일)은 dv5_vos_recompute.py의 pytest/mc5t0 판정이 다시 잰 것이다(design B-26, 같은 스크립트)"
+}

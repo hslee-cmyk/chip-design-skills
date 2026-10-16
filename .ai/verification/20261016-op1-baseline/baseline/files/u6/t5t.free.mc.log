@@ -1,0 +1,2633 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 0
+v(inn) = 8.975774e-01
+v(inp) = 9.000000e-01
+v(out) = 8.975774e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 1
+v(inn) = 8.937729e-01
+v(inp) = 9.000000e-01
+v(out) = 8.937729e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 2
+v(inn) = 8.932261e-01
+v(inp) = 9.000000e-01
+v(out) = 8.932261e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 3
+v(inn) = 8.984030e-01
+v(inp) = 9.000000e-01
+v(out) = 8.984030e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 4
+v(inn) = 8.948217e-01
+v(inp) = 9.000000e-01
+v(out) = 8.948217e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 5
+v(inn) = 8.969328e-01
+v(inp) = 9.000000e-01
+v(out) = 8.969328e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 6
+v(inn) = 9.021840e-01
+v(inp) = 9.000000e-01
+v(out) = 9.021840e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 7
+v(inn) = 9.006927e-01
+v(inp) = 9.000000e-01
+v(out) = 9.006927e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 8
+v(inn) = 9.038899e-01
+v(inp) = 9.000000e-01
+v(out) = 9.038899e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 9
+v(inn) = 8.947961e-01
+v(inp) = 9.000000e-01
+v(out) = 8.947961e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 10
+v(inn) = 9.020362e-01
+v(inp) = 9.000000e-01
+v(out) = 9.020362e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 11
+v(inn) = 8.955178e-01
+v(inp) = 9.000000e-01
+v(out) = 8.955178e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 12
+v(inn) = 8.987310e-01
+v(inp) = 9.000000e-01
+v(out) = 8.987310e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 13
+v(inn) = 8.986331e-01
+v(inp) = 9.000000e-01
+v(out) = 8.986331e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 14
+v(inn) = 9.000157e-01
+v(inp) = 9.000000e-01
+v(out) = 9.000157e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 15
+v(inn) = 8.945084e-01
+v(inp) = 9.000000e-01
+v(out) = 8.945084e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 16
+v(inn) = 8.959128e-01
+v(inp) = 9.000000e-01
+v(out) = 8.959128e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 17
+v(inn) = 8.938023e-01
+v(inp) = 9.000000e-01
+v(out) = 8.938023e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 18
+v(inn) = 8.966739e-01
+v(inp) = 9.000000e-01
+v(out) = 8.966739e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 19
+v(inn) = 8.986706e-01
+v(inp) = 9.000000e-01
+v(out) = 8.986706e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 20
+v(inn) = 8.920731e-01
+v(inp) = 9.000000e-01
+v(out) = 8.920731e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 21
+v(inn) = 9.018059e-01
+v(inp) = 9.000000e-01
+v(out) = 9.018059e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 22
+v(inn) = 8.988201e-01
+v(inp) = 9.000000e-01
+v(out) = 8.988201e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 23
+v(inn) = 9.005023e-01
+v(inp) = 9.000000e-01
+v(out) = 9.005023e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 24
+v(inn) = 8.951303e-01
+v(inp) = 9.000000e-01
+v(out) = 8.951303e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 25
+v(inn) = 9.016417e-01
+v(inp) = 9.000000e-01
+v(out) = 9.016417e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 26
+v(inn) = 9.009290e-01
+v(inp) = 9.000000e-01
+v(out) = 9.009290e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 27
+v(inn) = 9.058074e-01
+v(inp) = 9.000000e-01
+v(out) = 9.058074e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 28
+v(inn) = 8.955339e-01
+v(inp) = 9.000000e-01
+v(out) = 8.955339e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 29
+v(inn) = 9.021182e-01
+v(inp) = 9.000000e-01
+v(out) = 9.021182e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 30
+v(inn) = 8.973099e-01
+v(inp) = 9.000000e-01
+v(out) = 8.973099e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 31
+v(inn) = 9.011477e-01
+v(inp) = 9.000000e-01
+v(out) = 9.011477e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 32
+v(inn) = 8.979010e-01
+v(inp) = 9.000000e-01
+v(out) = 8.979010e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 33
+v(inn) = 8.945116e-01
+v(inp) = 9.000000e-01
+v(out) = 8.945116e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 34
+v(inn) = 8.921836e-01
+v(inp) = 9.000000e-01
+v(out) = 8.921836e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 35
+v(inn) = 8.981500e-01
+v(inp) = 9.000000e-01
+v(out) = 8.981500e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 36
+v(inn) = 8.979390e-01
+v(inp) = 9.000000e-01
+v(out) = 8.979390e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 37
+v(inn) = 8.982149e-01
+v(inp) = 9.000000e-01
+v(out) = 8.982149e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 38
+v(inn) = 8.967114e-01
+v(inp) = 9.000000e-01
+v(out) = 8.967114e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 39
+v(inn) = 8.986034e-01
+v(inp) = 9.000000e-01
+v(out) = 8.986034e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 40
+v(inn) = 8.985132e-01
+v(inp) = 9.000000e-01
+v(out) = 8.985132e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 41
+v(inn) = 8.972606e-01
+v(inp) = 9.000000e-01
+v(out) = 8.972606e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 42
+v(inn) = 8.975418e-01
+v(inp) = 9.000000e-01
+v(out) = 8.975418e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 43
+v(inn) = 8.937859e-01
+v(inp) = 9.000000e-01
+v(out) = 8.937859e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 44
+v(inn) = 8.965399e-01
+v(inp) = 9.000000e-01
+v(out) = 8.965399e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 45
+v(inn) = 9.004002e-01
+v(inp) = 9.000000e-01
+v(out) = 9.004002e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 46
+v(inn) = 8.954471e-01
+v(inp) = 9.000000e-01
+v(out) = 8.954471e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 47
+v(inn) = 8.991345e-01
+v(inp) = 9.000000e-01
+v(out) = 8.991345e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 48
+v(inn) = 8.950190e-01
+v(inp) = 9.000000e-01
+v(out) = 8.950190e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 49
+v(inn) = 8.970762e-01
+v(inp) = 9.000000e-01
+v(out) = 8.970762e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 50
+v(inn) = 8.976696e-01
+v(inp) = 9.000000e-01
+v(out) = 8.976696e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 51
+v(inn) = 8.981015e-01
+v(inp) = 9.000000e-01
+v(out) = 8.981015e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 52
+v(inn) = 8.996562e-01
+v(inp) = 9.000000e-01
+v(out) = 8.996562e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 53
+v(inn) = 9.009594e-01
+v(inp) = 9.000000e-01
+v(out) = 9.009594e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 54
+v(inn) = 8.987084e-01
+v(inp) = 9.000000e-01
+v(out) = 8.987084e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 55
+v(inn) = 8.981360e-01
+v(inp) = 9.000000e-01
+v(out) = 8.981360e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 56
+v(inn) = 8.925350e-01
+v(inp) = 9.000000e-01
+v(out) = 8.925350e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 57
+v(inn) = 8.971445e-01
+v(inp) = 9.000000e-01
+v(out) = 8.971445e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 58
+v(inn) = 9.006179e-01
+v(inp) = 9.000000e-01
+v(out) = 9.006179e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 59
+v(inn) = 8.975956e-01
+v(inp) = 9.000000e-01
+v(out) = 8.975956e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 60
+v(inn) = 8.922748e-01
+v(inp) = 9.000000e-01
+v(out) = 8.922748e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 61
+v(inn) = 8.948832e-01
+v(inp) = 9.000000e-01
+v(out) = 8.948832e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 62
+v(inn) = 8.922923e-01
+v(inp) = 9.000000e-01
+v(out) = 8.922923e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 63
+v(inn) = 9.028606e-01
+v(inp) = 9.000000e-01
+v(out) = 9.028606e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 64
+v(inn) = 8.991410e-01
+v(inp) = 9.000000e-01
+v(out) = 8.991410e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 65
+v(inn) = 9.046297e-01
+v(inp) = 9.000000e-01
+v(out) = 9.046297e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 66
+v(inn) = 8.963500e-01
+v(inp) = 9.000000e-01
+v(out) = 8.963500e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 67
+v(inn) = 8.976493e-01
+v(inp) = 9.000000e-01
+v(out) = 8.976493e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 68
+v(inn) = 8.968861e-01
+v(inp) = 9.000000e-01
+v(out) = 8.968861e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 69
+v(inn) = 8.977698e-01
+v(inp) = 9.000000e-01
+v(out) = 8.977698e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 70
+v(inn) = 8.951414e-01
+v(inp) = 9.000000e-01
+v(out) = 8.951414e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 71
+v(inn) = 9.010336e-01
+v(inp) = 9.000000e-01
+v(out) = 9.010336e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 72
+v(inn) = 8.983803e-01
+v(inp) = 9.000000e-01
+v(out) = 8.983803e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 73
+v(inn) = 8.977594e-01
+v(inp) = 9.000000e-01
+v(out) = 8.977594e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 74
+v(inn) = 9.051340e-01
+v(inp) = 9.000000e-01
+v(out) = 9.051340e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 75
+v(inn) = 9.011540e-01
+v(inp) = 9.000000e-01
+v(out) = 9.011540e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 76
+v(inn) = 8.915270e-01
+v(inp) = 9.000000e-01
+v(out) = 8.915270e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 77
+v(inn) = 9.032173e-01
+v(inp) = 9.000000e-01
+v(out) = 9.032173e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 78
+v(inn) = 8.998312e-01
+v(inp) = 9.000000e-01
+v(out) = 8.998312e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 79
+v(inn) = 9.026563e-01
+v(inp) = 9.000000e-01
+v(out) = 9.026563e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 80
+v(inn) = 8.969152e-01
+v(inp) = 9.000000e-01
+v(out) = 8.969152e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 81
+v(inn) = 8.999280e-01
+v(inp) = 9.000000e-01
+v(out) = 8.999280e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 82
+v(inn) = 9.005726e-01
+v(inp) = 9.000000e-01
+v(out) = 9.005726e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 83
+v(inn) = 8.952843e-01
+v(inp) = 9.000000e-01
+v(out) = 8.952843e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 84
+v(inn) = 9.005081e-01
+v(inp) = 9.000000e-01
+v(out) = 9.005081e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 85
+v(inn) = 8.972082e-01
+v(inp) = 9.000000e-01
+v(out) = 8.972082e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 86
+v(inn) = 9.017666e-01
+v(inp) = 9.000000e-01
+v(out) = 9.017666e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 87
+v(inn) = 9.044668e-01
+v(inp) = 9.000000e-01
+v(out) = 9.044668e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 88
+v(inn) = 9.001808e-01
+v(inp) = 9.000000e-01
+v(out) = 9.001808e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 89
+v(inn) = 8.952583e-01
+v(inp) = 9.000000e-01
+v(out) = 8.952583e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 90
+v(inn) = 8.945204e-01
+v(inp) = 9.000000e-01
+v(out) = 8.945204e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 91
+v(inn) = 8.994945e-01
+v(inp) = 9.000000e-01
+v(out) = 8.994945e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 92
+v(inn) = 8.996981e-01
+v(inp) = 9.000000e-01
+v(out) = 8.996981e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 93
+v(inn) = 8.999959e-01
+v(inp) = 9.000000e-01
+v(out) = 8.999959e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 94
+v(inn) = 8.954876e-01
+v(inp) = 9.000000e-01
+v(out) = 8.954876e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 95
+v(inn) = 9.051741e-01
+v(inp) = 9.000000e-01
+v(out) = 9.051741e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 96
+v(inn) = 8.938909e-01
+v(inp) = 9.000000e-01
+v(out) = 8.938909e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 97
+v(inn) = 8.946733e-01
+v(inp) = 9.000000e-01
+v(out) = 8.946733e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 98
+v(inn) = 8.934445e-01
+v(inp) = 9.000000e-01
+v(out) = 8.934445e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 99
+v(inn) = 8.931846e-01
+v(inp) = 9.000000e-01
+v(out) = 8.931846e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 100
+v(inn) = 8.967381e-01
+v(inp) = 9.000000e-01
+v(out) = 8.967381e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 101
+v(inn) = 9.003038e-01
+v(inp) = 9.000000e-01
+v(out) = 9.003038e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 102
+v(inn) = 9.016065e-01
+v(inp) = 9.000000e-01
+v(out) = 9.016065e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 103
+v(inn) = 8.983905e-01
+v(inp) = 9.000000e-01
+v(out) = 8.983905e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 104
+v(inn) = 8.999283e-01
+v(inp) = 9.000000e-01
+v(out) = 8.999283e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 105
+v(inn) = 8.943881e-01
+v(inp) = 9.000000e-01
+v(out) = 8.943881e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 106
+v(inn) = 9.039481e-01
+v(inp) = 9.000000e-01
+v(out) = 9.039481e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 107
+v(inn) = 9.031713e-01
+v(inp) = 9.000000e-01
+v(out) = 9.031713e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 108
+v(inn) = 8.989609e-01
+v(inp) = 9.000000e-01
+v(out) = 8.989609e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 109
+v(inn) = 8.923395e-01
+v(inp) = 9.000000e-01
+v(out) = 8.923395e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 110
+v(inn) = 8.927838e-01
+v(inp) = 9.000000e-01
+v(out) = 8.927838e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 111
+v(inn) = 8.967698e-01
+v(inp) = 9.000000e-01
+v(out) = 8.967698e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 112
+v(inn) = 8.964700e-01
+v(inp) = 9.000000e-01
+v(out) = 8.964700e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 113
+v(inn) = 8.976725e-01
+v(inp) = 9.000000e-01
+v(out) = 8.976725e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 114
+v(inn) = 8.977394e-01
+v(inp) = 9.000000e-01
+v(out) = 8.977394e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 115
+v(inn) = 8.970153e-01
+v(inp) = 9.000000e-01
+v(out) = 8.970153e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 116
+v(inn) = 8.976567e-01
+v(inp) = 9.000000e-01
+v(out) = 8.976567e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 117
+v(inn) = 8.985274e-01
+v(inp) = 9.000000e-01
+v(out) = 8.985274e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 118
+v(inn) = 9.005348e-01
+v(inp) = 9.000000e-01
+v(out) = 9.005348e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 119
+v(inn) = 8.967101e-01
+v(inp) = 9.000000e-01
+v(out) = 8.967101e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 120
+v(inn) = 8.983365e-01
+v(inp) = 9.000000e-01
+v(out) = 8.983365e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 121
+v(inn) = 9.033827e-01
+v(inp) = 9.000000e-01
+v(out) = 9.033827e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 122
+v(inn) = 8.942687e-01
+v(inp) = 9.000000e-01
+v(out) = 8.942687e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 123
+v(inn) = 8.999462e-01
+v(inp) = 9.000000e-01
+v(out) = 8.999462e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 124
+v(inn) = 8.994106e-01
+v(inp) = 9.000000e-01
+v(out) = 8.994106e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 125
+v(inn) = 8.979239e-01
+v(inp) = 9.000000e-01
+v(out) = 8.979239e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 126
+v(inn) = 8.959774e-01
+v(inp) = 9.000000e-01
+v(out) = 8.959774e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 127
+v(inn) = 8.978638e-01
+v(inp) = 9.000000e-01
+v(out) = 8.978638e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 128
+v(inn) = 8.951249e-01
+v(inp) = 9.000000e-01
+v(out) = 8.951249e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 129
+v(inn) = 9.026233e-01
+v(inp) = 9.000000e-01
+v(out) = 9.026233e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 130
+v(inn) = 9.002243e-01
+v(inp) = 9.000000e-01
+v(out) = 9.002243e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 131
+v(inn) = 8.972163e-01
+v(inp) = 9.000000e-01
+v(out) = 8.972163e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 132
+v(inn) = 8.954321e-01
+v(inp) = 9.000000e-01
+v(out) = 8.954321e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 133
+v(inn) = 8.987189e-01
+v(inp) = 9.000000e-01
+v(out) = 8.987189e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 134
+v(inn) = 8.978630e-01
+v(inp) = 9.000000e-01
+v(out) = 8.978630e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 135
+v(inn) = 8.949272e-01
+v(inp) = 9.000000e-01
+v(out) = 8.949272e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 136
+v(inn) = 8.959047e-01
+v(inp) = 9.000000e-01
+v(out) = 8.959047e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 137
+v(inn) = 8.980555e-01
+v(inp) = 9.000000e-01
+v(out) = 8.980555e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 138
+v(inn) = 8.996475e-01
+v(inp) = 9.000000e-01
+v(out) = 8.996475e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 139
+v(inn) = 8.996235e-01
+v(inp) = 9.000000e-01
+v(out) = 8.996235e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 140
+v(inn) = 9.002148e-01
+v(inp) = 9.000000e-01
+v(out) = 9.002148e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 141
+v(inn) = 8.958263e-01
+v(inp) = 9.000000e-01
+v(out) = 8.958263e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 142
+v(inn) = 8.952557e-01
+v(inp) = 9.000000e-01
+v(out) = 8.952557e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 143
+v(inn) = 9.052274e-01
+v(inp) = 9.000000e-01
+v(out) = 9.052274e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 144
+v(inn) = 8.932452e-01
+v(inp) = 9.000000e-01
+v(out) = 8.932452e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 145
+v(inn) = 8.941943e-01
+v(inp) = 9.000000e-01
+v(out) = 8.941943e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 146
+v(inn) = 8.921139e-01
+v(inp) = 9.000000e-01
+v(out) = 8.921139e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 147
+v(inn) = 8.984011e-01
+v(inp) = 9.000000e-01
+v(out) = 8.984011e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 148
+v(inn) = 8.993914e-01
+v(inp) = 9.000000e-01
+v(out) = 8.993914e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 149
+v(inn) = 9.010255e-01
+v(inp) = 9.000000e-01
+v(out) = 9.010255e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 150
+v(inn) = 8.979688e-01
+v(inp) = 9.000000e-01
+v(out) = 8.979688e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 151
+v(inn) = 8.972155e-01
+v(inp) = 9.000000e-01
+v(out) = 8.972155e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 152
+v(inn) = 9.007515e-01
+v(inp) = 9.000000e-01
+v(out) = 9.007515e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 153
+v(inn) = 9.012646e-01
+v(inp) = 9.000000e-01
+v(out) = 9.012646e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 154
+v(inn) = 8.982766e-01
+v(inp) = 9.000000e-01
+v(out) = 8.982766e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 155
+v(inn) = 8.961696e-01
+v(inp) = 9.000000e-01
+v(out) = 8.961696e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 156
+v(inn) = 8.968593e-01
+v(inp) = 9.000000e-01
+v(out) = 8.968593e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 157
+v(inn) = 9.007024e-01
+v(inp) = 9.000000e-01
+v(out) = 9.007024e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 158
+v(inn) = 9.019951e-01
+v(inp) = 9.000000e-01
+v(out) = 9.019951e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 159
+v(inn) = 9.007412e-01
+v(inp) = 9.000000e-01
+v(out) = 9.007412e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 160
+v(inn) = 9.011751e-01
+v(inp) = 9.000000e-01
+v(out) = 9.011751e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 161
+v(inn) = 8.968863e-01
+v(inp) = 9.000000e-01
+v(out) = 8.968863e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 162
+v(inn) = 8.982122e-01
+v(inp) = 9.000000e-01
+v(out) = 8.982122e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 163
+v(inn) = 8.965261e-01
+v(inp) = 9.000000e-01
+v(out) = 8.965261e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 164
+v(inn) = 9.009357e-01
+v(inp) = 9.000000e-01
+v(out) = 9.009357e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 165
+v(inn) = 8.969996e-01
+v(inp) = 9.000000e-01
+v(out) = 8.969996e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 166
+v(inn) = 9.025945e-01
+v(inp) = 9.000000e-01
+v(out) = 9.025945e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 167
+v(inn) = 8.961322e-01
+v(inp) = 9.000000e-01
+v(out) = 8.961322e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 168
+v(inn) = 9.004910e-01
+v(inp) = 9.000000e-01
+v(out) = 9.004910e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 169
+v(inn) = 9.058606e-01
+v(inp) = 9.000000e-01
+v(out) = 9.058606e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 170
+v(inn) = 8.910224e-01
+v(inp) = 9.000000e-01
+v(out) = 8.910224e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 171
+v(inn) = 8.934209e-01
+v(inp) = 9.000000e-01
+v(out) = 8.934209e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 172
+v(inn) = 8.951912e-01
+v(inp) = 9.000000e-01
+v(out) = 8.951912e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 173
+v(inn) = 8.985451e-01
+v(inp) = 9.000000e-01
+v(out) = 8.985451e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 174
+v(inn) = 8.973779e-01
+v(inp) = 9.000000e-01
+v(out) = 8.973779e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 175
+v(inn) = 8.947510e-01
+v(inp) = 9.000000e-01
+v(out) = 8.947510e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 176
+v(inn) = 8.996724e-01
+v(inp) = 9.000000e-01
+v(out) = 8.996724e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 177
+v(inn) = 8.970261e-01
+v(inp) = 9.000000e-01
+v(out) = 8.970261e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 178
+v(inn) = 8.982893e-01
+v(inp) = 9.000000e-01
+v(out) = 8.982893e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 179
+v(inn) = 8.955689e-01
+v(inp) = 9.000000e-01
+v(out) = 8.955689e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 180
+v(inn) = 8.997735e-01
+v(inp) = 9.000000e-01
+v(out) = 8.997735e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 181
+v(inn) = 8.993888e-01
+v(inp) = 9.000000e-01
+v(out) = 8.993888e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 182
+v(inn) = 9.009770e-01
+v(inp) = 9.000000e-01
+v(out) = 9.009770e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 183
+v(inn) = 8.990278e-01
+v(inp) = 9.000000e-01
+v(out) = 8.990278e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 184
+v(inn) = 8.931708e-01
+v(inp) = 9.000000e-01
+v(out) = 8.931708e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 185
+v(inn) = 9.052603e-01
+v(inp) = 9.000000e-01
+v(out) = 9.052603e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 186
+v(inn) = 8.942223e-01
+v(inp) = 9.000000e-01
+v(out) = 8.942223e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 187
+v(inn) = 8.977359e-01
+v(inp) = 9.000000e-01
+v(out) = 8.977359e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 188
+v(inn) = 8.948276e-01
+v(inp) = 9.000000e-01
+v(out) = 8.948276e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 189
+v(inn) = 8.944838e-01
+v(inp) = 9.000000e-01
+v(out) = 8.944838e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 190
+v(inn) = 8.949694e-01
+v(inp) = 9.000000e-01
+v(out) = 8.949694e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 191
+v(inn) = 8.950538e-01
+v(inp) = 9.000000e-01
+v(out) = 8.950538e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 192
+v(inn) = 8.901010e-01
+v(inp) = 9.000000e-01
+v(out) = 8.901010e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 193
+v(inn) = 8.946312e-01
+v(inp) = 9.000000e-01
+v(out) = 8.946312e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 194
+v(inn) = 8.963407e-01
+v(inp) = 9.000000e-01
+v(out) = 8.963407e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 195
+v(inn) = 8.985089e-01
+v(inp) = 9.000000e-01
+v(out) = 8.985089e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 196
+v(inn) = 9.022839e-01
+v(inp) = 9.000000e-01
+v(out) = 9.022839e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+ Reference value :  0.00000e+00
+No. of Data Rows : 1
+MCS 197
+v(inn) = 9.013776e-01
+v(inp) = 9.000000e-01
+v(out) = 9.013776e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 198
+v(inn) = 8.985285e-01
+v(inp) = 9.000000e-01
+v(out) = 8.985285e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 199
+v(inn) = 8.939227e-01
+v(inp) = 9.000000e-01
+v(out) = 8.939227e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 200
+v(inn) = 8.972260e-01
+v(inp) = 9.000000e-01
+v(out) = 8.972260e-01
+Reset re-loads circuit * spice_oracle: t5t_ota bias=free
+
+Circuit: * spice_oracle: t5t_ota bias=free
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Using SPARSE 1.3 as Direct Linear Solver
+
+No. of Data Rows : 1
+MCS 201
+v(inn) = 8.951105e-01
+v(inp) = 9.000000e-01
+v(out) = 8.951105e-01
+ngspice-46 done
