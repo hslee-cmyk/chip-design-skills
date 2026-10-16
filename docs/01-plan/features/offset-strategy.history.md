@@ -1,0 +1,49 @@
+---
+title: offset-strategy -- 계획 이력
+plan: offset-strategy.plan.md
+date: 2026-10-16
+---
+
+# offset-strategy 계획 이력
+
+> 계획서(`offset-strategy.plan.md`)에 넣지 않는 **경위·결정 원문·측정 조건·버전 이력**을 둔다. 현행 규칙·정의·게이트·완료조건은 계획서가 정본이다.
+
+## H1. 결정 경위
+
+### 2026-10-16 사용자 결정 S-1~S-4
+
+- 원문: `wt/_drafts/user_decisions.md` '## offset 방식 선택·실행 계획 (2026-10-16 사용자 "권고대로 해")'. 원문 그대로:
+  - S-1: spec은 수단이 아니라 요구로 쓴다 -- offset_requirement{offset_in_max_v, coverage_multiple k, strategy: matching|trim|compare}. 방식별 판정 제약은 엔진이 요구에서 유도(matching: k·σ_in+|V_sys| <= offset_in_max_v, trim: trim_range·trim_residual, V_res <= offset_in_max_v 로더 검사). 1/f 판정(noise_fc_in_hz 또는 noise_out_int_vrms)과 총면적 area_search_m2 하나를 두 방식 공통. 승인된 D-4 공존 거부를 이 유도로 대체하는 것, N을 {N, N+1}로 여는 것, compare 추가는 '원래 취지와 다름'으로 보고됨 -- 새 기능 계획·design에서 다시 승인받는다.
+  - S-2: 아키텍처 = (2) 파이프라인 층 모듈 재작성('실행 계획' = 변형 목록 (topology 변형, 제약 집합), 단계 A·S0·블록 결과 색인 공유, 옛 trim_approval_path 인자 분기 삭제). 핵심(graph·블록·kernel·search) 유지. 엔진 전체 재작성 안 함.
+  - S-3: compare는 두 국면(승인 게이트 유지). 국면 2 최종 비교: 사용자에게 권고 없이 두 안을 냈던 항목이라 오케스트레이터 기본안 = 엔진은 이전 실행 결과를 입력으로 받지 않는다. 두 결과 JSON을 읽는 읽기 전용 비교 도구(보고만)로 나란히 놓는다 -- 계산 재사용·엔진 입력 경로 없음. 사용자가 달리 원하면 바꾼다.
+  - S-4: 순서 = NFR-4 card 2 병합 -> XRUN-F1 A -> B -> C -> 실행 계획 구현 -> trim TR-1. card A 진행 중 계획 문서와 실측(평가 캐시 키의 제약 의존, matching·trim 1단계 θ 겹침 1회로)을 한다. offset-trim design §4(진입 인자 단계 선택) 개정은 실행 계획 design과 함께 재승인.
+- 함께 근거로 쓴 사용자 취지(2026-10-15, 원문 '실행 사이 재사용 제거'): "계산 재사용은 처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용되게 한다는 것이 원래 취지였어".
+- 이어받은 결정: offset trim T-1~T-28(특히 T-2 승인 게이트, T-7·T-8 I_u θ안과 예산 무변경, T-15 TR-2 병합 시점, T-19~T-23 출력 기준 DC, T-24~T-28 시험 회로), XRUN-F1 X-1~X-19(특히 X-12 색인 수명, X-17 E_total 정의), U-89(S3 실행 사이 재사용 제거), 원래 취지와 다른 판단 보고 규칙(2026-10-15).
+
+### 계획 초안 작성 방침(v0.1)
+
+- 결정 원문이 '다시 승인'으로 지정한 네 항목(D-4 대체, {N, N+1}, compare, OT §4 개정)은 계획서 N5에 XS-1~XS-4로 두고, 승인 전 기본안으로 삼지 않았다(2026-10-15 보고 규칙).
+- 초안을 쓰며 새로 드러난 '승인된 문서와 다른' 항목 셋(XS-5 핵심 층 변경 가능성, XS-6 k 출처 이동, XS-7 색인 수명 문구)을 같은 절에 더했다.
+- 변형별 예산은 결정 지시대로 오케스트레이터 기본안(DO-1)으로 두고 근거를 X-17 원문('선언 40은 그대로 동작, 판정·test 예산 변경 없음')에서 가져왔다.
+
+## H2. 측정 근거
+
+### M1 (2026-10-16, 읽기 확인, base `067614c`, worktree `wt/ostrat-plan`)
+
+- 방법: 엔진 코드를 읽기만 했다(실행 없음). 읽은 곳:
+  - 키: `E/search/eval_key.py:13-22`(`EvalKey` 구성), `E/search/search_context.py:45-46`(`_CONTEXT_WRITERS` = S1 블록 ∪ `PLAN_WRITERS`), `:211`(`context_fp` = 블록 입력 버전·LUT 손잡이·`DcInputs`), `E/sizing/kernel_context.py:47-48`(`PLAN_WRITERS` 일곱), `E/sizing/s2_values.py:187-200`(`DcInputs` 칸, 제약 없음).
+  - 제약이 키 밖 블록에만 있음: `E/search/search_context.py:188`(`constraint_classes` 블록, `_CONTEXT_WRITERS`에 없음), `E/search/constraint_classes.py:23-43`.
+  - 결과의 제약 의존: `E/search/kernel.py:49-56`(`_spec_rows`), `:130-133`(`ss_evaluate`에 `sctx.ss_constraints`), `:146-151`(평가 안 제약 행), `:159-161`(행을 담은 `EvalResult` 캐시 저장), `E/metrics/ss_evaluate.py:50-57, :90-93`(요청 목록), `E/metrics/ss_metrics.py:377-379`·`E/metrics/metrics_aux.py:157-159`(요청 목록이 블록 extras).
+  - S1v의 제약 의존: `E/graph/s1v_build.py:39-42`, `E/graph/s1v_fields.py:249-251`, `E/pipeline/stage_a.py:152-160`.
+- 결론: 제약 집합은 평가 캐시 키(`context_fp` 포함)에 들어가지 않는다. 평가 결과(제약 행·계산하는 metric)는 제약 집합에 의존한다. 그래서 같은 topology 변형이 한 평가 캐시를 공유하면 틀린 결과가 적중한다(계획서 N3.1).
+- 부수 확인: XRUN-F1 card A·B·C 산출 파일(`search/s3_index.py`·`search_ceiling.py`·`search_stop.py`)이 base에 없다(`ls`), 엔진 코드에 'trim' 없음(grep), library에서 `offset_in_sigma_mv` 판정 제약은 `current_reuse_telescopic_ota.sizing_spec.json:226` 하나(grep).
+
+### M2
+
+- 이번 초안에서는 재지 않았다(메모리 제약, 오케스트레이터 지시). 방법은 계획서 N6 M2.
+
+## Version History
+
+| 버전 | 날짜 | 변경 |
+|---|---|---|
+| 0.1 | 2026-10-16 | 초안: 계획서·history 신설. 사용자 결정 S-1~S-4 반영, M1 실측(읽기) 결과, M2 방법, XS-1~XS-7, DS-1·DS-2·DS-U1~DS-U5, DO-1~DO-8, card OS-0·OS-M·OS-1~OS-4. 독립 검증·사용자 승인 전 |
