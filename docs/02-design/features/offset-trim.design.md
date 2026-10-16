@@ -1,6 +1,6 @@
 ---
 template: design
-version: 0.3.2
+version: 0.3.3
 plan: ../../01-plan/features/offset-trim.plan.md
 plan_version: 0.5.5
 ---
@@ -1093,6 +1093,7 @@ v0.3(§20)은 새 원문을 쓰지 않는다. 'CMOS offset trim은 drift를 보�
 ### 20.3 문턱 합성 함수 하나
 
 * `tightened_threshold(spec_threshold_ref, delta_record) -> 조인 문턱 항목`(`E/authoring/temperature_threshold.py`, 순수 함수)
+* **첫 인자 `spec_threshold_ref`(v0.3.3, offset-strategy design v0.2.3 정합)**: base 변형(세션의 처음 변형)의 처음 문턱 항목 `ThresholdItem`(`margin_ref` = None)이다. 조인된 항목을 다시 조이지 않는다. 그래서 반복마다 Δ_T를 교체하는 규칙(계획 O-6)과 맞는다.
 * 값 = spec 문턱 값 − `delta_record.value_v`다. 항목에는 값과 두 출처 참조(spec 선언 위치, Δ_T 기록 id·sha256)를 함께 담는다. 숫자만 옮기지 않는다.
 * **조인 문턱 항목은 spec 문턱 참조를 따로 들고 다닌다**(v0.3.1). 엔진 안에서 조인 값을 읽는 곳은 커널 요청·제약 행(탐색 문턱)뿐이다. 출발값과 판정은 spec 값만 읽는다.
   * 출발값은 요구 값 (k, limit_v)만 읽는다(offset-strategy OB-20).
@@ -1141,7 +1142,7 @@ v0.3(§20)은 새 원문을 쓰지 않는다. 'CMOS offset trim은 drift를 보�
 | `range_pass` | 범위 합격 |
 | `converged_fail` | 모든 대상 metric에서 \|Δ_T(j) − Δ_T(j−1)\| ≤ ρ(j) + ρ(j−1)이다.<br>• ρ = 온도 T*(최악 온도)와 T_j 두 점의 측정 분해능 합이다.<br>• matching 각 점의 분해능 = k·(k·σ̂(T)/√(2(n − 1))) + (V_sys DC 풀이 허용오차를 입력 환산한 값)이다.<br>• matching의 신뢰 배수 k는 계획 O-5다. 한계 문구(O-5): 'k는 덮을 분포 폭의 배수이고 신뢰 수준이 아니다. k를 바꾸면 이 기준도 바뀐다'.<br>• **trim 잔여 각 점의 분해능(S7-1 (가), T-39)** = 오라클 DC 풀이 허용오차를 입력 환산으로 전파한 값이다. 같은 seed의 고정 표본 집합이라 추출 잡음이 없고, 새 상수도 없다. **k를 곱하지 않는다**(전파값 그대로). 전파식은 잔여 측정(입력 환산 offset)과 같이 노드 허용오차를 차동 이득으로 나눈다.<br>• **허용오차의 출처(v0.3.1)**: 지금 오라클 입력의 `testbench.options`는 자유 문자열이라 허용오차 선언 칸이 없다. 그래서 oracle-portability 기술자·어댑터 능력에 'DC 풀이 허용오차 선언(노드 전압 허용오차)' 칸을 요구한다. **검사 시점은 하나다(v0.3.2)**: 반복 상한이 선언된 루프 실행의 시작에서만 검사하고, 선언이 없으면 `dc_tolerance_undeclared`로 거부한다(fail-closed, matching V_sys 항도 같은 칸을 쓴다). 첫 범위 판정만 하는 실행(반복 상한 없음)은 수렴 판정이 없어 허용오차가 필요 없으므로 막지 않는다 |
 | `front_empty` | 조인 문턱으로 돈 변형의 front가 비었다 |
-| `iteration_cap` | 반복 수 = 실행 설정의 반복 상한(D-19) |
+| `iteration_cap` | **반복 수 a = 그 세션에서 추가된 변형 수**(처음 0). 변형 추가를 요청할 때 a ≥ `iteration_cap`(실행 설정, D-19)이면 추가를 거부하고 이 사유로 정지한다(offset-strategy OB-35와 같은 정의, v0.3.3) |
 | `loop_not_configured` | 반복 상한 선언이 없다. 첫 범위 판정만 하고 변형을 추가하지 않는다(D-19) |
 | `tightened_threshold_nonpositive`, `bias_drift_dominant`, `decomposition_not_closed` | §20.3·§20.5 |
 | 판정 불능·지문·능력 | §20.1 표, §20.4, §20.9 |
@@ -1152,8 +1153,8 @@ v0.3(§20)은 새 원문을 쓰지 않는다. 'CMOS offset trim은 drift를 보�
 ### 20.7 구동기(G-12 닫음, 안 B)
 
 * **위치**: `tools/temperature_loop/`(엔진 밖). 엔진 공개 진입만 import한다: offset-strategy 실행 계획 세션 인터페이스(OS-L, XS-17)와 `tightened_threshold`. 오라클은 별도 프로세스로 부르고 import하지 않는다.
-* **순서**(반복 j):
-  1. 세션 열기(처음 j = 0만)
+* **순서**(반복 j, j = 그 세션에서 추가된 변형 수 a와 같다 -- §20.6):
+  1. 세션 열기(처음 j = 0만). 이때 실행 설정의 `iteration_cap`을 세션에 넘긴다. 변형 추가 거부(a ≥ `iteration_cap`)는 세션이 한다(offset-strategy OB-35).
   2. 변형 실행 → front
   3. 판정 대상 점 고르기
   4. 오라클 T_j 판정(§17-1·2. 실패면 `tj_*` 정지)
