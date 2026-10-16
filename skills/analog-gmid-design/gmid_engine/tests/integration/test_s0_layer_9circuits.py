@@ -1,8 +1,8 @@
 """[U17 ①-b] S0 수준 층 필드 -- 9 library 회로 통합 test. [xrun] 실행 사이 재사용 제거(설계 40 v1.10 §2.4.3 '수명 -- 실행 안에서만',
 §2.4.9 판정 1, 사용자 결정 2026-10-15 "나로 해", interface card C3·C4)에 맞춰 파일 단위로 다시 썼다.
 
-무엇을 보나(회로마다, 같은 프로세스에서 사슬 단계 A -> B -> 커널 컨텍스트 -> 탐색 컨텍스트를 두 번 -- 사이에 블록 계수 reset_stats()
-[XRUN-F1 card B C1·C6: 사슬마다 새 open_run() 쌍, 계수 = 그 실행 RunCounters 행]):
+무엇을 보나(회로마다, 같은 프로세스에서 사슬 단계 A -> B -> 커널 컨텍스트 -> 탐색 컨텍스트를 두 번 -- 사슬마다 새 open_run() 쌍,
+계수 = 그 실행 RunCounters 행[XRUN-F1 card B C1·C6]):
 1. 필드 존재·writer 유일성(§2.4.8): 탐색 컨텍스트의 S0 수준 스냅샷(`dc.base`, 메모리)에 아래 `GRAPH_ROWS`·`DEVICE_START` 필드가 있고, 필드마다
    writer 가 스냅샷 권한표(`writers`)의 그 (kind, field) 항목 하나와 같으며, design 이 이름을 적은 writer 는 그 이름이고, writer 는 계산 블록
    (`block_versions` 에 있고 같은 이름의 `ComputeBlock` 이 엔진에 있다)이다.
@@ -268,7 +268,7 @@ def test_cold_run_computes_each_s0_block_once(env, circuit):
 
 @pytest.mark.parametrize("circuit", SEARCHED)
 def test_second_run_computes_each_s0_block_once_again(env, circuit):
-    # [xrun XR-1] interface card C3: 같은 입력으로 같은 프로세스에서 두 번째 실행(사이에 reset_stats)도 S0 행 writer 블록마다 computes = 1,
+    # [xrun XR-1] interface card C3: 같은 입력으로 같은 프로세스에서 두 번째 실행(자기 open_run() 쌍 -- card B C6)도 S0 행 writer 블록마다 computes = 1,
     # recomputes_same_input = 0 -- 앞 실행이 남긴 것으로 계산을 건너뛰지 않는다(옛 '두 번째 실행 = 계산 0' 의 반대, §2.4.9 판정 2 폐지).
     # writer 목록 = 두 번째 실행 dc.base 의 graph S0 레코드 필드 writer(디스크 파일이 아님).
     run = _run(env, circuit)

@@ -148,6 +148,7 @@ import json, random, sys
 sys.path.insert(0, sys.argv[1])
 from gmid_engine.authoring import load_topology
 from gmid_engine.graph import build_s1
+from gmid_engine.search import open_run
 lib, out_dir = sys.argv[2], sys.argv[3]
 spec = json.loads(sys.argv[4])
 res = {}
@@ -158,7 +159,8 @@ for name, sv in spec.items():
     q = out_dir + "/" + name + ".shuf.topology.json"
     open(q, "w", encoding="utf-8").write(json.dumps(raw))
     for tag, path in (("orig", p), ("shuf", q)):
-        s1 = _build(load_topology(path), sv)
+        donors, counters = open_run()   # [XRUN-F1 card B C6] S1 하나 = 새 실행 하나
+        s1 = build_s1(load_topology(path), sv, donors=donors, counters=counters)
         res[name + "/" + tag] = [s1.snapshot.fp, s1.key.topology_fp, s1.key.rule_fp, s1.key.supplies_v_fp]
 print(json.dumps(res, sort_keys=True))
 """

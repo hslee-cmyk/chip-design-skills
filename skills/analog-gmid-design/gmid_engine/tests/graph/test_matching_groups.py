@@ -1212,9 +1212,11 @@ import json, sys
 sys.path.insert(0, sys.argv[1])
 from gmid_engine.authoring import load_topology
 from gmid_engine.graph import GRAPH_KEY, build_s1
+from gmid_engine.search import open_run
 out = {}
 for p in sys.argv[2:]:
-    s1 = _build(load_topology(p), None)
+    donors, counters = open_run()   # [XRUN-F1 card B C6] 회로마다 새 실행 하나
+    s1 = build_s1(load_topology(p), None, donors=donors, counters=counters)
     out[p] = [repr(s1.value("graph", GRAPH_KEY, f)) for f in ("rel_matching_offset", "matching_groups", "matching_dispositions")]
 print(json.dumps(out, sort_keys=True))
 """

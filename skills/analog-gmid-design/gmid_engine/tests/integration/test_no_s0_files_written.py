@@ -39,7 +39,7 @@ import gmid_engine
 from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a, run_stage_b
-from gmid_engine.search import SearchSettings, build_search_context, find_front
+from gmid_engine.search import SearchSettings, build_search_context, find_front, open_run
 from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
 skill = Path(skill)
 lib = skill / "assets" / "library"
@@ -59,11 +59,13 @@ spec = LutSpec(float(man.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.i
 lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path,
                    noise_npz=loc.noise_path, mismatch_npz=loc.mismatch_path)
 settings = SearchSettings(600.0, 20, (1e2, 1e5), (("front_budget_s", "xrun XR-2 fixture"),), (1e-13, 1e-10))
-a = run_stage_a(lib / (circuit + ".topology.json"), lib / (circuit + ".sizing_spec.json"), lut, output_dir=Path(out_dir))
+donors, counters = open_run()   # [XRUN-F1 card B C6] 하위 프로세스 사슬 = 실행 하나
+a = run_stage_a(lib / (circuit + ".topology.json"), lib / (circuit + ".sizing_spec.json"), lut, output_dir=Path(out_dir),
+                donors=donors, counters=counters)
 memo = LutMemo(lut, point=1 << 16, curve=1 << 14, root=1 << 16)
 b = run_stage_b(a, memo, pdk, output_dir=Path(out_dir), diagnostic=True, settings=settings)
 assert (a.status, b.status) == ("ok", "ok"), (a.status, b.status)
-kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo))
+kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo), donors=a.donors, counters=a.counters)
 sctx = build_search_context(kctx, a.spec, settings, s3_root, pdk, rule, code_fp=a.code_fp)
 fr = find_front(sctx, [])
 with open(out_json, "w", encoding="utf-8") as f:

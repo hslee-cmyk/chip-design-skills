@@ -410,8 +410,11 @@ def test_passives_read_from_evaluation_snapshot_field(monkeypatch):
     monkeypatch.setattr(mod, "evaluate", loop.evaluate)
     monkeypatch.setattr(mod, "passives_from_decl", spy)
     decl = PassiveAreaDecl(unit_area=(("Cc", 2e-3), ("Rz", 1e-15)), excluded=("CL",), head_area=(("Rz", 1e-12),))
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C6] 커널 컨텍스트 대역 sctx.dc 의 실행 두 객체
     sctx = SimpleNamespace(counters={"kernel_calls": 0}, area_decl=decl,
-                           dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO", w_keys=(("nmos", 30),))))
+                           dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO", w_keys=(("nmos", 30),)),
+                                              donors=donors, counters=counters))
     s0 = snap()
     s0.fields[("device", "passive_value")] = dict(PV_START)
     start = eval_result(s0, power=2e-3, area=7e-11, constraints=rows(3.0), tag="start")
