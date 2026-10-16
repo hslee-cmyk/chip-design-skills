@@ -257,7 +257,7 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 
 ### 6.2 호출 `block(snapshot, *extras, donors, counters) -> GraphSnapshot`
 - [XRUN-F1 B] `donors`·`counters` 는 **필수 키워드**(기본값 없음): 하나라도 빠지면 `TypeError`, `donors` 가 `Donors` 하위가 아니면 `TypeError`(블록 함수 호출 0). 두 객체는
-  실행 하나의 것이다(`search.open_run()` 이 만든다, 6.3·6.4절). 블록 객체는 상태가 없다 -- 계수·색인은 두 객체에만 산다(`stats`·`reset_stats`·`BlockStats` 없음).
+  실행 하나의 것이다(`search.open_run()` 이 만든다, 6.3·6.4절). 블록 객체는 상태가 없다 -- 계수·색인은 두 객체에만 산다(블록 객체에 계수 속성·메서드가 없다).
 - `extras` 는 각각 불변이어야 한다: dict·list·set·가변 객체 -> `TypeError`(계수 변화 없음, 블록 함수 미호출).
 - 블록 함수는 `Projection` 하나를 위치 인자로 받는다:
   - `projection.column(kind, field)` = 선언한 열의 `snapshot.column(kind, field)` 와 같은 값. 선언 밖 열 -> `KeyError`.
