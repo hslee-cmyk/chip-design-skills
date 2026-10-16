@@ -178,6 +178,11 @@ EXPECTED_BAD_M = [
     ("run_pair_source", "tests/test_mc_sources.py", 27),     # (M-c) 튜플 풀기 순서 바뀜(c, d = open_run())
     ("run_pair_source", "tests/test_mc_sources.py", 33),     # (M-c) 다시 묶인 이름(d = make_pair()[0])
     ("run_pair_source", "tests/test_mc_sources.py", 39),     # (M-c) donors·counters 가 서로 다른 open_run()
+    ("run_pair_reused", "tests/test_mc_indirect.py", 8),     # (M-c) import 별칭(rsa) 호출 -- 대입 하나를 두 호출에 -- 첫째
+    ("run_pair_reused", "tests/test_mc_indirect.py", 9),     # (M-c) import 별칭(rsa) 호출 -- 둘째
+    ("run_pair_source", "tests/test_mc_indirect.py", 14),    # (M-c) 이름 대입 간접 호출(go = pipeline.run_stage_a)에 매개변수 쌍
+    ("run_pair_source", "tests/test_mc_indirect.py", 18),    # (M-c) getattr(pipeline, "run_stage_a")(...) 에 결과 칸 쌍
+    ("run_pair_source", "tests/test_mc_indirect.py", 26),    # (M-c) if 가지 안 대입은 가지 밖 호출을 앞서지 않는다(fail-closed)
     ("run_pair_stored", "tests/conftest.py", 5),             # (M-d) 모듈 수준 이름
     ("run_pair_stored", "tests/conftest.py", 10),            # (M-d) session fixture 반환
     ("run_pair_stored", "tests/conftest.py", 16),            # (M-d) module fixture yield
@@ -199,23 +204,24 @@ def test_rule_m_rejects_bad_fixture(checks, fixture_tree):
     """규칙 M(card B C9): M-a·M-b·M-c 꼴마다·M-d 경로마다·M-f 를 담은 bad 트리를 기대 목록과 정확히 같게 거부한다(실제로 거부)."""
     root = fixture_tree("rule_m", "bad")
     n, v = checks.check_m(root)
-    assert n == 12                                           # 픽스처 트리의 .py 파일 수(엔진 6 + tests 6)
+    assert n == 13                                           # 픽스처 트리의 .py 파일 수(엔진 6 + tests 7 -- test_mc_indirect 추가)
     assert _keys(v) == sorted(EXPECTED_BAD_M), "\n".join(str(x) for x in v)
     assert {x.kind for x in v} == {"open_run_ref", "direct_construct", "run_pair_source", "run_pair_reused",
                                    "run_pair_loop", "run_pair_packed", "run_pair_stored", "run_pair_persisted"}
-    assert checks.m_run_stage_a_calls(root) == 15
+    assert checks.m_run_stage_a_calls(root) == 20            # 15 + 별칭·이름 대입·getattr 간접 호출 5
 
 
 def test_rule_m_accepts_good_fixture(checks, fixture_tree):
     """허용: 튜플 풀기 1:1(결과 칸 is 확인 포함), 호출마다 자기 open_run(), 반복문 안 open_run, function fixture 가 open_run() 반환,
     단위 test 한 쌍으로 감쌈 함수 여러 번, 스스로 open_run 하는 helper, session fixture 가 지역 쌍으로 만든 S1 스냅샷만 반환,
     키워드 하나 빠진 TypeError 꼴, 계수 snapshot 값의 json 출력, 정의 모듈의 생성 호출, 엔진 진입이 두 객체를 받기만 함,
-    실행 결과의 스냅샷 칸(res.s1 -- 두 객체를 담지 않음)을 모듈 캐시에 둠."""
+    실행 결과의 스냅샷 칸(res.s1 -- 두 객체를 담지 않음)을 모듈 캐시에 둠, 같은 이름을 새 open_run() 튜플 풀기로 다시 대입해 호출마다 하나
+    (design 40 §2.4.5 M-c: 대입마다 호출 하나), import 별칭 호출의 1:1."""
     root = fixture_tree("rule_m", "good")
     n, v = checks.check_m(root)
     assert n == 7
     assert v == [], "\n".join(str(x) for x in v)
-    assert checks.m_run_stage_a_calls(root) == 7
+    assert checks.m_run_stage_a_calls(root) == 10            # 7 + 같은 이름 재대입 2 + 별칭 1
 
 
 def test_rule_m_targets_tests_but_not_fixtures(checks, engine_root):

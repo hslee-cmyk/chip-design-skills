@@ -1575,12 +1575,89 @@ def _m_construct(r: str, tree: ast.Module):
                 yield "direct_construct", n.lineno, "%s(...) 직접 생성" % cls
 
 
+def _entry_aliases(tree: ast.Module) -> frozenset:
+    """(M-c, fail-closed) 파일 안에서 run_stage_a 를 가리키는 이름: 본 이름, `from ... import run_stage_a as X` 의 X, 그리고 어느 scope 에서든
+    `X = run_stage_a`·`X = <식>.run_stage_a`·`X = <별칭>`(고정점)으로 대입된 이름. 별칭 이름을 부르는 호출은 run_stage_a 호출로 본다
+    (같은 이름이 다른 값도 받는 경우까지 호출로 보는 쪽 -- 과잉 판정은 위반으로 드러나 고치는 쪽이 안전하다)."""
+    names = {RUN_ENTRY}
+    for n in ast.walk(tree):
+        if isinstance(n, ast.ImportFrom):
+            for a in n.names:
+                if a.name == RUN_ENTRY and a.asname:
+                    names.add(a.asname)
+    changed = True
+    while changed:
+        changed = False
+        for n in ast.walk(tree):
+            pairs = []
+            if isinstance(n, ast.Assign):
+                pairs = [(t, n.value) for t in n.targets]
+            elif isinstance(n, (ast.AnnAssign, ast.NamedExpr)) and n.value is not None:
+                pairs = [(n.target, n.value)]
+            for t, v in pairs:
+                ref = (isinstance(v, ast.Name) and v.id in names) or (isinstance(v, ast.Attribute) and v.attr == RUN_ENTRY)
+                if ref and isinstance(t, ast.Name) and t.id not in names:
+                    names.add(t.id)
+                    changed = True
+    return frozenset(names)
+
+
+def _is_entry_call(n, aliases) -> bool:
+    """(M-c) run_stage_a 호출인가: 이름(별칭 포함) 호출, `<식>.run_stage_a(...)`, `getattr(<식>, "run_stage_a")(...)`."""
+    if not isinstance(n, ast.Call):
+        return False
+    f = n.func
+    if isinstance(f, ast.Name):
+        return f.id in aliases
+    if isinstance(f, ast.Attribute):
+        return f.attr == RUN_ENTRY
+    if isinstance(f, ast.Call) and isinstance(f.func, ast.Name) and f.func.id == "getattr" and len(f.args) >= 2:
+        a = f.args[1]
+        return isinstance(a, ast.Constant) and a.value == RUN_ENTRY
+    return False
+
+
+def _stmt_slot(node, parent):
+    """node 를 담은 문장 목록 (목록 객체, 그 안 위치) -- 문장이 아니면 None."""
+    p = parent.get(id(node))
+    if p is None:
+        return None
+    for field in ("body", "orelse", "finalbody", "handlers"):
+        seq = getattr(p, field, None)
+        if isinstance(seq, list):
+            for i, x in enumerate(seq):
+                if x is node:
+                    return seq, i
+    return None
+
+
+def _dominates(assign, call, scope, parent) -> bool:
+    """assign 문장이 call 보다 앞에 있고, call 을 감싸는 문장 사슬 중 하나와 같은 문장 목록에 있다(구조적 앞섬 -- if 가지 안 대입은 그 가지
+    밖 호출을 앞서지 않는다)."""
+    slot = _stmt_slot(assign, parent)
+    if slot is None:
+        return False
+    seq, i = slot
+    cur = call
+    while cur is not None and cur is not scope:
+        for j, x in enumerate(seq):
+            if x is cur:
+                return j > i
+        cur = parent.get(id(cur))
+    return False
+
+
 def _m_calls(tree: ast.Module, parent):
-    """(M-c) run_stage_a 호출마다 판정. 낸 값: (종류, 행, 설명)."""
-    uses = {}                    # (scope id, 이름) -> [호출 행]
+    """(M-c) run_stage_a 호출마다 판정. 낸 값: (종류, 행, 설명).
+    design 40 §2.4.5 (M-c): 인자 donors·counters = 같은 함수 본문 `open_run()` 튜플 풀기로 대입된 두 이름, 그 대입 하나는 run_stage_a 호출
+    **하나**에만 쓰인다. 같은 이름을 새 `open_run()` 튜플 풀기로 다시 대입해 다음 호출에 쓰는 꼴은 대입마다 호출 하나라 허용이다(판정 단위 =
+    대입 문장). 호출이 쓰는 대입 = 그 호출을 구조적으로 앞서는(_dominates) 같은 이름 대입 중 마지막 것. 그 이름의 다른 묶임(매개변수·for·
+    다른 대입 등)이 있으면 출처를 정적으로 알 수 없어 위반(fail-closed)."""
+    aliases = _entry_aliases(tree)
+    uses = {}                    # 대입 문장 id -> [(호출 행, 이름)]
     found = []
     for call in ast.walk(tree):
-        if not (isinstance(call, ast.Call) and _callee(call) == RUN_ENTRY):
+        if not _is_entry_call(call, aliases):
             continue
         scope = _enclosing_scope(call, parent)
         if any(isinstance(a, ast.Starred) for a in call.args) or any(k.arg is None for k in call.keywords):
@@ -1593,13 +1670,13 @@ def _m_calls(tree: ast.Module, parent):
             continue
         bind = _bindings(scope)
         params = _params(scope)
-        assigns = {}
+        assigns = {}             # 이름 -> [(대입 문장, 위치)]
         for n in _own_nodes(scope):
             if (isinstance(n, ast.Assign) and _is_open_run_call(n.value) and len(n.targets) == 1
                     and isinstance(n.targets[0], ast.Tuple) and len(n.targets[0].elts) == len(RUN_PAIR_KEYWORDS)
                     and all(isinstance(e, ast.Name) for e in n.targets[0].elts)):
                 for i, e in enumerate(n.targets[0].elts):
-                    assigns[e.id] = (n, i)
+                    assigns.setdefault(e.id, []).append((n, i))
         bad, origin = [], set()
         for i, kw in enumerate(RUN_PAIR_KEYWORDS):
             if kw not in kws:
@@ -1608,22 +1685,29 @@ def _m_calls(tree: ast.Module, parent):
             if not isinstance(v, ast.Name):
                 bad.append("%s=%s(이름 아님)" % (kw, type(v).__name__))
                 continue
-            got = assigns.get(v.id)
-            if got is None or got[1] != i or v.id in params or bind[v.id] != 1:
+            cands = assigns.get(v.id, [])
+            if (not cands or v.id in params or bind[v.id] != len(cands) or any(pos != i for _n, pos in cands)):
                 bad.append("%s=%s(같은 함수 open_run() 튜플 풀기 %d번째 이름 아님)" % (kw, v.id, i + 1))
                 continue
+            before = [(n, pos) for n, pos in cands if _dominates(n, call, scope, parent)]
+            if not before:
+                bad.append("%s=%s(호출을 앞서는 open_run() 대입 없음)" % (kw, v.id))
+                continue
+            got = max(before, key=lambda x: (x[0].lineno, x[0].col_offset))
             origin.add(id(got[0]))
-            uses.setdefault((id(scope), v.id), []).append(call.lineno)
+            uses.setdefault(id(got[0]), []).append((call.lineno, v.id))
             if _innermost_loop(call, scope, parent) != _innermost_loop(got[0], scope, parent):
                 found.append(("run_pair_loop", call.lineno, "%s: open_run() 이 같은 반복문 본문에 없다" % kw))
         if len(origin) > 1:
             bad.append("donors·counters 가 서로 다른 open_run() 에서 왔다")
         if bad:
             found.append(("run_pair_source", call.lineno, "; ".join(bad)))
-    for (_sid, name), lines in uses.items():
+    for _aid, hits in uses.items():
+        lines = sorted({line for line, _ in hits})
         if len(lines) > 1:
+            names = sorted({name for _, name in hits})
             for line in lines:
-                found.append(("run_pair_reused", line, "이름 %s 가 run_stage_a %d곳에 쓰인다" % (name, len(lines))))
+                found.append(("run_pair_reused", line, "open_run() 대입 하나(이름 %s)가 run_stage_a %d곳에 쓰인다" % (", ".join(names), len(lines))))
     return found
 
 
@@ -1765,7 +1849,12 @@ def _m_storage(tree: ast.Module):
 
 def m_run_stage_a_calls(root: Path) -> int:
     """대상 트리의 run_stage_a 호출 수(규칙 M M-c 가 실제로 본 호출 수 -- 공허 통과 방지)."""
-    return sum(1 for p in m_files(root) for n in ast.walk(parse(p)) if isinstance(n, ast.Call) and _callee(n) == RUN_ENTRY)
+    total = 0
+    for p in m_files(root):
+        tree = parse(p)
+        aliases = _entry_aliases(tree)
+        total += sum(1 for n in ast.walk(tree) if _is_entry_call(n, aliases))
+    return total
 
 
 def check_m(root: Path) -> tuple[int, list[Violation]]:

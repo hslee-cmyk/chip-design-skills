@@ -63,3 +63,18 @@ def test_snapshot_cache_is_not_a_run(tmp_path):
     donors, counters = open_run()
     res = run_stage_a("a", "s", None, output_dir="o", donors=donors, counters=counters)
     S1_CACHE["a"] = res.s1
+
+
+def test_same_name_reassigned_per_call():
+    # design 40 §2.4.5 (M-c): 대입마다 호출 하나 -- 같은 이름을 새 open_run() 튜플 풀기로 다시 대입하면 허용
+    donors, counters = open_run()
+    first = run_stage_a("a", "s", None, output_dir="o", donors=donors, counters=counters)
+    donors, counters = open_run()
+    second = run_stage_a("a", "s", None, output_dir="o2", donors=donors, counters=counters)
+    assert first is not second
+
+
+def test_alias_one_to_one():
+    from gmid_engine.pipeline import run_stage_a as rsa
+    d, c = open_run()
+    return rsa("a", "s", None, output_dir="o", donors=d, counters=c)
