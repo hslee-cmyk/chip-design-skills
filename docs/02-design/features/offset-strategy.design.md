@@ -1,6 +1,6 @@
 ---
 template: design
-version: 0.2
+version: 0.2.1
 plan: ../../01-plan/features/offset-strategy.plan.md
 plan_version: 0.6.1
 ---
@@ -90,7 +90,7 @@ plan_version: 0.6.1
 | E-S9 | 커널 행 = `seal_rows + _spec_rows + ss_rows + ls_rows` | `E/search/kernel.py:130-132, :146-151` |
 | E-S10 | matching L 하한 = `offset_in_sigma_mv <=` 최솟값 × `MILLI` / √2 | `E/search/iv_context.py:89`, `E/search/iv_matching_l.py:107, :123` |
 | E-S11 | mv → V 정본 = `core.MILLI` | `E/core/units.py:13, :22`, 함수 레지스트리 §15 |
-| E-S12 | 값 있는 offset 판정 제약이 있으면 LUT mismatch 데이터 필수 | `E/search/search_context.py:153, :164-168` |
+| E-S12 | 값 있는 판정 제약 가운데 `_OFFSET_METRICS` = (`offset_in_sigma_mv`, `offset_excess`) 둘이 있을 때만 LUT mismatch 데이터를 필수로 확인한다. `offset_sys_mv`는 대상이 아니다(mismatch 데이터를 쓰지 않는다) | `E/search/search_context.py:153, :164-168` |
 | E-S13 | 제품 사슬 진입점이 없다. 사슬은 test 하네스가 만든다 | `E/pipeline/__init__.py:1-4` |
 | E-S14 | `run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None)`, 결과 칸 `exit_code·status·report·report_paths·s1·spec·code_fp` | `E/pipeline/stage_a.py:83-95, :199` |
 | E-S15 | `find_front`의 `run_id` 지문과 검증 출처 목록 | `E/search/find_front.py:97, :142` |
@@ -117,7 +117,8 @@ plan_version: 0.6.1
 | 행 | 이름 `req:offset_matching<=`, c = (L − v)/s, `active` = c ≤ 1 |
 | 봉인 안 된 점 | 미측정 (`offset_matching`, `<=`, `ss_requires_sealed_snapshot`) |
 | 정의 불가 | σ·V_sys 중 None이면 미측정, 사유 = 두 결과 `Undefined` 코드 합집합 정렬 `+` 연결 |
-| 분해능 없음 | `resolution_undefined`, s = 0이면 `resolution_zero_model_error_undeclared`(기존 사유) |
+| 분해능 없음 | **항마다** 판정한다(기존 ss 행 규칙을 항 단위로 그대로, `E/search/ss_constraints.py:79-85`): 어느 항이든 결과 `resolution`이 None이면 행 없이 미측정 `resolution_undefined`. 어느 항이든 s_x = 0(resolution 0이고 그 metric 모델 오차 선언 없음)이면 **다른 항이 양수여도** 행 없이 미측정 `resolution_zero_model_error_undeclared`. 근거: 한 항의 분해능을 모르는 채 다른 항 분해능만으로 c를 정규화하면 그 항의 불확실성을 0으로 두는 것이 되어 기존 규칙(그 metric 단독이면 미측정)보다 약해진다(fail-closed, OB-28) |
+| 일찍 끝나는 분기 | 지금 `ss_constraint_rows`는 `if not declared: return (), ()`로 끝난다(`E/search/ss_constraints.py:63-64`). 요구는 있고 사용자 ss 제약이 없는 spec에서 합성 행이 빠지므로 이 분기를 `if not declared and not bounds`로 바꾼다. 봉인 안 된 점 분기(:65-66)는 bounds의 미측정 줄도 함께 낸다 |
 | 보고 칸 | 행과 함께 (v, L)을 `EvalResult`의 합성 행 보고 칸에 둔다(결과 JSON이 옮겨 쓴다, §8. 다시 계산하지 않는다, OB-13) |
 
 * **단위(OB-2)**: 항 단위는 레지스트리 서명 단위 칸에서 읽고, `mv`이면 u = `core.MILLI`(E-S11). 그 밖 단위는 유도 제약을 만들 때 L5로 거부한다. 숫자 1000·0.001을 새로 쓰지 않는다.
@@ -141,7 +142,7 @@ plan_version: 0.6.1
 | `constraint_set_fp` | `fp_of((spec 섹션 지문 'constraints_fp', derived 중 Δ_T 칸을 뺀 형태, trim_decl.decl_fp 또는 None))` |
 | `variant_fp` | `fp_of((토폴로지 변형 connectivity_fp, constraint_set_fp, 반복 번호, 원인 지문))`. 반복 번호 = 처음 목록 0, 추가될 때마다 1씩(계획 N3.12). 원인 지문 = Δ_T 입력 지문(처음 목록은 None) |
 | 중복 | 같은 `variant_fp`가 계획에 두 번이면 처음 목록은 `ValueError`(계획 함수 결함), 추가는 L-A6 거부(§13.3) |
-| S3 칸(XS-13) | evals·runs 줄 최상위 키 `variant` = `variant_fp`. 변형이 둘 이상이거나 변형에 유도 제약·trim_decl·Δ_T가 있을 때만 싣는다(요구 없는 실행의 줄은 그대로, 완료 조건 1) |
+| S3 칸(XS-13) | evals·runs 줄 최상위 키 `variant` = `variant_fp`. **OS-5에서 구현**(계획 XS-13·N7.2 배정 그대로). 싣는 조건 = 계획의 변형이 둘 이상이거나 반복 번호가 1 이상인 변형(OS-L). 변형 하나인 실행(요구 없음, OS-2 matching 단일 변형)은 칸이 없다 -- 그 실행의 줄은 S3 폴더·runs 줄 `run_id`(§6.5, 유도 제약 지문 포함)와 evals 행 이름 `req:`로 구분된다. 요구 없는 실행의 줄은 그대로(완료 조건 1) |
 | `run_id` | §6.5 |
 
 ### 3.4 G-S4 유도 제약 기록 형식
@@ -233,7 +234,8 @@ gate `spec_load` 행은 `load_sizing_spec`이 모든 위반을 모아 한 번에
 | L11 | compare인데 공통 판정 없음(DS-U4: 1/f 하나 이상 + `area_search_m2 <=`, 둘 다 값 있는 판정 제약) | `offset_compare_common_judgment_missing` | run_plan | OS-5(PD-6) |
 | L12 | 요구 섹션 결정 대기 | 사유 없음 -- 요구 없음과 같다 | -- | OS-2 |
 
-* **L2의 자리**: `judged`는 참조 해석 뒤에 정해지므로(E-S16) L2 검사는 `resolve_spec_references` 뒤(`E/authoring/spec_load.py:142` 다음, 최종 거부 :144 전)에 한다. 검사 함수는 별도 파일(§14.1).
+* **L2의 자리**: `judged`는 참조 해석 뒤에 정해지므로(E-S16) L2 검사는 `resolve_spec_references` 뒤(`E/authoring/spec_load.py:142` 다음, 최종 거부 :144 전)에 한다(v0.2부터 이 순서, 검증 N-6 확인). 앞 게이트 위반이 있으면 로더는 참조를 해석하지 않고 거부하므로(`E/authoring/spec_load.py:130-132`) 그때 L2는 돌지 않는다(이미 거부). 검사 함수는 별도 파일(§14.1).
+* **L3과 meta 불일치**: meta의 회로 이름·topology 지문이 맞지 않으면 로더는 `topo` = None으로 교차 검사를 끄고(`E/authoring/spec_load.py:90-93`) 그 로드는 meta 위반으로 거부된다. 이때 요구 섹션은 형식(L1)만 보고 포트 뷰를 유도하지 않는다(`view` = None, L3 판정 안 함). 기존 제약 로더가 `topology` None이면 기본 뷰를 유도하지 않는 것과 같은 규칙이다(`E/authoring/spec_constraints.py:39, :202-203`). 결과는 어차피 거부라 조용히 통과하는 경로가 없다.
 * L4·L5·L6·L11을 계획 함수에 두는 근거(OB-7): L4는 sizing(`DcInputs`)을 읽어야 하는데 로더(authoring)는 sizing을 import할 수 없다. 나머지는 방식·국면별 규칙이다. 넷 다 단계 B·탐색 전이다.
 * `offset_trim` 섹션은 TR-1 전에는 `unknown_key`다(T-28). 그래서 L7~L10은 TR-1이 구현한다.
 
@@ -288,7 +290,7 @@ RunPlan(strategy: str | None, phase: int | None, requirement: OffsetRequirement 
 |---|---|
 | 커널 요청·합성 행(§3.1) | `SearchContext.offset_bounds`(참조 칸 `derived`, `driving`이 `spec.driving_spec`을 읽는 방식과 같다, `E/search/search_context.py:129-131`) |
 | 출발 구간(§3.2) | `start_intervals` extras `offset_start_targets` = ((k, limit_v), ...) |
-| LUT mismatch 필수 검사(E-S12) | `derived`가 비지 않으면 offset 판정 제약과 같은 검사 |
+| LUT mismatch 필수 검사(E-S12) | `derived`가 비지 않으면 같은 검사(합성 행의 σ 항 `offset_in_sigma_mv`가 mismatch 데이터를 쓴다. V_sys 항은 쓰지 않으므로 검사 근거는 σ 항이다) |
 
 그래서 S1v·`constraint_classes`·`search_domain`·`achievability`·`start_intervals`의 입력은 같은 topology 변형 사이(그리고 OS-L 반복 사이)에 같다.
 
@@ -313,7 +315,7 @@ class PlanSession:
 
 * **열기**(실행 경계, XS-7): `S3Index`(블록 결과 부분)와 `RunCounters`를 여기서 한 번 만든다. 원본 단계 A `run_stage_a(..., donors=, counters=)`를 돈다(`donors`·`counters` 필수 키워드, PD-8. 빠지면 `TypeError`). 결과에 칸 `topology`(로드한 `TopologyDoc`)를 더한다. 단계 A가 spec을 로드했으면 `build_run_plan(stage_a.spec, stage_a.topology)`(TR-2부터 `approvals`)로 처음 목록을 만든다. 계획 함수 거부(`SchemaRejectedError`)는 세션을 '거부 상태'로 열어 두고(`plan` = None, 사유 기록) `close`가 결과 JSON에 쓴다 -- 변형 실행은 0이다.
 * **변형 실행 `run_variant(i)`**:
-  1. 단계 B: 같은 토폴로지 변형의 단계 B는 세션 안에서 한 번만 만든다(메모리 사전, 키 = 토폴로지 변형 `connectivity_fp`. 단계 B 입력은 spec·topology·설정이고 `derived`와 무관하다). `diagnostic`은 그대로 넘긴다: `run_stage_b(stage_a, memo, pdk_decl, output_dir=, settings=, diagnostic=diagnostic)`(`E/pipeline/stage_b.py:134` 서명 그대로, 진단 뜻 = 측정만, 단계 A 상태·exit code 유지).
+  1. 단계 B: 변형마다 `run_stage_b`를 부른다. 별도 pipeline 수준 캐시(토폴로지 지문 키 사전)는 두지 않는다(검증 N-7): 재사용 경로는 블록 결과 색인 하나이고(단계 B 블록은 입력이 `derived`와 무관해 같은 토폴로지 변형끼리 모두 색인 적중), 두 번째 재사용 경로를 만들지 않는다. OS-2는 변형이 하나라 한 번 부른다. `diagnostic`은 그대로 넘긴다: `run_stage_b(stage_a, memo, pdk_decl, output_dir=, settings=, diagnostic=diagnostic)`(`E/pipeline/stage_b.py:134` 서명 그대로, 진단 뜻 = 측정만, 단계 A 상태·exit code 유지).
   2. **탐색 조건**: 단계 A `ok`이고 단계 B `ok`일 때만 커널 컨텍스트 → `build_search_context(kctx, stage_a.spec, settings, archive_root, pdk_decl, lut_rule_decl, model_error, code_fp=stage_a.code_fp, derived=variant.derived)` → `find_front(sctx, given_starts)`. 아니면 `VariantResult.stop` = `stage_a_<상태>` 또는 `stage_b_<상태>`(하네스 :395와 같은 조건).
   3. `given_starts`는 원본 topology 변형에만 넘긴다(파생 topology는 θ 스키마가 달라 `()`, OB-17).
   4. `find_front`는 `gmid_engine.search` 패키지의 함수를 부른다. `find_front` 모듈 안에서 `layer0_start`·`sweep_front`를 모듈 전역 이름으로 부르는 방식(관찰 지점 계약 J-3·J-7)을 바꾸지 않으므로 하네스의 모듈 속성 감싸기가 `run_plan` 경로에서도 그대로 동작한다(E-S18 (1)).
@@ -335,7 +337,7 @@ def run_plan(topology_path, spec_path, lut, memo, pdk_decl, lut_rule_decl, *, ou
 |---|---|---|
 | 블록 결과 색인·`RunCounters` | 세션 열기에서 하나 | 같음 |
 | 단계 A | 원본 한 번 | 토폴로지 변형마다 한 번 |
-| 단계 B | 한 번 | 토폴로지 변형마다 한 번(세션 사전 + 색인) |
+| 단계 B | 한 번 | 변형마다 호출, 같은 토폴로지 변형끼리 블록은 색인 적중(계산 0). 보고서 파일은 같은 내용으로 다시 쓰인다 |
 | S0 탐색 블록 | 한 번 | 같은 topology 변형끼리 모두 적중(§5.3, `start_intervals` 포함 -- §3.2) |
 | S1v | 한 번 | 같은 topology 변형끼리 같은 입력 |
 | 평가 캐시 | 하나 | **DS-1에 따른다**(§10). 지금 키 그대로 공유 금지 |
@@ -350,7 +352,7 @@ E-S18의 하네스가 읽거나 넘기는 값마다 `run_plan` 경로의 자리�
 | 진단 모드 `diagnostic=True` | `run_plan(..., diagnostic=True)` → 단계 B에 같은 뜻으로. `PlanResult.diagnostic`과 결과 JSON `run_plan.diagnostic`에 표지 |
 | `find_front` 모듈 속성 감싸기 | 그대로 동작(§6.1 4) |
 | `a.code_fp`·`a.report_paths`·`a.status`·`a.s1.snapshot.fp` | `PlanResult.stage_a`(`StageAResult` 참조) |
-| `b.report_paths`·`b.status`·`b.s1.snapshot.fp` | `VariantResult.stage_b`(`StageBResult` 참조, 토폴로지 변형마다 같은 객체) |
+| `b.report_paths`·`b.status`·`b.s1.snapshot.fp` | `VariantResult.stage_b`(그 변형의 `StageBResult` 참조) |
 | `sctx.domain.w_min_m`·`sctx.dc.base`·`sctx.context_fp`·`sctx.cache`(card B 뒤 `S3Index` 평가 키 부분) | `VariantResult.search_context`(`SearchContext` 참조, 탐색하지 않았으면 None). 평가 결과 목록은 그 객체의 기존 읽기 경로(card B 뒤 `S3Index` 평가 키 부분의 API)로 읽는다 |
 | `fr`(`SearchFront`)·`fr.perf` | `VariantResult.front` |
 | 탐색하지 않았을 때의 S0 스냅샷(`b.s1` 또는 `a.s1`) | `VariantResult.stage_b.s1` / `PlanResult.stage_a.s1` |
@@ -420,7 +422,7 @@ E-S18의 하네스가 읽거나 넘기는 값마다 `run_plan` 경로의 자리�
 
 ## 10. DS-1 조건부 절(열린 결정 -- 하나를 고르지 않는다)
 
-DS-1은 M2 뒤 사용자가 고른다(S-5). 필요한 시점은 OS-5(compare)와 OS-L(보정 루프는 같은 θ를 다시 밟을 가능성이 크다, 계획 N3.12). 공통 전제: 같은 topology 변형끼리 spec 판정 제약·S1v·S0 입력이 같고, 다른 것은 유도 제약(합성 행·그 metric 요청)과 OS-L의 문턱(Δ_T)뿐이다.
+DS-1은 M2 뒤 사용자가 고른다(S-5). 필요한 시점은 OS-5(compare)와 OS-L(보정 루프는 같은 θ를 다시 밟을 가능성이 크다, 계획 N3.12). 공통 전제(**이 design의 전제에서는** -- 유도 제약이 S1v 씨앗·extras 밖이고(OB-4) 요구가 있으면 사용자 판정 제약이 변형 사이에 같다(L2), 이것이 PD-3 근거다): 같은 topology 변형끼리 spec 판정 제약·S1v·S0 입력이 같고, 다른 것은 유도 제약(합성 행·그 metric 요청)과 OS-L의 문턱(Δ_T)뿐이다.
 
 ### 10.1 (가) 평가 키 부분만 변형별
 
@@ -431,7 +433,7 @@ DS-1은 M2 뒤 사용자가 고른다(S-5). 필요한 시점은 OS-5(compare)와
 ### 10.2 (나) 평가 분리
 
 * 바뀌는 곳: (i) 커널 요청 = 계획 안 모든 변형 요청의 합집합(세션이 만들어 모든 변형 `SearchContext`에 같은 값으로 넘긴다. OS-L 추가 변형은 문턱만 다르므로 요청이 같다) (ii) 평가 캐시 값(봉인·metric·spec 행·ls 행)은 변형과 무관, `S3Index` 하나를 공유 (iii) 합성 행(`req:`)은 변형별 판정 단계가 캐시 값의 묶음에서 만든다(`ss_constraint_rows`의 bounds 부분을 커널 밖 변형별 함수로 분리). `EvalResult`는 변형 무관 부분과 변형별 행으로 나뉜다.
-* 이 design에서 범위: spec 판정 제약이 변형 사이에 같으므로 (iii)은 합성 행 하나다. S1v 투영 변경은 필요 없다(PD-3).
+* 이 design에서 범위: spec 판정 제약이 변형 사이에 같으므로 (iii)은 합성 행 하나다. 이 design의 전제(OB-4·L2)에서는 S1v 투영을 좁힐 대상이 없다(PD-3으로 DS-2가 '대상 없음'으로 닫힌 근거와 같다). 그 전제가 깨지면(유도 제약이 뷰 씨앗을 요구하게 되면) DS-2를 다시 연다.
 * 완료 조건 3: 지킨다. S3: evals 줄은 평가 키마다 한 줄 + 변형별 행 칸 `rows_by_variant`(XS-13 범위).
 * 놓기: 끝난 변형의 변형별 행은 놓을 수 있다. 공유 평가 키 부분은 놓지 않는다(다음 반복이 같은 θ를 밟으면 재사용).
 
@@ -541,7 +543,7 @@ topology·사용자 판정 제약·요구·`strategy`·국면은 서명상 바�
 | 파일 | card | 범위 |
 |---|---|---|
 | `E/authoring/spec_schema.py`, `spec_load.py`(섹션 호출, L2 자리 :142 뒤), `spec_model.py`(`OffsetRequirement`, 칸, `OPTIONAL_SECTION_GROUPS`, `_section_fps`), `spec_sources.py`, `__init__.py` | OS-2 | 부분 |
-| `E/search/search_values.py`(`OffsetBound`, `EvalResult` 합성 행 보고 칸), `ss_constraints.py`(bounds), `kernel.py`(:130 요청, :148 bounds), `search_context.py`(`derived` 키워드·`offset_bounds`·mismatch 검사·`offset_start_targets`), `start_intervals.py`, `iv_context.py`, `iv_matching_l.py`, `find_front.py`(:97 rows, :142 `run_id`) | OS-2 | 부분(PD-4 범위: 계산 규칙 두 곳 + 전달 다섯 + 값 형식 하나) |
+| `E/search/search_values.py`(`OffsetBound`, `EvalResult` 합성 행 보고 칸), `ss_constraints.py`(bounds, :63-64 일찍 끝나는 분기를 `not declared and not bounds`로), `kernel.py`(:130 요청, :148 bounds), `search_context.py`(`derived` 키워드·`offset_bounds`·mismatch 검사·`offset_start_targets`), `start_intervals.py`, `iv_context.py`, `iv_matching_l.py`, `find_front.py`(:97 rows, :142 `run_id`) | OS-2 | 부분(PD-4 범위: 계산 규칙 두 곳 + 전달 다섯 + 값 형식 하나) |
 | `E/pipeline/stage_a.py`(`donors`·`counters` 필수, `StageAResult.topology`), `pipeline/__init__.py` | OS-2 | 부분 |
 | `E/metrics/ss_evaluate.py` docstring(`MetricRequest`도 받음) | OS-2 | 문구 |
 | `E/tests/integration/nfr4_run_dump.py`, `test_no_s0_files_written.py`, `test_rerun_s3_independence.py` | OS-2 | 사슬을 `run_plan`으로(옛 사슬 삭제) |
@@ -605,12 +607,12 @@ topology·사용자 판정 제약·요구·`strategy`·국면은 서명상 바�
 
 | card | test | 내용 |
 |---|---|---|
-| OS-2 | `tests/authoring/test_spec_offset_requirement.py` | L1(판정 온도 범위의 `lo` ≥ `hi`·비유한·키 밖 포함), 섹션 대기 → None + `pending`, 값 하나 대기 → `type`, L3, 포트 뷰 = view 없는 offset 제약이 받는 뷰, **요구 없는 spec의 `section_fps`·`spec_fp`가 칸 추가 전과 같음**(test가 지문 식을 같은 방식으로 재계산하지 않고, 칸 추가 전 커밋에서 잰 값을 픽스처로 고정 -- 검증자가 제공) |
+| OS-2 | `tests/authoring/test_spec_offset_requirement.py` | L1(판정 온도 범위의 `lo` ≥ `hi`·비유한·키 밖 포함), meta 불일치 spec에서 요구 섹션이 포트 뷰를 유도하지 않고 로드가 meta 위반으로 거부됨, 섹션 대기 → None + `pending`, 값 하나 대기 → `type`, L3, 포트 뷰 = view 없는 offset 제약이 받는 뷰, **요구 없는 spec의 `section_fps`·`spec_fp`가 칸 추가 전과 같음**(test가 지문 식을 같은 방식으로 재계산하지 않고, 칸 추가 전 커밋에서 잰 값을 픽스처로 고정 -- 검증자가 제공) |
 | OS-2 | `tests/authoring/test_spec_offset_conflicts.py` | L2: metric 셋 × (`user_spec`, 판정 대상 `reference`) 거부, `pending_spice` 항목·그것을 가리키는 `reference`·`pending_constraints`는 통과, 참조 해석 뒤에 판정되는지(참조 대상만 바꾼 두 픽스처) |
-| OS-2 | `tests/search/test_ss_constraints.py`(추가) | 합성 행: 손 계산 c, 모델 오차 바닥, None·분해능 사유, 봉인 안 된 점, bounds 비면 지금 행과 같음 |
+| OS-2 | `tests/search/test_ss_constraints.py`(추가) | 합성 행: 손 계산 c, 모델 오차 바닥, None·분해능 사유, **한 항 resolution 0(모델 오차 없음)·다른 항 양수 → 미측정 `resolution_zero_model_error_undeclared`**, **사용자 ss 제약 없음(`declared` 빈 tuple) + bounds 있음 → 합성 행이 나온다**, 봉인 안 된 점, bounds 비면 지금 행과 같음 |
 | OS-2 | `tests/search/test_kernel.py`(추가) | bounds 있으면 두 metric 요청, 없으면 지금과 같음 |
 | OS-2 | `tests/search/test_iv_matching_l.py`(추가) | (가) `offset_in_sigma_mv <= x` spec과 (나) L/k = x(V 환산) 유도 제약이 같은 L 하한, 요구 없는 경로 비트 동일 |
-| OS-2 | `tests/search/test_search_context.py`(추가) | `derived` 있고 mismatch 데이터 없음 → 거부, `offset_start_targets`는 (k, limit_v)만(같은 k·limit에 다른 `OffsetBound` 이름·refs를 주어도 `start_intervals` 입력 버전 같음) |
+| OS-2 | `tests/search/test_search_context.py`(추가) | `derived` 있고 mismatch 데이터 없음 → 거부, 요구 없는 spec에서 `offset_sys_mv` 판정 제약만 있으면 mismatch 검사 대상 아님(지금 그대로), `offset_start_targets`는 (k, limit_v)만(같은 k·limit에 다른 `OffsetBound` 이름·refs를 주어도 `start_intervals` 입력 버전 같음) |
 | OS-2 | `tests/search/test_find_front.py`(추가) | bounds 없으면 `run_id` 지금 식, 있으면 다름 |
 | OS-2 | `tests/pipeline/test_run_plan_build.py` | 요구 없음·matching·L4(단일 출력 노드 목표 없음/있음/차동 출력)·L5(단위 바꾼 가짜 서명)·L6, 두 번 불러 같음 |
 | OS-2 | `tests/pipeline/test_plan_session.py` | 열기에서 색인·계수 하나, 단계 A 정지 → 계획 없음·변형 실행 0, 계획 거부 → 단계 B·탐색 호출 0(관찰), 진단 모드: 단계 A `review_needed`면 단계 B는 진단으로 돌고 탐색 0·`stop` = `stage_a_review_needed`, 같은 index 두 번 실행 `ValueError`, 닫은 뒤 실행 `ValueError`, `run_stage_a`에 `donors` 빠지면 `TypeError` |
@@ -708,14 +710,15 @@ T-24·T-25·T-27·T-28에서 바뀌는 것만:
 | OB-25 | 변형 추가 사유 코드 | `run_plan_variant_add_rejected` + detail `reason`(§13.3) |
 | OB-26 | card C 인터페이스 이름 | `s0_sets`·`add_eval_ceiling`·`grow` |
 | OB-27 | OS-V 합성 행 검증 출처 | 항이 모두 `spice_oracle`이면 행도 `spice_oracle` |
+| OB-28 | 합성 행 분해능 0·None | 항마다 판정, 한 항이라도 0(모델 오차 미선언)·None이면 행 없이 미측정(§3.1, 검증 N-2) |
+| OB-29 | S3 `variant` 칸 | OS-5에서 구현, 변형 둘 이상 또는 반복 번호 1 이상일 때만(§3.3, 검증 N-4) |
+| OB-30 | 단계 B 재사용 | pipeline 수준 캐시 없이 블록 결과 색인만(§6.1, 검증 N-7) |
 
 (v0.1의 OB-6은 PD-9 승인 문언으로 바뀌어 지웠고, OB-8·OB-10·OB-12·OB-18은 PD-1·PD-8·PD-7·PD-2로 승인되어 기본안 목록에서 뺐다.)
 
 ### 18.2 계획과 다른 점
 
-없음. 계획 v0.6.1과 다르게 정한 결정은 두지 않았다(S-7). 계획 문언이 결정 뒤 상태를 따라가지 못한 곳은 아래이고 design은 결정을 따랐다(계획 쪽 문구 정정 알림 대상).
-* 계획 N3.12·N10.1은 D-25를 '대기'로 적었으나 T-36으로 결정됐다. 그래서 §13.1이 인터페이스 서명을 닫았다(계획이 'D-25 결정 뒤 design이 닫는다'고 한 그대로).
-* 계획 N7.2 OS-L 행의 'D-25 결정(인터페이스 서명)' 선행은 충족됐다.
+없음. 계획 v0.6.1과 다르게 정한 결정은 두지 않았다(S-7). D-25는 T-36으로 결정됐고(master `2c3e740`의 계획 문구도 '결정됨(T-36)'으로 정리됨 -- 이 브랜치 base `194981f`에는 그 전 문구가 남아 있다), 계획이 'D-25 결정 뒤 design이 닫는다'고 한 그대로 §13.1이 인터페이스 서명을 닫았다. 계획 N7.2 OS-L 행의 'D-25 결정' 선행은 충족됐다.
 
 ### 18.3 원래 취지와 다름
 
@@ -731,7 +734,7 @@ T-24·T-25·T-27·T-28에서 바뀌는 것만:
 |---|---|---|
 | DS-1 | 평가 캐시 (가)/(나)/(다)(§10) | OS-5 compare, OS-L |
 | Q-1 | W-1 대체 범위: 부분 사슬 test(E-S19, 탐색 컨텍스트까지 만들고 내부 함수 직접 호출)를 대체 대상에서 빼는 해석(OB-22)이 맞는가. 넣으려면 세션에 '탐색 전까지 준비' 동작을 더해야 하고 이것은 공개 동작 추가라 계획 개정(S-7)이 필요하다 | OS-2 범위 |
-| Q-2 | v0.1 독립 검증(82점)의 비차단 지적 가운데 계획 개정으로 처리된 것(N-5·N-8·N-9·N-10·N-11) 밖의 N-1~N-4·N-6·N-7·N-12는 지적 원문을 받지 못해 이 판에서 반영 여부를 확인하지 못했다 | -- |
+| Q-2 | (닫힘, v0.2.1) v0.1 검증 비차단 N-1~N-4·N-6·N-7·N-12 원문을 받아 반영했다(history H4) | -- |
 | DS-U8 | trim 시험 회로 `offset_in_max_v` 값 | TR-1 뒤 반영 |
 | DS-U5 | library spec 이전 | -- |
 | DS-U9 | 유도 예산 다변형 규칙 | -- (열림, §7.2) |
