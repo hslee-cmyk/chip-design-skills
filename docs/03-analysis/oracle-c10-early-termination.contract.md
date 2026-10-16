@@ -24,7 +24,7 @@
   정확한 값은 독립 test 작성자가 fixture 의 .ac 데이터에서 `argmin_{f <= 대역 끝}|1+L|` 로 계산해 기대값으로 고정한다(여기서 숫자를 정하지 않는다).
   걸음 수 상한: tstop·f_hi·n_pp 이하.
 * 한 주기당 표본 수 n_pp = ceil(π / arccos(1 − reltol)). 유도: 표본 간격 Δ = 주기/n_pp 일 때 정현파 봉우리를 놓치는 최대 상대
-  오차가 1 − cos(π/n_pp) 이므로, 이 오차를 ngspice 가 쓰는 해 정확도 reltol(입력 `testbench.options`, 없으면 기본 1e-3)
+  오차가 1 − cos(π/n_pp) 이므로, 이 오차를 시뮬레이터(어댑터)가 쓰는 해 정확도 reltol(입력 선언, 없으면 어댑터 보정값의 출처 있는 기본값 -- 첫 사례 ngspice 1e-3)
   이하로 하는 최소 n_pp (reltol 1e-3 이면 71). 임의 상수 없음.
 * tmax = min( 1/(2π f_lo), 1/(f_crit · n_pp) ). td = tr = tf = pw = 1/(2π f_lo), 창 W = 1/f_lo, K, t_end, tstop 은 지금과 같다.
   (f_crit 가 f_lo 근처면 tmax 는 지금보다 줄지 않는다 -- 1/(f_crit n_pp) 가 더 클 때 min 이 1/(2π f_lo) 를 고른다.)
@@ -77,7 +77,7 @@
   창 수) 를 안정 코퍼스(test 회로 4종·smoke)와 **지속 진동 fixture**(단독 실행 ~107 s/6 창 ≈ 17.8 s/창, 부하 중)에서 잰다.
   wall_s_per_window = safety_factor × max c. safety_factor = 같은 fixture 반복 실행의 max/median 비(부하 변동 실측; 1 미만이면 1) -- 즉
   측정된 변동폭을 그대로 덮는 값이고 임의 배수가 아니다. 반복 횟수·측정치를 config 에 같이 남긴다.
-* 끊기면(`TimeoutExpired`) 또는 ngspice 가 치명 오류(메모리·Timestep too small 로 비정상 종료, tstop 미도달)로 끝나면 지금처럼
+* 끊기면(`TimeoutExpired`) 또는 시뮬레이터(어댑터)가 치명 오류(메모리·Timestep too small 로 비정상 종료, tstop 미도달)로 끝나면 지금처럼
   `failed`(사유 '과도 시간 초과' / '과도가 tstop 까지 가지 않았다') -> '모름' -> PM 정의 불가 -> PASS 불가. 이 경로는 `unstable` 이
   아니다(진동을 확인한 것이 아니므로).
 
