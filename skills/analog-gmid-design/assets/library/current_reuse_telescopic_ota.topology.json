@@ -1020,6 +1020,13 @@
       }
     ]
   },
+  "_design_intent": {
+    "_pattern": "2026-10-16 사용자 승인 해석 C-1/I-1 -- bias-gen의 M64/M63(NMOS)과 M57/M58(PMOS)은 gate 공유 직렬 적층(stacked diode / Sooch 셀 / self-cascode 꼴)이다. 연결 서명: drain 쪽 소자 D는 g=d(diode), source 쪽 소자 S는 gate가 D의 gate와 같은 넷, D.source = S.drain 인 중간 넷의 drain·source 단자는 이 둘뿐(진짜 직렬). KVL: VDS(S) = VGS(S) - VGS(D). triode 유도: 강반전에서 S 포화 조건 VDS(S) >= VGS(S) - Vth(S) 은 VGS(D) <= Vth(S) 가 되어 D가 도통하는 한(같은 종류, Vth(D) >= Vth(S)) 성립하지 않는다 -> S(M63, M58)는 의도된 triode(Sooch 특허 transistor 42, self-cascode 아래 소자 M1과 같은 자리). 약반전·moderate에서는 경계 가능 -- 실제 원문 동작점의 영역은 LUT 확인 전(확신도 중간). 목적: 입력쌍 공통 source(Vy/Vx) 기준으로 cascode gate(Vbias3/Vbias2)를 올려/내려 입력쌍 VDS를 최소 포화 경계(원문 82.2 mV / 99.7 mV)로 정하는 레벨 시프터 -- VDS(M4a) = VGS(M63) - VGS(M3a), VSD(M1a) = VSG(M58) - VSG(M2a). 출처: assets/library/sources/current_reuse_telescopic_ota__xie_chen_2019/ Fig.8 p.8·Fig.6 p.6; current_reuse_telescopic_ota__sooch_1985/ Fig.3 PDF p.3, PDF p.5 3열 60~64행(Z/L 1/3)·4열 24~29행(42 resistive region)·식 (1)~(7); current_reuse_telescopic_ota__sanchez_sinencio_2000/ p.19~21(self-cascode, 아래 소자 항상 선형 영역), p.22 참고문헌 1(Galup-Montoro 1994 JSSC, 원본 미보관); 패턴 정의 references/circuit-pattern-intents.md P-1. topology 태그(device_roles·symmetry·sizing_roles·compensation)는 근거로 쓰지 않는다(태그 제거 예정). 이 키는 `_` 접두 주석 키라 엔진이 읽지 않는다.",
+    "M64": "M64(nmos, g=d=Vbias3, s=N64_63): 적층의 drain 쪽 diode 소자(포화). 연결에서 유도한 KVL: VDS(M63) = VGS(M63) - VGS(M64), 그리고 M3a/M3b gate = Vbias3, M4a/M4b source = Vy 이므로 VDS(M4a) = VGS(M63) - VGS(M3a). 원문 동작점: Fig.8(b) p.8 M64 vgs = vds = 581.7 mV, M63 vgs = 699.1 mV, vds = 117.5 mV(= 699.1 - 581.7, KVL 일치); Fig.6(b) p.6 NMOS 입력쌍(원문 M3/M5) vds = 82.26 mV = 699.1 - 616.9(cascode 원문 M1/M4 vgs). 출처는 _pattern.",
+    "M63": "M63(nmos, g=Vbias3, d=N64_63, s=Vy): 적층의 source 쪽 소자, 의도된 triode. KVL: VDS(M63) = VGS(M63) - VGS(M64); 강반전 포화 조건 VDS(M63) >= VGS(M63) - Vth63 은 VGS(M64) <= Vth63 이 되어 M64가 도통하는 한 성립하지 않는다. 목적: Vy 기준으로 Vbias3를 VGS(M63)만큼 올려 NMOS 입력쌍 VDS(M4a) = VGS(M63) - VGS(M3a)를 최소 포화 경계(원문 82.2 mV)로 정한다. 원문 동작점: Fig.8(b) p.8 M63 vgs = 699.1 mV, vds = 117.5 mV; Fig.8(a) M63 w = 330n, M64 w = 2u, 둘 다 l = 1.26u(W 비 약 1/6); Fig.6(b) p.6 NMOS 입력쌍 vds = 82.26 mV. 영역은 LUT 확인 전(확신도 중간). 출처는 _pattern.",
+    "M58": "M58(pmos, g=Vbias2, d=N58_57, s=Vx): 적층의 source 쪽 소자, 의도된 triode. KVL: VSD(M58) = VSG(M58) - VSG(M57); 강반전 포화 조건 VSD(M58) >= VSG(M58) - |Vth58| 은 VSG(M57) <= |Vth58| 이 되어 M57이 도통하는 한 성립하지 않는다. 목적: Vx 기준으로 Vbias2를 VSG(M58)만큼 내려 PMOS 입력쌍 VSD(M1a) = VSG(M58) - VSG(M2a)를 최소 포화 경계(원문 99.7 mV)로 정한다. 원문 동작점: Fig.8(b) p.8 M58 vgs = -748.3 mV, vds = -189.3 mV(748.3 - 559 = 189.3, KVL 일치); Fig.8(a) M58 w = 750n, M57 w = 6u, 둘 다 l = 1.44u(W 비 1/8); Fig.6(b) p.6 PMOS 입력쌍(원문 M0/M7) vds = -99.72 mV, 748.3 - 648.6(cascode 원문 M2/M6 |vgs|) = 99.7. 영역은 LUT 확인 전(확신도 중간). 출처는 _pattern.",
+    "M57": "M57(pmos, g=d=Vbias2, s=N58_57): 적층의 drain 쪽 diode 소자(포화). 연결에서 유도한 KVL: VSD(M58) = VSG(M58) - VSG(M57), 그리고 M2a/M2b gate = Vbias2, M1a/M1b source = Vx 이므로 VSD(M1a) = VSG(M58) - VSG(M2a). 원문 동작점: Fig.8(b) p.8 M57 vgs = vds = -559 mV, M58 vgs = -748.3 mV, vds = -189.3 mV; Fig.6(b) p.6 PMOS 입력쌍 vds = -99.72 mV. 출처는 _pattern."
+  },
   "_device_roles_comment": "2026-07-31 배치 7-5 -- do.md §7.3.1 A/B/C/D 분류표를 이 스키마(headroom_role/gm_id_role/L_role/vertical_stack_id)로 옮긴 1차 실행본. M1a/M1b/M4a/M4b/M15/M16(compensation.stage_devices)과 M2a/M2b/M3a/M3b(theta L_cascode가 metric_stage_budget으로 L/W/gm/gds/gm_id를 직접 계산)는 두 경로가 이미 전부 결정하므로 여기 없음. gm_id_role enum: matching(전류미러/바이어스, gm_id 최소화)/gain(캐스코드)/balanced(GBW 고정). L_role enum: mirror(2.5*L_min)/bias_replica(1.2*L_min). vertical_stack_id는 실제 물리적 직렬경로(vdd~gnd 한 branch) 단위로 묶었다 -- optimize_full_circuit_budget()을 이 회로에 실제로 실행해 완주 여부를 검증하는 것이 목적이며, 이 1차 배정이 실행 중 드러내는 gap(예: A엔진이 currently_mirror kind만 자동 미러링하고 branch_symmetric은 안 함, servo 피드가 diff pair 반대쪽을 안 채움 등)은 검증 결과 자체로 보고한다.",
   "device_roles": {
     "M6": {
@@ -1234,16 +1241,14 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias3_stack",
-      "vsb": 0.0,
-      "_design_intent_comment": "2026-10-16 사용자 승인 해석 C-1/I-1 -- M64(g=d=Vbias3, s=N64_63)는 M63(g=Vbias3, d=N64_63, s=Vy)과 gate를 공유한 직렬 적층(stacked diode / Sooch 셀 / self-cascode 꼴)의 drain 쪽 diode 소자(포화). 연결에서 유도한 KVL: VDS(M63) = VGS(M63) - VGS(M64), 그리고 M3a/M3b gate = Vbias3, M4a/M4b source = Vy 이므로 VDS(M4a) = VGS(M63) - VGS(M3a). 목적: 입력쌍 공통 source(Vy) 기준으로 cascode gate(Vbias3)를 VGS(M63)만큼 올려, NMOS 입력쌍 VDS를 최소 포화 경계로 정하는 레벨 시프터. 원문 동작점: Fig.8(b) p.8 M64 vgs = vds = 581.7 mV, M63 vgs = 699.1 mV, vds = 117.5 mV(= 699.1 - 581.7, KVL 일치); Fig.6(b) p.6 NMOS 입력쌍(원문 M3/M5) vds = 82.26 mV = 699.1 - 616.9(cascode 원문 M1/M4 vgs). 실제 원문 동작점의 영역은 LUT 확인 전(확신도 중간). 출처: assets/library/sources/current_reuse_telescopic_ota__xie_chen_2019/ Fig.8 p.8·Fig.6 p.6; current_reuse_telescopic_ota__sooch_1985/ Fig.3 PDF p.3, PDF p.5 3열 60~64행(Z/L 1/3)·4열 24~29행(42 resistive region)·식 (1)~(7); current_reuse_telescopic_ota__sanchez_sinencio_2000/ p.19~21(self-cascode, 아래 소자 항상 선형 영역), p.22 참고문헌 1(Galup-Montoro 1994 JSSC, 원본 미보관). 이 주석은 태그 설명일 뿐 엔진은 device_roles를 읽지 않는다(IGNORED_TAG_KEYS)."
+      "vsb": 0.0
     },
     "M63": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias3_stack",
-      "vsb": 0.0,
-      "_design_intent_comment": "2026-10-16 사용자 승인 해석 C-1/I-1 -- M63(g=Vbias3, d=N64_63, s=Vy)은 M64(g=d=Vbias3, s=N64_63)와 gate를 공유한 직렬 적층(stacked diode / Sooch 셀 / self-cascode 꼴)의 source 쪽 소자로, 의도된 triode. 연결에서 유도한 KVL: VDS(M63) = VGS(M63) - VGS(M64). 강반전에서 포화 조건 VDS(M63) >= VGS(M63) - Vth63 은 VGS(M64) <= Vth63 이 되어 M64가 도통하는 한 성립하지 않는다 -> M63은 triode(Sooch 특허의 transistor 42, self-cascode의 아래 소자 M1과 같은 자리). 또 M3a/M3b gate = Vbias3, M4a/M4b source = Vy 이므로 VDS(M4a) = VGS(M63) - VGS(M3a). 목적: 입력쌍 공통 source(Vy) 기준으로 cascode gate(Vbias3)를 올려 NMOS 입력쌍 VDS를 최소 포화 경계(원문 82.2 mV)로 정하는 레벨 시프터. 원문 동작점: Fig.8(b) p.8 M63 vgs = 699.1 mV, vds = 117.5 mV, M64 vgs = 581.7 mV; Fig.8(a) M63 w = 330n, M64 w = 2u, 둘 다 l = 1.26u(W 비 약 1/6); Fig.6(b) p.6 NMOS 입력쌍(원문 M3/M5) vds = 82.26 mV = 699.1 - 616.9(cascode 원문 M1/M4 vgs). 실제 원문 동작점의 영역은 LUT 확인 전(확신도 중간). 출처: assets/library/sources/current_reuse_telescopic_ota__xie_chen_2019/ Fig.8 p.8·Fig.6 p.6; current_reuse_telescopic_ota__sooch_1985/ Fig.3 PDF p.3, PDF p.5 3열 60~64행(Z/L 1/3)·4열 24~29행(42 resistive region)·식 (1)~(7); current_reuse_telescopic_ota__sanchez_sinencio_2000/ p.19~21(self-cascode, 아래 소자 항상 선형 영역), p.22 참고문헌 1(Galup-Montoro 1994 JSSC, 원본 미보관). 이 주석은 태그 설명일 뿐 엔진은 device_roles를 읽지 않는다(IGNORED_TAG_KEYS). 기존 headroom_role 'cascode'·gm_id_role 'matching' 은 이 해석과 어긋날 수 있으나 바꾸지 않았다(사용자 결정 몫)."
+      "vsb": 0.0
     },
     "M61": {
       "headroom_role": "mirror",
@@ -1260,16 +1265,14 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias2_stack",
-      "vsb": 0.0,
-      "_design_intent_comment": "2026-10-16 사용자 승인 해석 C-1/I-1 -- M58(pmos, g=Vbias2, d=N58_57, s=Vx)은 M57(g=d=Vbias2, s=N58_57)과 gate를 공유한 직렬 적층(stacked diode / Sooch 셀 / self-cascode 꼴)의 source 쪽 소자로, 의도된 triode. 연결에서 유도한 KVL: VSD(M58) = VSG(M58) - VSG(M57). 강반전에서 포화 조건 VSD(M58) >= VSG(M58) - |Vth58| 은 VSG(M57) <= |Vth58| 이 되어 M57이 도통하는 한 성립하지 않는다 -> M58은 triode(Sooch 특허의 transistor 42, self-cascode의 아래 소자 M1과 같은 자리). 또 M2a/M2b gate = Vbias2, M1a/M1b source = Vx 이므로 VSD(M1a) = VSG(M58) - VSG(M2a). 목적: 입력쌍 공통 source(Vx) 기준으로 cascode gate(Vbias2)를 내려 PMOS 입력쌍 VSD를 최소 포화 경계(원문 99.7 mV)로 정하는 레벨 시프터. 원문 동작점: Fig.8(b) p.8 M58 vgs = -748.3 mV, vds = -189.3 mV, M57 vgs = vds = -559 mV(748.3 - 559 = 189.3, KVL 일치); Fig.8(a) M58 w = 750n, M57 w = 6u, 둘 다 l = 1.44u(W 비 1/8); Fig.6(b) p.6 PMOS 입력쌍(원문 M0/M7) vds = -99.72 mV, 748.3 - 648.6(cascode 원문 M2/M6 |vgs|) = 99.7. 실제 원문 동작점의 영역은 LUT 확인 전(확신도 중간). 출처: assets/library/sources/current_reuse_telescopic_ota__xie_chen_2019/ Fig.8 p.8·Fig.6 p.6; current_reuse_telescopic_ota__sooch_1985/ Fig.3 PDF p.3, PDF p.5 3열 60~64행(Z/L 1/3)·4열 24~29행(42 resistive region)·식 (1)~(7); current_reuse_telescopic_ota__sanchez_sinencio_2000/ p.19~21(self-cascode, 아래 소자 항상 선형 영역), p.22 참고문헌 1(Galup-Montoro 1994 JSSC, 원본 미보관). 이 주석은 태그 설명일 뿐 엔진은 device_roles를 읽지 않는다(IGNORED_TAG_KEYS). 기존 headroom_role 'cascode'·gm_id_role 'matching' 은 이 해석과 어긋날 수 있으나 바꾸지 않았다(사용자 결정 몫)."
+      "vsb": 0.0
     },
     "M57": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias2_stack",
-      "vsb": 0.0,
-      "_design_intent_comment": "2026-10-16 사용자 승인 해석 C-1/I-1 -- M57(pmos, g=d=Vbias2, s=N58_57)은 M58(g=Vbias2, d=N58_57, s=Vx)과 gate를 공유한 직렬 적층(stacked diode / Sooch 셀 / self-cascode 꼴)의 drain 쪽 diode 소자(포화). 연결에서 유도한 KVL: VSD(M58) = VSG(M58) - VSG(M57), 그리고 M2a/M2b gate = Vbias2, M1a/M1b source = Vx 이므로 VSD(M1a) = VSG(M58) - VSG(M2a). 목적: 입력쌍 공통 source(Vx) 기준으로 cascode gate(Vbias2)를 VSG(M58)만큼 내려, PMOS 입력쌍 VSD를 최소 포화 경계로 정하는 레벨 시프터. 원문 동작점: Fig.8(b) p.8 M57 vgs = vds = -559 mV, M58 vgs = -748.3 mV, vds = -189.3 mV(KVL 일치); Fig.6(b) p.6 PMOS 입력쌍(원문 M0/M7) vds = -99.72 mV. 실제 원문 동작점의 영역은 LUT 확인 전(확신도 중간). 출처: assets/library/sources/current_reuse_telescopic_ota__xie_chen_2019/ Fig.8 p.8·Fig.6 p.6; current_reuse_telescopic_ota__sooch_1985/ Fig.3 PDF p.3, PDF p.5 3열 60~64행(Z/L 1/3)·4열 24~29행(42 resistive region)·식 (1)~(7); current_reuse_telescopic_ota__sanchez_sinencio_2000/ p.19~21(self-cascode, 아래 소자 항상 선형 영역), p.22 참고문헌 1(Galup-Montoro 1994 JSSC, 원본 미보관). 이 주석은 태그 설명일 뿐 엔진은 device_roles를 읽지 않는다(IGNORED_TAG_KEYS)."
+      "vsb": 0.0
     },
     "M66": {
       "headroom_role": "mirror",

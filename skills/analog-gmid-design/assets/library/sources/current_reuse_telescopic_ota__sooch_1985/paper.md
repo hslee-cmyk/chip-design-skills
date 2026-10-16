@@ -10,7 +10,7 @@
   - node A 전압 "a voltage at node A equal to VT+2VON and a voltage at node B equal to VT and VON": PDF p.5, 3열 66행~4열 2행
   - "operating transistor 42 in its resistive region, where connecting the gates of transistors 40 and 42 forces transistor 42 to remain in its resistive region": PDF p.5, 4열 24~29행 (같은 문장의 "Providing a VDS of transistor 43 equal to VON"의 43은 Fig.3·식 (4)(VDS1 = 42의 VDS = VON)로 보아 42의 오기로 보임)
   - 식 (1)~(7)(triode 42 = 포화 40 전류 등식 → VDS1 = VGS1−VGS2 = VON → (Z/L)1 = (Z/L)2/3): PDF p.5, 4열 36행~끝
-- 엔진 연결: `assets/library/current_reuse_telescopic_ota.topology.json` device_roles M63·M64·M57·M58 의 `_design_intent_comment`(gate 공유 직렬 적층의 source 쪽 소자 triode 의도 근거)
+- 엔진 연결: `assets/library/current_reuse_telescopic_ota.topology.json` 최상위 `_design_intent`(`_pattern`, M63·M64·M57·M58) -- gate 공유 직렬 적층의 source 쪽 소자 triode 의도 근거
 - 쪽 수: 7
 - 변환: PyMuPDF 텍스트 추출(쪽 단위). 이 PDF는 스캔 이미지라 텍스트 층이 없다 -- 내용은 `pages/pNN.png`로 확인할 것.
 - `pages/`·`images/` 는 git 에 없다. 없으면 skill 폴더에서 `python tools/pdf_to_md.py ensure` 로 만든다.

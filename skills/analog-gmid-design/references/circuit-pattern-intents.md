@@ -5,6 +5,8 @@
 ## 규칙
 
 - **해석은 연결과 원문만으로 한다.** netlist 연결(`netlist`·`ports`·`supply_nets`)에서 서명을 찾고, 의도와 수치는 원문(`assets/*/sources/`)으로 확인한다. topology 메타데이터(`device_roles`·`symmetry`·`sizing_roles`·`compensation`·`_comment` 류)는 근거로 쓰지 않는다 -- 그 태그가 틀렸는지를 이 카탈로그로 검사하는 쪽이다.
+- **analog-grammar skill(`skills/analog-grammar/assets/idioms.py`)은 쓰지 않는다** -- 그 `m_diode_cascode` idiom은 P-1의 source 쪽 소자를 CASCODE로 부르며 승인 해석(triode 레벨 시프터)과 다르다.
+- **topology 태그 키(`device_roles`·`symmetry`·`sizing_roles`·`compensation`)를 근거로 쓰지 않는다**(analog-grammar 근거로 만든 태그, 제거 예정 -- 사용자 2026-10-16). 설계 의도 기록은 topology 최상위 `_design_intent` 주석 키(`_pattern` + 소자별 문자열)에 둔다.
 - **새 패턴은 아래와 같은 칸을 같은 순서로 채운다**: 연결 서명 / KVL / 의도된 영역 / 목적 / 엔진에 주는 결과 / 사례 / 출처 / 확신도. 칸을 비우지 않는다(모르면 '확인 안 함'으로 적는다).
 - **소자·회로 이름은 '사례' 칸에만** 쓴다. 다른 칸은 단자·넷 관계로만 적는다.
 - 출처 칸에는 보관 폴더 경로와 쪽(그림·열·행) 번호, 웹 링크를 같이 적는다. 원문 보관 규칙은 `assets/library/sources/README.md`.

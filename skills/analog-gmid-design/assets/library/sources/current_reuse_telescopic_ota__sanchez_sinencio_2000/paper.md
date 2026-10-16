@@ -9,7 +9,7 @@
   - p.20 등가 β 유도 -- "M2 should in saturation and M1 is in linear region"
   - p.21 "Comments on VDSAT" -- "transistor M1 always operates in linear region"
   - p.22 참고문헌 1: C. Galup-Montoro et al., "Series-Parallel Association of FET's for High Gain and High Frequency Applications", IEEE JSSC, Sept. 1994 (원본 미보관)
-- 엔진 연결: `assets/library/current_reuse_telescopic_ota.topology.json` device_roles M63·M64·M57·M58 의 `_design_intent_comment`
+- 엔진 연결: `assets/library/current_reuse_telescopic_ota.topology.json` 최상위 `_design_intent`(`_pattern`, M63·M64·M57·M58)
 - 쪽 수: 78
 - 변환: PyMuPDF 텍스트 추출(쪽 단위). 수식·표·그림은 텍스트가 깨질 수 있으니 같은 쪽의 렌더 PNG(`pages/`)로 확인할 것.
 - `pages/`·`images/` 는 git 에 없다. 없으면 skill 폴더에서 `python tools/pdf_to_md.py ensure` 로 만든다.
