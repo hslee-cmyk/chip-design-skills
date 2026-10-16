@@ -81,7 +81,7 @@ def test_run_counters_only_second_same_key_compute_counts():
         ("b", "replay", "v1", 0),
         ("b", "compute", "v2", 0),
         ("b", "compute", "v1", 1),      # 같은 키 두 번째 compute
-        ("c", "compute", "v1", 0),      # 다른 블록·같은 입력 버전 문자열 -> 다른 키
+        ("c", "compute", "v1", 1),      # 다른 블록·같은 입력 버전 문자열 -> 다른 키. b 행은 누적값 1 그대로(C1: 행 계수는 누적, c 기록은 b 를 바꾸지 않는다)
     )
     for block, outcome, version, expect_b in steps:
         counters.record(block, "*", outcome, version)
