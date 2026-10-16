@@ -26,6 +26,7 @@ from gmid_engine.metrics import (
 )
 from gmid_engine.sizing import S2_WRITERS, SS_DEV_WRITER
 
+from .conftest import block_row, fresh_run, row_delta
 from .conftest import (
     JUNCTION_RTOL,
     LUT_WM,
@@ -99,6 +100,15 @@ def decl_paths(tmp_path_factory):
     return toy_junction_decls(tmp_path_factory.mktemp("jdecl"))
 
 
+def _ss(snapshot, acc, js, run=None):
+    """블록 `ss_dev(snapshot, acc, js, donors=, counters=)` 호출(XRUN-F1 card B C4). run = 실행 두 객체 키워드(dict), 없으면 새 실행 하나."""
+    return ss_dev(snapshot, acc, js, **(run if run is not None else fresh_run()))
+
+
+def _ss_row(run):
+    return block_row(run["counters"], ss_dev.name)
+
+
 def _js(decl_paths, lut):
     return JunctionSource.from_decls(*read_decls(*decl_paths), lut)
 
@@ -137,14 +147,15 @@ def test_gm_is_dc_gm_field_not_recomputed(tmp_path, lut_a, decl_paths):
     acc = lut_access(lut_a)
     js = _js(decl_paths, lut_a)
     snap, ops = _snap(tmp_path)
-    s1 = ss_dev(snap, acc, js)
+    run = fresh_run()
+    s1 = _ss(snap, acc, js, run)
     for m, op in ops.items():
         assert s1.value("device", m, "ss_dev").gm == op.gm_id * op.current           # 정합 필드 = 정의값
     doubled = {m: 2.0 * op.gm_id * op.current for m, op in ops.items()}
     s2 = hand_write(s1, "device", "dc_gm", doubled, version="gm2")
-    ss_dev.reset_stats()
-    s3 = ss_dev(s2, acc, js)
-    assert s3 is not s2 and ss_dev.stats().computes == 1
+    before = _ss_row(run)
+    s3 = _ss(s2, acc, js, run)
+    assert s3 is not s2 and row_delta(_ss_row(run), before)[4] == 1     # card B C1 실행 계수 computes 증분
     for m in ops:
         assert s3.value("device", m, "ss_dev").gm == doubled[m]
         assert s3.value("device", m, "ss_dev").gds == s1.value("device", m, "ss_dev").gds   # gm 밖 값은 LUT 그대로
@@ -162,7 +173,7 @@ def test_values_lut_v2_columns(tmp_path, lut_a, decl_paths):
     """S-7·S-11: gm·gds·gmb·용량 = 7.2 식(GMBS 열 정본, 용량 lut_cgs_cgb 부호 보존), cdb·csb = 8.2 식(LUT 규칙 기하)."""
     snap, ops = _snap(tmp_path)
     js = _js(decl_paths, lut_a)
-    out = ss_dev(snap, lut_access(lut_a), js)
+    out = _ss(snap, lut_access(lut_a), js)
     col = dict(out.column("device", "ss_dev"))
     assert set(col) == {"M1", "M2"}                 # MOS(= dc_op 있는 소자)만, 커패시터 없음
     for m, op in ops.items():
@@ -180,7 +191,7 @@ def test_junction_bias_and_side_mapping(tmp_path, lut_a, decl_paths):
     toy 선언은 drain/source·nmos/pmos 값이 모두 다르므로 쪽·bias·kind 를 바꾼 대안 식과는 값이 어긋나야 한다."""
     snap, ops = _snap(tmp_path)
     js = _js(decl_paths, lut_a)
-    col = dict(ss_dev(snap, lut_access(lut_a), js).column("device", "ss_dev"))
+    col = dict(_ss(snap, lut_access(lut_a), js).column("device", "ss_dev"))
     op = ops["M1"]
     ss = col["M1"]
     swapped_bias = oracle_junction(dataclasses.replace(op, vds=op.vds - op.vsb))   # v_db = vds 로 잘못 쓴 경우
@@ -197,7 +208,7 @@ def test_values_old_lut_secant_and_cap_fallback(tmp_path, lut_b, decl_paths):
     """GMBS 열 없는 옛 LUT: gmb = r5 VS 칸 할선(GMB_VS_CELL_SECANT), 용량 cgs = cgg − cgd, cgb = 0. 접합 용량은 LUT 와 무관."""
     snap, ops = _snap(tmp_path)
     js = _js(decl_paths, lut_b)
-    col = dict(ss_dev(snap, lut_access(lut_b), js).column("device", "ss_dev"))
+    col = dict(_ss(snap, lut_access(lut_b), js).column("device", "ss_dev"))
     for m, op in ops.items():
         _check(col[m], oracle_ss(op, "secant", "cgg_minus_cgd_at_gs"), op, js)
         assert col[m].gmb_model == GMB_VS_CELL_SECANT == "lut_vs_cell_secant"
@@ -207,7 +218,7 @@ def test_values_old_lut_secant_and_cap_fallback(tmp_path, lut_b, decl_paths):
 def test_gmb_column_from_cap_table(tmp_path, lut_c, decl_paths):
     """슬라이스에 열이 없어도 기준 LUT w_key == op.w_key 이고 GMBS_PER_ID 가 있으면 GMB_COLUMN(lut 4.3 출처 규칙)."""
     snap, ops = _snap(tmp_path)
-    col = dict(ss_dev(snap, lut_access(lut_c), _js(decl_paths, lut_c)).column("device", "ss_dev"))
+    col = dict(_ss(snap, lut_access(lut_c), _js(decl_paths, lut_c)).column("device", "ss_dev"))
     for m, op in ops.items():
         exp = oracle_ss(op, "cap", "lut_cgs_cgb")
         assert col[m].gmb_model == GMB_COLUMN
@@ -219,8 +230,8 @@ def test_gmb_column_from_cap_table(tmp_path, lut_c, decl_paths):
 def test_gmb_secant_differs_from_column(tmp_path, lut_a, lut_b, decl_paths):
     """두 gmb 정의가 이 점에서 실제로 다른 값이다(모형 표시가 값과 함께 바뀐다는 확인의 전제)."""
     snap, _ = _snap(tmp_path)
-    a = ss_dev(snap, lut_access(lut_a), _js(decl_paths, lut_a)).value("device", "M1", "ss_dev").gmb
-    b = ss_dev(snap, lut_access(lut_b), _js(decl_paths, lut_b)).value("device", "M1", "ss_dev").gmb
+    a = _ss(snap, lut_access(lut_a), _js(decl_paths, lut_a)).value("device", "M1", "ss_dev").gmb
+    b = _ss(snap, lut_access(lut_b), _js(decl_paths, lut_b)).value("device", "M1", "ss_dev").gmb
     assert not rel_close(a, b, 1e-3)
 
 
@@ -241,7 +252,7 @@ def test_lut_failure_is_seal_violation(tmp_path, tmp_path_factory, decl_paths, c
         want = ("op_point", "lut_l_not_anchor")          # 모델 bin 지도 없음 -> 앵커 아닌 L 거부(lut 4.0)
     snap, _ = _snap(tmp_path, ops)
     with pytest.raises(SealViolationError) as ei:
-        ss_dev(snap, lut_access(lut), _js(decl_paths, lut))
+        _ss(snap, lut_access(lut), _js(decl_paths, lut))
     rec = ei.value.record
     det = dict(rec.detail)
     assert rec.devices == ("M1",)
@@ -254,7 +265,7 @@ def test_negative_check_valid_point_does_not_raise(tmp_path, tmp_path_factory, d
     lut = load_lut_v2(tmp_path_factory.mktemp("lut_narrow_ok"), cap_vs=(-0.45, 0.0, 0.45, 0.9))
     snap, ops = _snap(tmp_path)
     js = _js(decl_paths, lut)
-    col = dict(ss_dev(snap, lut_access(lut), js).column("device", "ss_dev"))
+    col = dict(_ss(snap, lut_access(lut), js).column("device", "ss_dev"))
     _check(col["M1"], oracle_ss(ops["M1"], "slice", "lut_cgs_cgb"), ops["M1"], js)
 
 
@@ -270,7 +281,7 @@ def test_junction_value_error_propagates_unwrapped(tmp_path, lut_a, case):
     js = toy_junction(tmp_path / "j", lut_a, params=params)
     snap, _ = _snap(tmp_path)
     with pytest.raises(ValueError) as ei:
-        ss_dev(snap, lut_access(lut_a), js)
+        _ss(snap, lut_access(lut_a), js)
     assert not isinstance(ei.value, SealViolationError), ei.value
 
 
@@ -280,7 +291,7 @@ def test_negative_check_junction_ok_params_do_not_raise(tmp_path, lut_a):
     params["nmos"]["dwj"] = LUT_WM / 2 * 0.99
     js = toy_junction(tmp_path / "j", lut_a, params=params)
     snap, ops = _snap(tmp_path)
-    ss = ss_dev(snap, lut_access(lut_a), js).value("device", "M1", "ss_dev")
+    ss = _ss(snap, lut_access(lut_a), js).value("device", "M1", "ss_dev")
     cdb, csb = oracle_junction(ops["M1"], params=params)
     assert rel_close(ss.cdb, cdb, JUNCTION_RTOL) and rel_close(ss.csb, csb, JUNCTION_RTOL)
 
@@ -290,25 +301,23 @@ def test_reuse_and_recompute(tmp_path, lut_a, decl_paths):
     acc = lut_access(lut_a)
     js = _js(decl_paths, lut_a)
     snap, ops = _snap(tmp_path)
-    ss_dev.reset_stats()
-    s1 = ss_dev(snap, acc, js)
-    s2 = ss_dev(s1, acc, js)
+    run = fresh_run()                                      # card B C1 실행 계수 -- 손 순서 (compute, reuse, reuse, compute)
+    s1 = _ss(snap, acc, js, run)
+    s2 = _ss(s1, acc, js, run)
     assert s2 is s1
-    st = ss_dev.stats()
-    assert (st.calls, st.computes, st.reuses) == (2, 1, 1)
+    assert _ss_row(run) == (2, 1, 0, 0, 1, 0)
     # 읽지 않는 열(dc_L)만 바뀐 스냅샷에서도 재사용
     s3 = hand_write(s1, "device", "dc_L", {"M1": 1e-6, "M2": 2e-6})
-    assert ss_dev(s3, acc, js) is s3
+    assert _ss(s3, acc, js, run) is s3
     # M1 의 dc_op 만 바꿈 -> 재계산, 새 값은 새 op 의 식
     new = dict(ops)
     op1 = ops["M1"]
     new["M1"] = device_op(op1.kind, op1.L, 0.66, op1.vds, op1.vsb, op1.W, op1.current, op1.gm_id)
     s4 = _with_ops(s1, new, version="hand2")                 # [U17 ①] dc_op 와 함께 그 동작점의 dc_gm 도 다시 쓴다
-    s5 = ss_dev(s4, acc, js)
+    s5 = _ss(s4, acc, js, run)
     assert s5 is not s4
     _check(s5.value("device", "M1", "ss_dev"), oracle_ss(new["M1"], "slice"), new["M1"], js)
-    st = ss_dev.stats()
-    assert st.computes == 2 and st.recomputes_same_input == 0
+    assert _ss_row(run) == (4, 2, 0, 0, 2, 0)
 
 
 def test_s12_temp_change_recomputes_once_same_bundle_reuses(tmp_path, lut_a, decl_paths):
@@ -316,24 +325,26 @@ def test_s12_temp_change_recomputes_once_same_bundle_reuses(tmp_path, lut_a, dec
     acc = lut_access(lut_a)
     js = _js(decl_paths, lut_a)
     snap, ops = _snap(tmp_path)
-    s1 = ss_dev(snap, acc, js)
-    ss_dev.reset_stats()
+    run = fresh_run()                                      # card B C1 실행 계수 -- 구간 증분으로 본다
+    s1 = _ss(snap, acc, js, run)
+    before = _ss_row(run)
     js_same = _js(decl_paths, lut_a)                 # 따로 읽은 같은 선언·같은 LUT -> 같은 묶음
     assert js_same is not js and fp_of(js_same) == fp_of(js)
-    assert ss_dev(s1, acc, js_same) is s1
-    assert (ss_dev.stats().computes, ss_dev.stats().reuses) == (0, 1)
+    assert _ss(s1, acc, js_same, run) is s1
+    assert row_delta(_ss_row(run), before) == (1, 1, 0, 0, 0, 0)
     js_t = dataclasses.replace(js, temp_c=js.temp_c + 10.0)
-    s2 = ss_dev(s1, acc, js_t)
-    st = ss_dev.stats()
+    s2 = _ss(s1, acc, js_t, run)
+    st = row_delta(_ss_row(run), before)
     assert s2 is not s1
-    assert (st.computes, st.recomputes_same_input) == (1, 0)
+    assert (st[4], st[5]) == (1, 0)
     assert s2.block_version(SS_DEV_WRITER) != s1.block_version(SS_DEV_WRITER)
     for m, op in ops.items():
         _check(s2.value("device", m, "ss_dev"), oracle_ss(op, "slice"), op, js_t, temp_c=37.0)
         assert s2.value("device", m, "ss_dev").cdb != s1.value("device", m, "ss_dev").cdb
     # 다시 같은 묶음(js_t)으로 -> 재사용
-    assert ss_dev(s2, acc, js_t) is s2
-    assert ss_dev.stats().computes == 1 and ss_dev.stats().recomputes_same_input == 0
+    assert _ss(s2, acc, js_t, run) is s2
+    st = row_delta(_ss_row(run), before)
+    assert st[4] == 1 and st[5] == 0
 
 
 @pytest.mark.parametrize("field", ["params_other_pdk_decl", "lut_rule_decl", "pdk_decl_sha256"])
@@ -342,7 +353,8 @@ def test_s12_each_bundle_field_changes_input_version(tmp_path, lut_a, decl_paths
     acc = lut_access(lut_a)
     js = _js(decl_paths, lut_a)
     snap, ops = _snap(tmp_path)
-    s1 = ss_dev(snap, acc, js)
+    run = fresh_run()
+    s1 = _ss(snap, acc, js, run)
     params, rule = None, None
     if field == "params_other_pdk_decl":
         params = {k: dict(v) for k, v in TOY_JUNCTION.items()}
@@ -356,10 +368,10 @@ def test_s12_each_bundle_field_changes_input_version(tmp_path, lut_a, decl_paths
         assert js2.params == js.params or fp_of(js2.params) == fp_of(js.params)
     else:
         js2 = dataclasses.replace(js, pdk_decl_sha256="0" * 64)
-    ss_dev.reset_stats()
-    s2 = ss_dev(s1, acc, js2)
-    st = ss_dev.stats()
-    assert s2 is not s1 and (st.computes, st.recomputes_same_input) == (1, 0)
+    before = _ss_row(run)
+    s2 = _ss(s1, acc, js2, run)
+    st = row_delta(_ss_row(run), before)                   # card B C1 실행 계수 구간 증분
+    assert s2 is not s1 and (st[4], st[5]) == (1, 0)
     assert s2.block_version(SS_DEV_WRITER) != s1.block_version(SS_DEV_WRITER)
     for m, op in ops.items():
         _check(s2.value("device", m, "ss_dev"), oracle_ss(op, "slice"), op, js2, params=params, rule=rule)
@@ -375,7 +387,7 @@ def test_lut_temperature_is_junction_temperature(tmp_path, decl_paths):
     js = _js(decl_paths, lut60)
     assert js.temp_c == 60.0
     snap, ops = _snap(tmp_path)
-    col = dict(ss_dev(snap, lut_access(lut60), js).column("device", "ss_dev"))
+    col = dict(_ss(snap, lut_access(lut60), js).column("device", "ss_dev"))
     for m, op in ops.items():
         _check(col[m], oracle_ss(op, "slice"), op, js, temp_c=60.0)
         assert not rel_close(col[m].cdb, oracle_junction(op, temp_c=27.0)[0], 1e-6)
@@ -385,11 +397,11 @@ def test_lut_content_changes_input_version(tmp_path, lut_a, lut_b, decl_paths):
     """extras(LutAccess) 지문은 LUT 내용을 따른다 -> 다른 LUT 로 부르면 재사용하지 않는다. memo 만 새것이면 재사용."""
     snap, _ = _snap(tmp_path)
     js = _js(decl_paths, lut_a)
-    s1 = ss_dev(snap, lut_access(lut_a), js)
-    s2 = ss_dev(s1, lut_access(lut_b), _js(decl_paths, lut_b))
+    s1 = _ss(snap, lut_access(lut_a), js)
+    s2 = _ss(s1, lut_access(lut_b), _js(decl_paths, lut_b))
     assert s2 is not s1
     assert s2.block_version(SS_DEV_WRITER) != s1.block_version(SS_DEV_WRITER)
-    assert ss_dev(s1, lut_access(lut_a), js) is s1
+    assert _ss(s1, lut_access(lut_a), js) is s1
 
 
 def test_determinism(tmp_path, tmp_path_factory):
@@ -399,7 +411,7 @@ def test_determinism(tmp_path, tmp_path_factory):
         lut = load_lut_v2(tmp_path_factory.mktemp("lut_det%d" % i))
         js = toy_junction(tmp_path_factory.mktemp("jdet%d" % i), lut)
         snap, _ = _snap(tmp_path / ("d%d" % i))
-        fps.append(fp_of(ss_dev(snap, lut_access(lut), js).column("device", "ss_dev")))
+        fps.append(fp_of(_ss(snap, lut_access(lut), js).column("device", "ss_dev")))
     assert fps[0] == fps[1]
 
 
@@ -410,13 +422,13 @@ def test_s14_lut_rel_tol_is_gm_id_times_dc_tol_v(tmp_path, lut_a, decl_paths):
     acc = lut_access(lut_a)
     js = _js(decl_paths, lut_a)
     snap, ops = _snap(tmp_path)
-    base = dict(ss_dev(snap, acc, js).column("device", "ss_dev"))
+    base = dict(_ss(snap, acc, js).column("device", "ss_dev"))
     s1 = hand_write(snap, "device", "dc_tol_v", {"M1": 0.002, "M2": None})
-    col = dict(ss_dev(s1, acc, js).column("device", "ss_dev"))
+    col = dict(_ss(s1, acc, js).column("device", "ss_dev"))
     assert col["M1"].lut_rel_tol == ops["M1"].gm_id * 0.002
     assert col["M2"].lut_rel_tol is None
     s2 = hand_write(snap, "device", "dc_tol_v", {"M1": 0.002, "M2": 0.0035})
-    col2 = dict(ss_dev(s2, acc, js).column("device", "ss_dev"))
+    col2 = dict(_ss(s2, acc, js).column("device", "ss_dev"))
     assert col2["M2"].lut_rel_tol == ops["M2"].gm_id * 0.0035
     for m in ops:
         assert dataclasses.replace(col2[m], lut_rel_tol=None) == dataclasses.replace(base[m], lut_rel_tol=None)
@@ -425,7 +437,7 @@ def test_s14_lut_rel_tol_is_gm_id_times_dc_tol_v(tmp_path, lut_a, decl_paths):
 def test_s14_no_dc_tol_v_column_gives_none(tmp_path, lut_a, decl_paths):
     """S-14: dc_tol_v 를 쓰지 않은 스냅샷(열 없음 / 셀 없음) -> lut_rel_tol None."""
     snap, ops = _snap(tmp_path)
-    col = dict(ss_dev(snap, lut_access(lut_a), _js(decl_paths, lut_a)).column("device", "ss_dev"))
+    col = dict(_ss(snap, lut_access(lut_a), _js(decl_paths, lut_a)).column("device", "ss_dev"))
     assert all(col[m].lut_rel_tol is None for m in ops)
 
 
@@ -434,10 +446,11 @@ def test_s14_dc_tol_v_change_recomputes_once(tmp_path, lut_a, decl_paths):
     acc = lut_access(lut_a)
     js = _js(decl_paths, lut_a)
     snap, ops = _snap(tmp_path)
-    s1 = ss_dev(hand_write(snap, "device", "dc_tol_v", {"M1": 0.002, "M2": 0.003}), acc, js)
-    ss_dev.reset_stats()
-    assert ss_dev(s1, acc, js) is s1
-    s2 = ss_dev(hand_write(s1, "device", "dc_tol_v", {"M1": 0.004, "M2": 0.003}, version="tol2"), acc, js)
-    st = ss_dev.stats()
-    assert (st.computes, st.reuses, st.recomputes_same_input) == (1, 1, 0)
+    run = fresh_run()
+    s1 = _ss(hand_write(snap, "device", "dc_tol_v", {"M1": 0.002, "M2": 0.003}), acc, js, run)
+    before = _ss_row(run)
+    assert _ss(s1, acc, js, run) is s1
+    s2 = _ss(hand_write(s1, "device", "dc_tol_v", {"M1": 0.004, "M2": 0.003}, version="tol2"), acc, js, run)
+    st = row_delta(_ss_row(run), before)                   # card B C1 실행 계수 구간 증분
+    assert (st[4], st[1], st[5]) == (1, 1, 0)
     assert s2.value("device", "M1", "ss_dev").lut_rel_tol == ops["M1"].gm_id * 0.004
