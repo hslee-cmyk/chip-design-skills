@@ -402,6 +402,23 @@ def test_blas_pin_rejects_mkl_and_blis_records(monkeypatch, tmp_path, family):
         be.pin_blas_threads()
 
 
+@pytest.mark.parametrize("missing", ["numpy", "scipy"])
+def test_blas_recheck_rejects_missing_owned_blas(monkeypatch, tmp_path, missing):
+    """nfr4c2-r1 (사용자 N-6, 설계 40 §2.4.13 (1) '재확인' 행): 재확인 blas_environment() 도 고정 때와 같이 numpy·scipy 각각의 소유 BLAS 항목이
+    적재 모듈에 없으면 RuntimeError. 가짜(손) = 남은 한 패키지의 정상 기록 + 패키지 폴더 밖(tmp) openblas 기록(조회 1, 소유 없음).
+    대조군(손): 같은 바깥 기록에 numpy·scipy 둘 다 있으면 거부 없음 -- 거부 원인이 빠진 소유 항목임을 보인다."""
+    import gmid_engine.core.blas_env as be
+    np_lib, sp_lib = _pkg_paths()
+    outside = str(tmp_path / "libopenblas_outside_fake.dll")               # 손: numpy·scipy 패키지 폴더(.libs 포함) 밖
+    _swap(monkeypatch, [_fake(be, np_lib), _fake(be, sp_lib), _fake(be, outside)])
+    be.blas_environment()                                                  # 대조군: 소유 항목 둘 다 있음 -> 거부 없음
+    kept = sp_lib if missing == "numpy" else np_lib
+    _swap(monkeypatch, [_fake(be, kept), _fake(be, outside)])
+    with pytest.raises(RuntimeError) as ei:
+        be.blas_environment()
+    assert missing in str(ei.value), str(ei.value)                         # 손: 메시지에 빠진 패키지 이름(문구 전체는 단언하지 않는다)
+
+
 # ---------------------------------------------------------------- N-T10: 빌드 설정·플랫폼 거부 (C1, 하위 프로세스)
 
 IMPORT_GUARDED = r"""
