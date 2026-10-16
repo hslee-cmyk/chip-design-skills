@@ -87,4 +87,4 @@ date: 2026-10-16
 - 반영 (B) 계획 v0.6.5: DV-4·DV-5 닫힘(§19.2), 8a 예외 둘째 행(§18.1), 기준선 표본별 V_os(§13.2), (d) 선택 대조 = `run_ngspice` 이름 교체 경로, conftest 손 넷리스트 기준 경로 `O/tests/adapters/ngspice/`
 - 다시 잰 것(base `52945ce`, `9069e10..HEAD` `skills/` 차이 0): `O/oracle_noise.py:114-130`, `O/oracle_offset_mc.py:109-196`, `O/oracle_simulate.py:86-125, :1025-1060, :1084-1170, :1270-1320, :1369-1375`, `O/oracle_compare.py:374-390`, `O/oracle_run.py:40-60`, `O/tests/conftest.py`, 캐시 단언 test 넷, `A/lut_v2_location.json`, `E/lut/data_location.py:32-41, :58-83`, `git grep spice_oracle -- '*.py'`(엔진 쪽 인용)
 - 실행: 코드·시뮬레이터 실행 없음.
-- 멈춘 항목: 없음.
+- 멈춘 항목: 새 멈춤은 없다. 단 **계획 v0.6.6 개정 대기**(어댑터 지문 제외 목록 방식, 브랜치 `plan/oracle-v066` `c62f3bf`·`16af2cf` 미병합) -- §19.2 '개정 대기'. 같은 판 후속 커밋 `57c2a0f`(재검증 '승인 가능' 조건 1 + 경미 4, 계획 v0.6.6 diff 확인 M-1·M-2): 대기 표시, `lut_record_root` 규칙 출처 = `E/lut/CONTRACT.md` 1.8(256-261행, `os.path.abspath`)·의도된 엄격·X-D5, `n_failed` = 옛 정의(결과 없는 표본 수, rc는 `sample_status`만), §15.1·§11.5 u6 소비자 서술과 OP-3~OP-5 점검 공백, `lut_location_decl_invalid` 분리, 지문 파일 집합(git 추적·상대 POSIX 경로 정렬)·정규 JSON 규칙·`adapter_fingerprint_unavailable`(B-28).
