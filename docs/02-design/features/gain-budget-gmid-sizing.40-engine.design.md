@@ -1915,7 +1915,8 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 
 | 범위 | 명령 |
 |---|---|
-| 전체(slow 제외) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q -m "not slow"` |
+| 전체(slow 제외 -- conftest가 `--run-slow` 없으면 slow를 뺀다) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q` |
+| 전체(slow 포함, 판정용) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q --run-slow` |
 | IC 계약 | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q -k "test_ic"` |
 | 9회로 구조 표(S1v·A_max·Π·인증 비율) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_structure_tables.py -q` |
 | 9회로 E2E(T9) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration -q` |
@@ -1977,7 +1978,7 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 - **완료 조건**(PDCA 구현 단계, 각 단위 공통)
   - 아래 '확인 행'의 42 기준표 행이 OK가 된다.
   - 그 단위의 test가 통과한다.
-  - 전체 suite(`not slow`)가 통과한다.
+  - 전체 suite(`--run-slow`, 판정 때 한 번)가 통과한다.
   - 코드 작성 주체와 test 작성 주체가 다르다(WP-13).
   - **graph 단일 정본 확인**(사용자 결정 2026-10-12 "design 승인, 이후에는 design과 구현을 gap분석해. 그리고, 모든엔진은 graph 단일정본 원칙이 준수되었는지를 coding후에 항상 확인하는 과정을 넣어."): 엔진 코드를 바꾸는 모든 변경 단위는 병합 전에 다음 넷을 통과한다. (a) 구조 규칙 G 확장 lint(G-8, §2.4.10 ①) green (b) 설계 값 타입 위치 검사(§2.4.10 ②) green (c) 40 §2.4.8 필드 소유표 대조 -- graph 밖 저장소는 허용 셋(LUT memo 순수 함수, S3 기록·색인, 실행 계수)뿐이고 새로 생긴 값은 graph 필드다. 새 필드는 같은 변경에서 소유표에 행을 더한다 (d) G-10 중복 계산 계수(§2.4.9)를 그 변경이 건드린 회로에서 잰다: 같은 실행 안 같은 입력 버전 재계산 0, LUT memo 퇴출 뒤 재계산 0. 그리고 구현 단계(U17 ①②③과 각 구현 단위)가 끝날 때마다 design ↔ 구현 gap 분석(bkit gap-detector, 일치율 90% 이상, 미만이면 반복 개선)을 한다. **계산값 재사용 확인**(사용자 지시 2026-10-12 "coding시에 계산값 재사용원칙도 준수되었는지 확인하는 과정을 넣고 이 확인내용을 항상 보고해"): (a) G-10 계수 -- 같은 실행 안 같은 입력 버전 재계산 0, LUT memo 퇴출 뒤 재계산 0 (b) 계산 블록·분할·필드별 재사용(`reuses`·`grafts`)과 재계산(`computes`) 계수를 `perf`에 기록 (c) cProfile + 중복 인자 계측으로 루프 안 같은 인자 반복 호출 0(WP-10) (d) 루프 불변식이 루프 밖(S0 수준 필드, WP-23 (3))으로 나갔는지 확인. **두 확인(graph 단일 정본·계산값 재사용)의 결과는 숫자와 함께 단위 보고에 항상 넣는다**(단위 보고 필드 `graph_canon_check`·`reuse_check`).
 

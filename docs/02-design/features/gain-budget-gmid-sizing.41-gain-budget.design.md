@@ -1770,7 +1770,7 @@ def loop_roles(view_loops, transfer_views, declared_pm_views) -> tuple[LoopRole,
 **DoD 명령**(`$PY` = `C:\Python314\python.exe`):
 
 ```
-$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q -m "not slow"
+$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q   # slow 포함 판정은 --run-slow
 $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_structure_tables.py -q  # 9회로 S1v·A_max·Π·인증 비율 표
 $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_layer0_pilot.py -q      # front 점마다 allocated·realized·잔차
 ```
