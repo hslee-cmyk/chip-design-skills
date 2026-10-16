@@ -733,7 +733,7 @@ T-24·T-25·T-27·T-28에서 바뀌는 것만:
 | ID | 질문 | 막는 것 |
 |---|---|---|
 | DS-1 | 평가 캐시 (가)/(나)/(다)(§10) | OS-5 compare, OS-L |
-| Q-1 | W-1 대체 범위: 부분 사슬 test(E-S19, 탐색 컨텍스트까지 만들고 내부 함수 직접 호출)를 대체 대상에서 빼는 해석(OB-22)이 맞는가. 넣으려면 세션에 '탐색 전까지 준비' 동작을 더해야 하고 이것은 공개 동작 추가라 계획 개정(S-7)이 필요하다 | OS-2 범위 |
+| Q-1 | **결정됨(S-13, 2026-10-16 "모두 권고대로")**: 부분 사슬 test(`test_layer0_boundary_rows`, `test_s0_layer_9circuits`, `u13_hand`, `u13_real`)와 단계 B 없는 test(`test_cell_floor`, `test_blas_env`)는 W-1 대체 범위 밖(OB-22 그대로) | -- |
 | Q-2 | (닫힘, v0.2.1) v0.1 검증 비차단 N-1~N-4·N-6·N-7·N-12 원문을 받아 반영했다(history H4) | -- |
 | DS-U8 | trim 시험 회로 `offset_in_max_v` 값 | TR-1 뒤 반영 |
 | DS-U5 | library spec 이전 | -- |
