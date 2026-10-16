@@ -1,0 +1,285 @@
+{
+ "A1_removed_names_head_980ff5f": {
+  "sweep_memo(엔진 전체)": 0,
+  "_CountingMemo(엔진 전체)": 0,
+  "from_sweep(엔진 전체)": 0,
+  "first_eval(엔진 전체)": 0,
+  "_coord(E/search)": 0,
+  "def to_theta(E/search, theta_coords.py 밖)": 0,
+  "exact(slsqp_outer.py)": 0,
+  "kept_out_of_scope": [
+   "u3-lut-pdk-record.md:129 sweep_memo",
+   "tests/search/conftest.py:459 to_theta_fn",
+   "fd_jacobian 인자 to_theta",
+   "theta_coords.py:32 ThetaCoords.to_theta"
+  ],
+  "registry_after_c7211e6": "636행 옛 이름 문구 삭제 확인(c7211e6), 64행 ThetaCoords 행"
+ },
+ "A8": {
+  "zero_diff_files": "lut/table_cache.py·core/compute_block.py·core/blas_env.py·search/fd_jacobian.py·search/l_bin_search.py·search/eps_sweep.py diff 0",
+  "ast_compare": {
+   "signatures": {
+    "search/fd_jacobian.py::fd_jacobian": "same",
+    "search/slsqp_outer.py::solve_eps": "same",
+    "search/layer0_center.py::layer0_start": "same",
+    "search/gate_run.py::run_sensitivity_gate": "same",
+    "search/search_context.py::build_search_context": "same",
+    "search/kernel.py::evaluate": "same",
+    "search/find_front.py::find_front": "same",
+    "search/layer0_center.py::centre_start": "same",
+    "search/layer0_center.py::_maxmin": "same",
+    "lut/lut_memo.py::LutMemo.__init__": {
+     "base": "self, lut, *, point, curve, root, table_cache=None, _zero_ok=False",
+     "head": "self, lut, *, point, curve, root, table_cache=None"
+    },
+    "lut/lut_memo.py::LutMemo.lookup": "same",
+    "lut/lut_memo.py::LutMemo.lookup_persistent": "same",
+    "lut/lut_memo.py::LutMemo.stats": "same",
+    "core/bounded_lru.py::BoundedLRU.__init__": "same",
+    "core/bounded_lru.py::BoundedLRU.lookup": "same",
+    "core/bounded_lru.py::BoundedLRU.stats": "same"
+   },
+   "bodies": {
+    "search/slsqp_outer.py::_budget_stop": "same",
+    "search/layer0_center.py::_budget_stop": "same",
+    "search/l_bin_search.py::_budget_stop": "same",
+    "search/layer0_center.py::_current_centre": "same",
+    "search/layer0_center.py::layer0_start": "same",
+    "search/find_front.py::find_front": "DIFFERENT",
+    "search/search_context.py::build_search_context": "same",
+    "search/fd_jacobian.py::fd_jacobian": "same",
+    "core/bounded_lru.py::BoundedLRU.lookup": "DIFFERENT"
+   }
+  },
+  "bounded_lru": "lookup 본문이 _store 도우미로 분리(새 키 경로에서 move_to_end 는 무동작 -- 동작 동일). 오케스트레이터 J-O 판단: 동작 동일 리팩터링으로 수용",
+  "LutMemo.__init__": "비공개 _zero_ok 인자만 삭제(from_sweep 전용) -- 공개 서명 C7 그대로",
+  "nfr4_preserved": "재확인 (b) search_context.py:194 (c) find_front.py:78 (d) layer0_center.py:651 (e) slsqp_outer.py:95, env_fp find_front.py:154, notes l_search :117, scipy_minimize 모듈 전역 호출 :240·:390, layer0_start·sweep_front 모듈 전역 호출 find_front.py:82·84, _budget_stop 3곳·_current_centre(BP1)·layer0_start 본문 AST 동일, search CONTRACT NFR-4 (b)(c)(d)(e) 문장 유지, test_blas_env.py 22/22 통과"
+ },
+ "contract_3_16": "485520d 의 '`perf` 키는 바뀌지 않는다.'(사실과 어긋남 -- 순서 3 지적) -> c7211e6 'NFR-4 card 2 는 perf 키를 바꾸지 않았다(card A 가 lut_memo_bound 를 더했다…)' 로 해소 확인",
+ "graph_outside_stores": {
+  "new_in_head": [
+   {
+    "file": "lut/lut_memo.py",
+    "kind": "attr_container",
+    "text": "self._entries = OrderedDict()",
+    "count": 1
+   },
+   {
+    "file": "lut/lut_memo.py",
+    "kind": "attr_container",
+    "text": "self._seen = set()",
+    "count": 1
+   },
+   {
+    "file": "lut/lut_memo.py",
+    "kind": "attr_container",
+    "text": "self._lru = {**{r: BoundedLRU(v) for r, v in bounds.items()}, 'derived': BoundedLRU(len(lut.slice_map) * len(DERIVED_TAB",
+    "count": 1
+   },
+   {
+    "file": "search/theta_coords.py",
+    "kind": "dc_field",
+    "text": "ThetaCoords.variables:tuple",
+    "count": 1
+   },
+   {
+    "file": "search/theta_coords.py",
+    "kind": "dc_field",
+    "text": "ThetaCoords.x0:tuple",
+    "count": 1
+   },
+   {
+    "file": "search/theta_coords.py",
+    "kind": "dc_field",
+    "text": "ThetaCoords.raw:tuple",
+    "count": 1
+   },
+   {
+    "file": "search/theta_coords.py",
+    "kind": "dc_field",
+    "text": "ThetaCoords.fixed:tuple",
+    "count": 1
+   }
+  ],
+  "gone_in_head": [
+   {
+    "file": "lut/lut_memo.py",
+    "kind": "attr_container",
+    "text": "self._lru = {**{r: _Unmemoized() if _zero_ok and v == 0 and (type(v) is int) else BoundedLRU(v) for r, v in bounds.items",
+    "count": 1
+   },
+   {
+    "file": "lut/sweep_memo.py",
+    "kind": "attr_container",
+    "text": "self.seen = {region: {} for region in REGIONS}",
+    "count": 1
+   }
+  ],
+  "judgement": "새 것 = LutMemo 계수 상태 영역(_Counting._entries·_seen, 허용 저장소 (a) LUT memo 안)과 ThetaCoords 값 칸(풀이 하나 동안의 변환 값) -- graph 밖 새 저장소 0. sweep_memo seen dict 는 사라짐"
+ },
+ "rule_H": {
+  "base_6be811b": "대상 398, 위반 6(…, tests/search/test_sweep_memo_wiring.py orphan)",
+  "head_980ff5f": "대상 398, 위반 5(test_sweep_memo_wiring 고아 해소, 나머지 5 = base 와 같은 목록)"
+ },
+ "A9_collect_k": [
+  "base|test_ic|7/10092 tests collected (10085 deselected) in 11.04s",
+  "base|g10|no tests collected (10092 deselected) in 11.21s",
+  "base|ic11 or kvl_branch_residual|no tests collected (10092 deselected) in 10.23s",
+  "base|rule_g or design_value_location|4/10092 tests collected (10088 deselected) in 10.29s",
+  "base|rule_k_|3/10092 tests collected (10089 deselected) in 10.48s",
+  "base|duplicate_args or loop_invariant|no tests collected (10092 deselected) in 10.51s",
+  "base|ic1 or ic2 or ic9 or ic10 or shared_gate_net or kcl_residual|4/10092 tests collected (10088 deselected) in 10.27s",
+  "base|mna_assembly_count or mna_solve_count|no tests collected (10092 deselected) in 10.51s",
+  "base|adopt|65/10092 tests collected (10027 deselected) in 10.32s",
+  "base|theta_coords|no tests collected (10092 deselected) in 11.52s",
+  "base|counting_memo|1/10092 tests collected (10091 deselected) in 12.76s",
+  "head|test_ic|7/10121 tests collected (10114 deselected) in 11.99s",
+  "head|g10|no tests collected (10121 deselected) in 10.98s",
+  "head|ic11 or kvl_branch_residual|no tests collected (10121 deselected) in 10.17s",
+  "head|rule_g or design_value_location|4/10121 tests collected (10117 deselected) in 10.05s",
+  "head|rule_k_|3/10121 tests collected (10118 deselected) in 10.09s",
+  "head|duplicate_args or loop_invariant|no tests collected (10121 deselected) in 10.05s",
+  "head|ic1 or ic2 or ic9 or ic10 or shared_gate_net or kcl_residual|4/10121 tests collected (10117 deselected) in 10.68s",
+  "head|mna_assembly_count or mna_solve_count|no tests collected (10121 deselected) in 11.61s",
+  "head|adopt|69/10121 tests collected (10052 deselected) in 12.12s",
+  "head|theta_coords|14/10121 tests collected (10107 deselected) in 10.90s",
+  "head|counting_memo|12/10121 tests collected (10109 deselected) in 10.83s"
+ ],
+ "V5": {
+  "gate_weakening_diff": {
+   "tool": "V5",
+   "verdict": "PASS",
+   "findings": [],
+   "diff_paths": [],
+   "diff_hash": null,
+   "approved": false
+  },
+  "removed_tests_ast": {
+   "core/test_bounded_lru.py": {
+    "removed": [],
+    "added": [
+     "test_bounded_lru_adopt_canonical_equivalent_key_hits",
+     "test_bounded_lru_adopt_keeps_tag_distinctions",
+     "test_bounded_lru_adopt_over_capacity_evicts_oldest_and_records",
+     "test_bounded_lru_adopt_then_lookup_hits_without_compute"
+    ],
+    "fewer_asserts": {},
+    "n_base": 20,
+    "n_head": 24
+   },
+   "lut/test_lut_memo.py": {
+    "removed": [
+     "test_from_sweep_capacity"
+    ],
+    "added": [
+     "test_counting_memo_capacity_from_window_keys",
+     "test_counting_memo_constructor_memo_is_fixed",
+     "test_counting_memo_failed_compute_not_in_window_count",
+     "test_counting_memo_fix_evicts_window_outsider",
+     "test_counting_memo_same_nan_is_one_window_key",
+     "test_counting_memo_state_transitions_and_errors",
+     "test_counting_memo_stats_counting_then_fixed",
+     "test_counting_memo_values_equal_constructor_memo",
+     "test_counting_memo_window_hit_refreshes_recency",
+     "test_counting_memo_zero_and_negzero_are_two_window_keys"
+    ],
+    "fewer_asserts": {},
+    "n_base": 17,
+    "n_head": 26
+   },
+   "lut/test_sweep_memo.py": {
+    "removed": [
+     "test_capacity_is_n_plus_one_times_unique_keys",
+     "test_counting_memo_is_not_the_returned_one",
+     "test_direct_constructor_zero_capacity_still_rejected",
+     "test_region_untouched_by_first_eval",
+     "test_returned_memo_is_fresh"
+    ],
+    "added": [],
+    "fewer_asserts": {},
+    "n_base": 5,
+    "n_head": 0
+   },
+   "search/test_find_front.py": {
+    "removed": [],
+    "added": [
+     "test_lut_memo_bound_fixed_after_kernel_eval",
+     "test_lut_memo_bound_unfixed_without_kernel_eval"
+    ],
+    "fewer_asserts": {},
+    "n_base": 19,
+    "n_head": 21
+   },
+   "search/test_gate_run.py": {
+    "removed": [],
+    "added": [
+     "test_gate_start_coordinates_unclipped_and_theta_bits_preserved",
+     "test_theta_coords_used_by_gate"
+    ],
+    "fewer_asserts": {},
+    "n_base": 3,
+    "n_head": 5
+   },
+   "search/test_layer0_center.py": {
+    "removed": [],
+    "added": [
+     "test_layer0_start_fd_theta_bits_equal_start_theta",
+     "test_theta_coords_used_by_layer0"
+    ],
+    "fewer_asserts": {},
+    "n_base": 14,
+    "n_head": 16
+   },
+   "search/test_search_context.py": {
+    "removed": [],
+    "added": [
+     "test_build_search_context_runs_no_kernel",
+     "test_caller_capacity_constant_does_not_influence_search",
+     "test_eval_results_identical_search_memo_vs_caller_memo",
+     "test_first_kernel_eval_fixes_capacity_from_independent_count",
+     "test_search_memo_is_not_callers_and_caller_untouched",
+     "test_search_memo_rejects_second_window_after_first_kernel_eval"
+    ],
+    "fewer_asserts": {},
+    "n_base": 25,
+    "n_head": 31
+   },
+   "search/test_slsqp_outer.py": {
+    "removed": [],
+    "added": [
+     "test_outer_start_inside_box_theta_bits_preserved",
+     "test_outer_start_outside_box_component_is_exp_of_clipped",
+     "test_theta_coords_used_by_outer"
+    ],
+    "fewer_asserts": {},
+    "n_base": 11,
+    "n_head": 14
+   },
+   "search/test_sweep_memo_wiring.py": {
+    "removed": [
+     "test_caller_capacity_constant_does_not_influence_search",
+     "test_eval_results_identical_with_and_without_sweep_memo",
+     "test_search_memo_is_not_callers_and_capacity_is_sweep_bound"
+    ],
+    "added": [],
+    "fewer_asserts": {},
+    "n_base": 3,
+    "n_head": 0
+   },
+   "search/test_theta_coords.py": {
+    "removed": [],
+    "added": [
+     "test_theta_coords_one_coordinate_moved",
+     "test_theta_coords_premise_round_trip_breaks",
+     "test_theta_coords_returns_new_dict_each_call",
+     "test_theta_coords_start_not_clipped_outside_bounds",
+     "test_theta_coords_start_point_bits_preserved",
+     "test_theta_coords_start_rejects_clip_keyword"
+    ],
+    "fewer_asserts": {},
+    "n_base": 0,
+    "n_head": 6
+   }
+  }
+ }
+}

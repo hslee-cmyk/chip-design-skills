@@ -1,0 +1,2727 @@
+{
+ "common_gate_amplifier": {
+  "build_size_and_seal": [
+   1,
+   0
+  ],
+  "head_after_build": {
+   "kernel_calls_after": 0,
+   "seq_after": 0,
+   "cache_len_after": 0,
+   "memo_bound_state_after": "counting"
+  },
+  "window_head": {
+   "capacity": {
+    "curve": 180,
+    "point": 630,
+    "root": 180
+   },
+   "capacity_expected_canonical": {
+    "curve": 180,
+    "point": 630,
+    "root": 180
+   },
+   "capacity_ok": true,
+   "lookups": 159,
+   "n_theta": 9,
+   "seq": 1,
+   "u_canonical_curve": 18,
+   "u_canonical_point": 63,
+   "u_canonical_root": 18,
+   "u_python_eq_curve": 18,
+   "u_python_eq_point": 63,
+   "u_python_eq_root": 18,
+   "u_sum": 99
+  },
+  "window_base": {
+   "capacity": {
+    "curve": 180,
+    "point": 630,
+    "root": 180
+   },
+   "capacity_expected_canonical": {
+    "curve": 180,
+    "point": 630,
+    "root": 180
+   },
+   "capacity_ok": true,
+   "lookups": 159,
+   "n_theta": 9,
+   "seq": 1,
+   "u_canonical_curve": 18,
+   "u_canonical_point": 63,
+   "u_canonical_root": 18,
+   "u_python_eq_curve": 18,
+   "u_python_eq_point": 63,
+   "u_python_eq_root": 18,
+   "u_sum": 99
+  },
+  "memo": {
+   "base": {
+    "curve": {
+     "capacity": 180,
+     "size": 180,
+     "hits": 886,
+     "misses": 445,
+     "evictions": 265,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 10,
+     "hits": 4289,
+     "misses": 10,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 630,
+     "size": 630,
+     "hits": 1100,
+     "misses": 1644,
+     "evictions": 1014,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 180,
+     "size": 180,
+     "hits": 724,
+     "misses": 484,
+     "evictions": 288,
+     "recomputes_after_eviction": 0
+    }
+   },
+   "head": {
+    "curve": {
+     "capacity": 180,
+     "size": 180,
+     "hits": 886,
+     "misses": 445,
+     "evictions": 265,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 10,
+     "hits": 4289,
+     "misses": 10,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 630,
+     "size": 630,
+     "hits": 1100,
+     "misses": 1644,
+     "evictions": 1014,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 180,
+     "size": 180,
+     "hits": 724,
+     "misses": 484,
+     "evictions": 288,
+     "recomputes_after_eviction": 0
+    }
+   }
+  },
+  "perf": {
+   "kernel_calls": [
+    43,
+    43
+   ],
+   "requests": [
+    92,
+    92
+   ],
+   "hits": [
+    49,
+    49
+   ],
+   "unique_keys": [
+    43,
+    43
+   ],
+   "recompute_same_key": [
+    0,
+    0
+   ],
+   "outside_domain": [
+    0,
+    0
+   ],
+   "lut_memo_evictions": [
+    1567,
+    1567
+   ],
+   "lut_memo_bound": [
+    null,
+    "fixed"
+   ],
+   "block_calls": [
+    498,
+    498
+   ],
+   "block_reuses": [
+    67,
+    67
+   ],
+   "block_computes": [
+    431,
+    431
+   ],
+   "block_recomputes_same_input": [
+    21,
+    9
+   ],
+   "n_starts": [
+    1,
+    1
+   ],
+   "n_solves": [
+    2,
+    2
+   ],
+   "eval_budget": [
+    40,
+    40
+   ],
+   "stops_eval_budget": [
+    0,
+    0
+   ],
+   "stops_wall_budget": [
+    0,
+    0
+   ],
+   "frozen_columns": [
+    0,
+    0
+   ]
+  },
+  "A4_fd": {
+   "base": {
+    "gate_run": {
+     "all_match": 1,
+     "calls": 1,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 6
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 2,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 9
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 7,
+     "calls": 7,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 9
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   },
+   "head": {
+    "gate_run": {
+     "all_match": 1,
+     "calls": 1,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 6
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 2,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 9
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 7,
+     "calls": 7,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 9
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   }
+  },
+  "A6_process_totals_calls_reuses_computes_recomputes": {
+   "base": [
+    803,
+    77,
+    726,
+    27
+   ],
+   "head": [
+    785,
+    77,
+    708,
+    9
+   ]
+  },
+  "A6_process_recomputes_by_block": {
+   "base": {
+    "dc_columns": 1,
+    "dc_currents": 1,
+    "dc_lengths": 10,
+    "dc_seal_bulk_reverse": 1,
+    "dc_seal_conduction": 1,
+    "dc_seal_kcl": 1,
+    "dc_seal_kvl_branch": 1,
+    "dc_seal_node_conflict": 1,
+    "dc_seal_report": 1,
+    "dc_seal_saturation": 1,
+    "dc_seal_vgs_match": 1,
+    "dc_tolerances": 1,
+    "dc_widths": 1,
+    "metrics_aux": 1,
+    "metrics_dc": 1,
+    "metrics_ss": 1,
+    "passive_values": 1,
+    "ss_dev": 1
+   },
+   "head": {
+    "dc_lengths": 9
+   }
+  },
+  "A10_times_s": {
+   "base": {
+    "build_search_context_s": 2.247711599993636,
+    "find_front_s": 2.5557644000073196,
+    "process_s": 27.730070499994326
+   },
+   "head": {
+    "build_search_context_s": 0.9340277000010246,
+    "find_front_s": 3.0632754000107525,
+    "process_s": 29.17339379999612
+   }
+  },
+  "size_and_seal_total": [
+   44,
+   43
+  ]
+ },
+ "current_reuse_telescopic_ota": {
+  "build_size_and_seal": [
+   1,
+   0
+  ],
+  "head_after_build": {
+   "kernel_calls_after": 0,
+   "seq_after": 0,
+   "cache_len_after": 0,
+   "memo_bound_state_after": "counting"
+  },
+  "window_head": {
+   "capacity": {
+    "curve": 1953,
+    "point": 0,
+    "root": 2835
+   },
+   "capacity_expected_canonical": {
+    "curve": 1953,
+    "point": 0,
+    "root": 2835
+   },
+   "capacity_ok": true,
+   "lookups": 208,
+   "n_theta": 62,
+   "seq": 1,
+   "u_canonical_curve": 31,
+   "u_canonical_point": 0,
+   "u_canonical_root": 45,
+   "u_python_eq_curve": 30,
+   "u_python_eq_point": 0,
+   "u_python_eq_root": 44,
+   "u_sum": 76
+  },
+  "window_base": {
+   "capacity": {
+    "curve": 1890,
+    "point": 0,
+    "root": 2772
+   },
+   "capacity_expected_canonical": {
+    "curve": 1953,
+    "point": 0,
+    "root": 2835
+   },
+   "capacity_ok": false,
+   "lookups": 208,
+   "n_theta": 62,
+   "seq": 1,
+   "u_canonical_curve": 31,
+   "u_canonical_point": 0,
+   "u_canonical_root": 45,
+   "u_python_eq_curve": 30,
+   "u_python_eq_point": 0,
+   "u_python_eq_root": 44,
+   "u_sum": 76
+  },
+  "memo": {
+   "base": {
+    "curve": {
+     "capacity": 1890,
+     "size": 1890,
+     "hits": 3827,
+     "misses": 5910,
+     "evictions": 4020,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 6,
+     "hits": 24630,
+     "misses": 6,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 0,
+     "size": 0,
+     "hits": 0,
+     "misses": 1914,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 2772,
+     "size": 2772,
+     "hits": 16466,
+     "misses": 7931,
+     "evictions": 4920,
+     "recomputes_after_eviction": 0
+    }
+   },
+   "head": {
+    "curve": {
+     "capacity": 1953,
+     "size": 1953,
+     "hits": 3827,
+     "misses": 5910,
+     "evictions": 3957,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 6,
+     "hits": 24630,
+     "misses": 6,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 0,
+     "size": 0,
+     "hits": 0,
+     "misses": 1914,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 2835,
+     "size": 2835,
+     "hits": 16466,
+     "misses": 7931,
+     "evictions": 4857,
+     "recomputes_after_eviction": 0
+    }
+   }
+  },
+  "perf": {
+   "kernel_calls": [
+    40,
+    40
+   ],
+   "requests": [
+    40,
+    40
+   ],
+   "hits": [
+    0,
+    0
+   ],
+   "unique_keys": [
+    40,
+    40
+   ],
+   "recompute_same_key": [
+    0,
+    0
+   ],
+   "outside_domain": [
+    0,
+    0
+   ],
+   "lut_memo_evictions": [
+    8940,
+    8814
+   ],
+   "lut_memo_bound": [
+    null,
+    "fixed"
+   ],
+   "block_calls": [
+    120,
+    120
+   ],
+   "block_reuses": [
+    0,
+    0
+   ],
+   "block_computes": [
+    120,
+    120
+   ],
+   "block_recomputes_same_input": [
+    21,
+    18
+   ],
+   "n_starts": [
+    0,
+    0
+   ],
+   "n_solves": [
+    0,
+    0
+   ],
+   "eval_budget": [
+    40,
+    40
+   ],
+   "stops_eval_budget": [
+    0,
+    0
+   ],
+   "stops_wall_budget": [
+    0,
+    0
+   ],
+   "frozen_columns": [
+    0,
+    0
+   ]
+  },
+  "A4_fd": {
+   "base": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   },
+   "head": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   }
+  },
+  "A6_process_totals_calls_reuses_computes_recomputes": {
+   "base": [
+    164,
+    10,
+    154,
+    21
+   ],
+   "head": [
+    161,
+    10,
+    151,
+    18
+   ]
+  },
+  "A6_process_recomputes_by_block": {
+   "base": {
+    "dc_columns": 1,
+    "dc_currents": 7,
+    "dc_lengths": 13
+   },
+   "head": {
+    "dc_currents": 6,
+    "dc_lengths": 12
+   }
+  },
+  "A10_times_s": {
+   "base": {
+    "build_search_context_s": 1.4404747000080533,
+    "find_front_s": 7.819913400002406,
+    "process_s": 40.98309219999646
+   },
+   "head": {
+    "build_search_context_s": 1.663333300006343,
+    "find_front_s": 9.42991880000045,
+    "process_s": 44.44641989999218
+   }
+  },
+  "size_and_seal_total": [
+   41,
+   40
+  ]
+ },
+ "folded_cascode": {
+  "build_size_and_seal": [
+   1,
+   0
+  ],
+  "head_after_build": {
+   "kernel_calls_after": 0,
+   "seq_after": 0,
+   "cache_len_after": 0,
+   "memo_bound_state_after": "counting"
+  },
+  "window_head": {
+   "capacity": {
+    "curve": 2756,
+    "point": 3666,
+    "root": 3432
+   },
+   "capacity_expected_canonical": {
+    "curve": 2756,
+    "point": 3666,
+    "root": 3432
+   },
+   "capacity_ok": true,
+   "lookups": 816,
+   "n_theta": 25,
+   "seq": 1,
+   "u_canonical_curve": 106,
+   "u_canonical_point": 141,
+   "u_canonical_root": 132,
+   "u_python_eq_curve": 106,
+   "u_python_eq_point": 141,
+   "u_python_eq_root": 132,
+   "u_sum": 379
+  },
+  "window_base": {
+   "capacity": {
+    "curve": 2756,
+    "point": 3666,
+    "root": 3432
+   },
+   "capacity_expected_canonical": {
+    "curve": 2756,
+    "point": 3666,
+    "root": 3432
+   },
+   "capacity_ok": true,
+   "lookups": 816,
+   "n_theta": 25,
+   "seq": 1,
+   "u_canonical_curve": 106,
+   "u_canonical_point": 141,
+   "u_canonical_root": 132,
+   "u_python_eq_curve": 106,
+   "u_python_eq_point": 141,
+   "u_python_eq_root": 132,
+   "u_sum": 379
+  },
+  "memo": {
+   "base": {
+    "curve": {
+     "capacity": 2756,
+     "size": 2756,
+     "hits": 4500,
+     "misses": 2794,
+     "evictions": 38,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 14,
+     "hits": 24033,
+     "misses": 14,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 3666,
+     "size": 3666,
+     "hits": 13106,
+     "misses": 3870,
+     "evictions": 204,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 3432,
+     "size": 3432,
+     "hits": 9501,
+     "misses": 3552,
+     "evictions": 112,
+     "recomputes_after_eviction": 0
+    }
+   },
+   "head": {
+    "curve": {
+     "capacity": 2756,
+     "size": 2756,
+     "hits": 4500,
+     "misses": 2794,
+     "evictions": 38,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 14,
+     "hits": 24033,
+     "misses": 14,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 3666,
+     "size": 3666,
+     "hits": 13106,
+     "misses": 3870,
+     "evictions": 204,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 3432,
+     "size": 3432,
+     "hits": 9501,
+     "misses": 3552,
+     "evictions": 112,
+     "recomputes_after_eviction": 0
+    }
+   }
+  },
+  "perf": {
+   "kernel_calls": [
+    64,
+    64
+   ],
+   "requests": [
+    150,
+    150
+   ],
+   "hits": [
+    86,
+    86
+   ],
+   "unique_keys": [
+    64,
+    64
+   ],
+   "recompute_same_key": [
+    0,
+    0
+   ],
+   "outside_domain": [
+    0,
+    0
+   ],
+   "lut_memo_evictions": [
+    354,
+    354
+   ],
+   "lut_memo_bound": [
+    null,
+    "fixed"
+   ],
+   "block_calls": [
+    759,
+    759
+   ],
+   "block_reuses": [
+    117,
+    117
+   ],
+   "block_computes": [
+    642,
+    642
+   ],
+   "block_recomputes_same_input": [
+    15,
+    3
+   ],
+   "n_starts": [
+    1,
+    1
+   ],
+   "n_solves": [
+    2,
+    2
+   ],
+   "eval_budget": [
+    40,
+    40
+   ],
+   "stops_eval_budget": [
+    1,
+    1
+   ],
+   "stops_wall_budget": [
+    0,
+    0
+   ],
+   "frozen_columns": [
+    0,
+    0
+   ]
+  },
+  "A4_fd": {
+   "base": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 2,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 25
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 3,
+     "calls": 3,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 25
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   },
+   "head": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 2,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 25
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 3,
+     "calls": 3,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 25
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   }
+  },
+  "A6_process_totals_calls_reuses_computes_recomputes": {
+   "base": [
+    1185,
+    127,
+    1058,
+    21
+   ],
+   "head": [
+    1167,
+    127,
+    1040,
+    3
+   ]
+  },
+  "A6_process_recomputes_by_block": {
+   "base": {
+    "dc_columns": 1,
+    "dc_currents": 1,
+    "dc_lengths": 1,
+    "dc_seal_bulk_reverse": 1,
+    "dc_seal_conduction": 1,
+    "dc_seal_kcl": 1,
+    "dc_seal_kvl_branch": 1,
+    "dc_seal_node_conflict": 1,
+    "dc_seal_report": 4,
+    "dc_seal_saturation": 1,
+    "dc_seal_vgs_match": 1,
+    "dc_tolerances": 1,
+    "dc_widths": 1,
+    "metrics_aux": 1,
+    "metrics_dc": 1,
+    "metrics_ss": 1,
+    "passive_values": 1,
+    "ss_dev": 1
+   },
+   "head": {
+    "dc_seal_report": 3
+   }
+  },
+  "A10_times_s": {
+   "base": {
+    "build_search_context_s": 3.8987247999903047,
+    "find_front_s": 5.917476300004637,
+    "process_s": 40.414361599992844
+   },
+   "head": {
+    "build_search_context_s": 1.5184526999946684,
+    "find_front_s": 6.911490399987088,
+    "process_s": 38.99526869998954
+   }
+  },
+  "size_and_seal_total": [
+   65,
+   64
+  ]
+ },
+ "ngcc_3stage_ff": {
+  "searched": false,
+  "A6_process_totals": {
+   "base": [
+    25,
+    1,
+    24,
+    0
+   ],
+   "head": [
+    25,
+    1,
+    24,
+    0
+   ]
+  }
+ },
+ "nmcnr_amplifier": {
+  "build_size_and_seal": [
+   1,
+   0
+  ],
+  "head_after_build": {
+   "kernel_calls_after": 0,
+   "seq_after": 0,
+   "cache_len_after": 0,
+   "memo_bound_state_after": "counting"
+  },
+  "window_head": {
+   "capacity": {
+    "curve": 5652,
+    "point": 4392,
+    "root": 6624
+   },
+   "capacity_expected_canonical": {
+    "curve": 5652,
+    "point": 4392,
+    "root": 6624
+   },
+   "capacity_ok": true,
+   "lookups": 779,
+   "n_theta": 35,
+   "seq": 1,
+   "u_canonical_curve": 157,
+   "u_canonical_point": 122,
+   "u_canonical_root": 184,
+   "u_python_eq_curve": 157,
+   "u_python_eq_point": 122,
+   "u_python_eq_root": 184,
+   "u_sum": 463
+  },
+  "window_base": {
+   "capacity": {
+    "curve": 5652,
+    "point": 4392,
+    "root": 6624
+   },
+   "capacity_expected_canonical": {
+    "curve": 5652,
+    "point": 4392,
+    "root": 6624
+   },
+   "capacity_ok": true,
+   "lookups": 779,
+   "n_theta": 35,
+   "seq": 1,
+   "u_canonical_curve": 157,
+   "u_canonical_point": 122,
+   "u_canonical_root": 184,
+   "u_python_eq_curve": 157,
+   "u_python_eq_point": 122,
+   "u_python_eq_root": 184,
+   "u_sum": 463
+  },
+  "memo": {
+   "base": {
+    "curve": {
+     "capacity": 5652,
+     "size": 5461,
+     "hits": 7854,
+     "misses": 5461,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 14,
+     "hits": 23637,
+     "misses": 14,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 4392,
+     "size": 2820,
+     "hits": 14031,
+     "misses": 2820,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 6624,
+     "size": 6624,
+     "hits": 9827,
+     "misses": 6791,
+     "evictions": 81,
+     "recomputes_after_eviction": 0
+    }
+   },
+   "head": {
+    "curve": {
+     "capacity": 5652,
+     "size": 5461,
+     "hits": 6684,
+     "misses": 5461,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 14,
+     "hits": 20592,
+     "misses": 14,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 4392,
+     "size": 2797,
+     "hits": 11840,
+     "misses": 2797,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 6624,
+     "size": 6624,
+     "hits": 8180,
+     "misses": 6791,
+     "evictions": 81,
+     "recomputes_after_eviction": 0
+    }
+   }
+  },
+  "perf": {
+   "kernel_calls": [
+    66,
+    66
+   ],
+   "requests": [
+    103,
+    103
+   ],
+   "hits": [
+    37,
+    37
+   ],
+   "unique_keys": [
+    66,
+    66
+   ],
+   "recompute_same_key": [
+    0,
+    0
+   ],
+   "outside_domain": [
+    0,
+    0
+   ],
+   "lut_memo_evictions": [
+    81,
+    81
+   ],
+   "lut_memo_bound": [
+    null,
+    "fixed"
+   ],
+   "block_calls": [
+    558,
+    558
+   ],
+   "block_reuses": [
+    24,
+    97
+   ],
+   "block_computes": [
+    534,
+    461
+   ],
+   "block_recomputes_same_input": [
+    80,
+    6
+   ],
+   "n_starts": [
+    1,
+    1
+   ],
+   "n_solves": [
+    2,
+    2
+   ],
+   "eval_budget": [
+    40,
+    40
+   ],
+   "stops_eval_budget": [
+    0,
+    0
+   ],
+   "stops_wall_budget": [
+    0,
+    0
+   ],
+   "frozen_columns": [
+    0,
+    0
+   ]
+  },
+  "A4_fd": {
+   "base": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 0,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [
+       "('current', 'M102')",
+       "('current', 'M202')",
+       "('current', 'M109')",
+       "('current', 'M201')",
+       "('current', 'M101')",
+       "('current', 'M302')",
+       "('current', 'RL')"
+      ],
+      "n_vars": 35
+     },
+     "mismatch_calls": 2,
+     "mismatch_components": 14,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 2
+    },
+    "slsqp_outer": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   },
+   "head": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 2,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 35
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   }
+  },
+  "A6_process_totals_calls_reuses_computes_recomputes": {
+   "base": [
+    832,
+    34,
+    798,
+    83
+   ],
+   "head": [
+    819,
+    111,
+    708,
+    6
+   ]
+  },
+  "A6_process_recomputes_by_block": {
+   "base": {
+    "dc_columns": 9,
+    "dc_currents": 27,
+    "dc_lengths": 7,
+    "dc_seal_bulk_reverse": 2,
+    "dc_seal_conduction": 2,
+    "dc_seal_kcl": 2,
+    "dc_seal_kvl_branch": 2,
+    "dc_seal_node_conflict": 9,
+    "dc_seal_report": 14,
+    "dc_seal_saturation": 2,
+    "dc_seal_vgs_match": 2,
+    "dc_tolerances": 2,
+    "dc_widths": 2,
+    "ss_dev": 1
+   },
+   "head": {
+    "dc_lengths": 6
+   }
+  },
+  "A10_times_s": {
+   "base": {
+    "build_search_context_s": 12.615233899996383,
+    "find_front_s": 13.91545970000152,
+    "process_s": 58.73970200000622
+   },
+   "head": {
+    "build_search_context_s": 9.327261099999305,
+    "find_front_s": 9.745864800002892,
+    "process_s": 43.874497700002394
+   }
+  },
+  "size_and_seal_total": [
+   67,
+   66
+  ]
+ },
+ "pushpull_follower_buffer": {
+  "build_size_and_seal": [
+   1,
+   0
+  ],
+  "head_after_build": {
+   "kernel_calls_after": 0,
+   "seq_after": 0,
+   "cache_len_after": 0,
+   "memo_bound_state_after": "counting"
+  },
+  "window_head": {
+   "capacity": {
+    "curve": 285,
+    "point": 450,
+    "root": 330
+   },
+   "capacity_expected_canonical": {
+    "curve": 285,
+    "point": 450,
+    "root": 330
+   },
+   "capacity_ok": true,
+   "lookups": 103,
+   "n_theta": 14,
+   "seq": 1,
+   "u_canonical_curve": 19,
+   "u_canonical_point": 30,
+   "u_canonical_root": 22,
+   "u_python_eq_curve": 19,
+   "u_python_eq_point": 30,
+   "u_python_eq_root": 22,
+   "u_sum": 71
+  },
+  "window_base": {
+   "capacity": {
+    "curve": 285,
+    "point": 450,
+    "root": 330
+   },
+   "capacity_expected_canonical": {
+    "curve": 285,
+    "point": 450,
+    "root": 330
+   },
+   "capacity_ok": true,
+   "lookups": 103,
+   "n_theta": 14,
+   "seq": 1,
+   "u_canonical_curve": 19,
+   "u_canonical_point": 30,
+   "u_canonical_root": 22,
+   "u_python_eq_curve": 19,
+   "u_python_eq_point": 30,
+   "u_python_eq_root": 22,
+   "u_sum": 71
+  },
+  "memo": {
+   "base": {
+    "curve": {
+     "capacity": 285,
+     "size": 266,
+     "hits": 467,
+     "misses": 266,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 8,
+     "hits": 1214,
+     "misses": 8,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 450,
+     "size": 450,
+     "hits": 975,
+     "misses": 506,
+     "evictions": 56,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 330,
+     "size": 330,
+     "hits": 269,
+     "misses": 381,
+     "evictions": 51,
+     "recomputes_after_eviction": 0
+    }
+   },
+   "head": {
+    "curve": {
+     "capacity": 285,
+     "size": 266,
+     "hits": 467,
+     "misses": 266,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 8,
+     "hits": 1214,
+     "misses": 8,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 450,
+     "size": 450,
+     "hits": 975,
+     "misses": 506,
+     "evictions": 56,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 330,
+     "size": 330,
+     "hits": 269,
+     "misses": 381,
+     "evictions": 51,
+     "recomputes_after_eviction": 0
+    }
+   }
+  },
+  "perf": {
+   "kernel_calls": [
+    40,
+    40
+   ],
+   "requests": [
+    84,
+    84
+   ],
+   "hits": [
+    44,
+    44
+   ],
+   "unique_keys": [
+    40,
+    40
+   ],
+   "recompute_same_key": [
+    0,
+    0
+   ],
+   "outside_domain": [
+    0,
+    0
+   ],
+   "lut_memo_evictions": [
+    107,
+    107
+   ],
+   "lut_memo_bound": [
+    null,
+    "fixed"
+   ],
+   "block_calls": [
+    462,
+    462
+   ],
+   "block_reuses": [
+    60,
+    60
+   ],
+   "block_computes": [
+    402,
+    402
+   ],
+   "block_recomputes_same_input": [
+    12,
+    0
+   ],
+   "n_starts": [
+    1,
+    1
+   ],
+   "n_solves": [
+    2,
+    2
+   ],
+   "eval_budget": [
+    40,
+    40
+   ],
+   "stops_eval_budget": [
+    1,
+    1
+   ],
+   "stops_wall_budget": [
+    0,
+    0
+   ],
+   "frozen_columns": [
+    0,
+    0
+   ]
+  },
+  "A4_fd": {
+   "base": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 2,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 14
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 3,
+     "calls": 3,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 14
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   },
+   "head": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 2,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 14
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 3,
+     "calls": 3,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 14
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   }
+  },
+  "A6_process_totals_calls_reuses_computes_recomputes": {
+   "base": [
+    706,
+    70,
+    636,
+    17
+   ],
+   "head": [
+    689,
+    70,
+    619,
+    0
+   ]
+  },
+  "A6_process_recomputes_by_block": {
+   "base": {
+    "dc_columns": 1,
+    "dc_currents": 1,
+    "dc_lengths": 1,
+    "dc_seal_bulk_reverse": 1,
+    "dc_seal_conduction": 1,
+    "dc_seal_kcl": 1,
+    "dc_seal_kvl_branch": 1,
+    "dc_seal_node_conflict": 1,
+    "dc_seal_report": 1,
+    "dc_seal_saturation": 1,
+    "dc_seal_vgs_match": 1,
+    "dc_tolerances": 1,
+    "dc_widths": 1,
+    "metrics_dc": 1,
+    "metrics_ss": 1,
+    "passive_values": 1,
+    "ss_dev": 1
+   },
+   "head": {}
+  },
+  "A10_times_s": {
+   "base": {
+    "build_search_context_s": 0.6910701999877347,
+    "find_front_s": 1.155422700001509,
+    "process_s": 22.753293100002338
+   },
+   "head": {
+    "build_search_context_s": 0.26240429999597836,
+    "find_front_s": 1.132483499997761,
+    "process_s": 24.8045376999944
+   }
+  },
+  "size_and_seal_total": [
+   41,
+   40
+  ]
+ },
+ "sf_pushpull_output_opamp": {
+  "build_size_and_seal": [
+   1,
+   0
+  ],
+  "head_after_build": {
+   "kernel_calls_after": 0,
+   "seq_after": 0,
+   "cache_len_after": 0,
+   "memo_bound_state_after": "counting"
+  },
+  "window_head": {
+   "capacity": {
+    "curve": 86,
+    "point": 0,
+    "root": 86
+   },
+   "capacity_expected_canonical": {
+    "curve": 86,
+    "point": 0,
+    "root": 86
+   },
+   "capacity_ok": true,
+   "lookups": 4,
+   "n_theta": 42,
+   "seq": 1,
+   "u_canonical_curve": 2,
+   "u_canonical_point": 0,
+   "u_canonical_root": 2,
+   "u_python_eq_curve": 2,
+   "u_python_eq_point": 0,
+   "u_python_eq_root": 2,
+   "u_sum": 4
+  },
+  "window_base": {
+   "capacity": {
+    "curve": 86,
+    "point": 0,
+    "root": 86
+   },
+   "capacity_expected_canonical": {
+    "curve": 86,
+    "point": 0,
+    "root": 86
+   },
+   "capacity_ok": true,
+   "lookups": 4,
+   "n_theta": 42,
+   "seq": 1,
+   "u_canonical_curve": 2,
+   "u_canonical_point": 0,
+   "u_canonical_root": 2,
+   "u_python_eq_curve": 2,
+   "u_python_eq_point": 0,
+   "u_python_eq_root": 2,
+   "u_sum": 4
+  },
+  "memo": {
+   "base": {
+    "curve": {
+     "capacity": 86,
+     "size": 86,
+     "hits": 276,
+     "misses": 433,
+     "evictions": 347,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 5,
+     "hits": 359,
+     "misses": 5,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 0,
+     "size": 0,
+     "hits": 0,
+     "misses": 1005,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 86,
+     "size": 86,
+     "hits": 330,
+     "misses": 511,
+     "evictions": 362,
+     "recomputes_after_eviction": 0
+    }
+   },
+   "head": {
+    "curve": {
+     "capacity": 86,
+     "size": 86,
+     "hits": 276,
+     "misses": 433,
+     "evictions": 347,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 5,
+     "hits": 359,
+     "misses": 5,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 0,
+     "size": 0,
+     "hits": 0,
+     "misses": 1005,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 86,
+     "size": 86,
+     "hits": 330,
+     "misses": 511,
+     "evictions": 362,
+     "recomputes_after_eviction": 0
+    }
+   }
+  },
+  "perf": {
+   "kernel_calls": [
+    40,
+    40
+   ],
+   "requests": [
+    40,
+    40
+   ],
+   "hits": [
+    0,
+    0
+   ],
+   "unique_keys": [
+    40,
+    40
+   ],
+   "recompute_same_key": [
+    0,
+    0
+   ],
+   "outside_domain": [
+    0,
+    0
+   ],
+   "lut_memo_evictions": [
+    709,
+    709
+   ],
+   "lut_memo_bound": [
+    null,
+    "fixed"
+   ],
+   "block_calls": [
+    120,
+    120
+   ],
+   "block_reuses": [
+    0,
+    0
+   ],
+   "block_computes": [
+    120,
+    120
+   ],
+   "block_recomputes_same_input": [
+    9,
+    6
+   ],
+   "n_starts": [
+    0,
+    0
+   ],
+   "n_solves": [
+    0,
+    0
+   ],
+   "eval_budget": [
+    40,
+    40
+   ],
+   "stops_eval_budget": [
+    0,
+    0
+   ],
+   "stops_wall_budget": [
+    0,
+    0
+   ],
+   "frozen_columns": [
+    0,
+    0
+   ]
+  },
+  "A4_fd": {
+   "base": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   },
+   "head": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   }
+  },
+  "A6_process_totals_calls_reuses_computes_recomputes": {
+   "base": [
+    164,
+    10,
+    154,
+    9
+   ],
+   "head": [
+    161,
+    10,
+    151,
+    6
+   ]
+  },
+  "A6_process_recomputes_by_block": {
+   "base": {
+    "dc_columns": 1,
+    "dc_currents": 1,
+    "dc_lengths": 7
+   },
+   "head": {
+    "dc_lengths": 6
+   }
+  },
+  "A10_times_s": {
+   "base": {
+    "build_search_context_s": 4.574821599991992,
+    "find_front_s": 1.2580098000034923,
+    "process_s": 26.10304289999476
+   },
+   "head": {
+    "build_search_context_s": 4.408415799989598,
+    "find_front_s": 1.027501900010975,
+    "process_s": 27.47883350000484
+   }
+  },
+  "size_and_seal_total": [
+   41,
+   40
+  ]
+ },
+ "two_stage_ota": {
+  "build_size_and_seal": [
+   1,
+   0
+  ],
+  "head_after_build": {
+   "kernel_calls_after": 0,
+   "seq_after": 0,
+   "cache_len_after": 0,
+   "memo_bound_state_after": "counting"
+  },
+  "window_head": {
+   "capacity": {
+    "curve": 640,
+    "point": 1568,
+    "root": 752
+   },
+   "capacity_expected_canonical": {
+    "curve": 640,
+    "point": 1568,
+    "root": 752
+   },
+   "capacity_ok": true,
+   "lookups": 341,
+   "n_theta": 15,
+   "seq": 1,
+   "u_canonical_curve": 40,
+   "u_canonical_point": 98,
+   "u_canonical_root": 47,
+   "u_python_eq_curve": 40,
+   "u_python_eq_point": 98,
+   "u_python_eq_root": 47,
+   "u_sum": 185
+  },
+  "window_base": {
+   "capacity": {
+    "curve": 640,
+    "point": 1568,
+    "root": 752
+   },
+   "capacity_expected_canonical": {
+    "curve": 640,
+    "point": 1568,
+    "root": 752
+   },
+   "capacity_ok": true,
+   "lookups": 341,
+   "n_theta": 15,
+   "seq": 1,
+   "u_canonical_curve": 40,
+   "u_canonical_point": 98,
+   "u_canonical_root": 47,
+   "u_python_eq_curve": 40,
+   "u_python_eq_point": 98,
+   "u_python_eq_root": 47,
+   "u_sum": 185
+  },
+  "memo": {
+   "base": {
+    "curve": {
+     "capacity": 640,
+     "size": 640,
+     "hits": 1684,
+     "misses": 799,
+     "evictions": 159,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 14,
+     "hits": 6274,
+     "misses": 14,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 1568,
+     "size": 1568,
+     "hits": 4409,
+     "misses": 2152,
+     "evictions": 584,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 752,
+     "size": 752,
+     "hits": 1747,
+     "misses": 982,
+     "evictions": 229,
+     "recomputes_after_eviction": 0
+    }
+   },
+   "head": {
+    "curve": {
+     "capacity": 640,
+     "size": 640,
+     "hits": 1752,
+     "misses": 1081,
+     "evictions": 441,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 14,
+     "hits": 6427,
+     "misses": 14,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 1568,
+     "size": 1568,
+     "hits": 4085,
+     "misses": 2792,
+     "evictions": 1224,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 752,
+     "size": 752,
+     "hits": 1764,
+     "misses": 1331,
+     "evictions": 577,
+     "recomputes_after_eviction": 0
+    }
+   }
+  },
+  "perf": {
+   "kernel_calls": [
+    49,
+    50
+   ],
+   "requests": [
+    81,
+    97
+   ],
+   "hits": [
+    32,
+    47
+   ],
+   "unique_keys": [
+    49,
+    50
+   ],
+   "recompute_same_key": [
+    0,
+    0
+   ],
+   "outside_domain": [
+    0,
+    0
+   ],
+   "lut_memo_evictions": [
+    972,
+    2242
+   ],
+   "lut_memo_bound": [
+    null,
+    "fixed"
+   ],
+   "block_calls": [
+    579,
+    591
+   ],
+   "block_reuses": [
+    97,
+    118
+   ],
+   "block_computes": [
+    482,
+    473
+   ],
+   "block_recomputes_same_input": [
+    56,
+    3
+   ],
+   "n_starts": [
+    1,
+    1
+   ],
+   "n_solves": [
+    2,
+    2
+   ],
+   "eval_budget": [
+    40,
+    40
+   ],
+   "stops_eval_budget": [
+    1,
+    1
+   ],
+   "stops_wall_budget": [
+    0,
+    0
+   ],
+   "frozen_columns": [
+    0,
+    0
+   ]
+  },
+  "A4_fd": {
+   "base": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 0,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [
+       "('current', 'M4')",
+       "('current', 'M6')",
+       "('current', 'M3')"
+      ],
+      "n_vars": 15
+     },
+     "mismatch_calls": 2,
+     "mismatch_components": 6,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 2
+    },
+    "slsqp_outer": {
+     "all_match": 3,
+     "calls": 3,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 15
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   },
+   "head": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 2,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 15
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 4,
+     "calls": 4,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 15
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   }
+  },
+  "A6_process_totals_calls_reuses_computes_recomputes": {
+   "base": [
+    926,
+    111,
+    815,
+    62
+   ],
+   "head": [
+    925,
+    134,
+    791,
+    3
+   ]
+  },
+  "A6_process_recomputes_by_block": {
+   "base": {
+    "dc_columns": 12,
+    "dc_currents": 12,
+    "dc_lengths": 6,
+    "dc_seal_bulk_reverse": 1,
+    "dc_seal_conduction": 1,
+    "dc_seal_kcl": 1,
+    "dc_seal_kvl_branch": 1,
+    "dc_seal_node_conflict": 12,
+    "dc_seal_report": 7,
+    "dc_seal_saturation": 1,
+    "dc_seal_vgs_match": 1,
+    "dc_tolerances": 1,
+    "dc_widths": 1,
+    "metrics_aux": 1,
+    "metrics_dc": 1,
+    "metrics_ss": 1,
+    "passive_values": 1,
+    "ss_dev": 1
+   },
+   "head": {
+    "dc_seal_report": 3
+   }
+  },
+  "A10_times_s": {
+   "base": {
+    "build_search_context_s": 7.60308050000458,
+    "find_front_s": 4.542502600001171,
+    "process_s": 38.32749789999798
+   },
+   "head": {
+    "build_search_context_s": 4.177973400001065,
+    "find_front_s": 4.861794199998258,
+    "process_s": 34.136222499990254
+   }
+  },
+  "size_and_seal_total": [
+   50,
+   50
+  ]
+ },
+ "two_stage_ota_sf": {
+  "build_size_and_seal": [
+   1,
+   0
+  ],
+  "head_after_build": {
+   "kernel_calls_after": 0,
+   "seq_after": 0,
+   "cache_len_after": 0,
+   "memo_bound_state_after": "counting"
+  },
+  "window_head": {
+   "capacity": {
+    "curve": 779,
+    "point": 2128,
+    "root": 912
+   },
+   "capacity_expected_canonical": {
+    "curve": 779,
+    "point": 2128,
+    "root": 912
+   },
+   "capacity_ok": true,
+   "lookups": 366,
+   "n_theta": 18,
+   "seq": 1,
+   "u_canonical_curve": 41,
+   "u_canonical_point": 112,
+   "u_canonical_root": 48,
+   "u_python_eq_curve": 41,
+   "u_python_eq_point": 112,
+   "u_python_eq_root": 48,
+   "u_sum": 201
+  },
+  "window_base": {
+   "capacity": {
+    "curve": 779,
+    "point": 2128,
+    "root": 912
+   },
+   "capacity_expected_canonical": {
+    "curve": 779,
+    "point": 2128,
+    "root": 912
+   },
+   "capacity_ok": true,
+   "lookups": 366,
+   "n_theta": 18,
+   "seq": 1,
+   "u_canonical_curve": 41,
+   "u_canonical_point": 112,
+   "u_canonical_root": 48,
+   "u_python_eq_curve": 41,
+   "u_python_eq_point": 112,
+   "u_python_eq_root": 48,
+   "u_sum": 201
+  },
+  "memo": {
+   "base": {
+    "curve": {
+     "capacity": 779,
+     "size": 382,
+     "hits": 1484,
+     "misses": 382,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 14,
+     "hits": 6403,
+     "misses": 14,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 2128,
+     "size": 1178,
+     "hits": 5184,
+     "misses": 1178,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 912,
+     "size": 484,
+     "hits": 1691,
+     "misses": 485,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    }
+   },
+   "head": {
+    "curve": {
+     "capacity": 779,
+     "size": 770,
+     "hits": 1710,
+     "misses": 770,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "derived": {
+     "capacity": 256,
+     "size": 14,
+     "hits": 7076,
+     "misses": 14,
+     "evictions": 0,
+     "recomputes_after_eviction": 0
+    },
+    "point": {
+     "capacity": 2128,
+     "size": 2128,
+     "hits": 4850,
+     "misses": 2367,
+     "evictions": 239,
+     "recomputes_after_eviction": 0
+    },
+    "root": {
+     "capacity": 912,
+     "size": 912,
+     "hits": 1877,
+     "misses": 981,
+     "evictions": 67,
+     "recomputes_after_eviction": 0
+    }
+   }
+  },
+  "perf": {
+   "kernel_calls": [
+    40,
+    43
+   ],
+   "requests": [
+    80,
+    102
+   ],
+   "hits": [
+    40,
+    59
+   ],
+   "unique_keys": [
+    40,
+    43
+   ],
+   "recompute_same_key": [
+    0,
+    0
+   ],
+   "outside_domain": [
+    0,
+    0
+   ],
+   "lut_memo_evictions": [
+    0,
+    306
+   ],
+   "lut_memo_bound": [
+    null,
+    "fixed"
+   ],
+   "block_calls": [
+    471,
+    498
+   ],
+   "block_reuses": [
+    71,
+    96
+   ],
+   "block_computes": [
+    400,
+    402
+   ],
+   "block_recomputes_same_input": [
+    66,
+    2
+   ],
+   "n_starts": [
+    1,
+    1
+   ],
+   "n_solves": [
+    2,
+    2
+   ],
+   "eval_budget": [
+    40,
+    40
+   ],
+   "stops_eval_budget": [
+    1,
+    0
+   ],
+   "stops_wall_budget": [
+    0,
+    0
+   ],
+   "frozen_columns": [
+    0,
+    0
+   ]
+  },
+  "A4_fd": {
+   "base": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 0,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [
+       "('current', 'M6')",
+       "('current', 'M4')",
+       "('current', 'M3')"
+      ],
+      "n_vars": 18
+     },
+     "mismatch_calls": 2,
+     "mismatch_components": 6,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 2
+    },
+    "slsqp_outer": {
+     "all_match": 2,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 18
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   },
+   "head": {
+    "gate_run": {
+     "all_match": 0,
+     "calls": 0,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": null,
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "layer0_center": {
+     "all_match": 2,
+     "calls": 2,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 18
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    },
+    "slsqp_outer": {
+     "all_match": 3,
+     "calls": 3,
+     "calls_with_clipped": 0,
+     "clipped_components": 0,
+     "first_call": {
+      "clipped": [],
+      "mismatch": [],
+      "n_vars": 18
+     },
+     "mismatch_calls": 0,
+     "mismatch_components": 0,
+     "mismatch_only_clipped": 0,
+     "mismatch_unclipped": 0
+    }
+   }
+  },
+  "A6_process_totals_calls_reuses_computes_recomputes": {
+   "base": [
+    762,
+    83,
+    679,
+    72
+   ],
+   "head": [
+    783,
+    110,
+    673,
+    2
+   ]
+  },
+  "A6_process_recomputes_by_block": {
+   "base": {
+    "dc_columns": 15,
+    "dc_currents": 15,
+    "dc_lengths": 7,
+    "dc_seal_bulk_reverse": 1,
+    "dc_seal_conduction": 1,
+    "dc_seal_kcl": 1,
+    "dc_seal_kvl_branch": 1,
+    "dc_seal_node_conflict": 15,
+    "dc_seal_report": 7,
+    "dc_seal_saturation": 1,
+    "dc_seal_vgs_match": 1,
+    "dc_tolerances": 1,
+    "dc_widths": 1,
+    "metrics_aux": 1,
+    "metrics_dc": 1,
+    "metrics_ss": 1,
+    "passive_values": 1,
+    "ss_dev": 1
+   },
+   "head": {
+    "dc_seal_report": 2
+   }
+  },
+  "A10_times_s": {
+   "base": {
+    "build_search_context_s": 17.75431919998664,
+    "find_front_s": 2.540594999998575,
+    "process_s": 67.44294160000572
+   },
+   "head": {
+    "build_search_context_s": 17.642156100002467,
+    "find_front_s": 4.3276251000061166,
+    "process_s": 72.15982319999603
+   }
+  },
+  "size_and_seal_total": [
+   41,
+   43
+  ]
+ }
+}
