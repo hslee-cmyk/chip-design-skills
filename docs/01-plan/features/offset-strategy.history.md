@@ -72,6 +72,59 @@ v0.2 때 받지 못한 비차단 지적 원문을 받아 반영했다(N-8·N-9·
 | N-20 | 'TR-1 앞/뒤' 문단이 표 행 사이에 끼어 표가 깨짐 | 표 밖으로 옮김 |
 | N-21 | F-13 칸 목록에 `block_residual`·`code_fp` 누락, history 'v0.2 검증 N-5' | 추가(`kernel.py:85-87`, `archive.py:53`), 'v0.1 검증 N-5'로 정정 |
 
+### 2026-10-16 사용자 결정 S-7·S-8·S-9와 design v0.1 차이 → v0.5
+
+- S-7 원문(`wt/_drafts/user_decisions.md`): "계획과 다른 부분이 생기면 계획부터 수정해서 bkit절차대로 진행해." 그래서 offset-strategy design v0.1(`ostrat-design` `aef46c7`)이 계획과 다르게 간 점(design §16.2 PD-1~PD-4)과 design 독립 검증(82점) 지적(B-1 → W-1 요구, B-2 → PD-5, N-5 → PD-9, N-8 → PD-7, N-9 → T-30 연결, N-10 → PD-6, N-11 → PD-8)을 계획 결정 항목으로 정리했다. 새 worktree `wt/ostrat-plan-r1`(master `d783efe`, v0.4 병합본).
+- S-8 원문: "PD1~PD8은 권고대로". PD-1~PD-8을 권고대로 승인하고 해당 자리를 고쳤다.
+- S-9 원문: "W-1,F-1,T-30을 권고대로 진행". W-1 (i), F-1(fixture = current_reuse_telescopic_ota 사본, {matching, k = 3, offset_in_max_v = 3 × 3.3 mV}, 3.3 mV는 2026-10-08 Q3 (2) 유래), T-30 연결(루프는 offset-trim 계획 소유, 이 계획은 연결점만)을 반영했다. 이 계획이 더한 DS-T1(matching 루프를 앞당길지)은 권고대로(앞당기지 않음) 닫았다.
+- 남은 결정: PD-9(사용자가 권고 사유 설명 요청).
+- PD-1로 대체된 v0.4 N3.10 첫 행 원문: "변형마다 spec 객체의 `constraints`를 바꾼 사본을 만들어 단계 A·`build_search_context`에 넘긴다. … 기존 생성자 `SizingSpecDoc.from_sections`가 섹션 매핑에서 `section_fps`·`spec_fp`를 계산하므로(`spec_model.py:293-302`) 이것을 재사용하는 것이 기본이다. … | pipeline(+ 기존 authoring 생성자 재사용). 핵심 층 무변경". 대체 이유: design 검증 확인 -- spec을 extras로 받는 `achievability`(`stage_b.py:168`)가 사본 방식이면 `spec_fp`가 달라져 변형마다 다시 계산된다.
+- v0.4 N3.6 단계 A 행 원문 "S1v는 제약 tuple이 extras라 변형마다 입력이 다르면 다시 계산된다(F-3). 이 몫을 받아들일지 투영을 좁힐지는 DS-2"는 PD-1·PD-3으로 바뀌었다.
+- 확인한 코드(master `d783efe`): `E/authoring/spec_model.py:302`(`fp_of(fps)`), `:306-321`(`SECTION_GROUPS`), `E/tests/integration/nfr4_run_dump.py:387`(`run_stage_b(..., diagnostic=True)`), `:401-421`(`sctx.domain.w_min_m`·`sctx.dc.base`·`sctx.cache` 읽기), `E/pipeline/stage_b.py:129`(보고서 `diagnostic` 칸), `E/pipeline/__init__.py:1-4`(U16 자리만). offset-trim 계획 v0.5(`trim-plan-r1`) N3.8·142행(해석 X-21, 정본 경계)도 읽었다.
+
+### 2026-10-16 v0.5 독립 검증(84/100, 차단 3, 비차단 6) 반영 → v0.5.1
+
+| 지적 | v0.5 | v0.5.1 반영 |
+|---|---|---|
+| B-1 | N7.2 card 표(OS-0·OS-2·OS-5)·N7.1·XS-11에 PD-1·PD-2 이전 문언('변형 spec 생성(지문 재계산)', '국면 규칙·승인 로더·낡은 승인 정지 = OS-5(TR-2)', OS-2 '공통 판정 검사')이 남고, 단서 문단('…로 읽는다')으로만 고침 | 구현 브리핑이 이 표에서 나가므로 본문을 직접 고침: OS-0·OS-2는 `derived` 별도 입력, 국면 2 일은 N3.5 TR card별 배정(TR-2/3/4/5b), 공통 판정 검사는 OS-5 행 본문. N3.5 '구현 시점' 첫 문장도 같은 뜻으로. 단서 문단은 지움 |
+| B-2 | F-1 위치 근거 = 결정 기록 '저장소 밖' | 오케스트레이터 정정: 결정 기록의 '저장소 밖'은 기록 오기였고, 사용자에게 보고·승인받은 문언은 'library 밖 fixture(저장소 안, T-28 선례 `assets/fixture/` 계열)'다(결정 기록 쪽 정정 기록 있음). 계획 문언은 그대로 두고 '저장소 안, `assets/fixture/` 계열'을 명시, N11.1 F-1 상태를 '승인됨(S-9)'으로 |
+| B-3 | N3.11 소유 경계에 판정 온도 범위 칸·`verified_by` 담당 없음 | 두 행 추가: 판정 온도 범위 칸(스키마 = 이 계획 N3.2, 값·채택 = offset-trim D-18, 사용자 결정 대기), matching `verified_by`(권고: 이 계획 쪽 card 하나 OS-V, OS-2·oracle-portability 코어 뒤, offset-trim TR-TL 앞 -- 확인 항목 V-1) |
+| N-1 | W-1 노출 = `sctx.cache`·`domain.w_min_m`·`dc.base` | '하네스가 지금 읽고 넘기는 값 전부(design이 전수 목록화)'로, 보이는 목록(`code_fp`, report_paths, S1 스냅샷 지문, `context_fp`, `find_front` 결과, LutMemo 크기·S3 루트·settings, `find_front` 모듈 속성 감싸기 관찰 지점, `nfr4_run_dump.py:316-329, :377-424`) |
+| N-2 | N3.11에 Δ_T 정의 사본 | offset-trim N3.8.3 인용으로 |
+| N-3 | F-1 값과 library 기준선 관계 없음 | 같은 제약이 아니라 기준선 비교 불가 문장 |
+| N-4 | N0 값 원칙에 사용자 값·fixture 예외 없음 | 예외 한 줄 |
+| N-5 | 완료 조건 1 문장이 얽힘 | 'spec 지문은 제외하지 않음, F2·F3은 판정 기준 변경으로 보고'로 항목 정리 |
+| N-6 | OD-3 추적 행 없음 | N5 XS-15(수용됨 S-8, TR-5b 병합 때 정지 해제 확인) |
+
+- 확인한 것: offset-trim 계획 v0.5(`trim-plan-r1`) D-18 행(554행, 위치 = `offset_requirement` 안 새 칸 제안)과 TR-TL 행(473행), `nfr4_run_dump.py:316-329`(`find_front` 모듈 속성 `layer0_start`·`sweep_front` 감싸기).
+- 이 표는 첫 커밋 `a9786ea`에서 history 쓰기가 빠져(도구 오류) 다음 커밋에 함께 넣었다.
+
+### 2026-10-16 사용자 결정 S-10 → v0.5.1 추가
+
+- 원문: "pd9도 권고대로". PD-9 (가)를 승인했다. 공존 거부는 판정 제약(`judged` 참)만 하고, `pending_spice` offset 항목과 `pending_constraints`는 허용한다.
+- 반영: N2 S-10 행, N3.2 로더 규칙 첫 행 범위, N10.1 DS-U2·PD-9 행, N11 상태. design OB-6('출처 kind와 무관하게 `constraints` 항목 전부 거부') 수정은 design v0.2 몫이다.
+- v0.5 N3.2 첫 행의 옛 범위 문장은 '거부. 사유 코드는 design이 정한다.' 뒤에 범위 서술이 없었고, DS-U2 행은 "'판정 제약'의 범위(출처 kind `pending_spice` 항목 포함 여부)는 **PD-9**(N11)"였다.
+
+### 2026-10-16 사용자 승인 S-11과 재확인(94점) 비차단 → v0.5.2
+
+- S-11 원문: "offset-strategy 권고대로". V-1 = OS-V card(선행 OS-2 + oracle-portability 코어, offset-trim TR-TL 앞)를 승인했고, S-9 fixture 위치 = 저장소 안·library 밖을 확인했다.
+- 재확인(94점) 비차단 반영:
+  - N-7: OS-V를 N7.2 card 표 행(선행·읽는 결정)과 N7.1 순서 줄에 더했다.
+  - N-8: N11.2의 낡은 문장 'PD-9는 승인되면 바뀌는 곳'을 정리했다.
+  - N-10: OS-0 '읽는 결정' 목록에 XS-15, PD-1~PD-9, W-1, F-1, V-1, DS-T1을 더했다.
+- 참고 반영: oracle-portability 계획 승인(O-1). 오라클 MC = 시뮬레이터·PDK 네이티브 MC이고, PC-4는 삭제됐다. 크기 확인은 TR-7의 엔진 σ 대 오라클 MC σ 비교다. 이 내용을 OS-V 행에 적었다.
+- 대기 표시: offset-trim D-24(반복 구조)는 사용자 결정 대기다. 안 B가 정해지면 '실행 중 변형 추가' 개정이 이 계획에 따로 온다.
+
+### 2026-10-16 offset-trim D-18 결정(T-34) → v0.5.3
+
+- 사용자 원문(T-34): "D-18은 이전에 정했던 온도범위를 쓰고, 이 범위를 스펙에서 바꾸면 연동되어 바뀌는 것이 일관될 것 같아."
+- 결정 내용: 판정 온도 범위 = T-14 범위. spec의 offset 요구 안 칸에 한 번만 선언한다. TR-7 온도 보고 sweep과 보정 루프 범위 판정이 모두 그 선언을 참조한다(바꾸면 연동, 숫자 사본 금지).
+- 반영: N3.2 스키마 표에 판정 온도 범위 칸을 더했다.
+  - 칸 이름 후보는 `judgment_temperature_range_c`이고 최종 이름은 design이 정한다. 단위는 °C다.
+  - 검증 규칙: 두 값 모두 유한, 하한 < 상한, 출처 `user_spec`, 기본값 없음.
+  - T_j 포함 검사는 offset-trim O-8 소관이다.
+- N3.11 D-18 행과 N11 D-18 연결 행을 '결정됨(T-34)'으로 바꿨다. Status 대기 목록에서 D-18을 뺐다.
+
 ## H2. 측정 근거
 
 ### M1 (2026-10-16, 읽기 확인, base `067614c`, worktree `wt/ostrat-plan`)
@@ -97,6 +150,10 @@ v0.2 때 받지 못한 비차단 지적 원문을 받아 반영했다(N-8·N-9·
 
 | 버전 | 날짜 | 변경 |
 |---|---|---|
+| 0.5.3 | 2026-10-16 | offset-trim D-18 결정(T-34) 반영: N3.2 판정 온도 범위 칸, N3.11·N11 D-18 행 결정됨, Status 대기 목록에서 D-18 제거 |
+| 0.5.2 | 2026-10-16 | 사용자 승인 S-11(V-1 OS-V, fixture 위치 확인)과 재확인 94점 비차단 N-7·N-8·N-10 반영, oracle-portability O-1 참고, D-24 대기 표시. 계획 승인됨 |
+| 0.5.1 | 2026-10-16 | v0.5 검증 84점 차단 B-1~B-3·비차단 N-1~N-6 반영: card 표 본문 정정(PD-1·PD-2·PD-6), F-1 위치 근거 정정, N3.11 소유 경계 두 행(D-18 칸, `verified_by` card V-1), W-1 노출 전수, XS-15. 사용자 결정 S-10(PD-9 (가)) 반영. 재검증 전 |
+| 0.5 | 2026-10-16 | 사용자 결정 S-7 절차로 design v0.1 차이 정리(N11 PD-1~PD-9·W-1·F-1), T-29~T-33 연결점(N3.11). S-8로 PD-1~PD-8, S-9로 W-1·F-1·T-30 연결 승인 반영. 남은 결정 PD-9. 독립 검증 전 |
 | 0.4 | 2026-10-16 | 재검증 86점 차단 B-7(국면 규칙·승인 로더·낡은 승인 정지를 OS-5로, OS-2 범위 축소)과 비차단 N-11·N-14~N-21 반영: OS-1·OS-2 합침, DS-U9 기본안 삭제, NFR-S5 범위, `from_sections` 재사용, XS-14, 표 정리. 사용자 승인 전 |
 | 0.3 | 2026-10-16 | 비차단 N-1~N-7·N-10·N-12·N-13 반영: F-3·F-4·F-5 근거 보강, F-3a 신설, DS-1 표를 card B 뒤 구조로, XS-12·XS-13(확인 요청), DS-U9, DO-9, 완료 조건 2 범위, G-S1 단위·view 출처, card 시점. 재검증·사용자 승인 전 |
 | 0.2 | 2026-10-16 | 독립 검증 72점 차단 B-1~B-6 반영: DS-1·DS-2 기본안 삭제, DS-1 (다) 추가와 완료 조건 3 표, 층 분류표 N3.10, F-12·F-13, `offset_trim` 단독 거부, XS-8~XS-11, DS-U6~DS-U8, M2 측정 칸 축소·base 고정, card 재구성(OS-5). 비차단은 N-8·N-9·N-11만 반영. 재검증·사용자 승인 전 |
