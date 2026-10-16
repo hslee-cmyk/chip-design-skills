@@ -3,7 +3,7 @@
   "spec_card": "docs/02-design/specs/20261015-xrunf1a.spec.md",
   "evidence_type": "red-green",
   "base_commit": "6be811b6c9fceeee1379b0eae1c3e507eb6cfcd5",
-  "test_commit": "11ddbb107e5128c56a076d68d0af4af9e92f19f0",
+  "test_commit": "8083c2a66035a724af29c1da74fdf9811da49851",
   "code_commit": "c7211e6c65a1f2b086325a0b7fecade0aadf9c08",
   "red": {
     "test_ids": [
@@ -73,12 +73,12 @@
   },
   "checks": {
     "V1": {
-      "verdict": "FAIL",
-      "basis": "병합본 980ff5f(485520d + 문서 c7211e6) 격리 복제본, 명령 하나 --run-slow(-k·--deselect·-x 없음): 1 failed, 10117 passed, 1 deselected, 2 xfailed in 2830.95 s (exit 1). 실패 1 = tests/lut/test_lut_memo.py::test_counting_memo_values_equal_constructor_memo -- (다) test 결함(기대 dict 이름 겹침, suite_and_fix_list.json). (가) 0·(나) 0. tests/structure 63 통과, card 1.3.3 고정값 후보 test 전부 통과. test 작성자 수정 뒤 그 파일 + suite 재실행 필요(엔진 무변경이면 A-5 측정은 재사용)."
+      "verdict": "PASS",
+      "basis": "[r1] 병합본 1670330(= 980ff5f + test 8083c2a, 엔진 무변경 -- 980ff5f..1670330 test 밖 diff 0) 격리 복제본, 명령 하나 --run-slow(-k·--deselect·-x 없음): 10118 passed / 0 failed / 1 deselected(규칙 H 마커) / 2 xfailed in 2903.54 s, exit 0. (가) 0·(나) 0·(다) 0. 이전 판정(980ff5f): 1 failed(A-T17 test 결함 -- 8083c2a 로 수정) / 10117 passed."
     },
     "V2": {
-      "verdict": "FAIL",
-      "basis": "red(base 6be811b + test 11ddbb1): 29 failed + 수집 오류 1 = 30행(base_check.json) -- merge_gate 기준 AssertionError 7(A-T5·A-T6 비트 단언, A-T9 1==0, A-T10 0.0/-0.0 키 동치, PERF_KEYS 22개 셋) + gate 범위 밖 23(AttributeError 17·ImportError 4·KeyError 2) -- 오케스트레이터 J-O1 이 red 로 인정. green: 30행 중 29 병합본 통과, A-T17(test_counting_memo_values_equal_constructor_memo) 1행이 병합본에서 실패(V1 의 test 결함) -> red-green 미완. A-T7·A-T12 base green(card 허용)."
+      "verdict": "PASS",
+      "basis": "red(base 6be811b + test 11ddbb1): 30행(base_check.json) -- merge_gate 기준 AssertionError 7(A-T5·A-T6 비트 단언, A-T9 1==0, A-T10 0.0/-0.0 키 동치, PERF_KEYS 22개 셋) + gate 범위 밖 23(AttributeError 17·ImportError 4·KeyError 2, 오케스트레이터 J-O1 red 인정). green(r1, 1670330 suite junit): 30행 전부 통과(green_of_red_r1.json, test_theta_coords.py 수집 오류 행은 파일 test 14개 전부 통과). A-T17 은 8083c2a 로 기대 dict 덮어쓰기만 고침(red 사유·단언 불변). A-T7·A-T12 base green(card 허용)."
     },
     "V3": {
       "verdict": "N/A",
@@ -86,11 +86,11 @@
     },
     "V4": {
       "verdict": "N/A",
-      "basis": "도입 U17: test_lint.py 대상(assets/tests) 밖. oracle 대조: A-T1~A-T4 = test 가 math.log/math.exp 로 만든 x0·값(float.hex) + C1 문장(clip TypeError). A-T5 = 같은 엔진이 낸 출발점 θ 와 FD 변환 출력 비교 + 전제(왕복 손실·상자 안) 단언, ThetaCoords import 없음. A-T6 = 손 SimpleNamespace 변수·θ, math.log 기대 x. A-T7 = math.exp(clip(log θ)) 손 식. A-T8 = 감싼 ThetaCoords.start 객체 출력 비교. A-T9 = size_and_seal 독립 계수. A-T10 = LutMemo.lookup 클래스 감쌈 독립 계수 + test 자체 canonical 구현(_canon) -- auditor probe 와 같은 13. A-T12 = 같은 입력 두 실행 비교. A-T13·A-T14 = C6 키 목록 그대로. A-T15·A-T16·A-T19·A-T20 = 손 조회 순서·손 계수(auditor 가 C3 문장과 대조, 예 U={b,c,d}=3). A-T17 = 생성자 memo 와 비트 비교 -- 그러나 이름 겹침으로 기대값 dict 가 덮여 oracle 이 틀렸다(UNJUDGED: 고친 뒤 재판정). A-T21 = 손 compute 계수."
+      "basis": "도입 U17: test_lint.py 대상(assets/tests) 밖. oracle 대조: A-T1~A-T4 = test 가 math.log/math.exp 로 만든 x0·값(float.hex) + C1 문장(clip TypeError). A-T5 = 같은 엔진이 낸 출발점 θ 와 FD 변환 출력 비교 + 전제(왕복 손실·상자 안) 단언, ThetaCoords import 없음. A-T6 = 손 SimpleNamespace 변수·θ, math.log 기대 x. A-T7 = math.exp(clip(log θ)) 손 식. A-T8 = 감싼 ThetaCoords.start 객체 출력 비교. A-T9 = size_and_seal 독립 계수. A-T10 = LutMemo.lookup 클래스 감쌈 독립 계수 + test 자체 canonical 구현(_canon) -- auditor probe 와 같은 13. A-T12 = 같은 입력 두 실행 비교. A-T13·A-T14 = C6 키 목록 그대로. A-T15·A-T16·A-T19·A-T20 = 손 조회 순서·손 계수(auditor 가 C3 문장과 대조, 예 U={b,c,d}=3). A-T17 = 생성자 memo 와 비트 비교(8083c2a 로 이름 겹침 해소 -- 질의 5개 모두 따로 비교, 이름 고유 전제 단언). A-T21 = 손 compute 계수."
     },
     "V5": {
       "verdict": "PASS",
-      "basis": "gate weakening_diff.py --base 6be811b --head 980ff5f PASS 발견 0. gmid_engine/tests AST: 지운 test = test_sweep_memo.py 5·test_sweep_memo_wiring.py 3·test_lut_memo.py::test_from_sweep_capacity(card 3.2 지시, 성질은 A-T10·A-T12·A-T15~A-T20 으로 옮김), 남은 test 단언 수 감소 0, 허용 폭 변경 0, 기존 고정값 단언 변경 0."
+      "basis": "gate weakening_diff.py --base 6be811b --head 980ff5f PASS 발견 0. gmid_engine/tests AST: 지운 test = test_sweep_memo.py 5·test_sweep_memo_wiring.py 3·test_lut_memo.py::test_from_sweep_capacity(card 3.2 지시, 성질은 A-T10·A-T12·A-T15~A-T20 으로 옮김), 남은 test 단언 수 감소 0, 허용 폭 변경 0, 기존 고정값 단언 변경 0. [r1] 8083c2a(test_lut_memo.py +5/-2): 이름 변경 2·전제 단언 1 추가, 단언·허용 폭 삭제 0 -- gate weakening_diff 6be811b..1670330 PASS·980ff5f..1670330 PASS 발견 0."
     },
     "V6": {
       "verdict": "PASS",
@@ -110,18 +110,18 @@
     },
     "V10": {
       "verdict": "PASS",
-      "basis": "[A-5] 같은 하네스 base 6be811b 대 head 980ff5f 9회로(a5_changes.json): 형식 변경 = perf.lut_memo_bound 만. 값 변화 = (W) 블록 재계산 감소 전 8회로 (합 280 -> 47: cga 21->9, crto 21->18, folded 15->3, nmcnr 80->6, pp 12->0, sfpp 9->6, tso 56->3, tsosf 66->2), (키 동치) current_reuse 상한 curve 1890->1953·root 2772->2835·퇴출 8940->8814, (RT) nmcnr 평가 36개 ulp·two_stage_ota 평가 49개·kernel 49->50·EP:s1 재시작 1->2·퇴출 972->2242, two_stage_ota_sf 평가 42개·kernel 40->43·EP:s1 stop eval_budget->slsqp_4·퇴출 0->306. front·pending·unmeasured·층 0 결과·S0 칸 9회로 변화 0. 전부 card 허용(X-4) 안 -- 범위 밖 0. 주의: two_stage_ota_sf kernel 43 > E_B 40 은 card C 예산 결함(기존). [A-6 보고만] 프로세스 전체 블록 recomputes_same_input head: cga dc_lengths 9, crto dc_currents 6·dc_lengths 12, folded dc_seal_report 3, nmcnr dc_lengths 6, sfpp dc_lengths 6, tso dc_seal_report 3, tsosf dc_seal_report 2, pp 0 (card B 비교 자료). [A-10] 사슬 시간 base/head(s): cga 27.7/29.2, crto 41.0/44.4, folded 40.4/39.0, nmcnr 58.7/43.9, pp 22.8/24.8, sfpp 26.1/27.5, tso 38.3/34.1, tsosf 67.4/72.2, ngcc 탐색 없음."
+      "basis": "[A-5] 같은 하네스 base 6be811b 대 head 980ff5f 9회로(a5_changes.json): 형식 변경 = perf.lut_memo_bound 만. 값 변화 = (W) 블록 재계산 감소 전 8회로 (합 280 -> 47: cga 21->9, crto 21->18, folded 15->3, nmcnr 80->6, pp 12->0, sfpp 9->6, tso 56->3, tsosf 66->2), (키 동치) current_reuse 상한 curve 1890->1953·root 2772->2835·퇴출 8940->8814, (RT) nmcnr 평가 36개 ulp·two_stage_ota 평가 49개·kernel 49->50·EP:s1 재시작 1->2·퇴출 972->2242, two_stage_ota_sf 평가 42개·kernel 40->43·EP:s1 stop eval_budget->slsqp_4·퇴출 0->306. front·pending·unmeasured·층 0 결과·S0 칸 9회로 변화 0. 전부 card 허용(X-4) 안 -- 범위 밖 0. 주의: two_stage_ota_sf kernel 43 > E_B 40 은 card C 예산 결함(기존). [A-6 보고만] 프로세스 전체 블록 recomputes_same_input head: cga dc_lengths 9, crto dc_currents 6·dc_lengths 12, folded dc_seal_report 3, nmcnr dc_lengths 6, sfpp dc_lengths 6, tso dc_seal_report 3, tsosf dc_seal_report 2, pp 0 (card B 비교 자료). [A-10] 사슬 시간 base/head(s): cga 27.7/29.2, crto 41.0/44.4, folded 40.4/39.0, nmcnr 58.7/43.9, pp 22.8/24.8, sfpp 26.1/27.5, tso 38.3/34.1, tsosf 67.4/72.2, ngcc 탐색 없음. [r1] 엔진 무변경(980ff5f..1670330 test 밖 diff 0)이라 A-2·A-4·A-5·A-6·A-10 측정(980ff5f 엔진)을 재사용. two_stage_ota_sf kernel_calls 43 > E_B 40 은 card C 범위 기존 결함으로 기록만."
     }
   },
   "reproduced_numbers": [
     {
       "name": "head_suite_passed",
-      "value": 10117,
+      "value": 10118,
       "command": "V1"
     },
     {
       "name": "head_suite_failed",
-      "value": 1,
+      "value": 0,
       "command": "V1"
     },
     {
@@ -308,14 +308,19 @@
       "name": "lut_memo_evictions_head_two_stage_ota_sf",
       "value": 306,
       "command": "bash scripts/run_measure.sh <base|head> <clone> (a5_driver.py + nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+    },
+    {
+      "name": "red_rows_green_r1",
+      "value": 30,
+      "command": "V1 junit (green_of_red_r1.json)"
     }
   ],
   "approvals": [],
   "auditor_run": {
-    "time": "2026-10-16T14:20:00+09:00",
+    "time": "2026-10-16T15:06:00+09:00",
     "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrunf1a-audit (격리 복제본 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1a_audit/{red,head,base})",
     "commands": [
-      "V1: cd <head clone 980ff5f>/skills/analog-gmid-design && (unset OPENBLAS_NUM_THREADS OMP_NUM_THREADS GMID_S0_SNAPSHOT_DIR; PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow -rfEX --durations=25 --junitxml=results/suite_head/suite.xml)",
+      "V1: cd <head clone 1670330>/skills/analog-gmid-design && (unset OPENBLAS_NUM_THREADS OMP_NUM_THREADS GMID_S0_SNAPSHOT_DIR; PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow -rfEX --durations=25 --junitxml=results/suite_head/suite.xml)",
       "격리: for n in red head base: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrunf1a-audit _scratch_xrunf1a_audit/$n && git -C $n remote remove origin; red = checkout --detach 11ddbb1, base = 6be811b, head = 485520d 뒤 'git -C head fetch <xrunf1a-audit> integ/xrunf1a && checkout --detach 980ff5f'",
       "red: cd <red>/skills/analog-gmid-design && PYTHONDONTWRITEBYTECODE=1 python -m pytest <8 changed test files of 11ddbb1> -q -p no:cacheprovider -rfE --tb=short --continue-on-collection-errors --run-slow --junitxml=results/red/red.xml (OPENBLAS_NUM_THREADS unset)",
       "red hash: PYTHONPATH=<gate cache 6df4bd7f> python -P scripts/red_hashes.py results/red/red.xml results/red/red_hashes.json; merge_gate capture: bash scripts/run_red_capture.sh",
@@ -325,7 +330,10 @@
       "규칙 H·A-9: bash scripts/run_struct_collect.sh (base·head, pytest structure -m structure_test_mapping, --collect-only -k <11 식>)",
       "A-8: python -P scripts/ast_compare.py <base skill> <head skill>; git diff --numstat 6be811b 485520d -- <파일>; graph 정본: python -P scripts/ast_stores.py <scratch> ast_stores.json base",
       "V5: python <gate cache>/weakening_diff.py --root head --base 6be811b --head 980ff5f; python -P scripts/removed_tests_n.py head results/v5_removed_tests.json",
-      "A-1: git -C head grep -nw <이름> -- <범위> (1.3.5 7항목)"
+      "A-1: git -C head grep -nw <이름> -- <범위> (1.3.5 7항목)",
+      "r1 격리 갱신: git -C head fetch <xrunf1a-audit> integ/xrunf1a && git -C head checkout --detach 1670330 (980ff5f 판정 suite 는 results/suite_head_980ff5f)",
+      "r1 단독: pytest gmid_engine/tests/lut/test_lut_memo.py (head 1670330) -> 44 passed",
+      "r1 V5: python <gate cache>/weakening_diff.py --root head --base 6be811b|980ff5f --head 1670330"
     ]
   }
 }
