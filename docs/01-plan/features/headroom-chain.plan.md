@@ -1,43 +1,44 @@
 ---
 template: plan
-version: 0.1
+version: 0.2
 ---
 
 # headroom-chain Planning Document
 
-> **Summary**: 엔진 출발 규칙에 연결에서 유도한 두 규칙을 넣는다. 회로·소자 이름은 쓰지 않는다.
-> 1. **R-1′ 적층 사슬 헤드룸 제약**: drain–source 변으로 이어진 직렬 사슬 가운데 양 끝 노드 전압이 레일·입력 DC·VGS 합으로 정해지는 것마다 `Σ_k (VDsat_k + tol_k) ≤ ΔV`를 출발 구간 제약으로 건다. 소자 하나짜리 사슬은 이 규칙의 길이 1 특수형이다.
-> 2. **R-3 gate 공유 직렬 적층의 source 쪽 소자**: 이 소자는 의도된 triode로 보고 연결로 정의한다. 포화 검사(봉인 7·입력 창), SPICE `all_saturated`, 사슬 VDsat 합에서 뺀다. 대신 그 소자가 VDS를 정해 주는 아래 소자의 포화 검사를 남기고, triode 소자의 LUT 조회가 LUT VDS 축 정의역 안인지 확인하는 게이트(fail-closed)를 둔다.
+> **Summary**: 엔진 출발 규칙에 연결과 물리 관계(KVL·영역 조건)에서 유도한 두 규칙을 넣는다. 회로·소자 이름은 쓰지 않는다.
+> 1. **R-1′ 적층 사슬 헤드룸 제약**: 노드 전압이 KVL(레일·입력 DC·VGS 합)로 정해지는 두 넷 사이를, 전압이 그렇게 정해지지 않는 넷만 지나 drain–source 변으로 잇는 사슬마다 `Σ_k (VDsat_k + tol_k) ≤ ΔV`를 출발 구간 제약으로 건다. 이 부등식은 사슬 안쪽 넷 전압을 소거한 결과라서, 안쪽 넷 전압이 존재해 사슬 소자가 모두 포화할 필요충분조건이다. 소자 하나짜리 사슬은 길이 1 특수형이다.
+> 2. **R-3 gate 공유 직렬 적층의 source 쪽 소자**: KVL로 VDS(X) = VGS(X) − VGS(Y)가 정확히 성립하는 소자 X다. 강반전에서는 Y가 전도하는 한 X의 포화가 불가능하다(N3.9 유도). 그래서 X에는 포화를 요구하지 않는다. 대상은 봉인 7·입력 창·스윙, SPICE `all_saturated`, 사슬 VDsat 합이다. X의 영역은 LUT로 판정해 기록하고, X의 동작점이 LUT 정의역 안인지 보는 게이트(fail-closed)를 둔다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: **계획 v0.1 초안**(2026-10-16). 독립 검증과 사용자 승인 전이다. 근거는 사용자 결정 C-1·C-2(원문 `wt/_drafts/user_decisions.md` 613·615행), 측정 M-1~M-9·coord(`wt/_scratch_cr_m/results/`), 회로 해석(`wt/_scratch_cr_layer0/interpretation.md`), 백로그(`wt/_drafts/engine/U17_FOLLOWUPS.md` 52-55행 'current_reuse 층 0 조사 요약')다.
-> **이력**: 경위와 측정 근거는 [headroom-chain.history.md](headroom-chain.history.md)에 있다.
-> **상위 계획**: [gain-budget-gmid-sizing.plan.md](gain-budget-gmid-sizing.plan.md). 상위 원칙(N1.4 NFR, N2 결정, N6.3 병합 전 확인)을 그대로 따른다. 이 계획이 확장하는 상위 항목은 N2 표에 적었고, 상위 문언과 다른 곳은 N5(원래 취지와 다름)와 N3.8(상위 문서 개정 목록)에 올린다. **관련 계획**: [oracle-portability.plan.md](oracle-portability.plan.md)(SPICE 합격 판정 코드가 그 계획 OP-3에서 오라클 코어로 옮겨진다 -- N3.6, N7).
+> **Status**: **계획 v0.2**(2026-10-16). v0.1 독립 검증 '수정 필요'(차단 D1, 그 밖 D2~D11·F-10)와 사용자 원칙 P-1("규칙을 만들 때 가장 중요한 원칙은 물리적인 사실과의 정합성. 임의로 제한하거나 특정 응용에만 되도록 만들기 전에 항상 가장 일반적인 규칙으로 적용될 수 있는지 확인")을 반영했다. 재검증과 사용자 승인 전이다. 근거는 사용자 결정 C-1·C-2(원문 `wt/_drafts/user_decisions.md` 613·615행), 측정 M-1~M-9·coord(`wt/_scratch_cr_m/results/`), 회로 해석(`wt/_scratch_cr_layer0/interpretation.md`), 백로그(`wt/_drafts/engine/U17_FOLLOWUPS.md` 52-55행)다.
+> **이력**: 경위, 측정 근거, 검증 반영 기록은 [headroom-chain.history.md](headroom-chain.history.md)에 있다.
+> **상위 계획**: [gain-budget-gmid-sizing.plan.md](gain-budget-gmid-sizing.plan.md). 상위 원칙(N1.4 NFR, N2 결정, N6.3 병합 전 확인)을 따른다. 이 계획이 확장하는 상위 항목은 N2 표에 있다. 상위 문언과 다른 곳은 N5(원래 취지와 다름)와 N3.8(상위 문서 개정 목록)에 올린다. **관련 계획**: [oracle-portability.plan.md](oracle-portability.plan.md)(SPICE 합격 판정 코드는 그 계획 OP-3에서 오라클 코어로 옮겨진다, N3.6).
 
 ---
 
 ## N0. 문서 안내
 
-* **담는 것**: 목적·범위, 확정 결정과 상위 계획과의 관계, 규칙·정의, 정본 위치와 재사용, 게이트, 원래 취지와 다른 항목, 선행 측정(card 0), card 단계, 완료 조건, 위험, 원문 근거, 열린 결정.
-* **담지 않는 것**: 경위, 측정 원자료 해석, 버전 이력. history에 둔다.
-* **값 원칙**: 이 문서에는 수치 상수를 두지 않는다. 여유 `tol`은 봉인 7 정의(상위 DEC-88)의 `tol_VDsat`(LUT `VDSAT` 열 leave-one-out 셀값)을 참조한다. VDS 정의역 하한은 LUT 데이터(on_mask)에서 유도된 값이다. 측정값은 history에만 있다.
-* **이름 원칙**: 규칙·코드·판정에 회로·소자·넷 이름을 쓰지 않는다. 이름은 사실 표와 측정 대상에만 '사례'로 나온다.
-* **인용 규칙**: 코드는 `파일:줄`이고 기준은 base `083b103`(worktree `wt/headroom-chain-plan`)이다. 이 계획에서 인용한 줄은 모두 이 worktree에서 직접 읽어 확인했다. `E/` = `skills/analog-gmid-design/gmid_engine/`, `O/` = `skills/analog-gmid-design/tools/spice_oracle/`, `A/` = `skills/analog-gmid-design/assets/`. 측정 원자료는 `M/` = `wt/_scratch_cr_m/results/`.
+* **담는 것**: 목적·범위, 확정 결정과 상위 계획과의 관계, 규칙·정의와 물리 유도, 제한 조건 점검표(P-1), 정본 위치와 재사용, 게이트, 원래 취지와 다른 항목, 선행 측정(card 0), card 단계, 완료 조건, 위험, 원문 근거, 열린 결정.
+* **담지 않는 것**: 경위, 측정값과 그 해석, 버전 이력. 이것은 history에 둔다. 계획에는 측정의 결론과 지시만 적는다.
+* **값 원칙**: 이 문서에는 수치 상수를 두지 않는다. 여유 `tol`은 봉인 7 정의(상위 DEC-88)의 `tol_VDsat`(LUT `VDSAT` 열 leave-one-out 셀값)을 참조한다. VDS 정의역 하한은 LUT 데이터(on_mask)에서 유도한 값이다.
+* **이름 원칙**: 규칙·코드·판정에 회로·소자·넷 이름을 쓰지 않는다. 이름은 측정 대상(N6)과 history에만 사례로 나온다.
+* **물리 원칙(P-1)**: 모든 제한·예외·한정 조건은 물리 유도(KVL·KCL·영역 조건 식)가 있어야 둔다. 유도가 깨지는 조건은 제한으로 두지 않고 '유도 성립 조건 + 깨지면 LUT로 확인'으로 둔다. 회로의 목적(응용)은 영역 규칙의 근거로 쓰지 않는다. 점검표는 N3.9다.
+* **인용 규칙**: 코드는 `파일:줄`이고 기준은 base `083b103`(worktree `wt/headroom-chain-plan`)이다. 인용한 줄은 모두 이 worktree에서 직접 읽어 확인했다. `E/` = `skills/analog-gmid-design/gmid_engine/`, `O/` = `skills/analog-gmid-design/tools/spice_oracle/`, `A/` = `skills/analog-gmid-design/assets/`.
 * **오케스트레이터 기본안**: 사용자 결정·상위 문서가 정하지 않은 것을 원칙으로 정할 때 '(기본안)'으로 표시한다. 사용자가 바꿀 수 있다.
 
 ### N0.1 용어
 
 | 용어 | 정의 |
 |---|---|
-| Gs | MOS마다 (gate, source) 무향 변, 모든 레일을 고정 노드 F 하나로 합친 그래프(상위 DEC-64 G_vgs, 코드 `E/graph/gvgs_cycles.py:8-11`). 평행 변은 하나만 남긴다 |
-| VDS 변 | MOS 하나의 (drain, source) 쌍. 값은 그 소자의 VDS |
-| 사슬 | VDS 변을 drain→source 방향으로 이은 경로 n_0 → n_1 → … → n_k(k ≥ 1). 양 끝 넷 n_0, n_k가 Gs의 같은 성분에 있고, 안쪽 넷 n_1…n_{k−1}은 그 성분에 없다(극소성, N3.1-1) |
-| ΔV | 사슬 양 끝 넷 전압 차 V(n_0) − V(n_k). Gs 경로 위 ±VGS 합으로 쓴다. 경로가 F를 지나면 레일 전압 차가, 입력 포트를 지나면 입력 DC(선언값 또는 엔진 변수 y)가 들어간다 |
-| 길이 1 사슬 | k = 1. 지금 graph의 VDS-1 사이클 `gvgs_summary.vds_saturation`(`E/graph/gvgs_cycles.py:19-22, :106-115`)과 같은 대상이다 |
-| 적층 triode 소자 (R-3 소자) | gate 공유 직렬 적층의 source 쪽 소자. 정의는 N3.2-1. 의도 영역 = triode |
-| 지켜지는 소자 | R-3 소자 X의 VGS 변을 Gs 경로에 가진 길이 1 사슬의 소자 Z(Z ≠ X). X의 VGS가 Z의 VDS를 정한다(N3.2-3) |
-| 포화 면제 집합 | 봉인 7·입력 창·스윙 metric이 포화 판정에서 빼는 소자 집합. 지금은 spec `intended_region` 선언 triode 소자뿐이다(`E/sizing/dc_inputs.py:8, :37-38`) |
-| 출발 구간 | 단계 A8 `start_intervals`가 내는 소자별 gm/ID·L·전류 구간과 출발 사다리(`E/search/start_intervals.py:1-31`) |
+| Gs⁺ | 쓰기 계획이 노드 전압을 쓰는 그래프다. 레일·노드 목표·선언 입력 포트를 고정 노드 F로 합치고, MOS (gate, source) 변, 저항 변, 미선언 입력 포트끼리의 '같은 DC' 변을 담는다. 성분 뿌리가 입력 포트면 그 값은 y(`input_common_mode`)다(`E/sizing/writer_plan.py:8-11, :20-21, :233`). **이 계획은 Gs⁺를 따로 만들지 않고 쓰기 계획 출력 `node.dc_writer`를 읽는다**(사본 금지) |
+| KVL 넷 | `node.dc_writer`가 Gs⁺ 위 관계로 쓰는 넷이다. 그 전압은 F 값(레일·노드 목표·입력 DC) 또는 성분 뿌리 y에 Gs⁺ 경로의 ±VGS·저항 강하를 더한 식이다. Gs⁺ 밖 넷(`E/sizing/writer_plan.py:235-238`, 자기 y를 갖는 W4)은 KVL 넷이 아니다. 이런 넷은 drain에만 닿아 전압이 KCL로 정해진다 |
+| 위쪽 방향 | VDS 변의 전압 순서다. nmos는 source → drain, pmos는 drain → source가 위쪽이다(`E/search/iv_headroom.py:66-70`와 같은 규칙). 전도 중인 소자에서 위쪽 넷의 전압이 더 높다 |
+| 사슬 | KVL 넷 a에서 KVL 넷 b로 가는 위쪽 방향 VDS 변 경로다. 안쪽 넷은 모두 KVL 넷이 아니다(N3.1-1). ΔV = V(b) − V(a) |
+| 길이 1 사슬 | VDS 변 하나짜리 사슬이다. 지금 graph의 VDS-1 기록 `gvgs_summary.vds_saturation`(`E/graph/gvgs_cycles.py:19-22, :106-115`)은 그 부분집합이다(N3.1-6) |
+| 적층 소자 X (R-3 소자) | gate 넷이 같은 MOS X, Y가 있고 X의 drain 넷 = Y의 source 넷이며, N3.2-1의 유도 성립 조건을 만족하는 X |
+| 지켜지는 소자 | R-3 소자 X에 대해, X의 VGS 변이 Z의 drain 넷과 source 넷 사이 **모든** Gs⁺ 경로의 절단 변인 소자 Z(Z ≠ X)다. 경로 선택과 무관한 정의이고, VDS(Z)가 VGS(X)에 의존한다는 뜻이다 |
+| 포화 면제 집합 | 봉인 7·입력 창·스윙 metric이 포화 판정에서 빼는 소자 집합이다. 지금은 spec `intended_region` 선언 triode 소자뿐이다(`E/sizing/dc_inputs.py:8, :37-38`). 이 계획은 여기에 R-3 집합을 합친다 |
+| 출발 구간 | 단계 A8 `start_intervals`가 내는 소자별 gm/ID·L·전류 구간과 출발 사다리다(`E/search/start_intervals.py:1-31`) |
 
 ---
 
@@ -45,40 +46,40 @@ version: 0.1
 
 ### N1.1 목적
 
-`current_reuse_telescopic_ota`(파일럿)는 master에서 층 0 40점이 모두 봉인 7 `no_root_in_window`로 실패하고 front가 0이다(백로그 52-55행). 사용자 해석 승인 C-1과 측정 M-1~M-9의 결론은 다음과 같다(측정 숫자는 history H2).
-* 실패 노드는 모두 **연결에서 유도되는 VDS 부등식**을 출발점이 어긴 곳이다. 예: 입력쌍 공통 source를 기준으로 cascode gate를 만드는 레벨 시프터에서 VDS(입력 소자) = VGS(시프터) − VGS(cascode)인데, 출발 θ가 이 차를 음수로 만든다.
-* 지금 출발 규칙은 소자별 절대 하한(헤드룸 예산, `E/search/iv_headroom.py:5-19`)만 쓴다. 이 예산은 경로의 다른 소자를 최소 비용으로 둔 완화식이라 이런 상대 부등식을 잡지 못한다.
-* 레벨 시프터의 source 쪽 소자는 원문에서 VDS가 매우 작다(의도된 triode 쪽). 지금 엔진은 이 소자에도 일괄 포화를 요구한다.
+파일럿 `current_reuse_telescopic_ota`는 master에서 층 0 시험점이 모두 봉인 7 `no_root_in_window`로 실패하고 front가 0이다(백로그 52-55행). 사용자 해석 승인 C-1과 측정 M-1~M-9(history H2)에서 나온 결론은 셋이다.
+* 실패 노드는 모두 연결에서 유도되는 VDS 부등식(사슬)을 출발점이 어긴 곳이다.
+* 지금 출발 규칙은 소자별 절대 하한만 쓴다(헤드룸 예산, `E/search/iv_headroom.py:5-11`). 이 예산은 다른 소자를 최소 비용으로 둔 완화식이라 이런 결합 부등식을 잡지 못한다.
+* gate 공유 직렬 적층의 source 쪽 소자에도 일괄 포화를 요구한다. 그런데 이 소자의 포화는 KVL상 강반전에서 불가능하다(N3.9 R3-a).
 
-이 기능의 목표는 다음 셋이다.
-1. 연결에서 사슬을 찾아 그 부등식을 출발 구간 제약으로 쓴다(R-1′). 상위 DEC-27·DEC-64 VDS-1을 사슬로 일반화한 것이다.
-2. gate 공유 직렬 적층의 source 쪽 소자를 연결로 찾아 포화 검사 대상에서 빼고, 그 자리를 지켜지는 소자의 포화 검사와 LUT 정의역 게이트로 대체한다(R-3).
-3. 해당 사슬·소자가 없는 회로에서는 결과가 비트 동일임을 보인다(무동작 증거, 사용자 C-1 "루프 없는 회로 출발점 비트 동일").
+이 기능의 목표는 셋이다.
+1. 사슬 부등식을 출발 구간 제약으로 쓴다(R-1′). 상위 DEC-27·DEC-64 VDS-1을 일반화한 것이다.
+2. 적층 소자 X에 포화를 요구하지 않는다. 그 대신 영역 기록과 LUT 정의역 게이트를 둔다(R-3).
+3. 해당 사슬·소자가 출발을 바꾸지 않는 회로에서 결과가 비트 동일함을 보인다(사용자 C-1 "루프 없는 회로 출발점 비트 동일").
 
 ### N1.2 범위
 
 | 포함 | 제외 |
 |---|---|
-| R-1′: 사슬 탐지(S1), 부등식의 출발 구간 반영(단계 A8), 층 0 Halton 시험점 거르기(N3.1-5) | R-1 (a) 등식 루프. 이미 엔진에 있다: 쓰기 계획이 Gs 기본 사이클의 비트리 변을 `cycle_vgs` 종속으로 둔다(`E/sizing/writer_plan.py:20-23, :196`). 파일럿에서 7개 소자가 이 종속이다(측정 coord, history H2) |
-| R-3: 적층 triode 소자 탐지(S1), 포화 면제 집합 합치기, 지켜지는 소자 검사, LUT 정의역 게이트 | 부수 결함 2건(GS 투영의 VS 축 밖 값, 음수 VDS의 tol 조회). N3.7 처리 규칙 |
-| R-3의 SPICE 합격 판정 반영(오라클, N3.6) | 오라클 구조 재작성(oracle-portability 소유) |
+| R-1′: 사슬 탐지(S0 수준, 쓰기 계획 출력에서), 부등식의 출발 구간 반영, 층 0 시험점 거르기(N3.1-5, U-H9) | R-1 (a) 등식 루프. 이미 엔진에 있다: 쓰기 계획이 Gs⁺ 기본 사이클의 비트리 MOS 변을 `cycle_vgs` 종속으로 둔다(`E/sizing/writer_plan.py:20-23, :196`). 파일럿 확인은 history H2 coord |
+| R-3: 적층 소자 탐지(S1), 포화 면제 합집합, 영역 기록, LUT 정의역 게이트, 지켜지는 소자 보고 | 부수 결함 SD-1·SD-2. 처리 규칙은 N3.7 |
+| R-3의 SPICE 합격 판정 반영(HC-O, oracle-portability OP-3 뒤 -- U-H10) | 오라클 구조 재작성(oracle-portability 소유) |
 | 계획 근거 측정 card 0(N6) | spec 값 반영(SP-2 `{"engine": true}`, CI-15 `{}`). C-1 결정이고 spec 반영은 별도 card다 |
-| 상위 계획·graph CONTRACT 문언 개정안(N3.8) | skill 문서 `references/circuit-pattern-intents.md` 신설(C-2의 별도 항목). 이 계획의 R-3 연결 서명은 그 문서의 첫 항목(stacked diode)과 같아야 한다(N7.2 G-10) |
-| 13회로 전수 계수와 무동작 증거(library 9 + heldout 4) | M-6~M-9가 본 CMFB·class-AB 실패의 별도 기전 조사. R-1′이 덮는지는 card 0에서 예측하고 HC-2 뒤에 잰다(N6 M-H4) |
+| 상위 계획·graph·search CONTRACT 문언 개정안(N3.8) | skill 문서 `references/circuit-pattern-intents.md` 신설(C-2의 별도 항목). 연결 서명은 N3.2-1과 같아야 한다(G-10) |
+| 13회로 전수 계수와 무동작 증거(library 9 + heldout 4) | 측정 M-6·M-7이 본 CMFB 기준 쪽 좌표 결합. 좌표 하나 바꾸는 탐색으로는 풀리지 않았다(history H2). R-1′이 덮는지는 card 0 M-H4에서 예측하고 HC-1 뒤에 잰다. M-8·M-9의 실패(공통 source 노드, 음수 VDS 조회)는 R-1′ 대상이다 |
 
 ### N1.3 기능 요구
 
 | ID | 요구 |
 |---|---|
-| FR-H1 | **사슬 탐지**: S1에서 연결만으로 사슬을 찾는다(N3.1-1). 회로·소자 이름 금지. 길이 1 사슬은 지금 `gvgs_summary.vds_saturation`과 같은 집합이다 |
-| FR-H2 | **사슬 부등식**: 사슬마다 `Σ_k (VDsat_k + tol_VDsat,k) ≤ ΔV`(N3.1-2). VDsat·VGS는 LUT 값이고 tol은 봉인 7과 같은 정의다(상위 DEC-88) |
-| FR-H3 | **출발 구간 반영**: 출발 사다리 칸 0의 θ가 모든 사슬 부등식을 만족하게 구간을 정한다. 만족시킬 수 없으면 자르지 않고 충돌 기록과 사유 코드로 남긴다(N3.1-3·4) |
-| FR-H4 | **적층 triode 탐지**: S1에서 연결만으로 R-3 소자와 그 지켜지는 소자를 찾는다(N3.2-1·3) |
-| FR-H5 | **포화 면제**: R-3 소자는 봉인 7·입력 창·스윙 metric의 포화 판정과 사슬 VDsat 합에서 빠진다. 면제 집합은 선언 triode와 R-3 집합의 합집합이고, 합치는 곳은 한 곳이다(N3.2-2) |
-| FR-H6 | **대체 검사**: 지켜지는 소자는 포화 판정에 남는다. 남지 않으면 거부한다. R-3 소자의 동작점은 LUT VDS 정의역 안이어야 하고, 아니면 거부한다(N3.3) |
-| FR-H7 | **SPICE 반영**: 오라클 합격 판정이 R-3 소자를 포화 판정에서 빼고 영역은 기록한다. 지켜지는 소자는 판정에 남는다(N3.6) |
-| FR-H8 | **무동작**: 사슬 부등식이 출발 구간을 좁히지 않고 R-3 집합이 빈 회로에서 결과가 base와 비트 동일하다(완료 조건 1) |
-| FR-H9 | **옛 경로 삭제**: 대체되는 옛 판정·주석(예: 'VDS 변 2개 이상은 기록하지 않는다' 문언, 선언만 면제하는 문언)은 같은 변경에서 고친다 |
+| FR-H1 | **사슬 탐지**: 쓰기 계획 출력(`node.dc_writer`)과 S1 연결만으로 사슬을 찾는다(N3.1-1). 회로·소자 이름은 쓰지 않는다 |
+| FR-H2 | **사슬 부등식**: 사슬마다 `Σ (VDsat + tol_VDsat) ≤ ΔV`. VDsat·VGS는 LUT 값이고 tol은 봉인 7과 같은 정의다(상위 DEC-88). 항 처리는 N3.1-2 |
+| FR-H3 | **출발 구간 반영**: 출발 사다리 칸 0의 θ가 모든 사슬 부등식을 만족하게 한다. 만족시킬 수 없으면 자르지 않고 충돌 기록과 사유 코드로 남긴다(N3.1-3·4) |
+| FR-H4 | **적층 소자 탐지**: S1 연결만으로 R-3 소자와 지켜지는 소자를 찾는다(N3.2) |
+| FR-H5 | **포화 면제**: R-3 소자는 봉인 7·입력 창·스윙 metric의 포화 판정과 사슬 VDsat 합에서 빠진다. 면제 집합 = 선언 triode ∪ R-3 집합이고, 합치는 곳은 한 곳이다(N3.2-2) |
+| FR-H6 | **영역 기록과 게이트**: R-3 소자의 LUT 영역을 기록한다. 동작점이 LUT VDS 정의역 밖이거나 VGS 역산이 정의되지 않으면 거부한다(N3.3) |
+| FR-H7 | **SPICE 반영**: 오라클 합격 판정이 면제 소자를 포화 판정에서 빼고 영역을 기록한다(N3.6, HC-O) |
+| FR-H8 | **무동작**: 사슬 부등식이 출발을 바꾸지 않고 R-3 집합이 빈 회로에서는 결과가 base와 비트 동일하다(완료 조건 1, N4) |
+| FR-H9 | **옛 경로 삭제**: 대체된 정본·문언은 같은 변경에서 지운다. 대상은 `gvgs_summary.vds_saturation`(N3.4), 'VDS 변 2개 이상은 기록하지 않는다', '선언한 것만 면제'다 |
 
 ### N1.4 비기능 요구
 
@@ -86,12 +87,13 @@ version: 0.1
 
 | ID | 요구 |
 |---|---|
-| NFR-H1 | **이름 금지**: 규칙 코드에 회로·소자·넷 이름 리터럴 0(grep, 완료 조건 4) |
-| NFR-H2 | **상수 발명 금지**: tol = 봉인 7의 `tol_VDsat`, VDS 정의역 하한 = LUT on_mask에서 유도한 값(`E/sizing/block_columns.py:101-112`). 새 여유·배수·문턱을 두지 않는다 |
-| NFR-H3 | **graph 단일 정본**: 사슬 기록과 R-3 집합은 S1 graph 필드로만 존재하고 writer가 하나씩이다(상위 DEC-83). 기존 정본을 재사용하고 새 탐지기를 따로 만들지 않는다(N3.4) |
-| NFR-H4 | **계산 재사용**: 사슬·R-3 탐지는 θ 무관이라 실행마다 S1에서 한 번 계산하고 그 실행 안에서 재사용한다(상위 NFR-2, 원래 취지 "처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용"). θ마다의 VGS·VDsat 조회는 LUT memo를 거친다(N3.5) |
-| NFR-H5 | **만들면 배선**: 새 graph 필드는 만드는 변경에서 소비자(출발 구간, 봉인, 오라클 입력)에 배선한다. 지금 소비자가 없는 `gvgs_summary.vds_saturation`(N3.0 F-3)을 이 기능이 처음으로 쓴다 |
-| NFR-H6 | **fail-closed**: 사슬을 만족할 출발이 없거나, 지켜지는 소자가 판정에서 빠지거나, R-3 소자 동작점이 LUT 정의역 밖이면 사유 코드로 멈춘다. 조용한 투영·생략 금지 |
+| NFR-H0 | **물리 정합(P-1, 최우선)**: 규칙의 모든 한정 조건은 N3.9 점검표의 물리 유도를 가진다. 유도가 없는 제한은 두지 않는다 |
+| NFR-H1 | **이름 금지**: 규칙 코드에 회로·소자·넷 이름 리터럴 0(완료 조건 4) |
+| NFR-H2 | **상수 발명 금지**: tol = 봉인 7의 `tol_VDsat`이고, VDS 정의역 하한 = LUT on_mask에서 유도한 값(`E/sizing/block_columns.py:101-112`)이다. 새 여유·배수·문턱은 없다 |
+| NFR-H3 | **graph 단일 정본**: 사슬 기록·R-3 집합·면제 집합은 graph 필드로만 존재하고 writer는 하나씩이다(상위 DEC-83). Gs⁺는 쓰기 계획 출력을 읽고 다시 만들지 않는다 |
+| NFR-H4 | **계산 재사용**: 탐지는 θ 무관이라 실행마다 한 번 계산하고 그 실행 안에서 재사용한다(상위 NFR-2, 원래 취지 "처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용"). θ마다의 조회는 LUT memo를 거친다. 새 캐시는 만들지 않는다(N3.5) |
+| NFR-H5 | **만들면 배선**: 새 필드는 만드는 변경에서 소비자에 배선한다. 소비자는 출발 구간, 봉인 7, 입력 창, 스윙, 사슬 합이다. 오라클 소비자만 HC-O로 미루고 이것은 사용자 승인 대상이다(U-H10) |
+| NFR-H6 | **fail-closed**: 사슬을 만족할 출발이 없거나, 입력 CM 창이 비거나, R-3 소자 동작점이 LUT 정의역 밖이면 사유 코드로 멈춘다. 조용한 투영·생략은 금지다 |
 | NFR-H7 | **작성자≠검증자**: card 0 측정, 무동작 판정, 13회로 계수는 검증자가 한다. 기대값은 피검 함수로 만들지 않는다 |
 
 ---
@@ -100,23 +102,24 @@ version: 0.1
 
 | ID | 결정 | 출처 |
 |---|---|---|
-| C-1 | 파일럿 회로 해석 I-1~I-3 승인. R-1 승인: 선언을 더하지 않고 엔진 출발 규칙을 일반 규칙으로 바꾼다 -- (a) 등식 루프, (b) VDS 변 하나로 닫히는 부등식 루프 = 출발 구간 하한, 루프 없는 회로 출발점 비트 동일. 순서는 측정 → (b) → (a), 새 기능 계획부터. SP-2 = `{"engine": true}`, CI-15 = `{}`. R-3은 대기 | 사용자 2026-10-16 "I-1~I-3 승인, R-1·SP-2·CI-15 권고대로"(`user_decisions.md` 613행) |
-| C-2 | R-1′ = (b)의 일반화(사슬, 이름 금지, 소자 쌍은 길이 1 특수형). (a)는 이미 있어 범위 제외. R-3 = (나): gate 공유 직렬 적층의 source 쪽 소자 = 의도된 triode, 포화 검사·SPICE all_saturated·사슬 VDsat 합에서 제외, 연결로 정의. M63 L 결정 경로 조사를 계획 근거 측정에 포함. 입력 CM 상하한 비겹침은 남을 수 있음(확신도 중간). 새 기능 계획부터. skill 문서 신설 | 사용자 2026-10-16 "R-1′, skill 문서 모두 권고대로"(`user_decisions.md` 615행) |
+| C-1 | 파일럿 회로 해석 I-1~I-3 승인. R-1 승인: 선언을 더하지 않고 엔진 출발 규칙을 일반 규칙으로 바꾼다. (a) 등식 루프. (b) VDS 변 하나로 닫히는 부등식 루프 = 출발 구간 하한. 루프 없는 회로는 출발점 비트 동일. 순서는 측정 → (b) → (a), 새 기능 계획부터. SP-2 = `{"engine": true}`, CI-15 = `{}`. R-3은 대기 | 사용자 2026-10-16 "I-1~I-3 승인, R-1·SP-2·CI-15 권고대로"(`user_decisions.md` 613행) |
+| C-2 | R-1′ = (b)의 일반화(사슬 양 끝 노드 전압이 레일·입력·VGS 합으로 정해짐, 이름 금지, 소자 쌍은 길이 1 특수형). (a)는 이미 있어 범위 제외. R-3 = (나): gate 공유 직렬 적층의 source 쪽 소자 = 의도된 triode. 포화 검사·SPICE all_saturated·사슬 VDsat 합에서 제외하고 연결로 정의한다. M63 L 결정 경로 조사를 계획 근거 측정에 포함. 입력 CM 상하한 비겹침은 남을 수 있음(확신도 중간). 새 기능 계획부터. skill 문서 신설 | 사용자 2026-10-16 "R-1′, skill 문서 모두 권고대로"(`user_decisions.md` 615행) |
+| P-1 | 규칙의 가장 중요한 원칙은 물리적 사실과의 정합성이다. 임의로 제한하거나 특정 응용에만 맞추기 전에 항상 가장 일반적인 규칙으로 적용될 수 있는지 확인한다 | 사용자 2026-10-16(오케스트레이터 전달) |
 | S-7(상위 관행) | 계획과 다른 부분이 생기면 계획부터 고친다 | 사용자 2026-10-16(offset-strategy N2 S-7) |
 
-**이 계획이 확장하는 상위 항목**(`gain-budget-gmid-sizing.plan.md`, 줄은 base `083b103`):
+**이 계획이 확장하는 상위 항목**(`gain-budget-gmid-sizing.plan.md`, 줄 번호는 base `083b103` 기준):
 
 | 상위 항목 | 위치 | 상위 내용 요지 | 이 계획에서의 관계 |
 |---|---|---|---|
-| DEC-27 | 227행 | VDS-1 루프의 루프 전압을 그 소자 gm_id 탐색 상한으로, 포화 하한은 VDsat. 상태 '부분(파일럿 KVL 상한 구현)' | R-1′이 이 규칙의 출발 구간 쪽 구현이다. 길이 1 사슬이 DEC-27 그대로다 |
-| DEC-64 (VDS-1) | 263행 | drain–source 변을 정확히 하나 포함한 사이클 = 포화 하한 부등식. **VDS 변 2개 이상은 기둥 창(W4)이라 대상이 아니다**. 상태 '미구현' | R-1′이 VDS 변 2개 이상의 극소 사슬로 넓힌다 → **X-1**(문언 개정) |
-| DEC-88 · N3.6 봉인 7 | 287행 · 470행 | VDS − VDsat ≥ +tol_VDsat. **선형 영역 의도 소자는 `intended_region` 선언으로만 뺀다** | R-3이 연결 유도 면제를 더한다 → **X-2** |
-| N3.6 SPICE 대조 | 478행 | 합격 = free 모드 스펙 만족 + **ID > 0인 모든 MOS 포화**(사용자 확정 2026-10-07) | R-3 소자를 뺀다 → **X-3** |
-| DEC-95 (3) | 294행 | 종속 gm_id 소자 선택의 구조 우선순위(ratified → diode → gm 요구·뒤 stage → 대칭 궤도 대표 → 이름) | 사슬 부등식에서 조정 소자를 고르는 순서로 재사용한다(N3.1-3) |
-| DEC-71 | 270행 | 층 0 기둥 조립 presolve, 가지·기둥 유도 | 사슬은 기둥(레일–레일 경로)의 부분 경로다. 기둥 정본(`graph.branches`·`graph.columns`)은 바꾸지 않는다(N3.4) |
+| DEC-27 | 227행 | VDS-1 루프의 루프 전압을 gm_id 탐색 상한으로, 포화 하한은 VDsat로 둔다. 상태 '부분' | 길이 1 사슬이 DEC-27이다. R-1′이 출발 구간 쪽 구현이다 |
+| DEC-64 (VDS-1) | 263행 | drain–source 변을 정확히 하나 포함한 사이클은 포화 하한 부등식이다. VDS 변 2개 이상은 기둥 창(W4)이라 대상이 아니다. 상태 '미구현' | R-1′이 W4 넷을 지나는 사슬로 넓힌다 → **X-1** |
+| DEC-88 · N3.6 봉인 7 | 287행 · 470행 | VDS − VDsat ≥ +tol_VDsat. 선형 영역 의도 소자는 `intended_region` 선언으로만 뺀다 | R-3이 연결·물리 유도 면제를 더한다 → **X-2** |
+| N3.6 SPICE 대조 | 478행 | 합격 = free 모드 스펙 만족 + ID > 0인 모든 MOS 포화(사용자 확정 2026-10-07) | R-3 소자를 뺀다 → **X-3** |
+| DEC-95 (3) | 294행 | 종속 gm_id 소자 선택의 구조 순서(ratified → diode → gm 요구·뒤 stage → 대칭 궤도 대표 → 이름) | 사슬 부등식의 조정 소자를 고르는 순서로 재사용한다. 'diode' 순위는 '조정 소자로 고르지 않는다'로 읽는다(N3.1-3) |
+| DEC-71 | 270행 | 층 0 기둥 조립 presolve, 가지·기둥 유도 | 사슬은 기둥의 부분 경로다. 기둥 정본은 바꾸지 않는다(N3.4) |
 | DEC-83 · NFR-2 · WP-23 | 282행 · 186행 · 327행 | graph 단일 정본, 같은 값 재계산 금지 | N3.4·N3.5 |
-| FR-6 | 176행 | 모든 소자의 V/I 관계 상시 검증(봉인 + SPICE) | R-3 대체 검사·게이트가 R-3 소자의 검증 공백을 막는다(N3.3) |
-| N6.1 순서 8행 | 1080행 | 층 0 전체판 + 스펙 기반 출발 구간(design 41 §6) | 출발 구간(41 §6)에 사슬 제약을 더한다. design 41 §6 개정 대상 |
+| FR-6 | 176행 | 모든 소자의 V/I 관계를 상시 검증한다(봉인 + SPICE) | R-3 소자는 포화 대신 영역 기록·정의역 게이트로 검증한다(N3.3) |
+| N6.1 순서 8행 | 1080행 | 층 0 전체판 + 스펙 기반 출발 구간(design 41 §6) | 출발 구간(41 §6)에 사슬 제약을 더한다 |
 
 ---
 
@@ -126,107 +129,153 @@ version: 0.1
 
 | ID | 사실 | 근거 |
 |---|---|---|
-| F-1 | 출발 구간의 gm/ID 하한은 헤드룸 예산 `예산_k = U(b) − L(a)`(다른 소자는 LUT 격자 최솟값 비용)에서 소자마다 따로 나온다. 다른 소자의 실제 VGS와 묶인 상대 부등식은 없다 | `E/search/iv_headroom.py:5-11, :105-136, :152-173`, `E/search/start_intervals.py:269-275` |
-| F-2 | 같은 VGS 묶음(`parallel_vgs`)만 gm/ID 구간을 공유한다. 소자 동작점(곡선 읽는 VDS)은 포화 경계와 헤드룸 예산의 중점이다 | `E/search/start_intervals.py:21-22, :276-282` |
-| F-3 | graph는 VDS-1 사이클을 이미 `gvgs_summary.vds_saturation`으로 계산한다(diode 아닌 MOS의 drain·source가 Gs 같은 성분에 있을 때 VDS 변 + Gs 최단 경로). **VDS 변 2개 이상은 기록하지 않는다.** 엔진 안 소비자는 없다(graph 블록·graph test만 읽음, grep) | `E/graph/gvgs_cycles.py:19-22, :106-117`, `E/graph/s1_values.py:85, :396-404`, `E/graph/CONTRACT.md:264-265` |
+| F-1 | 출발 구간의 gm/ID 하한은 헤드룸 예산 `예산_k = U(b) − L(a)`(다른 소자는 LUT 격자 최솟값 비용)에서 소자마다 따로 나온다. 다른 소자의 실제 VGS와 묶인 결합 부등식은 없다 | `E/search/iv_headroom.py:5-11, :105-136, :152-173`, `E/search/start_intervals.py:269-275` |
+| F-2 | 같은 VGS 묶음(`parallel_vgs`)만 gm/ID 구간을 공유한다. 소자 동작점(곡선을 읽는 VDS)은 포화 경계와 헤드룸 예산의 중점이다 | `E/search/start_intervals.py:21-22, :276-282` |
+| F-3 | graph는 VDS-1 사이클을 `gvgs_summary.vds_saturation`으로 계산한다. 조건은 Gs(레일만 F, 저항·입력 포트–F 변 없음)에서 diode 아닌 MOS의 drain·source가 같은 성분에 있는 것이다. VDS 변 2개 이상은 기록하지 않는다. 엔진 안 소비자는 없다(grep: graph 블록과 graph·generality test뿐) | `E/graph/gvgs_cycles.py:19-22, :102-117`, `E/graph/s1_values.py:85, :396-404` |
 | F-4 | graph CONTRACT 7.5 표(test 고정)의 VDS-1 개수: current_reuse 22, ngcc 6, nmcnr 4, folded·two_stage_ota·two_stage_ota_sf 각 1, 나머지 0 | `E/tests/graph/test_gvgs_cycles.py:22-32` |
-| F-5 | R-1 (a) 등식 루프는 쓰기 계획이 처리한다: Gs 기본 사이클 비트리 MOS 변 = 종속 소자, 분류 `fixed_vgs`·`parallel_vgs`·`cycle_vgs` | `E/sizing/writer_plan.py:20-23, :196` |
-| F-6 | 복합 diode(DC 가지를 걸어 자기 gate 넷에 닿는 MOS) 묶음은 `composite_diodes`가 연결만으로 찾는다. 결과는 `device.dc_role`(rule 1c, evidence.group)에 저장되고 `net_model`이 거기서 읽는다(다시 계산하지 않음) | `E/graph/composite_diode.py:1-14, :82-124`, `E/graph/dc_roles.py:15-17, :84`, `E/graph/net_model.py:59-60` |
-| F-7 | DC 가지(분기 노드 사이 극대 직렬 사슬)와 기둥(레일 쌍 사이 가지 경로)은 graph 정본이 있다. 가지는 segment(MOS·수동소자) 단위이고 VGS 변을 보지 않는다 | `E/graph/branches.py:1-17`, `E/graph/columns.py:1-21` |
-| F-8 | 봉인 7은 ID > 0인 MOS 중 `linear_devices`에 없는 소자에 VDS − VDsat ≥ +tol_VDsat를 건다. `linear_devices` = spec `intended_region`에서 region `triode` 선언 소자뿐이다. 같은 집합을 입력 창 포화 판정과 스윙 metric도 쓴다 | `E/sizing/seal_saturation.py:6, :51-57`, `E/sizing/dc_inputs.py:8, :37-38`, `E/sizing/block_columns.py:148, :228-231`, `E/sizing/kernel_run.py:82, :88`, `E/metrics/metrics_aux.py:214` |
-| F-9 | 1변수 노드 풀이는 VDS 정의역을 [LUT on_mask에서 유도한 VDS 하한, VDS 축 끝]으로 둔다. 하한은 모든 (L, VGS, VS) 점에서 켜진 첫 VDS 격자점이다 | `E/sizing/block_columns.py:101-112, :361-368` |
-| F-10 | 다변수 SCC의 Gauss-Seidel 중(`strict=False`)에는 창이 비면 두 끝 가운데 값을 돌려준다. 이 값은 VS 축 밖일 수 있다 | `E/sizing/block_columns.py:376-377, :398-399` |
-| F-11 | 오라클 합격 판정은 ID가 문턱보다 큰 모든 MOS에서 VDS − VDSAT ≥ `sat_margin_V`를 요구한다. 선언 triode 소자도 빼지 않는다(오라클에 `intended_region`·`linear_devices` 참조 grep 0) | `O/oracle_compare.py:26, :276-277, :389-393, :417-420` |
-| F-12 | spec의 SPICE 합격 규칙 어휘는 `acceptance_rule ∈ {free_spec_and_all_saturated}`, `saturation_rule ∈ {vds_ge_vdsat, vds_ge_vdsat_plus_tol_v}`이고, 파일럿 spec은 사용자 출처(2026-10-07 "8번 수정안으로 확정해", '전 MOS 포화')로 선언했다 | `E/authoring/spec_settings.py:40-42`, `A/library/current_reuse_telescopic_ota.sizing_spec.json:374-389` |
-| F-13 | 파일럿 spec의 `intended_region`은 `{"pending": "CI-18"}`이다 | `A/library/current_reuse_telescopic_ota.sizing_spec.json:322-324` |
-| F-14 | 층 0은 상자 중심이 받아들일 상태가 아니면 스크램블 없는 Halton 점을 차례로 평가한다. 실패 수리(`_repairable`)는 `no_root_in_window`이고 창 양끝 h가 유한할 때만 한다(LUT 조회 실패는 수리 대상이 아님) | `E/search/layer0_center.py:22-26, :445-457, :548-549` |
-| F-15 | search CONTRACT는 '적층 diode의 ln_idu 상한을 레일 차 − 아래 diode VGS로 묶는 규칙'을 미정의 열린 항목으로 적었다 | `E/search/CONTRACT.md:866-870` |
-| F-16 | L 선택은 L 하한들(이득·속도·matching·면적)의 최댓값을 LUT L 칸에 맞춘 값이다. 활성 하한이 없으면 칸 하한이다 | `E/search/start_intervals.py:303-313` |
-| F-17 | 최소 폭 보정은 전류가 정해진 소자의 W = I·L/IDu(g)가 W_min 이상이 되도록 gm/ID를 올린다(하한 쪽). 출처 이름은 `w_min_gm_id`이고, `start_values.py:37` 주석은 같은 이름을 'gm/ID 상한(IDu 하한)'으로 적어 방향이 다르다(card 0에서 확인, N6 M-H1) | `E/search/start_intervals.py:136-168`, `E/search/start_values.py:37` |
+| F-5 | 쓰기 계획: F = 레일 ∪ 노드 목표 ∪ 선언 입력 포트. G_vgs = MOS (gate, source) + 저항 + 미선언 입력 포트끼리 '같은 DC' 변. F 없는 성분의 뿌리는 입력 포트면 y `input_common_mode`. G_vgs 밖 노드는 자기 y를 갖는 W4다. 비트리 MOS 변은 종속 소자(`fixed_vgs`·`parallel_vgs`·`cycle_vgs`)다 | `E/sizing/writer_plan.py:8-11, :20-23, :196, :233, :235-238` |
+| F-6 | 복합 diode(DC 가지를 걸어 자기 gate 넷에 닿는 MOS) 묶음은 `composite_diodes`가 찾는다. 결과는 `device.dc_role`(rule 1c, evidence.group)에 저장되고, `net_model`은 다시 계산하지 않고 거기서 읽는다 | `E/graph/composite_diode.py:1-14, :82-124`, `E/graph/dc_roles.py:15-17, :84`, `E/graph/net_model.py:59-60` |
+| F-7 | DC 가지·기둥은 segment(MOS·수동소자) 단위 정본이고 VGS 변을 보지 않는다 | `E/graph/branches.py:1-17`, `E/graph/columns.py:1-21` |
+| F-8 | 봉인 7은 ID > 0이고 `linear_devices`에 없는 MOS에 VDS − VDsat ≥ +tol_VDsat를 건다. `linear_devices`는 spec 선언 triode뿐이다. 같은 집합을 입력 창과 스윙 metric도 쓴다 | `E/sizing/seal_saturation.py:6, :55-56`, `E/sizing/dc_inputs.py:8, :37-38`, `E/sizing/block_columns.py:148, :228-231`, `E/sizing/kernel_run.py:82, :88`, `E/metrics/metrics_aux.py:214` |
+| F-9 | 1변수 노드 풀이는 VDS 정의역을 [LUT on_mask 유도 VDS 하한, VDS 축 끝]으로 둔다 | `E/sizing/block_columns.py:101-112, :361-368` |
+| F-10 | 다변수 SCC의 Gauss-Seidel 중(`strict=False`)에는 두 경우가 있다. 창이 비면 두 끝의 가운데 값을 돌려준다(`:376-377`). 근이 없으면 \|h\|가 작은 쪽 창 끝을 돌려준다(`:398-399`). 앞의 값은 VS 축 밖일 수 있다 | `E/sizing/block_columns.py:376-377, :398-399` |
+| F-11 | 오라클 합격 판정은 ID가 문턱보다 큰 모든 MOS에 VDS − VDSAT ≥ `sat_margin_V`를 요구한다. 선언 triode 소자도 빼지 않는다(오라클에 `intended_region`·`linear_devices` 참조 grep 0) | `O/oracle_compare.py:26, :276-277, :389-393, :417-420` |
+| F-12 | spec SPICE 합격 규칙 어휘는 `acceptance_rule ∈ {free_spec_and_all_saturated}`다. 파일럿 spec은 이를 사용자 출처(2026-10-07, '전 MOS 포화')로 선언했다 | `E/authoring/spec_settings.py:40-42`, `A/library/current_reuse_telescopic_ota.sizing_spec.json:374-389` |
+| F-13 | 파일럿 spec `intended_region` = `{"pending": "CI-18"}` | `A/library/current_reuse_telescopic_ota.sizing_spec.json:322-324` |
+| F-14 | 층 0은 상자 중심이 받아들일 상태가 아니면 스크램블 없는 Halton 점을 차례로 평가한다. 실패 수리는 `no_root_in_window`이고 창 양끝 h가 유한할 때만 한다(LUT 조회 실패는 수리 대상이 아님) | `E/search/layer0_center.py:22-26, :445-457, :548-549` |
+| F-15 | search CONTRACT는 '적층 diode의 ln_idu 상한 규칙'을 미정의 열린 항목으로 적었다 | `E/search/CONTRACT.md:866-870` |
+| F-16 | L 선택 = L 하한들의 최댓값을 LUT L 칸에 맞춘 값이다. 활성 하한이 없으면 칸 하한이다 | `E/search/start_intervals.py:303-313` |
+| F-17 | 최소 폭 보정은 gm/ID를 올린다(하한 쪽). 출처 이름은 `w_min_gm_id`다. `start_values.py:37` 주석은 같은 이름을 'gm/ID 상한(IDu 하한)'으로 적어 방향이 반대다(card 0 M-H1에서 확인) | `E/search/start_intervals.py:136-168`, `E/search/start_values.py:37` |
+| F-18 | 출발 구간 블록의 입력은 선언된 `READS` 투영뿐이다 | `E/search/start_intervals.py:234-239, :251` |
 
 ### N3.1 R-1′ 적층 사슬 헤드룸 제약
 
-1. **사슬 정의**(연결만, 이름 없음): MOS VDS 변을 drain → source 방향(pmos는 극성 정규화 뒤 같은 방향)으로 이은 경로 n_0 → … → n_k(k ≥ 1)가 다음을 모두 만족하면 사슬이다.
-   * (i) n_0와 n_k가 Gs(레일 병합 F, 평행 변 하나)의 같은 성분에 있다. 그래서 ΔV = V(n_0) − V(n_k)가 Gs 경로 위 ±VGS 합(+ F를 지나면 레일 전압 차, + 입력 포트를 지나면 입력 DC 항)으로 쓰인다.
-   * (ii) **극소성**: 안쪽 넷 n_1 … n_{k−1}은 그 성분에 없다. 안쪽 넷이 그 성분에 있으면 사슬은 그 넷에서 둘로 나뉘고, 나뉜 두 부등식이 원래 부등식보다 강하다(합하면 원래 식).
-   * (iii) diode 연결 소자(gate = drain)는 VDS = VGS라 포화가 항상 성립하므로 사슬 원소가 될 수는 있지만 부등식에서 그 원소 항은 지켜진다(design에서 항 처리, G-2). 지금 VDS-1 규칙은 diode를 처음부터 뺀다(`E/graph/gvgs_cycles.py:109`) -- 길이 1에서는 같은 결과다.
-   * (iv) 같은 (두 끝 넷, 소자 집합)의 사슬은 하나로 센다. 평행 소자는 Gs처럼 하나만 남긴다.
-   * 길이 1 사슬 집합은 지금 `vds_saturation` 집합과 같아야 한다(완료 조건 3).
-2. **부등식**: 사슬마다 `Σ_{k ∈ 사슬, k ∉ R-3 집합} (VDsat_k + tol_VDsat,k) ≤ ΔV`. VDsat = LUT `VDSAT` 열, tol_VDsat = 봉인 7과 같은 LUT LOO 셀값(상위 DEC-88). 출발 단계에서는 소자 동작점(VDS, VSB)이 아직 풀이값이 아니므로 출발 구간이 쓰는 동작점 규칙(F-2)을 그대로 쓴다. 사슬 원소가 R-3 소자면 그 항을 빼고 N3.3-2 정의역 하한 항으로 바꾼다.
-3. **출발 구간 반영**(기본안): 부등식마다 조정 소자 하나를 구조 순서(DEC-95 (3): ratified → diode → gm 요구·뒤 stage 독립 유지 → 대칭 궤도 대표 → 이름)로 고르고, 나머지를 출발 선택점 값으로 둔 채 조정 소자의 ln IDu 상대 경계를 LUT 역산(`vgs_for_current_density` 방향)으로 낸다. 경계는 출발 행의 Bound 출처(새 출처 이름)로 기록한다. 구간이 실제로 좁혀질 때만 출처를 남긴다(지금 헤드룸 하한 관행, `E/search/start_intervals.py:321-323`).
-4. **충돌**: LUT 곡선 범위 안 어느 값으로도 부등식을 만족할 수 없으면 자르지 않고 `StartConflict`를 남긴다(41 §6.6 관행). ΔV에 입력 DC 변수 y가 들어간 사슬들이 y의 하한과 상한을 따로 낼 때 하한 > 상한이면 입력 공통모드 창이 빈 것이다 -- 충돌 기록 + 사유 코드로 멈춘다(fail-closed, 위험 N9 R-1, 사용자 결정 U-H3).
-5. **층 0 반영**(기본안): 층 0 Halton 시험점과 실패 수리 점은 커널을 부르기 전에 같은 부등식 함수로 거른다(커널 평가 0, 평가 예산에 넣지 않음). 거른 점 수는 결과에 낸다. 근거: 측정에서 실패 시험점의 대부분이 이 부등식을 어긴 점이다(history H2). 시험점 생성 규칙(스크램블 없음, F-14) 자체는 바꾸지 않는다.
-6. **헤드룸 예산과의 관계**: 기존 소자별 헤드룸 하한(F-1)은 그대로 둔다. 사슬 부등식은 다른 소자의 실제 VGS를 쓰는 결합식이고 헤드룸 예산은 최소 비용 완화식이라 같은 사실의 두 사본이 아니다. design은 두 출처가 같은 Bound 출처 이름을 쓰지 않음과, 사슬이 덮는 자리에서 헤드룸 예산이 더 느슨함(포함 관계)을 보인다(G-3).
+1. **사슬 정의**(연결과 쓰기 계획 출력만 쓴다. 이름은 쓰지 않는다): 사슬은 KVL 넷 a에서 KVL 넷 b로 가는 위쪽 방향 VDS 변 경로 a = n_0 → n_1 → … → n_k = b(k ≥ 1)다. 안쪽 넷 n_1…n_{k−1}은 모두 KVL 넷이 아니다.
+   * **유도**: 안쪽 넷 전압은 KVL로 정해지지 않는 미지수다. 각 소자의 포화 조건 V(n_{i+1}) − V(n_i) ≥ VDsat_i + tol_i에서 안쪽 미지수를 소거하면(Fourier–Motzkin) Σ(VDsat_i + tol_i) ≤ V(b) − V(a)가 된다. 이것이 안쪽 전압이 존재할 필요충분조건이다. 안쪽 넷이 KVL 넷이면 그 전압은 미지수가 아니고 사슬은 거기서 끊긴다. 끊긴 두 식이 합친 식보다 강하다(극소성 = 유도의 결과).
+   * 안쪽 넷의 분기(다른 소자 단자가 더 붙음)는 제한하지 않는다. 안쪽 넷 하나에 하한을 주는 변과 상한을 주는 변이 여럿이면, 소거는 (하한 변, 상한 변) 쌍마다 식 하나를 낸다. 그래서 사슬 = 그 넷을 지나는 모든 위쪽 방향 단순 경로다(열거 크기는 위험 R-2).
+   * 끝 넷 a와 b는 Gs⁺의 다른 성분에 있어도 된다. ΔV에는 각 성분 뿌리 값(F 값, 입력 DC 또는 y, W4 성분 뿌리 y)이 그대로 들어간다. 이 경우 부등식은 y들을 포함한 θ 관계다.
+   * kind 조건은 없다. 방향은 소자마다 위쪽 방향 규칙으로 정한다. 예를 들어 출력 넷 아래 nmos, 위 pmos인 경로도 사슬이다.
+   * 평행 소자(같은 두 넷 사이 VDS 변 여럿)는 하나로 줄이지 않는다. VDS는 같지만 VDsat는 소자마다 다르다. 항 = 평행 소자들의 (VDsat + tol) 최댓값이다.
+2. **부등식과 항**: `Σ_i term_i ≤ ΔV`이고 소자 항은 다음과 같다.
+   * 일반 소자: VDsat_i + tol_VDsat,i. VDsat = LUT `VDSAT` 열, tol_VDsat = 봉인 7과 같은 LOO 셀값(상위 DEC-88).
+   * R-3 면제 소자(N3.2): 포화를 요구하지 않으므로 그 소자의 VDS 하한 = LUT on_mask 유도 VDS 하한(N3.3-2)을 쓴다(X-4, U-H8).
+   * diode 연결 소자(gate = drain): drain이 gate라 KVL 넷이다. 그래서 diode는 사슬 안쪽에 올 수 없고 길이 1 사슬로만 나온다(정의에서 유도). 그 식 VGS ≥ VDsat + tol은 LUT로 평가한다(N3.9 C-6).
+   * 출발 단계에서 소자 동작점(VDS, VSB)은 출발 구간의 동작점 규칙(F-2)을 쓴다.
+3. **출발 구간 반영**(기본안): 부등식마다 조정 소자 하나를 DEC-95 (3) 순서로 고르고, 조정 소자의 ln IDu 경계를 LUT 역산(`vgs_for_current_density` 방향)으로 낸다. 나머지 소자는 출발 선택점 값에 둔다.
+   * DEC-95 (3)의 'diode' 순위는 **diode는 조정 소자로 고르지 않는다**로 읽는다. 쓰기 계획에서 diode 멤버가 독립 writer로 남는 것(`E/sizing/writer_plan.py:12-14`)과 같은 뜻이다. ratified·gm 요구·뒤 stage 소자도 같은 순서로 뒤로 미룬다.
+   * 경계는 출발 행 Bound(새 출처 이름)로 기록한다. 구간이 실제로 좁혀질 때만 출처를 남긴다(지금 헤드룸 하한 관행, `E/search/start_intervals.py:321-323`).
+4. **충돌**: LUT 곡선 범위 안 어느 값으로도 부등식을 만족할 수 없으면 자르지 않고 `StartConflict`를 남긴다(41 §6.6 관행). 이때 출발 사다리와 θ는 바꾸지 않는다(N4-3 '충돌만 추가'). y를 담은 사슬들이 y 하한 > y 상한을 주면 입력 공통모드 창이 빈 것이다. 이 경우 충돌 + 사유 코드로 멈춘다(fail-closed, 위험 R-1, U-H3).
+5. **층 0 거르기**(기본안, C-1 승인안과 다름 -- X-8, U-H9): 층 0 Halton 시험점과 실패 수리 점은 커널을 부르기 전에 같은 부등식 함수로 거른다. 커널 평가는 0이고, 거른 점은 평가 예산에 넣지 않는다. 거른 점 수는 새 보고 칸으로 낸다. 시험점 생성 규칙(F-14) 자체는 바꾸지 않는다.
+6. **기존 VDS-1과의 관계**: 길이 1 사슬 집합 ⊇ 지금 `vds_saturation` 집합이다. 차집합의 원인은 넷 가지뿐이다. (i) Gs⁺에만 있는 변(저항, 입력 포트–F, 노드 목표 F)을 지나는 ΔV (ii) 끝 넷이 다른 Gs⁺ 성분에 있음 (iii) diode 길이 1 사슬(지금 VDS-1은 diode를 뺀다, `E/graph/gvgs_cycles.py:109`) (iv) 평행 VDS 변 소자(지금은 Gs 평행 변을 하나로 줄인다). R-3 소자 자신의 길이 1 사슬(VDS(X) = VGS(X) − VGS(Y))은 기록에 남는다. 소비 때 항이 N3.1-2 면제 항으로 바뀐다(완료 조건 3).
+7. **헤드룸 예산과의 관계**: 기존 소자별 헤드룸 하한(F-1)은 그대로 둔다. 사슬 부등식은 실제 VGS를 쓰는 결합식이고 헤드룸 예산은 최소 비용 완화식이다. 그래서 같은 사실의 사본이 아니다. design은 두 출처가 Bound 출처 이름을 공유하지 않는다는 것과, 사슬이 덮는 자리에서 예산이 더 느슨하다는 포함 관계를 보인다(G-3). 상위 DEC-64의 'VDS 2개 이상 = W4 기둥 창' 처리(쓰기 계획 W4 y, 층 0 창)도 그대로 둔다. R-1′은 그 W4 넷을 소거한 출발 제약을 더할 뿐이다(X-1).
 
 ### N3.2 R-3 gate 공유 직렬 적층의 source 쪽 소자
 
-1. **정의**(연결만, 이름 없음, 기본안 -- card 0 M-H3에서 기존 정본과 대조): 같은 kind의 MOS X, Y가 (a) gate 넷이 같고 (b) X의 drain 넷 = Y의 source 넷이며 (c) 그 넷의 DC 전류 단자가 X.drain·Y.source 둘뿐(직렬)일 때 X를 **적층 triode 소자**로 본다. X의 의도 영역은 triode다(C-2). 레일 gate 묶음은 대상이 아니다(gate가 레일이면 레벨 시프터가 아니다 -- design에서 확인, G-5).
-2. **포화 면제 집합**: 면제 집합 = spec 선언 triode ∪ R-3 집합. 합집합은 **한 함수 한 곳**에서 만들고 봉인 7(`E/sizing/seal_saturation.py:55-56`)·입력 창(`E/sizing/block_columns.py:148, :230`)·스윙 metric(`E/metrics/metrics_aux.py:214`)·사슬 합(N3.1-2)·오라클 입력(N3.6)이 그 값을 읽는다. 선언과 유도가 같은 소자를 가리키면 오류가 아니라 정보 기록으로 남긴다(선언은 사용자 의도 칸이라 거부하지 않는다).
-3. **지켜지는 소자**: R-3 소자 X의 VGS 변을 Gs 경로에 가진 길이 1 사슬의 소자 Z(Z ≠ X)다. 사례(파일럿): 레벨 시프터 source 쪽 소자의 VGS가 입력 소자 VDS = VGS(시프터) − VGS(cascode)를 정한다. Z는 포화 판정에 남아야 한다. Z가 면제 집합에 들어가 있으면(선언 포함) 그 R-3 판정은 대체 검사가 없으므로 거부한다(fail-closed, 사유 코드는 design).
-4. **X 자신의 VDS-1 사이클**(사례: VDS(X) = VGS(X) − VGS(Y))은 포화 부등식에서 빠지고 N3.3-2 정의역 하한으로 바뀐다.
+1. **정의**(연결만, 이름 없음, 물리 유도는 N3.9 R3-a): MOS X, Y가 (a) gate 넷이 같고 (b) Y의 source 넷 = X의 drain 넷이며 (c) 유도 성립 조건, 즉 X·Y가 같은 극성(kind)을 만족하면 X는 R-3 소자다.
+   * **같은 kind는 유도에서 나온다.** 극성이 다르면 VDS(X) = VGS(X) − VGS(Y)에서 Y 전도 조건이 X의 VDS를 키우는 쪽으로 작용한다. 그래서 '포화 불가' 결론이 성립하지 않는다(N3.9 R3-a).
+   * 중간 넷의 단자 수와 gate 넷 종류(레일 포함)에는 제한을 두지 않는다(N3.9 R3-b, R3-c, U-H7).
+   * 기존 정본과 같은 집합인지는 card 0 M-H3에서 잰다. 기존 정본은 복합 diode `dc_role` rule 1c, `gs_groups`다.
+2. **포화 면제 집합** = spec 선언 triode ∪ R-3 집합. 합집합은 함수 하나가 한 곳에서 만든다. 읽는 곳은 봉인 7(`E/sizing/seal_saturation.py:55-56`), 입력 창(`E/sizing/block_columns.py:148, :230`), 스윙 metric(`E/metrics/metrics_aux.py:214`), 사슬 항(N3.1-2), 오라클 입력 칸(HC-O)이다. 선언과 유도가 같은 소자를 가리키면 정보로만 기록한다(선언은 사용자 의도 칸이라 거부하지 않는다).
+3. **영역 기록**: R-3 소자는 포화 판정을 받지 않는다. 대신 봉인 보고에 LUT 영역(VDS 대 VDsat)을 기록한다. 약반전에서는 R-3 소자가 포화일 수 있고(N3.9 R3-a), 그것도 그대로 기록한다.
+4. **지켜지는 소자 Z**(정의는 N0.1, 경로 무관): Z의 포화 판정은 일반 규칙 그대로 남는다. Z가 없거나 Z가 면제 집합에 있으면 거부하지 않는다. '그 R-3 소자의 VGS에 의존하는 포화 판정 없음'을 보고에 기록한다(기본안, U-H7). 물리 유도상 Z의 존재는 X의 동작 조건이 아니기 때문이다(N3.9 R3-d).
 
 ### N3.3 R-3 게이트(fail-closed)
 
-1. **판정 대체**: R-3 소자의 포화 판정 자리는 (i) 지켜지는 소자의 포화 판정(N3.2-3, 기존 봉인 7 행 그대로)과 (ii) 아래 정의역 게이트가 맡는다.
-2. **LUT 정의역 게이트**: R-3 소자의 동작점 VDS가 [LUT on_mask에서 유도한 VDS 하한(F-9의 값과 같은 함수), VDS 축 끝] 안이고, 그 VDS에서 VGS 역산(`vgs_for_current_density`)이 정의된다. 아니면 그 소자 이름을 단 사유 코드로 거부한다. 봉인 7 포화 위반으로 분류하지 않는다(의도 영역이 triode이므로). 같은 하한을 출발 구간 제약에도 쓴다(N3.1-2) -- 이 하한이 없으면 출발점이 게이트에 확정적으로 걸리기 때문이다(측정: 파일럿 출발점에서 두 적층 소자의 ln IDu가 같아 VDS = 0, history H2).
-3. **게이트가 실제로 거부함**: 정의역 밖 동작점을 만드는 픽스처에서 거부를 먼저 보이고(완료 조건 5), 그다음 통과를 본다.
+1. **판정 대체**: R-3 소자의 포화 판정 자리는 (i) 영역 기록(N3.2-3)과 (ii) 정의역 게이트가 맡는다. 지켜지는 소자의 포화 판정은 일반 규칙으로 남는다.
+2. **LUT 정의역 게이트**: R-3 소자의 동작점에 세 조건을 요구한다.
+   * VDS가 LUT on_mask 유도 VDS 하한(F-9와 같은 함수) 이상, VDS 축 끝 이하다.
+   * 그 VDS에서 VGS 역산(`vgs_for_current_density`)이 정의된다.
+   * 아니면 소자 이름을 단 사유 코드로 거부한다.
+   이것은 물리 제한이 아니라 **모델 정의역 조건**이다. LUT가 그 동작점을 표현하지 못한다는 데이터 사실이고, 보고에도 그렇게 적는다. 봉인 7 포화 위반으로 분류하지 않는다. 같은 하한은 출발 제약 항으로도 쓴다(N3.1-2, X-4, U-H8). 근거: 하한이 없으면 출발점이 이 게이트에 걸린다(history H2).
+3. **게이트가 실제로 거부함**: 정의역 밖 동작점 픽스처에서 거부를 먼저 보이고, 그다음 통과를 본다(완료 조건 5).
 
 ### N3.4 정본 위치와 재사용(graph 단일 정본)
 
 | 대상 | 정본(기본안) | 근거 |
 |---|---|---|
-| 사슬 기록(길이 ≥ 1) | 기존 필드 `graph.gvgs_summary.vds_saturation`을 일반화한다. writer는 지금처럼 `s1_gvgs` 하나다. 기록 = (VDS 변 소자 tuple, Gs 경로 소자 tuple과 부호, 끝 넷, ΔV 항 종류) | 같은 개념(VDS 부등식 사이클)의 기존 필드가 있고 소비자가 없다(F-3). 새 탐지기를 따로 만들면 정본이 둘이 된다. `graph.branches`·`graph.columns`는 segment 단위라 VGS 변을 보지 않아(F-7) 사슬 정의(i)를 표현하지 못한다 -- 재사용하지 않고 바꾸지도 않는다 |
-| R-3 집합과 지켜지는 소자 | S1 graph 필드 하나(이름은 design). 먼저 기존 정본에서 유도할 수 있는지 card 0에서 잰다: `device.dc_role` rule 1c 묶음(F-6), `graph.gs_groups`(같은 gate·source 묶음), `vds_saturation`. 같은 집합이면 그 정본을 읽어 파생하고 `composite_diodes`를 다시 부르지 않는다 | F-6: 복합 diode 결과는 dc_role에 이미 저장돼 있다. 다시 부르면 같은 값 재계산이다(WP-23) |
-| 포화 면제 합집합 | 면제 집합을 만드는 함수 하나. spec 쪽 `DcInputs.linear_devices`(spec만)와 graph 쪽 R-3 필드를 읽어 합친다. 위치(S0 수준 파생 필드인지 커널 컨텍스트 값인지)는 design G-6 | 소비자 다섯이 같은 값을 따로 합치면 사본이 다섯이 된다 |
-| 사슬 부등식 값(θ마다) | graph 필드가 아니다. 출발 구간 계산 안 값이고 결과는 출발 행 Bound·충돌 기록으로만 남는다. LUT 조회는 LUT memo | 상위 NFR-2 (a) LUT memo 범주 |
+| Gs⁺와 KVL 넷 | 쓰기 계획 출력 `node.dc_writer`(writer `dc_writer_plan`, `E/sizing/writer_plan.py:69-73`). 사슬 블록은 이것을 READS로 읽는다 | 노드 전압 식의 정본이 이미 있다. 따로 만들면 사본이다 |
+| 사슬 기록 | S0 수준 graph 필드 하나, writer 하나(이름·모듈은 design). 기록 = (위쪽 VDS 변 소자 묶음 tuple, 끝 넷, ΔV 항: 성분 뿌리 종류와 Gs⁺ 경로 부호). **같은 변경에서 `gvgs_summary.vds_saturation`을 지운다.** 그 필드는 같은 개념의 좁은 사본이고 소비자가 없다(F-3). graph test 표는 test 역할이 다시 쓴다(X-6) | 개념 하나 이름 하나(상위 FR-9), 옛 정본 삭제. 쓰기 계획이 spec(입력 DC 선언·노드 목표)을 읽으므로 사슬도 S0 수준이다 |
+| R-3 집합과 지켜지는 소자 | S1 graph 필드 하나(spec 무관, 연결만). 먼저 card 0 M-H3에서 기존 정본(`device.dc_role` rule 1c 묶음, `graph.gs_groups`)으로 유도할 수 있는지 잰다. 유도할 수 있으면 그 정본을 읽어 파생하고 `composite_diodes`를 다시 부르지 않는다 | F-6: 복합 diode 결과는 이미 저장돼 있다(WP-23) |
+| 포화 면제 합집합 | 함수 하나. spec `DcInputs.linear_devices`와 R-3 필드를 읽는다. 위치(S0 수준 파생 필드인지 커널 컨텍스트 값인지)는 G-6 | 소비자 다섯이 따로 합치면 사본이 다섯이다 |
+| 사슬 부등식 값(θ마다) | graph 필드가 아니다. 출발 구간 안 값이고, 결과는 출발 행 Bound·충돌 기록으로 남는다. LUT 조회는 LUT memo를 거친다 | 상위 NFR-2 (a) LUT memo 범주 |
 
-옛 analog-grammar skill의 idiom(`skills/analog-grammar/assets/idioms.py` `m_diode_cascode`)은 legacy 엔진만 쓰고, source 쪽 소자를 CASCODE 역할로 부르는데 이는 승인 해석(C-1: 의도된 triode 레벨 시프터)과 다르다. 근거로 쓰지 않는다.
+옛 analog-grammar skill의 idiom(`skills/analog-grammar/assets/idioms.py` `m_diode_cascode`)은 legacy 엔진만 쓴다. 이 idiom은 source 쪽 소자를 CASCODE 역할로 부르는데, 승인 해석(C-1)과 다르다. 근거로 쓰지 않는다.
 
-### N3.5 계산 재사용
+### N3.5 계산 재사용과 XRUN-F1 규칙
 
-* 사슬·R-3·면제 집합은 θ 무관 S1(또는 S0 수준) 값이다. 실행마다 처음 계산하고 그 실행 안에서 재사용한다(실행 사이 재사용 없음, 상위 U-89). 재계산 계수(상위 G-10)에서 이 블록의 같은 입력 재계산은 0이어야 한다(완료 조건 6).
-* 출발 구간의 사슬 평가는 출발 사다리 칸마다 한 번이다. 칸 0에서 계산한 사슬별 (ΔV, Σ) 값은 출발 기록에 남겨 보고가 다시 계산하지 않게 한다.
-* 층 0 거르기(N3.1-5)는 시험점마다 한 번이고, 같은 시험점이 다시 오면 평가 캐시와 같은 키 규칙으로 재사용한다(design G-4).
+* 사슬·R-3·면제 집합은 θ 무관 값이다. 실행마다 처음 한 번 계산하고 그 실행 안에서 재사용한다. 실행 사이 재사용은 없다(상위 U-89). 재계산 계수(상위 G-10)에서 같은 입력 재계산은 0이다(완료 조건 6).
+* **새 캐시를 만들지 않는다.** θ마다의 VGS·VDsat 조회는 LUT memo만 쓴다. 블록 결과 재사용은 XRUN-F1 card B 블록 결과 색인이 맡는다.
+* 사슬 필드는 `start_intervals` READS(F-18)에 들어간다. 그래서 출발 구간 블록의 입력 판이 사슬 필드를 포함하고, 사슬이 바뀌면 출발 구간이 다시 계산된다. 면제 집합도 그것을 읽는 블록의 READS·입력 판에 들어간다.
+* 색인 키 규칙은 XRUN-F1 X-20·X-21을 따른다(키 = (블록, 분할, 입력 판)만, 실행 바깥 지문 금지, 색인 디스크 저장 금지). 이 계획은 키에 새 칸을 더하지 않는다.
+* 출발 사다리 칸마다 사슬 평가는 한 번이다. 칸 0의 사슬별 (ΔV, Σ) 값은 출발 기록에 남겨 보고가 다시 계산하지 않게 한다. 층 0 거르기는 시험점마다 한 번이고, 재사용 키는 G-4에서 정한다.
+* **파일 겹침**: HC-1은 `E/search/start_intervals.py`·`layer0_center.py`·`iv_*`를 고친다. XRUN-F1 card C도 search 층을 고친다. 그래서 HC-1 병합은 card C 병합 뒤다(N7.2).
 
-### N3.6 SPICE 오라클 반영
+### N3.6 SPICE 오라클 반영(HC-O)
 
-* 오라클은 엔진을 import하지 않는다(상위 N3.8). 그래서 면제 집합과 지켜지는 소자는 엔진이 오라클 입력(소자별 예측 칸)으로 넘긴다. 오라클은 면제 소자를 포화 판정에서 빼고 영역은 기록한다. 지켜지는 소자가 면제되면 판정을 막는다(BLOCKED, 사유 기록).
-* 합격 판정 코드(`O/oracle_compare.py:389-420`)는 oracle-portability OP-3에서 오라클 코어로 옮겨진다. **이 계획은 옛 파일을 고치지 않고 OP-3 뒤 새 코어 판정에 넣는다**(기본안 -- oracle-portability N5.2의 '옛 구조에 만들고 다시 쓰지 않는다' 선례). 그 전까지 R-3 소자가 있는 회로의 SPICE 판정은 그 소자를 '포화 아님'으로 보고한다(알려진 차이로 결과에 적는다).
-* spec 어휘: 지금 `free_spec_and_all_saturated`는 사용자 출처로 '전 MOS 포화'를 뜻한다(F-12). 뜻을 바꾸는 방법은 사용자 결정 U-H1이다(X-3).
+* 오라클은 엔진을 import하지 않는다(상위 N3.8). 그래서 면제 집합과 지켜지는 소자는 엔진이 오라클 입력(소자별 칸)으로 넘긴다. 오라클은 면제 소자를 포화 판정에서 빼고 영역을 기록한다.
+* 오라클 입력 칸(소자별 의도 영역·지켜지는 소자, G-8)은 oracle-portability OP-0의 입력 스키마로 넘긴다(기본안, U-H11). 그 계획의 개정은 오케스트레이터가 따로 한다. 이 계획은 칸의 뜻만 정하고 형식은 OP-0 스키마를 따른다.
+* 합격 판정 코드(`O/oracle_compare.py:389-420`)는 oracle-portability OP-3에서 코어로 옮겨진다. 이 계획은 옛 파일을 고치지 않는다. OP-3 뒤 새 코어 판정에 배선한다(기본안, U-H10). 근거는 oracle-portability N5.2의 '옛 구조에 만들고 다시 쓰지 않는다'다. 그 전까지 R-3 소자가 있는 회로의 SPICE 판정은 그 소자를 '포화 아님'으로 보고하고, 결과에 '알려진 차이(HC-O 전)'로 적는다.
+* spec 어휘 `free_spec_and_all_saturated`의 뜻을 바꾸는 방법은 사용자 결정 U-H1이다(X-3).
 
 ### N3.7 범위 밖 부수 결함 처리
 
 | ID | 결함 | 사실 | 처리(기본안) |
 |---|---|---|---|
-| SD-1 | GS 투영 VS 축 밖 | 다변수 SCC 반복 중 빈 창에서 두 끝 가운데 값(VS 축 하한 아래)을 돌려준다(F-10). 측정에서 공통 source 노드가 음수로 투영됐다(history H2) | **백로그 + card 0 기준 계수**. HC-2 병합 뒤 13회로 실행에서 다시 세어 0이 아니면 별도 card(사용자 승인). 근거: 관측된 경우는 모두 사슬 부등식을 어긴 θ에서 나왔다. 사슬 제약이 그 θ를 출발에서 없애는지 먼저 봐야 수정 범위를 정할 수 있다(상위 '쓸데없는 결함을 만들지 않는 5단계': 범위 분류 → 재측정 후 결정). 다만 이 결함은 실패 사유를 LUT 조회 실패로 바꿔 층 0 수리를 끈다(F-14) -- 재계수에서 수리 경로 손실도 함께 센다 |
-| SD-2 | 음수 VDS의 tol 조회 | 봉인 계산이 음수 VDS로 `tol_v` 표를 조회해 `lut_axis_out_of_range`로 끝난다(측정 M-5·M-9, search CONTRACT r5c 표의 'tol_V VDS 축 밖 31') | SD-1과 같다(백로그 + 기준 계수 + HC-2 뒤 재계수, 0이 아니면 별도 card) |
-| SD-3 | (관측, 결함 판정 안 함) ln IDu 탐색 상자 하한이 그 VDS의 LUT 강반전 분지 하한보다 낮아 `vgs_of_coordinate` `lut_target_out_of_range`가 난다(측정 M-4b) | 상자 하한 규칙은 search CONTRACT 3.7·[r5c] 칸 정점 하한의 정의다 | 기록만. card 0이 13회로에서 빈도를 센다. 결함 여부는 판정하지 않는다 |
+| SD-1 | GS 투영 VS 축 밖 | 다변수 SCC 반복 중 창이 비면 두 끝 가운데 값을 돌려주고, 이 값이 VS 축 밖일 수 있다(F-10 `:376-377`). 관측은 history H2 | **백로그 + card 0 기준 계수(M-H5)**. HC-1 병합 뒤 13회로 실행에서 다시 센다. 0이 아니면 별도 card로 만든다(사용자 승인). 근거: 관측된 경우는 모두 사슬 부등식을 어긴 θ에서 나왔다. 사슬 제약이 그 θ를 출발에서 없애는지 먼저 봐야 수정 범위를 정할 수 있다(상위 '쓸데없는 결함 만들지 않는 5단계'). 이 결함은 실패 사유를 LUT 조회 실패로 바꿔 층 0 수리를 끈다(F-14). 그래서 재계수에서 수리 손실도 함께 센다 |
+| SD-2 | 음수 VDS의 tol 조회 | 봉인 계산이 음수 VDS로 `tol_v` 표를 조회해 `lut_axis_out_of_range`로 끝난다. 관측은 history H2, search CONTRACT r5c 표 | SD-1과 같다 |
+| SD-3 | (관측, 결함 판정 안 함) ln IDu 탐색 상자 하한이 그 VDS의 LUT 강반전 분지 하한보다 낮음 | 상자 하한 규칙은 search CONTRACT 3.7·[r5c]의 정의다 | 기록만 한다. card 0이 13회로 빈도를 센다 |
 
 ### N3.8 상위 문서 개정 목록(S-7: 계획 승인 → 상위 개정 → design)
 
 | 문서 | 자리 | 개정 |
 |---|---|---|
-| `gain-budget-gmid-sizing.plan.md` | DEC-64 (VDS-1) 263행 | 'VDS 엣지 2개 이상은 기둥 창(W4)이라 대상이 아니다' → 극소 사슬(N3.1-1) 정의로. 상태 칸 갱신 (X-1) |
-| 같은 문서 | DEC-27 227행 | 출발 구간 쪽 구현 위치(이 계획) 표기 |
-| 같은 문서 | DEC-88 287행 · N3.6 표 7행(470행) | '선언한 것만 제외' → '선언 triode ∪ 연결 유도 적층 triode(N3.2), 지켜지는 소자 판정 유지 + 정의역 게이트' (X-2) |
-| 같은 문서 | N3.6 SPICE 대조 478행 | 합격 (ii) 'ID > 0 모든 MOS 포화'에 면제 집합 문언 (X-3, U-H1 결정 뒤) |
-| `E/graph/CONTRACT.md` | 264-265행, 7.5 표 | `vds_saturation` = 사슬(길이 ≥ 1) 기록, 개수 표 갱신(X-6) |
-| `E/search/CONTRACT.md` | 866-870행 | 열린 항목 '적층 diode ln_idu 상한 규칙 미정의'를 이 계획의 사슬 규칙으로 닫는다 |
-| design 41 §6 | 출발 구간 | 사슬 제약·충돌·층 0 거르기 |
-| design 40(봉인 7 절) | 봉인 7 | 면제 합집합과 게이트 |
+| `gain-budget-gmid-sizing.plan.md` | DEC-64 (VDS-1) 263행 | 'VDS 엣지 2개 이상은 기둥 창(W4)이라 대상이 아니다'에 덧붙인다: W4 처리는 유지하고, W4 넷을 소거한 사슬 부등식을 출발 제약으로 더한다(N3.1). 상태 칸 (X-1) |
+| 같은 문서 | DEC-27 227행 | 출발 구간 쪽 구현 위치 표기 |
+| 같은 문서 | DEC-88 287행 · N3.6 표 7행(470행) | '선언한 것만 제외' → '선언 triode ∪ R-3(물리 유도, N3.2·N3.9), 영역 기록 + 정의역 게이트' (X-2) |
+| 같은 문서 | N3.6 SPICE 대조 478행 | 합격 (ii)에 면제 집합 문언 (X-3, U-H1 뒤) |
+| `E/graph/CONTRACT.md` | 264-265행, 7.5 표 | `vds_saturation` 삭제와 사슬 필드로의 이동 (X-6) |
+| `E/search/CONTRACT.md` | 866-870행 | 열린 항목 '적층 diode ln_idu 상한 규칙 미정의'를 사슬 규칙으로 닫는다 |
+| design 41 §6 | 출발 구간 | 사슬 제약, 충돌, 층 0 거르기 |
+| design 40(봉인 7 절) | 봉인 7 | 면제 합집합, 영역 기록, 게이트 |
+
+### N3.9 제한 조건 점검표(P-1)
+
+칸마다 (a) 물리 유도 근거, (b) 더 일반적인 형태, (c) 처리 결과를 적는다.
+
+| ID | 조건 | (a) 물리 유도 | (b) 더 일반적인 형태 | (c) 처리 |
+|---|---|---|---|---|
+| C-1 | 사슬 끝 넷 = KVL 넷 | KVL 넷 전압은 θ 식으로 정해진다(F-5). 끝이 KVL 넷이 아니면 그 전압은 미지수라 소거 대상이다 | 이것이 가장 일반형이다. v0.1의 'Gs 같은 성분'은 성분 뿌리 값(y)을 ΔV에 넣으면 필요 없다 | v0.1의 '같은 성분' 조건 **제거**. 다른 성분이면 ΔV에 뿌리 y 차가 들어간다 |
+| C-2 | 안쪽 넷 = KVL 넷이 아님(극소성) | Fourier–Motzkin 소거: 미지수인 안쪽 전압이 존재할 필요충분조건(N3.1-1) | 안쪽 넷이 KVL 넷이면 끊긴 식이 더 강하다. 그래서 극소성은 제한이 아니라 소거의 결과다 | 유지(유도 결과) |
+| C-3 | Gs⁺ 범위(저항, 입력 포트–F, 노드 목표) | KVL 경로에 저항 강하 I·R, 입력 DC(선언 또는 y), 노드 목표 값이 정확히 들어간다(쓰기 계획 W2·W3·W4, F-5) | v0.1의 Gs(레일만 F)는 좁은 경우다 | **일반화**: 쓰기 계획 G_vgs 그대로 읽는다 |
+| C-4 | 같은 kind | 사슬 소거는 각 소자의 위쪽 방향 부등식만 쓴다. kind는 방향에만 들어간다 | kind 무관(방향 규칙) | **제거** |
+| C-5 | 중간 넷 분기 | 소거는 넷마다 (하한 변, 상한 변) 쌍으로 된다. 단자 수와 무관하다 | 모든 단순 경로 | **제거**(열거 크기는 R-2) |
+| C-6 | diode 원소 | gate = drain이라 drain이 KVL 넷이다. 그래서 diode는 사슬 안쪽에 올 수 없다(유도 결과). diode의 VGS ≥ VDsat은 강반전에서 VDsat ≈ VGS − Vth < VGS로 성립한다. 약반전에서 VDsat는 열전압 몇 배이고 VGS는 대개 그보다 크다 | 유도 성립 조건: 'VGS ≥ VDsat + tol'. 깨질 수 있으므로 제외하지 않고 LUT로 평가한다 | v0.1 '항 처리 미정'을 **일반화**: diode 길이 1 사슬도 기록하고 LUT로 평가한다 |
+| C-7 | 평행 소자 하나로 줄이기 | 평행 소자는 VDS가 같고 VDsat는 다르다. 모두 포화해야 하므로 항은 최댓값이다 | 줄이지 않는다 | **일반화**(Gs의 평행 변 축약은 VGS가 같을 때만 정당하다) |
+| C-8 | 출발 동작점 근사(F-2) | 출발 단계에서 VDS·VSB는 풀이 전 값이다. 판정은 봉인이 한다(EP-7) | -- | 유지. 깨짐 빈도는 HC-V에서 잰다(R-3) |
+| R3-a | R-3: gate 공유 + Y.source = X.drain + 같은 kind | KVL: VDS(X) = V(d_X) − V(s_X) = [V(G) − VGS(Y)] − [V(G) − VGS(X)] = VGS(X) − VGS(Y). 연결만으로 정확히 성립하고 kind와 무관하다. X 포화 ⇔ VDS(X) ≥ VDsat(X) ⇔ VGS(Y) ≤ VGS(X) − VDsat(X). 강반전에서는 VGS(X) − VDsat(X) ≈ Vth(X)이다. 그러면 Y가 강반전으로 전도할 때 VGS(Y) > Vth(Y)이고, Vth(Y) ≥ Vth(X)이면 X의 포화는 불가능하다. 같은 kind에서 Y의 source가 X의 source보다 위쪽이면 body 효과로 Vth(Y) ≥ Vth(X)다(bulk가 공통일 때). 극성이 다르면 Y 전도 조건이 VGS(Y)의 부호를 반대로 만들어 VDS(X)를 키운다. 결론이 성립하지 않으므로 R-3이 아니다. 약반전에서는 VDS(X) ≈ n·U_T·ln(IDu_X/IDu_Y) (+ body 항)이라 밀도비에 따라 포화도 가능하다 | **유도 성립 조건**: 같은 kind, Vth(Y) ≥ Vth(X)(bulk 연결에 따름), 강반전. 깨지면(bulk가 다른 넷, 약·중간 반전) 제한하지 않고 **LUT로 영역을 판정해 기록**한다(N3.2-3). 포화를 요구하지 않는 근거는 '강반전에서 포화 요구가 Y 전도 해를 모두 없앤다'는 사실이고, 응용 목적이 아니다 | 같은 kind는 유도 결과로 유지. 나머지는 조건 + LUT 확인 |
+| R3-b | 중간 넷 단자 둘뿐(v0.1) | 위 유도는 V(mid)만 쓴다. 중간 넷에 다른 전류가 들어와도 KVL과 영역 결론은 같다 | 단자 수 무관 | **제거** |
+| R3-c | 레일 gate 제외 | 유도에 gate 넷 종류가 들어가지 않는다. 같은 gate 레일 직렬 적층도 같은 KVL이다 | 제외 없음 | 기본안 **제외 없음**(U-H7) |
+| R3-d | 지켜지는 소자가 없거나 면제면 거부(v0.1) | Z는 X의 동작 조건이 아니다. Z가 없어도 X의 KVL·영역은 그대로다 | 보고만 | **제거**: 거부 대신 '그 VGS에 의존하는 포화 판정 없음' 기록(U-H7) |
+| R3-e | 정의역 게이트 | 물리 조건이 아니라 LUT 표현 범위다(데이터). VDS < 0은 물리적으로는 d/s 역할 교환이지만 LUT VDS 축 밖이다 | -- | 유지하되 **모델 정의역 조건으로 표기**하고, 물리 제한으로 보고하지 않는다 |
+| N-1 | 무동작 범위 | 부등식이 출발을 바꾸지 않으면(구간 무변, 거른 점 0) 같은 입력에서 같은 결과다(NFR-4 결정론) | -- | 유지(N4) |
 
 ---
 
 ## N4. 13회로 적용 판정
 
-판정은 규칙으로 하고 '해당 없음'은 사유로 남긴다.
+판정은 규칙으로 하고, '해당 없음'은 사유로 남긴다.
 
 1. 사슬 0개이고 R-3 집합이 비면 → 무동작(완료 조건 1).
-2. 사슬이 있어도 base 출발 사다리 칸 0이 모든 사슬 부등식을 만족하고 R-3 집합이 비면 → 출발 구간이 좁혀지지 않으므로 무동작(완료 조건 1).
-3. 부등식이 출발 구간을 좁히면 → 결과가 바뀐다. 바뀐 칸마다 사슬 출처 기록이 있어야 한다(완료 조건 2).
-4. R-3 집합이 비지 않으면 → 봉인 7 행 집합이 바뀐다. 바뀐 행 = 면제 소자뿐이어야 한다(완료 조건 2).
+2. 사슬이 있어도 다음을 모두 만족하면 → 무동작(완료 조건 1).
+   * base 출발 사다리의 모든 칸이 모든 사슬 부등식을 만족한다(구간을 좁히지 않음).
+   * 층 0에서 거른 시험점 수가 **실측 0**이다.
+   * R-3 집합이 비었다.
+3. 부등식이 출발 구간을 좁히거나 시험점을 거르면 → 결과가 바뀐다. 바뀐 칸마다 사슬 출처 기록이 있어야 한다(완료 조건 2). **충돌만 추가**되는 경우(만족 불가 부등식 → `StartConflict`, 사다리·θ 무변)는 바뀐 칸이 `conflicts` 하나뿐이어야 한다.
+4. R-3 집합이 비지 않으면 → 봉인 7 행 집합이 바뀐다. 바뀐 행은 면제 소자 행뿐이어야 하고, 영역 기록 칸이 더해진다(완료 조건 2).
 
-어느 회로가 1~4에 드는지는 card 0(M-H2·M-H3)이 측정으로 예측하고, 검증자가 HC-1·HC-2 뒤에 잰다. 지금 사실로 아는 것은 길이 1 사슬 수(F-4)뿐이다 -- VDS-1이 있는 회로 6개가 곧 '결과가 바뀌는 회로'는 아니다(판정 2).
+**새 보고 칸의 base 비교 규칙**: 거른 점 수, 사슬 출처, 영역 기록 칸은 base에 없다. 비트 비교에서는 이 칸들을 빼고 비교한다. 대신 N4-1·N4-2 회로에서는 그 값이 0이거나 비어야 한다는 것을 따로 단언한다. 제외 목록은 검증자가 소유한다.
+
+어느 회로가 1~4에 드는지는 card 0(M-H2·M-H3)이 예측하고, 검증자가 HC-1 뒤에 잰다. 지금 사실로 아는 것은 VDS-1 수(F-4)뿐이다. VDS-1이 있다고 해서 곧 '결과가 바뀌는 회로'는 아니다(판정 2).
 
 ---
 
@@ -234,13 +283,15 @@ version: 0.1
 
 | ID | 내용 | 원래 결정·취지 | 상태 |
 |---|---|---|---|
-| X-1 | **VDS 변 2개 이상 사슬을 대상에 넣는다**. 상위 DEC-64는 'VDS 엣지 2개 이상은 기둥 창(W4)이라 대상이 아니다'로 정했고 graph도 그렇게 구현했다(F-3) | 상위 DEC-64 263행 | C-2가 R-1′(사슬 일반화)로 취지를 승인. 상위 문언 개정 승인 필요(N3.8) |
-| X-2 | **포화 면제를 연결로 유도한다**. 상위 DEC-88·N3.6 봉인 7은 '선형 영역 의도 소자는 선언한 것만 제외'다 | 상위 287·470행 | C-2가 R-3 (나)로 취지를 승인. 상위 문언 개정 승인 필요 |
-| X-3 | **SPICE 합격의 '전 MOS 포화'에서 R-3 소자를 뺀다**. 사용자 확정(2026-10-07) 합격 규칙이고 spec 어휘 `free_spec_and_all_saturated`의 출처 기록이 '전 MOS 포화'다(F-12) | 상위 478행, spec `user_spec` 출처 | C-2가 제외를 승인. **어휘를 어떻게 바꿀지는 사용자 결정 U-H1** |
-| X-4 | **C-2 문언에 없는 추가 둘**: (i) R-3 소자의 LUT 정의역 하한을 출발 구간 제약에도 쓴다(N3.3-2) (ii) 층 0 Halton 시험점을 커널 전에 사슬 부등식으로 거른다(N3.1-5) | C-2 '출발 구간 제약', '게이트(fail-closed)' | 보고(확인 요청). 근거: (i) 없으면 출발점이 게이트에 확정적으로 걸린다(측정) (ii) 시험점 대부분이 그 부등식을 어긴 점이다 |
-| X-5 | **순서가 해석 문서 권고와 다르다**: 해석은 '(b) 먼저'였다. 이 계획은 R-3(HC-1) 다음 R-1′(HC-2)이다. 사슬 합이 R-3 집합을 빼야 정의되기 때문이다(N3.1-2) | interpretation.md 147행, C-1 '측정 → (b) → (a)' | 보고(확인 요청). (a)는 범위 밖이라 C-1 순서와 충돌하지 않는다 |
-| X-6 | **graph CONTRACT 7.5 VDS-1 개수 표와 그 test가 바뀐다**(사슬로 일반화). test 다시 쓰기는 test 역할이다 | graph CONTRACT 7.5 | 보고. 길이 1 부분집합은 지금 표와 같아야 한다(완료 조건 3) |
-| X-7 | **SPICE 반영이 늦게 들어간다**: oracle-portability OP-3 뒤 새 코어에 넣는다(N3.6). 그 전까지 R-3 소자가 있는 회로의 SPICE 판정은 그 소자를 '포화 아님'으로 보고한다 | C-2 'SPICE all_saturated에서 제외' | 보고(확인 요청). 대안: 옛 `oracle_compare.py`에 지금 넣고 OP-3가 옮긴다(그 계획 파일과 겹침) |
+| X-1 | **W4 넷을 지나는 사슬(VDS 변 2개 이상)을 대상에 넣는다.** 상위 DEC-64는 'VDS 엣지 2개 이상은 기둥 창(W4)이라 대상이 아니다'로 정했다. 관계: W4 처리(쓰기 계획 y, 층 0 창)는 그대로 두고, 그 W4 전압을 소거한 필요충분 부등식을 출발 제약으로 더한다. W4 넷의 writer 티어는 바뀌지 않는다 | 상위 DEC-64 263행 | C-2가 R-1′으로 취지를 승인했다. 상위 문언 개정 승인이 필요하다(U-H5 (a)) |
+| X-2 | **포화 면제를 연결·물리 유도로 더한다.** 상위 DEC-88·N3.6 봉인 7은 '선언한 것만 제외'다 | 상위 287·470행 | C-2가 R-3 (나)로 취지를 승인했다. 문언 개정이 필요하다(U-H5 (a)) |
+| X-3 | **SPICE 합격의 '전 MOS 포화'에서 R-3 소자를 뺀다.** 사용자 확정(2026-10-07) 규칙이고, spec 어휘 출처 기록이 '전 MOS 포화'다(F-12) | 상위 478행 | C-2가 제외를 승인했다. 어휘 방법은 U-H1이다 |
+| X-4 | **R-3 소자의 LUT 정의역 하한을 출발 제약 항으로도 쓴다**(N3.1-2, N3.3-2). C-2 문언은 '게이트(fail-closed)'뿐이다 | C-2 | 확인 요청(U-H8). 근거: 하한이 없으면 출발점이 게이트에 확정적으로 걸린다(history H2) |
+| X-5 | **순서가 해석 문서 권고('(b) 먼저')와 다르다.** R-3과 R-1′을 한 엔진 card에 묶는다(HC-1). 사슬 합이 R-3 집합을 읽기 때문이다 | interpretation.md 147행 | 보고(U-H5 (b)). (a)는 범위 밖이라 C-1 순서와 충돌하지 않는다 |
+| X-6 | **graph 필드 `gvgs_summary.vds_saturation`을 지우고 S0 수준 사슬 필드로 옮긴다.** graph CONTRACT 7.5 표와 그 test가 바뀐다. test는 test 역할이 다시 쓴다 | graph CONTRACT 7.5 | 보고(U-H5 (b)). 포함 관계는 완료 조건 3으로 확인한다 |
+| X-7 | **SPICE 반영이 늦다.** oracle-portability OP-3 뒤 새 코어에 배선한다. 그 전까지 R-3 소자가 있는 회로의 SPICE 판정은 그 소자를 '포화 아님'으로 보고한다 | C-2 'SPICE all_saturated에서 제외' | U-H10 |
+| X-8 | **층 0 반영 방식이 C-1 승인안(상자 자르기)과 다르다.** 해석 문서(종합 R-1, '부등식은 상자를 잘라서 반영')와 달리, 이 계획은 시험점을 커널 전에 부등식으로 거른다. 근거: (i) 사슬 부등식은 여러 소자의 ln IDu와 y를 묶는 관계식이라 좌표축에 정렬되지 않는다. 상자(좌표별 구간)로 자르면 실행 가능한 점을 잃거나(안쪽 상자) 위반점을 남긴다(바깥 상자). (ii) 거르기는 커널 평가 0이다 | C-1 R-1 (b), interpretation.md 140행 | U-H9 |
+| X-9 | **P-1 반영으로 v0.1의 제한을 일반화·제거했다**(N3.9): 끝 넷 같은 성분, Gs(레일만), 같은 kind(사슬), 중간 넷 단자 둘, 평행 소자 축약, diode 제외, 레일 gate 제외, 지켜지는 소자 부재 시 거부. 그 결과 완료 조건 3의 차집합 원인이 넷이 되었다(N3.1-6). 검증 지시 D1의 '차집합 = 포트–F 변 사슬뿐'보다 넓다 | v0.1, 검증 D1 | 보고. 근거는 N3.9 유도다 |
 
 ---
 
@@ -250,14 +301,14 @@ version: 0.1
 
 | ID | 측정 | 산출 |
 |---|---|---|
-| M-H1 | **L 결정 경로**(C-2): 파일럿 적층 소자 쌍과 cascode·입력 소자의 L이 어느 경로로 정해지는지 코드 경로(`E/search/start_intervals.py:303-313`, L 하한 블록들의 비활성 사유)와 실행 기록(출발 행 Bound 출처)으로 잰다. 최소 폭 보정이 gm/ID를 어느 쪽으로 묶는지(F-17 주석 방향 불일치 포함), 같은 전류·같은 L·같은 W 하한이 두 적층 소자의 ln IDu를 같게 만드는지 확인한다 | 소자별 (L 출처, gm/ID 출처) 표. 원문 L과 다른 원인. L 규칙 변경이 필요해 보이면 사용자 결정 후보로 올린다(U-H4, 정하지 않음) |
-| M-H1b | **LUT VDS 축과 정의역 하한**: kind·슬라이스마다 VDS 격자 첫 점, on_mask 유도 하한(F-9 함수), `tol_vdsat`·`tol_v` 표가 정의된 VDS 범위 | 표. N3.3-2 게이트 하한이 이 값과 같은 함수임을 확인 |
-| M-H1c | 원문 동작점(해석 문서 표)에서 LUT VDsat로 적층 source 쪽 소자의 영역을 잰다(보고만, 판정 아님) | C-2 '의도된 triode'의 데이터 확인(확신도 갱신) |
-| M-H2 | **13회로 사슬 전수 계수**(library 9 + heldout 4): 길이별 사슬 수, 길이 1 집합 = 지금 `vds_saturation` 집합인지, ΔV 항 종류(레일·입력·VGS만), 입력 DC 변수를 담은 사슬 | 회로별 표. 판정 N4-1에 드는 회로 목록 |
-| M-H2b | **무동작 예측**: 회로마다 base 출발 사다리 칸 0이 사슬 부등식을 만족하는지(위반 사슬·크기) | 판정 N4-2·3 예측 목록. 이 예측이 완료 조건 1의 비교 대상 목록을 정하지는 않는다(검증자가 HC-2 뒤 실측으로 정함) |
-| M-H3 | **R-3 집합 대조**: N3.2-1 정의 집합 대 `device.dc_role` rule 1c 묶음(복합 diode 기준·캐스코드 멤버), `graph.gs_groups`, `vds_saturation`에서 유도한 집합. 같은지, 다르면 어느 소자가 어느 쪽에만 있는지와 연결 근거. 지켜지는 소자 목록 | 회로별 대조표. 다르면 어느 쪽이 맞는지는 회로 해석이라 사용자 공동분석(U-H2) |
-| M-H4 | **기존 실패의 사슬 설명력**: 파일럿 측정 실패 노드(공통 source·class-AB 출력 gate·CMFB tail)가 각각 어느 사슬 부등식 위반으로 설명되는지(측정 θ에서 사슬 값 계산) | HC-2가 덮을 것으로 예측한 실패 목록 |
-| M-H5 | **부수 결함 기준 계수**: 13회로 base 실행에서 SD-1·SD-2·SD-3 발생 수, 층 0 수리가 꺼진 수 | N3.7 재계수의 기준 |
+| M-H1 | **L 결정 경로**(C-2): 파일럿 적층 쌍·cascode·입력 소자의 L이 어느 경로로 정해지는지 잰다. 근거는 코드(`E/search/start_intervals.py:303-313`, L 하한 블록 비활성 사유)와 실행 기록(출발 행 Bound 출처)이다. 최소 폭 보정 방향(F-17), 그리고 같은 전류·L·W 하한이 적층 쌍의 ln IDu를 같게 만드는지도 본다 | 소자별 (L 출처, gm/ID 출처) 표. L 규칙 변경이 필요해 보이면 U-H4로 올린다(정하지 않음) |
+| M-H1b | **LUT VDS 축과 정의역 하한**: kind·슬라이스별 VDS 격자 첫 점, on_mask 유도 하한, `tol_vdsat`·`tol_v` 표가 정의된 VDS 범위 | 표. N3.3-2 게이트 하한이 F-9와 같은 함수임을 확인 |
+| M-H1c | 원문 동작점(해석 문서 Q1 표)에서 LUT VDsat로 적층 source 쪽 소자의 영역과 R3-a 유도 성립 조건(반전 수준, body)을 잰다(보고만) | R3-a 조건이 원문 동작점에서 성립하는지 |
+| M-H2 | **13회로 사슬 전수 계수**(library 9 + heldout 4): 길이별 사슬 수, ΔV 항 종류, y를 담은 사슬, N3.1-6 차집합 원인 (i)~(iv)별 수 | 회로별 표. N4-1 회로 목록 |
+| M-H2b | **무동작 예측**: 회로마다 base 출발 사다리 모든 칸의 사슬 부등식 만족 여부(위반 사슬·크기)와, base 층 0 시험점 중 거를 점 수 | N4-2·N4-3 예측. 완료 조건 1의 대상은 검증자가 HC-1 뒤 실측으로 정한다 |
+| M-H3 | **R-3 집합 대조**: N3.2-1 정의 집합 대 `device.dc_role` rule 1c 묶음(기준·캐스코드 멤버), `graph.gs_groups` 유도 집합. 같은지, 다르면 소자별 연결 근거. 지켜지는 소자 목록(경로 무관 정의) | 회로별 대조표. 다르면 회로 해석이라 사용자 공동분석(U-H2) |
+| M-H4 | **기존 실패의 사슬 설명력**: 파일럿 측정 실패 노드(공통 source Vy, class-AB 출력 gate Vg25·Vom1, CMFB tail Ncmfb_tail)를 측정 θ에서 각각 어느 사슬 위반으로 설명하는지. **Vom1–Vy 사이 사슬**(극소 분해 포함)을 따로 잰다. M-6·M-7의 CMFB 결합이 사슬로 설명되는지도 본다 | HC-1이 덮을 것으로 예측한 실패 목록 |
+| M-H5 | **부수 결함 기준 계수**: 13회로 base 실행의 SD-1·SD-2·SD-3 발생 수, 층 0 수리가 꺼진 수 | N3.7 재계수의 기준 |
 | M-H6 | **입력 CM 창**(위험 R-1): 입력 DC가 엔진 변수인 회로에서 사슬이 주는 y 하한·상한을 LUT 곡선 끝에서 잰다. 빈 창 여부 | 비겹침 위험의 크기. 남으면 U-H3 |
 
 ---
@@ -271,34 +322,38 @@ version: 0.1
 | card | 범위 | 선행 | 읽는 결정 |
 |---|---|---|---|
 | HC-0 (검증자, 측정) | N6 M-H1~M-H6. 엔진 무변경 | 이 계획 승인 | -- |
-| HC-D (문서) | 상위 문서 개정(N3.8, 계획부터) → 독립 검증 → 승인 → design: 사슬 기록 형식(G-1), diode 항 처리(G-2), 헤드룸 예산과의 관계(G-3), 층 0 거르기 키(G-4), R-3 레일 gate 처리(G-5), 면제 합집합 위치(G-6), 사유 코드(G-7), 오라클 입력 칸(G-8), test 목록·배선표·파일 분할 | HC-0 | X-1~X-7, U-H2 |
-| HC-1 (R-3 엔진) | R-3 S1 필드(기존 정본 파생 우선), 면제 합집합 함수와 소비자 다섯 배선(봉인 7·입력 창·스윙·사슬 합 자리·오라클 입력 칸 출력), 지켜지는 소자 검사, LUT 정의역 게이트. 옛 '선언만 면제' 문언 정정 | HC-D | X-2, X-4 (i), U-H2 |
-| HC-2 (R-1′ 엔진) | `vds_saturation` 일반화(사슬, writer `s1_gvgs`), 출발 구간 반영(조정 소자 선택·LUT 역산·충돌·입력 CM 빈 창 사유), 층 0 거르기, R-3 정의역 하한의 출발 제약. search CONTRACT 866-870 열린 항목 닫기. 같은 변경에서 graph CONTRACT·test 표 갱신(test 역할) | HC-1 | X-1, X-4 (ii), X-5, X-6 |
-| HC-O (오라클) | 오라클 새 코어 합격 판정에 면제·지켜지는 소자·BLOCKED 규칙. spec 어휘 반영(U-H1) | HC-1, oracle-portability OP-3 병합 | X-3, X-7, U-H1 |
-| HC-V (검증자) | 완료 조건 전체 판정, SD 재계수(N3.7), design 대 구현 gap 분석 | HC-2(HC-O는 별도 판정) | -- |
+| HC-D (문서) | 상위 문서 개정(N3.8)부터 하고 독립 검증·승인을 받는다. 그다음 design: G-1~G-11, test 목록, 배선표, 파일 분할 | HC-0 | X-1~X-9, U-H2·U-H5~U-H9 |
+| HC-1 (엔진, R-3 + R-1′ 한 card) | **면제 합집합의 엔진 소비자를 같은 card에서 배선한다.**<br>• R-3 S1 필드(기존 정본 파생 우선), 면제 합집합 함수, 봉인 7·입력 창·스윙 배선, 영역 기록, LUT 정의역 게이트<br>• 사슬 S0 필드(쓰기 계획 출력 읽음), `vds_saturation` 삭제, 출발 구간 반영(조정 소자·LUT 역산·충돌·입력 CM 빈 창 사유·면제 항), 층 0 거르기(U-H9 결정대로)<br>• search CONTRACT 866-870 열린 항목 닫기, graph CONTRACT·test 표 갱신(test 역할)<br>• 오라클 입력 칸은 결과 기록으로 낸다(소비자 = 보고). 오라클 판정 소비자는 HC-O | HC-D, XRUN-F1 card C 병합 | X-1·X-2·X-4·X-5·X-6·X-8·X-9, U-H2·U-H7·U-H8·U-H9 |
+| HC-O (오라클) | 새 코어 합격 판정에 면제·영역 기록을 넣고, spec 어휘(U-H1)를 반영한다 | HC-1, oracle-portability OP-3 병합, U-H10·U-H11 | X-3·X-7, U-H1 |
+| HC-V (검증자) | 완료 조건 전체 판정, SD 재계수(N3.7), design 대 구현 gap 분석 | HC-1(HC-O는 따로 판정) | -- |
 | (HC-F, 조건부) | SD-1·SD-2 수정. HC-V 재계수가 0이 아닐 때만, 사용자 승인 뒤 | HC-V | N3.7 |
-
-**만들면 배선**: HC-1의 R-3 필드는 같은 변경에서 봉인 7·입력 창·스윙의 면제 집합으로 쓰인다. 오라클 입력 칸은 HC-1에서 엔진 출력으로 나가지만 오라클이 읽는 것은 HC-O다. 그 사이 출력 칸은 결과 기록에 쓰여 소비자(보고)가 있다. HC-2의 사슬 기록은 같은 변경에서 출발 구간이 읽는다.
 
 ### N7.2 다른 계획과의 순서
 
-* **XRUN-F1 card C·NFR-4**: HC-1·HC-2는 9회로 기준선을 바꿀 수 있다(N4-3·4). 기준선 흔들림을 피하려 XRUN-F1 card C 병합 뒤에 병합한다(기본안, oracle-portability OP-7 선례).
-* **oracle-portability**: HC-O는 OP-3 뒤다(N3.6).
-* **offset-strategy F-1 fixture**: 파일럿 사본을 쓴다. HC-1·HC-2가 파일럿 결과를 바꾸면 그 fixture 결과도 바뀐다. OS-2 검증 항목은 front 불필요(S-14 F-1 (a))라 순서 충돌은 없다고 보지만, 병합 시점이 겹치면 오케스트레이터가 알린다.
-* **skill 문서**(C-2): 연결 서명 정의가 이 계획 N3.2-1과 같아야 한다(G-10). 어느 쪽이 먼저든 나중 것이 앞 것을 인용한다.
+* **XRUN-F1**: HC-1은 card C 병합 뒤 병합한다. 이유는 둘이다. search 파일이 겹치고(N3.5), 9회로 기준선이 흔들리지 않게 하려는 것이다. 새 캐시는 만들지 않고 X-20·X-21 키 규칙을 따른다(N3.5).
+* **oracle-portability**: HC-O는 OP-3 뒤다(U-H10). 오라클 입력 칸은 OP-0 스키마로 넘긴다(U-H11). 상호 참조는 오케스트레이터가 그 계획에 넣는다.
+* **offset-strategy F-1 fixture**: 파일럿 사본을 쓴다. HC-1이 파일럿 결과를 바꾸면 그 fixture 결과도 바뀐다. OS-2 검증 항목은 front가 필요 없다(S-14 F-1 (a)). 병합 시점이 겹치면 오케스트레이터가 알린다.
+* **skill 문서**(C-2): 연결 서명이 N3.2-1·N3.9 R3-a와 같아야 한다(G-10).
 
 ### N7.3 완료 조건(기능 전체, 측정 가능)
 
-1. **무동작**: 판정 N4-1·N4-2 회로에서 출발 기록(`start.row`·`rungs`·`conflicts`)·층 0 시작점 θ(hex)·front 지문이 base와 비트 동일하다. R-3 집합이 빈 회로에서 봉인 보고가 비트 동일하다. 비교 제외 칸(코드 지문 등)은 검증자가 소유하고 판정 기준 변경으로 보고한다. base = XRUN-F1 card C 병합 뒤 master.
-2. **변화의 출처**: 판정 N4-3·N4-4 회로에서 바뀐 출발 칸은 모두 사슬 출처 기록이나 R-3 정의역 하한 기록이 있고, 바뀐 봉인 7 행은 면제 소자 행뿐이다.
-3. **길이 1 일치**: 13회로에서 길이 1 사슬 집합 = HC-2 전 `vds_saturation` 집합.
+1. **무동작**: N4-1·N4-2 회로에서 다음이 base와 비트 동일하다. 출발 기록(`start.row`·`rungs`·`conflicts`), 층 0 시작점 θ(hex), front 지문, 봉인 보고. 새 보고 칸은 비교에서 빼고 0·빈 값임을 따로 단언한다(N4 비교 규칙). 그 밖의 제외 칸(코드 지문 등)은 검증자가 소유하고 판정 기준 변경으로 보고한다. base = XRUN-F1 card C 병합 뒤 master.
+2. **변화의 출처**: N4-3·N4-4 회로에서 바뀐 출발 칸은 모두 사슬 출처나 정의역 하한 기록이 있다. '충돌만 추가'에서는 `conflicts`만 바뀐다. 바뀐 봉인 7 행은 면제 소자 행뿐이다.
+3. **VDS-1 포함 관계**: 13회로에서 HC-1 전 `vds_saturation` 집합 ⊆ 길이 1 사슬 집합이다. 차집합 원소마다 N3.1-6 원인 (i)~(iv) 하나가 붙는다. 원인 없는 차이가 0개다.
 4. **이름 금지**: 새·고친 규칙 코드에 회로·소자·넷 이름 리터럴 0(AST 문자열 리터럴 검사, 주석·docstring 제외).
-5. **실제로 거부함**: (i) 사슬을 만족할 수 없는 픽스처에서 충돌 기록 + 사유 코드 (ii) 입력 CM 빈 창 픽스처에서 사유 코드 (iii) R-3 소자 정의역 밖 동작점에서 게이트 거부 (iv) 지켜지는 소자가 면제된 픽스처에서 거부 -- 각각 거부를 먼저 보이고 통과를 본다.
-6. **graph 단일 정본·재계산**: 사슬·R-3·면제 집합 필드 writer 하나씩(소유표), 실행 안 같은 입력 재계산 0(G-10 계수), `composite_diodes` 호출 수가 base와 같다(새 호출 없음).
-7. **배선**: 새 필드·함수가 실제 경로에서 호출된다(호출 경로 증거). `vds_saturation`의 엔진 안 소비자가 생긴다.
-8. **파일럿 목표**: 파일럿에서 출발 사다리 칸 0의 θ가 모든 사슬 부등식을 만족한다. 층 0 실패가 남으면 그 사유가 사슬 위반 θ의 `no_root_in_window`가 아님을 보이고, 입력 CM 빈 창이면 그 사유 코드로 멈춘다(U-H3로 올림). front ≥ 1은 완료 조건이 아니라 보고 항목이다(입력 CM 위험 때문에).
-9. **SPICE**(HC-O): 면제 소자가 포화 판정에서 빠지고 영역이 기록되며, 지켜지는 소자는 판정에 남는다. 면제가 지켜지는 소자에 닿으면 BLOCKED.
-10. **gap·bkit**: 상위 N6.3(graph 정본 lint·소유표·G-10 계수·파일 분할) 확인과 design 대 구현 gap 분석 통과.
+5. **실제로 거부함**: 각각 거부를 먼저 보이고 통과를 본다.
+   * (i) 사슬을 만족할 수 없는 픽스처: 충돌 기록 + 사유 코드
+   * (ii) 입력 CM 빈 창 픽스처: 사유 코드
+   * (iii) R-3 소자 정의역 밖 동작점: 게이트 거부
+6. **graph 단일 정본·재계산**:
+   * 사슬·R-3·면제 필드는 writer가 하나씩이다(소유표).
+   * 실행 안 같은 입력 재계산 0(G-10 계수).
+   * `composite_diodes` 호출 수와 쓰기 계획 계산 수가 base와 같다(Gs⁺ 재구성 없음).
+   * `vds_saturation` 참조 grep 0.
+7. **배선**: 새 필드·함수가 실제 경로에서 호출된다(호출 경로 증거). 면제 합집합의 엔진 소비자 넷(봉인 7·입력 창·스윙·사슬 항)이 HC-1 안에서 그것을 읽는다.
+8. **파일럿 목표**: 파일럿 출발 사다리 칸 0의 θ가 모든 사슬 부등식을 만족한다. 층 0 실패가 남으면 그 사유가 사슬 위반 θ의 `no_root_in_window`가 아님을 보인다. 입력 CM 빈 창이면 그 사유 코드로 멈춘다(U-H3). front ≥ 1은 보고 항목이다.
+9. **SPICE**(HC-O): 면제 소자가 포화 판정에서 빠지고 영역이 기록된다.
+10. **gap·bkit**: 상위 N6.3(graph 정본 lint·소유표·G-10 계수·파일 분할) 확인과 design 대 구현 gap 분석을 통과한다.
 
 ---
 
@@ -307,11 +362,11 @@ version: 0.1
 | R | 원문 | 웹 | 로컬 | 쪽·위치 | 쓰는 곳 |
 |---|---|---|---|---|---|
 | R1 | 사용자 결정 C-1·C-2 | -- | `wt/_drafts/user_decisions.md` 613·615행 | -- | N2 |
-| R2 | 파일럿 원문(Xie·Chen 2019, current-reuse telescopic OTA) | 웹 링크 없음(paper.md: 2026-10-14 검색에서 찾지 못함) | `A/library/sources/current_reuse_telescopic_ota__xie_chen_2019/source.pdf` | 부록 Fig.6 p.6, Fig.8 p.8(레벨 시프터·적층 소자 동작점), p.2(아래쪽 NMOS 바이어스 압박) | N1.1, M-H1c |
-| R3 | 회로 해석(연결·원문만) | -- | `wt/_scratch_cr_layer0/interpretation.md` | Q1(38-59행), 종합 R-1·R-3(136-147행) | N1.1, N3.2 |
-| R4 | 측정 M-1~M-9·coord | -- | `wt/_scratch_cr_m/results/*.jsonl`, 스크립트 `wt/_scratch_cr_m/scripts/diag.py` | history H2 | N1.1, X-4, N3.7 |
+| R2 | 파일럿 원문(Xie·Chen 2019, current-reuse telescopic OTA) | 웹 링크 없음(paper.md: 2026-10-14 검색에서 찾지 못함) | `A/library/sources/current_reuse_telescopic_ota__xie_chen_2019/source.pdf` | 부록 Fig.6 p.6, Fig.8 p.8, 본문 p.2 | M-H1c |
+| R3 | 회로 해석(연결·원문만) | -- | `wt/_scratch_cr_layer0/interpretation.md` | Q1(26-59행), 종합 R-1·R-3(130-147행) | N1.1, X-8 |
+| R4 | 측정 M-1~M-9·coord | -- | `wt/_scratch_cr_m/results/*.jsonl`, 스크립트 `wt/_scratch_cr_m/scripts/diag.py` | history H2 | N1.1, N3.3, N3.7 |
 | R5 | 백로그 | -- | `wt/_drafts/engine/U17_FOLLOWUPS.md` 45-55행 | current_reuse 층 0 조사 요약 | N1.1 |
-| R6 | Sooch형 셀·self-cascode(적층 source 쪽 소자의 의도 영역) | 원문 보관 없음 -- skill 문서 card(C-2)가 `assets/` 원문 보관소 규칙으로 보관한다 | 없음 | 미확인 | N3.2 연결 서명의 배경. 규칙 근거는 연결과 R2·R3이다 |
+| R6 | MOS 영역 조건·약반전 VGS–전류 관계(R3-a 유도에 쓴 교과서 사실) | 보관 원문 없음. skill 문서 card(C-2)가 `assets/` 원문 보관소 규칙으로 보관한다 | 없음 | 미확인 | N3.9. 규칙 판정은 LUT로 하고, 교과서식은 유도 설명에만 쓴다 |
 
 ---
 
@@ -319,14 +374,15 @@ version: 0.1
 
 | ID | 위험 | 대응 |
 |---|---|---|
-| R-1 | 입력 CM 상하한이 겹치지 않을 수 있다(측정 M-4c: NMOS 쪽을 연 θ에서 PMOS 쪽 공통 source 노드가 모든 시험값에서 근 없음, M-5: 한 θ에 두 쪽 실패가 함께 나옴. 확신도 중간, C-2) | 빈 창은 사유 코드로 멈춘다(N3.1-4). card 0 M-H6으로 크기를 잰다. HC-2 뒤에도 남으면 사용자 결정 U-H3 |
-| R-2 | 사슬 수가 많은 회로에서 사슬 열거가 커진다 | 극소성으로 사슬은 Gs 성분 경계에서 끊긴다. 열거 상한이 필요하면 기존 기둥 열거 상한 규칙(`column_limit`, `E/graph/columns.py:18-19`)과 같은 방식으로 정지한다(새 상수 없음, design) |
-| R-3 | 출발 동작점 근사(F-2)로 출발에서 맞춘 부등식이 풀이 뒤 동작점에서 깨진다 | 판정은 봉인이 한다(EP-7). 출발은 출발값일 뿐이다. 깨지는 빈도는 HC-V가 잰다 |
-| R-4 | R-3 정의가 복합 diode 정본과 달라 같은 구조가 두 이름을 갖는다 | card 0 M-H3 대조, 다르면 U-H2(공동분석). 정본은 하나로 한다(N3.4) |
-| R-5 | 길이 ≥ 2 사슬을 더하며 기존 VDS-1 test 표가 바뀐다 | 길이 1 부분집합 일치(완료 조건 3), test는 test 역할이 다시 쓴다 |
-| R-6 | 9회로 기준선이 바뀌어 다른 card 판정이 흔들린다 | XRUN-F1 card C 뒤 병합(N7.2), 바뀐 칸 출처 확인(완료 조건 2) |
+| R-1 | 입력 CM 상하한이 겹치지 않을 수 있다(C-2 확신도 중간, 측정 근거는 history H2 M-4c·M-5) | 빈 창은 사유 코드로 멈춘다(N3.1-4). card 0 M-H6로 크기를 잰다. HC-1 뒤에도 남으면 U-H3 |
+| R-2 | 분기 허용(C-5)으로 사슬 열거가 커진다 | 열거 상한이 필요하면 기존 기둥 열거 상한 방식(`column_limit`, `E/graph/columns.py:18-19`)과 같은 정지를 쓴다(새 상수 없음, G-9) |
+| R-3 | 출발 동작점 근사(F-2)로 출발에서 맞춘 부등식이 풀이 뒤 깨진다 | 판정은 봉인이 한다(EP-7). 빈도는 HC-V가 잰다 |
+| R-4 | R-3 정의와 복합 diode 정본이 같은 구조에 두 이름을 준다 | card 0 M-H3 대조. 다르면 U-H2. 정본은 하나로 한다(N3.4) |
+| R-5 | `vds_saturation` 삭제로 graph test 표가 바뀐다 | 완료 조건 3 포함 관계. test는 test 역할이 다시 쓴다 |
+| R-6 | 9회로 기준선이 바뀌어 다른 card 판정이 흔들린다 | XRUN-F1 card C 뒤 병합, 바뀐 칸의 출처 확인(완료 조건 2) |
 | R-7 | 부수 결함이 사슬 제약 뒤에도 남아 층 0 수리를 막는다 | N3.7 재계수, 0이 아니면 HC-F |
-| R-8 | SPICE 반영 지연(X-7) 동안 파일럿 SPICE 판정이 적층 소자로 FAIL | 결과에 '알려진 차이(HC-O 전)'로 적는다. 조용히 통과시키지 않는다 |
+| R-8 | SPICE 반영 지연(X-7) 동안 파일럿 SPICE 판정이 적층 소자에서 FAIL | 결과에 '알려진 차이(HC-O 전)'로 적는다. 조용히 통과시키지 않는다 |
+| R-9 | R3-a 유도 성립 조건(같은 bulk, 강반전)이 다른 회로에서 깨진다 | 제한하지 않고 영역은 LUT로 판정·기록한다. 포화 면제가 그 회로에서도 맞는지는 card 0 M-H1c와 HC-V 13회로 영역 기록으로 확인한다 |
 
 ---
 
@@ -336,41 +392,45 @@ version: 0.1
 
 | ID | 항목 | 기본안 | 근거 원칙 |
 |---|---|---|---|
-| H-1 | 사슬 정본 위치 | 기존 `gvgs_summary.vds_saturation` 일반화, writer `s1_gvgs` 하나 | 같은 개념 한 이름 한 곳(상위 FR-9·DEC-83), 소비자 없는 기존 필드 배선(만들면 배선) |
-| H-2 | 사슬 정의 | 극소 사슬(N3.1-1) | 극소 사슬의 부등식이 가장 강하고 합하면 긴 사슬 식이 된다 -- 중복 없는 최소 집합 |
-| H-3 | tol | 봉인 7의 `tol_VDsat`(DEC-88). spec `saturation_rule`(SPICE 여유 0)은 쓰지 않는다 | 출발이 맞추려는 것은 엔진 봉인 7이다. SPICE 여유를 쓰면 출발점이 봉인 7을 어길 수 있다. 상수 발명 없음 |
-| H-4 | 출발 반영 방식 | 조정 소자 하나(DEC-95 (3) 순서) + LUT 역산, 충돌은 기록 | 기존 종속 선택 규칙 재사용, 41 §6.6 충돌 관행 |
-| H-5 | 층 0 거르기 | 포함(X-4 (ii)) | 커널 평가 낭비 제거, 측정 근거 |
-| H-6 | R-3 정본 | 기존 정본(dc_role 1c·gs_groups·vds_saturation)에서 파생 우선, card 0 대조 | 새 탐지기 금지(NFR-H3), 재계산 금지 |
-| H-7 | 면제 합집합 | 함수 하나, 소비자 다섯이 읽음. 선언·유도 중복은 정보 기록 | 단일 정본, 사용자 선언 칸 존중 |
-| H-8 | R-3 게이트 | LUT on_mask 유도 VDS 하한 ~ 축 끝 + VGS 역산 정의, 같은 하한을 출발 제약에도 | 상수 없음(데이터 유도), fail-closed, X-4 (i) |
-| H-9 | 지켜지는 소자 | 길이 1 사슬에서 유도, 면제되면 거부 | 대체 검사 없는 면제 금지(FR-6) |
-| H-10 | 부수 결함 SD-1·SD-2 | 백로그 + 기준 계수 + HC-2 뒤 재계수, 0이 아니면 별도 card | 범위 분류 → 재측정 후 결정(상위 5단계), 인프라 작업은 엔진 목표를 막을 때만 |
-| H-11 | 오라클 반영 시점 | oracle-portability OP-3 뒤 새 코어(X-7) | 옛 구조에 만들고 다시 쓰지 않는다(그 계획 N5.2 선례) |
-| H-12 | 병합 순서 | HC-0 → HC-D → HC-1 → HC-2 → HC-V, HC-O는 OP-3 뒤. XRUN-F1 card C 뒤 병합 | 의존(사슬 합이 R-3 집합을 읽음, X-5), 기준선 안정 |
-| H-13 | 계산 재사용 | S1에서 실행당 1회, θ 조회는 LUT memo, 칸 0 사슬 값은 출발 기록에 보관 | 상위 NFR-2·WP-23, 원래 취지 문장 |
+| H-1 | 사슬 정본 | S0 수준 필드 하나(쓰기 계획 출력을 읽음), `vds_saturation` 삭제 | 개념 하나 이름 하나, 옛 정본 삭제, Gs⁺ 사본 금지 |
+| H-2 | 사슬 정의 | KVL 넷 사이, 안쪽은 비KVL 넷, 위쪽 방향, 분기·kind 무관, 평행 최댓값 | P-1, Fourier–Motzkin 유도(N3.9) |
+| H-3 | tol | 봉인 7의 `tol_VDsat`(DEC-88). SPICE 여유 0은 쓰지 않는다 | 출발이 맞추려는 것은 엔진 봉인 7이다. 상수 발명 없음 |
+| H-4 | 출발 반영 | 조정 소자 하나(DEC-95 (3), diode는 조정 소자 아님) + LUT 역산. 충돌은 기록 | 기존 규칙 재사용, 41 §6.6 충돌 관행 |
+| H-6 | R-3 정본 | S1 필드, 기존 정본 파생 우선, card 0 대조 | 새 탐지기 금지, 재계산 금지 |
+| H-7 | 면제 합집합 | 함수 하나. 선언·유도 중복은 정보 기록 | 단일 정본, 사용자 선언 칸 존중 |
+| H-10 | 부수 결함 SD-1·SD-2 | 백로그 + 기준 계수 + HC-1 뒤 재계수. 0이 아니면 별도 card | 범위 분류 → 재측정 후 결정 |
+| H-12 | 병합 순서 | HC-0 → HC-D → HC-1 → HC-V. HC-O는 OP-3 뒤. HC-1은 XRUN-F1 card C 뒤 | 의존, 파일 겹침, 기준선 안정 |
+| H-13 | 계산 재사용 | 실행당 1회, LUT memo만, 새 캐시 없음, READS·입력 판 편입, X-20·X-21 키 규칙 | 상위 NFR-2·WP-23, XRUN-F1 |
 
 ### N10.2 사용자 결정 필요(이 계획이 정하지 않음)
 
-| ID | 질문 | 권고 | 착수 조건이 되는 card |
+| ID | 질문 | 기본안·권고와 근거 | 착수 조건 card |
 |---|---|---|---|
-| U-H1 | SPICE 합격 어휘(X-3): (가) `free_spec_and_all_saturated`의 뜻을 '면제 집합 밖 전 MOS 포화'로 바꾼다 (나) 새 어휘를 더하고 spec이 그 어휘를 선언한다. (나)이면 library·heldout spec 선언 변경은 사용자 몫이다 | (나). 상위 FR-9 '개념 하나에 이름 하나'에 맞고, 사용자 출처로 선언된 규칙의 뜻을 조용히 바꾸지 않는다 | HC-O |
-| U-H2 | card 0 M-H3에서 N3.2-1 정의와 복합 diode 정본 집합이 다를 때 어느 쪽이 R-3인지(회로 해석) | 측정 결과와 소자별 연결 근거·확신도를 붙여 그때 올린다 | HC-D |
-| U-H3 | 입력 CM 창이 HC-2 뒤에도 비는 회로의 처리: (가) 사유 코드로 멈춘 채 보고 (나) 사용자가 `icmr_v`·입력 DC를 선언 (다) 그 밖 | 그때 측정과 함께 올린다. 엔진이 임의로 창을 넓히지 않는다 | HC-V 뒤 |
-| U-H4 | (조건부) card 0 M-H1이 L 규칙 때문에 사슬을 만족할 수 없음을 보이면 L 결정 규칙 변경 여부(상위 DEC-17·N3.9 L 규칙 영역) | 측정 뒤 올린다. 이 계획은 L 규칙을 바꾸지 않는다 | HC-2 |
-| U-H5 | X-1~X-7 확인과 N3.8 상위 문서 개정 승인 | -- | HC-D |
+| U-H1 | SPICE 합격 어휘(X-3): (가) `free_spec_and_all_saturated`의 뜻을 '면제 집합 밖 전 MOS 포화'로 바꾼다 (나) 새 어휘를 더하고 spec이 그 어휘를 선언한다(library·heldout spec 변경은 사용자 몫) | (나). 근거: 상위 FR-9 '개념 하나에 이름 하나'. 사용자 출처로 선언된 규칙의 뜻을 조용히 바꾸지 않는다 | HC-O |
+| U-H2 | card 0 M-H3에서 N3.2-1 집합과 복합 diode 정본 집합이 다를 때 어느 쪽이 R-3인가(회로 해석) | 측정과 소자별 연결 근거·확신도를 붙여 그때 올린다 | HC-D |
+| U-H3 | HC-1 뒤에도 입력 CM 창이 비는 회로의 처리 | 사유 코드로 멈춘 채 보고한다. 엔진이 임의로 창을 넓히지 않는다. 선택지(`icmr_v`·입력 DC 선언 등)는 그때 측정과 함께 올린다 | HC-V 뒤 |
+| U-H4 | (조건부) card 0 M-H1이 L 규칙 때문에 사슬을 만족할 수 없음을 보이면 L 결정 규칙을 바꿀지(상위 DEC-17·N3.9 L 규칙 영역) | 측정 뒤 올린다. 이 계획은 L 규칙을 바꾸지 않는다 | HC-1 |
+| U-H5 (a) | 상위 문언 개정 승인: DEC-64(VDS 2개 이상), DEC-88·N3.6 봉인 7(선언만 면제), N3.6 SPICE 합격 규칙(N3.8) | 승인 권고. 근거: C-2가 취지를 승인했고 S-7 '계획부터 고친다'다 | HC-D |
+| U-H5 (b) | X-1~X-9 개별 확인 | 항목별 상태 칸대로 | HC-D |
+| U-H6 | Gs⁺ = 쓰기 계획 G_vgs(레일·노드 목표·선언 입력 포트 F, 저항, 같은 DC 변, 입력 포트 뿌리 y)를 사슬 끝 넷 판정에 쓴다(검증 D1) | 확인만 요청한다. C-2 문언 '레일·입력·VGS 합'의 '입력'이 이것이다. 쓰기 계획 출력을 읽고 사본은 만들지 않는다 | HC-D |
+| U-H7 | R-3 레일 gate 처리와 지켜지는 소자 부재·면제 시 처리(검증 D2, N3.9 R3-c·R3-d) | **제외 없음**. Z가 없거나 면제면 거부하지 않고 '대체 포화 판정 없음'을 기록한다. 정의역 게이트는 항상 건다. 근거: 유도에 gate 종류와 Z가 들어가지 않는다(P-1) | HC-1 |
+| U-H8 | X-4: R-3 정의역 하한을 출발 제약 항으로 쓴다 | 쓴다. 근거: 하한이 없으면 출발점이 게이트에 확정적으로 걸린다. 하한은 LUT 데이터 유도라 새 상수가 없다 | HC-1 |
+| U-H9 | X-8: 층 0 반영을 상자 자르기(C-1 승인안) 대신 시험점 거르기로 한다 | 거르기. 근거: 관계식이 좌표축에 정렬되지 않아 상자로는 실행 가능 영역을 정확히 표현하지 못한다. 거르기는 커널 평가 0이다 | HC-1 |
+| U-H10 | 오라클 판정 배선을 oracle-portability OP-3 뒤로 미룬다(X-7, 만들면 배선의 예외 기간) | 미룬다. 근거: 옛 구조에 만들고 다시 쓰지 않는다(그 계획 N5.2). 그동안 차이는 결과에 적는다 | HC-O |
+| U-H11 | (선택) 오라클 입력 칸(G-8)을 oracle-portability OP-0 입력 스키마로 넘긴다 | 넘긴다. 근거: 오라클 입력 형식의 정본은 그 계획이다. 이 계획은 칸의 뜻만 정한다. 상호 참조는 오케스트레이터가 넣는다 | HC-O |
 
 ### N10.3 design에서 닫을 항목
 
 | ID | 항목 | card |
 |---|---|---|
-| G-1 | 사슬 기록 형식(RelEdge 확장 칸, 부호, ΔV 항 종류) | HC-2 |
-| G-2 | diode 원소가 사슬 안에 있을 때 그 항 처리 | HC-2 |
-| G-3 | 헤드룸 예산과의 포함 관계 증명, 출처 이름 분리 | HC-2 |
-| G-4 | 층 0 거르기 결과의 재사용 키와 결과 보고 칸 | HC-2 |
-| G-5 | R-3 정의에서 레일 gate·다른 kind 처리 | HC-1 |
-| G-6 | 면제 합집합의 위치(S0 수준 파생 필드인지 커널 컨텍스트 값인지)와 입력 버전 | HC-1 |
-| G-7 | 사유 코드(사슬 충돌, 입력 CM 빈 창, 정의역 게이트, 지켜지는 소자 면제) | HC-1·HC-2 |
-| G-8 | 오라클 입력 칸(소자별 의도 영역·지켜지는 소자) | HC-1·HC-O |
-| G-9 | 사슬 열거 상한 방식(위험 R-2) | HC-2 |
-| G-10 | skill 문서 연결 서명과 N3.2-1의 일치 확인 | HC-D |
+| G-1 | 사슬 기록 형식(소자 묶음, 끝 넷, ΔV 항 종류·부호), 필드 이름·모듈 | HC-1 |
+| G-2 | 위쪽 방향 규칙의 구현 위치(헤드룸 `_edge_nets`와 공유 여부 -- 사본 금지) | HC-1 |
+| G-3 | 헤드룸 예산과의 포함 관계 증명, 출처 이름 분리 | HC-1 |
+| G-4 | 층 0 거르기 재사용 키와 보고 칸 | HC-1 |
+| G-5 | R-3 S1 필드의 기존 정본 파생 방식(M-H3 결과) | HC-1 |
+| G-6 | 면제 합집합의 위치와 입력 판 | HC-1 |
+| G-7 | 사유 코드(사슬 충돌, 입력 CM 빈 창, 정의역 게이트, 대체 판정 없음 기록) | HC-1 |
+| G-8 | 오라클 입력 칸의 뜻(소자별 의도 영역·지켜지는 소자). 형식은 OP-0 스키마(U-H11) | HC-1·HC-O |
+| G-9 | 사슬 열거 상한 방식(위험 R-2) | HC-1 |
+| G-10 | skill 문서 연결 서명과 N3.2-1·N3.9 R3-a의 일치 | HC-D |
+| G-11 | 노드 목표(W3) F 넷이 끝 넷일 때 ΔV 항 표현 | HC-1 |
