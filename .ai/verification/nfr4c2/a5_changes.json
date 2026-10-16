@@ -1,0 +1,3519 @@
+{
+ "method": "base e8b619f(red 복제본 = e8b619f 엔진 + 동결 test 64c77c1 의 하네스 nfr4_run_dump.py) 대 head a34054d, 같은 하네스·같은 설정(회로마다 새 프로세스 순차, env -i 허용 목록, 바깥 OPENBLAS_NUM_THREADS=1, 실행마다 빈 TEMP·표 캐시, E_B 40, front_budget_s 7200). T 칸 제외, notes 는 l_search 줄을 뺀 뒤 순서대로 맞댐. 형식 변경(env_fp·lb_stops·l_search 줄)·run_id·code_fp 는 따로 셈. 원인 대조군: head 에서 끌어올림 한 줄만 as-built(lift = u)로 되돌린 복제본(head_nobp1) -> base 대비 값 변화 9회로 모두 0.",
+ "control_head_with_asbuilt_lift_value_changes": {
+  "common_gate_amplifier": 0,
+  "current_reuse_telescopic_ota": 0,
+  "folded_cascode": 0,
+  "ngcc_3stage_ff": 0,
+  "nmcnr_amplifier": 0,
+  "pushpull_follower_buffer": 0,
+  "sf_pushpull_output_opamp": 0,
+  "two_stage_ota": 0,
+  "two_stage_ota_sf": 0
+ },
+ "circuits": {
+  "common_gate_amplifier": {
+   "scope": "in (나)+(라)",
+   "n_value_changes": 2512,
+   "by_zone_class": {
+    "eval/C": 1269,
+    "eval/D": 37,
+    "layer0/C": 1,
+    "result/C": 36,
+    "result/D": 3,
+    "result/K": 1,
+    "s3evals/C": 791,
+    "s3evals/D": 239,
+    "s3runs/C": 8,
+    "s3runs/D": 13,
+    "s3runs/K": 1,
+    "sweep/C": 104,
+    "sweep/D": 9
+   },
+   "first_eval_seq_changed": 1,
+   "n_evals_changed": 43,
+   "perf_changes": {
+    "lut_memo_evictions": [
+     1573,
+     1567
+    ],
+    "lb_stops": [
+     [],
+     [
+      "eval_budget"
+     ]
+    ]
+   },
+   "layer0_result_sweep_s3runs_notes_rows": [
+    {
+     "path": "layer0/start/theta/current:M3",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.4cbb12df4903cp-33"
+     ],
+     "head": [
+      "C",
+      "0x1.4cbb1320589cap-33"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/active",
+     "zone": "result",
+     "base": [
+      "D",
+      "[\"seal6_bulk:M1\", \"seal6_bulk:M3\", \"w_min:M1\", \"w_min:M2\"]"
+     ],
+     "head": [
+      "D",
+      "[\"seal6_bulk:M1\", \"seal6_bulk:M3\"]"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/constraints/inversion_floor:M1/c",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.b5c27872d6dd7p+13"
+     ],
+     "head": [
+      "C",
+      "0x1.a0b6c2ec67294p+13"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/constraints/inversion_floor:M2/c",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.4372b6df94749p+15"
+     ],
+     "head": [
+      "C",
+      "0x1.5b30992d8e1e5p+15"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/constraints/inversion_floor:M3/c",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.49562558db594p+13"
+     ],
+     "head": [
+      "C",
+      "0x1.4ca4a2be62718p+13"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/constraints/seal6_bulk:M2/c",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.056100b23da25p+7"
+     ],
+     "head": [
+      "C",
+      "0x1.20b0312076025p+7"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/constraints/spec:area_search_m2<=/c",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.22a194ee0dbe6p+21"
+     ],
+     "head": [
+      "C",
+      "0x1.22a1830fc012cp+21"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/constraints/ss:0:noise_excess_th<=/c",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.19d8788645f01p+1"
+     ],
+     "head": [
+      "C",
+      "0x1.27aae5a49af7bp+1"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/constraints/w_min:M1/c",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.c1f012254b401p-2"
+     ],
+     "head": [
+      "C",
+      "0x1.14f94fc0a5f7dp+0"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/constraints/w_min:M2/c",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.7ebe48c1ab024p-3"
+     ],
+     "head": [
+      "C",
+      "0x1.1bd0e8936a334p+1"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/constraints/w_min:M3/c",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.0284f6d36a587p+5"
+     ],
+     "head": [
+      "C",
+      "0x1.1f2ac8e68ef3dp+5"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[0]/tol",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.aa84a789ec0a6p-51"
+     ],
+     "head": [
+      "C",
+      "0x1.af6a2be793c05p-51"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[1]/detail/worst",
+     "zone": "result",
+     "base": [
+      "D",
+      "M2"
+     ],
+     "head": [
+      "D",
+      "M3"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[1]/magnitude",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.2fd8edf5a6e0cp-52"
+     ],
+     "head": [
+      "C",
+      "0x1.b622099f2da8dp-53"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[1]/margin",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.2f5d1205f3592p-45"
+     ],
+     "head": [
+      "C",
+      "0x1.4e7d04f4613a5p-46"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[1]/tol",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.0068857041d90p-7"
+     ],
+     "head": [
+      "C",
+      "0x1.4f52fe2aabfdcp-7"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[2]/magnitude",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.2800000000000p-80"
+     ],
+     "head": [
+      "C",
+      "0x1.2000000000000p-81"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[2]/margin",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.339155045a619p-45"
+     ],
+     "head": [
+      "C",
+      "0x1.2ded3bb057dcbp-46"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[2]/tol",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.ecbe58d8e3693p-36"
+     ],
+     "head": [
+      "C",
+      "0x1.e86229e33c465p-36"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[6]/detail/slack_v",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.4bf401e4bbe6bp-4"
+     ],
+     "head": [
+      "C",
+      "0x1.fb3b54987c184p-5"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[6]/magnitude",
+     "zone": "result",
+     "base": [
+      "C",
+      "-0x1.23de3dc30cda2p-4"
+     ],
+     "head": [
+      "C",
+      "-0x1.ab0fcc551dff2p-5"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[6]/margin",
+     "zone": "result",
+     "base": [
+      "C",
+      "-0x1.d1ff9c7f68a40p+2"
+     ],
+     "head": [
+      "C",
+      "-0x1.54ecb9224397ap+2"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[8]/magnitude",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.d1fd1e05badacp-42"
+     ],
+     "head": [
+      "C",
+      "0x1.c01fb7537adacp-42"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[8]/margin",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.0b11c7c5fc830p-6"
+     ],
+     "head": [
+      "C",
+      "0x1.f942c5fec547ep-7"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/report/items[8]/tol",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.beacac924e2aap-36"
+     ],
+     "head": [
+      "C",
+      "0x1.c619d8da9c138p-36"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/evaluation/snapshot_fp",
+     "zone": "result",
+     "base": [
+      "C",
+      "265b9cc3aec755873c714b1fc42ffc6791644ae505bbc31e2a8aa703c7f15282"
+     ],
+     "head": [
+      "C",
+      "945084ea83b8b9951688c1f474794bdf21b3eb577ed0e9c3c6dff0e7140a1c08"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/objectives/area_m2",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.e13910a5ba25cp-43"
+     ],
+     "head": [
+      "C",
+      "0x1.ebc8ec9268886p-43"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/objectives/gate_area_m2",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.e13910a5ba25cp-43"
+     ],
+     "head": [
+      "C",
+      "0x1.ebc8ec9268886p-43"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/objectives/per_rail/gnd",
+     "zone": "result",
+     "base": [
+      "C",
+      "-0x1.23f4377fe927bp-33"
+     ],
+     "head": [
+      "C",
+      "-0x1.28a9be2aff6e8p-33"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/objectives/per_rail/vdd",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.23f4377fe927bp-33"
+     ],
+     "head": [
+      "C",
+      "0x1.28a9be2aff6e8p-33"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/objectives/power_resolution_w",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.9201ce83acc00p-35"
+     ],
+     "head": [
+      "C",
+      "0x1.98b0dcc4bfab3p-35"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/objectives/power_w",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.06c231f31ea3cp-32"
+     ],
+     "head": [
+      "C",
+      "0x1.0aff2b26b2b04p-32"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/seq",
+     "zone": "result",
+     "base": [
+      "D",
+      34
+     ],
+     "head": [
+      "D",
+      23
+     ]
+    },
+    {
+     "path": "result/front[0]/result/theta/current:M3",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.23f4377fe927bp-33"
+     ],
+     "head": [
+      "C",
+      "0x1.28a9be2aff6e8p-33"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/theta/ln_idu:M1",
+     "zone": "result",
+     "base": [
+      "C",
+      "-0x1.7c6fb7cb3e894p+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.7c4d3a8fb0e1ep+4"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/theta/ln_idu:M2",
+     "zone": "result",
+     "base": [
+      "C",
+      "-0x1.7c6373743ce63p+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.7c8386d6cbb49p+4"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/theta/ln_idu:M3",
+     "zone": "result",
+     "base": [
+      "C",
+      "-0x1.818f8872914dbp+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.81ca31b2ded2cp+4"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/theta/y:input_common_mode",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.579d1dcee4dc8p-1"
+     ],
+     "head": [
+      "C",
+      "0x1.75be232d336a7p-1"
+     ]
+    },
+    {
+     "path": "result/front[0]/result/theta/y:vout",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.a8adaac4e574ep-1"
+     ],
+     "head": [
+      "C",
+      "0x1.adacae5a38958p-1"
+     ]
+    },
+    {
+     "path": "result/perf/lut_memo_evictions",
+     "zone": "result",
+     "base": [
+      "K",
+      1573
+     ],
+     "head": [
+      "K",
+      1567
+     ]
+    },
+    {
+     "path": "result/resolution/b_P_grid_w",
+     "zone": "result",
+     "base": [
+      "C",
+      "0x1.df0eb36eaf462p-35"
+     ],
+     "head": [
+      "C",
+      "0x1.df0eb5a4d7e65p-35"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/active[0]/c",
+     "zone": "s3runs",
+     "base": [
+      "C",
+      "0x1.c1f012254b401p-2"
+     ],
+     "head": [
+      "C",
+      "0x1.0000000000000p+0"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/active[0]/name",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "w_min:M1"
+     ],
+     "head": [
+      "D",
+      "seal6_bulk:M1"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/active[1]/name",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "seal6_bulk:M1"
+     ],
+     "head": [
+      "D",
+      "seal6_bulk:M3"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/active[2]/c",
+     "zone": "s3runs",
+     "base": [
+      "C",
+      "0x1.7ebe48c1ab024p-3"
+     ],
+     "head": null
+    },
+    {
+     "path": "s3/runs[0]/front[0]/active[2]/name",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "w_min:M2"
+     ],
+     "head": null
+    },
+    {
+     "path": "s3/runs[0]/front[0]/active[3]/c",
+     "zone": "s3runs",
+     "base": [
+      "C",
+      "0x1.0000000000000p+0"
+     ],
+     "head": null
+    },
+    {
+     "path": "s3/runs[0]/front[0]/active[3]/name",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "seal6_bulk:M3"
+     ],
+     "head": null
+    },
+    {
+     "path": "s3/runs[0]/front[0]/area_search_m2",
+     "zone": "s3runs",
+     "base": [
+      "C",
+      "0x1.e13910a5ba25cp-43"
+     ],
+     "head": [
+      "C",
+      "0x1.ebc8ec9268886p-43"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/gate_area_m2",
+     "zone": "s3runs",
+     "base": [
+      "C",
+      "0x1.e13910a5ba25cp-43"
+     ],
+     "head": [
+      "C",
+      "0x1.ebc8ec9268886p-43"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/power_dc_w",
+     "zone": "s3runs",
+     "base": [
+      "C",
+      "0x1.06c231f31ea3cp-32"
+     ],
+     "head": [
+      "C",
+      "0x1.0aff2b26b2b04p-32"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/power_resolution_w",
+     "zone": "s3runs",
+     "base": [
+      "C",
+      "0x1.9201ce83acc00p-35"
+     ],
+     "head": [
+      "C",
+      "0x1.98b0dcc4bfab3p-35"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/seq",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      34
+     ],
+     "head": [
+      "D",
+      23
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/snapshot_fp",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "265b9cc3aec755873c714b1fc42ffc6791644ae505bbc31e2a8aa703c7f15282"
+     ],
+     "head": [
+      "D",
+      "945084ea83b8b9951688c1f474794bdf21b3eb577ed0e9c3c6dff0e7140a1c08"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/snapshot_ref",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "snapshots/265b9cc3aec755873c714b1fc42ffc6791644ae505bbc31e2a8aa703c7f15282.json.gz"
+     ],
+     "head": [
+      "D",
+      "snapshots/945084ea83b8b9951688c1f474794bdf21b3eb577ed0e9c3c6dff0e7140a1c08.json.gz"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/theta_hex[3][1]",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "0x1.23f4377fe927bp-33"
+     ],
+     "head": [
+      "D",
+      "0x1.28a9be2aff6e8p-33"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/theta_hex[4][1]",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "-0x1.7c6fb7cb3e894p+4"
+     ],
+     "head": [
+      "D",
+      "-0x1.7c4d3a8fb0e1ep+4"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/theta_hex[5][1]",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "-0x1.7c6373743ce63p+4"
+     ],
+     "head": [
+      "D",
+      "-0x1.7c8386d6cbb49p+4"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/theta_hex[6][1]",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "-0x1.818f8872914dbp+4"
+     ],
+     "head": [
+      "D",
+      "-0x1.81ca31b2ded2cp+4"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/theta_hex[7][1]",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "0x1.579d1dcee4dc8p-1"
+     ],
+     "head": [
+      "D",
+      "0x1.75be232d336a7p-1"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/front[0]/theta_hex[8][1]",
+     "zone": "s3runs",
+     "base": [
+      "D",
+      "0x1.a8adaac4e574ep-1"
+     ],
+     "head": [
+      "D",
+      "0x1.adacae5a38958p-1"
+     ]
+    },
+    {
+     "path": "s3/runs[0]/perf/lut_memo_evictions",
+     "zone": "s3runs",
+     "base": [
+      "K",
+      1573
+     ],
+     "head": [
+      "K",
+      1567
+     ]
+    },
+    {
+     "path": "s3/runs[0]/resolution/b_P_grid_w",
+     "zone": "s3runs",
+     "base": [
+      "C",
+      "0x1.df0eb36eaf462p-35"
+     ],
+     "head": [
+      "C",
+      "0x1.df0eb5a4d7e65p-35"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/active",
+     "zone": "sweep",
+     "base": [
+      "D",
+      "[\"seal6_bulk:M1\", \"seal6_bulk:M3\", \"w_min:M1\", \"w_min:M2\"]"
+     ],
+     "head": [
+      "D",
+      "[\"seal6_bulk:M1\", \"seal6_bulk:M3\"]"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/constraints/inversion_floor:M1/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.b5c27872d6dd7p+13"
+     ],
+     "head": [
+      "C",
+      "0x1.a0b6c2ec67294p+13"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/constraints/inversion_floor:M2/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.4372b6df94749p+15"
+     ],
+     "head": [
+      "C",
+      "0x1.5b30992d8e1e5p+15"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/constraints/inversion_floor:M3/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.49562558db594p+13"
+     ],
+     "head": [
+      "C",
+      "0x1.4ca4a2be62718p+13"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/constraints/seal6_bulk:M2/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.056100b23da25p+7"
+     ],
+     "head": [
+      "C",
+      "0x1.20b0312076025p+7"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/constraints/spec:area_search_m2<=/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.22a194ee0dbe6p+21"
+     ],
+     "head": [
+      "C",
+      "0x1.22a1830fc012cp+21"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/constraints/ss:0:noise_excess_th<=/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.19d8788645f01p+1"
+     ],
+     "head": [
+      "C",
+      "0x1.27aae5a49af7bp+1"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/constraints/w_min:M1/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.c1f012254b401p-2"
+     ],
+     "head": [
+      "C",
+      "0x1.14f94fc0a5f7dp+0"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/constraints/w_min:M2/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.7ebe48c1ab024p-3"
+     ],
+     "head": [
+      "C",
+      "0x1.1bd0e8936a334p+1"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/constraints/w_min:M3/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.0284f6d36a587p+5"
+     ],
+     "head": [
+      "C",
+      "0x1.1f2ac8e68ef3dp+5"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[0]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.aa84a789ec0a6p-51"
+     ],
+     "head": [
+      "C",
+      "0x1.af6a2be793c05p-51"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[1]/detail/worst",
+     "zone": "sweep",
+     "base": [
+      "D",
+      "M2"
+     ],
+     "head": [
+      "D",
+      "M3"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[1]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.2fd8edf5a6e0cp-52"
+     ],
+     "head": [
+      "C",
+      "0x1.b622099f2da8dp-53"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[1]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.2f5d1205f3592p-45"
+     ],
+     "head": [
+      "C",
+      "0x1.4e7d04f4613a5p-46"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[1]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.0068857041d90p-7"
+     ],
+     "head": [
+      "C",
+      "0x1.4f52fe2aabfdcp-7"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[2]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.2800000000000p-80"
+     ],
+     "head": [
+      "C",
+      "0x1.2000000000000p-81"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[2]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.339155045a619p-45"
+     ],
+     "head": [
+      "C",
+      "0x1.2ded3bb057dcbp-46"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[2]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.ecbe58d8e3693p-36"
+     ],
+     "head": [
+      "C",
+      "0x1.e86229e33c465p-36"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[6]/detail/slack_v",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.4bf401e4bbe6bp-4"
+     ],
+     "head": [
+      "C",
+      "0x1.fb3b54987c184p-5"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[6]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.23de3dc30cda2p-4"
+     ],
+     "head": [
+      "C",
+      "-0x1.ab0fcc551dff2p-5"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[6]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.d1ff9c7f68a40p+2"
+     ],
+     "head": [
+      "C",
+      "-0x1.54ecb9224397ap+2"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[8]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.d1fd1e05badacp-42"
+     ],
+     "head": [
+      "C",
+      "0x1.c01fb7537adacp-42"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[8]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.0b11c7c5fc830p-6"
+     ],
+     "head": [
+      "C",
+      "0x1.f942c5fec547ep-7"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/report/items[8]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.beacac924e2aap-36"
+     ],
+     "head": [
+      "C",
+      "0x1.c619d8da9c138p-36"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/evaluation/snapshot_fp",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "265b9cc3aec755873c714b1fc42ffc6791644ae505bbc31e2a8aa703c7f15282"
+     ],
+     "head": [
+      "C",
+      "945084ea83b8b9951688c1f474794bdf21b3eb577ed0e9c3c6dff0e7140a1c08"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/objectives/area_m2",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.e13910a5ba25cp-43"
+     ],
+     "head": [
+      "C",
+      "0x1.ebc8ec9268886p-43"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/objectives/gate_area_m2",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.e13910a5ba25cp-43"
+     ],
+     "head": [
+      "C",
+      "0x1.ebc8ec9268886p-43"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/objectives/per_rail/gnd",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.23f4377fe927bp-33"
+     ],
+     "head": [
+      "C",
+      "-0x1.28a9be2aff6e8p-33"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/objectives/per_rail/vdd",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.23f4377fe927bp-33"
+     ],
+     "head": [
+      "C",
+      "0x1.28a9be2aff6e8p-33"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/objectives/power_resolution_w",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.9201ce83acc00p-35"
+     ],
+     "head": [
+      "C",
+      "0x1.98b0dcc4bfab3p-35"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/objectives/power_w",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.06c231f31ea3cp-32"
+     ],
+     "head": [
+      "C",
+      "0x1.0aff2b26b2b04p-32"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/seq",
+     "zone": "sweep",
+     "base": [
+      "D",
+      34
+     ],
+     "head": [
+      "D",
+      23
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/theta/current:M3",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.23f4377fe927bp-33"
+     ],
+     "head": [
+      "C",
+      "0x1.28a9be2aff6e8p-33"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/theta/ln_idu:M1",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.7c6fb7cb3e894p+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.7c4d3a8fb0e1ep+4"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/theta/ln_idu:M2",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.7c6373743ce63p+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.7c8386d6cbb49p+4"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/theta/ln_idu:M3",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.818f8872914dbp+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.81ca31b2ded2cp+4"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/theta/y:input_common_mode",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.579d1dcee4dc8p-1"
+     ],
+     "head": [
+      "C",
+      "0x1.75be232d336a7p-1"
+     ]
+    },
+    {
+     "path": "sweep/front[0]/result/theta/y:vout",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.a8adaac4e574ep-1"
+     ],
+     "head": [
+      "C",
+      "0x1.adacae5a38958p-1"
+     ]
+    },
+    {
+     "path": "sweep/resolution/b_P_grid_w",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.df0eb36eaf462p-35"
+     ],
+     "head": [
+      "C",
+      "0x1.df0eb5a4d7e65p-35"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/active",
+     "zone": "sweep",
+     "base": [
+      "D",
+      "[\"seal6_bulk:M1\", \"seal6_bulk:M3\", \"w_min:M1\", \"w_min:M2\"]"
+     ],
+     "head": [
+      "D",
+      "[\"seal6_bulk:M1\", \"seal6_bulk:M3\"]"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/constraints/inversion_floor:M1/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.b5c27872d6dd7p+13"
+     ],
+     "head": [
+      "C",
+      "0x1.a0b6c2ec67294p+13"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/constraints/inversion_floor:M2/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.4372b6df94749p+15"
+     ],
+     "head": [
+      "C",
+      "0x1.5b30992d8e1e5p+15"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/constraints/inversion_floor:M3/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.49562558db594p+13"
+     ],
+     "head": [
+      "C",
+      "0x1.4ca4a2be62718p+13"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/constraints/seal6_bulk:M2/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.056100b23da25p+7"
+     ],
+     "head": [
+      "C",
+      "0x1.20b0312076025p+7"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/constraints/spec:area_search_m2<=/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.22a194ee0dbe6p+21"
+     ],
+     "head": [
+      "C",
+      "0x1.22a1830fc012cp+21"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/constraints/ss:0:noise_excess_th<=/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.19d8788645f01p+1"
+     ],
+     "head": [
+      "C",
+      "0x1.27aae5a49af7bp+1"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/constraints/w_min:M1/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.c1f012254b401p-2"
+     ],
+     "head": [
+      "C",
+      "0x1.14f94fc0a5f7dp+0"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/constraints/w_min:M2/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.7ebe48c1ab024p-3"
+     ],
+     "head": [
+      "C",
+      "0x1.1bd0e8936a334p+1"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/constraints/w_min:M3/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.0284f6d36a587p+5"
+     ],
+     "head": [
+      "C",
+      "0x1.1f2ac8e68ef3dp+5"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[0]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.aa84a789ec0a6p-51"
+     ],
+     "head": [
+      "C",
+      "0x1.af6a2be793c05p-51"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[1]/detail/worst",
+     "zone": "sweep",
+     "base": [
+      "D",
+      "M2"
+     ],
+     "head": [
+      "D",
+      "M3"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[1]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.2fd8edf5a6e0cp-52"
+     ],
+     "head": [
+      "C",
+      "0x1.b622099f2da8dp-53"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[1]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.2f5d1205f3592p-45"
+     ],
+     "head": [
+      "C",
+      "0x1.4e7d04f4613a5p-46"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[1]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.0068857041d90p-7"
+     ],
+     "head": [
+      "C",
+      "0x1.4f52fe2aabfdcp-7"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[2]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.2800000000000p-80"
+     ],
+     "head": [
+      "C",
+      "0x1.2000000000000p-81"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[2]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.339155045a619p-45"
+     ],
+     "head": [
+      "C",
+      "0x1.2ded3bb057dcbp-46"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[2]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.ecbe58d8e3693p-36"
+     ],
+     "head": [
+      "C",
+      "0x1.e86229e33c465p-36"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[6]/detail/slack_v",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.4bf401e4bbe6bp-4"
+     ],
+     "head": [
+      "C",
+      "0x1.fb3b54987c184p-5"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[6]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.23de3dc30cda2p-4"
+     ],
+     "head": [
+      "C",
+      "-0x1.ab0fcc551dff2p-5"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[6]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.d1ff9c7f68a40p+2"
+     ],
+     "head": [
+      "C",
+      "-0x1.54ecb9224397ap+2"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[8]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.d1fd1e05badacp-42"
+     ],
+     "head": [
+      "C",
+      "0x1.c01fb7537adacp-42"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[8]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.0b11c7c5fc830p-6"
+     ],
+     "head": [
+      "C",
+      "0x1.f942c5fec547ep-7"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/report/items[8]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.beacac924e2aap-36"
+     ],
+     "head": [
+      "C",
+      "0x1.c619d8da9c138p-36"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/evaluation/snapshot_fp",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "265b9cc3aec755873c714b1fc42ffc6791644ae505bbc31e2a8aa703c7f15282"
+     ],
+     "head": [
+      "C",
+      "945084ea83b8b9951688c1f474794bdf21b3eb577ed0e9c3c6dff0e7140a1c08"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/objectives/area_m2",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.e13910a5ba25cp-43"
+     ],
+     "head": [
+      "C",
+      "0x1.ebc8ec9268886p-43"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/objectives/gate_area_m2",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.e13910a5ba25cp-43"
+     ],
+     "head": [
+      "C",
+      "0x1.ebc8ec9268886p-43"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/objectives/per_rail/gnd",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.23f4377fe927bp-33"
+     ],
+     "head": [
+      "C",
+      "-0x1.28a9be2aff6e8p-33"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/objectives/per_rail/vdd",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.23f4377fe927bp-33"
+     ],
+     "head": [
+      "C",
+      "0x1.28a9be2aff6e8p-33"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/objectives/power_resolution_w",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.9201ce83acc00p-35"
+     ],
+     "head": [
+      "C",
+      "0x1.98b0dcc4bfab3p-35"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/objectives/power_w",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.06c231f31ea3cp-32"
+     ],
+     "head": [
+      "C",
+      "0x1.0aff2b26b2b04p-32"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/seq",
+     "zone": "sweep",
+     "base": [
+      "D",
+      34
+     ],
+     "head": [
+      "D",
+      23
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/theta/current:M3",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.23f4377fe927bp-33"
+     ],
+     "head": [
+      "C",
+      "0x1.28a9be2aff6e8p-33"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/theta/ln_idu:M1",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.7c6fb7cb3e894p+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.7c4d3a8fb0e1ep+4"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/theta/ln_idu:M2",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.7c6373743ce63p+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.7c8386d6cbb49p+4"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/theta/ln_idu:M3",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.818f8872914dbp+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.81ca31b2ded2cp+4"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/theta/y:input_common_mode",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.579d1dcee4dc8p-1"
+     ],
+     "head": [
+      "C",
+      "0x1.75be232d336a7p-1"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/best/theta/y:vout",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.a8adaac4e574ep-1"
+     ],
+     "head": [
+      "C",
+      "0x1.adacae5a38958p-1"
+     ]
+    },
+    {
+     "path": "sweep/solves/EA:s1/stop",
+     "zone": "sweep",
+     "base": [
+      "D",
+      "converged"
+     ],
+     "head": [
+      "D",
+      "slsqp_8"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/constraints/inversion_floor:M1/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.7673ebfaa30dfp+14"
+     ],
+     "head": [
+      "C",
+      "0x1.7713948e888dfp+14"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/constraints/inversion_floor:M2/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.40ff8addd2cbcp+15"
+     ],
+     "head": [
+      "C",
+      "0x1.40fe4750b3e06p+15"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/constraints/inversion_floor:M3/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.5e99b37667c15p+12"
+     ],
+     "head": [
+      "C",
+      "0x1.5e98dc8f48f50p+12"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/constraints/seal6_bulk:M2/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.4fd27a925ef79p+6"
+     ],
+     "head": [
+      "C",
+      "0x1.4fcf35537fdadp+6"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/constraints/spec:area_search_m2<=/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.22a0ac1221cdfp+21"
+     ],
+     "head": [
+      "C",
+      "0x1.22a0a97adeaecp+21"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/constraints/ss:0:noise_excess_th<=/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.80ed14b17afe9p+0"
+     ],
+     "head": [
+      "C",
+      "0x1.80ed3cec7754ap+0"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/constraints/w_min:M1/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.f075521c05bb9p+2"
+     ],
+     "head": [
+      "C",
+      "0x1.0458414793868p+3"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/constraints/w_min:M2/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.18efd225d0fb7p+3"
+     ],
+     "head": [
+      "C",
+      "0x1.18efd252467afp+3"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/constraints/w_min:M3/c",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.eb9adfaf0e628p+5"
+     ],
+     "head": [
+      "C",
+      "0x1.eb9adff142865p+5"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[0]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.36dae2a03a3a8p-51"
+     ],
+     "head": [
+      "C",
+      "0x1.36da179fae5c0p-51"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[1]/detail/worst",
+     "zone": "sweep",
+     "base": [
+      "D",
+      "M3"
+     ],
+     "head": [
+      "D",
+      "M1"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[1]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x0.0p+0"
+     ],
+     "head": [
+      "C",
+      "0x1.4c747ab04b97ep-53"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[1]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x0.0p+0"
+     ],
+     "head": [
+      "C",
+      "0x1.511171fa1b7bap-46"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[1]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.c555331440cc2p-7"
+     ],
+     "head": [
+      "C",
+      "0x1.f8fe22b0cce82p-8"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[2]/detail/worst",
+     "zone": "sweep",
+     "base": [
+      "D",
+      "vout"
+     ],
+     "head": [
+      "D",
+      "vin"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[2]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.0000000000000p-85"
+     ],
+     "head": [
+      "C",
+      "0x1.f000000000000p-82"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[2]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.ec7cb2499b99ep-51"
+     ],
+     "head": [
+      "C",
+      "0x1.44d89948a3759p-46"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[2]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.0a249c92d326fp-35"
+     ],
+     "head": [
+      "C",
+      "0x1.86e1681cdccc0p-36"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[6]/detail/slack_v",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.0e0bcb8b7fd0bp-1"
+     ],
+     "head": [
+      "C",
+      "0x1.0e0d618349366p-1"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[6]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.0646e713937d4p-1"
+     ],
+     "head": [
+      "C",
+      "-0x1.06487d0b5ce2fp-1"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[6]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.0e124f8de5f17p+5"
+     ],
+     "head": [
+      "C",
+      "-0x1.0e13f1964bea1p+5"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[8]/magnitude",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.359f62c272813p-39"
+     ],
+     "head": [
+      "C",
+      "0x1.35a24f2e2eaadp-39"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[8]/margin",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.29d29151b1c7ep-4"
+     ],
+     "head": [
+      "C",
+      "0x1.29d55fd783245p-4"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/report/items[8]/tol",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.0a249c92d326fp-35"
+     ],
+     "head": [
+      "C",
+      "0x1.0a249dcd5b7ffp-35"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/evaluation/snapshot_fp",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "9117a1dcbb75cde828de968204290b8e36859610ea48c874c7af9a8ee6950ee1"
+     ],
+     "head": [
+      "C",
+      "45c98e64410172ba363789313e288816ffdfd436c03b935b5d71812bf6ebe418"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/objectives/area_m2",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.356ec28e26436p-42"
+     ],
+     "head": [
+      "C",
+      "0x1.3632c94984dc4p-42"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/objectives/gate_area_m2",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.356ec28e26436p-42"
+     ],
+     "head": [
+      "C",
+      "0x1.3632c94984dc4p-42"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/objectives/per_rail/gnd",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.e53bff3d0786ep-34"
+     ],
+     "head": [
+      "C",
+      "-0x1.e53bff58a3101p-34"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/objectives/per_rail/vdd",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.e53bff3d0786ep-34"
+     ],
+     "head": [
+      "C",
+      "0x1.e53bff58a3101p-34"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/objectives/power_resolution_w",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.df0eb36eaf462p-35"
+     ],
+     "head": [
+      "C",
+      "0x1.df0eb5a4d7e65p-35"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/objectives/power_w",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.b4b5ff5086c63p-33"
+     ],
+     "head": [
+      "C",
+      "0x1.b4b5ff695f8e7p-33"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/theta/L:M1",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.80f56851bffafp-23"
+     ],
+     "head": [
+      "C",
+      "0x1.828c0be769dc1p-23"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/theta/current:M3",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "0x1.e53bff3d0786ep-34"
+     ],
+     "head": [
+      "C",
+      "0x1.e53bff58a3101p-34"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/theta/ln_idu:M1",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.7de06f9a3797bp+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.7de06f99976b3p+4"
+     ]
+    },
+    {
+     "path": "sweep/solves/EP:s1/best/theta/ln_idu:M2",
+     "zone": "sweep",
+     "base": [
+      "C",
+      "-0x1.7dfcf1b10ef37p+4"
+     ],
+     "head": [
+      "C",
+      "-0x1.7dfcf1b0633e8p+4"
+     ]
+    }
+   ],
+   "n_format": 8,
+   "n_run_id_code_fp": 46
+  },
+  "current_reuse_telescopic_ota": {
+   "scope": "변화 없음",
+   "n_value_changes": 0,
+   "by_zone_class": {},
+   "first_eval_seq_changed": null,
+   "n_evals_changed": 0,
+   "perf_changes": {},
+   "layer0_result_sweep_s3runs_notes_rows": [],
+   "n_format": 4,
+   "n_run_id_code_fp": 43
+  },
+  "folded_cascode": {
+   "scope": "in (가)+(라)",
+   "n_value_changes": 5936,
+   "by_zone_class": {
+    "eval/C": 2924,
+    "eval/D": 3,
+    "eval/K": 1,
+    "layer0/C": 5,
+    "layer0/D": 1,
+    "notes/notes": 2,
+    "result/K": 2,
+    "s3evals/C": 2275,
+    "s3evals/D": 720,
+    "s3evals/K": 1,
+    "s3runs/K": 2
+   },
+   "first_eval_seq_changed": 1,
+   "n_evals_changed": 64,
+   "perf_changes": {
+    "block_recomputes_same_input": [
+     16,
+     15
+    ],
+    "lut_memo_evictions": [
+     393,
+     354
+    ],
+    "hard_ok": [
+     false,
+     true
+    ]
+   },
+   "layer0_result_sweep_s3runs_notes_rows": [
+    {
+     "path": "layer0/hard_ok",
+     "zone": "layer0",
+     "base": [
+      "D",
+      false
+     ],
+     "head": [
+      "D",
+      true
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M3",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.b4b26fae48e6ap-20"
+     ],
+     "head": [
+      "C",
+      "0x1.b4b2701b7ff8dp-20"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M4",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.b4b26fae48c64p-20"
+     ],
+     "head": [
+      "C",
+      "0x1.b4b2701b7fd86p-20"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M5",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.2f421140a4810p-20"
+     ],
+     "head": [
+      "C",
+      "0x1.2f42118c7c493p-20"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M6",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.2f421140a4810p-20"
+     ],
+     "head": [
+      "C",
+      "0x1.2f42118c7c493p-20"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:MP",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.10d82b5b1974ep-20"
+     ],
+     "head": [
+      "C",
+      "0x1.10d82b9f56091p-20"
+     ]
+    },
+    {
+     "path": "result/perf/block_recomputes_same_input",
+     "zone": "result",
+     "base": [
+      "K",
+      16
+     ],
+     "head": [
+      "K",
+      15
+     ]
+    },
+    {
+     "path": "result/perf/lut_memo_evictions",
+     "zone": "result",
+     "base": [
+      "K",
+      393
+     ],
+     "head": [
+      "K",
+      354
+     ]
+    },
+    {
+     "path": "s3/runs[0]/perf/block_recomputes_same_input",
+     "zone": "s3runs",
+     "base": [
+      "K",
+      16
+     ],
+     "head": [
+      "K",
+      15
+     ]
+    },
+    {
+     "path": "s3/runs[0]/perf/lut_memo_evictions",
+     "zone": "s3runs",
+     "base": [
+      "K",
+      393
+     ],
+     "head": [
+      "K",
+      354
+     ]
+    },
+    {
+     "path": "result/notes (l_search 뺀 notes)",
+     "zone": "notes",
+     "base": [
+      {
+       "/reason": [
+        "D",
+        "model_error_unmeasured_front_estimated"
+       ],
+       "/rule": [
+        "D",
+        "DEC-72"
+       ],
+       "/verdict": [
+        "D",
+        "judgment_pending"
+       ]
+      },
+      {
+       "/metrics[0][0]": [
+        "D",
+        "area_search_m2"
+       ],
+       "/metrics[0][1]": [
+        "D",
+        "engine_only"
+       ],
+       "/metrics[0][2]": [
+        "D",
+        null
+       ],
+       "/metrics[0][3]": [
+        "D",
+        "model_error_area_search_m2"
+       ],
+       "/metrics[1][0]": [
+        "D",
+        "noise_excess_th"
+       ],
+       "/metrics[1][1]": [
+        "D",
+        "spice_oracle"
+       ],
+       "/metrics[1][2]": [
+        "D",
+        "noise_excess_th"
+       ],
+       "/metrics[1][3]": [
+        "D",
+        "model_error_noise_excess_th"
+       ],
+       "/metrics[2][0]": [
+        "D",
+        "offset_excess"
+       ],
+       "/metrics[2][1]": [
+        "D",
+        "engine_only"
+       ],
+       "/metrics[2][2]": [
+        "D",
+        null
+       ],
+       "/metrics[2][3]": [
+        "D",
+        "model_error_offset_excess"
+       ],
+       "/rule": [
+        "D",
+        "DEC-72/DEC-90"
+       ],
+       "/verdict": [
+        "D",
+        "verified_by"
+       ]
+      },
+      {
+       "/reason": [
+        "D",
+        "layout_axis_refilter_is_mod8"
+       ],
+       "/rule": [
+        "D",
+        "DEC-79"
+       ],
+       "/verdict": [
+        "D",
+        "not_run"
+       ]
+      },
+      {
+       "/area_budget_m2": [
+        "C",
+        "0x1.5798ee2308c3ap-27"
+       ],
+       "/current_box[0][0]": [
+        "D",
+        "nmos"
+       ],
+       "/current_box[0][1][0]": [
+        "C",
+        "0x1.39362d72250d8p-62"
+       ],
+       "/current_box[0][1][1]": [
+        "C",
+        "0x1.245a357ec5874p+6"
+       ],
+       "/current_box[1][0]": [
+        "D",
+        "pmos"
+       ],
+       "/current_box[1][1][0]": [
+        "C",
+        "0x1.e02e8c4d7a69ap-86"
+       ],
+       "/current_box[1][1][1]": [
+        "C",
+        "0x1.b78b6ce7eaff9p+3"
+       ],
+       "/reason": [
+        "D",
+        "current_upper_from_area_budget_IDu_max_A_over_L2"
+       ],
+       "/rule": [
+        "D",
+        "S-3b"
+       ],
+       "/verdict": [
+        "D",
+        "closed"
+       ]
+      },
+      {
+       "/centre_u": [
+        "C",
+        "0x1.480ad675226e8p+2"
+       ],
+       "/hard_ok": [
+        "D",
+        false
+       ],
+       "/kernel_calls": [
+        "K",
+        29
+       ],
+       "/meaning": [
+        "D",
+        "feasibility_only"
+       ],
+       "/meaning_reason": [
+        "D",
+        "w_bounded_by_area_budget"
+       ],
+       "/origin_point": [
+        "D",
+        "centre"
+       ],
+       "/probes": [
+        "K",
+        0
+       ],
+       "/reason": [
+        "D",
+        "seal_margin_maxmin_centre"
+       ],
+       "/refinements_out_of_scope[0]": [
+        "D",
+        "GB3 블록 분해·GB4 블록 gain 상한표(블록 gain 예산, DEC-71 (3)(6)·DEC-73)"
+       ],
+       "/refinements_out_of_scope[1]": [
+        "D",
+        "LR5 knee 앵커(집계·측정점·격자 의존 열린 항목)"
+       ],
+       "/refinements_out_of_scope[2]": [
+        "D",
+        "GB5 층 0 근사식(DEC-92 (2), comp_approx_gap)"
+       ],
+       "/rule": [
+        "D",
+        "DEC-71"
+       ],
+       "/start_status": [
+        "D",
+        "sealed"
+       ],
+       "/stop": [
+        "D",
+        "converged"
+       ],
+       "/t": [
+        "C",
+        "0x1.f4b7d093349b0p-1"
+       ],
+       "/verdict": [
+        "D",
+        "layer0_minimal"
+       ]
+      },
+      {
+       "/axis_used": [
+        "D",
+        "power_dc_w"
+       ],
+       "/reason": [
+        "D",
+        "supply_current_dc_needs_counted_rails_declaration"
+       ],
+       "/rule": [
+        "D",
+        "DEC-78"
+       ],
+       "/verdict": [
+        "D",
+        "not_computed"
+       ]
+      }
+     ],
+     "head": [
+      {
+       "/reason": [
+        "D",
+        "model_error_unmeasured_front_estimated"
+       ],
+       "/rule": [
+        "D",
+        "DEC-72"
+       ],
+       "/verdict": [
+        "D",
+        "judgment_pending"
+       ]
+      },
+      {
+       "/metrics[0][0]": [
+        "D",
+        "area_search_m2"
+       ],
+       "/metrics[0][1]": [
+        "D",
+        "engine_only"
+       ],
+       "/metrics[0][2]": [
+        "D",
+        null
+       ],
+       "/metrics[0][3]": [
+        "D",
+        "model_error_area_search_m2"
+       ],
+       "/metrics[1][0]": [
+        "D",
+        "noise_excess_th"
+       ],
+       "/metrics[1][1]": [
+        "D",
+        "spice_oracle"
+       ],
+       "/metrics[1][2]": [
+        "D",
+        "noise_excess_th"
+       ],
+       "/metrics[1][3]": [
+        "D",
+        "model_error_noise_excess_th"
+       ],
+       "/metrics[2][0]": [
+        "D",
+        "offset_excess"
+       ],
+       "/metrics[2][1]": [
+        "D",
+        "engine_only"
+       ],
+       "/metrics[2][2]": [
+        "D",
+        null
+       ],
+       "/metrics[2][3]": [
+        "D",
+        "model_error_offset_excess"
+       ],
+       "/rule": [
+        "D",
+        "DEC-72/DEC-90"
+       ],
+       "/verdict": [
+        "D",
+        "verified_by"
+       ]
+      },
+      {
+       "/reason": [
+        "D",
+        "layout_axis_refilter_is_mod8"
+       ],
+       "/rule": [
+        "D",
+        "DEC-79"
+       ],
+       "/verdict": [
+        "D",
+        "not_run"
+       ]
+      },
+      {
+       "/area_budget_m2": [
+        "C",
+        "0x1.5798ee2308c3ap-27"
+       ],
+       "/current_box[0][0]": [
+        "D",
+        "nmos"
+       ],
+       "/current_box[0][1][0]": [
+        "C",
+        "0x1.39362d72250d8p-62"
+       ],
+       "/current_box[0][1][1]": [
+        "C",
+        "0x1.245a357ec5874p+6"
+       ],
+       "/current_box[1][0]": [
+        "D",
+        "pmos"
+       ],
+       "/current_box[1][1][0]": [
+        "C",
+        "0x1.e02e8c4d7a69ap-86"
+       ],
+       "/current_box[1][1][1]": [
+        "C",
+        "0x1.b78b6ce7eaff9p+3"
+       ],
+       "/reason": [
+        "D",
+        "current_upper_from_area_budget_IDu_max_A_over_L2"
+       ],
+       "/rule": [
+        "D",
+        "S-3b"
+       ],
+       "/verdict": [
+        "D",
+        "closed"
+       ]
+      },
+      {
+       "/centre_u": [
+        "C",
+        "0x1.480ad675226e8p+2"
+       ],
+       "/hard_ok": [
+        "D",
+        true
+       ],
+       "/kernel_calls": [
+        "K",
+        29
+       ],
+       "/meaning": [
+        "D",
+        "feasibility_only"
+       ],
+       "/meaning_reason": [
+        "D",
+        "w_bounded_by_area_budget"
+       ],
+       "/origin_point": [
+        "D",
+        "centre"
+       ],
+       "/probes": [
+        "K",
+        0
+       ],
+       "/reason": [
+        "D",
+        "seal_margin_maxmin_centre"
+       ],
+       "/refinements_out_of_scope[0]": [
+        "D",
+        "GB3 블록 분해·GB4 블록 gain 상한표(블록 gain 예산, DEC-71 (3)(6)·DEC-73)"
+       ],
+       "/refinements_out_of_scope[1]": [
+        "D",
+        "LR5 knee 앵커(집계·측정점·격자 의존 열린 항목)"
+       ],
+       "/refinements_out_of_scope[2]": [
+        "D",
+        "GB5 층 0 근사식(DEC-92 (2), comp_approx_gap)"
+       ],
+       "/rule": [
+        "D",
+        "DEC-71"
+       ],
+       "/start_status": [
+        "D",
+        "sealed"
+       ],
+       "/stop": [
+        "D",
+        "converged"
+       ],
+       "/t": [
+        "C",
+        "0x1.f4b7d093349b0p-1"
+       ],
+       "/verdict": [
+        "D",
+        "layer0_minimal"
+       ]
+      },
+      {
+       "/axis_used": [
+        "D",
+        "power_dc_w"
+       ],
+       "/reason": [
+        "D",
+        "supply_current_dc_needs_counted_rails_declaration"
+       ],
+       "/rule": [
+        "D",
+        "DEC-78"
+       ],
+       "/verdict": [
+        "D",
+        "not_computed"
+       ]
+      }
+     ]
+    },
+    {
+     "path": "s3/runs[0]/notes (l_search 뺀 notes)",
+     "zone": "notes",
+     "base": [
+      {
+       "/reason": [
+        "D",
+        "model_error_unmeasured_front_estimated"
+       ],
+       "/rule": [
+        "D",
+        "DEC-72"
+       ],
+       "/verdict": [
+        "D",
+        "judgment_pending"
+       ]
+      },
+      {
+       "/metrics[0][0]": [
+        "D",
+        "area_search_m2"
+       ],
+       "/metrics[0][1]": [
+        "D",
+        "engine_only"
+       ],
+       "/metrics[0][2]": [
+        "D",
+        null
+       ],
+       "/metrics[0][3]": [
+        "D",
+        "model_error_area_search_m2"
+       ],
+       "/metrics[1][0]": [
+        "D",
+        "noise_excess_th"
+       ],
+       "/metrics[1][1]": [
+        "D",
+        "spice_oracle"
+       ],
+       "/metrics[1][2]": [
+        "D",
+        "noise_excess_th"
+       ],
+       "/metrics[1][3]": [
+        "D",
+        "model_error_noise_excess_th"
+       ],
+       "/metrics[2][0]": [
+        "D",
+        "offset_excess"
+       ],
+       "/metrics[2][1]": [
+        "D",
+        "engine_only"
+       ],
+       "/metrics[2][2]": [
+        "D",
+        null
+       ],
+       "/metrics[2][3]": [
+        "D",
+        "model_error_offset_excess"
+       ],
+       "/rule": [
+        "D",
+        "DEC-72/DEC-90"
+       ],
+       "/verdict": [
+        "D",
+        "verified_by"
+       ]
+      },
+      {
+       "/reason": [
+        "D",
+        "layout_axis_refilter_is_mod8"
+       ],
+       "/rule": [
+        "D",
+        "DEC-79"
+       ],
+       "/verdict": [
+        "D",
+        "not_run"
+       ]
+      },
+      {
+       "/area_budget_m2": [
+        "C",
+        "0x1.5798ee2308c3ap-27"
+       ],
+       "/current_box[0][0]": [
+        "D",
+        "nmos"
+       ],
+       "/current_box[0][1][0]": [
+        "C",
+        "0x1.39362d72250d8p-62"
+       ],
+       "/current_box[0][1][1]": [
+        "C",
+        "0x1.245a357ec5874p+6"
+       ],
+       "/current_box[1][0]": [
+        "D",
+        "pmos"
+       ],
+       "/current_box[1][1][0]": [
+        "C",
+        "0x1.e02e8c4d7a69ap-86"
+       ],
+       "/current_box[1][1][1]": [
+        "C",
+        "0x1.b78b6ce7eaff9p+3"
+       ],
+       "/reason": [
+        "D",
+        "current_upper_from_area_budget_IDu_max_A_over_L2"
+       ],
+       "/rule": [
+        "D",
+        "S-3b"
+       ],
+       "/verdict": [
+        "D",
+        "closed"
+       ]
+      },
+      {
+       "/centre_u": [
+        "C",
+        "0x1.480ad675226e8p+2"
+       ],
+       "/hard_ok": [
+        "D",
+        false
+       ],
+       "/kernel_calls": [
+        "K",
+        29
+       ],
+       "/meaning": [
+        "D",
+        "feasibility_only"
+       ],
+       "/meaning_reason": [
+        "D",
+        "w_bounded_by_area_budget"
+       ],
+       "/origin_point": [
+        "D",
+        "centre"
+       ],
+       "/probes": [
+        "K",
+        0
+       ],
+       "/reason": [
+        "D",
+        "seal_margin_maxmin_centre"
+       ],
+       "/refinements_out_of_scope[0]": [
+        "D",
+        "GB3 블록 분해·GB4 블록 gain 상한표(블록 gain 예산, DEC-71 (3)(6)·DEC-73)"
+       ],
+       "/refinements_out_of_scope[1]": [
+        "D",
+        "LR5 knee 앵커(집계·측정점·격자 의존 열린 항목)"
+       ],
+       "/refinements_out_of_scope[2]": [
+        "D",
+        "GB5 층 0 근사식(DEC-92 (2), comp_approx_gap)"
+       ],
+       "/rule": [
+        "D",
+        "DEC-71"
+       ],
+       "/start_status": [
+        "D",
+        "sealed"
+       ],
+       "/stop": [
+        "D",
+        "converged"
+       ],
+       "/t": [
+        "C",
+        "0x1.f4b7d093349b0p-1"
+       ],
+       "/verdict": [
+        "D",
+        "layer0_minimal"
+       ]
+      },
+      {
+       "/axis_used": [
+        "D",
+        "power_dc_w"
+       ],
+       "/reason": [
+        "D",
+        "supply_current_dc_needs_counted_rails_declaration"
+       ],
+       "/rule": [
+        "D",
+        "DEC-78"
+       ],
+       "/verdict": [
+        "D",
+        "not_computed"
+       ]
+      }
+     ],
+     "head": [
+      {
+       "/reason": [
+        "D",
+        "model_error_unmeasured_front_estimated"
+       ],
+       "/rule": [
+        "D",
+        "DEC-72"
+       ],
+       "/verdict": [
+        "D",
+        "judgment_pending"
+       ]
+      },
+      {
+       "/metrics[0][0]": [
+        "D",
+        "area_search_m2"
+       ],
+       "/metrics[0][1]": [
+        "D",
+        "engine_only"
+       ],
+       "/metrics[0][2]": [
+        "D",
+        null
+       ],
+       "/metrics[0][3]": [
+        "D",
+        "model_error_area_search_m2"
+       ],
+       "/metrics[1][0]": [
+        "D",
+        "noise_excess_th"
+       ],
+       "/metrics[1][1]": [
+        "D",
+        "spice_oracle"
+       ],
+       "/metrics[1][2]": [
+        "D",
+        "noise_excess_th"
+       ],
+       "/metrics[1][3]": [
+        "D",
+        "model_error_noise_excess_th"
+       ],
+       "/metrics[2][0]": [
+        "D",
+        "offset_excess"
+       ],
+       "/metrics[2][1]": [
+        "D",
+        "engine_only"
+       ],
+       "/metrics[2][2]": [
+        "D",
+        null
+       ],
+       "/metrics[2][3]": [
+        "D",
+        "model_error_offset_excess"
+       ],
+       "/rule": [
+        "D",
+        "DEC-72/DEC-90"
+       ],
+       "/verdict": [
+        "D",
+        "verified_by"
+       ]
+      },
+      {
+       "/reason": [
+        "D",
+        "layout_axis_refilter_is_mod8"
+       ],
+       "/rule": [
+        "D",
+        "DEC-79"
+       ],
+       "/verdict": [
+        "D",
+        "not_run"
+       ]
+      },
+      {
+       "/area_budget_m2": [
+        "C",
+        "0x1.5798ee2308c3ap-27"
+       ],
+       "/current_box[0][0]": [
+        "D",
+        "nmos"
+       ],
+       "/current_box[0][1][0]": [
+        "C",
+        "0x1.39362d72250d8p-62"
+       ],
+       "/current_box[0][1][1]": [
+        "C",
+        "0x1.245a357ec5874p+6"
+       ],
+       "/current_box[1][0]": [
+        "D",
+        "pmos"
+       ],
+       "/current_box[1][1][0]": [
+        "C",
+        "0x1.e02e8c4d7a69ap-86"
+       ],
+       "/current_box[1][1][1]": [
+        "C",
+        "0x1.b78b6ce7eaff9p+3"
+       ],
+       "/reason": [
+        "D",
+        "current_upper_from_area_budget_IDu_max_A_over_L2"
+       ],
+       "/rule": [
+        "D",
+        "S-3b"
+       ],
+       "/verdict": [
+        "D",
+        "closed"
+       ]
+      },
+      {
+       "/centre_u": [
+        "C",
+        "0x1.480ad675226e8p+2"
+       ],
+       "/hard_ok": [
+        "D",
+        true
+       ],
+       "/kernel_calls": [
+        "K",
+        29
+       ],
+       "/meaning": [
+        "D",
+        "feasibility_only"
+       ],
+       "/meaning_reason": [
+        "D",
+        "w_bounded_by_area_budget"
+       ],
+       "/origin_point": [
+        "D",
+        "centre"
+       ],
+       "/probes": [
+        "K",
+        0
+       ],
+       "/reason": [
+        "D",
+        "seal_margin_maxmin_centre"
+       ],
+       "/refinements_out_of_scope[0]": [
+        "D",
+        "GB3 블록 분해·GB4 블록 gain 상한표(블록 gain 예산, DEC-71 (3)(6)·DEC-73)"
+       ],
+       "/refinements_out_of_scope[1]": [
+        "D",
+        "LR5 knee 앵커(집계·측정점·격자 의존 열린 항목)"
+       ],
+       "/refinements_out_of_scope[2]": [
+        "D",
+        "GB5 층 0 근사식(DEC-92 (2), comp_approx_gap)"
+       ],
+       "/rule": [
+        "D",
+        "DEC-71"
+       ],
+       "/start_status": [
+        "D",
+        "sealed"
+       ],
+       "/stop": [
+        "D",
+        "converged"
+       ],
+       "/t": [
+        "C",
+        "0x1.f4b7d093349b0p-1"
+       ],
+       "/verdict": [
+        "D",
+        "layer0_minimal"
+       ]
+      },
+      {
+       "/axis_used": [
+        "D",
+        "power_dc_w"
+       ],
+       "/reason": [
+        "D",
+        "supply_current_dc_needs_counted_rails_declaration"
+       ],
+       "/rule": [
+        "D",
+        "DEC-78"
+       ],
+       "/verdict": [
+        "D",
+        "not_computed"
+       ]
+      }
+     ]
+    }
+   ],
+   "n_format": 4,
+   "n_run_id_code_fp": 67
+  },
+  "ngcc_3stage_ff": {
+   "scope": "변화 없음",
+   "n_value_changes": 0,
+   "by_zone_class": {},
+   "first_eval_seq_changed": null,
+   "n_evals_changed": 0,
+   "perf_changes": {},
+   "layer0_result_sweep_s3runs_notes_rows": [],
+   "n_format": 1,
+   "n_run_id_code_fp": 0
+  },
+  "nmcnr_amplifier": {
+   "scope": "OUT -- 다른 회로(사용자 보고)",
+   "n_value_changes": 4874,
+   "by_zone_class": {
+    "eval/C": 2363,
+    "eval/D": 35,
+    "layer0/C": 8,
+    "result/K": 3,
+    "s3evals/C": 1921,
+    "s3evals/D": 541,
+    "s3runs/K": 3
+   },
+   "first_eval_seq_changed": 1,
+   "n_evals_changed": 66,
+   "perf_changes": {
+    "block_reuses": [
+     42,
+     24
+    ],
+    "block_computes": [
+     516,
+     534
+    ],
+    "block_recomputes_same_input": [
+     64,
+     80
+    ]
+   },
+   "layer0_result_sweep_s3runs_notes_rows": [
+    {
+     "path": "layer0/start/theta/current:M101",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.07797c76c4a8ep-10"
+     ],
+     "head": [
+      "C",
+      "0x1.07797fa598dd5p-10"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M102",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.3fed3f1ad3610p-14"
+     ],
+     "head": [
+      "C",
+      "0x1.3fed4255d8fe4p-14"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M108",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.37da195051e82p-12"
+     ],
+     "head": [
+      "C",
+      "0x1.37da1d26d8548p-12"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M109",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.1883db0b27bc3p-12"
+     ],
+     "head": [
+      "C",
+      "0x1.1883de8806715p-12"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M201",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.08d9464ba69a4p-12"
+     ],
+     "head": [
+      "C",
+      "0x1.08d9491df31d4p-12"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M202",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.9426b645b83b6p-13"
+     ],
+     "head": [
+      "C",
+      "0x1.9426bbdcef2e4p-13"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M302",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.2d5272bab6154p-10"
+     ],
+     "head": [
+      "C",
+      "0x1.2d5276691d642p-10"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:RL",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.07c94d5502170p-15"
+     ],
+     "head": [
+      "C",
+      "0x1.07c9509418d90p-15"
+     ]
+    },
+    {
+     "path": "result/perf/block_computes",
+     "zone": "result",
+     "base": [
+      "K",
+      516
+     ],
+     "head": [
+      "K",
+      534
+     ]
+    },
+    {
+     "path": "result/perf/block_recomputes_same_input",
+     "zone": "result",
+     "base": [
+      "K",
+      64
+     ],
+     "head": [
+      "K",
+      80
+     ]
+    },
+    {
+     "path": "result/perf/block_reuses",
+     "zone": "result",
+     "base": [
+      "K",
+      42
+     ],
+     "head": [
+      "K",
+      24
+     ]
+    },
+    {
+     "path": "s3/runs[0]/perf/block_computes",
+     "zone": "s3runs",
+     "base": [
+      "K",
+      516
+     ],
+     "head": [
+      "K",
+      534
+     ]
+    },
+    {
+     "path": "s3/runs[0]/perf/block_recomputes_same_input",
+     "zone": "s3runs",
+     "base": [
+      "K",
+      64
+     ],
+     "head": [
+      "K",
+      80
+     ]
+    },
+    {
+     "path": "s3/runs[0]/perf/block_reuses",
+     "zone": "s3runs",
+     "base": [
+      "K",
+      42
+     ],
+     "head": [
+      "K",
+      24
+     ]
+    }
+   ],
+   "n_format": 4,
+   "n_run_id_code_fp": 69
+  },
+  "pushpull_follower_buffer": {
+   "scope": "OUT -- 다른 회로(사용자 보고)",
+   "n_value_changes": 2890,
+   "by_zone_class": {
+    "eval/C": 1561,
+    "eval/D": 15,
+    "layer0/C": 3,
+    "result/K": 1,
+    "s3evals/C": 943,
+    "s3evals/D": 366,
+    "s3runs/K": 1
+   },
+   "first_eval_seq_changed": 1,
+   "n_evals_changed": 40,
+   "perf_changes": {
+    "lut_memo_evictions": [
+     105,
+     107
+    ]
+   },
+   "layer0_result_sweep_s3runs_notes_rows": [
+    {
+     "path": "layer0/start/theta/current:M2",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.4d790bfc3d7efp-33"
+     ],
+     "head": [
+      "C",
+      "0x1.4d790c4f99d59p-33"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M4",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.8ccf58f3a6d3cp-32"
+     ],
+     "head": [
+      "C",
+      "0x1.8ccf5956d8602p-32"
+     ]
+    },
+    {
+     "path": "layer0/start/theta/current:M5",
+     "zone": "layer0",
+     "base": [
+      "C",
+      "0x1.4d68228a01bc2p-33"
+     ],
+     "head": [
+      "C",
+      "0x1.4d6822dd59d88p-33"
+     ]
+    },
+    {
+     "path": "result/perf/lut_memo_evictions",
+     "zone": "result",
+     "base": [
+      "K",
+      105
+     ],
+     "head": [
+      "K",
+      107
+     ]
+    },
+    {
+     "path": "s3/runs[0]/perf/lut_memo_evictions",
+     "zone": "s3runs",
+     "base": [
+      "K",
+      105
+     ],
+     "head": [
+      "K",
+      107
+     ]
+    }
+   ],
+   "n_format": 4,
+   "n_run_id_code_fp": 43
+  },
+  "sf_pushpull_output_opamp": {
+   "scope": "OUT -- 다른 회로(사용자 보고)",
+   "n_value_changes": 858,
+   "by_zone_class": {
+    "eval/C": 316,
+    "s3evals/C": 316,
+    "s3evals/D": 226
+   },
+   "first_eval_seq_changed": 1,
+   "n_evals_changed": 40,
+   "perf_changes": {},
+   "layer0_result_sweep_s3runs_notes_rows": [],
+   "n_format": 4,
+   "n_run_id_code_fp": 43
+  },
+  "two_stage_ota": {
+   "scope": "변화 없음",
+   "n_value_changes": 0,
+   "by_zone_class": {},
+   "first_eval_seq_changed": null,
+   "n_evals_changed": 0,
+   "perf_changes": {},
+   "layer0_result_sweep_s3runs_notes_rows": [],
+   "n_format": 4,
+   "n_run_id_code_fp": 52
+  },
+  "two_stage_ota_sf": {
+   "scope": "변화 없음",
+   "n_value_changes": 0,
+   "by_zone_class": {},
+   "first_eval_seq_changed": null,
+   "n_evals_changed": 0,
+   "perf_changes": {},
+   "layer0_result_sweep_s3runs_notes_rows": [],
+   "n_format": 4,
+   "n_run_id_code_fp": 43
+  }
+ }
+}
