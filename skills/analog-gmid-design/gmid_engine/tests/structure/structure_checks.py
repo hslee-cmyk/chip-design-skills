@@ -82,6 +82,29 @@ FRONT_QUERY_MODULES = ("front_query", "front_entries")                   # (K-b)
 SNAPSHOT_READ_ATTRS = ("read_snapshot", "_read_snapshot_file")           # (K-c) 속성 이름(호출 아닌 참조 포함)
 SNAPSHOT_READ_NAMES = ("_read_snapshot_file",)                           # (K-c) 이름
 
+# (M) 실행 비공유 -- 색인·계수(`open_run()` 의 두 객체)는 실행 하나에만 산다. 출처: XRUN-F1 card B interface card C9
+#   (설계 40 §2.4.5 '수명' (2), 사용자 결정 X-20 2026-10-16 "권고대로 구조로 막는 방향으로 진행해", X-21 승인).
+#   대상 = 엔진 트리 전체(`tests/` 포함 -- C9 'test 쪽에도 걸린다'), 단 이 폴더의 위반 픽스처(`tests/structure/fixtures/`)는 뺀다.
+OPEN_RUN_NAME = "open_run"
+OPEN_RUN_ALLOWED_FILES = ("search/open_run.py", "search/__init__.py")       # (M-a) C9 '엔진 소스에서 open_run 참조는 이 둘뿐'
+RUN_OBJECT_HOMES = {                                                        # (M-b) C9 '생성 호출은 그 정의 모듈과 open_run.py 에만'
+    "S3Index": ("search/s3_index.py", "search/open_run.py"),
+    "RunCounters": ("core/run_counters.py", "search/open_run.py"),
+}
+RUN_ENTRY = "run_stage_a"                                                   # (M-c) C9 대상 호출
+RUN_PAIR_KEYWORDS = ("donors", "counters")                                  # (M-c) C6 run_stage_a 필수 키워드(튜플 풀기 순서 그대로)
+PAIR_ATTRS = ("donors", "counters")                                         # C6 결과 칸(StageAResult·KernelContext·sctx.dc)
+PAIR_HOLDER_PRODUCERS = ("run_stage_a", "build_kernel_context", "build_search_context")   # C6: 결과 칸이 두 객체를 쥐는 진입
+CONTAINER_BUILDERS = ("dict", "list", "tuple", "set", "frozenset", "partial", "SimpleNamespace", "deque", "OrderedDict",
+                      "defaultdict", "ChainMap")                            # 인자를 그대로 쥐는 생성 호출
+LONG_FIXTURE_SCOPES = ("session", "module", "package", "class")             # (M-d) C9 'session·module·package 범위 fixture'(+ class: test 하나보다 김)
+CONTAINER_MUTATORS = ("append", "extend", "add", "update", "setdefault", "insert", "__setitem__")   # (M-d) C9 '모듈 수준 컨테이너 변경'
+CONFIG_NAMES = ("config", "pytestconfig")                                   # (M-d) C9 'request.config·config.cache·config.stash'
+CONFIG_HOOKS = ("pytest_configure", "pytest_sessionstart")                  # (M-d) C9 'conftest pytest_configure'(세션 시작 훅 포함)
+SERIALIZER_MODULES = ("pickle", "json", "shelve", "marshal")                # (M-f) C9
+SERIALIZER_WRITES = ("dump", "dumps")                                       # (M-f) C9 '쓰기 함수(dump·dumps·Shelf 항목 대입 등)'
+M_EXCLUDED_PREFIX = ("tests", "structure", "fixtures")                      # 이 폴더의 위반 픽스처 트리
+
 
 @dataclass(frozen=True, order=True)
 class Violation:
@@ -1188,4 +1211,581 @@ def check_k(root: Path) -> tuple[int, list[Violation]]:
         r = rel(root, p)
         for kind, line, detail in _front_query_refs(root, p, parse(p)):
             out.add(Violation(kind, r, line, detail))
+    return len(targets), sorted(out)
+
+
+# ---------------------------------------------------------------- (M)
+# 판정 종류(README M 행):
+#   open_run_ref       (M-a) 허용 파일 밖 엔진 소스의 open_run 참조(import 이름·별칭·모듈, 이름, 속성)
+#   direct_construct   (M-b) 정의 모듈·open_run.py 밖의 S3Index(...)·RunCounters(...) 호출(import 별칭 포함, test 포함)
+#   run_pair_source    (M-c) run_stage_a 의 donors·counters 인자가 같은 함수 본문 `a, b = open_run()` 의 (첫째, 둘째) 이름이 아니다
+#                            (매개변수·속성·결과 칸·첨자·다른 호출 반환·자유 변수·두 번 묶인 이름·순서 바뀜·함수 밖 호출)
+#   run_pair_reused    (M-c) 같은 이름이 그 함수 안 run_stage_a 호출 둘 이상에 쓰인다
+#   run_pair_loop      (M-c) run_stage_a 가 반복문 본문(내포식·generator 식 포함) 안인데 그 open_run() 이 같은 반복문 본문에 없다
+#   run_pair_packed    (M-c) run_stage_a(*args)·run_stage_a(**kw)
+#   run_pair_stored    (M-d) 두 객체(또는 그것을 쥔 값)를 수명이 test 하나보다 긴 곳에 둔다
+#   run_pair_persisted (M-f) 두 객체·내부 칸을 pickle·json·shelve·marshal 쓰기에 넘긴다
+# '쥔 값'(holder) = open_run() 결과와 그 이름, 두 객체를 결과 칸으로 쥐는 진입(PAIR_HOLDER_PRODUCERS)의 결과, 속성 donors·counters,
+#   그 값들의 속성·첨자, 그 값을 담은 tuple·list·dict·set·생성 호출(CONTAINER_BUILDERS), 그 이름을 닫아 쥔 lambda.
+#   그 밖 함수 호출의 결과는 쥔 값이 아니다(예: build_s1 결과 스냅샷 -- 실행 하나 안에서 쓰고 버린 두 객체를 담지 않는다).
+# 한계(정적 검사): getattr·exec 같은 동적 호출, 다른 파일 helper 를 거친 보관은 보지 못한다 -- 리뷰 항목(spec card 1.7.1).
+
+_SCOPE_NODES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)
+_FUNC_NODES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)
+_LOOP_NODES = (ast.For, ast.AsyncFor, ast.While, ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)
+
+
+def m_files(root: Path) -> list[Path]:
+    """규칙 M 대상: 엔진 트리의 *.py 전부(tests/ 포함), 숨김·__pycache__·이 폴더의 위반 픽스처 제외, 정렬."""
+    root = Path(root)
+    if not root.is_dir():
+        return []
+    out = []
+    for p in sorted(root.rglob("*.py")):
+        parts = p.relative_to(root).parts
+        if any(x == "__pycache__" or x.startswith(".") for x in parts):
+            continue
+        if parts[:len(M_EXCLUDED_PREFIX)] == M_EXCLUDED_PREFIX:
+            continue
+        out.append(p)
+    return out
+
+
+def _callee(n: ast.Call) -> str | None:
+    f = n.func
+    if isinstance(f, ast.Name):
+        return f.id
+    if isinstance(f, ast.Attribute):
+        return f.attr
+    return None
+
+
+def _body_nodes(scope) -> list:
+    if isinstance(scope, ast.Lambda):
+        return [scope.body]
+    return list(scope.body)
+
+
+def _own_nodes(scope):
+    """scope 자신의 노드(중첩 def·lambda·class 의 본문 제외 -- 그 노드 자신과, 바깥에서 평가되는 데코레이터·기본값·기반 클래스는 포함)."""
+    stack = list(reversed(_body_nodes(scope)))
+    while stack:
+        n = stack.pop()
+        yield n
+        if isinstance(n, _SCOPE_NODES):
+            extra = list(getattr(n, "decorator_list", []))
+            if isinstance(n, ast.ClassDef):
+                extra += list(n.bases) + [k.value for k in n.keywords]
+            else:
+                extra += [d for d in list(n.args.defaults) + list(n.args.kw_defaults) if d is not None]
+            stack.extend(reversed(extra))
+            continue
+        stack.extend(reversed(list(ast.iter_child_nodes(n))))
+
+
+def _target_names(t) -> list[str]:
+    if isinstance(t, ast.Name):
+        return [t.id]
+    if isinstance(t, (ast.Tuple, ast.List)):
+        return [x for e in t.elts for x in _target_names(e)]
+    if isinstance(t, ast.Starred):
+        return _target_names(t.value)
+    return []
+
+
+def _bindings(scope) -> Counter:
+    """scope 안에서 이름이 묶이는 횟수(대입·for·with·walrus·내포식·import·except·중첩 def/class 이름·매개변수)."""
+    c = Counter()
+    if isinstance(scope, _FUNC_NODES):
+        a = scope.args
+        for x in list(a.posonlyargs) + list(a.args) + list(a.kwonlyargs) + [a.vararg, a.kwarg]:
+            if x is not None:
+                c[x.arg] += 1
+    for n in _own_nodes(scope):
+        if isinstance(n, ast.Assign):
+            for t in n.targets:
+                c.update(_target_names(t))
+        elif isinstance(n, (ast.AnnAssign, ast.AugAssign)):
+            c.update(_target_names(n.target))
+        elif isinstance(n, (ast.For, ast.AsyncFor, ast.comprehension)):
+            c.update(_target_names(n.target))
+        elif isinstance(n, ast.withitem) and n.optional_vars is not None:
+            c.update(_target_names(n.optional_vars))
+        elif isinstance(n, ast.NamedExpr):
+            c.update(_target_names(n.target))
+        elif isinstance(n, (ast.Import, ast.ImportFrom)):
+            c.update((a.asname or a.name).split(".")[0] for a in n.names)
+        elif isinstance(n, ast.ExceptHandler) and n.name:
+            c[n.name] += 1
+        elif isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            c[n.name] += 1
+    return c
+
+
+def _params(scope) -> set[str]:
+    if not isinstance(scope, _FUNC_NODES):
+        return set()
+    a = scope.args
+    return {x.arg for x in list(a.posonlyargs) + list(a.args) + list(a.kwonlyargs) + [a.vararg, a.kwarg] if x is not None}
+
+
+def _is_open_run_call(n) -> bool:
+    return isinstance(n, ast.Call) and _callee(n) == OPEN_RUN_NAME
+
+
+def _holder(e, tainted, producers=PAIR_HOLDER_PRODUCERS) -> bool:
+    """e 가 두 객체(또는 그것을 쥔 값)인가 -- 모듈 머리 설명 '쥔 값'. producers = 결과가 쥔 값인 호출 이름(같은 파일에서 쥔 값을
+    돌려주는 함수 포함 -- helper 를 한 겹 거친 보관도 잡는다)."""
+    if e is None:
+        return False
+    if isinstance(e, ast.Name):
+        return e.id in tainted
+    if isinstance(e, ast.Attribute):
+        return e.attr in PAIR_ATTRS or _holder(e.value, tainted, producers)
+    if isinstance(e, ast.Subscript):
+        return _holder(e.value, tainted, producers)
+    if isinstance(e, ast.Call):
+        name = _callee(e)
+        if name == OPEN_RUN_NAME or name in producers:
+            return True
+        if name in CONTAINER_BUILDERS:
+            return any(_holder(a, tainted, producers) for a in list(e.args) + [k.value for k in e.keywords])
+        return False
+    if isinstance(e, (ast.Tuple, ast.List, ast.Set)):
+        return any(_holder(x, tainted, producers) for x in e.elts)
+    if isinstance(e, ast.Dict):
+        return any(_holder(x, tainted, producers) for x in list(e.keys) + list(e.values))
+    if isinstance(e, (ast.Starred, ast.NamedExpr, ast.Await)):
+        return _holder(e.value, tainted, producers)
+    if isinstance(e, ast.IfExp):
+        return _holder(e.body, tainted, producers) or _holder(e.orelse, tainted, producers)
+    if isinstance(e, ast.BoolOp):
+        return any(_holder(x, tainted, producers) for x in e.values)
+    if isinstance(e, (ast.ListComp, ast.SetComp, ast.GeneratorExp)):
+        return _holder(e.elt, tainted, producers)
+    if isinstance(e, ast.DictComp):
+        return _holder(e.key, tainted, producers) or _holder(e.value, tainted, producers)
+    if isinstance(e, ast.Lambda):
+        return any(isinstance(x, ast.Name) and x.id in tainted for x in ast.walk(e.body))
+    return False
+
+
+_holder_base = _holder
+
+
+def _taint(scope, inherited: frozenset, producers=PAIR_HOLDER_PRODUCERS) -> frozenset:
+    """scope 안 '쥔 값' 이름(고정점). 바깥 scope 의 쥔 이름은 이 scope 가 다시 묶지 않으면 물려받는다(자유 변수)."""
+    local = _bindings(scope)
+    tainted = set(x for x in inherited if x not in local)
+    changed = True
+    while changed:
+        changed = False
+        for n in _own_nodes(scope):
+            pairs = []
+            if isinstance(n, ast.Assign):
+                pairs = [(t, n.value) for t in n.targets]
+            elif isinstance(n, (ast.AnnAssign, ast.AugAssign)) and n.value is not None:
+                pairs = [(n.target, n.value)]
+            elif isinstance(n, ast.NamedExpr):
+                pairs = [(n.target, n.value)]
+            elif isinstance(n, (ast.For, ast.AsyncFor, ast.comprehension)):
+                pairs = [(n.target, n.iter)]
+            elif isinstance(n, ast.withitem) and n.optional_vars is not None:
+                pairs = [(n.optional_vars, n.context_expr)]
+            elif isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if any(isinstance(x, ast.Name) and x.id in tainted for b in n.body for x in ast.walk(b)):
+                    if n.name not in tainted:
+                        tainted.add(n.name)
+                        changed = True
+            for t, v in pairs:
+                if _holder(v, tainted, producers):
+                    for name in _target_names(t):
+                        if name not in tainted:
+                            tainted.add(name)
+                            changed = True
+    return frozenset(tainted)
+
+
+def _pair_names(scope) -> frozenset:
+    """'쌍 이름' P: open_run() 튜플 풀기·단일 대입으로 묶인 이름과, 속성 donors·counters 를 대입받은 이름(M-f 내부 칸 판정용)."""
+    out = set()
+    for n in _own_nodes(scope):
+        if isinstance(n, ast.Assign) and (_is_open_run_call(n.value) or
+                                          (isinstance(n.value, ast.Attribute) and n.value.attr in PAIR_ATTRS)):
+            for t in n.targets:
+                out.update(_target_names(t))
+    return frozenset(out)
+
+
+def _scopes(tree: ast.Module):
+    """(scope, 바깥 scope) -- 모듈부터 깊이 우선. 각 scope 의 바깥 scope 를 함께 낸다."""
+    stack = [(tree, None)]
+    while stack:
+        s, outer = stack.pop()
+        yield s, outer
+        for n in _own_nodes(s):
+            if isinstance(n, _SCOPE_NODES):
+                stack.append((n, s))
+
+
+def _innermost_loop(node, scope, parent) -> int | None:
+    """scope 안에서 node 를 감싸는 가장 안쪽 반복문(내포식·generator 식 포함) 노드 id, 없으면 None."""
+    cur = parent.get(id(node))
+    while cur is not None and cur is not scope:
+        if isinstance(cur, _LOOP_NODES):
+            return id(cur)
+        cur = parent.get(id(cur))
+    return None
+
+
+def _enclosing_scope(node, parent):
+    cur = parent.get(id(node))
+    while cur is not None and not isinstance(cur, (ast.Module,) + _SCOPE_NODES):
+        cur = parent.get(id(cur))
+    return cur
+
+
+def _decorator_parts(d) -> tuple[str, ast.Call | None]:
+    """데코레이터 -> (마지막 이름, 호출이면 그 Call)."""
+    call = d if isinstance(d, ast.Call) else None
+    f = d.func if call is not None else d
+    if isinstance(f, ast.Attribute):
+        return f.attr, call
+    if isinstance(f, ast.Name):
+        return f.id, call
+    return "", call
+
+
+def _long_fixture(fn) -> bool:
+    """(M-d) pytest fixture 이고 scope 가 test 하나보다 긴가(문자열 상수가 아니면 fail-closed 로 긴 범위)."""
+    for d in fn.decorator_list:
+        name, call = _decorator_parts(d)
+        if name != "fixture" or call is None:
+            continue
+        for k in call.keywords:
+            if k.arg == "scope":
+                if isinstance(k.value, ast.Constant) and isinstance(k.value.value, str):
+                    return k.value.value in LONG_FIXTURE_SCOPES
+                return True
+    return False
+
+
+def _cache_decorated(fn) -> bool:
+    return any(_decorator_parts(d)[0] in CACHE_DECORATORS for d in fn.decorator_list)
+
+
+def _chain_root(e):
+    while isinstance(e, (ast.Attribute, ast.Subscript)):
+        e = e.value
+    return e
+
+
+def _chain_attrs(e) -> list[str]:
+    out = []
+    while isinstance(e, (ast.Attribute, ast.Subscript)):
+        if isinstance(e, ast.Attribute):
+            out.append(e.attr)
+        e = e.value
+    if isinstance(e, ast.Name):
+        out.append(e.id)
+    return out
+
+
+def _config_chain(e) -> bool:
+    return any(x in CONFIG_NAMES for x in _chain_attrs(e))
+
+
+def _module_names(tree: ast.Module) -> set[str]:
+    return set(_bindings(tree))
+
+
+def _run_object(e, pair, tainted, top=True) -> bool:
+    """(M-f) 인자 e 가 두 객체 자신·그것을 쥔 값·그 내부 칸을 담는가. 메서드 호출 결과(`counters.snapshot()`)는 객체가 아니다."""
+    if isinstance(e, ast.Name):
+        return e.id in (tainted if top else pair)
+    if isinstance(e, ast.Attribute):
+        return e.attr in PAIR_ATTRS or _run_object(e.value, pair, tainted, top=False)
+    if isinstance(e, ast.Subscript):
+        return _run_object(e.value, pair, tainted, top=False)
+    if isinstance(e, ast.Call):
+        return any(_run_object(a, pair, tainted) for a in list(e.args) + [k.value for k in e.keywords])
+    if isinstance(e, (ast.Tuple, ast.List, ast.Set)):
+        return any(_run_object(x, pair, tainted) for x in e.elts)
+    if isinstance(e, ast.Dict):
+        return any(_run_object(x, pair, tainted) for x in list(e.keys) + list(e.values) if x is not None)
+    if isinstance(e, ast.Starred):
+        return _run_object(e.value, pair, tainted)
+    if isinstance(e, (ast.ListComp, ast.SetComp, ast.GeneratorExp, ast.DictComp)):
+        parts = [e.key, e.value] if isinstance(e, ast.DictComp) else [e.elt]
+        parts += [g.iter for g in e.generators]
+        return any(_run_object(x, pair, tainted) for x in parts)
+    return False
+
+
+def _serializer_aliases(tree: ast.Module) -> tuple[dict[str, str], set[str]]:
+    """(모듈 별칭 -> 직렬화 모듈 이름, 쓰기 함수로 import 된 이름)."""
+    mods, funcs = {}, set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import):
+            for a in n.names:
+                if a.name in SERIALIZER_MODULES:
+                    mods[a.asname or a.name] = a.name
+        elif isinstance(n, ast.ImportFrom) and n.module in SERIALIZER_MODULES:
+            for a in n.names:
+                if a.name in SERIALIZER_WRITES:
+                    funcs.add(a.asname or a.name)
+    return mods, funcs
+
+
+def _m_refs(r: str, tree: ast.Module):
+    """(M-a) 엔진 소스의 open_run 참조."""
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import):
+            for a in n.names:
+                if OPEN_RUN_NAME in a.name.split(".") or a.asname == OPEN_RUN_NAME:
+                    yield "open_run_ref", n.lineno, "import %s" % a.name
+        elif isinstance(n, ast.ImportFrom):
+            if n.module and OPEN_RUN_NAME in n.module.split("."):
+                yield "open_run_ref", n.lineno, "from %s import ..." % n.module
+            for a in n.names:
+                if OPEN_RUN_NAME in (a.name, a.asname):
+                    yield "open_run_ref", n.lineno, "import 이름 %s" % a.name
+        elif isinstance(n, ast.Name) and n.id == OPEN_RUN_NAME:
+            yield "open_run_ref", n.lineno, "이름 open_run"
+        elif isinstance(n, ast.Attribute) and n.attr == OPEN_RUN_NAME:
+            yield "open_run_ref", n.lineno, "속성 .open_run"
+
+
+def _m_construct(r: str, tree: ast.Module):
+    """(M-b) 정의 모듈·open_run.py 밖 생성 호출(import 별칭 포함)."""
+    alias = {k: k for k in RUN_OBJECT_HOMES}
+    for n in ast.walk(tree):
+        if isinstance(n, ast.ImportFrom):
+            for a in n.names:
+                if a.name in RUN_OBJECT_HOMES and a.asname:
+                    alias[a.asname] = a.name
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Call):
+            name = _callee(n)
+            cls = alias.get(name) if isinstance(n.func, ast.Name) else (name if name in RUN_OBJECT_HOMES else None)
+            if cls is not None and r not in RUN_OBJECT_HOMES[cls]:
+                yield "direct_construct", n.lineno, "%s(...) 직접 생성" % cls
+
+
+def _m_calls(tree: ast.Module, parent):
+    """(M-c) run_stage_a 호출마다 판정. 낸 값: (종류, 행, 설명)."""
+    uses = {}                    # (scope id, 이름) -> [호출 행]
+    found = []
+    for call in ast.walk(tree):
+        if not (isinstance(call, ast.Call) and _callee(call) == RUN_ENTRY):
+            continue
+        scope = _enclosing_scope(call, parent)
+        if any(isinstance(a, ast.Starred) for a in call.args) or any(k.arg is None for k in call.keywords):
+            found.append(("run_pair_packed", call.lineno, "묶음 인자 *args/**kw"))
+        kws = {k.arg: k.value for k in call.keywords if k.arg in RUN_PAIR_KEYWORDS}
+        if not kws:
+            continue
+        if not isinstance(scope, _FUNC_NODES):
+            found.append(("run_pair_source", call.lineno, "함수 밖 run_stage_a"))
+            continue
+        bind = _bindings(scope)
+        params = _params(scope)
+        assigns = {}
+        for n in _own_nodes(scope):
+            if (isinstance(n, ast.Assign) and _is_open_run_call(n.value) and len(n.targets) == 1
+                    and isinstance(n.targets[0], ast.Tuple) and len(n.targets[0].elts) == len(RUN_PAIR_KEYWORDS)
+                    and all(isinstance(e, ast.Name) for e in n.targets[0].elts)):
+                for i, e in enumerate(n.targets[0].elts):
+                    assigns[e.id] = (n, i)
+        bad, origin = [], set()
+        for i, kw in enumerate(RUN_PAIR_KEYWORDS):
+            if kw not in kws:
+                continue
+            v = kws[kw]
+            if not isinstance(v, ast.Name):
+                bad.append("%s=%s(이름 아님)" % (kw, type(v).__name__))
+                continue
+            got = assigns.get(v.id)
+            if got is None or got[1] != i or v.id in params or bind[v.id] != 1:
+                bad.append("%s=%s(같은 함수 open_run() 튜플 풀기 %d번째 이름 아님)" % (kw, v.id, i + 1))
+                continue
+            origin.add(id(got[0]))
+            uses.setdefault((id(scope), v.id), []).append(call.lineno)
+            if _innermost_loop(call, scope, parent) != _innermost_loop(got[0], scope, parent):
+                found.append(("run_pair_loop", call.lineno, "%s: open_run() 이 같은 반복문 본문에 없다" % kw))
+        if len(origin) > 1:
+            bad.append("donors·counters 가 서로 다른 open_run() 에서 왔다")
+        if bad:
+            found.append(("run_pair_source", call.lineno, "; ".join(bad)))
+    for (_sid, name), lines in uses.items():
+        if len(lines) > 1:
+            for line in lines:
+                found.append(("run_pair_reused", line, "이름 %s 가 run_stage_a %d곳에 쓰인다" % (name, len(lines))))
+    return found
+
+
+def _m_storage(tree: ast.Module):
+    """(M-d)·(M-f) 보관·직렬화."""
+    found = []
+    scopes = list(_scopes(tree))
+    # 같은 파일에서 쥔 값을 돌려주는 함수도 producer 로 본다(고정점) -- helper 한 겹을 거친 보관.
+    producers = set(PAIR_HOLDER_PRODUCERS)
+    while True:
+        taint, pairs = {}, {}
+        for scope, outer in scopes:
+            taint[id(scope)] = _taint(scope, taint.get(id(outer), frozenset()) if outer is not None else frozenset(),
+                                      frozenset(producers))
+            pairs[id(scope)] = _pair_names(scope) | (pairs.get(id(outer), frozenset()) if outer is not None else frozenset())
+        returns_holder = set()
+        for scope, _outer in scopes:
+            if isinstance(scope, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                t = taint[id(scope)]
+                if any(isinstance(n, (ast.Return, ast.Yield)) and _holder_base(n.value, t, frozenset(producers))
+                       for n in _own_nodes(scope)):
+                    returns_holder.add(scope.name)
+        if returns_holder <= producers:
+            break
+        producers |= returns_holder
+    producers = frozenset(producers)
+
+    def _holder(e, t, _p=producers):          # 이 함수 안에서는 늘 같은 producer 집합
+        return _holder_base(e, t, _p)
+
+    module_names = _module_names(tree)
+    mods, funcs = _serializer_aliases(tree)
+    long_classes = set()
+    for n in _own_nodes(tree):
+        if isinstance(n, ast.Assign) and isinstance(n.value, ast.Call) and isinstance(n.value.func, ast.Name):
+            long_classes.add(n.value.func.id)
+
+    def stored(line, why):
+        found.append(("run_pair_stored", line, why))
+
+    for scope, outer in _scopes(tree):
+        t = taint[id(scope)]
+        p = pairs[id(scope)]
+        local = _bindings(scope)
+        globals_here = {x for n in _own_nodes(scope) if isinstance(n, ast.Global) for x in n.names}
+        is_module = isinstance(scope, ast.Module)
+        is_class = isinstance(scope, ast.ClassDef)
+        in_long_class_method = (isinstance(scope, (ast.FunctionDef, ast.AsyncFunctionDef)) and isinstance(outer, ast.ClassDef)
+                                and outer.name in long_classes)
+        shelves = set()
+        for n in _own_nodes(scope):
+            if isinstance(n, ast.Assign) and isinstance(n.value, ast.Call) and _callee(n.value) == "open" and \
+                    isinstance(n.value.func, ast.Attribute) and isinstance(n.value.func.value, ast.Name) and \
+                    mods.get(n.value.func.value.id) == "shelve":
+                for tt in n.targets:
+                    shelves.update(_target_names(tt))
+            if isinstance(n, ast.withitem) and isinstance(n.context_expr, ast.Call) and \
+                    isinstance(n.context_expr.func, ast.Attribute) and isinstance(n.context_expr.func.value, ast.Name) and \
+                    mods.get(n.context_expr.func.value.id) == "shelve" and n.optional_vars is not None:
+                shelves.update(_target_names(n.optional_vars))
+
+        def module_level(name):
+            return name in module_names and (name not in local or name in globals_here)
+
+        for n in _own_nodes(scope):
+            # ---- 대입 sink
+            targets, value = [], None
+            if isinstance(n, ast.Assign):
+                targets, value = n.targets, n.value
+            elif isinstance(n, (ast.AnnAssign, ast.AugAssign)) and n.value is not None:
+                targets, value = [n.target], n.value
+            if targets and _holder(value, t):
+                for tg in targets:
+                    if is_module:
+                        stored(n.lineno, "모듈 수준 이름")
+                    elif is_class:
+                        stored(n.lineno, "클래스 속성")
+                    elif isinstance(tg, ast.Name) and tg.id in globals_here:
+                        stored(n.lineno, "global 이름")
+                    elif isinstance(tg, (ast.Attribute, ast.Subscript)):
+                        root = _chain_root(tg)
+                        if _config_chain(tg):
+                            stored(n.lineno, "pytest config")
+                        elif isinstance(root, ast.Name) and module_level(root.id):
+                            stored(n.lineno, "모듈 수준 객체·컨테이너")
+                        elif isinstance(root, ast.Name) and root.id == "self" and in_long_class_method:
+                            stored(n.lineno, "모듈 수준 객체의 인스턴스 속성")
+            if targets and value is not None:
+                for tg in targets:
+                    if isinstance(tg, ast.Subscript) and isinstance(_chain_root(tg), ast.Name) and \
+                            _chain_root(tg).id in shelves and _run_object(value, p, t):
+                        found.append(("run_pair_persisted", n.lineno, "shelve 항목 대입"))
+            # ---- 호출 sink
+            if isinstance(n, ast.Call):
+                args = list(n.args) + [k.value for k in n.keywords]
+                f = n.func
+                if isinstance(f, ast.Attribute) and f.attr in CONTAINER_MUTATORS and any(_holder(a, t) for a in args):
+                    root = _chain_root(f.value)
+                    if _config_chain(f.value):
+                        stored(n.lineno, "pytest config")
+                    elif isinstance(root, ast.Name) and module_level(root.id):
+                        stored(n.lineno, "모듈 수준 컨테이너 변경")
+                elif isinstance(f, ast.Attribute) and _config_chain(f.value) and any(_holder(a, t) for a in args):
+                    stored(n.lineno, "pytest config")
+                name = _callee(n)
+                if name in CACHE_DECORATORS and n.args and isinstance(n.args[0], ast.Name) and n.args[0].id in returns_holder:
+                    stored(n.lineno, "cache 감싼 함수의 반환")
+                if isinstance(f, ast.Call) and _callee(f) in CACHE_DECORATORS and n.args and \
+                        isinstance(n.args[0], ast.Name) and n.args[0].id in returns_holder:
+                    stored(n.lineno, "lru_cache 감싼 함수의 반환")
+                serial = (isinstance(f, ast.Name) and f.id in funcs) or (
+                    isinstance(f, ast.Attribute) and f.attr in SERIALIZER_WRITES and (
+                        (isinstance(f.value, ast.Name) and f.value.id in mods) or
+                        (isinstance(f.value, ast.Call) and isinstance(f.value.func, ast.Attribute) and
+                         isinstance(f.value.func.value, ast.Name) and f.value.func.value.id in mods)))
+                if serial and any(_run_object(a, p, t) for a in args):
+                    found.append(("run_pair_persisted", n.lineno, "직렬화 쓰기 인자"))
+            # ---- 기본 인자값
+            if isinstance(n, _FUNC_NODES):
+                for d in list(n.args.defaults) + [x for x in n.args.kw_defaults if x is not None]:
+                    if _holder(d, t):
+                        stored(d.lineno, "함수 기본 인자값")
+        # ---- 함수 단위 sink
+        if isinstance(scope, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            rets = [n for n in _own_nodes(scope) if isinstance(n, (ast.Return, ast.Yield, ast.YieldFrom)) and _holder(n.value, t)]
+            if _long_fixture(scope):
+                for n in rets:
+                    stored(n.lineno, "test 하나보다 긴 범위 fixture")
+            if _cache_decorated(scope):
+                for n in rets:
+                    if isinstance(n, ast.Return):
+                        stored(n.lineno, "lru_cache·cache 함수의 반환")
+            if scope.name in CONFIG_HOOKS:
+                for n in _own_nodes(scope):
+                    if isinstance(n, ast.Call) and _holder(n, frozenset()):
+                        stored(n.lineno, "conftest %s" % scope.name)
+    return found
+
+
+def m_run_stage_a_calls(root: Path) -> int:
+    """대상 트리의 run_stage_a 호출 수(규칙 M M-c 가 실제로 본 호출 수 -- 공허 통과 방지)."""
+    return sum(1 for p in m_files(root) for n in ast.walk(parse(p)) if isinstance(n, ast.Call) and _callee(n) == RUN_ENTRY)
+
+
+def check_m(root: Path) -> tuple[int, list[Violation]]:
+    """규칙 M(실행 비공유). 대상 = m_files(엔진 트리 전체, tests/ 포함, 위반 픽스처 제외). (M-a) 은 tests/ 밖 엔진 소스만,
+    (M-b)~(M-f) 은 전부. 판정 종류는 위 머리 설명."""
+    root = Path(root)
+    targets = m_files(root)
+    out = set()
+    for p in targets:
+        r = rel(root, p)
+        tree = parse(p)
+        parent = _parents(tree)
+        found = []
+        if p.relative_to(root).parts[0] != "tests" and r not in OPEN_RUN_ALLOWED_FILES:
+            found.extend(_m_refs(r, tree))
+        found.extend(_m_construct(r, tree))
+        found.extend(_m_calls(tree, parent))
+        found.extend(_m_storage(tree))
+        merged = {}
+        for kind, line, detail in found:                 # 같은 (종류, 행)은 하나로(설명은 합친다)
+            merged.setdefault((kind, line), [])
+            if detail not in merged[(kind, line)]:
+                merged[(kind, line)].append(detail)
+        for (kind, line), details in merged.items():
+            out.add(Violation(kind, r, line, "; ".join(details)))
     return len(targets), sorted(out)

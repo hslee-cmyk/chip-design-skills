@@ -150,6 +150,80 @@ def test_rule_k_accepts_good_fixture(checks, fixture_tree):
     assert v == [], "\n".join(str(x) for x in v)
 
 
+# 규칙 M(XRUN-F1 card B interface card C9, B-T24): 기대 목록은 픽스처 소스 줄을 손으로 읽어 적었다. bad 트리의 정의 모듈
+# (search/open_run.py·s3_index.py·__init__.py, core/run_counters.py)은 위반 0 -- 허용 자리 확인.
+EXPECTED_BAD_M = [
+    ("direct_construct", "search/kernel.py", 6),             # (M-b) 엔진 소스 S3Index()
+    ("direct_construct", "search/kernel.py", 7),             # (M-b) import 별칭 Counters() = RunCounters
+    ("direct_construct", "tests/test_mb_construct.py", 6),   # (M-b) test 의 S3Index()
+    ("direct_construct", "tests/test_mb_construct.py", 7),   # (M-b) test 의 core.RunCounters()(속성)
+    ("open_run_ref", "pipeline/session.py", 1),              # (M-a) import 이름 open_run
+    ("open_run_ref", "pipeline/session.py", 6),              # (M-a) 이름 open_run
+    ("open_run_ref", "pipeline/session.py", 10),             # (M-a) 속성 search.open_run
+    ("run_pair_loop", "tests/test_mc_loops.py", 8),          # (M-c) 반복문 밖 open_run, 반복문 안 run_stage_a
+    ("run_pair_loop", "tests/test_mc_loops.py", 13),         # (M-c) 내포식 안 run_stage_a(반복문 본문으로 본다)
+    ("run_pair_packed", "tests/test_mc_loops.py", 35),       # (M-c) **kw
+    ("run_pair_packed", "tests/test_mc_loops.py", 37),       # (M-c) *args
+    ("run_pair_persisted", "tests/test_mf_dump.py", 11),     # (M-f) pickle.dump(donors, f)
+    ("run_pair_persisted", "tests/test_mf_dump.py", 12),     # (M-f) json.dumps(counters._rows)(내부 칸)
+    ("run_pair_persisted", "tests/test_mf_dump.py", 19),     # (M-f) shelve 항목 대입
+    ("run_pair_persisted", "tests/test_mf_dump.py", 20),     # (M-f) pickle.dumps(stage.donors)(결과 칸)
+    ("run_pair_reused", "tests/test_mc_loops.py", 18),       # (M-c) 같은 이름 두 run_stage_a -- 첫째
+    ("run_pair_reused", "tests/test_mc_loops.py", 19),       # (M-c) 같은 이름 두 run_stage_a -- 둘째
+    ("run_pair_source", "tests/test_mc_loops.py", 26),       # (M-c) 안쪽 def 의 자유 변수
+    ("run_pair_source", "tests/test_mc_loops.py", 28),       # (M-c) lambda 의 자유 변수
+    ("run_pair_source", "tests/test_mc_sources.py", 6),      # (M-c) 매개변수로 받은 쌍
+    ("run_pair_source", "tests/test_mc_sources.py", 16),     # (M-c) 결과 칸 a.donors·a.counters
+    ("run_pair_source", "tests/test_mc_sources.py", 22),     # (M-c) 다른 호출(make_pair()) 반환
+    ("run_pair_source", "tests/test_mc_sources.py", 27),     # (M-c) 튜플 풀기 순서 바뀜(c, d = open_run())
+    ("run_pair_source", "tests/test_mc_sources.py", 33),     # (M-c) 다시 묶인 이름(d = make_pair()[0])
+    ("run_pair_source", "tests/test_mc_sources.py", 39),     # (M-c) donors·counters 가 서로 다른 open_run()
+    ("run_pair_stored", "tests/conftest.py", 5),             # (M-d) 모듈 수준 이름
+    ("run_pair_stored", "tests/conftest.py", 10),            # (M-d) session fixture 반환
+    ("run_pair_stored", "tests/conftest.py", 16),            # (M-d) module fixture yield
+    ("run_pair_stored", "tests/conftest.py", 20),            # (M-d) pytest_configure 안 config.stash
+    ("run_pair_stored", "tests/conftest.py", 25),            # (M-d) request.config 속성
+    ("run_pair_stored", "tests/test_md_store.py", 11),       # (M-d) 클래스 속성
+    ("run_pair_stored", "tests/test_md_store.py", 14),       # (M-d) 함수 기본 인자값
+    ("run_pair_stored", "tests/test_md_store.py", 20),       # (M-d) @functools.lru_cache 함수의 반환
+    ("run_pair_stored", "tests/test_md_store.py", 27),       # (M-d) 호출형 functools.cache(make)
+    ("run_pair_stored", "tests/test_md_store.py", 31),       # (M-d) 모듈 리스트 append
+    ("run_pair_stored", "tests/test_md_store.py", 36),       # (M-d) 모듈 수준 객체(BOX)의 인스턴스 속성
+    ("run_pair_stored", "tests/test_md_store.py", 46),       # (M-d) session fixture 가 KernelContext(두 객체를 쥔 값) 반환
+    ("run_pair_stored", "tests/test_md_store.py", 56),       # (M-d) package fixture 가 helper 한 겹을 거친 KernelContext 반환
+]
+
+
+def test_rule_m_rejects_bad_fixture(checks, fixture_tree):
+    """규칙 M(card B C9): M-a·M-b·M-c 꼴마다·M-d 경로마다·M-f 를 담은 bad 트리를 기대 목록과 정확히 같게 거부한다(실제로 거부)."""
+    root = fixture_tree("rule_m", "bad")
+    n, v = checks.check_m(root)
+    assert n == 12                                           # 픽스처 트리의 .py 파일 수(엔진 6 + tests 6)
+    assert _keys(v) == sorted(EXPECTED_BAD_M), "\n".join(str(x) for x in v)
+    assert {x.kind for x in v} == {"open_run_ref", "direct_construct", "run_pair_source", "run_pair_reused",
+                                   "run_pair_loop", "run_pair_packed", "run_pair_stored", "run_pair_persisted"}
+    assert checks.m_run_stage_a_calls(root) == 15
+
+
+def test_rule_m_accepts_good_fixture(checks, fixture_tree):
+    """허용: 튜플 풀기 1:1(결과 칸 is 확인 포함), 호출마다 자기 open_run(), 반복문 안 open_run, function fixture 가 open_run() 반환,
+    단위 test 한 쌍으로 감쌈 함수 여러 번, 스스로 open_run 하는 helper, session fixture 가 지역 쌍으로 만든 S1 스냅샷만 반환,
+    키워드 하나 빠진 TypeError 꼴, 계수 snapshot 값의 json 출력, 정의 모듈의 생성 호출, 엔진 진입이 두 객체를 받기만 함."""
+    root = fixture_tree("rule_m", "good")
+    n, v = checks.check_m(root)
+    assert n == 7
+    assert v == [], "\n".join(str(x) for x in v)
+    assert checks.m_run_stage_a_calls(root) == 6
+
+
+def test_rule_m_targets_tests_but_not_fixtures(checks, engine_root):
+    """대상 범위(C9 'test 쪽에도 걸린다'): 진짜 트리에서 tests/ 아래 파일은 대상이고, 이 폴더의 위반 픽스처는 대상이 아니다."""
+    files = [p.relative_to(engine_root).as_posix() for p in checks.m_files(engine_root)]
+    assert any(f.startswith("tests/") for f in files)
+    assert any(not f.startswith("tests/") for f in files)
+    assert not any(f.startswith("tests/structure/fixtures/") for f in files)
+
+
 def test_rule_i_leaves_library_name_literals_to_rule_e(checks, fixture_tree, library):
     """이름 집합을 주면 (b)는 library 이름 리터럴("two_stage_ota")을 규칙 E 에 넘기고 그 밖 리터럴만 잡는다(E 와 겹치지 않음)."""
     _, names = library
