@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 0.5.2
+version: 0.5.3
 ---
 
 # offset-strategy Planning Document
@@ -8,7 +8,7 @@ version: 0.5.2
 > **Summary**: spec이 offset을 **수단**(`offset_in_sigma_mv <=` 제약이나 `offset_trim` 선언)이 아니라 **요구**로 쓰게 한다. 요구는 `offset_requirement{offset_in_max_v, coverage_multiple, strategy}` 하나다. 엔진은 요구와 방식(`matching`·`trim`·`compare`)에서 판정 제약을 유도하고, **실행 계획**(변형 목록, 변형 = (topology 변형, 제약 집합))을 만들어 한 실행 안에서 차례로 돈다. 변형들은 단계 A·S0·블록 결과 색인을 공유한다. 이 일은 파이프라인 층 모듈을 다시 쓰는 것이고(S-2), 핵심 층(graph·블록·kernel·search)은 유지한다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: 계획 v0.5.2 (2026-10-16). **사용자 승인(S-11, "offset-strategy 권고대로")**: V-1(OS-V card)과 F-1 fixture 위치(저장소 안·library 밖) 확인, 재확인 94점 비차단 반영. 남은 대기는 다른 계획의 결정뿐이다: offset-trim D-18(판정 온도 범위 칸)과 D-24(반복 구조 -- 안 B가 정해지면 '실행 중 변형 추가' 개정이 이 계획에 따로 온다). 아래는 v0.5.1까지의 경위다. v0.4는 사용자 결정 S-5(XS-1~XS-14 승인)·S-6(DS-U 결정)으로 승인됐다. v0.5는 사용자 결정 S-7("계획과 다른 부분이 생기면 계획부터 수정해서 bkit절차대로 진행해")에 따라, design v0.1(`offset-strategy.design.md`, 브랜치 `ostrat-design` `aef46c7`)이 계획과 다르게 간 점과 그 독립 검증(82점) 지적을 계획 쪽 결정 항목 PD-1~PD-9·W-1·F-1로 정리하고(N11), SPICE 온도 보정 루프(T-29~T-33)와의 연결점을 정한 개정이다(N3.11). PD-1~PD-8은 사용자 결정 S-8("PD1~PD8은 권고대로"), W-1·F-1·T-30 연결은 S-9("W-1,F-1,T-30을 권고대로 진행")로 승인돼 해당 자리의 규칙을 고쳤다. PD-9는 S-10("pd9도 권고대로")으로 승인돼 N3.2 로더 규칙·DS-U2에 반영했다. 남은 것은 v0.5.1에서 더한 확인 항목 V-1(matching 오라클 측정 card 배정)과 offset-trim D-18 연결(그 계획의 사용자 결정 대기)이다. v0.5.1은 v0.5 검증(84점, 차단 B-1~B-3, 비차단 N-1~N-6)을 반영했고 재검증 전이다. 근거는 사용자 결정 S-1~S-4(원문 `wt/_drafts/user_decisions.md` '## offset 방식 선택·실행 계획 (2026-10-16 사용자 "권고대로 해")')다.
+> **Status**: 계획 v0.5.3 (2026-10-16). **사용자 승인(S-11, "offset-strategy 권고대로")**: V-1(OS-V card)과 F-1 fixture 위치(저장소 안·library 밖) 확인, 재확인 94점 비차단 반영. v0.5.3은 offset-trim D-18 결정(T-34)으로 요구 스키마에 판정 온도 범위 칸을 더했다(N3.2). 남은 대기는 다른 계획의 결정 하나다: offset-trim D-24(반복 구조 -- 안 B가 정해지면 '실행 중 변형 추가' 개정이 이 계획에 따로 온다). 아래는 v0.5.1까지의 경위다. v0.4는 사용자 결정 S-5(XS-1~XS-14 승인)·S-6(DS-U 결정)으로 승인됐다. v0.5는 사용자 결정 S-7("계획과 다른 부분이 생기면 계획부터 수정해서 bkit절차대로 진행해")에 따라, design v0.1(`offset-strategy.design.md`, 브랜치 `ostrat-design` `aef46c7`)이 계획과 다르게 간 점과 그 독립 검증(82점) 지적을 계획 쪽 결정 항목 PD-1~PD-9·W-1·F-1로 정리하고(N11), SPICE 온도 보정 루프(T-29~T-33)와의 연결점을 정한 개정이다(N3.11). PD-1~PD-8은 사용자 결정 S-8("PD1~PD8은 권고대로"), W-1·F-1·T-30 연결은 S-9("W-1,F-1,T-30을 권고대로 진행")로 승인돼 해당 자리의 규칙을 고쳤다. PD-9는 S-10("pd9도 권고대로")으로 승인돼 N3.2 로더 규칙·DS-U2에 반영했다. 남은 것은 v0.5.1에서 더한 확인 항목 V-1(matching 오라클 측정 card 배정)과 offset-trim D-18 연결(그 계획의 사용자 결정 대기)이다. v0.5.1은 v0.5 검증(84점, 차단 B-1~B-3, 비차단 N-1~N-6)을 반영했고 재검증 전이다. 근거는 사용자 결정 S-1~S-4(원문 `wt/_drafts/user_decisions.md` '## offset 방식 선택·실행 계획 (2026-10-16 사용자 "권고대로 해")')다.
 > **이력**: 경위, 결정 원문, 측정 조건, 버전 이력은 [offset-strategy.history.md](offset-strategy.history.md)에 있다.
 > **상위 계획**: [gain-budget-gmid-sizing.plan.md](gain-budget-gmid-sizing.plan.md)(원칙 N1.4 NFR, N2 결정, N6.3 병합 전 확인). **관련 계획**: [offset-trim.plan.md](offset-trim.plan.md)(trim 방식의 규칙 정본). 충돌하면 상위 계획이 이기고, offset-trim과의 충돌은 N5(원래 취지와 다름)와 N9에 올린다.
 
@@ -179,6 +179,7 @@ spec 사람 선언의 선택 섹션이다. 형식은 기존 spec 값 칸(`value`
 | `offset_in_max_v` | 입력 환산 offset 한계(V). matching에서는 k·σ_in + \|V_sys\|의 상한, trim에서는 V_res의 상한(N3.3) | 유한 양수 |
 | `coverage_multiple` | k. 랜덤 offset 분포 σ_in의 배수. matching 상한과 trim 보정 구간이 같은 k를 쓴다 | 유한 양수 |
 | `strategy` | `matching` \| `trim` \| `compare` | 닫힌 어휘 |
+| 판정 온도 범위(칸 이름은 design이 DEC-68로 정한다. 후보 `judgment_temperature_range_c` = {하한, 상한}) | offset·trim 잔여 합격을 판정할 온도 구간(°C, 단위 접미 `_c`, OT §5.1 선례). spec에 이 한 곳에만 선언하고, TR-7 온도 보고 sweep과 SPICE 온도 보정 루프의 범위 판정이 모두 이 선언을 참조한다(바꾸면 연동, 숫자 사본 금지, T-34). 값은 사용자 선언이고(T-34의 결정 값은 T-14 범위) 기본값은 없다 | 두 값 모두 유한, 하한 < 상한. 출처 kind `user_spec`. trim 온도 T_j가 구간 안에 드는지의 검사는 offset-trim 소관(O-8)이다 |
 
 **로더 규칙**(fail-closed, NFR-S4):
 
@@ -310,7 +311,7 @@ S-2는 '파이프라인 층 재작성, 핵심(graph·블록·kernel·search) 유
 | 그 문턱 값의 출처: 요구 `offset_in_max_v` 참조 | **이 계획**(N3.2) | 정의한다 |
 | Δ_T의 정의·측정 선언 형식·출처 지문·무효 규칙, 문턱 합성 형식(spec 참조 − Δ_T 선언 참조, 숫자 사본 금지), 루프·멈춤·분해 정지 규칙, 범위 판정, 오라클 표본 수 | **offset-trim 계획 v0.5**(N3.8, design G-9·G-10) | 쓰지 않는다. 문턱 합성은 offset-trim이 정하는 함수 하나를 matching 합성 행이 부른다(사본 함수 금지) |
 | 반복 하나 = 실행 계획 하나를 처음부터 다시 도는 것, 변형 정체(제약 집합 지문)가 반복마다 바뀜, 반복 사이 공유 없음 | 두 계획이 같은 문장으로 적는다(offset-trim N3.8 '관계' 항, 이 계획 N3.5·N3.6) | 변형 정체 지문(G-S3)과 `run_id`에 문턱 합성 결과(Δ_T 선언 지문 포함)가 들어가야 한다. 반복이 같은 S3 루트에 쓰여도 runs 줄이 겹치지 않게 한다 |
-| 요구 스키마 안 판정 온도 범위 칸(offset-trim v0.5 D-18이 `offset_requirement` 안 새 칸으로 제안) | 스키마(칸 이름·형식·로더 검사)는 **이 계획**(N3.2), 값과 채택 여부는 **offset-trim D-18**(사용자 결정 대기) | D-18이 채택되면 N3.2 스키마 표에 칸을 더한다(이 계획 개정). 채택 전에는 칸을 두지 않는다 |
+| 요구 스키마 안 판정 온도 범위 칸(offset-trim v0.5 D-18이 `offset_requirement` 안 새 칸으로 제안) | 스키마(칸 이름·형식·로더 검사)는 **이 계획**(N3.2), 값과 채택은 **offset-trim D-18 -- 결정됨(T-34)**: T-14 범위, spec 한 곳 선언, 모든 소비자가 참조 | N3.2 스키마 표에 칸을 더했다(v0.5.3). T_j 포함 검사는 offset-trim O-8 |
 | matching 유도 제약의 `verified_by`(오라클 measure) | 측정 규칙은 offset-trim N3.8(범위 판정·표본 수 G-10), 오라클 코어는 oracle-portability 계획(T-31·T-33) | **이 계획 쪽 card OS-V**(matching 합성 판정에 오라클 측정을 붙임, 승인 S-11)를 둔다. 선행은 OS-2와 oracle-portability 코어이고, offset-trim TR-TL의 선행이다. 그 전에는 합성 판정 metric이 `spice_unverifiable` 목록에 실행 전 출력된다(DEC-90 (3), OT §10.6 선례). card 배정은 V-1(승인됨, N7.2 OS-V 행) |
 | 엔진 결과의 합격 표기 | 이 계획(결과 JSON) | T-29 뒤에는 엔진 front의 matching 판정(LUT 한 조건)이 최종 합격이 아니다. 결과 JSON에 '최종 합격은 오라클 범위 판정' 표기를 싣는다 |
 
@@ -555,7 +556,7 @@ S-7에 따라 design이 계획과 다르게 간 점은 design에서 승인받지
 | V-1(v0.5.1, 검증 B-3) | **사용자 승인됨(S-11)**. matching 유도 제약의 `verified_by`(오라클 측정)를 붙이는 card = OS-V(N7.2). 선행은 OS-2와 oracle-portability 코어이고, offset-trim TR-TL의 선행이다 |
 | F-1 위치 정정 | **사용자 확인됨(S-11)**: 저장소 안·library 밖 fixture(`assets/fixture/` 계열) |
 | D-24 연결 | **대기**(offset-trim 결정). 안 B면 '실행 중 변형 추가' 개정이 이 계획에 따로 온다 |
-| D-18 연결(v0.5.1, 검증 B-3) | 판정 온도 범위 칸의 값·채택은 offset-trim D-18(사용자 결정 대기)이다. 채택되면 이 계획 N3.2에 칸을 더한다(N3.11) |
+| D-18 연결(v0.5.1, 검증 B-3) | **결정됨(T-34)**: 판정 온도 범위 = T-14 범위, spec 요구 안 칸 한 곳 선언, 소비자 모두 참조. N3.2에 칸을 더했다(v0.5.3) |
 
 * 입력: design v0.1 `docs/02-design/features/offset-strategy.design.md`(브랜치 `ostrat-design`, `aef46c7`)와 그 history, design 독립 검증(82점) 지적.
 * 코드 인용 기준: master `d783efe`.
