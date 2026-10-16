@@ -517,7 +517,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 
 ### 3.16 [r2] `find_front(sctx, given_starts) -> SearchFront`
 - [NFR-4 재확인 (c)] 진입에서 `blas_environment()` 를 한 번 불러(실패는 `RuntimeError`) 그 값의 core `fp_of` 를 runs 줄 최상위 키 `env_fp` 에 둔다. notes 에는 언제나 정확히 한 줄
-  `{verdict "l_search", rule "LR10", stops [...]}`(= `sweep_front` 의 `lb_stops`, L-b 가 돌지 않았으면 빈 목록)가 더해진다 -- runs 줄 notes 와 `SearchFront.notes` 에 함께. `perf` 키는 바뀌지 않는다.
+  `{verdict "l_search", rule "LR10", stops [...]}`(= `sweep_front` 의 `lb_stops`, L-b 가 돌지 않았으면 빈 목록)가 더해진다 -- runs 줄 notes 와 `SearchFront.notes` 에 함께. NFR-4 card 2 는 `perf` 키를 바꾸지 않았다(card A 가 `lut_memo_bound` 를 더했다, §3.16 아래).
 - [r5] 순서: deadline 설정 -> `layer0_start(sctx)` -> `start_points(sctx, given_starts, (층 0 start,) 또는 ())` -> 스윕. notes 의
   옛 `{verdict "blocked", reason "layer0_inputs_missing"}` 대신 `{verdict "layer0_minimal"(시작점 있음) | "layer0_no_start",
   rule "DEC-71", reason "seal_margin_maxmin_centre", stop, t, hard_ok, start_status, centre_u, kernel_calls, probes,
