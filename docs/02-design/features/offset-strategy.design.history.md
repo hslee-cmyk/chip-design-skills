@@ -15,7 +15,21 @@ date: 2026-10-16
 | v0.1 | aef46c7 | card OS-0 초안. 계획 v0.4(사용자 승인 S-5 XS-1~XS-14, S-6 DS-U1~DS-U9) 기준. 독립 검증 82점(차단 B-1·B-2) |
 | v0.2 | 8f9b5a8 | 계획 v0.6.1(S-7~S-12, T-34~T-37, O-1) 반영. 세션 인터페이스·하네스 노출·OS-V·OS-L·판정 온도 범위 칸·F-1 fixture. 독립 검증 전 |
 | v0.2.1 | 8d60a7f | v0.1 검증 비차단 N-1~N-4·N-6·N-7·N-12 반영(H4). S-13 기록 ddf1b55 |
-| v0.2.2 | (이 커밋) | 계획 v0.6.2·v0.2.1 검증(84점) 반영(H5) |
+| v0.2.2 | a2173c0 | 계획 v0.6.2·v0.2.1 검증(84점) 반영(H5) |
+| v0.2.3 | (이 커밋) | v0.2.2 재검증(92점, 차단 0) 비차단 N-1~N-8 반영(H6) |
+
+## H6. v0.2.3 -- v0.2.2 재검증(92점) 비차단 반영(2026-10-16)
+
+| 지적 | 반영 |
+|---|---|
+| N-1 | §1.2·§5.3·§6.3의 '`start_intervals` 입력 같다' 단정을 §3.2 구분(OS-L 반복 사이 같음, compare 국면 1 다름)에 맞춤. §3.2·OB-20·§16.3의 'OT §20.7 정정 필요'는 TR-0T v0.3.1(master `cf2c983`) 반영 사실로 정리. Status v0.2.3 |
+| N-2 | `constraint_set_fp`가 문턱 값(`value_v`)을 담고 `margin_ref`는 뺀다 -- 같은 `constraint_set_fp`면 문턱 값이 같다(정의상 사실). 중복 판정 키는 계획대로(원인 지문 포함, 값 지문 추가 없음). (다) 평가 키는 `constraint_set_fp`(문턱 값 지문)를 쓰고 `cause_fp`는 쓰지 않는다 -- 원인만 다르고 값이 같은 변형이 평가를 공유. 그 결과 (다)에서는 평가 키 항목을 놓지 않는다(OB-34). (가) 놓기 근거 문장도 이에 맞춤 |
+| N-3 | 반복 수 = 추가된 변형 수(처음 0), a ≥ `iteration_cap`이면 거부(OB-35). TR-0T §20.6·§20.7에 같은 정의와 '세션 열기에 `iteration_cap` 전달'을 두도록 알림 항목(§18.2) |
+| N-4 | `tightened_threshold` 첫 인자 = base 변형의 처음 문턱 항목(`margin_ref` None), §13.1 + TR-0T 알림 |
+| N-5 | `ThresholdItem.spec_ref` 삭제(`target`이 spec 참조 하나) |
+| N-6 | OS-V 착수 조건에 'OP-0 design의 V_sys 출력 키 이름 확정'. V_sys 대조 = 절댓값끼리, 선형화 차이는 `model_error_offset_sys_mv`(OB-36) |
+| N-7 | `run_plan.json` `variants[].output_reference` 칸, 엔진 결과 → 오라클 입력 변환(U16 변환기)이 옮김(§8·§12) |
+| N-8 | `test_plan_session`을 §6.1 규칙의 두 경우(spec None → `stage_b_unplanned`, spec 있고 단계 A 정지 → 계획 생성)로 |
 
 ## H5. v0.2.2 -- v0.2.1 검증(84점) 반영(2026-10-16, base `30e287d` = master 계획 v0.6.2·offset-trim v0.5.6 병합)
 
