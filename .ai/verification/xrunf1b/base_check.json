@@ -1,0 +1,302 @@
+{
+ "id": "20261016-xrunf1b",
+ "freeze": {
+  "target_head": "e96515feaee3ea0c99f89c5d631d42dae0ffea82",
+  "test_end_commit": "25fc6053b2d5a50f539134c42bd67bb42f036c42",
+  "test_branch": "role/test/xrunf1b",
+  "test_commits": [
+   "e776cdf56c4ff03d4a2ea3906bd6bddad13ce349",
+   "844376623435f7c02db2dffb1c67ea09deb6a9e8",
+   "4721dd71c7e5b328d0f0de6f11410a1f62778931",
+   "ea0b8b535fa13c45c7ea344f98c84b36f015bb76",
+   "1ff18929af0e0067c417883ad19aa59fa6cba0b5",
+   "0918fdc47829810f503759c83c8a207be938563f",
+   "798f2a6826eac0ab96ef48c6702df328f022be1c",
+   "25fc6053b2d5a50f539134c42bd67bb42f036c42"
+  ],
+  "base_commit": "083b1035267bc586b04353a9a3d2dac278f11867",
+  "merge_base_test_vs_base": "083b1035267bc586b04353a9a3d2dac278f11867",
+  "merge_base_code_vs_base": "083b1035267bc586b04353a9a3d2dac278f11867",
+  "code_branch": "role/code/xrunf1b",
+  "code_commits": [
+   "a2da2390438cfedc643fcbea7e45975310ab20b7",
+   "d8ffad1b056fc8853989aa5e285c2f93f1636f96",
+   "3e77d42e493293f7993b0ad77792cb4a04b38083",
+   "68267a051683f6320cb4dcf95b7cbd8dbccab418"
+  ],
+  "code_commit": "68267a051683f6320cb4dcf95b7cbd8dbccab418",
+  "integration": "integ/xrunf1b e96515f = 70c2a4b(merge role/test 25fc605) + merge role/code 68267a0, 충돌 없음",
+  "test_commit_trailers": "8/8 'Role: test' + 'Change-Id: xrunf1b'; code 4/4 'Role: code' + 'Change-Id: xrunf1b'",
+  "test_diff_scope": "git diff --name-only 083b103 25fc605 -> 140 files(A 27, M 113, D 0), 전부 skills/analog-gmid-design/gmid_engine/tests/ 아래(엔진 소스 0). code 083b103..68267a0 -> 38 files, tests/ 0. 병합본 e96515f: tests == 25fc605(diff 0), tests 밖 == 68267a0(diff 0)",
+  "test_diff_patch_sha256": "96ecb36c95d7811cb4a81b4ad6459511c244673fdf341a77fd28365e31d760f0"
+ },
+ "red": {
+  "setup": "격리 복제본(git clone --no-hardlinks --no-local <xrunf1b-audit> _scratch_xrunf1b_audit/red, origin 제거) detached 25fc605 = base 083b103 엔진 + 동결 test(부모 사슬 083b103, test 파일만)",
+  "first_attempt": "바뀐 test_*.py 105개를 한 pytest 로: search/conftest -> sizing.conftest 가 새 심볼 open_run 을 import 해 'ImportError while loading conftest' exit 4(아무 것도 실행 안 됨, results/red/red.txt) -> 파일마다 한 프로세스로 바꿈",
+  "command": "for f in <105 changed test files of 25fc605>: cd <red>/skills/analog-gmid-design && PYTHONDONTWRITEBYTECODE=1 python -m pytest $f -q -p no:cacheprovider -rfE --tb=short --continue-on-collection-errors --run-slow --junitxml=junit/<f>.xml (OPENBLAS_NUM_THREADS unset); 이어서 같은 파일 PYTHONPATH=<gate cache 6df4bd7f> GMID_RED_CAPTURE=capture.jsonl python -m pytest -p merge_gate $f ... (GMID_INTERFACE_CARD 미지정)",
+  "result_files": "105 파일 중 성공 종료 1(structure/test_structure_rules_reject_fixtures.py 37 passed -- B-T24 검사기 자체 시험, red 목록 밖), 나머지 104 파일 red(수집 오류·conftest 로드 오류·실패)",
+  "expected_red": "interface card 3.3: B-T0~B-T23(엔진 동작·엔진 트리 구조 test). B-T24 는 제외",
+  "rows": [
+   {
+    "bt": "B-T0",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_open_run.py",
+    "base": "conftest_load_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "8cd208c23d2d7c655bd1e05d2f21995719a3401c8910ae4b3fff951f910253ba",
+    "detail": "cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T1~B-T3",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_run_counters.py",
+    "base": "collection_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "ac321abb0bafc2ac21e6d5d92fba6f250e6c2400234c5d1fefcf64954f34e9fa",
+    "detail": "cannot import name 'PerfCounters' from 'gmid_engine.core'"
+   },
+   {
+    "bt": "B-T4",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_donors.py",
+    "base": "collection_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "047be16ed7c5db1ee438fe278468c1b9647251c2025140c4e789c441bba24324",
+    "detail": "cannot import name 'Donors' from 'gmid_engine.core'"
+   },
+   {
+    "bt": "B-T5~B-T12",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_compute_block.py",
+    "base": "collection_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "2b390174b0135e9c3e5280028259f296e47c696b23170716e7ef0b771201ab97",
+    "detail": "cannot import name 'Donors' from 'gmid_engine.core'"
+   },
+   {
+    "bt": "B-T13",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_s3_index.py",
+    "base": "conftest_load_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "931d0d15502e91d270fef3d79396d163aed854162ad77d82e6949187f0f5b6c1",
+    "detail": "cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T14",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_graft.py",
+    "base": "collection_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "1566ab7405186cf6470afd8f774ebc942677929ed83e500ee31bbc3c60c7fcc4",
+    "detail": "cannot import name 'graft' from 'gmid_engine.core'"
+   },
+   {
+    "bt": "B-T15",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_failure_partial.py",
+    "base": "collection_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "38dcfd9c5c9bee901851b92047e9cd91154c8adfa2ff5f572cec64d1777209f7",
+    "detail": "cannot import name 'attach_partial' from 'gmid_engine.core'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[donors]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "591c6436d87e7ca2d159d5f8edea9afc60a5bcb1def101d5833dde220f144dac",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[counters]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "5cab445ee841a3ef692642225fe5e65ee9fb428d9319a297aa5e2730773dba04",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[both]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "6aaca3390a1a88aeb5243c8ae472155815908c69c7f4fc48d854f54fc0db4734",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[donors]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "2f70c9300af00e2a96e01ee4fd2b8a5057a3eb93e9095967883dafc6b75586fd",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[counters]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "fcdc7028173c14e3b962529d9e66ae56fd116566a3304f2666a1613b99f21a94",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[both]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "4b0e305e629e0064ca44e1bdf81c574d02c13a97ab61024a1c1ea656ab03e1da",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[donors]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "212f804d876c9408bfd9f8428732b9922ac3bb78b9e7f645a1a071fe58c34c2c",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[counters]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "5fb9c78844f11e316926fdddfc211fd8bd46eb2f1bcfb257ce783ec2044a1cd5",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[both]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "afa39337d30d74017d16cd7275d955608197d2107b03478695e94546a140162b",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[donors]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "2cbfc44112206e0d186134bbd87e1b7fecac9aa8cc594900aa23d3851f775b74",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[counters]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "cd7a8e362c038253b54eee5052a77705d346caa3e0b11bb331e52fa9b17adc5b",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[both]",
+    "base": "failed",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "9e249066a08da0ec27e4f8db7454ff45633f52104d73667c7fc6c059dfad52a7",
+    "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py",
+    "base": "collection_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "ee5aa29f6367269158534a188c89f57406356aca8f3b1d51df62a23b8cfb03fe",
+    "detail": "cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py",
+    "base": "conftest_load_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "27c0241498d973bee969cc5c0e7e347810d8cbb6ca73e78ed7621a0ce118b770",
+    "detail": "cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py",
+    "base": "conftest_load_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "d4d2b221cabb6fbe2b1bc41e13273e3598d301c75056c4989786c22a3455aa4d",
+    "detail": "cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T16",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal.py",
+    "base": "conftest_load_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "73f271496b93f8a1ed531a7e044fc78d7bac6bd316d4c064ffec89dc4769b4c1",
+    "detail": "cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T17",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/integration/test_run_isolation.py",
+    "base": "collection_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "cd0967ee273e0c090f0b6ecc76dcd20c7726962b944462f60801d2b220b80acc",
+    "detail": "cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T18~B-T20",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_kernel.py",
+    "base": "conftest_load_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "8bc5d103783a6e75fcf71122a24c3bf6fd1c858df5d8844029ec76c42a42f76f",
+    "detail": "cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T21",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py",
+    "base": "conftest_load_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "0cf041fd45743944d056802a9e29bf8da7dccc77d1828b636294cb37035a18e0",
+    "detail": "cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T22",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py",
+    "base": "collection_error",
+    "exc_type": "builtins.ImportError",
+    "failure_hash": "178d2b8341c06fba93ae334a73fc7c8df172b832fd6cf41af44b3297929456b5",
+    "detail": "cannot import name 'open_run' from 'gmid_engine.search'"
+   },
+   {
+    "bt": "B-T23",
+    "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_structure_rules.py::test_rule_m_run_pair_not_shared",
+    "base": "failed",
+    "exc_type": "builtins.AssertionError",
+    "failure_hash": "b1c44fbae5871b4cc43bdd6b0d47ed7fe11385a8c6d2c13ed757ff1ed6b52c84",
+    "detail": "AssertionError: search/open_run.py 없음(C0)\nassert False\n +  where False = is_file()\n +    where is_file = ((WindowsPath('C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit/red/skills/analog-"
+   }
+  ],
+  "n_rows": 28,
+  "n_red": 28,
+  "n_passed_on_base": 0,
+  "type_counts": {
+   "builtins.AssertionError": 1,
+   "builtins.ImportError": 27
+  },
+  "base_kind_counts": {
+   "collection_error": 8,
+   "conftest_load_error": 7,
+   "failed": 13
+  },
+  "bundle_sha256": "84ba697608223b82e911f23d9bd18e903899ca039cc630da5cbd1c33644996da",
+  "reason": "ImportError 27행 = 전부 interface card '## 신규 시그니처' 표의 새 심볼 부재(open_run 22·Donors 2·PerfCounters 1·graft 1·attach_partial 1) -- card J-O1 red. AssertionError 1행 = B-T23 '`search/open_run.py` 없음(C0)' 전제 단언. 엔진 동작 단언까지 간 red 는 B-T23 뿐(나머지는 새 API 부재로 단언 전 정지 -- card B 는 API 를 새로 만드는 card 라 base 에서 동작 단언에 닿을 수 없다)",
+  "b_t24_on_base": "passed(37 passed) -- check_m 은 test 쪽 structure_checks.py 에 있어 base 엔진에서도 돈다. interface card 3.1 B-T24 '검사기 자체 시험 -- red 예상 목록 밖' 과 같고, 같은 칸의 'base 에서는 check_m 부재로만 실패' 문장은 사실과 다르다(문서 오기, 판정 영향 없음)",
+  "merge_gate_capture": {
+   "command": "PYTHONPATH=<gate cache 6df4bd7f> GMID_RED_CAPTURE=<results/red_pf/capture.jsonl> python -m pytest -p merge_gate <file> --continue-on-collection-errors --run-slow (파일마다)",
+   "note": "GMID_INTERFACE_CARD 를 주면 interface card '## 신규 시그니처' 표 머리에 '모듈' 칸이 없어 merge_gate._col GateError(exit 3, results/red_pf/capture_card_try.txt) -- card A 와 같음. 미지정 = 신규 심볼 0(엄격 쪽): ImportError 류는 수집되지 않고 conftest 로드 오류는 플러그인 밖",
+   "captured": [
+    {
+     "test_id": "gmid_engine/tests/graph/test_coupling_vars.py::test_pseudo_block_keys_deterministic_across_hashseed",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "64a5b570cdfd9dd531576abbfa29a7276d88d1036389efdf3c6b662056e10540"
+    },
+    {
+     "test_id": "gmid_engine/tests/layout/test_run.py::test_determinism_across_hash_seeds",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "021c9852b1704f937ff619c0eb9589ca946cce232b43725719ba594fa65cbfbf"
+    },
+    {
+     "test_id": "gmid_engine/tests/structure/test_structure_rules.py::test_rule_m_run_pair_not_shared",
+     "exc_type": "builtins.AssertionError",
+     "failure_hash": "c786acd5a48e850d9dfddb671f5b71c88903171ea0e7c67f55e67e1cf33902cd"
+    }
+   ]
+  }
+ }
+}

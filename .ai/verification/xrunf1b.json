@@ -1,0 +1,379 @@
+{
+ "id": "20261016-xrunf1b",
+ "spec_card": "docs/02-design/specs/20261016-xrunf1b.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "083b1035267bc586b04353a9a3d2dac278f11867",
+ "test_commit": "25fc6053b2d5a50f539134c42bd67bb42f036c42",
+ "code_commit": "68267a051683f6320cb4dcf95b7cbd8dbccab418",
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[both]",
+   "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[counters]",
+   "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[donors]",
+   "skills/analog-gmid-design/gmid_engine/tests/core/test_compute_block.py",
+   "skills/analog-gmid-design/gmid_engine/tests/core/test_donors.py",
+   "skills/analog-gmid-design/gmid_engine/tests/core/test_failure_partial.py",
+   "skills/analog-gmid-design/gmid_engine/tests/core/test_graft.py",
+   "skills/analog-gmid-design/gmid_engine/tests/core/test_run_counters.py",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[both]",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[counters]",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[donors]",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[both]",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[counters]",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[donors]",
+   "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py",
+   "skills/analog-gmid-design/gmid_engine/tests/integration/test_run_isolation.py",
+   "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[both]",
+   "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[counters]",
+   "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[donors]",
+   "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_kernel.py",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_open_run.py",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_s3_index.py",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal.py",
+   "skills/analog-gmid-design/gmid_engine/tests/structure/test_structure_rules.py::test_rule_m_run_pair_not_shared"
+  ],
+  "failure_hashes": [
+   "6aaca3390a1a88aeb5243c8ae472155815908c69c7f4fc48d854f54fc0db4734",
+   "5cab445ee841a3ef692642225fe5e65ee9fb428d9319a297aa5e2730773dba04",
+   "591c6436d87e7ca2d159d5f8edea9afc60a5bcb1def101d5833dde220f144dac",
+   "2b390174b0135e9c3e5280028259f296e47c696b23170716e7ef0b771201ab97",
+   "047be16ed7c5db1ee438fe278468c1b9647251c2025140c4e789c441bba24324",
+   "38dcfd9c5c9bee901851b92047e9cd91154c8adfa2ff5f572cec64d1777209f7",
+   "1566ab7405186cf6470afd8f774ebc942677929ed83e500ee31bbc3c60c7fcc4",
+   "ac321abb0bafc2ac21e6d5d92fba6f250e6c2400234c5d1fefcf64954f34e9fa",
+   "4b0e305e629e0064ca44e1bdf81c574d02c13a97ab61024a1c1ea656ab03e1da",
+   "fcdc7028173c14e3b962529d9e66ae56fd116566a3304f2666a1613b99f21a94",
+   "2f70c9300af00e2a96e01ee4fd2b8a5057a3eb93e9095967883dafc6b75586fd",
+   "afa39337d30d74017d16cd7275d955608197d2107b03478695e94546a140162b",
+   "5fb9c78844f11e316926fdddfc211fd8bd46eb2f1bcfb257ce783ec2044a1cd5",
+   "212f804d876c9408bfd9f8428732b9922ac3bb78b9e7f645a1a071fe58c34c2c",
+   "178d2b8341c06fba93ae334a73fc7c8df172b832fd6cf41af44b3297929456b5",
+   "cd0967ee273e0c090f0b6ecc76dcd20c7726962b944462f60801d2b220b80acc",
+   "9e249066a08da0ec27e4f8db7454ff45633f52104d73667c7fc6c059dfad52a7",
+   "cd7a8e362c038253b54eee5052a77705d346caa3e0b11bb331e52fa9b17adc5b",
+   "2cbfc44112206e0d186134bbd87e1b7fecac9aa8cc594900aa23d3851f775b74",
+   "ee5aa29f6367269158534a188c89f57406356aca8f3b1d51df62a23b8cfb03fe",
+   "0cf041fd45743944d056802a9e29bf8da7dccc77d1828b636294cb37035a18e0",
+   "8bc5d103783a6e75fcf71122a24c3bf6fd1c858df5d8844029ec76c42a42f76f",
+   "8cd208c23d2d7c655bd1e05d2f21995719a3401c8910ae4b3fff951f910253ba",
+   "931d0d15502e91d270fef3d79396d163aed854162ad77d82e6949187f0f5b6c1",
+   "27c0241498d973bee969cc5c0e7e347810d8cbb6ca73e78ed7621a0ce118b770",
+   "d4d2b221cabb6fbe2b1bc41e13273e3598d301c75056c4989786c22a3455aa4d",
+   "73f271496b93f8a1ed531a7e044fc78d7bac6bd316d4c064ffec89dc4769b4c1",
+   "b1c44fbae5871b4cc43bdd6b0d47ed7fe11385a8c6d2c13ed757ff1ed6b52c84"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "FAIL",
+   "basis": "병합본 e96515f 격리 복제본에서 명령 하나 --run-slow(-k·--deselect·-x 없음): 121 failed / 10132 passed / 1 deselected(규칙 H 마커) / 2 xfailed, 3161.36 s, exit 1(results/suite_head). 같은 명령 base 083b103: 10118 passed / 0 failed, 3148.47 s. 실패 분류: (T) test 미재작성·oracle 오류 97 = graph/test_coupling_vars.py 77(블록 직접 호출에 donors·counters 없음 TypeError, 해시 시드 하위 프로세스 1 포함), graph/test_column_block_map.py 10(같은 TypeError), integration/test_no_s0_files_written.py 4(내장 runner 문자열의 run_stage_a 에 두 객체 없음), graph/test_matching_groups.py::test_deterministic_across_hash_seeds 1·graph/test_s1_model.py::test_snapshot_fp_deterministic_across_hash_seeds_and_order 1·core/test_blas_env.py::test_blas_pin_recheck_points_reject_changed_threads[a] 1(하위 프로세스 코드 문자열이 옛 서명), convergence/test_converge_point.py::test_passives_read_from_evaluation_snapshot_field 1(가짜 sctx.dc 에 donors 없음), sizing/test_s2_values.py::test_kernel_context_holds_only_references 1(칸 집합을 {base, inputs, lut} 로 고정 -- design §2.4.7 이 두 칸을 더함), core/test_run_counters.py::test_run_counters_only_second_same_key_compute_counts 1(B-T1: 마지막 단계 기대값 b=0 이 손 계산 오류, b 는 누적 1 -- 코드 정상). (D) 엔진 변경의 부작용 24 = graph/s1v_build.py(S1V_RULE_FILES) 수정으로 structure_rule_fp 가 11e0b85b -> adc91fc8 로 바뀌어 library current_reuse_telescopic_ota·nmcnr_amplifier structure.json rule_hash 가 stale, ratified 사실이 review_needed 로 돌아가 crto 단계 A stopped·nmcnr review_needed: integration/test_s0_layer_9circuits.py 16, test_j_rules_library.py 3, test_g10_no_recompute_9circuits.py 2(B-T22), test_layer0_boundary_rows.py 1, pipeline/test_stage_a.py::test_library_pilot_default_structure_facts_give_ok 2."
+  },
+  "V2": {
+   "verdict": "FAIL",
+   "basis": "red(base 083b103 + test 25fc605, 파일별 실행 -- 한 번에 돌리면 search·sizing conftest 가 open_run 을 import 해 conftest 로드 오류로 전체가 정지): 기대 red B-T0~B-T23 28행 전부 red(base_check.json). ImportError 27(신규 시그니처 표 심볼 부재 open_run 22·Donors 2·PerfCounters·graft·attach_partial 각 1 -- J-O1 red) + AssertionError 1(B-T23 open_run.py 없음). 기대 red 중 base 통과 0. B-T24 는 base 통과(37 passed, 목록 밖). green(e96515f suite junit, results/green_of_red.json): 28행 중 25 green, 3행 아님 -- core/test_run_counters.py(B-T1 test 하나 oracle 오류), pipeline/test_stage_a.py(B-T16 세 test 는 통과, 같은 파일 test_library_pilot_default_structure_facts_give_ok 2개가 rule_hash stale 로 실패), integration/test_g10_no_recompute_9circuits.py(crto·nmcnr 2개, 전제 searched 위반 -- rule_hash stale)."
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "도입 U17: spec card 가 docs/02-design/specs 에 없고 mutate_changed.py 대상(assets/tests) 밖. 대신 손 뮤턴트 12개(probe 복제본, 커밋 안 함, scripts/mutants.py): 이식 조회 제거, 같은 입력 재계산 계수 제거, 색인 재등록 검사 제거, 부분 스냅샷 덮어쓰기, 상한 식 +1 제거, seal_dc·run_kernel·ss_evaluate 부착 제거, 실패 재연 조회 제거, graft 버전 검사 제거, register_failure 제거, entry_count 실패 키 제외 -- 12/12 killed."
+  },
+  "V4": {
+   "verdict": "N/A",
+   "basis": "도입 U17: test_lint.py 대상(assets/tests) 밖. oracle 대조: B-T0·B-T13 = C0·C2 문장(is·None·ValueError 순서). B-T1~B-T3 = 손 순서 표 _HAND_EXPECTED -- 감사가 C1 규칙으로 다시 셈: alpha (7,1,1,1,4,2), mid (4,1,1,1,1,0), zeta (3,1,0,0,2,0) 일치. 단 test_run_counters_only_second_same_key_compute_counts 마지막 단계 기대 b=0 은 C1 과 어긋남(누적 1) -- oracle 오류. B-T4 = 추상 메서드 네 개. B-T5~B-T12 = 블록 함수 log 길이(독립), 가짜 Donors 조회 순서 기록(손), 별도 open_run 쌍 계산 결과 비교. B-T14 = donor 열 value_fp 비교. B-T15 = N3.14 분류 클래스마다 from_record. B-T16 = C6 서명 표. B-T17 = 단계 A 스냅샷 block_versions 에 든 writer 를 test 가 직접 모음(피검 계수 아님) -- S0 수준 정의가 B-T22(GRAPH_ROWS·DEVICE_START, D-GR2 목록)와 다르나 B-T17 쪽이 상위 집합이라 card C6 문장보다 강하다. B-T18~B-T20 = 실행 계수 행 증분, 실패 원인 전제 단언 먼저(B-T19 ss 경우 reason lut_query_failed·device_query caps 로 ss 단계 실패임을 확인 -- 공허 통과 아님). B-T21 = test 가 eval_budget + 2·변수 수로 계산(선언 경우만, 유도·None 경우 없음 -- 감사 탐침으로 유도 경우 44 × 1781 = 78364 일치, None 경우는 코드 리뷰만). B-T22 = 행 항등식·재계산 0·S0 블록 computes 1(design §2.4.9 '나머지 호출은 reuses 또는 grafts' 는 단언 안 함). B-T23·B-T24 = 픽스처 소스 줄 손 목록."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "gate weakening_diff.py --base 083b103 --head e96515f PASS, 발견 0(대상 assets/tests, diff_paths 0). gmid_engine/tests AST(scripts/removed_tests_n.py): 지운 test 6 = test_compute_block.py test_reset_stats_clears_counts_and_history·test_recompute_same_input_other_lineage_counted(API 삭제·이식 동작으로 대체, B-T7·B-T10), test_s1_build.py 3(옛 '재계산을 센다' -> 같은 실행 이식, 대체 test 4), test_ss_metrics.py 이름 변경 1(본문 동일). 단언 수 감소 1(test_second_call_same_snapshot_is_reuse_without_call: 삭제된 BlockStats isinstance 1개). 허용 폭(approx·rel·abs·atol·rtol)·skip·xfail 변경 0."
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "tests/structure 67 passed(base 63 + 규칙 M 4). 규칙 M 진짜 트리 위반 0(run_stage_a 호출 54 -- 감사 AST 독립 점검: 쌍 이름의 run_stage_a 밖 사용은 is 단언 4곳뿐). 위반 픽스처 39항 정확히 거부(B-T24), 손으로 깬 M-c(같은 쌍 두 run_stage_a, 진짜 트리 임시 파일) 거부 확인. 규칙 H 위반 base 5 = head 5(같은 5건), 대상 398 -> 404(새 파일 6 모두 1:1 test). 규칙 A: failure_errors.py data 유지, 새 파일 6 진입점 하나씩. _module_map: compute_block.py 층 3 -> 5(failure_classes·graft·donors import -- design 재연 식의 귀결), failure_partial.py 층 5, s3_index·open_run search 층. graph 밖 새 저장소 = S3Index(_snapshots·_failures, (b))·RunCounters(_rows·_computed·_results, (c)) 뿐, 모듈 수준 가변·lru_cache 증가 0(scripts/ast_stores.py). 결함(handoff, 판정은 PASS 유지 -- card 완료 조건 7 의 목록 꼴은 전부 거부): 규칙 M 정적 검사가 우회 5꼴을 못 잡는다 -- run_stage_a import 별칭·이름 대입 간접 호출(M-c), 사용자 클래스로 감싼 보관·목록 밖 속성 이름(res 등)·session fixture 객체의 인스턴스 속성(M-d); 하위 프로세스 코드 문자열 안 run_stage_a 는 검사 대상 밖; README 2항이 M-d '수명이 test 하나보다 긴 객체의 인스턴스 속성'을 모듈 수준 객체로 좁힘(원래 취지와 다름 후보)."
+  },
+  "V7": {
+   "verdict": "FAIL",
+   "basis": "배선: open_run(하네스·test), RunCounters·S3Index·graft(모든 블록 호출 -- 9회로 독립 감쌈 계수가 perf.blocks 행 calls·computes 와 블록별 불일치 0), input_version(__call__·seal_versions), entry_count·snapshot(find_front), from_record·find_failure·register_failure(compute_block), attach_partial(run_kernel·seal_dc·ss_evaluate), EvalResult.partial -> _record snapshot_fp. 9회로 S3 실패 줄 snapshot_fp 누락 0. graph 계산값 소비 확인: 새로 만들거나 바꾼 필드·결과 칸 17 / 엔진 소비자 0 이고 출력 선언도 없음 1(LayoutResult.computed_blocks -- 기존 칸, card B 는 뜻 문구만 바꿈, 소비자는 test 뿐) / 출력 선언 5(evals 실패 줄 snapshot_fp: S3 출력 기록 §2.4.5 (4); perf blocks·block_totals·block_index_entries·block_index_bound: 결과 JSON·'보고만' §2.4.5 상한·§2.4.9) / 정본 우회 재계산 의심 0(입력 버전 식·code_hash·Projection.from_snapshot 은 compute_block 한 곳, 계수 재계산 0). FAIL 사유: seal_dc 루프 안 봉인 항목 블록(dc_seal_saturation 등)이 후보 실패를 내면 attach_partial 이 없어 EvalResult.partial None·실패 줄 snapshot_fp 없음(탐침 test_audit_probe_partial_seal_item: status failed, reason lut_query_failed, partial None) -- interface card C7 '후보 실패 커널 평가 = 부분 스냅샷' 위반 경로(9회로에서는 발생 0)."
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 U17: 폴백 경로 대상 아님(fail-closed 는 TypeError·ValueError, 조용한 대체 없음 -- B-T2·B-T5·B-T11·B-T13·B-T14 통과)."
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 U17: 물리 불변식 대신 값 불변을 V10 에서 본다(7회로 비트 동일, crto·nmcnr 는 rule_hash 재기록 탐침에서 비트 동일)."
+  },
+  "V10": {
+   "verdict": "FAIL",
+   "basis": "같은 하네스 계열(base 083b103 하네스 대 head 25fc605 하네스 -- 차이는 open_run 한 쌍·K_NAMES 옛 네 칸뿐) 9회로, 회로마다 새 프로세스 순차, E_B 40, 허용 목록 환경. 제외 칸(감사 소유): perf 블록 계수·색인 칸(blocks·block_totals·block_index_*, 실행 전체 범위로 형식 변경), 지운 네 칸, T 부류, evals 실패 줄 snapshot_fp(새 칸), partial 덤프(하네스 덤프 없음 확인), run_id·code_fp(엔진 코드 지문). 결과: 7회로(cga·folded·ngcc·pp·sfpp·tso·tsosf) 제외 밖 값 diff 0. crto·nmcnr 값 diff 25378·27056 -- head 에서 단계 A stopped·review_needed 로 탐색 자체가 없다(원인: s1v_build.py 수정 -> structure_rule_fp 변경 -> structure.json rule_hash stale). 탐침(probe 복제본에서 두 structure.json rule_hash 만 adc91fc8 로, 커밋 안 함): 두 회로 제외 밖 diff 0. 같은 입력 재계산(감사 독립 감쌈): base 47(cga dc_lengths 9, crto dc_currents 6·dc_lengths 12, folded dc_seal_report 3, nmcnr dc_lengths 6, sfpp dc_lengths 6, tso 3, tsosf 2, pp 0 -- card A A-6 47 그대로 재현) -> head 0(7회로 + 탐침 2회로), perf 행 recomputes_same_input 0·recompute_same_key 0. calls 는 base 와 같고 computes 감소분 = grafts(cga 708 -> 699+9, crto 151 -> 133+18 탐침, folded 1040 -> 1037+3, nmcnr 708 -> 702+6 탐침, sfpp 151 -> 145+6, tso 791 -> 788+3, tsosf 673 -> 671+2, pp 619 그대로). 색인 entries/bound: cga 699/2597, crto 133/3978(탐침), folded 1037/3577, nmcnr 702/4263(탐침), pp 619/2736, sfpp 145/3162, tso 788/2989, tsosf 671/3185, ngcc 단계 B 까지 24(bound 없음). 실패 평가 원천 이식: sfpp 6/6, crto 18/18·nmcnr 6/6(탐침)."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "head_suite_failed",
+   "value": 121,
+   "command": "V1"
+  },
+  {
+   "name": "head_suite_passed",
+   "value": 10132,
+   "command": "V1"
+  },
+  {
+   "name": "base_suite_failed",
+   "value": 0,
+   "command": "bash scripts/run_suite_base.sh"
+  },
+  {
+   "name": "base_suite_passed",
+   "value": 10118,
+   "command": "bash scripts/run_suite_base.sh"
+  },
+  {
+   "name": "head_fail_test_side",
+   "value": 97,
+   "command": "V1 분류"
+  },
+  {
+   "name": "head_fail_rule_hash_stale",
+   "value": 24,
+   "command": "V1 분류"
+  },
+  {
+   "name": "red_rows_expected",
+   "value": 28,
+   "command": "bash scripts/run_red_perfile.sh; python -P scripts/red_table.py"
+  },
+  {
+   "name": "red_rows_red_on_base",
+   "value": 28,
+   "command": "same"
+  },
+  {
+   "name": "red_rows_green_on_head",
+   "value": 25,
+   "command": "results/green_of_red.json from V1 junit"
+  },
+  {
+   "name": "base_same_input_recompute_9circuits",
+   "value": 47,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "head_same_input_recompute_7circuits",
+   "value": 0,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "head_rehash_same_input_recompute_crto_nmcnr",
+   "value": 0,
+   "command": "bash scripts/run_rehash.sh"
+  },
+  {
+   "name": "trajectory_value_diff_7circuits",
+   "value": 0,
+   "command": "python scripts/diff_base_head.py"
+  },
+  {
+   "name": "trajectory_value_diff_crto",
+   "value": 25378,
+   "command": "same"
+  },
+  {
+   "name": "trajectory_value_diff_nmcnr",
+   "value": 27056,
+   "command": "same"
+  },
+  {
+   "name": "trajectory_value_diff_rehash_2circuits",
+   "value": 0,
+   "command": "same (head_rehash)"
+  },
+  {
+   "name": "indep_vs_perf_rows_mismatch_9circuits",
+   "value": 0,
+   "command": "python -P scripts/summarize.py"
+  },
+  {
+   "name": "s3_failed_lines_without_snapshot_fp",
+   "value": 0,
+   "command": "same"
+  },
+  {
+   "name": "mutants_killed",
+   "value": 12,
+   "command": "python -P scripts/mutants.py"
+  },
+  {
+   "name": "mutants_total",
+   "value": 12,
+   "command": "same"
+  },
+  {
+   "name": "rule_m_bypass_patterns_undetected",
+   "value": 5,
+   "command": "bash scripts/run_probes.sh (m_bypass)"
+  },
+  {
+   "name": "rule_h_violations_base",
+   "value": 5,
+   "command": "bash scripts/run_struct_collect.sh"
+  },
+  {
+   "name": "rule_h_violations_head",
+   "value": 5,
+   "command": "same"
+  },
+  {
+   "name": "graph_consumer_fields_total",
+   "value": 17,
+   "command": "grep 엔진 소비자(tests 제외)"
+  },
+  {
+   "name": "graph_consumer_zero_undeclared",
+   "value": 1,
+   "command": "same"
+  },
+  {
+   "name": "graph_consumer_output_declared",
+   "value": 5,
+   "command": "same"
+  },
+  {
+   "name": "graph_canonical_bypass_suspect",
+   "value": 0,
+   "command": "same"
+  },
+  {
+   "name": "structure_rule_fp_changed",
+   "value": 1,
+   "command": "structure_rule_fp() base 11e0b85b vs head adc91fc8"
+  },
+  {
+   "name": "bt21_derived_bound",
+   "value": 78364,
+   "command": "pytest test_audit_probe_bt21.py (probe)"
+  },
+  {
+   "name": "block_index_entries_common_gate_amplifier",
+   "value": 699,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_bound_common_gate_amplifier",
+   "value": 2597,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "base_same_input_recompute_common_gate_amplifier",
+   "value": 9,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "base_same_input_recompute_current_reuse_telescopic_ota",
+   "value": 18,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_entries_folded_cascode",
+   "value": 1037,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_bound_folded_cascode",
+   "value": 3577,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "base_same_input_recompute_folded_cascode",
+   "value": 3,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "base_same_input_recompute_ngcc_3stage_ff",
+   "value": 0,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "base_same_input_recompute_nmcnr_amplifier",
+   "value": 6,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_entries_pushpull_follower_buffer",
+   "value": 619,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_bound_pushpull_follower_buffer",
+   "value": 2736,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "base_same_input_recompute_pushpull_follower_buffer",
+   "value": 0,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_entries_sf_pushpull_output_opamp",
+   "value": 145,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_bound_sf_pushpull_output_opamp",
+   "value": 3162,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "base_same_input_recompute_sf_pushpull_output_opamp",
+   "value": 6,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_entries_two_stage_ota",
+   "value": 788,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_bound_two_stage_ota",
+   "value": 2989,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "base_same_input_recompute_two_stage_ota",
+   "value": 3,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_entries_two_stage_ota_sf",
+   "value": 671,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "block_index_bound_two_stage_ota_sf",
+   "value": 3185,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  },
+  {
+   "name": "base_same_input_recompute_two_stage_ota_sf",
+   "value": 2,
+   "command": "bash scripts/run_measure.sh <head|base> <clone> (b_driver.py + 그 복제본 nfr4_run_dump.py, 회로마다 새 프로세스 순차)"
+  }
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-10-16T20:55:00+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrunf1b-audit (격리 복제본 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit/{red,head,base,probe})",
+  "commands": [
+   "V1: cd <head clone e96515f>/skills/analog-gmid-design && (unset OPENBLAS_NUM_THREADS OMP_NUM_THREADS GMID_S0_SNAPSHOT_DIR; PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow -rfEX --durations=40 --junitxml=results/suite_head/suite.xml)",
+   "격리: for n in red head base: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrunf1b-audit _scratch_xrunf1b_audit/$n && git -C $n remote remove origin; red = fetch role/test/xrunf1b + checkout --detach 25fc605, head = fetch integ/xrunf1b + checkout --detach e96515f, base = 083b103; probe = head 복제(e96515f), 탐침 파일·structure.json 변경은 커밋 안 함",
+   "red: bash scripts/run_red_perfile.sh (바뀐 test 파일 105개 파일마다 pytest --run-slow --continue-on-collection-errors --junitxml, 이어서 PYTHONPATH=<gate cache 6df4bd7f> -p merge_gate GMID_RED_CAPTURE); PYTHONPATH=<gate cache> python -P scripts/red_table.py results/red_pf results/red_table.json",
+   "9회로: bash scripts/run_all_measure.sh (head 다음 base, b_driver.py); python scripts/diff_base_head.py; python -P scripts/summarize.py; 탐침 bash scripts/run_rehash.sh",
+   "구조: bash scripts/run_struct_collect.sh (규칙 H base·head, structure 전체, -k 식 11개 --collect-only); python -P scripts/ast_stores.py; python -P scripts/scan_storage.py",
+   "V5: python <gate cache>/weakening_diff.py --root probe --base 083b103 --head e96515f; python -P scripts/removed_tests_n.py probe results/v5_removed_tests.json",
+   "탐침: bash scripts/run_probes.sh (B-T21 유도 예산, 봉인 항목 부분 스냅샷, 규칙 M 손 깸·우회 5꼴, 손 뮤턴트 12)",
+   "비교: bash scripts/run_suite_base.sh (base 083b103 같은 명령)"
+  ]
+ }
+}

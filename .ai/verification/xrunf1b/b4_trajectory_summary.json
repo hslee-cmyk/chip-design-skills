@@ -1,0 +1,114 @@
+{
+ "base_vs_head": {
+  "common_gate_amplifier": {
+   "n_value": 0,
+   "n_format": 810,
+   "n_run_id_code_fp": 46,
+   "n_snapshot_fp": 2,
+   "zones": {},
+   "first_eval_seq_diff": null
+  },
+  "current_reuse_telescopic_ota": {
+   "n_value": 25378,
+   "n_format": 10,
+   "n_run_id_code_fp": 43,
+   "n_snapshot_fp": 0,
+   "zones": {
+    "eval": 6374,
+    "layer0": 23,
+    "result": 23,
+    "s0": 238,
+    "s3evals": 16367,
+    "s3runs": 35,
+    "stage_a": 2306,
+    "stage_b": 3,
+    "sweep": 7,
+    "notes": 2
+   },
+   "first_eval_seq_diff": 1
+  },
+  "folded_cascode": {
+   "n_value": 0,
+   "n_format": 810,
+   "n_run_id_code_fp": 67,
+   "n_snapshot_fp": 12,
+   "zones": {},
+   "first_eval_seq_diff": null
+  },
+  "ngcc_3stage_ff": {
+   "n_value": 0,
+   "n_format": 0,
+   "n_run_id_code_fp": 0,
+   "n_snapshot_fp": 0,
+   "zones": {},
+   "first_eval_seq_diff": null
+  },
+  "nmcnr_amplifier": {
+   "n_value": 27056,
+   "n_format": 10,
+   "n_run_id_code_fp": 69,
+   "n_snapshot_fp": 72,
+   "zones": {
+    "eval": 8739,
+    "layer0": 77,
+    "result": 33,
+    "s0": 98,
+    "s3evals": 17958,
+    "s3runs": 49,
+    "stage_a": 26,
+    "stage_b": 41,
+    "sweep": 33,
+    "notes": 2
+   },
+   "first_eval_seq_diff": 1
+  },
+  "pushpull_follower_buffer": {
+   "n_value": 0,
+   "n_format": 794,
+   "n_run_id_code_fp": 43,
+   "n_snapshot_fp": 3,
+   "zones": {},
+   "first_eval_seq_diff": null
+  },
+  "sf_pushpull_output_opamp": {
+   "n_value": 0,
+   "n_format": 570,
+   "n_run_id_code_fp": 43,
+   "n_snapshot_fp": 40,
+   "zones": {},
+   "first_eval_seq_diff": null
+  },
+  "two_stage_ota": {
+   "n_value": 0,
+   "n_format": 810,
+   "n_run_id_code_fp": 53,
+   "n_snapshot_fp": 2,
+   "zones": {},
+   "first_eval_seq_diff": null
+  },
+  "two_stage_ota_sf": {
+   "n_value": 0,
+   "n_format": 810,
+   "n_run_id_code_fp": 46,
+   "n_snapshot_fp": 4,
+   "zones": {},
+   "first_eval_seq_diff": null
+  }
+ },
+ "base_vs_head_rehash_probe": {
+  "current_reuse_telescopic_ota": {
+   "n_value": 0,
+   "n_format": 570,
+   "n_run_id_code_fp": 43,
+   "n_snapshot_fp": 40,
+   "zones": {}
+  },
+  "nmcnr_amplifier": {
+   "n_value": 0,
+   "n_format": 810,
+   "n_run_id_code_fp": 69,
+   "n_snapshot_fp": 30,
+   "zones": {}
+  }
+ }
+}

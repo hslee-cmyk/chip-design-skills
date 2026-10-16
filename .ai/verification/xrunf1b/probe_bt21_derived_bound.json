@@ -1,0 +1,1 @@
+{"eval_budget": 1780, "eval_budget_source": "derived_once:floor(B/median_t_eval)@n_evals=5", "block_index_bound": 78364, "block_index_entries": 18221, "kernel_calls": 1195, "n_blocks": 44, "n_vars": 4}
