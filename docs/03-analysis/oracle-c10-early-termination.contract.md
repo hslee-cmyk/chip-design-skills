@@ -2,6 +2,7 @@
 
 대상: `skills/analog-gmid-design/tools/spice_oracle/README.md` "[신규] C10 PM 안정성 근거" 절차 3~5.
 이 문서는 계약 문안이다. 구현 커밋에서 README 절차 3~5 에 같은 문안을 옮기고 이 문서는 근거로 남긴다.
+**2026-10-16 문언 일반화(oracle-portability 계획 D-1·N3.7, 사용자 결정 T-33·O-1~O-3)**: 판정 기준(창 판정·조기 종결 규칙)은 오라클 코어가 정의한다. 시뮬레이터 안 창 단위 조기 종결은 선언된 시뮬레이터 어댑터의 능력이다(첫 사례 ngspice). 능력이 없는 어댑터의 실행 방식은 oracle-portability design §8.4를 따른다. 판정 의미는 바뀌지 않는다.
 
 ## 0. 문제(실측)
 절차 4 의 계획은 시간 척도로 f_lo 만 쓴다(tmax = W = 1/f_lo 급, tstop = t_end + K·W). GHz 로 진동하는(또는 GHz 버스트를 내는
@@ -30,7 +31,7 @@
   따라서 안정 회로 중 f_crit·n_pp·2π <= f_lo 가 아닌 것은 걸음이 더 촘촘해져 데이터 표본이 늘 뿐, 창 경계·M_j 정의는 그대로다.
 
 ### (b) 창 단위 조기 종결(unstable 확정)
-* 폐루프 과도를 창 단위로 실행한다: ngspice 안에서 `stop when time >= t_end + j·W` / `resume` 로 창 j = 1..K 를 차례로 끝내며,
+* 폐루프 과도를 창 단위로 실행한다: 조기 종결 능력을 선언한 시뮬레이터 어댑터는 시뮬레이터 안에서 창 경계마다 멈추고 재개해(첫 사례 ngspice: `stop when time >= t_end + j·W` / `resume`) 창 j = 1..K 를 차례로 끝내며,
   창이 끝날 때마다 M_j = max|e| (e = H − H(0), 창 j 안 표본)를 로그에 한 줄(`STABWIN j M_j`) 쓴다. 데이터 파일(`.stab.txt`)은
   멈춘 시각까지 쓴다(`wrdata`).
 * 조기 unstable 기준(`early_unstable(M, floor', reltol)`, 기존 창 판정과 같은 M·floor' 정의) -- **엄격한 증가만**:
@@ -58,7 +59,7 @@
   조기 기준과의 일관: 조기 기준의 'M_j >= M_1' 은 g↑(M_1, M_j) 로 같은 방식으로 바꾼다.
   연장 실행(decaying 후)의 판정에도 같은 규칙을 쓴다.
 * 파이썬은 파일에서 M_j 를 다시 계산해 같은 기준을 검증한다(`transient_decision` 이 잘린 파일을 받아: 마지막 시각이 창 j 끝에
-  닿았고 기준을 충족하면 unstable(`early_stop`); 아니고 tstop 에 못 닿았으면 기존대로 `failed`). ngspice 가 중단 시점을 정하고
+  닿았고 기준을 충족하면 unstable(`early_stop`); 아니고 tstop 에 못 닿았으면 기존대로 `failed`). 시뮬레이터(어댑터)가 중단 시점을 정하고
   판정은 파일이 증명한다.
 * 안정 회로 판정 불변 조건: 구현 커밋은 안정 판정이 나는 모든 기존 test 회로·fixture(`stable`/`decaying`->`stable`)에서 창 별 M 이
   위 기준을 한 번도 충족하지 않음을 확인한다(충족하면 기준 설계를 되돌린다). 일정 진폭 지속 진동 fixture 의 판정도 개정 전과 같아야 한다. 불안정은 계속 FAIL.
@@ -66,7 +67,7 @@
 
 ### (c) 기본 시간 상한(--timeout-s 없어도)
 * 설정 `skills/analog-gmid-design/tools/spice_oracle/oracle_config.json` 의 `stability_transient.wall_s_per_window`
-  (창 하나를 끝내는 ngspice 실행 시간의 상한) 를 선언한다. 근거 필드 `justification` 을 같이 둔다: 안정 판정 코퍼스(test
+  (창 하나를 끝내는 시뮬레이터 실행 시간의 상한 -- 어댑터 보정값, 출처·측정 조건 포함. 첫 사례 ngspice) 를 선언한다. 근거 필드 `justification` 을 같이 둔다: 안정 판정 코퍼스(test
   회로 4종·smoke 회로)의 창당 실측 최댓값 × 여유(실측 분포로 구현 커밋에서 채움 -- 수치는 지금 정하지 않는다).
 * 첫 실행 상한 `plan.wall_cap_s` = wall_s_per_window × K (n = 0). 연장 실행 상한 `extension.wall_cap_s` = wall_s_per_window ×
   (K + n), n = `extension_windows`(연장 계획이 정한 추가 창 수; 연장 실행은 K+n 창을 처음부터 다시 돌린다). `transient.wall_cap_s`
@@ -103,7 +104,7 @@
 [1,0.5,1.2], 일정 진폭 [1,1,1,1,1] -> 절대 False, 분해능 이내 증가 -> False, 분해능 초과 연속 증가 [1,1.2,1.5] -> True), (3) 잘린 파일 판정 unstable vs failed, (4) 기본 상한 존재와 `--timeout-s` 우선, (5) 안정 fixture 에서
 `early_stop` 없음, (6) `.save` 라인.
 
-## 3. 구현 메모 (U6, 2026-10-08 -- 계약 문안과 달라진 곳·계약이 정하지 않은 곳)
+## 3. 구현 메모 (U6, 2026-10-08 -- 계약 문안과 달라진 곳·계약이 정하지 않은 곳. 아래 문법 메모는 첫 사례 ngspice 어댑터의 방언 메모다)
 README `tools/spice_oracle/README.md` "C10 PM 안정성 근거"가 정본이다. 구현이 계약과 다르거나 계약이 정하지 않아 구현이 정한 것만 적는다.
 * **창 경계 `stop when time >= x` -> `time > x`**: ngspice 의 `stop when` 이 `>=` 를 받지 않는다(`Syntax error parsing breakpoint specification`, 실측). 경계를 처음 넘은
   표본에서 멈추고 그 표본은 창 j 밖이다(창 안 표본 집합은 계약과 같다). 멈출 때마다 `delete all` 이 필요하다(끝난 조건을 지우지 않으면 resume 이 같은 조건에서 곧바로 다시 멈춘다).

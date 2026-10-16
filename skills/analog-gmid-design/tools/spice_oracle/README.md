@@ -5,6 +5,8 @@
 새 엔진(`skills/analog-gmid-design/gmid_engine/`)과 독립이다 -- 오라클 파일은 어떤 엔진도 import 하지 않는다.
 옛 엔진 출력은 `legacy_adapter.py` 하나로 이 형식에 맞춰 기준선(baseline)으로 쓴다.
 
+> **시뮬레이터·공정 무관화(2026-10-16, oracle-portability 계획 승인 -- 사용자 결정 T-31·T-33·O-1~O-3)**: 이 오라클은 코어(시뮬레이터·PDK 모름)·시뮬레이터 어댑터·오라클 기술자 세 층으로 재구성된다(design `docs/02-design/features/oracle-portability.design.md`). 아래 본문의 ngspice·sky130 문구는 **첫 어댑터·첫 PDK 사례**이고 지금 코드의 동작을 적은 것이다. 판정 규칙의 뜻은 시뮬레이터와 무관하다. 절별 다시 쓰기는 구현 card OP-3~OP-6에서 그 card의 코드와 함께 한다.
+
 ## 파일 (파일마다 독립 진입점 1개, 다른 파일의 `_` 이름 import 없음)
 
 | 파일 | 진입점 | 역할 |
