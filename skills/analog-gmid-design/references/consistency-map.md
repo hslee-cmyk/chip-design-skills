@@ -35,6 +35,7 @@ SKILL.md 원칙 수정 시:
 | 공정별 gm/ID LUT 생성(SPICE/Spectre 스윕) 준비 절차 | §3(LUT 준비, §1 스텝1의 LUT 조회 전제) | - | lut-generation-checklist.md 전체 |
 | 표에 없는 topology/보상소자 함수 신규 유도 절차("스킵 근거 안 됨") | §1.5 본문(125행) | 절대 원칙 표 #4 요약과 동일 원칙 적용 | topology-fn-derivation-guide.md §1, topology_library.py |
 | **topology library JSON**(`library/*.topology.json`) — topology의 connectivity+matching kind+위상보정 함수 참조를 재사용 가능한 데이터로 분리, 재사이징해도 재사용(2026-07-28 신설). **layout(finger 배분/row 분할/floorplan 좌표)은 사이징 결과값이라 이 JSON에 담지 않는다** — 구현 중 실측으로 확정된 원칙(처음엔 `layout` 가이드 필드를 뒀다가 폐기) | §1.5 말미("library JSON 확인"), §6 말미(`run_topology_pipeline()`), §7 표 8번(floorplan) | - | `docs/02-design/features/analog-topology-json-library.design.md` 전체, function-selection-map.md §10, stick_diagram.py §6.9 `load_topology()`/`run_topology_pipeline()`/`save_instance_json()`, sizing_recipe.py §6.5 `run_sizing_pipeline()`/`_COMPENSATION_REGISTRY` |
+| **회로 해석은 연결 서명·원문만으로**(이름·topology 메타데이터 근거 금지) — 패턴 의도 카탈로그(P-1 gate 공유 직렬 적층: source 쪽 소자 강반전 triode 의도, 2026-10-16 신설, 사용자 승인 C-2) | "참조 파일" 목록 | - | circuit-pattern-intents.md 전체, topology-extraction-checklist.md §6 마지막 항목, assets/library/sources/README.md(출처 보관) |
 | SPICE 결과가 설계식/원문 예측과 어긋날 때의 근본원인 진단 절차 | §1 스텝5(반복/수렴) 연계 | - | topology-behavior-diagnosis-workflow.md 전체 |
 | **`find_matching_candidates()` current_mirror/diff_pair 오탐 재검증(2026-08-06, 구현 완료·미커밋)** — gate만 보던 current_mirror에 gate+source 그룹핑(`idiom_matches=`), 우연히 같은 source+W를 갖던 diff_pair에 role 필터 추가, 캐스코드 대칭쌍은 `find_stacked_matching_candidates()`(복합소자 상속)로 별도 커버 | "Cross-Skill 참조" | - | analog-grammar-integration.md 전체, stick_diagram.py §1.7a~1.7c + self-test 30 |
 
@@ -70,6 +71,13 @@ SKILL.md 원칙 수정 시:
   스택 선택)에서 벗어나 있는지(트랜지스터/R/C 값이 섞여 있으면 FAIL).
 
 ## 변경 이력
+
+- 2026-10-16 (사용자 승인 C-2 "skill 문서 권고대로"): `references/circuit-pattern-intents.md` 신설(연결 서명
+  기준 회로 패턴 의도 카탈로그, 첫 항목 P-1 gate 공유 직렬 적층). SKILL.md "참조 파일"에 한 줄,
+  topology-extraction-checklist.md §6에 포인터 한 줄, 위 맵에 한 행. 근거 원문은
+  `assets/library/sources/current_reuse_telescopic_ota__sooch_1985/`·`__sanchez_sinencio_2000/`.
+  엔진 결과(R-3: source 쪽 소자 포화 검사 제외·아래 소자 VDS 검사로 대체)는 미구현으로 표기.
+  `../skill-validation-prompt.md` 전 절차 재검증은 하지 않음(추가 줄의 경로 실존만 확인).
 
 - 2026-07-30 (48차, 47차에서 LOW confidence로 남겨뒀던 bias-gen 배선 4곳 전부 사용자와
   재검증해 HIGH로 승격 — 사용자 요청 "M57,M58의 연결이 뭐가 불명확하지? ... 나와 검증해서

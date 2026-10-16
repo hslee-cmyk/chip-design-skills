@@ -118,6 +118,9 @@
       묻지 않는다.
 - [ ] 확인된 답변은 draft에 반영하고, **왜 원래 추측이 틀렸는지**를 `_correction_log`류
       필드에 남긴다(다음에 같은 실수를 반복하지 않도록 — `known-incidents.md`와 같은 취지).
+- [ ] connectivity가 확정된 뒤 소자 역할·의도된 동작 영역을 판단할 때는 `circuit-pattern-intents.md`의
+      연결 서명과 대조한다(해석은 연결·원문만으로, 기존 태그를 근거로 쓰지 않는다 — 예: P-1 gate 공유
+      직렬 적층의 source 쪽 소자는 강반전에서 triode가 의도).
 
 ## 7. 구현 방식 제안 — 멀티에이전트 Workflow
 
