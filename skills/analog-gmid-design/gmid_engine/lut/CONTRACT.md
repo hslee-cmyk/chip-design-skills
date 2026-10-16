@@ -42,7 +42,7 @@
   `lut_unit_mismatch`(1.4). (3) `vgs_for_current_density`(3.1, DEC-88 -- sizing 의 `gm_id_for_target(current=)` 우회를 대체). (4) gm/ID 축 곡선 표
   `ft_curve`·`intrinsic_gain_curve`·`vdsat_curve`·`idu_curve`(4.5). (5) **잡음**: 새 버전 파일 `..._noise_r1.npz` 로드(`noise_set`), 분해 `noise_planes`,
   `noise_params`, `tol_noise_table`(9절). (6) **mismatch**: 새 버전 파일 `..._mismatch_r1.npz` 로드, `mismatch_dvgs`, `tol_mismatch_table`, 소자 σ
-  `mismatch_sigma_vgs`(10절). (7) `sweep_memo`(2.2, `LutMemo.from_sweep` 배선)·`require_lut_data`(9.5·10.5). (8) 데이터 위치 설정에 `noise`·`mismatch` 항목(1.8),
+  `mismatch_sigma_vgs`(10절). (7) [XRUN-F1 A로 삭제: 첫 평가 상한 배선 -- 지금은 2.2 계수 상태 memo]·`require_lut_data`(9.5·10.5). (8) 데이터 위치 설정에 `noise`·`mismatch` 항목(1.8),
   `LutSpec.noise_ef`·`LutSet.noise`·`LutSet.mismatch`·`LutProvenance` 4필드·`lut_fingerprint` 항목(1.3·1.4·1.5), 0절 층 재배치(8개 파일 추가).
 - 실패 객체는 core 의 `SchemaRejectedError`(로드 거부)·`SealViolationError`(조회 실패)다. `record.detail` 은
   `{"reason": <사유 키>, ...}` 의 키 정렬 쌍 tuple 이고 `record.devices == ()`, `record.margin is None`
@@ -74,7 +74,6 @@
 | 2 | `_helpers_anchor.py` [r4] | helper: `l_position`(옛 `l_anchor_index` 대체 -- 앵커 또는 같은 bin 보간 위치) |
 | 2 | `mismatch_set.py` [r7] | `load_mismatch_tables`(10.1) |
 | 2 | `noise_set.py` [r7] | `load_noise_tables`(9.1) |
-| 2 | `sweep_memo.py` [r7] | `sweep_memo`(2.2) |
 | 3 | `lut_set.py` | `load_lut_set` |
 | 4 | `_helpers_loo.py` [r6] | helper: `l_interior`·`external_by_model`·`l_loo_report`·`loo_estimate`·`cell_max`·`branch_targets`·`with_external`·`opt`·`table_at`·[r7] `linear_loo_cells`, 상수 `LINEAR_ORDER`·`HERMITE_ORDER`·`HERMITE_SLOPE_ORDER`(r5 `tolerance.py` 안 함수를 옮김 -- 동작 같음) |
 | 4 | `cap_query.py` | `caps` |
@@ -282,9 +281,8 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 
 ## 2. memo `LutMemo(lut, *, point, curve, root)`
 
-- 상한 인자: 1 이상 int(아니면 core `BoundedLRU` 의 `ValueError`). 예외: `from_sweep` 이 만든 memo 에서 첫 평가가 안 쓴 영역의 상한은 0 = 그 영역은 memo 하지 않는다(2.2). `derived` 영역 상한 = `len(lut.slice_map) * len(DERIVED_TABLES)`.
-- `LutMemo.from_sweep(lut, n_theta, unique_keys_per_eval, table_cache=None)`: 영역 r ∈ {point, curve, root} 상한 = `(n_theta + 1) * unique_keys_per_eval[r]`
-  (`unique_keys_per_eval` 은 Mapping 또는 (영역, int) 쌍; [r7] `table_cache` 인자 추가). 첫 평가가 센 키 수를 넣는 배선은 2.2.
+- 상한 인자: 1 이상 int(아니면 core `BoundedLRU` 의 `ValueError`). 예외: `LutMemo.counting` memo 를 고정할 때 창 안에서 한 번도 안 쓴 영역의 상한은 0 = 그 영역은 memo 하지 않는다(2.2). `derived` 영역 상한 = `len(lut.slice_map) * len(DERIVED_TABLES)`.
+- `LutMemo.counting(lut, n_theta, *, table_cache=None)`: 계수 상태 memo(2.2). 영역 r ∈ {point, curve, root} 상한 = `(n_theta + 1) * U_r`(U_r = 창 안 서로 다른 키 수), 고정은 `fix_bound()`.
 - `lookup(region, fn_name, key, compute)`: 키 = `(lut.fp, fn_name) + tuple(key)`. 적중이면 저장 값 그대로(`is`), 아니면 compute 1회.
   가변 원소가 든 키 → `TypeError`. 알 수 없는 region → `KeyError`.
 - `stats()` → `(("curve", LruStats), ("derived", ...), ("point", ...), ("root", ...))`.
@@ -301,15 +299,22 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   영역 misses 가 gmb 1 + op_point ≤ 3 늘어난다(이미 있던 op_point 키는 hits).
 - 같은 내용의 LutSet 두 개(같은 파일, 다른 폴더)는 같은 `fp` 라 같은 키가 된다.
 
-### 2.2 [r7] `sweep_memo(lut, n_theta, first_eval, table_cache=None) -> LutMemo` (`sweep_memo.py`, 층 2; 설계 40 §7.3 'LUT memo 상한')
-- U_eval = **첫 평가가 센 서로 다른 키 수**(영역 point·curve·root 마다). `first_eval(memo)` 를 계수용 memo 에서 한 번 돌린다: 그 memo 는 같은 (영역, 키)를 한 번만 계산해 값을 모으고
-  (평가 한 번 분량이라 유한) 서로 다른 키 수를 센 뒤 버려진다. 반환 = `LutMemo.from_sweep(lut, n_theta, 센 수, table_cache)` -- 새 memo(계수용 값은 넘기지 않음), 상한 = `(n_θ + 1)·U_eval`.
-  **[2026-10-09 결정] 첫 평가가 한 번도 안 쓴 영역(예: root)의 U_eval = 0 -> 그 영역 상한 0 = memo 하지 않음**(오류 아님): `lookup` 은 저장 없이 매번 `compute()` 를 부르고 `stats()` 의 그 영역은
-  `capacity 0, size 0, hits 0, misses = 조회 수`. 이 영역을 이후 평가가 쓰면 값은 맞고(같은 compute) 느릴 뿐이다. `LutMemo(...)` 직접 생성자의 0 은 여전히 `ValueError`.
-  `first_eval` 은 LUT 조회 함수에 memo 를 첫 인자로 주는 평가(예: 첫 θ 의 커널 평가). 테스트의 상수 4096 대신 이 값을 쓴다.
-- **소비처 [2026-10-09 배선]**: search `build_search_context`(`search_context.py::_wire_sweep_memo`)가 S0 당 1회 부른다. 첫 평가 = layer0 첫 점(`layer0_center.centre_start`: 상자 중심 + 전류 중심, n_θ = 그 `variables` 수)을
-  임시 컨텍스트(archive 없음·빈 캐시)에서 `evaluate` 한 번. 결과 memo 가 `dc_ctx.lut`(`LutAccess`)의 memo 를 바꾼다 -- 호출자가 넘긴 memo 는 domain 등 S0 준비 조회에만 쓰이고 그 상한 상수는 탐색에 영향이 없다
-  (옛 호출자 고정 상한 경로는 탐색에서 삭제). 첫 점이 정의역 밖이라 LUT 를 안 부르면 세 영역 모두 0(memo 없음)이 된다 -- 값은 맞다.
+### 2.2 계수 상태 memo `LutMemo.counting(lut, n_theta, *, table_cache=None)`·`open_count()`·`fix_bound()`·`bound_state` (설계 40 §2.4.6 '첫 평가 버림 제거'; XRUN-F1 card A)
+- `counting` 이 만든 memo 는 `bound_state == "counting"` 으로 시작한다: 영역 point·curve·root 는 상한 없이 값을 모은다(같은 키는 한 번만 계산, 마지막 접근 순서 유지). `derived` 영역은 처음부터 상한 LRU(계수 대상 아님).
+  `table_cache=None` = `TableCache.default()`(생성자와 같은 뜻).
+- U_r = `open_count()` 부터 `fix_bound()` 까지(그 실행의 **첫 커널 평가**) 조회한 서로 다른 키 수(영역 point·curve·root 마다). 창 열기 전 조회는 값을 모으되 U 에 세지 않는다. 창 안 조회가 창 전에 모은 키를
+  다시 부르면(적중) 그 키도 U 에 든다. '서로 다름' = core `BoundedLRU` 와 같은 `canonical_key`(0.0 ≠ −0.0, 같은 내용 NaN 은 같은 키, 1·1.0·True 는 서로 다른 키). 창 안에서 `compute()` 가 예외로 끝난 조회는 U 에 넣지 않는다(`misses` 에는 센다).
+- 상태 전이는 한 방향: `"counting"` --`open_count()`--> `"window_open"` --`fix_bound()`--> `"fixed"`. 그 밖의 호출(창 없이 `fix_bound`, 두 번째 `open_count`, `"fixed"` 에서 두 메서드)은 `ValueError`.
+  `LutMemo(...)` 생성자 memo 는 처음부터 `"fixed"`(두 메서드 `ValueError`). `bound_state` 는 읽기 전용 속성.
+- `fix_bound()`: 영역 r 상한 = `(n_theta + 1)·U_r`. 모은 항목을 오래된 것부터 `BoundedLRU.adopt`(원 key, hits·misses 불변)로 새 상한 LRU 에 옮긴다 -- 모은 항목이 상한보다 많으면 가장 오래 접근하지 않은 것부터 퇴출(`evictions` 에 든다).
+  **U_r = 0 이면 그 영역 상한 0 = memo 하지 않음**(오류 아님): `lookup` 은 저장 없이 매번 `compute()` 를 부르고 `stats()` 의 그 영역은 `capacity 0, size 0, hits = 계수 상태 hits, misses = 계수 상태 misses + 이후 조회 수`.
+  이 영역을 이후 평가가 쓰면 값은 맞고(같은 compute) 느릴 뿐이다(`_Unmemoized` 제거는 U17 ③). `LutMemo(...)` 직접 생성자의 0 은 여전히 `ValueError`.
+- `stats()`: 계수 상태(`"counting"`·`"window_open"`)의 point·curve·root = `LruStats(capacity=None, size=모은 항목 수, hits, misses, evictions=0, recomputes_after_eviction=0)`. 고정 뒤 = `BoundedLRU` 계수(capacity·size·evictions·recomputes_after_eviction)에
+  계수 상태 동안의 hits·misses 를 더한 값. 옮기기는 hits·misses 를 바꾸지 않는다(고정 직후 같은 원 key 조회는 hit).
+- 값: memo 는 값을 바꾸지 않는다 -- 같은 인자의 조회 값은 계수 상태·고정 뒤·생성자 memo 에서 같다. 모든 조회는 `LutMemo.lookup` 을 거친다(고정의 항목 옮기기는 `LutMemo.lookup` 을 부르지 않는다).
+- **소비처**: search `build_search_context`(`search_context.py::_wire_sweep_memo`)가 S0 당 1회 `counting` memo 를 설치한다(n_θ = `layer0_center.centre_start` 의 `variables` 수; 커널 평가 0, 임시 컨텍스트 없음).
+  `kernel.evaluate` 가 그 컨텍스트의 첫 커널 평가에서 커널 호출 직전 `open_count()`, 결과를 만든 직후 `fix_bound()` 를 부른다. 결과 memo 가 `dc_ctx.lut`(`LutAccess`)의 memo 를 바꾼다 -- 호출자가 넘긴 memo 는 domain 등 S0 준비 조회에만 쓰이고
+  그 상한 상수는 탐색에 영향이 없다. 첫 커널 평가가 없는 실행은 고정하지 않은 채 끝난다(`perf.lut_memo_bound == "unfixed_no_kernel_eval"`).
 
 ### 2.1 [2026-10-08, 사용자 승인 "tol_V표를 파일로 캐시해"] 파생 표 디스크 캐시 `TableCache` (`table_cache.py`, 층 0) + `LutMemo.lookup_persistent`
 

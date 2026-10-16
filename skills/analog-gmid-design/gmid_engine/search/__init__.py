@@ -96,6 +96,7 @@ from .start_values import (
     StartRow,
     StartRung,
 )
+from .theta_coords import ThetaCoords
 
 __all__ = (
     "ACCEPTED_STATUSES",
@@ -153,6 +154,7 @@ __all__ = (
     "StartPoint",
     "StartRow",
     "StartRung",
+    "ThetaCoords",
     "Variable",
     "build_search_context",
     "canonical_order",

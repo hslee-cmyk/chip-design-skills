@@ -10,12 +10,11 @@
   변수는 `skip` 으로 평가하지 않는다.
 * 섭동 점의 보고를 metrics `sensitivity_gate` 에 넘겨 판정한다(ε = 풀이 상대 잔차 × 이득 dB 의 감도). 섭동 점이 받아들일 상태가 아니거나 보고가 없으면 그 방향은 검사하지 못한 것.
 """
-import math
-
 from gmid_engine.metrics import REPORT_BLOCK_RESIDUAL, sensitivity_gate
 from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, THETA_CURRENT, THETA_Y
 
 from .fd_jacobian import fd_jacobian
+from .theta_coords import ThetaCoords
 
 AUX_FIELD = "metrics_aux"
 
@@ -51,16 +50,8 @@ def run_sensitivity_gate(sctx, base, origin=()):
     skip = frozenset(i for i, v in enumerate(variables) if _affected(sctx, v, everything) & read)
     if len(skip) == len(variables):
         return None
-    theta = dict(base.theta)
-    x = [math.log(theta[v.component]) if v.log else theta[v.component] for v in variables]
-
-    def to_theta(probe):
-        out = dict(theta)
-        for var, value in zip(variables, probe):
-            out[var.component] = math.exp(value) if var.log else value
-        return out
-
-    columns = fd_jacobian(sctx, variables, x, base, base.key.cells, to_theta, origin, skip)
+    coords = ThetaCoords.start(variables, dict(base.theta))      # 시작 좌표 원값 보존 정본. 자르지 않는다(X-14: fd_jacobian 이 움직이는 좌표만 상자 안으로 맞춘다)
+    columns = fd_jacobian(sctx, variables, list(coords.x0), base, base.key.cells, coords.to_theta, origin, skip)
     runs = []
     for i, (var, (res, _step)) in enumerate(zip(variables, columns)):
         if i in skip or res is None or res is base:

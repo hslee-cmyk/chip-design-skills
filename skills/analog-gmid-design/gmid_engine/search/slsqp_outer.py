@@ -37,6 +37,7 @@ from .cell_floor import ln_idu_floors
 from .fd_jacobian import fd_jacobian
 from .kernel import evaluate
 from .search_values import ACCEPTED_STATUSES, AXIS_AREA, AXIS_POWER, CON_EPS, STAGE_SLSQP, SolveResult, Variable
+from .theta_coords import ThetaCoords
 
 
 class _Abort(Exception):
@@ -64,17 +65,7 @@ def _layout(sctx, start):
     # 이 풀이 안에서 상수. 정점 아래 좌표에서 그 노드 근이 늘 없어 SLSQP 가 실패 재시작만 하는 영역을 상자에서 뺀다.
     for i, floor in ln_idu_floors(sctx, variables, start.cells, one_var_only=True, start=theta).items():
         variables[i] = Variable(variables[i].component, variables[i].log, floor, variables[i].hi)
-    names = {v.component for v in variables} | set(fixed)
-    for comp in theta:
-        if comp not in names:
-            fixed[comp] = theta[comp]
-    x0, exact = [], []
-    for v in variables:
-        raw = theta[v.component]
-        coord = math.log(raw) if v.log else raw
-        x0.append(min(max(coord, v.lo), v.hi))
-        exact.append(raw if x0[-1] == coord else None)    # bounds 로 잘리지 않았으면 시작 θ 원값
-    return tuple(variables), fixed, x0, tuple(exact)
+    return tuple(variables), {**theta, **fixed}       # 시작 θ + 칸이 한 점인 L 의 고정값 -- 좌표는 `ThetaCoords.start`(solve_eps)
 
 
 def _axis_value(result, axis):
@@ -103,21 +94,17 @@ def _budget_stop(sctx):
 def solve_eps(sctx, start, minimize, eps, origin):
     blas_environment()      # [NFR-4 재확인 (e)] ε 풀이 한 번마다 시작할 때 -- 끝점·ε 풀이·L-b 모두 이 함수. 무상태, 값은 기록하지 않는다
     row_key = canonical_row_key(sctx)
-    variables, fixed, x0, exact = _layout(sctx, start)
+    variables, theta0 = _layout(sctx, start)
+    coords = ThetaCoords.start(variables, theta0)         # 시작 좌표 원값 보존 정본(설계 40 §2.4.14 (2)) -- 자르지 않은 시작 좌표
     lo = np.asarray([v.lo for v in variables], dtype=float)
     hi = np.asarray([v.hi for v in variables], dtype=float)
+    x0 = [min(max(c, v.lo), v.hi) for v, c in zip(variables, coords.x0)]      # 상자 자르기(X-14): 풀이 시작 좌표 = clip(x0ᵢ; loᵢ, hiᵢ)
     tag = origin + (("stage", STAGE_SLSQP), ("minimize", minimize), ("eps", eps))
     state = {"parent": None, "points": {}, "accepted": [], "names": None, "frozen": set(), "scales": None}
 
-    def to_theta(x):
-        out = dict(fixed)
-        for i, (v, value) in enumerate(zip(variables, x)):
-            value = min(max(float(value), v.lo), v.hi)
-            if value == x0[i] and exact[i] is not None:
-                out[v.component] = exact[i]     # 시작 좌표 그대로면 시작 θ 원값 -- ln→exp 왕복 1 ulp 로 키가 바뀌지 않게
-            else:
-                out[v.component] = math.exp(value) if v.log else value
-        return out
+    def theta_of(x):
+        """풀이기·FD 가 준 x 를 상자로 자른 뒤 θ 로 -- 자른 좌표가 자르지 않은 시작 좌표와 같을 때만 시작 θ 원값(`ThetaCoords.to_theta`)."""
+        return coords.to_theta([min(max(float(value), v.lo), v.hi) for v, value in zip(variables, x)])
 
     def point(x):
         x = np.array(x, dtype=float, copy=True)   # SLSQP 는 x 배열을 제자리에서 바꾼다 -- 복사본만 저장·키로 쓴다
@@ -128,7 +115,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
         stop = _budget_stop(sctx)
         if stop is not None:
             raise _Abort(stop, x)
-        res = evaluate(sctx, to_theta(x), start.cells, parent=state["parent"], origin=tag)
+        res = evaluate(sctx, theta_of(x), start.cells, parent=state["parent"], origin=tag)
         if res.status not in ACCEPTED_STATUSES:
             raise _Abort("candidate_failure", x)
         if state["scales"] is None:          # 첫 받아들인 점(시작점)의 b_P 로 고정
@@ -147,7 +134,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
         entry = point(x)
         if entry["jac"] is None or entry["jac"][2] != frozenset(state["frozen"]):
             skip = frozenset(state["frozen"])
-            cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], start.cells, to_theta, tag, skip)
+            cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], start.cells, theta_of, tag, skip)
             gf = np.zeros(len(variables))
             gc = np.zeros((len(entry["c"]), len(variables)))
             for i, (col, step) in enumerate(cols):
@@ -175,7 +162,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
     accept(first["x"])
     n = len(variables)
     radius = (hi - lo) / 2
-    steps0 = fd_jacobian(sctx, variables, first["x"], first["res"], start.cells, to_theta, tag, frozenset())
+    steps0 = fd_jacobian(sctx, variables, first["x"], first["res"], start.cells, theta_of, tag, frozenset())
     h = np.asarray([abs(step) for _col, step in steps0], dtype=float)
     resolved = [int(math.ceil(math.log2((hi[i] - lo[i]) / h[i]))) for i in range(n) if h[i] > 0]
     maxiter = max(1, sum(max(r, 1) for r in resolved))
