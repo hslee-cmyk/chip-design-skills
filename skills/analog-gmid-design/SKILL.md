@@ -436,6 +436,9 @@ Worked example(Folded Cascode 등): `stick-diagram-euler-layout.md` §6. 이 절
   실행해 net별/소자별 connectivity 표를 `<name>.topology.md`로 저장하고 세션에도 출력해
   사람이 재확인하는 게 필수 절차다**(§5) — 이미지/PDF 판독만으로는 dense한 회로도의
   connectivity를 신뢰성 있게 재현 못 한다는 게 실측으로 재확인됨(2026-08-03).
+- `references/circuit-pattern-intents.md` — 회로 해석(소자 역할·의도된 영역) 때 쓰는 패턴 카탈로그.
+  이름이 아니라 연결 서명으로 찾고, 해석은 연결·원문만으로 한다(topology 메타데이터는 근거 아님). 첫 항목
+  P-1 gate 공유 직렬 적층(stacked diode / Sooch 셀 / self-cascode -- source 쪽 소자 triode 의도).
 - `references/sky130-worked-example.md` + `assets/sky130_lut_sweep.py` +
   `assets/sky130_nfet_pfet_lut_sample.npz` — 실리콘 검증 사례(SkyWater sky130 + SPICE 시뮬레이터).
   LUT 실측 gm/ID 상한(§4), LUT↔SPICE 정규화 함정(§3) 포함.
