@@ -1,6 +1,6 @@
 ---
 template: design
-version: 0.2.4
+version: 0.2.5
 plan: ../../01-plan/features/offset-strategy.plan.md
 plan_version: 0.6.2
 ---
@@ -354,7 +354,7 @@ def run_plan(topology_path, spec_path, lut, memo, pdk_decl, lut_rule_decl, *, ou
 | 단계 B | 한 번 | 변형마다 호출, 같은 토폴로지 변형끼리 블록은 색인 적중(계산 0). 보고서 파일은 같은 내용으로 다시 쓰인다 |
 | S0 탐색 블록 | 한 번 | 같은 topology 변형끼리 적중(§5.3). `start_intervals`는 OS-L 반복 사이 적중, compare 국면 1에서는 변형마다 계산(입력이 다름, §3.2) |
 | S1v | 한 번 | 같은 topology 변형끼리 같은 입력 |
-| 평가 캐시 | 하나 | **DS-1에 따른다**(§10). 지금 키 그대로 공유 금지 |
+| 평가 캐시 | 하나 | DS-1 = (다)(S-14, §10): `S3Index` 하나를 공유하고 평가 키에 `constraint_set_fp`를 넣는다. 지금 키 그대로 공유 금지 |
 
 ### 6.4 하네스 노출(B-1, W-1 요구 전수)
 
@@ -436,30 +436,28 @@ E-S18의 하네스가 읽거나 넘기는 값마다 `run_plan` 경로의 자리�
 
 ---
 
-## 10. DS-1 조건부 절(열린 결정 -- 하나를 고르지 않는다)
+## 10. DS-1 평가 캐시 처리 -- 결정됨(S-14: (다))
 
-DS-1은 M2 뒤 사용자가 고른다(S-5). 필요한 시점은 OS-5(compare)와 OS-L(보정 루프는 같은 θ를 다시 밟을 가능성이 크다, 계획 N3.12). 공통 전제(**이 design의 전제에서는** -- 유도 제약이 S1v 씨앗·extras 밖이고(OB-4) 요구가 있으면 사용자 판정 제약이 변형 사이에 같다(L2), 이것이 PD-3 근거다): 같은 topology 변형끼리 spec 판정 제약·S1v·S0 입력이 같고, 다른 것은 유도 제약(합성 행·그 metric 요청)과 OS-L의 문턱(Δ_T)뿐이다.
+**결정(사용자 2026-10-16 "모두 권고대로", 결정 기록 S-14)**: DS-1 = **(다) 키 분리**. 평가 키에 변형 제약 집합 지문(문턱 값 포함, §3.3 `constraint_set_fp`)을 넣고, 실제 계산 공유는 card B 블록 결과 색인이 맡는다. 구현 card는 OS-5(compare)·OS-L(보정 루프)이다. (가)·(나)는 기각 대안이고 기록만 남긴다(§10.1·§10.2). 공통 전제(**이 design의 전제에서는** -- 유도 제약이 S1v 씨앗·extras 밖이고(OB-4) 요구가 있으면 사용자 판정 제약이 변형 사이에 같다(L2), 이것이 PD-3 근거다): 같은 topology 변형끼리 spec 판정 제약·S1v·S0 입력이 같고, 다른 것은 유도 제약(합성 행·그 metric 요청)과 OS-L의 문턱(Δ_T)뿐이다.
 
-### 10.1 (가) 평가 키 부분만 변형별
+### 10.1 (가) 평가 키 부분만 변형별 -- 기각 대안(기록)
 
-* 바뀌는 곳: card B `S3Index`를 블록 결과 부분과 평가 키 부분 두 객체로 나눈다. 세션은 블록 결과 부분 하나를 모든 변형에, 평가 키 부분은 변형마다 `build_search_context`가 새로 만든다.
-* 완료 조건 3: 같은 topology 변형이 같은 θ를 밟으면 같은 평가 키가 변형마다 다시 계산된다 -- 모순. **DS-U7(조건 3 약화 안 함, S-6)과 충돌**하므로 (가)를 고르려면 DS-U7도 다시 결정해야 한다(§18.3 OD-2). 또 (가)를 고르면 Δ_T 기록은 다르고 문턱 값이 같은 OS-L 변형들이 같은 평가 입력을 변형마다 다시 계산하며, 이것도 OD-2 범위다.
-* 놓기(계획 N9 메모리 행): 끝난 변형의 평가 키 부분은 그 변형의 중복 판정 키(§3.3)에만 매여 있다. 같은 키(같은 원인 지문)의 재추가는 거부되므로 그 평가 키 부분을 다시 쓸 변형이 오지 않는다 -- 놓아도 (가)가 이미 받아들인 변형 사이 재계산(완료 조건 3 모순, OD-2) 밖의 새 재계산은 생기지 않는다. 문턱 값이 같고 원인이 다른 변형도 (가)에서는 자기 평가 키 부분을 따로 가지므로 놓기와 무관하다. 블록 결과 부분은 놓지 않는다.
+`S3Index`를 블록 결과 부분과 평가 키 부분으로 나누고 평가 키 부분을 변형별로 두는 안. 같은 topology 변형이 같은 θ를 밟으면(문턱 값이 같은 OS-L 변형 포함) 같은 평가 키를 변형마다 다시 계산해 완료 조건 3과 모순이고 DS-U7과 충돌했다(옛 OD-2). S-14로 기각.
 
-### 10.2 (나) 평가 분리
+### 10.2 (나) 평가 분리 -- 기각 대안(기록)
 
-* 바뀌는 곳: (i) 커널 요청 = 계획 안 모든 변형 요청의 합집합(세션이 만들어 모든 변형 `SearchContext`에 같은 값으로 넘긴다. OS-L 추가 변형은 문턱만 다르므로 요청이 같다) (ii) 평가 캐시 값(봉인·metric·spec 행·ls 행)은 변형과 무관, `S3Index` 하나를 공유 (iii) 합성 행(`req:`)은 변형별 판정 단계가 캐시 값의 묶음에서 만든다(`ss_constraint_rows`의 bounds 부분을 커널 밖 변형별 함수로 분리). `EvalResult`는 변형 무관 부분과 변형별 행으로 나뉜다.
-* 이 design에서 범위: spec 판정 제약이 변형 사이에 같으므로 (iii)은 합성 행 하나다. 이 design의 전제(OB-4·L2)에서는 S1v 투영을 좁힐 대상이 없다(PD-3으로 DS-2가 '대상 없음'으로 닫힌 근거와 같다). 그 전제가 깨지면(유도 제약이 뷰 씨앗을 요구하게 되면) DS-2를 다시 연다.
-* 완료 조건 3: 지킨다. S3: evals 줄은 평가 키마다 한 줄 + 변형별 행 칸 `rows_by_variant`(XS-13 범위).
-* 놓기: 끝난 변형의 변형별 행은 그 변형의 중복 판정 키에만 매여 있고 같은 키 재추가는 거부되므로 놓을 수 있다. 공유 평가 키 부분은 놓지 않는다(다른 키의 다음 반복이 같은 θ를 밟으면 재사용).
+커널 요청을 계획 안 합집합으로 계산하고 판정 행(`req:`)을 변형별 단계로 떼어 내는 안. 완료 조건 3은 지키지만 kernel·`EvalResult` 구조를 나누는 범위가 컸다. S-14로 기각.
 
-### 10.3 (다) 키 분리
+### 10.3 (다) 키 분리 -- 채택(S-14)
 
 * 바뀌는 곳: `EvalKey`에 칸 `constraint_set_fp`(§3.3 -- 문턱 항목의 `value_v` 지문 포함, `margin_ref`·`cause_fp` 제외)를 더하거나 `context_fp` 지문에 넣는다(`E/search/eval_key.py`, `E/search/search_context.py:214`). **OS-L 문턱 지문 = 문턱 값(`ThresholdItem.value_v`)의 지문**이다(검증 v0.2.2 N-2). Δ_T 기록 지문(`cause_fp`)을 넣으면 기록은 다르고 문턱 값이 같은 두 변형이 같은 평가 입력을 따로 계산하게 되어 완료 조건 3(같은 입력 재계산 0)을 깬다. `S3Index` 하나를 공유한다. 요구 없는 실행은 칸을 넣지 않아 완료 조건 1을 지킨다.
 * 완료 조건 3: 형식상 지킨다. 문턱 값이 다른 변형끼리는 같은 θ의 커널 평가가 남고, 크기 결정 블록은 색인 적중, offset metric 블록은 요청이 같아도(OS-L) 행이 달라 커널은 돈다(XS-8). 문턱 값이 같으면 평가 항목을 공유한다.
 * 놓기: 평가 키가 문턱 값으로 묶이므로, 원인이 다르고 문턱 값이 같은 변형이 나중에 올 수 있다. 그래서 (다)에서는 **평가 키 항목을 놓지 않는다**(놓으면 같은 입력 재계산이 생길 수 있다). 블록 결과 부분도 놓지 않는다.
 
-**놓기 공통 규칙**(계획 N9): 위 '놓을 수 있다'는 DS-1 결정 뒤 design 개정에서 구현 여부를 정하고 검증한다. 어느 경우든 θ 무관 블록(단계 A·S0·커널 안 크기 결정 블록)은 놓지 않는다. 메모리 한도 위험이 실측되면 사용자에게 올린다(조용히 비우지 않음).
+* 실제 계산 공유: 변형 사이에 같은 θ의 커널 평가 자체는 변형마다 남지만(평가 키가 다르므로), 그 안의 블록 계산은 card B 블록 결과 색인이 입력 버전으로 공유한다(크기 결정 블록 적중). 이것이 S-14 '실제 계산 공유는 블록 결과 색인' 문언이고, XS-8이 허용한 '같은 θ 커널 평가는 변형마다 남음' 편차다.
+* 구현 card: OS-5(compare 국면 1 다변형), OS-L(반복 변형). 바뀌는 곳은 search 층 `eval_key`·`search_context`의 키 구성 한 곳이다(XS-5 범위).
+
+**놓기 규칙**(계획 N9): (다)에서는 평가 키 항목과 블록 결과 부분을 놓지 않는다(위 '놓기'). θ 무관 블록(단계 A·S0·커널 안 크기 결정 블록)도 놓지 않는다. 메모리 한도 위험이 실측되면 사용자에게 올린다(조용히 비우지 않음). 반복마다 메모리 보고(XS-19)가 그 실측이다.
 
 ---
 
@@ -476,7 +474,7 @@ DS-1은 M2 뒤 사용자가 고른다(S-5). 필요한 시점은 OS-5(compare)와
 | 승인 기록 로더·결속·낡은 승인 정지·국면 2 분기 | TR-3 | `load_trim_approval` → `approvals` = `TrimApprovals`, `bind_trim`(OT §8.3 1~5), 국면 2 변형 단계 A(+ 원본 비교 벌). `ApprovalFilePresent`는 TR-3에서 지운다 |
 | 구조 동일 검사 | TR-4 | OT §3.2 |
 | 국면 2 탐색 게이트 | TR-5b | TR-5b 전에는 국면 2 변형이 단계 A 뒤 `trim_phase2_search_not_open`으로 멈춘다(OD-3 = XS-15 수용). TR-5b가 지운다 |
-| compare 다변형·공유·정체 칸·Σ 상한·공통 판정 | OS-5 | DS-1 결정 뒤. 미결이면 compare는 L6 거부 유지, trim 단독(단일 변형)만 TR-2에서 연다(OB-16) |
+| compare 다변형·공유·정체 칸·Σ 상한·공통 판정 | OS-5 | DS-1 = (다)(S-14)로 연다(§10.3) |
 | 최종 비교 | OS-3 | TR-6 뒤 |
 
 ---
@@ -609,7 +607,7 @@ topology·사용자 판정 제약·요구·`strategy`·국면·문턱 밖 유도
 
 | card | 범위 | 선행 | 완료 조건 |
 |---|---|---|---|
-| **OS-2** | §4 L1~L6·L12, §3.1·§3.2, §5(요구 없음·matching, 거부), §6(세션·`run_plan`·노출·진단), §8(OS-2 칸), XS-7·PD-8, §6.5, 하네스 사슬 대체, F-1 fixture | OS-0 승인, XRUN-F1 card C, PD-8 (ii) 확인(§17.2) | 1, 5, 7, 8. 더해 fixture 실행이 front 점마다 `req:offset_matching<=` 행과 `derived_rows`를 낸다, 색인·`RunCounters`가 세션당 하나, 하네스가 `run_plan`으로 같은 기록을 만든다(E-S18 항목 전부) |
+| **OS-2** | §4 L1~L6·L12, §3.1·§3.2, §5(요구 없음·matching, 거부), §6(세션·`run_plan`·노출·진단), §8(OS-2 칸), XS-7·PD-8, §6.5, 하네스 사슬 대체, F-1 fixture | OS-0 승인, XRUN-F1 card C, PD-8 (ii) 확인(§17.2) | 1, 5, 7, 8. 더해 fixture 실행에서 봉인된 평가마다 S3 evals 줄에 `req:offset_matching<=` 행(또는 정의된 미측정 사유)이 나온다 -- **front는 요구하지 않는다**(F-1 (a), S-14). front 점이 있으면 `derived_rows`도 확인한다, 색인·`RunCounters`가 세션당 하나, 하네스가 `run_plan`으로 같은 기록을 만든다(E-S18 항목 전부) |
 | **OS-V** | §12 | OS-2, oracle-portability 코어 | 합성 행 검증 출처가 `spice_oracle`이 된다, 오라클 코어 측정 정의가 방언·PDK 이름 0(OPP 완료 조건 1의 검사 대상), 엔진 import 0 |
 | **OS-5** | §3.3 S3 칸, §7, §10 DS-1 구현, §11 TR-2 몫, compare 국면 1·L11, card C 인터페이스 | OS-2, TR-2(U16 뒤), DS-1 결정 | 2, 3, 4 |
 | **TR-3·TR-5b 몫** | §11 | OT 선행 그대로 | TR-3: 낡은 승인 다섯 경로 정지, 국면 2 변형 단계 A 뒤 `trim_phase2_search_not_open`. TR-5b: 그 정지 삭제 확인(XS-15) |
@@ -623,6 +621,7 @@ topology·사용자 판정 제약·요구·`strategy`·국면·문턱 밖 유도
 * spec: library spec 사본에 다음만 바꾼다. `meta.origin` = `fixture`. offset 판정 제약 둘(`offset_in_sigma_mv`, 그것을 참조하는 `offset_sys_mv`)을 지우고 `offset_requirement` = {`strategy`: `matching`, `coverage_multiple`: 3, `offset_in_max_v`: 3 × 3.3 mV를 V로 적은 값}. 각 `source` = `user_spec`, record = S-9(2026-10-16) 결정 원문, 3.3 mV는 2026-10-08 Q3 (2) 유래. **`offset_in_max_v`의 `source.record`에는 유도식 '3 × 3.3 mV'와 두 출처(S-9의 k = 3, Q3 (2)의 3.3 mV)를 문장으로 남긴다**(검증 v0.2.1 N-9) -- `value` 칸의 숫자만으로는 어디서 왔는지 보이지 않기 때문이다. `judgment_temperature_range_c`는 넣지 않는다(OS-2에 소비자가 없다, OB-21).
 * structure 사실: fixture에 `structure.json` 사본을 두지 않는다. 실행은 `structure_path` = library `current_reuse_telescopic_ota.structure.json`을 넘긴다(승인 사실의 사본을 만들지 않음, OB-23. 연결이 같아 `connectivity_fp` 결속이 성립한다).
 * library spec은 바꾸지 않는다. **비교 한계**(계획 N7.1): fixture 결과는 library 기준선과 비교하지 않는다. OS-2 완료 조건(유도 제약·로더·출발값이 실제 경로에서 동작)에만 쓴다.
+* **F-1 = (a) 결정(S-14, 2026-10-16 "모두 권고대로")**: current_reuse fixture를 유지한다. OS-2 검증 항목은 front를 요구하지 않는다(봉인 평가의 `req:` 행·로더·출발값·결과 JSON 칸으로 판정, §16.1). current_reuse의 층 0 실패는 이 기능 밖의 별도 엔진 조사 card로 다룬다.
 
 ### 16.3 test 목록(독립 oracle)
 
@@ -639,7 +638,7 @@ topology·사용자 판정 제약·요구·`strategy`·국면·문턱 밖 유도
 | OS-2 | `tests/pipeline/test_plan_session.py` | 열기에서 색인·계수 하나, §6.1 계획 생성 조건 두 경우(검증 v0.2.2 N-8): (a) 단계 A가 spec 없이 멈춤(예: A1_load 거부) → 계획 없음·변형 실행 0·`stage_b_unplanned` = `skipped` 단계 B 한 번 (b) spec이 있고 단계 A가 `stopped`·`review_needed` → 계획은 만들어지고, 변형 실행에서 단계 B는 진단 설정대로·탐색 0·`stop` = `stage_a_<상태>`, 계획 거부 → 단계 B·탐색 호출 0(관찰), 진단 모드: 단계 A `review_needed`면 단계 B는 진단으로 돌고 탐색 0·`stop` = `stage_a_review_needed`, 같은 index 두 번 실행 `ValueError`, 닫은 뒤 실행 `ValueError`, `run_stage_a`에 `donors` 빠지면 `TypeError` |
 | OS-2 | `tests/pipeline/test_run_plan.py` | `run_plan` = 세션 사용(세션 함수 호출 관찰), 결과 JSON 칸(§8), `PlanResult`·`VariantResult` 노출 칸이 E-S18 목록을 모두 덮음 |
 | OS-2 | `tests/integration/test_run_plan_baseline_9circuits.py` | 완료 조건 1(비교 제외는 검증자 소유) -- 판정은 auditor 격리 복제본 |
-| OS-2 | `tests/integration/test_run_plan_matching_fixture.py` | F-1 fixture 실행: `req:` 행, `derived_rows` c = S3 evals 행 c, notes `final_acceptance_is_oracle_range_judgment` |
+| OS-2 | `tests/integration/test_run_plan_matching_fixture.py` | F-1 fixture 실행(front 요구 없음, F-1 (a)): 봉인 평가마다 S3 evals 줄의 `req:` 행 또는 정의된 미측정 사유, front 점이 있으면 `derived_rows` c = S3 evals 행 c, notes `final_acceptance_is_oracle_range_judgment` |
 | OS-V | `E/tests/metrics/test_verified_by.py`(추가) | `offset_sys_mv` = `spice_oracle`, 합성 행 출처 규칙(항 하나라도 unverifiable이면 행 unverifiable), measure 이름이 OP-5 출력 키와 같음(오라클 쪽 측정 test는 oracle-portability 소관) |
 | OS-5 | `tests/pipeline/test_run_plan_multi.py`, `tests/integration/test_run_plan_compare_phase1.py` | 완료 조건 2(순서 뒤집기 포함), 3, 4, L11, `variant` 칸, `S3Index` 상한 B_S0 |
 | OS-L | `tests/pipeline/test_plan_session_add.py`, `tests/integration/test_run_plan_iteration.py` | §13.3 reason마다 거부를 먼저 확인(같은 원인 지문 재추가 → `duplicate`, 반복 번호만 다른 같은 키도 `duplicate`, 상한 None·초과 → `iteration_cap`), Δ_T가 들어가는 길 하나(`tightened_threshold` → `add_variant`, 호출 grep + 실행 경로), 커널·`ss_constraint_rows`에 합성 호출 0(grep), `run_id`가 중복 판정 키마다 다르고 반복 번호와 무관, 추가 변형에서 θ 무관 블록 계산 0(`start_intervals` 포함 -- §3.2, OT §20.7 v0.3.1 목록과 같음), 새 세션 단독 추가 실행과 비트 동일(E_B 선언), `grow` 상한 늘어남, memory 칸 |
@@ -720,7 +719,7 @@ T-24·T-25·T-27·T-28에서 바뀌는 것만:
 | OB-13 | 합성 행 보고 칸 | `EvalResult`에 (v, L) |
 | OB-14 | 비교 도구 | `tools/offset_compare/compare.py` |
 | OB-15 | 승인 결속 지문 | 요구 섹션 포함 |
-| OB-16 | compare와 DS-1 | DS-1 미결이면 compare 거부 유지 |
+| OB-16 | compare와 DS-1 | (DS-1이 S-14로 (다)로 닫혀 대상 소멸. OS-5가 (다)로 compare를 연다) |
 | OB-17 | `given_starts` | 원본 topology 변형에만 |
 | OB-19 | 승인 형식 | 구성 목록 |
 | OB-20 | 출발값과 문턱 | 출발값은 요구 값만(→ `start_intervals`는 `derived`를 읽지만 문턱 무관, OS-L 반복 사이 재계산 0. OT §20.7 v0.3.1(master `cf2c983`)에 반영됨) |
@@ -756,14 +755,16 @@ T-24·T-25·T-27·T-28에서 바뀌는 것만:
 | ID | 내용 |
 |---|---|
 | OD-1 | 시간 예산 유도 실행은 다변형·추가 변형에서 단독 결과와 비트 동일을 보장할 수 없다(§7.2, DS-U9 열림). 원인은 비트 동일 전제(E_B 선언)다 |
-| OD-2 | DS-1 (가)는 같은 평가 키를 변형마다 다시 계산하고(XS-8 허용 범위), 이미 결정된 DS-U7과 충돌한다(§10.1) |
+| OD-2 | (닫힘, S-14) DS-1 (가)는 기각됐다. 채택된 (다)의 편차 = 같은 θ의 커널 평가가 문턱 값이 다른 변형마다 남는 것(XS-8 허용 범위, 블록 계산은 색인 공유, §10.3) |
 | OD-3 | TR-3~TR-5b 사이 국면 2 탐색 게이트(XS-15 수용됨, 추적만) |
 
 ### 18.4 열린 결정·질문
 
 | ID | 질문 | 막는 것 |
 |---|---|---|
-| DS-1 | 평가 캐시 (가)/(나)/(다)(§10) | OS-5 compare, OS-L |
+| DS-1 | **결정됨(S-14, 2026-10-16 "모두 권고대로")**: (다) 키 분리 -- 평가 키에 변형 제약 집합 지문(문턱 값 포함), 실제 계산 공유는 card B 블록 결과 색인(§10) | -- |
+| F-1 | **결정됨(S-14)**: (a) current_reuse fixture 유지, OS-2 검증 항목은 front 불필요, current_reuse 층 0 실패는 별도 엔진 조사 card(§16.2) | -- |
+| 승인 | **design v0.2.4 사용자 승인(S-14, 2026-10-16 "모두 권고대로")**. 이 판(v0.2.5)은 승인 결정 DS-1·F-1의 기록 반영이다 | -- |
 | Q-1 | **결정됨(S-13, 2026-10-16 "모두 권고대로")**: 부분 사슬 test(`test_layer0_boundary_rows`, `test_s0_layer_9circuits`, `u13_hand`, `u13_real`)와 단계 B 없는 test(`test_cell_floor`, `test_blas_env`)는 W-1 대체 범위 밖(OB-22 그대로). **기록할 사실(검증 v0.2.1 N-5)**: PD-8 뒤에는 `run_stage_a`가 `donors`·`counters`를 필수로 받으므로 이 범위 밖 test들은 `S3Index`·`RunCounters`를 직접 만들어 넘긴다. 이것은 세션 열기의 일부(실행 경계 객체 만들기)를 test 안에서 두 번째로 구현하는 것이다. 엔진 제품 경로의 사슬은 하나(세션)로 남고, 두 번째 구현은 test 쪽 단위 시험 준비에만 있다 | -- |
 | Q-2 | (닫힘, v0.2.1) v0.1 검증 비차단 N-1~N-4·N-6·N-7·N-12 원문을 받아 반영했다(history H4) | -- |
 | DS-U8 | trim 시험 회로 `offset_in_max_v` 값 | TR-1 뒤 반영 |
