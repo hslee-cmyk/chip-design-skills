@@ -38,8 +38,14 @@ def _lib(name):
     return json.loads((LIBRARY / (name + ".topology.json")).read_text(encoding="utf-8"))
 
 
+def _build_doc(td):
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C0·C6] 변형마다 새 실행 하나
+    return build_s1(td, None, donors=donors, counters=counters)
+
+
 def _build(topo, doc):
-    return build_s1(topo.load(doc), None)
+    return _build_doc(topo.load(doc))
 
 
 def _g(s1, f):
@@ -155,7 +161,7 @@ def test_unsupported_stop_follows_renaming_and_shuffle(topo, name, seed):
                             (rename(doc, m), tuple(sorted(m[d] for d in devices))),
                             (flip_polarity(doc)[0], devices)):
         with pytest.raises(StructureUnresolvedError) as ei:
-            build_s1(load_topology(topo.write(variant)), None)
+            _build_doc(load_topology(topo.write(variant)))
         d = dict(ei.value.record.detail)
         assert d["rule_branch"] == branch
         assert ei.value.record.devices == expect

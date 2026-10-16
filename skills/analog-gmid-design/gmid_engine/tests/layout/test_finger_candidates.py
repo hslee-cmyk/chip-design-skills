@@ -13,7 +13,7 @@ import pytest
 from gmid_engine.layout.contract_output import FingerCandidate
 from gmid_engine.layout.finger_candidates import finger_candidates
 
-from .conftest import dev, device_column, make_input, new_memo, rg, staged_snapshot, toy_pdk
+from .conftest import block_row, dev, device_column, fresh_run, make_input, new_memo, rg, staged_snapshot, toy_pdk
 
 FW = {100: 1e-6, 200: 2e-6}
 
@@ -34,11 +34,12 @@ def _expected(sl, gm_id, grid=1e-8):
     return out
 
 
-def _run(toy_lut, devices, rgs=None):
+def _run(toy_lut, devices, rgs=None, run=None):
+    """[XRUN-F1 card B C4] run = 실행 두 객체 키워드(dict), 없으면 새 실행 하나."""
     memo = new_memo(toy_lut)
     inp = make_input(devices, [], rgs or [rg("r", [d.name for d in devices])], toy_pdk(toy_lut))
     snap = staged_snapshot(inp, memo)
-    return snap, finger_candidates(snap)
+    return snap, finger_candidates(snap, **(run if run is not None else fresh_run()))
 
 
 def test_candidates_match_independent_rule(toy_lut):
@@ -108,9 +109,10 @@ def test_same_inputs_share_tuple_object(toy_lut):
 
 
 def test_block_reuse_counts(toy_lut):
-    finger_candidates.reset_stats()
-    snap0, snap = _run(toy_lut, [dev("A", "h", "da", 2e-6)])
-    again = finger_candidates(snap)
+    # oracle 대조: card B C4 판정 1·4 -- 실행 계수(C1) 행 (calls, computes, reuses, recomputes_same_input)
+    run = fresh_run()
+    snap0, snap = _run(toy_lut, [dev("A", "h", "da", 2e-6)], run=run)
+    again = finger_candidates(snap, **run)
     assert again is snap                                     # 같은 입력 -> 재사용(함수 호출 0)
-    st = finger_candidates.stats()
-    assert (st.calls, st.computes, st.reuses, st.recomputes_same_input) == (2, 1, 1, 0)
+    st = block_row(run["counters"], finger_candidates.name)
+    assert (st[0], st[4], st[1], st[5]) == (2, 1, 1, 0)

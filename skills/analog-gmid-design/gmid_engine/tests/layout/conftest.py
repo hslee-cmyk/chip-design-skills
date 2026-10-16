@@ -308,10 +308,29 @@ def block_objects():
             "finger_geometry": finger_geometry, "compose_rows": compose_rows}
 
 
-def staged_snapshot(inp, memo, upto=None):
+def fresh_run():
+    """[XRUN-F1 card B C0] 새 실행 하나의 두 객체 키워드(dict) -- 블록·run_layout 호출 `f(..., **run)`. 부를 때마다 새 open_run() 쌍."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return dict(donors=donors, counters=counters)
+
+
+COUNT_FIELDS = ("calls", "reuses", "grafts", "replays", "computes", "recomputes_same_input")
+
+
+def block_row(counters, name):
+    """[XRUN-F1 card B C1] 실행 계수 (name, "*") 행의 여섯 칸 tuple(COUNT_FIELDS 순서), 기록이 없으면 0 여섯."""
+    for r in counters.snapshot().blocks:
+        if (r.block, r.part) == (name, "*"):
+            return tuple(getattr(r, f) for f in COUNT_FIELDS)
+    return (0,) * len(COUNT_FIELDS)
+
+
+def staged_snapshot(inp, memo, upto=None, run=None):
     """4.12 2·3 의 입력 필드·슬라이스 필드를 직접 쓴 스냅샷(writer = `_ly_fields` 표) + `upto` 블록까지 차례로 적용.
 
     슬라이스 값은 `slice_density`(4.2, 따로 test) 결과. `upto=None` 이면 블록을 하나도 부르지 않는다.
+    run = 블록 호출의 실행 두 객체 키워드(dict, card B C4), 없으면 새 실행 하나.
     """
     from gmid_engine.core import GraphSnapshot
     from gmid_engine.layout import _ly_fields as lf
@@ -334,8 +353,10 @@ def staged_snapshot(inp, memo, upto=None):
     if upto is None:
         return snap
     blocks = block_objects()
+    if run is None:
+        run = fresh_run()
     for name in BLOCK_ORDER[:BLOCK_ORDER.index(upto) + 1]:
-        snap = blocks[name](snap)
+        snap = blocks[name](snap, **run)
     return snap
 
 

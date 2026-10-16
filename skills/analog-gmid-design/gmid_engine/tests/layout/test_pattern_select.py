@@ -12,6 +12,7 @@ from gmid_engine.layout.contract_output import GroupLayout, MatchingDisposition,
 from gmid_engine.layout.pattern_select import pattern_select
 
 from .conftest import centroid_offsets, dev, graph_value, make_input, mg, new_memo, rg, staged_snapshot, toy_pdk
+from .conftest import block_row, fresh_run  # [XRUN-F1 card B C0·C1]
 
 BIAS_REASON = ("gate shared by a diode reference and consumers in other blocks: bias distribution, not a matched pair "
                "(Q8 (iii))")
@@ -272,9 +273,10 @@ def test_groups_sorted_by_gid_all_judged(toy_lut):
 
 
 def test_block_reuse(toy_lut):
-    pattern_select.reset_stats()
+    # oracle 대조: card B C4 판정 1 -- 같은 실행(run)에서 같은 lineage 재호출 = reuse, 같은 입력 재계산 0(C1 행)
+    run = fresh_run()
     inp = make_input(dp(2e-6), [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B"))], toy_pdk(toy_lut))
-    snap = staged_snapshot(inp, new_memo(toy_lut), "pattern_select")
-    assert pattern_select(snap) is snap
-    st = pattern_select.stats()
-    assert st.recomputes_same_input == 0 and st.reuses == 1
+    snap = staged_snapshot(inp, new_memo(toy_lut), "pattern_select", run=run)
+    assert pattern_select(snap, **run) is snap
+    st = block_row(run["counters"], pattern_select.name)
+    assert st[5] == 0 and st[1] == 1

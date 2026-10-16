@@ -63,11 +63,13 @@ class Loop:
         self.place_args, self.placed, self.eval_args, self.cache, self.kernel_n = [], [], [], {}, 0
         self.pdk = pdk(pdk_keys)
 
-    # -- 가짜 place_layout (CONTRACT 7절 시그니처)
-    def place_layout(self, memo, snapshot, pdk_, passives, rejected, relaxed, first_seen, previous, kinds, current_keys):
+    # -- 가짜 place_layout (CONTRACT 7절 시그니처 + [XRUN-F1 card B C6] 필수 키워드 donors·counters)
+    def place_layout(self, memo, snapshot, pdk_, passives, rejected, relaxed, first_seen, previous, kinds, current_keys, *,
+                     donors, counters):
         n = len(self.place_args)
         self.place_args.append(SimpleNamespace(memo=memo, snapshot=snapshot, pdk=pdk_, rejected=rejected, relaxed=relaxed,
-                                               previous=previous, kinds=kinds, current_keys=current_keys, sctx_kernel=None))
+                                               previous=previous, kinds=kinds, current_keys=current_keys, sctx_kernel=None,
+                                               donors=donors, counters=counters))
         spec = self.layouts[min(n, len(self.layouts) - 1)]
         if spec == "unplaced":
             lay = layout()
@@ -113,8 +115,11 @@ def run(monkeypatch):
         # [U17 ①, 설계 40 §2.4.7·§2.4.8] 수동소자 값은 평가 스냅샷의 S2 필드 `device.passive_value` 를 읽는다(converge_point 가
         # passive_values·check_theta 를 다시 부르지 않는다) -- 가짜 스냅샷에는 그 열이 없어 빈 값이고, 면적 입력 변환만 가짜로 둔다.
         monkeypatch.setattr(mod, "passives_from_decl", lambda decl, values: ())
+        from gmid_engine.search import open_run
+        donors, counters = open_run()          # [XRUN-F1 card B C6] 커널 컨텍스트 대역 sctx.dc 의 실행 두 객체
         sctx = SimpleNamespace(counters={"kernel_calls": 0}, area_decl=None,
-                               dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO", w_keys=(("nmos", 30),))))
+                               dc=SimpleNamespace(schema=None, lut=SimpleNamespace(memo="MEMO", w_keys=(("nmos", 30),)),
+                                                  donors=donors, counters=counters))
         start = start or eval_result(snap(), power=2e-3, area=7e-11, constraints=rows(3.0), tag="start")
         point = FrontPoint("p0", start, ())
         return converge_point(sctx, loop.pdk, point), sctx, start
@@ -145,6 +150,9 @@ def test_fixed_point_converges_after_one_reevaluation(run):
     assert loop.place_args[0].previous is None and loop.place_args[1].previous is None
     assert cp.layout is loop.placed[-1].layout                                    # ConvergedPoint.layout = 마지막 LayoutResult
     assert loop.place_args[0].current_keys == (("nmos", 30),) and loop.place_args[1].current_keys == (("nmos", 10),)
+    # [XRUN-F1 card B C6] converge_point 는 서명 그대로이고 place_layout 에 sctx.dc 의 두 객체를 그대로(is) 넘긴다
+    for a in loop.place_args:
+        assert a.donors is sctx.dc.donors and a.counters is sctx.dc.counters
     assert loop.place_args[0].kinds == {"M1": "nmos"} and loop.place_args[0].memo == "MEMO"
     # k_max: |ln 2| / tol 0.01 = 69.3 -> 반감 7회 (계획 N3.6)
     assert cp.k_max == 7
@@ -377,9 +385,9 @@ class PvLoop(Loop):
         super().__init__(*a, **kw)
         self.passives = []
 
-    def place_layout(self, memo, snapshot, pdk_, passives, *rest):
+    def place_layout(self, memo, snapshot, pdk_, passives, *rest, **kw):
         self.passives.append(passives)
-        return super().place_layout(memo, snapshot, pdk_, passives, *rest)
+        return super().place_layout(memo, snapshot, pdk_, passives, *rest, **kw)
 
     def evaluate(self, *a, **kw):
         r = super().evaluate(*a, **kw)

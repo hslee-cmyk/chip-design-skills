@@ -16,6 +16,7 @@ from gmid_engine.layout.floorplan import floorplan_of
 from gmid_engine.layout.rows import compose_rows
 
 from .conftest import centroid_offsets, dev, graph_value, make_input, mg, new_memo, rg, staged_snapshot, toy_pdk
+from .conftest import block_row, fresh_run  # [XRUN-F1 card B C0·C1]
 from .test_floorplan import row as plain_row
 from .test_row_euler import walk_ok
 
@@ -365,9 +366,10 @@ def test_same_content_computed_once_per_block_call(toy_lut, monkeypatch):
 
 
 def test_block_reuse(toy_lut):
-    compose_rows.reset_stats()
+    # oracle 대조: card B C4 판정 1 -- 같은 실행(run)에서 같은 lineage 재호출 = reuse, 같은 입력 재계산 0(C1 행)
+    run = fresh_run()
     inp = make_input([dev("C", "x", "y", 1e-6)], [], [rg("r", ("C",))], toy_pdk(toy_lut))
-    snap = staged_snapshot(inp, new_memo(toy_lut), "compose_rows")
-    assert compose_rows(snap) is snap
-    st = compose_rows.stats()
-    assert st.recomputes_same_input == 0 and st.reuses == 1
+    snap = staged_snapshot(inp, new_memo(toy_lut), "compose_rows", run=run)
+    assert compose_rows(snap, **run) is snap
+    st = block_row(run["counters"], compose_rows.name)
+    assert st[5] == 0 and st[1] == 1

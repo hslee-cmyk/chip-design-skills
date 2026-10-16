@@ -93,7 +93,10 @@ def build(tmp, topo_doc, spec_doc, lut, archive_root, extra_files=(), m=None):
     sp.write_text(json.dumps(spec_doc), encoding="utf-8")
     spec = load_sizing_spec(str(sp), td, spec_catalog())
     inputs = dc_inputs_from_spec(spec)
-    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, new_access(lut))
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C0·C6] 이 build 하나 = 실행 하나
+    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v), donors=donors, counters=counters), inputs, new_access(lut),
+                              donors=donors, counters=counters)
     pdk, rule = write_decls(tmp / "pdk")
     settings = SearchSettings(600.0, EVAL_BUDGET, (1e3, 1e6), SRC, (1e-13, 1e-11))
     return build_search_context(dc, spec, settings, archive_root, pdk, rule, code_fp=CODE_FP)

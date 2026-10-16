@@ -31,6 +31,7 @@ from gmid_engine.layout.rows import compose_rows
 
 from .conftest import (DP_GRAPH_KEY, DP_METRIC_VERSION, DP_OP_VERSION, build_toy_lut, design_point, design_point_of, dev, dp_writers,
                        layout_fields, make_input, mg, new_memo, rg, strip_volatile, toy_pdk)
+from .conftest import block_row, fresh_run  # [XRUN-F1 card B C0·C1]
 
 ALL_WRITERS = ("ly_slice_density", "ly_finger_candidates", "ly_pattern_select", "ly_finger_geometry", "ly_rows")
 
@@ -46,9 +47,10 @@ def composite(pdk, extra=(), extra_rgs=(), rejected=(), adj=True, diode_C=False)
     return make_input(ds, groups, rgs, pdk, rejected)
 
 
-def run(inp, memo, previous=None):
-    """`run_layout` 을 그 입력 소자들의 설계점 대역 위에서 부른다(재시도 `previous` 는 같은 설계점 lineage)."""
-    return run_layout(inp, memo, design_point_of(inp), previous)
+def run(inp, memo, previous=None, rp=None):
+    """`run_layout` 을 그 입력 소자들의 설계점 대역 위에서 부른다(재시도 `previous` 는 같은 설계점 lineage).
+    [XRUN-F1 card B C6] rp = 실행 두 객체 키워드(dict), 없으면 새 실행 하나."""
+    return run_layout(inp, memo, design_point_of(inp), previous, **(rp if rp is not None else fresh_run()))
 
 
 def G(res, field):
@@ -93,24 +95,34 @@ def test_design_point_must_be_snapshot(toy_lut):
     # 4.12 1: `design_point` 가 GraphSnapshot 이 아니면 TypeError (§2.4.7: 레이아웃 필드는 설계점 스냅샷 위에만)
     inp = composite(toy_pdk(toy_lut))
     with pytest.raises(TypeError):
-        run_layout(inp, new_memo(toy_lut), None)
+        run_layout(inp, new_memo(toy_lut), None, **fresh_run())
     with pytest.raises(TypeError):
-        run_layout(inp, new_memo(toy_lut), {"not": "a snapshot"})
+        run_layout(inp, new_memo(toy_lut), {"not": "a snapshot"}, **fresh_run())
+
+
+@pytest.mark.parametrize("missing", ["donors", "counters", "both"])
+def test_run_pair_keywords_required(toy_lut, missing):
+    """B-T16(XRUN-F1 card B C6): run_layout 의 donors·counters 는 필수 키워드(기본값 없음) -- 빠지면 TypeError."""
+    inp = composite(toy_pdk(toy_lut))
+    kw = {k: v for k, v in fresh_run().items() if missing != "both" and k != missing}
+    with pytest.raises(TypeError):
+        run_layout(inp, new_memo(toy_lut), design_point_of(inp), **kw)
 
 
 def test_previous_from_other_design_point_rejected(toy_lut):
     # 4.12 2: `previous` 는 같은 설계점 lineage 만 -- 설계점 writer 의 block_version 이 하나라도 다르면 ValueError
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     inp = composite(toy_pdk(toy_lut))
     names = tuple(d.name for d in inp.devices)
-    r1 = run_layout(inp, memo, design_point(names))
+    r1 = run_layout(inp, memo, design_point(names), **rp)
     other = GraphSnapshot.empty(dp_writers())
     other = other.write("dp_kernel", "dp-op-v2", {("device", "dp_op"): {n: ("op2", n) for n in names}})
     other = other.write("dp_metrics", DP_METRIC_VERSION, {("graph", "dp_metric"): {DP_GRAPH_KEY: 1.0}})
     with pytest.raises(ValueError):
-        run_layout(inp, memo, other, previous=r1)
+        run_layout(inp, memo, other, previous=r1, **rp)
     # 같은 설계점(같은 block_version)의 다른 스냅샷 객체는 같은 lineage 로 받는다
-    r2 = run_layout(inp, memo, design_point(names), previous=r1)
+    r2 = run_layout(inp, memo, design_point(names), previous=r1, **rp)
     assert r2.computed_blocks == ()
 
 
@@ -342,45 +354,41 @@ def _misses(memo):
     return {r: s.misses for r, s in memo.stats()}
 
 
-def _reset_blocks():
+def _assert_no_same_input_recompute(rp):
+    """[XRUN-F1 card B C1] 그 test 실행(rp)의 계수에서 레이아웃 블록 4개 같은 입력 재계산 0."""
     for b in (finger_candidates, pattern_select, finger_geometry, compose_rows):
-        b.reset_stats()
-
-
-def _assert_no_same_input_recompute():
-    for b in (finger_candidates, pattern_select, finger_geometry, compose_rows):
-        assert b.stats().recomputes_same_input == 0, b.name
+        assert block_row(rp["counters"], b.name)[5] == 0, b.name
 
 
 def test_previous_same_input_computes_nothing(toy_lut):
-    _reset_blocks()
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     inp = composite(toy_pdk(toy_lut))
-    r1 = run(inp, memo)
+    r1 = run(inp, memo, rp=rp)
     m1 = _misses(memo)
-    r2 = run(inp, memo, previous=r1)
+    r2 = run(inp, memo, previous=r1, rp=rp)
     assert r2.computed_blocks == ()
     assert r2.snapshot is r1.snapshot                                             # 4.13 10: 스냅샷이 previous.snapshot 그대로
     assert strip_volatile(r2) == strip_volatile(r1)
     assert _misses(memo) == m1                                                   # LUT 조회 재계산 0
-    _assert_no_same_input_recompute()
+    _assert_no_same_input_recompute(rp)
 
 
 def test_rejected_only_change_reuses_slices_and_candidates(toy_lut):
-    _reset_blocks()
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     ds = [dev("A", "h", "da", 1e-6), dev("B", "h", "db", 1e-6)]
     g, r = [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B"))]
-    r1 = run(make_input(ds, g, r, toy_pdk(toy_lut)), memo)
+    r1 = run(make_input(ds, g, r, toy_pdk(toy_lut)), memo, rp=rp)
     m1 = _misses(memo)
-    r2 = run(make_input(ds, g, r, toy_pdk(toy_lut), rejected=("A",)), memo, previous=r1)
+    r2 = run(make_input(ds, g, r, toy_pdk(toy_lut), rejected=("A",)), memo, previous=r1, rp=rp)
     assert "ly_slice_density" not in r2.computed_blocks
     assert "ly_finger_candidates" not in r2.computed_blocks
     assert "ly_pattern_select" in r2.computed_blocks
     assert _misses(memo) == m1
     assert groups(r2)[0].reason == "w_request_rejected"                         # [U12] 즉시 완화 없음(옛 "relaxed:" 접두 없음)
     assert groups(r2)[0].pattern is None
-    _assert_no_same_input_recompute()
+    _assert_no_same_input_recompute(rp)
 
 
 def test_id_change_recomputes_from_slices(toy_lut):
@@ -449,7 +457,9 @@ groups = [mg("g1", ("A", "B"), "diff_pair", "h"), mg("g2", ("E", "F"), "branch_s
           mg("g3", ("C", "G"), "bias_distribution", "y")]
 rgs = [rg("r1", ("A", "B")), rg("r2", ("E", "F")), rg("r", ("C", "D")), rg("r4", ("G", "H")), rg("rp", ("P",), body="sub2")]
 inp = make_input(ds, groups, rgs, pdk)
-res = run_layout(inp, new_memo(lut), design_point_of(inp))
+from gmid_engine.search import open_run
+donors, counters = open_run()
+res = run_layout(inp, new_memo(lut), design_point_of(inp), donors=donors, counters=counters)
 RESULT = repr(strip_volatile(res))
 '''
 
@@ -663,16 +673,18 @@ def test_passives_reach_floorplan(toy_lut):
 
 def test_passives_only_change_recomputes_rows_block_only(toy_lut):
     # 4.12 캐시: 수동소자만 바뀌면 슬라이스·후보·패턴·finger 블록은 다시 계산하지 않고 ly_rows(floorplan) 만 다시 계산한다
-    _reset_blocks()
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     inp = composite(toy_pdk(toy_lut))
-    r1 = run(inp, memo)
-    r2 = run(dataclasses.replace(inp, passives=(LayoutPassive("Cc", 3e-12),)), memo, previous=r1)
+    r1 = run(inp, memo, rp=rp)
+    r2 = run(dataclasses.replace(inp, passives=(LayoutPassive("Cc", 3e-12),)), memo, previous=r1, rp=rp)
     assert r2.computed_blocks == ("ly_rows",)
     assert floorplan(r2).passive_area_m2 == pytest.approx(30102e-16, rel=1e-9)
-    _assert_no_same_input_recompute()
-    # 되돌리면 수동소자 없음(스냅샷은 직전 값만 들고 있어 r1 입력으로의 복귀는 ly_rows 재계산이 정상 -- 재계산 계수는 위에서만 본다)
-    r3 = run(inp, memo, previous=r2)
+    _assert_no_same_input_recompute(rp)
+    # 되돌리면 수동소자 없음(스냅샷은 직전 값만 들고 있다). [XRUN-F1 card B C4·C6] 같은 실행이면 r1 의 ly_rows 입력은 색인에 있어 이식된다 --
+    # computed_blocks 는 '값을 쓴 writer(계산 또는 이식)'라 그대로 ("ly_rows",), 같은 입력 재계산은 여전히 0
+    r3 = run(inp, memo, previous=r2, rp=rp)
+    _assert_no_same_input_recompute(rp)
     assert r3.computed_blocks == ("ly_rows",)
     assert floorplan(r3).passive_area_m2 == 0.0
     assert floorplan(r3) == floorplan(r1)
@@ -704,7 +716,7 @@ def test_layout_fields_written_on_design_point_snapshot(toy_lut):
     inp = composite(toy_pdk(toy_lut))
     names = tuple(d.name for d in inp.devices)
     dp = design_point(names)
-    r = run_layout(inp, new_memo(toy_lut), dp)
+    r = run_layout(inp, new_memo(toy_lut), dp, **fresh_run())
     snap = r.snapshot
     assert isinstance(snap, GraphSnapshot)
     for (kind, key, field), fv in layout_fields(snap, names).items():
@@ -719,7 +731,7 @@ def test_layout_field_writers_are_single_mod7_blocks(toy_lut):
     # §2.4.8 writer = MOD7 블록, 필드마다 writer 하나(SC-a). 레이아웃 writer 는 레이아웃 필드만 쓴다.
     inp = composite(toy_pdk(toy_lut))
     names = tuple(d.name for d in inp.devices)
-    r = run_layout(inp, new_memo(toy_lut), design_point(names))
+    r = run_layout(inp, new_memo(toy_lut), design_point(names), **fresh_run())
     table = r.snapshot.writers
     for (kind, field), writer in lf.LY_WRITERS.entries:
         assert writer in MOD7_WRITERS
@@ -740,15 +752,16 @@ def test_no_separate_layout_lineage(toy_lut, monkeypatch):
     inp = composite(toy_pdk(toy_lut))
     names = tuple(d.name for d in inp.devices)
     dp = design_point(names)
+    rp = fresh_run()                       # open_run() 은 GraphSnapshot.empty 를 부르지 않는다는 가정 없이 monkeypatch 앞에서 만든다
     monkeypatch.setattr(GraphSnapshot, "empty", classmethod(no_new_lineage))
-    r = run_layout(inp, new_memo(toy_lut), dp)
+    r = run_layout(inp, new_memo(toy_lut), dp, **rp)
     _assert_design_point_kept(r.snapshot, dp, names)
 
 
 def test_layout_result_carries_only_snapshot_and_computed_blocks(toy_lut):
     # §2.4.7: `LayoutResult` 는 (스냅샷, 이번 호출의 계산 블록 목록)만 둔다 -- 결과 값 사본 없음
     inp = composite(toy_pdk(toy_lut))
-    r = run_layout(inp, new_memo(toy_lut), design_point(tuple(d.name for d in inp.devices)))
+    r = run_layout(inp, new_memo(toy_lut), design_point(tuple(d.name for d in inp.devices)), **fresh_run())
     assert isinstance(r.snapshot, GraphSnapshot)
     assert isinstance(r.computed_blocks, tuple) and all(isinstance(w, str) for w in r.computed_blocks)
     assert set(r.computed_blocks) <= MOD7_WRITERS
@@ -760,9 +773,10 @@ def test_same_design_point_second_request_reuses_fields(toy_lut):
     inp = composite(toy_pdk(toy_lut))
     names = tuple(d.name for d in inp.devices)
     dp = design_point(names)
-    r1 = run_layout(inp, memo, dp)
+    rp = fresh_run()
+    r1 = run_layout(inp, memo, dp, **rp)
     m1 = _misses(memo)
-    r2 = run_layout(inp, memo, r1.snapshot)
+    r2 = run_layout(inp, memo, r1.snapshot, **rp)
     assert r2.computed_blocks == ()
     assert _misses(memo) == m1                                                   # LUT 조회도 다시 하지 않는다
     assert r2.snapshot.fp == r1.snapshot.fp
@@ -778,8 +792,9 @@ def test_layout_retry_stays_on_design_point_lineage(toy_lut):
     ds = [dev("A", "h", "da", 1e-6), dev("B", "h", "db", 1e-6)]
     g, rgs = [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B"))]
     dp = design_point(("A", "B"))
-    r1 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut)), memo, dp)
-    r2 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut), rejected=("A",)), memo, r1.snapshot)
+    rp = fresh_run()
+    r1 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut)), memo, dp, **rp)
+    r2 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut), rejected=("A",)), memo, r1.snapshot, **rp)
     _assert_design_point_kept(r2.snapshot, dp, ("A", "B"))
     rej = r2.snapshot.field(lf.GRAPH, lf.GRAPH_KEY, lf.F_REJECTED)
     assert rej.value == ("A",)
@@ -793,8 +808,9 @@ def test_layout_retry_via_previous_keyword_is_same_lineage(toy_lut):
     ds = [dev("A", "h", "da", 1e-6), dev("B", "h", "db", 1e-6)]
     g, rgs = [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B"))]
     dp = design_point(("A", "B"))
-    r1 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut)), memo, dp)
-    r2 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut), rejected=("A",)), memo, dp, previous=r1)
+    rp = fresh_run()
+    r1 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut)), memo, dp, **rp)
+    r2 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut), rejected=("A",)), memo, dp, previous=r1, **rp)
     _assert_design_point_kept(r2.snapshot, dp, ("A", "B"))
     rej = r2.snapshot.field(lf.GRAPH, lf.GRAPH_KEY, lf.F_REJECTED)
     assert (rej.value, rej.writer, rej.write_count) == (("A",), lf.WRITER_INPUT, 2)

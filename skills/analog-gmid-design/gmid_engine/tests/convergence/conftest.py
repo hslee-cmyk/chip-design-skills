@@ -208,7 +208,8 @@ REAL_CIRCUITS = ("common_gate_amplifier", "two_stage_ota")
 
 
 class RealPath:
-    """회로·변형마다 (case, sctx, 출발 EvalResult, converge 결과, 스파이 기록) 을 한 번 만든다(세션 캐시)."""
+    """회로·변형마다 (case, sctx, 출발 EvalResult, converge 결과, 스파이 기록) 을 만든다. 입력(LUT·PDK·S1)은 세션 1회, 실행(두 객체)은
+    부를 때마다 새로([XRUN-F1 card B M-d] -- `run` 참고)."""
 
     def __init__(self, tmp):
         from generality.pipeline import Env, Pipe
@@ -217,7 +218,6 @@ class RealPath:
         except RuntimeError as e:          # 입력 없음은 skip 이 아니라 FAIL
             pytest.fail("convergence 실경로 test 입력(실 LUT v2·PDK) 없음: %s" % e, pytrace=False)
         self.pipe = Pipe(self.env, tmp)
-        self._runs = {}
 
     def start(self, name, variant="orig"):
         from generality.pipeline import map_cells, map_theta
@@ -236,10 +236,9 @@ class RealPath:
         return case, sctx, result
 
     def run(self, name, variant="orig"):
-        key = (name, variant)
-        if key not in self._runs:
-            self._runs[key] = self._converge(name, variant)
-        return self._runs[key]
+        """[XRUN-F1 card B 규칙 M M-d, interface card C0·C6] 결과(SimpleNamespace)가 sctx(실행의 두 객체를 칸으로 쥠)를 담으므로 test 사이에
+        캐시하지 않는다 -- 부를 때마다 새 실행(Pipe.case 가 새 open_run() 쌍의 KernelContext). 이 객체는 session fixture 라 test 하나보다 오래 산다."""
+        return self._converge(name, variant)
 
     def _converge(self, name, variant):
         from gmid_engine.convergence import converge, realized_geometry
