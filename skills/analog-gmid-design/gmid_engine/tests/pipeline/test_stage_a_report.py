@@ -31,7 +31,9 @@ import s1v_hand as H
 # U15 전까지 유일한 출구)
 # [xrun] 옛 S0 적중 칸은 없어졌다(설계 40 v1.10 §2.4.3 '단계 사이 전달': 단계 A 보고서에 S0 스냅샷 키를 두지 않는다, interface card C1 보고서 키 13개)
 # [U17 ①-d] 40 v1.8 §6-5 '대조 표 orbit_matching_crosstab 을 보고한다' -- 단계 A 보고서 키(pipeline CONTRACT 1절 [U17-1d])
-KEYS = ["applied_facts", "circuit", "count_budget", "coupling", "declared_comparison", "exit_code", "ff_ratio_candidates",
+# [NFR-4 card 2] interface card C3: 최상위 키 `env_fp`(실행 환경 지문 = 재확인 (a)의 blas_environment() 값의 core fp_of) -- 정상·정지 경로 모두,
+# 키 집합 정확히 14개(설계 40 §2.4.13 (1) '결과 값', (5) '승인 불필요: 단계 A 보고서 최상위 키 13 -> 14').
+KEYS = ["applied_facts", "circuit", "count_budget", "coupling", "declared_comparison", "env_fp", "exit_code", "ff_ratio_candidates",
         "orbit_matching_crosstab", "review_needed", "status", "stop_reasons", "tables", "views"]
 
 
@@ -59,7 +61,7 @@ def test_files_and_sorted_keys(tmp_path, real_lut):
     assert all(keys == sorted(keys) for keys in seen)          # 하위 객체도 키 정렬
     assert data == json.loads(json.dumps(r.report))            # 결과의 report 와 같은 내용
     assert data["circuit"] == "cs" and data["exit_code"] == 0 and data["status"] == "ok"
-    assert len(KEYS) == 13                                     # [xrun] interface card C1: 정상·정지 경로 모두 같은 13개
+    assert len(KEYS) == 14                                     # [NFR-4 card 2] interface card C3: 정상·정지 경로 모두 같은 14개
 
 
 def test_stop_reason_format(tmp_path, real_lut):
@@ -166,3 +168,32 @@ def test_column_unassigned_stops_stage_a(tmp_path, real_lut):
     assert len(a4) == 1 and "column_unassigned" in a4[0] and "Mx" in a4[0]
     assert r.report["coupling"] is None
     assert Path(r.report_paths[0]).exists()                    # 정지해도 보고서는 쓴다(pipeline CONTRACT 4)
+
+
+def test_env_fp_recorded(tmp_path, real_lut):
+    """[NFR-4 card 2, N-T13] interface card C3: 단계 A 보고서(dict `StageAResult.report` 와 파일 `<output_dir>/<circuit>.stage_a.json`) 최상위 키
+    `env_fp` = 같은 프로세스에서 test 가 부른 `fp_of(blas_environment())` -- 정상 경로(CS ok)와 정지 경로(XCOUP 기록만 정지, A1_load topology 거부,
+    A2_structure_json structure 거부) 모두. 최상위 키 집합 = 14개 정확히.
+    oracle: (식) 계약의 키 목록, (비교) 같은 함수 두 출력(보고서 값 대 test 의 fp_of(blas_environment())), (독립) 보고서 파일 JSON 읽기."""
+    from gmid_engine.graph import structure_rule_fp
+    ok = _run(tmp_path, real_lut, H.CS, out="ok")
+    stopped = _run(tmp_path, real_lut, H.XCOUP, out="stop")
+    bad = {k: v for k, v in H.CS.items() if k != "passive_elements"}
+    bad["topology_name"] = "cs_bad"
+    load_stop = _run(tmp_path, real_lut, bad, out="load")
+    sdir = tmp_path / "s"
+    sdir.mkdir()
+    J.write_structure(sdir / "cs.structure.json", "0" * 64, structure_rule_fp(), [J.fact_dict("frobnicate", "M1", "M1")])  # 어휘 밖 concept
+    tp = sdir / "cs.topology.json"
+    tp.write_text(json.dumps(H.CS), encoding="utf-8")
+    s_stop = run_stage_a(tp, None, real_lut, output_dir=tmp_path / "s_out", supplies_v=H.SUPPLIES)
+    assert (ok.status, stopped.status, load_stop.exit_code, s_stop.exit_code) == ("ok", "stopped", 7, 7)       # 전제: 네 경로
+    assert load_stop.report["stop_reasons"][0].startswith("A1_load")
+    assert s_stop.report["stop_reasons"][0].startswith("A2_structure_json")
+    files = [json.loads(Path(r.report_paths[0]).read_text(encoding="utf-8")) for r in (ok, stopped, load_stop, s_stop)]
+    for r, data in zip((ok, stopped, load_stop, s_stop), files):
+        assert sorted(r.report) == KEYS and sorted(data) == KEYS, sorted(set(r.report) ^ set(KEYS))
+    from gmid_engine.core import blas_environment
+    want = fp_of(blas_environment())                                        # (비교) 같은 프로세스의 같은 함수 출력
+    for r, data in zip((ok, stopped, load_stop, s_stop), files):
+        assert r.report["env_fp"] == data["env_fp"] == want

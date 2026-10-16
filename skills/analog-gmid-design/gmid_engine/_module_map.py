@@ -43,7 +43,7 @@ LAYERS = (
     (
         "core",
         (
-            ("canonical_key.py", "determinism.py", "fingerprint.py", "immutability.py", "margin.py", "units.py",
+            ("blas_env.py", "canonical_key.py", "determinism.py", "fingerprint.py", "immutability.py", "margin.py", "units.py",
              "writer_error.py"),
             ("bounded_lru.py", "engine_code_fp.py", "failure_record.py", "field_value.py", "metric_signature.py", "projection.py",
              "writer_table.py"),
@@ -194,6 +194,9 @@ LAYERS = (
 MODULES = (
     ModuleEntry("core/determinism.py", "entry", "sorted_items",
                 "정렬된 tuple 순회 도우미", ("NFR-4", "IC2")),
+    ModuleEntry("core/blas_env.py", "entry", "pin_blas_threads",
+                "BLAS 스레드 1 고정·확인(import 때 1회, 못 하면 RuntimeError)과 재확인용 실행 환경 값 `blas_environment()`(무상태, 지문 `env_fp`의 출처)",
+                ("NFR-4", "EP-9")),
     ModuleEntry("core/canonical_key.py", "entry", "canonical_key",
                 "memo 키 정준화(fp_of 와 같은 동치 관계의 hashable 값, 직렬화·sha256 없음)와 불변 검사", ("NFR-2", "DF-13", "SC-a")),
     ModuleEntry("core/fingerprint.py", "entry", "fp_of",

@@ -17,6 +17,9 @@
    이상원만 읽는 행은 움직일 수 없어 뺀다), I_c,m = 그 MOS kind 의
    `SearchDomain.current_box` 기하 중심. 기저 원소가 MOS 하나뿐인 행은 상자 중심에서 u = 0 이라 1 의 중심과 같다.
    수렴 판정은 scipy SLSQP 기본값(이 문제는 커널이 없어 판정 분해능 단위가 없다 -- 부동소수 수준).
+   끌어올림(출발 사다리 칸의 `current_ref` 가 있을 때만): 풀이기 해 x 에서 행마다 q_m(s) = A_m·e^s + F_m 을 놓고 e^s = max_{A_m>0}(1 + √ε − F_m)/A_m (s = max(0, ln 그 값), √ε =
+   `math.sqrt(sys.float_info.epsilon)`)로 움직이는 θ 전류를 모두 e^s 배 한다 -- 가장 낮은 행이 q = 1 + √ε 의 경계 배치점이 된다(BP1, 풀이기 목적값 u 는 쓰지 않아 풀이기 잡음이 경계
+   부호를 정하지 않는다; 41 §5.13).
 3. **최대-최소**(커널): 시작점을 평가해 받아들일 상태(봉인 통과·봉인 7 대기)가 아니면(전류 중심이 원뿔 밖이어도) [S-4b,
    오케스트레이터 결정 2026-10-08] 같은 변수·같은 L 칸에서 Halton 열(스크램블 없음, [r11] 차원 = 이름 없는 정준 (종류, 구조 색) 키 -- CONTRACT 3.21 3a) 점을 순서대로 평가해 처음 받아들일 상태인
    점을 출발점으로 삼는다(`_halton_probe` -- 한도는 평가 예산 규칙). 그래도 없으면 끝(`start_<사유>+probe_<한도>`, 층 0 시작점
@@ -42,6 +45,7 @@ import time
 import numpy as np
 from scipy.optimize import minimize as scipy_minimize
 
+from gmid_engine.core import blas_environment
 from gmid_engine.sizing import KERNEL_KEY, REASON_NO_ROOT, THETA_CURRENT, THETA_L, THETA_LN_IDU
 
 from .canonical_order import canonical_order
@@ -235,9 +239,23 @@ def _current_centre(sctx, variables, theta, rung=None):
     out = scipy_minimize(lambda v: v[n], np.asarray(z0 + [u0], dtype=float), jac=lambda v: grad, method="SLSQP",
                          bounds=bounds, constraints=[{"type": "ineq", "fun": cons, "jac": cons_jac}])
     u = float(out.x[n])
-    # [U13] 기준 전류가 '폭 = W_min 인 전류 이상'(`StartRung.current_ref`)이면 Chebyshev 해의 MOS 전류는 기준의 e^±u 배 안에 든다 -- 움직이는 θ 전류를 모두 e^u 배 올려 모든 MOS 가
-    # 기준 이상(= 폭 ≥ W_min)이 되게 한다. 원뿔(행 합이 양수)이 깨지면(고정 전류·음의 계수) 올리지 않는다.
-    lift = u if start is not None and start.current_ref else 0.0
+
+    def lift_exponent(z):
+        # [NFR-4 BP1, 41 §5.13] 끌어올림 닫힌 식. 행 m 의 q_m(s) = A_m·e^s + F_m (A_m = 움직이는 θ 전류 항 / 기준 전류, F_m = 고정 항 / 기준 전류). 풀이기 목적값 u 는 쓰지 않는다 --
+        # 풀이기 해 z 는 '어느 행이 경계에 놓이는가'를 고르는 데만 쓰고 경계 좌표는 선언량(계수·고정 전류·기준 전류)의 닫힌 식에서 나온다. 가장 낮은 행이 q = 1 + √ε(부동소수 여유,
+        # 판정 쪽 안쪽)에 놓이고 A_m > 0 인 나머지 행은 그 이상이다. A_m > 0 행이 없거나 분자가 모두 ≤ 0 이면 식이 정의되지 않아 올리지 않는다. s < 0 도 올리기만 하는 as-built 와 같이 0.
+        margin = 1.0 + math.sqrt(sys.float_info.epsilon)
+        ratio = 0.0
+        for m, terms in rows:
+            moving = sum(w * math.exp(z[pos[s]]) / ref[m] for w, s in terms if s in pos)
+            if moving > 0:
+                still = sum(w * fixed[s] / ref[m] for w, s in terms if s not in pos)
+                ratio = max(ratio, (margin - still) / moving)
+        return math.log(ratio) if ratio > 1.0 else 0.0
+
+    # [U13] 기준 전류가 '폭 = W_min 인 전류 이상'(`StartRung.current_ref`)일 때만 움직이는 θ 전류를 모두 e^s 배 올려 모든 MOS 가 기준 이상(= 폭 ≥ W_min)이 되게 한다(적용 조건 as-built).
+    # 원뿔(행 합이 양수)이 깨지면(고정 전류·음의 계수) 올리지 않는다.
+    lift = lift_exponent(out.x[:n]) if start is not None and start.current_ref else 0.0
     for scale in ((lift, 0.0) if lift else (0.0,)):
         moved = dict(theta)
         for k, i in enumerate(index):
@@ -636,6 +654,7 @@ def centre_start(sctx, rung=None):
 
 
 def layer0_start(sctx, origin=()):
+    blas_environment()      # [NFR-4 재확인 (d)] 진입에서 BLAS 스레드 1 을 다시 확인(무상태, 값은 기록하지 않는다)
     calls0 = sctx.counters["kernel_calls"]
     tag = origin + (("stage", STAGE_LAYER0),)
     # [U13] 출발 사다리(`graph/start: rungs`: 실행 가능한 최대 gm/ID 위치에서 구간 하한 쪽으로 반씩)를 칸 순서로 커널에 확인해 처음 받아들일 상태인 칸에서 출발한다.

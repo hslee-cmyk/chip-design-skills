@@ -1,0 +1,19 @@
+{
+  "id": "20261015-nfr4c2",
+  "freeze": {
+    "target_head": "2bdc926ba8fe5c9a1074d4dff01a8e0c4ffdebb1",
+    "parents": ["a34054d4b2ed99b46fe395eac130bde7b664e066", "6b9e30463171c4808f84f15a0b3dd8d91d18983d"],
+    "test_end_commit": "6b9e30463171c4808f84f15a0b3dd8d91d18983d",
+    "test_commit_trailers": "Role: test, Change-Id: nfr4c2",
+    "test_diff_64c77c1_to_6b9e304": "3 files +10 -7: tests/conftest.py comment 1 line, tests/integration/nfr4_run_dump.py threads_env read before engine import, tests/integration/test_blas_thread_determinism.py docstring 3 lines",
+    "engine_diff_a34054d_to_2bdc926": "0 lines outside gmid_engine/tests"
+  },
+  "orchestrator_decisions": "J-O1 ValueError 9 red 인정, J-O2 card A-3 red 예상 목록 결함 기록(감점 없음), J-O3 A-1 문구는 test 쪽 수정, A-5 범위 밖 3회로 사용자 결정 대기",
+  "reused": "red(base_check.json), A-4(a4_compare.json), A-5(a5_changes.json), A-2, A-8, A-9, 규칙 H -- 엔진 코드 불변으로 재측정하지 않음",
+  "runs": {
+    "determinism_file": "python -m pytest -q gmid_engine/tests/integration/test_blas_thread_determinism.py -p no:cacheprovider --run-slow -> 10 passed in 566.85 s",
+    "full_suite": "python -m pytest -q gmid_engine/tests -p no:cacheprovider --run-slow (바깥 OPENBLAS 미지정) -> 10087 passed, 1 deselected, 2 xfailed in 2291.53 s, exit 0",
+    "green_of_red": "52/52 (green_of_red_2bdc926.json)",
+    "a1_grep": "lift = u 0; OPENBLAS_NUM_THREADS conftest 0 / test_converge 0 / test_no_s0_files_written 0; _BLAS_THREAD_ENV 0; determinism xfail 0; _REL 0; set_num_threads .py outside core/blas_env.py 0"
+  }
+}

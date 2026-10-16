@@ -24,6 +24,8 @@
   유도 stage 와 대조하는 declared 로 쓴다. topology 태그 섹션은 읽지 않는다(IC4).
 * [NFR-2·U-89] S0 수준 층은 실행마다 처음부터 계산한다: 빈 S0 수준 스냅샷(`GraphSnapshot.empty(S0_WRITERS)`, 권한표 search `S0_WRITERS`) 위에서 `build_s1`·`build_s1v`·`coupling_vars` 가
   모든 블록을 부르고, 그 실행 안에서는 입력 버전이 같으면 다시 계산하지 않는다(필드가 곧 캐시). 디스크 스냅샷을 읽거나 쓰지 않는다(설계 40 §2.4.3).
+* [NFR-4] 진입에서 `core.blas_environment()` 를 한 번 불러 BLAS 스레드 1 을 다시 확인하고(재확인 (a), 실패는 `RuntimeError`) 그 값의 `fp_of` 를 보고서 최상위 키 `env_fp` 에 둔다(정상·정지 경로 모두,
+  키 14개). `StageAResult` 칸은 늘지 않는다.
 * 엔진 코드 지문 `engine_code_fp()` 은 실행마다 여기서 한 번 재고 `StageAResult.code_fp` 로 넘긴다 -- `search.build_search_context(code_fp=)` 가 그 값을 받는다(재계산 0).
 * 결과 `StageAResult` 는 S0 수준 스냅샷 참조(`s1` = 그 스냅샷 위 `S1Graph` -- S1·S1v·결합 필드)와 보고서 경로를 담는다. 묶음 `S1v` 는 없다(설계 40 §2.4.7 v1.9.1 D1):
   커널 컨텍스트는 L 동치류를 필드 `graph/s1v: l_classes` 에서 읽는다.
@@ -36,8 +38,10 @@ from gmid_engine.core import (
     GraphSnapshot,
     SchemaRejectedError,
     StructureUnresolvedError,
+    blas_environment,
     engine_code_fp,
     exit_code_for,
+    fp_of,
 )
 from gmid_engine.graph import (
     ELEMENT_MOS,
@@ -90,11 +94,11 @@ class StageAResult:
     code_fp: object = None
 
 
-def _stopped(circuit, exc, stage):
+def _stopped(circuit, exc, stage, env_fp):
     return {"circuit": circuit, "status": STATUS_STOPPED, "exit_code": exit_code_for(exc), "count_budget": 0,
             "declared_comparison": "not_performed", "stop_reasons": [stage + ": " + str(exc.record.to_json())],
             "review_needed": [], "views": [], "applied_facts": [], "ff_ratio_candidates": [], "coupling": None, "tables": None,
-            "orbit_matching_crosstab": None}
+            "orbit_matching_crosstab": None, "env_fp": env_fp}
 
 
 def _supplies(spec, supplies_v):
@@ -193,6 +197,7 @@ def _finish(report, output_dir, circuit, code_fp, s1=None, spec=None):
 
 
 def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None):
+    env_fp = fp_of(blas_environment())      # [NFR-4 재확인 (a)] 진입에서 한 번 -- 확인 실패는 RuntimeError, 반환값 지문이 보고서 `env_fp`(정상·정지 경로 모두)
     code_fp = engine_code_fp()
     circuit = Path(topology_path).name.removesuffix(TOPOLOGY_SUFFIX)
     try:
@@ -200,26 +205,26 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
         spec = None if spec_path is None else load_sizing_spec(str(spec_path), topology, metric_catalog())
         marks = NO_MARKS if spec is None else symmetry_marks(dc_inputs_from_spec(spec))
     except SchemaRejectedError as exc:
-        return _finish(_stopped(circuit, exc, "A1_load"), output_dir, circuit, code_fp)
+        return _finish(_stopped(circuit, exc, "A1_load", env_fp), output_dir, circuit, code_fp)
     path = Path(structure_path) if structure_path is not None else Path(topology_path).with_name(circuit + STRUCTURE_SUFFIX)
     rule_fp = structure_rule_fp()
     try:
         structure = load_structure_facts(path, topology.connectivity_fp, rule_fp, _net_names(topology))
     except SchemaRejectedError as exc:
-        return _finish(_stopped(circuit, exc, "A2_structure_json"), output_dir, circuit, code_fp)
+        return _finish(_stopped(circuit, exc, "A2_structure_json", env_fp), output_dir, circuit, code_fp)
     supplies = _supplies(spec, supplies_v)
     base = GraphSnapshot.empty(S0_WRITERS)
     try:
         s1 = build_s1(topology, supplies, previous=base, structure=structure, marks=marks)
     except (SchemaRejectedError, StructureUnresolvedError) as exc:
-        return _finish(_stopped(circuit, exc, "A2_build_s1"), output_dir, circuit, code_fp)
+        return _finish(_stopped(circuit, exc, "A2_build_s1", env_fp), output_dir, circuit, code_fp)
     classes = dict(s1.column("device", "element_class"))
     kinds = {kind for name, kind in s1.column("device", "kind") if classes[name] == ELEMENT_MOS}
     try:
         budget = structure_count_budget(lut, kinds, None if spec is None else spec.structure_count_budget)
     except ValueError as exc:   # N_S 정의역 밖(MOS 없음·LUT 슬라이스 없음) -- 보고서를 쓰고 정지
         return _finish(_stopped(circuit, StructureUnresolvedError(detail={"reason": "count_budget_undefined", "message": str(exc)}),
-                                "A2_count_budget"), output_dir, circuit, code_fp, s1)
+                                "A2_count_budget", env_fp), output_dir, circuit, code_fp, s1)
     groups = tuple(tuple(f.value.split()) for f in structure.facts if f.concept == CONCEPT_STAGE_MEMBERS)
     declared = ((path.name, groups),) if groups else ()
     declared_cuts = _declared_loop_cuts(spec)
@@ -240,5 +245,6 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
     report = {"circuit": circuit, "status": status, "exit_code": code, "count_budget": budget, "declared_comparison": comparison,
               "stop_reasons": unsupported, "review_needed": review, "views": [_view_summary(v) for v in views],
               "applied_facts": [list(f) for f in s1.value("graph", S1V_KEY, "applied_facts")], "ff_ratio_candidates": _ff_ratio_rows(views),
-              "coupling": coupling, "tables": structure_tables(s1), "orbit_matching_crosstab": _crosstab_report(crosstab)}
+              "coupling": coupling, "tables": structure_tables(s1), "orbit_matching_crosstab": _crosstab_report(crosstab),
+              "env_fp": env_fp}
     return _finish(report, output_dir, circuit, code_fp, s1, spec)

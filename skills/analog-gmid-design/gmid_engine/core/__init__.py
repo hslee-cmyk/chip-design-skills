@@ -1,5 +1,6 @@
 """core (층 0) -- 내용 지문·불변 graph 스냅샷·계산 블록·LUT memo·실패 규약·결정론. 다른 패키지는 이 `__all__` 만 쓴다."""
 
+from .blas_env import blas_environment, pin_blas_threads
 from .bounded_lru import BoundedLRU, LruStats
 from .canon_pointer import CanonPointer
 from .compute_block import BlockStats, ComputeBlock, compute_block
@@ -70,12 +71,14 @@ __all__ = (
     "VIEW_KINDS",
     "WriterPermissionError",
     "WriterTable",
+    "blas_environment",
     "compute_block",
     "engine_code_fp",
     "exit_code_for",
     "canonical_key",
     "fp_of",
     "normalized_margin",
+    "pin_blas_threads",
     "read_pdk_decl",
     "require_immutable",
     "sorted_items",

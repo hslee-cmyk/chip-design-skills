@@ -4,7 +4,7 @@
 격리: 엔진 폴더 `gmid_engine/`(tests 제외)를 tmp 에 바이트 그대로 복사하고, 하위 프로세스가 그 복사본을 import 해 사슬(단계 A -> B -> 커널 컨텍스트
 -> 탐색 컨텍스트(archive_root 줌) -> find_front, 선언 평가 예산)을 돈다. 엔진이 자기 폴더에 무엇을 쓰더라도 복사본에만 쓰므로 이 checkout·공용
 폴더를 건드리지 않는다. 하위 프로세스 환경은 허용 목록으로 새로 만든 dict 다(바깥 환경 변수 -- 특히 S0 위치 변수 -- 를 물려받지 않는다):
-PATH·SYSTEMROOT·APPDATA(파이썬 사용자 site-packages 위치), TEMP/TMP = 이 test 의 빈 tmp 폴더, OPENBLAS_NUM_THREADS=1, GMID_LUT_TABLE_CACHE_DIR(U-87
+PATH·SYSTEMROOT·APPDATA(파이썬 사용자 site-packages 위치), TEMP/TMP = 이 test 의 빈 tmp 폴더, GMID_LUT_TABLE_CACHE_DIR(U-87
 표 캐시 -- conftest 의 test 캐시 폴더), LUT·PDK 데이터 위치 변수(있으면, 입력), PYTHONDONTWRITEBYTECODE=1·PYTHONIOENCODING·PYTHONUTF8.
 
 oracle (a) 구성(C2 문장 그대로): 실행 전후
@@ -98,7 +98,7 @@ def isolated_run(tmp_path_factory):
     engine_before = _listing(ck / "gmid_engine")
     work_before = _listing(work)
     env = {k: os.environ[k] for k in PASS_THROUGH if k in os.environ}
-    env.update(TEMP=str(tmp), TMP=str(tmp), OPENBLAS_NUM_THREADS="1", PYTHONDONTWRITEBYTECODE="1", PYTHONIOENCODING="utf-8",
+    env.update(TEMP=str(tmp), TMP=str(tmp), PYTHONDONTWRITEBYTECODE="1", PYTHONIOENCODING="utf-8",   # [NFR-4 card 2] BLAS 고정은 엔진(C1)
                PYTHONUTF8="1")
     assert "GMID_LUT_TABLE_CACHE_DIR" in env                       # conftest 가 고정한 test 표 캐시 폴더(U-87)
     proc = subprocess.run([sys.executable, "-P", str(runner), str(ck), str(SKILL), CIRCUIT, str(out_dir), str(s3_root), str(out_json)],

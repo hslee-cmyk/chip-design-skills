@@ -1,0 +1,61 @@
+{
+  "id": "20261015-nfr4c2",
+  "freeze": {
+    "target_head": "a34054d4b2ed99b46fe395eac130bde7b664e066",
+    "test_end_commit": "64c77c17e35ad79436173f0b02308704ab3a4a65",
+    "test_branch": "role/test/nfr4c2",
+    "test_commits": ["64c77c17e35ad79436173f0b02308704ab3a4a65"],
+    "base_commit": "e8b619f7629d0a5c634a58d7c064a82c3e01d644",
+    "merge_base_test_vs_base": "e8b619f7629d0a5c634a58d7c064a82c3e01d644",
+    "test_commit_trailers": "1/1 'Role: test' + 'Change-Id: nfr4c2'",
+    "test_diff_scope": "git diff --name-only e8b619f 64c77c1 -> 17 files, all under skills/analog-gmid-design/gmid_engine/tests/ (engine source 0)",
+    "test_diff_patch_sha256": "243d99d29958352219c54b41841d80e91b15fda1ae28231d67932c26cf8dd977",
+    "code_commit": "8ff81e2fcefe3a08be19edf1238235a96451adba",
+    "code_commit_trailers": "Role: code, Change-Id: nfr4c2; touches 0 files under gmid_engine/tests",
+    "merged_head": "a34054d4b2ed99b46fe395eac130bde7b664e066",
+    "merged_check": "integ/nfr4c2 a34054d = e8b619f + 64c77c1 (d894b71) + 8ff81e2, tests tree == 64c77c1 (diff 0), non-test tree == 8ff81e2 (diff 0)",
+    "baseline_fixture": "u17_1b_s0_baseline.json: diff e8b619f..64c77c1 = line 2 '_source' only (values unchanged, J-12)"
+  },
+  "red": {
+    "setup": "isolated clone (git clone --no-hardlinks --no-local <nfr4c2-audit>, origin removed) detached at 64c77c1 (= e8b619f engine + frozen tests; 64c77c1 parent is e8b619f and touches tests only)",
+    "command": "cd <red>/skills/analog-gmid-design && PYTHONDONTWRITEBYTECODE=1 python -m pytest <13 added/modified test files of 64c77c1> -q -p no:cacheprovider -rfE --tb=short --continue-on-collection-errors --run-slow --junitxml=results/red/red.xml (OPENBLAS_NUM_THREADS unset outside; the frozen conftest no longer pins)",
+    "result": "52 failed, 209 passed in 1377.88 s (collection errors 0)",
+    "type_counts_all": {
+      "builtins.AssertionError": 36,
+      "builtins.ImportError": 1,
+      "builtins.ModuleNotFoundError": 6,
+      "builtins.ValueError": 9
+    },
+    "bundle_sha256_all": "f58a66c6875fea55152432ea0143ff7cc2f525abaf061001cb5293ca97a23b2c",
+    "hash_command": "PYTHONPATH=<gate cache 6df4bd7f> python -P scripts/red_hashes.py results/red/red.xml results/red/red_hashes.json",
+    "card_reason_by_test": {
+      "N-T1 test_blas_pin_import_sets_every_openblas_to_one_outer_8": "AssertionError: ctypes 조회 numpy·scipy OpenBLAS 둘 다 8 (기대 1) -- 엔진 고정 없음",
+      "N-T2 test_blas_pin_holds_when_numpy_imported_first": "AssertionError: numpy 선행 import 뒤 조회 18·18 (기대 1)",
+      "N-T3 test_blas_pin_outer_setting_does_not_change_environment_value": "AssertionError(하위 프로세스 rc=1, 원인 ImportError blas_environment) -- 새 공개 이름 없음(card: '이름 없음 -- 허용')",
+      "N-T4 test_blas_pin_environment_value_shape": "ImportError blas_environment from gmid_engine.core -- 새 공개 심볼(A-3 허용)",
+      "N-T5 test_blas_pin_recheck_points_reject_changed_threads[a..e]": "AssertionError x5: ctypes 로 조회 2 로 바꾼 뒤 재확인 지점 (a)~(e) 모두 'ok' (기대 RuntimeError) -- 재확인 없음",
+      "N-T6 test_blas_pin_new_openblas_module_changes_environment_fp": "AssertionError(하위 프로세스 rc=1, 원인 ImportError blas_environment) -- 새 공개 이름",
+      "N-T7~N-T9 (6 ids)": "ModuleNotFoundError gmid_engine.core.blas_env -- 새 모듈(A-3 허용)",
+      "N-T10 test_blas_pin_rejects_non_openblas_build_config / _unsupported_platform": "AssertionError: import 결과 'ok' (기대 RuntimeError) -- 거부 없음",
+      "N-T12 test_blas_pin_core_public_names": "AssertionError: core.__all__ 에 pin_blas_threads·blas_environment 없음",
+      "N-T13 test_stage_a.py::test_report_key_set_exact_on_ok_and_stop_paths, test_stage_a_report.py::test_files_and_sorted_keys·test_env_fp_recorded": "AssertionError: 보고서 키에 env_fp 없음(13개)",
+      "N-T14 test_find_front.py::test_env_fp_in_runs_line_not_in_evals": "AssertionError: runs 줄에 env_fp 없음",
+      "N-T15~N-T18 test_l_bin_search.py (8 ids)": "test_lb_stop_converged AssertionError(반환이 SolveResult tuple, 2-tuple 아님); 나머지 7 ValueError 'not enough values to unpack (expected 2, got 0|1)' = 옛 반환 형식(수락 tuple)을 (수락, 사유)로 풀 수 없음 -- card base 열 'red(반환 형식)' 그대로",
+      "N-T18 test_find_front.py::test_lb_stop_notes_line_exactly_once·_empty_when_lb_never_runs": "ValueError 'expected 1, got 0' = notes 에 l_search 줄이 0개(card 이유 그대로)",
+      "N-T20 test_layer0_lift_closed_form[C_f0·FN_neg·FP_pos·FP_numer_le0]": "AssertionError: C_f0 min q - 1 = 7.47e-13 (기대 √ε = 1.49e-8, card 'as-built min q ≈ 1'), FP_numer_le0 min q - 1 = 5.03e-9, FP_pos min q = 0.5025 (F>0 행이 경계 밑), FN_neg 전제 '클램프 없음' 실패(as-built e^u 로 hi 에 잘림)",
+      "N-T22 test_layer0_lift_edges[formula_negative_no_lowering]": "AssertionError: θ 전류 1.0000000991e-7 != exp(x) 1e-7 (as-built 는 u>0 로 올림, 식 값<0 이면 s=0 이어야 함) -- 나머지 4 가장자리는 base green(card 'red 요구 없음')",
+      "N-T23 test_layer0_boundary_rows_positive_9circuits": "AssertionError. 바깥 미지정(18 스레드) 실행: folded_cascode w_min:M7·M8·M9 c -4.33e-6, pushpull_follower_buffer w_min:M1 c -2.30e-6. J-14 재현(바깥 OPENBLAS_NUM_THREADS=1, results/red/nt23_thread1.txt): folded_cascode w_min:M7·M8·M9 c = -4.684409835671501e-10 -- design 40 §2.4.13 (5) B-2 실측 '-4.68e-10' 과 같은 부호·크기. 멈춤 조건 해당 없음",
+      "N-T29 test_blas_thread_count_does_not_change_run[9]": "AssertionError x9: 7회로(current_reuse 2333·folded 6611·nmcnr 5162·pushpull 6581·sf_pushpull 1053·two_stage_ota 3975·two_stage_ota_sf 3317 칸)가 바깥 1 대 18(max(2, os.cpu_count()=18)) 에서 비트 다름(card 이유: 고정 없음 -> 출발 구간·평가 다름); common_gate_amplifier·ngcc_3stage_ff 는 비트 차이 0 이고 env_fp None 단언에서 실패(env_fp 기록 없음, C3)",
+      "test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[nmcnr·sf_pushpull·two_stage_ota·two_stage_ota_sf]": "AssertionError: S0 start.row·graph/start 칸이 기준선과 다름 -- 고정 test(conftest) 를 걷어 낸 base 엔진이 바깥 미지정에서 18 스레드로 돈 결과(엔진 고정이 없다는 card 이유, test 작성자 사전 보고와 같음)"
+    },
+    "green_at_base_expected": {
+      "N-T11 test_blas_pin_core_has_no_module_level_numpy_scipy_import": "card 'green(성질 유지)'",
+      "N-T19 test_conftest_slow_marker.py (2)": "마커·옵션은 test 쪽 conftest(동결 test 커밋 안)가 구현하므로 base+test 에서 green 이 구조상 정상(card A-3 의 'N-T19 단언 실패 red' 기대는 C6 '`E/tests/conftest.py`가 등록'과 모순 -- spec card 결함). 공허 아님 확인: red 복제본의 conftest 를 e8b619f 판으로 잠시 바꿔 실행 -> 2 failed, AssertionError 'ERROR: usage: ... --run-slow' (results/red/nt19_base_conftest.txt), 확인 뒤 git checkout 으로 되돌림(status 0줄)",
+      "N-T21 test_layer0_lift_independent_of_solver_noise": "card 'base red 요구 없음'",
+      "N-T22 4 edges": "card '일부 red 가능 -- 요구 없음'",
+      "N-T24~N-T28 test_nfr4_compare.py (42)": "비교기는 test 쪽 도구(엔진 import 없음)라 base 에서도 green 이 정상 -- card 'red(모듈 없음 -- 허용)' 기대는 같은 이유로 성립 불가. oracle = 손으로 만든 기록(V4 대조)",
+      "N-T29 test_single_thread_start_fp_matches_base": "유지 test, base 스레드 1 실행에서 기준선과 같음"
+    },
+    "decision_needed": "ValueError 9 (N-T15~N-T18 반환 형식) 는 merge_gate 가 red 로 세는 AssertionError·Failed·신규 심볼 import 밖이다. card 1 J-7 선례(서명 변경 TypeError)처럼 '반환 형식 변경 자체가 C5 계약'이라 card 이유와 같은 실패로 판정했다 -- 오케스트레이터 확인 대상"
+  }
+}

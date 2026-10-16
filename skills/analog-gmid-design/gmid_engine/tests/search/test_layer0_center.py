@@ -525,3 +525,216 @@ def test_origin_prefix_kept(tmp_path, lut4, roots):
     lines = lines_of(root, case.sctx.context_fp)
     assert lines[0]["origin"] == {"run": "x", "stage": "layer0"}
 
+
+# =====================================================================================================================
+# [NFR-4 card 2] 층 0 끌어올림 BP1 (interface card nfr4c2 C4, 설계 41 §5.13). test N-T20~N-T22.
+# 기호(C4): x = 전류 중심 풀이기 해의 θ 전류 ln 좌표, 행 m = 원뿔 행 중 움직이는 θ 전류를 읽는 행, ref_m = 사다리 칸 current_ref 의 값,
+# A_m = Σ_움직이는 항 계수·e^x/ref_m, F_m = Σ_고정 항 계수·고정값/ref_m, q_m = (Σ 계수·전류)/ref_m, R = {m : A_m > 0}, √ε = sqrt(sys.float_info.epsilon).
+# 결과(클램프 없음·원뿔 유지): |min_R q − (1 + √ε)| ≤ γ_n·(1 + √ε), 나머지 R 행 q ≥ 1 + √ε, γ_n = nε/(1 − nε)(n = C4 셈 규칙, 아래 `op_count`).
+# 풀이기 해 주입 = 교체 지점 `layer0_module.scipy_minimize`(C4 계약: scipy.optimize.minimize 와 같은 호출, 반환의 x 를 읽는다) -- centre_start 호출 동안만.
+# oracle: (손) toy 회로·ref·고정 전류·주입 x 를 test 가 정한다, (식) C4 식. 피검 함수 출력으로 기대값을 만들지 않는다 -- 결과 θ 에서 q 를 test 가 계산한다.
+# 손 toy(모두 θ 전류 변수 하나 = ('current', 'M2'), 원뿔 모양은 test 가 schema 에서 읽어 전제로 확인한다):
+#   C : M1 nmos (out, in, gnd) + M2 pmos (out, pb, vdd)              -> 행 M1 = I_M2, M2 = I_M2 (F = 0)
+#   FN: M1 nmos (n, in, gnd) + M2 pmos (n, pb, vdd) + I1 (n -> gnd)   -> 행 M1 = I_M2 − I1 (F < 0), M2 = I_M2
+#   FP: 같은 회로, I1 (vdd -> n)                                       -> 행 M1 = I_M2 + I1 (F > 0), M2 = I_M2
+# =====================================================================================================================
+
+import sys as _sys
+from types import SimpleNamespace as _NS
+
+from gmid_engine.search.start_values import StartRung
+
+from .conftest import two as _two
+
+SQRT_EPS = math.sqrt(_sys.float_info.epsilon)
+I_FIX = 2e-6                    # 손: 이상 전류원 I1 값(spec element value)
+
+
+def _lift_topo(kind):
+    if kind == "C":
+        return circuit_c()
+    src = ("n", "gnd") if kind == "FN" else ("vdd", "n")
+    return topo("hand_lift_%s" % kind.lower(), [mos("M1", "nmos", "n", "in", "gnd"), mos("M2", "pmos", "n", "pb", "vdd")],
+                {"in": ("input", "single_ended_input"), "n": ("output", "single_ended_output")},
+                sources=[_two("I1", "current_source", src[0], src[1])], bias=["pb"])
+
+
+def _lift_case(tmp, lut, kind):
+    els = () if kind == "C" else (("I1", "current_source", I_FIX),)
+    return build_case(tmp, _lift_topo(kind), lut, eval_budget=20, elements=els)
+
+
+def _rung_inputs(s):
+    """사다리 칸 입력(전류 성분 없음 -> 전류 중심 풀이기가 돈다): 사다리 칸 없는 centre_start 의 ln_idu·L 성분과 L 칸(입력 생성)."""
+    _v, th, cells, _u = layer0_module.centre_start(s)
+    fixed = tuple(sorted((k, x) for k, x in th.items() if k[0] in ("ln_idu", "L")))
+    lcells = tuple(zip([m for m, _ in s.domain.l_cells], cells))
+    return fixed, lcells
+
+
+def _rung(fixed, lcells, refs):
+    return StartRung(t=1.0, theta=fixed, cells=lcells, current_ref=tuple(refs))
+
+
+def _cur_var(s):
+    (v,) = [x for x in s.domain.variables if x.component[0] == "current"]
+    return v
+
+
+def _inject(monkeypatch, v, x_of_real):
+    """scipy_minimize 교체: 진짜 minimize 를 불러 반환 x 의 θ 전류 칸(경계 = 그 변수 (lo, hi) 인 칸, 정확히 하나)만 x_of_real(진짜 값) 으로 바꾼다.
+    -> 호출 기록 [(진짜 x, 바꾼 x)]."""
+    import numpy as np
+    real = layer0_module.scipy_minimize
+    seen = []
+
+    def fake(fun, x0, **kw):
+        res = real(fun, x0, **kw)
+        idx = [i for i, b in enumerate(kw["bounds"]) if tuple(b) == (v.lo, v.hi)]
+        assert len(idx) == 1, kw["bounds"]
+        x = np.array(res.x, dtype=float)
+        x[idx[0]] = x_of_real(float(res.x[idx[0]]))
+        seen.append((float(res.x[idx[0]]), float(x[idx[0]])))
+        return _NS(x=x, success=True, status=0, nit=getattr(res, "nit", 0), fun=getattr(res, "fun", 0.0), message="injected")
+
+    monkeypatch.setattr(layer0_module, "scipy_minimize", fake)
+    return seen
+
+
+def _rows(s):
+    """원뿔 행 중 움직이는 θ 전류를 읽는 행 -> ([(행, [(계수, 원천, 움직임 여부)])], {고정 원천: 값}) -- schema(입력)에서 읽는다."""
+    sch = schema_of(s.dc)
+    fixed = dict(sch.fixed)
+    moving = {v.component[1] for v in s.domain.variables if v.component[0] == "current"}
+    out = []
+    for m, terms in sch.current_cone:
+        ts = [(t.num / t.den, t.source, t.source in moving) for t in terms]
+        if any(mv for _c, _src, mv in ts):
+            out.append((m, ts))
+    return out, fixed
+
+
+def _q(rows, fixed, theta, refs):
+    """test 의 q_m 계산(θ 의 전류 + schema 고정값) -> {m: (q, A, k 움직이는 항 수, j 고정 항 수)}."""
+    ref = dict(refs)
+    out = {}
+    for m, ts in rows:
+        a = sum(c * theta[("current", src)] for c, src, mv in ts if mv) / ref[m]
+        f = sum(c * fixed[src] for c, src, mv in ts if not mv) / ref[m]
+        out[m] = (a + f, a, sum(1 for t in ts if t[2]), sum(1 for t in ts if not t[2]))
+    return out
+
+
+def op_count(k, j):
+    """C4 셈 규칙(사칙연산·exp·ln 각 1, max·min·클램프·비교 제외), 결정 행 하나의 경로:
+    s 계산 = 움직이는 항마다 exp·곱·나눗셈(3k) + 합(k − 1) + 고정 항마다 곱·나눗셈(2j) + 합(max(j − 1, 0)) + 분자 (1 + √ε) − F(2) + 나눗셈(1) + ln(1),
+    θ = exp(x + s)(덧셈·exp 2), q 재계산 = 항마다 곱·나눗셈(2(k + j)) + 합(k + j − 1)."""
+    s_ops = 3 * k + (k - 1) + 2 * j + max(j - 1, 0) + 2 + 1 + 1
+    return s_ops + 2 + 2 * (k + j) + (k + j - 1)
+
+
+def gamma(n):
+    e = _sys.float_info.epsilon
+    return n * e / (1 - n * e)
+
+
+# (toy, refs, 주입 전류 또는 None) -- 손. None 이면 x = 진짜 전류 중심 풀이기 해(교체 지점은 기록만), 값이면 교체 지점이 x = ln(그 값)으로 바꾼다
+# (고정 전류가 있는 toy 는 풀이기 해가 실행마다 크게 달라(as-built 실측: 같은 입력에서 x = −4.49 와 −9.20) 손으로 x 를 정한다). 각 경우 그 x 에서
+# 끌어올림이 필요한지는 전제로 확인한다.
+LIFT_CASES = {
+    "C_f0": ("C", (("M1", 1e-4), ("M2", 2e-4)), None),          # 결정 행 M2(F = 0)
+    "FN_neg": ("FN", (("M1", 1e-4), ("M2", 1e-4)), 5e-5),       # 결정 행 M1 = I_M2 − I1 (F < 0) -- F ≠ 0 행이 최소
+    "FP_pos": ("FP", (("M1", 4e-4), ("M2", 1e-4)), 1e-4),       # 결정 행 M1 = I_M2 + I1 (F > 0) -- F ≠ 0 행이 최소
+    "FP_numer_le0": ("FP", (("M1", 1e-6), ("M2", 3e-6)), 1e-6),  # M1 분자 1 + √ε − F ≤ 0(F = I1/ref = 2, 그 행은 s 를 정하지 않는다), 결정 행 M2
+}
+
+
+@pytest.mark.parametrize("name", sorted(LIFT_CASES))
+def test_layer0_lift_closed_form(tmp_path, lut4, monkeypatch, name):
+    """N-T20: 손 toy 원뿔·ref·고정 전류·x(진짜 풀이기 해 또는 주입) -> centre_start(sctx, rung) 결과 θ 로 test 가 q_m 을 계산:
+    |min_R q − (1 + √ε)| ≤ γ_n·(1 + √ε)(n = op_count, 결정 행의 항 수로 센다), 나머지 R 행 q ≥ 1 + √ε. 전제: 주입 x 에서 어떤 행이 1 + √ε 밑(끌어올림
+    필요), 결과 θ 가 상자 안(클램프 없음), 결과 원뿔 행 c > 0(원뿔 유지), ln_idu·L 성분은 사다리 칸 값 그대로."""
+    kind, refs, i_inj = LIFT_CASES[name]
+    case = _lift_case(tmp_path, lut4, kind)
+    s = case.sctx
+    rows, fixed = _rows(s)
+    assert sorted(m for m, _ in rows) == ["M1", "M2"], rows                       # 전제: 손 원뿔 모양
+    assert all(any(not mv for _c, _s, mv in ts) == (kind != "C" and m == "M1") for m, ts in rows), rows
+    v = _cur_var(s)
+    fixed_th, lcells = _rung_inputs(s)
+    seen = _inject(monkeypatch, v, (lambda x: x) if i_inj is None else (lambda _x: math.log(i_inj)))   # 기록만 또는 주입
+    _vars, th, _cells, _u = layer0_module.centre_start(s, _rung(fixed_th, lcells, refs))
+    assert len(seen) == 1, seen                                                   # 전류 중심 풀이기 한 번(C4: 최대-최소는 부르지 않는다)
+    pre = _q(rows, fixed, {v.component: math.exp(seen[0][1])}, refs)
+    assert min(q for q, _a, _k, _j in pre.values()) < 1 + SQRT_EPS, pre           # 전제: 그 x 에서 끌어올림 필요
+    assert all(a > 0 for _q0, a, _k, _j in pre.values())                          # 전제: 두 행 모두 R
+    assert all(th[k] == x for k, x in fixed_th), "ln_idu·L 은 사다리 칸 값 그대로"
+    i_out = th[v.component]
+    assert math.exp(v.lo) < i_out < math.exp(v.hi)                                # 전제: 클램프 없음
+    assert all(row.c > 0 for row in cone_rows(schema_of(s.dc), tuple(sorted(th.items()))))   # 전제: 원뿔 유지
+    got = _q(rows, fixed, th, refs)
+    m_min = min(got, key=lambda m: got[m][0])
+    q_min, _a, k, j = got[m_min]
+    tol = gamma(op_count(k, j)) * (1 + SQRT_EPS)
+    assert abs(q_min - (1 + SQRT_EPS)) <= tol, (name, m_min, q_min - 1, SQRT_EPS, tol)
+    for m, (q, _a2, _k2, _j2) in got.items():
+        if m != m_min:
+            assert q >= 1 + SQRT_EPS, (name, m, q)
+
+
+def test_layer0_lift_independent_of_solver_noise(tmp_path, lut4, monkeypatch):
+    """N-T21: toy C, ref_m = W_min 전류(W = I·L/e^{ln_idu} 이므로 ref_m = W_min·e^{ln_idu_m}/L_m -- 손, 사다리 칸 ln_idu·L 에서) -> q_m = W_m/W_min.
+    scipy_minimize 교체로 진짜 해의 θ 전류 x 를 ±1e-9 흔든 두 입력 -> (전제) 두 경우 끌어올림이 필요하고 최소 행이 같으면, 끌어올린 점 평가의 그 행
+    `w_min:<행>` c 가 둘 다 > 0(BP1 √ε 여유 -- c ≈ W_min·√ε/grid 크기, 반올림 크기보다 훨씬 크다)."""
+    s = _lift_case(tmp_path, lut4, "C").sctx
+    rows, fixed = _rows(s)
+    v = _cur_var(s)
+    fixed_th, lcells = _rung_inputs(s)
+    fth = dict(fixed_th)
+    w_min = s.domain.w_min_m
+    refs = tuple((m, w_min * math.exp(fth[("ln_idu", m)]) / fth[("L", m)]) for m, _ in rows)
+    outs = []
+    for d in (-1e-9, 1e-9):
+        seen = _inject(monkeypatch, v, lambda x, d=d: x + d)
+        _vars, th, cells, _u = layer0_module.centre_start(s, _rung(fixed_th, lcells, refs))
+        ((_x_real, x_used),) = seen
+        pre = _q(rows, fixed, {v.component: math.exp(x_used)}, refs)
+        m_pre = min(pre, key=lambda m: pre[m][0])
+        assert pre[m_pre][0] < 1 + SQRT_EPS, pre                                   # 전제: 끌어올림 필요
+        got = _q(rows, fixed, th, refs)
+        m_min = min(got, key=lambda m: got[m][0])
+        ev = evaluate(s, tuple(sorted(th.items())), cells)
+        c = {r.name: r.c for r in ev.constraints}
+        outs.append((m_min, c["w_min:%s" % m_min]))
+        monkeypatch.undo()
+    assert outs[0][0] == outs[1][0], outs                                          # 전제: 최소 행이 같다
+    assert outs[0][1] > 0 and outs[1][1] > 0, outs
+
+
+EDGE_CASES = {
+    # 이름: (refs 또는 None(사다리 칸 없음), 주입 x(ln 전류) 만드는 함수(변수 v)) -- 손
+    "formula_negative_no_lowering": ((("M1", 1e-12), ("M2", 1e-12)), lambda v: math.log(1e-7)),
+    "empty_current_ref_no_lift": ((), lambda v: math.log(1e-7)),
+    "no_rung_no_lift": (None, lambda v: math.log(1e-7)),
+    "clip_high_without_lift": ((("M1", 1e-12), ("M2", 1e-12)), lambda v: v.hi + 1.0),
+    "clip_low_without_lift": ((("M1", 1e-30), ("M2", 1e-30)), lambda v: v.lo - 1.0),
+}
+
+
+@pytest.mark.parametrize("name", sorted(EDGE_CASES))
+def test_layer0_lift_edges(tmp_path, lut4, monkeypatch, name):
+    """N-T22 가장자리(같은 교체 지점으로 x 지정, toy C): 식 값 < 0(ref 가 아주 작아 q > 1 + √ε) -> s = 0(낮추지 않음), current_ref 빈 사다리 칸 ->
+    끌어올리지 않음, 사다리 칸 없음 -> 끌어올리지 않음, 상자 밖 x -> 상자로 자름. 기대 θ 전류 = exp(clip(x, lo, hi))(손).
+    'R 빔'·'분자 모두 ≤ 0' 은 θ 전류 변수의 자기 행(계수 +1, 고정 항 없음)이 언제나 R 에 들어 분자 1 + √ε > 0 이라 공개 toy 입력으로 만들 수 없다
+    (보고). 분자 ≤ 0 인 행이 섞인 경우는 N-T20 `FP_numer_le0`."""
+    refs, x_fn = EDGE_CASES[name]
+    s = _lift_case(tmp_path, lut4, "C").sctx
+    v = _cur_var(s)
+    fixed_th, lcells = _rung_inputs(s)
+    x_inj = x_fn(v)
+    seen = _inject(monkeypatch, v, lambda _x: x_inj)
+    rung = None if refs is None else _rung(fixed_th, lcells, refs)
+    _vars, th, _cells, _u = layer0_module.centre_start(s, rung)
+    assert seen
+    want = math.exp(min(max(x_inj, v.lo), v.hi))
+    assert math.isclose(th[v.component], want, rel_tol=4 * _sys.float_info.epsilon, abs_tol=0.0), (name, th[v.component], want)

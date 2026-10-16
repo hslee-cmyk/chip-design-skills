@@ -1,0 +1,23 @@
+{
+ "test_ids": [
+  "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_recheck_rejects_missing_owned_blas[numpy]",
+  "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_recheck_rejects_missing_owned_blas[scipy]"
+ ],
+ "types": {
+  "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_recheck_rejects_missing_owned_blas[numpy]": "builtins.Failed",
+  "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_recheck_rejects_missing_owned_blas[scipy]": "builtins.Failed"
+ },
+ "kinds": {
+  "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_recheck_rejects_missing_owned_blas[numpy]": "failure",
+  "skills/analog-gmid-design/gmid_engine/tests/core/test_blas_env.py::test_blas_recheck_rejects_missing_owned_blas[scipy]": "failure"
+ },
+ "failure_hashes": [
+  "015995e6c0d4646a0e35e0407051a6e8cf842a8343ddcb309620bce83d28923c",
+  "e1ea9bf55659d0f2252edb48d1cd0fbddd32d68d3ccf139933c296bb2cdc788e"
+ ],
+ "type_counts": {
+  "builtins.Failed": 2
+ },
+ "unknown": [],
+ "bundle_sha256": "54ff0ee146b9609f640e32509645aaa2979665798a46ffeaca2f50608a3c603b"
+}

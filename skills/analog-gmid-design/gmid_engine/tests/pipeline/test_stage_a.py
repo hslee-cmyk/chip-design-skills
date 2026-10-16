@@ -428,10 +428,11 @@ _S1_BLOCKS = (s1_structure, s1_bulk, s1_dc_conduction, s1_gs_groups, s1_branches
               s1_matching_groups, s1_gvgs, s1_columns, s1_rel_kcl)
 _ASSETS = Path(__file__).resolve().parents[3] / "assets"
 
-# interface card C1: StageAResult 칸 = 이 7개, 순서 그대로. 보고서 키 = 이 13개(정상·정지 경로 모두 같다).
+# interface card C1: StageAResult 칸 = 이 7개, 순서 그대로. 보고서 키 = 이 14개(정상·정지 경로 모두 같다).
+# [NFR-4 card 2] interface card nfr4c2 C3: 최상위 키 `env_fp` 추가(13 -> 14, 설계 40 §2.4.13 (5) '승인 불필요: 형식 변경'). StageAResult 칸은 그대로(C3 '없는 곳').
 RESULT_FIELDS = ("exit_code", "status", "report", "report_paths", "s1", "spec", "code_fp")
 REPORT_KEYS = {"circuit", "status", "exit_code", "count_budget", "declared_comparison", "stop_reasons", "review_needed", "views",
-               "applied_facts", "ff_ratio_candidates", "coupling", "tables", "orbit_matching_crosstab"}
+               "applied_facts", "ff_ratio_candidates", "coupling", "tables", "orbit_matching_crosstab", "env_fp"}
 
 
 def _stats():
@@ -444,9 +445,9 @@ def test_stage_a_result_fields_exact():
 
 
 def test_report_key_set_exact_on_ok_and_stop_paths(tmp_path, real_lut):
-    """[xrun XR-6] interface card C1: 단계 A 보고서 키 집합 = 13개 정확히 -- 정상(CS ok), 기록만 정지(XCOUP loop_record_only),
+    """[xrun XR-6] interface card C1: 단계 A 보고서 키 집합 = 14개([NFR-4 card 2] env_fp 추가) 정확히 -- 정상(CS ok), 기록만 정지(XCOUP loop_record_only),
     A1_load 정지(topology 거부 exit 7), A2_structure_json 정지(structure 거부 exit 7) 모두 같다. 보고서 파일 JSON 키도 같다."""
-    assert len(REPORT_KEYS) == 13
+    assert len(REPORT_KEYS) == 14
     ok = _run(tmp_path, real_lut, H.CS, out="ok")
     stopped = _run(tmp_path, real_lut, H.XCOUP, out="stop")
     bad = {k: v for k, v in H.CS.items() if k != "passive_elements"}

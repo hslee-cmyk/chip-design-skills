@@ -286,3 +286,70 @@ def test_front_points_inside_area_budget(tmp_path, lut_sealed):
         assert row.c == pytest.approx((A_BUDGET - area) / b_a, rel=1e-9)
         assert area == pytest.approx(sum(wl), rel=1e-12)
         assert area >= max(wl)
+
+
+# =====================================================================================================================
+# [NFR-4 card 2] interface card nfr4c2 C3(실행 환경 지문 기록 두 곳 중 S3 runs 줄)·C5(L-b 정지 사유 notes 한 줄).
+# oracle: (식) 계약 문장(키 이름·notes 형식·키워드 전용 인자 목록), (비교) 같은 함수 두 출력(runs 줄 env_fp 대 test 의 fp_of(blas_environment())),
+# (독립) S3 파일 읽기. 피검 함수로 기대값을 만들지 않는다.
+# =====================================================================================================================
+
+LB_STOP_KEYS = {"class", "l_from", "stop", "accepted"}
+LB_STOPS = {"converged", "eval_budget", "wall_budget"}
+
+
+def _lines(root, ctx_fp, name):
+    return [json.loads(x) for x in (Path(root) / ctx_fp / name).read_text(encoding="utf-8").splitlines() if x.strip()]
+
+
+def test_env_fp_in_runs_line_not_in_evals(tmp_path, lut_sealed, short_root):
+    """N-T14: archive 있는 toy 실행 -- runs 줄 최상위 `env_fp` = 같은 프로세스 fp_of(blas_environment()), evals 줄에는 `env_fp` 가 없다,
+    build_search_context 의 키워드 전용 인자 = (code_fp,)(서명 불변)."""
+    import inspect
+    from gmid_engine.search import build_search_context
+    case, fr = _run(tmp_path, lut_sealed, eval_budget=30, archive_root=short_root)
+    (run,) = _lines(short_root, case.sctx.context_fp, "runs.jsonl")
+    assert "env_fp" in run, sorted(run)                                        # C3: runs 줄 최상위 키
+    from gmid_engine.core import blas_environment, fp_of
+    assert run["env_fp"] == fp_of(blas_environment())                          # (비교) 같은 프로세스의 같은 함수 출력
+    evals = _lines(short_root, case.sctx.context_fp, "evals.jsonl")
+    assert evals and all("env_fp" not in e for e in evals)
+    kwonly = tuple(n for n, p in inspect.signature(build_search_context).parameters.items() if p.kind is p.KEYWORD_ONLY)
+    assert kwonly == ("code_fp",)
+
+
+def _l_search_notes(notes):
+    return [dict(n) for n in notes if dict(n).get("verdict") == "l_search"]
+
+
+def test_lb_stop_notes_line_exactly_once(tmp_path, lut_sealed, short_root):
+    """N-T18 (find_front 쪽): L-b 가 도는 toy(회로 C, front 점 있음)에서 SearchFront.notes 와 runs 줄 notes 에 `l_search` 줄이 정확히
+    하나 -- {"verdict": "l_search", "rule": "LR10", "stops": [...]}, stops 원소 키 = {class, l_from, stop, accepted}, stop ∈ 세 사유, accepted 는
+    0 이상 정수. perf 키 집합은 그대로(PERF_KEYS_C7 -- 위 test_perf_key_set_exact_in_result_and_runs_line 와 같은 목록)."""
+    case, fr = _run(tmp_path, lut_sealed, constraints=SS, eval_budget=40, archive_root=short_root)
+    assert len(fr.front) >= 1                                                  # 전제: 풀이된 점이 있어 L-b 가 돈다
+    (ls,) = _l_search_notes(fr.notes)
+    assert set(ls) == {"verdict", "rule", "stops"} and ls["rule"] == "LR10"
+    assert isinstance(ls["stops"], (list, tuple)) and len(ls["stops"]) >= 1
+    for st in ls["stops"]:
+        st = dict(st)
+        assert set(st) == LB_STOP_KEYS, st
+        assert st["stop"] in LB_STOPS and isinstance(st["accepted"], int) and st["accepted"] >= 0, st
+    (run,) = _lines(short_root, case.sctx.context_fp, "runs.jsonl")
+    (rls,) = _l_search_notes(run["notes"])
+    assert rls == json.loads(json.dumps(ls))                                   # runs 줄 notes 와 SearchFront.notes 가 같은 줄
+    assert set(dict(fr.perf)) == set(PERF_KEYS_C7)
+
+
+def test_lb_stop_notes_empty_when_lb_never_runs(tmp_path, lut_sealed):
+    """N-T18 (find_front 쪽): 모든 평가가 실패하는 빈 창 회로(풀이된 점 0 -> L-b 가 돌 출발점이 없다)에서도 `l_search` 줄이 정확히 하나이고
+    stops = [](C5 'L-b 가 돌지 않았으면 stops 빈 목록'). 회로 = test_layer0_center 의 빈 창 회로와 같은 손 회로(MA nmos (x, vdd, vdd) -> x ≥ V(vdd),
+    MB pmos (x, gnd, gnd) -> x ≤ V(gnd): 창이 비어 모든 평가가 empty_window 실패)."""
+    from .conftest import mos, topo
+    window = topo("hand_empty_window_lb",
+                  [mos("MA", "nmos", "x", "vdd", "vdd"), mos("MB", "pmos", "x", "gnd", "gnd"), mos("MC", "nmos", "x", "inp", "gnd")],
+                  {"inp": ("input", "single_ended_input"), "x": ("output", "single_ended_output")})
+    _, fr = _run(tmp_path, lut_sealed, eval_budget=20, topo=window, given=[])
+    assert tuple(fr.front) == tuple(fr.pending_front) == tuple(fr.unmeasured_front) == ()   # 전제: 풀이된 점 0
+    (ls,) = _l_search_notes(fr.notes)
+    assert json.loads(json.dumps(ls)) == {"verdict": "l_search", "rule": "LR10", "stops": []}

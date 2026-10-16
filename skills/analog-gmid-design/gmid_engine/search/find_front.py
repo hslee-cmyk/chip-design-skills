@@ -10,6 +10,8 @@
   `front` 는 비어 있다 -- 대기 front 는 '봉인 7 대기·추정'이며 판정·보고 값으로 쓰지 않는다(DEC-72·77).
 * 기록하는 판정 보류(`notes`): spec 성능 제약 중 잴 수 없는 것(ss 영역, S-1), 수동소자 면적·값 미선언(DEC-79 -- 보상·부하
   수동소자가 있으면 `review_needed`), 층 0 결과(최소형 -- 정밀화 GB3·GB4·knee 는 범위 밖, S-4), 판정 축 재필터 미실행(MOD8 몫 -- `convergence.converge(sctx, pdk_decl, front.front)` 가 이 front 를 받아 한다; 패키지 순서상 여기서 부를 수 없고 U16 파이프라인이 부른다), 모델 오차 미측정('추정').
+* [NFR-4] 진입에서 `core.blas_environment()` 로 BLAS 스레드 1 을 다시 확인하고(재확인 (c)) 그 값의 `fp_of` 를 runs 줄 최상위 키 `env_fp` 에 둔다. notes 에는 L-b 정지 사유
+  `{"verdict": "l_search", "rule": "LR10", "stops": [...]}` 가 언제나 한 줄 더해진다(`sweep_front` 의 `lb_stops`, L-b 가 돌지 않았으면 빈 목록).
 * 계측 `perf`(설계 7.4): requests·kernel_calls·hits·fail_hits·outside_domain·recompute_same_key, 고유 키 수,
   평가 시간 중앙값, sizing 계산 블록 calls·reuses·computes·recomputes_same_input 델타, LUT memo 퇴출 수.
   합격 기준(NFR-2): kernel_calls == 고유 키 수, recompute_same_key == 0, LUT memo 퇴출 0.
@@ -17,7 +19,7 @@
 import statistics
 import time
 
-from gmid_engine.core import fp_of
+from gmid_engine.core import blas_environment, fp_of
 from gmid_engine.metrics import verified_by
 from gmid_engine.sizing import (
     dc_columns,
@@ -73,6 +75,7 @@ def _point_record(sctx, point):
 
 
 def find_front(sctx, given_starts):
+    env_fp = fp_of(blas_environment())      # [NFR-4 재확인 (c)] 진입에서 한 번 -- 확인 실패는 RuntimeError, 반환값 지문이 runs 줄 `env_fp`
     t_start = time.perf_counter()
     blocks_before = _block_totals()
     sctx.deadline = t_start + sctx.settings.front_budget_s
@@ -111,6 +114,7 @@ def find_front(sctx, given_starts):
                   "meaning_reason": ("w_area_upper_bound_undeclared_S-3b" if sctx.domain.area_budget_m2 is None
                                      else "w_bounded_by_area_budget"),
                   "refinements_out_of_scope": list(_LAYER0_REFINEMENTS_OUT_OF_SCOPE)})
+    notes.append({"verdict": "l_search", "rule": "LR10", "stops": list(out["lb_stops"])})      # [NFR-4] L-b 정지 사유 -- 언제나 한 줄(L-b 가 돌지 않았으면 빈 목록)
     notes.append({"verdict": "not_computed", "rule": "DEC-78", "reason": "supply_current_dc_needs_counted_rails_declaration",
                   "axis_used": AXIS_POWER})
     for code in sorted({w[0] for res in sctx.cache.values() for w in res.warnings}):
@@ -146,7 +150,7 @@ def find_front(sctx, given_starts):
             "removed": [{"point_id": a, "reason": "dominated", "by": b}
                         for a, b in out["front_removed"] + out["pending_front_removed"]
                         + out["unmeasured_front_removed"]],
-            "failed_eps": list(out["failed_eps"]), "notes": notes, "perf": perf})
+            "failed_eps": list(out["failed_eps"]), "notes": notes, "perf": perf, "env_fp": env_fp})
     pending = tuple(p for p in out["pending_front"] if p.result.status == STATUS_PENDING_SEAL7)
     return SearchFront(run_id, out["front"], pending, out["failed_eps"], out["resolution"],
                        tuple(sorted(perf.items())), tuple(notes), out["unmeasured_front"])

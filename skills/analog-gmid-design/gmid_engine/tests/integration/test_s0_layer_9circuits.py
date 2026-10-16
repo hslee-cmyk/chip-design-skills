@@ -8,7 +8,7 @@
 2. 실행 안 G-10(C4, §2.4.9 판정 1): 첫 실행에서 S0 행 writer 블록마다 computes = 1·recomputes_same_input = 0.
 3. [XR-1] 반복 실행은 다시 계산한다(C3): 두 번째 실행도 S0 행 writer 블록마다 computes = 1·recomputes_same_input = 0 -- 앞 실행이 남긴 것
    (디스크·S3)으로 계산을 건너뛰지 않는다. writer 목록은 디스크 파일이 아니라 두 번째 실행 `dc.base` 의 graph S0 레코드 필드 writer 에서 모은다.
-4. 반복 실행 출력 비트 동일(C3, 같은 BLAS 설정 -- conftest 가 OPENBLAS_NUM_THREADS=1 고정): 단계 A·B 보고서 JSON 바이트, `dc.base` 필드
+4. 반복 실행 출력 비트 동일(C3, 같은 BLAS 설정 -- 엔진 import 가 BLAS 스레드를 1 로 고정, NFR-4 card 2 C1): 단계 A·B 보고서 JSON 바이트, `dc.base` 필드
    (kind, key, field) -> value_fp 표, context_fp, schema_fp.
 5. 결과 불변(base 기준선, 이 card 는 값 정의를 바꾸지 않는다): 단계 A·B 보고서의 기준선 키마다 정준 JSON sha256 이 기준선
    (`fixtures/u17_1b_s0_baseline.json`, oracle (c) -- 아래 '기준선 출처')과 같고, S0 필드 값 지문(`fp_of`)이 기준선과 같다.

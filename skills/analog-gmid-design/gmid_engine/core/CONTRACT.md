@@ -35,12 +35,14 @@
 - **이름 리터럴**: 회로·소자·넷 이름 문자열 0개(core 문자열은 스키마 어휘 `"node"`·`"device"`·`"edge"`·`"graph"` 와
   N3.14 분류 키뿐).
 - **광범위 except 0**: core 의 `except` 절은 `pdk_decl.py` 의 좁은 네 개(`json.JSONDecodeError`·`SyntaxError`·`LookupError`(코덱 이름)·
-  `re.error` -> 선언 거부 `SchemaRejectedError` 로 바꾼다, 9절)뿐이다.
+  `re.error` -> 선언 거부 `SchemaRejectedError` 로 바꾼다, 9절)와 `blas_env.py` 의 좁은 셋(기호 찾기 `AttributeError`, 공유 라이브러리 열기 `OSError`(Linux),
+  빌드 설정 읽기 `KeyError`·`TypeError` -> `RuntimeError`, 12절)뿐이다.
 - **모듈 수준 가변 캐시 0**: 모듈 수준 dict/list/set 대입·`@lru_cache`/`@cache`·`global` 문 0(분류표는 읽기 전용 매핑).
 - 자기 파일 self-test·`if __name__ == "__main__"` 0.
 
 | 파일 | 층 | 독립 진입점 |
 |---|---|---|
+| blas_env.py | 0 | `pin_blas_threads` (`BlasModule`·`BlasEnvironment`·`loaded_blas_modules`·`blas_environment` 는 같은 파일 비진입 공개 이름, 12절) |
 | determinism.py | 0 | `sorted_items` |
 | canonical_key.py | 0 | `canonical_key` |
 | fingerprint.py | 0 | `fp_of` |
@@ -528,3 +530,31 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
   상대 경로로 정렬한 tuple 의 `fp_of`. 폴더가 아니거나 대상 파일 0 이면 None. 파일 하나의 바이트가 바뀌면 값이 바뀐다.
 - 소비자(용도 = S3 줄·`run_id` 의 출처 칸): 단계 A 가 실행마다 한 번 재어 `StageAResult.code_fp` 로 넘긴 값을 S3 기록의 `code_fp`(`search.build_search_context`)가 받는다. 실행 사이 재사용의 키가 아니다.
 
+
+---
+
+## 12. BLAS 스레드 고정·확인 (설계 40 §2.4.13 (1), 계획 NFR-4·EP-9; 파일 `blas_env.py`, 층 0)
+
+### 12.1 공개 이름
+- `gmid_engine.core.pin_blas_threads() -> BlasEnvironment`, `gmid_engine.core.blas_environment() -> BlasEnvironment` -- 두 함수만 `core.__all__` 에 있다.
+  `loaded_blas_modules() -> tuple[BlasModule, ...]`·`BlasModule`·`BlasEnvironment` 는 모듈 `gmid_engine.core.blas_env` 의 이름이다(재수출 없음). numpy·scipy 는 함수 안에서만 import 한다.
+- `BlasModule`(frozen): `path`(str), `family`(`"openblas"`·`"mkl"`·`"blis"`), `set_threads`(인자 하나 호출 가능 객체)·`get_threads`·`config`·`corename`·`parallel`(인자 없는 호출 가능 객체) --
+  그 모듈이 기호를 내보내지 않으면 None. OpenBLAS 기호 = 접두 {없음, `scipy_`} × `openblas_set_num_threads`·`get_num_threads`·`get_config`·`get_corename`·`get_parallel` × 접미 {없음, `64_`}.
+  MKL 기호 = `MKL_Set_Num_Threads`·`mkl_set_num_threads`, BLIS 기호 = `bli_thread_set_num_threads`.
+- `BlasEnvironment`(frozen·hashable): `python_implementation`, `python_version`, `platform`(`sys.platform`), `machine`(`platform.machine()`), `numpy_version`, `scipy_version`, `blas`(tuple).
+  `blas` 항목 = (family, 소유 패키지, 파일 이름(경로 마지막 성분), config, corename, parallel, 확인한 스레드 수). 소유 패키지 = 모듈 파일이 최상위 Python 패키지 폴더 또는 그 형제 `<패키지>.libs` 안이면
+  그 패키지 이름, 아니면 None. 항목 순서 = 항목 tuple 의 사전식 정렬(None 은 빈 문자열)이라 열거 순서와 무관. 같은 프로세스 두 호출의 `fp_of` 가 같고 바깥 스레드 설정과 무관하다.
+
+### 12.2 `pin_blas_threads()` (import 때 `gmid_engine/__init__.py` 가 1회)
+순서: 지원 플랫폼 확인(Windows·Linux, 밖이면 `RuntimeError`) -> `os.environ["OPENBLAS_NUM_THREADS"] = "1"` -> numpy·`scipy.linalg` 적재 -> `loaded_blas_modules()` 의 OpenBLAS 모듈마다 `set_threads(1)` ->
+`blas_environment()` 로 확인(소유 패키지 {numpy, scipy} 각각의 OpenBLAS 항목 확인은 `blas_environment()` 안에 있어 재확인 (a)~(e) 도 같다). 호출자가 numpy 를 먼저 import 했어도, 바깥 환경 변수가 무엇이어도 같은 결과.
+
+### 12.3 `blas_environment()` -- 확인과 값 (무상태)
+설정하지 않고 열거·조회만 한다. 모듈 집합을 어디에도 보관하지 않고 지금 적재된 모듈 전부가 조건을 만족하는지만 본다(조회 1인 새 OpenBLAS 모듈은 통과하고 `blas` 항목이 늘어 `fp_of` 가 달라진다).
+`RuntimeError`: numpy·scipy `show_config(mode="dicts")["Build Dependencies"]["blas"]["name"]` 에 `openblas`(대소문자 무시) 없음(읽지 못해도), `family` 가 `openblas` 가 아닌 모듈(MKL·BLIS)이 하나라도 있음,
+OpenBLAS 기록의 `set_threads` 또는 `get_threads` 가 None, 조회 != 1, 소유 패키지 {numpy, scipy} 중 `blas` 항목의 소유 패키지로 나타나지 않는 것이 있음(`... 의 BLAS 라이브러리를 적재 모듈에서 찾지 못했다`). `config`·`corename`·`parallel` 이 None 이면 거부하지 않고 항목의 그 값이 None.
+열거: Windows `EnumProcessModules`(+ 모듈 핸들로 기호 찾기), Linux `/proc/self/maps`, 그 밖 플랫폼 `RuntimeError`. 알려진 스레드 API 기호가 없는 BLAS 는 찾을 수 없다(범위 밖).
+
+### 12.4 소비자
+재확인 (a) `pipeline.run_stage_a`(보고서 최상위 키 `env_fp` = `fp_of(반환값)`), (b) `search.build_search_context`, (c) `search.find_front`(runs 줄 `env_fp`), (d) `search.layer0_start`, (e) `search.solve_eps`(호출마다).
+test 교체 지점 = 모듈 속성 `gmid_engine.core.blas_env.loaded_blas_modules`(이름·인자 없는 서명·`BlasModule` tuple 반환·같은 파일의 `blas_environment`·`pin_blas_threads` 가 모듈 전역 이름으로 부르는 방식).

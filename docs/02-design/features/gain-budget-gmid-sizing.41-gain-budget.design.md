@@ -1281,7 +1281,7 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
 - (a)의 남은 1건은 `eval[35]`의 `failure.margin`이 정의되었는가다(스레드 1 = 2.08, 8·18 = None). 이 1건만 남은 것은 우연이다. (a)와 (a2)는 시작점이 √ε(상대 1.5e-8)만큼 다를 뿐인데 스레드 1에서 엔진 결정이 123건 다르다. 즉 pushpull의 외층 경로는 시작점의 그 정도 차이에도 갈린다.
 - 측정 3의 인과 가설('시작점 c 부호가 달라 외층 첫 QP가 다르고, FD 열 실패로 L:M1이 고정된다')은 (a2)로 반증됐다. c 부호가 같아도 같은 갈림이 생긴다.
 - (a2)를 9회로 1·8·18에 적용했다. 엔진 결정 차이는 pushpull 말고 0이다(현행도 같다). 경로 계수 차이는 남는다(current_reuse 7, nmcnr 8, sf_pushpull 8, two_stage_ota 7, two_stage_ota_sf 2). `hard_ok`는 9회로 모두 세 스레드가 같다.
-- (a2)가 바꾸는 결과(스레드 1, 현행 대비 엔진 결정 차이)는 두 회로다. folded 1(`hard_ok` False → True, 시작점 c −4.68e-10 → +1.25e-6), common_gate 2(ε 풀이 `EA:s1` best seq 34 → 23, stop `converged` → `slsqp_8`)다. 나머지 7회로는 0이다. S0 수준 결과(`search_base.fp`·`context_fp`)는 비교할 수 있는 7회로에서 모두 같다(common_gate의 현행 측정에는 S0 기록이 없다). → 층 0·탐색 결과 기준선은 다시 잰다(40 §2.4.13 (7)).
+- (a2)가 바꾸는 결과(스레드 1, 현행 대비 엔진 결정 차이)는 두 회로다. folded 1(`hard_ok` False → True, 시작점 c −4.68e-10 → +1.25e-6), common_gate 2(ε 풀이 `EA:s1` best seq 34 → 23, stop `converged` → `slsqp_8`)다. 나머지 7회로는 0이라고 적었으나 틀렸다(v1.11 정정, nfr4c2 판정 0305b8c A-5): √ε 여유가 경계에서 끌어올린 층 0 점 전부를 움직여 nmcnr_amplifier·pushpull_follower_buffer·sf_pushpull_output_opamp도 바뀐다(front·hard_ok·stop 불변, nmcnr `block_recomputes_same_input` 64 → 80). 사용자 결정 2026-10-16 N-5로 수용했다. 변화 0은 two_stage_ota·two_stage_ota_sf·current_reuse_telescopic_ota·ngcc_3stage_ff 4회로다. S0 수준 결과(`search_base.fp`·`context_fp`)는 비교할 수 있는 7회로에서 모두 같다(common_gate의 현행 측정에는 S0 기록이 없다). → 층 0·탐색 결과 기준선은 다시 잰다(40 §2.4.13 (7)).
 
 **남은 위험**(이 규칙 범위 밖): 풀이기가 정한 값의 잡음은 BP1로 없앨 수 없다. 닫힌 식이 없기 때문이다. 두 갈래가 있다. (1) 풀이기가 활성 제약을 c ≈ 0으로 몬 점의 부호 판정. (2) 풀이기 해의 경계 밖 성분이 다음 풀이의 경로를 가르는 것(위 pushpull). 같은 실행 환경에서는 1안 고정(40 §2.4.13 (1))으로 비트 재현된다. 다른 환경에서 갈리면 40 §2.4.13 (2)의 이산 비교가 FAIL로 드러낸다. pushpull은 지금 엔진으로는 다른 환경 비교에서 FAIL할 것으로 본다. 스레드 1 대 8이 그 대리 측정이다. 처리(Q-N7 확정, 사용자 결정 2026-10-15 "기본안대로 진행해", U-83): 알려진 결함으로 기록하고(42 D-ND4) 이 card를 끝낸다. 원인(외층 FD 열 실패와 재시작 경로)은 후속 card NFR4-F1(40 §2.4.13 (8))로 조사한다. 2안은 다시 열지 않는다.
 
@@ -1770,7 +1770,7 @@ def loop_roles(view_loops, transfer_views, declared_pm_views) -> tuple[LoopRole,
 **DoD 명령**(`$PY` = `C:\Python314\python.exe`):
 
 ```
-$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q -m "not slow"
+$PY -m pytest skills/analog-gmid-design/gmid_engine/tests -q   # slow 포함 판정은 --run-slow
 $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_structure_tables.py -q  # 9회로 S1v·A_max·Π·인증 비율 표
 $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_layer0_pilot.py -q      # front 점마다 allocated·realized·잔차
 ```

@@ -325,7 +325,7 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 
 ### 3.21 [r5] `layer0_start(sctx, origin=()) -> Layer0Result` -- 층 0 최소형(DEC-71 최소형, R D18·U-49)
 `Layer0Result(start, t, hard_ok, stop, centre_u, start_status, start_failure, iterations, restarts, aborts, frozen,
-kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docstring). **의미 한정**: 층 0 시작점은 DC 정합(봉인
+kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docstring). [NFR-4 재확인 (d)] 진입에서 `core.blas_environment()` 로 BLAS 스레드 1 을 다시 확인한다(무상태, 값 기록 없음). **의미 한정**: 층 0 시작점은 DC 정합(봉인
 통과) 가능성만 뜻한다 -- W·면적 상한 선언이 없어(S-3b) pA 전류·거대 W 점일 수 있고, 탐색은 출발 근거 이상으로 쓰지 않는다(front·보고
 값 아님; find_front notes `meaning "feasibility_only"`). 단계(정확히 이 순서):
 1. **상자 중심**: `domain.variables` 마다 (lo + hi)/2(ln 변수는 ln 좌표 중점 -> θ 값 exp). L: `domain.l_cells` 의 MOS 마다 칸 j =
@@ -336,7 +336,9 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
    `domain.current_box`). scipy SLSQP(기본 ftol·maxiter): 최소화 u, 제약 q_m − e^(−u) ≥ 0·e^u − q_m ≥ 0(원뿔 행 중 θ 전류
    변수를 하나라도 읽는 행 -- `schema.fixed` 만 읽는 행은 움직일 수 없어 빼고, 그 행의 원뿔 판정은 3 의 `cone_rows` 가 한다),
    bounds = 변수 bounds·u ∈ [0, ∞), 출발 z = 1 의 값, u = 양의 q 중 max |ln q|(없으면 0). 결과 z 를 bounds 로 자른 값으로 θ 전류를
-   바꾸고 `centre_u` = 해 u. 해의 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 커널 없이 3 의 시험으로 간다(`start_status`
+   바꾸고 `centre_u` = 해 u. [NFR-4 BP1, 41 §5.13] 출발 사다리 칸의 `current_ref` 가 있을 때만 해 z 에서 닫힌 식으로 끌어올린다: 행 m 의 A_m = Σ(움직이는 θ 전류 항 num/den·e^z)/I_c,m,
+   F_m = Σ(고정 전류 항)/I_c,m, q_m(s) = A_m·e^s + F_m 에서 e^s = max_{A_m>0}(1 + √ε − F_m)/A_m, s = max(0, ln 그 값)(√ε = `math.sqrt(sys.float_info.epsilon)`, A_m>0 행이 없거나
+   분자가 모두 ≤ 0 이면 s = 0), θ 전류 = exp(min(max(z + s, lo), hi)) -- 목적값 u 는 쓰지 않는다. 해의 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 커널 없이 3 의 시험으로 간다(`start_status`
    "centre_outside_cone").
 3a. **[r11] 정준 변수 순서·Halton 차원**(구현 = 3.23 `canonical_order`): 변수 목록(정의역 변수 + 칸이 구간인 L)을 (L 인가, 성분 종류, 키 구조 색) 오름차순으로 정렬한
    뒤 이름은 같은 키 안에서만 tie-break 로 쓴다. 키 궤도 id = sizing `dc_struct_colour` 의 궤도 산출(3.0b, 정준 라벨링의 자기동형 궤도)의 원소
@@ -427,6 +429,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   w_key, L, vds, vsb)`). `active` = c ≤ 1.
 
 ### 3.9 [r3] `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl) -> SearchContext`
+- [NFR-4 재확인 (b)] 진입에서 `core.blas_environment()` 로 BLAS 스레드 1 을 다시 확인한다(무상태, 값 기록 없음, 실패는 `RuntimeError`). 서명·`SearchContext` 칸은 바뀌지 않는다.
 - 정의역 = `search_domain(dc_ctx, settings, pdk_decl)`.
 - `context_fp` = fp_of((base.fp, plan_versions, lut, fixed_values, resistor_values, inputs)), `schema_fp` = fp_of(schema),
   `code_fp` = core·lut·graph·sizing·metrics·search `*.py` 바이트 sha256 묶음의 fp.
@@ -475,6 +478,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   받아들일 상태이고 처음 보는 키면 `StartPoint`.
 
 ### 3.13 [r2] `solve_eps(sctx, start, minimize, eps, origin) -> SolveResult`
+- [NFR-4 재확인 (e)] 호출마다 진입에서 `core.blas_environment()` 로 BLAS 스레드 1 을 다시 확인한다(무상태, 값 기록 없음, 실패는 `RuntimeError`). 끝점·ε 풀이·L-b 가 모두 이 함수를 부른다.
 - 변수 = domain.variables + 시작 칸이 구간인 MOS 의 L(칸 bounds). 칸이 한 점인 L 은 칸 lo 로 고정. [r8, S-4f] 1변수 노드 writer 의
   ln_idu 하한 = `ln_idu_floors(sctx, 변수, start.cells, one_var_only=True, start=시작 θ)`(3.22). x0 = 시작 θ(log 변수는 ln),
   bounds 로 자름. 축 분해능 = {power: 첫 받아들인 점(시작점)의 b_P, area: b_A} -- 풀이 하나 동안 고정. 목적 = 축 값/분해능,
@@ -490,20 +494,24 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   포함), `frozen` = 고정한 변수. 정상 끝: SLSQP(ftol 1) success 면 "converged", 아니면 "slsqp_<status>".
 - `best` = 수락 반복 중 모든 c ≥ 0 이고 (목적, seq) 최소. 없으면 None.
 
-### 3.14 [r2] `polish_l_cells(sctx, solved, origin) -> (SolveResult, ...)`
+### 3.14 [r2] `polish_l_cells(sctx, solved, origin) -> ((SolveResult, ...), str)`
 - 설계 4.3 L-b(본문 docstring). 새 칸의 L = 위로 이동이면 새 칸 lo, 아래로면 hi. 시험 조건: 받아들일 상태 ∧ (목적 감소 ∨ 음의
   제약 합 증가). 수락 = 재시작 해 목적 개선 ≥ 1(정규화 한 칸 -- 전력은 그 바퀴 기준점의 b_P). 한 바퀴 수락 없음 또는 평가 예산·
   벽시계 도달 -> 끝.
+- [NFR-4] 둘째 값 = 정지 사유 ∈ {`converged`, `eval_budget`, `wall_budget`}: **반환 직전 예산 확인을 한 번 더** 해, 커널 호출 수 >= 평가 예산이면 `eval_budget`, 아니고 마감이 지났으면 `wall_budget`,
+  아니면 `converged`(끝난 길과 무관). 버려진 `solve_eps` 결과의 정지는 따로 기록하지 않는다.
 
 ### 3.15 [r2] `sweep_front(sctx, starts) -> dict`
 - 키: `solves`((id, SolveResult) -- 끝점 id "EP:<start>"/"EA:<start>", ε 점 "eps:<축>:<k>", L-b "L:<점>:<n>"), `failed_eps`
   (항목 {eps, minimize, stop, aborts, accepted, start?}), `resolution`(정렬 쌍: b_A_m2, b_P_rule, estimated True, coarse_factor,
   E_refilter 0, refilter "mod8_not_implemented", E_B; 끝점이 둘 다 있으면 N_eps·e_eps·E_fixed·b_P_grid_w),
-  `front`·`pending_front`(FrontPoint), `*_removed`((id, 지배자 id)), `*_folded`.
+  `front`·`pending_front`(FrontPoint), `*_removed`((id, 지배자 id)), `*_folded`, [NFR-4] `lb_stops`(tuple -- L-b 실행마다 {class: 묶음 이름, l_from: 점 id, stop: 사유, accepted: 수락 수}, 실행 순서).
 - ε 격자 점 수 = 열린 구간 (lo, hi) 안 hi − k·간격 점 수. N_ε = ⌊(E_B − E_fixed)/e_ε⌋(e_ε = 끝점 풀이 kernel_calls 중앙값).
   총수 > max(N_ε, 0) 이면 간격 배수 ×2 반복. 전력 간격 = max(b_P(E_P), b_P(E_A)). 비지배 필터 전력 동률 폭 = max(b_P(p), b_P(q)).
 
 ### 3.16 [r2] `find_front(sctx, given_starts) -> SearchFront`
+- [NFR-4 재확인 (c)] 진입에서 `blas_environment()` 를 한 번 불러(실패는 `RuntimeError`) 그 값의 core `fp_of` 를 runs 줄 최상위 키 `env_fp` 에 둔다. notes 에는 언제나 정확히 한 줄
+  `{verdict "l_search", rule "LR10", stops [...]}`(= `sweep_front` 의 `lb_stops`, L-b 가 돌지 않았으면 빈 목록)가 더해진다 -- runs 줄 notes 와 `SearchFront.notes` 에 함께. `perf` 키는 바뀌지 않는다.
 - [r5] 순서: deadline 설정 -> `layer0_start(sctx)` -> `start_points(sctx, given_starts, (층 0 start,) 또는 ())` -> 스윕. notes 의
   옛 `{verdict "blocked", reason "layer0_inputs_missing"}` 대신 `{verdict "layer0_minimal"(시작점 있음) | "layer0_no_start",
   rule "DEC-71", reason "seal_margin_maxmin_centre", stop, t, hard_ok, start_status, centre_u, kernel_calls, probes,
@@ -648,7 +656,7 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 - `evals.jsonl`: {seq, schema_fp, cells, w_fixed_fp, theta_hex, theta, status, ok, origin, fail?, objectives?{power_dc_w,
   area_search_m2}, power_resolution_w?, constraints[{name, c, active}], unmeasured[[metric, op, 사유]], snapshot_fp?, code_fp}.
 - `runs.jsonl`: {run_id, s0, schema_fp, settings, starts, resolution, front[], pending_front[], removed[], failed_eps,
-  notes, perf, code_fp}; 점 = {point_id, status, seq, theta_hex[[키, hex]], cells, power_dc_w, area_search_m2, gate_area_m2,
+  notes, perf, env_fp, code_fp}; 점 = {point_id, status, seq, theta_hex[[키, hex]], cells, power_dc_w, area_search_m2, gate_area_m2,
   passives_in_area(sctx.area_decl 이 있으면 True -- 수동 커패시터 면적이 area_search_m2 에 들어 있다, 결정 11), power_resolution_w, unmeasured, active, origin, snapshot_fp, snapshot_ref}.
 - `snapshots/<snapshot_fp>.json.gz`: {fp, records[{kind, key, fields{이름: {value, writer, input_version}}}]}.
 - Windows 경로 길이(260자) 때문에 `root` 는 짧아야 한다(지문 두 개가 64자).
@@ -1062,7 +1070,8 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
   상한을 넘기면 충돌 레코드로 남긴다.
 * **전류 확정**: 블록 입력 소자 방정식 `I_d = gm_b/(gm/ID)_d` + KCL 기저 행 + 미러(같은 VGS 묶음 폭 비 1) + FF 묶음 소자(G_ff/(gm/ID)) 전파. 정해지지 않은 소자의 자리값
   (`StartIntervals.current_ref`) = max(선택 점에서 W = W_min 인 전류 W_min·IDu/L, 정해진 전류들의 기하 평균). 층 0 의 Chebyshev 중심이 상자 기하 중심 대신 이 값을 기준 전류로 쓰고, 해의 편차 u(ln)만큼
-  움직이는 θ 전류를 모두 올려(원뿔이 유지될 때만) 모든 MOS 가 기준 이상 = 폭 ≥ W_min 이 되게 한다(최소 폭 hard 제약 `w_min:*` 위반 방지).
+  움직이는 θ 전류를 모두 e^s 배 올려(원뿔이 유지될 때만) 모든 MOS 가 기준 이상 = 폭 ≥ W_min 이 되게 한다(최소 폭 hard 제약 `w_min:*` 위반 방지). e^s 는 풀이기 해에서 행마다
+  q_m = A_m·e^s + F_m 이 1 + √ε 가 되는 닫힌 식의 최댓값이다(§3.21 2, 풀이기 목적값 u 는 쓰지 않는다 -- 경계 배치점은 선언량의 닫힌 식, NFR-4 BP1).
 
 ### U13.3 불변식 (test 가 확인할 성질)
 

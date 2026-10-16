@@ -28,6 +28,7 @@ import time
 import numpy as np
 from scipy.optimize import minimize as scipy_minimize
 
+from gmid_engine.core import blas_environment
 from gmid_engine.sizing import THETA_L
 
 from .canonical_order import canonical_order
@@ -100,6 +101,7 @@ def _budget_stop(sctx):
 
 
 def solve_eps(sctx, start, minimize, eps, origin):
+    blas_environment()      # [NFR-4 재확인 (e)] ε 풀이 한 번마다 시작할 때 -- 끝점·ε 풀이·L-b 모두 이 함수. 무상태, 값은 기록하지 않는다
     row_key = canonical_row_key(sctx)
     variables, fixed, x0, exact = _layout(sctx, start)
     lo = np.asarray([v.lo for v in variables], dtype=float)
