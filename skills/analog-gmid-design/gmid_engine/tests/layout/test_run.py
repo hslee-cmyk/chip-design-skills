@@ -130,11 +130,15 @@ def test_previous_from_other_design_point_rejected(toy_lut):
 
 # --- 출력 계약 --------------------------------------------------------------------------------------------------------
 
-def test_output_shape(result):
+def test_output_shape(toy_lut):
+    # [O-17 (3)·O-19 (1)] 이번 호출에서 쓴 writer = RunCounters 행 computes+grafts 증분(written_since) -- 첫 호출은 레이아웃 블록 다섯 전부
+    rp = fresh_run()
+    before = write_counts(rp["counters"])
+    result = run(composite(toy_pdk(toy_lut)), new_memo(toy_lut), rp=rp)
     assert isinstance(result, LayoutResult)
-    assert [f.name for f in dataclasses.fields(result)] == ["snapshot", "computed_blocks"]        # §2.4.7: 두 칸뿐
+    assert [f.name for f in dataclasses.fields(result)] == ["snapshot"]                            # §2.4.7·O-17 (3): 스냅샷 칸 하나
     assert isinstance(result.snapshot, GraphSnapshot)
-    assert result.computed_blocks == ALL_WRITERS
+    assert written_since(rp["counters"], before) == frozenset(ALL_WRITERS)
     o = outs(result)
     assert isinstance(o, LayoutOutputs)
     assert [f.name for f in dataclasses.fields(o)][0] == "review_needed"                           # Q8 (iv): 파생 출력의 첫 칸
@@ -384,10 +388,12 @@ def test_rejected_only_change_reuses_slices_and_candidates(toy_lut):
     g, r = [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B"))]
     r1 = run(make_input(ds, g, r, toy_pdk(toy_lut)), memo, rp=rp)
     m1 = _misses(memo)
+    before = write_counts(rp["counters"])
     r2 = run(make_input(ds, g, r, toy_pdk(toy_lut), rejected=("A",)), memo, previous=r1, rp=rp)
-    assert "ly_slice_density" not in r2.computed_blocks
-    assert "ly_finger_candidates" not in r2.computed_blocks
-    assert "ly_pattern_select" in r2.computed_blocks
+    w = written_since(rp["counters"], before)                                     # [O-17 (3)·O-19 (1)] RunCounters 행 증분
+    assert "ly_slice_density" not in w
+    assert "ly_finger_candidates" not in w
+    assert "ly_pattern_select" in w
     assert _misses(memo) == m1
     assert groups(r2)[0].reason == "w_request_rejected"                         # [U12] 즉시 완화 없음(옛 "relaxed:" 접두 없음)
     assert groups(r2)[0].pattern is None
@@ -395,25 +401,30 @@ def test_rejected_only_change_reuses_slices_and_candidates(toy_lut):
 
 
 def test_id_change_recomputes_from_slices(toy_lut):
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     inp1 = composite(toy_pdk(toy_lut))
-    r1 = run(inp1, memo)
+    r1 = run(inp1, memo, rp=rp)
     devs = tuple(dataclasses.replace(d, ID_A=1.5 * d.ID_A) if d.name == "D" else d for d in inp1.devices)
-    r2 = run(dataclasses.replace(inp1, devices=devs), memo, previous=r1)
-    assert r2.computed_blocks[:1] == ("ly_slice_density",)
-    assert "ly_finger_candidates" in r2.computed_blocks
-    assert list(r2.computed_blocks) == [w for w in ALL_WRITERS if w in r2.computed_blocks]
+    before = write_counts(rp["counters"])
+    run(dataclasses.replace(inp1, devices=devs), memo, previous=r1, rp=rp)
+    w = written_since(rp["counters"], before)                                     # [O-17 (3)·O-19 (1)] RunCounters 행 증분
+    assert "ly_slice_density" in w
+    assert "ly_finger_candidates" in w
+    # O-19 (1) 승인 기준 약화: 블록 순서는 코드 고정·layout CONTRACT §4 -- 옛 '쓴 순서'(ALL_WRITERS 순) 단언 삭제(RunCounters 행에는 순서가 없다)
 
 
 def test_reference_w_change_does_not_recompute_slices(toy_lut):
     # 슬라이스 키 = 보존량(kind, L, ID, gm/ID, vds, vsb) -- 참고 W_m 은 키가 아니다
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     inp1 = composite(toy_pdk(toy_lut))
-    r1 = run(inp1, memo)
+    r1 = run(inp1, memo, rp=rp)
     m1 = _misses(memo)
     devs = tuple(dataclasses.replace(d, W_m=7e-6) for d in inp1.devices)
-    r2 = run(dataclasses.replace(inp1, devices=devs), memo, previous=r1)
-    assert "ly_slice_density" not in r2.computed_blocks
+    before = write_counts(rp["counters"])
+    r2 = run(dataclasses.replace(inp1, devices=devs), memo, previous=r1, rp=rp)
+    assert "ly_slice_density" not in written_since(rp["counters"], before)      # [O-17 (3)·O-19 (1)] RunCounters 행 증분
     assert _misses(memo) == m1
     assert all(d.W_m == 7e-6 for d in outs(r2).devices)
     assert all(d.W_m == 7e-6 for _n, d in r2.snapshot.column(lf.DEVICE, lf.F_DEVICE))
@@ -421,9 +432,11 @@ def test_reference_w_change_does_not_recompute_slices(toy_lut):
 
 def test_lut_fingerprint_is_part_of_slice_key(toy_lut, tmp_path):
     other = build_toy_lut(tmp_path / "other", id_scale=2.0)
-    r1 = run(composite(toy_pdk(toy_lut)), new_memo(toy_lut))
-    r2 = run(composite(toy_pdk(other)), new_memo(other), previous=r1)
-    assert r2.computed_blocks[:1] == ("ly_slice_density",)
+    rp = fresh_run()
+    r1 = run(composite(toy_pdk(toy_lut)), new_memo(toy_lut), rp=rp)
+    before = write_counts(rp["counters"])
+    r2 = run(composite(toy_pdk(other)), new_memo(other), previous=r1, rp=rp)
+    assert "ly_slice_density" in written_since(rp["counters"], before)          # [O-17 (3)·O-19 (1)] RunCounters 행 증분
     # 슬라이스 ID 2배 -> J 2배 -> W_need 절반
     a1 = [d for d in outs(r1).devices if d.name == "A"][0]
     a2 = [d for d in outs(r2).devices if d.name == "A"][0]
