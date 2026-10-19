@@ -363,7 +363,7 @@ date: 2026-10-16
 
 ### 사용자 결정 O-26·O-27·O-32·O-33 → v0.11(2026-10-19, 브랜치 `plan/graph-consumption-v011`, base master `b2c72a01`)
 
-원문: `wt/_drafts/user_decisions.md` 645(O-26)·646(O-27)·652(O-32)·653(O-33)행. O-33은 오케스트레이터 알림대로 끝 행에서 다시 읽어 대조했다(가정으로 쓴 부분 없음). gain-budget v6.18(브랜치 `plan/gb-v618` `d888d9a9`, 승인 전)의 card DE-1·LI-1과 그 계획의 '관련 계획 후속 정정' 표(graph-consumption 행)를 읽었다.
+원문: `wt/_drafts/user_decisions.md` 645(O-26)·646(O-27)·652(O-32)·653(O-33)행. O-33은 오케스트레이터 알림대로 끝 행에서 다시 읽어 대조했다(가정으로 쓴 부분 없음). gain-budget v6.18(브랜치 `plan/gb-v618` `816d9dc1`, 승인 전 -- 처음 `d888d9a9`에서 읽고 후속 커밋에서 이 판으로 갱신)의 card DE-1·LI-1과 그 계획의 '관련 계획 후속 정정' 표(graph-consumption 행)를 읽었다.
 
 | 결정·지시 | 반영 자리 | 처리 |
 |---|---|---|
@@ -374,6 +374,10 @@ date: 2026-10-16
 | (5) 전류 대칭 결과 필드 소유 | GC-8 (2) | headroom-chain 344행(`b7f457e9`) 문장 형태로: 만드는 card는 HC-1(`iv_headroom`이 처음 읽음), HC-1이 못 하면 GC-8, writer는 만든 card의 블록 하나 |
 | (6) cProfile 기준선(WP-10, O-33 (1)) | N7.1 공통 착수 조건, N7.3-9 | 엔진 card마다 그 base에서 검증자가 13회로 cProfile·블록별 계산 수·블록 밖 함수 포함 같은 인자 반복 호출 계수를 잰다. 완료 조건 9는 이 기준선과 비교 |
 | O-32 | N2 O-26~O-33 행 | 이 계획에 직접 걸리는 문언이 없어 결정 행에만 기록 |
+| (v0.11 검증 `9e3ed4e2` '수정 필요' → 같은 판 후속 커밋) (1) L-5 '동작점 사본' 탐지 정의 [막음] | N3.1-5 | 출처 = graph `device.dc_op` 값(`DeviceOp`)을 데이터 흐름으로 추적(변수 경유·`float()`/`int()` 포함), 대상 = 엔진 값 형식(L-4와 같은 frozen dataclass 집합, 집합 코드는 규칙 L 전용 파일 한 곳) 생성자 인자 또는 graph 필드 쓰기, 정적으로 못 풀면 위반. 알려진 자리: `layout_input.py:72`·`ly_point` = LI-1, `metrics_aux.py:125` = HC-S. 확인 결과 HC-S 행(headroom-chain `952d9761` 509행)은 `sat_v`·`sat_tol_v`만 적고 `op.vgs`(`SatDevice.vgs_v`)는 없다 -- 그 칸의 유일한 소비자 `ls_swing.py:47`은 DE-1이 지운다. 오케스트레이터 확인 항목으로 표시. 새 자리가 나오면 card id 배정 전 GC-1 멈춤 |
+| (2) GC-8을 headroom-chain v0.7.6에 맞춤 | GC-8 (2)(4), 머리 19행, N7.2, N8 R7 | `headroom_bound` = 정의 값(VDS ≥ VDSAT) 상한 인증, 비용에 tol 제외, 선언 triode = 비용 0 방향 변(VDS ≥ 0), LUT 정의역 하한 항은 쓰지 않음, `STATUS_UNKNOWN` 예산 처리는 design 넘김(대체값 금지). 'VDS 변 격자 하한 비용' 정의 변화(tol 제외). 인용 판을 `plan/headroom-v076` `952d9761`(336·342-345·509행)로 |
+| (3) 용어 통일 | Status, N2, F-G38, GC-8, GC-9 | 'LUT 정의역 하한 항' |
+| (4) 상위 v6.18 참조 | 이 표 머리 | `816d9dc1` |
 
 ## Version History
 
