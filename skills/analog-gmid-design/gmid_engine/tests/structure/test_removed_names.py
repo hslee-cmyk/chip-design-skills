@@ -29,7 +29,10 @@ REMOVED_SCOPES = (("dc_gm_bound", None), ("previous_gm_id", None), ("inherited_g
                   ("S1v", None), ("Achievability", None), ("StartIntervals", None), ("StartContext", None), ("CurveBook", None),
                   # [U17 ①-b] §2.4.6 끝·§2.4.7 SearchContext 칸 배정 `cell_floors`: 1변수 writer 집합(`cell_floor.py` 의 `_ONE_VAR_KEY` 칸)은
                   # S0 수준 필드 `device: dc_self_referential`(§2.4.8) -- search 쪽 사본 키를 지운다.
-                  ("_ONE_VAR_KEY", "search/"))
+                  ("_ONE_VAR_KEY", "search/"),
+                  # [v1.11.2 O-39 (1)] 설계 40 §2.4.14 (4) 행 '`F_DEVICE`, `ly_device`' 범위 = 엔진 전체(소스·CONTRACT·tests), 같은 행
+                  # '`(DEVICE, F_DEVICE)` READS·`projection.column(DEVICE, F_DEVICE)`'도 함께 0. 이 검사는 그중 엔진 소스 코드 범위다.
+                  ("F_DEVICE", None), ("ly_device", None))
 REMOVED = tuple(n for n, _s in REMOVED_SCOPES)
 
 

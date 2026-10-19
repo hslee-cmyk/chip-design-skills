@@ -26,7 +26,7 @@ from gmid_engine.convergence import (
     converge_point,
 )
 from gmid_engine.core import fp_of
-from gmid_engine.layout import F_DIFFUSION, F_FLOORPLAN, LAYOUT_KEY, layout_outputs
+from gmid_engine.layout import F_DIFFUSION, F_FLOORPLAN, F_POINT, LAYOUT_KEY, layout_outputs
 from gmid_engine.layout import _ly_fields as lf
 from gmid_engine.search import FrontPoint
 
@@ -328,7 +328,7 @@ def test_real_layout_fields_live_on_design_point_snapshot(real, name):
         assert snap.writers.writer_of(kind, field) == writer
     for name_, _op in dp.column("device", "dc_op"):
         rec = snap.record("device", name_)
-        assert rec.get("dc_op") is not None and rec.get(lf.F_DEVICE) is not None
+        assert rec.get("dc_op") is not None and rec.get(F_POINT) is not None   # [v1.11.2 O-39 (1)] 입력 소자 필드 = ly_point
     assert cp.layout.snapshot.value("graph", LAYOUT_KEY, F_FLOORPLAN).outline_area_m2 == cp.layout_area_m2
 
 

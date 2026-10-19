@@ -280,3 +280,24 @@ def test_block_reuse(toy_lut):
     assert pattern_select(snap, **run) is snap
     st = block_row(run["counters"], pattern_select.name)
     assert st[5] == 0 and st[1] == 1
+
+
+def test_reads_declaration():
+    # oracle (d): design 40 v1.11.2 §2.4.8 '세 블록 READS' 행(O-36 (3) (a)·O-39 (2)) -- `ly_pattern_select` READS device `ly_point`(kind·L_m)·
+    # `ly_pins`·`ly_w_adjustable`·`ly_fw_cand`, graph `ly_pdk`·`ly_groups_in`·`ly_rejected`·`ly_canon`. `ly_attrs`(참고 W)·`ly_canon_rows` 는 읽지 않는다.
+    assert set(pattern_select.reads) == {("device", "ly_point"), ("device", "ly_pins"), ("device", "ly_w_adjustable"),
+                                         ("device", "ly_fw_cand"), ("graph", "ly_pdk"), ("graph", "ly_groups_in"),
+                                         ("graph", "ly_rejected"), ("graph", "ly_canon")}
+
+
+def _staged_w(toy_lut, wa, wb, wc, upto):
+    ds = [dev("A", "h", "da", 2e-6, W=wa), dev("B", "h", "db", 2e-6, W=wb), dev("C", "x", "y", 0.75e-6, W=wc)]
+    inp = make_input(ds, [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B")), rg("r2", ("C",))], toy_pdk(toy_lut))
+    return staged_snapshot(inp, new_memo(toy_lut), upto)
+
+
+def test_uniform_exact_w_doubling_keeps_input_version(toy_lut):
+    # 완료 조건 W-1 블록 단위(구성): 모든 W_m 정확히 2배 -> 정준 별칭표 값 같음(순위·동률 보존) -> 이 블록 입력 버전 같음(재계산 0)
+    a = _staged_w(toy_lut, 4e-6, 4e-6, 3e-6, "finger_candidates")
+    b = _staged_w(toy_lut, 8e-6, 8e-6, 6e-6, "finger_candidates")
+    assert pattern_select.input_version(a) == pattern_select.input_version(b)

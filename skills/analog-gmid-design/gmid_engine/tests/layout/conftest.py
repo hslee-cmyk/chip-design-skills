@@ -295,17 +295,46 @@ def pytest_configure(config):
     )
 
 
-BLOCK_ORDER = ("finger_candidates","pattern_select", "finger_geometry", "compose_rows")
+# [v1.11.2 O-36 (3) (a)·O-39 (1)] design 40 §2.4.8 '세 블록 READS' 행 test 도구 (4): 진입점 함수 이름 순서, 정준 별칭표 블록이 맨 앞
+BLOCK_ORDER = ("canon_tables", "finger_candidates", "pattern_select", "finger_geometry", "compose_rows")
+
+# design 40 §2.4.8 필드 소유표의 필드·writer 이름(정본 = design 표 문언, oracle (d)). 옛 소자 통째 필드는 없다(O-39 (1) 삭제 행).
+F_POINT_NAME = "ly_point"
+F_PINS_NAME = "ly_pins"
+F_W_ADJ_NAME = "ly_w_adjustable"
+F_ATTRS_NAME = "ly_attrs"
+F_CANON_NAME = "ly_canon"
+F_CANON_ROWS_NAME = "ly_canon_rows"
+INPUT_DEVICE_FIELDS = (F_POINT_NAME, F_PINS_NAME, F_W_ADJ_NAME, F_ATTRS_NAME)
+W_INPUT = "ly_input"
+W_SLICES = "ly_slice_density"
+W_CANON = "ly_canonical_naming"
+LAYOUT_BLOCK_WRITERS = (W_SLICES, W_CANON, "ly_finger_candidates", "ly_pattern_select", "ly_finger_geometry", "ly_rows")
 
 
 def block_objects():
-    """계산 블록 4개(4.0 표의 파일·진입점 이름) -- 블록 단위 test 가 run_layout 없이 부른다."""
+    """계산 블록 5개(4.0 표의 파일·진입점 이름 + 정준 별칭표 `canon_block.canon_tables`) -- 블록 단위 test 가 run_layout 없이 부른다."""
+    from gmid_engine.layout.canon_block import canon_tables
     from gmid_engine.layout.finger_candidates import finger_candidates
     from gmid_engine.layout.pattern_select import pattern_select
     from gmid_engine.layout.finger_geometry import finger_geometry
     from gmid_engine.layout.rows import compose_rows
-    return {"finger_candidates": finger_candidates, "pattern_select": pattern_select,
+    return {"canon_tables": canon_tables, "finger_candidates": finger_candidates, "pattern_select": pattern_select,
             "finger_geometry": finger_geometry, "compose_rows": compose_rows}
+
+
+def input_device_columns(devices):
+    """design 40 §2.4.8 옛 소자 통째 필드 삭제 행(O-39 (1))의 분할 그대로(oracle (d) 정의 문장): `LayoutDevice` 14칸을 겹치지 않는 네 필드로 --
+    `kind`·`L_m`·`ID_A`·`gm_id`·`vds_V`·`vsb_V` -> `ly_point`(ConservedPoint), `drain`·`gate`·`source` -> `ly_pins`(DevicePins),
+    `W_adjustable` -> `ly_w_adjustable`(bool), `W_m`·`body`·`diode` -> `ly_attrs`(DeviceAttrs), `name` = 네 필드의 열 key."""
+    from gmid_engine.layout import _ly_fields as lf
+    from gmid_engine.layout.contract_output import ConservedPoint, DeviceAttrs, DevicePins
+    return {
+        (lf.DEVICE, F_POINT_NAME): {d.name: ConservedPoint(d.kind, d.L_m, d.ID_A, d.gm_id, d.vds_V, d.vsb_V) for d in devices},
+        (lf.DEVICE, F_PINS_NAME): {d.name: DevicePins(d.drain, d.gate, d.source) for d in devices},
+        (lf.DEVICE, F_W_ADJ_NAME): {d.name: d.W_adjustable for d in devices},
+        (lf.DEVICE, F_ATTRS_NAME): {d.name: DeviceAttrs(d.W_m, d.body, d.diode) for d in devices},
+    }
 
 
 def fresh_run():
@@ -343,17 +372,24 @@ def written_since(counters, before):
 def staged_snapshot(inp, memo, upto=None, run=None):
     """4.12 2·3 의 입력 필드·슬라이스 필드를 직접 쓴 스냅샷(writer = `_ly_fields` 표) + `upto` 블록까지 차례로 적용.
 
-    슬라이스 값은 `slice_density`(4.2, 따로 test) 결과. `upto=None` 이면 블록을 하나도 부르지 않는다.
-    run = 블록 호출의 실행 두 객체 키워드(dict, card B C4), 없으면 새 실행 하나.
+    [v1.11.2] design 40 §2.4.8 '세 블록 READS' 행 test 도구 interface (1)~(4):
+    (1) writer `ly_input` 으로 device `ly_point`·`ly_pins`·`ly_w_adjustable`·`ly_attrs`(input_device_columns)와 graph `ly_pdk`·`ly_groups_in`·
+        `ly_row_groups`·`ly_rejected`(정렬 tuple)·`ly_passives`(이름순 tuple). 옛 소자 통째 필드는 쓰지 않는다.
+    (2) `ly_slices` 는 writer `ly_slice_density` 로 직접 -- 값 = 소자마다 slice_density(memo, 그 소자의 ly_point 값, 그 kind 폭 키)
+        (슬라이스 조회는 4.2 가 따로 판정. run.py 의 비공개 `_slice_block` 은 부르지 않는다 -- 규칙 B).
+    (3) 블록은 run(= 한 번 만든 open_run() 의 donors·counters 키워드 dict, card B C4)으로 부른다. 없으면 새 실행 하나.
+    (4) BLOCK_ORDER 맨 앞 `canon_tables` -- `upto` 가 어느 블록이든 정준 별칭표 블록이 먼저 돈다. `upto=None` 이면 블록 0.
     """
     from gmid_engine.core import GraphSnapshot
     from gmid_engine.layout import _ly_fields as lf
     from gmid_engine.layout.slice_density import slice_density
     pdk = inp.pdk
     keys = dict(pdk.slice_width_keys)
+    cols = input_device_columns(inp.devices)
+    points = cols[(lf.DEVICE, F_POINT_NAME)]
     snap = GraphSnapshot.empty(lf.LY_WRITERS)
-    snap = snap.write(lf.WRITER_INPUT, "test-input", {
-        (lf.DEVICE, lf.F_DEVICE): {d.name: d for d in inp.devices},
+    snap = snap.write(W_INPUT, "test-input", {
+        **cols,
         (lf.GRAPH, lf.F_PDK): {lf.GRAPH_KEY: pdk},
         (lf.GRAPH, lf.F_GROUPS_IN): {lf.GRAPH_KEY: inp.matching_groups},
         (lf.GRAPH, lf.F_ROW_GROUPS): {lf.GRAPH_KEY: inp.row_groups},
@@ -361,8 +397,8 @@ def staged_snapshot(inp, memo, upto=None, run=None):
         # [U12] CONTRACT 4.12 2: 입력 필드 `ly_passives` = 이름순 `LayoutPassive` tuple(_ly_fields.INPUT_FIELDS 에 추가된 필드)
         (lf.GRAPH, lf.F_PASSIVES): {lf.GRAPH_KEY: tuple(sorted(inp.passives, key=lambda p: p.name))},
     })
-    snap = snap.write(lf.WRITER_SLICES, "test-slices", {
-        (lf.DEVICE, lf.F_SLICES): {d.name: slice_density(memo, d, keys[d.kind]) for d in inp.devices},
+    snap = snap.write(W_SLICES, "test-slices", {
+        (lf.DEVICE, lf.F_SLICES): {n: slice_density(memo, p, keys[p.kind]) for n, p in points.items()},
     })
     if upto is None:
         return snap

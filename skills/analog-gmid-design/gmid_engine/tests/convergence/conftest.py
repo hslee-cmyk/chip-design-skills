@@ -21,7 +21,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from gmid_engine.layout import F_DEVICE, F_DIFFUSION, F_FINGER, F_FLOORPLAN, F_GROUPS, F_GROUPS_IN, LAYOUT_KEY, LayoutPdk
+from gmid_engine.layout import F_DIFFUSION, F_FINGER, F_FLOORPLAN, F_GROUPS, F_GROUPS_IN, F_POINT, LAYOUT_KEY, LayoutPdk
 from gmid_engine.layout.contract_input import PDK_RULE_QUANTITIES
 from gmid_engine.layout.contract_output import (
     DeviceDiffusion,
@@ -51,7 +51,7 @@ def dlay(name, fw, nf, W, tol=0.01):
 
 
 def dunplaced(name, tol=0.01):
-    """놓지 못한 소자: `ly_device` 에는 있고 `ly_finger` 값이 없다."""
+    """놓지 못한 소자: `ly_point` 열에는 있고 `ly_finger` 값이 없다."""
     return (name, None)
 
 
@@ -69,10 +69,12 @@ def ddiff(name, fw, nf, ad, as_, pd, ps):
 
 
 def layout(devices=(), groups=(), diffusion=(), plan=None, groups_in=()):
-    """손 레이아웃 결과: 레이아웃 필드(`ly_device`·`ly_finger`·`ly_groups`·`ly_groups_in`·`ly_floorplan`·`ly_diffusion`)를 든 FakeSnapshot 의
-    `LayoutResult(snapshot)`(O-17 (3) 뒤 칸은 스냅샷 하나). `devices` = `dlay`/`dunplaced` 항목, `groups_in` = 입력 그룹(gid·hub_net)."""
+    """손 레이아웃 결과: 레이아웃 필드(`ly_point`·`ly_finger`·`ly_groups`·`ly_groups_in`·`ly_floorplan`·`ly_diffusion`)를 든 FakeSnapshot 의
+    `LayoutResult(snapshot)`(O-17 (3) 뒤 칸은 스냅샷 하나). `devices` = `dlay`/`dunplaced` 항목, `groups_in` = 입력 그룹(gid·hub_net).
+    [v1.11.2 O-39 (1)] design 40 §2.4.8: 소자 이름 목록(열 key)은 `ly_point`(공개 export `F_POINT`)에서 읽는다 -- effective_placement 는 이름만
+    읽으므로 값은 빈 자리표시자다(보존량 값은 이 test 들의 판정 대상이 아니다)."""
     fields = {
-        ("device", F_DEVICE): {n: SimpleNamespace(name=n) for n, _f in devices},
+        ("device", F_POINT): {n: SimpleNamespace() for n, _f in devices},
         ("device", F_FINGER): {n: f for n, f in devices if f is not None},
         ("graph", F_GROUPS): {LAYOUT_KEY: tuple(groups)},
         ("graph", F_GROUPS_IN): {LAYOUT_KEY: tuple(groups_in)},
