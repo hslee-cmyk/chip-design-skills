@@ -1,0 +1,322 @@
+{
+ "devices": {
+  "M1": {
+   "id": 4.250076e-06,
+   "gm": 6.89031e-05,
+   "gds": 5.213245e-07,
+   "vth": 0.6326439,
+   "vdsat": 0.09483314,
+   "vgs": 0.7,
+   "vds": 0.6999804,
+   "vbs": 1.338121e-13
+  },
+  "M2": {
+   "id": 8.497867e-06,
+   "gm": 0.0001377793,
+   "gds": 1.042103e-06,
+   "vth": 0.6326426,
+   "vdsat": 0.09482313,
+   "vgs": 0.6999804,
+   "vds": 0.700376,
+   "vbs": 1.338184e-13
+  },
+  "M3": {
+   "id": 1.70003e-05,
+   "gm": 0.0002756124,
+   "gds": 2.085298e-06,
+   "vth": 0.6326439,
+   "vdsat": 0.09483314,
+   "vgs": 0.7,
+   "vds": 0.6999804,
+   "vbs": 1.338121e-13
+  }
+ },
+ "nodes": {
+  "n1": 0.6999804,
+  "nin": 0.7,
+  "n2": 0.700376,
+  "n3": 0.7,
+  "vdd": 1.8,
+  "vb": 0.7
+ },
+ "rail_current_A": {
+  "vdd": 2.97482e-05,
+  "vb": -0.0
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": "hit",
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_rhp_with_other_fail_is_fa0\\o\\trhp_posfb.free.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 49.37232030003756,
+  "dc_gain_db": 33.86967075578359,
+  "phase_dc_deg": 7.067089450270399e-05,
+  "reference_point": "first",
+  "f3db_hz": 8413.95142,
+  "ugf_hz": 416524.7455679154,
+  "phase_lag_at_ugf_deg": -103.89352936683227,
+  "pm_deg": null,
+  "a0_f3db_hz": 415416.3044971958,
+  "pm_open_loop_deg": null,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": null,
+  "pm_crosscheck_note": "정의 불가(open_loop_rhp_poles) -- 개루프 RHP 극·불안정 폐루프에서는 peaking 역산이 위상여유가 아니다(원값 None)",
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": null,
+  "closed_loop_peak_hz": null,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": "open_loop_rhp_poles",
+  "pm_deg_raw": 283.89352936683224,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_1",
+   "closure_sign": 1.0,
+   "nyquist": {
+    "encirclements_cw": 0,
+    "reason": null,
+    "max_step_deg": 3.9133665668255935,
+    "max_step_hz": 10000000000.0,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     49.3723203,
+     6.08977846e-05
+    ],
+    "L_last": [
+     0.0225677836,
+     0.0349348504
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     0.0001385358473962779,
+     3.9133665668255935
+    ],
+    "refinement": {
+     "rounds": 0,
+     "samples_added": 0,
+     "k_max": 10,
+     "history": []
+    }
+   },
+   "pz": {
+    "status": "ok",
+    "P": 2,
+    "rhp": [
+     [
+      51207.63,
+      0.0
+     ],
+     [
+      6192053000.0,
+      0.0
+     ]
+    ],
+    "beyond_sweep": [],
+    "n_poles": 12,
+    "reason": null,
+    "netlist": "trhp_posfb.free.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "main netlist, inputs driven (beta=1)",
+    "omega_stop": 62831853071.79586,
+    "poles": [
+     [
+      6192053000.0,
+      0.0
+     ],
+     [
+      51207.63,
+      0.0
+     ],
+     [
+      -16882000000.0,
+      0.0
+     ],
+     [
+      -20297800000000.0,
+      0.0
+     ],
+     [
+      -20422900000000.0,
+      0.0
+     ],
+     [
+      -24985100000000.0,
+      0.0
+     ],
+     [
+      -104923000000000.0,
+      12267550000.0
+     ],
+     [
+      -104923000000000.0,
+      -12267600000.0
+     ],
+     [
+      -108076000000000.0,
+      0.0
+     ],
+     [
+      -138569000000000.0,
+      0.0
+     ],
+     [
+      -141428000000000.0,
+      0.0
+     ],
+     [
+      -151735000000000.0,
+      0.0
+     ]
+    ]
+   },
+   "transient": {
+    "status": "unstable",
+    "reason": "limit_cycle: 창 3·4 가 감쇠하지 않는 지속 진동(바닥 7.01e-05 보다 분해능 넘게 크고 앞 창보다 reltol 0.0001 이상 줄지 않음)",
+    "op_pass": {
+     "netlist": "trhp_posfb.free.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "ldc_nin": 0.0
+     },
+     "node_V": {
+      "nin": 0.7,
+      "n2": 0.700376
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 3.8210201143006214e-07,
+     "tr": 3.8210201143006214e-07,
+     "pw": 3.8210201143006214e-07,
+     "tmax": 1.0633962816465248e-08,
+     "window_s": 2.400817744061133e-06,
+     "windows": 6,
+     "windows_planned": 6,
+     "t_kick_end": 1.5284080457202485e-06,
+     "tstop": 1.5933314510087046e-05,
+     "f_lo_hz": 416524.7455679154,
+     "f_hi_hz": 416524.7455679154,
+     "f_crit_hz": 421696.503,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 7.01e-05,
+     "wall_cap_s": 1836.6000000000001,
+     "sign": 1.0,
+     "observe": [
+      [
+       "nin",
+       1
+      ]
+     ]
+    },
+    "M": [
+     1.060554992,
+     1.059120156,
+     1.059373578,
+     1.0592042289999999
+    ],
+    "floor_V": 7.010517701459999e-05,
+    "windows_run": 4,
+    "limit_cycle_vs_slow_decay_unresolved": {
+     "M": [
+      1.060554992,
+      1.059120156,
+      1.059373578,
+      1.0592042289999999
+     ],
+     "window_ratios": [
+      0.9986470894853892,
+      1.0002392759674756,
+      0.999840142322296
+     ],
+     "floor_V": 7.010517701459999e-05,
+     "reltol": 0.0001,
+     "reason": "창 진폭이 앞 창보다 분해능 이상 줄지 않음 -- 지속 진동(한계 사이클)이거나 창당 감쇠가 분해능보다 작은 고Q 안정 회로다. K 창 안에서는 둘을 구별할 수 없어 보수적으로 unstable(limit_cycle) -> FAIL 로 판정했다."
+    },
+    "early_stop": {
+     "window": 4,
+     "M": [
+      1.060554992,
+      1.059120156,
+      1.059373578,
+      1.0592042289999999
+     ],
+     "reason": "limit_cycle: 창 3·4 가 감쇠하지 않는 지속 진동(바닥 7.01e-05 보다 분해능 넘게 크고 앞 창보다 reltol 0.0001 이상 줄지 않음)",
+     "kind": "limit_cycle"
+    },
+    "netlist": "trhp_posfb.free.stab.cir",
+    "file": "trhp_posfb.free.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1836.6000000000001,
+    "first_status": "unstable"
+   },
+   "limit_cycle_vs_slow_decay_unresolved": {
+    "M": [
+     1.060554992,
+     1.059120156,
+     1.059373578,
+     1.0592042289999999
+    ],
+    "window_ratios": [
+     0.9986470894853892,
+     1.0002392759674756,
+     0.999840142322296
+    ],
+    "floor_V": 7.010517701459999e-05,
+    "reltol": 0.0001,
+    "reason": "창 진폭이 앞 창보다 분해능 이상 줄지 않음 -- 지속 진동(한계 사이클)이거나 창당 감쇠가 분해능보다 작은 고Q 안정 회로다. K 창 안에서는 둘을 구별할 수 없어 보수적으로 unstable(limit_cycle) -> FAIL 로 판정했다."
+   },
+   "closed_loop": "unstable",
+   "open_loop_rhp_poles": 2,
+   "open_loop_rhp_poles_bound": "== (.pz)",
+   "pm_valid": false,
+   "pm_undefined": "open_loop_rhp_poles",
+   "Z": 2,
+   "P_pz": 2,
+   "P_eff": 2,
+   "pz_conflict": null,
+   "conditionally_stable": false,
+   "verdict": "unstable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": null,
+   "low_side_crossings": [],
+   "low_side_crossing_hz": [],
+   "gain_crossings_hz": [
+    416524.7455679154
+   ]
+  },
+  "pm_crosscheck_deg_raw": null
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_rhp_with_other_fail_is_fa0\\o\\trhp_posfb.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null,
+ "stability_cache": {
+  "op_pass": "hit",
+  "transient": "hit"
+ }
+}

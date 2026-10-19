@@ -1,0 +1,73 @@
+{
+ "noise_rc": {
+  "th_in_v2hz": 6.630424523145334e-17,
+  "hand_4kT_Req_over_H2": 6.630428757600001e-17,
+  "rel_err": -6.38639644834349e-07,
+  "shares": {
+   "rp_ra": 0.5,
+   "rp_rb": 0.5
+  }
+ },
+ "pz_5t": {
+  "status": "ok",
+  "P": 0,
+  "n_poles": 15,
+  "reason": null,
+  "dominant_poles_rad_s": [
+   [
+    -1303120.0,
+    0.0
+   ],
+   [
+    -1315350000.0,
+    0.0
+   ],
+   [
+    -6956210000.0,
+    0.0
+   ]
+  ]
+ },
+ "swing_5t": {
+  "status": "ok",
+  "swing_out_v": 1.2065258,
+  "icmr_v": 0.6255074999999999,
+  "icm_margin_v": 0.2297851999999999,
+  "ngspice_runs": 14,
+  "icmr_window": {
+   "v_in_min": 0.6690035000000001,
+   "v_in_max": 1.294511,
+   "lo_hit_rail": false,
+   "hi_hit_rail": false
+  },
+  "swing_window": {
+   "v_lo": 0.2967371,
+   "v_hi": 1.614215
+  }
+ },
+ "mc_5t": {
+  "mc_sigma_in_mV": 3.2359547011756025,
+  "mc_n": 201,
+  "mc_rel_se": 0.05,
+  "rss_of_sensitivities_mV": 3.2116226944575947,
+  "ratio_mc_over_rss": 1.0075762345184565,
+  "sens_mV": {
+   "M1.toxe_slope_spectre": -0.7476520279693011,
+   "M1.vth0_slope_spectre": -1.1843453432943167,
+   "M1.voff_slope_spectre": -1.1341321659607155,
+   "M2.toxe_slope_spectre": 0.7479545169894478,
+   "M2.vth0_slope_spectre": 1.1864627664350076,
+   "M2.voff_slope_spectre": 1.1523823368391293,
+   "M3.toxe_slope_spectre": 0.5148363121795972,
+   "M3.vth0_slope_spectre": -1.2598667686415574,
+   "M3.voff_slope_spectre": 0.0,
+   "M3.nfactor_slope_spectre": -0.04809575419302222,
+   "M4.toxe_slope_spectre": -0.5236084937619476,
+   "M4.vth0_slope_spectre": 1.2807385110272003,
+   "M4.voff_slope_spectre": 0.0,
+   "M4.nfactor_slope_spectre": 0.0490032212533503
+  },
+  "hand_vth0_sens_M1_mV": 1.1865251788310267,
+  "sim_vth0_sens_M1_mV": 1.1843453432943167
+ }
+}

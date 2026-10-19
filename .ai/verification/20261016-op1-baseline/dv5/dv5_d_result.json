@@ -1,0 +1,49 @@
+{
+ "script": "dv5_d_old_function.py",
+ "script_sha256": "9e60654f6da569613885ebfcd42f052cf1a53069b1ebc25b5d556681c1e2b5a1",
+ "oracle_dir": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/iso/skills/analog-gmid-design/tools/spice_oracle",
+ "old_module_file": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/iso/skills/analog-gmid-design/tools/spice_oracle/oracle_offset_mc.py",
+ "old_module_sha256": "42e6abf05923a213474647674caa0e9ee77cfb05cb2a9d9c9a8e0ba117116fc3",
+ "cases": [
+  {
+   "case": "pytest/mc5t0",
+   "run_ngspice_calls": [
+    "t5ota.free.mc.cir"
+   ],
+   "subprocess_calls": 0,
+   "mc_cir_sha256": "d1f00c1086d8f85b6453d39d862c8f8a10a7881edde3661ca5cfaf9aec186822",
+   "baseline_mc_cir_sha256": "d1f00c1086d8f85b6453d39d862c8f8a10a7881edde3661ca5cfaf9aec186822",
+   "mc_cir_bit_identical": true,
+   "sigma_in_mV": 3.6758284804311394,
+   "mean_in_mV": 0.2481398885434242,
+   "status": "ok",
+   "baseline_sigma": 3.6758284804311394,
+   "baseline_mean": 0.2481398885434242,
+   "sigma_bit_identical": true,
+   "mean_bit_identical": true,
+   "whole_offset_mc_dict_equal": true,
+   "differing_keys": []
+  },
+  {
+   "case": "u6/mc_5t",
+   "run_ngspice_calls": [
+    "t5t.free.mc.cir"
+   ],
+   "subprocess_calls": 0,
+   "mc_cir_sha256": "dc8c2896a5d315c724a04942e778a3486b9bdbdf5d937928ebdcb2b3aac8a649",
+   "baseline_mc_cir_sha256": "dc8c2896a5d315c724a04942e778a3486b9bdbdf5d937928ebdcb2b3aac8a649",
+   "mc_cir_bit_identical": true,
+   "sigma_in_mV": 3.2359547011756025,
+   "mean_in_mV": 0.3803997575397021,
+   "status": "ok",
+   "baseline_sigma": 3.2359547011756025,
+   "baseline_mean": null,
+   "sigma_bit_identical": true,
+   "mean_bit_identical": null,
+   "n_samples_equal": true,
+   "rel_se_equal": true
+  }
+ ],
+ "subprocess_calls_total": 0,
+ "all_sigma_mean_bit_identical": true
+}

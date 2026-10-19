@@ -1,0 +1,201 @@
+{
+ "bias": "free",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "geometry": {
+  "M1": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "diffusion": {
+    "source": "device",
+    "ad": 0.0,
+    "as": 0.0,
+    "pd": 0.0,
+    "ps": 0.0
+   }
+  },
+  "M2": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "diffusion": {
+    "source": "device",
+    "ad": 0.0,
+    "as": 0.0,
+    "pd": 0.0,
+    "ps": 0.0
+   }
+  },
+  "M3": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "diffusion": {
+    "source": "device",
+    "ad": 0.0,
+    "as": 0.0,
+    "pd": 0.0,
+    "ps": 0.0
+   }
+  },
+  "M4": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "diffusion": {
+    "source": "device",
+    "ad": 0.0,
+    "as": 0.0,
+    "pd": 0.0,
+    "ps": 0.0
+   }
+  }
+ },
+ "probes": {
+  "M1": {
+   "id": "@m.xm1.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm1.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm1.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm1.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm1.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm1.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm1.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm1.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M2": {
+   "id": "@m.xm2.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm2.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm2.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm2.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm2.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm2.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm2.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm2.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M3": {
+   "id": "@m.xm3.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm3.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm3.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm3.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm3.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm3.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm3.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm3.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M4": {
+   "id": "@m.xm4.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm4.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm4.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm4.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm4.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm4.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm4.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm4.msky130_fd_pr__pfet_01v8[vbs]"
+  }
+ },
+ "nets": [
+  "op",
+  "ip",
+  "om",
+  "im",
+  "c",
+  "vdd"
+ ],
+ "spice_node": {
+  "op": "op",
+  "ip": "ip",
+  "om": "om",
+  "im": "im",
+  "c": "c",
+  "vdd": "vdd"
+ },
+ "rail_sources": {
+  "vdd": "Vrail_vdd"
+ },
+ "held": [],
+ "unheld": [],
+ "gate_bias": {},
+ "inputs": [
+  "ip",
+  "im"
+ ],
+ "has_ac": true,
+ "ac_file": "t.free.ac.txt",
+ "outputs": [
+  "op",
+  "om"
+ ],
+ "output_nodes": [
+  "op",
+  "om"
+ ],
+ "tb_options": {
+  "gmin": "1e-15",
+  "reltol": "1e-4",
+  "abstol": "1e-14",
+  "vntol": "1e-7"
+ },
+ "ratio_runs": [],
+ "rout_runs": [],
+ "input_ac_weights": {
+  "ip": 0.5,
+  "im": -0.5
+ },
+ "dc_path_isolation": [
+  {
+   "net": "ip",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": true
+  },
+  {
+   "net": "im",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": true
+  }
+ ],
+ "notes": [
+  "capacitor CL1=1e-11 (근거 미기재)",
+  "capacitor CL2=1e-11 (근거 미기재)",
+  "resistor R1=1000000 (근거 미기재)",
+  "resistor R2=1000000 (근거 미기재)",
+  "capacitor Cg=5e-12 (근거 미기재)",
+  "free: 차동 DC 되먹임 k*(V(om)-V(op)) -> ip, 입력 공통모드 0.6 V(예측)",
+  "free: 차동 DC 되먹임 k*(V(op)-V(om)) -> im, 입력 공통모드 0.6 V(예측)"
+ ],
+ "blockers": [],
+ "z1": null,
+ "topology_identity": {
+  "status": "unverified",
+  "topology_path": null,
+  "sha256_actual": null,
+  "sha256_declared": null,
+  "diffs": [],
+  "compared": 0,
+  "excluded_testbench": [],
+  "declared_not_in_topology": {},
+  "bulk_compared": [],
+  "notes": [
+   "topology 미지정(입력 topology.path 도 --topology 도 없음) -- 연결 동일성 미검증"
+  ],
+  "required": false
+ },
+ "cm_loop": null,
+ "loop": null
+}

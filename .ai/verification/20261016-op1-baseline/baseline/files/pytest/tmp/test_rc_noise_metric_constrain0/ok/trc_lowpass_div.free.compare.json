@@ -1,0 +1,2528 @@
+{
+ "circuit": "trc_lowpass_div",
+ "bias": "free",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "judge_config": {
+  "tolerances": {},
+  "sat_margin_V": 0.05,
+  "off_current_A": null
+ },
+ "notes": [
+  "resistor Ra=2000 (근거 미기재)",
+  "resistor Rb=2000 (근거 미기재)",
+  "capacitor C1=1e-09 (근거 미기재)",
+  "resistor R1=3000 (근거 미기재)",
+  "resistor R2=1000 (근거 미기재)",
+  "resistor Rd=100000 (근거 미기재)"
+ ],
+ "blockers": [],
+ "summary": {
+  "verdict": "PASS",
+  "verdict_reason": "선언 제약 전부 만족, 전도 MOS 전부 포화, 엔진 예측 전도 MOS 전부 SPICE 에서도 전도",
+  "warnings": [],
+  "limit_cycle_vs_slow_decay_unresolved": null,
+  "acceptance": {
+   "constraints_failed": [],
+   "constraints_unmeasured": [],
+   "closed_loop_unstable": false,
+   "conducting_devices": 1,
+   "unsaturated_conducting": [],
+   "sat_margin_V": 0.05,
+   "off_current_A": null,
+   "off_in_spice": [],
+   "conduction_not_evaluated": {}
+  },
+  "junction_capacitance": {
+   "included": true,
+   "by_source": {
+    "device": 1,
+    "process_rule": 0,
+    "none": 0
+   },
+   "missing": [],
+   "zero_area": [
+    "MD"
+   ]
+  },
+  "transient": {
+   "status": "not_measured",
+   "measures": [
+    "slew_rate_v_per_s",
+    "settle_s"
+   ],
+   "reason": "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)"
+  },
+  "record_counts": {
+   "PASS": 0,
+   "FAIL": 0,
+   "N/A": 13
+  },
+  "devices": 1,
+  "sat_in_spice": 1,
+  "not_sat": [],
+  "spice_ac": {
+   "f_first_hz": 0.01,
+   "gain_dc": 0.499996042655421,
+   "dc_gain_db": -6.020668659668224,
+   "phase_dc_deg": 0.22796786016902387,
+   "reference_point": "first",
+   "f3db_hz": 167880.402,
+   "ugf_hz": null,
+   "phase_lag_at_ugf_deg": null,
+   "pm_deg": null,
+   "a0_f3db_hz": 83939.53663940122,
+   "pm_open_loop_deg": null,
+   "dc_path_isolation": [
+    {
+     "net": "rin",
+     "choke_H": 1000000000000.0,
+     "couple_F": 1.0,
+     "f_hz": 0.01,
+     "omega2_LC": 3947841760.4357433,
+     "output_feedback": false
+    }
+   ],
+   "pm_definition": "beta_1",
+   "loop_break_nets": [],
+   "loop_weights": {
+    "rin": 1.0
+   },
+   "loop_choke_ratio": null,
+   "pm_crosscheck_deg": 65.48120694064923,
+   "pm_crosscheck_note": null,
+   "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+   "pm_crosscheck_mp_resolution": 2e-08,
+   "closed_loop_peaking_db": 3.055454153991835e-05,
+   "closed_loop_peak_hz": 1.33352143,
+   "pm_crosscheck_gap_deg": null,
+   "pm_undefined": null,
+   "pm_deg_raw": null,
+   "stability": {
+    "method": "nyquist_count + closed_loop_transient",
+    "pm_valid": null,
+    "pm_undefined": null,
+    "reason": "PM 값 없음(|L|=1 하강 교차 없음 또는 루프 측정 없음) -- 검사 대상 아님"
+   }
+  },
+  "spice_ratio": [],
+  "spice_rout": [],
+  "pm_loop": {
+   "pm_definition": "beta_1",
+   "feedback_passives": [],
+   "feedback_passives_basis": null,
+   "loop_break_nets": [],
+   "loop_weights": {
+    "rin": 1.0
+   }
+  },
+  "stability": {
+   "pm_valid": null,
+   "pm_undefined": null,
+   "pm_deg_raw": null,
+   "loop": null,
+   "closed_loop": null,
+   "open_loop_rhp_poles": null,
+   "open_loop_rhp_poles_bound": null,
+   "nyquist_encirclements_cw": null,
+   "nyquist_reason": null,
+   "nyquist_refinement_rounds": null,
+   "pz_status": null,
+   "pz_P": null,
+   "pz_reason": null,
+   "pz_validated": null,
+   "pz_conflict": null,
+   "Z": null,
+   "verdict": null,
+   "verdict_basis": null,
+   "conditionally_stable": null,
+   "low_side_gain_margin_db": null,
+   "transient_status": null,
+   "transient_reason": null,
+   "early_stop": null,
+   "limit_cycle_vs_slow_decay_unresolved": null,
+   "reason": "PM 값 없음(|L|=1 하강 교차 없음 또는 루프 측정 없음) -- 검사 대상 아님"
+  },
+  "cm_loop": null,
+  "u6": {
+   "noise": {
+    "open_loop": {
+     "status": "ok",
+     "reason": null,
+     "th_in_v2hz": 6.630425698855876e-17,
+     "fc_in_hz": null,
+     "excess_th": null,
+     "contrib": [
+      {
+       "element": "rp_ra",
+       "thermal_in_v2hz": 3.315212849427938e-17,
+       "flicker_in_v2hz": 0.0,
+       "share_thermal": 0.5
+      },
+      {
+       "element": "rp_rb",
+       "thermal_in_v2hz": 3.315212849427938e-17,
+       "flicker_in_v2hz": 0.0,
+       "share_thermal": 0.5
+      },
+      {
+       "element": "md",
+       "thermal_in_v2hz": 0.0,
+       "flicker_in_v2hz": 0.0,
+       "share_thermal": 0.0
+      },
+      {
+       "element": "rp_r1",
+       "thermal_in_v2hz": 0.0,
+       "flicker_in_v2hz": 0.0,
+       "share_thermal": 0.0
+      },
+      {
+       "element": "rp_r2",
+       "thermal_in_v2hz": 0.0,
+       "flicker_in_v2hz": 0.0,
+       "share_thermal": 0.0
+      },
+      {
+       "element": "rp_rd",
+       "thermal_in_v2hz": 0.0,
+       "flicker_in_v2hz": 0.0,
+       "share_thermal": 0.0
+      }
+     ],
+     "f_lo_hz": 10.0,
+     "method": "ngspice .noise (소스별 합계, 좁은 대역 lin 2) + .ac 이득",
+     "ngspice_rc": 0,
+     "f_eval_hz": 10.0,
+     "flicker_in_at_f_lo_v2hz": 0.0,
+     "excess_reason": "noise.input_cell_devices 가 없다",
+     "grid": [
+      {
+       "f_hz": 10.0,
+       "thermal_in_v2hz": 6.630425698855876e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000008659189
+      },
+      {
+       "f_hz": 10.5925372518,
+       "thermal_in_v2hz": 6.630426263038209e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.250000000985916
+      },
+      {
+       "f_hz": 11.220184543,
+       "thermal_in_v2hz": 6.630425972290337e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000000112065596
+      },
+      {
+       "f_hz": 11.8850222744,
+       "thermal_in_v2hz": 6.630426672259603e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000012719209
+      },
+      {
+       "f_hz": 12.5892541179,
+       "thermal_in_v2hz": 6.6304227088356e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000014417209
+      },
+      {
+       "f_hz": 13.3352143216,
+       "thermal_in_v2hz": 6.630429483521524e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000016323135
+      },
+      {
+       "f_hz": 14.1253754462,
+       "thermal_in_v2hz": 6.630423891127353e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000000184623183
+      },
+      {
+       "f_hz": 14.9623565609,
+       "thermal_in_v2hz": 6.630425627860676e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000000208629697
+      },
+      {
+       "f_hz": 15.8489319246,
+       "thermal_in_v2hz": 6.630432050576987e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000000235570446
+      },
+      {
+       "f_hz": 16.7880401812,
+       "thermal_in_v2hz": 6.630420946404845e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000000265804173
+      },
+      {
+       "f_hz": 17.7827941004,
+       "thermal_in_v2hz": 6.630429546261834e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000029972997
+      },
+      {
+       "f_hz": 18.8364908949,
+       "thermal_in_v2hz": 6.630429281191473e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000033779809
+      },
+      {
+       "f_hz": 19.9526231497,
+       "thermal_in_v2hz": 6.630427385703845e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000000380515025
+      },
+      {
+       "f_hz": 21.1348903984,
+       "thermal_in_v2hz": 6.63042172250959e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000000428447483
+      },
+      {
+       "f_hz": 22.3872113857,
+       "thermal_in_v2hz": 6.63042128238935e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000000482230245
+      },
+      {
+       "f_hz": 23.7137370566,
+       "thermal_in_v2hz": 6.630425461284298e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000054257956
+      },
+      {
+       "f_hz": 25.1188643151,
+       "thermal_in_v2hz": 6.630425106128089e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000061029219
+      },
+      {
+       "f_hz": 26.607250598,
+       "thermal_in_v2hz": 6.630430277180931e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000068626976
+      },
+      {
+       "f_hz": 28.1838293126,
+       "thermal_in_v2hz": 6.630423968593852e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000000771519804
+      },
+      {
+       "f_hz": 29.8538261892,
+       "thermal_in_v2hz": 6.630424636666019e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000000867174416
+      },
+      {
+       "f_hz": 31.6227766017,
+       "thermal_in_v2hz": 6.630423722974795e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000097450066
+      },
+      {
+       "f_hz": 33.4965439158,
+       "thermal_in_v2hz": 6.630428890606187e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000001094932034
+      },
+      {
+       "f_hz": 35.4813389234,
+       "thermal_in_v2hz": 6.630422881764974e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000123003627
+      },
+      {
+       "f_hz": 37.5837404288,
+       "thermal_in_v2hz": 6.630426856381409e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000001381635684
+      },
+      {
+       "f_hz": 39.8107170553,
+       "thermal_in_v2hz": 6.630429132368431e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000155174358
+      },
+      {
+       "f_hz": 42.1696503429,
+       "thermal_in_v2hz": 6.630424899351913e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000001742611205
+      },
+      {
+       "f_hz": 44.6683592151,
+       "thermal_in_v2hz": 6.6304219838254e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000195675335
+      },
+      {
+       "f_hz": 47.3151258961,
+       "thermal_in_v2hz": 6.630425458718518e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2500000219703542
+      },
+      {
+       "f_hz": 50.1187233627,
+       "thermal_in_v2hz": 6.630424715800645e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.25000002466658716
+      },
+      {
+       "f_hz": 53.0884444231,
+       "thermal_in_v2hz": 6.630429666814389e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999992769163246
+      },
+      {
+       "f_hz": 56.234132519,
+       "thermal_in_v2hz": 6.630426727596537e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999993108557872
+      },
+      {
+       "f_hz": 59.5662143529,
+       "thermal_in_v2hz": 6.630426475342239e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499999348938764
+      },
+      {
+       "f_hz": 63.095734448,
+       "thermal_in_v2hz": 6.630427367685175e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999993916679483
+      },
+      {
+       "f_hz": 66.8343917569,
+       "thermal_in_v2hz": 6.630425065762328e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999994396109956
+      },
+      {
+       "f_hz": 70.7945784384,
+       "thermal_in_v2hz": 6.630429022500278e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499999493404141
+      },
+      {
+       "f_hz": 74.9894209332,
+       "thermal_in_v2hz": 6.630428401698117e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999995537598302
+      },
+      {
+       "f_hz": 79.4328234724,
+       "thermal_in_v2hz": 6.630425646706056e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999996214800702
+      },
+      {
+       "f_hz": 84.1395141645,
+       "thermal_in_v2hz": 6.630424395227743e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499999697467072
+      },
+      {
+       "f_hz": 89.1250938134,
+       "thermal_in_v2hz": 6.630426820399019e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999987827185244
+      },
+      {
+       "f_hz": 94.4060876286,
+       "thermal_in_v2hz": 6.630428074069003e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499998878381806
+      },
+      {
+       "f_hz": 100.0,
+       "thermal_in_v2hz": 6.63042722066129e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999989857092159
+      },
+      {
+       "f_hz": 105.925372518,
+       "thermal_in_v2hz": 6.63042590528128e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499999106134874
+      },
+      {
+       "f_hz": 112.20184543,
+       "thermal_in_v2hz": 6.630425699765738e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999992412589922
+      },
+      {
+       "f_hz": 118.850222744,
+       "thermal_in_v2hz": 6.630426283120918e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999983928654052
+      },
+      {
+       "f_hz": 125.892541179,
+       "thermal_in_v2hz": 6.630427537285154e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999985629775903
+      },
+      {
+       "f_hz": 133.352143216,
+       "thermal_in_v2hz": 6.630426790026902e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999977538438653
+      },
+      {
+       "f_hz": 141.253754462,
+       "thermal_in_v2hz": 6.630426309428709e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999979679975165
+      },
+      {
+       "f_hz": 149.623565609,
+       "thermal_in_v2hz": 6.630426888367156e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999982082778593
+      },
+      {
+       "f_hz": 158.489319246,
+       "thermal_in_v2hz": 6.630428239683064e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999974778816506
+      },
+      {
+       "f_hz": 167.880401812,
+       "thermal_in_v2hz": 6.630427170462931e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499996780382678
+      },
+      {
+       "f_hz": 177.827941004,
+       "thermal_in_v2hz": 6.630425779419076e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999971197846246
+      },
+      {
+       "f_hz": 188.364908949,
+       "thermal_in_v2hz": 6.630424998641229e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999965006086225
+      },
+      {
+       "f_hz": 199.526231497,
+       "thermal_in_v2hz": 6.630425997658418e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499995927898794
+      },
+      {
+       "f_hz": 211.348903984,
+       "thermal_in_v2hz": 6.630426746304318e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499995407334811
+      },
+      {
+       "f_hz": 223.872113857,
+       "thermal_in_v2hz": 6.6304260752301e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999949452640066
+      },
+      {
+       "f_hz": 237.137370566,
+       "thermal_in_v2hz": 6.63042631639968e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999945488168943
+      },
+      {
+       "f_hz": 251.188643151,
+       "thermal_in_v2hz": 6.630423852279814e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499994226029206
+      },
+      {
+       "f_hz": 266.07250598,
+       "thermal_in_v2hz": 6.63042646861583e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499992985870026
+      },
+      {
+       "f_hz": 281.838293126,
+       "thermal_in_v2hz": 6.63042747791032e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999918384364112
+      },
+      {
+       "f_hz": 298.538261892,
+       "thermal_in_v2hz": 6.630428020836318e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999907950208985
+      },
+      {
+       "f_hz": 316.227766017,
+       "thermal_in_v2hz": 6.630428286261848e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999898683166566
+      },
+      {
+       "f_hz": 334.965439158,
+       "thermal_in_v2hz": 6.630424875536894e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499989072559476
+      },
+      {
+       "f_hz": 354.813389234,
+       "thermal_in_v2hz": 6.630425943633332e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499987423839944
+      },
+      {
+       "f_hz": 375.837404288,
+       "thermal_in_v2hz": 6.63042750696232e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999859398948887
+      },
+      {
+       "f_hz": 398.107170553,
+       "thermal_in_v2hz": 6.630426696252565e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999846408500692
+      },
+      {
+       "f_hz": 421.696503429,
+       "thermal_in_v2hz": 6.6304262254496e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999825494831762
+      },
+      {
+       "f_hz": 446.683592151,
+       "thermal_in_v2hz": 6.630425797691352e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499980690977076
+      },
+      {
+       "f_hz": 473.151258961,
+       "thermal_in_v2hz": 6.630425788322462e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499978093745921
+      },
+      {
+       "f_hz": 501.187233627,
+       "thermal_in_v2hz": 6.630427910568144e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999747898078092
+      },
+      {
+       "f_hz": 530.884444231,
+       "thermal_in_v2hz": 6.6304264250437e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499971814881329
+      },
+      {
+       "f_hz": 562.34132519,
+       "thermal_in_v2hz": 6.630425519404732e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499969208786681
+      },
+      {
+       "f_hz": 595.662143529,
+       "thermal_in_v2hz": 6.630425604463531e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999650170041293
+      },
+      {
+       "f_hz": 630.95734448,
+       "thermal_in_v2hz": 6.630427568007588e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499960289810325
+      },
+      {
+       "f_hz": 668.343917569,
+       "thermal_in_v2hz": 6.630425068873696e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999560839760002
+      },
+      {
+       "f_hz": 707.945784384,
+       "thermal_in_v2hz": 6.630427092663596e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499950463184901
+      },
+      {
+       "f_hz": 749.894209332,
+       "thermal_in_v2hz": 6.630425635556006e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999444982261843
+      },
+      {
+       "f_hz": 794.328234724,
+       "thermal_in_v2hz": 6.630427939446893e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999372702768688
+      },
+      {
+       "f_hz": 841.395141645,
+       "thermal_in_v2hz": 6.630426805993919e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499929868079684
+      },
+      {
+       "f_hz": 891.250938134,
+       "thermal_in_v2hz": 6.630427631971847e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499921393505156
+      },
+      {
+       "f_hz": 944.060876286,
+       "thermal_in_v2hz": 6.630427218604432e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999119586419288
+      },
+      {
+       "f_hz": 1000.0,
+       "thermal_in_v2hz": 6.630425722058386e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24999016909619248
+      },
+      {
+       "f_hz": 1059.25372518,
+       "thermal_in_v2hz": 6.630424359355677e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24998897327706637
+      },
+      {
+       "f_hz": 1122.0184543,
+       "thermal_in_v2hz": 6.630425572200103e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499876243366129
+      },
+      {
+       "f_hz": 1188.50222744,
+       "thermal_in_v2hz": 6.630426842132572e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24998604024868357
+      },
+      {
+       "f_hz": 1258.92541179,
+       "thermal_in_v2hz": 6.630422623992323e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24998434118544288
+      },
+      {
+       "f_hz": 1333.52143216,
+       "thermal_in_v2hz": 6.630428292834965e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24998244953947488
+      },
+      {
+       "f_hz": 1412.53754462,
+       "thermal_in_v2hz": 6.630431925403408e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24998029073992248
+      },
+      {
+       "f_hz": 1496.23565609,
+       "thermal_in_v2hz": 6.630428505674686e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499778931756569
+      },
+      {
+       "f_hz": 1584.89319246,
+       "thermal_in_v2hz": 6.630430658314963e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24997518871897642
+      },
+      {
+       "f_hz": 1678.80401812,
+       "thermal_in_v2hz": 6.630427259690298e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24997221310455042
+      },
+      {
+       "f_hz": 1778.27941004,
+       "thermal_in_v2hz": 6.630426803935584e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24996880639600638
+      },
+      {
+       "f_hz": 1883.64908949,
+       "thermal_in_v2hz": 6.630423340226188e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24996501365891238
+      },
+      {
+       "f_hz": 1995.26231497,
+       "thermal_in_v2hz": 6.630428700555726e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499606853525961
+      },
+      {
+       "f_hz": 2113.48903984,
+       "thermal_in_v2hz": 6.630429817855807e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24995587799257163
+      },
+      {
+       "f_hz": 2238.72113857,
+       "thermal_in_v2hz": 6.63042831405669e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24995055528927249
+      },
+      {
+       "f_hz": 2371.37370566,
+       "thermal_in_v2hz": 6.630422341753613e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24994448845113287
+      },
+      {
+       "f_hz": 2511.88643151,
+       "thermal_in_v2hz": 6.630421836528437e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24993775734367246
+      },
+      {
+       "f_hz": 2660.7250598,
+       "thermal_in_v2hz": 6.630425667024926e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24993015177825487
+      },
+      {
+       "f_hz": 2818.38293126,
+       "thermal_in_v2hz": 6.630428029630745e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499216723679349
+      },
+      {
+       "f_hz": 2985.38261892,
+       "thermal_in_v2hz": 6.630422928376357e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2499120318786125
+      },
+      {
+       "f_hz": 3162.27766017,
+       "thermal_in_v2hz": 6.630427440173175e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24990135693532559
+      },
+      {
+       "f_hz": 3349.65439158,
+       "thermal_in_v2hz": 6.63042894115275e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24988928996392
+      },
+      {
+       "f_hz": 3548.13389234,
+       "thermal_in_v2hz": 6.630423689030959e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24987578804000002
+      },
+      {
+       "f_hz": 3758.37404288,
+       "thermal_in_v2hz": 6.630427286028338e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24986063419417998
+      },
+      {
+       "f_hz": 3981.07170553,
+       "thermal_in_v2hz": 6.630428247880271e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24984372521957002
+      },
+      {
+       "f_hz": 4216.96503429,
+       "thermal_in_v2hz": 6.630425272790684e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24982458623833004
+      },
+      {
+       "f_hz": 4466.83592151,
+       "thermal_in_v2hz": 6.630423933642734e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24980326852186
+      },
+      {
+       "f_hz": 4731.51258961,
+       "thermal_in_v2hz": 6.630422351780901e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24977925900421002
+      },
+      {
+       "f_hz": 5011.87233627,
+       "thermal_in_v2hz": 6.630423058658825e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24975236878418003
+      },
+      {
+       "f_hz": 5308.84444231,
+       "thermal_in_v2hz": 6.630427434150527e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24972215440658
+      },
+      {
+       "f_hz": 5623.4132519,
+       "thermal_in_v2hz": 6.630426120463081e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24968831347892
+      },
+      {
+       "f_hz": 5956.62143529,
+       "thermal_in_v2hz": 6.630428086025154e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24965029686676998
+      },
+      {
+       "f_hz": 6309.5734448,
+       "thermal_in_v2hz": 6.630425294690155e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24960769927815998
+      },
+      {
+       "f_hz": 6683.43917569,
+       "thermal_in_v2hz": 6.630426930548594e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24955988377613
+      },
+      {
+       "f_hz": 7079.45784384,
+       "thermal_in_v2hz": 6.630428002768997e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24950627732836997
+      },
+      {
+       "f_hz": 7498.94209332,
+       "thermal_in_v2hz": 6.63042674722322e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24944617761872
+      },
+      {
+       "f_hz": 7943.28234724,
+       "thermal_in_v2hz": 6.630423897249726e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24937878011401002
+      },
+      {
+       "f_hz": 8413.95141645,
+       "thermal_in_v2hz": 6.630425397895077e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2493032650825
+      },
+      {
+       "f_hz": 8912.50938134,
+       "thermal_in_v2hz": 6.630424729913787e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24921851713061002
+      },
+      {
+       "f_hz": 9440.60876286,
+       "thermal_in_v2hz": 6.630425643109496e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24912344774077
+      },
+      {
+       "f_hz": 10000.0,
+       "thermal_in_v2hz": 6.630425320581368e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24901688024020002
+      },
+      {
+       "f_hz": 10592.5372518,
+       "thermal_in_v2hz": 6.630421345660175e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24889750530749
+      },
+      {
+       "f_hz": 11220.184543,
+       "thermal_in_v2hz": 6.630422440155482e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24876366285530002
+      },
+      {
+       "f_hz": 11885.0222744,
+       "thermal_in_v2hz": 6.630424973737609e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24861358472847997
+      },
+      {
+       "f_hz": 12589.2541179,
+       "thermal_in_v2hz": 6.630424769686526e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24844550174036
+      },
+      {
+       "f_hz": 13335.2143216,
+       "thermal_in_v2hz": 6.630422394241663e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24825715986773
+      },
+      {
+       "f_hz": 14125.3754462,
+       "thermal_in_v2hz": 6.630419532171021e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24804615818365
+      },
+      {
+       "f_hz": 14962.3565609,
+       "thermal_in_v2hz": 6.630418158072668e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24780986922653
+      },
+      {
+       "f_hz": 15848.9319246,
+       "thermal_in_v2hz": 6.630421114192526e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24754519137616
+      },
+      {
+       "f_hz": 16788.0401812,
+       "thermal_in_v2hz": 6.630418134740308e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24724902106063998
+      },
+      {
+       "f_hz": 17782.7941004,
+       "thermal_in_v2hz": 6.630416753945632e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24691745392877001
+      },
+      {
+       "f_hz": 18836.4908949,
+       "thermal_in_v2hz": 6.63041803471291e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24654649120181
+      },
+      {
+       "f_hz": 19952.6231497,
+       "thermal_in_v2hz": 6.630415756728006e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24613166323850003
+      },
+      {
+       "f_hz": 21134.8903984,
+       "thermal_in_v2hz": 6.63041636555168e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24566779063891997
+      },
+      {
+       "f_hz": 22387.2113857,
+       "thermal_in_v2hz": 6.630413346071575e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24514944463682
+      },
+      {
+       "f_hz": 23713.7370566,
+       "thermal_in_v2hz": 6.630411086918063e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24457044563761998
+      },
+      {
+       "f_hz": 25118.8643151,
+       "thermal_in_v2hz": 6.630411416192772e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.2439240448957
+      },
+      {
+       "f_hz": 26607.250598,
+       "thermal_in_v2hz": 6.630408008436281e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24320287816473998
+      },
+      {
+       "f_hz": 28183.8293126,
+       "thermal_in_v2hz": 6.630406595194807e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24239864458729
+      },
+      {
+       "f_hz": 29853.8261892,
+       "thermal_in_v2hz": 6.630402127023721e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24150272138979997
+      },
+      {
+       "f_hz": 31622.7766017,
+       "thermal_in_v2hz": 6.630401516266042e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.24050526121009
+      },
+      {
+       "f_hz": 33496.5439158,
+       "thermal_in_v2hz": 6.630396069458033e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.23939588334988998
+      },
+      {
+       "f_hz": 35481.3389234,
+       "thermal_in_v2hz": 6.63039673570888e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.23816315543695998
+      },
+      {
+       "f_hz": 37583.7404288,
+       "thermal_in_v2hz": 6.63039318269864e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.23679515786816002
+      },
+      {
+       "f_hz": 39810.7170553,
+       "thermal_in_v2hz": 6.630391091797277e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.23527868653376002
+      },
+      {
+       "f_hz": 42169.6503429,
+       "thermal_in_v2hz": 6.63038509713122e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.23360030404164003
+      },
+      {
+       "f_hz": 44668.3592151,
+       "thermal_in_v2hz": 6.630379149150894e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.23174540127180998
+      },
+      {
+       "f_hz": 47315.1258961,
+       "thermal_in_v2hz": 6.630374285407396e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.22969888800041002
+      },
+      {
+       "f_hz": 50118.7233627,
+       "thermal_in_v2hz": 6.630370453095827e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.22744516097735998
+      },
+      {
+       "f_hz": 53088.4444231,
+       "thermal_in_v2hz": 6.630360326744659e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.22496875078276
+      },
+      {
+       "f_hz": 56234.132519,
+       "thermal_in_v2hz": 6.630356972893508e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.222253374298
+      },
+      {
+       "f_hz": 59566.2143529,
+       "thermal_in_v2hz": 6.630343511723101e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.21928389536429002
+      },
+      {
+       "f_hz": 63095.734448,
+       "thermal_in_v2hz": 6.630332047900853e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.21604511550099997
+      },
+      {
+       "f_hz": 66834.3917569,
+       "thermal_in_v2hz": 6.63032384804717e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.21252305418780998
+      },
+      {
+       "f_hz": 70794.5784384,
+       "thermal_in_v2hz": 6.630313932319019e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.20870549619764003
+      },
+      {
+       "f_hz": 74989.4209332,
+       "thermal_in_v2hz": 6.630305507036318e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.20458208809780998
+      },
+      {
+       "f_hz": 79432.8234724,
+       "thermal_in_v2hz": 6.630287569251323e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.20014557208863998
+      },
+      {
+       "f_hz": 84139.5141645,
+       "thermal_in_v2hz": 6.630287876018274e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.19539082598800003
+      },
+      {
+       "f_hz": 89125.0938134,
+       "thermal_in_v2hz": 6.630262734731787e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.19031857492324
+      },
+      {
+       "f_hz": 94406.0876286,
+       "thermal_in_v2hz": 6.630254911288534e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.184931488433
+      },
+      {
+       "f_hz": 100000.0,
+       "thermal_in_v2hz": 6.630232988099471e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.17923937038756
+      },
+      {
+       "f_hz": 105925.372518,
+       "thermal_in_v2hz": 6.630224075404472e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.17325552682321
+      },
+      {
+       "f_hz": 112201.84543,
+       "thermal_in_v2hz": 6.630211568342425e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.16700010022525
+      },
+      {
+       "f_hz": 118850.222744,
+       "thermal_in_v2hz": 6.630188284917564e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.16049845565860998
+      },
+      {
+       "f_hz": 125892.541179,
+       "thermal_in_v2hz": 6.630173407944318e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.15378075588356
+      },
+      {
+       "f_hz": 133352.143216,
+       "thermal_in_v2hz": 6.630160249191256e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.14688269381749003
+      },
+      {
+       "f_hz": 141253.754462,
+       "thermal_in_v2hz": 6.630129818826186e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.13984473389549
+      },
+      {
+       "f_hz": 149623.565609,
+       "thermal_in_v2hz": 6.630117586963365e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.13270963138849
+      },
+      {
+       "f_hz": 158489.319246,
+       "thermal_in_v2hz": 6.63009176905183e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.12552394767928998
+      },
+      {
+       "f_hz": 167880.401812,
+       "thermal_in_v2hz": 6.630084367845321e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.11833448429849
+      },
+      {
+       "f_hz": 177827.941004,
+       "thermal_in_v2hz": 6.630069836800533e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.11118913017469001
+      },
+      {
+       "f_hz": 188364.908949,
+       "thermal_in_v2hz": 6.630050655027006e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.10413407415625
+      },
+      {
+       "f_hz": 199526.231497,
+       "thermal_in_v2hz": 6.630019792871537e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.09721332781256001
+      },
+      {
+       "f_hz": 211348.903984,
+       "thermal_in_v2hz": 6.630019367426534e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.09046685762964
+      },
+      {
+       "f_hz": 223872.113857,
+       "thermal_in_v2hz": 6.629986026442961e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.08393182066169
+      },
+      {
+       "f_hz": 237137.370566,
+       "thermal_in_v2hz": 6.629953923900501e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.07763910749384001
+      },
+      {
+       "f_hz": 251188.643151,
+       "thermal_in_v2hz": 6.629948415915514e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.07161441931269
+      },
+      {
+       "f_hz": 266072.50598,
+       "thermal_in_v2hz": 6.629960299331277e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.06587839211284
+      },
+      {
+       "f_hz": 281838.293126,
+       "thermal_in_v2hz": 6.629913775965467e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.06044669669524
+      },
+      {
+       "f_hz": 298538.261892,
+       "thermal_in_v2hz": 6.62990314958212e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.055327935298639996
+      },
+      {
+       "f_hz": 316227.766017,
+       "thermal_in_v2hz": 6.62991280284715e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.05052696913363999
+      },
+      {
+       "f_hz": 334965.439158,
+       "thermal_in_v2hz": 6.629904349355118e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.046044184213049594
+      },
+      {
+       "f_hz": 354813.389234,
+       "thermal_in_v2hz": 6.629888250069532e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0418756947464336
+      },
+      {
+       "f_hz": 375837.404288,
+       "thermal_in_v2hz": 6.629873319857631e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.038014236900244906
+      },
+      {
+       "f_hz": 398107.170553,
+       "thermal_in_v2hz": 6.629843461908949e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0344499911110169
+      },
+      {
+       "f_hz": 421696.503429,
+       "thermal_in_v2hz": 6.629869917039575e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.031170539726689997
+      },
+      {
+       "f_hz": 446683.592151,
+       "thermal_in_v2hz": 6.62982314654774e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0281627923332116
+      },
+      {
+       "f_hz": 473151.258961,
+       "thermal_in_v2hz": 6.629811616445639e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0254114401656529
+      },
+      {
+       "f_hz": 501187.233627,
+       "thermal_in_v2hz": 6.629842042832413e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.02290099065341
+      },
+      {
+       "f_hz": 530884.444231,
+       "thermal_in_v2hz": 6.629820343066246e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.020615946627248097
+      },
+      {
+       "f_hz": 562341.32519,
+       "thermal_in_v2hz": 6.62984805294934e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.018540156477860097
+      },
+      {
+       "f_hz": 595662.143529,
+       "thermal_in_v2hz": 6.62981674101403e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0166583494132276
+      },
+      {
+       "f_hz": 630957.34448,
+       "thermal_in_v2hz": 6.629815485969982e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0149551315732961
+      },
+      {
+       "f_hz": 668343.917569,
+       "thermal_in_v2hz": 6.629802368948507e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0134160706026225
+      },
+      {
+       "f_hz": 707945.784384,
+       "thermal_in_v2hz": 6.629843852581924e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.012027193860793598
+      },
+      {
+       "f_hz": 749894.209332,
+       "thermal_in_v2hz": 6.629826805934216e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.01077564677796
+      },
+      {
+       "f_hz": 794328.234724,
+       "thermal_in_v2hz": 6.629792966133598e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.009649075642508899
+      },
+      {
+       "f_hz": 841395.141645,
+       "thermal_in_v2hz": 6.629785031494726e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.00863600244281
+      },
+      {
+       "f_hz": 891250.938134,
+       "thermal_in_v2hz": 6.629783629838642e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0077258683586376
+      },
+      {
+       "f_hz": 944060.876286,
+       "thermal_in_v2hz": 6.629775402610838e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0069089144200861
+      },
+      {
+       "f_hz": 1000000.0,
+       "thermal_in_v2hz": 6.629786927047337e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0061761232593576
+      },
+      {
+       "f_hz": 1059253.72518,
+       "thermal_in_v2hz": 6.629777502124276e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.005519309994264401
+      },
+      {
+       "f_hz": 1122018.4543,
+       "thermal_in_v2hz": 6.62977930404171e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.004930926248372165
+      },
+      {
+       "f_hz": 1188502.22744,
+       "thermal_in_v2hz": 6.629767511588577e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.004404146974584656
+      },
+      {
+       "f_hz": 1258925.41179,
+       "thermal_in_v2hz": 6.629768280074816e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0039327334467016
+      },
+      {
+       "f_hz": 1333521.43216,
+       "thermal_in_v2hz": 6.629774520202938e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.003511055542456321
+      },
+      {
+       "f_hz": 1412537.54462,
+       "thermal_in_v2hz": 6.629771298177916e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.003134018553387296
+      },
+      {
+       "f_hz": 1496235.65609,
+       "thermal_in_v2hz": 6.629766895795132e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0027970116777704004
+      },
+      {
+       "f_hz": 1584893.19246,
+       "thermal_in_v2hz": 6.629774028545673e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0024958724137690014
+      },
+      {
+       "f_hz": 1678804.01812,
+       "thermal_in_v2hz": 6.629757211830482e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.002226871601167696
+      },
+      {
+       "f_hz": 1778279.41004,
+       "thermal_in_v2hz": 6.62976984363734e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0019866227906400248
+      },
+      {
+       "f_hz": 1883649.08949,
+       "thermal_in_v2hz": 6.629761120680573e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0017721123114968409
+      },
+      {
+       "f_hz": 1995262.31497,
+       "thermal_in_v2hz": 6.62975346369745e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0015806174433555292
+      },
+      {
+       "f_hz": 2113489.03984,
+       "thermal_in_v2hz": 6.629758118387259e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0014096950437882249
+      },
+      {
+       "f_hz": 2238721.13857,
+       "thermal_in_v2hz": 6.629769544136712e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0012571606509596842
+      },
+      {
+       "f_hz": 2371373.70566,
+       "thermal_in_v2hz": 6.629751096030573e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.001121061423535924
+      },
+      {
+       "f_hz": 2511886.43151,
+       "thermal_in_v2hz": 6.629761240182593e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0009996330402316958
+      },
+      {
+       "f_hz": 2660725.0598,
+       "thermal_in_v2hz": 6.629750374130947e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0008913131001896411
+      },
+      {
+       "f_hz": 2818382.93126,
+       "thermal_in_v2hz": 6.629765760747716e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0007946896667656411
+      },
+      {
+       "f_hz": 2985382.61892,
+       "thermal_in_v2hz": 6.629746184144154e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0007085149947246758
+      },
+      {
+       "f_hz": 3162277.66017,
+       "thermal_in_v2hz": 6.629778848471949e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.000631656165789225
+      },
+      {
+       "f_hz": 3349654.39158,
+       "thermal_in_v2hz": 6.629768485055066e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0005631195880976
+      },
+      {
+       "f_hz": 3548133.89234,
+       "thermal_in_v2hz": 6.629789034211445e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.000502002244474064
+      },
+      {
+       "f_hz": 3758374.04288,
+       "thermal_in_v2hz": 6.62975036567655e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.00044751041890235354
+      },
+      {
+       "f_hz": 3981071.70553,
+       "thermal_in_v2hz": 6.629740142951443e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.00039892239178825886
+      },
+      {
+       "f_hz": 4216965.03429,
+       "thermal_in_v2hz": 6.629728967432072e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0003556021422934403
+      },
+      {
+       "f_hz": 4466835.92151,
+       "thermal_in_v2hz": 6.629755457650151e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0003169785152235184
+      },
+      {
+       "f_hz": 4731512.58961,
+       "thermal_in_v2hz": 6.629769522802342e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.00028254588912846404
+      },
+      {
+       "f_hz": 5011872.33627,
+       "thermal_in_v2hz": 6.629759280244306e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0002518504136351805
+      },
+      {
+       "f_hz": 5308844.44231,
+       "thermal_in_v2hz": 6.629805625300337e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.00022448514787493437
+      },
+      {
+       "f_hz": 5623413.2519,
+       "thermal_in_v2hz": 6.629740919368591e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.00020009409335481953
+      },
+      {
+       "f_hz": 5956621.43529,
+       "thermal_in_v2hz": 6.629730340266425e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0001783497332491853
+      },
+      {
+       "f_hz": 6309573.4448,
+       "thermal_in_v2hz": 6.629719971275431e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.00015896693826945122
+      },
+      {
+       "f_hz": 6683439.17569,
+       "thermal_in_v2hz": 6.629779816353631e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.00014168792230742755
+      },
+      {
+       "f_hz": 7079457.84384,
+       "thermal_in_v2hz": 6.629805967471411e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.0001262867722921701
+      },
+      {
+       "f_hz": 7498942.09332,
+       "thermal_in_v2hz": 6.629824092849907e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.00011255912814947209
+      },
+      {
+       "f_hz": 7943282.34724,
+       "thermal_in_v2hz": 6.629750376559173e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 0.00010032446146055224
+      },
+      {
+       "f_hz": 8413951.41645,
+       "thermal_in_v2hz": 6.62976021821321e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 8.9418039851296e-05
+      },
+      {
+       "f_hz": 8912509.38134,
+       "thermal_in_v2hz": 6.629770218359696e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.969691870745721e-05
+      },
+      {
+       "f_hz": 9440608.76286,
+       "thermal_in_v2hz": 6.629762283432529e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.1032488970212e-05
+      },
+      {
+       "f_hz": 10000000.0,
+       "thermal_in_v2hz": 6.629766969693961e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 6.330967230535635e-05
+      },
+      {
+       "f_hz": 10592537.2518,
+       "thermal_in_v2hz": 6.629770525329209e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.6426354564467845e-05
+      },
+      {
+       "f_hz": 11220184.543,
+       "thermal_in_v2hz": 6.629765795726626e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.029126330582276e-05
+      },
+      {
+       "f_hz": 11885022.2744,
+       "thermal_in_v2hz": 6.629758847845712e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 4.482316170899661e-05
+      },
+      {
+       "f_hz": 12589254.1179,
+       "thermal_in_v2hz": 6.629770956609436e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.994941583831918e-05
+      },
+      {
+       "f_hz": 13335214.3216,
+       "thermal_in_v2hz": 6.62975857477388e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.560562526225388e-05
+      },
+      {
+       "f_hz": 14125375.4462,
+       "thermal_in_v2hz": 6.629759498342638e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.1734041236970806e-05
+      },
+      {
+       "f_hz": 14962356.5609,
+       "thermal_in_v2hz": 6.62976128108035e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.828336656417423e-05
+      },
+      {
+       "f_hz": 15848931.9246,
+       "thermal_in_v2hz": 6.629766382029642e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.5207861590973007e-05
+      },
+      {
+       "f_hz": 16788040.1812,
+       "thermal_in_v2hz": 6.629773865510288e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.2466775118408963e-05
+      },
+      {
+       "f_hz": 17782794.1004,
+       "thermal_in_v2hz": 6.629773995329977e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.0023738455157203e-05
+      },
+      {
+       "f_hz": 18836490.8949,
+       "thermal_in_v2hz": 6.629777438033523e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.7846322403719436e-05
+      },
+      {
+       "f_hz": 19952623.1497,
+       "thermal_in_v2hz": 6.629750818276844e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.590571428943373e-05
+      },
+      {
+       "f_hz": 21134890.3984,
+       "thermal_in_v2hz": 6.629778893065732e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.4176028843275537e-05
+      },
+      {
+       "f_hz": 22387211.3857,
+       "thermal_in_v2hz": 6.629745865961043e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.263454005977176e-05
+      },
+      {
+       "f_hz": 23713737.0566,
+       "thermal_in_v2hz": 6.62977575278324e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.1260558562647744e-05
+      },
+      {
+       "f_hz": 25118864.3151,
+       "thermal_in_v2hz": 6.629758865809048e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.0036056657298409e-05
+      },
+      {
+       "f_hz": 26607250.598,
+       "thermal_in_v2hz": 6.629772636334085e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 8.94466633330121e-06
+      },
+      {
+       "f_hz": 28183829.3126,
+       "thermal_in_v2hz": 6.62974113212444e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.97201117507936e-06
+      },
+      {
+       "f_hz": 29853826.1892,
+       "thermal_in_v2hz": 6.629785911630961e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.105038867894617e-06
+      },
+      {
+       "f_hz": 31622776.6017,
+       "thermal_in_v2hz": 6.629747269712974e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 6.332429357918928e-06
+      },
+      {
+       "f_hz": 33496543.9158,
+       "thermal_in_v2hz": 6.629755255116311e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.643792818836505e-06
+      },
+      {
+       "f_hz": 35481338.9234,
+       "thermal_in_v2hz": 6.629780031822274e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.030028767709606e-06
+      },
+      {
+       "f_hz": 37583740.4288,
+       "thermal_in_v2hz": 6.629761967642218e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 4.48303968053677e-06
+      },
+      {
+       "f_hz": 39810717.0553,
+       "thermal_in_v2hz": 6.629789502166065e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.9955051563202816e-06
+      },
+      {
+       "f_hz": 42169650.3429,
+       "thermal_in_v2hz": 6.629780774071257e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.561008425882541e-06
+      },
+      {
+       "f_hz": 44668359.2151,
+       "thermal_in_v2hz": 6.629726653663141e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.1737825411371013e-06
+      },
+      {
+       "f_hz": 47315125.8961,
+       "thermal_in_v2hz": 6.629780122516842e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.8286177900775622e-06
+      },
+      {
+       "f_hz": 50118723.3627,
+       "thermal_in_v2hz": 6.629792017452963e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.5210072397169407e-06
+      },
+      {
+       "f_hz": 53088444.4231,
+       "thermal_in_v2hz": 6.629735531411849e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.2468712960553884e-06
+      },
+      {
+       "f_hz": 56234132.519,
+       "thermal_in_v2hz": 6.629749890361715e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.002524050337392e-06
+      },
+      {
+       "f_hz": 59566214.3529,
+       "thermal_in_v2hz": 6.62976493921728e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.7847484249159723e-06
+      },
+      {
+       "f_hz": 63095734.448,
+       "thermal_in_v2hz": 6.62976226287079e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.590660784903305e-06
+      },
+      {
+       "f_hz": 66834391.7569,
+       "thermal_in_v2hz": 6.629760736175262e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.4176792748493176e-06
+      },
+      {
+       "f_hz": 70794578.4384,
+       "thermal_in_v2hz": 6.629716976917103e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.2635172694098643e-06
+      },
+      {
+       "f_hz": 74989420.9332,
+       "thermal_in_v2hz": 6.629735900548395e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.1261080648363706e-06
+      },
+      {
+       "f_hz": 79432823.4724,
+       "thermal_in_v2hz": 6.629723329593794e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.0036473415850422e-06
+      },
+      {
+       "f_hz": 84139514.1645,
+       "thermal_in_v2hz": 6.629759264669698e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 8.94497334224954e-07
+      },
+      {
+       "f_hz": 89125093.8134,
+       "thermal_in_v2hz": 6.62976398278142e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.972211648894804e-07
+      },
+      {
+       "f_hz": 94406087.6286,
+       "thermal_in_v2hz": 6.629761683581635e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.105245750052604e-07
+      },
+      {
+       "f_hz": 100000000.0,
+       "thermal_in_v2hz": 6.629758789374273e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 6.332562715816462e-07
+      },
+      {
+       "f_hz": 105925372.518,
+       "thermal_in_v2hz": 6.629764276249429e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.643898567082884e-07
+      },
+      {
+       "f_hz": 112201845.43,
+       "thermal_in_v2hz": 6.629756216082778e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.030138788443126e-07
+      },
+      {
+       "f_hz": 118850222.744,
+       "thermal_in_v2hz": 6.629758291170126e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 4.4831139753136956e-07
+      },
+      {
+       "f_hz": 125892541.179,
+       "thermal_in_v2hz": 6.629771005280023e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.995573696105823e-07
+      },
+      {
+       "f_hz": 133352143.216,
+       "thermal_in_v2hz": 6.629763051078009e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.5610629576278756e-07
+      },
+      {
+       "f_hz": 141253754.462,
+       "thermal_in_v2hz": 6.629756585971252e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.1738052614551153e-07
+      },
+      {
+       "f_hz": 149623565.609,
+       "thermal_in_v2hz": 6.629754371945864e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.828658062522249e-07
+      },
+      {
+       "f_hz": 158489319.246,
+       "thermal_in_v2hz": 6.629774117136761e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.521036600268081e-07
+      },
+      {
+       "f_hz": 167880401.812,
+       "thermal_in_v2hz": 6.62977486795914e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.2468757808278936e-07
+      },
+      {
+       "f_hz": 177827941.004,
+       "thermal_in_v2hz": 6.629752338046483e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.0025372541469685e-07
+      },
+      {
+       "f_hz": 188364908.949,
+       "thermal_in_v2hz": 6.629768977656894e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.784759587108017e-07
+      },
+      {
+       "f_hz": 199526231.497,
+       "thermal_in_v2hz": 6.629761163419856e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.5906706543317834e-07
+      },
+      {
+       "f_hz": 211348903.984,
+       "thermal_in_v2hz": 6.629750173726986e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.4176889687734378e-07
+      },
+      {
+       "f_hz": 223872113.857,
+       "thermal_in_v2hz": 6.629775864331652e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.2635116453970515e-07
+      },
+      {
+       "f_hz": 237137370.566,
+       "thermal_in_v2hz": 6.629773597836519e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.1261063134976911e-07
+      },
+      {
+       "f_hz": 251188643.151,
+       "thermal_in_v2hz": 6.629783720679792e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.0036418110113144e-07
+      },
+      {
+       "f_hz": 266072505.98,
+       "thermal_in_v2hz": 6.6297540125786e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 8.945007472917422e-08
+      },
+      {
+       "f_hz": 281838293.126,
+       "thermal_in_v2hz": 6.629783178058199e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.972211262361236e-08
+      },
+      {
+       "f_hz": 298538261.892,
+       "thermal_in_v2hz": 6.629760052450517e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.105265444291629e-08
+      },
+      {
+       "f_hz": 316227766.017,
+       "thermal_in_v2hz": 6.629762637091255e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 6.332572535657713e-08
+      },
+      {
+       "f_hz": 334965439.158,
+       "thermal_in_v2hz": 6.629773789704269e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.6439042502488036e-08
+      },
+      {
+       "f_hz": 354813389.234,
+       "thermal_in_v2hz": 6.62974798617681e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.030152852092336e-08
+      },
+      {
+       "f_hz": 375837404.288,
+       "thermal_in_v2hz": 6.629748929308865e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 4.483129479534059e-08
+      },
+      {
+       "f_hz": 398107170.553,
+       "thermal_in_v2hz": 6.629731860466159e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.9956018485875e-08
+      },
+      {
+       "f_hz": 421696503.429,
+       "thermal_in_v2hz": 6.629755381954213e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.561071433648069e-08
+      },
+      {
+       "f_hz": 446683592.151,
+       "thermal_in_v2hz": 6.629747325517149e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.173813913321527e-08
+      },
+      {
+       "f_hz": 473151258.961,
+       "thermal_in_v2hz": 6.629771396292272e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.8286533796519033e-08
+      },
+      {
+       "f_hz": 501187233.627,
+       "thermal_in_v2hz": 6.629753967171806e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.521045582626312e-08
+      },
+      {
+       "f_hz": 530884444.231,
+       "thermal_in_v2hz": 6.629762976963367e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.246881283539149e-08
+      },
+      {
+       "f_hz": 562341325.19,
+       "thermal_in_v2hz": 6.629762526352762e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.0025364725059375e-08
+      },
+      {
+       "f_hz": 595662143.529,
+       "thermal_in_v2hz": 6.629762125391086e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.7847625299149443e-08
+      },
+      {
+       "f_hz": 630957344.48,
+       "thermal_in_v2hz": 6.629740190045097e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.5906759896093057e-08
+      },
+      {
+       "f_hz": 668343917.569,
+       "thermal_in_v2hz": 6.629727042658657e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.4176951292934006e-08
+      },
+      {
+       "f_hz": 707945784.384,
+       "thermal_in_v2hz": 6.629780072218e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.2635109474587556e-08
+      },
+      {
+       "f_hz": 749894209.332,
+       "thermal_in_v2hz": 6.629798580468201e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.1261030431248143e-08
+      },
+      {
+       "f_hz": 794328234.724,
+       "thermal_in_v2hz": 6.629775196518828e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.0036433526921715e-08
+      },
+      {
+       "f_hz": 841395141.645,
+       "thermal_in_v2hz": 6.629759698555751e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 8.944998404052101e-09
+      },
+      {
+       "f_hz": 891250938.134,
+       "thermal_in_v2hz": 6.629759075891206e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.972240052986443e-09
+      },
+      {
+       "f_hz": 944060876.286,
+       "thermal_in_v2hz": 6.629771247865507e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.1052594752291615e-09
+      },
+      {
+       "f_hz": 1000000000.0,
+       "thermal_in_v2hz": 6.629754570463116e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 6.332578666656024e-09
+      },
+      {
+       "f_hz": 1059253725.18,
+       "thermal_in_v2hz": 6.629754411873007e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.643916003414881e-09
+      },
+      {
+       "f_hz": 1122018454.3,
+       "thermal_in_v2hz": 6.629763586307353e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.030142953459235e-09
+      },
+      {
+       "f_hz": 1188502227.44,
+       "thermal_in_v2hz": 6.629758219569584e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 4.483119407603423e-09
+      },
+      {
+       "f_hz": 1258925411.79,
+       "thermal_in_v2hz": 6.629769227607299e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.995580016218766e-09
+      },
+      {
+       "f_hz": 1333521432.16,
+       "thermal_in_v2hz": 6.629765145002765e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.5610698708148213e-09
+      },
+      {
+       "f_hz": 1412537544.62,
+       "thermal_in_v2hz": 6.629767386554634e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.1738012725421523e-09
+      },
+      {
+       "f_hz": 1496235656.09,
+       "thermal_in_v2hz": 6.629765409540803e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.8286548940152015e-09
+      },
+      {
+       "f_hz": 1584893192.46,
+       "thermal_in_v2hz": 6.62975621164608e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.5210441254226317e-09
+      },
+      {
+       "f_hz": 1678804018.12,
+       "thermal_in_v2hz": 6.629759644510025e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.246883261883915e-09
+      },
+      {
+       "f_hz": 1778279410.04,
+       "thermal_in_v2hz": 6.629763021133791e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.002535666130594e-09
+      },
+      {
+       "f_hz": 1883649089.49,
+       "thermal_in_v2hz": 6.62977380131165e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.7847583257015017e-09
+      },
+      {
+       "f_hz": 1995262314.97,
+       "thermal_in_v2hz": 6.62976802340764e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.5906696523609304e-09
+      },
+      {
+       "f_hz": 2113489039.84,
+       "thermal_in_v2hz": 6.62975655977533e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.4176881728793398e-09
+      },
+      {
+       "f_hz": 2238721138.57,
+       "thermal_in_v2hz": 6.62974492119149e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.2635181223858756e-09
+      },
+      {
+       "f_hz": 2371373705.66,
+       "thermal_in_v2hz": 6.629780419295969e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.1261058113224814e-09
+      },
+      {
+       "f_hz": 2511886431.51,
+       "thermal_in_v2hz": 6.629747763422439e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.0036477481892173e-09
+      },
+      {
+       "f_hz": 2660725059.8,
+       "thermal_in_v2hz": 6.62975949630366e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 8.945004304405209e-10
+      },
+      {
+       "f_hz": 2818382931.26,
+       "thermal_in_v2hz": 6.629741892265977e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.972265215822644e-10
+      },
+      {
+       "f_hz": 2985382618.92,
+       "thermal_in_v2hz": 6.629764531820367e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.105263445093916e-10
+      },
+      {
+       "f_hz": 3162277660.17,
+       "thermal_in_v2hz": 6.629766660348719e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 6.332570947640602e-10
+      },
+      {
+       "f_hz": 3349654391.58,
+       "thermal_in_v2hz": 6.629774911759354e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.643902988841488e-10
+      },
+      {
+       "f_hz": 3548133892.34,
+       "thermal_in_v2hz": 6.6297505451036e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 5.030151850120923e-10
+      },
+      {
+       "f_hz": 3758374042.88,
+       "thermal_in_v2hz": 6.629749218612563e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 4.4831286836393424e-10
+      },
+      {
+       "f_hz": 3981071705.53,
+       "thermal_in_v2hz": 6.629736020268914e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.995601216385877e-10
+      },
+      {
+       "f_hz": 4216965034.29,
+       "thermal_in_v2hz": 6.629758371316498e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.5610709314724815e-10
+      },
+      {
+       "f_hz": 4466835921.51,
+       "thermal_in_v2hz": 6.629747058864176e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 3.1738135144292146e-10
+      },
+      {
+       "f_hz": 4731512589.61,
+       "thermal_in_v2hz": 6.629773096671957e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.8286530628005197e-10
+      },
+      {
+       "f_hz": 5011872336.27,
+       "thermal_in_v2hz": 6.629757407978882e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.521045330942263e-10
+      },
+      {
+       "f_hz": 5308844442.31,
+       "thermal_in_v2hz": 6.629765693847187e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.2468810836193913e-10
+      },
+      {
+       "f_hz": 5623413251.9,
+       "thermal_in_v2hz": 6.629761375497382e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 2.0025363137040596e-10
+      },
+      {
+       "f_hz": 5956621435.29,
+       "thermal_in_v2hz": 6.629762151596708e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.7847624037741502e-10
+      },
+      {
+       "f_hz": 6309573444.8,
+       "thermal_in_v2hz": 6.629740687390748e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.5906758894120927e-10
+      },
+      {
+       "f_hz": 6683439175.69,
+       "thermal_in_v2hz": 6.629724820848251e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.417695049703934e-10
+      },
+      {
+       "f_hz": 7079457843.84,
+       "thermal_in_v2hz": 6.629782135703076e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.2635108842385876e-10
+      },
+      {
+       "f_hz": 7498942093.32,
+       "thermal_in_v2hz": 6.62979583434412e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.1261029929072482e-10
+      },
+      {
+       "f_hz": 7943282347.24,
+       "thermal_in_v2hz": 6.629775735490594e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 1.0036433128029218e-10
+      },
+      {
+       "f_hz": 8413951416.45,
+       "thermal_in_v2hz": 6.629764816112785e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 8.94499808720052e-11
+      },
+      {
+       "f_hz": 8912509381.34,
+       "thermal_in_v2hz": 6.629762428209825e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.972239801302266e-11
+      },
+      {
+       "f_hz": 9440608762.86,
+       "thermal_in_v2hz": 6.62976874694339e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 7.105259275309392e-11
+      },
+      {
+       "f_hz": 10000000000.0,
+       "thermal_in_v2hz": 6.629759620426572e-17,
+       "flicker_in_v2hz": 0.0,
+       "gain_abs2": 6.332578507854061e-11
+      }
+     ],
+     "fc_reason": "below_f_lo"
+    },
+    "closed_loop": null
+   }
+  },
+  "rail_current_A": {
+   "vdd": 0.000459275
+  },
+  "topology_identity": {
+   "status": "unverified",
+   "required": false,
+   "diff_count": 0,
+   "path": null
+  },
+  "z1": null
+ },
+ "performance": [],
+ "constraints": [
+  {
+   "name": "nth",
+   "measure": "noise_th_in_v2hz",
+   "op": "<=",
+   "limit": 1.3260857515200002e-16,
+   "spice": 6.630425698855876e-17,
+   "judge": "PASS",
+   "undefined": null
+  }
+ ],
+ "kcl_residual": [],
+ "devices": [
+  {
+   "name": "MD",
+   "kind": "nmos",
+   "L": 1e-06,
+   "finger_w": 1e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 1e-06,
+   "W_declared": 1e-06,
+   "W_rel": 0.0,
+   "ID_pred": null,
+   "ID_spice": 9.275035e-06,
+   "ID_spice_op_id": 9.275035e-06,
+   "ID_rel": null,
+   "VGS_pred": null,
+   "VGS_spice": 0.8724965,
+   "VGS_err_V": null,
+   "VDS_pred": null,
+   "VDS_spice": 0.8724965,
+   "VDS_err_V": null,
+   "VSB_pred": null,
+   "VSB_spice": -1.652522e-13,
+   "VSB_err_V": null,
+   "gm_pred": null,
+   "gm_spice": 6.251068e-05,
+   "gm_rel": null,
+   "gds_pred": null,
+   "gds_spice": 7.305646e-07,
+   "gds_rel": null,
+   "gm_id_pred": null,
+   "gm_id_spice": 6.7396705241543575,
+   "VTH_spice": 0.6152261,
+   "VDSAT_spice": 0.246591,
+   "vov_spice": 0.2572704,
+   "below_vth_spice": false,
+   "sat_margin_spice_V": 0.6259055,
+   "region_spice": "sat",
+   "region_pred": null,
+   "gm_id_rel": null,
+   "tol_ID_rel": null,
+   "tol_gm_rel": null,
+   "tol_source": "none",
+   "off_current_A_pred": 0.0,
+   "conduction_threshold_A": 0.0,
+   "predicted_conducting": true,
+   "conduction_check": "PASS",
+   "diffusion": {
+    "source": "device",
+    "ad": 0.0,
+    "as": 0.0,
+    "pd": 0.0,
+    "ps": 0.0
+   },
+   "judge": {
+    "W": "N/A(tol 미설정)",
+    "ID": "N/A",
+    "VGS": "N/A",
+    "VDS": "N/A",
+    "VSB": "N/A",
+    "gm": "N/A",
+    "gds": "N/A",
+    "gm_id": "N/A",
+    "region": "N/A"
+   }
+  }
+ ],
+ "nodes": [
+  {
+   "net": "ndio",
+   "V_pred": null,
+   "V_spice": 0.8724965,
+   "err_V": null,
+   "held_by_testbench": false,
+   "judge": "N/A"
+  },
+  {
+   "net": "rin",
+   "V_pred": 0.6,
+   "V_spice": 0.6,
+   "err_V": 0.0,
+   "held_by_testbench": true,
+   "judge": "N/A(테스트벤치가 고정)"
+  },
+  {
+   "net": "rout",
+   "V_pred": null,
+   "V_spice": 0.3,
+   "err_V": null,
+   "held_by_testbench": false,
+   "judge": "N/A"
+  },
+  {
+   "net": "vdd",
+   "V_pred": null,
+   "V_spice": 1.8,
+   "err_V": null,
+   "held_by_testbench": false,
+   "judge": "N/A"
+  },
+  {
+   "net": "dmid",
+   "V_pred": null,
+   "V_spice": 0.45,
+   "err_V": null,
+   "held_by_testbench": false,
+   "judge": "N/A"
+  }
+ ],
+ "topology_identity": {
+  "status": "unverified",
+  "topology_path": null,
+  "sha256_actual": null,
+  "sha256_declared": null,
+  "diffs": [],
+  "compared": 0,
+  "excluded_testbench": [],
+  "declared_not_in_topology": {},
+  "bulk_compared": [],
+  "notes": [
+   "topology 미지정(입력 topology.path 도 --topology 도 없음) -- 연결 동일성 미검증"
+  ],
+  "required": false
+ },
+ "provenance": null,
+ "netlist": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_rc_noise_metric_constrain0\\ok\\trc_lowpass_div.free.cir",
+ "stem": "trc_lowpass_div.free",
+ "diagnosis_free": {
+  "classification": "not_applicable",
+  "reason": "free verdict PASS -- FAIL 일 때만 분류"
+ }
+}

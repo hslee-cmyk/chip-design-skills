@@ -1,0 +1,17 @@
+{
+ "skipped": "넷리스트 막힘: C26 rout_ohm 뷰 0: sense_p nin 은 테스트벤치가 이상 전압원으로 구동하는 넷(레일·입력·게이트 바이어스 ['nin', 'pb', 'vdd', 'vsp'])이다 -- 엔진 출력 포트 뷰의 고정 노드라 정의 밖",
+ "devices": {},
+ "nodes": {},
+ "rail_current_A": {},
+ "hold_current_A": {},
+ "ngspice_rc": null,
+ "log": null,
+ "log_errors": [],
+ "op_ok": false,
+ "ac": null,
+ "ac_file": null,
+ "loop": null,
+ "cm_loop": null,
+ "ratio": [],
+ "rout": []
+}

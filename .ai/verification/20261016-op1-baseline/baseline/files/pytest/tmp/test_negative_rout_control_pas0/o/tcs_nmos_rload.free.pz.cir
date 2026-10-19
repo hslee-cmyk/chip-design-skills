@@ -1,0 +1,32 @@
+* spice_oracle: tcs_nmos_rload bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+Vrail_vsp vsp 0 DC 1.5
+XM1 nout nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XMP1 pout pb vsp vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06 m=3 ad=0 as=0 pd=0 ps=0
+XMX1 na nb 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XMX2 nb na 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+Rp_RL vdd nout 100000
+Cp_CL nout 0 1e-12
+Rp_RP pout 0 10000
+Rp_RXa vdd na 100000
+Rp_RXb vdd nb 100000
+Vbias_pb pb 0 DC 0.3
+Irout_0 0 nout DC 0 AC 0
+Vpz_nin nin 0 DC 0.7
+.control
+set noaskquit
+op
+echo PZSTART
+pz nout 0 nout 0 cur pol
+print all
+echo PZEND
+quit
+.endc
+.end

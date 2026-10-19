@@ -1,0 +1,26 @@
+860 25
+43 sim_convergence_failed | False True | Warning: Pole-zero iteration limit reached; giving up after 303 trials
+6 sim_singular_matrix | True True | Warning: singular matrix:  check node c
+2 (warning/info) | False False | Note: Starting dynamic gmin stepping
+1 sim_convergence_failed | False False | Warning: Dynamic gmin stepping failed
+1 (warning/info) | False False | Note: Starting true gmin stepping
+1 sim_convergence_failed | False False | Warning: True gmin stepping failed
+1 (warning/info) | False False | Note: Starting source stepping
+1 sim_convergence_failed | False False | Warning: source stepping failed
+2952 (warning/info) | False False | Warning: Source conductance reset to 1.0e3 mho.
+2952 (warning/info) | False False | Warning: Drain conductance reset to 1.0e3 mho.
+1 (warning/info) | False False | Note: Dynamic gmin stepping completed
+12 sim_singular_matrix | True False | Circuit: * spice_oracle: tsingular bias=free
+2 sim_model_not_found | True False | Error: Could not find include file C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1/baseline/pytest/tmp/test_missing_
+2 sim_failed_other | True False | ERROR: fatal error in ngspice, exit(1)
+8 sim_failed_other | True False | Error: no such device or model name m.xmp1.mnonexistent
+1 (warning/info) | False False | Warning from checkvalid: vector @m.xmp1.mnonexistent[id] is not available or has zero length.
+1 (warning/info) | False False | Warning from checkvalid: vector @m.xmp1.mnonexistent[gm] is not available or has zero length.
+1 (warning/info) | False False | Warning from checkvalid: vector @m.xmp1.mnonexistent[gds] is not available or has zero length.
+1 (warning/info) | False False | Warning from checkvalid: vector @m.xmp1.mnonexistent[vth] is not available or has zero length.
+1 (warning/info) | False False | Warning from checkvalid: vector @m.xmp1.mnonexistent[vdsat] is not available or has zero length.
+1 (warning/info) | False False | Warning from checkvalid: vector @m.xmp1.mnonexistent[vgs] is not available or has zero length.
+1 (warning/info) | False False | Warning from checkvalid: vector @m.xmp1.mnonexistent[vds] is not available or has zero length.
+1 (warning/info) | False False | Warning from checkvalid: vector @m.xmp1.mnonexistent[vbs] is not available or has zero length.
+1 sim_failed_other | True False | Error: no such parameter vth0.
+1 (warning/info) | False False | Warning from checkvalid: vector @m.xa.msky130_fd_pr__nfet_01v8[vth0] is not available or has zero length.

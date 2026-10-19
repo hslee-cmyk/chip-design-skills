@@ -1,0 +1,206 @@
+{
+ "schema": "spice_oracle_input/1",
+ "circuit": "tdiff_fb",
+ "process": {
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_differential_weights_ugf_4\\lut.npz",
+  "models": {
+   "nmos": {
+    "subckt": "sky130_fd_pr__nfet_01v8",
+    "includes": [
+     "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__{corner}.pm3.spice",
+     "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__nfet_01v8[{param}]"
+   },
+   "pmos": {
+    "subckt": "sky130_fd_pr__pfet_01v8",
+    "includes": [
+     "C:/pdk/sky130_fd_pr/models/parameters/lod.spice",
+     "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__{corner}.pm3.spice",
+     "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__pfet_01v8[{param}]"
+   }
+  }
+ },
+ "rails": [
+  {
+   "net": "vdd",
+   "voltage": 1.8
+  },
+  {
+   "net": "gnd",
+   "voltage": 0.0,
+   "reference": true
+  }
+ ],
+ "devices": [
+  {
+   "name": "Mp",
+   "kind": "nmos",
+   "drain": "op",
+   "gate": "nip",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W": 4e-06,
+   "diffusion": {
+    "ad_m2": 0.0,
+    "as_m2": 0.0,
+    "pd_m": 0.0,
+    "ps_m": 0.0,
+    "basis": "test: \uba74\uc801 0 \uba85\uc2dc(\ub3c5\ub9bd \ub137\ub9ac\uc2a4\ud2b8\uc5d0 ad/pd \uc5c6\uc74c\uacfc \uac19\uc740 \ud68c\ub85c)"
+   }
+  },
+  {
+   "name": "Mn",
+   "kind": "nmos",
+   "drain": "on",
+   "gate": "nin",
+   "source": "gnd",
+   "bulk": "gnd",
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W": 4e-06,
+   "diffusion": {
+    "ad_m2": 0.0,
+    "as_m2": 0.0,
+    "pd_m": 0.0,
+    "ps_m": 0.0,
+    "basis": "test: \uba74\uc801 0 \uba85\uc2dc(\ub3c5\ub9bd \ub137\ub9ac\uc2a4\ud2b8\uc5d0 ad/pd \uc5c6\uc74c\uacfc \uac19\uc740 \ud68c\ub85c)"
+   }
+  }
+ ],
+ "passives": [
+  {
+   "name": "RLp",
+   "kind": "resistor",
+   "terminals": [
+    "vdd",
+    "op"
+   ],
+   "value": 100000.0
+  },
+  {
+   "name": "CLp",
+   "kind": "capacitor",
+   "terminals": [
+    "op",
+    "gnd"
+   ],
+   "value": 1e-11
+  },
+  {
+   "name": "Rfp",
+   "kind": "resistor",
+   "terminals": [
+    "op",
+    "nip"
+   ],
+   "value": 1000000.0
+  },
+  {
+   "name": "Cinp",
+   "kind": "capacitor",
+   "terminals": [
+    "nip",
+    "gnd"
+   ],
+   "value": 1e-11
+  },
+  {
+   "name": "RLn",
+   "kind": "resistor",
+   "terminals": [
+    "vdd",
+    "on"
+   ],
+   "value": 100000.0
+  },
+  {
+   "name": "CLn",
+   "kind": "capacitor",
+   "terminals": [
+    "on",
+    "gnd"
+   ],
+   "value": 1e-11
+  },
+  {
+   "name": "Rfn",
+   "kind": "resistor",
+   "terminals": [
+    "on",
+    "nin"
+   ],
+   "value": 1000000.0
+  },
+  {
+   "name": "Cinn",
+   "kind": "capacitor",
+   "terminals": [
+    "nin",
+    "gnd"
+   ],
+   "value": 1e-11
+  }
+ ],
+ "ports": {
+  "input_p": "nip",
+  "input_n": "nin",
+  "output_p": "op",
+  "output_n": "on"
+ },
+ "predictions": {
+  "nodes": {
+   "nip": 0.7,
+   "nin": 0.7,
+   "op": 0.9085315,
+   "on": 0.9085315
+  },
+  "devices": {
+   "Mp": {
+    "off_current_A": 0.0
+   },
+   "Mn": {
+    "off_current_A": 0.0
+   }
+  },
+  "metrics": [
+   {
+    "name": "k",
+    "measure": "ugf_hz",
+    "value": 1.0
+   }
+  ]
+ },
+ "testbench": {
+  "dc_choke_H": 1000000000000.0,
+  "ac_couple_F": 1.0,
+  "options": {
+   "gmin": "1e-15",
+   "reltol": "1e-4",
+   "abstol": "1e-14",
+   "vntol": "1e-7"
+  },
+  "ac": {
+   "fstart_hz": 0.01,
+   "fstop_hz": 10000000000.0,
+   "points_per_decade": 40,
+   "input_ac": 3.0,
+   "input_p_ac": 0.5,
+   "input_n_ac": 0.5,
+   "diff_feedback_gain": 0.5
+  },
+  "loop_dc_choke_H": 1e+20
+ },
+ "feedback_passives": [
+  "Rfp",
+  "Rfn",
+  "Cinp",
+  "Cinn"
+ ]
+}

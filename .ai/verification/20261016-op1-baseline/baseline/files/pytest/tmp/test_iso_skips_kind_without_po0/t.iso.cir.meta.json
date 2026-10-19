@@ -1,0 +1,86 @@
+{
+ "bias": "iso",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "geometry": {
+  "M1": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1e-12,
+    "as": 1e-12,
+    "pd": 4e-06,
+    "ps": 4e-06
+   }
+  },
+  "MP1": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 3,
+   "W_from_fingers": 6e-06,
+   "W_declared": 6e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1e-12,
+    "as": 1e-12,
+    "pd": 4e-06,
+    "ps": 4e-06
+   }
+  }
+ },
+ "probes": {
+  "M1": {
+   "id": "@m.xm1.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm1.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm1.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm1.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm1.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm1.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm1.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm1.msky130_fd_pr__nfet_01v8[vbs]"
+  }
+ },
+ "nets": [],
+ "spice_node": {},
+ "rail_sources": {},
+ "held": [],
+ "unheld": [],
+ "gate_bias": {},
+ "inputs": [],
+ "has_ac": false,
+ "ac_file": null,
+ "iso_applied": {
+  "M1": {
+   "V_g": 0.7,
+   "V_d": 0.9,
+   "V_s": 0.0,
+   "V_b": -0.0,
+   "polarity": "n"
+  }
+ },
+ "iso_skipped": {
+  "MP1": "process.models[pmos].polarity 없음(n|p)"
+ },
+ "notes": [
+  "iso: MP1 단독 인스턴스 안 만듦 -- process.models[pmos].polarity 없음(n|p)"
+ ],
+ "blockers": [],
+ "z1": null,
+ "topology_identity": {
+  "status": "not_applicable",
+  "topology_path": null,
+  "diffs": [],
+  "notes": [
+   "iso 는 회로 연결이 없는 단독 소자 넷리스트 -- C15 대상 아님"
+  ],
+  "required": false
+ },
+ "cm_loop": null,
+ "loop": null
+}

@@ -1,0 +1,18 @@
+* drain cap
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+Vd d 0 DC 0.9 AC 1
+Vg g 0 DC 0.7
+X1 d g 0 0 sky130_fd_pr__nfet_01v8 l=0.5u w=5u m=2
+.control
+set noaskquit
+ac lin 1 1000000.0 1000000.0
+let cdd = imag(i(vd))/(2*pi*1e6)
+print cdd
+quit
+.endc
+.end

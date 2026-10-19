@@ -1,0 +1,139 @@
+{
+ "n_netlists": 1158,
+ "netlist_files_hit": {
+  "D1": 1158,
+  "D2": 597,
+  "D4": 1004,
+  "D5": 1158,
+  "D6": 783,
+  "D7": 1158,
+  "D3": 141,
+  "D12": 1
+ },
+ "literal_hits_per_file": {
+  "D1": {
+   "oracle_netlist.py": 33,
+   "oracle_noise.py": 11,
+   "oracle_offset_mc.py": 8,
+   "oracle_simulate.py": 3,
+   "oracle_swing.py": 4
+  },
+  "D2": {},
+  "D3": {
+   "oracle_netlist.py": 5
+  },
+  "D4": {},
+  "D5": {
+   "legacy_adapter.py": 1,
+   "oracle_netlist.py": 87,
+   "oracle_noise.py": 8,
+   "oracle_offset_mc.py": 4,
+   "oracle_simulate.py": 2,
+   "oracle_swing.py": 4
+  },
+  "D6": {
+   "oracle_netlist.py": 8,
+   "oracle_noise.py": 2,
+   "oracle_offset_mc.py": 1,
+   "oracle_simulate.py": 2
+  },
+  "D7": {
+   "oracle_netlist.py": 12,
+   "oracle_noise.py": 4,
+   "oracle_offset_mc.py": 1,
+   "oracle_swing.py": 1
+  },
+  "D8": {
+   "oracle_simulate.py": 1
+  },
+  "D9": {
+   "legacy_adapter.py": 1,
+   "oracle_compare.py": 3,
+   "oracle_netlist.py": 2,
+   "oracle_noise.py": 6,
+   "oracle_offset_mc.py": 5,
+   "oracle_run.py": 5,
+   "oracle_simulate.py": 17,
+   "oracle_swing.py": 4
+  },
+  "D10": {
+   "legacy_adapter.py": 1,
+   "oracle_netlist.py": 75,
+   "oracle_noise.py": 3,
+   "oracle_offset_mc.py": 2,
+   "oracle_swing.py": 6
+  },
+  "D11": {},
+  "D12": {
+   "oracle_offset_mc.py": 1
+  }
+ },
+ "examples": {
+  "D1": [
+   "oracle_netlist.py:516: '.control'",
+   "oracle_netlist.py:544: '.endc'",
+   "oracle_netlist.py:545: '.end'",
+   "oracle_netlist.py:579: '.control'"
+  ],
+  "D2": [],
+  "D3": [
+   "oracle_netlist.py:965: '[acmag] = 0'",
+   "oracle_netlist.py:966: '[acmag] = '",
+   "oracle_netlist.py:891: '[acmag] = 0'",
+   "oracle_netlist.py:894: '[acmag] = '"
+  ],
+  "D4": [],
+  "D5": [
+   "legacy_adapter.py:171: 'print (@m\\\\.xdut\\\\.\\\\S+?)\\\\[id\\\\]'",
+   "oracle_netlist.py:517: 'set noaskquit'",
+   "oracle_netlist.py:519: 'echo OPSTART'",
+   "oracle_netlist.py:529: 'echo OPEND'"
+  ],
+  "D6": [
+   "oracle_netlist.py:809: '          stop when time > $&sw_nb'",
+   "oracle_netlist.py:820: 'wrdata '",
+   "oracle_netlist.py:540: 'wrdata '",
+   "oracle_netlist.py:764: 'stop when time > '"
+  ],
+  "D7": [
+   "oracle_netlist.py:517: 'set noaskquit'",
+   "oracle_netlist.py:579: 'set noaskquit'",
+   "oracle_netlist.py:702: 'set noaskquit'",
+   "oracle_netlist.py:759: 'set noaskquit'"
+  ],
+  "D8": [
+   "oracle_simulate.py:123: '-b'"
+  ],
+  "D9": [
+   "legacy_adapter.py:189: 'ngspice_exe'",
+   "oracle_compare.py:379: 'ngspice .op 결과 없음: '",
+   "oracle_compare.py:708: ' V, ngspice '",
+   "oracle_compare.py:708: 'ngspice_runs'"
+  ],
+  "D10": [
+   "legacy_adapter.py:397: 'LOAD_'",
+   "oracle_netlist.py:56: 'X'",
+   "oracle_netlist.py:56: 'Rp_'",
+   "oracle_netlist.py:56: 'Cp_'"
+  ],
+  "D11": [],
+  "D12": [
+   "oracle_offset_mc.py:85: ' d g s b params: '"
+  ]
+ },
+ "core_vocab_false_hits": {
+  "op": [],
+  "ac": [],
+  "dc": [],
+  "noise": [],
+  "tran": [],
+  "pz": [],
+  "temp": [],
+  "reltol": [],
+  "vntol": [],
+  "abstol": []
+ },
+ "tokens_with_no_hit_anywhere": [
+  "D11"
+ ]
+}

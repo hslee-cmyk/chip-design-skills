@@ -1,0 +1,1538 @@
+{
+ "bias": "forced",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "geometry": {
+  "M6": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 4,
+   "W_from_fingers": 0.00014406605683388283,
+   "W_declared": 0.00014406605683388283,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M7": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 6.294991616543746e-06,
+   "n_fingers": 4,
+   "W_from_fingers": 2.5179966466174984e-05,
+   "W_declared": 2.5179966466174984e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 3.147495808271873e-12,
+    "as": 3.147495808271873e-12,
+    "pd": 8.294991616543745e-06,
+    "ps": 8.294991616543745e-06
+   }
+  },
+  "M1a": {
+   "L": 5.35e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 7.203302841694141e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M1b": {
+   "L": 5.35e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 7.203302841694141e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M2a": {
+   "L": 1e-06,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 7.203302841694141e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M2b": {
+   "L": 1e-06,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 7.203302841694141e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M3a": {
+   "L": 1e-06,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M3b": {
+   "L": 1e-06,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M4a": {
+   "L": 1.4000000000000001e-06,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M4b": {
+   "L": 1.4000000000000001e-06,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M5": {
+   "L": 5.109106823223974e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 7.203302841694141e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M8": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 7.203302841694141e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M11a": {
+   "L": 2.45e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M11b": {
+   "L": 2.45e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M15": {
+   "L": 1.5e-07,
+   "finger_w": 2.927134370261609e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 5.854268740523218e-06,
+   "W_declared": 5.854268740523218e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.4635671851308045e-12,
+    "as": 1.4635671851308045e-12,
+    "pd": 4.927134370261609e-06,
+    "ps": 4.927134370261609e-06
+   }
+  },
+  "M9a": {
+   "L": 1.5e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 7.203302841694141e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M9b": {
+   "L": 2.45e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M12": {
+   "L": 5.109106823223974e-07,
+   "finger_w": 1.29555504647714e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 1.29555504647714e-06,
+   "W_declared": 1.29555504647714e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 6.4777752323857e-13,
+    "as": 6.4777752323857e-13,
+    "pd": 3.2955550464771405e-06,
+    "ps": 3.2955550464771405e-06
+   }
+  },
+  "M10": {
+   "L": 5.109106823223974e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M14a": {
+   "L": 2.45e-07,
+   "finger_w": 2.3664719854065454e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 2.3664719854065454e-06,
+   "W_declared": 2.3664719854065454e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.1832359927032726e-12,
+    "as": 1.1832359927032726e-12,
+    "pd": 4.366471985406545e-06,
+    "ps": 4.366471985406545e-06
+   }
+  },
+  "M14b": {
+   "L": 2.45e-07,
+   "finger_w": 2.3664719854065454e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 2.3664719854065454e-06,
+   "W_declared": 2.3664719854065454e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.1832359927032726e-12,
+    "as": 1.1832359927032726e-12,
+    "pd": 4.366471985406545e-06,
+    "ps": 4.366471985406545e-06
+   }
+  },
+  "M16": {
+   "L": 1.5e-07,
+   "finger_w": 4.548854075897015e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 9.09770815179403e-06,
+   "W_declared": 9.09770815179403e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.274427037948507e-12,
+    "as": 2.274427037948507e-12,
+    "pd": 6.548854075897015e-06,
+    "ps": 6.548854075897015e-06
+   }
+  },
+  "M13": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 2.3664719854065454e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4.732943970813091e-06,
+   "W_declared": 4.732943970813091e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.1832359927032726e-12,
+    "as": 1.1832359927032726e-12,
+    "pd": 4.366471985406545e-06,
+    "ps": 4.366471985406545e-06
+   }
+  },
+  "M22": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 2.3664719854065454e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4.732943970813091e-06,
+   "W_declared": 4.732943970813091e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.1832359927032726e-12,
+    "as": 1.1832359927032726e-12,
+    "pd": 4.366471985406545e-06,
+    "ps": 4.366471985406545e-06
+   }
+  },
+  "M20a": {
+   "L": 2.45e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M20b": {
+   "L": 2.45e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M25": {
+   "L": 1.5e-07,
+   "finger_w": 2.927134370261609e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 5.854268740523218e-06,
+   "W_declared": 5.854268740523218e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.4635671851308045e-12,
+    "as": 1.4635671851308045e-12,
+    "pd": 4.927134370261609e-06,
+    "ps": 4.927134370261609e-06
+   }
+  },
+  "M18a": {
+   "L": 1.5e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 7.203302841694141e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M18b": {
+   "L": 2.45e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M21": {
+   "L": 5.109106823223974e-07,
+   "finger_w": 1.29555504647714e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 1.29555504647714e-06,
+   "W_declared": 1.29555504647714e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 6.4777752323857e-13,
+    "as": 6.4777752323857e-13,
+    "pd": 3.2955550464771405e-06,
+    "ps": 3.2955550464771405e-06
+   }
+  },
+  "M19": {
+   "L": 5.109106823223974e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M23a": {
+   "L": 2.45e-07,
+   "finger_w": 2.3664719854065454e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 2.3664719854065454e-06,
+   "W_declared": 2.3664719854065454e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.1832359927032726e-12,
+    "as": 1.1832359927032726e-12,
+    "pd": 4.366471985406545e-06,
+    "ps": 4.366471985406545e-06
+   }
+  },
+  "M24b": {
+   "L": 2.45e-07,
+   "finger_w": 2.3664719854065454e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 2.3664719854065454e-06,
+   "W_declared": 2.3664719854065454e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.1832359927032726e-12,
+    "as": 1.1832359927032726e-12,
+    "pd": 4.366471985406545e-06,
+    "ps": 4.366471985406545e-06
+   }
+  },
+  "M26": {
+   "L": 1.5e-07,
+   "finger_w": 4.548854075897015e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 9.09770815179403e-06,
+   "W_declared": 9.09770815179403e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.274427037948507e-12,
+    "as": 2.274427037948507e-12,
+    "pd": 6.548854075897015e-06,
+    "ps": 6.548854075897015e-06
+   }
+  },
+  "M17": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 2,
+   "W_from_fingers": 7.203302841694141e-05,
+   "W_declared": 7.203302841694141e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M18_bg": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 4.548854075897015e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 4.548854075897015e-06,
+   "W_declared": 4.548854075897015e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.274427037948507e-12,
+    "as": 2.274427037948507e-12,
+    "pd": 6.548854075897015e-06,
+    "ps": 6.548854075897015e-06
+   }
+  },
+  "M60": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 4.548854075897015e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 4.548854075897015e-06,
+   "W_declared": 4.548854075897015e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.274427037948507e-12,
+    "as": 2.274427037948507e-12,
+    "pd": 6.548854075897015e-06,
+    "ps": 6.548854075897015e-06
+   }
+  },
+  "M61": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 4.548854075897015e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 4.548854075897015e-06,
+   "W_declared": 4.548854075897015e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.274427037948507e-12,
+    "as": 2.274427037948507e-12,
+    "pd": 6.548854075897015e-06,
+    "ps": 6.548854075897015e-06
+   }
+  },
+  "M64": {
+   "L": 2.45e-07,
+   "finger_w": 2.3664719854065454e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 2.3664719854065454e-06,
+   "W_declared": 2.3664719854065454e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.1832359927032726e-12,
+    "as": 1.1832359927032726e-12,
+    "pd": 4.366471985406545e-06,
+    "ps": 4.366471985406545e-06
+   }
+  },
+  "M63": {
+   "L": 2.45e-07,
+   "finger_w": 2.3664719854065454e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 2.3664719854065454e-06,
+   "W_declared": 2.3664719854065454e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.1832359927032726e-12,
+    "as": 1.1832359927032726e-12,
+    "pd": 4.366471985406545e-06,
+    "ps": 4.366471985406545e-06
+   }
+  },
+  "M58": {
+   "L": 3.4000000000000003e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M57": {
+   "L": 3.4000000000000003e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 5,
+   "W_from_fingers": 0.00018008257104235354,
+   "W_declared": 0.00018008257104235354,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M66": {
+   "L": 5.109106823223974e-07,
+   "finger_w": 1.2195015200966542e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 1.2195015200966542e-06,
+   "W_declared": 1.2195015200966542e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 6.097507600483271e-13,
+    "as": 6.097507600483271e-13,
+    "pd": 3.2195015200966548e-06,
+    "ps": 3.2195015200966548e-06
+   }
+  },
+  "M68": {
+   "L": 5.109106823223974e-07,
+   "finger_w": 1.291250561269389e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 1.291250561269389e-06,
+   "W_declared": 1.291250561269389e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 6.456252806346945e-13,
+    "as": 6.456252806346945e-13,
+    "pd": 3.2912505612693894e-06,
+    "ps": 3.2912505612693894e-06
+   }
+  },
+  "M36a": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 5,
+   "W_from_fingers": 0.00018008257104235354,
+   "W_declared": 0.00018008257104235354,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M36b": {
+   "L": 4.739047237100781e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 5,
+   "W_from_fingers": 0.00018008257104235354,
+   "W_declared": 0.00018008257104235354,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M37a": {
+   "L": 3.5e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M37b": {
+   "L": 3.5e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 1,
+   "W_from_fingers": 3.601651420847071e-05,
+   "W_declared": 3.601651420847071e-05,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M38": {
+   "L": 5.109106823223974e-07,
+   "finger_w": 3.601651420847071e-05,
+   "n_fingers": 3,
+   "W_from_fingers": 0.00010804954262541211,
+   "W_declared": 0.00010804954262541211,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1.8008257104235352e-11,
+    "as": 1.8008257104235352e-11,
+    "pd": 3.801651420847071e-05,
+    "ps": 3.801651420847071e-05
+   }
+  },
+  "M39": {
+   "L": 3.4000000000000003e-07,
+   "finger_w": 4.548854075897015e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 9.09770815179403e-06,
+   "W_declared": 9.09770815179403e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.274427037948507e-12,
+    "as": 2.274427037948507e-12,
+    "pd": 6.548854075897015e-06,
+    "ps": 6.548854075897015e-06
+   }
+  },
+  "M40": {
+   "L": 3.4000000000000003e-07,
+   "finger_w": 4.548854075897015e-06,
+   "n_fingers": 1,
+   "W_from_fingers": 4.548854075897015e-06,
+   "W_declared": 4.548854075897015e-06,
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 2.274427037948507e-12,
+    "as": 2.274427037948507e-12,
+    "pd": 6.548854075897015e-06,
+    "ps": 6.548854075897015e-06
+   }
+  }
+ },
+ "probes": {
+  "M6": {
+   "id": "@m.xm6.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm6.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm6.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm6.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm6.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm6.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm6.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm6.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M7": {
+   "id": "@m.xm7.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm7.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm7.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm7.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm7.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm7.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm7.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm7.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M1a": {
+   "id": "@m.xm1a.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm1a.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm1a.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm1a.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm1a.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm1a.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm1a.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm1a.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M1b": {
+   "id": "@m.xm1b.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm1b.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm1b.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm1b.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm1b.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm1b.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm1b.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm1b.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M2a": {
+   "id": "@m.xm2a.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm2a.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm2a.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm2a.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm2a.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm2a.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm2a.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm2a.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M2b": {
+   "id": "@m.xm2b.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm2b.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm2b.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm2b.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm2b.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm2b.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm2b.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm2b.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M3a": {
+   "id": "@m.xm3a.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm3a.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm3a.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm3a.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm3a.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm3a.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm3a.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm3a.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M3b": {
+   "id": "@m.xm3b.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm3b.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm3b.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm3b.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm3b.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm3b.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm3b.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm3b.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M4a": {
+   "id": "@m.xm4a.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm4a.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm4a.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm4a.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm4a.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm4a.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm4a.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm4a.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M4b": {
+   "id": "@m.xm4b.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm4b.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm4b.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm4b.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm4b.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm4b.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm4b.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm4b.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M5": {
+   "id": "@m.xm5.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm5.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm5.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm5.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm5.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm5.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm5.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm5.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M8": {
+   "id": "@m.xm8.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm8.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm8.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm8.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm8.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm8.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm8.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm8.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M11a": {
+   "id": "@m.xm11a.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm11a.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm11a.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm11a.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm11a.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm11a.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm11a.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm11a.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M11b": {
+   "id": "@m.xm11b.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm11b.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm11b.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm11b.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm11b.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm11b.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm11b.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm11b.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M15": {
+   "id": "@m.xm15.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm15.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm15.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm15.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm15.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm15.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm15.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm15.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M9a": {
+   "id": "@m.xm9a.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm9a.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm9a.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm9a.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm9a.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm9a.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm9a.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm9a.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M9b": {
+   "id": "@m.xm9b.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm9b.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm9b.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm9b.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm9b.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm9b.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm9b.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm9b.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M12": {
+   "id": "@m.xm12.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm12.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm12.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm12.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm12.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm12.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm12.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm12.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M10": {
+   "id": "@m.xm10.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm10.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm10.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm10.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm10.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm10.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm10.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm10.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M14a": {
+   "id": "@m.xm14a.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm14a.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm14a.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm14a.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm14a.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm14a.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm14a.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm14a.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M14b": {
+   "id": "@m.xm14b.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm14b.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm14b.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm14b.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm14b.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm14b.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm14b.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm14b.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M16": {
+   "id": "@m.xm16.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm16.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm16.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm16.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm16.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm16.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm16.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm16.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M13": {
+   "id": "@m.xm13.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm13.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm13.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm13.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm13.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm13.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm13.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm13.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M22": {
+   "id": "@m.xm22.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm22.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm22.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm22.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm22.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm22.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm22.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm22.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M20a": {
+   "id": "@m.xm20a.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm20a.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm20a.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm20a.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm20a.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm20a.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm20a.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm20a.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M20b": {
+   "id": "@m.xm20b.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm20b.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm20b.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm20b.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm20b.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm20b.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm20b.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm20b.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M25": {
+   "id": "@m.xm25.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm25.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm25.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm25.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm25.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm25.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm25.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm25.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M18a": {
+   "id": "@m.xm18a.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm18a.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm18a.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm18a.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm18a.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm18a.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm18a.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm18a.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M18b": {
+   "id": "@m.xm18b.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm18b.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm18b.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm18b.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm18b.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm18b.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm18b.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm18b.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M21": {
+   "id": "@m.xm21.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm21.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm21.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm21.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm21.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm21.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm21.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm21.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M19": {
+   "id": "@m.xm19.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm19.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm19.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm19.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm19.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm19.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm19.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm19.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M23a": {
+   "id": "@m.xm23a.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm23a.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm23a.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm23a.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm23a.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm23a.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm23a.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm23a.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M24b": {
+   "id": "@m.xm24b.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm24b.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm24b.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm24b.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm24b.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm24b.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm24b.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm24b.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M26": {
+   "id": "@m.xm26.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm26.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm26.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm26.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm26.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm26.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm26.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm26.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M17": {
+   "id": "@m.xm17.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm17.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm17.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm17.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm17.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm17.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm17.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm17.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M18_bg": {
+   "id": "@m.xm18_bg.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm18_bg.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm18_bg.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm18_bg.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm18_bg.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm18_bg.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm18_bg.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm18_bg.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M60": {
+   "id": "@m.xm60.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm60.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm60.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm60.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm60.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm60.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm60.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm60.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M61": {
+   "id": "@m.xm61.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm61.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm61.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm61.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm61.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm61.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm61.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm61.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M64": {
+   "id": "@m.xm64.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm64.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm64.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm64.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm64.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm64.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm64.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm64.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M63": {
+   "id": "@m.xm63.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm63.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm63.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm63.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm63.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm63.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm63.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm63.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M58": {
+   "id": "@m.xm58.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm58.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm58.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm58.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm58.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm58.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm58.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm58.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M57": {
+   "id": "@m.xm57.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm57.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm57.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm57.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm57.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm57.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm57.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm57.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M66": {
+   "id": "@m.xm66.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm66.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm66.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm66.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm66.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm66.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm66.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm66.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M68": {
+   "id": "@m.xm68.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm68.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm68.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm68.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm68.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm68.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm68.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm68.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M36a": {
+   "id": "@m.xm36a.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm36a.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm36a.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm36a.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm36a.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm36a.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm36a.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm36a.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M36b": {
+   "id": "@m.xm36b.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm36b.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm36b.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm36b.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm36b.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm36b.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm36b.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm36b.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M37a": {
+   "id": "@m.xm37a.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm37a.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm37a.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm37a.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm37a.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm37a.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm37a.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm37a.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M37b": {
+   "id": "@m.xm37b.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm37b.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm37b.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm37b.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm37b.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm37b.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm37b.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm37b.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M38": {
+   "id": "@m.xm38.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xm38.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xm38.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xm38.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xm38.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xm38.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xm38.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xm38.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "M39": {
+   "id": "@m.xm39.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm39.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm39.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm39.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm39.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm39.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm39.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm39.msky130_fd_pr__pfet_01v8[vbs]"
+  },
+  "M40": {
+   "id": "@m.xm40.msky130_fd_pr__pfet_01v8[id]",
+   "gm": "@m.xm40.msky130_fd_pr__pfet_01v8[gm]",
+   "gds": "@m.xm40.msky130_fd_pr__pfet_01v8[gds]",
+   "vth": "@m.xm40.msky130_fd_pr__pfet_01v8[vth]",
+   "vdsat": "@m.xm40.msky130_fd_pr__pfet_01v8[vdsat]",
+   "vgs": "@m.xm40.msky130_fd_pr__pfet_01v8[vgs]",
+   "vds": "@m.xm40.msky130_fd_pr__pfet_01v8[vds]",
+   "vbs": "@m.xm40.msky130_fd_pr__pfet_01v8[vbs]"
+  }
+ },
+ "nets": [
+  "Vx",
+  "Vbias1",
+  "vdd",
+  "Vcmfb",
+  "N1a2a",
+  "Vip",
+  "N1b2b",
+  "Vim",
+  "Vom1",
+  "Vbias2",
+  "Vop1",
+  "Vbias3",
+  "N3a4a",
+  "N3b4b",
+  "Vy",
+  "Vbias4",
+  "Vg15",
+  "N11a11b",
+  "N11b",
+  "Vom",
+  "N14a14b",
+  "N14a_14b",
+  "N24b23a",
+  "N20a20b",
+  "N20b",
+  "Vop",
+  "Vg25",
+  "N23a24b",
+  "N64_63",
+  "N58_57",
+  "N36b",
+  "Voc",
+  "Ncmfb_tail",
+  "Voc_des",
+  "N_cc_rz1",
+  "N_cc_rz2"
+ ],
+ "spice_node": {
+  "Vx": "Vx",
+  "Vbias1": "Vbias1",
+  "vdd": "vdd",
+  "Vcmfb": "Vcmfb",
+  "N1a2a": "N1a2a",
+  "Vip": "Vip",
+  "N1b2b": "N1b2b",
+  "Vim": "Vim",
+  "Vom1": "Vom1",
+  "Vbias2": "Vbias2",
+  "Vop1": "Vop1",
+  "Vbias3": "Vbias3",
+  "N3a4a": "N3a4a",
+  "N3b4b": "N3b4b",
+  "Vy": "Vy",
+  "Vbias4": "Vbias4",
+  "Vg15": "Vg15",
+  "N11a11b": "N11a11b",
+  "N11b": "N11b",
+  "Vom": "Vom",
+  "N14a14b": "N14a14b",
+  "N14a_14b": "N14a_14b",
+  "N24b23a": "N24b23a",
+  "N20a20b": "N20a20b",
+  "N20b": "N20b",
+  "Vop": "Vop",
+  "Vg25": "Vg25",
+  "N23a24b": "N23a24b",
+  "N64_63": "N64_63",
+  "N58_57": "N58_57",
+  "N36b": "N36b",
+  "Voc": "Voc",
+  "Ncmfb_tail": "Ncmfb_tail",
+  "Voc_des": "Voc_des",
+  "N_cc_rz1": "N_cc_rz1",
+  "N_cc_rz2": "N_cc_rz2"
+ },
+ "rail_sources": {
+  "vdd": "Vrail_vdd"
+ },
+ "held": [
+  "Vx",
+  "Vbias1",
+  "Vcmfb",
+  "N1a2a",
+  "N1b2b",
+  "Vom1",
+  "Vbias2",
+  "Vop1",
+  "Vbias3",
+  "N3a4a",
+  "N3b4b",
+  "Vy",
+  "Vbias4",
+  "Vg15",
+  "N11a11b",
+  "N11b",
+  "Vom",
+  "N14a14b",
+  "N14a_14b",
+  "N24b23a",
+  "N20a20b",
+  "N20b",
+  "Vop",
+  "Vg25",
+  "N23a24b",
+  "N64_63",
+  "N58_57",
+  "N36b",
+  "Voc",
+  "Ncmfb_tail",
+  "Voc_des"
+ ],
+ "unheld": [],
+ "gate_bias": {},
+ "inputs": [
+  "Vip",
+  "Vim"
+ ],
+ "has_ac": true,
+ "ac_file": "current_reuse_telescopic_ota.forced.ac.txt",
+ "outputs": [
+  "Vop",
+  "Vom"
+ ],
+ "output_nodes": [
+  "Vop",
+  "Vom"
+ ],
+ "tb_options": {
+  "gmin": "1e-15",
+  "reltol": "1e-4",
+  "abstol": "1e-14",
+  "vntol": "1e-7",
+  "itl1": "500",
+  "itl2": "500"
+ },
+ "ratio_runs": [],
+ "rout_runs": [],
+ "input_ac_weights": {
+  "Vip": 0.5,
+  "Vim": -0.5
+ },
+ "dc_path_isolation": [
+  {
+   "net": "Vip",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": false
+  },
+  {
+   "net": "Vim",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": false
+  }
+ ],
+ "notes": [
+  "current source Iref=1.2e-06 (topology value_amp)",
+  "resistor R1=1000000000 (옛 엔진 sense 저항 기본값(legacy sizing_recipe 상수))",
+  "resistor R2=1000000000 (옛 엔진 sense 저항 기본값(legacy sizing_recipe 상수))",
+  "capacitor Cc1=5e-13 (spec['Cc'] (엔진 derived 값은 결과에 없어 spec))",
+  "resistor Rz1=2118.522643 (1/gm(M16) (옛 엔진 nulling 저항 규칙))",
+  "capacitor Cc2=5e-13 (spec['Cc'] (엔진 derived 값은 결과에 없어 spec))",
+  "resistor Rz2=2118.522643 (1/gm(M26) (옛 엔진 nulling 저항 규칙))",
+  "capacitor CL1=1e-12 (spec['C_Ltot'] (엔진 derived 값은 결과에 없어 spec))",
+  "capacitor CL2=1e-12 (spec['C_Ltot'] (엔진 derived 값은 결과에 없어 spec))",
+  "capacitor Cf1=5e-13 (spec['Cf'] (엔진 derived 값은 결과에 없어 spec))",
+  "capacitor Cf2=5e-13 (spec['Cf'] (엔진 derived 값은 결과에 없어 spec))",
+  "capacitor Cs1=5e-13 (spec['Cs'] (엔진 derived 값은 결과에 없어 spec))",
+  "capacitor Cs2=5e-13 (spec['Cs'] (엔진 derived 값은 결과에 없어 spec))",
+  "forced: 소자 단자 넷 31개를 예측 전압에 choke 로 고정"
+ ],
+ "blockers": [],
+ "z1": null,
+ "topology_identity": {
+  "status": "verified",
+  "topology_path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\src\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json",
+  "sha256_actual": "13850ac2c23b6c9583d2055d68ed155a0ed22bf39a5015dd839546c78d96d8f8",
+  "sha256_declared": "237dbd76362c39bfe7fe8ea16e465fd2c479c8f84af6bdd6eac0eb16e392015d",
+  "diffs": [],
+  "compared": 64,
+  "excluded_testbench": [
+   "Vrail_vdd",
+   "Vdc_Vip",
+   "Ldc_Vip",
+   "Cac_Vip",
+   "Vac_Vip",
+   "Vdc_Vim",
+   "Ldc_Vim",
+   "Cac_Vim",
+   "Vac_Vim",
+   "Vhold_Vx",
+   "Lhold_Vx",
+   "Vhold_Vbias1",
+   "Lhold_Vbias1",
+   "Vhold_Vcmfb",
+   "Lhold_Vcmfb",
+   "Vhold_N1a2a",
+   "Lhold_N1a2a",
+   "Vhold_N1b2b",
+   "Lhold_N1b2b",
+   "Vhold_Vom1",
+   "Lhold_Vom1",
+   "Vhold_Vbias2",
+   "Lhold_Vbias2",
+   "Vhold_Vop1",
+   "Lhold_Vop1",
+   "Vhold_Vbias3",
+   "Lhold_Vbias3",
+   "Vhold_N3a4a",
+   "Lhold_N3a4a",
+   "Vhold_N3b4b",
+   "Lhold_N3b4b",
+   "Vhold_Vy",
+   "Lhold_Vy",
+   "Vhold_Vbias4",
+   "Lhold_Vbias4",
+   "Vhold_Vg15",
+   "Lhold_Vg15",
+   "Vhold_N11a11b",
+   "Lhold_N11a11b",
+   "Vhold_N11b",
+   "Lhold_N11b",
+   "Vhold_Vom",
+   "Lhold_Vom",
+   "Vhold_N14a14b",
+   "Lhold_N14a14b",
+   "Vhold_N14a_14b",
+   "Lhold_N14a_14b",
+   "Vhold_N24b23a",
+   "Lhold_N24b23a",
+   "Vhold_N20a20b",
+   "Lhold_N20a20b",
+   "Vhold_N20b",
+   "Lhold_N20b",
+   "Vhold_Vop",
+   "Lhold_Vop",
+   "Vhold_Vg25",
+   "Lhold_Vg25",
+   "Vhold_N23a24b",
+   "Lhold_N23a24b",
+   "Vhold_N64_63",
+   "Lhold_N64_63",
+   "Vhold_N58_57",
+   "Lhold_N58_57",
+   "Vhold_N36b",
+   "Lhold_N36b",
+   "Vhold_Voc",
+   "Lhold_Voc",
+   "Vhold_Ncmfb_tail",
+   "Lhold_Ncmfb_tail",
+   "Vhold_Voc_des",
+   "Lhold_Voc_des"
+  ],
+  "declared_not_in_topology": {},
+  "bulk_compared": [],
+  "notes": [
+   "topology 파일 sha256 이 입력 선언값과 다르다(입력 변환 뒤 파일이 바뀜): 선언 237dbd76362c.. 실제 13850ac2c23b.."
+  ],
+  "bias_inputs": [],
+  "required": false
+ },
+ "cm_loop": null,
+ "loop": {
+  "bias": "forced",
+  "lut_meta": {
+   "corner": "tt",
+   "temp_c": 27.0
+  },
+  "break_nets": [
+   "Vip",
+   "Vim"
+  ],
+  "weights": [
+   0.5,
+   -0.5
+  ],
+  "v_file": "current_reuse_telescopic_ota.forced.loop.v.txt",
+  "i_file": "current_reuse_telescopic_ota.forced.loop.i.txt",
+  "notes": [
+   "current source Iref=1.2e-06 (topology value_amp)",
+   "resistor R1=1000000000 (옛 엔진 sense 저항 기본값(legacy sizing_recipe 상수))",
+   "resistor R2=1000000000 (옛 엔진 sense 저항 기본값(legacy sizing_recipe 상수))",
+   "capacitor Cc1=5e-13 (spec['Cc'] (엔진 derived 값은 결과에 없어 spec))",
+   "resistor Rz1=2118.522643 (1/gm(M16) (옛 엔진 nulling 저항 규칙))",
+   "capacitor Cc2=5e-13 (spec['Cc'] (엔진 derived 값은 결과에 없어 spec))",
+   "resistor Rz2=2118.522643 (1/gm(M26) (옛 엔진 nulling 저항 규칙))",
+   "capacitor CL1=1e-12 (spec['C_Ltot'] (엔진 derived 값은 결과에 없어 spec))",
+   "capacitor CL2=1e-12 (spec['C_Ltot'] (엔진 derived 값은 결과에 없어 spec))",
+   "capacitor Cf1=5e-13 (spec['Cf'] (엔진 derived 값은 결과에 없어 spec))",
+   "capacitor Cf2=5e-13 (spec['Cf'] (엔진 derived 값은 결과에 없어 spec))",
+   "capacitor Cs1=5e-13 (spec['Cs'] (엔진 derived 값은 결과에 없어 spec))",
+   "capacitor Cs2=5e-13 (spec['Cs'] (엔진 derived 값은 결과에 없어 spec))",
+   "forced: 소자 단자 넷 31개를 예측 전압에 choke 로 고정"
+  ],
+  "choke_H": 1e+20,
+  "blockers": [],
+  "netlist": "current_reuse_telescopic_ota.forced.loop.cir"
+ }
+}

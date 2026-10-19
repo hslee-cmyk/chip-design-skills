@@ -1,0 +1,1 @@
+{"n": 5133, "kept": 3512, "kept_bytes": 18253857, "external": {"sim_data_txt": {"n": 622, "bytes": 166550685}, "sim_log": {"n": 843, "bytes": 12228351}, "cache_slot": {"n": 138, "bytes": 8648}, "pdk_model_copy": {"n": 18, "bytes": 6764373}}, "pdk_copies": 18, "excerpt_lines": 6922, "tmp_path_map": 441, "ambiguous": 0, "mktemp": 33, "unmapped": []}

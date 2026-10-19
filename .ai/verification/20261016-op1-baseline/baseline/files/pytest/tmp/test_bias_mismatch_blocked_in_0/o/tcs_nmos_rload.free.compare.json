@@ -1,0 +1,309 @@
+{
+ "circuit": "tcs_nmos_rload",
+ "bias": "free",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "judge_config": {
+  "tolerances": {},
+  "sat_margin_V": 0.05,
+  "off_current_A": null
+ },
+ "notes": [
+  "current source I1=1e-07 (근거 미기재)",
+  "resistor RL=100000 (test)",
+  "capacitor CL=1e-12 (근거 미기재)",
+  "resistor RP=10000 (근거 미기재)",
+  "게이트 전용 넷 pb = 0.3 V (bias_voltages 선언)"
+ ],
+ "blockers": [
+  "C15 topology 연결 동일성 불일치 1건: bias_voltages 넷 ['pb'] != topology bias_inputs [] (topology 에만 [], 입력에만 ['pb'])"
+ ],
+ "summary": {
+  "verdict": "BLOCKED",
+  "verdict_reason": "막힘이 있어 합격 판정을 하지 않는다",
+  "warnings": [],
+  "limit_cycle_vs_slow_decay_unresolved": null,
+  "acceptance": {
+   "constraints_failed": [],
+   "constraints_unmeasured": [],
+   "closed_loop_unstable": false,
+   "conducting_devices": 0,
+   "unsaturated_conducting": [],
+   "sat_margin_V": 0.05,
+   "off_current_A": null,
+   "off_in_spice": [],
+   "conduction_not_evaluated": {
+    "M1": "N/A(SPICE ID 없음)",
+    "MP1": "N/A(SPICE ID 없음)"
+   }
+  },
+  "junction_capacitance": {
+   "included": true,
+   "by_source": {
+    "device": 0,
+    "process_rule": 2,
+    "none": 0
+   },
+   "missing": [],
+   "zero_area": []
+  },
+  "transient": {
+   "status": "not_measured",
+   "measures": [
+    "slew_rate_v_per_s",
+    "settle_s"
+   ],
+   "reason": "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)"
+  },
+  "record_counts": {
+   "PASS": 0,
+   "FAIL": 0,
+   "N/A": 22
+  },
+  "devices": 2,
+  "sat_in_spice": 0,
+  "not_sat": [
+   "M1",
+   "MP1"
+  ],
+  "spice_ac": null,
+  "spice_ratio": [],
+  "spice_rout": [],
+  "pm_loop": {
+   "pm_definition": null,
+   "feedback_passives": [],
+   "feedback_passives_basis": null,
+   "loop_break_nets": null,
+   "loop_weights": null
+  },
+  "stability": null,
+  "cm_loop": null,
+  "u6": null,
+  "rail_current_A": {},
+  "topology_identity": {
+   "status": "mismatch",
+   "required": false,
+   "diff_count": 1,
+   "path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_bias_mismatch_blocked_in_0\\topo.json"
+  },
+  "z1": null
+ },
+ "performance": [],
+ "constraints": [],
+ "kcl_residual": [],
+ "devices": [
+  {
+   "name": "M1",
+   "kind": "nmos",
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "W_rel": 0.0,
+   "ID_pred": null,
+   "ID_spice": null,
+   "ID_spice_op_id": null,
+   "ID_rel": null,
+   "VGS_pred": null,
+   "VGS_spice": null,
+   "VGS_err_V": null,
+   "VDS_pred": null,
+   "VDS_spice": null,
+   "VDS_err_V": null,
+   "VSB_pred": null,
+   "VSB_spice": null,
+   "VSB_err_V": null,
+   "gm_pred": null,
+   "gm_spice": null,
+   "gm_rel": null,
+   "gds_pred": null,
+   "gds_spice": null,
+   "gds_rel": null,
+   "gm_id_pred": null,
+   "gm_id_spice": null,
+   "VTH_spice": null,
+   "VDSAT_spice": null,
+   "vov_spice": null,
+   "below_vth_spice": null,
+   "sat_margin_spice_V": null,
+   "region_spice": null,
+   "region_pred": null,
+   "gm_id_rel": null,
+   "tol_ID_rel": null,
+   "tol_gm_rel": null,
+   "tol_source": "none",
+   "off_current_A_pred": 0.0,
+   "conduction_threshold_A": 0.0,
+   "predicted_conducting": true,
+   "conduction_check": "N/A(SPICE ID 없음)",
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1e-12,
+    "as": 1e-12,
+    "pd": 4e-06,
+    "ps": 4e-06
+   },
+   "judge": {
+    "W": "N/A(tol 미설정)",
+    "ID": "N/A",
+    "VGS": "N/A",
+    "VDS": "N/A",
+    "VSB": "N/A",
+    "gm": "N/A",
+    "gds": "N/A",
+    "gm_id": "N/A",
+    "region": "N/A"
+   }
+  },
+  {
+   "name": "MP1",
+   "kind": "pmos",
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 3,
+   "W_from_fingers": 6e-06,
+   "W_declared": 6e-06,
+   "W_rel": 0.0,
+   "ID_pred": null,
+   "ID_spice": null,
+   "ID_spice_op_id": null,
+   "ID_rel": null,
+   "VGS_pred": null,
+   "VGS_spice": null,
+   "VGS_err_V": null,
+   "VDS_pred": null,
+   "VDS_spice": null,
+   "VDS_err_V": null,
+   "VSB_pred": null,
+   "VSB_spice": null,
+   "VSB_err_V": null,
+   "gm_pred": null,
+   "gm_spice": null,
+   "gm_rel": null,
+   "gds_pred": null,
+   "gds_spice": null,
+   "gds_rel": null,
+   "gm_id_pred": null,
+   "gm_id_spice": null,
+   "VTH_spice": null,
+   "VDSAT_spice": null,
+   "vov_spice": null,
+   "below_vth_spice": null,
+   "sat_margin_spice_V": null,
+   "region_spice": null,
+   "region_pred": null,
+   "gm_id_rel": null,
+   "tol_ID_rel": null,
+   "tol_gm_rel": null,
+   "tol_source": "none",
+   "off_current_A_pred": 0.0,
+   "conduction_threshold_A": 0.0,
+   "predicted_conducting": true,
+   "conduction_check": "N/A(SPICE ID 없음)",
+   "diffusion": {
+    "source": "process_rule",
+    "ad": 1e-12,
+    "as": 1e-12,
+    "pd": 4e-06,
+    "ps": 4e-06
+   },
+   "judge": {
+    "W": "N/A(tol 미설정)",
+    "ID": "N/A",
+    "VGS": "N/A",
+    "VDS": "N/A",
+    "VSB": "N/A",
+    "gm": "N/A",
+    "gds": "N/A",
+    "gm_id": "N/A",
+    "region": "N/A"
+   }
+  }
+ ],
+ "nodes": [
+  {
+   "net": "nout",
+   "V_pred": 0.9,
+   "V_spice": null,
+   "err_V": null,
+   "held_by_testbench": false,
+   "judge": "N/A"
+  },
+  {
+   "net": "nin",
+   "V_pred": 0.7,
+   "V_spice": null,
+   "err_V": null,
+   "held_by_testbench": true,
+   "judge": "N/A(테스트벤치가 고정)"
+  },
+  {
+   "net": "pout",
+   "V_pred": 0.16,
+   "V_spice": null,
+   "err_V": null,
+   "held_by_testbench": false,
+   "judge": "N/A"
+  },
+  {
+   "net": "pb",
+   "V_pred": 0.3,
+   "V_spice": null,
+   "err_V": null,
+   "held_by_testbench": true,
+   "judge": "N/A(테스트벤치가 고정)"
+  },
+  {
+   "net": "vsp",
+   "V_pred": null,
+   "V_spice": null,
+   "err_V": null,
+   "held_by_testbench": false,
+   "judge": "N/A"
+  },
+  {
+   "net": "vdd",
+   "V_pred": null,
+   "V_spice": null,
+   "err_V": null,
+   "held_by_testbench": false,
+   "judge": "N/A"
+  }
+ ],
+ "topology_identity": {
+  "status": "mismatch",
+  "topology_path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_bias_mismatch_blocked_in_0\\topo.json",
+  "sha256_actual": "1dddecf26d37db548196cf9d565d60f64adf860dbd191712d25209b9e82e20cb",
+  "sha256_declared": null,
+  "diffs": [
+   "bias_voltages 넷 ['pb'] != topology bias_inputs [] (topology 에만 [], 입력에만 ['pb'])"
+  ],
+  "compared": 6,
+  "excluded_testbench": [
+   "Vrail_vdd",
+   "Vrail_vsp",
+   "Vdc_nin",
+   "Ldc_nin",
+   "Cac_nin",
+   "Vac_nin",
+   "Vbias_pb"
+  ],
+  "declared_not_in_topology": {},
+  "bulk_compared": [
+   "MP1"
+  ],
+  "notes": [],
+  "bias_inputs": [],
+  "required": false
+ },
+ "provenance": null,
+ "netlist": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_bias_mismatch_blocked_in_0\\o\\tcs_nmos_rload.free.cir",
+ "stem": "tcs_nmos_rload.free",
+ "diagnosis_free": {
+  "classification": "not_applicable",
+  "reason": "free verdict BLOCKED -- FAIL 일 때만 분류"
+ }
+}

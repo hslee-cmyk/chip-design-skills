@@ -1,0 +1,82 @@
+{
+ "base_commit": "5fea301e35c1461be10d9969bfccdd827b668c98",
+ "oracle_top_py": [
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/legacy_adapter.py",
+   "blob": "05f3fc590f1d232b318f7c2261a3a9e07eb0529e",
+   "last_commit": "6a7545a38d881c2ad2aaf79b1cd72968ad7072ac 2026-10-08T12:18:48+09:00"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/oracle_compare.py",
+   "blob": "9d852ae995580b4a5715824a31bc7be6573202fb",
+   "last_commit": "b9478344f567a7f31d020a630cf427df01b39f95 2026-10-09T05:37:14+09:00"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/oracle_netlist.py",
+   "blob": "bbff4140f43d6ea92e7da65f15d039154c85674e",
+   "last_commit": "3fc2f208a1ebf8b7e2fee03d0e6dedc2c6001c4c 2026-10-09T03:03:33+09:00"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/oracle_noise.py",
+   "blob": "79ecf0acc041a993491179a7c285b55ca1160e91",
+   "last_commit": "b9478344f567a7f31d020a630cf427df01b39f95 2026-10-09T05:37:14+09:00"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/oracle_offset_mc.py",
+   "blob": "274559cc3c308ff2518552f35ffe329d18d5b029",
+   "last_commit": "5b526872379cdeaa709febe2a88453d08e58d1a5 2026-10-09T00:07:35+09:00"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/oracle_run.py",
+   "blob": "6dcce39e608c9f4aa42c4241dc84533e3db30e57",
+   "last_commit": "5b526872379cdeaa709febe2a88453d08e58d1a5 2026-10-09T00:07:35+09:00"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/oracle_simulate.py",
+   "blob": "4e87024aa56dd490a66d69f3d0426c82f2c9f11b",
+   "last_commit": "3fc2f208a1ebf8b7e2fee03d0e6dedc2c6001c4c 2026-10-09T03:03:33+09:00"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/oracle_swing.py",
+   "blob": "e71e77b0d6d27a42de373b626f66484a7e4e846d",
+   "last_commit": "3fc2f208a1ebf8b7e2fee03d0e6dedc2c6001c4c 2026-10-09T03:03:33+09:00"
+  }
+ ],
+ "last_commit_touching_any_oracle_py": "66f045117584a458de5e67c1986e882d7095a2f7 2026-10-09T05:40:12+09:00",
+ "smoke_input_identity": [
+  {
+   "case": "smoke.sizing.engine",
+   "base_path": "skills/analog-gmid-design/tools/spice_oracle/smoke/current_reuse_telescopic_ota.sizing.engine.oracle_input.json",
+   "base_blob_sha256": "1d02c28e4da84d72e3983be2ec08535bd7395acd7eec53dd0c68b0f4499ede3a",
+   "base_checkout_crlf_sha256": "0c73e615a4ce7f49e3f5ff9f9c5d7484430e7fb4268e704e9b9403527b66b888",
+   "baseline_record_sha256": "0c73e615a4ce7f49e3f5ff9f9c5d7484430e7fb4268e704e9b9403527b66b888",
+   "equal_blob": false,
+   "equal": true
+  },
+  {
+   "case": "smoke.layout.engine",
+   "base_path": "skills/analog-gmid-design/tools/spice_oracle/smoke/current_reuse_telescopic_ota.layout.engine.oracle_input.json",
+   "base_blob_sha256": "9f084bb2440772fa27e897fe06312612877617d26f2571b4f1a8da3e7be09435",
+   "base_checkout_crlf_sha256": "8eb2fcef8b736df72a94b18690815793e60e86f0d75d14bbdb63e0eeaaaf8020",
+   "baseline_record_sha256": "8eb2fcef8b736df72a94b18690815793e60e86f0d75d14bbdb63e0eeaaaf8020",
+   "equal_blob": false,
+   "equal": true
+  },
+  {
+   "case": "smoke.layout.topology",
+   "base_path": "skills/analog-gmid-design/tools/spice_oracle/smoke/current_reuse_telescopic_ota.layout.topology.oracle_input.json",
+   "base_blob_sha256": "2b7ac77fe56640869e63c4b78bfab7710b7f3fee0ff03b06319c28ce5fbd7a0c",
+   "base_checkout_crlf_sha256": "1f264ef54c5870d392ac1b58d58aedfe56d71be4bd4c0e75ffdc4014ba14b504",
+   "baseline_record_sha256": "1f264ef54c5870d392ac1b58d58aedfe56d71be4bd4c0e75ffdc4014ba14b504",
+   "equal_blob": false,
+   "equal": true
+  }
+ ],
+ "junit_vs_collect": {
+  "n_junit": 699,
+  "n_collect": 699,
+  "only_junit": [],
+  "only_collect": [],
+  "equal": true
+ }
+}

@@ -1,0 +1,30 @@
+* spice_oracle: tcm_cmfb bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XM1 op ip 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM2 om im 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM3 op c vdd vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM4 om c vdd vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+Cp_CL1 op 0 1e-11
+Cp_CL2 om 0 1e-11
+Rp_R1 op c 1000000
+Rp_R2 c om 1000000
+Cp_Cg c 0 5e-12
+Vpz_ip ip 0 DC 0.6
+Vpz_im im 0 DC 0.6
+.control
+set noaskquit
+op
+echo PZSTART
+pz op 0 op 0 cur pol
+print all
+echo PZEND
+quit
+.endc
+.end

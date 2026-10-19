@@ -1,0 +1,205 @@
+{
+ "devices": {
+  "M1": {
+   "id": 8.500172e-06,
+   "gm": 0.0001378065,
+   "gds": 1.042636e-06,
+   "vth": 0.6326438,
+   "vdsat": 0.09483317,
+   "vgs": 0.7,
+   "vds": 0.7,
+   "vbs": 1.338124e-13
+  }
+ },
+ "nodes": {
+  "nout": 0.7,
+  "ng": 0.7,
+  "vdd": 1.8,
+  "vb": 0.7,
+  "nin": 0.7
+ },
+ "rail_current_A": {
+  "vdd": 8.50017e-06,
+  "vb": -0.0
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_singular_never_pass____100\\o\\tsingular.free.log",
+ "log_errors": [
+  "Circuit: * spice_oracle: tsingular bias=free"
+ ],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 9.865780960002102e-06,
+  "dc_gain_db": -100.11737061939607,
+  "phase_dc_deg": -90.00003742054632,
+  "reference_point": "first",
+  "f3db_hz": null,
+  "ugf_hz": null,
+  "phase_lag_at_ugf_deg": null,
+  "pm_deg": null,
+  "a0_f3db_hz": null,
+  "pm_open_loop_deg": null,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_loop",
+  "loop_ugf_hz": null,
+  "loop_gain_dc_db": null,
+  "loop_break_nets": [
+   "nin"
+  ],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": [
+   {
+    "net": "nin",
+    "f_hz": 0.01,
+    "choke_H": 1e+20,
+    "node_impedance_ohm": 7957757230084.881,
+    "ratio": 789567.3523974251
+   }
+  ],
+  "pm_crosscheck_deg": null,
+  "pm_crosscheck_note": null,
+  "pm_crosscheck_method": null,
+  "pm_crosscheck_mp_resolution": null,
+  "closed_loop_peaking_db": null,
+  "closed_loop_peak_hz": null,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": "loop_probe_singular",
+  "pm_deg_raw": null,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "pm_valid": null,
+   "pm_undefined": null,
+   "reason": "β 루프 T 정의 불가: Middlebrook 분모 0 인 표본 162개(첫 표본 1189 Hz, iy)"
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_singular_never_pass____100\\o\\tsingular.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": {
+  "ngspice_rc": 0,
+  "break_nets": [
+   "nin"
+  ],
+  "log_errors": [
+   "Circuit: * spice_oracle: tsingular bias=free"
+  ],
+  "measures": null,
+  "pm_crosscheck": null,
+  "choke_ratio": [
+   {
+    "net": "nin",
+    "f_hz": 0.01,
+    "choke_H": 1e+20,
+    "node_impedance_ohm": 7957757230084.881,
+    "ratio": 789567.3523974251
+   }
+  ],
+  "singular": {
+   "count": 162,
+   "first": {
+    "f_hz": 1188.50223,
+    "which": "iy"
+   },
+   "points": [
+    {
+     "f_hz": 1188.50223,
+     "which": "iy"
+    },
+    {
+     "f_hz": 1412.53754,
+     "which": "iy"
+    },
+    {
+     "f_hz": 1496.23566,
+     "which": "iy"
+    },
+    {
+     "f_hz": 1778.27941,
+     "which": "iy"
+    },
+    {
+     "f_hz": 1995.26231,
+     "which": "iy"
+    },
+    {
+     "f_hz": 2238.72114,
+     "which": "iy"
+    },
+    {
+     "f_hz": 2371.37371,
+     "which": "iy"
+    },
+    {
+     "f_hz": 2660.72506,
+     "which": "iy"
+    },
+    {
+     "f_hz": 2985.38262,
+     "which": "iy"
+    },
+    {
+     "f_hz": 3548.13389,
+     "which": "iy"
+    },
+    {
+     "f_hz": 3758.37404,
+     "which": "iy"
+    },
+    {
+     "f_hz": 3981.07171,
+     "which": "iy"
+    },
+    {
+     "f_hz": 4466.83592,
+     "which": "iy"
+    },
+    {
+     "f_hz": 5308.84444,
+     "which": "iy"
+    },
+    {
+     "f_hz": 5623.41325,
+     "which": "iy"
+    },
+    {
+     "f_hz": 7079.45784,
+     "which": "iy"
+    },
+    {
+     "f_hz": 7498.94209,
+     "which": "iy"
+    },
+    {
+     "f_hz": 11220.1845,
+     "which": "iy"
+    },
+    {
+     "f_hz": 11885.0223,
+     "which": "iy"
+    },
+    {
+     "f_hz": 12589.2541,
+     "which": "iy"
+    }
+   ]
+  }
+ },
+ "cm_loop": null
+}

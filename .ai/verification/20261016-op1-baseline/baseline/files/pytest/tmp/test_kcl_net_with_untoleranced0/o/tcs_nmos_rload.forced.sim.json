@@ -1,0 +1,251 @@
+{
+ "devices": {
+  "M1": {
+   "id": 8.601506e-06,
+   "gm": 0.0001392145,
+   "gds": 9.87127e-07,
+   "vth": 0.6323131,
+   "vdsat": 0.09501433,
+   "vgs": 0.7,
+   "vds": 0.8,
+   "vbs": 4.897905e-14
+  },
+  "MP1": {
+   "id": 1.642922e-05,
+   "gm": 0.0001521192,
+   "gds": 1.258348e-06,
+   "vth": 1.026039,
+   "vdsat": 0.1964371,
+   "vgs": 1.2,
+   "vds": 1.3,
+   "vbs": -0.3
+  }
+ },
+ "nodes": {
+  "nout": 0.8,
+  "nin": 0.7,
+  "pout": 0.2,
+  "pb": 0.3,
+  "vsp": 1.5,
+  "vdd": 1.8
+ },
+ "rail_current_A": {
+  "vdd": 1e-05,
+  "vsp": 1.64292e-05
+ },
+ "hold_current_A": {
+  "nout": 1.398494e-06,
+  "pout": -3.57078e-06
+ },
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_kcl_net_with_untoleranced0\\o\\tcs_nmos_rload.forced.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 12.670695400013186,
+  "dc_gain_db": 22.05600901448145,
+  "phase_dc_deg": -179.99991733267902,
+  "reference_point": "first",
+  "f3db_hz": 1778279.41,
+  "ugf_hz": 22007483.183286197,
+  "phase_lag_at_ugf_deg": 85.70918465345648,
+  "pm_deg": 94.29081534654352,
+  "a0_f3db_hz": 22532036.74022516,
+  "pm_open_loop_deg": 94.29081534654352,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": null,
+  "pm_crosscheck_note": "peaking 없음(Mp-1 = 1.7e-11, 데이터 분해능 2e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": null,
+  "closed_loop_peak_hz": null,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": null,
+  "pm_deg_raw": 94.29081534654352,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_1",
+   "closure_sign": -1.0,
+   "nyquist": {
+    "encirclements_cw": 0,
+    "reason": null,
+    "max_step_deg": 1.424890663213446,
+    "max_step_hz": 1584893.19,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     12.6706954,
+     1.82814939e-05
+    ],
+    "L_last": [
+     -0.00415205639,
+     -0.002212098
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     0.00015324055038285373,
+     0.2545442235845342
+    ],
+    "refinement": {
+     "rounds": 0,
+     "samples_added": 0,
+     "k_max": 10,
+     "history": []
+    }
+   },
+   "pz": {
+    "status": "ok",
+    "P": 0,
+    "rhp": [],
+    "beyond_sweep": [],
+    "n_poles": 8,
+    "reason": null,
+    "netlist": "tcs_nmos_rload.forced.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "main netlist, inputs driven (beta=1)",
+    "omega_stop": 62831853071.79586,
+    "poles": [
+     [
+      -10947200.0,
+      0.0
+     ],
+     [
+      -33796100000.0,
+      0.0
+     ],
+     [
+      -11865000000000.0,
+      0.0
+     ],
+     [
+      -20749300000000.0,
+      0.0
+     ],
+     [
+      -25476600000000.0,
+      0.0
+     ],
+     [
+      -48182700000000.0,
+      0.0
+     ],
+     [
+      -58643000000000.0,
+      0.0
+     ],
+     [
+      -293601000000000.0,
+      0.0
+     ]
+    ]
+   },
+   "transient": {
+    "status": "stable",
+    "reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+    "op_pass": {
+     "netlist": "tcs_nmos_rload.forced.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "ldc_nin": 0.0,
+      "lhold_nout": -1.39849e-06,
+      "lhold_pout": 3.57078e-06
+     },
+     "node_V": {
+      "nin": 0.7,
+      "nout": 0.8,
+      "pout": 0.2
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 7.23185571773001e-09,
+     "tr": 7.23185571773001e-09,
+     "pw": 7.23185571773001e-09,
+     "tmax": 2.0030654343735844e-10,
+     "window_s": 4.5439089589283885e-08,
+     "windows": 6,
+     "windows_planned": 6,
+     "t_kick_end": 2.892742287092004e-08,
+     "tstop": 3.015619604066233e-07,
+     "f_lo_hz": 22007483.183286197,
+     "f_hi_hz": 22007483.183286197,
+     "f_crit_hz": 22387211.4,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 7.01e-05,
+     "wall_cap_s": 1836.6000000000001,
+     "sign": -1.0,
+     "observe": [
+      [
+       "nin",
+       1
+      ]
+     ]
+    },
+    "M": [
+     0.013465282999999939,
+     1.5732999999906738e-05,
+     2.7000000013543968e-08,
+     2.7000000013543968e-08,
+     2.7000000013543968e-08,
+     2.7000000013543968e-08
+    ],
+    "floor_V": 7.0103580334815e-05,
+    "windows_run": 6,
+    "netlist": "tcs_nmos_rload.forced.stab.cir",
+    "file": "tcs_nmos_rload.forced.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1836.6000000000001,
+    "first_status": "stable"
+   },
+   "closed_loop": "stable",
+   "open_loop_rhp_poles": 0,
+   "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+   "pm_valid": true,
+   "pm_undefined": null,
+   "Z": 0,
+   "P_pz": 0,
+   "P_eff": 0,
+   "pz_conflict": null,
+   "conditionally_stable": false,
+   "verdict": "stable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": null,
+   "low_side_crossings": [],
+   "low_side_crossing_hz": [],
+   "gain_crossings_hz": [
+    22007483.183286197
+   ]
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_kcl_net_with_untoleranced0\\o\\tcs_nmos_rload.forced.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null,
+ "stability_cache": {
+  "op_pass": null,
+  "transient": null
+ }
+}

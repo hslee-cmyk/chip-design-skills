@@ -1,0 +1,127 @@
+* spice_oracle: tcs_nmos_rload bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+Vrail_vsp vsp 0 DC 1.5
+XM1 nout nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XMP1 pout pb vsp vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06 m=3 ad=0 as=0 pd=0 ps=0
+Rp_RL vdd nout 100000
+Cp_CL nout 0 1e-12
+Rp_RP pout 0 10000
+Vdc_nin dcs_nin 0 DC 0.7
+Ldc_nin dcs_nin nin 1e+12
+Cac_nin nin acs_nin 1
+Vac_nin acs_nin 0 DC 0 AC 1
+Vbias_pb pb 0 DC 0.3
+.control
+set noaskquit
+op
+echo OPSTART
+print @m.xm1.msky130_fd_pr__nfet_01v8[id]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vth]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vgs]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vds]
+print @m.xm1.msky130_fd_pr__nfet_01v8[vbs]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[id]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[gm]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[gds]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[vth]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[vds]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[vbs]
+print v(nout)
+print v(nin)
+print v(pout)
+print v(pb)
+print v(vsp)
+print v(vdd)
+print i(vrail_vdd)
+print i(vrail_vsp)
+echo OPEND
+ac dec 40 0.01 1e+10
+let hout = v(nout)
+set wr_singlescale
+wrdata tcs_nmos_rload.free.ac.txt hout
+set wr_singlescale
+alter @vac_nin[acmag] = 1
+alter @vbias_pb[acmag] = 0
+alter @vrail_vdd[acmag] = 0
+alter @vrail_vsp[acmag] = 0
+ac lin 1 0.01 0.01
+let hr0num = v(nout)
+wrdata tcs_nmos_rload.free.ratio0.num.txt hr0num
+alter @vac_nin[acmag] = 0
+alter @vbias_pb[acmag] = 0
+alter @vrail_vdd[acmag] = 1
+alter @vrail_vsp[acmag] = 0
+ac lin 1 0.01 0.01
+let hr0den = v(nout)
+wrdata tcs_nmos_rload.free.ratio0.den.txt hr0den
+alter @vac_nin[acmag] = -2
+alter @vbias_pb[acmag] = 0
+alter @vrail_vdd[acmag] = 0
+alter @vrail_vsp[acmag] = 1
+ac lin 1 0.01 0.01
+let hr1num = v(nout)
+wrdata tcs_nmos_rload.free.ratio1.num.txt hr1num
+alter @vac_nin[acmag] = 0
+alter @vbias_pb[acmag] = 0
+alter @vrail_vdd[acmag] = 1
+alter @vrail_vsp[acmag] = 0
+ac lin 1 0.01 0.01
+let hr1den = v(nout)
+wrdata tcs_nmos_rload.free.ratio1.den.txt hr1den
+alter @vac_nin[acmag] = 1
+alter @vbias_pb[acmag] = 0
+alter @vrail_vdd[acmag] = 1
+alter @vrail_vsp[acmag] = 0
+ac lin 1 0.01 0.01
+let hr2num = v(nout)
+wrdata tcs_nmos_rload.free.ratio2.num.txt hr2num
+alter @vac_nin[acmag] = 0
+alter @vbias_pb[acmag] = 0
+alter @vrail_vdd[acmag] = 1
+alter @vrail_vsp[acmag] = 0
+ac lin 1 0.01 0.01
+let hr2den = v(nout)
+wrdata tcs_nmos_rload.free.ratio2.den.txt hr2den
+alter @vac_nin[acmag] = 1
+alter @vbias_pb[acmag] = 0
+alter @vrail_vdd[acmag] = 0
+alter @vrail_vsp[acmag] = 0
+ac lin 1 0.01 0.01
+let hr3num = v(nout) - v(pout)
+wrdata tcs_nmos_rload.free.ratio3.num.txt hr3num
+alter @vac_nin[acmag] = 0
+alter @vbias_pb[acmag] = 0
+alter @vrail_vdd[acmag] = 1
+alter @vrail_vsp[acmag] = 0
+ac lin 1 0.01 0.01
+let hr3den = v(nout) - v(pout)
+wrdata tcs_nmos_rload.free.ratio3.den.txt hr3den
+alter @vac_nin[acmag] = 0
+alter @vbias_pb[acmag] = 1
+alter @vrail_vdd[acmag] = 0
+alter @vrail_vsp[acmag] = 0
+ac lin 1 0.01 0.01
+let hr4num = v(pout)
+wrdata tcs_nmos_rload.free.ratio4.num.txt hr4num
+alter @vac_nin[acmag] = 0
+alter @vbias_pb[acmag] = 0
+alter @vrail_vdd[acmag] = 0
+alter @vrail_vsp[acmag] = 0.5
+ac lin 1 0.01 0.01
+let hr4den = v(pout)
+wrdata tcs_nmos_rload.free.ratio4.den.txt hr4den
+quit
+.endc
+.end

@@ -1,0 +1,46 @@
+* spice_oracle: tcm_cmfb bias=free
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vrail_vdd vdd 0 DC 1.8
+XM1 lbx_op ip 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM2 lbx_om im 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM3 lbx_op c vdd vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+XM4 lbx_om c vdd vdd sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06 m=2 ad=0 as=0 pd=0 ps=0
+Cp_CL1 op 0 1e-11
+Cp_CL2 om 0 1e-11
+Rp_R1 op c 1000000
+Rp_R2 c om 1000000
+Cp_Cg c 0 5e-12
+Efb_ip fbs_ip 0 om op 0.5
+Vofs_ip fbs_ip fbd_ip DC -0.6
+Lfb_ip fbd_ip ip 1e+12
+Cac_ip ip acs_ip 1
+Vac_ip acs_ip 0 DC 0 AC 0
+Efb_im fbs_im 0 op om 0.5
+Vofs_im fbs_im fbd_im DC -0.6
+Lfb_im fbd_im im 1e+12
+Cac_im im acs_im 1
+Vac_im acs_im 0 DC 0 AC 0
+Vlb_op op lbx_op DC 0 AC 0.5
+Ilb_op 0 op DC 0 AC 0
+Vlb_om om lbx_om DC 0 AC 0.5
+Ilb_om 0 om DC 0 AC 0
+.control
+set noaskquit
+set wr_singlescale
+ac dec 40 0.01 1e+10
+wrdata t.free.cmloop.v.txt v(lbx_op) v(op) v(lbx_om) v(om)
+alter @vlb_op[acmag] = 0
+alter @ilb_op[acmag] = 0.5
+alter @vlb_om[acmag] = 0
+alter @ilb_om[acmag] = 0.5
+ac dec 40 0.01 1e+10
+wrdata t.free.cmloop.i.txt i(vlb_op) i(vlb_om) v(op) v(om)
+quit
+.endc
+.end

@@ -1,0 +1,28 @@
+* spice_oracle: tcs_nmos_rload bias=iso (단독 소자, 엔진 예측 VGS/VDS/VSB 고정)
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Viso_g_MP1 iso_g_MP1 0 DC -1.2
+Viso_d_MP1 iso_d_MP1 0 DC -1.34
+Viso_b_MP1 iso_b_MP1 0 DC 0.3
+XMP1 iso_d_MP1 iso_g_MP1 0 iso_b_MP1 sky130_fd_pr__pfet_01v8 l=5e-07 w=2e-06 m=3 ad=1e-12 as=1e-12 pd=4e-06 ps=4e-06
+.control
+set noaskquit
+op
+echo OPSTART
+print @m.xmp1.msky130_fd_pr__pfet_01v8[id]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[gm]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[gds]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[vth]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[vgs]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[vds]
+print @m.xmp1.msky130_fd_pr__pfet_01v8[vbs]
+echo OPEND
+quit
+.endc
+.end

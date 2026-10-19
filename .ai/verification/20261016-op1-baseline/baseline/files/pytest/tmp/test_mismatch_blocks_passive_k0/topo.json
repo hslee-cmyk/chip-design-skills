@@ -1,0 +1,60 @@
+{
+ "_comment": "spice_oracle C15 test \ud53d\uc2a4\ucc98: conftest.cs_input \ud68c\ub85c(tcs_nmos_rload)\uc758 \uc190\uc73c\ub85c \uc4f4 topology. \ub77c\uc774\ube0c\ub7ec\ub9ac \ud68c\ub85c \uc544\ub2d8.",
+ "topology_name": "tcs_nmos_rload",
+ "netlist": [
+  {
+   "name": "M1",
+   "kind": "nmos",
+   "drain": "nout",
+   "gate": "nin",
+   "source": "gnd"
+  },
+  {
+   "name": "MP1",
+   "kind": "pmos",
+   "drain": "pout",
+   "gate": "pb",
+   "source": "vsp",
+   "bulk": "vdd"
+  }
+ ],
+ "passive_elements": [
+  {
+   "name": "RL",
+   "kind": "resistor",
+   "terminals": [
+    "vdd",
+    "nout"
+   ]
+  },
+  {
+   "name": "CL",
+   "kind": "resistor",
+   "terminals": [
+    "nout",
+    "gnd"
+   ]
+  },
+  {
+   "name": "RP",
+   "kind": "resistor",
+   "terminals": [
+    "pout",
+    "gnd"
+   ]
+  }
+ ],
+ "bias_inputs": [
+  "pb"
+ ],
+ "ideal_sources": [
+  {
+   "name": "I1",
+   "kind": "current_source",
+   "terminals": [
+    "vdd",
+    "nout"
+   ]
+  }
+ ]
+}

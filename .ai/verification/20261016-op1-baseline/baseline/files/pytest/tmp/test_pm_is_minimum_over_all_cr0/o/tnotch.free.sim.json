@@ -1,0 +1,223 @@
+{
+ "devices": {
+  "M1": {
+   "id": 8.500172e-06,
+   "gm": 0.0001378065,
+   "gds": 1.042636e-06,
+   "vth": 0.6326438,
+   "vdsat": 0.09483317,
+   "vgs": 0.7,
+   "vds": 0.7,
+   "vbs": 1.338124e-13
+  }
+ },
+ "nodes": {
+  "n1": 0.7,
+  "nin": 0.7,
+  "vdd": 1.8,
+  "nm": 0.7,
+  "no": 0.7,
+  "nc": 0.0
+ },
+ "rail_current_A": {
+  "vdd": 8.50017e-06
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_pm_is_minimum_over_all_cr0\\o\\tnotch.free.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 15.713280500139275,
+  "dc_gain_db": 23.925337264616957,
+  "phase_dc_deg": 179.99975876237326,
+  "reference_point": "first",
+  "f3db_hz": 2371.37371,
+  "ugf_hz": 8712.402386360996,
+  "phase_lag_at_ugf_deg": 93.83767506511302,
+  "pm_deg": 86.16232493488698,
+  "a0_f3db_hz": 37262.060275885924,
+  "pm_open_loop_deg": 86.16232493488698,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": 58.79215276460557,
+  "pm_crosscheck_note": null,
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": 0.3928608930060343,
+  "closed_loop_peak_hz": 31622.7766,
+  "pm_crosscheck_gap_deg": -27.370172170281414,
+  "pm_undefined": null,
+  "pm_deg_raw": 86.16232493488698,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_1",
+   "closure_sign": -1.0,
+   "nyquist": {
+    "encirclements_cw": 0,
+    "reason": null,
+    "max_step_deg": 25.01980512002728,
+    "max_step_hz": 10000.0,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     15.7132805,
+     -6.61590527e-05
+    ],
+    "L_last": [
+     -0.000208423146,
+     -0.000109754853
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     0.000453607476565215,
+     0.012579601545552103
+    ],
+    "refinement": {
+     "rounds": 0,
+     "samples_added": 0,
+     "k_max": 10,
+     "history": []
+    }
+   },
+   "pz": {
+    "status": "failed",
+    "P": null,
+    "rhp": [],
+    "beyond_sweep": [],
+    "n_poles": 6,
+    "reason": "Warning: Pole-zero iteration limit reached; giving up after 336 trials",
+    "netlist": "tnotch.free.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "main netlist, inputs driven (beta=1)"
+   },
+   "transient": {
+    "status": "stable",
+    "reason": "첫 실행 decaying(모든 창에서 분해능을 넘게 감소하지만 아직 해 분해능 위) -> 연장 실행 stable(끝 창 응답이 해 분해능 아래로 감쇠)",
+    "op_pass": {
+     "netlist": "tnotch.free.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "ldc_nin": 0.0
+     },
+     "node_V": {
+      "nin": 0.7,
+      "no": 0.7
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 1.826762998699964e-05,
+     "tr": 1.826762998699964e-05,
+     "pw": 1.826762998699964e-05,
+     "tmax": 4.484304932735426e-07,
+     "window_s": 0.00011477890433130935,
+     "windows": 6,
+     "windows_planned": 6,
+     "t_kick_end": 7.307051994799856e-05,
+     "tstop": 0.0007617439459358547,
+     "f_lo_hz": 8712.402386360996,
+     "f_hi_hz": 1093292.30209901,
+     "f_crit_hz": 10000.0,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 7.01e-05,
+     "wall_cap_s": 1836.6000000000001,
+     "sign": -1.0,
+     "observe": [
+      [
+       "nin",
+       1
+      ]
+     ]
+    },
+    "M": [
+     0.007263055000000018,
+     0.0033616810000000052,
+     0.0015125120000000214,
+     0.0005031500000000078,
+     0.0002370329999999976,
+     0.00011160200000004394
+    ],
+    "floor_V": 7.010353051903e-05,
+    "windows_run": 6,
+    "netlist": "tnotch.free.stab.cir",
+    "file": "tnotch.free.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1836.6000000000001,
+    "first_status": "decaying",
+    "extension": {
+     "status": "stable",
+     "M": [
+      0.007263055000000018,
+      0.0033616810000000052,
+      0.0015125120000000214,
+      0.0005031500000000078,
+      0.0002370329999999976,
+      0.00011160200000004394,
+      5.2535000000020204e-05
+     ],
+     "floor_V": 7.010353051903e-05,
+     "reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+     "windows_run": 7,
+     "netlist": "tnotch.free.stab2.cir",
+     "file": "tnotch.free.stab2.txt",
+     "ngspice_rc": 0,
+     "extension_windows": 1,
+     "tstop": 0.000876522850267164,
+     "wall_cap_s": 2142.7000000000003
+    }
+   },
+   "closed_loop": "stable",
+   "open_loop_rhp_poles": 0,
+   "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+   "pm_valid": true,
+   "pm_undefined": null,
+   "Z": 0,
+   "P_pz": null,
+   "P_eff": 0,
+   "pz_conflict": null,
+   "conditionally_stable": false,
+   "verdict": "stable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": null,
+   "low_side_crossings": [],
+   "low_side_crossing_hz": [],
+   "gain_crossings_hz": [
+    8712.402386360996,
+    11355.727637657732,
+    1093292.30209901
+   ]
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_pm_is_minimum_over_all_cr0\\o\\tnotch.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null,
+ "stability_cache": {
+  "op_pass": null,
+  "transient": null,
+  "extension": null
+ }
+}

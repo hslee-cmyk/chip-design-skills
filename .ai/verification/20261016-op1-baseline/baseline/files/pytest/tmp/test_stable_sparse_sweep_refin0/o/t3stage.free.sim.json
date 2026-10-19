@@ -1,0 +1,263 @@
+{
+ "devices": {
+  "M1": {
+   "id": 8.500172e-06,
+   "gm": 0.0001378065,
+   "gds": 1.042636e-06,
+   "vth": 0.6326438,
+   "vdsat": 0.09483317,
+   "vgs": 0.7,
+   "vds": 0.7,
+   "vbs": 1.338124e-13
+  },
+  "M2": {
+   "id": 8.500177e-06,
+   "gm": 0.0001378066,
+   "gds": 1.042637e-06,
+   "vth": 0.6326438,
+   "vdsat": 0.09483319,
+   "vgs": 0.7,
+   "vds": 0.6999994,
+   "vbs": 1.338124e-13
+  },
+  "M3": {
+   "id": 8.500094e-06,
+   "gm": 0.0001378056,
+   "gds": 1.04262e-06,
+   "vth": 0.6326438,
+   "vdsat": 0.09483284,
+   "vgs": 0.6999994,
+   "vds": 0.7000101,
+   "vbs": 1.338126e-13
+  }
+ },
+ "nodes": {
+  "n1": 0.7,
+  "nin": 0.7,
+  "n2": 0.6999994,
+  "n3": 0.7000101,
+  "vdd": 1.8
+ },
+ "rail_current_A": {
+  "vdd": 2.55004e-05
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_stable_sparse_sweep_refin0\\o\\t3stage.free.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 3879.704169968938,
+  "dc_gain_db": 71.7759722322543,
+  "phase_dc_deg": 179.9958926397962,
+  "reference_point": "first",
+  "f3db_hz": 215.443469,
+  "ugf_hz": 334294.25637791713,
+  "phase_lag_at_ugf_deg": 162.82952506279076,
+  "pm_deg": 17.170474937209235,
+  "a0_f3db_hz": 835856.9250718736,
+  "pm_open_loop_deg": 17.170474937209235,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": null,
+  "pm_crosscheck_note": "peaking 없음(Mp-1 = 2.22e-14, 데이터 분해능 2e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": null,
+  "closed_loop_peak_hz": null,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": null,
+  "pm_deg_raw": 17.170474937209235,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_1",
+   "closure_sign": -1.0,
+   "nyquist": {
+    "encirclements_cw": 0,
+    "reason": null,
+    "max_step_deg": 60.471076753950065,
+    "max_step_hz": 415956.216,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     3879.70416,
+     -0.278124194
+    ],
+    "L_last": [
+     -1.34555808e-13,
+     -1.14830683e-12
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     0.008212603595823624,
+     1.3159863050023446e-10
+    ],
+    "refinement": {
+     "rounds": 2,
+     "samples_added": 3,
+     "k_max": 10,
+     "history": [
+      {
+       "round": 1,
+       "intervals": [
+        [
+         215443.469,
+         464158.883
+        ]
+       ],
+       "samples": 2
+      },
+      {
+       "round": 2,
+       "intervals": [
+        [
+         299357.729,
+         415956.216
+        ]
+       ],
+       "samples": 1
+      }
+     ]
+    }
+   },
+   "pz": {
+    "status": "failed",
+    "P": null,
+    "rhp": [],
+    "beyond_sweep": [],
+    "n_poles": 7,
+    "reason": "Warning: Pole-zero iteration limit reached; giving up after 382 trials",
+    "netlist": "t3stage.free.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "main netlist, inputs driven (beta=1)"
+   },
+   "transient": {
+    "status": "stable",
+    "reason": "첫 실행 decaying(모든 창에서 분해능을 넘게 감소하지만 아직 해 분해능 위) -> 연장 실행 stable(끝 창 응답이 해 분해능 아래로 감쇠)",
+    "op_pass": {
+     "netlist": "t3stage.free.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "ldc_nin": 0.0
+     },
+     "node_V": {
+      "nin": 0.7,
+      "n3": 0.7000101
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 4.7609236490133376e-07,
+     "tr": 4.7609236490133376e-07,
+     "pw": 4.7609236490133376e-07,
+     "tmax": 9.661142115286042e-09,
+     "window_s": 2.9913765520084423e-06,
+     "windows": 6,
+     "windows_planned": 6,
+     "t_kick_end": 1.904369459605335e-06,
+     "tstop": 1.985262877165599e-05,
+     "f_lo_hz": 334294.25637791713,
+     "f_hi_hz": 334294.25637791713,
+     "f_crit_hz": 464158.883,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 7.01e-05,
+     "wall_cap_s": 1836.6000000000001,
+     "sign": -1.0,
+     "observe": [
+      [
+       "nin",
+       1
+      ]
+     ]
+    },
+    "M": [
+     0.03752182699999995,
+     0.014955355999999975,
+     0.004556863999999994,
+     0.0020913780000000326,
+     0.0009684189999999981,
+     0.0004475770000000878
+    ],
+    "floor_V": 7.010361876231999e-05,
+    "windows_run": 6,
+    "netlist": "t3stage.free.stab.cir",
+    "file": "t3stage.free.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1836.6000000000001,
+    "first_status": "decaying",
+    "extension": {
+     "status": "stable",
+     "M": [
+      0.03752182699999995,
+      0.014955355999999975,
+      0.004556863999999994,
+      0.0020913780000000326,
+      0.0009684189999999981,
+      0.0004475770000000878,
+      0.00018996100000001626,
+      6.483099999998743e-05,
+      2.9908999999994634e-05
+     ],
+     "floor_V": 7.010361876231999e-05,
+     "reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+     "windows_run": 9,
+     "netlist": "t3stage.free.stab2.cir",
+     "file": "t3stage.free.stab2.txt",
+     "ngspice_rc": 0,
+     "extension_windows": 3,
+     "tstop": 2.8826758427681316e-05,
+     "wall_cap_s": 2754.9
+    }
+   },
+   "closed_loop": "stable",
+   "open_loop_rhp_poles": 0,
+   "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+   "pm_valid": true,
+   "pm_undefined": null,
+   "Z": 0,
+   "P_pz": null,
+   "P_eff": 0,
+   "pz_conflict": null,
+   "conditionally_stable": false,
+   "verdict": "stable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": null,
+   "low_side_crossings": [],
+   "low_side_crossing_hz": [],
+   "gain_crossings_hz": [
+    334294.25637791713
+   ]
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_stable_sparse_sweep_refin0\\o\\t3stage.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null,
+ "stability_cache": {
+  "op_pass": null,
+  "transient": null,
+  "extension": null
+ }
+}

@@ -1,0 +1,157 @@
+{
+ "raw_root": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1/baseline",
+ "n_files_total": 5133,
+ "bytes_total": 203805914,
+ "n_committed": 3512,
+ "bytes_committed": 18253857,
+ "committed_by_class": {
+  "cir": {
+   "n": 1180,
+   "bytes": 4470998
+  },
+  "console": {
+   "n": 5,
+   "bytes": 148790
+  },
+  "json": {
+   "n": 1626,
+   "bytes": 10971990
+  },
+  "mc_ac": {
+   "n": 2,
+   "bytes": 48100
+  },
+  "mc_log": {
+   "n": 2,
+   "bytes": 126307
+  },
+  "md": {
+   "n": 262,
+   "bytes": 900518
+  },
+  "npz": {
+   "n": 430,
+   "bytes": 329232
+  },
+  "spice_test_made": {
+   "n": 4,
+   "bytes": 1159059
+  },
+  "xml": {
+   "n": 1,
+   "bytes": 98863
+  }
+ },
+ "external_by_class": {
+  "sim_data_txt": {
+   "n": 622,
+   "bytes": 166550685
+  },
+  "sim_log": {
+   "n": 843,
+   "bytes": 12228351
+  },
+  "cache_slot": {
+   "n": 138,
+   "bytes": 8648
+  },
+  "pdk_model_copy": {
+   "n": 18,
+   "bytes": 6764373
+  }
+ },
+ "pdk_root": "C:/pdk/sky130_fd_pr",
+ "pdk_model_copies": [
+  {
+   "rel": "pytest/tmp/cache0/models/lod.spice",
+   "sha256": "20874af1fcb2d2ce70c65f5f2f7d6500b9e852e2507b7a4014ad2b66b8ce45e9",
+   "pdk_original": "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+  },
+  {
+   "rel": "pytest/tmp/cache0/models/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+   "sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+  },
+  {
+   "rel": "pytest/tmp/cache0/models/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+   "sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+  },
+  {
+   "rel": "pytest/tmp/cache0/models/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+   "sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+  },
+  {
+   "rel": "pytest/tmp/cache0/models/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+   "sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_missing_model_file_cache_0/models/lod.spice",
+   "sha256": "20874af1fcb2d2ce70c65f5f2f7d6500b9e852e2507b7a4014ad2b66b8ce45e9",
+   "pdk_original": "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_missing_model_file_cache_0/models/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+   "sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_missing_model_file_cache_0/models/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+   "sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_missing_model_file_cache_0/models/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+   "sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_missing_model_file_cache_0/models/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+   "sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_model_file_change_misses0/models/lod.spice",
+   "sha256": "20874af1fcb2d2ce70c65f5f2f7d6500b9e852e2507b7a4014ad2b66b8ce45e9",
+   "pdk_original": "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_model_file_change_misses0/models/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+   "sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_model_file_change_misses0/models/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+   "sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_model_file_change_misses0/models/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+   "sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_nested_include_change_mis0/models/lod.spice",
+   "sha256": "20874af1fcb2d2ce70c65f5f2f7d6500b9e852e2507b7a4014ad2b66b8ce45e9",
+   "pdk_original": "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_nested_include_change_mis0/models/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+   "sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_nested_include_change_mis0/models/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+   "sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+  },
+  {
+   "rel": "pytest/tmp/test_nested_include_change_mis0/models/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+   "sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+   "pdk_original": "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+  }
+ ],
+ "log_excerpt_lines": 6922
+}

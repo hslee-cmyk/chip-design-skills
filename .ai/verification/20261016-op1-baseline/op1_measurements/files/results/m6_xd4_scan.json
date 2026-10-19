@@ -1,0 +1,32 @@
+{
+ "n_inputs": 593,
+ "n_missing_any": 2,
+ "missing_patterns": {
+  "reltol+vntol+abstol": 1,
+  "reltol": 1
+ },
+ "affected_by_dir": {
+  "converted": 1,
+  "tmp": 1
+ },
+ "affected": [
+  {
+   "file": "converted\\sizing.engine.new.json",
+   "circuit": "current_reuse_telescopic_ota",
+   "missing": [
+    "reltol",
+    "vntol",
+    "abstol"
+   ],
+   "has_mc_or_noise_or_swing": []
+  },
+  {
+   "file": "pytest\\tmp\\test_plan_default_reltol0\\o\\t.input.json",
+   "circuit": "tcs_nmos_rload",
+   "missing": [
+    "reltol"
+   ],
+   "has_mc_or_noise_or_swing": []
+  }
+ ]
+}

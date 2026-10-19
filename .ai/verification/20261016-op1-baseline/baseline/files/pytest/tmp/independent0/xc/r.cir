@@ -1,0 +1,37 @@
+* independent rout run
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27.0
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vdd vdd 0 DC 1.8 AC 0
+RXa vdd na 100000.0
+RXb vdd nb 100000.0
+XMX1_0 na nb 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XMX2_0 nb na 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XMX1_1 na nb 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XMX2_1 nb na 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+Iinj 0 na DC 0 AC 1
+Iinjn nb 0 DC 0 AC 1
+.control
+set noaskquit
+op
+print v(na)
+print v(nb)
+print @m.xmx1_0.msky130_fd_pr__nfet_01v8[gm]
+print @m.xmx1_0.msky130_fd_pr__nfet_01v8[gds]
+print @m.xmx1_0.msky130_fd_pr__nfet_01v8[id]
+print @m.xmx1_1.msky130_fd_pr__nfet_01v8[gm]
+print @m.xmx1_1.msky130_fd_pr__nfet_01v8[gds]
+print @m.xmx1_1.msky130_fd_pr__nfet_01v8[id]
+ac lin 1 0.01 0.01
+let h = v(na)-v(nb)
+let hr = real(h)
+let hi = imag(h)
+set wr_singlescale
+wrdata h.txt hr hi
+quit
+.endc
+.end

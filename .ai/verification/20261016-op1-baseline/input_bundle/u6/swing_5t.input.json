@@ -1,0 +1,175 @@
+{
+ "schema": "spice_oracle_input/1",
+ "circuit": "t5t_ota",
+ "process": {
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1a\\u6work\\lut_5t.npz",
+  "models": {
+   "nmos": {
+    "subckt": "sky130_fd_pr__nfet_01v8",
+    "includes": [
+     "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__{corner}.pm3.spice",
+     "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__nfet_01v8[{param}]"
+   },
+   "pmos": {
+    "subckt": "sky130_fd_pr__pfet_01v8",
+    "includes": [
+     "C:/pdk/sky130_fd_pr/models/parameters/lod.spice",
+     "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__{corner}.pm3.spice",
+     "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+    ],
+    "op_probe": "@m.{inst}.msky130_fd_pr__pfet_01v8[{param}]"
+   }
+  }
+ },
+ "rails": [
+  {
+   "net": "vdd",
+   "voltage": 1.8
+  },
+  {
+   "net": "gnd",
+   "voltage": 0.0,
+   "reference": true
+  }
+ ],
+ "devices": [
+  {
+   "name": "M1",
+   "kind": "nmos",
+   "drain": "n1",
+   "gate": "inp",
+   "source": "tail",
+   "bulk": "gnd",
+   "L": 1e-06,
+   "finger_w": 4e-06,
+   "n_fingers": 2,
+   "W": 8e-06,
+   "diffusion": {
+    "ad_m2": 0.0,
+    "as_m2": 0.0,
+    "pd_m": 0.0,
+    "ps_m": 0.0,
+    "basis": "test: 면적 0 명시(독립 넷리스트에 ad/pd 없음과 같은 회로)"
+   }
+  },
+  {
+   "name": "M2",
+   "kind": "nmos",
+   "drain": "out",
+   "gate": "inn",
+   "source": "tail",
+   "bulk": "gnd",
+   "L": 1e-06,
+   "finger_w": 4e-06,
+   "n_fingers": 2,
+   "W": 8e-06,
+   "diffusion": {
+    "ad_m2": 0.0,
+    "as_m2": 0.0,
+    "pd_m": 0.0,
+    "ps_m": 0.0,
+    "basis": "test: 면적 0 명시(독립 넷리스트에 ad/pd 없음과 같은 회로)"
+   }
+  },
+  {
+   "name": "M3",
+   "kind": "pmos",
+   "drain": "n1",
+   "gate": "n1",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1e-06,
+   "finger_w": 4e-06,
+   "n_fingers": 2,
+   "W": 8e-06,
+   "diffusion": {
+    "ad_m2": 0.0,
+    "as_m2": 0.0,
+    "pd_m": 0.0,
+    "ps_m": 0.0,
+    "basis": "test: 면적 0 명시(독립 넷리스트에 ad/pd 없음과 같은 회로)"
+   }
+  },
+  {
+   "name": "M4",
+   "kind": "pmos",
+   "drain": "out",
+   "gate": "n1",
+   "source": "vdd",
+   "bulk": "vdd",
+   "L": 1e-06,
+   "finger_w": 4e-06,
+   "n_fingers": 2,
+   "W": 8e-06,
+   "diffusion": {
+    "ad_m2": 0.0,
+    "as_m2": 0.0,
+    "pd_m": 0.0,
+    "ps_m": 0.0,
+    "basis": "test: 면적 0 명시(독립 넷리스트에 ad/pd 없음과 같은 회로)"
+   }
+  }
+ ],
+ "sources": [
+  {
+   "name": "It",
+   "kind": "current",
+   "terminals": [
+    "tail",
+    "gnd"
+   ],
+   "value": 2e-05,
+   "value_basis": "test"
+  }
+ ],
+ "passives": [
+  {
+   "name": "CL",
+   "kind": "capacitor",
+   "terminals": [
+    "out",
+    "gnd"
+   ],
+   "value": 1e-12
+  }
+ ],
+ "ports": {
+  "input_p": "inp",
+  "input_n": "inn",
+  "output": "out"
+ },
+ "predictions": {
+  "nodes": {
+   "inp": 0.9,
+   "inn": 0.9,
+   "out": 0.9
+  },
+  "devices": {},
+  "metrics": []
+ },
+ "testbench": {
+  "dc_choke_H": 1000000000000.0,
+  "ac_couple_F": 1.0,
+  "options": {
+   "gmin": "1e-15",
+   "reltol": "1e-4",
+   "abstol": "1e-14",
+   "vntol": "1e-7"
+  },
+  "ac": {
+   "fstart_hz": 0.01,
+   "fstop_hz": 10000000000.0,
+   "points_per_decade": 40,
+   "input_ac": 1.0,
+   "input_p_ac": 0.5,
+   "input_n_ac": -0.5,
+   "diff_feedback_gain": 0.5
+  }
+ },
+ "swing_icmr": {
+  "swing": true,
+  "icmr": true
+ }
+}

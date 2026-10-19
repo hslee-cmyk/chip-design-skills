@@ -1,0 +1,17 @@
+{
+ "skipped": "넷리스트 막힘: C22 접합 용량: 확산 기하 없는 소자 ['M1', 'MP1'] (devices[].diffusion 도 process.diffusion 도 없음) -- 합격 실행(free)은 접합 용량을 넣어야 한다",
+ "devices": {},
+ "nodes": {},
+ "rail_current_A": {},
+ "hold_current_A": {},
+ "ngspice_rc": null,
+ "log": null,
+ "log_errors": [],
+ "op_ok": false,
+ "ac": null,
+ "ac_file": null,
+ "loop": null,
+ "cm_loop": null,
+ "ratio": [],
+ "rout": []
+}

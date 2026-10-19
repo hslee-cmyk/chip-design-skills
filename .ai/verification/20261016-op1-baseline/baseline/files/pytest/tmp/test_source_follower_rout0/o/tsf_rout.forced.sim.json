@@ -1,0 +1,96 @@
+{
+ "devices": {
+  "M1": {
+   "id": 3.328002e-05,
+   "gm": 0.0003428194,
+   "gds": 2.251058e-06,
+   "vth": 0.7055732,
+   "vdsat": 0.1609487,
+   "vgs": 0.8671997,
+   "vds": 1.4672,
+   "vbs": -0.3328
+  }
+ },
+ "nodes": {
+  "vdd": 1.8,
+  "nin": 1.2,
+  "nout": 0.3328003
+ },
+ "rail_current_A": {
+  "vdd": 3.32804e-05
+ },
+ "hold_current_A": {
+  "nout": -1.4938e-11
+ },
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_source_follower_rout0\\o\\tsf_rout.forced.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 0.6731932330000003,
+  "dc_gain_db": -3.4372051648431623,
+  "phase_dc_deg": 1.7906845460610278e-06,
+  "reference_point": "first",
+  "f3db_hz": null,
+  "ugf_hz": null,
+  "phase_lag_at_ugf_deg": null,
+  "pm_deg": null,
+  "a0_f3db_hz": null,
+  "pm_open_loop_deg": null,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": 59.01146481696347,
+  "pm_crosscheck_note": null,
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": 0.37144156275427076,
+  "closed_loop_peak_hz": 10000000000.0,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": null,
+  "pm_deg_raw": null,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "pm_valid": null,
+   "pm_undefined": null,
+   "reason": "PM 값 없음(|L|=1 하강 교차 없음 또는 루프 측정 없음) -- 검사 대상 아님"
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_source_follower_rout0\\o\\tsf_rout.forced.ac.txt",
+ "ratio": [],
+ "rout": [
+  {
+   "view": {
+    "sense_p": "nout",
+    "sense_n": null,
+    "sense_mode": "single_ended"
+   },
+   "f_hz": 0.01,
+   "re": 1963.69627,
+   "im": 6.13698175e-05,
+   "mag": 1963.6962700000008,
+   "rout_ohm": 1963.69627,
+   "undefined": null
+  }
+ ],
+ "loop": null,
+ "cm_loop": null
+}

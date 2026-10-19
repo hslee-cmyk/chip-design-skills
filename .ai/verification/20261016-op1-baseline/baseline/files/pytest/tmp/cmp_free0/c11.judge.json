@@ -1,0 +1,20 @@
+{
+ "tolerances": {
+  "ID_rel": 0.001,
+  "VGS_abs_V": 0.0001,
+  "VDS_abs_V": 0.0001,
+  "VSB_abs_V": 0.0001,
+  "gm_rel": 0.001,
+  "gds_rel": 0.01,
+  "gm_id_rel": 0.001,
+  "node_abs_V": 0.0001,
+  "W_rel": 1e-09,
+  "kcl_abs_A": 1e-08,
+  "dc_gain_db_abs": 0.01,
+  "pm_deg_abs": 0.3,
+  "ugf_hz_rel": 0.003,
+  "f3db_hz_rel": 0.0001,
+  "supply_current_A_rel": 0.001
+ },
+ "sat_margin_V": 0.78234628
+}

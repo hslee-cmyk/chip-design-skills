@@ -1,0 +1,264 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "spice_oracle_input/1",
+ "title": "SPICE 오라클 입력 (엔진 무관)",
+ "description": "엔진 하나가 낸 설계 해(연결·기하·바이어스)와 그 엔진의 예측값을 담는다. 오라클은 이것만 읽고 ngspice 로 재서 비교한다. 단위는 전부 SI(m, A, V, F, Ohm, Hz, deg). 소자 전압·전류는 크기 규칙(NMOS 그대로, PMOS 는 부호 반전: 켜진 포화 PMOS 의 ID/VGS/VDS 가 양수, VSB = PMOS 바디-소스).",
+ "type": "object",
+ "required": ["circuit", "process", "rails", "devices", "ports", "predictions", "testbench"],
+ "properties": {
+  "schema": {"const": "spice_oracle_input/1"},
+  "circuit": {"type": "string", "description": "회로 식별자(출력 파일 이름에만 쓰임)"},
+  "process": {
+   "type": "object",
+   "required": ["lut_npz", "models"],
+   "properties": {
+    "lut_npz": {"type": "string", "description": "엔진이 쓴 LUT npz. 코너(corner)·온도(temp_c) 메타를 여기서 읽는다(없으면 막힘)."},
+    "ngspice_exe": {"type": "string", "description": "ngspice 콘솔 실행 파일. oracle_run.py --ngspice 가 우선."},
+    "models": {
+     "type": "object",
+     "description": "소자 종류(kind) -> 모델. kind 값은 devices[].kind 와 같은 문자열.",
+     "additionalProperties": {
+      "type": "object",
+      "required": ["subckt", "includes", "op_probe"],
+      "properties": {
+       "subckt": {"type": "string", "description": "X 인스턴스로 부를 모델(subckt) 이름"},
+       "includes": {"type": "array", "items": {"type": "string"}, "description": ".include 경로. '{corner}' 자리는 LUT npz corner 로 채운다."},
+       "op_probe": {"type": "string", "description": "ngspice @ 동작점 표현 틀. {inst} = 소문자 인스턴스 이름(x<소자이름>), {param} = id|gm|gds|vth|vdsat|vgs|vds|vbs"},
+       "polarity": {"enum": ["n", "p"], "description": "[신규] 선택. 소자 극성. bias=iso(단독 소자)가 크기 규칙 예측 VGS/VDS/VSB 를 단자 전압으로 바꿀 때 쓴다(없으면 그 kind 소자는 iso N/A)."}
+      }
+     }
+    },
+    "diffusion": {
+     "type": "object",
+     "description": "finger 하나의 확산 면적/둘레 규칙(LUT 생성 규칙 -- 레이아웃 전 첫 사이징점용): ad=as=ad_per_w_m*finger_w, pd=ps=finger_w+pd_extra_m. devices[].diffusion 이 있는 소자는 그 값이 우선. [변경 C22] free 모드(합격 실행)에서 두 출처 모두 없는 소자가 있으면 막힘.",
+     "required": ["ad_per_w_m", "pd_extra_m"],
+     "properties": {"ad_per_w_m": {"type": "number"}, "pd_extra_m": {"type": "number"},
+                    "basis": {"type": "string", "description": "규칙의 근거(예: LUT 생성기 넷리스트의 ad/pd)"}}
+    }
+   }
+  },
+  "rails": {
+   "type": "array", "minItems": 1,
+   "description": "레일 넷과 전압. reference=true 인 것이 정확히 하나(SPICE 노드 0). 나머지는 이상 전압원 Vrail_<net>.",
+   "items": {"type": "object", "required": ["net", "voltage"],
+             "properties": {"net": {"type": "string"}, "voltage": {"type": "number"}, "reference": {"type": "boolean"}}}
+  },
+  "devices": {
+   "type": "array",
+   "description": "트랜지스터. 인스턴스 하나 = `X<name> d g s b <subckt> l=L w=finger_w m=n_fingers` (nf 는 쓰지 않는다).",
+   "items": {
+    "type": "object",
+    "required": ["name", "kind", "drain", "gate", "source", "bulk", "L", "finger_w", "n_fingers"],
+    "properties": {
+     "name": {"type": "string"}, "kind": {"type": "string"},
+     "drain": {"type": "string"}, "gate": {"type": "string"}, "source": {"type": "string"}, "bulk": {"type": "string"},
+     "L": {"type": "number"}, "finger_w": {"type": "number"}, "n_fingers": {"type": "integer", "minimum": 1},
+     "W": {"type": "number", "description": "엔진이 선언한 총폭. finger_w*n_fingers 와의 차이는 비교표 W_rel 로 보고(판정은 tolerances.W_rel)."},
+     "diffusion": {
+      "type": "object",
+      "description": "[신규 C22] 선택. 이 소자의 확산 기하(Euler 행 공유 확산, 레이아웃 MOD7 ly.diffusion 통계에서 엔진·어댑터가 계산). 값은 finger 하나(= m 단위 하나)당 평균: 소자 전체 드레인 확산 면적 합 / n_fingers 등. 인스턴스는 m=n_fingers 를 유지하므로 ngspice 가 m 배 한다. 있으면 process.diffusion 규칙보다 우선.",
+      "required": ["ad_m2", "as_m2", "pd_m", "ps_m"],
+      "properties": {"ad_m2": {"type": "number", "minimum": 0}, "as_m2": {"type": "number", "minimum": 0},
+                     "pd_m": {"type": "number", "minimum": 0}, "ps_m": {"type": "number", "minimum": 0},
+                     "basis": {"type": "string", "description": "출처(예: ly.diffusion 스냅샷 지문)"}}
+     }
+    }
+   }
+  },
+  "sources": {
+   "type": "array",
+   "description": "이상 전원. current: SPICE I p n(전류가 p 에서 소스를 지나 n 으로), voltage: V p n.",
+   "items": {"type": "object", "required": ["name", "kind", "terminals", "value"],
+             "properties": {"name": {"type": "string"}, "kind": {"enum": ["current", "voltage"]},
+                            "terminals": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
+                            "value": {"type": "number"}, "value_basis": {"type": "string", "description": "값의 근거(표에 그대로 찍힘)"},
+                            "not_in_topology_reason": {"type": "string", "minLength": 1, "description": "[신규] 선택. topology 에 없는 원소(예: spec 부하)라 C15 연결 동일성 비교에서 뺄 때 그 이유. 비교 결과에 그대로 기록된다."}}}
+  },
+  "passives": {
+   "type": "array",
+   "items": {"type": "object", "required": ["name", "kind", "terminals", "value"],
+             "properties": {"name": {"type": "string"}, "kind": {"enum": ["resistor", "capacitor"]},
+                            "terminals": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
+                            "value": {"type": "number"}, "value_basis": {"type": "string"},
+                            "not_in_topology_reason": {"type": "string", "minLength": 1, "description": "[신규] 선택. topology 에 없는 원소(예: spec CL 로 어댑터가 넣은 부하)라 C15 비교에서 뺄 때 그 이유."}}}
+  },
+  "feedback_passives": {
+   "type": "array", "items": {"type": "string"}, "uniqueItems": true,
+   "description": "β 되먹임망을 이루는 passives 이름(입력 포트 넷에 물린 되먹임·입력측 소자). 있으면 PM 은 이 β 루프의 위상여유(루프 넷리스트, Middlebrook 이중 주입), 없으면 β=1(개루프 A) 위상여유. README 'PM 정의'. [변경 C14] 원소마다 두 단자 중 입력 포트 넷에 물린 단자가 정확히 1개여야 한다(0개·2개 모두 막힘)."
+  },
+  "cm_loop_passives": false,
+  "cm_output_loop": {
+   "type": "object", "additionalProperties": false, "required": ["drivers"],
+   "properties": {"drivers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true, "minItems": 1,
+    "description": "구동자(x 쪽) MOS 이름 -- 엔진 cm_partition 결과(차동 출력 넷에 channel 단자가 물려 레일에 닿는 출력 단 소자). 각 소자는 drain 또는 source 중 정확히 하나가 출력 넷이어야 한다."}},
+   "description": "[신규 CM] 선택. 있으면 공통 모드 루프를 선언된 차동 출력 포트 쌍(ports.output_p·output_n)에서 끊는다: <stem>.cmloop.cir 에서 drivers 의 출력 넷 쪽 channel 단자를 lbx_<넷> 으로 떼고(수동소자·gate·그 밖 MOS 는 남는다 -- 분할은 엔진이 정해 주입, 오라클은 엔진을 import 하지 않는다) 두 넷에 동일 부호(가중 1/2씩) Middlebrook 전압·전류 이중 주입으로 T_cm 을 잰다(입력은 전부 AC 접지). PM = measure cm_pm_deg. README 'CM 루프 PM'."
+  },
+  "feedback_passives_basis": {
+   "type": "string", "minLength": 1,
+   "description": "[신규 C12 보충] 선택. feedback_passives 를 정한 규칙(기록 전용, 판정 무관). 옛 어댑터 = 'legacy_c12_input_net_passives'(입력 포트 넷에 물린 passives 전부), 새 엔진 = 'spec_feedback_elements'(spec feedback.elements 그대로). 두 규칙이 다른 집합을 고르면 두 PM 은 다른 루프를 잰 값이다 -- compare.summary.pm_loop 에 그대로 남는다."
+  },
+  "bias_voltages": {
+   "type": "array",
+   "description": "구동 소자 없는 게이트 전용 넷에 거는 이상 전압. 선언 안 된 그런 넷은 predictions.nodes 값으로 걸고 경고를 남긴다.",
+   "items": {"type": "object", "required": ["net", "value"], "properties": {"net": {"type": "string"}, "value": {"type": "number"}}}
+  },
+  "ports": {
+   "type": "object",
+   "description": "입력: input_p+input_n 또는 input. 출력: output_p+output_n 또는 output. AC 전달함수 = 출력(차동이면 p-n) / 입력 AC.",
+   "properties": {"input_p": {"type": "string"}, "input_n": {"type": "string"}, "input": {"type": "string"},
+                  "output_p": {"type": "string"}, "output_n": {"type": "string"}, "output": {"type": "string"}}
+  },
+  "predictions": {
+   "type": "object",
+   "properties": {
+    "nodes": {"type": "object", "additionalProperties": {"type": "number"}, "description": "넷 -> 예측 DC 전압. 입력 넷 예측값은 필수(입력 DC), forced 모드는 이 값으로 넷을 고정한다."},
+    "devices": {
+     "type": "object",
+     "description": "소자 이름 -> 예측 동작점(크기 규칙). 없는 키는 비교 N/A.",
+     "additionalProperties": {"type": "object", "properties": {
+      "ID": {"type": "number"}, "VGS": {"type": "number"}, "VDS": {"type": "number"}, "VSB": {"type": "number"},
+      "gm": {"type": "number"}, "gds": {"type": "number"}, "gm_id": {"type": "number"},
+      "region": {"enum": ["sat", "triode", "off"], "description": "엔진이 가정한 영역. judge.sat_margin_V 가 있을 때만 기록 판정. [변경 C23] 'off' = 엔진이 꺼짐으로 예측(전도 확인 대상 아님). 없거나 sat/triode 면 엔진 예측 = 전도."},
+      "off_current_A": {"type": "number", "minimum": 0, "description": "[신규 C23] 이 소자의 전도 문턱(엔진이 LUT 의 VGS=0 누설 ID 로 이 소자 기하·바이어스에서 계산). 엔진이 전도로 예측한 소자의 SPICE ID(크기 규칙, 부호 포함)가 이 값 이하이면 '꺼짐' -> free verdict FAIL. 없으면 그 소자의 전도 확인은 '판정 안 함'(PASS 불가 -> INCOMPLETE). 오라클은 문턱을 만들지 않는다."},
+      "tol": {"type": "object", "description": "[신규] 선택. 소자별 LUT 계산 허용오차(엔진이 그 소자 셀 tol 에서 계산한 값). 한 소자라도 있으면 소자별 모드: ID·gm 기록 판정·forced 경고·iso 판정이 이 값만 쓰고 judge.tolerances 의 ID_rel/gm_rel 스칼라는 쓰지 않는다(없는 소자는 N/A).",
+       "properties": {"ID_rel": {"type": "number", "minimum": 0}, "gm_rel": {"type": "number", "minimum": 0},
+                      "basis": {"type": "string"}}}}}
+    },
+    "metrics": {
+     "type": "array",
+     "items": {"type": "object", "required": ["measure", "value"], "properties": {
+      "name": {"type": "string", "description": "엔진 쪽 metric 이름(표시용)"},
+      "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "cm_pm_deg", "f3db_hz", "supply_current_A", "ratio_db", "rout_ohm",
+                           "noise_th_in_v2hz", "noise_fc_in_hz", "noise_excess_th", "noise_out_int_vrms", "offset_in_sigma_mv", "swing_out_v", "icmr_v", "icm_margin_v",
+                           "slew_rate_v_per_s", "settle_s"],
+                  "description": "[신규] ratio_db = 엔진 ratio_ss_db(CMRR·PSRR 일반형, view 필수, C24). [신규 C26] rout_ohm = 엔진 rout_ss_ohm(출력 포트 뷰, 감지 전용 view 필수). slew_rate_v_per_s·settle_s = 기록 전용(C25: 지금은 SPICE 정의 미정이라 not_measured)."},
+      "value": {"type": "number"},
+      "rail": {"type": "string", "description": "supply_current_A 일 때 어느 레일의 공급전류인가"},
+      "view": {"anyOf": [{"$ref": "#/$defs/ratio_view"}, {"$ref": "#/$defs/sense_view"}]},
+      "basis": {"type": "string"}},
+      "allOf": [{"if": {"properties": {"measure": {"const": "ratio_db"}}, "required": ["measure"]},
+                 "then": {"required": ["view"], "properties": {"view": {"$ref": "#/$defs/ratio_view"}}}},
+                {"if": {"properties": {"measure": {"const": "rout_ohm"}}, "required": ["measure"]},
+                 "then": {"required": ["view"], "properties": {"view": {"$ref": "#/$defs/sense_view"}}}}]}
+    }
+   }
+  },
+  "acceptance": {
+   "type": "object",
+   "properties": {
+    "constraints": {"type": "array", "items": {"type": "object", "required": ["measure", "op", "limit"], "properties": {
+     "name": {"type": "string"}, "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "cm_pm_deg", "f3db_hz", "supply_current_A", "ratio_db",
+                                                      "rout_ohm", "noise_th_in_v2hz", "noise_fc_in_hz", "noise_excess_th", "noise_out_int_vrms", "offset_in_sigma_mv", "swing_out_v", "icmr_v", "icm_margin_v"],
+                                              "description": "[신규] ratio_db(CMRR·PSRR, view 필수) 는 판정 대상(Q5 (ii), C24). [신규 C26] rout_ohm(출력 저항, 감지 전용 view 필수)도 판정 대상. slew·settling 은 판정 대상이 아니라 여기 없다(C25)."},
+     "op": {"enum": [">=", "<="]}, "limit": {"type": "number"}, "rail": {"type": "string"},
+     "view": {"anyOf": [{"$ref": "#/$defs/ratio_view"}, {"$ref": "#/$defs/sense_view"}]}, "basis": {"type": "string"}},
+     "allOf": [{"if": {"properties": {"measure": {"const": "ratio_db"}}, "required": ["measure"]},
+                "then": {"required": ["view"], "properties": {"view": {"$ref": "#/$defs/ratio_view"}}}},
+               {"if": {"properties": {"measure": {"const": "rout_ohm"}}, "required": ["measure"]},
+                "then": {"required": ["view"], "properties": {"view": {"$ref": "#/$defs/sense_view"}}}}]}},
+    "not_measurable": {"type": "array", "items": {"type": "string"}, "description": "SPICE 로 잴 수 없어 뺀 선언 제약(기록용)"}
+   }
+  },
+  "testbench": {
+   "type": "object",
+   "required": ["dc_choke_H", "ac_couple_F", "ac"],
+   "properties": {
+    "dc_choke_H": {"type": "number", "description": "DC 경로 인덕터(AC 에서 열림): 입력 DC, 되먹임, forced 고정"},
+    "ac_couple_F": {"type": "number", "description": "AC 입력 결합 커패시터"},
+    "loop_dc_choke_H": {"type": "number", "description": "β 루프 넷리스트에서 끊은 입력 넷의 DC 경로 인덕터. feedback_passives 가 있으면 필요(없으면 막힘). 루프 측정 시작 주파수에서 β 망 용량보다 충분히 큰 임피던스여야 한다 -- dc_choke_H 로는 입력 넷 용량과 공진해 저주파 T 가 틀린다(2026-10-07 실측)."},
+    "nodeset_from_predictions": {"type": "boolean", "description": "free 모드에서 예측 노드전압을 .nodeset 으로"},
+    "nodeset_per_line": {"type": "integer"},
+    "options": {"type": "object", "additionalProperties": {"type": "string"}, "description": ".option 키=값"},
+    "ac": {"type": "object", "required": ["fstart_hz", "fstop_hz", "points_per_decade"], "properties": {
+     "fstart_hz": {"type": "number"}, "fstop_hz": {"type": "number"}, "points_per_decade": {"type": "integer"},
+     "input_p_ac": {"type": "number"}, "input_n_ac": {"type": "number"}, "input_ac": {"type": "number"},
+     "diff_feedback_gain": {"type": "number", "description": "free 모드 차동 되먹임 계수 k: V(in) = Vin_pred + k*(V(o)-V(o_other))"}}}
+   }
+  },
+  "judge": {
+   "type": "object",
+   "description": "판정 설정. 기본값 없음 -- 없는 키는 N/A. oracle_run.py --judge 파일, --sat-margin-v 가 덮어쓴다.",
+   "properties": {
+    "sat_margin_V": {"type": "number"},
+    "off_current_A": {"type": "number", "description": "선택. |ID| < 이 값이면 영역 off"},
+    "tolerances": {"type": "object", "properties": {
+     "ID_rel": {"type": "number"}, "VGS_abs_V": {"type": "number"}, "VDS_abs_V": {"type": "number"}, "VSB_abs_V": {"type": "number"},
+     "gm_rel": {"type": "number"}, "gds_rel": {"type": "number"}, "gm_id_rel": {"type": "number"},
+     "node_abs_V": {"type": "number"}, "W_rel": {"type": "number"}, "kcl_abs_A": {"type": "number"},
+     "dc_gain_db_abs": {"type": "number"}, "pm_deg_abs": {"type": "number"}, "ugf_hz_rel": {"type": "number"},
+     "f3db_hz_rel": {"type": "number"}, "supply_current_A_rel": {"type": "number"}, "ratio_db_abs": {"type": "number"},
+     "rout_ohm_rel": {"type": "number", "description": "[신규 C26] rout_ohm metric 기록의 상대 허용오차(기록 전용)"},
+     "noise_th_in_v2hz_rel": {"type": "number"}, "noise_fc_in_hz_rel": {"type": "number"}, "noise_excess_th_rel": {"type": "number"},
+     "noise_out_int_vrms_rel": {"type": "number"}, "offset_in_sigma_mv_rel": {"type": "number"},
+     "swing_out_v_abs": {"type": "number"}, "icmr_v_abs": {"type": "number"}, "icm_margin_v_abs": {"type": "number"}}}
+   }
+  },
+  "noise": {
+   "type": "object", "required": ["f_lo_hz"],
+   "description": "[신규 U6] 선택. ngspice .noise 대조(README U6). f_lo_hz = 열잡음 평탄값 평가·적분 하한(엔진 LUT 가 실측한 가장 낮은 잡음 점). 개루프 metric(noise_th_in_v2hz·noise_fc_in_hz·noise_excess_th)은 free 본 넷리스트, 폐루프 noise_out_int_vrms 는 closed_loop 가 true 일 때 feedback_passives 로 닫은 루프 넷리스트.",
+   "properties": {
+    "f_lo_hz": {"type": "number", "exclusiveMinimum": 0},
+    "points_per_decade": {"type": "integer", "minimum": 1},
+    "input_cell_devices": {"type": "array", "items": {"type": "string"}, "description": "noise_excess_th 의 분모(입력 셀) 소자 이름"},
+    "closed_loop": {"type": "boolean"},
+    "rel_resolution": {"type": "number", "exclusiveMinimum": 0, "description": "폐루프 적분 꼬리 판정의 상대 분해능 r(기본 = ngspice reltol)"}
+   }
+  },
+  "offset_mc": {
+   "type": "object", "required": ["rel_resolution"],
+   "description": "[신규 U6] 선택. 입력 환산 랜덤 offset 1σ 의 ngspice Monte-Carlo(소자별 독립 mismatch 변수). 표본 수 N = ceil(1 + 1/(2 r²)), r = rel_resolution(엔진 resolution).",
+   "properties": {
+    "rel_resolution": {"type": "number", "exclusiveMinimum": 0},
+    "seed": {"type": "integer"},
+    "max_samples": {"type": "integer", "minimum": 2}
+   }
+  },
+  "swing_icmr": {
+   "type": "object",
+   "description": "[신규 U6] 선택. 출력 스윙(swing)·입력 공통모드 범위(icmr)를 free 넷리스트 DC servo 기준원 스윕(.op)으로 잰다. input_dc_V = icm_margin 용 선언 입력 DC(없으면 예측 입력 DC), input_dc_pending = true 면 icm_margin 을 내지 않는다(SP-2 대기).",
+   "properties": {
+    "swing": {"type": "boolean"}, "icmr": {"type": "boolean"},
+    "input_dc_V": {"type": "number"}, "input_dc_pending": {"type": "boolean"}
+   }
+  },
+  "topology": {
+   "type": "object", "required": ["path"],
+   "description": "[신규] 선택. C15 연결 동일성 대조용 topology JSON(netlist + passive_elements + ideal_sources). path 는 저장소 루트 기준 상대 경로('/' 구분, 루트 = 입력 파일 폴더에서 위로 처음 .git 이 있는 폴더, 없으면 오라클 코드 폴더에서 같은 방법), 진입점 --topology 가 우선. 없으면 '동일성 미검증' 표시, --require-topology(합격 실행)이면 막힘.",
+   "properties": {"path": {"type": "string"}, "sha256": {"type": "string", "description": "입력을 만들 때의 파일 바이트 sha256(다르면 기록만)"}}
+  },
+  "provenance": {"type": "object", "description": "어댑터가 남기는 출처·경고(오라클은 비교표에 그대로 옮길 뿐 해석하지 않는다)"}
+ },
+ "$defs": {
+  "transfer_view": {
+   "type": "object", "additionalProperties": false,
+   "description": "[신규 C24] 엔진 spec 전달 뷰와 같은 모양(gmid_engine/authoring/spec_constraints.py TRANSFER_KEYS): ac_excite = {넷: AC 진폭}, sense_p, sense_n(single_ended 면 null), sense_mode.",
+   "required": ["ac_excite", "sense_p", "sense_n", "sense_mode"],
+   "properties": {
+    "ac_excite": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "number"}},
+    "sense_p": {"type": "string", "minLength": 1},
+    "sense_n": {"type": ["string", "null"]},
+    "sense_mode": {"enum": ["differential", "single_ended"]}},
+   "allOf": [{"if": {"properties": {"sense_mode": {"const": "differential"}}},
+              "then": {"properties": {"sense_n": {"type": "string", "minLength": 1}}},
+              "else": {"properties": {"sense_n": {"type": "null"}}}}]
+  },
+  "ratio_view": {
+   "type": "object", "additionalProperties": false,
+   "description": "[신규 C24] 엔진 ratio_ss_db 뷰 {num, den}: 각 전달 뷰의 응답비 20*log10(|H_num|/|H_den|).",
+   "required": ["num", "den"],
+   "properties": {"num": {"$ref": "#/$defs/transfer_view"}, "den": {"$ref": "#/$defs/transfer_view"}}
+  },
+  "sense_view": {
+   "type": "object", "additionalProperties": false,
+   "description": "[신규 C26] 엔진 output_port 뷰(감지 전용, 7a design 3.1): sense_p, sense_n(differential 이면 필수 문자열, single_ended 면 없거나 null), sense_mode. ac_excite 는 둘 수 없다(여기는 정의가 고정: 모든 AC 원 0 + 감지 노드 단위 AC 전류).",
+   "required": ["sense_p", "sense_mode"],
+   "properties": {
+    "sense_p": {"type": "string", "minLength": 1},
+    "sense_n": {"type": ["string", "null"]},
+    "sense_mode": {"enum": ["differential", "single_ended"]}},
+   "allOf": [{"if": {"properties": {"sense_mode": {"const": "differential"}}},
+              "then": {"required": ["sense_n"], "properties": {"sense_n": {"type": "string", "minLength": 1}}},
+              "else": {"properties": {"sense_n": {"type": "null"}}}}]
+  }
+ }
+}

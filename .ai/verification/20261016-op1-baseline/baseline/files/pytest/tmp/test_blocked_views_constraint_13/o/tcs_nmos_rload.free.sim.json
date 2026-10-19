@@ -1,0 +1,17 @@
+{
+ "skipped": "넷리스트 막힘: C26 rout_ohm 뷰 0: sense_n gnd 은 reference 레일(SPICE 노드 0)이다",
+ "devices": {},
+ "nodes": {},
+ "rail_current_A": {},
+ "hold_current_A": {},
+ "ngspice_rc": null,
+ "log": null,
+ "log_errors": [],
+ "op_ok": false,
+ "ac": null,
+ "ac_file": null,
+ "loop": null,
+ "cm_loop": null,
+ "ratio": [],
+ "rout": []
+}

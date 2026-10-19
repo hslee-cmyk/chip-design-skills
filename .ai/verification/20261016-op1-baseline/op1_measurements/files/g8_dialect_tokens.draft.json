@@ -1,0 +1,39 @@
+{
+ "schema": "oracle_dialect_tokens/0-draft",
+ "owner": "verifier (OP-1, design §18.1 T1-0, plan G-8)",
+ "date": "2026-10-16",
+ "applies_to": "string literals of O/core/**/*.py, docstrings excluded (design §18.1 T1-1); also O/tests/core/** (T5-1). Case-insensitive.",
+ "not_tokens_core_vocabulary": ["op", "ac", "dc", "noise", "tran", "pz", "temp", "reltol", "vntol", "abstol"],
+ "not_tokens_note": "analysis names alone and the Resolution keys of design §8.3 are core vocabulary; each regex below is checked to give 0 hits on these words standing alone",
+ "tokens": [
+  {"id": "D1", "form": "dot directive at start of a line (or of the literal)",
+   "regex": "(?im)(?:^|\\n)[ \\t]*\\.(?:include|inc|lib|endl|control|endc|options?|temp|save|nodeset|ic|param|subckt|ends|model|end|op|ac|dc|tran|noise|pz|meas(?:ure)?|print|probe|global|func|csparam|step)(?![\\w.])"},
+  {"id": "D2", "form": "internal device/model vector  @<kind>.<path>[<param>]  or its prefix '@m.'",
+   "regex": "@[a-z]\\w*\\.|@[a-z][\\w.:{}]*\\[\\w*"},
+  {"id": "D3", "form": "AC vector bracket suffix",
+   "regex": "\\[(?:acmag|acphase|acreal|acimag|db|ph|re|im)\\]"},
+  {"id": "D4", "form": "node/branch vector  v(<node>) / i(<branch>)",
+   "regex": "(?<![\\w])[vi]\\((?:[a-z_{][\\w.:{}#]*)(?:\\s*,\\s*[a-z_{][\\w.:{}#]*)?\\)"},
+  {"id": "D5", "form": "control-script command at start of a line, with argument form",
+   "regex": "(?im)(?:^|\\n)[ \\t]*(?:alterparam|alter|wrdata|setplot|let|unset|linearize|showmod|setseed|mc_source|remcirc|destroy|stop[ \\t]+when|set[ \\t]+(?:noaskquit|wr_|filetype|numdgt|temp\\b)|option[ \\t]+\\w+|echo|print[ \\t]+[vi@(]|meas[ \\t]+\\w)"},
+  {"id": "D6", "form": "control-script command inside one-line joined script (after ';' or within .control text)",
+   "regex": "(?i)(?:^|[;\\n])[ \\t]*(?:alterparam|wrdata|setplot|stop when)\\b"},
+  {"id": "D7", "form": "simulator option names other than core Resolution keys",
+   "regex": "(?i)\\b(?:itl[1-6]|gminsteps|srcsteps|trtol|chgtol|pivtol|numdgt|noaskquit|wr_singlescale|wr_vecnames|filetype|gmin)\\b"},
+  {"id": "D8", "form": "batch execution argument literal",
+   "regex": "^-b$"},
+  {"id": "D9", "form": "simulator executable / product names",
+   "regex": "(?i)\\b(?:ngspice\\w*|spectre|hspice|xyce|ltspice|eldo)\\b"},
+  {"id": "D10", "form": "SPICE first-letter element-name prefix literal (e.g. 'Rp_', 'Vrail_', 'Efb_', 'X')",
+   "regex": "^(?:X|[RCLVIEGFHBMK][A-Za-z]{0,6}_)$"},
+  {"id": "D11", "form": "SPICE random/param-expression functions",
+   "regex": "(?i)\\b(?:agauss|aunif|gauss|unif|limit)\\s*\\("},
+  {"id": "D12", "form": "subckt parameter declaration / model-scale option",
+   "regex": "(?i)\\bparams:|\\bscale\\s*=\\s*1(?:\\.0)?u\\b"}
+ ],
+ "open_points": [
+  "D9 also bans the simulator name in core literals; if the core must log the adapter name it reads it from the adapter, not a literal",
+  "D4 may hit Korean/English prose like 'v(x)' inside non-docstring message literals; T1-1 counts them as dialect (intended)",
+  "PDK names (T1-2) are a separate list taken from descriptors/engine decl, not here"
+ ]
+}

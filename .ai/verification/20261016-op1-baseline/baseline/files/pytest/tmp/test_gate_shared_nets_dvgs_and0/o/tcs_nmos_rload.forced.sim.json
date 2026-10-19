@@ -1,0 +1,295 @@
+{
+ "devices": {
+  "M1": {
+   "id": 8.601506e-06,
+   "gm": 0.0001392145,
+   "gds": 9.87127e-07,
+   "vth": 0.6323131,
+   "vdsat": 0.09501433,
+   "vgs": 0.7,
+   "vds": 0.8,
+   "vbs": 4.897905e-14
+  },
+  "MP1": {
+   "id": 1.642922e-05,
+   "gm": 0.0001521192,
+   "gds": 1.258348e-06,
+   "vth": 1.026039,
+   "vdsat": 0.1964371,
+   "vgs": 1.2,
+   "vds": 1.3,
+   "vbs": -0.3
+  },
+  "M2": {
+   "id": 4.300753e-06,
+   "gm": 6.960727e-05,
+   "gds": 4.935635e-07,
+   "vth": 0.6323131,
+   "vdsat": 0.09501433,
+   "vgs": 0.7,
+   "vds": 0.8,
+   "vbs": 4.897905e-14
+  },
+  "MP2": {
+   "id": 5.476406e-06,
+   "gm": 5.070639e-05,
+   "gds": 4.194494e-07,
+   "vth": 1.026039,
+   "vdsat": 0.1964371,
+   "vgs": 1.2,
+   "vds": 1.3,
+   "vbs": -0.3
+  }
+ },
+ "nodes": {
+  "nout": 0.8,
+  "nin": 0.7,
+  "pout": 0.2,
+  "pb": 0.3,
+  "vsp": 1.5,
+  "vdd": 1.8
+ },
+ "rail_current_A": {
+  "vdd": 1e-05,
+  "vsp": 2.19056e-05
+ },
+ "hold_current_A": {
+  "nout": -2.90226e-06,
+  "pout": 1.905627e-06
+ },
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_gate_shared_nets_dvgs_and0\\o\\tcs_nmos_rload.forced.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 18.18895910001734,
+  "dc_gain_db": 25.19615692788498,
+  "phase_dc_deg": -179.9999208871854,
+  "reference_point": "first",
+  "f3db_hz": 1883649.09,
+  "ugf_hz": 33004960.86383623,
+  "phase_lag_at_ugf_deg": 87.20331770575865,
+  "pm_deg": 92.79668229424135,
+  "a0_f3db_hz": 34261616.25679488,
+  "pm_open_loop_deg": 92.79668229424135,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": null,
+  "pm_crosscheck_note": "peaking 없음(Mp-1 = 1.76e-10, 데이터 분해능 2e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": null,
+  "closed_loop_peak_hz": null,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": null,
+  "pm_deg_raw": 92.79668229424135,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_1",
+   "closure_sign": -1.0,
+   "nyquist": {
+    "encirclements_cw": 0,
+    "reason": null,
+    "max_step_deg": 1.486451856717742,
+    "max_step_hz": 39810717.1,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     18.1889591,
+     2.51149345e-05
+    ],
+    "L_last": [
+     -0.00621676302,
+     -0.00331220604
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     0.0001499799694342722,
+     0.3819237781690092
+    ],
+    "refinement": {
+     "rounds": 0,
+     "samples_added": 0,
+     "k_max": 10,
+     "history": []
+    }
+   },
+   "pz": {
+    "status": "ok",
+    "P": 0,
+    "rhp": [],
+    "beyond_sweep": [],
+    "n_poles": 14,
+    "reason": null,
+    "netlist": "tcs_nmos_rload.forced.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "main netlist, inputs driven (beta=1)",
+    "omega_stop": 62831853071.79586,
+    "poles": [
+     [
+      -11418300.0,
+      0.0
+     ],
+     [
+      -25457900000.0,
+      0.0
+     ],
+     [
+      -11857200000000.0,
+      0.0
+     ],
+     [
+      -11868800000000.0,
+      0.0
+     ],
+     [
+      -17765900000000.0,
+      0.0
+     ],
+     [
+      -20748500000000.0,
+      0.0
+     ],
+     [
+      -25438600000000.0,
+      0.0
+     ],
+     [
+      -25495600000000.0,
+      0.0
+     ],
+     [
+      -39071500000000.0,
+      0.0
+     ],
+     [
+      -48158100000000.0,
+      0.0
+     ],
+     [
+      -48195000000000.0,
+      0.0
+     ],
+     [
+      -58641900000000.0,
+      0.0
+     ],
+     [
+      -71050800000000.0,
+      0.0
+     ],
+     [
+      -293551000000000.0,
+      0.0
+     ]
+    ]
+   },
+   "transient": {
+    "status": "stable",
+    "reason": "끝 창 응답이 해 분해능 아래로 감쇠",
+    "op_pass": {
+     "netlist": "tcs_nmos_rload.forced.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "ldc_nin": 0.0,
+      "lhold_nout": 2.902259e-06,
+      "lhold_pout": -1.90563e-06
+     },
+     "node_V": {
+      "nin": 0.7,
+      "nout": 0.8,
+      "pout": 0.2
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 4.822152153080798e-09,
+     "tr": 4.822152153080798e-09,
+     "pw": 4.822152153080798e-09,
+     "tmax": 1.3387366010424217e-10,
+     "window_s": 3.029847555722168e-08,
+     "windows": 6,
+     "windows_planned": 6,
+     "t_kick_end": 1.928860861232319e-08,
+     "tstop": 2.0107946195565322e-07,
+     "f_lo_hz": 33004960.86383623,
+     "f_hi_hz": 33004960.86383623,
+     "f_crit_hz": 33496543.9,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 7.01e-05,
+     "wall_cap_s": 1836.6000000000001,
+     "sign": -1.0,
+     "observe": [
+      [
+       "nin",
+       1
+      ]
+     ]
+    },
+    "M": [
+     0.013823103999999975,
+     1.8901999999987318e-05,
+     2.299999990462709e-08,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "floor_V": 7.010358016209499e-05,
+    "windows_run": 6,
+    "netlist": "tcs_nmos_rload.forced.stab.cir",
+    "file": "tcs_nmos_rload.forced.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1836.6000000000001,
+    "first_status": "stable"
+   },
+   "closed_loop": "stable",
+   "open_loop_rhp_poles": 0,
+   "open_loop_rhp_poles_bound": "== (Nyquist: 과도 stable -> Z = 0)",
+   "pm_valid": true,
+   "pm_undefined": null,
+   "Z": 0,
+   "P_pz": 0,
+   "P_eff": 0,
+   "pz_conflict": null,
+   "conditionally_stable": false,
+   "verdict": "stable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": null,
+   "low_side_crossings": [],
+   "low_side_crossing_hz": [],
+   "gain_crossings_hz": [
+    33004960.86383623
+   ]
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_op1\\baseline\\pytest\\tmp\\test_gate_shared_nets_dvgs_and0\\o\\tcs_nmos_rload.forced.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null,
+ "stability_cache": {
+  "op_pass": null,
+  "transient": null
+ }
+}

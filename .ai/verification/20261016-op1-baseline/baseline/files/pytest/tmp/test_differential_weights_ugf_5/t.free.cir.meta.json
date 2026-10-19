@@ -1,0 +1,189 @@
+{
+ "bias": "free",
+ "lut_meta": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "geometry": {
+  "Mp": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "diffusion": {
+    "source": "device",
+    "ad": 0.0,
+    "as": 0.0,
+    "pd": 0.0,
+    "ps": 0.0
+   }
+  },
+  "Mn": {
+   "L": 5e-07,
+   "finger_w": 2e-06,
+   "n_fingers": 2,
+   "W_from_fingers": 4e-06,
+   "W_declared": 4e-06,
+   "diffusion": {
+    "source": "device",
+    "ad": 0.0,
+    "as": 0.0,
+    "pd": 0.0,
+    "ps": 0.0
+   }
+  }
+ },
+ "probes": {
+  "Mp": {
+   "id": "@m.xmp.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xmp.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xmp.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xmp.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xmp.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xmp.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xmp.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xmp.msky130_fd_pr__nfet_01v8[vbs]"
+  },
+  "Mn": {
+   "id": "@m.xmn.msky130_fd_pr__nfet_01v8[id]",
+   "gm": "@m.xmn.msky130_fd_pr__nfet_01v8[gm]",
+   "gds": "@m.xmn.msky130_fd_pr__nfet_01v8[gds]",
+   "vth": "@m.xmn.msky130_fd_pr__nfet_01v8[vth]",
+   "vdsat": "@m.xmn.msky130_fd_pr__nfet_01v8[vdsat]",
+   "vgs": "@m.xmn.msky130_fd_pr__nfet_01v8[vgs]",
+   "vds": "@m.xmn.msky130_fd_pr__nfet_01v8[vds]",
+   "vbs": "@m.xmn.msky130_fd_pr__nfet_01v8[vbs]"
+  }
+ },
+ "nets": [
+  "op",
+  "nip",
+  "on",
+  "nin",
+  "vdd"
+ ],
+ "spice_node": {
+  "op": "op",
+  "nip": "nip",
+  "on": "on",
+  "nin": "nin",
+  "vdd": "vdd"
+ },
+ "rail_sources": {
+  "vdd": "Vrail_vdd"
+ },
+ "held": [],
+ "unheld": [],
+ "gate_bias": {},
+ "inputs": [
+  "nip",
+  "nin"
+ ],
+ "has_ac": true,
+ "ac_file": "t.free.ac.txt",
+ "outputs": [
+  "op",
+  "on"
+ ],
+ "output_nodes": [
+  "op",
+  "on"
+ ],
+ "tb_options": {
+  "gmin": "1e-15",
+  "reltol": "1e-4",
+  "abstol": "1e-14",
+  "vntol": "1e-7"
+ },
+ "ratio_runs": [],
+ "rout_runs": [],
+ "input_ac_weights": {
+  "nip": 1.0,
+  "nin": 0.0
+ },
+ "dc_path_isolation": [
+  {
+   "net": "nip",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": true
+  },
+  {
+   "net": "nin",
+   "choke_H": 1000000000000.0,
+   "couple_F": 1.0,
+   "f_hz": 0.01,
+   "omega2_LC": 3947841760.4357433,
+   "output_feedback": true
+  }
+ ],
+ "notes": [
+  "resistor RLp=100000 (근거 미기재)",
+  "capacitor CLp=1e-11 (근거 미기재)",
+  "resistor Rfp=1000000 (근거 미기재)",
+  "capacitor Cinp=1e-11 (근거 미기재)",
+  "resistor RLn=100000 (근거 미기재)",
+  "capacitor CLn=1e-11 (근거 미기재)",
+  "resistor Rfn=1000000 (근거 미기재)",
+  "capacitor Cinn=1e-11 (근거 미기재)",
+  "free: 차동 DC 되먹임 k*(V(on)-V(op)) -> nip, 입력 공통모드 0.7 V(예측)",
+  "free: 차동 DC 되먹임 k*(V(op)-V(on)) -> nin, 입력 공통모드 0.7 V(예측)"
+ ],
+ "blockers": [
+  "C27 가중 정의: 차동 입력은 input_p_ac - input_n_ac == 1, input_p_ac + input_n_ac == 0 이어야 한다(v_id = 1, v_cm = 0) -- 지금 input_p_ac=1.0, input_n_ac=0.0 (measure ['ugf_hz'])"
+ ],
+ "z1": null,
+ "topology_identity": {
+  "status": "unverified",
+  "topology_path": null,
+  "sha256_actual": null,
+  "sha256_declared": null,
+  "diffs": [],
+  "compared": 0,
+  "excluded_testbench": [],
+  "declared_not_in_topology": {},
+  "bulk_compared": [],
+  "notes": [
+   "topology 미지정(입력 topology.path 도 --topology 도 없음) -- 연결 동일성 미검증"
+  ],
+  "required": false
+ },
+ "cm_loop": null,
+ "loop": {
+  "bias": "free",
+  "lut_meta": {
+   "corner": "tt",
+   "temp_c": 27.0
+  },
+  "break_nets": [
+   "nip",
+   "nin"
+  ],
+  "weights": [
+   1.0,
+   0.0
+  ],
+  "v_file": "t.free.loop.v.txt",
+  "i_file": "t.free.loop.i.txt",
+  "notes": [
+   "resistor RLp=100000 (근거 미기재)",
+   "capacitor CLp=1e-11 (근거 미기재)",
+   "resistor Rfp=1000000 (근거 미기재)",
+   "capacitor Cinp=1e-11 (근거 미기재)",
+   "resistor RLn=100000 (근거 미기재)",
+   "capacitor CLn=1e-11 (근거 미기재)",
+   "resistor Rfn=1000000 (근거 미기재)",
+   "capacitor Cinn=1e-11 (근거 미기재)",
+   "free: 차동 DC 되먹임 k*(V(on)-V(op)) -> nip, 입력 공통모드 0.7 V(예측)",
+   "free: 차동 DC 되먹임 k*(V(op)-V(on)) -> nin, 입력 공통모드 0.7 V(예측)"
+  ],
+  "choke_H": 1e+20,
+  "blockers": [
+   "C27 가중 정의: 차동 입력은 input_p_ac - input_n_ac == 1, input_p_ac + input_n_ac == 0 이어야 한다(v_id = 1, v_cm = 0) -- 지금 input_p_ac=1.0, input_n_ac=0.0 (measure ['ugf_hz'])"
+  ],
+  "netlist": "t.free.loop.cir"
+ }
+}

@@ -1,0 +1,157 @@
+{
+ "base_commit": "5fea301e35c1461be10d9969bfccdd827b668c98",
+ "sources": [
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/oracle_config.json",
+   "blob": "be82476ef7103014368b6dad2fc47ecb6df8211e",
+   "sha256": "009d47a25f2266f5499792675186577a0987811c12a2327cd63d1725b61cbeaf",
+   "bytes": 6921,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/oracle_config.json"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/oracle_input.schema.json",
+   "blob": "0486cc31c2a268d5278a435c9dcd479f329d4604",
+   "sha256": "9fff98cac347a8f5c5de251cfb8aed77d6d1c12827bc219b5b8a6ecfff25ed31",
+   "bytes": 22068,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/oracle_input.schema.json"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/smoke/current_reuse_telescopic_ota.layout.engine.oracle_input.json",
+   "blob": "7fe45d09f3c91655dd37bfd7238a58f132e0d40c",
+   "sha256": "9f084bb2440772fa27e897fe06312612877617d26f2571b4f1a8da3e7be09435",
+   "bytes": 36277,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/smoke/current_reuse_telescopic_ota.layout.engine.oracle_input.json"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/smoke/current_reuse_telescopic_ota.layout.topology.oracle_input.json",
+   "blob": "347ff08959c89edc4c9a148646b06ae3148b83f7",
+   "sha256": "2b7ac77fe56640869e63c4b78bfab7710b7f3fee0ff03b06319c28ce5fbd7a0c",
+   "bytes": 36171,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/smoke/current_reuse_telescopic_ota.layout.topology.oracle_input.json"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/smoke/current_reuse_telescopic_ota.sizing.engine.oracle_input.json",
+   "blob": "af3ca23cec010318000dab028a76ece464e2074a",
+   "sha256": "1d02c28e4da84d72e3983be2ec08535bd7395acd7eec53dd0c68b0f4499ede3a",
+   "bytes": 34514,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/smoke/current_reuse_telescopic_ota.sizing.engine.oracle_input.json"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/smoke/smoke_judge.json",
+   "blob": "b939cebcfa3f117ec089c8c39e586f8a4fd8ecdc",
+   "sha256": "435bd1fb4b709294f900ab951b52b6e66f9223ff078c0781e557093247ab233d",
+   "bytes": 312,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/smoke/smoke_judge.json"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/smoke/u6_selfchecks.py",
+   "blob": "8bf13eb5dca411ac5858fc97a44d7532e143843c",
+   "sha256": "184d1cdb679a7df930ffa810dd50b60a8e59dc97b9495d9f189e72e4bed27888",
+   "bytes": 8341,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/smoke/u6_selfchecks.py.at_base"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/tests/conftest.py",
+   "blob": "9013352c79279397bbaa90a9f3c2b74c7ae10e2f",
+   "sha256": "c41d5aee4a974952b2ce09a6ee158061bd1c6353d494d2276dc7781c9a2255e2",
+   "bytes": 23852,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/tests/conftest.py.at_base"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/tests/fixtures/tcs_nmos_rload.topology.json",
+   "blob": "95248570dd93408d24433a4536ea8ac8c58ce2ab",
+   "sha256": "db9c251bd93bf9e7bfa7bd5d10ddb9268b5f84e967b18711ee0c5044fec0bb2d",
+   "bytes": 737,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/tests/fixtures/tcs_nmos_rload.topology.json"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/tests/test_oracle_c10_stability.py",
+   "blob": "9b06c260b8afc6df489cef24c49b9e9588301c96",
+   "sha256": "234bb52b6df7ce89e4ca60d067c2f386889f3a2fe021b6ea520c54fa15e90442",
+   "bytes": 108737,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/tests/test_oracle_c10_stability.py.at_base"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/tests/test_oracle_u6_stability.py",
+   "blob": "0ef807f28cd21629e725a28d7a04562f0ec298c0",
+   "sha256": "083c8174bf1b165cc8af276c8b2bd7bb43293154319d62b4f39157a5aad49b9f",
+   "bytes": 49851,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/tests/test_oracle_u6_stability.py.at_base"
+  },
+  {
+   "path": "skills/analog-gmid-design/tools/spice_oracle/tests/u6_toy5t.py",
+   "blob": "f6fb6fe7c61a31268c74ec6d7ea6563531454c42",
+   "sha256": "7c8150e3337c0d038befcd15a6acc618bb3a9d49ba399bfd7b45d0a22f186488",
+   "bytes": 10022,
+   "stored_as": "src_at_base/skills/analog-gmid-design/tools/spice_oracle/tests/u6_toy5t.py.at_base"
+  }
+ ],
+ "u6_materialize": {
+  "oracle_dir": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/iso/skills/analog-gmid-design/tools/spice_oracle",
+  "cases": {
+   "noise_rc": {
+    "input_json": "noise_rc.input.json",
+    "input_sha256": "2ce65bddf739c8be5a16679ab240ac13567a0ed10b4a6da512822789500588aa",
+    "lut_npz_in_input": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/u6work/lut_rc.npz",
+    "lut_npz_sha256": "b3d5811071f6fa7288e0ee483aecbe2079dd0965896fa74c4d4df1619498523d",
+    "baseline_lut_sha256": "b3d5811071f6fa7288e0ee483aecbe2079dd0965896fa74c4d4df1619498523d",
+    "lut_bit_identical": true,
+    "cir_sha256": "cff2b6330251949c7ba5989fabbcaa1be22a025f132800a2453403d342730ea6",
+    "baseline_cir_sha256": "cff2b6330251949c7ba5989fabbcaa1be22a025f132800a2453403d342730ea6",
+    "cir_bit_identical": true,
+    "meta_sha256": "0f45db4e82fb864bb5770eacf230d6ad0abf5dec13e7b82d64a60d9884778975",
+    "baseline_meta_sha256": "0f45db4e82fb864bb5770eacf230d6ad0abf5dec13e7b82d64a60d9884778975",
+    "meta_bit_identical": true,
+    "blockers": []
+   },
+   "pz_5t": {
+    "input_json": "pz_5t.input.json",
+    "input_sha256": "a676b2f3c72a1517451d956dcf46d5f252dd9d88824e0ffc777c07f0cffb8b87",
+    "lut_npz_in_input": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/u6work/lut_5t.npz",
+    "lut_npz_sha256": "b3d5811071f6fa7288e0ee483aecbe2079dd0965896fa74c4d4df1619498523d",
+    "baseline_lut_sha256": "b3d5811071f6fa7288e0ee483aecbe2079dd0965896fa74c4d4df1619498523d",
+    "lut_bit_identical": true,
+    "cir_sha256": "5144f58dd7bd68c8c7ec0bf421287d3011146fdaf4e0152abf956cdb93b38ad8",
+    "baseline_cir_sha256": "5144f58dd7bd68c8c7ec0bf421287d3011146fdaf4e0152abf956cdb93b38ad8",
+    "cir_bit_identical": true,
+    "meta_sha256": "31ec7af0e369b636f01c8f2b3a0708d5423628dd897b4b64fbf0806e8ce7b0a9",
+    "baseline_meta_sha256": "31ec7af0e369b636f01c8f2b3a0708d5423628dd897b4b64fbf0806e8ce7b0a9",
+    "meta_bit_identical": true,
+    "blockers": []
+   },
+   "swing_5t": {
+    "input_json": "swing_5t.input.json",
+    "input_sha256": "cc1e586c614cd11bf6a1b91e4e7739b72d6f16cee5a5a61fa1df0d8906cafb52",
+    "lut_npz_in_input": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/u6work/lut_5t.npz",
+    "lut_npz_sha256": "b3d5811071f6fa7288e0ee483aecbe2079dd0965896fa74c4d4df1619498523d",
+    "baseline_lut_sha256": "b3d5811071f6fa7288e0ee483aecbe2079dd0965896fa74c4d4df1619498523d",
+    "lut_bit_identical": true,
+    "cir_sha256": "5144f58dd7bd68c8c7ec0bf421287d3011146fdaf4e0152abf956cdb93b38ad8",
+    "baseline_cir_sha256": "5144f58dd7bd68c8c7ec0bf421287d3011146fdaf4e0152abf956cdb93b38ad8",
+    "cir_bit_identical": true,
+    "meta_sha256": "31ec7af0e369b636f01c8f2b3a0708d5423628dd897b4b64fbf0806e8ce7b0a9",
+    "baseline_meta_sha256": "31ec7af0e369b636f01c8f2b3a0708d5423628dd897b4b64fbf0806e8ce7b0a9",
+    "meta_bit_identical": true,
+    "blockers": []
+   },
+   "mc_5t": {
+    "input_json": "mc_5t.input.json",
+    "input_sha256": "61f9eea56649551d90b028da952b04823e97c83dd1939caaf32624b6aa92d8c7",
+    "lut_npz_in_input": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/u6work/lut_5t.npz",
+    "lut_npz_sha256": "b3d5811071f6fa7288e0ee483aecbe2079dd0965896fa74c4d4df1619498523d",
+    "baseline_lut_sha256": "b3d5811071f6fa7288e0ee483aecbe2079dd0965896fa74c4d4df1619498523d",
+    "lut_bit_identical": true,
+    "cir_sha256": "5144f58dd7bd68c8c7ec0bf421287d3011146fdaf4e0152abf956cdb93b38ad8",
+    "baseline_cir_sha256": "5144f58dd7bd68c8c7ec0bf421287d3011146fdaf4e0152abf956cdb93b38ad8",
+    "cir_bit_identical": true,
+    "meta_sha256": "31ec7af0e369b636f01c8f2b3a0708d5423628dd897b4b64fbf0806e8ce7b0a9",
+    "baseline_meta_sha256": "31ec7af0e369b636f01c8f2b3a0708d5423628dd897b4b64fbf0806e8ce7b0a9",
+    "meta_bit_identical": true,
+    "blockers": []
+   }
+  },
+  "cases_note": "입력 JSON의 process.lut_npz는 materialize 실행 작업 폴더 경로다. 같은 내용의 LUT는 기준선 files/u6/lut_rc.npz·lut_5t.npz(lut_bit_identical 참). 넷리스트·meta가 기준선 u6/과 바이트 동일(cir_bit_identical·meta_bit_identical)"
+ },
+ "n4_1_bundle_note": "N4-1 입력 묶음: O/tests/fixtures, O/smoke oracle_input(원본, 기준선에서 쓴 lut_npz 수정본은 baseline/files/inputs/), test 손 회로(conftest independent_*·u6_toy5t.py), C10 fixture(test_oracle_c10_stability.py·test_oracle_u6_stability.py 안 입력 생성 함수), u6 자체 점검(u6_selfchecks.py + u6/ 입력 JSON). test가 실제로 쓴 입력 JSON은 baseline/files/pytest/tmp/<폴더>/**/*.input.json(대응은 baseline/_test_tmp_map.json)",
+ "stored_as_note": ".py 사본은 이름 끝에 .at_base를 붙였다(저장소 안 pytest 수집·import 대상이 되지 않게). 내용은 base blob 그대로(sha256 같음)"
+}

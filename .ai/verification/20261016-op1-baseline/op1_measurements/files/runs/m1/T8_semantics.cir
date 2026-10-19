@@ -1,0 +1,21 @@
+* T8 semantics
+.param p = agauss(0,1,1)
+.option seed=9
+.subckt two a
+R1 a 0 {1k*(2+p)}
+R2 a 0 {1k*(2+p)}
+.ends
+X1 n1 two
+X2 n2 two
+R3 n3 0 {1k*(2+p)}
+R4 n4 0 {1k*(2+p)}
+V1 n1 0 1
+V2 n2 0 1
+V3 n3 0 1
+V4 n4 0 1
+.control
+op
+show r : resistance
+quit
+.endc
+.end

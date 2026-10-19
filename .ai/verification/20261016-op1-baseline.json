@@ -1,0 +1,103 @@
+{
+ "id": "20261016-op1-baseline",
+ "spec_card": "docs/02-design/specs/20261016-op1-baseline.spec.md",
+ "evidence_type": "test-only",
+ "base_commit": "5fea301e35c1461be10d9969bfccdd827b668c98",
+ "test_commit": "8c920f6cbd487f13419f96ce6dac326523bcfd3b",
+ "code_commit": null,
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "OP-1a는 검증자 보관 card(계획 v0.6.6 OP-1a '코드 변경 없음')라 판정할 코드·test 변경이 없다: 격리 복제본 iso2에서 git diff --name-only 5fea301..8c920f6 가운데 .ai/verification/20261016-op1-baseline/ 밖 경로 0. 전체 test 실행은 하지 않았다(메모리 제약 브리핑, 대신 base 판 오라클 test 수집 699 = 기준선 junit 699, id 집합 같음 -- base_check.json junit_vs_collect)"
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "test-only 모양(code_commit null, red·equivalence 없음). T 8c920f6(Role: audit, Change-Id 20261016-op1-baseline, 부모 base 5fea301)이 담은 것: 판정용 텍스트 3,512개 18,253,857 B(json 1,626·cir 1,180·md 262·npz 430·console 5·xml 1·MC 로그 2·MC ac 2·test가 만든 spice 4) + 원자료 5,133개 203,805,914 B 전부의 sha256 목록(baseline/_sha256_all.tsv) + junit 699 test -> tmp 폴더 473개 대응(tmp_path 규칙 441, mktemp 33항목, 미대응 0, 모호 0) + 로그 발췌 6,922줄 + DV-5 재계산·선택 대조 + u6 입력 묶음. 완료 조건 재대조: verify_sha256.py raw(원자료 5,133 전부 크기·sha256 일치, 누락·추가 0), committed(새 복제본 체크아웃 3,512 일치), blob_check(git blob 3,512 sha256 일치 -- .gitattributes '* -text'로 바이트 그대로). N4 절차가 커밋된 텍스트만으로 돈다: dv5_vos_recompute.py를 새 복제본 iso2의 커밋 텍스트에만 돌려 결과 cases가 커밋본과 같다. 저장소 밖에 둔 것(경로·sha256만): 시뮬레이터 데이터 txt 622개 166,550,685 B, 로그 843개 12,228,351 B, PDK 모델 사본 18개 6,764,373 B(C:/pdk/sky130_fd_pr 원본과 sha256 같음), 캐시 슬롯 138개 8,648 B. legacy/ 접근 0"
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "엔진·오라클 소스 def 변경 0(base..T diff가 판정 기록 폴더뿐) -- 뮤테이션 대상 없음. mutate_changed.py는 돌리지 않았다(대상 0이 diff로 정해짐)"
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: 이 card의 기대값은 피검 함수 출력이 아니라 기준선 원자료(base 판 오라클이 2026-10-16에 낸 출력)다; pytest/mc5t0 기대값 sigma_in_mV 3.6758284804311394·mean_in_mV 0.2481398885434242·a_dc_signed 99.8785243·n_requested 201 = baseline/files/pytest/tmp/mc5t0/o/t5ota.free.sim.json offset_mc(sha256 935ec345…), 재구현 결과와 float.hex 비트 동일; u6/mc_5t 기대값 mc_sigma_in_mV 3.2359547011756025·mc_n 201·mc_rel_se 0.05 = baseline/files/u6/u6_selfchecks.json(47f3797c…), 비트 동일, mean은 기준선 칸 없음(판정 안 함); 재구현은 옛 코드를 import하지 않는 검증자 독립 스크립트(dv5_vos_recompute.py, 줄 대응 주석 :166-195)이고, 옛 함수 자체 대조 (d)는 별도 스크립트로 dict 전체 일치"
+  },
+  "V5": {
+   "verdict": "N/A",
+   "basis": "기존 test·conftest·기준 파일 변경 0(base..T diff가 새 판정 기록 폴더뿐) -- 약화 diff 대상 없음. weakening_diff.py는 돌리지 않았다"
+  },
+  "V6": {
+   "verdict": "N/A",
+   "basis": "엔진 소스·하니스 변경 0 -- 소스 lint 대상 없음. 보관한 base 판 .py 사본은 이름 끝 .at_base로 두어 import·pytest 수집 대상이 아니다(input_bundle/src_at_base, 5개)"
+  },
+  "V7": {
+   "verdict": "N/A",
+   "basis": "새 def 0(엔진 경로) -- 배선 판정 대상 없음. 검증자 스크립트 6개(.ai/verification/20261016-op1-baseline/**)는 판정 기록 안 도구이고 엔진 진입점 소비 대상이 아니다. 기록 소비자: design §13.2 (가-1)·(가-2)(OP-5 착수), gain-budget LT-1 착수 조건(계획 OP-1a)"
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "엔진 실행 없음 -- 폴백 발동 검사 대상 없음"
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "엔진 결과 없음 -- 물리 불변식 검사 대상 없음. (DV-5 재계산은 옛 오라클 식의 산술 재현이라 물리 불변식 판정이 아니다)"
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "보고 수치를 격리 복제본·원자료에서 직접 재서 reproduced_numbers에 적었다(작성자·OP-1 보고 수치를 옮기지 않음): 파일 수·바이트(archive_baseline.py), sha256 재대조 3종, DV-5 σ_in·mean_in(두 사례), 표본 수, 선택 대조 (d) 호출 수, base 판 test 수집 수, smoke 입력 sha256 대조 3/3(base blob의 core.autocrlf 체크아웃 형태 = OP-1 기록 input_orig_sha256), u6 입력 재생성 넷리스트·meta·LUT 바이트 동일 4/4"
+  }
+ },
+ "reproduced_numbers": [
+  {"name": "원자료 파일 수(wt/_scratch_op1/baseline)", "value": 5133, "command": "C:/Python314/python.exe -I <record>/scripts/archive_baseline.py <raw> <iso> <record>/baseline C:/pdk/sky130_fd_pr (n)"},
+  {"name": "원자료 바이트 합", "value": 203805914, "command": "같은 실행 (_external.json bytes_total)"},
+  {"name": "커밋한 판정용 텍스트 파일 수", "value": 3512, "command": "같은 실행 (kept)"},
+  {"name": "커밋한 판정용 텍스트 바이트 합", "value": 18253857, "command": "같은 실행 (kept_bytes)"},
+  {"name": "저장소 밖 시뮬레이터 데이터 txt 파일 수", "value": 622, "command": "같은 실행 (external_by_class.sim_data_txt.n)"},
+  {"name": "저장소 밖 시뮬레이터 데이터 txt 바이트", "value": 166550685, "command": "같은 실행 (external_by_class.sim_data_txt.bytes)"},
+  {"name": "저장소 밖 로그 파일 수", "value": 843, "command": "같은 실행 (external_by_class.sim_log.n)"},
+  {"name": "저장소 밖 로그 바이트", "value": 12228351, "command": "같은 실행 (external_by_class.sim_log.bytes)"},
+  {"name": "저장소 밖 PDK 모델 사본 수(원본 sha256 일치)", "value": 18, "command": "같은 실행 (pdk_model_copies)"},
+  {"name": "저장소 밖 PDK 모델 사본 바이트", "value": 6764373, "command": "같은 실행 (external_by_class.pdk_model_copy.bytes)"},
+  {"name": "로그 발췌 줄 수", "value": 6922, "command": "같은 실행 (log_excerpt_lines)"},
+  {"name": "junit test 수", "value": 699, "command": "같은 실행 (_test_tmp_map.json n_tests)"},
+  {"name": "tmp 폴더 수", "value": 473, "command": "같은 실행 (_test_tmp_map.json n_tmp_dirs)"},
+  {"name": "tmp_path 규칙으로 대응한 폴더 수", "value": 441, "command": "같은 실행 (tmp_path_map)"},
+  {"name": "대응 안 된 tmp 폴더 수", "value": 0, "command": "같은 실행 (unmapped_dirs)"},
+  {"name": "원자료 sha256 재대조 불일치 수(raw 모드)", "value": 0, "command": "C:/Python314/python.exe -I <record>/baseline/verify_sha256.py raw C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1/baseline (n_mismatched + n_missing + n_extra)"},
+  {"name": "새 복제본 체크아웃 sha256 재대조 불일치 수(committed 모드)", "value": 0, "command": "C:/Python314/python.exe -I <iso2>/.ai/verification/20261016-op1-baseline/baseline/verify_sha256.py committed <같은 폴더>/files"},
+  {"name": "git blob sha256 불일치 수", "value": 0, "command": "C:/Python314/python.exe -I <scratch>/scripts/blob_check.py <iso2> 8c920f6… .ai/verification/20261016-op1-baseline/baseline/files/ <tsv>"},
+  {"name": "DV-5 pytest/mc5t0 재계산 sigma_in_mV", "value": 3.6758284804311394, "command": "C:/Python314/python.exe -P <record>/dv5/dv5_vos_recompute.py <record> <out> (cases[0].compare.sigma_recomputed)"},
+  {"name": "DV-5 pytest/mc5t0 재계산 mean_in_mV", "value": 0.2481398885434242, "command": "같은 실행 (cases[0].compare.mean_recomputed)"},
+  {"name": "DV-5 pytest/mc5t0 표본별 V_os 수", "value": 201, "command": "같은 실행 (len(cases[0].per_sample_vos))"},
+  {"name": "DV-5 u6/mc_5t 재계산 sigma_in_mV", "value": 3.2359547011756025, "command": "같은 실행 (cases[1].compare.sigma_recomputed)"},
+  {"name": "DV-5 u6/mc_5t 재계산 mean_in_mV(기준선 칸 없음, 기록만)", "value": 0.3803997575397021, "command": "같은 실행 (cases[1].compare.mean_recomputed)"},
+  {"name": "DV-5 u6/mc_5t 표본별 V_os 수", "value": 201, "command": "같은 실행 (len(cases[1].per_sample_vos))"},
+  {"name": "DV-5 비트 동일 아닌 사례 수", "value": 0, "command": "같은 실행 (cases[].verdict != BIT_IDENTICAL)"},
+  {"name": "선택 대조 (d) offset_mc dict 다른 키 수(pytest/mc5t0)", "value": 0, "command": "C:/Python314/python.exe -P <record>/dv5/dv5_d_old_function.py <iso>/skills/analog-gmid-design/tools/spice_oracle <record> <work> <out> (differing_keys)"},
+  {"name": "선택 대조 (d) subprocess 호출 수", "value": 0, "command": "같은 실행 (subprocess_calls_total)"},
+  {"name": "선택 대조 (d) .mc.cir 바이트 동일 사례 수", "value": 2, "command": "같은 실행 (mc_cir_bit_identical)"},
+  {"name": "base 판 오라클 test 수집 수", "value": 699, "command": "cd <iso>/skills/analog-gmid-design && PYTHONPYCACHEPREFIX=<scratch>/pyc_collect C:/Python314/python.exe -P -m pytest --collect-only -q -p no:cacheprovider tools/spice_oracle/tests"},
+  {"name": "smoke 입력 sha256 대조 일치 수(3개 중)", "value": 3, "command": "C:/Python314/python.exe -I <record>/scripts/base_check.py <iso> 5fea301… <record> <collect 출력> <out> (smoke_input_identity[].equal)"},
+  {"name": "u6 입력 재생성 넷리스트·meta·LUT 바이트 동일 사례 수(4개 중)", "value": 4, "command": "C:/Python314/python.exe -P <record>/input_bundle/u6_inputs_materialize.py <iso>/skills/analog-gmid-design/tools/spice_oracle <work> <record>/baseline/files <out>"}
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-10-16T21:20:34+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/op1a-audit",
+  "commands": [
+   "환경: C:/Python314/python.exe 3.14.2, numpy 2.4.6, pytest 9.0.2(수집만), jsonschema 4.26.0. 임시 경로는 C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1a/ 아래만(<scratch>). <record> = <audit worktree>/.ai/verification/20261016-op1-baseline",
+   "격리(base): git clone -q -c core.longpaths=true --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/op1a-audit <scratch>/iso; git -C <scratch>/iso remote remove origin (HEAD 5fea301, remote 0, status 0줄)",
+   "격리(T): 같은 형태로 <scratch>/iso2 (HEAD 8c920f6, remote 제거, status 0줄)",
+   "V1: N/A -- 코드·test 변경 0(git -C <scratch>/iso2 diff --name-only 5fea301e35c1461be10d9969bfccdd827b668c98 HEAD 가운데 .ai/verification/20261016-op1-baseline/ 밖 0줄), 전체 test 미실행",
+   "보관: C:/Python314/python.exe -I <scratch>/scripts/archive_baseline.py C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1/baseline <scratch>/iso <record>/baseline C:/pdk/sky130_fd_pr (사본 <record>/scripts/archive_baseline.py)",
+   "입력 묶음: C:/Python314/python.exe -P <record>/input_bundle/u6_inputs_materialize.py <scratch>/iso/skills/analog-gmid-design/tools/spice_oracle <scratch>/u6work <record>/baseline/files <scratch>/u6_materialize.json; C:/Python314/python.exe -I <record>/scripts/bundle_sources.py <scratch>/iso 5fea301… <record>/input_bundle <scratch>/u6work <scratch>/u6_materialize.json",
+   "OP-1 측정 산출물: C:/Python314/python.exe -I <record>/op1_measurements/copy_op1_measurements.py C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1 <record>/op1_measurements (103개)",
+   "DV-5: cd <scratch> && PYTHONPYCACHEPREFIX=<scratch>/pyc C:/Python314/python.exe -P <record>/dv5/dv5_vos_recompute.py <record> <record>/dv5/dv5_result.json",
+   "DV-5 (d): cd <scratch> && PYTHONPYCACHEPREFIX=<scratch>/pyc C:/Python314/python.exe -P <record>/dv5/dv5_d_old_function.py <scratch>/iso/skills/analog-gmid-design/tools/spice_oracle <record> <scratch>/dwork <record>/dv5/dv5_d_result.json (시뮬레이터 실행 0)",
+   "base_check: cd <scratch>/iso/skills/analog-gmid-design && PYTHONPYCACHEPREFIX=<scratch>/pyc_collect C:/Python314/python.exe -P -m pytest --collect-only -q -p no:cacheprovider tools/spice_oracle/tests > <scratch>/collect_base.txt; C:/Python314/python.exe -I <record>/scripts/base_check.py <scratch>/iso 5fea301… <record> <scratch>/collect_base.txt <record>/base_check.json",
+   "재대조: C:/Python314/python.exe -I <record>/baseline/verify_sha256.py raw C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_op1/baseline; 같은 스크립트 committed 모드를 <scratch>/iso2 체크아웃에; C:/Python314/python.exe -I <scratch>/scripts/blob_check.py <scratch>/iso2 8c920f6… .ai/verification/20261016-op1-baseline/baseline/files/ <tsv>; iso2 커밋 텍스트에 dv5_vos_recompute.py 재실행 -> cases 동일",
+   "spec card: OP-1a는 계획 N5.1 행으로 정의된 검증자 card이고 docs/02-design/specs/20261016-op1-baseline.spec.md 파일은 base에 없다(spec_card 칸은 명명 규칙에 맞춘 id 표기). 판정 근거 문서는 계획 v0.6.6 OP-1a 행·N0.1 '기준선'·N4-1·N4-2a, design v0.2.6 §13.2·§20·§11.5·B-26, 사용자 결정 L-2 (9)·O-8·O-9·O-10",
+   "형식 확인: 판정 기록 커밋 전 base 판 tools/gates/merge_gate.py의 rule1_encoding~rule9_visible과 .ai/verification/_schema.json(jsonschema)로 이 파일을 검사"
+  ]
+ }
+}

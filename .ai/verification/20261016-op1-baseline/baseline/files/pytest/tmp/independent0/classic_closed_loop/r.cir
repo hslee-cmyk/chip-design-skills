@@ -1,0 +1,33 @@
+* independent C10 reference
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.temp 27.0
+.option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7
+Vdd vdd 0 DC 1.8
+R1 vdd n1 129409.146
+C1 n1 0 1e-09
+XM1_0 n1 nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM1_1 n1 nin 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+R2 vdd n2 129409.146
+C2 n2 0 1e-12
+XM2_0 n2 n1 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM2_1 n2 n1 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+R3 vdd n3 129409.146
+C3 n3 0 1e-12
+XM3_0 n3 n2 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+XM3_1 n3 n2 0 0 sky130_fd_pr__nfet_01v8 l=5e-07 w=2e-06
+Ecl nin ecl n3 0 1.0
+Vcl ecl 0 DC -1.0100000000012876e-05 PULSE(-1.0100000000012876e-05 0.02585482578632874 8.441519594620303e-08 8.441519594620303e-08 8.441519594620303e-08 8.441519594620303e-08 1)
+.save v(n3)
+.control
+set noaskquit
+tran 2.5217099784872536e-09 3.5200386970160236e-06 0 2.5217099784872536e-09
+let h = v(n3)
+set wr_singlescale
+wrdata g.txt h
+quit
+.endc
+.end
