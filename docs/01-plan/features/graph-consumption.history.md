@@ -32,6 +32,17 @@ date: 2026-10-16
 * 봉인 8이 봉인 2에 함의된다는 사실은 처음에 X-G3로 올리려 했으나, 상위 계획 472행이 이미 '봉인 1·2가 통과하면 자동 성립하므로 … 게이트'라고 적고 있어 취지 차이가 아니라고 보고 번호를 비웠다.
 * 상위 DEC-64가 '루프 소속은 S1 관계 엣지 `kvl_branch`로 기록'과 J12-c 측정 기대를 명시한 것을 읽고, KVL 정본 이동을 X-G1로 올렸다.
 
+### 2026-10-19 계획 v0.2 개정 방침
+
+* 근거: v0.1 독립 검증 결과(판정 '수정 필요', 차단 5·중간 9·낮음 9). 요약은 `wt/_drafts/SESSION_HANDOFF_2026-10-16.md` '추가: graph-consumption 계획 v0.1 독립 검증 결과' 절(42-51행), 상세는 오케스트레이터 전달.
+* 개정 전에 worktree에 master `5fea301`을 병합했다(병합 커밋 `aebe7e8`). 엔진·도구 코드는 v0.1 base와 같다(H2-5).
+* 차단 B1은 새 결정이 아니라 기존 사용자 결정(B2·K-3, `user_decisions.md` 225·243행)과 design 41 §6.7-1a를 따르는 정정이다. v0.1은 as-built 쓰기 계획의 '같은 DC' 변(`input_tie`)을 KVL 정본 정의에 넣고, 그 동작을 상위 DEC-64 v1 문언으로 올리자고 했다(X-G2·U-G2). 이것은 B2('v1은 제약 없음, 쓰기 계획을 계획에 맞게 고친다')·K-3('input_tie 폐기')과 반대였다. v0.1 작성 때 design 41 §6.7-1a와 user_decisions 225·243행을 읽지 않은 것이 원인이다.
+* 검증자 지적대로 승인된 headroom-chain 계획 v0.6의 Gs⁺ 정의도 같은 as-built tie 변을 포함한다(그 계획 N0.1 70행). 이 계획은 그 계획을 고치지 않고 정정 필요 사실을 N7.2에 적었다(S-7, 오케스트레이터·사용자 몫).
+* 봉인 8(중간 (4))과 MNA 잔차(중간 (5))는 v0.1의 '재작성'·'잔차 기록'을 버리고 사용자 선택지로 바꿨다. 봉인 8은 봉인 2에 함의되고, MNA 상대 잔차는 후진 안정 LU에서 공허하다.
+* B2·B3로 v0.1의 BD-3(결선 대조)·BD-4(공급 합 판정)를 철회하고, 독립 검증 경로를 오라클 forced·free로 다시 정의했다. 엔진 안에는 항등식이 아닌 보조 검사 둘(숲 구조 불변량, `node.terminals` 결선 점검)만 남겼다. `node.terminals`도 같은 핀에서 만들어진다는 사실(`E/graph/s1_structure.py:51, :55`)을 재측정으로 확인해, 그 점검은 독립 검증이 아니라 조립 오류 보조임을 계획에 적었다.
+* '종속 사이클 필드'(v0.1 BD-1)는 봉인 8을 지우는 기본안에서 소비자가 없어져, 만들면 배선 원칙에 따라 만들지 않기로 바꿨다. 사이클 멤버가 필요한 곳은 트리 경로 정본(HC-1이 만듦)을 읽는다.
+* K-3 구현 card는 상위·관련 계획 card 표에 id가 없다(grep 0). 이 계획은 id를 정하지 않고 '오케스트레이터가 부여'로 적었다.
+
 ## H2. 측정 근거
 
 ### H2-1 필드 분류 재측정(2026-10-16, base `52945ce`)
@@ -41,7 +52,7 @@ date: 2026-10-16
 * 결과:
   * 권한표: `S0_WRITERS` 117 + `LY_WRITERS` 14 = 131. 하위 표 S1 38, S1V 46, S2 78, metrics 15, search 16.
   * `@compute_block` 53개, READS·WRITES 미해석 0.
-  * writer 블록 밖 정적 읽기 0인 필드: 44개. 이 중 동적 필드 접근을 손으로 확인한 18개는 실제 읽기가 있다.
+  * writer 블록 밖 정적 읽기 0인 필드: 44개. 이 중 동적 필드 접근을 손으로 확인한 19개는 실제 읽기가 있다(v0.1은 '18개'로 잘못 적었다. 아래 세 묶음의 합 7 + 6 + 6 = 19이고, 44 − 19 = 25와도 맞다).
     * 봉인 보고 `ITEM_FIELDS` 루프: `dc_seal_1·2·3·6·7·8·9`(7)
     * 단계 B 보고 `_REPORT_FIELDS`: `area_bound`·`buffer_window_report`·`count_budget`·`dof`·`headroom_rows`·`warnings`(6, 보고 전용)
     * `SearchContext` `_field` 속성: `constraint_classes`·`junction_source`·`metric_structure`·`mismatch_source`·`model_error`·`noise_input_cells`(6)
@@ -79,12 +90,69 @@ date: 2026-10-16
 * `wt/_scratch_kvlkcl/s1_counts.jsonl`(2회로, `build_s1`만): 파일럿 `rel_kvl_branch` 4(모두 레일 경유), `rel_kcl_group` 18, `gvgs_summary.vds_saturation` 22. folded_cascode `rel_kvl_branch` 0, `rel_kcl_group` 3.
 * 이 값은 계획 본문에 넣지 않았다. 13회로 값은 card 0 M-G1·M-G2가 잰다.
 
+### H2-5 v0.2 재측정(2026-10-19, master `5fea301`, 병합 커밋 `aebe7e8`)
+
+* `git diff --stat 52945ce HEAD -- skills/analog-gmid-design/gmid_engine skills/analog-gmid-design/tools` 출력이 비어 있다. v0.1 인용 코드 줄은 그대로다.
+* 상위 계획은 병합으로 6줄이 바뀌었다(hunk 1·8·446행 부근). v0.1이 인용한 줄(179·186·208·215·217·227·263·269·282·287·294·328·400·467·472·477·1153)을 다시 읽어 내용이 같음을 확인했다.
+* `user_decisions.md` 줄: X-20 611, X-21 612, L-1 617, P-1 619, L-2 620, L-3 626, O-10 628, X-22 629, B2 225, K-3 243(파일 631행).
+* 새로 읽은 사실(계획 F-G19~F-G30):
+
+| 사실 | 확인한 줄 |
+|---|---|
+| as-built '같은 DC' 변(K-3 미구현) | `E/sizing/writer_plan.py:10-11, :104-105, :157-159, :213-214, :234` |
+| K-3 구현 card id 없음 | `docs/01-plan/features/*.plan.md` grep `input_tie`·`K-3` card 표 0, design 41 §6.7-10 (P4) '구현은 별도 card' |
+| `gvgs_self_edge` 유일 정지, 쓰기 계획은 비트리 → 종속 | `E/graph/gvgs_cycles.py:68-79`, `E/graph/s1_values.py:125`(사용처 grep 1), `E/sizing/writer_plan.py:164-167, :176-196` |
+| 공급 합 = 같은 가지 전류의 레일 합 | `E/metrics/dc_metrics.py:73-90`, `E/metrics/supply.py:26-44, :70` |
+| 기저 원소 필터, `node.terminals`도 같은 핀 | `E/sizing/current_basis.py:86-88`, `E/graph/s1_structure.py:51, :55` |
+| 오라클 forced 고정원·넷별 KCL 판정 | `O/oracle_netlist.py:486-497`, `O/oracle_compare.py:365-367` |
+| rule_hash 대상 파일, structure.json 2개 | `E/graph/s1v_values.py:14-21`, `E/graph/s1v_key.py:25, :29`, `git ls-files` |
+| tail 정의 | `E/graph/l_classes.py:7-9` |
+| S1 관계 사본(`rel_equal_vgs`·`rel_vds_eq_vgs`·`rel_l_class`·`rel_matching_ratio`) | `E/graph/rel_vgs.py:31-37`, `E/graph/rel_matching.py:35-40` |
+| `size_and_seal_local` 엔진 호출자 0 | grep(tests 제외, 정의 파일 밖 호출 0), `E/sizing/size_and_seal_local.py:113` |
+| MNA 풀이 = LU·`numpy.linalg.solve` | `E/metrics/mna_solve.py:6-9` |
+| `stacked_vsb`·`same_as` S1 관계 엣지 없음 | `E/graph/s1_values.py:77-85`, `E/graph/coupling_values.py:17` |
+| 동적 필드 접근 3곳 | `E/search/search_context.py:69-70`, `E/graph/structure_tables.py:33`, `E/layout/canonical_naming.py:96` |
+| 수동소자 값 정본 | `E/sizing/dc_inputs.py:7, :36`(v0.1의 `:31`은 `input_dc_v` 줄이었다) |
+| headroom-chain v0.6 Gs⁺ 정의의 tie 변 | `docs/01-plan/features/headroom-chain.plan.md` 10·70·72·227행 |
+| 정상 출력 전용 10개 | `wt/_scratch_deadfields/deadfields_report.md` D 목록(180-196행), `E/pipeline/stage_b.py:117-118, :123` |
+
 ## H3. 검증 반영 기록
 
-(아직 없음)
+### v0.1 독립 검증(2026-10-16) → v0.2
+
+| 지적 | 반영 자리 | 처리 |
+|---|---|---|
+| B1 KVL 정본에 tie 변, X-G2·U-G2가 B2·K-3과 반대 | N0.1 Gs⁺·KVL 관계, N2(B2·K-3·design 41 §6.7-1·-1a 행), N3.3-1·2·8, N3.11 K-a′·K-a″, N5 X-G2, N7.2 K-3·headroom-chain | tie 변 제외, X-G2·U-G2 철회, GC-2를 K-3 구현 card 뒤로(둘 다 `writer_plan.py`). VDS 변 부등식 사이클은 HC-1 소관으로 정의에 명시. 트리 경로 정본을 HC-1 제약 그래프와 하나로(N3.3-3, BD-10). headroom-chain v0.6 Gs⁺ 문언 정정 필요는 사실로만 기록 |
+| B2 BD-4 공급 합 판정은 항등식 | F-G21, N3.5-1, N3.11 K-e, BD-4 | 삭제(철회) |
+| B3 BD-3 결선 대조는 항등식 | F-G22·F-G23, N3.5-2·3, FR-G17·FR-G18, BD-3·BD-12, U-G10, N7.3-4 | 삭제(철회). 독립 경로 = 오라클 forced·free + U16 배선. 엔진 보조 = `node.terminals` 점검, 숲 불변량 |
+| B3 X-G4 '함의' 문장 | N3.5-1, N3.11 K-d, N5 X-G4 | max(봉인 3) 대 합(봉인 2)이라 함의 아님, 상관된 더 엄격한 집계로 정정 |
+| B4 `gvgs_self_edge` 정지 소실 | F-G20, FR-G16, N3.3-6, N3.11 K-h, GC-2 (1), BD-11, GD-10 | 삭제 전 S1 구조 쪽으로 이전(거부 먼저) |
+| B5 rule_hash 재기록 | F-G24, N3.2 표, N3.7, U-G11, N7.3-11, R-G8 | 사용자 결정 항목. 지문 개선 백로그 포함 여부를 선택지로 |
+| 중간 (1) 부채 목록 판정 | N0.1, N3.1-6 (c)(d), BD-9, N7.3-2 | 항목 키 집합 부분집합 + 기준선 지문 검증자 고정 |
+| 중간 (2) L-1 도달 조건 | N0.1 실제 읽기, N3.1-1, F-G27, A-5 | 엔진 진입점 도달 필요 |
+| 중간 (3) 동적 접근 처리 종류 | F-G30, N3.1-1·6, N3.2 표 | '정적 해석 형태로 바꾸기' 추가(GC-7) |
+| 중간 (4) 봉인 8 | N3.3-4, U-G9, X-G10, N4-2, R-G4 | 재작성 대신 삭제(기본안)·구조 불변량 대체·재작성 선택지 |
+| 중간 (5) MNA 잔차 공허 | F-G28, N3.5-5, FR-G11, U-G5, N3.11 K-f | 넣지 않음(기본안), 조건수는 선택지 |
+| 중간 (6) GC-2~GC-4 범위 | N5 X-G9, U-G12, N7.1 착수 조건 | X 항목 + 착수 승인 |
+| 중간 (7) GC-5 충돌 뒤 처리 | N3.6-3, U-G13, N4-5 | 선택지 정의(기본안 실행 불가) |
+| 중간 (8) card id 규칙 | N0, N3.1-6 (e), N3.2 표 card·읽는 결정 칸 분리, GC-8 신설 | U-G4 → GC-7, U-G7 → GC-8 |
+| 중간 (9) L-5 AST 한계 | N3.1-5, N3.11 A-3 | 자료 흐름 꼴 미탐지 명시 |
+| 낮음: F-G9 `dc_inputs.py:31` | N3.2 표 `device.value` 행 | `:7, :36` |
+| 낮음: H2-1 18 → 19 | H2-1 | 정정 |
+| 낮음: 400행 H3 → H1 인용 | N5 끝 괄호 | H1로 |
+| 낮음: 460행 '파일럿' | N7.2 offset-strategy 항목 | 이름 제거 |
+| 낮음: `rel_l_class`도 `gs_groups` 사본 | F-G7, F-G26, N3.2 표, U-G3 | 소비 이동 뒤 삭제 대기 |
+| 낮음: M-G1c·M-G2b 측정 불필요 | N6 끝 괄호, N3.3-5, N3.4-3 | 지움(정의로 같음, 코드 읽기로 답). M-G2c(항등)도 지움 |
+| 낮음: G_vgs⁺ → Gs⁺(FR-9) | N0.1, 본문 전체 | 통일 |
+| 낮음: design 41 §6.7-1 인용 | N2 표, N3.3-2 근거 3, N8 R6 | 추가 |
+| 낮음: X-G7에 `stacked_vsb`·`same_as` 미구현 | F-G29, N2 S1 구조 행, N5 X-G7, N3.10 | 사실 추가 |
+| 낮음: 정상 D 필드 10개 | F-G3, N3.1-2, GC-1 | 처음부터 출력 전용 목록 |
+
+* 검증자 측정물은 그 agent scratchpad `df/rows.json`·`cls.txt`다(인계 문서 51행). 이 개정은 그 파일을 다시 읽지 않고, 지적 문장과 이 worktree 코드 재측정(H2-5)으로 반영했다.
 
 ## Version History
 
 | 판 | 날짜 | 변경 |
 |---|---|---|
 | 0.1 | 2026-10-16 | 초안. 사용자 O-10 (2)·(4), P-1, 사용자 원문(KK-1) 반영. 재측정 H2 |
+| 0.2 | 2026-10-19 | v0.1 독립 검증 반영(H3). KVL 정본에서 tie 변 제외(B2·K-3 따름), X-G2·U-G2·BD-3·BD-4 철회, 독립 검증 = 오라클 forced·free(U16 배선), 엔진 보조 검사 둘, `gvgs_self_edge` 정지 이전, 봉인 8·MNA·rule_hash·충돌 뒤 처리·범위 확장을 사용자 결정으로(U-G9~U-G13), 부채 목록 집합 판정, 규칙 L-1 도달 조건, 트리 경로 정본 하나(HC-1), GC-8 신설. 재측정 H2-5 |
