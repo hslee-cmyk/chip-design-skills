@@ -159,10 +159,26 @@ date: 2026-10-16
 | `_report`가 `rungs[0]`을 무조건 읽음(빈 사다리면 IndexError) | `E/search/start_intervals.py:453` |
 | 층 0은 빈 사다리를 `(None,)`으로 받아 상자 중심 출발 | `E/search/layer0_center.py:654-656, :126-135` |
 | 1회차 `currents1` = 전류 또는 `first.refs`, 소비처 `gain_l_bounds`(elements)·`matching_bounds`·`area_bounds`·`noise_bounds` | `E/search/start_intervals.py:285-296, :327, :332-333` |
-| 경계 함수의 전류 None 처리 = `WHY_NO_CURRENT` 비활성 | `E/search/iv_area.py:57-58, :83`, `E/search/iv_matching_l.py:117-118`, `E/search/iv_noise.py:77` |
+| ~~경계 함수의 전류 None 처리 = `WHY_NO_CURRENT` 비활성~~ **틀림, v0.5에서 정정(H2-8)**: `gain_l_bounds`·`area_bounds`는 그렇지 않다 | `E/search/iv_area.py:57-58, :83`, `E/search/iv_matching_l.py:117-118`, `E/search/iv_noise.py:77` |
 | θ 자유 원소가 아닌 원소 값은 부호 거르기 없음 | `E/search/start_intervals.py:115-117` |
 | 결정 6 병합: `c8d156e3`이 HEAD 조상(`git merge-base --is-ancestor c8d156e3 HEAD` 참), 상위 U-62 닫힘, `ds_self_swap_zero_current` 정지 | 상위 계획 1371행, `E/graph/s1_symmetry.py:14-20, :125-133`, headroom-chain v0.7.1 490행 |
 | 계획 302행 부근 = N3.2 처리 표(v1 고리 문언 없음), v1 고리 전제 문언 자리 | 이 계획 54·316·324·343·464행 |
+
+### H2-8 v0.5 재측정(2026-10-19, 같은 base, HEAD `7760541a`)
+
+| 사실 | 확인한 줄 |
+|---|---|
+| `gain_l_bounds`는 비활성 경로 없음: 원소 없으면 `_row` None → 앵커 건너뜀 → 전부 빠지면 `found = anchors[-1]`, `SRC_GAIN_L` 충돌(목표 미달) + L 하한 = 최대 앵커. `start_intervals.py:117`이 0 이하 자유 원소를 빼므로 지금도 살아 있음 | `E/search/iv_gain_l.py:64-65, :115-119, :125-129` |
+| `area_bounds`: 전류 None이면 W_min 하한을 기록 없이 건너뜀. `WHY_NO_CURRENT`는 예산 선언 때만(예산 없으면 81-82행 먼저 반환) | `E/search/iv_area.py:57-58, :66-69, :81-83` |
+| `matching_bounds`·`noise_bounds`: 목표 선언 때만 가드 전체를 `WHY_NO_CURRENT`로 비활성 | `E/search/iv_matching_l.py:110-118`, `E/search/iv_noise.py:65-78` |
+| 1회차 전류 소비처 = 네 함수, 여섯 호출 자리 | `E/search/start_intervals.py:292, :295, :296, :327, :332, :333` |
+| 원소 값은 매크로 gm(t)의 아핀식(계수는 t 무관) | `E/search/start_intervals.py:95-96, :114-115` |
+| 아래 끝 실행 불가면 이분 탐색 건너뜀, 이분 탐색은 단조 가정, 결과 상태 재확인 | `E/search/start_intervals.py:384-396`, 372행 주석(분해능) |
+| 387-389행 면적 충돌은 `bottom.area`(None이면 차이 nan) | `E/search/start_intervals.py:387-389` |
+| 조기 반환: `rungs` = (), `uncovered` = (), `area_fraction` = None | `E/search/start_intervals.py:263-264` |
+| `uncovered`·`area_fraction` 엔진 reader 없음(writer·선언만) | grep(tests 제외): `s0_fields.py:8, :32`, `start_intervals.py:11-12, :245` |
+| 출발 단계는 판정하지 않음 | `E/search/start_intervals.py:5` |
+| P-G1 추가 자리(v0.4 줄): 53·160·574행 전제 담음, 175·365·426행은 경계 자리 | 이 계획 v0.4(`7760541a`) |
 
 ## H3. 검증 반영 기록
 
@@ -233,6 +249,18 @@ date: 2026-10-16
 | L-d 트리 경로 함수 단일성 | N7.3-3, N3.10 P-G2 | 검증자 확인 항목. headroom-chain 완료 조건 문언은 후속 권고로만 |
 | (지시) DEC-64 v1 고리 문언 | N3.10 P-G1 | 사용자 결정 대기 항목만 추가, 문언은 고치지 않음 |
 
+### v0.4 재검증(2026-10-19) → v0.5
+
+| 지적 | 반영 자리 | 처리 |
+|---|---|---|
+| M1 경계 함수 None 처리 사실 틀림 | F-G32 '1회차 전류의 소비처', H2-7 행 정정 표시, H2-8, N3.6-3 '1회차', GD-7, GC-5 | 함수별 사실로 정정(`gain_l_bounds` 목표 미달 오기록·최대 앵커 L 하한, `area_bounds` 무기록 건너뜀, 가드 둘은 목표 선언 때만). 고칠 자리를 GD-7·GC-5 범위에 명시 |
+| M2 혼합 경우 미정의 | N3.6-3 't 의존'·'선택점 고르기'(가-1~가-3)·'빈 사다리', N5 X-G11, U-G13, GC-5, N7.3-6 | 선택지 셋 나열, 권고 (가-1) 사다리 격자 탐색(근거: 단조 가정 없음, 분해능 = 사다리 칸 폭, 사다리 계산 재사용), 결정은 사용자. 원소 값이 gm(t) 아핀이라 충돌이 t에 따라 바뀜을 명시. 빈 사다리 범위를 '선택 후보 모두 충돌'로 |
+| L1 '다섯 자리' 대 여섯 호출 | F-G32, N3.6-3, U-G13, GC-5, N7.3-6, GD-7 | '네 함수, 여섯 호출 자리'로 통일, 완료 조건 6은 여섯 자리마다 |
+| L2 원인과 다른 면적 충돌 | N3.6-3 '원인과 다른 면적 충돌 기록', U-G13, GC-5, N7.3-6 | 전류 충돌 상태면 면적 충돌을 기록하지 않음, 면적 충돌은 충돌 없는 상태의 예산 초과만 |
+| L3 빈 사다리 출력 정렬 | GD-7, GC-5 | 빈 사다리 출력 형식(`uncovered` = 칸 0 성분 전부, `area_est_m2`·`area_fraction` = None), `start_intervals.py:264` 조기 반환을 같은 `uncovered` 규칙으로 맞추고 사유로 구분(기본안, 두 필드 엔진 reader 없음) |
+| L4 (다) 대신 상자 중심 계속의 근거 | N3.6-3, U-G13 | 출발 단계는 판정하지 않음(EP-7), 틀린 선언 거부는 봉인 7 한 곳, 모든 후보 충돌 = 틀린 선언은 증명 안 됨 |
+| P-G1 자리 보완 | N3.10 P-G1 | 53·160·574행(v0.4) 추가, 175·365·426행은 경계 자리로 대상 아님 메모. 줄 번호를 v0.4 기준으로 표시, 표 행을 한 줄로 |
+
 ## Version History
 
 | 판 | 날짜 | 변경 |
@@ -241,3 +269,4 @@ date: 2026-10-16
 | 0.2 | 2026-10-19 | v0.1 독립 검증 반영(H3). KVL 정본에서 tie 변 제외(B2·K-3 따름), X-G2·U-G2·BD-3·BD-4 철회, 독립 검증 = 오라클 forced·free(U16 배선), 엔진 보조 검사 둘, `gvgs_self_edge` 정지 이전, 봉인 8·MNA·rule_hash·충돌 뒤 처리·범위 확장을 사용자 결정으로(U-G9~U-G13), 부채 목록 집합 판정, 규칙 L-1 도달 조건, 트리 경로 정본 하나(HC-1), GC-8 신설. 재측정 H2-5 |
 | 0.3 | 2026-10-19 | v0.2 재검증 반영(H3). 봉인 8 '대체' 주장 정정, 출발 충돌 표지·사다리 칸 처리·결정 6 선행(X-G11·BD-13), 트리 경로 정본 = `node.dc_writer`(경로 필드 금지), V9·용어집·LR5·design 41 관계 엣지 개정 항목, 다른 card 완료 조건을 상위 개정 항목으로, 부채 목록 지문 대상 확대·최소 단위 키·제거 조건, GC-0a·GC-0b 분리, U-G5·U-G7 → 백로그 B-G1·B-G2, B-G3 추가. 재측정 H2-6 |
 | 0.4 | 2026-10-19 | v0.3 재검증 반영(H3). U-G13 (가)에 끝 처리(모든 칸 전류 충돌 → 빈 사다리·상자 중심 출발·`_report` 빈 사다리 처리)와 1회차 전류 충돌 처리(경계 함수 다섯 자리) 정의, F-G32 행 근거 추가. 결정 6 이미 병합(`c8d156e3`, F-G36) → BD-13 충족, GC-5 선행·K-j·R-G5·K-3 순서 조건 정정. GD-7(아래 칸 표지 출처)·GD-9(규칙 L 별도 파일·지문), 기준선 독립 측정, 트리 경로 함수 단일성 검증자 확인, N3.10 대기·후속 항목 P-G1(DEC-64 v1 고리 문언, 사용자 결정 대기)·P-G2. 재측정 H2-7 |
+| 0.5 | 2026-10-19 | v0.4 재검증 반영(H3). 경계 함수 None 처리 사실 정정(F-G32, H2-7 정정 표시), 네 함수·여섯 호출 자리별 처리와 고칠 자리(GD-7·GC-5), 혼합 경우 선택지 (가-1)~(가-3)과 권고 (가-1), 충돌의 t 의존, 빈 사다리 범위·원인과 다른 면적 충돌 제거·출력 형식(조기 반환 정렬), (다) 대신 상자 중심 계속의 근거, P-G1 자리 보완. 재측정 H2-8 |
