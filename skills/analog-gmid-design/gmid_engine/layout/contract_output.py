@@ -30,6 +30,19 @@ MERGE_NOISE_NOTE = "noise_coupling_not_evaluated (recorded only, not a rejection
 
 
 @dataclasses.dataclass(frozen=True)
+class ConservedPoint:
+    """보존량·동작점(device `ly_point` 의 값): kind, L, ID, gm/ID, VDS, VSB -- `slice_density` 가 소자에서 읽는 칸 전부.
+    참고 W(`LayoutDevice.W_m`)는 보존량이 아니라 들어 있지 않다."""
+
+    kind: str
+    L_m: float
+    ID_A: float
+    gm_id: float
+    vds_V: float
+    vsb_V: float
+
+
+@dataclasses.dataclass(frozen=True)
 class SliceDensity:
     """PDK 특성화 폭 슬라이스 하나에서의 보존량 실현(Q4 (i)): 그 슬라이스의 gm/ID 근 `vgs_V`, 전류 밀도 `J_A_per_m`(= ID/W),
     `W_need_m` = ID / J, `tol_v_V` = 그 슬라이스 tol_V 셀(`id_equivalent`) 값. `reason` = "" 이면 사용 가능, 아니면 이 폭을
