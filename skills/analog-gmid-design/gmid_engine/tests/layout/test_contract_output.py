@@ -13,10 +13,10 @@ def names(c):
     return [f.name for f in dataclasses.fields(c)]
 
 
-def test_layout_result_declares_only_snapshot_and_computed_blocks():
-    # [U17 1-e] design 40 v1.6 §2.4.7 `LayoutResult` 행: "(스냅샷, 이번 호출의 계산 블록 목록)만 둔다" -- 결과 값 사본 칸 없음.
-    # 칸 이름은 design 에 없어 as-built 이름 `snapshot`·`computed_blocks` 를 쓴다(그 순서).
-    assert names(LayoutResult) == ["snapshot", "computed_blocks"]
+def test_layout_result_declares_only_snapshot():
+    # [U17 1-e] design 40 v1.6 §2.4.7 `LayoutResult` 행: 결과 값 사본 칸 없음. 칸 이름 `snapshot` 은 as-built.
+    # 사용자 결정 O-17 (3)(2026-10-19): '이번 호출에서 계산·이식한 writer'(옛 `computed_blocks`)의 정본은 RunCounters 행(perf 행) -- 사본 칸 삭제.
+    assert names(LayoutResult) == ["snapshot"]
     assert LayoutResult.__dataclass_params__.frozen
 
 
@@ -49,6 +49,12 @@ def test_layout_outputs_review_needed_first():
     ("FloorplanSummary", ["bbox_width_m", "bbox_height_m", "outline_area_m2", "grid_m", "aspect_ratio", "packing_density",
                           "placements", "included", "passive_area_m2"]),
     ("Revalidation", ["required", "status", "seals", "devices", "consumer", "reason"]),
+    # [v1.11.2] design 40 §2.4.8 필드 소유표(oracle (d) design 문언): '레이아웃 보존량 점' 행 ConservedPoint(kind, L_m, ID_A, gm_id, vds_V, vsb_V),
+    # '레이아웃 소자 단자 연결' 행 DevicePins(drain, gate, source) -- body 없음(O-36 (3) (a)), '레이아웃 소자 부가 칸' 행 DeviceAttrs(W_m, body,
+    # diode)(O-39 (1)). 세 클래스 모두 graph 값이라 frozen.
+    ("ConservedPoint", ["kind", "L_m", "ID_A", "gm_id", "vds_V", "vsb_V"]),
+    ("DevicePins", ["drain", "gate", "source"]),
+    ("DeviceAttrs", ["W_m", "body", "diode"]),
 ])
 def test_declared_fields(cls, fields):
     c = getattr(co, cls)
@@ -60,6 +66,18 @@ def test_declared_fields(cls, fields):
     expected_len = {"SliceDensity": 7, "WRequest": 5, "FoldAttempt": 8, "MergeDecision": 7}
     if cls in expected_len:
         assert len(names(c)) == expected_len[cls]
+
+
+def test_four_input_fields_partition_layout_device():
+    # oracle (d) design 40 §2.4.8 옛 소자 통째 필드 삭제 행(O-39 (1)): `LayoutDevice` 칸을 겹치지 않게 나눈다 -- 보존량·동작점 -> ly_point
+    # (ConservedPoint), 단자 -> ly_pins(DevicePins), `W_adjustable` -> ly_w_adjustable(bool 값, 칸 이름 그대로), `W_m`·`body`·`diode` ->
+    # ly_attrs(DeviceAttrs), `name` = 열 key. "칸 하나는 필드 하나에만 든다(사본 0)": 넷의 칸 합이 14 이고 합집합이 LayoutDevice 칸 전부.
+    from gmid_engine.layout import LayoutDevice
+    parts = (names(co.ConservedPoint), names(co.DevicePins), ["W_adjustable"], names(co.DeviceAttrs), ["name"])
+    flat = [f for p in parts for f in p]
+    assert len(flat) == len(set(flat)) == 14                                  # 겹침 없음
+    assert set(flat) == set(names(LayoutDevice))                              # 빠짐 없음
+    assert len(names(LayoutDevice)) == 14
 
 
 def test_counted_positional_classes():

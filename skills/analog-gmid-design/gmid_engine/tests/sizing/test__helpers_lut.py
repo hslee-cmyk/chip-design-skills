@@ -64,11 +64,13 @@ def test_w_keys_choose_slice(tmp_path, toy_lut):
     """w_keys 에 없는 폭은 컨텍스트 단계에서 거부(슬라이스 대체 없음)."""
     from gmid_engine.graph import build_s1
     from gmid_engine.sizing import DcInputs, build_kernel_context
+    from gmid_engine.search import open_run
     from .conftest import SUPPLIES, load_doc
-    s1 = build_s1(load_doc(tmp_path, circuit_cs_pmos_load()), dict(SUPPLIES))
+    donors, counters = open_run()
+    s1 = build_s1(load_doc(tmp_path, circuit_cs_pmos_load()), dict(SUPPLIES), donors=donors, counters=counters)
     acc = LutAccess(LutMemo(toy_lut, point=8, curve=8, root=8), (("nmos", 101), ("pmos", 100)))
     with pytest.raises(ValueError):
-        build_kernel_context(s1, DcInputs(tuple(sorted(SUPPLIES.items()))), acc)
+        build_kernel_context(s1, DcInputs(tuple(sorted(SUPPLIES.items()))), acc, donors=donors, counters=counters)
 
 
 def test_toy_lut_is_hermite_consistent(toy_lut):

@@ -19,6 +19,7 @@ from pathlib import Path
 from gmid_engine.core import fp_of
 from gmid_engine.graph import structure_tables
 from gmid_engine.pipeline import run_stage_a
+from gmid_engine.search import open_run
 
 import coupling_hand as CH
 import jrules_hand as J
@@ -40,7 +41,8 @@ KEYS = ["applied_facts", "circuit", "count_budget", "coupling", "declared_compar
 def _run(tmp_path, real_lut, doc, out="out"):
     p = tmp_path / (doc["topology_name"] + ".topology.json")
     p.write_text(json.dumps(doc), encoding="utf-8")
-    return run_stage_a(p, None, real_lut, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
+    donors, counters = open_run()          # [XRUN-F1 card B C6·규칙 M M-c] 호출마다 새 실행 하나
+    return run_stage_a(p, None, real_lut, output_dir=tmp_path / out, supplies_v=H.SUPPLIES, donors=donors, counters=counters)
 
 
 def _pairs_hook(seen):
@@ -186,7 +188,8 @@ def test_env_fp_recorded(tmp_path, real_lut):
     J.write_structure(sdir / "cs.structure.json", "0" * 64, structure_rule_fp(), [J.fact_dict("frobnicate", "M1", "M1")])  # 어휘 밖 concept
     tp = sdir / "cs.topology.json"
     tp.write_text(json.dumps(H.CS), encoding="utf-8")
-    s_stop = run_stage_a(tp, None, real_lut, output_dir=tmp_path / "s_out", supplies_v=H.SUPPLIES)
+    donors, counters = open_run()
+    s_stop = run_stage_a(tp, None, real_lut, output_dir=tmp_path / "s_out", supplies_v=H.SUPPLIES, donors=donors, counters=counters)
     assert (ok.status, stopped.status, load_stop.exit_code, s_stop.exit_code) == ("ok", "stopped", 7, 7)       # 전제: 네 경로
     assert load_stop.report["stop_reasons"][0].startswith("A1_load")
     assert s_stop.report["stop_reasons"][0].startswith("A2_structure_json")

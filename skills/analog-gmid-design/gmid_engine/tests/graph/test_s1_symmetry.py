@@ -40,7 +40,7 @@ def mos(name, kind, d, g, s):
 def build(tmp_path, doc, marks=NO_MARKS, supplies=None, stem=None):
     tmp_path.mkdir(parents=True, exist_ok=True)
     sv = supplies or {r: SUP.get(r, 0.9) for r in doc["supply_nets"]}
-    return build_s1(H.load(tmp_path, doc, stem), sv, marks=marks)
+    return build_s1(H.load(tmp_path, doc, stem), sv, marks=marks, **H.fresh_run())      # [XRUN-F1 card B C6] 새 실행 하나
 
 
 def lib_doc(name):
@@ -49,7 +49,7 @@ def lib_doc(name):
 
 def build_lib(tmp_path, doc, name, marks=NO_MARKS, supplies=None):
     tmp_path.mkdir(parents=True, exist_ok=True)
-    return build_s1(H.load(tmp_path, doc), supplies or H.lib_supplies(name), marks=marks)
+    return build_s1(H.load(tmp_path, doc), supplies or H.lib_supplies(name), marks=marks, **H.fresh_run())
 
 
 def element_marks(values=(), engine=(), linear=()):
@@ -334,13 +334,14 @@ def test_block_reuse_with_same_marks(tmp_path):
     m = SymmetryMarks(None, element_marks((("CL1", 1e-12), ("CL2", 1e-12))), ())
     s1 = build(tmp_path, sym_doc("hand_sym_r", caps=True), m)
     sup = supplies_declaration(SUP, ("vdd", "gnd"))
-    s1_symmetry.reset_stats()
-    assert s1_symmetry(s1.snapshot, sup, m) is s1.snapshot
-    assert s1_symmetry.stats().reuses == 1
-    s1_symmetry.reset_stats()
+    # card B C4 판정 1·4 -- 새 실행 계수(C1)마다 그 호출 하나의 행
+    run = H.fresh_run()
+    assert s1_symmetry(s1.snapshot, sup, m, **run) is s1.snapshot
+    assert [(r.reuses, r.computes) for r in run["counters"].snapshot().blocks if r.block == s1_symmetry.name] == [(1, 0)]
+    run2 = H.fresh_run()
     other = SymmetryMarks(None, element_marks((("CL1", 1e-12), ("CL2", 2e-12))), ())
-    assert s1_symmetry(s1.snapshot, sup, other) is not s1.snapshot
-    assert s1_symmetry.stats().reuses == 0
+    assert s1_symmetry(s1.snapshot, sup, other, **run2) is not s1.snapshot
+    assert [(r.reuses, r.computes) for r in run2["counters"].snapshot().blocks if r.block == s1_symmetry.name] == [(0, 1)]
     plain = build(tmp_path, sym_doc("hand_sym_r", caps=True))
     assert plain.key.marks_fp == "none" and s1.key.marks_fp != "none" and plain.key != s1.key
 

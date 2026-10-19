@@ -21,6 +21,7 @@ from pathlib import Path
 from gmid_engine.authoring import load_sizing_spec, load_topology
 from gmid_engine.metrics import metric_catalog
 from gmid_engine.pipeline import run_stage_a
+from gmid_engine.search import open_run
 
 import jrules_hand as J
 import s1v_hand as H
@@ -57,7 +58,8 @@ def _codes(lines):
 
 def _go(tmp_path, real_lut, doc, loop_cut, out="o", stem=None):
     tp, sp = _pair(tmp_path, doc, loop_cut, stem=stem)
-    return run_stage_a(tp, sp, real_lut, output_dir=tmp_path / out, supplies_v=H.SUPPLIES)
+    donors, counters = open_run()          # [XRUN-F1 card B C6·규칙 M M-c] 호출마다 새 실행 하나
+    return run_stage_a(tp, sp, real_lut, output_dir=tmp_path / out, supplies_v=H.SUPPLIES, donors=donors, counters=counters)
 
 
 # ------------------------------------------------------------------ 해제·불일치·거부

@@ -271,7 +271,9 @@ def test_stage_b_result_carries_s0_snapshot_reference_only(tmp_path, toy, pdk):
 def _stage_a_ok(tmp_path, toy, pdk):
     """단계 A 만(입력 helper): 팔로워 + 이상 전류원, gain 제약 없음(위 test 와 같은 입력 -- 단계 A ok)."""
     tp, sp = write_case(tmp_path, follower(), elements=(("I1", "current_source", None),))
-    a = run_stage_a(tp, sp, toy, output_dir=tmp_path / "out")          # [xrun J-1] 선언·경로 인자 없음(pdk 는 단계 B 몫)
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C6·규칙 M M-c] 단계 A 호출 하나 = 새 실행 하나(단계 B 는 stage_a 의 두 칸을 쓴다)
+    a = run_stage_a(tp, sp, toy, output_dir=tmp_path / "out", donors=donors, counters=counters)   # [xrun J-1] 선언·경로 인자 없음
     assert (a.status, a.exit_code) == ("ok", 0)
     return a
 

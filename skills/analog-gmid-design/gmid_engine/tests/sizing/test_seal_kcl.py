@@ -60,7 +60,9 @@ def rows_of(snap, resistances):
 
 
 def run(snap, res=()):
-    return seal_item(dc_seal_kcl(snap, tuple(res)), 3)
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C4] 블록 단독 호출 = 새 실행 하나
+    return seal_item(dc_seal_kcl(snap, tuple(res), donors=donors, counters=counters), 3)
 
 
 @pytest.mark.parametrize("which", ["C", "A"])

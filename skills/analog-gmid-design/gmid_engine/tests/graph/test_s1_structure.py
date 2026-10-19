@@ -39,8 +39,15 @@ TABLE = {
 NODE_FIELDS = ("ac_ground_class", "is_rail", "port_direction", "port_role", "terminals")
 
 
+def _build(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
+
+
 def _s1(gh, name):
-    return build_s1(gh.load_lib(name), gh.supplies_for(name))
+    return _build(gh.load_lib(name), gh.supplies_for(name))
 
 
 @pytest.mark.parametrize("name", SIX)
@@ -124,7 +131,7 @@ def test_bulk_only_net_is_node_without_terminals(gh, tmp_path):
     for e in raw["netlist"]:
         e["bulk"] = "VB_well" if e["kind"] == "pmos" else "vsub"
     agg = gh.agg(raw)
-    s1 = build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0, "vsub": 0.0})
+    s1 = _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0, "vsub": 0.0})
     assert s1.snapshot.keys("node") == agg.nodes
     for net in ("VB_well", "vsub"):
         assert s1.value("node", net, "terminals") == ()
@@ -142,7 +149,7 @@ def test_bulk_only_rail_is_ac_ground_rail(gh, tmp_path):
     raw["supply_nets"] = ["vdd", "gnd", "vsub"]
     for e in raw["netlist"]:                    # 전부 선언 -> 기본 규칙 대상 없음(vsub·gnd 동률이어도 정지 검사 미적용)
         e["bulk"] = "vsub" if e["kind"] == "nmos" else "vdd"
-    s1 = build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0, "vsub": 0.0})
+    s1 = _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0, "vsub": 0.0})
     assert s1.value("node", "vsub", "terminals") == ()
     assert s1.value("node", "vsub", "is_rail") is True
     assert s1.value("node", "vsub", "ac_ground_class") == "rail"
@@ -167,7 +174,7 @@ def test_unsupported_kind_recorded_then_stopped_by_u2(gh, tmp_path, where, kind,
     assert snap.column("device", "unsupported") == ((name, branch),)
     assert snap.value("device", name, "kind") == kind
     with pytest.raises(StructureUnresolvedError) as ei:
-        build_s1(doc, None)
+        _build(doc, None)
     d = dict(ei.value.record.detail)
     assert (d["reason"], d["rule_branch"], d["nets"]) == ("unsupported_rule_branch", branch, ())
     assert ei.value.record.devices == (name,)
@@ -184,26 +191,28 @@ def test_direct_block_call_matches_build(gh):
     doc = gh.load_lib(name)
     assert isinstance(s1_structure, ComputeBlock) and s1_structure.name == S1_STRUCTURE_WRITER
     assert s1_structure.reads == ()
+    run = gh.fresh_run()
     base = GraphSnapshot.empty(S1_WRITERS)
-    snap = s1_structure(base, doc.devices, doc.passives, doc.sources, tuple(sorted(doc.rails)), doc.ports)
+    snap = s1_structure(base, doc.devices, doc.passives, doc.sources, tuple(sorted(doc.rails)), doc.ports, **run)
     assert snap.block_version(S1_STRUCTURE_WRITER) is not None
-    ref = build_s1(doc, None).snapshot
+    ref = _build(doc, None).snapshot
     for kind in ("node", "device"):
         assert snap.keys(kind) == ref.keys(kind)
         for f in ("terminals", "is_rail", "ac_ground_class") if kind == "node" else ("pins", "kind", "element_class"):
             assert snap.column(kind, f) == ref.column(kind, f)
-    # 같은 입력으로 다시 부르면 재사용(같은 객체, 계수 reuses +1)
-    before = s1_structure.stats()
-    again = s1_structure(snap, doc.devices, doc.passives, doc.sources, tuple(sorted(doc.rails)), doc.ports)
-    after = s1_structure.stats()
+    # 같은 입력으로 다시 부르면 재사용(같은 객체, 실행 계수(card B C1) reuses +1)
+    before = gh.block_row(run["counters"], s1_structure.name)
+    again = s1_structure(snap, doc.devices, doc.passives, doc.sources, tuple(sorted(doc.rails)), doc.ports, **run)
+    after = gh.block_row(run["counters"], s1_structure.name)
     assert again is snap
-    assert (after.reuses - before.reuses, after.computes - before.computes) == (1, 0)
+    assert (after[1] - before[1], after[4] - before[4]) == (1, 0)
 
 
 def test_direct_block_rejects_mutable_extras(gh):
+    # card B C4: extras 불변 검사 TypeError 는 그 호출을 계수에 넣지 않는다
     doc = gh.load_lib("common_gate_amplifier")
-    before = s1_structure.stats()
+    run = gh.fresh_run()
     with pytest.raises(TypeError):
         s1_structure(GraphSnapshot.empty(S1_WRITERS), list(doc.devices), doc.passives, doc.sources,
-                     tuple(sorted(doc.rails)), doc.ports)
-    assert s1_structure.stats().calls == before.calls
+                     tuple(sorted(doc.rails)), doc.ports, **run)
+    assert gh.block_row(run["counters"], s1_structure.name) == (0, 0, 0, 0, 0, 0)

@@ -10,6 +10,13 @@ import pytest
 from gmid_engine.core import ComputeBlock
 from gmid_engine.graph import S1_REL_VGS_WRITER, RelEdge, build_s1, s1_rel_vgs
 
+
+def _build(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
+
 SIX = (
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
@@ -22,7 +29,7 @@ TABLE = {"common_gate_amplifier": (0, 0), "current_reuse_telescopic_ota": (3, 16
 
 
 def _s1(gh, name):
-    return build_s1(gh.load_lib(name), gh.supplies_for(name))
+    return _build(gh.load_lib(name), gh.supplies_for(name))
 
 
 @pytest.mark.parametrize("name", NINE)

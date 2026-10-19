@@ -44,9 +44,11 @@ def structure_of(s1v_or_graph):
     """[U17 ①-b] metric 구조 입력 = S0 수준 필드 `graph/s1v: metric_structure`(설계 40 v1.9.1 §2.4.8 'metric 구조 입력' 행, writer `metric_structure` 블록).
     S1v 필드가 있는 S1Graph(또는 tests/graph `S1vRead`)의 스냅샷을 metrics S0 권한표로 넓혀 블록을 부르고 그 필드를 읽는다."""
     from gmid_engine.metrics import METRICS_S0_WRITERS, metric_structure
+    from gmid_engine.search import open_run
     graph = getattr(s1v_or_graph, "graph", s1v_or_graph)
     snapshot = getattr(graph, "snapshot", graph).widen(METRICS_S0_WRITERS)
-    return metric_structure(snapshot).value("graph", "s1v", "metric_structure")
+    donors, counters = open_run()          # [XRUN-F1 card B C4] 블록 단독 호출 = 새 실행 하나
+    return metric_structure(snapshot, donors=donors, counters=counters).value("graph", "s1v", "metric_structure")
 
 
 def hand_circuit(values=None, gds_scale=1.0):

@@ -17,7 +17,7 @@ from gmid_engine.graph import ELEMENT_PASSIVE
 from gmid_engine.metrics import passive_values
 from gmid_engine.sizing import S2_WRITERS, ZeroCancel
 
-from .conftest import hand_write, s2_of, schema_of, topo_doc, topo_only
+from .conftest import block_row, fresh_run, hand_write, row_delta, s2_of, schema_of, topo_doc, topo_only
 
 SUP = {"vdd": 1.8, "gnd": 0.0}
 GM = {"M1": 1e-3, "M2": 3e-3}                     # 손 dc_gm(writer dc_tolerances)
@@ -67,7 +67,7 @@ def test_three_sources_merged(snap):
     zcs = (zc("Rz", ("M1", "M2")), zc("Rq", ("M1",), reason="pending"))
     th = ((("resistance", "R1"), 1e3), (("capacitance", "C1"), 2e-12), (("ss_resistance", "Rs"), 5e4),
           (("ln_idu", "M1"), -14.0), (("current", "M2"), 1e-5))
-    got = values_of(passive_values(snap, ev, zcs, th))
+    got = values_of(passive_values(snap, ev, zcs, th, **fresh_run()))
     assert sorted(got) == ["C1", "CL", "R1", "Rs", "Rz"]     # 값 없는 Cx·reason 있는 Rq·비수동 I1 제외
     assert (got["C1"], got["CL"], got["R1"], got["Rs"]) == (2e-12, 3e-12, 1e3, 5e4)
     assert got["Rz"] == pytest.approx(250.0, rel=1e-15)                  # 1 / (1 mS + 3 mS)
@@ -76,31 +76,32 @@ def test_three_sources_merged(snap):
 
 def test_theta_name_not_a_passive_is_rejected(snap):
     with pytest.raises(ValueError):
-        passive_values(snap, (), (), ((("resistance", "M1"), 1e3),))
+        passive_values(snap, (), (), ((("resistance", "M1"), 1e3),), **fresh_run())
 
 
 def test_same_passive_from_two_sources_is_rejected(snap):
     with pytest.raises(ValueError):
-        passive_values(snap, (("C1", 1e-12),), (), ((("capacitance", "C1"), 2e-12),))
+        passive_values(snap, (("C1", 1e-12),), (), ((("capacitance", "C1"), 2e-12),), **fresh_run())
     with pytest.raises(ValueError):
-        passive_values(snap, (), (zc("R1", ("M1",)),), ((("resistance", "R1"), 1e3),))
+        passive_values(snap, (), (zc("R1", ("M1",)),), ((("resistance", "R1"), 1e3),), **fresh_run())
 
 
 def test_structural_resistor_must_be_passive(snap):
     with pytest.raises(ValueError):
-        passive_values(snap, (), (zc("I1", ("M1",)),), ())
+        passive_values(snap, (), (zc("I1", ("M1",)),), (), **fresh_run())
 
 
 def test_no_sources_gives_empty(snap):
-    assert values_of(passive_values(snap, (), (), ())) == {}
+    assert values_of(passive_values(snap, (), (), (), **fresh_run())) == {}
 
 
 def test_field_follows_dc_gm_input_version(snap):
     """DF-15·§2.4.1: dc_gm 열만 바뀌면 다시 계산(R 이 따라간다), 같은 입력이면 재사용(`is`)."""
+    run = fresh_run()
     zcs = (zc("Rz", ("M1", "M2")),)
-    s1 = passive_values(snap, (), zcs, ())
-    assert passive_values(s1, (), zcs, ()) is s1
-    s2 = passive_values(hand_write(s1, "device", "dc_gm", {"M1": 2e-3, "M2": 6e-3}, version="gm2"), (), zcs, ())
+    s1 = passive_values(snap, (), zcs, (), **run)
+    assert passive_values(s1, (), zcs, (), **run) is s1
+    s2 = passive_values(hand_write(s1, "device", "dc_gm", {"M1": 2e-3, "M2": 6e-3}, version="gm2"), (), zcs, (), **run)
     assert s2 is not s1
     assert values_of(s2)["Rz"] == pytest.approx(125.0, rel=1e-15)
 
@@ -275,13 +276,15 @@ def test_mos_theta_change_reuses_block_through_selector(snap):
     """같은 dc_gm 스냅샷에서 MOS θ 만 바꾼 θ 를 `theta_passive_pairs` 로 고르면 extras 가 같아 재사용(`is`, computes 0),
     수동소자 θ(R1)를 바꾸면 계산 1 -- 값은 새 θ 값(손)."""
     from gmid_engine.metrics import theta_passive_pairs
+    # oracle 대조: card B C4 판정 1·4 -- 실행 계수(C1) 행의 구간 증분(재사용 1·계산 0, 다음 구간 계산 1)
+    run = fresh_run()
     zcs = (zc("Rz", ("M1", "M2")),)
-    s1 = passive_values(snap, (), zcs, theta_passive_pairs(MIXED_THETA))
+    s1 = passive_values(snap, (), zcs, theta_passive_pairs(MIXED_THETA), **run)
     mos_step = tuple(((k, v * 1.01) if k[0] in ("L", "ln_idu", "current", "y") else (k, v)) for k, v in MIXED_THETA)
-    passive_values.reset_stats()
-    assert passive_values(s1, (), zcs, theta_passive_pairs(mos_step)) is s1
-    assert (passive_values.stats().computes, passive_values.stats().reuses) == (0, 1)
+    before = block_row(run["counters"], passive_values.name)
+    assert passive_values(s1, (), zcs, theta_passive_pairs(mos_step), **run) is s1
+    assert row_delta(block_row(run["counters"], passive_values.name), before) == (1, 1, 0, 0, 0, 0)
     r_step = tuple(((k, 2e3) if k == ("resistance", "R1") else (k, v)) for k, v in MIXED_THETA)
-    s2 = passive_values(s1, (), zcs, theta_passive_pairs(r_step))
-    assert passive_values.stats().computes == 1 and s2 is not s1
+    s2 = passive_values(s1, (), zcs, theta_passive_pairs(r_step), **run)
+    assert row_delta(block_row(run["counters"], passive_values.name), before)[4] == 1 and s2 is not s1
     assert values_of(s2)["R1"] == 2e3 and values_of(s2)["Rz"] == values_of(s1)["Rz"]

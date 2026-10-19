@@ -35,7 +35,9 @@ REASON_MISSING = "lut_vdsat_column_missing"
 
 
 def run(snap, lin=(), lut=None):
-    return seal_item(dc_seal_saturation(snap, tuple(lin), lut), 7)
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C4] 블록 단독 호출 = 새 실행 하나
+    return seal_item(dc_seal_saturation(snap, tuple(lin), lut, donors=donors, counters=counters), 7)
 
 
 def ops_of(snap):
@@ -290,10 +292,15 @@ def test_lut_failure_is_structured(ctx_r4c, field, value, lut_reason):
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
-def ctx_mixed(tmp_path_factory):
+def lut_mixed(tmp_path_factory):
     """nmos 슬라이스만 VDSAT 열, pmos 는 열 없음(기준 LUT 에도 없음 -> lut_column_unavailable)."""
-    lut = write_r4_lut(tmp_path_factory.mktemp("r4_mixed"), vdsat=("nmos",))
-    return build_ctx(tmp_path_factory.mktemp("ctx_mixed"), circuit_cs_pmos_load(), new_access(lut))[2]
+    return write_r4_lut(tmp_path_factory.mktemp("r4_mixed"), vdsat=("nmos",))
+
+
+@pytest.fixture
+def ctx_mixed(tmp_path_factory, lut_mixed):
+    """[XRUN-F1 card B 규칙 M M-d] KernelContext(실행 두 객체를 칸으로 쥠)는 function 범위 -- LUT 만 모듈 1회."""
+    return build_ctx(tmp_path_factory.mktemp("ctx_mixed"), circuit_cs_pmos_load(), new_access(lut_mixed))[2]
 
 
 @pytest.mark.parametrize("y,status", [(0.5, "undefined"), (0.1, "fail")])
@@ -429,11 +436,12 @@ def _real_tol(a, L, vds, mid=None, suf=None):
 
 
 @pytest.fixture(scope="module")
-def real_ctx(real_lut_v2, tmp_path_factory):
+def real_env(real_lut_v2):
+    """(LutAccess, LutMemo, 배열, 외부 값) -- LUT 쪽 준비만(모듈 1회). [XRUN-F1 card B 규칙 M M-d] KernelContext 는 실행 두 객체를 칸으로
+    쥐므로 여기 두지 않고 function 범위 real_ctx 가 만든다."""
     lut, files = real_lut_v2
     memo = LutMemo(lut, point=8192, curve=8192, root=8192)
     acc = pre_layout_lut_access(memo)
-    ctx = build_ctx(tmp_path_factory.mktemp("real_c"), circuit_cs_pmos_load(), acc)[2]
     arrays = {}
     for kind, wk in acc.w_keys:
         with np.load(files[(kind, wk)]) as z:
@@ -457,6 +465,13 @@ def real_ctx(real_lut_v2, tmp_path_factory):
             for ax in ("VGS", "VDS", "VS"):
                 assert np.array_equal(mid[ax], arrays[kind][ax]), ax
             ext[kind] = (mid, dict(REAL_CAP_SUFFIX)[kind])
+    return acc, memo, arrays, ext
+
+
+@pytest.fixture
+def real_ctx(real_env, tmp_path):
+    acc, memo, arrays, ext = real_env
+    ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), acc)[2]
     return ctx, memo, arrays, ext
 
 

@@ -9,8 +9,8 @@ import pytest
 
 from gmid_engine.sizing import DeviceOp, dc_widths
 
-from .conftest import (W_KEY, Oracle, mos_table, node_voltages, rel_close, run_blocks, terminal_mag, theta_a,
-                       theta_c)
+from .conftest import (W_KEY, Oracle, block_row, mos_table, node_voltages, rel_close, row_delta, run_blocks, run_of,
+                       terminal_mag, theta_a, theta_c)
 
 
 def check_ops(snap):
@@ -62,8 +62,10 @@ def test_width_scales_with_current_only(ctx_c):
 
 
 def test_reads_no_unknown_fields(ctx_c):
-    snap = run_blocks(ctx_c[2], theta_c(), upto="columns")
-    dc_widths.reset_stats()
-    out = dc_widths(snap, ctx_c[2].lut)
-    assert dc_widths(out, ctx_c[2].lut) is out
-    assert dc_widths.stats().computes == 1 and dc_widths.stats().reuses == 1
+    # oracle 대조: card B C4 판정 1·4 -- 실행 계수(C1) 행의 이 구간 증분 = 계산 1·재사용 1
+    ctx = ctx_c[2]
+    snap = run_blocks(ctx, theta_c(), upto="columns")
+    before = block_row(ctx.counters, "dc_widths")
+    out = dc_widths(snap, ctx.lut, **run_of(ctx))
+    assert dc_widths(out, ctx.lut, **run_of(ctx)) is out
+    assert row_delta(block_row(ctx.counters, "dc_widths"), before) == (2, 1, 0, 0, 1, 0)

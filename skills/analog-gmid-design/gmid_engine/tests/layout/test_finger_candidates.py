@@ -13,7 +13,7 @@ import pytest
 from gmid_engine.layout.contract_output import FingerCandidate
 from gmid_engine.layout.finger_candidates import finger_candidates
 
-from .conftest import dev, device_column, make_input, new_memo, rg, staged_snapshot, toy_pdk
+from .conftest import block_row, dev, device_column, fresh_run, make_input, new_memo, rg, staged_snapshot, toy_pdk
 
 FW = {100: 1e-6, 200: 2e-6}
 
@@ -34,11 +34,12 @@ def _expected(sl, gm_id, grid=1e-8):
     return out
 
 
-def _run(toy_lut, devices, rgs=None):
+def _run(toy_lut, devices, rgs=None, run=None):
+    """[XRUN-F1 card B C4] run = 실행 두 객체 키워드(dict), 없으면 새 실행 하나."""
     memo = new_memo(toy_lut)
     inp = make_input(devices, [], rgs or [rg("r", [d.name for d in devices])], toy_pdk(toy_lut))
     snap = staged_snapshot(inp, memo)
-    return snap, finger_candidates(snap)
+    return snap, finger_candidates(snap, **(run if run is not None else fresh_run()))
 
 
 def test_candidates_match_independent_rule(toy_lut):
@@ -108,9 +109,25 @@ def test_same_inputs_share_tuple_object(toy_lut):
 
 
 def test_block_reuse_counts(toy_lut):
-    finger_candidates.reset_stats()
-    snap0, snap = _run(toy_lut, [dev("A", "h", "da", 2e-6)])
-    again = finger_candidates(snap)
+    # oracle 대조: card B C4 판정 1·4 -- 실행 계수(C1) 행 (calls, computes, reuses, recomputes_same_input)
+    run = fresh_run()
+    snap0, snap = _run(toy_lut, [dev("A", "h", "da", 2e-6)], run=run)
+    again = finger_candidates(snap, **run)
     assert again is snap                                     # 같은 입력 -> 재사용(함수 호출 0)
-    st = finger_candidates.stats()
-    assert (st.calls, st.computes, st.reuses, st.recomputes_same_input) == (2, 1, 1, 0)
+    st = block_row(run["counters"], finger_candidates.name)
+    assert (st[0], st[4], st[1], st[5]) == (2, 1, 1, 0)
+
+
+def test_reads_declaration():
+    # oracle (d): design 40 v1.11.2 §2.4.8 '세 블록 READS' 행(O-36 (3) (a)·O-39 (2)) -- `ly_finger_candidates` READS device `ly_point`(gm_id)·
+    # `ly_slices`, graph `ly_pdk`. 옛 소자 통째 필드 열 읽기 없음, 참고 W 를 담은 `ly_attrs` 를 읽지 않는다.
+    assert set(finger_candidates.reads) == {("device", "ly_point"), ("device", "ly_slices"), ("graph", "ly_pdk")}
+
+
+def test_reference_w_not_in_input_version(toy_lut):
+    # 같은 근거: W_m 은 `ly_attrs` 칸이라 이 블록의 투영 밖 -> 참고 W 만 다른 두 입력의 입력 버전이 같다(완료 조건 W-1·W-3 의 '+0' 블록 단위)
+    devs = [dev("A", "h", "da", 2e-6, W=4e-6), dev("C", "x", "y", 0.75e-6, W=3e-6)]
+    other = [dev("A", "h", "da", 2e-6, W=9e-6), dev("C", "x", "y", 0.75e-6, W=1e-6)]
+    snaps = [staged_snapshot(make_input(ds, [], [rg("r", [d.name for d in ds])], toy_pdk(toy_lut)), new_memo(toy_lut))
+             for ds in (devs, other)]
+    assert finger_candidates.input_version(snaps[0]) == finger_candidates.input_version(snaps[1])

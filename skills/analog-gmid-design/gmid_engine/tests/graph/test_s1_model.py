@@ -35,8 +35,15 @@ SIX = (
 NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
 
 
+def _build(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
+
+
 def _s1(gh, name):
-    return build_s1(gh.load_lib(name), gh.supplies_for(name))
+    return _build(gh.load_lib(name), gh.supplies_for(name))
 
 
 def test_frozen_and_fields(gh):
@@ -121,8 +128,8 @@ def test_structure_only_snapshot_bulk_not_computed(gh):
     # s1_structure 만 돈 스냅샷: 구조 필드는 질의되고 bulk 는 FieldNotComputed(빈 tuple 아님)
     doc = gh.load_lib("pushpull_follower_buffer")
     snap = s1_structure(GraphSnapshot.empty(S1_WRITERS), doc.devices, doc.passives, doc.sources,
-                        tuple(sorted(doc.rails)), doc.ports)
-    g = S1Graph(build_s1(doc, None).key, snap)
+                        tuple(sorted(doc.rails)), doc.ports, **gh.fresh_run())
+    g = S1Graph(_build(doc, None).key, snap)
     assert len(g.column("node", "terminals")) == len(gh.agg(gh.raw("pushpull_follower_buffer")).nodes)
     with pytest.raises(FieldNotComputed):
         g.column("device", "bulk")
@@ -141,6 +148,7 @@ import json, random, sys
 sys.path.insert(0, sys.argv[1])
 from gmid_engine.authoring import load_topology
 from gmid_engine.graph import build_s1
+from gmid_engine.search import open_run
 lib, out_dir = sys.argv[2], sys.argv[3]
 spec = json.loads(sys.argv[4])
 res = {}
@@ -151,7 +159,8 @@ for name, sv in spec.items():
     q = out_dir + "/" + name + ".shuf.topology.json"
     open(q, "w", encoding="utf-8").write(json.dumps(raw))
     for tag, path in (("orig", p), ("shuf", q)):
-        s1 = build_s1(load_topology(path), sv)
+        donors, counters = open_run()   # [XRUN-F1 card B C6] S1 하나 = 새 실행 하나
+        s1 = build_s1(load_topology(path), sv, donors=donors, counters=counters)
         res[name + "/" + tag] = [s1.snapshot.fp, s1.key.topology_fp, s1.key.rule_fp, s1.key.supplies_v_fp]
 print(json.dumps(res, sort_keys=True))
 """
@@ -186,6 +195,6 @@ def test_key_fp_equal_for_equal_inputs(gh):
     # 같은 doc·supplies_v 로 별도 빌드한 키는 == 이고 fp_of 도 같다. supplies 유무가 다르면 다르다.
     name = "two_stage_ota_sf"
     s1 = _s1(gh, name)
-    again = build_s1(gh.load_lib(name), gh.supplies_for(name)).key
+    again = _build(gh.load_lib(name), gh.supplies_for(name)).key
     assert s1.key == again and fp_of(s1.key) == fp_of(again)
-    assert fp_of(s1.key) != fp_of(build_s1(gh.load_lib(name), None).key)
+    assert fp_of(s1.key) != fp_of(_build(gh.load_lib(name), None).key)

@@ -1,6 +1,6 @@
 """`size_and_seal(ctx, theta, parent=None) -> DcEvaluation` -- CONTRACT 7절(API·재사용 계약), 8절(실패 규약), 9절(결정론).
 
-재사용은 core 블록 계수(`stats()`)로 잰다. 기대값은 계약 7절 문장(같은 θ·parent -> computes 0·reuses 13, 한 성분 섭동 ->
+재사용은 실행 계수(XRUN-F1 card B C1 `RunCounters`, ctx 의 실행)로 잰다. 기대값은 계약 7절 문장(같은 θ·parent -> computes 0·reuses 13, 한 성분 섭동 ->
 지정 블록만 다시)이다. 9회로 §10 숫자는 쓰지 않는다.
 """
 import json
@@ -8,6 +8,7 @@ import os
 import random
 import subprocess
 import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -20,6 +21,7 @@ from gmid_engine.sizing import DcEvaluation, check_theta, size_and_seal
 
 from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circuit_empty_window, detail, free_currents, mos,
                        theta_a, theta_c, topo, two)
+from .conftest import COUNT_FIELDS, block_row, row_delta  # [XRUN-F1 card B C1] 실행 계수 행
 from .conftest import kschema, kties  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
@@ -28,17 +30,15 @@ EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerance
 PLAN5 = (S.dc_rails, s1_symmetry, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
 
 
-def reset():
-    for b in EVAL13 + PLAN5:
-        b.reset_stats()
+def stats(ctx):
+    """[XRUN-F1 card B C1·C4] ctx 실행 계수의 블록 행(옛 블록 객체 stats 대체 -- 블록은 상태가 없다)."""
+    return {b.name: block_row(ctx.counters, b.name) for b in EVAL13 + PLAN5}
 
 
-def stats():
-    return {b.name: b.stats() for b in EVAL13 + PLAN5}
-
-
-def computes():
-    return {n: s.computes for n, s in stats().items()}
+def stats_since(ctx, before):
+    """stats(ctx) 의 before 이후 증분 -- 속성 calls·reuses·grafts·replays·computes·recomputes_same_input."""
+    now = stats(ctx)
+    return {n: types.SimpleNamespace(**dict(zip(COUNT_FIELDS, row_delta(now[n], before[n])))) for n in now}
 
 
 # ---------------------------------------------------------------------------
@@ -89,9 +89,9 @@ def test_parent_from_other_plan(ctx_c, ctx_a):
 def test_same_theta_with_parent_zero_compute(ctx_c):
     ctx = ctx_c[2]
     ev1 = size_and_seal(ctx, theta_c(y=0.45))
-    reset()
+    before = stats(ctx)
     ev2 = size_and_seal(ctx, theta_c(y=0.45), parent=ev1)
-    st = stats()
+    st = stats_since(ctx, before)
     assert all(st[b.name].computes == 0 for b in EVAL13)
     assert sum(st[b.name].reuses for b in EVAL13) == 13
     assert all(st[b.name].calls == 0 for b in PLAN5)          # 계획 블록은 평가에서 부르지 않는다
@@ -103,9 +103,9 @@ def _perturb(ctx, base_th, key, value):
     ev1 = size_and_seal(ctx, base_th)
     th = dict(base_th)
     th[key] = value
-    reset()
+    before = stats(ctx)
     ev2 = size_and_seal(ctx, th, parent=ev1)
-    st = stats()
+    st = stats_since(ctx, before)
     assert sum(s.recomputes_same_input for s in st.values()) == 0
     return {n: s.computes for n, s in st.items()}, ev1, ev2
 
@@ -136,7 +136,8 @@ def test_current_through_resistor_recomputes_columns(ctx_a):
     assert c["dc_currents"] == 1 and c["dc_columns"] == 1 and c["dc_lengths"] == 0
 
 
-@pytest.fixture(scope="module")
+# [XRUN-F1 card B 규칙 M M-d] KernelContext(실행 두 객체를 칸으로 쥠)는 function 범위
+@pytest.fixture
 def ctx_passive(tmp_path_factory, toy_access):
     """회로 A + Rz(out, m)–Cz(m, gnd) (둘 다 engine): Rz 는 가지치기 저항이고 구조 규칙 no_cs_cell -> θ ss_resistance,
     Cz -> θ capacitance (4.4 r5). 그 밖 θ 는 회로 A 와 같다."""
@@ -167,9 +168,9 @@ def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
     ctx = ctx_passive
     ev1 = size_and_seal(ctx, theta_passive())
     th = theta_passive(cz=2e-12, rz=3e4) if key == "both" else {**theta_passive(), key: val}
-    reset()
+    before = stats(ctx)
     ev2 = size_and_seal(ctx, th, parent=ev1)
-    st = stats()
+    st = stats_since(ctx, before)
     assert all(st[b.name].computes == 0 for b in EVAL13), {b.name: st[b.name].computes for b in EVAL13}
     assert sum(st[b.name].reuses for b in EVAL13) == 13
     assert all(st[b.name].calls == 0 for b in PLAN5)
@@ -391,7 +392,7 @@ from .conftest import (B as _B, C as _C, LClassStub, build_ctx_u4, circuit_mirro
                        node_voltages, r4_ln_idu, rel_close, terminal_mag, theta_mirror, theta_r4c, with_hand_ss)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def mir_tied(tmp_path_factory, r4_access):
     return build_ctx_u4(tmp_path_factory.mktemp("ss_tied"), circuit_mirror(), r4_access,
                         l_classes=(LClassStub("M1", ("M1", "M2")),), element_values=(("I1", 1e-5),))[1]
@@ -452,12 +453,12 @@ def _ic1_points(ctx_r4c, mir_tied, mir_plain, mir_hint):
     return pts
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def mir_plain(tmp_path_factory, r4_access):
     return build_ctx_u4(tmp_path_factory.mktemp("ss_plain"), circuit_mirror(), r4_access, element_values=(("I1", 1e-5),))[1]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def mir_hint(tmp_path_factory, r4_access):
     return build_ctx_u4(tmp_path_factory.mktemp("ss_hint"), circuit_mirror(), r4_access,
                         order_hints=OrderHints(independent=("M2",)), element_values=(("I1", 1e-5),))[1]

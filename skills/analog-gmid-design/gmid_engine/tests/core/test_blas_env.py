@@ -242,15 +242,22 @@ import gmid_engine
 import scipy.linalg
 from search.conftest import CODE_FP, build_case, circuit_c, theta_r4c, write_r4_lut
 from gmid_engine.pipeline import run_stage_a
-from gmid_engine.search import AXIS_AREA, build_search_context, find_front, layer0_start, solve_eps, start_points
+from gmid_engine.search import AXIS_AREA, build_search_context, find_front, layer0_start, open_run, solve_eps, start_points
 tmp = Path(tempfile.mkdtemp(prefix="nt5", dir={work!r}))
+
+
+def _point_a():
+    donors, counters = open_run()   # [XRUN-F1 card B C6] 단계 A 호출 하나 = 새 실행 하나
+    return run_stage_a(tp, sp, lut, output_dir=tmp / "a_out", donors=donors, counters=counters)
+
+
 lut = write_r4_lut(tmp / "lut")
 case = build_case(tmp, circuit_c(), lut, eval_budget=12)
 st, _ = start_points(case.sctx, [theta_r4c()])
 tp = sorted((tmp / "case").glob("*.topology.json"))[0]
 sp = sorted((tmp / "case").glob("*.sizing_spec.json"))[0]
 POINTS = {{
-    "a": lambda: run_stage_a(tp, sp, lut, output_dir=tmp / "a_out"),
+    "a": _point_a,
     "b": lambda: build_search_context(case.dc, case.spec, case.settings, None, case.pdk, case.rule, code_fp=CODE_FP),
     "c": lambda: find_front(case.sctx, [theta_r4c()]),
     "d": lambda: layer0_start(case.sctx),

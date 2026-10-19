@@ -36,6 +36,7 @@ from .conftest import (
     theta_n,
     theta_r4c,
 )
+from .conftest import block_row, row_delta  # [XRUN-F1 card B C1] 실행 계수 행
 
 AXIS_CONS = (("power_dc_w", "<=", 1e-3, None), ("area_search_m2", "<=", 1e-9, None))
 SS_CONS = (("gain_ss_db", ">=", 10.0, None),)
@@ -255,11 +256,12 @@ def test_parent_reuses_lineage(case_c):
     case, _ = case_c
     s = case.sctx
     base = evaluate(s, th_sorted(theta_r4c()), CELLS_C)
-    c0, u0 = dc_columns.stats().computes, dc_currents.stats().computes
+    # [XRUN-F1 card B C1·C6] 계수 = 그 탐색 컨텍스트 실행(sctx.dc.counters)의 행 computes(인덱스 4)
+    c0, u0 = block_row(s.dc.counters, dc_columns.name)[4], block_row(s.dc.counters, dc_currents.name)[4]
     r = evaluate(s, th_sorted(theta_r4c(i2=1.1e-5)), CELLS_C, parent=base)
     assert r.status == STATUS_SEALED
-    assert dc_columns.stats().computes == c0
-    assert dc_currents.stats().computes == u0 + 1
+    assert block_row(s.dc.counters, dc_columns.name)[4] == c0
+    assert block_row(s.dc.counters, dc_currents.name)[4] == u0 + 1
 
 
 def test_repeated_requests_kernel_equals_unique_keys(tmp_path, lut_sealed):
@@ -322,10 +324,11 @@ def test_u7_structure_writes_block_residual_to_evals(tmp_path, lut_sealed, short
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
     case = build_case(tmp_path, circuit_c(), lut_sealed, constraints=AXIS_CONS + SS_CONS)
     inputs = dc_inputs_from_spec(case.spec)
-    s1 = build_s1(case.td, dict(inputs.supplies_v))
-    s1v = build_s1v(s1, case.spec, count_budget=10 ** 6, stop_on_unsupported=False)
+    run = dict(donors=case.dc.donors, counters=case.dc.counters)      # [XRUN-F1 card B C6] 같은 test = 같은 실행
+    s1 = build_s1(case.td, dict(inputs.supplies_v), **run)
+    s1v = build_s1v(s1, case.spec, count_budget=10 ** 6, stop_on_unsupported=False, **run)
     # [U17 ①-b] 구조 입력 = S1v 필드가 있는 S0 수준 S1Graph 로 만든 커널 컨텍스트(build_search_context(s1v=) 삭제, 40 §2.4.7·§2.4.8)
-    dc = build_kernel_context(s1v, inputs, case.dc.lut)
+    dc = build_kernel_context(s1v, inputs, case.dc.lut, **run)
     s = build_search_context(dc, case.spec, case.settings, short_root, case.pdk, case.rule, code_fp=CODE_FP)
     assert s.structure is not None and len(s.structure.views) >= 1
     r = evaluate(s, th_sorted(theta_r4c()), CELLS_C)
@@ -374,18 +377,252 @@ def test_pending_point_passive_values_reused_on_mos_theta_only_change(tmp_path, 
 
     th_mos = dict(th0)
     th_mos[("ln_idu", "M1")] = th0[("ln_idu", "M1")] + 0.01
-    passive_values.reset_stats()
+    # [XRUN-F1 card B C1·C6] 계수 = 그 탐색 컨텍스트 실행(sctx.dc.counters)의 passive_values 행 구간 증분
+    before = block_row(s.dc.counters, passive_values.name)
     r1 = evaluate(s, th_sorted(th_mos), CELLS_C)
     assert r1.status == STATUS_PENDING_SEAL7
-    st = passive_values.stats()
-    assert (st.computes, st.reuses) == (0, 1), st
+    st = row_delta(block_row(s.dc.counters, passive_values.name), before)
+    assert (st[4], st[1]) == (0, 1), st
     assert dict(r1.evaluation.snapshot.column("device", "passive_value")) == pv0
 
     for key in (("capacitance", "Cz"), ("ss_resistance", "Rz")):
         th_p = dict(th0)
         th_p[key] = th0[key] * 1.1
-        passive_values.reset_stats()
+        before = block_row(s.dc.counters, passive_values.name)
         r2 = evaluate(s, th_sorted(th_p), CELLS_C)
-        st = passive_values.stats()
-        assert (st.computes, st.recomputes_same_input) == (1, 0), (key, st)
+        st = row_delta(block_row(s.dc.counters, passive_values.name), before)
+        assert (st[4], st[5]) == (1, 0), (key, st)
         assert dict(r2.evaluation.snapshot.column("device", "passive_value"))[key[1]] == th0[key] * 1.1
+
+
+# =====================================================================================================================
+# [XRUN-F1 card B] interface card C4·C7·C8 -- 계보 무관 이식(B-T18), 실패 평가의 부분 스냅샷(B-T19), 부분 스냅샷 재사용(B-T20).
+# oracle: (식) C4 판정 2 '같은 lineage 가 아니고 색인에 같은 입력 결과가 있으면 이식(graft, 블록 함수 0)', C7 부분 스냅샷 정의 문장,
+# (비교) 실패 줄 snapshot_fp == partial.fp, 실행 계수(C1, sctx.dc.counters) 행의 구간 증분. 실패를 일으키는 입력은 구성으로 정한다 --
+# (1) 빈 창 회로(MA nmos (x, vdd, vdd) -> x ≥ V(vdd), MB pmos (x, gnd, gnd) -> x ≤ V(gnd): 기둥 블록 창이 빈다, test_find_front 와 같은 회로),
+# (2) 봉인 7 위반 θ(test_candidate_failure_recorded_and_cached 와 같은 θ), (3) ss 단계 LUT 조회 실패(용량 표 VS 축이 소자 VSB 0 을 덮지 않는
+# r4 LUT -- DC 는 슬라이스 표로 봉인되고 ss_dev 의 caps 조회만 축 밖, metrics test_lut_failure_is_seal_violation 'caps_vs_axis' 와 같은 구성).
+# 각 경우 전제(status == failed, 실패 분류·detail 원인)를 먼저 단언한다.
+# =====================================================================================================================
+
+DC_ORDER = ("dc_currents", "dc_lengths", "dc_columns", "dc_widths")          # sizing CONTRACT 7절 평가 블록 4개 호출 순서
+
+
+def _rows_now(s):
+    return {r.block: tuple(getattr(r, f) for f in ("calls", "reuses", "grafts", "replays", "computes", "recomputes_same_input"))
+            for r in s.dc.counters.snapshot().blocks}
+
+
+def _assert_no_same_input_recompute(s):
+    # oracle 대조: card B 판정 '같은 입력 재계산 0' -- 실행 전체(C8 'blocks = 실행 전체')의 모든 행 recomputes_same_input = 0
+    assert all(r[5] == 0 for r in _rows_now(s).values()), _rows_now(s)
+
+
+def test_graft_across_lineage_without_parent(tmp_path, lut_sealed):
+    """B-T18(C4·C8): parent 없이 두 평가 -- 전류 성분 같고 M1 L 만 다르다(칸 0 -> 1). 두 번째 평가의 전류 블록은 같은 lineage 가 아니고
+    (두 평가 모두 S0 수준 기준 스냅샷에서 시작) 같은 입력이 이 실행 색인에 있으므로 이식(grafts +1, computes +0). 같은 입력 재계산 0."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    s = case.sctx
+    r1 = evaluate(s, th_sorted(theta_r4c()), CELLS_C)
+    before = block_row(s.dc.counters, "dc_currents")
+    r2 = evaluate(s, th_sorted(theta_r4c(l1=2e-6)), (1, 1))
+    assert counters(s)["kernel_calls"] == 2                                  # 전제: 두 평가 모두 커널 평가
+    assert r1.status != STATUS_OUTSIDE_DOMAIN and r2.status != STATUS_OUTSIDE_DOMAIN
+    d = row_delta(block_row(s.dc.counters, "dc_currents"), before)
+    assert (d[0], d[1], d[2], d[4], d[5]) == (1, 0, 1, 0, 0), d               # calls 1, reuse 0, graft 1, compute 0, 재계산 0
+    _assert_no_same_input_recompute(s)
+
+
+def _empty_window_case(tmp_path, lut, root):
+    from .conftest import mos, topo
+    window = topo("hand_empty_window_ps",
+                  [mos("MA", "nmos", "x", "vdd", "vdd"), mos("MB", "pmos", "x", "gnd", "gnd"), mos("MC", "nmos", "x", "inp", "gnd")],
+                  {"inp": ("input", "single_ended_input"), "x": ("output", "single_ended_output")})
+    return build_case(tmp_path, window, lut, eval_budget=20, archive_root=root)
+
+
+def _failed_line_and_result(case, root):
+    """find_front 가 남긴 S3 evals 실패 줄 하나와 그 θ 의 EvalResult(같은 탐색 컨텍스트 캐시 적중 -- 같은 객체)."""
+    from gmid_engine.search import find_front
+    find_front(case.sctx, [])
+    lines = read_evals(root, case.sctx.context_fp)
+    failed = [x for x in lines if x["status"] == STATUS_FAILED]
+    assert failed, "전제: 실패 평가가 S3 에 기록됐다"
+    line = failed[0]
+    r = evaluate(case.sctx, {tuple(k): v for k, v in line["theta"]}, tuple(line["cells"]))
+    assert r.seq == line["seq"]
+    return line, r
+
+
+def test_partial_snapshot_dc_block_failure(tmp_path, lut_sealed, short_root):
+    """B-T19 (1) C7: DC 블록 단계(전류·길이·기둥·폭) 실패 -- partial.block_versions 에 앞 블록은 있고 실패한 블록(여기서는 기둥 dc_columns,
+    빈 창)은 없다, 봉인 보고 없음. 실패 줄 snapshot_fp == partial.fp, evaluation 은 None."""
+    from gmid_engine.core import GraphSnapshot
+    case = _empty_window_case(tmp_path, lut_sealed, short_root)
+    line, r = _failed_line_and_result(case, short_root)
+    assert r.status == STATUS_FAILED and r.failure is not None                          # 전제
+    assert r.failure.failure_class == "SEAL_VIOLATION" and dict(r.failure.detail)["reason"] == "empty_window"
+    assert r.evaluation is None
+    assert isinstance(r.partial, GraphSnapshot)
+    bv = r.partial.block_versions
+    assert "dc_currents" in bv and "dc_lengths" in bv                                   # 앞 블록
+    assert "dc_columns" not in bv and "dc_widths" not in bv                             # 실패한 블록과 그 뒤
+    assert "dc_seal_report" not in bv
+    assert line["ok"] is False and "fail" in line
+    assert line["snapshot_fp"] == r.partial.fp                                          # C7 S3 evals 실패 줄
+    _assert_no_same_input_recompute(case.sctx)
+
+
+def test_partial_snapshot_seal_violation(case_c):
+    """B-T19 (2) C7: 봉인 위반 -- partial.block_versions 에 dc_seal_report 가 있다(봉인 판정까지 쓴 스냅샷), ss 블록은 없다."""
+    from gmid_engine.core import GraphSnapshot
+    case, root = case_c
+    s = case.sctx
+    r = evaluate(s, th_sorted(theta_r4c(y=0.1, v1=1.5)), CELLS_C)
+    assert r.status == STATUS_FAILED and r.failure is not None                          # 전제
+    assert r.failure.failure_class == "SEAL_VIOLATION" and "items" in dict(r.failure.detail)   # seal_dc 의 위반(항목 표)
+    assert isinstance(r.partial, GraphSnapshot)
+    bv = r.partial.block_versions
+    assert "dc_seal_report" in bv
+    assert all(b in bv for b in DC_ORDER)
+    assert "ss_dev" not in bv
+    (line,) = [x for x in read_evals(root, s.context_fp) if x["seq"] == r.seq]
+    assert line["ok"] is False and line["snapshot_fp"] == r.partial.fp
+
+
+def _write_r4_lut_narrow_cap(root):
+    """sizing conftest `write_r4_lut` 과 같은 슬라이스 표(DC 봉인 가능) + 용량 표 VS 축만 0.5 V 부터(소자 VSB 0 이 축 밖) -- ss_dev caps 조회 실패."""
+    import hashlib
+    import numpy as np
+    from gmid_engine.lut import load_lut_set
+    from sizing.conftest import DEVICE_OF, R4_GRIDS, SUFFIX, TOY_SPEC, W_M, r4_arrays
+    root.mkdir(parents=True, exist_ok=True)
+    entries = []
+    for kind in ("nmos", "pmos"):
+        p = root / ("r4_%s.npz" % kind)
+        np.savez(p, **r4_arrays(kind, True, 0, (), R4_GRIDS))
+        entries.append({"device": DEVICE_OF[kind], "file": p.name, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()})
+    (root / "manifest.json").write_text(json.dumps({"generator_sha256": "0" * 64, "slices": entries}), encoding="utf-8")
+    gL, gG, gD, _gS = (np.asarray(g, dtype=float) for g in R4_GRIDS)
+    gS = np.asarray((0.5, 1.0, 1.5, 2.0))                               # VSB 0 을 덮지 않는 용량 표 VS 축(구성)
+    shp = (len(gL), len(gG), len(gD), len(gS))
+    cap = {"L": gL, "VGS": gG, "VDS": gD, "VS": gS, "w_ref_m": np.float64(W_M), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+    for kind in ("nmos", "pmos"):
+        cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
+        cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
+    np.savez(root / "cap.npz", **cap)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC)
+
+
+def test_partial_snapshot_ss_stage_failure(tmp_path, short_root):
+    """B-T19 (3) C7: ss 단계 실패 -- partial.block_versions 에 봉인 스냅샷의 블록(dc_seal_report 포함)이 있다, 실패한 ss_dev 는 없다."""
+    from gmid_engine.core import GraphSnapshot
+    lut = _write_r4_lut_narrow_cap(tmp_path / "lut_narrow_cap")
+    case = build_case(tmp_path / "case", circuit_c(), lut, constraints=SS_CONS, archive_root=short_root)
+    s = case.sctx
+    r = evaluate(s, th_sorted(theta_r4c()), CELLS_C)
+    assert r.status == STATUS_FAILED and r.failure is not None                          # 전제
+    det = dict(r.failure.detail)
+    assert r.failure.failure_class == "SEAL_VIOLATION" and det["reason"] == "lut_query_failed" and det["device_query"] == "caps"
+    assert isinstance(r.partial, GraphSnapshot)
+    bv = r.partial.block_versions
+    assert "dc_seal_report" in bv and all(b in bv for b in DC_ORDER)
+    assert "ss_dev" not in bv
+    (line,) = [x for x in read_evals(short_root, s.context_fp) if x["seq"] == r.seq]
+    assert line["ok"] is False and line["snapshot_fp"] == r.partial.fp
+
+
+SEAL_STAGE_BLOCK_ATTRS = ("dc_seal_node_conflict", "dc_seal_vgs_match", "dc_seal_kcl", "dc_seal_bulk_reverse",
+                          "dc_seal_saturation", "dc_seal_kvl_branch", "dc_seal_conduction", "dc_seal_report")
+
+
+@pytest.mark.parametrize("block_attr", SEAL_STAGE_BLOCK_ATTRS)
+def test_partial_snapshot_seal_stage_block_failure(tmp_path, lut_sealed, short_root, monkeypatch, block_attr):
+    """B-T19 (4) C5·C7: 봉인 단계 블록(봉인 항목 블록 7개·dc_seal_report) 자체가 후보 실패 예외를 내면 -- (a) 실패에 partial 이 붙고
+    (b) 그 partial 은 그 블록에 들어가기 직전 스냅샷(앞 단계 블록 필드까지 있고 그 블록·이후 블록 필드 없음) (c) S3 실패 줄
+    snapshot_fp == partial.fp.
+
+    실패 주입(공개 경로): C4 블록 호출 `ComputeBlock.__call__`(gmid_engine.core) 을 클래스 수준에서 감싸, 대상 블록(`block.name`,
+    gmid_engine.sizing 공개 블록 객체) 호출에서 블록 함수 대신 C5 `SealViolationError.from_record(record)` 를 올린다. record 는 별도
+    탐색 컨텍스트의 봉인 7 위반 평가(test_candidate_failure_recorded_and_cached 와 같은 θ)가 낸 FailureRecord 다.
+    oracle 대조: (a) C5 '엔진이 붙이는 곳 -- 커널 DC 블록 단계(그 블록에 들어간 스냅샷)' 규칙을 봉인 단계 블록에 같은 규칙으로 적용(card B
+    재판정 결함 -- 봉인 항목 블록 실패에 부분 스냅샷 부착 계약), C7 실패 평가 = 부분 스냅샷. (b) (독립) 감쌈이 잡은 대상 블록 호출 인자 스냅샷(= 들어가기 직전
+    스냅샷)의 fp 와 같음 + 감쌈이 센 호출 순서(대상 블록 앞에 불린 블록은 있고 대상·이후는 없다 -- 순서는 피검 출력이 아닌 독립 관찰).
+    (c) (비교) C7 'S3 evals 실패 줄에도 snapshot_fp = partial.fp'."""
+    import gmid_engine.sizing as sizing
+    from gmid_engine.core import ComputeBlock, GraphSnapshot, SealViolationError
+    target = getattr(sizing, block_attr).name
+
+    # 주입할 기록: 별도 컨텍스트의 실제 봉인 위반 기록(구성 -- 봉인 7 위반 θ)
+    src = build_case(tmp_path / "src", circuit_c(), lut_sealed)
+    bad = evaluate(src.sctx, th_sorted(theta_r4c(y=0.1, v1=1.5)), CELLS_C)
+    assert bad.status == STATUS_FAILED and bad.failure is not None                    # 전제
+    rec = bad.failure
+
+    case = build_case(tmp_path / "case", circuit_c(), lut_sealed, constraints=AXIS_CONS + SS_CONS, archive_root=short_root)
+    s = case.sctx
+    seen, entered, raised = [], [], []
+    orig = ComputeBlock.__call__
+
+    def wrapped(self, snapshot, *extras, **kw):
+        seen.append(self.name)
+        if self.name == target:
+            entered.append(snapshot)
+            exc = SealViolationError.from_record(rec)
+            raised.append(exc)
+            raise exc
+        return orig(self, snapshot, *extras, **kw)
+
+    monkeypatch.setattr(ComputeBlock, "__call__", wrapped)
+    r = evaluate(s, th_sorted(theta_r4c()), CELLS_C)                                   # 주입 없으면 봉인되는 θ(test_partial_snapshot_none_on_success_...)
+    monkeypatch.undo()
+
+    assert len(entered) == 1 and len(raised) == 1                                      # 전제: 대상 블록에 정확히 한 번 들어갔다
+    assert r.status == STATUS_FAILED and r.failure is not None and r.evaluation is None  # 전제: 후보 실패
+    assert r.failure.failure_class == rec.failure_class
+    # (a) partial 부착
+    assert isinstance(r.partial, GraphSnapshot)
+    assert raised[0].partial is not None and raised[0].partial.fp == r.partial.fp
+    # (b) 들어가기 직전 스냅샷
+    assert r.partial.fp == entered[0].fp
+    bv = r.partial.block_versions
+    before = seen[:seen.index(target)]
+    assert all(b in bv for b in DC_ORDER)                                               # 앞 단계(DC 블록) 필드 있음
+    assert all(b in bv for b in before), [b for b in before if b not in bv]
+    assert target not in bv                                                             # 실패한 그 블록 없음
+    assert "dc_seal_report" not in bv and "ss_dev" not in bv                            # 이후 블록 없음
+    after = [getattr(sizing, a).name for a in SEAL_STAGE_BLOCK_ATTRS if getattr(sizing, a).name not in before]
+    assert all(b not in bv for b in after), [b for b in after if b in bv]
+    # (c) S3 실패 줄
+    (line,) = [x for x in read_evals(short_root, s.context_fp) if x["seq"] == r.seq]
+    assert line["ok"] is False and "fail" in line
+    assert line["snapshot_fp"] == r.partial.fp
+
+
+def test_partial_snapshot_none_on_success_and_outside_domain(case_c):
+    """B-T19 C7: 성공(봉인) 평가와 정의역 밖 평가의 partial = None(칸 기본값), 실패 평가의 evaluation 은 여전히 None(위 test)."""
+    case, root = case_c
+    s = case.sctx
+    ok = evaluate(s, th_sorted(theta_r4c()), CELLS_C)
+    out = evaluate(s, th_sorted(theta_r4c(i2=-1e-5)), CELLS_C)
+    assert ok.status == STATUS_SEALED and out.status == STATUS_OUTSIDE_DOMAIN           # 전제
+    assert ok.partial is None and out.partial is None
+    (line,) = [x for x in read_evals(root, s.context_fp) if x["seq"] == ok.seq]
+    assert line["ok"] is True and "snapshot_fp" in line                                 # 성공 줄 형식은 card A 그대로
+
+
+def test_partial_snapshot_results_reused_by_later_evaluation(tmp_path, lut_sealed):
+    """B-T20(C7·C4): 실패 평가(봉인 7 위반)가 계산한 블록 결과(전류·길이 -- 입력은 θ 전류·L 성분뿐)를 같은 블록 입력의 뒤 평가(parent 없음,
+    다른 좌표)가 이식한다 -- 그 행 grafts ≥ 1, computes 증분 0, 같은 입력 재계산 0. 실패 평가가 이 실행의 첫 평가라 이식 원천은 그 실패 평가뿐이다."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    s = case.sctx
+    bad = evaluate(s, th_sorted(theta_r4c(y=0.1, v1=1.5)), CELLS_C)
+    assert bad.status == STATUS_FAILED and bad.partial is not None                     # 전제
+    assert "dc_currents" in bad.partial.block_versions and "dc_lengths" in bad.partial.block_versions
+    before = {b: block_row(s.dc.counters, b) for b in ("dc_currents", "dc_lengths")}
+    good = evaluate(s, th_sorted(theta_r4c()), CELLS_C)
+    assert good.status == STATUS_SEALED                                                # 전제: 커널 평가
+    for b in ("dc_currents", "dc_lengths"):
+        d = row_delta(block_row(s.dc.counters, b), before[b])
+        assert d[2] >= 1 and d[4] == 0 and d[5] == 0, (b, d)
+    _assert_no_same_input_recompute(s)

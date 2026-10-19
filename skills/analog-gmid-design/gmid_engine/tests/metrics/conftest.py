@@ -524,10 +524,39 @@ def topo_only(tmp_path, topo):
 
 
 def s2_of(td, supplies):
-    """S1 -> S2 스냅샷(sizing lift_s1, 권한표 S2_WRITERS)."""
+    """S1 -> S2 스냅샷(sizing lift_s1, 권한표 S2_WRITERS). [XRUN-F1 card B C0] S1 은 지역 open_run() 쌍으로 만든다(스냅샷만 돌려준다)."""
     from gmid_engine.graph import build_s1
     from gmid_engine.sizing import lift_s1
-    return lift_s1(build_s1(td, dict(supplies)))
+    return lift_s1(build_s1(td, dict(supplies), **fresh_run()))
+
+
+# ---- [XRUN-F1 card B C0·C1·C4] 실행 두 객체와 실행 계수 행(test 도구)
+COUNT_FIELDS = ("calls", "reuses", "grafts", "replays", "computes", "recomputes_same_input")
+
+
+def fresh_run():
+    """새 실행 하나의 두 객체 키워드(dict) -- 블록·감쌈 함수 호출 `f(..., **run)`. 부를 때마다 새 open_run() 쌍."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return dict(donors=donors, counters=counters)
+
+
+def block_row(counters, name):
+    """실행 계수 (name, "*") 행의 여섯 칸 tuple(COUNT_FIELDS 순서), 기록이 없으면 0 여섯."""
+    for r in counters.snapshot().blocks:
+        if (r.block, r.part) == (name, "*"):
+            return tuple(getattr(r, f) for f in COUNT_FIELDS)
+    return (0,) * len(COUNT_FIELDS)
+
+
+def row_delta(after, before):
+    return tuple(a - b for a, b in zip(after, before))
+
+
+def row_of(counters, name):
+    """block_row 를 속성(calls·reuses·grafts·replays·computes·recomputes_same_input)으로."""
+    import types
+    return types.SimpleNamespace(**dict(zip(COUNT_FIELDS, block_row(counters, name))))
 
 
 def hand_ss(gm, gds, gmb=0.0, cgs=0.0, cgd=0.0, cgb=0.0, cdb=0.0, csb=0.0, cgg=0.0):

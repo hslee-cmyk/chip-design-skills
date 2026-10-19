@@ -33,7 +33,9 @@ def rows_of(snap):
 
 
 def run(snap):
-    return seal_item(dc_seal_kvl_branch(snap), 8)
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C4] 블록 단독 호출 = 새 실행 하나
+    return seal_item(dc_seal_kvl_branch(snap, donors=donors, counters=counters), 8)
 
 
 def test_no_branch_pass_none(ev_c):

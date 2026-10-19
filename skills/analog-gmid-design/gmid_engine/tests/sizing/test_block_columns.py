@@ -17,6 +17,7 @@ from gmid_engine.sizing import (DC_KEY, REASON_NO_ROOT, REASON_TOL_UNDEFINED, SC
 from .conftest import (LAM, R4_L, W_KEYS, Oracle, build_ctx, circuit_cs_res, circuit_empty_window, detail,
                        expected_columns, free_currents, mos, new_access, node_voltages, r4_arrays, r4_ln_idu, r4_vds_floor,
                        r4_vgs_of, rel_close, run_blocks, theta_a, theta_c, theta_r4c, topo, two, write_r4_lut)
+from .conftest import run_of  # [XRUN-F1 card B C4] 블록 호출 = ctx 의 실행 두 객체
 from .conftest import kfixed, kres, kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 TOL = 1e-12
@@ -220,7 +221,7 @@ def test_empty_window(tmp_path, toy_access):
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     with pytest.raises(SealViolationError) as ei:
-        dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut)
+        dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run_of(ctx))
     d = detail(ei.value)
     assert d["reason"] == "empty_window" and d["item"] == 7
     assert d["node"] == "x" and d["lo"] == 1.8 and d["hi"] == 0.0
@@ -232,7 +233,7 @@ def _lut_fail(ctx, th):
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     with pytest.raises(SealViolationError) as ei:
-        dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut)
+        dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run_of(ctx))
     return ei.value
 
 
@@ -341,7 +342,7 @@ def test_no_root_in_window(tmp_path, toy_access, v_star):
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     with pytest.raises(SealViolationError) as ei:
-        dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut)
+        dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run_of(ctx))
     d = detail(ei.value)
     assert d["reason"] == "no_root_in_window"
     assert d["item"] in (6, 7)
@@ -962,4 +963,4 @@ def test_correct_ds_declaration_same_point_passes_seal7(tmp_path, r4_access):
     from .conftest import circuit_cs_pmos_load, seal_item, theta_r4c, with_tol
     ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), r4_access)[2]
     snap, _ = with_tol(ctx, theta_r4c(y=0.5, v1=0.6, v2=0.7))
-    assert seal_item(dc_seal_saturation(snap, (), ctx.lut), 7).status == "pass"
+    assert seal_item(dc_seal_saturation(snap, (), ctx.lut, **run_of(ctx)), 7).status == "pass"
