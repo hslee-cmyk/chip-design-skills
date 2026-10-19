@@ -149,14 +149,14 @@ def run_stage_b(stage_a, memo, pdk_decl, *, output_dir, settings, diagnostic=Fal
         return _finish(circuit, status, code, diagnostic, graph, computed, reasons, budget_value, output_dir)
     try:
         inputs = dc_inputs_from_spec(spec)
-        kctx = build_kernel_context(s1, inputs, pre_layout_lut_access(memo))
+        kctx = build_kernel_context(s1, inputs, pre_layout_lut_access(memo), donors=stage_a.donors, counters=stage_a.counters)
         budgets = [float(d.value) for d in spec.judged_constraints if d.metric == "area_search_m2" and d.op == "<=" and d.value is not None]
         search = spec.search if isinstance(spec.search, tuple) else ()
         spec_bounds = next((s.value for s in search if s.field == THETA_BOUNDS and s.value), ())
         untie = tuple(name for name, _source in next((s.value for s in search if s.field == UNTIE_ORBITS and s.value), ()))
         graph = kctx.base.widen(S0_WRITERS)
         graph = search_domain(graph, kctx.lut, settings.resistance_bounds_ohm, settings.capacitance_bounds_f, pdk_decl, spec_bounds,
-                              min(budgets) if budgets else None, untie)
+                              min(budgets) if budgets else None, untie, donors=stage_a.donors, counters=stage_a.counters)
     except (SchemaRejectedError, StructureUnresolvedError, InfeasibleTargetError) as exc:
         return finish(STAGE_STOPPED, exit_code_for(exc), s1, False, [json.dumps(exc.record.to_json(), ensure_ascii=False, default=str)], budget)
     declared = spec.structure_count_budget
@@ -164,8 +164,9 @@ def run_stage_b(stage_a, memo, pdk_decl, *, output_dir, settings, diagnostic=Fal
     kinds = {kind for name, kind in s1.column("device", "kind") if classes[name] == ELEMENT_MOS}
     n_s = count_budget(memo.lut, kinds, declared)
     try:
-        graph = passive_area_decl(graph, tuple(sorted(e.name for e in spec.element_values if e.measurement_load)), pdk_decl)
-        graph = achievability(graph, spec, inputs.element_values, kctx.lut, n_s)
+        graph = passive_area_decl(graph, tuple(sorted(e.name for e in spec.element_values if e.measurement_load)), pdk_decl,
+                                  donors=stage_a.donors, counters=stage_a.counters)
+        graph = achievability(graph, spec, inputs.element_values, kctx.lut, n_s, donors=stage_a.donors, counters=stage_a.counters)
     except SchemaRejectedError as exc:        # LUT 이 GB4 입력을 못 만든다(예: 전도 행 없음) -- 조용히 통과하지 않고 정지 사유로 보고
         return finish(STAGE_STOPPED, exit_code_for(exc), S1Graph(s1.key, graph), False, [json.dumps(exc.record.to_json(), ensure_ascii=False, default=str)], n_s)
     result = S1Graph(s1.key, graph)

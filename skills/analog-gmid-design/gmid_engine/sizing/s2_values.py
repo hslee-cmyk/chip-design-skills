@@ -432,11 +432,14 @@ class KernelContext:
     """S0 당 1회 만드는 평가 커널 컨텍스트 -- **참조만** 담는다(설계 40 §2.4.7 `KernelContext` 행). `base` = S0 수준 스냅샷(S1 + 쓰기 계획 블록 + 커널 구조
     파생 필드 `graph/kernel: theta_schema·fixed_values·resistor_values·l_ties`, 탐색 컨텍스트가 만든 뒤에는 그 S0 수준 필드도), `inputs` = DcInputs(spec 파싱 결과),
     `lut` = LutAccess(LUT memo 와 폭 키). 설계 값(θ 스키마·고정 노드·저항 값·L 묶음·계획 블록 입력 버전)은 사본으로 두지 않고 `base` 필드와
-    `base.block_version` 에서 읽는다."""
+    `base.block_version` 에서 읽는다. `donors`·`counters` = 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수(참조만 -- 과도기 칸,
+    설계 40 §2.4.5 '전달'. 커널 단계의 모든 블록 호출이 이 두 객체로 부른다)."""
 
     base: object
     inputs: DcInputs
     lut: LutAccess
+    donors: object
+    counters: object
 
 
 @dataclasses.dataclass(frozen=True)

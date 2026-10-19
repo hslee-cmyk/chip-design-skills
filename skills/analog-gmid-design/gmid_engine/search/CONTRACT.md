@@ -455,7 +455,9 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 2. 메모리 캐시 적중 -> hits +1(실패면 fail_hits 도 +1), 같은 객체(`is`) 반환. 커널 0.
 3. `cone_rows` 에 c ≤ 0 -> outside_domain +1, `STATUS_OUTSIDE_DOMAIN`(seq −1), 캐시 저장. 커널 0, S3 줄 없음.
 4. kernel_calls +1, seq +1, [XRUN-F1 A] `dc.lut.memo.bound_state == "counting"` 이면 `open_count()`(그 컨텍스트의 첫 커널 평가 -- 계수 창 열기), `size_and_seal(dc, θ, parent=parent.evaluation)`. `NonconvergentError`·`SealViolationError` 만
-   잡아 `STATUS_FAILED` + `exc.record`. 그 밖 예외는 전파(캐시·계수는 kernel_calls 까지 증가한 채). 결과(`EvalResult`)를 만든 직후(성공·후보 실패 모두) `bound_state == "window_open"` 이면 `fix_bound()`
+   잡아 `STATUS_FAILED` + `exc.record` + [XRUN-F1 B] `EvalResult.partial = exc.partial`(후보 실패 평가가 실패 직전까지 쓴 부분 스냅샷 -- DC 블록 실패 = 그 블록에 들어간 스냅샷, 봉인 위반 = `dc_seal_report` 까지,
+   ss 단계 실패 = ss 단계 직전까지(적어도 봉인 스냅샷). 부착은 `run_kernel`·`seal_dc`·`ss_evaluate`. 성공·정의역 밖은 `partial = None`; `evaluation` 은 실패 평가에서 여전히 None; 부분 스냅샷 안 블록 결과는
+   이미 색인에 등록돼 있어 같은 블록 입력의 다른 평가가 이식한다). 그 밖 예외는 전파(캐시·계수는 kernel_calls 까지 증가한 채). 블록 호출(`passive_values`·`metrics_dc` 등)은 `sctx.dc.donors`·`.counters` 로 부른다. 결과(`EvalResult`)를 만든 직후(성공·후보 실패 모두) `bound_state == "window_open"` 이면 `fix_bound()`
    (상한 (n_θ + 1)·U_eval 고정, lut CONTRACT 2.2). 생성자 memo(`"fixed"`)로 도는 경로는 두 메서드를 부르지 않는다.
 5. 성공: 상태 = `seal_status`. 목적 = `objective_values`(저항 = dc resistor_values + θ resistance). [r2] b_P 가 None 이면
    상태 = `STATUS_UNDEFINED`. `STATUS_UNDEFINED` 가 아니면 제약 = `constraint_rows` 행 + 목적 축 spec 행(`spec:<m><op>`,
@@ -528,8 +530,11 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 - `front` = 봉인된 점만(지금은 항상 ()), `pending_front` = 봉인 7 대기 비지배 점. `notes` 에 판정 보류 사유: constraint_notes,
   DEC-79 review_needed, DEC-72 추정, MOD8 재필터 미실행, 층 0 막힘(`layer0_inputs_missing` + 빠진 입력 목록), supply_current_dc
   미계산, ss 미측정(`unmeasured` -- 제약 목록과 점 수), 봉인 7 대기.
-  `perf` = counters + unique_keys, eval_time_median_s, wall_s, lut_memo_evictions, [XRUN-F1 A] lut_memo_bound(탐색 memo `bound_state` 가 `"fixed"` 면 `"fixed"`, 첫 커널 평가 없이 끝났으면 `"unfixed_no_kernel_eval"`), block_*(sizing 계산 블록 12개), n_starts, n_solves,
-  eval_budget, eval_budget_source, frozen_columns, stops_eval_budget, stops_wall_budget.
+  `perf` = counters + unique_keys, eval_time_median_s, wall_s, lut_memo_evictions, [XRUN-F1 A] lut_memo_bound(탐색 memo `bound_state` 가 `"fixed"` 면 `"fixed"`, 첫 커널 평가 없이 끝났으면 `"unfixed_no_kernel_eval"`), [XRUN-F1 B] `blocks`(행 목록 `{block, part, calls, reuses, grafts, replays, computes, recomputes_same_input}`, (block, part) 정렬,
+  실행 하나가 단계 A 부터 부른 모든 계산 블록·분할 -- `sctx.dc.counters.snapshot()`, 구간 차를 계산하지 않는다, 행마다 `calls = reuses + grafts + replays + computes`), `block_totals`(여섯 계수 칸의 행 합 dict),
+  `block_index_entries`(그 실행 `sctx.dc.donors.entry_count()` = 성공 키 + 실패 키), `block_index_bound`(= `len(blocks) × (E_total + 1)`, E_total: `eval_budget_source == "declared"` 면
+  `eval_budget` + 2 × `len(sctx.domain.variables)`(N_T = 0), 유도(`derived_once:...`)면 `eval_budget`, `eval_budget` 이 None 이면 `null` -- card B 보고용 식, card C 가 계산 자리 하나로 정하며 지운다), n_starts, n_solves,
+  eval_budget, eval_budget_source, frozen_columns, stops_eval_budget, stops_wall_budget. 키는 정확히 22개(sizing 12블록 구간 차를 담던 옛 네 칸은 없다).
 - `run_id` = fp_of((context_fp, code_fp, settings, E_B, 시작 θ들)). archive 가 있으면 runs 한 줄 + front·대기 front 점 스냅샷 파일.
 
 ### 3.17 `node_across_front(front, node, archive=None) -> (NodeRow, ...)`
@@ -670,7 +675,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 ## 6. S3 기록 형식 (`<root>/<context_fp>/`, 줄마다 flush)
 
 - `evals.jsonl`: {seq, schema_fp, cells, w_fixed_fp, theta_hex, theta, status, ok, origin, fail?, objectives?{power_dc_w,
-  area_search_m2}, power_resolution_w?, constraints[{name, c, active}], unmeasured[[metric, op, 사유]], snapshot_fp?, code_fp}.
+  area_search_m2}, power_resolution_w?, constraints[{name, c, active}], unmeasured[[metric, op, 사유]], snapshot_fp?, code_fp}. [XRUN-F1 B] 후보 실패 줄(`ok` false, `fail` 있음)에도 `snapshot_fp` 가 있다
+  (= 그 평가의 부분 스냅샷 `EvalResult.partial.fp`, 3.10). 성공 줄은 그대로.
 - `runs.jsonl`: {run_id, s0, schema_fp, settings, starts, resolution, front[], pending_front[], removed[], failed_eps,
   notes, perf, env_fp, code_fp}; 점 = {point_id, status, seq, theta_hex[[키, hex]], cells, power_dc_w, area_search_m2, gate_area_m2,
   passives_in_area(sctx.area_decl 이 있으면 True -- 수동 커패시터 면적이 area_search_m2 에 들어 있다, 결정 11), power_resolution_w, unmeasured, active, origin, snapshot_fp, snapshot_ref}.
@@ -998,8 +1004,8 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 
 - kernel 은 탐침 선별 평가 포함. 9회로 모두 `kernel_calls == unique_keys`, `recompute_same_key == 0`, LUT memo 퇴출 0(I-1).
   requests/kernel = 5~80 배 -- 같은 x 의 fun·jac·cons·ε 재방문이 커널 0 으로 모였다(옛 SLSQP 811 중 784 중복 대조).
-- 블록 reuse 비 = sizing 계산 블록(11개) reuses/calls. `block_recomputes_same_input` 1~492 -- FD 형제 lineage 사이 같은
-  입력(sizing O8, graph 가 곧 캐시라 다른 lineage 값을 못 본다).
+- 블록 reuse 비 = sizing 계산 블록(11개) reuses/calls. 같은 입력 재계산 수(당시 블록 계수 칸) 1~492 -- FD 형제 lineage 사이 같은
+  입력(sizing O8, graph 가 곧 캐시라 다른 lineage 값을 못 본다). [XRUN-F1 B 이후] 실행 하나의 블록 결과 색인이 계보와 무관하게 이식하므로 이 재계산은 0 이다(3.16, 3.27).
 - FD 열 재사용(two_stage_ota, 열마다 sizing 블록 computes): current 열 = dc_currents 1·dc_columns **0**·dc_widths 1,
   ln_idu·y 열 = dc_columns 1·dc_widths 1·dc_currents 0, 같은 x 의 FD 반복 = 커널 0(I-4).
 - 결정론: two_stage_ota 를 `PYTHONHASHSEED` 1·2 로 따로 돌려 대기 front 동일(I-8, 예산 미구속).
@@ -1100,3 +1106,22 @@ mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔�
 ## [U17 ①-a] `build_search_context(..., *, code_fp)` -- 필수 키워드 인자
 
 - `code_fp` = 단계 A 가 잰 엔진 코드 지문(`pipeline.StageAResult.code_fp` = core `engine_code_fp()`). 빠지면 파이썬 `TypeError`, 비어 있지 않은 문자열이 아니면 `TypeError`. `SearchContext.code_fp`·S3 기록 `code_fp` 가 이 값 그대로다. 옛 `_code_fp()`(core·lut·graph·sizing·metrics·search 6개 패키지)는 삭제됐고 여기서 다시 재지 않는다(설계 40 §2.4.3 (iii)).
+
+## [XRUN-F1 B] 블록 결과 색인 `S3Index` · 실행 생성 `open_run` (설계 40 §2.4.4·§2.4.5·§2.4.9, 사용자 결정 X-1 (3)·X-12·X-20, 계획 PD-7·PD-8)
+
+### 3.27 `S3Index(Donors)` (`s3_index.py`) -- 실행 하나 동안의 블록 결과 색인
+- 생성은 **비공개 계약**: `S3Index()` 는 인자가 없고 `open_run()` 만 부른다(구조 규칙 M (M-b), test 포함). 키 = (writer = 블록 이름, part = 분할 key(card B 는 `"*"`), input_version) **뿐**이다 --
+  실행 바깥 지문(`code_fp`·`env_fp`·spec 지문·`context_fp`·`run_id`)을 키에 넣지 않는다. 디스크에 쓰지 않는다. 퇴출 없음. graph 밖 허용 저장소 (b)(스냅샷 참조와 `FailureRecord` 만 -- 값 사본 없음).
+- `find(writer, part, input_version) -> GraphSnapshot | None`, `register(writer, part, input_version, snapshot)`, `find_failure(...) -> FailureRecord | None`, `register_failure(writer, part, input_version, record)`:
+  `find`·`find_failure` 는 등록한 그 객체(`is`)를 준다, 없는 키 -> None. 조회는 키 일치뿐(색인을 순회하지 않는다).
+- fail-closed: 같은 키 두 번째 `register`/`register_failure` -> `ValueError`(원천은 키마다 하나, 첫 등록 유지). `snapshot.block_version(writer) != input_version` -> `ValueError`. 한 키에 성공과 실패를 함께
+  등록하려 하면(순서 무관) `ValueError`. `snapshot` 이 `GraphSnapshot` 아니면·`record` 가 `FailureRecord` 아니면 `TypeError`.
+- `entry_count() -> int`: 성공 키 수 + 실패 키 수(`perf.block_index_entries` 의 출처, 값 사본이 아니라 개수).
+- 상한 검사(card C)·B_S0(OS-5)는 이 card 에 없다.
+
+### 3.28 `open_run() -> (donors, counters)` (`open_run.py`) -- 색인·계수의 유일한 생성 자리
+- 인자 없음. 부를 때마다 새 `S3Index` 와 새 `RunCounters`(core 6.3)의 쌍을 돌려준다(앞 호출의 것과 `is` 아님, 항목·계수 0). 다른 실행과 아무것도 나누지 않는다.
+- **구조 규칙 M**(`tests/structure`): (M-a) 엔진 소스에서 `open_run` 참조는 `search/open_run.py`·`search/__init__.py` 뿐. (M-b) `S3Index(`·`RunCounters(` 생성 호출은 정의 모듈과 `open_run.py` 에만.
+  (M-c) `run_stage_a` 호출의 `donors`·`counters` 는 같은 함수 본문의 `donors, counters = open_run()` 튜플 풀기로 만든 두 이름이고 그 호출 하나에만 쓴다. (M-d) 결과 보관 금지(모듈 수준 이름·클래스 속성·
+  session/module/package fixture·기본 인자값·`lru_cache`·모듈 컨테이너 변경 등). (M-f) `S3Index`·`RunCounters` 를 `pickle`/`json`/`shelve`/`marshal` 에 쓰지 않는다.
+- 평가의 부분 스냅샷·`EvalResult.partial`·실패 줄 `snapshot_fp` 는 3.10, `perf` 의 블록 계수·색인 칸은 3.16.
