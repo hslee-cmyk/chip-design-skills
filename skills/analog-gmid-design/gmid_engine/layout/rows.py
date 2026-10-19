@@ -1,8 +1,8 @@
 """MOD7 물리 행 구성 계산 블록 -- 패턴 행 검산·행 Euler·hub 병합·면적 목적 행 접기/재구성·floorplan
 (design_mod7_layout.md 3절 4~6단계, LY1·LY6, 사용자 결정 2026-10-07 Q8 (v)~(viii)).
 
-진입점: `compose_rows` -- core `@compute_block`(writer `ly_rows`, reads device `ly_device`·`ly_finger`, graph `ly_groups`·
-`ly_groups_in`·`ly_row_groups`·`ly_pdk`·`ly_passives`, writes graph `ly_rows`·`ly_floorplan`·`ly_diffusion`).
+진입점: `compose_rows` -- core `@compute_block`(writer `ly_rows`, reads device `ly_point`(kind·L_m)·`ly_pins`·`ly_finger`,
+graph `ly_groups`·`ly_groups_in`·`ly_row_groups`·`ly_pdk`·`ly_passives`·`ly_canon_rows`(정준 별칭표), writes graph `ly_rows`·`ly_floorplan`·`ly_diffusion`).
 
 1. 행 그룹(행 그룹 id 순)마다: 패턴으로 배치된 matching 그룹의 패턴 행은 그대로 물리 행(`<행그룹>/<그룹>/<i>`)이 되고
    `check_walk_sequence` 로 segment 마다 검산한다. 나머지 소자는 finger_w 폭 키별로 한 물리 행(`<행그룹>/w<폭 키>`)이 되어
@@ -27,10 +27,10 @@ from collections import Counter
 
 from gmid_engine.core import compute_block
 
-from ._helpers_pattern import offsets, orient, pattern_rows
+from ._helpers_pattern import device_views, offsets, orient, pattern_rows
 from ._ly_fields import (
     DEVICE,
-    F_DEVICE,
+    F_CANON_ROWS,
     F_DIFFUSION,
     F_FINGER,
     F_FLOORPLAN,
@@ -38,8 +38,9 @@ from ._ly_fields import (
     F_GROUPS_IN,
     F_PASSIVES,
     F_PDK,
+    F_PINS,
+    F_POINT,
     F_ROW_GROUPS,
-    F_REJECTED,
     F_ROWS,
     GRAPH,
     GRAPH_KEY,
@@ -274,14 +275,14 @@ def _improve(state, rows, placed):
 
 @compute_block(
     WRITER_ROWS,
-    reads=((DEVICE, F_DEVICE), (DEVICE, F_FINGER), (GRAPH, F_GROUPS), (GRAPH, F_GROUPS_IN), (GRAPH, F_ROW_GROUPS),
-           (GRAPH, F_PDK), (GRAPH, F_PASSIVES), (GRAPH, F_REJECTED)),
+    reads=((DEVICE, F_POINT), (DEVICE, F_PINS), (DEVICE, F_FINGER), (GRAPH, F_GROUPS), (GRAPH, F_GROUPS_IN), (GRAPH, F_ROW_GROUPS),
+           (GRAPH, F_PDK), (GRAPH, F_PASSIVES), (GRAPH, F_CANON_ROWS)),
     writes=((GRAPH, F_ROWS), (GRAPH, F_FLOORPLAN), (GRAPH, F_DIFFUSION)),
 )
 @canonical_names(rows=True)
 def compose_rows(projection):
     """물리 행 전부(행 id 정렬)·행 폭 비 기록·시도 기록 = `RowsLayout`, 최종 행의 `FloorplanSummary`, 최종 행의 `ly.diffusion`."""
-    devices = dict(projection.column(DEVICE, F_DEVICE))
+    devices = device_views(projection)
     fingers = dict(projection.column(DEVICE, F_FINGER))
     placed = [g for g in projection.value(GRAPH, GRAPH_KEY, F_GROUPS) if g.pattern is not None]
     row_groups = projection.value(GRAPH, GRAPH_KEY, F_ROW_GROUPS)

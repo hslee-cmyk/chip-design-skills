@@ -4,7 +4,7 @@
 데이터 선언 모듈(공개 정의 = frozen dataclass 뿐). 모든 값은 불변(tuple·스칼라·frozen dataclass)이라 graph 필드 값과
 지문(core `fp_of`)에 그대로 쓰인다. 길이·폭 m, 면적 m^2, 전류 밀도 A/m. 폭 키 = finger_w / 제조 격자(정수).
 
-필드 값: `SliceDensity`(device `ly_slices`), `FingerCandidate`(device `ly_fw_cand`), `GroupLayout`·`MatchingDisposition`
+필드 값: `ConservedPoint`·`DevicePins`·`DeviceAttrs`(device `ly_point`·`ly_pins`·`ly_attrs` -- `LayoutDevice` 칸을 겹치지 않게 나눈 것), `SliceDensity`(device `ly_slices`), `FingerCandidate`(device `ly_fw_cand`), `GroupLayout`·`MatchingDisposition`
 (graph `ly_groups`·`ly_dispositions`), `DeviceFinger`(device `ly_finger`), `RowsLayout`·`FloorplanSummary`
 (graph `ly_rows`·`ly_floorplan`). 결과: `LayoutResult`(설계점 스냅샷 하나, 설계 40 v1.6 §2.4.7 -- 이번 호출에서 쓴 블록은 RunCounters 행이 정본),
 필드 파생 출력: `LayoutOutputs`(맨 앞 `review_needed`, 끝에 재검증 요청 `Revalidation`).
@@ -40,6 +40,25 @@ class ConservedPoint:
     gm_id: float
     vds_V: float
     vsb_V: float
+
+
+@dataclasses.dataclass(frozen=True)
+class DevicePins:
+    """소자 단자 연결(device `ly_pins` 의 값): drain·gate·source 넷. body 는 넣지 않는다(세 블록이 읽지 않는다 -- `DeviceAttrs`).
+    값을 dataclass 로 두는 것은 정준 별칭 번역이 값 안의 문자열을 이름과 같을 때만 바꾸기 때문이다(칸 이름은 번역 대상이 아니다)."""
+
+    drain: str
+    gate: str
+    source: str
+
+
+@dataclasses.dataclass(frozen=True)
+class DeviceAttrs:
+    """소자 부가 칸(device `ly_attrs` 의 값): sizing 참고 W `W_m`(보존량이 아니다 -- W 만 바뀌면 이 필드만 바뀐다), `body` 넷, `diode`."""
+
+    W_m: float
+    body: str
+    diode: bool
 
 
 @dataclasses.dataclass(frozen=True)

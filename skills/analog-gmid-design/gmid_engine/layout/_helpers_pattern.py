@@ -4,11 +4,35 @@
 * `orient(group, devices)` -> (hub 쪽이 source 인 (이름, source, drain) tuple, "") 또는 (None, 사유) -- hub-leaf 패턴 함수 전제.
 * `offsets(rows, members)` -> (dx, dy) 멤버 무게중심(finger 피치 단위, 행 가운데 기준)의 x·y 최대 차, 정확한 유리수.
 * `pattern_rows(result, transistors)` -> `PatternRow` tuple(`canonical_row` 로 node_sequence 정규화).
+* `device_views(projection, adjustable=False)` -> {소자 이름: `DeviceView`} -- 두 블록이 읽는 소자 칸(`ly_point` 의 `kind`·`L_m`, `ly_pins`,
+  `adjustable=True` 면 `ly_w_adjustable`)을 이름으로 모은 읽기 전용 값. 칸은 각 필드에 한 번만 있고 여기서는 읽어 합칠 뿐이다(사본 필드 아님).
 """
+import dataclasses
 from fractions import Fraction
 
+from ._ly_fields import DEVICE, F_PINS, F_POINT, F_W_ADJ
 from .canonical_rows import canonical_row
 from .contract_output import PatternRow
+
+
+@dataclasses.dataclass(frozen=True)
+class DeviceView:
+    """블록이 읽는 소자 칸만(`ly_point` 의 kind·L_m, `ly_pins` 의 drain·gate·source, `ly_w_adjustable`)."""
+
+    kind: str
+    L_m: float
+    drain: str
+    gate: str
+    source: str
+    W_adjustable: bool = False
+
+
+def device_views(projection, adjustable=False):
+    """투영(또는 `AliasView`)의 소자 필드에서 {이름: `DeviceView`}. `adjustable` 이 False 면 `ly_w_adjustable` 을 읽지 않는다(그 필드를 선언하지 않은 블록용)."""
+    pins = dict(projection.column(DEVICE, F_PINS))
+    adj = dict(projection.column(DEVICE, F_W_ADJ)) if adjustable else {}
+    return {name: DeviceView(p.kind, p.L_m, pins[name].drain, pins[name].gate, pins[name].source, adj.get(name, False))
+            for name, p in projection.column(DEVICE, F_POINT)}
 
 
 def orient(group, devices):

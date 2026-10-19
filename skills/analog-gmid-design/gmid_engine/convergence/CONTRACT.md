@@ -56,11 +56,11 @@
 * 입력 `snapshot` 은 바꾸지 않는다. 같은 입력이면 같은 결과(결정론).
 
 **레이아웃 결과 읽기(설계 40 v1.6 §2.4.7·§2.4.8, U17 ①)**: `LayoutResult` = (설계점 스냅샷, 계산 블록 목록)뿐이다. 이 패키지는 레이아웃 값을 그 스냅샷의
-`ly_*` 필드(`layout.LAYOUT_KEY`·`F_*`)에서 읽는다 -- 그룹 `ly_groups`, 입력 그룹 `ly_groups_in`, 소자 `ly_device`, finger `ly_finger`, 면적 `ly_floorplan`, 확산 `ly_diffusion`.
+`ly_*` 필드(`layout.LAYOUT_KEY`·`F_*`)에서 읽는다 -- 그룹 `ly_groups`, 입력 그룹 `ly_groups_in`, 소자 이름 = `ly_point` 열 key, finger `ly_finger`, 면적 `ly_floorplan`, 확산 `ly_diffusion`.
 
 ## 2. `effective_placement(snapshot, grid_m) -> (placements, unplaced)`
 
-`snapshot` = `LayoutResult.snapshot`, `grid_m` = 제조 격자. 소자(`ly_device`) 이름순 `Placement(name, key, finger_w_m, n_fingers, W_m, pending, tol_effective)`:
+`snapshot` = `LayoutResult.snapshot`, `grid_m` = 제조 격자. 소자(`ly_point` 열 key) 이름순 `Placement(name, key, finger_w_m, n_fingers, W_m, pending, tol_effective)`:
 * 놓인 소자(`ly_finger` 값 있음, 그룹의 `pending` 멤버 아님): key = `round(finger_w_m / grid)`, `W_m = DeviceFinger.W_realized_m`, `pending=False`,
   `tol_effective = DeviceFinger.tol_effective`.
 * **W_request 응답 대기 그룹**(`GroupLayout.pending`)의 멤버: 레이아웃은 잠정 배치만 했다(LY3 -- W 를 바꾸지 않는다). 그 소자는 마지막 시도(`attempts[-1]`)의
