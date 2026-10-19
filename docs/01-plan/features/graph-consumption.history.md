@@ -324,6 +324,17 @@ date: 2026-10-16
 | (2) 상위 IT-1 병합 | F-G19, N2 DEC-64 행, N3.10 DEC-64·card 표 행, N7.2 K-3 항목, R-G6 | 'diff 확인·병합 전' → 'master `f2852c36` 병합됨'(card 정의만, 구현은 아직) |
 | headroom-chain 쪽 개정 | N3.3-3 끝, N3.10 headroom-chain 문단, N7.2 | v0.7.1 317행 '경로 목록 저장 안 함'·완료 조건 WP-10은 그 계획 소관으로 표시만 |
 
+### 사용자 결정 O-15(2026-10-19) → v0.10
+
+원문: 사용자 "A~E 권고대로, oracle 승인"(`wt/_drafts/user_decisions.md` 634행). 근거는 원칙 감사 메모(오케스트레이터 scratchpad `principle_audit/notes.md`)다. 메모의 file:line은 이 worktree에서 다시 읽었다. 재측정 차이: VGS = 0 첫 마디 판정은 `derived_fns.py:43`(메모는 :47), 한 단계 `.known` 읽기는 `layer0_center.py:485`(메모는 :487)이고, 두 단계 이상 따라가는 tie 사슬은 `block_columns.py:181-184`·`scc_order.py:122-127`이다(`achievability.py:315-317`은 tie 관계 한 단계 읽기).
+
+| 결정 | 반영 자리 | 처리 |
+|---|---|---|
+| (A) U-G4 범위 보완 | F-G14, N3.1-5 L-5 등록표, N3.2 `dc_conduction_floor` 행, GC-7, U-G4 행, BD-8, GD-12, N7.3-13 | 네 번째 자리 `derived_fns.py:36-47` `_conduction_ok`(`edge_costs`) 추가, 정본 = LUT memo 파생 `conduction_mask(kind, w_key)`(VGS = 0 마디 찾기 한 곳), `cell_floor`·`edge_costs`가 읽음, `sctx.cell_floors` 제거, `dc_conduction_floor` 출력 전용. 같은 캐시를 쓰는 `_peak_floor`의 자리는 GD-12 |
+| (E) 범위 확장 | F-G37~F-G39, N1.2 범위 행, NFR-G4, N5 X-G12 신설, GC-9 신설, GC-5 범위, N7.2 XRUN-F1, N7.3-3·N7.3-13, FR-G15·N4-1·N7.3-7(GC-9 무동작), N7.3-2, GD-13 | 기저 float 변환 1회, 정확 MOS 전류 공용 함수, `current_cone` 소비자 기저 읽기(사본 삭제는 U-G3 절차), `_vds_floor` → `lut.derived`(GC-9). 완료 조건 3을 '두 단계 이상 따라가는 경로 재구성'으로 좁힘, 블록 안 local memo 허용·`bracket_root` 뒤 같은 점 재풀이 금지(GC-5). X-G12 '승인(O-15 (E))' |
+| (C) 차분 제약 그래프 | N3.2 R4 행, GC-8, N10.4 B-G2, X-G9, U-G12, N7.3-2 | B-G2는 O-15 (C)로 흡수(닫힘). R4 처리는 headroom-chain card 소관. GC-8은 그 card id가 생길 때까지 부채 항목 자리표 |
+| 머리 | Status, N2 O-15 행 | 'v0.10 -- O-15 반영, 재검증 전' |
+
 ## Version History
 
 | 판 | 날짜 | 변경 |
@@ -337,3 +348,4 @@ date: 2026-10-16
 | 0.7 | 2026-10-19 | v0.6 재검증 반영(H3). (가-1) (ii) 점의 매크로 실패 처리(`use_macro` 해제 판정 위치 이동, 면적만으로 재선택, 원인별 t 포함 기록), (c)·빈 사다리 조건 통일, M-G8을 N6 표에서 N4-4로 이동. 재측정 H2-10 |
 | 0.8 | 2026-10-19 | 사용자 결정 O-13 반영(H3). DEC-64 v1 해석 (가)로 P-G1 자리 정정(같은 DC 등식 없음, 포트 경로 둘 이상이면 ΔV 소거 KVL 하나 남음, 대칭이면 묶음과 중복), Gs⁺ 정의 보강·숲 불변량 성립 한 줄, U-G 전부 결정됨·X-G 승인 표시, (가-2)·(가-3) 기록화, GD-7 격자 기준 명시 |
 | 0.9 | 2026-10-19 | 사용자 결정 O-14 반영(H3). 트리 경로를 쓰기 계획 블록 자기 출력 S0 필드로(소비자 셋, '저장하면 사본' 논리 철회, 만드는 card 기본안 HC-1/GC-2), WP-10 계측 완료 조건·NFR-G4, 상위 IT-1 병합됨 표시. 원래 취지와 다름 아님(원칙으로 복귀) |
+| 0.10 | 2026-10-19 | 사용자 결정 O-15 반영(H3). (A) 전도 술어 정본 `conduction_mask`(네 번째 자리 `edge_costs`, `sctx.cell_floors` 제거), (E) 원칙 감사 범위 확장 GC-9·X-G12(기저 float 1회, 정확 MOS 전류 함수 하나, `current_cone` 기저 읽기, `_vds_floor` 이동, 완료 조건 3 좁힘, 블록 안 local memo·같은 점 재풀이 금지), (C)로 B-G2 흡수·GC-8 자리표 |

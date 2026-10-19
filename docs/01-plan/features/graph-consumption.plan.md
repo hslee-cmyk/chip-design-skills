@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 0.9
+version: 0.10
 ---
 
 # graph-consumption Planning Document
@@ -12,7 +12,7 @@ version: 0.9
 > 4. **결과 검증**: 독립 경로는 SPICE 오라클 forced 모드(넷별 KCL 잔차)·free 모드(노드전압)이고 배선은 U16이다. 엔진 안에는 보조 검사 둘(쓰기 계획 숲 회계 불변량, `node.terminals` 결선 점검)만 둔다. 출발 전류의 조용한 자리값 대체는 꺼지지 않는 충돌 표지로 바꾸고 기저를 거친다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: **계획 v0.9 -- O-14 반영, 재검증 전**(2026-10-19). 사용자 결정 O-14(`wt/_drafts/user_decisions.md` 633행) (1) (가′) -- 트리 경로를 쓰기 계획 블록의 자기 출력 필드로, WP-10 계측 완료 조건 -- 와 (2) 상위 card IT-1 병합을 반영했다. v0.8은 O-13(같은 문서 632행) 반영본으로 diff 확인 '승인 가능'이었다. 착수 근거는 사용자 결정 O-10 (2)(같은 문서 628행)이다. 다음 단계는 v0.9 재검증 → 계획 승인 → GC-0a(card 0 측정) → GC-D(상위 문서 개정 → design)다.
+> **Status**: **계획 v0.10 -- O-15 반영, 재검증 전**(2026-10-19). 사용자 결정 O-15(`wt/_drafts/user_decisions.md` 634행)의 (A) U-G4 범위 보완(`conduction_mask`)과 (E) 원칙 감사 범위 확장(GC-9, X-G12), (C)에 따른 B-G2 흡수를 반영했다. v0.9는 O-14(같은 문서 633행) 반영본이다 -- 트리 경로를 쓰기 계획 블록의 자기 출력 필드로, WP-10 계측 완료 조건, 상위 card IT-1 병합. v0.8은 O-13(같은 문서 632행) 반영본으로 diff 확인 '승인 가능'이었다. 착수 근거는 사용자 결정 O-10 (2)(같은 문서 628행)이다. 다음 단계는 v0.10 재검증 → 계획 승인 → GC-0a(card 0 측정) → GC-D(상위 문서 개정 → design)다.
 >
 > **이력**: 경위, 재측정 근거, 검증 반영 기록은 [graph-consumption.history.md](graph-consumption.history.md)에 있다.
 > **상위 계획**: [gain-budget-gmid-sizing.plan.md](gain-budget-gmid-sizing.plan.md). 상위 원칙(N1.4 NFR, N2 결정, N6.3 병합 전 확인)을 따른다. 관계는 N2 표, 상위 문언과 다른 곳은 N5와 N3.10에 있다.
@@ -93,6 +93,7 @@ version: 0.9
 | 정본 술어 우회 교체(R1·R2, graph 층 안 R1″, 쓰기 계획의 (kind, gate, source) 재유도)(GC-6) | R6(layout 파생 판정)의 교체(U16 배선 card) |
 | R3(전도 하한 필드 대 search 칸 하한) 공동분석 자료(card 0 M-G6)와 그 결정 뒤 처리(GC-7) | R4 처리 결정(백로그 B-G2, 처리 card는 GC-8) |
 | 상위 문서·CONTRACT 개정안, 다른 card 완료 조건 변경(N3.10) | design 40·41의 다른 절, headroom-chain 계획 본문 |
+| 원칙 감사 범위(O-15 (E), X-G12): 기저 행 float 변환 1회, 정확 MOS 전류 공용 함수, `current_cone`의 기저 읽기, `_vds_floor`의 `lut.derived` 이동(GC-9), 블록 안 local memo와 같은 점 재풀이 금지(GC-5) | 위쪽 방향 차분 제약 그래프 정본(O-15 (C), headroom-chain 소관) |
 | 13회로(library 9 + heldout 4) 무동작 증거 | 회로 spec 변경 |
 
 ### N1.3 기능 요구
@@ -113,7 +114,7 @@ version: 0.9
 | FR-G12 | **출발 전류**: 0 이하 전류를 조용히 자리값으로 바꾸지 않고, 매크로 목표 해제·예산 유무와 무관하게 꺼지지 않는 충돌 표지로 기록한다. 자리값은 기저 자유 원소에만 두고 나머지 전류는 기저 행으로 계산한다. 충돌 칸의 처리는 사다리 칸 단위로 정한다(U-G13, N3.6) |
 | FR-G13 | **정본 술어 교체**: R1·R2·R1″ 자리와 쓰기 계획의 묶음 재유도를 정본 읽기로 바꾼다(N3.7) |
 | FR-G14 | **옛 경로 삭제**: 대체된 필드·블록·문언과 그 등록(지문 파일 목록·모듈 지도·패키지 공개 이름)은 같은 변경에서 지운다(상위 레지스트리 규칙) |
-| FR-G15 | **무동작**: 계산 결과가 바뀌지 않아야 하는 변경(GC-2·GC-3·GC-6·GC-7)에서 13회로 결과가 base와 비트 동일하다(N4) |
+| FR-G15 | **무동작**: 계산 결과가 바뀌지 않아야 하는 변경(GC-2·GC-3·GC-6·GC-7·GC-9)에서 13회로 결과가 base와 비트 동일하다(N4) |
 | FR-G16 | **정지 보존**: `gvgs_self_edge` fail-closed 정지는 `gvgs_cycles.py`를 지우기 전에 다른 블록으로 옮기고, 정지 시점·판정식·사유 코드가 base와 같다(N3.3-6) |
 | FR-G17 | **엔진 보조 검사**: 쓰기 계획 숲 회계 불변량(종속 수 = \|E\| − \|V\| + 성분 수)과 `node.terminals` 결선 점검을 θ 무관 S0 검사로 실행당 한 번 한다. 거부를 먼저 보인다(N3.5-3) |
 | FR-G18 | **독립 검증 경로**: 결과의 KCL·KVL 독립 확인은 오라클 forced·free 대조다. 그 배선은 U16 완료 조건이고, 이 계획은 그 변경을 상위·관련 계획 개정 항목(S-7)으로 올린다(N3.5-2, N3.10, U-G10) |
@@ -128,7 +129,7 @@ version: 0.9
 | NFR-G1 | **이름 금지**: 규칙 코드에 회로·소자·넷 이름 리터럴 0 |
 | NFR-G2 | **상수 발명 금지**: 새 허용오차는 기존 선언값이나 기존 식만 쓴다. 없으면 사용자 결정이다 |
 | NFR-G3 | **graph 단일 정본**: 개념 하나에 필드 하나, writer 하나(상위 DEC-83·FR-9). 트리 경로는 쓰기 계획 블록이 자기 출력 필드로 한 번 쓰고(writer 하나), 소비자는 그 필드를 읽는다. 같은 경로를 블록 밖에서 다시 재구성하지 않는다(N3.3-3, O-14 (1)) |
-| NFR-G4 | **계산 재사용**: θ 무관 검사(숲 불변량, 결선 점검)는 실행마다 처음 한 번 계산하고 그 실행 안에서 재사용한다(상위 NFR-2, 원래 취지 "처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용"). 넷별 뿌리 경로도 쓰기 계획 블록이 실행당 한 번 쓰고 소비자가 읽는다(O-14 (1)). 새 캐시는 만들지 않는다. 재사용은 상위 WP-10(315행 -- 반복 안 계산은 쓰는 순간 캐시, 근거는 cProfile과 중복 인자 계측)대로 계측으로 보인다: cProfile과, **블록 밖 함수를 포함한** 같은 인자 반복 호출 계수 0(완료 조건 9) |
+| NFR-G4 | **계산 재사용**: θ 무관 검사(숲 불변량, 결선 점검)는 실행마다 처음 한 번 계산하고 그 실행 안에서 재사용한다(상위 NFR-2, 원래 취지 "처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용"). 넷별 뿌리 경로도 쓰기 계획 블록이 실행당 한 번 쓰고 소비자가 읽는다(O-14 (1)). 새 캐시는 만들지 않는다. **블록 안 local memo는 허용한다**(O-15 (E)): 수명은 그 블록 호출 하나, 상한이 있어야 하고, 블록 밖으로 나가지 않는다. 블록 안에서도 같은 인자 반복 계산은 0이어야 한다. 예: `start_intervals`의 `bracket_root` 뒤 `solve(candidate)`(`E/search/start_intervals.py:392-394`)가 탐색 중 이미 푼 같은 점을 다시 푸는 것은 금지다(그 점의 상태를 local memo에서 읽는다). 재사용은 상위 WP-10(315행 -- 반복 안 계산은 쓰는 순간 캐시, 근거는 cProfile과 중복 인자 계측)대로 계측으로 보인다: cProfile과, **블록 밖 함수를 포함한** 같은 인자 반복 호출 계수 0(완료 조건 9) |
 | NFR-G5 | **만들면 배선**: 새 필드·검사는 만드는 변경에서 소비자에 배선한다. 소비자 없는 기록은 만들지 않는다. 소비자를 다른 card로 미루는 것은 부채 목록 항목 + 사용자 승인(U-G6)이다 |
 | NFR-G6 | **fail-closed**: 규칙 L은 정적으로 풀지 못하면 위반이다. 새 검사는 거부를 먼저 보인 뒤 통과를 본다. 조용한 대체·생략은 금지다. 지우는 모듈이 가진 정지는 지우기 전에 옮긴다. 실패 표지는 다른 설정(매크로 목표 해제 등)으로 꺼지지 않는다 |
 | NFR-G7 | **작성자≠검증자**: card 0 측정, 부채 목록 기준선과 그 지문, 항목 제거 확인, 무동작 판정, 13회로 계수는 검증자가 한다. 규칙 L 코드와 거부 픽스처는 test 역할이 쓴다 |
@@ -146,6 +147,7 @@ version: 0.9
 | K-3 | 입력 DC 미선언 시 입력 포트를 같은 DC로 묶던 `input_tie`(U2 기본안 (a)) 폐기, 대칭 포트는 U2 자기동형 묶음(`domain.ties`)이 대신, 구현 순서는 결정 6(d/s 맞바꿈) 다음. **이 순서 조건은 이미 충족됐다**: 결정 6(상위 U-62, 닫힘)은 U17 ①-d 병합 `c8d156e3`으로 들어갔고 이 worktree HEAD의 조상이다(F-G36) | 사용자 2026-10-12 "K-1~K-3도 권고대로"(`user_decisions.md` 243행), design 41 §6.7-1a |
 | O-13 | (1) DEC-64 v1 해석 (가): 같은 DC 등식은 없앤다. 포트 경로가 둘 이상인 v1 고리는 ΔV를 소거한 KVL 하나가 남고(파일럿 VGS1a − VGS1b = VGS4a − VGS4b, M1b `cycle_vgs`), 대칭이면 묶음과 중복이다. 정정 자리는 design 41 1499행·IT-1·headroom-chain N0.1·155행·이 계획 P-G1 자리다.<br>(4) 이 계획 v0.7의 U-G 권고 전부: U-G1 (가), U-G3 항목별 삭제(card 0 대조 일치 항목), U-G4 (가), U-G6 미룸, U-G8 넣기, U-G9 (가), U-G10 오라클 대조·U16 완료 조건, U-G11 (가), U-G12 GC-2·GC-3·GC-8 착수 승인(GC-8은 B-G2 뒤 재질문), U-G13 (가) + 아래 끝 전류 충돌 경우 (가-1)(X-G11 원래 취지와 다름 승인) | 사용자 2026-10-19 "1~5까지 권고대로"(`wt/_drafts/user_decisions.md` 632행) |
 | O-14 | (1) 재계산 빈틈 (가′): U-G1 뼈대(KVL 정본 = 쓰기 계획 출력, 별도 사이클 블록 없음) 유지, 단 쓰기 계획 블록이 넷별 뿌리 경로(변 열·부호, θ 무관)를 자기 출력 S0 필드로 한 번 쓰고 소비자 셋(이 계획 M-G1/GC-2, headroom-chain κ_n, design 41 §6.7 의존 묶음)이 읽는다(O-13 (4) U-G1 (가)의 '경로 저장 안 함' 부분 개정). 이 계획과 headroom-chain의 완료 조건에 WP-10 계측(cProfile + 블록 밖 함수 포함 같은 인자 반복 호출 0).<br>(2) 상위 계획 v6.16 card IT-1/IT-0 승인(master `f2852c36` 병합) | 사용자 2026-10-19 "1은 (가′), 2 승인, 3 기본안, 4 권고대로"(`wt/_drafts/user_decisions.md` 633행) |
+| O-15 | 원칙 감사(사용자 2026-10-19 'graph에 값을 유지하는 것은 함수마다 재사용을 해서 반복계산이나 서로 다른 값을 사용하는 것을 막기 위해서') 결과. 이 계획에 걸리는 것: (A) U-G4 범위 보완 -- 칸별 전도 술어를 LUT memo 파생 `conduction_mask(kind, w_key)` 하나로, `sctx.cell_floors` 캐시 제거, `dc_conduction_floor` 출력 전용 유지(GC-7). (C) 위쪽 방향 차분 제약 그래프는 R-1′ 변 목록을 정본으로(headroom-chain, 이 계획은 B-G2 흡수만). (E) 범위 확장(X-G12, GC-9·GC-5·완료 조건 3·NFR-G4) | 사용자 2026-10-19 "A~E 권고대로, oracle 승인"(`wt/_drafts/user_decisions.md` 634행) |
 | X-22 | card B로 낡은 `structure.json` rule_hash 재기록 승인(Role: data). 지문을 판정 로직에만 묶는 개선은 백로그 | 사용자 2026-10-16 "모두 권고대로"(`user_decisions.md` 629행), 백로그 `wt/_drafts/engine/U17_FOLLOWUPS.md` 58행 |
 | S-7(상위 관행) | 계획과 다른 부분이 생기면 계획부터 고친다 | 사용자 2026-10-16(offset-strategy N2 S-7) |
 | X-20·X-21 | 블록 결과 색인 키 = (블록, 분할, 입력 판)뿐, 실행 바깥 지문 금지, 디스크 저장 금지 | `user_decisions.md` 611·612행 |
@@ -198,7 +200,7 @@ version: 0.9
 | F-G11 | MNA 풀이는 특이면 NaN + undefined로 남기고, 풀이 잔차나 조건수는 기록하지 않는다 | `E/metrics/mna_solve.py:1-12`(잔차 grep 0) |
 | F-G12 | 출발 구간 `_state`는 θ 자유 원소 전류가 0 이하면 '정해지지 않음'으로 센다(117행). MOS 전류가 0 이하면 None으로 바꾼다(119행). None인 소자마다 자리값 max(정해진 전류 기하평균, W_min·IDu/L)을 **소자별로** 둔다(128행). 자리값은 기저 행을 거치지 않는다. 자리값이 하나라도 없으면 면적 추정은 None이다(131-132행) | `E/search/start_intervals.py:108-133` |
 | F-G13 | 정본 술어 우회 재계산 자리:<br>• diode 판정(`g == d`) metrics 2곳: `E/metrics/block_gain_model.py:166`, `E/metrics/ls_swing.py:46`<br>• diode 판정 graph 층 안 4곳(3파일): `E/graph/cells.py:53, :117`(속성 꼴 `m.g == m.d`), `E/graph/net_model.py:75`, `E/graph/node_impedance.py:22`<br>• (gate, source) 묶음 metrics 1곳: `E/metrics/block_gain_model.py:170`<br>• (kind, gate, source) 묶음을 쓰기 계획이 트리 변에서 다시 만듦: `E/sizing/writer_plan.py:186`(변수 경유 꼴: 트리 변 tuple에서 풀어 낸 `a`·`b`로 키를 만든다)<br>정본 writer는 `E/graph/s1_structure.py:67`(is_diode), `E/graph/gs_groups.py`(gs_groups)다 | grep(tests 제외) |
-| F-G14 | VGS = 0 누설 전류를 세 곳이 계산한다: 봉인 9(`E/sizing/seal_conduction.py:27-31`, 필드 `dc_off_current`·`dc_conduction_floor`의 writer), search 칸 하한(`E/search/cell_floor.py:53`), search 전류 상자(`E/search/current_box.py:20-33`). 봉인 9 docstring은 'search가 읽는 하한'과 '오라클 `off_current_A`(pipeline `oracle_input`이 내는 값)'를 소비자로 적는다. 새 엔진에 `oracle_input`을 내는 엔진 코드는 없다 | `E/sizing/seal_conduction.py:8, :12-13`, grep `oracle_input` |
+| F-G14 | VGS = 0 누설 전류·전도 술어를 네 곳이 계산한다: 봉인 9(`E/sizing/seal_conduction.py:27-31`, 필드 `dc_off_current`·`dc_conduction_floor`의 writer), search 칸 하한(`E/search/cell_floor.py:53-85` `_conduction_floor`, 캐시 `sctx.cell_floors`), search 전류 상자(`E/search/current_box.py:20-33`), **LUT memo 파생 `edge_costs`의 전도 마스크**(`E/lut/derived_fns.py:36-47` `_conduction_ok`, 63-74행에서 사용 -- O-15 (A)로 추가). 격자판 전도 술어 둘(`_conduction_floor`·`_conduction_ok`)은 마스크가 다르다(분지 요구, VGS = 0 마디의 on 검사, `zero_first`가 아니면 누설 조건을 없앰). VGS = 0 마디 찾기도 세 가지다(`current_box.py:24` ulp, `cell_floor.py:58` spacing, `derived_fns.py:43` 첫 마디만). 봉인 9 docstring은 'search가 읽는 하한'과 '오라클 `off_current_A`(pipeline `oracle_input`이 내는 값)'를 소비자로 적는다. 새 엔진에 `oracle_input`을 내는 엔진 코드는 없다 | `E/sizing/seal_conduction.py:8, :12-13`, grep `oracle_input` |
 | F-G15 | 블랭킷 READS: `build_s1v`(`E/graph/s1v_fields.py:249`)와 `coupling_vars`(`E/graph/coupling_vars.py:170`)가 S1 필드 전부를 선언한다 | 해당 줄 |
 | F-G16 | 구조 test는 규칙 A~I·K와 복사 등록부다(`E/tests/structure/structure_checks.py`, 1191행). writer는 있는데 reader가 없는 것, 정본 우회 재계산을 잡는 규칙은 없다 | `E/tests/structure/structure_checks.py:321-1191` |
 | F-G17 | 하위 칸 계수: 엔진 frozen dataclass 337개, 칸 2047개 중 엔진 읽기 0인 칸이 292개다. 이 수는 graph 필드 값 형식에 한정하지 않은 전체이고, 이름 기반이라 하한이다 | 재측정 H2-2 |
@@ -220,6 +222,9 @@ version: 0.9
 | F-G33 | **`NodeWrite`**: 넷마다 (tier, relation, element, `known` = 읽는 아는 쪽 노드, y_key, order)다. `known`이 숲의 부모 포인터다(F·W4 뿌리는 None) | `E/sizing/s2_values.py:268-277`, `E/sizing/writer_plan.py:211-220` |
 | F-G34 | **검증 소비자**: 상위 V9가 `matching_offset` 멤버의 (W/L, gm_id) 일치와 `matching_ratio` 멤버의 (W/L 비, gm_id 일치)를 물리 불변식 검증(contracts test)으로 지정한다 | 상위 계획 920행 |
 | F-G35 | **`gvgs_cycles.py` 등록 자리**: S1 지문 파일 목록 `S1_RULE_FILES`, 모듈 지도 `_module_map`, 패키지 공개 이름, S1 조립 import | `E/graph/s1_values.py:222-225`, `E/_module_map.py:98, :470`, `E/graph/__init__.py:29`, `E/graph/s1_build.py:35` |
+| F-G37 | **기저 전류의 반복 계산(O-15 (E))**: 기저 행의 유리수 → float 변환을 `_mos_currents`가 `_state` 호출마다(`E/search/start_intervals.py:100`), `current_model`이 호출마다(`E/search/iv_currents.py:120`) 다시 한다(루프 불변). 같은 θ에서 MOS 전류를 유리수로 정확히 평가하는 곳이 셋이다: `E/sizing/theta_check.py:45-50`, `E/sizing/block_currents.py:31`, `E/search/cone_rows.py:16-24`. `theta_schema.current_cone`은 기저 MOS 행을 다시 담은 필드다(`E/sizing/theta_schema.py:30` '`current_cone`: KCL 기저 행 중 MOS 행마다') | 해당 줄 |
+| F-G38 | **`_vds_floor`의 자리(O-15 (E))**: sizing의 `_vds_floor`(`E/sizing/block_columns.py:101-118`)는 LUT 슬라이스만으로 정해지는 값인데, LUT memo `derived` 영역에 sizing 모듈 안에서 등록한다(`lut.memo.lookup("derived", "sizing_vds_floor", …)`, 118행) | 해당 줄 |
+| F-G39 | **부모 포인터 읽기 자리**: `NodeWrite.known`을 **한 단계**만 읽는 곳(아는 쪽 노드 값 읽기)은 여럿이다(`E/sizing/block_columns.py:309, :352, :430-434, :474-481, :760-765`, `E/search/layer0_center.py:485`). 포인터를 **두 단계 이상** 따라가는 곳은 같은 DC tie 사슬 두 곳이다(`E/sizing/block_columns.py:181-184`, `E/sizing/scc_order.py:122-127` -- 둘 다 IT-1 삭제 대상). `E/metrics/achievability.py:315-317`은 tie 관계를 한 단계 읽는다(같은 IT-1 대상) | 해당 줄, `git grep "\.known"` |
 | F-G36 | **결정 6(d/s 맞바꿈)은 이미 병합됐다**: 상위 U-62는 닫혔고(사이징 결과는 선언 방향, 틀린 선언은 봉인 7 거부), 구현은 U17 ①-d 병합 `c8d156e3`이며 이 worktree HEAD의 조상이다(`git merge-base --is-ancestor c8d156e3 HEAD` 참). `s1_symmetry`가 MOS d/s 부호(`reverses_orientation`)를 계산하고, 전도 MOS 자기 맞바꿈은 `ds_self_swap_zero_current`로 멈춘다. headroom-chain v0.7.1도 'K-3의 순서 조건 결정 6 다음은 이미 충족'으로 적는다 | 상위 계획 1371행(U-62), `E/graph/s1_symmetry.py:14-15, :16-20, :125-133`, headroom-chain v0.7.1 490행 |
 
 ### N3.1 구조 규칙 L
@@ -247,7 +252,7 @@ version: 0.9
    * 한계(알고리즘): 이름 기반이다. 다른 클래스의 같은 이름 칸 읽기도 읽힘으로 세므로, 죽은 칸을 놓칠 수는 있어도 살아 있는 칸을 죽었다고 하지는 않는다.
 5. **규칙 L-5 정본 술어 재계산 거부**
    * 등록표: {개념: (정본 필드, writer 파일, 금지 AST 패턴)}. 패턴은 AST 노드 일치로 정의한다(문자열 grep 아님).
-   * 초기 개념(기본안 BD-8): diode 판정(MOS gate 핀 = drain 핀 비교), 같은 VGS 묶음((kind, gate, source) 또는 (gate, source) 핀 tuple을 묶음 키로 쓰기). VGS = 0 누설 전류는 R3 공동분석(U-G4) 결과에 따라 등록하거나 뺀다.
+   * 초기 개념(기본안 BD-8): diode 판정(MOS gate 핀 = drain 핀 비교), 같은 VGS 묶음((kind, gate, source) 또는 (gate, source) 핀 tuple을 묶음 키로 쓰기). VGS = 0 누설·전도 술어는 U-G4 (가) + O-15 (A)로 정본이 LUT memo 파생 `conduction_mask(kind, w_key)`가 됐으므로, 그 술어(격자 VGS = 0 마디 찾기, 칸별 전도 마스크)를 등록한다(기본안, GC-7에서 정본이 생긴 뒤).
    * 판정: writer 파일 밖에서 패턴이 나오면 위반이다. 등록 개념의 writer 파일이 없으면 위반이다.
    * **기준선 완전성(거부 증거)**: GC-1은 F-G13의 7자리 전부가 규칙 L-5 위반으로 잡혀 기준선에 들어감을 자리별로 보인다. 특히 속성 꼴(`E/graph/cells.py:53, :117`의 `m.g == m.d`)과 변수 경유 꼴(`E/sizing/writer_plan.py:186`, 트리 변 tuple에서 풀어 낸 변수로 키를 만듦)을 패턴이 잡는지 그 자리 그대로 보인다. 잡지 못하는 자리가 있으면 패턴을 그 꼴까지 넓히고, 넓힐 수 없으면 GC-1을 멈추고 보고한다(자리를 조용히 빼지 않는다).
    * **검증 독립성과의 관계**: 봉인이 결과를 재는 계산(잔차·정합)은 술어 재계산이 아니다. 봉인은 정본 필드를 읽고 다른 경로로 잰다. 그래서 봉인 코드에 면제를 주지 않는다. 봉인이 정본 술어 자체를 다시 만들면 위반이다.
@@ -281,7 +286,7 @@ version: 0.9
 | `graph/coupling: vars·column_block_map·bias_columns`(L-2) | `E/pipeline/stage_a.py:12-15`: 소비자는 층 0 조립(41 §5.5) | 배선 대기(지금은 출력 전용으로도 선언하지 않는다 -- 엔진 소비자가 지정돼 있다) | 상위 N6.1 단위 8 | U-G6 |
 | `graph/s1v: applied_facts`·`declared` | 단계 A 구조 보고(`structure_tables`), 동적 루프로만 읽힘(F-G3) | `structure_tables.py:33`을 정적 형태로 바꾸고 출력 전용 선언 | GC-7 | -- |
 | `device: dc_off_current` | 봉인 9 docstring: 오라클 `off_current_A` 입력 | 배선 대기. 엔진 → 오라클 입력 생성기(U16, 형식은 oracle-portability OP-0 입력 스키마) | U16 | U-G6 |
-| `device: dc_conduction_floor` | 봉인 9 docstring: 'search가 θ 전류 상자·제약을 조일 때 읽는 하한'. 실제 search는 LUT 격자에서 따로 계산(F-G14) | 공동분석 대기(R3) | GC-7 | U-G4 |
+| `device: dc_conduction_floor` | 봉인 9 docstring: 'search가 θ 전류 상자·제약을 조일 때 읽는 하한'. 실제 search는 LUT 격자에서 따로 계산(F-G14) | 출력 전용 선언(U-G4 (가)). 격자판 전도 술어는 LUT memo 파생 `conduction_mask` 하나로 합친다(O-15 (A)) | GC-7 | U-G4·O-15 (A) |
 | `device: start.point`·`start.row`, `graph/start: area_est_m2·area_fraction·conflicts·inactive·macro·records·uncovered` | `E/search/start_intervals.py:5` '출발값과 보고에만'. 보고서가 읽지 않는다 | 출력 전용 선언 대기. 출력 함수 = U16 결과 JSON 진단 칸 | U16 | U-G6 |
 | `graph/dc: dc_scc_log`·`dc_tie_breaks` | SCC 풀이 진단, 결정성 기록(상위 NFR-4) | 출력 전용 선언 대기(U16 결과 JSON) | U16 | U-G6 |
 | `graph/layout: ly_dispositions` | 소비자 미기재 | 출력 전용 선언 대기(`layout_outputs` 경유) | U16 | U-G6 |
@@ -302,7 +307,7 @@ version: 0.9
 | R1·R1′·R2(F-G13 metrics 3자리) | 정본 `is_diode`·`gs_groups` | 정본 읽기로 교체 | GC-6 | -- |
 | R1″(F-G13 graph 층 안 4자리) | 같은 층 재유도 | 정본 읽기로 교체(기본안 BD-7. 면제 없음 -- P-1·FR-9). 투영 경로는 design(GD-5). 세 파일 모두 rule_hash 대상이다(U-G11) | GC-6 | U-G11 |
 | 쓰기 계획의 (kind, gate, source) 재유도(F-G13) | 정본 `gs_groups` | 정본 읽기로 교체 | GC-2 | -- |
-| R4(`E/metrics/headroom_bound.py`, `E/metrics/ls_swing.py`의 포화 부등식 그래프) | headroom-chain S0 제약 그래프와 같은 개념, 변 규칙이 다름 | HC-1 뒤 공동분석 대기(정의 차이 판단 필요) | GC-8 | 백로그 B-G2 |
+| R4(`E/metrics/headroom_bound.py`, `E/metrics/ls_swing.py`의 포화 부등식 그래프) | headroom-chain S0 제약 그래프와 같은 개념, 변 규칙이 다름. O-15 (C): 위쪽 방향 차분 제약 그래프 네 곳(이 둘과 `iv_headroom`·`order_terms`)은 R-1′ 제약 그래프 변 목록을 정본으로 읽는다(정본은 headroom-chain) | 정본 읽기로 교체(headroom-chain card 소관) | GC-8(자리표 -- headroom-chain card id가 생기면 교체) | O-15 (C) |
 | R6(convergence의 layout 파생 판정 3자리) | `layout_outputs` 미배선 때문에 생긴 사본 | U16이 `layout_outputs`를 배선할 때 같은 변경에서 교체 | U16 | -- |
 | 하위 칸(L-4) | -- | GC-0a M-G3c 계수 뒤, 보고 덤프 칸은 출력 전용 칸 목록, 출처 지문 칸은 지문 전용 칸 목록, 나머지는 삭제 승인 대기(항목별) | GC-7 | U-G3 |
 
@@ -513,7 +518,7 @@ version: 0.9
 
 판정은 규칙으로 한다. 회로는 library 9 + heldout 4다. 기저 단계에서 멈추는 회로(`StructureUnresolvedError` 등)는 그 사유를 그대로 남기고, 멈추기 전까지의 필드로 판정한다.
 
-1. **무동작(계산 불변 card: GC-2·GC-3·GC-6·GC-7)**: 비교 대상은 DC 필드(노드전압·소자 op·전류), 봉인 판정(통과·거부·margin), front 지문이다. 지운 필드·지운 봉인 행과 새 보조 검사 결과는 비교에서 빼고 따로 단언한다. 나머지는 base와 비트 동일이어야 한다. GC-2의 base는 K-3 구현 card가 병합된 master다(K-3은 입력 DC 미선언 회로의 결과를 바꾼다, design 41 §6.7-1a).
+1. **무동작(계산 불변 card: GC-2·GC-3·GC-6·GC-7·GC-9)**: 비교 대상은 DC 필드(노드전압·소자 op·전류), 봉인 판정(통과·거부·margin), front 지문이다. 지운 필드·지운 봉인 행과 새 보조 검사 결과는 비교에서 빼고 따로 단언한다. 나머지는 base와 비트 동일이어야 한다. GC-2의 base는 K-3 구현 card가 병합된 master다(K-3은 입력 DC 미선언 회로의 결과를 바꾼다, design 41 §6.7-1a).
 2. **봉인 8**(U-G9 (가)): 지운 행은 비교에서 뺀다. base에서 봉인 8 거부가 있었던 회로·θ가 있으면 그 거부가 봉인 2 거부에도 있었는지 대조해 보고한다(K-c 확인). 봉인 2 거부가 없는 봉인 8 거부가 있으면 결함으로 보고하고 삭제를 멈춘다.
 3. **보조 검사**: 숲 회계 불변량과 결선 점검은 13회로에서 통과해야 한다(card 0 M-G7로 K-3 병합 master에서 먼저 확인).
 4. **GC-5(출발 전류)**: 자리값을 쓰지 않고 충돌 표지도 서지 않는 회로는 출발 기록이 비트 동일하다. 그 밖의 회로는 바뀐 출발 칸마다 '기저 경유 자리값' 또는 '충돌' 기록이 있어야 한다. 해당 회로 수와 U-G13 (가)로 빠지는 칸 수는 GC-5 착수 때 잰다(LUT가 필요해서 card 0 범위 밖). 같은 착수 측정에서 `E/search/start_intervals.py:264` 조기 반환(모든 L에서 LUT 곡선 미정의)에 걸리는 회로 수도 잰다(측정 **M-G8**, 기대 0. 산출: 회로 수와 회로 목록. 측정 주체는 검증자. LUT가 필요해 card 0(N6, LUT 없이 도는 측정) 표에는 두지 않는다). 그 조기 반환의 `uncovered` 정렬(GD-7)은 충돌이 없는 회로의 출력도 바꾸므로, 해당 회로가 있으면 그 회로의 `graph/start: uncovered`는 비트 동일 비교에서 빼고 '칸 0 성분 전부'임을 따로 단언한다. 이 제외는 검증자가 제외 목록에 판정 기준 변경으로 기록한다(N4-5).
@@ -532,8 +537,9 @@ version: 0.9
 | X-G6 | **`dc_conduction_floor`의 docstring 소비자('search가 읽는 하한')는 단계 순서상 성립하지 않을 수 있다는 의견을 공동분석으로 올린다.** 의견: search 상자는 θ 확정 전(칸 전체 보수 하한)에 만들고, 필드는 평가된 설계점 하나의 값이다. 읽으면 평가 뒤 값을 평가 전 상자에 쓰는 순환이 된다. 확신도 중간(근거: `E/search/cell_floor.py:53`, `E/search/current_box.py:1-10`, `E/sizing/seal_conduction.py:12-13`) | 봉인 9 docstring, O-10 'R3 정의역 차이는 공동분석' | 승인(O-13, U-G4 (가)) |
 | X-G7 | **소비자 없거나 정본 사본인 S1 관계 엣지 type(`kcl_group`·`vds_eq_vgs`·`matching_ratio`·`matching_offset`, 그리고 소비 이동 뒤 `equal_vgs`·`l_class`)을 지운다.** 상위 S1 구조 400행이 관계 엣지 목록으로 설계한 층을 줄인다. `matching_ratio`·`matching_offset`은 상위 V9의 검증 소비자 지정을 정본으로 옮긴 뒤다. 목록의 `stacked_vsb`·`same_as`는 이미 S1 관계 엣지로 구현되지 않았다(F-G29) | 상위 400행·V9 920행, design mod3 3.2 | 승인(O-13, U-G3 항목별) |
 | X-G8 | **출발 전류를 KCL 기저로 거치게 한다.** O-10 (4)는 음수 자리값 조용한 대체를 충돌 기록으로 바꾸는 것만 정했다. 이 계획은 자리값 자체도 자유 원소에만 두고 나머지를 기저 행으로 계산한다(범위 초안 (5) G4). 새 전류 사슬은 아니고 기존 기저를 쓴다. 출발값이 바뀌는 회로가 생긴다 | O-10 (4) | 승인(O-13, U-G8) |
-| X-G9 | **범위가 O-10 (2)·(4)보다 넓다.** O-10 (2)는 규칙 L·부채 목록·필드별 처리·R3 공동분석, (4)는 출발 음수 자리값 충돌 기록만 정했다. GC-2(KVL 정본 이동·봉인 8 처리·S1 사본 삭제·정지 이전·숲 회계 불변량), GC-3(`rel_kcl_group` 삭제·결선 점검), GC-8(R4 처리 -- O-10은 R3만 공동분석으로 정했다)은 사용자 원문 KK-1('관계가 엔진에 적용되어 있는지도 확인해')과 소비 정합 조사에서 나온 처리이고, '확인'을 넘어 엔진을 고친다 | O-10 (2)·(4), KK-1 원문 | 승인(O-13, U-G12 -- GC-8은 B-G2 뒤 재질문) |
+| X-G9 | **범위가 O-10 (2)·(4)보다 넓다.** O-10 (2)는 규칙 L·부채 목록·필드별 처리·R3 공동분석, (4)는 출발 음수 자리값 충돌 기록만 정했다. GC-2(KVL 정본 이동·봉인 8 처리·S1 사본 삭제·정지 이전·숲 회계 불변량), GC-3(`rel_kcl_group` 삭제·결선 점검), GC-8(R4 처리 -- O-10은 R3만 공동분석으로 정했다)은 사용자 원문 KK-1('관계가 엔진에 적용되어 있는지도 확인해')과 소비 정합 조사에서 나온 처리이고, '확인'을 넘어 엔진을 고친다 | O-10 (2)·(4), KK-1 원문 | 승인(O-13, U-G12). GC-8의 재질문은 O-15 (C)로 답이 났다(R4는 headroom-chain 소관, GC-8은 자리표) |
 | X-G10 | **봉인 8을 지운다**(U-G9 기본안). 상위 472행이 봉인 8에 맡긴 일은 봉인 2가 θ마다 소자별로 이미 한다(F-G31). 숲 회계 불변량은 봉인 8을 대체하지 않는 별개 보조 검사다. 상위 봉인 표가 정한 봉인 하나가 없어진다 | 상위 472행 | 승인(O-13, U-G9 (가)) |
+| X-G12 | **원칙 감사로 범위를 넓힌다**(O-15 (E), card GC-9와 GC-5·GC-2의 일부): 기저 행 float 변환 1회, 정확 MOS 전류 공용 함수 하나와 `current_cone` 사본의 기저 읽기 전환·삭제 절차, `_vds_floor`의 `lut.derived` 이동, 완료 조건 3을 '두 단계 이상 따라가는 경로 재구성'으로 좁힘, 블록 안 local memo 허용과 `bracket_root` 뒤 같은 점 재풀이 금지. 원래 O-10 범위(규칙 L·필드별 처리·출발 음수 자리값) 밖의 엔진 변경이다. 근거는 원칙 감사(사용자 2026-10-19 'graph에 값을 유지하는 것은 함수마다 재사용을 해서 반복계산이나 서로 다른 값을 사용하는 것을 막기 위해서') | O-10 (2)·(4) | 승인(O-15 (E)) |
 | X-G11 | **출발 충돌 칸을 사다리 선택에서 뺀다**(U-G13 기본안). O-10 (4)는 '충돌 기록'만 정했다. 기본안은 충돌 표지가 선 상태를 최상 칸 선택에서 실행 불가로 세고, 아래 칸에서는 사다리에 넣지 않는다. 아래 끝(t = 0)이 전류 충돌이고 최상 칸이 실행 불가면(최상 칸의 충돌 여부 무관) 사다리 격자에서 고른다: 충돌 없고 실행 가능한 최대 t, 없으면 충돌 없는 최소 t(기본안 (가-1)). 그 점이 매크로 실패면 `use_macro` 해제를 그 점에서 판정한다(지금은 아래 끝에서 판정). 빈 사다리는 선택 후보(격자 점과 t = 0)가 **모두** 전류 충돌일 때만이다. 그때는 지금처럼 아래 끝을 칸 0으로 쓰지 않고 빈 사다리로 두어 층 0이 상자 중심에서 출발한다(d/s를 거꾸로 선언한 회로에서 실제로 일어난다, N3.6-3). 1회차 전류 충돌은 자리값 없이 경계 비활성·충돌 기록이다. `gain_l_bounds`가 지금 원인과 다른 '이득 목표 미달'을 기록하는 경로도 바뀐다. 출발 사다리 선택이 바뀌는 회로가 생긴다 | O-10 (4) | 승인(O-13, U-G13 (가) + (가-1)) |
 
 (X-G3 번호는 비웠다. 봉인 8이 봉인 2에 함의되는 사실은 상위 472행이 이미 적고 있어 원래 취지와 다르지 않다. history H1에 적었다.)
@@ -583,10 +589,11 @@ version: 0.9
 | GC-1 (test 역할 + 검증자 기준선) | 규칙 L-1~L-5 구현(규칙 L 전용 별도 파일, GD-9), 거부 픽스처(거부 먼저, L-5는 F-G13 7자리 전부), 초기 출력 전용 목록(F-G3 정상 8개), 부채 목록, 검증자의 기준선 재측정(M-G3, 규칙 L 코드가 아닌 독립 측정 스크립트로)과 기준선·규칙 매개변수 지문 기록. 엔진 운영 코드 무변경 | GC-D | U-G6 |
 | GC-2 (엔진, KVL) | 순서대로: (1) `gvgs_self_edge` 정지 이전(거부 먼저), (2) `parallel_vgs`의 `gs_groups` 읽기, (3) 숲 회계 불변량 S0 검사(거부 먼저), (4) 봉인 8 처리(U-G9), (5) `rel_kvl_branch`·`gvgs_summary`·`gvgs_cycles.py`와 그 등록 삭제(F-G35), (6) CONTRACT·graph test 표 갱신(test 역할). 트리 경로가 필요한 곳은 쓰기 계획 블록의 넷별 뿌리 경로 필드를 읽는다. HC-1이 그 필드 없이 병합됐으면 GC-2가 (1) 앞에서 쓰기 계획 블록에 그 필드를 더한다(N3.3-3, 소비자 배선과 같은 변경). 옮긴 정지 블록이 rule_hash 대상 파일이면 rule_hash 재기록(Role: data) | GC-1, headroom-chain HC-1 병합, **K-3 구현 card 병합** | U-G1·U-G3·U-G9·U-G11·U-G12 |
 | GC-3 (엔진, KCL 보조) | `node.terminals` 결선 점검 S0 검사(거부 먼저), `rel_kcl_group` 삭제 | GC-1 | U-G3·U-G12 |
-| GC-5 (엔진, 출발 전류) | 충돌 표지(꺼지지 않음), 기저 경유 자리값, 사다리 칸 단위 처리, 아래 끝이 전류 충돌일 때의 칸 0 고르기(U-G13 결정대로), 모든 후보 충돌 시 빈 사다리(`_report` 빈 사다리 처리, 원인과 다른 면적 충돌 기록 제거, `start_intervals.py:264` 조기 반환과 출력 정렬, GD-7), 1회차 전류 충돌의 네 함수·여섯 호출 자리 처리(`gain_l_bounds`의 '이득 목표 미달' 오기록, `area_bounds`의 무기록 건너뜀, `matching_bounds`의 `SRC_MATCH_L` 사유 누락 포함, N3.6-3), 면적 충돌 기록 형식(GD-7), 착수 측정 M-G8 | GC-1, headroom-chain HC-1 병합. (결정 6은 `c8d156e3`으로 이미 병합돼 충족, BD-13) | U-G8·U-G13 |
+| GC-5 (엔진, 출발 전류) | 충돌 표지(꺼지지 않음), 기저 경유 자리값, 사다리 칸 단위 처리, 아래 끝이 전류 충돌일 때의 칸 0 고르기(U-G13 결정대로), 모든 후보 충돌 시 빈 사다리(`_report` 빈 사다리 처리, 원인과 다른 면적 충돌 기록 제거, `start_intervals.py:264` 조기 반환과 출력 정렬, GD-7), 1회차 전류 충돌의 네 함수·여섯 호출 자리 처리(`gain_l_bounds`의 '이득 목표 미달' 오기록, `area_bounds`의 무기록 건너뜀, `matching_bounds`의 `SRC_MATCH_L` 사유 누락 포함, N3.6-3), 면적 충돌 기록 형식(GD-7), 착수 측정 M-G8, `bracket_root` 뒤 같은 점 재풀이 금지(블록 안 local memo, NFR-G4, O-15 (E)) | GC-1, headroom-chain HC-1 병합. (결정 6은 `c8d156e3`으로 이미 병합돼 충족, BD-13) | U-G8·U-G13 |
 | GC-6 (엔진, 정본 술어) | R1·R1′·R1″·R2 교체, rule_hash 재기록(Role: data) | GC-1, M-G5 | U-G11 |
-| GC-7 (엔진, 필드 정리) | N3.2 표의 GC-7 항목: 출력 전용 선언, `column_orphans` review 배선, 블랭킷 READS 정리, 동적 접근의 정적 해석 형태 전환, `coupling_vars`·`l_classes`의 `gs_groups` 읽기, R3 처리, 승인된 삭제(V9 개정 뒤), 하위 칸 처리, rule_hash 재기록(Role: data) | GC-1 | U-G3·U-G4·U-G11 |
-| GC-8 (공동분석 뒤 처리) | R4 처리. 공동분석(백로그 B-G2)이 결론을 내기 전에는 부채 목록 '공동분석 대기' 항목의 card id다 | HC-1 병합, B-G2 결론, U-G12 | -- |
+| GC-7 (엔진, 필드 정리) | N3.2 표의 GC-7 항목: 출력 전용 선언, `column_orphans` review 배선, 블랭킷 READS 정리, 동적 접근의 정적 해석 형태 전환, `coupling_vars`·`l_classes`의 `gs_groups` 읽기, R3 처리(U-G4 (가) + O-15 (A): LUT memo 파생 `conduction_mask(kind, w_key)` 신설, `cell_floor`·`edge_costs`가 읽음, VGS = 0 마디 찾기 한 곳, `sctx.cell_floors` 캐시 제거, `dc_conduction_floor` 출력 전용 선언), 승인된 삭제(V9 개정 뒤), 하위 칸 처리, rule_hash 재기록(Role: data) | GC-1 | U-G3·U-G4·U-G11 |
+| GC-8 (R4 자리표) | R4 처리. **O-15 (C)로 B-G2의 결론이 났다**: 위쪽 방향 차분 제약 그래프(`ls_swing`·`headroom_bound`·`iv_headroom`·`order_terms`)는 headroom-chain R-1′ 제약 그래프 변 목록을 정본으로 읽고, 정본은 headroom-chain이 정한다. 그래서 R4 처리는 headroom-chain card 소관이다. GC-8은 그 card id가 headroom-chain 계획 card 표에 생길 때까지 부채 목록 R4 항목의 card id 자리표로만 남고, 생기면 항목의 card id를 그 card로 바꾸고 GC-8을 비운다 | HC-1 병합 | O-15 (C) |
+| GC-9 (엔진, 기저·LUT 파생 단일화 -- 원칙 감사 O-15 (E)) | (1) 기저 행 float 변환을 컨텍스트에서 1회로(`start_intervals.py:100`, `iv_currents.py:120`, F-G37). (2) 정확(유리수) MOS 전류 평가 공용 함수 하나로 `theta_check.py:45-50`·`block_currents.py:31`·`cone_rows.py:16-24`를 바꾼다. (3) `theta_schema.current_cone` 소비자(`theta_check`·`cone_rows`·`fd_jacobian`·`gate_run`·`layer0_center`·`search_domain`)가 `dc_current_basis` MOS 행을 읽게 하고, 사본 필드 `current_cone`의 삭제는 U-G3과 같은 절차(항목별 사용자 승인, 대조 일치 확인 뒤)로 한다. (4) `_vds_floor`(`block_columns.py:101-118`)를 `lut.derived` 파생 함수로 옮긴다(F-G38). 결과는 비트 동일이어야 한다(N4-1 대상) | GC-1, headroom-chain HC-1 병합(`start_intervals.py`·`iv_currents.py` 겹침), XRUN-F1 card C와 파일 겹침 확인 | O-15 (E), U-G3(삭제 절차) |
 | GC-V (검증자) | 완료 조건 판정, 13회로 무동작, 부채 목록 재계수와 지문 대조, 항목 제거 확인, gap 분석 | 각 엔진 card | -- |
 
 (GC-4 번호는 비웠다. v0.2의 MNA card는 백로그 B-G1로 내렸다.)
@@ -603,7 +610,7 @@ version: 0.9
   * v0.7.1의 Gs⁺는 이미 K-3 뒤 기준이다(성분마다 뿌리·오프셋 하나, 나머지 포트는 MOS writer). 이 계획 N0.1·N3.3-1도 같은 정의를 쓴다. 이 정의는 O-13 (1)의 '포트 경로가 둘 이상이면 ΔV를 소거한 KVL 하나가 남는다'와 맞는다: 나머지 포트를 쓰는 트리 경로 밖의 포트 경로가 비트리 MOS 변으로 그 KVL을 닫는다. headroom-chain N0.1·155행의 v1 문언 정정은 O-13 (1)이 그 계획에 지시한 것이고 이 계획이 고치지 않는다.
   * GC-1이 HC-1보다 먼저 병합되면 HC-1의 새 필드도 규칙 L을 통과해야 한다(만들면 배선). 오케스트레이터가 HC-1 브리핑에 알린다.
   * GC-5는 HC-1 뒤다(같은 `start_intervals.py`).
-* **XRUN-F1**: card C는 search 층을 고친다. GC-5는 HC-1을 거쳐 그 뒤다. GC-2·GC-3·GC-6·GC-7은 graph·sizing·metrics 층이라 card C와 파일이 겹치지 않는다. 블록을 지우면 블록 결과 색인의 대상도 줄 뿐 키 규칙은 그대로다(X-20·X-21). card B의 data 역할이 재기록한 `structure.json` rule_hash는 GC-6·GC-7(그리고 경우에 따라 GC-2)이 다시 바꾼다(U-G11).
+* **XRUN-F1**: card C는 search 층을 고친다. GC-5는 HC-1을 거쳐 그 뒤다. GC-2·GC-3·GC-6·GC-7은 graph·sizing·metrics 층이라 card C와 파일이 겹치지 않는다. GC-9는 search 층(`start_intervals.py`·`iv_currents.py`·`cone_rows.py`·`fd_jacobian.py`·`gate_run.py`·`layer0_center.py`·`search_domain.py`)을 고치므로 card C와 HC-1 뒤에 병합한다. 블록을 지우면 블록 결과 색인의 대상도 줄 뿐 키 규칙은 그대로다(X-20·X-21). card B의 data 역할이 재기록한 `structure.json` rule_hash는 GC-6·GC-7(그리고 경우에 따라 GC-2)이 다시 바꾼다(U-G11).
 * **LT-1**(옛 엔진·태그 삭제): `E/tests/structure/structure_checks.py`를 고친다. 규칙 L 코드는 그 파일과 다른 별도 파일에 두므로(GD-9) 규칙 L 지문은 LT-1의 수정에 영향받지 않는다. 그래도 두 card가 같은 디렉터리의 등록 자리를 고치면 늦게 병합하는 쪽이 rebase한다.
 * **oracle-portability / U16**: `dc_off_current`의 소비자와 독립 검증 경로(forced·free)의 입력이 모두 오라클 입력 생성기(U16, OP-0 입력 스키마)다. U16 완료 조건 변경은 N3.10 개정 항목이다.
 * **offset-strategy F-1 fixture**: GC-5가 출발값을 바꾸면 fixture 결과도 바뀔 수 있다. 병합 시점이 겹치면 오케스트레이터가 알린다.
@@ -612,17 +619,18 @@ version: 0.9
 ### N7.3 완료 조건(기능 전체, 측정 가능)
 
 1. **규칙 L**: 규칙 L-1~L-5 test가 green이다. 거부 픽스처로 각 규칙이 실제로 거부함을 먼저 보인다(정적 해석 실패·도달 불가 = 위반 포함). 규칙 L-5는 F-G13 7자리가 모두 기준선에 들어감을 자리별로 보인다.
-2. **부채 목록**: 항목 키 집합 ⊆ 기준선 집합, 기준선·규칙 매개변수 지문 = GC-1 판정 기록의 지문, 낡은 항목 0, 지워진 항목마다 대상 코드 변경을 검증자가 확인, 모든 항목에 card id(결정·백로그 id 0). 이 계획 소유 card id(GC-0a~GC-7) 항목은 0이다. 남은 항목은 다른 card(단위 8, U16, U17 ②)와 GC-8(B-G2 결론 전) id뿐이다.
-3. **KVL 정본**: `rel_kvl_branch`·`gvgs_summary`·`s1_gvgs`·`gvgs_cycles` 참조 grep 0(등록 자리 포함, GC-2 뒤). `gvgs_self_edge` 정지가 옮겨진 자리에서 거부 픽스처를 거부하고, 13회로 정지 회로 집합이 base와 같다. 숲 회계 불변량 검사가 조작 픽스처(`dc_coord` 누락, 분류 뒤바꿈)를 거부하고 13회로에서 통과한다. 쓰기 계획 안 (kind, gate, source) 키 재유도 0이고, 종속 분류는 base(K-3 병합 master)와 비트 동일하다. 넷별 뿌리 경로 필드는 하나이고 writer는 쓰기 계획 블록이며, 소비자 셋 중 병합된 것은 그 필드를 읽는다(규칙 L-1 green). 경로를 만드는 코드는 그 블록 안에만 있다. 이 단일성은 **검증자 확인 항목**이다(GC-V): 검증자가 `node.dc_writer`/`NodeWrite.known` 부모 포인터를 따라가는 코드 자리를 엔진 전체(tests 제외)에서 직접 찾아, 쓰기 계획 블록 안의 그 자리 하나뿐임을 판정 기록에 적는다(작성자 보고를 증거로 받지 않는다).
+2. **부채 목록**: 항목 키 집합 ⊆ 기준선 집합, 기준선·규칙 매개변수 지문 = GC-1 판정 기록의 지문, 낡은 항목 0, 지워진 항목마다 대상 코드 변경을 검증자가 확인, 모든 항목에 card id(결정·백로그 id 0). 이 계획 소유 card id(GC-0a~GC-7, GC-9) 항목은 0이다. 남은 항목은 다른 card(단위 8, U16, U17 ②, R4를 맡는 headroom-chain card)와, 그 headroom-chain card id가 생기기 전의 자리표 GC-8 id뿐이다.
+3. **KVL 정본**: `rel_kvl_branch`·`gvgs_summary`·`s1_gvgs`·`gvgs_cycles` 참조 grep 0(등록 자리 포함, GC-2 뒤). `gvgs_self_edge` 정지가 옮겨진 자리에서 거부 픽스처를 거부하고, 13회로 정지 회로 집합이 base와 같다. 숲 회계 불변량 검사가 조작 픽스처(`dc_coord` 누락, 분류 뒤바꿈)를 거부하고 13회로에서 통과한다. 쓰기 계획 안 (kind, gate, source) 키 재유도 0이고, 종속 분류는 base(K-3 병합 master)와 비트 동일하다. 넷별 뿌리 경로 필드는 하나이고 writer는 쓰기 계획 블록이며, 소비자 셋 중 병합된 것은 그 필드를 읽는다(규칙 L-1 green). **부모 포인터를 두 단계 이상 따라가는 경로 재구성 코드는 쓰기 계획 블록 안 하나뿐이다**(O-15 (E)로 좁힘). 한 단계 읽기(아는 쪽 노드 값 읽기, F-G39)는 경로 재구성이 아니라 대상이 아니다. 이 단일성은 **검증자 확인 항목**이다(GC-V): 검증자가 `NodeWrite.known`을 반복해 따라가는 코드 자리(반복문·재귀 안의 `.known` 갱신)를 엔진 전체(tests 제외)에서 직접 찾아, 쓰기 계획 블록 안의 그 자리 하나뿐임을 판정 기록에 적는다(작성자 보고를 증거로 받지 않는다).
 4. **KCL·독립 검증**: 결선 점검이 원소 색인을 조작한 기저 픽스처를 거부함을 먼저 보이고, 13회로 통과를 본다. `rel_kcl_group`(승인 시) 참조 grep 0. U16 완료 조건 개정(N3.10)이 상위 계획에 반영돼 있다(GC-V가 확인).
 5. **MNA**: MNA 코드 변경 0.
 6. **출발 전류**: 0 이하 전류의 조용한 대체가 0이다(충돌 기록으로 보인다). 충돌 표지가 `use_macro` 해제·예산 없음 픽스처에서도 서 있음을 먼저 보인다. 모든 후보가 충돌인 픽스처에서 사다리가 비고 `_report`가 오류 없이 칸 0 성분 전부를 `uncovered`로 내며, 원인과 다른 면적 충돌이 없고, 층 0이 상자 중심에서 출발함을 보인다. 아래 끝이 전류 충돌인 세 픽스처((a) 최상 칸이 면적·매크로로만 실행 불가, (b) 최상·아래 끝 모두 충돌이고 중간만 충돌 없음, (c) 모두 충돌)에서 U-G13 결정대로 칸 0이 골라짐(또는 빈 사다리)을 보인다. (가-1)이면 (ii) 점의 원인별 픽스처도 보인다. (ii) 점이 매크로 실패만으로 실행 불가인 경우에는 `use_macro`가 꺼지고, t_p를 담은 매크로 충돌이 기록되고, 면적만으로 (i)이 다시 적용된다. 면적 초과만인 경우와 둘 다인 경우에는 원인마다 t를 담은 충돌이 기록된다. 전류 충돌인 아래 끝의 `macro_failed`로는 `use_macro`가 꺼지지 않는다. 1회차 전류 충돌 픽스처에서 **네 함수, 여섯 호출 자리**(`gain_l_bounds` 292행, `matching_bounds` 295·332행, `area_bounds` 296·327행, `noise_bounds` 333행) 각각이 자리값 없이 전류 충돌 사유로 비활성 처리하고 충돌을 기록함을 여섯 자리마다 보인다(`gain_l_bounds`는 '이득 목표 미달' 충돌·최대 앵커 L 하한이 없어야 한다). 출발 전류가 기저 행을 정확히(유리수 계산) 만족한다. 사다리 아래 칸마다 충돌 판정이 있다. 자리값과 충돌이 없는 회로는 출발 기록이 비트 동일하다(예외: `start_intervals.py:264` 조기 반환 회로의 `uncovered`, N4-4·M-G8). 충돌 칸 처리는 U-G13 결정대로다.
-7. **무동작**: N4-1 비교에서 GC-2·GC-3·GC-6·GC-7 뒤 13회로 결과가 base와 비트 동일하다. 제외 칸은 검증자가 소유하고 판정 기준 변경으로 보고한다.
+7. **무동작**: N4-1 비교에서 GC-2·GC-3·GC-6·GC-7·GC-9 뒤 13회로 결과가 base와 비트 동일하다. 제외 칸은 검증자가 소유하고 판정 기준 변경으로 보고한다.
 8. **이름·상수**: 새로 쓰거나 고친 코드에 회로·소자·넷 이름 리터럴 0, 새 수치 상수 0(규칙 D·E).
 9. **재사용**: 결과 JSON `perf`에서 같은 입력 재계산 0(상위 G-10). 새 θ 무관 검사와 넷별 뿌리 경로 필드의 계산 수 = 실행당 1. S1 블록 계산 수는 base 이하다. **WP-10 계측**(상위 WP-10 315행, 사용자 결정 O-14 (1)): 검증자가 13회로 실행의 cProfile과, **블록 밖 함수를 포함한** 같은 인자 반복 호출 계수를 재어 이 계획이 고친·더한 함수의 같은 인자 반복 호출이 0임을 판정 기록에 적는다(블록 결과 색인 계수만으로는 블록 밖 함수의 반복을 못 본다).
 10. **배선**: 새 검사·함수가 실제 경로에서 호출된다(규칙 L-1이 이 계획의 새 것에도 green).
 11. **rule_hash**: rule_hash 대상 파일을 고친 card는 U-G11 결정대로 `structure.json` 재기록이 같은 card에서 끝나 있고, stale 0이다.
 12. **gap·bkit**: 상위 N6.3 확인(규칙 L 계수 포함)과 design 대 구현 gap 분석을 통과한다.
+13. **원칙 감사 항목(O-15 (A)·(E))**: 격자 VGS = 0 마디 찾기와 칸별 전도 마스크를 계산하는 코드는 LUT memo 파생 `conduction_mask` 하나이고(`cell_floor`·`edge_costs`·`current_box`의 자체 찾기 0), `sctx.cell_floors` 참조 0이다. 기저 행 float 변환은 실행당 1회, 정확 MOS 전류 평가 함수는 하나다. `current_cone` 소비자는 기저 MOS 행을 읽는다(사본 삭제는 승인된 경우). `_vds_floor`는 `lut.derived`에 있다. 결과는 base와 비트 동일이다(검증자 판정).
 
 ---
 
@@ -674,7 +682,7 @@ version: 0.9
 | BD-5 | 출발 자리값 | 기저 자유 원소에만, 나머지는 기저 행, 0 이하 = 꺼지지 않는 충돌 표지. MOS 자유 원소의 W_min 식 소자 선택은 GD-7 | KCL, fail-closed |
 | BD-6 | GC-2 순서 | HC-1 뒤, K-3 구현 card 뒤 병합 | 승인된 계획 소유 존중, 파일 겹침, K-3 전제 |
 | BD-7 | R1″(graph 층 안) | 면제 없이 정본 읽기 | FR-9, P-1 |
-| BD-8 | 규칙 L-5 초기 개념 | diode 판정, 같은 VGS 묶음(VGS = 0 누설은 U-G4 뒤) | 측정된 우회 자리 |
+| BD-8 | 규칙 L-5 초기 개념 | diode 판정, 같은 VGS 묶음, 전도 술어(`conduction_mask`, U-G4 (가) + O-15 (A), GC-7에서 정본이 생긴 뒤 등록) | 측정된 우회 자리 |
 | BD-9 | 부채 목록 증가·우회 방지 | 최소 단위 키, 기준선 집합 + 규칙 코드·매개변수 지문(검증자 고정), 항목 제거는 대상 코드 변경 확인, 넓히기 = 기준 약화(승인) | 상위 N0.4, 작성자≠검증자 |
 | BD-10 | 트리 경로 | **사용자 결정 O-14 (1) (가′)로 바뀜**: 쓰기 계획 블록이 넷별 뿌리 경로(변 열·부호, θ 무관)를 자기 출력 S0 필드로 한 번 쓰고(writer 하나), HC-1(κ_n)·이 계획(M-G1·GC-2)·design 41 §6.7(의존 묶음)이 읽는다. 만드는 card는 IT-1 뒤 먼저 병합되는 소비자 card(기본안 HC-1, 아니면 GC-2) | 단일 정본(FR-9·DEC-83 -- 자기 출력이라 사본 아님), NFR-2·WP-10(재계산 0) |
 | BD-11 | `gvgs_self_edge` 정지 위치 | S1 쪽 블록(같은 판정식·사유 코드, base와 같은 층·같은 시점) | fail-closed, base 동작 보존 |
@@ -690,13 +698,13 @@ version: 0.9
 | U-G1 | **결정됨(O-13): (가)**, 단 **O-14 (1) (가′)로 '경로 저장 안 함' 부분 개정**: 뼈대(KVL 정본 = 쓰기 계획 출력, 별도 사이클 블록 없음)는 그대로이고, 쓰기 계획 블록이 넷별 뿌리 경로를 자기 출력 S0 필드로 한 번 써서 소비자 셋이 읽는다(N3.3-3). 아래 (가) 문언의 '트리 경로 함수'는 이 필드로 읽는다. **(X-G1)** KVL 관계 정본 위치: (가) 쓰기 계획 출력(`node.dc_writer`·`device.dc_coord`) + 그 위의 트리 경로 함수, 별도 사이클 필드 없음 (나) 별도 S0 관계 블록(숲·사이클)을 두고 쓰기 계획이 읽음 (다) S1 `rel_kvl_branch`를 유지하고 엔진이 읽게 함 | **(가)**. (다)는 S1에 spec 의존 F를 담을 수 없어 엔진 방정식이 될 수 없다. (나)는 종속 선택(DEC-95 (3))이 숲 선택과 같아 두 블록이 같은 결정을 나눠 갖는다 | GC-D |
 | U-G2 | **철회(v0.2)**. v0.1 질문(DEC-64 v1 문언을 as-built로 정정)은 사용자 결정 B2·K-3과 반대였다 | -- | -- |
 | U-G3 | **결정됨(O-13): 항목별 삭제 승인 -- card 0 대조(M-G1·M-G2 등)가 일치를 보인 항목만**. **(X-G7, 삭제 승인)** 필드별 삭제: `rel_kvl_branch`, `gvgs_summary`(남은 칸), `gvgs_cycles.py`(정지 이전 뒤, 등록 포함), `rel_kcl_group`, `rel_vds_eq_vgs`, `rel_matching_ratio`·`rel_matching_offset`(V9 개정 뒤), `rel_equal_vgs`·`rel_l_class`(소비 이동 뒤), `device.value`·`value_key`, `node.dc_branch_node`, 그리고 M-G3c 뒤의 하위 칸 목록 | 항목별 승인 권고. 근거: 엔진 소비자 0이거나 `gs_groups`·`is_diode` 사본이고 더 일반적인 정본이 있다(N3.2 표, F-G26). 상위 검증 소비자 지정(V9)은 정본으로 옮긴다. card 0 대조(M-G1·M-G2)가 일치를 보인 항목만 올린다 | GC-2·GC-3·GC-7 |
-| U-G4 | **결정됨(O-13): (가)**. **(X-G6, 공동분석)** R3: `dc_conduction_floor`·`dc_off_current`와 search 칸 하한·전류 상자의 관계. (가) search는 지금대로 θ 전 보수 하한을 계산하고, `dc_conduction_floor`는 봉인 9 상세의 출력 전용으로 선언(docstring 정정) (나) search가 필드를 읽게 바꿈 (다) `dc_conduction_floor` 삭제 | 의견 **(가)**, 확신도 중간. 단계 순서상 search 상자는 평가 전이고 필드는 평가 뒤 값이다. `dc_off_current`는 오라클 입력 배선 대기(U16)로 둔다. M-G6 자료로 확정 | GC-7 |
+| U-G4 | **결정됨(O-13): (가)**, **O-15 (A)로 범위 보완**: 칸별 전도 술어의 정본은 LUT memo 파생 함수 `conduction_mask(kind, w_key)` 하나다(마스크와 곡선별 첫 전도 마디·보간 근, VGS = 0 마디 찾기도 이 한 곳). `cell_floor`(search 칸 하한)와 `edge_costs`(`derived_fns.py` `_conduction_ok` 자리)가 그것을 읽는다. `sctx.cell_floors` 캐시는 허용 저장소가 아니라 지운다. `dc_conduction_floor`는 출력 전용 그대로다(F-G14, GC-7). **(X-G6, 공동분석)** R3: `dc_conduction_floor`·`dc_off_current`와 search 칸 하한·전류 상자의 관계. (가) search는 지금대로 θ 전 보수 하한을 계산하고, `dc_conduction_floor`는 봉인 9 상세의 출력 전용으로 선언(docstring 정정) (나) search가 필드를 읽게 바꿈 (다) `dc_conduction_floor` 삭제 | 의견 **(가)**, 확신도 중간. 단계 순서상 search 상자는 평가 전이고 필드는 평가 뒤 값이다. `dc_off_current`는 오라클 입력 배선 대기(U16)로 둔다. M-G6 자료로 확정 | GC-7 |
 | U-G6 | **결정됨(O-13): 미룸**. **(X-G5)** 지정 소비자가 아직 없는 필드의 배선을 소비자 card(단위 8, U17 ②, U16)로 미루고, 그때까지 부채 목록 '배선 대기'로 둘지 | 미룸 권고. 소비자가 구현되지 않은 엔진 기능이라 이 계획에서 만들면 범위를 넘는다. 대신 그 card 완료 조건에 '부채 항목 0'을 넣는 상위 개정을 한다(N3.10) | GC-1 |
 | U-G8 | **결정됨(O-13): 넣기**. **(X-G8)** 출발 전류의 기저 경유를 O-10 (4)의 충돌 기록과 함께 넣을지 | 넣기 권고. 새 전류 사슬이 아니라 기존 기저를 쓰고, 지금 자리값은 KCL을 어긴 전류로 면적·사다리를 고른다(P-1) | GC-5 |
 | U-G9 | **결정됨(O-13): (가) 봉인 8 삭제**. **(X-G10)** 봉인 8: (가) 삭제(472행이 맡긴 역할은 봉인 2가 θ마다 소자별로 이미 함) (나) 유지하고 목록만 쓰기 계획 종속 분류로 교체 | **(가)**. 봉인 8 행은 봉인 2가 재는 같은 양의 합이라 새 정보가 없다(F-G31, K-c). (나)는 θ마다 사이클 멤버를 펼치는 계산만 더한다. 숲 회계 불변량은 어느 쪽이든 별개 보조 검사로 둔다. M-G1b·N4-2로 확인 | GC-2 |
 | U-G10 | **결정됨(O-13): 넘기기(오라클 forced·free 대조, U16 완료 조건)**. **(X-G4)** 결과의 독립 KCL·KVL 확인 경로를 오라클 forced·free 대조로 하고, 그 배선을 U16 완료 조건으로 넘기는 상위 개정을 할지 | 넘기기 권고. 엔진 안 재합산은 항등식이고(F-G21·F-G22), 오라클은 다른 모델·다른 풀이다(F-G23). 엔진 → 오라클 입력 생성기가 U16 범위다 | GC-D |
 | U-G11 | **결정됨(O-13): (가) card마다 rule_hash 재기록**. GC-2(정지 블록 위치에 따라)·GC-6·GC-7이 rule_hash 대상 파일(`cells.py`·`net_model.py`·`node_impedance.py`·`s1v_fields.py`·`l_classes.py`·`matching_groups.py` 등)을 고치면 `structure.json` 2개의 rule_hash가 stale이 된다: (가) card마다 rule_hash 재기록 승인(Role: data, X-22 선례) (나) 백로그 '지문을 판정 로직(AST)에만 묶기'를 이 계획 범위에 넣어 GC-6 앞에 card로 둠 (다) (나) + 그래도 판정 로직이 바뀌는 파일은 (가) | **(가)**. 이 card들은 판정 로직 자체(정본 읽기, READS)를 바꾸므로 지문을 AST에 묶어도 재기록이 필요하다. 지문 개선은 이 계획의 목적(graph 소비 정합)과 별개라 백로그에 둔다 | GC-2·GC-6·GC-7 |
-| U-G12 | **결정됨(O-13): 승인 -- GC-2·GC-3 착수 승인, GC-8은 B-G2 결론 뒤 다시 묻는다**. **(X-G9)** O-10 범위 밖인 GC-2·GC-3·GC-8(엔진 KVL·KCL 정본 정리, 보조 검사, R4 처리)의 착수를 승인할지 | 승인 권고. KK-1 원문의 '관계가 엔진에 적용되어 있는지 확인'과 소비 정합 조사에서 나온 단일 정본 정리이고, GC-2·GC-3은 계산 결과가 바뀌지 않는다(N4-1). GC-8은 B-G2 결론 뒤 다시 묻는다 | GC-2·GC-3·GC-8 |
+| U-G12 | **결정됨(O-13): 승인 -- GC-2·GC-3 착수 승인, GC-8은 B-G2 결론 뒤 다시 묻는다**. B-G2는 O-15 (C)로 흡수됐다(R4는 headroom-chain card 소관, GC-8은 자리표, N7.1). **(X-G9)** O-10 범위 밖인 GC-2·GC-3·GC-8(엔진 KVL·KCL 정본 정리, 보조 검사, R4 처리)의 착수를 승인할지 | 승인 권고. KK-1 원문의 '관계가 엔진에 적용되어 있는지 확인'과 소비 정합 조사에서 나온 단일 정본 정리이고, GC-2·GC-3은 계산 결과가 바뀌지 않는다(N4-1). GC-8은 B-G2 결론 뒤 다시 묻는다 | GC-2·GC-3·GC-8 |
 | U-G13 | **결정됨(O-13): (가) + 아래 끝 전류 충돌 경우 (가-1)**(X-G11 원래 취지와 다름 승인). **(X-G11)** 출발 충돌 칸 처리(N3.6-3): (가) 충돌 표지(꺼지지 않음)가 선 상태는 최상 칸 선택에서 실행 불가, 아래 칸은 칸마다 판정해 충돌 칸을 사다리에서 빼고 기록, 0 이하 θ 자유 원소에 자리값 없음, 아래 끝이 전류 충돌인 경우(최상 칸 무관)의 칸 0 고르기는 (가-1) 사다리 격자에서 충돌 없고 실행 가능한 최대 t, 없으면 충돌 없는 최소 t(그 점이 매크로 실패면 `use_macro` 해제 뒤 면적만으로 다시 고름, 실행 불가 원인마다 t를 담아 기록) / (가-2) 충돌 없는 구간 안 이분 탐색 / (가-3) 빈 사다리, 선택 후보가 모두 충돌이면 칸 0도 빼고 빈 사다리(θ 성분 `uncovered`, 층 0 상자 중심 출발, `_report` 빈 사다리 처리, 원인과 다른 면적 충돌 기록 안 함), 1회차 전류 충돌은 네 함수·여섯 호출 자리에서 자리값 없이 전류 충돌 사유로 비활성·기록 (나) 자리값 사용 + 대체값 명시·대체 표지(선택은 그대로) (다) 출발 단계 정지 | **(가)**, 아래 끝이 전류 충돌인 경우는 **(가-1)**(단조 가정 없음, 사다리 칸 폭 분해능, 실행 불가 대체는 지금처럼 가장 느슨한 쪽(최소 t), 사다리 계산은 격자·정제 설정이 겹칠 때만 재사용 -- (가-2)는 계산이 더 들고 단조가 아니어서 재확인이 필요, (가-3)은 충돌 없는 중간 t를 버린다). 모든 후보가 충돌일 때 (다) 정지 대신 상자 중심에서 계속하는 것은 출발 단계가 판정 단계가 아니고(EP-7) 틀린 d/s 선언 거부는 봉인 7 한 곳이 하기 때문이다(N3.6-3). 선언 방향은 결정 6(`c8d156e3`, 이미 병합)으로 고정됐으므로 0 이하 전류는 물리 동작점이 아니고(P-1, K-j), 지금 코드는 `use_macro` 해제·예산 없음에서 실패 표지를 놓치고 아래 칸을 판정하지 않는다(F-G32). 사다리 선택이 바뀌므로 원래 취지와 다르다. 바뀌는 칸 수는 GC-5 착수 때 잰다 | GC-5 |
 
 (U-G5·U-G7은 v0.3에서 결정 목록에서 내려 백로그 B-G1·B-G2로 옮겼다.)
@@ -716,12 +724,14 @@ version: 0.9
 | GD-9 | 규칙 L test 파일 분할(`E/tests/structure/`의 규칙 H 대응 포함). **규칙 L 코드는 `structure_checks.py`와 다른 별도 파일에 두고, 기준선 지문의 '규칙 L test 코드'는 그 파일만이다**(N3.1-6 (d)). LT-1처럼 같은 `structure_checks.py`를 고치는 card의 무관한 수정이 기준 변경으로 잡히지 않게 한다. 규칙 L 코드가 다른 파일의 helper를 부르면 그 helper도 판정을 바꿀 수 있으므로 지문 대상이다((d)). 그래서 design은 파일 경로와 함께 규칙 L이 `structure_checks.py`의 helper에 기대지 않는 파일 구성을 정한다 | GC-1 |
 | GD-10 | `gvgs_self_edge` 정지를 옮길 S1 블록과 그 거부 픽스처, 그 파일의 rule_hash 대상 여부 | GC-2 |
 | GD-11 | 숲 회계 불변량 검사의 위치(쓰기 계획 블록 밖 S0 검사), 사유 코드, 성립 조건(E = MOS마다 (gate, source) 변 하나 + 가지치기된 저항 포함 모든 저항 변, V = F 한 점 병합 뒤 변 끝점, K-3 전 as-built 측정 시 '같은 DC' 변 포함), 봉인 8 삭제에 따른 봉인 판 어휘 정리 | GC-2 |
+| GD-12 | `conduction_mask(kind, w_key)`의 반환 형식(마스크, 곡선별 첫 전도 마디·보간 근), 지금 두 격자판 마스크(분지 요구, VGS = 0 마디 on 검사, `zero_first` 처리)를 하나로 합칠 때의 정의와 그 차이가 결과를 바꾸는지의 측정, `current_box`의 VGS = 0 마디 찾기를 같은 함수로 바꾸는지. `sctx.cell_floors`를 지울 때 같은 캐시를 쓰는 `_peak_floor`(`E/search/cell_floor.py:36-50`)의 값을 어디에 둘지(LUT memo 파생 등, 허용 저장소 안) | GC-7 |
+| GD-13 | GC-9의 정확 MOS 전류 공용 함수 위치·서명, 기저 float 행의 컨텍스트 자리, `current_cone` 소비자 여섯 곳의 읽기 전환 방식, `_vds_floor`의 `lut.derived` 이름 | GC-9 |
 
 ### N10.4 백로그(이 계획에서 정하지 않음)
 
 | ID | 항목 | 근거 | 이 계획과의 관계 |
 |---|---|---|---|
 | B-G1 | MNA 조건수 기록과 그 소비자·판정 기준 | 상대 잔차는 공허(F-G28), 조건수는 의미가 있으나 소비자·선언 기준이 없다 | MNA 코드 변경 없음 |
-| B-G2 | R4: `headroom_bound`·`ls_swing` 포화 부등식 그래프와 HC-1 제약 그래프의 관계(정의 차이 측정 뒤 공동분석) | HC-1 뒤에만 비교 가능 | 결론 뒤 GC-8 |
+| B-G2 | **O-15 (C)로 흡수됨(닫힘)**. R4: `headroom_bound`·`ls_swing` 포화 부등식 그래프와 HC-1 제약 그래프의 관계. O-15 (C)는 위쪽 방향 차분 제약 그래프 네 곳(`ls_swing`·`headroom_bound`·`iv_headroom`·`order_terms`)이 R-1′ 제약 그래프 변 목록을 정본으로 읽고 정책 차이(선언 triode 등)는 계획에 명시한다고 정했고, 정본은 headroom-chain이 정한다 | O-15 (C) | R4 처리는 headroom-chain card(GC-8은 자리표) |
 | B-G3 | 비레일 g = s 정지와 레일 g = s 허용의 비대칭 일반화 | 물리 근거 없음(K-h) | 이 계획은 보존만 |
 | (기존) | `structure_rule_fp`를 판정 로직(AST)에만 묶기 | `wt/_drafts/engine/U17_FOLLOWUPS.md` 58행 | U-G11 기본안은 포함하지 않음 |
