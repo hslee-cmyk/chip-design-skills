@@ -1,178 +1,146 @@
-[
- {
-  "bt": "B-T0",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_open_run.py",
-  "n_tests_head": 3,
-  "not_passed": {}
- },
- {
-  "bt": "B-T1~B-T3",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_run_counters.py",
-  "n_tests_head": 10,
-  "not_passed": {
-   "skills/analog-gmid-design/gmid_engine/tests/core/test_run_counters.py::test_run_counters_only_second_same_key_compute_counts": "failed"
+{
+ "rows": [
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_open_run.py",
+   "n": 3,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_run_counters.py",
+   "n": 10,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_donors.py",
+   "n": 7,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_compute_block.py",
+   "n": 162,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_s3_index.py",
+   "n": 9,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_graft.py",
+   "n": 7,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_failure_partial.py",
+   "n": 35,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[donors]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[counters]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[both]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[donors]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[counters]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[both]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[donors]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[counters]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[both]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[donors]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[counters]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[both]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py",
+   "n": 44,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py",
+   "n": 36,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py",
+   "n": 53,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal.py",
+   "n": 22,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/integration/test_run_isolation.py",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_kernel.py",
+   "n": 24,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py",
+   "n": 22,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py",
+   "n": 9,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_structure_rules.py::test_rule_m_run_pair_not_shared",
+   "n": 1,
+   "green": true
   }
- },
- {
-  "bt": "B-T4",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_donors.py",
-  "n_tests_head": 7,
-  "not_passed": {}
- },
- {
-  "bt": "B-T5~B-T12",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_compute_block.py",
-  "n_tests_head": 162,
-  "not_passed": {}
- },
- {
-  "bt": "B-T13",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_s3_index.py",
-  "n_tests_head": 9,
-  "not_passed": {}
- },
- {
-  "bt": "B-T14",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_graft.py",
-  "n_tests_head": 7,
-  "not_passed": {}
- },
- {
-  "bt": "B-T15",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_failure_partial.py",
-  "n_tests_head": 35,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[donors]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[counters]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[both]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[donors]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[counters]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[both]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[donors]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[counters]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[both]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[donors]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[counters]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[both]",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py",
-  "n_tests_head": 44,
-  "not_passed": {
-   "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py::test_library_pilot_default_structure_facts_give_ok[no_spec]": "failed",
-   "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py::test_library_pilot_default_structure_facts_give_ok[spec]": "failed"
-  }
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py",
-  "n_tests_head": 36,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py",
-  "n_tests_head": 53,
-  "not_passed": {}
- },
- {
-  "bt": "B-T16",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal.py",
-  "n_tests_head": 22,
-  "not_passed": {}
- },
- {
-  "bt": "B-T17",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/integration/test_run_isolation.py",
-  "n_tests_head": 1,
-  "not_passed": {}
- },
- {
-  "bt": "B-T18~B-T20",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_kernel.py",
-  "n_tests_head": 24,
-  "not_passed": {}
- },
- {
-  "bt": "B-T21",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py",
-  "n_tests_head": 22,
-  "not_passed": {}
- },
- {
-  "bt": "B-T22",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py",
-  "n_tests_head": 9,
-  "not_passed": {
-   "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py::test_no_same_input_recompute_in_one_run[current_reuse_telescopic_ota]": "failed",
-   "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py::test_no_same_input_recompute_in_one_run[nmcnr_amplifier]": "failed"
-  }
- },
- {
-  "bt": "B-T23",
-  "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_structure_rules.py::test_rule_m_run_pair_not_shared",
-  "n_tests_head": 1,
-  "not_passed": {}
- }
-]
+ ],
+ "green": 28,
+ "total": 28
+}

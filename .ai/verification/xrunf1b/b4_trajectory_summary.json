@@ -1,4 +1,18 @@
 {
+ "round": 2,
+ "base": "083b103 (r1 측정 재사용 -- 같은 base·같은 하네스·같은 기계)",
+ "head": "8a7ef28",
+ "head_record_sha256": {
+  "common_gate_amplifier": "19c3d84b64403f75a9409bb4bbc549f163f68fb5d2ff8e537b13a53ab9f01199",
+  "current_reuse_telescopic_ota": "a4f77d9b8db357ae54af173342cab1460bc94b65c55a1721b9fe7186af587243",
+  "folded_cascode": "ec17258dd6a9568de17551e0dd9e3e0df73d2724fe2298182b98b28dd4c722d4",
+  "ngcc_3stage_ff": "df23c2a232b4cddccad9acae7a3218f3c4b1b3770dc95b6512b9da314e74968f",
+  "nmcnr_amplifier": "5b15ad77eed5b0458eeecd0cea37e07cdfc198c68e18da1003b022767a9f9705",
+  "pushpull_follower_buffer": "3aa06032b2cc28455f2daeb7469131b22349fd11efcabef1b352fceded8c6a6f",
+  "sf_pushpull_output_opamp": "1299100d148f46f7c52c7a139ec7cba9b4d195be957c34c3aa064a186e0acd6d",
+  "two_stage_ota": "23599ecf78dc99035401e696a5bdeec2826c3f7357428d4df6fd65e3580098f3",
+  "two_stage_ota_sf": "2c0fdd4af7def3a0c85964a7e3af5007546f7f50fa9ff74b8afecaf66e2d171b"
+ },
  "base_vs_head": {
   "common_gate_amplifier": {
    "n_value": 0,
@@ -9,23 +23,12 @@
    "first_eval_seq_diff": null
   },
   "current_reuse_telescopic_ota": {
-   "n_value": 25378,
-   "n_format": 10,
+   "n_value": 0,
+   "n_format": 570,
    "n_run_id_code_fp": 43,
-   "n_snapshot_fp": 0,
-   "zones": {
-    "eval": 6374,
-    "layer0": 23,
-    "result": 23,
-    "s0": 238,
-    "s3evals": 16367,
-    "s3runs": 35,
-    "stage_a": 2306,
-    "stage_b": 3,
-    "sweep": 7,
-    "notes": 2
-   },
-   "first_eval_seq_diff": 1
+   "n_snapshot_fp": 40,
+   "zones": {},
+   "first_eval_seq_diff": null
   },
   "folded_cascode": {
    "n_value": 0,
@@ -44,23 +47,12 @@
    "first_eval_seq_diff": null
   },
   "nmcnr_amplifier": {
-   "n_value": 27056,
-   "n_format": 10,
+   "n_value": 0,
+   "n_format": 810,
    "n_run_id_code_fp": 69,
-   "n_snapshot_fp": 72,
-   "zones": {
-    "eval": 8739,
-    "layer0": 77,
-    "result": 33,
-    "s0": 98,
-    "s3evals": 17958,
-    "s3runs": 49,
-    "stage_a": 26,
-    "stage_b": 41,
-    "sweep": 33,
-    "notes": 2
-   },
-   "first_eval_seq_diff": 1
+   "n_snapshot_fp": 30,
+   "zones": {},
+   "first_eval_seq_diff": null
   },
   "pushpull_follower_buffer": {
    "n_value": 0,
@@ -93,22 +85,6 @@
    "n_snapshot_fp": 4,
    "zones": {},
    "first_eval_seq_diff": null
-  }
- },
- "base_vs_head_rehash_probe": {
-  "current_reuse_telescopic_ota": {
-   "n_value": 0,
-   "n_format": 570,
-   "n_run_id_code_fp": 43,
-   "n_snapshot_fp": 40,
-   "zones": {}
-  },
-  "nmcnr_amplifier": {
-   "n_value": 0,
-   "n_format": 810,
-   "n_run_id_code_fp": 69,
-   "n_snapshot_fp": 30,
-   "zones": {}
   }
  }
 }
