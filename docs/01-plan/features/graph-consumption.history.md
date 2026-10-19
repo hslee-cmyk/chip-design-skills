@@ -334,6 +334,8 @@ date: 2026-10-16
 | (E) 범위 확장 | F-G37~F-G39, N1.2 범위 행, NFR-G4, N5 X-G12 신설, GC-9 신설, GC-5 범위, N7.2 XRUN-F1, N7.3-3·N7.3-13, FR-G15·N4-1·N7.3-7(GC-9 무동작), N7.3-2, GD-13 | 기저 float 변환 1회, 정확 MOS 전류 공용 함수, `current_cone` 소비자 기저 읽기(사본 삭제는 U-G3 절차), `_vds_floor` → `lut.derived`(GC-9). 완료 조건 3을 '두 단계 이상 따라가는 경로 재구성'으로 좁힘, 블록 안 local memo 허용·`bracket_root` 뒤 같은 점 재풀이 금지(GC-5). X-G12 '승인(O-15 (E))' |
 | (C) 차분 제약 그래프 | N3.2 R4 행, GC-8, N10.4 B-G2, X-G9, U-G12, N7.3-2 | B-G2는 O-15 (C)로 흡수(닫힘). R4 처리는 headroom-chain card 소관. GC-8은 그 card id가 생길 때까지 부채 항목 자리표 |
 | 머리 | Status, N2 O-15 행 | 'v0.10 -- O-15 반영, 재검증 전' |
+| (오케스트레이터 답, 같은 판 후속 커밋) `_peak_floor` 자리 | GD-12, GC-7 | `_peak_floor`(`cell_floor.py:36-50`)도 LUT만의 순수 함수라 같은 원칙(O-15 (A))으로 LUT memo 파생 함수로 확정. design은 이름·키만 정한다 |
+| (같은 답) GC-8 자리표 | -- | 그대로 둔다. headroom-chain v0.7.4가 R4를 맡을 card id를 정하면 오케스트레이터가 알리고, 그때 부채 항목 card id를 바꾼다 |
 
 ## Version History
 
