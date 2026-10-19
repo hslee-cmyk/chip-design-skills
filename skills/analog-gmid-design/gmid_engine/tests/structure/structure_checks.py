@@ -1222,8 +1222,9 @@ def check_k(root: Path) -> tuple[int, list[Violation]]:
 #   open_run_ref       (M-a) 허용 파일 밖 엔진 소스의 open_run 참조(import 이름·별칭·모듈, 이름, 속성)
 #   direct_construct   (M-b) 정의 모듈·open_run.py 밖의 S3Index(...)·RunCounters(...) 호출(import 별칭 포함, test 포함)
 #   run_pair_source    (M-c) run_stage_a 의 donors·counters 인자가 같은 함수 본문 `a, b = open_run()` 의 (첫째, 둘째) 이름이 아니다
-#                            (매개변수·속성·결과 칸·첨자·다른 호출 반환·자유 변수·두 번 묶인 이름·순서 바뀜·함수 밖 호출)
-#   run_pair_reused    (M-c) 같은 이름이 그 함수 안 run_stage_a 호출 둘 이상에 쓰인다
+#                            (매개변수·속성·결과 칸·첨자·다른 호출 반환·자유 변수·open_run() 튜플 풀기가 아닌 방식으로도 묶인 이름·
+#                            순서 바뀜·호출을 구조적으로 앞서는 같은 이름 대입 없음·함수 밖 호출)
+#   run_pair_reused    (M-c) open_run() 대입 문장 하나가 그 함수 안 run_stage_a 호출 둘 이상의 인자에 닿는다(판정 단위 = 대입 문장, O-17 (1))
 #   run_pair_loop      (M-c) run_stage_a 가 반복문 본문(내포식·generator 식 포함) 안인데 그 open_run() 이 같은 반복문 본문에 없다
 #   run_pair_packed    (M-c) run_stage_a(*args)·run_stage_a(**kw)
 #   run_pair_stored    (M-d) 두 객체(또는 그것을 쥔 값)를 수명이 test 하나보다 긴 곳에 둔다
@@ -1632,8 +1633,8 @@ def _stmt_slot(node, parent):
 
 
 def _dominates(assign, call, scope, parent) -> bool:
-    """assign 문장이 call 보다 앞에 있고, call 을 감싸는 문장 사슬 중 하나와 같은 문장 목록에 있다(구조적 앞섬 -- if 가지 안 대입은 그 가지
-    밖 호출을 앞서지 않는다)."""
+    """assign 문장이 call 보다 앞에 있고, call 을 감싸는 문장 사슬 중 하나와 같은 문장 목록에 있다(구조적 앞섬 -- if/else·with·try·match 가지·
+    반복문 본문 안 대입은 그 밖 호출을 앞서지 않는다, O-17 (2) 안전 쪽)."""
     slot = _stmt_slot(assign, parent)
     if slot is None:
         return False
@@ -1649,10 +1650,11 @@ def _dominates(assign, call, scope, parent) -> bool:
 
 def _m_calls(tree: ast.Module, parent):
     """(M-c) run_stage_a 호출마다 판정. 낸 값: (종류, 행, 설명).
-    design 40 §2.4.5 (M-c): 인자 donors·counters = 같은 함수 본문 `open_run()` 튜플 풀기로 대입된 두 이름, 그 대입 하나는 run_stage_a 호출
-    **하나**에만 쓰인다. 같은 이름을 새 `open_run()` 튜플 풀기로 다시 대입해 다음 호출에 쓰는 꼴은 대입마다 호출 하나라 허용이다(판정 단위 =
-    대입 문장). 호출이 쓰는 대입 = 그 호출을 구조적으로 앞서는(_dominates) 같은 이름 대입 중 마지막 것. 그 이름의 다른 묶임(매개변수·for·
-    다른 대입 등)이 있으면 출처를 정적으로 알 수 없어 위반(fail-closed)."""
+    design 40 v1.11.1 §2.4.5 (M-c): 인자 donors·counters = 같은 함수 본문 `open_run()` 튜플 풀기로 대입된 두 이름, `open_run()` 대입 문장
+    하나는 그 함수 안 run_stage_a 호출 하나의 인자에만 닿는다(O-17 (1)). 같은 이름을 새 `open_run()` 튜플 풀기로 다시 대입해 다음 호출에 쓰는 꼴은 대입마다 호출 하나라 허용이다(판정 단위 =
+    대입 문장). 호출이 쓰는 대입 = 그 호출을 구조적으로 앞서는(_dominates) 같은 이름 대입 중 마지막 것. 그 이름이 open_run() 튜플 풀기가
+    아닌 방식(매개변수·for·다른 대입 등)으로도 묶이거나 호출을 구조적으로 앞서는 같은 이름 대입이 없으면 위반. if/else·with·try·match 가지·
+    반복문 본문 안 대입은 그 밖의 호출을 앞서는 것으로 치지 않는다 -- design 원문보다 엄격한 안전 쪽 해석(O-17 (2), fail-closed)."""
     aliases = _entry_aliases(tree)
     uses = {}                    # 대입 문장 id -> [(호출 행, 이름)]
     found = []

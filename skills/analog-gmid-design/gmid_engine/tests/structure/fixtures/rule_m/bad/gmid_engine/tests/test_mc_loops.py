@@ -35,3 +35,10 @@ def test_packed():
     run_stage_a("a", "s", None, output_dir="o", **kw)
     args = ("a", "s", None)
     run_stage_a(*args, output_dir="o", donors=d, counters=c)
+
+
+def test_loop_outer_body_inner_call():
+    for name in ("a", "b"):
+        d, c = open_run()
+        for _k in (1,):
+            run_stage_a(name, "s", None, output_dir="o", donors=d, counters=c)

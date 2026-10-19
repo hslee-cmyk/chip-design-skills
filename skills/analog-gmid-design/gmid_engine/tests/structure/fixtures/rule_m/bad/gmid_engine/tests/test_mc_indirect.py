@@ -24,3 +24,9 @@ def test_branch_assignment_does_not_dominate(flag):
     else:
         d, c = open_run()
     return rsa("a", "s", None, output_dir="o", donors=d, counters=c)
+
+
+def test_with_body_assignment_does_not_dominate(ctx):
+    with ctx:
+        d, c = open_run()
+    return rsa("a", "s", None, output_dir="o", donors=d, counters=c)

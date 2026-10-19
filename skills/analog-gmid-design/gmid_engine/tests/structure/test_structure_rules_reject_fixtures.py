@@ -162,6 +162,7 @@ EXPECTED_BAD_M = [
     ("open_run_ref", "pipeline/session.py", 10),             # (M-a) 속성 search.open_run
     ("run_pair_loop", "tests/test_mc_loops.py", 8),          # (M-c) 반복문 밖 open_run, 반복문 안 run_stage_a
     ("run_pair_loop", "tests/test_mc_loops.py", 13),         # (M-c) 내포식 안 run_stage_a(반복문 본문으로 본다)
+    ("run_pair_loop", "tests/test_mc_loops.py", 44),         # (M-c) 바깥 반복문 본문 open_run, 안쪽 반복문 run_stage_a(가장 안쪽 반복문 규칙)
     ("run_pair_packed", "tests/test_mc_loops.py", 35),       # (M-c) **kw
     ("run_pair_packed", "tests/test_mc_loops.py", 37),       # (M-c) *args
     ("run_pair_persisted", "tests/test_mf_dump.py", 11),     # (M-f) pickle.dump(donors, f)
@@ -183,6 +184,7 @@ EXPECTED_BAD_M = [
     ("run_pair_source", "tests/test_mc_indirect.py", 14),    # (M-c) 이름 대입 간접 호출(go = pipeline.run_stage_a)에 매개변수 쌍
     ("run_pair_source", "tests/test_mc_indirect.py", 18),    # (M-c) getattr(pipeline, "run_stage_a")(...) 에 결과 칸 쌍
     ("run_pair_source", "tests/test_mc_indirect.py", 26),    # (M-c) if 가지 안 대입은 가지 밖 호출을 앞서지 않는다(fail-closed)
+    ("run_pair_source", "tests/test_mc_indirect.py", 32),    # (M-c) with 본문 안 대입은 본문 밖 호출을 앞서지 않는다(O-17 (2) 안전 쪽)
     ("run_pair_stored", "tests/conftest.py", 5),             # (M-d) 모듈 수준 이름
     ("run_pair_stored", "tests/conftest.py", 10),            # (M-d) session fixture 반환
     ("run_pair_stored", "tests/conftest.py", 16),            # (M-d) module fixture yield
@@ -208,7 +210,7 @@ def test_rule_m_rejects_bad_fixture(checks, fixture_tree):
     assert _keys(v) == sorted(EXPECTED_BAD_M), "\n".join(str(x) for x in v)
     assert {x.kind for x in v} == {"open_run_ref", "direct_construct", "run_pair_source", "run_pair_reused",
                                    "run_pair_loop", "run_pair_packed", "run_pair_stored", "run_pair_persisted"}
-    assert checks.m_run_stage_a_calls(root) == 20            # 15 + 별칭·이름 대입·getattr 간접 호출 5
+    assert checks.m_run_stage_a_calls(root) == 22            # 15 + 별칭·이름 대입·getattr 간접 호출 5 + with 본문 1 + 중첩 반복문 1
 
 
 def test_rule_m_accepts_good_fixture(checks, fixture_tree):
