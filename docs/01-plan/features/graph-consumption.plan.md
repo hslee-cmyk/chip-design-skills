@@ -259,7 +259,7 @@ version: 0.11
      * **대상(위반이 되는 쓰기)**: 출처 값(칸)을 (i) 엔진 값 형식의 생성자 인자로 넘기거나 (ii) graph 필드 쓰기(블록 출력 dict의 값)로 내보내는 것이다. **엔진 값 형식 집합**은 규칙 L-4 대상과 같은 출처, 즉 각 패키지 값 선언 모듈의 frozen dataclass(design 40 §2.4.10 ② 목록)로 정하고, 집합을 만드는 코드는 규칙 L 전용 파일(GD-9) 안 한 곳에 둔다(GD-3이 위치·직렬화를 정하고 기준선 지문 대상이다).
      * **fail-closed**: 생성자 인자나 필드 쓰기 값의 출처를 정적으로 풀지 못하면 위반이다.
      * **정본 writer 면제 없음**: `device.dc_op`를 쓰는 블록 자신의 생성은 출처가 아니라 정본 쓰기라 대상이 아니다(출처가 graph 읽기가 아니므로).
-     * **미리 알려진 자리와 card id**: `E/convergence/layout_input.py:72`(`LayoutDevice(... op.W, op.L, op.current, op.gm_id, op.vds, op.vsb ...)`)와 card B의 `ly_point` = **LI-1**(O-27). `E/metrics/metrics_aux.py:125`(`SatDevice(..., op.vgs, sat, sat_tol, ...)`) = **HC-S**(headroom-chain v0.7.6 `plan/headroom-v076` `952d9761` HC-S 행 509행 '`metrics_aux._sat_devices`의 `sat_v`·`sat_tol_v`가 [`device.dc_sat_v`를] 읽는다'). **범위 확인 결과**: HC-S 행은 `sat_v`·`sat_tol_v`만 적고 `op.vgs` 칸(`SatDevice.vgs_v`)은 적지 않는다. 그 칸의 유일한 소비자는 `ls_swing.py:47`(VGS 등식 변)이고 gain-budget card DE-1이 지운다(v6.18 F-DE1). 그래서 이 자리의 `op.vgs` 사본은 HC-S만으로는 없어지지 않을 수 있다 -- HC-S 착수 때 `vgs_v` 칸 삭제를 HC-S 범위에 넣거나 이 항목의 card id를 DE-1로 바꾸는 것은 오케스트레이터 확인 항목이다(card id는 항목마다 하나).
+     * **미리 알려진 자리와 card id**: `E/convergence/layout_input.py:72`(`LayoutDevice(... op.W, op.L, op.current, op.gm_id, op.vds, op.vsb ...)`)와 card B의 `ly_point` = **LI-1**(O-27). `E/metrics/metrics_aux.py:125`(`SatDevice(..., op.vgs, sat, sat_tol, ...)`)의 `op.vgs` 사본(`SatDevice.vgs_v`, `E/metrics/aux_types.py:102`) = **DE-1**(닫힘, 오케스트레이터 답). 근거: 그 칸의 유일한 소비자는 `ls_swing.py:47`(VGS 등식 변)이고 gain-budget card DE-1이 `ls_swing` 자체 제약계와 함께 지운다(v6.18 F-DE1). 그래서 `vgs_v` 칸 삭제는 DE-1 범위다. 같은 자리의 `sat_v`·`sat_tol_v`는 `op` 사본이 아니라 LUT 계산값이고, headroom-chain HC-S가 `device.dc_sat_v` 읽기로 바꾼다(`plan/headroom-v076` `952d9761` HC-S 행 509행). DE-1의 소비자 표(v6.18 `816d9dc1` F-DE7)에는 이 칸 삭제가 없어서 상위 개정 항목으로 올렸다(N3.10).
      * **그 밖의 자리**: GC-1 기준선 측정에서 위 둘 밖의 자리가 새로 나오면, card id를 배정하기 전에 GC-1을 멈추고 보고한다(부채 목록에 card id 없는 항목을 두지 않는다, N3.1-6 (f)).
    * 판정: writer 파일 밖에서 패턴이 나오면 위반이다. 등록 개념의 writer 파일이 없으면 위반이다.
    * **기준선 완전성(거부 증거)**: GC-1은 F-G13의 7자리 전부가 규칙 L-5 위반으로 잡혀 기준선에 들어감을 자리별로 보인다. 특히 속성 꼴(`E/graph/cells.py:53, :117`의 `m.g == m.d`)과 변수 경유 꼴(`E/sizing/writer_plan.py:186`, 트리 변 tuple에서 풀어 낸 변수로 키를 만듦)을 패턴이 잡는지 그 자리 그대로 보인다. 잡지 못하는 자리가 있으면 패턴을 그 꼴까지 넓히고, 넓힐 수 없으면 GC-1을 멈추고 보고한다(자리를 조용히 빼지 않는다).
@@ -481,6 +481,7 @@ version: 0.11
 | 같은 문서 | card 표 U16 완료 조건 | '13회로 오라클 forced·free 대조 실행'과 'U16 card id 부채 항목 0'을 더한다(N3.5-2). oracle-portability 계획의 관련 card에도 같은 문언이 필요한지는 그 계획 개정 때 확인 |
 | 같은 문서 | card 표 N6.1 단위 8·U17 ② 완료 조건 | '해당 card id 부채 항목 0'을 더한다 |
 | 같은 문서 | card 표 | K-3 구현 card = 상위 card IT-1(N6.5, card 정의 master `f2852c36`에 병합됨, F-G19). 이 계획이 더할 개정은 없다 |
+| 같은 문서 v6.18(브랜치 `plan/gb-v618` `816d9dc1`) | card DE-1(N6.8) 소비자 표 F-DE7 | `SatDevice.vgs_v` 칸(`E/metrics/aux_types.py:102`)과 그 값을 채우는 `op.vgs` 사본(`E/metrics/metrics_aux.py:125`)의 삭제를 DE-1 범위에 더한다(v0.11 -- 유일한 소비자 `ls_swing.py:47`을 DE-1이 지움, 규칙 L-5 '동작점 사본' 부채 항목의 card id = DE-1). 지금 F-DE7은 `aux_types.py:139-172, :251-260`만 적는다 |
 | design 41 | §5 589행 | 층 0 등식 목록의 `equal_vgs`·`kvl_branch`를 정본 이름(`gs_groups`, 쓰기 계획 종속 분류)으로. `stacked_vsb`는 S1 관계 엣지가 아님을 적는다 |
 | 같은 문서 | §5.5 917행 | 조립 공유량(`equal_vgs` 공통 VGS, 미러 비, `kvl_branch` 종속 gm/ID)의 출처를 정본으로(GD-8) |
 | 같은 문서 | §6.7-1 1491행 | 쓰기 계획을 'S1 G_vgs 고리(`graph.rel_kvl_branch`)를 … 컴파일한 것'으로 적은 문언을 '쓰기 계획이 KVL 정본'으로 |
@@ -631,7 +632,7 @@ version: 0.11
 ### N7.3 완료 조건(기능 전체, 측정 가능)
 
 1. **규칙 L**: 규칙 L-1~L-5 test가 green이다. 거부 픽스처로 각 규칙이 실제로 거부함을 먼저 보인다(정적 해석 실패·도달 불가 = 위반 포함). 규칙 L-5는 F-G13 7자리가 모두 기준선에 들어감을 자리별로 보인다.
-2. **부채 목록**: 항목 키 집합 ⊆ 기준선 집합, 기준선·규칙 매개변수 지문 = GC-1 판정 기록의 지문, 낡은 항목 0, 지워진 항목마다 대상 코드 변경을 검증자가 확인, 모든 항목에 card id(결정·백로그 id 0). 이 계획 소유 card id(GC-0a~GC-7, GC-9) 항목은 0이다. 이 계획 소유 GC-8 항목도 0이다. 남은 항목은 다른 card(단위 8, U16, U17 ②, HC-1, layout 동작점 사본의 LI-1 -- O-27) id뿐이다.
+2. **부채 목록**: 항목 키 집합 ⊆ 기준선 집합, 기준선·규칙 매개변수 지문 = GC-1 판정 기록의 지문, 낡은 항목 0, 지워진 항목마다 대상 코드 변경을 검증자가 확인, 모든 항목에 card id(결정·백로그 id 0). 이 계획 소유 card id(GC-0a~GC-7, GC-9) 항목은 0이다. 이 계획 소유 GC-8 항목도 0이다. 남은 항목은 다른 card(단위 8, U16, U17 ②, HC-1, layout 동작점 사본의 LI-1 -- O-27, `SatDevice.vgs_v` 사본의 DE-1) id뿐이다.
 3. **KVL 정본**: `rel_kvl_branch`·`gvgs_summary`·`s1_gvgs`·`gvgs_cycles` 참조 grep 0(등록 자리 포함, GC-2 뒤). `gvgs_self_edge` 정지가 옮겨진 자리에서 거부 픽스처를 거부하고, 13회로 정지 회로 집합이 base와 같다. 숲 회계 불변량 검사가 조작 픽스처(`dc_coord` 누락, 분류 뒤바꿈)를 거부하고 13회로에서 통과한다. 쓰기 계획 안 (kind, gate, source) 키 재유도 0이고, 종속 분류는 base(K-3 병합 master)와 비트 동일하다. 넷별 뿌리 경로 필드는 하나이고 writer는 쓰기 계획 블록이며, 소비자 셋 중 병합된 것은 그 필드를 읽는다(규칙 L-1 green). **부모 포인터를 두 단계 이상 따라가는 경로 재구성 코드는 쓰기 계획 블록 안 하나뿐이다**(O-15 (E)로 좁힘). 한 단계 읽기(아는 쪽 노드 값 읽기, F-G39)는 경로 재구성이 아니라 대상이 아니다. 이 단일성은 **검증자 확인 항목**이다(GC-V): 검증자가 `NodeWrite.known`을 반복해 따라가는 코드 자리(반복문·재귀 안의 `.known` 갱신)를 엔진 전체(tests 제외)에서 직접 찾아, 쓰기 계획 블록 안의 그 자리 하나뿐임을 판정 기록에 적는다(작성자 보고를 증거로 받지 않는다).
 4. **KCL·독립 검증**: 결선 점검이 원소 색인을 조작한 기저 픽스처를 거부함을 먼저 보이고, 13회로 통과를 본다. `rel_kcl_group`(승인 시) 참조 grep 0. U16 완료 조건 개정(N3.10)이 상위 계획에 반영돼 있다(GC-V가 확인).
 5. **MNA**: MNA 코드 변경 0.

@@ -377,6 +377,7 @@ date: 2026-10-16
 | (v0.11 검증 `9e3ed4e2` '수정 필요' → 같은 판 후속 커밋) (1) L-5 '동작점 사본' 탐지 정의 [막음] | N3.1-5 | 출처 = graph `device.dc_op` 값(`DeviceOp`)을 데이터 흐름으로 추적(변수 경유·`float()`/`int()` 포함), 대상 = 엔진 값 형식(L-4와 같은 frozen dataclass 집합, 집합 코드는 규칙 L 전용 파일 한 곳) 생성자 인자 또는 graph 필드 쓰기, 정적으로 못 풀면 위반. 알려진 자리: `layout_input.py:72`·`ly_point` = LI-1, `metrics_aux.py:125` = HC-S. 확인 결과 HC-S 행(headroom-chain `952d9761` 509행)은 `sat_v`·`sat_tol_v`만 적고 `op.vgs`(`SatDevice.vgs_v`)는 없다 -- 그 칸의 유일한 소비자 `ls_swing.py:47`은 DE-1이 지운다. 오케스트레이터 확인 항목으로 표시. 새 자리가 나오면 card id 배정 전 GC-1 멈춤 |
 | (2) GC-8을 headroom-chain v0.7.6에 맞춤 | GC-8 (2)(4), 머리 19행, N7.2, N8 R7 | `headroom_bound` = 정의 값(VDS ≥ VDSAT) 상한 인증, 비용에 tol 제외, 선언 triode = 비용 0 방향 변(VDS ≥ 0), LUT 정의역 하한 항은 쓰지 않음, `STATUS_UNKNOWN` 예산 처리는 design 넘김(대체값 금지). 'VDS 변 격자 하한 비용' 정의 변화(tol 제외). 인용 판을 `plan/headroom-v076` `952d9761`(336·342-345·509행)로 |
 | (3) 용어 통일 | Status, N2, F-G38, GC-8, GC-9 | 'LUT 정의역 하한 항' |
+| (오케스트레이터 답, 같은 판 후속 커밋) `metrics_aux.py:125` card id | N3.1-5, N3.10 새 행, N7.3-2 | 확인 항목 닫음: `op.vgs` 사본(`SatDevice.vgs_v`, `aux_types.py:102`)의 card id = DE-1(유일한 소비자 `ls_swing.py:47`을 DE-1이 지움). `sat_v`·`sat_tol_v`는 사본이 아니고 HC-S가 `device.dc_sat_v` 읽기로 바꿈. gain-budget v6.18 `816d9dc1` DE-1 소비자 표 F-DE7을 확인했더니 이 칸 삭제가 없어(`aux_types.py:139-172, :251-260`만) N3.10 상위 개정 항목으로 기록 |
 | (4) 상위 v6.18 참조 | 이 표 머리 | `816d9dc1` |
 
 ## Version History
