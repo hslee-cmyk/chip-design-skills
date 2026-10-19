@@ -9,7 +9,7 @@
   소비자 `ly_slice_density`), graph `F_PDK`·`F_GROUPS_IN`·`F_ROW_GROUPS`·`F_REJECTED`·`F_PASSIVES`(판정 축 면적의
   수동소자 블록 `LayoutPassive` tuple, U12).
 계산 필드(writer = 계산 블록 이름):
-  device `F_SLICES`(`run.py` 의 ly_slice_density -- reads device `F_POINT`, 추가 인자 = (LUT 지문, 폭 키), LUT memo 는 graph 밖 허용 저장소),
+  device `F_SLICES`(`run.py` 의 ly_slice_density -- reads device `F_POINT`·graph `F_PDK`(폭 키), 추가 인자 = LUT 지문, LUT memo 는 graph 밖 허용 저장소),
   device `F_FW_CAND`(finger_candidates), graph `F_GROUPS`·`F_DISPOSITIONS`(pattern_select), device `F_FINGER`(finger_geometry),
   graph `F_ROWS`·`F_FLOORPLAN`·`F_DIFFUSION`(rows -- 행 구성이 판정 축 면적을 목적으로 쓰므로 floorplan 을 같은 블록에서 내고,
   `ly.diffusion`(LY8)은 최종 행의 공유 확산 통계라 같은 블록에서 낸다).

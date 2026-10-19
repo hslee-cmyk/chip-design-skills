@@ -451,8 +451,8 @@ reads device `ly_device`·`ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_ro
    writer `"ly_input"`, 입력 버전 `fp_of(layout_input)` 으로
    device `ly_device`({이름: LayoutDevice}), device `ly_point`({이름: ConservedPoint(kind, L, ID, gm_id, vds, vsb)} -- 보존량·동작점, 참고 W 는 뺀다), graph(key `"layout"`) `ly_pdk`·`ly_groups_in`(입력 tuple 그대로)·`ly_row_groups`·
    `ly_rejected`(정렬 tuple)·`ly_passives`(이름순 `LayoutPassive` tuple) 를 쓴다.
-3. 슬라이스: 정식 `@compute_block` `ly_slice_density`(writer 이름 그대로, READS device `ly_point`, WRITES device `ly_slices`, block_version·S3 색인·`RunCounters`·G-10 계수 안).
-   추가 인자는 graph 밖 허용 입력만 `_SliceInputs(memo, pdk.slice_width_keys)` -- 지문 = `(memo.lut.fp, 폭 키)`(memo 상태는 들지 않는다).
+3. 슬라이스: 정식 `@compute_block` `ly_slice_density`(writer 이름 그대로, READS device `ly_point`·graph `ly_pdk`(폭 키 `slice_width_keys` 의 정본), WRITES device `ly_slices`, block_version·S3 색인·`RunCounters`·G-10 계수 안).
+   추가 인자는 graph 밖 허용 입력(LUT memo)뿐 `_LutHandle(memo)` -- 지문 = `memo.lut.fp`(memo 상태는 들지 않는다).
    소자 보존량 점은 `ly_point` 가 정본이다(`ly_device` 를 읽으면 참고 W 만 바뀌어도 다시 조회하므로 `ly_point` 로 분리, 사용자 O-24). 블록 안에서 소자마다
    `slice_density(memo, 점, 그 kind 폭 키)`(같은 점은 한 번)를 부른다. LUT memo 는 graph 밖 허용 저장소라 그대로 쓴다. 같은 입력 재계산 0.
 4. 블록 순서 `ly_slice_density` -> `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`(코드 고정, 다섯 모두 `donors`·`counters` 를 받는다). 이번 호출에서 어느

@@ -11,8 +11,8 @@
    core `compute_block`).
 3. 폭 슬라이스별 보존량 실현(`slice_density`, LUT 조회는 `memo` = MOD1 `LutMemo`)을 device `ly_slices`로 쓴다 -- 정식
    `@compute_block` `ly_slice_density`(writer 이름 그대로, reads device `ly_point` -- `ly_input` 이 쓰는 소자별 보존량·동작점 `ConservedPoint`,
-   참고 W 는 `ly_device` 에만 있어 W 만 바뀌면 다시 조회하지 않는다. 추가 인자 `_SliceInputs` = graph 밖 허용 입력만: LUT memo·폭 키).
-   입력 버전 = (블록 코드, `ly_point` 열 지문, LUT 지문, 폭 키) -- 같으면 재사용·이식, 다시 조회하지 않는다
+   참고 W 는 `ly_device` 에만 있어 W 만 바뀌면 다시 조회하지 않는다. reads graph `ly_pdk` -- 폭 키는 그 필드가 정본. 추가 인자 `_LutHandle` = graph 밖 허용 입력(LUT memo)뿐).
+   입력 버전 = (블록 코드, `ly_point`·`ly_pdk` 지문, LUT 지문) -- 같으면 재사용·이식, 다시 조회하지 않는다
    (LUT memo 는 허용 저장소). 같은 보존량·동작점의 소자는 한 번만 조회한다. `memo.lut.fp` 가 `pdk.source_fp` 와 다르면 `ValueError`.
 4. 계산 블록을 차례로: `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`(행 + floorplan + ly.diffusion).
 5. 결과 = `LayoutResult(snapshot)` -- 레이아웃 값은 스냅샷의 `ly_*` 필드에서 읽는다(사본 없음). 이번 호출에서 어느 블록이 계산·이식·재사용됐는지는 `counters`(`RunCounters` 행)가 정본이다. 필드에서 파생하는
@@ -62,28 +62,26 @@ def _input_columns(layout_input):
 
 
 @dataclasses.dataclass(frozen=True)
-class _SliceInputs:
-    """`ly_slice_density` 의 추가 인자 -- graph 밖 허용 입력만. `memo` = LUT memo, `slice_width_keys` = PDK 폭 키 표.
-    지문(`__canonical__`)은 (LUT 내용 지문, 폭 키) -- memo 상태(캐시)는 결과에 영향이 없어 들지 않는다. 소자 보존량 점은 graph 필드
-    `ly_point` 가 정본이라 여기 없다."""
+class _LutHandle:
+    """`ly_slice_density` 의 추가 인자 -- graph 밖 허용 입력(LUT memo)뿐. 지문(`__canonical__`)은 LUT 내용 지문 -- memo 상태(캐시)는
+    결과에 영향이 없어 들지 않는다. 소자 보존량 점은 `ly_point`, PDK 폭 키는 `ly_pdk` 가 정본이라 여기 없다."""
 
     memo: object
-    slice_width_keys: tuple
 
     def __canonical__(self):
-        return (self.memo.lut.fp, self.slice_width_keys)
+        return self.memo.lut.fp
 
 
-@compute_block(WRITER_SLICES, reads=((DEVICE, F_POINT),), writes=((DEVICE, F_SLICES),))
+@compute_block(WRITER_SLICES, reads=((DEVICE, F_POINT), (GRAPH, F_PDK)), writes=((DEVICE, F_SLICES),))
 def _slice_block(projection):
     """소자마다 `slice_density` tuple. 같은 보존량·동작점의 소자는 한 번만 조회한다."""
-    (inputs,) = projection.extras
-    keys_of = dict(inputs.slice_width_keys)
+    (lut,) = projection.extras
+    keys_of = dict(projection.value(GRAPH, GRAPH_KEY, F_PDK).slice_width_keys)
     by_point = {}
     out = {}
     for name, point in projection.column(DEVICE, F_POINT):
         if point not in by_point:
-            by_point[point] = slice_density(inputs.memo, point, keys_of[point.kind])
+            by_point[point] = slice_density(lut.memo, point, keys_of[point.kind])
         out[name] = by_point[point]
     return {(DEVICE, F_SLICES): out}
 
@@ -109,7 +107,7 @@ def run_layout(layout_input, memo, design_point, previous=None, *, donors, count
         raise ValueError("run_layout: LUT memo 지문이 pdk.source_fp 와 다르다(다른 LUT 로 만든 PDK 폭 키)")
     snapshot = _base(design_point, previous)
     snapshot = snapshot.write(WRITER_INPUT, fp_of(layout_input), _input_columns(layout_input))
-    snapshot = _slice_block(snapshot, _SliceInputs(memo, layout_input.pdk.slice_width_keys), donors=donors, counters=counters)
+    snapshot = _slice_block(snapshot, _LutHandle(memo), donors=donors, counters=counters)
     for block in _BLOCKS:
         snapshot = block(snapshot, donors=donors, counters=counters)
     return LayoutResult(snapshot)
