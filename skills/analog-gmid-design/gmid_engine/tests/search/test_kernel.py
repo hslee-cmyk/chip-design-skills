@@ -532,6 +532,73 @@ def test_partial_snapshot_ss_stage_failure(tmp_path, short_root):
     assert line["ok"] is False and line["snapshot_fp"] == r.partial.fp
 
 
+SEAL_STAGE_BLOCK_ATTRS = ("dc_seal_node_conflict", "dc_seal_vgs_match", "dc_seal_kcl", "dc_seal_bulk_reverse",
+                          "dc_seal_saturation", "dc_seal_kvl_branch", "dc_seal_conduction", "dc_seal_report")
+
+
+@pytest.mark.parametrize("block_attr", SEAL_STAGE_BLOCK_ATTRS)
+def test_partial_snapshot_seal_stage_block_failure(tmp_path, lut_sealed, short_root, monkeypatch, block_attr):
+    """B-T19 (4) C5·C7: 봉인 단계 블록(봉인 항목 블록 7개·dc_seal_report) 자체가 후보 실패 예외를 내면 -- (a) 실패에 partial 이 붙고
+    (b) 그 partial 은 그 블록에 들어가기 직전 스냅샷(앞 단계 블록 필드까지 있고 그 블록·이후 블록 필드 없음) (c) S3 실패 줄
+    snapshot_fp == partial.fp.
+
+    실패 주입(공개 경로): C4 블록 호출 `ComputeBlock.__call__`(gmid_engine.core) 을 클래스 수준에서 감싸, 대상 블록(`block.name`,
+    gmid_engine.sizing 공개 블록 객체) 호출에서 블록 함수 대신 C5 `SealViolationError.from_record(record)` 를 올린다. record 는 별도
+    탐색 컨텍스트의 봉인 7 위반 평가(test_candidate_failure_recorded_and_cached 와 같은 θ)가 낸 FailureRecord 다.
+    oracle 대조: (a) C5 '엔진이 붙이는 곳 -- 커널 DC 블록 단계(그 블록에 들어간 스냅샷)' 규칙을 봉인 단계 블록에 같은 규칙으로 적용(card B
+    재판정 결함 -- 봉인 항목 블록 실패에 부분 스냅샷 부착 계약), C7 실패 평가 = 부분 스냅샷. (b) (독립) 감쌈이 잡은 대상 블록 호출 인자 스냅샷(= 들어가기 직전
+    스냅샷)의 fp 와 같음 + 감쌈이 센 호출 순서(대상 블록 앞에 불린 블록은 있고 대상·이후는 없다 -- 순서는 피검 출력이 아닌 독립 관찰).
+    (c) (비교) C7 'S3 evals 실패 줄에도 snapshot_fp = partial.fp'."""
+    import gmid_engine.sizing as sizing
+    from gmid_engine.core import ComputeBlock, GraphSnapshot, SealViolationError
+    target = getattr(sizing, block_attr).name
+
+    # 주입할 기록: 별도 컨텍스트의 실제 봉인 위반 기록(구성 -- 봉인 7 위반 θ)
+    src = build_case(tmp_path / "src", circuit_c(), lut_sealed)
+    bad = evaluate(src.sctx, th_sorted(theta_r4c(y=0.1, v1=1.5)), CELLS_C)
+    assert bad.status == STATUS_FAILED and bad.failure is not None                    # 전제
+    rec = bad.failure
+
+    case = build_case(tmp_path / "case", circuit_c(), lut_sealed, constraints=AXIS_CONS + SS_CONS, archive_root=short_root)
+    s = case.sctx
+    seen, entered, raised = [], [], []
+    orig = ComputeBlock.__call__
+
+    def wrapped(self, snapshot, *extras, **kw):
+        seen.append(self.name)
+        if self.name == target:
+            entered.append(snapshot)
+            exc = SealViolationError.from_record(rec)
+            raised.append(exc)
+            raise exc
+        return orig(self, snapshot, *extras, **kw)
+
+    monkeypatch.setattr(ComputeBlock, "__call__", wrapped)
+    r = evaluate(s, th_sorted(theta_r4c()), CELLS_C)                                   # 주입 없으면 봉인되는 θ(test_partial_snapshot_none_on_success_...)
+    monkeypatch.undo()
+
+    assert len(entered) == 1 and len(raised) == 1                                      # 전제: 대상 블록에 정확히 한 번 들어갔다
+    assert r.status == STATUS_FAILED and r.failure is not None and r.evaluation is None  # 전제: 후보 실패
+    assert r.failure.failure_class == rec.failure_class
+    # (a) partial 부착
+    assert isinstance(r.partial, GraphSnapshot)
+    assert raised[0].partial is not None and raised[0].partial.fp == r.partial.fp
+    # (b) 들어가기 직전 스냅샷
+    assert r.partial.fp == entered[0].fp
+    bv = r.partial.block_versions
+    before = seen[:seen.index(target)]
+    assert all(b in bv for b in DC_ORDER)                                               # 앞 단계(DC 블록) 필드 있음
+    assert all(b in bv for b in before), [b for b in before if b not in bv]
+    assert target not in bv                                                             # 실패한 그 블록 없음
+    assert "dc_seal_report" not in bv and "ss_dev" not in bv                            # 이후 블록 없음
+    after = [getattr(sizing, a).name for a in SEAL_STAGE_BLOCK_ATTRS if getattr(sizing, a).name not in before]
+    assert all(b not in bv for b in after), [b for b in after if b in bv]
+    # (c) S3 실패 줄
+    (line,) = [x for x in read_evals(short_root, s.context_fp) if x["seq"] == r.seq]
+    assert line["ok"] is False and "fail" in line
+    assert line["snapshot_fp"] == r.partial.fp
+
+
 def test_partial_snapshot_none_on_success_and_outside_domain(case_c):
     """B-T19 C7: 성공(봉인) 평가와 정의역 밖 평가의 partial = None(칸 기본값), 실패 평가의 evaluation 은 여전히 None(위 test)."""
     case, root = case_c
