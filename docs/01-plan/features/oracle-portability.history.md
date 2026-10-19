@@ -359,6 +359,7 @@ date: 2026-10-16
 | (2) 계통 offset 기준 | N3.9 offset_sys 행, G-18, U-4 | 엔진 DEC-23(`plan/gb-v618` `9e379826` 223행)·N3.8 551행 인용, 차동 V(p) − V(n) = 0, 단일 출력 미선언만 `reference_undeclared`, v6.18 승인 전 표시 |
 | (3) OQ-6 대역 조건 | N7.4b, N3.9 표, N9 새 행 | (i) choke = 기록·보고, (ii) h0 위상 = 검사(거부), (i) 미강제 위험 |
 | (4) X-32 머리 | X-32 | '사용자 승인 대기' → '닫힘(O-34 규칙)' |
+| (일곱째 커밋, 오케스트레이터 요청) 전력 `power_dc_w` 오라클 card 없음(gain-budget v6.19 `6e5b10d1` LA-2·LA2-0이 소비) | N5.1 OP-11 신설, OP-9 선행, N4 0번 표, N3.9 표 행, U-5 | 사실 재측정: 계획 `power` grep 0건, 오라클 코드 `power_dc_w` 0건, 단 `rail_current_A`(`.op`, `oracle_simulate.py:150-153`)·`supply_current_A` measure(`oracle_compare.py:59, :138-139`) 있음 → 새 측정 없이 재사용·배선. 모델 오차 = DEC-72(회로·metric별 abs 차) 그대로 -- 요청 기본안의 '9회로 최대'는 DEC-72에 없어 정하지 않음. card id OP-11은 `git grep` 충돌 0 |
 | (여섯째 커밋, 재확인 '승인 가능' 경미 1) I_off 평가 점 | N3.9 범위 조건, N9 새 행 | 엔진은 훑기 점 자신의 VDS·VSB에서 VGS = 0 누설(`seal_conduction.py:7-8`), 오라클은 동작점 입력 -- 정의 소유자 gain-budget v6.18 U-4(기본안 그 훑기 점), 확정 전 현 구현은 정의와 다를 수 있음 표시, 확정 뒤 훑기 점별 I_off 산출을 OP-5에 |
 | O-34 (2) 슬루 되먹임 | N3.9 slew 행, OP-10 행, G-19 | spec 선언 β, 없으면 β = 1 + 'β = 1 기본' 표기, 계단 = O-28 끝, 노드 = 슬루 정의 노드, dV/dt = 구간 최대 |dV/dt|. 정의 정본 문장은 gain-budget N3.8 인용 |
 
