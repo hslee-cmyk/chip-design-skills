@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "topology_hash": "025d0aed9b359baeb2769c4248463a82b79cdcdc4955adb9fc46d98ccea9c383",
-  "rule_hash": "11e0b85baf000554537261cb9536eee0c8cb864b3f01a9f2f05d8a7ca953b011",
+  "rule_hash": "adc91fc87947b00d8d45e1f09337a8965f41fb33faa9f2cb02cdd7c11e45b754",
   "facts": [
     {
       "concept": "ac_ground_exception",
