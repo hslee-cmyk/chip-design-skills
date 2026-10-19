@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 0.7.3
+version: 0.7.4
 ---
 
 # headroom-chain Planning Document
@@ -21,9 +21,9 @@ version: 0.7.3
 >    * 선언 triode 소자에는 R-1′ 항(LUT 정의역 하한)과 LUT 정의역 게이트를 적용한다(C-3 (4)). 지켜지는 소자 검사도 적용한다(기본안(오케스트레이터)).
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: **계획 v0.7.3 -- O-14 반영, diff 확인 전**(2026-10-19, S-7 '계획 먼저'). Gs⁺를 기존 사용자 결정 B2·K-3과 design 41 §6.7-1a에 맞췄고(v0.7·v0.7.1), 사용자 결정 O-13 (1) DEC-64 v1 해석 (가)와 (3)을 반영했으며(v0.7.2, `user_decisions.md` 632행), O-14 (1)(κ 트리 경로는 쓰기 계획 S0 필드 읽기, WP-10 계측 완료 조건, 층 0 거르기 판정은 시험점마다 한 번 S3 평가 기록에)을 반영했다(v0.7.3, 633행). 경위와 바뀐 곳은 history H5에 있다.
+> **Status**: **계획 v0.7.4 -- O-15 반영, diff 확인 전**(2026-10-19, S-7 '계획 먼저'). Gs⁺를 기존 사용자 결정 B2·K-3과 design 41 §6.7-1a에 맞췄고(v0.7·v0.7.1), 사용자 결정 O-13 (1) DEC-64 v1 해석 (가)와 (3)을 반영했으며(v0.7.2, `user_decisions.md` 632행), O-14 (1)(κ 트리 경로는 쓰기 계획 S0 필드 읽기, WP-10 계측 완료 조건, 층 0 거르기 판정은 시험점마다 한 번 S3 평가 기록에)을 반영했다(v0.7.3, 633행). v0.7.4는 O-15 (C)(포화 기준 정본 함수 `sat_threshold`, 위쪽 방향 VDS 변 정본, 634행)를 O-16 (3)의 정정 문언(635행)으로 반영했다. 경위와 바뀐 곳은 history H5에 있다.
 >
-> v0.6(**승인됨**, 2026-10-16, `user_decisions.md` 624·625행): H-A로 U-H9를 뺀 모든 U-H를 기본안대로 승인했고, H-B로 U-H9를 (다)로 정했다(단일 좌표 부등식은 상자를 자르고, 관계식은 시험점을 거른다). v0.7~v0.7.3은 그 승인 내용을 바꾸지 않는다. 다음 단계는 HC-0(card 0 측정. K-3과 무관한 측정이 먼저이고, 나머지는 상위 card IT-1 병합 뒤, N6)과 HC-D(상위 문서 개정 → design)다.
+> v0.6(**승인됨**, 2026-10-16, `user_decisions.md` 624·625행): H-A로 U-H9를 뺀 모든 U-H를 기본안대로 승인했고, H-B로 U-H9를 (다)로 정했다(단일 좌표 부등식은 상자를 자르고, 관계식은 시험점을 거른다). v0.7~v0.7.4는 그 승인 내용을 바꾸지 않는다. 다음 단계는 HC-0(card 0 측정. K-3과 무관한 측정이 먼저이고, 나머지는 상위 card IT-1 병합 뒤, N6)과 HC-D(상위 문서 개정 → design)다.
 >
 > 이전 판 v0.5.1·v0.5.2는 5·6차 검증 지적 D2-1·D3-1·C-3-1·C-3-2를 반영했다.
 > * 포화 불가 판정을 사유 세분 전용으로 줄였다.
@@ -48,7 +48,7 @@ version: 0.7.3
 * **담는 것**: 목적·범위, 확정 결정과 상위 계획과의 관계, 규칙·정의와 물리 유도, 제한 조건 점검표(P-1), 정본 위치와 재사용, 게이트, 원래 취지와 다른 항목, 선행 측정(card 0), card 단계, 완료 조건, 위험, 원문 근거, 열린 결정.
 * **담지 않는 것**: 경위, 측정값과 그 해석, 버전 이력. 이것은 history에 둔다. 계획에는 측정의 결론과 지시만 적는다.
 * **값 원칙**: 이 문서에는 수치 상수를 두지 않는다.
-  * 여유 `tol`은 봉인 7 정의(상위 DEC-88)의 `tol_VDsat`(LUT `VDSAT` 열 leave-one-out 셀값)을 참조한다.
+  * 여유 `tol`은 봉인 7 정의(상위 DEC-88)의 `tol_VDsat`(LUT `VDSAT` 열 leave-one-out 셀값)을 참조한다. 값은 포화 기준 정본 함수 `sat_threshold` 하나에서만 읽는다(N3.4, O-15 (C)).
   * VDS 정의역 하한은 LUT 데이터(on_mask)에서 유도한 값이다.
 * **이름 원칙**: 규칙·코드·판정에 회로·소자·넷 이름을 쓰지 않는다. 이름은 측정 대상(N6)과 history에만 사례로 나온다.
 * **물리 원칙(P-1)**: 모든 제한·예외·한정 조건은 물리 유도(KVL·KCL·영역 조건 식)가 있어야 둔다.
@@ -132,7 +132,7 @@ version: 0.7.3
 |---|---|
 | NFR-H0 | **물리 정합(P-1, 최우선)**: 규칙의 모든 한정 조건은 N3.9 점검표의 물리 유도를 가진다 |
 | NFR-H1 | **이름 금지**: 규칙 코드에 회로·소자·넷 이름 리터럴 0(완료 조건 4) |
-| NFR-H2 | **상수 발명 금지**: tol = 봉인 7 `tol_VDsat`이다. VDS 정의역 하한 = LUT on_mask 유도값(`E/sizing/block_columns.py:101-112`)이다. 포화 불가 판정에도 새 문턱이 없다(N3.2-1, N3.9 D-1) |
+| NFR-H2 | **상수 발명 금지**: tol = 봉인 7 `tol_VDsat`이다. 이것을 정본 함수 `sat_threshold` 하나로 구체화한다(O-15 (C), N3.4). 그 함수는 LUT `table_at` 조회로 (VDsat, tol_VDsat)과 결측 사유 하나를 내고 L bin을 지킨다. 봉인 7·노드 풀이 창(`saturation_rows`)·출발 단계(`iv_domain`·`iv_headroom`)·R-1′ 항·R-3 판정이 모두 이 함수를 부른다. 사본은 금지다. 결측은 사유로 내고 0 같은 값으로 대체하지 않는다. VDS 정의역 하한 = LUT on_mask 유도값(`E/sizing/block_columns.py:101-112`)이다. 포화 불가 판정에도 새 문턱이 없다(N3.2-1, N3.9 D-1) |
 | NFR-H3 | **graph 단일 정본**: 제약 그래프·적층 후보는 graph 필드로만 있고, 각각 writer가 하나다(상위 DEC-83). 면제 집합은 spec `linear_devices` 하나다. Gs⁺는 쓰기 계획 출력을 읽고 다시 만들지 않는다 |
 | NFR-H4 | **계산 재사용**: 구조(제약 그래프·적층 후보)는 θ 무관이다. 실행마다 한 번 계산하고 그 실행 안에서 재사용한다(상위 NFR-2, 원래 취지 "처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용"). θ마다 하는 일은 가중치(LUT memo)·최장 경로·포화 불가 판정(LUT memo)뿐이다. 새 캐시는 만들지 않는다(N3.5). κ의 트리 경로는 쓰기 계획 S0 필드를 읽고, 층 0 거르기 판정은 시험점마다 한 번 해 기존 S3 평가 기록에 싣는다(O-14 (1)). **WP-10 계측**(상위 WP-10, O-14 (1)): cProfile과 중복 인자 계측으로, 블록 밖 함수를 포함해 같은 인자로 반복 호출되는 함수가 0임을 보인다(완료 조건 6) |
 | NFR-H5 | **만들면 배선**: 새 필드는 만드는 변경에서 소비자에 배선한다. 소비자는 출발 구간, 층 0, 봉인 7 보고, 사슬 항이다. 오라클 소비자만 HC-O로 미루며, 이 미룸은 사용자 승인 대상이다(U-H10) |
@@ -197,6 +197,8 @@ version: 0.7.3
 | F-18 | 최소 폭 보정은 gm/ID를 올린다. 그런데 `start_values.py:37` 주석은 방향을 반대로 적었다(card 0 M-H1에서 확인) | `E/search/start_intervals.py:136-168`, `E/search/start_values.py:37` |
 | F-19 | 출발 구간 블록의 입력은 선언된 `READS` 투영뿐이다(234-239행, decorator 251행) | `E/search/start_intervals.py:234-239, :251` |
 | F-20 | 출발 사다리 = 칸 0과 t를 절반씩 줄인 칸들. 층 0은 칸 순서로 봉인을 확인한다 | `E/search/start_intervals.py:29, :400-405` |
+| F-22 | **tol_VDsat 정의가 둘이다**(master `f2852c36`에서 읽음, O-15 근거 감사).<br>• `table_at`: L bin을 지키고(같은 bin 안 앵커 두 행), VDS 칸은 `bisect_right − 1`, 정의 없으면 None. 봉인 7 `_row`, `saturation_rows`, `metrics_aux._sat_devices`가 이것을 쓴다(`tol_vdsat_table(...).at`).<br>• `_tol_vdsat_max`: bin을 무시한 `searchsorted`이고, 격자점 위 VDS면 앞 칸을 쓰며, 결측을 0으로 바꾼다. 출발 단계 `iv_domain.py:90`·`iv_headroom.py:143`이 `search/_helpers_curves.py:92-94`를 거쳐 이것을 쓴다.<br>• `VDSAT + tol` 술어가 세 곳에 따로 있고 결측 처리도 셋 다르다 | `E/lut/_helpers_loo.py:153-163`, `E/lut/derived_fns.py:117-130, :151`, `E/search/_helpers_curves.py:92-94`, `E/search/iv_domain.py:90`, `E/search/iv_headroom.py:143`, `E/sizing/seal_saturation.py:33-49`, `E/sizing/block_columns.py:226-243`, `E/metrics/metrics_aux.py:108-126` |
+| F-23 | **위쪽 방향 차분 제약 그래프가 네 곳에 따로 있다**(R-1′ 신규 제외).<br>• `ls_swing._constraints`·`_relax`: 봉인 해 동작점, VDS 항 = `sat_v`, 선언 triode 제약 없음, 전도 구분 없음, VGS 등식 변은 source가 레일이 아니거나 diode인 소자만.<br>• `headroom_bound._edges`·`_relax`: 크기 전 상한 인증, VDS·VGS 변 비용 = `edge_costs` LUT 격자 최솟값, 선언 triode 구분 없음.<br>• `iv_headroom._edge_nets`: `headroom_bound` 방향 규칙의 사본.<br>• `block_columns` `order_terms`: 방향만 쓰는 순서 항, 모든 MOS | `E/metrics/ls_swing.py:39-79`, `E/metrics/headroom_bound.py:58-96`, `E/search/iv_headroom.py:66-70`, `E/sizing/block_columns.py:172-177`, `E/lut/derived_fns.py:11, :49-79`(`edge_costs`) |
 | F-21 | LUT는 `VTH`·`VDSAT`·`GM`·`GMBS` 열을 갖는다. 핀치오프 전압 VP나 기울기 계수 n은 열로 두지 않는다 | `E/lut/lut_types.py:25`, `E/lut/lut_set.py:189-192`, `E/lut/CONTRACT.md:116, :122-129` |
 
 ### N3.1 R-1′ 사슬 헤드룸 제약(제약 그래프와 최장 경로 판정)
@@ -230,7 +232,7 @@ version: 0.7.3
    * **따름 사실**(N3.9 C-4): 고립 넷 마디로 들어오는 변은 nmos drain 쪽에서 오고, 나가는 변은 pmos drain 쪽으로 간다.
    * **성립 조건**(N3.9 C-10): 필요충분은 출발 동작점(VDS, VSB)을 고정했을 때만 성립한다.
 2. **항(term)**
-   * **일반 전도 소자**: VDsat + tol_VDsat(DEC-88).
+   * **일반 전도 소자**: VDsat + tol_VDsat(DEC-88). 두 값은 정본 함수 `sat_threshold`에서 읽는다(NFR-H2, N3.4).
    * **전도하지 않는 소자**(ID = 0): 포화 부등식이 없다. θ마다 평가할 때 그 변을 뺀다(N3.9 C-9).
    * **선언 triode 소자**(C-3 (4)): 포화를 요구하지 않는다. term = LUT on_mask 유도 VDS 하한(N3.3-2).
    * **선언 triode가 아닌 적층 후보**: 일반 전도 소자와 같은 항(VDsat + tol)을 쓴다. 포화 불가 판정이 나와도 항을 바꾸지 않는다(조용한 면제 없음). 그 판정은 R-1′ 조정 뒤 칸에 기록만 한다(N3.2-2).
@@ -269,7 +271,7 @@ version: 0.7.3
 1. **적층 후보와 판정식**(연결 + 동작점, 이름 없음, 유도는 N3.9 R3-a·D-1)
    * **후보**(S1, 연결만): MOS X, Y의 kind가 같고, gate 넷이 같고, Y의 source 넷 = X의 drain 넷이다. 중간 넷 단자 수와 gate 넷 종류(레일 포함)는 제한하지 않는다. 탐지·보고만 하므로 후보가 넓어도 판정이 틀어지지 않는다(N3.9 R3-b·R3-c). 기존 정본(복합 diode `dc_role` rule 1c, `gs_groups`)과 집합이 같은지는 card 0 M-H3에서 잰다.
    * **판정식**(기본안, 사용자 확인 U-H13): 그 동작점에서 Y가 전도하고 다음 식이 성립하면, X는 **'이 Y 상태에서 X 크기로는 포화 불가'**로 판정한다.
-     * max_{X의 밀도·L ∈ LUT 범위} [VGS(X) − VDsat(X) − tol_VDsat(X)] < VGS(Y)
+     * max_{X의 밀도·L ∈ LUT 범위} [VGS(X) − VDsat(X) − tol_VDsat(X)] < VGS(Y). 이때 VDsat(X)·tol_VDsat(X)는 정본 함수 `sat_threshold`에서 읽는다(NFR-H2)
      * VSB(X)는 동작점 값이고, VDsat는 VDS(X) = VGS(X) − VGS(Y)에서 읽는다.
      * 유도: 포화 조건 VDS(X) ≥ VDsat + tol을 KVL로 바꾸면 VGS(Y) ≤ VGS(X) − VDsat(X) − tol이다. 판정식은 VGS(Y)와 X source를 고정하면 X의 어떤 크기로도 이 부등식을 만족할 수 없다는 뜻이다.
      * **성립 조건**(N3.9 D-1): 두 결합은 포함하지 않는다.
@@ -319,7 +321,22 @@ version: 0.7.3
 | 적층 후보 | S1 graph 필드 하나(연결만)다. 기존 정본(`dc_role` rule 1c, `gs_groups`)으로 유도할 수 있으면 그것을 읽는다. `composite_diodes`는 다시 부르지 않는다(card 0 M-H3) | WP-23 |
 | 면제 집합 | spec `DcInputs.linear_devices` 그대로다(새 함수·새 필드 없음) | DEC-88, C-3 (3) |
 | 지켜지는 소자(선언 triode 기준) | 선언 triode는 spec 값이고 절단 변 판정은 구조다. 그래서 S0 수준 파생 값 하나로 둔다(writer 하나, G-5) | 단일 정본 |
+| **포화 기준 (VDsat, tol_VDsat)**(O-15 (C)) | **정본 함수 하나, 사본 금지**: `sat_threshold`(이름·위치는 HC-D design이 정한다). LUT `vdsat`와 `tol_vdsat_table`의 `table_at` 조회(L bin 준수, lut CONTRACT 4.0)로 (VDsat, tol)과 결측 사유 하나를 낸다.<br>• 부르는 곳: 봉인 7 `_row`, `saturation_rows`, 출발 단계 `iv_domain.py:90`·`iv_headroom.py:143`, R-1′ 항(N3.1-2), R-3 판정(N3.2-1)<br>• 삭제: `search/_helpers_curves.py:92-94` `tol_vdsat`, 그것이 부르는 `lut/derived_fns.py:117-130` `_tol_vdsat_max`와 `DERIVED_FUNCTIONS` 항목(`:151`)<br>• `metrics_aux._sat_devices`(`:108-126`)는 다시 계산하지 않는다. 봉인 7 블록이 쓰는 새 필드 `device.dc_sat_v`를 읽는다(같은 `dc_op` 입력, writer = 봉인 7 블록)<br>• 결측 사유가 났을 때의 동작(봉인 fail-closed 사유 기록, 노드 풀이 창은 좁히지 않음, metric은 정의 불가)은 소비자 역할마다 다르다. design이 표로 적고, 값으로 대체하지 않는다. 출발 단계는 옛 0 대체를 없애므로 결측 동작을 design이 정한다<br>• `edge_costs`(`derived_fns.py:49-79`)의 tol 격자 최솟값은 점값이 아니라 상한 인증용 격자 최솟값이다. 같은 `tol_vdsat_table` 셀을 읽으므로 셀값 정의는 하나다. 이 함수의 소비자가 아니다 | O-15 (C)와 원칙 감사(F-22). 정의 둘이 출발 단계와 봉인 7을 서로 다른 tol로 맞추게 해 NFR-H2와 어긋났다 |
+| **위쪽 방향 VDS 변**(O-15 (C), O-16 (3)) | R-1′ 제약 그래프 S0 필드의 변 목록(소자, 위쪽 방향, 항 종류)이 정본이다. **같은 개념이므로 규칙도 하나다**: 변은 MOS마다 위쪽 방향 VDS 변 하나, θ마다 전도 소자만 포함(C-9), 항 종류는 포화(`sat_threshold`) 또는 선언 triode(LUT on_mask VDS 하한). F-23의 네 곳은 방향·변 목록·항 종류를 이 필드에서 읽고 자기 사본(`_edge_nets`, `_edges`·`_constraints`의 VDS 부분, `order_terms`의 방향 계산)을 지운다. 물리적으로 다른 양은 아래 표처럼 다른 이름의 다른 개념으로 정의한다 | O-15 (C), O-16 (3), F-23, 상위 FR-9 |
 | 변 가중치·최장 경로·포화 불가 판정(θ마다) | graph 필드가 아니다. 출발 구간·층 0·봉인 안의 값이고, 결과는 출처 기록·사유로만 남는다. LUT 조회는 LUT memo를 거친다 | 상위 NFR-2 (a) |
+
+**소비자별 처리(O-15 (C), 문언은 O-16 (3)으로 정정)**: 같은 개념은 하나로 맞춘다. 물리적으로 다른 양이면 다른 이름의 다른 개념으로 정의한다. 같은 개념에 정책만 다르게 두는 것은 금지다.
+
+| 소비자 | 위쪽 방향 VDS 변(같은 개념, 하나로 맞춤) | 다른 개념으로 정의하는 양(이름 · 근거) |
+|---|---|---|
+| R-1′(정본, N3.1) | 정본. 항 값 = `sat_threshold`(θ마다 출발 동작점), 선언 triode = on_mask VDS 하한, 비전도 소자는 변을 뺀다 | 없음. VGS는 변이 아니라 Gs⁺(쓰기 계획) 안의 KVL 식이다 |
+| `ls_swing`(봉인 해의 스윙·입력 창 metric) | 정본 변을 읽는다. 항 값은 봉인 7이 쓴 `device.dc_sat_v`(같은 `sat_threshold` 값)다. **as-built와 다른 두 곳을 맞춘다**: (1) 선언 triode는 as-built '제약 없음' → on_mask VDS 하한. 선언 triode 소자도 VDS가 LUT 정의역 하한 아래로 갈 수 없다는 LUT 사실이 있어서, '제약 없음'은 같은 개념의 다른 정책일 뿐 물리 근거가 없다. (2) 비전도 소자는 as-built '구분 없음' → 전도 소자(`op.current > 0`)만. 비전도 소자에는 포화 부등식이 없다(C-9) | **신호 고정 VGS 변**(새 이름, `ls_swing` 소유): source가 레일이 아니거나 diode인 소자의 VGS 등식 변이다. 근거: 스윙은 신호가 움직이는 범위를 잰다. 레일 source 비 diode 소자는 신호에 따라 전류와 VGS가 바뀌어 gate가 자유다. 그래서 DC 한 점의 Gs⁺ VGS 관계(모든 MOS (gate, source) 변)와 물리적으로 다른 양이다 |
+| `headroom_bound`(크기 전 상한 인증) | 정본 변(소자·방향·항 종류)을 읽는다. 선언 triode는 as-built '구분 없음(포화 비용)' → 항 종류 triode로 맞춘다. 포화 비용을 쓰면 상한이 아니게 되어 `headroom_unattainable`을 잘못 낼 수 있다(P-1). 전도 마디만 본다는 규칙은 R-1′과 같다 | **VDS 변 격자 하한 비용**(새 이름, 정의 = 같은 변·같은 항 종류의 LUT 격자 전체 최솟값. 포화 항이면 VDSAT 최솟값 + tol 최솟값(as-built `edge_costs.vds_min_v`), triode 항이면 on_mask 하한 최솟값): 크기 전 상한 인증에는 동작점 값이 아니라 격자 최솟값이 필요하다(41 §4.6). 그래서 `sat_threshold` 점값과 다른 양이다. **VGS 변 격자 하한 비용**(as-built `edge_costs.vgs_min_v`, 이름 유지): 상한 인증용 VGS 부등식이고, Gs⁺의 VGS 등식과 다른 양이다 |
+| `iv_headroom`(출발 단계 헤드룸 예산) | 정본 변·방향을 읽고 `_edge_nets` 사본을 지운다. 항 값 = `sat_threshold`(`:143`), triode·비전도 규칙은 R-1′과 같다 | 없음. 경로 행은 `headroom_bound`에서 읽는다(그대로) |
+| `block_columns` `order_terms`(노드 풀이 순서 창) | 정본 변의 방향을 읽는다(항은 쓰지 않는다). 선언 triode도 같은 변이다. 전도 중이면 triode에서도 전류 방향이 위쪽 방향이기 때문이다. 비전도 소자는 as-built '모든 MOS' → 전도 소자만으로 맞춘다. 위쪽 방향의 전압 순서는 전도 소자에서만 성립한다(N0.1). 순서 항은 θ 무관 구조로 만들어지므로, 어느 단계에서 전도를 아는지와 결과 영향은 design(HC-D)이 확인한다 | 없음 |
+
+* **graph-consumption B-G2(R4)와의 관계**: B-G2는 `headroom_bound`·`ls_swing` 포화 부등식 그래프와 HC-1 제약 그래프의 관계를 'HC-1 뒤 공동분석'으로 남겼다. O-15 (C)가 정본(R-1′ 제약 그래프 변 목록)을 정했으므로, 위 표(같은 개념은 하나로, 다른 양은 다른 이름, O-16 (3))가 그 공동분석의 정의 차이 판단 자료다. 처리 card는 그대로 graph-consumption GC-8이다(U-G12: GC-8 착수는 B-G2 결론 뒤 다시 묻는다). 이 계획은 정본 필드와 위 소비자별 처리 표(개념 정의)만 소유한다. graph-consumption 계획의 B-G2·GC-8 문언 갱신은 그 계획의 몫이다.
+* **어느 card가 배선하나**(기본안): `iv_headroom`은 HC-1이 배선한다. R-1′ 필드를 만드는 card이고, HC-1이 이미 고치는 `iv_*` 파일이다(N3.5). `ls_swing`·`headroom_bound`·`order_terms`는 GC-8이 배선한다(R4의 처리 card). 필드의 첫 소비자(R-1′·`iv_headroom`)는 HC-1 안에 있으므로 '만들면 배선' 조건을 HC-1이 혼자 채운다.
 
 옛 analog-grammar idiom `m_diode_cascode`는 legacy 엔진 전용이었다. 이 skill은 사용자 결정 G-2로 삭제됐고, 보관본은 로컬 tag `legacy-final`에 있다. 이 idiom은 source 쪽 소자를 CASCODE로 부르는데, 이는 승인 해석(C-1)과 다르다. 그래서 근거로 쓰지 않는다.
 
@@ -332,7 +349,7 @@ version: 0.7.3
   * 적층 후보 → 봉인 블록, 출발 구간 블록
 * 색인 키는 XRUN-F1 X-20·X-21을 따른다. 키는 (블록, 분할, 입력 판)뿐이고, 실행 바깥 지문은 금지하며, 디스크 저장도 금지한다.
 * 사다리 칸마다 최장 경로 판정은 '조정 수 + 1'번이다. 칸 0의 위반 경로와 (ΔV, Σ)는 출발 기록에 남긴다.
-* **파일 겹침**: HC-1은 `E/search/start_intervals.py`·`layer0_center.py`·`iv_*`와 `E/sizing/seal_saturation.py`를 고친다. XRUN-F1 card C도 search 층을 고치므로, HC-1은 card C 뒤에 병합한다.
+* **파일 겹침**: HC-S는 `E/lut/derived_fns.py`·`E/search/_helpers_curves.py`·`iv_domain.py`·`iv_headroom.py`·`E/sizing/seal_saturation.py`·`block_columns.py`·`E/metrics/metrics_aux.py`를 고친다. HC-1은 `E/search/start_intervals.py`·`layer0_center.py`·`iv_*`와 `E/sizing/seal_saturation.py`를 고친다. XRUN-F1 card C도 search 층을 고치므로, HC-1은 card C 뒤에 병합한다.
 
 ### N3.6 SPICE 오라클 반영(HC-O)
 
@@ -479,7 +496,8 @@ version: 0.7.3
 |---|---|---|---|
 | HC-0 (검증자, 측정) | N6 M-H1~M-H6. 엔진 무변경 | 이 계획 승인. **M-H2·M-H2b·M-H3 분포 부분·M-H4·M-H5·M-H6은 card IT-1 병합 뒤**(N6) | B2·K-3 |
 | HC-D (문서) | 상위 문서 개정(N3.8) → 독립 검증·승인 → design(G-1~G-13, test 목록, 배선표, 파일 분할) | HC-0 | X-1·X-4~X-9·X-11~X-13, U-H2·U-H5·U-H6·U-H9·U-H13·U-H15 |
-| HC-1 (엔진, R-1′ + R-3 + 선언 triode 한 card) | • R-1′: 제약 그래프 S0 필드, `vds_saturation` 삭제, 출발 구간 반영(모든 칸·조정·충돌·입력 포트 창 뿌리 성분 사유·결정성), 층 0 거르기(U-H9)<br>• R-3: 적층 후보 S1 필드, 포화 불가 판정(봉인 사유 세분, R-1′ 조정 뒤 출발 기록), VP 보고 칸<br>• 선언 triode: R-1′ 항(정의역 하한), 정의역 게이트, 영역 기록, 지켜지는 소자 기록<br>• search CONTRACT 866-870 닫기, graph CONTRACT·test 표 갱신(test 역할) | HC-D, XRUN-F1 card C 병합, **card IT-1 병합**(N7.2) | B2·K-3, X-1·X-4·X-5·X-6·X-8·X-9·X-11·X-12, U-H2·U-H9·U-H13·U-H15 |
+| HC-S (엔진, 포화 기준 단일화, O-15 (C)) | 정본 함수 `sat_threshold`를 만들고 봉인 7·`saturation_rows`·`iv_domain.py:90`·`iv_headroom.py:143`을 그 함수로 배선한다. `_helpers_curves.tol_vdsat`·`derived_fns._tol_vdsat_max`를 삭제한다. 봉인 7 블록이 `device.dc_sat_v`를 쓰고 `metrics_aux._sat_devices`가 그것을 읽는다. 출발 단계 결측 동작은 design대로 한다. R-1′·R-3 호출은 HC-1에서 더한다 | HC-D, XRUN-F1 card C 병합, card IT-1 병합 | O-15 (C) |
+| HC-1 (엔진, R-1′ + R-3 + 선언 triode 한 card) | • R-1′: 제약 그래프 S0 필드, `vds_saturation` 삭제, 출발 구간 반영(모든 칸·조정·충돌·입력 포트 창 뿌리 성분 사유·결정성), 층 0 거르기(U-H9)<br>• R-3: 적층 후보 S1 필드, 포화 불가 판정(봉인 사유 세분, R-1′ 조정 뒤 출발 기록), VP 보고 칸<br>• 선언 triode: R-1′ 항(정의역 하한), 정의역 게이트, 영역 기록, 지켜지는 소자 기록<br>• search CONTRACT 866-870 닫기, graph CONTRACT·test 표 갱신(test 역할) | HC-D, XRUN-F1 card C 병합, **card IT-1 병합**, **HC-S 병합**(N7.2) | B2·K-3, X-1·X-4·X-5·X-6·X-8·X-9·X-11·X-12, U-H2·U-H9·U-H13·U-H15 |
 | HC-O (오라클) | 새 코어 합격 판정이 spec 선언 triode 칸을 받아 그 소자를 포화 판정에서 빼고 영역을 기록한다. spec 어휘(U-H1)도 반영한다 | HC-1, oracle-portability OP-3, U-H10·U-H11·U-H16 | X-7·X-13, U-H1·U-H16 |
 | HC-V (검증자) | 완료 조건 판정(WP-10 계측 포함), SD 재계수, gap 분석 | HC-1(HC-O는 따로) | -- |
 | (HC-F, 조건부) | SD-1·SD-2 수정(재계수가 0이 아니고 사용자가 승인한 뒤) | HC-V | N3.7 |
@@ -489,6 +507,11 @@ version: 0.7.3
 * **card IT-1**(상위 gain-budget 계획 N6.5. card 정의를 담은 상위 계획 v6.16은 master `f2852c36`에 병합됨, O-14 (2) 승인. 아래 '병합'은 IT-1 구현 병합을 뜻한다. B2·K-3, design 41 §6.7-1a, red test `E/tests/sizing/test_writer_plan.py` 안 새 test 함수): 이 card가 병합된 뒤에 HC 구현(HC-1)과 HC-0의 M-H2(및 같은 근거의 M-H2b·M-H3 분포 부분·M-H4·M-H5·M-H6, N6)을 한다. 근거: Gs⁺는 K-3 뒤의 쓰기 계획을 기준으로 하고(N0.1), 이 계획은 쓰기 계획 출력을 읽기만 한다(사본 금지, NFR-H3).
   * IT-1은 이 계획의 card가 아니라 상위 계획의 card다. design 41 1500행의 '구현 card 전 측정'(종속 소자 목록·W4 수·θ y 수·층 0 시작점, 9회로)은 IT-1의 card 0 IT-0(상위 N6.5 순서 0)이 맡는다. IT-0의 base는 IT-1의 실제 base이고, 그보다 먼저 결과를 바꾸는 card가 병합되면 IT-0을 다시 잰다(상위 N6.5 순서 0).
   * K-3의 순서 조건 '결정 6(d/s 맞바꿈) 다음'은 이미 충족됐다. 결정 6은 U17 ①-d 병합 `c8d156e3`으로 들어갔고, 이 worktree base의 조상이다.
+* **HC-S(포화 기준 단일화)를 HC-1 앞의 별도 card로 둔다**(기본안). 근거는 셋이다.
+  * HC-S는 출발 단계 결과를 바꾼다(tol 정의가 `_tol_vdsat_max`에서 `table_at`으로 바뀜, O-15 (C)에서 사용자 승인). HC-1에 합치면 완료 조건 1(무동작 비트 동일)과 2(바뀐 출발 칸마다 소거식 출처)의 비교에 tol 변화가 섞여 출처를 가를 수 없다.
+  * HC-S가 병합된 master를 HC-1의 base로 쓰면 HC-1의 변화는 R-1′·R-3·선언 triode만 담는다.
+  * HC-1의 R-1′ 항과 R-3 판정이 그 함수를 부르므로 함수가 먼저 있어야 한다.
+  * 파일이 XRUN-F1 card C(search 층)·card IT-1(`block_columns`)과 겹치므로, 두 card 뒤에 병합한다. 겹치는 card가 늦게 병합되면 뒤에 병합되는 쪽이 기준선을 다시 잰다(상위 N6.5 관행).
 * **XRUN-F1**: HC-1은 card C 뒤에 병합한다. 새 캐시는 만들지 않고 X-20·X-21 키 규칙을 따른다.
 * **oracle-portability**: HC-O는 OP-3 뒤다(U-H10). 입력 칸은 OP-0 스키마를 따른다(U-H11).
 * **파일럿 spec 승인**(U-H14): 파일럿 적층 소자의 triode 선언 여부는 이 계획 밖 spec 승인이다. 선언이 없으면 HC-1 뒤 파일럿은 봉인에서 '이 Y 상태에서 X 크기로는 포화 불가, triode 선언 필요' 사유로 거부될 수 있다. 이것은 C-3이 의도한 동작이다.
@@ -501,7 +524,7 @@ version: 0.7.3
    * 비교 대상: 출발 기록(`start.row`·`rungs`·`conflicts`), 층 0 시작점 θ(hex), front 지문, 봉인 보고
    * 새 보고 칸은 비교에서 빼고, 0·빈 값임을 단언한다.
    * 그 밖의 제외 칸은 검증자가 소유하고 판정 기준 변경으로 보고한다.
-   * base = XRUN-F1 card C와 card IT-1이 병합된 뒤의 master
+   * base = XRUN-F1 card C, card IT-1, HC-S가 병합된 뒤의 master
 2. **변화의 출처**:
    * N4-3 회로: 바뀐 출발 칸에 모두 소거식 출처나 정의역 하한 기록이 있다. '충돌만 추가'에서는 `conflicts`만 바뀐다.
    * N4-4 회로: 바뀐 것은 봉인 거부 사유 세분과 출발 기록 칸뿐이다. 거부·통과 여부 자체는 base와 같다.
@@ -529,6 +552,13 @@ version: 0.7.3
    * front ≥ 1은 보고 항목이다.
 9. **SPICE**(HC-O): spec 선언 triode 소자가 포화 판정에서 빠지고 영역이 기록된다.
 10. **gap·bkit**: 상위 N6.3 확인과 design 대 구현 gap 분석을 통과한다.
+11. **포화 기준 단일화(HC-S, O-15 (C))**:
+   * 정본 하나: (VDsat, tol_VDsat)을 계산하는 함수가 `sat_threshold` 하나다. `_tol_vdsat_max`·`_helpers_curves.tol_vdsat` 참조 grep 0. 봉인 7·`saturation_rows`·`iv_domain`·`iv_headroom`(HC-1 뒤에는 R-1′·R-3도)이 그 함수를 부르는 것을 호출 경로로 보인다. `metrics_aux`는 `device.dc_sat_v`를 읽고 직접 계산하지 않는다.
+   * 실제로 거부함: L이 bin 경계를 넘는 조회와 격자점 위 VDS 조회에서 옛 정의와 새 정의가 다른 값을 내는 픽스처로, 새 함수가 `table_at` 값(bin 준수)을 냄을 먼저 보인다. 결측 조회는 0이 아니라 결측 사유를 낸다.
+   * 무동작: 봉인 7 보고·노드 풀이 결과·metric `sat_v`가 base와 비트 동일하다(이미 `table_at`을 쓰던 경로).
+   * **출발 구간 결과 변화와 기준선 재측정**: 변화는 사용자가 승인했다(O-15 (C) '출발 결과 변화 승인'). 절차는 상위 IT-Q3 (가) 방식을 **준용한다**. 검증자가 base 대비 회로마다 출발 기록(`start.row`·`rungs`·`conflicts`)·층 0 시작점·front 지문의 변화표를 내고, 바뀐 항목마다 원인이 tol 정의 변경(F-22)임을 보인다. 그 변화표를 근거로 test 주체가 기준선(9회로 S0 기준선·NFR-4 기준선·card 기대값)을 다시 잰다. 원인이 tol 정의 변경이 아닌 차이는 0이다.
+   * HC-S가 병합된 master가 HC-1 완료 조건 1의 base다.
+12. **위쪽 방향 VDS 변 정본(O-15 (C))**: `iv_headroom._edge_nets` 사본 grep 0, 방향은 R-1′ 제약 그래프 필드에서 읽는다(HC-1). `ls_swing`·`headroom_bound`·`order_terms` 배선과, N3.4 소비자별 처리 표에서 하나로 맞춘 규칙(선언 triode·비전도 소자)과 새 이름 개념(신호 고정 VGS 변, VDS 변 격자 하한 비용)의 반영은 GC-8의 완료 조건이다(N3.4). 같은 개념에 소비자별로 다른 규칙이 남은 곳이 0임을 검증자가 확인한다(O-16 (3)).
 
 ---
 
@@ -570,12 +600,12 @@ version: 0.7.3
 |---|---|---|---|
 | H-1 | 제약 그래프 정본 | S0 필드 하나, 양의 순환 경로 목록 저장 없음, κ 트리 경로는 쓰기 계획 S0 넷별 뿌리 경로 필드 읽기(O-14 (1)), `vds_saturation` 삭제 | 개념 하나에 이름 하나 |
 | H-2 | R-1′ 판정 | 차분 제약 그래프 + Bellman–Ford(가상 시작점), 양의 순환 = 사슬 위반 하나 | P-1, 필요충분 |
-| H-3 | tol | 봉인 7 `tol_VDsat` | 출발이 맞추는 기준이 봉인 7이다 |
+| H-3 | tol | 봉인 7 `tol_VDsat`, 정본 함수 `sat_threshold` 하나(O-15 (C)) | 출발이 맞추는 기준이 봉인 7이다 |
 | H-4 | 출발 반영 | 조정 소자(DEC-95 (3), diode 제외) + LUT 역산, 모든 칸, 충돌 기록 | 기존 규칙 재사용 |
 | H-6 | 적층 후보 정본 | S1 필드, 기존 정본에서 파생하는 것을 우선 | 재계산 금지 |
 | H-7 | 면제 집합 | spec `linear_devices`만(새 경로 없음) | C-3, DEC-88 |
 | H-10 | SD-1·SD-2 | 백로그 + 재계수 | 범위 분류 후 재측정 |
-| H-12 | 순서 | HC-0 → HC-D → HC-1 → HC-V. HC-O는 OP-3 뒤. card IT-1 병합이 HC-1과 HC-0 M-H2·M-H2b·M-H3 분포 부분·M-H4·M-H5·M-H6보다 먼저다(N7.2) | 의존 관계, 기준선, B2·K-3 |
+| H-12 | 순서 | HC-0 → HC-D → HC-S → HC-1 → HC-V(HC-S는 HC-1 앞 별도 card, N7.2). HC-O는 OP-3 뒤. card IT-1 병합이 HC-1과 HC-0 M-H2·M-H2b·M-H3 분포 부분·M-H4·M-H5·M-H6보다 먼저다(N7.2) | 의존 관계, 기준선, B2·K-3 |
 | H-13 | 재사용 | 구조는 실행당 1회. θ마다 가중치·최장 경로·포화 불가 판정(LUT memo). 새 캐시 없음 | NFR-2, XRUN-F1 |
 | H-14 | 판정식 X 크기 범위 | LUT 정의역 전체. design G-13에서 탐색 상자 범위와 함께 정리한다 | 보수적(판정이 덜 성립함) |
 
