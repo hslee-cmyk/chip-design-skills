@@ -274,7 +274,7 @@ def layout_fields(snap, names):
 
 
 def strip_volatile(result):
-    """결과 비교용(4.13 9·10): 레이아웃 필드 값(`ly_*`, 이름순)과 필드 파생 출력 `layout_outputs` -- computed_blocks·입력 버전·쓰기 횟수 제외."""
+    """결과 비교용(4.13 9·10): 레이아웃 필드 값(`ly_*`, 이름순)과 필드 파생 출력 `layout_outputs` -- 입력 버전·쓰기 횟수 제외."""
     from gmid_engine.layout import _ly_fields as lf
     from gmid_engine.layout import layout_outputs
     snap = result.snapshot
@@ -324,6 +324,20 @@ def block_row(counters, name):
         if (r.block, r.part) == (name, "*"):
             return tuple(getattr(r, f) for f in COUNT_FIELDS)
     return (0,) * len(COUNT_FIELDS)
+
+
+def write_counts(counters):
+    """[XRUN-F1 card B C1, 사용자 결정 O-17 (3)] 실행 계수의 (block, "*") 행마다 (computes, grafts) -- `written_since` 의 호출 전 기록."""
+    return {r.block: (r.computes, r.grafts) for r in counters.snapshot().blocks if r.part == "*"}
+
+
+def written_since(counters, before):
+    """이번 호출에서 값을 스냅샷에 쓴 writer(계산 또는 이식) 집합 -- 옛 `LayoutResult.computed_blocks` 의 정본(O-17 (3): 같은 정보의 정본은
+    RunCounters 행, interface card C6 '계산·이식 구분은 RunCounters 행으로 본다'). oracle: C1 행 칸 `computes`·`grafts` 의 호출 전후 증분 합 > 0
+    (C4: 계산·이식만 값을 쓰고 reuse 는 스냅샷 그대로). `before` = 호출 직전 `write_counts(counters)`. 블록 호출 계수가 없는 writer(블록이 아닌
+    쓰기)는 행이 없어 이 집합에 들 수 없다."""
+    after = write_counts(counters)
+    return frozenset(b for b, (c, g) in after.items() if (c + g) - sum(before.get(b, (0, 0))) > 0)
 
 
 def staged_snapshot(inp, memo, upto=None, run=None):

@@ -55,8 +55,9 @@ $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -m structure
    문장 하나**다 -- 대입 하나가 `run_stage_a` 호출 둘 이상의 인자가 되면 `run_pair_reused`. 같은 이름을 새 `open_run()` 튜플 풀기로 **다시 대입**해
    다음 호출에 쓰는 꼴은 대입마다 호출 하나라 허용한다(design 원문은 대입된 두 이름과 호출의 1:1 을 요구하고 재대입을 금하지 않는다). 호출이 쓰는
    대입 = 그 호출을 구조적으로 앞서는(같은 문장 목록 또는 바깥 문장 목록에서 앞선) 같은 이름 대입 중 마지막 것. 그 이름이 `open_run()` 튜플 풀기
-   말고 다른 방식(매개변수·`for`·다른 대입)으로도 묶이거나, 대입이 `if` 가지 안이라 호출을 구조적으로 앞서지 않으면 출처를 정적으로 정할 수 없어
-   위반이다(fail-closed). 같은 함수의 다른 쓰임(`assert res.donors is donors`, 같은 실행을 잇는 `build_kernel_context(..., donors=donors, ...)`)은
+   말고 다른 방식(매개변수·`for`·다른 대입)으로도 묶이거나, 대입이 `if`/`else` 가지 안·`with` 본문 안이라 호출을 구조적으로 앞서지 않으면
+   위반이다 -- 출처를 정적으로 정할 수 없어서가 아니라, **design 원문보다 엄격한 안전 쪽 해석**(사용자 결정 O-17 (2), 2026-10-19 "card B 1~3
+   권고대로"): 대입 문장 둘 이상이 한 이름에 닿는 꼴(예 `if` 양쪽 가지의 `open_run()` 대입이 같은 호출에 닿는 꼴)을 거부한다(fail-closed). 같은 함수의 다른 쓰임(`assert res.donors is donors`, 같은 실행을 잇는 `build_kernel_context(..., donors=donors, ...)`)은
    막지 않는다 -- M-c 범위는 `run_stage_a` 인자뿐이고(design '범위 한정'), B-T16('StageAResult 두 칸이 넘긴 객체 is')이 그 이름을 다시 써야 한다.
    **`run_stage_a` 호출 인식(fail-closed)**: 이름 `run_stage_a` 호출, `<식>.run_stage_a(...)`, `from ... import run_stage_a as X` 의 `X(...)`, 어느
    scope 에서든 `X = run_stage_a`·`X = <식>.run_stage_a`·`X = <별칭>`(고정점)으로 대입된 이름 `X` 의 호출, `getattr(<식>, "run_stage_a")(...)` --

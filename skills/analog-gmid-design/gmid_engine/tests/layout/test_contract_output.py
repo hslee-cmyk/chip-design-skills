@@ -13,10 +13,10 @@ def names(c):
     return [f.name for f in dataclasses.fields(c)]
 
 
-def test_layout_result_declares_only_snapshot_and_computed_blocks():
-    # [U17 1-e] design 40 v1.6 §2.4.7 `LayoutResult` 행: "(스냅샷, 이번 호출의 계산 블록 목록)만 둔다" -- 결과 값 사본 칸 없음.
-    # 칸 이름은 design 에 없어 as-built 이름 `snapshot`·`computed_blocks` 를 쓴다(그 순서).
-    assert names(LayoutResult) == ["snapshot", "computed_blocks"]
+def test_layout_result_declares_only_snapshot():
+    # [U17 1-e] design 40 v1.6 §2.4.7 `LayoutResult` 행: 결과 값 사본 칸 없음. 칸 이름 `snapshot` 은 as-built.
+    # 사용자 결정 O-17 (3)(2026-10-19): '이번 호출에서 계산·이식한 writer'(옛 `computed_blocks`)의 정본은 RunCounters 행(perf 행) -- 사본 칸 삭제.
+    assert names(LayoutResult) == ["snapshot"]
     assert LayoutResult.__dataclass_params__.frozen
 
 

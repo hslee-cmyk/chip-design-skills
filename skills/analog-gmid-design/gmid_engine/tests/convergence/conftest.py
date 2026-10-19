@@ -70,7 +70,7 @@ def ddiff(name, fw, nf, ad, as_, pd, ps):
 
 def layout(devices=(), groups=(), diffusion=(), plan=None, groups_in=()):
     """손 레이아웃 결과: 레이아웃 필드(`ly_device`·`ly_finger`·`ly_groups`·`ly_groups_in`·`ly_floorplan`·`ly_diffusion`)를 든 FakeSnapshot 의
-    `LayoutResult(snapshot, computed_blocks=())`. `devices` = `dlay`/`dunplaced` 항목, `groups_in` = 입력 그룹(gid·hub_net)."""
+    `LayoutResult(snapshot)`(O-17 (3) 뒤 칸은 스냅샷 하나). `devices` = `dlay`/`dunplaced` 항목, `groups_in` = 입력 그룹(gid·hub_net)."""
     fields = {
         ("device", F_DEVICE): {n: SimpleNamespace(name=n) for n, _f in devices},
         ("device", F_FINGER): {n: f for n, f in devices if f is not None},
@@ -79,7 +79,7 @@ def layout(devices=(), groups=(), diffusion=(), plan=None, groups_in=()):
         ("graph", F_FLOORPLAN): {LAYOUT_KEY: plan if plan is not None else floorplan(1e-5, 1e-5)},
         ("graph", F_DIFFUSION): {LAYOUT_KEY: tuple(diffusion)},
     }
-    return LayoutResult(FakeSnapshot(fields), ())
+    return LayoutResult(FakeSnapshot(fields))
 
 
 def groups_in(*hubs):

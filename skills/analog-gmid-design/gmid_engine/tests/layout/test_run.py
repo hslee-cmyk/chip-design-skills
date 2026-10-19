@@ -32,6 +32,7 @@ from gmid_engine.layout.rows import compose_rows
 from .conftest import (DP_GRAPH_KEY, DP_METRIC_VERSION, DP_OP_VERSION, build_toy_lut, design_point, design_point_of, dev, dp_writers,
                        layout_fields, make_input, mg, new_memo, rg, strip_volatile, toy_pdk)
 from .conftest import block_row, fresh_run  # [XRUN-F1 card B C0·C1]
+from .conftest import write_counts, written_since  # [O-17 (3)] 이번 호출에서 쓴 writer = RunCounters 행 증분
 
 ALL_WRITERS = ("ly_slice_density", "ly_finger_candidates", "ly_pattern_select", "ly_finger_geometry", "ly_rows")
 
@@ -122,8 +123,9 @@ def test_previous_from_other_design_point_rejected(toy_lut):
     with pytest.raises(ValueError):
         run_layout(inp, memo, other, previous=r1, **rp)
     # 같은 설계점(같은 block_version)의 다른 스냅샷 객체는 같은 lineage 로 받는다
-    r2 = run_layout(inp, memo, design_point(names), previous=r1, **rp)
-    assert r2.computed_blocks == ()
+    before = write_counts(rp["counters"])
+    run_layout(inp, memo, design_point(names), previous=r1, **rp)
+    assert written_since(rp["counters"], before) == frozenset()
 
 
 # --- 출력 계약 --------------------------------------------------------------------------------------------------------
@@ -366,8 +368,9 @@ def test_previous_same_input_computes_nothing(toy_lut):
     inp = composite(toy_pdk(toy_lut))
     r1 = run(inp, memo, rp=rp)
     m1 = _misses(memo)
+    before = write_counts(rp["counters"])
     r2 = run(inp, memo, previous=r1, rp=rp)
-    assert r2.computed_blocks == ()
+    assert written_since(rp["counters"], before) == frozenset()
     assert r2.snapshot is r1.snapshot                                             # 4.13 10: 스냅샷이 previous.snapshot 그대로
     assert strip_volatile(r2) == strip_volatile(r1)
     assert _misses(memo) == m1                                                   # LUT 조회 재계산 0
@@ -677,15 +680,17 @@ def test_passives_only_change_recomputes_rows_block_only(toy_lut):
     memo = new_memo(toy_lut)
     inp = composite(toy_pdk(toy_lut))
     r1 = run(inp, memo, rp=rp)
+    before = write_counts(rp["counters"])
     r2 = run(dataclasses.replace(inp, passives=(LayoutPassive("Cc", 3e-12),)), memo, previous=r1, rp=rp)
-    assert r2.computed_blocks == ("ly_rows",)
+    assert written_since(rp["counters"], before) == {"ly_rows"}
     assert floorplan(r2).passive_area_m2 == pytest.approx(30102e-16, rel=1e-9)
     _assert_no_same_input_recompute(rp)
     # 되돌리면 수동소자 없음(스냅샷은 직전 값만 들고 있다). [XRUN-F1 card B C4·C6] 같은 실행이면 r1 의 ly_rows 입력은 색인에 있어 이식된다 --
-    # computed_blocks 는 '값을 쓴 writer(계산 또는 이식)'라 그대로 ("ly_rows",), 같은 입력 재계산은 여전히 0
+    # '값을 쓴 writer(계산 또는 이식)'는 그대로 {"ly_rows"}(O-17 (3): RunCounters 행 증분으로 본다), 같은 입력 재계산은 여전히 0
+    before = write_counts(rp["counters"])
     r3 = run(inp, memo, previous=r2, rp=rp)
     _assert_no_same_input_recompute(rp)
-    assert r3.computed_blocks == ("ly_rows",)
+    assert written_since(rp["counters"], before) == {"ly_rows"}
     assert floorplan(r3).passive_area_m2 == 0.0
     assert floorplan(r3) == floorplan(r1)
 
@@ -697,7 +702,7 @@ def test_passives_only_change_recomputes_rows_block_only(toy_lut):
 # 호출 형식(as-built 서명, CONTRACT 4.12): 셋째 위치 인자 `design_point` = 설계점 스냅샷(`GraphSnapshot`), 넷째 `previous` = 같은 설계점 위
 # 앞 호출의 `LayoutResult`(재시도 = 같은 설계점 lineage 의 새 스냅샷, §2.4.7). 레이아웃 필드를 이미 가진 설계점 스냅샷(앞 결과의 스냅샷)을
 # `design_point` 로 다시 주는 것도 같은 lineage 다(권한표가 이미 넓혀져 있고 설계점 block_version 이 같다).
-# `LayoutResult` 두 칸의 이름은 as-built `snapshot`·`computed_blocks` 를 쓴다(design 은 '스냅샷, 이번 호출의 계산 블록 목록'만 적음).
+# `LayoutResult` 칸은 `snapshot` 하나(사용자 결정 O-17 (3): '이번 호출에서 계산·이식한 writer'의 정본은 RunCounters 행 -- 사본 칸 삭제).
 
 DP_WRITERS = dp_writers()
 MOD7_WRITERS = frozenset((lf.WRITER_INPUT, lf.WRITER_SLICES) + lf.BLOCK_WRITERS)
@@ -758,13 +763,16 @@ def test_no_separate_layout_lineage(toy_lut, monkeypatch):
     _assert_design_point_kept(r.snapshot, dp, names)
 
 
-def test_layout_result_carries_only_snapshot_and_computed_blocks(toy_lut):
-    # §2.4.7: `LayoutResult` 는 (스냅샷, 이번 호출의 계산 블록 목록)만 둔다 -- 결과 값 사본 없음
+def test_layout_result_carries_only_snapshot_and_written_writers_in_counters(toy_lut):
+    # §2.4.7: `LayoutResult` 는 스냅샷만 둔다 -- 결과 값 사본 없음. 이번 호출에서 쓴 writer 는 RunCounters 행(O-17 (3))이고 MOD7 writer 뿐
     inp = composite(toy_pdk(toy_lut))
-    r = run_layout(inp, new_memo(toy_lut), design_point(tuple(d.name for d in inp.devices)), **fresh_run())
+    rp = fresh_run()
+    before = write_counts(rp["counters"])
+    r = run_layout(inp, new_memo(toy_lut), design_point(tuple(d.name for d in inp.devices)), **rp)
     assert isinstance(r.snapshot, GraphSnapshot)
-    assert isinstance(r.computed_blocks, tuple) and all(isinstance(w, str) for w in r.computed_blocks)
-    assert set(r.computed_blocks) <= MOD7_WRITERS
+    w = written_since(rp["counters"], before)
+    assert all(isinstance(x, str) for x in w)
+    assert w <= MOD7_WRITERS
 
 
 def test_same_design_point_second_request_reuses_fields(toy_lut):
@@ -776,8 +784,9 @@ def test_same_design_point_second_request_reuses_fields(toy_lut):
     rp = fresh_run()
     r1 = run_layout(inp, memo, dp, **rp)
     m1 = _misses(memo)
+    before = write_counts(rp["counters"])
     r2 = run_layout(inp, memo, r1.snapshot, **rp)
-    assert r2.computed_blocks == ()
+    assert written_since(rp["counters"], before) == frozenset()
     assert _misses(memo) == m1                                                   # LUT 조회도 다시 하지 않는다
     assert r2.snapshot.fp == r1.snapshot.fp
     assert layout_fields(r2.snapshot, names) == layout_fields(r1.snapshot, names)   # value·writer·입력 버전·쓰기 횟수
