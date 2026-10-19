@@ -338,6 +338,20 @@ date: 2026-10-16
 | (같은 답) GC-8 자리표 | -- | 그대로 둔다. headroom-chain v0.7.4가 R4를 맡을 card id를 정하면 오케스트레이터가 알리고, 그때 부채 항목 card id를 바꾼다 |
 | (같은 판 후속 커밋) headroom-chain v0.7.4(`wt/headroom-k3-plan` `752659ee`)의 R4 분담 | GC-8 행, N3.2 R4 행, N1.2 범위 표 두 칸, N2 O-15 행, N5 X-G9 상태, N7.3-2, U-G12, N10.4 B-G2 | 그 계획 N3.4(소비자별 처리 표, 배선 분담 기본안)·F-23·완료 조건 12를 직접 읽었다. GC-8은 자리표가 아니라 실제 card다: `ls_swing`·`headroom_bound`·`order_terms` 배선 + 정책 통일(선언 triode = on_mask VDS 하한, 비전도 변 제외) + 사본 삭제, 선행 HC-1, 결과가 바뀔 수 있어 무동작 card가 아님(변화표). `iv_headroom`은 HC-1. 다른 이름 개념 셋은 그 계획 표가 정본. `order_terms`는 원래 R4 범위 밖이었다가 O-15 (C)로 들어왔다고 표시. B-G2는 'O-15 (C)·O-16 (3)으로 닫힘, 정의 차이 판단은 headroom-chain N3.4 표'. U-G12의 GC-8 재질문은 '재질문 대상 소멸 -- O-15 (C) 승인 범위'. 확인: O-15 (C)가 네 곳의 정본 읽기를, O-16 (3)이 '같은 개념은 하나로'를 승인했으므로 GC-8의 내용은 사용자 결정 범위 안이다. 소비자별 card 분담(HC-1 대 GC-8)은 headroom-chain의 기본안이다. ls_swing 39·53행, headroom_bound 58·75행, block_columns 172-177행을 재확인했다 |
 
+### v0.10 독립 검증(`429a84eb`, '수정 필요') → v0.10 후속 커밋
+
+기본안은 근본원칙(같은 개념은 하나, 다른 양은 다른 이름)으로 정했고, 계획에 '오케스트레이터 기본안'으로 표시했다.
+
+| 지적 | 반영 자리 | 처리 |
+|---|---|---|
+| 1 O-16 (3) 예외 누락 | F-G14, N7.3-13 | 봉인 9 소자별 I_off 동작점 보간(`seal_conduction.py:26-31` `_off_current`)은 검증 경로(판정 권한)라 단일화 예외로 명시 |
+| 2 GC-8 '비전도 제외'를 θ 없는 소비자에 그대로 못 씀 | GC-8 (2) | 전도 집합은 소비자가 알 수 있는 정보로 평가한다(기본안). θ 있는 소비자(`ls_swing`, R-1′)는 θ 전도로 제외하고, θ 없는 소비자(`headroom_bound`, `order_terms`)는 구조적 전도를 쓴다. `dc_current_basis`가 구조적 0 전류 MOS를 정지시키므로(`current_basis.py:14`) 제외 없음. 근거를 병기했고, headroom-chain 334·335행과 같은 문언이다 |
+| 3 완료 조건 13 대 GD-12 `current_box` 불일치 | N7.3-13, GD-12 | `current_box` I_off 값(θ 전류 상자 하한)은 다른 개념이라 완료 조건 단일화 대상에서 뺐다. VGS = 0 마디 찾기는 `conduction_mask` 모듈 한 함수로 모으고 `current_box`도 그것을 부른다. GD-12 열린 질문을 닫았다 |
+| 4 `_vds_floor` 이동 순서 | F-G38, GC-9, X-G12, N1.2, N7.2, N7.3-13, GD-13 | 선언 triode 항으로 HC-1(search)이 먼저 쓰므로 이동을 headroom-chain HC-S로 옮겼다(기본안). GC-9 범위에서 빼고 선행에 HC-S를 넣었다 |
+| 5 gm/ID 정점 마디 중복 | GD-12, N7.3-13 | 정점 마디는 LUT memo 파생 함수 한 곳에서 계산한다(기본안). 재측정 결과 `cell_floor.py:45-46`(지적은 44-45), `derived_fns.py:39-41`(지적은 40-41) |
+| 6 옛 문구 | 머리 관련 계획(19행), N7.2 headroom-chain 항목, N8 R7, U-G12 권고 칸, history 0.10 행, GC-8 선행(HC-S → HC-1 → GC-8), GC-8 (4) | v0.7.4 개정 중 표기, 재질문 소멸 표기, 'GC-8 실제 card', `edge_costs.vds_min_v` 소비자 셋(`start_intervals.py:280`, `_helpers_curves.py:111`, `derived_fns.py:106`)을 'VDS 변 격자 하한 비용' 이름 부여 대상에 포함 |
+| (유지) 트리 경로 필드를 만드는 card | -- | HC-1 기본안 유지 |
+
 ## Version History
 
 | 판 | 날짜 | 변경 |
@@ -351,4 +365,4 @@ date: 2026-10-16
 | 0.7 | 2026-10-19 | v0.6 재검증 반영(H3). (가-1) (ii) 점의 매크로 실패 처리(`use_macro` 해제 판정 위치 이동, 면적만으로 재선택, 원인별 t 포함 기록), (c)·빈 사다리 조건 통일, M-G8을 N6 표에서 N4-4로 이동. 재측정 H2-10 |
 | 0.8 | 2026-10-19 | 사용자 결정 O-13 반영(H3). DEC-64 v1 해석 (가)로 P-G1 자리 정정(같은 DC 등식 없음, 포트 경로 둘 이상이면 ΔV 소거 KVL 하나 남음, 대칭이면 묶음과 중복), Gs⁺ 정의 보강·숲 불변량 성립 한 줄, U-G 전부 결정됨·X-G 승인 표시, (가-2)·(가-3) 기록화, GD-7 격자 기준 명시 |
 | 0.9 | 2026-10-19 | 사용자 결정 O-14 반영(H3). 트리 경로를 쓰기 계획 블록 자기 출력 S0 필드로(소비자 셋, '저장하면 사본' 논리 철회, 만드는 card 기본안 HC-1/GC-2), WP-10 계측 완료 조건·NFR-G4, 상위 IT-1 병합됨 표시. 원래 취지와 다름 아님(원칙으로 복귀) |
-| 0.10 | 2026-10-19 | 사용자 결정 O-15 반영(H3). (A) 전도 술어 정본 `conduction_mask`(네 번째 자리 `edge_costs`, `sctx.cell_floors` 제거), (E) 원칙 감사 범위 확장 GC-9·X-G12(기저 float 1회, 정확 MOS 전류 함수 하나, `current_cone` 기저 읽기, `_vds_floor` 이동, 완료 조건 3 좁힘, 블록 안 local memo·같은 점 재풀이 금지), (C)로 B-G2 흡수·GC-8 자리표 |
+| 0.10 | 2026-10-19 | 사용자 결정 O-15 반영(H3). (A) 전도 술어 정본 `conduction_mask`(네 번째 자리 `edge_costs`, `sctx.cell_floors` 제거), (E) 원칙 감사 범위 확장 GC-9·X-G12(기저 float 1회, 정확 MOS 전류 함수 하나, `current_cone` 기저 읽기, 완료 조건 3 좁힘, 블록 안 local memo·같은 점 재풀이 금지 -- `_vds_floor` 이동은 후속 커밋에서 headroom-chain HC-S로 옮김), (C)·O-16 (3)으로 B-G2 닫힘·**GC-8 실제 card**(`ls_swing`·`headroom_bound`·`order_terms` 배선, headroom-chain v0.7.4 분담), 후속 커밋에서 독립 검증 '수정 필요' 6건 반영 |
