@@ -50,7 +50,7 @@ version: 0.8
 | 정본 술어 | graph 필드로 이미 계산된 판정이다(예: `device.is_diode`, `graph.gs_groups`의 (kind, gate, source) 묶음) |
 | 정본 우회 재계산 | 정본 술어·관계가 있는데 같은 것을 핀·연결에서 다시 계산하는 것이다 |
 | 부채 목록 | 구조 규칙 L의 기존 위반을 담은 목록이다. 항목 키는 (규칙, 최소 단위 대상)이다. 최소 단위는 필드 규칙이면 (kind, field), READS 규칙이면 (블록, 열), 하위 칸 규칙이면 (형식, 칸), 술어·동적 접근 규칙이면 (파일, 줄 자리)다. 현재 항목 집합은 기준선 항목 집합의 부분집합이어야 한다(N3.1-6) |
-| Gs⁺ | 쓰기 계획이 노드 전압을 쓰는 그래프다. 용어와 정의는 headroom-chain v0.7.1 N0.1과 같다(상위 FR-9). 고정 노드 F = 레일 ∪ 노드 목표 ∪ 선언 입력 포트. 변 = MOS (gate, source) 변 + 저항 변. **'같은 DC' 변(`input_tie`)은 없다**(사용자 결정 B2·K-3, design 41 §6.7-1a). 입력 DC 미선언 입력 포트를 포함하는 성분은 성분마다 뿌리·오프셋이 하나이고, 포트가 여럿이면 나머지 포트는 MOS writer가 쓰는 넷이다. 그래서 포트 사이 MOS 경로가 둘 이상이면 하나는 트리 경로로 다른 포트를 쓰고, 나머지 경로의 비트리 MOS 변이 포트 차 ΔV를 소거한 KVL 하나를 닫는다(`cycle_vgs` 종속, 사용자 결정 O-13 (1), 아래 'KVL 관계'). as-built 쓰기 계획은 아직 '같은 DC' 변을 넣는다(F-G19) |
+| Gs⁺ | 쓰기 계획이 노드 전압을 쓰는 그래프다. 용어와 정의는 headroom-chain v0.7.1 N0.1과 같다(상위 FR-9). 고정 노드 F = 레일 ∪ 노드 목표 ∪ 선언 입력 포트. 변 = MOS (gate, source) 변 + 저항 변. **'같은 DC' 변(`input_tie`)은 없다**(사용자 결정 B2·K-3, design 41 §6.7-1a). 입력 DC 미선언 입력 포트를 포함하는 성분은 성분마다 뿌리·오프셋이 하나이고, 포트가 여럿이면 나머지 포트는 MOS writer가 쓰는 넷이다. 그래서 포트 사이 MOS 경로가 둘 이상이면 하나는 트리 경로로 다른 포트를 쓰고, 나머지 경로의 비트리 MOS 변이 포트 차 ΔV를 소거한 KVL 하나를 닫는다(비트리 MOS 종속 -- 보통 `cycle_vgs`, 경우에 따라 `parallel_vgs`·`fixed_vgs`, `E/sizing/writer_plan.py:191-196`. 사용자 결정 O-13 (1), 아래 'KVL 관계'). as-built 쓰기 계획은 아직 '같은 DC' 변을 넣는다(F-G19) |
 | KVL 관계 | Gs⁺(F를 한 점으로 묶음)의 신장 숲에서 비트리 MOS 변 하나가 닫는 기본 사이클이다. 사이클마다 종속 소자 하나와 ΔV 출처(레일 차·노드 목표·선언 입력 DC·0)가 있다. **등식 사이클만 이 계획 소관이다.** VDS 변을 하나 이상 지나는 부등식 사이클(포화 하한)은 headroom-chain HC-1 제약 그래프 소관이다. 입력 DC 미선언 입력 포트 사이의 포트 차 고리(DEC-64 v1)는 **사용자 결정 O-13 (1)**(`wt/_drafts/user_decisions.md` 632행)대로 다룬다: 같은 DC 등식(두 포트 DC가 같다는 제약)은 없앤다. 포트 경로가 둘 이상인 v1 고리는 ΔV를 소거한 KVL 하나가 남는다(예: 파일럿 M1b `cycle_vgs`, VGS1a − VGS1b = VGS4a − VGS4b). 이 KVL은 등식 사이클이므로 이 계획 소관이다. 회로가 대칭이면 그 KVL은 대칭 묶음(`domain.ties`)과 중복이다 |
 | 종속 분류 | 쓰기 계획이 비트리 MOS 변에 매기는 세 분류 `fixed_vgs`(gate·source가 둘 다 F), `parallel_vgs`(같은 (kind, gate, source) 트리 변이 있음), `cycle_vgs`(나머지)다(`E/sizing/writer_plan.py:186-196`) |
 | 트리 경로 | 쓰기 계획 숲에서 넷 하나가 자기 뿌리(F 또는 W4 창 뿌리)까지 가는 부호 있는 변 열이다. **정본은 `node.dc_writer` 자체다**: 넷마다 `NodeWrite`(관계, 원소, 읽는 아는 쪽 노드 `known`)가 부모 포인터다(`E/sizing/s2_values.py:268-277`). 경로는 그 위의 순수 함수 하나로 얻고, 경로 목록을 새 graph 필드로 저장하지 않는다(저장하면 사본, FR-9 위반, N3.3-3) |
@@ -158,7 +158,7 @@ version: 0.8
 | FR-9 | 179행 | 개념 하나에 이름 하나·저장 위치 하나 | 같은 관계의 두 인코딩(S1 관계 필드 대 커널 재유도)을 하나로 줄인다. 용어 Gs⁺를 headroom-chain과 통일한다. 트리 경로를 새 필드로 저장하지 않는다 |
 | G_vgs 용어 | 92행 | G_vgs = MOS gate–source 무향 엣지와 레일 병합 고정 노드, 기본 사이클을 `equal_vgs`/포트 차/`kvl_branch`/VDS 하나 부등식으로 분류 | Gs⁺(쓰기 계획)로 개정 대상(N3.10) |
 | NFR-2 · WP-23 | 186행 · 328행 | 같은 값을 다시 계산하지 않는다. S0 수준 블록은 실행마다 처음 한 번 계산하고 재사용한다 | 정본 우회 재계산 제거(규칙 L-5), 블랭킷 READS 제거(규칙 L-3). 새 보조 검사는 θ 무관이라 S0에서 한 번. 트리 경로 재구성은 함수 하나 |
-| DEC-64 | 263행 | G_vgs 스패닝 트리 비트리 변마다 기본 사이클 = KVL. v0 `equal_vgs`, v1 포트 차 루프(입력 DC 미선언이면 '동일 가정' 기록, 제약 없음), v2 `kvl_branch` 등식. **루프 소속은 S1 관계 엣지 `kvl_branch`로 기록**. 측정 기대(J12-c) | 정본을 쓰기 계획 출력으로 옮긴다 → **X-G1**. v1은 O-13 (1)대로다: 같은 DC 등식은 없고(B2·K-3), 포트 경로가 둘 이상이면 ΔV를 소거한 KVL 하나가 남으며, 대칭이면 묶음과 중복이다. 상위 263행 v1 문언은 상위 계획 card IT-1 반영 커밋 `3fd202b`(브랜치 `plan/gb-k3-card`, 상위 계획 v6.16)에서 O-13 (1) 문언으로 정정됨(병합 전). 이 계획은 그 문언을 고치지 않는다. v0.1의 X-G2는 철회 |
+| DEC-64 | 263행 | G_vgs 스패닝 트리 비트리 변마다 기본 사이클 = KVL. v0 `equal_vgs`, v1 포트 차 루프(입력 DC 미선언이면 '동일 가정' 기록, 제약 없음), v2 `kvl_branch` 등식. **루프 소속은 S1 관계 엣지 `kvl_branch`로 기록**. 측정 기대(J12-c) | 정본을 쓰기 계획 출력으로 옮긴다 → **X-G1**. v1은 O-13 (1)대로다: 같은 DC 등식은 없고(B2·K-3), 포트 경로가 둘 이상이면 ΔV를 소거한 KVL 하나가 남으며, 대칭이면 묶음과 중복이다. 상위 263행 v1 문언은 상위 계획 card IT-1 반영 커밋 `3fd202b`(브랜치 `plan/gb-k3-card`, 상위 계획 v6.16)에서 O-13 (1) 문언으로 정정됨(diff 확인·병합 전). 이 계획은 그 문언을 고치지 않는다. v0.1의 X-G2는 철회 |
 | DEC-15 | 215행 | `kvl_branch` 멤버는 S1 관계 엣지로 기록, DC 역할은 바꾸지 않음 | X-G1과 같이 개정 |
 | DEC-17 | 217행 | L 동치류 주인 tail = `kcl_group`에서 공통 source 전류를 공급하는 바이어스 전류원 | 실제 tail 판정은 `kcl_group`을 읽지 않는다(F-G25). 문언을 그 정의로 맞춘다(N3.10, 사실 정정) |
 | S1 구조 | 400행 | 관계 엣지 type 9종(`equal_vgs`·`vds_eq_vgs`·`stacked_vsb`·`matching_ratio`·`kcl_group`·`kvl_branch`·`same_as`·`l_class`·`matching_offset`), '개념마다 정의 하나' | 9종 중 `stacked_vsb`·`same_as`는 S1 관계 엣지로 구현되지 않았다(F-G29). 소비자 0이거나 정본 사본인 관계 엣지를 지우면 이 목록이 바뀐다 → **X-G7**, U-G3 |
@@ -202,7 +202,7 @@ version: 0.8
 | F-G16 | 구조 test는 규칙 A~I·K와 복사 등록부다(`E/tests/structure/structure_checks.py`, 1191행). writer는 있는데 reader가 없는 것, 정본 우회 재계산을 잡는 규칙은 없다 | `E/tests/structure/structure_checks.py:321-1191` |
 | F-G17 | 하위 칸 계수: 엔진 frozen dataclass 337개, 칸 2047개 중 엔진 읽기 0인 칸이 292개다. 이 수는 graph 필드 값 형식에 한정하지 않은 전체이고, 이름 기반이라 하한이다 | 재측정 H2-2 |
 | F-G18 | `graph.dc_current_basis`는 커널·봉인 3·θ 스키마·search·metrics가 읽는다. `current_cone`·쓰기 계획 출력(`node.dc_writer`, `device.dc_coord`)도 정상 배선이다 | 재측정 H2-1, `E/sizing/theta_check.py:48` |
-| F-G19 | **K-3 미구현**: as-built 쓰기 계획은 입력 DC 미선언이면 F 밖 입력 포트를 이웃 쌍마다 '같은 DC' 변으로 잇고(키 순위 최상위), 트리 변이면 `input_tie`로 쓰며, 그 성분 뿌리의 y 키를 `INPUT_GROUP_KEY`로 둔다. K-3 구현 card는 아직 card id가 없다(상위·관련 계획 card 표 grep 0) | `E/sizing/writer_plan.py:10-11, :104-105, :157-159, :213-214, :234`, design 41 §6.7-1a·§6.7-10 (P4) '구현은 별도 card' |
+| F-G19 | **K-3 미구현**: as-built 쓰기 계획은 입력 DC 미선언이면 F 밖 입력 포트를 이웃 쌍마다 '같은 DC' 변으로 잇고(키 순위 최상위), 트리 변이면 `input_tie`로 쓰며, 그 성분 뿌리의 y 키를 `INPUT_GROUP_KEY`로 둔다. K-3 구현 card는 상위 계획 card **IT-1**(상위 N6.5, 브랜치 `plan/gb-k3-card` `3fd202b`, diff 확인·병합 전)이다. red test는 `E/tests/sizing/test_writer_plan.py` 안의 새 test 함수다(상위 X-IT3 -- design 41의 test 파일 경로를 구조 규칙 H 때문에 바꿈) | `E/sizing/writer_plan.py:10-11, :104-105, :157-159, :213-214, :234`, design 41 §6.7-1a·§6.7-10 (P4) '구현은 별도 card' |
 | F-G20 | **self-edge 정지**: MOS gate = source가 같은 비레일 넷이면 `s1_gvgs`가 `gvgs_self_edge`로 멈춘다(core `StructureUnresolvedError`, reason `unsupported_rule_branch`). gate·source가 둘 다 레일이면 멈추지 않고 `fixed_vgs`로 기록한다. 이 정지의 엔진 안 사용처는 이곳 하나다. 쓰기 계획은 같은 소자를 비트리 MOS 변으로 받아 `cycle_vgs`(gate·source가 F 점이면 `fixed_vgs`)로 분류하고 멈추지 않는다 | `E/graph/gvgs_cycles.py:68-79`, `E/graph/s1_values.py:125`(grep 사용처 1), `E/sizing/writer_plan.py:164-167, :176-196` |
 | F-G21 | **공급 전류 합은 결선 행렬 항등식이다**: `metrics_dc`는 기저 `ends`와 커널 `dc_current`(기저 행 값)로 동작점을 만들고, 레일 전류는 같은 가지 전류를 레일 노드에서 더한 값이다. 모든 가지는 한 넷에서 나와 다른 넷으로 들어가므로 Σ(모든 넷) = 0이 항등이고, Σ 레일 전류 = −Σ(내부 넷 KCL 잔차)다. 내부 넷 KCL은 기저가 정확히 풀었으므로 이 합은 부동소수 반올림만 남는다 | `E/metrics/dc_metrics.py:73-90`, `E/metrics/supply.py:26-44, :70` |
 | F-G22 | **결선 대조는 항등식이다**: 기저 원소 = `device.dc_nets`가 있고 가지치기되지 않은 원소이고(`E/sizing/current_basis.py:86-88`), 넷 쌍은 같은 `device.pins`에서 나온다. `node.terminals`도 같은 핀에서 만든다(`E/graph/s1_structure.py:51, :55`) | 해당 줄 |
@@ -286,7 +286,7 @@ version: 0.8
 | `graph/layout: ly_dispositions` | 소비자 미기재 | 출력 전용 선언 대기(`layout_outputs` 경유) | U16 | U-G6 |
 | `graph/s1: column_orphans` | `E/graph/columns.py:15` 'review_needed(정지 아님)' -- 어느 review 목록에도 오르지 않음 | 배선: 단계 A 보고 `review_needed`에 올린다(진입점 도달) | GC-7 | -- |
 | `graph/s1: column_pairs` | '0인 쌍도 기록(J13-c)' | 출력 전용 선언(단계 A 구조 보고) | GC-7 | -- |
-| `graph/s1: gvgs_summary` | `vds_saturation`은 headroom-chain이 대체. 나머지 칸(개수 4칸·`fixed_vgs`·`port_diff`)은 소비자 미기재. `port_diff`(v1)는 S1 판 계수이고, v1 고리에 남는 ΔV 소거 KVL의 정본은 쓰기 계획 `cycle_vgs`다(O-13 (1)) | `vds_saturation`은 HC-1이 지운다. 나머지와 필드 자체는 삭제 승인 대기 | GC-2 | U-G3 |
+| `graph/s1: gvgs_summary` | `vds_saturation`은 headroom-chain이 대체. 나머지 칸(개수 4칸·`fixed_vgs`·`port_diff`)은 소비자 미기재. `port_diff`(v1)는 S1 판 계수이고, v1 고리에 남는 ΔV 소거 KVL의 정본은 쓰기 계획의 비트리 MOS 종속(보통 `cycle_vgs`, N0.1 Gs⁺)이다(O-13 (1)) | `vds_saturation`은 HC-1이 지운다. 나머지와 필드 자체는 삭제 승인 대기 | GC-2 | U-G3 |
 | `graph/s1: rel_kvl_branch` | 봉인 8만(F-G7). 정의가 엔진 방정식과 다름(N3.3) | 봉인 8 처리(U-G9) 뒤 삭제 승인 대기 | GC-2 | U-G3·U-G9 |
 | `graph/s1: rel_kcl_group` | 소비자 0. 같은 사실을 기저가 더 일반적으로 가진다(N3.4). DEC-17 tail도 읽지 않는다(F-G25) | 삭제 승인 대기(card 0 M-G2에서 기저 행과 일치 확인 뒤) | GC-3 | U-G3 |
 | `graph/s1: rel_vds_eq_vgs` | 소비자 0. `device.is_diode` 사본(F-G26) | 삭제 승인 대기 | GC-7 | U-G3 |
@@ -314,7 +314,7 @@ version: 0.8
    | 고정 노드 F | 레일 ∪ 노드 목표(W3) ∪ 선언 입력 포트 | 같음 | 레일만 |
    | 변 | MOS (gate, source), 저항 | as-built는 미선언 입력 포트 '같은 DC' 변을 더 넣는다 | MOS (gate, source)만 |
    | 평행 변 | 소자마다 변, `parallel_vgs`로 분류 | 같음 | 이름순 첫 소자 하나 |
-   | 미선언 입력 포트 | 입력 포트를 포함하는 성분은 성분마다 뿌리·오프셋 하나(뿌리 = 성분 안 포트 중 (구조 색, 이름) 최소), 나머지 포트는 MOS writer가 쓰는 넷, 대칭 포트 y는 `domain.ties`(design 41 §6.7-1a, headroom-chain v0.7.1 N0.1). 같은 DC 등식은 없고, 포트 경로가 둘 이상이면 ΔV를 소거한 KVL 하나가 `cycle_vgs`로 남는다(대칭이면 묶음과 중복, O-13 (1)) | as-built는 포트를 '같은 DC' 변으로 이어 포트 차 고리를 등식으로 닫고, 성분 y 키를 공동 키로 둔다 | 포트 단계별 숲, v1(포트 차)은 제약 없음 |
+   | 미선언 입력 포트 | 입력 포트를 포함하는 성분은 성분마다 뿌리·오프셋 하나(뿌리 = 성분 안 포트 중 (구조 색, 이름) 최소), 나머지 포트는 MOS writer가 쓰는 넷, 대칭 포트 y는 `domain.ties`(design 41 §6.7-1a, headroom-chain v0.7.1 N0.1). 같은 DC 등식은 없고, 포트 경로가 둘 이상이면 ΔV를 소거한 KVL 하나가 비트리 MOS 종속(보통 `cycle_vgs`, 경우에 따라 `parallel_vgs`·`fixed_vgs`, `E/sizing/writer_plan.py:191-196`)으로 남는다(대칭이면 묶음과 중복, O-13 (1)) | as-built는 포트를 '같은 DC' 변으로 이어 포트 차 고리를 등식으로 닫고, 성분 y 키를 공동 키로 둔다 | 포트 단계별 숲, v1(포트 차)은 제약 없음 |
    | 종속 선택 | DEC-95 (3) 키 Kruskal | 같음 | 이름순 숲 |
    | VDS 변 | 없음(등식만). VDS 변 부등식은 HC-1 제약 그래프 | 같음 | `vds_saturation`(VDS-1) |
    | 층 | S0(노드 목표·입력 DC 선언은 spec 값) | 같음 | S1 |
@@ -322,7 +322,7 @@ version: 0.8
    * 근거 1(P-1, 가장 일반적인 형태): KVL 등식 사이클에 들어가는 원소는 MOS VGS만이 아니다. 저항 강하·노드 목표·입력 DC 선언이 들어가고, 쓰기 계획은 그것을 모두 담는다. S1 판은 그 부분집합이라 엔진 방정식이 아니다.
    * 근거 2(층 의존성): F에 노드 목표와 입력 DC 선언이 들어가므로 사이클 집합은 spec에 의존한다. 그래서 S1 필드로는 엔진 방정식을 담을 수 없다.
    * 근거 3(DEC-83, design 41 §6.7-1): 쓰기 계획 출력도 graph 필드다. design 41 §6.7-1은 이미 '새 탐지기를 만들지 않는다 -- 쓰기 계획을 읽는다'로 정했다.
-   * **tie 변 제외의 근거**(P-1, B2·K-3): 입력 DC가 선언되지 않으면 두 입력 포트의 DC가 같다는 물리 제약은 없다. 같은 값은 회로가 대칭일 때만 성립하므로 대칭 묶음(`domain.ties`)이 그 경우만 담는다. 등식 변으로 넣으면 비대칭 회로에서도 없는 제약을 커널이 푼다. tie 변을 빼도 포트 사이 MOS 경로가 둘 이상이면 ΔV를 소거한 KVL 하나는 물리적으로 남는다. 이것은 Gs⁺의 비트리 MOS 변이 닫는 등식 사이클(`cycle_vgs`)이고, 회로가 대칭이면 묶음과 중복이다(O-13 (1)).
+   * **tie 변 제외의 근거**(P-1, B2·K-3): 입력 DC가 선언되지 않으면 두 입력 포트의 DC가 같다는 물리 제약은 없다. 같은 값은 회로가 대칭일 때만 성립하므로 대칭 묶음(`domain.ties`)이 그 경우만 담는다. 등식 변으로 넣으면 비대칭 회로에서도 없는 제약을 커널이 푼다. tie 변을 빼도 포트 사이 MOS 경로가 둘 이상이면 ΔV를 소거한 KVL 하나는 물리적으로 남는다. 이것은 Gs⁺의 비트리 MOS 변이 닫는 등식 사이클(비트리 MOS 종속, 보통 `cycle_vgs`)이고, 회로가 대칭이면 묶음과 중복이다(O-13 (1)).
    * 다른 안: (나) 관계 블록(숲과 사이클)을 따로 두고 쓰기 계획이 그것을 읽는다. 종속 선택이 숲 선택과 같아서 두 블록 사이에 같은 결정이 걸린다. 모듈 분리가 필요하면 design에서 파일 분할로만 다룬다(GD-2). 사용자 선택은 U-G1이다.
 3. **트리 경로(기본안 BD-10, NFR-G3)**:
    * 정본은 `node.dc_writer` 자체다. `NodeWrite.known`이 부모 포인터이고(F-G33), 넷에서 뿌리까지의 경로와 두 넷 사이 기본 사이클 멤버는 이 포인터를 따라가는 **순수 함수 하나**로 얻는다.
@@ -341,7 +341,7 @@ version: 0.8
    * **물리 근거 없음(P-1, 보존만)**: 레일 g = s(`fixed_vgs`, 허용)와 비레일 g = s(정지)는 물리적으로 같은 상황(VGS가 구조로 0인 소자)이다. 이 비대칭에는 물리 근거가 없고, 비레일 쪽 정지는 '그 구조를 다루는 규칙이 없다'는 지원 범위 표시다. 이 계획은 base 동작 보존만 하고 일반화(같은 처리로 통일)는 정하지 않는다(백로그 B-G3).
    * 순서: 옮긴 정지가 거부 픽스처를 실제로 거부함을 먼저 보인 뒤 `gvgs_cycles.py`를 지운다(같은 card 안).
 7. **삭제**(U-G3 승인 뒤): S1 `rel_kvl_branch`, `gvgs_summary`(HC-1이 `vds_saturation`을 지운 뒤 나머지), 그리고 그 둘만 쓰는 `E/graph/gvgs_cycles.py` 모듈 전체. 같은 변경에서 그 등록도 지운다: `S1_RULE_FILES`(`E/graph/s1_values.py:222-225`), `_module_map`(`E/_module_map.py:98, :470`), 패키지 공개 이름(`E/graph/__init__.py:29`), S1 조립 import(`E/graph/s1_build.py:35`). J12-c 측정 기대(상위 DEC-64 끝)는 card 0 M-G1의 대조 기록으로 남긴다.
-8. **v1 포트 차 루프**(사용자 결정 O-13 (1)): 같은 DC 등식은 없앤다(B2·K-3). 포트 경로가 둘 이상인 v1 고리는 ΔV를 소거한 KVL 하나가 남는다(파일럿 M1b `cycle_vgs`: VGS1a − VGS1b = VGS4a − VGS4b). 이 KVL은 쓰기 계획이 비트리 MOS 변의 종속(`cycle_vgs`)으로 푸는 등식이라 KVL 정본(BD-1)에 들고, 회로가 대칭이면 대칭 묶음(`domain.ties`)과 중복이다. 이 계획은 K-3 구현 card가 '같은 DC' 변을 없앤 뒤의 쓰기 계획을 정본으로 본다. v0.1의 'as-built 동작을 문언으로 정정'(X-G2·U-G2)은 철회했다(N5).
+8. **v1 포트 차 루프**(사용자 결정 O-13 (1)): 같은 DC 등식은 없앤다(B2·K-3). 포트 경로가 둘 이상인 v1 고리는 ΔV를 소거한 KVL 하나가 남는다(파일럿 M1b `cycle_vgs`: VGS1a − VGS1b = VGS4a − VGS4b). 이 KVL은 쓰기 계획이 비트리 MOS 변의 종속(보통 `cycle_vgs`, 경우에 따라 `parallel_vgs`·`fixed_vgs`)으로 푸는 등식이라 KVL 정본(BD-1)에 들고, 회로가 대칭이면 대칭 묶음(`domain.ties`)과 중복이다. 이 계획은 K-3 구현 card가 '같은 DC' 변을 없앤 뒤의 쓰기 계획을 정본으로 본다. v0.1의 'as-built 동작을 문언으로 정정'(X-G2·U-G2)은 철회했다(N5).
 
 ### N3.4 KCL 관계 단일 정본
 
@@ -363,7 +363,7 @@ version: 0.8
    * 허용오차는 오라클이 이미 선언한 값(`kcl_abs_A` 등)을 쓴다. 새 상수는 없다.
 3. **엔진 보조 검사**(GC-2·GC-3, FR-G17. 독립 검증이 아니다):
    * **쓰기 계획 숲 회계 불변량**: Gs⁺(F를 한 점으로 묶음)의 순환수 \|E\| − \|V\| + 성분 수가 `device.dc_coord`의 종속 소자 수와 같다. 비트리 저항 변은 이미 멈추므로(F-G5) 비트리 변은 모두 MOS다. 순환수는 연결에서 세고, 종속 수는 쓰기 계획 출력에서 센다. 잡는 것은 union-find 회계 오류(`dc_coord` 누락, 트리·비트리 오분류)다. 봉인 8을 대체하지 않는다(N3.3-4). 다르면 사유 코드로 멈춘다. θ 무관이고 실행당 한 번이다(NFR-G4). 위치는 쓰기 계획 블록 밖 S0 검사다(GD-11).
-   * **성립 조건**(검증자 유도로 정확, design 항목 GD-11): E = MOS마다 (gate, source) 변 하나(평행·diode·gate = source 자기 고리 포함) + 잎 가지치기된 저항을 포함한 모든 저항 변. V = F를 한 점으로 병합한 뒤 변 끝점 노드. K-3 뒤에는 '같은 DC' 변이 없다. 포트 경로가 둘 이상인 v1 고리에 남는 ΔV 소거 KVL(O-13 (1))은 Gs⁺의 비트리 MOS 변 하나이므로 순환수 \|E\| − \|V\| + 성분 수에 들고 `cycle_vgs` 종속 하나로 세어진다. 그래서 불변량(종속 수 = 순환수)은 이 고리를 포함해 성립한다. K-3 병합 전 as-built에서 잴 때는 '같은 DC' 변을 E에 넣어야 한다.
+   * **성립 조건**(검증자 유도로 정확, design 항목 GD-11): E = MOS마다 (gate, source) 변 하나(평행·diode·gate = source 자기 고리 포함) + 잎 가지치기된 저항을 포함한 모든 저항 변. V = F를 한 점으로 병합한 뒤 변 끝점 노드. K-3 뒤에는 '같은 DC' 변이 없다. 포트 경로가 둘 이상인 v1 고리에 남는 ΔV 소거 KVL(O-13 (1))은 Gs⁺의 비트리 MOS 변 하나이므로 순환수 \|E\| − \|V\| + 성분 수에 들고 비트리 MOS 종속 하나(보통 `cycle_vgs`, 분류와 무관하게 하나)로 세어진다. 그래서 불변량(종속 수 = 순환수)은 이 고리를 포함해 성립한다. K-3 병합 전 as-built에서 잴 때는 '같은 DC' 변을 E에 넣어야 한다.
    * **`node.terminals` 결선 점검**: 기저 원소의 (넷 a, 넷 b)가 `node.terminals`의 그 넷 항목에 그 원소로 들어 있는지 본다. `node.terminals`도 같은 핀에서 만들어지므로(F-G22) 넷리스트 오류는 잡지 못하고, 기저 조립의 색인·방향 처리 오류만 잡는다. θ 무관, 실행당 한 번이다(GD-4).
    * 두 검사 모두 거부 픽스처로 거부를 먼저 보인다.
 4. **MNA**: 이 계획은 바꾸지 않는다. 상대 잔차는 공허하다(F-G28). 해의 정확도를 알려 주는 조건수의 기록은 소비자·판정 기준이 없어 백로그 B-G1로 둔다.
@@ -450,7 +450,7 @@ version: 0.8
 | 문서 | 자리 | 개정 |
 |---|---|---|
 | 상위 계획 | 용어집 G_vgs 92행 | 정의를 Gs⁺(쓰기 계획: F = 레일 ∪ 노드 목표 ∪ 선언 입력 포트, MOS·저항 변, '같은 DC' 변 없음)로. 분류에서 `equal_vgs`·`kvl_branch` 관계 엣지 이름을 쓰기 계획 종속 분류로 |
-| 같은 문서 | DEC-64 263행 | 루프 소속 기록 위치를 'S1 관계 엣지 `kvl_branch`'에서 '쓰기 계획 출력(`node.dc_writer`·`device.dc_coord`)과 트리 경로 함수'로(X-G1). J12-c 측정 기대는 card 0 대조 기록으로. v1 문언은 상위 계획 IT-1 커밋 `3fd202b`(브랜치 `plan/gb-k3-card`)에서 O-13 (1) 문언(같은 DC 등식 없음, 포트 경로 둘 이상이면 ΔV 소거 KVL 하나 남음, 대칭이면 묶음과 중복)으로 정정됨(병합 전). 이 개정 항목은 v1 부분을 다시 고치지 않는다 |
+| 같은 문서 | DEC-64 263행 | 루프 소속 기록 위치를 'S1 관계 엣지 `kvl_branch`'에서 '쓰기 계획 출력(`node.dc_writer`·`device.dc_coord`)과 트리 경로 함수'로(X-G1). J12-c 측정 기대는 card 0 대조 기록으로. v1 문언은 상위 계획 IT-1 커밋 `3fd202b`(브랜치 `plan/gb-k3-card`)에서 O-13 (1) 문언(같은 DC 등식 없음, 포트 경로 둘 이상이면 ΔV 소거 KVL 하나 남음, 대칭이면 묶음과 중복)으로 정정됨(diff 확인·병합 전). 이 개정 항목은 v1 부분을 다시 고치지 않는다 |
 | 같은 문서 | DEC-15 215행 | X-G1과 같이 |
 | 같은 문서 | DEC-17 217행 | tail 정의의 '`kcl_group`에서 공통 source 전류를 공급하는'을 F-G25의 정의('drain이 둘 이상 소자의 공통 source 넷인 바이어스 전류원')로(사실 정정) |
 | 같은 문서 | S1 구조 400행 | 관계 엣지 목록에서 삭제 승인된 type을 지우고, 구현되지 않은 `stacked_vsb`·`same_as`의 상태를 사실로 적는다(X-G7, U-G3) |
@@ -462,7 +462,7 @@ version: 0.8
 | 같은 문서 | N6.3 1153행 | 병합 전 확인에 규칙 L green과 부채 목록 계수(기준선 지문 대조 포함)를 더한다 |
 | 같은 문서 | card 표 U16 완료 조건 | '13회로 오라클 forced·free 대조 실행'과 'U16 card id 부채 항목 0'을 더한다(N3.5-2). oracle-portability 계획의 관련 card에도 같은 문언이 필요한지는 그 계획 개정 때 확인 |
 | 같은 문서 | card 표 N6.1 단위 8·U17 ② 완료 조건 | '해당 card id 부채 항목 0'을 더한다 |
-| 같은 문서 | card 표 | K-3 구현 card id 부여(이 계획은 정하지 않음, F-G19) |
+| 같은 문서 | card 표 | K-3 구현 card = 상위 card IT-1(N6.5, `plan/gb-k3-card` `3fd202b`에서 신설, diff 확인·병합 전, F-G19). 이 계획이 더할 개정은 없다 |
 | design 41 | §5 589행 | 층 0 등식 목록의 `equal_vgs`·`kvl_branch`를 정본 이름(`gs_groups`, 쓰기 계획 종속 분류)으로. `stacked_vsb`는 S1 관계 엣지가 아님을 적는다 |
 | 같은 문서 | §5.5 917행 | 조립 공유량(`equal_vgs` 공통 VGS, 미러 비, `kvl_branch` 종속 gm/ID)의 출처를 정본으로(GD-8) |
 | 같은 문서 | §6.7-1 1491행 | 쓰기 계획을 'S1 G_vgs 고리(`graph.rel_kvl_branch`)를 … 컴파일한 것'으로 적은 문언을 '쓰기 계획이 KVL 정본'으로 |
@@ -487,7 +487,7 @@ headroom-chain 계획은 개정하지 않는다. v0.7.1 개정안(승인 대기)
 | ID | 조건 | (a) 유도·사실 | (b) 일반형 | (c) 처리 |
 |---|---|---|---|---|
 | K-a | KVL 정본은 S0 | F에 spec 값(노드 목표·입력 DC 선언)이 들어가므로 사이클 집합이 spec에 의존한다 | 엔진 방정식 전체(MOS·저항 변) | 쓰기 계획 출력 |
-| K-a′ | KVL 정본에 '같은 DC' 변 없음 | 입력 DC 미선언이면 두 포트 DC가 같다는 물리 제약이 없다. 같음은 대칭일 때만이다(B2·K-3). 포트 경로가 둘 이상이면 ΔV를 소거한 KVL 하나는 남는다(O-13 (1)) | 대칭 묶음 `domain.ties`, 남는 KVL은 `cycle_vgs`(대칭이면 묶음과 중복) | K-3 card 뒤 쓰기 계획 |
+| K-a′ | KVL 정본에 '같은 DC' 변 없음 | 입력 DC 미선언이면 두 포트 DC가 같다는 물리 제약이 없다. 같음은 대칭일 때만이다(B2·K-3). 포트 경로가 둘 이상이면 ΔV를 소거한 KVL 하나는 남는다(O-13 (1)) | 대칭 묶음 `domain.ties`, 남는 KVL은 비트리 MOS 종속(보통 `cycle_vgs`, 대칭이면 묶음과 중복) | K-3 card 뒤 쓰기 계획 |
 | K-a″ | 이 계획은 등식 사이클만 | VDS 변을 지나는 사이클은 포화 부등식이다(DEC-64 VDS-1) | 제약 그래프(headroom-chain N3.1) | HC-1 소관 |
 | K-b | KCL 정본은 기저 | 모든 내부 넷 KCL의 해가 직렬 같은 전류를 포함한다 | 전체 KCL | 기저 하나 |
 | K-c | 봉인 8은 봉인 2에 함의됨 | 봉인 8 행 = 봉인 2가 모든 MOS에 대해 재는 양의 사이클 합(F-G31). 멤버마다 \|오차\| ≤ tol_V면 합도 ≤ 합 tol_V | -- | U-G9(기본안 삭제) |
@@ -590,9 +590,9 @@ headroom-chain 계획은 개정하지 않는다. v0.7.1 개정안(승인 대기)
 
 ### N7.2 다른 계획과의 순서
 
-* **K-3 구현 card**(design 41 §6.7-1a, card id 미부여 -- F-G19):
-  * K-3은 결정 6(d/s 맞바꿈) 다음이다(사용자 결정 K-3). 이 순서 조건은 이미 충족됐다(결정 6 = `c8d156e3`, HEAD 조상, F-G36, headroom-chain v0.7.1 490행). 그래서 K-3 card를 막는 것은 card id 부여와 착수뿐이다. GC-2·GC-0b는 K-3 card 뒤다. 근거: 둘 다 `E/sizing/writer_plan.py`를 고치고, GC-2의 숲 불변량·KVL 정본 정의가 '같은 DC 변 없는 Gs⁺'를 전제한다.
-  * card id 부여는 상위 개정 항목이다(N3.10).
+* **K-3 구현 card = 상위 card IT-1**(design 41 §6.7-1a, 상위 N6.5, `plan/gb-k3-card` `3fd202b`, diff 확인·병합 전, red test는 `E/tests/sizing/test_writer_plan.py` 안 새 test 함수 -- 상위 X-IT3, F-G19):
+  * K-3은 결정 6(d/s 맞바꿈) 다음이다(사용자 결정 K-3). 이 순서 조건은 이미 충족됐다(결정 6 = `c8d156e3`, HEAD 조상, F-G36, headroom-chain v0.7.1 490행). 그래서 IT-1을 막는 것은 상위 계획 v6.16 승인과 착수뿐이다. GC-2·GC-0b는 K-3 card 뒤다. 근거: 둘 다 `E/sizing/writer_plan.py`를 고치고, GC-2의 숲 불변량·KVL 정본 정의가 '같은 DC 변 없는 Gs⁺'를 전제한다.
+  * card id는 IT-1로 부여됐다(상위 계획 `3fd202b`, 병합 전). N3.10의 card id 부여 항목은 그것으로 닫힌다.
 * **결정 6(d/s 맞바꿈)**: K-j의 성립 조건이다. 이미 병합됐으므로(`c8d156e3`, 상위 U-62 닫힘, F-G36) GC-5의 선행은 충족됐다(BD-13).
 * **headroom-chain**(v0.7.1 개정안, 승인 대기):
   * HC-1이 `gvgs_summary.vds_saturation`을 지우고 S0 제약 그래프를 만든다(그 계획 FR-H9·X-6). GC-2는 HC-1 뒤에 병합해 나머지 칸과 모듈을 지운다(기본안 BD-6). 근거: 승인된 계획의 삭제 소유를 존중하고, 같은 파일(`gvgs_cycles.py`, graph test 표)의 겹침을 피한다.
@@ -651,7 +651,7 @@ headroom-chain 계획은 개정하지 않는다. v0.7.1 개정안(승인 대기)
 | R-G3 | S1 관계 필드 삭제가 아직 알려지지 않은 설계 의도(층 0 조립·검증의 관계 엣지 입력)를 지운다 | 삭제는 사용자 승인(U-G3). 상위·design의 관계 엣지 소비 지정(V9, LR5, design 41 §5·§6.7)은 정본으로 옮기는 개정을 먼저 한다(N3.10, GD-8) |
 | R-G4 | 봉인 8 삭제로 잡던 결함이 빠진다 | 봉인 8 행은 봉인 2 양의 합이다(F-G31). base에서 봉인 2 거부 없는 봉인 8 거부가 있으면 삭제를 멈춘다(N4-2) |
 | R-G5 | 출발 전류 변경이 출발 사다리를 바꿔 기준선이 흔들린다 | HC-1 뒤 병합(결정 6은 `c8d156e3`으로 이미 병합), 바뀐 칸마다 출처 기록(N4-4), offset-strategy fixture 알림, 빠지는 칸 수 착수 때 측정, X-G11로 보고 |
-| R-G6 | K-3 card가 늦어 GC-2·GC-0b가 막힌다 | GC-2·GC-0b만 막힌다. GC-0a·GC-1·GC-3·GC-6·GC-7은 K-3과 무관하게 진행한다. K-3 card id 부여는 상위 개정 항목이다 |
+| R-G6 | K-3 card가 늦어 GC-2·GC-0b가 막힌다 | GC-2·GC-0b만 막힌다. GC-0a·GC-1·GC-3·GC-6·GC-7은 K-3과 무관하게 진행한다. K-3 card는 상위 card IT-1(`plan/gb-k3-card` `3fd202b`, 병합 전)이고, 지연 위험은 상위 계획 v6.16 승인·IT-1 착수 시점이다 |
 | R-G7 | 정본 술어 교체로 metrics 값이 바뀐다 | M-G5에서 동치를 먼저 잰다. 다르면 교체하지 않고 공동분석 |
 | R-G8 | GC-2·GC-6·GC-7이 rule_hash 대상 파일을 고쳐 ratified `structure.json` 사실이 stale이 된다 | U-G11 결정을 card 착수 조건으로 둔다. 재기록은 Role: data로 같은 card에서 한다(X-22 선례) |
 | R-G9 | 트리 경로 함수가 두 계획에서 따로 만들어진다 | 먼저 병합되는 card가 만들고 뒤 card는 읽는다. 오케스트레이터가 HC-D 브리핑에 넣는다. 완료 조건 3이 '함수 하나, 경로 필드 0'을 잰다 |
