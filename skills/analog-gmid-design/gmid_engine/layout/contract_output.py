@@ -6,7 +6,7 @@
 
 필드 값: `SliceDensity`(device `ly_slices`), `FingerCandidate`(device `ly_fw_cand`), `GroupLayout`·`MatchingDisposition`
 (graph `ly_groups`·`ly_dispositions`), `DeviceFinger`(device `ly_finger`), `RowsLayout`·`FloorplanSummary`
-(graph `ly_rows`·`ly_floorplan`). 결과: `LayoutResult`(설계점 스냅샷 + 이번 호출의 계산 블록 목록, 설계 40 v1.6 §2.4.7),
+(graph `ly_rows`·`ly_floorplan`). 결과: `LayoutResult`(설계점 스냅샷 하나, 설계 40 v1.6 §2.4.7 -- 이번 호출에서 쓴 블록은 RunCounters 행이 정본),
 필드 파생 출력: `LayoutOutputs`(맨 앞 `review_needed`, 끝에 재검증 요청 `Revalidation`).
 """
 import dataclasses
@@ -366,10 +366,9 @@ class Revalidation:
 @dataclasses.dataclass(frozen=True)
 class LayoutResult:
     """`run_layout` 반환(설계 40 v1.6 §2.4.7): `snapshot` = 레이아웃 `ly_*` 필드를 쓴 설계점 스냅샷(같은 설계점 위 다음 호출의 `previous`),
-    `computed_blocks` = 이번 호출에서 값을 쓴 writer 이름(계산 또는 이식 -- 계산·이식 구분은 `RunCounters` 행이 맡는다. 나머지는 graph 필드 재사용). 레이아웃 값은 스냅샷 필드에서 읽는다."""
+    레이아웃 값은 스냅샷 필드가 정본이다. '이번 호출에서 쓴 writer'(계산·이식·재사용)는 사본으로 두지 않고 `RunCounters`(perf 행)가 정본이다."""
 
     snapshot: object = dataclasses.field(repr=False)
-    computed_blocks: tuple
 
 
 @dataclasses.dataclass(frozen=True)

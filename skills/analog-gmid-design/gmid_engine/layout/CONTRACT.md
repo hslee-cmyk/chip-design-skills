@@ -179,7 +179,7 @@ core 계약 5·6절(GraphSnapshot·`compute_block`), lut 계약 1.6(`widths`)·4
 | `contract_input.py` | 0 | 데이터 선언: `LayoutDevice`·`MatchingGroup`·`RowGroup`·`LayoutPdk`(`from_lut`·`from_decl`)·`LayoutInput`, 상수 `KINDS`·`ROLE_*`·`LAYOUT_ROLES`·`EXCLUDED_ROLES`·`ROLES`·`CC_REQUIRED_ROLES`·`PATTERN_*`·`PATTERNS`·`PDK_RULE_QUANTITIES`·`GRID_QUANTITY` | -- |
 | `contract_output.py` | 0 | 데이터 선언: `SliceDensity`·`WTolerance`·`FingerCandidate`·`WRequest`·`GroupAttempt`·`PatternRow`·`GroupLayout`·`MatchingDisposition`·`DeviceFinger`·`RowLayout`·`BoxVerdict`·`FoldAttempt`·`MergeDecision`·`GroupRebuild`·`RowsLayout`·`FloorplanSummary`·`DeviceLayout`·`ReviewItem`·`RealizedDevice`·`Revalidation`·`LayoutResult`·`LayoutOutputs`, 상수 `REVALIDATION_*`·`AREA_ITEM_*`·`MERGE_NOISE_NOTE` | -- |
 | `hub_candidates.py` | 0 | `find_hub_merge_candidates`(복사, 1절) | -- |
-| `slice_density.py` | 1 | `slice_density` | (run_layout 이 device `ly_slices` 에 씀, writer `ly_slice_density`) |
+| `slice_density.py` | 1 | `slice_density` | (`run.py` 의 블록 `ly_slice_density` 가 device `ly_slices` 에 쓰며 부르는 조회 함수) |
 | `w_tolerance.py` | 1 | `w_tolerance` | -- |
 | `area_tie.py` | 1 | `area_tie_m2`(ΔA_tie, 4.10) | -- |
 | `diffusion.py` | 1 | `diffusion_geometry`(`ly.diffusion`, 4.10a) | -- (`compose_rows` 가 부른다) |
@@ -194,7 +194,7 @@ core 계약 5·6절(GraphSnapshot·`compute_block`), lut 계약 1.6(`widths`)·4
 | `finger_geometry.py` | 9 | `finger_geometry`(@compute_block) | device `ly_finger`(`ly_finger_geometry`) |
 | `rows.py` | 9 | `compose_rows`(@compute_block) | graph `ly_rows`·`ly_floorplan`·`ly_diffusion`(`ly_rows`) |
 | `outputs.py` | 10 | `layout_outputs`(필드 파생 출력, 4.12 5~8) | -- (읽기만) |
-| `run.py` | 10 | `run_layout` | 입력 필드(`ly_input`), device `ly_slices`(`ly_slice_density`) -- 설계점 스냅샷 위(4.12) |
+| `run.py` | 10 | `run_layout` | 입력 필드(`ly_input`), 계산 블록 `ly_slice_density`(device `ly_slices`) -- 설계점 스냅샷 위(4.12) |
 
 `_helpers_pattern` 반환 모양:
 - `orient(group, devices)` -> 성공 `(ends, "")`, ends = 멤버 순서(`group.members`) tuple of `(이름, hub 넷, leaf 넷)` 3-tuple(hub 가 source 쪽).
@@ -451,14 +451,15 @@ reads device `ly_device`·`ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_ro
    writer `"ly_input"`, 입력 버전 `fp_of(layout_input)` 으로
    device `ly_device`({이름: LayoutDevice}), graph(key `"layout"`) `ly_pdk`·`ly_groups_in`(입력 tuple 그대로)·`ly_row_groups`·
    `ly_rejected`(정렬 tuple)·`ly_passives`(이름순 `LayoutPassive` tuple) 를 쓴다.
-3. 슬라이스: 버전 = `fp_of((memo.lut.fp, pdk.slice_width_keys, ((이름, kind, L, ID, gm_id, vds, vsb), ...) 입력 순))`. 스냅샷의
-   `block_version("ly_slice_density")` 가 같으면 건너뛰고, 다르면 소자마다 `slice_density(memo, 소자, 그 kind 폭 키)`(같은 (kind, L, ID, gm_id,
-   vds, vsb) 는 한 번) 를 device `ly_slices` 에 쓴다.
-4. 블록 순서 `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`. `computed_blocks` = 이번 호출에서 값을 쓴 writer 이름 -- 계산 또는 이식
-   (`"ly_slice_density"` 를 다시 계산했으면 맨 앞, 그다음 block_version 이 바뀐 블록 순서대로; 판정은 호출 전후 block_version 비교 그대로이고 계산·이식 구분은 `RunCounters` 행이 맡는다). `computed_blocks` 는 **출력 전용**이다 -- 엔진 소비자는 없고 test·보고가 읽는다(값은 스냅샷 필드가 정본).
+3. 슬라이스: 정식 `@compute_block` `ly_slice_density`(writer 이름 그대로, READS 없음, WRITES device `ly_slices`, block_version·S3 색인·`RunCounters`·G-10 계수 안).
+   입력은 추가 인자 `_SliceInputs(memo, pdk.slice_width_keys, ((이름, (kind, L, ID, gm_id, vds, vsb)), ...) 입력 순)` 하나 -- 지문 = `(memo.lut.fp, 폭 키, 점)`
+   (memo 상태는 들지 않는다; `ly_device` 열을 통째로 읽으면 참고 W 만 바뀌어도 다시 조회하므로 보존량 점만 입력 버전에 둔다). 블록 안에서 소자마다
+   `slice_density(memo, 점, 그 kind 폭 키)`(같은 점은 한 번)를 부른다. LUT memo 는 graph 밖 허용 저장소라 그대로 쓴다. 같은 입력 재계산 0.
+4. 블록 순서 `ly_slice_density` -> `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`(코드 고정, 다섯 모두 `donors`·`counters` 를 받는다). 이번 호출에서 어느
+   블록이 계산·이식·재사용됐는지는 `RunCounters` 행(perf `blocks`)이 정본이다 -- `LayoutResult` 에 사본 칸이 없다(스냅샷 필드 값이 정본).
 5~8 은 `run_layout` 결과가 아니라 **필드 파생 출력** `layout_outputs(snapshot) -> LayoutOutputs(review_needed, devices, coverage_ok,
 coverage_missing, w_requests, w_invariant_ok, revalidation)` 이다(필드에서 읽어 만드는 반환값, 저장하지 않는다). `LayoutResult` =
-`(snapshot, computed_blocks)` 뿐이고, groups·dispositions·rows·box·folds·merges·floorplan·diffusion 은 스냅샷의 `ly_groups`·`ly_dispositions`·
+`(snapshot)` 뿐이고, groups·dispositions·rows·box·folds·merges·floorplan·diffusion 은 스냅샷의 `ly_groups`·`ly_dispositions`·
 `ly_rows`·`ly_floorplan`·`ly_diffusion` 필드로 읽는다.
 5. `devices` = 소자 이름순(`ly_device` key 순) `DeviceLayout(이름, finger_w, nf, ((행 id, nf), ...) 행 id 순, W_m(참고), W_need, 실현 W, err, lower, upper, effective,
    grid_dominated, origin, excluded_slices = ((키, 사유), ...) 제외된 슬라이스)`. `ly_finger` 값이 없는 소자는 finger_w·nf·W_need 이후
@@ -487,7 +488,7 @@ coverage_missing, w_requests, w_invariant_ok, revalidation)` 이다(필드에서
    max(dx, dy) 는 원래 이하.
 8. **하드 box 게이트 없음(Q8 (vi))**: 접기·재구성·병합 채택은 판정 축 외곽 면적 감소로만 정해진다(채택 시도의 면적 < 그 시점 면적).
 9. **결정론(NFR-4)**: 같은 입력이면 `PYTHONHASHSEED` 와 무관하게 레이아웃 필드 값(`value_fp`)과 `layout_outputs` 가 같다.
-10. **필드 = 캐시(L11)**: 같은 설계점·같은 입력·같은 memo LUT 로 `previous` 를 주면 `computed_blocks == ()` 이고 스냅샷이 `previous.snapshot` 그대로다.
+10. **필드 = 캐시(L11)**: 같은 설계점·같은 입력·같은 memo LUT 로 `previous` 를 주면 다섯 블록 모두 재사용(`RunCounters` 행 `reuses` 만 늘고 `computes`·`grafts` 불변)이고 스냅샷이 `previous.snapshot` 그대로다.
     `rejected_requests` 만 바꾸면 `ly_slice_density`·`ly_finger_candidates` 는 재사용, `ly_pattern_select` 부터 다시 계산될 수 있다.
     소자 하나의 ID 만 바꾸면 `ly_slice_density` 부터 다시 계산한다. 각 블록 행 `recomputes_same_input == 0`(`RunCounters`).
 11. coverage: 모든 소자에 사용 가능 슬라이스가 있으면 `coverage_ok` 이고 `coverage_missing == ()`.

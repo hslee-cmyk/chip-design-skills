@@ -1030,7 +1030,7 @@ MODULES = (
                 ("LY6", "L6", "L7", "Q8"), "ly_rows"),
     ModuleEntry("layout/run.py", "entry", "run_layout",
                 "레이아웃 공개 진입점: 설계점 스냅샷(같은 설계점 lineage) 위에 입력·슬라이스 필드 쓰기·계산 블록 순서",
-                ("N3.17", "LY3", "LR9", "Q4", "Q8", "DEC-83", "D-GR9")),
+                ("N3.17", "LY3", "LR9", "Q4", "Q8", "DEC-83", "D-GR9"), "ly_slice_density"),
     ModuleEntry("layout/outputs.py", "entry", "layout_outputs",
                 "레이아웃 필드 -> 출력 계약 파생 항목(review_needed·소자별 결과·coverage·W_requests·불변식·재검증 요청, 반환값만)",
                 ("N3.17", "LY3", "Q4", "Q8", "DEC-83", "D-GR9")),

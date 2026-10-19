@@ -7,10 +7,8 @@
 입력 필드(writer `WRITER_INPUT`, `run.run_layout` 이 계약 `LayoutInput` 을 풀어 쓴다):
   device `F_DEVICE` (소자별 `LayoutDevice`), graph `F_PDK`·`F_GROUPS_IN`·`F_ROW_GROUPS`·`F_REJECTED`·`F_PASSIVES`(판정 축 면적의
   수동소자 블록 `LayoutPassive` tuple, U12).
-LUT 슬라이스 필드(writer `WRITER_SLICES`, `run.run_layout` 이 `slice_density` 로 채운다 -- LUT memo 는 가변이라 계산 블록
-  인자가 될 수 없어 블록 밖에서 쓰고, 입력 버전 = (LUT 지문, 소자 보존량·동작점, 폭 키)):
-  device `F_SLICES`.
 계산 필드(writer = 계산 블록 이름):
+  device `F_SLICES`(`run.py` 의 ly_slice_density -- 입력은 추가 인자(LUT 지문, 소자 보존량·동작점, 폭 키), LUT memo 는 graph 밖 허용 저장소),
   device `F_FW_CAND`(finger_candidates), graph `F_GROUPS`·`F_DISPOSITIONS`(pattern_select), device `F_FINGER`(finger_geometry),
   graph `F_ROWS`·`F_FLOORPLAN`·`F_DIFFUSION`(rows -- 행 구성이 판정 축 면적을 목적으로 쓰므로 floorplan 을 같은 블록에서 내고,
   `ly.diffusion`(LY8)은 최종 행의 공유 확산 통계라 같은 블록에서 낸다).
