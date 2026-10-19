@@ -351,6 +351,7 @@ date: 2026-10-16
 | 5 gm/ID 정점 마디 중복 | GD-12, N7.3-13 | 정점 마디는 LUT memo 파생 함수 한 곳에서 계산한다(기본안). 재측정 결과 `cell_floor.py:45-46`(지적은 44-45), `derived_fns.py:39-41`(지적은 40-41) |
 | 6 옛 문구 | 머리 관련 계획(19행), N7.2 headroom-chain 항목, N8 R7, U-G12 권고 칸, history 0.10 행, GC-8 선행(HC-S → HC-1 → GC-8), GC-8 (4) | v0.7.4 개정 중 표기, 재질문 소멸 표기, 'GC-8 실제 card', `edge_costs.vds_min_v` 소비자 셋(`start_intervals.py:280`, `_helpers_curves.py:111`, `derived_fns.py:106`)을 'VDS 변 격자 하한 비용' 이름 부여 대상에 포함 |
 | (유지) 트리 경로 필드를 만드는 card | -- | HC-1 기본안 유지 |
+| (같은 판 후속 커밋) 2번 근거 정정 | GC-8 (2) θ 없는 소비자 | 처음 근거(`current_basis.py:14` 정지)는 `mos_zero_current_structural`만 덮어 불완전했다. headroom-chain v0.7.5(`43cf75c9`) 341행과 같은 규칙·근거로 맞췄다: 자기 맞바꿈은 graph가 정지(`s1_symmetry.py:16-18`), 대칭·KCL이 0으로 정하는 다른 구조적 0 가지는 search `zeros`로 θ에서 빠짐(`search/CONTRACT.md:590-591`) → 구조적 0 전류로 확정된 MOS가 있으면 그것만 빼고, 없으면 제외 없음 |
 
 ## Version History
 
