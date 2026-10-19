@@ -352,6 +352,11 @@ date: 2026-10-16
 | 6 옛 문구 | 머리 관련 계획(19행), N7.2 headroom-chain 항목, N8 R7, U-G12 권고 칸, history 0.10 행, GC-8 선행(HC-S → HC-1 → GC-8), GC-8 (4) | v0.7.4 개정 중 표기, 재질문 소멸 표기, 'GC-8 실제 card', `edge_costs.vds_min_v` 소비자 셋(`start_intervals.py:280`, `_helpers_curves.py:111`, `derived_fns.py:106`)을 'VDS 변 격자 하한 비용' 이름 부여 대상에 포함 |
 | (유지) 트리 경로 필드를 만드는 card | -- | HC-1 기본안 유지 |
 | (같은 판 후속 커밋) 2번 근거 정정 | GC-8 (2) θ 없는 소비자 | 처음 근거(`current_basis.py:14` 정지)는 `mos_zero_current_structural`만 덮어 불완전했다. headroom-chain v0.7.5(`43cf75c9`) 341행과 같은 규칙·근거로 맞췄다: 자기 맞바꿈은 graph가 정지(`s1_symmetry.py:16-18`), 대칭·KCL이 0으로 정하는 다른 구조적 0 가지는 search `zeros`로 θ에서 빠짐(`search/CONTRACT.md:590-591`) → 구조적 0 전류로 확정된 MOS가 있으면 그것만 빼고, 없으면 제외 없음 |
+| (재검증 `a13af8a2` → 같은 판 후속 커밋) #4 다른 이름 개념 | GC-8 (4) | headroom-chain v0.7.5가 '신호 고정 VGS 변'을 철회. 개념은 둘(VDS 변 격자 하한 비용, VGS 변 격자 하한 비용). `ls_swing` VGS 등식 변은 소속 기준 공동분석 백로그, as-built 보존 |
+| #5 Gs⁺ VGS 변 필드 | GC-8 (1)(3), N3.3-3, GC-2, GD-2 | headroom-chain 완료 조건 12가 넘긴 `headroom_bound._edges` VGS 절반의 Gs⁺ VGS 변 필드 읽기를 GC-8에 넣었다. 쓰기 계획 블록 출력 두 필드(뿌리 경로, Gs⁺ VGS 변)를 HC-1이 만들고 못 하면 GC-2 |
+| #2 구조적 0 전류 MOS 집합 정본 | GC-8 (2), GD-2 | `zeros`(`current_symmetry.py:110-131`, `search_domain.py:166`)는 `graph/kernel: search_domain` 칸 `SearchDomain.zeros`(`search_values.py:92`, writer `search_domain.py:172-175`)에 이미 있으므로 그 필드가 정본, `order_terms`·`headroom_bound`가 읽는다. 층 순서가 맞지 않으면 앞 층 S0 필드로(기본안, headroom-chain과 같은 문언) |
+| #3 구조적 전도 문장 동일화 | GC-8 (2) | headroom-chain 341행 문장 형태로 맞추고 `current_basis.py:13-14` 근거를 같은 문장 안에 넣었다 |
+| #6 headroom-chain 판 | 머리 19행, N7.2, N2 O-15 행, N3.2 R4 행, GC-8, N8 R7, U-G12, B-G2 | v0.7.5 `43cf75c9` |
 
 ## Version History
 
