@@ -336,6 +336,7 @@ date: 2026-10-16
 | 머리 | Status, N2 O-15 행 | 'v0.10 -- O-15 반영, 재검증 전' |
 | (오케스트레이터 답, 같은 판 후속 커밋) `_peak_floor` 자리 | GD-12, GC-7 | `_peak_floor`(`cell_floor.py:36-50`)도 LUT만의 순수 함수라 같은 원칙(O-15 (A))으로 LUT memo 파생 함수로 확정. design은 이름·키만 정한다 |
 | (같은 답) GC-8 자리표 | -- | 그대로 둔다. headroom-chain v0.7.4가 R4를 맡을 card id를 정하면 오케스트레이터가 알리고, 그때 부채 항목 card id를 바꾼다 |
+| (같은 판 후속 커밋) headroom-chain v0.7.4(`wt/headroom-k3-plan` `752659ee`)의 R4 분담 | GC-8 행, N3.2 R4 행, N1.2 범위 표 두 칸, N2 O-15 행, N5 X-G9 상태, N7.3-2, U-G12, N10.4 B-G2 | 그 계획 N3.4(소비자별 처리 표, 배선 분담 기본안)·F-23·완료 조건 12를 직접 읽었다. GC-8은 자리표가 아니라 실제 card다: `ls_swing`·`headroom_bound`·`order_terms` 배선 + 정책 통일(선언 triode = on_mask VDS 하한, 비전도 변 제외) + 사본 삭제, 선행 HC-1, 결과가 바뀔 수 있어 무동작 card가 아님(변화표). `iv_headroom`은 HC-1. 다른 이름 개념 셋은 그 계획 표가 정본. `order_terms`는 원래 R4 범위 밖이었다가 O-15 (C)로 들어왔다고 표시. B-G2는 'O-15 (C)·O-16 (3)으로 닫힘, 정의 차이 판단은 headroom-chain N3.4 표'. U-G12의 GC-8 재질문은 '재질문 대상 소멸 -- O-15 (C) 승인 범위'. 확인: O-15 (C)가 네 곳의 정본 읽기를, O-16 (3)이 '같은 개념은 하나로'를 승인했으므로 GC-8의 내용은 사용자 결정 범위 안이다. 소비자별 card 분담(HC-1 대 GC-8)은 headroom-chain의 기본안이다. ls_swing 39·53행, headroom_bound 58·75행, block_columns 172-177행을 재확인했다 |
 
 ## Version History
 
