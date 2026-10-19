@@ -361,6 +361,20 @@ date: 2026-10-16
 | #3 구조적 전도 문장 동일화 | GC-8 (2) | headroom-chain 341행 문장 형태로 맞추고 `current_basis.py:13-14` 근거를 같은 문장 안에 넣었다 |
 | #6 headroom-chain 판 | 머리 19행, N7.2, N2 O-15 행, N3.2 R4 행, GC-8, N8 R7, U-G12, B-G2 | v0.7.5 `43cf75c9` |
 
+### 사용자 결정 O-26·O-27·O-32·O-33 → v0.11(2026-10-19, 브랜치 `plan/graph-consumption-v011`, base master `b2c72a01`)
+
+원문: `wt/_drafts/user_decisions.md` 645(O-26)·646(O-27)·652(O-32)·653(O-33)행. O-33은 오케스트레이터 알림대로 끝 행에서 다시 읽어 대조했다(가정으로 쓴 부분 없음). gain-budget v6.18(브랜치 `plan/gb-v618` `d888d9a9`, 승인 전)의 card DE-1·LI-1과 그 계획의 '관련 계획 후속 정정' 표(graph-consumption 행)를 읽었다.
+
+| 결정·지시 | 반영 자리 | 처리 |
+|---|---|---|
+| (1) GC-8에서 `ls_swing` 제외(O-26 (1)) | GC-8 행, N3.2 R4 행, N2 O-15 행, N10.4 B-G2, F-G13 | 배선은 `headroom_bound`·`order_terms`만. GC-8이 DE-1보다 먼저 병합돼도 `ls_swing`은 배선하지 않음. θ 있는 소비자는 R-1′만. `ls_swing._constraints`·VGS 등식 변은 DE-1 소관. F-G13의 `ls_swing.py:46` diode 자리는 DE-1 삭제 범위(39-50행)라 DE-1이 먼저면 부채 항목도 사라진다고 표시 |
+| (2) layout 동작점 사본 부채 항목(O-27) | N3.2 새 행, GC-1, N7.3-2, N3.1-5 L-5 개념, BD-8 | `LayoutInput` 동작점(`convergence/layout_input.py:72`)과 card B의 `ly_point`를 card LI-1로 등록. 사본을 '지금도 위반'으로 잡을 규칙이 없어 L-5 등록표에 '동작점 사본' 개념을 더했다(오케스트레이터 기본안). `ly_point`는 base에 없어 card B 병합 뒤 기준선에 넣는다 |
+| (3) 출력 함수 판정 기준 + GD-1 독립 검증 | N3.1-2, GD-1, GC-1 | 기준 = 엔진 reader 0 그리고 결과 JSON·보고 경로에만 도달(함수 단위). 검증자가 독립 스크립트로 GD-1 목록을 재측정, 다르면 GC-1 멈춤 |
+| (4) 선언 triode(O-33 (9)) | GC-8 (2), F-G38, GC-9 | DC 범위 정의에서는 포화 조건 제외, R-1′ on_mask VDS 하한은 'LUT 정의역'(다른 개념·다른 이름). '선언 triode = LUT on_mask VDS 하한' 문장을 정정 |
+| (5) 전류 대칭 결과 필드 소유 | GC-8 (2) | headroom-chain 344행(`b7f457e9`) 문장 형태로: 만드는 card는 HC-1(`iv_headroom`이 처음 읽음), HC-1이 못 하면 GC-8, writer는 만든 card의 블록 하나 |
+| (6) cProfile 기준선(WP-10, O-33 (1)) | N7.1 공통 착수 조건, N7.3-9 | 엔진 card마다 그 base에서 검증자가 13회로 cProfile·블록별 계산 수·블록 밖 함수 포함 같은 인자 반복 호출 계수를 잰다. 완료 조건 9는 이 기준선과 비교 |
+| O-32 | N2 O-26~O-33 행 | 이 계획에 직접 걸리는 문언이 없어 결정 행에만 기록 |
+
 ## Version History
 
 | 판 | 날짜 | 변경 |
@@ -376,3 +390,4 @@ date: 2026-10-16
 | 0.9 | 2026-10-19 | 사용자 결정 O-14 반영(H3). 트리 경로를 쓰기 계획 블록 자기 출력 S0 필드로(소비자 셋, '저장하면 사본' 논리 철회, 만드는 card 기본안 HC-1/GC-2), WP-10 계측 완료 조건·NFR-G4, 상위 IT-1 병합됨 표시. 원래 취지와 다름 아님(원칙으로 복귀) |
 | 0.10 | 2026-10-19 | 사용자 결정 O-15 반영(H3). (A) 전도 술어 정본 `conduction_mask`(네 번째 자리 `edge_costs`, `sctx.cell_floors` 제거), (E) 원칙 감사 범위 확장 GC-9·X-G12(기저 float 1회, 정확 MOS 전류 함수 하나, `current_cone` 기저 읽기, 완료 조건 3 좁힘, 블록 안 local memo·같은 점 재풀이 금지 -- `_vds_floor` 이동은 후속 커밋에서 headroom-chain HC-S로 옮김), (C)·O-16 (3)으로 B-G2 닫힘·**GC-8 실제 card**(`ls_swing`·`headroom_bound`·`order_terms` 배선, headroom-chain v0.7.4 분담), 후속 커밋에서 독립 검증 '수정 필요' 6건 반영 |
 | 0.10 승인 | 2026-10-19 | 사용자 결정 O-21 "모두 승인, 권고대로"(`wt/_drafts/user_decisions.md` 640행)로 v0.10(`9090593a`) 승인. Status만 갱신 |
+| 0.11 | 2026-10-19 | 사용자 결정 O-26·O-27·O-32·O-33 후속 정정(H3): GC-8에서 `ls_swing` 제외, layout 동작점 사본 부채 항목(LI-1, L-5 '동작점 사본' 개념), 출력 함수 판정 기준·GD-1 독립 검증, 선언 triode 'LUT 정의역' 구분, 전류 대칭 결과 필드 소유 문언, 착수 조건 cProfile 기준선 |
