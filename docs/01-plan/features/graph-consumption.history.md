@@ -355,6 +355,7 @@ date: 2026-10-16
 | (재검증 `a13af8a2` → 같은 판 후속 커밋) #4 다른 이름 개념 | GC-8 (4) | headroom-chain v0.7.5가 '신호 고정 VGS 변'을 철회. 개념은 둘(VDS 변 격자 하한 비용, VGS 변 격자 하한 비용). `ls_swing` VGS 등식 변은 소속 기준 공동분석 백로그, as-built 보존 |
 | #5 Gs⁺ VGS 변 필드 | GC-8 (1)(3), N3.3-3, GC-2, GD-2 | headroom-chain 완료 조건 12가 넘긴 `headroom_bound._edges` VGS 절반의 Gs⁺ VGS 변 필드 읽기를 GC-8에 넣었다. 쓰기 계획 블록 출력 두 필드(뿌리 경로, Gs⁺ VGS 변)를 HC-1이 만들고 못 하면 GC-2 |
 | #2 구조적 0 전류 MOS 집합 정본 | GC-8 (2), GD-2 | `zeros`(`current_symmetry.py:110-131`, `search_domain.py:166`)는 `graph/kernel: search_domain` 칸 `SearchDomain.zeros`(`search_values.py:92`, writer `search_domain.py:172-175`)에 이미 있으므로 그 필드가 정본, `order_terms`·`headroom_bound`가 읽는다. 층 순서가 맞지 않으면 앞 층 S0 필드로(기본안, headroom-chain과 같은 문언) |
+| #2 후속(headroom-chain `b35af834` 확인) | GC-8 (2), GD-2 | `search_domain` 필드 writer는 search 층(6), 소비자 `order_terms`(sizing 4)·`headroom_bound`(metrics 5)는 아래 층이라 데이터 흐름 역전(`structure_checks.py:24-30`, `s0_fields.py:20, :27`, `search_domain.py:166, :173` 재확인). 기본안을 '구조적 0 전류 MOS 집합을 sizing 층 이하 S0 graph 필드 하나로 올리고(`dc_current_basis` 쪽), `search_domain`도 그 필드를 읽음, 처음 읽는 card(GC-8 또는 먼저 병합되는 card)가 만든다'로 바꿨다 |
 | #3 구조적 전도 문장 동일화 | GC-8 (2) | headroom-chain 341행 문장 형태로 맞추고 `current_basis.py:13-14` 근거를 같은 문장 안에 넣었다 |
 | #6 headroom-chain 판 | 머리 19행, N7.2, N2 O-15 행, N3.2 R4 행, GC-8, N8 R7, U-G12, B-G2 | v0.7.5 `43cf75c9` |
 
