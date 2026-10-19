@@ -384,6 +384,7 @@ date: 2026-10-16
 | (4) 예시 정정 | N3.1-5 | `SsDevice`는 graph 필드 `ss_dev` 값(영속)이고, 사본 아닌 이유는 칸이 산술 결과(`ss_linearize.py:70-75`) |
 | (5) `size_and_seal_local` | N3.1-5, N3.2 새 행, N3.10 v6.19 행, N5 X-G13, N7.3-2, GD-14, B-G4 | '배선 대기' 부채 항목, card id = gain-budget v6.19 층 0 card(이름 확정 뒤 갱신), `snapshot_fragment`의 `dc_op` 참조 전환은 상위 개정 항목, 원래 취지와 다름(배선 대기 기간). 규칙 L에 호출자 0 함수 탐지가 없어 L-1 확장 GD-14, 넣지 않으면 B-G4(부채 판정 (b)와 충돌하므로 그때는 항목 대신 백로그) |
 | (6) O-34 반영 | Goal 5, N1.2, FR-G15, NFR-G7, N2 O-34 행, N3.3-5, N3.7, N4-0 신설·N4-1·N4-4, GC-8·GC-9 행, GC-V, N7.3-3·6·7·13, U-G12 | '비트 동일'·'무동작' 완료 조건을 변경 종류 표시로: 결정성(모든 card), 순수 리팩터링 GC-2·GC-3·GC-6(필드별), 동작 변경 GC-5·GC-7·GC-8·GC-9(오라클 toy·봉인·SPICE·변화표), 측정·문서·test card는 엔진 변경 0. GC-7·GC-9를 동작 변경으로 둔 이유 병기. `uncovered` 제외의 별도 예외 승인 문구는 동작 변경 기준으로 대체 |
+| (재확인 `f4be659f`, 같은 판 후속 커밋) GC-9·GC-7 변경 종류 | N4-0 표·근거 문장, N4-1, FR-G15, GC-7·GC-9 행, N7.3-7·13 | GC-9를 순수 리팩터링으로 되돌림(원래 취지가 동작 보존 단일화, 합산 순서 차이는 연속 값 분해능이 받음, 동작 변경 표시는 기준 약화라 사용자 승인 필요). GC-7은 부분별: `conduction_mask` 통일 = 동작 변경, 출력 전용 선언·`gs_groups` 읽기·`sctx.cell_floors` 제거 등 = 순수 리팩터링(headroom-chain HC-S와 같은 방식) |
 | (오케스트레이터 답, 같은 판 후속 커밋) `metrics_aux.py:125` card id | N3.1-5, N3.10 새 행, N7.3-2 | 확인 항목 닫음: `op.vgs` 사본(`SatDevice.vgs_v`, `aux_types.py:102`)의 card id = DE-1(유일한 소비자 `ls_swing.py:47`을 DE-1이 지움). `sat_v`·`sat_tol_v`는 사본이 아니고 HC-S가 `device.dc_sat_v` 읽기로 바꿈. gain-budget v6.18 `816d9dc1` DE-1 소비자 표 F-DE7을 확인했더니 이 칸 삭제가 없어(`aux_types.py:139-172, :251-260`만) N3.10 상위 개정 항목으로 기록 |
 | (4) 상위 v6.18 참조 | 이 표 머리 | `816d9dc1` |
 
