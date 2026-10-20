@@ -217,6 +217,7 @@ date: 2026-10-15
 - 판단 기록: 끝 코드 포화 검사 점을 '출력을 DEC-23 기준값에 둔 점'으로 둔 것은 작성자 기본안이다(근거: 끝 코드는 표본 offset이 보정 구간 끝에 있을 때 출력이 기준값에 놓이는 동작 상태 -- 물리 정합). 온도 점 전도 판정의 담당 card 경계(오라클 확장 = 온도 점 op·개별 I_off, 엔진 = tol_V 셀·둘째 단계)는 O-50 G5·U-6에서 유도한 기본안이다. 둘 다 독립 검증 대상이다.
 
 - 2026-10-20 같은 판 넷째 커밋(전체 정합 검증 4차 `full_audit4_summary.md` + 사용자 O-54·O-55, 계획 쪽 변경은 셋째 커밋 `e7f77cbc`): DC 범위 조건 '전 소자 포화 유지' → '모든 MOS가 선언 영역에 머무름'(O-54), 동작점 불일치 원인 구분(O-55 U1), off 제외 = 사이징·역산 경로(O-55 V5), on 스위치 saturation → intended_region 선언 없음(B-6), 온도 점 판정 담당을 작성자 기본안(trim용 확장 + EO-1 갱신)에서 oracle OP-5로(V3, O-55 U2), G-12 L 하한 정본 = gain-budget LR6 `1cddba6a`(B-2), 인용 해시 gb `0a7868b5`·oracle `84cc5410`(B-3), 해소된 후속 정정 2건(gb `768f6ca1`) 정리.
+- 2026-10-20 같은 판 다섯째 커밋(마무리 맞춤, 내용 변경 없음): 인용 해시를 최종 머리로 -- gb `plan/gb-v620` `7fe555b1`, oracle `plan/oracle-v0610` `7f2a5e12`, offset-strategy `plan/offset-strategy-v07` `977f7156`, headroom-chain `plan/headroom-v077` `f303115c`(HC-O intended_region 칸). 인용 자리(DEC-23·DEC-90·LR6·N6.18·N6.20, G-18·PC-10·OP-5, N3.3, HC-O)는 각 머리를 직접 show로 확인했다.
 
 ## H3 추가 -- v0.6에서 옮긴 현황 사실(base `cfe2e31`, 감사 E3)
 
