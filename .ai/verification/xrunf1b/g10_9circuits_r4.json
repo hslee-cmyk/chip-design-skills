@@ -1,0 +1,83 @@
+{
+ "common_gate_amplifier": {
+  "recomputes_same_input": 0,
+  "recompute_same_key": 0,
+  "indep_fn_recompute_total": 0,
+  "indep_calls_total": 785,
+  "block_index_entries": 699,
+  "block_index_bound": 2597,
+  "process_s": 70.62456670001848
+ },
+ "current_reuse_telescopic_ota": {
+  "recomputes_same_input": 0,
+  "recompute_same_key": 0,
+  "indep_fn_recompute_total": 0,
+  "indep_calls_total": 161,
+  "block_index_entries": 133,
+  "block_index_bound": 3978,
+  "process_s": 72.94220790005056
+ },
+ "folded_cascode": {
+  "recomputes_same_input": 0,
+  "recompute_same_key": 0,
+  "indep_fn_recompute_total": 0,
+  "indep_calls_total": 1167,
+  "block_index_entries": 1037,
+  "block_index_bound": 3577,
+  "process_s": 69.12618020002265
+ },
+ "ngcc_3stage_ff": {
+  "recomputes_same_input": null,
+  "recompute_same_key": null,
+  "indep_fn_recompute_total": 0,
+  "indep_calls_total": 25,
+  "block_index_entries": null,
+  "block_index_bound": null,
+  "process_s": 39.29973299999256
+ },
+ "nmcnr_amplifier": {
+  "recomputes_same_input": 0,
+  "recompute_same_key": 0,
+  "indep_fn_recompute_total": 0,
+  "indep_calls_total": 819,
+  "block_index_entries": 702,
+  "block_index_bound": 4263,
+  "process_s": 58.20265010005096
+ },
+ "pushpull_follower_buffer": {
+  "recomputes_same_input": 0,
+  "recompute_same_key": 0,
+  "indep_fn_recompute_total": 0,
+  "indep_calls_total": 689,
+  "block_index_entries": 619,
+  "block_index_bound": 2736,
+  "process_s": 39.795262400002684
+ },
+ "sf_pushpull_output_opamp": {
+  "recomputes_same_input": 0,
+  "recompute_same_key": 0,
+  "indep_fn_recompute_total": 0,
+  "indep_calls_total": 161,
+  "block_index_entries": 145,
+  "block_index_bound": 3162,
+  "process_s": 36.02492890000576
+ },
+ "two_stage_ota": {
+  "recomputes_same_input": 0,
+  "recompute_same_key": 0,
+  "indep_fn_recompute_total": 0,
+  "indep_calls_total": 925,
+  "block_index_entries": 788,
+  "block_index_bound": 2989,
+  "process_s": 39.399013500020374
+ },
+ "two_stage_ota_sf": {
+  "recomputes_same_input": 0,
+  "recompute_same_key": 0,
+  "indep_fn_recompute_total": 0,
+  "indep_calls_total": 783,
+  "block_index_entries": 671,
+  "block_index_bound": 3185,
+  "process_s": 95.93138850003015
+ }
+}

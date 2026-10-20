@@ -1,0 +1,19 @@
+17:35:22 round1 clone=r2 rc=0 sec=31 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[common_gate_amplifier] | 1 passed in 19.23s
+17:35:45 round1 clone=head rc=0 sec=19 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[common_gate_amplifier] | 1 passed in 15.23s
+17:36:06 round1 clone=r2 rc=0 sec=18 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[common_gate_amplifier] | 1 passed in 14.67s
+17:36:29 round1 clone=head rc=0 sec=19 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[common_gate_amplifier] | 1 passed in 16.60s
+done
+17:37:18 round2 clone=r3 rc=0 sec=22 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[common_gate_amplifier] | 1 passed in 19.86s
+17:37:45 round2 clone=r2 rc=0 sec=23 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge.py::test_real_deterministic_rerun | 1 passed in 20.46s
+17:38:10 round2 clone=head rc=0 sec=21 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge.py::test_real_deterministic_rerun | 1 passed in 19.22s
+17:38:36 round2 clone=r3 rc=0 sec=23 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge.py::test_real_deterministic_rerun | 1 passed in 19.56s
+17:39:02 round2 clone=r2 rc=0 sec=22 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge.py::test_real_deterministic_rerun | 1 passed in 19.84s
+17:39:26 round2 clone=head rc=0 sec=21 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge.py::test_real_deterministic_rerun | 1 passed in 17.89s
+17:39:52 round2 clone=r3 rc=0 sec=23 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge.py::test_real_deterministic_rerun | 1 passed in 20.73s
+17:41:35 round2 clone=r2 rc=0 sec=99 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[two_stage_ota] | 1 passed in 97.09s (0:01:37)
+17:43:19 round2 clone=head rc=0 sec=101 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[two_stage_ota] | 1 passed in 98.61s (0:01:38)
+17:45:02 round2 clone=r3 rc=0 sec=99 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[two_stage_ota] | 1 passed in 96.27s (0:01:36)
+17:46:56 round2 clone=r2 rc=0 sec=110 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[two_stage_ota] | 1 passed in 108.35s (0:01:48)
+17:49:17 round2 clone=head rc=0 sec=138 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[two_stage_ota] | 1 passed in 134.11s (0:02:14)
+17:52:27 round2 clone=r3 rc=0 sec=185 clk_mhz=1200/1200 test=gmid_engine/tests/convergence/test_converge_point.py::test_real_kernel_counts_and_fixed_point[two_stage_ota] | 1 passed in 178.29s (0:02:58)
+done2

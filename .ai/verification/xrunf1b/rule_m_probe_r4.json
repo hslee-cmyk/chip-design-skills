@@ -1,0 +1,347 @@
+{
+ "probe_files": 19,
+ "probe_violations": [
+  [
+   "open_run_ref",
+   "test_p3_wrapper.py",
+   13
+  ],
+  [
+   "open_run_ref",
+   "test_p3_wrapper.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_p4_attr.py",
+   10
+  ],
+  [
+   "open_run_ref",
+   "test_p4_attr.py",
+   4
+  ],
+  [
+   "open_run_ref",
+   "test_p5_session_obj.py",
+   3
+  ],
+  [
+   "open_run_ref",
+   "test_p5_session_obj.py",
+   9
+  ],
+  [
+   "open_run_ref",
+   "test_p6_rebind.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_p6_rebind.py",
+   6
+  ],
+  [
+   "open_run_ref",
+   "test_p6_rebind.py",
+   8
+  ],
+  [
+   "open_run_ref",
+   "test_p7_mc_break.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_p7_mc_break.py",
+   6
+  ],
+  [
+   "open_run_ref",
+   "test_p9_dict_kw.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_p9_dict_kw.py",
+   6
+  ],
+  [
+   "open_run_ref",
+   "test_q1_ifelse.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_q1_ifelse.py",
+   7
+  ],
+  [
+   "open_run_ref",
+   "test_q1_ifelse.py",
+   9
+  ],
+  [
+   "open_run_ref",
+   "test_q2_with.py",
+   4
+  ],
+  [
+   "open_run_ref",
+   "test_q2_with.py",
+   9
+  ],
+  [
+   "open_run_ref",
+   "test_q3_partial.py",
+   4
+  ],
+  [
+   "open_run_ref",
+   "test_q3_partial.py",
+   8
+  ],
+  [
+   "open_run_ref",
+   "test_q4_table.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_q4_table.py",
+   8
+  ],
+  [
+   "open_run_ref",
+   "test_q5_if_only.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_q5_if_only.py",
+   6
+  ],
+  [
+   "open_run_ref",
+   "test_q5_if_only.py",
+   9
+  ],
+  [
+   "open_run_ref",
+   "test_q6_loop_rebind.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_q6_loop_rebind.py",
+   6
+  ],
+  [
+   "open_run_ref",
+   "test_q7_while_rebind_after.py",
+   10
+  ],
+  [
+   "open_run_ref",
+   "test_q7_while_rebind_after.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_q7_while_rebind_after.py",
+   6
+  ],
+  [
+   "open_run_ref",
+   "test_q8_md_wrapper_return_session.py",
+   13
+  ],
+  [
+   "open_run_ref",
+   "test_q8_md_wrapper_return_session.py",
+   3
+  ],
+  [
+   "open_run_ref",
+   "test_r1_same_line.py",
+   11
+  ],
+  [
+   "open_run_ref",
+   "test_r1_same_line.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_r1_same_line.py",
+   6
+  ],
+  [
+   "open_run_ref",
+   "test_r2_try_match.py",
+   16
+  ],
+  [
+   "open_run_ref",
+   "test_r2_try_match.py",
+   18
+  ],
+  [
+   "open_run_ref",
+   "test_r2_try_match.py",
+   2
+  ],
+  [
+   "open_run_ref",
+   "test_r2_try_match.py",
+   24
+  ],
+  [
+   "open_run_ref",
+   "test_r2_try_match.py",
+   31
+  ],
+  [
+   "open_run_ref",
+   "test_r2_try_match.py",
+   7
+  ],
+  [
+   "run_pair_loop",
+   "test_q6_loop_rebind.py",
+   8
+  ],
+  [
+   "run_pair_loop",
+   "test_q7_while_rebind_after.py",
+   9
+  ],
+  [
+   "run_pair_packed",
+   "test_p9_dict_kw.py",
+   7
+  ],
+  [
+   "run_pair_reused",
+   "test_p7_mc_break.py",
+   7
+  ],
+  [
+   "run_pair_reused",
+   "test_p7_mc_break.py",
+   8
+  ],
+  [
+   "run_pair_reused",
+   "test_q5_if_only.py",
+   10
+  ],
+  [
+   "run_pair_reused",
+   "test_q5_if_only.py",
+   7
+  ],
+  [
+   "run_pair_source",
+   "test_p1_alias.py",
+   5
+  ],
+  [
+   "run_pair_source",
+   "test_p2_indirect.py",
+   6
+  ],
+  [
+   "run_pair_source",
+   "test_p8_getattr.py",
+   5
+  ],
+  [
+   "run_pair_source",
+   "test_q1_ifelse.py",
+   10
+  ],
+  [
+   "run_pair_source",
+   "test_q2_with.py",
+   10
+  ],
+  [
+   "run_pair_source",
+   "test_r2_try_match.py",
+   10
+  ],
+  [
+   "run_pair_source",
+   "test_r2_try_match.py",
+   19
+  ],
+  [
+   "run_pair_source",
+   "test_r2_try_match.py",
+   26
+  ]
+ ],
+ "probe_violations_raw": [
+  "gmid_engine/tests/test_p3_wrapper.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_p3_wrapper.py:13 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_p4_attr.py:4 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_p4_attr.py:10 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_p5_session_obj.py:3 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_p5_session_obj.py:9 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_p6_rebind.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_p6_rebind.py:6 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_p6_rebind.py:8 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_p7_mc_break.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_p7_mc_break.py:6 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_p9_dict_kw.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_p9_dict_kw.py:6 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q1_ifelse.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_q1_ifelse.py:7 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q1_ifelse.py:9 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q2_with.py:4 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_q2_with.py:9 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q3_partial.py:4 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_q3_partial.py:8 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q4_table.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_q4_table.py:8 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q5_if_only.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_q5_if_only.py:6 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q5_if_only.py:9 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q6_loop_rebind.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_q6_loop_rebind.py:6 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q7_while_rebind_after.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_q7_while_rebind_after.py:6 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q7_while_rebind_after.py:10 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q8_md_wrapper_return_session.py:3 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_q8_md_wrapper_return_session.py:13 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_r1_same_line.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_r1_same_line.py:6 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_r1_same_line.py:11 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_r2_try_match.py:2 [open_run_ref] import 이름 open_run",
+  "gmid_engine/tests/test_r2_try_match.py:7 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_r2_try_match.py:16 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_r2_try_match.py:18 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_r2_try_match.py:24 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_r2_try_match.py:31 [open_run_ref] 이름 open_run",
+  "gmid_engine/tests/test_q6_loop_rebind.py:8 [run_pair_loop] donors: open_run() 이 같은 반복문 본문에 없다; counters: open_run() 이 같은 반복문 본문에 없다",
+  "gmid_engine/tests/test_q7_while_rebind_after.py:9 [run_pair_loop] donors: open_run() 이 같은 반복문 본문에 없다; counters: open_run() 이 같은 반복문 본문에 없다",
+  "gmid_engine/tests/test_p9_dict_kw.py:7 [run_pair_packed] 묶음 인자 *args/**kw",
+  "gmid_engine/tests/test_p7_mc_break.py:7 [run_pair_reused] open_run() 대입 하나(이름 c, d)가 run_stage_a 2곳에 쓰인다",
+  "gmid_engine/tests/test_p7_mc_break.py:8 [run_pair_reused] open_run() 대입 하나(이름 c, d)가 run_stage_a 2곳에 쓰인다",
+  "gmid_engine/tests/test_q5_if_only.py:7 [run_pair_reused] open_run() 대입 하나(이름 c, d)가 run_stage_a 2곳에 쓰인다",
+  "gmid_engine/tests/test_q5_if_only.py:10 [run_pair_reused] open_run() 대입 하나(이름 c, d)가 run_stage_a 2곳에 쓰인다",
+  "gmid_engine/tests/test_p1_alias.py:5 [run_pair_source] donors=d(같은 함수 open_run() 튜플 풀기 1번째 이름 아님); counters=c(같은 함수 open_run() 튜플 풀기 2번째 이름 아님)",
+  "gmid_engine/tests/test_p2_indirect.py:6 [run_pair_source] donors=d(같은 함수 open_run() 튜플 풀기 1번째 이름 아님); counters=c(같은 함수 open_run() 튜플 풀기 2번째 이름 아님)",
+  "gmid_engine/tests/test_p8_getattr.py:5 [run_pair_source] donors=d(같은 함수 open_run() 튜플 풀기 1번째 이름 아님); counters=c(같은 함수 open_run() 튜플 풀기 2번째 이름 아님)",
+  "gmid_engine/tests/test_q1_ifelse.py:10 [run_pair_source] donors=d(호출을 앞서는 open_run() 대입 없음); counters=c(호출을 앞서는 open_run() 대입 없음)",
+  "gmid_engine/tests/test_q2_with.py:10 [run_pair_source] donors=d(호출을 앞서는 open_run() 대입 없음); counters=c(호출을 앞서는 open_run() 대입 없음)",
+  "gmid_engine/tests/test_r2_try_match.py:10 [run_pair_source] donors=d(호출을 앞서는 open_run() 대입 없음); counters=c(호출을 앞서는 open_run() 대입 없음)",
+  "gmid_engine/tests/test_r2_try_match.py:19 [run_pair_source] donors=d(호출을 앞서는 open_run() 대입 없음); counters=c(호출을 앞서는 open_run() 대입 없음)",
+  "gmid_engine/tests/test_r2_try_match.py:26 [run_pair_source] donors=d(호출을 앞서는 open_run() 대입 없음); counters=c(호출을 앞서는 open_run() 대입 없음)"
+ ],
+ "real_files": 910,
+ "real_violations": [],
+ "real_run_stage_a_calls": 54,
+ "real_same_line_multi_calls": []
+}

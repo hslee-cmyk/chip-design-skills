@@ -1,0 +1,133 @@
+{
+ "round": 2,
+ "checker": "8a7ef28 tests/structure/structure_checks.py check_m",
+ "probe_tree": [
+  "head files 17 calls 16",
+  "  test_p1_alias.py -> [('run_pair_source', 5)]",
+  "  test_p2_indirect.py -> [('run_pair_source', 6)]",
+  "  test_p3_wrapper.py -> NOT DETECTED",
+  "  test_p4_attr.py -> NOT DETECTED",
+  "  test_p5_session_obj.py -> NOT DETECTED",
+  "  test_p6_rebind.py -> NOT DETECTED",
+  "  test_p7_mc_break.py -> [('run_pair_reused', 7), ('run_pair_reused', 8)]",
+  "  test_p8_getattr.py -> [('run_pair_source', 5)]",
+  "  test_p9_dict_kw.py -> [('run_pair_packed', 7)]",
+  "  test_q1_ifelse.py -> [('run_pair_source', 10)]",
+  "  test_q2_with.py -> [('run_pair_source', 10)]",
+  "  test_q3_partial.py -> NOT DETECTED",
+  "  test_q4_table.py -> NOT DETECTED",
+  "  test_q5_if_only.py -> [('run_pair_reused', 7), ('run_pair_reused', 10)]",
+  "  test_q6_loop_rebind.py -> [('run_pair_loop', 8)]",
+  "  test_q7_while_rebind_after.py -> [('run_pair_loop', 9)]",
+  "  test_q8_md_wrapper_return_session.py -> NOT DETECTED",
+  "head real tree files 908 violations 0 run_stage_a calls 54"
+ ],
+ "real_tree_md_scan": {
+  "tool": "scripts/md_bypass_scan.py(감사 독립 오염 추적)",
+  "files": 489,
+  "sink_counts": {
+   "closure_capture": 1,
+   "user_class_ctor": 1,
+   "container_mutate": 5,
+   "attr_store": 4
+  },
+  "sinks": [
+   {
+    "kind": "closure_capture",
+    "file": "convergence/test_converge_point.py",
+    "line": 112,
+    "detail": "run captures ['counters', 'donors', 'sctx']",
+    "src": "def go(loop, start=None):\n        monkeypatch.setattr(mod, \"place_layout\", loop.place_layout)\n        monkeypatch.setattr(mod, \"evaluate\", loop.evaluate)\n        # [U17 ①, 설계 40 §2.4.7·§2.4.8] 수동소자 값은"
+   },
+   {
+    "kind": "user_class_ctor",
+    "file": "generality/pipeline.py",
+    "line": 223,
+    "detail": "Case in case",
+    "src": "Case(name_, variant_, mapping, kind_map, vdoc, td, spec, inputs, s1, ctx)"
+   },
+   {
+    "kind": "container_mutate",
+    "file": "pipeline/test_stage_a.py",
+    "line": 583,
+    "detail": "test_repeated_run_computes_s1_blocks_each_time",
+    "src": "runs.append(r)"
+   },
+   {
+    "kind": "container_mutate",
+    "file": "search/test_gate_run.py",
+    "line": 62,
+    "detail": "fake",
+    "src": "out.append((base, 0.0))"
+   },
+   {
+    "kind": "container_mutate",
+    "file": "search/test_layer0_center.py",
+    "line": 759,
+    "detail": "rec",
+    "src": "store.append((tuple(variables), [float(v) for v in x], base, to_theta,\n                      coords_log[-1] if coords_log else None))"
+   },
+   {
+    "kind": "attr_store",
+    "file": "search/u13_hand.py",
+    "line": 102,
+    "detail": "build",
+    "src": "case.a, case.b = a, b"
+   },
+   {
+    "kind": "attr_store",
+    "file": "search/u13_hand.py",
+    "line": 102,
+    "detail": "build",
+    "src": "case.a, case.b = a, b"
+   },
+   {
+    "kind": "attr_store",
+    "file": "search/u13_real.py",
+    "line": 101,
+    "detail": "real_case",
+    "src": "case.a, case.b = a, b"
+   },
+   {
+    "kind": "attr_store",
+    "file": "search/u13_real.py",
+    "line": 101,
+    "detail": "real_case",
+    "src": "case.a, case.b = a, b"
+   },
+   {
+    "kind": "container_mutate",
+    "file": "sizing/test_size_and_seal.py",
+    "line": 440,
+    "detail": "_ic1_points",
+    "src": "pts.append((ctx_r4c, theta_r4c(), {}, e0))"
+   },
+   {
+    "kind": "container_mutate",
+    "file": "sizing/test_size_and_seal.py",
+    "line": 442,
+    "detail": "_ic1_points",
+    "src": "pts.append((ctx_r4c, th, {}, size_and_seal(ctx_r4c, th, parent=with_hand_ss(e0))))"
+   }
+  ],
+  "classification": "11 싱크 전부 함수 지역 값 또는 호출마다 새 open_run 쌍(u13_hand.build·u13_real.real_case 의 case.a/b = 그 호출의 새 묶음, generality Pipe.case 의 Case = 호출마다 새 KernelContext, 프로세스 캐시 _TOY_RECIPES·_CASES·Pipe._cases·_theta0 은 스냅샷·선언·Layer0Result 뿐 -- 두 객체 없음). M-d 우회 꼴(사용자 클래스 감싸기·목록 밖 속성 이름·session fixture 인스턴스 속성) 실제 트리 0"
+ },
+ "run_stage_a_noncall_refs": [
+  "NONCALL tests\\pipeline\\test_stage_a.py 547 run_stage_a",
+  "calls 54 noncall_refs 1"
+ ],
+ "mc_same_name_users": [
+  "tests\\integration\\test_j_rules_library.py test_pilot_stage_a_with_spec_has_no_unmatched_cut 2 [('d0', 'c0'), ('d1', 'c1')] ",
+  "tests\\integration\\test_run_isolation.py test_second_run_recomputes_s0_blocks_and_first_run_counters_unchanged 2 [('d1', 'c1'), ('d2', 'c2')] ",
+  "tests\\integration\\test_stage_a_library.py test_stage_a_library_circuit 2 [('d0', 'c0'), ('d1', 'c1')] ",
+  "tests\\integration\\test_stage_a_library.py test_structure_json_declared_comparison 3 [('d1', 'c1'), ('d2', 'c2'), ('d3', 'c3')] ",
+  "tests\\pipeline\\test_stage_a.py test_dc_role_facts_are_loaded_before_build_s1 2 [('d0', 'c0'), ('d1', 'c1')] ",
+  "tests\\pipeline\\test_stage_a.py test_view_scoped_ground_fact_clears_pilot_stop 2 [('d0', 'c0'), ('d1', 'c1')] ",
+  "tests\\pipeline\\test_stage_a.py test_fact_file_written_with_old_s1v_rule_fp_is_stale 2 [('d0', 'c0'), ('d1', 'c1')] ",
+  "tests\\pipeline\\test_stage_a.py test_stage_a_result_carries_passed_run_pair_on_ok_and_stop_paths 2 [('d_ok', 'c_ok'), ('d_st', 'c_st')] ",
+  "tests\\pipeline\\test_stage_a.py test_run_stage_a_missing_run_pair_type_error 3 [('c1',), ('d2',), ()] ",
+  "tests\\pipeline\\test_stage_a.py test_unknown_keyword_rejected_before_report 2 [('d1', 'c1'), ('d0', 'c0')] ",
+  "tests\\pipeline\\test_stage_a.py test_nmcnr_l_owner_fact_clears_name_order_review 2 [('d0', 'c0'), ('d1', 'c1')] ",
+  "functions_with_2plus_calls 11 with_same_names 0"
+ ]
+}
