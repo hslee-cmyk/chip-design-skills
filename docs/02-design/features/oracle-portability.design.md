@@ -1,13 +1,15 @@
 ---
 template: design
-version: 0.2.6
+version: 0.3.0
 plan: ../../01-plan/features/oracle-portability.plan.md
-plan_version: 0.6.6
+plan_version: 0.6.9
 ---
 
 # oracle-portability Design Document (card OP-0)
 
-> **Summary**: 계획 `oracle-portability.plan.md` v0.6.5(승인 v0.4.2 + 사용자 결정 O-3·O-4·O-6·O-7·O-8·O-9·L-1·L-2·L-3과 검증 정합 개정, v0.6.5 승인 O-10)를 오라클 설계로 옮긴다. 계획의 결정은 사용자 결정 O-1~O-10, L-1~L-3, D-1~D-9이다. 이 문서가 정하는 것은 다음과 같다.
+> **Summary**: 계획 `oracle-portability.plan.md` v0.6.9(승인 O-48, master `9401e98f`)를 오라클 설계로 옮긴다. 계획의 결정은 사용자 결정 O-1~O-48 가운데 이 기능에 닿는 것(§1.1), L-1~L-3, D-1~D-9이다. 이 문서가 정하는 것은 다음과 같다.
+> * **OP-3 입력 스키마 계약**(gain-budget card EO-1 생산자의 계약, A' 손분석 입력과 같은 스키마 -- §11.0~§11.4)과 G-18 확장 칸(OP-5·headroom-chain HC-O·OP-10이 더함, §11.6), 오라클 실행 결과 계약(§11.7)
+> * metric 측정 절차(계획 N3.9 -- 범위·합격 판정 전도 기준, swing·ICMR, 계통 offset, 불일치 σ의 `.tf` A: OP-5 / 슬루: OP-10 / 전력: OP-11, §21)
 > * 3층 구조(코어 / 시뮬레이터 어댑터 / PDK·오라클 기술자)의 파일 분할과 import 금지
 > * 회로 IR, 해석 요청, 정규화 결과의 형식
 > * 어댑터 능력 선언 스키마
@@ -19,16 +21,8 @@ plan_version: 0.6.6
 > * 상위 문서 개정 문안(계획 N3.7)
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (design 작성자 역할)
-> **Status**: **design v0.2.6 -- 개정 초안, 독립 검증·사용자 승인 전**(2026-10-16). master `52945ce`(계획 v0.6.5, 사용자 O-9·O-10)를 병합(`dea6549`)한 뒤 두 묶음을 반영했다. (A) v0.2.5 검증 중간 지적 다섯과 경미 일곱: 실행 전 반환 경로·옛 상태 칸(`log`·`log_errors`·`op_ok`·`skipped`·`cache`)의 대응과 소비자(§11.5), `lut_record_root`를 기존 정본 `A/lut_v2_location.json` 참조로(§10.2), 어댑터 지문 제외 목록 방식과 지문 밖 측정 도구 폴더(§0, §8.3), conftest 옛 형식 입력 생성기·`u6_selfchecks` 소비자(§15.4·§18.2·§20, u6 삭제는 O-10 승인), §7.2 교차 검사 단계·코드와 `pdk_descriptor_stale` 중복 정리, 새 칸마다 소비자 또는 출력 전용 선언(§6.1 신설). (B) 계획 v0.6.5: DV-4 = O-9 8a 예외 둘째, DV-5 = O-9 기준선 표본별 V_os 재계산값(§13.2·§19.2 닫힘), 어댑터 지문 범위. 새 멈춤 없음. 경위는 history H5.
-> * v0.2.5(`564245f`): v0.2.4를 병합한 뒤 두 묶음을 반영했다. (A) v0.2.4 독립 검증 결함(차단 B-1·B-2, 비차단 M-1~M-6, 경미): 모델 묶음 비교의 LUT 기록 역할 구분(§12.5), 완료 조건 4의 PC-10 거부 test(§18.1), 결과 칸 개명의 경로별 대응(§11.5), 실행 전 검사 순서(§7.2), 소자 줄 차이 판정 절차(§10.6), 삭제 모듈 소비자(§15.4), 오류 대응표 보완(§7.1), MC 표본 성질 배치(§10.4) 등. (B) 계획 v0.6.3~v0.6.4 변경: 저장소 안 입력 생산자 0(§11.4), OP-1a 기준선 보관(§13.2·§20), DV-3 = O-8 (가-1)(가-2)(§13.2), 토큰 증거 단계 규칙 X-23(§18.1). 계획과 다른 결정이 필요한 곳 둘을 §19.2 DV-4·DV-5로 올렸다(멈춤, v0.2.6에서 O-9로 닫힘). 경위는 history H4.
-> * v0.2.4: 계획 v0.6~v0.6.2(O-6 D-a·D-b·D-c)와 OP-1 측정 반영 초안. 멈춤 DV-3은 사용자 결정 O-8(계획 v0.6.3)로 닫혔다. 경위 history H3.
-> * v0.2.3: 사용자 승인됨(2026-10-16 "모두 권고대로", 결정 기록 O-5). 독립 검증 87 → 95점(차단 0).
-> * v0.2.2: v0.2 검증(87점, 차단 B-1, 비차단 N-1~N-9)을 반영했다. B-1은 계획 v0.5.1의 완료 조건 8a 예외(`oport-plan-r2` `d9f37c4`)를 따른다.
-> * v0.2.1: 사용자 결정 O-4("TR-0T 승인, X-D4 권고대로 해")로 X-D4를 수용했다. offset-trim TR-0T design이 master에 병합됐다(T-40). 그래서 PC-10과 `dc_tolerance_undeclared`의 대조 기준은 master `offset-trim.design.md` §20이다.
-> * v0.2 반영 1: offset-trim design TR-0T(v0.2 작성 때 `trim-design-r1`, 지금은 master 병합, T-40)가 G-15를 닫았다. 그래서 PC-10을 정의한다(§12.2, 기준은 새 입력 칸 `output_reference`로 받는다, §11.1).
-> * v0.2 반영 2: 사용자 결정 T-39로 trim 잔여 수렴 분해능 = 오라클 DC 풀이 허용오차의 입력 환산 전파값이 됐다. 그래서 DC 풀이 허용오차를 반드시 선언하게 하고, 그 전파값을 결과에 낸다(§6, §8.3, §13.4).
-> * v0.1 멈춤 항목 DV-1·DV-2는 사용자 결정 O-3으로 닫혔다. DV-1 (가)는 계획 v0.5(`oport-plan-r1`)에 반영됐고, DV-2 상위 문서 개정은 별도 card(`gb-oracle-rev`)다(§19.2).
-> **기준**: 코드 인용은 base `6093d07`(worktree `wt/oport-design`)의 `파일:줄`이다. v0.2.4에서 새로 적은 사실은 base `1ba9461`(worktree `wt/oracle-op0-design`)에서 다시 쟀다. 두 base 사이 `O/` 차이는 `O/README.md` 2줄 추가뿐이라(`git diff --stat 6093d07 1ba9461`) 코드 `파일:줄` 인용은 두 base에서 같다. v0.2.5에서 새로 적은 사실은 base `9069e10`(worktree `wt/oracle-op0-v025`)에서 다시 쟀고, `1ba9461`과 `9069e10` 사이 `O/` 차이는 0이다(`git diff --stat 1ba9461 HEAD -- O/` 빈 출력). v0.2.6 사실은 base `52945ce`에서 다시 쟀고, `9069e10`과 `52945ce` 사이 `skills/` 차이는 0이다(`git diff --stat 9069e10 HEAD -- skills/` 빈 출력). 경로 약어는 계획 N0과 같다: `O/` = `skills/analog-gmid-design/tools/spice_oracle/`, `E/` = `skills/analog-gmid-design/gmid_engine/`, `A/` = `skills/analog-gmid-design/assets/`. 계획 인용은 `P N3.5`, `P D-7` 식으로 쓴다.
+> **Status**: **design v0.3.0 -- 개정 초안, 독립 검증·사용자 승인 전**(2026-10-20). 계획 v0.6.9(master `9401e98f`, 사용자 O-48)의 N7.5 design 개정 대상 DR-1~DR-17과 v0.6.9가 남긴 미결(G-18·G-19, EO-1 범위·갱신 경로, `.tf` 개루프 벤치, 합격 판정 전도 기준 = 봉인 9 식과 값의 출처, 손분석 입력 경로, OP-11)을 반영했다. 우선순위대로 OP-3 입력 스키마 계약(§11)을 먼저 test 작성자가 소스 없이 쓸 수 있는 수준(칸 이름·형식·필수·거부 조건·예시)으로 확정하고, 그다음 OP-5·OP-10·OP-11(§11.6, §21)을 정했다. **멈춘 항목 넷**(§19.2): DV-6 I_off 열의 읽기 규칙, DV-7 기준선 입력 LUT에 모델 기록 없음(OP-3 병합 조건 (b) 실행 불가), DV-8 `offset_sys_mv` 부호 규약, DV-9 슬루 계단 끝 '허용 입력 범위'의 출처. 이전 판(v0.2.6까지)의 상태 문장은 history H6으로 옮겼다.
+> **기준**: 코드 인용은 base `6093d07`(worktree `wt/oport-design`)의 `파일:줄`이다. v0.2.4에서 새로 적은 사실은 base `1ba9461`(worktree `wt/oracle-op0-design`)에서 다시 쟀다. 두 base 사이 `O/` 차이는 `O/README.md` 2줄 추가뿐이라(`git diff --stat 6093d07 1ba9461`) 코드 `파일:줄` 인용은 두 base에서 같다. v0.2.5에서 새로 적은 사실은 base `9069e10`(worktree `wt/oracle-op0-v025`)에서 다시 쟀고, `1ba9461`과 `9069e10` 사이 `O/` 차이는 0이다(`git diff --stat 1ba9461 HEAD -- O/` 빈 출력). v0.2.6 사실은 base `52945ce`에서 다시 쟀고, `9069e10`과 `52945ce` 사이 `skills/` 차이는 0이다(`git diff --stat 9069e10 HEAD -- skills/` 빈 출력). v0.3.0 사실(S-37~)은 base `9401e98f`(worktree `wt/design-oracle-eo1`)에서 다시 쟀고, `52945ce`와 `9401e98f` 사이 `O/` 차이는 0이다(`git diff --stat 52945ce 9401e98f -- skills/analog-gmid-design/tools/spice_oracle` 빈 출력) -- 그래서 앞 판의 `O/` 줄 인용은 그대로 맞다. 경로 약어는 계획 N0과 같다: `O/` = `skills/analog-gmid-design/tools/spice_oracle/`, `E/` = `skills/analog-gmid-design/gmid_engine/`, `A/` = `skills/analog-gmid-design/assets/`. 계획 인용은 `P N3.5`, `P D-7` 식으로 쓴다.
 > **이력**: [oracle-portability.design.history.md](oracle-portability.design.history.md)
 
 ---
@@ -36,7 +30,7 @@ plan_version: 0.6.6
 ## 0. 문서 안내
 
 * **담는 것**: 계획 결정을 오라클 구조로 옮긴 규칙, 자료 형식, 함수 서명, 실패 코드, 파일 분할, card별 범위, test 목록, 상위 문서 개정 문안.
-* **담지 않는 것**: 경위(history 몫)와 수치 상수. 허용 폭은 시뮬레이터 해 정확도 선언(입력 `simulator.options` 또는 출처 있는 어댑터 보정값, §8.3), MC 표본 수 규칙, 기술자가 원본 파일에서 계산한 값에서만 온다(P N0 값 원칙). 예외는 계획 NFR-P2의 '출처 미확인 기존 상수' 여섯뿐이다(§14).
+* **담지 않는 것**: 경위(history 몫)와 수치 상수. 허용 폭은 시뮬레이터 해 정확도 선언(입력 `simulator.options` 또는 출처 있는 어댑터 보정값, §8.3), MC 표본 수 규칙, 기술자가 원본 파일에서 계산한 값에서만 온다(P N0 값 원칙). 예외는 계획 NFR-P2의 '출처 미확인 기존 상수' 다섯뿐이다(§14. v0.3.0: 여섯째였던 `1e-3`은 계획 v0.6.9 O-43 D1 (d)로 지운다).
 * **이름 원칙**: 회로·PDK·시뮬레이터 이름은 '사례'로만 쓴다. 코어 규칙·스키마 필드 이름에는 넣지 않는다.
 * **측정 대기**: OP-1(검증자 측정)이 정해야 하는 칸은 '**측정 대기**'로 두고 값이나 하나의 안을 고르지 않는다. 목록은 §19.3에 있다.
 * **오케스트레이터 기본안**: 계획이 정하지 않은 세부를 이 문서가 정할 때 '(기본안)'으로 표시한다. 목록은 §19.1에 있다.
@@ -48,8 +42,12 @@ plan_version: 0.6.6
 | 테스트벤치 원소 | 본 회로 밖에서 측정을 위해 코어가 더하는 원소. 레일 전압원, DC servo, choke, 결합 C, AC 여기원, 감지원, Middlebrook 주입원, 고정 전압원이 있다 |
 | 결과 묶음 | 어댑터가 벤치 하나에 대해 돌려주는 정규화 결과(§6)의 묶음 |
 | 진단 벡터 | 소자 × 기술자 진단 변수마다 값을 정한 결정적 섭동 입력(§13) |
-| 기술자 지문 | 오라클 기술자 파일 sha256 + 그것이 참조한 엔진 선언 sha256 + 기술자가 직접 가진 원본 파일 sha256 묶음 |
-| 어댑터 지문 | 어댑터 이름 + 어댑터 코드 지문 + 실행 파일 sha256 + 읽은 시뮬레이터 판. (v0.2.6, 계획 v0.6.6 N3.5 '어댑터 코드 지문의 범위') 코드 지문 = 어댑터 패키지 `O/adapters/<이름>/` 아래 **모든 파일**의 sha256 묶음에서 **제외 목록**만 뺀 것이다. 제외 목록(닫힌 목록, 근거는 계획 v0.6.6 '지문 밖'): (i) `calibration.json`의 키 `wall_s_per_window`(그 키를 뺀 정규 JSON의 sha256을 넣는다) (ii) 보정값 측정 도구 하위 폴더 `calibration_tools/`(기본안 B-25) (iii) `__pycache__/`(실행 산출물). 제외 목록 방식이라 계획의 '목록 밖 새 보정값 키는 모르면 넣는다'(fail-closed)가 자동으로 지켜진다: 새 키·새 파일은 제외 목록에 이름이 올라가기 전까지 지문에 들어간다. 계획이 적은 판정 키 넷(`default_tolerances`, `data_digits`, `global_geometry_directive`, `simulator_version_probe`)은 모두 들어간다(§8.3 키는 이 넷과 `wall_s_per_window`뿐). (v0.2.6, 계획 v0.6.6 diff 확인 M-1·M-2) **파일 집합** = 계획 v0.6.6 문구 그대로 **어댑터 패키지 아래 디스크의 모든 파일 − 닫힌 제외 목록**이다(순수 파일 열거, git 등 프로세스 호출 없음). (v0.2.6 고침: 앞선 커밋의 'git 추적 파일 기준'(B-28 옛 안)은 철회했다 -- 미추적 새 파일을 지문 밖에 둬 fail-closed·'모르면 넣는다'를 거스르고, git 작업 트리가 아닌 배포본에서 오라클을 멈춰 환경 무관 목표와 충돌한다. 재현성 영향은 §19.4 X-D6.) 묶음 = 각 파일의 (패키지 기준 **상대 POSIX 경로**, sha256) 쌍을 경로 정렬 순으로 이은 것의 sha256이다(경로도 묶음에 들어가 파일 이름 바꾸기도 지문을 바꾼다). 파일을 읽지 못하면 지문 계산을 거부한다(`adapter_fingerprint_unavailable`, §7). **정규 JSON**(제외 키를 지운 `calibration.json`): `json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)`를 UTF-8 바이트로 인코딩한 것의 sha256이다. 능력 기록 `record_id`(§12.4)도 같은 직렬화 규칙을 쓴다. `calibration.json`을 읽지 못하거나 JSON이 아니면 지문 계산을 거부한다(`adapter_fingerprint_unavailable`, 원래 바이트로 대체하지 않음) |
+| 기술자 지문 | 오라클 기술자 파일 sha256 + 그것이 참조한 엔진 선언 sha256 + 기술자가 직접 가진 원본 파일 sha256 묶음. (v0.3.0, 계획 OQ-5 (a) = O-14 (3), N3.4 'sha256 정의' (i)) 세 값 모두 **LF 정규화 sha256**(계획 N0.1: 바이트의 CRLF만 왼쪽부터 한 번 LF로 바꾼 뒤의 sha256)이다. 엔진 `decl_sha256`(엔진 v6.17 card SH-1 전에는 raw) 값을 옮겨 적지 않고 파일 바이트에서 다시 잰다(§10.1) |
+| OP-3 입력 스키마 | (v0.3.0) card OP-3이 정하는 오라클 입력 형식 `spice_oracle_input/2`의 칸 집합(§11.1). gain-budget card EO-1 생산자와 A' 손분석 입력의 계약이다(계획 N5.2·G-18). 정본은 §11.1 표 하나이고 기계 판정 파일 `O/oracle_input.schema.json`은 그 표를 옮긴 것이다 |
+| G-18 확장 칸 | (v0.3.0) OP-3 스키마 뒤에 card OP-5·headroom-chain HC-O·OP-10이 더하는 입력 칸(§11.6: 선언 triode, 훑기 방향, tol_V 열, I_off 열, 출력 기준, 슬루 선언). 더하는 card의 통합 병합에 EO-1 생산자 갱신 커밋(`Role: code`)이 함께 들어간다(계획 U-6) |
+| 판정 점 | (v0.3.0) 오라클이 전도·포화를 판정하는 SPICE 해의 점: 합격 판정이면 free 모드 `.op` 해, 범위 판정이면 그 훑기 점의 해. 그 점의 값 = 그 해에서 읽은 VDS·VSB·ID·gm/ID와, 그 VDS·VSB에서 읽은 엔진 LUT 열 값(계획 N3.9, 사용자 결정 O-46 (2)) |
+| 기계 의존 일치 | 계획 N0.1 그대로: 옛 raw 기록값이 파일의 LF 정규화 sha256과는 다르고 raw sha256과만 같은 경우. 받되 결과에 표시한다(§6 `machine_dependent_refs`) |
+| 어댑터 지문 | 어댑터 이름 + 어댑터 코드 지문 + 실행 파일 sha256 + 읽은 시뮬레이터 판. (v0.2.6, 계획 v0.6.6 N3.5 '어댑터 코드 지문의 범위') 코드 지문 = 어댑터 패키지 `O/adapters/<이름>/` 아래 **모든 파일**의 sha256 묶음에서 **제외 목록**만 뺀 것이다. 제외 목록(닫힌 목록, 근거는 계획 v0.6.6 '지문 밖'): (i) `calibration.json`의 키 `wall_s_per_window`(그 키를 뺀 정규 JSON의 sha256을 넣는다) (ii) 보정값 측정 도구 하위 폴더 `calibration_tools/`(기본안 B-25) (iii) `__pycache__/`(실행 산출물). 제외 목록 방식이라 계획의 '목록 밖 새 보정값 키는 모르면 넣는다'(fail-closed)가 자동으로 지켜진다: 새 키·새 파일은 제외 목록에 이름이 올라가기 전까지 지문에 들어간다. 계획이 적은 판정 키 넷(`default_tolerances`, `data_digits`, `global_geometry_directive`, `simulator_version_probe`)은 모두 들어간다(§8.3 키는 이 넷과 `wall_s_per_window`뿐). (v0.2.6, 계획 v0.6.6 diff 확인 M-1·M-2) **파일 집합** = 계획 v0.6.6 문구 그대로 **어댑터 패키지 아래 디스크의 모든 파일 − 닫힌 제외 목록**이다(순수 파일 열거, git 등 프로세스 호출 없음). (v0.2.6 고침: 앞선 커밋의 'git 추적 파일 기준'(B-28 옛 안)은 철회했다 -- 미추적 새 파일을 지문 밖에 둬 fail-closed·'모르면 넣는다'를 거스르고, git 작업 트리가 아닌 배포본에서 오라클을 멈춰 환경 무관 목표와 충돌한다. 재현성 영향은 §19.4 X-D6.) 묶음 = 각 파일의 (패키지 기준 **상대 POSIX 경로**, sha256) 쌍을 경로 정렬 순으로 이은 것의 sha256이다(경로도 묶음에 들어가 파일 이름 바꾸기도 지문을 바꾼다). (v0.3.0, 계획 OQ-5 (b) = O-14 (3)) 파일마다 sha256은 **LF 정규화 sha256**이다(같은 코드가 CRLF·LF 체크아웃에서 같은 지문). 어댑터 패키지에 바이너리 파일이 생기면 계획 N3.4 '바이너리' 원칙대로 그 파일 종류를 선언으로 정한다(계획 개정 대상, 지금 없음). 파일을 읽지 못하면 지문 계산을 거부한다(`adapter_fingerprint_unavailable`, §7). **정규 JSON**(제외 키를 지운 `calibration.json`): `json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)`를 UTF-8 바이트로 인코딩한 것의 sha256이다. 능력 기록 `record_id`(§12.4)도 같은 직렬화 규칙을 쓴다. `calibration.json`을 읽지 못하거나 JSON이 아니면 지문 계산을 거부한다(`adapter_fingerprint_unavailable`, 원래 바이트로 대체하지 않음) |
 
 ---
 
@@ -64,7 +62,7 @@ plan_version: 0.6.6
 | O-2 | X-15(엔진 σ 기하 전제는 TR-7 비교로 잡음)와 X-17(MC 연속값 동일성 제외) 수용 | §17.3 |
 | O-6 D-a | 네이티브 MC = 기술자 선언 켜는 법(종류 하나 + 대상), 분포 값은 PDK 원본 선언에서만(기술자는 원본 sha256으로 위치만 가리킴), 난수는 시뮬레이터 RNG, 오라클은 표본 값을 계산하지 않음(P N0.1, X-18 수용) | §10.4, §12.2 |
 | O-6 D-b | 기술자에 기하 단위·병렬 배수 전달 규칙 선언, 어댑터는 그대로 소자 줄을 씀, 미선언 kind는 공칭 포함 모든 해석에서 거부, 손 모델 결정적 어댑터 test(완료 조건 4a) | §10.2, §10.6, §18.1 |
-| O-6 D-c | 차동 이득 실수 판정 상대 폭 `1e-3`은 '출처 미확인 기존 상수' 예외로 값·동작 그대로 이동(P NFR-P2 여섯째) | §14 |
+| O-6 D-c | 차동 이득 실수 판정 상대 폭 `1e-3`은 '출처 미확인 기존 상수' 예외로 값·동작 그대로 이동(P NFR-P2 여섯째). **(v0.3.0) O-43 D1 (d)로 대체**: `1e-3`과 `.ac` 첫 점 경로를 지우고 A는 `.tf`로 잰다 | §14, §21.5 |
 | O-7 | 계획 v0.6.2 승인·병합(`1ba9461`) | v0.2.4의 기준 |
 | O-8 | (계획 v0.6.3) design v0.2.4 DV-3 = (가): 진단 경로 MC 재현 판정을 (가-1) 코어 MC 수학 비트 동일과 (가-2) 진단 경로 끝까지 재현(비트 동일 목표, 다르면 표본별 V_os만 N4-2 분해능 안 + 차 기록)으로 나눔(계획 X-19) | §13.2, §18.1 |
 | O-9 | (계획 v0.6.5) design v0.2.5 DV-4 (가) = 완료 조건 8a 예외 둘째(엔진 test `E/tests/metrics/test_verified_by.py:64` glob 한 줄을 `(ORACLE / "core").rglob("*.py")`로, X-25), DV-5 (가) = 기준선 표본별 V_os는 기준선 로그에 옛 식(`O/oracle_offset_mc.py:166-195`)을 적용한 검증자 재계산값, 먼저 σ_in·mean_in 비트 동일로 검증(계획 N0.1 '기준선', OP-1a (a)~(d), X-24). 계획 v0.6.5 기본안: 어댑터 코드 지문 범위 | §0, §8.3, §13.2, §15.1, §15.4, §19.2 |
@@ -82,6 +80,16 @@ plan_version: 0.6.6
 | D-9 | 오라클 기술자는 별도 파일, 엔진 선언 sha256 참조, 엔진 무변경 | §10 |
 | T-35 | offset-trim G-14 = 네이티브 MC 표본 안(결정적 벡터 불필요). PC-11 철회 | §12.2 |
 | S-7 | 계획과 다른 결정은 계획부터 | §19.2 |
+| O-13 (5) | (계획 v0.6.7) 기술자가 새로 적는 참조 sha256 = LF 정규화, 이 계획 밖 옛 raw 기록 = 규칙 (ii)(정규화 또는 raw 일치, raw만이면 '기계 의존'), 정의가 다른 값끼리 비교 금지(규칙 (iii)), git 밖 LUT 데이터 파일 = raw(규칙 (iv), v0.6.8) | §0, §6, §7, §7.2, §10, §11.1, §12.4, §12.5 |
+| O-14 (3)·(4) | (계획 v0.6.7) OQ-5: 지문 넷(기술자 자체, 어댑터 코드, `process.descriptor.sha256`, `check_code_fp`) = LF 정규화. J-1 (나): 입력 형식 전환·옛 형식 거부·옛 입력 읽기 전환·재생성 일치 test 삭제는 OP-3, OP-2 = 기술자·스키마·읽기 코드(따로 검토, 함께 병합, X-28). J-5 (가): 기록 뿌리 교차 검사 함수·test는 OP-3 | §0, §11, §12.4, §15, §18, §20 |
+| O-16 (1)·O-18 | (계획 v0.6.8) 엔진 정본 sha256도 LF 정규화(gain-budget card SH-1) -- 그 뒤 엔진 `decl_sha256`과 기술자 `engine_decl.sha256`은 정의가 같다. X-13은 파일 재측정 유지. LUT meta `generator_sha256`은 엔진이 대조하지 않고 오라클(OP-3)·OP-8만 대조 | §10.1, §12.5, §18.1 |
+| O-25·O-33 (5)(7)(8)(9) | (계획 v0.6.9 N3.9) swing·ICMR 정의 = 정의 일반형(전달 뷰 여기 방향 입력 포트 훑기), ICMR 출력 고정 해제, 포화 = VDS ≥ VDSAT 여유 0(여유는 판정 단계), 선언 triode 제외, 끝 풀이 실패 fail-closed | §11.6, §21.2 |
+| O-32·O-34 | 대신호 양도 엔진 손계산 + 오라클 SPICE 검증, 오라클 측정 정의 = 엔진 정의(인용만, 정의 정본 = gain-budget N3.8). 변경 종류별 판정 기준(정의 그대로 = 동일성, 정의를 바꾼 칸 = 동작 변경 기준), 슬루 측정 조건(β 선언 없으면 β = 1 + 'β = 1 기본' 표기) | §18.1, §21 |
+| O-33 (4)·O-46 (1)·O-47 | 계통 offset = 오라클 `.dc`(출력을 기준에 고정·입력 차 풀이), 엔진은 ΔW 1차 감도, 차는 모델 오차(DEC-72) | §21.4 |
+| O-36 (5)·O-45 U2·O-46 (2) | 범위 판정·합격 판정의 전도 = 봉인 9 식 I_off ≤ ε·ID, ε = (gm/ID)·tol_V. 값은 판정 점 값: gm/ID = SPICE op, tol_V·I_off = 그 점 VDS·VSB의 엔진 LUT 값(동작점 `off_current_A` 고정 아님). 원래 취지와 다름 X-33 승인 | §11.6, §21.1 |
+| O-43 D1 (d) | 불일치 σ 입력 환산의 A = SPICE `.tf`(servo를 연 개루프 벤치), `.ac` 첫 점·`1e-3` 경로 삭제 | §13, §14, §21.5 |
+| O-44 (1)·O-45 U1 | 엔진 점 → 오라클 입력 생산자 = gain-budget card EO-1(OP-3 뒤), 그 계약 = 이 문서 OP-3 입력 스키마. EO-1 범위 = OP-3 스키마 칸까지, G-18 확장 칸은 OP-5·HC-O 통합 병합에 EO-1 생산자 갱신 커밋 포함 | §11.0, §11.4, §11.6 |
+| O-48 | 계획 v0.6.9 승인(이 판의 기준) | 전체 |
 
 ### 1.2 원칙과 이 문서의 강제 장치
 
@@ -91,7 +99,7 @@ plan_version: 0.6.6
 | 상수 발명 금지(P NFR-P2) | §14 옛 리터럴 처리표. 새 판정 상수 없음. 보정값은 출처 칸 필수(§8.3) |
 | 만들면 배선(P NFR-P4) | §15 대체 배선표, §13 진단 경로 진입점, 완료 조건 7 test |
 | 작성자 ≠ 검증자(P NFR-P5) | 기준선·토큰 목록·입력 변환·능력 기록·동일성 판정의 주체를 검증자로 고정(§18.2) |
-| fail-closed(P NFR-P6) | §7 오류 코드, §12.6 게이트, §11.3 옛 형식 거부 |
+| fail-closed(P NFR-P6) | §7 오류 코드, §12.6 게이트, §11.2 옛 형식·스키마 거부(v0.3.0: 닫힌 키 집합) |
 | 순차 실행(P NFR-P7) | §8.2 실행 계약: 어댑터는 병렬 실행을 하지 않는다 |
 | 재계산 재사용(P NFR-P8) | §9 캐시 키 |
 
@@ -158,6 +166,21 @@ plan_version: 0.6.6
 | S-35 | LUT 기록 뿌리의 기존 정본: `A/lut_v2_location.json`(스키마 `gmid_lut_location/1`) `pdk_root = {"env": "GMID_PDK_ROOT", "default": "C:/pdk/sky130_fd_pr"}`. 읽는 함수는 엔진 `gmid_engine.lut.resolve_lut_location`(파일 `description`, `E/lut/CONTRACT.md` 1.8) | 위 파일 |
 | S-36 | 오라클 파일을 인용하는 엔진 쪽 주석·문서(바뀌면 낡는 인용): `E/metrics/verified_by.py:35, :48`(`tools/spice_oracle/oracle_compare.py` MEASURES·`oracle_noise.py`), `E/tests/metrics/test_device_sigma.py:9`(`oracle_offset_mc.py` 머리말), `E/metrics/junction_cap.py:16`(spice_oracle C22), `E/tests/metrics/test_verified_by.py:1-12`(docstring의 `oracle_offset_mc`·`oracle_swing`·`oracle_compare`) | `git grep -n spice_oracle -- '*.py'` |
 
+**v0.3.0 재측정 사실**(base `9401e98f`, 읽기와 작은 실측. 실측 스크립트·넷리스트는 scratchpad `oracle_design/`, 저장소 밖).
+
+| ID | 사실 | 근거 |
+|---|---|---|
+| S-37 | 기술자가 참조할 파일의 두 sha256(이 기계, CRLF 체크아웃): `A/sky130_pdk_decl.json` raw `24f970d5…` / LF 정규화 `5f32257b…`, `A/lut_v2_location.json` raw `c7ebb3c7…` / LF `07299556…`, `C:/pdk/sky130_fd_pr/models/parameters/lod.spice` raw `20874af1…` / LF `6200b50c…`. 셋 다 디스크 바이트에 CRLF가 있다. 계획 F-19·DR-8 값과 같다 | Python `hashlib.sha256(b)`·`b.replace(b"\r\n", b"\n")` |
+| S-38 | LUT v2 폴더(`A/lut_v2_location.json` `root`)의 LUT 파일 meta 모양: 폭 슬라이스 32개(`*__W*_dc.npz`)는 `meta_json.model_files_sha256`이 **평탄 표**(상대 경로 → sha256; nfet 3개 = 모델 카드·mismatch 파일·`.bins.csv`, pfet 4개 = 여기에 `models/parameters/lod.spice`), `generator_sha256` = `8df35d2e…`. 결합 파일 6개(`sky130_nfet_pfet_lut_v2*.npz`: 기준·r2·noise r1·mismatch r1·중점 둘)는 같은 칸이 **LUT 소자 키(`nfet_01v8`, `pfet_01v8`)로 한 겹 중첩**된 dict다(`generator_sha256` 4종). 모든 파일에 npz 키 `corner`·`temp_c`가 있다. 폭 슬라이스의 VGS 축 첫 값은 0.0이다(VGS = 0이 격자 마디). manifest `slices[*]` = `{device, w_um, file, bytes, sha256}` | `np.load` 실측, 계획 N9 '관찰' 행(중첩 모양)의 확인 |
+| S-39 | **기준선 입력의 LUT에는 모델 기록이 없다**: 기준선 입력 593개(`wt/_scratch_op1/baseline`)의 `process.lut_npz`는 test가 만든 `…/pytest/tmp/<case>/lut.npz`(npz 키 `corner`·`temp_c`만, conftest `make_lut` S-34)와 `A/sky130_nfet_pfet_lut_sample.npz`(키 `corner, temp_c, L, VGS, VDS, VS, ID_n, …` -- `meta_json` 없음)뿐이다(상위 빈도 24·22·16·16·14·…, 모두 이 둘 중 하나). 둘 다 `model_files_sha256`이 없다 -- 공칭 자동 대조(§12.5)가 배선되면 변환 입력 전부가 `lut_model_provenance_missing`으로 거부된다(§19.2 DV-7) | `grep -o '"lut_npz": *"[^"]*"'`, `np.load` |
+| S-40 | 지금 합격 판정의 전도 문턱: 소자별 `predictions.devices.<n>.off_current_A`(C23, 엔진 계산)가 있으면 그 값, 없으면 `judge.off_current_A`(`O/oracle_compare.py:278-279`). SPICE `ID > 문턱`이면 전도, 문턱이 없으면 그 소자 전도 확인 'N/A' → 판정 `INCOMPLETE`(`:242-244`, 머리말 `:26-29`). swing은 `judge.off_current_A`만 쓴다(`O/oracle_swing.py:15, :194, :326`). 두 칸 모두 ε = 1 식이다(계획 N3.9) | 위 파일:줄 |
+| S-41 | 엔진 쪽 정의(오라클은 import하지 않음, 같은 정의를 맞추는 대상): 봉인 9 I_off = `op_point(memo, kind, w_key, L, 0, vds, vsb).IDu · W/L`, ε = `gm_id · dc_tol_v`(`E/sizing/seal_conduction.py:6-10, :32-37`). tol_V 셀 = `tol_v_table(kind, w_key).at(L, vds, "id_equivalent")`(`E/search/cell_floor.py:19`), 읽기 규칙 `E/lut/_helpers_loo.py:153-163` `table_at`: L이 앵커면 그 행, 같은 bin 보간이면 양옆 앵커 두 행, VDS 칸 k = min(bisect_right(grid, vds) − 1, len(grid) − 2), 그 행들 × {k, k+1} 셀 가운데 정의된 값의 최댓값(없으면 None), VDS가 축 밖이면 거부. I_off의 `op_point`는 VS·VDS 축에서 기울기 자료·단조 조건이 맞으면 3차 Hermite, 아니면 선형, L은 bin 안 선형(`E/lut/point_query.py:22-64`, `E/lut/_helpers_interp.py:133-178`) | 위 파일:줄 |
+| S-42 | ngspice-46 `.tf`(실측 넷리스트 `oracle_design/tf_diff.cir`·`tf_ctrl.cir`): 차동 출력 `.tf v(op,on) Vd`가 되고 로그 세 줄 `transfer_function = 2.000000e+02`, `output_impedance_at_v(op,on) = 2.000000e+05`, `vd#input_impedance = 1.000000e+20`을 낸다(손 회로 gm·R = 100 쪽마다, 차동 200). `.control` 안 `tf v(op,on) vd`도 같은 세 줄. 단일 출력·servo 닫힘(폐루프 0.495)은 계획 OQ-6 실측(`scratchpad/tfcheck/`) | `ngspice_con.exe -b` |
+| S-43 | 지금 입력 스키마: 닫힌 키 집합은 `cm_output_loop`와 `$defs` 뷰 셋뿐이고 최상위·`process`·`devices[]` 등은 열려 있다. `schema` 칸은 선택이다. 검증 = jsonschema Draft 2020-12(`O/oracle_netlist.py:224-231`), 위반이면 진입점이 반환 2, 산출물 없음(`O/oracle_run.py:80-85`). 의미 검사는 막힘(`BLOCKED`): 기준 레일 개수(`O/oracle_netlist.py:95-96`), C27 여기 가중(`:199-221`), C14 되먹임(`:234-252`), CM 루프(`:263-293`), LUT 코너·온도 없음(`:302-304`) | 위 파일:줄 |
+| S-44 | 기준선 입력 593개의 키 실측(스키마 `properties` 대조): 스키마 밖 키는 `process.lut_reference_width_m`·`process.provenance`(각 16개)와 이미 변환된 사본 하나의 `process.descriptor`·`simulator`뿐이다. 최상위·`devices[]`·`rails[]`·`testbench`·`judge`·`predictions` 등에는 스키마 밖 키가 0이다. 이름 중복 입력 0, `L`·`finger_w`가 양수가 아닌 소자 6개(거부 test 입력) | scratchpad `oracle_design/scan_keys.py` |
+| S-45 | 지금 스윙·ICMR 측정: free 넷리스트의 servo 기준원(`Vofs_`)과 입력 DC원(`Vdc_`)을 `alter`로 바꿔 `.op`를 점마다 푸는 훑기, 격자 간격 V_T, 경계 괄호 7점 × 최대 8회(`ZOOM_POINTS`·`ZOOM_ROUNDS`), 수렴하지 않은 점 = 포화 아님(`O/oracle_swing.py:15-30, :142-189`), 차동 입력이 없으면 ICMR `unavailable`(`:233`), 결과 키 `ngspice_runs`(`:306`) | 위 파일:줄 |
+| S-46 | 레일 전류·전력: `rail_current_A[net] = −i(Vrail_<net>)`(`O/oracle_simulate.py:39, :150-153`), `hold_current_A` = i(`Vhold_`)(`:40`), measure `supply_current_A` = `rail_current_A[item.rail]`(`O/oracle_compare.py:136-139`). 테스트벤치 원천 `Vdc_`(`O/oracle_netlist.py:450`)·`Vbias_`(`:480`). `O/`에 `power` 문자열 0(grep) | 위 파일:줄 |
+
 ---
 
 ## 3. 패키지·파일 분할과 import 금지
@@ -187,6 +210,10 @@ O/
     capability.py          PC 벤치·판정·기록(§12)
     bundle.py              모델 묶음 비교 규칙(§12.5)
     cache.py               실행 캐시 키 원칙(§9)
+    input_check.py         (v0.3.0) 입력 교차 칸 검사(§11.2 1d·2b), LUT 파일 읽기(코너·온도·모델 기록 모양) -- OP-3
+    conduction.py          (v0.3.0) 판정 점 전도·포화 판정(봉인 9 식, tol_V·I_off 열 읽기, §21.1) -- OP-5
+    measures_dc.py         (v0.3.0) 계통 offset `.dc` 풀이 해석(§21.4), `.tf` A(§21.5), 전력 Σ V·I(§21.7) -- OP-5·OP-11
+    slew_math.py           (v0.3.0) 계단 벤치·dV/dt 판정 수학(§21.6) -- OP-10
   adapters/
     ngspice/               첫 어댑터(사례)
       __init__.py          어댑터 객체(능력 선언 포함)
@@ -225,12 +252,13 @@ O/
 | (v0.2.6) `O/adapters/<이름>/calibration_tools/*` | 그 어댑터 패키지, 표준 라이브러리 | -- (반대 방향 금지: 코어·어댑터 실행 모듈·진입점은 이 폴더를 import하지 않는다. 그래야 지문 밖 폴더가 판정에 닿지 않는다) |
 
 * `O/core/` 안에는 `.py`만 둔다(`__pycache__` 제외, P N5.3-1).
-* 코어가 `O/core/` 밖에서 여는 파일은 셋뿐이다. 입력 JSON, 기술자 JSON(과 그것이 sha256으로 가리키는 파일), 결과 출력 디렉터리. 이 목록 밖의 열기는 test가 거부한다(§18 T1-4).
+* 코어가 `O/core/` 밖에서 여는 파일은 셋뿐이다. 입력 JSON(과 그것이 sha256으로 가리키는 LUT 파일 `process.lut_files`, v0.3.0), 기술자 JSON(과 그것이 sha256으로 가리키는 파일), 결과 출력 디렉터리. 이 목록 밖의 열기는 test가 거부한다(§18 T1-4).
+* (v0.3.0) 입력 JSON Schema 검증(§11.2 1c)은 **진입점 `oracle_run`**이 `O/oracle_input.schema.json`으로 한다. 코어는 스키마 파일을 열지 않는다(위 '셋' 규칙). 스키마로 쓸 수 없는 교차 칸 검사(§11.2 1d·2b)는 코어 `input_check.py`가 한다.
 
 ### 3.3 stub 어댑터(D-3, G-10)
 
 * 위치는 `O/tests/stub_adapter.py`이고 test 작성자가 소유한다. 코어 interface(§5·§6·§8)만 보고 쓴다.
-* 능력 선언: `op`, `ac`, `pz`, `tran`(선형 시간 해), `noise`(저항 열잡음만). 선언하지 않는 것: `tran_early_stop`, `mc_native`, `mc_diagnostic`, `op_sweep`, `noise_device_contrib`.
+* 능력 선언: `op`, `ac`, `pz`, `tran`(선형 시간 해), `noise`(저항 열잡음만), (v0.3.0) `tf`(선형 DC 전달 함수 = MNA 해석해, §5 `Tf`). 선언하지 않는 것: `tran_early_stop`, `mc_native`, `mc_diagnostic`, `op_sweep`, `noise_device_contrib`.
 * MOS는 입력 `predictions.devices`의 gm·gds·(cgg 등 있으면) 값으로 선형 스탬프한다. 비선형 op는 풀지 않는다.
 * (v0.2.4) 기하: stub은 `geometry_unit_application`을 선언하지 않는다. 그래서 stub 실행 test의 기술자 픽스처는 `geometry_unit = "si"`와 `parallel_multiplier`를 선언한다(미선언 거부는 stub 앞 코어에서 일어나므로 OP-3 병합 조건 (a) test는 stub으로 돈다). 비 SI 단위 기술자를 stub에 주면 `adapter_capability_missing`(detail `geometry_unit_application`)이다(v0.2.5: 옛 `geometry_unit_unsupported`를 기존 코드로 합침, §7). stub은 `instance_geometry_readback`도 선언하지 않는다.
 
@@ -241,7 +269,9 @@ O/
 | pz | 해석해 극점 | stub 실행 |
 | noise | 저항 4kT/R만 | stub 실행 / MOS 기여는 '능력 없음 거부' test |
 | MC(네이티브·진단) | 미선언 | '능력 없음 거부' test |
-| swing·ICMR(op 스윕) | 미선언 | '능력 없음 거부' test |
+| swing·ICMR(op 스윕), 계통 offset 훑기 | 미선언 | '능력 없음 거부' test |
+| (v0.3.0) `.tf` A(§21.5), 계통 offset 한 점 풀이(§21.4) | `Tf` = MNA DC 해석해, 계통 offset 한 점 = 선형 `Op` | stub 실행(개루프 벤치 IR에 servo 원소가 없음을 단언하는 test 포함) |
+| (v0.3.0) 슬루 `.tran`(§21.6) | MOS 선형 스탬프의 시간 해에는 슬루 제한이 없다 | '능력 없음 거부' test(슬루 요청은 어댑터 능력 `tran_large_signal` 필요, §8.3 -- stub은 선언하지 않는다) |
 
 ---
 
@@ -294,8 +324,11 @@ Pz(id, cond, exc, in_pair, out_pair, kind='voltage')
 OpSweep(id, cond, base_exc, points: tuple[Excitation], outputs)
 McNative(id, cond, n_samples, seed, outputs, keep_identity: bool)     # 네이티브 MC(§10.4)
 McDiagnostic(id, cond, vectors: tuple[DiagnosticVector], outputs)      # 결정적 섭동(§13), 판정 금지
+Tf(id, cond, exc, out: Expr, src: source_name)                         # (v0.3.0) DC 소신호 전달 함수(§21.5). 능력 `tf`
 Expr = NodeV(net) | DiffV(net_p, net_n) | BranchI(element) | Ratio(Expr, Expr)
 ```
+
+* (v0.3.0) `.dc` 훑기(swing·ICMR, §21.2)는 새 요청 종류를 만들지 않고 `OpSweep`(점마다 `Excitation`의 DC 덮어쓰기)으로 낸다. 계통 offset 한 점 풀이(§21.4)는 `Op` 하나다. 슬루(§21.6)는 `Tran`에 계단 원(`VSource.tran = Pulse`)을 둔 벤치다. 그래서 요청 종류가 느는 것은 `Tf` 하나다.
 
 * 요청은 방언을 모른다. 출력은 IR 넷·원소 이름의 식(`Expr`)이다. 옛 `let hout = ...` 같은 방언식은 어댑터가 만든다.
 * `EarlyStopRule`은 코어 규칙 자체(창 경계, floor', reltol, g↑·g↓·한계 사이클 판정에 필요한 값)를 담는 자료다. 능력이 있는 어댑터는 이것을 방언 스크립트로 옮긴다. 능력이 없는 어댑터에서는 코어가 이 규칙을 사후에 적용한다. 실행 방식(전체 창 한 번 / 창별 재실행)은 §8.4의 G-13 후보 가운데 OP-4가 고른다(측정 S-19).
@@ -322,11 +355,18 @@ TimeSeries(t: array, values: {expr_key: array}, stopped_early: bool, windows_don
 Poles(values: tuple[complex], status: 'ok'|'failed', resolution, error)
 SweepResult(points: tuple[OpTable|None], error)
 McResult(samples: tuple[OpTable|None], seed, identity_kept: bool, error)
+TransferResult(gain: float|None, out_impedance: float|None, in_impedance: float|None, resolution, error)
+                                   # (v0.3.0) Tf 요청 결과(§21.5). 부호 있는 실수(위상 검사 없음). 어댑터가 방언 로그 세 줄을 읽어 낸다(S-42)
                                    # 각 결과의 error = 그 요청 단위 오류(예: pz 반복 한도 -> Poles.status 'failed' + error, 같은 벤치의 다른 요청은 그대로, §7.1)
 Resolution(reltol, abstol: {quantity: value}, data_rel: float|None, source: 'input_options'|'adapter_declared')
                                    # DC 풀이 허용오차(reltol, vntol, abstol)는 이 칸이 정본. 값이 없으면 어댑터가 결과를 내지 않는다(§8.3)
 ResultBundle(bench_id, adapter_fp, descriptor_fp, status: RunStatus, by_request: {request_id: result},
-             name_map: {ir_name: dialect_name, "geometry_fields": {field: <시뮬레이터 보고 칸 이름>}}, method: str)
+             name_map: {ir_name: dialect_name, "geometry_fields": {field: <시뮬레이터 보고 칸 이름>}}, method: str,
+             bundle_files: {path: {"lf": sha256, "raw": sha256}})
+                                   # (v0.3.0) bundle_files = 이 벤치의 모델 묶음(§8.1 model_bundle 반환 그대로). 모델 묶음 비교(§12.5)의 입력
+RunRecord.machine_dependent_refs: [{"ref": <참조 이름>, "path": ..., "recorded_sha256": ..., "matched": "raw"}]
+                                   # (v0.3.0, 계획 NFR-P9·FR-P9, DR-11) 실행 하나(입력 한 개)의 결과 JSON 최상위 칸. 규칙 (ii)로 raw 값과만 맞은 옛 기록 전부.
+                                   # ref = `engine_source:<키>` | `lut_model_file:<kind>:<상대 경로>` | `lut_generator:<LUT 파일>`. 없으면 빈 목록(칸은 늘 있다)
                                    # method = 어댑터가 쓴 해석 방법 설명(옛 결과 `method` 칸 값, S-24). 코어는 이 문자열을 만들지 않는다
 ```
 
@@ -359,6 +399,12 @@ ResultBundle(bench_id, adapter_fp, descriptor_fp, status: RunStatus, by_request:
 | `ResultBundle.name_map` | 코어 결과 조립(방언 이름 → IR 이름), 검증자 N4-3 정규화 입력(§10.6, 의존 기록) | §4.1 |
 | `OpTable.instance_geometry_reported` | 완료 조건 4a test(§18.1). 판정 코드는 읽지 않는다 | §10.6 |
 | `ResultBundle.adapter_fp`·`descriptor_fp` | 코어 캐시 키(§9), 능력 기록 유효성(§12.6), 결과 JSON 지문 칸(P FR-P9) | §9, §12.6 |
+| (v0.3.0) `ResultBundle.bundle_files` | 코어 `bundle.py` 규칙 (i)~(iii) 대조(§12.5), 캐시 키의 묶음 목록(LF 값, §9) | DR-10d |
+| (v0.3.0) 결과 `machine_dependent_refs` | **출력 전용**(계획 NFR-P9: 결과에 남겨 사람·검증자가 읽는다). 능력 기록에는 같은 목록을 옮긴다(§12.4). 판정 코드는 읽지 않는다 -- 기계 의존 일치는 거부 사유가 아니다(계획 N3.4 (ii)) | DR-11 |
+| (v0.3.0) `TransferResult.gain` | 코어 `mc_math`(불일치 σ의 A, §21.5), 결과 `offset_mc.a_dc_tf` | OQ-6 |
+| (v0.3.0) `TransferResult.out_impedance`·`in_impedance` | **출력 전용**(결과 `offset_mc.tf_record`, 벤치 확인용 기록) | S-42 |
+| (v0.3.0) 결과 `summary.conduction_definition` | gain-budget EO-1 판정 기록('꺼짐 정의 판' -- gain-budget N6.20 'EO-1 뒤 OP-5 전 기간') | §11.7 |
+| (v0.3.0) 결과 `record_id` | gain-budget EO-1 판정 배선(엔진 점 레코드에 붙이는 판정 기록 id, gain-budget N6.20 범위 (2)) | §11.7 |
 
 ---
 
@@ -375,16 +421,23 @@ ResultBundle(bench_id, adapter_fp, descriptor_fp, status: RunStatus, by_request:
 | `adapter_capability_missing` | 요청에 필요한 능력 미선언. `detail` = 능력 이름. (v0.2.5) 기술자가 비 SI 기하 단위를 선언했는데 어댑터 `geometry_unit_application`에 적용 방법이 없을 때도 이 코드다(`detail = "geometry_unit_application"`) | 코어 |
 | `adapter_calibration_missing` | 보정값 없음(예: 창당 상한, §8.3). `detail` = 보정값 이름. (v0.2.5) `global_directive` 방법인데 `global_geometry_directive.affects`·`power` 선언이 없을 때도 이 코드다 | 코어 |
 | `ir_name_collision` | 대소문자 접기 충돌(§4.1) | 코어 |
-| `oracle_input_format_old` | 옛 입력 형식(D-5) | 코어 |
+| `oracle_input_format_old` | 옛 입력 형식(D-5). (v0.3.0) `detail.markers` = 걸린 옛 표지 목록(§11.2 1b) | 진입점 |
+| `oracle_input_schema_invalid` | (v0.3.0) 입력이 OP-3 스키마(§11.1)를 어김: JSON 읽기 실패, JSON Schema 위반, 스키마로 쓸 수 없는 교차 칸 규칙 위반(§11.2 1d). `detail` = `[{pointer, rule}]` 전부(포인터 문자열 순). 산출물(넷리스트·결과)을 쓰지 않는다(옛 C13 동작과 같음) | 진입점(1a·1c), 코어 `input_check`(1d) |
+| `adapter_unknown` | (v0.3.0) `simulator.adapter`가 등록된 어댑터 이름이 아님. `detail` = `{name, known: [...]}` | 진입점 |
+| `simulator_exe_missing` | (v0.3.0) 실행 파일 경로가 CLI `--sim-exe`에도 `simulator.exe`에도 없음, 또는 그 경로에 파일이 없음(옛 '실행 파일 경로 없음' 반환 2, `O/oracle_run.py:86-89`) | 진입점 |
+| `descriptor_kind_undeclared` | (v0.3.0) `devices[].kind`가 기술자 `kinds`의 키가 아님. `detail` = `{kind, devices: [...]}`. 기하 칸이 빠진 경우(`descriptor_geometry_undeclared`)와 구분한다 | 코어 |
+| `lut_file_stale` | (v0.3.0) `process.lut_files[i]` 파일의 raw sha256(계획 N3.4 규칙 (iv), git 밖 LUT 데이터)이 입력 값과 다르거나 파일이 없음. `detail` = `{index, path, expected_sha256, actual_sha256 \| "missing"}` | 코어 |
+| `lut_meta_shape_mismatch` | (v0.3.0, 계획 N9 '관찰' 행) LUT 파일 meta `model_files_sha256`의 모양이 입력 `kinds` 선언과 맞지 않음 또는 모르는 모양. `detail.why` ∈ `flat_multi_kind`(평탄 표인데 kind가 둘 이상), `meta_key_given_for_flat`, `meta_key_missing_for_nested`, `nested_key_absent`(중첩 dict에 선언한 키가 없음), `unknown_shape`(값이 전부 문자열도 전부 dict도 아님). 조용히 평탄화하지 않는다 | 코어 |
+| `lut_condition_conflict` | (v0.3.0) `process.lut_files`의 파일들이 기록한 `corner` 또는 `temp_c`가 서로 다름(§11.2 2b). `detail` = `{key, values: {index: value}}` | 코어 |
 | `oracle_condition_missing` | LUT 메타와 입력 모두 온도·코너가 없음(§11.2) | 코어 |
-| `descriptor_source_duplicated` | 같은 원본 파일(경로 또는 sha256)이 엔진 선언 `sources`와 기술자 `extra_sources` 두 곳에 있음(§10.1, 계획 N3.4) | 코어 |
+| `descriptor_source_duplicated` | 같은 원본 파일(경로 또는 sha256)이 엔진 선언 `sources`와 기술자 `extra_sources` 두 곳에 있음(§10.1, 계획 N3.4). (v0.3.0, DR-4, 계획 N3.4 규칙 (iii)) '같은 sha256'은 **기록값끼리가 아니라** 엔진 `sources` 모든 파일(기술자가 쓰지 않는 원본 포함)과 `extra_sources` 파일을 바이트에서 LF 정규화로 다시 잰 값끼리 비교한다. 엔진 `sources`의 어느 파일이든 없으면 중복을 판정할 수 없으므로 `pdk_descriptor_stale`(`actual_sha256 = "missing"`)로 거부한다. `detail` = `{path_or_sha, engine_source_key, extra_source_key, by: "path" \| "lf_sha256"}` | 코어 |
 | `descriptor_schema_invalid` | (v0.2.5) 기술자 JSON이 `oracle_pdk_descriptor/1` 스키마(필수 칸, 칸 형식, 닫힌 키 집합)를 어김. 사례: `extra_sources.<key>.provenance`가 비어 있음(§10.1). `detail` = JSON 포인터 + 어긴 규칙. `mc.distribution` 칸의 위반은 이 코드가 아니라 `mc_distribution_inline`으로 낸다(§10.4) | 코어 |
-| `pdk_descriptor_stale` | 기술자가 참조한 sha256과 실제 파일 sha256이 다름. (v0.2.5) `detail` = `{ref, path, expected_sha256, actual_sha256}`. `ref` ∈ `engine_decl`, `engine_source:<key>`, `extra_source:<key>`, `lut_location_decl`(v0.2.6), `lut_file_roles[<i>]`. 대조는 §7.2 2단계 한 곳에서만 한다(v0.2.6). 파일이 없으면 `actual_sha256 = "missing"` | 코어 |
-| `model_bundle_mismatch` | 모델 묶음 비교 규칙 (i)·(ii) 위반(§12.5). (v0.2.5) `detail` = 어긴 규칙 번호, kind, 빠진 sha256 목록과 그 기록 경로, 역할 미선언으로 모델 파일로 본 기록 경로 목록 | 코어 |
-| `lut_aux_input_mismatch` | (v0.2.5, 계획 N3.5 규칙 (iii), G-4·G-17) LUT 생성 보조 입력 기록의 sha256이 기술자 LUT 기록 뿌리 아래 같은 상대 경로 파일의 지금 sha256과 다르거나, 그 파일이 없음. `detail` = `{path, recorded_sha256, actual_sha256 \| "missing"}` | 코어 |
+| `pdk_descriptor_stale` | 기술자가 참조한 sha256과 실제 파일 sha256이 다름. (v0.2.5) `detail` = `{ref, path, expected_sha256, actual_sha256}`. `ref` ∈ `engine_decl`, `engine_source:<key>`, `extra_source:<key>`, `lut_location_decl`(v0.2.6), `lut_file_roles[<i>]`, (v0.3.0) `input_descriptor`(입력 `process.descriptor.sha256`). 대조는 §7.2 2단계 한 곳에서만 한다(v0.2.6). 파일이 없으면 `actual_sha256 = "missing"`. **(v0.3.0, DR-4, 계획 N3.4 'sha256 정의') 어느 정의로 잰 값인지**: 기술자 칸·입력 `process.descriptor`는 규칙 (i)이라 `actual_sha256` = 파일의 LF 정규화 값 하나다(raw를 적은 칸은 CRLF 체크아웃에서 이 코드로 거부된다 -- 완료 조건 4의 깨진 변형). 엔진 원본 raw 기록(`engine_source:<key>`, `newline` 없는 항목)은 규칙 (ii)라 `detail`에 `actual_sha256 = {"lf": …, "raw": …}` 둘을 싣고, 기록값이 둘 다 아닐 때만 이 코드다. raw로만 맞으면 오류가 아니라 결과 `machine_dependent_refs`(§6)에 적는다. `newline: "lf"`가 있는 엔진 원본 항목은 규칙 (i)처럼 LF 값 하나로 본다 | 코어 |
+| `model_bundle_mismatch` | 모델 묶음 비교 규칙 (i)·(ii) 위반(§12.5). (v0.2.5) `detail` = 어긴 규칙 번호, kind, 빠진 sha256 목록과 그 기록 경로, 역할 미선언으로 모델 파일로 본 기록 경로 목록. (v0.3.0, DR-10b) '빠짐' = 그 LUT 기록값이 묶음의 **어느 파일의 LF 값과도 raw 값과도** 같지 않음(규칙 (ii)). raw로만 맞은 기록은 빠짐이 아니라 `machine_dependent_refs`(§6)에 적는다 | 코어 |
+| `lut_aux_input_mismatch` | (v0.2.5, 계획 N3.5 규칙 (iii), G-4·G-17) LUT 생성 보조 입력 기록의 sha256이 기술자 LUT 기록 뿌리 아래 같은 상대 경로 파일의 지금 sha256과 다르거나, 그 파일이 없음. `detail` = `{path, recorded_sha256, actual_sha256 \| "missing"}`. (v0.3.0, DR-10b) '다름' = 기록값이 그 파일의 LF 값도 raw 값도 아님. `actual_sha256` = `{"lf": …, "raw": …}`. raw로만 맞으면 기계 의존 표시 | 코어 |
 | `lut_file_roles_invalid` | (v0.2.5) 역할 옆 선언 파일(§12.5)이 `lut_file_roles/1` 형식을 어김(닫힌 키 집합, 역할 값 ∉ {`model_file`, `generation_aux_input`}, 근거 칸 없음, (v0.2.6) `evidence.generator.file_sha256` ≠ `generator_sha256`). §7.2 2단계. 형식이 맞지만 그 슬라이스에 적용되지 않는 선언은 이 코드가 아니다(적용 안 됨 = 역할 미선언, §12.5) | 코어 |
 | `lut_location_decl_invalid` | (v0.2.6) 기술자 `lut_record_root.location_decl`이 가리키는 위치 선언 파일의 형식 오류(`E/lut/CONTRACT.md` 1.8 형식 아님, `pdk_root` 칸 없음, `env`·`default` 둘 다 없음). 기술자 자체의 스키마 위반(`descriptor_schema_invalid`)과 구분한다. `detail` = `{item, why}`. §7.2 2단계 | 코어 |
-| `lut_record_root_mismatch` | (v0.2.6) 기술자 `lut_record_root`(§10.2)로 푼 뿌리 아래의 파일이 LUT 기록과 다른 PDK 트리를 가리킴: LUT 기록의 (상대 경로, sha256) 가운데 엔진 선언 `sources`에 같은 sha256의 원본이 있는 쌍에 대해, 뿌리 아래 그 상대 경로 파일이 없거나 sha256이 다름. 스키마 위반이 아니라 **값 불일치**다(형식은 맞고 두 정본이 서로 다른 트리를 가리킴). `detail` = `{path, recorded_sha256, engine_source_key, actual_sha256 \| "missing"}` | 코어 |
+| `lut_record_root_mismatch` | (v0.2.6) 기술자 `lut_record_root`(§10.2)로 푼 뿌리 아래의 파일이 LUT 기록과 다른 PDK 트리를 가리킴. 스키마 위반이 아니라 **값 불일치**다(형식은 맞고 두 정본이 서로 다른 트리를 가리킴). (v0.3.0 다시 씀, DR-10b·DR-10c, 계획 N3.4 규칙 (iii) -- 기록값끼리 비교 삭제) 판정은 §7.2 8단계 첫머리의 세 걸음이다: (1) **짝** = LUT 기록 (상대 경로, 기록값) 가운데 기록값이 어떤 엔진 원본 파일의 LF 값 또는 raw 값과 같은 (상대 경로, 엔진 원본 키) 쌍(규칙 (ii)) (2) 짝마다 뿌리 아래 그 상대 경로 파일의 **LF 값** == 그 엔진 원본 파일의 **LF 값**(둘 다 파일 바이트에서 다시 잼). 다르거나 없으면 이 코드, `detail` = `{path, engine_source_key, root_file_lf_sha256 \| "missing", engine_file_lf_sha256}` (3) 짝이 0개면 이 코드, `detail = {"why": "no_pairs"}`(두 정본이 같은 트리라는 증거가 없음). 함수와 test는 OP-3(계획 O-14 (4) J-5 (가)) | 코어 |
 | `adapter_fingerprint_unavailable` | (v0.2.6) 어댑터 코드 지문을 계산할 수 없음: 패키지 아래 파일을 읽지 못함, 또는 `calibration.json`을 읽지 못함·JSON 아님(§0). `detail` = `{why, path}`. 지문이 없으면 캐시 키·능력 기록·결과 지문 칸을 만들 수 없으므로 실행 전에 거부한다(§7.2 1단계, 어댑터 선택 때) | 어댑터 `fingerprint()`(§8.1). 순수 파일 열거·읽기라 프로세스 실행이 없다 |
 | `mc_identity_lost` | (v0.2.6, 요청 단위) `keep_identity` 요청의 결과 `McResult.identity_kept`가 거짓(§6.1). 어댑터 선언과 실제 동작이 어긋남 | 코어 |
 | `lut_model_provenance_missing` | LUT 슬라이스 meta 모델 기록이 빈 표 | 코어 |
@@ -393,7 +446,13 @@ ResultBundle(bench_id, adapter_fp, descriptor_fp, status: RunStatus, by_request:
 | `mc_method_unsupported` | 선언되지 않은 MC 방법 | 코어 |
 | `diagnostic_not_a_gate` | 진단 결과를 판정 입력으로 쓰려는 호출 | 코어(§13.3) |
 | `dc_tolerance_undeclared` | 입력 `simulator.options`에도 어댑터 보정값에도 DC 풀이 허용오차(reltol·vntol·abstol) 선언이 없음(§8.3) | 코어 |
-| `reference_undeclared` | V_sys 측정(PC-10, 범위 판정)에 필요한 입력 `output_reference`가 없음(§11.1). offset-trim design §20.1과 같은 사유 이름 | 코어 |
+| `reference_undeclared` | V_sys 측정(PC-10, 범위 판정)에 필요한 입력 `output_reference`가 없음(§11.6, v0.3.0에 §11.1에서 옮김). offset-trim design §20.1과 같은 사유 이름. (v0.3.0) 계통 offset `offset_sys_mv`(§21.4)도 같다: 단일 출력인데 `output_reference`가 없으면 이 사유로 정의 불능(엔진 DEC-23과 같은 이름, 측정 단위 거부 -- 다른 측정은 그대로 돈다) | 코어 |
+| `sweep_end_unresolved` | (v0.3.0, OP-5, 계획 N3.9·O-25 (3)) swing·ICMR 훑기에서 범위 끝이 정해지지 않음: 괄호 [마지막 통과, 첫 실패]를 목표 분해능까지 좁히지 못함(반복 상한 `ZOOM_ROUNDS` 도달, 실행 시간 상한) 또는 공칭점 자체가 정의 불능. 미검증 외삽 끝으로 값을 내지 않는다(측정 단위, 그 metric = 정의 불능) | 코어 `swing_math` |
+| `sweep_point_unconverged` | (v0.3.0, OP-5, 계획 N3.9 '수렴하지 않은 점') 훑기 점 하나가 수렴하지 않음 → 그 측정(그 창) **전체**를 정의 불능으로 거부한다. 창을 그 점에서 자르지 않는다(옛 '수렴 안 함 = 포화 아님' `O/oracle_swing.py:25` 삭제). `detail` = `{metric, point, error}` | 코어 `swing_math` |
+| `conduction_undefined` | (v0.3.0, OP-5, §21.1) 판정 점에서 어떤 소자의 전도를 판정할 수 없음: tol_V 열이 그 점 VDS에서 None, 그 점 VDS·VSB가 열 축 밖, 또는 I_off 열 값이 없음. 합격 판정이면 그 소자 전도 확인 = '판정 불능' → `INCOMPLETE`(옛 'off_current_A 없음 → N/A'와 같은 자리), 범위 판정이면 그 점 = 정의 불능 → `sweep_end_unresolved`가 아니라 이 코드로 그 측정 거부(엔진 '판정 불가 undefined'와 같음) | 코어 `conduction` |
+| `sweep_direction_undeclared` | (v0.3.0, OP-5, 계획 N3.9 '여기 포트·방향은 입력 선언') swing·ICMR·계통 offset·슬루 요청인데 입력 `dc_sweep`(§11.6)이 없거나 그 측정에 필요한 성분(ICMR의 `common` 등)이 없음. 이름·포트 개수로 추측하지 않는다 | 코어 |
+| `slew_undeclared` | (v0.3.0, OP-10, 계획 G-19) 슬루 측정을 요청했는데 입력 `slew`(§11.6)의 측정 노드 또는 계단 끝 값이 없음 | 코어 |
+| `power_undefined` | (v0.3.0, OP-11, 계획 OP-11 행) `power_dc_w`를 낼 수 없음: 기준 아닌 레일 하나라도 전류가 없음(부분 합 금지), 또는 결과가 막힘(`skipped`). `detail.why` ∈ `rail_current_missing`, `blocked`. 기준 레일 전압 ≠ 0인 입력은 여기까지 오지 않는다 -- OP-3 입력 검사(§11.2 1d 규칙 `reference_rail_voltage`)가 거부한다 | 코어 `measures_dc` |
 | `descriptor_geometry_undeclared` | (v0.2.4, O-6 D-b) 쓰려는 kind의 기하 단위 또는 병렬 배수 전달 규칙이 기술자에 없음. 공칭 포함 모든 해석에서 낸다(§10.6). `detail` = `{kind, missing: ["geometry_unit" \| "parallel_multiplier", …]}` | 코어 |
 | `mc_distribution_inline` | (v0.2.4, O-6 D-a) 기술자 `mc.distribution`에 분포 값이 직접 적혀 있음. (v0.2.5) 판정은 이름 추측이 아니라 **닫힌 키 집합**으로 한다(§10.4): `distribution`의 키 ⊄ {`source`, `locate`}, `locate`의 키 ⊄ {`pattern`, `fields`}, 또는 `fields`의 값이 패턴 그룹 이름(문자열)이 아님(숫자 등). `detail` = 어긴 JSON 포인터 | 코어 |
 | `mc_distribution_unlocated` | (v0.2.4, O-6 D-a) 기술자가 분포 값 위치를 선언하지 않았거나, 선언한 위치 식이 원본에서 0개를 찾음(P NFR-P6) | 코어 |
@@ -432,14 +491,15 @@ ResultBundle(bench_id, adapter_fp, descriptor_fp, status: RunStatus, by_request:
 
 | 순 | 검사 | 코드 |
 |---|---|---|
-| 1 | 입력 형식, (v0.2.6) 어댑터 선택과 어댑터 지문 계산 | `oracle_input_format_old`, `oracle_condition_missing`, `adapter_fingerprint_unavailable` |
-| 2 | 기술자 읽기(스키마 → 참조 sha256 → 원본 중복 → 참조 파일 형식). (v0.2.6) **기술자가 가리키는 모든 파일**(엔진 선언, 기술자가 쓰는 엔진 `sources` 키의 원본 -- include·`mc.distribution.source`·`mc.enable.source` 등 쓰는 곳과 무관하게 --, `extra_sources`, `lut_record_root`의 위치 선언 파일, `lut_file_roles` 옆 선언)의 sha256을 이 단계에서 한 번에 대조한다. 옆 선언의 형식·`evidence` 일관과 위치 선언 파일 형식도 여기서 본다 | `descriptor_schema_invalid`, `pdk_descriptor_stale`, `descriptor_source_duplicated`, `lut_file_roles_invalid`, `lut_location_decl_invalid` |
+| 1 | 입력 형식(v0.3.0: §11.2 1a~1d 순서 -- JSON 읽기 → 옛 형식 표지 → JSON Schema → 교차 칸 규칙 → 어댑터 이름·실행 파일), (v0.2.6) 어댑터 선택과 어댑터 지문 계산 | `oracle_input_schema_invalid`, `oracle_input_format_old`, `adapter_unknown`, `simulator_exe_missing`, `adapter_fingerprint_unavailable` |
+| 2 | 기술자 읽기(입력 `process.descriptor` sha256 → 스키마 → 참조 sha256 → 원본 중복 → 참조 파일 형식 → kind 대응). (v0.2.6) **기술자가 가리키는 모든 파일**(엔진 선언, 기술자가 쓰는 엔진 `sources` 키의 원본 -- include·`mc.distribution.source`·`mc.enable.source` 등 쓰는 곳과 무관하게 --, `extra_sources`, `lut_record_root`의 위치 선언 파일, `lut_file_roles` 옆 선언)의 sha256을 이 단계에서 한 번에 대조한다. 옆 선언의 형식·`evidence` 일관과 위치 선언 파일 형식도 여기서 본다. (v0.3.0, DR-5) 대조 정의: 기술자 칸·입력 `process.descriptor` = LF 정규화 값만(규칙 (i)), 엔진 원본 raw 기록 = 규칙 (ii)(LF 또는 raw, raw만이면 `machine_dependent_refs`), 중복 = 규칙 (iii)(파일 바이트 재측정 LF 값끼리). `devices[].kind` ⊆ 기술자 `kinds`도 여기서 본다 | `pdk_descriptor_stale`, `descriptor_schema_invalid`, `descriptor_source_duplicated`, `lut_file_roles_invalid`, `lut_location_decl_invalid`, `descriptor_kind_undeclared` |
+| 2b | (v0.3.0) LUT 파일 읽기(§11.2 2b): `process.lut_files[i]`마다 raw sha256(규칙 (iv)) → meta 모양·kind 키(§11.1) → 코너·온도 기록 일치 → 조건 확정(§11.2) | `lut_file_stale`, `lut_meta_shape_mismatch`, `lut_condition_conflict`, `oracle_condition_missing` |
 | 3 | 벤치가 쓰는 kind의 기하 선언(모든 해석 공통, §10.6) | `descriptor_geometry_undeclared` |
 | 4 | 요청이 쓰는 기술자 방법(MC·진단 요청만): `mc` 칸 유무·`method`·`enable.how` → 분포 값 출처(값 직접 기재 → 위치 식이 0개를 찾음) | `mc_method_unsupported`, `mc_distribution_inline`, `mc_distribution_unlocated` |
 | 5 | 어댑터 능력(요청 종류, 기하 단위 적용 방법, MC 켜는 법 종류와 코어 고정 요구 ⊆ 어댑터 선언(§10.4), 요청 시드 적용(§6.1)) | `adapter_capability_missing`, `mc_method_unsupported`(켜는 법 종류·요구 불충족) |
 | 6 | 보정값·허용오차 | `adapter_calibration_missing`, `dc_tolerance_undeclared`, `reference_undeclared` |
 | 7 | 판정 게이트(MC·온도, §12.6) | `oracle_capability_unverified`, `oracle_capability_stale` |
-| 8 | 모델 묶음 비교(§12.5): LUT 기록 빈 표 → (v0.2.6) 기록 뿌리 교차 검사 → 역할 적용 → 규칙 (i)(ii) → (iii) | `lut_model_provenance_missing`, `lut_record_root_mismatch`, `model_bundle_mismatch`, `lut_aux_input_mismatch` |
+| 8 | 모델 묶음 비교(§12.5): LUT 기록 빈 표 → (v0.2.6) 기록 뿌리 교차 검사(v0.3.0: 짝 찾기 → 짝마다 파일 LF 재측정 → 짝 0개 거부, §7 `lut_record_root_mismatch`) → 역할 적용 → 규칙 (i)(ii) → (iii) | `lut_model_provenance_missing`, `lut_record_root_mismatch`, `model_bundle_mismatch`, `lut_aux_input_mismatch` |
 | 9 | IR 이름(어댑터 `case_insensitive_names`) | `ir_name_collision` |
 
 * (v0.2.6, 검증 중간 지적 5) **`pdk_descriptor_stale` 중복 정리**: v0.2.5는 2단계(참조 sha256)와 4단계(분포 값 원본 sha256)에 같은 코드를 두었다. 같은 파일이 두 단계에서 대조되면 어느 단계에서 걸렸는지가 요청 종류(MC인가)에 따라 달라진다. v0.2.6은 sha256 대조를 2단계 하나로 모았다: 기술자가 가리키는 파일은 요청과 무관하게 모두 2단계에서 대조한다. 그래서 4단계에는 sha256 대조가 없고, 완료 조건 4의 '분포 값 원본 sha256 불일치' 변형은 MC가 아닌 공칭 요청에서도 2단계 `pdk_descriptor_stale`로 걸린다(§18.1 4행의 그 변형은 요청 종류를 가리지 않는다).
@@ -462,8 +522,10 @@ class Adapter(Protocol):
     def fingerprint(self) -> AdapterFingerprint              # 이름, 코드 지문, 실행 파일 sha256, 시뮬레이터 판
     def run(self, circuit: Circuit, requests: tuple[Request], descriptor: Descriptor,
             work_dir: str, timeout_s: float|None, cache_dir: str|None) -> ResultBundle
-    def model_bundle(self, circuit: Circuit, descriptor: Descriptor, cond: Condition) -> {path: sha256}   # §12.5
+    def model_bundle(self, circuit: Circuit, descriptor: Descriptor, cond: Condition) -> {path: {"lf": sha256, "raw": sha256}}   # §12.5
 ```
+
+* (v0.3.0, DR-10d, 계획 N3.5 'sha256 정의') `model_bundle`은 묶음 파일마다 **LF 정규화 값과 raw 값 둘**을 낸다. LUT 기록(raw 정의)을 규칙 (ii)로 대조하려면 둘이 다 필요하다. 묶음 파일끼리의 동일성·캐시 키·결과에 적는 묶음 지문은 `lf` 값 하나로 낸다(계획 N3.5 '묶음 지문은 정규화 값 하나'). 파일을 읽지 못하면 그 kind의 묶음을 만들지 않고 `sim_model_not_found`(§7)로 낸다.
 
 ### 8.2 실행 계약
 
@@ -477,6 +539,8 @@ class Adapter(Protocol):
 Capabilities = {
   "op": bool, "ac": bool, "noise": bool, "noise_device_contrib": bool, "tran": bool,
   "tran_early_stop": bool, "pz": bool, "op_sweep": bool, "temperature": bool,
+  "tf": bool,                              # (v0.3.0) DC 소신호 전달 함수(§5 Tf, §21.5)
+  "tran_large_signal": bool,               # (v0.3.0) MOS 비선형 과도 해(슬루 §21.6). stub은 거짓
   "mc_native": bool, "mc_keep_identity": bool, "mc_diagnostic": bool,
   "mc_enable_kinds": {"<켜는 법 종류>": {"per_instance_independent": bool, "samples_per_run": int|"many",
                                           "seed": "per_run_seed"|"none", "keep_identity_across_conditions": bool}},
@@ -547,6 +611,7 @@ Calibration = {   # 모든 값은 출처 칸 필수
 ## 9. 실행 캐시 키(G-7)
 
 * **원칙(코어)**: 키 = sha256(어댑터 지문 ∥ 방언 텍스트 바이트 ∥ 모델 묶음 sha256 정렬 목록 ∥ 실행 인자). 같은 키는 결과를 재사용한다. 키에 없는 입력이 결과를 바꾸면 결함이다.
+* (v0.3.0, DR-10e, 계획 OQ-5 = O-14 (3)) 어댑터 지문(§0)과 모델 묶음 목록의 sha256은 **LF 정규화 값**이다(§8.1 `model_bundle`의 `lf`). 그래서 같은 코드·같은 모델을 CRLF·LF로 체크아웃한 두 기계의 키가 같다. 방언 텍스트 바이트는 디스크에 쓴 파일이 아니라 어댑터가 만든 문자열(줄 끝 `\n`)의 UTF-8 인코딩이다(기본안 B-35 -- 디스크 쓰기의 줄 끝은 OS 텍스트 모드에 따라 다를 수 있어 키에 넣지 않는다).
 * **어댑터 몫**: include 문법을 따라 모델 묶음을 재귀로 모으는 일(지금 `_model_files`·`_INC`, `O/oracle_simulate.py:62-90`), 방언 텍스트 생성.
 * 옛 `run_cache_key`(`O/oracle_simulate.py:86`)는 이 원칙으로 대체한다. 키 구성이 바뀌므로 옛 캐시 디렉터리는 재사용하지 않는다.
 * (v0.2.6) 키의 어댑터 지문은 §0 제외 목록 방식이다. 그래서 `wall_s_per_window`(실행 시간 상한)는 키에 없다. 상한은 결과 값이 아니라 실행을 끊는 조건이고, 끊긴 실행은 옛 코드처럼 캐시 슬롯을 완성하지 않는다(옛 `run_ngspice`는 시간 초과 예외가 `subprocess.run`에서 나와 슬롯 `done`을 쓰기 전에 빠진다, `O/oracle_simulate.py:122-125`). 새 캐시도 `timed_out` 실행은 저장하지 않는다.
@@ -559,6 +624,9 @@ Calibration = {   # 모든 값은 출처 칸 필수
 
 * 파일: `O/descriptors/<pdk>.oracle_descriptor.json`, 스키마 이름 `oracle_pdk_descriptor/1`(기본안).
 * 엔진 선언 참조: `engine_decl = {path, sha256}`. 코어가 읽을 때 파일 sha256을 대조하고, 다르면 `pdk_descriptor_stale`이다. 엔진 선언 `sources`의 파일은 **source 키로만** 가리키고 경로·sha256을 다시 적지 않는다(P N3.4 단일 정본).
+* **(v0.3.0, DR-6·DR-16, 계획 N3.4 'sha256 정의', X-13, X-26) sha256 정의**: `engine_decl.sha256` = 엔진 선언 파일 바이트의 **LF 정규화 sha256**(계획 N0.1, 사례 `5f32257b…`, S-37). 코어는 대조할 때마다 파일 바이트에서 다시 잰다. 엔진 `decl_sha256` 값과 **견주지 않는다**: gain-budget card SH-1(엔진 정본 sha256 LF 정규화, O-16 (1)) **병합 전**에는 엔진 값이 raw(`24f970d5…`)라 정의가 다르고, **병합 뒤**에는 정의가 같지만 엔진 값은 엔진 로더가 실행 중에 내는 값이라 오라클이 읽을 수 없다(엔진 import 금지). 그래서 X-13 test도 직접 비교가 아니라 파일 재측정을 유지한다(계획 X-13 'v0.6.8', §18.1).
+* **중복 검사**(v0.3.0, 계획 N3.4 규칙 (iii)): 엔진 `sources`의 **모든** 파일(기술자가 쓰지 않는 원본 포함)과 `extra_sources` 파일을 바이트에서 LF 정규화로 다시 잰 값끼리 비교하고, 경로도 비교한다. 기록값(엔진 `sources.<키>.sha256`은 raw)끼리 견주지 않는다 -- LF 체크아웃 기계·미사용 원본에서 중복을 놓친다(계획 X-13 (iv)).
+* **엔진 선언이 바뀔 때**(계획 N3.4): 그 card가 같은 변경에서 `engine_decl.sha256`을 **다시 잰 LF 정규화 값**으로 갱신한다(엔진 `decl_sha256`을 옮겨 적지 않는다). 선언 파일 바이트가 바뀌지 않으면 LF 정규화 값도 그대로라 기술자도 그대로다(계획 X-26 '순서·선행 조건 없음'. SH-1이 `sources` 기록을 다시 적어 바이트가 바뀌면 그 card가 갱신한다, 계획 N3.7 U-1 (c)).
 * **멈춤 항목 DV-1(§19.2)**: 오라클 넷리스트가 include해야 하는 파일 가운데 엔진 선언 `sources`에 없는 것이 있다. 사례는 pmos의 `lod.spice`(S-7)다. 계획 N3.4는 '원본 PDK 파일의 경로·sha256 정본은 엔진 선언 하나'라고 했고, D-9는 엔진 선언을 바꾸지 않는다고 했다. 둘을 함께 지키면 이 파일을 넣을 곳이 없다. 이 문서는 아래 안을 **임시로** 적는다. S-7에 따라 계획 개정 뒤에 확정한다.
   * **확정(v0.2, 사용자 결정 O-3 = DV-1 (가), 계획 v0.5 N3.4 '파일마다 정본 한 곳')**: 엔진 선언에 없는 파일만 기술자 `extra_sources = {key: {path, sha256, base, provenance}}`에 둔다. 한 파일이 두 곳에 나오지 않도록 로더가 검사한다(`descriptor_source_duplicated`).
   * `provenance`(v0.2.4, P G-5 O-3): 엔진 선언 `sources`와 같은 수준의 출처다. 원본 `PROVENANCE.txt` 위치, 또는 웹 링크 + 저장소 커밋을 적는다. 비어 있으면 기술자 스키마 검증(`oracle_pdk_descriptor/1` 필수 칸)에서 거부한다.
@@ -596,6 +664,7 @@ Calibration = {   # 모든 값은 출처 칸 필수
 }
 ```
 
+* **(v0.3.0, DR-7, 계획 N3.4 (i)) sha256 칸의 정의**: 기술자 안 모든 참조 sha256 칸(`engine_decl.sha256`, `extra_sources.<키>.sha256`, `lut_record_root.location_decl.sha256`, `lut_file_roles[*].sha256`)은 **LF 정규화 sha256**이다. 모두 저장소 안 텍스트 또는 저장소 밖 PDK 텍스트(`extra_sources` 사례 `lod.spice`)다. 바이너리 파일을 참조하는 칸이 생기면 그 칸은 raw로 선언한다(계획 N3.4 '바이너리' -- 지금 없음). 스키마는 칸마다 소문자 16진 64자(`^[0-9a-f]{64}$`)를 요구하고, 값이 raw(CRLF 바이트의 sha256)로 적혀 있으면 CRLF 파일에서 `pdk_descriptor_stale`로 거부된다(완료 조건 4 깨진 변형).
 * `inner_device`는 미병합 `ng-bridge`의 `oracle_models` 내용 판정 규칙(MOS 4단자 subckt 안 첫 M 소자, P F-16)을 식으로 옮긴 것이다. noise 기여 이름 대응(F-8)과 진단 경로가 이 값을 쓴다. 방언 경로 틀(`@m.{inst}.…`)은 기술자에 두지 않고 어댑터가 만든다.
 * 엔진 선언 식 형식(원본 파일 + 패턴 + 식)을 그대로 쓰므로, 코어 `descriptor.py`는 그 형식의 읽기 함수를 **새로 쓴다**. 엔진 `read_pdk_decl`을 import하지 않는다(오라클 C1).
 * (v0.2.4) `kinds.<kind>.geometry_unit`·`parallel_multiplier`는 스키마상 선택 칸이지만, 없는 kind를 쓰는 벤치는 실행 전에 거부된다(§10.6). 스키마 단계에서 막지 않는 이유는 '규칙을 선언하지 않은 기술자가 실제로 거부됨'을 실행 경로에서 보이는 것이 OP-3 병합 조건 (a)이기 때문이다.
@@ -605,10 +674,10 @@ Calibration = {   # 모든 값은 출처 칸 필수
   * LUT meta의 절대 `pdk_root`(기계 경로)는 읽지 않는다. 그 값은 대조 대상 쪽 기록이고, 오라클이 대조 기준을 대조 대상에서 가져오지 않기 위해서다.
   * **엔진과의 차이 = 의도된 엄격**(v0.2.6 재검증 경미 1): 위치 선언에 `pdk_root` 칸이 없으면(계약 1.8에서 '선택') 엔진은 `pdk_root = None`으로 두고 슬라이스 meta의 절대 `pdk_root`로 돌아간다(`E/lut/provenance.py:14, :64`). 오라클은 돌아가지 않고 `lut_location_decl_invalid`로 거부한다(아래). 대조 기준을 대조 대상(LUT meta)에서 가져오면 규칙 (iii)이 자기 기록과 자기를 비교하게 되기 때문이다. 엔진 규칙을 그대로 따르지 않는 유일한 곳이고, 엔진 규칙이 바뀌면 두 구현이 어긋날 위험은 §19.4 X-D5에 적었다.
   * **위치 선언 파일 형식 오류의 코드**(v0.2.6 재검증 경미 4): 위치 선언 파일 자체의 형식 오류(계약 1.8 형식이 아님, `pdk_root` 칸 없음, `env`·`default` 둘 다 없음)는 기술자 스키마 위반 `descriptor_schema_invalid`와 구분해 `lut_location_decl_invalid`(`detail` = `{item, why}`, 계약 1.8의 `lut_location_config_invalid`와 같은 detail 모양)로 낸다. 기술자는 맞고 참조한 파일이 틀린 경우이기 때문이다. sha256 불일치는 그대로 `pdk_descriptor_stale`(`ref = lut_location_decl`)이다.
-  * **교차 검사**(§7.2 8단계, `lut_record_root_mismatch`): LUT 기록의 (상대 경로, sha256) 가운데 엔진 선언 `sources`에 같은 sha256 원본이 있는 쌍은, 위 뿌리 아래 그 상대 경로 파일의 sha256도 같아야 한다. 두 정본(위치 선언, 엔진 선언)이 같은 PDK 트리를 가리킴을 실행마다 보인다.
+  * **교차 검사**(§7.2 8단계, `lut_record_root_mismatch`): 두 정본(위치 선언, 엔진 선언)이 같은 PDK 트리를 가리킴을 실행마다 보인다. (v0.3.0 다시 씀, DR-10c, 계획 N3.4 규칙 (iii) -- v0.2.6의 '기록값끼리 같은 sha256' 비교를 지움) (1) 짝 = LUT 기록값이 엔진 원본 파일의 LF 값 또는 raw 값과 같은 (상대 경로, 엔진 원본 키) 쌍(규칙 (ii)) (2) 짝마다 위 뿌리 아래 그 상대 경로 파일의 LF 값 == 그 엔진 원본 파일의 LF 값(둘 다 파일 바이트 재측정), 없으면 거부 (3) 짝이 0개면 거부(`detail.why = "no_pairs"`). 함수·test는 OP-3이다(계획 O-14 (4) J-5 (가) -- v0.2.6 §18.1의 OP-2 배치에서 옮김).
   * 계획 G-17 '보조 입력 sha256 대조의 PDK 뿌리 출처'를 이 칸으로 닫는다(기본안 B-18, v0.2.6 고침).
   * 범위 한계: 위치 선언은 LUT v2 데이터 묶음 하나의 정본이다. 다른 LUT 묶음(사례: `A/sky130_nfet_pfet_lut_sample.npz`)을 쓰는 실행은 그 묶음의 위치 선언이 따로 있어야 한다. 없으면 기술자 `lut_record_root`가 그 LUT의 뿌리를 정하지 못하고, 교차 검사가 실패하면 `lut_record_root_mismatch`로 거부된다(조용한 대체 없음).
-  * 위치 선언 파일이 바뀌면(사례: LUT 묶음 항목 추가) 기술자 참조 sha256이 맞지 않아 `pdk_descriptor_stale`(`ref = lut_location_decl`)로 멈춘다. 계획 N3.4 '엔진 선언이 바뀔 때'와 같은 절차로, 그 파일을 바꾸는 card가 같은 변경에서 기술자 참조 sha256을 갱신한다(기계적 갱신). 이 절차를 관련 계획에 알리는 것은 §19.2 알림.
+  * 위치 선언 파일이 바뀌면(사례: LUT 묶음 항목 추가) 기술자 참조 sha256이 맞지 않아 `pdk_descriptor_stale`(`ref = lut_location_decl`)로 멈춘다. 계획 N3.4 '엔진 선언이 바뀔 때'와 같은 절차로, 그 파일을 바꾸는 card가 같은 변경에서 기술자 참조 sha256을 갱신한다(기계적 갱신). (v0.3.0, DR-7) 갱신 값 = 그 파일의 **LF 정규화 sha256**(사례 `07299556…`, S-37 -- 위치 선언 파일은 저장소 안 텍스트라 규칙 (i)). 위치 선언 안의 `files.*.sha256`(LUT 데이터 파일)은 규칙 (iv) raw 칸이고 이 기술자 칸이 아니다. 이 절차를 관련 계획에 알리는 것은 §19.2 알림.
 * (v0.2.5) `lut_file_roles`: 기존 LUT 역할 옆 선언(§12.5) 파일의 경로·sha256 목록이다. 옆 선언은 검증자가 쓰고 이 칸은 그 참조만 담는다(기계적 갱신, 계획 N4-2a 예외 '측정 결과를 담은 옆 선언'). sha256이 다르면 `pdk_descriptor_stale`(`ref = lut_file_roles[<i>]`).
 
 ### 10.3 sky130 사례 값
@@ -619,8 +688,10 @@ Calibration = {   # 모든 값은 출처 칸 필수
   * `parallel_multiplier`(OP-2): OP-1 측정(S-13 T6)은 '인스턴스 배수 + 래퍼 모델 파라미터 `mult`' 둘 다 줄 때 편차가 면적 의존대로 줄어듦을 보였다. 근거 위치는 카드 식 `sqrt(l*w*mult)`(`…tt.pm3.spice:67`)와 래퍼 기본값(`:30`)이다. 값 확정은 OP-2 사용자 확인이다.
   * `mc.enable`(OP-5): OP-1 측정(S-12)으로 켜는 법 종류는 `param_redefine`(카드의 불일치 변수를 분포 함수로 다시 선언)이 사례로 확인됐다. 대상 변수 목록은 엔진 선언 `mismatch_models.<kind>.parameters`와 모델 카드의 변수 선언 위치 식으로 가리킨다.
   * `mc.distribution`(OP-5): 카드의 통계 블록(`…tt.pm3.spice:19-27`, 주석 처리, S-12)을 위치 식으로 가리킨다. 그 파일은 엔진 선언 source(`nfet_01v8_tt_model_card`·`pfet_01v8_tt_model_card`)이므로 sha256 정본은 엔진 선언이다.
-  * `extra_sources`(OP-2): 엔진 선언에 없는 include 파일(사례 pmos `lod.spice`)의 경로·sha256·출처.
-  * `lut_record_root`(OP-2, v0.2.6 고침): 사례 값 = `A/lut_v2_location.json`의 경로·sha256과 키 `pdk_root`(S-35). 기술자가 새 값을 적지 않으므로 사용자 확인 대상 값이 없다(참조만).
+  * `extra_sources`(OP-2): 엔진 선언에 없는 include 파일(사례 pmos `lod.spice`)의 경로·sha256·출처. (v0.3.0, DR-8) sha256 사례 값 = `6200b50c…`(LF 정규화, S-37 -- 디스크 raw `20874af1…`이 아님).
+  * `engine_decl`(OP-2, v0.3.0 DR-8): sha256 사례 값 = `5f32257b…`(`A/sky130_pdk_decl.json`의 LF 정규화, S-37 -- 엔진 `decl_sha256` raw `24f970d5…`이 아님).
+  * `lut_record_root`(OP-2, v0.2.6 고침): 사례 값 = `A/lut_v2_location.json`의 경로·sha256과 키 `pdk_root`(S-35). 기술자가 새 값을 적지 않으므로 사용자 확인 대상 값이 없다(참조만). (v0.3.0, DR-8) sha256 사례 값 = `07299556…`(LF 정규화, S-37).
+  * 위 세 값은 사례이고 기록 시점의 파일 바이트에서 다시 잰다. 값 확정과 기록은 OP-2 spec card(계획 OP-2 행, O-14 (4))다.
   * `lut_file_roles`(OP-3, v0.2.5): 검증자 옆 선언(OP-3 병합 조건 (c))이 생기면 그 참조를 더한다.
   * `corners`: tt 하나만 엔진 선언에 있다. 다른 코너는 범위 밖(P T-32)
 
@@ -698,47 +769,156 @@ Calibration = {   # 모든 값은 출처 칸 필수
 
 ---
 
-## 11. 오라클 입력 형식 변경(D-5)
+## 11. 오라클 입력 형식(D-5) -- OP-3 입력 스키마 계약
 
-### 11.1 새 `process`·`simulator` 블록
+### 11.0 계약의 지위·범위·변경 종류(v0.3.0 신설)
 
+* **정본**: 이 절의 §11.1 칸 표·§11.2 검사 순서·§11.3 예시가 OP-3 입력 스키마의 정본이다(계획 G-18 '스키마 정본은 이 계획 하나', N5.2). 기계 판정 파일 `O/oracle_input.schema.json`은 OP-3이 이 표를 JSON Schema(Draft 2020-12, `$id` `spice_oracle_input/2`)로 옮긴 것이다. 둘이 다르면 이 절이 정본이고 그 차는 결함이다.
+* **소비자**(이 계약을 읽는 곳): (a) 오라클 입력 검사(§11.2) (b) gain-budget card **EO-1** 생산자 -- 엔진 점(봉인 스냅샷: 시작점·front 점) → 오라클 입력(계획 N5.2, gain-budget N6.20, 사용자 결정 O-44 (1)) (c) A' 손분석 설계의 오라클 입력 -- 같은 스키마, A' 문서가 손분석과 함께 고정, 엔진 코드 미사용(계획 N3.9 '열다섯째 커밋', gain-budget N6.2 1212행) (d) 검증자 입력 변환 스크립트(§11.5) (e) test 작성자 -- **소스를 보지 않고 이 절만으로** 입력·거부 test를 쓴다.
+* **범위 구분**(사용자 결정 O-45 U1): **OP-3 칸**(§11.1) = EO-1이 내는 칸 전부. **G-18 확장 칸**(§11.6: 선언 triode, 훑기 방향, tol_V·I_off 열, 출력 기준, 슬루 선언) = 그 칸을 쓰는 card(OP-5, headroom-chain HC-O, OP-10)가 더하고, 그 card의 **같은 통합 병합에 EO-1 생산자 갱신 커밋(`Role: code`)**이 들어간다(계획 U-6, 선행 = EO-1 병합). 키 집합이 닫혀 있어(§11.1 공통 규칙) 확장 칸은 그 card 병합 전에는 넣으면 거부된다. 그래서 '오라클에 칸은 있는데 생산자가 안 내는' 상태와 '생산자가 내는데 오라클이 모르는' 상태가 둘 다 없다.
+* **바꾸는 쪽**: 이 표의 칸 이름·형식·필수를 바꾸는 이 계획 개정은 같은 때 gain-budget EO-1·VB-1·ME-1에 알린다(계획 U-6).
+* **변경 종류**(계획 N4 0번, 사용자 결정 O-34 (1)): OP-3 입력 형식 전환 = 인터페이스 변경(옛 형식 거부 `oracle_input_format_old`, 모델 묶음 자동 대조로 새로 생기는 거부). 칸의 **뜻**은 아래 '옛 스키마 대비' 칸이 '같음'인 한 옛 스키마(`spice_oracle_input/1`) 그대로다 -- 그 칸들의 판정은 N4 2번 동일성.
+
+### 11.1 칸 표(`spice_oracle_input/2`, card OP-3)
+
+**공통 규칙**
+* 단위는 SI(m, A, V, F, Ω, Hz, deg, °C). 소자 전압·전류 부호는 **크기 규칙**(옛 스키마 설명 그대로): NMOS는 그대로, PMOS는 부호 반전 -- 켜진 포화 PMOS의 ID·VGS·VDS가 양수, VSB = PMOS 바디-소스.
+* 넷·원소 이름은 비어 있지 않은 문자열이다. 대소문자 접기 충돌은 §4.1 `ir_name_collision`이다.
+* **닫힌 키 집합**(기본안 B-29): 아래 표에 없는 키는 모든 객체 층에서 거부한다(`oracle_input_schema_invalid`, `rule = additionalProperties`). 예외는 `provenance` 하나(열린 객체, 출력 전용). 근거: fail-closed(P NFR-P6), G-18 확장 칸을 그 card 전에 넣은 입력이 조용히 무시되지 않게 함(§11.0). 기준선 입력 593개 실측에서 스키마 밖 키는 변환이 지우는 `process` 키뿐이라 기준선 동일성(N4)에 영향이 없다(S-44).
+* sha256 칸은 소문자 16진 64자(`^[0-9a-f]{64}$`)다.
+* 파일 경로 칸(`process.descriptor.path`, `process.lut_files[].path`): 절대 경로 또는 **입력 파일이 있는 폴더 기준** 상대 경로(기본안 B-30). `topology.path`는 옛 규칙(저장소 루트 기준) 그대로다.
+
+| 칸(JSON 포인터) | 형식 | 필수 | 뜻·제약 | 옛 스키마 대비 |
+|---|---|---|---|---|
+| `/schema` | 상수 `"spice_oracle_input/2"` | 예 | 형식 판별. 값이 `"spice_oracle_input/1"`이면 §11.2 1b에서 `oracle_input_format_old` | 새 필수(옛은 선택) |
+| `/circuit` | string | 예 | 회로 식별자(출력 파일 이름 줄기) | 같음(옛 스키마도 필수) |
+| `/process` | 객체(닫힘) | 예 | 아래 넷 칸 | 바뀜(D-5) |
+| `/process/descriptor` | `{path: string, sha256: sha}`(닫힘, 둘 다 필수) | 예 | 오라클 기술자(§10) 참조. `sha256` = 기술자 파일의 **LF 정규화** sha256(계획 OQ-5 (c) = O-14 (3), DR-10f). 다르면 §11.2 2단계 `pdk_descriptor_stale`(`ref = input_descriptor`) | 새 |
+| `/process/lut_files` | 배열, 길이 ≥ 1, 원소 `{path: string, sha256: sha, kinds: {<kind>: string \| null}}`(닫힘, 셋 다 필수, `kinds` 키 ≥ 1) | 예 | 이 설계점의 소자 DC 동작점을 정한 **LUT 슬라이스 파일**(엔진이 봉인 `dc_op`에 쓴 슬라이스, 기본안 B-32). `sha256` = 파일 **raw** sha256(계획 N3.4 규칙 (iv): git 밖 LUT 데이터). `kinds` = 이 파일의 모델 기록을 쓸 `devices[].kind` → meta `model_files_sha256`의 키: 평탄 표(폭 슬라이스, S-38)면 `null`, LUT 소자 키로 중첩된 dict(결합 파일, S-38)면 그 키 문자열. 이 기록이 그 kind의 모델 묶음 비교(§12.5)와 코너·온도(§11.2 2b)의 출처다 | 새(옛 `process.lut_npz` 하나를 대체) |
+| `/process/corner` | string | 아니오 | §11.2 2b | 새 |
+| `/process/temp_c` | number | 아니오 | §11.2 2b. LUT 기록과 다른 온도는 온도 게이트(§12.6)를 지난다 | 새 |
+| `/simulator` | 객체(닫힘) | 예 | 아래 셋 | 새 |
+| `/simulator/adapter` | string, 길이 ≥ 1 | 예 | 어댑터 이름(사례 `ngspice`). 등록 밖이면 `adapter_unknown` | 새 |
+| `/simulator/exe` | string | 아니오 | 실행 파일 경로. CLI `--sim-exe`가 우선. 둘 다 없거나 파일이 없으면 `simulator_exe_missing` | 옛 `process.ngspice_exe` |
+| `/simulator/options` | 객체, 값은 string | 아니오 | 시뮬레이터 옵션 키 = 값. 키 검증은 어댑터(B-5). DC 풀이 허용오차의 첫 출처(§8.3) | 옛 `testbench.options` |
+| `/rails` | 배열, 길이 ≥ 1, 원소 `{net: string, voltage: number, reference?: bool}`(닫힘) | 예 | `reference: true`가 정확히 하나가 아니면 막힘(옛 그대로, `BLOCKED`). (v0.3.0) 기준 레일이 하나이고 그 `voltage` ≠ 0이면 거부(§11.2 1d `reference_rail_voltage` -- 옛 코드는 기준 넷을 노드 0으로 두면서 전압 값을 버렸다. 기준선 593개 가운데 해당 0개, 기준 레일 둘인 막힘 test 3개만 0 아닌 기준을 가짐) | 같음 + 새 규칙 |
+| `/devices` | 배열, 원소(닫힘): 필수 `name, kind, drain, gate, source, bulk`(string), `L, finger_w`(number), `n_fingers`(integer ≥ 1); 선택 `W`(number), `diffusion{ad_m2, as_m2, pd_m, ps_m}`(number ≥ 0, 넷 다 필수) + `basis`(string) | 예 | 인스턴스 = `finger_w` × `n_fingers`(병렬 배수 전달은 기술자, §10.6). `kind`는 기술자 `kinds`의 키(아니면 2단계 `descriptor_kind_undeclared`)이고 `process.lut_files[].kinds`에 있어야 한다(1d `lut_kind_coverage`). free 실행에서 확산 기하가 소자에도 기술자 `diffusion`에도 없으면 막힘(옛 C22 그대로) | 같음(닫힘만 새) |
+| `/sources` | 배열, 원소(닫힘) `{name, kind: "current" \| "voltage", terminals: [string, string], value: number, value_basis?: string, not_in_topology_reason?: string(길이 ≥ 1)}` | 아니오 | 이상 전원. current = 전류가 p에서 소스를 지나 n으로 | 같음 |
+| `/passives` | 배열, 원소(닫힘) `{name, kind: "resistor" \| "capacitor", terminals: [string, string], value, value_basis?, not_in_topology_reason?}` | 아니오 | | 같음 |
+| `/feedback_passives` | string 배열, 중복 없음 | 아니오 | β 되먹임망(옛 C12·C14 규칙 그대로, 위반은 막힘) | 같음 |
+| `/feedback_passives_basis` | string, 길이 ≥ 1 | 아니오 | 기록 전용 | 같음 |
+| `/cm_output_loop` | `{drivers: string 배열(중복 없음, 길이 ≥ 1)}`(닫힘) | 아니오 | CM 루프(옛 규칙 그대로) | 같음 |
+| `/bias_voltages` | 배열, 원소(닫힘) `{net: string, value: number}` | 아니오 | 구동 소자 없는 게이트 전용 넷의 이상 전압 | 같음 |
+| `/ports` | 객체(닫힘) `{input_p, input_n, input, output_p, output_n, output}`(모두 string, 모두 선택) | 예 | 입력 = `input_p`+`input_n` 또는 `input`, 출력 = `output_p`+`output_n` 또는 `output`(옛 규칙 그대로) | 같음(닫힘만 새) |
+| `/predictions` | 객체(닫힘) `{nodes?, devices?, metrics?}` | 예 | | 같음 |
+| `/predictions/nodes` | `{<net>: number}` | 아니오 | 예측 DC 전압. 입력 넷 값은 free 입력 DC, forced 고정값 | 같음 |
+| `/predictions/devices/<name>` | 객체(닫힘): `ID, VGS, VDS, VSB, gm, gds, gm_id`(number), `region`(`"sat" \| "triode" \| "off"`), `off_current_A`(number ≥ 0), `tol{ID_rel ≥ 0, gm_rel ≥ 0, basis}`(닫힘) -- 모두 선택 | 아니오 | 엔진 예측 동작점(크기 규칙). `region = "off"` = 엔진이 꺼짐으로 예측(전도 확인 대상 아님). **`off_current_A`는 OP-3 판 한정**: 소자별 전도 문턱(ε = 1 식, S-40) -- **OP-5 병합 때 스키마에서 지운다**(§11.6, 계획 OP-5 '옛 입력 칸 삭제') | 같음 |
+| `/predictions/metrics[]` | 원소(닫힘) `{measure, value: number}` 필수, `name, rail, view, basis` 선택. `measure` ∈ {`dc_gain_db, ugf_hz, pm_deg, cm_pm_deg, f3db_hz, supply_current_A, ratio_db, rout_ohm, noise_th_in_v2hz, noise_fc_in_hz, noise_excess_th, noise_out_int_vrms, offset_in_sigma_mv, swing_out_v, icmr_v, icm_margin_v, slew_rate_v_per_s, settle_s`}. `ratio_db`이면 `view` = ratio 뷰, `rout_ohm`이면 `view` = sense 뷰 필수(옛 `$defs` 그대로) | 아니오 | 엔진 예측 metric(기록·모델 오차). OP-5가 `offset_sys_mv`, OP-11이 `power_dc_w`를 집합에 더한다(§11.6) | 같음 |
+| `/acceptance` | 객체(닫힘) `{constraints?, not_measurable?}`. `constraints[]` 원소(닫힘) `{measure, op: ">=" \| "<=", limit: number}` 필수, `name, rail, view, basis` 선택. `measure`는 위 집합에서 `slew_rate_v_per_s`·`settle_s`를 뺀 16개 | 아니오 | 합격 판정 대상 선언 제약(Q5·C24·C26 규칙 그대로) | 같음 |
+| `/testbench` | 객체(닫힘). 필수 `dc_choke_H, ac_couple_F`(number), `ac{fstart_hz, fstop_hz: number, points_per_decade: integer}`(+ 선택 `input_p_ac, input_n_ac, input_ac, diff_feedback_gain`). 선택 `loop_dc_choke_H`(number), `nodeset_from_predictions`(bool), `nodeset_per_line`(integer) | 예 | 테스트벤치 정의(옛 C11·C27 규칙 그대로) | `options` 칸이 빠짐(→ `simulator.options`. 있으면 1b `oracle_input_format_old`) |
+| `/judge` | 객체(닫힘) `{sat_margin_V?: number, off_current_A?: number, tolerances?: {…}}`. `tolerances` 키(모두 number) = `ID_rel, VGS_abs_V, VDS_abs_V, VSB_abs_V, gm_rel, gds_rel, gm_id_rel, node_abs_V, W_rel, kcl_abs_A, dc_gain_db_abs, pm_deg_abs, ugf_hz_rel, f3db_hz_rel, supply_current_A_rel, ratio_db_abs, rout_ohm_rel, noise_th_in_v2hz_rel, noise_fc_in_hz_rel, noise_excess_th_rel, noise_out_int_vrms_rel, offset_in_sigma_mv_rel, swing_out_v_abs, icmr_v_abs, icm_margin_v_abs` | 아니오 | 판정 설정, 숫자 기본값 없음(없으면 N/A). 진입점 `--judge` 파일·`--sat-margin-v`가 덮어쓴다(옛 `merge_judge` 그대로). `off_current_A`는 OP-3 판 한정(OP-5에서 삭제, 기본안 B-34) | 같음 |
+| `/noise` | 객체(닫힘) `{f_lo_hz: number > 0}` 필수 + 선택 `points_per_decade`(integer ≥ 1), `input_cell_devices`(string 배열), `closed_loop`(bool), `rel_resolution`(number > 0) | 아니오 | 있을 때만 noise 측정(옛 U6) | 같음 |
+| `/offset_mc` | 객체(닫힘) `{rel_resolution: number > 0}` 필수 + 선택 `seed`(integer), `max_samples`(integer ≥ 2) | 아니오 | 있을 때만 MC(OP-5에서 네이티브 MC·`.tf` A로 바뀜, §21.5) | 같음 |
+| `/swing_icmr` | 객체(닫힘) `{swing?: bool, icmr?: bool, input_dc_V?: number, input_dc_pending?: bool}` | 아니오 | 있을 때만 swing·ICMR 측정(OP-5에서 §11.6 `dc_sweep`을 함께 요구) | 같음 |
+| `/topology` | 객체(닫힘) `{path: string}` 필수 + 선택 `sha256`(string) | 아니오 | C15 대조(옛 규칙 그대로) | 같음 |
+| `/provenance` | 객체(**열림**) | 아니오 | **출력 전용** 기록: 오라클은 결과에 옮길 뿐 해석·판정하지 않는다. 생산자는 여기에 생산자 이름·스냅샷 지문 등을 적는다(기본안 B-31) | 같음 |
+| `/cm_loop_passives` | -- | 금지 | 옛 스키마도 `false`(금지) | 같음 |
+
+**삭제 칸**(넣으면 §11.2 1b `oracle_input_format_old`): `process.models`(`subckt`·`includes`·`op_probe`·`polarity`), `process.ngspice_exe`, `process.lut_npz`, `process.diffusion`(기술자로 이동, 소자별 `devices[].diffusion`은 유지), `testbench.options`. **조용히 지우는 칸은 없다**: `process.lut_reference_width_m`·`process.provenance`(S-21, 생산자 내부 값)는 닫힌 키 집합이라 넣으면 1c `oracle_input_schema_invalid`다(검증자 변환은 지운다, §11.5).
+
+### 11.2 검사 순서와 조건 해석(§7.2 1·2·2b단계의 입력 쪽 세부)
+
+처음 걸린 하나만 낸다(§7.2 원칙). 거부면 산출물은 거부 기록 하나다(§11.7).
+
+| 단계 | 검사 | 코드 | 주체 |
+|---|---|---|---|
+| 1a | 입력 파일을 UTF-8 JSON으로 읽기 | `oracle_input_schema_invalid`(`rule = json_parse`) | 진입점 |
+| 1b | 옛 형식 표지: `schema == "spice_oracle_input/1"`, 또는 `process.models`·`process.ngspice_exe`·`process.lut_npz`·`process.diffusion`·`testbench.options` 가운데 하나라도 있음. 이중 지원은 하지 않는다(P D-5, X-5) | `oracle_input_format_old`(`detail.markers` = 걸린 표지 전부) | 진입점 |
+| 1c | JSON Schema(§11.1 표, Draft 2020-12) 위반 전부 | `oracle_input_schema_invalid`(`detail` = `[{pointer, rule}]`, 포인터 문자열 순) | 진입점 |
+| 1d | 스키마로 쓸 수 없는 교차 칸 규칙(이 판에서 새로 생긴 칸에만 둔다 -- 옛 의미 검사는 아래 '막힘'으로 그대로): `lut_kind_coverage`(모든 `devices[].kind`가 어떤 `lut_files[].kinds`의 키이고, 모든 `kinds` 키가 어떤 `devices[].kind`임), `reference_rail_voltage`(기준 레일이 하나일 때 그 전압 = 0) | `oracle_input_schema_invalid`(`rule` = 규칙 이름) | 코어 `input_check` |
+| 1e | 어댑터 이름 → 실행 파일 → 어댑터 지문 | `adapter_unknown`, `simulator_exe_missing`, `adapter_fingerprint_unavailable` | 진입점 |
+| 2 | 기술자(§7.2 2단계): 입력 `process.descriptor.sha256` = 기술자 파일 LF 값 → 기술자 스키마 → 참조 sha256 → 원본 중복 → 참조 파일 형식 → `devices[].kind` ⊆ 기술자 `kinds` | §7.2 2단계 코드, `descriptor_kind_undeclared` | 코어 |
+| 2b | LUT 파일(§7.2 2b단계): 파일마다 raw sha256 → npz 키 `meta_json`이 있으면 `model_files_sha256` 모양을 `kinds` 선언과 대조(평탄 표 = 값이 전부 문자열, 이때 `kinds`는 키 하나에 값 `null` / 중첩 = 값이 전부 객체, 이때 `kinds` 값은 그 dict의 키) → 코너·온도 확정(아래) | `lut_file_stale`, `lut_meta_shape_mismatch`, `lut_condition_conflict`, `oracle_condition_missing` | 코어 `input_check` |
+
+* **코너·온도 확정**(옛 §11.2를 다시 씀): 입력 `process.corner`·`process.temp_c`가 있으면 그것을 쓴다. 없는 쪽은 `lut_files`의 npz 키 `corner`·`temp_c` 기록에서 가져온다: 기록이 있는 파일들끼리 값이 모두 같아야 하고(다르면 `lut_condition_conflict`), 기록이 하나도 없으면 `oracle_condition_missing`(기본안 B-6 그대로). 입력 값과 LUT 기록이 다르면 입력 값을 쓰고, 온도가 다르면 온도 게이트(§12.6)를 지난다.
+* `meta_json`이 없는 LUT 파일(모델 기록 없음)은 2b에서 거부하지 않는다 -- 그 판정은 §7.2 8단계 `lut_model_provenance_missing`이다(기록 빈 표와 같은 사유).
+* **막힘(거부가 아님, 옛 동작 그대로)**: 기준 레일 개수 ≠ 1, C27 여기 가중, C14 되먹임 절단, CM 루프 구동자, 확산 기하 없음(C22) 등 옛 의미 검사는 지금처럼 판정 `BLOCKED` + `blockers` 문장으로 낸다(S-43). OP-3은 이 검사들의 위치만 코어로 옮기고 조건·문장(시뮬레이터 이름이 든 문장 제외, §15.1)은 바꾸지 않는다 -- N4 2번 동일성 대상이다.
+
+### 11.3 최소 입력 예시와 깨진 변형(test 작성자용)
+
+값은 **사례**다(상수 아님, 단위 SI). kind 이름 `nmos`는 사례 기술자의 `kinds` 키라고 가정한 것이고, 실제 키는 OP-2 spec card의 기술자 값이 정한다.
+
+```json
+{
+ "schema": "spice_oracle_input/2",
+ "circuit": "cs_toy",
+ "process": {
+  "descriptor": {"path": "descriptors/sky130.oracle_descriptor.json", "sha256": "<기술자 파일 LF 정규화 sha256, 소문자 64자>"},
+  "lut_files": [{"path": "<LUT 폴더>/sky130_fd_pr__nfet_01v8__tt__W1p0000um_dc.npz",
+                 "sha256": "<그 파일 raw sha256>", "kinds": {"nmos": null}}]
+ },
+ "simulator": {"adapter": "ngspice", "exe": "C:/ngspice/Spice64/bin/ngspice_con.exe",
+               "options": {"reltol": "1e-4", "vntol": "1e-7", "abstol": "1e-13"}},
+ "rails": [{"net": "vdd", "voltage": 1.8}, {"net": "gnd", "voltage": 0.0, "reference": true}],
+ "devices": [{"name": "M1", "kind": "nmos", "drain": "out", "gate": "in", "source": "gnd", "bulk": "gnd",
+              "L": 5e-7, "finger_w": 1e-6, "n_fingers": 2, "W": 2e-6}],
+ "passives": [{"name": "RL", "kind": "resistor", "terminals": ["vdd", "out"], "value": 20000.0}],
+ "ports": {"input": "in", "output": "out"},
+ "predictions": {"nodes": {"in": 0.6, "out": 0.9},
+                 "devices": {"M1": {"ID": 4.5e-5, "VGS": 0.6, "VDS": 0.9, "VSB": 0.0, "gm": 6.0e-4, "gm_id": 13.3,
+                                    "region": "sat", "off_current_A": 1.2e-11}},
+                 "metrics": [{"measure": "dc_gain_db", "value": 21.6}]},
+ "testbench": {"dc_choke_H": 1e6, "ac_couple_F": 1.0,
+               "ac": {"fstart_hz": 1.0, "fstop_hz": 1e10, "points_per_decade": 20, "input_ac": 1.0}},
+ "judge": {"sat_margin_V": 0.0}
+}
 ```
-"process": {
-  "descriptor": {"path": "...", "sha256": "..."},
-  "lut_npz": "...",                       # LUT 메타(코너·온도·model_files_sha256)의 출처
-  "corner": "<선택, 없으면 LUT 메타>",
-  "temp_c": "<선택, 없으면 LUT 메타>"     # LUT temp_c와 다른 온도는 온도 게이트(§12.6)를 지난다
-},
-"simulator": {"adapter": "<이름>", "exe": "<경로>", "options": {...}},
-"output_reference": {"kind": "differential"}
-                  | {"kind": "net_value", "value_V": <선언값>, "source": "<출처>"}
-                  | {"kind": "net", "net": "<참조 넷>", "source": "<출처>"}
-                  | {"kind": "rule_e_input_cm", "source": "<출처>"}   # 규칙 (e): 출력 = 입력 공통모드
-                  # 단일 출력 기준 셋 모두 source 필수(엔진 결과 `output_reference`의 출처를 그대로 옮긴다). 없으면 reference_undeclared
-```
 
-* `output_reference`(v0.2, offset-trim G-15): V_sys 측정의 출력 기준이다. 선언 기준을 온도와 무관하게 그대로 쓰고, 온도마다 다시 풀지 않는다(offset-trim design §20.1). 오라클은 이 값을 엔진 결과 JSON에서 직접 읽지 않고 입력으로만 받는다. 엔진 결과 `output_reference` 칸(offset-trim design §13)을 오라클 입력으로 옮기는 일은 입력 생산자가 한다(§11.4). 이 칸이 없는데 V_sys 측정을 요청하면 `reference_undeclared`로 멈춘다.
+깨진 변형(위 예시에서 한 곳만 바꿈) → 기대 결과. 시뮬레이터 호출 0인 것은 stub 어댑터로도 돈다.
 
-* `options`는 옛 `testbench.options`를 옮긴 것이다. 키 이름은 어댑터 방언이라 어댑터가 검증한다(기본안). 코어가 쓰는 해 정확도(`reltol` 등)는 어댑터가 `Resolution`으로 정규화해 돌려준다.
-* 삭제 칸: `process.models`(`subckt`·`includes`·`op_probe`·`polarity`), `process.ngspice_exe`, `process.diffusion`(기술자로 이동, 소자별 `devices[].diffusion`은 유지), `testbench.options`(`simulator.options`로 이동), (v0.2.4) `process.lut_reference_width_m`, `process.provenance`(S-21: 오라클 본체가 읽지 않는 생산자 내부 값. 출처 기록은 결과의 기술자 지문(P FR-P9)과 최상위 `provenance`가 맡는다).
-* (v0.2.4, 기본안 B-12) 새 스키마의 `process`는 위에 정의한 칸 밖의 키를 거부한다(`additionalProperties: false`). 옛 스키마는 `process`에 정의 밖 키를 허용해(`O/oracle_input.schema.json` `process`에 `additionalProperties` 없음) 생산자 내부 값이 입력에 섞였다(S-21). 최상위 `provenance`(어댑터 출처·경고, `oracle_input.schema.json:229`)는 그대로 둔다.
+| # | 바꾼 곳 | 기대 | 시뮬레이터 호출 |
+|---|---|---|---|
+| E1 | `schema` 칸 삭제 | `oracle_input_schema_invalid`(`/schema` required) | 0 |
+| E2 | `schema` = `"spice_oracle_input/1"` | `oracle_input_format_old`(`markers` ∋ `schema`) | 0 |
+| E3 | `process.models` 추가(아무 값) | `oracle_input_format_old`(`markers` ∋ `process.models`) | 0 |
+| E4 | `testbench.options` 추가 | `oracle_input_format_old` | 0 |
+| E5 | 최상위에 모르는 키 추가(사례 `declared_triode` -- OP-3 판에서는 G-18 확장 칸이 없음) | `oracle_input_schema_invalid`(`additionalProperties`) | 0 |
+| E6 | `predictions.devices.M1.region` = `"linear"` | `oracle_input_schema_invalid`(enum) | 0 |
+| E7 | `process.descriptor.sha256`을 대문자로 | `oracle_input_schema_invalid`(pattern) | 0 |
+| E8 | `process.descriptor.sha256`을 기술자 파일의 **raw** 값으로(CRLF 체크아웃 파일) | `pdk_descriptor_stale`(`ref = input_descriptor`) | 0 |
+| E9 | `lut_files[0].sha256` 한 글자 바꿈 / 파일 없음 | `lut_file_stale`(`actual_sha256` = 값 / `"missing"`) | 0 |
+| E10 | `devices[0].kind` = 기술자에 없는 키 | `descriptor_kind_undeclared` | 0 |
+| E11 | `lut_files[0].kinds` = `{"pmos": null}`(소자 kind와 다름) | `oracle_input_schema_invalid`(`rule = lut_kind_coverage`) | 0 |
+| E12 | 평탄 meta 파일에 `kinds` = `{"nmos": "nfet_01v8"}` | `lut_meta_shape_mismatch`(`why = meta_key_given_for_flat`) | 0 |
+| E13 | 두 LUT 파일의 `temp_c` 기록이 다름(입력 `temp_c` 없음) | `lut_condition_conflict` | 0 |
+| E14 | `simulator.adapter` = 등록 밖 이름 | `adapter_unknown` | 0 |
+| E15 | `simulator.exe` 삭제(CLI `--sim-exe`도 없음) | `simulator_exe_missing` | 0 |
+| E16 | 기준 레일 `gnd`의 `voltage` = 0.5 | `oracle_input_schema_invalid`(`rule = reference_rail_voltage`) | 0 |
+| E17 | 기준 레일 둘(`vdd`에도 `reference: true`) | 거부 아님 -- 판정 `BLOCKED`(옛 막힘 그대로) | 0 |
+| E18 | LUT 파일에 `meta_json`이 없음(모델 기록 없음) | `lut_model_provenance_missing`(§7.2 8단계) | 0 |
 
-### 11.2 온도·코너 해석 순서
+### 11.4 생산자와 EO-1 계약
 
-입력 `process.temp_c`/`corner`가 있으면 그것을 쓰고, 없으면 LUT 메타 값을 쓴다. LUT 메타에 기록이 없으면(`recorded=False`) 둘 다 입력에 있어야 하고, 없으면 거부한다(`oracle_condition_missing`, 기본안).
+* **생산자**(v0.3.0 다시 씀 -- v0.2.5의 '저장소 안 생산자는 0'은 EO-1 병합 전까지의 사실이다): (a) gain-budget card **EO-1**(OP-3 뒤, 사용자 결정 O-44 (1)) -- 엔진 점 → 이 스키마 (b) **A' 손분석 입력** -- A' 문서가 손분석과 함께 고정, 엔진 코드(EO-1 생산자 포함) 미사용, LUT 파생 칸은 LUT 직접 조회(계획 G-18) (c) offset-trim 구동기 -- `output_reference`(G-18 확장 칸, §11.6) (d) 미병합 `ng-bridge` -- 고치지 않는다, U16 흡수 때 이 스키마로 맞춘다. 옛 `legacy_adapter`는 gain-budget LT-1 순서 3이 지운다(이 기능은 고치지 않음).
+* **EO-1 계약 조항**(생산자 쪽 test는 gain-budget EO-1 완료 조건 (1)이 쓰고, 오라클은 아래만 보장한다):
+  * **K-1 형식**: EO-1 출력은 §11.2 1a~1d를 통과해야 한다. 어기면 오라클이 거부하고 거부 기록(§11.7)을 낸다 -- EO-1 완료 조건 (1)의 'oracle이 스키마 위반 입력을 거부함 red'는 §11.3 E1~E16 가운데 하나를 생산자 출력에 적용해 보이면 된다.
+  * **K-2 칸 범위**: §11.1 칸까지(O-45 U1). G-18 확장 칸(§11.6)은 내지 않는다 -- 키 집합이 닫혀 있어 내면 1c에서 거부된다(E5). 확장 칸은 그 card(OP-5·HC-O·OP-10)의 통합 병합에서 생산자를 갱신해 낸다.
+  * **K-3 값의 출처**: 봉인 스냅샷 필드·spec 선언·LUT 파생표의 직렬화(재계산 없음)는 gain-budget N6.20 '입력 출처'의 조항이다. 오라클은 엔진을 import하지 않으므로 출처를 검사하지 않고 형식·교차 규칙·파일 sha256만 본다.
+  * **K-4 판정에 닿는 칸**: 아래 칸이 없을 때 free 판정이 어떻게 되는지(옛 `oracle_compare` 동작 그대로, S-40·S-43). 생산자가 칸을 비우면 판정이 `INCOMPLETE`가 되므로, 어떤 칸을 낼지는 EO-1 design이 정하되 이 표를 근거로 한다.
 
-### 11.3 옛 형식
+    | 칸 | 없을 때 |
+    |---|---|
+    | `judge.sat_margin_V`(또는 CLI `--sat-margin-v`) | 포화 판정 N/A → `INCOMPLETE` |
+    | 엔진 전도 예측 소자(`region` ≠ `"off"`)의 `predictions.devices.<n>.off_current_A`, 그리고 `judge.off_current_A` | 그 소자 전도 확인 N/A → `INCOMPLETE`(OP-3 판. OP-5 뒤에는 §11.6 전도 열이 이 자리) |
+    | `acceptance.constraints` | 제약 판정 없음(PASS는 포화·전도만으로) |
+    | `topology` | '동일성 미검증' 표시, `--require-topology`면 `BLOCKED` |
+    | `noise`·`offset_mc`·`swing_icmr` 블록 | 그 측정 안 함(결과에 키 없음) |
+    | `process.lut_files[]` 파일의 모델 기록 | `lut_model_provenance_missing` 거부(공칭 자동 대조, D-7) |
 
-`process.models` 또는 `process.ngspice_exe`가 있으면 `oracle_input_format_old`로 거부한다. 이중 지원은 하지 않는다(P D-5, X-5).
-
-### 11.4 생산자
-
-* (v0.2.5 다시 씀, 계획 v0.6.3 D-5·F-16·X-21, 사용자 L-1·L-2 (6)) **저장소 안 생산자는 0이다.** master 생산자였던 `legacy_adapter`는 이 기능의 card가 고치지 않고 gain-budget card LT-1 순서 3이 지운다. v0.2.4의 '`process_from_lut_generator`를 지우고 새 `process`를 낸다'와 그 하위 항목(기준 폭 대체값 삭제, 기본안 B-13)은 철회했다. 고칠 생산자가 없기 때문이다.
-* `O/smoke/`의 옛 형식 입력 3개(`*.oracle_input.json`)는 그 어댑터의 마지막 산출물로 **고정 자료**다(계획 X-5). 새 오라클로 직접 돌리지 않는다(옛 형식 거부, §11.3). N4 비교 실행은 검증자 변환 스크립트(§11.5)가 판정 기록 안에 만든 새 형식 사본으로 하고, 그 사본은 배포 산출물이 아니다(계획 N4-2a). 저장소에 새 형식 smoke 입력이 필요해지면 code 역할 card로 만든다.
-* 고정 자료 test의 처리(계획 OP-2·OP-3 행, LT-1 순서 3): 고정 자료 자체만 읽는 test(finger 규칙, W 자기모순, feedback_passives 선언)는 남는다. 지금 코드에 묶인 둘은 그 코드를 바꾸는 card가 같은 변경에서 바꾼다 -- 스키마 적합 test는 OP-2가 '옛 형식이라 거부(`oracle_input_format_old`)' test로, 넷리스트·루프 넷리스트 재생성 일치 test는 OP-3이 지우고 `criteria_weakened`에 올린다(같은 비교는 검증자 N4-3 대조가 맡는다). 그 test가 LT-1 순서 3에서 이미 옮겨졌으면 옮긴 파일에서, 아직이면 `test_legacy_adapter.py`에서 바꾼다(§18.2).
-* 결과: 새 엔진이 오라클 입력을 내기 전까지(U16) 저장소 안에서 새 오라클을 실제 회로로 끝까지 돌리는 입력은 test 작성자가 쓴 test 입력뿐이다(계획 X-5).
-* 미병합 `ng-bridge`: 이 기능은 고치지 않는다. 형식 계약 = §11.1 스키마다. U16 흡수 때 맞춘다.
-* `output_reference`의 생산: 엔진 결과 JSON의 `output_reference` 칸을 그대로 옮긴다. 생산자는 엔진→오라클 입력 변환기(U16)와 offset-trim 구동기다. 고정 자료 smoke 입력에는 그 칸이 없으므로, 그 사본으로 V_sys를 요청하면 `reference_undeclared`다.
+  * **K-5 '꺼짐 정의 판'**: EO-1 뒤 OP-5 전 기간에는 오라클 합격 판정의 꺼짐이 옛 ε = 1 식이다. 결과 `summary.conduction_definition`(§11.7)이 그 판을 기계로 읽을 수 있게 적는다 -- gain-budget N6.20 '판정 기록에 꺼짐 정의 판을 적는다'의 소비 칸.
+  * **K-6 OP-5 병합 때 바뀌는 것**: `predictions.devices.<n>.off_current_A`·`judge.off_current_A` 칸이 스키마에서 지워지고(넣으면 E5와 같이 거부), §11.6 확장 칸이 생긴다. EO-1 생산자의 그 부분 삭제·추가는 같은 통합 병합의 엔진 커밋이다(계획 OP-5 행).
+* `O/smoke/`의 옛 형식 입력 3개(`*.oracle_input.json`)는 그 어댑터의 마지막 산출물로 **고정 자료**다(계획 X-5). 새 오라클로 직접 돌리지 않는다(옛 형식 거부, §11.2 1b). N4 비교 실행은 검증자 변환 스크립트(§11.5)가 판정 기록 안에 만든 새 형식 사본으로 하고, 그 사본은 배포 산출물이 아니다(계획 N4-2a). 저장소에 새 형식 smoke 입력이 필요해지면 code 역할 card로 만든다.
+* 고정 자료 test의 처리(계획 OP-3 행, LT-1 순서 3. v0.3.0, DR-10i -- 사용자 결정 O-14 (4) J-1 (나)로 스키마 적합 test 전환도 OP-3): 고정 자료 자체만 읽는 test(finger 규칙, W 자기모순, feedback_passives 선언)는 남는다. 지금 코드에 묶인 둘은 **OP-3**이 같은 변경에서 바꾼다 -- 스키마 적합 test는 '옛 형식이라 거부(`oracle_input_format_old`)' test로, 넷리스트·루프 넷리스트 재생성 일치 test는 지우고 `criteria_weakened`에 올린다(같은 비교는 검증자 N4-3 대조가 맡는다). 그 test가 LT-1 순서 3에서 이미 옮겨졌으면 옮긴 파일에서, 아직이면 `test_legacy_adapter.py`에서 바꾼다(§18.2).
 
 ### 11.5 입력 변환 필드 대응표(P N4-2a, 검증자 변환 스크립트의 유일한 근거)
 
@@ -746,16 +926,18 @@ Calibration = {   # 모든 값은 출처 칸 필수
 
 | 옛 칸 | 새 칸 | 처리 |
 |---|---|---|
-| `process.lut_npz` | `process.lut_npz` | 그대로 |
+| (없음) | `schema` | (v0.3.0) `"spice_oracle_input/2"`. 옛 `schema` 값은 변환 기록에 남긴다 |
+| `process.lut_npz` | `process.lut_files` | (v0.3.0) **결정 대기 -- §19.2 DV-7**. 기계적 대응은 `[{path: <옛 값>, sha256: <그 파일 raw>, kinds: {<입력의 각 devices kind>: null}}]`이지만, 기준선 입력의 LUT 파일에는 모델 기록이 없어(S-39) 변환 사본 전부가 §7.2 8단계 `lut_model_provenance_missing`으로 거부된다. 그래서 이 행은 사용자 결정 전에는 확정하지 않는다 |
 | `process.models` | (없음) | 삭제. kind 정보는 기술자 `kinds` |
 | `process.ngspice_exe` | `simulator.exe` | 옮긴 뒤 삭제 |
 | `process.diffusion` | (없음) | 삭제. 기술자 `diffusion`. 옛 값은 변환 기록에 남겨 OP-2 대조에 쓴다 |
 | `process.lut_reference_width_m` | (없음) | (v0.2.4) 삭제. 오라클 본체가 읽지 않는다(S-21). 옛 값은 변환 기록에 남긴다 |
 | `process.provenance` | (없음) | (v0.2.4) 삭제. 같은 이유(S-21). 옛 값은 변환 기록에 남긴다 |
 | `testbench.options` | `simulator.options` | 옮긴 뒤 삭제. 없으면 기록에 `options_absent`(X-D4 영향 대상, S-20) |
-| (없음) | `process.descriptor` | 변환 인자로 받은 기술자 경로·sha256. 없으면 그 변환 결과는 N4에 쓰지 않는다 |
+| (없음) | `process.descriptor` | 변환 인자로 받은 기술자 경로·sha256. 없으면 그 변환 결과는 N4에 쓰지 않는다. (v0.3.0, DR-10f, 계획 OQ-5 (c)) sha256 = 기술자 파일의 **LF 정규화** 값(변환 스크립트가 파일 바이트에서 잰다) |
 | (없음) | `simulator.adapter` | 변환 인자 |
-| (없음) | `process.corner`·`temp_c`, `output_reference` | 쓰지 않는다(옛 형식에 없음, §11.2·§11.4) |
+| (없음) | `process.corner`·`temp_c` | 쓰지 않는다(옛 형식에 없음, §11.2) |
+| (없음) | G-18 확장 칸(§11.6) | 쓰지 않는다(옛 형식에 없음). OP-5 이후 그 칸이 필요한 측정을 기준선 입력으로 비교하지 않는다 -- 정의를 바꾼 칸이라 N4 0번 '동작 변경' 기준이고 기준선 동일성 대상이 아니다 |
 | 그 밖 모든 칸 | 같은 칸 | 바꾸지 않는다 |
 
 **결과 칸 이름 대응**(N4 비교 때, v0.2.4. v0.2.5 경로별로 다시 씀, 검증 M-1, 근거 S-23): 새 결과에서 이름이 바뀐 칸은 아래 대응으로 비교한다. 값은 바꾸지 않는다. 옛 `ngspice_rc`가 있던 **같은 자리**에 새 결과는 `status` 객체(`RunStatus`의 `rc`·`timed_out`·`error`·`warnings`·`log_excerpt`·`log_path`)를 둔다. `cache_state`는 `status`에 싣지 않고 캐시 상태 표로 뺀다(아래 '옛 상태 칸', C21). 비교 칸은 `status.rc`이고 이산 칸 정확 일치다(P N4-2). `status`의 다른 칸은 새 칸이라 비교에서 뺀다.
@@ -810,6 +992,36 @@ Calibration = {   # 모든 값은 출처 칸 필수
 | `sim.cm_loop.cache`, `sim.cm_loop.stability_cache` | 같은 모양 | 제외(C21) | 없음 → 출력 전용 |
 | `compare` 막힘 목록(`blockers`) | 같은 칸 | **유무와 개수** 정확 일치, 문장은 제외(시뮬레이터 이름이 든 문장이 바뀜, S-17) | 판정(막힘이면 PASS 불가) |
 
+### 11.6 G-18 확장 칸(OP-5·headroom-chain HC-O·OP-6·OP-10·OP-11, v0.3.0 신설 -- 계획 G-18·G-19, DR-17)
+
+* **정의를 정하지 않는다**(계획 G-18 '정의 정본 = gain-budget N3.8'): 아래 칸은 확정된 엔진 정의 문장을 재는 데 필요한 **입력 선언**이다. 오라클은 엔진을 import하지 않으므로 이 값들은 입력으로 온다(이름·포트 개수로 추측하지 않는다).
+* **더하는 때**: 칸마다 '더하는 card'가 병합될 때 §11.1 표에 더해진다(키 집합이 닫혀 있어 그 전에는 거부, E5). 그 card의 통합 병합에 EO-1 생산자 갱신 커밋(`Role: code`)이 함께 들어간다(계획 U-6, 선행 = EO-1 병합). 칸별 대조 toy는 EO-1 완료 조건 (1)과 같은 꼴로 그 병합에서 판정한다(gain-budget N6.20). A' 손분석 입력도 같은 칸을 같은 때부터 갖는다(A' 문서가 고정).
+
+| 칸 | 더하는 card | 형식 | 필수 | 뜻·출처 | 교차 규칙(1d) |
+|---|---|---|---|---|---|
+| `/declared_triode` | OP-5와 headroom-chain HC-O 가운데 **먼저 병합하는 쪽**(나중 card는 같은 칸을 쓴다 -- 계획 N5.2 headroom-chain 행 '두 계획이 같은 칸을 따로 정의하지 않는다') | string 배열, 중복 없음 | 예(빈 배열 허용. 칸이 생긴 뒤에는 '선언 없음'을 칸 없음으로 나타내지 않는다, 기본안 B-36) | spec 선언 triode 소자(spec `intended_region == "triode"`, headroom-chain N3.6). 쓰는 곳: 범위 판정 소자 조건에서 포화 조건 제외(§21.1), 합격 판정 포화 확인에서 제외하고 영역(SPICE VDS 대 VDSAT) 기록(HC-O). **전도 확인은 선언 triode도 포함**(DEC-90 (1)) | 원소 ∈ `devices[].name`(아니면 `rule = declared_triode_unknown_device`) |
+| `/dc_sweep` | OP-5 | 객체(닫힘) `{excite: {<net>: number}, common: {<net>: number} \| null}` | swing·ICMR·계통 offset 요청 때(없으면 `sweep_direction_undeclared`) | 정의 일반형(계획 N3.9, O-33 (7))의 **여기 방향**(전달 뷰 여기 방향 -- 엔진 gain 전달 뷰 `ac_excite`와 같은 값)과 **직교 성분**(공통모드). 사례: 차동 입력 `excite = {inp: 0.5, inn: -0.5}`, `common = {inp: 1, inn: 1}`; 단일 입력 `excite = {in: 1}`, `common = null`(차동이 없으면 공통모드 = 입력 자체, gain-budget N3.8 556행) | 키 ⊆ 입력 포트 넷(`ports.input_p/input_n/input`), 값 ≠ 0, `excite` 키 ≥ 1. `common`이 있으면 키 집합 = `excite` 키 집합이고 Σ_n excite_n·common_n = 0(선언값끼리의 곱 합이 정확히 0 -- 새 허용 폭 없음). `rule = dc_sweep_ports \| dc_sweep_zero_weight \| dc_sweep_not_orthogonal` |
+| `/conduction_columns/<device>` | OP-5 | 객체(닫힘) `{tol_v: {vds_grid_V: number 배열(길이 ≥ 2, 엄격 증가), values_V: (number \| null) 배열(같은 길이)}, i_off: <§19.2 DV-6 결정 대기>}` | 예(모든 `devices[]`, 선언 triode 포함 -- 전도 확인이 모든 MOS에 걸림) | 판정 점 ε = (gm/ID)·tol_V의 tol_V 열과 I_off 열(계획 N3.9, 사용자 결정 O-46 (2)). **tol_v 직렬화 규칙**(EO-1 갱신 커밋이 지킴, 출처 = LUT 파생표 `tol_v_table(kind, w_key)`, 지표 `id_equivalent`, S-41): `vds_grid_V` = 그 표의 VDS 격자, `values_V[b]` = 그 소자 L의 행들(L이 앵커면 그 앵커 행 하나, 같은 bin 보간이면 양옆 앵커 두 행)의 VDS 격자점 b 셀 값 가운데 **정의된 값의 최댓값**, 없으면 null. 동작점 스칼라 `device.dc_tol_v`(봉인점 VDS로 읽은 값)와 다른 양이다(열 전체). 읽기 규칙은 §21.1 | 칸 = `devices[].name` 전체(누락·남는 키 → `rule = conduction_columns_devices`), 두 배열 길이 같음·격자 엄격 증가(`rule = conduction_columns_shape`) |
+| `/output_reference` | OP-5(계통 offset, §21.4. OP-6 PC-10 V_sys도 같은 칸을 쓴다 -- OP-6은 OP-5 뒤) | 단일 출력: `{"kind": "net_value", "value_V": number, "source": string}` \| `{"kind": "net", "net": string, "source": string}` \| `{"kind": "rule_e_input_cm", "source": string}`(규칙 (e): 출력 = 입력 공통모드). 차동 출력: 칸 없음 또는 `{"kind": "differential"}` | 단일 출력에서 계통 offset·V_sys를 요청할 때(없으면 `reference_undeclared`) | 엔진 DEC-23 기준값(선언 출력 목표 = spec `node_voltage_targets_v`, 쓰기 계획 W3 `REL_TARGET`; 차동 출력 = V(p) − V(n) = 0이라 입력 칸 불필요, 계획 G-18)과 offset-trim G-15 기준(§20.1)이 같은 칸이다. 기준은 온도와 무관하게 그대로 쓰고 온도마다 다시 풀지 않는다. 엔진 결과 `output_reference` 칸을 생산자가 옮긴다(오라클은 엔진 결과 JSON을 읽지 않음). (v0.2 §11.1에 있던 칸을 v0.3.0에 여기로 옮김 -- 계획 G-18이 확장 칸으로 분류) | 차동 출력 포트인데 `kind` ≠ `differential`, 또는 단일 출력인데 `differential` → `rule = output_reference_vs_ports` |
+| `/slew` | OP-10 | 객체(닫힘) `{node: string, feedback: "declared" \| "unity_follower", step_ends_V: {up: number, down: number}}` | 슬루 측정 요청 때(없으면 `slew_undeclared`) | 계획 G-19, 정의 정본 = gain-budget N3.8 557행 '슬루율 측정 정의'(사용자 결정 O-34 (2)). `node` = 슬루 정의 노드(DEC-65 노드 k). `feedback` = spec에 사용 구성(β) 선언이 있으면 `declared`(입력 회로·`feedback_passives`가 그 구성), 없으면 `unity_follower`(β = 1, 결과에 'β = 1 기본' 표기). `step_ends_V` = 계단 끝(O-28 '입력을 허용 입력 범위 끝까지 미는 방향별 계단') -- **값의 출처는 §19.2 DV-9 결정 대기** | `node` ∈ 회로 넷(`rule = slew_node_unknown`) |
+
+* **measure 이름 추가**(기본안 B-37): OP-5가 `predictions.metrics[].measure`와 `acceptance.constraints[].measure`에 `offset_sys_mv`를, `judge.tolerances`에 `offset_sys_mv_abs`(mV, 값이 0 근처라 상대 폭은 정의되지 않음)를 더한다. OP-11이 `predictions.metrics[].measure`에 `power_dc_w`를, `judge.tolerances`에 `power_dc_w_rel`을 더한다. `power_dc_w`를 `acceptance` 판정 대상에 넣을지는 계획이 정하지 않았으므로 넣지 않는다(계획 OP-11 '판정 허용 폭은 judge 선언이 있을 때만' -- 기록·모델 오차 칸, 넣으려면 계획 개정).
+* **OP-5 병합 때 지우는 칸**(계획 OP-5 '옛 입력 칸 삭제', K-6): `predictions.devices.<n>.off_current_A`(옛 동작점 스칼라, 엔진 `device.dc_off_current` 직렬화)와 `judge.off_current_A`. 두 칸 모두 판정 점 LUT 조회(§21.1)가 대체해 판정에 쓰지 않는다(사용자 결정 O-46 (2)). `judge.off_current_A` 삭제는 계획 문언('옛 동작점 스칼라 `off_current_A` 입력 칸')이 소자별 칸을 가리키는지 judge 칸까지 포함하는지 갈리지 않아 **기본안 B-34**로 정했다: judge 칸도 전도 정의(옛 swing·compare의 `|ID| > off_current_A`, S-40)에만 쓰이고 새 정의가 그 자리를 대체하므로, 남기면 소비자 없는 칸이 된다(만들면 배선·소비자 없는 칸 금지). 엔진 쪽 `device.dc_off_current` 필드는 graph-consumption 계획이 출력 전용으로 선언한다(이 계획 몫 아님, 계획 OP-5 행).
+* `swing_icmr` 블록은 그대로 두고, OP-5 뒤에는 swing·ICMR 요청에 `dc_sweep`을 함께 요구한다(§21.2).
+
+### 11.7 실행 결과 계약(EO-1 판정 배선이 읽는 것, v0.3.0 신설)
+
+* **진입점**: `oracle_run <입력.json> <out_dir> --bias {free, forced, iso}… [--simulator 이름] [--sim-exe 경로] [--judge 파일] [--sat-margin-v V] [--timeout-s S] [--tag T] [--topology 경로] [--require-topology] [--omit 이름…] [--short 이름…] [--cache-dir 폴더]`. 옛 인자 그대로이고 `--ngspice`만 `--simulator`·`--sim-exe`로 바뀐다(계획 X-7). CLI 값이 입력 칸보다 우선한다. 엔진은 이 진입점을 외부 단계로 부른다(엔진 import 없음, §17.2 542행 문안).
+* **반환 코드**(옛 그대로): 0 = 모든 bias 판정 `PASS`/`INCOMPLETE`, 1 = `FAIL`, 2 = `BLOCKED` 또는 **거부**(§7·§11.2의 코드).
+* **거부 기록**(기본안 B-33): 거부면 넷리스트·결과를 쓰지 않고 `<out_dir>/<circuit>.reject.json` 하나만 쓴다(1a·1c에서 `circuit`을 문자열로 읽지 못했으면 `circuit.reject.json`) = `{"schema": "oracle_reject/1", "code": <§7 코드>, "detail": <그 코드의 detail>, "stage": <§7.2 단계 번호 문자열, 사례 "1c">, "input_path": <입력 경로>, "input_sha256": <입력 파일 raw sha256>}`. 옛 C13('스키마 위반이면 아무 산출물도 쓰지 않음')에서 바뀌는 곳은 이 파일 하나다. 소비자 = EO-1 판정 배선(엔진 점 레코드에 거부 사유를 붙인다, gain-budget N6.20 범위 (2))과 §18.1 입력 계약 test.
+* **정상 결과**: bias마다 옛 `<stem>.compare.json`·`.compare.md`·`.sim.json`. compare JSON 최상위에 새 칸을 더한다:
+  * `record_id` = 그 compare JSON에서 `record_id`·`netlist`(출력 경로) 칸을 뺀 본문의 정규 JSON(§0 '어댑터 지문'의 직렬화 규칙) sha256. 같은 코드·환경·입력이면 같은 값(결정성, 계획 N4 0번). 소비자 = EO-1 '판정 기록 id'.
+  * `fingerprints = {adapter_fp, descriptor_fp, capability_record_id}`(계획 FR-P9. 능력 기록을 쓰지 않은 공칭 실행이면 `capability_record_id = null`).
+  * `machine_dependent_refs`(§6) -- 출력 전용.
+  * `input_sha256` = 입력 파일 raw sha256(출력 전용, 판정 기록과 입력의 대응 확인용).
+  * `summary.conduction_definition` ∈ {`"threshold_eps1"` -- OP-3 판(OP-5 전): SPICE ID > `off_current_A` 문턱(S-40, DEC-90 (1) 옛 Q5 식), `"seal9_point_lut"` -- OP-5 뒤: 판정 점 봉인 9 식(§21.3)}. 소비자 = EO-1 판정 기록 '꺼짐 정의 판'(gain-budget N6.20, K-5).
+* EO-1이 읽는 칸 목록(이 밖의 칸은 EO-1 계약이 아니다): 반환 코드, 거부 기록 `code`·`detail`·`stage`, free `compare.json`의 `summary.verdict`·`summary.verdict_reason`·`record_id`·`summary.conduction_definition`·`fingerprints`.
+
 ---
 
 ## 12. 능력 확인(PC-1~PC-10, G-11)
@@ -831,7 +1043,7 @@ Calibration = {   # 모든 값은 출처 칸 필수
 | PC-6 | PC-3 벤치, 같은 seed로 기준 온도 단독 실행과 온도 여러 점 실행 | 같은 표본의 기준 온도 값이 두 실행에서 비트 동일 | 온도마다 재추출하는 어댑터 stub |
 | PC-7 | 소자 하나, LUT 격자 점 몇 개 | 모델 묶음 비교 규칙(§12.5) 통과. 공칭 op(VDSAT 포함)가 LUT 점과 LUT 허용오차 안 | 다른 모델 파일, vdsat 정의가 다른 표 |
 | PC-8 | 소자 하나, LUT `temp_c`와 다른 온도 | 그 온도로 실행됨(PC-5의 읽은 온도로 확인) | 입력 온도 무시 |
-| PC-10 | 차동 입력쌍 + 출력 부하 + DC servo의 최소 IR(회로·PDK 이름 없음). 불일치는 끈다. 입력 `output_reference` 네 종류마다 하나씩 | (a) 온도 점마다 V_sys(T)를 낸다. 부호 규약은 offset-trim 계획 N0.1(V_sys,s = `output_error_v` / A_dm, 부호 있는 계통 offset)과 offset-trim design §0의 V_in(c) = −(V_sys0 + s·t·δ(c))를 따른다. 즉 servo가 출력을 선언 기준에 붙들 때의 입력 차동 전압이 V_in이고, 불일치·DAC가 없으면 V_sys(T) = −V_in(T)다. 기준은 선언값을 온도와 무관하게 그대로 쓴다(offset-trim G-15) (b) 온도 sweep 실행의 T_j 값 = T_j 단독 실행 값(비트 동일) (c) `output_reference`가 없으면 `reference_undeclared`로 멈춘다 (d) 각 값에 DC 풀이 허용오차의 입력 환산 전파값(§13.4)을 함께 낸다 | 기준 해를 버리고 흔들림만 내는 경로, 온도마다 기준을 다시 푸는 경로, `output_reference` 없이 기본 기준을 몰래 쓰는 경로 |
+| PC-10 | 차동 입력쌍 + 출력 부하 + DC servo의 최소 IR(회로·PDK 이름 없음). 불일치는 끈다. 입력 `output_reference`(§11.6) 네 종류마다 하나씩(차동은 칸 없음과 `differential` 둘 다, v0.3.0) | (a) 온도 점마다 V_sys(T)를 낸다. 부호 규약은 offset-trim 계획 N0.1(V_sys,s = `output_error_v` / A_dm, 부호 있는 계통 offset)과 offset-trim design §0의 V_in(c) = −(V_sys0 + s·t·δ(c))를 따른다. 즉 servo가 출력을 선언 기준에 붙들 때의 입력 차동 전압이 V_in이고, 불일치·DAC가 없으면 V_sys(T) = −V_in(T)다. 기준은 선언값을 온도와 무관하게 그대로 쓴다(offset-trim G-15) (b) 온도 sweep 실행의 T_j 값 = T_j 단독 실행 값(비트 동일) (c) `output_reference`가 없으면 `reference_undeclared`로 멈춘다 (d) 각 값에 DC 풀이 허용오차의 입력 환산 전파값(§13.4)을 함께 낸다 | 기준 해를 버리고 흔들림만 내는 경로, 온도마다 기준을 다시 푸는 경로, `output_reference` 없이 기본 기준을 몰래 쓰는 경로 |
 
 * (v0.2.4) PC-3 (c) '끈 실행 = 공칭 비트 동일'은 OP-1에서 출력 자릿수 동일까지만 확인됐다(S-12 15행). 비트 비교는 OP-6 PC-3 실행이 한다. PC-6의 사례 근거는 S-12 6행(같은 시드 표본이 세 온도에서 같음)이다.
 * (v0.2.4) PC-3의 깨진 변형에는 분포 값 출처의 깨진 변형 셋(§10.4: 값 직접 기재, 원본 sha256 불일치, 위치 없음)도 넣는다(완료 조건 4). 이 셋은 실행 전 기술자 검증에서 거부되므로 시뮬레이터를 부르지 않는다.
@@ -862,12 +1074,18 @@ Calibration = {   # 모든 값은 출처 칸 필수
 * 저장 위치는 `O/capability/<기술자 지문 앞부분>__<어댑터 지문 앞부분>.json`(기본안)이다.
 * (v0.2.6) `adapter_fp`의 코드 지문은 §0 '어댑터 지문'(제외 목록 방식, 계획 v0.6.6)이다. 그래서 `calibration.json`의 판정 키를 바꾸면 기록이 무효(`oracle_capability_stale`)가 되고, `wall_s_per_window`나 `calibration_tools/`만 바꾸면 기록이 그대로 유효하다. OP-8 LUT 메타의 생성 어댑터 지문(§15.3)과 캐시 키(§9)도 같은 지문을 쓴다.
 * `record_id`는 내용의 정규 JSON sha256이다. (v0.2.6) 정규 JSON 직렬화 규칙은 §0 '어댑터 지문'과 같다(`sort_keys=True`, `separators=(",", ":")`, `ensure_ascii=False`, UTF-8). `record_id` 칸 자체는 계산 대상 본문에서 뺀다. offset-trim Δ_T 출처 지문과 `verified_by`(D-6)가 이 id를 가리킨다.
+* **(v0.3.0, DR-9, 계획 OQ-5 = O-14 (3)) 지문의 sha256 정의**: `descriptor_fp`(기술자 파일 자체와 그 참조), `adapter_fp`의 코드 지문(§0), `check_code_fp`(`O/core/capability.py` 등 확인 코드 파일)는 모두 **LF 정규화 sha256**이다. 같은 코드·같은 기술자를 다른 줄 끝으로 체크아웃한 기계에서도 기록이 `oracle_capability_stale`이 되지 않는다(계획 OQ-5 근거). 이 지문들에는 옛 raw 기록이 없어(아직 만들어지지 않음) 규칙 (ii)가 필요 없다.
+* **기계 의존 표시 칸**(v0.3.0, DR-9): 기록에 `machine_dependent_refs`(§6과 같은 모양)를 둔다 -- 그 기록을 만든 실행에서 규칙 (ii)의 raw 값으로만 맞은 옛 기록(엔진 원본 raw 기록, LUT `model_files_sha256`·`generator_sha256`)의 목록이다. 이 칸은 `record_id` 계산 본문에 들어간다(같은 기록이 다른 줄 끝 기계에서 다른 기계 의존 목록을 가지면 다른 기록이다). 유효성 판정(§12.6)은 이 칸을 읽지 않는다(출력 전용, §6.1).
 
 ### 12.5 모델 묶음 비교 규칙(P N3.5, `core/bundle.py`)
 
 (v0.2.5 다시 씀, 검증 B-1, 계획 v0.6.3~v0.6.4 N3.5 '모델 묶음 비교 규칙'·F-18·X-22·OQ-1 승인 L-3·G-17.) v0.2.4는 LUT 기록 전체를 한 집합으로 오라클 묶음과 비교했다(계획 v0.6.2 판). 그 규칙은 기준 슬라이스 32/38이 기록한 생성 보조 입력(bin 경계표, S-29) 때문에 그 슬라이스를 쓰는 모든 공칭 실행에서 깨진다(계획 F-18).
 
-**두 쪽의 모양**: LUT 쪽은 슬라이스 meta `model_files_sha256`(기록 뿌리 기준 상대 경로 → sha256, 없으면 빈 표, `E/lut/provenance.py:11-13`). 오라클 쪽은 어댑터 `model_bundle`(kind마다 넷리스트 include 재귀로 모은 파일, 절대 경로 → sha256).
+**두 쪽의 모양**: LUT 쪽은 슬라이스 meta `model_files_sha256`(기록 뿌리 기준 상대 경로 → sha256, 없으면 빈 표, `E/lut/provenance.py:11-13`). 오라클 쪽은 어댑터 `model_bundle`(kind마다 넷리스트 include 재귀로 모은 파일, 절대 경로 → {`lf`, `raw`} 두 값, §8.1 v0.3.0).
+
+**(v0.3.0) LUT 쪽 읽기**: kind의 LUT 기록 = 입력 `process.lut_files` 가운데 `kinds`에 그 kind가 있는 파일들의 meta `model_files_sha256`에서, `kinds` 값이 `null`이면 평탄 표 그대로, 키 문자열이면 그 키의 하위 dict(§11.2 2b, S-38 두 모양). 모양이 선언과 다르거나 모르는 모양이면 이 단계 전에 `lut_meta_shape_mismatch`로 거부된다(조용한 평탄화 금지 -- 계획 N9 '관찰' 행을 이 규칙으로 닫는다).
+
+**(v0.3.0, DR-10, 계획 N3.5 'sha256 정의') 비교의 sha256 정의**: LUT 기록 `model_files_sha256`·`generator_sha256`은 엔진 소유 **raw** 기록이다(F-19, 사례 pmos `lod.spice` 기록 `20874af1…` = 디스크 CRLF 값, S-37). 그래서 아래 규칙 (i)~(iii)의 '같다'는 계획 N3.4 규칙 (ii)다: 기록값이 그 파일의 **LF 값과 같으면 일치**, **raw 값과만 같으면 기계 의존 일치**(받고 결과 `machine_dependent_refs`에 적음), 둘 다 아니면 그 규칙 위반. 기록 하나를 파일 바이트에 대조하는 것이고 정의가 다른 두 기록값을 서로 견주지 않는다(규칙 (iii)). 묶음 파일끼리의 동일성과 결과·캐시 키에 적는 묶음 지문은 LF 값 하나로 낸다. 엔진 card SH-1(O-16 (1)) 전에도 오라클은 CRLF 체크아웃 기계에서 기계 의존 일치로 돈다. LF 체크아웃 기계에서는 기존 공유 LUT의 raw 기록이 맞지 않아 거부된다(계획 X-27 -- 기존 LUT 파일 수정은 범위 밖).
 
 **기록 파일의 역할**(계획 N3.5): **모델 파일** = LUT 생성 시뮬레이터가 넷리스트 include로 읽은 파일(시뮬레이션 값을 정한다). **생성 보조 입력** = 생성기가 시뮬레이터 밖에서 직접 읽은 파일(사례: bin 경계표). 포함 관계 비교는 모델 파일에만 뜻이 있고, 보조 입력은 자기 sha256과 존재만 본다. 역할은 **선언으로만** 정한다(이름·확장자 규칙 금지).
 
@@ -880,13 +1098,14 @@ Calibration = {   # 모든 값은 출처 칸 필수
    "roles": {"<기록 상대 경로>": {"sha256": "<기록 sha256>", "role": "model_file" | "generation_aux_input"}},
    "evidence": {
      "generator": {"commit": "<그 생성기 판이 있는 저장소 커밋>", "path": "<생성기 파일>", "file_sha256": "<= generator_sha256>",
+                   "matched": "lf" | "raw",                                                       # (v0.3.0) 후보 판 바이트 정의(아래 근거 (a))
                    "aux_append_lines": [<보조 입력을 include 목록 밖에서 기록에 더한 줄 번호>]},     # 계획 근거 (a)
      "include_graph": {"start": [<그 생성기 판이 LUT 생성 넷리스트에 쓴 include·lib 대상 전부>],
                        "files": [<시작점에서 include 재귀로 닿는 기록 상대 경로 전부>]},            # 계획 근거 (b)
      "measured_by": "verifier", "date": "..."}}
   ```
   * 키 집합은 닫혀 있다(밖의 키, 역할 값 밖, `evidence` 칸 없음은 `lut_file_roles_invalid`).
-  * **근거 두 측정이 모두 맞아야** 그 파일을 `generation_aux_input`으로 적는다(계획 v0.6.3.1 세부): (a) 생성기 근거 = 슬라이스 meta `generator_sha256`과 파일 sha256이 같은 생성기 판을 저장소 이력에서 찾고, 그 판의 코드에서 그 파일이 넷리스트 include 목록 밖에서 기록에 더해진 위치(사례: 지금 판 `A/sky130_lut_sweep.py:688, :891`, S-29). 그 판을 못 찾으면 옆 선언을 만들지 않고 그 슬라이스는 역할 미선언으로 남는다 (b) include 그래프 밖 = **LUT 생성 넷리스트의 include 줄**(그 생성기 판이 넷리스트에 쓴 대상, 사례 `_included_files`, S-29)에서 시작한 include 재귀 그래프에 그 파일이 없음. 시작점을 LUT 기록 파일 집합에서 고르지 않는다(기록된 보조 입력이 스스로 시작점이 되는 것을 막는다).
+  * **근거 두 측정이 모두 맞아야** 그 파일을 `generation_aux_input`으로 적는다(계획 v0.6.3.1 세부): (a) 생성기 근거 = 슬라이스 meta `generator_sha256`과 파일 sha256이 같은 생성기 판을 저장소 이력에서 찾고, 그 판의 코드에서 그 파일이 넷리스트 include 목록 밖에서 기록에 더해진 위치(사례: 지금 판 `A/sky130_lut_sweep.py:688, :891`, S-29). 그 판을 못 찾으면 옆 선언을 만들지 않고 그 슬라이스는 역할 미선언으로 남는다. (v0.3.0, DR-10, 계획 N3.4 (ii)) **후보 판 바이트의 두 정의**: 정규화 = 그 판 blob(`git show <rev>:<경로>`)을 LF 정규화한 바이트의 sha256, raw = 그 판을 이 기계 줄 끝 설정으로 체크아웃한 바이트(`git cat-file --filters <rev>:<경로>`)의 sha256. 정규화로 맞으면 일치, raw로만 맞으면 기계 의존 일치(옆 선언 `evidence.generator`에 `matched: "lf" \| "raw"`를 적는다). 검증자 측정 `gen2.txt`(`gen2.py:25-27`)는 blob을 LF → CRLF로 직접 바꿔 raw를 근사했다(계획 N7.5 DR-10). 폭 슬라이스 32개의 `8df35d2e…`는 그 측정에서 어느 정의로도 찾지 못했다 -- **OP-3 착수 조건**으로 다른 이력 출처를 먼저 찾고, 못 찾으면 근거 (a)를 낮추지 않고 멈추고 보고한다(계획 N9 '`generator_sha256` 미발견' 행) (b) include 그래프 밖 = **LUT 생성 넷리스트의 include 줄**(그 생성기 판이 넷리스트에 쓴 대상, 사례 `_included_files`, S-29)에서 시작한 include 재귀 그래프에 그 파일이 없음. 시작점을 LUT 기록 파일 집합에서 고르지 않는다(기록된 보조 입력이 스스로 시작점이 되는 것을 막는다).
   * 역할 판정을 오라클 묶음에서 하지 않는 이유(계획 N3.5): LUT가 다른 모델 파일을 썼을 때(PC-7이 거부해야 하는 경우) 그 파일이 '보조 입력'으로 분류되어 규칙 (i)이 늘 참이 된다.
 * **적용**: 코어는 슬라이스마다 meta `generator_sha256`이 옆 선언의 `generator_sha256`과 같고, 기록의 (경로, sha256) 쌍이 `roles`의 쌍과 같을 때만 그 역할을 쓴다. 맞지 않는 쌍은 **역할 미선언**이다. 역할 미선언 기록 파일은 모델 파일로 본다(조용한 면제 없음, 계획 N3.5).
 
@@ -914,6 +1133,7 @@ Calibration = {   # 모든 값은 출처 칸 필수
 같은 `core/capability.py`가 두 기술자에서 돈다. 하나는 sky130 기술자(사례)이고, 다른 하나는 손 모델 픽스처 기술자다(시뮬레이터 내장 단순 모델 + 면적 의존이 있는 선언 불일치 변수, test 작성자 소유). 손 모델 기술자의 네이티브 MC 켜는 법은 픽스처가 정한다. 실제 두 번째 PDK는 완료 조건이 아니다(D-8).
 
 * **손 모델 픽스처는 정본 하나다**(P v0.6.1 B-2): `O/tests/fixtures/hand_model/` 아래 기술자 파일 하나(`hand_model.oracle_descriptor.json`, 기본안 B-14), 그것이 sha256으로 참조하는 `gmid_pdk_decl/1` 형식 선언 파일(엔진 로더는 읽지 않는 픽스처), 손 모델 파일(면적 의존 식은 test 작성자가 쓰고 PDK 공식은 쓰지 않는다)이다. **OP-5가 만들고**(완료 조건 4a), OP-6 능력 확인과 이 절의 공정 무관 증거는 같은 파일을 재사용한다. OP-6은 새 손 모델 기술자를 만들지 않는다.
+* (v0.3.0, DR-10h) 손 모델 기술자의 참조 sha256 칸은 LF 정규화 값(§10.2), 손 모델 test LUT meta의 `model_files_sha256`은 raw 값(엔진 LUT 기록과 같은 정의, §15.4 `make_lut` 행)이다. 그래야 sky130 기술자와 같은 규칙 (i)·(ii) 경로가 손 모델에서도 돈다.
 * 손 모델 기술자도 `geometry_unit`·`parallel_multiplier`·`mc.distribution`을 선언한다. 그래서 §10.4·§10.6의 미선언 거부와 분포 값 출처 거부가 sky130 기술자와 같은 코드 경로로 손 모델에서도 돈다.
 * 4a (ii)의 '단위만 다른 둘째 기술자'는 정본 파일이 아니라 test 안에서 정본으로부터 파생한 변형이다(깨진 변형과 같은 지위, P v0.6.2). 저장소에 둘째 파일로 두지 않는다.
 
@@ -929,7 +1149,7 @@ Calibration = {   # 모든 값은 출처 칸 필수
 | 3 | **같은 seed의 네이티브 MC 표본** 정체가 온도 사이에 보존된다. 꼬리 판정(G-14)이 기댄다(469) | PC-6, `McNative.keep_identity`(§5), 어댑터 `keep_identity_across_conditions`(§8.3) | 예 | 'same seed·네이티브 MC'와 G-14 의존이 더해졌다. PC-6 정의(같은 seed, 비트 동일)와 맞는다 |
 | 4 | 오라클 모델 = 엔진 LUT 모델(해시 대조)(470) | PC-7, §12.5 | 예 | 같음 |
 | 5 | LUT `temp_c`와 따로 온도를 받는다(471) | PC-8, §11.1 `process.temp_c`, §11.2 | 예 | 같음 |
-| 6 | 온도 점마다 V_sys(T)(472) | PC-10, §11.1 `output_reference` | 예 | 같음(G-15는 offset-trim design TR-0T가 닫음, §1.3) |
+| 6 | 온도 점마다 V_sys(T)(472) | PC-10, §11.6 `output_reference`(v0.3.0에 §11.1에서 옮김) | 예 | 같음(G-15는 offset-trim design TR-0T가 닫음, §1.3) |
 | 7 | (철회, v0.5.4) 결정적 불일치 벡터 표본 요구(PC-11)는 T-35로 필요 없음. 결정적 섭동은 진단 전용(473) | PC-11 철회(§12.2), 진단 경로 §13 | 해당 없음 | a293411의 '(G-14에서 채택하면) 결정적 벡터'가 철회로 바뀌었다 |
 
 * 결론: 일곱 모두 이 문서 항목과 맞고, 이 문서가 바꿀 것은 없다. 계획 N3.5.1의 기준 커밋 문구(`a293411`)는 계획 소유라 이 card가 고치지 않는다(§19.2 아래 '알림').
@@ -979,7 +1199,7 @@ Calibration = {   # 모든 값은 출처 칸 필수
 * OP-1a 보관 목록의 소비처(이 절): 기준선 `offset_mc` 출력 JSON, 기준선 MC 로그(표본별 op 값), 그 입력 JSON(`devices` 순서·`n_fingers`). 목록 확정은 OP-1a다.
 
 * MC 칸(`sigma_in_mV`, `mean_in_mV` 등)의 N4 동일성 처리는 계획 N4-2 MC 칸 그대로다: 네이티브 MC 표본열이 기준선과 달라 동일성 판정에서 빼고 차와 표준오차를 기록만 한다(X-17). MC 이산 칸(`status`, 사유)은 정확 일치다.
-* (v0.2.4) 차동 이득 A의 실수 판정 상수 `1e-3`은 값·동작 그대로 옮긴다(O-6 D-c, §14). 그래서 이 상수로 기준선 `status`가 바뀌는 사례는 없다. 바꿨다면 170건이 뒤집혔다는 측정(S-14)이 D-c의 근거다.
+* (v0.3.0 다시 씀, 계획 OQ-6 = 사용자 결정 O-43 D1 (d)) 차동 이득 A는 `.ac` 첫 점과 `1e-3` 실수 판정이 아니라 **`.tf`(servo를 연 개루프 벤치)**로 잰다(§21.5). (가-1)은 코어 MC 수학 함수(A를 인자로 받음)의 비트 동일이라 **기준선의 A**(`a_dc_signed`)를 넣고, 그래서 A 출처 변경과 무관하게 유지된다. A·σ 값 자체는 정의를 바꾼 칸이라 N4 0번 동작 변경 기준(손 회로 test + 검증자 원인 변화표)이다. MC 이산 칸 `status`·사유도 A 출처 변경 때문에 바뀌는 입력(옛 `1e-3`으로 `unavailable`이던 것 -- S-14의 24건)은 원인 변화표에 그 원인으로 적는다(동일성 대상에서 그 원인으로 바뀐 칸만 뺀다, 계획 N4-2 '정의를 바꾼 칸').
 
 ### 13.3 TR-7 사용
 
@@ -1001,10 +1221,10 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 |---|---|---|
 | `_NGSPICE_DEFAULT_TOL` | 어댑터 보정값으로(P N3.6) | `calibration.json` `default_tolerances`, 출처 = 시뮬레이터 문서 기본값. 문서 쪽수는 OP-0 원문 보관 뒤 채움(P R6). **출처가 채워지기 전에는 선언값으로 쓰지 않는다**(§8.3, T-39 숨은 상수 금지). 그동안은 입력 `simulator.options`에 허용오차가 있어야 실행된다. (v0.2.5, S-28) 옛 값은 reltol·vntol 둘뿐이라 옮기는 것도 그 둘이다. abstol은 옮길 옛 값이 없고 같은 원문에서 값·쪽을 처음 적는다 |
 | `WRDATA_NUMDGT = 8` | 어댑터 보정값(P N3.3) | `calibration.json` `data_digits`, 출처 = 코드 주석의 ngspice-46 실측 |
-| 차동 이득 실수 판정 상대 폭 `1e-3`(`|Im h0| ≤ 1e-3·|h0|`, `O/oracle_offset_mc.py:137`) | (v0.6, O-6 D-c) **NFR-P2 허용 예외 여섯째**: 값·동작 그대로 이동, 유도식은 백로그. N3.6 삭제 목록에서 뺐다 | (v0.2.4 고침) 값과 동작을 바꾸지 않고 `core/mc_math.py`로 옮기고 '출처 미확인 기존 상수' 표시를 단다. v0.2.3의 `data_rel` 유도 대체안은 기준선 판정 170건을 뒤집어(S-14) 버렸다 |
-| `NYQUIST_K_MAX = 10`, `NOISE_TOP_K_MAX = 8`, `INTEGRAL_K_MAX = 4`, `ZOOM_POINTS = 7`, `ZOOM_ROUNDS = 8` | **NFR-P2 허용 예외 다섯**(X-D1 수용 O-3) | 값과 동작을 바꾸지 않고 코어로 옮긴다(N4 동일성). 각 상수에 '출처 미확인 기존 상수' 표시를 단다. 유도는 백로그(§19.4 X-D1) |
+| 차동 이득 실수 판정 상대 폭 `1e-3`(`|Im h0| ≤ 1e-3·|h0|`, `O/oracle_offset_mc.py:137`) | (v0.6.9 아홉째 커밋, 사용자 결정 O-43 D1 (d)) **삭제**: A를 `.tf`로 직접 재므로 상수와 `.ac` 첫 점 경로를 지운다(계획 N3.6 삭제 목록, NFR-P2 예외 목록에서 빠짐) | (v0.3.0 고침) **삭제**(OP-5, §15.1). v0.2.4~v0.2.6의 '값·동작 그대로 `core/mc_math.py`로 이동'은 철회했다(경위 history H6) |
+| `NYQUIST_K_MAX = 10`, `NOISE_TOP_K_MAX = 8`, `INTEGRAL_K_MAX = 4`, `ZOOM_POINTS = 7`, `ZOOM_ROUNDS = 8` | **NFR-P2 허용 예외 다섯**(X-D1 수용 O-3) | 값과 동작을 바꾸지 않고 코어로 옮긴다(N4 동일성). 각 상수에 '출처 미확인 기존 상수' 표시를 단다. 유도는 백로그(§19.4 X-D1). (v0.3.0) `ZOOM_POINTS`·`ZOOM_ROUNDS`는 새 swing·ICMR 훑기(§21.2)의 끝 괄호 좁히기에도 같은 값으로 쓴다(계획 G-18 '옛 V_T 격자·`ZOOM_ROUNDS`는 NFR-P2 예외 상수') |
 
-* 감사(완료 조건 9 gap 분석 포함)는 위 여섯 밖의 리터럴 판정 상수를 0으로 본다(P NFR-P2). 물리 상수(`_K_B`, `_Q_E`)와 어댑터 보정값(출처 칸 있음)은 판정 상수 목록에 들지 않는다.
+* 감사(완료 조건 9 gap 분석 포함)는 위 다섯 밖의 리터럴 판정 상수를 0으로 본다(P NFR-P2, v0.3.0: 여섯 → 다섯). 물리 상수(`_K_B`, `_Q_E`)와 어댑터 보정값(출처 칸 있음)은 판정 상수 목록에 들지 않는다.
 | `_K_B`, `_Q_E` | -- | 물리 상수(CODATA), 그대로 둔다 |
 
 ---
@@ -1028,16 +1248,20 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | `oracle_config.json` | 어댑터 `calibration.json` | OP-4 |
 | `_NGSPICE_DEFAULT_TOL`, `WRDATA_NUMDGT` | 어댑터 `calibration.json` | OP-4 |
 | `oracle_noise._hexpr`, `_first_vac`, `_body`, `_VEC`, `_MOS`, `_RES`, `parse_noise_totals` | `Noise` 요청 + 어댑터 `read`(기여 이름 → IR 소자, 기술자 `inner_device`) | OP-5 |
-| `oracle_offset_mc.mismatch_vars`, `build_mc_netlist`, z·1e-6/√m 배율, `"Lfb_" not in text` 검사, `--ngspice` 필수 인자 | 네이티브 MC(`McNative`) + 진단 경로(`McDiagnostic`) + `core/mc_math`. servo 유무는 IR 역할 표로 본다. (v0.2.4) `1e-3` 상수는 삭제하지 않고 `core/mc_math`로 옮긴다(§14, O-6 D-c) | OP-5 |
+| `oracle_offset_mc.mismatch_vars`, `build_mc_netlist`, z·1e-6/√m 배율, `"Lfb_" not in text` 검사, `--ngspice` 필수 인자 | 네이티브 MC(`McNative`) + 진단 경로(`McDiagnostic`) + `core/mc_math`. servo 유무는 IR 역할 표로 본다 | OP-5 |
+| (v0.3.0) `oracle_offset_mc`의 A 경로: `.ac` 첫 점 읽기(`parse_ac_file(...)`·`h0`, `O/oracle_offset_mc.py:130-136`)와 `1e-3` 실수 판정(`:137-140`) | `.tf` 개루프 벤치(§21.5, `core/measures_dc` + 어댑터 `Tf`) | OP-5(계획 OQ-6, 완료 조건 6·10: 두 경로 grep 0) |
+| (v0.3.0) `oracle_swing`의 servo 출력 목표 훑기(`mk_se`·`mk_d`, `O/oracle_swing.py:270-299`)와 ICMR 출력 servo 고정(`mk_icm`, `:222-228`), '수렴 안 함 = 포화 아님'(`sat_violation`의 결과 없음 → 거짓, `:120-121, :133`), 전도 문턱 `abs(idv) <= off_i`(`:134`), 차동 입력 없으면 ICMR `unavailable`(`:232-233`) | §21.2 훑기(servo 없는 여기 방향 입력 훑기, 출력 자유) + §21.1 판정 점 전도·포화 + 수렴 실패 = 측정 거부(`sweep_point_unconverged`) + 단일 입력 일반형 | OP-5 |
+| (v0.3.0) `oracle_compare`의 ε = 1 전도 판정(`thr = p.get("off_current_A") … else off_i`, `O/oracle_compare.py:242-244, :278-280`)과 `merge_judge`의 `off_current_A`(`:113-118`), 진입점 `oracle_run`이 swing에 넘기는 `off_current_A`(`O/oracle_run.py:50-51`) | §21.3 합격 판정 봉인 9 식 + §11.6 전도 열 | OP-5(입력 칸 `predictions.devices.*.off_current_A`·`judge.off_current_A` 삭제와 같은 변경, B-34) |
+| (v0.3.0) `oracle_compare`의 C25 `TRANSIENT_MEASURES`·`TRANSIENT_NOT_MEASURED_REASON` 가운데 `slew_rate_v_per_s`(`O/oracle_compare.py:85-90, :148`) | §21.6 슬루 측정(`settle_s`는 '정의 미정' 그대로) | OP-10 |
 | (v0.2.4) `oracle_compare.py:379` 메시지 `"ngspice .op 결과 없음: "` | 시뮬레이터 이름·방언 토큰 없는 메시지(예: '시뮬레이터 동작점 결과 없음: '). 어댑터 이름이 필요하면 결과의 어댑터 지문에서 읽는다(토큰 초안 D9 open point) | OP-3(compare 코어 이동) |
 | (v0.2.4) `oracle_compare.py:708` 메시지 조각 `' V, ngspice '`와 키 `'ngspice_runs'`, 생산자 `oracle_swing.py:306`, 소비자 `smoke/u6_selfchecks.py:136` | 메시지 '시뮬레이터 실행 {n} 회', 키 `sim_runs`(§11.5 결과 칸 대응). 생산자와 compare 소비자를 같은 변경에서 바꾼다. (v0.2.6 재검증 경미 3) 소비자 `smoke/u6_selfchecks.py:136`은 이 card보다 앞선 OP-3에서 스크립트째 삭제되므로(§15.4, O-10) OP-5 시점에는 없다 | OP-5(swing 이전) |
 | (v0.2.4) 결과 칸 `ngspice_rc`(생산자 10곳, S-23) | 같은 자리의 `status`(`RunStatus`, §6). 경로별 대응·`None` 처리 = §11.5 표. 소비자 `test_oracle_c10_stability.py:1364, :1371`·README 4줄을 같은 변경에서 | 경로별(§11.5 '바꾸는 card' 칸): 본 회로·β 루프·CM 루프 OP-3, 안정성 넷(op_pass·과도·연장·pz·pz 확인) OP-4, noise·offset_mc OP-5 |
 | (v0.2.5) 결과 `method` 값의 시뮬레이터 이름(S-24) | 어댑터 `ResultBundle.method`(§6) | pz OP-4, noise·offset_mc OP-5 |
 | `oracle_compare.py:38`(모듈 docstring)·`:228`(`signed_id` docstring)의 시뮬레이터 이름 | `:228`은 `signed_id`와 함께 어댑터 `read.py`로 간다. `:38` '크기 규칙' 설명은 극성 정규화 규칙(어댑터 공통)으로 다시 쓰고 시뮬레이터 이름은 '사례'로만 남긴다(docstring은 T1-1 검사 밖이지만 P NFR-P1 이름 원칙) | OP-3 |
 | `oracle_swing._Sweeper`, `_control_block`, `_src_lines` | `OpSweep` 요청 + `core/swing_math` | OP-5 |
-| 스키마 `process.models`, `process.ngspice_exe`, `process.diffusion`, `testbench.options` | §11.1 | OP-2 |
+| 스키마 `process.models`, `process.ngspice_exe`, `process.diffusion`, `process.lut_npz`, `testbench.options` | §11.1(새 형식 `spice_oracle_input/2`), 옛 형식 거부 §11.2 1b | **OP-3**(v0.3.0, DR-10i -- 사용자 결정 O-14 (4) J-1 (나): 입력 형식 전환·옛 형식 거부는 OP-3, OP-2는 기술자·스키마·읽기 코드만. 따로 검토·함께 병합, 계획 X-28) |
 | `legacy_adapter.process_from_lut_generator` | (v0.2.5) 대체 없음: 파일째 삭제(생산자 0, §11.4) | **이 기능의 card 아님** -- gain-budget card LT-1 순서 3. 완료 조건 6(삭제 이름 grep 0)의 이 항목은 LT-1 순서 3 병합에 의존한다(계획 N5.3-6) |
-| CLI `--ngspice` | `--simulator`, `--sim-exe` | OP-2(입력), OP-3(실행) |
+| CLI `--ngspice` | `--simulator`, `--sim-exe`(§11.7) | OP-3(v0.3.0, DR-10i: 입력 형식 전환과 같은 변경) |
 | 진입점 `oracle_netlist.main`·`oracle_simulate.main`·`oracle_noise.main`·`oracle_offset_mc.main`·`oracle_swing.main`·`oracle_compare.main` | `oracle_run` 하위 명령(§3.1 기본안) | 각 모듈 삭제 card |
 | (v0.2.5) `oracle_compare.py`의 measure 키 표(`MEASURES`·`U6_MEASURES`, 엔진 test가 소스 텍스트로 읽음, S-26) | `core/compare.py`로 이동하면 엔진 test `E/tests/metrics/test_verified_by.py:62-65`의 glob(`O/oracle_*.py`)이 키를 못 찾는다 | (v0.2.6) DV-4 = O-9 (가)로 닫힘: 같은 변경(OP-3)에서 엔진 test 작성자가 `:64` glob 한 줄을 `(ORACLE / "core").rglob("*.py")`로 바꾼다(계획 8a 예외 둘째, §18.1) | OP-3 |
 
@@ -1048,6 +1272,7 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 ### 15.3 생성기(D-2, OP-8)
 
 * 새 생성기는 새 파일(`A/` 아래, 이름에 PDK 없음)이다. 같은 어댑터와 기술자를 쓰고, LUT 메타에 어댑터 지문·기술자 지문·bin 경계 측정(§16)을 쓴다.
+* (v0.3.0, DR-12, 계획 OP-8 선행·O-16 (1)) **선행**: gain-budget v6.17 엔진 sha256 정본 card SH-1(LF 정규화, 옛 U-1을 합침). 새 LUT meta의 모델 파일 sha256 기록 정의(`model_files_sha256`, 새 칸 `model_files_role`)는 그 card가 정한 형식을 따른다(이 문서가 따로 정하지 않음). 그 card 뒤 새 LUT 기록이 정규화 값이면 기계 무관이다(계획 X-27 (2)).
 * 옛 `A/sky130_lut_sweep.py`·`A/sky130_pair_mc.py`는 출처 보존본으로 남긴다. 엔진 `sky130_lut_rule_decl.json`이 sha256으로 묶고 있기 때문이다(P X-10).
 * 실행 경로 없음은 저장소 전체 grep 0으로 보인다. 대상은 모듈 이름 import, `runpy`, `subprocess` 인자, 경로 문자열이다. 엔진 선언 `sources` 칸과 문서 인용은 예외다.
 
@@ -1059,10 +1284,10 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 |---|---|---|---|
 | `O/smoke/cm_loop_mixed_cut_example.py:28`, `cm_loop_variants.py:28` | `oracle_simulate.ac_measures`, `loop_gain` | import를 `core/measures_ac`(함수 이름 유지, §15.2)로 바꾼다. `loop_gain`이 파일 경로 대신 정규화 결과(`FreqSeries`)를 받게 되면, 루프 데이터 파일 읽기는 어댑터 `read`를 거친다. 스크립트가 엔진을 import하는 것은 그대로다(오라클 코어가 아니라 기록 스크립트) | OP-3 |
 | `O/smoke/cm_loop_engine_vs_ngspice.py:104, :115` | 같음(함수 안 import) | 같음. 파일 이름은 '둠'(측정 기록의 이름, 계획 N3.7 분류 규칙) | OP-3 |
-| `O/smoke/u6_selfchecks.py:25-26`(`tests/conftest` import), `:28-32`, `:44, :52, :54, :66-67, :84`(conftest 옛 형식 입력 생성기), `:98, :107`, `:136` | 옛 다섯 모듈 전부, conftest 입력 생성기(`process_block`, `testbench_block`, `zero_diffusion`, `make_lut`, `rc_input`, `RC`, `NGSPICE`), 직접 섭동 경로(`mismatch_vars`, `build_mc_netlist`), 결과 칸 `ngspice_runs` | **삭제한다(사용자 승인 O-10).** 기록 문서 `O/smoke/U6_REPORT.md`는 남긴다(기록). 점검 내용(잡음 RC 손계산, MC 대 결정적 섭동 감도 RSS, 스윙 창, pz 극점)은 새 test로 다시 쓴다: pz 극점 → 어댑터 pz test(OP-4), 잡음 손계산 → 코어 noise test(stub, OP-5), MC 대 결정적 섭동 → 네이티브 MC 대 진단 경로(§13, OP-5), 스윙 → `OpSweep` 어댑터 test(OP-5)(§18.2). 이 스크립트가 정의한 회로는 기준선 입력 묶음(계획 N4-1)에 이미 들어 있다. (v0.2.6 고침) 삭제 card는 **OP-3**이다: 이 스크립트가 import하는 `oracle_netlist`·`oracle_simulate`의 실행 경로를 처음 지우는 card가 OP-3이고(§15.1), OP-2가 conftest 생성기를 새 형식으로 바꾼 뒤에도 옛 모듈이 남아 있는 동안만 돈다. OP-3~OP-5 사이에는 이 점검이 없다(기록 스크립트라 판정 공백은 아니고, 점검마다 다시 쓰는 card가 위와 같다) | OP-3(삭제), OP-4·OP-5(다시 쓴 test) |
+| `O/smoke/u6_selfchecks.py:25-26`(`tests/conftest` import), `:28-32`, `:44, :52, :54, :66-67, :84`(conftest 옛 형식 입력 생성기), `:98, :107`, `:136` | 옛 다섯 모듈 전부, conftest 입력 생성기(`process_block`, `testbench_block`, `zero_diffusion`, `make_lut`, `rc_input`, `RC`, `NGSPICE`), 직접 섭동 경로(`mismatch_vars`, `build_mc_netlist`), 결과 칸 `ngspice_runs` | **삭제한다(사용자 승인 O-10).** 기록 문서 `O/smoke/U6_REPORT.md`는 남긴다(기록). 점검 내용(잡음 RC 손계산, MC 대 결정적 섭동 감도 RSS, 스윙 창, pz 극점)은 새 test로 다시 쓴다: pz 극점 → 어댑터 pz test(OP-4), 잡음 손계산 → 코어 noise test(stub, OP-5), MC 대 결정적 섭동 → 네이티브 MC 대 진단 경로(§13, OP-5), 스윙 → `OpSweep` 어댑터 test(OP-5)(§18.2). 이 스크립트가 정의한 회로는 기준선 입력 묶음(계획 N4-1)에 이미 들어 있다. (v0.2.6 고침) 삭제 card는 **OP-3**이다: 이 스크립트가 import하는 `oracle_netlist`·`oracle_simulate`의 실행 경로를 처음 지우는 card가 OP-3이고(§15.1), (v0.3.0) conftest 생성기의 새 형식 전환도 OP-3이라(DR-10i) 이 스크립트는 OP-3 전까지 옛 형식 그대로 돌고 OP-3에서 지워진다. OP-3~OP-5 사이에는 이 점검이 없다(기록 스크립트라 판정 공백은 아니고, 점검마다 다시 쓰는 card가 위와 같다) | OP-3(삭제), OP-4·OP-5(다시 쓴 test) |
 | `O/smoke/measure_wall_s_per_window.py` | import 없음. 방언 실행(`-b`)과 `STABWIN` 줄 수 | `O/adapters/ngspice/calibration_tools/`로 옮기고(어댑터 지문 밖, §0·§3.1, 기본안 B-25) `oracle_config.json` 언급을 `calibration.json`으로 바꾼다(창당 상한 보정값의 출처 도구) | OP-4 |
-| (v0.2.6) `O/tests/conftest.py`의 옛 형식 입력 생성기 `process_block`(`:71-90`), `testbench_block`(`:105-109`, `testbench.options`), 그 둘을 쓰는 `cs_input`·`rc_input`·`fb_input`(S-34) | `process.models`·`op_probe`·`process.diffusion`·`testbench.options`(옛 형식) | 새 형식(`process.descriptor` + `simulator{adapter, exe, options}`, §11.1)으로 다시 쓴다. 함수 이름·인자는 그대로 두어 호출 183곳(S-34)은 바꾸지 않는다. 기술자는 test 픽스처 기술자(stub용 SI 기술자, §3.3)와 첫 조합 기술자를 인자로 고른다. 주체 = test 작성자(픽스처) | OP-2(옛 형식 거부가 들어오는 card) |
-| (v0.2.6) `O/tests/conftest.py`의 `make_lut`(`:60-68`, meta에 `model_files_sha256` 없음, S-34) | 공칭 자동 대조(§12.5)의 LUT 기록 | 자동 대조가 배선되면 기록 없는 LUT는 `lut_model_provenance_missing`으로 거부되므로, test 기술자와 맞는 `model_files_sha256`(그리고 필요하면 `model_files_role`)을 meta에 쓰게 고친다. 기록을 일부러 빼는 변형은 거부 test로만 쓴다. 주체 = test 작성자 | OP-3(자동 대조 배선 card) |
+| (v0.2.6) `O/tests/conftest.py`의 옛 형식 입력 생성기 `process_block`(`:71-90`), `testbench_block`(`:105-109`, `testbench.options`), 그 둘을 쓰는 `cs_input`·`rc_input`·`fb_input`(S-34) | `process.models`·`op_probe`·`process.diffusion`·`testbench.options`(옛 형식) | 새 형식(`schema` = `spice_oracle_input/2`, `process.descriptor` + `process.lut_files` + `simulator{adapter, exe, options}`, §11.1)으로 다시 쓴다. 함수 이름·인자는 그대로 두어 호출 183곳(S-34)은 바꾸지 않는다. 기술자는 test 픽스처 기술자(stub용 SI 기술자, §3.3)와 첫 조합 기술자를 인자로 고른다. 주체 = test 작성자(픽스처) | **OP-3**(v0.3.0, DR-10i: 옛 형식 거부가 들어오는 card가 OP-3으로 바뀜 -- O-14 (4) J-1 (나)) |
+| (v0.2.6) `O/tests/conftest.py`의 `make_lut`(`:60-68`, meta에 `model_files_sha256` 없음, S-34) | 공칭 자동 대조(§12.5)의 LUT 기록 | 자동 대조가 배선되면 기록 없는 LUT는 `lut_model_provenance_missing`으로 거부되므로, test 기술자와 맞는 `model_files_sha256`(그리고 필요하면 `model_files_role`)을 meta에 쓰게 고친다. 기록을 일부러 빼는 변형은 거부 test로만 쓴다. 주체 = test 작성자. (v0.3.0, DR-10h) test LUT meta에 적는 기록 값의 정의 = 손 모델·test 모델 파일 바이트의 **raw** sha256(엔진 LUT 기록과 같은 정의 -- 오라클 규칙 (ii)를 test가 그대로 지나게). 기계 의존 표시를 시험하는 test는 CRLF 바이트로 만든 파일을 쓴다 | OP-3(자동 대조 배선 card) |
 | `O/tests/conftest.py:36-51`(`--run-legacy`, `legacy_slow`) | 옛 엔진 test 장치 | 이 기능의 card가 아니라 gain-budget LT-1 순서 3이 지운다(S-27, 계획 LT-1 순서 3 '`--run-legacy`(conftest 마커 포함) 삭제') | LT-1 순서 3 |
 | `O/tests/conftest.py`의 `run_spice`·`independent_cs/fb` | 손 넷리스트 독립 기준 | §18.2대로 `O/tests/adapters/ngspice/` 아래로 옮긴다(삭제하지 않음, v0.2.6 경로 명시) | OP-3 |
 | `E/tests/metrics/test_verified_by.py:62-65` | 최상위 `O/oracle_*.py` 소스 텍스트의 measure 키(S-26) | (v0.2.6) `:64` glob 한 줄을 `(ORACLE / "core").rglob("*.py")`로(O-9, 계획 8a 예외 둘째). `O/**/*.py`로 넓히지 않는다(test·smoke 문자열이 판정을 대신함, 계획 8a) | OP-3(엔진 test 작성자) |
@@ -1072,6 +1297,7 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 ## 16. bin 경계 규칙 선언(D-4, G-14, OP-7)
 
 * 정본은 LUT 생성 실행에 묶은 선언 하나다. 묶는 대상(기본 방향, P G-14)은 (LUT가 쓴 모델 파일 sha256 묶음, 생성 시뮬레이터 판)이다.
+* (v0.3.0, DR-10g, 계획 N3.4 'sha256 정의') **묶음 값의 정의**: 새 선언(검증자 옆 선언·OP-8 새 LUT meta)이 적는 `model_files_sha256` 묶음은 LF 정규화 값이다(규칙 (i) -- 모델 파일은 텍스트). 엔진이 세트 meta의 옛 raw 기록과 이 선언을 대조할 때는 규칙 (ii)(LF 또는 raw로 맞으면 같은 파일, raw만이면 기계 의존)를 쓴다 -- 엔진 쪽 구현은 OP-7 엔진 card와 gain-budget SH-1의 정의(같은 규칙, 계획 N3.7 U-1 (b))를 따른다. 정의가 다른 두 기록값을 서로 견주지 않는다(규칙 (iii)).
 * 형식(기본안): `<lut 폴더>/bin_rule.json` =
   ```
   {"schema": "lut_bin_rule/1", "model_files_sha256": [...], "simulator": {"name", "version"},
@@ -1152,8 +1378,8 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 |---|---|---|---|
 | 1 무방언 | `core/test_no_dialect.py` | 토큰 목록 = 검증자(OP-1) | T1-1 `O/core/` 문자열 리터럴(docstring 제외)의 토큰 정규식 적중 0. T1-2 PDK 이름(모든 기술자·엔진 선언 `pdk` 값과 모델 이름 패턴) 0. T1-3 AST import 금지(§3.2) 0. T1-4 `O/core/` 안 비-.py 파일 0. 코어의 파일 열기 경로가 입력·기술자(와 그것이 sha256으로 가리키는 원본)·출력 디렉터리뿐인지는 **실행 중 기록**으로 잰다: 코어 test 전체를 도는 동안 `builtins.open`·`io.open`·`os.open`·`numpy.load`·`pathlib.Path.open`을 감싸 연 경로를 모으고, 모든 경로가 그 test가 넘긴 허용 뿌리(입력 파일, 기술자 파일·원본 뿌리, 출력 tmp 디렉터리) 아래인지 확인한다. 보조로 AST에서 코어 모듈의 열기 호출 인자가 문자열 리터럴 경로가 아님(경로를 코드에 두지 않음)을 본다. T1-0(먼저) 토큰 목록이 기준선 넷리스트와 옛 코드 리터럴에서 적중함을 보인다. (v0.2.5 고침, 계획 N5.3-1 **X-23 단계 규칙**·OQ-2 승인 L-3) 적중 증거의 출처는 토큰마다 단계로 적는다: '기준선 증거'(기준선 넷리스트·옛 코드 리터럴에서 적중) 또는 '<card> 산출물 증거'(기준선에 없는 형태는 그 형태를 처음 쓰는 card가 병합된 뒤 그 card의 **어댑터 산출 넷리스트**에서 적중을 보이고 그때 목록에 넣는다). 적중을 보이지 못한 토큰은 목록에 넣지 않고, 넣은 채 '0'을 합격으로 세지 않는다. 이 규칙의 첫 사례가 초안 D11(난수·식 함수 형태)이다: 기준선 어디서도 적중하지 않았고(S-16), 그 형태를 처음 쓰는 card는 네이티브 MC 켜는 법 `param_redefine`을 어댑터가 쓰는 OP-5다. 단계 표시는 검증자 소유 목록(G-8)의 칸이고, 이 문서는 형식만 정한다 |
 | 2 stub | `core/test_*_stub.py` | test 작성자 | §3.3 표의 stub 실행 항목 전부, '능력 없음 거부' 항목 전부, D-1 전체 창 경로(G-13 결정된 방식) |
-| 3 동일성 | `adapters/ngspice/test_equivalence.py`(검증자 실행) | 기준선 = 검증자(OP-1, 보관 OP-1a) | 계획 N4: 이산 칸 정확, 연속 칸 비트 동일 또는 분해능 안(§18.3 식), MC 연속 칸 제외 + §13.2 (가-1)·(가-2), 입력 변환 = 검증자 스크립트, 결과 칸 이름 대응 = §11.5. (v0.2.5) 기준선은 OP-1a가 `.ai/verification/<OP-1 id>/baseline/`에 커밋한 판정용 텍스트만 읽는다(저장소 밖 경로·`legacy/` 접근 0). 이 test가 읽는 파일 목록이 OP-1a 보관 목록의 소비처다 |
-| 4 거부 | `core/test_capability_rejects.py`, `core/test_gates.py` | test 작성자 | PC-1~3·5~8·**10**마다 §12.2 깨진 변형 거부(먼저). (v0.2.5, 검증 B-2) **PC-10 깨진 변형 셋**(OP-6): 기준 해를 버리고 흔들림만 내는 경로, 온도마다 기준을 다시 푸는 경로, `output_reference` 없이 기본 기준을 몰래 쓰는 경로가 각각 실패함 + 입력에 `output_reference`가 없는데 V_sys 측정을 요청하면 실행 전에 `reference_undeclared`로 거부됨(시뮬레이터 호출 0, §7.2 6번). (v0.2.5) 모델 묶음 규칙: LUT 생성 보조 입력의 sha256이 기록과 다르거나 그 파일이 없는 공칭 실행 → `lut_aux_input_mismatch`, 역할 선언을 지운(또는 적용되지 않는) 기존 LUT의 공칭 실행 → `model_bundle_mismatch`(규칙 (i), §12.5), 기록 없음 → `oracle_capability_unverified`, 지문 하나 바꾼 기록 → `oracle_capability_stale`, 모델 묶음 불일치 → `model_bundle_mismatch`, LUT 기록 빈 표 → `lut_model_provenance_missing`, 진단 결과가 판정 입력으로 → `diagnostic_not_a_gate`. (v0.2.4, O-6 D-a) **분포 값 출처 깨진 변형 셋**: 분포 값을 기술자에 직접 적은 기술자 → `mc_distribution_inline`, 가리킨 원본 sha256이 맞지 않는 기술자 → `pdk_descriptor_stale`, 분포 값 위치가 없거나 0개를 찾는 기술자 → `mc_distribution_unlocated`. 켜는 법 종류가 어댑터 `mc_enable_kinds` 밖이거나 코어 고정 요구(§10.4)를 어댑터가 선언하지 않으면 → `mc_method_unsupported`(`side = "adapter"`), 기술자에 `requires` 칸을 둔 변형 → `descriptor_schema_invalid`(v0.2.5, 계획 X-20: 기술자로 요구를 낮출 경로가 없음을 보인다). 같은 확인 코드가 sky130 기술자와 손 모델 기술자 둘에서 돈다 |
+| 3 동일성 | `adapters/ngspice/test_equivalence.py`(검증자 실행) | 기준선 = 검증자(OP-1, 보관 OP-1a) | 계획 N4: 이산 칸 정확, 연속 칸 비트 동일 또는 분해능 안(§18.3 식), MC 연속 칸 제외 + §13.2 (가-1)·(가-2), 입력 변환 = 검증자 스크립트, 결과 칸 이름 대응 = §11.5. (v0.2.5) 기준선은 OP-1a가 `.ai/verification/<OP-1 id>/baseline/`에 커밋한 판정용 텍스트만 읽는다(저장소 밖 경로·`legacy/` 접근 0). 이 test가 읽는 파일 목록이 OP-1a 보관 목록의 소비처다. (v0.3.0, 계획 N4 0번 = 사용자 결정 O-34 (1), DR-17) 칸마다 **변경 종류**로 판정을 고른다: 정의가 그대로인 칸 = 위 동일성, 정의를 바꾼 칸(계획 N4 0번 표: OP-3 입력 형식 전환과 새 거부, OP-5의 ICMR·swing·계통 offset·단일 입력·A 출처와 σ·합격 판정 전도 기준, OP-10 슬루, OP-11 `power_dc_w`) = 동작 변경 기준(§18.1 '10 정의 대조' 행 + 검증자 원인 변화표, 원인 미설명 0), 결정성(두 번 실행 비트 동일) = 모든 card. 변환 입력의 LUT 처리는 §19.2 DV-7 결정 대기 |
+| 4 거부 | `core/test_capability_rejects.py`, `core/test_gates.py` | test 작성자 | PC-1~3·5~8·**10**마다 §12.2 깨진 변형 거부(먼저). (v0.2.5, 검증 B-2) **PC-10 깨진 변형 셋**(OP-6): 기준 해를 버리고 흔들림만 내는 경로, 온도마다 기준을 다시 푸는 경로, `output_reference` 없이 기본 기준을 몰래 쓰는 경로가 각각 실패함 + 입력에 `output_reference`가 없는데 V_sys 측정을 요청하면 실행 전에 `reference_undeclared`로 거부됨(시뮬레이터 호출 0, §7.2 6번). (v0.2.5) 모델 묶음 규칙: LUT 생성 보조 입력의 sha256이 기록과 다르거나 그 파일이 없는 공칭 실행 → `lut_aux_input_mismatch`, 역할 선언을 지운(또는 적용되지 않는) 기존 LUT의 공칭 실행 → `model_bundle_mismatch`(규칙 (i), §12.5), 기록 없음 → `oracle_capability_unverified`, 지문 하나 바꾼 기록 → `oracle_capability_stale`, 모델 묶음 불일치 → `model_bundle_mismatch`, LUT 기록 빈 표 → `lut_model_provenance_missing`, 진단 결과가 판정 입력으로 → `diagnostic_not_a_gate`. (v0.2.4, O-6 D-a) **분포 값 출처 깨진 변형 셋**: 분포 값을 기술자에 직접 적은 기술자 → `mc_distribution_inline`, 가리킨 원본 sha256이 맞지 않는 기술자 → `pdk_descriptor_stale`, 분포 값 위치가 없거나 0개를 찾는 기술자 → `mc_distribution_unlocated`. 켜는 법 종류가 어댑터 `mc_enable_kinds` 밖이거나 코어 고정 요구(§10.4)를 어댑터가 선언하지 않으면 → `mc_method_unsupported`(`side = "adapter"`), 기술자에 `requires` 칸을 둔 변형 → `descriptor_schema_invalid`(v0.2.5, 계획 X-20: 기술자로 요구를 낮출 경로가 없음을 보인다). 같은 확인 코드가 sky130 기술자와 손 모델 기술자 둘에서 돈다. **(v0.3.0, DR-13, 계획 완료 조건 4 'sha256 정의 깨진 변형', OP-2 행) sha256 정의 변형 넷**(test 작성자가 CRLF 바이트로 만든 픽스처 파일을 쓴다): (i) 기술자 칸에 참조 파일의 raw(CRLF) 값을 적은 변형 → `pdk_descriptor_stale` (ii) 홀로 있는 `\r` 또는 BOM만 다른 참조 파일 → `pdk_descriptor_stale`(CRLF만 정규화함을 보임) (iii) raw로만 맞는 엔진 원본 기록(`newline` 없는 `sources` 항목) → 받고 결과 `machine_dependent_refs`에 그 참조가 적힘 (iv) 정규화·raw 둘 다 안 맞는 엔진 원본 기록 → `pdk_descriptor_stale`(`actual_sha256 = {lf, raw}`). 같은 꼴로 LUT 기록(규칙 (ii)): raw로만 맞는 `model_files_sha256` → 받고 기계 의존 표시, 둘 다 안 맞음 → `model_bundle_mismatch` |
 | 4a 기하·배수(OP-5) | `adapters/ngspice/test_geometry_multiplier.py` | test 작성자(interface만 보고 씀) | **손 모델 픽스처 정본**(§12.7, OP-5 산출)으로 결정적 어댑터 test. 측정 양 = 회로 출력(같은 바이어스에서 같은 ID 기준 VGS 편차), 모델 파라미터 재독 값으로 판정하지 않는다. 같은 시드에서 (i) 피검 소자의 `n_fingers`만 바꾸면 편차 비 = 손 모델 식이 정하는 비 (ii) 손 모델 식이 전제하는 기하 단위만 다른 둘째 기술자(test 안 파생 변형, §12.7)에서 같은 물리 기하의 편차 비 = 두 식과 단위 환산비가 정하는 비. **표본 정체 보존**: 같은 벤치에 배수를 바꾸지 않는 기준 소자를 두고 두 실행에서 그 값이 같음. **인스턴스 기하 단언**(v0.2.5 고침): 모든 실행에서 시뮬레이터 보고 **원값** `OpTable.instance_geometry_reported`(§6)가 test 작성자 계산 기대값과 같다. 기대값 = IR 기하와 기술자 선언(기하 단위 u, `parallel_multiplier.to`)에서 test 작성자가 따로 계산하고, 보고값이 배율 적용 전·뒤 어느 쪽인지는 R6 쪽을 인용한다. 어댑터가 되돌린 값으로 단언하지 않는다(같은 규칙을 두 번 적용하면 오류가 상쇄된다). **비교 폭**: 편차 Δ = V₁ − V₂의 분해능 δΔ = Σ(reltol·|Vᵢ| + vntol)(§18.3), 비 ρ = Δa/Δb의 폭 |ρ|·(δΔa/|Δa| + δΔb/|Δb|)(새 상수 없음). **거부 먼저**: (a) 배수를 모델 파라미터로 넘기지 않는 변형은 편차 비가 달라 실패 (b) 단위 선언을 무시하는 변형은 회로 출력이 아니라 어댑터가 쓴 넷리스트와 `instance_geometry_reported` 원값 대 기대값으로 실패 판정. PDK 공식에 기대값을 걸지 않는다(PC-4와 다름) |
 | OP-3 병합 (a) | `core/test_geometry_undeclared.py` | test 작성자 | `geometry_unit` 또는 `parallel_multiplier`가 없는 기술자로 공칭 op·ac·MC 요청을 각각 보내면 실행 전에 `descriptor_geometry_undeclared`로 거부됨(stub 어댑터로 충분, 시뮬레이터 호출 0, `detail.missing`이 빠진 칸과 같음). (v0.2.5, 검증 M-2) **MC 요청의 판정 순서**(§7.2)와 **양성 대조**: (1) 기하 미선언 기술자 + MC 요청 → `descriptor_geometry_undeclared`(3번이 4·5번보다 먼저) (2) 기하를 완전히 선언하고 `mc` 칸이 없는 기술자 + MC 요청 → `mc_method_unsupported`(`side = "descriptor"`) (3) (OP-5에서 더함) 기하·`mc`를 완전히 선언한 기술자 + MC 능력 없는 stub + MC 요청 → `adapter_capability_missing` (4) 같은 완전 선언 기술자 + 공칭 op·ac 요청 → stub이 실행해 결과를 낸다(거부가 기하 미선언 때문이지 다른 결함 때문이 아님을 보이는 양성 대조). `global_directive` 방법인데 `affects` 선언이 없는 어댑터 stub → `adapter_calibration_missing`, 비 SI 단위 기술자 + 적용 방법 없는 stub → `adapter_capability_missing` |
 | OP-3 병합 (b) | `adapters/ngspice/test_equivalence.py`의 공칭 op·ac 부분(검증자 실행) | 검증자 | 첫 조합 선언값(§10.3)으로 쓴 공칭 op·ac 결과가 N4-2로 기준선과 동일. 소자 줄 차이는 N4-3 정규화 대조로 기록만 하고, 차이가 기하 단위·병렬 배수 선언에서 나온 것뿐임을 §10.6 '차이가 선언에서만' 절차(기준선에 선언 변환 적용 → 정규화 → 남은 차이 0)로 보인다(v0.2.5, 검증 M-3) |
@@ -1164,9 +1390,15 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | 7 배선 | `test_wiring.py` | test 작성자 | `oracle_run` 경로에서 코어·어댑터·기술자 읽기·자동 대조·MC·온도 게이트·진단 입력이 호출됨(호출 기록 증거) + 검증자 판정 기록 둘: (가-2) 진단 도구가 `oracle_run` 진단 입력에서 호출된 기록, (가-1) 코어 MC 수학 함수가 그 판정에서 호출된 기록(v0.2.5, 계획 N5.3-7 O-8) |
 | 8 엔진(D-4 승인 시) | 엔진 쪽 OP-7 test | 엔진 test 작성자 | 9회로 비트 동일, bin 규칙 선언 없음 → 경계 L 거부 |
 | 8a 엔진 무변경 | `test_engine_untouched.py`(검증자 git diff) | 검증자 | OP-2~OP-6·OP-8에서 엔진 소스(`E/` 아래 test 밖 파일)·기존 test 파일·`A/sky130_pdk_decl.json` diff 0. **예외**(계획 v0.5.1 8a): `E/tests/` 아래에 엔진 선언·오라클 기술자만 읽는 새 test 파일 추가는 허용(아래 X-13 test 하나). **예외 둘째**(계획 v0.6.5 O-9): `E/tests/metrics/test_verified_by.py:64` glob 한 줄(아래 행) |
-| X-13 | `E/tests/core/test_oracle_descriptor_engine_sha.py`(엔진 suite에서 돈다, 계획 v0.5.1 8a 예외) | test 작성자 | (a) 엔진 선언 파일 sha256 ≠ 기술자 `engine_decl.sha256`이면 실패 (b) 엔진 선언 `sources` 파일 집합 ∩ 기술자 `extra_sources` 파일 집합 = ∅(경로와 sha256 둘 다). 엔진 코드를 import하지 않고 JSON만 읽는다 |
+| X-13 | `E/tests/core/test_oracle_descriptor_engine_sha.py`(엔진 suite에서 돈다, 계획 v0.5.1 8a 예외) | test 작성자 | (v0.3.0 다시 씀, DR-13·DR-16, 계획 X-13 'v0.6.7'·'v0.6.8', N3.4 규칙 (iii)) (a) **엔진 선언 파일 바이트를 test가 직접 읽어 LF 정규화로 다시 잰 sha256** ≠ 기술자 `engine_decl.sha256`이면 실패. 엔진 `decl_sha256` 값과 견주지 않는다(엔진 card SH-1 전에는 raw라 정의가 다르고, 뒤에는 정의가 같아도 그 값은 엔진 실행 값이라 읽으려면 엔진 import가 필요해 8a 예외를 벗어난다 -- 재측정 유지) (b) 중복 없음: 엔진 선언 `sources`의 **모든** 파일(기술자가 쓰지 않는 원본 포함)과 기술자 `extra_sources` 파일을 바이트에서 LF 정규화로 다시 잰 값끼리, 그리고 경로끼리 겹침이 없음. 어느 파일이든 없으면 실패. 정규화는 test 안에 같은 한 줄 정의(`data.replace(b"\r\n", b"\n")` 뒤 sha256)를 쓴다 -- 오라클 코드를 import하지 않는다(계획 G-5). 엔진 코드를 import하지 않고 JSON과 파일 바이트만 읽는다 |
 | 8a 예외 둘째(OP-3) | `E/tests/metrics/test_verified_by.py:64` 한 줄 | 엔진 test 작성자 | (v0.2.6, 계획 v0.6.5 O-9 DV-4 (가), X-25) `ORACLE.glob("oracle_*.py")` → `(ORACLE / "core").rglob("*.py")`. 측정 키 8개와 판정 내용 불변. 같은 변경은 compare를 코어로 옮기는 OP-3. `test_engine_untouched.py`(8a 행)는 이 한 줄과 X-13 새 파일만 diff로 허용한다 |
-| 기록 뿌리 해석(OP-2) | `core/test_lut_record_root.py` | test 작성자 | (v0.2.6) §10.2 `lut_record_root` 해석: 환경 값 있음 → 그 값, 빈 값·없음 + `default` → `default`(**둘 다** `os.path.abspath` 적용, `E/lut/CONTRACT.md` 1.8 261행), 둘 다 없음 → `lut_location_decl_invalid`, 위치 선언에 `pdk_root` 칸 없음 → `lut_location_decl_invalid`(엔진과 달리 LUT meta로 돌아가지 않음, §10.2 '의도된 엄격'), 기술자 자체 형식 오류 → `descriptor_schema_invalid`(위 둘과 구분됨을 함께 단언), 위치 선언 sha256 다름 → `pdk_descriptor_stale`(`lut_location_decl`), 다른 트리를 가리키는 뿌리 → `lut_record_root_mismatch`. 기대값은 형식 규칙(`E/lut/CONTRACT.md` 1.8)에서 test 작성자가 쓴다(엔진 import 없음) |
+| 기록 뿌리 해석(OP-2) | `core/test_lut_record_root.py` | test 작성자 | (v0.2.6) §10.2 `lut_record_root` 해석: 환경 값 있음 → 그 값, 빈 값·없음 + `default` → `default`(**둘 다** `os.path.abspath` 적용, `E/lut/CONTRACT.md` 1.8 261행), 둘 다 없음 → `lut_location_decl_invalid`, 위치 선언에 `pdk_root` 칸 없음 → `lut_location_decl_invalid`(엔진과 달리 LUT meta로 돌아가지 않음, §10.2 '의도된 엄격'), 기술자 자체 형식 오류 → `descriptor_schema_invalid`(위 둘과 구분됨을 함께 단언), 위치 선언 sha256 다름 → `pdk_descriptor_stale`(`lut_location_decl`). 기대값은 형식 규칙(`E/lut/CONTRACT.md` 1.8)에서 test 작성자가 쓴다(엔진 import 없음). (v0.3.0, DR-10j) '다른 트리를 가리키는 뿌리 → `lut_record_root_mismatch`' 항목은 이 행(OP-2)에서 빼서 아래 'OP-3 기록 뿌리 교차 검사' 행으로 옮겼다(사용자 결정 O-14 (4) J-5 (가)) |
+| (v0.3.0) OP-3 기록 뿌리 교차 검사 | `core/test_lut_record_root_cross.py` | test 작성자 | (DR-10c·DR-10j) §7 `lut_record_root_mismatch` 세 걸음: 짝이 있고 뿌리 아래 파일 LF 값 = 엔진 원본 LF 값 → 통과(양성 대조), 다른 트리를 가리키는 뿌리(짝 파일 바이트가 다름) → 거부(`root_file_lf_sha256` ≠ `engine_file_lf_sha256`), 뿌리 아래 짝 파일 없음 → 거부(`"missing"`), 짝 0개(LUT 기록값이 어떤 엔진 원본의 LF·raw 값과도 같지 않음) → 거부(`why = no_pairs`), LUT 기록이 raw로만 엔진 원본과 맞는 짝 → 짝으로 인정(규칙 (ii)) 그리고 결과 `machine_dependent_refs`에 표시. 기록값끼리 비교하는 구현은 CRLF 픽스처에서 이 test를 지나지 못한다(깨진 변형) |
+| (v0.3.0) OP-3 입력 계약 | `test_input_contract.py`(진입점 포함, 시뮬레이터 호출 0) | test 작성자(§11만 보고 씀) | §11.3 예시가 1a~2b를 통과하고(양성 대조, stub 어댑터), E1~E18 깨진 변형이 표의 코드로 거부됨(거부는 반환 2 + `<circuit>.reject.json` 하나, 넷리스트·결과 파일 0개 -- §11.7). §11.2 순서: 두 결함을 함께 넣은 변형(사례 E2 + E5)은 앞 단계 코드 하나만 냄. 닫힌 키 집합: 각 객체 층(`process`, `devices[]`, `predictions.devices.<n>`, `testbench`, `judge`, `judge.tolerances`, `noise`, …)에 모르는 키 하나씩 넣은 변형이 모두 거부되고 `provenance`에 넣은 키는 받음. `O/oracle_input.schema.json`이 §11.1 표와 같은 칸 집합인지(표의 칸 이름 목록을 test 작성자가 옮겨 적고 스키마 파일의 `properties`와 대조) |
+| (v0.3.0) 실행 결과 계약 | `test_result_contract.py` | test 작성자 | §11.7: 같은 입력 두 번 → `record_id` 비트 동일(결정성), `netlist` 경로만 다른 두 실행 → 같은 `record_id`, `fingerprints` 세 칸 존재, `machine_dependent_refs` 칸 존재(빈 목록 포함), `summary.conduction_definition` = OP-3 판 `"threshold_eps1"` / OP-5 뒤 `"seal9_point_lut"` |
+| (v0.3.0) 10 정의 대조 -- OP-5 | `core/test_conduction.py`, `core/test_swing_icmr_def.py`, `core/test_offset_sys.py`(DV-8 뒤), `adapters/ngspice/test_tf_gain.py` + 검증자 정의 대조표 | test 작성자(정의 문장에서 기대값), 검증자(대조표·원인 변화표) | 계획 완료 조건 10: §21.1 tol_V 읽기 규칙(2행 표 손 예 -- 엔진 `table_at`과 같은 값을 정의에서 계산, 격자 밖·None → `conduction_undefined`), §21.1 깨진 변형(ε = 1, 동작점 값, 꺼진 소자 제외, 여유를 정의에, None을 통과로), §21.2 손 회로(단일 입력 회로의 ICMR이 `unavailable`이 아니라 값이 나옴, 출력 고정 ICMR 변형은 다른 값, 수렴 실패 점 하나 → `sweep_point_unconverged`, 반복 상한 도달 → `sweep_end_unresolved`), §21.3 합격 판정(ε < 1 손 예에서 옛 식 PASS·새 식 FAIL), §21.5 `.tf`(개루프 손 회로 A = gm·R, servo 닫힌 변형은 다른 값, `.ac` 첫 점·`1e-3` grep 0), 선언 triode 소자는 포화 조건에서 빠지고 전도 조건에는 남음 |
+| (v0.3.0) 10 정의 대조 -- OP-10 | `core/test_slew_def.py`(stub은 능력 없음 거부), `adapters/ngspice/test_slew.py` | test 작성자, 검증자 | §21.6: SR = I/C 손 회로(방향 둘), `feedback` 미선언 → `unity_follower` + `beta_default = true`, `slew` 칸 없음 → `slew_undeclared`, 계획 불가 → `tran_plan_undefined` |
+| (v0.3.0) 10 정의 대조 -- OP-11 | `core/test_power.py` | test 작성자 | §21.7: Σ V²/R 손 회로(양·음 레일), 레일 전류 하나 없음 → `power_undefined`(부분 합 없음), 부호 반대 변형 실패, `offrail_nonzero` 표시, `rail_current_A`·`supply_current_A`는 기준선 동일(정의 그대로) |
 
 ### 18.2 옛 test 이전표
 
@@ -1177,14 +1409,14 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | `test_oracle_rout.py`, `test_oracle_ratio_db.py`, `test_oracle_cm_loop.py`, `test_oracle_loop_singular.py`, `test_oracle_simulate_pm_crosscheck.py` | 수학 → 코어, 실행 → 어댑터 |
 | `test_oracle_simulate.py`, `test_oracle_simulate_cache.py`, `test_oracle_run.py` | 어댑터 실행·캐시(§9) test로 다시 씀 |
 | `test_oracle_noise.py` | 수학 → 코어, 기여 이름 대응 → 어댑터 |
-| `test_oracle_offset_mc.py` | sky130 변수 집합 기대값(직접 섭동) 삭제. 네이티브 MC·진단·MC 수학 test로 다시 씀 |
-| `test_oracle_swing_icmr.py` | 수학 → 코어, `OpSweep` 실행 → 어댑터 |
-| `test_oracle_compare.py`, `test_oracle_compare_device_tol.py`, `test_oracle_diagnosis.py` | 코어로 이동(함수 이동만) |
-| `test_oracle_input_schema.py` | 새 형식 + 옛 형식 거부 test로 다시 씀 |
-| `test_legacy_adapter.py`, `test_legacy_testbench.py` | (v0.2.5 고침, 계획 v0.6.3.1 OP-2·OP-3 행, LT-1 순서 3) 이 기능이 다시 쓰지 않는다. LT-1 순서 3이 `test_legacy_testbench.py`와 `legacy_slow` 3함수 5항목을 지우고, `test_legacy_adapter.py`의 기본 실행 6함수를 고정 자료 test 파일로 옮긴다. 그 가운데 지금 코드에 묶인 둘만 이 기능의 card가 같은 변경에서 바꾼다: 스키마 적합 test → OP-2가 '옛 형식이라 거부(`oracle_input_format_old`)' test로, 넷리스트·루프 넷리스트 재생성 일치 test → OP-3이 지우고 `criteria_weakened`에 올림(같은 비교 = 검증자 N4-3). 고정 자료만 읽는 test(finger 규칙, W 자기모순, feedback_passives)는 그대로 둔다. LT-1 순서 3이 먼저면 옮긴 파일에서, 아직이면 `test_legacy_adapter.py`에서 바꾼다 |
+| `test_oracle_offset_mc.py` | sky130 변수 집합 기대값(직접 섭동) 삭제. 네이티브 MC·진단·MC 수학 test로 다시 씀. (v0.3.0) `.ac` 첫 점 A·`1e-3` 실수 판정을 단언하는 test는 지우고 `criteria_weakened`가 아니라 `.tf` A test(§18.1 '10 정의 대조 -- OP-5')로 대체한다(정의를 바꾼 칸, OP-5) |
+| `test_oracle_swing_icmr.py` | (v0.3.0 다시 씀, DR-17) 옛 servo 출력 목표 훑기·ICMR 출력 고정·'수렴 안 함 = 포화 아님'·`off_current_A` 문턱을 단언하는 test는 정의를 바꾼 칸이라 보존하지 않는다. 경계 괄호 수학(`_window`·`edge`의 좁히기)은 `core/test_swing_icmr_def.py`로 새 정의(§21.2)에서 다시 쓰고, `OpSweep` 실행은 어댑터 test로. 옛 test가 쓰던 손 회로는 기대값을 새 정의 문장에서 다시 계산한다(OP-5) |
+| `test_oracle_compare.py`, `test_oracle_compare_device_tol.py`, `test_oracle_diagnosis.py` | 코어로 이동(함수 이동만, OP-3). (v0.3.0) 그 가운데 C23 전도 문턱(`off_current_A`, ε = 1)을 단언하는 test는 OP-5가 §21.3 봉인 9 식 test로 바꾼다(정의를 바꾼 칸) |
+| `test_oracle_input_schema.py` | 새 형식 + 옛 형식 거부 test로 다시 씀. (v0.3.0) 위치는 §18.1 'OP-3 입력 계약' 행(`test_input_contract.py`), card = OP-3(DR-10i) |
+| `test_legacy_adapter.py`, `test_legacy_testbench.py` | (v0.2.5 고침, 계획 v0.6.3.1 OP-2·OP-3 행, LT-1 순서 3) 이 기능이 다시 쓰지 않는다. LT-1 순서 3이 `test_legacy_testbench.py`와 `legacy_slow` 3함수 5항목을 지우고, `test_legacy_adapter.py`의 기본 실행 6함수를 고정 자료 test 파일로 옮긴다. 그 가운데 지금 코드에 묶인 둘만 이 기능의 card가 같은 변경에서 바꾼다: 스키마 적합 test → **OP-3**(v0.3.0, DR-10i -- O-14 (4) J-1 (나))이 '옛 형식이라 거부(`oracle_input_format_old`)' test로, 넷리스트·루프 넷리스트 재생성 일치 test → OP-3이 지우고 `criteria_weakened`에 올림(같은 비교 = 검증자 N4-3). 고정 자료만 읽는 test(finger 규칙, W 자기모순, feedback_passives)는 그대로 둔다. LT-1 순서 3이 먼저면 옮긴 파일에서, 아직이면 `test_legacy_adapter.py`에서 바꾼다 |
 | `conftest.py`의 `--run-legacy`·`legacy_slow`(S-27) | 이 기능이 고치지 않는다. LT-1 순서 3이 지운다(§15.4) |
 | `conftest.py`의 `run_spice`·`independent_cs/fb`, `u6_toy5t.py`(손 넷리스트 독립 기준) | `O/tests/adapters/ngspice/` 아래로 옮겨 그 어댑터의 독립 기준으로 쓴다(삭제하지 않음). (v0.2.6) 경로를 `O/tests/` 아래로 명시했다 -- 어댑터 패키지 `O/adapters/ngspice/`에 두면 어댑터 지문(§0)에 들어가 test 수정이 능력 기록을 무효로 만든다 |
-| (v0.2.6) `conftest.py`의 옛 형식 입력 생성기(`process_block`, `testbench_block`, `cs_input`, `rc_input`, `fb_input`, S-34) | OP-2가 새 형식으로 다시 쓴다(§15.4). 이름·인자 유지 |
+| (v0.2.6) `conftest.py`의 옛 형식 입력 생성기(`process_block`, `testbench_block`, `cs_input`, `rc_input`, `fb_input`, S-34) | **OP-3**(v0.3.0, DR-10i)이 새 형식으로 다시 쓴다(§15.4). 이름·인자 유지 |
 | (v0.2.6) `conftest.py`의 `make_lut` | OP-3이 meta에 test 기술자와 맞는 `model_files_sha256`을 쓰게 고친다(§15.4) |
 | (v0.2.6) 캐시 단언 test 넷: `test_oracle_simulate_cache.py:57-127`, `test_oracle_ratio_db.py:287`, `test_oracle_rout.py:559, :575`, `test_oracle_c10_stability.py:832, :1321-1339`(S-32) | 캐시 상태 칸은 같은 모양으로 남는다(§11.5 '옛 상태 칸'). 단언 대상 값은 `RunStatus.cache_state`에서 온다. 앞 셋은 OP-3(본 회로·β 루프·ratio·rout 실행), 넷째는 OP-4(안정성)가 실행 test로 다시 쓰며 같은 단언(첫 실행 miss, 둘째 hit, 캐시 없음 None, 키 구성 §9가 바뀌면 miss)을 둔다. 옛 캐시 디렉터리는 재사용하지 않는다(§9) |
 | `O/smoke/` 스크립트 넷(S-25) | 기록 스크립트라 test가 아니지만 같은 원칙으로 §15.4 표대로 처리한다 |
@@ -1211,9 +1443,9 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | B-4 | 스키마 이름 `oracle_pdk_descriptor/1`, `oracle_capability/1`, `oracle_diagnostic/1`, `lut_bin_rule/1`, 저장 위치 | §10, §12.4, §13, §16 |
 | B-5 | `simulator.options` 키 검증은 어댑터 | §11.1 |
 | B-6 | LUT 메타·입력 모두 온도·코너가 없으면 `oracle_condition_missing` | §11.2 |
-| B-7 | (v0.2.4 철회) 차동 이득 실수 판정 = `data_rel` 유도. 계획 v0.6 O-6 D-c로 `1e-3` 유지(NFR-P2 예외)가 정해져 이 기본안은 없어졌다 | §14 |
+| B-7 | (v0.2.4 철회) 차동 이득 실수 판정 = `data_rel` 유도. 계획 v0.6 O-6 D-c로 `1e-3` 유지(NFR-P2 예외)가 정해져 이 기본안은 없어졌다. (v0.3.0) 그 `1e-3`도 O-43 D1 (d)로 지워졌다(`.tf`, §21.5) | §14 |
 | B-8 | 계획이 다루지 않은 반복 상한 상수 다섯은 그대로 옮기고 표시만. **결정(O-3, X-D1 수용, 계획 NFR-P2 허용 예외 목록)** | §14 |
-| B-9 | X-13 test를 엔진 suite 쪽(`E/tests/` 아래 읽기 전용 test)에 둠. **계획 v0.5.1 완료 조건 8a 예외에 따름** | §18.1 |
+| B-9 | X-13 test를 엔진 suite 쪽(`E/tests/` 아래 읽기 전용 test)에 둠. **계획 v0.5.1 완료 조건 8a 예외에 따름**. (v0.3.0, DR-14·DR-16) 비교 값 = 파일 바이트 LF 정규화 재측정(엔진 `decl_sha256`과 견주지 않음 -- SH-1 전 raw, 뒤에도 엔진 실행 값이라 import 필요), 갱신 값 = 다시 잰 LF 정규화 sha256 | §18.1 |
 | B-10 | 식이 없는 연속 칸은 비트 동일만 | §18.3 |
 | B-11 | (v0.2.5 **기본안 아님 -- 계획을 따름**) v0.2.4 기본안(기술자 `requires` + 어댑터 선언)은 계획 v0.6.3 X-20(OQ-3 승인 L-3)으로 대체됐다: 판정 요구 = 코어 고정, 표본 수·시드·실행 방식·표본 성질 = 어댑터 능력, 기술자 = PDK 데이터만. 기술자 `requires` 칸은 지웠다 | §8.3, §10.4 |
 | B-12 | (v0.2.4) 새 스키마 `process`는 정의 밖 키를 거부(`additionalProperties: false`) | §11.1 |
@@ -1233,6 +1465,21 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | B-26 | (v0.2.6) OP-1a (b) 재계산 스크립트와 (c) S-22 2행 스크립트를 한 스크립트로 둠, 선택 대조 (d)는 `run_ngspice` 이름 교체 경로 | §13.2 |
 | B-27 | (v0.2.6) 결과 칸 대응: 실행 전 반환 경로를 사유 대응표로 가름, offset_mc 옛 rc 비교 제외 + `n_failed`·`sample_status`, `RunStatus.cache_state` 넷 값과 캐시 상태 표 분리(C21), 옛 `log`·`log_errors`·`op_ok`·`skipped` 대응, 막힘은 유무·개수만 비교, 새 오류 코드 `lut_record_root_mismatch`·`mc_identity_lost`·`lut_location_decl_invalid`·`adapter_fingerprint_unavailable` | §6, §6.1, §7, §11.5 |
 | B-28 | (v0.2.6, 같은 판 후속에서 고침) 어댑터 지문의 묶음 = 상대 POSIX 경로 정렬 (경로, sha256) 쌍, 파일·`calibration.json` 읽기 실패 = 거부, 정규 JSON 직렬화 규칙(능력 기록 `record_id`와 공용). 파일 집합은 기본안이 아니라 **계획 v0.6.6 문구**(디스크의 모든 파일 − 닫힌 제외 목록)다. 'git 추적 파일 기준'과 '추적 판정 불가 시 거부'는 **철회**(오케스트레이터 결정, 계획 문구 복귀) | §0, §7, §12.4 |
+| B-29 | (v0.3.0) 입력 키 집합을 모든 객체 층에서 닫음(`provenance`만 열림). 근거 fail-closed + G-18 확장 칸의 병합 시점 강제, 기준선 영향 0(S-44). 원래 취지와 다름 X-D7 | §11.0, §11.1 |
+| B-30 | (v0.3.0) 입력 파일 경로 칸의 상대 경로 기준 = 입력 파일 폴더 | §11.1 |
+| B-31 | (v0.3.0) 생산자 이름·스냅샷 지문 같은 출처 기록은 최상위 `provenance`(열린 출력 전용 칸)에 적음 | §11.1, §11.4 |
+| B-32 | (v0.3.0) `process.lut_files` = 소자 DC 동작점을 정한 LUT **슬라이스** 파일(계획 N3.5 '그 kind에 쓴 LUT 슬라이스들'). 용량·잡음·mismatch 결합 파일은 넣지 않음(모델 동일성은 DC 슬라이스 기록으로 정해지고, 결합 파일은 생성기가 달라 역할 옆 선언이 따로 필요해짐, S-38) | §11.1, §12.5 |
+| B-33 | (v0.3.0) 거부 때 `<circuit>.reject.json`(`oracle_reject/1`) 하나를 씀. 원래 취지와 다름 X-D8 | §11.7 |
+| B-34 | (v0.3.0) OP-5에서 `judge.off_current_A`도 지움(계획 문언 '옛 동작점 스칼라 `off_current_A` 입력 칸'이 judge 칸까지 포함하는지 갈리지 않음 -- 소비자가 사라지는 칸이라 같은 변경에서 지움) | §11.6, §15.1 |
+| B-35 | (v0.3.0) 캐시 키의 방언 텍스트 바이트 = 어댑터가 만든 문자열(줄 끝 `\n`)의 UTF-8, 디스크 파일 바이트 아님 | §9 |
+| B-36 | (v0.3.0) `declared_triode` 칸이 생긴 뒤에는 필수(빈 배열 허용) -- 칸 없음과 '선언 없음'을 구분하지 않으려고 | §11.6 |
+| B-37 | (v0.3.0) measure·tolerance 이름 `offset_sys_mv`(+`offset_sys_mv_abs`, OP-5), `power_dc_w`(+`power_dc_w_rel`, OP-11). `power_dc_w`는 `acceptance` 판정 대상에 넣지 않음 | §11.6 |
+| B-38 | (v0.3.0) 결과 칸 `record_id`(본문 = compare JSON − {`record_id`, `netlist`}), `fingerprints`, `input_sha256`, `summary.conduction_definition` 값 이름(`threshold_eps1`, `seal9_point_lut`) | §11.7 |
+| B-39 | (v0.3.0) 새 오류 코드 이름·detail: `oracle_input_schema_invalid`, `adapter_unknown`, `simulator_exe_missing`, `descriptor_kind_undeclared`, `lut_file_stale`, `lut_meta_shape_mismatch`, `lut_condition_conflict`, `sweep_end_unresolved`, `sweep_point_unconverged`, `conduction_undefined`, `sweep_direction_undeclared`, `slew_undeclared`, `power_undefined`, 교차 규칙 이름(`lut_kind_coverage`, `reference_rail_voltage`, `dc_sweep_*`, `conduction_columns_*`, `output_reference_vs_ports`, `declared_triode_unknown_device`, `slew_node_unknown`) | §7, §11.2, §11.6 |
+| B-40 | (v0.3.0) swing·ICMR 절차 세부: 공칭 free 해 v0을 먼저 풂, 측정 좌표(ICMR = 공통 방향 사영), 끝 확정 분해능 r = reltol·max(\|m\|) + vntol, 공칭 점이 전도에서만 어기면 `sweep_end_unresolved` | §21.2 |
+| B-41 | (v0.3.0) `.tf` 벤치 세부: 여기 가중 (+½, −½)은 옛 V_id 정의(포트 선언)에서, A는 표본 0 벤치에서 한 번, 결과 칸 `a_dc_tf`·`tf_bench_output_shift_V`·`tf_record` | §21.5 |
+| B-42 | (v0.3.0) 슬루 절차 세부: 단일 출력 β = 1 = 출력 → `input_n` 이득 1 VCVS, 시간 계획 = `tran_plan`(β 루프 교차 주파수), dV/dt = 연속 출력 점 쌍의 \|ΔV/Δt\| 최댓값 | §21.6 |
+| B-43 | (v0.3.0) 전력의 레일 밖 원천 기록 대상 = forced 고정원·테스트벤치 DC 원·servo 기준원, 같은 `.op`의 전류 출력으로 읽음 | §21.7 |
 
 ### 19.2 계획과 다른 결정이 필요한 곳(S-7: 멈추고 보고)
 
@@ -1258,12 +1505,27 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | **DV-4** | 엔진 test `E/tests/metrics/test_verified_by.py:62-65`(`test_oracle_measure_key_exists_in_oracle_sources`, 8 항목)는 오라클 **최상위** `O/oracle_*.py` 소스 텍스트에서 measure 키를 찾는다(S-26). 키 8개는 모두 `O/oracle_compare.py`에 있다. 계획 N3.6·§15.1대로 compare를 `O/core/compare.py`로 옮기고 옛 파일을 지우면(OP-3) glob 대상은 `oracle_run.py`만 남아 이 엔진 test 8 항목이 실패한다. 그런데 계획 완료 조건 8a는 OP-2~OP-6·OP-8에서 `E/`의 git diff 0이고, 예외는 X-13 test 새 파일 하나뿐이다(기존 test 파일 diff 0). 코어는 최상위 진입점을 import할 수 없고(§3.2), `O/core/` 밖에 키 표 사본을 두면 정본이 둘이 된다. 그래서 계획을 지키며 갈 방법이 없다 | (가) **권고**: 계획 완료 조건 8a 예외에 '이 엔진 test의 오라클 소스 경로 glob을 `O/core/*.py`(또는 `O/**/*.py`)로 바꾸는 한 줄'을 더한다(test 기준은 그대로: 키 문자열이 오라클 소스에 있음). 근거: 그 test의 판정 대상(키가 오라클에 있다)은 바뀌지 않고 위치만 옮긴다. 바꾸는 주체는 엔진 test 작성자, 같은 변경은 OP-3 (나) 진입점 `oracle_run.py`가 measure 키 표를 정의하고 코어 `compare`에 인자로 주입 -- 엔진 무변경이지만 판정 어휘가 코어 밖에 놓인다(계획 N0.1 '판정·비교는 코어'와 어긋남) (다) 엔진 test를 지우고 다른 증거로 대체 -- 엔진 기준 약화라 사용자 승인 대상. **막는 card**: OP-3(compare 코어 이동) |
 | **DV-5** | 계획 N3.5 (ii) (가-1)은 '기준선 로그의 표본별 op 값을 새 코어 MC 수학에 넣어 **표본별 V_os**와 σ_in·mean_in이 기준선과 비트 동일'을 요구하고, (가-2)도 표본별 V_os를 기준선과 비교한다. 그런데 기준선 출력에는 **표본별 V_os 칸이 없다**(S-22: `offset_mc` 칸 목록에 없음). OP-1이 확인한 것은 σ_in·mean_in 두 값뿐이다(S-22 2행, 그 행의 스크립트도 `scripts/`에 없음). 그래서 '기준선의 표본별 V_os'가 무엇인지 계획이 정하지 않았다 | (가) **권고**: 검증자가 base 커밋의 옛 `offset_mc_measure` 표본 처리(로그 → 표본별 V_os, `O/oracle_offset_mc.py:166-196`)를 그대로 돌려 표본별 V_os를 만들고, 그 값과 그 실행 기록(코드 sha·스크립트)을 OP-1a 보관에 넣는다. 그 표본별 값으로 다시 낸 σ_in·mean_in이 기준선 출력과 비트 동일함을 먼저 보여 그 재계산이 옛 코드와 같음을 증명한다. 계획 OP-1a 목록(소비처 고정)에 한 줄 더하는 것이고 판정 기준은 바뀌지 않는다 (나) (가-1)·(가-2)의 표본별 비교를 빼고 σ_in·mean_in만 (가-1)로 판정 -- 계획 문구 축소(사용자 결정 O-8 범위 변경). **막는 card**: OP-1a(보관 목록), OP-5(진단 경로 판정) |
 
+**v0.3.0 멈춤 항목**(계획 v0.6.9가 정하지 않았거나 계획 안의 두 조항이 부딪혀, design이 혼자 정하면 원래 취지가 바뀔 수 있는 곳. 각 항목은 막는 부분만 막고, OP-3 입력 스키마 계약(§11.1~§11.4·§11.7)과 EO-1 계약은 막지 않는다 -- DV-7만 OP-3 병합 조건 (b)를 막는다):
+
+| ID | 내용 | 필요한 결정 |
+|---|---|---|
+| **DV-6** | **I_off 열의 형식과 읽기(보간) 규칙**. 계획 N3.9·G-18·사용자 결정 O-46 (2): I_off = 판정 점 VDS·VSB에서 **엔진 LUT의 VGS = 0 누설 조회**, 오라클은 엔진을 import하지 않으므로 그 열은 입력으로 받는다. 그런데 엔진의 '조회' 값은 `op_point`의 보간이다 -- VS·VDS 축은 기울기 자료·단조 조건이 맞으면 3차 Hermite, 아니면 선형, L은 bin 안 선형, 결과에 W/L(S-41). 계획은 열의 형식도 오라클 쪽 읽기 규칙도 정하지 않았다. 고르는 안에 따라 '합격·범위 판정의 I_off = 엔진 봉인 9의 I_off와 같은 정의'(계획 N3.9 '한 정의')가 성립하는지가 갈린다. tol_V 열은 읽기 규칙이 '정의된 셀 최댓값'이라 이 문제가 없다(§21.1) | (가) **권고**: 오라클이 엔진 VGS = 0 보간 규칙의 **사본**을 새로 쓴다(선례: §10.2 `lut_record_root` 해석 사본, X-D5 승인 O-11). 입력 열 = 소자 L 행들(앵커 하나 또는 같은 bin 양옆 둘과 L 가중)의 VGS = 0 마디(폭 슬라이스 VGS 축 첫 값 = 0.0이라 VGS 방향 보간 없음, S-38)에서 VDS × VS 격자의 ln ID, VS 기울기(−GMBS/ID), VDS 기울기 자료, 기울기·단조 마스크, 그리고 W/L. EO-1 갱신 커밋이 LUT 표를 그대로 직렬화(재계산 없음). 결과는 엔진과 같은 값. 비용: 칸이 커지고 엔진 보간 규칙이 바뀌면 오라클 사본도 같은 변경에서 고쳐야 한다(gain-budget 쪽 동반 수정 절차 알림, X-D5와 같은 방식) (나) 열 = VDS × VS 격자의 I_off 값(W/L 곱함), 오라클은 ln I_off 쌍선형 보간 -- 단순하지만 격자 사이에서 엔진 값과 달라져 '한 정의'가 근사가 된다(원래 취지와 다름) (다) 2단계 실행: 오라클이 판정 점 VDS·VSB를 내고 생산자가 엔진 함수로 I_off·tol_V를 계산해 다시 넣음 -- 값은 같지만 오라클 판정이 엔진 실행에 기대게 되어 계획 N3.8 '오라클 독립' 구조와 다르고, 범위 훑기 점마다 왕복이 생긴다. **막는 것**: OP-5의 전도 판정 부분(§21.1 4단계, §21.2·§21.3) |
+| **DV-7** | **기준선 입력의 LUT에 모델 기록이 없다**(S-39). OP-3 병합 조건 (b)(첫 조합 선언값으로 쓴 공칭 op·ac 결과가 N4-2로 기준선과 동일)를 재려면 기준선 입력 593개를 변환해 새 오라클로 돌려야 하는데, 공칭 자동 대조(D-7, §12.5)가 변환 사본 전부를 `lut_model_provenance_missing`으로 거부한다. 계획 X-14('지금 LUT에서 위험은 낮다', '확인됨')는 LUT v2 슬라이스를 잰 것이고, 기준선 입력이 실제로 쓴 LUT(test `make_lut` 파일 = `corner`·`temp_c`만, `A/sky130_nfet_pfet_lut_sample.npz` = `meta_json` 없음)는 아니었다. 계획 N4-2a·X-14·OP-3 병합 조건 (b)·D-7이 함께 성립하지 않는다 | (가) **권고**: 검증자 변환(N4-2a)이 기준선 입력의 LUT를 **검증자 사본 LUT**(같은 `corner`·`temp_c` + meta `model_files_sha256` = 그 기준선 넷리스트가 include 재귀로 읽은 모델 파일의 raw sha256 -- 검증자가 기준선 넷리스트에서 잼)로 바꾸고, 사본은 판정 기록 안에만 둔다(배포 산출물 아님, X-5). 그러면 새 오라클의 묶음 대조가 '새 어댑터 묶음 ⊇ 기준선 실행 묶음'을 재게 되어 N4의 취지(같은 모델로 돌았나)에 맞는다. 계획 N4-2a에 '측정 결과를 담은 옆 선언'과 같은 지위의 사본 한 줄을 더하는 개정이 필요하다 (나) N4 비교 실행에서만 공칭 자동 대조를 끄는 진입점 인자 -- 판정 경로에 우회가 생긴다(P NFR-P6), 권하지 않음 (다) 병합 조건 (b)의 입력을 LUT v2를 쓰는 새 test 입력으로 바꾸고 기준선 입력을 쓰지 않음 -- 기준선이 없어져 '기준선과 동일'을 잴 수 없다(기준 약화, 사용자 결정 대상). **막는 것**: OP-3 병합 조건 (b), 그리고 같은 변환 사본을 쓰는 OP-4·OP-5의 N4 동일성 실행. §11.5 `process.lut_npz` 행 |
+| **DV-8** | **`offset_sys_mv`의 값·부호와 단일 입력 회로**. DEC-23 정의 문장 '출력을 기준값에 고정하고 입력 차를 미지수로 푼 DC 해의 입력 차'와 같은 행의 계산 'ΔV_out ÷ DC 극한 전달'은 1차에서 부호가 반대다(V_out = A·V_id + V_out0이면 출력 고정 해의 입력 차 V_id* = (기준 − V_out0)/A = −ΔV_out/A). offset-trim PC-10은 V_sys = output_error/A_dm = −V_in(§12.2)이라 계산 쪽 부호다. 그리고 지금 엔진 구현 `E/metrics/offset_systematic.py:7-8`은 값을 **크기** \|오차\|/\|A_dm\|(mV, 상한 제약 `<=` 용)로 내고 부호 있는 오차는 `output_error_v`로 따로 싣는다. 또 '입력 차'는 차동 입력을 전제하는데, 정의 일반형(단일 입력 회로)에서 단일 입력 회로의 계통 offset 문장이 없다 | (가) **권고**: metric 값 = \|V_id*\|(mV, 엔진 현 구현과 같은 크기), 부호 있는 값은 `offset_sys_signed_mv` = −V_id*(= ΔV_out/A의 정확값, PC-10 V_sys와 같은 부호)로 따로 기록, 단일 입력 회로는 DEC-23이 확장될 때까지 정의 불능(사유 `offset_sys_single_input`). 정의 소유자 gain-budget에 DEC-23 문언 명확화(부호·크기·단일 입력)를 요청(계획 U-4 경로) (나) 값 = +V_id*(문장 문자 그대로, 부호 있음)로 하고 엔진 쪽 계산·제약을 맞춤 -- 엔진 card 몫. **막는 것**: OP-5의 계통 offset 부분(§21.4)만 |
+| **DV-9** | **슬루 계단 끝과 방향 묶음**. gain-budget N3.8 557행 '계단 크기·방향 = O-28 끝(입력을 허용 입력 범위 끝까지 미는 방향별 계단)'의 '허용 입력 범위'가 (a) spec 선언 입력 범위 (b) 엔진 ICMR 창 (c) 오라클이 잰 ICMR 창 가운데 무엇인지 문장에 없다. 또 metric `slew_rate_v_per_s` 하나에 방향 둘을 어떻게 담는지, 차동 출력 회로의 β = 1 follower 구성이 문장에 없다 | (가) **권고**: 계단 끝 = 입력 `slew.step_ends_V`, 그 값은 생산자가 엔진 슬루 방향 전류 정의(gain-budget N6.8 card DE-1 1557행 (d) '입력을 허용 입력 범위 끝까지 몬 DC 해')가 쓰는 같은 끝에서 옮긴다(엔진 손계산과 오라클이 같은 계단을 비교하도록). 방향별 두 값을 기록하고 metric 값 = 두 방향의 최솟값(하한 제약 `>=`에 보수). 차동 출력 회로는 `feedback = "declared"`만 받고 `unity_follower`면 `slew_undeclared`(β = 1 구성이 정의되지 않음). 정의 소유자 gain-budget에 557행 보완 요청 (나) 오라클이 자기 ICMR 측정(§21.2) 끝을 계단 끝으로 씀 -- 엔진과 다른 계단이 될 수 있다. **막는 것**: OP-10 전체 |
+
 **알림**(계획과 다른 결정은 아니고, 다른 문서 소유자에게 넘길 것):
+* (v0.3.0) **gain-budget EO-1**(N6.20): 계약 = §11.1~§11.4·§11.7. EO-1 design이 칸 선택의 근거로 K-4 표(판정에 닿는 칸)를 쓴다. EO-1 완료 조건 (1)의 '스키마 위반 거부 red'는 §11.3 E1~E16로 보일 수 있다. 결과 `summary.conduction_definition`이 '꺼짐 정의 판' 칸이다(K-5).
+* (v0.3.0) **gain-budget VB-1·ME-1·PW-1a**(계획 U-4·U-5·U-6): 새 measure 이름 `offset_sys_mv`(OP-5)·`power_dc_w`(OP-11), 슬루는 기존 이름 `slew_rate_v_per_s`(OP-10). 엔진 `verified_by` 연결 변경은 그 card들 몫.
+* (v0.3.0) **gain-budget DEC-23·N3.8 557행 문언**: DV-8·DV-9의 명확화 요청(정의 소유자).
+* (v0.3.0) **headroom-chain HC-O**(U-H11 '입력 칸은 OP-0 스키마를 따른다'): 선언 triode 칸 이름 = `declared_triode`(string 배열, 칸이 생긴 뒤 필수, §11.6). OP-5와 HC-O 가운데 먼저 병합하는 card가 칸을 더한다.
+* (v0.3.0) **offset-trim 구동기**(design §20.1): `output_reference` 칸 형식은 그대로이고 위치가 G-18 확장 칸(§11.6, OP-5가 더함)으로 바뀌었다 -- OP-5 병합 전에는 그 칸을 넣은 입력이 거부된다(OP-6은 OP-5 뒤라 실제 영향 없음).
+* (v0.3.0) DV-6 (가)가 채택되면: 엔진 LUT 보간 규칙(`E/lut/_helpers_interp.py`, `E/lut/point_query.py`)을 바꾸는 card는 오라클 I_off 읽기 사본과 그 test 기대값을 같은 변경에서 고친다(X-D5와 같은 동반 수정 절차를 gain-budget에 넣도록 알림).
 * 계획 N3.5.1의 기준 문구('offset-trim v0.5.2 `a293411` 455-462행')는 master v0.5.6 `86e5adc` 466-473행으로 다시 대조됐고 내용 차이가 없다(§12.8). 계획 문구 갱신은 계획 소유다.
 * offset-trim 계획 N3.9 '순서 의존'(master 477행)이 oracle-portability 계획을 '초안, 승인 전'으로 적는다. offset-trim 소유 문구다.
 * 상위 문서 개정 병합본(`b105b65`)과 §17 문안의 일치는 이 card가 대조하지 않았다.
 * (v0.2.6, 엔진 쪽 낡은 인용, S-36) OP-3~OP-5가 옛 오라클 파일을 지우면 엔진 쪽 주석·docstring의 오라클 파일 인용이 낡는다: `E/metrics/verified_by.py:35, :48`, `E/tests/metrics/test_device_sigma.py:9`, `E/metrics/junction_cap.py:16`, `E/tests/metrics/test_verified_by.py:1-12`. 계획 완료 조건 8a(엔진 diff 0, 예외 둘)가 이 기능 card에서 고치는 것을 막으므로 고치지 않고, 엔진 소유 card(gain-budget 계획)에 알린다. 기능은 바뀌지 않는다(주석·docstring).
-* (v0.2.6) `A/lut_v2_location.json`을 바꾸는 card는 같은 변경에서 오라클 기술자 `lut_record_root.location_decl.sha256`을 갱신해야 한다(§10.2). 계획 X-13 알림과 같은 내용을 gain-budget 쪽 LUT 위치 변경 절차에 넣도록 알린다.
+* (v0.2.6) `A/lut_v2_location.json`을 바꾸는 card는 같은 변경에서 오라클 기술자 `lut_record_root.location_decl.sha256`을 갱신해야 한다(§10.2). 계획 X-13 알림과 같은 내용을 gain-budget 쪽 LUT 위치 변경 절차에 넣도록 알린다. (v0.3.0, DR-14) 갱신 값 = 그 파일의 **LF 정규화 sha256**(다시 잰 값, 사례 `07299556…`)이다.
 
 ### 19.3 측정·확정 대기 칸(OP-1·OP-1a·OP-3·OP-7·R6 원문 보관, 하나를 고르지 않음)
 
@@ -1278,7 +1540,7 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | 지금 LUT 경계 앵커 점에서 시뮬레이터가 고른 bin | OP-7 검증자 | 대기 | §16 |
 | cap·mismatch 세트 메타의 생성 시뮬레이터 판 기록 | OP-7 검증자 | 대기(v0.2.4 추가) | §16 |
 | PC-3 표본 수 기본값의 실행 비용 | OP-1 | **측정됨**(`R/m1_native_mc.jsonl` 12행, v0.2.5 인용 정정): 소자 쌍 벤치 표본당 0.152 s, 200 표본 30.3 s(r = 0.05면 201 표본) | §12.3 |
-| 차동 이득 실수 판정 변경이 기준선 `status`를 바꾸는 사례 | OP-1 | **측정됨**(S-14): 바꾸면 170건. D-c로 바꾸지 않음 | §13.2, §14 |
+| 차동 이득 실수 판정 변경이 기준선 `status`를 바꾸는 사례 | OP-1 | **측정됨**(S-14): 바꾸면 170건. D-c로 바꾸지 않음. (v0.3.0) O-43 D1 (d)로 판정 자체가 없어진다(`.tf`, §21.5) -- 옛 `1e-3`으로 `unavailable`이던 입력의 `status` 변화는 OP-5 원인 변화표에 적는다 | §13.2, §14 |
 | ngspice 오류 로그 → 오류 코드 대응표 | OP-1 기준선 로그 | **초안**(§7.1, S-18). 확정은 OP-3·OP-4 | §7 |
 | ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호 | 원문 보관 문서 작업(X-D4 수용 O-4). **OP-2 병합 조건**(v0.2.2) | 대기. 전역 기하 지시 `affects`의 출처(§8.3)도 같은 원문에서 채운다 | §8.3, §14 |
 | 기준선 입력 가운데 DC 풀이 허용오차 선언이 없는 것(X-D4) | OP-1 | **측정됨**(S-20): test 입력 1개(reltol 없음) | §8.3 |
@@ -1288,18 +1550,31 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 | 어댑터 기본 abstol 값과 출처 쪽 | R6 원문 보관(OP-2 병합 조건) | 대기(v0.2.5 추가, S-28: 옛 값 없음) | §8.3, §14 |
 | 시간 걸음 실패 로그 문장 형태 | R6 원문 보관(OP-2 병합 조건) | 대기(v0.2.5 추가, 기준선 사례 0, S-30) | §7.1 |
 | 기준선 표본별 V_os | OP-1a 검증자(재구현 스크립트) | 대기. v0.2.6: DV-5는 O-9로 닫혔고 방법이 정해짐(§13.2) | §13.2 |
+| (v0.3.0) 기존 LUT meta `model_files_sha256`의 모양 | OP-3 착수 조건(계획 N9 '관찰' 행) | **측정됨**(S-38): 폭 슬라이스 32 평탄, 결합 파일 6 LUT 소자 키 중첩. 두 모양 읽기 = §11.2 2b | §11.2, §12.5 |
+| (v0.3.0) 폭 슬라이스 `generator_sha256` `8df35d2e…`의 생성기 판 | OP-3 착수 조건(계획 N9 '미발견' 행) | 대기 -- 못 찾으면 멈추고 보고(근거 (a)를 낮추지 않음) | §12.5 |
+| (v0.3.0) 기준선 입력 LUT의 모델 기록 | OP-3 병합 조건 (b) | **측정됨**(S-39): 없음 → §19.2 DV-7 | §11.5 |
+| (v0.3.0) ngspice `.tf` 차동 출력·로그 형식 | OP-5 | **측정됨**(S-42) | §21.5 |
+| (v0.3.0) 기준선 입력의 스키마 밖 키·기준 레일 전압 | OP-3 | **측정됨**(S-44, §11.1 `/rails` 행): 닫힌 키 집합·`reference_rail_voltage` 규칙의 기준선 영향 0 | §11.1 |
 
 ### 19.4 원래 취지와 다름(따로 보고)
 
 | ID | 내용 |
 |---|---|
-| X-D1 | (**수용(O-3)**, v0.6 O-6 D-c로 하나 더함) '출처 미확인 기존 상수' 여섯(옛 반복 상한 다섯 + 차동 이득 실수 판정 `1e-3`)을 출처 확인 없이 그대로 옮긴다(B-8, §14). '상수 발명 금지' 원칙에서 보면 기존 위반을 이 기능이 정리하지 않고 넘기는 것이다. 정리하면 N4 동일성이 깨질 수 있어서다(`1e-3`은 실측 170건, S-14). 유도는 백로그 |
+| X-D1 | (**수용(O-3)**, v0.6 O-6 D-c로 하나 더함) '출처 미확인 기존 상수' 여섯(옛 반복 상한 다섯 + 차동 이득 실수 판정 `1e-3`)을 출처 확인 없이 그대로 옮긴다(B-8, §14). '상수 발명 금지' 원칙에서 보면 기존 위반을 이 기능이 정리하지 않고 넘기는 것이다. 정리하면 N4 동일성이 깨질 수 있어서다(`1e-3`은 실측 170건, S-14). 유도는 백로그. **(v0.3.0, 계획 X-D1 v0.6.9)** `1e-3`은 이 목록에서 빠진다 -- 사용자 결정 O-43 D1 (d)로 A를 `.tf`로 직접 재고 상수와 `.ac` 첫 점 경로를 지운다(§14, §21.5). 남는 '출처 미확인 기존 상수'는 반복 상한 다섯이다 |
 | X-D2 | 옛 진입점 여섯을 `oracle_run` 하위 명령으로 합친다(B-2). README의 '파일마다 독립 진입점 1개' 원칙(`O/README.md` '파일' 절)과 다르다 |
 | X-D3 | (v0.2에서 해소) PC-10은 offset-trim design TR-0T가 G-15를 닫아(선언 기준을 온도 무관하게 그대로) 정의했다(§12.2). 그 design은 master에 병합됐다(T-40) |
 | X-D4 | (v0.2, **수용(O-4)**. 할 일: ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호 채우기 = 원문 보관 문서 작업이고 **OP-2 병합 조건**(v0.2.2), 영향받는 기준선 입력 측정 = OP-1) T-39에 따라 DC 풀이 허용오차를 선언 없이 쓰지 않게 했다. 그래서 지금 기본 허용오차(`_NGSPICE_DEFAULT_TOL`)의 출처(매뉴얼 쪽)가 채워지기 전에는, 입력에 허용오차 선언이 없는 기존 오라클 입력이 `dc_tolerance_undeclared`로 멈춘다. 지금 smoke 입력은 `testbench.options`에 reltol·vntol·abstol을 가진다(S-6 사례). 영향받는 기준선 입력은 OP-1에서 test 입력 하나로 쟀다(S-20) |
 | X-18 | (계획 X-18, **수용(O-6)**) 네이티브 MC가 '켜기만'이 아니라, 첫 조합에서는 '불일치 변수를 시뮬레이터 분포 함수로 다시 선언'(`param_redefine`)이다(S-12). 겉모양은 O-1이 지운 직접 덮어쓰기와 비슷하지만 값은 시뮬레이터 RNG가 소자마다 뽑고 분포 값은 PDK 원본 선언에서만 온다(§10.4). 이 문서는 계획 정의를 그대로 옮겼다 |
 | X-D5 | (v0.2.6, **승인됨(O-11)**: 권고대로 -- 오라클 쪽 해석 사본 유지 + gain-budget 계획에 '`E/lut/CONTRACT.md` 1.8을 바꾸는 card는 오라클 해석 코드·test 기대값을 같은 변경에서 고친다' 동반 수정 절차, `pdk_root` 없을 때 거부하는 엄격 유지) `lut_record_root` 해석을 엔진 계약 `E/lut/CONTRACT.md` 1.8 규칙과 같게 오라클이 **새로 쓴다**(엔진 import 금지). 그래서 (1) **drift 위험**: 엔진 계약·구현이 바뀌어도 오라클 쪽 사본은 따라가지 않고, 두 구현을 서로 불러 대조하는 test도 두지 않았다(§10.2) -- 어긋남은 형식 규칙 기대값 test가 엔진 계약 원문에서 다시 쓰일 때만 잡힌다. 엔진 계약 1.8을 바꾸는 card가 오라클 해석 test 기대값도 같은 변경에서 고치도록 알린다(§19.2 알림과 같은 방식) (2) **의도된 엄격**: 위치 선언에 `pdk_root`가 없을 때 엔진은 LUT meta 절대 경로로 돌아가고 오라클은 거부한다(`lut_location_decl_invalid`). 엔진과 같은 데이터에서 엔진은 돌고 오라클은 멈출 수 있다 |
 | X-D6 | (v0.2.6, 의도된 엄격) 어댑터 지문은 디스크의 모든 파일(제외 목록 밖)을 묶으므로(§0), 어댑터 패키지 아래에 잔여 파일(편집기 임시 파일, 지우지 않은 산출물)이 있으면 그 기계의 지문이 검증자 기계와 달라진다. 그러면 능력 기록이 `oracle_capability_stale`로 무효가 되어 다시 만들어야 하고, 캐시도 miss가 된다. 틀리는 방향이 '거부'이므로 판정 약화가 아니다. 대처는 잔여 파일을 지우거나 기록을 다시 만드는 것이고, 제외 목록을 넓히는 것은 §8.3 절차(근거 P-1을 적는 design 개정)로만 한다 |
+| X-26 (계획 인용, DR-15) | 기술자 참조 sha256(LF 정규화)과 엔진 `decl_sha256`(raw)의 정의가 다르다. **계획 v0.6.8에서 해소**(사용자 결정 O-16 (1)): gain-budget card SH-1 병합 뒤에는 정의가 같다. 과도기(SH-1 전)에는 정의가 다르고, 이 문서는 어느 쪽이든 파일 바이트에서 다시 재어 대조하므로(§10.1) 순서·선행 조건이 없다. SH-1 뒤에도 '정의가 다른 값끼리 비교하지 않는다'와 X-13 재측정 방식은 유지한다 |
+| X-27 (계획 인용, DR-15) | '기계 무관'은 기술자 자기 칸까지만 성립한다(계획 v0.6.8 재정리). 남는 빈틈: 기존 공유 LUT의 raw 기록(`model_files_sha256`)은 CRLF 체크아웃에서는 기계 의존 일치로 돌고 LF 체크아웃에서는 거부된다(엔진과 오라클이 같은 규칙, 같은 결과). `generator_sha256`은 엔진이 대조하지 않고 오라클(OP-3 착수 조건)·OP-8만 대조한다(O-18). 폭 슬라이스 32개의 `8df35d2e…`는 아직 생성기 판을 찾지 못했다(§12.5 근거 (a), 계획 N9) |
+| X-29·X-32 (계획 인용, DR-15) | `icmr_v`·`icm_margin_v`(출력 고정 해제)와 `swing_out_v`(정의 일반형·범위 조건 정정)는 **닫힘 -- O-34 규칙으로 해소**: 정의를 바꾼 칸이라 N4 0번 '동작 변경' 기준(정의 문장 손 회로 test + 검증자 원인 변화표)으로 판정하고 card별 예외 승인은 없다(§18.1 '10 정의 대조', §21.2) |
+| X-30 (계획 인용) | 범위가 '이식'에서 측정 정의 추가·변경으로 넓어진다(계통 offset `.dc`, 슬루 `.tran` OP-10, 단일 입력 swing·ICMR, 전력 OP-11). 이 문서 §21이 그 절차다 |
+| X-31 (계획 인용) | 포화 여유 `judge.sat_margin_V`를 범위 정의에서 빼고 판정 단계로 옮긴다(§21.2 -- 범위 창은 여유 0, 합격 판정의 포화 확인은 여유를 그대로 씀). `judge.off_current_A`는 판정에 쓰지 않게 되어 OP-5에서 지운다(§11.6 B-34) -- 그 칸을 쓰던 사용자 스크립트의 입력이 OP-5 뒤 `oracle_input_schema_invalid`로 거부된다 |
+| X-33 (계획 인용, DR-15) | 합격 판정 '꺼짐' = 봉인 9 식(사용자 결정 O-45 U2 승인, O-46 (2) 값의 출처). 옛 ε = 1 기준으로 PASS였던 점이 FAIL이 될 수 있다(합격 기준이 엄격해짐). OP-5 전 기간 결과에는 `summary.conduction_definition = "threshold_eps1"`이 적혀 구분된다(§11.7) |
+| X-D7 | (v0.3.0, 이 문서, 의도된 엄격) **입력 키 집합을 모든 층에서 닫는다**(B-29). 옛 스키마는 대부분 열려 있어 생산자가 모르는 칸을 넣어도 오라클이 조용히 무시했다. 이제는 거부한다. 기준선 입력 593개에는 영향이 없음을 쟀다(S-44). 그러나 저장소 밖에서 이 오라클을 부르던 스크립트가 여분의 칸을 넣고 있었다면 OP-3 뒤 거부된다. G-18 확장 칸이 생산자 갱신과 같은 병합에서만 들어오게 하는 장치이기도 하다(§11.0) |
+| X-D8 | (v0.3.0, 이 문서) **거부 때 거부 기록 파일 하나를 쓴다**(B-33). 옛 C13은 '스키마 위반이면 아무 산출물도 쓰지 않음'이었다. EO-1 판정 배선이 거부 사유를 기계로 읽어 점 레코드에 붙여야 해서(gain-budget N6.20 범위 (2)) 바꿨다. 넷리스트·결과는 여전히 쓰지 않는다 |
 
 ---
 
@@ -1309,13 +1584,122 @@ offset-trim TR-7 §17-1에서 엔진 σ_in과 오라클 네이티브 MC σ_in이
 |---|---|---|---|
 | OP-1 | §19.3 측정 전부, §18.1 T1-0 토큰 목록, §13.2 절차 준비, N4 입력 변환 스크립트(§11.5 대응표) | 계획 승인 | -- (v0.2.4: 측정 대부분 끝남, §19.3 상태 칸) |
 | OP-1a (검증자, v0.2.5 추가) | 기준선 판정용 텍스트 + 원자료 sha256 목록을 `.ai/verification/<OP-1 id>/baseline/`에 커밋(계획 OP-1a). 이 문서가 적은 소비처: §18.1 '3 동일성'(N4-2 비교 칸 출력, N4-2a 변환 입력·결과), §10.6 '차이가 선언에서만' 절차(기준선 넷리스트), §7.1·§18.1 '오류 대응'(기준선 로그 발췌), §13.2(MC 출력·로그·입력, (v0.2.6) 기준선 표본별 V_os 재계산값·재구현 스크립트·실행 기록·선택 대조 기록) | OP-1 | gain-budget card LT-1의 착수 조건(계획). (v0.2.6) DV-5 = O-9로 닫힘 |
-| OP-2 | §10.1, §10.2·§10.3 가운데 `mc`·`diagnostic` 칸을 **뺀** 기술자 전부(기하 단위·병렬 배수 선언 칸, `lut_record_root` 포함, P G-5), §11(§11.5 포함). (v0.2.5) 생산자 수정은 범위 아님(§11.4). smoke 고정 자료 '스키마 적합' test → '옛 형식이라 거부' test(§18.2). (v0.2.6) `lut_record_root` = `A/lut_v2_location.json` 참조(§10.2)와 그 해석 test(§18.1 '기록 뿌리 해석'), `O/tests/conftest.py` 옛 형식 입력 생성기 새 형식으로(§15.4, test 작성자) | OP-0, OP-1 | (충족, `b105b65`) 상위 문서 개정 card `gb-oracle-rev` 병합. **병합 조건**: ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호(R6) 채움(X-D4), (v0.2.5) abstol 값·쪽 포함(S-28) |
-| OP-3 | §3, §4, §5, §6(`instance_geometry_reported`·요청 단위 오류 포함), §7(§7.1 op·ac 몫, §7.2), §8.1~8.3, §9, §10.6(소자 줄 작성·미선언 거부), §11.5 결과 칸 OP-3 행, §12.5(역할 구분 포함), §15.1 OP-3 행, §15.4 OP-3 행(cm_loop 스크립트, `u6_selfchecks.py` 삭제(O-10), `make_lut` 기록, 손 넷리스트 기준 `O/tests/adapters/ngspice/`로), §18.1 '8a 예외 둘째'(엔진 test glob 한 줄, 엔진 test 작성자), §18.2 캐시 test 앞 셋 | OP-2 | **착수 조건**(v0.2.5): §19.2 DV-4 결정 -- (v0.2.6) 충족(O-9). **병합 조건**(P OP-3): (a) 기하 규칙 미선언 기술자의 실제 거부 test + 검사 순서·양성 대조 (b) 첫 조합 선언값의 공칭 op·ac 결과 N4-2 기준선 동일(검증자), 소자 줄 차이는 기록만·§10.6 절차로 선언 기인 한정 (c) (v0.2.5, 계획 v0.6.3) 기존 LUT 역할 옆 선언 + 그 선언으로 (i)~(iii) 통과 + 역할 지운 변형·보조 입력 sha256 바꾼 변형 실제 거부(§18.1 'OP-3 병합' 세 행). smoke 고정 자료 '넷리스트 재생성 일치' test 삭제 + `criteria_weakened`(§18.2) |
+| OP-2 | (v0.3.0 다시 씀, DR-10i -- 사용자 결정 O-14 (4) J-1 (나), 계획 X-28) **기술자·기술자 스키마·기술자 읽기 코드만**: §10.1, §10.2·§10.3 가운데 `mc`·`diagnostic` 칸을 **뺀** 기술자 전부(기하 단위·병렬 배수 선언 칸, `lut_record_root` 참조 포함, P G-5, sha256 칸 = LF 정규화 DR-6~DR-8), 코어 기술자 로더(스키마 검사, 참조 sha256 대조 -- 규칙 (i)(ii), 원본 중복 검사 -- 규칙 (iii), 위치 선언 해석, §18.1 '기록 뿌리 해석' 행). **입력 형식 전환은 하지 않는다**(§11은 OP-3): 옛 형식 입력과 옛 모듈 경로는 OP-2 병합 뒤에도 그대로 돌고, 기술자 로더는 아직 실행 경로에 배선되지 않는다 -- **OP-2·OP-3은 따로 검토하고 함께 병합**한다(만들면 배선을 병합 단위로 지킴). 기록 뿌리 교차 검사(`lut_record_root_mismatch`)도 OP-3(J-5 (가)) | OP-0, OP-1 | (충족, `b105b65`) 상위 문서 개정 card `gb-oracle-rev` 병합. **병합 조건**: ngspice 매뉴얼 원문 보관과 기본 허용오차 쪽 번호(R6) 채움(X-D4), (v0.2.5) abstol 값·쪽 포함(S-28) |
+| OP-3 | §3, §4, §5, §6(`instance_geometry_reported`·요청 단위 오류·`bundle_files`·`machine_dependent_refs` 포함), §7(§7.1 op·ac 몫, §7.2), §8.1~8.3, §9, §10.6(소자 줄 작성·미선언 거부), **(v0.3.0) §11 전부 -- OP-3 입력 스키마 `spice_oracle_input/2`(§11.1~§11.3, EO-1 계약 §11.4), 옛 형식 거부, 옛 입력 읽기 전환, 기술자 로더의 `oracle_run` 배선, 실행 결과 계약(§11.7), `O/oracle_input.schema.json` 다시 씀**, §11.5 결과 칸 OP-3 행, §12.5(역할 구분, sha256 정의, 기록 뿌리 교차 검사 함수·test), §15.1 OP-3 행, §15.4 OP-3 행(cm_loop 스크립트, `u6_selfchecks.py` 삭제(O-10), conftest 입력 생성기 새 형식(v0.3.0 OP-2에서 옮김), `make_lut` 기록, 손 넷리스트 기준 `O/tests/adapters/ngspice/`로), §18.1 '8a 예외 둘째'(엔진 test glob 한 줄, 엔진 test 작성자)·'OP-3 입력 계약' 행, §18.2 캐시 test 앞 셋, smoke 고정 자료 '스키마 적합' test → '옛 형식이라 거부' test | OP-2(따로 검토, 함께 병합) | **착수 조건**(v0.2.5): §19.2 DV-4 결정 -- (v0.2.6) 충족(O-9). (v0.3.0, 계획 OP-3 행) 옆 선언 근거 (a) 생성기 판 찾기가 폭 슬라이스 32개에서 가능한지 먼저 확인(§12.5, 계획 N9), 기존 슬라이스 meta 모양 실측(**충족** -- S-38: 폭 슬라이스 평탄, 결합 파일 중첩, §11.2 2b가 두 모양을 읽음). **병합 조건 (b)는 §19.2 DV-7 결정 전에는 실행할 수 없다**(기준선 입력 LUT에 모델 기록 없음, S-39). **병합 조건**(P OP-3): (a) 기하 규칙 미선언 기술자의 실제 거부 test + 검사 순서·양성 대조 (b) 첫 조합 선언값의 공칭 op·ac 결과 N4-2 기준선 동일(검증자), 소자 줄 차이는 기록만·§10.6 절차로 선언 기인 한정 (c) (v0.2.5, 계획 v0.6.3) 기존 LUT 역할 옆 선언 + 그 선언으로 (i)~(iii) 통과 + 역할 지운 변형·보조 입력 sha256 바꾼 변형 실제 거부(§18.1 'OP-3 병합' 세 행). smoke 고정 자료 '넷리스트 재생성 일치' test 삭제 + `criteria_weakened`(§18.2) |
 | OP-4 | §8.4(G-13 확정), §8.5, §7.1 pz·과도 몫, §11.5 결과 칸 OP-4 행(실행 전 반환 경로 포함), §14 반복 상한 다섯, §15.1 OP-4 행, §15.4 OP-4 행(측정 도구 `calibration_tools/`로), §18.2 캐시 test 넷째, u6 pz 점검 재작성 | OP-3 | G-13 측정(S-19 있음) + (가) 시간 상한 사례 수(§19.3) |
-| OP-5 | §10.4·§10.5와 기술자 파일의 `mc`·`diagnostic` 칸(sky130 값, 사용자 확인), §12.7 손 모델 픽스처 정본(만듦), §13, §14 `1e-3`, §11.5 결과 칸 OP-5 행, §15.1 OP-5 행, §15.4 OP-5 행, §18.1 4a | OP-4 | (충족) OP-1 (i) 결과 = 소자별 독립(S-12). (충족, v0.2.5) DV-3 = 사용자 결정 O-8(§13.2). (충족, v0.2.6) DV-5 = O-9. OP-1a 병합(기준선 표본별 V_os 재계산값) |
+| OP-5 | §10.4·§10.5와 기술자 파일의 `mc`·`diagnostic` 칸(sky130 값, 사용자 확인), §12.7 손 모델 픽스처 정본(만듦), §13, §11.5 결과 칸 OP-5 행, §15.1 OP-5 행(v0.3.0: `.ac` 첫 점·`1e-3` 삭제, swing servo 목표 훑기·ICMR 출력 고정 삭제, ε = 1 전도 판정 삭제), §15.4 OP-5 행, §18.1 4a. **(v0.3.0, 계획 v0.6.9 N3.9·DR-17)**: §11.6 G-18 확장 칸(`declared_triode`(HC-O가 먼저면 재사용), `dc_sweep`, `conduction_columns`, `output_reference`, measure `offset_sys_mv`)과 입력 칸 `off_current_A` 둘 삭제, §21.1 판정 점 전도·포화, §21.2 swing·ICMR, §21.3 합격 판정 전도 기준, §21.4 계통 offset, §21.5 `.tf` A, §18.1 '10 정의 대조' OP-5 행. **같은 통합 병합에 EO-1 생산자 갱신 커밋(`Role: code`)** -- 확장 칸 생산, `off_current_A` 생산 부분 삭제(계획 OP-5 행·U-6) | OP-4, **gain-budget EO-1 병합**(생산자 갱신 대상, 계획 OP-5 선행) | (충족) OP-1 (i) 결과 = 소자별 독립(S-12). (충족, v0.2.5) DV-3 = 사용자 결정 O-8(§13.2). (충족, v0.2.6) DV-5 = O-9. OP-1a 병합(기준선 표본별 V_os 재계산값). (v0.3.0) **착수 조건**: §19.2 DV-6 결정(I_off 열 읽기 규칙 -- 전도 판정 전 부분), DV-8 결정(계통 offset 부분). 정의 문장(gain-budget N3.8 v6.18)은 승인됨(O-48)이라 계획 U-4의 '정의 확정' 조건은 충족 |
 | OP-6 | §12(§12.7은 OP-5 산출물 재사용, 새로 만들지 않음) | OP-5 | (충족, T-40) offset-trim design TR-0T가 master에 병합됨. PC-10 기준의 대조 정본 = master `offset-trim.design.md` §20 |
 | OP-7 | §16 | OP-3, XRUN-F1 C | (충족) OP-1 (iii) = S-15. 경계 재측정, cap·mismatch 세트 판 기록 확인 |
-| OP-8 | §15.3, §16 | OP-6 | -- |
-| OP-9 | §18 전부 | -- | -- |
+| OP-8 | §15.3, §16 | OP-6, (v0.3.0, DR-12) gain-budget v6.17 엔진 sha256 정본 card SH-1(O-16 (1)) | -- |
+| OP-10 (v0.3.0 신설 반영) | §21.6 슬루, §11.6 `slew` 칸, §5 `Tran` 계단 벤치, §8.3 능력 `tran_large_signal`, §15.1 C25 행, §18.1 '10 정의 대조' OP-10 행 | OP-4, OP-5, gain-budget N3.8 슬루 정의 문장(557행, 승인됨 O-48) | **착수 조건**: §19.2 DV-9 결정(계단 끝 '허용 입력 범위'의 출처). EO-1 생산자 갱신(`slew` 칸) 커밋을 같은 통합 병합에 |
+| OP-11 (v0.3.0 신설 반영) | §21.7 전력, §11.6 measure `power_dc_w`·`power_dc_w_rel`, §18.1 '10 정의 대조' OP-11 행 | OP-3 | -- (measure 이름 추가는 선택 칸이라 EO-1 생산자를 깨지 않는다. 엔진이 `power_dc_w` 예측을 내고 대조를 잇는 일은 gain-budget PW-1a 몫, 계획 U-5) |
+| OP-9 | §18 전부 | OP-6, OP-7, OP-8, OP-10, OP-11 | -- |
+
+* (v0.3.0) **gain-budget EO-1과의 관계**(계획 N5.2·U-6): EO-1은 OP-3 병합 뒤 착수하고 그 계약은 §11.1~§11.4·§11.7이다. G-18 확장 칸을 더하는 card(OP-5, headroom-chain HC-O, OP-10)는 EO-1 병합 뒤에만 병합할 수 있고, 각자의 통합 병합에 EO-1 생산자 갱신 커밋을 넣는다(OP-6은 OP-5 뒤라 `output_reference`를 OP-5가 이미 더했다).
 
 * (v0.2.4, 검증자 정리) v0.2.3에서는 OP-2가 '§10'(전체), OP-5가 '§10.4·§10.5'를 함께 가져 §10.4가 겹쳤다. 위 표는 칸 단위로 나눴다: 기술자 파일 하나를 OP-2가 만들고(`mc`·`diagnostic` 칸 없음), OP-5가 같은 파일에 그 두 칸을 더한다. 계획 N5.1(OP-2 = 기술자·기하 규칙, OP-5 = 네이티브 MC·진단)과 같다.
+
+---
+
+## 21. metric 측정 절차(계획 N3.9, G-18·G-19 -- OP-5·OP-10·OP-11, v0.3.0 신설, DR-17)
+
+### 21.0 원칙
+
+* **정의를 정하지 않는다**: 정의 정본은 gain-budget 계획 N3.8(metric)·DEC-23·DEC-78·DEC-90 (1)이다(계획 N3.9 '정의의 소유자'). 아래 절마다 정의 문장을 인용하고, 이 문서는 그 문장을 재는 **절차**(벤치 IR, 해석 요청, 읽는 법, 판정)만 정한다. 절차가 정의 문장과 어긋나 보이면 정의가 이기고, 이 문서를 고치기 전에 멈추고 보고한다.
+* **같음의 증거**: test 작성자가 정의 문장에서 기대값을 쓴 손 회로 test와 검증자 정의 대조표(완료 조건 10, §18.1 '10 정의 대조' 행). 오라클은 엔진을 import하지 않는다(P NFR-P3).
+* **변경 종류**(계획 N4 0번 표 그대로): OP-5 -- noise 칸·MC 수학((가-1)) = 정의 그대로(동일성) / 네이티브 MC 표본열, `icmr_v`·`icm_margin_v`·`swing_out_v`, 새 칸(`offset_sys_mv`, 단일 입력 swing·ICMR), A 출처와 σ, 합격 판정 전도 기준 = 정의를 바꾼 칸(동작 변경 기준). OP-10 -- 슬루 = 새 측정. OP-11 -- `rail_current_A`·`supply_current_A` = 정의 그대로, `power_dc_w` = 새 칸. 모든 card에서 결정성(두 번 실행 비트 동일).
+* **엔진·오라클 차**: 판정 실패가 아니라 모델 오차 기록이다(상위 DEC-72, D-6). 합격 판정은 지금처럼 오라클 값으로 한다(계획 N3.9).
+
+### 21.1 판정 점의 전도·포화(OP-5, `core/conduction.py`)
+
+**정의 인용**: gain-budget N3.8 556행 "**소자 조건** = spec 선언 triode 밖 모든 MOS가 전도(봉인 9 전도 정의 I_off ≤ ε·ID와 같은 정의)이고 포화(VDS ≥ VDSAT)다 -- 소자가 꺼지는 점도 범위의 끝이다", "I_off·ε 모두 그 점 값이다"; DEC-90 (1) 289행 "SPICE 점에서 I_off > ε·|ID|이면 꺼짐, ε = (gm/ID)·tol_V. I_off·gm/ID·tol_V는 모두 그 판정 점(SPICE op 점) 자신의 값이다 … gm/ID = SPICE op 값, I_off = 그 SPICE op 점의 VDS·VSB에서 VGS = 0 누설 LUT 조회(판정 기하의 W), tol_V = 같은 점 VDS에서 읽은 LUT tol_V 셀"(사용자 결정 O-45 U2·O-46 (2)).
+
+**절차**(판정 점 = 합격 판정의 free `.op` 해 또는 훑기 점의 해):
+1. 어댑터 `OpTable`에서 소자마다 ID·gm·VDS·VSB·VDSAT(크기 규칙 정규화 값)를 읽는다. 하나라도 `None`이면 그 소자는 그 점에서 `conduction_undefined`(값 없음을 통과로 세지 않는다 -- 옛 `sat_violation` 규칙과 같음).
+2. ID ≤ 0이면 전도가 아니다(I_off ≥ 0 ≥ ε·ID라 식이 참이 될 수 없다 -- 열을 읽지 않는다).
+3. **tol_V(점)** = §11.6 `conduction_columns.<소자>.tol_v` 읽기: 격자 g(길이 N), VDS가 [g[0], g[N−1]] 밖이거나 NaN이면 `conduction_undefined`(엔진 `check_axes` 닫힌 구간과 같음, `E/lut/axis_guard.py:8-18`), 칸 k = min(bisect_right(g, VDS) − 1, N − 2), tol_V = {values[k], values[k+1]} 가운데 null 아닌 값의 최댓값, 둘 다 null이면 `conduction_undefined`. **엔진과 같음의 근거**: 엔진 `table_at`은 (L 행들) × {k, k+1} 셀의 정의된 값 최댓값이고(S-41), EO-1 직렬화가 행 방향 최댓값을 먼저 취하므로(§11.6) 최댓값의 결합 법칙으로 같은 값이다(test 작성자가 2행 표 손 예로 확인).
+4. **I_off(점)** = §11.6 `conduction_columns.<소자>.i_off` 읽기 -- **열 형식과 읽기 규칙은 §19.2 DV-6 결정 대기**.
+5. **전도** ⟺ I_off ≤ ε·ID, ε = (gm/ID)·tol_V. 정확 부등식(새 허용 폭 없음). 결과 행 = 엔진 봉인 9 행과 같은 모양(`i_off_A`, `tol_v_V`, `eps`, `conduction_margin` = I_off/(ε·ID), > 1이면 꺼짐 -- `E/sizing/seal_conduction.py:11`).
+6. **포화**(범위 정의) ⟺ VDS ≥ VDSAT, 여유 0(사용자 결정 O-33 (8)). 판정 여유 `judge.sat_margin_V`는 범위 정의에 넣지 않는다(계획 X-31). 합격 판정의 포화 확인은 옛 그대로 VDS − VDSAT ≥ `sat_margin_V`(판정 단계).
+7. **선언 triode**(`declared_triode`, §11.6): 포화 조건에서 뺀다(범위·합격 둘 다). 전도 조건에는 남긴다(DEC-90 (1) '꺼짐 판정은 선언 triode를 포함한 모든 MOS').
+
+**깨진 변형**(완료 조건 10, 먼저 실패를 보임): ε가 빠진 식 `ID > I_off`(ε = 1), 판정 점 대신 동작점(봉인점)의 I_off·tol_V로 판정, 꺼진 소자를 조건에서 빼 꺼지는 점을 범위 끝으로 보지 않음, 여유를 포화 정의에 넣음, tol_V `None`을 통과로 셈.
+
+### 21.2 swing·ICMR(OP-5, `core/swing_math.py`, 요청 `OpSweep`)
+
+**정의 인용**: gain-budget N3.8 556행 -- "출력 스윙 = 입력 공통모드를 동작점에 고정하고 차동 입력을 DC로 훑을 때 출력이 움직이는 범위 가운데 전 소자(spec 선언 triode 제외) 포화 유지 구간", "ICMR = 차동 입력 0(또는 동작점 차)으로 두고 입력 공통모드를 DC로 훑을 때 출력은 회로가 정하는 대로 따르는 상태의 전 소자 포화 유지 범위(출력 고정 안 함, Allen 관례)", "끝이 정해지지 않으면(끝 풀이가 같은 x에서 성공한 해가 없으면) 그 끝을 읽는 metric은 정의 불능", "일반형: 전달 뷰 여기 방향으로 입력 포트를 훑는다", "단일 입력 회로의 ICMR = 출력이 회로대로 따라가는 상태에서 입력 포트를 DC로 훑을 때 소자 조건이 유지되는 입력 범위(차동이 없으면 공통모드 = 입력 자체)", "수렴하지 않은 점은 정의 불능이다 -- 창을 그 점에서 자르지 않는다".
+
+**벤치 IR**(`core/build_benches.sweep_bench`):
+1. 먼저 공칭 free 벤치(servo 있음, OP-3 본 벤치)를 풀어 입력 넷 n마다 동작점 v0(n)(servo 해)을 얻는다. 이 실행이 막히거나 수렴하지 않으면 측정 전체가 정의 불능이다.
+2. 훑기 벤치 = 본 회로 IR + 레일 + 바이어스 + 입력 넷마다 이상 전압원 `tb:sweep:<n>`(DC = v0(n)). 입력 넷의 servo·choke·결합 C·AC 원·Middlebrook 원은 넣지 않는다 -- 출력을 고정하는 원소가 없다(계획 G-18 'servo 없이 차동 0 유지하는 테스트벤치 원소'). 본 회로의 β 되먹임망(`feedback_passives`)은 회로 원소라 그대로 둔다.
+3. 점(`Excitation`의 DC 덮어쓰기): swing은 `tb:sweep:<n>` = v0(n) + x·excite(n), ICMR은 v0(n) + y·c(n)(c = `dc_sweep.common`, `null`이면 c = excite -- 단일 입력). x·y의 범위 = 모든 입력 넷이 [레일 최저, 레일 최고] 안에 머무는 구간. 격자 간격 = V_T = kT/q(그 실행 온도, 옛 격자 간격 -- 소신호 선형화의 물리 척도, `thermal_voltage`), 공칭 0을 포함한다.
+4. 측정 좌표: swing = 출력(단일 V(out), 차동 V(output_p) − V(output_n)). ICMR = Σ_n c(n)·V_n / Σ_n c(n)²(차동 c = (1, 1)이면 (V_p + V_n)/2 = 옛 '실제 입력 공통모드', 단일 입력이면 V_in).
+
+**점 판정**: §21.1 소자 조건(선언 triode 밖 모든 MOS 전도 ∧ 포화, 여유 0) ∧ 회로 노드 전압이 레일 안(옛 레일 규칙 그대로: [레일 최저 − reltol·폭, 레일 최고 + reltol·폭], 비물리 해 제외). 그 점에서 한 소자라도 `conduction_undefined`이면 그 점이 정의 불능이고, 측정 전체를 `conduction_undefined`로 거부한다(엔진 '판정 불가'와 같음).
+
+**끝 풀이**: 공칭에서 바깥으로 첫 실패 점까지 가고, 괄호 [마지막 통과, 첫 실패]를 `ZOOM_POINTS`+1 등분으로 최대 `ZOOM_ROUNDS`회 좁힌다(NFR-P2 예외 상수 그대로, §14). **끝 확정** = 괄호 양 끝 점의 측정 좌표 차 ≤ r, r = reltol·max(|m_a|, |m_b|) + vntol(§18.3 전압 분해능 식, 그 실행 `Resolution`, 새 상수 없음). 끝 값 = 마지막 통과 점의 측정 좌표. 확정 전에 반복 상한·시간 상한에 닿으면 `sweep_end_unresolved` -- 그 metric은 정의 불능이고 외삽 값을 내지 않는다(옛 코드는 상한에 닿아도 마지막 통과 값을 냈다). 범위 축 끝(입력이 레일)까지 모두 통과하면 그 끝은 레일 끝이다(옛 `hit_rail` 그대로). 어느 점이든 수렴하지 않으면 `sweep_point_unconverged`로 측정 전체를 거부한다.
+
+**metric 값**(값 식은 옛 그대로 -- 설계 40 §3.8-8, gain-budget DEC-96 (2) 정본): `swing_out_v` = 단일 2·min(V_hi − V_o0, V_o0 − V_lo), 차동 2·min(D_hi, −D_lo), V_o0·D 기준 = 공칭 점(x = 0)의 측정 출력. `icmr_v` = hi − lo(레일로 자름). `icm_margin_v` = min(V_icm − lo, hi − V_icm), V_icm = `swing_icmr.input_dc_V`가 있으면 그 값, 없으면 공칭 점 좌표, `input_dc_pending`이면 내지 않음(옛 그대로). 공칭 점이 이미 포화 조건을 어기면 −(최대 포화 부족량)(옛 그대로). 공칭 점이 포화가 아니라 **전도**에서만 어기면 부족량이 정의되지 않으므로 `sweep_end_unresolved`(`detail.why = nominal_not_conducting`).
+
+**결과 칸**: `sim.swing_icmr.{swing, icmr}` 창 기록 = `{x_lo, x_hi, m_lo, m_hi, bracket_width, rounds, resolution, hit_rail}`, 실행 수 `sim_runs`(옛 `ngspice_runs`, §11.5).
+
+**판정**: 정의를 바꾼 칸(X-29·X-32, O-34 규칙). 기준선 값과의 차는 검증자 원인 변화표에 칸마다 적는다. **알려진 원인 후보**(멈춤 아님, 정의의 결과): 고이득 개루프 회로에서 입력을 이상 전원으로 묶으면 공칭 출력은 servo 해와 거의 같지만(§21.5 기록과 같은 성질), 입력 공통모드를 움직일 때 계통 offset의 공통모드 의존 × 차동 이득만큼 출력이 움직여 ICMR 창이 옛 servo 고정 방식보다 좁게 나올 수 있다. 이는 사용자 결정 O-25 (2) '출력은 회로가 정하는 대로'의 결과이고 절차 결함이 아니다 -- 검증자는 회로별로 이 원인을 적는다.
+
+**깨진 변형**(완료 조건 10): 출력을 고정한 ICMR(옛 servo 방식), 차동 전제로 단일 입력을 `unavailable`로 내는 경로, 끝 풀이 실패를 외삽·마지막 통과 값으로 넘기는 경로, 수렴하지 않은 점을 '포화 아님'으로 세어 창을 자르는 경로.
+
+### 21.3 합격 판정의 전도 기준(OP-5, `core/compare.py` + `core/conduction.py`)
+
+* 대상: 엔진 전도 예측 소자(`predictions.devices.<n>.region` ≠ `"off"`, 칸이 없으면 전도 예측 -- 옛 C23 규칙 그대로). 판정 점 = free `.op` 해.
+* §21.1 전도식으로 꺼짐(I_off > ε·ID 또는 ID ≤ 0)이면 `FAIL`(옛 `off_spice` 자리, DEC-90 (1)). `conduction_undefined`면 그 소자 전도 확인 = 판정 불능 → `INCOMPLETE`(옛 '문턱 없음 → N/A'와 같은 자리).
+* 포화 확인은 옛 그대로(선언 triode 밖 전도 MOS의 VDS − VDSAT ≥ `sat_margin_V`), 선언 triode 제외와 영역 기록은 headroom-chain HC-O(같은 입력 칸 `declared_triode`, 순서는 계획 N5.2 -- 나중 card가 앞 card의 test를 깨지 않음이 병합 조건).
+* 결과: `summary.conduction_definition = "seal9_point_lut"`(§11.7), 소자 행에 §21.1 5단계 칸. 옛 행 칸 `off_current_A_pred`·`conduction_threshold_A`(`O/oracle_compare.py:301`)는 지운다(정의를 바꾼 칸).
+* 판정 기준: 정의를 바꾼 칸(X-33). 원래 취지와 다름(합격 기준이 엄격해짐)은 사용자 승인됨(O-45 U2).
+
+### 21.4 계통 offset `offset_sys_mv`(OP-5, `core/measures_dc.py`) -- §19.2 DV-8 결정 전 착수 금지
+
+**정의 인용**: DEC-23 223행 "계통 offset `offset_sys_mv`는 출력을 기준값에 고정하고 입력 차를 미지수로 푼 DC 해의 입력 차다(정의) … 정확값은 oracle `.dc` … 기준값 = 엔진이 쓰는 선언 출력 목표(spec `node_voltage_targets_v` -- 쓰기 계획 W3 `REL_TARGET`), 차동 출력이면 V(p) − V(n) = 0, 단일 출력에 선언이 없으면 `reference_undeclared` 정의 불능(fail-closed)".
+
+**절차**(DV-8에 걸린 부분 밖):
+1. 벤치 = 공칭 free 벤치(servo 있음)에서 servo 기준을 **출력 기준**으로 둔다: 단일 출력 `net_value` → `value_V`, `net` → 그 넷 전압(VCVS 기준), `rule_e_input_cm` → 입력 공통모드(VCVS 기준); 차동 출력 → D = V(p) − V(n) = 0(공통모드는 회로 CMFB가 정함). 불일치는 끈다. 기준 칸은 §11.6 `output_reference`(PC-10과 같은 칸·같은 벤치).
+2. `Op` 한 점 → 입력 넷 전압 V_n → 입력 차 V_id* = Σ_n e(n)·V_n / Σ_n e(n)², e = `dc_sweep.excite`(차동 (½, −½)이면 V_p − V_n).
+3. 값(mV)과 부호 규약 = **DV-8**. 함께 `dc_resolution_in_V`(§13.4의 기준 해 쪽 항)를 싣는다.
+4. 수렴 실패 → 정의 불능(`sim_convergence_failed`, 측정 단위).
+5. 비교: measure `offset_sys_mv`(§11.6), 판정 폭 `judge.tolerances.offset_sys_mv_abs`가 있을 때만. 엔진 1차값(ΔW 1차 감도, O-46 (1)·O-47) 대 오라클 정확값의 차 = 모델 오차(DEC-72). 오라클이 재는 점은 판정 W의 설계점이라 엔진 front 판정 점과 같다(계획 N3.9 계통 offset 행 '정합한다').
+6. 엔진 `E/metrics/verified_by.py:45`의 `SPICE_UNVERIFIABLE` 표시는 gain-budget VB-1이 바꾼다(계획 U-4·U-6, 이 기능은 엔진을 바꾸지 않음).
+
+### 21.5 불일치 σ 입력 환산의 A = `.tf`(OP-5, 계획 OQ-6 = 사용자 결정 O-43 D1 (d))
+
+**정의 인용**: 계획 N3.9 표 `offset_in_sigma_mv` 행 -- "봉인점 DC 방정식의 1차 감도로 정의되는 DC 양('1차' 표기): 표본마다 V_os,k = (V_out,k − V_out,0)/A − (V_id,k − V_id,0), **A = DC 소신호 차동 이득(`.tf`)**", 해석 = "MC `.op` + `.tf`(servo를 연 개루프 벤치)".
+
+**절차**:
+1. **개루프 벤치 IR**(`core/build_benches.tf_bench`): 본 회로 + 레일 + 바이어스. 입력 넷 n ∈ {`input_p`, `input_n`}마다 이상 전압원 = 공칭 free 실행(servo 있음)의 servo 해 전압 v0(n) + e(n)·v_drive, e = (+½, −½)(옛 정의 V_id = V(input_p) − V(input_n), C27 가중과 같음 -- 포트 선언에서 정해지는 값이지 추측이 아니다). v_drive = 0 V 독립원 `tb:tf:drive`, 두 입력에 VCVS로 나눠 건다(S-42 실측 방식). servo·choke·결합 C·AC 원은 넣지 않는다. 원리는 pz 개루프(`open_loop_parts`, §4.2·§8.5 '동작점 값으로 개루프를 다시 만들기 = 회로 이론')와 같다.
+2. 요청 `Tf(out = DiffV(output_p, output_n) | NodeV(output), src = tb:tf:drive)` → A = `TransferResult.gain`(부호 있는 실수, 위상 검사 없음).
+3. 기록(문턱 없음, 계획 N9 `.tf` 행): `offset_mc.a_dc_tf` = A, `offset_mc.tf_bench_output_shift_V` = V_out(개루프 벤치 `.op`) − V_out(servo 해), `offset_mc.tf_record` = {`out_impedance`, `in_impedance`}(출력 전용).
+4. 실패(결과 없음, 0) → `offset_mc.status = "unavailable"`, 사유 `tf_failed`(fail-closed, `.ac` 대체 경로 없음). 차동 입력 쌍이 없으면 옛 사유 그대로 `unavailable`.
+5. A는 표본 0(공칭) 벤치에서 한 번 잰다(옛과 같음). 표본 처리 식(§13.4, `core/mc_math`)은 그대로라 (가-1)은 기준선 A(`a_dc_signed`)로 비트 동일을 유지한다(§13.2).
+6. **깨진 변형**(완료 조건 10): servo가 닫힌 넷리스트에서 `.tf`로 A를 읽는 경로 -- 손 회로(gm·R 개루프 이득이 있는 차동 VCCS)에서 폐루프 값이 나와 기대값과 다름을 보인다(S-42·계획 OQ-6 실측 0.495 대 100). `.ac` 첫 점·`1e-3` 경로는 grep 0(완료 조건 6).
+
+### 21.6 슬루율 `slew_rate_v_per_s`(OP-10, `core/slew_math.py`) -- §19.2 DV-9 결정 전 착수 금지
+
+**정의 인용**: gain-budget N3.8 557행 "**슬루율 측정 정의**(정의 SPICE 해석 `.tran`, O-33 (6) …): 계단 크기·방향 = O-28 끝(입력을 허용 입력 범위 끝까지 미는 방향별 계단), 측정 노드 = 슬루 정의 노드(DEC-65 노드 k), dV/dt = 측정 구간 안 최대 |dV/dt|, 되먹임 구성 = spec에 사용 구성(β) 선언이 있으면 그 구성, 없으면 단위 이득 follower(β = 1, 교과서 표준)이고 결과에 'β = 1 기본'을 표기한다(사용자 결정 O-34 (2))".
+
+**절차**(DV-9에 걸린 부분 밖):
+1. 벤치: `slew.feedback = "declared"`면 입력 회로 그대로(β망 포함), `"unity_follower"`면 출력을 반전 입력에 잇는 이상 연결(단일 출력 회로: `ports.input_n` ← 출력, 이득 1 VCVS)을 더한다. 입력 넷의 servo·choke는 넣지 않는다. 결과에 `slew.beta_default = (feedback == "unity_follower")`.
+2. 계단: 비반전(여기) 입력 원에 `Pulse(v1 = 동작점, v2 = step_ends_V.up)`과 `Pulse(v1 = 동작점, v2 = step_ends_V.down)`을 따로 실행한다(방향 둘).
+3. 시간 계획: 코어 `tran_plan` 수학 재사용(C10, §8.5 -- 새 상수 금지, 계획 G-19). 입력은 그 되먹임 구성 루프의 교차 주파수(같은 입력의 β 루프 측정). 계획을 세울 수 없으면 `status = "unavailable"`, 사유 `tran_plan_undefined`. 어댑터는 `tran`·`tran_large_signal`과 최대 걸음 지정 능력(§8.5)을 선언해야 한다(없으면 `adapter_capability_missing`).
+4. dV/dt: 측정 노드 `slew.node`의 시간열에서 계단 시작 뒤 연속 출력 점 쌍의 |ΔV/Δt| 최댓값(방향별). 결과 `slew.{up, down}` = {`max_dv_dt_v_per_s`, `t_at`, `max_step_s`}.
+5. 거부: `slew_undeclared`(§11.6 칸 없음), 수렴 실패·시간 상한 → `sim_convergence_failed`·`sim_timeout`(측정 단위 `failed`).
+6. 판정: 새 측정(기준선 없음, N4 동일성 대상 아님). 손 회로 test = 해석해가 있는 슬루 제한 회로(정전류 I로 부하 C를 충전하는 출력단 모형, SR = I/C를 test 작성자가 정의에서 씀). `settle_s`는 '정의 미정' 그대로(C25).
+
+### 21.7 전력 `power_dc_w`(OP-11, `core/measures_dc.py`)
+
+**정의 인용**: DEC-78 277행 "전력 축의 정의 = Σ_레일 V_레일 · I_레일(공급 전력, metric `power_dc_w`) … DC 정지 전류 기반이고 레일마다 전압 × 그 레일에서 들어오는 전류를 합한다. 레일별 값도 기록한다".
+
+**절차**:
+1. 같은 free `.op` 결과의 `rail_current_A`(레일 노드에서 회로로 나가는 전류 = −i(레일 원), S-46)와 입력 `rails[].voltage`를 쓴다. 새 시뮬레이션은 없다(계획 OP-11 '기존 측정 재사용').
+2. `power_dc_w` = Σ_{기준 아닌 레일} V·I. 레일별 `power.per_rail = {net: {V, I, P}}`도 싣는다. 기준 레일은 0 V(OP-3 입력 규칙 `reference_rail_voltage`가 보장)라 항에 넣지 않는다 -- 엔진 `E/metrics/supply.py:69`(모든 레일 합)와 같은 값.
+3. 레일 전류가 하나라도 없으면 합을 내지 않는다(`power_undefined`, 부분 합 금지). 막힌 실행이면 `power_undefined`(`why = blocked`).
+4. **부호**(계획 OP-11 '엔진과 같음'): 음 레일(V < 0)에서는 I < 0이라 V·I > 0(공급 전력 양수).
+5. **레일 밖 원천 기록**(계획 OP-11, N9): forced 실행의 `hold_current_A`(옛 `Vhold_`), 테스트벤치 DC 원(옛 `Vdc_`·`Vbias_`, servo 기준원)의 DC 전류를 `power.offrail_currents_A = {원 이름: A}`에 싣고, 0이 아닌 값이 하나라도 있으면 `power.offrail_nonzero = true`(문턱 없음 -- 값 ≠ 0 그대로). 그 원천 전류는 본 벤치 `Op` 요청의 `outputs.currents`에 넣어 같은 실행에서 읽는다.
+6. 비교: measure `power_dc_w`(§11.6) 행 -- 엔진 예측(`predictions.metrics`) 대 오라클 값, 판정 폭 `judge.tolerances.power_dc_w_rel`이 없으면 'N/A(tol 미설정)'. 모델 오차 기록(`derived.model_error_power_dc_w`, DEC-72)과 엔진 `verified_by` 연결 변경은 gain-budget PW-1a 몫(계획 U-5).
+7. 손 회로 test: 레일 둘(양·음) + 저항 둘 → 기대값 Σ V²/R를 test 작성자가 정의에서 씀. 깨진 변형: 기준 레일을 항에 넣음(기준 레일 0 V 규칙 덕에 값은 같으므로 test는 기준 레일 전류가 결과 항 목록에 없음을 단언), 레일 하나 전류 누락 시 부분 합, 전압 부호 반대.
