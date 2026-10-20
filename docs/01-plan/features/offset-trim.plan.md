@@ -14,7 +14,7 @@ version: 0.6
 > 3. **SPICE 온도 보정 루프**(v0.5, T-29~T-32): 엔진 탐색은 LUT 한 조건 그대로 두고, offset·trim 잔여의 합격은 SPICE 오라클이 선언 온도 범위에서 판정한다. 불합격이면 오라클이 잰 metric별 방향 여유 Δ_T(측정 기록)로 다음 변형의 제약 문턱을 조여 같은 실행 계획 안에서 다시 돈다(D-24 안 B). 범위 판정과 루프는 오라클 능력 기록이 확인된 (PDK, 시뮬레이터) 조합에서만 동작한다. 아니면 fail-closed다. 능력 확인 절차는 oracle-portability 계획(T-33)이 소유한다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: **v0.6 -- O-53·정합 감사 반영, 독립 검증 전**(2026-10-20). 근거: 사용자 결정 O-53(2026-10-20 "권고대로 진행해", `wt/_drafts/user_decisions.md` O-53 행 -- A2·A3·B1·B2·B3)과 O-23~O-52(특히 O-34, O-44, O-45 U3, O-46·O-47·O-50 G1), 정합 감사 요약 `wt/_drafts/evidence/2026-10-20/offset_audit_summary.md`(이 계획 몫 A1·A3·A4·A5·B1~B5·C2·D1~D4·E1~E3). 정본 인용(다시 정의하지 않음): gain-budget v6.20(`plan/gb-v620` `4697f442` -- DEC-23, DEC-74, DEC-90, N3.8, N6.1, N6.3, N6.18 VB-1, N6.20 EO-1), oracle-portability v0.6.10(`plan/oracle-v0610` `a88d61cb` -- G-18, OP-3, OP-5, OP-6, PC-10, N3.9), offset-strategy v0.7(개정 중 -- matching 합성 제약 판정 위치 O-53 A2의 정본). 직전 승인판은 v0.5.5(T-29~T-38)·v0.5.6(T-39)이고, 그 상태 문장은 history H1 '2026-10-20' 절로 옮겼다. 근거는 사용자 결정 T-1~T-39, O-23~O-53, offset-strategy S-1~S-12와 원문 7편(N8)이다.
+> **Status**: **v0.6 -- O-53·정합 감사 반영, 독립 검증 전**(2026-10-20). 근거: 사용자 결정 O-53(2026-10-20 "권고대로 진행해", `wt/_drafts/user_decisions.md` O-53 행 -- A2·A3·B1·B2·B3)과 O-23~O-52(특히 O-34, O-44, O-45 U3, O-46·O-47·O-50 G1), 정합 감사 요약 `wt/_drafts/evidence/2026-10-20/offset_audit_summary.md`(이 계획 몫 A1·A3·A4·A5·B1~B5·C2·D1~D4·E1~E3). 정본 인용(다시 정의하지 않음): gain-budget v6.20(`plan/gb-v620` `0a7868b5` -- DEC-23, DEC-74, DEC-90, N3.8, LR6, N6.1, N6.3, N6.18 VB-1, N6.20 EO-1), oracle-portability v0.6.10(`plan/oracle-v0610` `84cc5410` -- G-18, OP-3, OP-5, OP-6, PC-10, N3.9). 전체 정합 검증 4차(`wt/_drafts/evidence/2026-10-20/full_audit4_summary.md`)와 사용자 결정 O-54·O-55를 같은 판에 반영했다, offset-strategy v0.7(개정 중 -- matching 합성 제약 판정 위치 O-53 A2의 정본). 직전 승인판은 v0.5.5(T-29~T-38)·v0.5.6(T-39)이고, 그 상태 문장은 history H1 '2026-10-20' 절로 옮겼다. 근거는 사용자 결정 T-1~T-39, O-23~O-53, offset-strategy S-1~S-12와 원문 7편(N8)이다.
 > **이력**: 경위, 제안 원문 요지, 원문 검토 기록, 검증 반영 기록, 버전 이력은 [offset-trim.history.md](offset-trim.history.md)에 있다.
 > **상위 계획**: [gain-budget-gmid-sizing.plan.md](gain-budget-gmid-sizing.plan.md). 이 계획은 상위 계획의 원칙(N1.4 NFR, N2 결정)을 그대로 따른다. 충돌하면 상위 계획이 이기고, 충돌은 N7에 올린다.
 
@@ -220,7 +220,7 @@ version: 0.6
 * **정의되지 않는 경우**: derived `diff_pair`가 입력 셀 안에 없으면 `trim_pair_undefined`를 보고하고 후보를 내지 않는다. diff_pair가 review_needed(멤버 3 이상)이거나 입력 셀 밖이어도 같다. 조용한 대체는 금지다.
 * **상보 입력쌍**(입력 셀 안에 nmos·pmos `diff_pair` 두 개): 쌍마다 따로 후보를 낸다(D-7).
 * **단일 입력 회로**: 차동 입력 포트가 없어 `diff_pair`가 입력 셀에 없다. 이 범위에서는 `trim_single_input_unsupported`다(D-8, X-11).
-* **극성**(쌍마다 둘): nmos 싱크 셀은 주입 넷에서 하단 레일 쪽으로 전류를 뺀다. pmos 소스 셀은 상단 레일 쪽에서 넣는다. 극성마다 headroom 창을 경로 합(F-15)으로 계산한다. 창은 1단계 봉인 점 주입 넷 전압과 그 레일 사이에서 셀 출력 소자 VDsat + 스위치 VDS가 들어갈 여유다. 이 창은 DC 양이고 정의는 gain-budget N3.8 스윙·입력 범위(DC 동작 범위, 전 소자 포화 유지) 꼴을 인용한다. 봉인점 값으로 낸 이 여유는 **'추정'** 표기 손계산이다(사용자 결정 O-29 (2)·O-31, 감사 E2). 정확값은 오라클 끝 코드 `.dc`다(N3.5).
+* **극성**(쌍마다 둘): nmos 싱크 셀은 주입 넷에서 하단 레일 쪽으로 전류를 뺀다. pmos 소스 셀은 상단 레일 쪽에서 넣는다. 극성마다 headroom 창을 경로 합(F-15)으로 계산한다. 창은 1단계 봉인 점 주입 넷 전압과 그 레일 사이에서 셀 출력 소자 VDsat + 스위치 VDS가 들어갈 여유다. 이 창은 DC 양이고 정의는 gain-budget N3.8 스윙·입력 범위(DC 동작 범위 -- DC 범위 조건 = 모든 MOS가 선언 영역(선언 없음 = 포화, triode, off)에 머무름, 훑기 중 이탈 = 범위 끝; 사용자 결정 O-54) 꼴을 인용한다. 봉인점 값으로 낸 이 여유는 **'추정'** 표기 손계산이다(사용자 결정 O-29 (2)·O-31, 감사 E2). 정확값은 오라클 끝 코드 `.dc`다(N3.5).
 * **순위 키**: 기본안은 headroom 창이 비지 않은 (쌍, 극성) 가운데 \|t\| 내림차순이다. 잡음은 값으로 보고만 한다(D-5).
 
 ### N3.3 `augment_trim`, 승인 기록, 결속
@@ -295,9 +295,9 @@ version: 0.6
 * **평가하는 코드 상태는 넷이다**. 중간 코드 두 개(δ = +I_u, δ = −I_u. δ = 0 코드는 없음)와 끝 코드 두 개(δ = ±I_T)다. 봉인은 δ = +I_u에서 하고, 나머지 셋은 포화 검사만 한다(D-17).
 * **전류 0 소자와 영역 선언**(사용자 결정 O-53 B1, G-1 해소): `augment_trim`이 평가 코드 상태 넷마다 소자별 intended_region을 결정적으로 만든다.
   * 전류 0 steering 소자와 off 스위치 = `off`. 모든 코드에 off 소자가 있으므로 봉인 기준 코드(δ = +I_u)에도 있다.
-  * on 스위치 = `trim_decl`의 스위치 영역 선언 칸(triode/saturation, 사용자 ratify 대상, N3.3).
-  * 선언 영역은 실제와 대조해 다르면 거부한다. off 선언 소자가 전도하면 거부하고, triode 선언도 대조한다(우회 금지). 꺼짐·전도의 정의는 gain-budget DEC-90 (1)(봉인 9 식)을 인용한다.
-  * off 선언 소자는 LUT·gm/ID 경로에서 빠진다.
+  * on 스위치 = `trim_decl`의 스위치 영역 선언 칸(triode/saturation, 사용자 ratify 대상, N3.3). `triode`는 intended_region `triode`로, `saturation`은 intended_region **선언 없음**(= 포화 기본)으로 옮긴다. intended_region 값 집합 {triode, off}에 새 값을 더하지 않는다(감사 4차 B-6).
+  * 동작점(봉인점·합격 판정 점·범위 측정 공칭 점)에서 선언 영역과 실제를 대조한다(우회 금지). 원인 구분은 gain-budget N3.8·DEC-90 (1) 정본을 인용한다(사용자 결정 O-55 U1): 선언된(triode·off) 소자 불일치 = 선언 오류 거부(판정 불능 집계), 선언 없는 소자 비포화 = 설계 실패 FAIL. 범위 훑기 도중 선언 영역을 벗어나면 그 점이 범위의 끝이다(측정 거부 아님, O-54). 꺼짐·전도의 정의는 DEC-90 (1)(봉인 9 식)이다.
+  * off 선언 소자는 **사이징·역산 경로**(LUT·gm/ID 조회로 W·L·바이어스를 정하는 자리)에서 빠진다. 꺼짐 판정 자체는 같은 공용 전도 판정 함수가 LUT(I_off)를 읽어 한다. 범위 훑기에서 off 유지 경계는 VGS 감도와 그 점 봉인 9 전도 정의 VGS(LUT)로 낸다(사용자 결정 O-55 V5).
   * 오라클 입력에는 oracle-portability G-18이 같은 칸을 싣는다(EO-1 생산자, N6).
 * **정상 동작점**: 중간 코드 가운데 기본안은 δ = +I_u(D-17)이고, 일반 DC 봉인 1~8로 검사한다. 두 주입 넷에 steering 공통 전류(각 ≈ I_T/2)가 들어가므로 입력 셀 부하 전류 균형이 바뀐다(Lu 2007 식(10), p.2). 이 변화는 DC writer가 trim 소자를 바이어스 전류원으로 다루면 자동으로 들어간다.
 * **끝 코드**(사용자 결정 O-53 A3): 끝 코드 포화 여유(봉인 7)는 보정 구간 판정(N3.4)과 같은 **봉인점 1차 감도 추정**으로 낸 노드 전압에서 검사한다. 검사 점은 출력을 DEC-23 기준값에 둔 점(끝 코드 ΔI와 그것을 되돌리는 여기 방향 입력 이동을 같은 1차 감도로 함께 옮긴 점)이다(기본안 -- 끝 코드는 표본 offset이 보정 구간 끝에 있을 때 출력이 기준값에 놓이는 동작 상태라서다, 물리 정합). intended_region이 `off`인 소자는 포화 검사에서 빠지고 영역 대조만 받는다(위 B1). 정확값은 오라클 `.dc` 코드 스윕이다. 옛 '출력 균형 입력 전압을 함께 푼 DC 해'(X-4)는 엔진 안 균형 풀이라 지웠다(X-29, 옛 문장은 history H1 2026-10-20).
@@ -343,7 +343,7 @@ DAC 출력 전류 잡음 i_n이 주입 쌍에 들어가면 입력 환산 잡음�
 
 * **온도 점**: 판정 온도 범위(T-34, spec 선언 참조)의 두 끝점과 T_j다. design §17-3의 보고 전용 점 규칙과 같다. 범위 안에서 metric이 단조가 아닐 위험은 G-11에서 design이 닫는다.
 * **온도 점의 전도 판정**(사용자 결정 O-53 B2, X-31): 온도 점 SPICE 해의 전도·꺼짐 판정(gain-budget DEC-90 (1) 봉인 9 식)의 입력 출처는 다음과 같다. gm/ID·I_off = 그 온도의 SPICE 값(I_off는 같은 VDS·VSB·VGS = 0에서 그 소자를 따로 푼 값), tol_V = T_j LUT 셀(판정 분해능이라 온도 무관, 출처 표기). 엔진 탐색이 T_j LUT 한 조건이라는 T-29는 그대로다.
-  * **담당 card 경계**(기본안 -- O-50 G5 판정 위치와 oracle U-6 규칙에서 유도): 오라클 쪽 = 온도 점 SPICE op 값과 소자 개별 I_off 풀이를 내는 trim용 오라클 확장(레인 P, OP-5 새 코어 위 -- oracle-portability N5.2 'trim용 오라클 확장은 OP-5 뒤 새 코어 위에서'). 엔진 쪽 = tol_V T_j 셀 조회와 판정 둘째 단계(gain-budget N6.20 EO-1 범위 4의 배선)를 그 확장 card의 통합 병합에 EO-1 생산자·판정 갱신 커밋(Role: code)으로 넣는다. 오라클은 엔진을 import하지 않는다.
+  * **담당 card**(감사 4차 V3): 온도 점 판정 절차의 담당은 oracle-portability **OP-5**다(온도 점 SPICE op 값과 소자 개별 I_off 풀이, `plan/oracle-v0610` `84cc5410`). 엔진 쪽 공용 전도 판정 함수(EO-1, 봉인 7·9가 바로 부름)의 둘째 단계 호출 자리는 OP-5 통합 병합의 엔진 커밋(U-6)이다(사용자 결정 O-55 U2). **이 계획은 그 절차를 구현하지 않고 부른다.** 오라클은 엔진을 import하지 않는다.
 * **표본**: TR-7 표본 규칙(design §17, 사용자 결정 T-12)을 그대로 쓴다.
   * k·σ 경계는 T_j에서 정한다. 표본 선택 창 [V_nom − k·σ̂, V_nom + k·σ̂]를 T_j 기준으로 고르고, **같은 seed의 네이티브 MC 표본(같은 불일치 값)을 모든 온도 점에서 다시 잰다**. 그래서 오라클이 표본 정체를 온도 사이에 보존하는지가 이 계획이 능력 기록에 요구하는 항목이다(N3.9-3).
   * **꼬리 판정(G-14 닫힘, 사용자 결정 T-35)**: 범위 판정과 Δ_T는 네이티브 MC 표본 안에서만 한다(oracle-portability v0.4 O-1: 오라클 MC = 네이티브 MC, 결정적 섭동은 진단만).
@@ -649,7 +649,7 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 
 | ID | 항목 | 관련 card |
 |---|---|---|
-| G-1 | **해소(사용자 결정 O-53 B1)**: 전류 0 MOS는 `augment_trim`이 코드 상태마다 intended_region `off`로 선언하고, 그 소자는 LUT·gm/ID 경로에서 빠지며, 선언은 실제와 대조해 다르면 거부한다(N3.5). 옛 질문 문장은 history H1 2026-10-20 | TR-3·TR-5 |
+| G-1 | **해소(사용자 결정 O-53 B1)**: 전류 0 MOS는 `augment_trim`이 코드 상태마다 intended_region `off`로 선언하고, 그 소자는 사이징·역산 경로(LUT·gm/ID)에서 빠지며(꺼짐 판정은 LUT I_off를 읽음, O-55 V5), 선언은 실제와 대조해 다르면 거부한다(N3.5). 옛 질문 문장은 history H1 2026-10-20 | TR-3·TR-5 |
 | G-2 | 파생 대 원본 구조 동일 검사(N3.3-2)의 비교 필드 범위. 주입 넷이 가지 끝 넷이 되면 원본 소자에 대해서도 `_sibling_rule`·`_counterparts`·column 규칙(matching group, 대응 넷) 결과가 달라질 위험이 있다. 비교 필드를 정의하고, TR-2·TR-4 전에 9회로에서 그 차이를 측정하는 단계를 둔다 | TR-2·TR-4 |
 | G-3 | D-14 비교 제외 필드 목록: 규칙 지문을 담는 모든 필드(`rule_hash`, `S1Key.rule_fp` `E/graph/s1_values.py:5, :233-237`, 그것을 입력 버전으로 품은 필드 지문) | TR-4·완료 조건 (1) |
 | G-4 | 1단계 N 추천의 입력점(front 점마다 따로인가, front 위 최악값인가)과 N·m을 정하는 순서(N 먼저 → m인가, (N, m) 쌍 전수인가) | TR-2 |
@@ -665,7 +665,7 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 | G-9 | Δ_T의 metric별 정확한 식, 그 분해능(멈춤 규칙의 측정 분해능. matching σ 항 = MC 표준오차, trim 잔여 = DC 풀이 허용오차 전파, T-39) 식, 문턱 합성의 표현(spec 문턱 참조와 Δ_T 변형 제약 입력을 함께 읽는 제약 행 형식, 상위 DEC-68 이름) | TR-TL |
 | G-10 | matching 제약 범위 판정의 표본 수 규칙. 식 S(design §17)는 LSB_in을 쓰므로 matching에는 정의되지 않는다. spec·엔진 값에서만 유도하고 새 상수를 쓰지 않는다 | TR-TL |
 | G-11 | 온도 점 규칙: 끝점 + T_j(design §17-3)로 충분한가. 범위 안 비단조 위험을 어떤 측정으로 드러낼지(상수 간격 금지) | TR-7·TR-TL |
-| G-12 | 구동기의 위치와 구조(D-24 안에 따라: 안 A는 `tools/` 아래 엔진·오라클 모두 import 금지, 안 B는 엔진 실행 계획 인터페이스와 변형 추가 서명. 어느 안이든 오라클 import 금지), 서명, 정지 사유 코드 이름(O-7 원인별 포함), 반복 이력 형식, 실행 설정(반복 상한·시뮬레이터 병렬 수) 칸. **안 B의 '문턱에 의존하는 블록' 목록**: 제약 문턱을 입력(extras·입력 버전)으로 읽는 블록을 블록 레지스트리에서 전수로 뽑는다. 후보 예는 제약 행 계산, `iv_matching_l` L 하한, 출발 구간, 탐색 정의역 중 제약에서 온 것이다. 목록 밖 블록의 변형 사이 재계산 0을 완료 조건 7에서 잰다. **(v0.6, 감사 C2)** 목록에 층 0 조립 블록(gain-budget N6.14 LA-1 역산 조립) 가운데 문턱(Δ_T로 조인 `offset_in_max_v` 등)을 입력으로 읽는 것을 넣는다(offset-strategy v0.7 `07326bf9` 후속 정정 (1)과 같음). offset-strategy design G-S2(`iv_matching_l` L 하한)와 LA-1 역산 조립 출발 규칙의 정본 관계(하나만 정본, 다른 쪽은 그것을 읽음, 사본 금지)는 design이 gain-budget LA-1·offset-strategy v0.7과 대조해 닫는다 | TR-TL |
+| G-12 | 구동기의 위치와 구조(D-24 안에 따라: 안 A는 `tools/` 아래 엔진·오라클 모두 import 금지, 안 B는 엔진 실행 계획 인터페이스와 변형 추가 서명. 어느 안이든 오라클 import 금지), 서명, 정지 사유 코드 이름(O-7 원인별 포함), 반복 이력 형식, 실행 설정(반복 상한·시뮬레이터 병렬 수) 칸. **안 B의 '문턱에 의존하는 블록' 목록**: 제약 문턱을 입력(extras·입력 버전)으로 읽는 블록을 블록 레지스트리에서 전수로 뽑는다. 후보 예는 제약 행 계산, `iv_matching_l` L 하한, 출발 구간, 탐색 정의역 중 제약에서 온 것이다. 목록 밖 블록의 변형 사이 재계산 0을 완료 조건 7에서 잰다. **(v0.6, 감사 C2)** 목록에 층 0 조립 블록(gain-budget N6.14 LA-1 역산 조립) 가운데 문턱(Δ_T로 조인 `offset_in_max_v` 등)을 입력으로 읽는 것을 넣는다(offset-strategy v0.7 `07326bf9` 후속 정정 (1)과 같음). L 하한의 정본은 gain-budget **LR6**(`plan/gb-v620` `1cddba6a` -- offset 요구 커널 판정 포함, LA-1 역산 L에 LR6 경계)이고, offset-strategy design G-S2(`iv_matching_l` L 하한)와 LA-1 역산 조립 출발 규칙은 LR6을 읽는 자리다. design은 읽는 자리만 정한다(사본 금지, 감사 4차 B-2) | TR-TL |
 | G-13 | Δ_T 출처 지문의 정확한 필드 목록, 원문 항목 처리(D-25), spec 지문에서 Δ_T 칸을 빼는 규칙, 지문 불일치 사유 코드 | TR-TL |
 | G-14 | **결정적 끝 표본의 범위 판정**(v0.5.1): design §17-2의 '소자 공칭 + 입력 직렬 이상 전압 ±k·σ_eng'는 이상 전압원 온도 계수가 0이라 꼬리의 원본 offset drift (i)을 과소 추정한다(거짓 합격 위험). **닫힘(사용자 결정 T-35, oracle-portability v0.4 O-1과의 충돌 X-16 해소)**:
 * 꼬리는 네이티브 MC 표본 안에서 판정한다. 같은 seed 표본을 온도마다 다시 재고, 꼬리 쪽 실제 표본으로 범위 판정한다.
@@ -736,8 +736,7 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 * offset-strategy 계획 v0.5에 S-9 연결점(matching 문턱 = `offset_in_max_v` − Δ_T)이 들어 있는지 대조한다. D-24가 안 B로 정해졌으므로(T-35) '실행 중 변형 추가' 인터페이스를 그 계획 개정 항목으로 올린다(S-7 절차).
 * Δ_T 측정 기록의 모양을 상위 계획 DEC-72(모델 오차, 미구현) 기록 모양과 맞추는 것을 TR-0T design에서 상위 계획 소유자와 대조한다. spec 측정 선언 절은 DEC-72 몫이고 Δ_T 경로가 아니다.
 * (v0.6 갱신, 감사 D4) oracle-portability v0.6.10(`plan/oracle-v0610`) N3.5.1 대조표가 이 계획 N3.9-3 확인 항목을 담는지 대조한다. 6번(V_id*(T))은 PC-10 = OP-5 `.dc`(O-53 B3)로 맞춘다. 그 계획 N3.9 `offset_sys_mv` 행의 'PC-10과 같은 기준인지' 미결 문장은 O-53 B3으로 닫혔음을 알린다(옛 문장 'oracle-portability 계획(초안, oport-plan)'은 history).
-* (v0.6, 감사 D1) gain-budget N6.1(유일한 순서 정본)에 이 계획 card(TR-0T·TR-1~TR-7·TR-TL) 행 또는 다른 계획 card 인용 규칙을 두는 개정(gain-budget 쪽).
-* (v0.6, O-53 B3) gain-budget DEC-23 기준값 문언에 spec 선언 기준 종류 셋(값·넷·입력 추종)을 넣는 개정(gain-budget 쪽 -- v6.20 DEC-23은 `node_voltage_targets_v` 하나만 적는다).
+* (v0.6, 감사 D1·O-53 B3 -- **해소**) gain-budget N6.1의 offset card 행·인용 규칙과 DEC-23 기준 종류 셋(값·넷·입력 추종)은 gain-budget v6.20 `768f6ca1`이 넣었다(감사 4차, 이 계획 쪽 남은 일 없음).
 * (v0.6, O-53 B1) intended_region `off` 칸: 엔진 봉인 9(선언 triode 밖 ID ≤ 0 거부, O-52 확인 2)와 oracle G-18 스키마가 `off` 선언을 같은 칸으로 받는지를 gain-budget(EO-1 범위 4)·oracle-portability(G-18)·headroom-chain(HC-O 선언 triode 칸)과 대조한다.
 * (v0.6) design `offset-trim.design.md` 후속 정정 목록은 N7.5다.
 
@@ -751,7 +750,7 @@ design 개정은 TR-0T 범위다(S-7: 계획 → design). 줄 번호는 master `
 | 상수 원칙 행 '반복 상한(균형 풀이 newton)은 `k_max`'(84행) | 균형 풀이가 없어지므로 그 문구 삭제 | O-53 A3 |
 | 함수 레지스트리 개념 행 '고정 기하 DC 균형 풀이'(810행) | 행 삭제. 1차 감도 추정은 gain-budget DEC-23 계산(O-43 D1 (a))과 같은 꼴이므로 레지스트리 §2 정본표를 먼저 대조한다 | O-53 A3, 단일 정본 |
 | TR-5c '코드 상태 균형 풀이' test(846행) | 1차 감도 추정 대 오라클 `.dc` 코드 스윕 대조(차는 모델 오차 기록)로 바꾼다 | O-53 A3 |
-| E-4(104행) '봉인 9는 ID > 0 소자만' | 코드 상태별 intended_region 생성·대조, off 소자 LUT·gm/ID 경로 제외 | O-53 B1 |
+| E-4(104행) '봉인 9는 ID > 0 소자만' | 코드 상태별 intended_region 생성·대조(O-55 U1 원인 구분), off 소자 사이징·역산 경로 제외(꺼짐 판정은 LUT I_off) | O-53 B1, O-55 V5 |
 | `output_reference` 칸(730행) | DEC-23 인용 하나로(기준 종류 셋 + 차동 기본, 정의 자리 DEC-23) | O-53 B3 |
 | A_dm 환산(σ_in·t) 자리 | A_dc(DEC-23·N3.8) 인용으로 | 감사 A4 |
 | V_sys,s·`offset_systematic` 인용 자리 | DEC-23 V_id* 인용으로 | 감사 A1 |
