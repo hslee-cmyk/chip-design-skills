@@ -1,5 +1,11 @@
 """CONTRACT §6 @compute_block -- 선언 검사, 입력 버전 같으면 함수 미호출(호출 계수로 확인: '같은 값 반복 계산 금지'),
-선언 밖 열 KeyError, 결과 키 불일치 ValueError, 권한 위반, 계수 불변식과 recomputes_same_input."""
+선언 밖 열 KeyError, 결과 키 불일치 ValueError, 권한 위반.
+
+XRUN-F1 card B(interface card C4·C3·C5, B-T5~B-T12): 블록 호출 `block(snapshot, *extras, donors, counters)` -- 두 키워드 필수,
+판정 순서(같은 lineage 재사용 -> 색인 이식 -> 실패 재연 -> 계산), 블록 객체 무상태(`stats`·`reset_stats`·`BlockStats` 없음),
+공개 입력 버전 `block.input_version(snapshot, *extras)`. 두 객체는 언제나 `open_run()` 으로 얻는다(C0, 규칙 M M-b).
+oracle 종류: (독립) 블록 함수 안 log 길이(피검 계수를 읽지 않는 호출 수), (손) 가짜 `Donors` 하위 클래스가 기록한 조회 순서,
+(비교) 같은 함수 두 출력(fp·value_fp) 비교, (식) C4 원문의 예외·outcome. 계수 기대값은 손 순서로 센 값이다."""
 import dataclasses
 import functools
 import importlib.util
@@ -14,16 +20,24 @@ from pathlib import Path
 
 import pytest
 
+import gmid_engine.core as core_pkg
 from gmid_engine.core import (
-    BlockStats,
+    FAILURE_CLASSES,
     ComputeBlock,
+    Donors,
+    FailureRecord,
     GraphSnapshot,
+    InfeasibleSizingError,
+    NonconvergentError,
     Projection,
+    SchemaRejectedError,
+    SealViolationError,
     WriterPermissionError,
     WriterTable,
     compute_block,
     fp_of,
 )
+from gmid_engine.search import open_run
 
 TABLE = WriterTable([
     ("node", "v", "bias"),        # 입력 열(외부 writer)
@@ -57,8 +71,43 @@ def _make_block(log, name="sizer", reads=READS, writes=WRITES):
     return block
 
 
-def _assert_invariant(st):
-    assert st.calls == st.reuses + st.computes
+def _counts(counters, name="sizer"):
+    """counters 의 (name, "*") 행 -> (calls, reuses, grafts, replays, computes, recomputes_same_input), 행이 없으면 None."""
+    rows = [r for r in counters.snapshot().blocks if (r.block, r.part) == (name, "*")]
+    assert len(rows) <= 1
+    if not rows:
+        return None
+    r = rows[0]
+    return (r.calls, r.reuses, r.grafts, r.replays, r.computes, r.recomputes_same_input)
+
+
+def _assert_invariant(counters):
+    # oracle 대조: (식) C1 'calls = reuses + grafts + replays + computes'
+    for r in counters.snapshot().blocks:
+        assert r.calls == r.reuses + r.grafts + r.replays + r.computes
+
+
+class _LoggingDonors(Donors):
+    """조회·등록 순서를 손으로 기록하는 가짜 색인(B-T11). find·find_failure 가 돌려줄 값은 test 가 정한다."""
+
+    def __init__(self, found=None, failure=None):
+        self.log = []
+        self.found = found
+        self.failure = failure
+
+    def find(self, writer, part, input_version):
+        self.log.append(("find", writer, part, input_version))
+        return self.found
+
+    def register(self, writer, part, input_version, snapshot):
+        self.log.append(("register", writer, part, input_version))
+
+    def find_failure(self, writer, part, input_version):
+        self.log.append(("find_failure", writer, part, input_version))
+        return self.failure
+
+    def register_failure(self, writer, part, input_version, record):
+        self.log.append(("register_failure", writer, part, input_version))
 
 
 # ---------- 선언 ----------
@@ -115,10 +164,11 @@ def test_bad_declaration_value_error(kwargs):
 # ---------- 계산과 기록 ----------
 
 def test_compute_writes_result_with_meta():
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
     s0 = _base()
-    s1 = block(s0)
+    s1 = block(s0, donors=donors, counters=counters)
     assert len(log) == 1
     assert s1 is not s0
     assert s1.column("device", "w") == (("m_a", 2.0), ("m_b", 4.0))
@@ -134,10 +184,11 @@ def test_compute_writes_result_with_meta():
 
 
 def test_projection_matches_snapshot_column_and_extras():
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
     s0 = _base(v={"x": 3.0, "a": 0.5})
-    block(s0, 7, "tag")
+    block(s0, 7, "tag", donors=donors, counters=counters)
     col, extras = log[0]
     assert col == s0.column("node", "v") == (("a", 0.5), ("x", 3.0))
     assert extras == (7, "tag")
@@ -146,125 +197,372 @@ def test_projection_matches_snapshot_column_and_extras():
 # ---------- 재사용: 같은 입력 버전이면 함수 미호출 ----------
 
 def test_second_call_same_snapshot_is_reuse_without_call():
+    # B-T6 -- oracle 대조: (독립) log 길이, C4 판정 1 '같은 lineage -> snapshot 그대로(is), outcome reuse, 블록 함수 0'
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
-    s1 = block(_base())
-    s2 = block(s1)
+    s1 = block(_base(), donors=donors, counters=counters)
+    s2 = block(s1, donors=donors, counters=counters)
     assert s2 is s1
     assert len(log) == 1
-    st = block.stats()
-    assert isinstance(st, BlockStats)
-    assert (st.name, st.calls, st.reuses, st.computes, st.recomputes_same_input) == ("sizer", 2, 1, 1, 0)
-    _assert_invariant(st)
+    assert _counts(counters) == (2, 1, 0, 0, 1, 0)
+    _assert_invariant(counters)
 
 
 def test_many_repeat_calls_zero_extra_computation():
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
-    s = block(_base())
+    s = block(_base(), donors=donors, counters=counters)
     for _ in range(50):
-        assert block(s) is s
+        assert block(s, donors=donors, counters=counters) is s
     assert len(log) == 1
-    st = block.stats()
-    assert (st.calls, st.reuses, st.computes, st.recomputes_same_input) == (51, 50, 1, 0)
+    assert _counts(counters) == (51, 50, 0, 0, 1, 0)
 
 
 def test_reuse_when_only_undeclared_field_changes():
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
-    s1 = block(_base())
+    s1 = block(_base(), donors=donors, counters=counters)
     s2 = s1.write("other", "o9", {("node", "u"): {"a": 123.0}})
     assert s2 is not s1
-    assert block(s2) is s2
+    assert block(s2, donors=donors, counters=counters) is s2
     assert len(log) == 1
 
 
 def test_reuse_when_input_value_restored_same_value_new_object():
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
-    s1 = block(_base(v={"a": 1.0}))
+    s1 = block(_base(v={"a": 1.0}), donors=donors, counters=counters)
     s2 = s1.write("bias", "in2", {("node", "v"): {"a": 5.0}})
     s3 = s2.write("bias", "in3", {("node", "v"): {"a": 1.0}})  # 값 복원, 다른 객체·다른 출처 버전
     assert s3 is not s1
-    assert block(s3) is s3
+    assert block(s3, donors=donors, counters=counters) is s3
     assert len(log) == 1
-    assert block.stats().reuses == 1
+    assert _counts(counters)[1] == 1
 
 
 def test_recompute_when_declared_column_changes():
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
-    s1 = block(_base(v={"a": 1.0}))
+    s1 = block(_base(v={"a": 1.0}), donors=donors, counters=counters)
     s2 = s1.write("bias", "in2", {("node", "v"): {"a": 1.5}})
-    s3 = block(s2)
+    s3 = block(s2, donors=donors, counters=counters)
     assert len(log) == 2
     assert s3.value("device", "m_a", "w") == 3.0
     assert s3.block_version("sizer") != s1.block_version("sizer")
-    assert block.stats().recomputes_same_input == 0
+    assert _counts(counters)[5] == 0
 
 
 def test_recompute_when_declared_column_key_set_changes():
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
-    s1 = block(_base(v={"a": 1.0}))
-    s3 = block(s1.write("bias", "in2", {("node", "v"): {"a": 1.0, "c": 4.0}}))
+    s1 = block(_base(v={"a": 1.0}), donors=donors, counters=counters)
+    s3 = block(s1.write("bias", "in2", {("node", "v"): {"a": 1.0, "c": 4.0}}), donors=donors, counters=counters)
     assert len(log) == 2
     assert s3.column("device", "w") == (("m_a", 2.0), ("m_c", 8.0))
 
 
 def test_recompute_when_extras_change_and_reuse_when_same():
+    donors, counters = open_run()
+    kw = dict(donors=donors, counters=counters)
     log = []
     block = _make_block(log)
     s0 = _base(v={"a": 1.0})
-    s1 = block(s0, 1)
-    assert block(s1, 1) is s1
+    s1 = block(s0, 1, **kw)
+    assert block(s1, 1, **kw) is s1
     assert len(log) == 1
-    s2 = block(s1, 2)
+    s2 = block(s1, 2, **kw)
     assert len(log) == 2
     assert s2.value("device", "m_a", "w") == 4.0
-    assert block(s2, 2) is s2
+    assert block(s2, 2, **kw) is s2
     assert len(log) == 2
     # extras 0.0 과 -0.0 은 다른 입력
-    s3 = block(s2, 0.0)
-    s4 = block(s3, -0.0)
+    s3 = block(s2, 0.0, **kw)
+    s4 = block(s3, -0.0, **kw)
     assert len(log) == 4
     assert s4 is not s3
 
 
 def test_column_replace_from_block_result():
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
-    s1 = block(_base(v={"a": 1.0, "b": 2.0}))
-    s2 = block(s1.write("bias", "in2", {("node", "v"): {"b": 2.0}}))
+    s1 = block(_base(v={"a": 1.0, "b": 2.0}), donors=donors, counters=counters)
+    s2 = block(s1.write("bias", "in2", {("node", "v"): {"b": 2.0}}), donors=donors, counters=counters)
     assert s2.keys("device") == ("m_b",)
     assert s2.record("device", "m_a") is None
 
 
-# ---------- recomputes_same_input ----------
+# ---------- B-T7: 계보 무관 이식 (test_graft_equals_compute) ----------
 
-def test_recompute_same_input_other_lineage_counted():
+def test_graft_equals_compute():
+    # oracle 대조: (독립) log 길이 -- 두 번째 lineage 의 블록 함수 0, C4 판정 2 outcome graft.
+    # (비교) 이식 결과와 '별도 open_run() 쌍으로 같은 입력을 계산만 한 결과'의 스냅샷 fp·열 value_fp 가 같다(C3 성질·C4 '경로와 무관').
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
-    block(_base(v={"a": 1.0}))
-    other_lineage = _base(v={"a": 1.0})      # 블록 결과 없는 다른 lineage, 같은 입력
-    out = block(other_lineage)
+    lineage_a = _base(v={"a": 1.0})
+    lineage_b = _base(v={"a": 1.0}, u={"z": 7.0})      # 빈 스냅샷에서 시작한 다른 lineage -- 같은 블록 입력, 선언 밖 열만 다름
+    out_a = block(lineage_a, donors=donors, counters=counters)
+    out_b = block(lineage_b, donors=donors, counters=counters)
+    assert len(log) == 1
+    assert _counts(counters) == (2, 0, 1, 0, 1, 0)
+    _assert_invariant(counters)
+    assert out_b is not out_a
+    assert out_b.column("node", "u") == lineage_b.column("node", "u")       # 선언 밖 열은 target 그대로
+    # 계산만 한 대조군: 별도 실행에서 같은 lineage_b 입력을 계산
+    d2, c2 = open_run()
+    ref_log = []
+    ref_block = _make_block(ref_log)
+    ref_b = ref_block(_base(v={"a": 1.0}, u={"z": 7.0}), donors=d2, counters=c2)
+    d3, c3 = open_run()
+    ref_a = ref_block(_base(v={"a": 1.0}), donors=d3, counters=c3)
+    assert len(ref_log) == 2
+    assert out_b.fp == ref_b.fp
+    assert out_a.fp == ref_a.fp
+    for (k1, f1), (k2, f2) in zip(out_b.column_fields("device", "w"), ref_b.column_fields("device", "w")):
+        assert k1 == k2 and f1.value_fp == f2.value_fp
+    assert out_b.block_version("sizer") == ref_b.block_version("sizer") == out_a.block_version("sizer")
+
+
+# ---------- B-T8: 결정적 도메인 실패의 등록·재연 ----------
+
+_DOMAIN_FAILURES = [
+    (SealViolationError, "SEAL_VIOLATION"),
+    (NonconvergentError, "NONCONVERGENT"),
+    (SchemaRejectedError, "SCHEMA_REJECTED"),
+]
+
+
+@pytest.mark.parametrize("exc_cls,key", _DOMAIN_FAILURES, ids=[c.__name__ for c, _k in _DOMAIN_FAILURES])
+def test_block_call_domain_failure_replayed_on_other_lineage(exc_cls, key):
+    # oracle 대조: (독립) 블록 함수 호출 수, C4 단계 3 '블록 함수를 부르지 않고 예외 -- 클래스 = FAILURE_CLASSES[record.failure_class].exc,
+    # .record is 그 기록, outcome replay', 단계 4 'InfeasibleSizingError 하위·SchemaRejectedError -> register_failure, 같은 예외 객체'.
+    calls = []
+    raised = []
+
+    @compute_block("sizer", reads=READS, writes=WRITES)
+    def failing(projection):
+        calls.append(1)
+        exc = exc_cls(devices=("m_a",), detail={"why": "hand"})
+        raised.append(exc)
+        raise exc
+
+    donors, counters = open_run()
+    with pytest.raises(exc_cls) as first:
+        failing(_base(v={"a": 1.0}), donors=donors, counters=counters)
+    assert first.value is raised[0]                                  # 같은 예외 객체를 올린다
+    assert first.value.record.failure_class == key
+    with pytest.raises(exc_cls) as second:
+        failing(_base(v={"a": 1.0}, u={"q": 1.0}), donors=donors, counters=counters)   # 다른 lineage, 같은 블록 입력
+    assert len(calls) == 1
+    assert type(second.value) is FAILURE_CLASSES[key].exc is exc_cls
+    assert second.value.record is first.value.record
+    assert _counts(counters) == (2, 0, 0, 1, 1, 0)
+    _assert_invariant(counters)
+    # 세 번째 호출(첫 lineage 와 같은 모양의 새 스냅샷)도 계산하지 않는다 -- 같은 입력 재계산 0
+    with pytest.raises(exc_cls):
+        failing(_base(v={"a": 1.0}), donors=donors, counters=counters)
+    assert len(calls) == 1
+    assert _counts(counters) == (3, 0, 0, 2, 1, 0)
+
+
+# ---------- B-T9: 그 밖 예외는 등록하지 않는다 -> 같은 입력 재호출 = 다시 계산 ----------
+
+class _Abort(BaseException):
+    """중단 흉내(KeyboardInterrupt 와 같은 BaseException 하위, Exception 아님)."""
+
+
+@pytest.mark.parametrize("exc_cls", [ValueError, TypeError, KeyError, _Abort], ids=["value_error", "type_error", "key_error", "base_exception"])
+def test_block_call_other_exception_not_registered(exc_cls):
+    # oracle 대조: (독립) 블록 함수 호출 수, C4 단계 4 '그 밖 예외 -> 등록·result 없이 올린다(같은 입력 재호출 = 다시 계산 ->
+    # recomputes_same_input +1)'
+    calls = []
+
+    @compute_block("sizer", reads=READS, writes=WRITES)
+    def failing(projection):
+        calls.append(1)
+        raise exc_cls("boom")
+
+    donors, counters = open_run()
+    s0 = _base(v={"a": 1.0})
+    with pytest.raises(exc_cls):
+        failing(s0, donors=donors, counters=counters)
+    with pytest.raises(exc_cls):
+        failing(_base(v={"a": 1.0}), donors=donors, counters=counters)
+    assert len(calls) == 2
+    assert _counts(counters) == (2, 0, 0, 0, 2, 1)
+    assert donors.entry_count() == 0
+    assert s0.block_version("sizer") is None
+
+
+def test_block_call_infeasible_subclass_registered_contrast():
+    # 대조(B-T9): InfeasibleSizingError 하위는 등록된다 -> 같은 입력 재호출은 재연(블록 함수 0)
+    class _HandInfeasible(NonconvergentError):
+        pass
+
+    calls = []
+
+    @compute_block("sizer", reads=READS, writes=WRITES)
+    def failing(projection):
+        calls.append(1)
+        raise _HandInfeasible(devices=("m_a",))
+
+    donors, counters = open_run()
+    with pytest.raises(_HandInfeasible) as first:
+        failing(_base(v={"a": 1.0}), donors=donors, counters=counters)
+    assert isinstance(first.value, InfeasibleSizingError)
+    assert donors.entry_count() == 1
+    with pytest.raises(NonconvergentError) as second:
+        failing(_base(v={"a": 1.0}), donors=donors, counters=counters)
+    assert len(calls) == 1
+    # oracle 대조: C4 단계 3 '클래스 = FAILURE_CLASSES[record.failure_class].exc' -- 분류 키 NONCONVERGENT 의 등록 클래스
+    assert type(second.value) is FAILURE_CLASSES["NONCONVERGENT"].exc
+    assert second.value.record is first.value.record
+    assert _counts(counters) == (2, 0, 0, 1, 1, 0)
+
+
+# ---------- B-T10: 블록 객체는 상태가 없다 ----------
+
+def test_block_call_stateless_block_object():
+    # oracle 대조: (식) C4 '블록 객체는 상태가 없다: stats·reset_stats 속성 없음, gmid_engine.core 에 BlockStats 없음'
+    log = []
+    block = _make_block(log)
+    assert not hasattr(block, "stats")
+    assert not hasattr(block, "reset_stats")
+    assert not hasattr(core_pkg, "BlockStats")
+    assert "BlockStats" not in core_pkg.__all__
+
+
+def test_block_call_two_open_runs_both_compute():
+    # oracle 대조: (독립) log 길이, C4 '같은 블록을 두 open_run() 쌍으로 같은 입력에 부르면 두 쌍 모두 compute 1'
+    log = []
+    block = _make_block(log)
+    d1, c1 = open_run()
+    d2, c2 = open_run()
+    out1 = block(_base(v={"a": 1.0}), donors=d1, counters=c1)
+    out2 = block(_base(v={"a": 1.0}), donors=d2, counters=c2)
     assert len(log) == 2
-    st = block.stats()
-    assert st.recomputes_same_input == 1
-    assert (st.calls, st.computes, st.reuses) == (2, 2, 0)
-    assert out.block_version("sizer") is not None
+    assert _counts(c1) == (1, 0, 0, 0, 1, 0)
+    assert _counts(c2) == (1, 0, 0, 0, 1, 0)
+    assert out1.fp == out2.fp
 
 
-def test_reset_stats_clears_counts_and_history():
+# ---------- B-T5: 두 키워드 필수·donors 형식 ----------
+
+@pytest.mark.parametrize("which", ["neither", "donors_only", "counters_only"])
+def test_block_call_missing_keyword_type_error(which):
+    # oracle 대조: (식) C4 '두 키워드 필수, 기본값 없음 -- 빠지면 TypeError', (독립) 블록 함수 호출 0
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
-    block(_base(v={"a": 1.0}))
-    block.reset_stats()
-    st = block.stats()
-    assert (st.calls, st.reuses, st.computes, st.recomputes_same_input) == (0, 0, 0, 0)
-    block(_base(v={"a": 1.0}))  # 같은 v 지만 이력이 비워졌으므로 recompute 아님
-    st = block.stats()
-    assert (st.calls, st.computes, st.recomputes_same_input) == (1, 1, 0)
+    kw = {"neither": {}, "donors_only": {"donors": donors}, "counters_only": {"counters": counters}}[which]
+    with pytest.raises(TypeError):
+        block(_base(), **kw)
+    assert log == []
+    assert counters.snapshot().blocks == ()
+
+
+@pytest.mark.parametrize("make_bad", [lambda d, c: object(), lambda d, c: c, lambda d, c: None, lambda d, c: {}],
+                         ids=["object", "counters_as_donors", "none", "dict"])
+def test_block_call_donors_not_donors_subclass_type_error(make_bad):
+    # oracle 대조: (식) C4 'donors 가 Donors 하위가 아니면 TypeError(블록 함수 호출 0)'
+    donors, counters = open_run()
+    log = []
+    block = _make_block(log)
+    with pytest.raises(TypeError):
+        block(_base(), donors=make_bad(donors, counters), counters=counters)
+    assert log == []
+    assert counters.snapshot().blocks == ()
+
+
+# ---------- B-T11: 판정 순서 (가짜 Donors) ----------
+
+def test_block_call_order_same_lineage_skips_find():
+    # oracle 대조: (손) 가짜 색인 기록 -- C4 판정 1 'find 부르지 않음', 판정 4 계산 뒤 register
+    _d, counters = open_run()
+    fake = _LoggingDonors()
+    log = []
+    block = _make_block(log)
+    s0 = _base()
+    s1 = block(s0, donors=fake, counters=counters)
+    v = s1.block_version("sizer")
+    assert [e[0] for e in fake.log] == ["find", "find_failure", "register"]
+    assert all(e[1:] == ("sizer", "*", v) for e in fake.log)
+    fake.log.clear()
+    assert block(s1, donors=fake, counters=counters) is s1
+    assert fake.log == []
+    assert len(log) == 1
+
+
+def test_block_call_order_found_skips_find_failure():
+    # oracle 대조: (손) C4 판정 2 'find 가 스냅샷을 주면 이식 결과, outcome graft, 블록 함수 0, find_failure 부르지 않음'
+    d_ref, c_ref = open_run()
+    log = []
+    block = _make_block(log)
+    donor = block(_base(v={"a": 1.0}), donors=d_ref, counters=c_ref)      # 별도 실행에서 계산한 원천
+    assert len(log) == 1
+    _d, counters = open_run()
+    fake = _LoggingDonors(found=donor, failure=FailureRecord("NONCONVERGENT"))
+    out = block(_base(v={"a": 1.0}, u={"x": 2.0}), donors=fake, counters=counters)
+    assert len(log) == 1
+    assert [e[0] for e in fake.log] == ["find"]
+    assert _counts(counters) == (1, 0, 1, 0, 0, 0)
+    assert out.column("device", "w") == donor.column("device", "w")
+
+
+def test_block_call_order_failure_replayed_without_compute():
+    # oracle 대조: (손) C4 판정 3 'find_failure 가 기록을 주면 블록 함수를 부르지 않고 예외, .record is 그 기록'
+    _d, counters = open_run()
+    rec = FailureRecord("SEAL_VIOLATION", devices=("m_a",))
+    fake = _LoggingDonors(found=None, failure=rec)
+    log = []
+    block = _make_block(log)
+    with pytest.raises(SealViolationError) as info:
+        block(_base(), donors=fake, counters=counters)
+    assert info.value.record is rec
+    assert log == []
+    assert [e[0] for e in fake.log] == ["find", "find_failure"]
+    assert _counts(counters) == (1, 0, 0, 1, 0, 0)
+
+
+def test_block_call_found_wrong_version_value_error():
+    # oracle 대조: (손) C4 판정 2 '준 스냅샷의 block_version(name) != v 면 ValueError(graft 가 냄)', 블록 함수 0
+    d_ref, c_ref = open_run()
+    log = []
+    block = _make_block(log)
+    wrong = block(_base(v={"a": 99.0}), donors=d_ref, counters=c_ref)    # 다른 입력의 결과 -> 다른 입력 버전
+    _d, counters = open_run()
+    fake = _LoggingDonors(found=wrong)
+    with pytest.raises(ValueError):
+        block(_base(v={"a": 1.0}), donors=fake, counters=counters)
+    assert len(log) == 1
+
+
+# ---------- B-T12: 공개 입력 버전 ----------
+
+def test_block_call_input_version_matches_call():
+    # oracle 대조: (비교) C4 'block.input_version 은 같은 인자에 같은 값이고, 블록 호출이 쓰는 입력 버전(결과 block_version(name))과 같다'
+    donors, counters = open_run()
+    log = []
+    block = _make_block(log)
+    s0 = _base(v={"a": 1.0})
+    v1 = block.input_version(s0, 3, "e")
+    assert isinstance(v1, str)
+    assert block.input_version(s0, 3, "e") == v1
+    assert block.input_version(_base(v={"a": 1.0}), 3, "e") == v1                  # 같은 값의 다른 객체
+    assert block.input_version(s0.write("other", "o1", {("node", "u"): {"z": 1.0}}), 3, "e") == v1   # 선언 밖 열만 다름
+    assert block.input_version(s0, 4, "e") != v1                                   # extras 하나 바꿈
+    assert block.input_version(s0, 3, "f") != v1
+    assert block.input_version(_base(v={"a": 2.0}), 3, "e") != v1                  # 선언 열 값 바꿈
+    out = block(s0, 3, "e", donors=donors, counters=counters)
+    assert out.block_version("sizer") == v1
+    assert log == [((("a", 1.0),), (3, "e"))]
 
 
 # ---------- 실패 ----------
@@ -272,14 +570,15 @@ def test_reset_stats_clears_counts_and_history():
 @pytest.mark.parametrize("extra", [[1], {"a": 1}, {1}, bytearray(b"x"), object()],
                          ids=["list", "dict", "set", "bytearray", "object"])
 def test_mutable_extras_rejected_no_call_no_count(extra):
+    # oracle 대조: C4 'extras 불변 검사 TypeError 는 그대로이고 그 호출은 계수에 들지 않는다'
+    donors, counters = open_run()
     log = []
     block = _make_block(log)
     s0 = _base()
     with pytest.raises(TypeError):
-        block(s0, extra)
+        block(s0, extra, donors=donors, counters=counters)
     assert log == []
-    st = block.stats()
-    assert (st.calls, st.reuses, st.computes, st.recomputes_same_input) == (0, 0, 0, 0)
+    assert counters.snapshot().blocks == ()
 
 
 def test_undeclared_column_read_key_error():
@@ -291,13 +590,13 @@ def test_undeclared_column_read_key_error():
         projection.column("node", "u")   # 선언 밖
         return {("device", "w"): {}}
 
+    donors, counters = open_run()
     s0 = _base(u={"a": 1.0})
     with pytest.raises(KeyError):
-        sneaky(s0)
+        sneaky(s0, donors=donors, counters=counters)
     assert calls == [1]
-    st = sneaky.stats()
-    assert (st.calls, st.computes) == (1, 1)
-    _assert_invariant(st)
+    assert _counts(counters) == (1, 0, 0, 0, 1, 0)
+    _assert_invariant(counters)
 
 
 def test_undeclared_value_read_key_error():
@@ -306,8 +605,9 @@ def test_undeclared_value_read_key_error():
         projection.value("node", "a", "u")
         return {("device", "w"): {}}
 
+    donors, counters = open_run()
     with pytest.raises(KeyError):
-        sneaky(_base(u={"a": 1.0}))
+        sneaky(_base(u={"a": 1.0}), donors=donors, counters=counters)
 
 
 @pytest.mark.parametrize(
@@ -326,9 +626,10 @@ def test_result_keys_mismatch_value_error(result):
     def bad(projection):
         return result
 
+    donors, counters = open_run()
     s0 = _base()
     with pytest.raises(ValueError):
-        bad(s0)
+        bad(s0, donors=donors, counters=counters)
     assert s0.column("device", "w") == ()
 
 
@@ -337,8 +638,9 @@ def test_result_missing_declared_write_value_error():
     def bad(projection):
         return {("device", "w"): {"m": 1.0}}
 
+    donors, counters = open_run()
     with pytest.raises(ValueError):
-        bad(_base())
+        bad(_base(), donors=donors, counters=counters)
 
 
 def test_writer_permission_violation():
@@ -349,13 +651,15 @@ def test_writer_permission_violation():
         calls.append(1)
         return {("device", "w"): {"m": 1.0}}
 
+    donors, counters = open_run()
     s0 = _base()
     with pytest.raises(WriterPermissionError):
-        intruder(s0)
+        intruder(s0, donors=donors, counters=counters)
     assert s0.column("device", "w") == ()
 
 
 def test_block_exception_propagates_and_counts():
+    # oracle 대조: (독립) calls 길이, C4 단계 4 '그 밖 예외 -> 등록·result 없이 올린다(같은 입력 재호출 = 다시 계산 -> recomputes_same_input +1)'
     class Boom(Exception):
         pass
 
@@ -366,20 +670,18 @@ def test_block_exception_propagates_and_counts():
         calls.append(1)
         raise Boom()
 
+    donors, counters = open_run()
     s0 = _base()
     fp0 = s0.fp
     with pytest.raises(Boom):
-        failing(s0)
+        failing(s0, donors=donors, counters=counters)
     assert s0.fp == fp0 and s0.block_version("sizer") is None
-    st = failing.stats()
-    assert (st.calls, st.computes, st.reuses, st.recomputes_same_input) == (1, 1, 0, 0)
-    # 같은 입력으로 다시 부르면 다시 계산되고 recompute 로 센다(실패 캐시는 search 층 몫)
+    assert _counts(counters) == (1, 0, 0, 0, 1, 0)
     with pytest.raises(Boom):
-        failing(s0)
+        failing(s0, donors=donors, counters=counters)
     assert len(calls) == 2
-    st = failing.stats()
-    assert (st.calls, st.computes, st.recomputes_same_input) == (2, 2, 1)
-    _assert_invariant(st)
+    assert _counts(counters) == (2, 0, 0, 0, 2, 1)
+    _assert_invariant(counters)
 
 
 def test_projection_does_not_expose_snapshot_write():
@@ -390,7 +692,8 @@ def test_projection_does_not_expose_snapshot_write():
         seen.append(projection)
         return {("device", "w"): {}}
 
-    peek(_base())
+    donors, counters = open_run()
+    peek(_base(), donors=donors, counters=counters)
     p = seen[0]
     assert not isinstance(p, GraphSnapshot)
     assert not hasattr(p, "write")
@@ -399,7 +702,7 @@ def test_projection_does_not_expose_snapshot_write():
 # =====================================================================================================================
 # 2026-10-08 개정(사용자 승인 1, sizing O9) 회귀 -- 투영 지문을 값 지문 합성으로 바꿔도 §6.2 재사용 규칙은 그대로.
 # oracle 종류: (a) 구성 -- 같은 스냅샷 두 번 호출이면 입력이 구성상 같으므로 두 번째는 함수 호출 0·`is`(§6.2 '재사용').
-# 호출 수는 블록 함수 안 log 길이(피검 함수 밖 계수)와 stats 둘로 본다.
+# 호출 수는 블록 함수 안 log 길이(피검 함수 밖 계수)와 실행 계수(open_run() 의 RunCounters, card B C1) 둘로 본다.
 # =====================================================================================================================
 
 MULTI_READS = (("node", "v"), ("node", "u"), ("device", "gm"))   # u 는 처음에 비어 있는 선언 열
@@ -417,40 +720,41 @@ def _make_multi_block(log):
 
 
 def test_reuse_regression_multi_reads_extras_and_empty_column():
+    donors, counters = open_run()
+    kw = dict(donors=donors, counters=counters)
     log = []
     block = _make_multi_block(log)
     extras = (1, "x", (2.0, -0.0))
     s0 = _base()                                       # node u 없음(빈 선언 열)
-    s1 = block(s0, *extras)
+    s1 = block(s0, *extras, **kw)
     assert len(log) == 1
-    assert block(s1, *extras) is s1                    # 같은 스냅샷 두 번째 -> 함수 호출 0, 그대로
+    assert block(s1, *extras, **kw) is s1              # 같은 스냅샷 두 번째 -> 함수 호출 0, 그대로
     assert len(log) == 1
-    st = block.stats()
-    assert (st.calls, st.reuses, st.computes, st.recomputes_same_input) == (2, 1, 1, 0)
+    assert _counts(counters) == (2, 1, 0, 0, 1, 0)
     # 빈 선언 열에 값이 생기면 입력이 바뀐 것이다 -> 재계산(빈 열도 투영의 일부, §8)
     s2 = s1.write("other", "o1", {("node", "u"): {"z": 0.0}})
-    s3 = block(s2, *extras)
+    s3 = block(s2, *extras, **kw)
     assert s3 is not s2
     assert len(log) == 2
-    assert block(s3, *extras) is s3
+    assert block(s3, *extras, **kw) is s3
     assert len(log) == 2
     # extras 의 -0.0 -> 0.0 은 다른 입력(§1 float.hex) -> 재계산
-    block(s3, 1, "x", (2.0, 0.0))
+    block(s3, 1, "x", (2.0, 0.0), **kw)
     assert len(log) == 3
-    _assert_invariant(block.stats())
+    _assert_invariant(counters)
 
 
 def test_reuse_regression_only_undeclared_field_changes():
+    donors, counters = open_run()
     log = []
     block = _make_block(log)                           # reads = node v 만
-    s1 = block(_base(u={"a": 1.0}), "e")
+    s1 = block(_base(u={"a": 1.0}), "e", donors=donors, counters=counters)
     s2 = s1.write("other", "o2", {("node", "u"): {"a": 2.0, "b": 3.0}})   # 선언 밖 열만 바뀜
     s3 = s2.write("other", "o3", {("node", "u"): {}})                     # 선언 밖 열을 지움
     for s in (s2, s3):
-        assert block(s, "e") is s
+        assert block(s, "e", donors=donors, counters=counters) is s
     assert len(log) == 1
-    st = block.stats()
-    assert (st.calls, st.reuses, st.computes, st.recomputes_same_input) == (3, 2, 1, 0)
+    assert _counts(counters) == (3, 2, 0, 0, 1, 0)
 
 
 # =====================================================================================================================
@@ -478,21 +782,21 @@ class _PlainObj:
 ], ids=["list_in_tuple", "dict_deep", "plain_in_frozenset", "dc_not_frozen", "last_of_three", "bytearray_second"])
 def test_mutable_extras_rejected_after_prior_calls_counters_unchanged(extras):
     # oracle §6.2: 앞선 정상 호출(계산 1·재사용 1)로 계수를 만든 뒤 가변 extras 호출 -> TypeError, 계수·로그 그대로.
+    donors, counters = open_run()
+    kw = dict(donors=donors, counters=counters)
     log = []
     block = _make_block(log)
     s0 = _base()
-    s1 = block(s0, 1)
-    assert block(s1, 1) is s1
-    before = block.stats()
+    s1 = block(s0, 1, **kw)
+    assert block(s1, 1, **kw) is s1
+    before = _counts(counters)
     n_log = len(log)
     with pytest.raises(TypeError):
-        block(s1, *extras)
+        block(s1, *extras, **kw)
     assert len(log) == n_log
-    after = block.stats()
-    assert (after.calls, after.reuses, after.computes, after.recomputes_same_input) == (
-        before.calls, before.reuses, before.computes, before.recomputes_same_input) == (2, 1, 1, 0)
+    assert _counts(counters) == before == (2, 1, 0, 0, 1, 0)
     # 거부 뒤에도 정상 호출은 그대로 재사용
-    assert block(s1, 1) is s1
+    assert block(s1, 1, **kw) is s1
 
 
 # =====================================================================================================================

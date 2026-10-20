@@ -96,8 +96,9 @@ def _pilot(*rows):
     from gmid_engine.graph import build_s1, build_s1v
     st = J.facts(*rows)
     name = "current_reuse_telescopic_ota"
-    s1 = build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), structure=st)
-    return H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=st))
+    run = H.fresh_run()                    # [XRUN-F1 card B C6] S1·S1v = 실행 하나
+    s1 = build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), structure=st, **run)
+    return H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=st, **run))
 
 
 def test_view_scoped_exception_grounds_net_only_in_that_view():

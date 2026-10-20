@@ -91,7 +91,10 @@ def make_case(tmp, topo_doc, lut, elements=(), boxes=None, untie=None, cbounds=N
     sp.write_text(json.dumps(doc, indent=1), encoding="utf-8")
     spec = load_sizing_spec(str(sp), td, metric_catalog())
     inputs = dc_inputs_from_spec(spec)
-    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, new_access(lut))
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C0·C6] 이 case 하나 = 실행 하나
+    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v), donors=donors, counters=counters), inputs, new_access(lut),
+                              donors=donors, counters=counters)
     pdk, rule = write_decls(tmp / "pdk")
     settings = SearchSettings(600.0, eval_budget, None, SRC, cbounds)
     sctx = build_search_context(dc, spec, settings, archive_root, pdk, rule, code_fp=CODE_FP) if build_sctx else None
@@ -190,7 +193,10 @@ def build_library_case(tmp, topo_doc, spec_doc, lut, eval_budget=40):
     sp.write_text(json.dumps(spec_doc), encoding="utf-8")
     spec = load_sizing_spec(str(sp), td, spec_catalog())
     inputs = dc_inputs_from_spec(spec)
-    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, new_access(lut))
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C0·C6] 이 case 하나 = 실행 하나
+    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v), donors=donors, counters=counters), inputs, new_access(lut),
+                              donors=donors, counters=counters)
     pdk, rule = write_decls(tmp / "pdk")
     return build_search_context(dc, spec, SearchSettings(600.0, eval_budget, None, SRC, None), None, pdk, rule,
                                 code_fp=CODE_FP)

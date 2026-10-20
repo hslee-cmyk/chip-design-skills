@@ -30,7 +30,7 @@ def cbm(s1, s1v):
 
 def coupling(s1, s1v):
     """S1v 필드가 있는 스냅샷 위에서 계산 블록 `coupling_vars` 를 부르고 `graph/coupling` 필드를 읽는다. `.fields` = (vars, column_block_map, bias_columns)."""
-    snap = _coupling_vars(s1v.graph.snapshot)
+    snap = _coupling_vars(s1v.graph.snapshot, **H.fresh_run())        # [XRUN-F1 card B C4] 블록 호출 = 두 객체 키워드(새 실행 하나)
     f = lambda n: snap.value("graph", COUPLING_KEY, n)  # noqa: E731
     return SimpleNamespace(vars=f("vars"), column_block_map=SimpleNamespace(rows=f("column_block_map"), bias_columns=f("bias_columns")),
                            fields=(f("vars"), f("column_block_map"), f("bias_columns")), snapshot=snap)

@@ -6,9 +6,12 @@
 `dc_gm` 이라 parent 에서 넘기는 입력이 없다(설계 40 §3.7-3) -- `parent` 는 같은 lineage 재사용(필드가 곧 캐시)에만 쓴다.
 θ 스키마·고정 노드·DC 저항 선언값·L 묶음은 커널 컨텍스트 `base` 의 S0 수준 필드 `graph/kernel` 에서 읽고, parent 가 같은 컨텍스트에서 나왔는지는 계획 블록
 (`PLAN_WRITERS`)의 `block_version` 이 `base` 와 같은지로 본다(설계 40 §2.4.7 `KernelContext` 행 -- 사본 없음).
+모든 블록 호출은 `ctx.donors`·`ctx.counters` 로 부른다(같은 입력은 계보와 무관하게 이식·재연). 블록 단계마다 후보 실패 클래스를 이름으로 잡아 그 블록에 들어간 스냅샷을
+부분 스냅샷(`exc.partial`)으로 붙인 뒤 다시 낸다(`core.attach_partial`, 설계 40 §2.4.7 -- 재연한 예외도 같다).
 """
 import math
 
+from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, attach_partial
 from gmid_engine.graph import ELEMENT_MOS
 
 from .block_columns import dc_columns
@@ -50,6 +53,15 @@ def normalize_w_request(ctx, w_request):
     return tuple(sorted(out.items()))
 
 
+def _call_block(ctx, block, snapshot, extras):
+    """블록 하나를 `ctx` 의 색인·계수로 부른다. 후보 실패면 그 블록에 들어간 `snapshot` 을 부분 스냅샷으로 붙여 다시 낸다."""
+    try:
+        return block(snapshot, *extras, donors=ctx.donors, counters=ctx.counters)
+    except CANDIDATE_FAILURE_CLASSES as exc:
+        attach_partial(exc, snapshot)
+        raise
+
+
 def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     """평가 커널 본체 -- `size_and_seal`(위반이면 예외)과 `size_and_seal_local`(위반 보고서를 그대로 읽는다)이 같은 계산을 쓴다."""
     if not isinstance(ctx, KernelContext):
@@ -70,7 +82,7 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     requested = normalize_w_request(ctx, w_request)
     steps = [(dc_currents, (currents,)), (dc_lengths, (lengths,))]
     for block, extras in steps:
-        snapshot = block(snapshot, *extras)
+        snapshot = _call_block(ctx, block, snapshot, extras)
     if requested:
         # LY3: 쓰기 소자의 좌표를 요청 W 에서 정한다 -- ln IDu = ln(ID·L/W). 종속 소자는 좌표가 노드 VGS 순방향이라 건드리지 않는다
         writers = {m for m, coord in base.column("device", "dc_coord") if coord.role == COORD_WRITER}
@@ -82,7 +94,8 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     later = [(dc_columns, columns_extras + ((ctx.inputs.linear_devices,) if ctx.inputs.linear_devices else ())),
              (dc_widths, (ctx.lut, requested) if requested else (ctx.lut,))]
     for block, extras in later:
-        snapshot = block(snapshot, *extras)
+        snapshot = _call_block(ctx, block, snapshot, extras)
     steps = tuple(steps + later)
     resistances = resistor_values + tuple((key, v) for (kind, key), v in items if kind == THETA_RESISTANCE)
-    return seal_dc(snapshot, steps, ctx.lut, resistances, ctx.inputs.linear_devices, raise_on_violation)
+    return seal_dc(snapshot, steps, ctx.lut, resistances, ctx.inputs.linear_devices, raise_on_violation,
+                   donors=ctx.donors, counters=ctx.counters)

@@ -1,0 +1,146 @@
+{
+ "id": "20261016-xrunf1b",
+ "round": 2,
+ "target": "8a7ef281 (integ/xrunf1b-r2)",
+ "per_dir": {
+  "_top": {
+   "tests": 2,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 3.817
+  },
+  "authoring": {
+   "tests": 1547,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 32.622
+  },
+  "convergence": {
+   "tests": 96,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 923.246
+  },
+  "core": {
+   "tests": 1085,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 57.228
+  },
+  "generality": {
+   "tests": 802,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 221.362
+  },
+  "graph": {
+   "tests": 1934,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 113.333
+  },
+  "integration": {
+   "tests": 490,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 2390.95
+  },
+  "layout": {
+   "tests": 498,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 2,
+   "time_s": 74.435
+  },
+  "lut": {
+   "tests": 1049,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 540.953
+  },
+  "metrics": {
+   "tests": 1213,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 68.616
+  },
+  "pipeline": {
+   "tests": 84,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 55.844
+  },
+  "search": {
+   "tests": 570,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 492.737
+  },
+  "sizing": {
+   "tests": 818,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 87.709
+  },
+  "structure": {
+   "tests": 67,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 79.594
+  }
+ },
+ "total": {
+  "tests": 10255,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 2,
+  "time_s": 5142.4
+ },
+ "deselected": 1,
+ "deselected_note": "structure 규칙 H 마커(설정 기본 제외, base 와 같음)",
+ "progress": [
+  "start _top 11:00:34 free_kb=2966440",
+  "end _top rc=0 sec=23 free_kb=3263408 11:00:58 | 2 passed in 3.82s",
+  "start authoring 11:00:58 free_kb=3269272",
+  "end authoring rc=0 sec=34 free_kb=3522636 11:01:34 | 1547 passed in 32.71s",
+  "start convergence 11:01:34 free_kb=3494672",
+  "end convergence rc=0 sec=926 free_kb=5867936 11:17:02 | 96 passed in 923.26s (0:15:23)",
+  "start core 11:17:02 free_kb=5863748",
+  "end core rc=0 sec=59 free_kb=5845180 11:18:02 | 1085 passed in 57.26s",
+  "start generality 11:18:03 free_kb=5833124",
+  "end generality rc=0 sec=228 free_kb=5983580 11:21:52 | 802 passed in 221.41s (0:03:41)",
+  "start graph 11:21:52 free_kb=5985328",
+  "end graph rc=0 sec=116 free_kb=5908140 11:23:49 | 1934 passed in 113.42s (0:01:53)",
+  "start layout 11:23:49 free_kb=5915064",
+  "end layout rc=0 sec=78 free_kb=5648616 11:25:09 | 496 passed, 2 xfailed in 74.44s (0:01:14)",
+  "start lut 11:25:09 free_kb=5671732",
+  "end lut rc=0 sec=548 free_kb=6515588 11:34:18 | 1049 passed, 4 warnings in 541.05s (0:09:01)",
+  "start metrics 11:34:18 free_kb=6516116",
+  "end metrics rc=0 sec=77 free_kb=6556684 11:35:37 | 1213 passed, 24 warnings in 68.64s (0:01:08)",
+  "start pipeline 11:35:37 free_kb=6563168",
+  "end pipeline rc=0 sec=58 free_kb=6437424 11:36:35 | 84 passed in 55.86s",
+  "start search 11:36:35 free_kb=6443628",
+  "end search rc=0 sec=505 free_kb=6482204 11:45:02 | 570 passed, 8 warnings in 492.76s (0:08:12)",
+  "start sizing 11:45:02 free_kb=6476208",
+  "end sizing rc=0 sec=92 free_kb=6621156 11:46:36 | 818 passed, 3 warnings in 87.82s (0:01:27)",
+  "start structure 11:46:36 free_kb=6600592",
+  "end structure rc=0 sec=80 free_kb=6552208 11:47:58 | 67 passed, 1 deselected in 79.59s (0:01:19)",
+  "start integration 11:47:58 free_kb=6550216",
+  "end integration rc=0 sec=2393 free_kb=6513356 12:27:52 | 490 passed in 2390.97s (0:39:50)"
+ ],
+ "free_kb_min": 2966440,
+ "free_kb_max": 6621156
+}

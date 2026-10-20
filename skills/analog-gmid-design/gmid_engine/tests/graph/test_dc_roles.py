@@ -27,6 +27,13 @@ from graph_u2_oracle import U2Oracle
 
 import jrules_hand as J
 
+
+def _build(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
+
 SIX = (
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
@@ -49,7 +56,7 @@ TABLE = {
 
 
 def _s1(gh, name):
-    return build_s1(gh.load_lib(name), gh.supplies_for(name))
+    return _build(gh.load_lib(name), gh.supplies_for(name))
 
 
 def _oracle(gh, name):
@@ -113,7 +120,7 @@ def test_gate_ground_group_rule(gh, tmp_path):
                        {"name": "Mq2", "kind": "nmos", "drain": "B", "gate": "VNB1", "source": "vss"}]
     o = gh.oracle(raw)
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    s1 = build_s1(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
+    s1 = _build(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
     # 원본 M6(nmos, gate VNB1, source vss)도 같은 묶음이 된다(JSON 확인)
     m6 = next(e for e in raw["netlist"] if e["name"] == "M6")
     assert (m6["kind"], m6["gate"], m6["source"]) == ("nmos", "VNB1", "vss")
@@ -138,8 +145,9 @@ def test_direct_call_unsupported_mos_stops(gh, tmp_path):
     name = raw["netlist"][1]["name"]
     raw["netlist"][1]["kind"] = "njfet"
     doc = gh.load_raw(tmp_path, raw)
-    snap = s1_gs_groups(gh.structure_and_bulk(doc, None))
-    d, devices = gh.stop(lambda: s1_dc_roles(snap))
+    run = gh.fresh_run()
+    snap = s1_gs_groups(gh.structure_and_bulk(doc, None), **run)
+    d, devices = gh.stop(lambda: s1_dc_roles(snap, **run))
     assert d["rule_branch"] == "mos_kind_unsupported"
     assert devices == (name,)
 
@@ -148,7 +156,7 @@ def test_direct_call_unsupported_mos_stops(gh, tmp_path):
 
 # ---------------------------------------------------------------- [U1b] 규칙 1c·4 (41 1.12.1 소비 1, 40 3.2-3 `dc_role`)
 def _s1_facts(gh, name, *rows):
-    return build_s1(gh.load_lib(name), gh.supplies_for(name), structure=J.facts(*rows))
+    return _build(gh.load_lib(name), gh.supplies_for(name), structure=J.facts(*rows))
 
 
 def test_composite_group_mates_become_bias_sources(gh):

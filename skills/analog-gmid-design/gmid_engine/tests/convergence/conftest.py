@@ -21,7 +21,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from gmid_engine.layout import F_DEVICE, F_DIFFUSION, F_FINGER, F_FLOORPLAN, F_GROUPS, F_GROUPS_IN, LAYOUT_KEY, LayoutPdk
+from gmid_engine.layout import F_DIFFUSION, F_FINGER, F_FLOORPLAN, F_GROUPS, F_GROUPS_IN, F_POINT, LAYOUT_KEY, LayoutPdk
 from gmid_engine.layout.contract_input import PDK_RULE_QUANTITIES
 from gmid_engine.layout.contract_output import (
     DeviceDiffusion,
@@ -51,7 +51,7 @@ def dlay(name, fw, nf, W, tol=0.01):
 
 
 def dunplaced(name, tol=0.01):
-    """놓지 못한 소자: `ly_device` 에는 있고 `ly_finger` 값이 없다."""
+    """놓지 못한 소자: `ly_point` 열에는 있고 `ly_finger` 값이 없다."""
     return (name, None)
 
 
@@ -69,17 +69,19 @@ def ddiff(name, fw, nf, ad, as_, pd, ps):
 
 
 def layout(devices=(), groups=(), diffusion=(), plan=None, groups_in=()):
-    """손 레이아웃 결과: 레이아웃 필드(`ly_device`·`ly_finger`·`ly_groups`·`ly_groups_in`·`ly_floorplan`·`ly_diffusion`)를 든 FakeSnapshot 의
-    `LayoutResult(snapshot, computed_blocks=())`. `devices` = `dlay`/`dunplaced` 항목, `groups_in` = 입력 그룹(gid·hub_net)."""
+    """손 레이아웃 결과: 레이아웃 필드(`ly_point`·`ly_finger`·`ly_groups`·`ly_groups_in`·`ly_floorplan`·`ly_diffusion`)를 든 FakeSnapshot 의
+    `LayoutResult(snapshot)`(O-17 (3) 뒤 칸은 스냅샷 하나). `devices` = `dlay`/`dunplaced` 항목, `groups_in` = 입력 그룹(gid·hub_net).
+    [v1.11.2 O-39 (1)] design 40 §2.4.8: 소자 이름 목록(열 key)은 `ly_point`(공개 export `F_POINT`)에서 읽는다 -- effective_placement 는 이름만
+    읽으므로 값은 빈 자리표시자다(보존량 값은 이 test 들의 판정 대상이 아니다)."""
     fields = {
-        ("device", F_DEVICE): {n: SimpleNamespace(name=n) for n, _f in devices},
+        ("device", F_POINT): {n: SimpleNamespace() for n, _f in devices},
         ("device", F_FINGER): {n: f for n, f in devices if f is not None},
         ("graph", F_GROUPS): {LAYOUT_KEY: tuple(groups)},
         ("graph", F_GROUPS_IN): {LAYOUT_KEY: tuple(groups_in)},
         ("graph", F_FLOORPLAN): {LAYOUT_KEY: plan if plan is not None else floorplan(1e-5, 1e-5)},
         ("graph", F_DIFFUSION): {LAYOUT_KEY: tuple(diffusion)},
     }
-    return LayoutResult(FakeSnapshot(fields), ())
+    return LayoutResult(FakeSnapshot(fields))
 
 
 def groups_in(*hubs):
@@ -208,7 +210,8 @@ REAL_CIRCUITS = ("common_gate_amplifier", "two_stage_ota")
 
 
 class RealPath:
-    """회로·변형마다 (case, sctx, 출발 EvalResult, converge 결과, 스파이 기록) 을 한 번 만든다(세션 캐시)."""
+    """회로·변형마다 (case, sctx, 출발 EvalResult, converge 결과, 스파이 기록) 을 만든다. 입력(LUT·PDK·S1)은 세션 1회, 실행(두 객체)은
+    부를 때마다 새로([XRUN-F1 card B M-d] -- `run` 참고)."""
 
     def __init__(self, tmp):
         from generality.pipeline import Env, Pipe
@@ -217,7 +220,6 @@ class RealPath:
         except RuntimeError as e:          # 입력 없음은 skip 이 아니라 FAIL
             pytest.fail("convergence 실경로 test 입력(실 LUT v2·PDK) 없음: %s" % e, pytrace=False)
         self.pipe = Pipe(self.env, tmp)
-        self._runs = {}
 
     def start(self, name, variant="orig"):
         from generality.pipeline import map_cells, map_theta
@@ -236,10 +238,9 @@ class RealPath:
         return case, sctx, result
 
     def run(self, name, variant="orig"):
-        key = (name, variant)
-        if key not in self._runs:
-            self._runs[key] = self._converge(name, variant)
-        return self._runs[key]
+        """[XRUN-F1 card B 규칙 M M-d, interface card C0·C6] 결과(SimpleNamespace)가 sctx(실행의 두 객체를 칸으로 쥠)를 담으므로 test 사이에
+        캐시하지 않는다 -- 부를 때마다 새 실행(Pipe.case 가 새 open_run() 쌍의 KernelContext). 이 객체는 session fixture 라 test 하나보다 오래 산다."""
+        return self._converge(name, variant)
 
     def _converge(self, name, variant):
         from gmid_engine.convergence import converge, realized_geometry

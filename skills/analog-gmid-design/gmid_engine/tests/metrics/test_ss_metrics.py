@@ -28,6 +28,16 @@ from .conftest import (
     requests_of,
     with_ss,
 )
+from .conftest import block_row, fresh_run, row_delta
+
+
+def _mss(snapshot, *extras, run=None):
+    """블록 `metrics_ss(snapshot, *extras, donors=, counters=)` 호출(XRUN-F1 card B C4). run = 실행 두 객체 키워드(dict), 없으면 새 실행 하나."""
+    return metrics_ss(snapshot, *extras, **(run if run is not None else fresh_run()))
+
+
+def _mss_row(run):
+    return block_row(run["counters"], metrics_ss.name)
 
 PORT = {"ac_excite": {"in": 1.0}, "sense_p": "out", "sense_n": None, "sense_mode": "single_ended"}
 HALF = {"ac_excite": {"in": 0.5}, "sense_p": "out", "sense_n": None, "sense_mode": "single_ended"}
@@ -70,12 +80,12 @@ def _pv(snap, passives):
 def _run(case, metrics=None, passives=None):
     td, spec, snap = case
     reqs = requests_of(spec, metrics)
-    out = metrics_ss(_pv(snap, ex7_passives() if passives is None else passives), reqs)
+    out = _mss(_pv(snap, ex7_passives() if passives is None else passives), reqs)
     return out, reqs, out.value("graph", METRICS_KEY, "metrics_ss")
 
 
 def test_block_declaration():
-    """7.4 reads(+ [U17 ①] device.passive_value -- 설계 40 §2.4.8 수동소자 값 필드), writes graph.metrics_ss(key METRICS_KEY = "metrics"),
+    """7.4 reads(+ [U17 ①] device.passive_value -- 설계 40 §2.4.8 수동소자 값 필드), writes graph._mss(key METRICS_KEY = "metrics"),
     writer = 권한표 writer_of."""
     assert metrics_ss.name == METRICS_SS_WRITER == S2_WRITERS.writer_of("graph", "metrics_ss") == "metrics_ss"
     assert METRICS_KEY == "metrics"
@@ -168,7 +178,7 @@ def test_unregistered_metric_keyerror(declared):
     _, spec, snap = declared
     view = next(c.view for c in spec.constraints if c.metric == "gain_ss_db")
     with pytest.raises(KeyError):
-        metrics_ss(_pv(snap, ex7_passives()), (MetricRequest("bogus_ss_db", view),))
+        _mss(_pv(snap, ex7_passives()), (MetricRequest("bogus_ss_db", view),))
 
 
 def test_s4_missing_passive_value_all_undefined(declared):
@@ -226,7 +236,7 @@ def test_approximations_and_empty_requests(declared):
     _, _, b = _run(declared)
     assert b.approximations == (("cap", HAND), ("gmb", HAND), ("junction", HAND))
     _, spec, snap = declared
-    out = metrics_ss(_pv(snap, ex7_passives()), ())
+    out = _mss(_pv(snap, ex7_passives()), ())
     e = out.value("graph", METRICS_KEY, "metrics_ss")
     assert e.entries == () and e.detail == ()
 
@@ -235,21 +245,21 @@ def test_s6_reuse_and_recompute(declared):
     """S-6: 같은 입력 두 번 -> 두 번째 computes 0·`is`. 요청·수동 값이 바뀌면 재계산."""
     _, spec, snap = declared
     reqs = requests_of(spec)
-    metrics_ss.reset_stats()
-    s1 = metrics_ss(_pv(snap, ex7_passives()), reqs)
-    s2 = metrics_ss(s1, reqs)
+    run = fresh_run()                                  # card B C1 실행 계수 -- 손 순서 (compute, reuse, compute, compute)
+    s1 = _mss(_pv(snap, ex7_passives()), reqs, run=run)
+    s2 = _mss(s1, reqs, run=run)
     assert s2 is s1
-    assert (metrics_ss.stats().computes, metrics_ss.stats().reuses) == (1, 1)
-    s3 = metrics_ss(s1, reqs[:2])
+    assert _mss_row(run) == (2, 1, 0, 0, 1, 0)
+    s3 = _mss(s1, reqs[:2], run=run)
     assert s3 is not s1
     pv = tuple((k, v * 2.0 if k == "CL" else v) for k, v in ex7_passives())
-    s4 = metrics_ss(_pv(s3, pv), reqs)                     # 수동소자 값 필드가 바뀌면 입력 버전이 바뀐다
+    s4 = _mss(_pv(s3, pv), reqs, run=run)            # 수동소자 값 필드가 바뀌면 입력 버전이 바뀐다
     assert s4 is not s3
-    st = metrics_ss.stats()
-    assert st.computes == 3 and st.recomputes_same_input == 0
+    st = _mss_row(run)
+    assert st[4] == 3 and st[5] == 0
     # ss_dev 값이 바뀌면(손 S2 의 다른 gds) 재계산되고 rout 이 따라 바뀐다
     s5 = with_ss(s4, {"M1": hand_ss(EX7["gm"], 2 * EX7["gds"])}, version="hand_ss2")
-    out = metrics_ss(_pv(s5, ex7_passives()), reqs)
+    out = _mss(_pv(s5, ex7_passives()), reqs)
     assert rel_close(bundle_map(out.value("graph", METRICS_KEY, "metrics_ss"))["rout_ss_ohm"].value,
                      0.5 / EX7["gds"], 1e-12)
 
@@ -293,12 +303,11 @@ def test_example7c_mixed_cut_undefined_not_exception(tmp_path):
 
 
 def test_determinism(declared):
-    """같은 입력 두 번(새 블록 이력) -> 값 비트 동일."""
+    """같은 입력 두 번(서로 다른 실행 -- _mss 는 run 없이 부르면 새 open_run() 쌍, card B C0) -> 값 비트 동일."""
     _, spec, snap = declared
     reqs = requests_of(spec)
-    a = metrics_ss(_pv(snap, ex7_passives()), reqs).value("graph", METRICS_KEY, "metrics_ss")
-    metrics_ss.reset_stats()
-    b = metrics_ss(_pv(with_ss(snap, {"M1": hand_ss(EX7["gm"], EX7["gds"])}, version="again"), ex7_passives()),
+    a = _mss(_pv(snap, ex7_passives()), reqs).value("graph", METRICS_KEY, "metrics_ss")
+    b = _mss(_pv(with_ss(snap, {"M1": hand_ss(EX7["gm"], EX7["gds"])}, version="again"), ex7_passives()),
                    reqs).value("graph", METRICS_KEY, "metrics_ss")
     assert [(q, r.value) for q, r in a.entries] == [(q, r.value) for q, r in b.entries]
     assert a.detail == b.detail
@@ -433,12 +442,12 @@ def test_resolution_reused_with_block(declared_eps):
     response_sensitivity 호출 0), 결과 묶음 비트 동일."""
     _, spec, snap = declared_eps
     reqs = requests_of(spec)
-    metrics_ss.reset_stats()
-    s1 = metrics_ss(_pv(snap, ex7_passives()), reqs)
+    run = fresh_run()
+    s1 = _mss(_pv(snap, ex7_passives()), reqs, run=run)
     with count_calls(lut_parameters, metric_resolutions, response_sensitivity) as n:
-        s2 = metrics_ss(s1, reqs)
+        s2 = _mss(s1, reqs, run=run)
     assert s2 is s1
-    assert (metrics_ss.stats().computes, metrics_ss.stats().reuses) == (1, 1)
+    assert _mss_row(run) == (2, 1, 0, 0, 1, 0)              # card B C1 실행 계수(compute 1, reuse 1)
     assert n == {"lut_parameters": 0, "metric_resolutions": 0, "response_sensitivity": 0}
 
 
@@ -448,7 +457,7 @@ def test_resolution_computed_once_per_call(declared_eps):
     _, spec, snap = declared_eps
     reqs = requests_of(spec)
     with count_calls(lut_parameters, metric_resolutions) as n:
-        metrics_ss(_pv(with_ss(snap, _ss_eps(EPS7), version="once"), ex7_passives()), reqs)
+        _mss(_pv(with_ss(snap, _ss_eps(EPS7), version="once"), ex7_passives()), reqs)
     assert n["lut_parameters"] == 1
     assert n["metric_resolutions"] == 4
 
@@ -457,8 +466,8 @@ def test_epsilon_change_recomputes_and_scales_exactly(declared_eps):
     """lut_rel_tol 만 두 배 -> 블록 재계산(입력 버전이 바뀜), 값 그대로, 분해능 정확히 두 배(R-3, 이 예는 value = lut)."""
     _, spec, snap = declared_eps
     reqs = requests_of(spec)
-    a = metrics_ss(_pv(snap, ex7_passives()), reqs)
-    b = metrics_ss(with_ss(a, _ss_eps(2.0 * EPS7), version="eps2"), reqs)
+    a = _mss(_pv(snap, ex7_passives()), reqs)
+    b = _mss(with_ss(a, _ss_eps(2.0 * EPS7), version="eps2"), reqs)
     assert b is not a
     ea, eb = a.value("graph", METRICS_KEY, "metrics_ss"), b.value("graph", METRICS_KEY, "metrics_ss")
     for (q, ra), (_, rb) in zip(ea.entries, eb.entries):
@@ -538,7 +547,7 @@ def test_ex8_unity_both_pm_metrics_undefined_rhp(tmp_path):
     td, spec, snap, pv = _cross_case(tmp_path, base7=False)
     v = {c.metric: c.view for c in spec.constraints}
     assert v["pm_ss_deg"].mode == "loop" and v["pm_ss_deg"].beta == "unity"        # 입력 확인
-    m = bundle_map(metrics_ss(_pv(snap, pv), requests_of(spec)).value("graph", METRICS_KEY, "metrics_ss"))
+    m = bundle_map(_mss(_pv(snap, pv), requests_of(spec)).value("graph", METRICS_KEY, "metrics_ss"))
     d = closed_ex8()
     for q in ("pm_ss_deg", "parasitic_pm_ss_deg"):
         _assert_pm_rhp(m[q], d["poles"][1])
@@ -558,7 +567,7 @@ def test_ex8a_beta_loop_and_port_pm_both_undefined_rhp(tmp_path):
     td, spec, snap, pv = _cross_case(tmp_path, base7=True, feedback=("Cf",))
     v = {c.metric: c.view for c in spec.constraints}
     assert v["pm_ss_deg"].mode == "loop" and v["pm_ss_deg"].beta == "declared"     # 입력 확인
-    m = bundle_map(metrics_ss(_pv(snap, pv), requests_of(spec)).value("graph", METRICS_KEY, "metrics_ss"))
+    m = bundle_map(_mss(_pv(snap, pv), requests_of(spec)).value("graph", METRICS_KEY, "metrics_ss"))
     _assert_pm_rhp(m["pm_ss_deg"], closed_ex8a(EX8["gx2"])["poles"][1])
     cp, g2, g5, c5 = EX7["cl"] + EX7["cf"], 2.0 * EX8["gds"], EX8["gds"], EX8["c"]
     port_rhp = quad_roots(cp * c5, g2 * c5 + g5 * cp, g2 * g5 - EX8["gx2"])[1]
@@ -594,7 +603,7 @@ GAIN_DIFF = {"ac_excite": {"ip": 0.5, "im": -0.5}, "sense_p": "op", "sense_n": "
 def _cm_run(case, metrics=None):
     td, spec, snap, pv, v = case
     reqs = requests_of(spec, metrics)
-    out = metrics_ss(_pv(snap, pv), reqs)
+    out = _mss(_pv(snap, pv), reqs)
     return out, reqs, out.value("graph", METRICS_KEY, "metrics_ss")
 
 
@@ -749,10 +758,10 @@ def test_cm_reuse_and_shared_system_s28(cm_direct):
     """S-28: 같은 입력 두 번 -> computes 0(`is`), reports·warnings 같음; 선언 요청과 보고가 같은 절단 계를 공유 -> systems 1."""
     td, spec, snap, pv, _ = cm_direct
     reqs = requests_of(spec)
-    metrics_ss.reset_stats()
-    s1 = metrics_ss(_pv(snap, pv), reqs)
-    s2 = metrics_ss(s1, reqs)
-    assert s2 is s1 and metrics_ss.stats().computes == 1
+    run = fresh_run()
+    s1 = _mss(_pv(snap, pv), reqs, run=run)
+    s2 = _mss(s1, reqs, run=run)
+    assert s2 is s1 and _mss_row(run)[4] == 1               # card B C1 실행 계수 computes
     b = s1.value("graph", METRICS_KEY, "metrics_ss")
     assert dict(b.detail)["systems"] == 1
 
@@ -813,7 +822,7 @@ def _noise_run(case, noise):
     _td, spec, snap = case
     reqs = requests_of(spec)
     extras = (reqs,) + ((noise,) if noise is not None else ())
-    return metrics_ss(_pv(snap, ex7_passives()), *extras).value("graph", METRICS_KEY, "metrics_ss")
+    return _mss(_pv(snap, ex7_passives()), *extras).value("graph", METRICS_KEY, "metrics_ss")
 
 
 def _closed_ex7_noise():
@@ -830,7 +839,7 @@ def _closed_ex7_noise():
     return th_in, math.sqrt(v2)
 
 
-def test_noise_metrics_through_metrics_ss(tmp_path):
+def test_noise_metrics_through__mss(tmp_path):
     b = _noise_run(_noise_case(tmp_path), _noise_input())
     got = bundle_map(b)
     th_in, v_out = _closed_ex7_noise()

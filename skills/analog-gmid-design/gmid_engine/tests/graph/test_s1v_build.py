@@ -34,31 +34,43 @@ CMFB_SE = H.topo("cmfb_se", tuple((e["name"], e["kind"], e["drain"], e["gate"], 
 def test_count_budget_must_be_positive_int(tmp_path, budget):
     s1, _ = H.build(tmp_path, H.CS)
     with pytest.raises(TypeError):
-        build_s1v(s1, None, count_budget=budget)
+        build_s1v(s1, None, count_budget=budget, **H.fresh_run())
 
 
 def test_count_budget_is_keyword_only(tmp_path):
     s1, _ = H.build(tmp_path, H.CS)
     with pytest.raises(TypeError):
-        build_s1v(s1, None, H.BIG_BUDGET)          # noqa -- 위치 인자 금지(시그니처 `*, count_budget`)
+        build_s1v(s1, None, H.BIG_BUDGET, **H.fresh_run())          # noqa -- 위치 인자 금지(시그니처 `*, count_budget`)
+
+
+@pytest.mark.parametrize("missing", ["donors", "counters", "both"])
+def test_run_pair_keywords_required(tmp_path, missing):
+    """B-T16(XRUN-F1 card B C6): build_s1v 의 donors·counters 는 필수 키워드(기본값 없음) -- 빠지면 TypeError."""
+    s1, _ = H.build(tmp_path, H.CS)
+    kw = {k: v for k, v in H.fresh_run().items() if missing != "both" and k != missing}
+    with pytest.raises(TypeError):
+        build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, **kw)
 
 
 def test_deterministic_and_field_reuse(tmp_path):
     """[U17 ①-b] 옛 `previous=` 인자(같은 키면 그 객체 `is`)는 설계 40 v1.9.1 §2.4.2 로 없어졌다 -- 재사용은 계산 블록 입력 버전으로 한다
     ('입력 버전이 같으면 다시 계산하지 않는다'). 같은 입력의 두 결과는 S1v 필드 값이 같고(결정론), S1v 필드가 이미 있는 S1Graph 위에 같은
-    입력으로 다시 부르면 블록 `s1v_fields` 는 계산하지 않고(computes 0, reuses 1) 같은 스냅샷을 돌려준다. 예산이 다르면 다시 계산한다."""
+    입력으로 다시 부르면 블록 `s1v_fields` 는 계산하지 않고(computes 0, reuses 1) 같은 스냅샷을 돌려준다. 예산이 다르면 다시 계산한다.
+    [XRUN-F1 card B C1] 계수 = 실행 계수(open_run() 의 RunCounters)의 구간 증분."""
     from gmid_engine.graph import s1v_fields
     s1, first = H.build(tmp_path, H.CMFB)
     fields = ("views", "l_classes", "findings", "declared", "applied_facts")
-    again = H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False))
+    again = H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, **H.fresh_run()))
     assert [getattr(again, f) for f in fields] == [getattr(first, f) for f in fields]
-    s1v_fields.reset_stats()
-    reused = build_s1v(first.graph, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False)
-    st = s1v_fields.stats()
-    assert (st.computes, st.reuses) == (0, 1)
+    run = H.fresh_run()
+    reused = build_s1v(first.graph, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, **run)
+    c = run["counters"]
+    row = [r for r in c.snapshot().blocks if r.block == s1v_fields.name]
+    assert len(row) == 1 and (row[0].computes, row[0].reuses) == (0, 1)
     assert reused.snapshot is first.graph.snapshot
-    other = build_s1v(first.graph, None, count_budget=H.BIG_BUDGET + 1, stop_on_unsupported=False)
-    assert s1v_fields.stats().computes == 1 and other.snapshot is not first.graph.snapshot
+    other = build_s1v(first.graph, None, count_budget=H.BIG_BUDGET + 1, stop_on_unsupported=False, **run)
+    row = [r for r in c.snapshot().blocks if r.block == s1v_fields.name]
+    assert row[0].computes == 1 and other.snapshot is not first.graph.snapshot
 
 
 STOPPERS = [
@@ -172,8 +184,9 @@ def _lib_facts(name, *rows):
     st = J.facts(*rows)
     from gmid_engine.authoring import load_topology
     from gmid_engine.graph import build_s1
-    s1 = build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), structure=st)
-    return H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=st))
+    run = H.fresh_run()                    # [XRUN-F1 card B C6] S1·S1v = 실행 하나
+    s1 = build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), structure=st, **run)
+    return H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=st, **run))
 
 
 def _review(s1v, code):

@@ -1,0 +1,146 @@
+{
+ "id": "20261016-xrunf1b",
+ "round": 4,
+ "target": "472bc864 (integ/xrunf1b-r4)",
+ "per_dir": {
+  "_top": {
+   "tests": 2,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 4.4
+  },
+  "authoring": {
+   "tests": 1547,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 59.2
+  },
+  "convergence": {
+   "tests": 96,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 824.1
+  },
+  "core": {
+   "tests": 1085,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 57.8
+  },
+  "generality": {
+   "tests": 802,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 218.7
+  },
+  "graph": {
+   "tests": 1934,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 118.0
+  },
+  "integration": {
+   "tests": 490,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 2346.8
+  },
+  "layout": {
+   "tests": 529,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 2,
+   "time_s": 71.4
+  },
+  "lut": {
+   "tests": 1049,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 440.4
+  },
+  "metrics": {
+   "tests": 1213,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 50.5
+  },
+  "pipeline": {
+   "tests": 84,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 32.6
+  },
+  "search": {
+   "tests": 578,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 442.0
+  },
+  "sizing": {
+   "tests": 818,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 55.7
+  },
+  "structure": {
+   "tests": 67,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0,
+   "time_s": 69.8
+  }
+ },
+ "total": {
+  "tests": 10294,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 2,
+  "time_s": 4791.4
+ },
+ "passed": 10292,
+ "xfailed": 2,
+ "deselected": 1,
+ "deselected_note": "structure 규칙 H 마커(설정 기본 제외, base 와 같음)",
+ "progress": [
+  "start _top 18:55:30 free_kb=3425268",
+  "end _top rc=0 sec=6 free_kb=3394144 18:55:38 | 2 passed in 4.42s",
+  "start authoring 18:55:38 free_kb=3407296",
+  "end authoring rc=0 sec=62 free_kb=2869004 18:56:42 | 1547 passed in 59.41s",
+  "start convergence 18:56:42 free_kb=2883172",
+  "end convergence rc=0 sec=829 free_kb=3947484 19:10:32 | 96 passed in 824.10s (0:13:44)",
+  "start core 19:10:32 free_kb=3948928",
+  "end core rc=0 sec=60 free_kb=3865444 19:11:33 | 1085 passed in 57.85s",
+  "start generality 19:11:33 free_kb=3861908",
+  "end generality rc=0 sec=225 free_kb=3781040 19:15:20 | 802 passed in 218.72s (0:03:38)",
+  "start graph 19:15:20 free_kb=3789236",
+  "end graph rc=0 sec=121 free_kb=3782488 19:17:22 | 1934 passed in 118.16s (0:01:58)",
+  "start layout 19:17:22 free_kb=3781504",
+  "end layout rc=0 sec=74 free_kb=3834112 19:18:37 | 527 passed, 2 xfailed in 71.37s (0:01:11)",
+  "start lut 19:18:37 free_kb=3831312",
+  "end lut rc=0 sec=444 free_kb=4798944 19:26:03 | 1049 passed, 4 warnings in 440.49s (0:07:20)",
+  "start metrics 19:26:03 free_kb=4805500",
+  "end metrics rc=0 sec=57 free_kb=4859328 19:27:02 | 1213 passed, 24 warnings in 50.51s",
+  "start pipeline 19:27:02 free_kb=4865404",
+  "end pipeline rc=0 sec=34 free_kb=4848132 19:27:38 | 84 passed in 32.63s",
+  "start search 19:27:38 free_kb=4848216",
+  "end search rc=0 sec=451 free_kb=4611984 19:35:10 | 578 passed, 8 warnings in 442.04s (0:07:22)",
+  "start sizing 19:35:10 free_kb=4622160",
+  "end sizing rc=0 sec=60 free_kb=4580432 19:36:11 | 818 passed, 3 warnings in 55.77s",
+  "start structure 19:36:12 free_kb=4585928",
+  "end structure rc=0 sec=71 free_kb=4584088 19:37:24 | 67 passed, 1 deselected in 69.82s (0:01:09)",
+  "start integration 19:37:24 free_kb=4583380",
+  "end integration rc=0 sec=2349 free_kb=4933228 20:16:34 | 490 passed in 2346.86s (0:39:06)"
+ ]
+}

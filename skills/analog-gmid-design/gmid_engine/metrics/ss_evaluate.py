@@ -30,10 +30,13 @@
 * 블록 순서: `passive_values(element_values, zero_cancel, theta_passive_pairs(θ))` -> `ss_dev(lut)` -> `metrics_ss(requests)` -> `metrics_dc(counted_rails)`.
   입력 버전이 같으면 재사용, FD 로 θ 한 성분이 바뀌면 그 성분을 읽는 블록만 다시: DC 성분이면 dc_op·dc_gm 을 읽는 블록(바뀌지 않은 소자의
   LUT 조회는 memo 적중), θ 수동소자 성분이면 `ss_dev` 재사용·`passive_values`·`metrics_ss`·`metrics_dc` 만.
+* 블록 호출은 모두 `ctx.donors`·`ctx.counters`(`KernelContext` 의 실행 하나 색인·계수)로 부른다. 후보 실패 클래스(이름으로 잡는다)가 나면 그 블록에 들어간 스냅샷을
+  부분 스냅샷(`exc.partial`)으로 붙여 다시 낸다(`core.attach_partial`, 설계 40 §2.4.7).
 * 재사용은 필드가 든 lineage 에서만 일어난다(core 6.2): 결과 `lineage`(ss 필드를 담은 `DcEvaluation`)를 다음 `size_and_seal` 의
   parent 로, 같은 θ 를 다시 볼 때는 `ss_evaluate(lineage.sealed, ...)` 로 넘긴다. 그 lineage 에서 `size_and_seal` 이 낸 스냅샷에는
   앞 점의 ss 필드가 입력 버전과 함께 남아 있다 -- `ss_evaluate` 를 거치기 전에는 읽지 않는다(값의 정본은 이 함수의 결과).
 """
+from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, attach_partial
 from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, DcEvaluation, KernelContext, SealedSnapshot, Theta, check_theta
 
 from .dc_metrics import metrics_dc
@@ -91,18 +94,24 @@ def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, 
     registry = metric_registry()
     aux_requests = tuple(r for r in requests if registry[r.metric].source_type in AUX_TYPES)
     ss_requests = tuple(r for r in requests if registry[r.metric].signature.view_kind is not None and r not in aux_requests)
-    snapshot = passive_values(sealed.snapshot, ctx.inputs.element_values, schema.zero_cancel, theta_passive_pairs(theta.values))
-    snapshot = ss_dev(snapshot, ctx.lut, junction, *((diffusion,) if diffusion else ()))
-    noisy = any(registry[r.metric].source_type is NoiseAnalysis for r in ss_requests)
-    extra = (noise_devices(snapshot, ctx.lut, junction, NoiseDecl() if noise_decl is None else noise_decl),) if noisy else ()
-    snapshot = metrics_ss(snapshot, ss_requests, *extra)
-    bundle = snapshot.value("graph", METRICS_KEY, "metrics_ss")
-    views = () if structure is None else _transfer_views(requests, registry)
-    if aux_requests or views:
-        ugf = next((res.value for req, res in bundle.entries if req.metric == UGF_METRIC and res.value is not None), None)
-        snapshot = metrics_aux(snapshot, aux_requests, ctx.lut, mismatch, structure, ctx.inputs.node_targets, ctx.inputs.input_dc_v,
-                               ctx.inputs.linear_devices, views, ugf, driving)
-        bundle = _merged(bundle, snapshot.value("graph", METRICS_KEY, "metrics_aux"))
-    snapshot = metrics_dc(snapshot, tuple(counted_rails), *(() if area_decl is None else (area_decl,)))
+    keys = {"donors": ctx.donors, "counters": ctx.counters}      # 실행 하나의 블록 결과 색인·계수 -- 모든 블록 호출에 같은 객체
+    snapshot = sealed.snapshot
+    try:
+        snapshot = passive_values(snapshot, ctx.inputs.element_values, schema.zero_cancel, theta_passive_pairs(theta.values), **keys)
+        snapshot = ss_dev(snapshot, ctx.lut, junction, *((diffusion,) if diffusion else ()), **keys)
+        noisy = any(registry[r.metric].source_type is NoiseAnalysis for r in ss_requests)
+        extra = (noise_devices(snapshot, ctx.lut, junction, NoiseDecl() if noise_decl is None else noise_decl),) if noisy else ()
+        snapshot = metrics_ss(snapshot, ss_requests, *extra, **keys)
+        bundle = snapshot.value("graph", METRICS_KEY, "metrics_ss")
+        views = () if structure is None else _transfer_views(requests, registry)
+        if aux_requests or views:
+            ugf = next((res.value for req, res in bundle.entries if req.metric == UGF_METRIC and res.value is not None), None)
+            snapshot = metrics_aux(snapshot, aux_requests, ctx.lut, mismatch, structure, ctx.inputs.node_targets, ctx.inputs.input_dc_v,
+                                   ctx.inputs.linear_devices, views, ugf, driving, **keys)
+            bundle = _merged(bundle, snapshot.value("graph", METRICS_KEY, "metrics_aux"))
+        snapshot = metrics_dc(snapshot, tuple(counted_rails), *(() if area_decl is None else (area_decl,)), **keys)
+    except CANDIDATE_FAILURE_CLASSES as exc:
+        attach_partial(exc, snapshot)        # ss 단계 부분 스냅샷 = 실패 직전까지 쓴 스냅샷(그 블록에 들어간 것, 적어도 봉인 스냅샷) -- 설계 40 §2.4.7
+        raise
     lineage = DcEvaluation(snapshot, sealed.report, SealedSnapshot(snapshot, sealed.report))
     return SsEvaluation(snapshot, bundle, snapshot.value("graph", METRICS_KEY, "metrics_dc"), lineage)

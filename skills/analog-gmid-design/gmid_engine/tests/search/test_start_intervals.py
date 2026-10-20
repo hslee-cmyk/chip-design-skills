@@ -170,7 +170,10 @@ def test_without_s1v_start_is_none_and_layer0_uses_box_centre(tmp_path):
     c = toy_case(cs_chain(2), elements=TOY_ELS, constraints=TOY_CONS)
     tp, _sp = write_case(tmp_path, cs_chain(2), elements=TOY_ELS, constraints=TOY_CONS, count_budget=10 ** 6)
     inputs = dc_inputs_from_spec(c.spec)
-    kctx = build_kernel_context(build_s1(load_topology(str(tp)), dict(inputs.supplies_v)), inputs, c.kctx.lut)
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C0·C6] S1v 없는 커널 컨텍스트 = 새 실행 하나
+    kctx = build_kernel_context(build_s1(load_topology(str(tp)), dict(inputs.supplies_v), donors=donors, counters=counters), inputs,
+                                c.kctx.lut, donors=donors, counters=counters)
     sctx = build_search_context(kctx, c.spec, c.settings, None, c.pdk, c.rule, code_fp=CODE_FP)
     assert start_of(sctx) is None and sctx.rungs is None
     res = layer0_start(sctx)

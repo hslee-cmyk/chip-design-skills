@@ -50,17 +50,22 @@ BLOCKS = (s1_structure, s1_bulk, s1_dc_conduction, s1_gs_groups, s1_branches, s1
           s1_rel_matching, s1_matching_groups, s1_gvgs, s1_columns, s1_rel_kcl)
 
 
-def _s1(gh, name, **kw):
-    return build_s1(gh.load_lib(name), gh.supplies_for(name), **kw)
+def _s1(gh, name, run=None, **kw):
+    """[XRUN-F1 card B C0·C6] run = 실행 두 객체 키워드(dict), 없으면 새 실행 하나."""
+    return build_s1(gh.load_lib(name), gh.supplies_for(name), **(run if run is not None else gh.fresh_run()), **kw)
 
 
-def _stats():
-    return {b.name: b.stats() for b in BLOCKS}
+def _stats(gh, run):
+    """card B C1 실행 계수의 블록 행 -> (calls, reuses, computes)(옛 블록 객체 stats 대체 -- 블록은 상태가 없다, C4)."""
+    out = {}
+    for b in BLOCKS:
+        row = gh.block_row(run["counters"], b.name)
+        out[b.name] = (row[0], row[1], row[4])
+    return out
 
 
 def _delta(before, after):
-    return {k: (after[k].calls - before[k].calls, after[k].reuses - before[k].reuses,
-                after[k].computes - before[k].computes) for k in before}
+    return {k: tuple(y - x for x, y in zip(before[k], after[k])) for k in before}
 
 
 @pytest.mark.parametrize("name", NINE)
@@ -130,7 +135,7 @@ def test_orphan_branch_recorded_not_stopped(gh, tmp_path):
     raw["netlist"].append({"name": "Mleaf", "kind": "nmos", "drain": "dleaf", "gate": gate, "source": "vss"})
     o = gh.oracle(raw)
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    s1 = build_s1(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"))
+    s1 = build_s1(gh.load_raw(tmp_path, raw), gh.supplies_for("pushpull_follower_buffer"), **gh.fresh_run())
     orphans = gh.gval(s1, "column_orphans")
     assert tuple(gh.astuple(x) for x in orphans) == o.column_orphans
     assert len(orphans) == 1 and gh.astuple(orphans[0])[1] == "review_needed"
@@ -176,16 +181,17 @@ def test_column_limit_not_in_key(gh):
 
 def test_previous_and_column_limit(gh):
     # 7.6: limit 없이 만든 S1 을 previous 로 limit=1 -> 반환하지 않고 정지(s1_columns 만 compute), limit=3 -> 같은 객체
+    run = gh.fresh_run()
     doc = gh.load_lib("two_stage_ota")
     sv = gh.supplies_for("two_stage_ota")
-    s1 = build_s1(doc, sv)
-    before = _stats()
-    assert build_s1(doc, sv, previous=s1, column_limit=3) is s1
-    assert all(v == (0, 0, 0) for v in _delta(before, _stats()).values())
-    before = _stats()
-    d, _ = gh.stop(lambda: build_s1(doc, sv, previous=s1, column_limit=1))
+    s1 = build_s1(doc, sv, **run)
+    before = _stats(gh, run)
+    assert build_s1(doc, sv, previous=s1, column_limit=3, **run) is s1
+    assert all(v == (0, 0, 0) for v in _delta(before, _stats(gh, run)).values())
+    before = _stats(gh, run)
+    d, _ = gh.stop(lambda: build_s1(doc, sv, previous=s1, column_limit=1, **run))
     assert d["rule_branch"] == "column_enumeration_over_budget"
-    delta = _delta(before, _stats())
+    delta = _delta(before, _stats(gh, run))
     assert delta["s1_columns"] == (1, 0, 1)
     for name, v in delta.items():
         if name not in ("s1_columns", "s1_rel_kcl"):
@@ -201,12 +207,13 @@ def test_block_declaration():
 
 
 def test_direct_call_extras(gh):
-    s1 = _s1(gh, "two_stage_ota")
-    before = s1_columns.stats()
-    assert s1_columns(s1.snapshot, None) is s1.snapshot                 # 같은 extras -> reuse
-    after = s1_columns.stats()
-    assert (after.reuses - before.reuses, after.computes - before.computes) == (1, 0)
-    snap = s1_columns(s1.snapshot, 10)                                   # extras 다르면 재계산, 값은 같다
+    run = gh.fresh_run()
+    s1 = _s1(gh, "two_stage_ota", run)
+    before = _stats(gh, run)["s1_columns"]
+    assert s1_columns(s1.snapshot, None, **run) is s1.snapshot           # 같은 extras -> reuse
+    after = _stats(gh, run)["s1_columns"]
+    assert (after[1] - before[1], after[2] - before[2]) == (1, 0)
+    snap = s1_columns(s1.snapshot, 10, **run)                            # extras 다르면 재계산, 값은 같다
     assert snap.value("graph", "s1", "columns") == gh.gval(s1, "columns")
     with pytest.raises(TypeError):
-        s1_columns(s1.snapshot, [3])
+        s1_columns(s1.snapshot, [3], **run)

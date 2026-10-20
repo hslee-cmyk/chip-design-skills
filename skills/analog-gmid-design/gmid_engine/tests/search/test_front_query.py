@@ -16,7 +16,8 @@ from .conftest import build_case, circuit_c, col, node_v, theta_r4c
 OP_FIELDS = ("vgs", "vds", "vsb", "current", "gm_id", "W", "L")
 
 
-@pytest.fixture(scope="module")
+# [XRUN-F1 card B 규칙 M M-d] case(커널·탐색 컨텍스트 = 실행의 두 객체를 칸으로 쥠)를 돌려주므로 function 범위(test 하나 = 실행 하나)
+@pytest.fixture
 def run(tmp_path_factory, lut_sealed):
     import os
     import shutil

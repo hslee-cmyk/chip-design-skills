@@ -13,7 +13,9 @@ from gmid_engine.metrics import MetricRequest, metrics_dc, ss_dev
 from gmid_engine.sizing import METRICS_DC_WRITER, METRICS_KEY, S2_WRITERS, DcInputs, build_kernel_context
 
 from .conftest import (
+    block_row,
     device_op,
+    fresh_run,
     hand_ss,
     hand_write,
     load_lut_v2,
@@ -50,7 +52,8 @@ def snap(tmp_path_factory):
     td = topo_only(tmp_path_factory.mktemp("dcm"), _topo())
     lut = load_lut_v2(tmp_path_factory.mktemp("dcm_lut"))
     inputs = DcInputs(tuple(sorted(SUP.items())), element_values=(("CL", None), ("I1", 2e-6), ("R1", None)))
-    ctx = build_kernel_context(build_s1(td, SUP), inputs, lut_access(lut))
+    run = fresh_run()                 # [XRUN-F1 card B] 지역 실행 -- 손 입력 스냅샷만 돌려준다(두 객체는 남기지 않는다)
+    ctx = build_kernel_context(build_s1(td, SUP, **run), inputs, lut_access(lut), **run)
     s = ctx.base
     s = hand_write(s, "device", "dc_current", CUR)
     s = hand_write(s, "node", "dc_v", VOLT)
@@ -64,8 +67,9 @@ def with_passive_value(s, passives):
     return hand_write(s, "device", "passive_value", dict(passives), version="hand_pv:%r" % (tuple(sorted(passives)),))
 
 
-def _bundle(s, passives=(("CL", 1e-12), ("R1", R1)), counted=()):
-    out = metrics_dc(with_passive_value(s, passives), counted)
+def _bundle(s, passives=(("CL", 1e-12), ("R1", R1)), counted=(), run=None):
+    """run = 실행 두 객체 키워드(dict, card B C4), 없으면 새 실행 하나."""
+    out = metrics_dc(with_passive_value(s, passives), counted, **(run if run is not None else fresh_run()))
     return out, out.value("graph", METRICS_KEY, "metrics_dc")
 
 
@@ -175,17 +179,17 @@ def test_resistor_value_drives_rail_current(snap):
 
 def test_reuse_and_independence_from_ss(snap):
     """같은 입력 -> `is`. ss_dev 열만 바뀐 스냅샷 -> 재사용(소신호 값을 읽지 않음). counted_rails 가 바뀌면 재계산."""
-    metrics_dc.reset_stats()
-    s1, _ = _bundle(snap, counted=("vdd",))
-    s2, _ = _bundle(s1, counted=("vdd",))
+    # oracle 대조: card B C4 판정 1·4 -- 손 순서(compute, reuse, reuse, compute)의 실행 계수(C1) 행
+    run = fresh_run()
+    s1, _ = _bundle(snap, counted=("vdd",), run=run)
+    s2, _ = _bundle(s1, counted=("vdd",), run=run)
     assert s2 is s1
     s3 = with_ss(s1, {m: hand_ss(1e-3, 1e-5) for m in WL})
-    s4, _ = _bundle(s3, counted=("vdd",))
+    s4, _ = _bundle(s3, counted=("vdd",), run=run)
     assert s4 is s3
-    s5, _ = _bundle(s4, counted=("vdd", "vmid"))
+    s5, _ = _bundle(s4, counted=("vdd", "vmid"), run=run)
     assert s5 is not s4
-    st = metrics_dc.stats()
-    assert (st.computes, st.reuses, st.recomputes_same_input) == (2, 2, 0)
+    assert block_row(run["counters"], metrics_dc.name) == (4, 2, 0, 0, 2, 0)
 
 
 def test_ss_dev_not_required(snap):
@@ -213,8 +217,8 @@ U_C = 1.0 / 2e-3                        # m²/F -- 2 fF/µm² 의 역수(구성 
 CL_F = 1e-12
 
 
-def _bundle_decl(s, decl, passives=(("CL", CL_F), ("R1", R1)), counted=("vdd",)):
-    out = metrics_dc(with_passive_value(s, passives), counted, decl)
+def _bundle_decl(s, decl, passives=(("CL", CL_F), ("R1", R1)), counted=("vdd",), run=None):
+    out = metrics_dc(with_passive_value(s, passives), counted, decl, **(run if run is not None else fresh_run()))
     return out, out.value("graph", METRICS_KEY, "metrics_dc")
 
 
@@ -235,7 +239,7 @@ def _with_tol_gm(s):
 
 def test_u17_gate_area_and_power_resolution_fields(snap):
     s, gm = _with_tol_gm(snap)
-    out = metrics_dc(with_passive_value(s, (("CL", CL_F), ("R1", R1))), ("vdd",))
+    out = metrics_dc(with_passive_value(s, (("CL", CL_F), ("R1", R1))), ("vdd",), **fresh_run())
     assert S2_WRITERS.writer_of("graph", "gate_area_m2") == S2_WRITERS.writer_of("graph", "power_resolution_w") == "metrics_dc"
     assert rel_close(out.value("graph", METRICS_KEY, "gate_area_m2"), EXP_AREA, 1e-12)
     want = 1.8 * TOL_V["M2"] * gm["M2"]                            # 손: vdd 행만 정의, max over {M2}
@@ -245,12 +249,12 @@ def test_u17_gate_area_and_power_resolution_fields(snap):
 
 def test_u17_power_resolution_none_without_defined_rows(snap):
     """dc_tol_v 열이 없거나(합산할 행 없음) 레일에 닿는 MOS 의 tol 이 모두 None 이면 power_resolution_w = None; gate_area 는 그대로."""
-    out = metrics_dc(with_passive_value(snap, (("CL", CL_F), ("R1", R1))), ("vdd",))
+    out = metrics_dc(with_passive_value(snap, (("CL", CL_F), ("R1", R1))), ("vdd",), **fresh_run())
     assert out.value("graph", METRICS_KEY, "power_resolution_w") is None
     assert rel_close(out.value("graph", METRICS_KEY, "gate_area_m2"), EXP_AREA, 1e-12)
     s, _gm = _with_tol_gm(snap)
     s = hand_write(s, "device", "dc_tol_v", {"M1": 0.01, "M2": None, "M3": None, "M4": 0.005}, version="hand_tol2")
-    out2 = metrics_dc(with_passive_value(s, (("CL", CL_F), ("R1", R1))), ("vdd",))
+    out2 = metrics_dc(with_passive_value(s, (("CL", CL_F), ("R1", R1))), ("vdd",), **fresh_run())
     assert out2.value("graph", METRICS_KEY, "power_resolution_w") is None     # gnd 0 V 행만 정의 -> 합 0 -> None
 
 
@@ -296,12 +300,11 @@ def test_area_decl_excluded_resistor_keeps_power(snap):
 def test_area_decl_is_block_input(snap):
     """area_decl 이 바뀌면 재계산(옛 면적 재사용 금지), 같은 area_decl 이면 재사용."""
     from gmid_engine.metrics import PassiveAreaDecl
-    metrics_dc.reset_stats()
-    s1, b1 = _bundle_decl(snap, PassiveAreaDecl())
-    s2, b2 = _bundle_decl(s1, PassiveAreaDecl(unit_area=(("CL", U_C),)))
+    run = fresh_run()                 # oracle 대조: 손 순서(compute, compute, reuse)의 실행 계수(card B C1) 행
+    s1, b1 = _bundle_decl(snap, PassiveAreaDecl(), run=run)
+    s2, b2 = _bundle_decl(s1, PassiveAreaDecl(unit_area=(("CL", U_C),)), run=run)
     assert s2 is not s1
     assert _entries(b2)["area_search_m2"].value != _entries(b1)["area_search_m2"].value
-    s3, _ = _bundle_decl(s2, PassiveAreaDecl(unit_area=(("CL", U_C),)))
+    s3, _ = _bundle_decl(s2, PassiveAreaDecl(unit_area=(("CL", U_C),)), run=run)
     assert s3 is s2
-    st = metrics_dc.stats()
-    assert (st.computes, st.reuses, st.recomputes_same_input) == (2, 1, 0)
+    assert block_row(run["counters"], metrics_dc.name) == (3, 1, 0, 0, 2, 0)

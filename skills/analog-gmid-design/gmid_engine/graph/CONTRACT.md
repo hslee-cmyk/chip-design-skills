@@ -52,7 +52,10 @@
 
 U2~U4 블록 10개는 서로 import 하지 않는다(값은 graph 필드로만 전달). 어느 것도 `device.bulk`·supplies 를 읽지 않는다.
 
-## 1. `build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None, marks=NO_MARKS) -> S1Graph`
+## 1. `build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None, marks=NO_MARKS, donors, counters) -> S1Graph`
+
+- [XRUN-F1 B] `donors`·`counters` = **필수 키워드**(기본값 없음, 빠지면 `TypeError`) -- 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수(core 6.2·6.3). 13개 계산 블록에
+  `donors=donors, counters=counters` 로 넘긴다. `previous` 가 없어도 같은 실행에서 같은 입력은 색인에서 이식된다(계산 0).
 
 - `marks` [U17-1d] = `SymmetryMarks`(사람 선언 표시 -- 입력 DC·원소 값·engine·선형 영역·노드 목표, 단계 A 는 `sizing.symmetry_marks(dc_inputs_from_spec(spec))`).
   `SymmetryMarks` 가 아니면 `TypeError`. 지문은 `S1Key.marks_fp`. 마지막 블록 `s1_symmetry(·, supplies, marks)`(4.8)가 이 표시를 읽는다.
@@ -75,8 +78,8 @@ U2~U4 블록 10개는 서로 import 하지 않는다(값은 graph 필드로만 �
   - supplies_v 만 바꿔 `previous` 를 넘기면 `s1_bulk` 와 `s1_symmetry`(레일 전위 표시·bulk 를 읽는다) 만 compute, 나머지 11 블록은 reuse(입력 버전 같음). node 레코드는
     모두 이전 스냅샷과 같은 객체, device 레코드는 bulk 필드가 바뀌는 MOS 만 새 객체.
   - `column_limit` 만 바꾸면(키 같음, 이전 기둥 수가 새 상한 초과) `s1_columns` 만 compute.
-  - `previous` 없이 같은 doc 으로 두 번 부르면 두 번 계산하고 각 블록 `stats().recomputes_same_input` 이 1 오른다
-    (정상 파이프라인 기대값 0 -- 호출자가 이전 S1 을 넘겨야 한다. graph 밖 memo 는 두지 않는다).
+  - `previous` 없이 같은 doc 으로 두 번 부르면 같은 실행(같은 `donors`)에서는 두 번째가 블록 결과 색인에서 이식된다(각 블록 행 `grafts` +1, `computes` 불변,
+    `recomputes_same_input` 0). 다른 실행(다른 `open_run()` 쌍)과는 아무것도 나누지 않아 처음 계산한다.
   - 연결 투영이 같으면(`_` 주석만 바뀐 파일, 태그 키 삭제, netlist 순서 섞기) 키가 같다(`connectivity_fp` 동일).
 - 실패:
   - supplies_v 위반 -> `SchemaRejectedError`(2절).
@@ -444,7 +447,7 @@ review_needed 는 정지가 아니라 기록이다(DcRole 묶음·matching_offse
 
 - `terminal_index(devices, passives, sources)` -> 넷 이름순 `((넷, ((원소, 단자), ...)), ...)`. bulk 미포함.
 - `static_ac_ground(index, rails, input_nets)` -> index 넷 순서 그대로 `((넷, 분류|None), ...)`(4.1 규칙).
-- 계산 블록(core `ComputeBlock`, `stats()`·`reset_stats()`): `s1_structure(snapshot, devices, passives, sources, rails, ports)`,
+- 계산 블록(core `ComputeBlock`; 호출은 `block(snapshot, *extras, donors, counters)`, core 6.2): `s1_structure(snapshot, devices, passives, sources, rails, ports)`,
   `s1_bulk(snapshot, supplies)`, `s1_dc_conduction(snapshot)`, `s1_gs_groups(snapshot)`, `s1_branches(snapshot)`,
   `s1_dc_roles(snapshot)`, `s1_rel_vgs(snapshot)`, `s1_rel_matching(snapshot)`, `s1_matching_groups(snapshot)`, `s1_gvgs(snapshot)`,
   `s1_columns(snapshot, column_limit)`, `s1_rel_kcl(snapshot)`. 직접 부를 때 extras 는 불변이어야 한다(core 6.2). 선행 블록 필드가
@@ -615,14 +618,14 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 [U17 ①-b] (설계 40 §2.4.2·§2.4.8 v1.9.1 D1) S1v 는 묶음 객체가 아니라 S0 수준 graph 필드다: 레코드 `("graph", S1V_KEY="s1v")` 의 `views`(ViewS1v tuple -- 블록·복합 블록·극점 노드·루프·끊는 점은
 뷰 안 칸), `l_classes`, `findings`(뷰 밖 기록), `declared`(((출처, stage 묶음 수), ...)), `applied_facts`((개념, 대상) tuple). writer = 계산 블록 `s1v_fields`(writer 이름 `build_s1v`,
 reads = S1 필드 전부 `S1_READS`, extras = (spec 판정 제약, N_S, declared, 사실, stale 기록, 선언 루프 끊는 넷)) -- 입력 버전이 같으면 재사용(옛 `previous`·`S1v.key` 재사용은 없앴다).
-권한표 `S1V_WRITERS` = `S1_WRITERS` + S1v 필드 + 결합 필드(11절). `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True) -> S1Graph`
+권한표 `S1V_WRITERS` = `S1_WRITERS` + S1v 필드 + 결합 필드(11절). `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True, donors, counters) -> S1Graph`
 (같은 S1 키, 스냅샷 권한표를 `S1V_WRITERS` 로 넓혀 블록을 부른 것; `s1` 은 권한표가 S1_WRITERS 를 덮는 S1Graph -- S0 수준 스냅샷 위의 것 포함). 기록 묶음은
 `s1v_findings(source) -> (all_findings, review_needed, unsupported)`(옛 `S1v.all_findings`·`review_needed`·`unsupported` 속성), 구조 표는 `structure_tables(source)`(필드를 읽는다 -- 옛 `key` 칸 없음,
 `facts_applied` -> `applied_facts`). `build_s1(previous=)` 는 권한표가 S1_WRITERS 를 **덮는** 스냅샷을 받는다(S0 수준 스냅샷 포함). 표는 이 단락과 같은 현재 서명이다.
 
 | 이름 | 설명 |
 |---|---|
-| `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True) -> S1Graph` | 진입점. `s1` = `build_s1` 결과(권한표가 `S1_WRITERS` 를 덮는 S1Graph), `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`). 결과는 S1v 필드를 쓴 같은 S1 키의 S1Graph(`previous` 인자·`S1v` 묶음 객체는 없다) |
+| `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True, donors, counters) -> S1Graph` | 진입점. `s1` = `build_s1` 결과(권한표가 `S1_WRITERS` 를 덮는 S1Graph), `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`). [XRUN-F1 B] `donors`·`counters` = 필수 키워드(`s1v_fields` 에 넘긴다, core 6.2·6.3). 결과는 S1v 필드를 쓴 같은 S1 키의 S1Graph(`previous` 인자·`S1v` 묶음 객체는 없다) |
 | `ViewS1v`, `ViewSeed`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `Finding`, `StructureFact`, `CellInfo`, `DriveInfo`, `PoleNode`, `PassBundle`, `OutputDirection` | frozen dataclass(`fp_of` 가능). 필드 뜻과 어휘(`Block.kind`·AC 역할·`DriveInfo.basis`·`LClass.owner_rule`·`OutputDirection.topology`·`unreduced_diff` 형식)는 `s1v_values.py` docstring 이 정본이고 10.5 에 요약한다 |
 | `load_structure_facts(path, topology_fp, rule_fp, net_names=()) -> StructureFacts` | `structure.json` ratified 사실 로더(파일 없음 = 사실 0, 형식 위반 = `SchemaRejectedError` gate `structure_json`, 해시 불일치 = 사실 미적용 + `structure_fact_stale` review_needed). [U1b] `schema_version`·concept 어휘·값 범위·`->` 모호 거부는 10.6 |
 | `structure_tables(source) -> dict` | `source`(S1v 필드를 가진 S1Graph)의 필드를 읽어 만든 JSON 으로 쓸 수 있는 구조 표(뷰·셀·구동 종류·블록·극점 노드·루프·L 동치류·기록) |
@@ -750,7 +753,7 @@ confirm 이 일치한 유도 레코드는 status 를 올린다: `dc_role` -> `Dc
 
 파일: `coupling_values.py`(값 형식·어휘), `column_block_map.py`(진입 `column_block_map(s1, views) -> (rows, bias_columns)`), `coupling_vars.py`(계산 블록 `coupling_vars`,
 writer `coupling_vars`: reads = S1 필드 전부 + `graph/s1v: views·l_classes`, writes S0 수준 필드 `("graph", COUPLING_KEY="coupling")`: `vars`·`column_block_map`(행 tuple)·`bias_columns`
--- [U17 ①-b] 설계 40 §2.4.8 v1.9.1 D8, 묶음 `Coupling`·`ColumnBlockMap` 없음). 호출자: `pipeline.run_stage_a` A4(필드를 읽어 보고서 `coupling` 키). 소비자: U15 층 0 조립(41 §5.5).
+-- [U17 ①-b] 설계 40 §2.4.8 v1.9.1 D8, 묶음 `Coupling`·`ColumnBlockMap` 없음). 호출자: `pipeline.run_stage_a` A4(`coupling_vars(snapshot, donors=, counters=)` -- 필수 키워드 둘은 단계 A 가 받은 실행 하나의 색인·계수, 필드를 읽어 보고서 `coupling` 키). 소비자: U15 층 0 조립(41 §5.5).
 `column_unassigned` 정지는 블록에서 전파된다(필드를 쓰지 않는다).
 
 ### 11.1 값 형식

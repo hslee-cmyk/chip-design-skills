@@ -160,10 +160,34 @@ class JsonAgg:
 
 
 def structure_and_bulk(doc, supplies_v=None):
-    """build_s1 순서(계약 1절)의 앞 두 블록만 직접 부른 스냅샷 -- U2 정지 전의 S1 기본 필드를 보려고."""
+    """build_s1 순서(계약 1절)의 앞 두 블록만 직접 부른 스냅샷 -- U2 정지 전의 S1 기본 필드를 보려고. [XRUN-F1 card B C4] 새 실행 하나."""
+    run = fresh_run()
     snap = s1_structure(GraphSnapshot.empty(S1_WRITERS), doc.devices, doc.passives, doc.sources,
-                        tuple(sorted(doc.rails)), doc.ports)
-    return s1_bulk(snap, supplies_declaration(supplies_v, doc.rails))
+                        tuple(sorted(doc.rails)), doc.ports, **run)
+    return s1_bulk(snap, supplies_declaration(supplies_v, doc.rails), **run)
+
+
+# ---- [XRUN-F1 card B C0·C1·C4] 실행 두 객체와 실행 계수 행(test 도구)
+COUNT_FIELDS = ("calls", "reuses", "grafts", "replays", "computes", "recomputes_same_input")
+
+
+def fresh_run():
+    """새 실행 하나의 두 객체 키워드(dict) -- 블록·build_s1·build_s1v 호출 `f(..., **run)`. 부를 때마다 새 open_run() 쌍."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return dict(donors=donors, counters=counters)
+
+
+def block_row(counters, name):
+    """실행 계수 (name, "*") 행의 여섯 칸 tuple(COUNT_FIELDS 순서), 기록이 없으면 0 여섯."""
+    for r in counters.snapshot().blocks:
+        if (r.block, r.part) == (name, "*"):
+            return tuple(getattr(r, f) for f in COUNT_FIELDS)
+    return (0,) * len(COUNT_FIELDS)
+
+
+def row_delta(after, before):
+    return tuple(a - b for a, b in zip(after, before))
 
 
 def ev_plain(e):
@@ -235,6 +259,8 @@ class Helpers:
     agg = staticmethod(JsonAgg)
     bulk_tuple = staticmethod(bulk_tuple)
     structure_and_bulk = staticmethod(structure_and_bulk)
+    fresh_run = staticmethod(fresh_run)          # [XRUN-F1 card B C0]
+    block_row = staticmethod(block_row)          # [XRUN-F1 card B C1]
     ev_plain = staticmethod(ev_plain)
     seg_plain = staticmethod(seg_plain)
     branch_plain = staticmethod(branch_plain)

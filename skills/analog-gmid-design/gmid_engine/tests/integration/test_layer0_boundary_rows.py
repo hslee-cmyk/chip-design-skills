@@ -22,7 +22,7 @@ from pathlib import Path
 from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a, run_stage_b
-from gmid_engine.search import SearchSettings, build_search_context, evaluate, layer0_start
+from gmid_engine.search import SearchSettings, build_search_context, evaluate, layer0_start, open_run
 from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
 
 SKILL = Path(__file__).resolve().parents[3]
@@ -68,11 +68,13 @@ def test_layer0_boundary_rows_positive_9circuits(tmp_path):
     bad, hard_mismatch, boundary, no_start = [], [], [], []
     for circuit in SEARCHED:
         out = tmp_path / circuit
-        a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), lut, output_dir=out)
+        donors, counters = open_run()      # [XRUN-F1 card B C6·규칙 M M-c] 회로마다(반복문 본문) 새 실행 하나 -- 단계 A·B·커널 컨텍스트가 같은 쌍
+        a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), lut, output_dir=out,
+                        donors=donors, counters=counters)
         memo = LutMemo(lut, point=1 << 16, curve=1 << 14, root=1 << 16)
         b = run_stage_b(a, memo, pdk, output_dir=out, diagnostic=True, settings=_settings())
         assert (a.status, b.status) == ("ok", "ok"), (circuit, a.status, b.status)
-        kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo))
+        kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo), donors=a.donors, counters=a.counters)
         sctx = build_search_context(kctx, a.spec, _settings(), None, pdk, rule, code_fp=a.code_fp)
         r = layer0_start(sctx)
         if r.start is None:                                # 층 0 이 시작점을 내지 못한 회로(실측 base: current_reuse_telescopic_ota

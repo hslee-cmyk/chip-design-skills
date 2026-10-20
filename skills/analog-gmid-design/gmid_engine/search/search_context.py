@@ -169,20 +169,22 @@ def _s0_blocks(dc_ctx, spec, settings, pdk_decl, lut_rule_decl, model_error):
                if d.metric == AXIS_AREA and d.op == "<=" and d.value is not None]
     lut = dc_ctx.lut
     base = dc_ctx.base.widen(S0_WRITERS)
+    donors, counters = dc_ctx.donors, dc_ctx.counters       # 단계 A 부터 이어진 실행 하나의 블록 결과 색인·계수(KernelContext 참조 칸)
     base = search_domain(base, lut, settings.resistance_bounds_ohm, settings.capacitance_bounds_f, pdk_decl, spec_bounds,
-                         min(budgets) if budgets else None, untie)
+                         min(budgets) if budgets else None, untie, donors=donors, counters=counters)
     _require_noise_data(dc_ctx, spec)                 # [U8] 잡음 제약이 있으면 LUT 잡음 r1 데이터 필수(설계 41 §7.2)
-    base = junction_field(base, pdk_decl, lut_rule_decl, lut)
-    base = mismatch_field(base, pdk_decl)
-    base = model_error_field(base, tuple(model_error))
-    base = constraint_classes(base, tuple(spec.judged_constraints))
-    base = passive_area_decl(base, tuple(sorted(e.name for e in spec.element_values if e.measurement_load)), pdk_decl)
-    base = metric_structure(base)
+    base = junction_field(base, pdk_decl, lut_rule_decl, lut, donors=donors, counters=counters)
+    base = mismatch_field(base, pdk_decl, donors=donors, counters=counters)
+    base = model_error_field(base, tuple(model_error), donors=donors, counters=counters)
+    base = constraint_classes(base, tuple(spec.judged_constraints), donors=donors, counters=counters)
+    base = passive_area_decl(base, tuple(sorted(e.name for e in spec.element_values if e.measurement_load)), pdk_decl,
+                             donors=donors, counters=counters)
+    base = metric_structure(base, donors=donors, counters=counters)
     testbench = spec.noise_testbench
     base = noise_decl(base, tuple(spec.feedback) if isinstance(spec.feedback, tuple) else None,
-                      () if testbench is None else tuple(c.element for c in testbench.sampling_caps))
+                      () if testbench is None else tuple(c.element for c in testbench.sampling_caps), donors=donors, counters=counters)
     if base.field("graph", S1V_KEY, "views") is not None:
-        base = start_intervals(base, spec, dc_ctx.inputs, pdk_decl, lut)
+        base = start_intervals(base, spec, dc_ctx.inputs, pdk_decl, lut, donors=donors, counters=counters)
     return base
 
 

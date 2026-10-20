@@ -1,0 +1,896 @@
+[
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/_module_map.py",
+  "parent": {
+   "bytes": 96799,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 1080,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 97087,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 1083,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/convergence/CONTRACT.md",
+  "parent": {
+   "bytes": 21252,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 187,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 21275,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 187,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/convergence/effective_placement.py",
+  "parent": {
+   "bytes": 2457,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 40,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 2468,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 40,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/CONTRACT.md",
+  "parent": {
+   "bytes": 64073,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 579,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 66203,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 590,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/__init__.py",
+  "parent": {
+   "bytes": 2159,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 63,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 2140,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 63,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/_helpers_alias.py",
+  "parent": {
+   "bytes": 7153,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 154,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 7149,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 154,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/_helpers_pattern.py",
+  "parent": {
+   "bytes": 2703,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 58,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 3956,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 82,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/_ly_fields.py",
+  "parent": {
+   "bytes": 3111,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 71,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 3871,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 83,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/canon_block.py",
+  "parent": null,
+  "child": {
+   "bytes": 7307,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 149,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/canonical_naming.py",
+  "parent": {
+   "bytes": 5913,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 105,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 1981,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 32,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/contract_output.py",
+  "parent": {
+   "bytes": 14314,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 399,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 15164,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 418,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/finger_candidates.py",
+  "parent": {
+   "bytes": 2606,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 49,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 2606,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 49,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/outputs.py",
+  "parent": {
+   "bytes": 4921,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 85,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 5080,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 86,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/pattern_select.py",
+  "parent": {
+   "bytes": 16472,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 295,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 16659,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 299,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/rows.py",
+  "parent": {
+   "bytes": 16355,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 299,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 16439,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 300,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "5dde5d63",
+  "file": "skills/analog-gmid-design/gmid_engine/layout/run.py",
+  "parent": {
+   "bytes": 6895,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 113,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 7606,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 119,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "8687be9e",
+  "file": "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md",
+  "parent": {
+   "bytes": 109438,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 729,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 110298,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 731,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/convergence/conftest.py",
+  "parent": {
+   "bytes": 15504,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 283,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 15770,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 285,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_converge_point.py",
+  "parent": {
+   "bytes": 25045,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 430,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 25105,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 430,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_effective_placement.py",
+  "parent": {
+   "bytes": 3188,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 51,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 3242,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 51,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/layout/conftest.py",
+  "parent": {
+   "bytes": 18298,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 394,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 21008,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 430,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/layout/test_canon_block.py",
+  "parent": null,
+  "child": {
+   "bytes": 10216,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 170,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_input.py",
+  "parent": {
+   "bytes": 12514,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 238,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 13051,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 242,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py",
+  "parent": {
+   "bytes": 5120,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 92,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 6663,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 110,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/layout/test_finger_candidates.py",
+  "parent": {
+   "bytes": 5825,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 118,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 6914,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 133,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/layout/test_outputs.py",
+  "parent": {
+   "bytes": 12964,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 219,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 13166,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 220,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/layout/test_pattern_select.py",
+  "parent": {
+   "bytes": 16191,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 282,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 17657,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 303,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/layout/test_rows.py",
+  "parent": {
+   "bytes": 20278,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 375,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 21818,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 394,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py",
+  "parent": {
+   "bytes": 47783,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 840,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 59055,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 1004,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "f3eb8f9f",
+  "file": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py",
+  "parent": {
+   "bytes": 8609,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 142,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  },
+  "child": {
+   "bytes": 8974,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 145,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ },
+ {
+  "commit": "472bc864",
+  "file": ".ai/approvals/20261019-xrunf1b-o19-order-assert.md",
+  "parent": null,
+  "child": {
+   "bytes": 1716,
+   "bom": false,
+   "crlf": 0,
+   "lf_only": 17,
+   "lone_cr": 0,
+   "final_newline": true,
+   "utf8": true,
+   "replacement_char": 0,
+   "ctrl": 0,
+   "c1": 0,
+   "mojibake_hint": 0
+  }
+ }
+]

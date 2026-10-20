@@ -25,7 +25,12 @@ PERF_KEYS = ("requests", "kernel_calls", "hits", "fail_hits", "outside_domain", 
 # 설계 40 v1.10 §2.4.3 '결과 JSON perf' 삭제 행 -- 결과 JSON 형식 변경). 위 PERF_KEYS + 블록 계수 4개.
 # [XRUN-F1 card A] interface card xrunf1a C6: 키 `lut_memo_bound` 추가 -> 22개(값 "fixed" | "unfixed_no_kernel_eval"). NFR-4 의
 # test_lb_stop_notes_line_exactly_once 도 이 상수를 따라온다.
-PERF_KEYS_C7 = PERF_KEYS + ("block_calls", "block_reuses", "block_computes", "block_recomputes_same_input")
+# [XRUN-F1 card B] interface card xrunf1b C8: 옛 네 칸(block_calls·block_reuses·block_computes·block_recomputes_same_input)을 지우고
+# blocks·block_totals·block_index_entries·block_index_bound -> 22개 그대로.
+PERF_BLOCK_KEYS = ("blocks", "block_totals", "block_index_entries", "block_index_bound")
+OLD_BLOCK_KEYS = ("block_calls", "block_reuses", "block_computes", "block_recomputes_same_input")
+PERF_KEYS_C7 = PERF_KEYS + PERF_BLOCK_KEYS
+BLOCK_ROW_FIELDS = ("calls", "reuses", "grafts", "replays", "computes", "recomputes_same_input")
 
 
 def _run(tmp, lut, **kw):
@@ -67,6 +72,41 @@ def test_perf_key_set_exact_in_result_and_runs_line(tmp_path, lut_sealed, short_
     (run,) = [json.loads(x) for x in (Path(short_root) / case.sctx.context_fp / "runs.jsonl").read_text(encoding="utf-8")
               .splitlines() if x.strip()]
     assert set(dict(run["perf"])) == set(PERF_KEYS_C7)
+
+
+def test_perf_blocks_rows_totals_and_index_bound(tmp_path, lut_sealed, short_root):
+    """B-T21(XRUN-F1 card B C8): perf 키 22개(옛 블록 계수 네 칸 없음). blocks = 행 목록 {block, part, 여섯 칸}, (block, part) 정렬, 불린 것만,
+    행마다 calls = reuses + grafts + replays + computes, 실행 전체(단계 A 의 S1 블록부터) = 그 실행 sctx.dc.counters 의 snapshot. block_totals = test 가
+    더한 행 합. block_index_entries = 그 실행 색인 entry_count(). 선언 예산 실행의 block_index_bound = len(blocks) × (E_total + 1),
+    E_total = eval_budget + 2 × 정의역 변수 수(test 가 계산). 같은 입력 재계산 0."""
+    case, fr = _run(tmp_path, lut_sealed, constraints=SS, eval_budget=40, archive_root=short_root)
+    perf = dict(fr.perf)
+    assert set(perf) == set(PERF_KEYS_C7) and len(perf) == 22
+    assert not set(OLD_BLOCK_KEYS) & set(perf)
+    rows = [dict(r) for r in perf["blocks"]]                 # 행 = 칸 이름 -> 값(매핑 또는 (이름, 값) 쌍)
+    assert rows, "전제: 블록 행이 있다"
+    keys = [(r["block"], r["part"]) for r in rows]
+    assert keys == sorted(keys) and len(set(keys)) == len(keys)
+    for r in rows:
+        assert set(r) == {"block", "part"} | set(BLOCK_ROW_FIELDS)
+        assert r["calls"] == r["reuses"] + r["grafts"] + r["replays"] + r["computes"]
+        assert r["calls"] >= 1                                                   # 불린 것만
+        assert r["recomputes_same_input"] == 0                                   # 같은 입력 재계산 0
+    totals = dict(perf["block_totals"])
+    assert set(totals) == set(BLOCK_ROW_FIELDS)
+    for f in BLOCK_ROW_FIELDS:
+        assert totals[f] == sum(r[f] for r in rows), f
+    # 실행 전체 = 그 실행 계수(card B C1)의 snapshot -- 단계 A(S1) 블록 행도 들어 있다
+    snap = case.sctx.dc.counters.snapshot()
+    assert [(b.block, b.part) + tuple(getattr(b, f) for f in BLOCK_ROW_FIELDS) for b in snap.blocks] == [
+        (r["block"], r["part"]) + tuple(r[f] for f in BLOCK_ROW_FIELDS) for r in rows]
+    assert "s1_structure" in {r["block"] for r in rows}
+    assert isinstance(perf["block_index_entries"], int) and not isinstance(perf["block_index_entries"], bool)
+    assert perf["block_index_entries"] == case.sctx.dc.donors.entry_count()
+    assert perf["eval_budget_source"] == "declared" and perf["eval_budget"] == 40          # 전제: 선언 예산
+    e_total = perf["eval_budget"] + 2 * len(case.sctx.domain.variables)
+    assert perf["block_index_bound"] == len(rows) * (e_total + 1)
+    assert perf["recompute_same_key"] == 0
 
 
 def test_notes_record_open_items(tmp_path, lut_sealed):

@@ -31,19 +31,21 @@ from gmid_engine.sizing.kernel_run import normalize_w_request
 from .conftest import (B, C, HERE, MIRROR_W_DELTA, SKILL_DIR, build_ctx, build_ctx_u4, circuit_cs_res, circuit_mirror, detail,
                        hand_dc_gm, mirror_delta_max, mirror_w_request, node_voltages, r4_ln_idu, r4_npz, r4_vgs_of, rel_close,
                        seal_item, theta_mirror, theta_r4c, two, with_hand_ss)
+from .conftest import block_row  # [XRUN-F1 card B C1] 실행 계수 행
 
 EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
           S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
           S.dc_seal_conduction, S.dc_seal_report)
 
 
-def reset():
-    for b in EVAL13:
-        b.reset_stats()
+def computes(ctx):
+    """[XRUN-F1 card B C1] ctx 실행 계수에서 평가 블록 13개의 computes(옛 블록 객체 stats 대체 -- 블록은 상태가 없다, C4)."""
+    return {b.name: block_row(ctx.counters, b.name)[4] for b in EVAL13}
 
 
-def computes():
-    return {b.name: b.stats().computes for b in EVAL13}
+def computes_since(ctx, before):
+    now = computes(ctx)
+    return {k: now[k] - before[k] for k in now}
 
 
 def ops(ev):
@@ -69,13 +71,14 @@ def r4_grid_max_gm(kind, L, W, vds, vsb):
     return max(math.exp(math.log(W / L) + r4_ln_idu(kind, v, vds, vsb)) * (B - C * v) for v in R4_VGS)
 
 
-@pytest.fixture(scope="module")
+# [XRUN-F1 card B 규칙 M M-d] KernelContext 는 실행 두 객체를 칸으로 쥔다 -- function 범위(test 하나 = 실행 하나)
+@pytest.fixture
 def mir(tmp_path_factory, r4_access):
     """circuit_mirror(r4 toy, I1 = 10 µA 선언) KernelContext. M1 diode·M3 writer, M2 dependent(parallel_vgs, 짝 M1)."""
     return build_ctx_u4(tmp_path_factory.mktemp("u4_mir"), circuit_mirror(), r4_access, element_values=(("I1", 1e-5),))[1]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def sealed_c(ctx_r4c):
     """회로 C(r4) 의 봉인 점(1~9 pass)과 그 S2p parent(손 ss_dev)."""
     e0 = size_and_seal(ctx_r4c, theta_r4c())
@@ -153,7 +156,7 @@ def test_seal_3_violation_margin_parent_independent(mir, r4_lut_root, which):
     assert rel_close(ei.value.record.margin, 1e-5 / tol_i, 1e-5), (ei.value.record.margin, 1e-5 / tol_i)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def ctx_passive_r4(tmp_path_factory, r4_access):
     """회로 A(r4, M1 bulk gnd) + engine Rz(out, m)·Cz(m, gnd) -> θ ss_resistance·capacitance(CONTRACT 4.4 r5, DEC-92)."""
     doc = circuit_cs_res(bulk_m1="gnd")
@@ -173,9 +176,10 @@ def test_passive_only_child_of_first_evaluation_reuses(ctx_passive_r4):
     e0 = size_and_seal(ctx_passive_r4, theta_passive_r4())
     assert e0.sealed is not None
     p0 = with_hand_ss(e0)
-    reset()
+    before = computes(ctx_passive_r4)
     e1 = size_and_seal(ctx_passive_r4, theta_passive_r4(cz=2e-12), parent=p0)
-    assert sum(computes().values()) == 0, computes()
+    delta = computes_since(ctx_passive_r4, before)
+    assert sum(delta.values()) == 0, delta
     assert same_dc(e1, e0)
 
 
@@ -190,9 +194,10 @@ def test_passive_only_child_of_s2p_evaluation_reuses(ctx_passive_r4):
     e1 = size_and_seal(ctx, theta_passive_r4(vgs=0.62), parent=with_hand_ss(e0))
     assert e1.sealed is not None
     p1 = with_hand_ss(e1)
-    reset()
+    before = computes(ctx)
     e2 = size_and_seal(ctx, theta_passive_r4(vgs=0.62, cz=2e-12), parent=p1)
-    assert sum(computes().values()) == 0, {k: v for k, v in computes().items() if v}
+    delta = computes_since(ctx, before)
+    assert sum(delta.values()) == 0, {k: v for k, v in delta.items() if v}
     assert same_dc(e2, e1)
 
 
@@ -208,9 +213,10 @@ def test_passive_only_chain_bit_identical_dc_gm(ctx_passive_r4, r4_lut_root):
         assert rel_close(dc_gm(e1)[m], hand_dc_gm(_npz(r4_lut_root), o), 1e-9), m
     prev = e1
     for cz in (2e-12, 3e-12):
-        reset()
+        before = computes(ctx)
         nxt = size_and_seal(ctx, theta_passive_r4(vgs=0.62, cz=cz), parent=with_hand_ss(prev))
-        assert sum(computes().values()) == 0, {k: v for k, v in computes().items() if v}
+        delta = computes_since(ctx, before)
+        assert sum(delta.values()) == 0, {k: v for k, v in delta.items() if v}
         assert nxt.snapshot.column("device", "dc_gm") == e1.snapshot.column("device", "dc_gm")
         assert same_dc(nxt, e1)
         prev = nxt
@@ -322,13 +328,13 @@ def test_ic10_w_request_change_not_served_from_parent(mir):
     e0 = size_and_seal(mir, th)
     w1, w2 = mirror_w_request(0.05), mirror_w_request(0.10)              # [U17 ①] 둘 다 δ < δ_max(봉인 3 허용오차 안, conftest 주석)
     assert 0.10 < mirror_delta_max(e0.snapshot)
-    reset()
+    before = computes(mir)
     e1 = size_and_seal(mir, th, parent=e0, w_request={"M2": w1})
-    assert computes()["dc_widths"] == 1
+    assert computes_since(mir, before)["dc_widths"] == 1
     assert ops(e1)["M2"].W == w1 != ops(e0)["M2"].W
-    reset()
+    before = computes(mir)
     e2 = size_and_seal(mir, th, parent=e1, w_request={"M2": w2})
-    assert computes()["dc_widths"] == 1 and ops(e2)["M2"].W == w2
+    assert computes_since(mir, before)["dc_widths"] == 1 and ops(e2)["M2"].W == w2
 
 
 # ===========================================================================

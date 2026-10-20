@@ -17,8 +17,10 @@ import s1v_hand as H
 D1_FIELDS = ("views", "l_classes", "findings", "declared", "applied_facts")
 
 
-def _run(s1, *, declared=(), cuts=(), budget=H.BIG_BUDGET):
-    return s1v_fields(s1.snapshot.widen(S1V_WRITERS), (), budget, tuple(declared), (), (), tuple(cuts))
+def _run(s1, *, declared=(), cuts=(), budget=H.BIG_BUDGET, run=None):
+    """[XRUN-F1 card B C4] run = 실행 두 객체 키워드(dict), 없으면 새 실행 하나."""
+    return s1v_fields(s1.snapshot.widen(S1V_WRITERS), (), budget, tuple(declared), (), (), tuple(cuts),
+                      **(run if run is not None else H.fresh_run()))
 
 
 def test_block_name_and_writes_are_design_fields():
@@ -61,13 +63,17 @@ def test_block_records_but_does_not_stop(tmp_path):
 
 
 def test_same_input_reuses_and_changed_extra_recomputes(tmp_path):
+    # oracle 대조: card B C4 판정 1·4 -- 실행 계수(C1) 행 (calls, reuses, computes) 의 구간 값
     s1, _ = H.build(tmp_path, H.CMFB)
     first = _run(s1)
-    s1v_fields.reset_stats()
-    again = s1v_fields(first, (), H.BIG_BUDGET, (), (), (), ())
+    run = H.fresh_run()
+    again = s1v_fields(first, (), H.BIG_BUDGET, (), (), (), (), **run)
     assert again is first
-    st = s1v_fields.stats()
-    assert (st.calls, st.reuses, st.computes) == (1, 1, 0)
-    other = s1v_fields(first, (), H.BIG_BUDGET + 1, (), (), (), ())
-    assert s1v_fields.stats().computes == 1
+
+    def row():
+        rows = [r for r in run["counters"].snapshot().blocks if r.block == s1v_fields.name]
+        return (rows[0].calls, rows[0].reuses, rows[0].computes) if rows else (0, 0, 0)
+    assert row() == (1, 1, 0)
+    other = s1v_fields(first, (), H.BIG_BUDGET + 1, (), (), (), (), **run)
+    assert row()[2] == 1
     assert other.block_version("build_s1v") != first.block_version("build_s1v")

@@ -34,9 +34,13 @@ from gmid_engine.authoring import ViewDecl, load_sizing_spec, load_topology
 from gmid_engine.graph import build_s1, build_s1v, s1v_rule_fp, structure_rule_fp
 from gmid_engine.metrics import metric_catalog
 from gmid_engine.pipeline import StageAResult, run_stage_a, structure_count_budget
+from gmid_engine.search import open_run
 
 import jrules_hand as J
 import s1v_hand as H
+
+# [XRUN-F1 card B 규칙 M M-c] run_stage_a 호출마다 같은 함수 본문의 `a, b = open_run()` 튜플 풀기 1:1(그 이름은 그 호출 하나에만, 반복문 안이면
+# 같은 반복문 본문). helper `_run` 은 쌍을 매개변수로 받지 않고 스스로 open_run 을 부른다.
 
 # [xrun, 사용자 결정 J-1 2026-10-15] run_stage_a 는 PDK 선언·LUT 생성 규칙 선언과 두 선언 경로 인자를 받지 않는다(S0 키에만 쓰이던 인자 --
 # 설계 40 v1.10 §2.4.3 'PDK 선언 경로 인자와 진입 sha 대조' 삭제, interface card C1). 옛 상수 PDK_DECL·LUT_RULE_DECL·두 경로를 지웠다.
@@ -61,8 +65,10 @@ def _write(tmp_path, doc):
     return p
 
 
-def _run(tmp_path, real_lut, doc, out="out", **kw):
-    return run_stage_a(_write(tmp_path, doc), None, real_lut, output_dir=tmp_path / out, supplies_v=H.SUPPLIES, **kw)
+def _run(tmp_path, real_lut, doc, out="out", structure_path=None):
+    donors, counters = open_run()
+    return run_stage_a(_write(tmp_path, doc), None, real_lut, output_dir=tmp_path / out, supplies_v=H.SUPPLIES,
+                       structure_path=structure_path, donors=donors, counters=counters)
 
 
 def test_clean_circuit_is_ok_exit_0(tmp_path, real_lut):
@@ -172,8 +178,9 @@ def test_malformed_structure_file_is_rejected(tmp_path, real_lut):
                                      "pushpull_follower_buffer", "sf_pushpull_output_opamp"])     # [U1b] sf: 41 1.13 sf 행
 def test_library_circuits_without_stop(tmp_path, real_lut, circuit):
     # oracle (a)·(d): 아래 회로의 구조 유도 손 요약은 tests/integration/test_sp1_library_summary.py -- 정지 분기·review_needed 없음
+    donors, counters = open_run()
     r = run_stage_a(H.LIBRARY / (circuit + ".topology.json"), None, real_lut, output_dir=tmp_path,
-                    supplies_v=H.lib_supplies(circuit))
+                    supplies_v=H.lib_supplies(circuit), donors=donors, counters=counters)
     assert (r.exit_code, r.status) == (0, "ok"), r.report["stop_reasons"] + r.report["review_needed"]
 
 
@@ -192,8 +199,10 @@ RECORD_ONLY = {"cell_ambiguous", "pass_group_unsupported", "gate_on_current_node
 def test_library_stopping_circuits(tmp_path, real_lut, circuit, expected):
     # [C-6] 파일럿은 library 에 structure.json(ac_ground_exception Vbias2)이 생겼다. 이 test 의 대상은 '사실 없음 -> 정지'이므로
     # 존재하지 않는 경로를 structure_path 로 주어 사실 파일 없는 상태를 그대로 검사한다(기준 불변). 사실 있는 기본 상태는 아래 test.
+    donors, counters = open_run()
     r = run_stage_a(H.LIBRARY / (circuit + ".topology.json"), None, real_lut, output_dir=tmp_path,
-                    supplies_v=H.lib_supplies(circuit), structure_path=tmp_path / "absent" / (circuit + ".structure.json"))
+                    supplies_v=H.lib_supplies(circuit), structure_path=tmp_path / "absent" / (circuit + ".structure.json"),
+                    donors=donors, counters=counters)
     assert (r.exit_code, r.status) == (2, "stopped")
     codes = {s.split("|")[1] for s in r.report["stop_reasons"]}
     assert codes <= RECORD_ONLY
@@ -210,7 +219,9 @@ def test_library_pilot_default_structure_facts_give_ok(tmp_path, real_lut, with_
     # 적용 사실은 그 1건, 정지·review 기록 0(spec 의 안정도 제약은 내부 루프 선언이 아니라 loop_cut_unmatched 도 없다).
     assert (H.LIBRARY / (PILOT + ".structure.json")).is_file()
     sp = H.LIBRARY / (PILOT + ".sizing_spec.json") if with_spec else None
-    r = run_stage_a(H.LIBRARY / (PILOT + ".topology.json"), sp, real_lut, output_dir=tmp_path, supplies_v=H.lib_supplies(PILOT))
+    donors, counters = open_run()
+    r = run_stage_a(H.LIBRARY / (PILOT + ".topology.json"), sp, real_lut, output_dir=tmp_path, supplies_v=H.lib_supplies(PILOT),
+                    donors=donors, counters=counters)
     assert (r.exit_code, r.status) == (0, "ok"), r.report["stop_reasons"] + r.report["review_needed"]
     assert [tuple(x) for x in r.report["applied_facts"]] == [("ac_ground_exception", "Vbias2")]
     assert r.report["stop_reasons"] == []
@@ -270,14 +281,16 @@ def test_beta_loop_declaration_does_not_reach_build_s1v(tmp_path, real_lut, monk
     # 다른 두 build_s1v 호출의 키가 정답 후보 둘이다(넘기지 않은 쪽 = 단계 A).
     seen = _spy_build_s1v(monkeypatch)
     tp, sp = J.write_pair(tmp_path, J.UGB, feedback=("Rf",))
-    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    donors, counters = open_run()
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES, donors=donors, counters=counters)
     assert _s1v(r) is not None
     assert seen and all("inn" not in cuts for cuts in seen)
     monkeypatch.undo()
     topo = load_topology(str(tp))
     spec = load_sizing_spec(str(sp), topo, metric_catalog())
-    s1 = build_s1(topo, H.SUPPLIES)
-    kw = {"count_budget": r.report["count_budget"], "stop_on_unsupported": False}
+    run = H.fresh_run()                    # [card B C6] 비교용 S1·S1v = 다른 실행
+    s1 = build_s1(topo, H.SUPPLIES, **run)
+    kw = {"count_budget": r.report["count_budget"], "stop_on_unsupported": False, **run}
     with_cut = build_s1v(s1, spec, declared_loop_cuts=("inn",), **kw)
     without = build_s1v(s1, spec, **kw)
     assert _s1v_version(with_cut) != _s1v_version(without)        # 전제: 인자가 S1v 블록 입력 버전을 바꾼다(옛 S1v 키 끝 칸)
@@ -291,7 +304,8 @@ def test_internal_loop_declaration_reaches_build_s1v(tmp_path, real_lut, monkeyp
     seen = _spy_build_s1v(monkeypatch)
     _internal_loop_decl(monkeypatch, (("M5", "cm"),))
     tp, sp = J.write_pair(tmp_path, H.CMFB)
-    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    donors, counters = open_run()
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES, donors=donors, counters=counters)
     assert _s1v(r) is not None
     assert seen and all(set(cuts) == {"cm"} for cuts in seen)
 
@@ -302,7 +316,8 @@ def test_unmatched_internal_loop_cut_is_review(tmp_path, real_lut, monkeypatch):
     # cmfb 는 루프 위 넷이지만 끊는 점(M5 gate cm)이 아니다 -> 불일치. 회로 자체는 기록 없는 ok(아래 일치 test)이므로 상태는 review_needed/2.
     _internal_loop_decl(monkeypatch, (("M3", "cmfb"),))
     tp, sp = J.write_pair(tmp_path, H.CMFB)
-    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    donors, counters = open_run()
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES, donors=donors, counters=counters)
     assert (r.exit_code, r.status) == (2, "review_needed")
     hits = [x.split("|")[:4] for x in r.report["review_needed"] if x.split("|")[1] == "loop_cut_unmatched"]
     assert hits == [["review_needed", "loop_cut_unmatched", "", "cmfb"]]
@@ -312,7 +327,8 @@ def test_unmatched_internal_loop_cut_is_review(tmp_path, real_lut, monkeypatch):
 def test_matching_internal_loop_cut_leaves_no_record(tmp_path, real_lut, monkeypatch):
     _internal_loop_decl(monkeypatch, (("M5", "cm"),))
     tp, sp = J.write_pair(tmp_path, H.CMFB)
-    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    donors, counters = open_run()
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES, donors=donors, counters=counters)
     assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
     assert "loop_cut_unmatched" not in _codes(r.report["review_needed"])
 
@@ -321,7 +337,8 @@ def test_matching_internal_loop_cut_leaves_no_record(tmp_path, real_lut, monkeyp
 def test_real_spec_beta_loops_never_report_unmatched(tmp_path, real_lut, feedback):
     # 실 spec 파일 그대로(조작 없음): β 루프(declared, 끊는 넷 inn 은 엔진 루프 뷰에 없음)와 unity(cuts 없음) 모두 대조 대상이 아니다
     tp, sp = J.write_pair(tmp_path, J.UGB, feedback=feedback)
-    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    donors, counters = open_run()
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES, donors=donors, counters=counters)
     assert _s1v(r) is not None
     assert "loop_cut_unmatched" not in _codes(r.report["review_needed"])
 
@@ -330,11 +347,13 @@ def test_cuts_only_from_pm_constraints(tmp_path, real_lut, monkeypatch):
     # 40 3.2-3 파이프라인 2: cuts 는 안정도 제약(pm_*) 행이 가리키는 루프 뷰의 끊는 넷만. pm 제약이 없으면(feedback 선언만) 넘기지 않는다
     seen = _spy_build_s1v(monkeypatch)
     tp, sp = J.write_pair(tmp_path, J.UGB, feedback=("Rf",), pm=False)
-    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES)
+    donors, counters = open_run()
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o", supplies_v=H.SUPPLIES, donors=donors, counters=counters)
     topo = load_topology(str(tp))
     spec = load_sizing_spec(str(sp), topo, metric_catalog())
-    s1 = build_s1(topo, H.SUPPLIES)
-    kw = {"count_budget": r.report["count_budget"], "stop_on_unsupported": False}
+    run = H.fresh_run()                    # [card B C6] 비교용 S1·S1v = 다른 실행
+    s1 = build_s1(topo, H.SUPPLIES, **run)
+    kw = {"count_budget": r.report["count_budget"], "stop_on_unsupported": False, **run}
     monkeypatch.undo()
     without = build_s1v(s1, spec, **kw)
     with_cut = build_s1v(s1, spec, declared_loop_cuts=("inn",), **kw)
@@ -357,13 +376,17 @@ def test_dc_role_facts_are_loaded_before_build_s1(tmp_path, real_lut):
     # M8·M14 = signal 을 주면 남은 review(dc_role_unresolved_group)가 사라져 ok/0. 사실이 build_s1 전에 로드되지 않으면 S1 DC 역할이
     # 그대로라 review 가 남는다. 사실 없이 같은 입력이면 review_needed/2.
     tp, sp = _lib_copy(tmp_path, "ngcc_3stage_ff")
-    plain = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    d0, c0 = open_run()
+    plain = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("ngcc_3stage_ff"),
+                        donors=d0, counters=c0)
     assert (plain.exit_code, plain.status) == (2, "review_needed")
     assert [x.split("|")[1] for x in plain.report["review_needed"]] == ["dc_role_unresolved_group"]
     topo_fp = plain.s1.key.topology_fp
     J.write_structure(tp.parent / "ngcc_3stage_ff.structure.json", topo_fp, structure_rule_fp(),
                       [J.fact_dict("dc_role", "M8", "signal", "F-3"), J.fact_dict("dc_role", "M14", "signal", "F-3")])
-    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    d1, c1 = open_run()
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("ngcc_3stage_ff"),
+                    donors=d1, counters=c1)
     assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
     assert sorted(map(tuple, r.report["applied_facts"])) == [("dc_role", "M14"), ("dc_role", "M8")]
     assert r.s1.key.facts_fp != "none"                        # 40 3.2-3 파이프라인 3: S1 키에 사실 지문
@@ -372,10 +395,14 @@ def test_dc_role_facts_are_loaded_before_build_s1(tmp_path, real_lut):
 def test_view_scoped_ground_fact_clears_pilot_stop(tmp_path, real_lut):
     # 40 3.2-3 사실 표 파일럿 ac_ground_exception Vbias2 @ loop:M37a:Voc -> 41 1.12.6 정지·혼재 해소 -> ok/0(spec 없이)
     tp, _ = _lib_copy(tmp_path, "current_reuse_telescopic_ota", spec=False)
-    plain = run_stage_a(tp, None, real_lut, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("current_reuse_telescopic_ota"))
+    d0, c0 = open_run()
+    plain = run_stage_a(tp, None, real_lut, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("current_reuse_telescopic_ota"),
+                        donors=d0, counters=c0)
     J.write_structure(tp.parent / "current_reuse_telescopic_ota.structure.json", plain.s1.key.topology_fp, structure_rule_fp(),
                       [J.fact_dict("ac_ground_exception", "Vbias2", "loop:M37a:Voc", "C-6")])
-    r = run_stage_a(tp, None, real_lut, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("current_reuse_telescopic_ota"))
+    d1, c1 = open_run()
+    r = run_stage_a(tp, None, real_lut, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("current_reuse_telescopic_ota"),
+                    donors=d1, counters=c1)
     assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
     assert [tuple(x) for x in r.report["applied_facts"]] == [("ac_ground_exception", "Vbias2")]
 
@@ -383,10 +410,14 @@ def test_view_scoped_ground_fact_clears_pilot_stop(tmp_path, real_lut):
 def test_fact_file_written_with_old_s1v_rule_fp_is_stale(tmp_path, real_lut):
     # 40 3.2-3 rule_hash: 단계 A 는 structure_rule_fp 로 stale 을 판정한다 -- s1v_rule_fp 로 쓴 파일은 적용하지 않고 stale(review)
     tp, sp = _lib_copy(tmp_path, "ngcc_3stage_ff")
-    first = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    d0, c0 = open_run()
+    first = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o0", supplies_v=H.lib_supplies("ngcc_3stage_ff"),
+                        donors=d0, counters=c0)
     J.write_structure(tp.parent / "ngcc_3stage_ff.structure.json", first.s1.key.topology_fp, s1v_rule_fp(),
                       [J.fact_dict("dc_role", "M8", "signal", "F-3"), J.fact_dict("dc_role", "M14", "signal", "F-3")])
-    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("ngcc_3stage_ff"))
+    d1, c1 = open_run()
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o1", supplies_v=H.lib_supplies("ngcc_3stage_ff"),
+                    donors=d1, counters=c1)
     assert r.status == "review_needed"
     codes = [x.split("|")[1] for x in r.report["review_needed"]]
     assert "structure_fact_stale" in codes and "dc_role_unresolved_group" in codes
@@ -431,17 +462,57 @@ _ASSETS = Path(__file__).resolve().parents[3] / "assets"
 # interface card C1: StageAResult 칸 = 이 7개, 순서 그대로. 보고서 키 = 이 14개(정상·정지 경로 모두 같다).
 # [NFR-4 card 2] interface card nfr4c2 C3: 최상위 키 `env_fp` 추가(13 -> 14, 설계 40 §2.4.13 (5) '승인 불필요: 형식 변경'). StageAResult 칸은 그대로(C3 '없는 곳').
 RESULT_FIELDS = ("exit_code", "status", "report", "report_paths", "s1", "spec", "code_fp")
+# [XRUN-F1 card B C6] StageAResult 칸 `donors`·`counters` 추가. card 는 두 칸의 위치를 정하지 않았다 -> 이름 집합과 옛 7칸의 상대 순서만 본다.
+RUN_FIELDS = ("donors", "counters")
 REPORT_KEYS = {"circuit", "status", "exit_code", "count_budget", "declared_comparison", "stop_reasons", "review_needed", "views",
                "applied_facts", "ff_ratio_candidates", "coupling", "tables", "orbit_matching_crosstab", "env_fp"}
+_COUNT_FIELDS = ("calls", "reuses", "grafts", "replays", "computes", "recomputes_same_input")
 
 
-def _stats():
-    return {b.name: b.stats() for b in _S1_BLOCKS}
+def _row(counters, name):
+    """[card B C1] 실행 계수 (name, "*") 행의 여섯 칸(_COUNT_FIELDS 순서), 기록이 없으면 0 여섯."""
+    for r in counters.snapshot().blocks:
+        if (r.block, r.part) == (name, "*"):
+            return {f: getattr(r, f) for f in _COUNT_FIELDS}
+    return dict.fromkeys(_COUNT_FIELDS, 0)
 
 
 def test_stage_a_result_fields_exact():
-    """[xrun XR-6] interface card C1: StageAResult 칸 = (exit_code, status, report, report_paths, s1, spec, code_fp) 정확히, 순서 그대로."""
-    assert tuple(f.name for f in dataclasses.fields(StageAResult)) == RESULT_FIELDS
+    """[xrun XR-6] interface card C1: StageAResult 칸 = (exit_code, status, report, report_paths, s1, spec, code_fp) 정확히, 순서 그대로.
+    [XRUN-F1 card B C6] + 칸 donors·counters(위치는 card 가 정하지 않음 -> 집합 + 옛 7칸 상대 순서)."""
+    names = tuple(f.name for f in dataclasses.fields(StageAResult))
+    assert set(names) == set(RESULT_FIELDS) | set(RUN_FIELDS) and len(names) == len(RESULT_FIELDS) + len(RUN_FIELDS)
+    assert tuple(n for n in names if n not in RUN_FIELDS) == RESULT_FIELDS
+
+
+def test_stage_a_result_carries_passed_run_pair_on_ok_and_stop_paths(tmp_path, real_lut):
+    """[XRUN-F1 card B C6, B-T16] StageAResult.donors·.counters 는 넘긴 객체 그 자체(`is`) -- 정상 경로(CS ok)와 정지 경로(A1_load 거부 exit 7) 모두.
+    oracle (d) interface card C6 문장 '넘긴 객체 is, 정지 경로 결과 포함'."""
+    d_ok, c_ok = open_run()
+    ok = run_stage_a(_write(tmp_path, H.CS), None, real_lut, output_dir=tmp_path / "ok", supplies_v=H.SUPPLIES,
+                     donors=d_ok, counters=c_ok)
+    bad = {k: v for k, v in H.CS.items() if k != "passive_elements"}
+    bad["topology_name"] = "cs_bad"
+    d_st, c_st = open_run()
+    st = run_stage_a(_write(tmp_path, bad), None, real_lut, output_dir=tmp_path / "st", supplies_v=H.SUPPLIES,
+                     donors=d_st, counters=c_st)
+    assert (ok.status, st.exit_code) == ("ok", 7)                           # 전제: 두 경로
+    assert ok.donors is d_ok and ok.counters is c_ok
+    assert st.donors is d_st and st.counters is c_st
+
+
+def test_run_stage_a_missing_run_pair_type_error(tmp_path, real_lut):
+    """[XRUN-F1 card B C6, B-T16] donors·counters 는 기본값 없는 키워드 -- 하나라도 빠지면 TypeError, 보고서를 쓰지 않는다."""
+    p = _write(tmp_path, H.CS)
+    _d1, c1 = open_run()                   # 규칙 M M-c: 호출마다 자기 open_run
+    with pytest.raises(TypeError):
+        run_stage_a(p, None, real_lut, output_dir=tmp_path / "o1", supplies_v=H.SUPPLIES, counters=c1)
+    d2, _c2 = open_run()
+    with pytest.raises(TypeError):
+        run_stage_a(p, None, real_lut, output_dir=tmp_path / "o2", supplies_v=H.SUPPLIES, donors=d2)
+    with pytest.raises(TypeError):
+        run_stage_a(p, None, real_lut, output_dir=tmp_path / "o3", supplies_v=H.SUPPLIES)
+    assert not any((tmp_path / o).exists() for o in ("o1", "o2", "o3"))
 
 
 def test_report_key_set_exact_on_ok_and_stop_paths(tmp_path, real_lut):
@@ -456,7 +527,9 @@ def test_report_key_set_exact_on_ok_and_stop_paths(tmp_path, real_lut):
     sdir = tmp_path / "s"
     sdir.mkdir()
     J.write_structure(sdir / "cs.structure.json", "0" * 64, structure_rule_fp(), [J.fact_dict("frobnicate", "M1", "M1")])  # 어휘 밖 concept
-    s_stop = run_stage_a(_write(sdir, H.CS), None, real_lut, output_dir=tmp_path / "s_out", supplies_v=H.SUPPLIES)
+    donors, counters = open_run()
+    s_stop = run_stage_a(_write(sdir, H.CS), None, real_lut, output_dir=tmp_path / "s_out", supplies_v=H.SUPPLIES,
+                         donors=donors, counters=counters)
     assert (ok.status, stopped.status, load_stop.exit_code, s_stop.exit_code) == ("ok", "stopped", 7, 7)       # 전제: 네 경로
     assert load_stop.report["stop_reasons"][0].startswith("A1_load: ")
     assert s_stop.report["stop_reasons"][0].startswith("A2_structure_json")
@@ -468,7 +541,8 @@ def test_report_key_set_exact_on_ok_and_stop_paths(tmp_path, real_lut):
 def test_run_stage_a_keywords_exact():
     """[xrun XR-6] interface card C1 + 사용자 결정 J-1(2026-10-15): run_stage_a 의 키워드 전용 인자 = {output_dir, supplies_v, structure_path}
     정확히(양성 형식 -- 지운 선언 값·선언 경로 인자는 없다), 위치 인자 3개(topology, spec, LUT), `**kwargs` 없음 -> 그 밖의 키워드는 파이썬
-    TypeError(모르는 키워드). 기본값: output_dir 없음(필수), supplies_v·structure_path = None."""
+    TypeError(모르는 키워드). 기본값: output_dir 없음(필수), supplies_v·structure_path = None.
+    [XRUN-F1 card B C6, B-T16] 키워드 donors·counters 추가 -- 기본값 없음(필수, 빠지면 TypeError)."""
     import inspect
     params = list(inspect.signature(run_stage_a).parameters.values())
     kinds = [p.kind for p in params]
@@ -476,34 +550,41 @@ def test_run_stage_a_keywords_exact():
     positional = [p for p in params if p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)]
     keyword = {p.name: p.default for p in params if p.kind is inspect.Parameter.KEYWORD_ONLY}
     assert len(positional) == 3 and all(p.default is inspect.Parameter.empty for p in positional)
-    assert keyword == {"output_dir": inspect.Parameter.empty, "supplies_v": None, "structure_path": None}
+    assert keyword == {"output_dir": inspect.Parameter.empty, "donors": inspect.Parameter.empty, "counters": inspect.Parameter.empty,
+                       "supplies_v": None, "structure_path": None}
 
 
 def test_unknown_keyword_rejected_before_report(tmp_path, real_lut):
     """[xrun XR-6] 위 서명의 결과: 선언 값 키워드(J-1 로 지운 pdk_decl)를 넘기면 TypeError 이고 보고서를 쓰지 않는다. 대조군: 빼면 정상."""
     p = _write(tmp_path, H.CS)
     decl = _read_pdk_decl(str(_ASSETS / "sky130_pdk_decl.json"), _BoundedLRU(4))
+    d0, c0 = open_run()
     with pytest.raises(TypeError):
-        run_stage_a(p, None, real_lut, output_dir=tmp_path / "out", supplies_v=H.SUPPLIES, pdk_decl=decl)
+        run_stage_a(p, None, real_lut, output_dir=tmp_path / "out", supplies_v=H.SUPPLIES, pdk_decl=decl, donors=d0, counters=c0)
     assert not (tmp_path / "out").exists(), "모르는 키워드로 보고서를 썼다"
-    ok = run_stage_a(p, None, real_lut, output_dir=tmp_path / "ok", supplies_v=H.SUPPLIES)
+    d1, c1 = open_run()
+    ok = run_stage_a(p, None, real_lut, output_dir=tmp_path / "ok", supplies_v=H.SUPPLIES, donors=d1, counters=c1)
     assert (ok.status, ok.exit_code) == ("ok", 0)
 
 
 def test_repeated_run_computes_s1_blocks_each_time(tmp_path, real_lut):
     """[xrun] interface card C3·C4(설계 40 v1.10 §2.4.3 '수명': S0 수준 층은 실행마다 처음부터 계산한다): 같은 입력으로 단계 A 를 같은 프로세스에서
-    두 번(사이에 reset_stats) 돌리면 두 번 모두 S1 블록마다 computes = 1, recomputes_same_input = 0이고, 두 결과의 S1 스냅샷 지문·보고서 표가 같다.
+    두 번 돌리면 두 번 모두 S1 블록마다 computes = 1, recomputes_same_input = 0이고, 두 결과의 S1 스냅샷 지문·보고서 표가 같다.
+    [XRUN-F1 card B C1·C6] 옛 블록 객체 계수(reset_stats·stats)는 없어졌다 -> 실행마다 자기 RunCounters(결과 칸 counters, `_run` 이 실행마다
+    open_run) 의 (블록, "*") 행을 읽는다. 첫 실행 계수는 두 번째 실행 뒤에도 그대로(C6 '두 실행은 아무것도 나누지 않는다').
     oracle (a) 불변식: 같은 입력 -> 같은 결과, 앞 실행이 남긴 것으로 계산을 건너뛰지 않는다."""
-    runs = []
+    runs, rows = [], []
     for out in ("a", "b"):
-        for blk in _S1_BLOCKS:
-            blk.reset_stats()
         r = _run(tmp_path, real_lut, H.MILLER, out=out)
-        st = _stats()
-        bad = {n: (s.computes, s.recomputes_same_input) for n, s in st.items() if (s.computes, s.recomputes_same_input) != (1, 0)}
+        st = {b.name: _row(r.counters, b.name) for b in _S1_BLOCKS}
+        bad = {n: (s["computes"], s["recomputes_same_input"]) for n, s in st.items()
+               if (s["computes"], s["recomputes_same_input"]) != (1, 0)}
         assert not bad, "실행 %s: S1 블록 (computes, recomputes_same_input) != (1, 0): %r" % (out, bad)
         runs.append(r)
+        rows.append(st)
     first, second = runs
+    assert first.counters is not second.counters
+    assert {b.name: _row(first.counters, b.name) for b in _S1_BLOCKS} == rows[0]      # 첫 실행 계수 불변
     assert second.s1.snapshot.fp == first.s1.snapshot.fp
     assert second.report["tables"] == first.report["tables"] and second.report["views"] == first.report["views"]
 
@@ -533,11 +614,13 @@ def test_nmcnr_l_owner_fact_clears_name_order_review(tmp_path, real_lut):
     # S1 키, rule_hash = structure_rule_fp() -- 기존 test_dc_role_facts_are_loaded_before_build_s1 과 같은 준비).
     tp, sp = _lib_copy(tmp_path, "nmcnr_amplifier")
     sup = H.lib_supplies("nmcnr_amplifier")
-    plain = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o0", supplies_v=sup)
+    d0, c0 = open_run()
+    plain = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o0", supplies_v=sup, donors=d0, counters=c0)
     assert any("|l_owner_name_order|" in x for x in plain.report["review_needed"])          # 전제: 사실 없이는 review
     J.write_structure(tp.parent / "nmcnr_amplifier.structure.json", plain.s1.key.topology_fp, structure_rule_fp(),
                       [J.fact_dict("l_owner", '["M104","M105"]', "M105", "C-3")])
-    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o1", supplies_v=sup)
+    d1, c1 = open_run()
+    r = run_stage_a(tp, sp, real_lut, output_dir=tmp_path / "o1", supplies_v=sup, donors=d1, counters=c1)
     assert plain.report["stop_reasons"] == [] and len(plain.report["review_needed"]) == 1   # 전제: 남은 review 는 이것 하나
     assert (r.exit_code, r.status) == (0, "ok"), r.report["review_needed"] + r.report["stop_reasons"]
     assert not any("l_owner_name_order" in x for x in r.report["review_needed"]), r.report["review_needed"]

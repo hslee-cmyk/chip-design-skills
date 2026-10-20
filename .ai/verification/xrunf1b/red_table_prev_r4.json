@@ -1,0 +1,426 @@
+{
+ "rows": [
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_canon_block.py",
+   "base": "collection_error",
+   "exc_type": "builtins.ModuleNotFoundError",
+   "detail": ": No module named 'gmid_engine.layout.canon_block'",
+   "failure_hash": "05d0cb3ae616fd090b0b2ee284c90adb6fdfb330605dc2c72a7f065df61c8808"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_input.py::test_public_api",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert {'CC_REQUIRED...OORPLAN', ...} == {'CC_REQUIRED..._GROUPS', ...}\n  \n  Extra items in the left set:\n  'F_DEVICE'\n  Extra items in the right set:\n  'F_POINT'\n  Use -v to get more ",
+   "failure_hash": "b422b1c9c5e294dc3121391525378f36a238d7dab4ff89f00ebca5c83292c644"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[SliceDensity-None]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[WTolerance-fields1]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[WRequest-None]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[ReviewItem-fields3]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[MatchingDisposition-fields4]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[GroupAttempt-fields5]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[BoxVerdict-fields6]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[FoldAttempt-None]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[MergeDecision-None]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[GroupRebuild-fields9]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[RowsLayout-fields10]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[RealizedDevice-fields11]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[DeviceDiffusion-fields12]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[FloorplanSummary-fields13]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[Revalidation-fields14]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[ConservedPoint-fields15]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[DevicePins-fields16]",
+   "base": "failed",
+   "exc_type": "builtins.AttributeError",
+   "detail": "AttributeError: module 'gmid_engine.layout.contract_output' has no attribute 'DevicePins'. Did you mean: 'DeviceFinger'?",
+   "failure_hash": "96566d55933d79c4e73bf8881690e809c618177b097b1f291806513258db85f6"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[DeviceAttrs-fields17]",
+   "base": "failed",
+   "exc_type": "builtins.AttributeError",
+   "detail": "AttributeError: module 'gmid_engine.layout.contract_output' has no attribute 'DeviceAttrs'",
+   "failure_hash": "2ee270a412823a15f92afdee23b301e001f17ed213c67c228ded6b6994092924"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_four_input_fields_partition_layout_device",
+   "base": "failed",
+   "exc_type": "builtins.AttributeError",
+   "detail": "AttributeError: module 'gmid_engine.layout.contract_output' has no attribute 'DevicePins'. Did you mean: 'DeviceFinger'?",
+   "failure_hash": "1128c32c7e52423431bfe4a23722bc0d726da4758f523f78383a26a30b3f630d"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_finger_candidates.py::test_reads_declaration",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert {('device', '...h', 'ly_pdk')} == {('device', '...h', 'ly_pdk')}\n  \n  Extra items in the left set:\n  ('device', 'ly_device')\n  Extra items in the right set:\n  ('device', 'ly_poi",
+   "failure_hash": "926a2ba6c6cd66d76e1f64c418b949339d057174560d73b43ef0d5a53ca8e58c"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_finger_candidates.py::test_reference_w_not_in_input_version",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'DeviceAttrs' from 'gmid_engine.layout.contract_output' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\prev\\skills\\analog-gmid-design\\gmid_engine\\layou",
+   "failure_hash": "d34a5ff6724e42c5ec3b71dedcba35b2c2b4d45db86dcc0394c84af62bc46fc1"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_pattern_select.py::test_reads_declaration",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert {('device', '...ly_rejected')} == {('device', '...ups_in'), ...}\n  \n  Extra items in the left set:\n  ('device', 'ly_device')\n  Extra items in the right set:\n  ('device', 'ly_w_a",
+   "failure_hash": "1fa634907e259419536eec739c29fe9c64f704862b49467c75030d37f5f07e1d"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_pattern_select.py::test_uniform_exact_w_doubling_keeps_input_version",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'DeviceAttrs' from 'gmid_engine.layout.contract_output' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\prev\\skills\\analog-gmid-design\\gmid_engine\\layou",
+   "failure_hash": "a7fe260ae1803dd93dc21915931521fc1df8440b19beed871bbb286a65d98e6c"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_rows.py::test_reads_declaration",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert {('device', '...ly_pdk'), ...} == {('device', '...ups_in'), ...}\n  \n  Extra items in the left set:\n  ('graph', 'ly_rejected')\n  ('device', 'ly_device')\n  Extra items in the righ",
+   "failure_hash": "5c456a61fd442082319a04e29ff6ade6564fb07ed9c6804e60cdf19679d5baa3"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_rows.py::test_uniform_exact_w_doubling_keeps_input_version",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'DeviceAttrs' from 'gmid_engine.layout.contract_output' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\prev\\skills\\analog-gmid-design\\gmid_engine\\layou",
+   "failure_hash": "e10c8968bb943f2fe423e5389e621b8c5a8bd27607d064a3bfb9e47f3c3925fb"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_input_device_fields_partition_layout_device_values",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert {'ly_device', 'ly_point'} == {'ly_attrs', ...w_adjustable'}\n  \n  Extra items in the left set:\n  'ly_device'\n  Extra items in the right set:\n  'ly_pins'\n  'ly_attrs'\n  'ly_w_adju",
+   "failure_hash": "535417ef289db0e0bfc162e8c3502af93000adde39420486d02631aa5e99ef71"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_w1_doubling_all_w_recomputes_only_canonical_naming",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: {'ly_canonical_naming': 0, 'ly_finger_candidates': 1, 'ly_finger_geometry': 0, 'ly_pattern_select': 1, ...}\nassert {'ly_canonica...lect': 1, ...} == {'ly_canonica...lect': 0, ...}\n  \n ",
+   "failure_hash": "079cb2fc67f7dcad6ac800c53b8cb84834ec19cb05f6d546d438bea0cb57ed18"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_w2_doubling_all_w_keeps_computed_fields_and_rederives_outputs",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_w3_swapping_w_order_of_symmetric_pair_changes_canon",
+   "base": "failed",
+   "exc_type": "builtins.AttributeError",
+   "detail": "AttributeError: 'NoneType' object has no attribute 'value_fp'",
+   "failure_hash": "0a51abff8143cde544d831235a24bb40b7e2239d8f86c5b47f4aff641fbeec58"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_passives_only_change_recomputes_rows_block_only",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert frozenset({'ly_rows'}) == {'ly_canonica...g', 'ly_rows'}\n  \n  Extra items in the right set:\n  'ly_canonical_naming'\n  Use -v to get more diff",
+   "failure_hash": "242460c702cbda326e1a640dec627a805c308cc98f5102b002756421f3a26e3a"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_reference_w_change_does_not_recompute_slices",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert 'ly_canonical_naming' in frozenset({'ly_finger_candidates', 'ly_pattern_select', 'ly_rows'})",
+   "failure_hash": "fdcf80106b7317e48b1ed8df1a5dfb8bf8edc4b93abf95181986293e1777ca74"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_rejected_only_change_reuses_slices_and_candidates",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_id_change_recomputes_from_slices",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert 'ly_canonical_naming' in frozenset({'ly_finger_candidates', 'ly_finger_geometry', 'ly_pattern_select', 'ly_rows', 'ly_slice_density'})",
+   "failure_hash": "3cb4e58078f735441a8dc73a08df16333f337eb3f99079d5f2069a05be2da87a"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_removed_names_absent_from_engine",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: 폐기 이름이 엔진 코드에 남아 있다 22건:\n  convergence/effective_placement.py:13 F_DEVICE (import)\n  convergence/effective_placement.py:29 F_DEVICE (name)\n  layout/__init__.py:27 F_DEVICE (import)\n  l",
+   "failure_hash": "7e14b7e72395dcd9c4415bc95f92b3b471ec04919f9db7716f5eae9db7724f06"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[x = dc_gm_bound\\n-name]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[y = snap.previous_gm_id\\n-attribute]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[def inherited_gm_id(p):\\n    return p\\n-definition]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[def f(canonical_gm_id):\\n    return 0\\n-argument]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[from gmid_engine.sizing import gm_grid_max\\n-import]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[import os as _power_resolution\\n-import_alias]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[f(spec_passive_values=0)\\n-keyword]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[W = ((\"device\", \"dc_gm_bound\"),)\\n-string]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scope_of_power_resolution_is_search_only",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_ignores_docstring_and_comment_mentions",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_local_inputs_not_rebuilt_in_search",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_local_inputs_scanner[x = local_inputs(a, b)\\n-1]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_local_inputs_scanner[x = metrics.local_inputs(a)\\n-1]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_local_inputs_scanner[from gmid_engine.metrics import local_inputs\\n-1]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_local_inputs_scanner[x = s.value('graph', 'ach', 'local_inputs')\\n-0]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  }
+ ],
+ "n_rows": 51,
+ "n_red": 18,
+ "n_passed_on_base": 33,
+ "type_counts": {
+  "builtins.AssertionError": 10,
+  "builtins.AttributeError": 4,
+  "builtins.ImportError": 3,
+  "builtins.ModuleNotFoundError": 1
+ },
+ "base_kind_counts": {
+  "collection_error": 1,
+  "failed": 17
+ },
+ "bundle_sha256": "833f47cdfea8c279d9ecde4ef00bc51afb24a1db686fc55edcf9d689f5569d8e"
+}

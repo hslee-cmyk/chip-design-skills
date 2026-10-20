@@ -428,8 +428,9 @@ def test_name_bijection_and_order_invariance(tmp_path, name):
         doc = C.rename_all(raw, netmap, elmap, seed)
         sup = {netmap[k]: v for k, v in H.lib_supplies(name).items()}
         from gmid_engine.graph import build_s1, build_s1v
-        r1 = build_s1(H.load(tmp_path, doc, stem="ren%d_%s" % (seed, name)), sup)
-        r1v = H.read_s1v(build_s1v(r1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False))
+        run = H.fresh_run()                # [XRUN-F1 card B C6] 이름 바꾼 회로 = 다른 실행
+        r1 = build_s1(H.load(tmp_path, doc, stem="ren%d_%s" % (seed, name)), sup, **run)
+        r1v = H.read_s1v(build_s1v(r1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, **run))
         inv_n = {v: k for k, v in netmap.items()}
         inv_e = {v: k for k, v in elmap.items()}
         back = _canon(r1, r1v, C.coupling(r1, r1v), inv_n, inv_e)

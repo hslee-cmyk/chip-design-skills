@@ -2,7 +2,12 @@
 
 ng-bridge 브랜치(`oracle_input` 등 오라클 생산자)가 같은 파일을 쓴다. 병합 때 이 절을 그 파일의 새 절로 합친다. 이 문서는 단계 A 만 다룬다.
 
-## 1. `run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None) -> StageAResult`
+## 1. `run_stage_a(topology_path, spec_path, lut, *, output_dir, donors, counters, supplies_v=None, structure_path=None) -> StageAResult`
+
+[XRUN-F1 B, 계획 PD-8] `donors`·`counters` = **필수 키워드**(기본값 없음, 빠지면 `TypeError`) -- 호출자가 `gmid_engine.search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수다. `run_stage_a` 는 만들지 않고 받는다
+(실행 경계 = 두 객체를 만드는 호출자). `build_s1`·`build_s1v`·`coupling_vars` 에 넘기고 `StageAResult.donors`·`.counters` 에 넘긴 객체 그대로(`is`) 싣는다(정지 경로 결과 포함). 단계 B(`run_stage_b`,
+서명 불변)는 `StageAResult` 의 두 칸을 `build_kernel_context`·`search_domain`·`passive_area_decl`·`achievability` 에 넘긴다. **`run_stage_a` 호출마다 같은 함수 안 `donors, counters = open_run()` 을 1:1 로
+둔다**(구조 규칙 M (M-c), test·하네스 포함) -- 두 실행은 아무것도 나누지 않는다.
 
 [NFR-2·U-89, 2026-10-15] **S0 수준 층은 실행마다 처음부터 계산하고 그 실행 안에서만 재사용한다**(설계 40 §2.4.3). 단계 A 는 디스크 스냅샷을 읽거나 쓰지 않고, S0 키·키 입력·sources 도 만들지 않는다.
 빈 S0 수준 스냅샷(`GraphSnapshot.empty(S0_WRITERS)`, 권한표 search `S0_WRITERS`) 위에서 `build_s1` -> `build_s1v`(필드 `graph/s1v`) -> 계산 블록 `coupling_vars`(필드 `graph/coupling`)를 부르고,
@@ -33,14 +38,16 @@ ng-bridge 브랜치(`oracle_input` 등 오라클 생산자)가 같은 파일을 
   보고서 키 `orbit_matching_crosstab` = `{"orbits": [{"members", "records": [[kind, members]]}], "records": [{"kind", "members", "orbits"}]}`(MOS 궤도만, 40 §6-5; 정지 전 단계면 None).
 
 [NFR-4 재확인 (a)·`env_fp`] `run_stage_a` 는 진입에서 `core.blas_environment()` 를 한 번 부른다(BLAS 스레드 1 확인 -- 실패는 `RuntimeError`). 그 반환값의 core `fp_of` 가 보고서 최상위 키 `env_fp` 다
-(정상·정지 경로 모두, dict 와 파일 JSON 같은 값). `StageAResult` 칸은 늘지 않는다.
+(정상·정지 경로 모두, dict 와 파일 JSON 같은 값). 이 재확인은 `StageAResult` 칸을 늘리지 않았다(card B 의 `donors`·`counters` 칸은 아래 §3).
 
 JSON 키(키 정렬): `circuit`, `status`, `exit_code`, `env_fp`, `count_budget`(정지 전 단계면 0), `declared_comparison`, `stop_reasons`(`severity|code|view|대상,...|근거` 문자열 목록,
 로드 거부는 `A1_load: <FailureRecord>`), `review_needed`(같은 형식), `views`(id·kind·blocks[kind,key,stage]·loop_count·cuts + [U1b] feedforward[id,cells,bias_cells,load_cells,bypassed_blocks,sign]·loop_roles[loop_id,role,reason]·polarity), `applied_facts`([U1b] 적용·확인한 (concept, subject) 목록), `ff_ratio_candidates`([U1b] [{view, ff, bypassed_block, relation, source}] -- 영점 상쇄 비율 제약 후보, 값은 spec 이 선언할 때만 제약), `tables`(= `graph.structure_tables(s1v)`:
 뷰별 셀·구동 종류·stage·블록·극점 노드·출력 방향·루프·끊는 점·`unreduced_diff`·기록, L 동치류, declared 요약, 적용한 ratified 사실; 로드 정지면 None), `coupling`([U10] GB3 결합 변수: `kind_counts`·`bias_columns`·`column_block_map`·`column_mate_devices`·`vars`[kind,members,nets,blocks,domain,init_rule] -- `graph.coupling_vars`, 단계 A4; 구조 정지·로드 정지면 None; 바이어스 기둥 의사 블록은 `blocks` 에 `bias:<기둥 id>` 키로 나온다, graph CONTRACT §11). `.md` 는 같은 정보의
 사람용 요약. 기존 파일은 덮어쓴다.
 
-## 3. 결과 `StageAResult(exit_code, status, report, report_paths, s1=None, spec=None, code_fp=None)`
+## 3. 결과 `StageAResult(exit_code, status, report, report_paths, s1=None, spec=None, code_fp=None, donors=None, counters=None)`
+
+[XRUN-F1 B] `donors`·`counters` = 호출자가 넘긴 실행 하나의 색인·계수(넘긴 객체 그대로 `is`, 정지 경로 포함; 단계 B 가 이어 쓰는 과도기 참조 칸, 설계 40 §2.4.5 '전달' -- U17 ② 에서 정리).
 
 [U17 ①-b] 묶음 `S1v` 칸은 없다(설계 40 §2.4.7). `s1` = S0 수준 스냅샷 위 `S1Graph`(S1 + `graph/s1v` + `graph/coupling` 필드, `column_unassigned` 정지면 결합 필드 없음; S1 전 정지면 None),
 `spec`(로드 정지면 None), `code_fp`(엔진 코드 지문). 후속 단계: 커널 컨텍스트는 L 동치류를 필드 `graph/s1v: l_classes` 에서 읽는다
