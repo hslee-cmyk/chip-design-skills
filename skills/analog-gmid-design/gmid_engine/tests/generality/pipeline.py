@@ -30,7 +30,7 @@ from gmid_engine.core import BoundedLRU, MetricSignature, SchemaRejectedError, e
 from gmid_engine.graph import build_s1
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.metrics import JunctionSource, metric_catalog
-from gmid_engine.search import SearchSettings, build_search_context, layer0_start
+from gmid_engine.search import SearchSettings, build_search_context, layer0_start, open_run
 from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
 
 from .topogen import add_tag_noise, flip_polarity, random_renaming, rename, rename_spec, shuffle_order, synthetic_spec
@@ -138,13 +138,17 @@ def _with_ss_constraints(spec, ports):
 
 
 class Pipe:
-    """회로 이름 + 변형 -> Case(캐시). 파일은 변형마다 다른 하위 폴더(같은 topology_name 충돌 방지)."""
+    """회로 이름 + 변형 -> Case. 파일은 변형마다 다른 하위 폴더(같은 topology_name 충돌 방지).
+
+    [XRUN-F1 card B 규칙 M M-d, interface card C0·C6] 이 객체는 session fixture 라 test 하나보다 오래 산다 -- 실행의 두 객체(open_run())나
+    그것을 칸으로 쥔 KernelContext·SearchContext 를 보관하지 않는다. 캐시는 실행과 무관한 입력(topology·spec·DcInputs·S1 스냅샷 -- S1 은 지역
+    open_run() 쌍으로 만든 스냅샷)뿐이고, `case()` 는 부를 때마다 새 실행(새 open_run() 쌍)의 KernelContext 를 담은 Case 를, `sctx()` 는 그
+    Case 의 실행으로 만든 새 SearchContext 를 준다(한 Case = 한 실행 -- 같은 test 안에서 같은 Case 로 부른 평가는 그 실행 색인을 공유한다)."""
 
     def __init__(self, env, root):
         self.env = env
         self.root = Path(root)
         self._cases = {}
-        self._sctx = {}
         self._theta0 = {}
         self._n = 0
 
@@ -210,26 +214,29 @@ class Pipe:
                                      ensure_ascii=False), encoding="utf-8")
             spec = load_sizing_spec(str(sp), td, self.env.catalog)
             inputs = dc_inputs_from_spec(spec)
-            s1 = build_s1(td, dict(inputs.supplies_v))
-            ctx = build_kernel_context(s1, inputs, self.env.access)
-            self._cases[key] = Case(name, variant, mapping, kind_map, vdoc, td, spec, inputs, s1, ctx)
-        return self._cases[key]
+            s1_donors, s1_counters = open_run()
+            s1 = build_s1(td, dict(inputs.supplies_v), donors=s1_donors, counters=s1_counters)
+            self._cases[key] = (name, variant, mapping, kind_map, vdoc, td, spec, inputs, s1)
+        name_, variant_, mapping, kind_map, vdoc, td, spec, inputs, s1 = self._cases[key]
+        donors, counters = open_run()                     # 이 Case 하나 = 실행 하나(card B C0)
+        ctx = build_kernel_context(s1, inputs, self.env.access, donors=donors, counters=counters)
+        return Case(name_, variant_, mapping, kind_map, vdoc, td, spec, inputs, s1, ctx)
 
     def settings(self):
         return SearchSettings(FRONT_BUDGET_S, EVAL_BUDGET, RESISTANCE_BOX, (("generality", "test_fixture"),),
                               CAPACITANCE_BOX)
 
     def sctx(self, case):
-        """S0 당 1회(캐시) -- 같은 case 의 평가 캐시를 공유한다."""
-        key = (case.name, case.variant)
-        if key not in self._sctx:
-            self._sctx[key] = build_search_context(case.ctx, case.spec, self.settings(), None, self.env.pdk,
-                                                   self.env.lut_rule, code_fp=CODE_FP)
-        return self._sctx[key]
+        """그 Case 의 실행(case.ctx 의 두 객체)으로 만든 search 컨텍스트. [card B M-d] test 사이 캐시는 두지 않는다 -- 같은 Case 로 부른
+        평가끼리는 그 실행 색인을 공유한다(C6)."""
+        return build_search_context(case.ctx, case.spec, self.settings(), None, self.env.pdk, self.env.lut_rule, code_fp=CODE_FP)
 
     def fresh_sctx(self, case):
-        """캐시 없는 새 search 컨텍스트(층 0 비교용 -- 평가 캐시가 결과에 끼지 않게)."""
-        return build_search_context(case.ctx, case.spec, self.settings(), None, self.env.pdk, self.env.lut_rule, code_fp=CODE_FP)
+        """새 실행(새 open_run() 쌍)의 search 컨텍스트(층 0 비교용 -- 앞 평가의 색인·평가 캐시가 결과에 끼지 않게). 커널 컨텍스트도 새 실행으로
+        다시 만든다(같은 S1·입력)."""
+        donors, counters = open_run()
+        ctx = build_kernel_context(case.s1, case.inputs, self.env.access, donors=donors, counters=counters)
+        return build_search_context(ctx, case.spec, self.settings(), None, self.env.pdk, self.env.lut_rule, code_fp=CODE_FP)
 
     def theta0(self, name):
         """원래 회로의 층 0 시작점 (θ dict, {MOS: L 칸 index}) 또는 None. 변형 비교의 고정 θ 출처(입력)."""

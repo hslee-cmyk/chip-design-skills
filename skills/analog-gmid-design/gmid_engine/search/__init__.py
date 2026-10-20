@@ -29,6 +29,7 @@ from .l_bin_search import polish_l_cells
 from .layer0_center import ROW_SEAL_ITEM, SOURCE_LAYER0, STAGE_LAYER0, Layer0Result, layer0_start
 from .l_cells import l_cells
 from .objectives import objective_values
+from .open_run import open_run
 from .noise_decl import noise_decl
 from .orbit_ties import orbit_ties
 from .pareto import nondominated
@@ -47,6 +48,7 @@ from .s0_fields import (
     START_KEY,
     START_WRITES,
 )
+from .s3_index import S3Index
 from .search_context import SearchContext, build_search_context
 from .tie_expand import expand_ties
 from .search_domain import search_domain
@@ -134,6 +136,7 @@ __all__ = (
     "ROW_SEAL_ITEM",
     "RealizedGeometry",
     "S3Archive",
+    "S3Index",
     "SOURCE_LAYER0",
     "STAGE_FD",
     "STAGE_LAYER0",
@@ -184,6 +187,7 @@ __all__ = (
     "read_front_entries",
     "nondominated",
     "objective_values",
+    "open_run",
     "polish_l_cells",
     "search_domain",
     "seal_status",

@@ -342,9 +342,12 @@ def stage_ab(root, lut, tp, sp, pdk, diagnostic=False, out="out", settings=None)
     `settings` = 탐색 실행 설정(None 이면 `toy_settings()` -- 단계 B 에는 늘 명시해 넘긴다).
     [xrun, 사용자 결정 J-1 2026-10-15] run_stage_a 는 PDK 선언·LUT 생성 규칙 선언과 그 경로 인자를 받지 않는다(S0 키에만 쓰이던 인자)."""
     from gmid_engine.pipeline import run_stage_a, run_stage_b
+    from gmid_engine.search import open_run
     if settings is None:
         settings = toy_settings()
-    a = run_stage_a(tp, sp, lut, output_dir=Path(root) / out)
+    # [XRUN-F1 card B 규칙 M M-c] 실행 하나 = 이 helper 호출 하나: run_stage_a 와 1:1 인 open_run() 튜플 풀기(쌍을 매개변수로 받지 않는다)
+    donors, counters = open_run()
+    a = run_stage_a(tp, sp, lut, output_dir=Path(root) / out, donors=donors, counters=counters)
     b = run_stage_b(a, memo_of(lut), pdk, output_dir=Path(root) / out, diagnostic=diagnostic, settings=settings)
     return a, b
 

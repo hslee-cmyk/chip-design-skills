@@ -34,16 +34,18 @@ REASON_NEEDS_PM = "compensation_internal_needs_overall_pm"     # 41 1.12.3 '처�
 
 def _nmc3(tmp_path, pm, stop=False):
     topo, spec = J.load_spec(tmp_path, J.NMC3, pm=pm)
-    s1 = build_s1(topo, H.SUPPLIES)
-    return H.read_s1v(build_s1v(s1, spec, count_budget=H.BIG_BUDGET, stop_on_unsupported=stop))
+    run = H.fresh_run()                    # [XRUN-F1 card B C6] S1·S1v = 실행 하나
+    s1 = build_s1(topo, H.SUPPLIES, **run)
+    return H.read_s1v(build_s1v(s1, spec, count_budget=H.BIG_BUDGET, stop_on_unsupported=stop, **run))
 
 
 def _lib(name, spec=True, **kw):
     topo = load_topology(str(H.LIBRARY / (name + ".topology.json")))
     sp = load_sizing_spec(str(H.LIBRARY / (name + ".sizing_spec.json")), topo, metric_catalog()) if spec else None
-    s1 = build_s1(topo, H.lib_supplies(name))
+    run = H.fresh_run()
+    s1 = build_s1(topo, H.lib_supplies(name), **run)
     kw.setdefault("stop_on_unsupported", False)
-    return H.read_s1v(build_s1v(s1, sp, count_budget=H.BIG_BUDGET, **kw))
+    return H.read_s1v(build_s1v(s1, sp, count_budget=H.BIG_BUDGET, **kw, **run))
 
 
 def _roles(s1v):

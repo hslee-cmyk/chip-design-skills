@@ -21,7 +21,9 @@ def rows_of(snap):
 
 
 def run(snap):
-    return seal_item(dc_seal_bulk_reverse(snap), 6)
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C4] 블록 단독 호출 = 새 실행 하나
+    return seal_item(dc_seal_bulk_reverse(snap, donors=donors, counters=counters), 6)
 
 
 def test_pass_zero_magnitude(ctx_c):

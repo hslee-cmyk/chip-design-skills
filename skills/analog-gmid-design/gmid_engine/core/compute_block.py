@@ -7,23 +7,30 @@
     def blk(projection):
         return {("device", "W"): {key: ... for key, value in projection.column("device", "L")}}
 
-    snapshot2 = blk(snapshot1, *extras)
+    donors, counters = open_run()        # search.open_run -- 실행 하나의 색인·계수 (생성은 그 함수뿐)
+    snapshot2 = blk(snapshot1, *extras, donors=donors, counters=counters)
 
 * 블록 함수는 `Projection` 하나만 받는다(선언 밖 열은 읽을 수 없다). 추가 인자(`extras`)는 불변 값만 받고
   (`TypeError` -- dict·list·ndarray 는 거부) 투영에 함께 들어간다.
-* 입력 버전 = fp_of((name, 블록 코드 해시, 투영 지문)). `snapshot.block_version(name)` 이 같으면 함수를 부르지 않고
-  `snapshot` 을 그대로 돌려준다(재사용). 다르면 함수를 불러 결과를 `snapshot.write(name, 입력 버전, 결과)` 로만 쓴다.
+* 입력 버전 = fp_of((name, 블록 코드 해시, 투영 지문)) -- 정본은 `ComputeBlock.input_version(snapshot, *extras)` 하나(봉인 4 도 이것을 부른다).
+* `donors`·`counters` 는 필수 키워드다(빠지면 `TypeError`, `donors` 가 `Donors` 하위가 아니어도 `TypeError`). 판정 순서(설계 40 §2.4.4):
+  1 같은 lineage 재사용(`snapshot.block_version(name)` 이 같으면 `snapshot` 그대로, 계수 reuse) -> 2 이식(`donors.find` 가 스냅샷을 주면
+  `graft`, 계수 graft) -> 실패 재연(`donors.find_failure` 가 기록을 주면 블록 함수 없이 그 분류 예외를 `from_record` 로 다시 던진다, 계수 replay)
+  -> 3 계산(계수 compute 는 함수 호출 전에. 성공이면 `register`, N3.14 분류 예외면 `register_failure` 후 다시 던진다. 그 밖 예외는
+  등록·알림 없이 그대로).
+* 블록 객체는 상태가 없다(계수·색인은 호출자가 넘기는 `RunCounters`·`Donors` 에 산다).
 * writer 이름 = 블록 이름. 권한표가 그 열을 이 블록에 배정하지 않았으면 `WriterPermissionError`.
 * 코드 해시(설계 40 v1.9.3 결정 10) = 블록 함수 code 객체(중첩 code 재귀, `__wrapped__` 사슬 포함)의 **코드 내용만**의 지문.
   marshal 을 쓰지 않고(참조 수에 따라 바이트가 달라진다) 정규화 결과를 core `fp_of` 로 지문화한다. 파일 경로·줄 정보는 넣지 않아
   checkout 경로와 무관하다. 데코레이트 시점에 1회 계산해 속성으로 보관한다.
-* 계수: calls = reuses + computes. `recomputes_same_input` = 이 블록 객체가 이미 계산한 적 있는 입력 버전으로
-  다시 계산한 횟수(구조상 0 이어야 한다 -- 0 이 아니면 스냅샷 lineage 가 값을 버린 것).
 """
-import dataclasses
 from collections.abc import Mapping
 
+from .donors import Donors
+from .failure_classes import FAILURE_CLASSES
+from .failure_errors import InfeasibleSizingError, SchemaRejectedError
 from .fingerprint import fp_of
+from .graft import graft
 from .projection import Projection
 from .writer_table import ENTITY_KINDS
 
@@ -89,15 +96,7 @@ def _code_hash(fn):
             return fp_of(tuple(chain))
 
 
-@dataclasses.dataclass(frozen=True)
-class BlockStats:
-    """블록 하나의 계수 스냅샷."""
-
-    name: str
-    calls: int
-    reuses: int
-    computes: int
-    recomputes_same_input: int
+_PART = "*"   # 분할 도입(U17 ②) 전에는 분할 key 가 "*" 하나
 
 
 def _kind_fields(what, pairs):
@@ -126,42 +125,51 @@ class ComputeBlock:
         self.writes = writes
         self.code_hash = _code_hash(fn)
         self.__doc__ = fn.__doc__
-        self._calls = 0
-        self._reuses = 0
-        self._computes = 0
-        self._recomputes = 0
-        self._seen_inputs = set()
 
-    def __call__(self, snapshot, *extras):
-        projection = Projection.from_snapshot(snapshot, self.reads, extras)    # extras 불변 검사(TypeError)는 여기서 한 번
-        input_version = fp_of((self.name, self.code_hash, projection.fp))
-        self._calls += 1
-        if snapshot.block_version(self.name) == input_version:
-            self._reuses += 1
+    def _prepare(self, snapshot, extras):
+        """(투영, 입력 버전) -- 한 번만 만든다. extras 불변 검사(`TypeError`)는 이 투영에서 한 번."""
+        projection = Projection.from_snapshot(snapshot, self.reads, extras)
+        return projection, fp_of((self.name, self.code_hash, projection.fp))
+
+    def input_version(self, snapshot, *extras):
+        """입력 버전 정본 -- 블록 호출과 봉인 4 가 같은 식을 쓴다."""
+        return self._prepare(snapshot, extras)[1]
+
+    def __call__(self, snapshot, *extras, donors, counters):
+        if not isinstance(donors, Donors):
+            raise TypeError("compute_block " + repr(self.name) + ": donors 는 Donors 하위여야 한다: " + type(donors).__qualname__)
+        projection, version = self._prepare(snapshot, extras)
+        name = self.name
+        if snapshot.block_version(name) == version:
+            counters.record(name, _PART, "reuse", version)
             return snapshot
-        self._computes += 1
-        if input_version in self._seen_inputs:
-            self._recomputes += 1
-        self._seen_inputs.add(input_version)
-        result = self.fn(projection)
+        donor = donors.find(name, _PART, version)
+        if donor is not None:
+            counters.record(name, _PART, "graft", version)
+            return graft(snapshot, self, _PART, donor, version)
+        failure = donors.find_failure(name, _PART, version)
+        if failure is not None:
+            counters.record(name, _PART, "replay", version)
+            entry = FAILURE_CLASSES.get(failure.failure_class)
+            if entry is None or entry.exc is None:
+                raise ValueError("compute_block " + repr(name) + ": 재연할 수 없는 실패 기록 분류 " + repr(failure.failure_class) + " (색인 손상)")
+            raise entry.exc.from_record(failure)
+        counters.record(name, _PART, "compute", version)
+        try:
+            result = self.fn(projection)
+        except (InfeasibleSizingError, SchemaRejectedError) as failed:    # 결정적 도메인 실패: 같은 입력이면 늘 같다
+            donors.register_failure(name, _PART, version, failed.record)
+            counters.result(name, _PART, version, False)
+            raise
         if not isinstance(result, Mapping) or set(result) != set(self.writes):
             raise ValueError(
-                "compute_block " + repr(self.name) + ": 결과 키는 선언한 writes " + repr(self.writes)
+                "compute_block " + repr(name) + ": 결과 키는 선언한 writes " + repr(self.writes)
                 + " 와 정확히 같아야 한다"
             )
-        return snapshot.write(self.name, input_version, result)
-
-    def stats(self):
-        """현재 계수의 BlockStats."""
-        return BlockStats(self.name, self._calls, self._reuses, self._computes, self._recomputes)
-
-    def reset_stats(self):
-        """계수와 '계산한 입력 버전' 기록을 비운다(실행 경계에서 부른다)."""
-        self._calls = 0
-        self._reuses = 0
-        self._computes = 0
-        self._recomputes = 0
-        self._seen_inputs = set()
+        written = snapshot.write(name, version, result)
+        donors.register(name, _PART, version, written)
+        counters.result(name, _PART, version, True)
+        return written
 
 
 def compute_block(name, reads=(), writes=()):

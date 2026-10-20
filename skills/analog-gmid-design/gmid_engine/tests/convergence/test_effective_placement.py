@@ -1,6 +1,6 @@
 """`effective_placement(snapshot, grid_m) -> (placements, unplaced)` (CONTRACT 2절, 계획 LY3·LY7).
 
-oracle (a) 구성으로 정답이 정해진 합성 입력: 손으로 만든 레이아웃 필드(`ly_device`·`ly_finger`·`ly_groups` -- 놓인 소자·미배치 소자·W_request 응답
+oracle (a) 구성으로 정답이 정해진 합성 입력: 손으로 만든 레이아웃 필드(`ly_point`(소자 이름 열, design 40 v1.11.2 §2.4.8 O-39 (1))·`ly_finger`·`ly_groups` -- 놓인 소자·미배치 소자·W_request 응답
 대기 그룹)에서 기대 Placement 를 손으로 읽는다. [U17 1-e] 입력은 `LayoutResult.snapshot`(설계점 스냅샷의 레이아웃 필드). 폭 키 = finger_w / 격자 를 가장 가까운 정수로(손으로 고른 값이 정수 근처라 반올림 방향이 자명).
 """
 from __future__ import annotations

@@ -251,7 +251,10 @@ def _dc_with_boxes(tmp, topo_doc, lut, elements, boxes):
     sp.write_text(json.dumps(doc, indent=1), encoding="utf-8")
     spec = load_sizing_spec(str(sp), td, metric_catalog())
     inputs = dc_inputs_from_spec(spec)
-    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, new_access(lut))
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C0·C6] 이 build 하나 = 실행 하나
+    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v), donors=donors, counters=counters), inputs, new_access(lut),
+                              donors=donors, counters=counters)
     pdk, rule = write_decls(tmp / "pdk")
     found = [s.value for s in spec.search if s.field == THETA_BOUNDS]
     return spec, dc, pdk, rule, (found[0] if found else ())
@@ -534,12 +537,14 @@ def test_search_domain_does_not_recompute_symmetry(tmp_path, lut_sealed, monkeyp
             if isinstance(fn, types.FunctionType):
                 monkeypatch.setattr(mod, attr, wrap(attr, fn))
     from gmid_engine.graph import s1_symmetry
-    before = s1_symmetry.stats().computes
+    from .conftest import block_row
+    # [XRUN-F1 card B C1·C6] 계수 = 그 커널 컨텍스트 실행(case.dc.counters)의 s1_symmetry 행 computes(인덱스 4)
+    before = block_row(case.dc.counters, s1_symmetry.name)[4]
     d = domain_of(case.dc, _settings(), case.pdk, case.spec_bounds, untie=case.untie)
     assert d.ties == case.sctx.domain.ties                                   # 같은 결과(공허하지 않음: SYM 은 묶음이 있다)
     assert d.ties
     assert calls == []
-    assert s1_symmetry.stats().computes == before
+    assert block_row(case.dc.counters, s1_symmetry.name)[4] == before
 
 
 # ---------------------------------------------------------------- [U17 ①-d] 40 v1.8 §6-8 D-1 궤도를 넘는 전류 묶음 상자 (§10.2 행 '궤도 넘는 전류 상자')

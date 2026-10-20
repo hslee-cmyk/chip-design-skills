@@ -10,6 +10,13 @@ import pytest
 from gmid_engine.core import ComputeBlock, GraphSnapshot
 from gmid_engine.graph import S1_BRANCHES_WRITER, S1_WRITERS, Branch, build_s1, s1_branches
 
+
+def _build(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
+
 SIX = (
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
@@ -30,7 +37,7 @@ TABLE = {
 
 
 def _s1(gh, name):
-    return build_s1(gh.load_lib(name), gh.supplies_for(name))
+    return _build(gh.load_lib(name), gh.supplies_for(name))
 
 
 @pytest.mark.parametrize("name", NINE)
@@ -104,7 +111,7 @@ def test_isolated_loop_stops(gh, tmp_path):
     ]
     o_err = pytest.raises(gh.StopExpected, gh.oracle, raw).value
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    d, devices = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
+    d, devices = gh.stop(lambda: _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert d["rule_branch"] == o_err.branch == "dc_isolated_loop"
     assert devices == o_err.devices == ("Mla", "Mlb", "Mlc")
     assert d["nets"] == o_err.detail["nets"] == ("la", "lb", "lc")
@@ -125,7 +132,7 @@ def test_loop_through_anchor_is_a_branch_not_a_stop(gh, tmp_path):
     ]
     o = gh.oracle(raw)
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    s1 = build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
+    s1 = _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
     assert tuple(gh.branch_plain(b) for b in gh.gval(s1, "branches")) == o.branches
     loops = [b for b in gh.gval(s1, "branches") if b.ends[0] == b.ends[1]]
     assert [b.ends for b in loops] == [("gnd", "gnd")]
@@ -140,5 +147,7 @@ def test_block_declaration():
 
 def test_direct_call_without_predecessor_key_error():
     # 계약 6절: 선행 블록 필드가 없으면 projection 의 graph 값 조회가 KeyError
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
     with pytest.raises(KeyError):
-        s1_branches(GraphSnapshot.empty(S1_WRITERS))
+        s1_branches(GraphSnapshot.empty(S1_WRITERS), donors=donors, counters=counters)

@@ -45,7 +45,7 @@ def _toy(tmp_path, doc, stem=None, **kw):
 
 
 def _lib_s1(name):
-    return build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name))
+    return build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), **H.fresh_run())
 
 
 def test_constants_are_design_vocabulary():

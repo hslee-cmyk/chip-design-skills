@@ -1,0 +1,8270 @@
+{
+ "head": {
+  "common_gate_amplifier": {
+   "sec": 332.38794939999934,
+   "n_sealed": 90,
+   "errors": [],
+   "timeout": null,
+   "points": [
+    {
+     "eval_seq": 1,
+     "li_fp": "8c15a0383aa1398c140fd185692c28b7e05750d5262189f916b9d7aceb8f219a",
+     "n_devices": 3,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 329.80061759997625,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       4.200000062575686e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.200000062570821e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       9.256648752802456e-07,
+       1e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       4.200000062575686e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.200000062570821e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       9.256648752802456e-07,
+       1e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       3,
+       0,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_finger_candidates": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_finger_geometry": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_pattern_select": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_rows": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_slice_density": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 46,
+     "li_fp": "d8f9d23f08a38deafeb662936780b287c92575dcabb17483a1228eaaeab82b31",
+     "n_devices": 3,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 0.12992300000041723,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       4.2000000625540047e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.918714112593348e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       9.243736416162339e-07,
+       1e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       4.2000000625540047e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.918714112593348e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       9.243736416162339e-07,
+       1e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       6,
+       0,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_finger_candidates": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_finger_geometry": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_pattern_select": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_rows": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_slice_density": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 92,
+     "li_fp": "df909edbbc02a98764775547c018135ad31da9a736fcaff73853d3be3a0d86ce",
+     "n_devices": 3,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 0.12539279996417463,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       1.7210181806639332e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.3108656440802727e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       3.8327827181939914e-07,
+       4.2e-07,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       1.7210181806639332e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.3108656440802727e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       3.8327827181939914e-07,
+       4.2e-07,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       9,
+       0,
+       0,
+       0,
+       9,
+       0
+      ],
+      "ly_finger_candidates": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_finger_geometry": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_pattern_select": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_rows": [
+       9,
+       3,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_slice_density": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ]
+     }
+    }
+   ],
+   "w3_toy": {
+    "canon_fp": [
+     "e0c2a3a76a0344e68061ea48f22f8ab8f345bb95955e6b3df90bf6e0ef825be8",
+     "171664097141b634b67b862aa4ce189eaa3d14ff458370a4cda67ff948ddfbfa"
+    ],
+    "field_same": {
+     "ly_attrs": false,
+     "ly_canon": false,
+     "ly_canon_rows": false,
+     "ly_diffusion": true,
+     "ly_dispositions": true,
+     "ly_finger": true,
+     "ly_floorplan": true,
+     "ly_fw_cand": true,
+     "ly_groups": true,
+     "ly_groups_in": true,
+     "ly_passives": true,
+     "ly_pdk": true,
+     "ly_pins": true,
+     "ly_point": true,
+     "ly_rejected": true,
+     "ly_row_groups": true,
+     "ly_rows": false,
+     "ly_slices": true,
+     "ly_w_adjustable": true
+    },
+    "first_delta": {
+     "ly_canonical_naming": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_candidates": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_geometry": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_pattern_select": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_rows": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_slice_density": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     }
+    },
+    "op_source_device": "M1",
+    "swap_delta": {
+     "ly_canonical_naming": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_candidates": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     },
+     "ly_finger_geometry": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     },
+     "ly_pattern_select": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_rows": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_slice_density": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     }
+    }
+   },
+   "reads": {
+    "ly_canonical_naming": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_attrs"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ]
+    ],
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ],
+     [
+      "graph",
+      "ly_canon"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_canon_rows"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_canonical_naming",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "current_reuse_telescopic_ota": {
+   "sec": 0.5428092999500223,
+   "n_sealed": 0,
+   "errors": [],
+   "timeout": null,
+   "points": [],
+   "w3_toy": {
+    "error": "RuntimeError: no sealed design point",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 315, in <module>\n    raise RuntimeError(\"no sealed design point\")\nRuntimeError: no sealed design point\n"
+   },
+   "reads": {
+    "ly_canonical_naming": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_attrs"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ]
+    ],
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ],
+     [
+      "graph",
+      "ly_canon"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_canon_rows"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_canonical_naming",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "folded_cascode": {
+   "sec": 1200.4918996000197,
+   "n_sealed": 129,
+   "errors": [],
+   "timeout": {
+    "cap_s": 1200.0,
+    "stack": "  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 303, in <module>\n    r1, d1, t1 = run_case(li, memo, snap, None, D, C)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 272, in run_case\n    r = run_layout(li, memo, snap, prev, donors=D, counters=C)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\run.py\", line 118, in run_layout\n    snapshot = block(snapshot, donors=donors, counters=counters)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 90, in call_wrapped\n    return _orig_call(self, snapshot, *extras, **kw)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\core\\compute_block.py\", line 159, in __call__\n    result = self.fn(projection)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 111, in fn_wrapped\n    return orig(projection)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\canonical_naming.py\", line 26, in run\n    result = fn(AliasView(projection, canon))\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 295, in pattern_select\n    placed = tuple(_place(g, devices, fw_cand, pdk, rejected) for g in groups if g.role not in EXCLUDED_ROLES)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 295, in <genexpr>\n    placed = tuple(_place(g, devices, fw_cand, pdk, rejected) for g in groups if g.role not in EXCLUDED_ROLES)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 256, in _place\n    chosen = ev.best(allowed, \"select\")\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 182, in best\n    called, reason = self._call(pattern, nf_of)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 166, in _call\n    result = common_centroid_layout(trs, n_rows=arg, max_candidates=total)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\patterns_common_centroid.py\", line 271, in common_centroid_layout\n    return _common_centroid_nway_search(names, leaf_of, hub_net, counts, target_rows, max_candidates)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\patterns_common_centroid.py\", line 476, in _common_centroid_nway_search\n    rows = _build_rows_from_shares(repaired, leaf_of, hub_net)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\_helpers_hubleaf.py\", line 105, in _build_rows_from_shares\n    g = build_graph(trs)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\euler_graph.py\", line 78, in build_graph\n    g.adjacency[t.drain].append((edge_id, t.source))\n",
+    "stage": "point seq=1 r1"
+   },
+   "points": [
+    {
+     "eval_seq": 1,
+     "li_fp": "3fa58e7c871c32fa181683a7a35ca783f39910ad06dc78bb06aff3b9d7105e38",
+     "n_devices": 13,
+     "n_groups": 7,
+     "n_passives": 0,
+     "error": null
+    }
+   ],
+   "w3_toy": null,
+   "reads": {
+    "ly_canonical_naming": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_attrs"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ]
+    ],
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ],
+     [
+      "graph",
+      "ly_canon"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_canon_rows"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_canonical_naming",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "ngcc_3stage_ff": {
+   "sec": 0.7722371999989264,
+   "n_sealed": null,
+   "errors": [
+    "no sctx (harness did not build search context)"
+   ],
+   "timeout": null,
+   "points": [],
+   "w3_toy": null,
+   "reads": {
+    "ly_canonical_naming": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_attrs"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ]
+    ],
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ],
+     [
+      "graph",
+      "ly_canon"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_canon_rows"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_canonical_naming",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "nmcnr_amplifier": {
+   "sec": 1200.6387135999976,
+   "n_sealed": 72,
+   "errors": [],
+   "timeout": {
+    "cap_s": 1200.0,
+    "stack": "  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 303, in <module>\n    r1, d1, t1 = run_case(li, memo, snap, None, D, C)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 272, in run_case\n    r = run_layout(li, memo, snap, prev, donors=D, counters=C)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\run.py\", line 118, in run_layout\n    snapshot = block(snapshot, donors=donors, counters=counters)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 90, in call_wrapped\n    return _orig_call(self, snapshot, *extras, **kw)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\core\\compute_block.py\", line 159, in __call__\n    result = self.fn(projection)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 111, in fn_wrapped\n    return orig(projection)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\canonical_naming.py\", line 26, in run\n    result = fn(AliasView(projection, canon))\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 295, in pattern_select\n    placed = tuple(_place(g, devices, fw_cand, pdk, rejected) for g in groups if g.role not in EXCLUDED_ROLES)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 295, in <genexpr>\n    placed = tuple(_place(g, devices, fw_cand, pdk, rejected) for g in groups if g.role not in EXCLUDED_ROLES)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 258, in _place\n    chosen = ev.best((PATTERN_COMMON_CENTROID,), \"cc_same_W\")\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 182, in best\n    called, reason = self._call(pattern, nf_of)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 166, in _call\n    result = common_centroid_layout(trs, n_rows=arg, max_candidates=total)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\patterns_common_centroid.py\", line 271, in common_centroid_layout\n    return _common_centroid_nway_search(names, leaf_of, hub_net, counts, target_rows, max_candidates)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\patterns_common_centroid.py\", line 476, in _common_centroid_nway_search\n    rows = _build_rows_from_shares(repaired, leaf_of, hub_net)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\_helpers_hubleaf.py\", line 110, in _build_rows_from_shares\n    rows.append({\n",
+    "stage": "point seq=30 r1"
+   },
+   "points": [
+    {
+     "eval_seq": 30,
+     "li_fp": "2f777cee08e345476a63fe26400cfa2fc5e2c58df0b4d51b7a8502f6465b855f",
+     "n_devices": 15,
+     "n_groups": 5,
+     "n_passives": 3,
+     "error": null
+    }
+   ],
+   "w3_toy": null,
+   "reads": {
+    "ly_canonical_naming": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_attrs"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ]
+    ],
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ],
+     [
+      "graph",
+      "ly_canon"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_canon_rows"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_canonical_naming",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "pushpull_follower_buffer": {
+   "sec": 278.1728475000127,
+   "n_sealed": 81,
+   "errors": [],
+   "timeout": null,
+   "points": [
+    {
+     "eval_seq": 1,
+     "li_fp": "7b6190b835aa373f02f0f327e3f16cbb824379ab6708d6a24e42961daace9129",
+     "n_devices": 6,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 274.66354979999596,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       4.197938244863535e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       4.4062927642841626e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       9.98674460067334e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       9.319054725010577e-07,
+       1e-06,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       9.995427655049042e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       4.197938244863535e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       4.4062927642841626e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       9.98674460067334e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       9.319054725010577e-07,
+       1e-06,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       9.995427655049042e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives",
+      "ly_rows"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       3,
+       0,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_finger_candidates": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_finger_geometry": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_pattern_select": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_rows": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_slice_density": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 41,
+     "li_fp": "8f92666d4b994076fc34f57cf46fce85055b7065bacfdadea33039ba9aeb07a1",
+     "n_devices": 6,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 0.3083057999610901,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       4.197938244863535e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       4.4062927642841626e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       1.031631215262219e-06,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       9.319054725010577e-07,
+       1e-06,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       9.99542765505071e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       4.197938244863535e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       4.4062927642841626e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       1.031631215262219e-06,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       9.319054725010577e-07,
+       1e-06,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       9.99542765505071e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives",
+      "ly_rows"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       6,
+       0,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_finger_candidates": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_finger_geometry": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_pattern_select": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_rows": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_slice_density": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 84,
+     "li_fp": "7c35b35eece26e7f30977db9ff56446ac1b1b8b56a656d292e3ac2d0b2925f55",
+     "n_devices": 6,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 0.9103170000016689,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       1.30542175756167e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       5.331947450751812e-07,
+       5.5e-07,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       4.34660874072464e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       6.100413358501037e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       1.30542175756167e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       5.331947450751812e-07,
+       5.5e-07,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       4.34660874072464e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       6.100413358501037e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives",
+      "ly_rows"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       9,
+       0,
+       0,
+       0,
+       9,
+       0
+      ],
+      "ly_finger_candidates": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_finger_geometry": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_pattern_select": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_rows": [
+       9,
+       3,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_slice_density": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ]
+     }
+    }
+   ],
+   "w3_toy": {
+    "canon_fp": [
+     "e0c2a3a76a0344e68061ea48f22f8ab8f345bb95955e6b3df90bf6e0ef825be8",
+     "171664097141b634b67b862aa4ce189eaa3d14ff458370a4cda67ff948ddfbfa"
+    ],
+    "field_same": {
+     "ly_attrs": false,
+     "ly_canon": false,
+     "ly_canon_rows": false,
+     "ly_diffusion": true,
+     "ly_dispositions": true,
+     "ly_finger": true,
+     "ly_floorplan": true,
+     "ly_fw_cand": true,
+     "ly_groups": true,
+     "ly_groups_in": true,
+     "ly_passives": true,
+     "ly_pdk": true,
+     "ly_pins": true,
+     "ly_point": true,
+     "ly_rejected": true,
+     "ly_row_groups": true,
+     "ly_rows": false,
+     "ly_slices": true,
+     "ly_w_adjustable": true
+    },
+    "first_delta": {
+     "ly_canonical_naming": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_candidates": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_geometry": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_pattern_select": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_rows": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_slice_density": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     }
+    },
+    "op_source_device": "M1",
+    "swap_delta": {
+     "ly_canonical_naming": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_candidates": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     },
+     "ly_finger_geometry": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     },
+     "ly_pattern_select": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_rows": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_slice_density": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     }
+    }
+   },
+   "reads": {
+    "ly_canonical_naming": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_attrs"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ]
+    ],
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ],
+     [
+      "graph",
+      "ly_canon"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_canon_rows"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_canonical_naming",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "sf_pushpull_output_opamp": {
+   "sec": 0.7424907000386156,
+   "n_sealed": 0,
+   "errors": [],
+   "timeout": null,
+   "points": [],
+   "w3_toy": {
+    "error": "RuntimeError: no sealed design point",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 339, in <module>\n    raise RuntimeError(\"no sealed design point\")\nRuntimeError: no sealed design point\n"
+   },
+   "reads": {
+    "ly_canonical_naming": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_attrs"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ]
+    ],
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ],
+     [
+      "graph",
+      "ly_canon"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_canon_rows"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_canonical_naming",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "two_stage_ota": {
+   "sec": 1200.8111203000299,
+   "n_sealed": 95,
+   "errors": [],
+   "timeout": {
+    "cap_s": 1200.0,
+    "stack": "  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 303, in <module>\n    r1, d1, t1 = run_case(li, memo, snap, None, D, C)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 272, in run_case\n    r = run_layout(li, memo, snap, prev, donors=D, counters=C)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\run.py\", line 118, in run_layout\n    snapshot = block(snapshot, donors=donors, counters=counters)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 90, in call_wrapped\n    return _orig_call(self, snapshot, *extras, **kw)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\core\\compute_block.py\", line 159, in __call__\n    result = self.fn(projection)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 111, in fn_wrapped\n    return orig(projection)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\canonical_naming.py\", line 26, in run\n    result = fn(AliasView(projection, canon))\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 295, in pattern_select\n    placed = tuple(_place(g, devices, fw_cand, pdk, rejected) for g in groups if g.role not in EXCLUDED_ROLES)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 295, in <genexpr>\n    placed = tuple(_place(g, devices, fw_cand, pdk, rejected) for g in groups if g.role not in EXCLUDED_ROLES)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 258, in _place\n    chosen = ev.best((PATTERN_COMMON_CENTROID,), \"cc_same_W\")\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 182, in best\n    called, reason = self._call(pattern, nf_of)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 166, in _call\n    result = common_centroid_layout(trs, n_rows=arg, max_candidates=total)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\patterns_common_centroid.py\", line 271, in common_centroid_layout\n    return _common_centroid_nway_search(names, leaf_of, hub_net, counts, target_rows, max_candidates)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\patterns_common_centroid.py\", line 476, in _common_centroid_nway_search\n    rows = _build_rows_from_shares(repaired, leaf_of, hub_net)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\_helpers_hubleaf.py\", line 106, in _build_rows_from_shares\n    v = check_euler_condition(g)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/head/skills/analog-gmid-design\\gmid_engine\\layout\\euler_condition.py\", line 41, in check_euler_condition\n    def check_euler_condition(g: StackGraph) -> EulerVerdict:\n",
+    "stage": "point seq=97 r1"
+   },
+   "points": [
+    {
+     "eval_seq": 1,
+     "li_fp": "9780f4ca93e8efd965beaa369368c69856c8a280d10f74dd3d09f6333d13e39d",
+     "n_devices": 7,
+     "n_groups": 3,
+     "n_passives": 2,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 184.1582629000186,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [],
+     "wreq_w1": [],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       3,
+       0,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_finger_candidates": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_finger_geometry": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_pattern_select": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_rows": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_slice_density": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 48,
+     "li_fp": "7b2191b6165f0590a91de9da97fc3ee2f0dbaf6fbb117c7062793bd8ad288e4b",
+     "n_devices": 7,
+     "n_groups": 3,
+     "n_passives": 2,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 0.43886619998374954,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M3",
+       1.6432535368847297e-06,
+       1.68e-06,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       1.6265029488885218e-06,
+       1.65e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M3",
+       1.6432535368847297e-06,
+       1.68e-06,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       1.6265029488885218e-06,
+       1.65e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       6,
+       0,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_finger_candidates": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_finger_geometry": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_pattern_select": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_rows": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_slice_density": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 97,
+     "li_fp": "05c4d0c9fc4b607501204557973a6f1b51b8b3f827cc540a3b9d94e075664bf8",
+     "n_devices": 7,
+     "n_groups": 3,
+     "n_passives": 2,
+     "error": null
+    }
+   ],
+   "w3_toy": null,
+   "reads": {
+    "ly_canonical_naming": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_attrs"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ]
+    ],
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ],
+     [
+      "graph",
+      "ly_canon"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_canon_rows"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_canonical_naming",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "two_stage_ota_sf": {
+   "sec": 974.9155236000079,
+   "n_sealed": 95,
+   "errors": [],
+   "timeout": null,
+   "points": [
+    {
+     "eval_seq": 1,
+     "li_fp": "1f7afed87533ca3ade4625ec2d657f97bc1a4d0889e1c7daae71a1f99bab396e",
+     "n_devices": 9,
+     "n_groups": 3,
+     "n_passives": 1,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 192.511903000006,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       1.2770913382935701e-06,
+       1.22e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       1.250789332608176e-06,
+       1.22e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       1.2469290655848046e-06,
+       1.26e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       1.2770913382935701e-06,
+       1.22e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       1.250789332608176e-06,
+       1.22e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       1.2469290655848046e-06,
+       1.26e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       3,
+       0,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_finger_candidates": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_finger_geometry": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_pattern_select": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_rows": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_slice_density": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 50,
+     "li_fp": "e8f3e22178e92f5ec29a815f2082272a9440377a03e3ad21a644d05e0035b6aa",
+     "n_devices": 9,
+     "n_groups": 3,
+     "n_passives": 1,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 11.500420199998189,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M2",
+       1.2760845055157647e-06,
+       1.22e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M2",
+       1.2760845055157647e-06,
+       1.22e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       6,
+       0,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_finger_candidates": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_finger_geometry": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_pattern_select": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_rows": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_slice_density": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 102,
+     "li_fp": "66c22f7e5c0be7f4f95682c9278d1348214ed7f3582c9890fb52b0beb74aa0e7",
+     "n_devices": 9,
+     "n_groups": 3,
+     "n_passives": 1,
+     "error": null,
+     "r1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 769.3420039999764,
+     "w1_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_attrs"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       9.814400593529379e-07,
+       1e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       9.814400593529379e-07,
+       1e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_canonical_naming": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_canon_rows",
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_canonical_naming": [
+       9,
+       0,
+       0,
+       0,
+       9,
+       0
+      ],
+      "ly_finger_candidates": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_finger_geometry": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_pattern_select": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_rows": [
+       9,
+       3,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_slice_density": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ]
+     }
+    }
+   ],
+   "w3_toy": {
+    "canon_fp": [
+     "e0c2a3a76a0344e68061ea48f22f8ab8f345bb95955e6b3df90bf6e0ef825be8",
+     "171664097141b634b67b862aa4ce189eaa3d14ff458370a4cda67ff948ddfbfa"
+    ],
+    "field_same": {
+     "ly_attrs": false,
+     "ly_canon": false,
+     "ly_canon_rows": false,
+     "ly_diffusion": true,
+     "ly_dispositions": true,
+     "ly_finger": true,
+     "ly_floorplan": true,
+     "ly_fw_cand": true,
+     "ly_groups": true,
+     "ly_groups_in": true,
+     "ly_passives": true,
+     "ly_pdk": true,
+     "ly_pins": true,
+     "ly_point": true,
+     "ly_rejected": true,
+     "ly_row_groups": true,
+     "ly_rows": false,
+     "ly_slices": true,
+     "ly_w_adjustable": true
+    },
+    "first_delta": {
+     "ly_canonical_naming": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_candidates": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_geometry": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_pattern_select": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_rows": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_slice_density": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     }
+    },
+    "op_source_device": "M1",
+    "swap_delta": {
+     "ly_canonical_naming": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_candidates": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     },
+     "ly_finger_geometry": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     },
+     "ly_pattern_select": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_rows": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_slice_density": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     }
+    }
+   },
+   "reads": {
+    "ly_canonical_naming": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_attrs"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ]
+    ],
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_w_adjustable"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ],
+     [
+      "graph",
+      "ly_canon"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "device",
+      "ly_pins"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_canon_rows"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_canonical_naming",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  }
+ },
+ "prev": {
+  "common_gate_amplifier": {
+   "sec": 218.0732919999864,
+   "n_sealed": 90,
+   "errors": [],
+   "timeout": null,
+   "points": [
+    {
+     "eval_seq": 1,
+     "li_fp": "8c15a0383aa1398c140fd185692c28b7e05750d5262189f916b9d7aceb8f219a",
+     "n_devices": 3,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 215.82699870003853,
+     "w1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_device"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       4.200000062575686e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.200000062570821e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       9.256648752802456e-07,
+       1e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       4.200000062575686e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.200000062570821e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       9.256648752802456e-07,
+       1e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_finger_candidates": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_finger_geometry": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_pattern_select": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_rows": [
+       3,
+       0,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_slice_density": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 46,
+     "li_fp": "d8f9d23f08a38deafeb662936780b287c92575dcabb17483a1228eaaeab82b31",
+     "n_devices": 3,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 0.09522270003799349,
+     "w1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_device"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       4.2000000625540047e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.918714112593348e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       9.243736416162339e-07,
+       1e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       4.2000000625540047e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.918714112593348e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       9.243736416162339e-07,
+       1e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_finger_candidates": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_finger_geometry": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_pattern_select": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_rows": [
+       6,
+       0,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_slice_density": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 92,
+     "li_fp": "df909edbbc02a98764775547c018135ad31da9a736fcaff73853d3be3a0d86ce",
+     "n_devices": 3,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 0.08478340000147,
+     "w1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_device"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       1.7210181806639332e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.3108656440802727e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       3.8327827181939914e-07,
+       4.2e-07,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       1.7210181806639332e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       4.3108656440802727e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       3.8327827181939914e-07,
+       4.2e-07,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_finger_candidates": [
+       9,
+       3,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_finger_geometry": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_pattern_select": [
+       9,
+       3,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_rows": [
+       9,
+       0,
+       0,
+       0,
+       9,
+       0
+      ],
+      "ly_slice_density": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ]
+     }
+    }
+   ],
+   "w3_toy": {
+    "canon_fp": [
+     null,
+     null
+    ],
+    "field_same": {
+     "ly_device": false,
+     "ly_diffusion": true,
+     "ly_dispositions": true,
+     "ly_finger": true,
+     "ly_floorplan": true,
+     "ly_fw_cand": true,
+     "ly_groups": true,
+     "ly_groups_in": true,
+     "ly_passives": true,
+     "ly_pdk": true,
+     "ly_point": true,
+     "ly_rejected": true,
+     "ly_row_groups": true,
+     "ly_rows": false,
+     "ly_slices": true
+    },
+    "first_delta": {
+     "ly_finger_candidates": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_geometry": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_pattern_select": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_rows": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_slice_density": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     }
+    },
+    "op_source_device": "M1",
+    "swap_delta": {
+     "ly_finger_candidates": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_geometry": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     },
+     "ly_pattern_select": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_rows": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_slice_density": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     }
+    }
+   },
+   "reads": {
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "current_reuse_telescopic_ota": {
+   "sec": 0.5922835000092164,
+   "n_sealed": null,
+   "errors": [
+    "no sctx (harness did not build search context)"
+   ],
+   "timeout": null,
+   "points": [],
+   "w3_toy": null,
+   "reads": {
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "folded_cascode": {
+   "sec": 1200.4862747000298,
+   "n_sealed": 129,
+   "errors": [],
+   "timeout": {
+    "cap_s": 1200.0,
+    "stack": "  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 303, in <module>\n    r1, d1, t1 = run_case(li, memo, snap, None, D, C)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 272, in run_case\n    r = run_layout(li, memo, snap, prev, donors=D, counters=C)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\run.py\", line 112, in run_layout\n    snapshot = block(snapshot, donors=donors, counters=counters)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 90, in call_wrapped\n    return _orig_call(self, snapshot, *extras, **kw)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\core\\compute_block.py\", line 159, in __call__\n    result = self.fn(projection)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 111, in fn_wrapped\n    return orig(projection)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\canonical_naming.py\", line 99, in run\n    result = fn(AliasView(projection, canon))\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\rows.py\", line 294, in compose_rows\n    rows, attempts, folds, rebuilds = _improve(state, rows, placed)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\rows.py\", line 262, in _improve\n    rows, current, rebuilt = _rebuild(state, rows, layouts[target.group], current, attempts)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\rows.py\", line 216, in _rebuild\n    area = state.area(trial).outline_area_m2\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\rows.py\", line 126, in area\n    self.areas[key] = floorplan_of(rows, self.bodies, self.pdk, self.passives)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\floorplan.py\", line 98, in floorplan_of\n    packs = {well: _pack_body(well_rows, grid, pdk) for well, well_rows in sorted(by_body.items())}\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\floorplan.py\", line 52, in _pack_body\n    unit, places = pack_group_as_unit(gname, blocks, gap=gap)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\floorplan_pack.py\", line 520, in pack_group_as_unit\n    flat_placements, flat_w, flat_h = skyline_pack_best_width(\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\floorplan_pack.py\", line 200, in skyline_pack_best_width\n    candidates = _sweep_widths(blocks, gap, width_steps, connections, y_targets, height_tolerance)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\floorplan_pack.py\", line 175, in _sweep_widths\n    result = skyline_pack(blocks, w, gap=gap, connections=connections, y_targets=y_targets,\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\floorplan_pack.py\", line 146, in skyline_pack\n    raw = [(x, height_at_span(x, b.width)) for x in xs]\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\floorplan_pack.py\", line 110, in height_at_span\n    if seg_x < x1 and seg_x + seg_w > x0:\n",
+    "stage": "point seq=1 r1"
+   },
+   "points": [
+    {
+     "eval_seq": 1,
+     "li_fp": "3fa58e7c871c32fa181683a7a35ca783f39910ad06dc78bb06aff3b9d7105e38",
+     "n_devices": 13,
+     "n_groups": 7,
+     "n_passives": 0,
+     "error": null
+    }
+   ],
+   "w3_toy": null,
+   "reads": {
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "ngcc_3stage_ff": {
+   "sec": 0.6381658000173047,
+   "n_sealed": null,
+   "errors": [
+    "no sctx (harness did not build search context)"
+   ],
+   "timeout": null,
+   "points": [],
+   "w3_toy": null,
+   "reads": {
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "nmcnr_amplifier": {
+   "sec": 0.5105206000152975,
+   "n_sealed": null,
+   "errors": [
+    "no sctx (harness did not build search context)"
+   ],
+   "timeout": null,
+   "points": [],
+   "w3_toy": null,
+   "reads": {
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "pushpull_follower_buffer": {
+   "sec": 171.7220260000322,
+   "n_sealed": 81,
+   "errors": [],
+   "timeout": null,
+   "points": [
+    {
+     "eval_seq": 1,
+     "li_fp": "7b6190b835aa373f02f0f327e3f16cbb824379ab6708d6a24e42961daace9129",
+     "n_devices": 6,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 168.28148040000815,
+     "w1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_device"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       4.197938244863535e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       4.4062927642841626e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       9.98674460067334e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       9.319054725010577e-07,
+       1e-06,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       9.995427655049042e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       4.197938244863535e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       4.4062927642841626e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       9.98674460067334e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       9.319054725010577e-07,
+       1e-06,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       9.995427655049042e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_floorplan",
+      "ly_passives",
+      "ly_rows"
+     ],
+     "rows_after": {
+      "ly_finger_candidates": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_finger_geometry": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_pattern_select": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_rows": [
+       3,
+       0,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_slice_density": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 41,
+     "li_fp": "8f92666d4b994076fc34f57cf46fce85055b7065bacfdadea33039ba9aeb07a1",
+     "n_devices": 6,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 0.21423470001900569,
+     "w1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_device"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       4.197938244863535e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       4.4062927642841626e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       1.031631215262219e-06,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       9.319054725010577e-07,
+       1e-06,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       9.99542765505071e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       4.197938244863535e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       4.4062927642841626e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       1.031631215262219e-06,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       9.319054725010577e-07,
+       1e-06,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       9.99542765505071e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_floorplan",
+      "ly_passives",
+      "ly_rows"
+     ],
+     "rows_after": {
+      "ly_finger_candidates": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_finger_geometry": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_pattern_select": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_rows": [
+       6,
+       0,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_slice_density": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 84,
+     "li_fp": "7c35b35eece26e7f30977db9ff56446ac1b1b8b56a656d292e3ac2d0b2925f55",
+     "n_devices": 6,
+     "n_groups": 0,
+     "n_passives": 0,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 0.6591603999841027,
+     "w1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_device"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       1.30542175756167e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       5.331947450751812e-07,
+       5.5e-07,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       4.34660874072464e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       6.100413358501037e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       1.30542175756167e-07,
+       5e-06,
+       "finger_quantization"
+      ],
+      [
+       "M3",
+       5.331947450751812e-07,
+       5.5e-07,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       4.34660874072464e-07,
+       4.2e-07,
+       "finger_quantization"
+      ],
+      [
+       "M6",
+       6.100413358501037e-07,
+       5e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_floorplan",
+      "ly_passives",
+      "ly_rows"
+     ],
+     "rows_after": {
+      "ly_finger_candidates": [
+       9,
+       3,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_finger_geometry": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_pattern_select": [
+       9,
+       3,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_rows": [
+       9,
+       0,
+       0,
+       0,
+       9,
+       0
+      ],
+      "ly_slice_density": [
+       9,
+       6,
+       0,
+       0,
+       3,
+       0
+      ]
+     }
+    }
+   ],
+   "w3_toy": {
+    "canon_fp": [
+     null,
+     null
+    ],
+    "field_same": {
+     "ly_device": false,
+     "ly_diffusion": true,
+     "ly_dispositions": true,
+     "ly_finger": true,
+     "ly_floorplan": true,
+     "ly_fw_cand": true,
+     "ly_groups": true,
+     "ly_groups_in": true,
+     "ly_passives": true,
+     "ly_pdk": true,
+     "ly_point": true,
+     "ly_rejected": true,
+     "ly_row_groups": true,
+     "ly_rows": false,
+     "ly_slices": true
+    },
+    "first_delta": {
+     "ly_finger_candidates": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_geometry": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_pattern_select": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_rows": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_slice_density": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     }
+    },
+    "op_source_device": "M1",
+    "swap_delta": {
+     "ly_finger_candidates": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_finger_geometry": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     },
+     "ly_pattern_select": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_rows": {
+      "calls": 1,
+      "computes": 1,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "ly_slice_density": {
+      "calls": 1,
+      "computes": 0,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 1
+     }
+    }
+   },
+   "reads": {
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "sf_pushpull_output_opamp": {
+   "sec": 0.6198375999811105,
+   "n_sealed": 0,
+   "errors": [],
+   "timeout": null,
+   "points": [],
+   "w3_toy": {
+    "error": "RuntimeError: no sealed design point",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 339, in <module>\n    raise RuntimeError(\"no sealed design point\")\nRuntimeError: no sealed design point\n"
+   },
+   "reads": {
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "two_stage_ota": {
+   "sec": 1200.6884868000052,
+   "n_sealed": 95,
+   "errors": [],
+   "timeout": {
+    "cap_s": 1200.0,
+    "stack": "  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 303, in <module>\n    r1, d1, t1 = run_case(li, memo, snap, None, D, C)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 272, in run_case\n    r = run_layout(li, memo, snap, prev, donors=D, counters=C)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\run.py\", line 112, in run_layout\n    snapshot = block(snapshot, donors=donors, counters=counters)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 90, in call_wrapped\n    return _orig_call(self, snapshot, *extras, **kw)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\core\\compute_block.py\", line 159, in __call__\n    result = self.fn(projection)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 111, in fn_wrapped\n    return orig(projection)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\canonical_naming.py\", line 99, in run\n    result = fn(AliasView(projection, canon))\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 291, in pattern_select\n    placed = tuple(_place(g, devices, fw_cand, pdk, rejected) for g in groups if g.role not in EXCLUDED_ROLES)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 291, in <genexpr>\n    placed = tuple(_place(g, devices, fw_cand, pdk, rejected) for g in groups if g.role not in EXCLUDED_ROLES)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 255, in _place\n    chosen = ev.best((PATTERN_COMMON_CENTROID,), \"cc_same_W\")\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 179, in best\n    called, reason = self._call(pattern, nf_of)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 163, in _call\n    result = common_centroid_layout(trs, n_rows=arg, max_candidates=total)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\patterns_common_centroid.py\", line 271, in common_centroid_layout\n    return _common_centroid_nway_search(names, leaf_of, hub_net, counts, target_rows, max_candidates)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\patterns_common_centroid.py\", line 476, in _common_centroid_nway_search\n    rows = _build_rows_from_shares(repaired, leaf_of, hub_net)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\_helpers_hubleaf.py\", line 105, in _build_rows_from_shares\n    g = build_graph(trs)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\euler_graph.py\", line 78, in build_graph\n    g.adjacency[t.drain].append((edge_id, t.source))\n",
+    "stage": "point seq=97 r1"
+   },
+   "points": [
+    {
+     "eval_seq": 1,
+     "li_fp": "9780f4ca93e8efd965beaa369368c69856c8a280d10f74dd3d09f6333d13e39d",
+     "n_devices": 7,
+     "n_groups": 3,
+     "n_passives": 2,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 174.39659020002,
+     "w1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_device"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [],
+     "wreq_w1": [],
+     "passives_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_finger_candidates": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_finger_geometry": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_pattern_select": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_rows": [
+       3,
+       0,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_slice_density": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 48,
+     "li_fp": "7b2191b6165f0590a91de9da97fc3ee2f0dbaf6fbb117c7062793bd8ad288e4b",
+     "n_devices": 7,
+     "n_groups": 3,
+     "n_passives": 2,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 0.3829795999918133,
+     "w1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_device"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M3",
+       1.6432535368847297e-06,
+       1.68e-06,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       1.6265029488885218e-06,
+       1.65e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M3",
+       1.6432535368847297e-06,
+       1.68e-06,
+       "finger_quantization"
+      ],
+      [
+       "M4",
+       1.6265029488885218e-06,
+       1.65e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_finger_candidates": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_finger_geometry": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_pattern_select": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_rows": [
+       6,
+       0,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_slice_density": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 97,
+     "li_fp": "05c4d0c9fc4b607501204557973a6f1b51b8b3f827cc540a3b9d94e075664bf8",
+     "n_devices": 7,
+     "n_groups": 3,
+     "n_passives": 2,
+     "error": null
+    }
+   ],
+   "w3_toy": null,
+   "reads": {
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  },
+  "two_stage_ota_sf": {
+   "sec": 1200.5732988999807,
+   "n_sealed": 95,
+   "errors": [],
+   "timeout": {
+    "cap_s": 1200.0,
+    "stack": "  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 311, in <module>\n    r2, d2, t2 = run_case(li2, memo, snap, r1, D, C)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 272, in run_case\n    r = run_layout(li, memo, snap, prev, donors=D, counters=C)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\run.py\", line 112, in run_layout\n    snapshot = block(snapshot, donors=donors, counters=counters)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 90, in call_wrapped\n    return _orig_call(self, snapshot, *extras, **kw)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\core\\compute_block.py\", line 159, in __call__\n    result = self.fn(projection)\n  File \"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\scripts\\lay_driver.py\", line 111, in fn_wrapped\n    return orig(projection)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\canonical_naming.py\", line 99, in run\n    result = fn(AliasView(projection, canon))\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 291, in pattern_select\n    placed = tuple(_place(g, devices, fw_cand, pdk, rejected) for g in groups if g.role not in EXCLUDED_ROLES)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 291, in <genexpr>\n    placed = tuple(_place(g, devices, fw_cand, pdk, rejected) for g in groups if g.role not in EXCLUDED_ROLES)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 253, in _place\n    chosen = ev.best(allowed, \"select\")\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 179, in best\n    called, reason = self._call(pattern, nf_of)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\pattern_select.py\", line 163, in _call\n    result = common_centroid_layout(trs, n_rows=arg, max_candidates=total)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\patterns_common_centroid.py\", line 271, in common_centroid_layout\n    return _common_centroid_nway_search(names, leaf_of, hub_net, counts, target_rows, max_candidates)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\patterns_common_centroid.py\", line 476, in _common_centroid_nway_search\n    rows = _build_rows_from_shares(repaired, leaf_of, hub_net)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\_helpers_hubleaf.py\", line 109, in _build_rows_from_shares\n    nodes, seq = hierholzer(g, v.start)\n  File \"C:\\Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/prev/skills/analog-gmid-design\\gmid_engine\\layout\\euler_trail.py\", line 27, in hierholzer\n    edge_id, u = adj[v].pop()\n",
+    "stage": "point seq=102 w1"
+   },
+   "points": [
+    {
+     "eval_seq": 1,
+     "li_fp": "1f7afed87533ca3ade4625ec2d657f97bc1a4d0889e1c7daae71a1f99bab396e",
+     "n_devices": 9,
+     "n_groups": 3,
+     "n_passives": 1,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 276.38393499999074,
+     "w1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_device"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M1",
+       1.2770913382935701e-06,
+       1.22e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       1.250789332608176e-06,
+       1.22e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       1.2469290655848046e-06,
+       1.26e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M1",
+       1.2770913382935701e-06,
+       1.22e-06,
+       "finger_quantization"
+      ],
+      [
+       "M2",
+       1.250789332608176e-06,
+       1.22e-06,
+       "finger_quantization"
+      ],
+      [
+       "M5",
+       1.2469290655848046e-06,
+       1.26e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_finger_candidates": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_finger_geometry": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ],
+      "ly_pattern_select": [
+       3,
+       1,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_rows": [
+       3,
+       0,
+       0,
+       0,
+       3,
+       0
+      ],
+      "ly_slice_density": [
+       3,
+       2,
+       0,
+       0,
+       1,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 50,
+     "li_fp": "e8f3e22178e92f5ec29a815f2082272a9440377a03e3ad21a644d05e0035b6aa",
+     "n_devices": 9,
+     "n_groups": 3,
+     "n_passives": 1,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 17.74419629998738,
+     "w1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "w1_field_diff": [
+      "ly_device"
+     ],
+     "w1_outputs_diff": [
+      "devices"
+     ],
+     "w1_dev_W_doubled": true,
+     "wreq_r1": [
+      [
+       "M2",
+       1.2760845055157647e-06,
+       1.22e-06,
+       "finger_quantization"
+      ]
+     ],
+     "wreq_w1": [
+      [
+       "M2",
+       1.2760845055157647e-06,
+       1.22e-06,
+       "finger_quantization"
+      ]
+     ],
+     "passives_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 0,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 1
+      }
+     },
+     "passives_field_diff": [
+      "ly_floorplan",
+      "ly_passives"
+     ],
+     "rows_after": {
+      "ly_finger_candidates": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_finger_geometry": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ],
+      "ly_pattern_select": [
+       6,
+       2,
+       0,
+       0,
+       4,
+       0
+      ],
+      "ly_rows": [
+       6,
+       0,
+       0,
+       0,
+       6,
+       0
+      ],
+      "ly_slice_density": [
+       6,
+       4,
+       0,
+       0,
+       2,
+       0
+      ]
+     }
+    },
+    {
+     "eval_seq": 102,
+     "li_fp": "66c22f7e5c0be7f4f95682c9278d1348214ed7f3582c9890fb52b0beb74aa0e7",
+     "n_devices": 9,
+     "n_groups": 3,
+     "n_passives": 1,
+     "error": null,
+     "r1_delta": {
+      "ly_finger_candidates": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_finger_geometry": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_pattern_select": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_rows": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      },
+      "ly_slice_density": {
+       "calls": 1,
+       "computes": 1,
+       "grafts": 0,
+       "recomputes_same_input": 0,
+       "replays": 0,
+       "reuses": 0
+      }
+     },
+     "r1_sec": 743.838289199979
+    }
+   ],
+   "w3_toy": null,
+   "reads": {
+    "ly_finger_candidates": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_slices"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ],
+    "ly_finger_geometry": [
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ]
+    ],
+    "ly_pattern_select": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_fw_cand"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_rows": [
+     [
+      "device",
+      "ly_device"
+     ],
+     [
+      "device",
+      "ly_finger"
+     ],
+     [
+      "graph",
+      "ly_groups"
+     ],
+     [
+      "graph",
+      "ly_groups_in"
+     ],
+     [
+      "graph",
+      "ly_row_groups"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ],
+     [
+      "graph",
+      "ly_passives"
+     ],
+     [
+      "graph",
+      "ly_rejected"
+     ]
+    ],
+    "ly_slice_density": [
+     [
+      "device",
+      "ly_point"
+     ],
+     [
+      "graph",
+      "ly_pdk"
+     ]
+    ]
+   },
+   "block_order": [
+    "ly_slice_density",
+    "ly_finger_candidates",
+    "ly_pattern_select",
+    "ly_finger_geometry",
+    "ly_rows"
+   ]
+  }
+ }
+}

@@ -67,6 +67,16 @@ def test_rule_k_front_query_not_called_in_engine(checks, engine_root, report):
     _assert_clean(n, v, report, "K")
 
 
+def test_rule_m_run_pair_not_shared(checks, engine_root, report):
+    """규칙 M(XRUN-F1 card B interface card C9, B-T23): 엔진 소스·tests/ 트리에서 실행 비공유 위반 0 -- open_run 참조는 허용 파일뿐(M-a),
+    S3Index·RunCounters 직접 생성 0(M-b), run_stage_a 마다 같은 함수 open_run() 튜플 풀기 1:1(M-c), 두 객체 보관 0(M-d), 직렬화 0(M-f).
+    M-c 가 공허하지 않게 진짜 트리에 run_stage_a 호출이 있는지(재작성 대상 16파일)와 open_run 정의 파일이 있는지 먼저 본다."""
+    assert (engine_root / "search" / "open_run.py").is_file(), "search/open_run.py 없음(C0)"
+    assert checks.m_run_stage_a_calls(engine_root) >= 16
+    n, v = checks.check_m(engine_root)
+    _assert_clean(n, v, report, "M")
+
+
 def test_rule_i_exemptions_are_used(checks, engine_root, library, monkeypatch):
     """예외 목록이 낡지 않았다: 지금 있는 예외 파일마다 예외를 빼면 실제로 걸리는 조회가 있다(쓰이지 않는 예외 0).
     폴더 접두 예외(`report/`)는 그 폴더에 파일이 생기기 전까지 대상이 없을 수 있어 존재하는 파일 항목만 본다."""

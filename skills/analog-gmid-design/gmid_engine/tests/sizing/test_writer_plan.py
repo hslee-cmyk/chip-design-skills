@@ -20,6 +20,8 @@ from .conftest import (NINE, build_ctx, circuit_cs_pmos_load, circuit_cs_res, ci
                        library_ctx, load_doc, mos, topo, two)
 from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 from .conftest import rename
+from .conftest import block_row, row_delta, run_of  # [XRUN-F1 card B C1·C4]
+from gmid_engine.search import open_run
 
 
 def plan(ctx):
@@ -177,7 +179,9 @@ def test_library_reorder_bit_identical(name, tmp_path, toy_access):
     d = json.loads(json.dumps(raw))
     random.Random(11).shuffle(d["netlist"])
     random.Random(12).shuffle(d["passive_elements"])
-    ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d), dict(inputs.supplies_v)), inputs, toy_access)
+    donors, counters = open_run()                     # 섞은 netlist = 다른 실행
+    ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d), dict(inputs.supplies_v), donors=donors, counters=counters),
+                                inputs, toy_access, donors=donors, counters=counters)
     assert plan(ctx2) == plan(ctx)
     for f in ("dc_writer", "dc_colour"):
         assert ctx2.base.column("node", f) == ctx.base.column("node", f)
@@ -196,7 +200,9 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
                            tuple(sorted((se.get(k, k), v) for k, v in inputs.element_values)),
                            tuple(sorted(se[k] for k in inputs.linear_devices)), inputs.pending,
                            tuple(sorted(se[k] for k in inputs.engine_elements)))          # [r5] 7번째 칸도 σ 로
-    ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d2), dict(inputs2.supplies_v)), inputs2, toy_access)
+    donors, counters = open_run()                     # 이름 바꾼 회로 = 다른 실행
+    ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d2), dict(inputs2.supplies_v), donors=donors, counters=counters),
+                                inputs2, toy_access, donors=donors, counters=counters)
     # [r11] 3.0b 성질 (7): 이름 대신 정준 위치가 선택을 정하고 TieBreak 기록은 비므로, 비교는 σ 가 아니라 τ(두 사례의 같은 dc_colour 짝) 아래서 한다
     assert tuple(ctx2.base.value("graph", DC_KEY, "dc_tie_breaks")) == ()
 
@@ -227,10 +233,12 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
 
 
 def test_block_is_theta_free_and_reused(ctx_c):
-    base = ctx_c[2].base
-    dc_writer_plan.reset_stats()
-    assert dc_writer_plan(base, (), False) is base
-    assert dc_writer_plan.stats().reuses == 1
+    # oracle 대조: card B C4 판정 1 -- 같은 lineage 재호출 = reuse, ctx 실행 계수(C1) 증분 = (calls 1, reuses 1)
+    ctx = ctx_c[2]
+    base = ctx.base
+    before = block_row(ctx.counters, dc_writer_plan.name)
+    assert dc_writer_plan(base, (), False, **run_of(ctx)) is base
+    assert row_delta(block_row(ctx.counters, dc_writer_plan.name), before) == (1, 1, 0, 0, 0, 0)
 
 
 # ===========================================================================

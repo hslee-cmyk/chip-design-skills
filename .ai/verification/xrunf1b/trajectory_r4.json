@@ -1,0 +1,128 @@
+{
+ "common_gate_amplifier": {
+  "vs_base": {
+   "n_value": 0,
+   "n_format": 810,
+   "n_run_id_code_fp": 46,
+   "n_snapshot_fp": 2
+  },
+  "vs_r2_8a7ef28": {
+   "n_value": 0,
+   "n_format": 2,
+   "n_run_id_code_fp": 46,
+   "n_snapshot_fp": 0
+  }
+ },
+ "current_reuse_telescopic_ota": {
+  "vs_base": {
+   "n_value": 0,
+   "n_format": 570,
+   "n_run_id_code_fp": 43,
+   "n_snapshot_fp": 40
+  },
+  "vs_r2_8a7ef28": {
+   "n_value": 0,
+   "n_format": 2,
+   "n_run_id_code_fp": 43,
+   "n_snapshot_fp": 0
+  }
+ },
+ "folded_cascode": {
+  "vs_base": {
+   "n_value": 0,
+   "n_format": 810,
+   "n_run_id_code_fp": 67,
+   "n_snapshot_fp": 12
+  },
+  "vs_r2_8a7ef28": {
+   "n_value": 0,
+   "n_format": 2,
+   "n_run_id_code_fp": 67,
+   "n_snapshot_fp": 0
+  }
+ },
+ "ngcc_3stage_ff": {
+  "vs_base": {
+   "n_value": 0,
+   "n_format": 0,
+   "n_run_id_code_fp": 0,
+   "n_snapshot_fp": 0
+  },
+  "vs_r2_8a7ef28": {
+   "n_value": 0,
+   "n_format": 0,
+   "n_run_id_code_fp": 0,
+   "n_snapshot_fp": 0
+  }
+ },
+ "nmcnr_amplifier": {
+  "vs_base": {
+   "n_value": 0,
+   "n_format": 810,
+   "n_run_id_code_fp": 69,
+   "n_snapshot_fp": 30
+  },
+  "vs_r2_8a7ef28": {
+   "n_value": 0,
+   "n_format": 2,
+   "n_run_id_code_fp": 69,
+   "n_snapshot_fp": 0
+  }
+ },
+ "pushpull_follower_buffer": {
+  "vs_base": {
+   "n_value": 0,
+   "n_format": 794,
+   "n_run_id_code_fp": 43,
+   "n_snapshot_fp": 3
+  },
+  "vs_r2_8a7ef28": {
+   "n_value": 0,
+   "n_format": 2,
+   "n_run_id_code_fp": 43,
+   "n_snapshot_fp": 0
+  }
+ },
+ "sf_pushpull_output_opamp": {
+  "vs_base": {
+   "n_value": 0,
+   "n_format": 570,
+   "n_run_id_code_fp": 43,
+   "n_snapshot_fp": 40
+  },
+  "vs_r2_8a7ef28": {
+   "n_value": 0,
+   "n_format": 2,
+   "n_run_id_code_fp": 43,
+   "n_snapshot_fp": 0
+  }
+ },
+ "two_stage_ota": {
+  "vs_base": {
+   "n_value": 0,
+   "n_format": 810,
+   "n_run_id_code_fp": 53,
+   "n_snapshot_fp": 2
+  },
+  "vs_r2_8a7ef28": {
+   "n_value": 0,
+   "n_format": 2,
+   "n_run_id_code_fp": 53,
+   "n_snapshot_fp": 0
+  }
+ },
+ "two_stage_ota_sf": {
+  "vs_base": {
+   "n_value": 0,
+   "n_format": 810,
+   "n_run_id_code_fp": 46,
+   "n_snapshot_fp": 4
+  },
+  "vs_r2_8a7ef28": {
+   "n_value": 0,
+   "n_format": 2,
+   "n_run_id_code_fp": 46,
+   "n_snapshot_fp": 0
+  }
+ }
+}

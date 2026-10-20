@@ -16,6 +16,7 @@ from gmid_engine.layout.floorplan import floorplan_of
 from gmid_engine.layout.rows import compose_rows
 
 from .conftest import centroid_offsets, dev, graph_value, make_input, mg, new_memo, rg, staged_snapshot, toy_pdk
+from .conftest import block_row, fresh_run  # [XRUN-F1 card B C0·C1]
 from .test_floorplan import row as plain_row
 from .test_row_euler import walk_ok
 
@@ -365,9 +366,29 @@ def test_same_content_computed_once_per_block_call(toy_lut, monkeypatch):
 
 
 def test_block_reuse(toy_lut):
-    compose_rows.reset_stats()
+    # oracle 대조: card B C4 판정 1 -- 같은 실행(run)에서 같은 lineage 재호출 = reuse, 같은 입력 재계산 0(C1 행)
+    run = fresh_run()
     inp = make_input([dev("C", "x", "y", 1e-6)], [], [rg("r", ("C",))], toy_pdk(toy_lut))
-    snap = staged_snapshot(inp, new_memo(toy_lut), "compose_rows")
-    assert compose_rows(snap) is snap
-    st = compose_rows.stats()
-    assert st.recomputes_same_input == 0 and st.reuses == 1
+    snap = staged_snapshot(inp, new_memo(toy_lut), "compose_rows", run=run)
+    assert compose_rows(snap, **run) is snap
+    st = block_row(run["counters"], compose_rows.name)
+    assert st[5] == 0 and st[1] == 1
+
+
+def test_reads_declaration():
+    # oracle (d): design 40 v1.11.2 §2.4.8 '세 블록 READS' 행(O-36 (3) (a)·O-39 (2)) -- `ly_rows` READS device `ly_point`(kind·L_m)·`ly_pins`·
+    # `ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_row_groups`·`ly_pdk`·`ly_passives`·`ly_canon_rows`. as-built 의 `ly_rejected` 는 뺀다
+    # (정준 데코레이터 몫이었고 본문은 읽지 않는다). `ly_attrs`(참고 W)·`ly_canon` 은 읽지 않는다.
+    assert set(compose_rows.reads) == {("device", "ly_point"), ("device", "ly_pins"), ("device", "ly_finger"),
+                                       ("graph", "ly_groups"), ("graph", "ly_groups_in"), ("graph", "ly_row_groups"),
+                                       ("graph", "ly_pdk"), ("graph", "ly_passives"), ("graph", "ly_canon_rows")}
+
+
+def test_uniform_exact_w_doubling_keeps_input_version(toy_lut):
+    # 완료 조건 W-1 블록 단위(구성): 모든 W_m 정확히 2배 -> 앞 블록 값(정준 별칭표·후보·패턴·finger) 같음 -> 이 블록 입력 버전 같음(재계산 0)
+    def staged(scale):
+        ds = [dev("A", "h", "da", 2e-6, W=scale * 4e-6), dev("B", "h", "db", 2e-6, W=scale * 4e-6),
+              dev("C", "x", "y", 0.75e-6, W=scale * 3e-6)]
+        inp = make_input(ds, [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B")), rg("r2", ("C",))], toy_pdk(toy_lut))
+        return staged_snapshot(inp, new_memo(toy_lut), "finger_geometry")
+    assert compose_rows.input_version(staged(1.0)) == compose_rows.input_version(staged(2.0))

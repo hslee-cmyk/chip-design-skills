@@ -1,7 +1,9 @@
 """평가 커널 컨텍스트 -- S0 당 1회: S1 을 S2 권한표로 넓히고 θ 무관 계획 블록과 커널 구조 파생 블록을 돌린다 (계획 N3.5 평가 커널 컨텍스트,
 WP-23 (3) 루프 불변 입력은 S0 수준 필드로, 설계 3.1, 40 §2.4.7 `KernelContext` 행·§2.4.8 v1.9.1 D8).
 
-진입점: `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext`.
+진입점: `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext`.
+`donors`·`counters` = 필수 키워드(기본값 없음) -- 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수(단계 B 는 `StageAResult` 의 두 칸을 넘긴다).
+7개 블록에 넘기고 `KernelContext.donors`·`.counters` 에 참조로 둔다.
 `order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
 
 순서: 인자 검사 -> `supplies_declaration`(graph, 레일 집합과 대조) + S1 키의 supplies 지문 대조 -> `lift_s1` ->
@@ -11,7 +13,7 @@ WP-23 (3) 루프 불변 입력은 S0 수준 필드로, 설계 3.1, 40 §2.4.7 `K
 ratified(`l_owner` 사실) 만 L 공유), S1v 필드가 없으면 소자마다 L) -> `dc_theta_schema`(`graph/kernel: theta_schema` -- engine 수동소자, DEC-92).
 계획 블록의 정지(`StructureUnresolvedError`)·KCL 선언 충돌(`InfeasibleTargetError`)은 그대로 전파된다(탐색 전 정지).
 모든 블록은 입력 버전이 같으면 재사용이라 같은 실행 안에서 같은 S0 수준 스냅샷 위의 다음 호출은 계산 0 이다(디스크 스냅샷·실행 사이 재사용은 없다).
-결과 `KernelContext(base, inputs, lut)` 는 참조만 담는다 -- θ 스키마·고정 노드·저항 값·L 묶음은 `base` 의 `graph/kernel` 필드, 계획 블록 입력 버전은
+결과 `KernelContext(base, inputs, lut, donors, counters)` 는 참조만 담는다 -- θ 스키마·고정 노드·저항 값·L 묶음은 `base` 의 `graph/kernel` 필드, 계획 블록 입력 버전은
 `base.block_version(writer)`(writer = `PLAN_WRITERS`)로 읽는다(사본 없음).
 * `lut.w_keys` 에 S1 MOS kind 가 모두 있어야 하고 그 (kind, w_key) 슬라이스가 LUT 에 있어야 한다(`ValueError`).
 * 노드 목표 넷은 S1 노드여야 한다(`ValueError` -- spec 로더가 이미 거부하는 경우라 계약 위반).
@@ -48,7 +50,7 @@ PLAN_WRITERS = (DC_RAILS_WRITER, S1_SYMMETRY_WRITER, DC_CURRENT_BASIS_WRITER, DC
                 KERNEL_CONTEXT_WRITER, DC_THETA_SCHEMA_WRITER)
 
 
-def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS):
+def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters):
     if not isinstance(s1graph, S1Graph):
         raise TypeError("build_kernel_context: s1graph 는 graph.build_s1 결과 S1Graph 여야 한다")
     if not isinstance(inputs, DcInputs) or not isinstance(lut, LutAccess):
@@ -77,13 +79,13 @@ def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS):
     sources = tuple((n, values.get(n)) for n in sorted(classes)
                     if classes[n] == ELEMENT_SOURCE and kinds[n] == CURRENT_SOURCE)
     base = lift_s1(s1graph)
-    base = dc_rails(base, supplies)
-    base = s1_symmetry(base, supplies, symmetry_marks(inputs))     # S1 의 대칭 블록 -- 같은 표시면 재사용(계산 0)
-    base = dc_current_basis(base, sources)
+    base = dc_rails(base, supplies, donors=donors, counters=counters)
+    base = s1_symmetry(base, supplies, symmetry_marks(inputs), donors=donors, counters=counters)     # S1 의 대칭 블록 -- 같은 표시면 재사용(계산 0)
+    base = dc_current_basis(base, sources, donors=donors, counters=counters)
     base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None,
-                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)))      # 힌트 없음 = 생략(블록 입력 버전 불변)
-    base = dc_scc_order(base)
-    base = kernel_fields(base, tuple(sorted(targets.items())), inputs.input_dc_v, tuple(inputs.element_values))
+                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)), donors=donors, counters=counters)      # 힌트 없음 = 생략(블록 입력 버전 불변)
+    base = dc_scc_order(base, donors=donors, counters=counters)
+    base = kernel_fields(base, tuple(sorted(targets.items())), inputs.input_dc_v, tuple(inputs.element_values), donors=donors, counters=counters)
     engine_passives = tuple(n for n in sorted(inputs.engine_elements) if classes[n] == ELEMENT_PASSIVE)
-    base = dc_theta_schema(base, engine_passives)
-    return KernelContext(base, inputs, lut)
+    base = dc_theta_schema(base, engine_passives, donors=donors, counters=counters)
+    return KernelContext(base, inputs, lut, donors, counters)

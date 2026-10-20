@@ -31,8 +31,14 @@ from gmid_engine.layout.rows import compose_rows
 
 from .conftest import (DP_GRAPH_KEY, DP_METRIC_VERSION, DP_OP_VERSION, build_toy_lut, design_point, design_point_of, dev, dp_writers,
                        layout_fields, make_input, mg, new_memo, rg, strip_volatile, toy_pdk)
+from .conftest import block_row, fresh_run  # [XRUN-F1 card B C0·C1]
+from .conftest import write_counts, written_since  # [O-17 (3)] 이번 호출에서 쓴 writer = RunCounters 행 증분
+from .conftest import (F_ATTRS_NAME, F_CANON_NAME, F_CANON_ROWS_NAME, F_PINS_NAME, F_POINT_NAME, F_W_ADJ_NAME, LAYOUT_BLOCK_WRITERS,
+                       W_CANON, W_INPUT)  # [v1.11.2 O-36 (3)·O-39 (1)] design 40 §2.4.8 필드·writer 이름
 
-ALL_WRITERS = ("ly_slice_density", "ly_finger_candidates", "ly_pattern_select", "ly_finger_geometry", "ly_rows")
+# [v1.11.2 O-36 (3) (a)] 레이아웃 블록 여섯(design 40 §2.4.8 블록 순서 행: ly_slice_density -> ly_canonical_naming -> ly_finger_candidates ->
+# ly_pattern_select -> ly_finger_geometry -> ly_rows)
+ALL_WRITERS = LAYOUT_BLOCK_WRITERS
 
 
 def composite(pdk, extra=(), extra_rgs=(), rejected=(), adj=True, diode_C=False):
@@ -46,9 +52,10 @@ def composite(pdk, extra=(), extra_rgs=(), rejected=(), adj=True, diode_C=False)
     return make_input(ds, groups, rgs, pdk, rejected)
 
 
-def run(inp, memo, previous=None):
-    """`run_layout` 을 그 입력 소자들의 설계점 대역 위에서 부른다(재시도 `previous` 는 같은 설계점 lineage)."""
-    return run_layout(inp, memo, design_point_of(inp), previous)
+def run(inp, memo, previous=None, rp=None):
+    """`run_layout` 을 그 입력 소자들의 설계점 대역 위에서 부른다(재시도 `previous` 는 같은 설계점 lineage).
+    [XRUN-F1 card B C6] rp = 실행 두 객체 키워드(dict), 없으면 새 실행 하나."""
+    return run_layout(inp, memo, design_point_of(inp), previous, **(rp if rp is not None else fresh_run()))
 
 
 def G(res, field):
@@ -93,38 +100,53 @@ def test_design_point_must_be_snapshot(toy_lut):
     # 4.12 1: `design_point` 가 GraphSnapshot 이 아니면 TypeError (§2.4.7: 레이아웃 필드는 설계점 스냅샷 위에만)
     inp = composite(toy_pdk(toy_lut))
     with pytest.raises(TypeError):
-        run_layout(inp, new_memo(toy_lut), None)
+        run_layout(inp, new_memo(toy_lut), None, **fresh_run())
     with pytest.raises(TypeError):
-        run_layout(inp, new_memo(toy_lut), {"not": "a snapshot"})
+        run_layout(inp, new_memo(toy_lut), {"not": "a snapshot"}, **fresh_run())
+
+
+@pytest.mark.parametrize("missing", ["donors", "counters", "both"])
+def test_run_pair_keywords_required(toy_lut, missing):
+    """B-T16(XRUN-F1 card B C6): run_layout 의 donors·counters 는 필수 키워드(기본값 없음) -- 빠지면 TypeError."""
+    inp = composite(toy_pdk(toy_lut))
+    kw = {k: v for k, v in fresh_run().items() if missing != "both" and k != missing}
+    with pytest.raises(TypeError):
+        run_layout(inp, new_memo(toy_lut), design_point_of(inp), **kw)
 
 
 def test_previous_from_other_design_point_rejected(toy_lut):
     # 4.12 2: `previous` 는 같은 설계점 lineage 만 -- 설계점 writer 의 block_version 이 하나라도 다르면 ValueError
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     inp = composite(toy_pdk(toy_lut))
     names = tuple(d.name for d in inp.devices)
-    r1 = run_layout(inp, memo, design_point(names))
+    r1 = run_layout(inp, memo, design_point(names), **rp)
     other = GraphSnapshot.empty(dp_writers())
     other = other.write("dp_kernel", "dp-op-v2", {("device", "dp_op"): {n: ("op2", n) for n in names}})
     other = other.write("dp_metrics", DP_METRIC_VERSION, {("graph", "dp_metric"): {DP_GRAPH_KEY: 1.0}})
     with pytest.raises(ValueError):
-        run_layout(inp, memo, other, previous=r1)
+        run_layout(inp, memo, other, previous=r1, **rp)
     # 같은 설계점(같은 block_version)의 다른 스냅샷 객체는 같은 lineage 로 받는다
-    r2 = run_layout(inp, memo, design_point(names), previous=r1)
-    assert r2.computed_blocks == ()
+    before = write_counts(rp["counters"])
+    run_layout(inp, memo, design_point(names), previous=r1, **rp)
+    assert written_since(rp["counters"], before) == frozenset()
 
 
 # --- 출력 계약 --------------------------------------------------------------------------------------------------------
 
-def test_output_shape(result):
+def test_output_shape(toy_lut):
+    # [O-17 (3)·O-19 (1)] 이번 호출에서 쓴 writer = RunCounters 행 computes+grafts 증분(written_since) -- 첫 호출은 레이아웃 블록 다섯 전부
+    rp = fresh_run()
+    before = write_counts(rp["counters"])
+    result = run(composite(toy_pdk(toy_lut)), new_memo(toy_lut), rp=rp)
     assert isinstance(result, LayoutResult)
-    assert [f.name for f in dataclasses.fields(result)] == ["snapshot", "computed_blocks"]        # §2.4.7: 두 칸뿐
+    assert [f.name for f in dataclasses.fields(result)] == ["snapshot"]                            # §2.4.7·O-17 (3): 스냅샷 칸 하나
     assert isinstance(result.snapshot, GraphSnapshot)
-    assert result.computed_blocks == ALL_WRITERS
+    assert written_since(rp["counters"], before) == frozenset(ALL_WRITERS)
     o = outs(result)
     assert isinstance(o, LayoutOutputs)
     assert [f.name for f in dataclasses.fields(o)][0] == "review_needed"                           # Q8 (iv): 파생 출력의 첫 칸
-    # 4.12 5: `devices` = 소자 이름순(`ly_device` key 순 -- graph 열은 key 정렬이라 입력 순은 필드에 없다). 집합은 입력 소자 전부.
+    # 4.12 5: `devices` = 소자 이름순(`ly_point` key 순 -- graph 열은 key 정렬이라 입력 순은 필드에 없다). 집합은 입력 소자 전부.
     assert [d.name for d in o.devices] == sorted(["A", "B", "E", "F", "C", "D"])
     assert all(isinstance(d, DeviceLayout) for d in o.devices)
     assert [g.gid for g in groups(result)] == ["g1", "g2"]                                         # LAYOUT_ROLES 입력 그룹 전부, gid 정렬
@@ -342,77 +364,95 @@ def _misses(memo):
     return {r: s.misses for r, s in memo.stats()}
 
 
-def _reset_blocks():
+def _assert_no_same_input_recompute(rp):
+    """[XRUN-F1 card B C1] 그 test 실행(rp)의 계수에서 레이아웃 블록 여섯(정준 별칭표·슬라이스 블록 포함) 같은 입력 재계산 0."""
     for b in (finger_candidates, pattern_select, finger_geometry, compose_rows):
-        b.reset_stats()
-
-
-def _assert_no_same_input_recompute():
-    for b in (finger_candidates, pattern_select, finger_geometry, compose_rows):
-        assert b.stats().recomputes_same_input == 0, b.name
+        assert b.name in ALL_WRITERS, b.name
+    for name in ALL_WRITERS:
+        assert block_row(rp["counters"], name)[5] == 0, name
 
 
 def test_previous_same_input_computes_nothing(toy_lut):
-    _reset_blocks()
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     inp = composite(toy_pdk(toy_lut))
-    r1 = run(inp, memo)
+    r1 = run(inp, memo, rp=rp)
     m1 = _misses(memo)
-    r2 = run(inp, memo, previous=r1)
-    assert r2.computed_blocks == ()
+    before = write_counts(rp["counters"])
+    r2 = run(inp, memo, previous=r1, rp=rp)
+    assert written_since(rp["counters"], before) == frozenset()
     assert r2.snapshot is r1.snapshot                                             # 4.13 10: 스냅샷이 previous.snapshot 그대로
     assert strip_volatile(r2) == strip_volatile(r1)
     assert _misses(memo) == m1                                                   # LUT 조회 재계산 0
-    _assert_no_same_input_recompute()
+    _assert_no_same_input_recompute(rp)
 
 
 def test_rejected_only_change_reuses_slices_and_candidates(toy_lut):
-    _reset_blocks()
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     ds = [dev("A", "h", "da", 1e-6), dev("B", "h", "db", 1e-6)]
     g, r = [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B"))]
-    r1 = run(make_input(ds, g, r, toy_pdk(toy_lut)), memo)
+    r1 = run(make_input(ds, g, r, toy_pdk(toy_lut)), memo, rp=rp)
     m1 = _misses(memo)
-    r2 = run(make_input(ds, g, r, toy_pdk(toy_lut), rejected=("A",)), memo, previous=r1)
-    assert "ly_slice_density" not in r2.computed_blocks
-    assert "ly_finger_candidates" not in r2.computed_blocks
-    assert "ly_pattern_select" in r2.computed_blocks
+    before = write_counts(rp["counters"])
+    r2 = run(make_input(ds, g, r, toy_pdk(toy_lut), rejected=("A",)), memo, previous=r1, rp=rp)
+    w = written_since(rp["counters"], before)                                     # [O-17 (3)·O-19 (1)] RunCounters 행 증분
+    assert "ly_slice_density" not in w
+    assert "ly_finger_candidates" not in w
+    assert "ly_pattern_select" in w
+    # [v1.11.2] design 40 §2.4.8 정준 별칭표 행: `_build` 는 `ly_rejected` 를 쓰지 않아 READS 에 없다 -> 거부 목록만 바뀌면 다시 쓰지 않는다
+    assert W_CANON not in w
     assert _misses(memo) == m1
     assert groups(r2)[0].reason == "w_request_rejected"                         # [U12] 즉시 완화 없음(옛 "relaxed:" 접두 없음)
     assert groups(r2)[0].pattern is None
-    _assert_no_same_input_recompute()
+    _assert_no_same_input_recompute(rp)
 
 
 def test_id_change_recomputes_from_slices(toy_lut):
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     inp1 = composite(toy_pdk(toy_lut))
-    r1 = run(inp1, memo)
+    r1 = run(inp1, memo, rp=rp)
     devs = tuple(dataclasses.replace(d, ID_A=1.5 * d.ID_A) if d.name == "D" else d for d in inp1.devices)
-    r2 = run(dataclasses.replace(inp1, devices=devs), memo, previous=r1)
-    assert r2.computed_blocks[:1] == ("ly_slice_density",)
-    assert "ly_finger_candidates" in r2.computed_blocks
-    assert list(r2.computed_blocks) == [w for w in ALL_WRITERS if w in r2.computed_blocks]
+    before = write_counts(rp["counters"])
+    run(dataclasses.replace(inp1, devices=devs), memo, previous=r1, rp=rp)
+    w = written_since(rp["counters"], before)                                     # [O-17 (3)·O-19 (1)] RunCounters 행 증분
+    assert "ly_slice_density" in w
+    assert "ly_finger_candidates" in w
+    # [v1.11.2] design 40 §2.4.8 정준 별칭표 행: READS device `ly_point`(ID_A 칸 포함) -> ID 가 바뀌면 입력이 바뀐다
+    assert W_CANON in w
+    # O-19 (1) 승인 기준 약화: 블록 순서는 코드 고정·layout CONTRACT §4 -- 옛 '쓴 순서'(ALL_WRITERS 순) 단언 삭제(RunCounters 행에는 순서가 없다)
 
 
 def test_reference_w_change_does_not_recompute_slices(toy_lut):
     # 슬라이스 키 = 보존량(kind, L, ID, gm/ID, vds, vsb) -- 참고 W_m 은 키가 아니다
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     inp1 = composite(toy_pdk(toy_lut))
-    r1 = run(inp1, memo)
+    r1 = run(inp1, memo, rp=rp)
     m1 = _misses(memo)
     devs = tuple(dataclasses.replace(d, W_m=7e-6) for d in inp1.devices)
-    r2 = run(dataclasses.replace(inp1, devices=devs), memo, previous=r1)
-    assert "ly_slice_density" not in r2.computed_blocks
+    before = write_counts(rp["counters"])
+    r2 = run(dataclasses.replace(inp1, devices=devs), memo, previous=r1, rp=rp)
+    w = written_since(rp["counters"], before)                                     # [O-17 (3)·O-19 (1)] RunCounters 행 증분
+    assert "ly_slice_density" not in w
+    # [v1.11.2 O-36 (3)] design 40 §2.4.8: W 만 바뀌면 `ly_attrs` 만 바뀐다 -> 정준 별칭표 블록만 입력이 바뀐다. composite 의 W 는 모두 4e-6
+    # 이라 7e-6 로 모두 바꿔도 W 표지 동률은 그대로(정준 색 = 표지 값의 정렬 순위) -> 별칭표 값 같음 -> 세 블록·finger 블록 다시 쓰지 않음
+    assert W_CANON in w
+    assert not (w & {"ly_finger_candidates", "ly_pattern_select", "ly_finger_geometry", "ly_rows"}), w
     assert _misses(memo) == m1
     assert all(d.W_m == 7e-6 for d in outs(r2).devices)
-    assert all(d.W_m == 7e-6 for _n, d in r2.snapshot.column(lf.DEVICE, lf.F_DEVICE))
+    # [v1.11.2 O-39 (1)] 참고 W_m 은 `ly_attrs` 값의 칸(옛 소자 통째 필드 삭제)
+    assert all(a.W_m == 7e-6 for _n, a in r2.snapshot.column(lf.DEVICE, F_ATTRS_NAME))
 
 
 def test_lut_fingerprint_is_part_of_slice_key(toy_lut, tmp_path):
     other = build_toy_lut(tmp_path / "other", id_scale=2.0)
-    r1 = run(composite(toy_pdk(toy_lut)), new_memo(toy_lut))
-    r2 = run(composite(toy_pdk(other)), new_memo(other), previous=r1)
-    assert r2.computed_blocks[:1] == ("ly_slice_density",)
+    rp = fresh_run()
+    r1 = run(composite(toy_pdk(toy_lut)), new_memo(toy_lut), rp=rp)
+    before = write_counts(rp["counters"])
+    r2 = run(composite(toy_pdk(other)), new_memo(other), previous=r1, rp=rp)
+    assert "ly_slice_density" in written_since(rp["counters"], before)          # [O-17 (3)·O-19 (1)] RunCounters 행 증분
     # 슬라이스 ID 2배 -> J 2배 -> W_need 절반
     a1 = [d for d in outs(r1).devices if d.name == "A"][0]
     a2 = [d for d in outs(r2).devices if d.name == "A"][0]
@@ -449,7 +489,9 @@ groups = [mg("g1", ("A", "B"), "diff_pair", "h"), mg("g2", ("E", "F"), "branch_s
           mg("g3", ("C", "G"), "bias_distribution", "y")]
 rgs = [rg("r1", ("A", "B")), rg("r2", ("E", "F")), rg("r", ("C", "D")), rg("r4", ("G", "H")), rg("rp", ("P",), body="sub2")]
 inp = make_input(ds, groups, rgs, pdk)
-res = run_layout(inp, new_memo(lut), design_point_of(inp))
+from gmid_engine.search import open_run
+donors, counters = open_run()
+res = run_layout(inp, new_memo(lut), design_point_of(inp), donors=donors, counters=counters)
 RESULT = repr(strip_volatile(res))
 '''
 
@@ -662,18 +704,24 @@ def test_passives_reach_floorplan(toy_lut):
 
 
 def test_passives_only_change_recomputes_rows_block_only(toy_lut):
-    # 4.12 캐시: 수동소자만 바뀌면 슬라이스·후보·패턴·finger 블록은 다시 계산하지 않고 ly_rows(floorplan) 만 다시 계산한다
-    _reset_blocks()
+    # 4.12 캐시: 수동소자만 바뀌면 슬라이스·후보·패턴·finger 블록은 다시 계산하지 않고 ly_rows(floorplan) 만 다시 계산한다.
+    # [v1.11.2 O-36 (3) (a)] design 40 §2.4.8 정준 별칭표 행: 블록 `ly_canonical_naming` 은 graph `ly_passives` 를 READS(행 범위 별칭표
+    # `ly_canon_rows` = 행 그룹·수동소자 별칭 포함)라 함께 다시 쓴다. matching 범위 `ly_canon` 은 수동소자를 담지 않아 `ly_pattern_select` 는 그대로.
+    rp = fresh_run()
     memo = new_memo(toy_lut)
     inp = composite(toy_pdk(toy_lut))
-    r1 = run(inp, memo)
-    r2 = run(dataclasses.replace(inp, passives=(LayoutPassive("Cc", 3e-12),)), memo, previous=r1)
-    assert r2.computed_blocks == ("ly_rows",)
+    r1 = run(inp, memo, rp=rp)
+    before = write_counts(rp["counters"])
+    r2 = run(dataclasses.replace(inp, passives=(LayoutPassive("Cc", 3e-12),)), memo, previous=r1, rp=rp)
+    assert written_since(rp["counters"], before) == {W_CANON, "ly_rows"}
     assert floorplan(r2).passive_area_m2 == pytest.approx(30102e-16, rel=1e-9)
-    _assert_no_same_input_recompute()
-    # 되돌리면 수동소자 없음(스냅샷은 직전 값만 들고 있어 r1 입력으로의 복귀는 ly_rows 재계산이 정상 -- 재계산 계수는 위에서만 본다)
-    r3 = run(inp, memo, previous=r2)
-    assert r3.computed_blocks == ("ly_rows",)
+    _assert_no_same_input_recompute(rp)
+    # 되돌리면 수동소자 없음(스냅샷은 직전 값만 들고 있다). [XRUN-F1 card B C4·C6] 같은 실행이면 r1 의 ly_rows 입력은 색인에 있어 이식된다 --
+    # '값을 쓴 writer(계산 또는 이식)'는 그대로 {"ly_rows"}(O-17 (3): RunCounters 행 증분으로 본다), 같은 입력 재계산은 여전히 0
+    before = write_counts(rp["counters"])
+    r3 = run(inp, memo, previous=r2, rp=rp)
+    _assert_no_same_input_recompute(rp)
+    assert written_since(rp["counters"], before) == {W_CANON, "ly_rows"}
     assert floorplan(r3).passive_area_m2 == 0.0
     assert floorplan(r3) == floorplan(r1)
 
@@ -685,10 +733,12 @@ def test_passives_only_change_recomputes_rows_block_only(toy_lut):
 # 호출 형식(as-built 서명, CONTRACT 4.12): 셋째 위치 인자 `design_point` = 설계점 스냅샷(`GraphSnapshot`), 넷째 `previous` = 같은 설계점 위
 # 앞 호출의 `LayoutResult`(재시도 = 같은 설계점 lineage 의 새 스냅샷, §2.4.7). 레이아웃 필드를 이미 가진 설계점 스냅샷(앞 결과의 스냅샷)을
 # `design_point` 로 다시 주는 것도 같은 lineage 다(권한표가 이미 넓혀져 있고 설계점 block_version 이 같다).
-# `LayoutResult` 두 칸의 이름은 as-built `snapshot`·`computed_blocks` 를 쓴다(design 은 '스냅샷, 이번 호출의 계산 블록 목록'만 적음).
+# `LayoutResult` 칸은 `snapshot` 하나(사용자 결정 O-17 (3): '이번 호출에서 계산·이식한 writer'의 정본은 RunCounters 행 -- 사본 칸 삭제).
 
 DP_WRITERS = dp_writers()
-MOD7_WRITERS = frozenset((lf.WRITER_INPUT, lf.WRITER_SLICES) + lf.BLOCK_WRITERS)
+# [v1.11.2] MOD7 writer = 입력 필드 writer `ly_input` + 레이아웃 블록 여섯(design 40 §2.4.8 표 문언, oracle (d) -- `_ly_fields` 상수에서
+# 만들지 않는다: 권한표에 design 밖 writer 가 끼면 아래 test 가 잡는다)
+MOD7_WRITERS = frozenset((W_INPUT,) + LAYOUT_BLOCK_WRITERS)
 
 
 def _assert_design_point_kept(snap, dp, names):
@@ -704,7 +754,7 @@ def test_layout_fields_written_on_design_point_snapshot(toy_lut):
     inp = composite(toy_pdk(toy_lut))
     names = tuple(d.name for d in inp.devices)
     dp = design_point(names)
-    r = run_layout(inp, new_memo(toy_lut), dp)
+    r = run_layout(inp, new_memo(toy_lut), dp, **fresh_run())
     snap = r.snapshot
     assert isinstance(snap, GraphSnapshot)
     for (kind, key, field), fv in layout_fields(snap, names).items():
@@ -719,7 +769,7 @@ def test_layout_field_writers_are_single_mod7_blocks(toy_lut):
     # §2.4.8 writer = MOD7 블록, 필드마다 writer 하나(SC-a). 레이아웃 writer 는 레이아웃 필드만 쓴다.
     inp = composite(toy_pdk(toy_lut))
     names = tuple(d.name for d in inp.devices)
-    r = run_layout(inp, new_memo(toy_lut), design_point(names))
+    r = run_layout(inp, new_memo(toy_lut), design_point(names), **fresh_run())
     table = r.snapshot.writers
     for (kind, field), writer in lf.LY_WRITERS.entries:
         assert writer in MOD7_WRITERS
@@ -740,18 +790,22 @@ def test_no_separate_layout_lineage(toy_lut, monkeypatch):
     inp = composite(toy_pdk(toy_lut))
     names = tuple(d.name for d in inp.devices)
     dp = design_point(names)
+    rp = fresh_run()                       # open_run() 은 GraphSnapshot.empty 를 부르지 않는다는 가정 없이 monkeypatch 앞에서 만든다
     monkeypatch.setattr(GraphSnapshot, "empty", classmethod(no_new_lineage))
-    r = run_layout(inp, new_memo(toy_lut), dp)
+    r = run_layout(inp, new_memo(toy_lut), dp, **rp)
     _assert_design_point_kept(r.snapshot, dp, names)
 
 
-def test_layout_result_carries_only_snapshot_and_computed_blocks(toy_lut):
-    # §2.4.7: `LayoutResult` 는 (스냅샷, 이번 호출의 계산 블록 목록)만 둔다 -- 결과 값 사본 없음
+def test_layout_result_carries_only_snapshot_and_written_writers_in_counters(toy_lut):
+    # §2.4.7: `LayoutResult` 는 스냅샷만 둔다 -- 결과 값 사본 없음. 이번 호출에서 쓴 writer 는 RunCounters 행(O-17 (3))이고 MOD7 writer 뿐
     inp = composite(toy_pdk(toy_lut))
-    r = run_layout(inp, new_memo(toy_lut), design_point(tuple(d.name for d in inp.devices)))
+    rp = fresh_run()
+    before = write_counts(rp["counters"])
+    r = run_layout(inp, new_memo(toy_lut), design_point(tuple(d.name for d in inp.devices)), **rp)
     assert isinstance(r.snapshot, GraphSnapshot)
-    assert isinstance(r.computed_blocks, tuple) and all(isinstance(w, str) for w in r.computed_blocks)
-    assert set(r.computed_blocks) <= MOD7_WRITERS
+    w = written_since(rp["counters"], before)
+    assert all(isinstance(x, str) for x in w)
+    assert w <= MOD7_WRITERS
 
 
 def test_same_design_point_second_request_reuses_fields(toy_lut):
@@ -760,10 +814,12 @@ def test_same_design_point_second_request_reuses_fields(toy_lut):
     inp = composite(toy_pdk(toy_lut))
     names = tuple(d.name for d in inp.devices)
     dp = design_point(names)
-    r1 = run_layout(inp, memo, dp)
+    rp = fresh_run()
+    r1 = run_layout(inp, memo, dp, **rp)
     m1 = _misses(memo)
-    r2 = run_layout(inp, memo, r1.snapshot)
-    assert r2.computed_blocks == ()
+    before = write_counts(rp["counters"])
+    r2 = run_layout(inp, memo, r1.snapshot, **rp)
+    assert written_since(rp["counters"], before) == frozenset()
     assert _misses(memo) == m1                                                   # LUT 조회도 다시 하지 않는다
     assert r2.snapshot.fp == r1.snapshot.fp
     assert layout_fields(r2.snapshot, names) == layout_fields(r1.snapshot, names)   # value·writer·입력 버전·쓰기 횟수
@@ -778,8 +834,9 @@ def test_layout_retry_stays_on_design_point_lineage(toy_lut):
     ds = [dev("A", "h", "da", 1e-6), dev("B", "h", "db", 1e-6)]
     g, rgs = [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B"))]
     dp = design_point(("A", "B"))
-    r1 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut)), memo, dp)
-    r2 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut), rejected=("A",)), memo, r1.snapshot)
+    rp = fresh_run()
+    r1 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut)), memo, dp, **rp)
+    r2 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut), rejected=("A",)), memo, r1.snapshot, **rp)
     _assert_design_point_kept(r2.snapshot, dp, ("A", "B"))
     rej = r2.snapshot.field(lf.GRAPH, lf.GRAPH_KEY, lf.F_REJECTED)
     assert rej.value == ("A",)
@@ -793,10 +850,155 @@ def test_layout_retry_via_previous_keyword_is_same_lineage(toy_lut):
     ds = [dev("A", "h", "da", 1e-6), dev("B", "h", "db", 1e-6)]
     g, rgs = [mg("g1", ("A", "B"), "diff_pair", "h")], [rg("r1", ("A", "B"))]
     dp = design_point(("A", "B"))
-    r1 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut)), memo, dp)
-    r2 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut), rejected=("A",)), memo, dp, previous=r1)
+    rp = fresh_run()
+    r1 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut)), memo, dp, **rp)
+    r2 = run_layout(make_input(ds, g, rgs, toy_pdk(toy_lut), rejected=("A",)), memo, dp, previous=r1, **rp)
     _assert_design_point_kept(r2.snapshot, dp, ("A", "B"))
     rej = r2.snapshot.field(lf.GRAPH, lf.GRAPH_KEY, lf.F_REJECTED)
     assert (rej.value, rej.writer, rej.write_count) == (("A",), lf.WRITER_INPUT, 2)
     assert r2.snapshot.field(lf.GRAPH, lf.GRAPH_KEY, lf.F_GROUPS).write_count == 2
     assert r2.snapshot.writers == r1.snapshot.writers
+
+
+# --- [v1.11.2] 레이아웃 입력 네 필드·정준 별칭표 블록·W 변경 재계산 (design 40 §2.4.8 '레이아웃 보존량 점'·옛 소자 통째 필드 삭제·'레이아웃 소자 부가
+#     칸'·'레이아웃 소자 단자 연결'·'레이아웃 W 조정 허용'·'레이아웃 정준 별칭표'·'세 블록 READS' 행, 완료 조건 W-1~W-3; 사용자 결정 O-24·O-36 (3)·
+#     O-39 (1)(2), 승인 O-42) ---------------------------------------------------------------------------------------------------------------
+# oracle: (d) design 표 문언(필드 이름·writer·칸 분할·READS) + (a) 구성으로 정답이 정해진 입력(W 만 정확히 2배 = 2진 지수만 바뀌는 정확 배율,
+# 구조 대칭 쌍 A·B 의 W 대소 뒤집기). 재계산 판정은 RunCounters (block, "*") 행 `computes` 증분(card B C1), 값 동일 판정은 FieldValue.value_fp.
+# 피검 결과로 기대값을 만들지 않는다 -- 두 실행 결과끼리의 같음·다름만 단언한다(W-1·W-2·W-3 문언이 '같다'·'다르다'다).
+
+# W-2 계산 필드(design 40 §2.4.8 '세 블록 READS' 행 완료 조건 (W-2) 문언 그대로)
+W2_FIELDS = ("ly_slices", "ly_fw_cand", "ly_groups", "ly_dispositions", "ly_finger", "ly_rows", "ly_floorplan", "ly_diffusion")
+
+
+def _computes(rp):
+    return {r.block: r.computes for r in rp["counters"].snapshot().blocks if r.part == "*"}
+
+
+def _computes_delta(rp, before):
+    after = _computes(rp)
+    return {n: after.get(n, 0) - before.get(n, 0) for n in ALL_WRITERS}
+
+
+def _graph_fp(res, field):
+    return res.snapshot.field(lf.GRAPH, lf.GRAPH_KEY, field).value_fp
+
+
+def _field_fps(res, names, field):
+    kind = {f: k for (k, f), _w in lf.LY_WRITERS.entries}[field]
+    if kind == lf.GRAPH:
+        return _graph_fp(res, field)
+    out = {}
+    for n in names:
+        fv = res.snapshot.field(kind, n, field)
+        out[n] = None if fv is None else fv.value_fp
+    return out
+
+
+# W-1·W-2 입력: composite + 사용 가능 슬라이스 없는 Z(no_usable_slice 요청 -- W_old_m = W_new_m = 참고 W_m, test_no_usable_slice_device 와
+# 같은 계약). 참고 W 는 소자마다 손으로 고른 값(동률 쌍 A=B·E=F 와 서로 다른 값이 섞이게). 둘째 실행은 모든 W_m 을 정확히 2배(k = 2).
+W1_REF_W = {"A": 4e-6, "B": 4e-6, "E": 5e-6, "F": 5e-6, "C": 3e-6, "D": 6e-6, "Z": 3e-6}
+
+
+def _w_scaled_pair(toy_lut):
+    rp = fresh_run()
+    memo = new_memo(toy_lut)
+    Z = dev("Z", "a", "b", 2e-6, gm_id=25.0)
+    base = composite(toy_pdk(toy_lut), extra=(Z,))
+    inp1 = dataclasses.replace(base, devices=tuple(dataclasses.replace(d, W_m=W1_REF_W[d.name]) for d in base.devices))
+    inp2 = dataclasses.replace(base, devices=tuple(dataclasses.replace(d, W_m=2.0 * W1_REF_W[d.name]) for d in base.devices))
+    r1 = run(inp1, memo, rp=rp)
+    before = _computes(rp)
+    r2 = run(inp2, memo, previous=r1, rp=rp)
+    return rp, before, r1, r2, tuple(d.name for d in base.devices)
+
+
+def test_input_device_fields_partition_layout_device_values(toy_lut):
+    # design 40 §2.4.8 옛 소자 통째 필드 삭제 행: `ly_input` 이 LayoutDevice 칸을 네 필드로 겹치지 않게 나눠 쓴다(열 key = name). 값은 입력 소자 칸
+    # 그대로(구성으로 정답이 정해진다 -- oracle (a)). writer `ly_input` 의 device 필드는 정확히 이 넷(옛 통째 필드 없음).
+    inp = composite(toy_pdk(toy_lut), diode_C=True, adj=False)
+    res = run(inp, new_memo(toy_lut))
+    snap = res.snapshot
+    names = sorted(d.name for d in inp.devices)
+    assert {f for (k, f), w in lf.LY_WRITERS.entries if w == W_INPUT and k == lf.DEVICE} == {
+        F_POINT_NAME, F_PINS_NAME, F_W_ADJ_NAME, F_ATTRS_NAME}
+    for f in (F_POINT_NAME, F_PINS_NAME, F_W_ADJ_NAME, F_ATTRS_NAME):
+        assert lf.LY_WRITERS.writer_of(lf.DEVICE, f) == W_INPUT, f
+        assert sorted(n for n, _v in snap.column(lf.DEVICE, f)) == names, f
+    for d in inp.devices:
+        p = snap.value(lf.DEVICE, d.name, F_POINT_NAME)
+        assert (p.kind, p.L_m, p.ID_A, p.gm_id, p.vds_V, p.vsb_V) == (d.kind, d.L_m, d.ID_A, d.gm_id, d.vds_V, d.vsb_V)
+        pins = snap.value(lf.DEVICE, d.name, F_PINS_NAME)
+        assert (pins.drain, pins.gate, pins.source) == (d.drain, d.gate, d.source)
+        adj = snap.value(lf.DEVICE, d.name, F_W_ADJ_NAME)
+        assert type(adj) is bool and adj is d.W_adjustable
+        a = snap.value(lf.DEVICE, d.name, F_ATTRS_NAME)
+        assert (a.W_m, a.body, a.diode) == (d.W_m, d.body, d.diode)
+    # 정준 별칭표 두 필드: graph(key "layout"), writer = 정식 블록 `ly_canonical_naming`
+    for f in (F_CANON_NAME, F_CANON_ROWS_NAME):
+        assert lf.LY_WRITERS.writer_of(lf.GRAPH, f) == W_CANON, f
+        assert snap.field(lf.GRAPH, lf.GRAPH_KEY, f) is not None, f
+
+
+def test_w1_doubling_all_w_recomputes_only_canonical_naming(toy_lut):
+    # (W-1) 같은 설계점·같은 LayoutInput 에서 모든 소자 W_m 만 정확히 2배로 바꾼 두 번째 run_layout(previous = 첫 결과, 같은 실행의
+    # donors·counters): `ly_canonical_naming` computes +1, `ly_slice_density`·`ly_finger_candidates`·`ly_pattern_select`·`ly_finger_geometry`·
+    # `ly_rows` computes +0, `ly_canon`·`ly_canon_rows` 값 지문이 두 실행에서 같다(같은 배율은 W 표지의 순서·동률을 보존, `_rank` 는 순위만 쓴다)
+    rp, before, r1, r2, _names = _w_scaled_pair(toy_lut)
+    delta = _computes_delta(rp, before)
+    assert delta == {W_CANON: 1, "ly_slice_density": 0, "ly_finger_candidates": 0, "ly_pattern_select": 0,
+                     "ly_finger_geometry": 0, "ly_rows": 0}, delta
+    assert _graph_fp(r2, F_CANON_NAME) == _graph_fp(r1, F_CANON_NAME)
+    assert _graph_fp(r2, F_CANON_ROWS_NAME) == _graph_fp(r1, F_CANON_ROWS_NAME)
+    _assert_no_same_input_recompute(rp)
+
+
+def test_w2_doubling_all_w_keeps_computed_fields_and_rederives_outputs(toy_lut):
+    # (W-2) 두 실행의 계산 필드 ly_slices·ly_fw_cand·ly_groups·ly_dispositions·ly_finger·ly_rows·ly_floorplan·ly_diffusion 값 지문이 같고,
+    # layout_outputs 의 devices·w_requests 의 W_m 은 새 값(출력 파생은 다시 만든다)
+    rp, _before, r1, r2, names = _w_scaled_pair(toy_lut)
+    kinds = {f for (_k, f), _w in lf.LY_WRITERS.entries}
+    assert set(W2_FIELDS) <= kinds, set(W2_FIELDS) - kinds
+    for f in W2_FIELDS:
+        assert _field_fps(r2, names, f) == _field_fps(r1, names, f), f
+    o1, o2 = outs(r1), outs(r2)
+    assert {d.name: d.W_m for d in o1.devices} == W1_REF_W
+    assert {d.name: d.W_m for d in o2.devices} == {n: 2.0 * w for n, w in W1_REF_W.items()}
+    # w_requests: Z(no_usable_slice) 요청은 참고 W_m 에서 온다(W_old_m = W_new_m = W_m) -> 새 값. 나머지 요청(C finger_quantization 등)은
+    # 같은 ly_finger 에서 오므로 그대로
+    z1 = [w for w in o1.w_requests if w.device == "Z"]
+    z2 = [w for w in o2.w_requests if w.device == "Z"]
+    assert [(w.W_old_m, w.W_new_m, w.reason) for w in z1] == [(3e-6, 3e-6, "no_usable_slice")]
+    assert [(w.W_old_m, w.W_new_m, w.reason) for w in z2] == [(6e-6, 6e-6, "no_usable_slice")]
+    assert [w for w in o2.w_requests if w.device != "Z"] == [w for w in o1.w_requests if w.device != "Z"]
+
+
+def test_w3_swapping_w_order_of_symmetric_pair_changes_canon(toy_lut):
+    # (W-3) 다른 표지(kind·diode·ID_A·L_m·gm_id·vds_V·vsb_V·W_adjustable·matching 소속)가 모두 같고 W 를 빼면 자기동형 궤도가 같은 구조 대칭 쌍
+    # A·B(composite 의 차동쌍: 공통 source h·공통 gate g·각자 drain da/db, g1·r1 소속)에서 첫 실행 W_A < W_B, 둘째 실행 W_A > W_B(나머지 그대로):
+    # `ly_canon` 값 지문이 다르다, `ly_finger_candidates` +0. `ly_pattern_select`·`ly_rows` 재계산은 정당(O-36 (c)) -- 단언하지 않는다.
+    # `ly_slice_density` +0: 보존량 점 `ly_point` 에 W 가 없다('레이아웃 보존량 점' 행 "W만 바뀌면 값이 같아 슬라이스를 다시 조회하지 않는다").
+    rp = fresh_run()
+    memo = new_memo(toy_lut)
+    base = composite(toy_pdk(toy_lut))
+    by = {d.name: d for d in base.devices}
+    a, b = by["A"], by["B"]
+    # 구성 확인(대칭 쌍 전제): drain 넷 이름과 W 말고 모든 칸이 같다
+    same = ("kind", "gate", "source", "body", "L_m", "ID_A", "gm_id", "vds_V", "vsb_V", "diode", "W_adjustable")
+    assert all(getattr(a, f) == getattr(b, f) for f in same)
+    assert [g.gid for g in base.matching_groups if "A" in g.members] == [g.gid for g in base.matching_groups if "B" in g.members]
+
+    def with_w(wa, wb):
+        ws = {"A": wa, "B": wb}
+        return dataclasses.replace(base, devices=tuple(dataclasses.replace(d, W_m=ws[d.name]) if d.name in ws else d
+                                                       for d in base.devices))
+
+    r1 = run(with_w(3e-6, 5e-6), memo, rp=rp)
+    before = _computes(rp)
+    r2 = run(with_w(5e-6, 3e-6), memo, previous=r1, rp=rp)
+    delta = _computes_delta(rp, before)
+    assert _graph_fp(r2, F_CANON_NAME) != _graph_fp(r1, F_CANON_NAME)
+    assert delta[W_CANON] == 1, delta
+    assert delta["ly_finger_candidates"] == 0, delta
+    assert delta["ly_slice_density"] == 0, delta
+    _assert_no_same_input_recompute(rp)

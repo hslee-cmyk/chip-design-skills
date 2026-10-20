@@ -33,7 +33,10 @@ def _sweep(tmp, lut, eval_budget=60, **kw):
 
 @pytest.fixture(scope="module")
 def sealed_sweep(tmp_path_factory, lut_sealed):
-    return _sweep(tmp_path_factory.mktemp("sw"), lut_sealed, constraints=SS)
+    """(None, sweep 결과) -- [XRUN-F1 card B 규칙 M M-d] 모듈 범위라 case(커널·탐색 컨텍스트 = 실행의 두 객체)는 두지 않고 sweep 결과만 둔다
+    (이 모듈 test 는 case 를 읽지 않는다)."""
+    _case, out = _sweep(tmp_path_factory.mktemp("sw"), lut_sealed, constraints=SS)
+    return None, out
 
 
 def test_keys_and_ids(sealed_sweep):

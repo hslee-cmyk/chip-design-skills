@@ -445,7 +445,8 @@ def theta_q(ctx, y, z_star):
     return th, (z_star, x_star), T
 
 
-@pytest.fixture(scope="module")
+# [XRUN-F1 card B 규칙 M M-d] KernelContext(실행 두 객체를 칸으로 쥠)는 function 범위
+@pytest.fixture
 def ctx_s(tmp_path_factory, toy_access):
     ctx = build_ctx(tmp_path_factory.mktemp("scc_s"), circuit_s(), toy_access)[2]
     w = dict(ctx.base.column("node", "dc_writer"))
@@ -456,7 +457,7 @@ def ctx_s(tmp_path_factory, toy_access):
     return ctx
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def ctx_q(tmp_path_factory, toy_access):
     ctx = build_ctx(tmp_path_factory.mktemp("scc_q"), circuit_q(), toy_access)[2]
     w = dict(ctx.base.column("node", "dc_writer"))
@@ -763,14 +764,14 @@ def test_q_ill_conditioned_point_rejected_by_seal_9(ctx_q):
     기대 margin 은 평가 블록 4개 결과(dc_op·dc_tol_v = 블록 입력)에서 이 파일이 npz 식으로 다시 계산한 I_off/(gm_id·tol_V·ID), 그리고
     해에서의 닫힌 식 exp(−f(c))/((B − C·c)·tol_V)(≈ 2.61, 계약 10.6) 과 노드전압 오차 tol 이 주는 범위 안."""
     from gmid_engine.sizing import dc_seal_conduction, dc_tolerances, seal_dc
-    from .conftest import eval_calls, resistances_of
+    from .conftest import eval_calls, resistances_of, run_of
     y, z_star = 0.99, 0.3
     th, (zs, xs), T = theta_q(ctx_q, y, z_star)
     tol = toy_tol()
     snap, calls = eval_calls(ctx_q, th)
     log = scc_log(snap, ("z", "x"))
     assert log.method == SCC_NEWTON                                       # 풀이 자체는 r7 그대로 Newton
-    snap9 = dc_seal_conduction(dc_tolerances(snap, ctx_q.lut), ctx_q.lut)
+    snap9 = dc_seal_conduction(dc_tolerances(snap, ctx_q.lut, **run_of(ctx_q)), ctx_q.lut, **run_of(ctx_q))
     it9 = snap9.value("graph", DC_KEY, "dc_seal_9")
     assert it9.status == "fail" and it9.devices == ("M1",)
     op = snap.value("device", "M1", "dc_op")
@@ -787,7 +788,7 @@ def test_q_ill_conditioned_point_rejected_by_seal_9(ctx_q):
     assert abs(math.log(it9.margin) - math.log(m_star)) <= sens * tol
     assert 2.5 < m_star < 2.7
     with pytest.raises(SealViolationError) as ei:
-        seal_dc(snap, calls, ctx_q.lut, resistances_of(ctx_q, th), ())
+        seal_dc(snap, calls, ctx_q.lut, resistances_of(ctx_q, th), (), **run_of(ctx_q))
     d = detail(ei.value)
     st = {x[0]: x[1] for x in d["items"]}
     assert len(st) == 9 and st[9] == "fail" and st[7] == "undefined"

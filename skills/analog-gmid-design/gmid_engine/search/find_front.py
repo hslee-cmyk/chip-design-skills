@@ -13,28 +13,17 @@
 * [NFR-4] 진입에서 `core.blas_environment()` 로 BLAS 스레드 1 을 다시 확인하고(재확인 (c)) 그 값의 `fp_of` 를 runs 줄 최상위 키 `env_fp` 에 둔다. notes 에는 L-b 정지 사유
   `{"verdict": "l_search", "rule": "LR10", "stops": [...]}` 가 언제나 한 줄 더해진다(`sweep_front` 의 `lb_stops`, L-b 가 돌지 않았으면 빈 목록).
 * 계측 `perf`(설계 7.4): requests·kernel_calls·hits·fail_hits·outside_domain·recompute_same_key, 고유 키 수,
-  평가 시간 중앙값, sizing 계산 블록 calls·reuses·computes·recomputes_same_input 델타, LUT memo 퇴출 수.
-  합격 기준(NFR-2): kernel_calls == 고유 키 수, recompute_same_key == 0, LUT memo 퇴출 0.
+  평가 시간 중앙값, LUT memo 퇴출 수, 블록 계수(`blocks` = 실행 하나가 단계 A 부터 부른 모든 (블록, 분할)의 행 -- `sctx.dc.counters.snapshot()`,
+  `block_totals` = 여섯 계수 칸의 합), 블록 결과 색인 크기(`block_index_entries` = `entry_count()`, `block_index_bound` = `len(blocks) × (E_total + 1)` 또는 null -- card B 보고용 식,
+  E_total 은 `_e_total`).
+  합격 기준(NFR-2): kernel_calls == 고유 키 수, recompute_same_key == 0, 모든 행 recomputes_same_input == 0, LUT memo 퇴출 0.
 """
+import dataclasses
 import statistics
 import time
 
 from gmid_engine.core import blas_environment, fp_of
 from gmid_engine.metrics import verified_by
-from gmid_engine.sizing import (
-    dc_columns,
-    dc_currents,
-    dc_lengths,
-    dc_seal_bulk_reverse,
-    dc_seal_kcl,
-    dc_seal_kvl_branch,
-    dc_seal_node_conflict,
-    dc_seal_report,
-    dc_seal_saturation,
-    dc_seal_vgs_match,
-    dc_tolerances,
-    dc_widths,
-)
 
 from .eps_sweep import sweep_front
 from .gate_run import run_sensitivity_gate
@@ -42,9 +31,6 @@ from .layer0_center import layer0_start
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, SearchFront
 from .start_points import start_points
 
-# sizing 공개 계산 블록 12개(S-9: `dc_seal_vgs_match` 를 sizing `__all__` 에 더했다)
-_BLOCKS = (dc_currents, dc_lengths, dc_columns, dc_widths, dc_tolerances, dc_seal_node_conflict, dc_seal_vgs_match,
-           dc_seal_kcl, dc_seal_bulk_reverse, dc_seal_saturation, dc_seal_kvl_branch, dc_seal_report)
 # 층 0 = DEC-71 최소형(R D18·U-49): 봉인 여유 최대-최소 중심 시작점 하나(`layer0_start`, 오케스트레이터 결정 2026-10-08).
 # 블록 gain 예산(GB3·GB4)·LR5 knee·GB5 근사식은 최소형 밖의 정밀화라 쓰지 않는다 -- notes 에 그 사실을 남긴다.
 _LAYER0_REFINEMENTS_OUT_OF_SCOPE = ("GB3 블록 분해·GB4 블록 gain 상한표(블록 gain 예산, DEC-71 (3)(6)·DEC-73)",
@@ -52,13 +38,14 @@ _LAYER0_REFINEMENTS_OUT_OF_SCOPE = ("GB3 블록 분해·GB4 블록 gain 상한�
                                     "GB5 층 0 근사식(DEC-92 (2), comp_approx_gap)")
 
 
-def _block_totals():
-    totals = [0, 0, 0, 0]
-    for block in _BLOCKS:
-        s = block.stats()
-        for i, v in enumerate((s.calls, s.reuses, s.computes, s.recomputes_same_input)):
-            totals[i] += v
-    return totals
+def _e_total(sctx):
+    """card B 의 E_total(설계 40 §2.4.5 '상한', card C 가 계산 자리 하나로 정하며 이 식을 지운다): 예산 선언이면 `eval_budget` + N_T(as-built 0) + R(= 2 × 변수 수),
+    한 번 유도했으면 `eval_budget`(= D), 정해지지 않았으면 None."""
+    if sctx.eval_budget is None:
+        return None
+    if sctx.eval_budget_source == "declared":
+        return sctx.eval_budget + 2 * len(sctx.domain.variables)
+    return sctx.eval_budget
 
 
 def _point_record(sctx, point):
@@ -77,12 +64,10 @@ def _point_record(sctx, point):
 def find_front(sctx, given_starts):
     env_fp = fp_of(blas_environment())      # [NFR-4 재확인 (c)] 진입에서 한 번 -- 확인 실패는 RuntimeError, 반환값 지문이 runs 줄 `env_fp`
     t_start = time.perf_counter()
-    blocks_before = _block_totals()
     sctx.deadline = t_start + sctx.settings.front_budget_s
     layer0 = layer0_start(sctx)
     starts, start_log = start_points(sctx, tuple(given_starts), () if layer0.start is None else (layer0.start,))
     out = sweep_front(sctx, starts)
-    blocks_after = _block_totals()
     notes = [dict(n) for n in sctx.constraint_notes]
     gate = run_sensitivity_gate(sctx, out["front"][0].result) if out["front"] else None      # [U7] 최종 해의 감도 게이트(40 §3.8-2)
     if gate is not None:
@@ -128,14 +113,17 @@ def find_front(sctx, given_starts):
         notes.append({"verdict": "pending", "rule": "DEC-88", "reason": "seal_7_undefined_vdsat_accessor_missing",
                       "pending_points": len(out["pending_front"])})
     memo_evictions = sum(s.evictions for _r, s in sctx.dc.lut.memo.stats())
+    block_counts = sctx.dc.counters.snapshot()        # 실행 하나의 계수 -- 단계 A 부터 불린 모든 (블록, 분할), 구간 차를 계산하지 않는다
+    e_total = _e_total(sctx)
     perf = dict(sctx.counters)
     perf.update(unique_keys=len(sctx.computed_keys),
                 eval_time_median_s=statistics.median(sctx.eval_times) if sctx.eval_times else None,
                 wall_s=time.perf_counter() - t_start, lut_memo_evictions=memo_evictions,
                 lut_memo_bound="fixed" if sctx.dc.lut.memo.bound_state == "fixed" else "unfixed_no_kernel_eval",
-                block_calls=blocks_after[0] - blocks_before[0], block_reuses=blocks_after[1] - blocks_before[1],
-                block_computes=blocks_after[2] - blocks_before[2],
-                block_recomputes_same_input=blocks_after[3] - blocks_before[3], n_starts=len(starts),
+                blocks=[dataclasses.asdict(row) for row in block_counts.blocks],
+                block_totals=dataclasses.asdict(block_counts.block_totals),
+                block_index_entries=sctx.dc.donors.entry_count(),
+                block_index_bound=None if e_total is None else len(block_counts.blocks) * (e_total + 1), n_starts=len(starts),
                 n_solves=len(out["solves"]), eval_budget=sctx.eval_budget, eval_budget_source=sctx.eval_budget_source,
                 frozen_columns=sum(len(s.frozen) for _p, s in out["solves"]),
                 stops_eval_budget=sum(1 for _p, s in out["solves"] if s.stop == "eval_budget"),

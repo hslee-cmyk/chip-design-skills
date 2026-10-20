@@ -18,22 +18,26 @@ def test_public_api():
     # oracle (d): 설계 40 §11 U14 행 U12 인계 + convergence/CONTRACT.md §10 'layout.__all__ 에 area_tie_m2·passives_from_decl·role·패턴
     # 이름 상수 추가' -- 옛 7개 + MOD8 이 쓰는 이름. 상수 낱말은 CONTRACT 4.1(아래 test_constants 와 같은 출처).
     # [U17 1-e] design 40 v1.6 §2.4.7: 소비자(MOD8)는 레이아웃 값을 설계점 스냅샷의 `ly_*` 필드에서 읽는다 -> 필드 이름(graph key `LAYOUT_KEY`,
-    # convergence CONTRACT 2~7절이 읽는 `F_DEVICE`·`F_GROUPS_IN`·`F_GROUPS`·`F_FINGER`·`F_FLOORPLAN`·`F_DIFFUSION`)과 필드 파생 출력
+    # convergence CONTRACT 2~7절이 읽는 `F_POINT`·`F_GROUPS_IN`·`F_GROUPS`·`F_FINGER`·`F_FLOORPLAN`·`F_DIFFUSION`)과 필드 파생 출력
     # `layout_outputs`·`LayoutOutputs`(CONTRACT 4.12 5~8) 가 공개 API 에 더해진다(layout CONTRACT '공개 API' 문단).
+    # [v1.11.2 O-39 (1)] design 40 §2.4.8 옛 소자 통째 필드 삭제 행: 옛 공개 export 를 `F_POINT` 로 바꾼다(convergence.effective_placement 가
+    # 소자 이름 목록을 `ly_point` 열 key 로 읽는다). 옛 이름의 부재는 tests/structure/test_removed_names.py 가 엔진 소스 전체에서 본다.
     assert set(public) == {"LayoutDevice", "LayoutInput", "LayoutPdk", "LayoutResult", "MatchingGroup", "RowGroup", "run_layout",
                            "area_tie_m2", "passives_from_decl",
                            "CC_REQUIRED_ROLES", "EXCLUDED_ROLES", "PATTERNS", "PATTERN_COMMON_CENTROID", "PATTERN_INTERDIGITATION",
                            "ROLE_DIFF_PAIR", "ROLE_MIRROR", "ROLE_BRANCH_SYMMETRIC", "ROLE_BIAS_DISTRIBUTION", "ROLE_FEEDBACK_SHARED",
                            "LayoutOutputs", "layout_outputs",
-                           "LAYOUT_KEY", "F_DEVICE", "F_GROUPS_IN", "F_GROUPS", "F_FINGER", "F_FLOORPLAN", "F_DIFFUSION"}
+                           "LAYOUT_KEY", "F_POINT", "F_GROUPS_IN", "F_GROUPS", "F_FINGER", "F_FLOORPLAN", "F_DIFFUSION"}
     import gmid_engine.layout as layout_pkg
     from gmid_engine.layout import _ly_fields as lf
     # 공개 필드 이름은 `_ly_fields.py` 의 그 값이다(design §2.4.8 "as-built `_ly_fields.py` 필드 이름 그대로")
     assert layout_pkg.LAYOUT_KEY == lf.GRAPH_KEY == "layout"
-    assert (layout_pkg.F_DEVICE, layout_pkg.F_GROUPS_IN, layout_pkg.F_GROUPS, layout_pkg.F_FINGER, layout_pkg.F_FLOORPLAN,
-            layout_pkg.F_DIFFUSION) == (lf.F_DEVICE, lf.F_GROUPS_IN, lf.F_GROUPS, lf.F_FINGER, lf.F_FLOORPLAN, lf.F_DIFFUSION)
-    assert (lf.F_DEVICE, lf.F_GROUPS_IN, lf.F_GROUPS, lf.F_FINGER, lf.F_FLOORPLAN, lf.F_DIFFUSION) == (
-        "ly_device", "ly_groups_in", "ly_groups", "ly_finger", "ly_floorplan", "ly_diffusion")
+    assert (layout_pkg.F_GROUPS_IN, layout_pkg.F_GROUPS, layout_pkg.F_FINGER, layout_pkg.F_FLOORPLAN,
+            layout_pkg.F_DIFFUSION) == (lf.F_GROUPS_IN, lf.F_GROUPS, lf.F_FINGER, lf.F_FLOORPLAN, lf.F_DIFFUSION)
+    assert (layout_pkg.F_POINT, lf.F_GROUPS_IN, lf.F_GROUPS, lf.F_FINGER, lf.F_FLOORPLAN, lf.F_DIFFUSION) == (
+        "ly_point", "ly_groups_in", "ly_groups", "ly_finger", "ly_floorplan", "ly_diffusion")
+    # 공개 F_POINT 가 가리키는 필드가 레이아웃 권한표의 device 필드다(writer `ly_input`, design §2.4.8 '레이아웃 보존량 점' 행)
+    assert lf.LY_WRITERS.writer_of(lf.DEVICE, layout_pkg.F_POINT) == "ly_input"
     assert (layout_pkg.ROLE_DIFF_PAIR, layout_pkg.ROLE_MIRROR, layout_pkg.ROLE_BRANCH_SYMMETRIC) == ("diff_pair", "mirror", "branch_symmetric")
     assert (layout_pkg.ROLE_BIAS_DISTRIBUTION, layout_pkg.ROLE_FEEDBACK_SHARED) == ("bias_distribution", "feedback_shared")
     assert (layout_pkg.PATTERN_COMMON_CENTROID, layout_pkg.PATTERN_INTERDIGITATION) == ("common_centroid", "interdigitation")

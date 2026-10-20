@@ -397,6 +397,19 @@ date: 2026-10-16
 | (오케스트레이터 답, 같은 판 후속 커밋) `metrics_aux.py:125` card id | N3.1-5, N3.10 새 행, N7.3-2 | 확인 항목 닫음: `op.vgs` 사본(`SatDevice.vgs_v`, `aux_types.py:102`)의 card id = DE-1(유일한 소비자 `ls_swing.py:47`을 DE-1이 지움). `sat_v`·`sat_tol_v`는 사본이 아니고 HC-S가 `device.dc_sat_v` 읽기로 바꿈. gain-budget v6.18 `816d9dc1` DE-1 소비자 표 F-DE7을 확인했더니 이 칸 삭제가 없어(`aux_types.py:139-172, :251-260`만) N3.10 상위 개정 항목으로 기록 |
 | (4) 상위 v6.18 참조 | 이 표 머리 | `816d9dc1` |
 
+### 사용자 결정 O-49~O-55 → v0.12(2026-10-20, 브랜치 `plan/graph-consumption-v012`, base master `9401e98f`)
+
+근거: `wt/_drafts/evidence/2026-10-20/full_audit4_summary.md` 16행 'graph-consumption v0.12' 항목, `wt/_drafts/user_decisions.md` O-49~O-55 행. 상위 정본 인용 판: gain-budget v6.20 `7fe555b1`(`plan/gb-v620`, 독립 검증 전), oracle-portability v0.6.10 `7f2a5e12`(`plan/oracle-v0610`, 독립 검증 전), headroom-chain v0.7.7 `f303115c`(`plan/headroom-v077`, 독립 검증 전) -- 첫 커밋은 `0a7868b5`·`84cc5410`을 인용, 둘째 커밋에서 최종 머리로.
+
+| 감사 항목 | 바뀐 자리 | 처리 |
+|---|---|---|
+| `dc_off_current` 출력 전용 선언 시점(옛 309·573·658행 'OP-5 병합 때') | N3.2 표 `dc_off_current` 행, N5 X-G5, N7.2 oracle 항목, N10.2 U-G4 | 'OP-5 통합 병합의 엔진 커밋'으로 확정. 근거 = oracle v0.6.10 OP-5 행('엔진 쪽 `device.dc_off_current` 필드는 graph-consumption 계획이 출력 전용 선언으로 처리')과 gain-budget v6.20 EO-1 범위 (1)(확장 칸 갱신 = OP-5 통합 병합의 엔진 쪽 EO-1 생산자 갱신 커밋), O-55 U2. 같은 커밋이어야 하는 이유(앞이면 실제 소비자가 있는데 출력 전용, 뒤면 L-1 위반)와 변경 종류(선언 부분 = 순수 리팩터링) 표시 |
+| 공용 전도 판정 함수 정본 등록과 `conduction_mask` 관계 | N3.0 F-G14(계획 항목 표시), N10.2 U-G4, N7.3-13 예외 항목, N10.1 BD-8 | 다른 개념·다른 이름으로 정함 -- 근거는 기존 결정 인용(U-G4 (가)의 R3 정의역 구분, O-16 (3) 검증 경로 단일화 예외): 판정 함수 = 소자 동작점 + 선언 영역 → 판정, `conduction_mask` = (kind, w_key) 격자 칸 술어. 서로 부르지 않음, 공통은 전도 정의 문장(DEC-90 (1)·봉인 9 식)뿐이고 격자 술어가 그 문장과 같은지는 GD-12 측정. 새 사용자 결정 없이 정해 멈추지 않음 |
+| `off` 선언 소자 사이징·역산 경로 제외(O-55 V5)의 탐색 소비자 영향 | N3.2a 아래 문단 1~5, N3.10 새 행 | `current_box`·`edge_costs`·`conduction_mask`는 kind 단위라 영향 없음(코드 `E/search/current_box.py:20` 재확인), `cell_floor`는 θ 스키마 변수 집합을 그대로 읽고 자체 거르기 금지(L-5). `search_domain` kind 목록 출처는 GC-0a 측정 항목(정하지 않음). 상위 v6.20 문언('LUT·gm/ID 경로')이 O-55 V5 한정을 아직 안 담아 N3.10 상위 개정 항목으로 등록 |
+| 새·바뀐 필드 소비(기준 칸, 방향별 슬루 행, 봉인 9 판정 행, 부호 있는 V_id*) | N3.2a 표(신설) | 필드마다 만드는 card·정본 지정 소비자·확인 자리·변경 종류(O-34). 기준 칸은 reader 또는 L-4 출력 전용 등록 중 하나를 IT-2 design이 정함(둘 다 아니면 병합 금지). 봉인 9 판정 행은 새 graph 필드가 아니며, 새 필드로 만들면 reader(OP-5 통합 병합 엔진 커밋)와 같은 커밋에서만. V_id* 크기 사본 칸 금지 |
+| Status·N2 | 머리, N2 O-49~O-55 행 | 'v0.12 -- O-49~O-55 후속 정정, 독립 검증 전' |
+| (오케스트레이터 마무리 맞춤, 같은 판 둘째 커밋) | 인용 전부, 머리 관련 계획, N3.2a 1·5·표 셋째 행, N3.10 새 행 | 상위 인용을 최종 머리로(첫 커밋의 gain-budget `0a7868b5` → `7fe555b1`, oracle `84cc5410` → `7f2a5e12`, headroom-chain v0.7.6 `aa6e064c` → v0.7.7 `f303115c`, git show로 직접 재확인; gain-budget 계통 offset (c) 1568 → 1571행). gain-budget `7fe555b1` 496·1888행이 off 제외를 '사이징·역산 경로 한정'으로 이미 정정해 N3.10 행 '해소'. `search_domain` kind 목록 = 사이징 경로 소자(선언 없음·triode)의 kind, off 선언 소자만 가진 kind 제외(O-55 V5 귀결, 원칙 기본안) -- GC-0a가 그런 kind 존재를 재고 있으면 EO-1 범위에서 처리('미정' 정리). 판정 행 이름을 gain-budget 1673행대로 '봉인 7·9 판정 행'. 기준 칸 소비 방식은 IT-2 design 몫 유지 |
+
 ## Version History
 
 | 판 | 날짜 | 변경 |
@@ -413,3 +426,5 @@ date: 2026-10-16
 | 0.10 | 2026-10-19 | 사용자 결정 O-15 반영(H3). (A) 전도 술어 정본 `conduction_mask`(네 번째 자리 `edge_costs`, `sctx.cell_floors` 제거), (E) 원칙 감사 범위 확장 GC-9·X-G12(기저 float 1회, 정확 MOS 전류 함수 하나, `current_cone` 기저 읽기, 완료 조건 3 좁힘, 블록 안 local memo·같은 점 재풀이 금지 -- `_vds_floor` 이동은 후속 커밋에서 headroom-chain HC-S로 옮김), (C)·O-16 (3)으로 B-G2 닫힘·**GC-8 실제 card**(`ls_swing`·`headroom_bound`·`order_terms` 배선, headroom-chain v0.7.4 분담), 후속 커밋에서 독립 검증 '수정 필요' 6건 반영 |
 | 0.10 승인 | 2026-10-19 | 사용자 결정 O-21 "모두 승인, 권고대로"(`wt/_drafts/user_decisions.md` 640행)로 v0.10(`9090593a`) 승인. Status만 갱신 |
 | 0.11 | 2026-10-19 | 사용자 결정 O-26·O-27·O-32·O-33 후속 정정(H3): GC-8에서 `ls_swing` 제외, layout 동작점 사본 부채 항목(LI-1, L-5 '동작점 사본' 개념), 출력 함수 판정 기준·GD-1 독립 검증, 선언 triode 'LUT 정의역' 구분, 전류 대칭 결과 필드 소유 문언, 착수 조건 cProfile 기준선 |
+| 0.12 | 2026-10-20 | 사용자 결정 O-49~O-55 후속 정정(H3 'O-49~O-55 → v0.12'): `dc_off_current` 출력 전용 선언 = OP-5 통합 병합의 엔진 커밋, 공용 전도 판정 함수 정본 등록(`conduction_mask`와 다른 개념), `off` 선언 소자의 탐색 소비자 영향, 새·바뀐 필드 소비 확인 표 N3.2a, 상위 v6.20 문언 정정 항목. 독립 검증 전 |
+| 0.12 최종 diff 확인 | 2026-10-20 | 독립 최종 diff 확인(`wt/_drafts/evidence/2026-10-20/final_diff_check_summary.md` F2·F3·F7) 반영: (F2) headroom 기준 판 `f303115c` → `cca153ad`(머리 Status·관련 계획), HC-S `device.dc_sat_v` 소비 자리에 headroom N3.4 331행 `off` 선언 행 규칙 인용(소비자 = 정의 불능); (F3) `search_domain` kind 목록 소유 = gain-budget EO-1 범위, gc는 거르지 않고 GC-0a는 존재 여부만 측정; (F7) 봉인 9 (i) 문언 '거부'(gain-budget `ac188dd4` 496행 인용). 독립 검증 전 |

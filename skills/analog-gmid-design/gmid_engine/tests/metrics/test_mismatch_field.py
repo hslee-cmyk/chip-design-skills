@@ -14,6 +14,8 @@ import pytest
 from gmid_engine.core import BoundedLRU, GraphSnapshot, read_pdk_decl
 from gmid_engine.metrics import METRICS_S0_WRITERS, MismatchSource, mismatch_field
 
+from .conftest import block_row, fresh_run
+
 SKILL = Path(__file__).resolve().parents[3]
 DECL = SKILL / "assets" / "sky130_pdk_decl.json"
 
@@ -29,7 +31,7 @@ def test_block_declaration():
 
 
 def test_field_holds_pdk_mismatch_source(pdk):
-    out = mismatch_field(GraphSnapshot.empty(METRICS_S0_WRITERS), pdk)
+    out = mismatch_field(GraphSnapshot.empty(METRICS_S0_WRITERS), pdk, **fresh_run())
     src = out.value("graph", "kernel", "mismatch_source")
     assert isinstance(src, MismatchSource)
     assert src.sha256 == hashlib.sha256(DECL.read_bytes()).hexdigest()
@@ -38,9 +40,9 @@ def test_field_holds_pdk_mismatch_source(pdk):
 
 
 def test_same_decl_reuses(pdk):
-    mismatch_field.reset_stats()
-    a = mismatch_field(GraphSnapshot.empty(METRICS_S0_WRITERS), pdk)
-    b = mismatch_field(a, pdk)
+    # oracle 대조: card B C4 판정 1·4 -- 실행 계수(C1) 행 (compute, reuse)
+    run = fresh_run()
+    a = mismatch_field(GraphSnapshot.empty(METRICS_S0_WRITERS), pdk, **run)
+    b = mismatch_field(a, pdk, **run)
     assert b.fp == a.fp
-    st = mismatch_field.stats()
-    assert (st.computes, st.reuses, st.recomputes_same_input) == (1, 1, 0)
+    assert block_row(run["counters"], mismatch_field.name) == (2, 1, 0, 0, 1, 0)

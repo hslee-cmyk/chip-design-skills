@@ -1,6 +1,8 @@
 """SP1 진입점 -- S1 위에 S1v 필드(`graph/s1v`)를 쓰고 `기록만` 분기면 정지한다 (설계 40 §2.4.2·§2.4.8 v1.9.1 D1·§10.1, 41 §0 단계 A3·§1).
 
-진입점: `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True) -> S1Graph`.
+진입점: `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True, donors, counters) -> S1Graph`.
+
+* `donors`·`counters`: 필수 키워드(기본값 없음) -- 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수. `s1v_fields` 에 넘긴다.
 
 * `s1` = `build_s1` 결과(권한표가 S1 필드를 덮는 S1Graph -- S0 수준 스냅샷 위의 것도 받는다). `spec` = `SizingSpecDoc` 또는 None(None 이면 기본 전달 뷰만).
   `count_budget` = 계수 예산 N_S(양의 정수 -- 사이클 열거·복합 블록 경로 수의 상한. 시간과 무관해 같은 입력은 늘 같은 S1v, 41 §0).
@@ -31,7 +33,7 @@ def _stop(s1, unsupported):
     })
 
 
-def build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True):
+def build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), stop_on_unsupported=True, donors, counters):
     if not isinstance(s1, S1Graph) or not s1.snapshot.writers.covers(S1_WRITERS):
         raise TypeError("build_s1v: s1 은 graph.build_s1 결과 S1Graph 여야 한다")
     if isinstance(count_budget, bool) or not isinstance(count_budget, int) or count_budget < 1:
@@ -39,7 +41,8 @@ def build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_l
     judged = () if spec is None else tuple(spec.judged_constraints)
     facts = () if structure is None else tuple(structure.facts)
     stale = () if structure is None else tuple(structure.findings)
-    snapshot = s1v_fields(s1.snapshot.widen(S1V_WRITERS), judged, count_budget, tuple(declared), facts, stale, tuple(declared_loop_cuts))
+    snapshot = s1v_fields(s1.snapshot.widen(S1V_WRITERS), judged, count_budget, tuple(declared), facts, stale, tuple(declared_loop_cuts),
+                          donors=donors, counters=counters)
     result = S1Graph(s1.key, snapshot)
     if stop_on_unsupported:
         unsupported = s1v_findings(result)[2]

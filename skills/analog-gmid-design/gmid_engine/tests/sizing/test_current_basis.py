@@ -321,20 +321,25 @@ def _measured_domain(name, lut, tmp_path):
     from gmid_engine.core import BoundedLRU, read_pdk_decl
     from gmid_engine.lut import LutMemo
     from gmid_engine.pipeline import run_stage_a
-    from gmid_engine.search import S0_WRITERS, search_domain
+    from gmid_engine.search import S0_WRITERS, open_run, search_domain
     from gmid_engine.sizing import KERNEL_KEY, build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
     from .conftest import LIBRARY
     skill = LIBRARY.parents[1]
     pdk = read_pdk_decl(str(skill / "assets" / "sky130_pdk_decl.json"), BoundedLRU(8))
     # [xrun J-1] run_stage_a 는 PDK 선언·LUT 생성 규칙 선언과 경로 인자를 받지 않는다(S0 키에만 쓰이던 인자) -- pdk 는 아래 search_domain 몫
-    r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, output_dir=tmp_path)
+    # [XRUN-F1 card B 규칙 M M-c] 실행 하나 = 이 호출 하나: run_stage_a 바로 앞 open_run() 튜플 풀기, 같은 실행을 커널 컨텍스트·search_domain 이 잇는다
+    donors, counters = open_run()
+    r = run_stage_a(LIBRARY / (name + ".topology.json"), LIBRARY / (name + ".sizing_spec.json"), lut, output_dir=tmp_path,
+                    donors=donors, counters=counters)
     spec = r.spec
-    k = build_kernel_context(r.s1, dc_inputs_from_spec(spec), pre_layout_lut_access(LutMemo(lut, point=4096, curve=4096, root=4096)))
+    k = build_kernel_context(r.s1, dc_inputs_from_spec(spec), pre_layout_lut_access(LutMemo(lut, point=4096, curve=4096, root=4096)),
+                             donors=r.donors, counters=r.counters)
     search = spec.search if isinstance(spec.search, tuple) else ()
     sb = next((s.value for s in search if s.field == THETA_BOUNDS and s.value), ())
     un = tuple(n for n, _s in next((s.value for s in search if s.field == UNTIE_ORBITS and s.value), ()))
     bud = [float(d.value) for d in spec.judged_constraints if d.metric == "area_search_m2" and d.op == "<=" and d.value is not None]
-    snap = search_domain(k.base.widen(S0_WRITERS), k.lut, None, None, pdk, sb, min(bud) if bud else None, un)
+    snap = search_domain(k.base.widen(S0_WRITERS), k.lut, None, None, pdk, sb, min(bud) if bud else None, un,
+                         donors=k.donors, counters=k.counters)
     return k, snap.value("graph", KERNEL_KEY, "search_domain")
 
 
@@ -361,8 +366,11 @@ def test_column_order_invariant_under_renaming(tmp_path, toy_access):
     raw, _td, _spec, inputs, _s1, ctx = library_ctx("current_reuse_telescopic_ota", toy_access)
     d2, sn, se = rename(raw, 5)
     inputs2 = rename_inputs(inputs, sn, se)
+    from gmid_engine.search import open_run
     from gmid_engine.sizing import build_kernel_context
-    ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d2), dict(inputs2.supplies_v)), inputs2, toy_access)
+    donors, counters = open_run()                     # 이름 바꾼 회로 = 다른 실행
+    ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d2), dict(inputs2.supplies_v), donors=donors, counters=counters),
+                                inputs2, toy_access, donors=donors, counters=counters)
     free = ctx.base.value("graph", DC_KEY, "dc_current_basis").free
     free2 = ctx2.base.value("graph", DC_KEY, "dc_current_basis").free
     assert tuple(sorted(se[n] for n in free)) == free2

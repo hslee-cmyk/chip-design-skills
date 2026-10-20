@@ -1,6 +1,10 @@
 """파이프라인 단계 A 진입점 (설계 40 §2.1 GB0~GB2, 41 §0 단계 A1~A3).
 
-진입점: `run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None) -> StageAResult`.
+진입점: `run_stage_a(topology_path, spec_path, lut, *, output_dir, donors, counters, supplies_v=None, structure_path=None) -> StageAResult`.
+
+* `donors`·`counters`: 필수 키워드(기본값 없음, 빠지면 `TypeError`) -- 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수다. 이 함수는 만들지 않고 받는다
+  (설계 40 §2.4.5 '수명'·'전달', 계획 PD-8). `build_s1`·`build_s1v`·`coupling_vars` 에 넘기고 `StageAResult.donors`·`.counters` 에 참조로 싣는다(정지 경로 포함).
+  `run_stage_a` 호출마다 같은 함수 안 `donors, counters = open_run()` 을 1:1 로 둔다(구조 규칙 M (M-c)).
 
 순서(40 §3.2-3): A1 `load_topology`·`load_sizing_spec`(spec_path 가 None 이면 구조만 -- 기본 전달 뷰) -> `structure.json` 사실 로드(ratified 사실, 기본 경로 = topology 파일 옆
 `<회로>.structure.json`, 없으면 사실 0 이고 declared 대조는 하지 않았다고 보고서에 적는다; topology 지문 = `doc.connectivity_fp` 라 `build_s1` 전에 이미 있고, rule_hash 는
@@ -83,7 +87,8 @@ STATUS_STOPPED = "stopped"
 class StageAResult:
     """`exit_code`, `status`(ok|review_needed|stopped), `report`(dict), `report_paths`((json, md)), `s1` = S0 수준 스냅샷 위 `S1Graph`(S1 + S1v 필드 `graph/s1v` +
     결합 필드 `graph/coupling` -- 단계 B 가 이어 쓴다; S1v 를 만들기 전에 정지했으면 None 또는 S1 만), `spec`(정지 전이면 None),
-    `code_fp`(이 실행의 엔진 코드 지문 -- `build_search_context(code_fp=)` 로 넘긴다)."""
+    `code_fp`(이 실행의 엔진 코드 지문 -- `build_search_context(code_fp=)` 로 넘긴다), `donors`·`counters`(호출자가 `open_run()` 으로 만들어 넘긴 실행 하나의 블록 결과 색인·계수 --
+    넘긴 객체 그대로, 정지 경로 포함. 단계 B 가 이어 쓰는 과도기 참조 칸, 설계 40 §2.4.5 '전달')."""
 
     exit_code: int
     status: str
@@ -92,6 +97,8 @@ class StageAResult:
     s1: object = None
     spec: object = None
     code_fp: object = None
+    donors: object = None
+    counters: object = None
 
 
 def _stopped(circuit, exc, stage, env_fp):
@@ -144,10 +151,10 @@ def _coupling_report(s1):
             "column_mate_devices": sorted({r.device for r in rows if r.basis == BASIS_COLUMN_MATE})}
 
 
-def _coupling_stage(s1):
+def _coupling_stage(s1, donors, counters):
     """A4: (결합 필드를 담은 S1Graph, 보고용 dict 또는 None, 정지 사유 목록). 소자가 귀속되지 않으면(`column_unassigned`) 필드를 쓰지 않고 보고서에는 정지 사유만 적는다."""
     try:
-        s1 = S1Graph(s1.key, coupling_vars(s1.snapshot))
+        s1 = S1Graph(s1.key, coupling_vars(s1.snapshot, donors=donors, counters=counters))
         return s1, _coupling_report(s1), []
     except StructureUnresolvedError as exc:
         return s1, None, ["A4_coupling: " + str(exc.record.to_json())]
@@ -191,12 +198,12 @@ def _finding_line(f):
     return f.severity + "|" + f.code + "|" + f.view + "|" + ",".join(f.subject) + "|" + f.detail
 
 
-def _finish(report, output_dir, circuit, code_fp, s1=None, spec=None):
+def _finish(report, output_dir, circuit, code_fp, donors, counters, s1=None, spec=None):
     paths = write_stage_a_report(report, output_dir, circuit)
-    return StageAResult(report["exit_code"], report["status"], report, paths, s1, spec, code_fp)
+    return StageAResult(report["exit_code"], report["status"], report, paths, s1, spec, code_fp, donors, counters)
 
 
-def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, structure_path=None):
+def run_stage_a(topology_path, spec_path, lut, *, output_dir, donors, counters, supplies_v=None, structure_path=None):
     env_fp = fp_of(blas_environment())      # [NFR-4 재확인 (a)] 진입에서 한 번 -- 확인 실패는 RuntimeError, 반환값 지문이 보고서 `env_fp`(정상·정지 경로 모두)
     code_fp = engine_code_fp()
     circuit = Path(topology_path).name.removesuffix(TOPOLOGY_SUFFIX)
@@ -205,31 +212,31 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
         spec = None if spec_path is None else load_sizing_spec(str(spec_path), topology, metric_catalog())
         marks = NO_MARKS if spec is None else symmetry_marks(dc_inputs_from_spec(spec))
     except SchemaRejectedError as exc:
-        return _finish(_stopped(circuit, exc, "A1_load", env_fp), output_dir, circuit, code_fp)
+        return _finish(_stopped(circuit, exc, "A1_load", env_fp), output_dir, circuit, code_fp, donors, counters)
     path = Path(structure_path) if structure_path is not None else Path(topology_path).with_name(circuit + STRUCTURE_SUFFIX)
     rule_fp = structure_rule_fp()
     try:
         structure = load_structure_facts(path, topology.connectivity_fp, rule_fp, _net_names(topology))
     except SchemaRejectedError as exc:
-        return _finish(_stopped(circuit, exc, "A2_structure_json", env_fp), output_dir, circuit, code_fp)
+        return _finish(_stopped(circuit, exc, "A2_structure_json", env_fp), output_dir, circuit, code_fp, donors, counters)
     supplies = _supplies(spec, supplies_v)
     base = GraphSnapshot.empty(S0_WRITERS)
     try:
-        s1 = build_s1(topology, supplies, previous=base, structure=structure, marks=marks)
+        s1 = build_s1(topology, supplies, previous=base, structure=structure, marks=marks, donors=donors, counters=counters)
     except (SchemaRejectedError, StructureUnresolvedError) as exc:
-        return _finish(_stopped(circuit, exc, "A2_build_s1", env_fp), output_dir, circuit, code_fp)
+        return _finish(_stopped(circuit, exc, "A2_build_s1", env_fp), output_dir, circuit, code_fp, donors, counters)
     classes = dict(s1.column("device", "element_class"))
     kinds = {kind for name, kind in s1.column("device", "kind") if classes[name] == ELEMENT_MOS}
     try:
         budget = structure_count_budget(lut, kinds, None if spec is None else spec.structure_count_budget)
     except ValueError as exc:   # N_S 정의역 밖(MOS 없음·LUT 슬라이스 없음) -- 보고서를 쓰고 정지
         return _finish(_stopped(circuit, StructureUnresolvedError(detail={"reason": "count_budget_undefined", "message": str(exc)}),
-                                "A2_count_budget", env_fp), output_dir, circuit, code_fp, s1)
+                                "A2_count_budget", env_fp), output_dir, circuit, code_fp, donors, counters, s1)
     groups = tuple(tuple(f.value.split()) for f in structure.facts if f.concept == CONCEPT_STAGE_MEMBERS)
     declared = ((path.name, groups),) if groups else ()
     declared_cuts = _declared_loop_cuts(spec)
     s1 = build_s1v(s1, spec, count_budget=budget, declared=declared, structure=structure,
-                   declared_loop_cuts=declared_cuts, stop_on_unsupported=False)
+                   declared_loop_cuts=declared_cuts, stop_on_unsupported=False, donors=donors, counters=counters)
     views = s1.value("graph", S1V_KEY, "views")
     _every, review_found, unsupported_found = s1v_findings(s1)
     unsupported = [_finding_line(f) for f in unsupported_found]
@@ -238,7 +245,7 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
               + [_finding_line(f) for f in crosstab.findings])
     note = " has no stage_members facts" if path.is_file() else " absent"
     comparison = "performed" if declared else "not_performed: " + path.name + note
-    s1, coupling, coupling_stop = _coupling_stage(s1)
+    s1, coupling, coupling_stop = _coupling_stage(s1, donors, counters)
     unsupported += coupling_stop
     status = STATUS_STOPPED if unsupported else STATUS_REVIEW if review else STATUS_OK
     code = 0 if status == STATUS_OK else exit_code_for(StructureUnresolvedError())
@@ -247,4 +254,4 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
               "applied_facts": [list(f) for f in s1.value("graph", S1V_KEY, "applied_facts")], "ff_ratio_candidates": _ff_ratio_rows(views),
               "coupling": coupling, "tables": structure_tables(s1), "orbit_matching_crosstab": _crosstab_report(crosstab),
               "env_fp": env_fp}
-    return _finish(report, output_dir, circuit, code_fp, s1, spec)
+    return _finish(report, output_dir, circuit, code_fp, donors, counters, s1, spec)

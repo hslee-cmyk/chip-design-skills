@@ -1,0 +1,146 @@
+{
+ "rows": [
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_open_run.py",
+   "n": 3,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_run_counters.py",
+   "n": 10,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_donors.py",
+   "n": 7,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_compute_block.py",
+   "n": 162,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_s3_index.py",
+   "n": 9,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_graft.py",
+   "n": 7,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_failure_partial.py",
+   "n": 35,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[donors]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[counters]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py::test_run_pair_keywords_required[both]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[donors]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[counters]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[both]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[donors]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[counters]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[both]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[donors]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[counters]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[both]",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py",
+   "n": 44,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py",
+   "n": 36,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py",
+   "n": 53,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal.py",
+   "n": 22,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/integration/test_run_isolation.py",
+   "n": 1,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_kernel.py",
+   "n": 24,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py",
+   "n": 22,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py",
+   "n": 9,
+   "green": true
+  },
+  {
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_structure_rules.py::test_rule_m_run_pair_not_shared",
+   "n": 1,
+   "green": true
+  }
+ ],
+ "green": 28,
+ "total": 28
+}

@@ -105,11 +105,17 @@ def _run(env, circuit, tmp_path_factory):
     if circuit not in env["cache"]:
         out = tmp_path_factory.mktemp("sbl_" + circuit)
         # [xrun J-1] run_stage_a 는 선언 값·선언 경로 인자를 받지 않는다(S0 키에만 쓰이던 인자, interface card C1)
-        a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env["lut"], output_dir=out)
+        from types import SimpleNamespace
+        from gmid_engine.search import open_run
+        donors, counters = open_run()      # [XRUN-F1 card B C6·규칙 M M-c] 회로 실행 하나 = 새 쌍
+        a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env["lut"], output_dir=out,
+                        donors=donors, counters=counters)
         memo = LutMemo(env["lut"], point=200000, curve=200000, root=4096)
         # [U17 ①-b 2차, 사용자 결정 4] run_stage_b(settings=) 필수 -- 탐색 설정 입력(test_s0_layer_9circuits `_settings` 와 같은 값)
         b = run_stage_b(a, memo, env["pdk"], output_dir=out, diagnostic=True, settings=_settings())
-        env["cache"][circuit] = (a, b)
+        # [규칙 M M-d] 모듈 캐시에는 실행의 두 객체를 쥔 결과(StageAResult)를 두지 않고 test 가 읽는 칸만 꺼내 둔다
+        env["cache"][circuit] = (SimpleNamespace(status=a.status, exit_code=a.exit_code),
+                                 SimpleNamespace(status=b.status, exit_code=b.exit_code, report=b.report, s1=b.s1))
     return env["cache"][circuit]
 
 

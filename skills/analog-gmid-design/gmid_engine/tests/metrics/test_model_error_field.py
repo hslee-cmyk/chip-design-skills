@@ -9,6 +9,8 @@ from __future__ import annotations
 from gmid_engine.core import GraphSnapshot
 from gmid_engine.metrics import METRICS_S0_WRITERS, model_error_field
 
+from .conftest import block_row, fresh_run
+
 PAIRS = (("gain_ss_db", 0.5), ("ugf_ss_hz", 1.0e5))
 
 
@@ -22,16 +24,17 @@ def test_block_declaration():
 
 
 def test_field_holds_pairs_and_empty():
-    assert model_error_field(_empty(), PAIRS).value("graph", "kernel", "model_error") == PAIRS
-    assert model_error_field(_empty(), ()).value("graph", "kernel", "model_error") == ()
+    run = fresh_run()
+    assert model_error_field(_empty(), PAIRS, **run).value("graph", "kernel", "model_error") == PAIRS
+    assert model_error_field(_empty(), (), **run).value("graph", "kernel", "model_error") == ()
 
 
 def test_reuse_and_recompute():
-    model_error_field.reset_stats()
-    a = model_error_field(_empty(), PAIRS)
-    b = model_error_field(a, PAIRS)
+    # oracle 대조: card B C4 판정 1·4 -- 실행 계수(C1) 행: 손 순서(compute, reuse, compute)
+    run = fresh_run()
+    a = model_error_field(_empty(), PAIRS, **run)
+    b = model_error_field(a, PAIRS, **run)
     assert b.fp == a.fp
-    c = model_error_field(b, (("gain_ss_db", 0.7),))
-    st = model_error_field.stats()
-    assert (st.computes, st.reuses, st.recomputes_same_input) == (2, 1, 0)
+    c = model_error_field(b, (("gain_ss_db", 0.7),), **run)
+    assert block_row(run["counters"], model_error_field.name) == (3, 1, 0, 0, 2, 0)
     assert c.value("graph", "kernel", "model_error") == (("gain_ss_db", 0.7),)

@@ -19,11 +19,13 @@ import numpy as np
 import pytest
 
 from gmid_engine.core import SealViolationError
+from gmid_engine.search import open_run
 from gmid_engine.sizing import DC_KEY, SEAL_CONDUCTION, dc_seal_conduction, dc_tolerances, seal_dc, size_and_seal
 
 from .conftest import (R4_L, R4_VDS, R4_VS, Oracle, _hermite, assert_item, build_ctx, circuit_cs_pmos_load,
                        circuit_cs_res, detail, eval_calls, judge_expect, new_access, r4_arrays, r4_ln_idu,
                        resistances_of, tamper, theta_c, theta_r4c, toy_arrays, with_tol, write_r4_lut)
+from .conftest import block_row, row_delta, run_of  # [XRUN-F1 card B C1·C4]
 
 
 # ---------------------------------------------------------------------------
@@ -98,8 +100,12 @@ def check_fields(out, offs, floors, rtol=1e-12):
             assert isinstance(got_floor[n], float) and abs(got_floor[n] - v) <= rtol * v, (n, got_floor[n], v)
 
 
-def run9(snap, lut):
-    return dc_seal_conduction(snap, lut)
+def run9(snap, lut, run=None):
+    """[XRUN-F1 card B C4] run = 실행 두 객체 키워드(dict), 없으면 새 실행 하나."""
+    if run is None:
+        donors, counters = open_run()
+        run = dict(donors=donors, counters=counters)
+    return dc_seal_conduction(snap, lut, **run)
 
 
 def set_op(snap, name, **changes):
@@ -209,7 +215,7 @@ def test_linear_declared_devices_included(ctx_r4c):
     th = theta_r4c(v1=0.02)
     snap, calls = eval_calls(ctx_r4c, th)
     with pytest.raises(SealViolationError) as ei:
-        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), ("M1",))
+        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), ("M1",), **run_of(ctx_r4c))
     d = detail(ei.value)
     assert d["item"] == 9 and ei.value.record.devices == ("M1",)
     assert dict(d["item_detail"])["n_checked"] == 2
@@ -218,7 +224,7 @@ def test_linear_declared_devices_included(ctx_r4c):
     # 통과 θ 에서도 n_checked 는 linear 선언과 무관하게 2(봉인 7 은 1)
     th2 = theta_r4c()
     snap2, calls2 = eval_calls(ctx_r4c, th2)
-    ev = seal_dc(snap2, calls2, ctx_r4c.lut, resistances_of(ctx_r4c, th2), ("M1",))
+    ev = seal_dc(snap2, calls2, ctx_r4c.lut, resistances_of(ctx_r4c, th2), ("M1",), **run_of(ctx_r4c))
     assert dict(ev.report.items[8].detail)["n_checked"] == 2
     assert dict(ev.report.items[6].detail)["n_checked"] == 1
 
@@ -286,15 +292,15 @@ def test_two_point_axes_lut_all_undefined(tmp_path):
     arr = {k: r4_arrays(k, grids=grids) for k in ("nmos", "pmos")}
     th = theta_r4c()
     snap, calls = eval_calls(ctx, th)
-    s_tol = dc_tolerances(snap, ctx.lut)
+    s_tol = dc_tolerances(snap, ctx.lut, **run_of(ctx))
     assert all(v is None for _, v in s_tol.column("device", "dc_tol_v"))     # 전제
-    out = run9(s_tol, ctx.lut)
+    out = run9(s_tol, ctx.lut, run_of(ctx))
     rows, offs, floors = expected(s_tol, arr.get)
     exp = judge_expect(rows)
     assert exp["status"] == "undefined" and exp["n_undefined"] == 2
     assert_item(item9(out), exp, 9)
     check_fields(out, offs, floors)
-    ev = seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), ())
+    ev = seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), **run_of(ctx))
     assert ev.report.items[8].status == "undefined" and ev.sealed is None
 
 
@@ -366,7 +372,7 @@ def test_no_sealed_snapshot_when_item9_fails(ctx_r4c, v1, v2, dev):
     exp = judge_expect(expected(s_tol, R4_ARR.get)[0])
     assert exp["status"] == "fail" and exp["devices"] == (dev,)
     with pytest.raises(SealViolationError) as ei:
-        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), ())
+        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), (), **run_of(ctx_r4c))
     rec = ei.value.record
     d = dict(rec.detail)
     st = {x[0]: x[1] for x in d["items"]}
@@ -384,8 +390,9 @@ def test_no_sealed_snapshot_when_item9_fails(ctx_r4c, v1, v2, dev):
 # ---------------------------------------------------------------------------
 
 def test_block_reuse(ctx_r4c):
+    # oracle 대조: card B C4 판정 1 -- 같은 lineage 재호출은 reuse, 실행 계수(C1) 증분 = (calls 1, reuses 1, computes 0)
     snap, _ = with_tol(ctx_r4c, theta_r4c())
-    out = run9(snap, ctx_r4c.lut)
-    dc_seal_conduction.reset_stats()
-    assert run9(out, ctx_r4c.lut) is out
-    assert dc_seal_conduction.stats().reuses == 1 and dc_seal_conduction.stats().computes == 0
+    out = run9(snap, ctx_r4c.lut, run_of(ctx_r4c))
+    before = block_row(ctx_r4c.counters, dc_seal_conduction.name)
+    assert run9(out, ctx_r4c.lut, run_of(ctx_r4c)) is out
+    assert row_delta(block_row(ctx_r4c.counters, dc_seal_conduction.name), before) == (1, 1, 0, 0, 0, 0)

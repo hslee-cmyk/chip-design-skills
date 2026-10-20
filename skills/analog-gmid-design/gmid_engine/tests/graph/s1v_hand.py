@@ -111,12 +111,21 @@ def load(tmp_path: Path, doc: dict, stem: str | None = None):
     return load_topology(str(p))
 
 
+def fresh_run():
+    """[XRUN-F1 card B C0] 새 실행 하나의 두 객체 키워드(dict). 부를 때마다 새 open_run() 쌍."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return dict(donors=donors, counters=counters)
+
+
 def build(tmp_path, doc, *, supplies=None, spec=None, stem=None, **kw):
-    """(s1, s1v). 기본 = 진단 모드(`stop_on_unsupported=False`)와 큰 계수 예산 -- 정지 test 는 kw 로 바꾼다."""
-    s1 = build_s1(load(tmp_path, doc, stem), dict(supplies or {r: SUPPLIES.get(r, 0.9) for r in doc["supply_nets"]}))
+    """(s1, s1v). 기본 = 진단 모드(`stop_on_unsupported=False`)와 큰 계수 예산 -- 정지 test 는 kw 로 바꾼다.
+    [XRUN-F1 card B C6] S1·S1v = 이 호출 하나의 실행(새 open_run() 쌍)."""
+    run = fresh_run()
+    s1 = build_s1(load(tmp_path, doc, stem), dict(supplies or {r: SUPPLIES.get(r, 0.9) for r in doc["supply_nets"]}), **run)
     kw.setdefault("count_budget", BIG_BUDGET)
     kw.setdefault("stop_on_unsupported", False)
-    return s1, read_s1v(build_s1v(s1, spec, **kw))
+    return s1, read_s1v(build_s1v(s1, spec, **kw, **run))
 
 
 LIBRARY = Path(__file__).resolve().parents[3] / "assets" / "library"
@@ -133,11 +142,12 @@ def lib_supplies(name):
 
 
 def build_lib(name, spec=None, **kw):
-    """library 회로 (s1, s1v) -- 진단 모드·큰 예산 기본."""
-    s1 = build_s1(load_topology(str(LIBRARY / (name + ".topology.json"))), lib_supplies(name))
+    """library 회로 (s1, s1v) -- 진단 모드·큰 예산 기본. [XRUN-F1 card B C6] 이 호출 하나 = 실행 하나."""
+    run = fresh_run()
+    s1 = build_s1(load_topology(str(LIBRARY / (name + ".topology.json"))), lib_supplies(name), **run)
     kw.setdefault("count_budget", BIG_BUDGET)
     kw.setdefault("stop_on_unsupported", False)
-    return s1, read_s1v(build_s1v(s1, spec, **kw))
+    return s1, read_s1v(build_s1v(s1, spec, **kw, **run))
 
 
 def view(s1v, vid="transfer:0"):

@@ -1,0 +1,635 @@
+{
+ "rows": [
+  {
+   "bt": "B-T0",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_open_run.py",
+   "base": "conftest_load_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "8cd208c23d2d7c655bd1e05d2f21995719a3401c8910ae4b3fff951f910253ba"
+  },
+  {
+   "bt": "B-T1~B-T3",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_run_counters.py",
+   "base": "collection_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'PerfCounters' from 'gmid_engine.core' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\core\\__init__.py)",
+   "failure_hash": "ac321abb0bafc2ac21e6d5d92fba6f250e6c2400234c5d1fefcf64954f34e9fa"
+  },
+  {
+   "bt": "B-T4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_donors.py",
+   "base": "collection_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'Donors' from 'gmid_engine.core' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\core\\__init__.py)",
+   "failure_hash": "047be16ed7c5db1ee438fe278468c1b9647251c2025140c4e789c441bba24324"
+  },
+  {
+   "bt": "B-T5~B-T12",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_compute_block.py",
+   "base": "collection_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'Donors' from 'gmid_engine.core' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\core\\__init__.py)",
+   "failure_hash": "2b390174b0135e9c3e5280028259f296e47c696b23170716e7ef0b771201ab97"
+  },
+  {
+   "bt": "B-T13",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_s3_index.py",
+   "base": "conftest_load_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "931d0d15502e91d270fef3d79396d163aed854162ad77d82e6949187f0f5b6c1"
+  },
+  {
+   "bt": "B-T14",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_graft.py",
+   "base": "collection_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'graft' from 'gmid_engine.core' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\core\\__init__.py)",
+   "failure_hash": "1566ab7405186cf6470afd8f774ebc942677929ed83e500ee31bbc3c60c7fcc4"
+  },
+  {
+   "bt": "B-T15",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/core/test_failure_partial.py",
+   "base": "collection_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'attach_partial' from 'gmid_engine.core' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\core\\__init__.py)",
+   "failure_hash": "38dcfd9c5c9bee901851b92047e9cd91154c8adfa2ff5f572cec64d1777209f7"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/convergence/test_place_layout.py",
+   "base": "conftest_load_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'F_POINT' from 'gmid_engine.layout' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\layout\\__init__.py)",
+   "failure_hash": "b7f6313481d7413eea8ad04940c393456a9254fc18702c909544a21b8dfc8fa3"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[donors]",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "2f70c9300af00e2a96e01ee4fd2b8a5057a3eb93e9095967883dafc6b75586fd"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[counters]",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "fcdc7028173c14e3b962529d9e66ae56fd116566a3304f2666a1613b99f21a94"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_build.py::test_run_pair_keywords_required[both]",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "4b0e305e629e0064ca44e1bdf81c574d02c13a97ab61024a1c1ea656ab03e1da"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[donors]",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "212f804d876c9408bfd9f8428732b9922ac3bb78b9e7f645a1a071fe58c34c2c"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[counters]",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "5fb9c78844f11e316926fdddfc211fd8bd46eb2f1bcfb257ce783ec2044a1cd5"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_build.py::test_run_pair_keywords_required[both]",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "afa39337d30d74017d16cd7275d955608197d2107b03478695e94546a140162b"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[donors]",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "2cbfc44112206e0d186134bbd87e1b7fecac9aa8cc594900aa23d3851f775b74"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[counters]",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "cd7a8e362c038253b54eee5052a77705d346caa3e0b11bb331e52fa9b17adc5b"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_run_pair_keywords_required[both]",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "9e249066a08da0ec27e4f8db7454ff45633f52104d73667c7fc6c059dfad52a7"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/pipeline/test_stage_a.py",
+   "base": "collection_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "ee5aa29f6367269158534a188c89f57406356aca8f3b1d51df62a23b8cfb03fe"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_search_context.py",
+   "base": "conftest_load_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "27c0241498d973bee969cc5c0e7e347810d8cbb6ca73e78ed7621a0ce118b770"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py",
+   "base": "conftest_load_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "d4d2b221cabb6fbe2b1bc41e13273e3598d301c75056c4989786c22a3455aa4d"
+  },
+  {
+   "bt": "B-T16",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal.py",
+   "base": "conftest_load_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "73f271496b93f8a1ed531a7e044fc78d7bac6bd316d4c064ffec89dc4769b4c1"
+  },
+  {
+   "bt": "B-T17",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/integration/test_run_isolation.py",
+   "base": "collection_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "cd0967ee273e0c090f0b6ecc76dcd20c7726962b944462f60801d2b220b80acc"
+  },
+  {
+   "bt": "B-T18~B-T20",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_kernel.py",
+   "base": "conftest_load_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "8bc5d103783a6e75fcf71122a24c3bf6fd1c858df5d8844029ec76c42a42f76f"
+  },
+  {
+   "bt": "B-T21",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/search/test_find_front.py",
+   "base": "conftest_load_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "0cf041fd45743944d056802a9e29bf8da7dccc77d1828b636294cb37035a18e0"
+  },
+  {
+   "bt": "B-T22",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py",
+   "base": "collection_error",
+   "exc_type": "builtins.ImportError",
+   "detail": ": cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "178d2b8341c06fba93ae334a73fc7c8df172b832fd6cf41af44b3297929456b5"
+  },
+  {
+   "bt": "B-T23",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_structure_rules.py::test_rule_m_run_pair_not_shared",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: search/open_run.py 없음(C0)\nassert False\n +  where False = is_file()\n +    where is_file = ((WindowsPath('C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_xrunf1b_audit4/red/skills/analog",
+   "failure_hash": "b1c44fbae5871b4cc43bdd6b0d47ed7fe11385a8c6d2c13ed757ff1ed6b52c84"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_canon_block.py",
+   "base": "collection_error",
+   "exc_type": "builtins.ModuleNotFoundError",
+   "detail": ": No module named 'gmid_engine.layout.canon_block'",
+   "failure_hash": "05d0cb3ae616fd090b0b2ee284c90adb6fdfb330605dc2c72a7f065df61c8808"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_input.py::test_public_api",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert {'CC_REQUIRED...OORPLAN', ...} == {'CC_REQUIRED..._GROUPS', ...}\n  \n  Extra items in the left set:\n  'F_DEVICE'\n  Extra items in the right set:\n  'F_POINT'\n  Use -v to get more ",
+   "failure_hash": "b422b1c9c5e294dc3121391525378f36a238d7dab4ff89f00ebca5c83292c644"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[SliceDensity-None]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[WTolerance-fields1]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[WRequest-None]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[ReviewItem-fields3]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[MatchingDisposition-fields4]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[GroupAttempt-fields5]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[BoxVerdict-fields6]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[FoldAttempt-None]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[MergeDecision-None]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[GroupRebuild-fields9]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[RowsLayout-fields10]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[RealizedDevice-fields11]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[DeviceDiffusion-fields12]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[FloorplanSummary-fields13]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[Revalidation-fields14]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[ConservedPoint-fields15]",
+   "base": "failed",
+   "exc_type": "builtins.AttributeError",
+   "detail": "AttributeError: module 'gmid_engine.layout.contract_output' has no attribute 'ConservedPoint'",
+   "failure_hash": "ebc879d082908b2e71839389343e682cdb2b8cb75b74a6b16b8fc8a746072ad9"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[DevicePins-fields16]",
+   "base": "failed",
+   "exc_type": "builtins.AttributeError",
+   "detail": "AttributeError: module 'gmid_engine.layout.contract_output' has no attribute 'DevicePins'. Did you mean: 'DeviceFinger'?",
+   "failure_hash": "96566d55933d79c4e73bf8881690e809c618177b097b1f291806513258db85f6"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_declared_fields[DeviceAttrs-fields17]",
+   "base": "failed",
+   "exc_type": "builtins.AttributeError",
+   "detail": "AttributeError: module 'gmid_engine.layout.contract_output' has no attribute 'DeviceAttrs'",
+   "failure_hash": "2ee270a412823a15f92afdee23b301e001f17ed213c67c228ded6b6994092924"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_contract_output.py::test_four_input_fields_partition_layout_device",
+   "base": "failed",
+   "exc_type": "builtins.AttributeError",
+   "detail": "AttributeError: module 'gmid_engine.layout.contract_output' has no attribute 'ConservedPoint'",
+   "failure_hash": "1128c32c7e52423431bfe4a23722bc0d726da4758f523f78383a26a30b3f630d"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_finger_candidates.py::test_reads_declaration",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert {('device', '...h', 'ly_pdk')} == {('device', '...h', 'ly_pdk')}\n  \n  Extra items in the left set:\n  ('device', 'ly_device')\n  Extra items in the right set:\n  ('device', 'ly_poi",
+   "failure_hash": "926a2ba6c6cd66d76e1f64c418b949339d057174560d73b43ef0d5a53ca8e58c"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_finger_candidates.py::test_reference_w_not_in_input_version",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'ConservedPoint' from 'gmid_engine.layout.contract_output' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\lay",
+   "failure_hash": "d34a5ff6724e42c5ec3b71dedcba35b2c2b4d45db86dcc0394c84af62bc46fc1"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_pattern_select.py::test_reads_declaration",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert {('device', '...ly_rejected')} == {('device', '...ups_in'), ...}\n  \n  Extra items in the left set:\n  ('device', 'ly_device')\n  Extra items in the right set:\n  ('graph', 'ly_cano",
+   "failure_hash": "1fa634907e259419536eec739c29fe9c64f704862b49467c75030d37f5f07e1d"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_pattern_select.py::test_uniform_exact_w_doubling_keeps_input_version",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'ConservedPoint' from 'gmid_engine.layout.contract_output' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\lay",
+   "failure_hash": "a7fe260ae1803dd93dc21915931521fc1df8440b19beed871bbb286a65d98e6c"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_rows.py::test_reads_declaration",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: assert {('device', '...ly_pdk'), ...} == {('device', '...ups_in'), ...}\n  \n  Extra items in the left set:\n  ('device', 'ly_device')\n  ('graph', 'ly_rejected')\n  Extra items in the righ",
+   "failure_hash": "5c456a61fd442082319a04e29ff6ade6564fb07ed9c6804e60cdf19679d5baa3"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_rows.py::test_uniform_exact_w_doubling_keeps_input_version",
+   "base": "failed",
+   "exc_type": "builtins.AttributeError",
+   "detail": "AttributeError: 'ComputeBlock' object has no attribute 'input_version'",
+   "failure_hash": "4313056a18d908b65c89d869b32c016bdd4312e45b842cb032928792987c1ad2"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_input_device_fields_partition_layout_device_values",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "5a1f21f90ca4647515bc1ef73520a819d2a7e791e23f0150fbd372ffb2cdc6b0"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_w1_doubling_all_w_recomputes_only_canonical_naming",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "cdd0ef7cbbe154140c9077eecf8df324c49d0e1e4559ff6155a1490a9a9949de"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_w2_doubling_all_w_keeps_computed_fields_and_rederives_outputs",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "9a92ee2f02a05f8be98056d7e0b0aaa3819d8fc4712d15ca7279a3cf9b9a4564"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_w3_swapping_w_order_of_symmetric_pair_changes_canon",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "19ad1c3dd9645283f62f5d3fea7ffb8fa48d7d0814bf5a680c2fe291ed1f5a1e"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_passives_only_change_recomputes_rows_block_only",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "5470b90c472b499bcf7b24e007c6941a41e5996b27a1b82d07cf5e11357d1f41"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_reference_w_change_does_not_recompute_slices",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "fdbb05d6854344cc7dea9a2ce1833f064ca404f10052a0f6d158ca783dd34596"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_rejected_only_change_reuses_slices_and_candidates",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "2fbbe8ec88373ca30a33886ae937c7922b4770eee51a5b0621c359f8f7a2b3d3"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/layout/test_run.py::test_id_change_recomputes_from_slices",
+   "base": "failed",
+   "exc_type": "builtins.ImportError",
+   "detail": "ImportError: cannot import name 'open_run' from 'gmid_engine.search' (C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\_scratch_xrunf1b_audit4\\red\\skills\\analog-gmid-design\\gmid_engine\\search\\__init__.py)",
+   "failure_hash": "b935d8a6a3f705c9cb9a500373f9c3d7d2b52b1db53ee12fe88cf8de9464bc17"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_removed_names_absent_from_engine",
+   "base": "failed",
+   "exc_type": "builtins.AssertionError",
+   "detail": "AssertionError: 폐기 이름이 엔진 코드에 남아 있다 22건:\n  convergence/effective_placement.py:13 F_DEVICE (import)\n  convergence/effective_placement.py:29 F_DEVICE (name)\n  layout/__init__.py:27 F_DEVICE (import)\n  l",
+   "failure_hash": "7e14b7e72395dcd9c4415bc95f92b3b471ec04919f9db7716f5eae9db7724f06"
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[x = dc_gm_bound\\n-name]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[y = snap.previous_gm_id\\n-attribute]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[def inherited_gm_id(p):\\n    return p\\n-definition]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[def f(canonical_gm_id):\\n    return 0\\n-argument]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[from gmid_engine.sizing import gm_grid_max\\n-import]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[import os as _power_resolution\\n-import_alias]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[f(spec_passive_values=0)\\n-keyword]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_rejects_each_form[W = ((\"device\", \"dc_gm_bound\"),)\\n-string]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scope_of_power_resolution_is_search_only",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_scanner_ignores_docstring_and_comment_mentions",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_local_inputs_not_rebuilt_in_search",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_local_inputs_scanner[x = local_inputs(a, b)\\n-1]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_local_inputs_scanner[x = metrics.local_inputs(a)\\n-1]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_local_inputs_scanner[from gmid_engine.metrics import local_inputs\\n-1]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  },
+  {
+   "bt": "W-r4",
+   "test_id": "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_local_inputs_scanner[x = s.value('graph', 'ach', 'local_inputs')\\n-0]",
+   "base": "passed",
+   "exc_type": null,
+   "detail": null,
+   "failure_hash": null
+  }
+ ],
+ "n_rows": 77,
+ "n_red": 47,
+ "n_passed_on_base": 30,
+ "type_counts": {
+  "builtins.AssertionError": 6,
+  "builtins.AttributeError": 5,
+  "builtins.ImportError": 35,
+  "builtins.ModuleNotFoundError": 1
+ },
+ "base_kind_counts": {
+  "collection_error": 9,
+  "conftest_load_error": 8,
+  "failed": 30
+ },
+ "bundle_sha256": "1073e6ca93bbb7b5df7872f964e82b3ba31bc2d5f66b5b11f7d3663fd97826e8"
+}

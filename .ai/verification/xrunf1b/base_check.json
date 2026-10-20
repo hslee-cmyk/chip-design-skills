@@ -1,0 +1,119 @@
+{
+ "id": "20261016-xrunf1b",
+ "round": 4,
+ "round_history": "r1 4e25582(e96515f FAIL), r2 910bb2e(8a7ef28 PASS), r3 중단(d6fae26d, 산출물 _scratch_xrunf1b_audit3 -- head/probe/red 재사용 안 함), r4 이 기록",
+ "freeze": {
+  "target_head": "472bc8647566cd51076aff2e25f1dfdceb22246e",
+  "test_end_commit": "f3eb8f9f",
+  "test_branch": "role/test/xrunf1b",
+  "code_commits_r4": [
+   "9d3f303d",
+   "9d4b28b8",
+   "c3c50f14",
+   "5dde5d63",
+   "8687be9e"
+  ],
+  "data_commits": [
+   "65549c92"
+  ],
+  "approval_commit": "472bc864 (.ai/approvals/20261019-xrunf1b-o19-order-assert.md)",
+  "base_commit": "083b1035267bc586b04353a9a3d2dac278f11867",
+  "integration": "integ/xrunf1b-r4 472bc864 = master 2305e587 + ece6b773(merge role/test f3eb8f9f) + 8fed9ee8(merge role/code 8687be9e) + 807be19b(merge role/data 65549c92) + 472bc864(승인 기록). 감사 확인: head tests == f3eb8f9f tests(diff 0), head 엔진(tests 밖) == 8687be9e(diff 0), 2305e587 은 083b1035 대비 엔진 diff 0",
+  "test_diff_sha256_2d5ecd8_f3eb8f9": "121719ed436f182a28a17b6fd572b1bc443a1ebd50f3e15d1ebfd5ce6f4a288d"
+ },
+ "red": {
+  "setup_base": "격리 복제본 _scratch_xrunf1b_audit4/red = detached 083b1035 + gmid_engine/tests 를 f3eb8f9f 로 교체(git rm + checkout, 커밋 안 함)",
+  "setup_prev": "격리 복제본 _scratch_xrunf1b_audit4/prev = detached c3c50f14(5dde5d63 직전 code) + tests f3eb8f9f -- 이번 code 변경을 가르는 판별 red",
+  "command": "bash scripts/run_red_r4.sh <red|prev> <목록> <out> (파일마다 pytest --run-slow --continue-on-collection-errors --junitxml, 이어서 PYTHONPATH=<gate cache 6df4bd7f> -p merge_gate GMID_RED_CAPTURE GMID_INTERFACE_CARD); PYTHONPATH=<gate cache> python -P scripts/red_table_r4.py",
+  "base": {
+   "n_rows": 77,
+   "n_red": 47,
+   "type_counts": {
+    "builtins.AssertionError": 6,
+    "builtins.AttributeError": 5,
+    "builtins.ImportError": 35,
+    "builtins.ModuleNotFoundError": 1
+   },
+   "kind_counts": {
+    "collection_error": 9,
+    "conftest_load_error": 8,
+    "failed": 30
+   },
+   "bundle_sha256": "1073e6ca93bbb7b5df7872f964e82b3ba31bc2d5f66b5b11f7d3663fd97826e8"
+  },
+  "prev_c3c50f14": {
+   "n_rows": 51,
+   "n_red": 18,
+   "type_counts": {
+    "builtins.AssertionError": 10,
+    "builtins.AttributeError": 4,
+    "builtins.ImportError": 3,
+    "builtins.ModuleNotFoundError": 1
+   },
+   "kind_counts": {
+    "collection_error": 1,
+    "failed": 17
+   },
+   "bundle_sha256": "833f47cdfea8c279d9ecde4ef00bc51afb24a1db686fc55edcf9d689f5569d8e",
+   "red_tests": [
+    "layout/test_canon_block.py",
+    "layout/test_contract_input.py::test_public_api",
+    "layout/test_contract_output.py::test_declared_fields[DevicePins-fields16]",
+    "layout/test_contract_output.py::test_declared_fields[DeviceAttrs-fields17]",
+    "layout/test_contract_output.py::test_four_input_fields_partition_layout_device",
+    "layout/test_finger_candidates.py::test_reads_declaration",
+    "layout/test_finger_candidates.py::test_reference_w_not_in_input_version",
+    "layout/test_pattern_select.py::test_reads_declaration",
+    "layout/test_pattern_select.py::test_uniform_exact_w_doubling_keeps_input_version",
+    "layout/test_rows.py::test_reads_declaration",
+    "layout/test_rows.py::test_uniform_exact_w_doubling_keeps_input_version",
+    "layout/test_run.py::test_input_device_fields_partition_layout_device_values",
+    "layout/test_run.py::test_w1_doubling_all_w_recomputes_only_canonical_naming",
+    "layout/test_run.py::test_w3_swapping_w_order_of_symmetric_pair_changes_canon",
+    "layout/test_run.py::test_passives_only_change_recomputes_rows_block_only",
+    "layout/test_run.py::test_reference_w_change_does_not_recompute_slices",
+    "layout/test_run.py::test_id_change_recomputes_from_slices",
+    "structure/test_removed_names.py::test_removed_names_absent_from_engine"
+   ],
+   "passed_on_prev_note": "test_w2_doubling_all_w_keeps_computed_fields_and_rederives_outputs·test_rejected_only_change_reuses_slices_and_candidates 는 prev 에서도 통과 -- W-2 는 값 같음 단언이라 prev(재계산은 하지만 값은 같음)도 만족, rejected 단언의 W_CANON not in w 는 prev 에 그 블록이 없어 공허하게 참. W-1 test 가 재계산 감소를 가른다"
+  },
+  "green_head": "V1 junit: 위 red 47 행 전부 head 에서 passed(layout 527 passed·xfailed 2 는 test_patterns_common_centroid 표 두 행 -- 이번 card 밖, base 와 같음)"
+ },
+ "round5": {
+  "target_head": "da38429f",
+  "integration": "integ/xrunf1b-r5 da38429f = 472bc864 + role/code 7a36ab4b(V6 문서 2줄)",
+  "diff_numstat": {
+   "layout/CONTRACT.md": [
+    1,
+    1
+   ],
+   "layout/run.py": [
+    1,
+    1
+   ]
+  },
+  "run_py_ast_same": true,
+  "test_tree_diff": 0,
+  "red_reuse": "test 트리·엔진 실행 코드 diff 0 -> 4차 red(47행, bundle 1073e6ca)·판별 red 그대로"
+ },
+ "round6": {
+  "target_head": "9bd92c0f",
+  "integration": "da38429f + role/code 1c3b9a95(gap G-3·G-5·G-6 문서 정정)",
+  "diff_numstat": {
+   "layout/CONTRACT.md": [
+    1,
+    1
+   ],
+   "layout/contract_output.py": [
+    1,
+    1
+   ],
+   "layout/run.py": [
+    1,
+    1
+   ]
+  },
+  "ast_same_docstring_excluded": true,
+  "test_tree_diff": 0
+ }
+}

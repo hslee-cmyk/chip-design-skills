@@ -9,7 +9,7 @@ import math
 
 from gmid_engine.sizing import dc_seal_bulk_reverse, dc_seal_node_conflict, dc_seal_vgs_match
 
-from .conftest import node_voltages, seal_item, tamper, theta_c, with_tol
+from .conftest import node_voltages, run_of, seal_item, tamper, theta_c, with_tol
 
 
 def test_tol_zero_gives_infinite_margin_fail(ctx_c):
@@ -19,7 +19,7 @@ def test_tol_zero_gives_infinite_margin_fail(ctx_c):
     s2 = tamper(snap, "dc_tolerances", "device", "dc_tol_v", {"M1": 0.0})
     s2 = tamper(s2, "dc_widths", "device", "dc_op",
                 {"M1": dataclasses.replace(ops["M1"], idu_forward=ops["M1"].idu_forward * 1.001)})
-    item = seal_item(dc_seal_vgs_match(s2), 2)
+    item = seal_item(dc_seal_vgs_match(s2, **run_of(ctx_c[2])), 2)
     assert item.status == "fail" and item.tol == 0.0
     assert item.margin is not None and math.isinf(item.margin), "tol 0 행의 margin 은 무한이어야 한다(계약 6절)"
     assert item.devices == ("M1",)
@@ -29,7 +29,7 @@ def test_zero_magnitude_zero_tol_is_pass(ctx_c):
     """크기 0, tol 0: 0 > 0 이 아니므로 fail 아님(bulk 역바이어스 0 인 소자)."""
     snap, _ = with_tol(ctx_c[2], theta_c())
     s2 = tamper(snap, "dc_tolerances", "device", "dc_tol_v", {"M1": 0.0, "M2": 0.0})
-    item = seal_item(dc_seal_bulk_reverse(s2), 6)
+    item = seal_item(dc_seal_bulk_reverse(s2, **run_of(ctx_c[2])), 6)
     assert item.status == "pass"
 
 
@@ -39,7 +39,7 @@ def test_fail_targets_only_failing_rows(ctx_c):
     s2 = tamper(snap, "dc_widths", "device", "dc_op",
                 {"M2": dataclasses.replace(ops["M2"], idu_forward=ops["M2"].idu_forward * 3.0)})
     s2 = tamper(s2, "dc_tolerances", "device", "dc_tol_v", {"M1": None})
-    item = seal_item(dc_seal_vgs_match(s2), 2)
+    item = seal_item(dc_seal_vgs_match(s2, **run_of(ctx_c[2])), 2)
     d = dict(item.detail)
     assert item.status == "fail" and item.devices == ("M2",)            # undefined 행(M1)은 fail 대상 아님
     assert d["n_checked"] == 2 and d["n_undefined"] == 1 and d["worst"] == "M2"
@@ -49,9 +49,9 @@ def test_fail_targets_only_failing_rows(ctx_c):
 def test_undefined_targets_and_pass_reports_worst(ctx_c):
     snap, _ = with_tol(ctx_c[2], theta_c())
     s2 = tamper(snap, "dc_tolerances", "device", "dc_tol_v", {"M1": None})
-    item = seal_item(dc_seal_vgs_match(s2), 2)
+    item = seal_item(dc_seal_vgs_match(s2, **run_of(ctx_c[2])), 2)
     assert item.status == "undefined" and item.devices == ("M1",)
-    ok = seal_item(dc_seal_vgs_match(snap), 2)
+    ok = seal_item(dc_seal_vgs_match(snap, **run_of(ctx_c[2])), 2)
     assert ok.status == "pass" and ok.devices == () and ok.nodes == ()
     assert ok.margin is not None and ok.margin <= 1
 
@@ -63,7 +63,7 @@ def test_node_values_use_rail_value_on_rails(ctx_c):
     pv = dict(snap.column("node", "dc_path_values"))["gnd"]
     new = tuple(PathValue(p.relation, 0.2) if p.relation == ("vgs", "M1") else p for p in pv)
     s2 = tamper(snap, "dc_columns", "node", "dc_path_values", {"gnd": new})
-    item = seal_item(dc_seal_node_conflict(s2), 1)
+    item = seal_item(dc_seal_node_conflict(s2, **run_of(ctx_c[2])), 1)
     assert item.status == "fail" and item.nodes == ("gnd",)
     assert abs(item.magnitude - 0.2) <= 1e-15
     assert node_voltages(snap)["gnd"] == 0.0

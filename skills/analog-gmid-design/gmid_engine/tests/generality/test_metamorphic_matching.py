@@ -49,7 +49,9 @@ def _doc(name):
 
 
 def _build(topo, doc):
-    return build_s1(topo.load(doc), None)
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C0·C6] 변형마다 새 실행 하나
+    return build_s1(topo.load(doc), None, donors=donors, counters=counters)
 
 
 def _field(s1, f):

@@ -2,7 +2,8 @@
 실행 사이에 읽지 않는다, 사용자 결정 2026-10-15 "나로 해" + U-89).
 
 같은 프로세스에서 같은 입력(library 회로 하나 -- 기준선 status [ok, ok] 회로, 단계 A -> B -> 커널 컨텍스트 -> 탐색 컨텍스트 -> find_front, 선언 평가
-예산)으로 사슬을 세 번 돈다. 실행마다 블록 계수를 reset_stats() 로 비우고(실행 경계, C4) LUT memo 를 새로 만든다.
+예산)으로 사슬을 세 번 돈다. 실행마다 새 `open_run()` 쌍을 열고(실행 경계 -- XRUN-F1 card B C1·C6: 블록 계수는 그 실행의 RunCounters)
+LUT memo 를 새로 만든다.
 - 실행 A: 빈 S3 루트.
 - 실행 B: A 가 쓴 S3 폴더 그대로(A 의 front 점·평가 줄이 있다).
 - 실행 C: 새 S3 루트에 A 의 평가 줄을 모두 실패 줄로 바꿔 손으로 넣은 폴더(옛 '디스크 실패 적중' 입력 형식,
@@ -17,13 +18,12 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
-from gmid_engine.core import BoundedLRU, ComputeBlock, read_pdk_decl
+from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a, run_stage_b
 
@@ -59,14 +59,6 @@ def env():
     return SimpleNamespace(lut=lut, pdk=pdk, rule=read_pdk_decl(str(SKILL / "assets" / "sky130_lut_rule_decl.json"), dm))
 
 
-def _reset_blocks():
-    for name, mod in list(sys.modules.items()):
-        if name.startswith("gmid_engine.") and ".tests" not in name and mod is not None:
-            for value in list(vars(mod).values()):
-                if isinstance(value, ComputeBlock):
-                    value.reset_stats()
-
-
 def _jsonl(p):
     p = Path(p)
     return [json.loads(x) for x in p.read_text(encoding="utf-8").splitlines() if x.strip()] if p.is_file() else []
@@ -92,14 +84,16 @@ def _points(seq):
 
 def _chain(env, out, archive_root):
     """단계 A -> B -> 커널 컨텍스트 -> 탐색 컨텍스트(archive_root) -> find_front(given 없음). -> C3 출력 묶음."""
-    from gmid_engine.search import build_search_context, find_front
+    from gmid_engine.search import build_search_context, find_front, open_run
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
-    _reset_blocks()
-    a = run_stage_a(LIBRARY / (CIRCUIT + ".topology.json"), LIBRARY / (CIRCUIT + ".sizing_spec.json"), env.lut, output_dir=out)
+    # [XRUN-F1 card B C1·C6] 실행 경계 = 새 open_run 쌍(옛 블록 객체 reset_stats 는 없어졌다 -- 계수는 실행마다 RunCounters)
+    donors, counters = open_run()
+    a = run_stage_a(LIBRARY / (CIRCUIT + ".topology.json"), LIBRARY / (CIRCUIT + ".sizing_spec.json"), env.lut, output_dir=out,
+                    donors=donors, counters=counters)
     memo = LutMemo(env.lut, point=1 << 16, curve=1 << 14, root=1 << 16)
     b = run_stage_b(a, memo, env.pdk, output_dir=out, diagnostic=True, settings=_settings())
     assert (a.status, b.status) == ("ok", "ok"), (a.status, b.status)
-    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo))
+    kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo), donors=a.donors, counters=a.counters)
     sctx = build_search_context(kctx, a.spec, _settings(), str(archive_root), env.pdk, env.rule, code_fp=a.code_fp)
     d = Path(archive_root) / sctx.context_fp
     n_evals, n_runs = len(_jsonl(d / "evals.jsonl")), len(_jsonl(d / "runs.jsonl"))

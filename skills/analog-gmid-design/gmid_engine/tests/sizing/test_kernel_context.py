@@ -12,6 +12,7 @@ from gmid_engine.core import (InfeasibleTargetError, SchemaRejectedError, Struct
                               require_immutable)
 from gmid_engine.graph import build_s1
 from gmid_engine.lut import LutMemo, op_point
+from gmid_engine.search import open_run
 from gmid_engine.sizing import (DC_KEY, KERNEL_KEY, S2_WRITERS, DcInputs, KernelContext, LutAccess, ThetaSchema,
                                 build_kernel_context)
 
@@ -23,16 +24,22 @@ from .conftest import inject_l_classes, kfixed, kplan, kres, kschema, kties  # [
 PLAN = ("dc_rails", "s1_symmetry", "dc_current_basis", "dc_writer_plan", "dc_scc_order", "dc_theta_schema")
 
 
+def _fresh():
+    """[XRUN-F1 card B C0·C6] 새 실행 하나의 두 객체(build_kernel_context 키워드). 부를 때마다 새 open_run() 쌍."""
+    donors, counters = open_run()
+    return dict(donors=donors, counters=counters)
+
+
 @pytest.fixture
 def parts(tmp_path, toy_access):
     td = load_doc(tmp_path, circuit_cs_pmos_load())
-    s1 = build_s1(td, dict(SUPPLIES))
+    s1 = build_s1(td, dict(SUPPLIES), **_fresh())
     return s1, DcInputs(tuple(sorted(SUPPLIES.items()))), toy_access
 
 
 def test_returns_context(parts):
     s1, inputs, acc = parts
-    ctx = build_kernel_context(s1, inputs, acc)
+    ctx = build_kernel_context(s1, inputs, acc, **_fresh())
     assert isinstance(ctx, KernelContext)
     assert ctx.inputs is inputs and ctx.lut is acc
     assert ctx.base.writers == S2_WRITERS
@@ -49,45 +56,63 @@ def test_returns_context(parts):
 def test_type_errors(parts):
     s1, inputs, acc = parts
     with pytest.raises(TypeError):
-        build_kernel_context(s1.snapshot, inputs, acc)
+        build_kernel_context(s1.snapshot, inputs, acc, **_fresh())
     with pytest.raises(TypeError):
-        build_kernel_context(s1, dict(SUPPLIES), acc)
+        build_kernel_context(s1, dict(SUPPLIES), acc, **_fresh())
     with pytest.raises(TypeError):
-        build_kernel_context(s1, inputs, acc.memo)
+        build_kernel_context(s1, inputs, acc.memo, **_fresh())
+
+
+@pytest.mark.parametrize("missing", ["donors", "counters", "both"])
+def test_run_pair_keywords_required(parts, missing):
+    """B-T16(card B C6): build_kernel_context 의 donors·counters 는 필수 키워드(기본값 없음) -- 빠지면 TypeError."""
+    s1, inputs, acc = parts
+    kw = {k: v for k, v in _fresh().items() if missing != "both" and k != missing}
+    with pytest.raises(TypeError):
+        build_kernel_context(s1, inputs, acc, **kw)
+
+
+def test_run_pair_fields_are_passed_objects(parts):
+    """B-T16(card B C6): 결과 KernelContext 칸 donors·counters 는 넘긴 객체 그 자체(is)."""
+    s1, inputs, acc = parts
+    donors, counters = open_run()
+    ctx = build_kernel_context(s1, inputs, acc, donors=donors, counters=counters)
+    assert ctx.donors is donors
+    assert ctx.counters is counters
 
 
 def test_supplies_rejected_schema(parts):
     s1, _, acc = parts
     with pytest.raises(SchemaRejectedError):
-        build_kernel_context(s1, DcInputs((("vdd", 1.8),)), acc)              # gnd 레일 전위 없음
+        build_kernel_context(s1, DcInputs((("vdd", 1.8),)), acc, **_fresh())              # gnd 레일 전위 없음
     with pytest.raises(SchemaRejectedError):
-        build_kernel_context(s1, DcInputs((("gnd", 0.0), ("vdd", 1.8), ("zz", 1.0))), acc)
+        build_kernel_context(s1, DcInputs((("gnd", 0.0), ("vdd", 1.8), ("zz", 1.0))), acc, **_fresh())
 
 
 def test_supplies_differ_from_s1(parts):
     s1, _, acc = parts
     with pytest.raises(ValueError):
-        build_kernel_context(s1, DcInputs((("gnd", 0.0), ("vdd", 1.5))), acc)
+        build_kernel_context(s1, DcInputs((("gnd", 0.0), ("vdd", 1.5))), acc, **_fresh())
 
 
 def test_w_keys_missing_kind(parts, toy_lut):
     s1, inputs, _ = parts
     acc = LutAccess(LutMemo(toy_lut, point=16, curve=16, root=16), (("nmos", 100),))
     with pytest.raises(ValueError):
-        build_kernel_context(s1, inputs, acc)
+        build_kernel_context(s1, inputs, acc, **_fresh())
 
 
 def test_w_key_not_in_slice_map(parts, toy_lut):
     s1, inputs, _ = parts
     acc = LutAccess(LutMemo(toy_lut, point=16, curve=16, root=16), (("nmos", 100), ("pmos", 200)))
     with pytest.raises(ValueError):
-        build_kernel_context(s1, inputs, acc)
+        build_kernel_context(s1, inputs, acc, **_fresh())
 
 
 def test_node_target_not_s1_node(parts):
     s1, _, acc = parts
     with pytest.raises(ValueError):
-        build_kernel_context(s1, DcInputs(tuple(sorted(SUPPLIES.items())), node_targets=(("nowhere", 0.5),)), acc)
+        build_kernel_context(s1, DcInputs(tuple(sorted(SUPPLIES.items())), node_targets=(("nowhere", 0.5),)), acc, **_fresh())
 
 
 def test_fixed_values_w3_and_input_dc(tmp_path, toy_access):
@@ -229,15 +254,16 @@ def test_library_plan_netlist_order_invariant(name, tmp_path, toy_access):
         random.Random(seed).shuffle(d["netlist"])
         random.Random(seed).shuffle(d["passive_elements"])
         td2 = load_doc(tmp_path, d)
-        ctx2 = build_kernel_context(build_s1(td2, dict(inputs.supplies_v)), inputs, toy_access)
+        run = _fresh()                                     # 섞은 netlist = 다른 실행
+        ctx2 = build_kernel_context(build_s1(td2, dict(inputs.supplies_v), **run), inputs, toy_access, **run)
         assert ctx2.base.fp == ctx.base.fp
         assert kschema(ctx2) == kschema(ctx)
 
 
 def test_same_inputs_same_base_fp(parts):
     s1, inputs, acc = parts
-    a = build_kernel_context(s1, inputs, acc)
-    b = build_kernel_context(s1, inputs, new_access(acc.memo.lut))
+    a = build_kernel_context(s1, inputs, acc, **_fresh())
+    b = build_kernel_context(s1, inputs, new_access(acc.memo.lut), **_fresh())
     assert a.base.fp == b.base.fp
     assert kplan(a) == kplan(b)
 
@@ -282,7 +308,7 @@ def test_l_class_not_derived_is_not_tied(tmp_path, r4_access, status):
 def test_no_l_classes_same_plan_as_before(tmp_path, r4_access):
     """동치류가 없으면 l_ties = () 이고 계획 스냅샷이 인자 없는 호출과 비트 같다(CONTRACT 14.1 'extras 를 3번째까지 주지 않는다')."""
     s1, a = build_ctx_u4(tmp_path / "a", circuit_mirror(), r4_access, element_values=_MIR_VALUES)
-    b = build_kernel_context(s1, a.inputs, r4_access)
+    b = build_kernel_context(s1, a.inputs, r4_access, **_fresh())
     assert kties(a) == () == kties(b) and a.base.fp == b.base.fp and kschema(a) == kschema(b)
 
 
@@ -352,7 +378,8 @@ def test_l_ties_default_empty_and_schema_drops_member_l(tmp_path, toy_access):
     from gmid_engine.graph import LClass
     s1, inputs, plain = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
     assert kties(plain) == ()
-    tied = build_kernel_context(inject_l_classes(s1, (LClass(("M2", "M3", "M4"), "M2", "hand", "derived"),)), inputs, toy_access)
+    tied = build_kernel_context(inject_l_classes(s1, (LClass(("M2", "M3", "M4"), "M2", "hand", "derived"),)), inputs, toy_access,
+                                **_fresh())
     assert kties(tied) == (("M3", "M2"), ("M4", "M2"))
     removed = {("L", "M3"), ("L", "M4")}
     assert removed <= set(kschema(plain).components)
@@ -366,7 +393,8 @@ def test_l_ties_only_derived_classes(tmp_path, toy_access):
     from gmid_engine.graph import LClass
     s1, inputs, _ = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
     ctx = build_kernel_context(inject_l_classes(s1, (LClass(("M2", "M3", "M4"), "M2", "hand", "review_needed"),
-                                                     LClass(("M5", "M6"), "M6", "hand", "derived"))), inputs, toy_access)
+                                                     LClass(("M5", "M6"), "M6", "hand", "derived"))), inputs, toy_access,
+                               **_fresh())
     assert kties(ctx) == (("M5", "M6"),)
 
 
@@ -374,4 +402,5 @@ def test_l_ties_unknown_member_rejected(tmp_path, toy_access):
     from gmid_engine.graph import LClass
     s1, inputs, _ = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
     with pytest.raises(ValueError):
-        build_kernel_context(inject_l_classes(s1, (LClass(("M2", "Mzz"), "M2", "hand", "derived"),)), inputs, toy_access)
+        build_kernel_context(inject_l_classes(s1, (LClass(("M2", "Mzz"), "M2", "hand", "derived"),)), inputs, toy_access,
+                             **_fresh())

@@ -17,8 +17,8 @@ import pytest
 
 from gmid_engine.sizing import S2_WRITERS, dc_tolerances
 
-from .conftest import (A, B, C, TOY_VGS, W_M, Oracle, hand_dc_gm, mos_table, rel_close, run_blocks, theta_a, theta_c,
-                       toy_npz)
+from .conftest import (A, B, C, TOY_VGS, W_M, Oracle, hand_dc_gm, mos_table, rel_close, run_blocks, run_of, theta_a,
+                       theta_c, toy_npz)
 
 
 def test_oracle_tol_hand_value():
@@ -39,7 +39,7 @@ def test_values(ctx_c, ctx_a, toy_lut_paths, which):
     """dc_tol_v = Oracle.tol_v(모든 셀 같음), dc_gm = ID × LUT 파일 gm/ID(그 동작점). 소자 집합 = S1 MOS 전부."""
     ctx, th = (ctx_c[2], theta_c()) if which == "C" else (ctx_a[2], theta_a())
     snap = run_blocks(ctx, th)
-    out = dc_tolerances(snap, ctx.lut)
+    out = dc_tolerances(snap, ctx.lut, **run_of(ctx))
     tol = dict(out.column("device", "dc_tol_v"))
     gm = dict(out.column("device", "dc_gm"))
     mt = mos_table(snap)
@@ -60,7 +60,7 @@ def test_dc_gm_is_own_operating_point_not_curve_max(ctx_c, toy_lut_paths):
     동작점 gm 과 같고 곡선 최대와 다름을 함께 단언한다."""
     ctx = ctx_c[2]
     snap = run_blocks(ctx, theta_c())
-    gm = dict(dc_tolerances(snap, ctx.lut).column("device", "dc_gm"))
+    gm = dict(dc_tolerances(snap, ctx.lut, **run_of(ctx)).column("device", "dc_gm"))
     for m, op in snap.column("device", "dc_op"):
         own = hand_dc_gm(lambda kind: toy_npz(toy_lut_paths[0], kind), op)
         curve_max = max(math.exp(math.log(W_M / op.L) + Oracle.ln_idu(op.kind, v, op.vds, op.vsb)) * Oracle.gm_id(v)
