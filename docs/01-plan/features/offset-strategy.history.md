@@ -224,6 +224,7 @@ worktree `wt/offset-strategy-v07-plan`(브랜치 `plan/offset-strategy-v07`, bas
 
 | 버전 | 날짜 | 변경 |
 |---|---|---|
+| 0.7(병합 뒤 인용 맞춤) | 2026-10-20 | 사용자 O-57 병합 뒤 상대 계획 인용 해시를 병합된 최종 머리로(Status, 211·312·320행): gain-budget `7fe555b1` → `f2579b2f`, oracle `7f2a5e12` → `64687b21`, offset-trim `d681d2dc` → `23e6a142`. 내용 변경 없음 |
 | 0.7(인용 해시 마무리) | 2026-10-20 | 인용 해시를 최종 머리로: gain-budget `plan/gb-v620` `7fe555b1`(LR6 σ 목표 = '커널 판정 문턱 / k, 온도 보정 루프에서는 조인 문턱 항목' -- N3.3 출발값 행과 같은 뜻 직접 확인), oracle-portability `plan/oracle-v0610` `7f2a5e12`(옛 `a88d61cb`), offset-trim `plan/offset-trim-v06` `d681d2dc`(옛 `2eba8353`). 내용 변경 없음 |
 | 0.7(4차 정합 반영) | 2026-10-20 | 전체 정합 검증 4차(`wt/_drafts/evidence/2026-10-20/full_audit4_summary.md` 'offset-strategy v0.7'): 옛 기호 \|V_sys\| → \|V_id*\|(S-1 행·XS-20·G-S1 단위, DEC-23), offset-trim card 표에 없는 이름 'TR-5b' → 'offset-trim TR-5 안의 국면 2 게이트 해제'(N3.5·N3.9·XS-11·XS-15·N7.1·OS-5·N9·N11 PD-2), 인용 해시 gain-budget `0a7868b5`·offset-trim v0.6 `2eba8353`, N3.3 출발값 σ 목표 = '커널 판정 문턱(루프에서는 조인 문턱 항목)/k'(gain-budget LR6 `1cddba6a` 문언과 대조). 규칙 변경 없음, 버전 번호 불변 |
 | 0.7 | 2026-10-20 | 사용자 결정 O-53 A2(matching 판정 위치 분리, XS-20 원래 취지와 다름 승인)·B3(기준 정의 자리 = DEC-23)와 정합 감사 OS 몫 반영: A1 V_id* 한 칸 인용, A2 커널·front 두 판정, C1 층 0 조립 등 변형 단위(N3.6), C2 문턱 의존 블록에 층 0 조립 블록·G-S2 = LR6 정본, C3 OS-2·LA-1 선후 규칙, D2 EO-1 완료 판정 선행·완료 조건 10, D3 OS-V 합성 행 결속만·VB-1 인용, D4 오라클 선행 OP-3·EO-1·OP-5, E1 완료 조건 변경 종류 표시. 독립 검증 전 |
