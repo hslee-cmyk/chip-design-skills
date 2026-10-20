@@ -399,7 +399,7 @@ date: 2026-10-16
 
 ### 사용자 결정 O-49~O-55 → v0.12(2026-10-20, 브랜치 `plan/graph-consumption-v012`, base master `9401e98f`)
 
-근거: `wt/_drafts/evidence/2026-10-20/full_audit4_summary.md` 16행 'graph-consumption v0.12' 항목, `wt/_drafts/user_decisions.md` O-49~O-55 행. 상위 정본 인용 판: gain-budget v6.20 `0a7868b5`(`plan/gb-v620`, 독립 검증 전), oracle-portability v0.6.10 `84cc5410`(`plan/oracle-v0610`, 독립 검증 전).
+근거: `wt/_drafts/evidence/2026-10-20/full_audit4_summary.md` 16행 'graph-consumption v0.12' 항목, `wt/_drafts/user_decisions.md` O-49~O-55 행. 상위 정본 인용 판: gain-budget v6.20 `7fe555b1`(`plan/gb-v620`, 독립 검증 전), oracle-portability v0.6.10 `7f2a5e12`(`plan/oracle-v0610`, 독립 검증 전), headroom-chain v0.7.7 `f303115c`(`plan/headroom-v077`, 독립 검증 전) -- 첫 커밋은 `0a7868b5`·`84cc5410`을 인용, 둘째 커밋에서 최종 머리로.
 
 | 감사 항목 | 바뀐 자리 | 처리 |
 |---|---|---|
@@ -408,6 +408,7 @@ date: 2026-10-16
 | `off` 선언 소자 사이징·역산 경로 제외(O-55 V5)의 탐색 소비자 영향 | N3.2a 아래 문단 1~5, N3.10 새 행 | `current_box`·`edge_costs`·`conduction_mask`는 kind 단위라 영향 없음(코드 `E/search/current_box.py:20` 재확인), `cell_floor`는 θ 스키마 변수 집합을 그대로 읽고 자체 거르기 금지(L-5). `search_domain` kind 목록 출처는 GC-0a 측정 항목(정하지 않음). 상위 v6.20 문언('LUT·gm/ID 경로')이 O-55 V5 한정을 아직 안 담아 N3.10 상위 개정 항목으로 등록 |
 | 새·바뀐 필드 소비(기준 칸, 방향별 슬루 행, 봉인 9 판정 행, 부호 있는 V_id*) | N3.2a 표(신설) | 필드마다 만드는 card·정본 지정 소비자·확인 자리·변경 종류(O-34). 기준 칸은 reader 또는 L-4 출력 전용 등록 중 하나를 IT-2 design이 정함(둘 다 아니면 병합 금지). 봉인 9 판정 행은 새 graph 필드가 아니며, 새 필드로 만들면 reader(OP-5 통합 병합 엔진 커밋)와 같은 커밋에서만. V_id* 크기 사본 칸 금지 |
 | Status·N2 | 머리, N2 O-49~O-55 행 | 'v0.12 -- O-49~O-55 후속 정정, 독립 검증 전' |
+| (오케스트레이터 마무리 맞춤, 같은 판 둘째 커밋) | 인용 전부, 머리 관련 계획, N3.2a 1·5·표 셋째 행, N3.10 새 행 | 상위 인용을 최종 머리로(첫 커밋의 gain-budget `0a7868b5` → `7fe555b1`, oracle `84cc5410` → `7f2a5e12`, headroom-chain v0.7.6 `aa6e064c` → v0.7.7 `f303115c`, git show로 직접 재확인; gain-budget 계통 offset (c) 1568 → 1571행). gain-budget `7fe555b1` 496·1888행이 off 제외를 '사이징·역산 경로 한정'으로 이미 정정해 N3.10 행 '해소'. `search_domain` kind 목록 = 사이징 경로 소자(선언 없음·triode)의 kind, off 선언 소자만 가진 kind 제외(O-55 V5 귀결, 원칙 기본안) -- GC-0a가 그런 kind 존재를 재고 있으면 EO-1 범위에서 처리('미정' 정리). 판정 행 이름을 gain-budget 1673행대로 '봉인 7·9 판정 행'. 기준 칸 소비 방식은 IT-2 design 몫 유지 |
 
 ## Version History
 
