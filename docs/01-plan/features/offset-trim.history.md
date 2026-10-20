@@ -180,6 +180,7 @@ date: 2026-10-15
 | 0.5.4 | 2026-10-16 | 사용자 결정 T-35 반영: D-19·D-22·D-24(안 B)·X-20 닫힘, G-14를 네이티브 MC 표본 안에서 해소(oracle-portability v0.4 X-16, 결정적 벡터·PC-11 철회), '크기 일관'을 TR-7 판정으로 이관. D-20·D-25 대기. 같은 날 T-36(D-20·D-25)·T-37(X-23)로 사용자 결정 모두 닫힘 → **v0.5.4 승인(T-29~T-37)** |
 | 0.5.5 | 2026-10-16 | 병합 전 확인(92점, 차단 1·비차단 7) 반영: 지문 거부 주체 = 구동기(B-1), 안 B 경로 용어 정리(N-1·N-7), X-28 꼬리 범위 차이·비용 알림 응답, S-11·S-12·OS-V·소유 경계, TR-0T 임계 경로, T-35 주석. 승인 내용(결정) 변경 없음 |
 | 0.5.6 | 2026-10-16 | 사용자 결정 T-39 반영: 수렴 분해능 문언(matching σ 항 = MC 표준오차, trim 잔여 = DC 풀이 허용오차 전파), design X-T17~X-T20 수용 |
+| 0.6 | 2026-10-20 | 사용자 결정 O-53(A2·A3·B1·B2·B3)과 O-23~O-52, offset 정합 감사(A1·A3·A4·A5·B1~B5·C2·D1~D4·E1~E3) 반영: 계통 offset = DEC-23 V_id* 인용, 환산 이득 A_dc, 균형 풀이 삭제(1차 감도 추정, X-29), intended_region(G-1 해소, X-30), 온도 점 전도 판정 출처(X-31), G-6·G-15 닫힘, EO-1 생산자·O-34 판정 다리·순서 정본 인용, design 후속 정정 목록 N7.5. 독립 검증 전 |
 
 
 ## 승인 마무리 (2026-10-16)
@@ -197,3 +198,25 @@ date: 2026-10-15
   - N3.8.5 멈춤 규칙 '수렴' 행: trim 잔여의 임시 규칙('수렴 정지를 쓰지 않음')을 지웠다.
   - G-9 행의 분해능 문언도 고쳤다.
 - 버전: 0.5.6(Version History 표 아래 행).
+
+## H1 2026-10-20 정합 감사·사용자 결정 O-53 → v0.6
+
+- 원문: 사용자 2026-10-20 "권고대로 진행해"(O-53, `wt/_drafts/user_decisions.md` O-53 행 -- 원칙 재점검한 권고 7건 가운데 이 계획 몫 A2·A3·B1·B2·B3). 감사 근거: `wt/_drafts/evidence/2026-10-20/offset_audit_summary.md`(대상 master `9401e98f`, 기준 O-23~O-53, gain-budget v6.20 `plan/gb-v620`, oracle-portability v0.6.10 `plan/oracle-v0610`).
+- 경위: O-52가 offset-trim·offset-strategy 두 계획의 근본원칙 정합 감사를 지시했다. 감사는 이 계획이 (1) 삭제 예정 모듈 `offset_systematic`의 크기 칸·부호 규약(V_sys, V_sys,s = `output_error_v`/A_dm)을 인용하고 있어 DEC-23 V_id* 정본(O-46·O-47·O-50 G1)과 어긋남(A1), (2) 엔진 안 고정 기하 DC 균형 풀이(Newton)가 O-32(엔진 안 순풀이 기계 금지)·O-43 D1 (a)와 어긋남(A3), (3) 전류 0 소자 처리(G-1)와 온도 점 전도 판정 출처가 열려 있음(B1·B2), (4) 오라클 입력 생산자·판정 다리·순서 정본 인용이 빠짐(B4·B5·D1~D4), (5) '비트 동일' 완료 조건에 변경 종류 표시가 없음(E1)을 찾았다. A2·A3·B1·B2·B3는 사용자 결정(O-53)으로, 나머지는 원칙 기본안으로 고쳤다.
+- 옮긴 옛 문장(v0.5.6 원문 요지):
+  - Status: "계획 v0.5.4 승인(T-29~T-37, 2026-10-16). 이 계획의 사용자 결정은 모두 닫혔다. … 관련 계획 병합 상태: offset-strategy v0.6.1(master `194981f`), oracle-portability v0.4.2(master `d579939`). v0.5.5는 병합 전 확인(92점) 반영 … v0.4는 T-6으로 승인 … 보완 부분은 독립 검증(74 → 89, 차단 0)과 사용자 결정으로 승인됐다."
+  - N0.1 'V_sys, V_sys,s': "V_sys는 엔진 `offset_sys_mv`의 값으로 크기만 담는다. V_sys,s는 부호 있는 계통 offset = `output_error_v` / A_dm이다(부호 규약 N3.4, `E/metrics/offset_systematic.py:7-8`)." σ_in·t의 환산 이득은 'A_dm'(= `gain_ss_db`의 T(0))이었다.
+  - N3.4 부호 규약: "`offset_sys_mv`는 크기(|오차|/|A_dm|)이고, 부호 있는 출력 오차는 `output_error_v`로 따로 싣는다. V_sys,s = `output_error_v` / A_dm. 랜덤 offset이 없는 회로에서 출력을 균형시키는 입력 차동 전압은 −V_sys,s다."
+  - N3.4 보정 구간 판정: "끝 코드 두 개에서 전회로 DC를 출력 균형으로 풀어 입력 차동 전압 V_in(−end), V_in(+end)를 얻는다. 이 값은 계통 offset을 이미 품고 있다(구간 중심 ≈ −V_sys,s). … 판정은 균형 풀이다."
+  - N3.5 전류 0 소자: "DC writer·gm/ID·LUT 경로가 이것을 다룰 수 있는지는 확인되지 않았다(G-1)." 끝 코드: "출력이 균형이 되도록 입력 차동 전압을 함께 푼 DC 해에서 포화 여유(봉인 7)를 검사한다. 꺼진 쪽 steering 출력 소자와 꺼진 스위치는 포화 검사에서 뺀다. 개루프에서 끝 코드만 걸면 출력이 레일에 붙으므로 이 방식을 쓴다(X-4)."
+  - G-1: "전류 0 MOS를 DC writer·gm/ID·LUT 경로가 다룰 수 있는가. `CELL_OFF`는 AC 셀 종류일 뿐이고(`E/graph/cells.py:124-128`) DC 쪽 전류 0 처리를 보장하지 않는다."
+  - G-6: "단일 종단 출력 회로에서 '출력 균형'의 기준. 기본 후보는 `offset_systematic`이 쓰는 선언 출력 기준 DC(spec `node_voltage_targets_v`), 선언이 없으면 `reference_undeclared`(`E/metrics/offset_systematic.py:6, :12, :42`)."
+  - G-15: "온도 점마다 기준을 T_j 값으로 고정할지(기준 = 설계 의도 DC), 규칙 (e)(출력 = 입력 CM)처럼 온도마다 다시 풀지를 정한다."
+  - N3.9 순서 의존: "oracle-portability 계획은 아직 초안이다(브랜치 oport-plan, 승인 전)." N7.4 후속: "oracle-portability 계획(초안, oport-plan)이 … 능력 기록에 담는지 대조한다(v0.4 기준)." N5 임계 경로: "OP-6이 G-15가 TR-0T에서 닫히는 것에 의존한다."
+  - 완료 조건 1: "9회로 결과가 base와 비트 동일하다." 완료 조건 7: "Δ_T가 없는 실행의 엔진 결과는 v0.5 전과 비트 동일하다."
+- 판단 기록: 끝 코드 포화 검사 점을 '출력을 DEC-23 기준값에 둔 점'으로 둔 것은 작성자 기본안이다(근거: 끝 코드는 표본 offset이 보정 구간 끝에 있을 때 출력이 기준값에 놓이는 동작 상태 -- 물리 정합). 온도 점 전도 판정의 담당 card 경계(오라클 확장 = 온도 점 op·개별 I_off, 엔진 = tol_V 셀·둘째 단계)는 O-50 G5·U-6에서 유도한 기본안이다. 둘 다 독립 검증 대상이다.
+
+## H3 추가 -- v0.6에서 옮긴 현황 사실(base `cfe2e31`, 감사 E3)
+
+- F-1(원문): `offset_analysis`는 회로의 모든 MOS에 대해 σ²_in = Σ_i (Z_i·gm_i·σ_VGS,i)² / A_dm²를 계산한다. Z_i = z[s_i] − z[d_i]. z는 수반 풀이 한 번(LU 한 번)으로 얻는다. A_dm = sense·volt이고 부호를 포함한다(`gain_ss_db`의 T(0)와 같은 양). `offset_excess` = √(전체 분산 / 입력 셀 분산). 근거 `E/metrics/offset_analysis.py:6-8, :56, :71, :74, :81-84, :91`.
+- F-23(원문): 모델 오차는 함수만 있고 spec 경로는 구현·배선되지 않았다. spec 최상위 키는 `meta`·`human` 둘뿐이라 `derived` 절은 거부된다. `model_error_pairs`를 부르는 곳은 test뿐이다. `build_search_context(model_error=)`에 값을 넘기는 호출부가 없다(44곳 모두 기본값 ()). 상위 DEC-72 '미구현'. 있는 것은 `model_error_pairs`, S0 블록 `model_error_field`, `ss_constraint_rows(model_error=)` 분해능 바닥 자리. 정본 참조 형태는 `value_from_model_error`, `value_from_spec`은 옛 이름이라 로더가 거부한다. 근거 `E/authoring/spec_schema.py:21`, `E/authoring/_spec_fields.py:30-35`, `E/metrics/model_error.py:1-27`, `E/metrics/model_error_field.py:1-18`, `E/search/search_context.py:199-212`, `E/search/ss_constraints.py:4-8, :62`, `E/tests/metrics/test_model_error.py`.
