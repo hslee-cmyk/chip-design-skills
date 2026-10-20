@@ -1,0 +1,347 @@
+{
+ "base": "2d5ecd8c",
+ "head": "f3eb8f9f",
+ "files_changed": 20,
+ "patch_sha256": "121719ed436f182a28a17b6fd572b1bc443a1ebd50f3e15d1ebfd5ce6f4a288d",
+ "findings": {
+  "generality/test_metamorphic_layout.py": {
+   "test_layout_fields_live_on_sealed_snapshot": {
+    "compare_ops": [
+     {
+      "LtE": 1,
+      "Eq": 3,
+      "NotIn": 1,
+      "Is": 1,
+      "IsNot": 2
+     },
+     {
+      "LtE": 1,
+      "Eq": 3,
+      "NotIn": 1,
+      "Is": 1,
+      "IsNot": 2,
+      "Gt": 1
+     }
+    ],
+    "consts": {
+     "gone": {},
+     "new": {
+      "0": 1,
+      "'counters'": 2
+     }
+    }
+   }
+  },
+  "layout/conftest.py": {
+   "<module>": {
+    "consts": {
+     "gone": {},
+     "new": {
+      "'ly_point'": 1,
+      "'ly_pins'": 1,
+      "'ly_w_adjustable'": 1,
+      "'ly_attrs'": 1,
+      "'ly_canon'": 1,
+      "'ly_canon_rows'": 1,
+      "'ly_input'": 1,
+      "'ly_slice_density'": 1,
+      "'ly_canonical_naming'": 1,
+      "'canon_tables'": 1,
+      "'ly_finger_candidates'": 1,
+      "'ly_pattern_select'": 1,
+      "'ly_finger_geometry'": 1,
+      "'ly_rows'": 1
+     }
+    }
+   },
+   "block_objects": {
+    "consts": {
+     "gone": {},
+     "new": {
+      "'canon_tables'": 1
+     }
+    }
+   }
+  },
+  "layout/test_contract_input.py": {
+   "test_public_api": {
+    "compare_ops": [
+     {
+      "Eq": 8,
+      "Is": 3
+     },
+     {
+      "Eq": 9,
+      "Is": 3
+     }
+    ],
+    "consts": {
+     "gone": {
+      "'F_DEVICE'": 1,
+      "'ly_device'": 1
+     },
+     "new": {
+      "'ly_input'": 1,
+      "'F_POINT'": 1,
+      "'ly_point'": 1
+     }
+    }
+   }
+  },
+  "layout/test_contract_output.py": {
+   "test_declared_fields": {
+    "consts": {
+     "gone": {},
+     "new": {
+      "'ConservedPoint'": 1,
+      "'DevicePins'": 1,
+      "'DeviceAttrs'": 1,
+      "'kind'": 1,
+      "'ID_A'": 1,
+      "'gm_id'": 1,
+      "'L_m'": 1,
+      "'vds_V'": 1,
+      "'vsb_V'": 1,
+      "'drain'": 1,
+      "'gate'": 1,
+      "'source'": 1,
+      "'W_m'": 1,
+      "'body'": 1,
+      "'diode'": 1
+     }
+    }
+   },
+   "test_layout_result_declares_only_snapshot_and_computed_blocks": {
+    "removed": true
+   }
+  },
+  "layout/test_run.py": {
+   "<module>": {
+    "consts": {
+     "gone": {
+      "'ly_slice_density'": 1,
+      "'ly_finger_candidates'": 1,
+      "'ly_pattern_select'": 1,
+      "'ly_finger_geometry'": 1
+     },
+     "new": {
+      "'ly_slices'": 1,
+      "'ly_fw_cand'": 1,
+      "'ly_groups'": 1,
+      "'ly_dispositions'": 1,
+      "'ly_finger'": 1,
+      "'ly_floorplan'": 1,
+      "'ly_diffusion'": 1,
+      "'A'": 1,
+      "'B'": 1,
+      "'E'": 1,
+      "'F'": 1,
+      "'C'": 1,
+      "'D'": 1,
+      "'Z'": 1,
+      "4e-06": 2,
+      "5e-06": 2,
+      "3e-06": 2,
+      "6e-06": 1
+     }
+    }
+   },
+   "_assert_no_same_input_recompute": {
+    "compare_ops": [
+     {
+      "Eq": 1
+     },
+     {
+      "In": 1,
+      "Eq": 1
+     }
+    ]
+   },
+   "test_id_change_recomputes_from_slices": {
+    "compare_ops": [
+     {
+      "Eq": 3,
+      "In": 2
+     },
+     {
+      "In": 3,
+      "Eq": 1
+     }
+    ],
+    "consts": {
+     "gone": {
+      "1": 1
+     },
+     "new": {
+      "'counters'": 2
+     }
+    }
+   },
+   "test_layout_result_carries_only_snapshot_and_computed_blocks": {
+    "removed": true
+   },
+   "test_lut_fingerprint_is_part_of_slice_key": {
+    "compare_ops": [
+     {
+      "Eq": 4
+     },
+     {
+      "In": 1,
+      "Eq": 3
+     }
+    ],
+    "consts": {
+     "gone": {
+      "1": 1
+     },
+     "new": {
+      "'counters'": 2
+     }
+    }
+   },
+   "test_output_shape": {
+    "consts": {
+     "gone": {
+      "'computed_blocks'": 1
+     },
+     "new": {
+      "'counters'": 2
+     }
+    }
+   },
+   "test_passives_only_change_recomputes_rows_block_only": {
+    "consts": {
+     "gone": {},
+     "new": {
+      "'counters'": 4
+     }
+    }
+   },
+   "test_previous_from_other_design_point_rejected": {
+    "consts": {
+     "gone": {},
+     "new": {
+      "'counters'": 2
+     }
+    }
+   },
+   "test_previous_same_input_computes_nothing": {
+    "consts": {
+     "gone": {},
+     "new": {
+      "'counters'": 2
+     }
+    }
+   },
+   "test_reference_w_change_does_not_recompute_slices": {
+    "compare_ops": [
+     {
+      "NotIn": 1,
+      "Eq": 3
+     },
+     {
+      "NotIn": 1,
+      "In": 1,
+      "Eq": 3
+     }
+    ],
+    "consts": {
+     "gone": {},
+     "new": {
+      "'counters'": 2,
+      "'ly_finger_candidates'": 1,
+      "'ly_pattern_select'": 1,
+      "'ly_finger_geometry'": 1,
+      "'ly_rows'": 1
+     }
+    }
+   },
+   "test_rejected_only_change_reuses_slices_and_candidates": {
+    "compare_ops": [
+     {
+      "NotIn": 2,
+      "In": 1,
+      "Eq": 2,
+      "Is": 1
+     },
+     {
+      "NotIn": 3,
+      "In": 1,
+      "Eq": 2,
+      "Is": 1
+     }
+    ],
+    "consts": {
+     "gone": {},
+     "new": {
+      "'counters'": 2
+     }
+    }
+   },
+   "test_same_design_point_second_request_reuses_fields": {
+    "consts": {
+     "gone": {},
+     "new": {
+      "'counters'": 2
+     }
+    }
+   }
+  },
+  "search/test_kernel.py": {
+   "<module>": {
+    "consts": {
+     "gone": {},
+     "new": {
+      "'dc_seal_node_conflict'": 1,
+      "'dc_seal_vgs_match'": 1,
+      "'dc_seal_kcl'": 1,
+      "'dc_seal_bulk_reverse'": 1,
+      "'dc_seal_saturation'": 1,
+      "'dc_seal_kvl_branch'": 1,
+      "'dc_seal_conduction'": 1,
+      "'dc_seal_report'": 1
+     }
+    }
+   }
+  },
+  "skills/analog-gmid-design/gmid_engine/tests/structure/README.md": {
+   "non_py_changed": true
+  },
+  "structure/test_removed_names.py": {
+   "<module>": {
+    "consts": {
+     "gone": {},
+     "new": {
+      "'F_DEVICE'": 1,
+      "'ly_device'": 1
+     }
+    }
+   }
+  },
+  "structure/test_structure_rules_reject_fixtures.py": {
+   "<module>": {
+    "consts": {
+     "gone": {},
+     "new": {
+      "'run_pair_loop'": 1,
+      "'tests/test_mc_loops.py'": 1,
+      "44": 1,
+      "'run_pair_source'": 1,
+      "'tests/test_mc_indirect.py'": 1,
+      "32": 1
+     }
+    }
+   },
+   "test_rule_m_rejects_bad_fixture": {
+    "consts": {
+     "gone": {
+      "20": 1
+     },
+     "new": {
+      "22": 1
+     }
+    }
+   }
+  }
+ }
+}
