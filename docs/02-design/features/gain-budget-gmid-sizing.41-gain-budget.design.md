@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.11
-plan_version: 6.11
+version: 1.12
+plan_version: 6.19
 ---
 
 # gain-budget-gmid-sizing -- 41-gain-budget Design Document
@@ -14,7 +14,9 @@ plan_version: 6.11
 > - 스펙에서 gm/ID·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-10-15 · **Status**: v1.11 -- XRUN-F1(사용자 결정 2026-10-15 "권고대로 진행해" X-1·X-2, 40 v1.11과 같은 변경): §5.3.9 '찾기' `local` 반환(늘 보존이라 스냅샷)과 '보존 소유자'를 실행 수명 보존으로(40 §2.4.5), 40 대조 표 §2.4 행 문구. 옛 문장은 history.
+> **Date**: 2026-10-20 · **Status**: v1.12 **초안(검증·사용자 승인 전)** -- card IT-1·IT-2 착수 전 design(계획 v6.19 N6.5·N6.6, S-7 '계획 먼저 → design'; 근거 사용자 결정 B2·K-3, O-13 (1)(2), O-15 (B), O-16 (2), O-19 (2), O-21, O-33 (3), O-34 (1)): §4.6 J-E 입력 DC 정책을 IT-1(W4 입력 뿌리 y 키 = 뿌리 넷, 입력 뿌리 최대 하나·둘 이상이면 정지)과 IT-2(커널 = 선형 감도 끝, 끝 풀이는 수락 반복·front)로 개정, §4.7 신설(입력 포트 창 정본 하나 -- 필드 셋 `node.dc_window`·`node.dc_window_def`(DE-1 예약)·`node.dc_window_def_refined`, 끝 풀이 fail-closed 사유, metric 읽기, card IT-1·IT-2 interface), §6.7-1 v1 문장·§6.7-1a 개정 후 문언(O-13 (1)·IT-Q1 (나), as-built 문단은 history)·§6.7-10 (P4)(P8) card 표시, §9 §6.7-1a test 위치(F-IT4)와 IT-2 test 행, §10 상태 행. 40 v1.12와 같은 변경. 옛 문장은 계획 history H2 'IT-1·IT-2 design' 행. 범위 밖(card DE-1·FX-1 몫)은 §4.7-9.
+>
+> v1.11 -- XRUN-F1(사용자 결정 2026-10-15 "권고대로 진행해" X-1·X-2, 40 v1.11과 같은 변경): §5.3.9 '찾기' `local` 반환(늘 보존이라 스냅샷)과 '보존 소유자'를 실행 수명 보존으로(40 §2.4.5), 40 대조 표 §2.4 행 문구. 옛 문장은 history.
 >
 > v1.10 -- 사용자 결정 2026-10-15 "나로 해"(실행 사이 재사용 제거, 40 v1.10과 같은 변경): mismatch·잡음 tol의 '디스크 캐시 대상' 문구에 LUT 파생표 디스크 캐시 결정(U-87 유지, 사용자 결정 2026-10-15 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따라 유지. 나머지는 기본안대로") 표시. 경위는 history.
 >
@@ -628,11 +630,11 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 
 **입력 DC 정책(J-E, 사용자 결정 2026-10-08)**: 입력 DC는 회로가 아니라 사용 환경이 정하는 값이다. 회로가 정하는 것은 창이다.
 - **SP-2 (c) 창 안 자유 변수**: 입력 DC가 `pending: SP-2`인 회로는 값을 지어내지 않는다.
-  - 입력 공통모드를 W4 자유 변수 y_icm으로 둔다. 범위는 입력 창 [Vin,min, Vin,max] ∩ [rail_lo, rail_hi]이고, 경계는 봉인 시점 값이며 tol을 포함한다.
-  - `icm_margin_v`는 해의 y_icm에서 계산한다. 결과 JSON에 `required_input_cm_v{value, window}`를 보고한다.
+  - 입력 공통모드를 W4 자유 변수 y_icm으로 둔다. y_icm은 입력 포트인 W4 뿌리(회로마다 최대 하나 -- 둘 이상이면 탐색 전 정지, §4.7-1)의 y 성분이고 **y 키는 그 뿌리 넷 이름**이다(card IT-1, 계획 N6.5 범위 2·4; 옛 묶음 키 `input_common_mode`는 없어진다). 범위는 입력 창 [Vin,min, Vin,max] ∩ [rail_lo, rail_hi]이고 경계는 tol을 포함한다(포화 판정 여유 +tol_VDsat). **경계의 층별 정밀도**(사용자 결정 O-33 (3), card IT-2): 평가 커널에서는 그 해에서 잰 선형 감도 끝(손계산, '추정' 표기)이고, 끝 풀이(창 끝 x 고정 Newton)로 다듬은 봉인 시점 값은 수락 반복·front에서만 낸다(§4.7-3·4).
+  - `icm_margin_v`·`required_input_cm_v`·`icmr_v`는 입력 포트 창 필드를 읽기만 한다(§4.7-5, card IT-2 -- metric 쪽 자체 창 계산은 없다). 결과 JSON `required_input_cm_v{value, window}` 형식은 그대로다(IT-Q2, 사용자 결정 O-13 (2)).
   - '창 중앙값'을 숫자로 선언하지 않는다(EP-4).
   - agnd 0 V 관례는 이 정책의 회로에 적용하지 않는다.
-- **선언 입력 DC 유지**: 입력 DC가 선언된 회로는 그 값을 쓰고, `icm_margin_v >= 0`을 제약으로 둔다(40 §9.2).
+- **선언 입력 DC 유지**: 입력 DC가 선언된 회로는 그 값을 쓰고, `icm_margin_v >= 0`을 제약으로 둔다(40 §9.2). 그 창도 입력 포트 창 필드에서 읽는다(§4.7-2 (c) -- 선언 포트는 F라 y 범위가 아니다).
   - 위 판정 규칙에 따라 창이 인증되었고 상한 밖이면 exit 3이다.
   - 출력 버퍼 창(follower 스택)은 선언 제약이 없어도 **탐색 전 실현가능성 보고**로 낸다. 이것은 기존 '보고만' 규칙과 같다. 이 보고는 단계 A 보고서에 별도 행 `buffer_window_report`로 출력한다.
 - **짧은 L bin 경고**: 입력 창 상한이 인증된 상태에서, 그 창을 정하는 경로의 어느 kind가 **최단 L bin에서만** 양의 폭을 낼 때가 있다. 그때는 경고 `icmr_window_short_l_bin{kind, bin, upper_bound_by_bin}`를 낸다.
@@ -642,7 +644,95 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 
 **파일**: `E/metrics/headroom_bound.py`(진입점 `achievability`가 부른다).
 
-**상태**: 4.1은 PART(분류는 있고 매핑이 없다). 4.2~4.6은 MISS.
+### 4.7 입력 포트 창 -- 정본 하나 (card IT-1·IT-2, 계획 N6.5·N6.6, v1.12)
+
+**목적**: 입력 공통모드 창(J-E)을 계산하는 곳을 노드 풀이 블록 하나로 두고(DEC-83·FR-9, 원칙 감사 C1 '입력 CM 창 2곳'), metric은 그 필드를 읽기만 하게 한다. §4.6의 헤드룸 창 상한(`headroom_bound`, LUT 격자 최솟값 상한 = 탐색 전 달성가능성 경계)은 다른 개념이라 이 절의 대상이 아니다(계획 N6.6 소비자 표).
+
+**4.7-0 as-built 사실**(master `9401e98f`, 2026-10-20 이 design 작성 때 코드를 다시 읽음. `E` = `skills/analog-gmid-design/gmid_engine`):
+
+| # | 사실 | 근거 |
+|---|---|---|
+| A1 | 쓰기 계획: 입력 DC 미선언이면 F 밖 입력 포트를 (구조 색, 이름) 이웃 쌍마다 '같은 DC' 엣지로 잇고(순위 최상위 `_TIE`·`_KIND_TIE`), 트리 엣지면 `input_tie`(W2)로 쓴다. 포트가 있는 성분의 뿌리 y 키 = `INPUT_GROUP_KEY`(`"input_common_mode"`) | `E/sizing/writer_plan.py:76-77, :104-105, :157-159, :213-214, :228-234` |
+| A2 | `input_roots()` = relation `free_window`이고 y 키가 `INPUT_GROUP_KEY`인 W4 뿌리. `members`는 `input_tie` 사슬을 따라 뿌리에 묶인다. `dc_columns` READS에 `node.port_direction`이 없다 | `E/sizing/block_columns.py:179-184, :220-223, :82-86` |
+| A3 | `saturation_rows` = 전도 MOS마다 (d, s, 부호, VDS − VDsat − tol_VDsat), 선형 선언 소자 제외, VDSAT 열·tol 미정이면 None | `E/sizing/block_columns.py:225-244` |
+| A4 | `input_windows` = 뿌리마다 `saturation_window` 창 ∩ 순서 창(`kvl_window`, 레일 범위 포함) | `E/sizing/block_columns.py:246-259` |
+| A5 | `saturation_window`는 `_sensitivities`(s_n = dV_n/dx 선형 연립, VDS·VSB 결합 포함)로 창을 잰 뒤 감도를 버리고 (lo, hi)만 낸다. 연립 특이·정의역 밖이면 None | `E/sizing/input_window.py:26-45, :48-66` |
+| A6 | `_solve_input_window`: y = 1/2 풀이 → 창 측정 → 창을 y 범위(`override`)로 두고 다시 풀며 경계가 tol 안에서 같아질 때까지(상한 `k_max`) → `_refine_ends`(창 끝 x 고정 Newton) → 마지막 풀이. 창을 잴 수 없으면 요청 y·순서 창으로 푼다(종래 사상) | `E/sizing/block_columns.py:691-735` |
+| A7 | `_refine_ends`의 끝 값이 풀린 x인 경우는 (i) `inside and close` (ii) 풀이 직후 `again is None` 둘뿐이고, (iii) 첫 반복 풀이 실패 (iv) 둘째 반복 이후 풀이 실패 (v) `k_max` 소진에서는 끝 = 풀지 않은 x다. 끝 풀이 해(`values`)는 버린다 | `E/sizing/block_columns.py:663-688` |
+| A8 | `dc_columns`는 relation `free_window`인 모든 넷에 `node.dc_window` = `Window(lo, hi, constraints)`(순서 창 ∩ `override`)를 쓴다 -- 입력 포트가 아닌 넷·뿌리 아닌 입력 포트·선언 입력 포트는 해당 없음 | `E/sizing/block_columns.py:770-778`, `E/sizing/s2_values.py:355-361`, `E/sizing/CONTRACT.md:196` |
+| A9 | metric 쪽 둘째 창: `ls_swing`이 입력 포트마다 경로 합 [lo, hi]의 교집합을 재고 `v_icm = volts[inputs[0]]`(첫 포트)로 margin을 낸다. 호출 `metrics_aux._swing` | `E/metrics/ls_swing.py:107-118`, `E/metrics/metrics_aux.py:214, :236, :256-264` |
+| A10 | **계획 소비자 표 밖 소비자**: `fd_jacobian._steps`가 `node.dc_window`를 그 넷 writer의 y 키로 색인해 y FD 스텝(창 폭)을 정한다 -- 창이 W4 뿌리에만 있다는 전제 | `E/search/fd_jacobian.py:52-55, :65-68` |
+
+**4.7-1 card IT-1 -- 쓰기 계획 개정**(계획 N6.5 범위 1~5, 결정 B2·K-3·O-13 (1)(2)):
+
+1. **같은 DC 엣지 없음**: 입력 DC 미선언이어도 G_vgs에 '같은 DC' 엣지를 넣지 않는다. 엣지 순위 `_TIE`·`_KIND_TIE`, `TieBreak(input_tie_order)` 기록, `input_tie` 쓰기와 어휘(`REL_TIE`·`PATH_TIE`·`TIE_INPUT_ORDER`·`INPUT_GROUP_KEY`와 그 공개 export)를 지운다.
+2. **뿌리와 y 키**: 뿌리 규칙은 그대로(F 없는 성분에 입력 포트가 있으면 그중 (구조 색, 이름) 최소, 같은 색 후보가 둘 이상이면 `TieBreak(w4_root)`). **y 키 = 뿌리 넷 이름**(입력 포트 뿌리도 다른 W4 뿌리와 같은 규칙). θ 성분 키는 `(y, <뿌리 넷>)`이고 결과 JSON 키 `y:input_common_mode`는 `y:<넷>`이 된다. 한 성분 안 뿌리가 아닌 입력 포트는 트리 경로(MOS VGS)로 쓰인다.
+3. **종속**: 같은 DC 엣지로 생긴 종속은 0이다. 포트 경로가 둘 이상인 v1 고리는 ΔV를 소거한 KVL 하나가 남아 그 고리 멤버 하나가 `cycle_vgs` 종속이다(파일럿 VGS1a − VGS1b = VGS4a − VGS4b, M1b). 대칭이면 그 등식은 대칭 묶음과 중복이다. 불변식 '종속 수 = 순환수'는 같은 DC 엣지 없는 G_vgs(F 한 점) 기준이다.
+4. **다중 입력 뿌리 -- 정지 안전망**(IT-Q1 (나), DEC-76): 입력 포트인 W4 뿌리가 둘 이상인 쓰기 계획은 `dc_writer_plan`이 `StructureUnresolvedError`(detail `reason` = `unsupported_rule_branch`, `rule_branch` = **`input_port_multiple_roots`**, `nets` = 그 뿌리 넷들(쓰기 순번 순))로 낸다. `dc_writer_plan`은 S0 블록이라 탐색 전 정지다. 상수 이름 `BRANCH_INPUT_MULTIPLE_ROOTS`(`E/sizing/s2_values.py`, `BRANCH_RESISTOR_CYCLE` 옆). 뿌리별 y 묶음(`domain.ties`)·뿌리별 포화 창은 **미구현(발동 0)** -- 계획 DEC-64 상태 칸·sizing CONTRACT 3절에 같은 표시, DEC-59 발동표에 이 분기 행(발동 회로 0). 코퍼스 발동 0은 계획 F-IT9(근사 모사)이고 card 0 M-I1이 엔진 쓰기 계획으로 다시 잰다.
+5. **노드 풀이 블록 쪽**(같은 card): `members` = 자기 자신(사슬 없음), `input_roots()` = relation `free_window`이고 넷이 입력 포트인 W4 뿌리(`dc_columns` READS에 `("node", "port_direction")`을 더한다), `_solve_input_window`의 θ 키 = `(y, <입력 뿌리 넷>)`(뿌리는 4로 최대 하나), `REL_TIE` 분기(writer 식·야코비안·path value) 삭제. `achievability`의 `tie:<넷>` 등식 삭제.
+
+**test interface(IT-1, test 작성 주체 -- 소스 없이)**: 진입점 `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINTS)`(서명 불변). 출력 필드 `node.dc_writer`(`NodeWrite(tier, relation, element, known, y_key, order)`), `device.dc_coord`(`DeviceCoord(role, dependency, partner)`), `graph.dc_tie_breaks`. 어휘: relation ∈ {`rail`, `declared_target`, `input_dc`, `vgs_gate`, `vgs_source`, `resistor_drop`, `free_window`}(`input_tie` 없음), dependency ∈ {`tree`, `parallel_vgs`, `cycle_vgs`, `fixed_vgs`}. 단언 (a) 입력 DC 미선언 차동 입력 toy: relation `input_tie` 0, 입력 포트 W4 뿌리의 y 키 = 그 넷 이름, 기대 종속 목록(같은 DC 엣지로 생긴 종속 0, 포트 경로가 둘 이상인 v1 고리의 ΔV 소거 `cycle_vgs` 포함)은 toy 연결에서 손으로 유도한다 (b) 종속 수 = 같은 DC 엣지 없는 G_vgs(F 한 점)의 순환 수(손계산) (c) 입력 DC 선언 toy의 쓰기 계획 = 손계산 오라클(base에서도 green -- 무동작 성질) (d) 두 입력 포트가 서로 다른 G_vgs 성분인 toy → `StructureUnresolvedError`, `detail["rule_branch"] == "input_port_multiple_roots"`(base는 정지하지 않아 red). 위치 = `E/tests/sizing/test_writer_plan.py` 안 새 test 함수(이름은 test 주체가 `git grep`으로 겹침 확인, F-IT4 -- 구조 규칙 H).
+
+**4.7-2 card IT-2 -- 필드 셋**(이름 정본 = 계획 N6.6 범위 1·N6.8 DE-1 (a)·N3.3 S2 행. 정밀도·기준이 다르면 이름이 다르다):
+
+| 필드 | 뜻 | writer | 층·호출 자리 | 읽는 쪽 | 이 design 판에서 |
+|---|---|---|---|---|---|
+| `node.dc_window` | **탐색·판정 창**: 포화 판정 여유를 넣은 창(VDS − VDsat − tol_VDsat ≥ 0, `saturation_rows` 현행 식), 그 해에서 잰 **선형 감도 끝**(손계산, '추정'). 입력 포트가 아닌 W4 뿌리는 지금처럼 순서 창 | `dc_columns`(노드 풀이 블록) | 평가 커널(모든 평가, FD 열 포함) | 커널 제약·커널 metric(아래 5), `fd_jacobian` y 스텝(W4 뿌리만, 4.7-6) | IT-2가 쓰는 범위를 '모든 입력 포트와 W4 뿌리'로 넓힌다 |
+| `node.dc_window_def` | **정의 창**: VDS ≥ VDSAT(tol 없음)·전도 끝(봉인 9 식, 훑기 점 값) | card DE-1 (a)의 블록 | 평가 커널 | DE-1 뒤 metric 값 | **예약 -- 이 card는 만들지 않는다**(DE-1 몫) |
+| `node.dc_window_def_refined` | **다듬은 창**: 끝 풀이(창 끝 x 고정 Newton)로 다듬은 봉인 시점 창. DE-1 전에는 끝 풀이 기준이 지금 식(+tol_VDsat)이고 DE-1이 정의(tol 없음·전도 끝)로 바꾼다 | 새 블록 `dc_window_refine`(4.7-4) | 수락 반복·front에서만(4.7-4 호출 자리) | front 판정·보고 metric(아래 5) | IT-2가 만든다(모든 입력 포트) |
+
+**DE-1 전 한정**(계획 N6.6 범위 1·2): metric 값 = 커널은 `node.dc_window`, front·보고는 `node.dc_window_def_refined`. DE-1 병합 뒤 metric 값은 `node.dc_window_def`, 선언 제약 판정은 `node.dc_window`를 읽고 그 제약 행은 다른 이름을 갖는다(DE-1 design 몫).
+
+**값 형식**:
+- `node.dc_window` = `Window(lo, hi, constraints, saturation=False, tol_v=None)`(`E/sizing/s2_values.py` `Window`에 기본값 있는 칸 둘을 더한다). `saturation` = 이 창이 입력 포화 창을 담는가(입력 포트 항목이고 측정됐으면 True, 입력 포트가 아닌 W4 뿌리와 측정 실패 뒤 순서 창이면 False). `tol_v` = 그 창을 잰 풀이의 허용오차(`tolerance(소자 전부, 해)` = 그 해의 소자 tol_V 셀 최솟값, A6의 되풀이 판정에 쓰는 값) 또는 None(미정). `constraints`는 뿌리면 지금 뜻(순서 제약 수), 뿌리 아닌 포트·선언 포트면 0(순서 창이 없다).
+- `node.dc_window_def_refined` = `RefinedWindow(lo, hi, lo_end, hi_end, tol_v)`(새 frozen dataclass, `E/sizing/s2_values.py`). `lo_end`·`hi_end` = `WindowEnd(x, v, reason)`(새 frozen dataclass): `x` = 그 끝에서 마지막으로 다룬 뿌리(또는 선언 포트) x, `v` = **끝 풀이 해에서 이 포트의 전압**(성공한 해가 있을 때만, 아니면 None -- 이것이 계획 범위 1의 '끝 풀이 포트 전압 보관'이다), `reason` = None(풀린 끝) 또는 결측 사유. `lo` = `max(lo_end.v, rail_lo)`, `hi` = `min(hi_end.v, rail_hi)`(그 끝이 결측이면 None). `tol_v` = 끝 풀이 수렴 판정 tol(A6·A7의 `tol`).
+
+**4.7-3 커널 창(IT-2 범위 1, O-33 (3))** -- `dc_columns`(노드 풀이 블록)가 같은 평가 안에서:
+1. **뿌리**(입력 DC 미선언, 4.7-1로 최대 하나): A6 그대로 y = 1/2 풀이 → 창 측정 → y 범위로 다시 풀기 되풀이(상한 `k_max`)까지 한다. **`_refine_ends`는 커널에서 부르지 않는다.** 마지막 풀이의 `override` = 마지막으로 잰 선형 창. 뿌리의 `node.dc_window` = 순서 창 ∩ `override`(as-built와 같은 식), `saturation=True`.
+2. **뿌리 아닌 입력 포트 p**(같은 성분, 트리 경로로 쓰임): [lo_x, hi_x] = 위 1의 뿌리 `node.dc_window` 끝. 마지막 `override`를 잰 **같은 `input_windows` 호출**의 해(뿌리 전압 x_k, 포트 전압 V_p)와 감도 s_p = dV_p/dx로 옮긴다(한 해에서 잰 값끼리만 쓴다): lo_p = V_p + s_p·(lo_x − x_k), hi_p = V_p + s_p·(hi_x − x_k), 그다음 ∩ [rail_lo, rail_hi]. 그래서 `saturation_window`는 감도를 버리지 않고 낸다: **`saturation_window(unknown, root, values, gradient, rows) -> (lo, hi, slope) | None`**(slope = {넷: dV/dx}). κ 경로 필드를 다시 계산하지 않고 별도 노드 풀이를 하지 않는다. s_p < 0이면 lo_p > hi_p(빈 창, 음수 폭)로 그대로 낸다 -- 발동은 card 0 M-I4가 기록하고, 발동하면 창 정의를 정하기 전에 멈추고 보고한다(계획 문언 '아래 끝·위 끝의 포트 전압을 창 끝으로'를 그대로 따른 결과라 design이 순서를 바꾸지 않는다).
+3. **입력 DC 선언 포트(F)**: 그 포트를 x로 둔 같은 절차(`saturation_window`, `unknown` = 고정 아닌 넷 + 그 포트(행 s_x = 1), 다른 F 넷은 s = 0) -- y 범위가 아니므로 `override`에 넣지 않는다. 포트마다 따로 x로 둔다(다른 선언 포트는 선언값에 고정 -- 계획 범위 1 (c) 문언 그대로; 입력이 둘인 선언 회로에서는 공통모드 훑기가 아니다, 4.7-9 보고 항목).
+4. **측정 실패**(`saturation_rows` None·연립 특이 -- A6 '종래 사상' 경로): 뿌리 항목은 순서 창, `saturation=False`. 뿌리 아닌 포트·선언 포트 항목은 쓰지 않는다. 이 창을 읽는 metric은 정의 불능(4.7-5) -- 순서 창을 입력 창 값으로 쓰는 조용한 대체를 metric에 들이지 않는다(N3.14).
+5. 결과 `node.dc_window`의 `tol_v` = 그 창을 잰 해의 `tolerance` 값(미정이면 None).
+
+**4.7-4 다듬은 창 블록 `dc_window_refine`(IT-2 범위 1, O-21·O-25 (3))**: 새 `@compute_block`, writer 이름 `dc_window_refine`(상수 `DC_WINDOW_REFINE_WRITER`), 파일 `E/sizing/window_refine.py`(진입점 `refine_input_windows`), test `E/tests/sizing/test_window_refine.py`(규칙 H). READS = `dc_columns`의 READS + `("node", "dc_window")`·`("node", "port_direction")`, extras = `dc_columns`와 같은 넷(θ 성분, `fixed_values`, `resistor_values`, LUT, 선형 선언 소자). WRITES `("node", "dc_window_def_refined")`(입력 포트마다). 풀이 기계는 `block_columns`의 것을 그대로 공유한다(새 창 계산 함수를 만들지 않는다). 두 블록이 함께 쓰므로 `_Circuit`·`_solve`·`input_windows`·`_refine_ends`(와 그것들이 부르는 비공개 정의)는 같은 패키지의 공용 helper 모듈 **`E/sizing/_helpers_dc_solve.py`**(test `E/tests/sizing/test__helpers_dc_solve.py`)로 옮겨 공개 이름으로 둔다 -- 근거: 구조 규칙 A(파일당 진입점 하나, `@compute_block` 파일에 일반 공개 함수 금지 -- `decorated_and_plain.py`), 규칙 B(다른 파일의 `_` 이름 import 금지, `_helpers_*` 모듈 import는 허용), 규칙 H. `block_columns.py`는 진입점 `dc_columns`만 남는다. (이름 `_helpers_columns`는 `E/lut/_helpers_columns.py`와 겹쳐 쓰지 않는다.) 옮기기는 코드 이동이고 식은 4.7-3·4.7-4가 정한 것 말고 바꾸지 않는다.
+1. **출발 끝**: 입력 = 커널 `node.dc_window`(그 θ의 탐색·판정 창). DE-1 뒤에는 정의 창 `node.dc_window_def`(계획 N6.6 범위 1 '입력 = 정의 창').
+2. **끝 풀이**(아래 끝·위 끝 각각, A7과 같은 되풀이, 상한 `k_max`(레일 폭, tol)): 뿌리는 `override` = (x, x), 선언 포트는 `fixed_values`의 그 포트 값을 x로 바꿔 푼다. 되풀이가 (i) `inside and close` 또는 (ii) 풀이 직후 창을 잴 수 없어 멈추면 **그 끝 = 방금 푼 x이고 그 해를 보관한다**: 뿌리 `WindowEnd(x, x, None)`, 같은 성분의 입력 포트 p마다 `WindowEnd(x, V_p(해), None)`.
+3. **fail-closed**(계획 범위 1 (iii)~(v), 뿌리 창도 같음 -- O-25 (3)): (iii) 첫 반복 풀이 실패 (iv) 둘째 반복 이후 풀이 실패 → `reason` = **`window_end_solve_failed`**(상수 `REASON_WINDOW_END_SOLVE_FAILED`), (v) `k_max` 소진 → **`window_end_k_max_exhausted`**(상수 `REASON_WINDOW_END_K_MAX`). 그 끝의 `v` = None, `x` = 마지막으로 다룬(풀리지 않은) x(진단용, 값으로 쓰지 않는다). 대체값(기울기 외삽·이전 끝·다른 x의 해·0)을 쓰지 않는다. 같은 성분의 모든 입력 포트가 그 끝의 사유를 받는다. 실패 예외의 원래 사유(LUT 정의역 밖 등)는 `SccLog`와 같이 진단 칸으로 남기지 않고 사유 둘만 둔다(계획 '세부는 design' -- 판정에 쓰는 정보는 '그 끝이 풀리지 않았다'뿐이다).
+4. `_sensitivities` 기울기 외삽을 다듬은 창에 쓰지 않는다(O-21). 넷별 뿌리 경로 κ를 다시 계산하지 않는다.
+5. **호출 자리**: (a) 외층 SLSQP의 수락 반복(`E/search/slsqp_outer.py` `accept` 콜백 -- 계획 DEC-73 '수락 반복'의 정의) (b) front 점 확정 뒤 front 점마다. front 점이 이미 수락 반복이었으면 같은 θ·같은 입력 버전이라 S3 색인 이식으로 재사용한다(재계산 0, G-10). **FD 열 평가·커널 평가에서는 부르지 않는다**(계획 N6.6 완료 조건 (0)). 외층이 꺼진 점(층 0 조립점·수리점)의 호출 자리는 card LA-1이 더한다(DEC-73 'front 후보가 될 때 한 번').
+6. **결정 대기 IT2-D1(계획 문언과 다름 -- 멈춘 항목)**: 계획 N6.6 범위 1은 이 블록의 입력을 '정의 창·`node.dc_v`'로 적었다. 끝 풀이는 끝 x마다 처음부터 풀고(`_solve`는 시작값을 받지 않는다, `E/sizing/block_columns.py:560-` 기둥 위치 비례 시작) 창 측정도 그 해에서 하므로 `node.dc_v`를 읽는 계산이 없다. 선택지: (가) 계획 문언대로 READS에 `node.dc_v`를 넣는다(쓰임 없음 -- 입력 버전만 넓힌다) (나) 넣지 않는다(이 design 초안의 READS). 권고 (나)(읽지 않는 필드를 READS에 두지 않는다, G-8 취지). **사용자 결정 전에는 착수하지 않는다**(S-7).
+
+**4.7-5 metric 읽기(IT-2 범위 2·3, IT-Q2 (다) 정의, X-IT8 -- 판정이 (나)든 (다)든 계산 경로 하나)**:
+- **정의 함수 하나**: `icm_window_metrics(port_windows, port_v, input_dc, order) -> IcmWindow`(새 순수 함수, 파일 `E/metrics/icm_window.py`, test `E/tests/metrics/test_icm_window.py`). `port_windows` = 입력 포트마다 (lo, hi, tol_v) 또는 결측 사유, `port_v` = 입력 포트마다 해의 전압(`node.dc_v` -- 선언 포트는 선언값과 같다), `input_dc` = `"declared"` | `"pending"`, `order` = 포트 순서(구조 색, 이름 -- `node.dc_colour`).
+  - `icm_margin_v` = 포트별 margin_p = min(V_p − lo_p, hi_p − V_p)의 최솟값. 동률이면 `order` 첫 포트.
+  - `required_input_cm_v` = 입력 DC 미선언이면 (V_p*, lo_p*, hi_p*)(p* = 최솟값을 낸 포트), 선언이면 None -- as-built 형식 그대로.
+  - `icmr_v` = 포트 창 교집합 폭 = min_p hi_p − max_p lo_p(빈 교집합은 음수 폭 그대로, as-built 뜻). `window` = (max lo, min hi), `v_icm` = V_p*.
+  - 분해능(새 상수 없음, 창 필드의 `tol_v`에서): `margin_resolution` = p* 창의 `tol_v`, `icmr_resolution` = 아래 끝을 정한 포트의 `tol_v` + 위 끝을 정한 포트의 `tol_v`(as-built '구속 하한 누적 + 구속 상한 누적'과 같은 꼴). `tol_v`가 None이면 None.
+  - **정의 불능**(N3.14, 세 metric 모두): 입력 포트 없음 `no_input_port`(as-built 코드), 입력 포트 창 항목이 없거나 `saturation=False` → **`input_window_unmeasured`**, 다듬은 창의 끝 결측 → **`input_window_end_missing`**(detail = 포트·끝·`WindowEnd.reason`).
+  - `IcmWindow`(새 frozen dataclass, `E/metrics/aux_types.py`) 칸 = `icmr_v`, `icm_margin_v`, `required_input_cm_v`, `window`, `v_icm`, `input_dc`, `icmr_resolution`, `margin_resolution`, `undefined`.
+- **커널**: `metrics_aux`가 입력 포트의 `node.dc_window`(READS에 더함)를 읽어 `icm_window_metrics`를 부른다. `ls_swing`은 출력 스윙만 낸다(입력 창 계산 `:107-118`과 인자 `inputs`·`input_dc_v`와 그 문언 삭제 -- 계획 N6.6 범위 3). `SwingIcmr` 형식·결과 JSON·`swing_icmr` 보고 행의 키는 그대로이고, 입력 칸(`icmr_v`·`icm_margin_v`·`window`·`v_icm`·`required_input_cm_v`·`input_dc`·두 분해능)은 `IcmWindow`에서 채운다(형식 불변, IT-Q2). 출력 스윙·`bounds`(경로 합)는 card DE-1 전까지 그대로다.
+- **front·보고**: 새 `@compute_block` `metrics_icm_front`(상수 `METRICS_ICM_FRONT_WRITER`, 파일 `E/metrics/icm_front.py`, 진입점 `icm_front`, test `E/tests/metrics/test_icm_front.py`), READS `("node", "dc_window_def_refined")`·`("node", "dc_v")`·`("node", "port_direction")`·`("node", "dc_colour")`, extras = 선언 입력 DC 또는 None, WRITES `("graph", "metrics_icm_front")` = {METRICS_KEY: `IcmWindow`}. 호출 자리는 4.7-4 5와 같다(`dc_window_refine` 바로 뒤). front 점의 보고 값(결과 JSON front 점의 세 metric과 `swing_icmr` 보고 행의 입력 칸, DEC-98 oracle 대조 값)은 이 필드에서 읽는다 -- 키·형식은 그대로, 값 출처만 다르다. **제약 판정은 커널 값**이다(DEC-74; 'front 판정' = oracle 대조·보고 값, 계획 N6.6 범위 1 A-N3).
+
+**4.7-6 소비자 정리(계획 N6.6 소비자 표 + A10)**: `fd_jacobian._steps`는 `node.dc_window` 가운데 writer relation이 `free_window`인 넷(W4 뿌리)만 y 스텝에 쓴다(입력 포트 항목이 늘어도 y 키 색인이 바뀌지 않게). `E/sizing/CONTRACT.md` 소유표 행 `node.dc_window`의 범위 = '모든 입력 포트와 W4 뿌리', 새 행 `node.dc_window_def_refined`(writer `dc_window_refine`)·`graph.metrics_icm_front`(writer `metrics_icm_front`). `headroom_bound`의 창은 대상이 아니다.
+
+**4.7-7 test interface(IT-2, test 작성 주체 -- 소스 없이)**: 공개 진입점 `dc_columns`(서명 불변), `refine_input_windows`, `icm_front`, 순수 함수 `icm_window_metrics`·`saturation_window`(새 반환 (lo, hi, slope)). 필드·형식은 4.7-2, 사유 이름은 4.7-4 3·4.7-5. 단언(계획 N6.6 완료 조건 (0)~(6)을 측정할 수 있는 꼴):
+- K1 입력 DC 선언 toy: 입력 포트 `node.dc_window` 항목이 있고 `saturation=True`(base는 없음 -- red). 미선언 2입력 toy: 두 포트 항목 모두 있음(base는 뿌리만 -- red).
+- K2 커널 선형 창 = 손계산 오라클(toy 연결의 선형 감도 손계산, '추정' 정확도 표기). 뿌리 아닌 포트 창 = 그 해의 V_p + s_p·(뿌리 끝 − x)(같은 감도).
+- K3 커널 평가(FD 열 포함) 중 `dc_window_refine` `computes` 0(`RunCounters`), `_refine_ends` 경로 0.
+- R1 다듬은 창: 끝이 풀린 toy에서 `lo_end.reason is None`이고 `lo == max(lo_end.v, rail_lo)`·`hi == min(hi_end.v, rail_hi)`, 뿌리 아닌 포트의 `lo_end.x`는 뿌리 `lo_end.x`와 같고 `lo_end.v`는 그 x로 뿌리를 고정해 푼 해의 포트 전압(손계산 오라클과 같음).
+- R2 red 변형 둘: 끝 풀이 실패 toy(끝 x에서 어느 writer의 LUT 정의역을 벗어나 풀이가 실패하는 연결) → 그 끝 `reason == "window_end_solve_failed"`, `v is None`, `metrics_icm_front`의 세 metric 정의 불능(`input_window_end_missing`); `k_max` 소진 toy → `reason == "window_end_k_max_exhausted"`, 같은 정의 불능. base는 외삽·이전 끝을 값으로 낸다 -- red.
+- M1 커널 `icm_margin_v`·`icmr_v`·`required_input_cm_v` = `icm_window_metrics`(커널 `node.dc_window`)와 같은 값, front 값 = `icm_window_metrics`(`node.dc_window_def_refined`)와 같은 값.
+- M2 `git grep`: `ls_swing`에 입력 창 계산 0, 입력 CM 창 계산 자리 = `block_columns`(`saturation_window`) 하나(`headroom_bound` 제외).
+- M3 포트 창 재계산 0: 다듬은 포트 창이 `_sensitivities` 외삽·κ 경로 합·별도 노드 풀이를 하지 않음(`git grep` + G-10 + WP-10 중복 인자 계측).
+
+**4.7-8 변경 종류·판정 다리**(계획 N6.3 (i)~(iv), O-34 (1)): IT-1·IT-2 모두 **동작 변경**(IT-1 = 입력 DC 미선언 회로의 쓰기 계획·θ y·결과, IT-2 = 입력 DC 선언 회로에 창이 생기고 metric 값의 출처가 바뀜. 무동작 입력 -- IT-1의 선언 2회로 쓰기 계획 -- 은 순수 리팩터링 필드별). 다리 넷: 정의 오라클 toy(4.7-1·4.7-7), 봉인 불변식, SPICE oracle 대조(**보류** -- 채울 card EO-1, 그 뒤 꺼짐 정의 판에 따라 OP-5), 검증자 변화표(9회로, IT-Q3 (가) -- IT-0 기록 대비). 결정성 비트 동일. 두 card는 각자 test·code 커밋을 갖고 **하나의 통합 병합**으로 들어간다(O-19 (2) -- IT-1만 병합된 기간 없음).
+
+**4.7-9 범위 밖(card DE-1·FX-1 몫, 이 판에서 고치지 않음)과 보고 항목**:
+- DE-1: 정의 창 `node.dc_window_def`(tol 없음·전도 끝 = 봉인 9 식, 훑기 점 I_off·ε)와 그 블록, 선언 제약 행의 다른 이름, ICMR 정의 O-25(출력은 회로대로 따름)·일반형 O-33 (7)(전달 뷰 여기 방향 훑기), 다듬은 창의 끝 풀이 기준 전환(+tol → 정의), 선형 감도 연립 특이의 fail-closed(커널 쪽 -- 이 판은 4.7-3 4로 metric 정의 불능까지만), 출력 스윙(고임피던스·KVL 고정 출력, 출력 창 별도 필드), 계통 offset ΔV_out = −G⁻¹·ΔI, 슬루 방향 최대 전류, `ls_swing` 자체 제약계·`ls_fields` β/σ/κ 삭제, 40 §3.8-3·§3.8-8 `swing_out_v`·`offset_sys_mv` 정의.
+- FX-1: §0 '단계 A는 봉인된 값을 읽지 않는다'의 출발 고정점 예외(X-FX1).
+- 보고 항목(design이 정하지 않음): (1) IT2-D1(4.7-4 6) (2) s_p < 0 포트의 창 끝 역전(4.7-3 2 -- M-I4 발동 기록) (3) 입력이 둘인 선언 회로(코퍼스 `sf_pushpull_output_opamp`)의 포트별 x 창은 다른 포트를 고정한 창이라 공통모드 훑기가 아니다(4.7-3 3 -- 계획 범위 1 (c) '오케스트레이터 해석, 사용자 변경 가능' 문언 그대로 따랐다. DE-1 ICMR 정의(O-25 (2))가 대체할 때까지의 과도 정의).
+
+**상태**: 4.1은 PART(분류는 있고 매핑이 없다). 4.2~4.6은 MISS. 4.7은 MISS(J-E 창은 as-built `input_window`·`_solve_input_window`가 PART -- A1~A10).
 
 ---
 
@@ -1490,14 +1580,15 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 
 **1. 고리의 출처 -- 새 탐지기를 만들지 않는다**: 평가 커널의 쓰기 계획(`node.dc_writer` 나무 + `device.dc_coord`, GB7 `dc_writer_plan`, sizing CONTRACT 3절)을 읽는다. 쓰기 계획은 S1 G_vgs 고리(`graph.rel_kvl_branch`, DEC-64)를 레일·W3 선언 노드·입력 DC·저항 강하까지 넣어 컴파일한 것이고, 종속 소자는 DEC-95 (3) 우선순위로 이미 정해져 있다.
 - 비나무 MOS 엣지 중 `cycle_vgs`·`fixed_vgs` = **고리 등식**(DEC-64 v2 `Σ±VGS = ΔV`): 그 소자의 VGS 는 나무 경로가 정한다. `parallel_vgs`(v0)는 같은 VGS 묶음(§6.1-6)이라 대상이 아니다.
-- **v1(포트 차 고리)은 제약이 아니다**(계획 DEC-64 v1, 사용자 결정 B2): 아래 '커널 쪽 개정'으로 쓰기 계획이 v1 고리 멤버를 종속시키지 않게 되므로 v1 고리는 이 절의 행을 만들지 않는다. 입력 포트 쌍의 대칭은 U2 자기동형 묶음과의 대조로만 남는다.
+- **v1(포트 차 고리)**(계획 DEC-64 v1, 사용자 결정 B2·O-13 (1)): 입력 포트끼리의 '같은 DC' 등식은 없다(아래 1a). 포트 경로가 둘 이상인 v1 고리는 ΔV를 소거한 KVL 하나가 남아 그 고리 멤버 하나가 `cycle_vgs` 종속이고(파일럿 VGS1a − VGS1b = VGS4a − VGS4b, M1b), 그 종속은 위 항목의 고리 등식과 같은 대상이다 -- 이 절의 행 생성 규칙은 바꾸지 않는다(계획 N6.5 '고치지 않는 것': §6.7 KVL 출발 제약은 U17 ② 몫이고 IT-1 뒤의 쓰기 계획을 읽는다). 대칭이면 그 등식은 대칭 묶음과 중복이다. (v1.12 정정: 옛 문장 'v1 고리는 이 절의 행을 만들지 않는다'는 O-13 (1)과 어긋나 고쳤다 -- 옛 문장은 계획 history H2 'IT-1·IT-2 design' 행.)
 - drain·source 가 같은 나무 성분에 있는 diode 아닌 MOS = **VDS-1 부등식**(`gvgs_summary.vds_saturation` 과 같은 뜻): VDS = 나무 경로 합·차 ≥ VDSAT + tol_vdsat.
 
-**1a. 커널 쪽 개정(DEC-64 v1 을 계획에 맞춤, 사용자 결정 B2)**:
-- 현재(as-built): sizing CONTRACT 3절 항목 2·4·5 와 `E/sizing/writer_plan.py` docstring 2·4·5 -- `input_dc_declared` 가 거짓이면 F 밖 입력 포트를 (색, 이름) 순으로 이웃 쌍마다 '같은 DC' 엣지(`input_tie`, "DEC-64 v1 '입력 DC 동일 가정', U2 기본안 (a)")로 잇고, 그 엣지가 Kruskal 순위 최상위라 v1 고리(예: 파일럿 {M1a, M1b, M4a, M4b}, 입력 Vip·Vim)를 닫는 MOS 하나가 `cycle_vgs` 종속이 된다. 이것은 계획 DEC-64 v1 '입력 DC 동일 가정으로 기록하고 **제약을 만들지 않으며** 대칭 매칭과 중복 여부만 대조한다'와 어긋난다(커널이 그 등식을 실제로 푼다). 40 §3.7 의 W0~W4 writer 계획 행(as-built OK)도 이 동작을 포함한다.
-- 개정: 입력 DC 미선언이면 '같은 DC' 엣지를 G_vgs 에 넣지 않는다. F 밖 입력 포트는 각자 성분의 W4 뿌리 후보로 남고(항목 5 의 뿌리 규칙 그대로 -- 입력 포트가 있는 성분은 그 포트가 뿌리, y 키 `INPUT_GROUP_KEY` 대신 포트마다 키), **대칭 궤도가 같은 포트들의 y 는 U2 자기동형 묶음(`domain.ties`)이 하나의 변수로 묶는다**(같은 DC 가정은 대칭이 성립할 때만 값으로 남고, 등식 엣지로는 남지 않는다). 대칭이 아닌 입력 포트끼리는 서로 다른 y 다.
-- 결과: v1 고리 멤버는 모두 writer 또는 parallel 로 남고(종속 수 = 순환수 불변식은 '같은 DC 엣지 없는 G_vgs' 기준으로 바뀐다), `input_tie` relation·`TIE_INPUT_ORDER` 기록은 쓰이지 않는다(어휘 삭제는 구현 card 의 몫).
-- 영향 확인 대상(구현 card 전 측정): 입력 DC 미선언 회로의 종속 소자 목록·W4 수·θ y 수·층 0 시작점(9회로), U2 d/s 맞바꿈 card 와의 순서(같은 `domain.ties` 를 쓴다). 입력 DC 가 선언된 회로는 입력 포트가 F(W2 `input_dc`)라 이 개정과 무관하다 -- 그때 두 포트를 지나는 고리는 v1 이 아니라 F 경유 v2 와 같은 처리(ΔV = 선언 차)다(계획 DEC-64 v1 'ΔV 는 입력 DC 선언이 있으면 그 차').
+**1a. 커널 쪽 개정(DEC-64 v1 을 계획에 맞춤, 사용자 결정 B2·K-3·O-13, card IT-1 -- 계획 N6.5)**:
+- 개정 전(as-built, master `9401e98f`): 입력 DC 미선언이면 F 밖 입력 포트를 이웃 쌍마다 '같은 DC' 엣지(`input_tie`)로 잇고 그 엣지가 Kruskal 순위 최상위라, 커널이 같은 DC 등식을 실제로 풀었다(§4.7-0 A1, 계획 X-IT1). 옛 문단 전문은 계획 history H2 'IT-1·IT-2 design' 행.
+- 개정(정본 = §4.7-1 1~5): 입력 DC 미선언이어도 '같은 DC' 엣지를 G_vgs 에 넣지 않는다. F 밖 입력 포트는 각자 성분의 W4 뿌리 후보로 남고(항목 5 의 뿌리 규칙 그대로), **y 키 = 뿌리 넷**(`INPUT_GROUP_KEY` 없음). 한 성분 안 뿌리가 아닌 입력 포트는 트리 경로(MOS VGS)로 쓰인다. 입력 포트인 W4 뿌리가 둘 이상이면 `unsupported_rule_branch`(rule_branch `input_port_multiple_roots`)로 탐색 전 정지한다(IT-Q1 (나), DEC-76).
+- 결과(O-13 (1)): 같은 DC 엣지로 생긴 종속은 0이다. 포트 경로가 둘 이상인 v1 고리는 ΔV를 소거한 KVL 하나가 남아 그 고리 멤버 하나가 `cycle_vgs` 종속이다(파일럿 VGS1a − VGS1b = VGS4a − VGS4b, M1b). 대칭이면 그 등식은 대칭 묶음과 중복이다. 종속 수 = 순환수 불변식은 '같은 DC 엣지 없는 G_vgs(F 한 점)' 기준이다. `input_tie` relation·`TIE_INPUT_ORDER` 기록과 그 어휘는 IT-1이 같은 변경에서 지운다.
+- **K-3 축소(X-IT5, 원래 취지와 다름 -- 사용자 결정 O-13 (2) 승인)**: 옛 개정 문언의 '대칭 궤도가 같은 포트들의 y 는 U2 자기동형 묶음(`domain.ties`)이 하나의 변수로 묶는다'(서로 다른 성분 뿌리인 입력 포트의 경우)는 **미구현(발동 0)**이고 그 경우는 정지한다. 발동 회로가 library에 들어오면 그때 구현한다(계획 N6.5 범위 4).
+- 영향 확인 대상(card 0 IT-0 M-I1~M-I7, 계획 N6.5 순서 0): 입력 DC 미선언 회로의 종속 소자 목록·W4 뿌리·y 키·θ y 수·층 0 시작점·봉인·결과 JSON 키·입력 포화 창(M-I4: 뿌리 아닌 포트와 뿌리의 전압 차, IT-Q2 판정)·DOF·순환수 = 종속 수(library 9회로). 입력 DC 가 선언된 회로는 입력 포트가 F(W2 `input_dc`)라 이 개정과 무관하다 -- 그때 두 포트를 지나는 고리는 v1 이 아니라 F 경유 v2 와 같은 처리(ΔV = 선언 차)다(계획 DEC-64 v1 'ΔV 는 입력 DC 선언이 있으면 그 차'). 무동작 확인 = library 선언 2회로 쓰기 계획 필드별 동일(M-I7, NFR-4).
 
 **2. 노드 전위(출발 모델)**: 계획 순번대로 쓴다. 고정 = 레일·W3·입력 DC(절대값). MOS writer 는 커널과 같은 역산 `vgs_for_current_density`(ln IDu, L, VDS, VSB). 저항 = 선언값 또는 θ 저항 상자 기하 중심 × KCL 기저 전류. 기하 중심은 순수 함수 하나 `theta_box_centre(domain, component)`(S0 수준 정의역 필드만 읽음)로 두고, 이 절과 `layer0_center._box_centre`가 같은 함수를 부른다(식 중복 없음, 단계 B 의존 없음). W4 창 넷 = 그 넷을 뿌리로 한 **상대 전위**(같은 뿌리끼리의 차만 쓴다 -- y 와 무관). VDS·VSB 는 두 단자 전위가 같은 뿌리로 알려지면 그 차(VSB 는 절대 전위일 때만), 아니면 그 소자의 곡선 동작점(§6.1-6). 1변수 노드(diode gate·소스 추종 source)는 커널처럼 `bracket_root`(창 = 레일 범위, 상대면 아는 쪽 ± 레일 폭). drain 이 뒤 순번에서 쓰이는 writer 가 있으므로 전위 변화가 행 분해능 이하가 될 때까지 바퀴를 되풀이한다(상한 = 넷 수). 봉인 평가를 쓰지 않는다(§0 단계 A 규칙).
 
@@ -1533,11 +1624,11 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 - (P1, 남음) 계획 DEC-71 (7)·N3.7 층 0 은 `kvl_branch` 등식을 **조립 단계**에서 푼다(정밀 경로는 내층 DP 의 W2 블록). 이 절은 같은 등식을 단계 A8 출발 선택에도 건다(사용자 결정 9). 조립의 처리는 바꾸지 않는다.
 - (P2, 닫힘 -- B1) 역산 우선(DEC-71 (4)(a))은 층 0 의 몫이고 §6 은 그 정의역(구간)을 준다(위 '층 0 과의 관계').
 - (P3, 닫힘 -- B1) VDS 배분(DEC-71 (4)(c))은 층 0 의 몫이고 이 절은 고리가 정한 VDS 만 검사한다.
-- (P4, 닫힘 -- B2) DEC-64 v1 은 제약 없음. 커널 쓰기 계획을 1a 로 맞춘다(구현은 별도 card).
+- (P4, 닫힘 -- B2) DEC-64 v1 은 제약 없음(같은 DC 등식 없음, ΔV 소거 KVL은 남음 -- O-13 (1)). 커널 쓰기 계획을 1a 로 맞춘다(구현 = card IT-1, 계획 N6.5).
 - (P5, 닫힘 -- K-1) 공동 선택 기준(위반 최소 -> max-min 위치 -> 위치 합 최대)과 매크로·면적 재확인의 좁힘 규칙(반씩, 상한 steps + 1 회)을 승인했다(사용자 결정 2026-10-12 "K-1~K-3도 권고대로" K-1 "KVL 고리 공동 선택 기준 승인 -- 위반 최소 -> 가장 낮은 위치 최대(max-min) -> 위치 합 최대, ... 그래도 없으면 StartConflict(kvl) 기록 + 위반 최소 조합 전달").
 - (P6, 닫힘 -- B3) '낮춤만'·'매크로·면적 재확인 생략' 가정을 없앴다(4 의 재확인).
 - (P7, 조건부 닫힘 -- K-2) §7.5 β·C_eff 정의는 "design 검증에서 지적이 없을 때 승인(지적이 있으면 다시 묻는다)"(K-2). design 검증 지적이 나오면 다시 묻는다.
-- (P8, 닫힘 -- K-3) 1a 의 `input_tie` 폐기를 승인했다: "입력 DC 미선언 시 입력 포트를 같은 DC 로 묶던 input_tie(U2 기본안 (a)) 폐기, 대칭 포트는 U2 자기동형 묶음(domain.ties)이 대신, 구현 순서는 결정 6(d/s 맞바꿈) 다음"(K-3). U2 기본안 (a)를 대체한다.
+- (P8, 닫힘 -- K-3) 1a 의 `input_tie` 폐기를 승인했다: "입력 DC 미선언 시 입력 포트를 같은 DC 로 묶던 input_tie(U2 기본안 (a)) 폐기, 대칭 포트는 U2 자기동형 묶음(domain.ties)이 대신, 구현 순서는 결정 6(d/s 맞바꿈) 다음"(K-3). U2 기본안 (a)를 대체한다. 구현 = card IT-1(계획 N6.5). '대칭 포트는 `domain.ties`가 대신'(서로 다른 성분 뿌리인 입력 포트)은 미구현(발동 0)·정지로 축소(X-IT5, 사용자 결정 O-13 (2) 승인, 1a).
 - (P1, 닫힘) 위 첫 항목. PQ5 결정(사용자 결정 2026-10-12 "3은 권고대로"·"L14부터 PQ5까지")으로 닫혔다.
 
 ---
@@ -1750,7 +1841,8 @@ def loop_roles(view_loops, transfer_views, declared_pm_views) -> tuple[LoopRole,
 | P-1 절단(§5.3.11) | (a) N_S ≥ Π > N_T,i toy(N_T 선언 E_B 작게) | `tests/search/test_layer0_budget.py` | 정지하지 않고 반분 단계 순으로 N_T,i개 평가 후 `layer0_candidates_truncated{block, bin, Π, evaluated}` 기록, 그 블록 front·조합 front '추정' |
 | §6.7 KVL 행 | (a) 이름 없는 toy: v2 고리(종속 소자 VGS 구간 밖·안), VDS-1 고리(포화 위반·만족), 1변수 노드 근 없음 | `tests/search/test_iv_kvl.py` | `loop_lo`·`loop_hi`·`saturation`·`writer_root` 행 값과 부호, 의존 묶음, 비활성 사유(`rail_potentials_undeclared`, `kvl_node_undetermined`) |
 | §6.7 공동 선택 | (a) 위반 toy, 위반 없는 library 회로 | `tests/search/test_iv_kvl_choice.py` | 7a (i) 위반 최소 → (ii) max-min → (iii) 위치 합. 올린 묶음이 있으면 매크로·면적 재확인과 반씩 좁힘(상한 steps + 1). 해 없으면 `StartConflict(kvl)` + 위반 최소 조합(fail-closed). 위반 없는 회로의 출발 θ가 v1.5와 비트 동일 |
-| §6.7-1a 쓰기 계획 | (a) 입력 DC 미선언 차동 입력 toy | `tests/sizing/test_writer_plan_no_input_tie.py` | **red 먼저**: as-built에서 같은 DC 엣지가 있어 실패함을 확인한 뒤 고친다. 고친 뒤 같은 DC 엣지 0, v1 고리 멤버가 `cycle_vgs` 종속이 아님, 대칭 포트 y는 `domain.ties`로 하나 |
+| §6.7-1a 쓰기 계획(card IT-1, §4.7-1) | (a) 입력 DC 미선언 차동 입력 toy, 입력 DC 선언 toy, 두 입력 포트가 서로 다른 G_vgs 성분인 toy -- 기대 writer·종속 분류는 toy 연결에서 손으로 유도(손계산 오라클) | `tests/sizing/test_writer_plan.py` 안 새 test 함수(v1.12: 옛 경로 `test_writer_plan_no_input_tie.py`는 구조 규칙 H 위반이라 바꿈 -- 계획 F-IT4·X-IT3, 함수 이름은 test 주체가 `git grep`으로 겹침 확인) | **red 먼저**(검증자가 격리 복제본 base에서 실패 기록): relation `input_tie` 0, 같은 DC 엣지로 생긴 종속 0 + 종속 수 = 같은 DC 엣지 없는 G_vgs 순환 수(포트 경로가 둘 이상인 v1 고리의 ΔV 소거 `cycle_vgs`는 기대값에 포함), 입력 포트 W4 뿌리 y 키 = 뿌리 넷, 선언 toy 쓰기 계획 = 오라클(base에서도 green), 다중 입력 뿌리 toy = `unsupported_rule_branch`·`input_port_multiple_roots`(base는 정지하지 않음 -- red) |
+| §4.7 입력 포트 창(card IT-2) | (a) 입력 DC 선언 toy·미선언 2입력 toy 손계산(선형 감도), 끝 풀이 손계산, red 변형 둘(끝 풀이 실패·`k_max` 소진) | `tests/sizing/test_block_columns.py`·`test_input_window.py`(커널 창·`saturation_window` 새 반환), `tests/sizing/test_window_refine.py`(다듬은 창), `tests/metrics/test_icm_window.py`·`test_icm_front.py`(metric), `tests/metrics/test_ls_swing.py`(입력 칸 삭제 반영) | §4.7-7 K1~K3·R1·R2·M1~M3. `test_input_window.py:300`의 '선언 입력 DC 는 창 사상이 없다' 기대는 '창 있음'으로 바뀐다(계획 N6.6 소비자 표) |
 | P-15 섞인 회로 버퍼(§5.1) | (a) 이름 없는 CS + follower toy(rout 선언·미선언) | `tests/search/test_layer0_budget.py` | 버퍼가 면적 bin DP 단계로 들어가고 국소 Z_out ≤ rout인 점만 남음. 미선언이면 그 블록만 무동작 기록, 상수항 사용 |
 | 층 0 정의역 상한 A^L0(§4.2) | (a) 축소 축 2~3개 toy 전수 손계산 | `tests/graph/test_structure_tables.py`(S0 표에 `block_bounds_l0` 행·'추정' 표시·축 목록이 실림), `tests/metrics/test_block_bounds_l0.py` | 고정 축 값 = `start.row`·`start.point` 격자 마디, 단계 B 값을 읽지 않음, matching 그룹 축 하나, Π > N_S면 미상, exit 3이 이 값을 읽지 않음 |
 | 계수 예산 결정론 | (a) 같은 S0 두 번 | `tests/search/test_count_budget.py` | N_S가 시간과 무관하다. 사이클·Π 결과가 실행 간 같다 |
@@ -1790,6 +1882,7 @@ $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_layer
 | §1.12 J 규칙 | 6 | 0 | 0 | 0 | 6 |
 | §2 블록 모델·잔차 | 3 | 0 | 0 | 0 | 3 |
 | §4 GB4 | 6 | 0 | 0 | 1(4.1 곡선 분류) | 5 |
+| §4.7 입력 포트 창(IT-1·IT-2, v1.12) | 2 | 0 | 0 | 1(J-E 창: `input_window`·`_solve_input_window` as-built, 커널에서 끝 풀이) | 1(필드 셋·다듬은 창 블록·metric 읽기) |
 | §5 층 0 | 9 | 0 | 0 | 0 | 9 |
 | §6 출발 구간 | 6 | 0 | 0 | 0 | 6 |
 | §7 잡음 | 6 | 0 | 0 | 0 | 6 |
