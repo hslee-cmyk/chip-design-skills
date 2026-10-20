@@ -28,8 +28,15 @@ TABLE = {
 }
 
 
+def _build(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
+
+
 def _s1(gh, name):
-    return build_s1(gh.load_lib(name), gh.supplies_for(name))
+    return _build(gh.load_lib(name), gh.supplies_for(name))
 
 
 @pytest.mark.parametrize("name", NINE)
@@ -77,7 +84,7 @@ def test_leaf_resistor_chain_pruned_in_rounds(gh, tmp_path):
     o = gh.oracle(raw)
     assert o.dc_pruned == (("Rq2", 1), ("Rq1", 2))
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    s1 = build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
+    s1 = _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
     assert gh.gval(s1, "dc_pruned") == (("Rq2", 1), ("Rq1", 2))
     assert tuple(gh.seg_plain(s) for s in gh.gval(s1, "dc_segments")) == o.segments
     assert not {"Rq1", "Rq2"} & {el for s in gh.gval(s1, "dc_segments") for el in s.elements}
@@ -90,7 +97,7 @@ def test_resistor_on_port_or_rail_is_kept_and_mos_leaf_not_pruned(gh, tmp_path):
     gate = raw["netlist"][0]["gate"]
     raw["netlist"].append({"name": "Mleaf", "kind": "nmos", "drain": "dleaf", "gate": gate, "source": "gnd"})
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    s1 = build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
+    s1 = _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
     assert gh.gval(s1, "dc_pruned") == ()
     els = {el for s in gh.gval(s1, "dc_segments") for el in s.elements}
     assert {"Rload", "Mleaf"} <= els
@@ -104,7 +111,7 @@ def test_parallel_merge_ignores_kind(gh, tmp_path):
     raw["passive_elements"].append({"name": "Rpar", "kind": "resistor", "terminals": [m["source"], m["drain"]],
                                     "value_ohm": 1e5})
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    s1 = build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
+    s1 = _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})
     seg = next(s for s in gh.gval(s1, "dc_segments") if m["name"] in s.elements)
     assert seg.elements == tuple(sorted((m["name"], "Rpar")))
     assert seg.nets == tuple(sorted((m["drain"], m["source"])))
@@ -121,14 +128,14 @@ def test_stop_inductor(gh, tmp_path):
     raw = _ota(gh)
     raw["passive_elements"].append({"name": "Lx", "kind": "inductor", "terminals": ["OUT", "gnd"]})
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    d, devices = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
+    d, devices = gh.stop(lambda: _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert (d["rule_branch"], d["nets"], devices) == ("passive_kind_unsupported", (), ("Lx",))
 
 
 def test_stop_ideal_voltage_source(gh, tmp_path):
     raw = _ota(gh)
     raw["ideal_sources"] = [{"name": "Vx", "kind": "voltage_source", "terminals": ["vdd", "OUT"], "value_volt": 0.3}]
-    d, devices = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
+    d, devices = gh.stop(lambda: _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert (d["rule_branch"], d["nets"], devices) == ("source_kind_unsupported", (), ("Vx",))
 
 
@@ -136,7 +143,7 @@ def test_stop_unsupported_mos_kind(gh, tmp_path):
     raw = _ota(gh)
     name = raw["netlist"][2]["name"]
     raw["netlist"][2]["kind"] = "njfet"
-    d, devices = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), None))
+    d, devices = gh.stop(lambda: _build(gh.load_raw(tmp_path, raw), None))
     assert (d["rule_branch"], d["nets"], devices) == ("mos_kind_unsupported", (), (name,))
 
 
@@ -148,7 +155,7 @@ def test_stop_reports_first_name_branch_and_all_its_elements(gh, tmp_path):
                                 {"name": "Aind", "kind": "inductor", "terminals": ["OUT", "vdd"]}]
     o_err = pytest.raises(gh.StopExpected, gh.oracle, raw).value
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    d, devices = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), None))
+    d, devices = gh.stop(lambda: _build(gh.load_raw(tmp_path, raw), None))
     assert d["rule_branch"] == o_err.branch == "passive_kind_unsupported"
     assert devices == o_err.devices == ("Aind", "Zind")
 
@@ -159,7 +166,7 @@ def test_stop_dc_self_loop(gh, tmp_path):
     m["drain"] = m["source"]
     if m["gate"] == m["source"]:
         pytest.fail("픽스처: gate 가 source 와 같으면 다른 소자를 골라야 한다")
-    d, devices = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
+    d, devices = gh.stop(lambda: _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert d["rule_branch"] == "dc_self_loop"
     assert devices == (m["name"],)
     assert d["nets"] == (m["source"],)
@@ -170,7 +177,7 @@ def test_unsupported_checked_before_self_loop(gh, tmp_path):
     raw["netlist"][3]["drain"] = raw["netlist"][3]["source"]
     raw["passive_elements"].append({"name": "Lx", "kind": "inductor", "terminals": ["OUT", "gnd"]})
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    d, _ = gh.stop(lambda: build_s1(gh.load_raw(tmp_path, raw), None))
+    d, _ = gh.stop(lambda: _build(gh.load_raw(tmp_path, raw), None))
     assert d["rule_branch"] == "passive_kind_unsupported"
 
 
@@ -181,7 +188,7 @@ def test_stop_is_not_cached(gh, tmp_path):
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     doc = gh.load_raw(tmp_path, raw)
     for _ in range(2):
-        d, _ = gh.stop(lambda: build_s1(doc, None))
+        d, _ = gh.stop(lambda: _build(doc, None))
         assert d["rule_branch"] == "passive_kind_unsupported"
 
 
@@ -198,8 +205,8 @@ def test_block_declaration():
 
 
 def test_direct_call_reuses_on_same_snapshot(gh):
+    # card B C4 판정 1: 같은 lineage -> reuse(블록 함수 0) -- 새 실행 계수(C1) 행 = (calls 1, reuses 1)
     s1 = _s1(gh, "two_stage_ota")
-    before = s1_dc_conduction.stats()
-    assert s1_dc_conduction(s1.snapshot) is s1.snapshot
-    after = s1_dc_conduction.stats()
-    assert (after.reuses - before.reuses, after.computes - before.computes) == (1, 0)
+    run = gh.fresh_run()
+    assert s1_dc_conduction(s1.snapshot, **run) is s1.snapshot
+    assert gh.block_row(run["counters"], s1_dc_conduction.name) == (1, 1, 0, 0, 0, 0)

@@ -49,6 +49,7 @@ from gmid_engine.authoring import load_topology  # noqa: E402
 from gmid_engine.core import Projection  # noqa: E402
 from gmid_engine.graph import build_s1, build_s1v, composite_diodes, s1_dc_roles  # noqa: E402
 from gmid_engine.pipeline import run_stage_a  # noqa: E402
+from gmid_engine.search import open_run  # noqa: E402
 
 import jrules_hand as J  # noqa: E402
 import s1v_hand as H  # noqa: E402
@@ -92,15 +93,17 @@ def _absent_structure(tmp_path, name):
     return tmp_path / "absent_structure" / (name + ".structure.json")
 
 
-def _s1(name):
-    return build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name))
+def _s1(name, run):
+    """run = [XRUN-F1 card B C6] 실행 두 객체 키워드(dict, s1v_hand.fresh_run) -- 부른 test 가 build_s1v 에도 같은 쌍을 넘긴다."""
+    return build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), **run)
 
 
 @pytest.mark.parametrize("name", NINE)
 def test_firing_table_structure(name):
     row = TABLE[name]
-    s1 = _s1(name)
-    s1v = H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False))   # [U17 ①-b] build_s1v -> S1Graph, graph/s1v 필드 읽기
+    run = H.fresh_run()
+    s1 = _s1(name, run)
+    s1v = H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, **run))   # [U17 ①-b] build_s1v -> S1Graph, graph/s1v 필드 읽기
     cds = composite_diodes(Projection.from_snapshot(s1.snapshot, s1_dc_roles.reads))
     assert {m for c in cds for m in c.reference + c.cascode_members} == row["composite"]
     assert {(c.tap, c.merge) for v in s1v.views for c in v.feedforward} == row["ff"]
@@ -120,8 +123,9 @@ def test_firing_table_totals():
 @pytest.mark.parametrize("name", NINE)
 def test_firing_table_stage_a_without_spec(name, real_lut, tmp_path):
     status, stops, reviews = TABLE[name]["stage_a"]
+    donors, counters = open_run()          # [XRUN-F1 card B 규칙 M M-c] run_stage_a 호출마다 1:1
     r = run_stage_a(H.LIBRARY / (name + ".topology.json"), None, real_lut, output_dir=tmp_path, supplies_v=H.lib_supplies(name),
-                    structure_path=_absent_structure(tmp_path, name))
+                    structure_path=_absent_structure(tmp_path, name), donors=donors, counters=counters)
     assert r.status == status
     assert r.exit_code == (0 if status == "ok" else 2)
     assert {x.split("|")[1] for x in r.report["stop_reasons"]} == stops
@@ -152,8 +156,9 @@ def test_stage_a_with_library_spec(name, status, reviews, real_lut, tmp_path):
     #   새로 생길 정지도 없다 -> ok 유지.
     # - 나머지 3회로(common_gate·folded·pushpull): pm_* 제약 없음 -> 단계 A 는 spec 없는 표(TABLE)와 같은 ok.
     # - 어느 회로도 내부 루프 선언이 없으므로 loop_cut_unmatched 는 0.
+    donors, counters = open_run()
     r = run_stage_a(H.LIBRARY / (name + ".topology.json"), H.LIBRARY / (name + ".sizing_spec.json"), real_lut, output_dir=tmp_path,
-                    supplies_v=H.lib_supplies(name))
+                    supplies_v=H.lib_supplies(name), donors=donors, counters=counters)
     assert r.status == status, r.report["stop_reasons"]
     assert r.report["stop_reasons"] == []
     assert {x.split("|")[1] for x in r.report["review_needed"]} == reviews
@@ -168,9 +173,12 @@ def test_pilot_stage_a_with_spec_has_no_unmatched_cut(real_lut, tmp_path):
     topo = H.LIBRARY / (name + ".topology.json")
     # [C-6] 이 test 는 사실 파일 없는 상태(41 1.12.6 '사실 없이 남는')를 본다 -- library 기본 structure.json 을 읽지 않게 없는 경로를 준다
     absent = _absent_structure(tmp_path, name)
+    d0, c0 = open_run()
     with_spec = run_stage_a(topo, H.LIBRARY / (name + ".sizing_spec.json"), real_lut, output_dir=tmp_path / "a",
-                            supplies_v=H.lib_supplies(name), structure_path=absent)
-    plain = run_stage_a(topo, None, real_lut, output_dir=tmp_path / "b", supplies_v=H.lib_supplies(name), structure_path=absent)
+                            supplies_v=H.lib_supplies(name), structure_path=absent, donors=d0, counters=c0)
+    d1, c1 = open_run()
+    plain = run_stage_a(topo, None, real_lut, output_dir=tmp_path / "b", supplies_v=H.lib_supplies(name), structure_path=absent,
+                        donors=d1, counters=c1)
     assert (with_spec.exit_code, with_spec.status) == (2, "stopped")
     stops = [x.split("|") for x in with_spec.report["stop_reasons"]]
     reviews = [x.split("|") for x in with_spec.report["review_needed"]]
@@ -190,7 +198,9 @@ def test_pilot_stage_a_library_default_facts_ok(real_lut, tmp_path, with_spec):
     # 전부 지운다(41 1.12.6) -> spec 유무와 무관하게 ok/0, 적용 사실 [(ac_ground_exception, Vbias2)], 정지·review 0.
     name = "current_reuse_telescopic_ota"
     sp = H.LIBRARY / (name + ".sizing_spec.json") if with_spec else None
-    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), sp, real_lut, output_dir=tmp_path, supplies_v=H.lib_supplies(name))
+    donors, counters = open_run()
+    r = run_stage_a(H.LIBRARY / (name + ".topology.json"), sp, real_lut, output_dir=tmp_path, supplies_v=H.lib_supplies(name),
+                    donors=donors, counters=counters)
     assert (r.exit_code, r.status) == (0, "ok"), r.report["stop_reasons"] + r.report["review_needed"]
     assert [tuple(x) for x in r.report["applied_facts"]] == [("ac_ground_exception", "Vbias2")]
     assert r.report["stop_reasons"] == []
@@ -272,8 +282,9 @@ def test_name_bijection_invariance(name, tmp_path):
     p = tmp_path / (name + ".topology.json")
     p.write_text(json.dumps(moved_raw), encoding="utf-8")
     sup = H.lib_supplies(name)
-    base_s1 = _s1(name)
-    base = H.read_s1v(build_s1v(base_s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False))   # [U17 ①-b] build_s1v -> S1Graph, graph/s1v 필드 읽기
-    moved_s1 = build_s1(load_topology(str(p)), {nm[k]: v for k, v in sup.items()})
-    moved = H.read_s1v(build_s1v(moved_s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False))   # [U17 ①-b] build_s1v -> S1Graph, graph/s1v 필드 읽기
+    run_base, run_moved = H.fresh_run(), H.fresh_run()      # [XRUN-F1 card B C6] 원본·이름 바꾼 쪽 = 다른 실행
+    base_s1 = _s1(name, run_base)
+    base = H.read_s1v(build_s1v(base_s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, **run_base))   # [U17 ①-b] build_s1v -> S1Graph, graph/s1v 필드 읽기
+    moved_s1 = build_s1(load_topology(str(p)), {nm[k]: v for k, v in sup.items()}, **run_moved)
+    moved = H.read_s1v(build_s1v(moved_s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, **run_moved))   # [U17 ①-b] build_s1v -> S1Graph, graph/s1v 필드 읽기
     assert _canon(base_s1, base, nm, dm) == _canon(moved_s1, moved, {}, {})

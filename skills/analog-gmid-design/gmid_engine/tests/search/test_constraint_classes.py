@@ -21,6 +21,8 @@ from gmid_engine.search.s0_fields import S0_WRITERS
 from gmid_engine.search.search_values import ConstraintClasses
 from gmid_engine.sizing import KERNEL_KEY
 
+from .conftest import block_row, fresh_run  # [XRUN-F1 card B C0·C1]
+
 
 @dataclasses.dataclass(frozen=True)
 class Decl:
@@ -42,7 +44,7 @@ DECLS = (
 
 
 def _classes(decls=DECLS):
-    snap = constraint_classes(GraphSnapshot.empty(S0_WRITERS), tuple(decls))
+    snap = constraint_classes(GraphSnapshot.empty(S0_WRITERS), tuple(decls), **fresh_run())
     return snap, snap.value("graph", KERNEL_KEY, "constraint_classes")
 
 
@@ -71,12 +73,12 @@ def test_empty_spec_gives_empty_classes():
 def test_writer_is_constraint_classes_and_reuse_computes_nothing():
     snap, _cc = _classes()
     assert snap.field("graph", KERNEL_KEY, "constraint_classes").writer == "constraint_classes"
-    constraint_classes.reset_stats()
-    again = constraint_classes(snap, DECLS)
-    st = constraint_classes.stats()
-    assert again is snap and (st.calls, st.reuses, st.computes) == (1, 1, 0)
+    run = fresh_run()                 # card B C4 판정 1 -- 새 실행 계수(C1)의 그 블록 행 = (calls 1, reuses 1, computes 0)
+    again = constraint_classes(snap, DECLS, **run)
+    st = block_row(run["counters"], constraint_classes.name)
+    assert again is snap and (st[0], st[1], st[4]) == (1, 1, 0)
 
 
 def test_mutable_extras_rejected():
     with pytest.raises(TypeError):
-        constraint_classes(GraphSnapshot.empty(S0_WRITERS), [Decl("power_dc_w", "<=", 1e-3)])
+        constraint_classes(GraphSnapshot.empty(S0_WRITERS), [Decl("power_dc_w", "<=", 1e-3)], **fresh_run())

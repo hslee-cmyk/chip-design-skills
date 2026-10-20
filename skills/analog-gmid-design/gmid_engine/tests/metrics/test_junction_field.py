@@ -16,7 +16,8 @@ import pytest
 from gmid_engine.core import GraphSnapshot
 from gmid_engine.metrics import METRICS_S0_WRITERS, JunctionParams, JunctionSource, junction_field
 
-from .conftest import JUNCTION_FIELDS, TOY_JUNCTION, load_lut_v2, lut_access, read_decls, toy_junction_decls
+from .conftest import (JUNCTION_FIELDS, TOY_JUNCTION, block_row, fresh_run, load_lut_v2, lut_access, read_decls,
+                       toy_junction_decls)
 
 KERNEL = "kernel"
 
@@ -40,7 +41,7 @@ def test_block_declaration():
 
 def test_field_holds_declared_junction_source(env):
     lut, paths, pdk, rule, access = env
-    out = junction_field(_snap(), pdk, rule, access)
+    out = junction_field(_snap(), pdk, rule, access, **fresh_run())
     js = out.value("graph", KERNEL, "junction_source")
     assert isinstance(js, JunctionSource)
     assert [k for k, _ in js.params] == ["nmos", "pmos"]
@@ -56,15 +57,15 @@ def test_field_holds_declared_junction_source(env):
 
 def test_same_input_reuses_and_changed_decl_recomputes(env, tmp_path):
     lut, _paths, pdk, rule, access = env
-    junction_field.reset_stats()
-    a = junction_field(_snap(), pdk, rule, access)
-    b = junction_field(a, pdk, rule, access)
+    # oracle 대조: card B C4 판정 1·4 -- 실행 계수(C1) 행: (compute, reuse) 뒤 선언 바꿔 compute
+    run = fresh_run()
+    a = junction_field(_snap(), pdk, rule, access, **run)
+    b = junction_field(a, pdk, rule, access, **run)
     assert b is a or b.fp == a.fp
-    st = junction_field.stats()
-    assert (st.computes, st.reuses, st.recomputes_same_input) == (1, 1, 0)
+    assert block_row(run["counters"], junction_field.name) == (2, 1, 0, 0, 1, 0)
     other = dict(TOY_JUNCTION)
     other["nmos"] = dict(TOY_JUNCTION["nmos"], cjs=2.2e-3)
     pdk2, rule2 = read_decls(*toy_junction_decls(tmp_path / "d2", params=other))
-    c = junction_field(b, pdk2, rule2, access)
-    assert junction_field.stats().computes == 2
+    c = junction_field(b, pdk2, rule2, access, **run)
+    assert block_row(run["counters"], junction_field.name)[4] == 2
     assert dict(c.value("graph", KERNEL, "junction_source").params)["nmos"].cjs == 2.2e-3

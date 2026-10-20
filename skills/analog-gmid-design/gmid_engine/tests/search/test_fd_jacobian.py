@@ -9,6 +9,7 @@ import pytest
 from gmid_engine.search import ACCEPTED_STATUSES, evaluate, fd_jacobian
 from gmid_engine.sizing import dc_columns, dc_currents
 
+from .conftest import block_row  # [XRUN-F1 card B C1]
 from .conftest import (
     CELLS_C,
     CELLS_P,
@@ -91,11 +92,12 @@ def test_current_column_reuses_columns_block(tmp_path, lut_sealed):
     case, s, base, vs, x, f = _setup(tmp_path, lut_sealed, th)
     i = [v.component for v in vs].index(("current", "M2"))
     skip = frozenset(j for j in range(len(vs)) if j != i)
-    c0, u0 = dc_columns.stats().computes, dc_currents.stats().computes
+    # [XRUN-F1 card B C1·C6] 계수 = 그 탐색 컨텍스트 실행(sctx.dc.counters)의 행 computes(인덱스 4)
+    c0, u0 = block_row(s.dc.counters, dc_columns.name)[4], block_row(s.dc.counters, dc_currents.name)[4]
     res, h = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip)[i]
     assert res is not None and h != 0.0
-    assert dc_columns.stats().computes == c0
-    assert dc_currents.stats().computes == u0 + 1
+    assert block_row(s.dc.counters, dc_columns.name)[4] == c0
+    assert block_row(s.dc.counters, dc_currents.name)[4] == u0 + 1
 
 
 def test_both_directions_out_of_bounds_gives_none(tmp_path, lut_sealed):

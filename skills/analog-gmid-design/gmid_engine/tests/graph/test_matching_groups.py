@@ -63,6 +63,13 @@ from gmid_engine.graph import (
 )
 from graph_u2_oracle import U2Oracle
 
+
+def _build(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
+
 import jrules_hand as J
 
 NINE = tuple(sorted((
@@ -94,7 +101,7 @@ def topo(netlist, inputs, outputs, passives=(), rails=("vdd", "gnd"), name="syn"
 
 
 def build(gh, tmp_path, raw, supplies=None, stem="syn"):
-    return build_s1(gh.load_raw(tmp_path, raw, stem), supplies)
+    return _build(gh.load_raw(tmp_path, raw, stem), supplies)
 
 
 def plain_group(g):
@@ -797,13 +804,15 @@ def test_block_declaration():
 
 
 def test_standalone_without_predecessors_is_keyerror():
+    from gmid_engine.search import open_run
+    donors, counters = open_run()
     with pytest.raises(KeyError):
-        s1_matching_groups(GraphSnapshot.empty(S1_WRITERS))
+        s1_matching_groups(GraphSnapshot.empty(S1_WRITERS), donors=donors, counters=counters)
 
 
 @pytest.mark.parametrize("name", NINE)
 def test_fields_written_by_this_block(gh, name):
-    s1 = build_s1(gh.load_lib(name), gh.supplies_for(name))
+    s1 = _build(gh.load_lib(name), gh.supplies_for(name))
     for f in FIELDS:
         fv = s1.snapshot.field("graph", GRAPH_KEY, f)
         assert fv is not None and fv.writer == S1_MATCHING_GROUPS_WRITER
@@ -916,7 +925,7 @@ def test_split_invariants_hand_cases(gh, tmp_path, case):
 
 @pytest.mark.parametrize("name", NINE)
 def test_split_invariants_library(gh, name):
-    _split_invariants(gh, build_s1(gh.load_lib(name), gh.supplies_for(name)), gh.raw(name))
+    _split_invariants(gh, _build(gh.load_lib(name), gh.supplies_for(name)), gh.raw(name))
 
 
 def _rule_members(gh, s1):
@@ -945,7 +954,7 @@ RATIFIED_DISP = {
 
 @pytest.mark.parametrize("name", sorted(RATIFIED))
 def test_library_ratified_matching_values(gh, name):
-    s1 = build_s1(gh.load_lib(name), gh.supplies_for(name))
+    s1 = _build(gh.load_lib(name), gh.supplies_for(name))
     got = _rule_members(gh, s1)
     for rule, members in RATIFIED[name]:
         assert got[("mirror", rule, frozenset(members))] == 1, (rule, members)
@@ -966,7 +975,7 @@ def test_library_split_is_noop_elsewhere(gh, name):
     # 세분(꼬리·diode 공급·대칭쌍)이 걸리는 묶음이 없는 6회로는 2026-10-08 이전 정의 결과 그대로(무동작).
     # 기대값 = test 쪽 옛 정의 재구현(MatchOracle split=False), 엔진 미사용.
     raw = gh.raw(name)
-    got = plain_fields(gh, build_s1(gh.load_lib(name), gh.supplies_for(name)))
+    got = plain_fields(gh, _build(gh.load_lib(name), gh.supplies_for(name)))
     assert got == MatchOracle(raw, split=False).fields()
 
 
@@ -1051,7 +1060,7 @@ def _status_invariants(gh, s1):
 
 @pytest.mark.parametrize("name", NINE)
 def test_library_status_and_structure_invariants(gh, name):
-    _status_invariants(gh, build_s1(gh.load_lib(name), gh.supplies_for(name)))
+    _status_invariants(gh, _build(gh.load_lib(name), gh.supplies_for(name)))
 
 
 def test_hand_cases_status_invariants(gh, tmp_path, case):
@@ -1063,7 +1072,7 @@ def test_hand_cases_status_invariants(gh, tmp_path, case):
 def test_library_matches_definition_oracle(gh, name):
     # 계약 4.5a 정의를 test 쪽에서 재구현한 값과 같다. 회로 해석(J-U4/J14) 확인 전이라 수치를 따로 적지 않는다.
     raw = gh.raw(name)
-    s1 = build_s1(gh.load_lib(name), gh.supplies_for(name))
+    s1 = _build(gh.load_lib(name), gh.supplies_for(name))
     got = plain_fields(gh, s1)
     exp = MatchOracle(raw, composite=J.LIB_COMPOSITE.get(name)).fields()
     assert got[0] == exp[0], "rel_matching_offset"
@@ -1075,8 +1084,8 @@ def test_library_matches_definition_oracle(gh, name):
 def test_library_no_stop_and_supplies_independent(gh, name):
     # 정지 분기 없음(4.6) + reads 에 bulk 가 없으니 supplies 유무와 무관하게 같은 값
     doc = gh.load_lib(name)
-    a = plain_fields(gh, build_s1(doc, gh.supplies_for(name)))
-    b = plain_fields(gh, build_s1(doc, None))
+    a = plain_fields(gh, _build(doc, gh.supplies_for(name)))
+    b = plain_fields(gh, _build(doc, None))
     assert a == b
 
 
@@ -1203,9 +1212,11 @@ import json, sys
 sys.path.insert(0, sys.argv[1])
 from gmid_engine.authoring import load_topology
 from gmid_engine.graph import GRAPH_KEY, build_s1
+from gmid_engine.search import open_run
 out = {}
 for p in sys.argv[2:]:
-    s1 = build_s1(load_topology(p), None)
+    donors, counters = open_run()   # [XRUN-F1 card B C6] 회로마다 새 실행 하나
+    s1 = build_s1(load_topology(p), None, donors=donors, counters=counters)
     out[p] = [repr(s1.value("graph", GRAPH_KEY, f)) for f in ("rel_matching_offset", "matching_groups", "matching_dispositions")]
 print(json.dumps(out, sort_keys=True))
 """
@@ -1228,13 +1239,13 @@ def _s1_pair(gh, name, *rows):
     from gmid_engine.graph import StructureFact, StructureFacts
     st = StructureFacts(facts=tuple(StructureFact("matching_pair", subj, "branch_symmetric", appr, ()) for subj, appr in rows),
                         findings=())
-    return build_s1(gh.load_lib(name), gh.supplies_for(name), structure=st)
+    return _build(gh.load_lib(name), gh.supplies_for(name), structure=st)
 
 
 def test_matching_pair_fact_adds_ratified_branch_symmetric_record(gh):
     # oracle (d) 40 3.2-3 사실 표 sf `matching_pair` ["M5","M7"] = branch_symmetric(override): 같은 멤버 레코드가 없으면 더하고
     # status ratified, evidence.basis = (approval_id,)(graph 계약 4.5a [U1b] 문장). 사실 없는 빌드에는 그 레코드가 없다.
-    plain = build_s1(gh.load_lib("sf_pushpull_output_opamp"), gh.supplies_for("sf_pushpull_output_opamp"))
+    plain = _build(gh.load_lib("sf_pushpull_output_opamp"), gh.supplies_for("sf_pushpull_output_opamp"))
     s1 = _s1_pair(gh, "sf_pushpull_output_opamp", ('["M5","M7"]', "P-57"))
 
     def rows(x):
@@ -1247,7 +1258,7 @@ def test_matching_pair_fact_adds_ratified_branch_symmetric_record(gh):
 
 def test_matching_pair_fact_ratifies_existing_record(gh):
     # 같은 멤버의 branch_symmetric 이 이미 유도돼 있으면 레코드를 더하지 않고 그 레코드 status 를 ratified 로 올린다(4.5a [U1b])
-    plain = build_s1(gh.load_lib("folded_cascode"), gh.supplies_for("folded_cascode"))
+    plain = _build(gh.load_lib("folded_cascode"), gh.supplies_for("folded_cascode"))
     derived = [g for g in gh.gval(plain, "matching_groups") if g.kind == MATCH_BRANCH_SYMMETRIC]
     assert derived                                                # 전제: folded 에 유도된 branch_symmetric 이 있다
     g0 = derived[0]

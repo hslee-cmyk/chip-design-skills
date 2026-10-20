@@ -344,7 +344,7 @@ def test_boxes_cover_exactly_theta_passive_components(name, toy_access_lib, tmp_
     # 옛 호출(설정 None 상자 = spec 상자만, 면적 예산 없음, untie 없음)과 같은 입력을 extras 로 넘긴다.
     settings = SearchSettings(600.0, 40, None, (("front_budget_s", "test"),))
     snap = search_domain(ctx.base.widen(S0_WRITERS), ctx.lut, settings.resistance_bounds_ohm, settings.capacitance_bounds_f, pdk,
-                         _theta_bounds_of(_load(name)), None, ())
+                         _theta_bounds_of(_load(name)), None, (), donors=ctx.donors, counters=ctx.counters)   # [XRUN-F1 card B C4·C6]
     dom = snap.value("graph", KERNEL_KEY, "search_domain")
     got = {v.component[1]: (v.log, v.lo, v.hi) for v in dom.variables if v.component[0] in kind_of}
     # [U2] search CONTRACT 3.24: 같은 자기동형 궤도의 수동소자 θ 성분은 대표 하나로 묶인다(current_reuse 의 R1/R2·Cc1/Cc2) -- 구성원은 변수에서 빠지고

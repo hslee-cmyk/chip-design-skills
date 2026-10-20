@@ -503,7 +503,7 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 
 권한표: 세 필드는 sizing `S2_WRITERS` 에 `SS_WRITES` 로 선언돼 있다(sizing CONTRACT 2절 끝 표). writer 이름 상수 `SS_DEV_WRITER`·
 `METRICS_SS_WRITER`·`METRICS_DC_WRITER`·`METRICS_KEY` 는 `gmid_engine.sizing` 공개 이름이다. 블록은 core `compute_block`(core 6절):
-입력 버전 = fp_of((이름, 코드 해시, 투영 지문)), 같으면 재사용(스냅샷 `is` 반환), `stats()` 계수. 뷰 어휘는 authoring 공개 이름
+입력 버전 = fp_of((이름, 코드 해시, 투영 지문)), 같으면 재사용(스냅샷 `is` 반환), 계수는 실행 하나의 `RunCounters`(XRUN-F1 B -- 블록 호출은 `donors`·`counters` 필수 키워드). 뷰 어휘는 authoring 공개 이름
 (`INPUT_DIRECTION`, `BETA_DECLARED`, `SENSE_DIFFERENTIAL` -- 마지막은 이번에 authoring `__all__` 에 더함).
 
 ### 7.1 값 형식 (`ss_types`, frozen)
@@ -621,6 +621,9 @@ reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v,
 - [9절] 전력·면적 결과의 `resolution` 은 None(LUT 소신호 불확실성 전파 대상이 아니다 -- 전력 축 분해능 b_P 는 같은 블록의 `power_resolution_w` 필드).
 
 ### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, ..., diffusion=()) -> SsEvaluation`
+[XRUN-F1 B] 서명은 그대로다. 다섯 블록(`passive_values`·`ss_dev`·`metrics_ss`·`metrics_aux`·`metrics_dc`)은 `ctx.donors`·`ctx.counters`(KernelContext 의 실행 하나 색인·계수)로 부른다 -- 같은 입력은 계보와
+무관하게 이식·재연된다. **ss 실패의 부분 스냅샷**: 후보 실패 클래스(`NonconvergentError`·`SealViolationError`, 이름으로 잡는다)가 나면 그 블록에 들어간 스냅샷(적어도 `sealed.snapshot`)을
+`core.attach_partial(exc, snapshot)` 로 붙인 뒤 같은 예외를 다시 낸다(`exc.partial`, 이미 있으면 바꾸지 않는다).
 [U14] `diffusion` = ((MOS, `DiffusionGeometry`), ...) -- 레이아웃 뒤 실현 확산 기하(MOD7 `ly.diffusion`). 있는 소자의 `ss_dev` cdb·csb 는 그 기하로, `junction_model` = `JUNCTION_LAYOUT_DIFFUSION`
 (없는 소자는 LUT 생성 규칙·`JUNCTION_LUT_RULE`). `ss_dev` 의 추가 extra 이며 빈 값은 넘기지 않는다(입력 버전이 종전과 같다). 수동소자 값 정본은 [U17 ①] GB5 계산 블록
 `passive_values(snapshot, element_values, zero_cancel, theta_passive_pairs(θ))`(`passive_values.py`)가 쓰는 S2 필드 `device.passive_value`이고(설계 40 §2.4.8), MOD8 판정 축 면적 입력(`layout.passives_from_decl`)·

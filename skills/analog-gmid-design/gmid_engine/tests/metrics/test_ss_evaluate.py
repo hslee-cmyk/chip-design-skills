@@ -36,6 +36,7 @@ from gmid_engine.sizing import (
     size_and_seal,
 )
 
+from .conftest import COUNT_FIELDS, block_row, fresh_run, row_delta
 from .conftest import (
     JUNCTION_RTOL,
     schema_of,
@@ -69,6 +70,18 @@ BLOCKS = (ss_dev, metrics_ss, metrics_dc)
 APPROX = (("cap", "lut_cgs_cgb"), ("gmb", "lut_gmbs_column"), ("junction", "pdk_bsim4_lut_rule_diffusion"))
 
 
+def _counts(ctx, blocks=BLOCKS):
+    """[XRUN-F1 card B C1] ctx 실행 계수의 블록 행(옛 블록 객체 stats 대체 -- 블록은 상태가 없다, C4)."""
+    return {b.name: block_row(ctx.counters, b.name) for b in blocks}
+
+
+def _since(ctx, before, blocks=BLOCKS):
+    """_counts 의 before 이후 증분 -- 속성 calls·reuses·grafts·replays·computes·recomputes_same_input."""
+    import types
+    now = _counts(ctx, blocks)
+    return {n: types.SimpleNamespace(**dict(zip(COUNT_FIELDS, row_delta(now[n], before[n])))) for n in now}
+
+
 def _topo(cl_engine=False):
     return topo_doc("sse_cs_res" + ("_e" if cl_engine else ""), mos=[("M1", "nmos", "out", "in", "gnd", "gnd")],
                     passives=[("R1", "resistor", "vdd", "out"), ("CL", "capacitor", "out", "gnd")], rails=("vdd", "gnd"))
@@ -92,12 +105,14 @@ def build(tmp, cl_engine=False, cons=CONS, th=None):
     td, spec = load_case(tmp / "case", _topo(cl_engine), SUP, els, (), cons)
     inputs = dc_inputs_from_spec(spec)
     lut = load_lut_v2(tmp / "lut")
-    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, lut_access(lut))
+    run = fresh_run()                 # [XRUN-F1 card B C0·C6] 실행 하나 = 이 build 하나
+    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, lut_access(lut), **run)
     ev = size_and_seal(ctx, theta() if th is None else th)
     return spec, ctx, ev, toy_junction(tmp / "junction", ctx.lut.memo.lut)
 
 
-@pytest.fixture(scope="module")
+# [XRUN-F1 card B 규칙 M M-d] KernelContext(실행 두 객체를 칸으로 쥠)를 돌려주므로 function 범위(test 하나 = 실행 하나)
+@pytest.fixture
 def base(tmp_path_factory):
     spec, ctx, ev, js = build(tmp_path_factory.mktemp("sse"))
     sealed = SealedSnapshot(ev.snapshot, ev.report)
@@ -206,11 +221,10 @@ def test_s10_only_sealed_snapshot_accepted(base, bad):
     """S-10 / DEC-67: SealedSnapshot 아닌 값(DcEvaluation·GraphSnapshot·None) -> TypeError."""
     spec, ctx, ev, _, _, js = base
     arg = {"dc_evaluation": ev, "snapshot": ev.snapshot, "none": None}[bad]
-    for blk in BLOCKS:
-        blk.reset_stats()
+    before = _counts(ctx)
     with pytest.raises(TypeError):
         ss_evaluate(arg, ctx, theta(), spec.constraints, ("vdd",), junction=js)
-    assert all(b.stats().calls == 0 for b in BLOCKS)          # 거부는 블록 호출 전
+    assert all(s.calls == 0 for s in _since(ctx, before).values())          # 거부는 블록 호출 전
 
 
 def test_ctx_must_be_kernel_context(base):
@@ -263,13 +277,12 @@ def test_s10_passive_theta_argument_removed(base):
     """S-10 [r5]: passive_theta 인자 삭제 -- 6번째 위치 인자·passive_theta 키워드 모두 TypeError(junction 을 바르게 줘도,
     블록 호출 전)."""
     spec, ctx, _, sealed, _, js = base
-    for b in BLOCKS:
-        b.reset_stats()
+    before = _counts(ctx)
     with pytest.raises(TypeError):
         ss_evaluate(sealed, ctx, theta(), spec.constraints, ("vdd",), (), junction=js)
     with pytest.raises(TypeError):
         ss_evaluate(sealed, ctx, theta(), spec.constraints, ("vdd",), passive_theta=(("CL", 1e-12),), junction=js)
-    assert all(b.stats().calls == 0 for b in BLOCKS)
+    assert all(s.calls == 0 for s in _since(ctx, before).values())
 
 
 @pytest.mark.parametrize("case", ["spec_valued", "not_passive", "unknown", "theta_resistance_too", "rule_and_theta"])
@@ -341,8 +354,9 @@ def test_pending_capacitor_stays_missing(tmp_path):
                                   (("R1", "resistor", None),), (("CL", "SP-9"),), CONS)
     inputs = dc_inputs_from_spec(spec)
     assert "CL" not in inputs.engine_elements
-    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs,
-                               lut_access(load_lut_v2(tmp_path / "lut")))
+    run = fresh_run()
+    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs,
+                               lut_access(load_lut_v2(tmp_path / "lut")), **run)
     assert not any(k == "CL" for _, k in schema_of(ctx).components)
     js = toy_junction(tmp_path / "junction", ctx.lut.memo.lut)
     ev = size_and_seal(ctx, theta())
@@ -356,13 +370,11 @@ def test_pending_capacitor_stays_missing(tmp_path):
 def test_s6_lineage_reuse_zero_compute(base):
     """7.6 재사용: ss_evaluate(res.lineage.sealed, 같은 인자) -> 세 블록 computes 0·reuses 1, snapshot is res.snapshot."""
     spec, ctx, _, _, res, js = base
-    for b in BLOCKS:
-        b.reset_stats()
+    before = _counts(ctx)
     again = ss_evaluate(res.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",), junction=js)
     assert again.snapshot is res.snapshot
-    for b in BLOCKS:
-        st = b.stats()
-        assert (st.computes, st.reuses) == (0, 1), b.name
+    for name, st in _since(ctx, before).items():
+        assert (st.computes, st.reuses) == (0, 1), name
 
 
 def test_s12_junction_change_recomputes_ss_blocks_only(base):
@@ -370,33 +382,31 @@ def test_s12_junction_change_recomputes_ss_blocks_only(base):
     recomputes_same_input 0. 같은 묶음으로 다시 -> 세 블록 computes 0."""
     spec, ctx, _, _, res, js = base
     js_t = dataclasses.replace(js, temp_c=js.temp_c + 10.0)
-    for b in BLOCKS:
-        b.reset_stats()
+    before = _counts(ctx)
     r2 = ss_evaluate(res.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",), junction=js_t)
-    assert [b.stats().computes for b in BLOCKS] == [1, 1, 0]
-    assert all(b.stats().recomputes_same_input == 0 for b in BLOCKS)
+    st = _since(ctx, before)
+    assert [st[b.name].computes for b in BLOCKS] == [1, 1, 0]
+    assert all(st[b.name].recomputes_same_input == 0 for b in BLOCKS)
     op = r2.snapshot.value("device", "M1", "dc_op")
     cdb, csb = oracle_junction(op, temp_c=37.0)
     ss = r2.snapshot.value("device", "M1", "ss_dev")
     assert rel_close(ss.cdb, cdb, JUNCTION_RTOL) and rel_close(ss.csb, csb, JUNCTION_RTOL)
-    for b in BLOCKS:
-        b.reset_stats()
+    before = _counts(ctx)
     again = ss_evaluate(r2.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",), junction=js_t)
     assert again.snapshot is r2.snapshot
-    assert [b.stats().computes for b in BLOCKS] == [0, 0, 0]
+    st = _since(ctx, before)
+    assert [st[b.name].computes for b in BLOCKS] == [0, 0, 0]
 
 
 def test_fd_step_recomputes_and_no_same_input_recompute(base):
     """FD(θ current +1 %, parent = lineage): dc_op 가 바뀌어 세 블록 재계산 1회씩, recomputes_same_input 0, 값이 새 op 를 따른다."""
     spec, ctx, _, _, res, js = base
     th2 = theta(i=I0 * 1.01)
-    for b in BLOCKS:
-        b.reset_stats()
+    before = _counts(ctx)
     ev2 = size_and_seal(ctx, th2, parent=res.lineage)
     r2 = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, th2, spec.constraints, ("vdd",), junction=js)
-    for b in BLOCKS:
-        st = b.stats()
-        assert (st.computes, st.recomputes_same_input) == (1, 0), (b.name, st)
+    for name, st in _since(ctx, before).items():
+        assert (st.computes, st.recomputes_same_input) == (1, 0), (name, st)
     exp = _expected(r2.snapshot)
     assert rel_close(bundle_map(r2.ss)["gain_ss_db"].value, exp["gain_db"], 1e-12)
     assert not rel_close(bundle_map(r2.ss)["gain_ss_db"].value, bundle_map(res.ss)["gain_ss_db"].value, 1e-9)
@@ -409,15 +419,15 @@ def test_only_changed_blocks_recompute(base):
     """입력이 바뀐 블록만 재계산: counted_rails 만 -> metrics_dc 만, 제약 집합만 -> metrics_ss 만."""
     spec, ctx, _, _, res, js = base
     sealed = res.lineage.sealed
-    for b in BLOCKS:
-        b.reset_stats()
+    before = _counts(ctx)
     ss_evaluate(sealed, ctx, theta(), spec.constraints, (), junction=js)
-    assert [b.stats().computes for b in BLOCKS] == [0, 0, 1]
-    for b in BLOCKS:
-        b.reset_stats()
+    st = _since(ctx, before)
+    assert [st[b.name].computes for b in BLOCKS] == [0, 0, 1]
+    before = _counts(ctx)
     fewer = tuple(c for c in spec.constraints if c.metric != "rout_ss_ohm")
     r = ss_evaluate(sealed, ctx, theta(), fewer, ("vdd",), junction=js)
-    assert [b.stats().computes for b in BLOCKS] == [0, 1, 0]
+    st = _since(ctx, before)
+    assert [st[b.name].computes for b in BLOCKS] == [0, 1, 0]
     assert "rout_ss_ohm" not in bundle_map(r.ss)
 
 
@@ -519,8 +529,9 @@ def zc_build(tmp, case, rz_decl=None):
            ("Rz", "resistor", rz_decl))
     td, spec = load_case(tmp / "case", zc_topo(case), SUP, els, (), ZC_CONS)
     inputs = dc_inputs_from_spec(spec)
-    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs,
-                               lut_access(load_lut_v2(tmp / "lut")))
+    run = fresh_run()                 # [XRUN-F1 card B C0·C6] 실행 하나 = 이 build 하나
+    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs,
+                               lut_access(load_lut_v2(tmp / "lut")), **run)
     return spec, ctx, toy_junction(tmp / "junction", ctx.lut.memo.lut)
 
 
@@ -543,7 +554,8 @@ def zc_ugf(snap, case, c, rz, r1=R0, cl=1e-12):
     return wu / (2.0 * math.pi), gm
 
 
-@pytest.fixture(scope="module")
+# [XRUN-F1 card B 규칙 M M-d] KernelContext 를 돌려주므로 function 범위
+@pytest.fixture
 def zc_cell(tmp_path_factory):
     spec, ctx, js = zc_build(tmp_path_factory.mktemp("zc_cell"), "cell")
     th = zc_theta(ctx)
@@ -552,7 +564,7 @@ def zc_cell(tmp_path_factory):
     return spec, ctx, th, res, js
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def zc_nocell(tmp_path_factory):
     spec, ctx, js = zc_build(tmp_path_factory.mktemp("zc_nocell"), "nocell")
     th = zc_theta(ctx, rz=1e4)
@@ -632,16 +644,16 @@ def test_s16_passive_theta_fd_reuses_dc_and_ss_dev(zc_cell, zc_nocell, which):
         key = ("ss_resistance", "Rz")
     th2[key] = th[key] * 1.1
     dc = _dc_blocks()
-    for b in dc + BLOCKS:
-        b.reset_stats()
+    before = _counts(ctx, dc + BLOCKS)
     ev2 = size_and_seal(ctx, th2, parent=res.lineage)
-    assert all(b.stats().computes == 0 for b in dc), {b.name: b.stats().computes for b in dc}
+    st_dc = _since(ctx, before, dc)
+    assert all(s.computes == 0 for s in st_dc.values()), {n: s.computes for n, s in st_dc.items()}
     r2 = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, th2, spec.constraints, ("vdd",), junction=js)
-    st = {b.name: b.stats() for b in BLOCKS}
+    st = _since(ctx, before, BLOCKS)
     assert (st[ss_dev.name].computes, st[ss_dev.name].reuses) == (0, 1)
     assert st[metrics_ss.name].computes == 1 and st[metrics_dc.name].computes == 1
     assert all(s.recomputes_same_input == 0 for s in st.values())
-    assert all(b.stats().computes == 0 for b in dc)
+    assert all(s.computes == 0 for s in _since(ctx, before, dc).values())
     m1, m2 = bundle_map(res.ss), bundle_map(r2.ss)
     assert rel_close(m2["gain_ss_db"].value, m1["gain_ss_db"].value, 1e-13)
     if which == "cell":
@@ -653,11 +665,10 @@ def test_s16_passive_theta_fd_reuses_dc_and_ss_dev(zc_cell, zc_nocell, which):
     assert rel_close(m2["ugf_ss_hz"].value, exp, 1e-7)
     assert not rel_close(m2["ugf_ss_hz"].value, m1["ugf_ss_hz"].value, 1e-9)
     # 같은 θ' 를 lineage 에서 다시 -> 세 블록 모두 reuse
-    for b in BLOCKS:
-        b.reset_stats()
+    before = _counts(ctx)
     again = ss_evaluate(r2.lineage.sealed, ctx, th2, spec.constraints, ("vdd",), junction=js)
     assert again.snapshot is r2.snapshot
-    assert all(b.stats().computes == 0 for b in BLOCKS)
+    assert all(s.computes == 0 for s in _since(ctx, before).values())
 
 
 # ---------------------------------------------------------------- [회귀 9065d5f, _audit_u17_1c_r2 §F-2] 봉인점 경로의 passive_values extras
@@ -678,17 +689,17 @@ def test_passive_values_reused_on_mos_theta_only_change(zc_cell, zc_nocell, whic
     pv0 = dict(res.snapshot.column("device", "passive_value"))
     th_mos = _mos_step(th)
     assert th_mos != th and {k for k in th if th[k] != th_mos[k]} and         all(th[k] == th_mos[k] for k in th if k[0] in ("capacitance", "ss_resistance", "resistance"))   # 전제
-    passive_values.reset_stats()
+    before = _counts(ctx, (passive_values,))
     r = ss_evaluate(sealed, ctx, th_mos, spec.constraints, ("vdd",), junction=js)
-    st = passive_values.stats()
+    st = _since(ctx, before, (passive_values,))[passive_values.name]
     assert (st.computes, st.reuses) == (0, 1), st
     assert dict(r.snapshot.column("device", "passive_value")) == pv0
     # 수동소자 θ 성분을 바꾸면 계산 1 -- 새 값이 필드에 든다
     key = ("capacitance", "Cc") if which == "cell" else ("ss_resistance", "Rz")
     th_p = dict(th)
     th_p[key] = th[key] * 1.1
-    passive_values.reset_stats()
+    before = _counts(ctx, (passive_values,))
     r2 = ss_evaluate(sealed, ctx, th_p, spec.constraints, ("vdd",), junction=js)
-    st = passive_values.stats()
+    st = _since(ctx, before, (passive_values,))[passive_values.name]
     assert (st.computes, st.recomputes_same_input) == (1, 0), st
     assert dict(r2.snapshot.column("device", "passive_value"))[key[1]] == th[key] * 1.1

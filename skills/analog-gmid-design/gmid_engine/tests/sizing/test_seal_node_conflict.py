@@ -31,7 +31,9 @@ def rows_of(snap):
 
 
 def run(snap):
-    return seal_item(dc_seal_node_conflict(snap), 1)
+    from gmid_engine.search import open_run
+    donors, counters = open_run()          # [XRUN-F1 card B C4] 블록 단독 호출 = 새 실행 하나
+    return seal_item(dc_seal_node_conflict(snap, donors=donors, counters=counters), 1)
 
 
 @pytest.mark.parametrize("which", ["C", "A"])

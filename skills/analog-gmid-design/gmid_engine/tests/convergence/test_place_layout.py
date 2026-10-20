@@ -21,18 +21,40 @@ KINDS = {"A": "nmos", "B": "nmos", "C": "pmos"}
 CUR = (("nmos", 1000), ("pmos", 1000))
 
 
+def _pair():
+    """[XRUN-F1 card B C0] 새 실행 하나의 두 객체."""
+    from gmid_engine.search import open_run
+    return open_run()
+
+
+def _run():
+    donors, counters = _pair()
+    return dict(donors=donors, counters=counters)
+
+
+@pytest.mark.parametrize("missing", ["donors", "counters", "both"])
+def test_run_pair_keywords_required(patch, missing):
+    """B-T16(XRUN-F1 card B C6): place_layout 은 기존 인자 + 필수 키워드 donors·counters(기본값 없음) -- 빠지면 TypeError."""
+    patch(Script(lambda li: layout(devices=(dlay("A", 1e-6, 1, 1e-6),))))
+    kw = {k: v for k, v in _run().items() if missing != "both" and k != missing}
+    with pytest.raises(TypeError):
+        place_layout("M", "S", pdk((("nmos", (100,)), ("pmos", (40,)))), (), (), set(), {}, None, {"A": "nmos"}, CUR, **kw)
+
+
 class Script:
     """가짜 run_layout: `fn(layout_input) -> LayoutResult`. 호출마다 (nmos 폭 키, 완화 집합, rejected, previous, memo, 설계점 snapshot) 을 기록하고
     결과 스냅샷에 입력 그룹 필드(`ly_groups_in` = hub 넷)를 넣는다."""
 
     def __init__(self, fn, hubs=()):
-        self.fn, self.calls, self.hubs = fn, [], dict(hubs)
+        self.fn, self.calls, self.hubs, self.runs = fn, [], dict(hubs), []
 
     def layout_input_of(self, snapshot, pdk_, passives, rejected=(), relaxed=()):
         return SimpleNamespace(pdk=pdk_, relaxed=frozenset(relaxed), rejected=tuple(rejected), passives=passives), ()
 
-    def run_layout(self, li, memo, snapshot, previous):
+    def run_layout(self, li, memo, snapshot, previous, *, donors, counters):
+        # [XRUN-F1 card B C6] run_layout 의 두 키워드는 필수(기본값 없음) -- 가짜도 같은 서명이라 place_layout 이 넘기지 않으면 TypeError
         self.calls.append((dict(li.pdk.slice_width_keys)["nmos"], li.relaxed, li.rejected, previous, memo, snapshot))
+        self.runs.append((donors, counters))
         return with_groups_in(self.fn(li), self.hubs.items())
 
 
@@ -69,7 +91,11 @@ def test_conflict_narrows_kind_to_best_scoring_key(patch):
     s = patch(Script(fn, hubs=(("g", "tail"),)))
     base = pdk((("nmos", (10, 20, 30)), ("pmos", (40,))))
     first_seen, relaxed = {}, set()
-    out = place_layout("MEMO", "SNAP", base, ("pas",), ("R",), relaxed, first_seen, None, KINDS, CUR)
+    donors, counters = _pair()
+    out = place_layout("MEMO", "SNAP", base, ("pas",), ("R",), relaxed, first_seen, None, KINDS, CUR,
+                       donors=donors, counters=counters)
+    # [XRUN-F1 card B C6] place_layout 은 받은 두 객체를 run_layout 호출마다 그대로(is) 넘긴다
+    assert len(s.runs) == len(s.calls) and all(d is donors and c is counters for d, c in s.runs)
     assert isinstance(out, PlacedLayout)
     assert [c[0] for c in s.calls] == [(10, 20, 30), (10,), (20,), (20,)]      # 1 + 시험 2 + 다시 1
     assert out.layout_calls == 4
@@ -93,7 +119,7 @@ def test_score_tie_picks_smaller_key(patch):
             return dev3(10, 20, 5e-10)
         return dev3(keys[0], keys[0], 4e-10)                 # 두 시험 점수 동일
     s = patch(Script(fn))
-    out = place_layout("M", "S", pdk((("nmos", (10, 20)), ("pmos", (40,)))), (), (), set(), {}, None, KINDS, CUR)
+    out = place_layout("M", "S", pdk((("nmos", (10, 20)), ("pmos", (40,)))), (), (), set(), {}, None, KINDS, CUR, **_run())
     assert out.narrowed == (("nmos", 10),)
     assert [c[0] for c in s.calls] == [(10, 20), (10,), (20,), (10,)]
 
@@ -110,7 +136,7 @@ def test_relaxation_reruns_once_and_records_first_seen(patch):
                                             glay("h", "branch_symmetric", ("C", "D"), reason="second")))
     s = patch(Script(fn, hubs=(("g", "tail"), ("h", None))))
     kinds = {"A": "nmos", "B": "nmos", "C": "nmos", "D": "nmos"}
-    out = place_layout("M", "S", pdk((("nmos", (100,)), ("pmos", (40,)))), (), (), set(), {}, None, kinds, CUR)
+    out = place_layout("M", "S", pdk((("nmos", (100,)), ("pmos", (40,)))), (), (), set(), {}, None, kinds, CUR, **_run())
     assert [c[1] for c in s.calls] == [frozenset(), frozenset({"g"})]
     assert out.layout_calls == 2
     assert out.relaxed == frozenset({"g"})                               # hub 없는 h 는 완화하지 않는다
@@ -122,7 +148,8 @@ def test_already_relaxed_and_first_seen_inputs_are_kept(patch):
     keep = glay("old", "diff_pair", ("X", "Y"), reason="kept")
     s = patch(Script(lambda li: layout(devices=(dlay("A", 1e-6, 1, 1e-6),))))
     relaxed, seen = {"old"}, {"old": keep}
-    out = place_layout("M", "S", pdk((("nmos", (100,)), ("pmos", (40,)))), (), (), relaxed, seen, None, {"A": "nmos"}, CUR)
+    out = place_layout("M", "S", pdk((("nmos", (100,)), ("pmos", (40,)))), (), (), relaxed, seen, None, {"A": "nmos"}, CUR,
+                       **_run())
     assert s.calls[0][1] == frozenset({"old"})
     assert out.relaxed == frozenset({"old"}) and out.first_seen == {"old": keep}
     assert relaxed == {"old"} and seen == {"old": keep}
@@ -131,7 +158,7 @@ def test_already_relaxed_and_first_seen_inputs_are_kept(patch):
 def test_unplaced_stops_immediately(patch):
     s = patch(Script(lambda li: layout(devices=(dlay("A", 1e-6, 1, 1e-6), dunplaced("B")),
                                        groups=(glay("g", "diff_pair", ("A", "B")),))))
-    out = place_layout("M", "S", pdk((("nmos", (100,)), ("pmos", (40,)))), (), (), set(), {}, None, KINDS, CUR)
+    out = place_layout("M", "S", pdk((("nmos", (100,)), ("pmos", (40,)))), (), (), set(), {}, None, KINDS, CUR, **_run())
     assert len(s.calls) == 1 and out.layout_calls == 1
     assert out.unplaced == ("B",)
     assert out.keys == () and out.relaxed == frozenset() and out.first_seen == {}

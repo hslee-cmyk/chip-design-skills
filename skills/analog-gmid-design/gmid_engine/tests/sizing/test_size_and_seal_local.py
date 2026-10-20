@@ -26,7 +26,7 @@ from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 4
 ID = 1e-5
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture          # [XRUN-F1 card B 규칙 M M-d] KernelContext(실행 두 객체를 칸으로 쥠)는 function 범위
 def mir(tmp_path_factory, r4_access):
     """(S1Graph, KernelContext) -- circuit_mirror, I1 = 10 µA."""
     return build_ctx_u4(tmp_path_factory.mktemp("loc_mir"), circuit_mirror(), r4_access, element_values=(("I1", ID),))

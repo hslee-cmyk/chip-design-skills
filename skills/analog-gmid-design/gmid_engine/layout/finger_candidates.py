@@ -1,6 +1,6 @@
 """MOD7 소자별 finger_w 후보 계산 블록 (계획 N3.17 LY1·LY2, design_mod7_layout.md 3절 2(a)·L9, 사용자 결정 2026-10-07 Q4).
 
-진입점: `finger_candidates` -- core `@compute_block`(writer `ly_finger_candidates`, reads device `ly_device`·`ly_slices`·
+진입점: `finger_candidates` -- core `@compute_block`(writer `ly_finger_candidates`, reads device `ly_point`(gm_id)·`ly_slices`·
 graph `ly_pdk`, writes device `ly_fw_cand`).
 
 보존량은 (ID, gm/ID, L)이다(Q4 (i)). 후보 finger_w = PDK 특성화 폭(LUT DC 슬라이스 폭 키)만, 그중 `ly_slices` 가 사용 가능
@@ -13,7 +13,7 @@ import math
 
 from gmid_engine.core import compute_block
 
-from ._ly_fields import DEVICE, F_DEVICE, F_FW_CAND, F_PDK, F_SLICES, GRAPH, GRAPH_KEY, WRITER_FW_CAND
+from ._ly_fields import DEVICE, F_FW_CAND, F_POINT, F_PDK, F_SLICES, GRAPH, GRAPH_KEY, WRITER_FW_CAND
 from .contract_output import FingerCandidate
 from .w_tolerance import w_tolerance
 
@@ -33,7 +33,7 @@ def _candidates(gm_id, slices, grid_m):
     return tuple(out)
 
 
-@compute_block(WRITER_FW_CAND, reads=((DEVICE, F_DEVICE), (DEVICE, F_SLICES), (GRAPH, F_PDK)),
+@compute_block(WRITER_FW_CAND, reads=((DEVICE, F_POINT), (DEVICE, F_SLICES), (GRAPH, F_PDK)),
                writes=((DEVICE, F_FW_CAND),))
 def finger_candidates(projection):
     """소자마다 `FingerCandidate` tuple(폭 키 오름차순, 같은 폭은 nf 오름차순)."""
@@ -41,9 +41,9 @@ def finger_candidates(projection):
     slices_of = dict(projection.column(DEVICE, F_SLICES))
     memo = {}
     out = {}
-    for name, device in projection.column(DEVICE, F_DEVICE):
-        memo_key = (device.gm_id, slices_of[name])
+    for name, point in projection.column(DEVICE, F_POINT):
+        memo_key = (point.gm_id, slices_of[name])
         if memo_key not in memo:
-            memo[memo_key] = _candidates(device.gm_id, slices_of[name], grid)
+            memo[memo_key] = _candidates(point.gm_id, slices_of[name], grid)
         out[name] = memo[memo_key]
     return {(DEVICE, F_FW_CAND): out}

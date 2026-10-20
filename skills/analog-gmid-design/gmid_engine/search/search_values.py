@@ -159,7 +159,9 @@ class EvalResult:
     """커널 1회 결과(설계 2.3). `evaluation` = DcEvaluation 또는 None, `failure` = FailureRecord 또는 None,
     `constraints` = ConstraintRow tuple(ε 제약 제외 -- ε 는 키 밖이라 호출부가 붙인다), `cone` = 원뿔 제약 행,
     `unmeasured` = 이 점에서 재지 못한 spec 제약 ((metric, op, 사유), ...) -- 빠뜨리지 않고 '미측정'으로 남긴다(S-1).
-    [CM] `warnings` = 판정에 영향 없는 평가 경고 ((코드, ((키, 값), ...)), ...) -- `ss_evaluate` 의 `MetricBundle.warnings`(예 `cm_loop_unconstrained`)."""
+    [CM] `warnings` = 판정에 영향 없는 평가 경고 ((코드, ((키, 값), ...)), ...) -- `ss_evaluate` 의 `MetricBundle.warnings`(예 `cm_loop_unconstrained`).
+    `partial` = 후보 실패(`status == "failed"`) 커널 평가가 실패 직전까지 쓴 마지막 `GraphSnapshot`(부분 스냅샷, 설계 40 §2.4.7 -- DC 블록 실패 = 그 블록에 들어간 스냅샷,
+    봉인 위반 = `dc_seal_report` 까지, ss 실패 = ss 단계 직전까지). 성공·정의역 밖은 None. S3 evals 실패 줄 `snapshot_fp` 의 출처다(U17 ② G-7 재작성 전의 과도 형식)."""
 
     key: EvalKey
     theta: tuple
@@ -172,6 +174,7 @@ class EvalResult:
     seq: int
     unmeasured: tuple = ()
     warnings: tuple = ()
+    partial: object = None
 
 
 @dataclasses.dataclass(frozen=True)

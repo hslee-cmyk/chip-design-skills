@@ -1,8 +1,8 @@
 """MOD7 matching 그룹 패턴 선택 계산 블록 -- 행 구성 단계에서 먼저, 패턴표 우선 (계획 N3.17 LY4·LY5·LY6, design 3절 2단계,
 사용자 결정 2026-10-07 Q4 (i)·Q8 (i)~(iv)).
 
-진입점: `pattern_select` -- core `@compute_block`(writer `ly_pattern_select`, reads device `ly_device`·`ly_fw_cand`,
-graph `ly_pdk`·`ly_groups_in`·`ly_rejected`, writes graph `ly_groups`·`ly_dispositions`).
+진입점: `pattern_select` -- core `@compute_block`(writer `ly_pattern_select`, reads device `ly_point`(kind·L_m)·`ly_pins`·
+`ly_w_adjustable`·`ly_fw_cand`, graph `ly_pdk`·`ly_groups_in`·`ly_rejected`·`ly_canon`(정준 별칭표), writes graph `ly_groups`·`ly_dispositions`).
 
 0. role 이 `EXCLUDED_ROLES`(bias_distribution·feedback_shared)인 그룹은 레이아웃 matching 에서 빼고 근거와 함께
    `MatchingDisposition` 으로 기록한다(Q8 (iii)) -- 그 멤버는 일반 행 소자로 배치된다.
@@ -32,16 +32,19 @@ from collections import Counter
 
 from gmid_engine.core import compute_block
 
-from ._helpers_pattern import offsets, orient, pattern_rows
+from ._helpers_pattern import device_views, offsets, orient, pattern_rows
 from ._ly_fields import (
     DEVICE,
-    F_DEVICE,
+    F_CANON,
     F_DISPOSITIONS,
     F_FW_CAND,
     F_GROUPS,
     F_GROUPS_IN,
     F_PDK,
+    F_PINS,
+    F_POINT,
     F_REJECTED,
+    F_W_ADJ,
     GRAPH,
     GRAPH_KEY,
     WRITER_GROUPS,
@@ -277,13 +280,14 @@ def _place(group, devices, fw_cand, pdk, rejected):
 
 @compute_block(
     WRITER_GROUPS,
-    reads=((DEVICE, F_DEVICE), (DEVICE, F_FW_CAND), (GRAPH, F_PDK), (GRAPH, F_GROUPS_IN), (GRAPH, F_REJECTED)),
+    reads=((DEVICE, F_POINT), (DEVICE, F_PINS), (DEVICE, F_W_ADJ), (DEVICE, F_FW_CAND), (GRAPH, F_PDK), (GRAPH, F_GROUPS_IN),
+           (GRAPH, F_REJECTED), (GRAPH, F_CANON)),
     writes=((GRAPH, F_GROUPS), (GRAPH, F_DISPOSITIONS)),
 )
 @canonical_names()
 def pattern_select(projection):
     """레이아웃 matching 그룹마다 `GroupLayout`(gid 정렬 tuple), 뺀 그룹마다 `MatchingDisposition`(gid 정렬 tuple)."""
-    devices = dict(projection.column(DEVICE, F_DEVICE))
+    devices = device_views(projection, adjustable=True)
     fw_cand = dict(projection.column(DEVICE, F_FW_CAND))
     pdk = projection.value(GRAPH, GRAPH_KEY, F_PDK)
     groups = sorted(projection.value(GRAPH, GRAPH_KEY, F_GROUPS_IN), key=lambda g: g.gid)

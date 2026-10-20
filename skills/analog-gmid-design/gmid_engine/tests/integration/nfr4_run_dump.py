@@ -38,7 +38,7 @@ FORMAT = "nfr4_run_record/1"
 T_NAMES = frozenset(("wall_s", "eval_time_median_s", "eval_times"))
 K_NAMES = frozenset(("iterations", "kernel_calls", "unique_keys", "requests", "hits", "fail_hits", "outside_domain",
                      "recompute_same_key", "n_history", "history_seqs", "sweeps", "nit", "probes", "n_starts", "n_solves",
-                     "block_calls", "block_reuses", "block_computes", "block_recomputes_same_input", "lut_memo_evictions",
+                     "lut_memo_evictions",
                      "stops_eval_budget", "stops_wall_budget", "message"))
 STOP_NAMES = frozenset(("stop", "aborts", "stops"))
 MAX_DEPTH = 60
@@ -331,7 +331,7 @@ def main(argv=None):
     from gmid_engine.core import BoundedLRU, read_pdk_decl
     from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
     from gmid_engine.pipeline import run_stage_a, run_stage_b
-    from gmid_engine.search import SearchSettings, build_search_context, find_front
+    from gmid_engine.search import SearchSettings, build_search_context, find_front, open_run
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
 
     loc = resolve_lut_location(str(SKILL / "assets" / "lut_v2_location.json"), os.environ)
@@ -374,7 +374,10 @@ def main(argv=None):
         out_json.write_text(json.dumps(record, ensure_ascii=False, sort_keys=True), encoding="utf-8")
 
     out = work / "out"
-    a = run_stage_a(LIBRARY / (a_.circuit + ".topology.json"), LIBRARY / (a_.circuit + ".sizing_spec.json"), lut, output_dir=out)
+    # [XRUN-F1 card B C6·규칙 M M-c] 회로 실행 하나 = open_run 한 쌍. 단계 B 는 a 의 두 칸, 커널 컨텍스트는 같은 두 객체(card B 사슬)
+    donors, counters = open_run()
+    a = run_stage_a(LIBRARY / (a_.circuit + ".topology.json"), LIBRARY / (a_.circuit + ".sizing_spec.json"), lut, output_dir=out,
+                    donors=donors, counters=counters)
     record["code_fp"] = a.code_fp
     report_a = json.loads(Path(a.report_paths[0]).read_text(encoding="utf-8"))
     record["env_fp"].append(["stage_a", report_a.get("env_fp")])
@@ -394,7 +397,7 @@ def main(argv=None):
     snapshot = None
     if (a.status, b.status) == ("ok", "ok"):
         record["searched"] = True
-        kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo))
+        kctx = build_kernel_context(b.s1, dc_inputs_from_spec(a.spec), pre_layout_lut_access(memo), donors=a.donors, counters=a.counters)
         s3 = work / "s3"
         s3.mkdir(exist_ok=True)
         sctx = build_search_context(kctx, a.spec, settings, str(s3), pdk, rule, code_fp=a.code_fp)

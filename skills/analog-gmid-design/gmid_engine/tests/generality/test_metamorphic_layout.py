@@ -97,9 +97,14 @@ def _pdk(pipe):
     return dataclasses.replace(full, slice_width_keys=tuple(keys))
 
 
+def _pair(case):
+    """[XRUN-F1 card B C6] 그 Case 의 실행(case.ctx 의 두 객체) -- 레이아웃도 같은 실행 안."""
+    return dict(donors=case.ctx.donors, counters=case.ctx.counters)
+
+
 def _run(pipe, case, theta):
     li, sealed = layout_input(pipe, case, theta)
-    return run_layout(li, pipe.env.memo, sealed)
+    return run_layout(li, pipe.env.memo, sealed, **_pair(case))
 
 
 def _g(res, field):
@@ -199,7 +204,7 @@ def test_layout_fields_live_on_sealed_snapshot(pipe):
     name = CIRCUITS[0]
     case, th = pipe.case(name), _theta0(pipe, name)
     li, sealed = layout_input(pipe, case, th)
-    r = run_layout(li, pipe.env.memo, sealed)
+    r = run_layout(li, pipe.env.memo, sealed, **_pair(case))
     ly_writers = {w for _f, w in LY_WRITERS.entries}
     for writer, version in sealed.block_versions.items():
         assert writer not in ly_writers
@@ -209,5 +214,9 @@ def test_layout_fields_live_on_sealed_snapshot(pipe):
     for dev_name, _op in sealed.column("device", "dc_op"):
         rec = r.snapshot.record("device", dev_name)
         assert rec.get("dc_op") is not None and rec.get("ly_finger") is not None, dev_name
-    again = run_layout(li, pipe.env.memo, sealed, previous=r)
-    assert again.computed_blocks == () and again.snapshot is r.snapshot
+    # 이번 호출에서 쓴 writer(계산 또는 이식) = 실행 계수(C1) 행의 computes·grafts 증분(사용자 결정 O-17 (3): 옛 computed_blocks 의 정본)
+    pair = _pair(case)
+    before = {x.block: x.computes + x.grafts for x in pair["counters"].snapshot().blocks}
+    again = run_layout(li, pipe.env.memo, sealed, previous=r, **pair)
+    after = {x.block: x.computes + x.grafts for x in pair["counters"].snapshot().blocks}
+    assert {b for b, n in after.items() if n > before.get(b, 0)} == set() and again.snapshot is r.snapshot

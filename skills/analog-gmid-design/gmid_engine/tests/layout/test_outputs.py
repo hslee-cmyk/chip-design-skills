@@ -3,7 +3,7 @@
 [U17 1-e] design 40 v1.6 §2.4.7: `LayoutResult` 는 (스냅샷, 계산 블록 목록)뿐이고, 옛 결과 칸(review_needed·devices·coverage·w_requests·
 w_invariant_ok·revalidation)은 필드에서 읽을 때 만드는 반환값이다. 이 파일은 그 파생 규칙 자체를 본다.
 
-oracle (a): 레이아웃 필드 값(`ly_device`·`ly_slices`·`ly_finger`·`ly_groups`·`ly_rows`·`ly_diffusion`)을 손으로 만들어 `_ly_fields` 권한표의
+oracle (a): 레이아웃 필드 값(`ly_point`·`ly_pins`·`ly_w_adjustable`·`ly_attrs`·`ly_slices`·`ly_finger`·`ly_groups`·`ly_rows`·`ly_diffusion`)을 손으로 만들어 `_ly_fields` 권한표의
 빈 스냅샷에 쓰고, 기대 출력은 CONTRACT 4.12 5~8·4.14 의 규칙을 손으로 적용해 적는다(옛 test_run 의 손계산 oracle 과 같은 수:
 C 의 finger_quantization 요청 0.75e-6 -> 1e-6, 없는 슬라이스 소자 Z 의 no_usable_slice 요청·coverage 누락). 계산 블록·run_layout 을 부르지 않는다.
 """
@@ -36,7 +36,7 @@ from gmid_engine.layout.contract_output import (
     WRequest,
 )
 
-from .conftest import dev
+from .conftest import W_INPUT, dev, input_device_columns
 
 GRID = 1e-8
 NO_ROOT = "lut_no_strong_inversion_root"
@@ -84,7 +84,8 @@ def diffusion(name, fw, nf):
 def snapshot(devices, slices, fingers, groups, rows_, diffusions):
     """`_ly_fields` 권한표의 빈 스냅샷에 필드를 writer 별로 쓴다(값은 손계산). 입력 버전 문자열은 임의."""
     s = GraphSnapshot.empty(lf.LY_WRITERS)
-    s = s.write(lf.WRITER_INPUT, "in", {(lf.DEVICE, lf.F_DEVICE): {d.name: d for d in devices}})
+    # [v1.11.2 O-39 (1)] 입력 소자 칸 = 네 필드(`ly_point`·`ly_pins`·`ly_w_adjustable`·`ly_attrs`, design 40 §2.4.8 옛 소자 통째 필드 삭제 행)
+    s = s.write(W_INPUT, "in", input_device_columns(devices))
     s = s.write(lf.WRITER_SLICES, "sl", {(lf.DEVICE, lf.F_SLICES): dict(slices)})
     s = s.write(lf.WRITER_GROUPS, "gr", {(lf.GRAPH, lf.F_GROUPS): {lf.GRAPH_KEY: tuple(groups)}})
     s = s.write(lf.WRITER_FINGER, "fg", {(lf.DEVICE, lf.F_FINGER): {f.name: f for f in fingers}})

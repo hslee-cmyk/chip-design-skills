@@ -290,7 +290,9 @@ def test_value_fields_as_contract():
 def test_kernel_context_holds_only_references():
     """[U17 ①-b] 설계 40 v1.9 §2.4.7 KernelContext 행: 설계 값 사본(`schema`(θ 스키마)·`fixed_values`·`resistor_values`·`l_ties`)은 S0 수준
     필드 `graph/kernel: theta_schema·fixed_values·resistor_values·l_ties`(§2.4.8)로 가고 `plan_versions` 는 쓰기 계획 블록의 block_version
-    읽기로 대체된다. '남는 칸은 참조(`base` = S0 수준 스냅샷, `lut` = LUT memo 와 폭 키, `inputs` = spec 파싱 결과)' -> 칸 이름은 그 셋 안."""
+    읽기로 대체된다. '남는 칸은 참조(`base` = S0 수준 스냅샷, `lut` = LUT memo 와 폭 키, `inputs` = spec 파싱 결과)' -> 칸 이름은 그 셋 안.
+    [XRUN-F1 card B C6] + 실행 두 객체 참조 칸 `donors`·`counters`('결과 KernelContext 칸 donors·counters(is)') -- 역시 참조라 위 원칙과 맞다."""
     fields = {f.name for f in dataclasses.fields(S.KernelContext)}
     assert not fields & {"schema", "fixed_values", "resistor_values", "plan_versions", "l_ties"}, fields
-    assert fields <= {"base", "inputs", "lut"}, fields
+    assert fields <= {"base", "inputs", "lut", "donors", "counters"}, fields
+    assert {"donors", "counters"} <= fields, fields

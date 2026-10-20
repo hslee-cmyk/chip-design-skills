@@ -1,6 +1,9 @@
 """S1 생성 (설계 design_mod3_s1_graph 5.2, design_mod3_structure_u2_u5 4.0, 확정 사항 1·2·5).
 
-진입점: `build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None, marks=NO_MARKS) -> S1Graph`.
+진입점: `build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None, marks=NO_MARKS, donors, counters) -> S1Graph`.
+
+* `donors`·`counters`: 필수 키워드(기본값 없음) -- 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수(설계 40 §2.4.5 '전달').
+  13개 계산 블록에 그대로 넘긴다. 같은 실행의 같은 입력이면 계보와 무관하게 이식되어 다시 계산하지 않는다.
 
 * `doc`: `authoring.load_topology` 결과 `TopologyDoc`(파일을 다시 읽지 않는다). `supplies_v`: {레일 넷: 전위} 또는
   None(`supplies_declaration` 이 검사·정규화). topology 의 `_` 주석 키는 읽지 않는다.
@@ -11,8 +14,8 @@
   입력 버전 일치로 재사용되어 계산 0 이다(실행 사이 재사용은 없다 -- 실행마다 빈 스냅샷에서 시작한다). S1Graph 이고 키(`S1Key`)가 같고 `previous` 의 기둥 수가 `column_limit` 이하(또는
   None)면 **그 객체를 그대로** 돌려준다(계산 0). 아니면 그 스냅샷 위에서 계산 블록을 부른다 -- 입력 버전이 같은 블록은
   재사용되고(예: supplies_v 만 바뀌면 `s1_bulk` 만 재계산, U2~U4 블록은 bulk·supplies 를 읽지 않아 전부 재사용), 바뀌지 않은
-  레코드는 이전 스냅샷과 같은 객체다(구조 공유). `previous` 없이 같은 doc 으로 두 번 부르면 두 번 계산하고 블록 계수
-  `recomputes_same_input` 이 올라간다 -- 같은 실행의 재사용은 호출자가 이전 S1 을 넘겨서 한다(graph 가 곧 캐시).
+  레코드는 이전 스냅샷과 같은 객체다(구조 공유). `previous` 없이 같은 doc 으로 두 번 부르면 같은 실행(같은 `donors`)에서는 두 번째가
+  블록 결과 색인에서 이식되어(계수 graft) 계산 0 이다 -- 다른 실행(다른 `open_run()` 쌍)과는 아무것도 나누지 않는다.
 * `structure`: `load_structure_facts` 결과(`StructureFacts`) 또는 None. S1 이 소비하는 ratified 사실 -- `dc_role`(`s1_dc_roles` 규칙 4)과 `matching_pair`
   (`s1_matching_groups` 레코드 추가) -- 만 뽑아 두 블록에 넘기고, 그 지문을 S1 키(`facts_fp`, `s1_key`)에 넣는다(같은 topology 라도 사실이 다르면 S1 이 다르다, 40 §3.2-3).
   `drive_kind`·`ac_ground_exception`·`loop_role`·`feedforward_cell`·`stage_members` 는 S1v 쪽 사실이다(`build_s1v`).
@@ -54,7 +57,7 @@ def _s1_facts(structure):
     return dc, pairs
 
 
-def build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None, marks=NO_MARKS):
+def build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structure=None, marks=NO_MARKS, donors, counters):
     if not isinstance(doc, TopologyDoc):
         raise TypeError("build_s1: doc 는 authoring.load_topology 가 만든 TopologyDoc 이어야 한다")
     base_snapshot = previous.snapshot if isinstance(previous, S1Graph) else previous
@@ -72,17 +75,17 @@ def build_s1(doc, supplies_v=None, previous=None, column_limit=None, *, structur
             column_limit is None or len(previous.value("graph", GRAPH_KEY, "columns")) <= column_limit):
         return previous
     snapshot = GraphSnapshot.empty(S1_WRITERS) if previous is None else base_snapshot
-    snapshot = s1_structure(snapshot, doc.devices, doc.passives, doc.sources, sorted_items(doc.rails), doc.ports)
-    snapshot = s1_bulk(snapshot, supplies)
-    snapshot = s1_dc_conduction(snapshot)
-    snapshot = s1_gs_groups(snapshot)
-    snapshot = s1_branches(snapshot)
-    snapshot = s1_dc_roles(snapshot, dc_facts)
-    snapshot = s1_rel_vgs(snapshot)
-    snapshot = s1_rel_matching(snapshot)
-    snapshot = s1_matching_groups(snapshot, pair_facts)
-    snapshot = s1_gvgs(snapshot)
-    snapshot = s1_columns(snapshot, column_limit)
-    snapshot = s1_rel_kcl(snapshot)
-    snapshot = s1_symmetry(snapshot, supplies, marks)
+    snapshot = s1_structure(snapshot, doc.devices, doc.passives, doc.sources, sorted_items(doc.rails), doc.ports, donors=donors, counters=counters)
+    snapshot = s1_bulk(snapshot, supplies, donors=donors, counters=counters)
+    snapshot = s1_dc_conduction(snapshot, donors=donors, counters=counters)
+    snapshot = s1_gs_groups(snapshot, donors=donors, counters=counters)
+    snapshot = s1_branches(snapshot, donors=donors, counters=counters)
+    snapshot = s1_dc_roles(snapshot, dc_facts, donors=donors, counters=counters)
+    snapshot = s1_rel_vgs(snapshot, donors=donors, counters=counters)
+    snapshot = s1_rel_matching(snapshot, donors=donors, counters=counters)
+    snapshot = s1_matching_groups(snapshot, pair_facts, donors=donors, counters=counters)
+    snapshot = s1_gvgs(snapshot, donors=donors, counters=counters)
+    snapshot = s1_columns(snapshot, column_limit, donors=donors, counters=counters)
+    snapshot = s1_rel_kcl(snapshot, donors=donors, counters=counters)
+    snapshot = s1_symmetry(snapshot, supplies, marks, donors=donors, counters=counters)
     return S1Graph(key, snapshot)

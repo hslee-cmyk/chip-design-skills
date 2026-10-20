@@ -5,9 +5,16 @@ import itertools
 
 import pytest
 
+from gmid_engine.search import open_run
 from gmid_engine.sizing import DC_KEY, SealItem, SealReport, dc_seal_report
 
-from .conftest import theta_c
+from .conftest import block_row, theta_c
+
+
+def _run():
+    """[XRUN-F1 card B C4] 블록 단독 호출 = 새 실행 하나(두 키워드)."""
+    donors, counters = open_run()
+    return dict(donors=donors, counters=counters)
 
 GRAPH_ITEMS = {1: "dc_seal_node_conflict", 2: "dc_seal_vgs_match", 3: "dc_seal_kcl", 6: "dc_seal_bulk_reverse",
                7: "dc_seal_saturation", 8: "dc_seal_kvl_branch", 9: "dc_seal_conduction"}
@@ -43,7 +50,7 @@ CASES = [_case(), _case(i7="undefined"), _case(i7="undefined", i2="fail"), _case
 @pytest.mark.parametrize("sts", CASES)
 def test_status_rule(ev_c, sts):
     snap = with_statuses(ev_c.snapshot, sts)
-    out = dc_seal_report(snap, SealItem(4, sts[4]), SealItem(5, sts[5]))
+    out = dc_seal_report(snap, SealItem(4, sts[4]), SealItem(5, sts[5]), **_run())
     rep = out.value("graph", DC_KEY, "dc_seal_report")
     assert isinstance(rep, SealReport)
     assert [i.item for i in rep.items] == ITEMS
@@ -56,7 +63,7 @@ def test_all_combinations_status(ev_c):
     for a, b, c in itertools.product(vals, vals, vals):
         sts = {i: "pass" for i in ITEMS}
         sts[1], sts[7], sts[9] = a, b, c
-        rep = dc_seal_report(with_statuses(ev_c.snapshot, sts), SealItem(4, "pass"), SealItem(5, "pass")).value(
+        rep = dc_seal_report(with_statuses(ev_c.snapshot, sts), SealItem(4, "pass"), SealItem(5, "pass"), **_run()).value(
             "graph", DC_KEY, "dc_seal_report")
         assert rep.status == expected_status([a, b, c])
 
@@ -72,6 +79,7 @@ def test_report_of_real_evaluation(ev_c):
 def test_report_reuse_on_same_items(ev_c):
     snap = ev_c.snapshot
     i4, i5 = ev_c.report.items[3], ev_c.report.items[4]
-    dc_seal_report.reset_stats()
-    assert dc_seal_report(snap, i4, i5) is snap
-    assert dc_seal_report.stats().reuses == 1
+    # oracle 대조: card B C4 판정 1 -- 같은 lineage 재호출 = reuse(블록 함수 0), 새 실행 계수(C1) 행 = (calls 1, reuses 1)
+    run = _run()
+    assert dc_seal_report(snap, i4, i5, **run) is snap
+    assert block_row(run["counters"], dc_seal_report.name) == (1, 1, 0, 0, 0, 0)

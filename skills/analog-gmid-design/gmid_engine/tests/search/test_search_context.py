@@ -17,6 +17,7 @@ from gmid_engine.sizing import dc_columns, dc_currents, dc_widths
 
 from .conftest import domain_of  # [U17 ①-b] graph/kernel: search_domain 필드 읽기
 from .conftest import CODE_FP, SRC, build_case, circuit_c, circuit_p, write_pdk
+from .conftest import block_row, fresh_run  # [XRUN-F1 card B C0·C1]
 
 # [xrun] interface card C1: SearchContext.counters 키 집합 = 이 6개(디스크 실패 적중 계수 삭제 -- 설계 40 v1.10 §2.4.3 '디스크 실패 기록 읽기')
 COUNTERS = ("requests", "kernel_calls", "hits", "fail_hits", "outside_domain", "recompute_same_key")
@@ -100,12 +101,12 @@ def test_s0_keyword_rejected(tmp_path, lut_sealed):
 
 
 def test_theta_resistance_without_bounds_rejected_before_kernel(tmp_path, lut_sealed):
-    """I-11: build_case 가 상자 없이 부르면 거부 -- sizing 평가 블록(커널) 호출 0."""
-    before = [b.stats().calls for b in (dc_currents, dc_columns, dc_widths)]
+    """I-11: build_case 가 상자 없이 부르면 거부 -- sizing 평가 블록(커널) 호출 0([XRUN-F1 card B C1] 그 실행 계수에 평가 블록 행이 없다)."""
+    run = fresh_run()
     with pytest.raises(SchemaRejectedError) as e:
-        build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=None)
+        build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=None, run=run)
     assert dict(e.value.record.detail)["reason"] == "theta_resistance_bounds_undeclared"
-    assert [b.stats().calls for b in (dc_currents, dc_columns, dc_widths)] == before
+    assert [block_row(run["counters"], b.name)[0] for b in (dc_currents, dc_columns, dc_widths)] == [0, 0, 0]
 
 
 def test_settings_type_checked(tmp_path, lut_sealed):
@@ -135,6 +136,15 @@ def test_code_fp_is_the_given_value(tmp_path, lut_sealed):
     assert s.code_fp == given
 
 
+def test_search_context_dc_carries_run_pair(tmp_path, lut_sealed):
+    """B-T16(XRUN-F1 card B C6): build_search_context 는 서명 그대로이고 dc_ctx 의 두 칸을 쓴다 -- sctx.dc 의 donors·counters 는 그 커널
+    컨텍스트에 넘긴 두 객체 그대로(is)."""
+    run = fresh_run()
+    case = build_case(tmp_path, circuit_c(), lut_sealed, run=run)
+    assert case.dc.donors is run["donors"] and case.dc.counters is run["counters"]
+    assert case.sctx.dc.donors is run["donors"] and case.sctx.dc.counters is run["counters"]
+
+
 def test_pdk_missing_quantity(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     with pytest.raises(SchemaRejectedError) as e:
@@ -146,12 +156,12 @@ def test_pdk_missing_quantity(tmp_path, lut_sealed):
 def test_theta_capacitance_without_bounds_rejected_before_kernel(tmp_path, lut_sealed):
     """r6: θ capacitance 가 있고 capacitance_bounds_f 미선언 -> theta_capacitance_bounds_undeclared, 커널 호출 0."""
     from .conftest import Z_ELEMENTS, circuit_z
-    before = [b.stats().calls for b in (dc_currents, dc_columns, dc_widths)]
+    run = fresh_run()
     with pytest.raises(SchemaRejectedError) as e:
-        build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=None)
+        build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=None, run=run)
     det = dict(e.value.record.detail)
     assert det["reason"] == "theta_capacitance_bounds_undeclared" and tuple(det["capacitors"]) == ("Cz",)
-    assert [b.stats().calls for b in (dc_currents, dc_columns, dc_widths)] == before
+    assert [block_row(run["counters"], b.name)[0] for b in (dc_currents, dc_columns, dc_widths)] == [0, 0, 0]
 
 
 def test_junction_built_once_per_context(tmp_path, lut_sealed):
@@ -499,7 +509,8 @@ def _build_with_caller_cap(tmp, lut, cap, **kw):
     acc = pre_layout_lut_access(LutMemo(lut, point=cap, curve=cap, root=cap))
     td, spec = load_spec(tmp / "case", circuit_c())
     inputs = dc_inputs_from_spec(spec)
-    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, acc)
+    run = fresh_run()                      # [XRUN-F1 card B C0·C6] 이 build 하나 = 실행 하나
+    dc = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, acc, **run)
     pdk, rule = write_decls(tmp / "pdk")
     settings = SearchSettings(600.0, kw.get("eval_budget", 30), None, tuple(SRC), None)
     return acc, build_search_context(dc, spec, settings, None, pdk, rule, code_fp=CODE_FP)

@@ -8,6 +8,13 @@ import pytest
 
 from gmid_engine.core import ComputeBlock, GraphSnapshot
 from gmid_engine.graph import S1_REL_KCL_WRITER, S1_WRITERS, build_s1, s1_rel_kcl
+from gmid_engine.search import open_run
+
+
+def _build(*args, **kw):
+    """`build_s1(..., donors=, counters=)` -- [XRUN-F1 card B C0·C6] 부를 때마다 새 실행 하나(새 open_run() 쌍)."""
+    donors, counters = open_run()
+    return build_s1(*args, donors=donors, counters=counters, **kw)
 
 SIX = (
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
@@ -20,7 +27,7 @@ TABLE = {"common_gate_amplifier": 1, "current_reuse_telescopic_ota": 18, "folded
 
 
 def _s1(gh, name):
-    return build_s1(gh.load_lib(name), gh.supplies_for(name))
+    return _build(gh.load_lib(name), gh.supplies_for(name))
 
 
 @pytest.mark.parametrize("name", NINE)
@@ -44,5 +51,6 @@ def test_block_declaration():
 
 
 def test_direct_call_without_branches_key_error():
+    donors, counters = open_run()
     with pytest.raises(KeyError):
-        s1_rel_kcl(GraphSnapshot.empty(S1_WRITERS))
+        s1_rel_kcl(GraphSnapshot.empty(S1_WRITERS), donors=donors, counters=counters)
