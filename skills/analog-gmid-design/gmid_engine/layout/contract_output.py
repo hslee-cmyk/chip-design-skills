@@ -108,7 +108,7 @@ class FingerCandidate:
 
 @dataclasses.dataclass(frozen=True)
 class WRequest:
-    """MOD8 에 돌려주는 W 변경 요청(LY3). 레이아웃은 W 를 적용하지 않는다. `W_old_m` = 그 폭 슬라이스의 W_need."""
+    """MOD8 에 돌려주는 W 변경 요청(LY3). 레이아웃은 W 를 적용하지 않는다. `W_old_m` = 그 폭 슬라이스의 W_need(`no_usable_slice` 요청은 참고 W, `outputs.py` 참고)."""
 
     device: str
     W_old_m: float
