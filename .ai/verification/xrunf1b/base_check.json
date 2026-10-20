@@ -95,5 +95,25 @@
   "run_py_ast_same": true,
   "test_tree_diff": 0,
   "red_reuse": "test 트리·엔진 실행 코드 diff 0 -> 4차 red(47행, bundle 1073e6ca)·판별 red 그대로"
+ },
+ "round6": {
+  "target_head": "9bd92c0f",
+  "integration": "da38429f + role/code 1c3b9a95(gap G-3·G-5·G-6 문서 정정)",
+  "diff_numstat": {
+   "layout/CONTRACT.md": [
+    1,
+    1
+   ],
+   "layout/contract_output.py": [
+    1,
+    1
+   ],
+   "layout/run.py": [
+    1,
+    1
+   ]
+  },
+  "ast_same_docstring_excluded": true,
+  "test_tree_diff": 0
  }
 }

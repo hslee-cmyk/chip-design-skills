@@ -4,7 +4,7 @@
  "evidence_type": "red-green",
  "base_commit": "083b1035267bc586b04353a9a3d2dac278f11867",
  "test_commit": "f3eb8f9f3f4d5061a8f390e333884864938f33af",
- "code_commit": "7a36ab4b701feacdd4779653e1c356c2dda9f241",
+ "code_commit": "1c3b9a9534171c701fe42be5515f32c14fd0faeb",
  "red": {
   "test_ids": [
    "skills/analog-gmid-design/gmid_engine/tests/search/test_open_run.py",
@@ -108,7 +108,7 @@
  "checks": {
   "V1": {
    "verdict": "PASS",
-   "basis": "r5 재사용 근거: 대상 integ/xrunf1b-r5 da38429f = 472bc864 + role/code 7a36ab4b, git diff --numstat 472bc864 da38429f = layout/CONTRACT.md 1/1, layout/run.py 1/1 뿐이고 run.py 는 AST(docstring 제거) 472bc864 와 같음(scripts/ast_same.py AST_SAME) -> 실행 코드·test·데이터·graph 규칙 파일 diff 0 이라 4차(3f3f3c1b, 472bc864) 측정을 그대로 쓴다; r5 격리 복제본 재실행: layout.run import 정상, tests/structure 67 passed 1 deselected, layout/test_run.py+test_contract_input.py 96 passed. 병합본 integ/xrunf1b-r4 472bc864 격리 복제본(_scratch_xrunf1b_audit4/head, remote 없음), --run-slow, -k·--deselect·-x 없음, 병렬 없음, 메모리 제약(여유 약 2.5~5 GB)으로 gmid_engine/tests 를 최상위 파일 1 + 하위 디렉터리 13 으로 나눠 같은 옵션 순차 실행(scripts/run_suite_dirs.sh): 10292 passed / 0 failed / 0 error / 2 xfailed(layout test_patterns_common_centroid 표 두 행, 이번 card 밖, r2 와 같음) / 1 deselected(규칙 H 마커, 설정 기본 제외), 수집 10294(+1 deselected, r2 10256 대비 +39 = 이번 test 추가분), junit 시간 합 4791 s. 디렉터리별 passed: _top 2, authoring 1547, convergence 96, core 1085, generality 802, graph 1934, layout 527(+2 xfailed), lut 1049, metrics 1213, pipeline 84, search 578, sizing 818, structure 67, integration 490(xrunf1b/suite_r4_dirs.json). tests/structure 67 passed = 구조 위반 0. structure_rule_fp() head = adc91fc8… = current_reuse_telescopic_ota·nmcnr_amplifier structure.json rule_hash(2/2 일치, 5dde5d63 은 graph/ 규칙 파일을 건드리지 않음). 성능 A/B(item 6): convergence 디렉터리 824 s(r2 923 s, r3 10196 s) -- 같은 test 를 r2 8a7ef28·head 472bc864·r3 d6fae26d 복제본에서 순차 교대 실행(perf_ab_r4.txt): kernel_counts[cga] 19/15/20 s, deterministic_rerun 20/19/20 s(두 바퀴 각 18~21 s), kernel_counts[two_stage_ota] 97~108/99~134/96~178 s -- 세 판 같은 수준, r3 의 10196 s 는 코드 회귀가 아니라 실행 환경(동시 실행·클럭) 때문"
+   "basis": "r6 재사용 근거: 대상 integ/xrunf1b-r5 머리 9bd92c0f = da38429f + role/code 1c3b9a95, git diff --numstat da38429f 9bd92c0f = layout/CONTRACT.md·contract_output.py·run.py 각 1/1, contract_output.py·run.py 는 docstring 제외 AST 가 da38429f 와 같음(AST_SAME) -> 실행 코드·test·데이터 diff 0 이라 5차(314dd3b6)·4차(3f3f3c1b) 측정 재사용; r6 격리 복제본 재실행: layout import 정상, tests/structure 67 passed 1 deselected, layout/test_run.py+test_contract_input.py 96 passed. r5 재사용 근거: 대상 integ/xrunf1b-r5 da38429f = 472bc864 + role/code 7a36ab4b, git diff --numstat 472bc864 da38429f = layout/CONTRACT.md 1/1, layout/run.py 1/1 뿐이고 run.py 는 AST(docstring 제거) 472bc864 와 같음(scripts/ast_same.py AST_SAME) -> 실행 코드·test·데이터·graph 규칙 파일 diff 0 이라 4차(3f3f3c1b, 472bc864) 측정을 그대로 쓴다; r5 격리 복제본 재실행: layout.run import 정상, tests/structure 67 passed 1 deselected, layout/test_run.py+test_contract_input.py 96 passed. 병합본 integ/xrunf1b-r4 472bc864 격리 복제본(_scratch_xrunf1b_audit4/head, remote 없음), --run-slow, -k·--deselect·-x 없음, 병렬 없음, 메모리 제약(여유 약 2.5~5 GB)으로 gmid_engine/tests 를 최상위 파일 1 + 하위 디렉터리 13 으로 나눠 같은 옵션 순차 실행(scripts/run_suite_dirs.sh): 10292 passed / 0 failed / 0 error / 2 xfailed(layout test_patterns_common_centroid 표 두 행, 이번 card 밖, r2 와 같음) / 1 deselected(규칙 H 마커, 설정 기본 제외), 수집 10294(+1 deselected, r2 10256 대비 +39 = 이번 test 추가분), junit 시간 합 4791 s. 디렉터리별 passed: _top 2, authoring 1547, convergence 96, core 1085, generality 802, graph 1934, layout 527(+2 xfailed), lut 1049, metrics 1213, pipeline 84, search 578, sizing 818, structure 67, integration 490(xrunf1b/suite_r4_dirs.json). tests/structure 67 passed = 구조 위반 0. structure_rule_fp() head = adc91fc8… = current_reuse_telescopic_ota·nmcnr_amplifier structure.json rule_hash(2/2 일치, 5dde5d63 은 graph/ 규칙 파일을 건드리지 않음). 성능 A/B(item 6): convergence 디렉터리 824 s(r2 923 s, r3 10196 s) -- 같은 test 를 r2 8a7ef28·head 472bc864·r3 d6fae26d 복제본에서 순차 교대 실행(perf_ab_r4.txt): kernel_counts[cga] 19/15/20 s, deterministic_rerun 20/19/20 s(두 바퀴 각 18~21 s), kernel_counts[two_stage_ota] 97~108/99~134/96~178 s -- 세 판 같은 수준, r3 의 10196 s 는 코드 회귀가 아니라 실행 환경(동시 실행·클럭) 때문"
   },
   "V2": {
    "verdict": "PASS",
@@ -128,7 +128,7 @@
   },
   "V6": {
    "verdict": "PASS",
-   "basis": "r5(da38429f) 재판정: 4차 결함(design 40 §2.4.14 (4) 'F_DEVICE·ly_device 엔진 전체 잔존 없음' 위반, 문서 2곳) 해소 -- 격리 복제본 r5 에서 git grep -nw -e ly_device -e F_DEVICE -- skills/analog-gmid-design/gmid_engine 결과 tests/structure/test_removed_names.py:33-35(부재 검사 목록, 오케스트레이터 인정 예외)뿐; 7a36ab4b 문구: layout/run.py:11 '(장치 단위 별도 블록 없음, 사용자 결정 O-39 (1))', layout/CONTRACT.md:462 '(장치 단위 별도 필드는 없다, 사용자 O-39 (1))' -- 이름 없이 고침(card A J-10 선례와 같음; run.py 쪽 '블록'은 엄밀히는 '필드'가 맞는 표현이라 다음 문서 정리 때 맞추기를 권고, 판정 영향 없음); diff 는 이 두 줄뿐(numstat 1/1·1/1), run.py AST 동일, 편집 손상 점검(BOM·CRLF·대체 문자·제어 문자) 0; tests/structure 67 passed(r5 재실행). 4차 측정 그대로(재사용): tests/structure 67 passed; 규칙 M 진짜 트리(check_m 직접 호출) 910 파일 위반 0, run_stage_a 호출 54, 같은 줄 두 호출 0; 감사 탐침 probe_m 19 파일 결과 r3 와 동일(검사기 0208df28 뒤 무변경) -- 같은 줄 두 호출(r1_same_line)은 README 가 적은 fail-open 한계로 남음(진짜 트리 0 이라 현재 위반 아님); M-c 손 깨기 변형(test_audit_probe_mc_break 임시 복사) 실제 거부(2 위반, test FAILED, 지운 뒤 git status 0); 규칙 H head 대상 405·위반 5 = r2 대상 404·위반 5(같은 5 개); 옮긴 정의 AST(c3c50f14 canonical_naming.py -> canon_block.py) _Source·_marks·_alias_table AST 같음, _build 는 design 대로 rejected 인자 삭제·두 표 반환; 편집 손상 점검(enc_check, 이번 라운드 12 커밋 56 파일): BOM·CRLF 변화·대체 문자·C0/C1 제어·mojibake 흔적 0; rule_hash 일치(V1)"
+   "basis": "r6(9bd92c0f) 재확인: git grep -nw -e ly_device -e F_DEVICE -- gmid_engine = test_removed_names.py:33-35 뿐(잔존 0); 1c3b9a95 문구 사실 대조 -- CONTRACT.md:456 '여섯 계산 블록(슬라이스·정준 별칭표 포함)' = run.py:116 _slice_block 1 + :117 _BLOCKS 5(:52 canon_tables·finger_candidates·pattern_select·finger_geometry·compose_rows) = 6, 맞음; run.py:11 '장치 단위 별도 필드 없음' = _ly_fields INPUT_FIELDS 에 ly_device 없음(5차 권고 '블록 -> 필드' 반영), 맞음; WRequest docstring 'no_usable_slice 요청은 참고 W(W_old_m)' = outputs.py:59 WRequest(name, attrs[name].W_m, attrs[name].W_m, _NO_SLICE, None), 맞음; 편집 손상 점검 0. r5(da38429f) 재판정: 4차 결함(design 40 §2.4.14 (4) 'F_DEVICE·ly_device 엔진 전체 잔존 없음' 위반, 문서 2곳) 해소 -- 격리 복제본 r5 에서 git grep -nw -e ly_device -e F_DEVICE -- skills/analog-gmid-design/gmid_engine 결과 tests/structure/test_removed_names.py:33-35(부재 검사 목록, 오케스트레이터 인정 예외)뿐; 7a36ab4b 문구: layout/run.py:11 '(장치 단위 별도 블록 없음, 사용자 결정 O-39 (1))', layout/CONTRACT.md:462 '(장치 단위 별도 필드는 없다, 사용자 O-39 (1))' -- 이름 없이 고침(card A J-10 선례와 같음; run.py 쪽 '블록'은 엄밀히는 '필드'가 맞는 표현이라 다음 문서 정리 때 맞추기를 권고, 판정 영향 없음); diff 는 이 두 줄뿐(numstat 1/1·1/1), run.py AST 동일, 편집 손상 점검(BOM·CRLF·대체 문자·제어 문자) 0; tests/structure 67 passed(r5 재실행). 4차 측정 그대로(재사용): tests/structure 67 passed; 규칙 M 진짜 트리(check_m 직접 호출) 910 파일 위반 0, run_stage_a 호출 54, 같은 줄 두 호출 0; 감사 탐침 probe_m 19 파일 결과 r3 와 동일(검사기 0208df28 뒤 무변경) -- 같은 줄 두 호출(r1_same_line)은 README 가 적은 fail-open 한계로 남음(진짜 트리 0 이라 현재 위반 아님); M-c 손 깨기 변형(test_audit_probe_mc_break 임시 복사) 실제 거부(2 위반, test FAILED, 지운 뒤 git status 0); 규칙 H head 대상 405·위반 5 = r2 대상 404·위반 5(같은 5 개); 옮긴 정의 AST(c3c50f14 canonical_naming.py -> canon_block.py) _Source·_marks·_alias_table AST 같음, _build 는 design 대로 rejected 인자 삭제·두 표 반환; 편집 손상 점검(enc_check, 이번 라운드 12 커밋 56 파일): BOM·CRLF 변화·대체 문자·C0/C1 제어·mojibake 흔적 0; rule_hash 일치(V1)"
   },
   "V7": {
    "verdict": "PASS",
@@ -256,7 +256,7 @@
   {
    "name": "removed_name_doc_residuals",
    "value": 0,
-   "command": "r5: git -C <r5 clone da38429f> grep -nw -e ly_device -e F_DEVICE -- skills/analog-gmid-design/gmid_engine (test_removed_names.py 3 줄 제외)"
+   "command": "r5: git -C <r6 clone 9bd92c0f> grep -nw -e ly_device -e F_DEVICE -- skills/analog-gmid-design/gmid_engine (test_removed_names.py 3 줄 제외)"
   },
   {
    "name": "new_fields_without_consumer",
@@ -272,16 +272,27 @@
    "name": "r5_structure_passed",
    "value": 67,
    "command": "r5 clone: pytest -q gmid_engine/tests/structure -p no:cacheprovider --run-slow"
+  },
+  {
+   "name": "r6_diff_lines_changed",
+   "value": 3,
+   "command": "git diff --numstat da38429f 9bd92c0f"
+  },
+  {
+   "name": "r6_layout_tests_passed",
+   "value": 96,
+   "command": "r6 clone: pytest -q gmid_engine/tests/layout/test_run.py gmid_engine/tests/layout/test_contract_input.py"
   }
  ],
  "approvals": [
   "20261019-xrunf1b-o19-order-assert"
  ],
  "auditor_run": {
-  "time": "2026-10-20T21:40:00+09:00",
-  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrunf1b-audit (r5 격리 복제본 _scratch_xrunf1b_audit4/r5 = da38429f; 4차 측정 복제본 _scratch_xrunf1b_audit4/{head,probe,red,prev,r2,r3}, base 9회로 기록은 _scratch_xrunf1b_audit3/results/measure/base 재사용)",
+  "time": "2026-10-20T22:10:00+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrunf1b-audit (r6 격리 복제본 _scratch_xrunf1b_audit4/r6 = 9bd92c0f, r5 = da38429f; 4차 측정 복제본 _scratch_xrunf1b_audit4/{head,probe,red,prev,r2,r3}, base 9회로 기록은 _scratch_xrunf1b_audit3/results/measure/base 재사용)",
   "commands": [
    "V1: cd <head clone 472bc864>/skills/analog-gmid-design && (unset OPENBLAS_NUM_THREADS OMP_NUM_THREADS GMID_S0_SNAPSHOT_DIR; for t in gmid_engine/tests/test_conftest_slow_marker.py gmid_engine/tests/{authoring,convergence,core,generality,graph,layout,lut,metrics,pipeline,search,sizing,structure,integration}; do PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -m pytest -q $t -p no:cacheprovider --run-slow -rfEX --durations=20 --junitxml=results/suite_head/junit/<t>.xml; done) -- 메모리 제약으로 디렉터리 단위 순차(scripts/run_suite_dirs.sh)",
+   "r6: git clone --no-hardlinks --no-local <audit worktree> _scratch_xrunf1b_audit4/r6 && git -C r6 remote remove origin && git -C r6 checkout --detach 9bd92c0f; git diff --numstat da38429f 9bd92c0f; python -P scripts/ast_same.py r6 da38429f 9bd92c0f layout/run.py layout/contract_output.py; git grep -nw -e ly_device -e F_DEVICE; pytest gmid_engine/tests/structure, layout/test_run.py, layout/test_contract_input.py",
    "r5: git clone --no-hardlinks --no-local <audit worktree> _scratch_xrunf1b_audit4/r5 && git -C r5 remote remove origin && git -C r5 checkout --detach da38429f; git diff --numstat 472bc864 da38429f; python -P scripts/ast_same.py r5 472bc864 da38429f layout/run.py; git grep -nw -e ly_device -e F_DEVICE; pytest gmid_engine/tests/structure, layout/test_run.py, layout/test_contract_input.py",
    "격리: for n in head probe red prev r2 r3: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/xrunf1b-audit _scratch_xrunf1b_audit4/$n && git -C $n remote remove origin; head·probe = checkout --detach 472bc864, prev = c3c50f14, r2 = 8a7ef281, r3 = d6fae26d, red = 083b1035; red·prev 는 git rm gmid_engine/tests + git checkout f3eb8f9f -- gmid_engine/tests(커밋 안 함)",
    "red: bash scripts/run_red_r4.sh red results/red_files_all.txt red_base; bash scripts/run_red_r4.sh prev results/red_files_r4.txt red_prev; PYTHONPATH=<gate cache 6df4bd7f> python -P scripts/red_table_r4.py",
