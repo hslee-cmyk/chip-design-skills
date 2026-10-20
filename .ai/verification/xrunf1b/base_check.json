@@ -78,5 +78,22 @@
    "passed_on_prev_note": "test_w2_doubling_all_w_keeps_computed_fields_and_rederives_outputs·test_rejected_only_change_reuses_slices_and_candidates 는 prev 에서도 통과 -- W-2 는 값 같음 단언이라 prev(재계산은 하지만 값은 같음)도 만족, rejected 단언의 W_CANON not in w 는 prev 에 그 블록이 없어 공허하게 참. W-1 test 가 재계산 감소를 가른다"
   },
   "green_head": "V1 junit: 위 red 47 행 전부 head 에서 passed(layout 527 passed·xfailed 2 는 test_patterns_common_centroid 표 두 행 -- 이번 card 밖, base 와 같음)"
+ },
+ "round5": {
+  "target_head": "da38429f",
+  "integration": "integ/xrunf1b-r5 da38429f = 472bc864 + role/code 7a36ab4b(V6 문서 2줄)",
+  "diff_numstat": {
+   "layout/CONTRACT.md": [
+    1,
+    1
+   ],
+   "layout/run.py": [
+    1,
+    1
+   ]
+  },
+  "run_py_ast_same": true,
+  "test_tree_diff": 0,
+  "red_reuse": "test 트리·엔진 실행 코드 diff 0 -> 4차 red(47행, bundle 1073e6ca)·판별 red 그대로"
  }
 }
