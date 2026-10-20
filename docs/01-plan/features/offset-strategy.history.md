@@ -224,6 +224,7 @@ worktree `wt/offset-strategy-v07-plan`(브랜치 `plan/offset-strategy-v07`, bas
 
 | 버전 | 날짜 | 변경 |
 |---|---|---|
+| 0.7(4차 정합 반영) | 2026-10-20 | 전체 정합 검증 4차(`wt/_drafts/evidence/2026-10-20/full_audit4_summary.md` 'offset-strategy v0.7'): 옛 기호 \|V_sys\| → \|V_id*\|(S-1 행·XS-20·G-S1 단위, DEC-23), offset-trim card 표에 없는 이름 'TR-5b' → 'offset-trim TR-5 안의 국면 2 게이트 해제'(N3.5·N3.9·XS-11·XS-15·N7.1·OS-5·N9·N11 PD-2), 인용 해시 gain-budget `0a7868b5`·offset-trim v0.6 `2eba8353`, N3.3 출발값 σ 목표 = '커널 판정 문턱(루프에서는 조인 문턱 항목)/k'(gain-budget LR6 `1cddba6a` 문언과 대조). 규칙 변경 없음, 버전 번호 불변 |
 | 0.7 | 2026-10-20 | 사용자 결정 O-53 A2(matching 판정 위치 분리, XS-20 원래 취지와 다름 승인)·B3(기준 정의 자리 = DEC-23)와 정합 감사 OS 몫 반영: A1 V_id* 한 칸 인용, A2 커널·front 두 판정, C1 층 0 조립 등 변형 단위(N3.6), C2 문턱 의존 블록에 층 0 조립 블록·G-S2 = LR6 정본, C3 OS-2·LA-1 선후 규칙, D2 EO-1 완료 판정 선행·완료 조건 10, D3 OS-V 합성 행 결속만·VB-1 인용, D4 오라클 선행 OP-3·EO-1·OP-5, E1 완료 조건 변경 종류 표시. 독립 검증 전 |
 | 0.6.2(문언 정합) | 2026-10-16 | XRUN-F1 card B design 보완(PD-8 (ii) 경로)으로 design 40 §2.4.5에서 '`run_stage_a` 진입' 문구가 '두 객체를 만드는 호출자'로 바뀌어, 그 문구를 가리키던 N3.6 246행·개정 표 280행·N3.10 297행·XS-7 381행을 새 문구 기준으로 다시 서술했다. 뜻 변경 없음(XS-7 = 그 호출자를 실행 계획 진입으로 적는 것 그대로). XS-7 승인 출처를 S-5로 적었다(계획 v0.4 XS-1~XS-14 승인). 버전 번호 불변 |
 | 0.6.2(기록) | 2026-10-16 | 사용자 결정 S-14("모두 권고대로"): design v0.2.4 승인, DS-1 = (다)(N10.1·XS-5·XS-8 행에 기록), F-1 = (a)(current_reuse fixture 유지, OS-2 검증은 front 불필요, 층 0 실패는 별도 엔진 조사 card). 계획 규칙 변경 없음(결정 기록만) |
