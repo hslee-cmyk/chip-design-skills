@@ -459,7 +459,7 @@ reads device `ly_point`(`kind`·`L_m`)·`ly_pins`·`ly_finger`, graph `ly_groups
 2. 스냅샷 = `previous.snapshot`(있으면 -- 같은 설계점 위 앞 호출. 레이아웃 재시도는 같은 설계점 lineage 의 새 스냅샷이다. 레이아웃 writer 를 뺀
    block_version 이 `design_point` 와 하나라도 다르면 `ValueError`) 아니면 `design_point.extend_writers(설계점 권한표 ∪ LY_WRITERS)`.
    writer `"ly_input"`, 입력 버전 `fp_of(layout_input)` 으로
-   소자(`LayoutDevice`)는 겹치지 않는 네 device 필드로 나눠 쓴다(`ly_device` 는 없다, 사용자 O-39 (1)): `ly_point`({이름: ConservedPoint(kind, L, ID, gm_id, vds, vsb)} -- 보존량·동작점),
+   소자(`LayoutDevice`)는 겹치지 않는 네 device 필드로 나눠 쓴다(장치 단위 별도 필드는 없다, 사용자 O-39 (1)): `ly_point`({이름: ConservedPoint(kind, L, ID, gm_id, vds, vsb)} -- 보존량·동작점),
    `ly_pins`({이름: DevicePins(drain, gate, source)}), `ly_w_adjustable`({이름: bool}), `ly_attrs`({이름: DeviceAttrs(W_m 참고 W, body, diode)}), graph(key `"layout"`) `ly_pdk`·`ly_groups_in`(입력 tuple 그대로)·`ly_row_groups`·
    `ly_rejected`(정렬 tuple)·`ly_passives`(이름순 `LayoutPassive` tuple) 를 쓴다.
 3. 슬라이스: 정식 `@compute_block` `ly_slice_density`(writer 이름 그대로, READS device `ly_point`·graph `ly_pdk`(폭 키 `slice_width_keys` 의 정본), WRITES device `ly_slices`, block_version·S3 색인·`RunCounters`·G-10 계수 안).
