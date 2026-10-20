@@ -453,7 +453,7 @@ reads device `ly_point`(`kind`·`L_m`)·`ly_pins`·`ly_finger`, graph `ly_groups
    같은 행 집합 내용의 `floorplan_of` 와 같은 행 내용의 `row_euler` 는 블록 호출 안에서 한 번만 계산한다(memo).
 
 ### 4.12 `run_layout(layout_input, memo, design_point, previous=None, *, donors, counters) -> LayoutResult` (설계 40 v1.6 §2.4.7·§2.4.8, U17 ①)
-[XRUN-F1 B] `donors`·`counters` = 필수 키워드(기본값 없음, 빠지면 `TypeError`) -- 실행 하나의 블록 결과 색인·계수(`place_layout` 이 `converge_point` 의 `sctx.dc` 에서 받아 넘긴다). 네 계산 블록 호출에 그대로 쓴다.
+[XRUN-F1 B] `donors`·`counters` = 필수 키워드(기본값 없음, 빠지면 `TypeError`) -- 실행 하나의 블록 결과 색인·계수(`place_layout` 이 `converge_point` 의 `sctx.dc` 에서 받아 넘긴다). 여섯 계산 블록(슬라이스·정준 별칭표 포함) 호출에 그대로 쓴다.
 레이아웃 필드는 그 **설계점 스냅샷**(봉인 S2)의 S2 `layout` 필드다. 별도 lineage(옛 `GraphSnapshot.empty(LY_WRITERS)`)는 없다.
 1. `memo.lut.fp != layout_input.pdk.source_fp` -> `ValueError`. `design_point` 가 GraphSnapshot 이 아니면 `TypeError`.
 2. 스냅샷 = `previous.snapshot`(있으면 -- 같은 설계점 위 앞 호출. 레이아웃 재시도는 같은 설계점 lineage 의 새 스냅샷이다. 레이아웃 writer 를 뺀

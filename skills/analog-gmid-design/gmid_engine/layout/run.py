@@ -8,7 +8,7 @@
    `design_point`(봉인 S2). 권한표는 설계점 권한표에 레이아웃 권한표(`LY_WRITERS`)를 더한 것으로 넓힌다(core `extend_writers` -- 레코드·
    block_version 공유). `previous` 가 다른 설계점 위의 것이면(설계점 writer 의 block_version 이 하나라도 다르면) `ValueError`.
 2. 계약 `LayoutInput` 을 graph 입력 필드(writer `ly_input`)로 쓴다 -- 소자(`LayoutDevice`)는 겹치지 않는 네 필드 `ly_point`(보존량·동작점)·`ly_pins`
-   (drain·gate·source)·`ly_w_adjustable`·`ly_attrs`(참고 W·body·diode)로 나눠 쓴다(장치 단위 별도 블록 없음, 사용자 결정 O-39 (1)) -- 바뀌지 않은 입력 열만 읽는 블록은 다시 계산하지 않는다(필드 = 캐시,
+   (drain·gate·source)·`ly_w_adjustable`·`ly_attrs`(참고 W·body·diode)로 나눠 쓴다(장치 단위 별도 필드 없음, 사용자 결정 O-39 (1)) -- 바뀌지 않은 입력 열만 읽는 블록은 다시 계산하지 않는다(필드 = 캐시,
    core `compute_block`).
 3. 폭 슬라이스별 보존량 실현(`slice_density`, LUT 조회는 `memo` = MOD1 `LutMemo`)을 device `ly_slices`로 쓴다 -- 정식
    `@compute_block` `ly_slice_density`(writer 이름 그대로, reads device `ly_point` -- `ly_input` 이 쓰는 소자별 보존량·동작점 `ConservedPoint`,
