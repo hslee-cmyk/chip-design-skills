@@ -33,8 +33,8 @@
  },
  "checks": {
   "V1": {
-   "verdict": "FAIL",
-   "basis": "미완(코드 결함 판정 아님) -- 41faebe0 짧은 경로 격리 복제본(Temp/claude/it1f)에서 최상위 test 디렉터리별 순차 실행(-k·--deselect·-x 없음) 중 시스템 메모리 부족으로 하네스가 lut 디렉터리 실행 중(240 통과 시점) 중단시킴(두 번째 중단). 끝난 단위 8개 전부 green: test_conftest_slow_marker 2/2, authoring 1547/1547, convergence 96/96, core 1085/1085, generality 802/802, graph 1934/1934, integration 471/471(u17_1b S0 기준선 test 포함, 설정의 19 deselected는 conftest 자체 규칙), layout 527 passed + 2 xfailed/529 = 6466/10290 완료, failed 0. 미완 3824: lut 1049(중단), metrics 1213, pipeline 84, search 579, sizing 832, structure 67. IT-1 관련 sizing test는 앞선 짧은 경로 실행(bd468eaf)에서 IT-1 14개 green -- 이 HEAD의 전체 판정은 재실행 필요."
+   "verdict": "PASS",
+   "basis": "41faebe0 짧은 경로 격리 복제본(Temp/claude/it1f, remote 제거)에서 전체 실행(-k·--deselect·-x 없음, 설정 자체 deselect 20 = integration 19 + structure 1). 메모리 중단을 피하려 단위별로 나눠 순차 실행(동시 pytest 프로세스 1개). 1차(디렉터리 단위): test_conftest_slow_marker 2, authoring 1547, convergence 96, core 1085, generality 802, graph 1934, integration 471, layout 527 + xfail 2 = 6466. 2차: lut 1049(파일 46개 각각 따로), metrics 1213, pipeline 84, search 579, sizing 832, structure 67 = 3824. 합 10290 = 수집 10290(junit 테스트 id 대 --collect-only id 대조: 누락 0, 초과 0). 결과: passed 10288, xfailed 2(layout test_patterns_common_centroid 두 개, 기존), failed 0, error 0. u17_1b S0 기준선(3b)·test_current_basis 8e46548+Δ·IT-1 test 14개 포함 전부 green."
   },
   "V2": {
    "verdict": "PASS",
@@ -54,7 +54,7 @@
   },
   "V6": {
    "verdict": "PASS",
-   "basis": "잔재(완료 조건 3, 계획 1438행 패턴 P) 41faebe0: 엔진(tests 제외) 6줄 = 확정 제외 3(_spec_fields:33·composite_diode:1·metrics CONTRACT:312) + 부정문 새 규칙 3(sizing/CONTRACT.md:310·writer_plan.py:10 \"'같은 DC' 엣지는 없다\", sizing/CONTRACT.md:887 'IT-1 규칙대로 ... 같은 DC 엣지·input_tie 없음' -- ee3d8187이 옛 문언을 고치며 새로 생긴 부정문, 제외 사유 같음). 옛 문언 4줄(CONTRACT:427·887·s2_values:186·seal_node_conflict:6) 수정 확인, 남은 잔재 0. tests 줄은 IT-1 부재 단언·주석(제거 확인용)."
+   "basis": "잔재(완료 조건 3, 계획 1438행 패턴 P) 41faebe0: 엔진(tests 제외) 6줄 = 확정 제외 3(_spec_fields:33·composite_diode:1·metrics CONTRACT:312) + 부정문 새 규칙 3(sizing/CONTRACT.md:310·writer_plan.py:10 \"'같은 DC' 엣지는 없다\", sizing/CONTRACT.md:887 'IT-1 규칙대로 ... 같은 DC 엣지·input_tie 없음' -- ee3d8187이 옛 문언을 고치며 새로 생긴 부정문, 제외 사유 같음 -- 오케스트레이터 승인: 부정문으로 새 규칙(부재)을 적은 줄이라 옛 규칙 잔재 아님). 옛 문언 4줄(CONTRACT:427·887·s2_values:186·seal_node_conflict:6) 수정 확인, 남은 잔재 0. tests 줄은 IT-1 부재 단언·주석(제거 확인용)."
   },
   "V7": {
    "verdict": "PASS",
@@ -215,29 +215,39 @@
    "command": "git diff e98d0b0f bd468eaf 엔진 + 줄 grep cache|memo|dict|sctx"
   },
   {
+   "name": "3b/baseline_json_changed_paths",
+   "value": 28,
+   "command": "json 경로 비교 git show bd468eaf:<fixture> 대 41faebe0"
+  },
+  {
    "name": "v1/41faebe0/collected",
    "value": 10290,
    "command": "C:/Python314/python.exe -m pytest -p no:cacheprovider -q --collect-only"
   },
   {
-   "name": "v1/41faebe0/completed_green",
-   "value": 6466,
-   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<d>.xml <d>"
+   "name": "v1/41faebe0/run_union",
+   "value": 10290,
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<u>.xml <u> (1차 디렉터리 8단위 + 2차 lut 파일 46 + 디렉터리 5)"
+  },
+  {
+   "name": "v1/41faebe0/passed",
+   "value": 10288,
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<u>.xml <u>"
+  },
+  {
+   "name": "v1/41faebe0/xfailed",
+   "value": 2,
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<u>.xml <u>"
   },
   {
    "name": "v1/41faebe0/failed",
    "value": 0,
-   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<d>.xml <d>"
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<u>.xml <u>"
   },
   {
-   "name": "v1/41faebe0/not_completed",
-   "value": 3824,
-   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<d>.xml <d>"
-  },
-  {
-   "name": "3b/baseline_json_changed_paths",
-   "value": 28,
-   "command": "json 경로 비교 git show bd468eaf:<fixture> 대 41faebe0"
+   "name": "v1/41faebe0/coverage_missing",
+   "value": 0,
+   "command": "junit testcase id 합집합 대 collect_all id 대조"
   }
  ],
  "approvals": [
@@ -245,10 +255,10 @@
   "20261021-it1-k3-ext"
  ],
  "auditor_run": {
-  "time": "2026-10-22T12:00:00+09:00",
+  "time": "2026-10-22T18:00:00+09:00",
   "worktree": "격리 복제본 scratchpad/it1-audit/it1-iso(@bd468eaf, remote 제거), base 복제본 it1-base(@0366ddb4), 짧은 경로 복제본 Temp/claude/it1s(@bd468eaf); 둘째 판: Temp/claude/it1f(@41faebe0, remote 제거)",
   "commands": [
-   "V1: cd <it1f @41faebe0>/skills/analog-gmid-design && for d in <최상위 test 디렉터리 14 단위>; C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=junit_<d>.xml <d> (순차; 메모리 부족으로 lut 실행 중 중단)",
+   "V1: cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=junit_<u>.xml <u> -- 단위 u = 최상위 test 디렉터리(lut만 파일별), 순차, 합집합 10290 = 수집 전부",
    "git -c core.longpaths=true clone --no-hardlinks --no-local wt/it1-audit <TEMP>/it1-iso && git -C <TEMP>/it1-iso remote remove origin",
    "cd <it1-base @0366ddb4>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rA --tb=line gmid_engine/tests/sizing/test_writer_plan.py -k test_it1_",
    "cd <it1s @bd468eaf>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rA --tb=short gmid_engine/tests/sizing/test_writer_plan.py gmid_engine/tests/sizing/test_current_basis.py gmid_engine/tests/integration/test_s0_layer_9circuits.py gmid_engine/tests/search/test_orbit_ties.py gmid_engine/tests/sizing/test_s2_values.py",
