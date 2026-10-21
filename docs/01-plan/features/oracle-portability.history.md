@@ -582,3 +582,18 @@ graph 점검: 오라클 δV_out 꼴의 정의 자리 = gain-budget N3.8 하나(�
 * | O-70 | (v0.6.14 넷째 커밋)
 
 graph 점검: 엔진 δV_out 정의는 gain-budget 한 자리 인용(이 계획 사본 0), 새 값 칸·cache·상수 0.
+
+## v0.6.15 -- 사용자 결정 O-78 (1)(2)(3): design v0.3.6 1b·DV-19 재판단 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-78 행("권고대로 진행해"), 검증 `wt/_drafts/evidence/2026-10-21/oracle_design_v036_validation.md`(design v0.3.6 `158cffab`, 80/100 조건부) 필수 1·6·7·(5), O-73(gain-budget DEC-100). base master `ab916aba`.
+* (1) 1b 미룸의 경위: 검증 필수 7 -- 1b(닫힘 `.op` → `Tran.ic`, `tran_ic_bias_only`, 입력 망 원소 다른 단자 계단)를 쓰는 library 회로가 0개다. 1b의 유일한 예시 current_reuse는 되먹임 선언이 Cf1·Cf2뿐이라 design 규칙으로 `no_input_network`에 빠진다(`current_reuse_telescopic_ota.sizing_spec.json:141-145`, `topology.md:124-127`; O-72 (4)). 그래서 실행하는 것은 손 회로 test뿐이고 '만들면 배선' 원칙에 어긋난다. O-73으로 Cf1·Cf2·Cs1·Cs2는 응용 망이고 계단 원천(실제 SC 회로의 Cs 하판 계단)은 응용 망 선언 몫이므로, 응용 topology card AP-1에서 current_reuse 응용 회로가 1b의 첫 대표 회로가 된다(그때 구현·실측). 검증 필수 1 -- 1b (i)의 닫힘 `.op`는 ICMR 훑기 공칭 점 기록 `v_in`과 같은 점을 다시 내는 둘째 생산자(graph 규칙 1·2·4)라, 만들 때 시작점은 그 기록 참조로 정한다.
+* (2) DV-19 닫음의 경위: 검증 (5) -- gain-budget N3.8 ICMR 측정 구성 문언('선언 되먹임, DC 망 = 용량 제외')을 단일 출력 + 용량만 선언에 그대로 적용하면 정의는 되지만 결과가 개루프라 O-50 G4 취지('출력이 회로대로 따름')와 다르다. 해당 회로는 13회로 전수 0개(`feedback.elements`가 비지 않은 것은 current_reuse 하나, 차동 출력) -- 단 빈 list가 `unity_follower`로 매핑된다는 전제에서만(검증 필수 6). 그래서 지금 정의 불능(fail-closed)으로 닫고, 해당 회로가 생기면 계획부터 고친다.
+* (3) `[]` 매핑: 엔진 정의 `E/authoring/spec_elements.py:19-20`('빈 list = 되먹임 수동소자 없음 = β=1 루프', base `ab916aba` git grep 확인)과 gain-budget N6.6 1509행 정렬을 오라클 쪽에 적음. 나머지 필수 2~5는 design v0.3.7 몫(계획 변경 없음).
+* 반영: Status, N2 O-78, N3.9 ICMR 행('단일 출력 + 용량만 선언된 되먹임', '`[]`의 뜻'), N3.9 슬루 행('시작 동작점 경로의 구현 자리', 벤치 꼴 문장 꼬리), OP-10, X-36, OQ-11 결정 칸 꼬리, DR-22 정정 머리, DR-23 신설.
+
+옛 문장(v0.6.14 `ab916aba`):
+* | OP-10 (v0.6.9 신설) | … (v0.6.14 셋째 커밋, 사용자 결정 O-69 (1)) 범위에 **용량만 선언된 차동 출력의 `.tran` 시작 동작점**(N3.9 슬루 행 '시작 동작점' -- t = 0 `.op`을 ICMR과 같은 차동 모드 DC 닫힘으로, 정의 = gain-budget N3.8 인용)을 더한다; 미선언 차동 출력 정의 불능은 그대로.
+* (N3.9 슬루 행) 이 계획은 인용하고 오라클 벤치에서 그 닫힘으로 t = 0 해를 만드는 절차만 정한다(새 상수·새 구성 없음; 벤치 꼴 = design DR-22).
+* > **Status**: **계획 v0.6.14 -- O-67 반영, 승인됨(사용자 O-70 (2), 2026-10-21, 병합 `1b4a8536`)**(머리 그대로 '이전 판'으로 남김)
+
+graph 점검: 시작 동작점의 값 출처 = ICMR 공칭 점 기록 `v_in` 참조(둘째 `.op` 생산자 0), `[]`의 뜻 = 엔진 spec 정의 인용(오라클 사본 정의 0), 새 값 칸·cache·memo·상수 0.
