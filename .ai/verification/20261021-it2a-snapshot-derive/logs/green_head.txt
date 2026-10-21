@@ -1,0 +1,16 @@
+........................................................................ [ 25%]
+........................................................................ [ 50%]
+........................................................................ [ 76%]
+....................................................................     [100%]
+============================== warnings summary ===============================
+gmid_engine/tests/sizing/test_scc_newton.py::test_singular_jacobian[rank_one_2x2]
+gmid_engine/tests/sizing/test_scc_newton.py::test_r7_singular_checked_before_acceptance
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 2 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/sizing/test_scc_newton.py::test_singular_jacobian[zero_derivative_1d]
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 1 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+284 passed, 3 warnings in 36.62s

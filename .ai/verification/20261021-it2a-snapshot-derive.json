@@ -1,0 +1,140 @@
+{
+ "id": "20261021-it2a-snapshot-derive",
+ "spec_card": "docs/02-design/specs/20261021-it2a-snapshot-derive.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "d3bdbd39350b3c682238bfe61b1fd4da0f769512",
+ "test_commit": "168e5578e6bea5ee639be1037107089fba07b758",
+ "code_commit": "3954ec1a53ddb8dbb9228119690fe0c6eb63d48f",
+ "checks": {
+  "V1": {
+   "verdict": "FAIL",
+   "basis": "미측정(판정 보류): 전체 suite --run-slow(I-6, tests/structure 포함)를 돌리지 못함 -- 앞선 9회로 측정 백그라운드 작업이 시스템 메모리 부족으로 Claude Code에 의해 중단(2026-10-22 06:2x)되어 지시대로 무거운 실행을 다시 시작하지 않음. 잰 것: 병합본 5517c8b4 격리 복제본(_scratch_it2a_audit/h, remote 제거)에서 변경 test 파일 8개(core/test_graph_snapshot, metrics/test_ss_evaluate, sizing/test_kernel_run·test_scc_newton·test_seal·test_seal_conduction·test_seal_versions·test_size_and_seal) 284 passed / 0 failed(logs/green_head.txt). metrics/test_verified_by.py 실패 8건 비교도 미측정. 재실행 명령: bash scripts/run_suite.sh h suite_head(필요 시 b suite_base)."
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "red-green: base d3bdbd39 엔진 + head test 파일 8개(복제본 r)에서 47 failed / 237 passed. 허용 예외 타입 red 14 = AttributeError derive_child 4(신규 심볼, 존재 부재) + AssertionError 9(test_ss_evaluate s16 3·T-L11c 1·T-L11a child_drops 1·test_size_and_seal T-L11d 4 -- 사유: ss_dev (0,0,1)!=(0,1,0) reuse 그대로, child 에 ss_dev 2행 남음, dc_seal_report reuse 13) + Failed 1(T-L11a base writer 버전 다른 parent DID NOT RAISE ValueError). 제외 33 = TypeError 32(seal_dc base 키워드 24·seal_versions 셋째 인자 8 -- 새 키워드 직접 호출, card 가 red 로 세지 않음; 이 가운데 T-L11b 4개 포함) + T-L11e 1(Failed DID NOT RAISE TypeError, card 제외) -- 합 47. 하네스·import 오류 가짜 red 0. T-L11b 는 TypeError 만이라 행동 red 를 탐침으로 보충: base seal_versions(snap, calls) 2인자에 위반 픽스처 둘 -> 둘 다 pass(옛 게이트는 거부 못함), head -> fail·foreign_writers=(dc_tolerances,)·base_call_overlap=(dc_columns,dc_currents,dc_lengths,dc_widths), blocks=() (raw/probe.jsonl). 병합본 284 passed. 작성자 보고 red 37 은 계수 규칙 차이(TypeError 일부 포함 추정) -- 증거로 쓰지 않음."
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "도입 해당 없음(DEC-86): merge_gate·mutate_changed 미사용(N6.3 절차), 이 판정에서 재지 않음."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: T-L11a derive_child 4개 = (손) _populated write 순서 손 읽기(남는 열·i2·write_count 2·block_version), 피검 출력 복사 아님; T-L11a kernel_run 4개 = (비교) parent 없는 같은 θ 평가·ctx.base 열과 대조, (독립) 거부 전제 assert; T-L11b 4개 = (식) design 41 756 단언 문장 그대로, 겹침 이름 = 호출 블록 넷 손 읽기, 통과 대조 먼저; T-L11c = (독립) RunCounters 증분 (0,1,0)과 첫 평가 값 대조; T-L11d = (독립) 블록별 (reuse,graft,replay,compute) = 커널 4·봉인 8 (1,0,0,0), dc_seal_report (0,1,0,0) -- 감사 탐침으로 같은 수 재현(raw/probe.jsonl dc13: head 12 reuse + 1 graft, base 13 reuse, computes 0, fp·report 같음); T-L11e 3개 = (식) TypeError 계약 -- 탐침 재현(seal_versions None·seal_dc base=None·base 생략 모두 TypeError). 피검 함수로 기대값을 만든 assert 없음(UNJUDGED 0). 결정성: 8회로 HEAD 두 번 비트 동일(시간 칸 제외), 계수 행 같음."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "기준 약화 0: test diff d3bdbd39..5517c8b4(sha256 6aa20a568d13a9a0095d256673899dc874dc3db36308dc3e8626a1dd34b7cbb3, logs/test_diff.patch) 삭제 줄 16 전부 승인 범위 -- O-93 seal_versions 셋째 인자 4곳, O-94 ext 1 test_empty_calls_pass base=snap, O-94 ext 2 test_size_and_seal 4항목 sum(reuses)==13 -> 블록별 정확 계수(reuse 12 + dc_seal_report graft 1, 더 엄격), O-94 ext 3 seal_dc base=ctx.base 7곳(test_seal 21·163, scc_newton 791, seal_conduction 218·227·303·375), o67-scope ss_dev (computes,reuses)==(0,1) -> (computes,grafts,reuses)==(0,1,0)(더 엄격). skip·xfail·importorskip·approx 추가 0. code 커밋 867d6455·3954ec1a·973daf49 의 test 파일 변경 0."
+  },
+  "V6": {
+   "verdict": "FAIL",
+   "basis": "graph 정본 G2·G5·G7: 위반 1 -- kernel_run.py:84 keep 이 later 블록을 later 목록에서 읽지 않고 {dc_columns.name, dc_widths.name} 로 따로 적는다(card '커널 블록(steps·later 목록에서 읽음)'·design 41 753 과 다름; later 구성원의 둘째 정의 -- 지금은 later 가 무조건 두 블록이라 동작 영향 0). 그 밖 통과: 새 cache·memo·모듈 dict·sctx 슬롯·값 사본 0(추가 dict 는 derive_child 결과 표·seal_dc 호출마다 지역 extras_of·seal_versions 지역 집합뿐), 블록 이름 문자열 상수 목록 0(git grep), base writer = base.block_versions 에서 읽음, steps 는 목록에서 읽음, SEAL_ITEM_BLOCKS 정의 seal.py:36 하나 -- seal_dc 호출 순서(seal.py:64)와 keep(kernel_run.py:85)이 같은 객체(탐침 is True), _CONTEXT_WRITERS 는 search_context.py:44·206 context_fp 에만(kernel_run·seal 0), extras 매핑 fail-closed 패치 확인(상수에서 하나 뺌·dc_seal_report 더함 -> ValueError; 순서 바꿈 -> KeyError로 멈춤, 조용한 통과 없음). 새 graph 필드 0(권한표·WRITES 변경 0) -> G1·G3·G4·G6 해당 없음; SealItem detail 새 키 foreign_writers·base_call_overlap 은 기존 필드 dc_seal_report 값 안 진단 칸(status·magnitude 가 소비). 필드 수 0 / 소비자 0 결함 0 / 정본 우회 의심 1(위 later) / KVL·KCL 관계 미적용 0 / graph 밖 저장 자리 0. 회로·소자·넷 이름 code 0."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "배선: derive_child 는 run_kernel parent 분기(kernel_run.py:84)에서 운영 경로로 쓰임, seal_versions base = run_kernel 의 ctx.base -> seal_dc(base=base) -> seal_versions(snapshot, calls, base)(seal.py:72). 9회로 실측에서 parent 재평가가 실제로 일어나 dc_seal_report graft(folded 15·nmcnr 10·pushpull 8·two_stage 9 회 reuse->graft)와 ss_dev graft(nmcnr 2·two_stage 3)로 나타남."
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 해당 없음: IT-2a diff 에 폴백 경로 없음(base None 건너뛰기 분기 없음 -- TypeError)."
+  },
+  "V9": {
+   "verdict": "PASS",
+   "basis": "L11 직접 탐침(raw/probe.jsonl): (a) parent 에 손 ss_dev 실음 -> head child ss_dev 0행·block_version None(base 2행·hand_ss), child 봉인 4 pass; (b) 위반 픽스처 둘 head SEAL_FAIL·detail 맞음, base 2인자 pass; (c) T-L11c green; (d) 같은 θ parent 재평가 DC 13블록 computes 0, 커널 4·봉인 8 reuse, dc_seal_report graft 1, fp·report 같음; base None·생략 TypeError 셋. G-10: 8회로 recomputes_same_input 0(head·base), calls·computes 블록마다 base 와 같음(재계산 증분 0). 값 계산 경로 불변 -> KVL·KCL 결과 비트 동일(8회로)."
+  },
+  "V10": {
+   "verdict": "FAIL",
+   "basis": "미완(I-3): 9회로 가운데 8회로만 잼 -- two_stage_ota_sf 는 BASE 기록이 단계 B 뒤 중단, HEAD·HEAD_rep2 없음(메모리 부족 중단). 잰 8회로(raw/change_table.json): 결과 칸 BASE 대 HEAD 차이 0(시간 칸·block_counters 제외), HEAD 두 번 차이 0·계수 행 같음, BASE 대 IT-1 감사 raw(IT-0 계보) 차이 0 -> IT-0 대비 원인 칸은 IT-1 기록 그대로·IT-2a 기인 결과 변화 0. 계수 변화 전부 허용 칸: dc_seal_report reuse->graft(folded 15, nmcnr 10, pushpull 8, two_stage 9), ss_dev reuse->graft(nmcnr 2, two_stage 3); 커널 4·봉인 8 행 불변; 설명 안 된 변화 0. common_gate·current_reuse·sf_pushpull 은 계수 변화 0(parent 재평가 reuse 없음), ngcc 는 단계 A review_needed 라 find_front 없음."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "IT2a/red_allowed_type_count_base",
+   "value": 14,
+   "command": "C:/Python314/python.exe -m pytest -p no:cacheprovider -q --tb=short --junitxml=red_base.xml <8 test 파일> (복제본 r = d3bdbd39 + head test) -> scripts/write_record.py 분류"
+  },
+  {
+   "name": "IT2a/head_changed_test_files_passed",
+   "value": 284,
+   "command": "C:/Python314/python.exe -m pytest -p no:cacheprovider -q <8 test 파일> (복제본 h = 5517c8b4)"
+  },
+  {
+   "name": "IT2a/L11d_dc13_reuse_head",
+   "value": 12,
+   "command": "pytest scripts/test_zz_it2a_audit_probe.py::test_probe_dc13_outcome (h, IT2A_PROBE_OUT)"
+  },
+  {
+   "name": "IT2a/L11d_dc13_graft_head",
+   "value": 1,
+   "command": "pytest scripts/test_zz_it2a_audit_probe.py::test_probe_dc13_outcome (h)"
+  },
+  {
+   "name": "IT2a/L11d_dc13_reuse_base",
+   "value": 13,
+   "command": "pytest scripts/test_zz_it2a_audit_probe.py::test_probe_dc13_outcome (r)"
+  },
+  {
+   "name": "IT2a/G10_recomputes_same_input_8circuits_head",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/compare_it2a.py out/run <IT-0 raw> <IT-1 raw> change_table.json"
+  },
+  {
+   "name": "IT2a/unexplained_changes_8circuits",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/compare_it2a.py out/run <IT-0 raw> <IT-1 raw> change_table.json"
+  }
+ ],
+ "approvals": [
+  "20261021-it2-o67-scope",
+  "20261022-it2a-seal-signature-ext",
+  "20261022-it2a-o94-ext"
+ ],
+ "auditor_run": {
+  "time": "2026-10-22T06:30:00+09:00",
+  "worktree": "격리 복제본 wt/_scratch_it2a_audit/h(@5517c8b4 병합본, remote 제거), b(@d3bdbd39 엔진 base), r(@d3bdbd39 + head test 파일 8개, red 용)",
+  "commands": [
+   "V1: (미실행 -- 메모리 부족 중단 뒤 보류) bash scripts/run_suite.sh h suite_head = 단위별 순차 C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --tb=short --run-slow --junitxml=junit_<u>.xml <u> (u = tests 최상위 디렉터리, lut 는 파일별)",
+   "git -c core.longpaths=true clone -q --no-hardlinks --no-local wt/it2a-audit wt/_scratch_it2a_audit/{h,b,r} && git -C <clone> remote remove origin",
+   "git -C r checkout 5517c8b4 -- <test 파일 8개>; cd r/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q --tb=short --junitxml=red_base.xml <8 파일>",
+   "cd h/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --tb=short --junitxml=green_head.xml <8 파일>",
+   "탐침: scripts/test_zz_it2a_audit_probe.py 를 r·h 의 tests/sizing 에 잠시 복사해 IT2A_PROBE_OUT=probe.jsonl 로 실행 뒤 삭제",
+   "bash scripts/run_9.sh (C:/Python314/python.exe -I scripts/measure_it2a.py <b|h> BASE|HEAD <회로> library out/run [--tag _rep2]) -- two_stage_ota_sf 에서 메모리 부족 중단",
+   "C:/Python314/python.exe -I scripts/compare_it2a.py out/run .ai/verification/20261021-it0-baseline/raw .ai/verification/20261021-it1-input-tie-removal/raw change_table.json",
+   "git -C h grep -n _CONTEXT_WRITERS|SEAL_ITEM_BLOCKS|derive_child|PLAN_WRITERS -- gmid_engine ':!tests'"
+  ]
+ },
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/gmid_engine/tests/core/test_graph_snapshot.py::test_it2a_derive_child_keeps_only_keep_writers_fields_and_versions",
+   "skills/analog-gmid-design/gmid_engine/tests/core/test_graph_snapshot.py::test_it2a_derive_child_leaves_parent_unchanged_and_is_a_new_snapshot",
+   "skills/analog-gmid-design/gmid_engine/tests/core/test_graph_snapshot.py::test_it2a_derive_child_keep_nothing_and_unknown_names",
+   "skills/analog-gmid-design/gmid_engine/tests/core/test_graph_snapshot.py::test_it2a_derive_child_result_accepts_later_writes",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[cell]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[nocell_c]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[nocell_r]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2a_same_theta_ss_reevaluation_from_child_grafts",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py::test_it2a_child_drops_fields_of_writer_outside_kernel",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py::test_it2a_parent_with_other_base_writer_version_rejected",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_same_theta_with_parent_zero_compute",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_only_change_zero_dc_compute[key0-1.1e-12]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_only_change_zero_dc_compute[key1-11000.0]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_only_change_zero_dc_compute[both-None]"
+  ],
+  "failure_hashes": [
+   "a6b298d82329c1c11b716d4010b5802d3173e02785be89a5f444c5dbf9d99926",
+   "c8d1bcad8508155114767ff8494759760a45481f1336e39b4a3bec34533cd3c1",
+   "4f6b1f0d599486249f71dd9b756f79f698d86411b32be443106f3b0d2735ccd0",
+   "4688fa9eb5b60f03976e992615939e95fda97276d5d0adadaca28952d7223cf2",
+   "c972da0e0d82a7e40a0f9c307e8ce96ab77fb76388e0cf47895993913a9bab5b",
+   "fc866dc379e9c59f09b6099ccf884e40a3a8e0405d8134ba068fdfb008f21509",
+   "610154606a7f139b70f428e6f8ee36cd9c924e950463403a825647982bc3e495",
+   "cba74121dde57012845d5f40cbd22e1e7f3582661b04ac2ee30085a0c096e462",
+   "926116bc7908cd895b21249d24fda8f9515e1c5fc7a06e816b8f40a3713ccb7c",
+   "57fc456c6d0802a0e9d32755a7b91633485318cf332ca2acfda17095ef10b908",
+   "c23ac8425b219c89d331e839f052cc7af819ca719b35addc3d76177917013687",
+   "c2fc353900ad2a3a7b47c44f98bae29ea83adb193a09cc503daeefb313639625",
+   "ee4baacf311a72b3f7d7a7a868684d28109bb15df9f5f3ab676ebcd21d9fa046",
+   "848f031ce12456c417b6e784f3af4e3b8dd0cb9eec25143f2210480f1e38f493"
+  ]
+ }
+}
