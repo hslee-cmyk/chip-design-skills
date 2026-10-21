@@ -333,3 +333,191 @@ def test_dec95_name_bijection(tmp_path, r4_access, names):
     for i, hints in enumerate((OrderHints(independent=(b,)), OrderHints(stage=((a, 1), (b, 2))), OrderHints(gm_required=(b,)))):
         ctx = _sym(tmp_path / ("h%d" % i), r4_access, hints, names)
         assert _writer_of(ctx, "pb") == b
+
+
+# ===========================================================================
+# [IT-1] 입력 DC 미선언 입력 포트 -- 같은 DC 엣지·input_tie 제거 (card 20261021-it1-input-tie-removal, 설계 41 v1.12.3 §4.7-1·§6.7-1a)
+# ===========================================================================
+# oracle: (손) toy 연결에서 손으로 유도한 writer·종속 분류·순환 수. (식) 41:671 정지 detail 꼴. (독립) 어휘 부재.
+# 규칙(41:668-672): 입력 DC 미선언이어도 G_vgs 에 '같은 DC' 엣지가 없다. F(레일·목표·선언 입력) 없는 성분에 입력 포트가 있으면 그중 하나가
+# W4 뿌리(y 키 = 그 넷 이름), 나머지 입력 포트는 트리 경로(MOS VGS)로 쓰인다. 종속 수 = F 를 한 점으로 모은 G_vgs 의 순환 수 E - V + C.
+# 입력 포트인 W4 뿌리가 둘 이상(G_vgs 밖 고립 입력 포트 포함)이면 StructureUnresolvedError(input_port_multiple_roots).
+# 구조 색 동률 때문에 둘 중 누가 뿌리인지는 단언하지 않는다(대칭 -- 이름·색 의존 금지): 뿌리는 둘 중 정확히 하나라는 것만 단언한다.
+
+import gmid_engine.sizing as _SZ                                                                   # noqa: E402
+import gmid_engine.sizing.s2_values as _S2V                                                         # noqa: E402
+
+_IT1_RELATIONS = {"rail", "declared_target", "input_dc", "vgs_gate", "vgs_source", "resistor_drop", "free_window"}
+
+
+def _it1_diff_doc(inp="inp", inn="inn", mp="M1", mn="M2", t="t", name="it1_diff"):
+    """차동 입력 toy: (mp: o1,inp,t), (mn: o2,inn,t), 꼬리 M5(t, vb, gnd), 부하 M3·M4 (pb, vdd) 평행."""
+    return topo(name,
+                [mos(mp, "nmos", "o1", inp, t), mos(mn, "nmos", "o2", inn, t), mos("M5", "nmos", t, "vb", "gnd"),
+                 mos("M3", "pmos", "o1", "pb", "vdd"), mos("M4", "pmos", "o2", "pb", "vdd")],
+                {inp: ("input", "a"), inn: ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")},
+                bias=["pb", "vb"])
+
+
+def _it1_ring_doc():
+    """고리 toy: M1(o1,inp,t1) M2(o2,inn,t1) M3(o3,inp,t2) M4(o4,inn,t2) + 꼬리 M5(t1,vb,gnd) M6(t2,vb,gnd).
+    G_vgs: inp-t1(M1) inn-t1(M2) inp-t2(M3) inn-t2(M4) = 4노드 4엣지 고리(포트 경로 둘 이상), vb-gnd 평행 M5·M6."""
+    return topo("it1_ring",
+                [mos("M1", "nmos", "o1", "inp", "t1"), mos("M2", "nmos", "o2", "inn", "t1"),
+                 mos("M3", "nmos", "o3", "inp", "t2"), mos("M4", "nmos", "o4", "inn", "t2"),
+                 mos("M5", "nmos", "t1", "vb", "gnd"), mos("M6", "nmos", "t2", "vb", "gnd"), mos("MP1", "pmos", "o1", "pb", "vdd"), mos("MP2", "pmos", "o2", "pb", "vdd"),
+                 mos("MP3", "pmos", "o3", "pb", "vdd"), mos("MP4", "pmos", "o4", "pb", "vdd")],
+                {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b"),
+                 "o3": ("output", "b"), "o4": ("output", "b")}, bias=["vb", "pb"])
+
+
+def _it1_check_diff_undeclared(ctx, inp, inn, mp, mn, t):
+    nw, co, ties = plan(ctx)
+    assert all(w.relation in _IT1_RELATIONS for w in nw.values())                  # input_tie 없음
+    assert not any(tb.decision == "input_tie_order" for tb in ties)
+    roots = [n for n in (inp, inn) if nw[n].tier == "W4"]
+    assert len(roots) == 1                                                          # 입력 포트 뿌리 정확히 하나
+    root = roots[0]
+    other = inn if root == inp else inp
+    dev = {inp: mp, inn: mn}
+    assert (nw[root].relation, nw[root].y_key) == ("free_window", root)             # y 키 = 뿌리 넷 이름
+    assert (nw[other].tier, nw[other].relation, nw[other].element, nw[other].known, nw[other].y_key) == (
+        "W2", "vgs_gate", dev[other], t, None)                                      # 다른 포트 = 트리 경로 (MOS VGS)
+    assert (nw[t].tier, nw[t].relation, nw[t].element, nw[t].known) == ("W2", "vgs_source", dev[root], root)
+    assert co[mp] == DeviceCoord("writer", "tree") and co[mn] == DeviceCoord("writer", "tree")   # 같은 DC 종속 0: 고리 없음
+    deps = sorted((m, c.relation) for m, c in co.items() if c.role == "dependent")
+    assert len(deps) == 1 and deps[0][1] == "parallel_vgs" and deps[0][0] in ("M3", "M4")      # 손계산: 순환 수 1 (M3·M4)
+    return nw, co
+
+
+def test_it1_undeclared_diffpair_no_input_tie(tmp_path, toy_access):
+    """T-a (손)."""
+    ctx = build_ctx(tmp_path, _it1_diff_doc(), toy_access)[2]
+    _it1_check_diff_undeclared(ctx, "inp", "inn", "M1", "M2", "t")
+
+
+def test_it1_ring_cycle_vgs_after_port_delta_elimination(tmp_path, toy_access):
+    """T-a (손): 포트 경로가 둘 이상인 고리 -- 같은 DC 엣지 없이 고리 KVL 하나가 남아 M1~M4 중 하나가 cycle_vgs, M5·M6 평행 하나."""
+    ctx = build_ctx(tmp_path, _it1_ring_doc(), toy_access)[2]
+    nw, co, ties = plan(ctx)
+    assert all(w.relation in _IT1_RELATIONS for w in nw.values())
+    assert len([n for n in ("inp", "inn") if nw[n].tier == "W4"]) == 1
+    cyc = [m for m, c in co.items() if c.relation == "cycle_vgs"]
+    par = [m for m, c in co.items() if c.relation == "parallel_vgs"]
+    assert len(cyc) == 1 and cyc[0] in ("M1", "M2", "M3", "M4")
+    assert len([m for m in par if m in ("M5", "M6")]) == 1                      # M5·M6 (vb, gnd) 평행 -> 종속 1
+    assert len([m for m in par if m.startswith("MP")]) == 3                     # MP1~MP4 (pb, vdd) 평행 4개 -> 종속 3
+    assert sum(1 for c in co.values() if c.role == "dependent") == 5
+
+
+@pytest.mark.parametrize("doc_fn,declared,expected", [
+    (_it1_diff_doc, False, 1),     # F,inp,inn,t,vb,pb: V=6 E=5 C=2 -> 1 (M3·M4)
+    (_it1_diff_doc, True, 2),      # inp·inn ∈ F: V={F,t,vb,pb} E=5 C=1 -> 5-4+1 = 2 (M1·M2, M3·M4)
+    (_it1_ring_doc, False, 5),     # 고리 1 + M5·M6 1 + 부하 MP1~MP4 평행 3
+    (_it1_ring_doc, True, 6),      # inp·inn ∈ F: M1·M2 평행 1, M3·M4 평행 1, M5·M6 평행 1, MP1~MP4 평행 3
+], ids=["diff_undeclared", "diff_declared", "ring_undeclared", "ring_declared"])
+def test_it1_dependent_count_equals_cycle_rank(tmp_path, toy_access, doc_fn, declared, expected):
+    """T-b (손): 종속 수 = 같은 DC 엣지 없는 G_vgs(F 한 점)의 순환 수."""
+    kw = {"input_dc_v": 0.7} if declared else {}
+    ctx = build_ctx(tmp_path, doc_fn(), toy_access, **kw)[2]
+    co = dict(ctx.base.column("device", "dc_coord"))
+    assert sum(1 for c in co.values() if c.role == "dependent") == expected
+
+
+def test_it1_declared_input_plan_unchanged(tmp_path, toy_access):
+    """T-c (손): 입력 DC 선언 -- 입력 포트 = F(input_dc), M1·M2 는 F-t-F 고리라 하나가 cycle_vgs, M3·M4 평행. base 에서도 통과(무동작)."""
+    ctx = build_ctx(tmp_path, _it1_diff_doc(), toy_access, input_dc_v=0.7)[2]
+    nw, co, ties = plan(ctx)
+    assert strip(nw)["inp"] == ("W2", "input_dc", None, None, None)
+    assert strip(nw)["inn"] == ("W2", "input_dc", None, None, None)
+    w12 = [m for m in ("M1", "M2") if co[m].role == "writer"]
+    d12 = [m for m in ("M1", "M2") if co[m].role == "dependent"]
+    assert len(w12) == 1 and len(d12) == 1 and co[w12[0]] == DeviceCoord("writer", "tree")
+    assert co[d12[0]] == DeviceCoord("dependent", "cycle_vgs")
+    gate = {"M1": "inp", "M2": "inn"}
+    assert (nw["t"].tier, nw["t"].relation, nw["t"].element, nw["t"].known) == ("W2", "vgs_source", w12[0], gate[w12[0]])
+    w34 = [m for m in ("M3", "M4") if co[m].role == "writer"]
+    d34 = [m for m in ("M3", "M4") if co[m].role == "dependent"]
+    assert len(w34) == 1 and co[d34[0]] == DeviceCoord("dependent", "parallel_vgs", w34[0])
+    assert strip(nw)["vb"] == ("W2", "vgs_gate", "M5", "gnd", None)
+    assert not any(tb.decision == "input_tie_order" for tb in ties)
+
+
+def _it1_two_roots_doc():
+    """입력 포트 in1·in2 가 서로 다른 G_vgs 성분({in1,t1}·{in2,t2}) -- 둘 다 F 없는 성분의 뿌리."""
+    return topo("it1_two_roots",
+                [mos("M1", "nmos", "o1", "in1", "t1"), mos("M2", "nmos", "o2", "in2", "t2"),
+                 mos("M5", "nmos", "t1", "vb", "gnd"), mos("M6", "nmos", "t2", "vb", "gnd"), mos("MP1", "pmos", "o1", "pb", "vdd"), mos("MP2", "pmos", "o2", "pb", "vdd")],
+                {"in1": ("input", "a"), "in2": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")}, bias=["vb", "pb"])
+
+
+def _it1_isolated_doc(with_other_root=True):
+    """iso = 드레인에만 닿는 입력 포트(G_vgs 밖 고립). with_other_root 면 in1 도 다른 성분 입력 포트 뿌리."""
+    net = [mos("M7", "nmos", "iso", "vb", "gnd"), mos("MP", "pmos", "o1", "pb", "vdd"), mos("MQ", "pmos", "iso", "pb", "vdd")]
+    ports = {"iso": ("input", "a"), "o1": ("output", "b")}
+    if with_other_root:
+        net += [mos("M1", "nmos", "o1", "in1", "t1"), mos("M5", "nmos", "t1", "vb", "gnd")]
+        ports["in1"] = ("input", "a")
+    else:
+        net.append(mos("M1", "nmos", "o1", "vb", "gnd"))
+    return topo("it1_iso", net, ports, bias=["vb", "pb"])
+
+
+@pytest.mark.parametrize("doc_fn,roots", [(_it1_two_roots_doc, {"in1", "in2"}), (_it1_isolated_doc, {"in1", "iso"})],
+                         ids=["two_components", "isolated_plus_component"])
+def test_it1_multiple_input_roots_stop(tmp_path, toy_access, doc_fn, roots):
+    """T-d·T-d′ (식, 41:671): 입력 포트인 W4 뿌리 둘 이상 -> 탐색 전 정지. detail 키별 비교(순서는 단언하지 않는다 -- 쓰기 순번 순)."""
+    with pytest.raises(StructureUnresolvedError) as ei:
+        build_ctx(tmp_path, doc_fn(), toy_access)
+    d = detail(ei.value)
+    assert d["reason"] == "unsupported_rule_branch"
+    assert d["rule_branch"] == "input_port_multiple_roots"
+    assert len(d["nets"]) == len(roots) and set(d["nets"]) == roots
+
+
+def test_it1_isolated_single_root_builds(tmp_path, toy_access):
+    """T-d′ 대조: 고립 입력 포트가 뿌리 하나뿐이면 정지하지 않고 y 키 = 그 넷."""
+    ctx = build_ctx(tmp_path, _it1_isolated_doc(with_other_root=False), toy_access)[2]
+    w = dict(ctx.base.column("node", "dc_writer"))["iso"]
+    assert (w.tier, w.relation, w.y_key) == ("W4", "free_window", "iso")
+
+
+def test_it1_vocabulary_removed():
+    """T-e (독립): 어휘 부재와 새 상수."""
+    for name in ("REL_TIE", "INPUT_GROUP_KEY", "PATH_TIE", "TIE_INPUT_ORDER"):
+        assert not hasattr(_SZ, name), name
+        assert not hasattr(_S2V, name), name
+    assert _S2V.BRANCH_INPUT_MULTIPLE_ROOTS == "input_port_multiple_roots"
+
+
+def test_it1_renamed_diffpair_same_structure(tmp_path, toy_access):
+    """T-h (손): 넷·소자 이름 맞바꿈·새 이름 -> 같은 구조 결과, y 키는 바꾼 이름."""
+    for sub in "abc":
+        (tmp_path / sub).mkdir()
+    a = build_ctx(tmp_path / "a", _it1_diff_doc(), toy_access)[2]
+    b = build_ctx(tmp_path / "b", _it1_diff_doc("inn", "inp", "M2", "M1", "t", "it1_diff_sw"), toy_access)[2]
+    c = build_ctx(tmp_path / "c", _it1_diff_doc("zq", "ab", "MZ", "MA", "tt", "it1_diff_new"), toy_access)[2]
+    na, ca = _it1_check_diff_undeclared(a, "inp", "inn", "M1", "M2", "t")
+    nb, cb = _it1_check_diff_undeclared(b, "inn", "inp", "M2", "M1", "t")
+    nc, cc = _it1_check_diff_undeclared(c, "zq", "ab", "MZ", "MA", "tt")
+    shape = lambda nw, co: (sorted((w.tier, w.relation) for w in nw.values()),                  # noqa: E731
+                            sorted((x.role, x.relation) for x in co.values()))
+    assert shape(na, ca) == shape(nb, cb) == shape(nc, cc)
+
+
+def test_it1_theta_schema_y_components_follow_writers(tmp_path, toy_access):
+    """graph 계약 I4/I6 (손): θ 스키마(소비자)의 y 성분 = W4 writer 의 y_key -- 입력 포트 뿌리는 그 넷, 옛 묶음 키 없음."""
+    ctx = build_ctx(tmp_path, _it1_diff_doc(), toy_access)[2]
+    nw, _, _ = plan(ctx)
+    root = [n for n in ("inp", "inn") if nw[n].tier == "W4"][0]
+    ys = {k for t, k in kschema(ctx).components if t == "y"}
+    assert ys == {root, "o1", "o2"}
+    assert "input_common_mode" not in ys
+
+
+def test_it1_writer_block_owns_plan_fields():
+    """graph 계약 I1: node.dc_writer·device.dc_coord·graph.dc_tie_breaks 는 dc_writer_plan 이 쓴다(필드 writer 하나)."""
+    w = set(dc_writer_plan.writes)
+    assert ("node", "dc_writer") in w and ("device", "dc_coord") in w
+    from gmid_engine.sizing import dc_columns
+    assert ("node", "port_direction") in set(dc_columns.reads)                                    # 41:672 -- dc_columns 가 S1 포트 방향을 READS 로 읽는다
