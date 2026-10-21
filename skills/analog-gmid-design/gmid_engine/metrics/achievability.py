@@ -19,7 +19,7 @@
 4. `area_lower_bound` -- 인증된 면적 하한 A_lb > 예산 + b_A 이면 정지(`area_budget_below_lower_bound`, 41 §4.4).
 5. `headroom_bound` -- 출력·입력·버퍼 창 상한(41 §4.6): 선언 제약의 대상 창이 인증되었고 상한 + 분해능 < 목표면 정지(`headroom_unattainable`); 선언 제약이 없는 창·입력 DC 대기는 보고만,
    버퍼 창은 `buffer_window_report`, 입력 창이 최단 L bin 에서만 열리면 경고 `icmr_window_short_l_bin`. 엣지 비용은 LUT 파생 `lut.derived(memo, "edge_costs", ...)`(LUT memo, 40 §2.4.6).
-6. `dof_report` -- 구조 DOF(변수 = 비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ DC 저항, 등식 = MOS 소자 식·저항 강하·선언 노드 목표·입력 동일 DC): 매칭 안 되는 등식이 있으면 정지(`overconstrained`).
+6. `dof_report` -- 구조 DOF(변수 = 비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ DC 저항, 등식 = MOS 소자 식·저항 강하·선언 노드 목표): 매칭 안 되는 등식이 있으면 정지(`overconstrained`).
 인증되지 않은 값(미상)은 정지 근거로 쓰지 않고 `status`·`reason` 으로 남긴다 -- 조용히 통과하는 것이 아니라 '판정 안 함'이 보고에 드러난다.
 
 한계(보고서 기록): 블록 gain 상한은 격자 곱 Π 가 N_S 를 넘으면 미상이다. 9회로 실측에서 Π 는 N_S(1.4e7)를 크게 넘어 거의 모든 블록이 미상이므로 `found_db`(좌표 상승 하한 추정)를 보고만 한다.
