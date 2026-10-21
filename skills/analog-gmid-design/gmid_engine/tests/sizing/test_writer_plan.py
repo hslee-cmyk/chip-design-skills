@@ -13,7 +13,7 @@ import pytest
 
 from gmid_engine.core import StructureUnresolvedError
 from gmid_engine.graph import build_s1
-from gmid_engine.sizing import (DC_KEY, INPUT_GROUP_KEY, DeviceCoord, NodeWrite, TieBreak, build_kernel_context,
+from gmid_engine.sizing import (DC_KEY, DeviceCoord, NodeWrite, TieBreak, build_kernel_context,
                                 dc_writer_plan)
 
 from .conftest import (NINE, build_ctx, circuit_cs_pmos_load, circuit_cs_res, circuit_empty_window, detail,
@@ -118,20 +118,20 @@ def _lo_hi(col, pair):
 
 def test_symmetric_diffpair_choices_by_canonical_position(tmp_path, toy_access):
     """[r11] 3.0b: 모든 정렬 키의 구조 색이 정점마다 유일해 이름이 결정을 가르지 않는다 -> dc_tie_breaks = ().
-    손계산(3절 규칙, 이름 대신 dc_colour): F 밖 입력 포트 inp·inn -> 같은 DC 엣지; 성분 {inn, inp, t} 에 F 없음 -> 뿌리 = 입력 포트 중
-    색 최소(W4 free_window, y 키 INPUT_GROUP_KEY), 다른 포트 = input_tie(known 뿌리). M1·M2(같은 순위) 중 색 작은 쪽이 트리(vgs_source 로 t),
-    다른 쪽 cycle_vgs. M3·M4 (pb, vdd) -> 색 작은 쪽 트리, 다른 쪽 parallel_vgs(partner = 트리 쪽). 색은 스냅샷 입력 열."""
+    손계산(3절 규칙, 이름 대신 dc_colour): [IT-1 규칙 변경 K-3 -- 같은 DC 엣지 없음] 성분 {inn, inp, t} 에 F 없음 -> 뿌리 = 입력 포트 중
+    색 최소(W4 free_window, y 키 = 그 넷 이름), 다른 포트 = 트리 경로(M 의 vgs_gate, known t). M1·M2 둘 다 트리(vgs_source 로 t 는 뿌리 쪽
+    소자), cycle_vgs 없음(같은 DC 종속 0). M3·M4 (pb, vdd) -> 색 작은 쪽 트리, 다른 쪽 parallel_vgs(partner = 트리 쪽). 색은 스냅샷 입력 열."""
     ctx = build_ctx(tmp_path, diffpair(), toy_access)[2]
     nw, co, ties = plan(ctx)
     ncol = dict(ctx.base.column("node", "dc_colour"))
     ecol = dict(ctx.base.column("device", "dc_colour"))
     assert tuple(ties) == ()
     root, other = _lo_hi(ncol, ("inp", "inn"))
-    assert strip(nw)[root] == ("W4", "free_window", None, None, INPUT_GROUP_KEY)
-    assert strip(nw)[other] == ("W2", "input_tie", None, root, None)
-    w12, d12 = _lo_hi(ecol, ("M1", "M2"))
-    assert co[w12] == DeviceCoord("writer", "tree")
-    assert co[d12] == DeviceCoord("dependent", "cycle_vgs")
+    dev = {"inp": "M1", "inn": "M2"}
+    assert strip(nw)[root] == ("W4", "free_window", None, None, root)
+    assert strip(nw)[other] == ("W2", "vgs_gate", dev[other], "t", None)
+    w12 = dev[root]
+    assert co["M1"] == DeviceCoord("writer", "tree") and co["M2"] == DeviceCoord("writer", "tree")
     w34, d34 = _lo_hi(ecol, ("M3", "M4"))
     assert co[w34] == DeviceCoord("writer", "tree")
     assert co[d34] == DeviceCoord("dependent", "parallel_vgs", w34)
@@ -154,7 +154,7 @@ def test_renamed_diffpair_plan_follows_colour_correspondence(tmp_path, toy_acces
         nc = dict(ctx.base.column("node", "dc_colour"))
         ec = dict(ctx.base.column("device", "dc_colour"))
         f = lambda x: ec.get(x, nc.get(x, x)) if x is not None else None          # noqa: E731
-        nodes = {nc[n]: (w.tier, w.relation, f(w.element), f(w.known), w.y_key if w.y_key == INPUT_GROUP_KEY else f(w.y_key))
+        nodes = {nc[n]: (w.tier, w.relation, f(w.element), f(w.known), f(w.y_key))
                  for n, w in nw.items()}
         coords = {ec[m]: (c.role, c.relation, f(c.partner)) for m, c in co.items()}
         return nodes, coords, tuple(ties)
@@ -194,7 +194,6 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
     d2, sn, se = rename(raw, seed)
     sigma = dict(sn)
     sigma.update(se)
-    sigma[INPUT_GROUP_KEY] = INPUT_GROUP_KEY
     inputs2 = type(inputs)(tuple(sorted((sn[k], v) for k, v in inputs.supplies_v)), inputs.input_dc_v,
                            tuple((sn[k], v) for k, v in inputs.node_targets),
                            tuple(sorted((se.get(k, k), v) for k, v in inputs.element_values)),
