@@ -707,8 +707,6 @@ def expected_columns(snap, theta, fixed_values=(), resistor_values=()):
             t0 = dict(snap.value("device", w.element, "pins"))["t0"]
             delta = 0.0 if i == 0 else (-i * r if w.known == t0 else i * r)
             V[x] = V[w.known] + delta
-        elif w.relation == "input_tie":
-            V[x] = V[w.known]
         elif w.relation == "free_window":
             lo, hi = min(rails), max(rails)
             for m, (kind, d, g, s, b) in mt.items():

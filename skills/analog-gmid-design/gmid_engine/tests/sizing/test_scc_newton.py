@@ -401,7 +401,7 @@ def test_jacobian_tolerance_discriminates(toy_access, name):
 
 def circuit_s(reverse=False):
     """S: M1 nmos (vin, nb1, gnd) 전류원, M2 nmos (vout, nb2, vin) 공통게이트, M3 pmos (vout, pb, vdd) 부하.
-    vin = 입력 포트(입력 DC 미선언 -> W4 input_common_mode), vout = drain 만(W4). SCC {vin, vout} 은 창만으로 결합(선형)."""
+    vin = 입력 포트(입력 DC 미선언 -> W4, y 키 = 넷 vin), vout = drain 만(W4). SCC {vin, vout} 은 창만으로 결합(선형)."""
     net = [mos("M1", "nmos", "vin", "nb1", "gnd"), mos("M2", "nmos", "vout", "nb2", "vin"),
            mos("M3", "pmos", "vout", "pb", "vdd")]
     return topo("scc_s", net[::-1] if reverse else net,
@@ -425,7 +425,7 @@ def theta_s(ctx, y1, y2):
           ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, vin, 0.0),
           ("ln_idu", "M2"): Oracle.ln_idu("nmos", 0.7, vout - vin, vin),
           ("ln_idu", "M3"): Oracle.ln_idu("pmos", 0.7, 1.8 - vout, 0.0),
-          ("y", "input_common_mode"): y1, ("y", "vout"): y2}
+          ("y", "vin"): y1, ("y", "vout"): y2}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5}))
     assert set(th) == set(kschema(ctx).components)
     return th, (vin, vout)
@@ -438,7 +438,7 @@ def theta_q(ctx, y, z_star):
     x_star = z_star + c
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6, ("ln_idu", "M1"): T,
           ("ln_idu", "M3"): Oracle.ln_idu("nmos", 0.6, z_star, 0.0),
-          ("ln_idu", "M2"): Oracle.ln_idu("pmos", 0.7, 1.8 - x_star, 0.0), ("y", "input_common_mode"): y}
+          ("ln_idu", "M2"): Oracle.ln_idu("pmos", 0.7, 1.8 - x_star, 0.0), ("y", "z"): y}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5}))
     assert set(th) == set(kschema(ctx).components)
     assert abs(_vgs("nmos", T, c, z_star) - c) <= 1e-12                   # 전제: 그 해가 writer 식의 고정점
@@ -450,7 +450,7 @@ def theta_q(ctx, y, z_star):
 def ctx_s(tmp_path_factory, toy_access):
     ctx = build_ctx(tmp_path_factory.mktemp("scc_s"), circuit_s(), toy_access)[2]
     w = dict(ctx.base.column("node", "dc_writer"))
-    assert (w["vin"].relation, w["vin"].y_key) == ("free_window", "input_common_mode")
+    assert (w["vin"].relation, w["vin"].y_key) == ("free_window", "vin")
     assert (w["vout"].relation, w["vout"].y_key) == ("free_window", "vout")
     cyc = [e for e in ctx.base.value("graph", DC_KEY, "dc_scc_order") if e.cyclic]
     assert [e.nodes for e in cyc] == [("vin", "vout")]
@@ -461,7 +461,7 @@ def ctx_s(tmp_path_factory, toy_access):
 def ctx_q(tmp_path_factory, toy_access):
     ctx = build_ctx(tmp_path_factory.mktemp("scc_q"), circuit_q(), toy_access)[2]
     w = dict(ctx.base.column("node", "dc_writer"))
-    assert (w["z"].relation, w["z"].y_key) == ("free_window", "input_common_mode")
+    assert (w["z"].relation, w["z"].y_key) == ("free_window", "z")
     assert (w["x"].relation, w["x"].element, w["x"].known) == ("vgs_gate", "M1", "z")
     cyc = [e for e in ctx.base.value("graph", DC_KEY, "dc_scc_order") if e.cyclic]
     assert [e.nodes for e in cyc] == [("z", "x")]
