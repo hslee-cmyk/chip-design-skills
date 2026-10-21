@@ -150,7 +150,8 @@ READS = {
                    ("device", "bulk"), ("device", "element_class"), ("device", "dc_coord"),
                    ("graph", "dc_scc_order"),
                    ("device", "dc_self_referential"),   # [U17 ①-b] §2.4.8 1변수 writer 집합은 S0 필드 -- 기둥 블록이 읽는다
-                   ("device", "dc_colour"), ("node", "dc_colour")},     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
+                   ("device", "dc_colour"), ("node", "dc_colour"),
+                   ("node", "port_direction")},   # [IT-1 K-3 ext, O-84] 41:672 -- 입력 포트 판정은 S1 포트 방향 READS     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
     "dc_widths": {("node", "dc_v"), ("node", "dc_rail_v"), ("device", "dc_current"), ("device", "dc_L"),
                   ("device", "dc_ln_idu"), ("device", "pins"), ("device", "kind"), ("device", "bulk")},
 }
