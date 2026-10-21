@@ -440,13 +440,18 @@ NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS
 * **(v, L)의 graph 자리가 먼저다**: matching 합성 행의 값 (v, L)은 결과 객체 칸이 아니라, 합성 행을 쓰는 블록의 graph 필드 `graph/metrics: constraint_rows` 값이다(40 §2.4.8 소유표 '제약 행' 행, writer = search 제약 블록 하나). 이 필드는 U17 ②로 이월됐고, 미측정 값의 자리(40 §2.4.12 Q8)는 열려 있다. Q8은 '정하기 전에는 `constraint_rows`를 쓰지 않는다'고 적는다. 그래서 OS-2 착수 조건 = **U17 ② 병합(`constraint_rows` 필드와 writer) + Q8 결정(사용자)**이다.
   * 그 전에 과도기 자리를 두지 않는다. `EvalResult` 값 칸은 사본이고 지울 대상에 새 소비자를 다는 것이라 금지한다. 결과 JSON을 쓸 때 (v, L)을 다시 계산하는 길도 둘째 생산자라 금지한다(프로젝트 CLAUDE.md 'graph 단일 정본' 규칙 1·2).
   * U17 ②가 길어지면, OS-2가 `constraint_rows` 필드와 writer만 당겨 만드는 안(U17 ② 일부 선행, Q8 결정은 여전히 필요)으로 바꿀 수 있다. 바꿀지는 그때 사용자가 정한다.
-* **design 개정이 먼저다**: 지금 design(`docs/02-design/features/offset-strategy.design.md` v0.2.6, 브랜치 `design/offset-strategy-ss1` `50d33b8e`, 머리 `plan_version: 0.6.2`)의 커널 합성 행은 계획 v0.6.2 식 v = k·σ + \|V_sys\|다. 계획 v0.7 N3.3(O-53 A2, XS-20)은 이미 커널 행 k·σ_in ≤ 문턱과 front 판정 k·σ_in + \|V_id*\| ≤ 문턱(gain-budget DEC-74 front 전용 예외)으로 나눠 정했다. 새 계획 결정은 없고, design을 이 계획 v0.7 기준으로 개정한다(O-61 'offset-strategy design v0.7 개정', S-7 순서: 계획 → design). design이 고칠 것은 넷이다.
+* **design 개정이 먼저다**: 지금 design(`docs/02-design/features/offset-strategy.design.md` v0.2.6, 브랜치 `design/offset-strategy-ss1` `50d33b8e`, 머리 `plan_version: 0.6.2`)의 커널 합성 행은 계획 v0.6.2 식 v = k·σ + \|V_sys\|다. 계획 v0.7 N3.3(O-53 A2, XS-20)은 이미 커널 행 k·σ_in ≤ 문턱과 front 판정 k·σ_in + \|V_id*\| ≤ 문턱(gain-budget DEC-74 front 전용 예외)으로 나눠 정했다. 새 계획 결정은 없고, design을 이 계획 v0.7 기준으로 개정한다(O-61 'offset-strategy design v0.7 개정', S-7 순서: 계획 → design). design이 고칠 것은 다섯이다.
   1. 커널 행을 단일 항 k·σ_in으로 한다. 분해능 규칙도 항 하나다.
   2. front 판정 자리를 적는다(DEC-74 자리의 소비자, N7.2 OS-2 행).
   3. front 판정 값은 front 점 자신의 스냅샷에서 읽는다(값 사본 없음).
   4. 기호 \|V_sys\|를 부호 있는 V_id*의 크기 \|V_id*\|로 바꾼다(gain-budget DEC-23, O-50 G1).
+  5. 스냅샷 파생 규칙 점검 문단(design v0.2.6 129행)의 남는 필드 표기 '`_CONTEXT_WRITERS`(`S1_WRITERS` ∪ `PLAN_WRITERS`) ∪ 그 평가의 호출 블록'을 사용자 결정 O-61 P1 규칙 '`ctx.base`에 있는 writer ∪ 그 평가가 부르는 블록'으로 바꾼다(정본 gain-budget v6.22 N3.3 '스냅샷 파생 규칙', `plan/gb-v622` `1027c6d8` 422행). 인용만 하고 이 계획에서 규칙을 다시 적지 않는다.
 
   개정된 design의 독립 검증·사용자 승인은 N7.2 '공통 착수 조건' 그대로다.
+
+  **design 개정 때 확인할 항목**(결정이 아니라 점검 대상, v0.7.1 검증 N4):
+  * N7.2 'v0.5 반영' W-1의 단계 B 진단 모드 표지(이 계획 485행 '결과에 그 표지를 싣는다'): `run_plan` 결과는 단계 B 보고서의 `diagnostic` 칸(`stage_b.py:129`)을 참조해야 하고 둘째 칸을 만들지 않는다(graph 단일 정본 규칙 4). design이 그 참조 자리를 적는다.
+  * 같은 절 사슬 값 노출 목록의 `sctx.cache`(488행): 정본은 S3 메모리 색인의 평가 키 부분이고 `sctx.cache`는 지울 대상이다. design 개정 때 노출 자리가 그 색인 참조인지 확인한다.
 
 **권고안(XS-11, 승인 필요)**: S-4의 '실행 계획 구현'을 둘로 나눈다.
 * **TR-1 앞(OS-2, 옛 OS-1 합침)**: 단일 변형 실행 계획(요구 없음·`matching`)과 trim·compare 거부까지. 국면 규칙·승인 기록 로더·낡은 승인 정지는 여기에 넣지 않는다. 이 셋은 trim·compare에서만 쓰이고, 그 방식은 이 card에서 거부되기 때문이다. OT §4의 단계 선택 흐름은 코드에 없으므로(F-7) 이 card에서 대체할 옛 코드 경로도 없다. OT §4 개정은 design 문서에서만 한다(N3.9). 이 범위는 병합 즉시 엔진 사슬 진입점(`run_plan`, W-1)과 그것을 부르는 하네스·test에서 쓰인다(`matching` 요구 spec, 요구 없는 spec).

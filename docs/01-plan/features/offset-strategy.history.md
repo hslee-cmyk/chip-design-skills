@@ -244,6 +244,7 @@ worktree `wt/os-v071`(브랜치 `plan/offset-strategy-v071`, base master `512b3c
 
 | 버전 | 날짜 | 변경 |
 |---|---|---|
+| 0.7.1(검증 N4) | 2026-10-21 | 검증 `wt/_drafts/evidence/2026-10-21/o61_plans_validation_gb_os.md` N4 반영(오케스트레이터 지시): N7.1 design 개정 목록 넷 → 다섯(5. design v0.2.6 129행 스냅샷 파생 남는 필드 표기 '`_CONTEXT_WRITERS` ∪ 호출 블록' → O-61 P1 '`ctx.base` writer ∪ 호출 블록', 정본 gain-budget v6.22 N3.3 `plan/gb-v622` `1027c6d8` 422행), 'design 개정 때 확인할 항목' 두 줄(단계 B 진단 표지 = `stage_b.py:129` `diagnostic` 칸 참조, `sctx.cache` 노출 자리 확인 -- 결정 아님). 검증 N3(`S3Index` 선후 표기 256·306·570·650행)은 나중으로 미룸. 규칙 변경 없음 |
 | 0.7.1 | 2026-10-21 | 사용자 결정 O-61 P9 반영: OS-2 착수 조건 = U17 ② 병합(`constraint_rows` 필드·writer) + 40 §2.4.12 Q8 결정(N7.1 신설 문단, N7.2 OS-2 선행 칸), OS-2 착수 전 design을 계획 v0.7 기준으로 개정(커널 행 현행화), W-1 노출 목록 `sctx.cache` 표기 정정(F-5와 같은 선후). 규칙 취지 변경 없음. 병합 승인 전 |
 | 0.7(병합 뒤 인용 맞춤) | 2026-10-20 | 사용자 O-57 병합 뒤 상대 계획 인용 해시를 병합된 최종 머리로(Status, 211·312·320행): gain-budget `7fe555b1` → `f2579b2f`, oracle `7f2a5e12` → `64687b21`, offset-trim `d681d2dc` → `23e6a142`. 내용 변경 없음 |
 | 0.7(인용 해시 마무리) | 2026-10-20 | 인용 해시를 최종 머리로: gain-budget `plan/gb-v620` `7fe555b1`(LR6 σ 목표 = '커널 판정 문턱 / k, 온도 보정 루프에서는 조인 문턱 항목' -- N3.3 출발값 행과 같은 뜻 직접 확인), oracle-portability `plan/oracle-v0610` `7f2a5e12`(옛 `a88d61cb`), offset-trim `plan/offset-trim-v06` `d681d2dc`(옛 `2eba8353`). 내용 변경 없음 |
