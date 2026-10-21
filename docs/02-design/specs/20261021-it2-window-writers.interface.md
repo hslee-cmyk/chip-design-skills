@@ -79,7 +79,7 @@ oracle: (손) toy 손계산, (식) 위 규칙, (비교) 같은 스냅샷으로 �
 
 ### 고칠 기존 test(test 주체 몫)
 
-- `tests/sizing/test_s2_values.py:118-124`(`DC_TABLE`에 `dc_output_structure`·`dc_window_def_refined` 행)·`:127-128`(블록 WRITES = 표), `SS_WRITES` 표 기대가 있으면 세 writer 추가 -- 기대 갱신(약화 아님, 표 확대).
+- `tests/sizing/test_s2_values.py:118-124`(`DC_TABLE`에 `dc_output_structure`·`dc_window_def_refined` 행)·`:127-128`(블록 WRITES = 표)·`:70-75`(`DC_TABLE` 길이 33 -> 35)·`:97-106`(S2_WRITERS = S1 + DC_TABLE + SS_TABLE -- `SS_TABLE`에 `ss_nodal`·`icm_config` 두 필드·`metrics_icm_front`) -- 기대 갱신(약화 아님, 표 확대).
 - ss 블록 `reuse` 계수 단언 search test → `graft`(변화표에 적음).
 - `saturation_window`·`ls_swing` 옛 서명 호출 test.
 - IT-1이 지운 `input_tie` 어휘 test는 IT-1 몫.

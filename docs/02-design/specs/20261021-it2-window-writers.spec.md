@@ -17,8 +17,11 @@ approval: 20261021-it2-o67-scope
 ### 병합 관계와 card 나눔(제안 -- 사용자 승인 필요, '결정 필요 항목' U-1)
 
 - **IT-1과 IT-2는 하나의 통합 병합**이다(사용자 결정 O-19 (2), design 41 4.7-8 '두 card는 각자 test·code 커밋을 갖고 하나의 통합 병합으로 들어간다 -- IT-1만 병합된 기간 없음', 4.7-1a '걷는 엣지'가 IT-1 뒤 `_edges`(같은 DC 엣지 없음)를 전제). 그래서 IT-2의 모든 code 커밋은 IT-1 code 커밋 위에 쌓이고 master 병합은 IT-1·IT-2 판정 모두 PASS 뒤 한 번이다.
+- **착수 조건(2026-10-21 실측: 셋 다 미충족)**: (가) IT-1 code 커밋(IT-1 card 미작성, master는 design만), (나) card 0 IT-0 측정 기록 -- 계획 N6.6 완료 조건 (6) 'card 0이 발동률과 front가 빈 회로 수를 IT-2 착수 전에 기록'(design 41 4.7-8a 칸 전부 '미측정'), (다) 판정 분해능 정의 함수(아래 절).
+- **역할 agent 쓰기 경로**: `.claude/agents/gmid-*.md`의 쓰기 경로표는 옛 `assets/*.py`·`assets/tests/**`뿐이다 -- 브리핑에서 `gmid_engine/**`(code)·`gmid_engine/tests/**`(test)를 명시해야 한다.
 - 앞선 card: card 0(IT-0, 4.7-8a 결과 칸 -- 변화표 기준 기록·출력 구조 분류 발동·S-OS1/S-OS2 발동 수)이 IT-2 판정 전에 있어야 한다(변화표 원인 칸이 as-built = IT-0 기록 대비). 사용자 O-66(13회로 표 승인)은 IT-2 병합 조건을 채운다(O-67 지시).
-- **크기**: 아래 '바뀌는 def' 실측으로 이 card는 새 블록 넷·새 순수 함수 둘·helper 이동·스냅샷 파생 규칙·서명 변경 둘(`saturation_window`·`ls_swing`)·호출 배선 셋(`ss_evaluate`·`slsqp_outer`·`find_front`)을 담는다. 한 번의 test·code·audit로는 V3 변이 대상 def 수와 test 범위가 xrunf1b(6차 판정)보다 크다. 그래서 **같은 통합 브랜치 위 순서 있는 하위 card 넷**으로 나눈다(각자 test→code→audit, master 병합은 IT-1과 함께 마지막 한 번):
+- **절차 상태**(계획 663행): 역할 분리 gate·hook·판정 기록·spec card 흐름은 DEC-86(2026-10-07)으로 꺼졌고 N3.12.0~N3.12.6은 기록이다. 지금 적용 규칙 = N6.3(1237행: 코드 작성 주체와 test·기대값 작성 주체 분리 WP-13, 약화 보고, 변경당 커밋 1, 매 변경 뒤 전체 test). 다만 xrunf1b(2026-10-16~20)가 이 형식(spec·interface card, `Role:` 커밋, 감사 판정 기록)으로 돌았으므로 같은 형식을 따른다. 머리 블록은 형식 호환용이다(`tools/gates/role_paths.py parse_spec_card` 통과 확인).
+- **card 크기 규칙**: 계획·05·00에 바뀐 def 수·파일 수·V3 변이 수 상한은 **없다**. 있는 것은 단위 규칙(계획 772행): 'spec card 한 건 = red 하나로 판정되는 관찰 가능한 계약 하나, 판정 유형이 섞이거나 승인 기록이 둘 이상 필요하면 나눈다'와 N6.3 '변경당 커밋 1'. IT-2는 판정 유형이 red-green 하나이고 승인 기록이 하나(아래 초안)라 규칙상 **나눌 의무는 없다**. 그래도 새 블록 넷·새 순수 함수 둘·helper 이동·스냅샷 파생 규칙·서명 변경 둘(`saturation_window`·`ls_swing`)·호출 배선 셋(`ss_evaluate`·`slsqp_outer`·`find_front`)을 담아 재시도 단위(05 §12: FAIL·dispute면 세 worktree를 지우고 1부터)가 매우 크다. 그래서 **권고**: 같은 통합 브랜치 위 순서 있는 하위 card 넷(각자 test→code→audit, master 병합은 IT-1과 함께 마지막 한 번 -- O-19 (2)). 규칙 강제가 아닌 원칙 기본안이라 사용자 결정 U-1이다:
 
 | 하위 card | 범위(design 41) | 새/바뀌는 자리 | 앞 card |
 |---|---|---|---|
@@ -83,11 +86,11 @@ approval: 20261021-it2-o67-scope
 
 ### 판정 분해능(O-67 (3) DV-17 -- 의존 항목)
 
-`icm_config` 반전 입력 식별의 '|T_p| > 판정 분해능'(41:734 (1))과 `icm_inverting_port_unresolved`의 분해능은 **계획 v6.24가 정하는 단일 정의 함수 하나에서 읽는다**(새 상수·card 안 식 금지). 계획 v6.24(`plan/gb-v624`)가 card 동결 전에 병합되지 않으면 이 card의 식은 'v6.24 정의 함수 하나에서 읽음'으로 남고, code 주체는 그 정의가 모호하거나 정의 함수가 master/통합 base에 없으면 **멈추고 보고**한다(멈춤 C-5). test는 분해능 값 자체를 단언하지 않고 '분해능 이하 toy → `icm_inverting_port_unresolved`'·'분해능 위 → 그 포트'를 정의 함수 출력과 비교하지 않는 손계산 양 끝(분해능보다 충분히 작은·큰 전달)으로만 단언한다.
+`icm_config` 반전 입력 식별의 '|T_p| > 판정 분해능'(41:734 (1))과 `icm_inverting_port_unresolved`의 분해능은 **계획 v6.24가 정하는 단일 정의 함수 하나에서 읽는다**(새 상수·card 안 식 금지). 상태(2026-10-21): `plan/gb-v624`(714a7b3c O-66, 79c01916 O-67)는 독립 검증·사용자 승인 전이고 master에 없다. 그 판 N3.8 572행이 정의 자리('|A|·(V_rail,max − V_rail,min) ≤ δV_out이면 판정 불능, δV_out = 엔진 `nodal_solve` 잔차, 레일 폭은 선언 값')와 '계산 자리 하나: 정의 함수 하나가 하고(**이름은 design**) IT-2·DE-1 (c)가 부른다'를 적고, v6.24 N6.6 범위 2(1485행)가 'IT-2는 그 정의 함수 하나를 부르고 분해능을 그 자리에서만 읽는다(식 재구현·사본 상수 0 -- `git grep`)'를 적는다. **정의 함수의 이름·파일·서명을 정한 design 판이 아직 없다**(design 41 v1.12.3은 옛 문언 '`nodal_solve` 상대 잔차를 T_p에 전파한 폭'). 그래서 이 card의 식은 'v6.24 정의 함수 하나에서 읽음'으로 두고, code 주체는 그 함수가 design·통합 base에 없거나 정의가 모호하면 **멈추고 보고**한다(멈춤 C-5 -- 스스로 만들거나 이름을 정하지 않는다). 착수 전 필요: v6.24 병합 + design 41 개정(정의 함수 이름·자리·소유 card). test는 분해능 값 자체를 단언하지 않고 '분해능 이하 toy → `icm_inverting_port_unresolved`'·'분해능 위 → 그 포트'를 정의 함수 출력과 비교하지 않는 손계산 양 끝(분해능보다 충분히 작은·큰 전달)으로만 단언한다.
 
 ### 멈춤 S-OS1·S-OS2(O-67 (5) -- fail-closed 유지)
 
-일반형을 만들지 않는다. 실행 중 만나면 `graph.icm_config.config is None`, `undefined` = code 하나(`icm_config_output_root_w3` detail `(("output", 출력), ("root", W3 넷))` / `icm_config_differential_output_structure` detail `(("outputs", 출력 tuple),)`), `node.dc_window_cfg` 항목 없음, 세 metric은 M7 경로로 그 code 정의 불능, 선언 ICMR 제약 점은 unmeasured로 최종 front 제외(41:725-726, L8 (d)).
+O-67 (5) 원문 '구현 착수(S-OS1·S-OS2는 멈춤+fail-closed로 시작, S-OS2 (나)는 계획·design 개정 뒤 후속)'. O-67 (1)이 S-OS2를 (나)(선언 되먹임 DC 성분, 없으면 차동 단위 이득 follower -- Schur 2×2)로 정했으나 계획·design 개정 전이므로 **이 card에는 넣지 않는다**(후속 card). 일반형을 만들지 않는다. 실행 중 만나면 `graph.icm_config.config is None`, `undefined` = code 하나(`icm_config_output_root_w3` detail `(("output", 출력), ("root", W3 넷))` / `icm_config_differential_output_structure` detail `(("outputs", 출력 tuple),)`), `node.dc_window_cfg` 항목 없음, 세 metric은 M7 경로로 그 code 정의 불능, 선언 ICMR 제약 점은 unmeasured로 최종 front 제외(41:725-726, L8 (d)).
 
 ## 신규 시그니처
 
@@ -160,7 +163,7 @@ design 41 예시 리터럴(41:690, :780): `icm_window_metrics((IcmPort("vin_n", 
 
 ## test 작성 주체 몫(code 주체는 고치지 않는다 -- 작성자 ≠ 검증자)
 
-- `E/tests/sizing/test_s2_values.py:118-124` `test_dc_writes_constant_matches_table`(`DC_TABLE` 기대에 `("node", "dc_output_structure")` → `dc_writer_plan`, `("node", "dc_window_def_refined")` → `dc_window_refine`)·`:127-128` `test_block_name_and_writes_match_table`(블록 WRITES = 표) -- design 41:719 MF-3. `SS_WRITES` 표 기대가 있으면 같이(`ss_nodal`·`icm_config`·`metrics_icm_front`).
+- `E/tests/sizing/test_s2_values.py:118-124` `test_dc_writes_constant_matches_table`(`DC_TABLE` 기대에 `("node", "dc_output_structure")` → `dc_writer_plan`, `("node", "dc_window_def_refined")` → `dc_window_refine`)·`:127-128` `test_block_name_and_writes_match_table`(블록 WRITES = 표) -- design 41:719 MF-3. **design MF-3이 빠뜨린 둘(이 card 실측)**: `:70-75` `test_dc_table_has_33_fields`(`len(DC_TABLE) == 33` -- 두 행 추가로 35), `:97-106` `test_s2_writers_is_s1_plus_dc_table_exactly`(S2_WRITERS = S1 + DC_TABLE + SS_TABLE 정확히 -- `SS_TABLE`에 `ss_nodal`·`icm_config`(두 필드)·`metrics_icm_front` 추가). 넷 모두 표 확대라 약화 아님 -- design 42 D-IT2 '깨지는 기존 test 둘' 문언 정정은 오케스트레이터 후속 목록.
 - `E/tests/metrics/test_aux_types.py:40`(`SwingIcmr(None, None, None)` -- 형식 불변이라 그대로, 새 타입 test 추가).
 - `ls_swing`·`saturation_window` 옛 서명을 부르는 test(`E/tests/sizing/test_input_window.py`, `ls_swing` 호출 test -- 착수 때 `git grep` 수 기록).
 - ss 블록 `reuse` 계수를 단언하는 search test(41:756 (i) -- `graft`로 바뀜, 변화표에 적고 새 기대로).
