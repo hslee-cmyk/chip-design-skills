@@ -1,16 +1,16 @@
 ---
 template: design
-version: 0.3.1
+version: 0.3.2
 plan: ../../01-plan/features/offset-strategy.plan.md
-plan_version: 0.7.1
+plan_version: 0.7.2
 ---
 
 # offset-strategy Design Document (card OS-0)
 
-> **Summary**: 승인된 계획 `offset-strategy.plan.md` v0.7.1(사용자 결정 S-1~S-14, T-34~T-37, O-1, O-53 A2·B3, O-61 P1·P9, O-62)을 엔진 `gmid_engine` 설계로 옮긴다. 계획 N10.3의 G-S1~G-S6을 닫고, 요구 스키마(판정 온도 범위 칸 포함)·로더 사유 코드, 실행 계획 `RunPlan`·`build_run_plan`, 실행 계획 세션과 그것을 쓰는 얇은 진입 `run_plan`(엔진 사슬 진입점 정본, W-1), 변형 유도 제약의 별도 입력 `derived`(PD-1), 결과 JSON 칸, 하네스 노출 목록, 비교 도구, 예산 식, OS-V(matching 오라클 측정)·OS-L(실행 중 변형 추가)의 형식, 파일 분할, 배선표, test 목록, card별 완료 조건을 정한다. offset-trim design(OT)과 40 design의 개정안, trim 시험 회로 spec 재작성안, OS-2 검증 fixture를 함께 낸다.
+> **Summary**: 승인된 계획 `offset-strategy.plan.md` v0.7.2(사용자 결정 S-1~S-14, T-34~T-37, O-1, O-53 A2·B3, O-61 P1·P9, O-62, O-63 (3)·O-65)을 엔진 `gmid_engine` 설계로 옮긴다. 계획 N10.3의 G-S1~G-S6을 닫고, 요구 스키마(판정 온도 범위 칸 포함)·로더 사유 코드, 실행 계획 `RunPlan`·`build_run_plan`, 실행 계획 세션과 그것을 쓰는 얇은 진입 `run_plan`(엔진 사슬 진입점 정본, W-1), 변형 유도 제약의 별도 입력 `derived`(PD-1), 결과 JSON 칸, 하네스 노출 목록, 비교 도구, 예산 식, OS-V(matching 오라클 측정)·OS-L(실행 중 변형 추가)의 형식, 파일 분할, 배선표, test 목록, card별 완료 조건을 정한다. offset-trim design(OT)과 40 design의 개정안, trim 시험 회로 spec 재작성안, OS-2 검증 fixture를 함께 낸다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (design 작성자 역할)
-> **Status**: design v0.3.1 초안 (2026-10-21). v0.3.0(계획 v0.7.1 기준 개정)에 독립 검증(design-validator)과 계획 gap 분석(`_drafts/evidence/2026-10-21/os_design_v030_plan_gap.md`)의 차단 B1~B4·주요 M1~M10·비차단을 반영했다(오케스트레이터 판정). 남은 멈춤은 §18.4 '계획 무언'. 독립 검증 재확인·사용자 승인 전이다. 이전 판들의 Status 문단은 [history](offset-strategy.design.history.md) H7로 옮겼다.
+> **Status**: design v0.3.2 초안 (2026-10-21). 계획 v0.7.2(O-63 (3), 사용자 O-65 병합, master `7675f71b`)의 W-1 규칙을 §6.4에 넣고 W-1·PC-10 알림을 닫았다. 아래는 v0.3.1 문장이다. v0.3.0(계획 v0.7.1 기준 개정)에 독립 검증(design-validator)과 계획 gap 분석(`_drafts/evidence/2026-10-21/os_design_v030_plan_gap.md`)의 차단 B1~B4·주요 M1~M10·비차단을 반영했다(오케스트레이터 판정). 남은 멈춤은 §18.4 '계획 무언'. 독립 검증 재확인·사용자 승인 전이다. 이전 판들의 Status 문단은 [history](offset-strategy.design.history.md) H7로 옮겼다.
 > **기준**: 코드 인용은 master `e1a611ec`(XRUN-F1 card B 병합 뒤 -- `E/search/open_run.py`·`E/search/s3_index.py` 있음, `run_stage_a` 서명 `E/pipeline/stage_a.py:206`; card C의 `search_ceiling.py`·`search_stop.py`는 아직 없음)의 `파일:줄`이다. v0.2.x 사실표 가운데 이 기준에서 바뀐 행은 §2에서 고쳤다. `E/` = `skills/analog-gmid-design/gmid_engine/`, `O/` = `skills/analog-gmid-design/tools/spice_oracle/`. design 인용은 `OT §x`(`offset-trim.design.md` v0.2, T-18), `40 §x`, `41 §x`. 다른 계획 인용은 `OTP Nx`(offset-trim 계획 v0.5.5, 브랜치 `trim-plan-r1` `e8b58cd`, 사용자 승인 T-34~T-37), `OPP Nx`(oracle-portability 계획 v0.4.2, master `d579939`, 사용자 승인 O-1).
 > **전제**: 구현은 XRUN-F1 card C 병합 뒤이고(S-4), OS-2는 U17 ② 병합 + Q8 결정 뒤 착수다(계획 v0.7.1 N7.1). 이 기준에는 card C와 U17 ②가 없다(평가 키 부분 `S3Index.get` 등 없음, as-built `sctx.cache`). 그래서 이 문서는 40 §2.4.4~§2.4.14의 병합 뒤 구조를 전제로 쓴다.
 
@@ -394,7 +394,7 @@ def run_plan(topology_path, spec_path, lut, memo, pdk_decl, lut_rule_decl, *, ou
 
 ### 6.4 하네스 노출(B-1, W-1 요구 전수)
 
-E-S18의 하네스가 읽거나 넘기는 값마다 자리다. 새 값을 만들지 않고 이미 있는 객체의 **읽기 전용 참조**를 낸다. **색인·계수에 닿는 값은 세션이 열린 동안 세션 공개 API로만 읽는다**: 하네스 순서 = `open_plan_session` → `run_variant` → 읽기 → `close`(검증 B1, 계획 N3.12 ④·'수명'). `run_plan`(열기 → 실행 → 닫기)의 반환 `PlanResult`에는 그런 값이 없다. **(계획 v0.7.2 개정 중 -- O-63 (3))**: 계획 N7.2 'v0.5 반영' W-1은 '`run_plan`이 … 결과 객체에서 읽기 전용 참조로 내야 한다'고 적는데, 이것은 N3.12 '닫으면 버린다'와 부딪힌다. 이 design은 N3.12를 따르고 W-1 문언은 정하지 않는다.
+E-S18의 하네스가 읽거나 넘기는 값마다 자리다. 새 값을 만들지 않고 이미 있는 객체의 **읽기 전용 참조**를 낸다. **색인·계수에 닿는 값은 세션이 열린 동안 세션 공개 API로만 읽는다**: 하네스 순서 = `open_plan_session` → `run_variant` → 읽기 → `close`(검증 B1, 계획 N3.12 ④·'수명'). `run_plan`(열기 → 실행 → 닫기)의 반환 `PlanResult`에는 그런 값이 없다. **계획 규칙(v0.7.2, 사용자 O-63 (3)·O-65)**: 하네스가 블록 결과 색인의 평가 키 부분 같은 실행 수명 값을 읽어야 하면 `run_plan` 결과가 아니라 같은 세션 인터페이스의 공개 API로 세션이 열린 동안 읽는다(열기 → 변형 실행 → 읽기 → 닫기). 결과 객체는 색인·donors·계수 참조를 담지 않는다. 그 세션은 `run_plan`이 쓰는 사슬 그대로라 사슬은 하나다(계획 S-9 126행, N3.6 249행, N3.12 339·341행, N7.2 'v0.5 반영' W-1 485행, N11.1 665행). `run_plan`은 열기 → 처음 변형 모두 실행 → 닫기의 얇은 진입이고(§6.2), 실행 수명 값을 읽지 않는 호출자(그런 test·나중의 U16 CLI)는 `run_plan`을 쓴다. 파일 배정은 §14.1(`plan_session.py` = OS-2, `add_variant`·`iteration_cap` 키워드만 OS-L)과 같다. 세션의 열기·변형 실행·읽기·닫기는 OS-2 몫이고 OS-L은 `add_variant`만 더한다(계획 N7.2 OS-2 행).
 
 | 하네스가 쓰는 것(E-S18) | 자리 |
 |---|---|
@@ -527,7 +527,7 @@ E-S18의 하네스가 읽거나 넘기는 값마다 자리다. 새 값을 만들
 | 대상 | 재사용하는 것 | OS-V가 하는 일 |
 |---|---|---|
 | σ_in 오라클 값 | 기존 measure `offset_in_sigma_mv`(네이티브 MC, O-1). 크기 일관 확인은 TR-7 §17-1(O-1 (2)) | 대조에 쓴다 |
-| V_id* 오라클 값 | 계획 N7.2 OS-V 행(475행) 문언 그대로: "oracle-portability OP-5의 계통 offset `.dc` 측정(부호 있는 V_id* 칸, 공칭 표본 offset 출력 = PC-10의 실체 -- O-53 B3)". 정의 = gain-budget DEC-23. **계획 문언 알림(검증 M9, 결정 아님)**: offset-trim 계획 G-15(674행)는 "오라클 측정 = OP-5 `offset_sys_mv` `.dc`를 온도 조건에서 돌린 것(PC-10). 공칭 MC 표본 offset은 V_id* 출처가 아니다"라고 적는다. '공칭 표본 offset 출력'이 MC 표본을 뜻하면 두 계획 문언이 부딪힌다. 이 design은 어느 쪽으로도 정하지 않고 offset-strategy 계획 475행 문언 정리를 알림으로 올린다(§18.2). 판정 조건 하나에서는 T = LUT `temp_c` | 대조에 쓴다 |
+| V_id* 오라클 값 | 계획 v0.7.2 N7.2 OS-V 행(476행) 문언 그대로: "oracle-portability OP-5의 계통 offset `.dc` 측정(부호 있는 V_id* 칸. 이 측정을 온도 조건에서 돌린 것 하나가 PC-10이다 -- O-53 B3. 공칭 MC 표본 offset은 V_id* 출처가 아니다)". offset-trim 계획 G-15(674행)와 같은 문언이다. 정의 = gain-budget DEC-23. 판정 조건 하나에서는 T = LUT `temp_c` | 대조에 쓴다 |
 | `offset_sys_mv` `verified_by` 행 | gain-budget VB-1(N6.18) | **만들지 않는다**(선행 인용) |
 | 엔진 | -- | 합성 판정 행의 측정 결속 하나: 검증 출처는 항 metric 종류에서 정한다 -- 커널 행(항 σ_in 하나)은 `offset_in_sigma_mv`의 종류를 그대로, front 판정(항 σ_in·V_id*)은 두 항이 모두 `spice_oracle`이면 `spice_oracle`, 아니면 `spice_unverifiable`(`find_front` notes `verified_by` 기록에 `rows`를 더하는 자리, `E/search/find_front.py:97`). 엔진은 오라클을 import하지 않는다 |
 
@@ -803,8 +803,8 @@ T-24·T-25·T-27·T-28에서 바뀌는 것만:
 
 **다른 문서 알림 항목(v0.3.1)**:
 * offset-trim design §20.7(G-12 '문턱에 의존하는 블록' 목록): `start_intervals`를 다시 넣는다(§3.2 -- OB-20 정정의 결과, 계획 N3.12 '재사용 범위' ①).
-* offset-strategy 계획 475행(OS-V) '공칭 표본 offset 출력 = PC-10의 실체' 문언과 offset-trim 계획 G-15(674) '공칭 MC 표본 offset은 V_id* 출처가 아니다' 정리(§12).
-* offset-strategy 계획 N7.2 'v0.5 반영' W-1 노출 문언('`run_plan` 결과에서 읽기 전용 참조') -- N3.12 ④와 부딪힘. **(계획 v0.7.2 개정 중 -- O-63 (3))**(§6.4).
+* (닫힘, 계획 v0.7.2) PC-10 문언: 계획 OS-V 행(476)이 O-53 B3·offset-trim G-15와 같은 문언으로 정렬됨(§12).
+* (닫힘, 계획 v0.7.2·O-63 (3)·O-65) W-1 노출 문언: 하네스는 열린 세션의 공개 API로 읽고 결과 객체는 색인 참조를 담지 않는다(§6.4).
 * 40 design: §17.2 '구조 규칙 M'·'제약 행' 두 행.
 
 v0.3.0 문장(기록): 계획 v0.7.1과 다르게 정한 결정은 두지 않았다(S-7) -- 위 B1·B3로 정정됨. 아래는 v0.2.x 문장이다. 계획 v0.6.1과 다르게 정한 결정은 두지 않았다(S-7). D-25는 T-36으로 결정됐고(master `2c3e740`의 계획 문구도 '결정됨(T-36)'으로 정리됨 -- 이 브랜치 base `194981f`에는 그 전 문구가 남아 있다), 계획이 'D-25 결정 뒤 design이 닫는다'고 한 그대로 §13.1이 인터페이스 서명을 닫았다. 계획 N7.2 OS-L 행의 'D-25 결정' 선행은 충족됐다.
@@ -845,7 +845,7 @@ v0.3.0 문장(기록): 계획 v0.7.1과 다르게 정한 결정은 두지 않았
 | PS-3 | (닫힘, v0.3.1 -- 계획대로 OB-20 정정, §3.2·§18.2) | -- | -- |
 | PS-6 | `open_run(s0_sets=B_S0)` 순환(검증 M10): B_S0는 계획에서, 계획은 단계 A spec에서, 단계 A는 `open_run`의 쌍에서. 계획 PD-7·40 '수명' (1) 어디에도 순서를 푸는 문언이 없다(새 장치를 만들지 않는다) | OS-5 `s0_sets` 구현(OS-2는 막지 않음) | 계획 PD-7 또는 40 §2.4.5 개정 |
 | PS-7 | 하네스가 평가 결과 전수(`seq` 순)를 읽는 S3 색인 평가 키 부분의 열거 API -- 40 §2.4.5 조회 API는 `get(key)`뿐이고 '순회하지 않는다' | §6.4 평가 목록 행, `nfr4_run_dump.py` 대체 | U17 ② design |
-| W-1 | **(계획 v0.7.2 개정 중 -- O-63 (3))**: '`run_plan` 결과에서 읽기 전용' 대 N3.12 ④ '버린다' | §6.4 | 사용자 |
+| W-1 | (닫힘, 계획 v0.7.2 -- O-63 (3)·O-65: 열린 세션 공개 API로 읽기, 결과 객체 색인 참조 0, §6.4) | -- | -- |
 | PS-4 | `output_reference`가 DEC-23 기준 종류 셋(값·넷·입력 추종) 가운데 '값'만 덮음. 넷·입력 추종 선언 칸 이름은 DEC-23이 'design'에 맡겼고(gain-budget design 소관) 아직 없다 | §8, L4, OS-V 오라클 입력 | gain-budget design |
 | PS-5 | 비교 도구가 matching 여유 한 줄(L − v)을 빼서 낼지(엔진 밖 표시 계산). 엔진 결과에서는 `margin_v`를 지웠다 | §9 칸 | 사용자(OS-3 design 때) |
 
