@@ -620,3 +620,13 @@ graph 점검: 단일 출력 + 용량만 선언 ICMR 정의 자리 = gain-budget 
 
 옛 문장(둘째 커밋 `46462b8e`):
 * > **Status**: **계획 v0.6.15 -- O-78 반영, 독립 검증·사용자 승인 전**
+
+## v0.6.16 -- 사용자 결정 O-81 (2)·O-82: DC 되먹임 판정 인용 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-81 행(AskUserQuestion 두 항목 "(권고)", `design41_v1125_validation.md` N7), O-82 행(AskUserQuestion "(가) 방향 의존 그래프 (권고)", `wt/_drafts/evidence/2026-10-21/n7_path_rule_feasibility.md` 조건부 가능·C1~C4). 짝 = gain-budget v6.27(history H1 'v6.27').
+* 경위: 'DC 성분 없음'을 kind로 판정하면(oracle design §21.2 (a) '`Resistor`·`Inductor`가 하나라도') Cf(출력–in−)+Rb(in−–기준) 꼴이 DC 개루프인데 '있음'이 된다. 정의를 gain-budget N3.8 한 문단으로 두고(graph 규칙 3), 이 계획은 인용한다. 오라클 끝점을 `.tf` 부호로 정하면 §21.2 (e) '어떤 시뮬레이터 호출보다 먼저'가 깨지므로, 끝점 = `/feedback_passives` 원소의 입력 포트 단자 넷(구조만, 옛 C14 규칙)으로 한다(C1). 오라클 입력 `/passives`·`/feedback_passives`·`/devices`·`/rails`·`/ports`만으로 같은 방향 의존 그래프를 만들 수 있다(실측 §6). 엔진과 오라클이 같은 계획 정의를 따로 구현하는 것은 기존 짝(반전 입력 식별 엔진 T_p 대 오라클 `.tf`)과 같은 꼴이다(NFR-P3). 13회로 판정 변화 0.
+* 바꾼 옛 문장: N3.9 ICMR 행 '구성의 경계와 DC 닫힘' "선언 되먹임에 DC 성분이 없거나(커패시터만 -- 사례: current_reuse Cf1·Cf2) 선언이 없는 차동 출력은" → 괄호에 'DC 성분 없음 = DC 되먹임 판정 없음' 덧붙임; 같은 행 '단일 출력 + 용량만 선언된 되먹임' 인용 문장에 gain-budget v6.27 표제 덧붙임; 슬루 행 "**용량만 선언된 차동 출력**(되먹임 선언에 DC 성분 없음 -- 사례: current_reuse Cf1·Cf2)" → 괄호에 같은 판정 인용 덧붙임.
+* 추가: N3.9 ICMR 행 'DC 되먹임 판정' 문단(인용·오라클 구현 입력·끝점·순서·불일치 기록), N2 O-81·O-82 행, design 개정 목록 DR-24(§21.2 (a)(c)(e)·1b·1772행·1619행·`Inductor` 표기), Status.
+
+옛 문장(v0.6.15 셋째 커밋 Status 머리):
+* > **Status**: **계획 v0.6.15 -- O-78·O-79 반영, 승인됨(사용자 O-80, 2026-10-21)**(앞에 v0.6.16 머리를 덧붙였고 v0.6.15 문장은 '이전 판'으로 남김)
