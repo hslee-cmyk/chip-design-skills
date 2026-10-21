@@ -1,11 +1,13 @@
 ---
 id: 20261021-it2c-icm-config
-phase: 미확인
+phase: 해당 없음 (DEC-86 -- merge_gate 미사용, N6.3 절차)
 evidence_type: red-green
 gate_change: no
 approval: 20261021-it2-o67-scope
 ---
 ## 의도
+
+- **절차(phase)**: 계획 DEC-86(285행)·N3.12 머리(669행)로 역할 분리 gate·spec card 흐름·merge_gate가 꺼졌다. 판정 = N6.3(매 변경 뒤 새 test 전체 실행, 작성자 ≠ test 작성자 WP-13, 약화 보고, 변경당 커밋 1) + 독립 측정·검증 agent이고 merge_gate가 아니다. 머리 블록은 형식 호환용이다(공통 문서 '절차 상태').
 
 card IT-2c -- 측정 구성. 범위: design 41 4.7-3b 전부(41:729-742 -- `ss_nodal`·`icm_config`·`kvl_sensitivity`·세 자리 factor 이전·커널 상태 이어받기·S-3 선언 되먹임 DC 망·멈춤 S-OS1/S-OS2 fail-closed). 계획 N6.6 범위 1(측정 구성)·완료 조건 (8)(10)(12)(b)(c 일부), 사용자 결정 O-50 G4·O-53 A-1·A-2·O-58 S-1~S-3·O-59 (1)·O-61 P3·P5·O-63 (4)·O-64 (1)·O-67 (5). 앞 card = IT-2b(`saturation_window`·`region_rows`·`node.dc_output_structure`·`Window` 칸).
 

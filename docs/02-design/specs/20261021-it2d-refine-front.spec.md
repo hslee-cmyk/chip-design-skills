@@ -1,11 +1,13 @@
 ---
 id: 20261021-it2d-refine-front
-phase: 미확인
+phase: 해당 없음 (DEC-86 -- merge_gate 미사용, N6.3 절차)
 evidence_type: red-green
 gate_change: no
 approval: 20261021-it2-o67-scope
 ---
 ## 의도
+
+- **절차(phase)**: 계획 DEC-86(285행)·N3.12 머리(669행)로 역할 분리 gate·spec card 흐름·merge_gate가 꺼졌다. 판정 = N6.3(매 변경 뒤 새 test 전체 실행, 작성자 ≠ test 작성자 WP-13, 약화 보고, 변경당 커밋 1) + 독립 측정·검증 agent이고 merge_gate가 아니다. 머리 블록은 형식 호환용이다(공통 문서 '절차 상태').
 
 card IT-2d -- 다듬은 창·front. 범위: design 41 4.7-4 전부(`dc_window_refine`·끝 풀이 함수 하나·fail-closed 사유 셋·호출 자리 `refine_front_windows`·계수), 4.7-5 전부(`icm_window_metrics`·`IcmPort`·`IcmWindow`·`ls_swing` 새 서명·`metrics_aux` 합치기·`metrics_icm_front`·미수렴 front 처리·M7 경로·출력 전용 선언), 4.7-6 CONTRACT·소유표·모듈 지도. 계획 N6.6 범위 1(다듬은 창)·2·3, 완료 조건 (0)(1)(2)(3)(4)(7)(12)(a front·c·d). 앞 card = IT-2c. 이 card 판정 뒤 IT-1·IT-2 통합 병합 판정.
 

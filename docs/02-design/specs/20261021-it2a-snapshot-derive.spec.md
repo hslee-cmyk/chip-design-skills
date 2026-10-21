@@ -1,11 +1,13 @@
 ---
 id: 20261021-it2a-snapshot-derive
-phase: 미확인
+phase: 해당 없음 (DEC-86 -- merge_gate 미사용, N6.3 절차)
 evidence_type: red-green
 gate_change: no
 approval: 20261021-it2-o67-scope
 ---
 ## 의도
+
+- **절차(phase)**: 계획 DEC-86(285행)·N3.12 머리(669행)로 역할 분리 gate·spec card 흐름·merge_gate가 꺼졌다. 판정 = N6.3(매 변경 뒤 새 test 전체 실행, 작성자 ≠ test 작성자 WP-13, 약화 보고, 변경당 커밋 1) + 독립 측정·검증 agent이고 merge_gate가 아니다. 머리 블록은 형식 호환용이다(공통 문서 '절차 상태').
 
 card IT-2a -- 스냅샷 파생 규칙. 범위: design 41 4.7-3c(41:750-756) -- 계획 N3.3 '스냅샷 파생 규칙'·N6.6 범위 4·완료 조건 (11), 사용자 결정 O-59 (2)(원래 취지와 다름, 승인)·O-61 P1. 앞 card = IT-1 code. 뒤 card IT-2d의 커널 밖 writer(`dc_window_refine`·`metrics_icm_front`) 필드와 IT-2c의 봉인 뒤 블록(`ss_nodal`·`icm_config`) 필드가 parent → child로 낡은 채 실리지 않게 하는 전제다.
 

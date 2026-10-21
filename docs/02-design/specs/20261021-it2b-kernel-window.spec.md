@@ -1,11 +1,13 @@
 ---
 id: 20261021-it2b-kernel-window
-phase: 미확인
+phase: 해당 없음 (DEC-86 -- merge_gate 미사용, N6.3 절차)
 evidence_type: red-green
 gate_change: no
 approval: 20261021-it2-o67-scope
 ---
 ## 의도
+
+- **절차(phase)**: 계획 DEC-86(285행)·N3.12 머리(669행)로 역할 분리 gate·spec card 흐름·merge_gate가 꺼졌다. 판정 = N6.3(매 변경 뒤 새 test 전체 실행, 작성자 ≠ test 작성자 WP-13, 약화 보고, 변경당 커밋 1) + 독립 측정·검증 agent이고 merge_gate가 아니다. 머리 블록은 형식 호환용이다(공통 문서 '절차 상태').
 
 card IT-2b -- 커널 창. 범위: design 41 4.7-1a(출력 구조 분류 `node.dc_output_structure`), 4.7-2(`Window` 칸 셋·상태 어휘), 4.7-3 1~5(커널 창), 4.7-3a(창 경계 행 셋 `region_rows`, S4 갈래), 4.7-4 '공유하는 것'(helper `E/sizing/_helpers_dc_solve.py` 이동)·`saturation_window` 새 서명(4.7-3 2), 4.7-6 `fd_jacobian._steps`. 계획 N6.6 범위 1(커널 쪽)·완료 조건 (0)(7)(9)(12)(a 커널 쪽)·(b 상태). 앞 card = IT-2a. `_refine_ends` 삭제는 IT-2d(대체 함수와 같은 변경).
 
