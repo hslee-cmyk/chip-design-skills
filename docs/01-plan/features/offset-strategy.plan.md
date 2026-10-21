@@ -8,7 +8,7 @@ version: 0.7.1
 > **Summary**: spec이 offset을 **수단**(`offset_in_sigma_mv <=` 제약이나 `offset_trim` 선언)이 아니라 **요구**로 쓰게 한다. 요구는 `offset_requirement{offset_in_max_v, coverage_multiple, strategy}` 하나다. 엔진은 요구와 방식(`matching`·`trim`·`compare`)에서 판정 제약을 유도하고, **실행 계획**(변형 목록, 변형 = (topology 변형, 제약 집합))을 만들어 한 실행 안에서 차례로 돈다. 변형들은 단계 A·S0·블록 결과 색인을 공유한다. 이 일은 파이프라인 층 모듈을 다시 쓰는 것이고(S-2), 핵심 층(graph·블록·kernel·search)은 유지한다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: **v0.7.1 -- 사용자 결정 O-61 P9 반영(2026-10-21, base master `512b3c48`, 브랜치 `plan/offset-strategy-v071`; 병합 승인 전)**. 근거: O-61(2026-10-21 사용자 "모두 권고대로", `wt/_drafts/user_decisions.md` O-61 행 'offset-strategy v0.7.1', 분석 `wt/_drafts/evidence/2026-10-20/v622_batch_analysis.md` P9). 바뀐 것 셋: (1) OS-2 착수 조건 = U17 ② 병합(`graph/metrics: constraint_rows` 필드·writer) + 40 §2.4.12 Q8 결정(N7.1 'OS-2 착수 조건', N7.2 OS-2 선행 칸), (2) OS-2 착수 전 offset-strategy design을 계획 v0.7 기준으로 개정(커널 행 현행화, N7.1 같은 문단), (3) N7.2 'v0.5 반영' W-1 노출 목록의 `sctx.cache` 표기를 F-5와 같은 선후로 정정. 규칙의 취지는 v0.7과 같다. 상위 정본 현행판은 master `512b3c48`의 gain-budget v6.21(사용자 O-60, `61ee9eab`)이다.
+> **Status**: **v0.7.1 -- 사용자 결정 O-61 P9 반영(2026-10-21, base master `512b3c48`; 승인됨(사용자 O-62, 2026-10-21, 병합 `9bd5d7e7`))**. 근거: O-61(2026-10-21 사용자 "모두 권고대로", `wt/_drafts/user_decisions.md` O-61 행 'offset-strategy v0.7.1', 분석 `wt/_drafts/evidence/2026-10-20/v622_batch_analysis.md` P9). 바뀐 것 셋: (1) OS-2 착수 조건 = U17 ② 병합(`graph/metrics: constraint_rows` 필드·writer) + 40 §2.4.12 Q8 결정(N7.1 'OS-2 착수 조건', N7.2 OS-2 선행 칸), (2) OS-2 착수 전 offset-strategy design을 계획 v0.7 기준으로 개정(커널 행 현행화, N7.1 같은 문단), (3) N7.2 'v0.5 반영' W-1 노출 목록의 `sctx.cache` 표기를 F-5와 같은 선후로 정정. 규칙의 취지는 v0.7과 같다. 상위 정본 현행판은 master의 gain-budget v6.22(사용자 O-62, 병합 `de301d2d`)이다.
 >
 > **규칙 근거(v0.7, 바뀌지 않음)**: v0.7은 승인됨(사용자 O-57 "병합 승인", 2026-10-20). 근거: 사용자 결정 O-53(2026-10-20 "권고대로 진행해", `wt/_drafts/user_decisions.md` O-53 행) A2(matching 합성 제약 판정 위치 분리 -- 원래 취지와 다름 승인, N5 XS-20)·B3(offset 기준 정의 자리 = DEC-23 하나), 정합 감사 요약 `wt/_drafts/evidence/2026-10-20/offset_audit_summary.md`의 OS 몫(A1, A2, C1, C2, C3, D2, D3, D4, E1), 상위 정본 gain-budget v6.20(`plan/gb-v620` `f2579b2f` -- DEC-23·DEC-74·N3.8·N3.9 LR6·N6.1·N6.3·LA-1·N6.18 VB-1·N6.20 EO-1), oracle-portability v0.6.10(`plan/oracle-v0610` `64687b21` -- OP-3·OP-5), offset-trim v0.6(`plan/offset-trim-v06` `23e6a142`). 정의는 정본 계획을 인용만 한다. 계획 v0.6.2까지는 사용자 승인됨(S-5~S-14, T-34~T-37). 이전 Status 문단과 바뀐 문장 원문은 history H1 'v0.7'·'v0.7.1'에 있다.
 > **이력**: 경위, 결정 원문, 측정 조건, 버전 이력은 [offset-strategy.history.md](offset-strategy.history.md)에 있다.
@@ -445,7 +445,7 @@ NFR-4 card 2 병합 → XRUN-F1 card A → B → C → **실행 계획 구현(OS
   2. front 판정 자리를 적는다(DEC-74 자리의 소비자, N7.2 OS-2 행).
   3. front 판정 값은 front 점 자신의 스냅샷에서 읽는다(값 사본 없음).
   4. 기호 \|V_sys\|를 부호 있는 V_id*의 크기 \|V_id*\|로 바꾼다(gain-budget DEC-23, O-50 G1).
-  5. 스냅샷 파생 규칙 점검 문단(design v0.2.6 129행)의 남는 필드 표기 '`_CONTEXT_WRITERS`(`S1_WRITERS` ∪ `PLAN_WRITERS`) ∪ 그 평가의 호출 블록'을 사용자 결정 O-61 P1 규칙 '`ctx.base`에 있는 writer ∪ 그 평가가 부르는 블록'으로 바꾼다(정본 gain-budget v6.22 N3.3 '스냅샷 파생 규칙', `plan/gb-v622` `1027c6d8` 422행). 인용만 하고 이 계획에서 규칙을 다시 적지 않는다.
+  5. 스냅샷 파생 규칙 점검 문단(design v0.2.6 129행)의 남는 필드 표기 '`_CONTEXT_WRITERS`(`S1_WRITERS` ∪ `PLAN_WRITERS`) ∪ 그 평가의 호출 블록'을 사용자 결정 O-61 P1 규칙 '`ctx.base`에 있는 writer ∪ 그 평가가 부르는 블록'으로 바꾼다(정본 gain-budget v6.22 N3.3 '스냅샷 파생 규칙', `de301d2d` 422행). 인용만 하고 이 계획에서 규칙을 다시 적지 않는다.
 
   개정된 design의 독립 검증·사용자 승인은 N7.2 '공통 착수 조건' 그대로다.
 
