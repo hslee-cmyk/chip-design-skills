@@ -191,9 +191,7 @@ def gvgs_counts(raw, input_dc_declared, targets=()):
     F = rails | set(targets) | (set(ports_in) if input_dc_declared else set())
     edges = [(e["gate"], e["source"]) for e in raw["netlist"]]
     edges += [tuple(e["terminals"]) for e in raw.get("passive_elements", []) if e["kind"] == "resistor"]
-    if not input_dc_declared:
-        free_in = [p for p in ports_in if p not in F]
-        edges += list(zip(free_in, free_in[1:]))
+    # [IT-1 K-3] 입력 DC 미선언이어도 '같은 DC' 엣지(입력 포트끼리 사슬)는 없다
     fp = "\0F"
     rep = lambda n: fp if n in F else n                             # noqa: E731
     E = [(rep(a), rep(b)) for a, b in edges]

@@ -20,7 +20,7 @@ import numpy as np
 import pytest
 
 from gmid_engine.core import SealViolationError
-from gmid_engine.sizing import DC_KEY, INPUT_GROUP_KEY, size_and_seal
+from gmid_engine.sizing import DC_KEY, size_and_seal
 from gmid_engine.sizing.input_window import saturation_window
 
 from .conftest import (R4_L, build_ctx, detail, free_currents, mos, node_voltages, r4_ln_idu, r4_tol_vdsat,
@@ -126,7 +126,7 @@ def _doc():
 def pend(tmp_path_factory, r4_access):
     ctx = build_ctx(tmp_path_factory.mktemp("icm_pend"), _doc(), r4_access)[2]
     w = dict(ctx.base.column("node", "dc_writer"))["in"]
-    assert w.relation == "free_window" and w.y_key == INPUT_GROUP_KEY            # 전제: in = 입력 묶음 W4 뿌리
+    assert w.relation == "free_window" and w.y_key == "in"            # 전제: in = 입력 포트 W4 뿌리 (y 키 = 그 넷, IT-1)
     return ctx
 
 
@@ -134,7 +134,7 @@ def _theta(ctx, vgs_a, vgs_b, y=None):
     th = {("L", "MA"): 1e-6, ("L", "MB"): 1e-6, ("ln_idu", "MA"): r4_ln_idu("nmos", vgs_a, 0.3, 0.0),
           ("ln_idu", "MB"): r4_ln_idu("nmos", vgs_b, 0.3, 0.0)}
     if y is not None:
-        th[("y", INPUT_GROUP_KEY)] = y
+        th[("y", "in")] = y
     th.update(free_currents(ctx, {"MA": 1e-5, "MB": 1e-5, "IX": 1e-5, "IY": 1e-5}))
     assert set(th) == set(kschema(ctx).components)
     return th

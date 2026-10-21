@@ -150,7 +150,8 @@ READS = {
                    ("device", "bulk"), ("device", "element_class"), ("device", "dc_coord"),
                    ("graph", "dc_scc_order"),
                    ("device", "dc_self_referential"),   # [U17 ①-b] §2.4.8 1변수 writer 집합은 S0 필드 -- 기둥 블록이 읽는다
-                   ("device", "dc_colour"), ("node", "dc_colour")},     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
+                   ("device", "dc_colour"), ("node", "dc_colour"),
+                   ("node", "port_direction")},   # [IT-1 K-3 ext, O-84] 41:672 -- 입력 포트 판정은 S1 포트 방향 READS     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
     "dc_widths": {("node", "dc_v"), ("node", "dc_rail_v"), ("device", "dc_current"), ("device", "dc_L"),
                   ("device", "dc_ln_idu"), ("device", "pins"), ("device", "kind"), ("device", "bulk")},
 }
@@ -178,12 +179,12 @@ def test_theta_schema_reads_include_structural_rule_fields():
 def test_vocabulary_constants():
     assert S.DC_KEY == "dc"
     assert (S.TIER_W0, S.TIER_W1, S.TIER_W2, S.TIER_W3, S.TIER_W4) == ("W0", "W1", "W2", "W3", "W4")
-    assert (S.REL_RAIL, S.REL_TARGET, S.REL_INPUT_DC, S.REL_VGS_GATE, S.REL_VGS_SOURCE, S.REL_RESISTOR, S.REL_TIE,
+    assert (S.REL_RAIL, S.REL_TARGET, S.REL_INPUT_DC, S.REL_VGS_GATE, S.REL_VGS_SOURCE, S.REL_RESISTOR,
             S.REL_WINDOW) == ("rail", "declared_target", "input_dc", "vgs_gate", "vgs_source", "resistor_drop",
-                              "input_tie", "free_window")
+                              "free_window")
     assert (S.COORD_WRITER, S.COORD_DEPENDENT) == ("writer", "dependent")
     assert (S.DEP_TREE, S.DEP_PARALLEL, S.DEP_CYCLE, S.DEP_FIXED) == ("tree", "parallel_vgs", "cycle_vgs", "fixed_vgs")
-    assert S.INPUT_GROUP_KEY == "input_common_mode"
+    assert not hasattr(S, "INPUT_GROUP_KEY") and not hasattr(S, "REL_TIE")          # [IT-1 K-3] 어휘 제거
     assert (S.REPORT_VIOLATED, S.REPORT_UNDEFINED, S.REPORT_SEALED) == ("violated", "undefined", "sealed")
     assert (S.SEAL_NODE_CONFLICT, S.SEAL_VGS_MATCH, S.SEAL_KCL, S.SEAL_VERSIONS, S.SEAL_WRITER_UNIQUE,
             S.SEAL_BULK_REVERSE, S.SEAL_SATURATION, S.SEAL_KVL_BRANCH, S.SEAL_CONDUCTION) == (1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -193,8 +194,10 @@ def test_vocabulary_constants():
         "lut_vdsat_column_missing", "declared_source_kcl_conflict", "no_root_in_window", "strict_recheck_residual")
     # [r2] 옛 device_current_nonpositive 는 없어졌다(정의역 밖 = ValueError)
     assert not hasattr(S, "REASON_CURRENT_NONPOSITIVE")
-    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_INPUT_ORDER, S.TIE_CURRENT_PIVOT) == (
-        "writer_edge", "w4_root", "input_tie_order", "current_pivot")
+    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_CURRENT_PIVOT) == (
+        "writer_edge", "w4_root", "current_pivot")
+    assert not hasattr(S, "TIE_INPUT_ORDER")
+    assert S.BRANCH_INPUT_MULTIPLE_ROOTS == "input_port_multiple_roots"
     assert S.BRANCH_RESISTOR_CYCLE == "dc_resistor_cycle"
     assert S.BRANCH_MOS_ZERO_CURRENT == "mos_zero_current_structural"
     # [r5] 4.4: capacitance(engine 커패시터)·ss_resistance(DC 전류 0 engine 저항 중 구조 규칙 밖) 추가, 둘 다 DC 블록이 읽지 않는

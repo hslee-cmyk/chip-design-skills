@@ -7,8 +7,8 @@
   `resistor_values` = ((저항, Ω), ...) spec 선언값, `lut` = LutAccess.
 * 노드 x 의 writer 식(소자 m, kind 부호 s = +1 nmos / −1 pmos, VDS·VSB 는 노드전압 차의 크기):
   `vgs_gate`: V(g) = V(s) + s·VGS(ln IDu_m, L_m, VDS, VSB) / `vgs_source`: V(s) = V(g) − s·VGS(...) /
-  `resistor_drop`: V(t1) = V(t0) − I·R(또는 반대쪽) / `input_tie`: V(x) = V(아는 쪽) /
-  `free_window`(W4): V = lo + y·(hi − lo), [lo, hi] = x(입력 묶음이면 묶음 전원)에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이
+  `resistor_drop`: V(t1) = V(t0) − I·R(또는 반대쪽) /
+  `free_window`(W4): V = lo + y·(hi − lo), [lo, hi] = x 에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이
   되는 쪽의 교집합(전류가 나가는 단자면 lo ≥ V(반대), 들어오는 단자면 hi ≤ V(반대)), 제약 없는 쪽은 레일 전압 범위 끝.
   설계 3.4 는 기둥(레일~x 소자들의 VDsat 합)으로 적었으나 S1 기둥은 노드-단순 경로라 전류 방향을 거스르는 경로(분기 노드에서
   위로 돌아가는 경로)를 포함해 순서가 뒤집힌다 -- 인접 소자 제약을 이웃 노드가 다시 자기 창 안에 있는 사슬로 쓰면 같은
@@ -28,12 +28,13 @@
 * 종속 소자 좌표 ln IDu = ln(순방향 LUT IDu(노드 VGS, VDS, VSB)) -- 같은 gate 넷에 소자마다 다른 전압을 요구하는 상태는
   표현할 수 없다(설계 3.3 4). 쓰기 소자 좌표 = θ.
 * `path_values`(봉인 1 입력): 노드에 닿는 관계마다 그 관계가 함의하는 노드 전압(MOS = 좌표에서 VGS 역산, 저항 = 강하,
-  같은 DC = 상대 노드, W4·고정 = 값).
+  W4·고정 = 값).
 * writes `node.dc_v`(레일 밖 모든 노드), `node.dc_path_values`(모든 노드), `node.dc_window`(W4 뿌리),
   `device.dc_ln_idu`(모든 MOS), `graph.dc_scc_log`.
 """
 import math
 
+from gmid_engine.authoring import INPUT_DIRECTION
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
 from gmid_engine.graph import MOS_TERMINAL_NAMES
 from gmid_engine.lut import AXES, gmb, tol_vdsat_table, vdsat, vgs_for_current_density
@@ -49,11 +50,9 @@ from .s2_values import (
     COORD_WRITER,
     DC_COLUMNS_WRITER,
     DC_KEY,
-    INPUT_GROUP_KEY,
     PATH_FIXED,
     PATH_MOS,
     PATH_RESISTOR,
-    PATH_TIE,
     PATH_Y,
     REASON_EMPTY_WINDOW,
     REASON_NO_ROOT,
@@ -62,7 +61,6 @@ from .s2_values import (
     REL_INPUT_DC,
     REL_RESISTOR,
     REL_TARGET,
-    REL_TIE,
     REL_VGS_GATE,
     REL_VGS_SOURCE,
     REL_WINDOW,
@@ -83,10 +81,11 @@ READS = (
     ("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"),
     ("device", "dc_drop_current"), ("node", "dc_colour"), ("device", "dc_colour"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"), ("device", "bulk"),
     ("device", "element_class"), ("device", "dc_coord"), ("graph", "dc_scc_order"), ("device", "dc_self_referential"),
+    ("node", "port_direction"),
 )
 WRITES = (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), ("device", "dc_ln_idu"),
           ("graph", "dc_scc_log"))
-_REL_MOS, _REL_RES, _REL_TIE, _REL_FIXED, _REL_Y = PATH_MOS, PATH_RESISTOR, PATH_TIE, PATH_FIXED, PATH_Y
+_REL_MOS, _REL_RES, _REL_FIXED, _REL_Y = PATH_MOS, PATH_RESISTOR, PATH_FIXED, PATH_Y
 _TARGET_OUT_OF_RANGE = "lut_target_out_of_range"       # lut CONTRACT 4.1·3.1 vgs_for_current_density·gm_id_for_target 사유 키
 _TRANSIENT_LUT_REASONS = (_TARGET_OUT_OF_RANGE, "lut_axis_out_of_range")   # 반복 중 정의역 이탈(검증 바퀴가 다시 잰다)
 _CURVE_UNDEFINED = "lut_curve_undefined"     # lut CONTRACT 4.1 -- VDS 정의역 하한(`_vds_floor`) 아래에서만 반복 중 이탈로 본다
@@ -176,12 +175,7 @@ class _Circuit:
             self.order_terms.setdefault(source_side, []).append((True, sink_side))
             self.order_terms.setdefault(sink_side, []).append((False, source_side))
         self.tol_cells = {}                        # (소자, VDS) -> tol_V 또는 None -- `tolerance` 의 한 평가 안 재사용
-        self.members = {}
-        for net, w in self.canonical_writers():
-            root = net
-            while self.writers[root].relation == REL_TIE:
-                root = self.writers[root].known
-            self.members.setdefault(root, []).append(net)
+        self.inputs = frozenset(net for net, d in projection.column("node", "port_direction") if d == INPUT_DIRECTION)
 
     def mos_point(self, m, values):
         """(vgs, vds, vsb) 크기 -- 네 단자 값이 모두 있어야 한다."""
@@ -195,9 +189,9 @@ class _Circuit:
         return vds, vsb
 
     def kvl_window(self, net, values):
-        """W4 순서 창: x(입력 묶음이면 묶음 전원)에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이 되는 쪽 -- x 가 전류가 나가는 단자면
+        """W4 순서 창: x 에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이 되는 쪽 -- x 가 전류가 나가는 단자면
         lo ≥ V(반대 단자), 들어오는 단자면 hi ≤ V(반대 단자). 제약이 없는 쪽은 레일 전압 범위 끝."""
-        terms = [t for member in self.members.get(net, (net,)) for t in self.order_terms.get(member, ())]
+        terms = self.order_terms.get(net, ())
         lo, hi = self.lo, self.hi
         for is_lower, other in terms:
             if is_lower:
@@ -218,9 +212,8 @@ class _Circuit:
         return sorted(self.writers.items(), key=lambda kv: kv[1].order)
 
     def input_roots(self):
-        """입력 DC 미선언 입력 묶음의 W4 뿌리 넷(y 키 `input_common_mode`) -- 이름순이 아니라 쓰기 순번 순."""
-        return tuple(net for net, w in self.canonical_writers()
-                     if w.relation == REL_WINDOW and w.y_key == INPUT_GROUP_KEY)
+        """입력 포트인 W4 뿌리 넷(y 키 = 그 넷; 입력 DC 미선언 회로, `dc_writer_plan` 이 둘 이상이면 정지시킨다 -- 최대 하나) -- 쓰기 순번 순."""
+        return tuple(net for net, w in self.canonical_writers() if w.relation == REL_WINDOW and net in self.inputs)
 
     def saturation_rows(self, values):
         """전도 MOS 마다 ((d, s, 부호, 포화 여유)): 여유 = VDS − VDsat − tol_VDsat (봉인 7 의 판정식, 선형 영역 선언 소자 제외). LUT 에 VDSAT 열이
@@ -259,7 +252,7 @@ class _Circuit:
         return windows
 
     def start(self, net):
-        cols = [c for member in self.members.get(net, (net,)) for c in self.nbrs.get(member, ())]
+        cols = list(self.nbrs.get(net, ()))
         if not cols:
             return (self.lo + self.hi) / 2
         # 색 열이 없는 손 조립 스냅샷은 색 0 -- 이름 순으로 떨어진다(커널 컨텍스트가 만든 스냅샷은 늘 색이 있다)
@@ -289,7 +282,7 @@ class _Circuit:
     def start_writer(self, net, values):
         """시작값 둘째 단계(쓰기 계획 순서): MOS writer 노드는 writer 식을 VDS = 레일 범위 절반에서 한 번 평가한 값
         (diode·소스 추종의 고정점 근처). VSB 는 `vgs_gate`(source 를 안다)면 현재값, `vgs_source`(source 가 x 자신)면 0
-        -- 체효과가 가장 작은 쪽에서 시작해 소스 추종이 레일 밖으로 튀지 않게 한다. 저항·같은 DC 는 writer 식, W4 는 기둥
+        -- 체효과가 가장 작은 쪽에서 시작해 소스 추종이 레일 밖으로 튀지 않게 한다. 저항은 writer 식, W4 는 기둥
         위치 시작값 그대로. 시작값일 뿐이고 수렴값은 시작값과 무관하다(수렴 판정 = N3.6)."""
         w = self.writers[net]
         if self.self_referential(net):
@@ -307,7 +300,7 @@ class _Circuit:
                 return values[net]
             sign = _kind_sign(self.kinds[m])
             return values[w.known] + sign * vgs if w.relation == REL_VGS_GATE else values[w.known] - sign * vgs
-        if w.relation in (REL_RESISTOR, REL_TIE):
+        if w.relation == REL_RESISTOR:
             return self.update(net, values)
         return values[net]
 
@@ -430,8 +423,6 @@ class _Circuit:
             return values[w.known] + sign * vgs if w.relation == REL_VGS_GATE else values[w.known] - sign * vgs
         if w.relation == REL_RESISTOR:
             return values[w.known] + self.drop(w.element, w.known, net)
-        if w.relation == REL_TIE:
-            return values[w.known]
         lo, hi, ncols = self.window(net, values)
         if lo > hi and not strict:
             return values[net]
@@ -449,7 +440,7 @@ class _Circuit:
           값은 역산 VGS 점의 lut `op_point`(gm_over_id·gm_gds, Hermite 미분과 같은 곡면)와 lut `gmb`(같은 점, 폭 w_m)에서.
           vds = s(V(d) − V(s)), vsb = s(V(s) − V(b)) 사슬: ∂g/∂V(known) += 1, ∂g/∂V(d) += σ·∂VGS/∂VDS,
           ∂g/∂V(s) += σ·(∂VGS/∂VSB − ∂VGS/∂VDS), ∂g/∂V(b) += −σ·∂VGS/∂VSB(같은 노드는 더한다).
-        * 저항 강하·같은 DC: g = V(known) + Δ, ∂g/∂V(known) = 1. W4: g = lo + y(hi − lo), lo 를 정한 이웃 노드에 1 − y, hi 를 정한
+        * 저항 강하: g = V(known) + Δ, ∂g/∂V(known) = 1. W4: g = lo + y(hi − lo), lo 를 정한 이웃 노드에 1 − y, hi 를 정한
           이웃 노드에 y(레일 끝이면 항 없음). 빈 창이면 `SealViolationError`(empty_window) -- 부르는 쪽(`newton_system`)이 정의역 밖으로 본다."""
         w = self.writers[net]
         if w.relation in (REL_VGS_GATE, REL_VGS_SOURCE):
@@ -477,9 +468,7 @@ class _Circuit:
             return values[w.known] + sign * sigma * vgs, grad
         if w.relation == REL_RESISTOR:
             return values[w.known] + self.drop(w.element, w.known, net), {w.known: 1.0}
-        if w.relation == REL_TIE:
-            return values[w.known], {w.known: 1.0}
-        terms = [t for member in self.members.get(net, (net,)) for t in self.order_terms.get(member, ())]
+        terms = self.order_terms.get(net, ())
         lo, hi, lo_node, hi_node = self.lo, self.hi, None, None
         for is_lower, other in terms:
             if is_lower and values[other] > lo:
@@ -691,7 +680,7 @@ def _refine_ends(c, roots, windows, tol):
 def _solve_input_window(c):
     """입력 DC 대기 회로의 y_icm 범위 = 입력 포화 창 (사용자 결정 J-E, 설계 41 §4.6 SP-2 (c)).
 
-    입력 묶음 W4 뿌리가 없으면 풀이 한 번(종래). 있으면: (1) y_icm = 1/2 로 풀어 해를 얻고(순서 창 사상; 풀리지 않으면 순서 창 안에서 풀리는
+    입력 포트인 W4 뿌리가 없으면 풀이 한 번(종래). 있으면: (1) y_icm = 1/2 로 풀어 해를 얻고(순서 창 사상; 풀리지 않으면 순서 창 안에서 풀리는
     점을 찾는다) (2) 그 해에서 잰 포화 창 [Vin,min, Vin,max] ∩ 순서 창을 y_icm 범위로 삼아 요청 y_icm 으로 다시 풀며 (3) 새 해에서 창을 다시 재
     경계가 tol 안에서 같아질 때까지 되풀이하고(상한 K_max = `k_max`(레일 폭, tol)) (4) 창 끝을 끝에서 다시 풀어 다듬는다(끝 y = 0·1 이 봉인 시점
     포화 여유 ≥ 0). (1) 이 어디서도 풀리지 않거나 창을 잴 수 없으면(VDSAT 열 없음·tol 미정) 종래 사상(요청 y_icm, 순서 창)으로 푼다 --
@@ -699,7 +688,7 @@ def _solve_input_window(c):
     roots = c.input_roots()
     if not roots:
         return _solve(c)
-    key = (THETA_Y, INPUT_GROUP_KEY)
+    key = (THETA_Y, c.writers[roots[0]].y_key)
     requested = c.theta[key]
     c.theta[key] = _MID
     try:
@@ -760,9 +749,6 @@ def dc_columns(projection):
             far_from_near = c.drop(w.element, w.known, net)
             paths[net].append(PathValue((_REL_RES, w.element), values[w.known] + far_from_near))
             paths[w.known].append(PathValue((_REL_RES, w.element), values[net] - far_from_near))
-        elif w.relation == REL_TIE:
-            paths[net].append(PathValue((_REL_TIE, net), values[w.known]))
-            paths[w.known].append(PathValue((_REL_TIE, net), values[net]))
         elif w.relation == REL_WINDOW:
             paths[net].append(PathValue((_REL_Y, w.y_key), values[net]))
         elif w.relation not in (REL_VGS_GATE, REL_VGS_SOURCE):

@@ -1,0 +1,271 @@
+{
+ "id": "20261021-it1-input-tie-removal",
+ "spec_card": "docs/02-design/specs/20261021-it1-input-tie-removal.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "e98d0b0f10cc97d6256c1f4928b2f1f61f63ae44",
+ "test_commit": "46cb7bc4d22adceb2a7a73336547ae3ada19dfb7",
+ "code_commit": "14e0ca2af4a6de90878682a1d971076431fd3178",
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_undeclared_diffpair_no_input_tie",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_ring_cycle_vgs_after_port_delta_elimination",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_dependent_count_equals_cycle_rank[diff_undeclared]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_dependent_count_equals_cycle_rank[ring_undeclared]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_multiple_input_roots_stop[two_components]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_multiple_input_roots_stop[isolated_plus_component]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_vocabulary_removed",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_renamed_diffpair_same_structure",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_theta_schema_y_components_follow_writers",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_writer_block_owns_plan_fields"
+  ],
+  "failure_hashes": [
+   "2c7c3a01e3f8f5d000b68c505d742c6ad651e797dc3d06a92964d4af30a0a490",
+   "42695d34faebbf246266024ea4a1f1cf660982fab5b5d9992883ea711395b5ea",
+   "500a2a283487bb2139dcaf7d87eb7ecd7e18ed1930babe744d3773e8267e2f94",
+   "1f98daa477a0229003c923917cd5ebec08cb7072415c443cc0fc541baad6dfc3",
+   "c49b32a05ba77fe432c3eab9666dbe3470cfe43526cdedd90ca77d629df77308",
+   "24495dc086936d54d7f59784b6353b5ea26a19cb59394f3b965d291e8323590d",
+   "e2e00e1ea773b2cda93ca4dfbf30be251368b072c8058cf86469aac8b9df0796",
+   "7626597c6840065a236fb1dabec672d84b57fceb262d15affa0f5cc19b4403e0",
+   "79d786cac11353126ac6a9aa20c6c2783920b227e7ff224178ec16adb5518673",
+   "8629d2b4e7efe71064bdae90f32664e07d1c13c316184687a8f9eb1e993f7451"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "PASS",
+   "basis": "41faebe0 짧은 경로 격리 복제본(Temp/claude/it1f, remote 제거)에서 전체 실행(-k·--deselect·-x 없음, 설정 자체 deselect 20 = integration 19 + structure 1). 메모리 중단을 피하려 단위별로 나눠 순차 실행(동시 pytest 프로세스 1개). 1차(디렉터리 단위): test_conftest_slow_marker 2, authoring 1547, convergence 96, core 1085, generality 802, graph 1934, integration 471, layout 527 + xfail 2 = 6466. 2차: lut 1049(파일 46개 각각 따로), metrics 1213, pipeline 84, search 579, sizing 832, structure 67 = 3824. 합 10290 = 수집 10290(junit 테스트 id 대 --collect-only id 대조: 누락 0, 초과 0). 결과: passed 10288, xfailed 2(layout test_patterns_common_centroid 두 개, 기존), failed 0, error 0. u17_1b S0 기준선(3b)·test_current_basis 8e46548+Δ·IT-1 test 14개 포함 전부 green."
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "red-green: base 0366ddb4(코드 = e98d0b0f, 비 test diff 0)에서 IT-1 test 14개 중 10개가 assertion으로 FAIL(AssertionError 8, pytest.raises DID NOT RAISE 2), 4개 green(무동작 성질 (c) declared 2·declared_input_plan_unchanged·isolated_single_root_builds -- card와 일치). HEAD bd468eaf에서 14개 모두 PASS. 사유 대조: diff 2==1·ring 6==5(종속 수 = 순환 수), 정지 미발생, REL_TIE 존재, y 키 input_common_mode, dc_columns READS port_direction 부재(logs/red_base.txt)."
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "도입 해당 없음(DEC-86): merge_gate·mutate_changed 미사용, N6.3 절차라 이 판정에서 재지 않음."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: IT-1 test 기대값은 손계산(toy 순환 수·뿌리 넷 이름·정지 detail 꼴)이고 피검 함수 출력 복사가 아님(test_writer_plan.py 338-525 읽기). 결정성: HEAD 측정 두 번(raw/IT1 대 raw/IT1_rep2) 차이 = wall_s·tag·m_i3.perf.eval_time_median_s 시간 칸뿐(8회로)."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "기준 약화 0: diff e98d0b0f..bd468eaf test 12파일 모두 승인 범위(o13-scope 10파일 + k3-ext test_orbit_ties·test_s2_values:148). skip/xfail/importorskip 추가 0, 리터럴 완화 0. 지운 assert 줄 11개 모두 대체: test_writer_plan 4줄 -> 3줄(M1·M2 둘 다 writer 단언), test_s2_values 어휘 -> 부재 단언 + BRANCH 상수 단언, scc_newton·input_window·size_and_seal_local·block_columns는 y 키 이름만, orbit_ties 대칭 단언 6개 유지 + 정지 단언 1 추가(k3-ext #3). test_current_basis·S0 기준선은 미변경(3b). [둘째 판] 3b(aa3d1075): u17_1b_s0_baseline.json blob 28줄 +/- 28줄, 크기 50552 바이트 동일, CR 0 -- 바뀐 JSON 경로 정확히 28개 = achievability_sha/dof 6(current_reuse·folded·ngcc·nmcnr·two_stage·two_stage_sf, R2) + kernel/schema_fp·search_domain_fp 12 + start/uncovered_fp 6(R3 y 키·R1) + start/ladder_fp 4(folded·nmcnr·two_stage·two_stage_sf, R1 새 writer ln_idu) -- 변화표·앞선 실패 목록과 일치, 다른 키 변화 0. test_current_basis: _BASELINE_8E46548_ORIGINAL 원값 그대로 두고 _IT1_DELTA(감사 Δ 6개와 같음)를 더하는 꼴, 단언 == 정확 일치 유지 -- 약화 아님."
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "잔재(완료 조건 3, 계획 1438행 패턴 P) 41faebe0: 엔진(tests 제외) 6줄 = 확정 제외 3(_spec_fields:33·composite_diode:1·metrics CONTRACT:312) + 부정문 새 규칙 3(sizing/CONTRACT.md:310·writer_plan.py:10 \"'같은 DC' 엣지는 없다\", sizing/CONTRACT.md:887 'IT-1 규칙대로 ... 같은 DC 엣지·input_tie 없음' -- ee3d8187이 옛 문언을 고치며 새로 생긴 부정문, 제외 사유 같음 -- 오케스트레이터 승인: 부정문으로 새 규칙(부재)을 적은 줄이라 옛 규칙 잔재 아님). 옛 문언 4줄(CONTRACT:427·887·s2_values:186·seal_node_conflict:6) 수정 확인, 남은 잔재 0. tests 줄은 IT-1 부재 단언·주석(제거 확인용)."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "배선: BRANCH_INPUT_MULTIPLE_ROOTS는 dc_writer_plan 정지 자리(writer_plan.py:223-227) 운영 경로에서 쓰임(library 발동 0, toy·d/s 뒤집은 toy 발동). dc_columns READS node.port_direction은 _Circuit.inputs(block_columns.py:178)가 읽어 input_roots()·_solve_input_window가 소비."
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 해당 없음: IT-1 diff에 폴백 경로 없음."
+  },
+  "V9": {
+   "verdict": "PASS",
+   "basis": "library 8회로(ngcc는 단계 A review_needed라 IT-0 하네스 밖, 탐침으로 따로 잼) 종속 수 = 같은 DC 엣지 없는 G_vgs(F 한 점) 순환 수(M-I6 equal true, tie_edges 0). achievability n_equations 감소 = 옛 tie: 등식 수 1과 정확 일치, n_variables·status free_dof 불변."
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "9회로 변화표(change_table.json + probe_diff.json): 설명 안 된 변화 0. 변화 7회로(2입력 6 + common_gate y 키 이름만), 무변화 2(입력 DC 선언). HEAD 쓰기 계획 = IT-0 SIM 필드별 같음. BASELINE_8E46548 Δ 6개 재현(reproduced_numbers). graph 정본 I4는 ee3d8187에서 key = (THETA_Y, c.writers[roots[0]].y_key)로 수정 확인(정본 우회 의심 0). folded_cascode start.uncovered: base [..., (y,Y), (y,input_common_mode), (y,out)] -> HEAD [..., (y,Y), (y,out), (y,vin_p)] -- 이름 치환 뒤 집합 같음, 두 목록 모두 (종류, 이름) 정렬이라 vin_p가 out 뒤로 감; probe_diff의 false는 순서 민감 비교 탓. 원인 R3, 미설명 아님."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "8E46548/current_reuse_telescopic_ota/ties",
+   "value": 30,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/current_reuse_telescopic_ota/variables",
+   "value": 38,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/folded_cascode/ties",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/folded_cascode/variables",
+   "value": 17,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/ngcc_3stage_ff/ties",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/ngcc_3stage_ff/variables",
+   "value": 22,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/nmcnr_amplifier/ties",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/nmcnr_amplifier/variables",
+   "value": 24,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/two_stage_ota/ties",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/two_stage_ota/variables",
+   "value": 11,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/two_stage_ota_sf/ties",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/two_stage_ota_sf/variables",
+   "value": 13,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/common_gate_amplifier/ties",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/common_gate_amplifier/variables",
+   "value": 6,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/pushpull_follower_buffer/ties",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/pushpull_follower_buffer/variables",
+   "value": 8,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/sf_pushpull_output_opamp/ties",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "8E46548/sf_pushpull_output_opamp/variables",
+   "value": 26,
+   "command": "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_head.json (test_current_basis._measured_domain 과 같은 경로)"
+  },
+  {
+   "name": "change_table/library9/unexplained",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/compare_it1.py; scripts/diff_probe.py"
+  },
+  {
+   "name": "red/base/assertion_failures",
+   "value": 10,
+   "command": "cd <it1-base @0366ddb4>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rA --tb=line gmid_engine/tests/sizing/test_writer_plan.py -k test_it1_"
+  },
+  {
+   "name": "head/it1_tests_passed",
+   "value": 14,
+   "command": "cd <it1s @bd468eaf>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rA --tb=short gmid_engine/tests/sizing/test_writer_plan.py gmid_engine/tests/sizing/test_current_basis.py gmid_engine/tests/integration/test_s0_layer_9circuits.py gmid_engine/tests/search/test_orbit_ties.py gmid_engine/tests/sizing/test_s2_values.py"
+  },
+  {
+   "name": "residue/pattern_P/engine_non_test_lines",
+   "value": 6,
+   "command": "git grep -nE <P> -- skills/analog-gmid-design/gmid_engine ':!skills/analog-gmid-design/gmid_engine/tests'"
+  },
+  {
+   "name": "residue/pattern_P/stale_lines_after_exclusions",
+   "value": 0,
+   "command": "git grep -nE <P> -- gmid_engine ':!gmid_engine/tests' @41faebe0 - 확정 제외 3 - 부정문 3"
+  },
+  {
+   "name": "graph/field_count_changed",
+   "value": 3,
+   "command": "node.dc_writer·device.dc_coord·graph.dc_tie_breaks (새 필드 0)"
+  },
+  {
+   "name": "graph/consumer_zero",
+   "value": 0,
+   "command": "grep READS -- dc_tie_breaks는 IT-1 전부터 엔진 소비자 0(결과 기록 전용, 변화 아님)"
+  },
+  {
+   "name": "graph/canonical_bypass_suspect",
+   "value": 0,
+   "command": "block_columns.py _solve_input_window @41faebe0: key = (THETA_Y, c.writers[roots[0]].y_key)"
+  },
+  {
+   "name": "graph/kvl_kcl_relation_not_applied",
+   "value": 0,
+   "command": "writer_plan·block_columns diff 읽기"
+  },
+  {
+   "name": "graph/storage_outside_graph",
+   "value": 0,
+   "command": "git diff e98d0b0f bd468eaf 엔진 + 줄 grep cache|memo|dict|sctx"
+  },
+  {
+   "name": "3b/baseline_json_changed_paths",
+   "value": 28,
+   "command": "json 경로 비교 git show bd468eaf:<fixture> 대 41faebe0"
+  },
+  {
+   "name": "v1/41faebe0/collected",
+   "value": 10290,
+   "command": "C:/Python314/python.exe -m pytest -p no:cacheprovider -q --collect-only"
+  },
+  {
+   "name": "v1/41faebe0/run_union",
+   "value": 10290,
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<u>.xml <u> (1차 디렉터리 8단위 + 2차 lut 파일 46 + 디렉터리 5)"
+  },
+  {
+   "name": "v1/41faebe0/passed",
+   "value": 10288,
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<u>.xml <u>"
+  },
+  {
+   "name": "v1/41faebe0/xfailed",
+   "value": 2,
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<u>.xml <u>"
+  },
+  {
+   "name": "v1/41faebe0/failed",
+   "value": 0,
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<u>.xml <u>"
+  },
+  {
+   "name": "v1/41faebe0/coverage_missing",
+   "value": 0,
+   "command": "junit testcase id 합집합 대 collect_all id 대조"
+  }
+ ],
+ "approvals": [
+  "20261021-it1-o13-scope",
+  "20261021-it1-k3-ext"
+ ],
+ "auditor_run": {
+  "time": "2026-10-22T18:00:00+09:00",
+  "worktree": "격리 복제본 scratchpad/it1-audit/it1-iso(@bd468eaf, remote 제거), base 복제본 it1-base(@0366ddb4), 짧은 경로 복제본 Temp/claude/it1s(@bd468eaf); 둘째 판: Temp/claude/it1f(@41faebe0, remote 제거)",
+  "commands": [
+   "V1: cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=junit_<u>.xml <u> -- 단위 u = 최상위 test 디렉터리(lut만 파일별), 순차, 합집합 10290 = 수집 전부",
+   "git -c core.longpaths=true clone --no-hardlinks --no-local wt/it1-audit <TEMP>/it1-iso && git -C <TEMP>/it1-iso remote remove origin",
+   "cd <it1-base @0366ddb4>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rA --tb=line gmid_engine/tests/sizing/test_writer_plan.py -k test_it1_",
+   "cd <it1s @bd468eaf>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rA --tb=short gmid_engine/tests/sizing/test_writer_plan.py gmid_engine/tests/sizing/test_current_basis.py gmid_engine/tests/integration/test_s0_layer_9circuits.py gmid_engine/tests/search/test_orbit_ties.py gmid_engine/tests/sizing/test_s2_values.py",
+   "C:/Python314/python.exe -I scripts/measure_it1.py <it1-iso> IT1 <circuit> library|heldout out [--tag _rep2]",
+   "C:/Python314/python.exe -I scripts/compare_it1.py <IT-0 raw> out out/change_table.json",
+   "C:/Python314/python.exe -I scripts/probe_s0.py <repo> out/probe_{base,head}.json; scripts/diff_probe.py",
+   "git grep -nE <계획 1438행 패턴 P> -- skills/analog-gmid-design/gmid_engine"
+  ]
+ }
+}

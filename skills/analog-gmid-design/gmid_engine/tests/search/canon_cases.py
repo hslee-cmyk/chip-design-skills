@@ -111,7 +111,7 @@ def colour_maps(dc):
 
 
 def tau(dc):
-    """θ 키 (종류, 이름) -> (종류, 정점 대응 키). 원소 = ("d", dc_colour), 넷 = ("n", dc_colour), 그 밖(입력 묶음 y 키) = 이름 그대로."""
+    """θ 키 (종류, 이름) -> (종류, 정점 대응 키). 원소 = ("d", dc_colour), 넷 = ("n", dc_colour), 그 밖(표 밖 키) = 이름 그대로 [IT-1 K-3: 입력 포트 뿌리 y 키는 넷 이름이라 위 "n" 으로 간다]."""
     dv, nv = colour_maps(dc)
 
     def f(key):
