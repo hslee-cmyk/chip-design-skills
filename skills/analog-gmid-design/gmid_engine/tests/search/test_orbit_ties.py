@@ -335,11 +335,30 @@ def _sign_rows(dc, flipped=()):
     return sorted(out, key=sorted)
 
 
+def _s1_case(tmp, doc):
+    """doc 을 S1 까지만 지은 case: SimpleNamespace(dc = SimpleNamespace(base = S1 스냅샷)) -- 대칭 필드(orbits·dc_colour·current_symmetry)는 S1 필드."""
+    import json
+    from pathlib import Path
+    from types import SimpleNamespace
+    from gmid_engine.authoring import load_topology
+    from gmid_engine.graph import build_s1
+    from gmid_engine.search import open_run
+    from .canon_cases import SUPPLIES
+    tmp = Path(tmp)
+    tmp.mkdir(parents=True, exist_ok=True)
+    tp = tmp / (doc["topology_name"] + ".topology.json")
+    tp.write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    donors, counters = open_run()
+    s1 = build_s1(load_topology(str(tp)), dict(SUPPLIES), donors=donors, counters=counters)
+    return SimpleNamespace(dc=SimpleNamespace(base=s1), td=None)
+
+
 @pytest.mark.parametrize("names", [("M1",), ("M3",), ("M5",), ("M1", "M2", "M3", "M4", "M5")])
 def test_ds_flip_symmetry_bit_identical(names, tmp_path, lut_sealed):
     base = make_case(tmp_path / "b", sym_doc(), lut_sealed, elements=SYM_ELEMENTS, boxes=BOXES, build_sctx=False)
-    flip = make_case(tmp_path / "f", _flip_ds(sym_doc(), names, "hand_sym_canon_ds"), lut_sealed, elements=SYM_ELEMENTS,
-                     boxes=BOXES, build_sctx=False)
+    # [IT-1 K-3 ext, O-84] 뒤집은 쪽은 S1 까지만 짓는다: d/s 표기 = 물리 방향 선언(사용자 결정 2026-10-13 (라), design 40 §6-8)이라 뒤집은
+    # 선언은 물리적으로 다른 선언이고, 커널 컨텍스트(S0)는 입력 포트 뿌리 둘 이상으로 정지한다(올바른 fail-closed). 대칭 단언 6개는 그대로.
+    flip = _s1_case(tmp_path / "f", _flip_ds(sym_doc(), names, "hand_sym_canon_ds"))
     orb = dict(base.dc.base.value("graph", "s1", "orbits").devices)
     assert orb["M1"] == orb["M2"] and orb["M3"] == orb["M4"]                # 공허한 비교 아님(비자명 궤도)
     assert dict(flip.dc.base.value("graph", "s1", "orbits").devices) == orb
@@ -347,3 +366,13 @@ def test_ds_flip_symmetry_bit_identical(names, tmp_path, lut_sealed):
     assert dict(flip.dc.base.column("device", "dc_colour")) == dict(base.dc.base.column("device", "dc_colour"))
     assert dict(flip.dc.base.column("node", "dc_colour")) == dict(base.dc.base.column("node", "dc_colour"))
     assert _sign_rows(flip.dc, names) == _sign_rows(base.dc)
+
+
+def test_ds_flip_m1_kernel_context_stops_at_s0(tmp_path, lut_sealed):
+    """[IT-1 K-3 ext, O-84] M1 의 d/s 를 뒤집은 선언은 물리적으로 다른 선언 -- 커널 컨텍스트(S0)는 입력 포트 뿌리 둘 이상으로 정지한다."""
+    from gmid_engine.core import StructureUnresolvedError
+    with pytest.raises(StructureUnresolvedError) as ei:
+        make_case(tmp_path / "f", _flip_ds(sym_doc(), ("M1",), "hand_sym_canon_ds"), lut_sealed, elements=SYM_ELEMENTS,
+                  boxes=BOXES, build_sctx=False)
+    d = dict(ei.value.record.detail)
+    assert d["reason"] == "unsupported_rule_branch" and d["rule_branch"] == "input_port_multiple_roots"
