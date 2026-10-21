@@ -1,0 +1,2516 @@
+{
+ "heldout": {
+  "cnr_ota": {
+   "it0_AB": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_stopped",
+    "relations": [],
+    "stage_a": "stopped",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "it0_SIM": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_stopped",
+    "relations": [],
+    "stage_a": "stopped",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "it1_HEAD": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_stopped",
+    "relations": [],
+    "stage_a": "stopped",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   }
+  },
+  "erfc_ota": {
+   "it0_AB": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_stopped",
+    "relations": [],
+    "stage_a": "stopped",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "it0_SIM": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_stopped",
+    "relations": [],
+    "stage_a": "stopped",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "it1_HEAD": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_stopped",
+    "relations": [],
+    "stage_a": "stopped",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   }
+  },
+  "r2r_opamp": {
+   "it0_AB": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_stopped",
+    "relations": [],
+    "stage_a": "stopped",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "it0_SIM": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_stopped",
+    "relations": [],
+    "stage_a": "stopped",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "it1_HEAD": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_stopped",
+    "relations": [],
+    "stage_a": "stopped",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   }
+  },
+  "rfc_ota": {
+   "it0_AB": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_review_needed",
+    "relations": [],
+    "stage_a": "review_needed",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "it0_SIM": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_review_needed",
+    "relations": [],
+    "stage_a": "review_needed",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "it1_HEAD": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_review_needed",
+    "relations": [],
+    "stage_a": "review_needed",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   }
+  }
+ },
+ "library": {
+  "common_gate_amplifier": {
+   "changes": [
+    {
+     "cause": "R3 y 키 = 뿌리 넷",
+     "field": "node.dc_writer",
+     "it0": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "input_common_mode"
+     ],
+     "it1": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "vin"
+     ],
+     "net": "vin"
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷(input_common_mode -> 입력 포트 뿌리 넷)",
+     "field": "theta_schema.y",
+     "it0": [
+      "input_common_mode",
+      "vout"
+     ],
+     "it1": [
+      "vin",
+      "vout"
+     ]
+    }
+   ],
+   "head_equals_sim_plan": {
+    "achievability_dof": true,
+    "dependents": true,
+    "input_w4_roots": true,
+    "plan_stop": true,
+    "relations": true,
+    "theta_y": true,
+    "tie_breaks": true,
+    "w4": true
+   },
+   "it0_AB": {
+    "achievability_dof": {
+     "n_equations": 3,
+     "n_free": 9,
+     "n_variables": 12,
+     "status": "free_dof",
+     "structural_rank": 3
+    },
+    "dependents": [],
+    "input_w4_roots": [
+     "vin"
+    ],
+    "m_i6": {
+     "E": 3,
+     "V": 5,
+     "components": 2,
+     "cycles": 0,
+     "dependent": 0,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 1,
+    "n_input_tie": 0,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "vgs_gate"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "input_common_mode",
+     "vout"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "vin",
+      "input_common_mode"
+     ],
+     [
+      "vout",
+      "vout"
+     ]
+    ]
+   },
+   "it0_SIM": {
+    "achievability_dof": {
+     "n_equations": 3,
+     "n_free": 9,
+     "n_variables": 12,
+     "status": "free_dof",
+     "structural_rank": 3
+    },
+    "dependents": [],
+    "input_w4_roots": [
+     "vin"
+    ],
+    "m_i6": {
+     "E": 3,
+     "V": 5,
+     "components": 2,
+     "cycles": 0,
+     "dependent": 0,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 1,
+    "n_input_tie": 0,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "vgs_gate"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "vin",
+     "vout"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "vin",
+      "vin"
+     ],
+     [
+      "vout",
+      "vout"
+     ]
+    ]
+   },
+   "it1_HEAD": {
+    "achievability_dof": {
+     "n_equations": 3,
+     "n_free": 9,
+     "n_variables": 12,
+     "status": "free_dof",
+     "structural_rank": 3
+    },
+    "dependents": [],
+    "input_w4_roots": [
+     "vin"
+    ],
+    "m_i6": {
+     "E": 3,
+     "V": 5,
+     "components": 2,
+     "cycles": 0,
+     "dependent": 0,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 1,
+    "n_input_tie": 0,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "vgs_gate"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "vin",
+     "vout"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "vin",
+      "vin"
+     ],
+     [
+      "vout",
+      "vout"
+     ]
+    ]
+   },
+   "n_unexplained": 0,
+   "rep2_equal_excl_time": false
+  },
+  "current_reuse_telescopic_ota": {
+   "changes": [
+    {
+     "cause": "R1+R2 같은 DC 엣지·input_tie 제거(입력 포트가 MOS·저항 트리 경로로 쓰임)",
+     "field": "node.dc_writer",
+     "it0": [
+      "W2",
+      "input_tie",
+      null,
+      "Vip",
+      null
+     ],
+     "it1": [
+      "W2",
+      "vgs_gate",
+      "M4b",
+      "Vy",
+      null
+     ],
+     "net": "Vim"
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷",
+     "field": "node.dc_writer",
+     "it0": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "input_common_mode"
+     ],
+     "it1": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "Vip"
+     ],
+     "net": "Vip"
+    },
+    {
+     "cause": "R1 같은 DC 엣지 제거(입력쌍 경로 나무화 -> 옛 cycle_vgs 종속이 writer)",
+     "device": "M4b",
+     "field": "device.dc_coord",
+     "it0": [
+      "dependent",
+      "cycle_vgs",
+      null
+     ],
+     "it1": [
+      "writer",
+      "tree",
+      null
+     ]
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷(input_common_mode -> 입력 포트 뿌리 넷)",
+     "field": "theta_schema.y",
+     "it0": [
+      "input_common_mode"
+     ],
+     "it1": [
+      "Vip"
+     ]
+    },
+    {
+     "cause": "R2 input_tie 제거 -> tie: 등식 제거(n_equations -= tie_equations)",
+     "field": "achievability.dof",
+     "it0": {
+      "n_equations": 54,
+      "n_free": 92,
+      "n_variables": 146,
+      "status": "free_dof",
+      "structural_rank": 54
+     },
+     "it1": {
+      "n_equations": 53,
+      "n_free": 93,
+      "n_variables": 146,
+      "status": "free_dof",
+      "structural_rank": 53
+     }
+    }
+   ],
+   "head_equals_sim_plan": {
+    "achievability_dof": true,
+    "dependents": true,
+    "input_w4_roots": true,
+    "plan_stop": true,
+    "relations": true,
+    "theta_y": true,
+    "tie_breaks": true,
+    "w4": true
+   },
+   "it0_AB": {
+    "achievability_dof": {
+     "n_equations": 54,
+     "n_free": 92,
+     "n_variables": 146,
+     "status": "free_dof",
+     "structural_rank": 54
+    },
+    "dependents": [
+     [
+      "M10",
+      "parallel_vgs"
+     ],
+     [
+      "M12",
+      "parallel_vgs"
+     ],
+     [
+      "M13",
+      "parallel_vgs"
+     ],
+     [
+      "M15",
+      "cycle_vgs"
+     ],
+     [
+      "M16",
+      "cycle_vgs"
+     ],
+     [
+      "M17",
+      "parallel_vgs"
+     ],
+     [
+      "M19",
+      "parallel_vgs"
+     ],
+     [
+      "M1b",
+      "cycle_vgs"
+     ],
+     [
+      "M21",
+      "parallel_vgs"
+     ],
+     [
+      "M22",
+      "parallel_vgs"
+     ],
+     [
+      "M25",
+      "cycle_vgs"
+     ],
+     [
+      "M26",
+      "cycle_vgs"
+     ],
+     [
+      "M38",
+      "parallel_vgs"
+     ],
+     [
+      "M39",
+      "cycle_vgs"
+     ],
+     [
+      "M4b",
+      "cycle_vgs"
+     ],
+     [
+      "M5",
+      "parallel_vgs"
+     ],
+     [
+      "M6",
+      "parallel_vgs"
+     ],
+     [
+      "M60",
+      "parallel_vgs"
+     ],
+     [
+      "M61",
+      "parallel_vgs"
+     ],
+     [
+      "M68",
+      "parallel_vgs"
+     ],
+     [
+      "M7",
+      "parallel_vgs"
+     ],
+     [
+      "M8",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "Vip"
+    ],
+    "m_i6": {
+     "E": 56,
+     "V": 36,
+     "components": 2,
+     "cycles": 22,
+     "dependent": 22,
+     "equal": true,
+     "tie_edges": 1
+    },
+    "n_front": 0,
+    "n_input_tie": 1,
+    "n_theta_y": 1,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "input_tie",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "input_common_mode"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 1,
+    "w4": [
+     [
+      "Vip",
+      "input_common_mode"
+     ]
+    ]
+   },
+   "it0_SIM": {
+    "achievability_dof": {
+     "n_equations": 53,
+     "n_free": 93,
+     "n_variables": 146,
+     "status": "free_dof",
+     "structural_rank": 53
+    },
+    "dependents": [
+     [
+      "M10",
+      "parallel_vgs"
+     ],
+     [
+      "M12",
+      "parallel_vgs"
+     ],
+     [
+      "M13",
+      "parallel_vgs"
+     ],
+     [
+      "M15",
+      "cycle_vgs"
+     ],
+     [
+      "M16",
+      "cycle_vgs"
+     ],
+     [
+      "M17",
+      "parallel_vgs"
+     ],
+     [
+      "M19",
+      "parallel_vgs"
+     ],
+     [
+      "M1b",
+      "cycle_vgs"
+     ],
+     [
+      "M21",
+      "parallel_vgs"
+     ],
+     [
+      "M22",
+      "parallel_vgs"
+     ],
+     [
+      "M25",
+      "cycle_vgs"
+     ],
+     [
+      "M26",
+      "cycle_vgs"
+     ],
+     [
+      "M38",
+      "parallel_vgs"
+     ],
+     [
+      "M39",
+      "cycle_vgs"
+     ],
+     [
+      "M5",
+      "parallel_vgs"
+     ],
+     [
+      "M6",
+      "parallel_vgs"
+     ],
+     [
+      "M60",
+      "parallel_vgs"
+     ],
+     [
+      "M61",
+      "parallel_vgs"
+     ],
+     [
+      "M68",
+      "parallel_vgs"
+     ],
+     [
+      "M7",
+      "parallel_vgs"
+     ],
+     [
+      "M8",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "Vip"
+    ],
+    "m_i6": {
+     "E": 55,
+     "V": 36,
+     "components": 2,
+     "cycles": 21,
+     "dependent": 21,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 1,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "Vip"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "Vip",
+      "Vip"
+     ]
+    ]
+   },
+   "it1_HEAD": {
+    "achievability_dof": {
+     "n_equations": 53,
+     "n_free": 93,
+     "n_variables": 146,
+     "status": "free_dof",
+     "structural_rank": 53
+    },
+    "dependents": [
+     [
+      "M10",
+      "parallel_vgs"
+     ],
+     [
+      "M12",
+      "parallel_vgs"
+     ],
+     [
+      "M13",
+      "parallel_vgs"
+     ],
+     [
+      "M15",
+      "cycle_vgs"
+     ],
+     [
+      "M16",
+      "cycle_vgs"
+     ],
+     [
+      "M17",
+      "parallel_vgs"
+     ],
+     [
+      "M19",
+      "parallel_vgs"
+     ],
+     [
+      "M1b",
+      "cycle_vgs"
+     ],
+     [
+      "M21",
+      "parallel_vgs"
+     ],
+     [
+      "M22",
+      "parallel_vgs"
+     ],
+     [
+      "M25",
+      "cycle_vgs"
+     ],
+     [
+      "M26",
+      "cycle_vgs"
+     ],
+     [
+      "M38",
+      "parallel_vgs"
+     ],
+     [
+      "M39",
+      "cycle_vgs"
+     ],
+     [
+      "M5",
+      "parallel_vgs"
+     ],
+     [
+      "M6",
+      "parallel_vgs"
+     ],
+     [
+      "M60",
+      "parallel_vgs"
+     ],
+     [
+      "M61",
+      "parallel_vgs"
+     ],
+     [
+      "M68",
+      "parallel_vgs"
+     ],
+     [
+      "M7",
+      "parallel_vgs"
+     ],
+     [
+      "M8",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "Vip"
+    ],
+    "m_i6": {
+     "E": 55,
+     "V": 36,
+     "components": 2,
+     "cycles": 21,
+     "dependent": 21,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 1,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "Vip"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "Vip",
+      "Vip"
+     ]
+    ]
+   },
+   "n_unexplained": 0,
+   "rep2_equal_excl_time": false
+  },
+  "folded_cascode": {
+   "changes": [
+    {
+     "cause": "R1+R2 같은 DC 엣지·input_tie 제거(입력 포트가 MOS·저항 트리 경로로 쓰임)",
+     "field": "node.dc_writer",
+     "it0": [
+      "W2",
+      "input_tie",
+      null,
+      "vin_p",
+      null
+     ],
+     "it1": [
+      "W2",
+      "vgs_gate",
+      "M1",
+      "tail",
+      null
+     ],
+     "net": "vin_n"
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷",
+     "field": "node.dc_writer",
+     "it0": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "input_common_mode"
+     ],
+     "it1": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "vin_p"
+     ],
+     "net": "vin_p"
+    },
+    {
+     "cause": "R1 같은 DC 엣지 제거(입력쌍 경로 나무화 -> 옛 cycle_vgs 종속이 writer)",
+     "device": "M1",
+     "field": "device.dc_coord",
+     "it0": [
+      "dependent",
+      "cycle_vgs",
+      null
+     ],
+     "it1": [
+      "writer",
+      "tree",
+      null
+     ]
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷(input_common_mode -> 입력 포트 뿌리 넷)",
+     "field": "theta_schema.y",
+     "it0": [
+      "Y",
+      "input_common_mode",
+      "out"
+     ],
+     "it1": [
+      "Y",
+      "out",
+      "vin_p"
+     ]
+    },
+    {
+     "cause": "R2 input_tie 제거 -> tie: 등식 제거(n_equations -= tie_equations)",
+     "field": "achievability.dof",
+     "it0": {
+      "n_equations": 14,
+      "n_free": 25,
+      "n_variables": 39,
+      "status": "free_dof",
+      "structural_rank": 14
+     },
+     "it1": {
+      "n_equations": 13,
+      "n_free": 26,
+      "n_variables": 39,
+      "status": "free_dof",
+      "structural_rank": 13
+     }
+    }
+   ],
+   "head_equals_sim_plan": {
+    "achievability_dof": true,
+    "dependents": true,
+    "input_w4_roots": true,
+    "plan_stop": true,
+    "relations": true,
+    "theta_y": true,
+    "tie_breaks": true,
+    "w4": true
+   },
+   "it0_AB": {
+    "achievability_dof": {
+     "n_equations": 14,
+     "n_free": 25,
+     "n_variables": 39,
+     "status": "free_dof",
+     "structural_rank": 14
+    },
+    "dependents": [
+     [
+      "M1",
+      "cycle_vgs"
+     ],
+     [
+      "M10",
+      "parallel_vgs"
+     ],
+     [
+      "M11",
+      "parallel_vgs"
+     ],
+     [
+      "M3",
+      "parallel_vgs"
+     ],
+     [
+      "M4",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "vin_p"
+    ],
+    "m_i6": {
+     "E": 14,
+     "V": 12,
+     "components": 3,
+     "cycles": 5,
+     "dependent": 5,
+     "equal": true,
+     "tie_edges": 1
+    },
+    "n_front": 0,
+    "n_input_tie": 1,
+    "n_theta_y": 3,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "input_tie",
+     "rail",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "Y",
+     "input_common_mode",
+     "out"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 1,
+    "w4": [
+     [
+      "Y",
+      "Y"
+     ],
+     [
+      "out",
+      "out"
+     ],
+     [
+      "vin_p",
+      "input_common_mode"
+     ]
+    ]
+   },
+   "it0_SIM": {
+    "achievability_dof": {
+     "n_equations": 13,
+     "n_free": 26,
+     "n_variables": 39,
+     "status": "free_dof",
+     "structural_rank": 13
+    },
+    "dependents": [
+     [
+      "M10",
+      "parallel_vgs"
+     ],
+     [
+      "M11",
+      "parallel_vgs"
+     ],
+     [
+      "M3",
+      "parallel_vgs"
+     ],
+     [
+      "M4",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "vin_p"
+    ],
+    "m_i6": {
+     "E": 13,
+     "V": 12,
+     "components": 3,
+     "cycles": 4,
+     "dependent": 4,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 3,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "Y",
+     "out",
+     "vin_p"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "Y",
+      "Y"
+     ],
+     [
+      "out",
+      "out"
+     ],
+     [
+      "vin_p",
+      "vin_p"
+     ]
+    ]
+   },
+   "it1_HEAD": {
+    "achievability_dof": {
+     "n_equations": 13,
+     "n_free": 26,
+     "n_variables": 39,
+     "status": "free_dof",
+     "structural_rank": 13
+    },
+    "dependents": [
+     [
+      "M10",
+      "parallel_vgs"
+     ],
+     [
+      "M11",
+      "parallel_vgs"
+     ],
+     [
+      "M3",
+      "parallel_vgs"
+     ],
+     [
+      "M4",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "vin_p"
+    ],
+    "m_i6": {
+     "E": 13,
+     "V": 12,
+     "components": 3,
+     "cycles": 4,
+     "dependent": 4,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 3,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "Y",
+     "out",
+     "vin_p"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "Y",
+      "Y"
+     ],
+     [
+      "out",
+      "out"
+     ],
+     [
+      "vin_p",
+      "vin_p"
+     ]
+    ]
+   },
+   "n_unexplained": 0,
+   "rep2_equal_excl_time": false
+  },
+  "ngcc_3stage_ff": {
+   "changes": [],
+   "head_equals_sim_plan": {
+    "achievability_dof": true,
+    "dependents": true,
+    "input_w4_roots": true,
+    "plan_stop": true,
+    "relations": true,
+    "theta_y": true,
+    "tie_breaks": true,
+    "w4": true
+   },
+   "it0_AB": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_review_needed",
+    "relations": [],
+    "stage_a": "review_needed",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "it0_SIM": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_review_needed",
+    "relations": [],
+    "stage_a": "review_needed",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "it1_HEAD": {
+    "achievability_dof": null,
+    "dependents": [],
+    "input_w4_roots": null,
+    "m_i6": null,
+    "n_front": null,
+    "n_input_tie": 0,
+    "n_theta_y": null,
+    "plan_stop": "stage_a_review_needed",
+    "relations": [],
+    "stage_a": "review_needed",
+    "theta_y": null,
+    "tie_breaks": null,
+    "tie_equations": null,
+    "w4": []
+   },
+   "n_unexplained": 0
+  },
+  "nmcnr_amplifier": {
+   "changes": [
+    {
+     "cause": "R1+R2 같은 DC 엣지·input_tie 제거(입력 포트가 MOS·저항 트리 경로로 쓰임)",
+     "field": "node.dc_writer",
+     "it0": [
+      "W2",
+      "input_tie",
+      null,
+      "Vin_p",
+      null
+     ],
+     "it1": [
+      "W2",
+      "vgs_gate",
+      "M102",
+      "NodeTail",
+      null
+     ],
+     "net": "Vin_n"
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷",
+     "field": "node.dc_writer",
+     "it0": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "input_common_mode"
+     ],
+     "it1": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "Vin_p"
+     ],
+     "net": "Vin_p"
+    },
+    {
+     "cause": "R1 같은 DC 엣지 제거(입력쌍 경로 나무화 -> 옛 cycle_vgs 종속이 writer)",
+     "device": "M102",
+     "field": "device.dc_coord",
+     "it0": [
+      "dependent",
+      "cycle_vgs",
+      null
+     ],
+     "it1": [
+      "writer",
+      "tree",
+      null
+     ]
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷(input_common_mode -> 입력 포트 뿌리 넷)",
+     "field": "theta_schema.y",
+     "it0": [
+      "NodeF2",
+      "input_common_mode"
+     ],
+     "it1": [
+      "NodeF2",
+      "Vin_p"
+     ]
+    },
+    {
+     "cause": "R2 input_tie 제거 -> tie: 등식 제거(n_equations -= tie_equations)",
+     "field": "achievability.dof",
+     "it0": {
+      "n_equations": 17,
+      "n_free": 34,
+      "n_variables": 51,
+      "status": "free_dof",
+      "structural_rank": 17
+     },
+     "it1": {
+      "n_equations": 16,
+      "n_free": 35,
+      "n_variables": 51,
+      "status": "free_dof",
+      "structural_rank": 16
+     }
+    }
+   ],
+   "head_equals_sim_plan": {
+    "achievability_dof": true,
+    "dependents": true,
+    "input_w4_roots": true,
+    "plan_stop": true,
+    "relations": true,
+    "theta_y": true,
+    "tie_breaks": true,
+    "w4": true
+   },
+   "it0_AB": {
+    "achievability_dof": {
+     "n_equations": 17,
+     "n_free": 34,
+     "n_variables": 51,
+     "status": "free_dof",
+     "structural_rank": 17
+    },
+    "dependents": [
+     [
+      "M102",
+      "cycle_vgs"
+     ],
+     [
+      "M104",
+      "parallel_vgs"
+     ],
+     [
+      "M109",
+      "parallel_vgs"
+     ],
+     [
+      "M204",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "Vin_p"
+    ],
+    "m_i6": {
+     "E": 18,
+     "V": 17,
+     "components": 3,
+     "cycles": 4,
+     "dependent": 4,
+     "equal": true,
+     "tie_edges": 1
+    },
+    "n_front": 0,
+    "n_input_tie": 1,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "input_tie",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "NodeF2",
+     "input_common_mode"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 1,
+    "w4": [
+     [
+      "NodeF2",
+      "NodeF2"
+     ],
+     [
+      "Vin_p",
+      "input_common_mode"
+     ]
+    ]
+   },
+   "it0_SIM": {
+    "achievability_dof": {
+     "n_equations": 16,
+     "n_free": 35,
+     "n_variables": 51,
+     "status": "free_dof",
+     "structural_rank": 16
+    },
+    "dependents": [
+     [
+      "M104",
+      "parallel_vgs"
+     ],
+     [
+      "M109",
+      "parallel_vgs"
+     ],
+     [
+      "M204",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "Vin_p"
+    ],
+    "m_i6": {
+     "E": 17,
+     "V": 17,
+     "components": 3,
+     "cycles": 3,
+     "dependent": 3,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "NodeF2",
+     "Vin_p"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "NodeF2",
+      "NodeF2"
+     ],
+     [
+      "Vin_p",
+      "Vin_p"
+     ]
+    ]
+   },
+   "it1_HEAD": {
+    "achievability_dof": {
+     "n_equations": 16,
+     "n_free": 35,
+     "n_variables": 51,
+     "status": "free_dof",
+     "structural_rank": 16
+    },
+    "dependents": [
+     [
+      "M104",
+      "parallel_vgs"
+     ],
+     [
+      "M109",
+      "parallel_vgs"
+     ],
+     [
+      "M204",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "Vin_p"
+    ],
+    "m_i6": {
+     "E": 17,
+     "V": 17,
+     "components": 3,
+     "cycles": 3,
+     "dependent": 3,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "NodeF2",
+     "Vin_p"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "NodeF2",
+      "NodeF2"
+     ],
+     [
+      "Vin_p",
+      "Vin_p"
+     ]
+    ]
+   },
+   "n_unexplained": 0,
+   "rep2_equal_excl_time": false
+  },
+  "pushpull_follower_buffer": {
+   "changes": [],
+   "head_equals_sim_plan": {
+    "achievability_dof": true,
+    "dependents": true,
+    "input_w4_roots": true,
+    "plan_stop": true,
+    "relations": true,
+    "theta_y": true,
+    "tie_breaks": true,
+    "w4": true
+   },
+   "it0_AB": {
+    "achievability_dof": {
+     "n_equations": 7,
+     "n_free": 14,
+     "n_variables": 21,
+     "status": "free_dof",
+     "structural_rank": 7
+    },
+    "dependents": [
+     [
+      "M2",
+      "cycle_vgs"
+     ]
+    ],
+    "input_w4_roots": [],
+    "m_i6": {
+     "E": 6,
+     "V": 6,
+     "components": 1,
+     "cycles": 1,
+     "dependent": 1,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 0,
+    "plan_stop": null,
+    "relations": [
+     "input_dc",
+     "rail",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": []
+   },
+   "it0_SIM": {
+    "achievability_dof": {
+     "n_equations": 7,
+     "n_free": 14,
+     "n_variables": 21,
+     "status": "free_dof",
+     "structural_rank": 7
+    },
+    "dependents": [
+     [
+      "M2",
+      "cycle_vgs"
+     ]
+    ],
+    "input_w4_roots": [],
+    "m_i6": {
+     "E": 6,
+     "V": 6,
+     "components": 1,
+     "cycles": 1,
+     "dependent": 1,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 0,
+    "plan_stop": null,
+    "relations": [
+     "input_dc",
+     "rail",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": []
+   },
+   "it1_HEAD": {
+    "achievability_dof": {
+     "n_equations": 7,
+     "n_free": 14,
+     "n_variables": 21,
+     "status": "free_dof",
+     "structural_rank": 7
+    },
+    "dependents": [
+     [
+      "M2",
+      "cycle_vgs"
+     ]
+    ],
+    "input_w4_roots": [],
+    "m_i6": {
+     "E": 6,
+     "V": 6,
+     "components": 1,
+     "cycles": 1,
+     "dependent": 1,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 0,
+    "plan_stop": null,
+    "relations": [
+     "input_dc",
+     "rail",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": []
+   },
+   "n_unexplained": 0,
+   "rep2_equal_excl_time": false
+  },
+  "sf_pushpull_output_opamp": {
+   "changes": [],
+   "head_equals_sim_plan": {
+    "achievability_dof": true,
+    "dependents": true,
+    "input_w4_roots": true,
+    "plan_stop": true,
+    "relations": true,
+    "theta_y": true,
+    "tie_breaks": true,
+    "w4": true
+   },
+   "it0_AB": {
+    "achievability_dof": {
+     "n_equations": 27,
+     "n_free": 41,
+     "n_variables": 68,
+     "status": "free_dof",
+     "structural_rank": 27
+    },
+    "dependents": [
+     [
+      "M14",
+      "parallel_vgs"
+     ],
+     [
+      "M17",
+      "parallel_vgs"
+     ],
+     [
+      "M2",
+      "cycle_vgs"
+     ],
+     [
+      "M20",
+      "parallel_vgs"
+     ],
+     [
+      "M21",
+      "cycle_vgs"
+     ],
+     [
+      "M3",
+      "parallel_vgs"
+     ],
+     [
+      "M6",
+      "parallel_vgs"
+     ],
+     [
+      "M8",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [],
+    "m_i6": {
+     "E": 25,
+     "V": 19,
+     "components": 2,
+     "cycles": 8,
+     "dependent": 8,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 1,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "input_dc",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "N20"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "N20",
+      "N20"
+     ]
+    ]
+   },
+   "it0_SIM": {
+    "achievability_dof": {
+     "n_equations": 27,
+     "n_free": 41,
+     "n_variables": 68,
+     "status": "free_dof",
+     "structural_rank": 27
+    },
+    "dependents": [
+     [
+      "M14",
+      "parallel_vgs"
+     ],
+     [
+      "M17",
+      "parallel_vgs"
+     ],
+     [
+      "M2",
+      "cycle_vgs"
+     ],
+     [
+      "M20",
+      "parallel_vgs"
+     ],
+     [
+      "M21",
+      "cycle_vgs"
+     ],
+     [
+      "M3",
+      "parallel_vgs"
+     ],
+     [
+      "M6",
+      "parallel_vgs"
+     ],
+     [
+      "M8",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [],
+    "m_i6": {
+     "E": 25,
+     "V": 19,
+     "components": 2,
+     "cycles": 8,
+     "dependent": 8,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 1,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "input_dc",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "N20"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "N20",
+      "N20"
+     ]
+    ]
+   },
+   "it1_HEAD": {
+    "achievability_dof": {
+     "n_equations": 27,
+     "n_free": 41,
+     "n_variables": 68,
+     "status": "free_dof",
+     "structural_rank": 27
+    },
+    "dependents": [
+     [
+      "M14",
+      "parallel_vgs"
+     ],
+     [
+      "M17",
+      "parallel_vgs"
+     ],
+     [
+      "M2",
+      "cycle_vgs"
+     ],
+     [
+      "M20",
+      "parallel_vgs"
+     ],
+     [
+      "M21",
+      "cycle_vgs"
+     ],
+     [
+      "M3",
+      "parallel_vgs"
+     ],
+     [
+      "M6",
+      "parallel_vgs"
+     ],
+     [
+      "M8",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [],
+    "m_i6": {
+     "E": 25,
+     "V": 19,
+     "components": 2,
+     "cycles": 8,
+     "dependent": 8,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 1,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "input_dc",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "N20"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "N20",
+      "N20"
+     ]
+    ]
+   },
+   "n_unexplained": 0,
+   "rep2_equal_excl_time": false
+  },
+  "two_stage_ota": {
+   "changes": [
+    {
+     "cause": "R1+R2 같은 DC 엣지·input_tie 제거(입력 포트가 MOS·저항 트리 경로로 쓰임)",
+     "field": "node.dc_writer",
+     "it0": [
+      "W2",
+      "input_tie",
+      null,
+      "vin_p",
+      null
+     ],
+     "it1": [
+      "W2",
+      "vgs_gate",
+      "M1",
+      "CS",
+      null
+     ],
+     "net": "vin_n"
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷",
+     "field": "node.dc_writer",
+     "it0": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "input_common_mode"
+     ],
+     "it1": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "vin_p"
+     ],
+     "net": "vin_p"
+    },
+    {
+     "cause": "R1 같은 DC 엣지 제거(입력쌍 경로 나무화 -> 옛 cycle_vgs 종속이 writer)",
+     "device": "M1",
+     "field": "device.dc_coord",
+     "it0": [
+      "dependent",
+      "cycle_vgs",
+      null
+     ],
+     "it1": [
+      "writer",
+      "tree",
+      null
+     ]
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷(input_common_mode -> 입력 포트 뿌리 넷)",
+     "field": "theta_schema.y",
+     "it0": [
+      "OUT",
+      "input_common_mode"
+     ],
+     "it1": [
+      "OUT",
+      "vin_p"
+     ]
+    },
+    {
+     "cause": "R2 input_tie 제거 -> tie: 등식 제거(n_equations -= tie_equations)",
+     "field": "achievability.dof",
+     "it0": {
+      "n_equations": 8,
+      "n_free": 15,
+      "n_variables": 23,
+      "status": "free_dof",
+      "structural_rank": 8
+     },
+     "it1": {
+      "n_equations": 7,
+      "n_free": 16,
+      "n_variables": 23,
+      "status": "free_dof",
+      "structural_rank": 7
+     }
+    }
+   ],
+   "head_equals_sim_plan": {
+    "achievability_dof": true,
+    "dependents": true,
+    "input_w4_roots": true,
+    "plan_stop": true,
+    "relations": true,
+    "theta_y": true,
+    "tie_breaks": true,
+    "w4": true
+   },
+   "it0_AB": {
+    "achievability_dof": {
+     "n_equations": 8,
+     "n_free": 15,
+     "n_variables": 23,
+     "status": "free_dof",
+     "structural_rank": 8
+    },
+    "dependents": [
+     [
+      "M1",
+      "cycle_vgs"
+     ],
+     [
+      "M4",
+      "parallel_vgs"
+     ],
+     [
+      "M7",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "vin_p"
+    ],
+    "m_i6": {
+     "E": 9,
+     "V": 8,
+     "components": 2,
+     "cycles": 3,
+     "dependent": 3,
+     "equal": true,
+     "tie_edges": 1
+    },
+    "n_front": 0,
+    "n_input_tie": 1,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "input_tie",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "OUT",
+     "input_common_mode"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 1,
+    "w4": [
+     [
+      "OUT",
+      "OUT"
+     ],
+     [
+      "vin_p",
+      "input_common_mode"
+     ]
+    ]
+   },
+   "it0_SIM": {
+    "achievability_dof": {
+     "n_equations": 7,
+     "n_free": 16,
+     "n_variables": 23,
+     "status": "free_dof",
+     "structural_rank": 7
+    },
+    "dependents": [
+     [
+      "M4",
+      "parallel_vgs"
+     ],
+     [
+      "M7",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "vin_p"
+    ],
+    "m_i6": {
+     "E": 8,
+     "V": 8,
+     "components": 2,
+     "cycles": 2,
+     "dependent": 2,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "OUT",
+     "vin_p"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "OUT",
+      "OUT"
+     ],
+     [
+      "vin_p",
+      "vin_p"
+     ]
+    ]
+   },
+   "it1_HEAD": {
+    "achievability_dof": {
+     "n_equations": 7,
+     "n_free": 16,
+     "n_variables": 23,
+     "status": "free_dof",
+     "structural_rank": 7
+    },
+    "dependents": [
+     [
+      "M4",
+      "parallel_vgs"
+     ],
+     [
+      "M7",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "vin_p"
+    ],
+    "m_i6": {
+     "E": 8,
+     "V": 8,
+     "components": 2,
+     "cycles": 2,
+     "dependent": 2,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "resistor_drop",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "OUT",
+     "vin_p"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "OUT",
+      "OUT"
+     ],
+     [
+      "vin_p",
+      "vin_p"
+     ]
+    ]
+   },
+   "n_unexplained": 0,
+   "rep2_equal_excl_time": false
+  },
+  "two_stage_ota_sf": {
+   "changes": [
+    {
+     "cause": "R1+R2 같은 DC 엣지·input_tie 제거(입력 포트가 MOS·저항 트리 경로로 쓰임)",
+     "field": "node.dc_writer",
+     "it0": [
+      "W2",
+      "input_tie",
+      null,
+      "vin_p",
+      null
+     ],
+     "it1": [
+      "W2",
+      "vgs_gate",
+      "M1",
+      "CS",
+      null
+     ],
+     "net": "vin_n"
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷",
+     "field": "node.dc_writer",
+     "it0": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "input_common_mode"
+     ],
+     "it1": [
+      "W4",
+      "free_window",
+      null,
+      null,
+      "vin_p"
+     ],
+     "net": "vin_p"
+    },
+    {
+     "cause": "R1 같은 DC 엣지 제거(입력쌍 경로 나무화 -> 옛 cycle_vgs 종속이 writer)",
+     "device": "M1",
+     "field": "device.dc_coord",
+     "it0": [
+      "dependent",
+      "cycle_vgs",
+      null
+     ],
+     "it1": [
+      "writer",
+      "tree",
+      null
+     ]
+    },
+    {
+     "cause": "R3 y 키 = 뿌리 넷(input_common_mode -> 입력 포트 뿌리 넷)",
+     "field": "theta_schema.y",
+     "it0": [
+      "OUT",
+      "input_common_mode"
+     ],
+     "it1": [
+      "OUT",
+      "vin_p"
+     ]
+    },
+    {
+     "cause": "R2 input_tie 제거 -> tie: 등식 제거(n_equations -= tie_equations)",
+     "field": "achievability.dof",
+     "it0": {
+      "n_equations": 10,
+      "n_free": 17,
+      "n_variables": 27,
+      "status": "free_dof",
+      "structural_rank": 10
+     },
+     "it1": {
+      "n_equations": 9,
+      "n_free": 18,
+      "n_variables": 27,
+      "status": "free_dof",
+      "structural_rank": 9
+     }
+    }
+   ],
+   "head_equals_sim_plan": {
+    "achievability_dof": true,
+    "dependents": true,
+    "input_w4_roots": true,
+    "plan_stop": true,
+    "relations": true,
+    "theta_y": true,
+    "tie_breaks": true,
+    "w4": true
+   },
+   "it0_AB": {
+    "achievability_dof": {
+     "n_equations": 10,
+     "n_free": 17,
+     "n_variables": 27,
+     "status": "free_dof",
+     "structural_rank": 10
+    },
+    "dependents": [
+     [
+      "M1",
+      "cycle_vgs"
+     ],
+     [
+      "M4",
+      "parallel_vgs"
+     ],
+     [
+      "M7",
+      "parallel_vgs"
+     ],
+     [
+      "M9",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "vin_p"
+    ],
+    "m_i6": {
+     "E": 10,
+     "V": 9,
+     "components": 3,
+     "cycles": 4,
+     "dependent": 4,
+     "equal": true,
+     "tie_edges": 1
+    },
+    "n_front": 0,
+    "n_input_tie": 1,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "input_tie",
+     "rail",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "OUT",
+     "input_common_mode"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 1,
+    "w4": [
+     [
+      "OUT",
+      "OUT"
+     ],
+     [
+      "vin_p",
+      "input_common_mode"
+     ]
+    ]
+   },
+   "it0_SIM": {
+    "achievability_dof": {
+     "n_equations": 9,
+     "n_free": 18,
+     "n_variables": 27,
+     "status": "free_dof",
+     "structural_rank": 9
+    },
+    "dependents": [
+     [
+      "M4",
+      "parallel_vgs"
+     ],
+     [
+      "M7",
+      "parallel_vgs"
+     ],
+     [
+      "M9",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "vin_p"
+    ],
+    "m_i6": {
+     "E": 9,
+     "V": 9,
+     "components": 3,
+     "cycles": 3,
+     "dependent": 3,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "OUT",
+     "vin_p"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "OUT",
+      "OUT"
+     ],
+     [
+      "vin_p",
+      "vin_p"
+     ]
+    ]
+   },
+   "it1_HEAD": {
+    "achievability_dof": {
+     "n_equations": 9,
+     "n_free": 18,
+     "n_variables": 27,
+     "status": "free_dof",
+     "structural_rank": 9
+    },
+    "dependents": [
+     [
+      "M4",
+      "parallel_vgs"
+     ],
+     [
+      "M7",
+      "parallel_vgs"
+     ],
+     [
+      "M9",
+      "parallel_vgs"
+     ]
+    ],
+    "input_w4_roots": [
+     "vin_p"
+    ],
+    "m_i6": {
+     "E": 9,
+     "V": 9,
+     "components": 3,
+     "cycles": 3,
+     "dependent": 3,
+     "equal": true,
+     "tie_edges": 0
+    },
+    "n_front": 0,
+    "n_input_tie": 0,
+    "n_theta_y": 2,
+    "plan_stop": null,
+    "relations": [
+     "free_window",
+     "rail",
+     "vgs_gate",
+     "vgs_source"
+    ],
+    "stage_a": "ok",
+    "theta_y": [
+     "OUT",
+     "vin_p"
+    ],
+    "tie_breaks": [],
+    "tie_equations": 0,
+    "w4": [
+     [
+      "OUT",
+      "OUT"
+     ],
+     [
+      "vin_p",
+      "vin_p"
+     ]
+    ]
+   },
+   "n_unexplained": 0,
+   "rep2_equal_excl_time": false
+  }
+ },
+ "total_unexplained": 0
+}
