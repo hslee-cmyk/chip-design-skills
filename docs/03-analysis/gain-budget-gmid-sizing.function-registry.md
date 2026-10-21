@@ -670,7 +670,7 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | Σ gain 판정(feedforward 포함) | `metrics.achievability` 의 `GainCheck` | 주경로 블록만(U1b `ViewS1v.blocks`), FF 는 `ViewS1v.feedforward` |
 | 인증된 면적 하한 A_lb | `metrics.area_lower_bound` | 입력 면적 분해능 b_A·수동소자 단위 면적은 `search_domain`·`search.passive_area_decl`. U11 `front_diagnosis` 의 `A_lb` 가 이 값을 쓴다 |
 | 헤드룸 경로 엣지 비용의 LUT 최솟값 / 창 폭 상한 / 짧은 L bin 경고 | `metrics.edge_costs` / `metrics.headroom_bound` | 전도 봉인 9 의 식(`gm·tol_V >= I_off`)·포화 봉인 7(`VDS >= VDSAT + tol_vdsat`)을 그대로 쓴다. 새 임계값을 만들지 않는다 |
-| 구조 DOF 이분 매칭 | `metrics.dof_report` | 변수·등식 조립은 `achievability` 의 `_dof`(비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ 저항 / 소자 식·저항 강하·선언 노드 목표·입력 동일 DC) |
+| 구조 DOF 이분 매칭 | `metrics.dof_report` | 변수·등식 조립은 `achievability` 의 `_dof`(비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ 저항 / 소자 식·저항 강하·선언 노드 목표) |
 | 단계 B 진입점 | `pipeline.run_stage_b` | 단계 A 결과 위에서 한 번. exit 3 정지와 보고서 `<회로>.stage_b.json` |
 
 ## 11. 새 엔진 잡음 metric 정본 (2026-10-09, 구현 단위 U8 -- 설계 41 §7.1·7.3, 계약 `gmid_engine/metrics/CONTRACT.md` 11절)
