@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.11
-plan_version: 6.11
+version: 1.12
+plan_version: 6.22
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
@@ -215,7 +215,7 @@ plan_version: 6.11
 | D-OF3 | `offset_sys_mv`(차동 = Vop − Vom, 단일 = 선언 기준, 없으면 `reference_undeclared`), 상한 = `value_from_constraint: offset_in_sigma_mv` | 40 §3.8-8 | MISS | `rg "offset_sys" E/` 0 |
 | D-MR | `mirror_ratio_sigma_pct` 보고(mirror 계열 matching 그룹마다), 단위 `pct` | 40 §3.8-8 | MISS | `E/core/units.py:13`에 `pct` 없음 |
 | D-SW | `swing_out_v`: 포화 기준(VDS ≥ VDSAT + tol_vdsat), 대칭 p-p, 차동 = 출력별 반폭 최솟값 × 4, 구간 레코드 | 40 §3.8-8 | MISS | `rg "swing_out" E/` 0 |
-| D-ICM | `icmr_v`(레일로 자른 창 폭, 빈 창 음수)와 `icm_margin_v`(선언 입력 DC와 창 경계 거리, SP-2 대기면 `input_dc_pending`), ICMR 제약 = 폭 + 포함. v1.12 IT-2 설계: 커널 창 = `node.dc_window_cfg`(구성 `as_is_single_input`이면 `node.dc_window`), front·보고 = `node.dc_window_def_refined`(KVL 고정 포트·F 성분 미선언 포트는 `node.dc_window_cfg` -- O-61 P3·P4), 정의 함수 `icm_window_metrics` | 40 §3.8-8, 41 §4.7-2·§4.7-3b·§4.7-5 | MISS | `rg "icmr_v\|icm_margin" E/` 0. ngcc spec은 `{metric: pending MOD5}`(`assets/library/ngcc_3stage_ff.sizing_spec.json:87`) |
+| D-ICM | `icmr_v`(레일로 자른 창 폭, 빈 창 음수)와 `icm_margin_v`(선언 입력 DC와 창 경계 거리, SP-2 대기면 `input_dc_pending`), ICMR 제약 = 폭 + 포함. v1.12 IT-2 설계: 커널 창 = `node.dc_window_cfg`(모든 구성 -- v1.12.1 W1 철회), front·보고 = `node.dc_window_def_refined`(KVL 고정 포트·F 성분 미선언 포트는 `node.dc_window_cfg` -- O-61 P3·P4), 정의 함수 `icm_window_metrics` | 40 §3.8-8, 41 §4.7-2·§4.7-3b·§4.7-5 | MISS | `rg "icmr_v\|icm_margin" E/` 0. ngcc spec은 `{metric: pending MOD5}`(`assets/library/ngcc_3stage_ff.sizing_spec.json:87`) |
 | D-Q34 | §9.2 회로별 선언(파일럿 3.3 mV·스윙 2.4 V·icm_margin, 6회로 가드, ngcc `icmr_v >= 0.6`, nmcnr `icmr_v`·`swing_out_v >= 0.5`)과 옛 이름 거부(`mismatch_sigma_mv`, `mirror_ratio_error_mv`, `mismatch_sigma_v`) | 40 §9.2, §3.1 | MISS | `assets/library/*.sizing_spec.json`(옛 이름 3개 회로), `E/authoring/SPEC_CONTRACT.md:261` S2 |
 | D-GB4f | 헤드룸 달성가능성: 출력·입력·버퍼 창 상한(LUT 격자 전수, 인증/미상), 선언 제약 인증 불가 → exit 3 `headroom_unattainable`, 제약 없는 창·입력 DC 대기는 보고, 유도 기록 | 41 §4.6 | MISS | `rg "headroom_bound\|headroom_unattainable" E/` 0 |
 | D-SIg | 출발 구간 Q3·Q4: 스윙·ICMR·입력 DC 예산 분할(41 §6.2), A_eff matching L 하한(절대 offset 회로만, 41 §6.4-2) | 41 §6.2, §6.4-2 | MISS | `rg "start_intervals"` 0 |
@@ -226,7 +226,7 @@ plan_version: 6.11
 | D-J3 | 중첩 Miller 보상 내부 루프: 조건 (a)(b), 루프 뷰 미생성, `pm_ss_deg` 미선언이면 `undeclared_loop_constraint`(사유 `compensation_internal_needs_overall_pm`), 전체 PM 판정의 P = 0 확인 | 41 §1.12.3 | MISS | `rg "compensation_internal" E/` 0. `[u1-sp1]` ngcc·nmcnr에서 `undeclared_loop_constraint` 정지 |
 | D-J4 | 루프 극성 = 뷰의 DC 사이클 극성, 커패시터 사이클 `ac_only`, `loop_polarity_conflict`. L 동치류 주인 규칙 `main_path_signal`, name_order는 review | 41 §1.12.4·5 | MISS | `[u1-sp1] E/graph/polarity.py`(커패시터 사이클 → 0 → review), `l_classes.py`(주인 순서 3단계) |
 | D-IT1 | card IT-1: 입력 포트 '같은 DC' 엣지(`input_tie`) 폐기, 입력 포트 뿌리 y 키 = 넷, `input_port_multiple_roots` 정지 | 41 §4.7-1, 40 §11 IT 행 | MISS | 구현 전(계획 N6.5 완료 조건 1~7) |
-| D-IT2 | card IT-2: 입력 CM 창 단일 정본 -- `node.dc_window`(θ 프레임)·`node.dc_window_cfg`(측정 구성, `icm_config`)·`node.dc_window_def_refined`(`dc_window_refine`), `graph.ss_nodal`(세 자리 이전), 스냅샷 파생 규칙(keep = `ctx.base` writer ∪ 호출 블록·parent 일치 검사 확장·봉인 4 coverage·서로소 단언 -- O-61 P1), 창 끝 함수 `saturation_window` 하나·부르는 블록 셋(O-61 P2), KVL 고정 포트 끝 = `node.dc_window_cfg` 한 칸(`IcmConfig` `kvl` 칸 없음, O-61 P3), F 성분 미선언 포트 정의 불능·고립 포트 = 뿌리 창 절차(O-61 P4), 커널 미수렴 → `node.dc_window_cfg` 상태 칸 → 커널 metric·ICMR 제약 정의 불능(O-61 P5), 다듬은 창 출발 = DE-1 전 `node.dc_window_cfg`(O-61 P6; `as_is_single_input` 갈래는 41 §4.7-4 1 멈춤 -- 계획 먼저) | 41 §4.7-2~§4.7-7, 40 §2.4.8·§10·§11 IT 행 | MISS | 구현 전(계획 v6.22 N6.6 완료 조건 (0)~(12)) |
+| D-IT2 | card IT-2: 입력 CM 창 단일 정본 -- `node.dc_window`(θ 프레임)·`node.dc_window_cfg`(측정 구성, `icm_config`)·`node.dc_window_def_refined`(`dc_window_refine`), `graph.ss_nodal`(세 자리 이전), 스냅샷 파생 규칙(keep = `ctx.base` writer ∪ 호출 블록·parent 일치 검사 확장·봉인 4 coverage·서로소 단언 -- O-61 P1), 창 끝 함수 `saturation_window` 하나·부르는 블록 셋(O-61 P2), KVL 고정 포트 끝 = `node.dc_window_cfg` 한 칸(`IcmConfig` `kvl` 칸 없음, O-61 P3), F 성분 미선언 포트 정의 불능·고립 포트 = 뿌리 창 절차(O-61 P4), 커널 미수렴 → `node.dc_window_cfg` 상태 칸 → 커널 metric·ICMR 제약 정의 불능(O-61 P5), 다듬은 창 출발 = DE-1 전 `node.dc_window_cfg`(O-61 P6), W1 철회·`output_structure` 세 값·`IcmWindow` 사본 칸 삭제(v1.12.1; `as_is_single_input`에서 다듬은 창 동작은 41 §4.7-4 1 멈춤 -- 계획 먼저) | 41 §4.7-2~§4.7-7, 40 §2.4.8·§10·§11 IT 행 | MISS | 구현 전(계획 v6.22 N6.6 완료 조건 (0)~(12)) |
 | D-J5 | 입력 DC 정책: SP-2 (c) y_icm 창 범위, `required_input_cm_v`, sf `icm_margin_v >= 0` 제약, `buffer_window_report`, `icmr_window_short_l_bin` 경고 | 41 §4.6·§4.7-5(v1.12 IT-2 -- `required_input_cm_v`는 `icm_window_metrics`, 포트별 margin), 40 §3.8-8, §9.2 | MISS | `rg "required_input_cm\|short_l_bin" E/` 0. `assets/library/sf_pushpull_output_opamp.sizing_spec.json`에 `icm_margin_v` 제약 없음 |
 | D-J6 | `structure.json` concept 어휘 7개(신규 5), override/confirm/고아/불일치 전이, `structure_rule_fp`, 단계 A의 사실 로드 순서·`build_s1(structure=)`·`declared_loop_cuts` 전달, 뷰 한정 `ac_ground_exception` 소비 | 40 §3.2-3, 41 §1.12.6 | MISS | `[u1-sp1] E/graph/structure_load.py`는 `drive_kind`만 소비한다. `[u1-sp1] E/pipeline/stage_a.py` `run_stage_a`는 `declared_loop_cuts`를 넘기지 않는다 |
 | D-J7 | 회로별 사실 파일(`assets/library/<name>.structure.json`) 작성: U1b 병합 뒤, confirm 사실은 실측 일치 시만, rule_hash = 병합 코드의 `structure_rule_fp` | 40 §3.2-3 표 | MISS | 사실 파일 0개(작성 순서상 U1b 뒤) |
