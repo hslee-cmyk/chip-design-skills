@@ -1,11 +1,13 @@
 ---
 id: 20261021-it1-input-tie-removal
-phase: 미확인
+phase: 해당 없음 (DEC-86 -- merge_gate 미사용, N6.3 절차)
 evidence_type: red-green
 gate_change: no
 approval: 20261021-it1-o13-scope
 ---
 ## 의도
+
+- **절차(phase)**: 계획 DEC-86(285행)·N3.12 머리(669행)로 역할 분리 gate·spec card 흐름·merge_gate가 꺼졌다. 판정 = N6.3(매 변경 뒤 새 test 전체 실행, 작성자 ≠ test 작성자 WP-13, 약화 보고, 변경당 커밋 1) + 독립 측정·검증 agent이고 merge_gate가 아니다. 머리 블록은 형식 호환용이다.
 
 계획 v6.23 N6.5 card IT-1(입력 포트 '같은 DC' 엣지 `input_tie` 폐기 -- 사용자 결정 B2·K-3·O-13 (1)(2))을 design 41 v1.12.3 §4.7-1 1~5·test interface와 §6.7-1a(개정 문단) 그대로 구현한다. 목표 한 줄: **입력 DC 미선언 회로의 쓰기 계획에서 같은 DC 엣지·`input_tie` 쓰기와 그 어휘를 없애고, 입력 포트 W4 뿌리의 y 키를 뿌리 넷으로 두며, 입력 포트인 W4 뿌리가 둘 이상이면 `dc_writer_plan`이 탐색 전에 `input_port_multiple_roots`로 정지한다. 이 card는 새 규칙을 정하지 않는다.**
 
