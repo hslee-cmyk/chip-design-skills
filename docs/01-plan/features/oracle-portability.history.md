@@ -643,3 +643,20 @@ graph 점검: 단일 출력 + 용량만 선언 ICMR 정의 자리 = gain-budget 
 
 옛 문장(둘째 커밋 `aebdef17`):
 * > **Status**: **계획 v0.6.16 -- O-81·O-82 반영, 독립 검증·사용자 승인 전**
+
+## v0.6.17 -- 사용자 결정 O-85 (1)(3): 차동 출력 결합·지원 밖 원소 인용 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-85 행(AskUserQuestion 세 항목 "(권고)", `wt/_drafts/evidence/2026-10-21/oracle_design_v039_validation.md` §4 DV-21·M2, `wt/_drafts/evidence/2026-10-21/design41_v1126_validation.md` R1·R2). 짝 = gain-budget v6.28(history H1 'v6.28').
+* 경위: oracle design v0.3.9(`design/oracle-eo1` `5838cc67`)가 DR-24 적용 중 '차동 출력에서 두 출력의 DC 되먹임 판정이 갈림'(DV-21)을 찾았다 -- gain-budget v6.27 판정 문단은 출력별 판정만 정의하고 결합을 정하지 않았고, design은 그 갈래를 사유 이름 없는 fail-closed로 남겨 N3.14 공통 실패 규약과 어긋났다. 결합 규칙은 정의 자리(gain-budget N3.8) 몫이라 그쪽에 한 문장을 두고(물리: 한쪽 DC 경로 + 차동 모드 닫힘 = 과잉 구속, 닫힘 생략 = 비대칭 측정), 이 계획은 인용한다. 엔진 쪽 '이상 전압원 = 지원 밖' 문장이 '지원 밖 원소(S1 `device.unsupported`)'로 일반화되어(O-85 (3)) 오라클 `voltage_source` 갈래의 인용 대상도 그 규칙으로 맞춘다. `bias_not_gate_only`는 design 쪽 입력 전제 검사라 바꾸지 않고 DR-25에서 참조만 한다. 해당 회로 0개, 동작 변화 0. (2) S-FB1은 gain-budget 몫이라 이 계획 규칙 변경 없음.
+* 바꾼 옛 문장: N3.9 ICMR 행 'DC 되먹임 판정' "DUT에 `kind: "voltage"`가 있으면 이 판정은 정의 불능(지원 밖, fail-closed -- gb 정의 문단의 '이상 전압원')." → 괄호 인용을 'gb v6.28 정의 문단의 '지원 밖 원소', O-85 (3); 옛 표기 '이상 전압원''으로.
+* 추가: 같은 행 인용 문장 하나(차동 출력 결합·지원 밖 원소 = gain-budget v6.28 N3.8 같은 문단, 인용만), N2 O-85 행, design 개정 목록 DR-25(DV-21 닫힘·지원 밖 원소 사유 정렬·`bias_not_gate_only` 참조만), Status.
+
+옛 문장(v0.6.16 셋째 커밋 Status 머리):
+* > **Status**: **계획 v0.6.16 -- O-81·O-82 반영, 승인됨(사용자 O-83, 2026-10-21)**(앞에 v0.6.17 머리를 덧붙였고 v0.6.16 문장은 '이전 판'으로 남김)
+
+### v0.6.17 둘째 커밋 -- 사용자 결정 O-86: 승인 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-86 행(AskUserQuestion "M1·N1~N4 넣고 승인 (권고)", `wt/_drafts/evidence/2026-10-21/plan_o85_validation.md` 90/100). Status '독립 검증·사용자 승인 전' → '승인됨(사용자 O-86)', N2 O-86 행. 병합 전 M1·N1~N4는 gain-budget v6.28 둘째 커밋 몫이라 이 계획 규칙 변경 없음. N3(DV-21 근거 '과잉 구속' → '닫힘이 입력을 구동해 선언 DC 경로가 되먹임으로 작동하지 않음')은 gain-budget N3.8 한 자리에서 고쳤고, 이 계획 N3.9·DR-25는 규칙을 인용만 하므로(근거 문구를 다시 적지 않음) 그대로 맞다.
+
+옛 문장(첫 커밋 `bdd13d5b`):
+* > **Status**: **계획 v0.6.17 -- O-85 반영, 독립 검증·사용자 승인 전**
