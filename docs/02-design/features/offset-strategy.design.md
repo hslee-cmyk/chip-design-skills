@@ -60,7 +60,7 @@ plan_version: 0.7.1
 | O-53 B3 · O-50 G1 | 계통 offset 정본 = 부호 있는 V_id* 한 칸(gain-budget DEC-23), 출력 기준 정의 자리 = DEC-23 하나 | 기호 \|V_id*\| 전부, §8 `output_reference`, §12 |
 | O-34 (1) | 변경 종류별 판정 기준(결정성·순수 리팩터링 필드별·동작 변경 네 다리), 정본 gain-budget N6.3(인용만) | §3.6, §16.1 OS-2·OS-V, §16.3 완료 조건 10 test |
 | O-61 P1 | 스냅샷 파생 때 남는 필드 = `ctx.base`에 있는 writer ∪ 그 평가가 부르는 블록(정본 gain-budget v6.22 N3.3 '스냅샷 파생 규칙', 422행) | §3.1 '스냅샷 파생 규칙 영향' |
-| O-61 P9 · O-62 | OS-2 착수 조건 = U17 ② 병합(`constraint_rows` 필드·writer) + 40 §2.4.12 Q8 결정. 과도기 `EvalResult` 값 칸·결과 JSON 재계산 금지. design v0.7 개정(이 판) | §3.1 '행 값', §16.1 |
+| O-61 P9 · O-62 | OS-2 착수 조건 = U17 ② 병합(`constraint_rows` 필드·writer) + 40 §2.4.12 Q8 결정. 과도기 `EvalResult` 값 칸·결과 JSON 재계산 금지. 계획 v0.7 기준 개정(design v0.3.x) | §3.1 '행 값', §16.1 |
 | 원래 취지 | "계산 재사용은 처음 topology를 실행할 때는 항상 계산하고 그 계산된 값이 나머지 최적화를 진행할 때 재사용되게 한다는 것이 원래 취지였어" | §3.2, §5.3, §6.3, §13 |
 
 **이어받는 결정**: U-89, X-7, X-12, X-17, T-2·T-7·T-8, T-15, T-19~T-23, T-24~T-28(계획 N2 표 그대로).
@@ -327,7 +327,7 @@ RunPlan(strategy: str | None, phase: int | None, requirement: OffsetRequirement 
 
 ### 5.3 변형 제약 주입(PD-1, S-8)
 
-로드한 spec 객체 하나를 모든 변형이 같이 쓰고, 변형의 유도 제약만 `build_search_context(..., derived=...)`로 넣는다. spec 사본을 만들지 않는다. `derived`를 읽는 곳은 넷뿐이다(v0.3.0에 front 판정 입력이 더해짐).
+로드한 spec 객체 하나를 모든 변형이 같이 쓰고, 변형의 유도 제약만 `build_search_context(..., derived=...)`로 넣는다. spec 사본을 만들지 않는다. **탐색 층(search)에서** `derived`를 읽는 곳은 넷뿐이다(v0.3.0에 front 판정 입력이 더해짐). 이 셈은 탐색 층 계산 소비자만이다(검증 N3). 그 밖에 `derived`를 읽는 곳은 (1) 변형 정체 `constraint_set_fp`(§3.3, OS-5 평가 키 -- 지문 입력), (2) `run_id`의 중복 판정 키(§6.5), (3) 결과 JSON `variants[].derived` 참조 칸(§8, 출력 전용)이고, 셋 다 값을 계산하지 않는 지문·출력 소비자다.
 
 | 소비자 | 읽는 방식 |
 |---|---|
@@ -387,19 +387,19 @@ def run_plan(topology_path, spec_path, lut, memo, pdk_decl, lut_rule_decl, *, ou
 |---|---|---|
 | 블록 결과 색인·`RunCounters` | 세션 열기에서 하나 | 같음 |
 | 단계 A | 원본 한 번 | 토폴로지 변형마다 한 번 |
-| 단계 B | 한 번 | 변형마다 호출, 같은 토폴로지 변형끼리 블록은 색인 적중(계산 0). 보고서 파일은 같은 내용으로 다시 쓰인다 |
+| 단계 B | 한 번 | 변형마다 호출, 같은 토폴로지 변형끼리 블록은 색인 적중(계산 0). 같은 토폴로지 변형들은 같은 `stage_b_report` 파일(회로 이름 기준 경로)을 가리키고 그 파일은 변형마다 다시 쓰인다. **'같은 내용'의 조건(검증 N5)**: 단계 B가 `derived`를 읽지 않고(`run_stage_b` 서명에 `derived`가 없다, §5.3 -- 소비자는 탐색 층뿐) 같은 `stage_a`·`diagnostic`·`settings`를 받으므로 보고서 내용이 같다. 단계 B가 `derived`나 변형별 입력을 읽게 되면 이 조건이 깨지므로 그때는 변형별 경로가 필요하다(그 변경의 design 몫) |
 | S0 탐색 블록 | 한 번 | 같은 topology 변형끼리 적중(§5.3). `start_intervals`는 문턱 값이 같은 변형끼리만 적중, 문턱 값이 다른 OS-L 반복과 compare 국면 1에서는 변형마다 계산(입력이 다름, §3.2) |
 | S1v | 한 번 | 같은 topology 변형끼리 같은 입력 |
 | 평가 캐시 | 하나 | DS-1 = (다)(S-14, §10): `S3Index` 하나를 공유하고 평가 키에 `constraint_set_fp`를 넣는다. 지금 키 그대로 공유 금지 |
 
 ### 6.4 하네스 노출(B-1, W-1 요구 전수)
 
-E-S18의 하네스가 읽거나 넘기는 값마다 자리다. 새 값을 만들지 않고 이미 있는 객체의 **읽기 전용 참조**를 낸다. **색인·계수에 닿는 값은 세션이 열린 동안 세션 공개 API로만 읽는다**: 하네스 순서 = `open_plan_session` → `run_variant` → 읽기 → `close`(검증 B1, 계획 N3.12 ④·'수명'). `run_plan`(열기 → 실행 → 닫기)의 반환 `PlanResult`에는 그런 값이 없다. **(계획 개정 대기 -- W-1 노출 문언, 사용자 결정 대기)**: 계획 N7.2 'v0.5 반영' W-1은 '`run_plan`이 … 결과 객체에서 읽기 전용 참조로 내야 한다'고 적는데, 이것은 N3.12 '닫으면 버린다'와 부딪힌다. 이 design은 N3.12를 따르고 W-1 문언은 정하지 않는다.
+E-S18의 하네스가 읽거나 넘기는 값마다 자리다. 새 값을 만들지 않고 이미 있는 객체의 **읽기 전용 참조**를 낸다. **색인·계수에 닿는 값은 세션이 열린 동안 세션 공개 API로만 읽는다**: 하네스 순서 = `open_plan_session` → `run_variant` → 읽기 → `close`(검증 B1, 계획 N3.12 ④·'수명'). `run_plan`(열기 → 실행 → 닫기)의 반환 `PlanResult`에는 그런 값이 없다. **(계획 v0.7.2 개정 중 -- O-63 (3))**: 계획 N7.2 'v0.5 반영' W-1은 '`run_plan`이 … 결과 객체에서 읽기 전용 참조로 내야 한다'고 적는데, 이것은 N3.12 '닫으면 버린다'와 부딪힌다. 이 design은 N3.12를 따르고 W-1 문언은 정하지 않는다.
 
 | 하네스가 쓰는 것(E-S18) | 자리 |
 |---|---|
 | 입력 `lut`·`LutMemo`(크기 인자는 호출자)·`pdk`·`rule`·`settings`·S3 루트·output_dir·`given_starts` | `run_plan` 인자 그대로(호출자가 만든다) |
-| 진단 모드 `diagnostic=True` | `run_plan(..., diagnostic=True)` → 단계 B에 같은 뜻으로. **표지는 단계 B 보고서의 `diagnostic` 칸 하나다**(`E/pipeline/stage_b.py:129` `report["diagnostic"]`, 같은 값이 `StageBResult`에 실림 :131). `run_plan` 결과는 그 칸을 참조로 낸다: 객체는 `VariantResult.stage_b`·`PlanResult.stage_b_unplanned`(`StageBResult` 참조), 결과 JSON은 변형마다 `stage_b_report`(그 보고서 경로, `report_paths[0]`). `PlanResult`·결과 JSON에 `diagnostic` 둘째 칸을 두지 않는다(graph 단일 정본 규칙 4, 계획 N7.1 확인 항목 1). 단계 B가 돌지 않은 실행(계획 거부)에는 표지가 없다 -- 진단 모드는 단계 B의 동작이므로 표지할 대상이 없다 |
+| 진단 모드 `diagnostic=True` | `run_plan(..., diagnostic=True)` → 단계 B에 같은 뜻으로. **표지는 단계 B 보고서의 `diagnostic` 칸 하나다**(`E/pipeline/stage_b.py:129` `report["diagnostic"]`, 같은 값이 `StageBResult`에 실림 :131). `run_plan` 결과는 그 칸을 참조로 낸다: 객체는 `VariantResult.stage_b`·`PlanResult.stage_b_unplanned`(`StageBResult` 참조), 결과 JSON은 변형마다 `stage_b_report`(그 보고서 경로, `report_paths[0]`). `PlanResult`·결과 JSON에 `diagnostic` 둘째 칸을 두지 않는다(graph 단일 정본 규칙 4, 계획 N7.1 확인 항목 1). 단계 B가 돌지 않은 실행(계획 거부)에는 표지가 없다 -- 진단 모드는 단계 B의 동작이므로 표지할 대상이 없다. **spec 없이 멈춘 단계 A(검증 N4)**: `stage_b_unplanned`의 보고서는 결과 JSON 최상위 칸 `stage_b_unplanned_report`(그 보고서 경로, 변형이 없어 `variants[]`에 자리가 없다)로 참조한다. 이 경로는 `E/pipeline/stage_b.py:140-142`의 `skipped` 분기이고 보고서 `diagnostic`을 **언제나 False**로 쓴다(진단 인자와 무관 -- 계산하지 않았다는 뜻). 그래서 그 경우의 표지는 '진단 모드로 계산했다'가 아니라 '계산 안 함'이다 |
 | `find_front` 모듈 속성 감싸기 | 그대로 동작(§6.1 4) |
 | 단계 A가 A1_load 등에서 spec 없이 멈춰도 하네스는 `run_stage_b`를 불러(`skipped`) 단계 B 보고서를 쓴다(`nfr4_run_dump.py:387-393`) | `PlanResult.stage_b_unplanned`(§6.1 '계획 생성 조건' -- spec이 None이면 원본 topology로 한 번 불러 같은 보고서 파일을 쓴다) |
 | `a.code_fp`·`a.report_paths`·`a.status`·`a.s1.snapshot.fp` | 열린 동안 `session.stage_a`(`StageAResult` 참조) |
@@ -449,7 +449,8 @@ E-S18의 하네스가 읽거나 넘기는 값마다 자리다. 새 값을 만들
 
 | 칸 | 내용 | card |
 |---|---|---|
-| `strategy`, `phase` | 계획 값. 진단 표지는 칸을 두지 않고 변형마다 `stage_b_report`(단계 B 보고서 경로)가 가리키는 보고서의 `diagnostic` 칸(`stage_b.py:129`)을 참조한다(§6.4) | OS-2 |
+| `strategy`, `phase` | 계획 값. 진단 표지는 칸을 두지 않고 변형마다 `stage_b_report`(단계 B 보고서 경로)가 가리키는 보고서의 `diagnostic` 칸(`stage_b.py:129`)을 참조한다(§6.4). 같은 토폴로지 변형은 같은 파일을 가리킨다(§6.3 '같은 내용' 조건) | OS-2 |
+| `stage_b_unplanned_report` | 단계 A가 spec 없이 멈춰 계획이 없을 때 단계 B `skipped` 보고서 경로(그 보고서 `diagnostic`은 늘 False, `stage_b.py:142`), 그 밖 null(검증 N4) | OS-2 |
 | `requirement` | `{ref: "human.offset_requirement", source_fp, strategy, view}` 또는 null. **spec 선언 값(`offset_in_max_v`·`coverage_multiple`·`judgment_temperature_range_c`)은 싣지 않고 참조만 싣는다**(아래 '출력 기록 규칙') | OS-2 |
 | `rejected` | 계획 함수 거부 사유(`exc.record.to_json()`) 또는 null | OS-2 |
 | `variants[]` | `{index, label, iteration, cause_fp, topology_fp, variant_fp, derived: [{name, sigma_metric, sys_metric, k_ref, threshold: {target, margin_ref}, source_fp}], budget: {eval_budget, eval_budget_source, e_total, gate_reserve}, stage_a_status, stage_b_status, stage_b_report, run_id, s3_dir, stop, front_points}` | OS-2(OS-5·OS-L에서 여러 개) |
@@ -803,7 +804,7 @@ T-24·T-25·T-27·T-28에서 바뀌는 것만:
 **다른 문서 알림 항목(v0.3.1)**:
 * offset-trim design §20.7(G-12 '문턱에 의존하는 블록' 목록): `start_intervals`를 다시 넣는다(§3.2 -- OB-20 정정의 결과, 계획 N3.12 '재사용 범위' ①).
 * offset-strategy 계획 475행(OS-V) '공칭 표본 offset 출력 = PC-10의 실체' 문언과 offset-trim 계획 G-15(674) '공칭 MC 표본 offset은 V_id* 출처가 아니다' 정리(§12).
-* offset-strategy 계획 N7.2 'v0.5 반영' W-1 노출 문언('`run_plan` 결과에서 읽기 전용 참조') -- N3.12 ④와 부딪힘. **(계획 개정 대기 -- W-1 노출 문언, 사용자 결정 대기)**(§6.4).
+* offset-strategy 계획 N7.2 'v0.5 반영' W-1 노출 문언('`run_plan` 결과에서 읽기 전용 참조') -- N3.12 ④와 부딪힘. **(계획 v0.7.2 개정 중 -- O-63 (3))**(§6.4).
 * 40 design: §17.2 '구조 규칙 M'·'제약 행' 두 행.
 
 v0.3.0 문장(기록): 계획 v0.7.1과 다르게 정한 결정은 두지 않았다(S-7) -- 위 B1·B3로 정정됨. 아래는 v0.2.x 문장이다. 계획 v0.6.1과 다르게 정한 결정은 두지 않았다(S-7). D-25는 T-36으로 결정됐고(master `2c3e740`의 계획 문구도 '결정됨(T-36)'으로 정리됨 -- 이 브랜치 base `194981f`에는 그 전 문구가 남아 있다), 계획이 'D-25 결정 뒤 design이 닫는다'고 한 그대로 §13.1이 인터페이스 서명을 닫았다. 계획 N7.2 OS-L 행의 'D-25 결정' 선행은 충족됐다.
@@ -844,7 +845,7 @@ v0.3.0 문장(기록): 계획 v0.7.1과 다르게 정한 결정은 두지 않았
 | PS-3 | (닫힘, v0.3.1 -- 계획대로 OB-20 정정, §3.2·§18.2) | -- | -- |
 | PS-6 | `open_run(s0_sets=B_S0)` 순환(검증 M10): B_S0는 계획에서, 계획은 단계 A spec에서, 단계 A는 `open_run`의 쌍에서. 계획 PD-7·40 '수명' (1) 어디에도 순서를 푸는 문언이 없다(새 장치를 만들지 않는다) | OS-5 `s0_sets` 구현(OS-2는 막지 않음) | 계획 PD-7 또는 40 §2.4.5 개정 |
 | PS-7 | 하네스가 평가 결과 전수(`seq` 순)를 읽는 S3 색인 평가 키 부분의 열거 API -- 40 §2.4.5 조회 API는 `get(key)`뿐이고 '순회하지 않는다' | §6.4 평가 목록 행, `nfr4_run_dump.py` 대체 | U17 ② design |
-| W-1 | **(계획 개정 대기 -- W-1 노출 문언, 사용자 결정 대기)**: '`run_plan` 결과에서 읽기 전용' 대 N3.12 ④ '버린다' | §6.4 | 사용자 |
+| W-1 | **(계획 v0.7.2 개정 중 -- O-63 (3))**: '`run_plan` 결과에서 읽기 전용' 대 N3.12 ④ '버린다' | §6.4 | 사용자 |
 | PS-4 | `output_reference`가 DEC-23 기준 종류 셋(값·넷·입력 추종) 가운데 '값'만 덮음. 넷·입력 추종 선언 칸 이름은 DEC-23이 'design'에 맡겼고(gain-budget design 소관) 아직 없다 | §8, L4, OS-V 오라클 입력 | gain-budget design |
 | PS-5 | 비교 도구가 matching 여유 한 줄(L − v)을 빼서 낼지(엔진 밖 표시 계산). 엔진 결과에서는 `margin_v`를 지웠다 | §9 칸 | 사용자(OS-3 design 때) |
 
