@@ -34,14 +34,11 @@ REL_INPUT_DC = "input_dc"                              # W2 (d): spec input_dc �
 REL_VGS_GATE = "vgs_gate"                              # 쓰기 소자가 source 에서 gate 를 쓴다(diode 면 W1)
 REL_VGS_SOURCE = "vgs_source"                          # 쓰기 소자가 gate 에서 source 를 쓴다(소스 추종, W2)
 REL_RESISTOR = "resistor_drop"                         # V(far) = V(near) -/+ I*R (W2 (b))
-REL_TIE = "input_tie"                                  # 입력 DC 동일 가정(DEC-64 v1): 입력 포트끼리 같은 전압
 REL_WINDOW = "free_window"                             # W4: θ 의 y 성분 -> 창 안 위치
-INPUT_GROUP_KEY = "input_common_mode"                  # 입력 DC 미선언 입력 포트 묶음의 y 키(U2 기본안 (a))
 
 # ---- path_values 관계 종류(봉인 1 입력의 relation[0])
 PATH_MOS = "vgs"                                       # MOS 좌표에서 VGS 역산으로 함의한 gate·source 전압
 PATH_RESISTOR = "resistor"
-PATH_TIE = "tie"
 PATH_Y = "y"
 PATH_FIXED = "fixed"
 
@@ -94,6 +91,7 @@ REPORT_UNDEFINED = "undefined"
 
 # ---- 실패 사유(detail reason) -- 정지(StructureUnresolvedError)는 graph 와 같은 reason 키 + rule_branch
 BRANCH_RESISTOR_CYCLE = "dc_resistor_cycle"
+BRANCH_INPUT_MULTIPLE_ROOTS = "input_port_multiple_roots"   # 입력 포트인 W4 뿌리가 둘 이상(DEC-76 미구현)
 BRANCH_MOS_ZERO_CURRENT = "mos_zero_current_structural"
 BRANCH_ORIENTATION = "mos_orientation_unsupported"
 REASON_DECLARED_KCL = "declared_source_kcl_conflict"
@@ -115,7 +113,6 @@ SCC_DIRECT = "direct"
 # ---- 남은 동률(구조 색이 같은 후보)을 이름 순서로 깬 결정의 종류(`TieBreak.decision`)
 TIE_KRUSKAL = "writer_edge"                            # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
 TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
-TIE_INPUT_ORDER = "input_tie_order"                    # 같은 DC 엣지를 잇는 입력 포트 순서(같은 구조 색)
 TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원소 열이 θ 전류 기저/종속으로 갈림
 
 # ---- 필드 writer(= 계산 블록 이름)

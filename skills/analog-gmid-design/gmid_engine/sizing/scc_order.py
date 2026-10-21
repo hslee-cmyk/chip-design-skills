@@ -4,8 +4,8 @@
 
 * 노드 x 의 writer 가 읽는 노드(고정 노드 제외)로 방향 엣지 x -> 읽는 노드:
   `vgs_gate`(소자 m, 아는 쪽 source) = {source, drain, bulk}(drain 이 x 면 자기 참조 = diode),
-  `vgs_source`(아는 쪽 gate) = {gate, drain, bulk, x}(VDS·VSB 가 x 를 읽는다), `resistor_drop`·`input_tie` = {아는 쪽},
-  `free_window`(W4) = x(입력 묶음 뿌리면 `input_tie` 로 이어진 묶음 전원)에 채널이 닿는 MOS 의 반대 채널 단자(창 = 인접
+  `vgs_source`(아는 쪽 gate) = {gate, drain, bulk, x}(VDS·VSB 가 x 를 읽는다), `resistor_drop` = {아는 쪽},
+  `free_window`(W4) = x 에 채널이 닿는 MOS 의 반대 채널 단자(창 = 인접
   전도 MOS 의 VDS ≥ 0 순서 제약).
 * Tarjan SCC(반복형) -- 의존이 먼저 나오는 순서 그대로 풀이 순서다. SCC 안 노드는 쓰기 계획 순번 순.
   `cyclic` = 크기 > 1 또는 자기 참조. `devices` = 단자가 SCC 노드에 닿는 MOS(허용오차 조회 대상).
@@ -18,12 +18,10 @@ from gmid_engine.graph import ELEMENT_MOS, GRAPH_KEY, MOS_TERMINAL_NAMES
 from .s2_values import (
     DC_KEY,
     DC_SCC_ORDER_WRITER,
-    INPUT_GROUP_KEY,
     REL_INPUT_DC,
     REL_RAIL,
     REL_RESISTOR,
     REL_TARGET,
-    REL_TIE,
     REL_VGS_GATE,
     REL_VGS_SOURCE,
     REL_WINDOW,
@@ -119,12 +117,6 @@ def dc_scc_order(projection):
     channel = {name: (p[MOS_TERMINAL_NAMES[0]], p[MOS_TERMINAL_NAMES[-1]]) for name, p in pins.items()
                if classes.get(name) == ELEMENT_MOS}
     fixed = {net for net, w in writers.items() if w.relation in FIXED_RELATIONS}
-    tie_root = {}
-    for net, w in writers.items():
-        root = net
-        while writers[root].relation == REL_TIE:
-            root = writers[root].known
-        tie_root[net] = root
     deps = {}
     for net, w in writers.items():
         if net in fixed:
@@ -134,11 +126,10 @@ def dc_scc_order(projection):
             read = {source, drain, bulk[w.element].net, w.known}
             if w.relation == REL_VGS_SOURCE:
                 read.add(net)
-        elif w.relation in (REL_RESISTOR, REL_TIE):
+        elif w.relation in (REL_RESISTOR,):
             read = {w.known}
         else:
-            members = {n for n in writers if tie_root[n] == net} if w.y_key == INPUT_GROUP_KEY else {net}
-            read = {other for m in channel for a, other in (channel[m], channel[m][::-1]) if a in members}
+            read = {other for m in channel for a, other in (channel[m], channel[m][::-1]) if a == net}
         deps[net] = tuple(n for n in read if n not in fixed)          # 정렬은 아래(계획 순서 키로 -- 이름이 DFS 순서를 정하지 않게)
     deps = {net: tuple(sorted(items, key=lambda n: writers[n].order)) for net, items in deps.items()}
     order = sorted(deps, key=lambda n: writers[n].order)

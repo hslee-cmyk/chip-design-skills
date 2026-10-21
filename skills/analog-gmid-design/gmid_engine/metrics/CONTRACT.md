@@ -1113,7 +1113,7 @@ toy 확인(스크래치): 두 극성 입력이 같은 gate 인 4소자 회로에
 ### 10.7 구조 DOF (41 §4.5)
 
 변수: 비레일 노드 전압 `V:`, MOS 반전 좌표 `u:`, L 동치류 `L:`(`kctx.l_ties` 의 주인 또는 자기), θ 전류 `I:`(전류 기저 자유 원소), θ DC 경로 저항 `R:`(값 미선언). 등식: `dev:<MOS>`(u, L, 비레일 d·g·s 전압), `res:<저항>`(양 끝 전압·그 저항 전류식의
-자유 전류·R), `fix:<넷>`(`kctx.fixed_values`: 선언 노드 목표·입력 DC), `tie:<넷>`(쓰기 계획 `input_tie`). 최대 이분 매칭: 매칭 안 되는 등식이 있으면 `overconstrained`(정지 사유 `overconstrained`, `competing_pairs`),
+자유 전류·R), `fix:<넷>`(`kctx.fixed_values`: 선언 노드 목표·입력 DC). 최대 이분 매칭: 매칭 안 되는 등식이 있으면 `overconstrained`(정지 사유 `overconstrained`, `competing_pairs`),
 매칭 안 되는 변수 = `free_variables`(탐색의 자유도). 수치 rank(41 §4.5 B2, FD Jacobian)는 평가 커널 표본이 필요한 단계 B 몫 -- `numeric_ranks = ()`.
 
 ### 10.8 설계와 다르게 정한 점 / 위임한 점

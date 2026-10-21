@@ -4,7 +4,7 @@
 진입점: `achievability`(`@compute_block`, writer `achievability`) -- `achievability(snapshot, spec, element_values, lut, count_budget)`.
 
 * 스냅샷 = S0 수준 스냅샷(S1 + S1v 필드 + 커널 컨텍스트 블록 + `graph/kernel: search_domain·passive_area_decl`). 블록이 읽는 필드(`READS`): S1 소자·노드 열,
-  graph 대칭 블록 `orbits`·`dc_colour`, 쓰기 계획 `dc_current_basis`·`dc_writer`, 커널 구조 파생 `fixed_values`·`l_ties`, S1v `views`·`l_classes`,
+  graph 대칭 블록 `orbits`·`dc_colour`, 쓰기 계획 `dc_current_basis`, 커널 구조 파생 `fixed_values`·`l_ties`, S1v `views`·`l_classes`,
   탐색 정의역 `search_domain`(θ 전류 상자·자기동형 묶음·b_A -- `cur_rep`·`current_box`·`area_resolution_m2` 는 여기서 유도), 수동소자 면적 선언 `passive_area_decl`.
   extras: `spec` = `SizingSpecDoc`, `element_values` = ((원소, 선언값 | None), ...)(spec 파싱 `DcInputs.element_values`), `lut` = sizing `LutAccess`(LUT 손잡이),
   `count_budget` = 계수 예산 N_S(`search.count_budget`; metrics 가 search 보다 아래 층이라 파이프라인이 값을 만들어 넘긴다).
@@ -36,7 +36,7 @@ from gmid_engine.authoring import (
 from gmid_engine.core import AMPLITUDE_DB_PER_DECADE, compute_block
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, S1V_KEY, STATUS_DERIVED, STATUS_RATIFIED
 from gmid_engine.lut import derived
-from gmid_engine.sizing import DC_KEY, KERNEL_KEY, REL_TIE, THETA_CURRENT
+from gmid_engine.sizing import DC_KEY, KERNEL_KEY, THETA_CURRENT
 
 from .achievability_types import (
     REASON_AREA,
@@ -312,9 +312,6 @@ def _dof(p, local, element_values):
         equations["res:" + name] = v(pins["t0"]) + v(pins["t1"]) + currents + theta_r
     for net, _volts in p.value("graph", KERNEL_KEY, "fixed_values"):
         equations["fix:" + net] = v(net)
-    for net, write in p.column("node", "dc_writer"):
-        if write.relation == REL_TIE and write.known is not None:
-            equations["tie:" + net] = v(net) + v(write.known)
     return dof_report(variables, equations)
 
 
@@ -332,7 +329,7 @@ def _reasons(gain, area, headroom_stops, dof):
 
 READS = (
     ("device", "element_class"), ("device", "kind"), ("device", "pins"), ("device", "bulk"), ("device", "dc_colour"),
-    ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_colour"), ("node", "dc_writer"),
+    ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_colour"),
     ("graph", "orbits"), ("graph", "dc_current_basis"), ("graph", "fixed_values"), ("graph", "l_ties"),
     ("graph", "views"), ("graph", "l_classes"), ("graph", "search_domain"), ("graph", "passive_area_decl"),
 )
