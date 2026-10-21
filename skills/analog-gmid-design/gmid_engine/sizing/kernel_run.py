@@ -5,7 +5,7 @@
 머리 설명과 같다. 함께 있는 도우미: `normalize_w_request`(W_request 검증·정렬). 봉인 3 tol_I 의 gm 은 `dc_tolerances` 가 쓰는 자기 동작점
 `dc_gm` 이라 parent 에서 넘기는 입력이 없다(설계 40 §3.7-3) -- `parent` 는 같은 lineage 재사용(필드가 곧 캐시)에만 쓴다.
 θ 스키마·고정 노드·DC 저항 선언값·L 묶음은 커널 컨텍스트 `base` 의 S0 수준 필드 `graph/kernel` 에서 읽고, parent 가 같은 컨텍스트에서 나왔는지는 계획 블록
-(`PLAN_WRITERS`)의 `block_version` 이 `base` 와 같은지로 본다(설계 40 §2.4.7 `KernelContext` 행 -- 사본 없음).
+(`ctx.base` writer 전부)의 `block_version` 이 `base` 와 같은지로 본다. parent 스냅샷은 `derive_child(base writer ∪ 부르는 블록)` 로 파생한다(설계 40 §2.4.7 `KernelContext` 행 -- 사본 없음).
 모든 블록 호출은 `ctx.donors`·`ctx.counters` 로 부른다(같은 입력은 계보와 무관하게 이식·재연). 블록 단계마다 후보 실패 클래스를 이름으로 잡아 그 블록에 들어간 스냅샷을
 부분 스냅샷(`exc.partial`)으로 붙인 뒤 다시 낸다(`core.attach_partial`, 설계 40 §2.4.7 -- 재연한 예외도 같다).
 """
@@ -18,7 +18,6 @@ from .block_columns import dc_columns
 from .block_currents import dc_currents
 from .block_lengths import dc_lengths
 from .block_widths import dc_widths
-from .kernel_context import PLAN_WRITERS
 from .s2_values import (
     COORD_WRITER,
     KERNEL_KEY,
@@ -67,12 +66,12 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     if not isinstance(ctx, KernelContext):
         raise TypeError("size_and_seal: ctx 는 build_kernel_context 결과여야 한다")
     base = ctx.base
-    theta = check_theta(base.value("graph", KERNEL_KEY, "theta_schema"), theta.values if isinstance(theta, Theta) else theta)
     snapshot = base
-    if parent is not None:
-        if not isinstance(parent, DcEvaluation) or any(parent.snapshot.block_version(w) != base.block_version(w) for w in PLAN_WRITERS):
-            raise ValueError("size_and_seal: parent 는 같은 커널 컨텍스트에서 나온 DcEvaluation 이어야 한다")
-        snapshot = parent.snapshot
+    theta = check_theta(base.value("graph", KERNEL_KEY, "theta_schema"), theta.values if isinstance(theta, Theta) else theta)
+    base_writers = tuple(base.block_versions)
+    if parent is not None and (not isinstance(parent, DcEvaluation)
+                               or any(parent.snapshot.block_version(w) != base.block_version(w) for w in base_writers)):
+        raise ValueError("size_and_seal: parent 는 같은 커널 컨텍스트에서 나온 DcEvaluation 이어야 한다")
     items = theta.values
     currents = tuple((key, v) for (kind, key), v in items if kind == THETA_CURRENT)
     lengths = tuple((key, v) for (kind, key), v in items if kind == THETA_L)
@@ -81,6 +80,8 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     column_items = tuple(((kind, key), v) for (kind, key), v in items if kind in _COLUMN_KINDS)
     requested = normalize_w_request(ctx, w_request)
     steps = [(dc_currents, (currents,)), (dc_lengths, (lengths,))]
+    if parent is not None:      # 스냅샷 파생: base writer ∪ 이번 평가가 부르는 블록의 필드만 parent 에서 잇는다(계획 N3.3, 커널 밖 writer 의 낡은 필드 제거)
+        snapshot = parent.snapshot.derive_child(set(base_writers) | {dc_columns.name, dc_widths.name} | {b.name for b, _ in steps})
     for block, extras in steps:
         snapshot = _call_block(ctx, block, snapshot, extras)
     if requested:
@@ -98,4 +99,4 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     steps = tuple(steps + later)
     resistances = resistor_values + tuple((key, v) for (kind, key), v in items if kind == THETA_RESISTANCE)
     return seal_dc(snapshot, steps, ctx.lut, resistances, ctx.inputs.linear_devices, raise_on_violation,
-                   donors=ctx.donors, counters=ctx.counters)
+                   base=base, donors=ctx.donors, counters=ctx.counters)

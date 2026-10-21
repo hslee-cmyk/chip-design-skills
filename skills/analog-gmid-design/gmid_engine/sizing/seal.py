@@ -1,6 +1,7 @@
 """봉인 게이트 -- 9항목을 모두 재고 봉인 스냅샷으로 승격하거나 구조화 실패를 낸다 (계획 N3.6, DEC-67, N3.14, 설계 3.6).
 
-진입점: `seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, donors, counters) -> DcEvaluation`.
+진입점: `seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, base, donors, counters) -> DcEvaluation`.
+`base` = 커널 컨텍스트 `ctx.base`(봉인 4 의 base writer 정본 -- 사본 없음). `run_kernel` 은 항상 넘긴다. None(봉인 항목 블록 단위 test 가 `ctx` 없이 부르는 경우)이면 봉인 4 는 (3)(4)를 건너뛰고 (1)(2)만 잰다.
 `donors`·`counters` = 필수 키워드(기본값 없음) -- 호출자(`run_kernel`)가 `KernelContext` 에서 꺼내 넘기는 실행 하나의 블록 결과 색인·계수. 봉인 항목 블록·`dc_seal_report` 에 넘긴다.
 위반 예외(`SealViolationError`)에는 `dc_seal_report` 까지 쓴 스냅샷을 부분 스냅샷(`exc.partial`)으로 붙여 낸다(`core.attach_partial`, 설계 40 §2.4.7).
 tol_I 의 gm 은 `dc_tolerances` 가 쓴 자기 동작점 `dc_gm`(parent 무관, 설계 40 §3.7-3). `raise_on_violation=False` 면 violated 도 예외 없이 `DcEvaluation(sealed=None)` 으로 낸다
@@ -31,7 +32,7 @@ from .seal_vgs_match import dc_seal_vgs_match
 from .seal_writers import seal_writers
 
 
-def seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, donors, counters):
+def seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, base=None, donors, counters):
     steps = (
         (dc_tolerances, (lut,)),
         (dc_seal_node_conflict, ()),
@@ -50,7 +51,7 @@ def seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violatio
             attach_partial(exc, snapshot)      # 봉인 항목 블록 단계 실패: 그 블록에 들어간 스냅샷이 부분 스냅샷(X-3)
             raise
         calls += ((block, extras),)
-    item4 = seal_versions(snapshot, calls)
+    item4 = seal_versions(snapshot, calls, base)
     item5 = seal_writers(snapshot)
     try:
         snapshot = dc_seal_report(snapshot, item4, item5, donors=donors, counters=counters)
