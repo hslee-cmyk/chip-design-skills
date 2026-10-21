@@ -146,6 +146,27 @@ class GraphSnapshot:
         S0 수준 층(설계 40 §2.4.1)은 층마다 자기 필드 표를 더하며 한 스냅샷 위에 산다."""
         return self.extend_writers(self.writers.union(writers))
 
+    def derive_child(self, keep_writers):
+        """writer 가 `keep_writers` 안인 필드와 그 writer 의 `block_version` 만 남긴 새 스냅샷(계획 N3.3 스냅샷 파생 규칙, O-61 P1).
+
+        * 평가 커널이 parent 스냅샷에서 출발할 때 쓴다 -- 커널 밖 writer 의 낡은 필드는 '없음'이 '낡은 값'보다 안전하므로 eager 로 뺀다.
+        * 권한표는 그대로, 남기는 레코드의 필드 `FieldValue` 는 객체째 공유한다(구조 공유). 필드가 다 빠진 레코드는 두지 않는다.
+        * `keep_writers` 에 이 스냅샷이 모르는 이름이 있어도 거부하지 않는다(교집합). 이 스냅샷은 바뀌지 않는다.
+        """
+        keep = frozenset(keep_writers)
+        tables = {}
+        for kind, records in self.tables.items():
+            kept = {}
+            for key, record in records.items():
+                fields = tuple((name, fv) for name, fv in record.fields if fv.writer in keep)
+                if len(fields) == len(record.fields):
+                    kept[key] = record
+                elif fields:
+                    kept[key] = GraphRecord(kind, key, fields)
+            tables[kind] = kept
+        versions = {writer: version for writer, version in self.block_versions.items() if writer in keep}
+        return GraphSnapshot(self.writers, tables, versions)
+
     def block_version(self, writer):
         """`writer` 의 마지막 쓰기 입력 버전, 쓴 적 없으면 None."""
         return self.block_versions.get(writer)

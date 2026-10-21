@@ -767,3 +767,66 @@ def test_column_after_extend_writers_then_write_not_stale():
     assert e3.column("node", "v") == (("z", 4.0),)
     assert tuple(k for k, _ in e3.column_fields("node", "v")) == ("z",)
     assert e2.column("node", "v") == (("a", 1.0), ("b", 3.0))
+
+
+# =====================================================================================================================
+# [IT-2a 20261021-it2a-snapshot-derive, T-L11a] `GraphSnapshot.derive_child(keep_writers)` -- design 41 4.7-3c.
+# oracle 종류: (a) 구성으로 정답이 정해진 합성 입력 -- `_populated()` 의 write 순서로 어느 writer 가 어느 필드를 썼는지 정해진다.
+# 기대값(남는 열·메타·block_version)은 그 write 순서의 손 읽기이고 피검 함수 출력으로 만들지 않는다. base: AttributeError(존재 부재 red).
+# =====================================================================================================================
+
+def test_it2a_derive_child_keeps_only_keep_writers_fields_and_versions():
+    # oracle (a): _populated 의 writer = bias(node v), other(node u), sizer(device w·l), search(graph theta).
+    s = _populated()
+    c = s.derive_child(frozenset({"bias", "sizer"}))
+    # keep 안 writer 의 필드는 값·메타 그대로 남는다(손 읽기: node a 의 v = write 두 번 -> input_version i2·write_count 2)
+    assert c.column("node", "v") == (("a", 1.0), ("b", 3.0))
+    fv = c.field("node", "a", "v")
+    assert (fv.value, fv.writer, fv.input_version, fv.write_count) == (1.0, "bias", "i2", 2)
+    assert c.column("device", "w") == (("m1", 0.5),)
+    assert c.column("device", "l") == (("m1", 1e-6),)
+    # keep 밖 writer 의 필드는 없다('없음'이 '낡은 값'보다 안전)
+    assert c.column("node", "u") == ()
+    assert c.column("graph", "theta") == ()
+    assert c.field("node", "a", "u") is None
+    # block_version 도 keep 안 writer 것만 남는다
+    assert c.block_version("bias") == "i2" and c.block_version("sizer") == "z1"
+    assert c.block_version("other") is None and c.block_version("search") is None
+    assert set(c.block_versions) == {"bias", "sizer"}
+    # 권한표는 그대로
+    assert c.writers == TABLE
+
+
+def test_it2a_derive_child_leaves_parent_unchanged_and_is_a_new_snapshot():
+    # oracle (a): 원본 불변(§5.6) -- 파생 전후 모든 읽기 결과가 같다.
+    s = _populated()
+    before = _reads(s)
+    c = s.derive_child(frozenset({"bias"}))
+    assert c is not s
+    assert _reads(s) == before
+    assert s.column("node", "u") == (("a", 5.0), ("c", 6.0))
+    assert s.block_version("other") == "o1"
+    assert c.column("device", "w") == ()
+
+
+def test_it2a_derive_child_keep_nothing_and_unknown_names():
+    # oracle (a): keep 이 비면 모든 열과 block_version 이 없다. 스냅샷에 없는 writer 이름이 keep 에 있어도 거부하지 않는다(교집합).
+    s = _populated()
+    empty = s.derive_child(frozenset())
+    for kind, f in (("node", "v"), ("node", "u"), ("device", "w"), ("device", "l"), ("graph", "theta")):
+        assert empty.column(kind, f) == ()
+    assert dict(empty.block_versions) == {}
+    c = s.derive_child(frozenset({"bias", "nobody"}))
+    assert c.column("node", "v") == (("a", 1.0), ("b", 3.0))
+    assert c.column("node", "u") == ()
+    assert set(c.block_versions) == {"bias"}
+
+
+def test_it2a_derive_child_result_accepts_later_writes():
+    # oracle (a): 파생 스냅샷에 keep 밖 writer 가 다시 쓰면 그 열은 새 값만(낡은 값과 섞이지 않음), 다른 열은 그대로.
+    s = _populated()
+    c = s.derive_child(frozenset({"bias", "sizer"}))
+    c2 = c.write("other", "o9", {("node", "u"): {"z": 9.0}})
+    assert c2.column("node", "u") == (("z", 9.0),)
+    assert c2.block_version("other") == "o9"
+    assert c2.column("node", "v") == (("a", 1.0), ("b", 3.0))
