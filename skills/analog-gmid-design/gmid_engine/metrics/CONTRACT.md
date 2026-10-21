@@ -648,7 +648,7 @@ extras 의 θ 칸은 블록이 읽는 수동소자 성분(θ `resistance`·`capa
   `metrics_ss(..., ss_requests)` -> `metrics_dc(..., tuple(counted_rails))`. `ss`·`dc` = 그 필드 값,
   `lineage` = 7.1.
 - [r5] θ `capacitance`·`ss_resistance` 성분만 바꾼 θ' 로 `size_and_seal(ctx, θ', parent=res.lineage)` -> dc 블록 computes 0(sizing 7절
-  r5), 이어 `ss_evaluate(그 결과 sealed, ctx, θ', ..., junction=같은 묶음)` -> `ss_dev` reuse(dc_op·junction 불변), `metrics_ss`·
+  r5), 이어 `ss_evaluate(그 결과 sealed, ctx, θ', ..., junction=같은 묶음)` -> `ss_dev` graft(IT-2a 뒤 parent 경로, dc_op·junction 불변), `metrics_ss`·
   `metrics_dc` 각 computes 1(수동 값이 입력). 구조 규칙 값은 gm 의 함수라 dc_op 가 같으면 같다.
 - 재사용: `ss_evaluate(res.lineage.sealed, 같은 인자)` -> 세 블록 computes 0·reuses 3, 결과 `snapshot is res.snapshot`.
   `size_and_seal(ctx, θ', parent=res.lineage)` 뒤 `ss_evaluate` -> dc_op 가 바뀌었으면 세 블록 재계산(바뀌지 않은 소자 LUT 조회는
@@ -677,7 +677,7 @@ extras 의 θ 칸은 블록이 읽는 수동소자 성분(θ `resistance`·`capa
 | S-16 | (9절) 손 S2 예 7(ε = 0.02 가 되도록 gm/ID·dc_tol_v 를 쓴 스냅샷)의 β 루프 `pm_ss_deg` 분해능 = 9.5 폐형식 0.0917466739° (상대 ≤ 1e-9), 같은 입력 두 번째 평가는 블록 재사용(분해능 재계산 0 -- S-6) |
 | S-17 | [r5] (DEC-92, 옛 r5 번호 S-11, 병합 전 S-14) spec mode engine 커패시터는 θ `capacitance` 로 값이 들어가 소신호 요청이 값을 갖는다(같은 값을 spec 에 선언한 회로와 metric 값 같음) |
 | S-18 | [r5] (DEC-92, 옛 r5 번호 S-12, 병합 전 S-15) 구조 규칙 저항(`zero_cancel` reason None) 값 = 1/Σ_{c∈cells} `ss_dev[c].gm` -- 같은 값을 spec 에 선언한 회로와 metric 값 같음 |
-| S-19 | [r5] (DEC-92, 옛 r5 번호 S-13, 병합 전 S-16) θ `capacitance`·`ss_resistance` 만 바꾼 FD: dc 블록 computes 0, `ss_dev` reuse, `metrics_ss`·`metrics_dc` computes 1. `gain_ss_db`(용량 무관 DC 이득)는 **수치상** 불변(상대 차 ≤ 수 ulp -- 비트 동일 아님: `ss_resistance` 만 바꾼 경우 MNA 조립·풀이 순서 때문에 1 ulp 차가 실측됨) |
+| S-19 | [r5] (DEC-92, 옛 r5 번호 S-13, 병합 전 S-16) θ `capacitance`·`ss_resistance` 만 바꾼 FD: dc 블록 computes 0, `ss_dev` graft, `metrics_ss`·`metrics_dc` computes 1. `gain_ss_db`(용량 무관 DC 이득)는 **수치상** 불변(상대 차 ≤ 수 ulp -- 비트 동일 아님: `ss_resistance` 만 바꾼 경우 MNA 조립·풀이 순서 때문에 1 ulp 차가 실측됨) |
 | S-20 | [CM] 레지스트리·어휘: `metric_registry()` 이름 11개(`pm_cm_ss_deg` 추가, 단위 deg·영역 ss·view_kind `cm_loop`·objective_axis None·필드 `LoopAnalysis.phase_margin_deg`), `metric_catalog()` 도 11개, core `VIEW_KINDS` == ("transfer", "loop", "cm_loop", "output_port", "ratio") |
 | S-21 | [CM] 뷰 유도(authoring `default_views().cm_loop`): 파일럿에서 `ViewDecl("cm_output", weights=(("Vom", 0.5), ("Vop", 0.5)), cuts=(("M15", "Vom"), ("M16", "Vom"), ("M25", "Vop"), ("M26", "Vop")))`; 나머지 8회로는 view_required 사유(차동 출력쌍 없음). 스위치드 선언(수동소자·이상원 kind "switch"/"clock")이 있는 차동 출력 회로는 `cm_switched` 정지 사유. 넷·소자 이름 전단사 뒤 유도 결과가 이름만 옮겨진 같은 뷰 |
 | S-22 | [CM] 절단(`_Ledger.cm_cuts`): 뷰 `cuts` 각 (MOS, 출력 넷) 마다 `LoopCut("mos", 그 MOS 위치, 출력 넷에 물린 단자 "d" | "s")` 정확히 하나; 수동소자·gate·소비자 MOS 는 절단 0; `cuts` 가 비면 `cm_partition` 을 소신호 회로에서 직접 불러 같은 구동자 집합. 구동자가 하나도 없으면 보고 전용 계산을 하지 않는다(`reports == ()`) |

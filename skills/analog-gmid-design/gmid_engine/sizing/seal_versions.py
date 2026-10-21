@@ -36,5 +36,6 @@ def seal_versions(snapshot, calls, base):
     foreign = tuple(sorted(used - base_writers - called))
     status = SEAL_FAIL if stale or foreign or overlap else SEAL_PASS
     return SealItem(SEAL_VERSIONS, status, len(stale) + len(foreign) + len(overlap), 0, None, (), (),
-                    (("blocks", stale), ("n_checked", len(calls)),
-                     ("foreign_writers", foreign), ("base_call_overlap", overlap)))
+                    (("blocks", stale), ("n_checked", len(calls)))
+                    + (("foreign_writers", foreign),) * bool(foreign)           # 위반 이름은 위반일 때만 detail 에 더한다(설계 41 4.7-3c)
+                    + (("base_call_overlap", overlap),) * bool(overlap))
