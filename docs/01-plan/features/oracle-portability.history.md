@@ -161,6 +161,7 @@ date: 2026-10-16
 | 0.6.11 | 2026-10-20 | 사용자 결정 O-58 반영: DV-10 G-19 확정 ICMR 지목 칸·OP-10 실행 순서·N3.9 슬루 행, DV-11 N3.9 σ 행 여기 방향 일반형(gain-budget DEC-23 인용), T-1 triode 경계 여유 gain-budget N3.8 인용, B-45 계획 변경 없음. 둘째 커밋: 사용자 결정 O-59 (3) DV-12(지목을 확정 범위 지목으로 넓힘 -- swing·ICMR·슬루 끝, 오라클이 네 검사 뒤 값 식·제약 판정을 다시 내 확정 기록 final, 2단계 전 값 provisional; 원래 취지와 다름(경미) 승인, 요청마다 확정 왕복 1회)·(4) DV-13(`offset_sys_mv` 행에 이동 기준점 DEC-23 인용만; 근거 `wt/_drafts/evidence/2026-10-20/dv12_dv13_graphrule_analysis.md` A·B절). 승인·병합됨 O-60, 최종 머리 `83530559`(아래 'v0.6.11' 절) |
 | 0.6.12 | 2026-10-21 | 사용자 결정 O-61 반영: P7(DV-14) N3.9 σ 행 '\|A\| ≤ 판정 분해능 = `unavailable`'(동작 변경, N4-2 정의를 바꾼 칸), P8(DV-15) G-18 선언 입력 DC 칸 = `dc_sweep.input_dc` 하나·`swing_icmr.input_dc_V`·`input_dc_pending` 삭제, N3.9 ICMR 행 V_icm(공칭 점 갈래 유지), X-R1·X-R2 N7.3 행과 G-19 검사 (1) '입력 지문' 뜻, DR-19, 열린 항목 OQ-9(DV-16, 분석만)·OQ-10(엔진 DEC-23 같은 갈래, 동치 확인). 둘째 커밋: gain-budget v6.22(`plan/gb-v622` `1027c6d8`) DEC-23 223행이 P7 갈래를 정의 자리에 둠 -- σ 행은 그 정의를 인용으로 바꾸고 오라클 몫(`.tf` 실패 사유 분리, 검증자 변화표)만 남김, OQ-10 (가) 닫힘·(나) 열림. 독립 검증 전(아래 'v0.6.12' 절) |
 | 0.6.12(병합 뒤 인용 맞춤) | 2026-10-21 | 사용자 O-62 병합 뒤 인용 맞춤(규칙 변경 없음): Status '개정 초안, 독립 검증·사용자 승인 전' → '승인됨(사용자 O-62, 병합 `1396e245`)'; N3.9 ICMR 행 gain-budget 인용 판 `plan/gb-v622` `a88ab231` → 병합본 `de301d2d`(223·567·1447·1479·1574행 병합본 대조, 줄 같음), '병합 뒤 해시·줄을 다시 맞춘다' 문구 삭제; 계통 offset 행·슬루 행의 '현행' gain-budget 인용 v6.21 `54a3a328` → v6.22 `de301d2d`(DEC-23 223행 같음, 슬루 방향별 문장 567 → 568행); offset-strategy 현행 판 v0.7 `5f99a49a` → v0.7.1 `9bd5d7e7` |
+| 0.6.13 | 2026-10-21 | 사용자 결정 O-62 (2) P10·(3) P11 반영: OQ-9 닫힘 -- N3.9 '범위 판정' 2단계 이탈 소자·사유 = 엔진 `stage2_judgment`(gain-budget N6.20 인용), 정의 불능 끝 `{undefined: true, record_id}`·`reason` 사본 삭제, G-19 검사 적용 범위; N3.9 `offset_sys_mv` 행 DEC-23 'A_dc 정의 불능 갈래' 인용, N4-2 정의를 바꾼 칸; N2 O-62 행; DR-20. 독립 검증·사용자 승인 전 |
 
 
 ## v0.5 -- 사용자 결정 O-3 (2026-10-16)
@@ -459,4 +460,26 @@ gain-budget v6.22(`plan/gb-v622` `1027c6d8`)가 P7 갈래를 정의 자리 DEC-2
 * Nice 2: ICMR 행 'V_p = 동작점 포트 전압'의 출처로 IT-Q2 1447행과 `E/metrics/metrics_aux.py:10`을 더함(1479행 자체에는 V_p 정의가 없음).
 * Nice 3: G-18에 옛 `input_dc_pending`(SP-2 대기)의 뜻 = '선언 없음 → 공칭 점 갈래'(엔진과 같음) 한 줄.
 * 건드리지 않음: OQ-9(P10/DV-16). design 쪽 Nice 4·gain-budget 쪽 Nice 5는 이 계획 범위 밖.
+
+## v0.6.13 -- 사용자 결정 O-62 (2) P10·(3) P11 (2026-10-21)
+
+근거: `wt/_drafts/user_decisions.md` O-62 행, `wt/_drafts/evidence/2026-10-21/p10_dv16_oracle_side.md`(oracle 쪽 분석, 권고 (가)), `o61_plans_validation_oracle.md` F절(검증자 비교 -- 지목만으로는 정의 불능 끝에서 결합 키가 끊긴다는 지적과 `{undefined: true, record_id}` 권고). 정의 정본 = gain-budget v6.23(`plan/gb-v623` `189eb642`): N6.20 '2단계 판정 기록' 1898행(`stage2_judgment`, 끝 항목 `{oracle_record_id, metric, end, point_id | reason, departed[{device, declared, actual}]}`, 결합 키 (`oracle_record_id`, `metric`, `end`), writer = 2단계 호출 자리), N3.3 graph 밖 (b)(NFR-2 186행·N3.3 423행), DEC-23 223행 'A_dc 정의 불능 갈래'(σ·V_id*). 이 계획은 정의를 다시 쓰지 않고 이름·줄로 인용만 했다.
+
+* **P10(OQ-9 닫힘)**: N3.9 '범위 판정' '최종 범위 metric'에 인용 한 줄(이탈 소자·정의 불능 사유 = 엔진 `stage2_judgment`에만, `confirmed_range`·`range_final`에 `departed`·`reason` 값 칸 없음 -- gain-budget N6.20 완료 조건 (iii) `git grep` 0건 인용), 확정 범위 지목의 정의 불능 끝 = `{undefined: true, record_id}`(옛 `reason` 사본 삭제). G-19: 옛 네 검사는 `reason`을 읽지 않았다(계획 grep `reason` 0건) -- 정의 불능 끝에 검사 (1)을 적용하고 (2)~(4)는 점 지목 끝에만이라는 적용 범위만 더했다. 옛 OQ-9 원문 -- 질문: "design v0.3.3 DV-16: 엔진 쪽 2단계가 정한 끝(전도 쪽 이탈)의 **이탈 소자 정보**(어느 소자가 어느 선언 영역을 벗어났는지 -- 1단계 끝 기록의 이탈 소자 칸에 해당, G-18 O-54)를 어디에 싣는지. 이 판은 정하지 않는다(N3.9 '범위 판정'·G-18 '결과 칸' 그대로)." 선택지 칸: "선택지·권고·graph 규칙 점검은 위 분석 문서(O-61 잠정 방향: 엔진 2단계 판정 기록, `range_final`은 참조) -- 사용자 결정 전이라 이 계획에 옮기지 않는다". 막는 card: "OP-5(검증자 원인 변화표의 2단계 끝 원인 칸만)".
+* **P11**: N3.9 `offset_sys_mv` 행에 DEC-23 'A_dc 정의 불능 갈래' 이름 인용(σ 행은 v0.6.12부터 인용), 동작 변경 항목은 N4-2 '정의를 바꾼 칸' 한 곳에만 더함. 오라클이 그 갈래를 판정하는 수단은 design 몫(DR-20).
+* N2 O-62 행, N7.4c 머리, design 개정 목록 DR-20(design v0.3.3 §11.6·§11.7·§19.2 DV-16·§21.4·§18).
+* gain-budget 인용 꼴 = `v6.23 plan/gb-v623 189eb642 <행>`, 병합 뒤 맞춤 주의는 Status 한 곳.
+
+**graph 단일 정본 자기 점검**(프로젝트 CLAUDE.md '★graph 단일 정본' 1~7)
+
+| 대상 | writer / 정의 자리 | 이 계획의 자리 | 판정 |
+|---|---|---|---|
+| 2단계 끝 이탈 소자 `departed` | 엔진 2단계 호출 자리 하나(gb N6.20) | N3.9 인용만, 오라클 값 칸 0 | 규칙 1·4 ✓ |
+| 2단계 정의 불능 사유 `reason` | 같은 기록(gb N6.20 (5)) | `confirmed_range` 정의 불능 끝의 `reason` 사본 삭제 | 규칙 2·4 ✓(사본 제거) |
+| 확정 범위 지목(정의 불능 끝 `record_id` 포함) | 정의 자리 = 이 계획 N3.9 하나, 값 = 엔진 2단계 | 참조(`record_id`)만, 새 키 없음 | 규칙 4 ✓ |
+| `range_final.source` | 오라클 확정 실행 | 지목 참조, 꼴 맞춤은 design(DR-20) | ✓ |
+| 'A_dc 정의 불능 갈래'(σ·V_id*) | gb DEC-23 223행 | 이름 인용, 정의 문장 재서술 0 | 규칙 3(문서) ✓ |
+| 동작 변경 항목 | N4-2 '정의를 바꾼 칸' 한 곳 | `offset_sys_mv` 행은 가리키기만 | ✓ |
+
+새 cache·memo·dict·context 슬롯·결과 객체 값 칸·값 사본: **0**. 정본 자리 없는 저장 제안: 없음.
 
