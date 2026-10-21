@@ -1,6 +1,6 @@
 """`size_and_seal(ctx, theta, parent=None) -> DcEvaluation` -- CONTRACT 7절(API·재사용 계약), 8절(실패 규약), 9절(결정론).
 
-재사용은 실행 계수(XRUN-F1 card B C1 `RunCounters`, ctx 의 실행)로 잰다. 기대값은 계약 7절 문장(같은 θ·parent -> computes 0·reuses 13, 한 성분 섭동 ->
+재사용은 실행 계수(XRUN-F1 card B C1 `RunCounters`, ctx 의 실행)로 잰다. 기대값은 계약 7절 문장(같은 θ·parent -> computes 0·reuse 12·dc_seal_report graft 1, 한 성분 섭동 ->
 지정 블록만 다시)이다. 9회로 §10 숫자는 쓰지 않는다.
 """
 import json
@@ -28,6 +28,20 @@ EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerance
           S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
           S.dc_seal_conduction, S.dc_seal_report)       # [r8] 4 평가 + 8 봉인(tol·1·2·3·6·7·8·9) + report = 13
 PLAN5 = (S.dc_rails, s1_symmetry, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
+
+
+def _assert_dc_outcomes(st):
+    """[IT-2a T-L11d, 승인 20261022-it2a-o94-ext 범위 2; oracle (d) 사용자 선언 design 41 v1.12.8 L11 (d)] 같은 입력 재평가의 DC 열세 블록:
+    computes 0, 커널 4 + 봉인 항목 8 = 블록마다 outcome reuse 1회(합 12), dc_seal_report = outcome graft 1회(keep 밖 -> S3 graft)."""
+    kernel4 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths)
+    items8 = EVAL13[4:12]
+    assert len(kernel4) + len(items8) == 12 and EVAL13[12] is S.dc_seal_report
+    for b in kernel4 + items8:
+        r = st[b.name]
+        assert (r.reuses, r.grafts, r.replays, r.computes) == (1, 0, 0, 0), (b.name, r)
+    rep = st[S.dc_seal_report.name]
+    assert (rep.reuses, rep.grafts, rep.replays, rep.computes) == (0, 1, 0, 0), rep
+    assert sum(st[b.name].reuses for b in EVAL13) == 12 and sum(st[b.name].grafts for b in EVAL13) == 1
 
 
 def stats(ctx):
@@ -93,7 +107,7 @@ def test_same_theta_with_parent_zero_compute(ctx_c):
     ev2 = size_and_seal(ctx, theta_c(y=0.45), parent=ev1)
     st = stats_since(ctx, before)
     assert all(st[b.name].computes == 0 for b in EVAL13)
-    assert sum(st[b.name].reuses for b in EVAL13) == 13
+    _assert_dc_outcomes(st)
     assert all(st[b.name].calls == 0 for b in PLAN5)          # 계획 블록은 평가에서 부르지 않는다
     assert ev2.snapshot.fp == ev1.snapshot.fp
     assert ev2.report == ev1.report
@@ -163,7 +177,7 @@ def test_passive_theta_components_present(ctx_passive):
 
 @pytest.mark.parametrize("key,val", [(("capacitance", "Cz"), 1.1e-12), (("ss_resistance", "Rz"), 1.1e4), ("both", None)])
 def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
-    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuses 13), 계획 블록
+    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuse 12 + dc_seal_report graft 1), 계획 블록
     호출 0, 결과는 parent 와 같은 봉인 상태(스냅샷 지문·report 같음)."""
     ctx = ctx_passive
     ev1 = size_and_seal(ctx, theta_passive())
@@ -172,7 +186,7 @@ def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
     ev2 = size_and_seal(ctx, th, parent=ev1)
     st = stats_since(ctx, before)
     assert all(st[b.name].computes == 0 for b in EVAL13), {b.name: st[b.name].computes for b in EVAL13}
-    assert sum(st[b.name].reuses for b in EVAL13) == 13
+    _assert_dc_outcomes(st)
     assert all(st[b.name].calls == 0 for b in PLAN5)
     assert ev2.snapshot.fp == ev1.snapshot.fp and ev2.report == ev1.report
 

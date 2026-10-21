@@ -52,7 +52,7 @@ def test_output_written_with_other_version_is_violation(ctx_c):
 
 def test_empty_calls_pass(ctx_c):
     snap, _ = eval_calls(ctx_c[2], theta_c())
-    item = seal_versions(snap, (), ctx_c[2].base)
+    item = seal_versions(snap, (), snap)       # [승인 20261022-it2a-o94-ext 범위 1] base = 이 test 의 4 호출 뒤 스냅샷 자신
     assert item.status == "pass" and dict(item.detail)["n_checked"] == 0
 
 

@@ -788,7 +788,7 @@ def test_q_ill_conditioned_point_rejected_by_seal_9(ctx_q):
     assert abs(math.log(it9.margin) - math.log(m_star)) <= sens * tol
     assert 2.5 < m_star < 2.7
     with pytest.raises(SealViolationError) as ei:
-        seal_dc(snap, calls, ctx_q.lut, resistances_of(ctx_q, th), (), **run_of(ctx_q))
+        seal_dc(snap, calls, ctx_q.lut, resistances_of(ctx_q, th), (), base=ctx_q.base, **run_of(ctx_q))
     d = detail(ei.value)
     st = {x[0]: x[1] for x in d["items"]}
     assert len(st) == 9 and st[9] == "fail" and st[7] == "undefined"
