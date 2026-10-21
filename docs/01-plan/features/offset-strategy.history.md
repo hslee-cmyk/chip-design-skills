@@ -199,6 +199,26 @@ worktree `wt/offset-strategy-v07-plan`(브랜치 `plan/offset-strategy-v07`, bas
 * gain-budget: N6.1에 OS-2·OS-V·OS-5·OS-L·OS-3 행 또는 인용 규칙(감사 D1). LR6의 발동 문언 '절대 offset 제약 `offset_in_sigma_mv`가 있는 회로'에 'offset-strategy 요구의 커널 판정(k·σ_in ≤ 문턱)'을 같은 절대 σ 제약으로 포함. LA-1 범위 1 L 단계에 LR6 경계 명시. DEC-74 front 전용 예외의 소비자로 matching front 합성 판정(O-53 A2)을 적음.
 * offset-trim(v0.6 개정 중): G-12 '문턱에 의존하는 블록' 목록에 층 0 조립 블록 중 문턱을 읽는 것 포함(감사 C2 앞부분), V_id* 정의 인용을 DEC-23으로(감사 A1), X-21·318행의 matching 식 문언을 O-53 A2 두 판정으로.
 
+### 2026-10-21 사용자 결정 O-61 P9 → v0.7.1
+
+worktree `wt/os-v071`(브랜치 `plan/offset-strategy-v071`, base master `512b3c48`). 근거: 사용자 결정 O-61(2026-10-21 "모두 권고대로", `wt/_drafts/user_decisions.md` O-61 행 'offset-strategy v0.7.1 -- P9 OS-2 착수 조건 = U17 ② 병합 + Q8, offset-strategy design v0.7 개정(kernel 행 현행화), 계획 469행 표기 정정'), 분석 `wt/_drafts/evidence/2026-10-20/v622_batch_analysis.md` P9 (i)~(iii).
+
+**경위**: design v0.2.6(브랜치 `design/offset-strategy-ss1` `50d33b8e`) 단일 정본 감사 F3가 matching 합성 행의 (v, L)을 graph 필드 `graph/metrics: constraint_rows`(writer = search 제약 블록)에 두었다. 그런데 이 필드는 U17 ②로 이월됐고 미측정 값 자리(40 §2.4.12 Q8)가 열려 있어, OS-2가 언제 착수할 수 있는지가 열렸다. 분석의 선택지는 넷이었다: (가) 순서 제약 OS-2 > U17 ②(+Q8 결정), (나) OS-2가 `constraint_rows` 필드·writer만 당겨 만듦, (다) 과도기 `EvalResult` 칸(사본이고 지울 대상에 새 소비자 -- 기각), (라) 결과 JSON을 쓸 때 다시 계산(둘째 생산자 -- 기각). (가)가 최소 변경이라 권고됐고 O-61로 승인됐다. (나)로 바꾸는 것은 U17 ②가 길어질 때의 사용자 결정으로 남겼다. design 커널 행(v = k·σ + |V_sys|, 계획 v0.6.2 식)은 계획 v0.7 N3.3이 이미 정했으므로 계획 결정이 아니라 design 개정 몫이다(S-7). 469행 표기는 F-5(149행)와 선후를 맞춘 표기 정정이다(분석은 F-5와 대조했다. 검증자가 말한 '순서'가 다른 뜻이면 다시 확인 -- 분석의 남은 확인).
+
+**v0.7 Status 문단 원문**(계획서에서 v0.7.1 Status와 '규칙 근거(v0.7, 바뀌지 않음)' 문단으로 바꿈):
+
+> **v0.7 -- 승인됨(사용자 O-57 "병합 승인", 2026-10-20, `wt/_drafts/user_decisions.md` O-57 행; 독립 최종 diff 재확인 '병합 가능'). O-53·정합 감사 반영**(2026-10-20, base master `9401e98f`, 브랜치 `plan/offset-strategy-v07`). 근거: (이하 계획서 '규칙 근거' 문단과 같음)
+
+**바뀐 문장 원문**(v0.7 → v0.7.1):
+
+| 자리 | v0.7 원문 | v0.7.1 |
+|---|---|---|
+| 머리 `version` | `0.7` | `0.7.1` |
+| N7.1 | ('OS-2 착수 조건' 문단 없음) | 'OS-2 착수 조건' 문단 신설: U17 ② 병합 + Q8 결정, 과도기 자리 금지, (나) 전환은 그때 사용자 결정, design을 계획 v0.7 기준으로 개정(고칠 것 넷) |
+| N7.2 OS-2 행 선행 칸 | "OS-0, XRUN-F1 C, F-1 fixture. 완료 판정 선행: …" | "OS-0(계획 v0.7 기준 design 개정 포함, …), XRUN-F1 C, F-1 fixture, U17 ② 병합(…)과 40 §2.4.12 Q8 결정(v0.7.1, O-61 P9). 완료 판정 선행: …" |
+| N7.2 OS-2 행 읽는 결정 칸 | "…, O-53 A2·B3, O-34 (1)" | "…, O-34 (1), O-61 P9" |
+| N7.2 'v0.5 반영' W-1 사슬 값 노출(v0.7의 469행) | "`sctx.cache`(card B 뒤에는 `S3Index` 평가 키 부분)" | "`sctx.cache`(XRUN-F1 card B·U17 ② 뒤에는 S3 메모리 색인의 평가 키 부분 -- F-5)" |
+
 ## H2. 측정 근거
 
 ### M1 (2026-10-16, 읽기 확인, base `067614c`, worktree `wt/ostrat-plan`)
@@ -224,6 +244,7 @@ worktree `wt/offset-strategy-v07-plan`(브랜치 `plan/offset-strategy-v07`, bas
 
 | 버전 | 날짜 | 변경 |
 |---|---|---|
+| 0.7.1 | 2026-10-21 | 사용자 결정 O-61 P9 반영: OS-2 착수 조건 = U17 ② 병합(`constraint_rows` 필드·writer) + 40 §2.4.12 Q8 결정(N7.1 신설 문단, N7.2 OS-2 선행 칸), OS-2 착수 전 design을 계획 v0.7 기준으로 개정(커널 행 현행화), W-1 노출 목록 `sctx.cache` 표기 정정(F-5와 같은 선후). 규칙 취지 변경 없음. 병합 승인 전 |
 | 0.7(병합 뒤 인용 맞춤) | 2026-10-20 | 사용자 O-57 병합 뒤 상대 계획 인용 해시를 병합된 최종 머리로(Status, 211·312·320행): gain-budget `7fe555b1` → `f2579b2f`, oracle `7f2a5e12` → `64687b21`, offset-trim `d681d2dc` → `23e6a142`. 내용 변경 없음 |
 | 0.7(인용 해시 마무리) | 2026-10-20 | 인용 해시를 최종 머리로: gain-budget `plan/gb-v620` `7fe555b1`(LR6 σ 목표 = '커널 판정 문턱 / k, 온도 보정 루프에서는 조인 문턱 항목' -- N3.3 출발값 행과 같은 뜻 직접 확인), oracle-portability `plan/oracle-v0610` `7f2a5e12`(옛 `a88d61cb`), offset-trim `plan/offset-trim-v06` `d681d2dc`(옛 `2eba8353`). 내용 변경 없음 |
 | 0.7(4차 정합 반영) | 2026-10-20 | 전체 정합 검증 4차(`wt/_drafts/evidence/2026-10-20/full_audit4_summary.md` 'offset-strategy v0.7'): 옛 기호 \|V_sys\| → \|V_id*\|(S-1 행·XS-20·G-S1 단위, DEC-23), offset-trim card 표에 없는 이름 'TR-5b' → 'offset-trim TR-5 안의 국면 2 게이트 해제'(N3.5·N3.9·XS-11·XS-15·N7.1·OS-5·N9·N11 PD-2), 인용 해시 gain-budget `0a7868b5`·offset-trim v0.6 `2eba8353`, N3.3 출발값 σ 목표 = '커널 판정 문턱(루프에서는 조인 문턱 항목)/k'(gain-budget LR6 `1cddba6a` 문언과 대조). 규칙 변경 없음, 버전 번호 불변 |
