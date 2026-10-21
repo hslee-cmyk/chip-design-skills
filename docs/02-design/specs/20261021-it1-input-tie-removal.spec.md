@@ -41,8 +41,8 @@ approval: 20261021-it1-o13-scope
 
 | 필드 | writer(하나) | IT-1 변화 | READS 하는 엔진 소비자(≥ 1) |
 |---|---|---|---|
-| `node.dc_writer` | `dc_writer_plan` | 형식 불변, relation 어휘에서 `input_tie` 없어짐, 입력 포트 W4 뿌리 `y_key` = 뿌리 넷 | `dc_columns`, `scc_order`, `theta_schema`(y 성분), `achievability` |
-| `device.dc_coord` | `dc_writer_plan` | 형식 불변, 값 변화(같은 DC 종속 0) | `dc_columns`, `achievability` |
+| `node.dc_writer` | `dc_writer_plan` | 형식 불변, relation 어휘에서 `input_tie` 없어짐, 입력 포트 W4 뿌리 `y_key` = 뿌리 넷 | `dc_columns`, `scc_order`, `theta_schema`(y 성분)(재동결 O-84: `achievability`는 소비자 아님 -- `tie:` 등식 삭제로 READS에서 빠짐, design 41:672) |
+| `device.dc_coord` | `dc_writer_plan` | 형식 불변, 값 변화(같은 DC 종속 0) | `dc_columns`, `theta_schema`(재동결 O-84: base부터 `achievability` READS에 없었음 -- 정정, 근거 `wt/_drafts/evidence/2026-10-21/it1_dispute_analysis.md` 4.1) |
 | `graph.dc_tie_breaks` | `dc_writer_plan` | 형식 불변, decision `input_tie_order` 없어짐 | 결과 기록(as-built 소비자 그대로 -- 착수 실측으로 소비자 수 기록) |
 | `node.port_direction`(S1, 바뀌지 않음) | 기존 writer 그대로 | `dc_columns` READS에 추가(41:672) | `dc_columns.input_roots` |
 

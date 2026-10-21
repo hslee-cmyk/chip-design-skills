@@ -582,3 +582,81 @@ graph 점검: 오라클 δV_out 꼴의 정의 자리 = gain-budget N3.8 하나(�
 * | O-70 | (v0.6.14 넷째 커밋)
 
 graph 점검: 엔진 δV_out 정의는 gain-budget 한 자리 인용(이 계획 사본 0), 새 값 칸·cache·상수 0.
+
+## v0.6.15 -- 사용자 결정 O-78 (1)(2)(3): design v0.3.6 1b·DV-19 재판단 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-78 행("권고대로 진행해"), 검증 `wt/_drafts/evidence/2026-10-21/oracle_design_v036_validation.md`(design v0.3.6 `158cffab`, 80/100 조건부) 필수 1·6·7·(5), O-73(gain-budget DEC-100). base master `ab916aba`.
+* (1) 1b 미룸의 경위: 검증 필수 7 -- 1b(닫힘 `.op` → `Tran.ic`, `tran_ic_bias_only`, 입력 망 원소 다른 단자 계단)를 쓰는 library 회로가 0개다. 1b의 유일한 예시 current_reuse는 되먹임 선언이 Cf1·Cf2뿐이라 design 규칙으로 `no_input_network`에 빠진다(`current_reuse_telescopic_ota.sizing_spec.json:141-145`, `topology.md:124-127`; O-72 (4)). 그래서 실행하는 것은 손 회로 test뿐이고 '만들면 배선' 원칙에 어긋난다. O-73으로 Cf1·Cf2·Cs1·Cs2는 응용 망이고 계단 원천(실제 SC 회로의 Cs 하판 계단)은 응용 망 선언 몫이므로, 응용 topology card AP-1에서 current_reuse 응용 회로가 1b의 첫 대표 회로가 된다(그때 구현·실측). 검증 필수 1 -- 1b (i)의 닫힘 `.op`는 ICMR 훑기 공칭 점 기록 `v_in`과 같은 점을 다시 내는 둘째 생산자(graph 규칙 1·2·4)라, 만들 때 시작점은 그 기록 참조로 정한다.
+* (2) DV-19 닫음의 경위: 검증 (5) -- gain-budget N3.8 ICMR 측정 구성 문언('선언 되먹임, DC 망 = 용량 제외')을 단일 출력 + 용량만 선언에 그대로 적용하면 정의는 되지만 결과가 개루프라 O-50 G4 취지('출력이 회로대로 따름')와 다르다. 해당 회로는 13회로 전수 0개(`feedback.elements`가 비지 않은 것은 current_reuse 하나, 차동 출력) -- 단 빈 list가 `unity_follower`로 매핑된다는 전제에서만(검증 필수 6). 그래서 지금 정의 불능(fail-closed)으로 닫고, 해당 회로가 생기면 계획부터 고친다.
+* (3) `[]` 매핑: 엔진 정의 `E/authoring/spec_elements.py:19-20`('빈 list = 되먹임 수동소자 없음 = β=1 루프', base `ab916aba` git grep 확인)과 gain-budget N6.6 1509행 정렬을 오라클 쪽에 적음. 나머지 필수 2~5는 design v0.3.7 몫(계획 변경 없음).
+* 반영: Status, N2 O-78, N3.9 ICMR 행('단일 출력 + 용량만 선언된 되먹임', '`[]`의 뜻'), N3.9 슬루 행('시작 동작점 경로의 구현 자리', 벤치 꼴 문장 꼬리), OP-10, X-36, OQ-11 결정 칸 꼬리, DR-22 정정 머리, DR-23 신설.
+
+옛 문장(v0.6.14 `ab916aba`):
+* | OP-10 (v0.6.9 신설) | … (v0.6.14 셋째 커밋, 사용자 결정 O-69 (1)) 범위에 **용량만 선언된 차동 출력의 `.tran` 시작 동작점**(N3.9 슬루 행 '시작 동작점' -- t = 0 `.op`을 ICMR과 같은 차동 모드 DC 닫힘으로, 정의 = gain-budget N3.8 인용)을 더한다; 미선언 차동 출력 정의 불능은 그대로.
+* (N3.9 슬루 행) 이 계획은 인용하고 오라클 벤치에서 그 닫힘으로 t = 0 해를 만드는 절차만 정한다(새 상수·새 구성 없음; 벤치 꼴 = design DR-22).
+* > **Status**: **계획 v0.6.14 -- O-67 반영, 승인됨(사용자 O-70 (2), 2026-10-21, 병합 `1b4a8536`)**(머리 그대로 '이전 판'으로 남김)
+
+graph 점검: 시작 동작점의 값 출처 = ICMR 공칭 점 기록 `v_in` 참조(둘째 `.op` 생산자 0), `[]`의 뜻 = 엔진 spec 정의 인용(오라클 사본 정의 0), 새 값 칸·cache·memo·상수 0.
+
+### v0.6.15 둘째 커밋 -- 사용자 결정 O-79와 검증 반영 (2026-10-21, `wt/_drafts/evidence/2026-10-21/plan_o78_validation.md`)
+
+* 근거: `wt/_drafts/user_decisions.md` O-79 행(AskUserQuestion "지금 맞춤 (권고)"), 검증 84/100 M1·N1·N4·N5·N6. M1: 첫 커밋은 단일 출력 + 용량만 선언된 되먹임의 ICMR을 이 계획에서만 정의 불능으로 두고 gain-budget N3.8 문언(문언대로면 개루프로 정의됨)은 그대로 둬서 같은 `icmr_v`·`icm_margin_v`에 정의가 둘이었다(graph 규칙 3; N3.9 ICMR 행 첫머리 '정의 하나'와도 어긋남). O-79로 정의 자리를 gain-budget v6.26 N3.8 하나로 모으고 이 계획은 인용한다.
+* N6 -- (3) `[]` 매핑의 성격: 새 결정이 아니라 정렬이다. (2)의 '해당 0개'가 이 매핑을 전제하므로 계획에 적었다(엔진 정의 `E/authoring/spec_elements.py:19-20`, gain-budget N6.6 1509행 인용).
+* N4 -- 근거 괄호를 이 history 참조로 줄임(N3.9 ICMR 행 DV-19 문단, 슬루 행 '구현 자리'). N5 -- DR-22 옛 본문을 아래로 옮기고 DR-23 대체 한 줄로. N1 -- N2 O-69 행 꼬리.
+
+옛 문장(첫 커밋 `d1b6200d`):
+* (N3.9 ICMR 행) **단일 출력 + 용량만 선언된 되먹임**(v0.6.15, 사용자 결정 O-78 (2) -- design DV-19): ICMR **정의 불능**(fail-closed, 사유 기록 -- 사유 이름은 design)이고 미룬다. 위 '선언 되먹임의 DC 성분만' 문언을 그대로 읽으면 DC 되먹임이 없어 개루프 벤치가 되는데, 이는 O-50 G4 취지('출력은 회로가 정하는 대로 따르는 상태')와 다르므로(원래 취지와 다름) 값을 내지 않고 fail-closed로 닫는다. 해당 회로 = **0개**(library·heldout `sizing_spec` 13개 전수, base `ab916aba`: 되먹임 선언이 비지 않은 것은 차동 출력 current_reuse `["Cf1","Cf2"]` 하나, 나머지 12개는 `[]` -- 아래 `[]`의 뜻이 전제). 해당 회로가 생기면 계획부터 고친다(S-7). **`human.feedback.elements: []`의 뜻**(v0.6.15, O-78 (3) -- design 필수 6):
+* (N3.9 ICMR 행 첫머리) 엔진 쪽 ICMR(IT-2 커널 창, DE-1 정의 창)도 같은 구성으로 계산한다(정의 하나, gain-budget N3.8 567행·DE-1 1574행;
+* (N3.9 슬루 행) **OP-10에서 만들지 않고 gain-budget card AP-1(N6.22)로 옮긴다** -- 지금 그 경로를 쓰는 회로가 없다(current_reuse = 되먹임 선언 Cf1·Cf2뿐, 입력 망 선언 없음 -- O-72 (4); Cf1·Cf2·Cs1·Cs2 = 응용 망 -- O-73, 계단 원천(Cs 하판)은 응용 망 선언 몫).
+* (N2 O-69 행 꼬리) -- N3.9 슬루 행, OP-10, DR-22. (2) U-1(IT-2 card 넷 분할)은 gain-budget 몫 |
+* (X-36 (2) 꼬리) -- 정의 불능(fail-closed), 해당 0개. 둘 다 N3.9 ICMR·슬루 행 |
+* | DR-22 | §21.6(슬루 `.tran` 벤치)·§7·§18.1·§19.2 | **(v0.6.15 정정, 사용자 결정 O-78 (1): 아래 '시작 동작점 벤치 꼴'은 OP-10에서 만들지 않고 gain-budget card AP-1로 옮긴다 -- design 되돌림·미룸은 DR-23; 착수 실측의 결과 = 입력 망 없음, 정의 불능 유지 -- O-72 (4))** (v0.6.14 셋째 커밋, 사용자 결정 O-69 (1) -- design v0.3.5 `3e4ee765` 기준, 대상 v0.3.6) 용량만 선언된 차동 출력의 **`.tran` 시작 동작점 벤치 꼴**: t = 0 `.op`을 ICMR 벤치와 같은 차동 모드 DC 닫힘((in+ − in−) = −(Vop − Von), 정의 = gain-budget N3.8 인용)으로 푸는 방법(예: t = 0에만 걸리는 닫힘 -- 초기 조건 고정, reset 위상 꼴; 어느 기법인지는 design, 시뮬레이터 능력은 어댑터 능력 선언으로 확인), 과도 구간 되먹임 = 선언 구성 전체(용량 포함), 닫힘이 계단 응답에 남지 않음을 보이는 손 회로 test; §7 `measure_feedback_undeclared` 슬루 갈래 = 미선언 차동 출력만(정의 불능 유지, 근거 문장 '계단 입력 망 없음·입력 망은 선언 몫'); 새 상수·새 값 칸 없음; **착수 실측**(v0.6.14 넷째 커밋, 재확인 관찰): current_reuse 선언(되먹임 선언 `human.feedback.elements`)에 입력 망(Cin 등)이 들어 있는지 실측한다 -- 들어 있지 않으면 계단을 넣을 자리가 없어(입력 노드에 계단을 걸면 Cf 되먹임이 사라짐) O-69 근거('입력 망은 선언 몫')대로 그 회로의 슬루는 정의 불능이 되고, 결과가 '정의 가능'에서 바뀌므로 그때 사용자에게 보고한다(새 결정 아님) | N3.9 슬루 행 '시작 동작점', OP-10, OQ-11 |
+
+graph 점검: 단일 출력 + 용량만 선언 ICMR 정의 자리 = gain-budget N3.8 하나(이 계획 사본 0), 새 값 칸·cache·memo·상수 0.
+
+### v0.6.15 셋째 커밋 -- 사용자 결정 O-80: 승인 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-80 행("권고대로 해", `plan_o78_validation.md` 재검증 95/100·필수 0). Status '독립 검증·사용자 승인 전' → '승인됨(사용자 O-80)', N2 O-80 행. 병합 전 R1(IT-2c 착수 조건의 고칠 대상)·R2(단일 입력이면 `as_is_single_input` 먼저)는 gain-budget v6.26 셋째 커밋 몫이고, 이 계획 N3.9 ICMR 행은 그 N3.8 정의를 인용하므로 문언 변경 없음.
+
+옛 문장(둘째 커밋 `46462b8e`):
+* > **Status**: **계획 v0.6.15 -- O-78 반영, 독립 검증·사용자 승인 전**
+
+## v0.6.16 -- 사용자 결정 O-81 (2)·O-82: DC 되먹임 판정 인용 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-81 행(AskUserQuestion 두 항목 "(권고)", `design41_v1125_validation.md` N7), O-82 행(AskUserQuestion "(가) 방향 의존 그래프 (권고)", `wt/_drafts/evidence/2026-10-21/n7_path_rule_feasibility.md` 조건부 가능·C1~C4). 짝 = gain-budget v6.27(history H1 'v6.27').
+* 경위: 'DC 성분 없음'을 kind로 판정하면(oracle design §21.2 (a) '`Resistor`·`Inductor`가 하나라도') Cf(출력–in−)+Rb(in−–기준) 꼴이 DC 개루프인데 '있음'이 된다. 정의를 gain-budget N3.8 한 문단으로 두고(graph 규칙 3), 이 계획은 인용한다. 오라클 끝점을 `.tf` 부호로 정하면 §21.2 (e) '어떤 시뮬레이터 호출보다 먼저'가 깨지므로, 끝점 = `/feedback_passives` 원소의 입력 포트 단자 넷(구조만, 옛 C14 규칙)으로 한다(C1). 오라클 입력 `/passives`·`/feedback_passives`·`/devices`·`/rails`·`/ports`만으로 같은 방향 의존 그래프를 만들 수 있다(실측 §6). 엔진과 오라클이 같은 계획 정의를 따로 구현하는 것은 기존 짝(반전 입력 식별 엔진 T_p 대 오라클 `.tf`)과 같은 꼴이다(NFR-P3). 13회로 판정 변화 0.
+* 바꾼 옛 문장: N3.9 ICMR 행 '구성의 경계와 DC 닫힘' "선언 되먹임에 DC 성분이 없거나(커패시터만 -- 사례: current_reuse Cf1·Cf2) 선언이 없는 차동 출력은" → 괄호에 'DC 성분 없음 = DC 되먹임 판정 없음' 덧붙임; 같은 행 '단일 출력 + 용량만 선언된 되먹임' 인용 문장에 gain-budget v6.27 표제 덧붙임; 슬루 행 "**용량만 선언된 차동 출력**(되먹임 선언에 DC 성분 없음 -- 사례: current_reuse Cf1·Cf2)" → 괄호에 같은 판정 인용 덧붙임.
+* 추가: N3.9 ICMR 행 'DC 되먹임 판정' 문단(인용·오라클 구현 입력·끝점·순서·불일치 기록), N2 O-81·O-82 행, design 개정 목록 DR-24(§21.2 (a)(c)(e)·1b·1772행·1619행·`Inductor` 표기), Status.
+
+옛 문장(v0.6.15 셋째 커밋 Status 머리):
+* > **Status**: **계획 v0.6.15 -- O-78·O-79 반영, 승인됨(사용자 O-80, 2026-10-21)**(앞에 v0.6.16 머리를 덧붙였고 v0.6.15 문장은 '이전 판'으로 남김)
+
+### v0.6.16 둘째 커밋 -- 검증 반영 (2026-10-21, `wt/_drafts/evidence/2026-10-21/plan_o81_validation.md` 86/100)
+
+* 경위(M2): gain-budget v6.27 둘째 커밋이 정의 문단에 '이상 전압원 = 지원 밖, 판정 정의 불능'을 넣었다(반례 T망의 X–gnd가 Vref이면 물리 답 '없음'인데 X를 고정으로 안 보면 거짓 '있음'). 오라클 입력에는 이상원 칸 `/sources`(design `e2fc006b` 839행, `kind: "current" | "voltage"`)가 있으므로 같은 정의대로 읽는 문장을 둔다 -- current는 엣지 아님, voltage가 있으면 정의 불능. `/bias_voltages`(844행, 게이트 전용 넷의 이상 전압)는 들어오는 엣지가 없는 넷이라 결과에 영향이 없다.
+* 바꾼 옛 문장: N3.9 ICMR 행 'DC 되먹임 판정' "오라클은 같은 정의를 자기 입력 `/passives`·`/feedback_passives`·`/devices`·`/rails`·`/ports`만으로 따로 구현한다" → 입력에 `/sources` 추가 + 이상원·`/bias_voltages` 문장; DR-24 입력 목록 "`/devices`(838행)·`/rails`(837행)" → 사이에 `/sources`(839행) 추가.
+* 확인(M3): gain-budget N3.8 슬루 행이 '**DC 되먹임 없는 선언 차동 출력**(판정 인용)'으로 바뀐 뒤에도 이 계획 N3.9 슬루 행('용량만 선언된 차동 출력 … v0.6.16 DC 성분 없음 = DC 되먹임 판정 없음, 정의 = gain-budget v6.27 N3.8')은 같은 뜻으로 읽힌다 -- 1b 경로 이름표('용량만 선언된 차동 출력')는 이름으로 둔다(검증 N6). 문언 변경 없음.
+
+### v0.6.16 셋째 커밋 -- 사용자 결정 O-83: 승인 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-83 행(AskUserQuestion "R-M1·R-N1 넣고 승인 (권고)", `plan_o81_validation.md` 재검증 94/100). Status '독립 검증·사용자 승인 전' → '승인됨(사용자 O-83)', N2 O-83 행. 병합 전 R-M1·R-N1은 gain-budget v6.27 셋째 커밋 몫(엔진 절단 넷 순수 함수)이라 이 계획 규칙 변경 없음.
+
+옛 문장(둘째 커밋 `aebdef17`):
+* > **Status**: **계획 v0.6.16 -- O-81·O-82 반영, 독립 검증·사용자 승인 전**
+
+## v0.6.17 -- 사용자 결정 O-85 (1)(3): 차동 출력 결합·지원 밖 원소 인용 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-85 행(AskUserQuestion 세 항목 "(권고)", `wt/_drafts/evidence/2026-10-21/oracle_design_v039_validation.md` §4 DV-21·M2, `wt/_drafts/evidence/2026-10-21/design41_v1126_validation.md` R1·R2). 짝 = gain-budget v6.28(history H1 'v6.28').
+* 경위: oracle design v0.3.9(`design/oracle-eo1` `5838cc67`)가 DR-24 적용 중 '차동 출력에서 두 출력의 DC 되먹임 판정이 갈림'(DV-21)을 찾았다 -- gain-budget v6.27 판정 문단은 출력별 판정만 정의하고 결합을 정하지 않았고, design은 그 갈래를 사유 이름 없는 fail-closed로 남겨 N3.14 공통 실패 규약과 어긋났다. 결합 규칙은 정의 자리(gain-budget N3.8) 몫이라 그쪽에 한 문장을 두고(물리: 한쪽 DC 경로 + 차동 모드 닫힘 = 과잉 구속, 닫힘 생략 = 비대칭 측정), 이 계획은 인용한다. 엔진 쪽 '이상 전압원 = 지원 밖' 문장이 '지원 밖 원소(S1 `device.unsupported`)'로 일반화되어(O-85 (3)) 오라클 `voltage_source` 갈래의 인용 대상도 그 규칙으로 맞춘다. `bias_not_gate_only`는 design 쪽 입력 전제 검사라 바꾸지 않고 DR-25에서 참조만 한다. 해당 회로 0개, 동작 변화 0. (2) S-FB1은 gain-budget 몫이라 이 계획 규칙 변경 없음.
+* 바꾼 옛 문장: N3.9 ICMR 행 'DC 되먹임 판정' "DUT에 `kind: "voltage"`가 있으면 이 판정은 정의 불능(지원 밖, fail-closed -- gb 정의 문단의 '이상 전압원')." → 괄호 인용을 'gb v6.28 정의 문단의 '지원 밖 원소', O-85 (3); 옛 표기 '이상 전압원''으로.
+* 추가: 같은 행 인용 문장 하나(차동 출력 결합·지원 밖 원소 = gain-budget v6.28 N3.8 같은 문단, 인용만), N2 O-85 행, design 개정 목록 DR-25(DV-21 닫힘·지원 밖 원소 사유 정렬·`bias_not_gate_only` 참조만), Status.
+
+옛 문장(v0.6.16 셋째 커밋 Status 머리):
+* > **Status**: **계획 v0.6.16 -- O-81·O-82 반영, 승인됨(사용자 O-83, 2026-10-21)**(앞에 v0.6.17 머리를 덧붙였고 v0.6.16 문장은 '이전 판'으로 남김)
+
+### v0.6.17 둘째 커밋 -- 사용자 결정 O-86: 승인 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-86 행(AskUserQuestion "M1·N1~N4 넣고 승인 (권고)", `wt/_drafts/evidence/2026-10-21/plan_o85_validation.md` 90/100). Status '독립 검증·사용자 승인 전' → '승인됨(사용자 O-86)', N2 O-86 행. 병합 전 M1·N1~N4는 gain-budget v6.28 둘째 커밋 몫이라 이 계획 규칙 변경 없음. N3(DV-21 근거 '과잉 구속' → '닫힘이 입력을 구동해 선언 DC 경로가 되먹임으로 작동하지 않음')은 gain-budget N3.8 한 자리에서 고쳤고, 이 계획 N3.9·DR-25는 규칙을 인용만 하므로(근거 문구를 다시 적지 않음) 그대로 맞다.
+
+옛 문장(첫 커밋 `bdd13d5b`):
+* > **Status**: **계획 v0.6.17 -- O-85 반영, 독립 검증·사용자 승인 전**
