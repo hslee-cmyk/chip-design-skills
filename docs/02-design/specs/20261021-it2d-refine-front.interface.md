@@ -31,6 +31,10 @@ card IT-2d -- 다듬은 창·front. test 작성 주체는 소스를 보지 않�
 | `graph.metrics_icm_front` | {METRICS_KEY: `IcmWindow`} -- 출력 전용(EO-1 전) | `metrics_icm_front` |
 | perf `window_end_solves` | 끝 풀이 수(실행 합) -- 출력 전용 | -- |
 
+### 포트 집합 규칙(design 41 v1.12.4 gap G4 -- 780·789·794·811행)
+
+세 metric(`icm_margin_v`·`required_input_cm_v`·`icmr_v`)은 커널(`metrics_aux`)과 front(`metrics_icm_front`) 모두 **측정 구성이 묶지 않은 입력 포트**만으로 낸다: `graph.icm_config.tied_ports`의 포트는 빼고, 묶인 포트가 없으면 입력 포트 전부. 단언: 되먹임 미선언 차동 입력·단일 출력 toy(follower 구성)에서 세 metric = 비반전 입력 창 하나로 낸 손계산 값(반전 입력을 포함하면 red).
+
 ### 단언 금지
 
 `NodalSystem.factor` 내부 배열 값, `input_version` 문자열 값(같음·다름만), 분해능 수치 자체, `IcmConfig.transfer`의 resolution 수치, `IcmWindow.model_error_ref`(None만), S3 색인 내부, `RunCounters` 행 타입 이름.

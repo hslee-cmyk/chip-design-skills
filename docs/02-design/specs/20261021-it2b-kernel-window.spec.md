@@ -1,6 +1,6 @@
 ---
 id: 20261021-it2b-kernel-window
-phase: PHASE_TBD
+phase: 미확인
 evidence_type: red-green
 gate_change: no
 approval: 20261021-it2-o67-scope
@@ -11,7 +11,7 @@ card IT-2b -- 커널 창. 범위: design 41 4.7-1a(출력 구조 분류 `node.dc
 
 - 공통: card base·경로 접두·사용자 결정 원문·병합 관계·착수 조건·절차 상태·graph 단일 정본 계약 G1~G7 정의·정의 불능 code·판정 분해능·S-OS1/S-OS2·작성 전 실측 1~13·승인 기록 초안은 `docs/02-design/specs/20261021-it2-common.md`(옛 IT-2 단일 card 본문, 내용 불변)에 있다. 이 card는 그 가운데 아래 범위만 판정한다.
 - 나눔 근거: 사용자 결정 O-69 (2)(2026-10-21) -- IT-2를 IT-2a(스냅샷 파생)·IT-2b(커널 창)·IT-2c(측정 구성)·IT-2d(다듬은 창·front) 넷으로, IT-1 code 위 같은 통합 브랜치, master 병합은 IT-1과 함께 한 번(O-19 (2)). 순서 IT-1 → IT-2a → IT-2b → IT-2c → IT-2d. 나눔은 판정 단위만 바꾸고 design·완료 조건은 그대로다.
-- 이 card는 **동작 변경**(design 41 4.7-8). `E/` = `skills/analog-gmid-design/gmid_engine/`, `41:n` = design 41 v1.12.3 줄(master `468e6e73`).
+- 이 card는 **동작 변경**(design 41 4.7-8). `E/` = `skills/analog-gmid-design/gmid_engine/`, `41:n` = design 41 v1.12.3 줄(master `468e6e73`); 현 base design 41 v1.12.4(master `0de6a34a`)에서는 735행 이상 +1 -- '(v1.12.4)' 표시 줄은 새 판 줄. 공통 문서 '동결 갱신' 참조.
 
 ## 관찰 가능한 계약
 
@@ -63,7 +63,7 @@ red-green. 새 이름은 존재 부재 red(`ImportError`·`AttributeError` -- 00
 
 ## 결정 필요 항목
 
-없음(U-1은 O-69 (2)로 결정). 착수 조건(공통 문서): IT-1 code 커밋, card 0 IT-0 기록, 그리고 C-5 해소(IT-2c). 그 밖 design에 없는 판단은 멈추고 보고.
+없음(U-1은 O-69 (2)로 결정). 착수 조건(공통 문서): IT-1 code 커밋, card 0 IT-0 기록. C-5는 해소됨(design 41 v1.12.4 735행 `_transfer_resolution`, 사용자 결정 O-72 (1)) -- IT-2c code 착수에는 대신 IT-2c 착수 실측 (a)~(c) 기록(공통 문서 'IT-2c 착수 실측')이 필요하다. 그 밖 design에 없는 판단은 멈추고 보고.
 
 ## code 작성자 멈춤 조건
 
@@ -79,4 +79,4 @@ red-green. 새 이름은 존재 부재 red(`ImportError`·`AttributeError` -- 00
 
 ## 작성 전 실측
 
-공통 문서 '작성 전 실측' 1~13을 따른다. 이 card 사실(master `468e6e73`, 2026-10-21): `E/sizing/writer_plan.py:73`(WRITES 4필드), `E/sizing/s2_values.py:143·146·356`, `E/sizing/block_columns.py:143`(`_Circuit`)·`:225`·`:246`·`:560`·`:628`·`:691`, `E/sizing/input_window.py:26·48`, `E/search/fd_jacobian.py:54-55`, `E/authoring/spec_regions.py:16-17`(`REGIONS = (REGION_TRIODE,)` -- EO-1 미병합). V3 규모(8)는 착수 base(IT-1 code 뒤)에서 오케스트레이터가 `tools/gates/mutate_changed.py`로 채운 뒤 동결.
+공통 문서 '작성 전 실측' 1~13을 따른다. 이 card 사실(master `468e6e73`, 2026-10-21): `E/sizing/writer_plan.py:73`(WRITES 4필드), `E/sizing/s2_values.py:143·146·356`, `E/sizing/block_columns.py:143`(`_Circuit`)·`:225`·`:246`·`:560`·`:628`·`:691`, `E/sizing/input_window.py:26·48`, `E/search/fd_jacobian.py:54-55`, `E/authoring/spec_regions.py:16-17`(`REGIONS = (REGION_TRIODE,)` -- EO-1 미병합). V3 규모(8): **미확인 (IT-1 code 뒤)** -- 착수 base(IT-1 code 뒤)에서 오케스트레이터가 `tools/gates/mutate_changed.py`로 채운 뒤 동결.
