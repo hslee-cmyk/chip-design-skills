@@ -1,0 +1,525 @@
+{
+ "circuit": "common_gate_amplifier",
+ "drive_pair_nets": {
+  "failing_views": 0,
+  "n_views": 1,
+  "views": [
+   {
+    "mode": "port",
+    "outside": [],
+    "pair_nets": [
+     "vin"
+    ],
+    "view": "ViewDecl(mode='port', transfer=None, num=None, den=None, decision=None, beta=None, cuts=(), weights=(('vin', 1.0),), sense=SenseDecl(sense_p='vout', sense_n=None, sense_mode='single_ended'))"
+   }
+  ]
+ },
+ "feedback_slot": {
+  "kind": "empty_tuple",
+  "noise_decl_feedback": [],
+  "spec_feedback": []
+ },
+ "front_empty": {
+  "after_refilter": 1,
+  "aux_after": 1,
+  "aux_unmeasured_excluded": [],
+  "empty": false,
+  "excluded": [],
+  "front_was_empty_before": false,
+  "icmr_constraints": [],
+  "n_front": 1,
+  "undefined_for_report": []
+ },
+ "kernel_window_status": {
+  "counts": {
+   "settled": 37
+  },
+  "defined": true,
+  "interior_aux": 0,
+  "n_evals": 37,
+  "n_with_root": 37,
+  "rates": {
+   "settled": 1.0
+  },
+  "trace_first3": [
+   "{'roots': ('vin',), 'phase': 'refine', 'iw': [('first', False), ('loop', False), ('loop', False), ('refine', False), ('refine', False)], 'interior': None, 'refine': True, 'kmax': 8, 'tol': 0.007705577344313876}",
+   "{'roots': ('vin',), 'phase': 'refine', 'iw': [('first', False), ('loop', False), ('loop', False), ('refine', False), ('refine', False)], 'interior': None, 'refine': True, 'kmax': 8, 'tol': 0.007705577344313876}",
+   "{'roots': ('vin',), 'phase': 'refine', 'iw': [('first', False), ('loop', False), ('loop', False), ('refine', False), ('refine', False)], 'interior': None, 'refine': True, 'kmax': 8, 'tol': 0.007705577344313876}"
+  ]
+ },
+ "loop_cut": {
+  "input_terminal_nets_calls": {
+   "after_stage_a": 0,
+   "stage_a": 0
+  },
+  "interval": "build_kernel_context..find_front..재평가 전 구간(dc_writer_plan·run_kernel·seal_dc 구간을 포함하는 상위 구간)",
+  "wrapped": true
+ },
+ "m_i1": {
+  "coords": [
+   [
+    "M1",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M2",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M3",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  ],
+  "dependent": [],
+  "fields_fp": {
+   "dc_coord": "0482bc66285a18f508439dcc22c580ff274a9641e2641614a8bbc8162689146f",
+   "dc_tie_breaks": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
+   "dc_writer": "14ba470132ec20de8132cf3496f9902410cbaae9c0b454bdaf85d361ab3070f6"
+  },
+  "input_port_writer": {
+   "vin": [
+    "W4",
+    "free_window",
+    null,
+    null,
+    "vin"
+   ]
+  },
+  "tie_breaks": [],
+  "w4": [
+   [
+    "vin",
+    "vin"
+   ],
+   [
+    "vout",
+    "vout"
+   ]
+  ],
+  "writers": [
+   [
+    "VNBias1",
+    {
+     "element": "M1",
+     "known": "gnd",
+     "order": 2,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "VNBias2",
+    {
+     "element": "M2",
+     "known": "vin",
+     "order": 5,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "VPBias1",
+    {
+     "element": "M3",
+     "known": "vdd",
+     "order": 3,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "gnd",
+    {
+     "element": null,
+     "known": null,
+     "order": 0,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vdd",
+    {
+     "element": null,
+     "known": null,
+     "order": 1,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vin",
+    {
+     "element": null,
+     "known": null,
+     "order": 4,
+     "relation": "free_window",
+     "tier": "W4",
+     "y_key": "vin"
+    }
+   ],
+   [
+    "vout",
+    {
+     "element": null,
+     "known": null,
+     "order": 6,
+     "relation": "free_window",
+     "tier": "W4",
+     "y_key": "vout"
+    }
+   ]
+  ]
+ },
+ "m_i1_r": {
+  "f_component_undeclared": [],
+  "input_w4_roots": [
+   "vin"
+  ],
+  "isolated_input": [],
+  "multi_root": false,
+  "n_input_w4_roots": 1
+ },
+ "m_i2": {
+  "hard_ok": true,
+  "kernel_calls": 10,
+  "origin_point": "centre",
+  "probes": 0,
+  "start": {
+   "cells": [
+    0,
+    0,
+    0
+   ],
+   "theta": [
+    [
+     [
+      "L",
+      "M1"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M2"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M3"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "current",
+      "M3"
+     ],
+     1.51308431939002e-10
+    ],
+    [
+     [
+      "ln_idu",
+      "M1"
+     ],
+     -23.641320198835494
+    ],
+    [
+     [
+      "ln_idu",
+      "M2"
+     ],
+     -23.641320198835494
+    ],
+    [
+     [
+      "ln_idu",
+      "M3"
+     ],
+     -24.506188865181247
+    ],
+    [
+     [
+      "y",
+      "vin"
+     ],
+     0.5
+    ],
+    [
+     [
+      "y",
+      "vout"
+     ],
+     0.5
+    ]
+   ]
+  },
+  "start_failure": null,
+  "start_status": "sealed",
+  "stop": "converged",
+  "t": 0.9273953743849068
+ },
+ "m_i3": {
+  "domain_tied_y": [],
+  "failed_eps": 0,
+  "front_fp": "6f579f106a88993ee0ddfb18d6460456a911433bc96391adb6eeb0b40d66bf1e",
+  "fronts": {
+   "front": [
+    {
+     "area_m2": "0x1.ebc8ec9268886p-43",
+     "cells": [
+      0,
+      0,
+      0
+     ],
+     "point_id": "EA:s1",
+     "power_w": "0x1.0aff2b26b2b04p-32",
+     "status": "sealed",
+     "theta": [
+      [
+       [
+        "L",
+        "M1"
+       ],
+       "0x1.421f5f40d8376p-23"
+      ],
+      [
+       [
+        "L",
+        "M2"
+       ],
+       "0x1.421f5f40d8376p-23"
+      ],
+      [
+       [
+        "L",
+        "M3"
+       ],
+       "0x1.421f5f40d8376p-23"
+      ],
+      [
+       [
+        "current",
+        "M3"
+       ],
+       "0x1.28a9be2aff6e8p-33"
+      ],
+      [
+       [
+        "ln_idu",
+        "M1"
+       ],
+       "-0x1.7c4d3a8fb0e1ep+4"
+      ],
+      [
+       [
+        "ln_idu",
+        "M2"
+       ],
+       "-0x1.7c8386d6cbb49p+4"
+      ],
+      [
+       [
+        "ln_idu",
+        "M3"
+       ],
+       "-0x1.81ca31b2ded2cp+4"
+      ],
+      [
+       [
+        "y",
+        "vin"
+       ],
+       "0x1.75be232d336a7p-1"
+      ],
+      [
+       [
+        "y",
+        "vout"
+       ],
+       "0x1.adacae5a38958p-1"
+      ]
+     ]
+    }
+   ],
+   "pending": [],
+   "unmeasured": []
+  },
+  "n_front": 1,
+  "n_pending": 0,
+  "n_theta_y": 2,
+  "n_unmeasured": 0,
+  "perf": {
+   "block_index_bound": 2597,
+   "block_index_entries": 699,
+   "eval_budget": 40,
+   "eval_budget_source": "declared",
+   "eval_time_median_s": 0.028820500010624528,
+   "fail_hits": 0,
+   "frozen_columns": 0,
+   "hits": 49,
+   "kernel_calls": 43,
+   "lut_memo_bound": "fixed",
+   "lut_memo_evictions": 1567,
+   "n_solves": 2,
+   "n_starts": 1,
+   "outside_domain": 0,
+   "recompute_same_key": 0,
+   "requests": 92,
+   "stops_eval_budget": 0,
+   "stops_wall_budget": 0,
+   "unique_keys": 43
+  },
+  "result_y_keys": [
+   "vin",
+   "vout"
+  ],
+  "theta_y_components": [
+   [
+    "y",
+    "vin"
+   ],
+   [
+    "y",
+    "vout"
+   ]
+  ]
+ },
+ "m_i4": {
+  "exceed_points": [],
+  "has_diff": false,
+  "pairs": {
+   "front:EA:s1": [],
+   "theta0_layer0": []
+  },
+  "points": 2
+ },
+ "m_i5": {
+  "dof": {
+   "competing_pairs": [],
+   "free_variables": [
+    "I:M3",
+    "V:VNBias1",
+    "V:VNBias2",
+    "V:VPBias1",
+    "V:vin",
+    "V:vout",
+    "u:M1",
+    "u:M2",
+    "u:M3"
+   ],
+   "n_equations": 3,
+   "n_variables": 12,
+   "numeric_ranks": [],
+   "status": "free_dof",
+   "structural_rank": 3,
+   "unmatched_equations": []
+  },
+  "tie_equations": 0
+ },
+ "m_i6": {
+  "E": 3,
+  "V": 5,
+  "components": 2,
+  "cycles": 0,
+  "dependent": 0,
+  "equal": true,
+  "tie_edges": 0
+ },
+ "output_structure": {
+  "input_dc_declared": false,
+  "n_outputs": 1,
+  "plan_stop": null,
+  "rows": [
+   {
+    "class": "high_impedance",
+    "component_size": 1,
+    "engine_path": "plan_ok",
+    "fprime_hit": [],
+    "output": "vout",
+    "s_os1": false,
+    "w3": false,
+    "writer_chain": [
+     [
+      "vout",
+      "W4",
+      "free_window"
+     ]
+    ]
+   }
+  ],
+  "s_os2_empty": false,
+  "s_os2_tuple": false,
+  "spec_feedback_kind": "empty_tuple",
+  "w3_declared": [],
+  "w3_outputs_on_hard_path": 0
+ },
+ "reeval": {
+  "front": [
+   {
+    "kw": [
+     "settled"
+    ],
+    "label": "front:EA:s1",
+    "port_pairs": [],
+    "s_p": [],
+    "status": "sealed",
+    "tol_source": "no_rows_attr:SealItem"
+   }
+  ],
+  "theta0": [
+   {
+    "kw": [
+     "settled"
+    ],
+    "label": "theta0_layer0",
+    "port_pairs": [],
+    "s_p": [],
+    "status": "sealed",
+    "tol_source": "no_rows_attr:SealItem"
+   }
+  ]
+ },
+ "repo": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922/scratchpad/it0/it0-sim",
+ "s_p_sign": {
+  "negative": [],
+  "o49_p2_fires": false,
+  "rows": {
+   "front:EA:s1": [],
+   "theta0_layer0": []
+  }
+ },
+ "set": "library",
+ "side": "SIM",
+ "stage_a": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "stage_b": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "tag": "",
+ "wall_s": 13.037690100027248,
+ "wrapped": true
+}
