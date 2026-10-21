@@ -10,7 +10,7 @@
 >   `dc_theta_schema`(extras = engine 수동소자만; reads 에 `resistor_values`·`l_ties` 필드).
 > * `KernelContext(base, inputs, lut, donors, counters)` -- **참조만**(`donors`·`counters` = XRUN-F1 card B 의 과도기 참조 칸, U17 ② G-7 재작성에서 정리). 옛 칸 `schema`·`fixed_values`·`resistor_values`·`plan_versions`·`l_ties` 는 없다: θ 스키마 = `base.value("graph", KERNEL_KEY, "theta_schema")`
 >   (옛 `graph/dc: dc_theta_schema` 를 `graph/kernel: theta_schema` 로 옮김, writer `dc_theta_schema` 그대로), 고정 노드·저항·L 묶음 = 같은 레코드의 필드, 계획 블록 입력 버전 =
->   `base.block_version(w)`(`PLAN_WRITERS` = 위 계획 블록 + `kernel_context`·`dc_theta_schema`). `run_kernel` 의 parent 검사는 `PLAN_WRITERS` block_version 이 `base` 와 같은지로 한다.
+>   `base.block_version(w)`(`PLAN_WRITERS` = 위 계획 블록 + `kernel_context`·`dc_theta_schema`). `run_kernel` 의 parent 검사는 `ctx.base` writer 전부(`base.block_versions` 키)의 block_version 이 `base` 와 같은지로 하고 어긋나면 `ValueError`, 통과한 parent 는 `parent.snapshot.derive_child(keep)` 로 파생해 출발한다(IT-2a, 계획 N3.3, 설계 41 4.7-3c). keep = base writer(`base.block_versions` 키) ∪ 커널 블록 이름(`steps`·`later`) ∪ `seal.py` 모듈 상수 `SEAL_ITEM_BLOCKS`(봉인 항목 블록 여덟, 블록 객체 tuple)의 블록 이름 -- 봉인 4 가 받는 호출 목록과 같은 집합이다. `dc_seal_report` 는 keep 밖이라 같은 입력이면 S3 graft 다. `PLAN_WRITERS` 는 `context_fp` 전용이다.
 > * `dc_writer_plan` 은 `device.dc_self_referential`(MOS 마다 bool -- 그 소자가 쓰는 노드가 자기 d·s·bulk 중 하나인가: diode gate 쓰기·소스 추종 source 쓰기)도 쓴다(S0 수준 필드,
 >   설계 40 §2.4.8 '1변수 writer 집합'). `dc_columns` 의 1변수 노드 판정과 search `cell_floor` 가 이 필드를 읽는다(reads 에 `device.dc_self_referential`).
 > * 권한표: `S2_WRITERS` 에 `kernel_context` 필드·`theta_schema`·`dc_self_referential` 이 든다. sizing `__init__` 이 S0 수준 스냅샷 값 형식(`CurrentBasis`·`CurrentTerm`·`NodeWrite`·`DeviceCoord`·
@@ -116,7 +116,7 @@ fp_of((이름, 코드 해시, 투영 지문)) = `block.input_version(snapshot, *
 [XRUN-F1 B] 호출은 `block(snapshot, *extras, donors, counters)`(필수 키워드 둘)이고 계수는 실행 하나의 `RunCounters`(`counters.snapshot()` 의 `blocks` 행)가 잰다 -- 블록 객체에 계수 메서드는 없다.
 **봉인 4**(`seal_versions`)는 입력 버전 식을 사본으로 두지 않고 `block.input_version(snapshot, *extras)` 를 부른다(판정은 그대로). **부분 스냅샷**: `run_kernel` 은 블록 단계마다 후보 실패 클래스
 (`NonconvergentError`·`SealViolationError`)를 이름으로 잡아 그 블록에 들어간 스냅샷을 `core.attach_partial` 로 붙인 뒤 다시 낸다. `seal_dc` 는 봉인 항목 블록(`dc_tolerances` ~ `dc_seal_conduction`)과 `dc_seal_report` 단계마다 후보 실패 클래스를 이름으로 잡아 그 블록에 들어간 스냅샷을 붙여 다시 내고,
-스스로 내는 `SealViolationError` 에는 `dc_seal_report` 까지 쓴 스냅샷을 붙여 낸다(`exc.partial`). `seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, donors, counters)`: 필수 키워드 둘.
+스스로 내는 `SealViolationError` 에는 `dc_seal_report` 까지 쓴 스냅샷을 붙여 낸다(`exc.partial`). `seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, base, donors, counters)`: `base`·`donors`·`counters` 필수 키워드, `base` = `ctx.base`(None 이면 `TypeError`; 봉인 4 (3)(4)는 항상 잰다). 봉인 항목 블록 여덟의 구성원·순서는 `seal.py` `SEAL_ITEM_BLOCKS`(정의 하나) -- `seal_dc` 는 그 순서로 부르고 extras 는 호출마다 만드는 블록 객체 키 지역 매핑에서 찾으며, 키가 빠지거나 상수 밖 키가 있으면 `ValueError`(fail-closed).
 
 ## 1. 공개 흐름과 입력
 
@@ -551,17 +551,16 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 - reads node.{dc_v, dc_rail_v}, device.{dc_current, dc_L, dc_ln_idu, pins, kind, bulk}. MOS 마다 vgs·vds·vsb(크기),
   op = lut op_point(노드 점), W = ID·L/exp(ln_idu), gm_id = op.gm_over_id, idu_forward = op.IDu, w_key = `w_keys[kind]`.
 
-## 6. 봉인 (`seal_dc(snapshot, calls, lut, resistances, linear_devices) -> DcEvaluation`)
+## 6. 봉인 (`seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, base, donors, counters) -> DcEvaluation`)
 
 순서: `dc_tolerances(lut)` -> 1 `dc_seal_node_conflict()` -> 2 `dc_seal_vgs_match()` -> 3 `dc_seal_kcl(resistances)` -> 6
 `dc_seal_bulk_reverse()` -> 7 `dc_seal_saturation(linear_devices, lut)`([r4] lut 추가) -> 8 `dc_seal_kvl_branch()` -> [r8] 9
-`dc_seal_conduction(lut)` -> 4 `seal_versions(snapshot, calls + 위 8개)` -> 5 `seal_writers(snapshot)` -> `dc_seal_report(item4, item5)`.
+`dc_seal_conduction(lut)` -> 4 `seal_versions(snapshot, calls + 위 8개, base)` -> 5 `seal_writers(snapshot)` -> `dc_seal_report(item4, item5)`.
 
 [r3] **`calls` 형식**(`seal_dc`·`seal_versions` 공통): ((ComputeBlock, extras), ...) -- extras = 그 블록을 부를 때 넘긴 추가 인자
 tuple(블록 함수 호출 `block(snapshot, *extras)` 의 `extras` 그대로, 없으면 ()). `size_and_seal` 은 `((dc_currents,
 (θ 전류 쌍 tuple,)), (dc_lengths, (θ L 쌍 tuple,)), (dc_columns, (θ 쌍, fixed_values, resistor_values, lut)), (dc_widths,
-(lut,)))` 를 넘기고 `seal_dc` 가 봉인 블록 8개([r8] 9 포함)를 같은 형식으로 덧붙여 `seal_versions` 에 넘긴다. 계획 블록(rails·struct_colour·
-current_basis·writer_plan·scc_order·theta_schema)은 calls 에 들지 않는다(parent 검사가 plan_versions 로 대신한다).
+(lut,)))` 를 넘기고 `seal_dc` 가 봉인 블록 8개([r8] 9 포함)를 같은 형식으로 덧붙여 `seal_versions` 에 넘긴다. base writer(`ctx.base.block_versions`)는 calls 에 들지 않는다 -- 봉인 4 (4) 서로소 단언, parent 검사 = base writer 전부.
 
 `judge(item, rows)`(rows = (대상, 크기, tol 또는 None, devices, nodes)): tol 이 정의된 행 중 크기 > tol 이 있으면 fail(대상 = 그
 행들), 없고 tol None 행이 있으면 undefined(대상 = 그 행들), 그 밖 pass. magnitude·tol·margin = margin 최대 행(fail 이면 fail 행
@@ -576,7 +575,7 @@ None 을 주지만 봉인에서는 '허용오차 0 을 넘은 위반' = 무한 �
 | 1 | `dc_seal_node_conflict` | 노드마다 spread = max − min of {노드 값} ∪ path_values; tol = 닿는 PATH_MOS 소자 tol_v 최댓값(정의된 것), 없으면 None; MOS 관계가 없는 노드는 n·eps·max|V|(n = 값 수) |
 | 2 | `dc_seal_vgs_match` | MOS 마다 |ln idu_forward − ln_idu| / gm_id ≤ tol_v |
 | 3 | `dc_seal_kcl` | [r3] 행 = DC 원소(`basis.ends` -- MOS·DC 저항·이상원, 가지치기 저항 제외)의 from·to 로 한 번이라도 나오는 레일 아닌 넷마다(DC 원소가 닿지 않는 넷 -- gate 전용 넷·커패시터만 닿는 넷 -- 은 행이 없고 n_checked 에 들지 않는다) |Σ from − Σ to|, MOS = idu_forward·W/L, 저항 = (V(from) − V(to))/R, 이상원 = dc_current; tol = tol_I = 채널이 닿는 MOS 의 tol_V·dc_gm 최댓값(설계 40 §3.7-3 v1.6 -- `dc_gm` = 자기 동작점 gm, `dc_tolerances` 필드; 정의된 것; MOS 는 있는데 모두 None 이면 None), MOS 없는 넷은 n·eps·Σ|I| |
-| 4 | `seal_versions` | calls 의 블록마다 fp_of((이름, code_hash, Projection.from_snapshot(snapshot, reads, extras).fp)) == block_version 이고 그 블록 writes 필드의 input_version == block_version. 위반 블록 = detail `blocks`. magnitude = 위반 수, tol 0 |
+| 4 | `seal_versions` | calls 의 블록마다 fp_of((이름, code_hash, Projection.from_snapshot(snapshot, reads, extras).fp)) == block_version 이고 그 블록 writes 필드의 input_version == block_version. 위반 블록 = detail `blocks`. 추가 단언 [IT-2a] (3) coverage: 스냅샷 모든 필드의 writer ∈ base writer(`base.block_versions` 키) ∪ calls 블록 이름, 위반 = detail `foreign_writers`(정렬 tuple); (4) 서로소: base writer ∩ calls 블록 이름 = ∅, 위반 = detail `base_call_overlap`(정렬 tuple). 두 키는 위반일 때만(해당 tuple 이 비어 있지 않을 때만) detail 에 더한다 -- 평소 detail 은 `blocks`·`n_checked` 둘. magnitude = 위반 이름 수 합, tol 0 |
 | 5 | `seal_writers` | 모든 필드 writer == 권한표 writer; 노드마다 dc_writer 있음, (tier == W0) == is_rail, dc_rail_v·dc_v 중 정확히 하나, dc_rail_v 있음 == is_rail. 위반 노드 = nodes, 위반 필드 = detail `fields` |
 | 6 | `dc_seal_bulk_reverse` | MOS 마다 max(0, −vsb, −(vds + vsb)) ≤ tol_v |
 | 7 | `dc_seal_saturation` | [r4] 행 = `dc_op.current > 0` 이고 linear_devices 밖인 MOS(이름순), n_checked = 그 수(0 이면 행 없음 -> pass). 행마다 VDsat = lut `vdsat(memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb)`, tol = lut `tol_vdsat_table(memo, op.kind, op.w_key).at(op.L, op.vds)`(None 가능 -> 그 행 undefined). 요구 = VDS − VDsat ≥ +tol(DEC-88). **크기 = VDsat − VDS + 2·tol, tol = tol** -> margin = 1 − (VDS − VDsat − tol)/tol(N3.14 방향: 클수록 나쁨, > 1 ⇔ VDS − VDsat < tol ⇔ fail; 계획 N3.6 의 margin(VDS − VDsat − tol)/tol 은 1 − margin). tol None 행의 크기 = VDsat − VDS(보고용, 판정에 안 씀). 대표 행이 있으면 detail `slack_v` = 그 행 VDS − VDsat − tol(V). VDSAT 열이 없는 소자(lut `lut_column_unavailable`)는 tol None 행(undefined)이고 detail `reason` = `lut_vdsat_column_missing`(열이 있으면 이 키가 없다). 그 밖 lut 실패 -> `SealViolationError`(devices (소자,), reason `lut_query_failed`, lut_reason 원래 사유, device_query `vdsat`·`tol_vdsat_cell`) |
@@ -593,17 +592,17 @@ SealedSnapshot 이 된다(10.2절 실측). 열이 없는 LUT 세트에서는 항
 ## 7. `size_and_seal(ctx, theta, parent=None) -> DcEvaluation`
 
 - ctx 가 KernelContext 아님 -> `TypeError`. theta = Mapping 또는 `Theta` -> `check_theta`. parent 가 DcEvaluation 이 아니거나
-  `plan_versions` 의 block_version 이 하나라도 다르면 `ValueError`.
-- 시작 스냅샷 = parent.snapshot 또는 ctx.base. 호출 = `dc_currents((θ current 키, 값) ...)` -> `dc_lengths((L ...))` ->
+  base writer 전부(`ctx.base.block_versions` 키)의 block_version 이 하나라도 다르면 `ValueError`.
+- 시작 스냅샷 = `parent.snapshot.derive_child(keep)`(keep = base writer ∪ 커널 블록 ∪ `SEAL_ITEM_BLOCKS`) 또는 ctx.base. 호출 = `dc_currents((θ current 키, 값) ...)` -> `dc_lengths((L ...))` ->
   `dc_columns((((kind, key), v) for ln_idu·resistance·y), ctx.fixed_values, ctx.resistor_values, ctx.lut)` ->
   `dc_widths(ctx.lut)` -> `seal_dc(..., resistances = ctx.resistor_values + θ resistance 쌍, ctx.inputs.linear_devices)`.
-- **재사용 계약**(확정 사항 1·5): 같은 θ·parent 로 부르면 모든 dc 블록 computes 0(reuses 13: 4 평가 + 8 봉인 + report; r7 까지 12).
+- **재사용 계약**(확정 사항 1·5): 같은 θ·parent 로 부르면 DC 13블록 computes 0, 커널 4·봉인 항목 8 outcome `reuse`(합 12), `dc_seal_report` outcome `graft` 1(keep 밖 -- 같은 입력이면 S3 graft, design 41 v1.12.8 753·756).
   θ 한 성분만 다른 parent 에서: `current` 성분 -> dc_currents·dc_widths·dc_tolerances 와 그 하류 봉인만 다시(DC 저항 전류가
   바뀌지 않으면 dc_columns·봉인 1 은 reuse), `ln_idu`·`y`·`resistance` -> dc_columns 와 하류(dc_currents·dc_lengths reuse).
-  하류 봉인 블록은 입력 값이 같으면 reuse(예: 값이 같은 SealItem 이면 dc_seal_report reuse).
-  [r5] `capacitance`·`ss_resistance`(`THETA_PASSIVE_KINDS`) 성분만 다른 θ 를 parent 에서 부르면 **dc 블록 전부 computes 0**
+  하류 봉인 항목 블록은 입력 값이 같으면 reuse, `dc_seal_report` 는 parent 경로에서 입력이 같으면 graft(reuse 아님).
+  [r5] `capacitance`·`ss_resistance`(`THETA_PASSIVE_KINDS`) 성분만 다른 θ 를 parent 에서 부르면 **dc 블록 전부 computes 0**(커널 4·봉인 항목 8 `reuse` 12, `dc_seal_report` `graft` 1)
   (어느 블록의 extras 에도 들지 않는다 -- `seal_dc` 의 `resistances` 도 θ `resistance` 만). 결과는 parent 와 같은 봉인 상태이고,
-  소신호 쪽은 metrics `ss_evaluate` 에서 `ss_dev` reuse·`metrics_ss`·`metrics_dc` 만 계산(metrics CONTRACT 7.6).
+  소신호 쪽은 metrics `ss_evaluate` 에서 `ss_dev` graft(parent 경로 -- 입력 같음)·`metrics_ss`·`metrics_dc` 만 계산(metrics CONTRACT 7.6).
 - 후보 실패(`CANDIDATE_FAILURE_CLASSES`) = SealViolationError·NonconvergentError. ValueError·TypeError 는 호출 계약 위반.
 
 ## 8. 실패 규약 요약 (N3.14)

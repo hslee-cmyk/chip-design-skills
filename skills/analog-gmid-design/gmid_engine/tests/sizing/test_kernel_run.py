@@ -374,3 +374,87 @@ def test_determinism_hashseed_u4_paths(tmp_path):
         assert r.returncode == 0, r.stderr[-3000:]
         outs.append(json.loads(r.stdout.strip().splitlines()[-1]))
     assert outs[0] == outs[1] == outs[2]
+
+
+# =====================================================================================================================
+# [IT-2a 20261021-it2a-snapshot-derive, T-L11a] parent 분기 = `parent.snapshot.derive_child(keep)` (design 41 4.7-3c).
+# keep = base writer(ctx.base.block_versions 키) ∪ 그 평가 커널 호출 블록. 시그니처 불변 진입점 `size_and_seal(ctx, theta, parent=)` 로 잰다.
+# oracle:
+# - (a) 구성으로 정한 parent -- `with_hand_ss`(커널 밖 writer `ss_dev` 의 필드를 손으로 실은 parent).
+# - (a) 독립 기준 -- 같은 θ 를 parent 없이 평가한 스냅샷(= 커널 호출 블록 + base writer 필드만 가진다)과 ctx.base(S1·계획 등 base writer 필드).
+# - 피검 함수(derive_child·run_kernel 내부)로 기대값을 만들지 않는다.
+# =====================================================================================================================
+
+def _it2a_nonempty_fields(snap):
+    """권한표의 (kind, field) 가운데 열이 비어 있지 않은 것(스냅샷 읽기만)."""
+    return {kf for kf, _w in snap.writers.entries if snap.column(*kf) != ()}
+
+
+def _it2a_theta():
+    return theta_r4c(v1=0.62)
+
+
+def _it2a_ss_writer():
+    from gmid_engine.sizing import S2_WRITERS
+    return S2_WRITERS.writer_of("device", "ss_dev")
+
+
+def test_it2a_child_drops_fields_of_writer_outside_kernel(ctx_r4c):
+    """parent 에 커널 밖 writer(ss_dev) 필드를 실은 픽스처 -> child 스냅샷에 그 필드·block_version 없음. 기준 = 같은 θ 의 parent 없는 평가.
+    base(parent.snapshot 통째 출발): ss_dev 열이 child 에 남아 red."""
+    ss_writer = _it2a_ss_writer()
+    e0 = size_and_seal(ctx_r4c, theta_r4c())
+    assert e0.sealed is not None                                           # 전제
+    parent = with_hand_ss(e0)
+    assert parent.snapshot.column("device", "ss_dev") != ()                # 전제: parent 에 낡은 커널 밖 필드가 실려 있다
+    assert parent.snapshot.block_version(ss_writer) == "hand_ss"
+    child = size_and_seal(ctx_r4c, _it2a_theta(), parent=parent)
+    free = size_and_seal(ctx_r4c, _it2a_theta())                           # 기준: parent 없는 평가
+    assert child.snapshot.column("device", "ss_dev") == ()
+    assert child.snapshot.block_version(ss_writer) is None
+    assert set(child.snapshot.block_versions) == set(free.snapshot.block_versions)
+    assert _it2a_nonempty_fields(child.snapshot) == _it2a_nonempty_fields(free.snapshot)
+
+
+def test_it2a_child_keeps_every_base_writer_field(ctx_r4c):
+    """base writer(ctx.base.block_versions 키) 필드는 child 에 남는다(지우면 red) -- 기대값 = ctx.base 의 같은 열·같은 block_version."""
+    e0 = size_and_seal(ctx_r4c, theta_r4c())
+    assert e0.sealed is not None
+    child = size_and_seal(ctx_r4c, _it2a_theta(), parent=with_hand_ss(e0))
+    base = ctx_r4c.base
+    base_fields = [(kf, w) for kf, w in base.writers.entries if w in base.block_versions and base.column(*kf) != ()]
+    assert len(base_fields) > 0                                            # 전제: 비교 대상이 있다
+    for (kind, field), w in base_fields:
+        assert child.snapshot.column(kind, field) == base.column(kind, field), (kind, field, w)
+        assert child.snapshot.block_version(w) == base.block_version(w), w
+
+
+def test_it2a_parentless_evaluation_passes_seal_4(ctx_r4c):
+    """parent 없는 평가(스냅샷 = ctx.base)는 봉인 4 를 통과한다(keep 을 옛 _CONTEXT_WRITERS 로 구현하면 base writer 필드가 빠져 red).
+    parent 가 있는 평가도 같다."""
+    e0 = size_and_seal(ctx_r4c, theta_r4c())
+    assert e0.sealed is not None
+    assert e0.report.items[3].item == 4 and e0.report.items[3].status == "pass"
+    e1 = size_and_seal(ctx_r4c, _it2a_theta(), parent=with_hand_ss(e0))
+    assert e1.sealed is not None
+    assert e1.report.items[3].item == 4 and e1.report.items[3].status == "pass"
+
+
+def test_it2a_parent_with_other_base_writer_version_rejected(ctx_r4c):
+    """base writer 버전이 ctx.base 와 다른 parent -> ValueError. base writer 마다(옛 검사는 PLAN_WRITERS 만 봤다) 그 writer 필드를 다른
+    input_version 으로 다시 쓴 parent 를 만들어 하나씩 거부를 확인한다. 거부 전 전제: 어긋나지 않은 parent 는 받아들여진다."""
+    from gmid_engine.sizing import DcEvaluation
+    e0 = size_and_seal(ctx_r4c, theta_r4c())
+    assert e0.sealed is not None
+    size_and_seal(ctx_r4c, _it2a_theta(), parent=with_hand_ss(e0))        # 전제: 일치하는 parent 는 거부되지 않는다
+    base = ctx_r4c.base
+    tried = []
+    for (kind, field), w in base.writers.entries:
+        if w not in base.block_versions or w in tried or base.column(kind, field) == ():
+            continue
+        bad = e0.snapshot.write(w, "tampered_it2a", {(kind, field): dict(e0.snapshot.column(kind, field))})
+        assert bad.block_version(w) != base.block_version(w)               # 전제: 어긋남이 실제로 만들어졌다
+        tried.append(w)
+        with pytest.raises(ValueError):
+            size_and_seal(ctx_r4c, _it2a_theta(), parent=DcEvaluation(bad, e0.report, None))
+    assert len(tried) >= 2                                                 # 전제: base writer 여럿을 시험했다

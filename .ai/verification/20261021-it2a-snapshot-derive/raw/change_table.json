@@ -1,0 +1,457 @@
+{
+ "circuits": {
+  "common_gate_amplifier": {
+   "base_recomputes_same_input": 0,
+   "base_totals": {
+    "calls": 785,
+    "computes": 699,
+    "grafts": 9,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 77
+   },
+   "base_vs_head_diffs": [],
+   "base_vs_it0_AB_n_diffs": 9,
+   "base_vs_it1_audit_diffs": [],
+   "counter_changes": [],
+   "head_recomputes_same_input": 0,
+   "head_totals": {
+    "calls": 785,
+    "computes": 699,
+    "grafts": 9,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 77
+   },
+   "head_vs_it0_AB_n_diffs": 9,
+   "head_vs_rep2_counters_equal": true,
+   "head_vs_rep2_diffs": [],
+   "it0_diff_paths_head_minus_base": [],
+   "n_unexplained": 0,
+   "present": [
+    true,
+    true,
+    true
+   ]
+  },
+  "current_reuse_telescopic_ota": {
+   "base_recomputes_same_input": 0,
+   "base_totals": {
+    "calls": 161,
+    "computes": 133,
+    "grafts": 18,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 10
+   },
+   "base_vs_head_diffs": [],
+   "base_vs_it0_AB_n_diffs": 28,
+   "base_vs_it1_audit_diffs": [],
+   "counter_changes": [],
+   "head_recomputes_same_input": 0,
+   "head_totals": {
+    "calls": 161,
+    "computes": 133,
+    "grafts": 18,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 10
+   },
+   "head_vs_it0_AB_n_diffs": 28,
+   "head_vs_rep2_counters_equal": true,
+   "head_vs_rep2_diffs": [],
+   "it0_diff_paths_head_minus_base": [],
+   "n_unexplained": 0,
+   "present": [
+    true,
+    true,
+    true
+   ]
+  },
+  "folded_cascode": {
+   "base_recomputes_same_input": 0,
+   "base_totals": {
+    "calls": 1203,
+    "computes": 1067,
+    "grafts": 1,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 135
+   },
+   "base_vs_head_diffs": [],
+   "base_vs_it0_AB_n_diffs": 47,
+   "base_vs_it1_audit_diffs": [],
+   "counter_changes": [
+    {
+     "base": {
+      "calls": 65,
+      "computes": 49,
+      "grafts": 1,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 15
+     },
+     "block": "dc_seal_report",
+     "cause": "허용: dc_seal_report keep 밖 -> reuse->graft (O-94 (2))",
+     "head": {
+      "calls": 65,
+      "computes": 49,
+      "grafts": 16,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 15
+    }
+   ],
+   "head_recomputes_same_input": 0,
+   "head_totals": {
+    "calls": 1203,
+    "computes": 1067,
+    "grafts": 16,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 120
+   },
+   "head_vs_it0_AB_n_diffs": 47,
+   "head_vs_rep2_counters_equal": true,
+   "head_vs_rep2_diffs": [],
+   "it0_diff_paths_head_minus_base": [],
+   "n_unexplained": 0,
+   "present": [
+    true,
+    true,
+    true
+   ]
+  },
+  "ngcc_3stage_ff": {
+   "base_recomputes_same_input": 0,
+   "base_totals": null,
+   "base_vs_head_diffs": [],
+   "base_vs_it0_AB_n_diffs": 0,
+   "base_vs_it1_audit_diffs": [],
+   "counter_changes": [],
+   "head_recomputes_same_input": 0,
+   "head_totals": null,
+   "head_vs_it0_AB_n_diffs": 0,
+   "head_vs_rep2_counters_equal": true,
+   "head_vs_rep2_diffs": [],
+   "it0_diff_paths_head_minus_base": [],
+   "n_unexplained": 0,
+   "present": [
+    true,
+    true,
+    true
+   ]
+  },
+  "nmcnr_amplifier": {
+   "base_recomputes_same_input": 0,
+   "base_totals": {
+    "calls": 837,
+    "computes": 722,
+    "grafts": 6,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 109
+   },
+   "base_vs_head_diffs": [],
+   "base_vs_it0_AB_n_diffs": 48,
+   "base_vs_it1_audit_diffs": [],
+   "counter_changes": [
+    {
+     "base": {
+      "calls": 41,
+      "computes": 31,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 10
+     },
+     "block": "dc_seal_report",
+     "cause": "허용: dc_seal_report keep 밖 -> reuse->graft (O-94 (2))",
+     "head": {
+      "calls": 41,
+      "computes": 31,
+      "grafts": 10,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 10
+    },
+    {
+     "base": {
+      "calls": 37,
+      "computes": 35,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 2
+     },
+     "block": "ss_dev",
+     "cause": "허용: keep 밖 블록(ss·metric) reuse->graft (design 41 4.7-3c, 756 (i))",
+     "head": {
+      "calls": 37,
+      "computes": 35,
+      "grafts": 2,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 2
+    }
+   ],
+   "head_recomputes_same_input": 0,
+   "head_totals": {
+    "calls": 837,
+    "computes": 722,
+    "grafts": 18,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 97
+   },
+   "head_vs_it0_AB_n_diffs": 48,
+   "head_vs_rep2_counters_equal": true,
+   "head_vs_rep2_diffs": [],
+   "it0_diff_paths_head_minus_base": [],
+   "n_unexplained": 0,
+   "present": [
+    true,
+    true,
+    true
+   ]
+  },
+  "pushpull_follower_buffer": {
+   "base_recomputes_same_input": 0,
+   "base_totals": {
+    "calls": 689,
+    "computes": 619,
+    "grafts": 0,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 70
+   },
+   "base_vs_head_diffs": [],
+   "base_vs_it0_AB_n_diffs": 0,
+   "base_vs_it1_audit_diffs": [],
+   "counter_changes": [
+    {
+     "base": {
+      "calls": 38,
+      "computes": 30,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 8
+     },
+     "block": "dc_seal_report",
+     "cause": "허용: dc_seal_report keep 밖 -> reuse->graft (O-94 (2))",
+     "head": {
+      "calls": 38,
+      "computes": 30,
+      "grafts": 8,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 8
+    }
+   ],
+   "head_recomputes_same_input": 0,
+   "head_totals": {
+    "calls": 689,
+    "computes": 619,
+    "grafts": 8,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 62
+   },
+   "head_vs_it0_AB_n_diffs": 0,
+   "head_vs_rep2_counters_equal": true,
+   "head_vs_rep2_diffs": [],
+   "it0_diff_paths_head_minus_base": [],
+   "n_unexplained": 0,
+   "present": [
+    true,
+    true,
+    true
+   ]
+  },
+  "sf_pushpull_output_opamp": {
+   "base_recomputes_same_input": 0,
+   "base_totals": {
+    "calls": 161,
+    "computes": 145,
+    "grafts": 6,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 10
+   },
+   "base_vs_head_diffs": [],
+   "base_vs_it0_AB_n_diffs": 0,
+   "base_vs_it1_audit_diffs": [],
+   "counter_changes": [],
+   "head_recomputes_same_input": 0,
+   "head_totals": {
+    "calls": 161,
+    "computes": 145,
+    "grafts": 6,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 10
+   },
+   "head_vs_it0_AB_n_diffs": 0,
+   "head_vs_rep2_counters_equal": true,
+   "head_vs_rep2_diffs": [],
+   "it0_diff_paths_head_minus_base": [],
+   "n_unexplained": 0,
+   "present": [
+    true,
+    true,
+    true
+   ]
+  },
+  "two_stage_ota": {
+   "base_recomputes_same_input": 0,
+   "base_totals": {
+    "calls": 979,
+    "computes": 834,
+    "grafts": 3,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 142
+   },
+   "base_vs_head_diffs": [],
+   "base_vs_it0_AB_n_diffs": 46,
+   "base_vs_it1_audit_diffs": [],
+   "counter_changes": [
+    {
+     "base": {
+      "calls": 52,
+      "computes": 40,
+      "grafts": 3,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 9
+     },
+     "block": "dc_seal_report",
+     "cause": "허용: dc_seal_report keep 밖 -> reuse->graft (O-94 (2))",
+     "head": {
+      "calls": 52,
+      "computes": 40,
+      "grafts": 12,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 9
+    },
+    {
+     "base": {
+      "calls": 52,
+      "computes": 49,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 3
+     },
+     "block": "ss_dev",
+     "cause": "허용: keep 밖 블록(ss·metric) reuse->graft (design 41 4.7-3c, 756 (i))",
+     "head": {
+      "calls": 52,
+      "computes": 49,
+      "grafts": 3,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 3
+    }
+   ],
+   "head_recomputes_same_input": 0,
+   "head_totals": {
+    "calls": 979,
+    "computes": 834,
+    "grafts": 15,
+    "recomputes_same_input": 0,
+    "replays": 0,
+    "reuses": 130
+   },
+   "head_vs_it0_AB_n_diffs": 46,
+   "head_vs_rep2_counters_equal": true,
+   "head_vs_rep2_diffs": [],
+   "it0_diff_paths_head_minus_base": [],
+   "n_unexplained": 0,
+   "present": [
+    true,
+    true,
+    true
+   ]
+  },
+  "two_stage_ota_sf": {
+   "base_recomputes_same_input": 0,
+   "base_totals": null,
+   "base_vs_head_diffs": [
+    "record missing"
+   ],
+   "base_vs_it0_AB_n_diffs": 33,
+   "base_vs_it1_audit_diffs": [
+    [
+     "front_empty",
+     "missing_in_b"
+    ],
+    [
+     "kernel_window_status",
+     "missing_in_b"
+    ],
+    [
+     "loop_cut",
+     "missing_in_b"
+    ],
+    [
+     "m_i2",
+     "missing_in_b"
+    ],
+    [
+     "m_i3",
+     "missing_in_b"
+    ],
+    [
+     "m_i4",
+     "missing_in_b"
+    ],
+    [
+     "reeval",
+     "missing_in_b"
+    ],
+    [
+     "s_p_sign",
+     "missing_in_b"
+    ]
+   ],
+   "counter_changes": [],
+   "head_recomputes_same_input": 0,
+   "head_totals": null,
+   "head_vs_it0_AB_n_diffs": null,
+   "head_vs_rep2_counters_equal": true,
+   "head_vs_rep2_diffs": [
+    "record missing"
+   ],
+   "it0_diff_paths_head_minus_base": null,
+   "n_unexplained": 2,
+   "present": [
+    true,
+    false,
+    false
+   ]
+  }
+ },
+ "g10_head_recomputes_same_input_total": 0,
+ "total_unexplained": 2
+}

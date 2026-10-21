@@ -206,6 +206,7 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
   `column(kind, field)` -> 그 필드가 있는 레코드의 `((key, value), ...)` key 정렬, `block_version(writer)`(없으면 None).
   [2026-10-08] `column_fields(kind, field)` -> `column` 과 같은 key·순서의 `((key, FieldValue), ...)`(값 지문·출처 메타를 함께 읽을 때).
   `tables`·`block_versions` 는 읽기 전용 매핑(대입 -> `TypeError`). 제자리 수정 API 없음.
+- [IT-2a 20261021-it2a-snapshot-derive, 계획 N3.3 스냅샷 파생 규칙] **`derive_child(keep_writers)`**: writer ∈ `keep_writers` 인 필드와 그 writer 의 `block_version` 만 남긴 새 스냅샷(권한표·남긴 `FieldValue` 객체 공유, 필드가 다 빠진 레코드 없음, 모르는 writer 이름은 무시). 원본 불변. 평가 커널이 parent 에서 출발할 때만 쓴다.
 - [2026-10-08, 사용자 승인 -- sizing O7] **`extend_writers(writers)` -- 권한표 확장**: 같은 레코드·block_versions 를 더 넓은 권한표
   `writers` 아래로 옮긴 새 스냅샷. `writers` 는 이 스냅샷 권한표의 모든 ((kind, field), writer) 를 같은 writer 로 포함해야 한다.
   - 결과: `writers` 가 새 표, 모든 레코드가 **같은 객체**(`is`), `fp`·모든 읽기 결과·필드 메타(writer·input_version·write_count)·

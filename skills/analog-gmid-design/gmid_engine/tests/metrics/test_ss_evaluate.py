@@ -650,7 +650,9 @@ def test_s16_passive_theta_fd_reuses_dc_and_ss_dev(zc_cell, zc_nocell, which):
     assert all(s.computes == 0 for s in st_dc.values()), {n: s.computes for n, s in st_dc.items()}
     r2 = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, th2, spec.constraints, ("vdd",), junction=js)
     st = _since(ctx, before, BLOCKS)
-    assert (st[ss_dev.name].computes, st[ss_dev.name].reuses) == (0, 1)
+    # [IT-2a 20261021-it2a-snapshot-derive, design 41:756 (i)·승인 20261021-it2-o67-scope 'ss 블록 reuse -> graft 계수'] child 스냅샷은 keep 밖
+    # writer(ss_dev)의 필드를 지우므로 입력 버전이 같은 ss_dev 는 S3 색인에서 이식(graft)한다: computes 0·grafts 1·reuses 0 (옛: reuses 1).
+    assert (st[ss_dev.name].computes, st[ss_dev.name].grafts, st[ss_dev.name].reuses) == (0, 1, 0)
     assert st[metrics_ss.name].computes == 1 and st[metrics_dc.name].computes == 1
     assert all(s.recomputes_same_input == 0 for s in st.values())
     assert all(s.computes == 0 for s in _since(ctx, before, dc).values())
@@ -703,3 +705,24 @@ def test_passive_values_reused_on_mos_theta_only_change(zc_cell, zc_nocell, whic
     st = _since(ctx, before, (passive_values,))[passive_values.name]
     assert (st.computes, st.recomputes_same_input) == (1, 0), st
     assert dict(r2.snapshot.column("device", "passive_value"))[key[1]] == th[key] * 1.1
+
+
+# =====================================================================================================================
+# [IT-2a 20261021-it2a-snapshot-derive, T-L11c] 같은 θ ss 재평가 -> ss 블록 outcome graft, computes 증분 0 (design 41 4.7-3c).
+# child 스냅샷은 keep 밖 writer(ss 블록)의 필드를 지우므로, 같은 θ 의 ss 블록은 같은 입력 버전의 S3 색인 결과를 이식(graft)한다 -- 재계산 0.
+# oracle: (독립) 실행 계수(RunCounters) 행의 구간 증분 + 값 대조(첫 ss_evaluate 결과와 같은 열). 피검 함수로 기대값을 만들지 않는다.
+# base(parent.snapshot 통째 출발): child 가 ss_dev 필드를 이미 가져 outcome reuse -> red.
+# =====================================================================================================================
+
+def test_it2a_same_theta_ss_reevaluation_from_child_grafts(base):
+    spec, ctx, _, _, res, js = base
+    before = _counts(ctx)
+    ev2 = size_and_seal(ctx, theta(), parent=res.lineage)                   # 같은 θ, parent = ss 가 실린 lineage
+    again = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, theta(), spec.constraints, ("vdd",), junction=js)
+    st = _since(ctx, before)
+    assert (st[ss_dev.name].computes, st[ss_dev.name].grafts, st[ss_dev.name].reuses) == (0, 1, 0), st[ss_dev.name]
+    assert (st[metrics_ss.name].computes, st[metrics_ss.name].grafts, st[metrics_ss.name].reuses) == (0, 1, 0), st[metrics_ss.name]
+    assert all(s.computes == 0 and s.recomputes_same_input == 0 for s in st.values()), st
+    # 이식한 값은 첫 평가 값과 같다
+    assert again.snapshot.column("device", "ss_dev") == res.snapshot.column("device", "ss_dev")
+    assert bundle_map(again.ss)["gain_ss_db"].value == bundle_map(res.ss)["gain_ss_db"].value

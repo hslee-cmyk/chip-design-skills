@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="6" time="0.858" timestamp="2026-10-22T08:33:29.645927+09:00" hostname="DESKTOP-6MBVVGJ"><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_loops" name="test_loop_outside" time="0.101"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_loops.py:8: in test_loop_outside
+    run_stage_a(name, "s", None, output_dir="o", donors=d, counters=c)
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_loops" name="test_comprehension" time="0.092"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_loops.py:13: in test_comprehension
+    return [run_stage_a(n, "s", None, output_dir="o", donors=d, counters=c) for n in ("a", "b")]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_loops" name="test_same_name_twice" time="0.090"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_loops.py:18: in test_same_name_twice
+    run_stage_a("a", "s", None, output_dir="o", donors=d, counters=c)
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_loops" name="test_free_variable" time="0.091"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_loops.py:29: in test_free_variable
+    return inner(), lam()
+           ^^^^^^^
+gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_loops.py:26: in inner
+    return run_stage_a("a", "s", None, output_dir="o", donors=d, counters=c)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_loops" name="test_packed" time="0.088"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_loops.py:35: in test_packed
+    run_stage_a("a", "s", None, output_dir="o", **kw)
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase><testcase classname="gmid_engine.tests.structure.fixtures.rule_m.bad.gmid_engine.tests.test_mc_loops" name="test_loop_outer_body_inner_call" time="0.088"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'a'">gmid_engine\tests\structure\fixtures\rule_m\bad\gmid_engine\tests\test_mc_loops.py:44: in test_loop_outer_body_inner_call
+    run_stage_a(name, "s", None, output_dir="o", donors=d, counters=c)
+gmid_engine\pipeline\stage_a.py:211: in run_stage_a
+    topology = load_topology(str(topology_path))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\topology_load.py:53: in load_topology
+    doc = load_json_checked(path, where)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\authoring\json_read.py:35: in load_json_checked
+    with open(path, "rb") as handle:
+         ^^^^^^^^^^^^^^^^
+E   FileNotFoundError: [Errno 2] No such file or directory: 'a'</failure></testcase></testsuite></testsuites>

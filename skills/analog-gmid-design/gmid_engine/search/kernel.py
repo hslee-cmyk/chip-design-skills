@@ -7,7 +7,7 @@
   `origin` = S3 기록용 ((키, 값), ...)(단계·ε·시작점 -- 키 밖).
 * [U14] `geometry` = `RealizedGeometry`(MOD8 재검증, LY7·LY8) -- 레이아웃 뒤 실현 기하로 평가한다: 고정 W(`w_request`)·실현 폭 슬라이스(`w_keys`, 이 평가의
   `LutAccess`)·실현 확산 기하(`diffusion`, 접합 용량)를 쓴다. 키의 `w_fixed_fp` = 기하 지문(없으면 None), 나머지 흐름은 같다 -- 같은 (θ, 기하)는
-  캐시 적중이고 기하가 다르면 다른 점이다. 슬라이스를 바꿔도 계획 블록 버전은 그대로라 `parent` 를 쓸 수 있다.
+  캐시 적중이고 기하가 다르면 다른 점이다. 슬라이스를 바꿔도 base writer(`ctx.base.block_versions`)의 block_version 은 그대로라 `parent` 를 쓸 수 있다.
 * 순서: 요청 계수 -> 키(`eval_key`) -> 메모리 캐시(그 실행에서 평가한 성공·실패) 적중이면 그대로(커널 0) -> 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 `STATUS_OUTSIDE_DOMAIN`(커널 0, 정의역 밖) -> `size_and_seal`.
 * 후보 실패는 `CANDIDATE_FAILURE_CLASSES` 만 이름으로 잡아 `STATUS_FAILED` + FailureRecord(N3.14) + 부분 스냅샷(`EvalResult.partial` = 예외의 `partial`, 실패 직전까지
   쓴 스냅샷 -- S3 evals 실패 줄 `snapshot_fp` = `partial.fp`). ValueError·TypeError 등은 호출 계약 위반이라 잡지 않는다(넓은 except 없음).
