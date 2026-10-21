@@ -560,8 +560,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 [r3] **`calls` 형식**(`seal_dc`·`seal_versions` 공통): ((ComputeBlock, extras), ...) -- extras = 그 블록을 부를 때 넘긴 추가 인자
 tuple(블록 함수 호출 `block(snapshot, *extras)` 의 `extras` 그대로, 없으면 ()). `size_and_seal` 은 `((dc_currents,
 (θ 전류 쌍 tuple,)), (dc_lengths, (θ L 쌍 tuple,)), (dc_columns, (θ 쌍, fixed_values, resistor_values, lut)), (dc_widths,
-(lut,)))` 를 넘기고 `seal_dc` 가 봉인 블록 8개([r8] 9 포함)를 같은 형식으로 덧붙여 `seal_versions` 에 넘긴다. 계획 블록(rails·struct_colour·
-current_basis·writer_plan·scc_order·theta_schema)은 calls 에 들지 않는다(parent 검사가 plan_versions 로 대신한다).
+(lut,)))` 를 넘기고 `seal_dc` 가 봉인 블록 8개([r8] 9 포함)를 같은 형식으로 덧붙여 `seal_versions` 에 넘긴다. base writer(`ctx.base.block_versions`)는 calls 에 들지 않는다 -- 봉인 4 (4) 서로소 단언, parent 검사 = base writer 전부.
 
 `judge(item, rows)`(rows = (대상, 크기, tol 또는 None, devices, nodes)): tol 이 정의된 행 중 크기 > tol 이 있으면 fail(대상 = 그
 행들), 없고 tol None 행이 있으면 undefined(대상 = 그 행들), 그 밖 pass. magnitude·tol·margin = margin 최대 행(fail 이면 fail 행
@@ -593,15 +592,15 @@ SealedSnapshot 이 된다(10.2절 실측). 열이 없는 LUT 세트에서는 항
 ## 7. `size_and_seal(ctx, theta, parent=None) -> DcEvaluation`
 
 - ctx 가 KernelContext 아님 -> `TypeError`. theta = Mapping 또는 `Theta` -> `check_theta`. parent 가 DcEvaluation 이 아니거나
-  `plan_versions` 의 block_version 이 하나라도 다르면 `ValueError`.
-- 시작 스냅샷 = parent.snapshot 또는 ctx.base. 호출 = `dc_currents((θ current 키, 값) ...)` -> `dc_lengths((L ...))` ->
+  base writer 전부(`ctx.base.block_versions` 키)의 block_version 이 하나라도 다르면 `ValueError`.
+- 시작 스냅샷 = `parent.snapshot.derive_child(keep)`(keep = base writer ∪ 커널 블록 ∪ `SEAL_ITEM_BLOCKS`) 또는 ctx.base. 호출 = `dc_currents((θ current 키, 값) ...)` -> `dc_lengths((L ...))` ->
   `dc_columns((((kind, key), v) for ln_idu·resistance·y), ctx.fixed_values, ctx.resistor_values, ctx.lut)` ->
   `dc_widths(ctx.lut)` -> `seal_dc(..., resistances = ctx.resistor_values + θ resistance 쌍, ctx.inputs.linear_devices)`.
-- **재사용 계약**(확정 사항 1·5): 같은 θ·parent 로 부르면 모든 dc 블록 computes 0(reuses 13: 4 평가 + 8 봉인 + report; r7 까지 12).
+- **재사용 계약**(확정 사항 1·5): 같은 θ·parent 로 부르면 DC 13블록 computes 0, 커널 4·봉인 항목 8 outcome `reuse`(합 12), `dc_seal_report` outcome `graft` 1(keep 밖 -- 같은 입력이면 S3 graft, design 41 v1.12.8 753·756).
   θ 한 성분만 다른 parent 에서: `current` 성분 -> dc_currents·dc_widths·dc_tolerances 와 그 하류 봉인만 다시(DC 저항 전류가
   바뀌지 않으면 dc_columns·봉인 1 은 reuse), `ln_idu`·`y`·`resistance` -> dc_columns 와 하류(dc_currents·dc_lengths reuse).
-  하류 봉인 블록은 입력 값이 같으면 reuse(예: 값이 같은 SealItem 이면 dc_seal_report reuse).
-  [r5] `capacitance`·`ss_resistance`(`THETA_PASSIVE_KINDS`) 성분만 다른 θ 를 parent 에서 부르면 **dc 블록 전부 computes 0**
+  하류 봉인 항목 블록은 입력 값이 같으면 reuse, `dc_seal_report` 는 parent 경로에서 입력이 같으면 graft(reuse 아님).
+  [r5] `capacitance`·`ss_resistance`(`THETA_PASSIVE_KINDS`) 성분만 다른 θ 를 parent 에서 부르면 **dc 블록 전부 computes 0**(커널 4·봉인 항목 8 `reuse` 12, `dc_seal_report` `graft` 1)
   (어느 블록의 extras 에도 들지 않는다 -- `seal_dc` 의 `resistances` 도 θ `resistance` 만). 결과는 parent 와 같은 봉인 상태이고,
   소신호 쪽은 metrics `ss_evaluate` 에서 `ss_dev` reuse·`metrics_ss`·`metrics_dc` 만 계산(metrics CONTRACT 7.6).
 - 후보 실패(`CANDIDATE_FAILURE_CLASSES`) = SealViolationError·NonconvergentError. ValueError·TypeError 는 호출 계약 위반.

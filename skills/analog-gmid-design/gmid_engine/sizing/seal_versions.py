@@ -14,6 +14,8 @@ from .s2_values import SEAL_FAIL, SEAL_PASS, SEAL_VERSIONS, SealItem
 
 
 def seal_versions(snapshot, calls, base):
+    if base is None:
+        raise TypeError("seal_versions: base 는 필수다(ctx.base)")
     stale = []
     for block, extras in calls:
         recorded = snapshot.block_version(block.name)
@@ -27,8 +29,6 @@ def seal_versions(snapshot, calls, base):
                     stale.append(block.name)
                     break
     stale = tuple(sorted(set(stale)))
-    if base is None:
-        raise TypeError("seal_versions: base 는 필수다(ctx.base)")
     base_writers = set(base.block_versions)
     called = {block.name for block, _extras in calls}
     overlap = tuple(sorted(base_writers & called))
