@@ -30,8 +30,20 @@ card IT-2c -- 측정 구성. test 작성 주체는 소스를 보지 않고 이 �
 |---|---|
 | tuple, 출력→절단 넷 DC 되먹임 경로 있음(예 R 출력–in−) | `config == "declared_feedback"` |
 | tuple, 경로 없음(예 용량만, Cf + Rb(in−–레일)) | `config is None`, `undefined` = `icm_config_feedback_no_dc` 하나 |
-| `()` | 미선언·β=1 갈래(출력 구조에 따른 41:734 (2)/(3) 구성 -- 고임피던스 출력이면 `"follower_beta1"`), DC 되먹임 판정 안 함(`icm_config_feedback_no_dc`가 나오면 red) |
+| `()` | `config == "follower_beta1"`(고임피던스 41:734 (2)·KVL 고정 (3) 모두 -- (3)의 닫음도 follower u = V_out; 재동결 O-85/O-86, 검증 R3), DC 되먹임 판정 안 함(`icm_config_feedback_no_dc`가 나오면 red) |
 | `None` | 결정 대기 갈래(fail-closed; '선언 없음 = 정상'이면 red) |
+
+차동 출력 + 비지 않은 선언(재동결 O-85/O-86, 41:734 (1) v1.12.7 '갈래 순서'): `device.unsupported` 원소 → `icm_config_feedback_element_unsupported`; 두 출력 판정 갈림 → `icm_config_feedback_outputs_split`; 같음 → `icm_config_differential_output_structure`(S-OS2). 각 `undefined`는 code 하나.
+
+### 절단 넷 공개 경로 대조(T-L10 (i), 재동결 O-85/O-86, 검증 R8·MF-A)
+
+| 입력 넷 단자 수 | 로더(`spec_elements`·`default_views`) | `noise_plan` |
+|---|---|---|
+| 0 | `feedback_element_not_on_input` | `noise_feedback_cut_ambiguous` |
+| 1 | 통과, `cuts` = (소자, 그 넷) | `NoisePlan("closed")`, `free_nets` ∋ 그 넷(`test_noise_plan.py:22`) |
+| 2(두 입력 넷 사이 소자) | `feedback_cut_ambiguous` | `noise_feedback_cut_ambiguous`(MF-A -- 새 공개 경로 사례, base(옛 `_input_side`)에서 먼저 green) |
+
+기대값은 옛 docstring 규칙과 손으로 읽은 단자에서 만든다. 동적 계수는 함수 `__code__`로 세고(이름 묶기 무관 -- 검증 R4), `gmid_engine.authoring` export 때문에 이름 문자열 grep이 0이 되는 것은 증거로 쓰지 않는다(검증 R5).
 
 ### 단언 금지
 
@@ -41,11 +53,11 @@ card IT-2c -- 측정 구성. test 작성 주체는 소스를 보지 않고 이 �
 
 | id | 위치 | 내용(정본) | oracle | base |
 |---|---|---|---|---|
-| T-L8 | `tests/metrics/test_icm_config.py` | 41:811(v1.12.6) (a)~(e), S-OS1·S-OS2 fail-closed, (b) = (b1) 용량만 선언 단일 출력 toy → `config is None` + `icm_config_feedback_no_dc` 하나·`inverting_port` = in−·`tied_ports` = ()·`node.dc_window_cfg` 항목 없음, (b2) R 출력–in− → `config == "declared_feedback"`·선언 구성 창(손계산), (b3) 경로 판정 red 변형 -- Cf + Rb(in−–레일)·R(in−–레일)만 → no_dc, T망(R2만 선언) → `declared_feedback`; R2 우선 toy(입력 하나 + 용량만) → `as_is_single_input`(재동결 O-79~O-83)(M7 metric 쪽·unmeasured 단언은 IT-2d) | (손) | red |
-| T-L10 | `tests/metrics/test_ss_nodal.py`·`test_icm_config.py`·`tests/authoring/test__feedback_cuts.py`(기존 파일) | 41:812(v1.12.6) (b)~(g)·(i)((a)는 감사 착수 실측 기록 -- 멈춤 S-FB1 해소 뒤); (e) 저항 toy·Rf∥Cf toy 창 = 손계산; (f) red 먼저; (i) 술어 정의 1곳·READS 다섯·`feedback_cut_nets` 정의 1곳·호출 넷·옛 두 def 0(`git grep`), 동작 동일성 = 기존 공개 경로 test(`test__feedback_cuts.py`·`tests/metrics/test_noise_plan.py`) 그대로 green + `feedback_cut_nets` 0·1·2 갈래 직접 단언(기대값 = 손으로 읽은 단자)(재동결 O-81~O-83) | (손)+(독립) | red |
+| T-L8 | `tests/metrics/test_icm_config.py` | 41:811(v1.12.7) (a)~(e), (d) 끝 v1.12.7 -- 두 출력 판정 갈림 차동 toy → `icm_config_feedback_outputs_split`, `device.unsupported` 합성 스냅샷 → `icm_config_feedback_element_unsupported`(재동결 O-85/O-86), S-OS1·S-OS2 fail-closed, (b) = (b1) 용량만 선언 단일 출력 toy → `config is None` + `icm_config_feedback_no_dc` 하나·`inverting_port` = in−·`tied_ports` = ()·`node.dc_window_cfg` 항목 없음, (b2) R 출력–in− → `config == "declared_feedback"`·선언 구성 창(손계산), (b3) 경로 판정 red 변형 -- Cf + Rb(in−–레일)·R(in−–레일)만 → no_dc, T망(R2만 선언) → `declared_feedback`; R2 우선 toy(입력 하나 + 용량만) → `as_is_single_input`(재동결 O-79~O-83)(M7 metric 쪽·unmeasured 단언은 IT-2d) | (손) | red |
+| T-L10 | `tests/metrics/test_ss_nodal.py`·`test_icm_config.py`·`tests/authoring/test__feedback_cuts.py`(기존 파일) | 41:812(v1.12.7) (b)~(g)·(i)((a)는 감사 착수 실측 기록 -- 41:812 (a) v1.12.7: (i) 함수 객체 참조(load) 정적 계수, `tests/` 제외, 네 자리만·`E/sizing`·`ss_nodal`·`_helpers_nodal.py` 0 (ii) `dc_writer_plan.fn.__code__`·`run_kernel`·`seal_dc` 구간의 `feedback_cut_nets.__code__` 호출 0, 13회로 + L8 (b) toy·reuse 없는 실행, 양성 대조 (가) 구간 밖 ≥ 1 (나) 구간 안 red 변형 > 0 (iii) (e) -- 재동결 O-85/O-86); (e) 저항 toy·Rf∥Cf toy 창 = 손계산; (f) red 먼저; (i) 술어 정의 1곳·READS 여섯(`device.unsupported` 포함)·kind 목록 대조 0·`feedback_cut_nets` 정의 1곳·호출 넷·옛 두 def 0(`git grep`), 동작 동일성 = 기존 공개 경로 test(`test__feedback_cuts.py`·`tests/metrics/test_noise_plan.py`) 그대로 green + `test_noise_plan.py`에 2 갈래 공개 경로 사례(두 입력 넷 사이 선언 소자 → `noise_feedback_cut_ambiguous`, base에서 먼저 green -- MF-A) + `feedback_cut_nets` 0·1·2 갈래 직접 단언(기대값 = 손으로 읽은 단자; 위 공개 경로 대조표)(재동결 O-81~O-86) | (손)+(독립) | red |
 | T-INH | `tests/metrics/test_icm_config.py` | 커널 `unsettled` → 평가점 모든 cfg 항목 `unsettled`; F 성분 미선언 → `f_component_undeclared`; 겹치면 definitional 우선 | (식) | red |
 | T-RES | 같은 파일 | 반전 입력 후보 0·2·분해능 이하 → 세 code(분해능 수치 단언 금지, 충분히 작은/큰 전달 양 끝만), role 이름 맞바꿈 같은 `inverting_port` | (손) | red |
-| T-FB | 같은 파일 | 되먹임 선언 세 상태(tuple·`()`·`None`)의 구성 갈래 = design 4.7-3b (1)·O-68 (2) 대조표(위 네 행 -- 재동결 O-81~O-83) | (식) | red |
+| T-FB | 같은 파일 | 되먹임 선언 세 상태(tuple·`()`·`None`)의 구성 갈래 = design 4.7-3b (1)·O-68 (2) 대조표(위 네 행 + 차동 출력 줄 -- 재동결 O-81~O-86) | (식) | red |
 
 red 예상 목록 = 엔진 동작·엔진 트리 구조를 보는 test(green 유지 대상·하네스 자체 test 제외). 새 키워드 직접 호출 `TypeError`는 red로 세지 않는다. `-k` 식 충돌은 base·head `--collect-only` 수를 함께 보고(xrunf1b 3.3 상속).
 

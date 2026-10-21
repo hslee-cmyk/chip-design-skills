@@ -27,9 +27,9 @@ card IT-2c -- 측정 구성. 범위: design 41 4.7-3b 전부(41:729-742 -- `ss_n
 - `IcmConfig.tied_ports` = 구성이 출력에 묶은 입력 포트(41:780 v1.12.4, 예 follower의 반전 입력) -- 이 card가 writer, 소비 = IT-2d `metrics_aux`·`metrics_icm_front`의 margin 포트 거름(gap G4, 공통 문서 'margin 대상 포트').
 - **착수 실측**(공통 문서 'IT-2c 착수 실측', design 41 v1.12.4 834행, O-71·O-72 (1)): (a) `current_reuse_telescopic_ota` 봉인점 T_p·δA_num (b) 진짜 A = 0 대칭 사례 (c) 오라클 vntol·reltol을 감사가 code 착수 전에 기록. 잴 수 없으면 '미측정 + 사유' 기록 + code 착수 전 사용자 보고, 대체 측정 없음.
 - 멈춤 S-OS1/S-OS2(O-67 (5)): `config` None, `undefined` = `icm_config_output_root_w3`/`icm_config_differential_output_structure` 하나, `node.dc_window_cfg` 항목 없음. O-67 (1)·O-68 (2)의 S-OS2 (나)는 계획·design 개정 뒤 후속 card(이 card 아님).
-- 단일 출력 + DC 되먹임 없는 선언 되먹임(41:734 (1) v1.12.6 -- 재동결 O-81~O-83; v1.12.5 O-79/O-80의 kind 판정을 경로 판정으로 대체): 판정 = `icm_config.py` 비공개 `_dc_feedback_reaches(view, cut_nets) -> bool | None` 하나(방향 의존 그래프 BFS -- `device.dc_nets` 원소 중 kind ≠ `current_source` 양방향, MOS gate→drain·gate→source 한 방향, 레일·절단 넷 아닌 입력 포트 경유 금지, O(N), cache 없음, 측정 구성 선택·T_p 전), READS 추가 `device.kind`·`device.pins`·`device.dc_nets`·`node.is_rail`·`node.port_direction`(writer `s1_structure`). False → `config` None, `undefined` = `icm_config_feedback_no_dc` 하나; None(지원 kind 밖 원소) → `icm_config_feedback_source_unsupported` 하나; 두 갈래 모두 `inverting_port` = 절단 넷 포트, `tied_ports` = (), `transfer` 빈 값, `node.dc_window_cfg` 항목 없음, S-OS1·`icm_config_feedback_cut`보다 먼저. 입력 하나면 `as_is_single_input` 먼저(O-80 R2), 빈 선언 `()`은 판정 안 함.
+- 단일 출력 + DC 되먹임 없는 선언 되먹임(41:734 (1) v1.12.6 -- 재동결 O-81~O-83; v1.12.5 O-79/O-80의 kind 판정을 경로 판정으로 대체): 판정 = `icm_config.py` 비공개 `_dc_feedback_reaches(view, cut_nets) -> bool | None` 하나(방향 의존 그래프 BFS -- `device.dc_nets` 원소 중 kind ≠ `current_source` 양방향, MOS gate→drain·gate→source 한 방향, 레일·절단 넷 아닌 입력 포트 경유 금지, O(N), cache 없음, 측정 구성 선택·T_p 전), READS 추가 `device.kind`·`device.pins`·`device.dc_nets`·`device.unsupported`·`node.is_rail`·`node.port_direction`(writer `s1_structure`; `device.unsupported`·kind 목록 대조 삭제는 v1.12.7 -- 재동결 O-85/O-86). False → `config` None, `undefined` = `icm_config_feedback_no_dc` 하나; None(S1 `device.unsupported` 원소) → `icm_config_feedback_element_unsupported` 하나(이름 = 계획 v6.28 O-85 (3); test는 합성 스냅샷); 두 갈래 모두 `inverting_port` = 절단 넷 포트, `tied_ports` = (), `transfer` 빈 값, `node.dc_window_cfg` 항목 없음, S-OS1·`icm_config_feedback_cut`보다 먼저. 입력 하나면 `as_is_single_input` 먼저(O-80 R2), 빈 선언 `()`은 판정 안 함. 차동 출력 + 선언(41:734 (1) v1.12.7 '갈래 순서', 재동결 O-85/O-86): ① `device.unsupported` → `icm_config_feedback_element_unsupported` ② 두 출력 판정 갈림 → `icm_config_feedback_outputs_split`(새 code) ③ 같음 → S-OS2 `icm_config_differential_output_structure`.
 - **파일 범위 추가**(재동결 O-81~O-83, 계획 N6.6 IT-2c (iii)·O-83 R-N1): `E/authoring/_feedback_cuts.py` 절단 넷 순수 함수 `feedback_cut_nets(terminals, input_nets)`(`gmid_engine.authoring` export), 호출부 `E/authoring/spec_elements.py:104`·`E/authoring/spec_views.py:101`·`E/metrics/noise_plan.py:48`·`icm_config`가 직접 호출, `def input_terminal_nets`(`_feedback_cuts.py:11`)·`def _input_side`(`noise_plan.py:28`) 삭제(래퍼 없음), 함수 레지스트리 `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` 행 둘(순수 함수·판정 개념 행), 동작 동일성 test(41:812 (i)).
-- 판정 단언: L8 (a)~(e)(41:811(v1.12.6)), L10 (a)~(g)·(i)(41:812(v1.12.6)), L12 (b) cfg 이어받기·(c) cfg 쪽, 커널 상태 이어받기 T-INH.
+- 판정 단언: L8 (a)~(e)(41:811(v1.12.7)), L10 (a)~(g)·(i)(41:812(v1.12.7)), L12 (b) cfg 이어받기·(c) cfg 쪽, 커널 상태 이어받기 T-INH.
 
 graph 단일 정본 검사(이 card 범위): G1(`graph.ss_nodal` = `ss_nodal`, `node.dc_window_cfg`·`graph.icm_config` = `icm_config` 자리 하나씩; 전회로 `conductance_matrix(ss.circuit` = `ss_nodal` 하나; `kvl_sensitivity` 정의·호출 하나; `_transfer_resolution` 정의 하나·`icm_config.py` 비공개(분해능 식 재구현·사본 상수 0 -- `git grep`); `icm_config.py`에 G_vgs 걷기·`_edges`·끝 식 0), G2(`IcmConfig`에 `output_structure`·`kvl` 칸 없음; 되먹임 출처는 extras 참조, `ctx.base` 직접 읽기 0), G3(KVL 고정·`as_is_single_input` 끝 = `node.dc_window_cfg` 한 칸), G6(`graph.ss_nodal` → `icm_config`·`metrics_aux`; `node.dc_window_cfg` → `metrics_aux`(IT-2d 배선 전에는 감사가 '소비자 대기' 기록)·`dc_window_refine`(IT-2d); `graph.icm_config` → IT-2d 소비자, `transfer` 칸 출력 전용; `node.dc_output_structure`·`node.dc_window` 상태 칸의 소비자 = 이 card의 `icm_config` -- IT-2b의 대기 기록 해소), G7(같은 입력 버전 `ss_nodal` `computes` 증분 0·WP-10 중복 인자 0).
 
@@ -63,7 +63,8 @@ red-green. 새 이름은 존재 부재 red(`ImportError`·`AttributeError` -- 00
 - 선언 되먹임 소자를 절단한 봉인점 해 → `icm_config_feedback_cut`(definitional).
 - S-OS1·S-OS2 갈래 → 창 값 없이 code 하나(값이 나오면 red).
 - 단일 출력(입력 둘) + DC 되먹임 없는 선언 되먹임(용량만, Cf + Rb(in−–레일), R(in−–레일)만) → 창 값 없이 `icm_config_feedback_no_dc` 하나(값이 나오면 red; 재동결 O-79~O-83).
-- 지원 kind 밖 원소가 있는 DUT의 선언 되먹임 판정 → `icm_config_feedback_source_unsupported`(운영 경로는 S1이 먼저 멈춤; 재동결 O-81~O-83).
+- S1 `device.unsupported` 원소가 있는 DUT의 선언 되먹임 판정 → `icm_config_feedback_element_unsupported`(운영 경로는 S1이 먼저 멈춤 -- test는 합성 스냅샷; 재동결 O-81~O-86).
+- 차동 출력 + 선언에서 두 출력 판정 갈림 → 창 값 없이 `icm_config_feedback_outputs_split` 하나(S-OS2 code가 나오면 red; 재동결 O-85/O-86).
 
 ## 무동작 판정 입력(무발동 값)
 
@@ -79,19 +80,19 @@ red-green. 새 이름은 존재 부재 red(`ImportError`·`AttributeError` -- 00
 
 ## code 작성자 멈춤 조건
 
-- C-1(41:737, :833): spec 루프 절단(`E/authoring/spec_elements.py:19-22`)이 쓰기 계획·봉인점 망에 적용됨 → 멈춤(사전 근거: `E/sizing`에 `input_terminal_nets` import 0 -- 감사가 다시 잼).
+- C-1(41:737, :833): spec 루프 절단(`E/authoring/spec_elements.py:19-22`)이 쓰기 계획·봉인점 망에 적용됨 → 멈춤(측정 = 41:812 (a) v1.12.7 -- 함수 객체 참조(load) 정적 계수(`tests/` 제외, 네 자리만, `E/sizing`·`ss_nodal`·`_helpers_nodal.py` 0), `__code__` 동적 계수(구간 기준 `dc_writer_plan.fn.__code__`·`run_kernel`·`seal_dc`, 양성 대조 (가)(나), 13회로 + L8 (b) toy·reuse 없는 실행), 의미 = L10 (e); 이름 문자열 grep 0은 증거 아님 -- 재동결 O-85/O-86).
 - C-2(41:740): library 9회로·toy에서 구동 쌍 넷 ⊄ ac 접지 ∪ 입력 넷 → 멈춤.
 - **C-3 해소됨**(위 (b′), 오케스트레이터 분석 2026-10-21) -- 남은 멈춤 C-3a: `NoiseDecl.feedback` 세 상태와 design 4.7-3b (1)·O-68 (2) 갈래 대조 불일치.
 - C-5 **해소**(design 41 v1.12.4 735행 `_transfer_resolution`, 사용자 결정 O-72 (1); 옛 문언 O-68 (1) 'S-19 `MetricResult.resolution`'은 O-71이 대체). 남은 멈춤: 그 함수를 `icm_config.py` 밖·공개로 두어야 할 것처럼 보이면(구조 규칙 A, 이동은 DE-1 몫), 또는 착수 실측 결과가 계획 N3.8 정의와 어긋나면 멈추고 보고.
 - C-6: S-OS1·S-OS2는 fail-closed code만, 일반형·S-OS2 (나) 만들지 않음.
-- **S-FB1**(재동결 O-81~O-83, 41:812 (a) v1.12.6): 계획 완료 조건 (10)(a) 측정 꼴(IT-0 LC `E/metrics` 정적 grep 0·`run_kernel` 구간 동적 호출 0)과 (10)(f)(`icm_config`·`noise_plan`의 순수 함수 직접 호출)가 충돌 -- 계획 정정 전 code 착수 금지.
+- S-FB1 **해소**(재동결 O-85/O-86): 계획 v6.28 완료 조건 (10)(a) 새 문언이 측정 꼴을 정했다(위 C-1 측정) -- code 착수 막음 없음. 옛 IT-0 LC 꼴(`20261021-it0-baseline.spec.md:49`, 이름 grep)은 이 card 판정에 쓰지 않는다.
 - 공통 멈춤: design에 없는 것을 정해야 하면 멈추고 보고(as-built 결정 금지), 정본 자리가 없으면 만들지 않는다(CLAUDE.md graph 단일 정본 규칙 6, 공통 문서 C-7). 범위 밖 하위 card의 일을 당겨오지 않는다.
 
 ## test 작성 주체 몫(code 주체는 고치지 않는다)
 
 - `E/tests/sizing/test_s2_values.py:97-106` `test_s2_writers_is_s1_plus_dc_table_exactly`(SS_TABLE에 `ss_nodal`·`icm_config` 두 필드)·`:127-128` `test_block_name_and_writes_match_table`(블록 WRITES = 표 -- `ss_nodal`·`icm_config` 블록) -- 표 확대(design 41:719 v1.12.4 '같은 test에 걸리는 IT-2 새 writer 전부').
 - 새 test: `tests/metrics/test_ss_nodal.py`, `tests/metrics/test_icm_config.py`.
-- 기존 test 확장(재동결 O-81~O-83): `tests/authoring/test__feedback_cuts.py`에 `feedback_cut_nets` 0·1·2 갈래 직접 단언(기존 공개 경로 단언은 그대로), `tests/metrics/test_noise_plan.py`는 그대로 green.
+- 기존 test 확장(재동결 O-81~O-83): `tests/authoring/test__feedback_cuts.py`에 `feedback_cut_nets` 0·1·2 갈래 직접 단언(기존 공개 경로 단언은 그대로), `tests/metrics/test_noise_plan.py`는 그대로 green + 2 갈래 공개 경로 사례 하나 추가(두 입력 넷 사이 선언 소자 → `noise_feedback_cut_ambiguous`; base(옛 `_input_side`)에서 먼저 green -- 검증 MF-A, 재동결 O-85/O-86).
 
 ## 작성 전 실측
 
