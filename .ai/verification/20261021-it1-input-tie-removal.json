@@ -34,7 +34,7 @@
  "checks": {
   "V1": {
    "verdict": "FAIL",
-   "basis": "미완(코드 결함 판정 아님) -- 병합본 bd468eaf 전체 실행(-k·--deselect·-x 없음)이 시스템 메모리 부족으로 하네스에 의해 88.6%(9122/10290 수집) 지점에서 중단됨. 실행분: 통과 9072, F 48, xfail 2. F 48 = (가) authoring 36(test_topology_load 등) -- 긴 복제본 경로(MAX_PATH) FileNotFoundError 환경 산물, 짧은 경로 복제본에서 106 passed 확인(base 복제본도 같은 원인 38 F) (나) integration/test_s0_layer_9circuits 12 -- S0 기준선 u17_1b_s0_baseline.json, 커밋 3b 대기(승인 o13-scope). 미실행 1168개 중 IT-1 관련 230개를 짧은 경로 복제본에서 따로 실행: 18 failed = test_current_basis 8e46548 6 + s0_layer 12(모두 3b 대기), 212 passed(IT-1 test 14 포함). 전체 재실행 필요(logs/v1_partial_failures.txt·logs/targeted_head.txt)."
+   "basis": "미완(코드 결함 판정 아님) -- 41faebe0 짧은 경로 격리 복제본(Temp/claude/it1f)에서 최상위 test 디렉터리별 순차 실행(-k·--deselect·-x 없음) 중 시스템 메모리 부족으로 하네스가 lut 디렉터리 실행 중(240 통과 시점) 중단시킴(두 번째 중단). 끝난 단위 8개 전부 green: test_conftest_slow_marker 2/2, authoring 1547/1547, convergence 96/96, core 1085/1085, generality 802/802, graph 1934/1934, integration 471/471(u17_1b S0 기준선 test 포함, 설정의 19 deselected는 conftest 자체 규칙), layout 527 passed + 2 xfailed/529 = 6466/10290 완료, failed 0. 미완 3824: lut 1049(중단), metrics 1213, pipeline 84, search 579, sizing 832, structure 67. IT-1 관련 sizing test는 앞선 짧은 경로 실행(bd468eaf)에서 IT-1 14개 green -- 이 HEAD의 전체 판정은 재실행 필요."
   },
   "V2": {
    "verdict": "PASS",
@@ -50,11 +50,11 @@
   },
   "V5": {
    "verdict": "PASS",
-   "basis": "기준 약화 0: diff e98d0b0f..bd468eaf test 12파일 모두 승인 범위(o13-scope 10파일 + k3-ext test_orbit_ties·test_s2_values:148). skip/xfail/importorskip 추가 0, 리터럴 완화 0. 지운 assert 줄 11개 모두 대체: test_writer_plan 4줄 -> 3줄(M1·M2 둘 다 writer 단언), test_s2_values 어휘 -> 부재 단언 + BRANCH 상수 단언, scc_newton·input_window·size_and_seal_local·block_columns는 y 키 이름만, orbit_ties 대칭 단언 6개 유지 + 정지 단언 1 추가(k3-ext #3). test_current_basis·S0 기준선은 미변경(3b)."
+   "basis": "기준 약화 0: diff e98d0b0f..bd468eaf test 12파일 모두 승인 범위(o13-scope 10파일 + k3-ext test_orbit_ties·test_s2_values:148). skip/xfail/importorskip 추가 0, 리터럴 완화 0. 지운 assert 줄 11개 모두 대체: test_writer_plan 4줄 -> 3줄(M1·M2 둘 다 writer 단언), test_s2_values 어휘 -> 부재 단언 + BRANCH 상수 단언, scc_newton·input_window·size_and_seal_local·block_columns는 y 키 이름만, orbit_ties 대칭 단언 6개 유지 + 정지 단언 1 추가(k3-ext #3). test_current_basis·S0 기준선은 미변경(3b). [둘째 판] 3b(aa3d1075): u17_1b_s0_baseline.json blob 28줄 +/- 28줄, 크기 50552 바이트 동일, CR 0 -- 바뀐 JSON 경로 정확히 28개 = achievability_sha/dof 6(current_reuse·folded·ngcc·nmcnr·two_stage·two_stage_sf, R2) + kernel/schema_fp·search_domain_fp 12 + start/uncovered_fp 6(R3 y 키·R1) + start/ladder_fp 4(folded·nmcnr·two_stage·two_stage_sf, R1 새 writer ln_idu) -- 변화표·앞선 실패 목록과 일치, 다른 키 변화 0. test_current_basis: _BASELINE_8E46548_ORIGINAL 원값 그대로 두고 _IT1_DELTA(감사 Δ 6개와 같음)를 더하는 꼴, 단언 == 정확 일치 유지 -- 약화 아님."
   },
   "V6": {
-   "verdict": "FAIL",
-   "basis": "잔재(완료 조건 3, 계획 1438행 패턴 P, gmid_engine 전체): HEAD 27줄 = 엔진 9 + tests 18. 식별자 잔재 엔진 코드 0, 같은 DC 엣지 코드 0. 확정 제외 3줄 확인. 추가 제외 제안 2줄(부정문 새 규칙: sizing/CONTRACT.md:310, writer_plan.py:10). 남는 옛 문언 4줄 = 결함: sizing/CONTRACT.md:427('입력 묶음 전원'), sizing/CONTRACT.md:887('U2 기본안 (a)대로 W4(입력 공통모드 y)'), sizing/s2_values.py:186 docstring('U2 기본안 (a) W4'), sizing/seal_node_conflict.py:6 docstring('같은 DC'). tests 18줄은 IT-1 부재 단언·주석(제외 사유 = 제거 확인)."
+   "verdict": "PASS",
+   "basis": "잔재(완료 조건 3, 계획 1438행 패턴 P) 41faebe0: 엔진(tests 제외) 6줄 = 확정 제외 3(_spec_fields:33·composite_diode:1·metrics CONTRACT:312) + 부정문 새 규칙 3(sizing/CONTRACT.md:310·writer_plan.py:10 \"'같은 DC' 엣지는 없다\", sizing/CONTRACT.md:887 'IT-1 규칙대로 ... 같은 DC 엣지·input_tie 없음' -- ee3d8187이 옛 문언을 고치며 새로 생긴 부정문, 제외 사유 같음). 옛 문언 4줄(CONTRACT:427·887·s2_values:186·seal_node_conflict:6) 수정 확인, 남은 잔재 0. tests 줄은 IT-1 부재 단언·주석(제거 확인용)."
   },
   "V7": {
    "verdict": "PASS",
@@ -70,7 +70,7 @@
   },
   "V10": {
    "verdict": "PASS",
-   "basis": "9회로 변화표(change_table.json + probe_diff.json): 설명 안 된 변화 0. 변화 7회로(2입력 6 + common_gate y 키 이름만), 무변화 2(입력 DC 선언). HEAD 쓰기 계획 = IT-0 SIM 필드별 같음. BASELINE_8E46548 Δ 6개 재현(reproduced_numbers). graph 정본 I4 결함 1건은 change_table_summary.json graph_check 참조."
+   "basis": "9회로 변화표(change_table.json + probe_diff.json): 설명 안 된 변화 0. 변화 7회로(2입력 6 + common_gate y 키 이름만), 무변화 2(입력 DC 선언). HEAD 쓰기 계획 = IT-0 SIM 필드별 같음. BASELINE_8E46548 Δ 6개 재현(reproduced_numbers). graph 정본 I4는 ee3d8187에서 key = (THETA_Y, c.writers[roots[0]].y_key)로 수정 확인(정본 우회 의심 0). folded_cascode start.uncovered: base [..., (y,Y), (y,input_common_mode), (y,out)] -> HEAD [..., (y,Y), (y,out), (y,vin_p)] -- 이름 치환 뒤 집합 같음, 두 목록 모두 (종류, 이름) 정렬이라 vin_p가 out 뒤로 감; probe_diff의 false는 순서 민감 비교 탓. 원인 R3, 미설명 아님."
   }
  },
  "reproduced_numbers": [
@@ -181,13 +181,13 @@
   },
   {
    "name": "residue/pattern_P/engine_non_test_lines",
-   "value": 9,
+   "value": 6,
    "command": "git grep -nE <P> -- skills/analog-gmid-design/gmid_engine ':!skills/analog-gmid-design/gmid_engine/tests'"
   },
   {
    "name": "residue/pattern_P/stale_lines_after_exclusions",
-   "value": 4,
-   "command": "위 결과 - 확정 제외 3 - 부정문 2"
+   "value": 0,
+   "command": "git grep -nE <P> -- gmid_engine ':!gmid_engine/tests' @41faebe0 - 확정 제외 3 - 부정문 3"
   },
   {
    "name": "graph/field_count_changed",
@@ -201,8 +201,8 @@
   },
   {
    "name": "graph/canonical_bypass_suspect",
-   "value": 1,
-   "command": "block_columns.py _solve_input_window: key = (THETA_Y, roots[0]) -- y_key 필드 대신 넷 이름(I4)"
+   "value": 0,
+   "command": "block_columns.py _solve_input_window @41faebe0: key = (THETA_Y, c.writers[roots[0]].y_key)"
   },
   {
    "name": "graph/kvl_kcl_relation_not_applied",
@@ -215,14 +215,29 @@
    "command": "git diff e98d0b0f bd468eaf 엔진 + 줄 grep cache|memo|dict|sctx"
   },
   {
-   "name": "v1/partial/executed",
-   "value": 9122,
-   "command": "V1 명령(중단)"
+   "name": "v1/41faebe0/collected",
+   "value": 10290,
+   "command": "C:/Python314/python.exe -m pytest -p no:cacheprovider -q --collect-only"
   },
   {
-   "name": "v1/partial/failed",
-   "value": 48,
-   "command": "V1 명령(중단)"
+   "name": "v1/41faebe0/completed_green",
+   "value": 6466,
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<d>.xml <d>"
+  },
+  {
+   "name": "v1/41faebe0/failed",
+   "value": 0,
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<d>.xml <d>"
+  },
+  {
+   "name": "v1/41faebe0/not_completed",
+   "value": 3824,
+   "command": "cd <it1f @41faebe0>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=<out>/junit_<d>.xml <d>"
+  },
+  {
+   "name": "3b/baseline_json_changed_paths",
+   "value": 28,
+   "command": "json 경로 비교 git show bd468eaf:<fixture> 대 41faebe0"
   }
  ],
  "approvals": [
@@ -230,10 +245,10 @@
   "20261021-it1-k3-ext"
  ],
  "auditor_run": {
-  "time": "2026-10-22T00:00:00+09:00",
-  "worktree": "격리 복제본 scratchpad/it1-audit/it1-iso(@bd468eaf, remote 제거), base 복제본 it1-base(@0366ddb4), 짧은 경로 복제본 Temp/claude/it1s(@bd468eaf)",
+  "time": "2026-10-22T12:00:00+09:00",
+  "worktree": "격리 복제본 scratchpad/it1-audit/it1-iso(@bd468eaf, remote 제거), base 복제본 it1-base(@0366ddb4), 짧은 경로 복제본 Temp/claude/it1s(@bd468eaf); 둘째 판: Temp/claude/it1f(@41faebe0, remote 제거)",
   "commands": [
-   "V1: cd <it1-iso>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE (메모리 부족으로 88.6%에서 중단)",
+   "V1: cd <it1f @41faebe0>/skills/analog-gmid-design && for d in <최상위 test 디렉터리 14 단위>; C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --junitxml=junit_<d>.xml <d> (순차; 메모리 부족으로 lut 실행 중 중단)",
    "git -c core.longpaths=true clone --no-hardlinks --no-local wt/it1-audit <TEMP>/it1-iso && git -C <TEMP>/it1-iso remote remove origin",
    "cd <it1-base @0366ddb4>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rA --tb=line gmid_engine/tests/sizing/test_writer_plan.py -k test_it1_",
    "cd <it1s @bd468eaf>/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rA --tb=short gmid_engine/tests/sizing/test_writer_plan.py gmid_engine/tests/sizing/test_current_basis.py gmid_engine/tests/integration/test_s0_layer_9circuits.py gmid_engine/tests/search/test_orbit_ties.py gmid_engine/tests/sizing/test_s2_values.py",
