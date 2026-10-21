@@ -4,11 +4,11 @@
  "evidence_type": "red-green",
  "base_commit": "d3bdbd39350b3c682238bfe61b1fd4da0f769512",
  "test_commit": "168e5578e6bea5ee639be1037107089fba07b758",
- "code_commit": "9b9ae9777314750fb19c3d06fe35902f5260658f",
+ "code_commit": "bddef88734d76d1f9e6a84d138ac4f2bbb34fa2d",
  "checks": {
   "V1": {
-   "verdict": "FAIL",
-   "basis": "미완(판정 보류): 새 병합본 314387bb(9b9ae977 병합) 격리 복제본 h 에서 전체 suite --run-slow 를 단위별 순차로 시작했으나 convergence 실행 중 시스템 메모리 부족으로 Claude Code 가 중단(2회째, 지시대로 재시작 안 함). 끝난 단위: test_conftest_slow_marker 2 passed, authoring 1547 passed (failed 0). 남은 단위: convergence·core·generality·graph·integration·layout·metrics(test_verified_by 포함)·pipeline·search·sizing·structure·lut 파일별. 첫 판(5517c8b4)에서 변경 test 파일 8개 284 passed; 9b9ae977 의 test 파일 변경 0(git diff 5517c8b4..314387bb -- tests 비어 있음). 재실행: bash scripts/run_suite.sh h suite_head (test_verified_by 실패 시 b 에서 같은 파일)."
+   "verdict": "PASS",
+   "basis": "전체 suite --run-slow, 병합본 5f35b8f3(bddef887 병합) 격리 복제본 h, test 파일 하나당 pytest 프로세스 하나 순차(scripts/run_suite_files.sh, 재개 가능, -k·--deselect·-x 없음): tests 아래 test 파일 441개, 10325 passed·0 failed·0 error, xfail 2(layout test_patterns_common_centroid, 기존), 설정 deselect 1(structure test_structure_test_mapping 규칙 H 골격 -- 기본 실행 제외 마커). 별도로 -m structure_test_mapping 실행: head·base 모두 같은 규칙 H 위반 5건(대상 405)으로 실패 -- 기존 상태, 이 변경 기인 아님(logs/ruleH_h.txt·ruleH_b.txt 차이 = 경로뿐). tests/structure: test_structure_rules 14·test_removed_names 16 등 통과. metrics/test_verified_by.py 46 passed(실패 0 -> base 비교 불필요). 구조 규칙 fixture 파일 12개(structure/fixtures/**, 수집 대상 아님)는 파일 목록에서 잘못 잡혀 따로 돌았으나 suite 계수에서 뺌. 메모리: 이번 실행에서 중단 0; 파일별 최대 작업 집합 측정은 실행기(run_one.py ctypes 호출)의 오류로 값을 얻지 못함(각 log 끝 OverflowError, pytest 결과·junit 에는 영향 없음 -- 실행기 rc=1 은 그 때문)."
   },
   "V2": {
    "verdict": "PASS",
@@ -28,7 +28,7 @@
   },
   "V6": {
    "verdict": "PASS",
-   "basis": "graph 정본 G2·G5·G7 위반 0(9b9ae977 뒤): 첫 판 결함(kernel_run.py:84 later 블록 직접 열거)은 해소 -- kernel_run.py 지역 later_blocks = (dc_columns, dc_widths) 하나를 keep({b.name for b in later_blocks})과 later(list(zip(later_blocks, extras)))가 함께 읽고 블록 객체 이중 열거 없음(dc_columns·dc_widths 이름이 run_kernel 안에서 later_blocks 정의 한 곳에만 나옴), extras 순서·값은 옛 later 와 같음(9회로 결과·계수 동일로 확인). seal_versions base None 검사가 첫 줄로 이동(동작: TypeError 그대로). 그 밖 첫 판 확인 유지: 새 cache·memo·모듈 dict·sctx 슬롯·값 사본 0, 이름 문자열 상수 목록 0, base writer = base.block_versions, SEAL_ITEM_BLOCKS 정의 하나(seal.py:36, seal_dc 순서와 keep 이 같은 객체), _CONTEXT_WRITERS 는 search_context.py:44·206 만, extras 매핑 fail-closed(ValueError) 패치 확인, 새 graph 필드 0 -> G1·G3·G4·G6 해당 없음. 필드 수 0 / 소비자 0 결함 0 / 정본 우회 의심 0 / KVL·KCL 관계 미적용 0 / graph 밖 저장 자리 0. 문서 잔재(동작 무관, 보고만): sizing/CONTRACT.md:605·metrics/CONTRACT.md:651·:680 이 parent 경로 ss_dev 를 'reuse' 로 적음(IT-2a 뒤 실측·test = graft), search/CONTRACT.md:451 '계획 블록 버전은 슬라이스와 무관' 은 kernel.py 머리말만 base writer 로 고쳐짐. 회로·소자·넷 이름 code 0."
+   "basis": "graph 정본 G2·G5·G7 위반 0(bddef887 뒤): 첫 판 결함(later 블록 직접 열거)은 9b9ae977 의 지역 later_blocks 하나로 해소 -- keep 과 later 가 모두 그것을 읽고 블록 객체 이중 열거 없음. bddef887 동작 변경은 seal_versions detail 의 foreign_writers·base_call_overlap 을 위반일 때만 더하는 것뿐(test 변경 0, 탐침: 깨끗한 픽스처 detail = blocks·n_checked 만, 위반 픽스처 둘 SEAL_FAIL·foreign_writers=(dc_tolerances,)·base_call_overlap=(dc_columns,dc_currents,dc_lengths,dc_widths) 유지). 그 밖 유지: 새 cache·memo·모듈 dict·sctx 슬롯·값 사본 0, 이름 문자열 상수 목록 0, base writer = base.block_versions, SEAL_ITEM_BLOCKS 정의 하나(seal.py:36), _CONTEXT_WRITERS 는 search_context.py:44·206 만, extras 매핑 fail-closed(ValueError), 새 graph 필드 0 -> G1·G3·G4·G6 해당 없음. 필드 수 0 / 소비자 0 결함 0 / 정본 우회 의심 0 / KVL·KCL 관계 미적용 0 / graph 밖 저장 자리 0. 문서 잔재 4곳(sizing/CONTRACT:605, metrics/CONTRACT:651·680, search/CONTRACT:451) 정정 확인, sizing/CONTRACT.md:717 의 'ss_dev reuse' 는 r5 측정 이력 문단이라 남김(동작 계약 아님). 회로·소자·넷 이름 code 0."
   },
   "V7": {
    "verdict": "PASS",
@@ -44,7 +44,7 @@
   },
   "V10": {
    "verdict": "PASS",
-   "basis": "9회로 전부(v2 하네스, raw/run2 + raw/change_table_v2.json): BASE(d3bdbd39) 대 HEAD(314387bb) 결과 칸 차이 0(시간·block_counters·eval_fps 제외), 새 HEAD 대 옛 HEAD(5517c8b4) 8회로 차이 0·계수 행 같음(9b9ae977 동작 불변), two_stage_ota_sf HEAD 두 번 차이 0·계수 같음·평가 지문 전부 같음, BASE 대 IT-1 감사 raw 8회로 차이 0(IT-0 대비 원인 칸 = IT-1 기록 그대로). 계수 변화 전부 허용 칸: dc_seal_report reuse->graft(folded 15, nmcnr 10, pushpull 8, two_stage 9, two_stage_ota_sf 8), ss_dev reuse->graft(nmcnr 2, two_stage 3, two_stage_ota_sf 2); 커널 4·봉인 8 행 불변, calls·computes 불변, 설명 안 된 변화 0, G-10 9회로 0. 비교 칸에 지문이 실제로 들어 있음(eval_fps: 평가마다 snapshot_fp·dc_seal_report 값 지문·봉인 4 새 키 뺀 지문·부분 스냅샷 지문): 봉인 평가 579행 전부 snapshot_fp·dc_seal_report 값 지문이 BASE 와 다르고 새 키(foreign_writers·base_call_overlap 빈 tuple)를 빼면 579행 전부 같음 -- 차이 원인은 늘 붙는 빈 detail 키뿐(G2 판단 근거). 부분 스냅샷: 지문 다른 행 가운데 10행은 BASE 부분 스냅샷이 parent 의 낡은 dc_seal_report 를 지녔고 HEAD 는 derive_child 로 그 필드가 없음(의도된 파생 효과), 나머지는 같은 보고서 값에 새 키 차이; current_reuse·sf_pushpull 은 봉인 평가 0·부분 지문 40/40 같음; ngcc 단계 A review_needed."
+   "basis": "9회로(v2 하네스 eval_fps 포함): BASE(d3bdbd39, raw/run2/BASE) 대 HEAD(5f35b8f3, raw/run3/HEAD) 결과 칸 차이 0, 설명 안 된 변화 0, G-10 9회로 0, HEAD 대 둘째 판 HEAD 결과 칸·계수 행 같음. 봉인 평가 579행 전부 snapshot_fp·dc_seal_report 값 지문이 BASE 와 같음(G2 정정 뒤 -- 둘째 판에서는 빈 새 키 탓에 579행 모두 달랐음). 부분 스냅샷 지문 다른 행 41(common_gate 2, folded 21, nmcnr 2, pushpull 3, two_stage 2, two_stage_ota_sf 11) -- 원인 = derive_child 효과: folded·two_stage_ota_sf 에서 writer 목록 실측(raw/run4, v3 하네스) 32행 전부 BASE 부분 스냅샷만 parent 의 keep 밖 writer 필드를 지님(29행 metrics_aux·metrics_dc, 3행 + dc_seal_report·metrics_ss·passive_values·ss_dev), 공통 writer 의 block_version 차이 0, HEAD 만 가진 writer 0; 나머지 4회로 9행(common_gate 2, nmcnr 2, pushpull 3, two_stage 2)은 writer 목록 미측정 -- 지문 꼴이 측정한 32행의 두 유형과 같음(HEAD 에만 dc_seal_report 없음 7행, 보고서 값 같고 snapshot_fp 만 다름 2행). 계수 변화 전부 허용 칸: dc_seal_report reuse->graft(folded 15, nmcnr 10, pushpull 8, two_stage 9, two_stage_ota_sf 8), ss_dev reuse->graft(nmcnr 2, two_stage 3, two_stage_ota_sf 2), 커널 4·봉인 8 행·calls·computes 불변. 결정성: two_stage_ota_sf HEAD 두 번(둘째 판) 결과·계수·지문 전부 같음, 8회로 첫 판 HEAD 두 번 같음. BASE 대 IT-1 감사 raw 차이 0(IT-0 대비 원인 칸 = IT-1 기록). ngcc 단계 A review_needed."
   }
  },
  "reproduced_numbers": [
@@ -97,6 +97,21 @@
    "name": "IT2a/sealed_evals_report_equal_without_new_keys",
    "value": 579,
    "command": "compare_it2a_v2.py fps_base2_vs_head2 evaluation.report_fp_without_new_keys equal 합"
+  },
+  {
+   "name": "IT2a/full_suite_passed_head",
+   "value": 10325,
+   "command": "bash scripts/run_suite_files.sh h suite_files_head (junit 합)"
+  },
+  {
+   "name": "IT2a/sealed_evals_snapshot_fp_equal_base_head_v3",
+   "value": 579,
+   "command": "compare_it2a_v2.py out/run3cmp out/run2 change_table_v3.json"
+  },
+  {
+   "name": "IT2a/partial_snapshot_fp_diff_rows_derive_effect",
+   "value": 41,
+   "command": "compare_it2a_v2.py out/run3cmp out/run2 change_table_v3.json + run4 writer 목록"
   }
  ],
  "approvals": [
@@ -105,10 +120,10 @@
   "20261022-it2a-o94-ext"
  ],
  "auditor_run": {
-  "time": "2026-10-22T07:05:00+09:00",
-  "worktree": "격리 복제본 wt/_scratch_it2a_audit/h(첫 판 @5517c8b4, 둘째 판 @314387bb = 9b9ae977 병합본, remote 제거), b(@d3bdbd39 엔진 base), r(@d3bdbd39 + head test 파일 8개, red 용)",
+  "time": "2026-10-22T08:10:00+09:00",
+  "worktree": "격리 복제본 wt/_scratch_it2a_audit/h(첫 판 @5517c8b4, 둘째 @314387bb, 셋째 @5f35b8f3 = bddef887 병합본, remote 제거), b(@d3bdbd39 엔진 base), r(@d3bdbd39 + head test 파일 8개, red 용)",
   "commands": [
-   "V1: bash scripts/run_suite.sh h suite_head = 단위별 순차 C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --tb=short --run-slow --junitxml=junit_<u>.xml <u> (u = tests 최상위 디렉터리, lut 는 파일별) -- @314387bb, convergence 에서 메모리 부족 중단",
+   "V1: bash scripts/run_suite_files.sh h suite_files_head = test 파일마다 C:/Python314/python.exe scripts/run_one.py junit/<n>.xml <file> (pytest.main -p no:cacheprovider -q -rfE --tb=short --run-slow), 순차, @5f35b8f3",
    "git -c core.longpaths=true clone -q --no-hardlinks --no-local wt/it2a-audit wt/_scratch_it2a_audit/{h,b,r} && git -C <clone> remote remove origin",
    "git -C r checkout 5517c8b4 -- <test 파일 8개>; cd r/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q --tb=short --junitxml=red_base.xml <8 파일>",
    "cd h/skills/analog-gmid-design && C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --tb=short --junitxml=green_head.xml <8 파일>",
@@ -118,7 +133,10 @@
    "git -C h grep -n _CONTEXT_WRITERS|SEAL_ITEM_BLOCKS|derive_child|PLAN_WRITERS -- gmid_engine ':!tests'",
    "bash scripts/run_9_v2.sh (C:/Python314/python.exe -I scripts/measure_it2a_v2.py <b|h> BASE|HEAD <회로> library out/run2 [--tag _rep2])",
    "C:/Python314/python.exe -I scripts/compare_it2a_v2.py out/run2 out/run change_table_v2.json",
-   "git -C <audit> show 9b9ae977; git -C <audit> diff 5517c8b4 314387bb -- skills/analog-gmid-design/gmid_engine/tests"
+   "git -C <audit> show 9b9ae977; git -C <audit> diff 5517c8b4 314387bb -- skills/analog-gmid-design/gmid_engine/tests",
+   "bash scripts/run_9_v3.sh (measure_it2a_v2.py h HEAD <회로> library out/run3); compare_it2a_v2.py out/run3cmp(BASE=run2/BASE, HEAD=run3/HEAD) out/run2 change_table_v3.json",
+   "bash scripts/run_partial_writers.sh (measure_it2a_v3.py b|h folded_cascode·two_stage_ota_sf -> out/run4)",
+   "C:/Python314/python.exe -m pytest -p no:cacheprovider -q --tb=line -m structure_test_mapping gmid_engine/tests/structure/test_structure_test_mapping.py (h·b)"
   ]
  },
  "red": {
