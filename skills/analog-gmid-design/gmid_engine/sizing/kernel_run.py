@@ -5,7 +5,7 @@
 머리 설명과 같다. 함께 있는 도우미: `normalize_w_request`(W_request 검증·정렬). 봉인 3 tol_I 의 gm 은 `dc_tolerances` 가 쓰는 자기 동작점
 `dc_gm` 이라 parent 에서 넘기는 입력이 없다(설계 40 §3.7-3) -- `parent` 는 같은 lineage 재사용(필드가 곧 캐시)에만 쓴다.
 θ 스키마·고정 노드·DC 저항 선언값·L 묶음은 커널 컨텍스트 `base` 의 S0 수준 필드 `graph/kernel` 에서 읽고, parent 가 같은 컨텍스트에서 나왔는지는 계획 블록
-(`ctx.base` writer 전부)의 `block_version` 이 `base` 와 같은지로 본다. parent 스냅샷은 `derive_child(base writer ∪ 부르는 블록)` 로 파생한다(설계 40 §2.4.7 `KernelContext` 행 -- 사본 없음).
+(`ctx.base` writer 전부)의 `block_version` 이 `base` 와 같은지로 본다. parent 스냅샷은 `derive_child(base writer ∪ 커널 블록 ∪ 봉인 항목 블록 여덟)` 로 파생한다(설계 40 §2.4.7 `KernelContext` 행 -- 사본 없음).
 모든 블록 호출은 `ctx.donors`·`ctx.counters` 로 부른다(같은 입력은 계보와 무관하게 이식·재연). 블록 단계마다 후보 실패 클래스를 이름으로 잡아 그 블록에 들어간 스냅샷을
 부분 스냅샷(`exc.partial`)으로 붙인 뒤 다시 낸다(`core.attach_partial`, 설계 40 §2.4.7 -- 재연한 예외도 같다).
 """
@@ -30,7 +30,7 @@ from .s2_values import (
     KernelContext,
     Theta,
 )
-from .seal import seal_dc
+from .seal import SEAL_ITEM_BLOCKS, seal_dc
 from .theta_check import check_theta
 
 _COLUMN_KINDS = (THETA_LN_IDU, THETA_RESISTANCE, THETA_Y)
@@ -80,8 +80,9 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     column_items = tuple(((kind, key), v) for (kind, key), v in items if kind in _COLUMN_KINDS)
     requested = normalize_w_request(ctx, w_request)
     steps = [(dc_currents, (currents,)), (dc_lengths, (lengths,))]
-    if parent is not None:      # 스냅샷 파생: base writer ∪ 이번 평가가 부르는 블록의 필드만 parent 에서 잇는다(계획 N3.3, 커널 밖 writer 의 낡은 필드 제거)
-        snapshot = parent.snapshot.derive_child(set(base_writers) | {dc_columns.name, dc_widths.name} | {b.name for b, _ in steps})
+    if parent is not None:      # 스냅샷 파생: keep = base writer ∪ 커널 블록(steps·later) ∪ 봉인 항목 블록 여덟(seal.py 상수) -- 봉인 4 의 호출 목록과 같은 집합(계획 N3.3, 설계 41 4.7-3c)
+        snapshot = parent.snapshot.derive_child(set(base_writers) | {dc_columns.name, dc_widths.name} | {b.name for b, _ in steps}
+                                                | {b.name for b in SEAL_ITEM_BLOCKS})
     for block, extras in steps:
         snapshot = _call_block(ctx, block, snapshot, extras)
     if requested:

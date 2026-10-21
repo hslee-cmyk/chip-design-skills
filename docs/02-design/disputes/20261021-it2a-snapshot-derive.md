@@ -34,3 +34,7 @@ foreign_writers 가 되고(그 블록은 item4 뒤에 불림) 12 + 1 이라 어�
 ## 요청(문제의 test 1)
 
 `test_empty_calls_pass` 를 card (3) 과 모순 없게 고친다(예: 빈 calls 의 스냅샷으로 `ctx.base` 자체를 쓰거나 기대를 `fail`/foreign_writers 로 바꿈) -- 결정은 사람. code 주체는 test 를 고치지 않았다.
+
+## 결정과 해소 (사용자 O-94·O-95)
+
+- O-94: (1) test_empty_calls_pass는 test 쪽에서 수정(완료) (2) reuses==4로 낮추기 기각, design 정오로 keep에 봉인 항목 블록 여덟 포함 (3) seal_dc(base=None) 기본값 기각. 해소: code 수정 -- seal.py SEAL_ITEM_BLOCKS 상수·seal_dc base 필수, seal_versions base None TypeError, run_kernel keep 확장. dispute 종결.
