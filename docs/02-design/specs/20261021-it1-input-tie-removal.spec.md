@@ -1,6 +1,6 @@
 ---
 id: 20261021-it1-input-tie-removal
-phase: PHASE_TBD
+phase: 미확인
 evidence_type: red-green
 gate_change: no
 approval: 20261021-it1-o13-scope
@@ -11,9 +11,11 @@ approval: 20261021-it1-o13-scope
 
 - card base = master `468e6e73`(card B 병합 포함). 착수 base = 통합 브랜치 `integ/it12`의 IT-0 판정 기록 커밋(아래 '통합 브랜치 계획'). 줄 번호는 착수 때 감사가 다시 잰다.
 - `E/` = `skills/analog-gmid-design/gmid_engine/`. 줄 `41:n` = design 41 `docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md`(master `468e6e73`).
+- **동결 갱신(2026-10-21)**: 이 card 브랜치에 master `0de6a34a`(design 40/41/42 v1.12.4, 계획 v6.24 -- 사용자 결정 O-72 (1)·O-70 (2))를 병합했다. card 안 줄 번호 인용은 따로 '(v1.12.4)' 표시가 없으면 base `468e6e73` 값이다. 줄 이동(`git diff -U0 468e6e73 0de6a34a` hunk 실측): design 41은 735행 이상 +1(734행에 한 줄 추가), 계획은 318행 이상 +6·1110행 이상 +8; 그 앞 줄은 같다. 착수 때 감사가 다시 재는 규칙은 그대로다.
+  이 card가 인용하는 design 41 줄(666-674, 1686-1694, 1947)은 735행 앞이거나 v1.12.4 개정 hunk 밖이라 내용 불변 -- 1686행 이후는 +1(v1.12.4).
 - 사용자 결정 원문: `C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/user_decisions.md` B2(225행)·K-3(243행)·O-13 (1)(2)(IT-Q1 (나)·IT-Q2·IT-Q3 (가)·IT-Q4)·O-14 (2)(계획 card 승인)·O-19 (2)(IT-2와 같은 통합 병합)·O-61 P4 (a)(고립 입력 포트도 뿌리로 셈)·O-67 (5)(design v1.12.3 승인).
 - **동작 변경**이다(41:816 4.7-8 -- 입력 DC 미선언 회로의 쓰기 계획·θ y·결과). 무동작 입력 = 입력 DC 선언 회로(library pushpull_follower_buffer·sf_pushpull_output_opamp).
-- **착수 조건**: (가) card 0 IT-0 판정 기록 `.ai/verification/20261021-it0-baseline.json`이 통합 브랜치에 있음(변화표 기준·M-I1 다중 뿌리 발동·M-I4) (나) 아래 승인 기록 `20261021-it1-o13-scope` 커밋 (다) IT-0이 다중 입력 뿌리 발동 ≥ 1을 냈다면 **착수하지 않고 보고**(K-3 축소 X-IT5 재결정 -- 계획 N6.5 범위 4).
+- **착수 조건**: (가) card 0 IT-0 판정 기록 `.ai/verification/20261021-it0-baseline.json`이 통합 브랜치에 있음(변화표 기준·M-I1 다중 뿌리 발동·M-I4) (나) 승인 기록 `.ai/approvals/20261021-it1-o13-scope.md` -- **충족**(사용자 결정 O-72 (2), 2026-10-21; 이 브랜치에 커밋) (다) IT-0이 다중 입력 뿌리 발동 ≥ 1을 냈다면 **착수하지 않고 보고**(K-3 축소 X-IT5 재결정 -- 계획 N6.5 범위 4).
 
 ### 설계 대조(design 41 §4.7-1 대 계획 N6.5 순서 1 design 정정 항목 -- 2026-10-21 이 card 작성 때 대조)
 
@@ -97,7 +99,7 @@ toy 손계산은 test 주체 소유. 9회로 변화표는 감사 소유(IT-0 대
 
 ## 결정 필요 항목
 
-- **U-1 승인 기록**(사용자): 아래 초안. 계획 card(O-14 (2))·design(O-67 (5))은 승인됐으나 O-67 (5) 원문은 'IT-2 구현 착수'이고 **IT-1 동작 변경 착수를 명시하지 않는다** -- 동작 변경을 덮는 decision 기록이 필요하다(작성 전 실측 9).
+- **U-1 승인 기록 -- 결정됨**(사용자 결정 O-72 (2), 2026-10-21 '(권고)'): IT-1 동작 변경 승인. 기록 = `.ai/approvals/20261021-it1-o13-scope.md`(머리 `approval:` 줄이 가리킴). 옛 사유(O-67 (5) 원문이 IT-1 동작 변경을 덮지 않음)는 이 기록으로 해소.
 - **U-2 통합 브랜치 계획**(오케스트레이터 기본안, 아래) -- O-19 (2)·O-69 (2) 그대로라 사용자 결정 불요. IT-0 기록을 master에 따로 넣을지만 오케스트레이터 선택(기본 = 통합 브랜치 첫 커밋).
 - 그 밖 as-built 결정 금지 -- design에 없는 것은 멈추고 보고.
 
@@ -146,14 +148,16 @@ IT-1 FAIL·dispute면 IT-1 커밋만 다시(05 §12), IT-2 하위 card는 IT-1 c
 5. 계획서 소비자: 지우는 이름(`REL_TIE` 등)의 계획·design 인용은 as-built 인용으로만 남음(41:1690). 계획 DEC-64 상태 칸·DEC-59 발동표 행(완료 조건 7 (a)(b))은 완료 때 오케스트레이터.
 6. 미배선: 새 상수 `BRANCH_INPUT_MULTIPLE_ROOTS`는 `dc_writer_plan` 정지 자리에서 쓰임(운영 경로).
 7. 기존 계약 test: 착수 때 감사 `git grep`(`E/tests/structure` 규칙 A·B·C·H·M).
-8. V3 규모: 착수 base(IT-0 커밋) 위에서 오케스트레이터가 `tools/gates/mutate_changed.py`로 채운 뒤 동결.
-9. 승인 줄: `approval: 20261021-it1-o13-scope`(초안 아래) -- O-67 (5) 원문이 IT-1 동작 변경을 덮지 않음.
+8. V3 규모: **미확인 (IT-1 code 뒤)** -- 착수 base(IT-0 커밋) 위 IT-1 code 커밋에서 오케스트레이터가 `tools/gates/mutate_changed.py`로 채운 뒤 동결.
+9. 승인 줄: `approval: 20261021-it1-o13-scope` -- 기록 `.ai/approvals/20261021-it1-o13-scope.md` 커밋됨(사용자 결정 O-72 (2)). O-67 (5) 원문이 IT-1 동작 변경을 덮지 않아 둔 기록이다.
 10. 범위 계약: diff 계약은 이 card `Change-Id` 커밋들의 diff로 한정.
 11. test 이름: 접두 `test_it1_`, 피검 함수 본문 직접 호출.
 12. 같음 판정: `NodeWrite`·`DeviceCoord`·`TieBreak`는 필드 비교, 종속 목록은 정렬 tuple, 정지 detail은 키별 비교.
 13. red 모양: (e)는 `AttributeError`(허용), 나머지는 서명 불변 진입점 행동 red.
 
-## 승인 기록 초안(오케스트레이터가 사용자 승인 뒤 `.ai/approvals/`에 커밋)
+## 승인 기록(커밋됨 -- 정본 = `.ai/approvals/20261021-it1-o13-scope.md`, 사용자 결정 O-72 (2))
+
+아래는 승인 전 초안(역사 기록 -- 내용 비교용). 사용자 원문·범위의 정본은 위 파일 하나다.
 
 ```text
 ---

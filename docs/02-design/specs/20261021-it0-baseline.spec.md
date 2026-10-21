@@ -1,6 +1,6 @@
 ---
 id: 20261021-it0-baseline
-phase: PHASE_TBD
+phase: 미확인
 evidence_type: test-only
 gate_change: no
 ---
@@ -9,7 +9,8 @@ gate_change: no
 계획 v6.23 N6.5 순서 0 **card 0 IT-0**(검증자 측정, 엔진 무변경)이다. IT-1(N6.5)·IT-2(N6.6, 하위 card IT-2a~d -- 사용자 O-69 (2))의 **변화표 기준(as-built 기록)**과 **착수 전 필수 기록**을 한 판정 기록에 남긴다. 목표 한 줄: **엔진 소스를 한 줄도 바꾸지 않고, as-built와 §6.7-1a 모사 두 쪽에서 아래 '측정 항목' 표의 칸을 모두 재 판정 기록에 적는다. 값은 판정 기록에서만 인용한다(작성자 ≠ 검증자).**
 
 - card base = master `468e6e73`(XRUN-F1 card B 병합 `138a6db3` 포함 -- 계획 N6.5 순서 0 'base = IT-1의 실제 base = card B 병합 master'). 측정 base는 감사가 측정 시점 master 머리로 다시 정하고, `468e6e73` 이후 엔진 결과를 바꾸는 card(예: XRUN-F1 card C)가 병합됐으면 **그 master에서 잰다**(N6.5 순서 0 '다시 잰다'). base 커밋은 판정 기록 `base_commit`.
-- 경로 접두 `E/` = `skills/analog-gmid-design/gmid_engine/`. `P` = `docs/01-plan/features/gain-budget-gmid-sizing.plan.md`(master `468e6e73`), `D41` = `docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md` v1.12.3.
+- 경로 접두 `E/` = `skills/analog-gmid-design/gmid_engine/`. `P` = `docs/01-plan/features/gain-budget-gmid-sizing.plan.md`(master `468e6e73`), `D41` = `docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md` v1.12.3(인용 줄).
+- **동결 갱신(2026-10-21)**: 이 card 브랜치에 master `0de6a34a`(design 40/41/42 v1.12.4, 계획 v6.24 -- 사용자 결정 O-72 (1)·O-70 (2))를 병합했다. card 안 줄 번호 인용은 따로 '(v1.12.4)' 표시가 없으면 base `468e6e73` 값이다. 줄 이동(`git diff -U0 468e6e73 0de6a34a` hunk 실측): design 41은 735행 이상 +1(734행에 한 줄 추가), 계획은 318행 이상 +6·1110행 이상 +8; 그 앞 줄은 같다. 착수 때 감사가 다시 재는 규칙은 그대로다.
 - 근거 원문: P N6.5 순서 0(M-I1~M-I7), N6.6 완료 조건 (6)(발동률·front가 빈 회로 수)·(10) (a)(루프 절단 미적용), D41 4.7-8a(결과 칸 여섯), D41 4.7-3b 740행(구동 쌍 넷, IT-2 card C-2), D41 4.7-1a 멈춤 S-OS1·S-OS2(4.7-8a 마지막 칸), 사용자 결정 O-13 (2)(IT-Q2 판정 규칙), O-61 P4 (a)(b), O-64 (2), O-66(13회로 출력 구조 표), O-69 (2) C-3 해소(`_drafts/user_decisions.md`).
 - 이 card는 **test-only**다(선례 `.ai/verification/20261016-op1-baseline`: 검증자 보관 card, `code_commit` null). test 작성 주체·code 작성 주체가 없고 **interface card를 두지 않는다**. 산출물은 감사의 판정 기록 하나다.
 
@@ -87,6 +88,8 @@ gate_change: no
 
 checks 배정(op1-baseline 선례): V1 N/A(엔진 diff 0 -- `git diff --name-only <base>..<test_commit>`이 판정 기록 폴더 밖 0), V2 PASS 조건 = test-only 모양 + 모든 칸 채움(빈 칸이면 '측정 불가 + 사유'), V3 N/A(def 변경 0), V4 = 래퍼 무해 확인·결정성(같은 base 두 번 `it0_table.json` 수치 비트 동일), V5~V10은 해당 없으면 N/A와 근거. 판정 기록은 **감사만** 쓴다.
 
+- **잴 수 없는 칸의 처리**(design 41 v1.12.4 834행 '잴 수 없는 착수 실측의 처리', 사용자 결정 O-72 (1)): 칸을 잴 수 없으면 판정 기록에 **'미측정 + 사유'**로 적는다. 다른 회로·다른 점의 대체 측정을 만들어 넣지 않고, 조용히 진행하지 않는다 -- 오케스트레이터가 IT-2c code 착수 전에 사용자에게 보고한다. IT-2c 착수 실측 (a) `current_reuse_telescopic_ota` 봉인점 T_p·δA_num, (b) 진짜 A = 0 대칭 사례, (c) 오라클 실제 vntol·reltol(design 41 v1.12.4 834행)은 이 card의 측정 항목이 아니다 -- IT-2c 판정 기록 몫(IT-2 공통 문서 'IT-2c 착수 실측'). (a)가 지금 잴 수 없다는 근거(`layer0_start` 출발점 없음, `_drafts/evidence/2026-10-21/dvout_feasibility.md` 5행)는 이 card 작성 때 다시 재지 않았다(미확인).
+
 ### 사용자 보고 항목(결과가 이 조건이면 오케스트레이터가 사용자에게 올린다)
 
 | 항목 | 보고 조건 | 이유 |
@@ -139,7 +142,7 @@ test-only: 엔진 소스·test 변경 0이고 산출물은 측정 기록이다(�
 ## 결정 필요 항목
 
 - **D-1 SIM 방법**(오케스트레이터 확인, 사용자 결정 불요 예상): P N6.5 순서 0이 '§6.7-1a 모사 두 쪽'을 요구하고 방법은 정하지 않았다. 이 card는 '격리 복제본 측정 전용 패치'로 정한다. 감사가 쓴 패치가 IT-1 구현의 사실상 초안이 될 위험이 있어 code 작성 주체에게 주지 않는다(위 계약). **원래 취지와 다를 수 있는 점**: 옛 측정(D41 556행 `measure_v4.py`)은 연결 근사 스크립트였다 -- 이 card는 엔진 경로로 재므로 더 정확하나, 측정 주체가 엔진 코드 패치를 쓴다. 이것이 받아들여지지 않으면 SIM 쪽 M-I2~M-I5·SP·M-I4는 IT-1 code 커밋 뒤(같은 통합 브랜치)로 옮겨 재야 한다 -- 그 경우 IT-Q2 판정이 IT-1 구현 뒤로 밀린다(IT-1 design 정정 순서 1의 IT-Q2 반영도 함께).
-- **D-2 입력 DC 선언 2회로의 KW 칸**: as-built에 입력 포트 창이 없어 발동률이 정의되지 않는다. P N6.6 완료 조건 (6)은 '9회로 발동률'이라 적는다 -- 이 card는 '정의 안 됨(as-built 창 없음)'으로 적고, 그 두 회로의 발동률은 IT-2b 판정 변화표에서 처음 잰다. **원래 취지와 다를 수 있음 -- 보고 대상**.
+- **D-2 입력 DC 선언 2회로의 KW 칸**: as-built에 입력 포트 창이 없어 발동률이 정의되지 않는다. P N6.6 완료 조건 (6)은 '9회로 발동률'이라 적는다 -- 이 card는 '정의 안 됨(as-built 창 없음)'으로 적고, 그 두 회로의 발동률은 IT-2b 판정 변화표에서 처음 잰다. **받아들여짐**(사용자 결정 O-72 (3), 2026-10-21 '(권고)' -- 원래 취지와 다름 승인: 계획 N6.6 완료 조건 (6) '9회로'). 결정 끝, 보고 불요.
 - **D-3 S-OS2 '선언'에 `()` 포함 여부**: 두 수를 다 적고, 하나라도 발동하면 보고와 함께 design 문언 확인 요청.
 
 ## 작성 전 실측
@@ -154,6 +157,6 @@ test-only: 엔진 소스·test 변경 0이고 산출물은 측정 기록이다(�
 6. 미배선: 새 def 없음.
 7. 기존 계약 test: 해당 없음.
 8. V3 규모: 대상 0.
-9. 승인 줄: 없음(계획 정의 범위의 측정 -- D-1·D-2가 취지와 다르다고 판단되면 그때 decision 기록).
+9. 승인 줄: 없음(계획 정의 범위의 측정). D-2는 사용자 결정 O-72 (3)으로 받아들여졌다(원래 취지와 다름 승인 -- 결정 원문 `_drafts/user_decisions.md` 693행이 근거, 측정 범위를 넓히거나 기준을 약화하지 않으므로 별도 decision 기록 없음). D-1은 오케스트레이터 확인 항목 그대로.
 10. 범위 계약: diff = 판정 기록 폴더만.
 11~13. 해당 없음(test 없음).
