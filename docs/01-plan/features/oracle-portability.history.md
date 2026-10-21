@@ -636,3 +636,10 @@ graph 점검: 단일 출력 + 용량만 선언 ICMR 정의 자리 = gain-budget 
 * 경위(M2): gain-budget v6.27 둘째 커밋이 정의 문단에 '이상 전압원 = 지원 밖, 판정 정의 불능'을 넣었다(반례 T망의 X–gnd가 Vref이면 물리 답 '없음'인데 X를 고정으로 안 보면 거짓 '있음'). 오라클 입력에는 이상원 칸 `/sources`(design `e2fc006b` 839행, `kind: "current" | "voltage"`)가 있으므로 같은 정의대로 읽는 문장을 둔다 -- current는 엣지 아님, voltage가 있으면 정의 불능. `/bias_voltages`(844행, 게이트 전용 넷의 이상 전압)는 들어오는 엣지가 없는 넷이라 결과에 영향이 없다.
 * 바꾼 옛 문장: N3.9 ICMR 행 'DC 되먹임 판정' "오라클은 같은 정의를 자기 입력 `/passives`·`/feedback_passives`·`/devices`·`/rails`·`/ports`만으로 따로 구현한다" → 입력에 `/sources` 추가 + 이상원·`/bias_voltages` 문장; DR-24 입력 목록 "`/devices`(838행)·`/rails`(837행)" → 사이에 `/sources`(839행) 추가.
 * 확인(M3): gain-budget N3.8 슬루 행이 '**DC 되먹임 없는 선언 차동 출력**(판정 인용)'으로 바뀐 뒤에도 이 계획 N3.9 슬루 행('용량만 선언된 차동 출력 … v0.6.16 DC 성분 없음 = DC 되먹임 판정 없음, 정의 = gain-budget v6.27 N3.8')은 같은 뜻으로 읽힌다 -- 1b 경로 이름표('용량만 선언된 차동 출력')는 이름으로 둔다(검증 N6). 문언 변경 없음.
+
+### v0.6.16 셋째 커밋 -- 사용자 결정 O-83: 승인 (2026-10-21)
+
+* 근거: `wt/_drafts/user_decisions.md` O-83 행(AskUserQuestion "R-M1·R-N1 넣고 승인 (권고)", `plan_o81_validation.md` 재검증 94/100). Status '독립 검증·사용자 승인 전' → '승인됨(사용자 O-83)', N2 O-83 행. 병합 전 R-M1·R-N1은 gain-budget v6.27 셋째 커밋 몫(엔진 절단 넷 순수 함수)이라 이 계획 규칙 변경 없음.
+
+옛 문장(둘째 커밋 `aebdef17`):
+* > **Status**: **계획 v0.6.16 -- O-81·O-82 반영, 독립 검증·사용자 승인 전**
