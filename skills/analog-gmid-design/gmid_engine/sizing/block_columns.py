@@ -688,7 +688,7 @@ def _solve_input_window(c):
     roots = c.input_roots()
     if not roots:
         return _solve(c)
-    key = (THETA_Y, roots[0])
+    key = (THETA_Y, c.writers[roots[0]].y_key)
     requested = c.theta[key]
     c.theta[key] = _MID
     try:

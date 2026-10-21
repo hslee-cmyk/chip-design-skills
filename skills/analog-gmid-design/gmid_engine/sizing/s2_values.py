@@ -183,7 +183,7 @@ S2_WRITERS = WriterTable(
 @dataclasses.dataclass(frozen=True)
 class DcInputs:
     """GB7 이 읽는 사람 선언(spec)의 투영. `supplies_v` = ((레일, V), ...) 이름순, `input_dc_v` = 입력 포트 공통 DC(V) 또는
-    None(미선언·engine·결정 대기 -> U2 기본안 (a) W4), `node_targets` = ((넷, V), ...) W3, `element_values` =
+    None(미선언·engine·결정 대기 -> W4, 입력 포트인 뿌리의 y 키 = 그 뿌리 넷), `node_targets` = ((넷, V), ...) W3, `element_values` =
     ((원소, 값 또는 None), ...) 저항(Ω)·이상 전류원(A), `linear_devices` = 선형 영역 선언 소자(봉인 7 제외),
     `pending` = 결정 대기로 '미선언' 취급한 칸 ((경로, 결정 ID), ...), `engine_elements` = spec 값 mode 가 `engine` 인 원소
     이름(정렬) -- 그중 수동소자가 DEC-92 θ 연속 성분·구조 규칙 대상이다(결정 대기 원소는 들지 않는다)."""

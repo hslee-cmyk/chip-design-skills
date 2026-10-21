@@ -306,11 +306,20 @@ def test_structural_zero_current_mos(tmp_path, toy_access):
 #   current_reuse_telescopic_ota 29/38(전류 묶음 7개: M11a~M20a, M13~M22, M15~M25, M17~M8, M18a~M9a, M1a~M1b, M4a~M4b),
 #   common_gate 0/6, folded 0/16, ngcc 0/21, nmcnr 0/23, pushpull 0/8, sf 0/26, two_stage 0/10, two_stage_sf 0/12.
 # 파일럿 묶음 구성(design 문언): M1a~M1b 복원, M4a~M4b 대신 M19~M10.
-BASELINE_8E46548 = {
+# [IT-1 K-3, O-84 승인 20261021-it1-k3-ext] "8e46548 값 + IT-1 Δ": 같은 DC 엣지 제거로 입력쌍 경로가 나무가 되어 옛 cycle_vgs 종속 소자가 writer 가 된다
+# (승인된 동작 변경 O-72 (2)) -> 그 소자의 ln_idu 변수가 +1(current_reuse 는 새 tie ln_idu M4a~M4b +1). 값 출처 = 감사 9회로 변화표
+# (.ai/verification/20261021-it1-input-tie-removal/change_table_summary.json baseline_8e46548_delta, 설명되지 않는 변화 0). 8e46548 원값은 왼쪽에 둔다.
+_IT1_DELTA = {
+    "current_reuse_telescopic_ota": (1, 0), "folded_cascode": (0, 1), "ngcc_3stage_ff": (0, 1), "nmcnr_amplifier": (0, 1),
+    "two_stage_ota": (0, 1), "two_stage_ota_sf": (0, 1),
+}
+_BASELINE_8E46548_ORIGINAL = {
     "current_reuse_telescopic_ota": (29, 38), "common_gate_amplifier": (0, 6), "folded_cascode": (0, 16), "ngcc_3stage_ff": (0, 21),
     "nmcnr_amplifier": (0, 23), "pushpull_follower_buffer": (0, 8), "sf_pushpull_output_opamp": (0, 26), "two_stage_ota": (0, 10),
     "two_stage_ota_sf": (0, 12),
 }
+BASELINE_8E46548 = {k: (t + _IT1_DELTA.get(k, (0, 0))[0], v + _IT1_DELTA.get(k, (0, 0))[1])
+                    for k, (t, v) in _BASELINE_8E46548_ORIGINAL.items()}
 
 
 def _measured_domain(name, lut, tmp_path):

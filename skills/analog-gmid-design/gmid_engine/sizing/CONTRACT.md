@@ -424,7 +424,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   (devices (), margin None, detail item 7·reason `empty_window`·node·lo·hi·constraints). **VDsat 항 없음**(12절 O1 -- [r4] 열은
   생겼지만 창에 넣으려면 인접 MOS 의 gate·bulk·자기 노드를 W4 의존에 더해야 해서(4.3 변경) 결정 대기. 포화는 봉인 7 이 판정한다).
   [r3] `Window.constraints`(그리고 empty_window detail 의 `constraints`) = 창을 만든 순서 제약의 **개수**(위 MOS 마다 lo 또는
-  hi 하나씩 -- x 와 입력 묶음 전원에 채널(d 또는 s)이 닿는 MOS 수, 같은 MOS 가 두 묶음 전원에 닿으면 둘). 0 이면 창 = 레일 전압
+  hi 하나씩 -- x 에 채널(d 또는 s)이 닿는 MOS 수). 0 이면 창 = 레일 전압
   범위. 값이 lo·hi 를 실제로 좁혔는지는 뜻하지 않는다.
 - [r2] **1변수 노드**(self-referential: writer MOS 의 d·s·bulk 중 하나가 x 자신 -- diode 의 gate 쓰기, 소스 추종의 source
   쓰기)는 **구간 bisection**(설계 3.4): h(x) = x − g(x). 구간 = 레일 전압 범위 ∩ {writer 의 vds ∈ [VDS 정의역 하한, VDS 격자
@@ -884,7 +884,7 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 - **O3 DEC-95 (3) ②**(GB5 gm 요구·뒤 stage): 그 정보를 내는 S1v·GB5 가 없어 아직 적용하지 않는다(① diode, ③ 대칭 궤도 =
   구조 색은 적용). 남은 동률은 `TieBreak` 로 기록(9회로 중 current_reuse 만 5건). front 정규화 해시 metamorphic 은 탐색 뒤.
 - **O4 (해결)** F 없는 성분 뿌리 = (구조 색, 이름) 최소, 같은 색 후보는 `w4_root` 기록.
-- **O5 결정 대기 입력 DC(SP-2, 7회로)**: U2 기본안 (a)대로 W4(입력 공통모드 y). 노드 목표(CI-15)·의도 영역(CI-18)은 9회로 모두
+- **O5 결정 대기 입력 DC(SP-2, 7회로)**: IT-1 규칙대로 W4(입력 포트인 뿌리의 y 키 = 그 뿌리 넷; 같은 DC 엣지·input_tie 없음). 노드 목표(CI-15)·의도 영역(CI-18)은 9회로 모두
   결정 대기 -> W3 0개, 선형 선언 0개.
 - **O6 (해결)** θ 전류 정의역 = `ThetaSchema.current_cone`(KCL 기저에서 유도한 선형 부등식), 밖이면 `check_theta` 가 거부.
 - **O7 (닫음, 2026-10-08 사용자 승인)** core `GraphSnapshot.extend_writers` 로 `lift_s1` 이 S1 레코드를 공유한다(1.5).
