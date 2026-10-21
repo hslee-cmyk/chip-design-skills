@@ -149,7 +149,7 @@ class GraphSnapshot:
     def derive_child(self, keep_writers):
         """writer 가 `keep_writers` 안인 필드와 그 writer 의 `block_version` 만 남긴 새 스냅샷(계획 N3.3 스냅샷 파생 규칙, O-61 P1).
 
-        * 평가 커널이 parent 스냅샷에서 출발할 때 쓴다 -- 커널 밖 writer 의 낡은 필드는 '없음'이 '낡은 값'보다 안전하므로 eager 로 뺀다.
+        * 평가 커널이 parent 스냅샷에서 출발할 때 쓴다 -- keep(base writer ∪ 봉인 4 호출 목록의 블록) 밖 writer 의 낡은 필드는 '없음'이 '낡은 값'보다 안전하므로 eager 로 뺀다.
         * 권한표는 그대로, 남기는 레코드의 필드 `FieldValue` 는 객체째 공유한다(구조 공유). 필드가 다 빠진 레코드는 두지 않는다.
         * `keep_writers` 에 이 스냅샷이 모르는 이름이 있어도 거부하지 않는다(교집합). 이 스냅샷은 바뀌지 않는다.
         """
