@@ -31,8 +31,8 @@ card IT-2c -- 측정 구성. test 작성 주체는 소스를 보지 않고 이 �
 
 | id | 위치 | 내용(정본) | oracle | base |
 |---|---|---|---|---|
-| T-L8 | `tests/metrics/test_icm_config.py` | 41:810 (a)~(e), S-OS1·S-OS2 fail-closed(M7 metric 쪽 단언은 IT-2d) | (손) | red |
-| T-L10 | `tests/metrics/test_ss_nodal.py`·`test_icm_config.py` | 41:811 (b)~(g)((a)는 감사 착수 실측 기록); (f) red 먼저 | (손)+(독립) | red |
+| T-L8 | `tests/metrics/test_icm_config.py` | 41:811(v1.12.5) (a)~(e), S-OS1·S-OS2 fail-closed, (b) = (b1) 용량만 선언 단일 출력 toy → `config is None` + `icm_config_feedback_no_dc` 하나·`node.dc_window_cfg` 항목 없음, (b2) 저항 선언 단일 출력 toy → `config == "declared_feedback"`·선언 구성 창(손계산)(재동결 O-79/O-80)(M7 metric 쪽 단언은 IT-2d) | (손) | red |
+| T-L10 | `tests/metrics/test_ss_nodal.py`·`test_icm_config.py` | 41:812(v1.12.5) (b)~(g)((a)는 감사 착수 실측 기록); (f) red 먼저 | (손)+(독립) | red |
 | T-INH | `tests/metrics/test_icm_config.py` | 커널 `unsettled` → 평가점 모든 cfg 항목 `unsettled`; F 성분 미선언 → `f_component_undeclared`; 겹치면 definitional 우선 | (식) | red |
 | T-RES | 같은 파일 | 반전 입력 후보 0·2·분해능 이하 → 세 code(분해능 수치 단언 금지, 충분히 작은/큰 전달 양 끝만), role 이름 맞바꿈 같은 `inverting_port` | (손) | red |
 | T-FB | 같은 파일 | 되먹임 선언 세 상태(tuple·`()`·`None`)의 구성 갈래 = design 4.7-3b (1)·O-68 (2) 대조표(interface 아래) | (식) | red |

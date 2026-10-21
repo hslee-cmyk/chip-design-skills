@@ -27,7 +27,8 @@ card IT-2c -- 측정 구성. 범위: design 41 4.7-3b 전부(41:729-742 -- `ss_n
 - `IcmConfig.tied_ports` = 구성이 출력에 묶은 입력 포트(41:780 v1.12.4, 예 follower의 반전 입력) -- 이 card가 writer, 소비 = IT-2d `metrics_aux`·`metrics_icm_front`의 margin 포트 거름(gap G4, 공통 문서 'margin 대상 포트').
 - **착수 실측**(공통 문서 'IT-2c 착수 실측', design 41 v1.12.4 834행, O-71·O-72 (1)): (a) `current_reuse_telescopic_ota` 봉인점 T_p·δA_num (b) 진짜 A = 0 대칭 사례 (c) 오라클 vntol·reltol을 감사가 code 착수 전에 기록. 잴 수 없으면 '미측정 + 사유' 기록 + code 착수 전 사용자 보고, 대체 측정 없음.
 - 멈춤 S-OS1/S-OS2(O-67 (5)): `config` None, `undefined` = `icm_config_output_root_w3`/`icm_config_differential_output_structure` 하나, `node.dc_window_cfg` 항목 없음. O-67 (1)·O-68 (2)의 S-OS2 (나)는 계획·design 개정 뒤 후속 card(이 card 아님).
-- 판정 단언: L8 (a)~(e)(41:810), L10 (a)~(g)(41:811), L12 (b) cfg 이어받기·(c) cfg 쪽, 커널 상태 이어받기 T-INH.
+- 단일 출력 + DC 성분 없는(용량만) 선언 되먹임(41:734 (1), v1.12.5 -- 재동결 O-79/O-80): `config` None, `undefined` = `icm_config_feedback_no_dc` 하나, `node.dc_window_cfg` 항목 없음. DC 성분 = `DC_CONDUCTING_PASSIVE_KINDS`(`E/authoring/dc_edges.py:11`) import, 입력 하나면 `as_is_single_input` 먼저(O-80 R2).
+- 판정 단언: L8 (a)~(e)(41:811(v1.12.5)), L10 (a)~(g)(41:812(v1.12.5)), L12 (b) cfg 이어받기·(c) cfg 쪽, 커널 상태 이어받기 T-INH.
 
 graph 단일 정본 검사(이 card 범위): G1(`graph.ss_nodal` = `ss_nodal`, `node.dc_window_cfg`·`graph.icm_config` = `icm_config` 자리 하나씩; 전회로 `conductance_matrix(ss.circuit` = `ss_nodal` 하나; `kvl_sensitivity` 정의·호출 하나; `_transfer_resolution` 정의 하나·`icm_config.py` 비공개(분해능 식 재구현·사본 상수 0 -- `git grep`); `icm_config.py`에 G_vgs 걷기·`_edges`·끝 식 0), G2(`IcmConfig`에 `output_structure`·`kvl` 칸 없음; 되먹임 출처는 extras 참조, `ctx.base` 직접 읽기 0), G3(KVL 고정·`as_is_single_input` 끝 = `node.dc_window_cfg` 한 칸), G6(`graph.ss_nodal` → `icm_config`·`metrics_aux`; `node.dc_window_cfg` → `metrics_aux`(IT-2d 배선 전에는 감사가 '소비자 대기' 기록)·`dc_window_refine`(IT-2d); `graph.icm_config` → IT-2d 소비자, `transfer` 칸 출력 전용; `node.dc_output_structure`·`node.dc_window` 상태 칸의 소비자 = 이 card의 `icm_config` -- IT-2b의 대기 기록 해소), G7(같은 입력 버전 `ss_nodal` `computes` 증분 0·WP-10 중복 인자 0).
 
@@ -59,6 +60,7 @@ red-green. 새 이름은 존재 부재 red(`ImportError`·`AttributeError` -- 00
 - `NodalSystem` 배열 제자리 쓰기 → `ValueError`(L10 (f) -- `writeable=False` 뺀 변형에서 FAIL을 먼저 확인).
 - 선언 되먹임 소자를 절단한 봉인점 해 → `icm_config_feedback_cut`(definitional).
 - S-OS1·S-OS2 갈래 → 창 값 없이 code 하나(값이 나오면 red).
+- 단일 출력(입력 둘) + 용량만 선언 되먹임 → 창 값 없이 `icm_config_feedback_no_dc` 하나(값이 나오면 red; 재동결 O-79/O-80).
 
 ## 무동작 판정 입력(무발동 값)
 
