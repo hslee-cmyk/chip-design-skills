@@ -6,33 +6,523 @@
  "test_commit": "56b4a6060839649703876cd7f29cacaf813b7caf",
  "code_commit": null,
  "checks": {
-  "V1": {"verdict": "N/A", "basis": "엔진 diff 0: git diff --name-only c237d96e..56b4a606 중 .ai/verification/20261021-it0-baseline/ 밖 경로 0. SIM 패치(scripts/it1_sim.patch, sha256 d1485ffc3d77e2f0b96f974cdb2eece76d36d2eaabc0bdf5570154e32b6d58c0, 2파일 +13/-12, diff 변경 줄 25)는 격리 복제본 it0-sim에만 적용, 판정 기록 폴더에만 커밋."},
-  "V2": {"verdict": "PASS", "basis": "test-only 모양(code_commit null, red·equivalence 없음). 칸은 library 9 중 8회로 채움. ngcc_3stage_ff는 단계 A가 review_needed(exit 2, dc_role_unresolved_group M14·M8)로 멈춰 쓰기 계획 뒤 모든 칸(M-I1~M-I7·SP·KW·FE·C2·C3·LC)이 '미측정 + 사유'(report_items.json missing 24행). OS 칸은 13회로 전부 채움(연결 oracle)."},
-  "V3": {"verdict": "N/A", "basis": "엔진·oracle 소스 def 변경 0(base..test_commit diff가 판정 기록 폴더뿐)."},
-  "V4": {"verdict": "PASS", "basis": "결정성: AB·SIM을 같은 base에서 두 번 돌려(raw/AB vs raw/AB_rep2, raw/SIM vs raw/SIM_rep2) 시간 칸(eval_time_median_s·wall_s) 밖 모든 칸 JSON 비트 동일 -- 측정된 8회로 전부(checks_raw.json ab_rep_equal·sim_rep_equal true; ngcc_3stage_ff는 단계 A 칸만 비교). 래퍼 무해: AB 래퍼 없음 실행(raw/AB_nowrap)의 front 지문 front_fp가 래퍼 실행과 8회로 전부 같음(wrap_front_fp_equal true). nowrap common_gate_amplifier는 front_fp 저장 뒤 재평가 단계에서 측정 스크립트 KeyError('s_p', nowrap 갈래 미처리)로 끝났다 -- front_fp 칸은 그 전에 저장됨."},
-  "V5": {"verdict": "N/A", "basis": "test-only 측정 card -- 새 test·기대값 없음."},
-  "V6": {"verdict": "N/A", "basis": "엔진 변경 없음."},
-  "V7": {"verdict": "N/A", "basis": "엔진 변경 없음."},
-  "V8": {"verdict": "N/A", "basis": "엔진 변경 없음."},
-  "V9": {"verdict": "N/A", "basis": "엔진 변경 없음."},
-  "V10": {"verdict": "N/A", "basis": "엔진 변경 없음."}
+  "V1": {
+   "verdict": "N/A",
+   "basis": "엔진 diff 0: git diff --name-only c237d96e..56b4a606 중 .ai/verification/20261021-it0-baseline/ 밖 경로 0. SIM 패치(scripts/it1_sim.patch, sha256 d1485ffc3d77e2f0b96f974cdb2eece76d36d2eaabc0bdf5570154e32b6d58c0, 2파일 +13/-12, diff 변경 줄 25)는 격리 복제본 it0-sim에만 적용, 판정 기록 폴더에만 커밋."
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "test-only 모양(code_commit null, red·equivalence 없음). 칸은 library 9 중 8회로 채움. ngcc_3stage_ff는 단계 A가 review_needed(exit 2, dc_role_unresolved_group M14·M8)로 멈춰 쓰기 계획 뒤 모든 칸(M-I1~M-I7·SP·KW·FE·C2·C3·LC)이 '미측정 + 사유'(report_items.json missing 24행). OS 칸은 13회로 전부 채움(연결 oracle)."
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "엔진·oracle 소스 def 변경 0(base..test_commit diff가 판정 기록 폴더뿐)."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "결정성: AB·SIM을 같은 base에서 두 번 돌려(raw/AB vs raw/AB_rep2, raw/SIM vs raw/SIM_rep2) 시간 칸(eval_time_median_s·wall_s) 밖 모든 칸 JSON 비트 동일 -- 측정된 8회로 전부(checks_raw.json ab_rep_equal·sim_rep_equal true; ngcc_3stage_ff는 단계 A 칸만 비교). 래퍼 무해: AB 래퍼 없음 실행(raw/AB_nowrap)의 front 지문 front_fp가 래퍼 실행과 8회로 전부 같음(wrap_front_fp_equal true). nowrap common_gate_amplifier는 front_fp 저장 뒤 재평가 단계에서 측정 스크립트 KeyError('s_p', nowrap 갈래 미처리)로 끝났다 -- front_fp 칸은 그 전에 저장됨."
+  },
+  "V5": {
+   "verdict": "N/A",
+   "basis": "test-only 측정 card -- 새 test·기대값 없음."
+  },
+  "V6": {
+   "verdict": "N/A",
+   "basis": "엔진 변경 없음."
+  },
+  "V7": {
+   "verdict": "N/A",
+   "basis": "엔진 변경 없음."
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "엔진 변경 없음."
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "엔진 변경 없음."
+  },
+  "V10": {
+   "verdict": "N/A",
+   "basis": "엔진 변경 없음."
+  }
  },
  "reproduced_numbers": [
-  {"name": "M-I6/current_reuse_telescopic_ota/AB/cycles=dependent", "value": "22=22", "command": "C:/Python314/python.exe -I scripts/measure_it0.py it0-iso AB current_reuse_telescopic_ota library out/run"},
-  {"name": "M-I6/current_reuse_telescopic_ota/SIM/cycles=dependent", "value": "21=21", "command": "C:/Python314/python.exe -I scripts/measure_it0.py it0-sim SIM current_reuse_telescopic_ota library out/run"},
-  {"name": "M-I1-r/library/SIM/multi_root_circuits", "value": "0", "command": "scripts/run_all.sh; scripts/combine_it0.py out/run out/final (report_items.json)"},
-  {"name": "M-I4/library/SIM/circuits_with_port_diff", "value": "4 (folded_cascode, nmcnr_amplifier, two_stage_ota, two_stage_ota_sf -- θ0 봉인점) -> O-13 (다)", "command": "scripts/combine_it0.py out/run out/final"},
-  {"name": "OS/13/S-OS2", "value": "tuple_nonempty: current_reuse_telescopic_ota; empty_tuple: cnr_ota", "command": "scripts/combine_it0.py out/run out/final"},
-  {"name": "OS/13/O-66_mismatch", "value": "0 (15출력 KVL 7·HZ 8 일치)", "command": "scripts/combine_it0.py out/run out/final"},
-  {"name": "C2/library/failing_views", "value": "0", "command": "scripts/combine_it0.py out/run out/final"},
-  {"name": "LC/static_grep", "value": "1 (metrics/noise_plan.py:6 docstring 언급, 호출 아님)", "command": "git grep -n \"_feedback_cuts\\|input_terminal_nets\" -- E/sizing E/search E/metrics"},
-  {"name": "LC/dynamic_calls_after_stage_a", "value": "0 (8회로 AB·SIM)", "command": "scripts/combine_it0.py out/run out/final"},
-  {"name": "detail", "value": "회로별 수치 전부 = 20261021-it0-baseline/reproduced_numbers.json·it0_table.json", "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"}
+  {
+   "name": "M-I1-r/library9/SIM/multi_root_circuits",
+   "value": 0,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "M-I4/library9/SIM/circuits_with_port_diff(O-13 (다))",
+   "value": 4,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "OS/13/S-OS2_tuple_nonempty(current_reuse_telescopic_ota)",
+   "value": 1,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "OS/13/S-OS2_empty_tuple(cnr_ota)",
+   "value": 1,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "OS/13/S-OS1",
+   "value": 0,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "OS/13/O-66_mismatch",
+   "value": 0,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "C2/library8/failing_views",
+   "value": 0,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "C3/library8/feedback_None",
+   "value": 0,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "FE/library8/front_empty_circuits",
+   "value": 0,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "LC/static_grep_hits(metrics/noise_plan.py:6 docstring)",
+   "value": 1,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "LC/dynamic_calls_after_stage_a(8x2)",
+   "value": 0,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "F-component_undeclared/library8/SIM_circuits",
+   "value": 5,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "KW/remeasure_failed",
+   "value": 0,
+   "command": "bash scripts/run_all.sh && C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final"
+  },
+  {
+   "name": "M-I6/common_gate_amplifier/AB/cycles",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB common_gate_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/common_gate_amplifier/AB/dependent",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB common_gate_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/common_gate_amplifier/AB/n_front",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB common_gate_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/common_gate_amplifier/AB/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB common_gate_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "KW/common_gate_amplifier/AB/n_evals",
+   "value": 37,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB common_gate_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/common_gate_amplifier/SIM/cycles",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM common_gate_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/common_gate_amplifier/SIM/dependent",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM common_gate_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/common_gate_amplifier/SIM/n_front",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM common_gate_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/common_gate_amplifier/SIM/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM common_gate_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "KW/common_gate_amplifier/SIM/n_evals",
+   "value": 37,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM common_gate_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/current_reuse_telescopic_ota/AB/cycles",
+   "value": 22,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB current_reuse_telescopic_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/current_reuse_telescopic_ota/AB/dependent",
+   "value": 22,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB current_reuse_telescopic_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/current_reuse_telescopic_ota/AB/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB current_reuse_telescopic_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/current_reuse_telescopic_ota/AB/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB current_reuse_telescopic_ota <library|heldout> <out>"
+  },
+  {
+   "name": "KW/current_reuse_telescopic_ota/AB/n_evals",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB current_reuse_telescopic_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/current_reuse_telescopic_ota/SIM/cycles",
+   "value": 21,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM current_reuse_telescopic_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/current_reuse_telescopic_ota/SIM/dependent",
+   "value": 21,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM current_reuse_telescopic_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/current_reuse_telescopic_ota/SIM/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM current_reuse_telescopic_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/current_reuse_telescopic_ota/SIM/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM current_reuse_telescopic_ota <library|heldout> <out>"
+  },
+  {
+   "name": "KW/current_reuse_telescopic_ota/SIM/n_evals",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM current_reuse_telescopic_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/folded_cascode/AB/cycles",
+   "value": 5,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB folded_cascode <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/folded_cascode/AB/dependent",
+   "value": 5,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB folded_cascode <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/folded_cascode/AB/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB folded_cascode <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/folded_cascode/AB/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB folded_cascode <library|heldout> <out>"
+  },
+  {
+   "name": "KW/folded_cascode/AB/n_evals",
+   "value": 53,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB folded_cascode <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/folded_cascode/SIM/cycles",
+   "value": 4,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM folded_cascode <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/folded_cascode/SIM/dependent",
+   "value": 4,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM folded_cascode <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/folded_cascode/SIM/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM folded_cascode <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/folded_cascode/SIM/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM folded_cascode <library|heldout> <out>"
+  },
+  {
+   "name": "KW/folded_cascode/SIM/n_evals",
+   "value": 55,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM folded_cascode <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/nmcnr_amplifier/AB/cycles",
+   "value": 4,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB nmcnr_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/nmcnr_amplifier/AB/dependent",
+   "value": 4,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB nmcnr_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/nmcnr_amplifier/AB/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB nmcnr_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/nmcnr_amplifier/AB/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB nmcnr_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "KW/nmcnr_amplifier/AB/n_evals",
+   "value": 33,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB nmcnr_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/nmcnr_amplifier/SIM/cycles",
+   "value": 3,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM nmcnr_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/nmcnr_amplifier/SIM/dependent",
+   "value": 3,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM nmcnr_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/nmcnr_amplifier/SIM/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM nmcnr_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/nmcnr_amplifier/SIM/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM nmcnr_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "KW/nmcnr_amplifier/SIM/n_evals",
+   "value": 34,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM nmcnr_amplifier <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/pushpull_follower_buffer/AB/cycles",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB pushpull_follower_buffer <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/pushpull_follower_buffer/AB/dependent",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB pushpull_follower_buffer <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/pushpull_follower_buffer/AB/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB pushpull_follower_buffer <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/pushpull_follower_buffer/AB/n_input_w4_roots",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB pushpull_follower_buffer <library|heldout> <out>"
+  },
+  {
+   "name": "KW/pushpull_follower_buffer/AB/n_evals",
+   "value": 34,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB pushpull_follower_buffer <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/pushpull_follower_buffer/SIM/cycles",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM pushpull_follower_buffer <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/pushpull_follower_buffer/SIM/dependent",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM pushpull_follower_buffer <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/pushpull_follower_buffer/SIM/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM pushpull_follower_buffer <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/pushpull_follower_buffer/SIM/n_input_w4_roots",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM pushpull_follower_buffer <library|heldout> <out>"
+  },
+  {
+   "name": "KW/pushpull_follower_buffer/SIM/n_evals",
+   "value": 34,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM pushpull_follower_buffer <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/sf_pushpull_output_opamp/AB/cycles",
+   "value": 8,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB sf_pushpull_output_opamp <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/sf_pushpull_output_opamp/AB/dependent",
+   "value": 8,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB sf_pushpull_output_opamp <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/sf_pushpull_output_opamp/AB/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB sf_pushpull_output_opamp <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/sf_pushpull_output_opamp/AB/n_input_w4_roots",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB sf_pushpull_output_opamp <library|heldout> <out>"
+  },
+  {
+   "name": "KW/sf_pushpull_output_opamp/AB/n_evals",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB sf_pushpull_output_opamp <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/sf_pushpull_output_opamp/SIM/cycles",
+   "value": 8,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM sf_pushpull_output_opamp <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/sf_pushpull_output_opamp/SIM/dependent",
+   "value": 8,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM sf_pushpull_output_opamp <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/sf_pushpull_output_opamp/SIM/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM sf_pushpull_output_opamp <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/sf_pushpull_output_opamp/SIM/n_input_w4_roots",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM sf_pushpull_output_opamp <library|heldout> <out>"
+  },
+  {
+   "name": "KW/sf_pushpull_output_opamp/SIM/n_evals",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM sf_pushpull_output_opamp <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/two_stage_ota/AB/cycles",
+   "value": 3,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB two_stage_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/two_stage_ota/AB/dependent",
+   "value": 3,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB two_stage_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/two_stage_ota/AB/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB two_stage_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/two_stage_ota/AB/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB two_stage_ota <library|heldout> <out>"
+  },
+  {
+   "name": "KW/two_stage_ota/AB/n_evals",
+   "value": 38,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB two_stage_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/two_stage_ota/SIM/cycles",
+   "value": 2,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM two_stage_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/two_stage_ota/SIM/dependent",
+   "value": 2,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM two_stage_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/two_stage_ota/SIM/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM two_stage_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/two_stage_ota/SIM/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM two_stage_ota <library|heldout> <out>"
+  },
+  {
+   "name": "KW/two_stage_ota/SIM/n_evals",
+   "value": 41,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM two_stage_ota <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/two_stage_ota_sf/AB/cycles",
+   "value": 4,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB two_stage_ota_sf <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/two_stage_ota_sf/AB/dependent",
+   "value": 4,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB two_stage_ota_sf <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/two_stage_ota_sf/AB/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB two_stage_ota_sf <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/two_stage_ota_sf/AB/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB two_stage_ota_sf <library|heldout> <out>"
+  },
+  {
+   "name": "KW/two_stage_ota_sf/AB/n_evals",
+   "value": 33,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> AB two_stage_ota_sf <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/two_stage_ota_sf/SIM/cycles",
+   "value": 3,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM two_stage_ota_sf <library|heldout> <out>"
+  },
+  {
+   "name": "M-I6/two_stage_ota_sf/SIM/dependent",
+   "value": 3,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM two_stage_ota_sf <library|heldout> <out>"
+  },
+  {
+   "name": "M-I3/two_stage_ota_sf/SIM/n_front",
+   "value": 0,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM two_stage_ota_sf <library|heldout> <out>"
+  },
+  {
+   "name": "M-I1-r/two_stage_ota_sf/SIM/n_input_w4_roots",
+   "value": 1,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM two_stage_ota_sf <library|heldout> <out>"
+  },
+  {
+   "name": "KW/two_stage_ota_sf/SIM/n_evals",
+   "value": 38,
+   "command": "C:/Python314/python.exe -I scripts/measure_it0.py <iso-ab|iso-sim> SIM two_stage_ota_sf <library|heldout> <out>"
+  }
  ],
  "approvals": [],
  "auditor_run": {
   "time": "2026-10-21",
   "worktree": "격리 복제본 git clone --no-hardlinks --no-local -c core.longpaths=true wt/integ-it12 -> scratchpad/it0/it0-iso(AB), it0-sim(SIM 패치 적용) @ c237d96e",
-  "commands": ["C:/Python314/python.exe -I scripts/make_sim_patch.py it0-sim", "bash scripts/run_all.sh (AB·SIM library 9 + heldout 4, AB nowrap, AB·SIM rep2)", "C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final", "git grep -n \"_feedback_cuts\\|input_terminal_nets\" -- skills/analog-gmid-design/gmid_engine/{sizing,search,metrics}"]
+  "commands": [
+   "C:/Python314/python.exe -I scripts/make_sim_patch.py it0-sim",
+   "bash scripts/run_all.sh (AB·SIM library 9 + heldout 4, AB nowrap, AB·SIM rep2)",
+   "C:/Python314/python.exe -I scripts/combine_it0.py out/run out/final",
+   "git grep -n \"_feedback_cuts\\|input_terminal_nets\" -- skills/analog-gmid-design/gmid_engine/{sizing,search,metrics}"
+  ]
  }
 }
