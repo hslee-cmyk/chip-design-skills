@@ -19,7 +19,7 @@ def test_pass_and_independent_version_formula(ctx_c):
     snap, calls = eval_calls(ctx_c[2], theta_c())
     for blk, ex in calls:
         assert snap.block_version(blk.name) == expected_version(snap, blk, ex)
-    item = seal_versions(snap, calls)
+    item = seal_versions(snap, calls, ctx_c[2].base)
     assert isinstance(item, SealItem) and item.item == 4
     assert item.status == "pass"
     assert item.magnitude == 0 and item.tol == 0
@@ -34,7 +34,7 @@ def test_input_changed_after_compute_is_violation(ctx_c):
     exp = sorted(b.name for b, ex in calls if bad.block_version(b.name) != expected_version(bad, b, ex))
     assert {"dc_columns", "dc_widths"} <= set(exp)
     assert "dc_currents" not in exp
-    item = seal_versions(bad, calls)
+    item = seal_versions(bad, calls, ctx_c[2].base)
     assert item.status == "fail"
     assert tuple(dict(item.detail)["blocks"]) == tuple(exp)
     assert item.magnitude == len(exp) and item.tol == 0
@@ -44,7 +44,7 @@ def test_output_written_with_other_version_is_violation(ctx_c):
     """dc_op 를 다른 input_version 으로 다시 쓰면 block_version(dc_widths) 이 계산 버전과 다르다."""
     snap, calls = eval_calls(ctx_c[2], theta_c())
     bad = tamper(snap, "dc_widths", "device", "dc_op", {}, version="tampered")
-    item = seal_versions(bad, calls)
+    item = seal_versions(bad, calls, ctx_c[2].base)
     assert item.status == "fail"
     assert dict(item.detail)["blocks"] == ("dc_widths",)
     assert item.magnitude == 1
@@ -52,7 +52,7 @@ def test_output_written_with_other_version_is_violation(ctx_c):
 
 def test_empty_calls_pass(ctx_c):
     snap, _ = eval_calls(ctx_c[2], theta_c())
-    item = seal_versions(snap, ())
+    item = seal_versions(snap, (), ctx_c[2].base)
     assert item.status == "pass" and dict(item.detail)["n_checked"] == 0
 
 
