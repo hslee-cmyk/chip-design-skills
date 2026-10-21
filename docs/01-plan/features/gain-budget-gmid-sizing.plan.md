@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 6.27
+version: 6.30
 ---
 
 # gain-budget-gmid-sizing Planning Document
