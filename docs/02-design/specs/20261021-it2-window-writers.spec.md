@@ -1,0 +1,203 @@
+---
+id: 20261021-it2-window-writers
+phase: PHASE_TBD
+evidence_type: red-green
+gate_change: no
+approval: 20261021-it2-o67-scope
+---
+## 의도
+
+계획 v6.23 N6.6 card IT-2(입력 포트 창 writer·측정 구성 ICMR)를 design 41 v1.12.3 §4.7(4.7-1a·4.7-2~4.7-9), design 40 §2.4.8 IT-2 소유 행, design 42 D-IT2·D-ICM 그대로 구현한다. 목표 한 줄: **입력 공통모드 창을 계산하는 곳을 graph 필드 writer 블록으로만 두고(θ 프레임 창 `node.dc_window` = `dc_columns`, 측정 구성 판정 창 `node.dc_window_cfg`·`graph.icm_config` = `icm_config`, 다듬은 창 `node.dc_window_def_refined` = `dc_window_refine`, 출력 구조 분류 `node.dc_output_structure` = `dc_writer_plan`, 봉인점 컨덕턴스 계 `graph.ss_nodal` = `ss_nodal`, front 값 `graph.metrics_icm_front` = `metrics_icm_front`), metric은 그 필드를 읽기만 한다. 창 끝 식은 `saturation_window` 하나, 측정할 수 없거나 수렴하지 않은 창은 값 대신 사유가 있는 정의 불능(fail-closed)이다.**
+
+- card base = master `468e6e73`(design 40/41/42 v1.12.3 병합, 사용자 O-67). 착수 base는 IT-1 code 커밋이 올라간 통합 브랜치(아래 '병합 관계')다 -- 줄 번호는 착수 때 감사가 그 base에서 다시 잰다.
+- 경로 접두 `E/` = `skills/analog-gmid-design/gmid_engine/`. 줄 = design 41 `docs/02-design/features/gain-budget-gmid-sizing.41-gain-budget.design.md`(master `468e6e73`).
+- 사용자 결정 원문: `C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/user_decisions.md` O-19 (2), O-49 P1~P6, O-53 A-1·A-2, O-54, O-55 U1·U2, O-58 S-1~S-4·T-1, O-59 (1)(2), O-61 P1~P6, O-63 (4), O-64 (1)(2), O-66, O-67 (3)(5).
+- 이 card는 **동작 변경**이다(design 41 4.7-8 (1)~(7)). 무동작 입력은 없다(IT-2는 입력 DC 선언 회로에도 창을 만든다).
+
+### 병합 관계와 card 나눔(제안 -- 사용자 승인 필요, '결정 필요 항목' U-1)
+
+- **IT-1과 IT-2는 하나의 통합 병합**이다(사용자 결정 O-19 (2), design 41 4.7-8 '두 card는 각자 test·code 커밋을 갖고 하나의 통합 병합으로 들어간다 -- IT-1만 병합된 기간 없음', 4.7-1a '걷는 엣지'가 IT-1 뒤 `_edges`(같은 DC 엣지 없음)를 전제). 그래서 IT-2의 모든 code 커밋은 IT-1 code 커밋 위에 쌓이고 master 병합은 IT-1·IT-2 판정 모두 PASS 뒤 한 번이다.
+- 앞선 card: card 0(IT-0, 4.7-8a 결과 칸 -- 변화표 기준 기록·출력 구조 분류 발동·S-OS1/S-OS2 발동 수)이 IT-2 판정 전에 있어야 한다(변화표 원인 칸이 as-built = IT-0 기록 대비). 사용자 O-66(13회로 표 승인)은 IT-2 병합 조건을 채운다(O-67 지시).
+- **크기**: 아래 '바뀌는 def' 실측으로 이 card는 새 블록 넷·새 순수 함수 둘·helper 이동·스냅샷 파생 규칙·서명 변경 둘(`saturation_window`·`ls_swing`)·호출 배선 셋(`ss_evaluate`·`slsqp_outer`·`find_front`)을 담는다. 한 번의 test·code·audit로는 V3 변이 대상 def 수와 test 범위가 xrunf1b(6차 판정)보다 크다. 그래서 **같은 통합 브랜치 위 순서 있는 하위 card 넷**으로 나눈다(각자 test→code→audit, master 병합은 IT-1과 함께 마지막 한 번):
+
+| 하위 card | 범위(design 41) | 새/바뀌는 자리 | 앞 card |
+|---|---|---|---|
+| **IT-2a** `20261021-it2a-snapshot-derive` | 4.7-3c 스냅샷 파생 규칙(계획 N3.3·N6.6 범위 4, O-59 (2)·O-61 P1) | `GraphSnapshot.derive_child`, `run_kernel` parent 분기·일치 검사 넓힘, `seal_versions(snapshot, calls, base)` 단언 (3)(4), `seal_dc`가 `ctx.base` 전달 | IT-1 |
+| **IT-2b** `20261021-it2b-kernel-window` | 4.7-1a 출력 구조 분류, 4.7-2 `Window` 칸 셋, 4.7-3 커널 창 1~5, 4.7-3a 행 셋(S4 갈래), 4.7-4 helper 이동(`_helpers_dc_solve`)·`saturation_window` 새 서명, 4.7-6 `fd_jacobian` | `dc_writer_plan` WRITES·`DC_WRITES` 행, `dc_columns`, `Circuit.region_rows`·`input_windows`, `saturation_window`, `fd_jacobian._steps`, `_refine_ends` 삭제는 IT-2d | IT-2a |
+| **IT-2c** `20261021-it2c-icm-config` | 4.7-3b 전부(`ss_nodal`·`icm_config`·`kvl_sensitivity`·세 자리 이전·커널 상태 이어받기·S-3·멈춤 S-OS1/S-OS2 fail-closed) | 새 블록 둘, `ss_evaluate` 호출 자리(W5), `offset_analysis`·`offset_systematic`·`block_residual` factor 읽기 | IT-2b |
+| **IT-2d** `20261021-it2d-refine-front` | 4.7-4(`dc_window_refine`·끝 풀이·fail-closed·호출 자리), 4.7-5(`icm_window_metrics`·`IcmPort`·`IcmWindow`·`ls_swing` 새 서명·`metrics_aux` 합치기·`metrics_icm_front`·미수렴 front 처리·출력 전용 선언), 4.7-6 CONTRACT·소유표 | 새 블록 둘·순수 함수 하나, `search/front_windows.py`, `slsqp_outer.accept`·`find_front` 배선, perf `window_end_solves` | IT-2c |
+
+  나누지 않을 경우(U-1 거절): 이 문서 하나를 한 card로 쓰고 interface card도 하나다(아래 계약 번호 K·R·M·P·D·L8·L10·L11·L12·OS는 하위 card와 상관없이 같다). 나눔은 판정 단위만 바꾸고 design·완료 조건은 바꾸지 않는다 -- 범위 축소 아님.
+- 머리의 `phase: PHASE_TBD`는 오케스트레이터가 계획 N6.1 Phase 순서에서 읽어 채운다(게이트 파서는 이 값을 거부한다 -- 동결 전 채움 필수).
+
+## 관찰 가능한 계약
+
+번호는 design 41 4.7-7 test interface와 같다. 각 항목의 정본 문장은 design 41의 그 줄이고, 여기에는 판정 꼴만 적는다(정의 사본 없음).
+
+### 필드·writer (graph 단일 정본 -- 프로젝트 CLAUDE.md '★graph 단일 정본' 1~7)
+
+| 필드 | writer 블록(하나) | 상수 | 등록 | READS 하는 엔진 소비자(≥ 1) 또는 출력 전용 |
+|---|---|---|---|---|
+| `node.dc_output_structure` | `dc_writer_plan`(`E/sizing/writer_plan.py`) | `OUTPUT_HIGH_IMPEDANCE`·`OUTPUT_KVL_FIXED` | `DC_WRITES` `DC_WRITER_PLAN_WRITER` 행 | `icm_config`, `dc_window_refine` |
+| `node.dc_window`(범위 = 모든 입력 포트 + W4 뿌리, `Window` 칸 셋 추가) | `dc_columns` | -- | 그대로 | `fd_jacobian._steps`(W4 뿌리만), `icm_config`(상태 칸만) |
+| `graph.ss_nodal` | `ss_nodal`(`E/metrics/ss_nodal.py`, 진입점 `ss_nodal_system`) | `SS_NODAL_WRITER` | `SS_WRITES` | `icm_config`, `metrics_aux`(세 자리 factor) |
+| `node.dc_window_cfg` | `icm_config`(`E/metrics/icm_config.py`, 진입점 `icm_config_window`) | `ICM_CONFIG_WRITER` | `SS_WRITES` | `metrics_aux`(커널 metric·커널 ICMR 제약), `dc_window_refine`(출발 창), `metrics_icm_front`(cfg 출처 포트) |
+| `graph.icm_config` | `icm_config` | 같음 | 같음 | `dc_window_refine`, `metrics_aux`(M7), `metrics_icm_front`(M7); 칸 `transfer`는 출력 전용 |
+| `node.dc_window_def_refined` | `dc_window_refine`(`E/sizing/window_refine.py`, 진입점 `refine_input_windows`) | `DC_WINDOW_REFINE_WRITER` | `DC_WRITES` | `metrics_icm_front` |
+| `graph.metrics_icm_front` | `metrics_icm_front`(`E/metrics/icm_front.py`, 진입점 `icm_front`) | `METRICS_ICM_FRONT_WRITER` | `SS_WRITES` | **출력 전용**(EO-1 전) |
+| `node.dc_window_def` | **만들지 않는다**(DE-1 몫, writer 자리만 `icm_config`) | -- | -- | -- |
+
+계약 G(graph 단일 정본, 모든 하위 card 공통 -- 판정자가 별도 검사 항목으로 잰다):
+- G1 writer 하나: 위 표 필드마다 `@compute_block` WRITES 자리 하나와 권한표(`DC_WRITES`/`SS_WRITES`) 행 하나(`git grep`). 같은 값을 다른 자리에서 다시 계산하는 둘째 생산자 0 -- 특히 G_vgs 성분 걷기·`_edges` 호출은 `writer_plan.py`에만(`icm_config.py`·`window_refine.py`·`icm_front.py`에 0), 창 끝 식(행 교집합)은 `input_window.saturation_window`에만, 감도 연립 정본 `kvl_sensitivity` 정의·호출 자리 하나, `conductance_matrix(ss.circuit` 전회로 조립 = `ss_nodal` 하나(4.7-3b), 끝 풀이 함수 = `window_refine.py` 비공개 함수 하나(`_refine_ends` 삭제).
+- G2 새 cache 0: 엔진 소스에 새 `dict`·memo·`lru_cache`·`sctx.*` 슬롯·`EvalResult` 값 칸·`IcmWindow`/`IcmConfig` 사본 칸 0. 구체 부재 단언: `front_cache` 0(`git grep`), `IcmWindow`에 `criterion`·`config` 칸 없음, `IcmConfig`에 `output_structure`·`kvl` 칸 없음, `refine_front_windows` 반환이 `state["parent"]`·`sctx.cache`에 들어가지 않음(K3 (a)(b)). 재사용 길은 graph reuse와 실행 수명 S3 색인 graft 둘뿐(K3 (c), L10 (c), L11 (c)).
+- G3 같은 정의의 양은 필드 하나: KVL 고정·`as_is_single_input` 포트의 끝은 `node.dc_window_cfg` 한 칸(다듬은 창 항목 없음 -- L12 (c)), θ 프레임 창과 측정 구성 창은 축이 달라 두 필드(design 41 4.7-2 `node.dc_window_cfg` 행 근거).
+- G4 단계 사이 전달은 참조: `IcmWindow.sources` = (net, (kind, field)) 참조 tuple, 기준 표기는 그 필드의 `criterion` 칸·`graph.icm_config.config`를 직접 읽음.
+- G5 스냅샷 파생: child 스냅샷 = base writer(`ctx.base.block_versions` 키) ∪ 그 평가 커널 호출 블록 필드만(L11 (a)); 봉인 4 coverage·서로소 단언(L11 (b)).
+- G6 graph 계산값 소비: 위 표의 새·바뀐 필드마다 엔진 소비자 ≥ 1 또는 출력 전용 선언(design 41 4.7-5 '출력 전용 필드 선언' 넷: `graph.metrics_icm_front`, `RefinedWindow.criterion`·`IcmWindow.sources`, perf `window_end_solves`, `IcmWindow.model_error_ref`, + `IcmConfig.transfer`). 판정 = 각 필드 이름의 엔진 소스 READS·참조 `git grep` 수 표.
+- G7 계산값 재사용(G-10): 같은 입력 버전에서 `dc_writer_plan`·`ss_nodal`·`icm_config`·`dc_window_refine`·`metrics_icm_front` `computes` 증분 0, WP-10 중복 인자 0.
+
+### 동작 계약(test 단언 -- design 41 4.7-7·4.7-1a test, 하위 card 배정)
+
+| 계약 | 내용(정본 줄) | 하위 card |
+|---|---|---|
+| L11 (a)(b)(c) | 스냅샷 파생·봉인 4 단언 둘·ss 재평가 graft(41:812) | IT-2a |
+| OS (a)~(k) | 출력 구조 분류 toy 11꼴(41:727) -- (i) θ 무관·G-10, (j) 둘째 생산자 부재, (k) `_TIE` 부재 | IT-2b |
+| K1·K2 | 커널 창 항목·상태·손계산 오라클(41:799-800) | IT-2b |
+| P (a)(b) | 감도 음수 포트 [min, max], 선언 둘 같은 x 이동(41:808) -- 커널 창 쪽 | IT-2b(커널)·IT-2d(다듬은 창) |
+| D | `triode` 행·동작점 불일치 `op_mismatch`(41:809), `off`는 S4 갈래 | IT-2b(창)·IT-2d(metric code) |
+| M2 | `saturation_window` 하나·부르는 블록 셋(41:806) | IT-2b(정의)·IT-2c·IT-2d(호출) -- 최종 판정 IT-2d |
+| L12 (a) 커널 쪽 | `k_max` 소진·tol 미정 → `unsettled`, y 범위 그대로(41:813) | IT-2b |
+| L8 (a)~(e) | 측정 구성(follower·선언 되먹임·차동 미선언·KVL 고정·OS (d)(e)(f)·S-OS2·role 맞바꿈)(41:810) | IT-2c |
+| L10 (a)~(h) | 착수 실측·writer 하나·`ss_nodal` 하나·`kvl_sensitivity` 하나·되먹임 toy·불변 ndarray(red 먼저)·`as_is_single_input`·M7 quantity(41:811) | IT-2c((h)는 IT-2d) |
+| L12 (b) | F 성분 미선언 포트(41:813) | IT-2b(상태)·IT-2c(이어받기)·IT-2d(metric) |
+| K3 (a)~(d) | 커널 평가 중 두 블록 `computes` 0·parent 길 없음·두 번째 graft·`front_cache` 0(41:801) | IT-2d |
+| R1·R2 | 다듬은 창 끝·fail-closed 사유 둘(41:802-803, 주입 지점 둘만) | IT-2d |
+| M1·M3 | 커널·front 값 = `icm_window_metrics`, 재계산 0(41:804, :807) | IT-2d |
+| W1 | `find_front` front 점 스냅샷 배선(41:805) | IT-2d |
+| P (c)(d)(e) | (ii) 끝 포화 확인·READS에 `dc_v` 없음·`criterion`·`sources`(41:808) | IT-2d |
+| L12 (a) front 쪽·(c)(d) | 미수렴 점 다듬지 않음·front 제외, KVL·단일 입력 cfg 출처, READS(41:813) | IT-2d |
+
+### 정의 불능 code(새 어휘 -- 문자열 정본은 design 41, 상수 이름은 code 주체가 design 그대로)
+
+`input_window_unmeasured`·`input_window_unsettled`·`input_window_end_missing`(numeric), `input_window_operating_point_mismatch`·`input_window_f_component_undeclared`(definitional), `icm_config_differential_output_undeclared`·`icm_inverting_port_none`·`icm_inverting_port_ambiguous`·`icm_inverting_port_unresolved`·`icm_config_feedback_cut`·`icm_config_output_root_w3`(S-OS1)·`icm_config_differential_output_structure`(S-OS2)(definitional), 끝 사유 `window_end_solve_failed`·`window_end_k_max_exhausted`·`window_end_saturation_unconfirmed`. 원인이 여럿이면 definitional 먼저, 같은 category 안에서는 `ports` 순서 첫 포트(41:785).
+
+### 판정 분해능(O-67 (3) DV-17 -- 의존 항목)
+
+`icm_config` 반전 입력 식별의 '|T_p| > 판정 분해능'(41:734 (1))과 `icm_inverting_port_unresolved`의 분해능은 **계획 v6.24가 정하는 단일 정의 함수 하나에서 읽는다**(새 상수·card 안 식 금지). 계획 v6.24(`plan/gb-v624`)가 card 동결 전에 병합되지 않으면 이 card의 식은 'v6.24 정의 함수 하나에서 읽음'으로 남고, code 주체는 그 정의가 모호하거나 정의 함수가 master/통합 base에 없으면 **멈추고 보고**한다(멈춤 C-5). test는 분해능 값 자체를 단언하지 않고 '분해능 이하 toy → `icm_inverting_port_unresolved`'·'분해능 위 → 그 포트'를 정의 함수 출력과 비교하지 않는 손계산 양 끝(분해능보다 충분히 작은·큰 전달)으로만 단언한다.
+
+### 멈춤 S-OS1·S-OS2(O-67 (5) -- fail-closed 유지)
+
+일반형을 만들지 않는다. 실행 중 만나면 `graph.icm_config.config is None`, `undefined` = code 하나(`icm_config_output_root_w3` detail `(("output", 출력), ("root", W3 넷))` / `icm_config_differential_output_structure` detail `(("outputs", 출력 tuple),)`), `node.dc_window_cfg` 항목 없음, 세 metric은 M7 경로로 그 code 정의 불능, 선언 ICMR 제약 점은 unmeasured로 최종 front 제외(41:725-726, L8 (d)).
+
+## 신규 시그니처
+
+| 모듈 | 심볼 | 시그니처 |
+|---|---|---|
+| `gmid_engine.core.graph_snapshot` | `GraphSnapshot.derive_child` | `def derive_child(self, keep_writers) -> GraphSnapshot` |
+| `gmid_engine.sizing.seal_versions` | `seal_versions` | `def seal_versions(snapshot, calls, base)` |
+| `gmid_engine.sizing.s2_values` | `OUTPUT_HIGH_IMPEDANCE`, `OUTPUT_KVL_FIXED`, `BRANCH_INPUT_MULTIPLE_ROOTS`(IT-1), `DC_WINDOW_REFINE_WRITER`, `CRITERION_TOL_JUDGEMENT`, `CRITERION_DEFINITION`, `REASON_WINDOW_END_SOLVE_FAILED`, `REASON_WINDOW_END_K_MAX`, `REASON_WINDOW_END_UNCONFIRMED` | 상수 |
+| `gmid_engine.sizing.s2_values` | `Window` | `Window(lo, hi, constraints, input_status=None, tol_v=None, status_detail=())` |
+| `gmid_engine.sizing.s2_values` | `RefinedWindow`, `WindowEnd` | `RefinedWindow(lo, hi, lo_end, hi_end, tol_v, criterion)`, `WindowEnd(x, v, reason)` |
+| `gmid_engine.sizing._helpers_dc_solve` | `Circuit`, `solve`, `FAILURES`, `Circuit.region_rows` | 모듈 공개 이름(as-built `_Circuit`·`_solve`·`_FAILURES` 이동), `region_rows(values)` 행 = 5원소 `(a, b, sign, slack, kind)` |
+| `gmid_engine.sizing.input_window` | `saturation_window` | `def saturation_window(unknown, roots, values, gradient, rows, *, slope=None) -> tuple \| None` |
+| `gmid_engine.sizing.window_refine` | `refine_input_windows` | `@compute_block` 진입점 |
+| `gmid_engine.metrics.ss_nodal` | `ss_nodal_system`, `SS_NODAL_WRITER` | `@compute_block` 진입점 |
+| `gmid_engine.metrics.icm_config` | `icm_config_window`, `kvl_sensitivity`, `ICM_CONFIG_WRITER` | 진입점, `def kvl_sensitivity(nodal, drive, closure)` |
+| `gmid_engine.metrics.icm_window` | `icm_window_metrics` | `def icm_window_metrics(ports, input_dc, config_undefined=()) -> IcmWindow` |
+| `gmid_engine.metrics.icm_front` | `icm_front`, `METRICS_ICM_FRONT_WRITER` | `@compute_block` 진입점 |
+| `gmid_engine.metrics.aux_types` | `IcmPort`, `IcmWindow`, `IcmConfig`, `NodalSystem` | frozen dataclass(칸 = design 41 4.7-3b·4.7-5) |
+| `gmid_engine.metrics.ls_swing` | `ls_swing` | `def ls_swing(devices, rails, node_v, outputs, diff_outputs=False) -> SwingIcmr` |
+| `gmid_engine.search.front_windows` | `refine_front_windows` | `def refine_front_windows(sctx, result) -> EvalResult` |
+| `find_front` 결과 | perf 키 `window_end_solves` | 결과 칸 |
+
+없어지는 심볼: `block_columns._refine_ends`·`_Circuit`·`_solve`·`_FAILURES`(이동), `ls_swing`의 `inputs`·`input_dc_v` 인자, `saturation_window`의 옛 위치 인자 `root`(→ `roots`)와 4원소 `rows` 꼴. IT-1 몫 삭제(`REL_TIE`·`INPUT_GROUP_KEY` 등)는 IT-1 card.
+
+## 판정 유형 근거
+
+red-green: 새 필드·새 블록·새 code가 base에 없어 존재 부재 red(`ImportError`·`AttributeError`·새 키워드 `TypeError`는 시그니처 불변 진입점이 맡는 행동 red와 구별 -- 00-common §8.1), 그리고 시그니처 불변 진입점 `dc_columns`·`dc_writer_plan`·`run_kernel`·`seal_dc`·`find_front`·`metrics_aux` 경유 행동 red(K1 '항목 없음', P (a) 'lo > hi', D 'code 없음', L12 (a) '마지막 창 값', L8 (a) '순서 창 비례 끝', OS (d) `w3_target`·(e) 일괄 고임피던스, L11 (a) `_CONTEXT_WRITERS` keep). 결정성 비트 동일은 감사의 equivalence 측정(같은 head 두 번)이다.
+
+## oracle 종류와 출처
+
+(손) toy 연결의 선형 감도·KVL 손계산(design 41 4.7-7 '손계산 오라클', 이름 없는 toy -- 넷·소자 이름 맞바꿈 OS (h)·L8 (e)), (식) design 식 그대로(창 = 두 끝 전압 [min, max] ∩ 레일, margin·icmr·분해능 꼴 41:781-784), (비교) 같은 스냅샷 필드로 부른 `icm_window_metrics` 출력과 블록 출력의 같음(M1·W1), (독립) `RunCounters`·perf 증분과 `git grep` 수. 피검 함수를 불러 기대값을 만들지 않는다(M1·W1의 비교는 '같은 순수 함수로 두 경로가 같음'이고 기대 수치는 (손)으로 따로 단언). SPICE oracle 대조는 **보류**(card EO-1, 41:816).
+
+## 거부해야 할 입력
+
+- `derive_child` 뒤 base writer 버전이 `ctx.base`와 다른 parent → `ValueError`(L11 (a)).
+- 봉인 4: base writer ∪ 호출 블록 밖 writer 필드 → `SEAL_FAIL` detail `foreign_writers`; base writer ∩ 호출 블록 ≠ ∅ → `SEAL_FAIL` detail `base_call_overlap`(L11 (b) -- **'통과'가 아니라 '실제로 거부'를 먼저 확인**).
+- `RefinedWindow`는 `criterion` 없이 만들 수 없다(기본값 없음 -- `TypeError`).
+- `NodalSystem` 배열 제자리 쓰기 → `ValueError`(L10 (f), `writeable=False` 뺀 변형에서 FAIL 먼저 확인).
+- `saturation_window` 주입 지점 밖 내부 이름 monkeypatch는 test 금지(R2: `gmid_engine.sizing.window_refine.solve`·`.k_max`만).
+
+## library 회로 적용 여부
+
+적용한다(동작 변경). library 9회로 + heldout 4회로 발동 기록은 card 0(IT-0) 결과 칸(41:820-827)이고, IT-2 판정은 9회로 변화표(원인 칸 = as-built IT-0 기록 대비, 4.7-8 (1)~(7))와 결정성 비트 동일, G-10 9회로 0이다. 회로·소자·넷 이름 코드 0(EP-1, `git grep` 13회로 이름).
+
+## 무동작 판정 입력(무발동 값)
+
+없음(IT-2는 모든 회로에서 metric 출처를 바꾼다). 부분 무동작: θ 프레임 W4 y 범위(`node.dc_window` 뿌리 `lo`·`hi`, as-built 식 그대로 -- 4.7-3 1)와 `fd_jacobian` y 스텝 색인은 입력 포트 항목 추가에도 불변(9회로 FD 스텝 비트 동일 -- 감사).
+
+## 재현할 수치
+
+design 41 예시 리터럴(41:690, :780): `icm_window_metrics((IcmPort("vin_n", 0.90, 0.35, 1.20, 1.2e-4, ()), IcmPort("vin_p", 0.90, 0.33, 1.18, 1.2e-4, ())), "pending")` → `icm_margin_v` = 0.28(vin_p), `icmr_v` = 0.83, `required_input_cm_v` = (0.90, 0.33, 1.18). 그 밖 수치는 toy 손계산(test 주체 소유).
+
+## 결정 필요 항목
+
+- **U-1 card 나눔**(사용자): 위 IT-2a~IT-2d 넷으로 나눌지. 권고 = 나눔(원칙: card 크기·재시도 단위 축소, design·완료 조건 불변). 거절이면 한 card.
+- **U-2 S4 갈래**(오케스트레이터가 착수 때 확정, design 41:709): card base 실측 = EO-1 미병합(`E/authoring/spec_regions.py:16-17` `REGIONS = (REGION_TRIODE,)`) → **(S4-나)**: `region_rows` `kind` ⊆ {`"sat"`, `"triode"`}, 공용 전도 판정 함수·V_on 역함수 호출 0 부재 단언. 착수 전 EO-1이 병합되면 (S4-가)로 바꾸고 이 card를 다시 동결.
+- **U-3 판정 분해능 정의 함수**(계획 v6.24, O-67 (3) DV-17): 동결 때 v6.24 병합 여부와 정의 함수 이름을 적는다. 미병합이면 위 '판정 분해능' 절 그대로 + 멈춤 C-5.
+- **U-4 착수 실측 멈춤**(아래 C-1~C-4) 결과가 하나라도 '멈춤'이면 계획 먼저(S-7).
+- 그 밖 as-built 결정 금지 -- design에 없는 것은 멈추고 보고.
+
+## code 작성자 멈춤 조건(멈추고 보고 -- 만들지 않는다)
+
+- C-1 (41:833, 4.7-3b S-3) spec 루프 절단(`E/authoring/spec_elements.py:19-22`)이 쓰기 계획·봉인점 망에 적용됨.
+- C-2 (41:740) library 9회로·toy에서 구동 쌍 넷 ⊄ ac 접지 ∪ 입력 넷(`fixed`가 뷰에 따라 달라짐).
+- C-3 (41:731, :833) 커널 컨텍스트에 spec 되먹임 선언(`human.feedback.elements`) 값의 자리가 없음. **사전 실측(468e6e73)**: `E/sizing/`·`E/pipeline/`에 `feedback` 칸 0, `E/search/search_context.py:184`만 `spec.feedback`을 `noise_decl`에 넘긴다 → 착수 때 감사가 다시 재고, 자리가 없으면 이 card는 멈춘다(오케스트레이터가 착수 전 해소 경로를 사용자에게 올림 -- 열린 항목).
+- C-4 (41:756 (iii)) parent 없는 평가 스냅샷(`ctx.base`, 탐색 경로 `base = dc_ctx.base.widen(S0_WRITERS)` 뒤 S0 블록 포함)의 writer 가운데 평가 θ를 읽는 writer가 있음(서로소 전제 깨짐).
+- C-5 판정 분해능 정의 함수가 없거나 정의가 모호함(O-67 (3)).
+- C-6 실행 중 S-OS1·S-OS2 갈래 → 일반형을 만들지 않고 fail-closed code만(구현 대상이지 멈춤 아님). 그 밖 계획에 없는 출력 구조 갈래를 만나면 멈춤.
+- C-7 `saturation_window`의 `roots` 쌍 원소·`slope` 갈래 밖 새 감도 연립이 필요해 보임, 또는 `icm_config` READS에 design 밖 필드가 필요해 보임(정본 자리 없음 -- 계획부터, S-7·CLAUDE.md 규칙 6).
+
+## test 작성 주체 몫(code 주체는 고치지 않는다 -- 작성자 ≠ 검증자)
+
+- `E/tests/sizing/test_s2_values.py:118-124` `test_dc_writes_constant_matches_table`(`DC_TABLE` 기대에 `("node", "dc_output_structure")` → `dc_writer_plan`, `("node", "dc_window_def_refined")` → `dc_window_refine`)·`:127-128` `test_block_name_and_writes_match_table`(블록 WRITES = 표) -- design 41:719 MF-3. `SS_WRITES` 표 기대가 있으면 같이(`ss_nodal`·`icm_config`·`metrics_icm_front`).
+- `E/tests/metrics/test_aux_types.py:40`(`SwingIcmr(None, None, None)` -- 형식 불변이라 그대로, 새 타입 test 추가).
+- `ls_swing`·`saturation_window` 옛 서명을 부르는 test(`E/tests/sizing/test_input_window.py`, `ls_swing` 호출 test -- 착수 때 `git grep` 수 기록).
+- ss 블록 `reuse` 계수를 단언하는 search test(41:756 (i) -- `graft`로 바뀜, 변화표에 적고 새 기대로).
+- 새 test 파일(규칙 H 1:1): `tests/sizing/test_output_structure.py`, `test_window_refine.py`, `test__helpers_dc_solve.py`, `tests/metrics/test_ss_nodal.py`, `test_icm_config.py`, `test_icm_window.py`, `test_icm_front.py`, `tests/search/test_front_windows.py`, `tests/core/test_graph_snapshot.py`(있으면 그 파일에 `derive_child`) -- 이름 충돌은 착수 실측 2.
+
+## 작성 전 실측
+
+(master `468e6e73` worktree `wt/spec-it2`에서 2026-10-21 grep. 착수 base(IT-1 code 위)에서 감사가 다시 잰다.)
+
+1. 사실 문장 재측정: `E/sizing/writer_plan.py:73` WRITES 4필드(`dc_output_structure` 없음), `E/sizing/s2_values.py:143`(`DC_WRITES`)·`:146`(`DC_WRITER_PLAN_WRITER` 행)·`:173`(`SS_WRITES`)·`:180`(`S2_WRITERS`)·`:356`(`class Window`), `E/metrics/ss_evaluate.py:101`(`ss_dev`)·`:107`(`if aux_requests or views`), `E/sizing/kernel_run.py:72-75`(parent 분기·`PLAN_WRITERS` 검사), `E/sizing/block_columns.py:143`(`_Circuit`)·`:225`(`saturation_rows`)·`:246`(`input_windows`)·`:560`(`_solve`)·`:628`(`_FAILURES`)·`:663`(`_refine_ends`)·`:691`(`_solve_input_window`), `E/sizing/input_window.py:26`(`_sensitivities`)·`:48`(`saturation_window(unknown, root, values, gradient, rows)`), `E/search/fd_jacobian.py:54-55`, `E/sizing/seal_versions.py:14`(`seal_versions(snapshot, calls)`), `E/metrics/ls_swing.py:84`(`ls_swing(devices, rails, node_v, outputs, inputs, diff_outputs=False, input_dc_v=None)`), `E/search/slsqp_outer.py:153-155`(`accept`·`state["parent"]`), `E/search/find_front.py:51`·`:136-138`(`_point_record`), 세 factor 자리 `E/metrics/offset_analysis.py:69`·`offset_systematic.py:46`·`block_residual.py:73`. `derive_child`·`dc_window_cfg`·`icm_config`·`ss_nodal`·`dc_output_structure` 엔진 `.py` 0건. IT-1 미병합(`INPUT_GROUP_KEY`·`input_tie`·`REL_TIE` 엔진 비test 35건) -- IT-2 착수는 IT-1 code 뒤. EO-1 미병합(`spec_regions.py:16-17`).
+2. 이름 충돌: 새 test 파일 이름 가운데 기존: `tests/sizing/test_input_window.py`(고침 대상), `tests/metrics/test__helpers_nodal.py`(무관). `test_window_refine`·`test_output_structure`·`test__helpers_dc_solve`·`test_ss_nodal`·`test_icm_config`·`test_icm_window`·`test_icm_front`·`test_front_windows` 0건. `-k` 식 충돌은 test 주체가 `--collect-only`로 base·head 함께 보고(xrunf1b 3.3 규칙 상속).
+3. 원칙의 계약화: graph 단일 정본 1~7 → 계약 G1~G7(전 범위), fail-closed → '거부해야 할 입력'·정의 불능 code, 회로 이름 금지 → 'library 회로 적용 여부'.
+4. 쓰기 경로: test 주체는 interface card만(소스 열람 금지), 위 'test 작성 주체 몫'. 함수 레지스트리 §2(새 개념 정본: `saturation_window` 창 끝·`kvl_sensitivity`·`icm_window_metrics`·`derive_child`·`refine_front_windows`)는 code 주체 같은 변경.
+5. 계획서 소비자: 지우는 이름 `_refine_ends`는 계획 v6.23에서 '끝 풀이 함수 하나'로 바뀜(41:836 ㉠). `block_columns.py` 줄 인용(계획 N6.8 F-DE5, N6.6 F-I2-1·F-I2-4)은 각 문서 후속 정정(41:836) -- 이 card 범위 밖, 오케스트레이터 목록.
+6. 미배선: 새 def 전부 운영 경로에서 불린다(`ss_evaluate`→`ss_nodal`·`icm_config`, `slsqp_outer.accept`·`find_front`→`refine_front_windows`→`dc_window_refine`·`metrics_icm_front`, `metrics_aux`→`icm_window_metrics`, `run_kernel`→`derive_child`). 예외: `CRITERION_DEFINITION` 상수(DE-1이 씀 -- 41:689 '상수만 둔다')·`kvl_sensitivity` 공개(호출 자리 `icm_config` 하나는 배선됨). 층 0 front 후보 점 호출 자리는 LA-1 범위 12(41:774) -- 진입점은 이미 배선됨. V7 면제 승인 필요 없음(상수는 def 아님) -- 감사 확인.
+7. 기존 계약 test: `A/tests/contracts/` grep은 감사가 착수 때(엔진 tests는 `E/tests/structure` 규칙 A·B·C·H·M).
+8. V3 규모: 착수 base 미정(IT-1 code 미작성)이라 시뮬레이션 미실행 -- **IT-1 code 커밋 뒤 오케스트레이터가 하위 card마다 `tools/gates/mutate_changed.py` `changed_defs`·`mutants`·`inventory`를 돌려 이 칸을 채운 뒤 동결**(U-1 판단 근거 보강).
+9. 승인 줄: `approval: 20261021-it2-o67-scope`(초안 -- 아래 '승인 기록 초안'). design 승인(O-67)은 동작 변경을 덮는지 원문 확인 필요 -- 덮지 않으면 이 decision 기록이 덮는다.
+10. 범위 계약: 'diff 0' 계약은 이 card(하위 card) `Change-Id` 커밋들의 diff로 한정.
+11. test 이름·모양: 접두 `test_it2_`(또는 하위 card `test_it2a_`~`test_it2d_`), 피검 함수는 본문에서 직접 부름.
+12. 같음 판정: `Window`·`RefinedWindow`·`IcmWindow`는 frozen dataclass(필드 `==`), `tied_ports`·`status_detail`은 정렬 tuple, `IcmConfig.undefined`·`Undefined` 비교는 (quantity, code, category, detail) 튜플. `NodalSystem` 비교는 `fp_of`(`__canonical__`)만.
+13. red 모양: 존재 부재 red는 `ImportError`·`AttributeError`(허용 예외), 새 키워드 직접 호출 `TypeError`는 red로 세지 않는다(행동 red는 시그니처 불변 진입점이 맡음 -- '판정 유형 근거').
+
+## 승인 기록 초안(오케스트레이터가 사용자 승인 뒤 `.ai/approvals/`에 커밋)
+
+```text
+---
+id: 20261021-it2-o67-scope
+date: 2026-10-21
+target_kind: decision
+target: O-67-IT2-SCOPE
+scope: card IT-2(20261021-it2-window-writers, 하위 card IT-2a~IT-2d) -- design 41 v1.12.3 §4.7 IT-2 범위의 동작 변경(4.7-8 (1)~(7): 입력 창 출처 경로 합 -> 노드 풀이 창, margin 포트별 최솟값, 측정 실패·미수렴 정의 불능, no_input_port 회로의 swing_out_v, 단일 입력 cfg 출처, 미수렴 front 제외, 출력 구조 분류 갈래, S-OS1·S-OS2 fail-closed)과 card 나눔(U-1), IT-1과 하나의 통합 병합(O-19 (2)), O-66 13회로 표 승인이 병합 조건 충족
+---
+## 사용자 원문
+> (사용자 승인 원문을 그대로)
+## 범위 설명
+덮는 것: 위 동작 변경과 기존 test 기대 갱신(test_s2_values.py:118-128 DC_TABLE·블록 WRITES, ss 블록 reuse→graft 계수, ls_swing·saturation_window 옛 서명 호출). 덮지 않는 것: 그 밖 기준 약화(criteria_weakened), DE-1·EO-1·ME-1·HC-S 범위, S-OS1·S-OS2 일반형.
+```
+
+(기준 약화가 판정 중 나오면 별도 decision 기록 `20261021-it2-<항목>-weaken` -- xrunf1b O-19 선례.)
