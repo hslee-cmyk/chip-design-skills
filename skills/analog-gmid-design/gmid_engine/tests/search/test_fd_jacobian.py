@@ -169,3 +169,19 @@ def test_passive_theta_step_is_min_tol_gm_id(tmp_path, lut_sealed):
         xi = list(x)
         xi[i] = x[i] + h
         assert dict(res.theta)[comp] == pytest.approx(f(xi)[comp], rel=1e-14)
+
+
+def test_it2b_y_step_is_the_w4_root_window_width_only(tmp_path, lut_sealed):
+    """[card IT-2b T-FD, design 41 4.7-6] `node.dc_window` 에 입력 포트 항목이 늘어도 y 스텝 색인·크기는 W4 뿌리 창 폭만으로 정해진다.
+    oracle 대조: (식) 3.11 스텝 식 d/(hi − lo) (d = r4 VDS 격자 최소 간격 0.25 V, 손으로 읽은 LUT 격자) 에 회로 C 의 손계산 창을 넣는다:
+    W4 뿌리 out 의 창 = 레일 [0, 1.8](폭 1.8). 입력 포트 in 은 M1 gate, source = gnd 라 F 성분 미선언 포트 -- IT-2b 뒤에는 그 항목이 `node.dc_window` 에
+    들어오지만(lo·hi None) y 변수는 out 하나뿐이고 스텝은 0.25/1.8 그대로여야 한다. base·head 모두 통과(green 유지)."""
+    th = theta_r4c(y=0.3)
+    case, s, base, vs, x, f = _setup(tmp_path, lut_sealed, th)
+    y_vars = [v.component for v in vs if v.component[0] == "y"]
+    assert y_vars == [("y", "out")]                                       # 입력 포트 항목은 y 키를 만들지 않는다
+    i = [v.component for v in vs].index(("y", "out"))
+    skip = frozenset(j for j in range(len(vs)) if j != i)
+    res, h = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip)[i]
+    assert res is not None and res.status in ACCEPTED_STATUSES
+    assert abs(h) == pytest.approx(0.25 / 1.8, rel=1e-12)
