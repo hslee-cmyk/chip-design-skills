@@ -1197,7 +1197,7 @@ NEG_R = 17935.0                       # t -> d 저항(Ω): VDS(MT) ≈ 0.1 V (�
 
 
 NEG_QD = 20.0                       # 곡률 계수에 (1 + QD·VDS) 를 곱해 tol_V 셀이 VDS 에 따라 달라지게 한다(해마다 tolerance 가 다른 toy -- L12 (a) tol_v 판정)
-NEG_QV, NEG_VS_KINK = 0.05, 1.6    # VS > 1.6 V 에서만 ln ID 에 −QV·(VS − 1.6)² (동작 범위 밖): LUT 허용오차 tol_V 가 극소(1e-17)가 되어
+NEG_QV, NEG_VS_KINK = 0.005, 1.6   # VS > 1.6 V 에서만 ln ID 에 −QV·(VS − 1.6)² (동작 범위 밖): LUT 허용오차 tol_V 가 극소(1e-17)가 되어
                                     # A6 되풀이가 수렴 판정을 못 하는 일을 막는 곡률(구간 선형 ln ID 의 LOO 오차가 tol_V 를 정의한다)
 
 
@@ -1352,15 +1352,28 @@ def test_it2b_l12a_k_max_exhausted_root_window_is_unsettled_and_y_range_kept(tmp
     acc, ctx = _neg_ctx(tmp_path)
     y_req = 0.3
     assert y_req != 0.5
-    star = _window_of(_columns_with_declared(ctx, _neg_theta(ctx, 0.5)))["x"]               # (2) y = 1/2 풀이 성공
-    tol = star.tol_v                                      # 수렴한 창을 잰 해의 tolerance (이 LUT 는 VDS 에 따라 tol_V 셀이 달라 한 점의 표 값을 쓰지 않는다)
+    from gmid_engine.sizing import dc_widths
+    star_snap = _columns_with_declared(ctx, _neg_theta(ctx, 0.5))                           # (2) y = 1/2 풀이 성공
+    star = _window_of(star_snap)["x"]
+    # 기준 tol = 수렴 해의 소자 tol_V 셀 최솟값 -- 공개 표 API `tol_v_table(...).at(L, VDS, "id_equivalent")` 로 직접 읽는다(엔진 `tol_v` 출력을 쓰지 않는다;
+    # 해의 L·VDS 는 `dc_op` graph 필드). 이 LUT 는 VDS 에 따라 셀이 달라 한 점의 표 값을 쓰지 않는다.
+    ops = dict(dc_widths(star_snap, ctx.lut, donors=ctx.donors, counters=ctx.counters).column("device", "dc_op"))
+    tol = min(tol_v_table(acc.memo, op.kind, op.w_key).at(op.L, op.vds, "id_equivalent") for op in ops.values())
     assert tol is not None and 0.0 < tol < 1e-3
+    # 주입 값은 블록 입력 버전에 들지 않아 같은 ctx·같은 θ 로 다시 부르면 graph reuse 로 앞 결과가 돌아온다 -> 실행마다 새 ctx(새 실행)를 쓴다.
+    (tmp_path / "two").mkdir()
+    _, ctx_two = _neg_ctx(tmp_path / "two")
+    monkeypatch.setattr("gmid_engine.sizing.block_columns.k_max", lambda width, tol_: 2)
+    w_two = _window_of(_columns_with_declared(ctx_two, _neg_theta(ctx_two, y_req)))["x"]
     monkeypatch.setattr("gmid_engine.sizing.block_columns.k_max", lambda width, tol_: 1)
     snap = _columns_with_declared(ctx, _neg_theta(ctx, y_req))
     w = _window_of(snap)["x"]
-    assert max(abs(w.hi - star.hi), abs(w.lo - star.lo)) > tol                                # (3) 소진 분기에 도달(창 끝 하나라도 수렴값과 tol 넘게 다르다)
-    assert star.input_status == "measured"
+    # (3) 소진 분기에 도달 -- 공개 관측만(회차 수 자체는 엔진 출력으로만 알 수 있어 쓰지 않는다): 같은 toy·같은 θ 로 상한만 바꿔 새 실행에서 돌린 결과,
+    # 상한 2 는 수렴("measured")하고 상한 1 만 미수렴("unsettled")이다 -- 창 차 > tol 전제로는 소진을 증명하지 못한다(감사 반례: 창 차가 커도 소진이 없을 수 있음,
+    # 그리고 이 toy 에서는 창 차가 tol 보다 작아도 상한 1 에서 소진된다). 상한이 상태를 가른다는 것이 소진 도달의 직접 증거다.
+    assert w_two.input_status == "measured" and star.input_status == "measured"
     assert w.input_status == "unsettled"
+    assert w.tol_v is not None                            # A6 b(tol 미정)로 생긴 unsettled 가 아니라 k_max 소진(A6 c)이다
     assert 0.0 <= w.lo < w.hi <= 1.8
     assert abs(node_voltages(snap)["x"] - (w.lo + y_req * (w.hi - w.lo))) <= 1e-9
 
@@ -1672,8 +1685,8 @@ def test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution(t
     ops = dict(dc_widths(snap, ctx.lut, **run).column("device", "dc_op"))
     tol_last = min(tol_v_table(acc.memo, op.kind, op.w_key).at(op.L, op.vds, "id_equivalent") for op in ops.values())
     assert tol_first is not None and tol_last is not None
-    assert abs(tol_last - tol_first) > 1e-5                                    # 전제 (1)
+    assert abs(tol_last - tol_first) > 0.1 * tol_last                          # 전제 (1) (상대: 이 LUT 의 tol 은 1e-5 규모)
     w = _window_of(snap)["x"]
     assert w.tol_v is not None
-    assert abs(w.tol_v - tol_last) <= 2e-6, (w.tol_v, tol_last, tol_first)
-    assert abs(w.tol_v - tol_first) > 1e-5
+    assert abs(w.tol_v - tol_last) <= 0.02 * tol_last, (w.tol_v, tol_last, tol_first)
+    assert abs(w.tol_v - tol_first) > 0.1 * tol_last
