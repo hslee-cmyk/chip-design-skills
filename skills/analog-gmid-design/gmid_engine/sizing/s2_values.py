@@ -111,7 +111,13 @@ SCC_BISECTION = "bisection"
 SCC_DIRECT = "direct"
 
 # ---- 남은 동률(구조 색이 같은 후보)을 이름 순서로 깬 결정의 종류(`TieBreak.decision`)
-TIE_KRUSKAL = "writer_edge"                            # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
+OUTPUT_HIGH_IMPEDANCE = "high_impedance"               # `node.dc_output_structure` 분류 값 둘(설계 41 4.7-1a) -- 출력 포트 넷에만 쓴다
+OUTPUT_KVL_FIXED = "kvl_fixed"
+INPUT_STATUS_MEASURED = "measured"                     # `Window.input_status`(설계 41 4.7-2): 입력 포화 창을 재고 되풀이가 tol 안에서 수렴
+INPUT_STATUS_UNSETTLED = "unsettled"                   # 창은 잰 해에서 쟀으나 되풀이가 k_max 안에 수렴하지 않았거나 tol 미정
+INPUT_STATUS_UNMEASURED = "unmeasured"                 # 창을 잴 수 없다(뿌리 항목만)
+INPUT_STATUS_F_COMPONENT_UNDECLARED = "f_component_undeclared"   # F 성분에 속한 입력 DC 미선언 포트(lo·hi None)
+TIE_KRUSKAL = "writer_edge"                           # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
 TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
 TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원소 열이 θ 전류 기저/종속으로 갈림
 
@@ -140,7 +146,8 @@ DC_SEAL_REPORT_WRITER = "dc_seal_report"
 DC_WRITES = (
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
-    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))),
+    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"),
+                             ("node", "dc_output_structure"))),
     (KERNEL_CONTEXT_WRITER, (("graph", "fixed_values"), ("graph", "resistor_values"), ("graph", "l_ties"))),
     (DC_SCC_ORDER_WRITER, (("graph", "dc_scc_order"), ("node", "dc_column_nbrs"))),
     (DC_THETA_SCHEMA_WRITER, (("graph", "theta_schema"),)),          # graph/kernel: theta_schema (옛 graph/dc: dc_theta_schema 를 옮김, v1.9.1 D8)
@@ -351,11 +358,15 @@ class PathValue:
 
 @dataclasses.dataclass(frozen=True)
 class Window:
-    """W4 노드 창 [lo, hi](V). `constraints` = 창을 만든 인접 전도 MOS 순서 제약 수(0 이면 레일 전압 범위)."""
+    """노드 창 [lo, hi](V) -- W4 뿌리와 모든 입력 포트(설계 41 4.7-2). `constraints` = 창을 만든 인접 전도 MOS 순서 제약 수(0 이면 레일 전압
+    범위; 뿌리 아닌 입력 포트·선언 포트는 순서 창이 없어 0). `input_status` = None(입력 포트가 아닌 W4 뿌리) 또는 `INPUT_STATUS_*` 넷 중 하나,
+    `tol_v` = 그 창을 잰 해의 tolerance(미정이면 None). (`op_mismatch`·`status_detail` 은 EO-1 묶음 몫 -- 사용자 결정 O-98.)"""
 
     lo: float
     hi: float
     constraints: int
+    input_status: object = None
+    tol_v: object = None
 
 
 @dataclasses.dataclass(frozen=True)
