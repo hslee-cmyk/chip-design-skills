@@ -43,3 +43,5 @@ red 예상 목록 = 엔진 동작·엔진 트리 구조를 보는 test(green 유
 ## 판정 측정(audit)
 
 I-1, I-2 G1·G2·G3·G6(소비자 미배선 상태 기록)·G7, I-5 θ 프레임 W4 창·FD 스텝 9회로 비트 동일, I-6, I-7 회로 이름 0. (I-n 정의 = 공통 문서 interface 측정표.)
+
+- 출력 구조 분류표 대조(41:724, 감사 몫 -- test 작성 주체 몫 아님): 13회로 출력 15개의 `node.dc_output_structure`를 승인된 표(`C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-21/de1_output_structure_13.md` §2 41-57행 '새 분류', 사용자 결정 O-66 (1) -- `wt/_drafts/user_decisions.md:687`)와 대조해 변화표에 출력별로 적는다. 불일치면 구조 규칙을 고치기 전에 멈추고 보고, 병합 전에 W3 목표 선언(CI-15)·F 선언·코퍼스가 바뀌면 표를 다시 재고 승인받은 뒤 병합.
