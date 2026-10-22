@@ -15,8 +15,7 @@ import pytest
 
 import gmid_engine
 
-from .conftest import (build_ctx, free_currents, kschema, mos, node_voltages, r4_ln_idu, r4_tol_vdsat, r4_vdsat_at, run_blocks,
-                       topo)
+from .conftest import build_ctx, free_currents, kschema, mos, node_voltages, r4_ln_idu, r4_tol_vdsat, r4_vdsat_at, topo
 
 ENGINE = Path(gmid_engine.__file__).resolve().parent
 
@@ -32,6 +31,22 @@ def _toy_doc():
     return topo("it2b_triode", [mos("M1", "nmos", "out", "vb", "in", "gnd"), mos("M2", "pmos", "out", "pb", "vdd"),
                                 mos("M3", "nmos", "in", "vc", "gnd")],
                 {"in": ("input", "x"), "out": ("output", "y")}, bias=["vb", "pb", "vc"])
+
+
+def _columns(ctx, theta):
+    """`dc_columns` 를 커널과 같은 호출로 부른다: 5번째 extras = 선언 영역 소자 tuple(비어 있지 않을 때만, sizing CONTRACT 5.4). conftest `run_blocks` 는
+    이 extras 를 주지 않아 triode 선언이 커널 창에 닿지 않으므로 이 파일의 triode toy 는 이 함수로 부른다. (이 파일 앞 커밋은 `run_blocks` 를 썼다 -- 정정)"""
+    from gmid_engine.sizing import dc_columns, dc_currents, dc_lengths
+    from .conftest import kfixed, kres
+    run = dict(donors=ctx.donors, counters=ctx.counters)
+    th = dict(theta)
+    snap = dc_currents(ctx.base, tuple(sorted((k, v) for (t, k), v in th.items() if t == "current")), **run)
+    snap = dc_lengths(snap, tuple(sorted((k, v) for (t, k), v in th.items() if t == "L")), **run)
+    items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
+    extras = (kfixed(ctx), kres(ctx), ctx.lut)
+    if ctx.inputs.linear_devices:
+        extras += (tuple(ctx.inputs.linear_devices),)
+    return dc_columns(snap, items, *extras, **run)
 
 
 def _toy_ctx(tmp_path, access):
@@ -58,7 +73,7 @@ def test_it2b_d_triode_row_zero_crossing_is_the_window_end(tmp_path, r4_access):
     base 는 선언 소자를 행에서 빼서 M1 아래 끝을 놓친다(아래 끝이 M3 의 −0.4965 가 되어 다르다 -- red)."""
     y, vsg2 = 0.4, 0.4
     ctx = _toy_ctx(tmp_path, r4_access)
-    snap = run_blocks(ctx, _toy_theta(ctx, y, vsg2), upto="columns")
+    snap = _columns(ctx, _toy_theta(ctx, y, vsg2))
     V = node_voltages(snap)
     out = VIN + y * (1.8 - VIN)
     assert abs(V["out"] - out) <= 1e-9 and V["in"] == VIN                                       # 전제: 뿌리 식 손계산
@@ -83,7 +98,7 @@ def test_it2b_d_operating_point_mismatch_status_and_detail(tmp_path, r4_access):
     봉인이 같은 점을 거부하는 쪽은 card EO-1(봉인 7 의 triode 대조)이 base 에 없어 이 card 에서 단언하지 않는다."""
     y, vsg2 = 0.7, 0.3
     ctx = _toy_ctx(tmp_path, r4_access)
-    snap = run_blocks(ctx, _toy_theta(ctx, y, vsg2), upto="columns")
+    snap = _columns(ctx, _toy_theta(ctx, y, vsg2))
     assert r4_vdsat_at("nmos", 1e-6, VGS1, VIN) < 0.7 - r4_tol_vdsat("nmos")                    # 전제: 손계산으로 M1 은 포화
     w = dict(snap.column("node", "dc_window"))["in"]
     assert w.input_status == "op_mismatch"

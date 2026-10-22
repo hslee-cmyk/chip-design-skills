@@ -35,6 +35,11 @@ def assert_voltages(snap, ctx, theta):
     win_all = dict(snap.column("node", "dc_window"))
     roots = {n for n, w in dict(snap.column("node", "dc_writer")).items() if w.relation == "free_window"}
     win = {n: w for n, w in win_all.items() if n in roots}
+    # 단언 둘로 나눈다(약화 해소): (1) 뿌리 키 집합 등식, (2) 뿌리 밖 키는 모두 입력 포트(`node.port_direction` == "input" -- 피검 출력이 아닌 입력 필드).
+    # 측정 실패(A6 a)면 뿌리 아닌 포트 항목이 없으므로 '뿌리 ∪ 입력 포트' 전체 등식은 일반 불변식이 아니다(design 41 4.7-3 4).
+    input_ports = {n for n, d in dict(snap.column("node", "port_direction")).items() if d == "input"}
+    assert set(win_all) & roots == set(win_exp)
+    assert set(win_all) - roots <= input_ports
     assert set(win) == set(win_exp)
     for n, (lo, hi) in win_exp.items():
         assert isinstance(win[n], Window)
@@ -1163,3 +1168,151 @@ def test_it2b_l12b_f_component_port_without_declared_dc_has_undefined_window(tmp
     assert w.input_status == "f_component_undeclared"
     assert w.lo is None and w.hi is None and w.constraints == 0
     assert (win["out"].lo, win["out"].hi, win["out"].input_status) == (0.0, 1.8, None)
+
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# P(a) 감도 음수 포트 toy (design 41 4.7-3 2·4.7-7 P (a)) -- 이름 없는 toy + VDS 의존이 가파른 LUT 픽스처(이 파일 안에서 만든다)
+#
+# 연결: 입력 포트 x(뿌리) -MA follower-> t, 저항 R (t -> d), t -MB follower-> u, MT (d = d, g = p, s = u) triode 선언, 둘째 입력 포트 p,
+# 풀다운 MS (u, vs, gnd). 쓰기: t = x − VGS_A, u = t − VGS_B, d = t − I·R, p = u + VGS_T(vds = d − u) (p 는 vgs_gate, known u).
+# 손 유도(전류 고정 writer 식): F = ∂VGS/∂VDS = −h′(VDS)/G′ (전류 고정, 이득의 역수 꼴), η = ∂VGS/∂VSB = KS/G′.
+#   t -> u 엣지: s_u·(1 + |F_B| + η_B) = s_t, d: s_d = s_t (저항), u -> p 엣지(vgs_gate): s_p = s_u·(1 + |F_T| + η_T) − |F_T|·s_d.
+#   s_p < 0 조건: |F_T| > (1 + η_T)/(η_B + |F_B|). r4 LUT 는 |F| ≤ 0.018 이라 이 조건이 불가능 -> VDS < 0.2 V 에서 ln ID 기울기가 가파른(deep triode) LUT 를 둔다.
+# 픽스처 LUT: ln ID = ln I0 + B·VGS − CN·VGS²/2 + h(VDS) − KS·VS (+ VDSAT 열 = r4 식), h(VDS) = S1·min(VDS, D1) + S2·max(VDS − D1, 0).
+# 격자 VDS 0.0125 V 간격(노드에서 기울기 GDS = ID·h′ 정확 -> 구간 선형 ln ID 가 정확). VS 항을 선형으로 두어 η 를 상수로 한다(곡률은 VGS 축 CN 이 준다).
+# ---------------------------------------------------------------------------------------------------------------------------
+import json as _json  # noqa: E402
+
+import numpy as _np  # noqa: E402
+
+from gmid_engine.lut import load_lut_set as _load_lut_set  # noqa: E402
+
+from .conftest import (A as _A, B as _B, DEVICE_OF as _DEVICE_OF, I0 as _I0, R4_VDSAT as _R4_VDSAT, R4_VGS as _R4_VGS,  # noqa: E402
+                       R4_VS as _R4_VS, SUFFIX as _SUFFIX, TOY_SPEC as _TOY_SPEC, W_M as _W_M, _sha as _file_sha)
+
+NEG_CN, NEG_KS, NEG_S1, NEG_S2, NEG_D1 = 2.0, 2.0, 250.0, 0.1, 0.2
+NEG_VDS = tuple(round(0.0125 * i, 10) for i in range(161))                 # 0 .. 2.0 V
+NEG_I = 1e-5
+NEG_R = 17935.0                       # t -> d 저항(Ω): VDS(MT) ≈ 0.1 V (뿌리 창 중앙에서 손으로 맞춘 입력 값, 기대값 아님)
+
+
+def _neg_h(d):
+    return NEG_S1 * min(d, NEG_D1) + NEG_S2 * max(d - NEG_D1, 0.0)
+
+
+def _neg_slope(d):
+    return NEG_S1 if d < NEG_D1 else NEG_S2
+
+
+def _neg_ln_idu(vgs, vds, vsb):
+    return math.log(_I0["nmos"]) + _B * vgs - 0.5 * NEG_CN * vgs * vgs + _neg_h(vds) - NEG_KS * vsb
+
+
+def _neg_vgs_of(ln_idu, vds, vsb):
+    r = ln_idu - math.log(_I0["nmos"]) - _neg_h(vds) + NEG_KS * vsb
+    return (_B - math.sqrt(_B * _B - 2.0 * NEG_CN * r)) / NEG_CN
+
+
+def _write_neg_lut(root):
+    root.mkdir(parents=True, exist_ok=True)
+    g_l, g_g, g_d, g_s = (_np.asarray(g, dtype=float) for g in (R4_L, _R4_VGS, NEG_VDS, _R4_VS))
+    lg, g, s = g_l[:, None, None, None], g_g[None, :, None, None], g_s[None, None, None, :]
+    h_d = _np.vectorize(_neg_h)(g_d)[None, None, :, None]
+    s_d = _np.vectorize(_neg_slope)(g_d)[None, None, :, None]
+    entries = []
+    for kind in ("nmos", "pmos"):
+        idc = (_W_M / lg) * _I0[kind] * _np.exp(_B * g - 0.5 * NEG_CN * g * g + h_d - NEG_KS * s)
+        c0, c1, c2, cs, cl = _R4_VDSAT[kind]
+        il = _np.arange(len(g_l), dtype=float)[:, None, None, None]
+        arr = {"W": _np.float64(_W_M), "L": g_l, "VGS": g_g, "VDS": g_d, "VS": g_s, "ID": idc, "GM": idc * (_B - NEG_CN * g),
+               "GDS": idc * s_d, "VTH": _np.full(idc.shape, 0.4), "meta_json": _np.str_('{"model_files_sha256": {}}'),
+               "corner": _np.str_("tt"), "temp_c": _np.float64(27.0),
+               "VDSAT": (c0 + c1 * g + c2 * g * g + cs * s + cl * il) + _np.zeros(idc.shape)}
+        path = root / ("neg_%s.npz" % kind)
+        _np.savez(path, **arr)
+        entries.append({"device": _DEVICE_OF[kind], "file": path.name, "sha256": _file_sha(path)})
+    (root / "manifest.json").write_text(_json.dumps({"generator_sha256": "0" * 64, "slices": entries}), encoding="utf-8")
+    shape = (len(g_l), len(g_g), len(g_d), len(g_s))
+    cap = {"L": g_l, "VGS": g_g, "VDS": g_d, "VS": g_s, "w_ref_m": _np.float64(_W_M), "corner": _np.str_("tt"),
+           "temp_c": _np.float64(27.0)}
+    for kind in ("nmos", "pmos"):
+        cap["CGG" + _SUFFIX[kind]] = _np.full(shape, 1e-15)
+        cap["CGD" + _SUFFIX[kind]] = _np.full(shape, 2e-16)
+    _np.savez(root / "cap.npz", **cap)
+    return _load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), _TOY_SPEC)
+
+
+def _neg_doc():
+    net = [mos("MA", "nmos", "vdd", "x", "t", "gnd"), mos("MB", "nmos", "vdd", "t", "u", "gnd"),
+           mos("MT", "nmos", "d", "p", "u", "gnd"), mos("MS", "nmos", "u", "vs", "gnd")]
+    return topo("it2b_neg", net, {"x": ("input", "x"), "p": ("input", "x"), "u": ("output", "y")},
+                passives=[two("R", "resistor", "t", "d")], bias=["vs"])
+
+
+# θ 좌표: 소자 MA·MB 는 VGS 0.25 V, MT 는 VGS 0.8 V(VDS 0.1 V), MS 는 VGS 0.45 V 가 나오는 ln IDu(입력 값). 근사 동작점 t0 = 0.65, u0 = 0.4.
+NEG_LN = {"MA": _neg_ln_idu(0.25, 1.8 - 0.65, 0.65), "MB": _neg_ln_idu(0.25, 1.8 - 0.4, 0.4),
+          "MT": _neg_ln_idu(0.8, 0.1, 0.4), "MS": _neg_ln_idu(0.45, 0.4, 0.0)}
+
+
+def _neg_solve(x):
+    """독립 풀이(이분법): t = x − VGS_A(vds = 1.8 − t, vsb = t), u = t − VGS_B(vds = 1.8 − u, vsb = u), d = t − I·R, p = u + VGS_T(vds = d − u, vsb = u)."""
+    t = _bisect(lambda v: x - _neg_vgs_of(NEG_LN["MA"], 1.8 - v, v) - v, 1e-6, x - 1e-6)
+    u = _bisect(lambda v: t - _neg_vgs_of(NEG_LN["MB"], 1.8 - v, v) - v, 1e-6, t - 1e-6)
+    d = t - NEG_I * NEG_R
+    return t, u, d, u + _neg_vgs_of(NEG_LN["MT"], d - u, u)
+
+
+def _columns_with_declared(ctx, theta):
+    """`dc_columns` 를 커널과 같은 호출로 부른다: 5번째 extras = 선언 영역 소자 tuple(비어 있지 않을 때만, sizing CONTRACT 5.4). conftest `run_blocks` 는
+    이 extras 를 주지 않으므로 triode 선언 toy 는 이 함수로 부른다."""
+    from gmid_engine.sizing import dc_columns, dc_currents, dc_lengths
+    run = dict(donors=ctx.donors, counters=ctx.counters)
+    th = dict(theta)
+    snap = dc_currents(ctx.base, tuple(sorted((k, v) for (t, k), v in th.items() if t == "current")), **run)
+    snap = dc_lengths(snap, tuple(sorted((k, v) for (t, k), v in th.items() if t == "L")), **run)
+    items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
+    extras = (kfixed(ctx), kres(ctx), ctx.lut)
+    if ctx.inputs.linear_devices:
+        extras += (tuple(ctx.inputs.linear_devices),)
+    return dc_columns(snap, items, *extras, **run)
+
+
+def test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages(tmp_path):
+    """oracle 대조: (손)+독립 풀이 P (a). 경로 위 triode 선언 소자 MT(gds/gm 큼)가 있으면 비F 성분에서도 s_p < 0 이 된다.
+    손 유도: |F_B| = 0.1/G′_B, η_B = KS/G′_B, |F_T| = S1/G′_T, η_T = KS/G′_T (G′ = B − CN·VGS: MB 0.25 V -> 19.5, MT 0.8 V -> 18.4)
+    => η_B + |F_B| ≈ 0.108, |F_T| ≈ 13.6 > (1 + η_T)/(η_B + |F_B|) ≈ 10.3 이므로 s_p = s_u(1 + |F_T| + η_T) − |F_T|·s_t < 0 (s_u = s_t/(1 + |F_B| + η_B)).
+    포트 창 = 뿌리 끝 [lo_x, hi_x] 를 같은 해의 감도로 옮긴 두 끝 전압의 [min, max]: 뿌리를 두 끝으로 고정한 독립 풀이의 V(p) 로
+    기대 끝을 만든다(감도 옮김은 선형 '추정' -- 이 toy 에서 끝 오차 ≈ 0.02 V, 허용 0.06 V; 두 끝 전압 차 ≈ 0.33 V).
+    감도 음수라 뿌리 아래 끝이 포트 위 끝이 된다: 옛 식 V_p + s_p·(끝 − x_k) 를 정렬 없이 쓰면 lo > hi(red)."""
+    acc = new_access(_write_neg_lut(tmp_path / "neg_lut"))
+    (tmp_path / "ctx").mkdir()
+    ctx = build_ctx(tmp_path / "ctx", _neg_doc(), acc, linear_devices=("MT",))[2]
+    writers = dict(ctx.base.column("node", "dc_writer"))
+    assert writers["x"].relation == "free_window" and writers["p"].relation == "vgs_gate"        # 전제: x = 뿌리, p = 트리 경로 포트
+    th = {("L", m): 1e-6 for m in ("MA", "MB", "MS", "MT")}
+    th.update({("ln_idu", m): NEG_LN[m] for m in ("MA", "MB", "MS", "MT")})
+    th.update({("resistance", "R"): NEG_R, ("y", "x"): 0.5})
+    th.update(free_currents(ctx, {"MA": NEG_I, "MB": NEG_I, "MT": NEG_I, "MS": 2 * NEG_I, "R": NEG_I}))
+    assert set(th) == set(kschema(ctx).components)
+    snap = _columns_with_declared(ctx, th)
+    V = node_voltages(snap)
+    win = _window_of(snap)
+    root = win["x"]
+    # --- 전제: 독립 풀이가 이 toy 의 해를 재현하고, 부등식 조건이 손계산으로 성립하며, 음수 감도다
+    t, u, d, p = _neg_solve(V["x"])
+    assert max(abs(V["t"] - t), abs(V["u"] - u), abs(V["d"] - d), abs(V["p"] - p)) <= 2e-3
+    g_b, g_t = _B - NEG_CN * 0.25, _B - NEG_CN * 0.8
+    f_t, eta_t, f_b, eta_b = NEG_S1 / g_t, NEG_KS / g_t, 0.1 / g_b, NEG_KS / g_b
+    assert f_t > (1 + eta_t) / (eta_b + f_b)                                  # 손 유도 조건 (≈ 13.6 > 10.3)
+    assert 0.0 < d - u < NEG_D1                                               # MT 의 VDS 가 가파른 구간 안
+    h_x = 1e-5
+    s_p = (_neg_solve(V["x"] + h_x)[3] - _neg_solve(V["x"] - h_x)[3]) / (2 * h_x)
+    assert s_p < -0.1                                                         # 전제: dV_p/dx 음수 (≈ −0.30)
+    p_at_lo, p_at_hi = _neg_solve(root.lo)[3], _neg_solve(root.hi)[3]
+    assert p_at_lo - p_at_hi > 0.2                                            # 뿌리 아래 끝에서 p 가 더 높다
+    assert 0.0 < p_at_hi < p_at_lo < 1.8                                      # 레일 교집합이 끝을 자르지 않는다
+    # --- 관측: 입력 포트 p 의 창
+    port = win["p"]
+    assert port.input_status == "measured"
+    assert port.lo <= port.hi
+    assert abs(port.lo - p_at_hi) <= 0.06 and abs(port.hi - p_at_lo) <= 0.06, (port, p_at_hi, p_at_lo)
