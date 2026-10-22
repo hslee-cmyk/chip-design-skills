@@ -8,7 +8,7 @@ plan_version: 6.34
 
 > **Summary**: `bkit:gap-detector`가 설계 문서(40·41)와 구현을 대조할 때 쓰는 표다.
 > - 한 행이 FR·NFR·DEC·설계 항목 하나다.
-> - 열은 설계 절, 상태, 증거다. 증거는 `파일:행`, test 이름, 또는 재측정용 grep 패턴이다. 판 번호는 41에 맞춘다 -- v1.12.5는 41만 바꾼 판이라 이 문서는 v1.12.4에서 v1.12.6으로 건너뛰었다(검증 R7); v1.12.7 = 계획 v6.28(O-85·O-86) 맞춤, D-IT2 행; 둘째 커밋 = 사용자 O-87 (1)(차동 결합은 S-OS2 card 몫); 셋째 커밋 = 사용자 O-88(MOS 식별 = `device.element_class`); v1.13.0 = 계획 v6.34(사용자 O-106~O-110·DEC-103) 맞춤 -- D-ICM·D-IT2 행을 41 v1.13.0 §4.7에 맞춤(다듬은 창·`metrics_icm_front`·커널 미수렴 이어받기·출력 구조 분류·S-OS1 삭제, KCL 측정 구성 감도, E 칸; design 검증 `wt/_drafts/evidence/2026-10-22/design_v1130_validation.md` S-1), 재검증 대기.
+> - 열은 설계 절, 상태, 증거다. 증거는 `파일:행`, test 이름, 또는 재측정용 grep 패턴이다. 판 번호는 41에 맞춘다 -- v1.12.5는 41만 바꾼 판이라 이 문서는 v1.12.4에서 v1.12.6으로 건너뛰었다(검증 R7); v1.12.7 = 계획 v6.28(O-85·O-86) 맞춤, D-IT2 행; 둘째 커밋 = 사용자 O-87 (1)(차동 결합은 S-OS2 card 몫); 셋째 커밋 = 사용자 O-88(MOS 식별 = `device.element_class`); v1.13.0 = 계획 v6.34(사용자 O-106~O-110·DEC-103) 맞춤 -- D-ICM·D-IT2 행을 41 v1.13.0 §4.7에 맞춤(다듬은 창·`metrics_icm_front`·커널 미수렴 이어받기·출력 구조 분류·S-OS1 삭제, KCL 측정 구성 감도, E 칸; design 검증 `wt/_drafts/evidence/2026-10-22/design_v1130_validation.md` S-1), 재검증 90/100(`design_v1130_recheck.md`) 뒤 승인 대기.
 >
 > **기준 시점**: master `004b7d2`(2026-10-08 재측정. f0f0fb8 이후 바뀐 것은 ng-perf-sizing 병합분뿐이다).
 > - `[브랜치]` 표시: 그 브랜치에만 있는 구현이다.
