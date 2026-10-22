@@ -1,0 +1,17 @@
+{"variant": "none", "desc": "변형 없음(기준)", "applied": true, "D_b": "pass", "D_c": "pass", "D_d": "pass"}
+{"variant": "off_literal", "desc": "region_rows 에 off 행(문자열 상수)", "applied": true, "D_b": "FAIL", "D_c": "pass", "D_d": "pass"}
+{"variant": "off_module_const", "desc": "모듈 수준 상수 _ROW_OFF = \"off\" 로 off 행", "applied": true, "D_b": "FAIL", "D_c": "pass", "D_d": "pass"}
+{"variant": "off_imported_const", "desc": "s2_values 의 ROW_OFF = \"off\" 를 import 해 off 행", "applied": true, "D_b": "FAIL", "D_c": "pass", "D_d": "pass"}
+{"variant": "off_imported_alias", "desc": "import 별칭(as)으로 off 행 -- 측정 한계 확인", "applied": true, "D_b": "pass", "D_c": "pass", "D_d": "pass"}
+{"variant": "off_in_callee", "desc": "region_rows 가 부르는 mos_point 안에 \"off\"", "applied": true, "D_b": "FAIL", "D_c": "pass", "D_d": "pass"}
+{"variant": "op_point_vgs0_pos", "desc": "VGS=0 op_point(5번째 위치 인자 0)", "applied": true, "D_b": "pass", "D_c": "FAIL", "D_d": "pass"}
+{"variant": "op_point_vgs0_kw", "desc": "VGS=0 op_point(vgs=0 키워드)", "applied": true, "D_b": "pass", "D_c": "FAIL", "D_d": "pass"}
+{"variant": "op_point_vgs0_float", "desc": "VGS=0.0 op_point(실수 0)", "applied": true, "D_b": "pass", "D_c": "FAIL", "D_d": "pass"}
+{"variant": "off_current_read", "desc": "dc_off_current 속성 읽기", "applied": true, "D_b": "pass", "D_c": "FAIL", "D_d": "pass"}
+{"variant": "floor_read_str", "desc": "dc_conduction_floor 문자열 읽기", "applied": true, "D_b": "pass", "D_c": "FAIL", "D_d": "pass"}
+{"variant": "eo1_import", "desc": "EO-1 모듈 import(이름에 conduct)", "applied": true, "D_b": "pass", "D_c": "FAIL", "D_d": "pass"}
+{"variant": "eo1_import_other_name", "desc": "EO-1 꼴 import 이름에 conduct 없음 -- 대리 측정 한계", "applied": true, "D_b": "pass", "D_c": "pass", "D_d": "pass"}
+{"variant": "vocab_const", "desc": "s2_values 에 op_mismatch 상수", "applied": true, "D_b": "pass", "D_c": "pass", "D_d": "FAIL"}
+{"variant": "vocab_field", "desc": "Window.status_detail 칸", "applied": true, "D_b": "pass", "D_c": "pass", "D_d": "FAIL"}
+{"variant": "vocab_metric_code", "desc": "metric code 문자열", "applied": true, "D_b": "pass", "D_c": "pass", "D_d": "FAIL"}
+{"variant": "vocab_comment_only", "desc": "주석에만 어휘 -- green 유지 기대", "applied": true, "D_b": "pass", "D_c": "pass", "D_d": "pass"}

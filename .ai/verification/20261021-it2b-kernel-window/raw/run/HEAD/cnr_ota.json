@@ -1,0 +1,67 @@
+{
+ "circuit": "cnr_ota",
+ "os": {
+  "engine": null,
+  "engine_keys_not_outputs": null,
+  "input_dc_declared": false,
+  "input_dc_v": null,
+  "inputs": [
+   "VIN",
+   "VIP"
+  ],
+  "out_in_fprime": [],
+  "outputs": [
+   "VON",
+   "VOP"
+  ],
+  "rails": [
+   "VDD_1V8",
+   "VSS"
+  ],
+  "stop": {
+   "detail": [
+    [
+     "nets",
+     [
+      "VCR",
+      "VDD_1V8"
+     ]
+    ],
+    [
+     "reason",
+     "unsupported_rule_branch"
+    ],
+    [
+     "rule_branch",
+     "dc_resistor_cycle"
+    ]
+   ],
+   "devices": [
+    "x40"
+   ],
+   "exc": "StructureUnresolvedError",
+   "repr": "StructureUnresolvedError(\"{'class': 'STRUCTURE_UNRESOLVED', 'devices': ['x40'], 'margin': None, 'detail': {'nets': ('VCR', 'VDD_1V8'), 'reason': 'unsupported_rule_branch', 'rule_branch': 'dc_resistor_cycle'}}\")",
+   "stage_a": "stopped"
+  },
+  "w3": []
+ },
+ "repo": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_it2b_audit/h",
+ "set": "heldout",
+ "side": "HEAD",
+ "stage_a": {
+  "exit_code": 2,
+  "status": "stopped",
+  "stop_reasons": [
+   "unsupported_rule_branch|cs_output_low_impedance|loop:x47.M1:VCBN2|VCBN2|이득 블록 출력노드의 임피던스 등급이 낮다(CS 버퍼·종단 diode 부하)",
+   "unsupported_rule_branch|loop_record_only|loop:x47.M1:VCBN2|LPCO,VCBN2,VCON,VCONN,VON,VSC|global_feedback_or_cross_coupled",
+   "unsupported_rule_branch|loop_record_only|loop:x47.M1:VCBN2|LPCO,VCBN2,VCOP,VCOPN,VOP,VSC|global_feedback_or_cross_coupled",
+   "unsupported_rule_branch|undeclared_loop_constraint|loop:x47.M1:VCBN2|VCBN2|루프 뷰의 안정도 제약이 선언되지 않았다(포트쌍 CM 루프 대응이 아님)",
+   "unsupported_rule_branch|cs_output_low_impedance|loop:x48.M1:VCBN2|VCBN2|이득 블록 출력노드의 임피던스 등급이 낮다(CS 버퍼·종단 diode 부하)",
+   "unsupported_rule_branch|loop_record_only|loop:x48.M1:VCBN2|LPCO,VCBN2,VCON,VCONN,VON,VSC|global_feedback_or_cross_coupled",
+   "unsupported_rule_branch|loop_record_only|loop:x48.M1:VCBN2|LPCO,VCBN2,VCOP,VCOPN,VOP,VSC|global_feedback_or_cross_coupled",
+   "unsupported_rule_branch|undeclared_loop_constraint|loop:x48.M1:VCBN2|VCBN2|루프 뷰의 안정도 제약이 선언되지 않았다(포트쌍 CM 루프 대응이 아님)",
+   "A4_coupling: {'class': 'STRUCTURE_UNRESOLVED', 'devices': ['IDC', 'x24.M1'], 'margin': None, 'detail': {'devices': ('IDC', 'x24.M1'), 'message': '어느 블록에도 어느 기둥에도 속하지 않는 소자(DEC-71 (2), N6.2 6a)', 'reason': 'column_unassigned'}}"
+  ]
+ },
+ "wall_s": 0.7959024000447243
+}

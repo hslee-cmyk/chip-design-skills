@@ -1,0 +1,55 @@
+.FFF.................F...........F..............F.                       [100%]
+================================== FAILURES ===================================
+_________________ test_s2_writers_is_s1_plus_dc_table_exactly _________________
+gmid_engine\tests\sizing\test_s2_values.py:107: in test_s2_writers_is_s1_plus_dc_table_exactly
+    assert s2 == expected
+E   AssertionError: assert {('device', '...ymmetry', ...} == {('device', '...ymmetry', ...}
+E     
+E     Omitting 78 identical items, use -vv to show
+E     Right contains 1 more item:
+E     {('node', 'dc_output_structure'): 'dc_writer_plan'}
+E     Use -v to get more diff
+______________ test_one_writer_per_field_and_permission_enforced ______________
+gmid_engine\tests\sizing\test_s2_values.py:117: in test_one_writer_per_field_and_permission_enforced
+    assert S.S2_WRITERS.require(w, kind, field) is None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\core\writer_table.py:63: in require
+    raise WriterPermissionError("권한표에 없는 필드 " + repr((kind, field)) + " (writer " + repr(writer) + ")")
+E   gmid_engine.core.writer_error.WriterPermissionError: 권한표에 없는 필드 ('node', 'dc_output_structure') (writer 'dc_writer_plan')
+____________________ test_dc_writes_constant_matches_table ____________________
+gmid_engine\tests\sizing\test_s2_values.py:128: in test_dc_writes_constant_matches_table
+    assert got == DC_TABLE
+E   AssertionError: assert {('device', '...urrents', ...} == {('device', '...urrents', ...}
+E     
+E     Omitting 33 identical items, use -vv to show
+E     Right contains 1 more item:
+E     {('node', 'dc_output_structure'): 'dc_writer_plan'}
+E     Use -v to get more diff
+___________ test_block_name_and_writes_match_table[dc_writer_plan] ____________
+gmid_engine\tests\sizing\test_s2_values.py:135: in test_block_name_and_writes_match_table
+    assert set(b.writes) == {k for k, w in DC_TABLE.items() if w == name}
+E   AssertionError: assert {('device', '... 'dc_writer')} == {('device', '... 'dc_writer')}
+E     
+E     Extra items in the right set:
+E     ('node', 'dc_output_structure')
+E     Use -v to get more diff
+______ test_it2b_output_structure_vocabulary_and_window_status_defaults _______
+gmid_engine\tests\sizing\test_s2_values.py:223: in test_it2b_output_structure_vocabulary_and_window_status_defaults
+    assert s2_values.OUTPUT_HIGH_IMPEDANCE == "high_impedance"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'gmid_engine.sizing.s2_values' has no attribute 'OUTPUT_HIGH_IMPEDANCE'
+________________________ test_value_fields_as_contract ________________________
+gmid_engine\tests\sizing\test_s2_values.py:285: in test_value_fields_as_contract
+    assert names(S.Window) == ("lo", "hi", "constraints", "input_status", "tol_v")
+E   AssertionError: assert ('lo', 'hi', 'constraints') == ('lo', 'hi', ...tus', 'tol_v')
+E     
+E     Right contains 2 more items, first extra item: 'input_status'
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/sizing/test_s2_values.py::test_s2_writers_is_s1_plus_dc_table_exactly
+FAILED gmid_engine/tests/sizing/test_s2_values.py::test_one_writer_per_field_and_permission_enforced
+FAILED gmid_engine/tests/sizing/test_s2_values.py::test_dc_writes_constant_matches_table
+FAILED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_writer_plan]
+FAILED gmid_engine/tests/sizing/test_s2_values.py::test_it2b_output_structure_vocabulary_and_window_status_defaults
+FAILED gmid_engine/tests/sizing/test_s2_values.py::test_value_fields_as_contract
+6 failed, 44 passed in 0.86s

@@ -1,0 +1,37 @@
+{
+ "circuit": "rfc_ota",
+ "os": {
+  "engine": {
+   "out": "high_impedance"
+  },
+  "engine_keys_not_outputs": [],
+  "input_dc_declared": true,
+  "input_dc_v": "0x1.051eb851eb852p+0",
+  "inputs": [
+   "vin_n",
+   "vin_p"
+  ],
+  "out_in_fprime": [],
+  "outputs": [
+   "out"
+  ],
+  "rails": [
+   "gnd",
+   "vdd"
+  ],
+  "stop": {
+   "stage_a": "review_needed",
+   "writer_plan": "ok"
+  },
+  "w3": []
+ },
+ "repo": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_it2b_audit/h",
+ "set": "heldout",
+ "side": "HEAD",
+ "stage_a": {
+  "exit_code": 2,
+  "status": "review_needed",
+  "stop_reasons": []
+ },
+ "wall_s": 0.5521137999603525
+}

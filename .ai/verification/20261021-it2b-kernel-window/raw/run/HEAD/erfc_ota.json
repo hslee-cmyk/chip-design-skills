@@ -1,0 +1,65 @@
+{
+ "circuit": "erfc_ota",
+ "os": {
+  "engine": null,
+  "engine_keys_not_outputs": null,
+  "input_dc_declared": true,
+  "input_dc_v": "0x1.999999999999ap-1",
+  "inputs": [
+   "vin_n",
+   "vin_p"
+  ],
+  "out_in_fprime": [],
+  "outputs": [
+   "out"
+  ],
+  "rails": [
+   "gnd",
+   "vcn",
+   "vcp",
+   "vdd"
+  ],
+  "stop": {
+   "detail": [
+    [
+     "reason",
+     "unsupported_rule_branch"
+    ],
+    [
+     "rule_branch",
+     "mos_zero_current_structural"
+    ]
+   ],
+   "devices": [
+    "M19",
+    "M20",
+    "M21"
+   ],
+   "exc": "StructureUnresolvedError",
+   "repr": "StructureUnresolvedError(\"{'class': 'STRUCTURE_UNRESOLVED', 'devices': ['M19', 'M20', 'M21'], 'margin': None, 'detail': {'reason': 'unsupported_rule_branch', 'rule_branch': 'mos_zero_current_structural'}}\")",
+   "stage_a": "stopped"
+  },
+  "w3": []
+ },
+ "repo": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_it2b_audit/h",
+ "set": "heldout",
+ "side": "HEAD",
+ "stage_a": {
+  "exit_code": 2,
+  "status": "stopped",
+  "stop_reasons": [
+   "unsupported_rule_branch|cs_output_low_impedance|transfer:0|A|이득 블록 출력노드의 임피던스 등급이 낮다(CS 버퍼·종단 diode 부하)",
+   "unsupported_rule_branch|cs_output_low_impedance|transfer:0|B|이득 블록 출력노드의 임피던스 등급이 낮다(CS 버퍼·종단 diode 부하)",
+   "unsupported_rule_branch|cs_output_low_impedance|transfer:0|n_m5s|이득 블록 출력노드의 임피던스 등급이 낮다(CS 버퍼·종단 diode 부하)",
+   "unsupported_rule_branch|cs_output_low_impedance|transfer:0|n_m6s|이득 블록 출력노드의 임피던스 등급이 낮다(CS 버퍼·종단 diode 부하)",
+   "unsupported_rule_branch|loop_record_only|transfer:0|A,n_m11d,n_m13g|two_active_cells_without_passive",
+   "unsupported_rule_branch|loop_record_only|transfer:0|B,n_m12d,n_m14g|two_active_cells_without_passive",
+   "unsupported_rule_branch|undeclared_loop_constraint|loop:M17A:Y|Y|루프 뷰의 안정도 제약이 선언되지 않았다(포트쌍 CM 루프 대응이 아님)",
+   "unsupported_rule_branch|undeclared_loop_constraint|loop:M18A:X|X|루프 뷰의 안정도 제약이 선언되지 않았다(포트쌍 CM 루프 대응이 아님)",
+   "unsupported_rule_branch|undeclared_loop_constraint|loop:M3A:Z|Z|루프 뷰의 안정도 제약이 선언되지 않았다(포트쌍 CM 루프 대응이 아님)",
+   "unsupported_rule_branch|undeclared_loop_constraint|loop:M4A:Z|Z|루프 뷰의 안정도 제약이 선언되지 않았다(포트쌍 CM 루프 대응이 아님)",
+   "A4_coupling: {'class': 'STRUCTURE_UNRESOLVED', 'devices': ['M21'], 'margin': None, 'detail': {'devices': ('M21',), 'message': '어느 블록에도 어느 기둥에도 속하지 않는 소자(DEC-71 (2), N6.2 6a)', 'reason': 'column_unassigned'}}"
+  ]
+ },
+ "wall_s": 0.3924122001044452
+}

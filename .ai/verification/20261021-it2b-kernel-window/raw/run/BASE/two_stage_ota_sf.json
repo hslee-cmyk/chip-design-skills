@@ -1,0 +1,11 @@
+{
+ "circuit": "two_stage_ota_sf",
+ "repo": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_it2b_audit/b",
+ "set": "library",
+ "side": "BASE",
+ "stage_a": {
+  "exit_code": 0,
+  "status": "ok",
+  "stop_reasons": []
+ }
+}

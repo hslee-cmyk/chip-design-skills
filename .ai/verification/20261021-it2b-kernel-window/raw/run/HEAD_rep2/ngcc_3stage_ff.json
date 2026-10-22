@@ -1,0 +1,37 @@
+{
+ "circuit": "ngcc_3stage_ff",
+ "os": {
+  "engine": {
+   "Vout": "high_impedance"
+  },
+  "engine_keys_not_outputs": [],
+  "input_dc_declared": false,
+  "input_dc_v": null,
+  "inputs": [
+   "Vinn",
+   "Vinp"
+  ],
+  "out_in_fprime": [],
+  "outputs": [
+   "Vout"
+  ],
+  "rails": [
+   "gnd",
+   "vdd"
+  ],
+  "stop": {
+   "stage_a": "review_needed",
+   "writer_plan": "ok"
+  },
+  "w3": []
+ },
+ "repo": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_it2b_audit/h",
+ "set": "library",
+ "side": "HEAD_rep2",
+ "stage_a": {
+  "exit_code": 2,
+  "status": "review_needed",
+  "stop_reasons": []
+ },
+ "wall_s": 0.3674746999749914
+}

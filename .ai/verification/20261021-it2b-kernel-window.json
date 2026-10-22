@@ -1,0 +1,249 @@
+{
+ "id": "20261021-it2b-kernel-window",
+ "spec_card": "docs/02-design/specs/20261021-it2b-kernel-window.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "56080584a94ecbc69f7c4cfe4292a1cf0f121413",
+ "test_commit": "7d9ebc9b9b3d2afb9b2e56f32f76a3eef0714af4",
+ "code_commit": "615ef68bd95b3ae3cb6e2f89775ebbb9b9e0b559",
+ "checks": {
+  "V1": {
+   "verdict": "FAIL",
+   "basis": "미결(결함 판정 아님 -- 측정 부재): I-6 전체 suite(파일 단위, tests/structure 포함)를 돌리지 못했다. 13회로 측정 실행(scripts/run_all.sh)이 two_stage_ota_sf BASE 탐색 중 시스템 메모리 압박으로 하네스 밖에서 강제 종료되었고, 지시(메모리로 죽으면 재시작 루프 금지·그 시점까지 보고)에 따라 전체 suite 를 시작하지 않았다. 잰 것: 바뀐 test 파일 여섯 가운데 test 파일 다섯(conftest 포함 디렉터리)을 병합본 dc334fef 격리 복제본 h 에서 파일당 프로세스 하나, --run-slow, -k·--deselect·-x 없이: test_fd_jacobian 10·test_block_columns 71·test_input_window 41·test_output_structure 13·test_s2_values 50 = 185 passed·0 failed(logs/rg3_h). 규칙 A 확인 미결. 재실행 명령 = scripts/run_suite_files.sh 꼴(IT-2a 판정 기록과 같은 실행기) -- 메모리 여유 확인 뒤 오케스트레이터 지시로."
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "red-green. base = 엔진 56080584 + dc334fef test 파일 여섯(복제본 r): 45 failed / 140 passed(logs/rg3_r). 분류(raw/red_classified_final.json): 행동 red 28 = AssertionError 23 + 엔진 출력 dict 항목 부재 KeyError 4(K2 'z'·P(a) 'p'·D(a) 'in'·test_declared_input_dc_same_theta_seals 'in' -- 공개 진입점 dc_columns·size_and_seal 결과에 입력 포트 창 항목이 없음) + WriterPermissionError 1(권한표에 node.dc_output_structure 행 없음); 새 이름 부재 red 5 = AttributeError(Window.input_status·tol_v 4, s2_values.OUTPUT_HIGH_IMPEDANCE 1); 세지 않음 12 = TypeError 1(saturation_window slope= 키워드) + 새 서명 positional 꼴(roots tuple·5원소 행)을 옛 함수에 넣어 난 KeyError 11(input_window 단위 test -- 새 서명 직접 호출, TypeError 규칙과 같은 갈래). red 계수 33. 하네스·import 오류 가짜 red 0(실패 45개 모두 traceback 끝이 엔진 부재·행동). L12 (f) 따로: 엔진 c4506f47(615ef68b 수정 전) + dc334fef test(복제본 f) -> test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution 만 실패(AssertionError: tol_v 1.12305e-4 = 첫 해 tol, 기대 마지막 해 tol 1.45996e-4, 차 3.37e-5 > 2e-6), 나머지 184 pass(logs/rg3_f) -- 행동 red. head dc334fef(복제본 h) 185 passed. 이전 판 대조: 4ed8aca4·edffaa1c 에서도 바뀐 test 다섯 파일 green(logs 없음 -- out/rg_h·rg_h2 는 scratch)."
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "도입 해당 없음(DEC-86): merge_gate·mutate_changed 미사용(N6.3 절차, card V3 칸). 대신 D (b)(c)(d) 정적 AST test 의 거부를 변형 17종으로 직접 쟀다(V4)."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조(이 판정의 주의 사항 셋 포함): (a) L12 (a) k_max test -- NEG_QV 0.5→0.05(791f6207)·NEG_QD 20(7d9ebc9b)·전제 tol = star.tol_v(7d9ebc9b). 변형 측정(logs/neg_lut_probe.jsonl, 복제본 m): QV 0.05/QD 20(현행) star.tol_v 1.460e-4, k_max=1 창 lo 차 7.07e-4 > tol, w.input_status unsettled(w.tol_v 1.235e-4) -- pass; QV 0.5/QD 0 은 k_max=1 에서도 한 회에 수렴해 measured -> 관측 단언 'unsettled' 에서 fail(전제 (3) '차 > tol'(7.2e-4 > 4.49e-4)은 통과); QV 0.5/QD 20 은 전제 tol < 1e-3 에서 fail. 판정: QV 축소는 LUT 곡률(tol_V 의 출처, 선형 비례 -- 표 tol 0.5→0.05 에서 10배)을 줄여 소진 분기에 닿게 한 전제(픽스처) 조정이고, 기대값(input_status 'unsettled'·V = lo + y(hi − lo)·창 ⊂ 레일)은 design 정의라 피검 함수로 만든 기대값이 아니다(UNJUDGED 0). 전제 (3)과 star.tol_v 는 엔진 실행끼리의 비교((비교) 종류)이고, star.tol_v 의 값 자체는 L12 (f) test 가 공개 표 API 로 독립 대조한다(2e-6 안). 약점: QV 0.5/QD 0 사례처럼 전제 (3)은 소진 도달의 충분조건이 아니며, w 가 A6 b(tol 미정) 갈래로 'unsettled' 가 된 경우를 거르지 않는다 -- 결정 단언은 관측 'unsettled' 하나다. 수정 제안(오케스트레이터 판단): w.tol_v is not None 단언 추가(A6 b 배제), 전제 tol 을 L12 (f) 와 같이 공개 표 API 로. (b) D (c)(iii) EO-1 import 0 은 import 모듈·이름에 'conduct' 부분문자열로 대리 측정: 변형 'from .conduction import is_conducting' red, 'from .region_on import v_on' green(대리 측정 한계 -- EO-1 모듈 이름은 EO-1 design 몫이라 지금 정할 수 없음). (c) D (b)(c)(d) AST 측정 변형 17종(logs/mutate_d2.jsonl, 엔진 edffaa1c = 최종 엔진과 같음; mutate_d.jsonl = 4ed8aca4 판 같은 결과): D (b) red 4/5 -- region_rows 안 'off' 문자열 행·모듈 상수 _ROW_OFF·s2_values 에서 import 한 ROW_OFF·region_rows 가 부르는 mos_point 안 'off' 모두 red, import 별칭(ROW_OFF as _OFF_ALIAS)만 green(측정 한계); D (c) red 6/6 -- op_point VGS 위치 인자 0·vgs=0 키워드·0.0, dc_off_current 속성 읽기, 'dc_conduction_floor' 문자열 읽기, conduct import; D (d) red 3/3 -- INPUT_STATUS_OP_MISMATCH 상수, Window.status_detail 칸, 'input_window_operating_point_mismatch' 문자열; 주석에만 어휘 = green(정의대로). 기준(변형 없음) 셋 모두 pass. 그 밖 test 의 oracle: OS (a)~(k) (손) toy 연결; K1·K2·P(a)·P(b)·L12(b)·D(a) (손)+이분법 독립 풀이(전제: 독립 풀이가 엔진 해를 재현); L12 (f) (식) 공개 표 API + 엔진 dc_op 의 L·VDS(동작점은 엔진 해에서 읽음 -- 피검 tol_v 는 쓰지 않음); L12 (e) 끝점 허용 = node.dc_window.tol_v(O-103·design 정의, 엔진 값). 피검 함수로 기대값을 만든 assert 없음."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "기준 약화 판정: test diff 56080584..dc334fef(logs/test_diff_final.patch, sha256 c020fee3f24a7e4efeb3b3f4041560322cb28f633e2f10a6bc3e3eb8b7bb10a0). 지운·완화한 단언 전부 근거 범위 안: (1) conftest write_r4_lut 에 cap_vdsat=() -- 기본 () 이면 'for kind in cap_vdsat' 이 아무것도 더하지 않아 기존 호출 동작 그대로(diff 확인) (2) assert_voltages -- 창 키 등식을 뿌리 키 등식 + 뿌리 밖 키 ⊆ 입력 포트 둘로(card test 메모 '키 단언 둘로') (3) saturation_window 옛 서명 단언 -> 새 서명(이동량 = 옛 절대 창 − x0, 같은 수), slope 단언 추가(더 엄격) (4) test_off_mid_window_maps_y_and_ends_saturated·test_mid_window_ends_have_nonnegative_saturation_slack 끝점 y = 0·1: '봉인 + 여유 ≥ −1e-12' -> '봉인(기존 단언) 또는 봉인 7 거부 + |slack_v|·|독립 여유| ≤ tol_v, tol_v None 이면 실패' -- 사용자 결정 O-103·L12 (e) 범위, 내부 y 단언 그대로 (5) test_declared_input_dc_same_theta_seals: '\"in\" not in dc_window' -> 항목 있음·measured·lo ≤ 0.67 ≤ hi -- design 4.7-3 3(선언 포트 창)·card 계약 '모든 입력 포트' 동작 변경(브리프 목록 밖이지만 design 근거) (6) test_s2_values 33 -> 34, Window 칸 3 -> 5(표 확대). IT-2b test 커밋 사이에서 넣었다가 뺀 것: op_mismatch 상태·status_detail 단언(88335ef6·791f6207) = O-98·O-101 범위 이동(EO-1); test__helpers_dc_solve.py 삭제·공개 이름 test 삭제(84559b77) = card IT-2d 경계(D 단언은 test_block_columns 로 옮김); 옛 자작 'v_on' 식별자 검사는 계획 (9)(c) 세 항목 측정으로 바뀜; k_max 전제 'hi 차' -> '양 끝 max 차'(791f6207)·전제 tol 출처 표 셀 -> star.tol_v(7d9ebc9b) = 전제 변경(기대값 아님, V4 (a)). skip·xfail·importorskip 추가 0, approx 추가 1(새 test, rel=1e-12). code 커밋 85847b49·5bd20156·615ef68b 의 test 파일 변경 0, test 커밋 일곱의 비test 파일 변경 0. dispute 34a2a249 는 문서 하나."
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "graph 단일 정본(병합본 dc334fef): G1 -- node.dc_output_structure writer = dc_writer_plan 하나(writer_plan.py:269 반환, WRITES :76-77), 권한표 행 하나(s2_values.py:150 DC_WRITES); G_vgs 엣지 _edges 정의·호출 = writer_plan.py:101·181 만(graph/canonical_form·composite_blocks·stage_bfs·metrics/headroom_bound 의 _edges 는 인자·개념이 다른 기존 지역 함수); 창 끝 식(행 교집합 Δ ≥ −slack/rate) = input_window.py:58-76 saturation_window 하나(port_window·_measure 는 Δ 를 전압으로 옮길 뿐). G2 -- 새 cache·memo·모듈 dict·sctx 슬롯·결과 값 칸·값 사본 0(diff 추가 266줄 grep), _Measured·_Kernel 은 dc_columns 한 호출 안 frozen 전달값(저장 없음), 기존 _Circuit.tol_cells(블록 안 지역 memo) 불변. G3 -- 출력 구조는 S0 필드 하나, w3_target 표지 없음(test OS (d)). G6 -- node.dc_output_structure 엔진 소비자 0 = 출력 전용 상태(sizing/CONTRACT.md:204 '소비자는 IT-2c·IT-2d -- 그 전까지 출력 전용'), IT-2c 병합본에서 소비자 ≥ 1 확인 필요; Window.input_status·tol_v 엔진 소비자 0(writer block_columns 뿐, fd_jacobian 은 REL_WINDOW 항목의 hi − lo 만) = 출력 전용, IT-2c(icm_config)·IT-2d(metrics_aux) 배선 대기. G7 -- dc_writer_plan 블록 행 (calls 2, reuses 1, computes 1) 이 8회로 BASE·PREFIX·HEAD·HEAD_rep2 모두 같음(θ 탐색 중 computes 증분 0). 회로·소자·넷 이름 code 0(추가 줄 grep). 수치: 필드 수 1(+ Window 칸 2) / 소비자 0 결함 0(출력 전용 선언 있음) / 정본 우회 의심 0 / KVL·KCL 관계 미적용 0 / graph 밖 저장 자리 0."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "배선: saturation_window <- _Circuit.input_windows(block_columns.py:278) <- _measure·_windows; region_rows <- input_windows; k_max 모듈 수준 import(block_columns.py:57, L12 (a) 주입 지점); fd_jacobian._steps REL_WINDOW 거름(fd_jacobian.py:56). 실행 관측(raw/run): folded·nmcnr·two_stage 의 뿌리 아닌 입력 포트 창 항목, pushpull 선언 포트 창 항목이 탐색 평가마다 쓰임, 뿌리 input_status measured(nmcnr 2 unmeasured); pushpull 은 새 항목이 늘어도 fd y 스텝 5/5 BASE 와 같음. _refine_ends·_root_windows 엔진 code 0(CONTRACT 문장만), _helpers_dc_solve.py·test__helpers_dc_solve.py 없음."
+  },
+  "V8": {
+   "verdict": "PASS",
+   "basis": "폴백: 새 폴백 경로 없음. design 상태 갈래 발동 수(기록되는 상태, 조용한 대체 아님): unmeasured(A6 a, 순서 창) nmcnr 2/36 커널 호출(PREFIX·HEAD 같음), unsettled 0(8회로), tol 미정 갈래 0. 뿌리 아닌 포트의 slope 는 slope[net](KeyError fail-closed, 5bd20156)."
+  },
+  "V9": {
+   "verdict": "PASS",
+   "basis": "물리 불변식: 끝점 탐침(봉인된 θ 앞 6개의 y = 0·1 재평가) -- HEAD 거부는 봉인 7 만, common_gate 11/12(|slack_v| ≤ 7.95e-12 V), two_stage_ota 6/12(y = 1, |slack_v| 3.66e-6~4.32e-6 V), folded·nmcnr 12/12 봉인; 같은 θ 의 뿌리 tol_v 6.3e-3~8.4e-3 V 보다 세 자릿수 이상 작음(O-103 범위). BASE(다듬은 끝) two_stage_ota 0/12·common_gate 5/12 거부. 탐색 중 봉인 7 실패 수 HEAD = BASE(8회로), y 끝점 방문 HEAD 0·BASE 1(common_gate y = 1, 봉인) -- O-103 근거 yends_9circuits_analyst.jsonl 의 head 85847b49·base 53d50aea 계수와 8회로 모두 같음(n_calls·y_exact_0/1·fail_item7). G-10 recomputes_same_input 0(8회로 × 네 판). 노드 풀이 경로(_solve·SCC) 불변 -- 바뀐 것은 override 창 값뿐."
+  },
+  "V10": {
+   "verdict": "FAIL",
+   "basis": "미결(측정 부재 1회로): 9회로 변화표 가운데 8회로만 쟀다 -- two_stage_ota_sf 는 BASE 탐색 중 메모리 압박 강제 종료(raw/run/BASE/two_stage_ota_sf.json 은 중간 기록, PREFIX·HEAD 없음, 출력 구조 칸만 OS 전용 실행으로 잼), ngcc_3stage_ff 는 단계 A review_needed 라 탐색 없음(IT-2a 판정 기록과 같은 조건 -- OS 칸만). 잰 8회로: 설명 안 된 변화 0 -- BASE 대 HEAD 차이는 모두 (8) 커널 뿌리 y 끝(뿌리 lo·hi 다듬지 않은 끝, 그에 딸린 W4 비입력 뿌리 창·θ y→V 사상·입력 dc_v·fd y 스텝·탐색 궤적: common_gate 평가 1번째부터, folded 6, nmcnr 32, two_stage 1 에서 θ 가 갈림), 입력 포트 창 항목 추가(4.7-2·4.7-3 2·3, (1) 커널 쪽: folded 107·nmcnr 56·two_stage 35·pushpull 84 평가), (9) tol 매 해(PREFIX 대 HEAD: 아래). front: common_gate front 1점 지문 다름(궤적 차, (8)), 나머지 7회로 front 지문 같음(front 0점 6회로). current_reuse·sf_pushpull 는 모든 평가가 dc_columns 안에서 실패(봉인 7 no_root_in_window 등) -- BASE = HEAD 완전 같음. (9) 표(PREFIX c4506f47 대 HEAD, 같은 θ 커널 호출 짝): common_gate 39 짝 tol 38·회차 1·창 1 다름, 평가 행 tol_v 77/83 다름, 궤적·front 같음; folded 57 짝 tol 1; nmcnr 36 짝 tol 8·회차 1·창 1, 평가 행 tol_v 24/105; two_stage 12 짝(궤적이 평가 1에서 갈림, 33 짝 없음) tol 12·회차 6·창 6, 측정 회차 분포 PREFIX {2:29,3:14,4:2} -> HEAD {2:37,3:8}, 평가 행 tol_v 70; measured/unsettled 판정 변화 0(8회로). 결정성: HEAD 대 HEAD_rep2 8회로 모든 칸 같음(시간 칸 제외). G-10 0."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "IT2b/red_count_base",
+   "value": 33,
+   "command": "scripts/run_rg3.sh (복제본 r) -> scripts/classify_red.py logs/rg3_r -> write_record_it2b.py 계수 규칙"
+  },
+  {
+   "name": "IT2b/base_failed_total",
+   "value": 45,
+   "command": "scripts/run_rg3.sh 복제본 r, 바뀐 test 파일 다섯 합"
+  },
+  {
+   "name": "IT2b/head_changed_files_passed",
+   "value": 185,
+   "command": "scripts/run_rg3.sh 복제본 h(dc334fef)"
+  },
+  {
+   "name": "IT2b/L12f_prefix_failed",
+   "value": 1,
+   "command": "scripts/run_rg3.sh 복제본 f(엔진 c4506f47 + dc334fef test)"
+  },
+  {
+   "name": "IT2b/L12f_prefix_tol_v",
+   "value": 0.00011230468750006434,
+   "command": "logs/rg3_f/test_block_columns.txt AssertionError 값"
+  },
+  {
+   "name": "IT2b/L12f_expected_last_solution_tol",
+   "value": 0.0001459960937499893,
+   "command": "logs/rg3_f/test_block_columns.txt AssertionError 값"
+  },
+  {
+   "name": "IT2b/D_ast_mutants_rejected",
+   "value": 13,
+   "command": "python -I scripts/mutate_d.py <복제본 m> logs/mutate_d2.jsonl (변형 17: 기준 1·주석 1 green 기대, 별칭 import·conduct 없는 import 2 green = 측정 한계)"
+  },
+  {
+   "name": "IT2b/os_outputs_value_match",
+   "value": 12,
+   "command": "scripts/run_all.sh + measure_it2b.py --os-only two_stage_ota_sf -> compare_it2b.py os"
+  },
+  {
+   "name": "IT2b/os_stop_reason_match",
+   "value": 3,
+   "command": "compare_it2b.py os (cnr_ota VOP·VON dc_resistor_cycle VCR·VDD_1V8 x40, erfc_ota out mos_zero_current_structural M19·M20·M21)"
+  },
+  {
+   "name": "IT2b/os_output_in_fprime",
+   "value": 0,
+   "command": "measure_it2b.py os.out_in_fprime 13회로 합(writer_plan.py:134 reached = output in fixed 첫 줄 발동)"
+  },
+  {
+   "name": "IT2b/unexplained_changes_8circuits",
+   "value": 0,
+   "command": "python -I scripts/compare_it2b.py out/run <표> <o103 jsonl> raw/compare.json"
+  },
+  {
+   "name": "IT2b/G10_recomputes_same_input_8circuits_head",
+   "value": 0,
+   "command": "compare_it2b.py g10"
+  },
+  {
+   "name": "IT2b/determinism_equal_circuits",
+   "value": 8,
+   "command": "compare_it2b.py determinism (HEAD 대 HEAD_rep2)"
+  },
+  {
+   "name": "IT2b/nine_tol_v_rows_changed_common_gate",
+   "value": 77,
+   "command": "compare_it2b.py prefix_vs_head evals_matched.tol_v_diff"
+  },
+  {
+   "name": "IT2b/nine_tol_v_rows_changed_nmcnr",
+   "value": 24,
+   "command": "compare_it2b.py prefix_vs_head evals_matched.tol_v_diff"
+  },
+  {
+   "name": "IT2b/nine_tol_v_rows_changed_two_stage_ota",
+   "value": 70,
+   "command": "compare_it2b.py prefix_vs_head evals_matched.tol_v_diff"
+  },
+  {
+   "name": "IT2b/endpoint_visits_head_8circuits",
+   "value": 0,
+   "command": "measure_it2b.py seal.y_exact_0 + y_exact_1 합"
+  },
+  {
+   "name": "IT2b/endpoint_probe_max_abs_slack_two_stage_ota_head",
+   "value": 4.319606444355695e-06,
+   "command": "measure_it2b.py probes (y = 1 봉인 7 거부)"
+  },
+  {
+   "name": "IT2b/solve_per_kernel_call_common_gate_base",
+   "value": 6.0,
+   "command": "measure_it2b.py kernel n_solve 합 / 뿌리 있는 호출 수"
+  },
+  {
+   "name": "IT2b/solve_per_kernel_call_common_gate_head",
+   "value": 3.74,
+   "command": "measure_it2b.py kernel n_solve 합 / 뿌리 있는 호출 수"
+  },
+  {
+   "name": "IT2b/same_arg_final_solve_nmcnr_head",
+   "value": 5,
+   "command": "measure_it2b.py kernel: 마지막 두 측정 창 비트 같음 3 + 마지막 측정 None 2 (block_columns.py:776 이 마지막 회차와 같은 override 로 다시 풂)"
+  }
+ ],
+ "approvals": [
+  "20261021-it2-o67-scope"
+ ],
+ "auditor_run": {
+  "time": "2026-10-22T17:40:00+09:00",
+  "worktree": "격리 복제본 wt/_scratch_it2b_audit/h(병합본 dc334fef = role/code/it2b 1a0e10bb 병합; 앞 판 8606bc9f·4ed8aca4·edffaa1c), b(엔진 base 56080584), r(56080584 + dc334fef test 파일 여섯), f(엔진 c4506f47 + dc334fef test 파일 -- L12 (f) red), m(dc334fef, 변형 전용 -- 끝나면 원문 복원·git status 깨끗), 모두 --no-local 복제 뒤 remote 제거",
+  "commands": [
+   "V1: (미실행 -- 메모리 압박으로 중단) 계획 명령 = test 파일마다 C:/Python314/python.exe -m pytest -p no:cacheprovider -q -rfE --tb=short --run-slow <file>(skills/analog-gmid-design, 순차, 재개); 실행한 것 = bash scripts/run_rg3.sh(바뀐 test 파일 다섯, r·f·h)",
+   "git -C wt/it2b-audit merge --no-ff -F <msg> 27f58cc4 / c4506f47 / 615ef68b / 1a0e10bb (Co-Authored-By·Claude-Session 트레일러)",
+   "git -c core.longpaths=true clone -q --no-hardlinks --no-local wt/it2b-audit wt/_scratch_it2b_audit/{h,b,r,m,f} && git -C <clone> remote remove origin",
+   "git -C r checkout dc334fef -- <바뀐 test 파일 여섯>; git -C f checkout c4506f47 && git -C f checkout dc334fef -- skills/analog-gmid-design/gmid_engine/tests",
+   "python -I scripts/classify_red.py logs/rg3_r raw/red_classified_final.json; python -I scripts/classify_red.py logs/rg3_f raw/red_prefix.json",
+   "python -I scripts/mutate_d.py <m> logs/mutate_d2.jsonl (D (b)(c)(d) 변형 17)",
+   "python -I scripts/neg_lut_probe.py <m> logs/neg_lut_probe.jsonl (NEG_QV·NEG_QD 네 조합, k_max 전제 탐침)",
+   "bash scripts/run_all.sh = python -I scripts/measure_it2b.py <clone> <BASE|PREFIX|HEAD> <회로> <library|heldout> out/run [--tag _rep2] (eval_budget 40, 탐침 6) -- two_stage_ota_sf BASE 중 메모리 압박 강제 종료",
+   "python -I scripts/measure_it2b.py h HEAD two_stage_ota_sf library out/run --tag _osonly --os-only",
+   "python -I scripts/compare_it2b.py out/run <de1_output_structure_13.md> <o103_yend/yends_9circuits_analyst.jsonl> raw/compare.json",
+   "git -C h grep -n dc_output_structure|_edges|saturation_window(|_refine_ends|input_status -- gmid_engine ':!gmid_engine/tests'; git diff 56080584 dc334fef -- '*.py' ':!gmid_engine/tests' | grep 회로·넷 이름"
+  ]
+ },
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k1_declared_input_port_has_measured_window",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k1_undeclared_input_ports_both_have_windows",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k1_unmeasurable_root_is_unmeasured_with_order_window",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k2_non_root_port_window_is_root_ends_moved_by_the_same_solution_sensitivity",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_pb_declared_input_ports_share_one_shift_window",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12b_f_component_port_without_declared_dc_has_undefined_window",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_k_max_exhausted_root_window_is_unsettled_and_y_range_kept",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_d_triode_row_zero_crossing_is_the_window_end",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_d_region_rows_kinds_are_sat_and_triode_only",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_d_region_rows_has_no_zero_vgs_op_point_conduction_columns_or_eo1_import",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_tol_undefined_root_window_is_unsettled_and_y_range_kept",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_declared_input_dc_same_theta_seals",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_a_drain_only_output_is_high_impedance",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_b_follower_output_without_fixed_end_is_high_impedance",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_c_resistor_load_to_rail_is_kvl_fixed",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_d_w3_output_without_fixed_end_is_high_impedance",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_e_w3_output_on_hard_path_is_kvl_fixed[diode_load]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_e_w3_output_on_hard_path_is_kvl_fixed[gate_at_rail_source_out]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_f_other_w3_node_in_component_is_not_a_fixed_end",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_g_declared_input_dc_reaches_output_through_gate_source",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_h_swapped_names_give_same_values[undeclared]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_h_swapped_names_give_same_values[declared]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_i_value_is_theta_independent_and_not_recomputed",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_k_no_same_dc_edge_between_input_ports",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_j_single_writer_site_and_no_second_producer",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_s2_writers_is_s1_plus_dc_table_exactly",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_one_writer_per_field_and_permission_enforced",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_dc_writes_constant_matches_table",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_writer_plan]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_it2b_output_structure_vocabulary_and_window_status_defaults",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_value_fields_as_contract"
+  ],
+  "failure_hashes": [
+   "df74afc3b1dc37a667c68c119d28e724ee77e11a68396a9d648f1947c3b53bbe",
+   "3b506882d81cbd1d37c9bb27a0727658968f0f36125b1d2daeabd8e377c465fc",
+   "3d91737d5e81eeef231d98009fc5ab4f4ee57d999b22501c3b2934ef06aacc6d",
+   "9c02cb698fd5e014a0fea1562435300b40c8fb3c89aa40d16b9cdabdd6f98d27",
+   "1d1e984af6cfda65ab6d1788442fbf32678a7346720ab8ad5d5eafba6bb6f479",
+   "a6f9356ec3f217193c13004a26ab3015a131811f124a9d3821bbf5c781ee133a",
+   "01c568470b08949b31e3de30c4a37e9b499d9648478ae2d376138f02be851808",
+   "9a03a9f0fbe0d171bfcfd67bb6ba29b307e1188466404dd8ca1f98a477f2c2ed",
+   "b2410183d42565d3a23dbf92d177998217bdd6b25c36d224cdbc85943b17bc7b",
+   "454a89a461e37a919c5db310beb4e37ba1fd3d15dbbdc2847b7bd094499d3b45",
+   "b5d5db72837725b064c2abd33d678e7c413e44ff20a814a338ff82d825ba3beb",
+   "f72e39f7da5f1d3e9b8707c82d7c8560aaf41a2fa026e7a333b3161f6d589b97",
+   "d5332091bd1e351cbeefe0c7f1f34877aa1f1c16752a382e529a233870e9301e",
+   "6745e3a2b4e74834a875270898ced0388d65464fc55e69d93cb0146ba379410b",
+   "d008203dc25acf597afa520f37928e376910d462a1c735737851586f56bd19f9",
+   "7c3b0529b775998fc40663579fec2afda1d49d32a8f620fd425e7077d405bc29",
+   "c3e7340e0db40f1adf1c07b6c8b18e2b0dae5fc20e3fe9dc9969e2ed012c327a",
+   "e764b7f836b5297f2d4a92d264f426919e30f44717464472072396ddb0cfa440",
+   "3eaac3393ce15c59a91400f5b468d18f3dd7ecde69d3d501d5c5d0f0cc1d2eeb",
+   "31db54088efcfddd7d9a1e5d3768c9170e8729ad6b9e9be60580af5ac3aaee70",
+   "55d42f928cabc7c4564855b0e7e6aded274703c6fcdb16e0b134e736e3fb3276",
+   "142ca5729f3ca9e1fe4004110e8d1c4af0f847a8768a3699579dcf14704e1d3f",
+   "bfdbab39ba02fb8c376e7b160f1c13add30b46df61c67a3e482d0626e5b8d7cf",
+   "71e29e58d11bd3e348a2b5573728b78c4fbcddf1037b4b34a79de1ec656f9fb3",
+   "0c4e03b4ead2497be3e725e8876ec113ea0af7b42c218e30395a1451fd342070",
+   "3763dbe8c8a70952d30cced1c4b92d1a61cf6fef44dd33cf2711985da1e7d539",
+   "e20f2aa636cf64d3aa4c1c537f2eb89422fdecab840e47b2f19f4824043986bb",
+   "06963b5ee557d71e990c98ceecece900480f2dfefe0ca1486389bfd2b752a89f",
+   "2a89053963d6f3b5fe6692967a1ed6d83db2b4a78f887cc6271154acf2dcd81f",
+   "9b8a047dafa6ffa3cfe95c567ded44f9784a0a474b45a6c1b6be6448c8be013a",
+   "6d051b0e0f4ef19d262aba9b5e0ed195abb1ccf85436c5f35d87ade35f8b4a3b",
+   "788efb13eddccb4c8dfa9ca8d261419d50fc07d266f4f39e3d8f02b330d3a2e3",
+   "3330364d4f2c4c19dfef0fb4b470744d0870a0f3d496ad06b70894f217b18c5e"
+  ]
+ }
+}
