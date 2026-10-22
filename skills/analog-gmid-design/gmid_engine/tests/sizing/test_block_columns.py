@@ -29,7 +29,12 @@ def assert_voltages(snap, ctx, theta):
     assert set(V) == set(V_exp)
     for n in V_exp:
         assert abs(V[n] - V_exp[n]) <= TOL, (n, V[n], V_exp[n])
-    win = dict(snap.column("node", "dc_window"))
+    # [IT-2b 갱신 -- 대조 대상 명시] `node.dc_window` 범위는 W4 뿌리 + 모든 입력 포트로 넓어졌다(design 41 4.7-2). `expected_columns` 는 W4 뿌리 창
+    # (writer relation free_window)만 안다 -> 뿌리 항목으로 좁혀 이전과 같은 키 집합 등식·끝 값을 대조하고, 입력 포트 항목은 아래 test_it2b_k1_*·
+    # test_it2b_k2_* 가 따로 본다.
+    win_all = dict(snap.column("node", "dc_window"))
+    roots = {n for n, w in dict(snap.column("node", "dc_writer")).items() if w.relation == "free_window"}
+    win = {n: w for n, w in win_all.items() if n in roots}
     assert set(win) == set(win_exp)
     for n, (lo, hi) in win_exp.items():
         assert isinstance(win[n], Window)
@@ -964,3 +969,197 @@ def test_correct_ds_declaration_same_point_passes_seal7(tmp_path, r4_access):
     ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), r4_access)[2]
     snap, _ = with_tol(ctx, theta_r4c(y=0.5, v1=0.6, v2=0.7))
     assert seal_item(dc_seal_saturation(snap, (), ctx.lut, **run_of(ctx)), 7).status == "pass"
+
+
+# ===========================================================================
+# [card IT-2b] 커널 창 `node.dc_window`(모든 입력 포트 + W4 뿌리) -- design 41 v1.12.8 4.7-2·4.7-3, 4.7-7 K1·K2·P(b)·L12(b)
+# 칸 `Window(lo, hi, constraints, input_status=None, tol_v=None, status_detail=())`.
+# 입력 포트 항목: 입력 DC 선언 포트 = 같은 x 로 함께 움직이는 묶음의 이동량 창(4.7-3 3), 미선언 뿌리 = A6 되풀이 창, 뿌리 아닌 포트 = 뿌리 창 끝을 같은 해의
+# 감도로 옮긴 [min, max] ∩ 레일(4.7-3 2), F 성분 미선언 포트 = 창 정의 불능(`f_component_undeclared`, lo·hi None).
+# 기대값은 모두 toy 연결의 손계산과 이 test 안의 독립 풀이(이분법)에서 만든다. 피검 함수(`dc_columns` 출력)로 기대값을 만들지 않는다.
+# ===========================================================================
+from .conftest import circuit_cs_pmos_load, r4_vdsat_at, r4_tol_vdsat  # noqa: E402
+
+
+def _bisect(f, lo, hi, n=200):
+    flo = f(lo)
+    assert (flo > 0) != (f(hi) > 0), "근을 끼지 않은 구간"
+    for _ in range(n):
+        mid = 0.5 * (lo + hi)
+        fm = f(mid)
+        if (fm > 0) == (flo > 0):
+            lo, flo = mid, fm
+        else:
+            hi = mid
+    return 0.5 * (lo + hi)
+
+
+def _window_of(snap):
+    return dict(snap.column("node", "dc_window"))
+
+
+# ---- 미선언 입력 포트 둘 toy: follower 순환(MA·MB) + 포트 z 를 y 위 소스 팔로어(MC)로 -------------------------------------------
+# MA nmos (y, x, gnd) 가 x 를, MB nmos (x, in, y, b = y) 가 y 를 쓴다(입력 포트 in = 뿌리), MC nmos (vdd, z, y, b = gnd) 가 z = V(y) + VGS(MC) 를 쓴다
+# (입력 포트 z = 뿌리 아닌 포트, 같은 성분 {in, y, z} 에 레일 없음).
+def _f2_doc():
+    net = [mos("MA", "nmos", "y", "x", "gnd", "gnd"), mos("MB", "nmos", "x", "in", "y", "y"),
+           mos("MC", "nmos", "vdd", "z", "y", "gnd")]
+    src = [two("IX", "current_source", "vdd", "x"), two("IY", "current_source", "vdd", "y")]
+    return topo("it2b_f2", net, {"in": ("input", "x"), "z": ("input", "x"), "y": ("output", "y")}, sources=src)
+
+
+F2_TA = r4_ln_idu("nmos", 0.9, 0.3, 0.0)
+F2_TB = r4_ln_idu("nmos", 0.3, 0.3, 0.0)
+F2_TC = r4_ln_idu("nmos", 0.5, 1.2, 0.6)
+
+
+def _f2_theta(ctx, y):
+    th = {("L", "MA"): 1e-6, ("L", "MB"): 1e-6, ("L", "MC"): 1e-6, ("ln_idu", "MA"): F2_TA, ("ln_idu", "MB"): F2_TB,
+          ("ln_idu", "MC"): F2_TC, ("y", "in"): y}
+    th.update(free_currents(ctx, {"MA": 1e-5, "MB": 1e-5, "MC": 1e-5, "IX": 1e-5, "IY": 1e-5}))
+    assert set(th) == set(kschema(ctx).components)
+    return th
+
+
+def _f2_solve(vin):
+    """독립 풀이(이분법): x = VGS_A(vds = y), y = V(in) − VGS_B(vds = x − y, vsb = 0), z = y + VGS_C(vds = 1.8 − y, vsb = y). -> (x, y, z)"""
+    def g(y):
+        x = r4_vgs_of("nmos", F2_TA, y, 0.0)
+        return vin - r4_vgs_of("nmos", F2_TB, x - y, 0.0) - y
+    y = _bisect(g, 1e-9, 1.2)
+    x = r4_vgs_of("nmos", F2_TA, y, 0.0)
+    return x, y, y + r4_vgs_of("nmos", F2_TC, 1.8 - y, y)
+
+
+def test_it2b_k1_declared_input_port_has_measured_window(tmp_path, r4_access):
+    """oracle 대조: (손) K1 입력 DC 선언 toy(회로 C, in = 0.7 V 선언). 입력 포트 in 의 창 항목이 있고 input_status == "measured".
+    out 은 W4 뿌리(y 로 고정, 레일 사이)라 in 이 움직여도 out·VDS(M1)·VSD(M2)가 변하지 않는다 -> 어느 행도 x 에 기울지 않아 창 = 레일 [0, 1.8].
+    뿌리 아닌 포트·선언 포트의 constraints 는 0, 입력 포트가 아닌 W4 뿌리 out 의 input_status 는 None."""
+    ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), r4_access, input_dc_v=0.7)[2]
+    snap = run_blocks(ctx, theta_r4c(), upto="columns")
+    win = _window_of(snap)
+    assert set(win) == {"in", "out"}
+    w = win["in"]
+    assert w.input_status == "measured" and w.status_detail == ()
+    assert (w.lo, w.hi, w.constraints) == (0.0, 1.8, 0)
+    assert w.tol_v is not None and w.tol_v > 0
+    assert win["out"].input_status is None
+
+
+def test_it2b_k1_undeclared_input_ports_both_have_windows(tmp_path, r4_access):
+    """oracle 대조: (손) K1 미선언 2입력 toy(in = 뿌리, z = 같은 성분의 뿌리 아닌 포트). 두 포트 항목이 모두 있고 둘 다 "measured"
+    (뿌리 아닌 포트의 input_status 는 뿌리 항목과 같다, 4.7-3 2). base 는 뿌리 항목뿐이다."""
+    ctx = build_ctx(tmp_path, _f2_doc(), r4_access)[2]
+    assert dict(ctx.base.column("node", "dc_writer"))["in"].relation == "free_window"          # 전제: in = W4 뿌리
+    assert dict(ctx.base.column("node", "dc_writer"))["z"].relation == "vgs_gate"              # 전제: z = 트리 경로 포트
+    win = _window_of(run_blocks(ctx, _f2_theta(ctx, 0.5), upto="columns"))
+    assert set(win) == {"in", "z"}
+    assert win["in"].input_status == "measured" and win["z"].input_status == "measured"
+    assert win["z"].constraints == 0
+
+
+def test_it2b_k1_unmeasurable_root_is_unmeasured_with_order_window(tmp_path, toy_access):
+    """oracle 대조: (손) K1 창을 잴 수 없는 toy(VDSAT 열 없는 LUT). source follower M1 nmos (vdd, in, out) + M2 nmos (out, vb, gnd):
+    in = 입력 DC 미선언 뿌리, 게이트에만 닿아 순서 창 = 레일 [0, 1.8]. 측정 못 함 -> input_status "unmeasured" 이고 창은 순서 창 그대로
+    (세 metric 정의 불능은 IT-2d 몫)."""
+    doc = topo("it2b_sf", [mos("M1", "nmos", "vdd", "in", "out"), mos("M2", "nmos", "out", "vb", "gnd")],
+               {"in": ("input", "x"), "out": ("output", "y")}, bias=["vb"])
+    ctx = build_ctx(tmp_path, doc, toy_access)[2]
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.9, 0.5),
+          ("ln_idu", "M2"): Oracle.ln_idu("nmos", 0.55, 0.6, 0.0)}
+    th.update({(k, key): 0.7 for k, key in kschema(ctx).components if k == "y"})
+    th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5}))
+    win = _window_of(run_blocks(ctx, th, upto="columns"))
+    assert set(win) == {"in"}
+    assert win["in"].input_status == "unmeasured"
+    assert (win["in"].lo, win["in"].hi) == (0.0, 1.8)
+
+
+def test_it2b_k2_non_root_port_window_is_root_ends_moved_by_the_same_solution_sensitivity(tmp_path, r4_access):
+    """oracle 대조: (손)+독립 풀이 K2. 뿌리 아닌 포트 z 의 창 = 뿌리 창 끝 [lo_x, hi_x] 를 같은 해의 감도 s_z = dV_z/dx 로 옮긴 두 끝 전압의 [min, max].
+    기대 끝 = 뿌리 in 을 lo_x·hi_x 로 고정한 독립 풀이(toy 닫힌 식 이분법)의 V(z) 의 [min, max] -- 감도 옮김은 '추정'(선형)이라 비선형 오차를 허용한다
+    (이 toy 에서 V(z) 곡률 오차 ≈ 4e-4 V, 허용 2e-3 V; 창 폭 0.28 V). 감도가 양인 toy 라 z(lo_x) < z(hi_x), lo ≤ hi."""
+    ctx = build_ctx(tmp_path, _f2_doc(), r4_access)[2]
+    snap = run_blocks(ctx, _f2_theta(ctx, 0.5), upto="columns")
+    V = node_voltages(snap)
+    x, y, z = _f2_solve(V["in"])
+    assert abs(V["z"] - z) <= 1e-6 and abs(V["y"] - y) <= 1e-6 and abs(V["x"] - x) <= 1e-6        # 전제: 독립 풀이가 이 toy 의 해를 재현
+    win = _window_of(snap)
+    root, port = win["in"], win["z"]
+    z_lo, z_hi = _f2_solve(root.lo)[2], _f2_solve(root.hi)[2]
+    assert z_hi - z_lo > 0.1                                                                     # 전제: 감도가 분명한 양수
+    assert port.lo <= port.hi
+    assert abs(port.lo - min(z_lo, z_hi)) <= 2e-3 and abs(port.hi - max(z_lo, z_hi)) <= 2e-3
+
+
+# ---- 입력 DC 둘 선언 toy (P(b)): 차동쌍 -------------------------------------------------------------------------------------
+# M1 nmos (o1, ina, t), M2 nmos (o2, inb, t), 꼬리 M5 nmos (t, vb, gnd), 부하 저항 R1 (vdd, o1)·R2 (vdd, o2). bulk = gnd. 입력 DC 0.9 V 선언(두 입력 포트 모두).
+# o1 = o2 = 1.8 − I·R(= 1.0 V, 저항 강하라 입력에 무관), t = V(in) − VGS(M_writer, vds = o − t, vsb = t) (1변수), M5 가 t 를 받친다.
+def _dp_doc():
+    return topo("it2b_dp", [mos("M1", "nmos", "o1", "ina", "t", "gnd"), mos("M2", "nmos", "o2", "inb", "t", "gnd"),
+                            mos("M5", "nmos", "t", "vb", "gnd")],
+                {"ina": ("input", "x"), "inb": ("input", "x"), "o1": ("output", "y")},
+                passives=[two("R1", "resistor", "vdd", "o1"), two("R2", "resistor", "vdd", "o2")], bias=["vb"])
+
+
+DP_R = 8e4
+DP_I = 1e-5
+DP_VO = 1.8 - DP_I * DP_R                                      # 1.0 V (저항 강하 손계산)
+DP_TD = r4_ln_idu("nmos", 0.5, 0.6, 0.4)                        # 쌍 소자 writer 의 ln IDu(두 소자 같은 좌표)
+DP_T5 = r4_ln_idu("nmos", 0.6, 0.4, 0.0)
+
+
+def _dp_theta(ctx):
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M5"): 1e-6, ("ln_idu", "M5"): DP_T5,
+          ("resistance", "R1"): DP_R, ("resistance", "R2"): DP_R}
+    th.update({("ln_idu", m): DP_TD for t, m in kschema(ctx).components if t == "ln_idu" and m != "M5"})
+    th.update(free_currents(ctx, {"M1": DP_I, "M2": DP_I, "M5": 2 * DP_I, "R1": DP_I, "R2": DP_I}))
+    assert set(th) == set(kschema(ctx).components)
+    return th
+
+
+def _dp_t(vin):
+    """독립 풀이: t = vin − VGS(TD; vds = DP_VO − t, vsb = t)."""
+    return _bisect(lambda t: vin - r4_vgs_of("nmos", DP_TD, DP_VO - t, t) - t, 1e-9, vin - 1e-9)
+
+
+def test_it2b_pb_declared_input_ports_share_one_shift_window(tmp_path, r4_access):
+    """oracle 대조: (손) P(b) 입력 DC 둘 선언 toy -- 두 포트 창 끝의 차 = 선언 차(둘 다 0.9 V 선언 -> 0), 즉 같은 x 이동량 Δ 로 함께 움직인 하나의 창.
+    포트별로 따로 훑으면 다른 포트가 서 있어 t 가 덜 움직여 끝이 달라진다(red). 손계산(독립 풀이로 t0 = t(0.9), 감도 s_t = dt/dV_in 은 중심 차분):
+    행 M_d(o, t, +1): 여유 (o − t) − VDsat(vgs = 0.9 − t, vsb = t) − tol, 율 −s_t -> Δ ≤ 여유/s_t.  행 M5(t, gnd, +1): 여유 t − VDsat(vgs5, 0) − tol,
+    율 +s_t -> Δ ≥ −여유/s_t. o 는 저항 강하라 x 에 무관(s_o = 0). 창 = [0.9 + Δlo, 0.9 + Δhi] ∩ 레일 [0, 1.8]."""
+    ctx = build_ctx(tmp_path, _dp_doc(), r4_access, input_dc_v=0.9)[2]
+    th = _dp_theta(ctx)
+    snap = run_blocks(ctx, th, upto="columns")
+    V = node_voltages(snap)
+    t0 = _dp_t(0.9)
+    assert abs(V["t"] - t0) <= 1e-5 and abs(V["o1"] - DP_VO) <= 1e-9                             # 전제: 독립 풀이가 이 toy 의 해를 재현
+    h = 1e-5
+    s_t = (_dp_t(0.9 + h) - _dp_t(0.9 - h)) / (2 * h)
+    tol = r4_tol_vdsat("nmos")
+    vgs_d = 0.9 - t0
+    slack_d = (DP_VO - t0) - r4_vdsat_at("nmos", 1e-6, vgs_d, t0) - tol
+    vgs5 = r4_vgs_of("nmos", DP_T5, t0, 0.0)
+    slack_5 = t0 - r4_vdsat_at("nmos", 1e-6, vgs5, 0.0) - tol
+    lo_e, hi_e = 0.9 - slack_5 / s_t, 0.9 + slack_d / s_t
+    assert 0.0 < lo_e < 0.9 < hi_e < 1.8                                                         # 전제: 두 끝 모두 행에서 나온다(레일 아님)
+    win = _window_of(snap)
+    assert set(win) == {"ina", "inb"}
+    for p in ("ina", "inb"):
+        assert win[p].input_status == "measured" and win[p].constraints == 0
+        assert abs(win[p].lo - lo_e) <= 1e-5 and abs(win[p].hi - hi_e) <= 1e-5, (p, win[p], lo_e, hi_e)
+    assert abs(win["ina"].lo - win["inb"].lo) <= 1e-12 and abs(win["ina"].hi - win["inb"].hi) <= 1e-12     # 끝의 차 = 선언 차(0)
+
+
+def test_it2b_l12b_f_component_port_without_declared_dc_has_undefined_window(tmp_path, r4_access):
+    """oracle 대조: (손) L12 (b) F 성분 입력 DC 미선언 포트 toy. 회로 C 의 in 은 M1 gate, source = gnd(레일) -> 성분이 레일에 닿고 뿌리가 아니다 ->
+    창이 정의되지 않는다: Window(None, None, 0, input_status="f_component_undeclared"). 그 포트만 자기 x 로 훑은 창이 나오면 red.
+    W4 뿌리 out 의 창은 그대로 [0, 1.8], input_status None."""
+    ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), r4_access)[2]
+    assert dict(ctx.base.column("node", "dc_writer"))["in"].relation == "vgs_gate"               # 전제: 트리 경로로 정해지는 포트
+    win = _window_of(run_blocks(ctx, theta_r4c(), upto="columns"))
+    assert set(win) == {"in", "out"}
+    w = win["in"]
+    assert w.input_status == "f_component_undeclared"
+    assert w.lo is None and w.hi is None and w.constraints == 0
+    assert (win["out"].lo, win["out"].hi, win["out"].input_status) == (0.0, 1.8, None)
