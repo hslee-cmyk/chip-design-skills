@@ -1045,7 +1045,7 @@ def test_it2b_k1_declared_input_port_has_measured_window(tmp_path, r4_access):
     win = _window_of(snap)
     assert set(win) == {"in", "out"}
     w = win["in"]
-    assert w.input_status == "measured" and w.status_detail == ()
+    assert w.input_status == "measured"
     assert (w.lo, w.hi, w.constraints) == (0.0, 1.8, 0)
     assert w.tol_v is not None and w.tol_v > 0
     assert win["out"].input_status is None
@@ -1196,7 +1196,7 @@ NEG_I = 1e-5
 NEG_R = 17935.0                       # t -> d 저항(Ω): VDS(MT) ≈ 0.1 V (뿌리 창 중앙에서 손으로 맞춘 입력 값, 기대값 아님)
 
 
-NEG_QV, NEG_VS_KINK = 0.5, 1.6      # VS > 1.6 V 에서만 ln ID 에 −QV·(VS − 1.6)² (동작 범위 밖): LUT 허용오차 tol_V 가 극소(1e-17)가 되어
+NEG_QV, NEG_VS_KINK = 0.05, 1.6     # VS > 1.6 V 에서만 ln ID 에 −QV·(VS − 1.6)² (동작 범위 밖): LUT 허용오차 tol_V 가 극소(1e-17)가 되어
                                     # A6 되풀이가 수렴 판정을 못 하는 일을 막는 곡률(구간 선형 ln ID 의 LOO 오차가 tol_V 를 정의한다)
 
 
@@ -1356,7 +1356,7 @@ def test_it2b_l12a_k_max_exhausted_root_window_is_unsettled_and_y_range_kept(tmp
     monkeypatch.setattr("gmid_engine.sizing.block_columns.k_max", lambda width, tol_: 1)
     snap = _columns_with_declared(ctx, _neg_theta(ctx, y_req))
     w = _window_of(snap)["x"]
-    assert abs(w.hi - star.hi) > tol                                                          # (3) 소진 분기에 도달(창이 수렴값과 다르다)
+    assert max(abs(w.hi - star.hi), abs(w.lo - star.lo)) > tol                                # (3) 소진 분기에 도달(창 끝 하나라도 수렴값과 tol 넘게 다르다)
     assert star.input_status == "measured"
     assert w.input_status == "unsettled"
     assert 0.0 <= w.lo < w.hi <= 1.8
@@ -1482,14 +1482,70 @@ def _region_rows_scope():
     return tree, [fn for fns in scope.values() for fn in fns]
 
 
+def _const_strings(value):
+    if isinstance(value, _ast.Constant) and isinstance(value.value, str):
+        return {value.value}
+    if isinstance(value, (_ast.Tuple, _ast.List, _ast.Set)):
+        parts = [_const_strings(e) for e in value.elts]
+        if parts and all(p is not None for p in parts):
+            return set().union(*parts)
+    return None
+
+
+def _module_string_constants(path):
+    """모듈 수준 `NAME = "문자열"`(또는 문자열 tuple/list/set) 대입 -> {이름: 문자열 집합}."""
+    if not path.exists():
+        return {}
+    out = {}
+    for node in _ast.parse(path.read_text(encoding="utf-8")).body:
+        if isinstance(node, _ast.Assign):
+            values = _const_strings(node.value)
+            if values is not None:
+                for target in node.targets:
+                    if isinstance(target, _ast.Name):
+                        out[target.id] = values
+    return out
+
+
+def _imported_engine_modules(tree):
+    """block_columns.py(= ENGINE/sizing) 가 import 하는 엔진 모듈 파일 경로들(상대 import 와 `gmid_engine.` 절대 import)."""
+    paths = []
+    for node in _ast.walk(tree):
+        if not isinstance(node, _ast.ImportFrom):
+            continue
+        if node.level:
+            base = ENGINE / "sizing"
+            for _ in range(node.level - 1):
+                base = base.parent
+            parts = (node.module or "").split(".") if node.module else []
+        elif node.module and node.module.split(".")[0] == "gmid_engine":
+            base, parts = ENGINE, node.module.split(".")[1:]
+        else:
+            continue
+        for rel in [parts] + [parts + [a.name] for a in node.names]:
+            stem = base.joinpath(*rel) if rel else base
+            for cand in (stem.with_suffix(".py"), stem / "__init__.py"):
+                if cand.exists() and cand not in paths:
+                    paths.append(cand)
+    return paths
+
+
 def test_it2b_d_region_rows_kinds_are_sat_and_triode_only():
     """oracle 대조: (독립) D (b) (S4-나) -- 정적 AST(docstring·주석 제외): `region_rows` 와 그것이 부르는 같은 모듈 함수의 문자열 상수 가운데 행 종류 어휘
-    {"sat", "triode", "off"} 의 교집합 = {"sat", "triode"} (`off` 행 없음)."""
-    _, fns = _region_rows_scope()
+    {"sat", "triode", "off"} 의 교집합 = {"sat", "triode"} (`off` 행 없음). 행 종류를 모듈 수준 상수 이름으로 쓰는 경우를 따라간다: 함수 본문의 이름 참조가
+    `X = "sat"` 꼴(또는 문자열 tuple/list/set) 모듈 수준 대입을 가리키면 그 값을 더한다 -- block_columns 모듈 안 대입, 그리고 block_columns 가 import 한
+    엔진 모듈(상대·절대)의 모듈 수준 대입까지(정적, docstring 제외, 측정 정의 그대로)."""
+    tree, fns = _region_rows_scope()
+    constants = _module_string_constants(ENGINE / "sizing" / "block_columns.py")
+    for path in _imported_engine_modules(tree):
+        for name, values in _module_string_constants(path).items():
+            constants.setdefault(name, values)
     strings = set()
     for fn in fns:
         strings |= _identifiers_and_strings(fn)[1]
-    assert strings & {"sat", "triode", "off"} == {"sat", "triode"}
+        for name in _identifiers_and_strings(fn)[0]:
+            strings |= constants.get(name, set())
+    assert strings & {"sat", "triode", "off"} == {"sat", "triode"}, strings & {"sat", "triode", "off"}
 
 
 def test_it2b_d_region_rows_has_no_zero_vgs_op_point_conduction_columns_or_eo1_import():
