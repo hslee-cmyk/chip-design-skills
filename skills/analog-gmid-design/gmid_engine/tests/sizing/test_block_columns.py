@@ -1590,3 +1590,63 @@ def test_it2b_d_no_operating_point_mismatch_vocabulary_in_engine_sources():
             if word in names or any(word in s for s in strings):
                 hits.append((str(path.relative_to(ENGINE)), word))
     assert hits == [], hits
+
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# L12 (a) tol 미정 -> 뿌리 `unsettled` (design 41 4.7-3 1 A6 b: '`tolerance` 가 미정이면 창을 한 번만 적용하고 되풀이 수렴 판정 없이 푼다')
+# 도달 조건: 비순환 쓰기 계획(순환 SCC·자기참조 없음), 해의 모든 MOS 에서 tol_VDsat 정의(열 출처 = 기준 LUT), id_equivalent tol_V 셀은 전부 미정.
+# 픽스처: 슬라이스에 VDSAT 열 없음 + 기준 LUT(cap)에 VDSAT 열, 슬라이스 VDS = 0 열 끔, 격자 VGS 2점·VDS 3점(0 포함)·VS 2점, L 앵커만.
+# 회로(이름 없는 공통 게이트 꼴): M1 nmos (out, vb, in, gnd), RL (vdd, out), IS (in, gnd 전류 싱크); in = 입력 W4 뿌리, out = resistor_drop.
+# ---------------------------------------------------------------------------------------------------------------------------
+A6B_GRIDS = (R4_L, (0.2, 1.2), (0.0, 0.3, 1.8), (0.0, 1.8))        # 축소 격자 표현용 test 입력(엔진 상수 아님)
+
+
+def _a6b_doc():
+    return topo("it2b_a6b", [mos("M1", "nmos", "out", "vb", "in", "gnd")], {"in": ("input", "x"), "out": ("output", "y")},
+                passives=[two("RL", "resistor", "vdd", "out")], sources=[two("IS", "current_source", "in", "gnd")], bias=["vb"])
+
+
+def _a6b_access(tmp_path, slice_vdsat, cap_vdsat):
+    from .conftest import write_r4_lut
+    return new_access(write_r4_lut(tmp_path / "lut", vdsat=slice_vdsat, off_cols={"nmos": 1, "pmos": 1}, grids=A6B_GRIDS,
+                                   cap_vdsat=cap_vdsat))
+
+
+def _a6b_window(tmp_path, slice_vdsat, cap_vdsat, check_structure=False):
+    acc = _a6b_access(tmp_path, slice_vdsat, cap_vdsat)
+    (tmp_path / "ctx").mkdir()
+    ctx = build_ctx(tmp_path / "ctx", _a6b_doc(), acc)[2]
+    if check_structure:                                           # 전제: 순환 SCC 0·자기참조 0
+        assert not any(e.cyclic for e in ctx.base.value("graph", DC_KEY, "dc_scc_order"))
+        assert not any(v for _, v in ctx.base.column("device", "dc_self_referential"))
+    th = {("L", "M1"): 1e-6, ("ln_idu", "M1"): r4_ln_idu("nmos", 0.4, 0.6, 0.6), ("resistance", "RL"): 6e4}
+    th.update(free_currents(ctx, {"M1": 1e-5, "RL": 1e-5, "IS": 1e-5}))
+    th.update({(k, key): 0.5 for k, key in kschema(ctx).components if k == "y"})
+    assert set(th) == set(kschema(ctx).components)
+    snap = run_blocks(ctx, th, upto="columns")
+    return acc, snap
+
+
+def test_it2b_l12a_tol_undefined_root_window_is_unsettled_and_y_range_kept(tmp_path):
+    """oracle 대조: (손) L12 (a) tol 미정. 전제 단언(공개 표 API): (1) 슬라이스 id_equivalent tol_V 셀이 전부 None (2) tol_VDsat 가 정의되고 출처가 기준 LUT (3) 쓰기
+    계획이 비순환(순환 SCC 0·자기참조 0). 관측: 뿌리 in 의 input_status == "unsettled", tol_v is None(되풀이 수렴 판정 없음), 창은 한 번 잰 창이고 레일 안이며
+    V(in) = lo + y·(hi − lo) (y = 1/2). 대조군: 기준 LUT 에도 VDSAT 가 없으면(출처 열 없음) 또는 슬라이스에 VDSAT 가 있으면(출처 = 슬라이스라 두 표가 함께 None)
+    창을 잴 수 없어 "unmeasured"(A6 a). base 는 Window 에 input_status 칸이 없다(AttributeError)."""
+    from gmid_engine.lut import tol_vdsat_table
+    acc, snap = _a6b_window(tmp_path / "a", slice_vdsat=(), cap_vdsat=("nmos",), check_structure=True)
+    tv = tol_v_table(acc.memo, "nmos", 100)
+    td = tol_vdsat_table(acc.memo, "nmos", 100)
+    for vds in (0.1, 0.3, 1.0, 1.7):
+        assert tv.at(1e-6, vds, "id_equivalent") is None, vds                                   # 전제 (1)
+        assert td.at(1e-6, vds) is not None, vds                                                # 전제 (2) 정의됨
+    assert "cap" in str(td.origin), td.origin                                                   # 전제 (2) 출처 = 기준 LUT(cap table)
+    w = _window_of(snap)["in"]
+    assert w.input_status == "unsettled"
+    assert w.tol_v is None
+    assert 0.0 <= w.lo < w.hi <= 1.8
+    assert abs(node_voltages(snap)["in"] - (w.lo + 0.5 * (w.hi - w.lo))) <= 1e-9
+    # 대조군 -- 창을 잴 수 없다
+    _, snap_c = _a6b_window(tmp_path / "c", slice_vdsat=(), cap_vdsat=())
+    assert _window_of(snap_c)["in"].input_status == "unmeasured"
+    _, snap_d = _a6b_window(tmp_path / "d", slice_vdsat=("nmos", "pmos"), cap_vdsat=())
+    assert _window_of(snap_d)["in"].input_status == "unmeasured"
