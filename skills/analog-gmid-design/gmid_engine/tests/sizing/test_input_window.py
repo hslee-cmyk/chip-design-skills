@@ -84,7 +84,8 @@ def test_it2b_sw_several_roots_move_together():
     dlo, dhi, slope = saturation_window(("a", "b", "w", "x"), ("x", "w"), vals, grad, rows)
     assert abs(dlo - (-0.35)) <= 1e-12 and abs(dhi - 0.35) <= 1e-12
     assert abs(slope["a"] - 36 / 35) <= 1e-12 and abs(slope["b"] - 18 / 35) <= 1e-12 and slope["x"] == 1.0 and slope["w"] == 1.0
-    one = saturation_window(("a", "b", "w", "x"), ("x",), vals, grad, rows)
+    # 뿌리 하나 x 만 움직이면 w 는 움직이지 않는 상수 항이라 unknown 에 넣지 않는다(gradient 는 a·b 의 식만 안다) -- s_a = 4/7
+    one = saturation_window(("a", "b", "x"), ("x",), vals, grad, rows)
     assert one is not None and abs(one[2]["a"] - 4 / 7) <= 1e-12 and abs(one[0] - (-0.36 * 7 / 4)) <= 1e-12
 
 

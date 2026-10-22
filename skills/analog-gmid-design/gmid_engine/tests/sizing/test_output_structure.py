@@ -104,6 +104,8 @@ def test_it2b_os_f_other_w3_node_in_component_is_not_a_fixed_end(tmp_path, toy_a
 def test_it2b_os_g_declared_input_dc_reaches_output_through_gate_source(tmp_path, toy_access):
     """oracle 대조: (손) OS (g). 같은 연결에서 입력 DC 선언이면 in 이 F' -> M1 gate-source 엣지로 out 에 닿음 -> kvl_fixed,
     미선언이면 high_impedance."""
+    (tmp_path / "decl").mkdir()
+    (tmp_path / "undecl").mkdir()
     declared = build_ctx(tmp_path / "decl", _follower(), toy_access, input_dc_v=0.7)[2]
     assert _structure(declared) == {"out": KVL}
     undeclared = build_ctx(tmp_path / "undecl", _follower(), toy_access)[2]

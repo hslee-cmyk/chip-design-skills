@@ -217,14 +217,15 @@ def test_vocabulary_constants():
 
 def test_it2b_output_structure_vocabulary_and_window_status_defaults():
     """oracle 대조: (d) 사용자 선언 스펙값 -- design 41 v1.12.8 4.7-1a·4.7-2: 출력 구조 분류 값은 두 문자열뿐이고(상수 `OUTPUT_HIGH_IMPEDANCE`·
-    `OUTPUT_KVL_FIXED`, 모듈 `gmid_engine.sizing.s2_values`), `Window` 의 새 칸 기본값은 (input_status None, tol_v None, status_detail ())."""
+    `OUTPUT_KVL_FIXED`, 모듈 `gmid_engine.sizing.s2_values`), `Window` 의 새 칸 기본값은 (input_status None, tol_v None).
+    [O-98 반영] `status_detail` 칸은 (S4-나)에서 IT-2b 에 없다 -- 동작점 불일치 묶음은 EO-1 card 몫(계획 v6.33)."""
     from gmid_engine.sizing import s2_values
     assert s2_values.OUTPUT_HIGH_IMPEDANCE == "high_impedance"
     assert s2_values.OUTPUT_KVL_FIXED == "kvl_fixed"
     w = s2_values.Window(0.31, 1.12, 2, input_status="measured", tol_v=1.2e-4)         # 설계 예시 리터럴 (41 4.7-2)
-    assert (w.lo, w.hi, w.constraints, w.input_status, w.tol_v, w.status_detail) == (0.31, 1.12, 2, "measured", 1.2e-4, ())
-    mismatch = s2_values.Window(None, None, 0, input_status="op_mismatch", status_detail=(("devices", ("M1",)),))
-    assert (mismatch.lo, mismatch.hi, mismatch.status_detail) == (None, None, (("devices", ("M1",)),))
+    assert (w.lo, w.hi, w.constraints, w.input_status, w.tol_v) == (0.31, 1.12, 2, "measured", 1.2e-4)
+    undefined = s2_values.Window(None, None, 0, input_status="f_component_undeclared")
+    assert (undefined.lo, undefined.hi, undefined.input_status) == (None, None, "f_component_undeclared")
 
 
 def test_value_defaults():
@@ -279,10 +280,11 @@ def test_value_fields_as_contract():
     assert S.ZeroCancel("Rz", "out", ("in",), ("M1",)).reason is None
     assert names(S.ColumnNeighbor) == ("rails", "pred", "succ", "position", "length")
     assert names(S.SccEntry) == ("index", "nodes", "cyclic", "devices")
-    # [IT-2b 갱신 -- 칸 확대] design 41 4.7-2: 기본값 있는 칸 셋(input_status·tol_v·status_detail)을 뒤에 더한다(옛 3칸 생성 호환).
-    assert names(S.Window) == ("lo", "hi", "constraints", "input_status", "tol_v", "status_detail")
+    # [IT-2b 갱신 -- 칸 확대] design 41 4.7-2: 기본값 있는 칸 둘(input_status·tol_v)을 뒤에 더한다(옛 3칸 생성 호환).
+    # [O-98 반영] `status_detail` 칸은 IT-2b 에 없다(동작점 불일치 묶음 = EO-1 card, 계획 v6.33).
+    assert names(S.Window) == ("lo", "hi", "constraints", "input_status", "tol_v")
     old_window = S.Window(0.0, 1.8, 2)
-    assert (old_window.input_status, old_window.tol_v, old_window.status_detail) == (None, None, ())
+    assert (old_window.input_status, old_window.tol_v) == (None, None)
     # [r6] method·fallback 필드 추가(옛 6칸 뒤, 6칸 생성 호환). [r7] 2절: 기본값 method="direct", fallback=None.
     assert names(S.SccLog) == ("index", "nodes", "iterations", "deltas", "tol", "k_max", "method", "fallback")
     old = S.SccLog(0, ("x",), 1, (0.0,), 1e-3, 11)

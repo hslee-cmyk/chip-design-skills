@@ -91,19 +91,20 @@ def test_it2b_d_triode_row_zero_crossing_is_the_window_end(tmp_path, r4_access):
     assert abs(w.lo - (VIN + dlo)) <= 1e-9 and abs(w.hi - (VIN + dhi)) <= 1e-9, (w, VIN + dlo, VIN + dhi)
 
 
-def test_it2b_d_operating_point_mismatch_status_and_detail(tmp_path, r4_access):
-    """oracle 대조: (손) D 동작점 불일치. 같은 toy 에서 y = 0.7: V(out) = 0.8 + 0.7·1.0 = 1.5, M1 의 VDS = 0.7 > VDsat(0.8, 0.8) = 0.5234 -- 선언은
-    triode 인데 동작점이 포화(M2 는 VSD 0.3 > VDsat 0.245 + tol 이라 포화 선언 일치). 그 성분의 모든 입력 포트(여기서는 in) 항목이
-    input_status == "op_mismatch", lo·hi None, status_detail == (("devices", ("M1",)),) (소자 이름 정렬 tuple).
-    봉인이 같은 점을 거부하는 쪽은 card EO-1(봉인 7 의 triode 대조)이 base 에 없어 이 card 에서 단언하지 않는다."""
-    y, vsg2 = 0.7, 0.3
-    ctx = _toy_ctx(tmp_path, r4_access)
-    snap = _columns(ctx, _toy_theta(ctx, y, vsg2))
-    assert r4_vdsat_at("nmos", 1e-6, VGS1, VIN) < 0.7 - r4_tol_vdsat("nmos")                    # 전제: 손계산으로 M1 은 포화
-    w = dict(snap.column("node", "dc_window"))["in"]
-    assert w.input_status == "op_mismatch"
-    assert w.lo is None and w.hi is None
-    assert w.status_detail == (("devices", ("M1",)),)
+def test_it2b_d_no_operating_point_mismatch_vocabulary_in_engine_sources():
+    """oracle 대조: (독립) 계획 v6.33 (9)(d), 사용자 결정 O-98·O-101. (S4-나) 에서 동작점 불일치 묶음(블록 `op_mismatch` 판정·`Window.status_detail`·
+    metric code)은 EO-1 card 몫이다 -- 죽은 코드를 두지 않는다. 비test 엔진 소스(tests 폴더 제외 모든 .py)에서 문자열 `op_mismatch`,
+    `status_detail`, `input_window_operating_point_mismatch` (정의·상수 이름·문자열 모두, `git grep` 과 같은 텍스트 검색) 가 0 이다.
+    옛 `test_it2b_d_operating_point_mismatch_status_and_detail` 단언은 EO-1 card 의 test 로 옮겨졌다(범위 이동, 약화 아님)."""
+    hits = []
+    for path in ENGINE.rglob("*.py"):
+        if "tests" in path.relative_to(ENGINE).parts:
+            continue
+        text = path.read_text(encoding="utf-8")
+        for word in ("op_mismatch", "status_detail", "input_window_operating_point_mismatch"):
+            if word in text:
+                hits.append((str(path.relative_to(ENGINE)), word))
+    assert hits == [], hits
 
 
 def test_it2b_d_helper_module_public_names_replace_block_columns_privates():
