@@ -101,18 +101,17 @@
 | 1 | `seal_saturation.py` | `dc_seal_saturation` | `dc_seal_saturation` |
 | 1 | `seal_conduction.py` [r8] | `dc_seal_conduction` | `dc_seal_conduction` |
 | 1 | `seal_report.py` | `dc_seal_report` | `dc_seal_report` |
-| 2 | `_helpers_dc_solve.py` [IT-2b] | helper: `Circuit`(옛 `block_columns._Circuit`, `region_rows` 추가)·`solve`(옛 `_solve`)·`FAILURES`(옛 `_FAILURES`) -- 커널 창·다듬은 창 공용 | -- |
-| 3 | `block_columns.py` | `dc_columns` | `dc_columns` |
-| 3 | `block_widths.py` | `dc_widths` | `dc_widths` |
-| 3 | `kernel_context.py` | `build_kernel_context` | -- |
-| 3 | `seal_tolerances.py` | `dc_tolerances` | `dc_tolerances` |
-| 3 | `seal_node_conflict.py` | `dc_seal_node_conflict` | `dc_seal_node_conflict` |
-| 3 | `seal_vgs_match.py` | `dc_seal_vgs_match` | `dc_seal_vgs_match` |
-| 3 | `seal_kcl.py` | `dc_seal_kcl` | `dc_seal_kcl` |
-| 3 | `seal_bulk_reverse.py` | `dc_seal_bulk_reverse` | `dc_seal_bulk_reverse` |
-| 3 | `seal_kvl_branch.py` | `dc_seal_kvl_branch` | `dc_seal_kvl_branch` |
-| 4 | `seal.py` | `seal_dc` | -- |
-| 5 | `size_and_seal.py` | `size_and_seal` | -- |
+| 2 | `block_columns.py` [IT-2b: `_Circuit.region_rows`·`input_windows`, 커널 창, `_refine_ends` 삭제] | `dc_columns` | `dc_columns` |
+| 2 | `block_widths.py` | `dc_widths` | `dc_widths` |
+| 2 | `kernel_context.py` | `build_kernel_context` | -- |
+| 2 | `seal_tolerances.py` | `dc_tolerances` | `dc_tolerances` |
+| 2 | `seal_node_conflict.py` | `dc_seal_node_conflict` | `dc_seal_node_conflict` |
+| 2 | `seal_vgs_match.py` | `dc_seal_vgs_match` | `dc_seal_vgs_match` |
+| 2 | `seal_kcl.py` | `dc_seal_kcl` | `dc_seal_kcl` |
+| 2 | `seal_bulk_reverse.py` | `dc_seal_bulk_reverse` | `dc_seal_bulk_reverse` |
+| 2 | `seal_kvl_branch.py` | `dc_seal_kvl_branch` | `dc_seal_kvl_branch` |
+| 3 | `seal.py` | `seal_dc` | -- |
+| 4 | `size_and_seal.py` | `size_and_seal` | -- |
 
 계산 블록은 모두 core `compute_block`(core CONTRACT 6절)이다: 블록 함수는 선언 reads 투영 + 불변 extras 만 받고, 입력 버전 =
 fp_of((이름, 코드 해시, 투영 지문)) = `block.input_version(snapshot, *extras)`(정본), 같으면 재사용(스냅샷 `is` 반환), 결과는 `snapshot.write` 로만 쓴다(열 교체 의미).
