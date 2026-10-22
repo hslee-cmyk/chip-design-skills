@@ -5,9 +5,9 @@
 창 끝 식(행 교집합)은 이 함수 하나에만 있다. 입력 공통모드 x(= `roots` 가 함께 움직이는 넷)를 움직였을 때 x 를 따라 움직이는 노드의 전압 차가 영향받는
 소자 전부에서 행 여유 ≥ 0 을 지키는 **이동량** Δ 구간 [dlo, dhi](출발점 x₀ = 0 기준)이다. 끝은 봉인 시점 값이고 tol 을 포함한다(행의 여유가 정한다).
 
-* 입력 `values` = x 에서 푼 노드전압(해 하나), `gradient(net, values) -> (g, {노드: ∂g/∂V})` = 노드 writer 식과 그 편미분(`_helpers_dc_solve.Circuit`
+* 입력 `values` = x 에서 푼 노드전압(해 하나), `gradient(net, values) -> (g, {노드: ∂g/∂V})` = 노드 writer 식과 그 편미분(`block_columns._Circuit`(IT-2d 에서 `_helpers_dc_solve.Circuit` 로 이동)
   의 Newton 야코비안과 같은 식), `unknown` = 고정 노드(레일·목표·입력 DC)가 아닌 모든 노드(x 로 움직이는 고정 노드 포함),
-  `rows` = ((a, b, sign, slack, kind), ...) -- `Circuit.region_rows` 의 5원소 행: 여유가 기대는 전압 차의 두 넷 a·b, 부호 sign(여유의 x 미분 =
+  `rows` = ((a, b, sign, slack, kind), ...) -- `block_columns._Circuit.region_rows` 의 5원소 행: 여유가 기대는 전압 차의 두 넷 a·b, 부호 sign(여유의 x 미분 =
   sign·(s_a − s_b)), 그 점의 여유 slack(V, 음수면 이미 영역 밖), 행 종류 kind. **`kind` 는 창 계산에 쓰지 않는다.**
 * `roots` 원소 = 넷이면 그 넷의 s = 1(커널 뿌리·선언 포트 묶음), 쌍 `(행 넷, 고정 넷)` 이면 행 넷의 식을 s_고정넷 = 1 로 바꾼다(측정 구성 follower 의
   'W4 뿌리 행을 V_out = x 로 바꾼 같은 연립').

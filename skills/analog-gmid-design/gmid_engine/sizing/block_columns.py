@@ -29,7 +29,7 @@
   표현할 수 없다(설계 3.3 4). 쓰기 소자 좌표 = θ.
 * `path_values`(봉인 1 입력): 노드에 닿는 관계마다 그 관계가 함의하는 노드 전압(MOS = 좌표에서 VGS 역산, 저항 = 강하,
   W4·고정 = 값).
-* **창 경계 행 `_Circuit.region_rows`**(설계 41 4.7-3a, 카드 IT-2b, (S4-나)): 전도 MOS 마다 5원소 행 `(a, b, sign, slack, kind)`.
+* **창 경계 행 `_Circuit.region_rows`**(설계 41 4.7-3a, 카드 IT-2b, (S4-나)): `dc_coord` MOS 마다 5원소 행 `(a, b, sign, slack, kind)`.
   (가) 선언 없음 = `(d, s, 부호, VDS − VDsat − tol_VDsat, "sat")`, (나) `triode` 선언 = `(d, s, −부호, VDsat − VDS − tol_VDsat, "triode")`. `off` 행·V_on 호출·전도 판정은 없다.
   동작점에서 여유가 음수인 선언 triode 행도 같은 끝 식에 그대로 들어간다(특별 처리 0).
 * **커널 창 `node.dc_window`**(설계 41 4.7-2·4.7-3, 카드 IT-2b): W4 뿌리 + 모든 입력 포트. 입력 포트가 아닌 W4 뿌리는 순서 창(`input_status` None).
@@ -245,7 +245,7 @@ class _Circuit:
         return net, w.relation
 
     def region_rows(self, values):
-        """창 경계 행 셋(설계 41 4.7-3a 1): 전도 MOS 마다 `(a, b, sign, slack, kind)`, kind ∈ {"sat", "triode"}. LUT 에 VDSAT 열이 없거나 tol 이 미정이면
+        """창 경계 행 셋(설계 41 4.7-3a 1): `dc_coord` MOS 마다 `(a, b, sign, slack, kind)`, kind ∈ {"sat", "triode"}. LUT 에 VDSAT 열이 없거나 tol 이 미정이면
         그 판정을 할 수 없어 None(창을 좁히지 않는다 -- 종래 사상)."""
         rows = []
         for m in sorted(self.coord, key=lambda x: (self.device_colour.get(x, 0), x)):
@@ -731,6 +731,7 @@ def _solve_input_window(c):
     점을 찾는다) (2) 그 해에서 잰 포화 창 [Vin,min, Vin,max] ∩ 순서 창을 y_icm 범위로 삼아 요청 y_icm 으로 다시 풀며 (3) 새 해에서 창을 다시 재
     경계가 tol 안에서 같아질 때까지 되풀이한다(상한 K_max = `k_max`(레일 폭, tol)). 끝 다듬기는 하지 않는다(커널 창은 선형 감도 끝, 설계 41 4.7-3 1).
     (1) 이 어디서도 풀리지 않거나 창을 잴 수 없으면(VDSAT 열 없음·tol 미정) 종래 사상(요청 y_icm, 순서 창)으로 푼다 -- 종래보다 나빠지지 않는다.
+    tol = 창을 잰 해의 `tolerance`(되풀이 판정은 새 창을 잰 해, `Window.tol_v` 는 마지막 창을 잰 해 -- 설계 41 4.7-2·4.7-3 5; 해마다 한 번 계산, 저장 없음).
     상태: 되풀이가 tol 안에서 수렴하면 `measured`, 수렴하지 않았거나 tol 미정이면 `unsettled`(창은 잰 해에서 쟀으니 y 범위로는 쓴다), 창을 못 재면 `unmeasured`."""
     roots = c.input_roots()
     if not roots:
@@ -759,14 +760,16 @@ def _solve_input_window(c):
         values, logs = _solve(c)
         return _Kernel(values, logs, INPUT_STATUS_UNSETTLED, None, measured)
     settled = False
-    for _ in range(k_max(c.hi - c.lo, tol)):
+    for _ in range(k_max(c.hi - c.lo, tol)):          # 상한은 첫 해의 tol 로 정한다(설계 L12 상한식); 판정·tol_v 는 창을 잰 해마다의 tolerance
         c.override = {root: measured.window}
         values, logs = _solve(c)
         again = _measure(c, root, values)
         if again is None:
             break
-        settled = all(abs(a - b) <= tol for a, b in zip(again.window, measured.window))
-        measured = again
+        previous, measured, tol = measured, again, _tolerance(c, again.values)
+        if tol is None:                                # 되풀이 중간에 tol 미정 -- A6 b 와 같이 수렴 판정 불가(마지막으로 잰 창을 y 범위로 쓴다)
+            break
+        settled = all(abs(a - b) <= tol for a, b in zip(again.window, previous.window))
         if settled:
             break
     c.override = {root: measured.window}
