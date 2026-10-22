@@ -1196,7 +1196,8 @@ NEG_I = 1e-5
 NEG_R = 17935.0                       # t -> d 저항(Ω): VDS(MT) ≈ 0.1 V (뿌리 창 중앙에서 손으로 맞춘 입력 값, 기대값 아님)
 
 
-NEG_QV, NEG_VS_KINK = 0.05, 1.6     # VS > 1.6 V 에서만 ln ID 에 −QV·(VS − 1.6)² (동작 범위 밖): LUT 허용오차 tol_V 가 극소(1e-17)가 되어
+NEG_QD = 20.0                       # 곡률 계수에 (1 + QD·VDS) 를 곱해 tol_V 셀이 VDS 에 따라 달라지게 한다(해마다 tolerance 가 다른 toy -- L12 (a) tol_v 판정)
+NEG_QV, NEG_VS_KINK = 0.05, 1.6    # VS > 1.6 V 에서만 ln ID 에 −QV·(VS − 1.6)² (동작 범위 밖): LUT 허용오차 tol_V 가 극소(1e-17)가 되어
                                     # A6 되풀이가 수렴 판정을 못 하는 일을 막는 곡률(구간 선형 ln ID 의 LOO 오차가 tol_V 를 정의한다)
 
 
@@ -1226,7 +1227,8 @@ def _write_neg_lut(root):
     entries = []
     for kind in ("nmos", "pmos"):
         idc = (_W_M / lg) * _I0[kind] * _np.exp(_B * g - 0.5 * NEG_CN * g * g + h_d - NEG_KS * s
-                                                       - NEG_QV * _np.maximum(s - NEG_VS_KINK, 0.0) ** 2)
+                                                       - NEG_QV * (1.0 + NEG_QD * g_d[None, None, :, None])
+                                                       * _np.maximum(s - NEG_VS_KINK, 0.0) ** 2)
         c0, c1, c2, cs, cl = _R4_VDSAT[kind]
         il = _np.arange(len(g_l), dtype=float)[:, None, None, None]
         arr = {"W": _np.float64(_W_M), "L": g_l, "VGS": g_g, "VDS": g_d, "VS": g_s, "ID": idc, "GM": idc * (_B - NEG_CN * g),
@@ -1351,7 +1353,7 @@ def test_it2b_l12a_k_max_exhausted_root_window_is_unsettled_and_y_range_kept(tmp
     y_req = 0.3
     assert y_req != 0.5
     star = _window_of(_columns_with_declared(ctx, _neg_theta(ctx, 0.5)))["x"]               # (2) y = 1/2 풀이 성공
-    tol = tol_v_table(acc.memo, "nmos", 100).at(1e-6, 0.9, "id_equivalent")
+    tol = star.tol_v                                      # 수렴한 창을 잰 해의 tolerance (이 LUT 는 VDS 에 따라 tol_V 셀이 달라 한 점의 표 값을 쓰지 않는다)
     assert tol is not None and 0.0 < tol < 1e-3
     monkeypatch.setattr("gmid_engine.sizing.block_columns.k_max", lambda width, tol_: 1)
     snap = _columns_with_declared(ctx, _neg_theta(ctx, y_req))
@@ -1650,3 +1652,28 @@ def test_it2b_l12a_tol_undefined_root_window_is_unsettled_and_y_range_kept(tmp_p
     assert _window_of(snap_c)["in"].input_status == "unmeasured"
     _, snap_d = _a6b_window(tmp_path / "d", slice_vdsat=("nmos", "pmos"), cap_vdsat=())
     assert _window_of(snap_d)["in"].input_status == "unmeasured"
+
+
+def test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution(tmp_path):
+    """oracle 대조: (식) design 41 v1.12.10 4.7-2·4.7-3 5 -- `Window.tol_v` = 그 창을 잰 해의 tolerance(소자 tol_V 셀 최솟값), A6 되풀이 판정에도 매 측정 해의
+    tol 을 쓴다(첫 해의 tol 하나를 모든 회차에 쓰면 red). 기대값 = 공개 표 API `tol_v_table(...).at(L, VDS, "id_equivalent")` 를 마지막 해의 소자마다 읽은
+    최솟값(L·VDS = 그 해의 `dc_op` graph 필드). 피검 `tol_v` 로 기대값을 만들지 않는다.
+    toy = P(a) toy + 곡률 계수가 (1 + QD·VDS) 라 tol_V 셀이 VDS 에 따라 달라지는 LUT. 전제 단언: (1) 첫 해(y = 1/2 해: 순서 창 [0, 1.8] 중앙 x = 0.9)의 tol 을
+    같은 공개 표 API 와 독립 풀이(`_neg_solve(0.9)`)로 구해 마지막 해의 tol 과 다르다(이 전제가 없으면 test 가 공허하다). 이 toy 의 A6 되풀이는 앞 test
+    (k_max 주입)가 보였듯 한 번 넘게 돈다. 마지막 해 = 최종 평가점(y = 1/2)은 창을 잰 마지막 해와 x 가 tol 안에서 같다 -- 허용 2e-6."""
+    from gmid_engine.sizing import dc_widths
+    acc, ctx = _neg_ctx(tmp_path)
+    t, u, d, _ = _neg_solve(0.9)
+    first_vds = (1.8 - t, 1.8 - u, d - u, u)                                   # MA, MB, MT, MS 의 VDS (손: 소자 단자 전압 차)
+    tv = tol_v_table(acc.memo, "nmos", 100)
+    tol_first = min(tv.at(1e-6, v, "id_equivalent") for v in first_vds)
+    snap = _columns_with_declared(ctx, _neg_theta(ctx, 0.5))
+    run = dict(donors=ctx.donors, counters=ctx.counters)
+    ops = dict(dc_widths(snap, ctx.lut, **run).column("device", "dc_op"))
+    tol_last = min(tol_v_table(acc.memo, op.kind, op.w_key).at(op.L, op.vds, "id_equivalent") for op in ops.values())
+    assert tol_first is not None and tol_last is not None
+    assert abs(tol_last - tol_first) > 1e-5                                    # 전제 (1)
+    w = _window_of(snap)["x"]
+    assert w.tol_v is not None
+    assert abs(w.tol_v - tol_last) <= 2e-6, (w.tol_v, tol_last, tol_first)
+    assert abs(w.tol_v - tol_first) > 1e-5
