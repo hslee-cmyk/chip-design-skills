@@ -760,9 +760,11 @@ def _solve_input_window(c):
         values, logs = _solve(c)
         return _Kernel(values, logs, INPUT_STATUS_UNSETTLED, None, measured)
     settled = False
+    solved_with = None                                 # 마지막으로 푼 override -- 최종 override 가 같으면 같은 인자를 다시 풀지 않고 그 (values, logs) 를 쓴다(블록 안 지역 변수)
     for _ in range(k_max(c.hi - c.lo, tol)):          # 상한은 첫 해의 tol 로 정한다(설계 L12 상한식); 판정·tol_v 는 창을 잰 해마다의 tolerance
         c.override = {root: measured.window}
         values, logs = _solve(c)
+        solved_with = c.override
         again = _measure(c, root, values)
         if again is None:
             break
@@ -773,7 +775,8 @@ def _solve_input_window(c):
         if settled:
             break
     c.override = {root: measured.window}
-    values, logs = _solve(c)
+    if c.override != solved_with:
+        values, logs = _solve(c)
     return _Kernel(values, logs, INPUT_STATUS_MEASURED if settled else INPUT_STATUS_UNSETTLED, tol, measured)
 
 
@@ -801,8 +804,8 @@ def _windows(c, values, kernel):
         if relation in FIXED_RELATIONS:                # F 성분에 속한 포트 -- 창이 정의되지 않는다(fail-closed)
             out[net] = Window(None, None, 0, INPUT_STATUS_F_COMPONENT_UNDECLARED)
         elif kernel.measured is not None:              # 뿌리 성분의 포트 -- 뿌리 창 끝을 같은 해의 감도로 옮긴다
-            lo_x, hi_x, _ncols = c.window(head, values)
-            x_k = kernel.measured.values[head]
+            lo_x, hi_x = out[head].lo, out[head].hi       # 위에서 같은 인자로 이미 만든 뿌리 창(head 는 W4 뿌리 -- 없으면 KeyError)
+            x_k =kernel.measured.values[head]
             lo, hi = c.port_window(kernel.measured.values[net], kernel.measured.slope[net], lo_x - x_k, hi_x - x_k)
             out[net] = Window(lo, hi, 0, kernel.status, kernel.tol)
     return {net: out[net] for net in c.writers if net in out}
