@@ -35,6 +35,11 @@ def assert_voltages(snap, ctx, theta):
     win_all = dict(snap.column("node", "dc_window"))
     roots = {n for n, w in dict(snap.column("node", "dc_writer")).items() if w.relation == "free_window"}
     win = {n: w for n, w in win_all.items() if n in roots}
+    # 단언 둘로 나눈다(약화 해소): (1) 뿌리 키 집합 등식, (2) 뿌리 밖 키는 모두 입력 포트(`node.port_direction` == "input" -- 피검 출력이 아닌 입력 필드).
+    # 측정 실패(A6 a)면 뿌리 아닌 포트 항목이 없으므로 '뿌리 ∪ 입력 포트' 전체 등식은 일반 불변식이 아니다(design 41 4.7-3 4).
+    input_ports = {n for n, d in dict(snap.column("node", "port_direction")).items() if d == "input"}
+    assert set(win_all) & roots == set(win_exp)
+    assert set(win_all) - roots <= input_ports
     assert set(win) == set(win_exp)
     for n, (lo, hi) in win_exp.items():
         assert isinstance(win[n], Window)
@@ -1163,3 +1168,369 @@ def test_it2b_l12b_f_component_port_without_declared_dc_has_undefined_window(tmp
     assert w.input_status == "f_component_undeclared"
     assert w.lo is None and w.hi is None and w.constraints == 0
     assert (win["out"].lo, win["out"].hi, win["out"].input_status) == (0.0, 1.8, None)
+
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# P(a) 감도 음수 포트 toy (design 41 4.7-3 2·4.7-7 P (a)) -- 이름 없는 toy + VDS 의존이 가파른 LUT 픽스처(이 파일 안에서 만든다)
+#
+# 연결: 입력 포트 x(뿌리) -MA follower-> t, 저항 R (t -> d), t -MB follower-> u, MT (d = d, g = p, s = u) triode 선언, 둘째 입력 포트 p,
+# 풀다운 MS (u, vs, gnd). 쓰기: t = x − VGS_A, u = t − VGS_B, d = t − I·R, p = u + VGS_T(vds = d − u) (p 는 vgs_gate, known u).
+# 손 유도(전류 고정 writer 식): F = ∂VGS/∂VDS = −h′(VDS)/G′ (전류 고정, 이득의 역수 꼴), η = ∂VGS/∂VSB = KS/G′.
+#   t -> u 엣지: s_u·(1 + |F_B| + η_B) = s_t, d: s_d = s_t (저항), u -> p 엣지(vgs_gate): s_p = s_u·(1 + |F_T| + η_T) − |F_T|·s_d.
+#   s_p < 0 조건: |F_T| > (1 + η_T)/(η_B + |F_B|). r4 LUT 는 |F| ≤ 0.018 이라 이 조건이 불가능 -> VDS < 0.2 V 에서 ln ID 기울기가 가파른(deep triode) LUT 를 둔다.
+# 픽스처 LUT: ln ID = ln I0 + B·VGS − CN·VGS²/2 + h(VDS) − KS·VS (+ VDSAT 열 = r4 식), h(VDS) = S1·min(VDS, D1) + S2·max(VDS − D1, 0).
+# 격자 VDS 0.0125 V 간격(노드에서 기울기 GDS = ID·h′ 정확 -> 구간 선형 ln ID 가 정확). VS 항을 선형으로 두어 η 를 상수로 한다(곡률은 VGS 축 CN 이 준다).
+# ---------------------------------------------------------------------------------------------------------------------------
+import json as _json  # noqa: E402
+
+import numpy as _np  # noqa: E402
+
+from gmid_engine.lut import load_lut_set as _load_lut_set  # noqa: E402
+
+from .conftest import (A as _A, B as _B, DEVICE_OF as _DEVICE_OF, I0 as _I0, R4_VDSAT as _R4_VDSAT, R4_VGS as _R4_VGS,  # noqa: E402
+                       R4_VS as _R4_VS, SUFFIX as _SUFFIX, TOY_SPEC as _TOY_SPEC, W_M as _W_M, _sha as _file_sha)
+
+NEG_CN, NEG_KS, NEG_S1, NEG_S2, NEG_D1 = 2.0, 2.0, 250.0, 0.1, 0.2
+NEG_VDS = tuple(round(0.0125 * i, 10) for i in range(161))                 # 0 .. 2.0 V
+NEG_I = 1e-5
+NEG_R = 17935.0                       # t -> d 저항(Ω): VDS(MT) ≈ 0.1 V (뿌리 창 중앙에서 손으로 맞춘 입력 값, 기대값 아님)
+
+
+NEG_QV, NEG_VS_KINK = 0.5, 1.6      # VS > 1.6 V 에서만 ln ID 에 −QV·(VS − 1.6)² (동작 범위 밖): LUT 허용오차 tol_V 가 극소(1e-17)가 되어
+                                    # A6 되풀이가 수렴 판정을 못 하는 일을 막는 곡률(구간 선형 ln ID 의 LOO 오차가 tol_V 를 정의한다)
+
+
+def _neg_h(d):
+    return NEG_S1 * min(d, NEG_D1) + NEG_S2 * max(d - NEG_D1, 0.0)
+
+
+def _neg_slope(d):
+    return NEG_S1 if d < NEG_D1 else NEG_S2
+
+
+def _neg_ln_idu(vgs, vds, vsb):
+    return math.log(_I0["nmos"]) + _B * vgs - 0.5 * NEG_CN * vgs * vgs + _neg_h(vds) - NEG_KS * vsb
+
+
+def _neg_vgs_of(ln_idu, vds, vsb):
+    r = ln_idu - math.log(_I0["nmos"]) - _neg_h(vds) + NEG_KS * vsb
+    return (_B - math.sqrt(_B * _B - 2.0 * NEG_CN * r)) / NEG_CN
+
+
+def _write_neg_lut(root):
+    root.mkdir(parents=True, exist_ok=True)
+    g_l, g_g, g_d, g_s = (_np.asarray(g, dtype=float) for g in (R4_L, _R4_VGS, NEG_VDS, _R4_VS))
+    lg, g, s = g_l[:, None, None, None], g_g[None, :, None, None], g_s[None, None, None, :]
+    h_d = _np.vectorize(_neg_h)(g_d)[None, None, :, None]
+    s_d = _np.vectorize(_neg_slope)(g_d)[None, None, :, None]
+    entries = []
+    for kind in ("nmos", "pmos"):
+        idc = (_W_M / lg) * _I0[kind] * _np.exp(_B * g - 0.5 * NEG_CN * g * g + h_d - NEG_KS * s
+                                                       - NEG_QV * _np.maximum(s - NEG_VS_KINK, 0.0) ** 2)
+        c0, c1, c2, cs, cl = _R4_VDSAT[kind]
+        il = _np.arange(len(g_l), dtype=float)[:, None, None, None]
+        arr = {"W": _np.float64(_W_M), "L": g_l, "VGS": g_g, "VDS": g_d, "VS": g_s, "ID": idc, "GM": idc * (_B - NEG_CN * g),
+               "GDS": idc * s_d, "VTH": _np.full(idc.shape, 0.4), "meta_json": _np.str_('{"model_files_sha256": {}}'),
+               "corner": _np.str_("tt"), "temp_c": _np.float64(27.0),
+               "VDSAT": (c0 + c1 * g + c2 * g * g + cs * s + cl * il) + _np.zeros(idc.shape)}
+        path = root / ("neg_%s.npz" % kind)
+        _np.savez(path, **arr)
+        entries.append({"device": _DEVICE_OF[kind], "file": path.name, "sha256": _file_sha(path)})
+    (root / "manifest.json").write_text(_json.dumps({"generator_sha256": "0" * 64, "slices": entries}), encoding="utf-8")
+    shape = (len(g_l), len(g_g), len(g_d), len(g_s))
+    cap = {"L": g_l, "VGS": g_g, "VDS": g_d, "VS": g_s, "w_ref_m": _np.float64(_W_M), "corner": _np.str_("tt"),
+           "temp_c": _np.float64(27.0)}
+    for kind in ("nmos", "pmos"):
+        cap["CGG" + _SUFFIX[kind]] = _np.full(shape, 1e-15)
+        cap["CGD" + _SUFFIX[kind]] = _np.full(shape, 2e-16)
+    _np.savez(root / "cap.npz", **cap)
+    return _load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), _TOY_SPEC)
+
+
+def _neg_doc():
+    net = [mos("MA", "nmos", "vdd", "x", "t", "gnd"), mos("MB", "nmos", "vdd", "t", "u", "gnd"),
+           mos("MT", "nmos", "d", "p", "u", "gnd"), mos("MS", "nmos", "u", "vs", "gnd")]
+    return topo("it2b_neg", net, {"x": ("input", "x"), "p": ("input", "x"), "u": ("output", "y")},
+                passives=[two("R", "resistor", "t", "d")], bias=["vs"])
+
+
+# θ 좌표: 소자 MA·MB 는 VGS 0.25 V, MT 는 VGS 0.8 V(VDS 0.1 V), MS 는 VGS 0.45 V 가 나오는 ln IDu(입력 값). 근사 동작점 t0 = 0.65, u0 = 0.4.
+NEG_LN = {"MA": _neg_ln_idu(0.25, 1.8 - 0.65, 0.65), "MB": _neg_ln_idu(0.25, 1.8 - 0.4, 0.4),
+          "MT": _neg_ln_idu(0.8, 0.1, 0.4), "MS": _neg_ln_idu(0.45, 0.4, 0.0)}
+
+
+def _neg_solve(x):
+    """독립 풀이(이분법): t = x − VGS_A(vds = 1.8 − t, vsb = t), u = t − VGS_B(vds = 1.8 − u, vsb = u), d = t − I·R, p = u + VGS_T(vds = d − u, vsb = u)."""
+    t = _bisect(lambda v: x - _neg_vgs_of(NEG_LN["MA"], 1.8 - v, v) - v, 1e-6, x - 1e-6)
+    u = _bisect(lambda v: t - _neg_vgs_of(NEG_LN["MB"], 1.8 - v, v) - v, 1e-6, t - 1e-6)
+    d = t - NEG_I * NEG_R
+    return t, u, d, u + _neg_vgs_of(NEG_LN["MT"], d - u, u)
+
+
+def _columns_with_declared(ctx, theta):
+    """`dc_columns` 를 커널과 같은 호출로 부른다: 5번째 extras = 선언 영역 소자 tuple(비어 있지 않을 때만, sizing CONTRACT 5.4). conftest `run_blocks` 는
+    이 extras 를 주지 않으므로 triode 선언 toy 는 이 함수로 부른다."""
+    from gmid_engine.sizing import dc_columns, dc_currents, dc_lengths
+    run = dict(donors=ctx.donors, counters=ctx.counters)
+    th = dict(theta)
+    snap = dc_currents(ctx.base, tuple(sorted((k, v) for (t, k), v in th.items() if t == "current")), **run)
+    snap = dc_lengths(snap, tuple(sorted((k, v) for (t, k), v in th.items() if t == "L")), **run)
+    items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
+    extras = (kfixed(ctx), kres(ctx), ctx.lut)
+    if ctx.inputs.linear_devices:
+        extras += (tuple(ctx.inputs.linear_devices),)
+    return dc_columns(snap, items, *extras, **run)
+
+
+def test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages(tmp_path):
+    """oracle 대조: (손)+독립 풀이 P (a). 경로 위 triode 선언 소자 MT(gds/gm 큼)가 있으면 비F 성분에서도 s_p < 0 이 된다.
+    손 유도: |F_B| = 0.1/G′_B, η_B = KS/G′_B, |F_T| = S1/G′_T, η_T = KS/G′_T (G′ = B − CN·VGS: MB 0.25 V -> 19.5, MT 0.8 V -> 18.4)
+    => η_B + |F_B| ≈ 0.108, |F_T| ≈ 13.6 > (1 + η_T)/(η_B + |F_B|) ≈ 10.3 이므로 s_p = s_u(1 + |F_T| + η_T) − |F_T|·s_t < 0 (s_u = s_t/(1 + |F_B| + η_B)).
+    포트 창 = 뿌리 끝 [lo_x, hi_x] 를 같은 해의 감도로 옮긴 두 끝 전압의 [min, max]: 뿌리를 두 끝으로 고정한 독립 풀이의 V(p) 로
+    기대 끝을 만든다(감도 옮김은 선형 '추정' -- 이 toy 에서 끝 오차 ≈ 0.02 V, 허용 0.06 V; 두 끝 전압 차 ≈ 0.33 V).
+    감도 음수라 뿌리 아래 끝이 포트 위 끝이 된다: 옛 식 V_p + s_p·(끝 − x_k) 를 정렬 없이 쓰면 lo > hi(red)."""
+    acc = new_access(_write_neg_lut(tmp_path / "neg_lut"))
+    (tmp_path / "ctx").mkdir()
+    ctx = build_ctx(tmp_path / "ctx", _neg_doc(), acc, linear_devices=("MT",))[2]
+    writers = dict(ctx.base.column("node", "dc_writer"))
+    assert writers["x"].relation == "free_window" and writers["p"].relation == "vgs_gate"        # 전제: x = 뿌리, p = 트리 경로 포트
+    th = {("L", m): 1e-6 for m in ("MA", "MB", "MS", "MT")}
+    th.update({("ln_idu", m): NEG_LN[m] for m in ("MA", "MB", "MS", "MT")})
+    th.update({("resistance", "R"): NEG_R, ("y", "x"): 0.5})
+    th.update(free_currents(ctx, {"MA": NEG_I, "MB": NEG_I, "MT": NEG_I, "MS": 2 * NEG_I, "R": NEG_I}))
+    assert set(th) == set(kschema(ctx).components)
+    snap = _columns_with_declared(ctx, th)
+    V = node_voltages(snap)
+    win = _window_of(snap)
+    root = win["x"]
+    # --- 전제: 독립 풀이가 이 toy 의 해를 재현하고, 부등식 조건이 손계산으로 성립하며, 음수 감도다
+    t, u, d, p = _neg_solve(V["x"])
+    assert max(abs(V["t"] - t), abs(V["u"] - u), abs(V["d"] - d), abs(V["p"] - p)) <= 2e-3
+    g_b, g_t = _B - NEG_CN * 0.25, _B - NEG_CN * 0.8
+    f_t, eta_t, f_b, eta_b = NEG_S1 / g_t, NEG_KS / g_t, 0.1 / g_b, NEG_KS / g_b
+    assert f_t > (1 + eta_t) / (eta_b + f_b)                                  # 손 유도 조건 (≈ 13.6 > 10.3)
+    assert 0.0 < d - u < NEG_D1                                               # MT 의 VDS 가 가파른 구간 안
+    h_x = 1e-5
+    s_p = (_neg_solve(V["x"] + h_x)[3] - _neg_solve(V["x"] - h_x)[3]) / (2 * h_x)
+    assert s_p < -0.1                                                         # 전제: dV_p/dx 음수 (≈ −0.30)
+    p_at_lo, p_at_hi = _neg_solve(root.lo)[3], _neg_solve(root.hi)[3]
+    assert p_at_lo - p_at_hi > 0.2                                            # 뿌리 아래 끝에서 p 가 더 높다
+    assert 0.0 < p_at_hi < p_at_lo < 1.8                                      # 레일 교집합이 끝을 자르지 않는다
+    # --- 관측: 입력 포트 p 의 창
+    port = win["p"]
+    assert port.input_status == "measured"
+    assert port.lo <= port.hi
+    assert abs(port.lo - p_at_hi) <= 0.06 and abs(port.hi - p_at_lo) <= 0.06, (port, p_at_hi, p_at_lo)
+
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# L12 (a) 커널 되풀이 k_max 소진 -> 뿌리 `unsettled` (design 41 4.7-7 L12 (a), A6 c) -- 주입 지점 `gmid_engine.sizing.block_columns.k_max` 하나만
+# (monkeypatch 허용 지점, 상한 1). toy = 위 P(a) toy(입력 포트 x = 뿌리).
+# ---------------------------------------------------------------------------------------------------------------------------
+def _neg_ctx(tmp_path):
+    acc = new_access(_write_neg_lut(tmp_path / "neg_lut"))
+    (tmp_path / "ctx").mkdir()
+    return acc, build_ctx(tmp_path / "ctx", _neg_doc(), acc, linear_devices=("MT",))[2]
+
+
+def _neg_theta(ctx, y):
+    th = {("L", m): 1e-6 for m in ("MA", "MB", "MS", "MT")}
+    th.update({("ln_idu", m): NEG_LN[m] for m in ("MA", "MB", "MS", "MT")})
+    th.update({("resistance", "R"): NEG_R, ("y", "x"): y})
+    th.update(free_currents(ctx, {"MA": NEG_I, "MB": NEG_I, "MT": NEG_I, "MS": 2 * NEG_I, "R": NEG_I}))
+    return th
+
+
+def test_it2b_l12a_k_max_exhausted_root_window_is_unsettled_and_y_range_kept(tmp_path, monkeypatch):
+    """oracle 대조: (손) L12 (a) k_max 소진. 전제 단언: (1) 요청 y = 0.3 ≠ 1/2 (2) 주입 없이 y = 1/2 풀이가 성공하고 되풀이가 수렴한 창 W* 는
+    input_status "measured" (3) 주입 k_max = 1 이면 되풀이가 한 번에 끝나 창이 W* 와 다르고 그 차 > tol(이 LUT 의 id_equivalent 허용오차, 공개
+    `tol_v_table` 의 셀 값 -- 엔진 실행 두 번의 비교이며 손계산이 아니다: 첫 회 창(손 선형 창 [0.688, 1.8])과 둘째 측정 창의 차는 hi 쪽 약 0.025 V).
+    관측: 소진된 평가의 뿌리 항목 input_status == "unsettled" 이고 창은 y 범위 그대로 쓰인다 -- V(x) = lo + y·(hi − lo), 창은 레일 순서 창 [0, 1.8] 안.
+    base 는 Window 에 input_status 칸이 없다(AttributeError)."""
+    acc, ctx = _neg_ctx(tmp_path)
+    y_req = 0.3
+    assert y_req != 0.5
+    star = _window_of(_columns_with_declared(ctx, _neg_theta(ctx, 0.5)))["x"]               # (2) y = 1/2 풀이 성공
+    tol = tol_v_table(acc.memo, "nmos", 100).at(1e-6, 0.9, "id_equivalent")
+    assert tol is not None and 0.0 < tol < 1e-3
+    monkeypatch.setattr("gmid_engine.sizing.block_columns.k_max", lambda width, tol_: 1)
+    snap = _columns_with_declared(ctx, _neg_theta(ctx, y_req))
+    w = _window_of(snap)["x"]
+    assert abs(w.hi - star.hi) > tol                                                          # (3) 소진 분기에 도달(창이 수렴값과 다르다)
+    assert star.input_status == "measured"
+    assert w.input_status == "unsettled"
+    assert 0.0 <= w.lo < w.hi <= 1.8
+    assert abs(node_voltages(snap)["x"] - (w.lo + y_req * (w.hi - w.lo))) <= 1e-9
+
+
+# ---------------------------------------------------------------------------------------------------------------------------
+# D (S4-나) -- triode 행 영 교차 = 창 끝, region_rows 종류 집합·EO-1 무관 부재 단언 (정적 AST, docstring·주석 제외), 어휘 부재 (d)
+# `_helpers_dc_solve` 모듈은 IT-2d 에서 생긴다(IT-2b 에는 없다) -- `region_rows` 는 block_columns 안 비공개 이름이라 공개 진입점 `dc_columns` 로 본다.
+# ---------------------------------------------------------------------------------------------------------------------------
+import ast as _ast  # noqa: E402
+from pathlib import Path as _Path  # noqa: E402
+
+import gmid_engine as _gmid_engine  # noqa: E402
+
+from gmid_engine.lut import tol_v_table  # noqa: E402
+
+ENGINE = _Path(_gmid_engine.__file__).resolve().parent
+TRI_VIN, TRI_VGS1, TRI_VGS3 = 0.8, 0.8, 0.6      # 입력 DC 선언 값, M1(triode 선언)·M3(풀다운) 의 VGS -- 손으로 정한 입력
+
+
+def _tri_doc():
+    """M1 nmos (d = out, g = vb, s = in, b = gnd) triode 선언 소자(source 가 입력 포트 in), M2 pmos 부하, M3 nmos (in, vc, gnd) 가 in 의 전류 경로를 닫는다.
+    V(out) = lo + y·(hi − lo), lo = V(in)(M1 의 소스 쪽 이웃), hi = V(vdd)."""
+    return topo("it2b_triode", [mos("M1", "nmos", "out", "vb", "in", "gnd"), mos("M2", "pmos", "out", "pb", "vdd"),
+                                mos("M3", "nmos", "in", "vc", "gnd")],
+                {"in": ("input", "x"), "out": ("output", "y")}, bias=["vb", "pb", "vc"])
+
+
+def _tri_theta(ctx, y, vsg2):
+    out = TRI_VIN + y * (1.8 - TRI_VIN)
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6,
+          ("ln_idu", "M1"): r4_ln_idu("nmos", TRI_VGS1, out - TRI_VIN, TRI_VIN),
+          ("ln_idu", "M2"): r4_ln_idu("pmos", vsg2, 1.8 - out, 0.0),
+          ("ln_idu", "M3"): r4_ln_idu("nmos", TRI_VGS3, TRI_VIN, 0.0), ("y", "out"): y}
+    th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5}))
+    assert set(th) == set(kschema(ctx).components)
+    return th
+
+
+def test_it2b_d_triode_row_zero_crossing_is_the_window_end(tmp_path, r4_access):
+    """oracle 대조: (손) D (a) -- `triode` 선언 소자가 훑기 중 포화로 가는 toy: 그 점이 창 끝. 행 `(d, s, −부호, VDsat − VDS − tol_VDsat, "triode")` 의 영 교차.
+    y = 0.4: V(out) = 0.8 + 0.4·(1.8 − 0.8) = 1.2 (뿌리 식), 소스 in 이 움직이면 s_out = 1 − y = 0.6.
+    M1(triode): VDS = out − in = 0.4, VDsat = r4_vdsat_at(vgs 0.8, vsb 0.8); 여유 = VDsat − VDS − tol, 율 = −(s_out − s_in) = y -> Δ ≥ −여유/y (아래 끝).
+    M2(pmos 포화): VSD = 1.8 − out = 0.6; 여유 = VSD − VDsat(vsg 0.4, vsb 0) − tol_p, 율 = −s_out -> Δ ≤ 여유/(1 − y) (위 끝).
+    M3(nmos 포화, d = in, s = gnd): VDS = in; 여유 = in − VDsat(vgs 0.6, 0) − tol, 율 +1 -> Δ ≥ −여유 (더 느슨).
+    전제 단언: 세 소자 모두 선언 영역 안(M1 은 동작점에서 triode). base 는 선언 소자 행이 없어 M1 아래 끝을 놓친다(red)."""
+    y, vsg2 = 0.4, 0.4
+    (tmp_path / "t").mkdir()
+    ctx = build_ctx(tmp_path / "t", _tri_doc(), r4_access, input_dc_v=TRI_VIN, linear_devices=("M1",))[2]
+    snap = _columns_with_declared(ctx, _tri_theta(ctx, y, vsg2))
+    V = node_voltages(snap)
+    out = TRI_VIN + y * (1.8 - TRI_VIN)
+    assert abs(V["out"] - out) <= 1e-9 and V["in"] == TRI_VIN                                   # 전제: 뿌리 식 손계산
+    tol_n, tol_p = r4_tol_vdsat("nmos"), r4_tol_vdsat("pmos")
+    slack1 = r4_vdsat_at("nmos", 1e-6, TRI_VGS1, TRI_VIN) - (out - TRI_VIN) - tol_n
+    slack2 = (1.8 - out) - r4_vdsat_at("pmos", 1e-6, vsg2, 0.0) - tol_p
+    slack3 = TRI_VIN - r4_vdsat_at("nmos", 1e-6, TRI_VGS3, 0.0) - tol_n
+    assert slack1 > 0 and slack2 > 0 and slack3 > 0                                              # 전제: 세 소자 모두 선언 영역 안
+    dlo = max(-slack1 / y, -slack3)
+    dhi = slack2 / (1.0 - y)
+    assert dlo == -slack1 / y                                                                    # 전제: 아래 끝은 triode 행에서 나온다
+    w = _window_of(snap)["in"]
+    assert w.input_status == "measured"
+    assert abs(w.lo - (TRI_VIN + dlo)) <= 1e-9 and abs(w.hi - (TRI_VIN + dhi)) <= 1e-9, (w, TRI_VIN + dlo, TRI_VIN + dhi)
+
+
+def _docstring_ids(tree):
+    ids = set()
+    for node in _ast.walk(tree):
+        if isinstance(node, (_ast.Module, _ast.FunctionDef, _ast.AsyncFunctionDef, _ast.ClassDef)) and node.body:
+            first = node.body[0]
+            if isinstance(first, _ast.Expr) and isinstance(first.value, _ast.Constant) and isinstance(first.value.value, str):
+                ids.add(id(first.value))
+    return ids
+
+
+def _identifiers_and_strings(tree):
+    """식별자(이름·속성·정의·인자·키워드·import 이름)와 문자열 상수(docstring 제외)만 -- 주석은 AST 에 없다."""
+    skip = _docstring_ids(tree)
+    names, strings = set(), set()
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.Name):
+            names.add(node.id)
+        elif isinstance(node, _ast.Attribute):
+            names.add(node.attr)
+        elif isinstance(node, (_ast.FunctionDef, _ast.AsyncFunctionDef, _ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, _ast.arg):
+            names.add(node.arg)
+        elif isinstance(node, _ast.keyword) and node.arg:
+            names.add(node.arg)
+        elif isinstance(node, _ast.alias):
+            names.update(part for part in ((node.asname or node.name).split(".")) if part)
+        elif isinstance(node, _ast.ImportFrom) and node.module:
+            names.update(node.module.split("."))
+        elif isinstance(node, _ast.Constant) and isinstance(node.value, str) and id(node) not in skip:
+            strings.add(node.value)
+    return names, strings
+
+
+def _region_rows_scope():
+    """block_columns.py 에서 `region_rows` 정의와 그것이 (직접·간접) 부르는 같은 모듈 함수 정의들. 못 찾으면 AssertionError(red)."""
+    tree = _ast.parse((ENGINE / "sizing" / "block_columns.py").read_text(encoding="utf-8"))
+    defs = {}
+    for node in _ast.walk(tree):
+        if isinstance(node, (_ast.FunctionDef, _ast.AsyncFunctionDef)):
+            defs.setdefault(node.name, []).append(node)
+    assert "region_rows" in defs, "block_columns 에 region_rows 정의가 없다"
+    scope, todo = {}, ["region_rows"]
+    while todo:
+        name = todo.pop()
+        if name in scope or name not in defs:
+            continue
+        scope[name] = defs[name]
+        for fn in defs[name]:
+            for call in _ast.walk(fn):
+                if isinstance(call, _ast.Call):
+                    f = call.func
+                    callee = f.id if isinstance(f, _ast.Name) else (f.attr if isinstance(f, _ast.Attribute) else None)
+                    if callee in defs:
+                        todo.append(callee)
+    return tree, [fn for fns in scope.values() for fn in fns]
+
+
+def test_it2b_d_region_rows_kinds_are_sat_and_triode_only():
+    """oracle 대조: (독립) D (b) (S4-나) -- 정적 AST(docstring·주석 제외): `region_rows` 와 그것이 부르는 같은 모듈 함수의 문자열 상수 가운데 행 종류 어휘
+    {"sat", "triode", "off"} 의 교집합 = {"sat", "triode"} (`off` 행 없음)."""
+    _, fns = _region_rows_scope()
+    strings = set()
+    for fn in fns:
+        strings |= _identifiers_and_strings(fn)[1]
+    assert strings & {"sat", "triode", "off"} == {"sat", "triode"}
+
+
+def test_it2b_d_region_rows_has_no_zero_vgs_op_point_conduction_columns_or_eo1_import():
+    """oracle 대조: (독립) D (c) -- 정적 AST(docstring·주석 제외): `region_rows` 와 그것이 부르는 같은 모듈 함수에 (1) VGS 상수 0 인 `op_point` 호출(5번째 위치
+    인자 또는 vgs= 키워드가 숫자 0) 0 (2) `dc_off_current`·`dc_conduction_floor` 읽기(문자열·이름) 0, 그리고 (3) block_columns 모듈의 import 에 공용 전도 판정
+    (EO-1) 모듈 이름(`conduct` 포함) 0."""
+    tree, fns = _region_rows_scope()
+    for fn in fns:
+        names, strings = _identifiers_and_strings(fn)
+        assert not {"dc_off_current", "dc_conduction_floor"} & (names | strings), fn.name
+        for call in _ast.walk(fn):
+            if not isinstance(call, _ast.Call):
+                continue
+            f = call.func
+            callee = f.id if isinstance(f, _ast.Name) else (f.attr if isinstance(f, _ast.Attribute) else None)
+            if callee != "op_point":
+                continue
+            vgs = call.args[4] if len(call.args) > 4 else next((k.value for k in call.keywords if k.arg == "vgs"), None)
+            assert not (isinstance(vgs, _ast.Constant) and vgs.value == 0), (fn.name, "VGS = 0 op_point 호출")
+    imported = set()
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.Import):
+            imported.update(a.name for a in node.names)
+        elif isinstance(node, _ast.ImportFrom):
+            imported.add(node.module or "")
+            imported.update(a.name for a in node.names)
+    assert not [m for m in imported if "conduct" in m.lower()], imported
+
+
+def test_it2b_d_no_operating_point_mismatch_vocabulary_in_engine_sources():
+    """oracle 대조: (독립) D (d), 계획 v6.33 (9)(d), 사용자 결정 O-98·O-101. (S4-나) 에서 동작점 불일치 묶음(상태 `op_mismatch`·`Window.status_detail`·metric
+    code)은 EO-1 card 몫이다 -- 죽은 코드를 두지 않는다. 비test 엔진 소스(tests 폴더 제외 모든 .py)를 AST 로 읽어 식별자와 문자열 상수(docstring·주석 제외)에
+    `op_mismatch`·`status_detail`·`input_window_operating_point_mismatch`·`INPUT_STATUS_OP_MISMATCH`·`CODE_INPUT_WINDOW_OPERATING_POINT_MISMATCH` 가 0 이다."""
+    words = ("op_mismatch", "status_detail", "input_window_operating_point_mismatch", "INPUT_STATUS_OP_MISMATCH",
+             "CODE_INPUT_WINDOW_OPERATING_POINT_MISMATCH")
+    hits = []
+    for path in ENGINE.rglob("*.py"):
+        if "tests" in path.relative_to(ENGINE).parts:
+            continue
+        names, strings = _identifiers_and_strings(_ast.parse(path.read_text(encoding="utf-8")))
+        for word in words:
+            if word in names or any(word in s for s in strings):
+                hits.append((str(path.relative_to(ENGINE)), word))
+    assert hits == [], hits

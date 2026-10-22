@@ -25,6 +25,9 @@ from gmid_engine.sizing.input_window import saturation_window
 
 from .conftest import (R4_L, build_ctx, detail, free_currents, mos, node_voltages, r4_ln_idu, r4_tol_vdsat,
                        r4_vdsat_at, r4_vgs_of, seal_item, topo, two)
+from types import SimpleNamespace
+
+from .conftest import run_blocks
 from .conftest import kschema  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
 # ===========================================================================
@@ -84,7 +87,8 @@ def test_it2b_sw_several_roots_move_together():
     dlo, dhi, slope = saturation_window(("a", "b", "w", "x"), ("x", "w"), vals, grad, rows)
     assert abs(dlo - (-0.35)) <= 1e-12 and abs(dhi - 0.35) <= 1e-12
     assert abs(slope["a"] - 36 / 35) <= 1e-12 and abs(slope["b"] - 18 / 35) <= 1e-12 and slope["x"] == 1.0 and slope["w"] == 1.0
-    one = saturation_window(("a", "b", "w", "x"), ("x",), vals, grad, rows)
+    # 뿌리 하나 x 만 움직이면 w 는 움직이지 않는 상수 항이라 unknown 에 넣지 않는다(gradient 는 a·b 의 식만 안다) -- s_a = 4/7
+    one = saturation_window(("a", "b", "x"), ("x",), vals, grad, rows)
     assert one is not None and abs(one[2]["a"] - 4 / 7) <= 1e-12 and abs(one[0] - (-0.36 * 7 / 4)) <= 1e-12
 
 
@@ -319,36 +323,67 @@ def off_mid_windows():
     return out
 
 
+def _evaluate_point(pend, theta, end):
+    """(스냅샷, 봉인 여부, 엔진 봉인 7 `slack_v`). 끝점(end)이면 봉인 7 거부(SealViolationError, 항목 7)도 허용한다 -- 그때 노드전압·창은 같은 θ 의
+    커널 열 평가(`run_blocks(upto="columns")`)에서 읽고 `slack_v` 는 거부 detail 의 `item_detail` 에서 읽는다. 내부 점은 봉인되어야 한다(거부는 그대로 실패)."""
+    try:
+        ev = size_and_seal(pend, theta)
+        return ev.snapshot, True, None
+    except SealViolationError as exc:
+        if not end:
+            raise
+        d = detail(exc)
+        assert d["item"] == 7, d
+        return run_blocks(pend, theta, upto="columns"), False, dict(d["item_detail"])["slack_v"]
+
+
+def _tol_of_window(snap):
+    """끝점 판정 허용오차 = `node.dc_window` 입력 항목의 `tol_v`. None 이면 그 사례는 무효 -- 통과로 세지 않고 실패시킨다(사용자 결정 O-103)."""
+    tv = dict(snap.column("node", "dc_window"))["in"].tol_v
+    assert tv is not None, "tol_v 미정 -- 끝점 판정 무효(통과로 세지 않는다)"
+    return tv
+
+
 @pytest.mark.parametrize("key", sorted(_OFF_MID))
 @pytest.mark.parametrize("y", [0.0, 0.125, 0.25, 0.5, 0.75, 0.875, 1.0])
 def test_off_mid_window_maps_y_and_ends_saturated(pend, off_mid_windows, key, y):
-    """레일 중앙이 창 밖인 두 구성(아래·위): 모든 y ∈ [0, 1] 이 봉인되고(봉인 7 pass), V(in) = lo + y·(hi − lo)(기록된 창), 기록된 창
-    끝은 정확한 창 끝과 tol_V 안, 엔진 노드전압에서 독립으로 잰 두 소자 포화 여유 ≥ 0(창 끝 y = 0·1 포함)."""
+    """레일 중앙이 창 밖인 두 구성(아래·위): 내부 y 는 봉인되고(봉인 7 pass) 독립 여유 ≥ −1e-12, V(in) = lo + y·(hi − lo)(기록된 창), 기록된 창 끝은 정확한
+    창 끝과 tol_V 안. [IT-2b 갱신 -- 사용자 결정 O-103 동작 변경] 끝점 y = 0·1 은 '봉인되거나, 봉인 7 거부이면서 엔진 `slack_v` 와 독립 oracle 여유가 모두
+    |·| ≤ `node.dc_window.tol_v`'이다(옛 단언: 끝점도 봉인 + 여유 ≥ −1e-12). tol_v 가 None 이면 그 사례는 무효로 실패."""
     va, vb, _ = _OFF_MID[key]
     lo_e, hi_e = off_mid_windows[key]
-    ev = size_and_seal(pend, _theta(pend, va, vb, y))
-    assert ev.sealed is not None
-    assert seal_item(ev.snapshot, 7).status == "pass"
-    w = _window(ev)
-    vin = node_voltages(ev.snapshot)["in"]
+    end = y in (0.0, 1.0)
+    snap, sealed, slack_v = _evaluate_point(pend, _theta(pend, va, vb, y), end)
+    w = dict(snap.column("node", "dc_window"))["in"]
+    vin = node_voltages(snap)["in"]
     assert abs(vin - (w.lo + y * (w.hi - w.lo))) <= 1e-12
-    tv = _tol_v(ev)
+    tv = _tol_v(SimpleNamespace(snapshot=snap)) if sealed else _tol_of_window(snap)
     assert abs(w.lo - lo_e) <= tv and abs(w.hi - hi_e) <= tv
     assert lo_e - tv <= vin <= hi_e + tv
-    assert min(_oracle_slacks(ev)) >= -1e-12, _oracle_slacks(ev)
+    oracle = min(_oracle_slacks(SimpleNamespace(snapshot=snap)))
+    if sealed:
+        assert seal_item(snap, 7).status == "pass"
+        assert oracle >= -1e-12, oracle
+    else:
+        assert abs(slack_v) <= tv and abs(oracle) <= tv, (slack_v, oracle, tv)
 
 
 @pytest.mark.parametrize("y", [0.0, 1.0])
 def test_mid_window_ends_have_nonnegative_saturation_slack(pend, y):
-    """레일 중앙이 창 안인 구성(VGS 0.9/0.3)의 창 끝 y = 0·1: 봉인 7 pass 이고 엔진 노드전압에서 독립으로 잰 포화 여유 ≥ 0, 끝 쪽
-    소자의 여유는 tol_V 규모(끝이 정확한 창 끝 근처 -- 다듬기가 창을 안쪽으로 크게 줄이지 않았다)."""
-    ev = size_and_seal(pend, _theta(pend, 0.9, 0.3, y))
-    assert ev.sealed is not None and seal_item(ev.snapshot, 7).status == "pass"
-    sa, sb = _oracle_slacks(ev)
-    assert min(sa, sb) >= -1e-12
+    """레일 중앙이 창 안인 구성(VGS 0.9/0.3)의 창 끝 y = 0·1. [IT-2b 갱신 -- 사용자 결정 O-103] 끝점은 '봉인(독립 여유 ≥ −1e-12)'이거나 '봉인 7 거부이면서
+    엔진 `slack_v` 와 독립 oracle 여유가 모두 |·| ≤ `node.dc_window.tol_v`'. 두 경우 모두 끝 쪽 V(in) 은 정확한 창 끝에서 tol_V 안(끝이 정확한 창 끝 근처).
+    tol_v 가 None 이면 그 사례는 무효로 실패."""
+    snap, sealed, slack_v = _evaluate_point(pend, _theta(pend, 0.9, 0.3, y), True)
+    sa, sb = _oracle_slacks(SimpleNamespace(snapshot=snap))
+    tv = _tol_v(SimpleNamespace(snapshot=snap)) if sealed else _tol_of_window(snap)
+    if sealed:
+        assert seal_item(snap, 7).status == "pass"
+        assert min(sa, sb) >= -1e-12
+    else:
+        assert abs(slack_v) <= tv and abs(min(sa, sb)) <= tv, (slack_v, sa, sb, tv)
     lo_e, hi_e = Follower(0.9, 0.3).window(0.9)
-    vin = node_voltages(ev.snapshot)["in"]
-    assert abs(vin - (lo_e if y == 0.0 else hi_e)) <= _tol_v(ev)
+    vin = node_voltages(snap)["in"]
+    assert abs(vin - (lo_e if y == 0.0 else hi_e)) <= tv
 
 
 def test_declared_input_dc_same_theta_seals(tmp_path, r4_access):
