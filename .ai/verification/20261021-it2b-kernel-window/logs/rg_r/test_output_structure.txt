@@ -1,0 +1,118 @@
+FFFFFFFFFFFFF                                                            [100%]
+================================== FAILURES ===================================
+_____________ test_it2b_os_a_drain_only_output_is_high_impedance ______________
+gmid_engine\tests\sizing\test_output_structure.py:49: in test_it2b_os_a_drain_only_output_is_high_impedance
+    assert _structure(ctx) == {"out": HI}
+E   AssertionError: assert {} == {'out': 'high_impedance'}
+E     
+E     Right contains 1 more item:
+E     {'out': 'high_impedance'}
+E     Use -v to get more diff
+_____ test_it2b_os_b_follower_output_without_fixed_end_is_high_impedance ______
+gmid_engine\tests\sizing\test_output_structure.py:55: in test_it2b_os_b_follower_output_without_fixed_end_is_high_impedance
+    assert _structure(ctx) == {"out": HI}
+E   AssertionError: assert {} == {'out': 'high_impedance'}
+E     
+E     Right contains 1 more item:
+E     {'out': 'high_impedance'}
+E     Use -v to get more diff
+______________ test_it2b_os_c_resistor_load_to_rail_is_kvl_fixed ______________
+gmid_engine\tests\sizing\test_output_structure.py:66: in test_it2b_os_c_resistor_load_to_rail_is_kvl_fixed
+    assert _structure(ctx) == {"out": KVL}
+E   AssertionError: assert {} == {'out': 'kvl_fixed'}
+E     
+E     Right contains 1 more item:
+E     {'out': 'kvl_fixed'}
+E     Use -v to get more diff
+________ test_it2b_os_d_w3_output_without_fixed_end_is_high_impedance _________
+gmid_engine\tests\sizing\test_output_structure.py:73: in test_it2b_os_d_w3_output_without_fixed_end_is_high_impedance
+    assert _structure(ctx) == {"out": HI}
+E   AssertionError: assert {} == {'out': 'high_impedance'}
+E     
+E     Right contains 1 more item:
+E     {'out': 'high_impedance'}
+E     Use -v to get more diff
+_______ test_it2b_os_e_w3_output_on_hard_path_is_kvl_fixed[diode_load] ________
+gmid_engine\tests\sizing\test_output_structure.py:94: in test_it2b_os_e_w3_output_on_hard_path_is_kvl_fixed
+    assert _structure(ctx) == {"out": KVL}
+E   AssertionError: assert {} == {'out': 'kvl_fixed'}
+E     
+E     Right contains 1 more item:
+E     {'out': 'kvl_fixed'}
+E     Use -v to get more diff
+_ test_it2b_os_e_w3_output_on_hard_path_is_kvl_fixed[gate_at_rail_source_out] _
+gmid_engine\tests\sizing\test_output_structure.py:94: in test_it2b_os_e_w3_output_on_hard_path_is_kvl_fixed
+    assert _structure(ctx) == {"out": KVL}
+E   AssertionError: assert {} == {'out': 'kvl_fixed'}
+E     
+E     Right contains 1 more item:
+E     {'out': 'kvl_fixed'}
+E     Use -v to get more diff
+________ test_it2b_os_f_other_w3_node_in_component_is_not_a_fixed_end _________
+gmid_engine\tests\sizing\test_output_structure.py:101: in test_it2b_os_f_other_w3_node_in_component_is_not_a_fixed_end
+    assert _structure(ctx) == {"out": HI}
+E   AssertionError: assert {} == {'out': 'high_impedance'}
+E     
+E     Right contains 1 more item:
+E     {'out': 'high_impedance'}
+E     Use -v to get more diff
+_____ test_it2b_os_g_declared_input_dc_reaches_output_through_gate_source _____
+gmid_engine\tests\sizing\test_output_structure.py:110: in test_it2b_os_g_declared_input_dc_reaches_output_through_gate_source
+    assert _structure(declared) == {"out": KVL}
+E   AssertionError: assert {} == {'out': 'kvl_fixed'}
+E     
+E     Right contains 1 more item:
+E     {'out': 'kvl_fixed'}
+E     Use -v to get more diff
+__________ test_it2b_os_h_swapped_names_give_same_values[undeclared] __________
+gmid_engine\tests\sizing\test_output_structure.py:121: in test_it2b_os_h_swapped_names_give_same_values
+    assert _structure(ctx) == {"in": expected}
+E   AssertionError: assert {} == {'in': 'high_impedance'}
+E     
+E     Right contains 1 more item:
+E     {'in': 'high_impedance'}
+E     Use -v to get more diff
+___________ test_it2b_os_h_swapped_names_give_same_values[declared] ___________
+gmid_engine\tests\sizing\test_output_structure.py:121: in test_it2b_os_h_swapped_names_give_same_values
+    assert _structure(ctx) == {"in": expected}
+E   AssertionError: assert {} == {'in': 'kvl_fixed'}
+E     
+E     Right contains 1 more item:
+E     {'in': 'kvl_fixed'}
+E     Use -v to get more diff
+________ test_it2b_os_i_value_is_theta_independent_and_not_recomputed _________
+gmid_engine\tests\sizing\test_output_structure.py:138: in test_it2b_os_i_value_is_theta_independent_and_not_recomputed
+    assert before_structure == {"out": HI}
+E   AssertionError: assert {} == {'out': 'high_impedance'}
+E     
+E     Right contains 1 more item:
+E     {'out': 'high_impedance'}
+E     Use -v to get more diff
+_____________ test_it2b_os_k_no_same_dc_edge_between_input_ports ______________
+gmid_engine\tests\sizing\test_output_structure.py:152: in test_it2b_os_k_no_same_dc_edge_between_input_ports
+    assert _structure(ctx) == {"out": HI}
+E   AssertionError: assert {} == {'out': 'high_impedance'}
+E     
+E     Right contains 1 more item:
+E     {'out': 'high_impedance'}
+E     Use -v to get more diff
+__________ test_it2b_os_j_single_writer_site_and_no_second_producer ___________
+gmid_engine\tests\sizing\test_output_structure.py:169: in test_it2b_os_j_single_writer_site_and_no_second_producer
+    assert _count("sizing/s2_values.py", r'"dc_output_structure"') == 1
+E   assert 0 == 1
+E    +  where 0 = _count('sizing/s2_values.py', '"dc_output_structure"')
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_a_drain_only_output_is_high_impedance
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_b_follower_output_without_fixed_end_is_high_impedance
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_c_resistor_load_to_rail_is_kvl_fixed
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_d_w3_output_without_fixed_end_is_high_impedance
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_e_w3_output_on_hard_path_is_kvl_fixed[diode_load]
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_e_w3_output_on_hard_path_is_kvl_fixed[gate_at_rail_source_out]
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_f_other_w3_node_in_component_is_not_a_fixed_end
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_g_declared_input_dc_reaches_output_through_gate_source
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_h_swapped_names_give_same_values[undeclared]
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_h_swapped_names_give_same_values[declared]
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_i_value_is_theta_independent_and_not_recomputed
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_k_no_same_dc_edge_between_input_ports
+FAILED gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_j_single_writer_site_and_no_second_producer
+13 failed in 1.45s

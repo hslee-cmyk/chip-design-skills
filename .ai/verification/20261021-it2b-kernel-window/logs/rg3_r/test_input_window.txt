@@ -1,0 +1,175 @@
+FFFFFFFFFFFF..........................F..                                [100%]
+================================== FAILURES ===================================
+___________________________ test_hand_linear_system ___________________________
+gmid_engine\tests\sizing\test_input_window.py:54: in test_hand_linear_system
+    assert saturation_window(unk, ("x",), vals, grad, ())[:2] == (-math.inf, math.inf)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:50: in saturation_window
+    slope = _sensitivities(tuple(unknown), root, values, gradient)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:37: in _sensitivities
+    _g, grad = gradient(net, values)
+               ^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_input_window.py:43: in gradient
+    c = coef[net]
+        ^^^^^^^^^
+E   KeyError: 'x'
+________________ test_it2b_sw_kind_is_not_used_for_window_end _________________
+gmid_engine\tests\sizing\test_input_window.py:74: in test_it2b_sw_kind_is_not_used_for_window_end
+    sat = saturation_window(unk, ("x",), vals, grad, (("a", "gnd", 1.0, 0.2, "sat"), ("vdd", "a", 1.0, 0.3, "sat")))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:50: in saturation_window
+    slope = _sensitivities(tuple(unknown), root, values, gradient)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:37: in _sensitivities
+    _g, grad = gradient(net, values)
+               ^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_input_window.py:43: in gradient
+    c = coef[net]
+        ^^^^^^^^^
+E   KeyError: 'x'
+__________________ test_it2b_sw_several_roots_move_together ___________________
+gmid_engine\tests\sizing\test_input_window.py:87: in test_it2b_sw_several_roots_move_together
+    dlo, dhi, slope = saturation_window(("a", "b", "w", "x"), ("x", "w"), vals, grad, rows)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:50: in saturation_window
+    slope = _sensitivities(tuple(unknown), root, values, gradient)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:37: in _sensitivities
+    _g, grad = gradient(net, values)
+               ^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_input_window.py:43: in gradient
+    c = coef[net]
+        ^^^^^^^^^
+E   KeyError: 'w'
+__________ test_it2b_sw_root_pair_replaces_row_equation_by_fixed_net __________
+gmid_engine\tests\sizing\test_input_window.py:103: in test_it2b_sw_root_pair_replaces_row_equation_by_fixed_net
+    out = saturation_window(("a", "b", "r"), (("r", "a"),), vals, grad, rows)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:55: in saturation_window
+    x0 = values[root]
+         ^^^^^^^^^^^^
+E   KeyError: (('r', 'a'),)
+____________ test_it2b_sw_given_slope_skips_the_sensitivity_system ____________
+gmid_engine\tests\sizing\test_input_window.py:118: in test_it2b_sw_given_slope_skips_the_sensitivity_system
+    dlo, dhi, slope = saturation_window(("a", "x"), ("x",), vals, never, rows, slope=given)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: saturation_window() got an unexpected keyword argument 'slope'
+_________________ test_random_linear_systems_against_numpy[0] _________________
+gmid_engine\tests\sizing\test_input_window.py:155: in test_random_linear_systems_against_numpy
+    lo, hi, slope = saturation_window(tuple(sorted(nodes + ["x"])), ("x",), vals, _linear_gradient(coef, const), tuple(rows))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:50: in saturation_window
+    slope = _sensitivities(tuple(unknown), root, values, gradient)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:37: in _sensitivities
+    _g, grad = gradient(net, values)
+               ^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_input_window.py:43: in gradient
+    c = coef[net]
+        ^^^^^^^^^
+E   KeyError: 'x'
+_________________ test_random_linear_systems_against_numpy[1] _________________
+gmid_engine\tests\sizing\test_input_window.py:155: in test_random_linear_systems_against_numpy
+    lo, hi, slope = saturation_window(tuple(sorted(nodes + ["x"])), ("x",), vals, _linear_gradient(coef, const), tuple(rows))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:50: in saturation_window
+    slope = _sensitivities(tuple(unknown), root, values, gradient)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:37: in _sensitivities
+    _g, grad = gradient(net, values)
+               ^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_input_window.py:43: in gradient
+    c = coef[net]
+        ^^^^^^^^^
+E   KeyError: 'x'
+_________________ test_random_linear_systems_against_numpy[2] _________________
+gmid_engine\tests\sizing\test_input_window.py:155: in test_random_linear_systems_against_numpy
+    lo, hi, slope = saturation_window(tuple(sorted(nodes + ["x"])), ("x",), vals, _linear_gradient(coef, const), tuple(rows))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:50: in saturation_window
+    slope = _sensitivities(tuple(unknown), root, values, gradient)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:37: in _sensitivities
+    _g, grad = gradient(net, values)
+               ^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_input_window.py:43: in gradient
+    c = coef[net]
+        ^^^^^^^^^
+E   KeyError: 'x'
+_________________ test_random_linear_systems_against_numpy[3] _________________
+gmid_engine\tests\sizing\test_input_window.py:155: in test_random_linear_systems_against_numpy
+    lo, hi, slope = saturation_window(tuple(sorted(nodes + ["x"])), ("x",), vals, _linear_gradient(coef, const), tuple(rows))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:50: in saturation_window
+    slope = _sensitivities(tuple(unknown), root, values, gradient)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:37: in _sensitivities
+    _g, grad = gradient(net, values)
+               ^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_input_window.py:43: in gradient
+    c = coef[net]
+        ^^^^^^^^^
+E   KeyError: 'x'
+_________________ test_random_linear_systems_against_numpy[4] _________________
+gmid_engine\tests\sizing\test_input_window.py:155: in test_random_linear_systems_against_numpy
+    lo, hi, slope = saturation_window(tuple(sorted(nodes + ["x"])), ("x",), vals, _linear_gradient(coef, const), tuple(rows))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:50: in saturation_window
+    slope = _sensitivities(tuple(unknown), root, values, gradient)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:37: in _sensitivities
+    _g, grad = gradient(net, values)
+               ^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_input_window.py:43: in gradient
+    c = coef[net]
+        ^^^^^^^^^
+E   KeyError: 'x'
+_________________ test_random_linear_systems_against_numpy[5] _________________
+gmid_engine\tests\sizing\test_input_window.py:155: in test_random_linear_systems_against_numpy
+    lo, hi, slope = saturation_window(tuple(sorted(nodes + ["x"])), ("x",), vals, _linear_gradient(coef, const), tuple(rows))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:50: in saturation_window
+    slope = _sensitivities(tuple(unknown), root, values, gradient)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:37: in _sensitivities
+    _g, grad = gradient(net, values)
+               ^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_input_window.py:43: in gradient
+    c = coef[net]
+        ^^^^^^^^^
+E   KeyError: 'x'
+________________________ test_singular_system_is_none _________________________
+gmid_engine\tests\sizing\test_input_window.py:166: in test_singular_system_is_none
+    assert saturation_window(("a", "b", "x"), ("x",), vals, grad, (("a", "gnd", 1.0, 0.2, "sat"),)) is None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:50: in saturation_window
+    slope = _sensitivities(tuple(unknown), root, values, gradient)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\sizing\input_window.py:37: in _sensitivities
+    _g, grad = gradient(net, values)
+               ^^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_input_window.py:43: in gradient
+    c = coef[net]
+        ^^^^^^^^^
+E   KeyError: 'x'
+___________________ test_declared_input_dc_same_theta_seals ___________________
+gmid_engine\tests\sizing\test_input_window.py:397: in test_declared_input_dc_same_theta_seals
+    w = dict(ev.snapshot.column("node", "dc_window"))["in"]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'in'
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_hand_linear_system
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_kind_is_not_used_for_window_end
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_several_roots_move_together
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_root_pair_replaces_row_equation_by_fixed_net
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_given_slope_skips_the_sensitivity_system
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[0]
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[1]
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[2]
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[3]
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[4]
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[5]
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_singular_system_is_none
+FAILED gmid_engine/tests/sizing/test_input_window.py::test_declared_input_dc_same_theta_seals
+13 failed, 28 passed in 10.47s

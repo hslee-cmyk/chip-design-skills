@@ -1,0 +1,64 @@
+{
+ "note": "IT-2b 감사 요약 표(최종 판). 병합본 c4eaa137(role/code/it2b c40ad4ea), 엔진 base 56080584, PREFIX = 엔진 c4506f47(615ef68b 전), HEAD = 엔진 615ef68b(dc334fef), HEAD2 = 엔진 431d2e7b(c4eaa137). 원자료 raw/compare_final.json·compare_refactor.json·run/**·perf/**.",
+ "os_table_41_724": {
+  "source_table": "wt/_drafts/evidence/2026-10-21/de1_output_structure_13.md §2 41-57행, §0 정지 사유",
+  "value_outputs": [
+   ["common_gate_amplifier", "vout", "HZ", "high_impedance", "일치"],
+   ["current_reuse_telescopic_ota", "Vom", "KVL", "kvl_fixed", "일치"],
+   ["current_reuse_telescopic_ota", "Vop", "KVL", "kvl_fixed", "일치"],
+   ["folded_cascode", "out", "HZ", "high_impedance", "일치"],
+   ["ngcc_3stage_ff", "Vout", "HZ", "high_impedance", "일치"],
+   ["nmcnr_amplifier", "Vout", "KVL", "kvl_fixed", "일치"],
+   ["pushpull_follower_buffer", "vout", "KVL", "kvl_fixed", "일치"],
+   ["sf_pushpull_output_opamp", "vout", "HZ", "high_impedance", "일치"],
+   ["two_stage_ota", "OUT", "HZ", "high_impedance", "일치"],
+   ["two_stage_ota_sf", "vout", "HZ", "high_impedance", "일치"],
+   ["r2r_opamp", "Vo", "KVL", "kvl_fixed", "일치"],
+   ["rfc_ota", "out", "HZ", "high_impedance", "일치"]
+  ],
+  "stop_outputs": [
+   ["cnr_ota", "VOP", "dc_resistor_cycle nets (VCR, VDD_1V8) devices x40", "같음"],
+   ["cnr_ota", "VON", "dc_resistor_cycle nets (VCR, VDD_1V8) devices x40", "같음"],
+   ["erfc_ota", "out", "mos_zero_current_structural devices M19 M20 M21", "같음"]
+  ],
+  "new_stops_elsewhere": 0,
+  "declarations_vs_table_s1": "13회로 W3 선언 0, 입력 DC 선언 = pushpull·sf_pushpull·erfc·rfc -- 표 §1 과 같음",
+  "output_in_fprime_count": {"total": 0, "per_output": "15출력 모두 0 (writer_plan.py:134 reached = output in fixed 첫 줄 발동 0)"}
+ },
+ "nine_table_4_7_8_9_prefix_vs_head": {
+  "common_gate_amplifier": {"kernel_pairs": 39, "tol_diff": 38, "rounds_diff": 1, "window_diff": 1, "status_diff": 0, "eval_rows_tol_v_diff": "77/83", "trajectory": "같음"},
+  "folded_cascode": {"kernel_pairs": 57, "tol_diff": 1, "rounds_diff": 0, "window_diff": 0, "status_diff": 0, "eval_rows_tol_v_diff": "0/155", "trajectory": "같음"},
+  "nmcnr_amplifier": {"kernel_pairs": 36, "tol_diff": 8, "rounds_diff": 1, "window_diff": 1, "status_diff": 0, "eval_rows_tol_v_diff": "24/105", "trajectory": "같음"},
+  "two_stage_ota": {"kernel_pairs": 12, "unmatched": 33, "tol_diff": 12, "rounds_diff": 6, "window_diff": 6, "status_diff": 0, "eval_rows_tol_v_diff": "70 (짝 35)", "trajectory": "평가 1에서 갈림"},
+  "two_stage_ota_sf": {"kernel_pairs": 18, "unmatched": 21, "tol_diff": 18, "rounds_diff": 2, "window_diff": 2, "status_diff": 0, "eval_rows_tol_v_diff": "166 (짝 83)", "trajectory": "평가 83에서 갈림"},
+  "current_reuse_telescopic_ota": "모든 평가가 dc_columns 안 실패 -- 변화 없음",
+  "pushpull_follower_buffer": "입력 W4 뿌리 없음 -- 변화 없음",
+  "sf_pushpull_output_opamp": "입력 뿌리 없음·모든 평가 실패 -- 변화 없음",
+  "ngcc_3stage_ff": "단계 A review_needed -- 탐색 없음"
+ },
+ "refactor_431d2e7b": {"diff_columns_9circuits": 0, "n_solve_search": {"nmcnr_amplifier": [157, 156], "two_stage_ota_sf": [121, 120], "others": "같음"}, "determinism_HEAD2_vs_rep2": "9회로 비트 동일"},
+ "i_perf_base_vs_head": {
+  "theta": "각 회로 HEAD2 탐색의 첫 봉인 평가 θ(raw/perf/theta_*.json), 새 실행 컨텍스트·새 LUT memo",
+  "common_gate_amplifier": {"_solve": [7, 4], "input_windows": [5, 3], "Circuit.tolerance_repeat": [6, 2], "op_point_repeat": [15, 9], "vdsat_repeat": [0, 0], "tol_v_cell_repeat": [0, 0], "dc_columns_cum_s": [0.4748, 0.4449], "eval_median_s": [1.293, 1.362]},
+  "nmcnr_amplifier": {"_solve": [7, 4], "input_windows": [6, 3], "Circuit.tolerance_repeat": [19, 9], "op_point_repeat": [72, 36], "vdsat_repeat": [48, 16], "tol_v_cell_repeat": [0, 0], "dc_columns_cum_s": [0.8716, 0.7969], "eval_median_s": [1.884, 1.673]},
+  "it2b_new_functions_same_arg_repeat": 0,
+  "remaining_repeats_preexisting": ["Circuit.tolerance -- SCC 풀이 안 tolerance 닫힘(block_columns.py:614), tol_cells 지역 memo 로 LUT 재조회 0", "lut.op_point -- _helpers_lut.py:44 forward_point 와 gmb.py:53 가 같은 점", "lut.vdsat -- region_rows(block_columns.py:257)가 해마다 x 에 무관한 소자의 같은 점을 다시 조회"],
+  "note": "perf JSON 의 sites 수는 계수 실행 뒤 시간 측정 8회까지 누적(×9) -- 재호출 수는 n 칸만 쓴다"
+ },
+ "completion_conditions": {
+  "(0)": "K1·K2·P(a)·P(b)·L12(b) test green(base red), _refine_ends code 0·dc_columns 당 _solve 7 -> 4; (0)(1) = test_it2b_k1_declared_input_port_has_measured_window(base red); 다듬은 창 부분 IT-2d",
+  "(7)(a)": "P(a) test green, base red(KeyError 'p')",
+  "(7)(b)": "P(b) test green, base red",
+  "(9)(a)": "D triode test green, base red(KeyError 'in')",
+  "(9)(b)": "D(b) AST test green, 변형 red 4/5",
+  "(9)(c)": "D(c) AST test green, 변형 red 6/6, (iii) 대리 측정 한계 1",
+  "(9)(d)": "D(d) AST test green, 변형 red 3/3",
+  "(12)(a) 커널 쪽": "k_max 소진 toy(상한 2 measured / 상한 1 unsettled, tol_v not None) green, tol 미정 toy green, L12 (f) red-green; metric·front·다듬은 창 부분 IT-2c·IT-2d",
+  "(12)(b)": "F 성분 미선언 포트 toy green, base red"
+ },
+ "open_items": [
+  "G6: node.dc_output_structure·Window.input_status·tol_v 출력 전용 -- IT-2c·IT-2d 병합본에서 소비자 ≥ 1 확인",
+  "규칙 H(기본 실행 제외 골격) 위반 +1: tests/sizing/test_output_structure.py orphan -- card 가 정한 이름, 처리 결정은 오케스트레이터",
+  "D (b) import 별칭·D (c)(iii) conduct 없는 이름은 AST 측정이 못 잡음(측정 한계 기록)"
+ ]
+}

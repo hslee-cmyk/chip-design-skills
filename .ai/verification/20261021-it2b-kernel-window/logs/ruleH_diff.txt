@@ -1,0 +1,43 @@
+--- 
++++ 
+@@ -1,16 +1,17 @@
+ F                                                                        [100%]
+ ================================== FAILURES ===================================
+-E   AssertionError: 규칙 H 위반 5건(원본 405개):
++E   AssertionError: 규칙 H 위반 6건(원본 405개):
+       layout/_helpers_alias.py:0 [missing_test] 없음: tests/layout/test__helpers_alias.py
+       layout/canonical_naming.py:0 [missing_test] 없음: tests/layout/test_canonical_naming.py
+       tests/authoring/test_spec_loop_cut.py:0 [orphan_test] 원본 없음: authoring/spec_loop_cut.py
+       tests/lut/test_slope_unit_check.py:0 [orphan_test] 원본 없음: lut/slope_unit_check.py
+       tests/pipeline/test_stage_a_loop_cut.py:0 [orphan_test] 원본 없음: pipeline/stage_a_loop_cut.py
+-    assert not [Violation(kind='missing_test', path='layout/_helpers_alias.py', line=0, detail='없음: tests/layout/test__helpers_alias....d='orphan_test', path='tests/pipeline/test_stage_a_loop_cut.py', line=0, detail='원본 없음: pipeline/stage_a_loop_cut.py')]
+-C:\Users\HSLEE\Documents\Todoc\fpga\wt\X/skills\analog-gmid-design\gmid_engine\tests\structure\test_structure_test_mapping.py:17: AssertionError: 규칙 H 위반 5건(원본 405개):
++      tests/sizing/test_output_structure.py:0 [orphan_test] 원본 없음: sizing/output_structure.py
++    assert not [Violation(kind='missing_test', path='layout/_helpers_alias.py', line=0, detail='없음: tests/layout/test__helpers_alias....(kind='orphan_test', path='tests/sizing/test_output_structure.py', line=0, detail='원본 없음: sizing/output_structure.py')]
++C:\Users\HSLEE\Documents\Todoc\fpga\wt\X/skills\analog-gmid-design\gmid_engine\tests\structure\test_structure_test_mapping.py:17: AssertionError: 규칙 H 위반 6건(원본 405개):
+ ======================== gmid_engine 구조 규칙 -- 검사 대상 수 =========================
+ 엔진 루트: C:\Users\HSLEE\Documents\Todoc\fpga\wt\X/skills\analog-gmid-design\gmid_engine
+-test_rule_h_tests_mirror_sources         대상 405개, 위반 5건
++test_rule_h_tests_mirror_sources         대상 405개, 위반 6건
+ =========================== short test summary info ===========================
+ FAILED gmid_engine/tests/structure/test_structure_test_mapping.py::test_rule_h_tests_mirror_sources
+-1 failed in 0.91s
++1 failed in 0.68s
+=====HEAD
+F                                                                        [100%]
+================================== FAILURES ===================================
+E   AssertionError: 규칙 H 위반 6건(원본 405개):
+      layout/_helpers_alias.py:0 [missing_test] 없음: tests/layout/test__helpers_alias.py
+      layout/canonical_naming.py:0 [missing_test] 없음: tests/layout/test_canonical_naming.py
+      tests/authoring/test_spec_loop_cut.py:0 [orphan_test] 원본 없음: authoring/spec_loop_cut.py
+      tests/lut/test_slope_unit_check.py:0 [orphan_test] 원본 없음: lut/slope_unit_check.py
+      tests/pipeline/test_stage_a_loop_cut.py:0 [orphan_test] 원본 없음: pipeline/stage_a_loop_cut.py
+      tests/sizing/test_output_structure.py:0 [orphan_test] 원본 없음: sizing/output_structure.py
+    assert not [Violation(kind='missing_test', path='layout/_helpers_alias.py', line=0, detail='없음: tests/layout/test__helpers_alias....(kind='orphan_test', path='tests/sizing/test_output_structure.py', line=0, detail='원본 없음: sizing/output_structure.py')]
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\X/skills\analog-gmid-design\gmid_engine\tests\structure\test_structure_test_mapping.py:17: AssertionError: 규칙 H 위반 6건(원본 405개):
+======================== gmid_engine 구조 규칙 -- 검사 대상 수 =========================
+엔진 루트: C:\Users\HSLEE\Documents\Todoc\fpga\wt\X/skills\analog-gmid-design\gmid_engine
+test_rule_h_tests_mirror_sources         대상 405개, 위반 6건
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/structure/test_structure_test_mapping.py::test_rule_h_tests_mirror_sources
+1 failed in 0.68s
