@@ -1,0 +1,9063 @@
+{
+ "block_counters": {
+  "rows": [
+   [
+    "achievability",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "build_s1v",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "constraint_classes",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "coupling_vars",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_columns",
+    "*",
+    65,
+    12,
+    8,
+    0,
+    45,
+    0
+   ],
+   [
+    "dc_current_basis",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_currents",
+    "*",
+    65,
+    39,
+    12,
+    0,
+    14,
+    0
+   ],
+   [
+    "dc_lengths",
+    "*",
+    65,
+    33,
+    12,
+    0,
+    20,
+    0
+   ],
+   [
+    "dc_rails",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_scc_order",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_seal_bulk_reverse",
+    "*",
+    64,
+    3,
+    2,
+    0,
+    59,
+    0
+   ],
+   [
+    "dc_seal_conduction",
+    "*",
+    64,
+    3,
+    2,
+    0,
+    59,
+    0
+   ],
+   [
+    "dc_seal_kcl",
+    "*",
+    64,
+    3,
+    2,
+    0,
+    59,
+    0
+   ],
+   [
+    "dc_seal_kvl_branch",
+    "*",
+    64,
+    3,
+    2,
+    0,
+    59,
+    0
+   ],
+   [
+    "dc_seal_node_conflict",
+    "*",
+    64,
+    12,
+    8,
+    0,
+    44,
+    0
+   ],
+   [
+    "dc_seal_report",
+    "*",
+    64,
+    0,
+    13,
+    0,
+    51,
+    0
+   ],
+   [
+    "dc_seal_saturation",
+    "*",
+    64,
+    3,
+    2,
+    0,
+    59,
+    0
+   ],
+   [
+    "dc_seal_vgs_match",
+    "*",
+    64,
+    3,
+    2,
+    0,
+    59,
+    0
+   ],
+   [
+    "dc_theta_schema",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_tolerances",
+    "*",
+    64,
+    3,
+    2,
+    0,
+    59,
+    0
+   ],
+   [
+    "dc_widths",
+    "*",
+    64,
+    3,
+    2,
+    0,
+    59,
+    0
+   ],
+   [
+    "dc_writer_plan",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "junction_source",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "kernel_context",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "metric_structure",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "metrics_aux",
+    "*",
+    52,
+    0,
+    0,
+    0,
+    52,
+    0
+   ],
+   [
+    "metrics_dc",
+    "*",
+    51,
+    0,
+    0,
+    0,
+    51,
+    0
+   ],
+   [
+    "metrics_ss",
+    "*",
+    52,
+    0,
+    0,
+    0,
+    52,
+    0
+   ],
+   [
+    "mismatch_source",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "model_error",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "noise_decl",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "passive_area_decl",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "passive_values",
+    "*",
+    52,
+    0,
+    0,
+    0,
+    52,
+    0
+   ],
+   [
+    "s1_branches",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_bulk",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_columns",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_dc_conduction",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_dc_roles",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_gs_groups",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_gvgs",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_matching_groups",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_rel_kcl",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_rel_matching",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_rel_vgs",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_structure",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_symmetry",
+    "*",
+    3,
+    2,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "search_domain",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "ss_dev",
+    "*",
+    52,
+    0,
+    3,
+    0,
+    49,
+    0
+   ],
+   [
+    "start_intervals",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ]
+  ],
+  "totals": {
+   "calls": 1135,
+   "computes": 933,
+   "grafts": 72,
+   "recomputes_same_input": 0,
+   "replays": 0,
+   "reuses": 130
+  }
+ },
+ "circuit": "two_stage_ota",
+ "evals": [
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "06c7fc54ae0a093360a7651275b4c7547f719d962f7eb18510e0c19eaf0e057a",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "534142402e26404869b304ed4d74c5b032df3fd3cb42502a68f44cf24aaad5bf",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.ffd192a9adcaap-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "04954a68f387d8f8b03bdaca0e1d1ba0e91d251fedd9dc9c1eb7e25b18d42c15",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.1e082172613f1p-20",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "f8a471e0e990b8c13860e177386fa450c045e3fc4dfcc044138ad766611cca67",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.053e5dd7b5539p-15",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "a41d21c8042bdee3bd31f5c3c900878d5f55fbbc1201f8d88981d752bfeb9185",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.1e082172613f1p-20",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d89774abf46p+0",
+    "vin_p": "0x1.310d575295888p+0"
+   },
+   "snapshot_fp": "b5d8f919f5d91b45f0608dbe2bbef9b6469615d1266864beb4dd495449ccb3bf",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.10a0160e3429ap+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262371862fe25p-1",
+     "0x1.bc9f762b69d4cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.3a1e65b02a8cfp-1",
+     "0x1.c50b7bcd15caap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.317a229453352p+0",
+    "vin_p": "0x1.2716fc7ed8ecep+0"
+   },
+   "snapshot_fp": "25c9ddd03954534b526f84a86acbed7e4dceaad19eebffff9027420e7d7d3de4",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.109e0657dd452p+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.3aa3ccbff17c5p-1",
+     "0x1.c5a27348e35a0p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e1d44df752p-1",
+     "0x1.bb5eea5b421f2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.280e14716514ap+0",
+    "vin_p": "0x1.277749b9efb00p+0"
+   },
+   "snapshot_fp": "e2cbf0689c18d692d8771f6237c4e6e5ca037afe34b828944fa688c76a1669a8",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.0c0ddba04fca0p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26fd07f3b782ep-1",
+     "0x1.bc9dac1a9e6cap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.26773a27fd9cep-1",
+     "0x1.bbb2f65fe091ap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27948c30f1acep+0",
+    "vin_p": "0x1.279a1764007a3p+0"
+   },
+   "snapshot_fp": "11eaf9c192e2fa9109bb5296832b2182c5febf238299a3db03995cb6962c2da2",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.ec28007a731c5p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2623c91fc5f69p-1",
+     "0x1.bc173c7573e12p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.26269b1213c72p-1",
+     "0x1.bc20e13ef710dp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2322f88c59534p+0",
+    "vin_p": "0x1.2200a6bef7742p+0"
+   },
+   "snapshot_fp": "cd8b7d3385bb1cd212d9948e040191e42f55a9a40419e0a898ac6624ff6fdb64",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.e4b49b819885ap+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2695a04a4b156p-1",
+     "0x1.b2fb283cb1522p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25885f9884286p-1",
+     "0x1.b13d1db1acd42p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3171baa935e5cp+0",
+    "vin_p": "0x1.30d4c4764fb07p+0"
+   },
+   "snapshot_fp": "d6f1bca6b24bdd92bc123fadef680592ae117c6ded16180e98da6f105631b8fa",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.108e3379b4672p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262d962eb75afp-1",
+     "0x1.bc8fe5132961ap+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25b601942a60bp-1",
+     "0x1.bb9d881a9d00ep+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d838d751f2ap+0",
+    "vin_p": "0x1.2752b661ca5d8p+0"
+   },
+   "snapshot_fp": "f03dc48da50c23867a2a342bfb5b6ea98038a69b5da8ec5a3ee3e52ff10211e2",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0aaaaaaaaaaaap-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244a7ad5082p-1",
+     "0x1.bc9e5218004d2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25ae0f03b54b3p-1",
+     "0x1.bbce6541ba158p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d89754dcfdep+0",
+    "vin_p": "0x1.28baf682ed32cp+0"
+   },
+   "snapshot_fp": "564b334f1e4d8e8d08448d234f16b47b152f14839684dfd58c76e5623270106f",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262371c3162e5p-1",
+     "0x1.bc9f75da8e95cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.286107992be37p-1",
+     "0x1.bd4569394473cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.294defa5f6694p+0",
+    "vin_p": "0x1.274825b354fc6p+0"
+   },
+   "snapshot_fp": "baf51c6e108a1444bfb24e43e0554548f8b9c5a0906a2cd175d85529a4aa5b8c",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.28e897874d226p-1",
+     "0x1.be27c1433ebf2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259ea2a32e48fp-1",
+     "0x1.bbc0fa1512d46p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d11a93a5de8p+0",
+    "vin_p": "0x1.273a73b0e40a2p+0"
+   },
+   "snapshot_fp": "a752716c959cfaac72bacf5e2e782759b367c0939149a19bc899d2ac164d82c4",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2607b8cc0f4d4p-1",
+     "0x1.bc9e5f23ef0c2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.258200b194053p-1",
+     "0x1.bbb3e708fe11ap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d83989b147fp+0",
+    "vin_p": "0x1.278c36e4807c3p+0"
+   },
+   "snapshot_fp": "b109bd4e599892232eec7232a85b0efe8d98d68bf02a0aafa63383dcd624d8c7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2624457d474d3p-1",
+     "0x1.bc9e58e87cb30p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25e0bf27d6c94p-1",
+     "0x1.bc280e351593cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.25c54926e1a04p+0",
+    "vin_p": "0x1.24f10028effcbp+0"
+   },
+   "snapshot_fp": "6ecdc4311e1d013df40e1625e4655ef2847f24091e0ba42a134b44a9fdc02fcd",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2656bada028f0p-1",
+     "0x1.b85f3cf976125p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2596b05117ba0p-1",
+     "0x1.b716a829541c6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "534142402e26404869b304ed4d74c5b032df3fd3cb42502a68f44cf24aaad5bf",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.ffd192a9adcaap-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "04954a68f387d8f8b03bdaca0e1d1ba0e91d251fedd9dc9c1eb7e25b18d42c15",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.1e082172613f1p-20",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "f8a471e0e990b8c13860e177386fa450c045e3fc4dfcc044138ad766611cca67",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.053e5dd7b5539p-15",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "a41d21c8042bdee3bd31f5c3c900878d5f55fbbc1201f8d88981d752bfeb9185",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.1e082172613f1p-20",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d89774abf46p+0",
+    "vin_p": "0x1.310d575295888p+0"
+   },
+   "snapshot_fp": "b5d8f919f5d91b45f0608dbe2bbef9b6469615d1266864beb4dd495449ccb3bf",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.10a0160e3429ap+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262371862fe25p-1",
+     "0x1.bc9f762b69d4cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.3a1e65b02a8cfp-1",
+     "0x1.c50b7bcd15caap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.317a229453352p+0",
+    "vin_p": "0x1.2716fc7ed8ecep+0"
+   },
+   "snapshot_fp": "25c9ddd03954534b526f84a86acbed7e4dceaad19eebffff9027420e7d7d3de4",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.109e0657dd452p+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.3aa3ccbff17c5p-1",
+     "0x1.c5a27348e35a0p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e1d44df752p-1",
+     "0x1.bb5eea5b421f2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.280e14716514ap+0",
+    "vin_p": "0x1.277749b9efb00p+0"
+   },
+   "snapshot_fp": "e2cbf0689c18d692d8771f6237c4e6e5ca037afe34b828944fa688c76a1669a8",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.0c0ddba04fca0p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26fd07f3b782ep-1",
+     "0x1.bc9dac1a9e6cap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.26773a27fd9cep-1",
+     "0x1.bbb2f65fe091ap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27948c30f1acep+0",
+    "vin_p": "0x1.279a1764007a3p+0"
+   },
+   "snapshot_fp": "11eaf9c192e2fa9109bb5296832b2182c5febf238299a3db03995cb6962c2da2",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.ec28007a731c5p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2623c91fc5f69p-1",
+     "0x1.bc173c7573e12p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.26269b1213c72p-1",
+     "0x1.bc20e13ef710dp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2322f88c59534p+0",
+    "vin_p": "0x1.2200a6bef7742p+0"
+   },
+   "snapshot_fp": "cd8b7d3385bb1cd212d9948e040191e42f55a9a40419e0a898ac6624ff6fdb64",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.e4b49b819885ap+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2695a04a4b156p-1",
+     "0x1.b2fb283cb1522p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25885f9884286p-1",
+     "0x1.b13d1db1acd42p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3171baa935e5cp+0",
+    "vin_p": "0x1.30d4c4764fb07p+0"
+   },
+   "snapshot_fp": "d6f1bca6b24bdd92bc123fadef680592ae117c6ded16180e98da6f105631b8fa",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.108e3379b4672p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262d962eb75afp-1",
+     "0x1.bc8fe5132961ap+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25b601942a60bp-1",
+     "0x1.bb9d881a9d00ep+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d838d751f2ap+0",
+    "vin_p": "0x1.2752b661ca5d8p+0"
+   },
+   "snapshot_fp": "f03dc48da50c23867a2a342bfb5b6ea98038a69b5da8ec5a3ee3e52ff10211e2",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0aaaaaaaaaaaap-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244a7ad5082p-1",
+     "0x1.bc9e5218004d2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25ae0f03b54b3p-1",
+     "0x1.bbce6541ba158p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d89754dcfdep+0",
+    "vin_p": "0x1.28baf682ed32cp+0"
+   },
+   "snapshot_fp": "564b334f1e4d8e8d08448d234f16b47b152f14839684dfd58c76e5623270106f",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262371c3162e5p-1",
+     "0x1.bc9f75da8e95cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.286107992be37p-1",
+     "0x1.bd4569394473cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.294defa5f6694p+0",
+    "vin_p": "0x1.274825b354fc6p+0"
+   },
+   "snapshot_fp": "baf51c6e108a1444bfb24e43e0554548f8b9c5a0906a2cd175d85529a4aa5b8c",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.28e897874d226p-1",
+     "0x1.be27c1433ebf2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259ea2a32e48fp-1",
+     "0x1.bbc0fa1512d46p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d11a93a5de8p+0",
+    "vin_p": "0x1.273a73b0e40a2p+0"
+   },
+   "snapshot_fp": "a752716c959cfaac72bacf5e2e782759b367c0939149a19bc899d2ac164d82c4",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2607b8cc0f4d4p-1",
+     "0x1.bc9e5f23ef0c2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.258200b194053p-1",
+     "0x1.bbb3e708fe11ap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d83989b147fp+0",
+    "vin_p": "0x1.278c36e4807c3p+0"
+   },
+   "snapshot_fp": "b109bd4e599892232eec7232a85b0efe8d98d68bf02a0aafa63383dcd624d8c7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2624457d474d3p-1",
+     "0x1.bc9e58e87cb30p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25e0bf27d6c94p-1",
+     "0x1.bc280e351593cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.25c54926e1a04p+0",
+    "vin_p": "0x1.24f10028effcbp+0"
+   },
+   "snapshot_fp": "6ecdc4311e1d013df40e1625e4655ef2847f24091e0ba42a134b44a9fdc02fcd",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2656bada028f0p-1",
+     "0x1.b85f3cf976125p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2596b05117ba0p-1",
+     "0x1.b716a829541c6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "06c7fc54ae0a093360a7651275b4c7547f719d962f7eb18510e0c19eaf0e057a",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "06c7fc54ae0a093360a7651275b4c7547f719d962f7eb18510e0c19eaf0e057a",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "534142402e26404869b304ed4d74c5b032df3fd3cb42502a68f44cf24aaad5bf",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.ffd192a9adcaap-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "04954a68f387d8f8b03bdaca0e1d1ba0e91d251fedd9dc9c1eb7e25b18d42c15",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.1e082172613f1p-20",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "f8a471e0e990b8c13860e177386fa450c045e3fc4dfcc044138ad766611cca67",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.053e5dd7b5539p-15",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "a41d21c8042bdee3bd31f5c3c900878d5f55fbbc1201f8d88981d752bfeb9185",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.1e082172613f1p-20",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d89774abf46p+0",
+    "vin_p": "0x1.310d575295888p+0"
+   },
+   "snapshot_fp": "b5d8f919f5d91b45f0608dbe2bbef9b6469615d1266864beb4dd495449ccb3bf",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.10a0160e3429ap+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262371862fe25p-1",
+     "0x1.bc9f762b69d4cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.3a1e65b02a8cfp-1",
+     "0x1.c50b7bcd15caap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.317a229453352p+0",
+    "vin_p": "0x1.2716fc7ed8ecep+0"
+   },
+   "snapshot_fp": "25c9ddd03954534b526f84a86acbed7e4dceaad19eebffff9027420e7d7d3de4",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.109e0657dd452p+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.3aa3ccbff17c5p-1",
+     "0x1.c5a27348e35a0p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e1d44df752p-1",
+     "0x1.bb5eea5b421f2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.280e14716514ap+0",
+    "vin_p": "0x1.277749b9efb00p+0"
+   },
+   "snapshot_fp": "e2cbf0689c18d692d8771f6237c4e6e5ca037afe34b828944fa688c76a1669a8",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.0c0ddba04fca0p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26fd07f3b782ep-1",
+     "0x1.bc9dac1a9e6cap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.26773a27fd9cep-1",
+     "0x1.bbb2f65fe091ap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27948c30f1acep+0",
+    "vin_p": "0x1.279a1764007a3p+0"
+   },
+   "snapshot_fp": "11eaf9c192e2fa9109bb5296832b2182c5febf238299a3db03995cb6962c2da2",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.ec28007a731c5p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2623c91fc5f69p-1",
+     "0x1.bc173c7573e12p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.26269b1213c72p-1",
+     "0x1.bc20e13ef710dp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2322f88c59534p+0",
+    "vin_p": "0x1.2200a6bef7742p+0"
+   },
+   "snapshot_fp": "cd8b7d3385bb1cd212d9948e040191e42f55a9a40419e0a898ac6624ff6fdb64",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.e4b49b819885ap+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2695a04a4b156p-1",
+     "0x1.b2fb283cb1522p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25885f9884286p-1",
+     "0x1.b13d1db1acd42p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3171baa935e5cp+0",
+    "vin_p": "0x1.30d4c4764fb07p+0"
+   },
+   "snapshot_fp": "d6f1bca6b24bdd92bc123fadef680592ae117c6ded16180e98da6f105631b8fa",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.108e3379b4672p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262d962eb75afp-1",
+     "0x1.bc8fe5132961ap+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25b601942a60bp-1",
+     "0x1.bb9d881a9d00ep+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d838d751f2ap+0",
+    "vin_p": "0x1.2752b661ca5d8p+0"
+   },
+   "snapshot_fp": "f03dc48da50c23867a2a342bfb5b6ea98038a69b5da8ec5a3ee3e52ff10211e2",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0aaaaaaaaaaaap-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244a7ad5082p-1",
+     "0x1.bc9e5218004d2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25ae0f03b54b3p-1",
+     "0x1.bbce6541ba158p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d89754dcfdep+0",
+    "vin_p": "0x1.28baf682ed32cp+0"
+   },
+   "snapshot_fp": "564b334f1e4d8e8d08448d234f16b47b152f14839684dfd58c76e5623270106f",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262371c3162e5p-1",
+     "0x1.bc9f75da8e95cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.286107992be37p-1",
+     "0x1.bd4569394473cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.294defa5f6694p+0",
+    "vin_p": "0x1.274825b354fc6p+0"
+   },
+   "snapshot_fp": "baf51c6e108a1444bfb24e43e0554548f8b9c5a0906a2cd175d85529a4aa5b8c",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.28e897874d226p-1",
+     "0x1.be27c1433ebf2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259ea2a32e48fp-1",
+     "0x1.bbc0fa1512d46p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d11a93a5de8p+0",
+    "vin_p": "0x1.273a73b0e40a2p+0"
+   },
+   "snapshot_fp": "a752716c959cfaac72bacf5e2e782759b367c0939149a19bc899d2ac164d82c4",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2607b8cc0f4d4p-1",
+     "0x1.bc9e5f23ef0c2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.258200b194053p-1",
+     "0x1.bbb3e708fe11ap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d83989b147fp+0",
+    "vin_p": "0x1.278c36e4807c3p+0"
+   },
+   "snapshot_fp": "b109bd4e599892232eec7232a85b0efe8d98d68bf02a0aafa63383dcd624d8c7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2624457d474d3p-1",
+     "0x1.bc9e58e87cb30p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25e0bf27d6c94p-1",
+     "0x1.bc280e351593cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.25c54926e1a04p+0",
+    "vin_p": "0x1.24f10028effcbp+0"
+   },
+   "snapshot_fp": "6ecdc4311e1d013df40e1625e4655ef2847f24091e0ba42a134b44a9fdc02fcd",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2656bada028f0p-1",
+     "0x1.b85f3cf976125p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2596b05117ba0p-1",
+     "0x1.b716a829541c6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "534142402e26404869b304ed4d74c5b032df3fd3cb42502a68f44cf24aaad5bf",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.ffd192a9adcaap-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "04954a68f387d8f8b03bdaca0e1d1ba0e91d251fedd9dc9c1eb7e25b18d42c15",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.1e082172613f1p-20",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "f8a471e0e990b8c13860e177386fa450c045e3fc4dfcc044138ad766611cca67",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.053e5dd7b5539p-15",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "a41d21c8042bdee3bd31f5c3c900878d5f55fbbc1201f8d88981d752bfeb9185",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.1e082172613f1p-20",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d89774abf46p+0",
+    "vin_p": "0x1.310d575295888p+0"
+   },
+   "snapshot_fp": "b5d8f919f5d91b45f0608dbe2bbef9b6469615d1266864beb4dd495449ccb3bf",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.10a0160e3429ap+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262371862fe25p-1",
+     "0x1.bc9f762b69d4cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.3a1e65b02a8cfp-1",
+     "0x1.c50b7bcd15caap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.317a229453352p+0",
+    "vin_p": "0x1.2716fc7ed8ecep+0"
+   },
+   "snapshot_fp": "25c9ddd03954534b526f84a86acbed7e4dceaad19eebffff9027420e7d7d3de4",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.109e0657dd452p+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.3aa3ccbff17c5p-1",
+     "0x1.c5a27348e35a0p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e1d44df752p-1",
+     "0x1.bb5eea5b421f2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.280e14716514ap+0",
+    "vin_p": "0x1.277749b9efb00p+0"
+   },
+   "snapshot_fp": "e2cbf0689c18d692d8771f6237c4e6e5ca037afe34b828944fa688c76a1669a8",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.0c0ddba04fca0p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26fd07f3b782ep-1",
+     "0x1.bc9dac1a9e6cap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.26773a27fd9cep-1",
+     "0x1.bbb2f65fe091ap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27948c30f1acep+0",
+    "vin_p": "0x1.279a1764007a3p+0"
+   },
+   "snapshot_fp": "11eaf9c192e2fa9109bb5296832b2182c5febf238299a3db03995cb6962c2da2",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.ec28007a731c5p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2623c91fc5f69p-1",
+     "0x1.bc173c7573e12p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.26269b1213c72p-1",
+     "0x1.bc20e13ef710dp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2322f88c59534p+0",
+    "vin_p": "0x1.2200a6bef7742p+0"
+   },
+   "snapshot_fp": "cd8b7d3385bb1cd212d9948e040191e42f55a9a40419e0a898ac6624ff6fdb64",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.e4b49b819885ap+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2695a04a4b156p-1",
+     "0x1.b2fb283cb1522p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25885f9884286p-1",
+     "0x1.b13d1db1acd42p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3171baa935e5cp+0",
+    "vin_p": "0x1.30d4c4764fb07p+0"
+   },
+   "snapshot_fp": "d6f1bca6b24bdd92bc123fadef680592ae117c6ded16180e98da6f105631b8fa",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.108e3379b4672p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262d962eb75afp-1",
+     "0x1.bc8fe5132961ap+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25b601942a60bp-1",
+     "0x1.bb9d881a9d00ep+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d838d751f2ap+0",
+    "vin_p": "0x1.2752b661ca5d8p+0"
+   },
+   "snapshot_fp": "f03dc48da50c23867a2a342bfb5b6ea98038a69b5da8ec5a3ee3e52ff10211e2",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0aaaaaaaaaaaap-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244a7ad5082p-1",
+     "0x1.bc9e5218004d2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25ae0f03b54b3p-1",
+     "0x1.bbce6541ba158p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d89754dcfdep+0",
+    "vin_p": "0x1.28baf682ed32cp+0"
+   },
+   "snapshot_fp": "564b334f1e4d8e8d08448d234f16b47b152f14839684dfd58c76e5623270106f",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.262371c3162e5p-1",
+     "0x1.bc9f75da8e95cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.286107992be37p-1",
+     "0x1.bd4569394473cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.294defa5f6694p+0",
+    "vin_p": "0x1.274825b354fc6p+0"
+   },
+   "snapshot_fp": "baf51c6e108a1444bfb24e43e0554548f8b9c5a0906a2cd175d85529a4aa5b8c",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.28e897874d226p-1",
+     "0x1.be27c1433ebf2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259ea2a32e48fp-1",
+     "0x1.bbc0fa1512d46p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d11a93a5de8p+0",
+    "vin_p": "0x1.273a73b0e40a2p+0"
+   },
+   "snapshot_fp": "a752716c959cfaac72bacf5e2e782759b367c0939149a19bc899d2ac164d82c4",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2607b8cc0f4d4p-1",
+     "0x1.bc9e5f23ef0c2p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.258200b194053p-1",
+     "0x1.bbb3e708fe11ap+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.27d83989b147fp+0",
+    "vin_p": "0x1.278c36e4807c3p+0"
+   },
+   "snapshot_fp": "b109bd4e599892232eec7232a85b0efe8d98d68bf02a0aafa63383dcd624d8c7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2624457d474d3p-1",
+     "0x1.bc9e58e87cb30p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.25e0bf27d6c94p-1",
+     "0x1.bc280e351593cp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.25c54926e1a04p+0",
+    "vin_p": "0x1.24f10028effcbp+0"
+   },
+   "snapshot_fp": "6ecdc4311e1d013df40e1625e4655ef2847f24091e0ba42a134b44a9fdc02fcd",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.b08b5daef6132p-42",
+    "0x1.e375464ee8b58p-21",
+    "0x1.e375464ee8b58p-21",
+    "0x1.a08f92c87eb57p-16",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.1f50af51a18ecp+4",
+    "-0x1.f610d89739325p+3",
+    "-0x1.19a0e3d25e906p+4",
+    "-0x1.fdf2f837e8bb1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2656bada028f0p-1",
+     "0x1.b85f3cf976125p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2596b05117ba0p-1",
+     "0x1.b716a829541c6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.27d837c8d058ep+0",
+    "vin_p": "0x1.27418cb8bc9a0p+0"
+   },
+   "snapshot_fp": "f593bff4073d7f0d758a3ef86ff0f2e8b175f8ca03b691a7e851c368dfa18650",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.4cf894d165d4dp-23",
+    "0x1.828c0be769dc1p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.594415ca8edcap-23",
+    "0x1.5490a0b695c31p-23",
+    "0x1.1cc7247b5c3dfp-40",
+    "0x1.5d2c3e5614e72p-22",
+    "0x1.7e9ddb4916d07p-19",
+    "0x1.fed5dca7c5f19p-16",
+    "-0x1.1e4e0837b9bf7p+4",
+    "-0x1.16e2eac827658p+4",
+    "-0x1.13b44483240b0p+4",
+    "-0x1.1761e20ab128cp+4",
+    "-0x1.3b38327f95aa6p+4",
+    "0x1.4000000000000p-49",
+    "0x1.a4fa020ad03fcp-4"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.26244c19ccf88p-1",
+     "0x1.bc9e4fe119e50p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6d501eadf0cfap-1",
+    "vin_p": "0x1.e358349aa5b96p-1"
+   },
+   "snapshot_fp": "eca618ce6b69cc872543813486b7eef75d18c5e05cc5e885a31cd8b98b542ebf",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.afa83c6023ba2p-2",
+     "0x1.96e22f1918eb0p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51426845a9c40p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.12628bce90f54p+0",
+    "vin_p": "0x1.1fbe3f67943bap+0"
+   },
+   "snapshot_fp": "538131b8c0db8f0cf8c6d9a9a6d2166f5235e483b7cb1de48a657596e0c2e188",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.133a39369fe82p-1",
+     "0x1.c0ab6394fbc42p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2fdecd142df37p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.12628bce90f54p+0",
+    "vin_p": "0x1.1fbe3f67943bap+0"
+   },
+   "snapshot_fp": "ce6011575ed8f507f17755edf220c939439e90c995726492b8916d4f6af96fb0",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.8245cbe8a37fap-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.133a39369fe82p-1",
+     "0x1.c0ab6394fbc42p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2fdecd142df37p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.12628bce90f54p+0",
+    "vin_p": "0x1.1fbe3f67943bap+0"
+   },
+   "snapshot_fp": "c799541b2dbfd8fb7b3dc88bbb08ecb9308b3f9d11b9d08a60a6ad5486d00c60",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.c71d372f8a2f5p-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.133a39369fe82p-1",
+     "0x1.c0ab6394fbc42p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2fdecd142df37p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.12628bce90f54p+0",
+    "vin_p": "0x1.1fbe3f67943bap+0"
+   },
+   "snapshot_fp": "1b843a267e19cf8d540d41c4cb38f9bd65656f41c9844769246b54046caac974",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.0e0920fdead69p-13",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.133a39369fe82p-1",
+     "0x1.c0ab6394fbc42p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2fdecd142df37p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.12628bce90f54p+0",
+    "vin_p": "0x1.1fbe3f67943bap+0"
+   },
+   "snapshot_fp": "142bf03456fe004613fa792ce9a935809e11425eafe6d1bac2bd74a04e8bf7c7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.15213950a4b2ep-21",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.133a39369fe82p-1",
+     "0x1.c0ab6394fbc42p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2fdecd142df37p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.0e3c7e99149fcp+0",
+    "vin_p": "0x1.2573dea6219aap+0"
+   },
+   "snapshot_fp": "42cce56a9dc8b40a8043fbc43d547c5d6f56f648fa0fe9f7a252dccfadd9812c",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.0977ab52fb62bp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.13229d9e2366bp-1",
+     "0x1.b74b133944558p+0",
+     0,
+     "measured",
+     "0x1.d3fd8e2d5357bp-8"
+    ],
+    [
+     "vin_p",
+     "0x1.444016b1c60b2p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.d3fd8e2d5357bp-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.1c1e5638f6c41p+0",
+    "vin_p": "0x1.1fbe3f67943bap+0"
+   },
+   "snapshot_fp": "eddee9dd5af5af1fbf0e9ad914737488f17d590de1826fd12402080cc11ee84c",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.1d99434fd3dfap+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.27b56efceb92ep-1",
+     "0x1.c9c1b66bcc436p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2fdecd142df38p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.12ae9d05704eap+0",
+    "vin_p": "0x1.2009cdd400deep+0"
+   },
+   "snapshot_fp": "769d3dbf7bca590aa7e2741b0516b04ca6384e5fddf9b6a804c1e5a708773a70",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.08c5c8869013cp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.144a54933d9a0p-1",
+     "0x1.c0aaff9803d9cp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.30ec8039c5103p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.1202e4c93d1b2p+0",
+    "vin_p": "0x1.1fe555476b43fp+0"
+   },
+   "snapshot_fp": "f7c6da8d309b446a54a71826dc754c84be16bba80d67e6880640bca5890961de",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.032ae969e1e76p+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.133876c50e3d9p-1",
+     "0x1.bfd2f60d621a5p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.306a513c9c3dcp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.0f5fe387be89ap+0",
+    "vin_p": "0x1.1c41d54f6cf81p+0"
+   },
+   "snapshot_fp": "6aab3905596ae04f451bad2e0b3221da2a773b3fe0f0e39344e1892203513ce6",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.fe7aa473c66f2p+3",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.13b7345f17013p-1",
+     "0x1.b982fed21e770p+0",
+     0,
+     "measured",
+     "0x1.d3fd8e2d5357bp-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2fd4e23399e09p-1",
+     "0x1.c4e585b275ca9p+0",
+     0,
+     "measured",
+     "0x1.d3fd8e2d5357bp-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.1c15a0fac265ep+0",
+    "vin_p": "0x1.2960b0f19567ep+0"
+   },
+   "snapshot_fp": "b118624386aa4127f4ecb79478dfd302ae54c5efb343b5cc43858f5eb5c5d340",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.e214aac3648efp-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.136868239fbaep-1",
+     "0x1.c0a27e0a7dfb1p+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.300038de4fb49p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.e77b6dd0eedf4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.1257e07af417dp+0",
+    "vin_p": "0x1.1fc2b178397e4p+0"
+   },
+   "snapshot_fp": "74fcf2227315778b932b93200fb28ad41d3c44bd5203df22bc807c29d5f3afbf",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.d796282774322p-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.133a07028972fp-1",
+     "0x1.c0934062e811ep+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2feeab6c67bb4p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.119788d07cf08p+0",
+    "vin_p": "0x1.2072690d116cap+0"
+   },
+   "snapshot_fp": "5900ac4f73596442bf30ae2bea658578e364cb3ddc6f5d043db29e00da9555a8",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.50bea717ba434p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.1335c6c5bd005p-1",
+     "0x1.bedfc19ad683ap+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.3261e52b29e25p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.13d7a5067a21dp+0",
+    "vin_p": "0x1.1fbe3f67943bap+0"
+   },
+   "snapshot_fp": "aeea96c2fcc4ea69a78a29ce859196c20711a22d115a2e2547fc81b965974609",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.15ddc8b682e41p-1",
+     "0x1.c24d6215f4cbbp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2fdecd142df38p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.125ce89408cfap+0",
+    "vin_p": "0x1.1fb8a5e02fdc5p+0"
+   },
+   "snapshot_fp": "68d1bc56ca5347f203b118d45ef028850e744184858ba13e805e71fbbe942262",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.13260e8f20d24p-1",
+     "0x1.c0ab6af4bb988p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2fcad01204438p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.12324695e5c32p+0",
+    "vin_p": "0x1.1fd22e8ebab24p+0"
+   },
+   "snapshot_fp": "965d83eded2d5aae3161a87be91ec9fd3cebcf1262f57d95ec1a67c909966fc9",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.13395602009e6p-1",
+     "0x1.c03e2b01e42c5p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.3025f4e1398e5p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.11b5d793d1ee6p+0",
+    "vin_p": "0x1.1edc844b8f222p+0"
+   },
+   "snapshot_fp": "d4a5c131e5b8c1a9c62984bbe687bc1e0e7e100a2fc0e7d92f48de0b1f04c34a",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4601dfa6a1fd2p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4804f4565002ep-41",
+    "0x1.d6ac20e929027p-22",
+    "0x1.827a9ba0f335ap-18",
+    "0x1.b9ecd8d648a07p-14",
+    "-0x1.2c96fa7975d7dp+4",
+    "-0x1.17cba02d3850cp+4",
+    "-0x1.086c6e5d573f6p+4",
+    "-0x1.1637238cc5a7bp+4",
+    "-0x1.0c5d7e2daf03cp+4",
+    "0x1.c240d2d21edcep-2",
+    "0x1.c240d2d21edcep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.1372d997a9bf7p-1",
+     "0x1.befe75a57d0e4p+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.2fdd132c40944p-1",
+     "0x1.cacc8687a23aep+0",
+     0,
+     "measured",
+     "0x1.de2b658c7c492p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.52c3d9f98681dp+0",
+    "vin_p": "0x1.c054f4360d26bp-1"
+   },
+   "snapshot_fp": "1f485065a88e16da1df3b97afa2628a55bc2af9d802a4111dfb072fb1cb16867",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.372d7e3f5ea0bp+2",
+    "0x1.778f55b29a040p-43",
+    "0x1.4397bf9152ff1p-38",
+    "-0x1.9fb6939cf5b4dp+3",
+    "-0x1.6ec614d4c8432p+4",
+    "-0x1.87080b0e25776p+3",
+    "-0x1.691649558544cp+4",
+    "-0x1.8eea2aaed5002p+3",
+    "0x1.8000000000000p-1",
+    "0x1.8000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.b2ef8996c8a84p-1",
+     "0x1.7b328fac440e2p+0",
+     0,
+     "measured",
+     "0x1.c8d1e65f67ac4p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.8da012e6f06d0p-2",
+     "0x1.09c0a13b74bb6p+0",
+     0,
+     "measured",
+     "0x1.c8d1e65f67ac4p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6d501eadf0cfap-1",
+    "vin_p": "0x1.e358349aa5b96p-1"
+   },
+   "snapshot_fp": "e2f40bf925657575f24da291ea0db2d66b32724f209e31b75765a445a0edc00b",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.610a25116b479p-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.afa83c6023ba2p-2",
+     "0x1.96e22f1918eb0p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51426845a9c40p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6d501eadf0cfap-1",
+    "vin_p": "0x1.e358349aa5b96p-1"
+   },
+   "snapshot_fp": "2acd962efc20dc551e67d66ea49e60324d8d0c7b6d95b8f642524f32978dbbbc",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.2c904b797b8e8p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.afa83c6023ba2p-2",
+     "0x1.96e22f1918eb0p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51426845a9c40p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6d501eadf0cfap-1",
+    "vin_p": "0x1.e358349aa5b96p-1"
+   },
+   "snapshot_fp": "d32fa57d24fcb763179be79bfa5c26215689f2446d65645dffd7763d66dad5b6",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.7b3586e647b24p-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.afa83c6023ba2p-2",
+     "0x1.96e22f1918eb0p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51426845a9c40p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6d501eadf0cfap-1",
+    "vin_p": "0x1.e358349aa5b96p-1"
+   },
+   "snapshot_fp": "8a23aec8602a9d295977a05a04d2c9c9c9785df796ee49d756e7d12e82f7b48c",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.c5fc5904773dcp-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.afa83c6023ba2p-2",
+     "0x1.96e22f1918eb0p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51426845a9c40p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.688945be217cap-1",
+    "vin_p": "0x1.f270b684a1ae8p-1"
+   },
+   "snapshot_fp": "393f053f4a30233b7a7ab17bfc9a0daa18013f73076e198aa8e2ecf687caf4c2",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.e68b5a7da2c98p+3",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.af8bf2209604dp-2",
+     "0x1.8d699b2d3bd7cp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.6563157da4602p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.8093f13c2365ep-1",
+    "vin_p": "0x1.e358349aa5b96p-1"
+   },
+   "snapshot_fp": "961ef63f7447a2b917acf0a80492eacbf442a7f42ef88cf3a4f2fbe6d090b2b1",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.4760a00884779p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.d793b9f40d453p-2",
+     "0x1.9f793286502b2p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51426845a9c40p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6f338932716c0p-1",
+    "vin_p": "0x1.e531471540ec1p-1"
+   },
+   "snapshot_fp": "5c789b46fe05b93a5d75af72a5c0bf07a0836d90294d56e00b0463a09932efa4",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.fd16e273ce4a3p+3",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.b4b3fd484afd0p-2",
+     "0x1.96e020905f165p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.53b92b93ce079p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6d094dae9ce1ap-1",
+    "vin_p": "0x1.e3c440123beebp-1"
+   },
+   "snapshot_fp": "6f61d63c5efc66dc79a707c294b295ee04ad9574d6de5246c9c787e45694b784",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.2df150962b201p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.afa6992e319acp-2",
+     "0x1.9655c76a3b6b8p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51d2778fc7606p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6e2203ded82dcp-1",
+    "vin_p": "0x1.e358349aa5b96p-1"
+   },
+   "snapshot_fp": "3b0b196aa58c9e685047549ea45cce17034af82cae4e4668ccb189a6464d0930",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.29f215f914890p+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.b0f7b943349c1p-2",
+     "0x1.978a5bccce15ap+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51426845a9c3fp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.81145de33598cp-1",
+    "vin_p": "0x1.f6b0feffa4194p-1"
+   },
+   "snapshot_fp": "d1a580c1545a287f6610de92a5ff3e90ecdf226eec6c471bd2878bb2eab60bbd",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.21a568cffea44p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.b024a580db9a4p-2",
+     "0x1.96c99fabd4326p+0",
+     0,
+     "measured",
+     "0x1.9ff734c1fbf7ep-8"
+    ],
+    [
+     "vin_p",
+     "0x1.5176d313ac5ccp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.9ff734c1fbf7ep-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6d482a7c0704ep-1",
+    "vin_p": "0x1.e364641b82fc4p-1"
+   },
+   "snapshot_fp": "b28915bf9b2dc671f2692a82bf176d0fd2a6b80faeb13bf9c211abd25f63ce42",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.1555555555554p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.afa80d3810707p-2",
+     "0x1.96d26a2e6df56p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.5152a79c261d2p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6c1c722c92062p-1",
+    "vin_p": "0x1.e53a1b77a9beap-1"
+   },
+   "snapshot_fp": "c399b1fade3c6a0d24dfec3dbc2841a598cda6a124bdfb61f9c46baef72944c5",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.5cf751db94e6bp-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.afa0f3c8dbdfcp-2",
+     "0x1.948050b0c82dep+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.53c4f16c59cb0p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.701eefcce7779p-1",
+    "vin_p": "0x1.e358349aa5b96p-1"
+   },
+   "snapshot_fp": "f8f1375106adb38ebdb20952807ee1309d26ab5f826b1fc8b89bc6beaac5d5e6",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.b459ba3736df5p-2",
+     "0x1.98faaea5eeb60p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51426845a9c3fp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6d42daa262922p-1",
+    "vin_p": "0x1.e34b39488f036p-1"
+   },
+   "snapshot_fp": "a1ad753e76672f2f9a9d80ab6a278229acec1e5228133f44e855d5e2b9658ddc",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.af84c95ce8b17p-2",
+     "0x1.96e23f278814fp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.5131192d8b7bfp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6d201fa274a9ap-1",
+    "vin_p": "0x1.e3a1999fd2b3ep-1"
+   },
+   "snapshot_fp": "ef351441c65e2c2d0cd0d56a53d842d2ed76cb8d5ad87acc0fb36a7c1460f278",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.afa7200521fdap-2",
+     "0x1.96830690d7e61p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51a4444c90675p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.6da5b97aad4dfp-1",
+    "vin_p": "0x1.e358349aa5b96p-1"
+   },
+   "snapshot_fp": "ac258bb87c091bb3daa6233ad324da085535b310cd7c9183a45b0e237514e643",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.300c060e52f0ap-39",
+    "0x1.86fc0151bddf1p-25",
+    "0x1.02da70c2a7371p-9",
+    "0x1.45cdcfa4a31abp-7",
+    "-0x1.5659e416c6e99p+4",
+    "-0x1.002375005e6fcp+4",
+    "-0x1.328cd3102676ap+4",
+    "-0x1.0b7a593fe8cfap+4",
+    "-0x1.367de2e07e3b0p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.b0313863a2299p-2",
+     "0x1.9726a6d9c0829p+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ],
+    [
+     "vin_p",
+     "0x1.51426845a9c40p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.c6392946a2dd7p-8"
+    ]
+   ]
+  }
+ ],
+ "fd_steps": [
+  [
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.08e3379b4671ep-5"
+   ],
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ]
+  ],
+  [
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.08e3379b4671ep-5"
+   ],
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ]
+  ],
+  [
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.08e3379b4671ep-5"
+   ],
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ]
+  ],
+  [
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.08e3379b4671ep-5"
+   ],
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ]
+  ],
+  [
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.fd3d7f145b214p-6"
+   ],
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ]
+  ],
+  [
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.0d2b467ff521ep-5"
+   ],
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ]
+  ]
+ ],
+ "front": {
+  "failed_eps": 2,
+  "front_fp": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+  "fronts": {
+   "front": [],
+   "pending": [],
+   "unmeasured": []
+  },
+  "n_front": 0,
+  "n_pending": 0,
+  "n_unmeasured": 0,
+  "perf": {
+   "block_index_bound": 3087,
+   "block_index_entries": 837,
+   "eval_budget": 40,
+   "eval_budget_source": "declared",
+   "eval_time_median_s": 0.04975959996227175,
+   "fail_hits": 0,
+   "frozen_columns": 0,
+   "hits": 50,
+   "kernel_calls": 53,
+   "lut_memo_bound": "fixed",
+   "lut_memo_evictions": 1377,
+   "n_solves": 2,
+   "n_starts": 1,
+   "outside_domain": 0,
+   "recompute_same_key": 0,
+   "requests": 103,
+   "stops_eval_budget": 1,
+   "stops_wall_budget": 0,
+   "unique_keys": 53
+  }
+ },
+ "kernel": [
+  {
+   "measures": [
+    [
+     "0x1.243b192a18f44p-1",
+     "0x1.bd62e2938c00bp+0"
+    ],
+    [
+     "0x1.259e8dc0d6cb7p-1",
+     "0x1.bbb3d2910dce6p+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.259e8dc0d6cb7p-1",
+      "0x1.bbb3d2910dce6p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "b35302ba57231cda",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.259e8dc0d6cb7p-1",
+    "0x1.bbb3d2910dce6p+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.38a410296e216p-1",
+     "0x1.c6fec1fb7652cp+0"
+    ],
+    [
+     "0x1.3a1fa9640bf72p-1",
+     "0x1.c509ff32d4463p+0"
+    ],
+    [
+     "0x1.3a1e65b02a8cfp-1",
+     "0x1.c50b7bcd15caap+0"
+    ]
+   ],
+   "n_input_windows": 3,
+   "n_measure": 3,
+   "n_solve": 4,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.3a1e65b02a8cfp-1",
+      "0x1.c50b7bcd15caap+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "cead25fe10a06509",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.3a1e65b02a8cfp-1",
+    "0x1.c50b7bcd15caap+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.243b192a18f44p-1",
+     "0x1.bd1bae6dd7eb6p+0"
+    ],
+    [
+     "0x1.259e1d44df752p-1",
+     "0x1.bb5eea5b421f2p+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.259e1d44df752p-1",
+      "0x1.bb5eea5b421f2p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "f03659ce5052129b",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.259e1d44df752p-1",
+    "0x1.bb5eea5b421f2p+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.255c473c621f0p-1",
+     "0x1.bd62e2938c00bp+0"
+    ],
+    [
+     "0x1.26773a27fd9cep-1",
+     "0x1.bbb2f65fe091ap+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.26773a27fd9cep-1",
+      "0x1.bbb2f65fe091ap+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "709f68be9c6e1000",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.26773a27fd9cep-1",
+    "0x1.bbb2f65fe091ap+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.24e4a30018d3bp-1",
+     "0x1.bdad133a282a8p+0"
+    ],
+    [
+     "0x1.26269b1213c72p-1",
+     "0x1.bc20e13ef710dp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.26269b1213c72p-1",
+      "0x1.bc20e13ef710dp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "3dc09a761e609840",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.26269b1213c72p-1",
+    "0x1.bc20e13ef710dp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.243b192a18f45p-1",
+     "0x1.b2c79865e84bcp+0"
+    ],
+    [
+     "0x1.25885f9884286p-1",
+     "0x1.b13d1db1acd42p+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.25885f9884286p-1",
+      "0x1.b13d1db1acd42p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "a6f2b0776084a1ca",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.25885f9884286p-1",
+    "0x1.b13d1db1acd42p+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.243b192a18f44p-1",
+     "0x1.bd62e2938c00bp+0"
+    ],
+    [
+     "0x1.25b601942a60bp-1",
+     "0x1.bb9d881a9d00ep+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.25b601942a60bp-1",
+      "0x1.bb9d881a9d00ep+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "9f7c9d7efcd0c125",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.25b601942a60bp-1",
+    "0x1.bb9d881a9d00ep+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.244dd7968a2acp-1",
+     "0x1.bd79f53e004cfp+0"
+    ],
+    [
+     "0x1.25ae0f03b54b3p-1",
+     "0x1.bbce6541ba158p+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.25ae0f03b54b3p-1",
+      "0x1.bbce6541ba158p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "3d4ee7601b239e87",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.25ae0f03b54b3p-1",
+    "0x1.bbce6541ba158p+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2663f0c495e86p-1",
+     "0x1.bf3d0b2cd44d4p+0"
+    ],
+    [
+     "0x1.286376b0a7423p-1",
+     "0x1.bd439aebeb760p+0"
+    ],
+    [
+     "0x1.286107992be37p-1",
+     "0x1.bd4569394473cp+0"
+    ]
+   ],
+   "n_input_windows": 3,
+   "n_measure": 3,
+   "n_solve": 4,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.286107992be37p-1",
+      "0x1.bd4569394473cp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "b35302ba57231cda",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.286107992be37p-1",
+    "0x1.bd4569394473cp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.243b192a18f44p-1",
+     "0x1.bd702bb600360p+0"
+    ],
+    [
+     "0x1.259ea2a32e48fp-1",
+     "0x1.bbc0fa1512d46p+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.259ea2a32e48fp-1",
+      "0x1.bbc0fa1512d46p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "b35302ba57231cda",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.259ea2a32e48fp-1",
+    "0x1.bbc0fa1512d46p+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.24206ab9db10cp-1",
+     "0x1.bd62e2938c00bp+0"
+    ],
+    [
+     "0x1.258200b194053p-1",
+     "0x1.bbb3e708fe11ap+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.258200b194053p-1",
+      "0x1.bbb3e708fe11ap+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "b35302ba57231cda",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.258200b194053p-1",
+    "0x1.bbb3e708fe11ap+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.248cb37ac7f66p-1",
+     "0x1.bdc7c34ddfea5p+0"
+    ],
+    [
+     "0x1.25e0bf27d6c94p-1",
+     "0x1.bc280e351593cp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.25e0bf27d6c94p-1",
+      "0x1.bc280e351593cp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "b35302ba57231cda",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.25e0bf27d6c94p-1",
+    "0x1.bc280e351593cp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.243b192a18f44p-1",
+     "0x1.b8b751a71fd9bp+0"
+    ],
+    [
+     "0x1.2596b05117ba0p-1",
+     "0x1.b716a829541c6p+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2596b05117ba0p-1",
+      "0x1.b716a829541c6p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "b35302ba57231cda",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.2596b05117ba0p-1",
+    "0x1.b716a829541c6p+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.394debbdd645bp-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.38000d3bb678dp-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.38000d3bb678dp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "edae39b666967b4c",
+   "tol": "0x1.54c5d917cd12bp-7",
+   "window": [
+    "0x1.38000d3bb678dp-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.5108223e74639p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.51426845a9c40p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.51426845a9c40p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "0f74d780ee8d06e2",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.51426845a9c40p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2e87d442d52c8p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.2fdecd142df37p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2fdecd142df37p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "e1f22c053acc2846",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.2fdecd142df37p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.42df31ddb2c14p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.444016b1c60b2p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.444016b1c60b2p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "2aff98b8d100d50d",
+   "tol": "0x1.d3fd8e2d5357bp-8",
+   "window": [
+    "0x1.444016b1c60b2p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2e87d442d52c9p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.2fdecd142df38p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2fdecd142df38p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "2dbec2ccc4f6b069",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.2fdecd142df38p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2ff2d0bf5ee6ap-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.30ec8039c5103p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.30ec8039c5103p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "c58154c1f78e5ae9",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.30ec8039c5103p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2f22728c7a962p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.306a513c9c3dcp-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.306a513c9c3dcp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "dd29c7068d84756c",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.306a513c9c3dcp-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2e87d442d52c9p-1",
+     "0x1.c6d6231faba10p+0"
+    ],
+    [
+     "0x1.2fd618089a399p-1",
+     "0x1.c4e2d12961e82p+0"
+    ],
+    [
+     "0x1.2fd4e23399e09p-1",
+     "0x1.c4e585b275ca9p+0"
+    ]
+   ],
+   "n_input_windows": 3,
+   "n_measure": 3,
+   "n_solve": 4,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2fd4e23399e09p-1",
+      "0x1.c4e585b275ca9p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "e1e2440d2c924663",
+   "tol": "0x1.d3fd8e2d5357bp-8",
+   "window": [
+    "0x1.2fd4e23399e09p-1",
+    "0x1.c4e585b275ca9p+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2e87d442d52c8p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.300038de4fb49p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.300038de4fb49p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "64f5918480db39db",
+   "tol": "0x1.e77b6dd0eedf4p-8",
+   "window": [
+    "0x1.300038de4fb49p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2e994513d300ep-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.2feeab6c67bb4p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2feeab6c67bb4p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "84340e539be57490",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.2feeab6c67bb4p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.30aec6ff083acp-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.3261e52b29e25p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.3261e52b29e25p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "e1f22c053acc2846",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.3261e52b29e25p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2e87d442d52c8p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.2fdecd142df38p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2fdecd142df38p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "e1f22c053acc2846",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.2fdecd142df38p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2e6d0124feb64p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.2fcad01204438p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2fcad01204438p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "e1f22c053acc2846",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.2fcad01204438p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2ed6584ab9069p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.3025f4e1398e5p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.3025f4e1398e5p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "e1f22c053acc2846",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.3025f4e1398e5p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.2e87d442d52c8p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.2fdecd142df38p-1",
+     "0x1.caca3485beef7p+0"
+    ],
+    [
+     "0x1.2fdd132c40944p-1",
+     "0x1.cacc8687a23aep+0"
+    ]
+   ],
+   "n_input_windows": 3,
+   "n_measure": 3,
+   "n_solve": 4,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2fdd132c40944p-1",
+      "0x1.cacc8687a23aep+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "e1f22c053acc2846",
+   "tol": "0x1.de2b658c7c492p-8",
+   "window": [
+    "0x1.2fdd132c40944p-1",
+    "0x1.cacc8687a23aep+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.8d014315d4f2cp-2",
+     "0x1.09798edfe66c2p+0"
+    ],
+    [
+     "0x1.8da012e6f06d0p-2",
+     "0x1.09c0a13b74bb6p+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.8da012e6f06d0p-2",
+      "0x1.09c0a13b74bb6p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "c248cf7c55f7113b",
+   "tol": "0x1.c8d1e65f67ac4p-8",
+   "window": [
+    "0x1.8da012e6f06d0p-2",
+    "0x1.09c0a13b74bb6p+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.651c21db6e2a9p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.6563157da4602p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.6563157da4602p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "12241f31fdccc893",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.6563157da4602p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.5108223e7463ap-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.51426845a9c40p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.51426845a9c40p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "1cea2d69be1992b0",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.51426845a9c40p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.53a27607216aap-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.53b92b93ce079p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.53b92b93ce079p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "4b2d3e17a7633a04",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.53b92b93ce079p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.51995ef409763p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.51d2778fc7606p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.51d2778fc7606p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "30d82507bd04c62d",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.51d2778fc7606p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.5108223e7463ap-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.51426845a9c3fp-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.51426845a9c3fp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "7591a194f05a09b4",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.51426845a9c3fp-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.5108223e74639p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.5176d313ac5ccp-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.5176d313ac5ccp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "210803ebccc7951b",
+   "tol": "0x1.9ff734c1fbf7ep-8",
+   "window": [
+    "0x1.5176d313ac5ccp-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.5118821a1e6cap-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.5152a79c261d2p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.5152a79c261d2p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "1b08c8ff2be1c016",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.5152a79c261d2p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.538499cf1e2c1p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.53c4f16c59cb0p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.53c4f16c59cb0p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "0f74d780ee8d06e2",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.53c4f16c59cb0p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.5108223e7463ap-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.51426845a9c3fp-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.51426845a9c3fp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "0f74d780ee8d06e2",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.51426845a9c3fp-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.50f34645c93c9p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.5131192d8b7bfp-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.5131192d8b7bfp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "0f74d780ee8d06e2",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.5131192d8b7bfp-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.516ac308e9daap-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.51a4444c90675p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.51a4444c90675p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "0f74d780ee8d06e2",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.51a4444c90675p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.5108223e7463ap-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.51426845a9c40p-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 2,
+   "n_measure": 2,
+   "n_solve": 3,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.51426845a9c40p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "0f74d780ee8d06e2",
+   "tol": "0x1.c6392946a2dd7p-8",
+   "window": [
+    "0x1.51426845a9c40p-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.243b192a18f44p-1",
+     "0x1.bd62e2938c00bp+0"
+    ],
+    [
+     "0x1.238a7ae257270p-1",
+     "0x1.c423c7a04a01ap+0"
+    ],
+    [
+     "0x1.2390aded1cda2p-1",
+     "0x1.c42c9c50340d3p+0"
+    ]
+   ],
+   "n_input_windows": 3,
+   "n_measure": 3,
+   "n_solve": 4,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2390aded1cda2p-1",
+      "0x1.c42c9c50340d3p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "c62f1b344a6ffd11",
+   "tol": "0x1.4db569aa5b012p-7",
+   "window": [
+    "0x1.2390aded1cda2p-1",
+    "0x1.c42c9c50340d3p+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.243b192a18f44p-1",
+     "0x1.bd62e2938c00bp+0"
+    ],
+    [
+     "0x1.f2ab00511583cp-2",
+     "0x1.bc34f6a1189a7p+0"
+    ],
+    [
+     "0x1.f9327a6ea0268p-2",
+     "0x1.bc3f1614297b3p+0"
+    ]
+   ],
+   "n_input_windows": 3,
+   "n_measure": 3,
+   "n_solve": 4,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.f9327a6ea0268p-2",
+      "0x1.bc3f1614297b3p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "38917573da9ff5f7",
+   "tol": "0x1.4db569aa5b012p-7",
+   "window": [
+    "0x1.f9327a6ea0268p-2",
+    "0x1.bc3f1614297b3p+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.38a410296e216p-1",
+     "0x1.c6fec1fb7652cp+0"
+    ],
+    [
+     "0x1.384a810a52ea9p-1",
+     "0x1.ccccccccccccdp+0"
+    ],
+    [
+     "0x1.384dbbede893ep-1",
+     "0x1.ccccccccccccdp+0"
+    ]
+   ],
+   "n_input_windows": 3,
+   "n_measure": 3,
+   "n_solve": 4,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.384dbbede893ep-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "6213b40d57041fd9",
+   "tol": "0x1.4db569aa5b012p-7",
+   "window": [
+    "0x1.384dbbede893ep-1",
+    "0x1.ccccccccccccdp+0"
+   ]
+  },
+  {
+   "measures": [
+    [
+     "0x1.38a410296e216p-1",
+     "0x1.c6fec1fb7652cp+0"
+    ],
+    [
+     "0x1.09dd4891e163ap-1",
+     "0x1.c5b4d6119a598p+0"
+    ],
+    [
+     "0x1.0ddc13d2887c6p-1",
+     "0x1.c5c06ebaadf10p+0"
+    ]
+   ],
+   "n_input_windows": 3,
+   "n_measure": 3,
+   "n_solve": 4,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.0ddc13d2887c6p-1",
+      "0x1.c5c06ebaadf10p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "status": "measured",
+   "theta_fp": "71aacdb654be22b6",
+   "tol": "0x1.4db569aa5b012p-7",
+   "window": [
+    "0x1.0ddc13d2887c6p-1",
+    "0x1.c5c06ebaadf10p+0"
+   ]
+  }
+ ],
+ "os": {
+  "engine": {
+   "OUT": "high_impedance"
+  },
+  "engine_keys_not_outputs": [],
+  "input_dc_declared": false,
+  "input_dc_v": null,
+  "inputs": [
+   "vin_n",
+   "vin_p"
+  ],
+  "out_in_fprime": [],
+  "outputs": [
+   "OUT"
+  ],
+  "rails": [
+   "gnd",
+   "vdd"
+  ],
+  "stop": null,
+  "w3": []
+ },
+ "probes": [
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 0,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2432a99ef6f9fp-1",
+     "0x1.c4d71d7533e56p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ],
+    [
+     "vin_p",
+     "0x1.2390aded1cda2p-1",
+     "0x1.c42c9c50340d3p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "exc": "SealViolationError",
+   "item": 7,
+   "ok": false,
+   "reason": null,
+   "slack_v": "-0x1.eaf5d2ccfc000p-19",
+   "src": 0,
+   "y": 1.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 1,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2432a99ef6f9fp-1",
+     "0x1.c4d71d7533e56p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ],
+    [
+     "vin_p",
+     "0x1.2390aded1cda2p-1",
+     "0x1.c42c9c50340d3p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "exc": "SealViolationError",
+   "item": 7,
+   "ok": false,
+   "reason": null,
+   "slack_v": "-0x1.eaf5d2ccfc000p-19",
+   "src": 1,
+   "y": 1.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 2,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2432a99ef6f9fp-1",
+     "0x1.c4d71d7533e56p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ],
+    [
+     "vin_p",
+     "0x1.2390aded1cda2p-1",
+     "0x1.c42c9c50340d3p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "exc": "SealViolationError",
+   "item": 7,
+   "ok": false,
+   "reason": null,
+   "slack_v": "-0x1.eaf5d2ccfc000p-19",
+   "src": 2,
+   "y": 1.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 3,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2432a99ef6f9fp-1",
+     "0x1.c4d71d7533e56p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ],
+    [
+     "vin_p",
+     "0x1.2390aded1cda2p-1",
+     "0x1.c42c9c50340d3p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "exc": "SealViolationError",
+   "item": 7,
+   "ok": false,
+   "reason": null,
+   "slack_v": "-0x1.eaf5d2ccfc000p-19",
+   "src": 3,
+   "y": 1.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 4,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.2432a99ef6f9fp-1",
+     "0x1.c4d71d7533e56p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ],
+    [
+     "vin_p",
+     "0x1.2390aded1cda2p-1",
+     "0x1.c42c9c50340d3p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "exc": "SealViolationError",
+   "item": 7,
+   "ok": false,
+   "reason": null,
+   "slack_v": "-0x1.eaf5d2ccfc000p-19",
+   "src": 4,
+   "y": 1.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 5,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     null,
+     null
+    ],
+    [
+     "vin_n",
+     "0x1.24328dae85aa1p-1",
+     "0x1.c4b3a6278a2f4p+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ],
+    [
+     "vin_p",
+     "0x1.384dbbede893ep-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "measured",
+     "0x1.4db569aa5b012p-7"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "exc": "SealViolationError",
+   "item": 7,
+   "ok": false,
+   "reason": null,
+   "slack_v": "-0x1.21e2460d4c000p-18",
+   "src": 5,
+   "y": 1.0
+  }
+ ],
+ "repo": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_it2b_audit/h",
+ "seal": {
+  "fail_any": 1,
+  "fail_item7": 0,
+  "fail_item7_at_end": 0,
+  "n_calls": 53,
+  "n_with_y": 53,
+  "rows": [
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.108e3379b4672p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "exc": "SealViolationError",
+    "item": null,
+    "ok": false,
+    "reason": "lut_query_failed",
+    "y": {
+     "vin_p": "0x1.a4fa020ad03fcp-4"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.e214aac3648efp-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c240d2d21edcep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.8000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.21a568cffea44p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   }
+  ],
+  "y_exact_0": 0,
+  "y_exact_1": 0,
+  "y_near_end_1e-6": 0
+ },
+ "set": "library",
+ "side": "HEAD2_rep2",
+ "stage_a": {
+  "exit_code": 0,
+  "status": "ok",
+  "stop_reasons": []
+ },
+ "stage_b": {
+  "status": "ok"
+ },
+ "w4": {
+  "roots": [
+   [
+    "OUT",
+    "OUT",
+    false
+   ],
+   [
+    "vin_p",
+    "vin_p",
+    true
+   ]
+  ]
+ },
+ "wall_s": 17.220350999967195
+}

@@ -147,8 +147,16 @@ def main():
     b = run_stage_b(a, memo, pdk, output_dir=work, diagnostic=True, settings=settings)
     inputs_decl = dc_inputs_from_spec(a.spec)
     tj = json.loads(Path(a_.theta).read_text(encoding="utf-8"))
-    theta = {tuple(k): float.fromhex(v) for k, v in tj["theta"]}
     cells = tuple(tj["cells"])
+    if "theta" in tj:
+        theta = {tuple(k): float.fromhex(v) for k, v in tj["theta"]}
+    else:                                              # theta_hex = eval_key 의 값 열(키 정렬 = θ 스키마 성분 정렬, search/eval_key.py:19-22)
+        from gmid_engine.sizing import KERNEL_KEY
+        k0 = build_kernel_context(b.s1, inputs_decl, pre_layout_lut_access(LutMemo(lut, point=1 << 10, curve=1 << 10, root=1 << 10)),
+                                  donors=open_run()[0], counters=open_run()[1])
+        comps = sorted(k0.base.value("graph", KERNEL_KEY, "theta_schema").components)
+        assert len(comps) == len(tj["theta_hex"]), (len(comps), len(tj["theta_hex"]))
+        theta = {k: float.fromhex(v) for k, v in zip(comps, tj["theta_hex"])}
 
     def fresh():
         d2, c2 = open_run()

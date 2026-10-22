@@ -1,11 +1,8234 @@
 {
+ "block_counters": {
+  "rows": [
+   [
+    "achievability",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "build_s1v",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "constraint_classes",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "coupling_vars",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_columns",
+    "*",
+    60,
+    10,
+    10,
+    0,
+    40,
+    0
+   ],
+   [
+    "dc_current_basis",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_currents",
+    "*",
+    60,
+    32,
+    12,
+    0,
+    16,
+    0
+   ],
+   [
+    "dc_lengths",
+    "*",
+    60,
+    29,
+    18,
+    0,
+    13,
+    0
+   ],
+   [
+    "dc_rails",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_scc_order",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_seal_bulk_reverse",
+    "*",
+    58,
+    2,
+    2,
+    0,
+    54,
+    0
+   ],
+   [
+    "dc_seal_conduction",
+    "*",
+    58,
+    2,
+    2,
+    0,
+    54,
+    0
+   ],
+   [
+    "dc_seal_kcl",
+    "*",
+    58,
+    2,
+    2,
+    0,
+    54,
+    0
+   ],
+   [
+    "dc_seal_kvl_branch",
+    "*",
+    58,
+    2,
+    2,
+    0,
+    54,
+    0
+   ],
+   [
+    "dc_seal_node_conflict",
+    "*",
+    58,
+    10,
+    10,
+    0,
+    38,
+    0
+   ],
+   [
+    "dc_seal_report",
+    "*",
+    58,
+    0,
+    17,
+    0,
+    41,
+    0
+   ],
+   [
+    "dc_seal_saturation",
+    "*",
+    58,
+    2,
+    2,
+    0,
+    54,
+    0
+   ],
+   [
+    "dc_seal_vgs_match",
+    "*",
+    58,
+    2,
+    2,
+    0,
+    54,
+    0
+   ],
+   [
+    "dc_theta_schema",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_tolerances",
+    "*",
+    58,
+    2,
+    2,
+    0,
+    54,
+    0
+   ],
+   [
+    "dc_widths",
+    "*",
+    58,
+    2,
+    2,
+    0,
+    54,
+    0
+   ],
+   [
+    "dc_writer_plan",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "junction_source",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "kernel_context",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "metric_structure",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "metrics_aux",
+    "*",
+    46,
+    0,
+    0,
+    0,
+    46,
+    0
+   ],
+   [
+    "metrics_dc",
+    "*",
+    40,
+    0,
+    0,
+    0,
+    40,
+    0
+   ],
+   [
+    "metrics_ss",
+    "*",
+    46,
+    0,
+    0,
+    0,
+    46,
+    0
+   ],
+   [
+    "mismatch_source",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "model_error",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "noise_decl",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "passive_area_decl",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "passive_values",
+    "*",
+    46,
+    0,
+    0,
+    0,
+    46,
+    0
+   ],
+   [
+    "s1_branches",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_bulk",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_columns",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_dc_conduction",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_dc_roles",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_gs_groups",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_gvgs",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_matching_groups",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_rel_kcl",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_rel_matching",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_rel_vgs",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_structure",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_symmetry",
+    "*",
+    3,
+    2,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "search_domain",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "ss_dev",
+    "*",
+    46,
+    0,
+    2,
+    0,
+    44,
+    0
+   ],
+   [
+    "start_intervals",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ]
+  ],
+  "totals": {
+   "calls": 1025,
+   "computes": 833,
+   "grafts": 85,
+   "recomputes_same_input": 0,
+   "replays": 0,
+   "reuses": 107
+  }
+ },
  "circuit": "two_stage_ota_sf",
+ "evals": [
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "583abc8715455ebc936f13b88479e4e1ec2c670450dd57b201c40bee42129dd9",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "489280ebfdb144cf9c576d8239005168aae5b7be70a5ac29c0e68a7c5a94432b",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.09ad30bf1e81fp-43",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "86ab46b47e9101e45c9cb6b7608895c0312d22d06e6c278ef45f55d29d2e2188",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.16c140dc073fdp-15",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "62c2423df7857102ae56500b4fcad1ea77fca9936e2f1c84f693c2966d169f11",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.e4cc600ef61d9p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "fd1cb9a168872b7eacd3c39f17d2f211e213e9eec7e8e345e03f8821ecb28219",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.213f2bdcd3677p-22",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "f6dcd6506f6fdc640bde1f657d82bc46ec82231bfb803c72f9d7e2752710e292",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.213f2bdcd3677p-22",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2cdbc0d9862c2p+0",
+    "vin_p": "0x1.367dd41efa0e4p+0"
+   },
+   "snapshot_fp": "4b3b864bb806dfef4976de7c702115258e0e76f3991ba5f4c591d7e7eaa2f0da",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.0c2cbc10443f6p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.405db6e24e9f8p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3b316c58020b4p+0",
+    "vin_p": "0x1.31303ebab84f0p+0"
+   },
+   "snapshot_fp": "d42eb176eb0bc1f48360364dd2b801a64d8c422410fac2a70b9d8549b80d48ae",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.0c2c984239635p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.cc6f56a9c0bc4p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.31ec4015dfa1cp+0",
+    "vin_p": "0x1.31ba8ed48f5bcp+0"
+   },
+   "snapshot_fp": "854f1d842ca6a99c70900f673c988ac6541222425d70d11e920a4949eb1df306",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.0615fd5164164p+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2d50a1b8a3d55p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "2436bcded2d0cadaa173080d58e99a062259a52b0e14e60df8fc8f96c41fcf0e",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.b8fd511c9e7f0p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2e7a3075f5d4ap+0",
+    "vin_p": "0x1.2ee2b513fb29cp+0"
+   },
+   "snapshot_fp": "609c1663c1a6b79b9b12f02b694bb47d349922b0fde50f4f81cfdb24e776c3a7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.f7624a23a86dbp+3",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c5c74e4abacdp-1",
+     "0x1.c7972fb5a07d2p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.2cfb5871999e5p+0",
+    "vin_p": "0x1.2c425b7b26af6p+0"
+   },
+   "snapshot_fp": "66f0f51ad77cdf9877d4cbeccd548f85dbc6e3eb5d0cc579850c5f271477691f",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.fdd44cbccc3dcp+3",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bdfcd821c06fp-1",
+     "0x1.c294d0353f5b4p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.310b767659f3cp+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "c1f1f15416c96fc68a10e90705833662fe861e609f0ce52773548854718b68a5",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.114601407aebap+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3182c51dd94f2p+0",
+    "vin_p": "0x1.3162626d31884p+0"
+   },
+   "snapshot_fp": "3cd1705d2507494bf374597d1188e94338f315bca2e0f1746146f084cf761083",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0aaaaaaaaaaaap-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2beff01b2c879p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3b27b111bc450p+0",
+    "vin_p": "0x1.3af3f6654a17ep+0"
+   },
+   "snapshot_fp": "5ecf61b889b1e06da8920b953e8c52420acdb3b87c895ce56e8a0853e8eded44",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0fcfccf2d5db6p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bf377545192bp-1",
+     "0x1.ccbc86eb3fb6ap+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.30c0dc2d841e5p+0",
+    "vin_p": "0x1.321262c838cc0p+0"
+   },
+   "snapshot_fp": "b31fd2bd12d6cb3460727aef28041b00e15c9ac86b05f80ef7f8c38631e41a4d",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2eaff18749967p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3310161b3e2eep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "1f846dc9fc30bb6ecf25e6daba82a3377f347a2af11181cce4dba0e3a3bfc689",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.318c3779cd50ep+0",
+    "vin_p": "0x1.315a9b692b84cp+0"
+   },
+   "snapshot_fp": "d43fc618a122762f7fb4e69b53bcec1ee551411464853194865d90b1a34b751e",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bd0d40b14798p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "52db43f9a17685f6215a07efc45661646e658e3858aa3e9f691375408864c09f",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.309cbe2ef1f8ap+0",
+    "vin_p": "0x1.30b4e579cfbcap+0"
+   },
+   "snapshot_fp": "4495346dd2cc3c4a86dde04590bdd463c0c616748202f8b8510bbc6526a44981",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c1c0c78ead0cp-1",
+     "0x1.cb5bc4b72a10ep+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2fa5f55f3587ep+0",
+    "vin_p": "0x1.2f3b3639d2122p+0"
+   },
+   "snapshot_fp": "aaa2460af22487a5198e0484db7c0f628e2553ce7c2a87d2028336302abbeca7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be1613ad1158p-1",
+     "0x1.c885bbd63b998p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "489280ebfdb144cf9c576d8239005168aae5b7be70a5ac29c0e68a7c5a94432b",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.09ad30bf1e81fp-43",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "86ab46b47e9101e45c9cb6b7608895c0312d22d06e6c278ef45f55d29d2e2188",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.16c140dc073fdp-15",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "62c2423df7857102ae56500b4fcad1ea77fca9936e2f1c84f693c2966d169f11",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.e4cc600ef61d9p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "fd1cb9a168872b7eacd3c39f17d2f211e213e9eec7e8e345e03f8821ecb28219",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.213f2bdcd3677p-22",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "f6dcd6506f6fdc640bde1f657d82bc46ec82231bfb803c72f9d7e2752710e292",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.213f2bdcd3677p-22",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2cdbc0d9862c2p+0",
+    "vin_p": "0x1.367dd41efa0e4p+0"
+   },
+   "snapshot_fp": "4b3b864bb806dfef4976de7c702115258e0e76f3991ba5f4c591d7e7eaa2f0da",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.0c2cbc10443f6p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.405db6e24e9f8p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3b316c58020b4p+0",
+    "vin_p": "0x1.31303ebab84f0p+0"
+   },
+   "snapshot_fp": "d42eb176eb0bc1f48360364dd2b801a64d8c422410fac2a70b9d8549b80d48ae",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.0c2c984239635p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.cc6f56a9c0bc4p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.31ec4015dfa1cp+0",
+    "vin_p": "0x1.31ba8ed48f5bcp+0"
+   },
+   "snapshot_fp": "854f1d842ca6a99c70900f673c988ac6541222425d70d11e920a4949eb1df306",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.0615fd5164164p+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2d50a1b8a3d55p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "2436bcded2d0cadaa173080d58e99a062259a52b0e14e60df8fc8f96c41fcf0e",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.b8fd511c9e7f0p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2e7a3075f5d4ap+0",
+    "vin_p": "0x1.2ee2b513fb29cp+0"
+   },
+   "snapshot_fp": "609c1663c1a6b79b9b12f02b694bb47d349922b0fde50f4f81cfdb24e776c3a7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.f7624a23a86dbp+3",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c5c74e4abacdp-1",
+     "0x1.c7972fb5a07d2p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.2cfb5871999e5p+0",
+    "vin_p": "0x1.2c425b7b26af6p+0"
+   },
+   "snapshot_fp": "66f0f51ad77cdf9877d4cbeccd548f85dbc6e3eb5d0cc579850c5f271477691f",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.fdd44cbccc3dcp+3",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bdfcd821c06fp-1",
+     "0x1.c294d0353f5b4p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.310b767659f3cp+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "c1f1f15416c96fc68a10e90705833662fe861e609f0ce52773548854718b68a5",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.114601407aebap+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3182c51dd94f2p+0",
+    "vin_p": "0x1.3162626d31884p+0"
+   },
+   "snapshot_fp": "3cd1705d2507494bf374597d1188e94338f315bca2e0f1746146f084cf761083",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0aaaaaaaaaaaap-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2beff01b2c879p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3b27b111bc450p+0",
+    "vin_p": "0x1.3af3f6654a17ep+0"
+   },
+   "snapshot_fp": "5ecf61b889b1e06da8920b953e8c52420acdb3b87c895ce56e8a0853e8eded44",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0fcfccf2d5db6p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bf377545192bp-1",
+     "0x1.ccbc86eb3fb6ap+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.30c0dc2d841e5p+0",
+    "vin_p": "0x1.321262c838cc0p+0"
+   },
+   "snapshot_fp": "b31fd2bd12d6cb3460727aef28041b00e15c9ac86b05f80ef7f8c38631e41a4d",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2eaff18749967p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3310161b3e2eep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "1f846dc9fc30bb6ecf25e6daba82a3377f347a2af11181cce4dba0e3a3bfc689",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.318c3779cd50ep+0",
+    "vin_p": "0x1.315a9b692b84cp+0"
+   },
+   "snapshot_fp": "d43fc618a122762f7fb4e69b53bcec1ee551411464853194865d90b1a34b751e",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bd0d40b14798p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "52db43f9a17685f6215a07efc45661646e658e3858aa3e9f691375408864c09f",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.309cbe2ef1f8ap+0",
+    "vin_p": "0x1.30b4e579cfbcap+0"
+   },
+   "snapshot_fp": "4495346dd2cc3c4a86dde04590bdd463c0c616748202f8b8510bbc6526a44981",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c1c0c78ead0cp-1",
+     "0x1.cb5bc4b72a10ep+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2fa5f55f3587ep+0",
+    "vin_p": "0x1.2f3b3639d2122p+0"
+   },
+   "snapshot_fp": "aaa2460af22487a5198e0484db7c0f628e2553ce7c2a87d2028336302abbeca7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be1613ad1158p-1",
+     "0x1.c885bbd63b998p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "583abc8715455ebc936f13b88479e4e1ec2c670450dd57b201c40bee42129dd9",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "583abc8715455ebc936f13b88479e4e1ec2c670450dd57b201c40bee42129dd9",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "489280ebfdb144cf9c576d8239005168aae5b7be70a5ac29c0e68a7c5a94432b",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.09ad30bf1e81fp-43",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "86ab46b47e9101e45c9cb6b7608895c0312d22d06e6c278ef45f55d29d2e2188",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.16c140dc073fdp-15",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "62c2423df7857102ae56500b4fcad1ea77fca9936e2f1c84f693c2966d169f11",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.e4cc600ef61d9p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "fd1cb9a168872b7eacd3c39f17d2f211e213e9eec7e8e345e03f8821ecb28219",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.213f2bdcd3677p-22",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "f6dcd6506f6fdc640bde1f657d82bc46ec82231bfb803c72f9d7e2752710e292",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.213f2bdcd3677p-22",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2cdbc0d9862c2p+0",
+    "vin_p": "0x1.367dd41efa0e4p+0"
+   },
+   "snapshot_fp": "4b3b864bb806dfef4976de7c702115258e0e76f3991ba5f4c591d7e7eaa2f0da",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.0c2cbc10443f6p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.405db6e24e9f8p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3b316c58020b4p+0",
+    "vin_p": "0x1.31303ebab84f0p+0"
+   },
+   "snapshot_fp": "d42eb176eb0bc1f48360364dd2b801a64d8c422410fac2a70b9d8549b80d48ae",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.0c2c984239635p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.cc6f56a9c0bc4p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.31ec4015dfa1cp+0",
+    "vin_p": "0x1.31ba8ed48f5bcp+0"
+   },
+   "snapshot_fp": "854f1d842ca6a99c70900f673c988ac6541222425d70d11e920a4949eb1df306",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.0615fd5164164p+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2d50a1b8a3d55p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "2436bcded2d0cadaa173080d58e99a062259a52b0e14e60df8fc8f96c41fcf0e",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.b8fd511c9e7f0p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2e7a3075f5d4ap+0",
+    "vin_p": "0x1.2ee2b513fb29cp+0"
+   },
+   "snapshot_fp": "609c1663c1a6b79b9b12f02b694bb47d349922b0fde50f4f81cfdb24e776c3a7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.f7624a23a86dbp+3",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c5c74e4abacdp-1",
+     "0x1.c7972fb5a07d2p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.2cfb5871999e5p+0",
+    "vin_p": "0x1.2c425b7b26af6p+0"
+   },
+   "snapshot_fp": "66f0f51ad77cdf9877d4cbeccd548f85dbc6e3eb5d0cc579850c5f271477691f",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.fdd44cbccc3dcp+3",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bdfcd821c06fp-1",
+     "0x1.c294d0353f5b4p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.310b767659f3cp+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "c1f1f15416c96fc68a10e90705833662fe861e609f0ce52773548854718b68a5",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.114601407aebap+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3182c51dd94f2p+0",
+    "vin_p": "0x1.3162626d31884p+0"
+   },
+   "snapshot_fp": "3cd1705d2507494bf374597d1188e94338f315bca2e0f1746146f084cf761083",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0aaaaaaaaaaaap-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2beff01b2c879p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3b27b111bc450p+0",
+    "vin_p": "0x1.3af3f6654a17ep+0"
+   },
+   "snapshot_fp": "5ecf61b889b1e06da8920b953e8c52420acdb3b87c895ce56e8a0853e8eded44",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0fcfccf2d5db6p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bf377545192bp-1",
+     "0x1.ccbc86eb3fb6ap+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.30c0dc2d841e5p+0",
+    "vin_p": "0x1.321262c838cc0p+0"
+   },
+   "snapshot_fp": "b31fd2bd12d6cb3460727aef28041b00e15c9ac86b05f80ef7f8c38631e41a4d",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2eaff18749967p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3310161b3e2eep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "1f846dc9fc30bb6ecf25e6daba82a3377f347a2af11181cce4dba0e3a3bfc689",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.318c3779cd50ep+0",
+    "vin_p": "0x1.315a9b692b84cp+0"
+   },
+   "snapshot_fp": "d43fc618a122762f7fb4e69b53bcec1ee551411464853194865d90b1a34b751e",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bd0d40b14798p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "52db43f9a17685f6215a07efc45661646e658e3858aa3e9f691375408864c09f",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.309cbe2ef1f8ap+0",
+    "vin_p": "0x1.30b4e579cfbcap+0"
+   },
+   "snapshot_fp": "4495346dd2cc3c4a86dde04590bdd463c0c616748202f8b8510bbc6526a44981",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c1c0c78ead0cp-1",
+     "0x1.cb5bc4b72a10ep+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2fa5f55f3587ep+0",
+    "vin_p": "0x1.2f3b3639d2122p+0"
+   },
+   "snapshot_fp": "aaa2460af22487a5198e0484db7c0f628e2553ce7c2a87d2028336302abbeca7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be1613ad1158p-1",
+     "0x1.c885bbd63b998p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "489280ebfdb144cf9c576d8239005168aae5b7be70a5ac29c0e68a7c5a94432b",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.09ad30bf1e81fp-43",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "86ab46b47e9101e45c9cb6b7608895c0312d22d06e6c278ef45f55d29d2e2188",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.16c140dc073fdp-15",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "62c2423df7857102ae56500b4fcad1ea77fca9936e2f1c84f693c2966d169f11",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.e4cc600ef61d9p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "fd1cb9a168872b7eacd3c39f17d2f211e213e9eec7e8e345e03f8821ecb28219",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.213f2bdcd3677p-22",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "f6dcd6506f6fdc640bde1f657d82bc46ec82231bfb803c72f9d7e2752710e292",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.213f2bdcd3677p-22",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2cdbc0d9862c2p+0",
+    "vin_p": "0x1.367dd41efa0e4p+0"
+   },
+   "snapshot_fp": "4b3b864bb806dfef4976de7c702115258e0e76f3991ba5f4c591d7e7eaa2f0da",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.0c2cbc10443f6p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.405db6e24e9f8p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3b316c58020b4p+0",
+    "vin_p": "0x1.31303ebab84f0p+0"
+   },
+   "snapshot_fp": "d42eb176eb0bc1f48360364dd2b801a64d8c422410fac2a70b9d8549b80d48ae",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.0c2c984239635p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.cc6f56a9c0bc4p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.31ec4015dfa1cp+0",
+    "vin_p": "0x1.31ba8ed48f5bcp+0"
+   },
+   "snapshot_fp": "854f1d842ca6a99c70900f673c988ac6541222425d70d11e920a4949eb1df306",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.0615fd5164164p+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2d50a1b8a3d55p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "2436bcded2d0cadaa173080d58e99a062259a52b0e14e60df8fc8f96c41fcf0e",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.b8fd511c9e7f0p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2e7a3075f5d4ap+0",
+    "vin_p": "0x1.2ee2b513fb29cp+0"
+   },
+   "snapshot_fp": "609c1663c1a6b79b9b12f02b694bb47d349922b0fde50f4f81cfdb24e776c3a7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.f7624a23a86dbp+3",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c5c74e4abacdp-1",
+     "0x1.c7972fb5a07d2p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.2cfb5871999e5p+0",
+    "vin_p": "0x1.2c425b7b26af6p+0"
+   },
+   "snapshot_fp": "66f0f51ad77cdf9877d4cbeccd548f85dbc6e3eb5d0cc579850c5f271477691f",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.fdd44cbccc3dcp+3",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bdfcd821c06fp-1",
+     "0x1.c294d0353f5b4p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.310b767659f3cp+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "c1f1f15416c96fc68a10e90705833662fe861e609f0ce52773548854718b68a5",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.114601407aebap+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3182c51dd94f2p+0",
+    "vin_p": "0x1.3162626d31884p+0"
+   },
+   "snapshot_fp": "3cd1705d2507494bf374597d1188e94338f315bca2e0f1746146f084cf761083",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0aaaaaaaaaaaap-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2beff01b2c879p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3b27b111bc450p+0",
+    "vin_p": "0x1.3af3f6654a17ep+0"
+   },
+   "snapshot_fp": "5ecf61b889b1e06da8920b953e8c52420acdb3b87c895ce56e8a0853e8eded44",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0fcfccf2d5db6p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bf377545192bp-1",
+     "0x1.ccbc86eb3fb6ap+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.30c0dc2d841e5p+0",
+    "vin_p": "0x1.321262c838cc0p+0"
+   },
+   "snapshot_fp": "b31fd2bd12d6cb3460727aef28041b00e15c9ac86b05f80ef7f8c38631e41a4d",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2eaff18749967p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.3310161b3e2eep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "1f846dc9fc30bb6ecf25e6daba82a3377f347a2af11181cce4dba0e3a3bfc689",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.318c3779cd50ep+0",
+    "vin_p": "0x1.315a9b692b84cp+0"
+   },
+   "snapshot_fp": "d43fc618a122762f7fb4e69b53bcec1ee551411464853194865d90b1a34b751e",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bd0d40b14798p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "52db43f9a17685f6215a07efc45661646e658e3858aa3e9f691375408864c09f",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.309cbe2ef1f8ap+0",
+    "vin_p": "0x1.30b4e579cfbcap+0"
+   },
+   "snapshot_fp": "4495346dd2cc3c4a86dde04590bdd463c0c616748202f8b8510bbc6526a44981",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c1c0c78ead0cp-1",
+     "0x1.cb5bc4b72a10ep+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2fa5f55f3587ep+0",
+    "vin_p": "0x1.2f3b3639d2122p+0"
+   },
+   "snapshot_fp": "aaa2460af22487a5198e0484db7c0f628e2553ce7c2a87d2028336302abbeca7",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c25c268497681p-44",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.ea509dedde5dcp-23",
+    "0x1.83fb1d4a0e233p-18",
+    "0x1.c67d9b1b3278ap-16",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.1ab6b7a33d072p+4",
+    "-0x1.081813cf70854p+4",
+    "-0x1.136d0426b905bp+4",
+    "-0x1.04cbed885d005p+4",
+    "-0x1.cefb6d41e5de1p+3",
+    "0x1.0000000000000p-1",
+    "0x1.0000000000000p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be1613ad1158p-1",
+     "0x1.c885bbd63b998p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "2eb7c04b987727b414c0b5e73d0fa531a2b1ceee91d36d35ca298113f8a66536",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.828c0be769dc1p-23",
+    "0x1.828c0be769dc1p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.828c0be769dc1p-23",
+    "0x1.828c0be769dc1p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.97d0dbd9ac55fp-41",
+    "0x1.3650979e19d9ep-25",
+    "0x1.81284b1d8f08ap-19",
+    "0x1.b2308c5051096p-18",
+    "0x1.b84bece8c1f59p-15",
+    "-0x1.34a656392fb19p+4",
+    "-0x1.204a8002a2217p+4",
+    "-0x1.1bb7fc1658187p+4",
+    "-0x1.0fb604405c4c0p+4",
+    "-0x1.501529bfdf0f9p+4",
+    "-0x1.12c7d889be632p+4",
+    "0x1.2e38b30905316p-2",
+    "0x1.827357c2c2cd0p-4"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.319096d46875ep+0",
+    "vin_p": "0x1.315ef9cc3e574p+0"
+   },
+   "snapshot_fp": "bcef57223cc590b0f5b70bfcf703046d78c3cc08ab8fb8155946b24f5755f003",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.523a8a6a7ca09p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.3c91ed0405d6bp-41",
+    "0x1.79b8ab54da743p-28",
+    "0x1.c87fa2c2285acp-11",
+    "0x1.ff32ec40ecaf4p-16",
+    "0x1.278158e7f41c8p-3",
+    "-0x1.6a2c1d2663bb8p+4",
+    "-0x1.2412a5e993704p+4",
+    "-0x1.3f9c7a93fa62cp+4",
+    "-0x1.027fc10c8317ep+4",
+    "-0x1.3c50544ce6dddp+4",
+    "-0x1.36f31c2419a36p+4",
+    "0x1.0000000000000p-2",
+    "0x1.0000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be24d975fc35p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.eca5a87dbcfd1p-1",
+    "vin_p": "0x1.0d6654188878dp+0"
+   },
+   "snapshot_fp": "cbdd3c4ecec092ddcb033cb703db744c351fc453d9ee1a985b414dfcebd11edc",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.4a2cf4d5aa6bfp-23",
+    "0x1.4a2cf4d5aa6bfp-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4a2cf4d5aa6bfp-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.0afe318a63d6bp-42",
+    "0x1.b10fc7030cba5p-26",
+    "0x1.5f366b5b12a86p-13",
+    "0x1.b8333c78acd96p-7",
+    "0x1.4f2e7274dddc4p-7",
+    "-0x1.42716a64d0615p+4",
+    "-0x1.1dce1dc9fda0cp+4",
+    "-0x1.23da4731b5740p+4",
+    "-0x1.d764a2ca4b570p+3",
+    "-0x1.208e20eaa1ef1p+4",
+    "-0x1.0f38696286493p+4",
+    "0x1.8000000000000p-2",
+    "0x1.8000000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.351e7dbf2559ap-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.167612143e4b5p+0",
+    "vin_p": "0x1.1c2c83a982d28p+0"
+   },
+   "snapshot_fp": "1eda057090582716446ccba5622fc25e6b385a5ffae04086e777f0c7c8c31c86",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.46262a0b4151bp-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.5ac2b86a3239fp-43",
+    "0x1.1ade9d1d4230ep-24",
+    "0x1.0af1aa029b033p-17",
+    "0x1.24393d3e1269dp-12",
+    "0x1.13fc50bfcb0a0p-11",
+    "-0x1.299d74ecb7cc5p+4",
+    "-0x1.2116cceb68c9cp+4",
+    "-0x1.15f92bbe8be8dp+4",
+    "-0x1.ff1f56a69156fp+3",
+    "-0x1.12ad06dfbc521p+4",
+    "-0x1.f6b61ea1d36f2p+3",
+    "0x1.c0001dd1d0716p-2",
+    "0x1.c0000244ed0d1p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2598931487f89p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.21ce84642fc48p+0",
+    "vin_p": "0x1.27acfc2d99869p+0"
+   },
+   "snapshot_fp": "f84a1a77a43a255b64d0dd37b5de766c93095a7160daa6ed66697fe57be1b93c",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.4422c4a60cc48p-23",
+    "0x1.4422c4a60cc48p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4422c4a60cc48p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.176f3106f602dp-43",
+    "0x1.e78f6d2f25240p-24",
+    "0x1.a9870542d5af1p-20",
+    "0x1.782bc1cce1c48p-16",
+    "0x1.f4dd54dc2c947p-14",
+    "-0x1.24a563c719b9bp+4",
+    "-0x1.1b2fe203bc9b4p+4",
+    "-0x1.0f089e3c4115fp+4",
+    "-0x1.097e57d593e99p+4",
+    "-0x1.0bbc7a3440d42p+4",
+    "-0x1.e2d8c58844c2fp+3",
+    "0x1.e0002dd1a9c6cp-2",
+    "0x1.e00001d53551ep-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bf4a4392389ep-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.297fbc318ae02p+0",
+    "vin_p": "0x1.2c8ed4711332fp+0"
+   },
+   "snapshot_fp": "789299c3aabe94024980c3d6bbf3b2838d4c807df36d9e46640c5cf4185daad6",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.432111f3727dfp-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.432111f3727dfp-23",
+    "0x1.432111f3727dfp-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.f5b0711ec5959p-44",
+    "0x1.400d1425c22dbp-23",
+    "0x1.42fceabd601d9p-21",
+    "0x1.e14ce471bf498p-18",
+    "0x1.71d64f4d76e60p-15",
+    "-0x1.1fae0dec7c19dp+4",
+    "-0x1.1ae1e9d64f0dcp+4",
+    "-0x1.0b9059b1334ebp+4",
+    "-0x1.0e75adce869a7p+4",
+    "-0x1.084433f4a59e2p+4",
+    "-0x1.d8ea19d3ed401p+3",
+    "0x1.f0000af35900bp-2",
+    "0x1.f0000081b245ap-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c0e13bc2c896p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d8f4c7e7c494p+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "cf4913cf800fd866e81b4b30d1643efa74a0700b73d2458d722cfd9fa2a3026a",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d8f4c7e7c494p+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "a9d2daa37a3b9b3caf6307aa70a4aa043b662f5dff4c4ad2bdf7c001684605a5",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.0b3e2d694238bp-43",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d8f4c7e7c494p+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "f4bffe4a1576e578c15a8112ae82658fcee5c29dc665742be0ad20085e44d44d",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.131f4b8352110p-15",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d8f4c7e7c494p+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "d5c2b4fdf965c27f82f2298fa192092eded9d3f28e7741b937b79d577117e628",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.c9ae3029d9196p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d8f4c7e7c494p+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "95f92c880d35f802104fa3e0b9d6a62a1e219cdb177a2ca239804e6d1082264c",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.d4e769b09dd00p-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d8f4c7e7c494p+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "d63612b7a28060631410ed4344db53da7bfa8a24307c718ffa3ac242ed712260",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.b01926598a183p-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.28ee351bfbcbep+0",
+    "vin_p": "0x1.3425e60592b6dp+0"
+   },
+   "snapshot_fp": "e3938c24e50caba06b2f261a89f5838746d22eb4e4210d8237a5ab53d8ca837e",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.0c35f2d52789dp+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.4062d97d231bap-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.375ceacef74e5p+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "607ecb026601eace82e2b7abb9b077b8aa176ff2bfac05a72546c8eb8cd37f04",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.0e90e8df7ebacp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2e0a650641ae3p+0",
+    "vin_p": "0x1.2f6e1cc71daaap+0"
+   },
+   "snapshot_fp": "855ee7a47162a48bcaa008ac21051cd6fc9960b43109fc41a2b41bccd4ac065b",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.03b56ef8520d0p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2dce07ca1b0afp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d8f4c7e7c494p+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "35f84f9628c4d637a85a89eb5cbc8751c4cb1eccc8b5ff17f47fe06863eff537",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.bd81a86b354bcp+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2bbbe101942f8p+0",
+    "vin_p": "0x1.2db72d683f4b2p+0"
+   },
+   "snapshot_fp": "01706a38276ee44cef19ebac665ff14d676b18d5ca414e8daa43715a82fb885a",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.fac6dba2c4b1fp+3",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c652915a2ee5p-1",
+     "0x1.ca0b2895d93e4p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "partial",
+   "input_dc_v": {
+    "vin_n": "0x1.29ea8707838a8p+0",
+    "vin_p": "0x1.2ac8bf55d0225p+0"
+   },
+   "snapshot_fp": "697fd8b1964985b959e758453d58e319ec61ca7b09a9893de5dc701c9cdd9771",
+   "status": "failed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.00a1255a70af3p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be525acd0ba9p-1",
+     "0x1.c45883983f42ep+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d0b9d040307cp+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "5df5af72f8d0185c2815b3ea38fbfd048f795907e5c36044791110afff444422",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.130748b0b8f93p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d81eeb960a3ep+0",
+    "vin_p": "0x1.2ef6c3913e516p+0"
+   },
+   "snapshot_fp": "f2c66ef1b167fde27ca2cd64840e76eef531d7d39343e07ee11cc6cf31223216",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.06aaaaaaaaaaap-1",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bf7fb25314d0p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.372eb67f9638ap+0",
+    "vin_p": "0x1.388eb566b1ab4p+0"
+   },
+   "snapshot_fp": "e613f1b71121d04cbd583c3bd5ed1a4f3b8471210a94649ab2c75b64a9d7b150",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.0bcffe313ab59p-1"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bf1f4119a3e6p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2cbcfb5eb6764p+0",
+    "vin_p": "0x1.2fa55be1410eap+0"
+   },
+   "snapshot_fp": "d5ab30b690f4b8186edf2433143ad1390d16fb86795cfaa62d65155e39abd108",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2ea79dda6769dp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2f0ee723dead6p+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "a0fba0f343d183c2102f6e0f528ab3b4e17a62e7afcc480217aea6d6c93e020c",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d8af87e3e9f6p+0",
+    "vin_p": "0x1.2eeedb9297e5ap+0"
+   },
+   "snapshot_fp": "5a62b4db3551f875141ab7aab8564d2a8b1f59f2c15c638185ead6b9dcce96c0",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2bd8d7b84b363p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d8f4c7e7c494p+0",
+    "vin_p": "0x1.2ef32e1b31d06p+0"
+   },
+   "snapshot_fp": "27be98cf62e2d67663e56d601639d7b884e5f390cffafbf8ae5830746f74dadc",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be9ddc289e6cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2d55d441ac5c6p+0",
+    "vin_p": "0x1.2f023db00129cp+0"
+   },
+   "snapshot_fp": "961280a8dfa1471d8332318d2fed53f5b718b8229fa9dccd853d3bfcc4970fe8",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2c252ed18b467p-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  },
+  {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "from": "evaluation",
+   "input_dc_v": {
+    "vin_n": "0x1.2c8996faa14eep+0",
+    "vin_p": "0x1.2db5528ff0b9fp+0"
+   },
+   "snapshot_fp": "132295f383586f5e047c90ff61060c677d591e61052e8f416f5b7b0404aebc7d",
+   "status": "sealed",
+   "theta_hex": [
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.4cdc26b1f07d8p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.421f5f40d8376p-23",
+    "0x1.c59c400490536p-44",
+    "0x1.6eb72dbdb12bep-23",
+    "0x1.8df3b7a414d2ap-22",
+    "0x1.71e2246985c44p-18",
+    "0x1.c12f90303794dp-16",
+    "-0x1.1d3262cf563ccp+4",
+    "-0x1.1abdd84a67566p+4",
+    "-0x1.09d4370594d43p+4",
+    "-0x1.10f158fa9fd01p+4",
+    "-0x1.068810b4b423dp+4",
+    "-0x1.d3f2c39a18495p+3",
+    "0x1.f800000000000p-2",
+    "0x1.f800000000000p-2"
+   ],
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2be8eb1a99596p-1",
+     "0x1.ca477bab0bc39p+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ]
+  }
+ ],
+ "fd_steps": [
+  [
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ],
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.f9f99e5abb6c5p-6"
+   ]
+  ],
+  [
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ],
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.f9f99e5abb6c5p-6"
+   ]
+  ],
+  [
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ],
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.f9f99e5abb6c5p-6"
+   ]
+  ],
+  [
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ],
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.f9f99e5abb6c5p-6"
+   ]
+  ],
+  [
+   [
+    [
+     "y",
+     "OUT"
+    ],
+    "0x1.5555555555540p-6"
+   ],
+   [
+    [
+     "y",
+     "vin_p"
+    ],
+    "0x1.f9ffc62756b22p-6"
+   ]
+  ]
+ ],
+ "front": {
+  "failed_eps": 2,
+  "front_fp": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+  "fronts": {
+   "front": [],
+   "pending": [],
+   "unmeasured": []
+  },
+  "n_front": 0,
+  "n_pending": 0,
+  "n_unmeasured": 0,
+  "perf": {
+   "block_index_bound": 3283,
+   "block_index_entries": 743,
+   "eval_budget": 40,
+   "eval_budget_source": "declared",
+   "eval_time_median_s": 0.05753905000165105,
+   "fail_hits": 3,
+   "frozen_columns": 0,
+   "hits": 62,
+   "kernel_calls": 48,
+   "lut_memo_bound": "fixed",
+   "lut_memo_evictions": 1058,
+   "n_solves": 2,
+   "n_starts": 1,
+   "outside_domain": 0,
+   "recompute_same_key": 0,
+   "requests": 110,
+   "stops_eval_budget": 1,
+   "stops_wall_budget": 0,
+   "unique_keys": 48
+  }
+ },
+ "kernel": [
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be24d975fc35p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "30247e98224e301b"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.405db6e24e9f8p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "3ed2fd7b9806f561"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be24d975fc35p-1",
+      "0x1.cc6f56a9c0bc4p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "7ffd5dd92a9503aa"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2d50a1b8a3d55p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "bb2044facb5208de"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be24d975fc35p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "a5860dcc4b844b7f"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 7,
+   "n_measure": 0,
+   "n_solve": 8,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2c5c74e4abacdp-1",
+      "0x1.c7972fb5a07d2p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "d4cd7d59706959f8"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2bdfcd821c06fp-1",
+      "0x1.c294d0353f5b4p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "429e5515066929c5"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be24d975fc35p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "f32087db18d50b7c"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2beff01b2c879p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "c4e673019290c656"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2bf377545192bp-1",
+      "0x1.ccbc86eb3fb6ap+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "539cebba94672ea4"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2eaff18749967p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "30247e98224e301b"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be24d975fc35p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "30247e98224e301b"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2bd0d40b14798p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "30247e98224e301b"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be24d975fc35p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "30247e98224e301b"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2c1c0c78ead0cp-1",
+      "0x1.cb5bc4b72a10ep+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "30247e98224e301b"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be1613ad1158p-1",
+      "0x1.c885bbd63b998p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "30247e98224e301b"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2c237abec0d19p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "8f2cf9756dde436c"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.1cb896e7daabdp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "fb5bf1bd6549976e"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.351e7dbf2559ap-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "ead9c2eedf856511"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2598931487f89p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "9f7abe1923241e91"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2bf4a4392389ep-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "cc0ff8a739eb32c1"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2c0e13bc2c896p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "e17c8f9894ff86b5"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be9ddc289e6cp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "17d37a6b3133fb3e"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.4062d97d231bap-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "922e51f6688a9205"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be9ddc289e6cp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "e29724e2e907bf54"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2dce07ca1b0afp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "d44ff99e021e1c7f"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be9ddc289e6cp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "8cb9f05c0d6e14ca"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 7,
+   "n_measure": 0,
+   "n_solve": 8,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2c652915a2ee5p-1",
+      "0x1.ca0b2895d93e4p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "aaa6d00f2ad88ada"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be525acd0ba9p-1",
+      "0x1.c45883983f42ep+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "7e611453c886d82a"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be9ddc289e6cp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "3f3d44397f71a68f"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2bf7fb25314d0p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "09a9c22337c541ec"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2bf1f4119a3e6p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "1597108c6db30f9f"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2ea79dda6769dp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "17d37a6b3133fb3e"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be9ddc289e6cp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "17d37a6b3133fb3e"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2bd8d7b84b363p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "17d37a6b3133fb3e"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be9ddc289e6cp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "17d37a6b3133fb3e"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 5,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2c252ed18b467p-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "17d37a6b3133fb3e"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2be8eb1a99596p-1",
+      "0x1.ca477bab0bc39p+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "17d37a6b3133fb3e"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 5,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.2a7718929ec7cp-1",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "5ee8e2fa152ddd54"
+  },
+  {
+   "measures": [],
+   "n_input_windows": 4,
+   "n_measure": 0,
+   "n_solve": 6,
+   "override": [
+    [
+     "vin_p",
+     [
+      "0x1.b7c8054261844p-2",
+      "0x1.ccccccccccccdp+0"
+     ]
+    ]
+   ],
+   "roots": [
+    "vin_p"
+   ],
+   "theta_fp": "c804a28b80774a24"
+  }
+ ],
+ "os": {
+  "engine": {
+   "vout": null
+  },
+  "engine_keys_not_outputs": [],
+  "input_dc_declared": false,
+  "input_dc_v": null,
+  "inputs": [
+   "vin_n",
+   "vin_p"
+  ],
+  "out_in_fprime": [],
+  "outputs": [
+   "vout"
+  ],
+  "rails": [
+   "gnd",
+   "vdd"
+  ],
+  "stop": null,
+  "w3": []
+ },
+ "probes": [
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 0,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2a7718929ec7cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 0,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.b7c8054261844p-2",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 1.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 1,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2a7718929ec7cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 1,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.b7c8054261844p-2",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 1.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 2,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2a7718929ec7cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 2,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.b7c8054261844p-2",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 1.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 3,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2a7718929ec7cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 3,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.b7c8054261844p-2",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 1.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 4,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2a7718929ec7cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 4,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.b7c8054261844p-2",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 1.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 5,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.2a7718929ec7cp-1",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 0.0
+  },
+  {
+   "ok": true,
+   "sealed": true,
+   "src": 5,
+   "windows": [
+    [
+     "OUT",
+     "0x0.0p+0",
+     "0x1.ccccccccccccdp+0",
+     2,
+     "<no field>",
+     "<no field>"
+    ],
+    [
+     "vin_p",
+     "0x1.b7c8054261844p-2",
+     "0x1.ccccccccccccdp+0",
+     0,
+     "<no field>",
+     "<no field>"
+    ]
+   ],
+   "y": 1.0
+  }
+ ],
  "repo": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_it2b_audit/b",
+ "seal": {
+  "fail_any": 2,
+  "fail_item7": 0,
+  "fail_item7_at_end": 0,
+  "n_calls": 48,
+  "n_with_y": 48,
+  "rows": [
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0fcfccf2d5db6p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0000000000000p-1"
+    }
+   },
+   {
+    "exc": "SealViolationError",
+    "item": null,
+    "ok": false,
+    "reason": "lut_query_failed",
+    "y": {
+     "vin_p": "0x1.827357c2c2cd0p-4"
+    }
+   },
+   {
+    "exc": "SealViolationError",
+    "item": null,
+    "ok": false,
+    "reason": "lut_query_failed",
+    "y": {
+     "vin_p": "0x1.0000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.8000000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.c0000244ed0d1p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.e00001d53551ep-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f0000081b245ap-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.0bcffe313ab59p-1"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   },
+   {
+    "ok": true,
+    "sealed": true,
+    "y": {
+     "vin_p": "0x1.f800000000000p-2"
+    }
+   }
+  ],
+  "y_exact_0": 0,
+  "y_exact_1": 0,
+  "y_near_end_1e-6": 0
+ },
  "set": "library",
  "side": "BASE",
  "stage_a": {
   "exit_code": 0,
   "status": "ok",
   "stop_reasons": []
- }
+ },
+ "stage_b": {
+  "status": "ok"
+ },
+ "w4": {
+  "roots": [
+   [
+    "OUT",
+    "OUT",
+    false
+   ],
+   [
+    "vin_p",
+    "vin_p",
+    true
+   ]
+  ]
+ },
+ "wall_s": 67.37379750004038
 }
