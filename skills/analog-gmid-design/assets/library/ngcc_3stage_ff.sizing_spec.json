@@ -101,7 +101,7 @@
         "value": 0.6,
         "source": {
           "kind": "user_spec",
-          "record": "ngcc_3stage_ff.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec), U-34 performance_targets.icmr_v (VDD/3, 1.8 V 기준) / 이름 부여: user_decisions.md 2026-10-08 \"q3,q4는 네 제안대로 해\" -- Q4 (4) ngcc ICMR >= 0.6 V 값 유지, metric 이름 icmr_v",
+          "record": "ngcc_3stage_ff.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec), U-34 performance_targets.icmr_v (VDD/3, 1.8 V 기준) / 이름 부여: user_decisions.md 2026-10-08 \"q3,q4는 네 제안대로 해\" -- Q4 (4) ngcc ICMR >= 0.6 V 값 유지, metric 이름 icmr_v / 측정 구성(U-104 (1)(2)): 원문 = 손계산 입력단 조건(Lee 2007 식 (9)), 엔진 정의 = servo(gain-budget v6.35 N3.8) -- 같은 양",
           "decided": "2026-09-21",
           "origin": "paper",
           "citation": "ngcc 논문 ICMR >= VDD/3"
