@@ -670,3 +670,8 @@ graph 점검: 단일 출력 + 용량만 선언 ICMR 정의 자리 = gain-budget 
 
 * 근거: 사용자 결정 O-154 Q3(`_drafts/user_decisions.md` O-154 행) -- 엔진 metric·spec 제약 `swing_out_v` 삭제(범위 선언 회로는 출력 범위로 일원화). 검증 대기.
 * 바꾼 것: 448행 `swing_out_v` measure 행 첫 칸과 Status 머리에 표지만 달았다. 이 oracle measure를 지울지, 출력 범위 끝 판정(DEC-104 R8 정확값 `.dc`)으로 바꿀지는 결정 기록에 없어 정하지 않았다(다음 개정). 옛 문장: «| `swing_out_v` | 입력 공통모드»
+
+### v0.6.17 출력 범위 끝 판정 -- 상위 gain-budget v6.38.1 넷째 커밋, O-154 Q3 오케스트레이터 기본안 (2026-10-26)
+
+* 근거: 사용자 결정 O-154 Q3(`_drafts/user_decisions.md` O-154 행) '범위 전체 출력 능력은 R8 범위 끝 헤드룸 고리가 강제, 정확값 oracle `.dc`' -- 오케스트레이터가 이 문언에서 바로 정해진다고 보고 원칙 기본안으로 지시(사용자에게 보고 대상). 원래 취지와 다름(O-154 승인 범위). 검증 대기.
+* 바꾼 것: (1) `swing_out_v` 판정 measure → 새 '출력 범위 끝 판정' 행(출력 범위 선언 회로만, 출력 포트를 범위 양 끝에 고정·입력을 허용 범위 끝까지 몬 DC 해(상위 DEC-65 정의)에서 전 MOS 포화 규칙(DEC-90 `saturation_rule`)으로 판정, 미선언 회로는 행 없음, 새 상수 0) (2) `swing_out_v` measure는 판정 없는 보고 전용으로 남김(기존 measure -- 새로 만들지 않음) (3) 433·473·483·548·640행 표지. 옛 문장: (1) 433 최종 범위 metric: «범위 metric(`swing_out_v`·`icmr_v`·`icm_margin_v`)과 그 제약 판정은 잠정(provisional)이다.» (2) 448 swing_out_v 보고 전용: «\| `swing_out_v`(상위 gain-budget v6.38.1 O-154 Q3: 엔진 metric·spec 제약 삭제 -- 이 oracle measure의 존폐·출력 범위 끝 판정과의 관계는 이 계획 다음 개정에서 정함) \| 입력 공통모드» (3) 473 OP-5 행: «`swing_out_v`(일반형·범위 조건 정정 -- 기준선과 같으면 그 사실을 변화표에 기록)» (4) 483 정의를 바꾼 칸: «`swing_out_v`(정의 일반형·범위 조건 정정, O-25 (1)·O-33 (7)(8))» (5) 548 grep 키 문장: «(2026-10-16 grep: `swing_out_v`·`icmr_v`·`icm_margin_v`는» (6) 640 X-32: «O-34 (1)로 `swing_out_v`는 정의를 바꾼 칸으로 N4 0번 '동작 변경' 기준(정의 문장 손 회로 test + 검증자 원인 변화표)으로 판정한다 \|»
