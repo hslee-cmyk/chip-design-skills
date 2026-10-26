@@ -665,3 +665,8 @@ graph 점검: 단일 출력 + 용량만 선언 ICMR 정의 자리 = gain-budget 
 
 * 근거: 사용자 결정 O-155(`_drafts/user_decisions.md` O-155 행 -- 감사 `wt/_drafts/evidence/2026-10-26/rewrite_principle_audit.md` C5 원칙 기본안). 검증 대기.
 * 바꾼 것: D-9 위치 문단(230행)의 '이 계획은 엔진 선언 파일과 엔진 로더를 바꾸지 않는다.' 뒤에 근거 = card 경계(엔진 재작성은 엔진 card, 지문·기준선 변화는 그 card 변화표 -- 기준선 변화는 근거가 아님)를 덧붙임. 규칙(결론) 변경 없음, 옛 문장은 그대로 남김. Status 머리에 이 정정 표기.
+
+### v0.6.17 표지 -- 상위 gain-budget v6.38.1 셋째 커밋, O-154 Q3 `swing_out_v` 삭제 (2026-10-26)
+
+* 근거: 사용자 결정 O-154 Q3(`_drafts/user_decisions.md` O-154 행) -- 엔진 metric·spec 제약 `swing_out_v` 삭제(범위 선언 회로는 출력 범위로 일원화). 검증 대기.
+* 바꾼 것: 448행 `swing_out_v` measure 행 첫 칸과 Status 머리에 표지만 달았다. 이 oracle measure를 지울지, 출력 범위 끝 판정(DEC-104 R8 정확값 `.dc`)으로 바꿀지는 결정 기록에 없어 정하지 않았다(다음 개정). 옛 문장: «| `swing_out_v` | 입력 공통모드»
