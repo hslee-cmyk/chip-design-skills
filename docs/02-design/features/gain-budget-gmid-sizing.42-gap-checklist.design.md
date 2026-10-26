@@ -1,13 +1,13 @@
 ---
 template: design
-version: 1.14.2
-plan_version: 6.37
+version: 1.15.0
+plan_version: 6.38
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
 
 > **Summary**: `bkit:gap-detector`가 설계 문서(40·41)와 구현을 대조할 때 쓰는 표다.
-> - **design v1.14.2 -- 계획 v6.37 슬루 맞춤 -- 승인됨(사용자 O-136, 2026-10-26; 재검증 95/100·재 gap 97.8 %, 커밋 b9393e2e·95b41187·f4359e17·ca58c8a1; O-127·O-128 원칙 반영 design 정정은 계획 v6.38 승인 뒤 다음 판)**(2026-10-24, 40·41과 같은 변경 -- 41 Status; 이 문서는 행 58·70·D-GB8a·D-GB8c·D-AP1; 둘째 커밋 = 검증 87/100·gap 93.2 % 반영 -- 행 58 삭제 확인 패턴을 계획 DE-1 완료 조건 (1)의 다섯 개로, D-GB8a 영역 표기 DC 동작 범위, 새 행 D-GB8d(`load_dc_amp`), §4 집계 설계 항목 169·MISS 118; 넷째 커밋 = 재검증 95/100·재 gap 97.8 % 반영 -- D-GB8d 읽는 자리·fail-open 표지, §4 집계를 §3 재계수로(설계 항목 172 = 물리 행 167 + D-SIa~f 추가 5 -- '센 방법'). **v1.14.1 상태(대체됨)**: **v1.14.1 승인됨(사용자 O-124, 2026-10-24, 계획 v6.37)** -- 후속 정정 대상 design v1.14.2(O-124): 계획 v6.37과 다른 슬루 문장 13곳 -- 40 §3.8-3 1248·1249·1251행, 40 §3.8-6 1256행, 40 §3.8-8 metric 표·registry, 40 1722행 R9·2075행 U7, 40 1740행 R27, 40 §10.5, 41 795행, 41 831행, 41 892·924행, 42 101·110·264행 -- 본문은 v1.14.2에서 고친다(검증·gap 뒤 DE-1 전에 따로 승인).
+> - **design v1.15.0 -- 계획 v6.38 맞춤, 검증 대기**(2026-10-26, 40·41과 같은 판 -- 41 Status; 이 문서: §2 DEC-104 행, 행 58·70·71·D-GB0a·D-GB8a·D-GB8d·D-K1·D-AP1 문구, §3 새 19행 D-TB1a~c·D-R6·D-R5p·D-R10·D-L0rpt·D-L0filt·D-L0B85·D-SI-cur·D-SF1a~d·D-TRK·D-SET·D-STL·D-CMP1·D-LA1rep, §4 집계) 이전 판: **design v1.14.2 -- 계획 v6.37 슬루 맞춤 -- 승인됨(사용자 O-136, 2026-10-26; 재검증 95/100·재 gap 97.8 %, 커밋 b9393e2e·95b41187·f4359e17·ca58c8a1; O-127·O-128 원칙 반영 design 정정은 계획 v6.38 승인 뒤 다음 판)**(2026-10-24, 40·41과 같은 변경 -- 41 Status; 이 문서는 행 58·70·D-GB8a·D-GB8c·D-AP1; 둘째 커밋 = 검증 87/100·gap 93.2 % 반영 -- 행 58 삭제 확인 패턴을 계획 DE-1 완료 조건 (1)의 다섯 개로, D-GB8a 영역 표기 DC 동작 범위, 새 행 D-GB8d(`load_dc_amp`), §4 집계 설계 항목 169·MISS 118; 넷째 커밋 = 재검증 95/100·재 gap 97.8 % 반영 -- D-GB8d 읽는 자리·fail-open 표지, §4 집계를 §3 재계수로(설계 항목 172 = 물리 행 167 + D-SIa~f 추가 5 -- '센 방법'). **v1.14.1 상태(대체됨)**: **v1.14.1 승인됨(사용자 O-124, 2026-10-24, 계획 v6.37)** -- 후속 정정 대상 design v1.14.2(O-124): 계획 v6.37과 다른 슬루 문장 13곳 -- 40 §3.8-3 1248·1249·1251행, 40 §3.8-6 1256행, 40 §3.8-8 metric 표·registry, 40 1722행 R9·2075행 U7, 40 1740행 R27, 40 §10.5, 41 795행, 41 831행, 41 892·924행, 42 101·110·264행 -- 본문은 v1.14.2에서 고친다(검증·gap 뒤 DE-1 전에 따로 승인).
 > - 한 행이 FR·NFR·DEC·설계 항목 하나다.
 > - 열은 설계 절, 상태, 증거다. 증거는 `파일:행`, test 이름, 또는 재측정용 grep 패턴이다. 판 번호는 41에 맞춘다 -- v1.12.5는 41만 바꾼 판이라 이 문서는 v1.12.4에서 v1.12.6으로 건너뛰었다(검증 R7); v1.12.7 = 계획 v6.28(O-85·O-86) 맞춤, D-IT2 행; 둘째 커밋 = 사용자 O-87 (1)(차동 결합은 S-OS2 card 몫); 셋째 커밋 = 사용자 O-88(MOS 식별 = `device.element_class`); v1.13.0 = 계획 v6.34(사용자 O-106~O-110·DEC-103) 맞춤 -- D-ICM·D-IT2 행을 41 v1.13.0 §4.7에 맞춤(다듬은 창·`metrics_icm_front`·커널 미수렴 이어받기·출력 구조 분류·S-OS1 삭제, KCL 측정 구성 감도, E 칸; design 검증 `wt/_drafts/evidence/2026-10-22/design_v1130_validation.md` S-1), 재검증 90/100(`design_v1130_recheck.md`) 뒤; 계획 v6.34.1 `graph.ss_circuit`·용량만 결측 문언(재검증 3 S-B) 반영(41 v1.13.0과 같은 판); v1.14.0 = 계획 v6.35(사용자 O-114~O-116)·v6.34.2(O-111~O-113) 맞춤 -- D-ICM·D-IT2·D-J5 행을 41 v1.14.0 §4.7(servo 측정 구성, V_cm 좌표, B77)에 맞춤; v1.14.1 = 계획 v6.35.1(O-117)·v6.36(O-118·O-119) 맞춤 -- D-ICM·D-IT2(기본 포트 뷰·전도 행 R0·F 성분 포트 함께 구동·레일 자름)·D-J5(사실 정정), 검증 대기.
 >
@@ -99,7 +99,7 @@ plan_version: 6.37
 | 55 `budget_reference_device` → 기둥 흡수, `budget_ref` 엣지 없음(태그 키는 읽지 않는다, U-50. 비공유 옛 선언 4건은 J8 엔진 유도. 사용자 결정 2026-10-12 "다로 해") | 40 §3.2·§3.7-8 | N/A | 구현 측정만(40 §3.7-8): 대상 = 노드 공유 옛 선언 5건(파일럿 M9a→M10, M9b→M8, M18a→M19, M18b→M17, M60→M66), 나머지 8회로 대상 0건 보고, 비공유 4건 J8 제외. 각 대상에서 (a) 노드 n writer 정확히 1개(티어·블록), (b) X·Y 같은 S1 기둥 id, (c) \|B_X − ((V_top − V_bot) − \|VDS(Y)\|)\| ≤ tol_V(N3.6). 엣지 없음은 as-built와 같다(`E/graph/CONTRACT.md:226`, 문구 정정은 아래 후속 항목) |
 | 56 L5c 픽스처 | -- | N/A | 옛 엔진 전용(P N2.1 '새 엔진에는 해당하지 않는다') |
 | 57 전압 이득 stage | 41 §1.6 | MISS | FR-1 |
-| 58 블록 속성, 출력 구동 | 41 §1.7, 40 §3.8 | MISS | 기대 = 방향별 전류(피크 부하) `LsNode.i_charge_a`·`i_discharge_a`(정의 DEC-65 O-26 (1), 엔진 손계산 규칙 미결 U-115 -- as-built β/σ/κ 고정 전류는 gap, DE-1 (d))·피크 행 `ls:load_peak_amp>=`(40 §3.8-3), 엔진 슬루 칸·행 0(O-122 -- `git grep -e c_slew_farad -e slew_charge_v_per_s -e slew_discharge_v_per_s -e 'slew_rate>=' -e _node_capacitance -- skills/analog-gmid-design/gmid_engine` 0건이 기대, test 포함 -- 계획 DE-1 완료 조건 (1)) |
+| 58 블록 속성, 출력 구동 | 41 §1.7, 40 §3.8, §3.1-1 | MISS | 기대(v1.15.0 -- 계획 v6.38 DEC-58·DEC-65·DEC-104 R9, O-128 Q4·Q5·O-143 (5)(6)) = 방향별 공급 능력 `LsNode.i_charge_a`·`i_discharge_a`(정의 DEC-65 v6.38 범위 끝 순 전류, 계산 DEC-104 R9 -- U-115 닫힘; as-built β/σ/κ 고정 전류는 gap, DE-1 (d)), 소비자 = R8 판정; 피크 행 `ls:load_peak_amp>=`·`load_peak_amp`·`load_dc_amp`·`driving_spec` 섹션 **없음**(`git grep -e load_peak_amp -e load_dc_amp -e driving_spec -- skills/analog-gmid-design/gmid_engine` 비test 0건이 기대 -- SF-1·DE-1 뒤), 엔진 슬루 칸·행 0(O-122 -- `git grep -e c_slew_farad -e slew_charge_v_per_s -e slew_discharge_v_per_s -e 'slew_rate>=' -e _node_capacitance -- skills/analog-gmid-design/gmid_engine` 0건이 기대, test 포함 -- 계획 DE-1 완료 조건 (1)) |
 | 59 발동표와 정지 | 41 §1.10 | PART | coverage 파일은 R7 축소 유지로 승인됨(2026-10-08). S1 지원 밖 정지는 있다(`E/graph/CONTRACT.md:352-362`). SP1 `기록만` 분기 정지는 FR-1과 함께 MISS |
 | 60 레일 선언 | 40 §3.1 | OK | `E/authoring/rails.py`, `E/authoring/hidden_rails.py:16` |
 | 61 벌크 기본값 | -- | OK | `E/graph/bulk_default.py` |
@@ -108,8 +108,8 @@ plan_version: 6.37
 | 65 β/σ/κ | 41 §1.9 | MISS | `rg "push_pull\|class_a"` 0 |
 | 66 `rout_ss_ohm`과 잔차 | 41 §2.2 | PART | `E/metrics/rout.py`(MNA). 잔차 MISS |
 | 68·69 명명과 옛 이름 거부 | 40 §3.1 | DEV | FR-9 |
-| 70 AC→DC 제약과 θ 정의 | 40 §3.7 | PART | 미러 비 강제 MISS(`E/sizing/CONTRACT.md:276`). (옛 '슬루 제약' 항목 삭제 -- 슬루는 θ 제약이 아니다, 계획 v6.37 DEC-70·O-122) |
-| 71 층 0 기둥 조립 | 41 §5 | PART | (1) 가지·기둥 OK(`E/graph/columns.py`). (2)~(8) MISS |
+| 70 AC→DC 제약과 θ 정의 | 40 §3.7, 41 §5 머리말 | PART | 미러 비 강제 MISS(`E/sizing/CONTRACT.md:276`). (옛 '슬루 제약' 항목 삭제 -- 슬루는 θ 제약이 아니다, 계획 v6.37 DEC-70·O-122.) v1.15.0(계획 v6.38 DEC-70 M11): θ 독립 성분 = S·F ln IDu·L·고리 종속 아닌 y·θ 전류, B ln IDu·V_R·종속 W4는 R6 블록 파생, 값 미선언 저항 R = V_R/I_R 파생 -- as-built θ 스키마(`E/sizing/theta_schema.py`)는 W4·값 미선언 저항 값을 θ 성분으로 센다(gap, card LA-1; 외층 SLSQP 변수 변경의 척도·front 영향 미측정) |
+| 71 층 0 기둥 조립 | 41 §5 | PART | (1) 가지·기둥 OK(`E/graph/columns.py`). (2)~(8) MISS. v1.15.0: (3) 블록 전류 = KCL·선언·R8·R10 하한(41 §5.3.1·§6.8-1), (4)(c) VDS·V_R 배분 (c-1)~(c-4)(41 §5.3.4), (7) 조립 = 확인(41 §5.5) -- 모두 MISS |
 | 72 모델 오차 선언값 | 40 §3.8 | MISS | `rg "model_error_"` 0(엔진 .py) |
 | 73 기본 경로 = 층 0 + 외층 | 41 §5.9 | PART | 층 0 예산 MISS |
 | 74 외층 전회로 판정 | 40 §3.8 | PART | `E/search/search_context.py:84-105`(레지스트리 밖 metric은 notes에만 남는다) |
@@ -132,12 +132,13 @@ plan_version: 6.37
 | 94 MOD2 입력 게이트 | 40 §3.1 | DEV | `E/authoring/bias_inputs.py:20`(최상위 키, 사용자 승인. 계획 문구 갱신 필요) |
 | 95 탐색 방법 묶음 | 40 §3.7, §3.9 | PART | ΔA_tie가 grid²다(`E/layout/floorplan.py:83`). DEC-95 (3)은 일부만(`E/sizing/writer_plan.py:13-17`) |
 | 96 nqs·mismatch 보고와 범위(잡음은 사용자 결정 2026-10-08로 범위 안, (2)는 Q3로 A_eff·offset metric) | 40 §3.8, 41 §6.4-2, §7 | MISS | `rg "nqs_ratio\|offset_in_sigma\|mirror_ratio_sigma"` 0. 잡음은 D-NZ1~6, 미스매치는 D-MM1·2, D-OF1~3, D-MR |
+| 104 θ 기저·손계산 순서(v1.15.0 신설 -- 계획 v6.38, 사용자 결정 O-127·O-128·O-141·O-142·O-143·O-144·O-146) | 40 §1.2 EP-10·§2.4.8, 41 §5 머리말·§5.3.3·§5.3.4·§6.7-11·§6.8 | MISS | 구현: 필드 = card TB-1(D-TB1a~c), R6 블록 = card LA-1(D-R6·D-R5p), R10 = 구현 card 미지정(D-R10). `rg "theta_class\|loop_dependents\|start\.guard"` 0이 지금 상태 |
 
 ## 3. 설계 항목 (40·41에서 새로 정한 것)
 
 | ID | 항목 | 설계 절 | 상태 | 증거 |
 |---|---|---|---|---|
-| D-GB0a | spec 필드 `gain_budget_db_override`·`driving_spec`·`symmetry_untie` | 40 §3.1 | MISS | `E/authoring/SPEC_CONTRACT.md:226` |
+| D-GB0a | spec 필드 `gain_budget_db_override`·~~`driving_spec`~~(v1.15.0: card SF-1이 지움 -- D-SF1a)·`symmetry_untie` | 40 §3.1 | MISS | `E/authoring/SPEC_CONTRACT.md:226` |
 | D-GB0b | `cm_sense_elements`, `measurement_load` | 40 §3.1 | PART(브랜치) | `[ng-cmfb-pm]`, `[ng-area-budget]` |
 | D-GB1a | `structure.json` 로더와 status 전이 | 40 §3.2 | MISS | `rg "structure.json"` 0(엔진 .py) |
 | D-GB2a | 뷰 수집 | 41 §1.1 | MISS | `rg "def build_s1v"` 0 |
@@ -178,7 +179,7 @@ plan_version: 6.37
 | D-FV5 | 정밀 경로 선언 정지(U-66 결정), 복합 블록 상한 N_S(U-65 결정) | 40 §3.10.8·3.10.11 | MISS | `rg "precise_path_not_implemented"` 0 |
 | D-FV6 | U-23·U-33 측정 도구 `tools/compare_paths.py` | 40 §3.10.10 | MISS | 파일 없음 |
 | D-FV7 | U-67(사용자 결정 2026-10-12 "U-67은 (나)로"): L 혼합 interdigitation 행 대칭 검사(`interdigitation_not_mirror_symmetric`), `ly.lod` finger별 sa·sb·sd → 오라클 넷리스트, WPE·PSE 제외 | 40 §3.9, §3.10.8, §4 | MISS | `rg "ly.lod\|interdigitation_not_mirror"` 0 |
-| D-K1 | 41 §6.7 KVL 고리 출발 제약: K-1 공동 선택 순서(위반 최소 → max-min → 위치 합 최대), 실행 불가 시 올린 묶음 상한 반분 재풀이(최대 steps+1), `StartConflict(kvl)`, PQ5(출발 단계 A8에도 등식), K-3 `input_tie` 폐기 | 41 §6.7 | MISS | `rg "kvl_choice"` 0 |
+| D-K1 | 41 §6.7 KVL 고리 출발 제약: K-1 공동 선택 순서(위반 최소 → max-min → 위치 합 최대), 실행 불가 시 올린 묶음 상한 반분 재풀이(최대 steps+1), `StartConflict(kvl)`, PQ5(출발 단계 A8에도 등식), K-3 `input_tie` 폐기. v1.15.0(계획 v6.38 DEC-104 R5′·R7, O-142): 비용 순 재개방(W4·V_R → B(R7 가드 안) → S 정의역), max-min 대상(B = gm/ID 위치, W4·V_R = 행 여유), 행·의존 묶음 = R-1′ 필드 READS(`graph/start: kvl_model`·`kvl_rows` 없음), 원리는 S·F 한정 | 41 §6.7 | MISS | `rg "kvl_choice"` 0. v1.15.0 기대: `rg "kvl_model\|kvl_rows"` 0 |
 | D-K2 | 41 §7.5 β·C_eff 입력 배선(feedback 절단, C_eff 노드), 비대칭 귀환 계수 '추정'(U-70), N_in = Σγ_k·gm_k/(γ_avg·G_half)(K-2 결정) | 41 §7.5 | MISS | U13 열린 항목 `feedback_factor_beta_unavailable` |
 | D-C4 | 잡음 B 평탄(plateau) 규칙(피드스루 + 이웃 점 일치), 칸별 적응 재측정 구현 단위(미상·엇갈림·계단형 칸, 로그 이분, 상한 K_max, noise r2) -- 시점 = graph 재작성 ①~③ 뒤, U16 전(C-4) | 41 §7.2 | PART | plateau는 as-built `noise_planes.py`와 일치, 재측정 단위 없음 |
 | D-D1 | d/s 맞바꿈 궤도를 넘는(KCL 유도) 전류 묶음 상자 = 구성원 상자 교집합, 비면 거부 `tied_current_box_empty`(U-61 D-1). 같은 궤도 안 불일치는 `tied_orbit_bounds_differ` | 40 §6-8 | MISS | as-built `search_domain`은 `tied_orbit_bounds_differ`로 거부 |
@@ -262,10 +263,10 @@ plan_version: 6.37
 | D-GB7b | 미러 비율 강제 | 40 §3.7 | MISS | `E/sizing/CONTRACT.md:276` |
 | D-GB7c | DEC-95 (3) 전체 순서 | 40 §3.7 | PART | `E/sizing/writer_plan.py:13-17` |
 | D-GB7d | W_request 고정 W | 40 §3.7 | MISS | `E/sizing/block_widths.py:9` |
-| D-GB8a | DC 동작 범위 방향별 전류(피크 부하, as-built `ls_fields` -- 손계산 규칙 미결 U-115, 엔진 슬루 칸 0(O-122)), 스윙·ICMR은 D-SW·D-ICM | 40 §3.8 | MISS | -- |
+| D-GB8a | DC 동작 범위 방향별 공급 능력(v1.15.0: 정의 DEC-65 v6.38 범위 끝 순 전류, 계산 DEC-104 R9 -- U-115 닫힘, 소비자 R8 판정; as-built `ls_fields`, 엔진 슬루 칸 0(O-122)), 스윙·ICMR은 D-SW·D-ICM | 40 §3.8 | MISS | -- |
 | D-GB8b | nqs 보고(미스매치 보고는 D-OF1·D-MR로 대체) | 40 §3.8 | MISS | -- |
 | D-GB8c | `verified_by`(레지스트리 밖 oracle 전용 항목 `_ORACLE_ONLY` 포함 -- 40 §3.8-6, card VB-1), 모델 오차, `spice_unverifiable` | 40 §3.8 | MISS | -- |
-| D-GB8d | `load_dc_amp` 선언 = 출력 포트 KCL의 이상 전류원 항(P DEC-58, N3.8 '출력 구동 규칙'; spec 입력이고 읽는 자리 = 평가 커널 ② 전류(KCL) 블록(P N3.5, `value_dc_amp`와 같은 경로·부호 규약, 새 필드 0); 담당 card만 계획 미정 -- S-7; 구현 전 선언은 무시됨(fail-open) -- 로더 거부·미측정 표시는 계획 결정 대상) | 40 §3.8-3 | MISS | 엔진 비test 소비자 0(`git grep load_dc_amp -- skills/analog-gmid-design/gmid_engine` 비test 결과 = `authoring/spec_driving.py`·`spec_model.py` 읽기와 `search/ls_constraints.py:5` 머리말뿐 -- integ/it12 `3179cd78`) |
+| D-GB8d | ~~`load_dc_amp` 선언 = 출력 포트 KCL의 이상 전류원 항~~ -- **v1.15.0: 키 삭제**(계획 v6.38 DEC-58·SF-1 범위 2, 사용자 결정 O-128 Q5 -- DC 부하 = netlist 전류원 원소, 선언하면 로더 거부(fail-closed)). 기대 = `git grep load_dc_amp -- skills/analog-gmid-design/gmid_engine` 0건(SF-1 뒤, test 포함 -- test 역할이 고침) | 40 §3.8-3 (다), §3.1-1 | MISS | 엔진 비test 소비자 0(`git grep load_dc_amp -- skills/analog-gmid-design/gmid_engine` 비test 결과 = `authoring/spec_driving.py`·`spec_model.py` 읽기와 `search/ls_constraints.py:5` 머리말뿐 -- integ/it12 `3179cd78`) |
 | D-IC | IC1~IC11 계약 test(패키지별 폴더) | 40 §10.3 | MISS | `rg "def test_ic"` 0 |
 | D-T | test 폴더 체계 | 40 §8 R26 | N/A | 축소 유지 승인(2026-10-08). 현행 체계를 쓴다 |
 | D-GR1 | graph 밖 저장소는 셋뿐(LUT memo·S3 기록과 색인·실행 계수 -- v1.10 S0 직렬화 폐지) | 40 §2.4.1 | DEV | `E/search/search_context.py:58-67`(cache·computed_keys·cell_floors 등 -- master `b9af2d6f` 재측정, v1.12 단일 정본 감사 F4; `local_seal_memo`는 엔진 소스에 없음, `git grep -w` 0) |
@@ -298,12 +299,31 @@ plan_version: 6.37
 | D-P11 | 최종 해 활성 제약 여유 판정·활성/비활성/보류 보고(NFR-5) | 40 §3.10.6 | MISS | front 표 `constraints[].state` 없음 |
 | D-P12 | 규칙 분기 발동표 결과 JSON `rule_branches`(DEC-59) | 40 §3.10.7 | MISS | `rg "rule_branches"` 0 |
 | D-P13 | 누락 항목 일괄: `dc_id_source`, tol_V 정의, 결합 잔차 쓰임(`residual_table`·`trust_limits`), LY8 3열, 근방 반경 확장, IC3·IC7·IC11, T1·T7·T8 형식, `layer0.ac_inactive`, bisection 켜기 경로, TS7 strict xfail | 40 §3.10.8 | MISS | 항목별 grep 0(`dc_id_source`, `trust_limits`, `metric_columns`, `ac_inactive`) |
-| D-AP1 | A' 판정 기준(P DEC-98, 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①): 판정자 ngspice(MOD8 전 점은 T4-pre), 독립 대조군 AI 손분석(결정 원문 "코드 없음" -- 엔진 코드 미열람, LUT 조회·계산 보조 스크립트 허용; 회로마다 1회 고정 문서; 엔진 입력 아님; 작성 주체 ≠ 엔진 코드 작성 주체), 피검 엔진 시작점·front 점(P U-45). 판정 규칙(엔진만 실패 = 엔진 결함 대조표, AI만 실패 = 공동분석 기록·그 회로 완료, 둘 다 통과 = 전력(ngspice)·면적(엔진 면적 코드에 손분석 W/L/finger) 차, 둘 다 실패 = 판정 불능). U17 단계 ② 완료 조건: library 9회로 + held-out 회로에서 시작점 봉인 통과·spec 제약 행 c ≥ 0·ngspice(T4-pre·T5) 통과, front 점도 ngspice 통과, 엔진 실패 회로가 남으면 미완료(fail-closed), 9회로 도달률 회귀 지표. held-out 선정 P U-75(사용자 몫), 세부 P U-76 (1)~(9) 기본안. oracle 전용 제약(P DEC-98 (6), 확정 O-124): `unmeasured_front` 중 미측정 사유가 `oracle_judged`뿐인 점도 oracle 판정 입력, 그 불합격 = `oracle_only_fail`(엔진 결함 아님), PASS 승격·슬루 선언 held-out 회로 완료는 U-112 뒤 | 40 §10.5, §11 U17 ② | MISS | 저장소 안 손분석·A' 대조표 문서 0, held-out 회로 0(U-75 미정), `docs/03-analysis/aprime/` 0, T4-pre 오라클 입력(sizing W·비례 접합 기하) 0, `constraint_rows` 미구현(D-GR13) |
+| D-AP1 | A' 판정 기준(P DEC-98, 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①): 판정자 ngspice(MOD8 전 점은 T4-pre), 독립 대조군 AI 손분석(결정 원문 "코드 없음" -- 엔진 코드 미열람, LUT 조회·계산 보조 스크립트 허용; 회로마다 1회 고정 문서; 엔진 입력 아님; 작성 주체 ≠ 엔진 코드 작성 주체), 피검 엔진 시작점·front 점(P U-45). 판정 규칙(엔진만 실패 = 엔진 결함 대조표, AI만 실패 = 공동분석 기록·그 회로 완료, 둘 다 통과 = 전력(ngspice)·면적(엔진 면적 코드에 손분석 W/L/finger) 차, 둘 다 실패 = 판정 불능). U17 단계 ② 완료 조건: library 9회로 + held-out 회로에서 시작점 봉인 통과·spec 제약 행 c ≥ 0·ngspice(T4-pre·T5) 통과, front 점도 ngspice 통과, 엔진 실패 회로가 남으면 미완료(fail-closed), 9회로 도달률 회귀 지표. held-out 선정 P U-75(사용자 몫), 세부 P U-76 (1)~(9) 기본안. oracle 전용 제약(P DEC-98 (6), 확정 O-124): `unmeasured_front` 중 미측정 사유가 `oracle_judged`뿐인 점도 oracle 판정 입력, 그 불합격 = `oracle_only_fail`(엔진 결함 아님); v1.15.0: U-112 닫힘(O-143 (4)·O-144·O-145) -- FAIL 점·추종 정의 불능 점 front 제외·기록, 되먹임 없음, 합격 점 = FAIL 제외의 여집합으로 최종 front 후보 + 비지배 재필터(design 읽기 -- 검증 확인 대상), 슬루 선언 held-out 회로 완료는 그 front로 판정 | 40 §10.5, §11 U17 ② | MISS | 저장소 안 손분석·A' 대조표 문서 0, held-out 회로 0(U-75 미정), `docs/03-analysis/aprime/` 0, T4-pre 오라클 입력(sizing W·비례 접합 기하) 0, `constraint_rows` 미구현(D-GR13) |
 | D-ND1 | BLAS 스레드 고정·확인(fail-closed, 무상태 재확인 (a)~(e))과 결과 기록 칸 실행 환경 지문 `env_fp`(단계 A 보고서·S3 runs 줄)(사용자 결정 2026-10-15 1안, v1.10: S0 키 (iv)는 대상 소멸. 파일·이름·기록 자리는 40 §2.4.13 (1) J-1·J-2·J-4 오케스트레이터 기본안) | 40 §2.4.13 (1) | OK | `E/core/blas_env.py`(pin_blas_threads·blas_environment, 소유 BLAS 확인은 재확인 포함 -- N-6), `E/__init__.py:5-7`, 재확인 (a)~(e) `stage_a.py`·`search_context.py`·`find_front.py`·`layer0_center.py`·`slsqp_outer.py`, `env_fp` 단계 A 보고서·runs 줄 -- 판정 기록 `.ai/verification/nfr4c2.json`(audit a18c6b2, 병합본 ebd7b3c: suite 10089 passed/0 failed, A-4 36/36) |
 | D-ND2 | 판정 경계 위 배치점 규칙 BP1~BP3, 층 0 끌어올림 닫힌 식(3안) | 41 §5.13 | OK | `E/search/layer0_center.py:243-265` 닫힌 식(√ε = math.sqrt(sys.float_info.epsilon)), `lift = u` 삭제. 범위 밖 기준선 변화 3회로는 사용자 결정 N-5로 수용 -- 판정 기록 `.ai/verification/nfr4c2.json`(audit a18c6b2, 병합본 ebd7b3c: suite 10089 passed/0 failed, A-4 36/36) |
 | D-ND3 | NFR-4 검증 기준(③): 같은 환경·같은 코드 비트 동일, 다른 환경·수치 보존 리팩터링 필드별(D·C·K), 분해능 출처 표, test 기반 비교기(`E/tests/integration/nfr4_compare.py`)·실행 하네스(`nfr4_run_dump.py`)와 감사 사용, L-b 정지 사유 기록 | 40 §2.4.13 (2)~(5) | OK | `E/tests/integration/nfr4_compare.py`·`nfr4_run_dump.py`, L-b 정지 사유 `E/search/l_bin_search.py:35-40`·`eps_sweep.py:116-135`·notes `l_search` -- 판정 기록 `.ai/verification/nfr4c2.json`(audit a18c6b2, 병합본 ebd7b3c: suite 10089 passed/0 failed, A-4 36/36). 매크로 해 주입 진입은 후속 NFR4-F2 |
 | D-ND4 | 알려진 잔여 결함: pushpull_follower_buffer의 다른 실행 환경 비교 이산 갈림(외층 ε 풀이 `EP:s1` FD 열 실패 `frozen:L:M1`·재시작 2 대 6, 시작점 경계 밖 성분의 풀이기 잡음). 3안으로 없어지지 않는다. 처리 = Q-N7 확정(사용자 결정 2026-10-15 "기본안대로 진행해"): 알려진 결함으로 남기고 원인은 후속 card NFR4-F1(40 §2.4.13 (8)) | 40 §2.4.13 (5)(b)·(8), 41 §5.13 '남은 위험' | DEV | 대리 측정(고정 전 스레드 1 대 8·18, 41 §5.13 (a2)): 엔진 결정 차이 125/125, `wt/_nfr4_design_scratch/all_variant_a2.json` -- 34932a9 복제 |
 | D-ND5 | **대상 소멸**(v1.10, 사용자 결정 2026-10-15 "나로 해" -- S3 실행 사이 읽기 없음). 옛 항목: S3 실행 간 재사용의 실행 환경 지문(Q-N5, 사용자 결정 2026-10-15 "기본안대로 진행해"): `S3Archive(..., *, env_fp)`, 줄마다 `env_fp`, `load_evals`·`load_runs`가 `code_fp`·`env_fp` 둘 다 같은 줄만, 불일치 = miss, 빈 `env_fp` = `ValueError` | 40 §2.4.13 (8) Q-N5(대상 소멸) | N/A | `rg "env_fp" E/search/archive.py` 0 -- 34932a9. `E/search/archive.py:42`는 `(root, context_fp, code_fp)`만 받는다 |
+| D-TB1a | (v1.15.0, card TB-1 범위 1) S/B/F/X 분류 S0 필드 `device: theta_class` = `ThetaClass(kind, bias_rail_source)`, writer = `theta_class` 블록 하나(`E/sizing/theta_class.py`, 쓰기 계획 다음), 입력 = S1v `Block.roles`·`device.dc_coord`·spec 선언 사실·L 동치류(topology 태그 READS 0), '바이어스 구동 레일 source 셀' = 모든 여기 뷰·되먹임 경로에서 게이트가 신호 넷 아님 | 40 §2.4.8, 41 §5.3.3·§5.12.6 E11 | MISS | `rg "theta_class"` 0. 확인(계획 TB-1 완료 조건 (1)(3)): writer 하나·READS 단언, 분류 toy(태그 READS 0, 속성 손계산 대조). 병합 때 엔진 소비자 0(O-146 K2) -- 행동 소비자 HC-1·LA-1과 같은 통합 병합(O-149) |
+| D-TB1b | (v1.15.0, card TB-1 범위 2) R-1′ 제약 그래프 S0 필드(이름·형식 = headroom-chain HC-D design -- **미작성**), writer = R-1′ 블록 하나, 같은 변경에서 `gvgs_summary.vds_saturation` 삭제·소비자 재배선 | 40 §2.4.8, 41 §6.7-1·-3 | MISS | 착수 조건 = HC-D design 승인. 확인(TB-1 완료 조건 (2)(4)(5)): R-1′ 정의 toy·`vds_saturation` 삭제 비교(base 집합 ⊆ 새 길이 1 집합)·순수 리팩터링 필드별 비교 |
+| D-TB1c | (v1.15.0, card TB-1 범위 3) R7 가드 필드 `device: start.guard` = `GuardInterval(gm_id_lo, gm_id_hi, sources)`, writer = `start_intervals`(41 §6.4-2a·§7.5 가드 계산을 이 필드에 씀) | 40 §2.4.8, 41 §6.7-11·§5.12.6 E12 | MISS | `rg "start\.guard\|GuardInterval"` 0 |
+| D-R6 | (v1.15.0, card LA-1) DEC-104 R6 블록 `loop_dependents`(`iv_kvl_choice.kvl_choice` 확장 `@compute_block`, 출발·층 0 공용, R5′ (1)~(4)) -- **출력 자리 미정**(계획 DEC-104 (3)(c) '자리 = `device: start.row`'가 `start.row` writer `start_intervals`와 겹침 -- 계획 결정 대상) | 41 §6.7-11 | MISS(출력 자리 미정) | `rg "loop_dependents"` 0. 출력 자리 결정 전에는 구현 착수 불가(writer 하나 규칙) |
+| D-R5p | (v1.15.0, card LA-1 범위 1·2·6) VDS·V_R 배분 (c-1)~(c-4)(R-1′ 구간·무변화/재개방·정확 풀이 판정 = HC-1 거르기와 같은 함수 호출·남은 W4 여유 ∂(gm/gds)/∂VDS), V_R 수렴 지표, 조립 = 확인, 수리 좌표 = θ 독립 성분만, `resistor_out_of_box`, `chain_violation`, 저항 상자 = spec `search.theta_bounds` | 41 §5.3.3·§5.3.4·§5.3.6·§5.5 | MISS | 계획 LA-1 완료 조건 1 toy (vii)~(x). as-built `E/search/layer0_center.py` 최소형 |
+| D-R10 | (v1.15.0) DEC-104 R8·R10 공급 요구 하한(대상 = 출력 노드 공급 셀이 모두 바이어스 구동 레일 source 셀, 정상상태 항·동적 항 C_lower·SR, writer = `start_intervals`, 그 밖 '추정' 출발 목표) -- **셀 전류 출처('R9 조회 필드 READS') 미정**(출발 단계에 DE-1 S2 필드 없음)·**구현 card 미지정**(계획 결함 보고) | 41 §6.8-1, §5.3.1 | MISS(미정) | -- |
+| D-L0rpt | (v1.15.0, card LA-1 범위 9) 보고 분류 `graph/layer0: report_class`(`layer0_inactive`·`assembly_failed_path`·`performance_judgement_deferred`), writer `layer0_budget`, 출력 전용 -- 결과 JSON `layer0.report_class`·notes | 41 §5.1, 40 §2.4.8 | MISS | 계획 LA-1 완료 조건 7 보고 분류 toy(base는 분류 없이 front 0점 -- red) |
+| D-L0filt | (v1.15.0, LA-1 범위 11 → HC-1) R-1′ 관계식 거르기 세 자리(국소 봉인 후보·조립점·수리점), 배선 card = HC-1·LA-1 가운데 나중 병합, 거른 수·아낀 커널 호출 수 보고 | 41 §5.3.9·§5.5 | MISS | -- |
+| D-L0B85 | (v1.15.0, LA-1 범위 13, B85) 매크로 목표 gm의 θ 전류 전파(`dc_current_basis` 행으로 되돌림) -- 미지 θ 전류 둘 이상 행의 처리 **미정** | 41 §6.5 '전류' | MISS(일부 미정) | 계획 완료 조건 9 (a)·1 (i) toy |
+| D-SI-cur | (v1.15.0 표지) 남는 θ 전류 출발값: 41 §6.5 문언 '상자 기하 중심' ↔ as-built 자리값(max(정해진 전류 기하 평균, W_min 전류) -- integ/it12 `68b4e234` `start_intervals.py:120-128`) 불일치, 계획 규칙 없음 -- **미정(계획 결정 대상)** | 41 §6.5 | DEV | -- |
+| D-SF1a | (v1.15.0, card SF-1 범위 1·6) oracle 전용 `.tran` 항목: 이름표 `E/core/oracle_only.py` `ORACLE_ONLY_METRICS`(`slew_rate_v_per_s`·`slew_rise_v_per_s`·`slew_fall_v_per_s`·`settle_s`·`settle_static_error_pct`), 항목 형식 `{metric, op, value, direction?, tran?{config, step?, epsilon_pct?}, source}`, `SizingSpecDoc.oracle_tran`(`TranDecl`)·`tran_fp`, `judged_constraints` 밖, 단일 키·방향 키 동시 선언 거부 | 40 §3.1-1 | MISS | as-built: registry 밖 metric `metric_unknown`, `.tran` 영역 없음(`library_sr_from_sources.md` §4). 완료 조건 (1) toy |
+| D-SF1b | (v1.15.0, card SF-1 범위 2·4·6 (c)) 삭제 키 거부: `human.driving_spec`·`load_peak_amp`·`load_dc_amp`·`compensation_targets.settling`(`linear_s`·`settling_order`), 전류원 부하 표지 AP-1까지 거부 | 40 §3.1·§3.1-1 | MISS | 완료 조건 (1) red(base는 받아들임) |
+| D-SF1c | (v1.15.0, card SF-1 범위 3) 출력 절대 범위 `human.output_range_v{<출력 포트 넷>: {lo, hi, source}}`(`OutputRangeDecl`, `output_range_fp`), 미선언 = 범위 끝 양 정의 불능 -- SF-1 병합 때 엔진 소비자 0, 행동 소비자 = DE-1 (d) R8 판정(기한 = DE-1 병합) | 40 §3.1-1 | MISS | -- |
+| D-SF1d | (v1.15.0, card SF-1 범위 5·7) library spec data(nmcnr SR·`settle_s`·ε 0.1 %, ngcc SR·`settle_s`·ε 1 %, current_reuse `settle_s`·static error·`gain_ss_db ≥ 54` 삭제·`linear_s` 삭제, 6회로 SR 미선언), heldout erfc·rfc 형식 이관(근거 사용 아님), oracle 스키마 이름 맞춤 | 40 §3.1-1 | MISS | 완료 조건 (2) data·source 칸 대조 |
+| D-TRK | (v1.15.0) 슬루 추종 검사(추종 이탈 = SR 정의 불능 → fail-closed front 제외·기록) -- **판정 기준(기대 추종·허용 폭) 미정 -- 근거 없음**(계획 결정 대상; 그전에는 검사 미발동 = fail-open 표시) | 40 §4-9 | MISS(미정) | -- |
+| D-SET | (v1.15.0) 정착 측정 `settle_s`(ε 띠, 실제 최종값 = 같은 구성 DC 해)·`settle_static_error_pct`, `tran.config = "application"`은 AP-1까지 판정 대기, measure 이름·구현 = oracle card | 40 §4-10·§3.8-6 | MISS | -- |
+| D-STL | (v1.15.0, card LA-1) 정착 선언 대역폭 하한 '추정'(GBW_est = ω_c/(2π·β)) 필드 -- **이름·층·β 읽는 점 미정**(U-118 -- LA-1 design 실측 뒤), S 분류는 선언 사실만 | 41 §6.8-2 | MISS(미정) | -- |
+| D-CMP1 | (v1.15.0, card CMP-1) 평가 절차: library 회로 전부, (A) 예산 = (C) oracle 실행 수, 독립 agent·감사 판정, 기록 `docs/03-analysis/cmp1/CMP-1.eval.json`·`CMP-1.md`, 게이트 아님 | 40 §10.6 | MISS | 선행 = LA-1 병합 |
+| D-LA1rep | (v1.15.0에서 발견한 기존 design 공백) 계획 LA-1 범위 6 수리 단계 전체(수리점 규칙 (A)~(C), `_repairable` 범위, `layer0_repair_dropped_dominates`)가 41에 설계되지 않음 -- v1.15.0은 v6.38에서 바뀐 부분(수리 좌표·R-1′ 거르기)만 적음 | 41 §5.5 '수리' | MISS(design 공백) | LA-1 착수 조건 (1) 'design 41 §5 개정' 몫 |
 
 ## 4. 상태 집계
 
@@ -312,9 +332,11 @@ plan_version: 6.37
 | 구분 | 행 수 | OK | DEV | PART | MISS | N/A |
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 2 | 1 | 7 | 5 | 0 |
-| DEC | 82 | 24 | 6 | 29 | 17 | 6 |
-| 설계 항목 | 172 | 6 | 26 | 16 | 121 | 3 |
-| **합계** | 269 | 32 | 33 | 52 | 143 | 9 |
+| DEC | 83 | 24 | 6 | 29 | 18 | 6 |
+| 설계 항목 | 191 | 6 | 27 | 16 | 139 | 3 |
+| **합계** | 289 | 32 | 34 | 52 | 162 | 9 |
+
+v1.15.0(2026-10-26, 계획 v6.38 맞춤 -- 사용자 결정 O-125~O-150, 검증 대기): DEC 행 1 추가(104 θ 기저·손계산 순서, MISS), 설계 항목 19행 추가(D-TB1a~c, D-R6, D-R5p, D-R10, D-L0rpt, D-L0filt, D-L0B85, D-SF1a~d, D-TRK, D-SET, D-STL, D-CMP1, D-LA1rep -- MISS 18; D-SI-cur DEV 1), 행 58·70·71·D-GB0a·D-GB8a·D-GB8d·D-K1·D-AP1 문구(상태 불변). 집계: DEC 82 → 83·MISS 17 → 18, 설계 항목 172 → 191·DEV 26 → 27·MISS 121 → 139, 합계 269 → 289·DEV 33 → 34·MISS 143 → 162. 상태는 master `4604d993`(엔진은 옛 기준 시점 그대로)·integ/it12 `68b4e234` grep으로 잰 MISS다(새 이름 0건).
 
 v1.11.3(2026-10-16, XRUN-F1 card A 병합 직전, 판정 9930c28): D-XR1·D-XR2 DEV → OK. 집계: 설계 항목 OK 4 → 6, DEV 29 → 27(합계 OK 30 → 32, DEV 36 → 34).
 
