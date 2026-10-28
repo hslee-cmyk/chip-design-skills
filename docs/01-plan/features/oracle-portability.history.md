@@ -711,3 +711,8 @@ graph 점검: 단일 출력 + 용량만 선언 ICMR 정의 자리 = gain-budget 
 
 * 근거: 상위 사용자 결정 2026-10-14 N12(`_drafts/user_decisions.md`:373 '제약과 DEC-78 목적 축이 같은 선언을 읽음(단일 정본)')을 상위 v6.38.2가 DEC-78에 반영했고, 상위 독립 검증 2(`wt/_drafts/evidence/2026-10-28/plan_v6382_validation2.md`) N-3이 OP-11의 반대 명제('`power_dc_w`에는 닿지 않는다')를 지적. 새 결정 아님(전파).
 * 바꾼 것: OP-11 정의 식의 레일 집합을 '셈하는 레일 ∖ 기준 레일'로, 레일 집합 입력 = 상위 EO-1; 옛 문장: (1) «`power_dc_w` = Σ_{기준 아닌 레일} voltage × `rail_current_A`» (2) «엔진 `counted_rails` 부분 선언은 `supply_current_dc`에만 닿고 `power_dc_w`에는 닿지 않는다(`supply.py:65-69`) -- 감사 B-L10(`E/metrics/dc_metrics.py:110` 쪽 갈림)은 gain-budget 백로그.»
+
+### v0.6.19 둘째 커밋 -- 상위 gain-budget v6.38.2 넷째 커밋, bin 경계 선언 키 확장 (2026-10-28)
+
+* 근거: 상위 독립 검증 3(`wt/_drafts/evidence/2026-10-28/plan_v6382_validation3.md`) V3-1 -- ngspice-46 실측에서 경계값 bin 소속이 호환 모드에 따라 뒤집힘(기본 모드 아래 bin, `ngbehavior=hsa` 위 bin); 상위 오케스트레이터 판정 '정본 = (시뮬레이터 판, 호환 모드, 모델 sha256) 선언 하나, OP-7을 넓힘'. V3-9 -- N3 표 `power_dc_w` 행이 DEC-78 개정 전 문언. 새 사용자 결정 아님(상위 DEC-105 (2)·DEC-78의 전파).
+* 바꾼 것: OP-7 선언 키에 호환 모드, 근거 칸 묶음에 호환 모드, 읽는 자리(LUT 생성·엔진 bin 판정·오라클 실행 설정·상위 CPG-1 bench); N3 표 `power_dc_w` 행 정의. 옛 문장: (1) «엔진 bin 경계 규칙 = LUT 생성 실행에 묶은 선언(D-4).» (2) «근거 칸은 모델 파일 sha256 + 시뮬레이터 판에 묶는다» (3) «엔진 DEC-78: Σ_레일 V_레일 · I_레일(DC 정지 전류, 레일별 값도 기록)»
