@@ -14,7 +14,7 @@ version: 0.6.2
 > 3. **SPICE 온도 보정 루프**(v0.5, T-29~T-32): 엔진 탐색은 LUT 한 조건 그대로 두고, offset·trim 잔여의 합격은 SPICE 오라클이 선언 온도 범위에서 판정한다. 불합격이면 오라클이 잰 metric별 방향 여유 Δ_T(측정 기록)로 다음 변형의 제약 문턱을 조여 같은 실행 계획 안에서 다시 돈다(D-24 안 B). 범위 판정과 루프는 오라클 능력 기록이 확인된 (PDK, 시뮬레이터) 조합에서만 동작한다. 아니면 fail-closed다. 능력 확인 절차는 oracle-portability 계획(T-33)이 소유한다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: **v0.6.2 -- 상위 gain-budget v6.38.3 열두째 커밋(사용자 대원칙 O-169) 판정 W 행·`offset_sys_mv` 행 재작성(상위 N6.35 E-05·U-108: 커널에서도 V_id* 성분 (1)(2)로 판정, front는 판정 W로 성분 (3)을 더해 재판정 -- 옛 '커널에서는 ΔW = 0이라 V_id* = 0' 삭제), **원래 취지와 다름 -- 승인 O-170**(상위 승인 표 #23), 승인됨(상위 사용자 O-170, 2026-10-29)**(승인 커밋 -- 상위 gain-budget v6.38.3 승인 O-170; 경위 history 승인 행)(2026-10-28, 브랜치 `plan/v6383`; 둘째 커밋 -- 상위 열셋째 커밋·상위 독립 검증 11 L-4: 판정 W 행 머리의 낡은 'DEC-74 front 전용 예외'를 상위 DEC-74·U-108(커널 + front 재판정)로; 경위 history 0.6.2 행) 이전 판: **v0.6.1 -- 승인됨(사용자 O-60 "병합 승인", 2026-10-20, `wt/_drafts/user_decisions.md` O-60 행). O-58·O-59 후속 정정**(2026-10-20, 브랜치 `plan/offset-trim-v061`(승인·병합됨 O-60, 최종 머리 `2ca73b7b`), base master `2e707d5d` = v0.6 승인본; 사용자 결정 O-59 (4) DV-13 -- `wt/_drafts/user_decisions.md` O-59 행; 근거 `wt/_drafts/evidence/2026-10-20/o59_plans_revalidation.md` §6 '다른 계획 후속 정정 행'; 상위 정본 gain-budget v6.21 `plan/gb-v621` `54a3a328` DEC-23 '이동의 기준점'(223행) -- 인용은 절 이름, 해시는 병합 뒤 맞춤(승인·병합됨 O-60, 최종 머리 `54a3a328`)). 내용: DEC-23 V_id* 인용 세 자리(N2 O-53 행, `offset_sys_mv` 행, matching 유도 제약 행)에 기준점 V_id,0 인용, 온도 조건 V_id*(T)의 기준점 확인. 경위 history 0.6.1 행. 이전 판: **v0.6 -- 승인됨(사용자 O-57 "병합 승인", 2026-10-20, `wt/_drafts/user_decisions.md` O-57 행; 독립 최종 diff 재확인 '병합 가능'). O-53·정합 감사 반영**(2026-10-20). 근거: 사용자 결정 O-53(2026-10-20 "권고대로 진행해", `wt/_drafts/user_decisions.md` O-53 행 -- A2·A3·B1·B2·B3)과 O-23~O-52(특히 O-34, O-44, O-45 U3, O-46·O-47·O-50 G1), 정합 감사 요약 `wt/_drafts/evidence/2026-10-20/offset_audit_summary.md`(이 계획 몫 A1·A3·A4·A5·B1~B5·C2·D1~D4·E1~E3). 정본 인용(다시 정의하지 않음): gain-budget v6.20(`plan/gb-v620` `f2579b2f` -- DEC-23, DEC-74, DEC-90, N3.8, LR6, N6.1, N6.3, N6.18 VB-1, N6.20 EO-1), oracle-portability v0.6.10(`plan/oracle-v0610` `64687b21` -- G-18, OP-3, OP-5, OP-6, PC-10, N3.9), offset-strategy v0.7(`plan/offset-strategy-v07` `5f99a49a` -- N3.3, matching 합성 제약 판정 위치 O-53 A2의 정본), headroom-chain v0.7.7(`plan/headroom-v077` `64c115ba` -- HC-O intended_region 칸). 전체 정합 검증 4차(`wt/_drafts/evidence/2026-10-20/full_audit4_summary.md`)와 사용자 결정 O-54·O-55를 같은 판에 반영했다. 직전 승인판은 v0.5.5(T-29~T-38)·v0.5.6(T-39)이고, 그 상태 문장은 history H1 '2026-10-20' 절로 옮겼다. 근거는 사용자 결정 T-1~T-39, O-23~O-53, offset-strategy S-1~S-12와 원문 7편(N8)이다.
+> **Status**: **v0.6.2 (v6.38.4 열넷째 커밋 백로그 재감사 반영 -- 삭제 7·배정 4·질문 0, 검증 대기) -- 상위 gain-budget v6.38.3 열두째 커밋(사용자 대원칙 O-169) 판정 W 행·`offset_sys_mv` 행 재작성(상위 N6.35 E-05·U-108: 커널에서도 V_id* 성분 (1)(2)로 판정, front는 판정 W로 성분 (3)을 더해 재판정 -- 옛 '커널에서는 ΔW = 0이라 V_id* = 0' 삭제), **원래 취지와 다름 -- 승인 O-170**(상위 승인 표 #23), 승인됨(상위 사용자 O-170, 2026-10-29)**(승인 커밋 -- 상위 gain-budget v6.38.3 승인 O-170; 경위 history 승인 행)(2026-10-28, 브랜치 `plan/v6383`; 둘째 커밋 -- 상위 열셋째 커밋·상위 독립 검증 11 L-4: 판정 W 행 머리의 낡은 'DEC-74 front 전용 예외'를 상위 DEC-74·U-108(커널 + front 재판정)로; 경위 history 0.6.2 행) 이전 판: **v0.6.1 -- 승인됨(사용자 O-60 "병합 승인", 2026-10-20, `wt/_drafts/user_decisions.md` O-60 행). O-58·O-59 후속 정정**(2026-10-20, 브랜치 `plan/offset-trim-v061`(승인·병합됨 O-60, 최종 머리 `2ca73b7b`), base master `2e707d5d` = v0.6 승인본; 사용자 결정 O-59 (4) DV-13 -- `wt/_drafts/user_decisions.md` O-59 행; 근거 `wt/_drafts/evidence/2026-10-20/o59_plans_revalidation.md` §6 '다른 계획 후속 정정 행'; 상위 정본 gain-budget v6.21 `plan/gb-v621` `54a3a328` DEC-23 '이동의 기준점'(223행) -- 인용은 절 이름, 해시는 병합 뒤 맞춤(승인·병합됨 O-60, 최종 머리 `54a3a328`)). 내용: DEC-23 V_id* 인용 세 자리(N2 O-53 행, `offset_sys_mv` 행, matching 유도 제약 행)에 기준점 V_id,0 인용, 온도 조건 V_id*(T)의 기준점 확인. 경위 history 0.6.1 행. 이전 판: **v0.6 -- 승인됨(사용자 O-57 "병합 승인", 2026-10-20, `wt/_drafts/user_decisions.md` O-57 행; 독립 최종 diff 재확인 '병합 가능'). O-53·정합 감사 반영**(2026-10-20). 근거: 사용자 결정 O-53(2026-10-20 "권고대로 진행해", `wt/_drafts/user_decisions.md` O-53 행 -- A2·A3·B1·B2·B3)과 O-23~O-52(특히 O-34, O-44, O-45 U3, O-46·O-47·O-50 G1), 정합 감사 요약 `wt/_drafts/evidence/2026-10-20/offset_audit_summary.md`(이 계획 몫 A1·A3·A4·A5·B1~B5·C2·D1~D4·E1~E3). 정본 인용(다시 정의하지 않음): gain-budget v6.20(`plan/gb-v620` `f2579b2f` -- DEC-23, DEC-74, DEC-90, N3.8, LR6, N6.1, N6.3, N6.18 VB-1, N6.20 EO-1), oracle-portability v0.6.10(`plan/oracle-v0610` `64687b21` -- G-18, OP-3, OP-5, OP-6, PC-10, N3.9), offset-strategy v0.7(`plan/offset-strategy-v07` `5f99a49a` -- N3.3, matching 합성 제약 판정 위치 O-53 A2의 정본), headroom-chain v0.7.7(`plan/headroom-v077` `64c115ba` -- HC-O intended_region 칸). 전체 정합 검증 4차(`wt/_drafts/evidence/2026-10-20/full_audit4_summary.md`)와 사용자 결정 O-54·O-55를 같은 판에 반영했다. 직전 승인판은 v0.5.5(T-29~T-38)·v0.5.6(T-39)이고, 그 상태 문장은 history H1 '2026-10-20' 절로 옮겼다. 근거는 사용자 결정 T-1~T-39, O-23~O-53, offset-strategy S-1~S-12와 원문 7편(N8)이다.
 > **이력**: 경위, 제안 원문 요지, 원문 검토 기록, 검증 반영 기록, 버전 이력은 [offset-trim.history.md](offset-trim.history.md)에 있다.
 > **상위 계획**: [gain-budget-gmid-sizing.plan.md](gain-budget-gmid-sizing.plan.md). 이 계획은 상위 계획의 원칙(N1.4 NFR, N2 결정)을 그대로 따른다. 충돌하면 상위 계획이 이기고, 충돌은 N7에 올린다.
 
@@ -524,7 +524,7 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 
 **공통 착수 조건**:
 * T-4 순서를 지킨다(NFR-4 card 2 → XRUN-F1 A·B·C 병합 뒤). 그 뒤 순서는 offset-strategy S-4와 그 계획 v0.5의 card 이름대로 **… → XRUN-F1 C → OS-2(실행 계획 구현) → TR-1**이다.
-* **순서 정본과 선행 규칙**(v0.6, 감사 D1·D2·D3·D4): card 순서의 유일한 정본은 gain-budget N6.1이다. 이 표는 이 계획 card의 선행 관계만 적는다. gain-budget N6.1에 이 계획 card 행(또는 다른 계획 card 인용 규칙)을 두는 일은 gain-budget 쪽 개정 몫이다(N7.4 후속).
+* **순서 정본과 선행 규칙**(v0.6, 감사 D1·D2·D3·D4): card 순서의 유일한 정본은 gain-budget N6.1이다. 이 표는 이 계획 card의 선행 관계만 적는다. gain-budget N6.1은 'offset-trim TR-* 전부' 행(다른 계획 card 인용 규칙)으로 이 계획 card를 인용한다(옛 'gain-budget 쪽 개정 몫(N7.4 후속)' -- v0.6.2 백로그 재감사 OT-B9로 닫음).
   * (a) 동작 변경 card(TR-2~TR-6, TR-7, TR-TL)의 **완료 판정**은 EO-1(gain-budget N6.20) 완료 판정 뒤다. 병합 선행이 아니다(gain-budget N6.3 보류 다리 규칙).
   * (b) 오라클 판정 선행 = OP-3·OP-5, 그리고 MC·온도 판정은 OP-6 능력 기록(N3.9).
   * (c) 계통 offset의 엔진 `verified_by` 연결은 gain-budget VB-1(N6.18)이 선행이고, 이 계획은 다시 연결하지 않는다.
@@ -546,7 +546,7 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 | TR-5 | DAC 규칙(N3.4)의 I_u 유도, 보정 구간·잔여 제약과 metric, 코드 상태 intended_region 생성·대조와 끝 코드 봉인점 1차 감도 추정(N3.5, O-53 A3·B1 -- 균형 풀이 없음), 보정 구간 판정 W(N3.4, O-45 U3), 되돌림 사유 | TR-4 | D-1·D-3·D-16·D-17 |
 | TR-6 | offset spec 의미 전환(N3.6), `iv_matching_l` 변경 | TR-5 | D-4 |
 | TR-7 | 9회로 일반성 측정(N4 사유표), 선언 회로 E2E, SPICE 오라클 대조(코드 스윕·Monte-Carlo 잔여 분포), 온도 검증(N5.1: v0.5부터 trim 잔여는 범위 판정, 나머지는 보고) | TR-6, 오라클 확장(레인 P: 코드 입력·표본별 코드 선택·LUT와 따로 받는 온도 입력 -- OP-5 새 코어 위, 그 입력 칸은 EO-1 생산자를 G-18 + U-6 규칙으로 갱신해 낸다(감사 B4)), **외부 선행: OP-3·EO-1·OP-5와 OP-6 능력 기록(sky130)**(N3.9). 판정 = O-34 동작 변경 네 다리 + DEC-72 모델 오차 규칙(감사 B5, N6) | D-11, D-18 |
-| **TR-0T** (문서, v0.5) | design `offset-trim.design.md` 보완: §3.8(분해를 범위 판정·정지 판정에 씀, '27 °C' → T_j), §5.3(엔진 판정 온도는 그대로, 범위는 오라클), §10.6(문턱 = spec − Δ_T 합성. 옛 이름 `value_from_spec` 표기 정정, `verified_by`), §17(3번 판정 승격, 범위 판정·같은 seed 네이티브 MC 표본 정체 보존, 결정적 끝 표본은 범위 판정·Δ_T에서 빼고 진단만(G-14 닫힘, T-35), T_j 판정의 끝 표본 역할을 oracle-portability v0.4 O-1(결정적 섭동은 진단만)과 맞춤, §17-1에 '크기 일관'(선언 계수 대비 σ) 판정 이관, **§17-3·5의 T-14 숫자 표기를 spec 판정 온도 범위 선언 참조로 바꿈**(T-34)), 새 절(Δ_T 기록 형식·지문, 구동기·실행 중 변형 추가 서명·사유 코드, 능력 기록 의존 검사의 위치). G-9~G-13, G-15를 닫는다. 독립 검증과 사용자 승인 | 이 계획 v0.5.4 승인(T-29~T-37, 사용자 결정 모두 닫힘 -- 착수 가능). 능력 기록 형식은 oracle-portability v0.4.2(master `d579939`) design을 인용하고, 실행 계획 연결은 offset-strategy v0.6.1(master `194981f`)을 인용한다 | D-18~D-20, D-22, D-24, D-25, O-1, O-3~O-8, G-9~G-15 |
+| **TR-0T** (문서, v0.5) | design `offset-trim.design.md` 보완: §3.8(분해를 범위 판정·정지 판정에 씀, '27 °C' → T_j), §5.3(엔진 판정 온도는 그대로, 범위는 오라클), §10.6(문턱 = spec − Δ_T 합성. 옛 이름 `value_from_spec` 표기 정정, `verified_by`), §17(3번 판정 승격, 범위 판정·같은 seed 네이티브 MC 표본 정체 보존, 결정적 끝 표본은 범위 판정·Δ_T에서 빼고 진단만(G-14 닫힘, T-35), T_j 판정의 끝 표본 역할을 oracle-portability v0.4 O-1(결정적 섭동은 진단만)과 맞춤, §17-1에 '크기 일관'(선언 계수 대비 σ) 판정 이관, **§17-3·5의 T-14 숫자 표기를 spec 판정 온도 범위 선언 참조로 바꿈**(T-34)), 새 절(Δ_T 기록 형식·지문, 구동기·실행 중 변형 추가 서명·사유 코드, 능력 기록 의존 검사의 위치). G-9~G-13, G-15를 닫는다. 독립 검증과 사용자 승인. **(v0.6.2 백로그 재감사 OT-B3·B6·B10) design 개정 `plan_version` 0.6.2**: (1) G-12 '문턱 의존 블록 목록'에 상위 LA-1 역산 조립 블록을 넣고 L 하한은 상위 LR6 인용(사본 금지), G-1·G-6·G-15의 O-53 해소 문언 반영(OT-B3) (2) N7.5 design 후속 정정 여덟 행 반영 + 함수 레지스트리 §2 '고정 기하 DC 균형 풀이' 행 삭제(같은 변경, OT-B10) (3) Δ_T 측정 기록 형식을 상위 ME-1 design의 `model_error_<metric>` 기록 형식(DEC-72, 이름 DEC-68)과 같은 모양으로 인용 대조(OT-B6 -- ME-1 design 뒤; 새 순서 규칙 아님, TR-TL은 원래 ME-1 뒤). **완료 측정**: design↔계획 gap 0, design grep '균형 풀이'·'A_dm'·'V_sys,s'·`offset_systematic` 0(history 제외) | 이 계획 v0.5.4 승인(T-29~T-37, 사용자 결정 모두 닫힘 -- 착수 가능). 능력 기록 형식은 oracle-portability v0.4.2(master `d579939`) design을 인용하고, 실행 계획 연결은 offset-strategy v0.6.1(master `194981f`)을 인용한다 | D-18~D-20, D-22, D-24, D-25, O-1, O-3~O-8, G-9~G-15 |
 | **TR-TL** (보정 루프) | 범위 판정(N3.8.2), **Δ_T 입력 경로 배선(D-24 안 B)**: 구동기 → 다음 변형 제약 입력 → 제약 행 문턱(만들면 배선. spec 측정 선언 절은 범위 밖, DEC-72 몫), Δ_T 지문 대조(fail-closed, 주체 = 구동기, 원문 항목 처리는 D-25), 문턱 합성(엔진 쪽 제약 행), **오라클 V_id*(T) 측정**(matching, F-20a -- 측정 정의는 OP-5 `.dc` = PC-10, O-53 B3. 구동기가 오라클에 넘기는 입력(코드 벡터·표본별 코드·온도)은 EO-1 생산자 호출로 내고 확장 칸은 G-18 + U-6 규칙이다(감사 B4). 판정은 O-34 네 다리 + DEC-72(감사 B5). 소유 경계: T_j 한 조건의 matching 오라클 측정과 `verified_by`는 offset-strategy OS-V 소유이고, TR-TL은 그 측정을 판정 온도 범위의 온도 점으로 넓히는 몫만 맡는다), 불합격 몫 분해 정지(N3.8.4), 구동기(엔진 밖, 순차 실행)와 멈춤 규칙(N3.8.5), 기록(N3.8.6), 능력 기록 의존 거부(N3.9), 실행 계획 '실행 중 변형 추가' 연결(offset-strategy card OS-L과 같은 변경에서 병합). matching 쪽 적용은 offset-strategy OS-2 병합과 matching 유도 제약의 `verified_by`가 생긴 뒤 | **TR-7 뒤**(T-30), oracle-portability 승인·능력 기록, OS-2·**OS-V**(matching 쪽, S-11). 실행 중 변형 추가 인터페이스(OS-L)는 선행이 아니라 같은 변경 | D-18~D-20, D-22, D-24, D-25, O-1, O-3~O-8, G-9~G-15 |
 
 **완료 조건**(기능 전체):
@@ -608,9 +608,9 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 
 ## N7. 열린 항목
 
-### N7.1 사용자 결정 필요
+### N7.1 사용자 결정 (전부 승인·닫힘 -- 기록용)
 
-기본안은 원칙으로 정한 것이고 사용자가 바꿀 수 있다.
+(v0.6.2 백로그 재감사 OT-B1·B2) D-1~D-17은 계획 v0.4 승인 T-6으로 기본안 전부 승인됐다(D-16은 T-7로 변경 -- 행 안 표기, design `offset-trim.design.md` 55행). D-18~D-25는 행마다 닫혔다(T-34·T-35·T-36). 옛 표제·머리 문장은 history.
 
 | ID | 질문 | 기본안 |
 |---|---|---|
@@ -632,7 +632,7 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 | D-16 | 2단계 I_u를 하한(보정 구간 경계, 전력 최소)으로 둘지, 상한(잔여 경계)으로 둘지, θ로 둘지 | 하한. 상위 NFR-5와 전력 목적 축 때문이다(X-3) **→ 사용자 결정 T-7(2026-10-15 "TD-1은 θ안")로 변경: I_u는 θ 변수, 범위·잔여는 I_u 제약, 전력 최소화가 하한으로(design `offset-trim.design.md` §10.3, X-T14)** |
 | D-17 | 정상 동작점으로 쓸 중간 코드: δ = +I_u인가, −I_u인가, 둘 다인가 | +I_u 하나로 봉인하고, −I_u는 끝 코드와 함께 포화 검사만 한다 |
 
-**v0.5 사용자 결정 필요**(T-29~T-32 보완. 값·회로 해석·PDK 값은 사용자 몫):
+**v0.5 사용자 결정**(T-29~T-32 보완 -- D-18~D-25 행마다 닫힘(T-34·T-35·T-36), 기록용; v0.6.2 백로그 재감사 OT-B2):
 
 | ID | 질문 | 권고 |
 |---|---|---|
@@ -697,7 +697,7 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 
 | ID | 내용 | 상태 |
 |---|---|---|
-| X-17 | **원래 결정과 다름(사용자 승인됨 2026-10-16, T-29)**: offset·trim 잔여의 합격을 'TT 27 °C 한 조건'(상위 DEC-96 (3), 이 계획 T-5·T-6)에서 '오라클 범위 판정'으로 바꾼다. T-5의 고정 코드 온도 sweep(N5.1 3번)은 보고 전용에서 trim 잔여의 판정으로 올라간다. 엔진 판정과 탐색은 한 조건 그대로다. **상위 계획 DEC-96 (3) 문언 개정은 이 커밋에 없다**(N7.4 후속) | 승인됨 |
+| X-17 | **원래 결정과 다름(사용자 승인됨 2026-10-16, T-29)**: offset·trim 잔여의 합격을 'TT 27 °C 한 조건'(상위 DEC-96 (3), 이 계획 T-5·T-6)에서 '오라클 범위 판정'으로 바꾼다. T-5의 고정 코드 온도 sweep(N5.1 3번)은 보고 전용에서 trim 잔여의 판정으로 올라간다. 엔진 판정과 탐색은 한 조건 그대로다. **상위 계획 DEC-96 (3) 문언 개정은 이 커밋에 없다**(N7.4 후속; v0.6.2 백로그 재감사 OT-B4: 필요 -- 상위 v6.38.4에 예외 문장 반영 요청, 상위 DEC-96 grep 'T-29' ≥ 1 확인 뒤 닫음) | 승인됨 |
 | X-18 | **원래 결정과 다름(사용자 승인됨 2026-10-16, T-29)**: FR-T9 '단일 온도 trim 한계' 문구가 '다른 온도에서 V_res를 넘을 수 있다(보고)'에서 '잔여 합격은 범위 판정이 정한다'로 바뀐다. trim이 drift를 보정하지 않는다는 사실(Kay 2024 p.7)은 그대로이고, 남는 drift는 크기 여유(Δ_T)로 흡수한다 | 승인됨 |
 | X-19 | T-14는 '보고 전용' 범위로 정한 값이었다. 판정 범위로 쓰는 것은 사용자 결정 T-34로 확인됐다. 보고 sweep과 판정이 같은 spec 선언 하나를 참조한다 | **해소(T-34)** |
 | X-20 | **해석**: T-30 '(ii) 지배'를 '(i)·(iii)을 0으로 두어도 불합격'(O-3)으로 정의했다. 결정 원문에는 '지배'의 판정식이 없다. 세 몫 가운데 (ii)가 가장 크다는 식(argmax)도 가능하지만, 그 식은 (ii)가 가장 커도 (i)·(iii)을 줄여 합격할 수 있는 경우를 정지시킨다. O-3은 '크기 조정으로 닫을 수 없음'을 직접 유도한다 | **확정(T-35, 권고 정의)** |
@@ -732,15 +732,12 @@ design §3.8의 '27 °C'는 T_j로 읽는다.
 | O-8 | 판정 온도 범위는 T_j를 포함해야 한다. 아니면 범위 판정을 거부한다 | Δ_T의 기준점이 T_j다 |
 
 **후속(이 커밋 밖, 오케스트레이터)**:
-* 상위 계획 DEC-96 (3) 문언에 'offset·trim 잔여는 T-29 범위 판정' 예외를 더한다(X-17).
-* offset-strategy 계획 v0.5에 S-9 연결점(matching 문턱 = `offset_in_max_v` − Δ_T)이 들어 있는지 대조한다. D-24가 안 B로 정해졌으므로(T-35) '실행 중 변형 추가' 인터페이스를 그 계획 개정 항목으로 올린다(S-7 절차).
-* Δ_T 측정 기록의 모양을 상위 계획 DEC-72(모델 오차, 미구현) 기록 모양과 맞추는 것을 TR-0T design에서 상위 계획 소유자와 대조한다. spec 측정 선언 절은 DEC-72 몫이고 Δ_T 경로가 아니다.
-* (v0.6 갱신, 감사 D4) oracle-portability v0.6.10(`plan/oracle-v0610`) N3.5.1 대조표가 이 계획 N3.9-3 확인 항목을 담는지 대조한다. 6번(V_id*(T))은 PC-10 = OP-5 `.dc`(O-53 B3)로 맞춘다. 그 계획 N3.9 `offset_sys_mv` 행의 'PC-10과 같은 기준인지' 미결 문장은 O-53 B3으로 닫혔음을 알린다(옛 문장 'oracle-portability 계획(초안, oport-plan)'은 history).
+* 상위 계획 DEC-96 (3) 문언에 'offset·trim 잔여는 T-29 범위 판정' 예외를 더한다(X-17). (v0.6.2 백로그 재감사 OT-B4: 상위 반영 필요 목록에 올림, 상위 반영 확인 뒤 닫음.)
+* (→ Δ_T 측정 기록 모양 대조는 TR-0T 범위로 옮김 -- v0.6.2 백로그 재감사 OT-B6, 원문 history.)
 * (v0.6, 감사 D1·O-53 B3 -- **해소**) gain-budget N6.1의 offset card 행·인용 규칙과 DEC-23 기준 종류 셋(값·넷·입력 추종)은 gain-budget v6.20 `768f6ca1`이 넣었다(감사 4차, 이 계획 쪽 남은 일 없음).
-* (v0.6, O-53 B1) intended_region `off` 칸: 엔진 봉인 9(선언 triode 밖 ID ≤ 0 거부, O-52 확인 2)와 oracle G-18 스키마가 `off` 선언을 같은 칸으로 받는지를 gain-budget(EO-1 범위 4)·oracle-portability(G-18)·headroom-chain(HC-O intended_region 칸, `plan/headroom-v077` `64c115ba`)과 대조한다.
 * (v0.6) design `offset-trim.design.md` 후속 정정 목록은 N7.5다.
 
-### N7.5 design 후속 정정 목록(v0.6 -- 이 커밋에서 design은 고치지 않는다)
+### N7.5 design 후속 정정 목록(v0.6 -- 이 커밋에서 design은 고치지 않는다; → card TR-0T design 개정 범위, v0.6.2 백로그 재감사 OT-B10)
 
 design 개정은 TR-0T 범위다(S-7: 계획 → design). 줄 번호는 master `9401e98f`의 `docs/02-design/features/offset-trim.design.md`다.
 

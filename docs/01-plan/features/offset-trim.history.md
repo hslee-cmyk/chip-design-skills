@@ -186,6 +186,7 @@ date: 2026-10-15
 | 0.6.2 | 2026-10-28 | 상위 gain-budget v6.38.3 열두째 커밋(사용자 대원칙 O-169, 상위 결정 재검토 `wt/_drafts/evidence/2026-10-28/decision_rereview_o169.md` #23·E-05) 후속 재작성, 검증 대기, **원래 취지와 다름 -- 사용자 정책 결정 필요**(상위 승인 표 #23): N3.4 판정 W 행·`offset_sys_mv` 행을 상위 DEC-74·U-108대로(커널 = 성분 (1)(2), front = 판정 W로 성분 (3) 더해 재판정). 옛 문언: 커널(θ 프레임 봉인점)에서는 ΔW = 0이라 V_id* = 0이고(DEC-23 'ΔW = 0이면 0'), front 점에서 판정 W(단위 9 전 sizing W)로 \¦V_id*\¦를 넣어 다시 판정하며 ／ ¦ 상한 = 랜덤 예산(DEC-23), 판정 위치 = DEC-74 front 예외 ¦ |
 | 0.6.2 (둘째 커밋) | 2026-10-28 | 상위 gain-budget v6.38.3 열셋째 커밋(상위 독립 검증 11 L-4) 후속 정정, 검증 대기: N3.4 판정 W 행 머리의 'DEC-74 front 전용 예외를 따른다'를 같은 행 본문(커널 성분 (1)(2) + front 판정 W 재판정)과 상위 U-108에 맞춤. 옛 문언: ¦ 판정 W ¦ 보정 구간 판정의 V_id*는 gain-budget DEC-23·DEC-74 front 전용 예외를 따른다. 커널(θ 프레임 봉인점)에서는 판정 W = θ 유도  |
 | 0.6.2 (승인) | 2026-10-29 | 상위 gain-budget v6.38.3 승인(상위 사용자 결정 O-170(2026-10-29, AskUserQuestion 네 항목 모두 "(권고)", `_drafts/user_decisions.md` O-170 행; 승인 범위 `wt/_drafts/evidence/2026-10-28/plan_v6383_approval_items.md` 39행 기본안, 근거 독립 검증 1~19 `evidence/2026-10-28/plan_v6383_validation{1..19}.md`)): Status '검증 대기' → '승인됨(O-170)'; 승인 대기·정책 결정 표지 → '승인 O-170'. 규칙 변경 없음. |
+| 0.6.2 (셋째 커밋) | 2026-10-29 | 2026-10-29 상위 v6.38.4 열넷째 커밋 백로그 재감사 `wt/_drafts/evidence/2026-10-29/backlog_reaudit.md`(하위 판정 `wt/_drafts/evidence/2026-10-29/backlog_reaudit_parts/D_subplans.md` D5) 반영, 검증 대기: 삭제 7(OT-B1 N7.1 표제 기록용으로·B2 v0.5 결정 표제·B5 후속 2·B7 후속 4(oracle OP-B13 중복)·B8 후속 5·B9 N6.1 인용 규칙 닫음·B11 T-32 할 일 문장 없음 확인), 배정 4(OT-B3·B6·B10 → TR-0T design 개정 plan_version 0.6.2·B4 X-17 → 상위 DEC-96 (3) 예외 문장 상위 반영 필요), 질문 0. 원문 보존 = 아래 절 'v0.6.2 셋째 커밋 -- 백로그 재감사 원문 보존'. 옛 Status 머리: «> **Status**: **v0.6.2 -- » |
 
 
 ## 승인 마무리 (2026-10-16)
@@ -228,3 +229,16 @@ date: 2026-10-15
 
 - F-1(원문): `offset_analysis`는 회로의 모든 MOS에 대해 σ²_in = Σ_i (Z_i·gm_i·σ_VGS,i)² / A_dm²를 계산한다. Z_i = z[s_i] − z[d_i]. z는 수반 풀이 한 번(LU 한 번)으로 얻는다. A_dm = sense·volt이고 부호를 포함한다(`gain_ss_db`의 T(0)와 같은 양). `offset_excess` = √(전체 분산 / 입력 셀 분산). 근거 `E/metrics/offset_analysis.py:6-8, :56, :71, :74, :81-84, :91`.
 - F-23(원문): 모델 오차는 함수만 있고 spec 경로는 구현·배선되지 않았다. spec 최상위 키는 `meta`·`human` 둘뿐이라 `derived` 절은 거부된다. `model_error_pairs`를 부르는 곳은 test뿐이다. `build_search_context(model_error=)`에 값을 넘기는 호출부가 없다(44곳 모두 기본값 ()). 상위 DEC-72 '미구현'. 있는 것은 `model_error_pairs`, S0 블록 `model_error_field`, `ss_constraint_rows(model_error=)` 분해능 바닥 자리. 정본 참조 형태는 `value_from_model_error`, `value_from_spec`은 옛 이름이라 로더가 거부한다. 근거 `E/authoring/spec_schema.py:21`, `E/authoring/_spec_fields.py:30-35`, `E/metrics/model_error.py:1-27`, `E/metrics/model_error_field.py:1-18`, `E/search/search_context.py:199-212`, `E/search/ss_constraints.py:4-8, :62`, `E/tests/metrics/test_model_error.py`.
+
+## v0.6.2 셋째 커밋 -- 백로그 재감사 원문 보존 (2026-10-29)
+
+근거: 2026-10-29 상위 v6.38.4 열넷째 커밋 백로그 재감사 `wt/_drafts/evidence/2026-10-29/backlog_reaudit.md`, 하위 판정 `wt/_drafts/evidence/2026-10-29/backlog_reaudit_parts/D_subplans.md` D5(OT-B1~OT-B11). 판정 기호: 삭제(a) 이미 닫힘, (c) 원칙상 불필요. 표 구분자 `|`는 `¦`로 바꿔 적는다.
+
+* OT-B1 삭제(a) -- N7.1 표제·머리 문장 옛 문언: «### N7.1 사용자 결정 필요 /  / 기본안은 원칙으로 정한 것이고 사용자가 바꿀 수 있다.»
+* OT-B2 삭제(a) -- v0.5 결정 표제 옛 문언: «**v0.5 사용자 결정 필요**(T-29~T-32 보완. 값·회로 해석·PDK 값은 사용자 몫):»
+* OT-B9 삭제(a) -- N5 순서 정본 문장 옛 문언: «gain-budget N6.1에 이 계획 card 행(또는 다른 계획 card 인용 규칙)을 두는 일은 gain-budget 쪽 개정 몫이다(N7.4 후속).»
+* OT-B5 삭제(a) -- N7.4 후속 2 원문(offset-strategy N3.12·card OS-L로 닫힘): «* offset-strategy 계획 v0.5에 S-9 연결점(matching 문턱 = `offset_in_max_v` − Δ_T)이 들어 있는지 대조한다. D-24가 안 B로 정해졌으므로(T-35) '실행 중 변형 추가' 인터페이스를 그 계획 개정 항목으로 올린다(S-7 절차).»
+* OT-B6 배정 -- N7.4 후속 3 원문(TR-0T로): «* Δ_T 측정 기록의 모양을 상위 계획 DEC-72(모델 오차, 미구현) 기록 모양과 맞추는 것을 TR-0T design에서 상위 계획 소유자와 대조한다. spec 측정 선언 절은 DEC-72 몫이고 Δ_T 경로가 아니다.»
+* OT-B7 삭제(중복) -- N7.4 후속 4 원문(oracle-portability OP-B13 -- OP-0 design 개정의 N3.5.1 재대조 하나로): «* (v0.6 갱신, 감사 D4) oracle-portability v0.6.10(`plan/oracle-v0610`) N3.5.1 대조표가 이 계획 N3.9-3 확인 항목을 담는지 대조한다. 6번(V_id*(T))은 PC-10 = OP-5 `.dc`(O-53 B3)로 맞춘다. 그 계획 N3.9 `offset_sys_mv` 행의 'PC-10과 같은 기준인지' 미결 문장은 O-53 B3으로 닫혔음을 알린다(옛 문장 'oracle-portability 계획(초안, oport-plan)'은 history).»
+* OT-B8 삭제(a) -- N7.4 후속 5 원문(상위 후속 정정 표가 같은 칸 {triode, off}로 정함): «* (v0.6, O-53 B1) intended_region `off` 칸: 엔진 봉인 9(선언 triode 밖 ID ≤ 0 거부, O-52 확인 2)와 oracle G-18 스키마가 `off` 선언을 같은 칸으로 받는지를 gain-budget(EO-1 범위 4)·oracle-portability(G-18)·headroom-chain(HC-O intended_region 칸, `plan/headroom-v077` `64c115ba`)과 대조한다.»
+* OT-B11 삭제(c) -- T-32 'GBW·PM 등 코너 확장은 나중'은 사용자 범위 결정 기록이고 할 일 문장이 아님을 확인, 계획 문언 변경 없음.
