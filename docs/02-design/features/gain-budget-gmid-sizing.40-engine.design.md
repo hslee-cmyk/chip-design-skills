@@ -565,6 +565,9 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 | 제약 행(`EvalResult.constraints`) | `graph/metrics: constraint_rows` | search 제약 블록. **U17 단계 ②로 이월**(①-c 범위 밖). 미측정(`EvalResult.unmeasured`) 값의 자리는 미정 -- ② design 보완 때 정한다(§2.4.12 Q8) | S2 |
 | 레이아웃 결과(`LayoutResult` 값들, 별도 lineage) | S2 `layout` 필드(as-built `E/layout/_ly_fields.py` 필드 이름 그대로) | MOD7 블록 | S2 |
 | 레이아웃 보존량 점(v1.11.2, 사용자 결정 O-24 2026-10-19 "1번 권고대로" (가) -- 옛 as-built: `run_layout`이 블록 밖에서 `(kind, L, ID, gm/ID, VDS, VSB)`를 입력 버전으로 삼아 `ly_slices`를 직접 썼고, card B 중간안은 같은 점을 블록 추가 인자로 넘겼다(정본 우회)) | `device: ly_point` = 소자별 `ConservedPoint(kind, L_m, ID_A, gm_id, vds_V, vsb_V)`(`E/layout/contract_output.py`) -- 보존량·동작점만, 참고 W는 넣지 않는다(W만 바뀌면 값이 같아 슬라이스를 다시 조회하지 않는다) | `ly_input`(입력 필드, `LayoutInput`을 풀어 쓴다 -- as-built `E/layout/run.py:50-59` `_input_columns`, role/code/xrunf1b 9d4b28b8에서 신설·c3c50f14 그대로; v1.11.2 O-39 (1) 뒤 `ly_input`은 `LayoutDevice`를 겹치지 않는 네 필드 `ly_point`·`ly_pins`·`ly_w_adjustable`·`ly_attrs`로 나눠 쓰고 `ly_device`는 없다 -- 아래 '`ly_device` 삭제' 행). 칸별 소비자: `kind`·`L_m` = `ly_slice_density`·`ly_canonical_naming`·`ly_pattern_select`·`ly_rows`·`layout_outputs`, `gm_id` = `ly_slice_density`·`ly_canonical_naming`·`ly_finger_candidates`·`layout_outputs`, `ID_A`·`vds_V`·`vsb_V` = `ly_slice_density`·`ly_canonical_naming`·`layout_outputs`(`RealizedDevice`, `E/layout/outputs.py:77-79`). 소자 이름 목록(열의 key)은 이 필드에서 읽는다: `layout_outputs`(:45·:58·:65·:80)와 `convergence.effective_placement`(`E/convergence/effective_placement.py:29`, 이름만 -- 공개 export `F_POINT`로). **사본 부채(사용자 결정 O-27 2026-10-19 "권고대로", 원래 취지와 다름 -- 후속 card까지 잔존)**: `ly_point`와 `LayoutInput` 동작점은 `device: dc_op`(`E/sizing/s2_values.py:381-396`)의 두 단계 사본이다(`dc_op` → `LayoutInput` → `ly_point`). GC-1 부채 목록에 card id를 붙여 등록하고 늘리지 않는다(card id = gain-budget 계획 v6.18 후속 card LI-1). O-39 (1)로 card B는 새 사본을 만들지 않는다(네 필드는 `LayoutDevice` 칸을 나눈 것이라 서로 겹치지 않고, 옛 `ly_point`↔`ly_device` 중복도 없어진다). `ly_input`은 `snapshot.write`로 직접 쓰는 입력 필드라 G-10 계수 밖이다. **LI-1('layout 입력 정본화')에 남는 일**: layout이 봉인 스냅샷의 정본 필드를 직접 READS로 읽어 `LayoutInput` 소자 칸과 네 입력 필드를 1:1로 옮긴다 -- `ly_point` ← `dc_op`, `ly_pins`·`ly_attrs`의 `body`·`diode` ← S1 `device: pins`·`bulk`·`is_diode`, `ly_w_adjustable` ← `dc_coord` writer 역할(쓰기 소자), 참고 `W_m` ← 그 정본(LI-1 design에서 필드 확인). 선결 과제: S1 `pins` 값은 `(("d", 넷), ...)` tuple이라 정준 별칭 번역(`Canon._walk`)이 단자 표지 문자열을 넷·소자 이름으로 잘못 바꿀 위험이 있다(아래 `ly_pins` 행) -- LI-1이 먼저 막는다. 그 밖에 자리표시자 설계점 test 도구, layout W_min 검사(슬라이스 W_need < W_min이면 그 슬라이스 불사용·`w_request`·기록, fail-closed). 옛 LI-1 항목 중 '세 블록 READS 좁히기'·`staged_snapshot` 수정은 O-36 (3) (a)로 card B에 들어왔고, '정준 이름 W 표지를 보존량으로'는 O-36 (3) (c)로 폐기되었다 | S2 |
+| 레이아웃 전 손가락 기하(v1.15.1 신설 -- 계획 v6.38.2 DEC-105 (2)·card WB-1 범위 2a, U-130 승인 O-166; 옛 자리: 엔진 없음, 판정 도구 관례 `m = max(1, round(W/5 µm))` -- `wt/_cmp_pilot/judge/eng2spice.py:3`) | `device: dc_finger` = `FingerGeom(m, w_f_m)`(§3.7-A 3) | DC 블록 `dc_solve`(`DeviceOp.W`와 같은 writer) | S2 |
+| 저항 강하 전류 `dc_drop_current`(v1.15.1 삭제 -- §3.7-A 10·11: `dc_current`의 저항 항과 같은 정의의 둘째 필드, 노드 블록 분할이 없어져 근거 소멸) | 없음 -- DC 블록·`fd_jacobian`이 `device: dc_current` 저항 항을 읽는다 | -- | -- |
+| 평가 커널 폭 슬라이스(`LutAccess.w_keys`, kind당 하나 -- v1.15.1 삭제, §3.7-A 7) | 없음 -- 슬라이스는 DC 블록 안 값, 기록 = `dc_op.w_key`(참조 키, graph 규칙 4) | -- | -- |
 | 폭 슬라이스별 보존량 실현(`slice_density`) | `device: ly_slices` | 정식 `@compute_block` `ly_slice_density`(v1.11.2, 사용자 결정 O-19 (1) -- writer 이름 그대로, READS device `ly_point`·graph `ly_pdk`(PDK 폭 키는 `ly_pdk`에서 읽는다), WRITES device `ly_slices`, block_version·S3 색인·`RunCounters`·G-10 계수 안). 폭 키 = `projection.value(GRAPH, GRAPH_KEY, F_PDK).slice_width_keys`(같은 값을 추가 인자로 한 번 더 넘기지 않는다 -- 두 경로 금지). 추가 인자는 graph 밖 허용 입력인 LUT memo 하나뿐이다: `_LutHandle(memo)`, 지문(`__canonical__`) = `memo.lut.fp`(memo 상태는 들지 않는다 -- §2.4.6). LUT와 폭 키의 짝은 `run_layout` 입구 검사(`memo.lut.fp` ≠ `pdk.source_fp`면 `ValueError`)가 지킨다. as-built role/code/xrunf1b c3c50f14: `E/layout/run.py:62-85`(`_LutHandle`·`_slice_block`, READS 선언 :74), 호출 `E/layout/run.py:110`, 계약 `E/layout/CONTRACT.md` §4.12 3. 블록 순서 `ly_slice_density` → `ly_canonical_naming`(v1.11.2 O-36 (3), 아래 정준 별칭표 행) → `ly_finger_candidates` → `ly_pattern_select` → `ly_finger_geometry` → `ly_rows`(코드 고정) | S2 |
 | `ly_device` 삭제(v1.11.2, 사용자 결정 O-39 (1) 2026-10-19 "권고대로" (b) -- 공개 필드 계약 변경 승인. 옛: `device: ly_device` = 소자별 `LayoutDevice` 통째, 2단계 입력 필드) | 필드 없음. 계약 입력 클래스 `LayoutDevice`(`LayoutInput.devices`)는 그대로 남고, `ly_input`이 그 칸을 겹치지 않게 나눈다: `kind`·`L_m`·`ID_A`·`gm_id`·`vds_V`·`vsb_V` → `ly_point`, `drain`·`gate`·`source` → `ly_pins`, `W_adjustable` → `ly_w_adjustable`, `W_m`·`body`·`diode` → `ly_attrs`, `name` = 네 필드의 열 key. 칸 하나는 필드 하나에만 든다(사본 0) | 옛 소비자를 같은 변경에서 모두 새 필드로 옮긴다: `ly_canonical_naming`(네 필드), `ly_finger_candidates`·`ly_pattern_select`·`ly_rows`(아래 '세 블록 READS' 행), `layout_outputs`(`ly_point`·`ly_attrs`, 실제 읽는 칸 `kind`·`ID_A`·`gm_id`·`L_m`·`vds_V`·`vsb_V`·`diode`·`W_m`, `E/layout/outputs.py:58·70·75·77-79`), `convergence.effective_placement`(:29, 이름만 → `ly_point` 열 key), 공개 export `F_DEVICE`(`E/layout/__init__.py:5·27·37` → `F_POINT`), `E/convergence/CONTRACT.md:59·63`, `E/layout/CONTRACT.md`(:209·280·287·415·452·456·464). test 쪽(test 작성 주체 몫): `tests/layout/test_run.py:408`(`ly_device` 값의 `W_m` 단언 → `ly_attrs` 값의 `W_m`), `tests/layout/conftest.py:323`, `tests/layout/test_outputs.py:87`, `tests/layout/test_contract_input.py:21-36`(공개 필드 이름 표), `tests/convergence/conftest.py:24·75`, `tests/convergence/test_converge_point.py:323`. 옛 서술(v1.11.2 초안: `ly_device`는 `W_m`을 가진 채 유지, 읽기 = `layout_outputs`·정준 이름 블록)은 O-39 (1)로 대체 -- 옛 문장은 계획 history | S2 |
 | 레이아웃 소자 부가 칸(v1.11.2, 사용자 결정 O-39 (1)) | `device: ly_attrs` = 소자별 `DeviceAttrs(W_m, body, diode)`(새 frozen dataclass, `E/layout/contract_output.py`). `W_m`은 보존량이 아니라 sizing 참고 W(파생값 W = ID/(ID/W)(gm/ID, L, VDS, VSB), O-24). 이름 충돌 grep(`ly_attrs`·`DeviceAttrs`·`F_ATTRS`, 엔진·tests·docs, 2026-10-19 c3c50f14) 0 | `ly_input`. 칸별 소비자: `W_m` = `ly_canonical_naming`(W 표지 `("W", W_m)`, as-built `canonical_naming.py:55`)·`layout_outputs`(`DeviceLayout.W_m`·`WRequest`, `outputs.py:58·70·75`), `body` = `ly_canonical_naming`(정준 그래프의 bulk 넷, as-built `canonical_naming.py:28·34`), `diode` = `ly_canonical_naming`(`is_diode`, :32)·`layout_outputs`(`RealizedDevice` `not d.diode`, `outputs.py:78`). W만 바뀌면 이 필드만 바뀐다 -- 그래서 `W_m` 변경은 `ly_canonical_naming`과 출력 파생만 다시 만든다 | S2 |
@@ -1021,6 +1024,10 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력 
 
 **heldout 형식 이관·oracle 이름 맞춤**(범위 7, n6 -- 형식 변경만, 판단 근거로 쓰지 않음): `assets/heldout/erfc_ota.sizing_spec.json`·`rfc_ota.sizing_spec.json`의 `driving_spec.slew_rate_v_per_s`를 `{"metric": "slew_rate_v_per_s", "op": ">=", ...}` 항목으로 옮긴다(값·source 그대로). oracle 스키마 `tools/spice_oracle/oracle_input.schema.json:133`·`oracle_compare.py:30, :85`(`TRANSIENT_MEASURES`)의 슬루 이름을 `slew_rise_v_per_s`·`slew_fall_v_per_s`와 맞춘다.
 
+**공급 전류 레일 선언 `counted_rails`**(v1.15.1 -- 계획 v6.38.2 DEC-105 (9)·card SF-1 범위 8, 사용자 결정 2026-10-14 N12): 선택 섹션 `human.counted_rails` = `{"nets": [<공급 넷>, ...], "source": {"kind": "user_spec", "record": ..., "decided": ...}}`(record·decided 필수, 기본값 없음 -- DEC-78 유지). 로더 거부(fail-closed): 공급 넷(`supplies`) 밖 넷 `counted_rails_net`, 중복 `counted_rails_duplicate`, 레일 전부 선언(KCL로 합 0) `counted_rails_all_rails`. `supply_current_dc` 제약이 있는데 선언이 없으면 실행 전 보류 정지(`counted_rails_undeclared` -- as-built는 `not_computed`로 지나감, red). 결과 `SizingSpecDoc.counted_rails`(spec 입력 -- S0 참조, 사본 아님). **읽는 쪽(새 자리 0)**: 기존 `metrics_dc` extras `counted_rails`(`E/metrics/dc_metrics.py:4·:95`)와 탐색 `counted_rails_undeclared` 갈래(`E/search/objectives.py`)가 이 선언 하나를 읽고, 전력 축 `power_dc_w`(`E/metrics/supply.py`)도 선언이 있으면 그 레일 집합의 Σ V·I, 없으면 지금 DEC-78(공급 레일 전부) 그대로다(미선언 갈래 = 계획의 오케스트레이터 원칙 기본안). oracle 입력(card EO-1 생산자)에 셈하는 레일 집합 칸 하나를 싣는다(writer = spec 로더, EO-1·oracle OP-11은 READS). 선언 레일이 둘 이상인 첫 data 커밋 전에 oracle `supply_current_A` 정의 정정(계획 N6.17 백로그 (i))이 같은 통합 병합에 든다. library 9회로 data 변경 0; held-out 판정값은 이 card의 별도 data 커밋이 소유하고 근거로 쓰지 않는다.
+
+**엔진 계산 보상·결합 소자 θ 상자 공통 규칙**(v1.15.1 -- 계획 DEC-105 (10)·card SF-1 범위 9, 사용자 결정 2026-10-14 N13): 값이 선언되지 않은(`engine: true`) 보상·결합 **커패시터**의 θ 상자 = 공통 선언 하나 `assets/theta_box_common.json` `{"capacitor": {"min": 1e-13, "max": 1e-11, "source": {"kind": "user_spec", "record": "user_decisions.md 2026-10-08 \"10번도 네 판단에 동의해\" -- engine 보상 커패시터 θ 상자 [0.1 pF, 10 pF]"}}}`(값 = 사용자 결정 2026-10-08 '10번' 그대로, 새 상수 없음); 로더(spec 로더 하나)가 읽어 회로별 `human.search.theta_bounds`에 그 소자 항목이 없을 때만 적용한다(회로별 선언이 있으면 그 값이 정본 -- N3.15 선언 우선). **저항**은 공통 규칙이 없다 -- 사용자 선언 출처가 없고(2026-10-08 '8번'은 회로별 값 -- current_reuse R1·R2 [10 kΩ, 10 MΩ], sf_pushpull R1a~R1c [1 kΩ, 1 MΩ]) 선언·PDK에서 유도할 식도 계획에 없으므로, 회로별 선언이 없는 `engine: true` 저항은 지금처럼 정의 불능 거부(`theta_*_bounds_undeclared`)다(상수 발명 금지). **사본 삭제**(오케스트레이터 원칙 기본안 -- graph 규칙 1): 공통 규칙과 같은 값의 회로별 커패시터 항목 8개(two_stage_ota Cc, two_stage_ota_sf Cc, sf_pushpull Cc, ngcc Cm1·Cm2, nmcnr Cm1·Cm2, current_reuse Cc1·Cc2 -- design worktree `assets/library` 실측 2026-10-28)를 SF-1 data 커밋에서 지운다(값 불변 -- 필드별 비교, O-35 꼴); 저항 항목 5개는 그대로. 완료 조건 toy는 계획 SF-1 범위 9.
+
 **순서**: 선행 = IT-1 + IT-2 통합 병합. VB-1과의 선후: 레지스트리 밖 oracle 전용 항목 수용 자리(이 절의 `ORACLE_ONLY_METRICS`)가 VB-1 `verified_by` 계약(§3.8-6)과 겹친다 -- 이 판의 design으로는 이름표를 core 한 자리에 두어 두 card가 같은 표를 읽으므로 **먼저 병합되는 쪽이 표를 만들고 나중 card는 READS**한다(파일 겹침 = `E/core/oracle_only.py`; 계획 N6.1 SF-1 행 'VB-1과의 선후는 design에서 확인' -- 데이터 선행은 없음). 뒤따르는 card = DE-1.
 
 **완료 조건 대조**(계획 N6.28): (1) 정의 toy -- 방향별 `.tran` 항목 둘이 따로 읽힘, registry 밖 이름이 oracle 전용으로만 표시되고 엔진 판정 행 0, 삭제 키 선언 거부(red) (2) data 값·source 칸 대조 (3) 변화표 -- 슬루·정착 선언 회로는 `unmeasured_front`(사유 `oracle_judged`, §3.8-3 (나)), current_reuse는 AP-1까지 판정 대기, 원인 칸 'spec 추가' (4) N6.3 공통.
@@ -1283,7 +1290,90 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력 
 | tol_I | DEV(S2p gm/ID 또는 격자 최대 gm 상계. v1.6 정의 `dc_gm`과 다름) | `E/sizing/seal_tolerances.py:36-45`, `E/sizing/kernel_run.py:51-96`(bd19cc6) |
 | 미러 비율 강제 | MISS | `sizing/CONTRACT.md:276` |
 | DEC-95 (3) 전체 순서 | PART(① 구조 색·이름만) | `E/sizing/writer_plan.py:13-17` |
-| W_request 고정 W | MISS | `E/sizing/block_widths.py:9` |
+| W_request 고정 W | 재작성 대상(v1.15.1): as-built는 `dc_widths`가 요청 W를 고정 입력으로 받는다 -- DC 블록(§3.7-A 6)으로 옮긴다 | integ/it12 `d759838a` `E/sizing/block_widths.py:9-13` |
+| 소자별 W-bin 슬라이스·DC 블록 | MISS(v1.15.1 -- card WB-1): as-built는 kind당 기준 폭 슬라이스 하나(`LutAccess.w_keys`)이고 노드 풀이·W가 두 블록이다 | `E/sizing/pre_layout_widths.py:14-22`, `E/sizing/kernel_run.py:84` |
+
+#### 3.7-A DC 블록 재작성 -- 레이아웃 전 W-bin 슬라이스 (v1.15.1, 계획 v6.38.2 DEC-105 (2)·card WB-1(N6.32), 사용자 결정 2026-10-13 Q6-1 (A)·O-164·O-165·O-166(U-130))
+
+**근거와 재작성 범위 판정**: 계획 DEC-105 (2) 'DC 블록'·'선택 함수'·'읽는 열'·'W가 아직 없는 단계'·'bin 경계 규칙의 정본'·'bin 소속 판정', card WB-1 범위 0~5, DEC-104 (1′) 의무 조항(O-165 (a)(b)), 감사 `wt/_drafts/evidence/2026-10-28/o165_rewrite_audit.md` R1·R2·K1~K3. **모듈 재작성**이다(부분 수정 아님): 노드 풀이 블록(as-built `dc_columns`)과 W 블록(as-built `dc_widths`)을 DC 블록 하나로 다시 쓰고, 소자 슬라이스를 그 블록 안에서 정한다. as-built 블록 경계·kind당 슬라이스 운반(`LutAccess.w_keys`)은 판단 근거가 아니다(DEC-104 (1′)); 아래에서 as-built를 인용하는 곳은 엔진 밖 사실 측정(9)과 재작성 범위(10)뿐이다.
+
+**1. 블록 정의**
+- 이름: `dc_solve`(`@compute_block`, writer 이름 `dc_solve`, 파일 `E/sizing/block_dc.py` -- 파일당 진입점 하나). 커널 평가 순서 = ② 전류(`dc_currents`) → ③ L(`dc_lengths`) → **DC 블록** → 봉인 1~8(§3.7 규칙 문단의 '④ 기둥·SCC → ⑤ W'를 이 블록 하나가 대신한다).
+- **READS**: `node`: `dc_writer`·`dc_rail_v`·`dc_column_nbrs`·`dc_colour`·`port_direction`; `device`: `dc_current`(저항 강하 전류도 이 필드에서 읽는다 -- 아래 10의 `dc_drop_current` 삭제)·`dc_L`·`dc_colour`·`pins`·`kind`·`bulk`·`element_class`·`dc_coord`·`dc_self_referential`; `graph`: `dc_scc_order`; 층 0이 R6로 정한 종속 W4 목표(41 §6.7-11 R6 출력 필드 -- card LA-1이 배선, 아래 4). 하류 블록이 읽는 필드 이름은 바뀌지 않는다.
+- **추가 인자(extras -- 평가 입력)**: θ 열 성분(쓰기 소자 ln IDu·y), 고정 값, 저항 값, LUT 손잡이(memo만 -- 슬라이스 키 칸 없음, 아래 7), 선형 선언 소자, 레이아웃 뒤 실현 기하(있을 때만 -- `RealizedGeometry(w_request, finger, diffusion)`, 아래 6).
+- **WRITES**: `node`: `dc_v`·`dc_path_values`·`dc_window`; `device`: `dc_ln_idu`·`dc_op`(`DeviceOp` -- `W`·`w_key` 포함)·**`dc_finger`**(새 필드, 아래 3); `graph`: `dc_scc_log`(칸 `slice_rounds` 추가 -- 출력 전용, 아래 2(5)). 필드마다 writer 하나(graph 규칙 1).
+- **평가 = θ의 순수 함수**: 결과는 θ(+ 선언·LUT 지문, 레이아웃 뒤는 실현 기하 입력)만의 함수다. 그래서 평가 캐시 키 = 평가 입력(θ·L 칸·선언 지문, 레이아웃 뒤는 기하 지문)이고 슬라이스 키 성분이 없다(슬라이스 키는 블록 입력이 아니라 블록 안 값 -- DEC-105 (2)). 재사용은 graph reuse·S3 graft만이다(§2.4.4·§2.4.5). 새 cache·memo·sctx 슬롯·`EvalResult` 값 칸·사본 0.
+
+**2. 블록 안 순서(한 호출)**
+1. **쓰기 소자**(`dc_coord.role` = writer, DEC-88): W = ID·L/exp(θ ln IDu)는 θ·전류만의 함수라 선택 함수(5)로 (m, w_f, 슬라이스 키)를 반복 없이 정한다(W_request 점은 아래 6).
+2. **종속 소자 출발 키 벡터 k⁰** = 각 소자 kind의 기준 폭 슬라이스 키(LUT 선언 `w_ref_m` -- lut CONTRACT 1.4; 선언만의 함수, θ 무관). 새 상수 없음.
+3. **회차 r의 노드 풀이**: SCC 위상 순서로 노드전압을 푼다(writer 식·1변수 근·SCC 고정점·W4 창·입력 창 되풀이 -- 수렴·상한·NONCONVERGENT는 N3.6 그대로). 쓰기 소자는 1의 키, 종속 소자는 kʳ의 키로 LUT를 읽는다. 회차는 **(θ, kʳ)만의 함수**다 -- 직전 회차 노드값으로 출발하지 않는다(찬 출발; 같은 하위 문제의 LUT 조회는 LUT memo 적중이라 반복 비용은 memo 밖 계산만 -- N3.3 승인 예외 그대로). 노드 풀이가 키를 읽은 종속 소자 집합 Rʳ을 블록 안 local 값으로 남긴다(저장·cache 아님, O-15 (E)).
+4. **종속 소자 W**: W = ID·L/IDu_forward(노드 점의 순방향 LUT IDu)로 내고 선택 함수(5)로 kʳ⁺¹을 정한다.
+5. **종료**(DEC-105 (2) (ii), 키 공간 유한 → 종료 보장, 새 상수 없음): Rʳ 위에서 kʳ⁺¹ = kʳ이면 수렴(노드 풀이가 읽은 키가 모두 그대로라 같은 노드값이 다시 나온다) -- 그 회차 값을 쓴다. kʳ⁺¹(종속 소자 키 벡터 전체)이 이미 방문한 벡터면 **순환** → 그 평가는 fail-closed(`SealViolationError`, 사유 `slice_cycle`{소자, 키 순환 목록} -- 봉인 실패 레코드, 마지막 값을 고르지 않음). 아니면 r+1로 3. 회차 수는 `dc_scc_log.slice_rounds`(출력 전용 -- 소비자 = 결과 JSON `perf`·card WB-1 완료 조건 (5) 측정 기록)에 남긴다. 노드 풀이가 종속 소자 키를 읽지 않는 회로(입력 포트 W4 뿌리 없음·writer 없는 SCC 없음)는 R⁰ = ∅이라 한 회차로 끝난다.
+6. **쓰기**: `dc_op`(W·w_key·gm_id·idu_forward 등 기존 칸 -- 쓰기 소자·종속 소자 모두 그 소자 슬라이스에서)와 `dc_finger`.
+- 되먹임 경로(근거 = 감사 §1.2 q1·④, 계획 검증 10 V10-8 -- 착수 때 재작성 범위로 재확인): 노드 풀이 안에서 종속 소자 슬라이스를 읽는 곳은 (a) 영역 행의 VDSAT·tol_VDSAT → 입력 창 → 입력 창 되풀이(입력 포트 W4 뿌리 회로) (b) 수렴 허용오차의 tol_V 셀 (c) 내부 풀이 시도 상한 (d) writer 없는 SCC의 허용오차 대체 소자(채널 값이 있는 entry 소자 -- 종속 소자일 수 있음). 재작성 뒤에도 이 네 읽기는 물리 정의(그 소자의 W-bin 슬라이스 VDSAT·tol)라 남고, 3의 Rʳ이 그 집합이다.
+
+**3. 레이아웃 전 손가락 기하 필드 `device: dc_finger`**(DEC-105 (2) '레이아웃 전 손가락 규칙', X-LA9·U-130 승인 O-166)
+- 값 = `FingerGeom(m: int, w_f_m: float)`(새 frozen dataclass, `E/sizing/s2_values.py`). 정의 축 = 손가락 분할 + 제조 격자 반올림 -- `DeviceOp.W`(θ 유도 W = I·L/IDu, 봉인점)와 정의 축이 다른 별도 필드(graph 규칙 3). 실현 총 폭 m·w_f는 이 필드에서 그때 계산하는 양이고 저장 사본을 두지 않는다.
+- writer = DC 블록 하나(`DeviceOp.W`와 같은 계산 자리 -- 별도 손가락 블록 없음). 레이아웃 뒤 실현 기하 평가와 W_request 재봉인점에서는 쓰지 않는다(읽는 쪽 없음 -- 6).
+- **소비자(만들면 배선)**: card EO-1 oracle 넷리스트 생산자(소자 `w` = w_f, `m` = m, ad/as/pd/ps = DEC-91 (2) 규칙을 w_f·m으로 -- 41 §5.3.6-1), card WB-1 범위 2b 손가락 분할 의존 양(mismatch slope bin·접합 기하 -- 아래 10), card DE-1 성분 (3) 레이아웃 전 판정 W(= m·w_f -- 순서 WB-1 → DE-1, DE-1이 처음부터 READS, X-LA11). 판정 도구 관례 `m = max(1, round(W/5 µm))`는 쓰지 않는다(엔진 정본으로 대체, 둘째 생산자 금지).
+- 소비 기준(정의로 가름, DEC-105 (2) 검증 6 V6-6): 총 폭에 비례하는 양(봉인 KCL·전도·gm·gds·gmb·잡음·LUT 용량 환산·면적·W_min 제약·front 출력)은 `DeviceOp.W`를 읽고(기존 소비자 그대로), 손가락 수·손가락 폭으로 달라지는 양(접합 ad/as/pd/ps·손가락 분할 mismatch·slope bin·넷리스트 `w`·`m`)과 DE-1 판정 W는 `dc_finger`를 읽는다. 격자 반올림 차 m·w_f − W는 새 성분 없이 DEC-23 ΔW(card DE-1)가 센다.
+
+**4. W4 목표와 y**(v6.38.1 O-151 M3 + O-157 S8(M-3 개정) -- 커널 W4 입력 꼴): 층 0이 R6 블록으로 정한 종속 W4는 노드 전압 **목표**로 이 블록에 들어오고, 창 위치 y는 이 블록 안 노드 풀이(3)가 그 목표에서 정한다(창 재계산 고정점 -- §3.7-5; 새 반복 자리 없음, DEC-70 목록 불변). 목표가 그 평가의 커널 W4 창 밖이어도 clamp하지 않고 창 끝 비교로 거부하지 않는다 -- 그 점의 쓰기 계획 정확 풀이(DEC-104 (0))로 판정해 행이 깨지면 `chain_violation`으로 거부·기록(fail-closed), 정확 풀이가 통과하면 후보를 유지하고 '두 창 계산 어긋남' 결함으로 기록한다. 커널 W4 창과 R6 창은 같은 R-1′ 변 함수 하나에서 읽는다(창 생산자 하나). 목표 READS 배선 = card LA-1(R6 블록과 같은 card).
+
+**5. 선택 함수 -- 순수 함수 하나**(DEC-105 (2) '선택 함수', 감사 R2)
+- `finger_slice(lut, kind, L, W) -> FingerSlice(m, w_f_m, w_key)`와 그 내부 단계 `slice_of_finger(lut, kind, L, w_f_m) -> w_key`, 자리 = `E/lut/finger_slice.py`(LUT 적재 메타 -- W-bin 지도·슬라이스 목록·제조 격자·W_min·bin 경계 선언 -- 만 읽으므로 lut 층; sizing·search·convergence가 모두 부를 수 있다). graph를 읽지 않는 순수 함수이고 결과를 저장하지 않는다.
+- 규칙: w_hi = 그 L에서 kind 기준 폭(`w_ref_m`) 슬라이스가 속한 W-bin의 위 끝(W-bin 지도에서). m = ⌈W/w_hi⌉(W ≤ w_hi이면 m = 1), w_f = W/m을 제조 격자(`manufacturing_grid_m`)로 반올림. w_f가 든 bin에 슬라이스가 없으면 m을 하나씩 늘려 슬라이스가 있는 bin에 드는 가장 작은 m을 쓴다; w_f가 W_min 아래로 내려가도 없으면 fail-closed(`SealViolationError`, 사유 `slice_missing`{소자, kind, L, W}). bin 안에 슬라이스가 둘 이상이면 w_f에 가장 가까운 슬라이스(동률은 작은 폭) -- 보간 없음. 클램프·이웃 bin 대체·외삽 없음.
+- **bin 소속 판정**(card WB-1 범위 0 -- 결함 D1 정정): W·L·w_f의 bin 소속은 제조 격자 정수 단위로 반올림한 값끼리 비교한다(반올림 뒤 float 비교 금지, 판정 불가는 fail-closed). 경계값의 bin 방향은 코드에 고정하지 않고 **bin 경계 선언**(시뮬레이터 판·호환 모드(.spiceinit 포함)·모델 파일 sha256 -- writer = LUT 생성 기록·oracle OP-7 옆 선언, 기본안 = LUT 생성 모드)에서 읽는다. 이 선언을 읽어 경계 방향을 정하는 엔진 자리는 이 함수가 쓰는 bin 판정 함수 하나다(oracle OP-7은 선언 기록과 oracle 실행 설정만). 선언이 없거나 LUT 지문과 묶이지 않으면 LUT 적재 때 fail-closed.
+- 짝 규칙: 실현 L과 w_f는 격자 반올림 값이고 LUT 조회와 oracle 넷리스트가 같은 값을 읽는다.
+- **부르는 곳(셋, 규칙 둘 금지)**: DC 블록(2-1·2-4), 출발 단계(전류가 정해진 뒤 -- 출발 곡선 IDu로 낸 W를 넣어 한 번 부름, 키 반복 없음; 결과 W·(m, w_f)는 출발값 -- EP-7, 봉인 스냅샷의 양과 정의 축이 다름), 레이아웃 뒤(실현 finger_w를 `slice_of_finger`에 넣음 -- 6).
+
+**6. 레이아웃 뒤**(N3.17 LY1·LY2·LY3·LY7, DEC-105 (2) (iii))
+- 실현 기하 입력 `RealizedGeometry(w_request, finger, diffusion)`: `finger` = 배치 소자마다 (nf, finger_w)(S2 `layout` 필드에서 -- `w_keys` 칸 삭제). DC 블록은 배치 소자의 슬라이스를 `slice_of_finger(finger_w)`로 정한다(반복 없음); 요청 W(`w_request`)가 있는 소자의 `DeviceOp.W` = 요청값(LY3, as-built 규칙의 정의 그대로 -- 쓰기 소자는 ln IDu = ln(ID·L/W)로 좌표를 바꿈, 종속 소자 어긋남은 봉인 3이 판정). 배치되지 않은 소자(대기)는 레이아웃 전 규칙(2)을 쓴다.
+- 레이아웃 뒤 평가에서는 `dc_finger`를 쓰지 않는다 -- 손가락 분할 의존 소비자는 S2 `layout` 실현 필드(finger_w·nf·`ly_diffusion`)를 읽는다(감사 K3 재판단: DC 블록 입력 기하가 하나라 우선 규칙이 '어느 필드를 읽나'로 줄고, '평가에 쓴 기하' 사본 필드를 두면 graph 규칙 4와 부딪혀 지금 꼴이 최소 -- 유지).
+- 레이아웃 뒤 루프(DEC-89 재평가·LY1·LY3)의 수렴 판정·상한은 이 card 범위 밖이다(card WB-1 범위 5). 다만 그 루프도 '평가 결과는 (θ, 기하 입력)만의 함수, 수렴·순환 = 상태 재방문 검사(순환 = fail-closed)'를 따르며, kind당 키 때문에 있던 경로(kind 키 충돌 좁히기·kind 단위 키 제외)는 아래 10의 재작성 범위로 이 card가 지운다 -- 상태 비교 `(w_request, w_keys)`는 `(w_request, finger)`(소자별)로 바뀐다(정의 불변).
+- **키 제외 규칙 재정의**(as-built kind 단위 → 레이아웃 행 그룹 단위, 감사 R1): 실현 기하 재평가가 봉인·제약을 어기고 거부할 W_request도 없으면, 사이징 W 대비 실현 W 어긋남 max |ln(W_실현/W_사이징)|이 가장 큰 소자(동률은 구조 색 순 -- 이름 무관)가 속한 레이아웃 행 그룹(LY2 -- 같은 행은 finger_w 공유)의 지금 폭 키를 그 그룹의 후보에서 뺀다. 그룹에 남는 키가 없으면 '더 시도할 폭 없음'(as-built와 같은 종료). 단조 감소라 반복은 PDK 폭 키 수 × 그룹 수 이하. 그룹별 후보 운반은 layout CONTRACT 개정(card WB-1 범위 3 재작성 범위).
+
+**7. LUT 손잡이와 memo**
+- `LutAccess`는 memo만 담는다(`w_keys` 칸 삭제 -- DEC-105 (2) '슬라이스 키는 블록 입력이 아니라 블록 안 값'). 지문 = LUT 내용 지문. 슬라이스 키는 LUT memo 키의 성분으로만 들어간다(기존 memo 함수 인자 `w_key` 그대로 -- N3.3 승인 예외, 새 memo 0).
+- memo 상한 B_r(§2.4.6 식)은 식을 바꾸지 않는다 -- U 항을 슬라이스 키를 성분으로 가진 키로 센다. 첫 평가에 나오지 않은 슬라이스가 뒤 평가에서 쓰이면 상한이 모자랄 수 있으므로 card WB-1 완료 조건 (5)에서 9회로 실측 '퇴출 뒤 재계산 0'(NFR-2)을 확인하고, 어기면 멈추고 보고한다(B_r 식 개정은 계획 결정 -- 새 상수로 메우지 않는다).
+- **슬라이스별 tol 표**: tol_V·tol_VDSAT 표(lut CONTRACT 5절)는 슬라이스 키마다 만든다(kind당 한 벌이 아니라 쓰인 슬라이스마다). 첫 구성 비용은 kind당 약 14~19 s CPU(sizing CONTRACT 실측 인용)이고 디스크 파생표 캐시(U-87 승인 예외 -- 실행 사이 유지)가 덮는다 -- 쓰인 슬라이스 수 × 그 비용이 첫 실행 비용이다(9 표에 실측 칸, 승인 질문 메모 Q-DC3).
+
+**8. 읽는 열과 W가 없는 단계**(DEC-105 (2) '읽는 열'·'W가 아직 없는 단계')
+- 소자 슬라이스 키로 읽는 것: W 슬라이스 파일의 DC 열(ID·GM·GDS·VTH·GMBS·VDSAT)과 거기서 나오는 `ss` 값(gm·gds·gmb), 슬라이스 폭. 용량(CGG·CGD·CGS·CGB·CDD·CSS)·잡음(SVG2)·mismatch(DVGS) 열은 기준 폭 표에만 있으므로(LUT 데이터 사실) **기준 폭 표 키**(`CapTable.w_key`)로 조회하고 기준 폭 환산(lut CONTRACT 9.3·10.4)을 유지한다; 소자 슬라이스와 기준 폭의 차로 남는 오차는 기록(card WB-1 변화표). '슬라이스 없음 fail-closed'는 DC 열에만 건다.
+- `DeviceOp.w_key` 소비자는 정의로 갈린다: 슬라이스 조회(DC 열·`ss`·VDSAT·gmb·슬라이스 폭)는 이 키, 기준 폭 표 조회(잡음·mismatch·용량)는 기준 폭 표 키(card WB-1 범위 3 소비자 목록 -- 아래 10).
+- W가 없는 계산(GB4 블록 gain 상한·A_max, GB4 국소 입력 `ParamTables`, 전류 확정 전 출발 구간 경계)은 그 kind의 **도달 가능한 슬라이스 전체**(w_f가 놓일 수 있는 슬라이스 -- W_min 이상 bin의 슬라이스, 같은 L)를 쓰는 포락이다: 상한 양(A_max 상계)은 최댓값, 하한 양은 최솟값, 출발 구간 경계는 슬라이스별 구간의 합집합(이어지지 않으면 구간 집합 그대로 -- hull 금지; 출발값 전용). 도달 가능 슬라이스 목록 = 순수 함수 `reachable_slices(lut, kind, L)`(같은 파일 `E/lut/finger_slice.py`). 그 밖의 양은 W가 정해진 뒤에만 계산한다.
+
+**9. design 입력 측정**(계획 card WB-1 범위 3 'design 입력', 손계산 속도 P4 -- 문턱 상수 없음, 판단은 사용자 승인 질문 Q-DC1)
+
+〔측정 표 자리〕
+
+**10. 재작성 범위**(지울 것·바꿀 것 -- 같은 변경, 옛 코드 삭제; 줄 번호는 integ/it12 `d759838a` 실측, card WB-1 착수 때 base에서 재조사)
+- **통째로 바꿈(DC 블록으로 흡수, 옛 파일 삭제)**: `E/sizing/block_columns.py`(노드 풀이 -- `w_key_of` 7곳 포함, 본문은 새 `block_dc.py`의 노드 풀이 단계로), `E/sizing/block_widths.py`(W·`dc_op` -- 같은 블록의 2-4·2-6으로), `E/sizing/kernel_run.py:84` `later_blocks = (dc_columns, dc_widths)`와 `:18`·`:21`·`:97-99` 운반, `E/sizing/block_currents.py:7-9` 머리 문장과 `dc_drop_current` 쓰기(필드 삭제 -- 같은 정의의 `dc_current` 부분집합이라 graph 규칙 3의 둘째 필드; 소비자 `E/search/fd_jacobian.py:58`은 `dc_current`의 저항 항을 읽도록), `s2_values.py:154` writer 표 행.
+- **kind 키 운반 삭제**: `E/sizing/pre_layout_widths.py` 전체, `E/sizing/_helpers_lut.py:29-30·:44·:52` `w_key_of(lut, kind)`(소자 키를 받는 helper로), `LutAccess.w_keys`(`E/sizing/s2_values.py:223-232`)와 그 검사(`E/sizing/kernel_context.py:18·:66-68`), 운반 자리(`E/search/kernel.py:8·:96`, `E/search/search_context.py:140`, `E/search/search_values.py:122-127` `RealizedGeometry.w_keys`, `E/convergence/realized_geometry.py:9`, `E/convergence/converge_point.py:96·:113·:135`, `E/pipeline/stage_b.py`, `E/sizing/__init__.py`, `E/_module_map.py`), `E/convergence/kernel_keys.py` 전체와 등록(`convergence/__init__.py`), `E/convergence/place_layout.py`의 kind 키 충돌 좁히기(`kernel_keys` 호출·`_narrow`·`layout_score` 최소 키 선택), `E/convergence/key_exclusion.py`(6의 그룹 단위 규칙으로 재작성).
+- **소비자 전환 -- 봉인 뒤 소자 키**(`DeviceOp.w_key`): `E/search/constraints.py:34·:45·:47`, `E/search/fd_jacobian.py:44·:65`(ln IDu 스텝의 VGS 격자 = 그 소자 슬라이스), `:68`(y 스텝 VDS 격자 -- 슬라이스 공통 축이면 그 축, 아니면 그 W4 뿌리 writer 소자 슬라이스; LUT 사실 착수 때 재측정); 계획 범위 3 목록(`metrics/ls_fields.py:55`, `metrics/metrics_aux.py:119·:120`, `metrics/ss_linearize.py:63·:65·:66·:73`, `sizing/seal_conduction.py:29`, `sizing/seal_saturation.py:36·:42`)은 소자 키 그대로.
+- **소비자 전환 -- 기준 폭 표 키**: `metrics/noise_devices.py:31`, `metrics/metrics_aux.py:181` → `metrics/device_sigma.py:41`(옛 소자 키 읽기 삭제); 탐색 문맥 `search/iv_noise.py:58`·`search/iv_matching_l.py:66`은 정의(잡음·mismatch = 기준 폭 표)로 가른다.
+- **소비자 전환 -- W가 없는 단계(포락, 8)**: `E/metrics/achievability.py:143·:265·:352`, `achievability_types.py:200·:218·:229·:251`(`LocalInputs.w_keys` 칸 삭제), `E/metrics/block_param_tables.py:3·:19-21·:39`(슬라이스 포락 행), `E/search/iv_context.py:56·:74·:84·:107`, `E/search/_helpers_curves.py:4·:67·:83·:94·:100·:123`, `E/search/cell_floor.py:95·:105`, `E/search/current_box.py:5·:22`, `E/search/l_cells.py:5·:14`, `E/search/search_domain.py:47`, `E/search/iv_domain.py:60`, `E/search/start_values.py:156·:189`, `E/search/layer0_center.py:541` -- 슬라이스 하나를 고르던 자리는 `reachable_slices` 포락(상한 = 최댓값, 하한 = 최솟값, 구간 = 합집합)으로, 슬라이스 폭이 필요 없는 L 앵커·bin 지도는 기준 폭 슬라이스 지도 그대로(정의 = 같은 L 축).
+- **손가락·폭 옛 생산자(card WB-1 범위 2b)**: `E/metrics/device_sigma.py:17-31`(ceil(W/100 µm) 분할), `E/search/iv_matching_l.py:57-63`(출발 단계 폭·kind 키 -- 선택 함수 한 번 호출로), `E/metrics/ss_linearize.py:68`(`pre_layout_geometry(w_m, W/w_m)` -- `dc_finger`로). `tools/spice_oracle/legacy_adapter.py:318-319`는 card LT-1 삭제 대상이라 고치지 않는다.
+- **bin 판정 결함 D1(범위 0)**: `E/lut/_helpers_bins.py:6-14`(1 ulp 경계 비교 → 격자 정수 비교 + bin 경계 선언 방향), 소비자 `E/lut/lut_set.py:97·:105`, `E/lut/mismatch_sigma.py:26·:30`, `E/lut/_helpers_anchor.py:39`, `E/lut/midpoint_checks.py:109`. W-bin 지도 정본 = PDK `.model` wmin/wmax 파싱 하나(지금 자리 `E/lut/lut_set.py:16-18·:88-100` `_bin_blocks` -- 같은 정의라 재사용, 경계 판정만 범위 0의 격자 비교).
+- **tests**: 위 파일의 test와 `dc_drop_current`·`w_keys`·`kernel_keys`를 읽는 test는 착수 때 grep(설계가 지운 계약의 test는 `retired_tests` -- DEC-104 (1′) (d), O-155 B1).
+
+**11. O-165 (a) 비교표**(DEC-104 (1′) 의무 조항 -- 이 절의 설계 판단 가운데 as-built에 맞추면 루프·예외·우회가 붙는 셋)
+
+| 판단 | 안 | 버그 위험 | 단순성(P5) | graph 정본(P2) | 손계산 속도(P4) | 채택 |
+|---|---|---|---|---|---|---|
+| 슬라이스 자리 | (가) DC 블록 하나 안에서 소자마다(위 1~5) | 평가 사이 키 불변식·graft 조건 없음 -- 블록 순수성 하나 | 종료 규칙 하나(재방문) | writer 하나, 키는 블록 안 값 | θ 전류 FD 열마다 노드 풀이 재계산(9의 유도 손실 -- LUT memo 적중으로 계산 일부만) | **채택**(계획 DEC-105 (2) 고정) |
+| | (나) as-built 보존 + 평가 단위 키 루프(옛 v6.38.2 불변식 (i)~(iv)) | 키 = 평가 입력·출발 키·재방문·레이아웃 뒤 상한을 평가 사이에서 지켜야 함 | 불변식 넷 | 키 운반 extras(kind→소자) | FD 열 노드 재사용 유지 | 철회(O-165 실례) |
+| | (다) 쓰기 소자 기하 블록 G + 노드 블록 분할(감사 R1-b) | q1 회로에서 평가 수준 키 반복이 남음 | 블록 둘 + 조건부 반복 | writer 둘 | 재사용 유지 | 계획에서 삭제(검증 10 V10-1) |
+| 종속 키 수렴 판정 | (가) 노드 풀이가 읽은 키 집합 Rʳ 위 비교(2-5) | 정확(읽지 않은 키는 결과에 영향 없음) | 블록 안 local 집합 하나 | 저장 0 | 되먹임 없는 회로 한 회차 | **채택** |
+| | (나) 종속 키 벡터 전체 비교 | 정확 | 같음 | 저장 0 | 되먹임 없는 회로도 기준 폭과 다른 소자가 있으면 노드 풀이 2회 | 기각(P4) |
+| | (다) '되먹임 소자 집합' S0 필드를 쓰기 계획 블록이 씀 | 노드 풀이 구현과 필드 정의가 어긋날 위험(둘째 기술) | 필드 하나 + 동기 규칙 | 필드 하나 더 | (가)와 같음 | 기각(P5·버그) |
+| 저항 강하 전류 | (가) `dc_drop_current` 삭제, `dc_current` 저항 항 READS | 없음 | 필드 하나 줄임 | 같은 정의 둘째 필드 제거(규칙 3) | 블록이 이미 `dc_current`를 읽음 | **채택** |
+| | (나) 유지 | as-built 분할 근거(노드 블록 재사용)가 병합으로 사라진 뒤 남는 사본 | -- | 규칙 3 위반 | 이득 없음 | 기각 |
+| 레이아웃 뒤 키 | (가) 소자별 `finger` 입력 + 그룹 단위 키 제외(6) | kind 충돌 좁히기 루프 삭제 | `kernel_keys`·좁히기 삭제 | 키 = 실현 기하에서 | 같음 | **채택** |
+| | (나) kind 키 유지 + 소자 슬라이스만 덧댐 | kind 충돌 좁히기와 소자 슬라이스 두 규칙 공존 | 루프 둘 | 둘째 규칙 | 같음 | 기각(O-165 (a)) |
+
+**12. 완료 조건 대응**: 계획 card WB-1 완료 조건 (1)~(7)이 정본이다(이 절은 그 toy가 볼 블록 꼴만 정한다). 추가로 이 design이 정한 이름 -- `dc_solve`·`dc_finger`·`FingerGeom`·`FingerSlice`·`finger_slice`·`slice_of_finger`·`reachable_slices`·`slice_cycle`·`slice_missing`·`dc_scc_log.slice_rounds` -- 은 착수 때 test glob·이름 충돌 grep(42 D-WB 행).
 
 ### 3.8 GB8 -- metric (MOD5)
 
@@ -1325,6 +1415,7 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력 
    - **판정 위치**: 다른 metric과 같이 외층 전회로 계산 한 곳(DEC-74). 출발 구간(41 §6.2·§6.4-2)은 출발값과 보고에만 쓴다(EP-7).
    - **단위 어휘**: `core/units.METRIC_UNITS`에 `pct`, `ratio`, `v`가 없으면 더한다(`ratio`·`v`는 잡음 경로와 공유).
    - 파일: `E/metrics/offset_analysis.py`(offset_in·excess·contrib), `offset_systematic.py`, `mirror_ratio.py`, `ls_swing.py`(swing, `ls_fields`가 부른다 -- v1.12: 입력 창 계산·인자 `inputs`·`input_dc_v` 삭제, card IT-2), `icm_window.py`(icmr·icm_margin 정의 함수 `icm_window_metrics` -- V_cm 좌표, v1.14.0, `metrics_aux`가 부른다 -- front·보고도 같은 값, 별도 블록 없음, v1.13.0, 41 §4.7-5).
+9. **소신호 파라미터 분해능 Δp**(v1.15.1 -- 계획 v6.38.2 DEC-105 (8)·card RS-1(N6.33), 사용자 결정 2026-10-14 Q-N11 "B 먼저 후 C 판단"): `MetricResult.resolution`(NFR-5 판정 단위)의 파라미터 항을 열마다 Δp = |∂ln p/∂VGS| · tol_V · |p|로 계산한다 -- p ∈ {gm, gmb, gds, cgs, cgd, cgb}, ∂ln p/∂VGS = 그 동작점에서 그 열의 LUT VGS 기울기(같은 슬라이스·같은 보간 -- lut CONTRACT 4.2, 소자 슬라이스는 §3.7-A 8 정의대로: DC·`ss` 열은 소자 키, 용량 열은 기준 폭 표 키), tol_V = 그 소자 `dc_tol_v`(기존 필드). 옛 공통 ε_d = (gm/ID)·tol_V(`E/metrics/ss_linearize.py` `lut_rel_tol`, `E/metrics/lut_parameters.py` 여섯 열 공통)는 같은 변경에서 지운다. 결합 = 최악 선형(metrics CONTRACT 9.3 유지); RSS(Q-N11 C)는 B 반영 뒤 같은 점의 최악 선형 대 RSS를 기록하고 사용자가 판단한다. 새 필드·cache 0(분해능은 metric 결과의 기존 칸). 소비자 = 모든 ss metric 분해능(DEC-72 b_gain, LA-1 gain bin 폭). metrics CONTRACT 9.1 개정 = 기준 변경(사용자 결정 Q-N11 승인, 변화표 필수 -- card RS-1 완료 조건 (2)). 순서 = card LA-1 병합 뒤(b_gain writer·gain bin 폭 소비자가 LA-1에서 생김), CPG-1 앞.
 
 | 항목 | 상태 | 증거 |
 |---|---|---|
@@ -1386,6 +1477,8 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력 
 사용자 결정 2026-10-12 "P-1~P-15까지 권고대로 고쳐"(계획→design gap 분석의 이탈·누락)를 이 문서 몫만큼 옮긴다. 이 절의 내용은 **사용자 승인(2026-10-12 P)**된 것이다. P-1·P-9·P-15와 41 §4.5 문구는 41의 몫이다. P-4·P-5·P-14는 계획 정정이고, 40은 §3.1(P-4)만 고친다.
 
 #### 3.10.1 P-2 레이아웃 finger 폭은 행별, sizing은 소자별 폭 슬라이스 (LY2)
+
+> **v1.15.1 개정(계획 v6.38.2 DEC-105 (2)·card WB-1, 사용자 승인 P-2의 design 문언 변경 -- 승인 질문 메모 Q-DC4)**: 아래 '소자당 슬라이스' 결정(P-2)의 취지는 그대로 두고 **운반 꼴과 기본값**을 바꾼다 -- (1) 슬라이스는 `LutAccess.w_keys {소자: 폭 키}`로 블록 밖에서 넘기지 않고 DC 블록 안 값이다(§3.7-A 1·7, `LutAccess.w_keys` 칸 삭제) (2) 레이아웃 전 기본값은 kind 기준 폭 키가 아니라 손가락 규칙 W-bin 슬라이스다(§3.7-A 5) (3) `w_key_of(lut, device)` helper 대신 소자 키는 DC 블록 안 선택 결과와 `DeviceOp.w_key`에서 읽는다 (4) 레이아웃 뒤 실현 기하 입력은 `RealizedGeometry.finger`(소자별 nf·finger_w)이고 평가 키의 `w_fixed_fp`가 그것을 덮는다. 아래 옛 문언 셋째·넷째 항목('`LutAccess.w_keys`: {kind} → {소자}, 기본값 = kind 기준폭 키'·'`w_key_of(lut, device)`')은 이 개정으로 대체한다(as-built 42 D-P2 DEV는 card WB-1이 닫는다).
 
 - **규칙**: P LY2대로 finger_w는 물리 행마다 정한다. 한 kind 안에서도 행이 다르면 폭이 다를 수 있다.
 - **sizing 쪽 변경**: 평가 커널의 폭 슬라이스를 kind당 하나에서 **소자당 하나**로 바꾼다.
@@ -1613,6 +1706,7 @@ design이 정하면 안 되는 것(범위·회로 해석·판정 기준 변경)�
    - **분해능이 없을 때**: as-built는 s = 1 dB로 대체하는데, 이것은 근거 없는 상수라 지운다(EP-4). 대신 행은 위반으로 유지하고, 풀이 단위 크기만 §7.2 규칙으로 정한다(s_k = max(|c 원값|, ...)). 그리고 front에 '분해능 미측정'을 표시한다.
    - RHP 극점 행(c = −max Re/|p|)도 같은 방식으로 다룬다.
 5. **스위치드 커패시터 CMFB**는 `unsupported`로 명시 정지한다.
+6. **CM 되먹임 DC 평형**(v1.15.1 -- 계획 v6.38.2 DEC-105 (7), 사용자 결정 2026-10-14 Q-N3 (A) 회로 해석 승인; DEC-104 (0) θ 전류 축 종속; 구현 = card LA-1 범위 15 (f)): 2의 절단 분류가 정한 CM 루프(감지 넷·기준 넷·소비 소자 -- 이름 없음)가 있는 회로에서 DC 평형 등식 둘을 S0 기존 writer에 넣는다 -- (i) **오차 쌍 전류 같음**: gate가 감지 넷·기준 넷인 같은 kind 쌍(공통 source)의 두 전류를 S1 전류 기저 `graph.dc_current_basis`(기존 writer, DEC-70)의 등식 행으로 넣어 θ 전류 축을 하나 줄인다 (ii) **출력 CM 노드 DC = 기준 넷 DC**: 출력 포트쌍 CM 노드(감지 넷)를 쓰기 계획 고정 노드(기존 writer -- W2 고정, 값 = 기준 넷의 DC 전위)로 둔다. 기준 넷 DC가 선언·고정 노드가 아니면 (ii)는 두지 않고 사유 `cm_reference_undetermined`를 보고한다(fail-closed 아님 -- 판정은 그대로 전회로). 새 필드·writer 0. 판정은 그대로 전회로(`pm_cm_ss_deg`·봉인 1~8)다. 단일 출력 회로(CM 루프 없음)는 무동작(card LA-1 toy (f)). current_reuse 봉인 실패의 원인 후보(계획 N5.3 I-H5)라 그 회로 변화표에 원인 항목으로 적는다.
 
 | 항목 | 상태 |
 |---|---|
@@ -2081,7 +2175,7 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | 실패 | 실패 | 판정 불능(P U-76 (2)) | 사용자 공동분석(AI만 실패와 같은 경로) | 원인 확정 전 아님 |
 
 * 엔진 쪽 조건(P U-76 (7)) = 봉인 통과(P N3.6) + spec 제약 행(`graph/metrics: constraint_rows`, §2.4.8) 전부 c ≥ 0. 엔진 실패 = 그런 점을 내지 못함 또는 그 점의 SPICE 오라클 불합격. AI 실패 = 손분석 설계의 SPICE 오라클 불합격. front 점(P U-45)에도 엔진 쪽 조건(봉인 통과 + c ≥ 0)을 적용하고, front 점의 SPICE 오라클 불합격도 엔진 실패로 A' 대조표 대상이다. 근거: 엔진 자기 예측도 spec 충족을 주장해야 SPICE 오라클 통과가 우연이 아니다.
-* **T4-pre** = T4·T5와 같은 판정 정의에 MOD8 전 기하를 쓴 판정: 넷리스트 W = sizing W 그대로(레이아웃 전), 접합 기하 ad/as/pd/ps = LUT 특성화와 같은 규칙 -- `assets/sky130_lut_sweep.py` `DUT_LINE`(W = 5 µm 기준 ad = as = 2.5e-12 m²(= 2.5 µm², ngspice `2.5p`), pd = ps = 7e-6 m)을 W에 비례시킨다. 전도 문턱 `off_current_A`(DEC-90 (1))는 같은 엔진 코드로 sizing W에서 계산한다. 손분석 설계의 전도 집합은 손분석 문서가 선언한 집합이다. 그 점의 T5도 T4-pre 기하로 잰다(P U-76 (3)). MOD8 수렴 뒤 front 점은 기존 T4·T5다.
+* **T4-pre** = T4·T5와 같은 판정 정의에 MOD8 전 기하를 쓴 판정: **v1.15.1 개정(계획 v6.38.2 DEC-105 (2)·DEC-91 (2) 개정·card WB-1 범위 2a)** 넷리스트 소자 `w` = 손가락 폭 w_f, `m` = 손가락 수 m(엔진 필드 `device: dc_finger` -- §3.7-A 3, 격자 반올림 값 그대로), `l` = 실현 L; 접합 기하 ad/as/pd/ps = DEC-91 (2) 규칙(LUT 특성화 `assets/sky130_lut_sweep.py` `DUT_LINE`의 확산 기하 규칙)을 손가락 폭 w_f와 m으로 계산한 값(card EO-1 넷리스트와 같은 값). 옛 문언 '넷리스트 W = sizing W 그대로, ad/as/pd/ps를 W에 비례'는 대체 -- SPICE는 인스턴스 `w`로 W-bin을 고르므로 총 폭을 `w`로 내면 7 µm를 넘는 소자가 LUT와 다른 bin을 읽는다(계획 WB-1 사실 (v)). 전도 문턱 `off_current_A`(DEC-90 (1))는 같은 엔진 코드로 sizing W에서 계산한다. 손분석 설계의 전도 집합은 손분석 문서가 선언한 집합이다. 그 점의 T5도 T4-pre 기하로 잰다(P U-76 (3)). MOD8 수렴 뒤 front 점은 기존 T4·T5다.
 * 미측정 제약 행(§2.4.12 Q8)과 `spice_unverifiable[]` 제약은 c ≥ 0 판정에서 빼고 보고서에 목록으로 낸다. SPICE 오라클은 측정할 수 있는 항목만 판정한다(P U-76 (4)). **oracle 전용 제약**(P DEC-98 (6), 확정 O-124 -- 엔진 metric이 없는 판정 제약, 지금은 슬루): 피검 front 점(P U-45 대상)과 함께, `unmeasured_front` 가운데 미측정 사유가 모두 `oracle_judged`(§3.8-3)인 점을 oracle 판정 입력에 넣는다(기존 `unmeasured` 사유를 읽음, 새 칸 0 -- '엔진은 판정하지 않음 → front 밖 → oracle도 안 봄' 순환 끊기). (i) **분류 `oracle_only_fail`**(oracle 전용 제약 불합격): oracle 전용 제약의 oracle 불합격은 위 표의 '엔진 결함'과 따로 이 이름으로 분류하고, 완료 조건 3의 엔진 실패 집계(P U-76 (1))와 완료 조건 5의 개발 회로로 옮기는 규칙(P U-76 (5))에서 엔진 결함으로 세지 않는다(처리는 아래 (ii); 엔진이 재는 제약의 불합격은 위 표 그대로). (ii) **P U-112 닫힘**(v1.15.0 -- 계획 v6.38 N3.8·N7.2 U-112, 사용자 결정 O-143 (4)·O-144·O-145): oracle 전용 제약 FAIL 점과 슬루 추종 검사 정의 불능 점(§4-9)은 front에서 빼고 기록한다(fail-closed, 대체 판정 없음). **되먹임은 두지 않는다**(실측 수렴 0/7, P0 'SR ∝ θ 전류' 틀림·P2 θ 전류 둘째 생산자 -- `wt/_drafts/evidence/2026-10-26/sr_start_bound_feedback.md`). 배선 = card LA-1 front 판정 배선(U17 ② 나머지 -- O-44 (1)). 이 판의 읽기: 'FAIL 점 front 제외'의 여집합으로 oracle 합격(그리고 `oracle_judged` 사유뿐인) `unmeasured_front` 점은 최종 `front` 후보로 남고, 그 집합에 비지배 재필터를 다시 건다(DEC-74 계통 offset의 '위반 점 front 제외 + 비지배 재필터 + 기록' 선례와 같은 꼴 -- 새 규칙이 아니라 FAIL 제외 규칙의 적용; 검증 확인 대상). (iii) 슬루를 선언한 held-out 회로의 U17 단계 ② 완료 판정은 (ii)가 정한 front로 한다(옛 'U-112 해소 뒤' 의존은 해소). `tran.config = "application"` 항목(AP-1까지 판정 대기)이 있는 회로는 그 항목이 '판정 대기'인 동안 그 회로의 판정도 대기다(fail-closed).
 * 전력·면적 차의 출처(P U-76 (9)): 전력 = SPICE 오라클 측정, 면적 = 엔진 면적 코드(P DEC-79)에 손분석 W/L/finger를 넣은 값. 손계산 수치는 A' 문서 참고값으로만 쓴다(P WP-21). 손분석점과 front 점의 전력·면적 차는 기록만 하고 A' 판정 기준값이 아니다(P U-76 (6)).
 * A' 대조표 = 같은 항목(소자 L·gm/ID·ID·W, 노드전압, 보상 소자 값, spec 제약 행 c 등)에서 손분석 값과 엔진 값을 맞대고, 갈린 항목마다 회로 원리 근거의 원인 가설을 적은 표. 손분석과 대조표는 `docs/03-analysis/aprime/<회로>.md` 한 문서이고 실측 원본(넷리스트·로그)은 그 문서에서 경로로 참조한다(P U-76 (6)).
@@ -2093,6 +2187,7 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 3. 엔진 실패 회로(엔진만 실패·판정 불능)는 A' 대조표를 남기고, 그런 회로가 남으면 완료가 아니다(fail-closed). 회로별 예외는 그 회로의 대조표 + 사용자 결정으로만 둔다(P U-76 (1)). AI만 실패한 회로는 그 회로 완료로 보되 공동분석 기록을 남긴다(P U-76 (8)). oracle 전용 제약 불합격(`oracle_only_fail`)은 엔진 실패로 세지 않는다(위 'oracle 전용 제약' (i), P DEC-98 (6)).
 4. library 9회로 도달률(2를 만족한 회로 수 / 9)은 회귀 지표로만 기록한다. 일반성의 근거는 held-out 회로다.
 5. held-out 정의 세부: held-out 회로의 실패를 고치려고 엔진을 바꾸면 그 회로는 개발 회로로 옮기고, 다음 일반성 판정에는 새 held-out 회로가 필요하다(P U-76 (5) 기본안). `oracle_only_fail`은 이 규칙의 엔진 실패가 아니다(P DEC-98 (6) (i)).
+6. **재측정 항목**(v1.15.1 -- 계획 v6.38.2 DEC-105 (12), 사용자 결정 2026-10-13 Q5-1 '5(c) 재측정 문구를 ② 완료 조건으로'·2026-10-14 Q-N6·Q-N7·Q-N10·Q-R1): 소유 = card LA-1 완료 조건 9 (f)(이 절은 그 목록을 ② 완료 조건에 잇는 자리만) -- 병합본에서 (1) 출발 구간 미정 전류 원소와 정한 규칙(매크로 / KCL / 하한 행 / 자리값; 자리값이 가드·매크로 목적 입력에 쓰였으면 실패) (2) 층 0 활성 여부·사유 (3) 출발점 pm·offset_excess·noise_excess 행 c (4) BLAS 스레드 고정(NFR-4) (5) 보상 소자 값이 상자 끝에 붙은 회로(Q-N7) (6) 출력단 약반전 소자 VDS 행(Q-N6) (7) 봉인 7 최악 소자·여유(Q-N10) (8) L = L_min 고착 회로 -- 남으면 Q1-3을 사용자에게 다시 묻는다(Q-R1). 기록 = card LA-1 변화표.
 
 ### 10.6 평가 card CMP-1 -- 엔진 대 AI 손계산+SPICE 비교 절차 (v1.15.0, 계획 v6.38 N6.30, 사용자 결정 O-147)
 
@@ -2110,6 +2205,19 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 **순서**: 선행 = card LA-1 병합. 착수 조건 = 계획 v6.38 승인 → 이 절(평가 절차) 승인. 결과는 감사 agent 판정 기록으로 남기고 사용자에게 올린다.
 
 ---
+
+### 10.7 card CPG-1 -- C′ 경로 완료 판정 bench (v1.15.1, 계획 v6.38.2 N6.34, 사용자 결정 O-164·O-166(U-131))
+
+**성격**: 게이트(C′ 경로 완료 판정). card CMP-1(§10.6, 평가)·LA-1 완료 조건·A' 판정(§10.5)을 대신하지 않는다. 엔진 코드·graph 필드·cache 변경 0; H 시제품 코드(hlib)는 엔진에 넣지 않는다(O-164).
+
+**bench**(계획 N6.34 범위 1·3 -- 이 절은 엔진 쪽 입력 꼴만 정한다):
+- 대상 = library 9회로 + folded_cascode O-140 사본(10항목), heldout 쓰지 않음. 판정 spec·topology = 기준선 엔진 커밋 `ebad06c1`의 library 파일 + 아카이브 O-140 사본(판정 기록에 sha256).
+- 측정 정의 = 아카이브 판정 도구(`_cmp_pilot/H/judge/hjudge.py`·`spice_judge_base.py`·`run_h_judge.py`)와 case 생성 규칙의 부하·바이어스·입력 처리(`_cmp_pilot/judge/eng2spice.py`) + 기준선 spec `measurement_load`.
+- **실행 설정과 기하 = EO-1 oracle 관례**: 호환 모드 = bin 경계 선언(§3.7-A 5, oracle OP-7 -- 선언과 다른 모드면 판정하지 않음, fail-closed), 소자 ad/as/pd/ps = DEC-91 (2) 손가락 기하 규칙(§10.5 T4-pre v1.15.1). **C′ 쪽 소자 기하 `w`·`m`·`l` = 엔진 `device: dc_finger`·실현 L 그대로**(사람 개입 없음); 레이아웃 뒤 점이면 S2 `layout` 실현 필드.
+- 기준선(C·H0box·H0r)은 아카이브 넷리스트의 `w`·`m`(eng2spice `round(W/5 µm)` -- 그 실험의 사실)을 바꾸지 않고 ad/as/pd/ps만 EO-1 관례로 붙여 같은 선언 모드로 다시 잰다(U-131 기본안; 기하 규칙 차이는 판정 기록에 적음). 판정 도구 사본을 고치는 주체 = 독립 판정 agent(엔진에 배선하지 않음, 작성자≠판정자), 고친 판 sha256 고정. 재측정 기록 = `wt/_drafts/evidence/<날짜>/cpg1_baseline_remeasure.md` + 점별 jsonl + 옆 sha256 파일(아카이브 원본 불변).
+- common_gate C_L(측정 부하 -- O-140 D4·U-129·O-167 (a))이 그때 topology·spec에 있으면 엔진은 그대로 사이징하고, 판정은 기준선 bench 조건(무부하 -- 기준선 case `cl: 0.0`)이다.
+
+**통과 정의·게이트**: 계획 N6.34 범위 2·완료 조건 그대로(엔진 front 점을 사람 개입 없이 SPICE로 재서 spec 전 항목 PASS + 전 MOS 포화인 점이 하나 이상이면 그 회로 통과; 통과 항목 수 ≥ 재측정한 H0r 통과 항목 수, 미달이면 card 실패 → 사용자에게 올려 계획 개정 D). 기준선·통과 정의 약화 금지.
 
 ## 11. 구현 단위 (병렬 배분용)
 
@@ -2173,7 +2281,11 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | TB-1(N6.29) θ 기저 S0 필드 | §2.4.8 `device: theta_class`·`device: start.guard`·R-1′ 제약 그래프 행, 41 §5.3.3·§6.7-11 | 선행 = headroom-chain HC-S; 착수 = 계획 v6.38 승인 → headroom-chain HC-D design 승인 → 이 design(필드 이름·블록); master 병합 = 행동 소비자 card(HC-1·LA-1) 가운데 먼저 master에 들어가는 쪽과 같은 통합 병합으로만(O-149). 병합 때 엔진 소비자 0(O-146 K2) |
 | SF-1(N6.28) spec 선언 형식·library data | §3.1·§3.1-1·§2.4.7 `driving` 행·§3.8-3 (나)(다)·§3.8-6 | 선행 = IT-1 + IT-2 통합 병합; 뒤 = DE-1; VB-1과는 `E/core/oracle_only.py` 파일 겹침만(§3.1-1 '순서') |
 | CMP-1(N6.30) 평가 | §10.6 | 선행 = LA-1 병합; 게이트 아님 |
-| DE-1(N6.8, v6.38 개정) | §3.8-3 '방향별 공급 능력'·(가) 피크 행 삭제 | 선행 = SF-1; LA-1과 선후 고정 없음(O-126) |
+| DE-1(N6.8, v6.38 개정) | §3.8-3 '방향별 공급 능력'·(가) 피크 행 삭제, §3.7-A 3(판정 W = m·w_f READS) | 선행 = SF-1·**WB-1**(v6.38.2 순서 WB-1 → DE-1 고정 -- O-165 (a)·X-LA11, DE-1이 `dc_finger` READS를 처음부터 배선); LA-1과 선후 고정 없음(O-126 -- 다른 쌍, 그대로) |
+| WB-1(N6.32, v6.38.2) 레이아웃 전 W-bin 슬라이스 | §3.7-A(DC 블록 재작성), §2.4.8 `dc_finger` 행, §3.10.1 v1.15.1 개정, §10.5 T4-pre, 41 §4·§6 포락 | 선행 = XRUN-F1 card B(병합됨)·oracle OP-7(bin 경계 선언)·EO-1; LA-0·LA-1·DE-1 앞; LI-1·OS-2·TR-6·XRUN-F1 C와는 파일 겹침만(같은 통합 병합 금지, 뒤 병합 쪽이 기준선 재측정); 착수 = 이 design 승인(Q-DC1~Q-DC4) |
+| RS-1(N6.33, v6.38.2) Δp 분해능 | §3.8-9 | 선행 = LA-1 병합; CPG-1 앞 |
+| SB-1(N6.31) R8·R10 공급 요구 하한 | 41 §6.8-1 | 선행 = LA-1·SF-1·TB-1(O-151 DK2); 넷 술어 = LA-1 범위 15 (c)가 만들고 SB-1은 부름(U-132 기본안, 순서 LA-1 → SB-1) |
+| CPG-1(N6.34, v6.38.2) C′ 경로 완료 판정(게이트) | §10.7 | 선행 = WB-1·RS-1·SF-1 범위 8·9·LA-1(범위 15 포함)과 DEC-105의 나머지 card 전부 병합 |
 | LA-1(N6.14, v6.38 개정) | 41 §5·§6.7-11·§6.8, 위 U15 행 | 선행 = IT-1+IT-2·UB-1+NL-1·HC-S·TB-1·EO-1(EO-1은 병합 선행 -- O-126·검증 m2); DE-1·FX-1·GC-9·HC-1 선후 고정 없음 |
 - U16(오라클 입력)은 수동소자 값을 `device.passive_value` 필드에서 읽는다(①).
 - U2(대칭)의 궤도 결과는 S0 수준 필드다(§2.4.8). 별도 브랜치 초안 f786dc6은 병합하지 않는다.

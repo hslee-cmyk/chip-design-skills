@@ -526,6 +526,7 @@ as-built `curve_report`와 `hermite_fc`의 칸 분류를 소비해, 칸마다 �
 - 행마다 봉인 없이 블록 국소 모델을 풀어 gain을 구한다.
 - 행 조건 (gm, ID, L, VDS, R, 비)과 함께 S0 지문 필드에 저장한다(행 단위 memo).
 - 소자 파라미터는 LUT memo에서 한 번만 조회한다.
+- **v1.15.1 -- W-bin 슬라이스 포락(계획 v6.38.2 DEC-105 (2) 'W가 아직 없는 단계', card WB-1 범위 2)**: GB4는 전류가 정해지기 전이라 소자 W(따라서 W-bin 슬라이스)가 없다. 행마다 소자 파라미터를 그 kind의 도달 가능 슬라이스 전체(40 §3.7-A 8 `reachable_slices`)에서 읽고 **A_i,max 상계는 슬라이스별 gain의 최댓값**으로 둔다(상한이 실현 가능한 점을 자르지 않음 -- 상계 유지). found_db(하한 추정)도 같은 포락의 최댓값 행에서 잰다. 슬라이스 수만큼 행 평가가 늘어 격자 곱 Π에 슬라이스 축(그 kind 도달 가능 슬라이스 수)이 곱해진다 -- 예산 게이트 N_S 판정은 그 Π로 한다(새 상수 없음; 늘어난 Π로 미상이 늘면 card WB-1 변화표 원인 항목).
 
 **예산 게이트**: 격자 곱 Π가 계수 예산 N_S(§0)를 넘으면(시간 무관, 결정론) 상한을 **'미상'**으로 두고 판정에 쓰지 않는다. 격자를 줄이지 않는 이유는, 줄인 격자의 최댓값은 상한이 아니기 때문이다. 이 처리는 P N3.7의 "LUT·구조만으로 상한을 계산할 수 없는 제약은 상한 미상"과 같다.
 
@@ -975,7 +976,7 @@ P DEC-71 (4)(d): "기생 용량 반영은 부하 C를 갱신하며 도는 **층 
 후보 하나의 **한 바퀴**(LUT 계산과 매크로 풀이만 한다. 커널은 부르지 않는다):
 1. 극점 노드 용량 C_n은 국소 조각의 W·L에서 봉인 스냅샷 `ss.node_c_farad`와 같은 정의(같은 함수)로 계산한다. 부하 요소 값과 보상 수동소자 값을 더한다.
    - 이 값은 봉인 전 AC 값이라 **'추정'**이다(P DEC-67 "봉인 전에 내는 AC 값은 '상한' ... 또는 '추정'(시작점)으로 표기").
-   - 접합 용량의 확산 기하는 레이아웃 전이므로 LUT 생성 규칙의 확산 기하를 쓴다(P DEC-91 (2) "레이아웃 전 첫 사이징점은 LUT 생성 규칙의 확산 기하를 쓴다").
+   - 접합 용량의 확산 기하는 레이아웃 전이므로 LUT 생성 규칙의 확산 기하 **규칙**(LUT 특성화 `DUT_LINE`의 ad/as/pd/ps 꼴)을 쓴다(P DEC-91 (2)). **v1.15.1 개정(계획 v6.38.2 DEC-105 (2) -- DEC-91 (2) 개정, card WB-1)**: 그 규칙을 총 폭 W 비례가 아니라 **손가락 폭 w_f와 손가락 수 m**(레이아웃 전 손가락 기하 -- 40 §3.7-A 3 `device: dc_finger`)으로 계산한다(EO-1 넷리스트 ad/as/pd/ps와 같은 값). 국소 조각(봉인 전)은 그 조각의 W에 선택 함수(40 §3.7-A 5)를 한 번 불러 (m, w_f)를 얻는다(출발값 축 -- 블록 안 값, 저장 0). 옛 `pre_layout_geometry(w_m, W/w_m)`(슬라이스 폭·비정수 m)는 card WB-1 범위 2b가 지운다.
    - 첫 바퀴는 §6.5 매크로의 노드 용량이다.
 2. 블록 gm 요구와 보상 시작점은 아래 **층 0 매크로 호출**로 구한다.
 3. (a) gm/ID 역산(§5.3.3) -- S·F만. B는 4의 R6 블록 값이다.
@@ -1057,7 +1058,7 @@ P LR5: "초기 L 목표(역할은 라벨이 아니라 S1 유도 사실이다, IC
 - **넓히기**(P LR5 "블록이 실현 불가(W 한계, 블록 gain 상한 < 목표)이거나 한 칸 넓힌 격자에서 두 목적 축에서 비지배로 개선되는 점이 생기고 그 개선이 축마다 max(그 축의 분해능, 모델 오차) 이상이면 그 동치류 격자를 인접 앵커 한 칸씩 넓히고, 개선이 없거나 LR3·LR6 경계에 닿으면 멈춘다"):
   - 시도: G_c 양쪽 이웃 앵커 한 칸을 그 bin 국소 front에서 전력이 가장 작은 점의 나머지 값에 얹어 평가한다.
   - 개선 판정(사용자 결정 2026-10-12 "L1~L13 모두 권고대로 해" L-8 "비지배 개선 + 개선된 축마다 개선량 >= max(분해능, 모델 오차), 모델 오차 미측정이면 분해능 + '추정'"): 넓힌 앵커의 점이 그 bin 국소 front에 비지배로 들어가고, 개선된 축마다 개선량이 max(그 축 분해능, 모델 오차) 이상이면 개선이다. 모델 오차가 미측정이면 분해능만 쓰고 '추정'으로 표시한다.
-  - 멈춤: 개선 없음, LUT L 범위·bin 지도 끝(LR3), §6.4-4 속도 상한·§6.4-2 matching 하한(LR6의 봉인 전 추정).
+  - 멈춤: 개선 없음, LUT L 범위·bin 지도 끝(LR3), §6.4-4 속도 상한(LR6의 봉인 전 추정). **v1.15.1(계획 v6.38.2 DEC-105 (6) -- LR6 개정)**: matching은 L 하한을 만들지 않으므로(면적 조건은 §6.4-2의 gm/ID 하한) 옛 '§6.4-2 matching 하한' 멈춤 경계는 지운다.
 
 #### 5.3.8 후보 집합 (DEC-71 (4) "역산은 후보를 만드는 수단이고 격자를 대체하지 않는다")
 
@@ -1544,7 +1545,7 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
 
 **파일**: `E/search/start_intervals.py`, `iv_headroom.py`, `iv_speed.py`, `iv_gain_l.py`, `iv_matching_l.py`, `iv_noise.py`, `iv_area.py`, `iv_currents.py`, `macro_poles.py`, `dominant_node.py`.
 
-**matching·헤드룸**(사용자 결정 2026-10-08 Q3·Q4): 절대 offset 제약이 있으면 matching L 하한(§6.4-2), offset 구조 가드가 있으면 부하 gm/ID 상한(§6.4-2a), 스윙·ICMR 제약이 있으면 헤드룸 예산 분할(§6.2)을 계산한다.
+**matching·헤드룸**(사용자 결정 2026-10-08 Q3·Q4; v1.15.1 개정 -- 계획 v6.38.2 DEC-105 (5)(6)): 절대 offset 제약이 있으면 입력 소자 면적 조건의 **gm/ID 하한**(§6.4-2 -- L 하한 아님), offset 구조 가드가 있거나 절대 offset·잡음 제약이 있으면 부하 gm/ID 상한(§6.4-2a -- R7 가드 필드, 합 행 포함), 스윙·ICMR 제약이 있으면 헤드룸 예산 분할(§6.2)을 계산한다.
 
 **잡음 경로**: 범위 안이다(사용자 결정 2026-10-08, §7). 1/f 제약이 있으면 1/f L 하한(§6.4-3)을, 열잡음 제약이 있으면 열잡음 gm 하한(§7.5)을 계산한다.
 
@@ -1556,11 +1557,11 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
 
 0. 주극점 노드를 구조로 정한다(§6.3). 이 단계는 매크로 모델을 쓰지 않는다(N3).
 1. 헤드룸 gm/ID 하한(§6.2).
-2. 이득 L 하한(§6.4-1). [gm/ID_lo, LUT 최대] 구간에서 intrinsic gain이 가장 큰 gm/ID를 쓴다.
+2. 이득 L 하한(§6.4-1). [gm/ID_lo, LUT 최대] 구간에서 intrinsic gain이 가장 큰 gm/ID를 쓴다. 블록 목표 = found_db 비례 g_i^(1)(필드 READS -- §6.4-1, v1.15.1).
 3. 속도 L 상한(§6.4-4). gm/ID_lo를 쓴다.
-4. matching·잡음·면적 L 경계(§6.4-2, -3, -5). 이 단계에 필요한 전류는 1차 전류 추정(§6.5 1회차)에서 가져온다.
+4. 잡음·면적 L 경계(§6.4-3, -5)와 면적 조건 gm/ID 하한(§6.4-2 -- v1.15.1: matching은 L 경계가 아니라 그 L에서의 입력 소자 gm/ID 하한, DEC-105 (6); 계산은 5의 L이 정해진 뒤). 이 단계에 필요한 전류는 1차 전류 추정(§6.5 1회차)에서 가져온다.
 5. L 선택(§6.4-6).
-6. 그 L에서 속도 gm/ID 상한(§6.3).
+6. 그 L에서 속도 gm/ID 상한(§6.3)과 면적 조건 gm/ID 하한(§6.4-2, v1.15.1).
 7. gm/ID 선택(v1.15.0, 계획 DEC-104 R7·L-11 개정 -- M10 (b)): **S·F 출발값은 구간 안의 최댓값**이다. B는 고리 종속이면 7a(R6 블록)의 값이고, 고리 종속이 아니면 R7 가드 필드 `device: start.guard`(matching §6.4-2a·잡음 §7.5 가드 구간)와 이 절 구간의 교집합 안 최댓값(7과 같은 기준)이다. 고리 종속 여부는 R-1′ 필드 변 좌표 집합과 분류 필드에서 읽는다(§6.7-11).
 7a. **KVL 고리 공동 선택 = DEC-104 R6 블록**(§6.7, v1.6; v1.15.0 개정 -- 계획 DEC-104 R5′·R6·R7, O-127·O-142): 7의 선택을 소자별 독립 최댓값으로 끝내지 않는다. R-1′ 제약 그래프 S0 필드(TB-1)의 변·writer_root 행과 쓰기 계획 v2 고리 등식(X)을 READS해, 출발 단계에서 처리하는 고리(구성원이 모두 출발 단계에서 정해지는 고리 -- 분류 필드·변 좌표 집합으로 S0에서 한 번 정한 자리)에 대해 R5′ (3)(4)를 적용한다: 모든 행이 0 이상이면 바꾸지 않고, 깨지면 W4·V_R → B 밀도(R7 가드 안) → S 정의역 조건 순으로 다시 열어 K-1(§6.7-4)로 함께 고른다. B의 max-min 대상 = gm/ID 위치, W4·V_R = 깨진 행 여유. 올린 점은 매크로·면적 실행 가능성을 다시 잰다(§6.7-4 B3). 해가 없으면 충돌 레코드(§6.6, `quantity="kvl"`). S·F의 선택점은 층 0 역산 우선(DEC-71 (4), §5)의 첫 회차 출발값이고 구간은 그 역산의 정의역이며, B·V_R·종속 W4는 층 0의 고정 입력(READS)이다(§5.10-3 (ii)).
 8. 전류 확정(§6.5 2회차). 열잡음 gm 하한(§7.5)과 열잡음 C_eff 하한·1/f L 하한(§7.5, β·C_eff 입력)을 함께 적용한다. 블록 전류 하한 = DEC-104 R8·R10 공급 요구 하한(§6.8 -- 정확한 필요조건 대상이면 하한, 그 밖은 '추정' 출발 목표). S 소자 ID = max(gm_req/(gm/ID), R8 하한) -- R8 하한이 이기면 gm/ID 정의역 상한이 gm_req/I_min으로 잘린다(DEC-104 R4). 8 에서 전류가 바뀌어 최소 폭 보정(§6.5 as-built)이 gm/ID 를 올리면 7a 를 다시 잰다(상한 = 소자 수, 7a 가 바꾼 것이 없으면 끝).
@@ -1617,11 +1618,14 @@ VDSAT_j,min은 LUT 최대 gm/ID에서의 VDSAT를 L 점 전체에서 최소로 �
 
 ### 6.4 L 구간
 
-1. **이득 하한**:
-   - 블록 목표 g_i = G·A_i,max / Σ A_max로 둔다.
-   - 블록 국소 모델 gain ≥ g_i를 만족하는 최소 L을 찾는다. bin은 오름차순으로 훑고, bin 안에서는 bisection한다.
-   - A_max가 미상이거나 gain 제약이 없으면 비활성이다(H3).
-2. **matching 하한**(사용자 결정 2026-10-08 Q3 "q3,q4는 네 제안대로 해", 근거 `_drafts/engine/matching_swing_spec_proposal.md` §0·§2.3): **절대 offset 제약**(`offset_in_sigma_mv <= 값`, 현재 파일럿 3.3 mV)이 있는 회로에서만 활성이다. 구조 가드(`offset_excess`, §6.4-2a)만 있는 회로는 L 하한이 아니라 부하 gm/ID 상한으로 간다.
+1. **이득 하한**(v1.15.1 재작성 -- 계획 v6.38.2 DEC-105 (1)·card LA-1 범위 15 (a), 사용자 결정 2026-10-13 Q1-2 (ii)·L-2·O-164·O-165 (a)):
+   - **블록 목표** = 층 0 첫 회차 예산과 같은 found_db 비례 g_i^(1) = G·found_db_i / Σ_j found_db_j(§5.3.2, 사용자 결정 L-2). 옛 'g_i = G·A_i,max / Σ A_max'와 'A_max가 미상이면 비활성'은 삭제한다 -- gain 제약이 선언된 회로에서는 A_max 인증과 무관하게 활성이고, gain 제약이 없으면 비활성 그대로다(H3 중 gain 제약 갈래만 남음).
+   - **정본 필드**: g_i^(1)은 graph 필드 `graph/ach: gain_target_first` = 정렬 tuple ((블록 키, g_dB), ...)(writer = S0 블록 `gain_target_first`, 파일 `E/search/gain_target_first.py`; READS = `graph/ach` 블록 상한 행의 `found_db`·spec gain 목표 G; 단계 A, GB4 뒤·출발 구간 앞). 소비자 = 이 절(출발 구간 이득 L 하한)과 층 0 첫 회차(§5.3.2) -- 같은 양을 다시 계산하는 둘째 생산자 금지(graph 규칙 1·3; 지금 `layer0_budget`의 첫 배분 계산은 이 필드 READS로 바꾸고 옛 계산 삭제). **found_db가 없는 블록이 있는 회로**: 비례 정규화(Σ_j found_db_j)가 정의되지 않으므로 필드 값 = 정의 불능(사유 `found_db_missing{blocks}`)이고 출발 이득 L 하한은 아래 '정의 불능'으로 간다. L-2 보완 규칙(층 0 기준점 블록 분해 gain)은 층 0 기준점(출발 구간 뒤)을 입력으로 하므로 출발 단계에서 부를 수 없다(층 역전) -- 층 0 첫 회차의 보완 예산은 정의 축이 다른 양(입력 = 층 0 기준점)이라 이 필드에 쓰지 않고 층 0 회차 기록(`graph/layer0: rounds` 1회차 예산)에만 남는다. **원래 취지와 다름 가능 -- 승인 질문 Q-GL1**(library 실측: sf_pushpull_output_opamp가 gain 제약 있음·found_db 없음 -- §5.12.4 표).
+   - **L 찾기**: 블록 국소 모델 gain ≥ g_i^(1)을 만족하는 최소 L을 찾는다. bin은 오름차순으로 훑고, bin 안에서는 bisection한다(같은 bin 안 보간 -- LR3).
+   - **fail-closed**(DEC-105 (1) -- as-built 결함 `E/search/iv_gain_l.py:125-127`: 평가된 앵커가 없으면 가장 긴 앵커로 닫고 이득 0 dB를 가정한 margin): (i) 한 블록에서 평가되는 L 앵커가 하나도 없으면(표·값 미정의) 그 블록 이득 L 하한은 **정의 불능** -- 하한 값을 만들지 않고(어떤 앵커로도 닫지 않음) 사유와 margin `null`(N3.14)을 출발 기록(`graph/start: records`)·보고 표에 낸다. 원소 전류가 1회차 입력에 없으면 사유 = `gain_l_element_undetermined`('1회차 원소 미정' -- 자기 판정)이고 그 1회차 원소 키와 함께 기록한다(원인 추적은 원소 키로만 -- graph-consumption GC-5의 1회차 충돌 기록이 같은 원소 키를 가진다; 이 함수는 다른 card 기록을 읽지 않는다) (ii) 평가된 앵커가 있으나 목표에 못 미치면 `StartConflict(quantity="gain_l", margin = 목표 − 평가된 최선 이득)`, 하한 값 = **평가된 최선 앵커**(출발값 전용; as-built 마지막 평가 앵커 `previous[1]`에서 바뀌는 동작 변경 -- LR4 'L 증가가 늘 이득 증가는 아님', card LA-1 변화표 원인 항목). 거부는 커널 뒤 판정(gain 제약·DEC-104 R8 이득 행)만이다.
+   - **W가 없는 단계**: 이 하한은 전류 확정 전이라 국소 모델 파라미터를 도달 가능 슬라이스 포락에서 읽는다(40 §3.7-A 8 -- 상한 양은 최댓값; gain ≥ 목표 판정은 그 포락 상한으로 한다 -- 실현 가능한 L을 자르지 않음, 출발값 전용).
+   - **재작성 범위**(card LA-1 범위 15 (a) 단독 소유, O-165 (a)): `E/search/iv_gain_l.py` `gain_l_bounds` 함수 전체(목표·닫힘·최선 앵커·사유 분기 -- 원소 없음 경로 `:64-65`·`:117-119`, 닫힘 `:125-127`), `E/search/iv_context.py:49-51`의 인증 조건(A_max 인증 → 활성), `E/search/layer0_budget.py` 첫 배분 계산(필드 READS로), 새 `E/search/gain_target_first.py`. GC-5는 이 함수를 고치지 않는다(graph-consumption v0.14.3).
+2. **matching 면적 조건 → 입력 소자 gm/ID 하한**(사용자 결정 2026-10-08 Q3 "q3,q4는 네 제안대로 해", 근거 `_drafts/engine/matching_swing_spec_proposal.md` §0·§2.3; **v1.15.1 개정 -- 계획 v6.38.2 DEC-105 (6), 사용자 결정 2026-10-14 Q-N2 B, LR6 개정; 옛 제목 'matching 하한'(L 하한)**): **절대 offset 제약**(`offset_in_sigma_mv <= 값`, 현재 파일럿 3.3 mV)이 있는 회로에서만 활성이다. 구조 가드(`offset_excess`, §6.4-2a)만 있는 회로는 부하 gm/ID 상한으로 간다. matching은 **L 하한을 만들지 않는다** -- 면적 조건은 (gm/ID, L) 결합 조건이고 L은 다른 경계(이득 역산·flicker·LR6 상한·LR3 bin)가 정한다(아래 '하한').
    - **mismatch 모델(옛 식 대체)**: 옛 식 A_min = (A_VT² + A_β²/(gm/ID)²)/σ² 는 `vth0` 한 항과 β 한 항만 본다. ngspice 감도 실측(제안서 §0.3)에서 `toxe`는 β보다 Vth로 더 크게 들어가고(BSIM4 k1ox 경로, n 2.2–4.1·p 2.3–6.5 mV·µm로 `vth0` 항과 같은 크기), nfet 약반전에서는 `voff` 항이 `vth0` 항을 넘는다. 옛 식은 nfet을 1.2–2.4배, pfet을 1.05–1.4배 과소평가한다. 그래서 **유효 계수 A_eff**로 바꾼다.
      - 단일 소자 게이트 환산 σ: σ_VGS(W, L, 점) = √(Σ_k (DVGS_k(L, 점) · slope_k(bin(W, L)) / slope_k(bin_ref))²) · √(W_ref·L_ref) / √(W·L).
      - k는 mismatch 블록의 `*_slope_spectre` 변수 **전수**다(`vth0`, `toxe`, `voff`, `nfactor` 등 카드가 쓰는 것, lint·wint는 slope 0이라 0 기여). 같은 ID에서의 ΔVGS로 정의하므로 β 경로(1/(gm/ID)에 비례)와 Vth 경로가 한 열에 함께 들어간다.
@@ -1632,9 +1636,10 @@ VDSAT_j,min은 LUT 최대 gm/ID에서의 VDSAT를 L 점 전체에서 최소로 �
      - **bin마다 쓰는 slope 이름이 다르다.** 모델 카드(`*__tt.pm3.spice`) `.model` 블록마다 lmin/lmax/wmin/wmax와 그 블록이 쓰는 slope 이름(`vth0_slope` / `vth0_slope1`, `toxe_slope` / `toxe_slope1` 등)을 읽어 LBinMap과 같은 bin 지도에 붙인다. 예(제안서 §0.1 전수 집계): pfet L < 0.5 µm 36 bin은 `vth0_slope1` = 7.356e-3(L ≥ 0.5 µm의 5.856e-3 대비 +26 %), nfet L 4–8 µm·좁은 W 4 bin도 `vth0_slope1`. 옛 `legacy/sizing_recipe.py:3073`은 pfet에 5.856e-3 하나만 썼다(결함, 대조 기준선으로만 기록).
      - 참고 유도값(vth0 항만, 대조용): A_VT = √2·`vth0_slope` = nfet 4.75, pfet 8.28(L ≥ 0.5) / 10.40(L < 0.5) mV·µm. A_β = √2·`toxe_slope` = nfet 0.487, pfet 0.628 / 0.911 %·µm. LUT 감도 열의 `vth0` 성분은 이 값과 같아야 한다(U3 test (c)).
    - **단위 확인**: `models/all.spice` `.option scale=1.0u`라 l·w는 µm²다. 구현 첫 커밋에서 ngspice 소자 쌍 Monte Carlo(mismatch 블록 변수를 소자마다 gauss로, 오라클 측·엔진 비의존)로 σ(ΔVGS at 같은 ID)를 재고 A_eff 식과 비교한다. 그 비교를 test로 고정하고, 확인한 단위와 출처(파일 sha256·행)를 `core` PDK 선언에 기록한다.
-   - **하한**: 출발 단계의 입력 셀 몫 σ_share = σ_target/√2(입력 셀 분산 = 나머지 분산, §6.4-2a 가드와 §7.5 잡음과 같은 등분 원칙 -- 새 상수가 아니라 '부하 기여 ≤ 입력쌍 기여'의 경계). 입력 셀 소자 면적 하한 A_min(L, gm/ID) = A_eff(L, gm/ID)² / σ_share², **L ≥ √(A_min·IDu/I)**. A_eff가 L에 의존하므로 §6.4-1처럼 bin을 오름차순으로 훑고 bin 안에서 bisection한다.
+   - **하한**(v1.15.1 개정): 출발 단계의 입력 셀 몫 σ_share = σ_target/√2(입력 셀 분산 = 나머지 분산, §6.4-2a 가드와 §7.5 잡음과 같은 등분 원칙 -- 새 상수가 아니라 '부하 기여 ≤ 입력쌍 기여'의 경계). 입력 셀 소자 면적 하한 A_min(L, gm/ID) = A_eff(L, gm/ID)² / σ_share². L은 §6.4-6이 다른 경계로 정한 값이고, 그 L에서 W·L = I·L²/IDu(g, L) ≥ A_min(L, g), 곧 **IDu(g, L) ≤ I·L²/A_min(L, g)를 만족하는 최소 g**를 입력 소자 **gm/ID 하한**으로 건다(IDu는 gm/ID에 대해 단조 감소라 그 L의 LUT 곡선에서 bisection -- `idu_curve`, 새 상수 없음; 전류 I = §6.1-4의 1회차 전류, 8에서 확정 전류로 다시 잰다). 그 하한이 속도 상한(§6.3)을 넘으면 충돌 레코드(§6.6). 옛 'L ≥ √(A_min·IDu/I)'(matching L 하한)는 삭제한다(재작성 범위 = `E/search/iv_matching_l.py`의 L 하한 경로 -- card LA-1 범위 15 (e)·범위 1).
    - 판정은 이 하한이 아니라 봉인 스냅샷의 `offset_in_sigma_mv`(40 §3.8, MNA 전회로)가 한다(EP-7).
 2a. **offset 구조 가드 → 부하 gm/ID 상한**(`offset_excess <= √2` 회로): 부하 소자 k의 입력 환산 분산 비 Σ_k (gm_k·σ_VGS,k)² / Σ_in (gm_in·σ_VGS,in)² ≤ 1이 되도록 부하 gm/ID를 상한으로 둔다. gm_k/gm_in은 §6.5 매크로 모델 전류 비로 쓴다(§7.5 잡음 가드와 같은 방법). §6.3 속도 상한·§7.5 잡음 상한과 교집합하고, 헤드룸 하한(§6.2)과 충돌하면 충돌 레코드로 남긴다.
+   - **v1.15.1 -- R7 가드 필드 형식(계획 v6.38.2 DEC-105 (5)·DEC-104 (3)(b), 사용자 결정 2026-10-13 Q4-1·Q4-2·2026-10-14 Q-N2 D; 구현 = card LA-1 범위 15 (d), U-132 기본안 승인 O-166)**: 이 절과 §7.5의 가드는 R7 가드 필드 하나에 담긴다(§6.7-11) -- (a) B 소자별 gm/ID 가드 구간 (b) **합 행** Σ_부하 기여 ≤ 가드 비 · Σ_입력 기여(이 절의 Σ_k 조건 그 자체 -- 소자별 상한을 각각 고르면 합이 넘으므로 합 행을 R6·R7의 K-1 공동 선택이 함께 읽는다(§6.7-4); R7 (가) 선언 범위 고리 B가 나머지 경계로 정해져 합 행을 어기면 `StartConflict`로 기록만 -- 재개방 촉발 행은 R-1′ 행뿐, O-158 (A′) ②). (c) **가드 입력 전류 = 매크로·KCL이 정한 전류만**(자리값 금지 -- DEC-104 R3과 같은 규칙; 전류가 정해지지 않은 소자는 가드 계산에서 빼고 사유 기록), W가 W_min으로 잘린 점(`start.row` 최소 폭 보정 점)은 가드 계산에서 뺀다, gm/ID에 대한 분산 비 곡선의 볼록 껍질(hull)은 단조 구간 안에서만 만든다(Q4-1 잔여). (d) **절대 offset·잡음 제약 회로에도** 부하 가드 '부하 기여 ≤ 입력 기여'(§6.4-2 등분 전제 E² − 1 = 1, 새 상수 없음)를 건다(Q-N2 D -- 구조 가드 metric 회로만이 아님). 기존 가드 계산을 이 필드 writer로 옮기면서 (b)~(d)를 고친다(결함을 정본 필드로 옮기지 않음, 사본 금지).
 2b. **LUT mismatch 감도 열**(U3): 생성기 `assets/sky130_lut_sweep.py`에 mismatch 모드를 더한다.
    - 방법(제안서 §0.3과 같음): pm3 카드 복사본에서 변수 k의 `*_slope_spectre`를 0 → 1(인스턴스 기하의 1σ)로 바꾼 섭동 곡선과 기준 곡선을 같은 include·DUT 줄로 돌리고, 기준 곡선의 칸 ID에서 두 곡선의 VGS 차를 DVGS_k로 둔다(W_ref·각 L·DC LUT 축 격자).
    - **저장**: 새 버전 파일 `..._mismatch_r1.npz`(sha256, 생성 메타: 모델 경로·sha, ngspice 버전, 온도, 섭동 변수 목록)에 둔다. **공유 `lut_data`의 기존 v2 r2 파일은 고치지 않는다.** `lut_v2_location.json`에 새 항목으로 더한다. 로더는 v2 칸과 같은 키로 합쳐 노출한다.
@@ -1650,7 +1655,7 @@ VDSAT_j,min은 LUT 최대 gm/ID에서의 VDSAT를 L 점 전체에서 최소로 �
 5. **면적 상한**(결정 11):
    - L ≤ √(A_budget · IDu / I)
    - W ≤ A_budget / L
-6. **선택**: L = max(1, 2, 3의 하한)이다(2a는 L이 아니라 gm/ID 상한이다). LUT L 점이나 bin 안 값으로 맞춘다(LR3). 구간 끝이 다른 bin에 있으면 bin마다 후보를 하나씩 둔다.
+6. **선택**: L = max(1, 3의 하한)이다(v1.15.1 -- 2는 L 하한이 아니라 그 L에서의 gm/ID 하한, 2a는 gm/ID 상한이다; DEC-105 (6)·LR6 개정). LUT L 점이나 bin 안 값으로 맞춘다(LR3). 구간 끝이 다른 bin에 있으면 bin마다 후보를 하나씩 둔다.
 
 ### 6.5 전류 출발값 -- S1v 매크로 모델 (H4)
 
@@ -1681,6 +1686,7 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
    - (ii) k = 2..n 블록 순서로 gm_k: PM ≥ 목표인 최소값.
    - (iii) 보상 수동소자: 정준 순서로 PM ≥ 목표인 최소값.
 3. 한 바퀴의 모든 값 변화가 각자의 1-D 근 허용오차 안에 들면 수렴이다. 상한은 K_max 바퀴이고, 닿으면 마지막 값을 쓰고 `macro_nonconvergent`를 기록한다(보고만, 정지 아님).
+3a. **출발점 개방 RHP 극점 수 P = 0**(v1.15.1 -- 계획 v6.38.2 DEC-105 (3), 사용자 결정 2026-10-14 Q1-1·Q2-2 B; 구현 = card LA-1 범위 15 (b)): 매크로 출발점은 |H(jω_GBW)| = 1 근에 더해 그 점의 개방 루프 RHP 극점 수 P = 0(1의 pencil 극점 -- 새 계산 없음)을 요구한다. P > 0이면 그 출발점의 뒤 블록 gm을 **출발 gm 사다리**의 다음 칸으로 올린다. **사다리 정의**(이 절이 정본 -- 아래 '구현 반영' 다중 출발과 같은 사다리): 주극점으로 둔 단 j를 뺀 나머지 단 gm을 2^k배(k = 1, 2, …)로 올리고 단 j gm으로 UGF = GBW를 맞춘 점이 칸 k다(배수 2 = 사용자 결정 Q2-2 B 원문 '같은 2배 사다리로 더 올린다', 새 상수 아님); **사다리 끝** = 올린 gm이 그 단 gm 범위 상한(4의 변수 범위 -- 전류 상자 × gm/ID 구간)을 넘는 첫 칸. 끝까지 P = 0인 칸이 없으면 그 단 출발점을 버리고 `macro_rhp_start{stage, k_end}`를 기록하며, 모든 단 출발점이 버려지면 4의 '모든 변수 근 없음'과 같은 처리('추정' 대체 -- DEC-104 R3 '매크로 근 없음 때의 추정 대체는 그대로')로 간다. 매크로 망은 출력노드가 아닌 극점 노드(N9)를 포함한다(위 '망 구성' -- design 문언 그대로, 구현 몫). 재작성 범위 = `E/search/macro_poles.py:3-4`·`:316-328`(card LA-1 범위 15 (b)).
 4. 어떤 1-D 근이 그 변수의 범위(전류 상자 × gm/ID, θ 범위)에서 괄호가 잡히지 않으면 다음과 같이 처리한다.
    - 그 변수는 현재 값을 유지한다.
    - `macro_root_missing{variable, condition}`을 기록하고 다음 변수로 넘어간다.
@@ -1702,7 +1708,7 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
   아래 전원 전류 합 최소를 SLSQP 로 한 번에 푼다. 이 문제는 비볼록이다(주극점이 어느 단에 놓이는지가 국소 최소를 가른다; 3극점 C = 1·2·3 pF 에서 주극점을 1 pF 단에 둔 국소 최소는 전역 최소의 1.7 배).
   그래서 단마다 그 단을 주극점으로 하는 실행 가능한 출발점(나머지 단 gm 을 2 배씩 올리고 그 단 gm 으로 UGF = GBW)에서 다중 출발하고, 구조로 정한 주극점 노드(`dominant_node`, §6.3)의 단을 먼저 시도한다. 만족해 중 전류가 가장 작은 해를 쓴다.
   구조 주극점 노드의 극점을 강제로 가장 낮게 두지는 않는다(큰 커패시터 단이 구조 주극점이 아닌 회로에서 전류가 더 큰 해가 된다 -- 독립 test 의 2극점 닫힌 식 oracle 이 자유로운 단 선택의 최소를 기대한다).
-- **출력노드 컨덕턴스의 A_i 순서**: 이득 제약이 있고 모든 블록의 A_i,max 가 인증되면 블록 목표 g_i(§6.4-1), 아니면 입력 소자의 LUT 진성 이득 A_intr. 위 설계의 중간 단계 'g_i 가 없으면 A_i,max' 는 쓰지 않았다
+- **출력노드 컨덕턴스의 A_i 순서**(v1.15.1 개정 -- 계획 v6.38.2 DEC-105 (1)): 이득 제약이 있고 블록 목표 g_i^(1)(§6.4-1 필드 `graph/ach: gain_target_first`)이 정의되면 그 값, 아니면 입력 소자의 LUT 진성 이득 A_intr. 옛 'A_i,max가 인증되면 g_i'는 삭제(목표 정의가 A_max 비례에서 found_db 비례로 바뀜). 위 설계의 중간 단계 'g_i 가 없으면 A_i,max' 는 쓰지 않았다
   -- 이득 제약이 없는 회로에서 인증 상한(최적 격자 점의 값)을 블록의 실제 이득으로 가정할 근거가 없다.
 - **PM 목표가 없으면** 매크로는 경계 PM_FLOOR_DEG = atan(1) = 45°(비주극점이 UGF 에 놓임)를 PM 하한으로 풀이 안에서만 쓰고 `pm_floor_pole_at_ugf` 로 기록한다. §6.3 속도 gm/ID·L 상한은 설계대로 PM 목표가 없으면 비활성이고 사유 `pm_target_missing` 을 보고한다.
 - §6.2: 출력 DC 가 선언되지 않은 창은 남는 여유를 위·아래 부분 기둥의 같은 몫으로 나누고, 최소 폭 W ≥ W_min 은 확정된 전류에서 gm/ID 를 올려 맞춘다(전류가 입력 소자를 따르는 미러 부하는 gm 고정 하한이 어긋난다). §6.4-1 은 U9 블록 국소 모델(`BlockModel`·`ParamTables`)로
@@ -1723,7 +1729,7 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 
 **불변식**: 같은 입력이면 같은 표다. 이름 전단사는 행 이름만 바꾼다.
 
-**상태**: MISS. as-built는 spec과 무관한 LUT 포락선 상자 중점을 쓴다(`E/search/search_domain.py:35-56`, `layer0_center.py:105-172`).
+**상태**(v1.15.1 정정 -- 계획 v6.38.2 후속 정정 표 'D41 상태 MISS 문장'): PART. 출발 구간 블록(`start_intervals` -- spec·S1v·LUT 곡선에서 구간·충돌 레코드를 내는 단계 A 블록)은 as-built에 있다(integ/it12 `d759838a` `E/search/start_intervals.py`). 옛 문장 'as-built는 spec과 무관한 LUT 포락선 상자 중점을 쓴다'는 출발 구간 도입 전 사실이라 지운다. 남은 gap = 이 판(v1.15.0·v1.15.1)의 개정 -- DEC-104 R3·R6·R7·R10, DEC-105 (1)(3)(4)(5)(6)(7) -- 이고 card LA-1·SB-1이 닫는다(42 D-SI-cur·D-R6·D-R10·D-GL 행).
 
 ### 6.7 KVL 고리 출발 제약 (v1.6, 사용자 결정 2026-10-12 "9번 권고대로", "B는 권고대로")
 
@@ -1763,6 +1769,7 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 - 목적(기준 = gm/ID 큰 쪽, §6.1-7 과 같다): (i) 위반 최소화(min v, 행 + v ≥ 0, v ≥ 0)로 실행 가능 여부를 정하고, (ii) 가장 낮은 위치 min_j x_j 를 최대화(max-min), (iii) 그 값을 하한으로 고정하고 Σ x_j 최대화. 세 단계 모두 SLSQP, 변수 순서 = 구조 색 순(이름 전단사 불변), FD 스텝 = 사다리 분해능 2^−steps(§6.1-9 의 steps), maxiter = 변수 수 × steps(layer0 `_maxmin` 과 같은 규칙), ftol = 2^−steps. 결과 점에서 행을 다시 잰다(풀이 결과를 믿지 않는다).
 - **매크로·면적 재확인(B3)**: 위치를 올린 묶음이 있으면 그 점에서 §6.5 매크로 모델(`current_model` + `macro_solve` **기본 호출** -- 키워드 인자 `node_c`·`gm_bounds`·`gain_targets` 없음, §5.3.6 '기본 호출 불변', 확정 풀이와 같은 설정)과 면적 추정(§6.4-5)을 다시 푼다 -- §6.1-7 의 실행 가능 판정과 같은 식(면적 ≤ 예산, 매크로 근 있음). 실행 불가면 올린 묶음들의 위치 상한을 선택점 위치 x⁰_j 쪽으로 반씩 좁혀(x 상한 = x⁰_j + (상한 − x⁰_j)/2^k) (i)~(iii)을 다시 푼다. k 는 0 부터 steps 까지(상한 steps + 1 회), k = steps 에서 올림이 사실상 없어진다. 매크로 결과가 바뀌면 전류가 바뀌므로 최소 폭 보정(§6.5 as-built)과 행 재측정을 거친다(§6.1-8 의 반복 상한 = 소자 수 안).
 - 채택 점에서 종속 소자의 출발 gm/ID 는 고리가 정한 값으로 바꾼다(보고·면적 추정 일관).
+- **v1.15.1 -- K-1 (i) 위반 최소에 드는 행 추가(계획 v6.38.2 DEC-105 (4)(5), card LA-1 범위 15 (c)(d))**: (가) **체계 오프셋 목표 행 `mirror_vds`** -- 술어 인스턴스 S0 필드(아래 11 '술어 인스턴스')의 인스턴스마다 목표 등식 VDS_o − VDS_d = 0(P1s; n의 KVL로 VGS_g = VGS_d와 같음) 또는 VGS_a = VGS_b(P1c)를 위반 최소 단계의 목표 행으로 넣는다 -- 순위는 깨진 R-1′ 행 위반 **다음**(R-1′ 위반을 먼저 줄이고 같은 위반 수준 안에서 이 행 위반을 줄인다). 이 행이 움직이는 좌표는 R6 종속 성분 가운데 B 밀도뿐이다(기본안 (가) -- U-126 승인 O-166: R5′ (2) W4·V_R 선택('K-1 (ii) max-min'만)에는 넣지 않고, S 좌표(gm/ID·L)는 바꾸지 않는다, X-LA8). R7 (가) 선언 범위 고리의 B는 나머지 경계로 정해져 이 행이 움직이지 않는다(남는 위반은 기록). 적용 = R7 (나) 그 밖 B 선택과 R5′ (4) 재개방의 K-1 (i). 해가 없으면 `StartConflict(quantity="mirror_vds", margin = 남은 |VDS_o − VDS_d|)` 기록(정지 아님, `graph/start: conflicts` 항목). 층 적용: 그 사슬(n을 지나는 VGS_g = VGS_d)의 구성원 좌표가 출발 단계에서 모두 정해지면 출발 스냅샷에서 한 번(graph reuse), 층 0 변수가 섞이면 층 0 후보 스냅샷마다 같은 R6 블록이 평가; 외층은 묶이지 않는다(EP-7). 판정은 계통 offset metric(DEC-23·O-53) (나) **R7 가드 합 행**(§6.4-2a v1.15.1 (b)) -- B 선택의 위반 최소 단계에서 소자별 가드 구간과 함께 읽는다.
 
 **5. 해가 없으면(fail-closed)**: 위반 최소화 결과에서도 행 < 0 이 남거나, 4 의 좁힘을 다 써도 매크로·면적과 행을 함께 만족하는 점이 없으면 `StartConflict(quantity="kvl")`(§6.6)를 남은 행마다 남기고 위반 최소 조합(매크로·면적이 실행 가능한 쪽 우선)을 출발점으로 넘긴다. 다른 경계를 조용히 넓히거나 행을 빼지 않는다.
 
@@ -1939,7 +1946,7 @@ metric 이름은 주파수를 숫자로 고르지 않도록 '평탄값'과 'corn
 
 **`noise_excess_th ≤ 2` 가드**:
 - 부하 소자 k의 열잡음 비는 (γ_k·gm_k)/(γ_in·gm_in)이다. 이 비의 합이 1 이하가 되도록 부하 gm/ID를 상한으로 둔다(강반전 쪽).
-- 매크로 모델(§6.5)의 전류 비로 gm_k/gm_in = ((gm/ID)_k / (gm/ID)_in)·r_k이다. 여기에 LUT γ를 넣어 부하 gm/ID 상한을 역산하고, 그 결과를 §6.3 속도 상한과 교집합한다.
+- 매크로 모델(§6.5)의 전류 비로 gm_k/gm_in = ((gm/ID)_k / (gm/ID)_in)·r_k이다. 여기에 LUT γ를 넣어 부하 gm/ID 상한을 역산하고, 그 결과를 §6.3 속도 상한과 교집합한다. **v1.15.1(계획 v6.38.2 DEC-105 (5))**: r_k의 전류는 매크로·KCL이 정한 전류만 쓴다(자리값 금지), W_min 클램프 점은 빼고, 합 행(Σ 비 ≤ 1)·hull 단조 구간·절대 잡음 제약 회로 적용은 §6.4-2a v1.15.1과 같다 -- 같은 R7 가드 필드 하나에 쓴다(§6.7-11).
 - 헤드룸 하한(§6.2)과 충돌하면 충돌 레코드로 남긴다.
 
 **파일럿 `noise_out_int_vrms`**:
@@ -2020,6 +2027,8 @@ def loop_roles(view_loops, transfer_views, declared_pm_views) -> tuple[LoopRole,
 | 층 0 | (a) 2블록 toy에서 전수 조합과 비교 | `tests/search/test_combo_dp.py`, `test_layer0_budget.py` | DP front = 전수 front. `gain_budget_db` 출력. override 반영 |
 | 층 0 역산(§5.3) | (a) 이름 없는 CS·캐스코드 toy 손계산(목표 gain → L, gm 요구 → gm/ID), 이상 소자 2단 VDS 배분 손계산, (b) 같은 bin 격자 전수 | `tests/search/test_layer0_inverse.py`, `test_l_targets.py` | 역산 L의 국소 gain ≥ T_b이고 한 제조 격자 아래 L은 < T_b. bin 경계 넘는 L 없음. 소자 종류(S 자유·B 제외·F 폴백·kvl 종속, §5.3.3)와 폴백 사유(`no_gm_requirement`·`l_inverse_no_bracket`·`lut_hermite_nonmonotone_cell`). 회차 2 이상 = 미해결 쌍만 재풀이·front 불변 정지(§5.3.2). 국소 결과 = 스냅샷, 조립 = graft(같은 입력 버전 재계산 0). 축소 상한(§4.2) ≠ exit 3 입력. VDS 배분 = 미분 큰 소자부터, 하한 위반 0. 고정점 수렴·NONCONVERGENT(비수축 픽스처). knee = 한계효율 최대 구간 위 끝(손계산 표), 면적 비단조 구간 건너뜀. 이름 전단사 불변 |
 | 출발 구간 | (a) 손계산 | `tests/search/test_start_intervals.py` | 필요조건 성질 |
+| 이득 L 하한 fail-closed·found_db 목표(§6.4-1 v1.15.1, card LA-1 toy 10 (a)) | (a) 손계산 toy | `tests/search/test_iv_gain_l.py`(이름은 test 주체 grep) | A_max 미인증 gain 선언 toy에서 활성(base 비활성 -- red), 평가 앵커 0 toy에서 하한 값 없음·margin null(base 가장 긴 앵커 -- red), 1회차 원소 없음 → `gain_l_element_undetermined`+원소 키, 미달 toy `StartConflict` margin = 목표 − 최선 이득·하한 = 최선 앵커, found_db 없는 블록 → `found_db_missing` |
+| 매크로 P = 0(§6.5-3a, toy 10 (b)) | (a) RHP 극점 출발점 toy, 비출력 극점 노드 toy | `tests/search/test_macro_poles.py` | RHP 출발점 버림·사다리 다음 칸, 사다리 끝 기록 `macro_rhp_start`, 망에 N9 노드 포함 |
 | 매크로 모델 | (a) 이상 VCCS 2·3극점, 캐스코드 노드 포함 | `tests/search/test_macro_poles.py` | UGF·PM 근, 근 없음 기록, 바퀴 수렴. **기본 호출 비트 동일**: 키워드 인자 셋이 None이면 `MacroResult`의 `fp_of`가 bd19cc6 기준 지문과 같다(이상 VCCS 픽스처 + library 매크로 활성 회로). 키워드 인자 호출은 `gm_bounds` 밖으로 나가지 않고 `gain_targets` 블록의 G_i = gm_i/10^{g/20} |
 | **축소 격자 전수 대조**(P N3.7 검증, 사용자 결정 2026-10-12 "P-1~P-15까지 권고대로 고쳐" P-9 "9회로 축소 격자 전수 대조 추가(N3.7, NFR-5)") | (b) 다른 모델: 전체회로 MNA를 목적·제약으로 쓰는 축소 격자 전수탐색(P N3.7 "사이징 대상 회로 전부에서 전체회로 MNA를 목적·제약으로 쓰는 축소 격자 전수탐색(다른 모델)과 대조한다") | `tests/integration/test_reduced_grid_crosscheck.py`(slow, 9회로) | 대조량 둘(DEC-77): (i) 축마다(전력·면적) 최적값 차, (ii) 같은 면적 상한 ε에서의 최소 전력 차(= front 점 대조). 각각 ≤ max(그 축의 격자 분해능(면적은 DEC-80), 모델 오차(DEC-72)), NFR-5와 같은 기준. 모델 오차 미측정이면 '판정 보류'. 단계 A·B에서 정지하는 회로(current_reuse·ngcc·nmcnr, P-1 정지 회로)는 그 정지를 기록하고 대조 대상에서 뺀 사실을 보고한다. 축소 격자의 정의는 계획에 없다(§5.12.5 PQ1) |
 | 혼재 노드 구동 종류(§1.5-4, C-1 + 보완 (가)) | (a) 이름 없는 toy 셋(source 쪽 소자 drain 레일·gate 신호 노드 / drain 쪽 gate가 신호 노드 / 바이어스 넷), (d) 9회로 발동표 | `tests/graph/test_drive_kind.py`(toy), `tests/integration/test_drive_kind_mixed_9circuits.py` | toy: 첫째 전압 구동(근거 `follower`), 둘째 전류 구동(근거 `cascode`), 셋째 전압 구동. 9회로 발동표(옛/새/근거, 키 (회로, `view_key`, 노드)): 바뀐 키 = sf N910·N1112·N1516 + folded_cascode Vg10이 혼재로 판정되는 모든 뷰(모두 전류 구동)뿐, sf N17·N20 전압 구동 유지, 나머지 회로 무동작. folded_cascode: M8이 stage 시작 셀이 아님(base와 같이 유지, 시작 셀 = M1, M2)을 단언, 그 밖 블록·stage·극점 노드 변화는 기록(Vg10 극점 노드 drive voltage → current 밖이면 실패) |
@@ -2027,7 +2036,7 @@ def loop_roles(view_loops, transfer_views, declared_pm_views) -> tuple[LoopRole,
 | P-1 정지(§5.3.11 (a)(b)) | (a) 경로 열거 수가 예산 상한을 넘는 toy, Π > N_S toy(N_S 선언값 작게) | `tests/search/test_layer0_budget.py` | 둘 다 `unsupported_rule_branch`로 탐색 전 정지(결정론: 시간 설정을 바꿔도 같은 판정). 좌표 훑기 코드 경로 없음(구조 test) |
 | P-1 절단(§5.3.11) | (a) N_S ≥ Π > N_T,i toy(N_T 선언 E_B 작게) | `tests/search/test_layer0_budget.py` | 정지하지 않고 반분 단계 순으로 N_T,i개 평가 후 `layer0_candidates_truncated{block, bin, Π, evaluated}` 기록, 그 블록 front·조합 front '추정' |
 | §6.7 KVL 행 | (a) 이름 없는 toy: v2 고리(종속 소자 VGS 구간 밖·안), VDS-1 고리(포화 위반·만족), 1변수 노드 근 없음 | `tests/search/test_iv_kvl.py` | `loop_lo`·`loop_hi`·`saturation`·`writer_root` 행 값과 부호, 의존 묶음, 비활성 사유(`rail_potentials_undeclared`, `kvl_node_undetermined`) |
-| §6.7 공동 선택 | (a) 위반 toy, 위반 없는 library 회로 | `tests/search/test_iv_kvl_choice.py` | 7a (i) 위반 최소 → (ii) max-min → (iii) 위치 합. 올린 묶음이 있으면 매크로·면적 재확인과 반씩 좁힘(상한 steps + 1). 해 없으면 `StartConflict(kvl)` + 위반 최소 조합(fail-closed). 위반 없는 회로의 출발 θ가 v1.5와 비트 동일 |
+| §6.7 공동 선택 | (a) 위반 toy, 위반 없는 library 회로 | `tests/search/test_iv_kvl_choice.py` | 7a (i) 위반 최소 → (ii) max-min → (iii) 위치 합. 올린 묶음이 있으면 매크로·면적 재확인과 반씩 좁힘(상한 steps + 1). 해 없으면 `StartConflict(kvl)` + 위반 최소 조합(fail-closed). 위반 없는 회로의 출발 θ가 v1.5와 비트 동일. **v1.15.1(toy 10 (c)(d))**: P1s·P1c toy에서 R6 선택이 `mirror_vds` 위반을 줄임(깨진 R-1′ 행 위반이 먼저), 해 없음 → `StartConflict(mirror_vds)`, 바이어스 분배 쌍·S 좌표·외층 무동작, 부하 둘 이상 toy에서 합 행이 동시 상한 선택을 막음 |
 | §6.7-1a 쓰기 계획(card IT-1, §4.7-1) | (a) 입력 DC 미선언 차동 입력 toy, 입력 DC 선언 toy, 두 입력 포트가 서로 다른 G_vgs 성분인 toy -- 기대 writer·종속 분류는 toy 연결에서 손으로 유도(손계산 오라클) | `tests/sizing/test_writer_plan.py` 안 새 test 함수(v1.12: 옛 경로 `test_writer_plan_no_input_tie.py`는 구조 규칙 H 위반이라 바꿈 -- 계획 F-IT4·X-IT3, 함수 이름은 test 주체가 `git grep`으로 겹침 확인) | **red 먼저**(검증자가 격리 복제본 base에서 실패 기록): relation `input_tie` 0, 같은 DC 엣지로 생긴 종속 0 + 종속 수 = 같은 DC 엣지 없는 G_vgs 순환 수(포트 경로가 둘 이상인 v1 고리의 ΔV 소거 `cycle_vgs`는 기대값에 포함), 입력 포트 W4 뿌리 y 키 = 뿌리 넷, 선언 toy 쓰기 계획 = 오라클(base에서도 green), 다중 입력 뿌리 toy = `unsupported_rule_branch`·`input_port_multiple_roots`(base는 정지하지 않음 -- red) |
 | §4.7 입력 포트 창(card IT-2, v1.13.0) | (a) 커널 θ 프레임 뿌리 창 손계산(θ 선형 감도), 측정 구성 판정 창 손조립 KCL 끝(L8 (a) -- follower·θ 손계산 끝과 다름을 전제 단언; v1.14.0 servo, V_cm 손계산 L8 (g), B77 L13), δV_out 정확 산술 참값(L8 (e)), E 손계산(L10 (k)) | `tests/sizing/test_block_columns.py`·`test_input_window.py`(커널 창·`saturation_window` 새 서명), `tests/sizing/test__helpers_dc_solve.py`(`Circuit` 행 부분), `tests/metrics/test_ss_nodal.py`·`test_icm_config.py`(측정 구성·E), `tests/metrics/test_stamp_mos.py`·`test_stamp_two_terminal.py`(`g_ops`), `tests/metrics/test_icm_window.py`(metric), `tests/metrics/test_ls_swing.py`(입력 칸 삭제 반영) | §4.7-7 K1~K4·R2·M1~M3·W1·P·D·L8·L10~L12. IT-2b가 `test_input_window.py`(IT-2b 반영 `6afe4758` `:396`)에서 '선언 입력 DC 포트의 커널 `node.dc_window` 항목 있음(measured)'으로 바꾼 기대는 D1로 다시 '커널 항목 없음'으로 바뀌고(test 작성 주체 몫), '창 있음'은 측정 구성 판정 창에서 단언한다(계획 v6.34 완료 조건 (1)). 다듬은 창·front 전용 test(`test_window_refine.py`·`test_icm_front.py`) 없음 |
 | P-15 섞인 회로 버퍼(§5.1) | (a) 이름 없는 CS + follower toy(rout 선언·미선언) | `tests/search/test_layer0_budget.py` | 버퍼가 면적 bin DP 단계로 들어가고 국소 Z_out ≤ rout인 점만 남음. 미선언이면 그 블록만 무동작 기록, 상수항 사용 |
@@ -2038,7 +2047,7 @@ def loop_roles(view_loops, transfer_views, declared_pm_views) -> tuple[LoopRole,
 | 잡음 해석 | (a) 저항 분압·CS 한 단 손계산(4kTR, 4kTγgm), (c) ngspice `.noise` | `tests/metrics/test_noise_analysis.py` | 입력 환산 밀도·적분이 resolution 안. `sampling_caps` 미선언(파일럿, C-2)이면 스위치 항 0 |
 | 잡음 출발 구간 | (a) 손계산 | `tests/search/test_start_intervals.py` | 열잡음 gm 하한, 1/f L 하한 |
 | mismatch 감도 LUT | (c) 단일 소자 ngspice 섭동(칸 중앙), (c) 소자 쌍 Monte Carlo | `tests/lut/test_mismatch_query.py` | 칸 중앙 오차 ≤ tol_mismatch. `vth0` 성분 = √2·slope 유도값(bin별 slope1 포함). MC σ와 A_eff 식이 MC 표본 분해능 안 |
-| matching L 하한·offset 가드 | (a) 손계산 | `tests/search/test_start_intervals.py` | 절대 offset 회로에서만 L 하한 활성, 가드 회로는 부하 gm/ID 상한 |
+| 면적 조건 gm/ID 하한·offset 가드(v1.15.1 -- toy 10 (d)(e)) | (a) 손계산 | `tests/search/test_start_intervals.py` | 절대 offset 회로에서만 입력 소자 gm/ID 하한 활성(L 하한 없음 -- 같은 면적을 L 또는 gm/ID로 얻는 toy에서 L 하한 0, base는 L 하한 -- red), 가드 회로·절대 offset·잡음 회로는 부하 gm/ID 상한(합 행 포함, W_min 클램프 점 제외) |
 | 헤드룸 달성가능성 | (a) 이름 없는 follower 스택·두 극성 입력 toy 손계산, (b) 소형 toy 격자 직접 전수 | `tests/metrics/test_headroom_bound.py` | 상한 ≥ 격자 직접 전수 최대 폭. 선언 제약이 인증 불가면 exit 3, 제약 없는 창은 보고만. 최단 L bin에서만 열리는 toy → `icmr_window_short_l_bin` 경고(정지 아님). SP-2 (c) 회로는 y_icm 범위 = 창 |
 | 복합 diode(§1.12.1) | (a) 이름 없는 toy: 저항 자기바이어스 캐스코드 기준(MOS 2 + R), 레플리카(MOS 2, 전류원 고정), 단순 diode(무동작), 직렬 노드에 세 번째 전류 단자가 붙은 변형(무동작). (d) 9회로 | `tests/graph/test_composite_diode.py` | 발동 집합·기준/캐스코드 구분. 9회로 발동 = §1.13 실측 집합, 나머지 7회로 0. 같은 gs 묶음 나머지가 바이어스 전류원. 미러 입력 넷 확장. 묶음 내부 사이클은 `composite_diode_internal`, 루프 뷰 0. 이름 전단사 불변 |
 | feedforward(§1.12.2) | (a) 이름 없는 3단 toy + 1단 우회 CS + 2단 우회 미러 가지, 우회 없는 병렬 합류 toy(무동작), 블록 내부 노드로 들어오는 바이어스 셀 toy(K8, 무동작). (b) 분해 합성값 A_decomp와 전회로 MNA 비교 | `tests/graph/test_feedforward_cells.py`, `tests/metrics/test_block_model.py` | FF 묶음·탭·merge·B_b. 주경로 블록 사슬. 복합 블록 0. A_decomp 잔차 ≤ 수치 분해능. `ff_ratio_candidates` 보고 |

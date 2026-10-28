@@ -70,7 +70,7 @@
 
 ## 3. `kernel_keys(placements, kinds, current) -> (keys, conflicts)` · `layout_score(snapshot, unplaced) -> tuple`
 
-* 평가 커널의 `LutAccess.w_keys` 는 kind 마다 슬라이스 하나다(sizing 계약). `kinds` = {소자: kind}, `current` = ((kind, 키), ...).
+* 평가 커널의 `LutAccess.w_keys` 는 kind 마다 슬라이스 하나다(sizing 계약). **[개정 예정 -- design 40 v1.15.1 §3.7-A 6·10, card WB-1]**: 이 전제는 폐기된다 -- 실현 기하 입력은 소자별 `RealizedGeometry.finger`(nf, finger_w)이고 슬라이스는 DC 블록이 `lut.slice_of_finger`로 정한다; `kernel_keys`·`place_layout` kind 키 좁히기는 삭제, `key_exclusion`은 레이아웃 행 그룹 단위로 재작성. `kinds` = {소자: kind}, `current` = ((kind, 키), ...).
   `keys` = `current` 의 kind 순 ((kind, 키), ...): 그 kind 의 배치가 쓰는 키(여럿이면 가장 작은 값 -- 충돌이라 의미 없음), 배치 소자가 없는 kind 는 `current` 값.
   `conflicts` = ((kind, (사용 키 오름차순)), ...) 둘 이상 쓰는 kind.
 * `layout_score` = 작을수록 좋은 사전식 점수 `(놓지 못한 소자 수, 배치 못 한 common-centroid 요구 그룹 수(CC_REQUIRED_ROLES, pattern None, pending 아님),

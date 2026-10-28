@@ -144,6 +144,7 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
   (결정 대기 값은 엔진이 고르지 않는다 -- 그런 수동소자는 θ 도 구조 규칙도 아니고 소신호에서 `passive_value_undeclared`).
 
 ### 1.3 `LutAccess(memo, w_keys)` -- frozen, `__canonical__() = (memo.lut.fp, w_keys)`
+> **[개정 예정 -- design 40 v1.15.1 §3.7-A, card WB-1(계획 v6.38.2 DEC-105 (2)); 이 절 아래 문언은 as-built 계약이고 WB-1 병합 때 바뀐다]**: 'kind당 폭 슬라이스 하나' 계약은 폐기된다 -- `LutAccess`는 `memo`만 담고(`w_keys` 칸·`pre_layout_lut_access`·`w_key_of(lut, kind)` 삭제), 소자 슬라이스는 DC 블록 `dc_solve`(노드 풀이 `dc_columns` + W `dc_widths`를 합친 블록) 안에서 손가락 규칙 W-bin 선택 함수 `lut.finger_slice`로 소자마다 정하며 기록은 `DeviceOp.w_key`, 손가락 기하는 새 필드 `device: dc_finger`(m, w_f)다. 4절 S1 MOS kind 마다 `w_keys` 검사, `dc_drop_current` 필드도 같은 변경에서 지운다. 지금 계약을 근거로 새 코드를 쓰지 않는다.
 - `memo` = lut `LutMemo`(graph 밖 유일 memo), `w_keys` = ((kind, w_key), ...) 레이아웃 전 사이징이 쓰는 폭 슬라이스.
 - `require_immutable(LutAccess(...))` 통과(`__canonical__` 우선), `fp_of` = LUT 내용 지문 + w_keys 의 함수 -- memo 상태(캐시
   내용·상한)가 달라도 같은 지문. 그래서 블록 extras 로 넘겨도 입력 버전은 LUT 내용·슬라이스만 따른다.
