@@ -1197,6 +1197,23 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력 
 - `gm_req`는 같은 스냅샷 MNA에서 1-D 근으로 구한다.
 - 근사식은 층 0 출발값에만 쓰고, 근사와 MNA의 차를 `comp_approx_gap`으로 기록한다.
 
+**S 셀 집합과 일반형 판정**(v1.15.2 -- 계획 DEC-92 (3) v6.38.3 '한계'가 design에 맡긴 판정 'S 셀 집합에 AC로 같은 출력 노드를 구동하는 소자를 넣을지', 사용자 결정 O-172 (a)·감사 A10; 결과 = **넣지 않는다, 지금 연결 정의가 일반형이다 -- 규칙 변경 0**):
+- **S 정의**(DEC-92 (3) 그대로): 보상 R과 보상 C가 이어진 경로(R의 한 끝 넷에 R과 보상 C만 닿는 직렬 가지; T 망이면 C마다 경로 하나)마다 그 경로 두 끝(구동 쪽 끝 A, 출력 쪽 끝 B)에 gate·drain이 걸린 MOS(gate = A, drain = B)의 합집합; 비면 S 미정(fail-closed -- DEC-105 (10) (d)).
+- **물리 결정자**(절점식): R이 없애려는 것은 보상 가지의 feedforward가 만드는 우반면 영점이다. A→B 전달의 영점은 능동망의 단락 전달 어드미턴스 y_21,act(s)(B를 교류 접지하고 A에 v_A를 걸 때 B로 드는 전류/v_A)와 보상 가지 어드미턴스 Y_c(s) = sC_c/(1 + sRC_c)가 같아지는 s다(정확식). 영점을 무한대로 보내는 R(R_null)은 s → ∞의 균형으로 정해진다: **R_null = 1/G_m(∞), G_m(∞) = lim_{s→∞} y_21,act = Σ_{c: gate = A, drain = B} gm_c**. gate가 A가 아닌 중간 넷을 거쳐 B를 구동하는 소자의 기여는 그 중간 넷의 용량(게이트·접합 용량 -- 물리적으로 0이 아님)이 s → ∞에서 그 넷을 교류 접지로 만들어 0이 된다. 그래서 G_m(∞)은 gate가 A에, drain이 B에 직접 닿은 소자만의 합이고 이것이 위 연결 정의와 같다. 2단 Miller 교과서식 z = 1/(C_c(1/gm − R))(Allen-Holberg 'CMOS Analog Circuit Design' 보상 장의 nulling resistor 식 -- 절 번호 미확인; 감사 A8 `wt/_drafts/evidence/2026-10-29/physics_audit/rhp_zero_check.py`)은 그 특수형이고, nmcnr T 망의 'R_m = 1/g_m3'(원문 Leung 1999 p.2 Structure 4 -- 로컬 `assets/library/sources/nmcnr_amplifier__leung_1999/source.pdf` p.2, `paper.md:174-178`)도 같은 값이다.
+- **회로이론 판정 -- 실측**(`wt/_drafts/evidence/2026-10-29/design_v1152/class_ab_s/class_ab_zero.py`·`class_ab_zero.out.jsonl`·`run.log` -- sympy 절점식 정확해 + 수치; 재현 = 그 폴더에서 `C:/Python314/python.exe class_ab_zero.py symbolic sweep sweep_cgd lut`): current_reuse 출력단 한쪽을 topology 연결 그대로 세운 소신호 모델(A = Vop1, B = Vom, M16 nmos gate A·drain B, M15 pmos gate Vg15·drain B, 부유 전류원 M9a pmos source Vg15·drain Vop1·gate 바이어스, M9b nmos source Vop1·drain Vg15·gate 바이어스, M8 전류원 drain Vg15; Rz1–Cc1 경로 A–B; C_G = Vg15 넷 용량)에서 v_B/i_in 분자 최고차 계수 = **−C_G·C_c·(R·gm16 − 1)**(Cgd = 0) → **R_null = 1/gm16 정확**(gm15·gm9a·gm9b·C_G > 0과 무관). 감사 A10의 일반형 R = 1/(gm16 + k₀·gm15)(k₀ = (gm9b + gds9a + gds9b)/(gm9a + gds9a + gds9b + gds8) -- ω → 0 결합비)는 C_G → 0 극한에서만 영점을 무한대로 보낸다. 무차원 훑기 162점(gm15/gm16 ∈ {0.5, 1, 2} × gm9a/gm16 ∈ {0.1, 0.3, 1} × gm9b/gm9a ∈ {0.5, 1, 2} × ω_G/ω_z0 ∈ {0.1, 0.3, 1, 3, 10, 100} -- 비교용 격자, 상수 아님): R = 1/gm16에서 우반면 영점 0/162, 일반형 R(= 현행의 0.51~0.80배)에서 162/162 모두 우반면 영점 하나가 남음; R 로그 훑기(401점)로 우반면 영점이 사라지는 문턱 R* = 1.009/gm16(격자 분해능 안에서 1/gm16). Cgd(G–B·A–B, C_G의 0.1배)를 넣으면 R과 무관한 feedthrough 우반면 영점(≈ gm16/Cgd16) 하나가 두 경우 모두 남고, 그 위치가 현행 R에서 일반형 R보다 3~33배 높다(ω_G/ω_z0 = 1에서 11.6 대 3.5 Grad/s -- 일반형이 그 영점을 GBW 쪽으로 끌어옴). LUT 참고(같은 파일 `lut` 케이스): pfet L 0.5 µm gm/ID 10~16에서 f_T 0.43~1.4 GHz -- C_G(M15 Cgg)는 무시할 크기가 아니다.
+- **판정**: 'AC로 같은 출력 노드를 구동하는 소자'를 넣는 일반형 = **틀림**(영점 무한대 조건의 정의로) -- 감사 A10의 '우반면 영점 = (gm15 + gm16)/C_c, 연결 정의가 Σgm을 과소평가'는 M15 게이트 용량을 무시한(C_G = 0) 저주파 근사이고 영점 상쇄 조건이 아니다. 지금 연결 정의가 일반형(G_m(∞))이므로 규칙 변경 0·사용자 결정 불요(계획 '규칙 확장이면 사용자 결정'에 해당 없음). 계획 DEC-92 (3) '한계' 문언(물리 결정자 = AC 구동 이득 소자 gm 합, Σgm 과소)은 근거가 바뀌므로 **계획 정정 후보**로 보고한다(이 design은 계획 규칙을 그대로 쓴다 -- 계획과 다르게 쓴 곳 없음).
+- **9회로 적용표**(topology 연결 판독 -- `wt/_drafts/evidence/2026-10-28/s_def_connectivity.txt` + 이 판 B 넷 drain 소자 조사, integ/it12 `b12792ab` `assets/library/*.topology.json`):
+
+| 회로 | R–C 경로(A → B) | B에 drain이 닿은 MOS(gate 넷) | S = G_m(∞) 소자(현행 = 일반형) | 'AC 구동 포함' 안 | 출발값 R₀ 영향 |
+|---|---|---|---|---|---|
+| two_stage_ota | Rz–Cc: O1 → OUT | M6(O1), M7(bias) | {M6} | {M6} | 같음 |
+| current_reuse_telescopic_ota | Rz1–Cc1: Vop1 → Vom; Rz2–Cc2: Vom1 → Vop | Vom: M16(Vop1), M15(Vg15 -- M9a·M9b 부유 전류원 경유); Vop: M26(Vom1), M25(Vg25 -- M18a·M18b 경유) | {M16}, {M26} | {M16, M15}, {M26, M25} | 현행 R₀ = 1/gm16 = 정확 R_null(우반면 영점 없음); 'AC 구동 포함' R₀ = 현행의 0.51~0.80배(훑기) -- 우반면 영점을 남김 |
+| nmcnr_amplifier | Rm–Cm2: NodeS2 → Vout; Rm–Cm1: NodeM2 → Vout(T 망) | Vout: M301(NodeS2), M302(VB5 bias) | {M301} ∪ ∅ = {M301} | {M301}(합집합이라 같음) | 같음 -- 원문 R_m = 1/g_m3과 같음 |
+| common_gate_amplifier·folded_cascode·ngcc_3stage_ff·pushpull_follower_buffer·sf_pushpull_output_opamp·two_stage_ota_sf | R–C 보상 경로 0 | -- | 해당 없음 | 해당 없음 | 없음 |
+
+- **U-134 상자 영향**: 현행 S에서 R_null(θ) = 1/G_m(∞)(θ)는 정의상 늘 상자 [1/max Σgm, 1/min Σgm](§3.1-1 (b)) 안이다. 'AC 구동 포함'으로 넓히면 하한이 최대 (1 + k₀·max gm15/max gm16)배 내려가 우반면 영점을 남기는 R까지 상자에 넣는다 -- 넓힐 이유 없음.
+- **측정 한계**: 소신호 모델은 출력단 한쪽(첫 단 출력 컨덕턴스·용량을 g_A·C_A로 둠, CMFB·반대쪽 가지 생략)이고 SPICE 전회로가 아니다. 결론(R_null = 1/gm16)은 C_G > 0인 모든 매개값에서 정확식이라 매개값에 의존하지 않는다; 실제 회로의 영점 위치는 R이 θ이므로 MNA 판정이 정한다(출발값 규칙만 이 판정에 기댐).
+
 **보상 수동소자 후보 집합**은 S1v 극점 노드 목록의 두 노드 사이에 걸린 수동소자다(41 §1.7). 다음 둘은 후보에서 뺀다.
 - 루프 뷰 (3-b)의 복귀 경로에만 있고 (2) Miller 구간에 없는 수동소자. 예: CM 감지 평균 저항. 이것이 6a 열린 항목 ⑤의 해법이다.
 - spec이 feedback이나 CM 감지 소자로 선언한 요소.
