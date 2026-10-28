@@ -758,3 +758,4 @@ graph 점검: 단일 출력 + 용량만 선언 ICMR 정의 자리 = gain-budget 
 
 * 근거: 상위 gain-budget v6.38.3 N6.35 예외 정리 표(예외 전수 감사 `wt/_drafts/evidence/2026-10-28/exception_audit.md`)와 상위 독립 검증 5(`plan_v6383_validation5.md` V5-M4 -- 표의 모든 행 ID를 소유 card 본문에).
 * 바꾼 것: OP-12 행에 'N6.35 E-23 소유', X-D1 행에 'N6.35 E-20(출처 미확인 상수 다섯 -- 출처 유도 또는 선언 card는 다음 판)·E-21 게이트 전용 이상 전압 넷 조건 검사(다음 판 몫)' 인용. 규칙 변경 없음.
+* 둘째(상위 gain-budget v6.38.3 일곱째 커밋, 상위 독립 검증 6 `wt/_drafts/evidence/2026-10-28/plan_v6383_validation6.md` L-9): X-D1 행에 같은 E-21의 oracle 판정 쪽 대체값 `O/oracle_swing.py:15`('`judge.off_current_A` 없으면 문턱 0' -- 엄격 방향, fail-open 아님) 소유 인용(다음 판 몫). 규칙 변경 없음.
