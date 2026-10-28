@@ -753,3 +753,8 @@ graph 점검: 단일 출력 + 용량만 선언 ICMR 정의 자리 = gain-budget 
 
 * 근거: 상위 사용자 결정 O-166(2026-10-28 "기본안 일괄 승인 (권고)"·O-165 추가 문언 "1번은 권고대로"·U-129 "측정 부하로, topology는 내가 추가 (권고)"·U-128 "형태 승인, 값은 card 착수 전 표로 (권고)", `_drafts/user_decisions.md` O-166 행; 승인 범위 `wt/_drafts/evidence/2026-10-28/plan_v6382_approval_items.md` 기본안).
 * 바꾼 것: Status '검증 대기' → '승인됨(O-166)'. 규칙 변경 없음.
+
+### v0.6.20 -- 상위 gain-budget v6.38.3 여섯째 커밋, 예외 정리 표 행 인용 (2026-10-28)
+
+* 근거: 상위 gain-budget v6.38.3 N6.35 예외 정리 표(예외 전수 감사 `wt/_drafts/evidence/2026-10-28/exception_audit.md`)와 상위 독립 검증 5(`plan_v6383_validation5.md` V5-M4 -- 표의 모든 행 ID를 소유 card 본문에).
+* 바꾼 것: OP-12 행에 'N6.35 E-23 소유', X-D1 행에 'N6.35 E-20(출처 미확인 상수 다섯 -- 출처 유도 또는 선언 card는 다음 판)·E-21 게이트 전용 이상 전압 넷 조건 검사(다음 판 몫)' 인용. 규칙 변경 없음.
