@@ -1431,13 +1431,13 @@ RT를 고쳐도 색인은 필요하다(서로 다른 θ 비트는 다른 입력 
 | 공유 계산 블록 변경의 DoD(DEC-51) | 9회로 합격을 낸 뒤 `core`·`sizing`·`metrics`·`search`의 공유 계산 블록 알고리즘을 바꾸는 변경은 9회로 전후 차(노드전압, front, SPICE verdict)를 보고에 붙인다. 명령은 §10.4 '공유 블록 전후 대조'. SPICE verdict가 하나라도 바뀌면 사용자 확인을 받는다 |
 | I-C10·U-20 `stack_headroom_slack_v` | **결정**(사용자 결정 2026-10-12 "K-2 권고대로, GQ1/GQ3/GQ4, U-14,U-20,U-32,U-45 권고대로")(U-20): 봉인 항목 1·5가 같은 사실을 보므로 metric을 두지 않는다(봉인 검사로 흡수). 새 엔진 metric 등록부에 이 이름은 없다 |
 | I-A13 dummy·LDE | **결정**(사용자 결정 2026-10-12 "U-67은 (나)로", U-67): dummy는 §3.10.5의 ratify 식으로 판정 축 면적에 들어간다. (1) L이 섞인 interdigitation 행의 좌우 대칭 검사를 구현한다: 행 finger 패턴에서 소자마다 finger 위치의 행 중심 거울상이 같은 소자의 finger인지 본다(LY4 common-centroid 정의, 새 상수 없음). 어긋나면 그 matching 그룹을 `review_needed`(`interdigitation_not_mirror_symmetric{group, row, device}`)로 올린다(U12). (2) LOD는 오라클 검증에만 넣는다(아래 §3.9 LY8·§4). 엔진 판정과 LUT에는 LOD가 없다. (3) WPE·PSE는 대상이 아니다(PDK 모델에 파라미터가 없어 규칙을 만들지 않는다) |
-| I-A11 크로스오버 주파수 차이 | 옛 엔진의 선언식(36.6 MHz) 대 전체 응답(30.50 MHz) 차이다. 새 엔진은 GBW·PM을 봉인 스냅샷 전회로 MNA로만 판정하고(DEC-74, §3.5), 근사식은 층 0 출발값에만 쓰며 근사와 MNA의 차를 `comp_approx_gap`으로 기록한다(41 §5.5). 그래서 이 차이는 판정에 들어가지 않고 회로마다 측정량으로 남는다. 옛 엔진 원인 규명은 범위 밖이다(P-14) |
-| 정밀 경로 선언(DEC-73·76) | **v1.15.2 대체**(계획 SF-1 범위 11·N6.35 E-04, O-169): `search_method` 칸·값 `precision`을 스키마에서 지운다 -- 선언하면 로더가 모르는 키로 거부(효과는 옛 '선언 = 정지'와 같음; 정밀 경로는 DEC-76대로 발동 회로가 생길 때 칸과 함께 만든다, §3.1-1). 옛 문언: spec `search_method`가 정밀 경로(내층 DP·중층 좌표강하)를 선언하면 탐색 전에 `unsupported_rule_branch`(사유 `precise_path_not_implemented`)로 정지한다. 정밀 경로는 기본 꺼짐이고(DEC-73) 구현이 없는 분기를 타면 정지한다(DEC-76 안전망). **결정**(사용자 결정 2026-10-12 "U-66은 (가)로", U-66). 정밀 경로 design은 U-33 측정이 기본 경로 부족을 보일 때만 시작한다 |
-| 보상 단 폴백(U-51) | **삭제**(v1.15.2 -- 계획 N6.35 E-34, O-169, 원래 취지와 다름(계획 표지, 승인 표 #33): 미수렴 = 목표 미달 = 정의된 출발값 -- §3.6). 옛 문언: 사용자 결정 2026-10-12 "U-51은 (나)로": 보상 단 gm/ID는 θ에 포함한다(DEC-04). 폴백은 **계수 기반**이다: 외층 SLSQP가 그 시작점의 반복 상한(as-built `slsqp_outer` 식 maxiter = Σ_i max(⌈log2(상자폭_i / FD 스텝_i)⌉, 1), `E/search/slsqp_outer.py:179-181`) 안에 수렴하지 못하면 그 시작점에서만 보상 단 θ를 GB5 규칙값(gm_req = DEC-92 MNA 1-D 근, §3.5)으로 고정해 한 번 다시 푼다. 폴백 사실과 이유(`compensation_fixed_fallback{start, reason: slsqp_maxiter}`)를 기록하고 그 점을 '추정'으로 표시한다. 벽시계·U-47 예산에 의존하지 않는다(결정론). 9회로 실행에서 폴백 빈도를 재서 보고한다. 기록은 결과 JSON front 점의 `fallbacks[]`와 `perf.compensation_fixed_fallback` 계수 |
+| I-A11 크로스오버 주파수 차이 | 옛 엔진의 선언식 대 전체 응답 크로스오버 차이다(옛 수치 = design 이력 H40-19). 새 엔진은 GBW·PM을 봉인 스냅샷 전회로 MNA로만 판정하고(DEC-74, §3.5), 근사식은 층 0 출발값에만 쓰며 근사와 MNA의 차를 `comp_approx_gap`으로 기록한다(41 §5.5). 그래서 이 차이는 판정에 들어가지 않고 회로마다 측정량으로 남는다. 옛 엔진 원인 규명은 범위 밖이다(P-14) |
+| 정밀 경로 선언(DEC-73·76) | **v1.15.2 대체**(계획 SF-1 범위 11·N6.35 E-04, O-169): `search_method` 칸·값 `precision`을 스키마에서 지운다 -- 선언하면 로더가 모르는 키로 거부(효과는 옛 '선언 = 정지'와 같음; 정밀 경로는 DEC-76대로 발동 회로가 생길 때 칸과 함께 만든다, §3.1-1). (옛 문언 = design 이력 H40-20.) **결정**(사용자 결정 2026-10-12 "U-66은 (가)로", U-66). 정밀 경로 design은 U-33 측정이 기본 경로 부족을 보일 때만 시작한다 |
+| 보상 단 폴백(U-51) | **삭제**(v1.15.2 -- 계획 N6.35 E-34, O-169, 원래 취지와 다름(계획 표지, 승인 표 #33): 미수렴 = 목표 미달 = 정의된 출발값 -- §3.6). 옛 문언(U-51 계수 기반 폴백) = design 이력 H40-21 |
 | 복합 블록 묶음 크기 상한(DEC-81) | 묶음 크기 상한을 계수 예산 N_S(`structure_count_budget`, 41 §0)로 둔다. 근거는 L-10과 같다(실행 시간에 의존하지 않아 결정론). **결정**(사용자 결정 2026-10-12 "GQ2, N1, N3, K2 권고대로")(U-65, 계획 DEC-81 정정) |
 | T1·T7·T8 형식(P N6.2) | T1: 소자 행 `{W, L, finger_w, n_fingers, ID, VGS, VDS, VSB, gm_id, ID_source}`(오라클 넷리스트 `w = finger_w`, `m = n_fingers`), 노드전압 전부, 이상원·수동소자 값, metric, front 표, 실패 레코드, exit code. T7: SPICE를 돌리는 front 점 = U-45 기본안(양 끝점 + 예산 점)이고 넷리스트 기하는 그 점의 MOD8 수렴 기하(LY8). T8: 위 3열 |
 | 바이어스 소자 gds 귀속과 '층 0 AC 무동작'(P DEC-71 (2)) | 바이어스 기둥 소자의 gds가 다른 블록의 국소 AC 이득에 들어가면 그 소자는 기여받는 블록의 국소 문제에 고정 입력으로 들어가고 공유 소자로 표시되며 확정은 조립에서 한다. 어느 블록에도 gds로 기여하지 않는 순수 기준전압 소자만 AC 제약 없이 풀고, 하한은 포화 여유·매칭 선언·DC 등식이다. 그 하한마저 없으면 결과 JSON `layer0.ac_inactive[{column, devices, reason}]`로 보고한다(조용히 자명해를 내지 않는다). 블록에도 바이어스 기둥에도 들지 않는 소자는 `column_unassigned`로 정지한다(as-built `stage_a`) |
-| N3.13 bisection 켜기 경로 | **v1.15.2 -- 켜기 키 삭제**(계획 SF-1 범위 11: `optional_stages` 칸째 삭제 -- bisection 켜기 칸은 그 선택을 읽는 card가 읽기와 함께 만든다; 기본 비활성 그대로). 옛 문언: 기본 비활성. spec `optional_stages`(DEC-75)에 bisection 대상 제약 metric 목록을 선언하면 켜진다. 진입점은 `achievable_metric_bound(mode="bisect")`이고 `run_gmid_design_pipeline` 위의 도구가 부른다(MOD10, 패키지 순서상 pipeline 위). 결과는 선언의 `value`와 `_derived{지문, 스텝 이력, 시각}`으로 기록한다. 42 DEC-22 행은 N/A가 아니라 MISS(기본 비활성, 켜기 경로 설계됨)다. 키는 `optional_stages.bisection.metrics: [...]`다(DEC-68 명명, §3.10.9 PN4 결정) |
+| N3.13 bisection 켜기 경로 | **v1.15.2 -- 켜기 키 삭제**(계획 SF-1 범위 11: `optional_stages` 칸째 삭제 -- bisection 켜기 칸은 그 선택을 읽는 card가 읽기와 함께 만든다; 기본 비활성 그대로). 옛 문언(`optional_stages` 켜기 키) = design 이력 H40-22. |
 | TS7 xfail 규칙(P N3.11) | 계약 test는 처음부터 `xfail(reason="<담당 단위 id>", strict=True)`로 둔다. 담당 단위가 완료되면 그 단위 변경에서 xfail 표시를 지운다. strict이므로 단위 완료 전에 통과하면(XPASS) FAIL이 나서 활성화를 강제한다 |
 
 #### 3.10.9 정한 기본값 (design 소관, 열린 질문 없음 -- P N9.2-8)
@@ -1805,7 +1805,7 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 - R1~R28: 로드맵(`_drafts/engine/ROADMAP.md`, 이하 R), 초안, CONTRACT가 계획 요구를 줄이거나 미룬 곳.
 - R29~R33: **이 design 자체가 계획 문구와 다르게 정한 곳**.
 
-**결정(사용자 2026-10-08, "Q1~Q11 모두 네 의견대로 진행해")**: 아래 목록이 정본이다. 표의 '상태' 열은 결정 이전 상태를 남겨 둔 것이다.
+**결정(사용자 2026-10-08, "Q1~Q11 모두 네 의견대로 진행해")**: 아래 목록이 정본이다(R별 원 표 = design 이력 H40-17).
 
 | 결정 | 해당 행 |
 |---|---|
@@ -1815,41 +1815,43 @@ s_k는 시작점마다 한 번 정하고 그 풀이 안에서는 고정한다. �
 | **다른 질문에서 결정** | R17 → Q2, R19 → Q10, R24 → Q6(전력 축 = Σ V·I, U-10 변경), R27 → 잡음 범위 안(Q11), R32 → Q5b |
 | **이미 결정됨** | R1(사용자 철회), R18·R33(결정 4번), R28(계획 승인) |
 
-| # | 축소 내용 | 출처 | 계획 근거 | 상태 | 권고 |
-|---|---|---|---|---|---|
-| R1 | 층 0을 최소형(시작점 하나)으로. 블록별 gain bin front·조합 DP·`gain_budget_db` 출력 없음 | R §4 D18, R §0.2, `search/CONTRACT.md:26-31` | FR-4, DEC-03·71·73·77 | **사용자가 철회(2026-10-08)** | 41 §5대로 복원 |
-| R2 | GB3(결합 변수 y) 범위 밖 | R §0.2 행 32, D18 | GB3, DEC-71 (7) | 미결 | 복원: 층 0 조립의 입력(§3.3). 내층 DP·중층 좌표강하는 DEC-73대로 기본 꺼짐 유지 |
-| R3 | GB4를 'INFEASIBLE_TARGET만'으로 축소, DOF·수치 rank 범위 밖 | R §0.2 행 33, K6. 계획 N6.1 단위 7('GB4 축소')에도 반영됨 | FR-8, GB4, IC6 | **복원**(Q1, 41 §4.5) | 구조 DOF와 수치 rank 복원(표본 수 = `dof_rank_sample_count`, 41 §4.5). 블록 gain 상한은 계획대로 격자 전수로 계산하고, 예산을 넘으면 '미상'으로 둔다(41 §4.2) |
-| R4 | U-49 기본안(층 0 최소형, gain bin front·GB3 범위 밖)이 계획서 안에 있다 | P N7.2 U-49 | FR-4와 긴장 | 미결(계획서 안의 대기 결정) | 2026-10-08 지시로 U-49를 '복원'으로 닫고 계획서를 정정 |
-| R5 | 블록 국소 모델·MNA 잔차·감도 게이트 범위 밖 | `metrics/CONTRACT.md:13-14`, 초안 M15:191, L7a:261 | FR-2, DEC-05·66, N3.8 | 미결 | 복원(41 §2, §3.8) |
-| R6 | SP1(셀·0-1 BFS·stage·루프 (0)~(4)·끊는 점·R(u)·DEC-81) 연기, declared 대조 연기 | 초안 U25:196·201·133, R N5~N7 미착수 | FR-1, GB2, DEC-43·57·59·63·65·81 | 미결 | 복원(41 §1) |
-| R7 | `rule_branch_coverage.json`과 검증 발동 0 분기 정지 없음 | graph CONTRACT | DEC-59 | 미결 | 복원(41 §1.10) |
-| R8 | GB5 `gm_req`·`comp_approx_gap` 범위 밖 | `find_front.py:45-48` | DEC-92 (1)(2) | 미결 | 복원(§3.5) |
-| R9 | DC 동작 범위 방향별 공급 능력(v1.15.0: 정의 DEC-65 v6.38 범위 끝 순 전류·계산 DEC-104 R9(U-115 닫힘)·소비자 R8 판정 -- 옛 '피크 부하' 소비자 삭제 O-143 (6); as-built `ls_fields` -- 엔진 슬루 칸 0, 계획 v6.37 O-122)·스윙·ICMR·`nqs_ratio`·`mismatch_sigma_v` 범위 밖 | `metrics/CONTRACT.md:14` | DEC-58·65·96·104, N3.8 | 미결 | 복원(§3.8) |
-| R10 | spec 로더가 `gain_budget_db_override`·`driving_spec`을 거부 | `SPEC_CONTRACT.md:226-228`, R D5('N3.15 축소') | GB0, DEC-03, DEC-58 | 미결 | 복원(§3.1). v1.15.0: `driving_spec`은 복원 대상에서 빠진다 -- card SF-1이 섹션을 지우고 `constraints[]` `.tran` 항목으로 옮긴다(§3.1-1, O-128 Q5·O-144 J4); `gain_budget_db_override`만 복원 |
-| R11 | 예산 점 풀이 미작성, `n_starts`·x0 미작성 | `search/CONTRACT.md:535-537,591` | DEC-77, U-13, N3.5 | 미결 | 복원(§3.6) |
-| R12 | MOD8 루프·LY7 재평가·판정 축 재필터 미구현(`pending_wiring`) | `layout/CONTRACT.md` 4.14, `search` S-14 | DEC-79 (b), DEC-84, LY3·LY7, 사용자 12번 (나) | 계획은 범위 안 | 구현(§3.9) |
-| R13 | L 동치류 L 공유 사실상 꺼짐(`l_class` proposed) | `graph/CONTRACT.md:220` | DEC-17, LR1 | 미결 | 복원(§3.2) |
-| R14 | 미러 비율 전류 강제 없음, DEC-95 (3) ratified·② 없음, tol_I 격자 최대 gm | `sizing/CONTRACT.md:276,741,766` | DEC-70, DEC-95, N3.6 | 미결 | 복원(§3.7) |
-| R15 | 뷰별 교류접지(바이어스 종속 넷) U5로 연기. 차동쌍 '신호 gate 정확히 2' 조건 빠짐 | `graph/CONTRACT.md:491,538`, JU4:131 | SP1-1 (4), DEC-93 (1) | 미결 | 복원(41 §1.2) |
-| R16 | 대칭 θ 묶기 열린 항목 | `search/CONTRACT.md` 3.23 (4) | 사용자 2026-10-08 대칭 결정 | 미결 | 구현(§6) |
-| R17 | Pelgrom 계수 선언 없음 → mismatch 보고·matching L 하한 불가 | core 조사 | DEC-96 (2), N3.16 | 선행 조건 | PDK `*__mismatch.corner.spice`의 `vth0_slope`·`toxe_slope` 계열에서 A_VT·A_β를 유도하는 식과 단위 확인을 MOD1/`core` PDK 선언에 둠(§9 Q2). Q3(2026-10-08)로 A_eff 모델(전 slope 변수·bin별 slope·LUT 감도 열)로 확장(41 §6.4-2) |
-| R18 | C10: 지속 진동을 undetermined로 유지(계약에 '사용자 승인'으로 기록) | `[ng-oracle-early]` 계약 L42-54 | 사용자 결정 2026-10-08 4번 | 사용자 결정과 모순 | 사용자 결정대로 되돌림(§4) |
-| R19 | 오라클이 `pm_undefined`(개루프 RHP 극점 포함)를 일괄 INCOMPLETE로 판정 | `[ng-cmfb-pm]` README, `tools/spice_oracle/README.md:516` | 사용자 결정 A(엔진 탐색 규칙), P N3.6 오라클 합격 정의 | 미결 | Nyquist Z와 폐루프 과도로 판정하고, 둘 다 결정할 수 없을 때만 INCOMPLETE(§4-5). 개루프 RHP만으로 FAIL을 주지 않는다 |
-| R20 | ΔA_tie = grid² | `E/layout/floorplan.py:83` | DEC-79, DEC-95 (2) | 미결 | 계획 식으로 수정 |
-| R21 | LY5 `W_adjustable=False` 즉시 완화 | `layout/CONTRACT.md:217,306-311` | LY5 마지막 문장 | 미결 | 제거 |
-| R22 | LY8 `ly.diffusion` 없음, 판정 축 면적에 수동소자 없음 | `E/layout/_ly_fields.py` | DEC-89 (5), DEC-91 (2), DEC-79 | 미결 | 구현(§3.9) |
-| R23 | `verified_by`·모델 오차 레지스트리, `spice_unverifiable` 없음 | `metrics/CONTRACT.md:246,424` | DEC-72, DEC-90 (3), N3.8 | 미결 | 구현(§3.8) |
-| R24 | 전력 축 = Σ V·I(`power_dc_w`). DEC-78은 공급 전류 합 | `E/search/objectives.py:9`, `metrics/CONTRACT.md:544,627` | DEC-78, U-10 | 정의 차이 | 사용자 결정(§9 Q6) |
-| R25 | LUT: GMBS 열이 있는데 VS 축 선형, FC 위반 칸 선형 폴백, `vgs_for_current_density` 없음, bin 소속을 메타 대신 식으로 판정 | `lut/CONTRACT.md` 1.4, 4.0.1, 4.2 | DEC-87, DEC-88, LR3 | 미결 | `vgs_for_current_density`와 VS Hermite 구현. bin 소속은 실측 384/384 일치 근거로 식 유지를 제안하되 계획 LR3 정정이 필요(사용자 확인) |
-| R26 | 새 test 체계의 `contracts/`·`regression/`·`oracles/`·`perf/` 폴더 없음 | `E/tests/` | N3.11, N6.2 T9, IC1~IC11 | 미결 | 단위별로 작성 |
-| R27 | 슬루·정착은 SPICE 기록만 한다. 잡음 경로 없음 | 초안 SF:209, M15:43 | DEC-90 (2), DEC-96 (3) | 슬루 '기록만'(Q5 (ii))은 대체 -- 슬루 = oracle `.tran` 판정(합격 T5 안, 전 폭 계단 출력의 20 %~80 % 구간 기울기; P DEC-90 (2)·T5, O-121 B-2·O-122 -- **원래 취지와 다름(승인 O-122)**; FAIL 뒤 처리 = U-112 닫힘 -- front 제외·기록, 되먹임 없음, O-143 (4)·O-144; 추종 검사 O-144). 정착 '기록만'은 v1.15.0에서 대체 -- 정착은 oracle `.tran` 판정 spec이다(`settle_s`·static settling error, 계획 N3.8 '정착 측정 정의', 사용자 결정 O-132·O-133·O-145; current_reuse는 AP-1까지 판정 대기). **잡음은 사용자 결정 2026-10-08로 범위 안이 됨**("노이즈 spec을 추가해서 코드를 만들어야지.") | 슬루는 oracle 판정(엔진 슬루 칸·행 0 -- §3.8-3, 추종 검사 §4-9), 정착도 oracle 판정(v1.15.0 -- §4-10, §3.1-1). 잡음은 41 §7대로 구현한다(spec 제약, LUT 잡음 열, adjoint 잡음 해석, 오라클 `.noise`). 계획서 N1.2와 DEC-96 (3)의 잡음 문구는 정정이 필요하다 |
-| R28 | 정밀 경로(내층 DP·중층)·전역 샘플·bisection 기본 비활성 | 초안 M6:299 | DEC-73·75 | **계획 승인됨**(기본 비활성) | 유지 |
-| R29 | (design 이탈) 층 0 첫 회차의 고정 입력을 LR5 knee 앵커가 아니라 41 §6 출발값으로 둔다 | 41 §5.3 | DEC-71 (3), LR5 | 사용자 확인 필요 | 채택 권고. 근거: 출발값은 스펙에서 나오고, knee는 스펙과 무관하다 |
-| R30 | (design 이탈) U-12 단일단 규칙을 일반 매크로 모델(41 §6.5)의 특수해로 대신 낸다. 단일단 판정을 `compensation: null` 태그가 아니라 구조로 한다 | 41 §6.5, §3.5 | U-12, U-50, DEC-85 | U-12 미확정 | 채택 권고(같은 값이 나오고 태그에 의존하지 않음) |
-| R31 | (design 이탈) U-24 정지에서 '포트쌍 CM 루프 대응' 루프 뷰를 빼고 사용자 CM 결정(보고 + 경고)을 적용한다 | 41 §1.8 | U-24, 사용자 2026-10-08 CM 결정 | 사용자 확인 필요 | 채택 권고(두 결정의 충돌을 구조적 대응으로 해소) |
-| R32 | (design 결정) gain 제약·rout 제약이 모두 없는 회로는 층 0을 끄고 '성능 판정 보류'로 탐색. DEC-71 (3)은 '사이징 대상에서 뺀다' | 41 §5.1 | DEC-71 (3), DEC-85 | 사용자 결정 | §9 Q5b |
-| R33 | (design 결정) 지속 진동 판정을 d56ba66 문구(undetermined, '사용자 승인')에서 사용자 결정 2026-10-08 4번(unstable)으로 바꾼다 | §4-2·3 | 사용자 결정 4번 | 사용자 결정이 근거 | 적용 |
+| # | 축소 내용 | 처리(결정 뒤 -- 권고 열) |
+|---|---|---|
+| R1 | 층 0을 최소형(시작점 하나)으로. 블록별 gain bin front·조합 DP·`gain_budget_db` 출력 없음 | 41 §5대로 복원 |
+| R2 | GB3(결합 변수 y) 범위 밖 | 복원: 층 0 조립의 입력(§3.3). 내층 DP·중층 좌표강하는 DEC-73대로 기본 꺼짐 유지 |
+| R3 | GB4를 'INFEASIBLE_TARGET만'으로 축소, DOF·수치 rank 범위 밖 | 구조 DOF와 수치 rank 복원(표본 수 = `dof_rank_sample_count`, 41 §4.5). 블록 gain 상한은 계획대로 격자 전수로 계산하고, 예산을 넘으면 '미상'으로 둔다(41 §4.2) |
+| R4 | U-49 기본안(층 0 최소형, gain bin front·GB3 범위 밖)이 계획서 안에 있다 | 2026-10-08 지시로 U-49를 '복원'으로 닫고 계획서를 정정 |
+| R5 | 블록 국소 모델·MNA 잔차·감도 게이트 범위 밖 | 복원(41 §2, §3.8) |
+| R6 | SP1(셀·0-1 BFS·stage·루프 (0)~(4)·끊는 점·R(u)·DEC-81) 연기, declared 대조 연기 | 복원(41 §1) |
+| R7 | `rule_branch_coverage.json`과 검증 발동 0 분기 정지 없음 | 복원(41 §1.10) |
+| R8 | GB5 `gm_req`·`comp_approx_gap` 범위 밖 | 복원(§3.5) |
+| R9 | DC 동작 범위 방향별 공급 능력(v1.15.0: 정의 DEC-65 v6.38 범위 끝 순 전류·계산 DEC-104 R9(U-115 닫힘)·소비자 R8 판정 -- 옛 '피크 부하' 소비자 삭제 O-143 (6); as-built `ls_fields` -- 엔진 슬루 칸 0, 계획 v6.37 O-122)·스윙·ICMR·`nqs_ratio`·`mismatch_sigma_v` 범위 밖 | 복원(§3.8) |
+| R10 | spec 로더가 `gain_budget_db_override`·`driving_spec`을 거부 | 복원(§3.1). v1.15.0: `driving_spec`은 복원 대상에서 빠진다 -- card SF-1이 섹션을 지우고 `constraints[]` `.tran` 항목으로 옮긴다(§3.1-1, O-128 Q5·O-144 J4); `gain_budget_db_override`만 복원 |
+| R11 | 예산 점 풀이 미작성, `n_starts`·x0 미작성 | 복원(§3.6) |
+| R12 | MOD8 루프·LY7 재평가·판정 축 재필터 미구현(`pending_wiring`) | 구현(§3.9) |
+| R13 | L 동치류 L 공유 사실상 꺼짐(`l_class` proposed) | 복원(§3.2) |
+| R14 | 미러 비율 전류 강제 없음, DEC-95 (3) ratified·② 없음, tol_I 격자 최대 gm | 복원(§3.7) |
+| R15 | 뷰별 교류접지(바이어스 종속 넷) U5로 연기. 차동쌍 '신호 gate 정확히 2' 조건 빠짐 | 복원(41 §1.2) |
+| R16 | 대칭 θ 묶기 열린 항목 | 구현(§6) |
+| R17 | Pelgrom 계수 선언 없음 → mismatch 보고·matching L 하한 불가 | PDK `*__mismatch.corner.spice`의 `vth0_slope`·`toxe_slope` 계열에서 A_VT·A_β를 유도하는 식과 단위 확인을 MOD1/`core` PDK 선언에 둠(§9 Q2). Q3(2026-10-08)로 A_eff 모델(전 slope 변수·bin별 slope·LUT 감도 열)로 확장(41 §6.4-2) |
+| R18 | C10: 지속 진동을 undetermined로 유지(계약에 '사용자 승인'으로 기록) | 사용자 결정대로 되돌림(§4) |
+| R19 | 오라클이 `pm_undefined`(개루프 RHP 극점 포함)를 일괄 INCOMPLETE로 판정 | Nyquist Z와 폐루프 과도로 판정하고, 둘 다 결정할 수 없을 때만 INCOMPLETE(§4-5). 개루프 RHP만으로 FAIL을 주지 않는다 |
+| R20 | ΔA_tie = grid² | 계획 식으로 수정 |
+| R21 | LY5 `W_adjustable=False` 즉시 완화 | 제거 |
+| R22 | LY8 `ly.diffusion` 없음, 판정 축 면적에 수동소자 없음 | 구현(§3.9) |
+| R23 | `verified_by`·모델 오차 레지스트리, `spice_unverifiable` 없음 | 구현(§3.8) |
+| R24 | 전력 축 = Σ V·I(`power_dc_w`). DEC-78은 공급 전류 합 | 사용자 결정(§9 Q6) |
+| R25 | LUT: GMBS 열이 있는데 VS 축 선형, FC 위반 칸 선형 폴백, `vgs_for_current_density` 없음, bin 소속을 메타 대신 식으로 판정 | `vgs_for_current_density`와 VS Hermite 구현. bin 소속은 실측 384/384 일치 근거로 식 유지를 제안하되 계획 LR3 정정이 필요(사용자 확인) |
+| R26 | 새 test 체계의 `contracts/`·`regression/`·`oracles/`·`perf/` 폴더 없음 | 단위별로 작성 |
+| R27 | 슬루·정착은 SPICE 기록만 한다. 잡음 경로 없음 | 슬루는 oracle 판정(엔진 슬루 칸·행 0 -- §3.8-3, 추종 검사 §4-9), 정착도 oracle 판정(v1.15.0 -- §4-10, §3.1-1). 잡음은 41 §7대로 구현한다(spec 제약, LUT 잡음 열, adjoint 잡음 해석, 오라클 `.noise`). 계획서 N1.2와 DEC-96 (3)의 잡음 문구는 정정이 필요하다 |
+| R28 | 정밀 경로(내층 DP·중층)·전역 샘플·bisection 기본 비활성 | 유지 |
+| R29 | (design 이탈) 층 0 첫 회차의 고정 입력을 LR5 knee 앵커가 아니라 41 §6 출발값으로 둔다 | 채택 권고. 근거: 출발값은 스펙에서 나오고, knee는 스펙과 무관하다 |
+| R30 | (design 이탈) U-12 단일단 규칙을 일반 매크로 모델(41 §6.5)의 특수해로 대신 낸다. 단일단 판정을 `compensation: null` 태그가 아니라 구조로 한다 | 채택 권고(같은 값이 나오고 태그에 의존하지 않음) |
+| R31 | (design 이탈) U-24 정지에서 '포트쌍 CM 루프 대응' 루프 뷰를 빼고 사용자 CM 결정(보고 + 경고)을 적용한다 | 채택 권고(두 결정의 충돌을 구조적 대응으로 해소) |
+| R32 | (design 결정) gain 제약·rout 제약이 모두 없는 회로는 층 0을 끄고 '성능 판정 보류'로 탐색. DEC-71 (3)은 '사이징 대상에서 뺀다' | §9 Q5b |
+| R33 | (design 결정) 지속 진동 판정을 d56ba66 문구(undetermined, '사용자 승인')에서 사용자 결정 2026-10-08 4번(unstable)으로 바꾼다 | 적용 |
+
+(출처·계획 근거·결정 전 상태 열 = design 이력 H40-17.)
 
 ---
 
