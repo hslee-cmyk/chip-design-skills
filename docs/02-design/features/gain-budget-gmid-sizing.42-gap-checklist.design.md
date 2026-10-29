@@ -349,10 +349,10 @@ plan_version: 6.38.3
 | D-CML | (v1.15.2, card GV-1 범위 4 -- N6.35 E-33) CM 루프 안정도 제약 미선언 = `undeclared_loop_constraint` 정지, `cm_loop_unconstrained` 경로 삭제 | 40 §5-3, 41 §1.8 | MISS | as-built `E/graph/s1v_fields.py:92`, `E/metrics/ss_metrics.py:76·273` |
 | D-LOWN | (v1.15.2, card GV-1 범위 3 -- N6.35 E-10) L 주인 = S1v 전달 뷰에서, 뷰가 둘 이상·출발점 다름·전달 뷰 없음 = `l_owner_view_ambiguous` 정의 불능, 첫 뷰 대체 삭제 | 40 §3.11-7 | MISS | as-built `l_classes._main_path_starts` 첫 뷰 |
 | D-MRD | (v1.15.2, card SF-1 범위 10 -- ID: 기존 D-MR(`mirror_ratio_sigma_pct`)과 중복 해소) 선언 미러 비 `human.mirror_ratios`만 `dc_current_basis` 강제 행, 정지 `mirror_ratio_not_mirror`·`mirror_ratio_symmetry_conflict`, ρ θ 종류 없음 | 40 §3.1-1·§3.7-2 | MISS | as-built `E/sizing/current_basis.py:12`('강제하지 않는다') |
-| D-PW | (v1.15.2, card SF-1 범위 8 정의 항목 -- O-172 A18) DUT 전력 정의 = **계획 v6.38.4 대기(P7)**(후보: 레일 단자 합·기준 0 V / DUT 소산 모든 단자; toy 셋 -- 40 §3.1-1) | 40 §3.1-1 | MISS | as-built `E/metrics/supply.py`(레일 전체 전류) |
+| D-PW | (v1.15.2, card SF-1 범위 8 정의 항목 -- O-172 A18) DUT 전력 정의 = **계획 v6.38.4 대기(P7)**(후보: 레일 단자 합·기준 0 V / DUT 소산 모든 단자; 결정 뒤 그 후보 toy만 SF-1 완료 조건 -- 40 §3.1-1, toy 수치 `wt/_drafts/evidence/2026-10-29/design_v1152/m1_power/README.md`) | 40 §3.1-1 | MISS | as-built `E/metrics/supply.py`(레일 전체 전류) |
 | D-AREA | (v1.15.2, card SF-1 범위 9 -- N6.35 E-12) 값 미정 수동소자가 있으면 면적 정의 불능 `area_undefined`, head 면적 미선언 0.0 대체 삭제 | 40 §3.11-8 | MISS | as-built `E/metrics/dc_metrics.py:115-118`, `E/layout/passives.py:21` |
 | D-LA1G | (v1.15.2, card LA-1 범위 15 (g) -- N6.35 E-07·E-14·E-15·E-24·E-25·E-26·E-34·E-35) `kcl_row_underdetermined`·`tol_vdsat_table_missing`·`zc_start_undefined` 기록, 0 자리값(`E_refilter`·`reserve_evals`·N_T) 삭제, U-51 폴백 문언 삭제, `constraint_rows` `undefined` 반환 삭제 | 40 §3.11-6·§3.6, 41 §6.5 | MISS | 행별 as-built 자리 = 계획 N6.35 |
-| D-CAB | (v1.15.2, 계획 DEC-92 (3) '한계' design 판정) S 일반형 = 고주파 전달 컨덕턴스 G_m(∞) = 지금 연결 정의(규칙 변경 0), 'AC 구동 소자 포함' 안 기각(절점식 정확해 R_null = 1/gm16) | 40 §3.5 | N/A(규칙 변경 없음 -- 판정 기록) | 실측 `wt/_drafts/evidence/2026-10-29/design_v1152/class_ab_s/` |
+| D-CAB | (v1.15.2, 계획 DEC-92 (3) '한계' design 판정) S = 연결 정의(규칙 변경 0, 출발값 R_S = 1/Σgm), 'AC 구동 소자 포함' 안 기각(근거 = evidence 실측), A–G 결합 용량 경로 = S 미정 fail-closed 초안(P2) | 40 §3.5 | N/A(규칙 변경 없음 -- 판정 기록) | 실측 `wt/_drafts/evidence/2026-10-29/design_v1152/class_ab_s/` |
 | D-CPG | (v1.15.1, card CPG-1) C′ 경로 완료 판정 bench(10항목, 선언 모드·EO-1 기하, 엔진 `dc_finger` 그대로, 기준선 재측정) | 40 §10.7 | MISS | 선행 = DEC-105 card 전부 병합 |
 
 ## 4. 상태 집계
