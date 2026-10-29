@@ -1,6 +1,6 @@
 # cnr_ota -- topology connectivity table
 
-소스: `assets/heldout/cnr_ota.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것. (생성 방법: 이 도구의 옛 로더(legacy/stick_diagram.py)가 netlist 의 `bulk` 키를 받지 못하고 `symmetry.matching_pairs` 키를 요구해, bulk 를 `_bulk` 주석 키로 옮기고 빈 `symmetry`(`{"matching_pairs": []}`)를 넣은 임시 사본으로 생성했다 -- 사람 태그를 정본에 넣지 않기 위해서다. 연결 내용은 정본과 같고(bulk 연결은 이 표에 없다 -- wt/_heldout/D_cnr/VERIFY.md 2절 소자 표), 판독본 wt/_heldout/D_cnr/D_cnr.topology.md 와 본문이 같다.)
+소스: `assets/library/cnr_ota.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것. (생성 방법: 이 도구의 옛 로더(legacy/stick_diagram.py)가 netlist 의 `bulk` 키를 받지 못하고 `symmetry.matching_pairs` 키를 요구해, bulk 를 `_bulk` 주석 키로 옮기고 빈 `symmetry`(`{"matching_pairs": []}`)를 넣은 임시 사본으로 생성했다 -- 사람 태그를 정본에 넣지 않기 위해서다. 연결 내용은 정본과 같고(bulk 연결은 이 표에 없다 -- wt/_heldout/D_cnr/VERIFY.md 2절 소자 표), 판독본 wt/_heldout/D_cnr/D_cnr.topology.md 와 본문이 같다.)
 
 ## ⚠️ 자동 플래그 (사람 재확인 필요)
 

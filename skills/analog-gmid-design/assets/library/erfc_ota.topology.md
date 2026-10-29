@@ -1,6 +1,6 @@
 # erfc_ota -- topology connectivity table
 
-소스: `assets/heldout/erfc_ota.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것. (생성 방법: 이 도구의 옛 로더(legacy/stick_diagram.py)가 `symmetry` 키를 요구하고 netlist `bulk` 키를 받지 못해, 빈 `symmetry`를 넣고 `bulk`를 뺀 임시 사본으로 생성했다 -- 이 표는 bulk를 보여 주지 않으므로 내용은 같다. bulk: NMOS=gnd, PMOS=vdd(topology `_bulk_comment`, 사용자 B-3).)
+소스: `assets/library/erfc_ota.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것. (생성 방법: 이 도구의 옛 로더(legacy/stick_diagram.py)가 `symmetry` 키를 요구하고 netlist `bulk` 키를 받지 못해, 빈 `symmetry`를 넣고 `bulk`를 뺀 임시 사본으로 생성했다 -- 이 표는 bulk를 보여 주지 않으므로 내용은 같다. bulk: NMOS=gnd, PMOS=vdd(topology `_bulk_comment`, 사용자 B-3).)
 
 ## ⚠️ 자동 플래그 (사람 재확인 필요)
 
