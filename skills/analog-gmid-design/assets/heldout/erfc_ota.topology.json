@@ -38,7 +38,7 @@
     "device_count": 29,
     "passive_count": 6
   },
-  "_bulk_comment": "Fig.6은 3단자 MOS 기호라 bulk가 그려져 있지 않다(그림 근거 없음). 0.18 um 표준 p-기판 CMOS 가정으로 NMOS bulk=gnd, PMOS bulk=vdd를 명시했다. 명시하지 않으면 graph 기본 규칙이 M19/M20/M21(source가 vcn/vcp 레일)에서 bulk_multi_domain으로 정지한다(_engine_load_check.txt). PMOS bulk의 source 연결 여부(특히 M1A~M2B, M11/M12, M15/M16, M19~M21)는 사용자 확인 필요(VERIFY.md).",
+  "_bulk_comment": "2026-10-29 사용자 결정 O-174(topology 정정 대기열 #1, 일괄 반영 지시): M19·M20 bulk = vcn, M21 bulk = vcp(bulk = source) -- 구조적 0 전류 pseudo-resistor라 bulk = vdd면 드레인 접합 누설로 VDS ≠ 0(sky130 +0.246 V, evidence/2026-10-29/erfc_region.md). Fig.6은 3단자 MOS 기호라 bulk가 그려져 있지 않다(그림 근거 없음). 0.18 um 표준 p-기판 CMOS 가정으로 NMOS bulk=gnd, PMOS bulk=vdd를 명시했다. 명시하지 않으면 graph 기본 규칙이 M19/M20/M21(source가 vcn/vcp 레일)에서 bulk_multi_domain으로 정지한다(_engine_load_check.txt). PMOS bulk의 source 연결 여부(특히 M1A~M2B, M11/M12, M15/M16, M19~M21)는 사용자 확인 필요(VERIFY.md).",
   "netlist": [
     {
       "name": "M9",
@@ -82,7 +82,7 @@
       "drain": "n_m8g",
       "gate": "vcn",
       "source": "vcp",
-      "bulk": "vdd",
+      "bulk": "vcp",
       "_fig": "p.8 Fig.6 우상단 CBAT2 아래"
     },
     {
@@ -199,7 +199,7 @@
       "drain": "n_m5g",
       "gate": "Z",
       "source": "vcn",
-      "bulk": "vdd",
+      "bulk": "vcn",
       "_fig": "p.8 Fig.6 NLF 좌상 M5 위"
     },
     {
@@ -208,7 +208,7 @@
       "drain": "n_m6g",
       "gate": "Z",
       "source": "vcn",
-      "bulk": "vdd",
+      "bulk": "vcn",
       "_fig": "p.8 Fig.6 NLF 우상 M6 위"
     },
     {
