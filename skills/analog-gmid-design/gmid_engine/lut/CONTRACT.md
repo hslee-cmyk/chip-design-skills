@@ -121,7 +121,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   `ID<접미사>`(폭 판정용, 선택), `w_ref_m`(선택), `corner`·`temp_c`(선택).
 - [r6] 기준 LUT 선택 열: kind 마다 `CAP_TABLE_COLUMNS` = (`CDD`, `CSS`, `GDS`, `GM`, `GMBS`, `ID`, `SVG2_1HZ`, `SVG2_HF`, `VDSAT`,
   `VTH`) 각 `<이름><접미사>` 가 있으면 읽는다(모양 = 기준 LUT 축 모양, 다르면 `lut_cap_shape_mismatch`, detail `path, column`).
-  없는 열은 그냥 없다(로드 거부 아님 -- 옛 `assets/sky130_nfet_pfet_lut_sample.npz` 는 ID·GM·GDS 만 있다). `meta_json`(선택)의
+  없는 열은 그냥 없다(로드 거부 아님 -- 열이 없는 옛 세트는 ID·GM·GDS 만 있었다. 그 옛 sample LUT 파일은 O-180 으로 삭제했다). `meta_json`(선택)의
   `sign_convention`(문자열)·`L_source`(객체) 를 표에 싣는다. LUT v2 생성기 규약: ID·GM·GDS·GMBS·VTH·VDSAT 은 BSIM op 값의 크기,
   **용량은 부호 보존**(CGG = −Im(i(vgs))/ω 게이트 여기, C_gx = +Im(i(vgs))/ω x 여기, CDD = −Im(i(vds))/ω, CSS = −Im(i(vsrc))/ω --
   CGB·CGS·CSS·CGD(pfet) 에 음수 점이 있다), SVG2_* 는 게이트 환산 잡음 V²/Hz. 엔진은 용량에 로그·절댓값을 쓰지 않는다(4.1 caps).
@@ -221,7 +221,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   `lut_cap_width_unresolved`
   (슬라이스 1개뿐·동률·분리 조건 불충족·VS 값이 슬라이스 축에 없음·`w_ref_m`·`ID` 열 둘 다 없음),
   [r4] `lut_model_bin_incomplete`, `lut_model_bins_no_width`, `lut_model_bins_overlap`, `lut_l_anchor_outside_model_bins`.
-- [실측 2026-10-07, 생성 완료 슬라이스 32개 + `assets/sky130_nfet_pfet_lut_sample.npz`] 로드 1.5 s, nmos·pmos 모두 w_key 1000
+- [실측 2026-10-07 -- 기록, 그때 쓴 옛 sample LUT 는 O-180 으로 삭제, 생성 완료 슬라이스 32개 + 옛 기준 LUT] 로드 1.5 s, nmos·pmos 모두 w_key 1000
   (5 µm) 채택, d_w ≈ 5.0e-7, 이웃 차 0.88(nmos)·1.25(pmos).
 
 ### 1.5 `lut_fingerprint(provenance, cap_basis) -> str`

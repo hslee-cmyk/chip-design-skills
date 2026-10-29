@@ -637,7 +637,7 @@ SealedSnapshot 이 된다(10.2절 실측). 열이 없는 LUT 세트에서는 항
 
 ## 10. 9회로 실측 (2026-10-07, 이 커밋 코드, 작성자 측 시연 -- 정본 아님)
 
-LUT = `_drafts/engine/lut_slices/manifest.json`(32 슬라이스) + `assets/sky130_nfet_pfet_lut_sample.npz`, w_keys =
+LUT = `_drafts/engine/lut_slices/manifest.json`(32 슬라이스) + 옛 기준 LUT(옛 sample LUT 는 O-180 으로 삭제 -- 기록), w_keys =
 `pre_layout_lut_access`(nmos·pmos 1000 = 5 µm). spec = library `*.sizing_spec.json`(결정 대기 칸은 미선언 투영).
 탐침 θ(탐색 아님): L = 1 µm 앵커, writer ln IDu = gm/ID {8, 12, 16, 20, 24} 점(VDS = 레일 범위/2, VSB 0), y ∈ {0.25, 0.5, 0.75},
 전류 LP(최소 MOS 전류 최대화, 1~100 µA) + 무작위 200개(writer gm/ID U[6, 26], y U[0.05, 0.95], 전류 log-U[1, 100] µA·KCL 양수,
