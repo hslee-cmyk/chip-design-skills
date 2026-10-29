@@ -7,6 +7,9 @@ approval: 20260923-20-dead-code-dup-design
 approval: 20260929-p4-scan-exempt
 approval: 20260930-p4-relocate-test-retire
 ---
+
+> **[상태 표지 2026-10-29] 실행·병합 완료 기록 -- 현행 규칙·절차 아님.** 판정 기록 `.ai/verification/20260929-probe-engine-dup.json`(FAIL 0)이 있고 이 card의 커밋은 master에 병합됐다. 옛 계획 Phase 2(죽은 코드·DUP 정리) card이고 Phase 2는 폐기됐다(계획 N6.1 '옛 Phase 처리' 2행 -- 새 엔진은 모듈 지도 N3.10으로 처음부터 개념당 정본 하나). 본문의 spec card·interface card·auditor 판정(V1~V10)·DEC-40 승인·R1 절차는 DEC-86으로 폐기했다(계획 N3.12·N4.2, DEC-40 행) -- 현행 완료 조건은 계획 N6.3이다. 본문의 `A`(`skills/analog-gmid-design/assets`) 아래 옛 엔진·test는 `skills/analog-gmid-design/legacy/`로 옮겨졌고(`60727b06`) 새 test 체계(`gmid_engine/tests/`)에서 돌지 않는다. card LT-1(DEC-99)이 `legacy/`를 지운 뒤에는 tag `legacy-final`에만 남는다. `engine_dup_scan.py`와 probe test는 지금 `legacy/tests/` 아래 있다. 본문은 기록이며 덧대지 않는다(O-169).
+
 ## 의도
 
 design `20-dead-code-dup` v1.2 §2.2-4·§3 PROBE-DUP·§5·§5.1·§8 P4: `A/tests/probes/`에 남는 **진단 스크립트** 안의 엔진 식 재구현을 엔진 정본
@@ -137,3 +140,7 @@ code-author의 스캐너 본문(b414627)은 이름만 바꿔 다시 쓴다.
 > 요청: (1) test 쪽에서 `tools/`를 제외하거나 (2) 스캐너 파일 이름을 `probe_*.py`에 걸리지 않게 바꾼다.
 
 blob: c68d56051323f352a6a501fd9a0795c4ea2598f9 -- 결정: (2).
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20260929-probe-engine-dup.spec.md`.
