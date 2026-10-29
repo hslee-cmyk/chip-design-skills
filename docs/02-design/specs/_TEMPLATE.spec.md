@@ -1,11 +1,8 @@
 ---
 id: YYYYMMDD-<slug>
-phase: <계획서 N6.1에서 읽은 Phase 순서의 원소>
+phase: 해당 없음 (DEC-86 -- merge_gate 미사용, N6.3 절차)
 evidence_type: red-green
 gate_change: no
-activated_ic_case: <IC:case>
-activated_ic_case_rename: <옛 IC:case> -> <새 IC:case>
-noop_activation_id: <ID>
 approval: <승인 기록 id>
 ---
 ## 의도
@@ -18,7 +15,30 @@ approval: <승인 기록 id>
 |---|---|---|
 | `<모듈 점 표기>` | `<심볼 또는 * (신규 모듈 전체)>` | `<def 줄>` |
 
+## graph 단일 정본
+
+(원칙 7, `fpga/CLAUDE.md` '★graph 단일 정본', 계획 N3.3 G0~G7·N6.3 '같은 입력 재계산 0')
+
+* 새·바뀐 graph 필드마다 writer 블록 하나·권한표 행 하나. 다른 자리는 READS로 읽는다(둘째 생산자 0).
+* 같은 입력 → 필드 하나, 같은 정의 = 필드 하나(정의가 다르면 다른 축 -- 측정 구성·판정 여유·정밀도 등 -- 을 적고 나눔).
+* 재사용은 graph reuse와 S3 블록 결과 색인 graft만. 새 cache·memo·dict·context 슬롯(`sctx.*`)·결과 객체 값 칸·값 사본 0(계획 N3.3·N3.5 승인 예외만).
+* 단계 사이 전달은 참조(graph 필드·`record_id`)로.
+* 같은 입력 재계산 래칫: 새 같은 입력 재계산 배정(B) 0, 이 card에 배정된 B는 해소.
+* 정본 자리가 없으면 만들지 않고 멈추고 보고한다(계획부터 고침).
+
+## 소비자
+
+(원칙 9 -- 만들면 배선)
+
+| 새·바뀐 필드·def | 엔진 소비자(운영 경로 호출자) 또는 출력 전용 선언 |
+|---|---|
+| `<이름>` | `<모듈:함수>` 또는 '출력 전용 -- <보고 자리>' |
+
+배선할 수 없으면 만들지 않고 사용자 승인을 받는다.
+
 ## 판정 유형 근거
+
+(변경 종류 = 계획 N6.3 표: 결정성·순수 리팩터링·동작 변경. 판정 기준 = 원칙 2(O-173 E-0·E-1, O-178): E-0 물리 관문(KCL·KVL 자기 정합·선언 영역·실현 가능)과 정의 동일성. 엔진은 판정 가드 없이 손계산으로 판정하고 front 점의 최종 합격은 oracle(닫기)이 정한다. SPICE와 수치가 같은가는 판정·지적 기준이 아니다. e_m·`model_error` 칸을 만들거나 읽지 않는다.)
 
 ## oracle 종류와 출처
 
@@ -26,39 +46,58 @@ approval: <승인 기록 id>
 
 ## library 회로 적용 여부
 
+(원칙 12·16, O-181: library 13회로 n/N 측정(필요 없는 회로의 무동작 포함). held-out이 0개인 동안 A' 일반성 판정은 정지 -- 그렇게 적는다. held-out 회로는 spec 조정에 쓰지 않는다.)
+
 ## 무동작 판정 입력(무발동 값)
 
 ## 재현할 수치
 
+(값마다 출처(선언·PDK·LUT·spec) 참조 -- 숫자를 박지 않는다(원칙 11). 주파수 metric(GBW·PM 등) 손계산은 LUT C 열(CGG·CGD·CGS·CGB·CDD·CSS)을 쓰는 것이 기본 손계산 꼴이다(원칙 1, O-179).)
+
 ## 결정 필요 항목
+
+| 항목 | 물리 결정자 | 식·원문(쪽 + 로컬 PDF 경로) | LUT·SPICE 실측(경로) | 판정(맞음·조건부·틀림·불확실) |
+|---|---|---|---|---|
+| | | | | |
+
+(O-171 -- 틀림·불확실이면 권고 전에 잰다.)
+
+## 원래 취지와 다름
+
+(원칙 24 -- 결정·계획·design의 원래 취지와 다른 것을 항목마다 따로 적고 결정받는다. 없으면 '없음'.)
 
 ## 작성 전 실측
 
 (오케스트레이터가 커밋 전에 채운다 -- 확인마다 실행한 명령과 결과 한 줄. 2026-09-30 재시도 5/9가 전부 이 확인 누락이었다.)
 
 1. 사실 문장 재측정: 이 card의 줄 번호·개수·"X는 Y를 읽는다"·파일 내용 주장을 코드·파일로 다시 쟀다(설계서·레지스트리 문장을 옮기지 않았다).
-2. 이름 충돌: 새 파일·모듈 이름이 기존 test의 glob 패턴(`grep -rn "glob(" A/tests/`)과 겹치지 않는다.
-3. 원칙의 계약화: 의도 절에 적은 원칙(예: 정본 topology 무관)이 관찰 가능한 계약에 **전 범위로** 적혀 있다.
-4. 쓰기 경로: 각 산출물을 누가 쓰는지(test-author는 엔진 소스를 읽지 못한다) N3.12.2 쓰기 경로표와 맞다.
-5. 계획서 소비자: 지우거나 옮기는 이름을 `docs/01-plan`·`docs/02-design`에서 grep했다.
-6. 미배선: 새로 만들거나 되살리는 def가 운영 경로에서 불리지 않으면 V7 면제 승인(`target_kind: decision`)을 이 card 전에 받았다.
-7. 기존 계약 test: 바뀌는 이름·파일을 참조하는 기존 계약 test(`A/tests/contracts/`)를 grep했고, 조정이 필요하면 V5 승인 경로를 적었다.
-8. V3 규모: 초안 단계에서 `tools/gates/mutate_changed.py`의 `changed_defs`·`mutants`·`inventory`를 시뮬레이션 head에 돌려 대상 def 수·변이 수·인벤토리 test 수를 적었다(그 시점 gate에서 유효한 V3 대상 규칙으로). 바뀌는 def는 작게 유지했다 -- 인자를 넘기려고 호출부 def를 고치면 그 def도 V3 대상이 된다.
-9. 승인 줄: 동작을 바꾸거나 다른 Phase의 일을 당겨오는 card는 그것을 덮는 사용자 결정 승인 기록(`target_kind: decision`)이 `approval` 줄에 있다. design 승인은 '동작이 바뀌는 수정'을 범위에서 뺀 것이 있어 덮지 않는다 -- 기록의 범위 설명에 이 card id와 바뀌는 동작이 적혀 있는지 원문으로 확인했다.
-10. 범위 계약: '바뀐 파일·변경 0' 같은 범위·diff 계약은 '이 card `Change-Id` 커밋들의 diff'로 한정해 적었다(기준 커밋과 판정 대상 사이에 다른 card 커밋이 끼면 그 diff까지 걸린다).
-11. test 이름·모양: 새 test·보조 함수 이름은 card 접두(예: `_b26_`)로 기존 test와 겹치지 않고, 피검 함수는 test 본문에서 직접 부른다(`parametrize` 이름 문자열·모듈 상수 + `getattr`은 V3 인벤토리 간선으로 잡히지 않는다).
+2. 엔진 인용 용도(원칙 8, O-153·O-165·O-169): card 안 엔진 줄 인용은 (1) 엔진 밖 사실(PDK·ngspice·LUT 값) (2) 재작성 범위(지울·바꿀 코드·소비자 목록)뿐이다 -- 자리·writer·입력·순서·판정의 근거로 쓰지 않았다.
+3. 이름 충돌: 새 파일·모듈 이름이 기존 test의 glob 패턴(`grep -rn "glob(" skills/analog-gmid-design/gmid_engine/tests/`)과 구조 규칙 H(test↔원본 대응)와 겹치지 않는다.
+4. 원칙의 계약화: 의도 절에 적은 원칙(예: 정본 topology 무관)이 관찰 가능한 계약에 **전 범위로** 적혀 있다.
+5. 쓰기 경로: 코드 작성 주체 ≠ test·기대값 작성 주체(WP-13, DEC-86 (1), 계획 N6.3). 기대값은 오라클에서만 만든다(N3.11).
+6. 계획서 소비자: 지우거나 옮기는 이름을 `docs/01-plan`·`docs/02-design`에서 grep했다.
+7. 미배선: 새로 만들거나 되살리는 def·필드마다 운영 경로 호출자 ≥ 1(위 '소비자' 표). 배선할 수 없으면 만들지 않고 사용자 승인(원칙 9).
+8. 기존 test: 바뀌는 이름·파일을 참조하는 기존 test(`gmid_engine/tests/` -- 구조 규칙 test `structure/` 포함)를 grep했고, 기준 약화가 필요하면 사용자 승인 경로를 적었다(원칙 18 -- 약화는 숨기지 않고 단위 보고 `criteria_weakened` 필드로, N6.3).
+9. 승인 줄: 동작을 바꾸거나 다른 card 범위의 일을 당겨오는 card는 그것을 덮는 사용자 결정(O-번호)이 `approval` 줄에 있다. design 승인은 '동작이 바뀌는 수정'을 범위에서 뺀 것이 있어 덮지 않는다 -- 기록의 범위 설명에 이 card id와 바뀌는 동작이 적혀 있는지 원문으로 확인했다.
+10. 범위 계약: '바뀐 파일·변경 0' 같은 범위·diff 계약은 '이 card 커밋들의 diff'로 한정해 적었다(기준 커밋과 판정 대상 사이에 다른 card 커밋이 끼면 그 diff까지 걸린다).
+11. test 이름·모양: 새 test·보조 함수 이름은 card 접두(예: `_b26_`)로 기존 test와 겹치지 않고, 피검 함수는 test 본문에서 직접 부른다.
 12. 같음 판정: `__eq__`가 없는 객체나 프로세스마다 순서가 다른 `set`을 `==`로 비교하는 계약이 없다 -- 비교할 필드와 정렬·튜플화 규칙(정규화)을 계약에 적었다.
 13. red 모양: 각 계약의 base red가 허용 예외 타입(00-common §8.1)이다. `try/except Exception: pytest.fail`로 다른 예외를 `Failed`로 바꾸지 않고, 새 키워드 인자 직접 호출의 base `TypeError`는 red로 세지 않는다(red는 시그니처가 안 바뀌는 진입점이 맡는다).
+14. 상수·회로 이름: 새 상수는 선언·PDK·LUT·spec 출처를 참조하고(원칙 11), 코드·규칙에 회로·소자 이름·매직넘버가 없다(원칙 12).
 
 <!--
-양식의 정본은 docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md §11.2이고 필드 목록의 정본은
-계획서 N3.12.3이다. 머리 블록 규칙(게이트가 읽는다, tools/gates/role_paths.py parse_spec_card):
+절차 정본은 계획 N6.3(가벼운 절차, DEC-86)이다. 옛 양식 정본(05-role-separation §11.2)과 옛 필드 정본(계획 N3.12.3)은
+폐기 기록이다(DEC-86). 머리 블록 형식은 옛 파서 tools/gates/role_paths.py parse_spec_card와 호환되게 둔다(형식 호환용):
   * 한 줄에 `key: value` 하나. 모르는 키는 거부한다. 빈 줄·주석 금지.
   * 한 번: id, phase, evidence_type(red-green | equivalence | test-only), gate_change(yes | no).
-  * 반복 가능(0개 이상): activated_ic_case, activated_ic_case_rename(`<옛> -> <새>`), noop_activation_id, approval.
-    쓰지 않는 반복 키는 줄을 지운다.
-본문 '신규 시그니처'의 (모듈, 심볼) 표는 interface card로 옮겨지고 red 수집 플러그인의 신규 심볼 판정 입력이다
-(00-common §8.1). 표 머리는 그대로 둔다.
-dispute가 있었을 때만 마지막에 `## dispute 기록` 절(원문 인용 + blob id, §12 재시도)을 더한다.
-이 파일은 이름이 `_`로 시작해 게이트 파서 대상에서 빠진다.
+  * 반복 가능(0개 이상): approval. 파서가 허용하는 옛 키 activated_ic_case·activated_ic_case_rename·noop_activation_id는
+    옛 IC gate 전용이다 -- 새 엔진 card는 쓰지 않는다.
+본문 '신규 시그니처'의 (모듈, 심볼) 표는 interface card로 옮겨진다. 표 머리는 그대로 둔다.
+dispute가 있었을 때만 마지막에 `## dispute 기록` 절(원문 인용 + blob id)을 더한다.
+이 파일은 이름이 `_`로 시작해 파서 대상에서 빠진다.
+
+변경 이력
+- 2026-10-29 cards/revise-1029: 옛 Phase 자리표시·옛 IC gate 키·옛 `A/tests` 경로·N3.12/V3/V5/V7 절차 문언 제거,
+  graph 정본·소비자·판정 기준(원칙 2, O-178)·LUT C 열(O-179)·library 13 n/N(O-181)·O-171 결정 칸·'원래 취지와 다름' 절·
+  엔진 인용 용도(원칙 8) 추가. 고치기 전 원문 = git show 052465ed:docs/02-design/specs/_TEMPLATE.spec.md
 -->
