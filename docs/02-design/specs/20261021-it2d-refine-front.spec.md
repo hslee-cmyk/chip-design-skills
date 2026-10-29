@@ -5,6 +5,9 @@ evidence_type: red-green
 gate_change: no
 approval: 20261021-it2-o67-scope
 ---
+
+> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 현행 계획 card IT-2d(계획 v6.38.3 N6.6 범위 2·3, 'IT-2d -- B77'), 재동결 필요.** 이 판의 범위(다듬은 창 `dc_window_refine`·끝 풀이·`refine_front_windows`·`metrics_icm_front`·`IcmPort`의 `tied_ports` 제외)는 계획 v6.34 사용자 결정 O-109 C1('측정 구성 창 = 선형 감도 끝 하나', 다듬은 창·front 전용 블록 없음)과 v6.35 O-115(`tied_ports` 삭제)로 대상이 없어졌다. 현행 IT-2d 범위 = front·보고가 `node.dc_window_cfg`를 읽는 배선, `ls_swing` 입력 창 계산 삭제·`metrics_aux` 배선(V_cm 칸 READS), B77 결측 판정 영역 분리·metric 영역 칸 relabel(v6.34.2 O-111·O-112)뿐이다. 아래 본문은 기록이며 현행 계획에 맞춰 덧대지 않는다(O-169). 구현 상태: 미구현.
+
 ## 의도
 
 - **절차(phase)**: 계획 DEC-86(285행)·N3.12 머리(669행)로 역할 분리 gate·spec card 흐름·merge_gate가 꺼졌다. 판정 = N6.3(매 변경 뒤 새 test 전체 실행, 작성자 ≠ test 작성자 WP-13, 약화 보고, 변경당 커밋 1) + 독립 측정·검증 agent이고 merge_gate가 아니다. 머리 블록은 형식 호환용이다(공통 문서 '절차 상태').
@@ -94,3 +97,7 @@ design 41 예시(41:780): `icm_window_metrics((IcmPort("vin_n", 0.90, 0.35, 1.20
 ## 작성 전 실측
 
 공통 문서 '작성 전 실측' 1~13을 따른다. 이 card 사실(master `468e6e73`, 2026-10-21): `E/sizing/block_columns.py:663`(`_refine_ends`), `E/metrics/ls_swing.py:84`·`:107-118`, `E/metrics/metrics_aux.py:214·236·256-264`, `E/search/slsqp_outer.py:153-155`, `E/search/find_front.py:51·136-138`, 새 이름 엔진 0건. V3 규모(8): **미확인 (IT-1 code 뒤)** -- 착수 base(IT-1 code 뒤)에서 오케스트레이터가 `tools/gates/mutate_changed.py`로 채운 뒤 동결.
+
+## 변경 이력
+
+- 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20261021-it2d-refine-front.spec.md`.
