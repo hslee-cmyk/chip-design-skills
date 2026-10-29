@@ -529,3 +529,7 @@ date: 2026-10-29
 | 예산을 지키는 출발점, W 타당성, A_lb 사전 판정 | MISS | -- |
 | 레이아웃 판정 축의 수동소자 면적, MOD8 재필터 | MISS | `E/layout/floorplan.py` |
 | B = 120 s 결과 | front: common_gate 2, two_stage 1(최대 W 0.39 mm), two_stage_sf 1(최대 W 3.2 mm, 면적 7.3e-3 mm²). folded·ngcc·nmcnr·pushpull 0(folded·pushpull은 예산이 없을 때 예산의 약 2000배에서 front가 있었다). sf_pushpull·current_reuse는 시작점 0 | `[ng-area-budget]` 실행 보고 |
+
+## H41-20 -- design 41 §4.7-8 (9) 커널 A6 판정 tol 변경 항목(4.7-V로 대상 소멸)
+
+(9) **커널 A6 판정 tol을 매 측정 해에서 잼**(v1.15.2 대체 -- 4.7-V: 커널 A6 되풀이 삭제로 대상 소멸; v1.12.11 E-3 -- 원래 취지와 다름 아님: design 정의(v1.12.10 688·702) 회복): 바뀌는 것 = 되풀이 수렴 회차·마지막 창(θ y → V 사상), `measured`/`unsettled` 판정, `Window.tol_v` 값, 되풀이 중 tol None 갈래(A6 b 처리); 원인 = IT-2b 구현이 첫 해 tol 하나로 판정해 design 688·702와 달랐음(design↔구현 gap A5) -- as-built·base 대비 동작 변경; 판정 = red test 4.7-7 L12 (f)(해마다 tol이 다른 toy -- test 작성 주체 몫)와 검증자 9회로 변화표. 

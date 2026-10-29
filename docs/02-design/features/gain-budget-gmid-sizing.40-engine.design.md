@@ -2224,6 +2224,9 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | 5 | U16, 그 뒤 gap 분석(`42` 기준표 재측정) | J 공동분석은 J-A~J-F만 2026-10-08에 결정됐고(§9.3) 그 구현이 U1b다. 남은 J(§9.4)는 ratify 전이라 엔진 유도로 돌고, `review_needed`가 남는 회로는 GB4 전에 정지한다 |
 
 **임계 경로**: U1 → U1b → U9 → U13 → U15 → U16. U9가 주경로 블록 정의를 읽으므로 U1b가 임계 경로에 들어간다. U1(SP1)이 가장 크므로, 하위 파일 단위로 나눠 같은 웨이브 안에서 순차로 커밋한다.
+
 ## 변경 이력 -- v1.15.2 단순화(손계산 원칙, 2026-10-29)
 
-사용자 2026-10-29 '같은 기준으로 과도하게 복잡한 부분 고쳐'(근본원칙: gm/ID 손계산 우선, 손계산 오차는 감수하고 DEC-72 model_error로 기록, 최종 확정은 SPICE 오라클, 물리 정합 = 말이 되는 동작점)에 따라 측정 서술·절점식 상세·판 경위를 evidence로 옮겼다. 분류표 = `wt/_drafts/evidence/2026-10-29/design_v1152/simplify/classification.md`, 옮긴 원문 = `wt/_drafts/evidence/2026-10-29/design_v1152/simplify/moved_text.md`(ID S1~S12), 적용 스크립트 = 같은 폴더 `simplify.py`. 규칙·정의·인터페이스 문장의 뜻은 바꾸지 않았다(낱말 대조 = 분류표 §3).
+사용자 2026-10-29 '같은 기준으로 과도하게 복잡한 부분 고쳐'(근본원칙: gm/ID 손계산 우선, 최종 확정은 SPICE 오라클, 물리 정합 = 말이 되는 동작점; 손계산 출발값과 MNA 판정의 차는 `comp_approx_gap`(DEC-92 (2)), 엔진 대 SPICE 차는 DEC-72 model_error)에 따라 판 경위·측정 서술·폐지·대체된 옛 문언·구현 끝난 card 수행 목록·as-built 상태표를 옮겼다. 규칙·정의·인터페이스·완료 조건 문장의 뜻은 바꾸지 않았다.
+- 1차(일곱째 커밋): 옮긴 원문 = `wt/_drafts/evidence/2026-10-29/design_v1152/simplify/moved_text.md`(S1~S12), 분류표 = 같은 폴더 `classification.md`.
+- 2차(아홉째 커밋부터): 옮긴 원문 = design 이력 `gain-budget-gmid-sizing.design.history.md`(H40-01~H40-29, H41-01~H41-20), 줄 번호·판 표지·검증 번호 정리 목록 = 같은 evidence 폴더 `strip_lines.out.jsonl`·`strip_vtags.out.jsonl`·`strip_vrefs.out.jsonl`, 도구 = `mover.py`와 `jobs_*.py`.
