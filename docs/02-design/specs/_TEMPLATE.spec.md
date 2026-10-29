@@ -3,7 +3,7 @@ id: YYYYMMDD-<slug>
 phase: 해당 없음 (DEC-86 -- merge_gate 미사용, N6.3 절차)
 evidence_type: red-green
 gate_change: no
-approval: <승인 기록 id>
+approval: <YYYYMMDD-<slug> 형식 승인 기록 id -- 없으면 이 줄을 지운다>
 ---
 ## 의도
 
@@ -78,7 +78,7 @@ approval: <승인 기록 id>
 6. 계획서 소비자: 지우거나 옮기는 이름을 `docs/01-plan`·`docs/02-design`에서 grep했다.
 7. 미배선: 새로 만들거나 되살리는 def·필드마다 운영 경로 호출자 ≥ 1(위 '소비자' 표). 배선할 수 없으면 만들지 않고 사용자 승인(원칙 9).
 8. 기존 test: 바뀌는 이름·파일을 참조하는 기존 test(`gmid_engine/tests/` -- 구조 규칙 test `structure/` 포함)를 grep했고, 기준 약화가 필요하면 사용자 승인 경로를 적었다(원칙 18 -- 약화는 숨기지 않고 단위 보고 `criteria_weakened` 필드로, N6.3).
-9. 승인 줄: 동작을 바꾸거나 다른 card 범위의 일을 당겨오는 card는 그것을 덮는 사용자 결정(O-번호)이 `approval` 줄에 있다. design 승인은 '동작이 바뀌는 수정'을 범위에서 뺀 것이 있어 덮지 않는다 -- 기록의 범위 설명에 이 card id와 바뀌는 동작이 적혀 있는지 원문으로 확인했다.
+9. 승인 줄: 동작을 바꾸거나 다른 card 범위의 일을 당겨오는 card는 그것을 덮는 사용자 결정(O-번호)을 본문 '의도' 절에 적었다. 머리 `approval` 줄에는 옛 파서 형식(`ID_RE` = `YYYYMMDD-<slug>`, `tools/gates/role_paths.py`) id만 쓰고 O-번호는 넣지 않는다 -- 그 형식 id가 없으면 줄을 지운다. design 승인은 '동작이 바뀌는 수정'을 범위에서 뺀 것이 있어 덮지 않는다 -- 기록의 범위 설명에 이 card id와 바뀌는 동작이 적혀 있는지 원문으로 확인했다.
 10. 범위 계약: '바뀐 파일·변경 0' 같은 범위·diff 계약은 '이 card 커밋들의 diff'로 한정해 적었다(기준 커밋과 판정 대상 사이에 다른 card 커밋이 끼면 그 diff까지 걸린다).
 11. test 이름·모양: 새 test·보조 함수 이름은 card 접두(예: `_b26_`)로 기존 test와 겹치지 않고, 피검 함수는 test 본문에서 직접 부른다.
 12. 같음 판정: `__eq__`가 없는 객체나 프로세스마다 순서가 다른 `set`을 `==`로 비교하는 계약이 없다 -- 비교할 필드와 정렬·튜플화 규칙(정규화)을 계약에 적었다.
@@ -90,7 +90,7 @@ approval: <승인 기록 id>
 폐기 기록이다(DEC-86). 머리 블록 형식은 옛 파서 tools/gates/role_paths.py parse_spec_card와 호환되게 둔다(형식 호환용):
   * 한 줄에 `key: value` 하나. 모르는 키는 거부한다. 빈 줄·주석 금지.
   * 한 번: id, phase, evidence_type(red-green | equivalence | test-only), gate_change(yes | no).
-  * 반복 가능(0개 이상): approval. 파서가 허용하는 옛 키 activated_ic_case·activated_ic_case_rename·noop_activation_id는
+  * 반복 가능(0개 이상): approval(값 = `YYYYMMDD-<slug>` 형식 id만 -- O-번호는 본문 '의도' 절에). 파서가 허용하는 옛 키 activated_ic_case·activated_ic_case_rename·noop_activation_id는
     옛 IC gate 전용이다 -- 새 엔진 card는 쓰지 않는다.
 본문 '신규 시그니처'의 (모듈, 심볼) 표는 interface card로 옮겨진다. 표 머리는 그대로 둔다.
 dispute가 있었을 때만 마지막에 `## dispute 기록` 절(원문 인용 + blob id)을 더한다.
