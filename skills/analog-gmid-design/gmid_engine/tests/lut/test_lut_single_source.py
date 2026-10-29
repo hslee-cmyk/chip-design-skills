@@ -58,9 +58,17 @@ SLICE_RE = re.compile(r"sky130_fd_pr__\w*\.npz")
 # 허용 리터럴 한 개: tests/lut/test_tolerance.py 의 `_GEN_SEARCH` -- LUT 데이터가 아니라 슬라이스 생성기 소스 파일의 검색 폴더다
 # (git 밖 한 곳에만 있고 manifest 의 generator_sha256 이 같은 파일만 쓴다). 데이터(npz·manifest)는 이 폴더에서 읽지 않는다.
 ALLOWED_LITERALS = {"C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/engine/lut_slices"}
+ALLOWED_PAIRS = {("skills/analog-gmid-design/gmid_engine/tests/lut/test_tolerance.py", lit) for lit in ALLOWED_LITERALS}
 
 
-def _literal_violations(source):
+def _scan_source(source, rel):
+    try:
+        return _literal_violations(source, rel)
+    except SyntaxError as e:   # 원칙 10: 못 읽은 파일을 통과로 치지 않는다
+        raise AssertionError("구문 오류로 검사하지 못한 .py: %s (%s)" % (rel, e))
+
+
+def _literal_violations(source, rel=None):
     """.py 소스의 문자열 리터럴 가운데 위치 선언 밖 LUT 를 가리키는 것: 옛 초안 LUT 폴더 조각(_drafts/engine·lut_slices·lut_v2/),
     폴더가 붙은 lut manifest.json 경로, 폭 슬라이스 npz 이름(선언을 거치지 않고 직접 np.load 하는 꼴).
     이름 없는 상대 'manifest.json' 은 toy 입력 파일이라 통과."""
@@ -73,9 +81,14 @@ def _literal_violations(source):
                 and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant):
             docs.add(id(node.body[0].value))   # docstring 은 설명이라 경로로 쓰이지 않는다
     for node in ast.walk(tree):
+        if isinstance(node, ast.Call):   # 허용 폴더라도 거기서 manifest·npz 를 join 해 읽는 꼴은 거부
+            strs = [a.value.replace("\\", "/") for a in node.args if isinstance(a, ast.Constant) and isinstance(a.value, str)]
+            if any(s in ALLOWED_LITERALS for s in strs) and any(s.endswith(("manifest.json", ".npz")) for s in strs):
+                found.append("join(%s, ...)" % strs[0][:80])
+    for node in ast.walk(tree):
         if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docs:
             s = node.value.replace("\\", "/")
-            if s in ALLOWED_LITERALS:
+            if (rel, s) in ALLOWED_PAIRS:
                 continue
             if DRAFT_RE.search(s) or SLICE_RE.search(s) or ("/" in s and s.endswith("manifest.json") and "lut" in s.lower()):
                 found.append(s[:100])
@@ -91,11 +104,8 @@ def test_no_py_literal_points_at_lut_outside_declaration():
         p = REPO_ROOT / rel
         if p.resolve() == this or not p.is_file():
             continue
-        try:
-            for s in _literal_violations(p.read_text(encoding="utf-8", errors="replace")):
-                hits.append("%s: %s" % (rel, s))
-        except SyntaxError:
-            continue
+        for s in _scan_source(p.read_text(encoding="utf-8", errors="replace"), rel):
+            hits.append("%s: %s" % (rel, s))
     assert hits == [], "위치 선언 밖 LUT 경로·슬라이스 npz 리터럴: %s" % hits[:20]
 
 
@@ -108,6 +118,26 @@ def test_literal_guard_rejects_mutations():
     assert len(_literal_violations(m1)) == 2
     assert _literal_violations(m4) and _literal_violations(m4b) and _literal_violations(m5)
     assert _literal_violations('p = root / "manifest.json"\nq = "cap_ref.npz"\n') == []
+
+
+def test_allowed_literal_is_pinned_to_one_file():
+    """r-1: 허용 리터럴은 (파일, 리터럴) 쌍 하나뿐 -- 다른 파일이 같은 폴더 리터럴을 쓰거나 그 폴더에서 manifest·npz 를 join 하면 거부."""
+    lit = next(iter(ALLOWED_LITERALS))
+    owner, _ = next(iter(ALLOWED_PAIRS))
+    src_dir = '_GEN = (r"%s",)\n' % lit.replace("/", "\\")
+    assert _literal_violations(src_dir, owner) == []                      # 지정한 파일의 지정한 리터럴은 통과
+    assert _literal_violations(src_dir, "skills/other/elsewhere.py")      # 같은 리터럴이라도 다른 파일은 거부
+    assert _literal_violations(src_dir)                                   # 파일 미지정도 거부
+    joined = 'import os\nm = os.path.join(r"%s", "manifest.json")\n' % lit.replace("/", "\\")
+    assert _literal_violations(joined, owner)                             # 지정 파일이라도 그 폴더의 manifest join 은 거부
+    assert _literal_violations(joined, "skills/other/elsewhere.py")
+
+
+def test_unparsable_py_fails_closed():
+    """r-2: 구문 오류 .py 는 건너뛰지 않고 실패(파일 경로를 담는다)."""
+    import pytest
+    with pytest.raises(AssertionError, match="bad.py"):
+        _scan_source("def (:\n", "bad.py")
 
 
 ENV_RE = re.compile(r"GMID_LUT_[A-Z0-9_]+")
