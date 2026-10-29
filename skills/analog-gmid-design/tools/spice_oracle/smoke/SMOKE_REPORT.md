@@ -5,7 +5,7 @@
 (시제품 `results/` 의 `topo_iref`·`eng_iref` 는 되먹임 방식을 바꾸기 전 버전으로 돌린 것이라 직접 대조하지 않았다 --
 그 넷리스트에 `Efb_Vip fbs_Vip 0 Vom 0 1`(출력 공통모드까지 되먹임)이 남아 있다.)
 
-환경: ngspice-46 `ngspice_con.exe -b`, PDK `C:\pdk\sky130_fd_pr`, LUT `assets/sky130_nfet_pfet_lut_sample.npz`(corner tt, 27 C),
+환경: ngspice-46 `ngspice_con.exe -b`, PDK `C:\pdk\sky130_fd_pr`, LUT 옛 sample LUT(smoke 실행 당시, O-180 으로 삭제; 지금 기준 LUT = `assets/lut_v2_location.json`, 같은 corner tt, 27 C),
 Python 3.14 + numpy 2.4.6. 임시 경로 `/c/g465`(끝나고 삭제).
 
 ## 1. 어댑터 -- 옛 엔진 새로 실행 vs 시제품 dump

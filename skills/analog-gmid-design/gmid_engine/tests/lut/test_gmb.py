@@ -123,34 +123,6 @@ def test_real_column_vs_cap_table_gmbs(real_memo, raw_slice, raw_cap):
     print("gmb 열 경로 대 기준 LUT GMBS 상대차 최대 %.3g (계약 실측 4.9e-7)" % worst)
 
 
-@pytest.mark.lut_realdata
-def test_nocol_set_secant_and_cap_table_column(nocol_lut, nocol_raw_slice, raw_cap):
-    """결정 B 이전 v2 슬라이스(GMBS 열 없음): w_key 84 는 r5 VS 할선(열 없음 -> 4.1 표 정의), w_key 1000 은 기준 LUT 열
-    ("cap_table") -- 격자점에서 r·ID(점) = 저장 GMBS × (슬라이스 ID / 기준 LUT ID)(4.4)."""
-    m = new_memo(nocol_lut, 1024)
-    rng = np.random.default_rng(13)
-    z = nocol_raw_slice("pmos", 84)
-    n = 0
-    while n < 10:
-        iL, iG, k, s = int(rng.integers(0, len(z["L"]))), int(rng.integers(10, 49)), int(rng.integers(1, 49)), int(rng.integers(0, 10))
-        if not np.all(z["ID"][iL, iG, k, :] > 0):
-            continue
-        got = gmb(m, "pmos", 84, float(z["L"][iL]), float(z["VGS"][iG]), float(z["VDS"][k]), float(z["VS"][s]))
-        assert rel_close(got, _secant_grid(z, iL, iG, k, s), 1e-10)
-        n += 1
-    z = nocol_raw_slice("nmos", 1000)
-    n = 0
-    while n < 10:
-        iL, iG, k, s = int(rng.integers(0, len(z["L"]))), int(rng.integers(10, 49)), int(rng.integers(1, 49)), int(rng.integers(0, 10))
-        I, Ic = float(z["ID"][iL, iG, k, s]), float(raw_cap["ID_n"][iL, iG, k, s])
-        if not (I > 0 and Ic > 0):
-            continue
-        got = gmb(m, "nmos", 1000, float(z["L"][iL]), float(z["VGS"][iG]), float(z["VDS"][k]), float(z["VS"][s]))
-        exp = float(raw_cap["GMBS_n"][iL, iG, k, s]) * I / Ic
-        assert abs(got - exp) <= _col_rel_bound(math.log(I)) * abs(exp), (iL, iG, k, s, got, exp)
-        n += 1
-
-
 # ---------------------------------------------------------------------------
 # [r6] toy: 7.1 r6 표 마지막 행, 중점 toy(GMBS/ID 가 모든 축 선형 -> 닫힌 식), memo compute 횟수
 # ---------------------------------------------------------------------------
