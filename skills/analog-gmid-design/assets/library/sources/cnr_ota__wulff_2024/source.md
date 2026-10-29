@@ -4,7 +4,7 @@
 - 웹 출처: https://github.com/wulffern/cnr_ota_sky130nm @ `8c839f7` (2024-03-01). 회로도 `design/CNR_OTA_SKY130NM/CNR_OTA.sch`, 그림 `documents/CNR_OTA_SKY130NM/CNR_OTA.svg`, 부하 `sim/CNR_OTA/load.spi`
 - 원본 위치(판독 때 받은 사본): `C:\Users\HSLEE\Documents\Todoc\fpga\wt\_heldout\wulff\` (`CNR_OTA.sch`, `CNR_OTA.svg`, `README.md`=sim README, `summary.yaml` -- 아래 파일과 바이트 같음), 그림 PNG는 `wt\_heldout\D_cnr\D_cnr.schematic_xschem_original.png`. 나머지(최상위 README, `CNR_OTA.md`, `sim/*.spi` 등)는 2026-10-14 `raw.githubusercontent.com/wulffern/cnr_ota_sky130nm/8c839f7/<경로>`에서 그대로 받았다(`wt/_scratch_heldout_d/src/` 사본은 줄바꿈만 CRLF로 다름).
 - 라이선스: 저장소 @8c839f7 최상위에 LICENSE 파일 없음(2026-10-14 GitHub tree 확인)
-- 엔진 연결: `assets/heldout/cnr_ota.topology.json`, `cnr_ota.sizing_spec.json`, `cnr_ota.spec_source.md`, `cnr_ota.topology.md`
+- 엔진 연결: `assets/library/cnr_ota.topology.json`, `cnr_ota.sizing_spec.json`, `cnr_ota.spec_source.md`, `cnr_ota.topology.md`
 - 하위 셀(보관 안 함): `wulffern/cnr_atr_sky130nm`(CNRATR_*: MOS 1개씩), `wulffern/sun_tr_sky130nm`(SUNTR_RPPO*: res_high_po 직렬). topology는 이 셀들을 `extract_xschem.py`로 기계적으로 펼친 결과다.
 
 ## 파일

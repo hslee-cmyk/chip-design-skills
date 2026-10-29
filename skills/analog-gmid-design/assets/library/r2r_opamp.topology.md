@@ -1,6 +1,6 @@
 # r2r_opamp -- topology connectivity table
 
-소스: `assets/heldout/r2r_opamp.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것. (생성 방법: 이 도구의 옛 로더(legacy/stick_diagram.py)가 `symmetry.matching_pairs` 키를 요구해, 빈 `symmetry`({matching_pairs: []})를 넣은 임시 사본으로 생성했다 -- connectivity 동일.)
+소스: `assets/library/r2r_opamp.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것. (생성 방법: 이 도구의 옛 로더(legacy/stick_diagram.py)가 `symmetry.matching_pairs` 키를 요구해, 빈 `symmetry`({matching_pairs: []})를 넣은 임시 사본으로 생성했다 -- connectivity 동일.)
 
 ## ⚠️ 자동 플래그 (사람 재확인 필요)
 

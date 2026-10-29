@@ -4,7 +4,7 @@
 - 사본: `source.pdf` (sha256 `ea13f0d354fdbc13edd5dbcbf1a5c4b35b4ba8f9dba5dcc949f28c843fbd8722`)
 - 웹 출처: https://pmc-oa-opendata.s3.amazonaws.com/PMC12031453.1/PMC12031453.1.pdf (PMC12031453 오픈액세스) · 출판사 https://www.mdpi.com/1424-8220/25/8/2523
 - 그림·표 위치: p.5 Figure 3(b) adaptive biasing · p.6 Figure 4(a) NLF · p.8 Figure 6 'Transistor-level implementation of proposed ERFC OTA'(+오른쪽 위 VDD·VCP·VCN·IB·IC 표) -- 엔진 topology 근거 · p.9 Table 1(치수) · p.13 본문 CL · p.14 Table 2
-- 엔진 연결: `assets/heldout/erfc_ota.topology.json`, `erfc_ota.sizing_spec.json`, `erfc_ota.spec_source.md`, `erfc_ota.topology.md`
+- 엔진 연결: `assets/library/erfc_ota.topology.json`, `erfc_ota.sizing_spec.json`, `erfc_ota.spec_source.md`, `erfc_ota.topology.md`
 - 쪽 수: 18
 - 변환: PyMuPDF 텍스트 추출(쪽 단위). 수식·표·그림은 텍스트가 깨질 수 있으니 같은 쪽의 렌더 PNG(`pages/`)로 확인할 것.
 
