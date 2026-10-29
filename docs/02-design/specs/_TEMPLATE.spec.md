@@ -66,6 +66,19 @@ approval: <YYYYMMDD-<slug> 형식 승인 기록 id -- 없으면 이 줄을 지�
 
 (원칙 24 -- 결정·계획·design의 원래 취지와 다른 것을 항목마다 따로 적고 결정받는다. 없으면 '없음'.)
 
+## 절차
+
+(계획 DEC-86이 남긴 넷 그대로, 정본 = 계획 N6.3)
+
+1. 코드 작성 주체와 test·기대값 작성 주체 분리(WP-13).
+2. 깨진 test·기준 약화는 숨기지 않고 보고.
+3. 변경당 커밋 1.
+4. 매 변경 뒤 새 test 체계(`gmid_engine/tests/`) 전체 실행.
+
+* **판정 기록**: 작성자 ≠ 검증자(원칙 18)이고 DEC-86 (2) 보고의 근거라서 독립 검증자가 판정 기록 `.ai/verification/<id>.json`을 남긴다(형식 = `.ai/verification/_schema.json`, 00-common §8.1).
+* **interface card**: test 작성 입력 보조(선택)다 -- 필수 산출물이 아니다(test 작성자에게 interface card만 주는 DEC-38 강제 규칙은 폐기).
+* **test 이의 보고**: 코드 작성 주체는 test가 틀렸다고 보면 test를 고치지 않고 이의를 써서 보고한다(DEC-86 (1)(2)). 이의 문서 자리는 `docs/02-design/disputes/<id>.md`이고, 이의가 있었던 card에만 마지막에 `## test 이의 보고` 절(이의 원문 인용 + 처리 결과)을 더한다.
+
 ## 작성 전 실측
 
 (오케스트레이터가 커밋 전에 채운다 -- 확인마다 실행한 명령과 결과 한 줄. 2026-09-30 재시도 5/9가 전부 이 확인 누락이었다.)
@@ -82,7 +95,7 @@ approval: <YYYYMMDD-<slug> 형식 승인 기록 id -- 없으면 이 줄을 지�
 10. 범위 계약: '바뀐 파일·변경 0' 같은 범위·diff 계약은 '이 card 커밋들의 diff'로 한정해 적었다(기준 커밋과 판정 대상 사이에 다른 card 커밋이 끼면 그 diff까지 걸린다).
 11. test 이름·모양: 새 test·보조 함수 이름은 card 접두(예: `_b26_`)로 기존 test와 겹치지 않고, 피검 함수는 test 본문에서 직접 부른다.
 12. 같음 판정: `__eq__`가 없는 객체나 프로세스마다 순서가 다른 `set`을 `==`로 비교하는 계약이 없다 -- 비교할 필드와 정렬·튜플화 규칙(정규화)을 계약에 적었다.
-13. red 모양: 각 계약의 base red가 허용 예외 타입(00-common §8.1)이다. `try/except Exception: pytest.fail`로 다른 예외를 `Failed`로 바꾸지 않고, 새 키워드 인자 직접 호출의 base `TypeError`는 red로 세지 않는다(red는 시그니처가 안 바뀌는 진입점이 맡는다).
+13. red 모양: 각 계약의 base red가 허용 예외 타입(판정 기록 `.ai/verification/_schema.json`, 00-common §8.1 -- 판정 기록은 작성자 ≠ 검증자(원칙 18)·DEC-86 (2) 보고 근거로 남긴다)이다. `try/except Exception: pytest.fail`로 다른 예외를 `Failed`로 바꾸지 않고, 새 키워드 인자 직접 호출의 base `TypeError`는 red로 세지 않는다(red는 시그니처가 안 바뀌는 진입점이 맡는다).
 14. 상수·회로 이름: 새 상수는 선언·PDK·LUT·spec 출처를 참조하고(원칙 11), 코드·규칙에 회로·소자 이름·매직넘버가 없다(원칙 12).
 
 <!--
@@ -92,12 +105,14 @@ approval: <YYYYMMDD-<slug> 형식 승인 기록 id -- 없으면 이 줄을 지�
   * 한 번: id, phase, evidence_type(red-green | equivalence | test-only), gate_change(yes | no).
   * 반복 가능(0개 이상): approval(값 = `YYYYMMDD-<slug>` 형식 id만 -- O-번호는 본문 '의도' 절에). 파서가 허용하는 옛 키 activated_ic_case·activated_ic_case_rename·noop_activation_id는
     옛 IC gate 전용이다 -- 새 엔진 card는 쓰지 않는다.
-본문 '신규 시그니처'의 (모듈, 심볼) 표는 interface card로 옮겨진다. 표 머리는 그대로 둔다.
-dispute가 있었을 때만 마지막에 `## dispute 기록` 절(원문 인용 + blob id)을 더한다.
+본문 '신규 시그니처'의 (모듈, 심볼) 표는 interface card(선택 보조, 위 '절차')를 만들 때 그 입력이 된다. 표 머리는 그대로 둔다.
+test 이의가 있었을 때만 마지막에 `## test 이의 보고` 절을 더한다(위 '절차', DEC-86 (1)(2)).
 이 파일은 이름이 `_`로 시작해 파서 대상에서 빠진다.
 
 변경 이력
 - 2026-10-29 cards/revise-1029: 옛 Phase 자리표시·옛 IC gate 키·옛 `A/tests` 경로·N3.12/V3/V5/V7 절차 문언 제거,
   graph 정본·소비자·판정 기준(원칙 2, O-178)·LUT C 열(O-179)·library 13 n/N(O-181)·O-171 결정 칸·'원래 취지와 다름' 절·
   엔진 인용 용도(원칙 8) 추가. 고치기 전 원문 = git show 052465ed:docs/02-design/specs/_TEMPLATE.spec.md
+- 2026-10-29 cards/revise-1029 (m2): '절차' 절 추가(DEC-86 넷), interface card = 선택 보조(DEC-38 폐기), dispute 절 → test 이의 보고
+  (DEC-86 (1)(2)), 판정 기록 근거 = 원칙 18·DEC-86 (2).
 -->
