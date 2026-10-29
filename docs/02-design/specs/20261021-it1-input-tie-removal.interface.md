@@ -1,5 +1,8 @@
 # interface card: 20261021-it1-input-tie-removal
 
+> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 현행 계획 card IT-1(범위 재작성) + card 0 IT-0b, 재동결 필요.** 이 card는 통합 브랜치 `integ/it12`에서 구현·판정됐다(판정 기록 `integ/it12:.ai/verification/20261021-it1-input-tie-removal.json`, master 미병합). 현행 계획 v6.38.3 N6.5 'IT-1 범위 재작성(v6.38.3, 사용자 결정 O-168·DEC-106)'이 이 card의 범위 2·범위 3 일부·범위 4, IT-Q1 (나)·X-IT5·순서 2 '다중 뿌리 정지 red'·완료 조건 7을 대체하고 범위 5(g = s 소자 한 규칙, N6.35 E-19)를 더한다. 범위 1(같은 DC 엣지 제거)은 그대로다. 아래 본문은 동결 당시(계획 v6.23·design 41 v1.12.3) 기록이며 현행 계획에 맞춰 덧대지 않는다(O-169). 계획 v6.38.4(승인 전)는 이 card에 범위 6(B4 S1v 파생 술어, 승인 대기 P9-M1a)을 더하는 안을 걸고 있어 재동결 범위는 그 승인 뒤 정한다.
+
+
 test 작성 주체는 소스를 보지 않고 이 문서만 쓴다(05-role-separation §11.1, DEC-38 -- 본문 코드 없음). 정본 문장 = design 41 v1.12.3 §4.7-1(41:666-674)·§6.7-1a(41:1688-1694), master `468e6e73`. `E/` = `skills/analog-gmid-design/gmid_engine/`.
 
 ## 관찰 가능한 계약
@@ -64,3 +67,7 @@ oracle: (손) toy 연결에서 손으로 유도한 writer·종속 분류·순환
 | I-6 | G-10(바뀐 회로), WP-10 중복 인자 0, `tests/structure` 규칙 A~I | 0 / 통과 |
 | I-7 | DEC-76 세 요구(완료 조건 7): sizing CONTRACT 3절 '미구현(발동 0)', 계획 DEC-64 상태 칸·DEC-59 발동표 행(오케스트레이터), 정지 red base red·head green | 있음 |
 | I-8 | gap-detector(design 41 §4.7-1·§6.7-1a ↔ 구현) ≥ 90 % | 통과 |
+
+## 변경 이력
+
+- 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20261021-it1-input-tie-removal.interface.md`.
