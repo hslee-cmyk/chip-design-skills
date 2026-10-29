@@ -1281,8 +1281,6 @@ def raw_mid(real_paths):
     return _load_raw(real_paths["midpoints"])
 
 
-# --- 결정 B 이전 v2 슬라이스(GMBS·VDSAT 없음) + v2 기준 LUT (CONTRACT 4.3 열 출처 "cap_table" 경로) ----------
-
 def copy_tree(src_dir, dst_dir):
     shutil.copytree(src_dir, dst_dir)
     return Path(dst_dir)

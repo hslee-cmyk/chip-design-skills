@@ -272,9 +272,10 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   (git 밖, `GMID_LUT_V2_ROOT` 로 덮어씀), pdk_root 기본 `C:/pdk/sky130_fd_pr`(`GMID_PDK_ROOT`), 세 파일 sha256 고정. 쓰는 법:
   `loc = resolve_lut_location(<설정>, os.environ)` → `load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
   verify_midpoints=loc.midpoints_path)`.
-- **test 기본 경로 전환(아직 안 함 -- `tests/lut/conftest.py` 는 test 작성자 몫)**: conftest 의 `_DEFAULT_MANIFEST`·`_DEFAULT_CAP`(옛 12-L
-  세트)를 위 설정의 `resolve_lut_location` 결과로 바꾸고 `load_lut_set` 에 `pdk_root`·`verify_midpoints` 를 넘긴다(`GMID_LUT_MANIFEST`·
-  `GMID_LUT_CAP_NPZ` 환경 덮어쓰기는 유지 가능). 옛 세트 기대값(12 앵커 bin 상태, VS 상한 0.8 V, `cgg_minus_cgd_at_gs` 모델 등)을
+- **test 기본 경로 전환(O-180 으로 완료)**: test 는 LUT 를 위 설정의 `resolve_lut_location` 결과로만 읽고 `load_lut_set` 에 `pdk_root`·
+  `verify_midpoints` 를 넘긴다. LUT 를 가리키는 환경 덮어쓰기(`GMID_LUT_MANIFEST`·`GMID_LUT_CAP_NPZ` 등)는 없다 -- 허용 env 는
+  설정 파일이 선언한 것(데이터 루트·캐시 폴더)뿐이고 루트 env 로 다른 폴더를 줘도 sha256 이 같은 파일만 받는다
+  (`tests/lut/test_lut_single_source.py` 가 지킨다). 옛 세트 기대값(12 앵커 bin 상태, VS 상한 0.8 V, `cgg_minus_cgd_at_gs` 모델 등)을
   쓰는 test 는 v2 값(18 앵커, VS 0~1.8, `lut_cgs_cgb`)으로 다시 써야 한다.
 
 ---

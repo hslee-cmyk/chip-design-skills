@@ -569,7 +569,7 @@ def candidates(a):
         from gmid_engine.lut import resolve_lut_location
         a.existing_npz = resolve_lut_location(LUT_LOCATION_JSON, os.environ).cap_npz_path
     old = np.load(a.existing_npz)
-    existing =sorted({round(grid_key(float(x) * 1e6, grid) * grid, 9) for x in old["L"]})
+    existing = sorted({round(grid_key(float(x) * 1e6, grid) * grid, 9) for x in old["L"]})
     lmins, per_dev = set(), {}
     for dev in devices:
         lm, _ = bin_lmins_um(dev, parse_bins(model_file(dev)))

@@ -53,6 +53,63 @@ def test_py_files_reference_only_declared_lut_npz_names():
     assert hits == [], "위치 선언에 없는 LUT npz 이름을 적은 .py: %s" % hits[:20]
 
 
+DRAFT_RE = re.compile(r"_drafts/engine|lut_slices|lut_v2/", re.I)
+SLICE_RE = re.compile(r"sky130_fd_pr__\w*\.npz")
+# 허용 리터럴 한 개: tests/lut/test_tolerance.py 의 `_GEN_SEARCH` -- LUT 데이터가 아니라 슬라이스 생성기 소스 파일의 검색 폴더다
+# (git 밖 한 곳에만 있고 manifest 의 generator_sha256 이 같은 파일만 쓴다). 데이터(npz·manifest)는 이 폴더에서 읽지 않는다.
+ALLOWED_LITERALS = {"C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/engine/lut_slices"}
+
+
+def _literal_violations(source):
+    """.py 소스의 문자열 리터럴 가운데 위치 선언 밖 LUT 를 가리키는 것: 옛 초안 LUT 폴더 조각(_drafts/engine·lut_slices·lut_v2/),
+    폴더가 붙은 lut manifest.json 경로, 폭 슬라이스 npz 이름(선언을 거치지 않고 직접 np.load 하는 꼴).
+    이름 없는 상대 'manifest.json' 은 toy 입력 파일이라 통과."""
+    import ast
+    found = []
+    tree = ast.parse(source)
+    docs = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.body \
+                and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant):
+            docs.add(id(node.body[0].value))   # docstring 은 설명이라 경로로 쓰이지 않는다
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docs:
+            s = node.value.replace("\\", "/")
+            if s in ALLOWED_LITERALS:
+                continue
+            if DRAFT_RE.search(s) or SLICE_RE.search(s) or ("/" in s and s.endswith("manifest.json") and "lut" in s.lower()):
+                found.append(s[:100])
+    return found
+
+
+def test_no_py_literal_points_at_lut_outside_declaration():
+    this = Path(__file__).resolve()
+    hits = []
+    for rel in _tracked():
+        if not rel.endswith(".py") or rel.startswith(HISTORY_DIRS):
+            continue
+        p = REPO_ROOT / rel
+        if p.resolve() == this or not p.is_file():
+            continue
+        try:
+            for s in _literal_violations(p.read_text(encoding="utf-8", errors="replace")):
+                hits.append("%s: %s" % (rel, s))
+        except SyntaxError:
+            continue
+    assert hits == [], "위치 선언 밖 LUT 경로·슬라이스 npz 리터럴: %s" % hits[:20]
+
+
+def test_literal_guard_rejects_mutations():
+    """거부 확인: 옛 오용 꼴 두 가지(초안 폴더 manifest 경로, 슬라이스 npz 직접 np.load)를 거부하고 toy 상대 manifest 는 통과."""
+    m1 = 'M = r"C:\\Users\\x\\wt\\_drafts\\engine\\lut_slices\\manifest.json"\nN = "C:/a/_drafts/engine/lut_v2/manifest.json"\n'
+    m4 = 'import numpy as np\nz = np.load("C:/a/_drafts/engine/lut_v2/sky130_fd_pr__nfet_01v8__tt__W5p0000um_dc.npz")\n'
+    m4b = 'import numpy as np\nz = np.load(r"D:\\data\\sky130_fd_pr__nfet_01v8__tt__W5p0000um_dc.npz")\n'
+    m5 = 'P = "C:/data/lut_xyz/manifest.json"\n'
+    assert len(_literal_violations(m1)) == 2
+    assert _literal_violations(m4) and _literal_violations(m4b) and _literal_violations(m5)
+    assert _literal_violations('p = root / "manifest.json"\nq = "cap_ref.npz"\n') == []
+
+
 ENV_RE = re.compile(r"GMID_LUT_[A-Z0-9_]+")
 # 허용: 위치 선언 파일이 쓰는 env(데이터 루트·파생표 캐시 폴더 -- 루트 env 는 sha256 이 같은 파일만 받는다) +
 # 슬라이스 생성기를 manifest 의 generator_sha256 으로 찾는 폴더(LUT 가 아님).

@@ -180,6 +180,12 @@ def _load_pilot_sizing() -> dict:
 # --------------------------------------------------------------------------------------
 # (a) 세 경로가 없다
 # --------------------------------------------------------------------------------------
+def test_dead_probe_files_are_absent():
+    # oracle (a): 삭제 목록은 spec card 계약 1이 이름을 댄 세 경로 그대로다.
+    # (O-180: probe 수 인벤토리 단언은 sample LUT 를 읽던 probe 를 지우면서 성립하지 않아 뺐다. 세 경로 부재 단언만 유지.)
+    assert_paths_absent(_REPO_ROOT, _DELETED_PROBES)
+
+
 def test_path_absence_check_rejects_surviving_file(tmp_path):
     # oracle (a): 합성 디렉터리에 같은 이름을 하나 만들어 두면 판정이 실패해야 한다.
     victim = _DELETED_PROBES[0]
