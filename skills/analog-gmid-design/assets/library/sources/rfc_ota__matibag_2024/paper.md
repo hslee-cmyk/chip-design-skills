@@ -4,7 +4,7 @@
 - 사본: `source.pdf` (sha256 `8fe378cebc9a7482c1f1d93d9707073c9e242e04351e5533d9387ea699d92b7b`)
 - 웹 출처: https://upcommons.upc.edu/bitstreams/a99028f7-5d7f-447a-b086-c1f4effcdb1b/download (UPC upcommons 석사논문 공개본, 지도 J. Cosp Vilella)
 - 그림·표 위치: 쪽 번호 = PDF 쪽 = 인쇄 쪽 · p.22 Figure 5(코어 구조, 접점 점·hop 표기) · p.27 Table 2(치수) · p.28 Figure 6(치수 부기 코어 17 MOS) · p.32 Figure 8(wide-swing constant-gm 바이어스, 원 출처 Johns&Martin) · p.34 Figure 9(치수 부기 바이어스 18 MOS + RB) · p.37 Figure 11(부하 CL)
-- 엔진 연결: `assets/heldout/rfc_ota.topology.json`, `rfc_ota.sizing_spec.json`, `rfc_ota.spec_source.md`, `rfc_ota.topology.md`
+- 엔진 연결: `assets/library/rfc_ota.topology.json`, `rfc_ota.sizing_spec.json`, `rfc_ota.spec_source.md`, `rfc_ota.topology.md`
 - 쪽 수: 85
 - 변환: PyMuPDF 텍스트 추출(쪽 단위). 수식·표·그림은 텍스트가 깨질 수 있으니 같은 쪽의 렌더 PNG(`pages/`)로 확인할 것.
 

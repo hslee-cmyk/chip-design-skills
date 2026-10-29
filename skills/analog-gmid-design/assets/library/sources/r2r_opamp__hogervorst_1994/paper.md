@@ -4,7 +4,7 @@
 - 사본: `source.pdf` (sha256 `b7dfbdbb4c1ffe9d4bfa0f743a2a61b2137d87e319316c7d3db225168b944e39`)
 - 웹 출처: https://repository.tudelft.nl/file/File_0fc107fa-6796-4bae-9159-8537a431f171 (TU Delft repository 공개본; IEEE JSSC 29(12) pp.1505-1513, Dec. 1994)
 - 그림·표 위치: PDF p.6 = 저널 p.1510 왼쪽 위 Fig. 13 'Overall design of the compact rail-to-rail operational amplifier with Miller compensation' -- 엔진 topology 근거 (바로 아래 Fig. 14 cascoded-Miller 판은 쓰지 않음) · PDF p.8 = 저널 p.1512 Table I 머리(CL·RL)
-- 엔진 연결: `assets/heldout/r2r_opamp.topology.json`, `r2r_opamp.sizing_spec.json`, `r2r_opamp.spec_source.md`, `r2r_opamp.topology.md`
+- 엔진 연결: `assets/library/r2r_opamp.topology.json`, `r2r_opamp.sizing_spec.json`, `r2r_opamp.spec_source.md`, `r2r_opamp.topology.md`
 - 쪽 수: 9
 - 변환: PyMuPDF 텍스트 추출(쪽 단위). 수식·표·그림은 텍스트가 깨질 수 있으니 같은 쪽의 렌더 PNG(`pages/`)로 확인할 것.
 
