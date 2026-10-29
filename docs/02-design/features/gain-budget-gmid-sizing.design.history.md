@@ -447,3 +447,85 @@ date: 2026-10-29
 ## H41-19 -- design 41 §7.2 분해 규칙의 r1 실측 근거 문장
 
   - 근거(2026-10-08 r1 실측): L = 20 µm·약반전(gm/ID 25)에서 입력 환산 잡음이 피드스루 식의 예측보다 훨씬 낮은 주파수에서 1차 저역 통과로 떨어진다. (1)만 쓰면 B를 86 % 낮게 읽고, (2)를 더하면 6 % 낮게 읽는다(1e5 Hz 점). as-built `E/lut/noise_planes.py`가 이 규칙이다(설계와 구현 일치).
+
+## H40-23 -- design 40 §3.2 GB1 구조 유도 상태표
+
+| 항목 | 상태 | 증거 |
+|---|---|---|
+| DC 역할(묶음 4개, 멤버 10) | OK. 규칙 (4) `structure.json` 상속은 MISS | `E/graph/dc_roles.py:52` |
+| 가지·기둥(파일럿 41/62) | OK | `E/graph/columns.py` |
+| G_vgs 분류 | OK | `E/graph/gvgs_cycles.py:56` |
+| matching(J14·DEC-93, `mirror_tail_ratio`) | OK | `E/graph/matching_groups.py:78` |
+| 차동쌍 유도 조건 '신호 gate 정확히 2' | PART: 뷰가 없어 바이어스 형제를 빼는 단계만 적용한다 | `graph/CONTRACT.md:538` |
+| L 동치류 주인(DEC-17)과 L 공유(LR1) | DEV: `l_class`가 proposed라 평가 경로가 읽지 않는다. 소자마다 L이 따로 있다 | `graph/CONTRACT.md:220`, `E/sizing/theta_schema.py:6` |
+| 교류접지 | PART: 정적 (1)(2)만 있다. (3) 이상 전압원은 정지, (4) 뷰별 바이어스 종속 넷은 41 §1.2로 넘긴다 | `E/graph/ac_ground_static.py` |
+| 기둥↔블록 매핑표, `vertical_stack_id` 대조 | MISS. 블록(41 §1)이 생긴 뒤 §3.3에서 만든다 | -- |
+| `structure.json` ratified 로드, declared/ratified 전이 | PART `[u1-sp1]`: 로더와 `drive_kind`·`stage_members` 소비만 있다. 아래 보완 3의 신규 concept, confirm 전이, `structure_rule_fp`는 MISS(U1b) | `[u1-sp1] E/graph/structure_load.py` |
+| 복합 diode(41 §1.12.1)를 DC 역할 규칙 1로, `dc_role` 상속(규칙 4) | MISS(U1b) | `E/graph/dc_roles.py` 규칙 4 '구현하지 않는다' |
+| L 동치류 주인 `main_path_signal`(41 §1.12.5) | MISS(U1b). as-built는 tail → current_source_member → name_order | `[u1-sp1] E/graph/l_classes.py` |
+| 단계 A가 `declared_loop_cuts`를 넘김 | MISS(U1b) | `[u1-sp1] E/pipeline/stage_a.py` `run_stage_a`의 `build_s1v` 호출 |
+
+## H40-24 -- design 40 §3.4 GB4 달성가능성 상태표
+
+| 항목 | 상태 | 증거 |
+|---|---|---|
+| LUT 곡선 칸 분류 | PART: 분류는 있다. 해법 매핑이 없고, `op_point`는 FC 위반 칸에서 사유 기록 없이 선형으로 넘어간다 | `E/lut/lut_set.py:124-173`, `E/lut/curve_check.py:37` |
+| 2~5 | MISS | `grep -rn "achievab\|block_gain_bound" E/` 0 |
+
+## H40-25 -- design 40 §3.5 GB5 보상 상태표
+
+| 항목 | 상태 | 증거 |
+|---|---|---|
+| 보상 수동소자 θ 연속 성분 + MNA 판정 | OK | `metrics/CONTRACT.md:555-567` |
+| Rz = 1/Σgm 구조 규칙 | DEV(v1.15.2): as-built는 고정값 -- R = θ·1/Σgm 출발값·상자 (b)로 바꿈(card SF-1 범위 9) | `E/sizing/theta_schema.py:15-25,79,144`, `E/metrics/ss_evaluate.py:48` |
+| `gm_req` 1-D 근, `comp_approx_gap` | MISS | `E/search/find_front.py:45-48`('범위 밖') |
+| 극점 노드 목록에서 후보 집합 유도 | MISS(SP1이 없어서) | -- |
+| 단일단 gm_1 규칙(U-12) | MISS(계획상 확정 대기) | -- |
+| CM 감지 저항 최소 R | MISS | `grep -rn "load_loss\|cm_sense" E/` 0 |
+
+## H40-26 -- design 40 §3.8 GB8 metric 상태표
+
+| 항목 | 상태 | 증거 |
+|---|---|---|
+| MNA(ω 무관 조립 + ω별 풀이, gmb, 접합 용량, pencil) | OK | `E/metrics/mna_build.py:47`, `mna_solve.py:42`, `stamp_mos.py`, `junction_cap.py`, `pencil_roots.py` |
+| `gain_ss_db`, `ugf`, `gbw`, `pm_ss_deg`(β 또는 β=1), ratio, `parasitic_pm_ss_deg` | OK | `metrics/CONTRACT.md:173-235` |
+| `rout_ss_ohm` | PART(블록 테브난 잔차 없음) | `metrics/CONTRACT.md:205-213` |
+| 블록 국소 모델·잔차, 감도 게이트 | MISS | `metrics/CONTRACT.md:13-14` |
+| `ls`·스윙·ICMR·nqs | MISS | `metrics/CONTRACT.md:14` |
+| offset·미러비·스윙·ICMR metric(8) | MISS: spec에 옛 이름 `mismatch_sigma_mv`·`mirror_ratio_error_mv`(파일럿·two_stage·two_stage_sf), ngcc `{metric: pending MOD5}`만 있고 레지스트리 항목이 없다 | `authoring/SPEC_CONTRACT.md:261`(S2), `E/core/units.py:7,13`, `assets/library/current_reuse_telescopic_ota.sizing_spec.json:215,224`, `ngcc_3stage_ff.sizing_spec.json:87` |
+| 전력 축 | PART: Σ V·I는 OK(결정 Q6). 기둥 대조 없음 | `E/search/objectives.py:9` |
+| 면적 탐색 축 | PART(master는 수동소자 단위 면적 None. MIM·측정 부하 제외는 `[ng-area-budget]`) | `E/metrics/dc_metrics.py:18-19,80-83` |
+| `verified_by`, `spice_unverifiable` | MISS | `metrics/CONTRACT.md:246,424` |
+| 잡음 metric·LUT 잡음 열·adjoint 해석 | MISS | `grep -rn "noise" E/metrics E/lut` 결과에 해석 코드 없음 |
+
+## H40-27 -- design 40 §4 SPICE 오라클 상태표
+
+| 항목 | 상태 | 증거 |
+|---|---|---|
+| free/forced, 포화, off_current, CMRR/PSRR, 접합 기하 | OK | `tools/spice_oracle/README.md:60-69,114-117,146-147,300-318` |
+| 슬루 추종 검사(9) | MISS(기준 = 계획 N3.8 '추종 판정' O-157 S3; 구현 = oracle OP-10 `.tran` 벤치) | -- |
+| 정착 `settle_s`·static settling error(10) | MISS(measure 이름·구현은 oracle card; `application` 구성은 AP-1 뒤) | -- |
+| C10 조기 종결 계약 | PART(계약만 있고 master 미반영) | `[ng-oracle-early]` 계약 L14-81 |
+| 지속 진동 = unstable | DEV: 계약과 test가 undetermined로 고정되어 있다 | 계약 L42-54, `tools/spice_oracle/tests/test_oracle_c10_stability.py:710` |
+| 개루프 RHP: Nyquist Z + 과도로 판정, 결정 불가일 때만 INCOMPLETE | DEV: `pm_undefined`이면 무조건 N/A→INCOMPLETE | `[ng-cmfb-pm]` README '판정', `tools/spice_oracle/README.md:516` |
+| `.pz` P 계수, N 위상 펼침 | MISS | `grep -n "\.pz" tools/spice_oracle` 0 |
+| 잡음 `.noise` 대조 | MISS | 41 §7.6 |
+| `pm_cm_ss_deg` 측정 | OK `[ng-cmfb-pm]`. `[ng-bridge]` `ORACLE_MEASURES`에는 없다 | -- |
+
+## H40-28 -- design 40 §5 CMFB 루프 상태표
+
+| 항목 | 상태 |
+|---|---|
+| 1·2·3·5 | OK `[ng-cmfb-pm]`(미병합) |
+| 4 분해능 없을 때 1 dB 대체 | DEV(상수) |
+| metrics CONTRACT 7.11의 '`cm_output_loop` boolean' 문구 | DEV(문서가 README·S-33과 모순) |
+| 계획서 N3.16 view_kind에 `cm_loop` 없음 | 계획서 문구 갱신 필요 |
+
+## H40-29 -- design 40 §7.1 면적 예산(B = 120 s 측정 행 포함) 상태표
+
+| 항목 | 상태 | 증거 |
+|---|---|---|
+| 제약 행, MIM 밀도, 측정 부하 제외, S-3b I_max | OK `[ng-area-budget]`(미병합) | 538eeab, `E/search/area_decl.py` |
+| 예산을 지키는 출발점, W 타당성, A_lb 사전 판정 | MISS | -- |
+| 레이아웃 판정 축의 수동소자 면적, MOD8 재필터 | MISS | `E/layout/floorplan.py` |
+| B = 120 s 결과 | front: common_gate 2, two_stage 1(최대 W 0.39 mm), two_stage_sf 1(최대 W 3.2 mm, 면적 7.3e-3 mm²). folded·ngcc·nmcnr·pushpull 0(folded·pushpull은 예산이 없을 때 예산의 약 2000배에서 front가 있었다). sf_pushpull·current_reuse는 시작점 0 | `[ng-area-budget]` 실행 보고 |
