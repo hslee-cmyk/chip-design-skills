@@ -7,6 +7,9 @@ approval: 20260930-b26-before-phase3
 approval: 20261001-b26-phase3-cards
 approval: 20260930-b26-b40-reason-key
 ---
+
+> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 현행 계획 N6.1 단위 2(`rail_declaration` 이식), 옛 엔진 card라 재동결 없음(착수하지 않음).** 이 card는 옛 엔진(`assets/sizing_recipe.py`·`stick_diagram.py`) Phase 3 card이고 code·test 커밋(`e92e6b84`·`212f76a9` 등)은 master에 병합되지 않았다(판정 기록 없음). 계획 N6.1 '옛 Phase 처리'가 Phase 3 모듈 분할을 폐기하고(DEC-86, 2026-10-07) '옛 B26-1은 부품으로 이식'으로 정했으며, 새 엔진은 `gmid_engine/authoring/rails.py`에 레일 선언 접근자를 둔다. 옛 엔진 삭제는 card LT-1(DEC-99). 본문은 기록이다(O-169).
+
 ## 의도
 
 계획 DF-19·DF-26(담당 Phase 4)의 **넷 몫 첫 card(B26-1)**. 엔진은 지금 topology 최상위 `supply_nets`를 한 곳도 읽지 않고(운영 코드의 `supply_nets` 참조는 SR 4361 하나이며
@@ -545,3 +548,7 @@ A1-b "② N2 (Recommended)"(범위 정책 `20260930-v3-changed-stmt-scope`, def 
 8. **B34 인계 재측정(2026-10-01, `7535799`, scratch C:/g59 -- 측정 뒤 삭제)**: 인계 사이트 줄을 `sed -n`으로 확인했다('의도' 표. B34 card 사이트 표·검토 정정과 일치). 모의 base·head 구성과 V3 수치는 'V3 계획' 1,
    동작 수치는 '재현할 수치' 마지막 항목에 있다. 쓰기 경로: SD 코드·docstring = code-author. `references/analog-grammar-integration.md`의 폴백 서술은 B34가 오케스트레이터 문서 커밋으로 고친다(B34 card '작성 전 실측' 7). 이 card에서 더 고칠 문서는 없다.
    미배선(V7): 지우는 def 0, 새 def 0(인계분) → 면제 불필요.
+
+## 변경 이력
+
+- 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20260930-b26-rail-accessor-set.spec.md`.
