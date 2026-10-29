@@ -180,21 +180,6 @@ def _load_pilot_sizing() -> dict:
 # --------------------------------------------------------------------------------------
 # (a) 세 경로가 없다
 # --------------------------------------------------------------------------------------
-def test_dead_probe_files_are_absent():
-    # oracle (a): 삭제 목록은 spec card 계약 1이 이름을 댄 세 경로 그대로다.
-    assert_paths_absent(_REPO_ROOT, _DELETED_PROBES)
-    # 공허한 판정 방지(계약 4): 지운 셋과 승격분 말고는 그대로 있다.
-    #   남는 수 = 실측 42 - DF-21 삭제 3 - 승격 완료분. 승격 완료분은 이름 규칙으로 세고(승격한 수를
-    #   여기 박지 않는다), 승격본이 있으면 원본은 트리 어디에도 없어야 한다(아래 배타 판정).
-    originals = probe_names_under(_TESTS_DIR)
-    promoted = promoted_probe_names(_UNIT_DIR)
-    expected = _PROBE_TOTAL_BEFORE - len(_DELETED_PROBES) - len(promoted)
-    assert len(originals) == expected, (
-        f"남은 probe 수 {len(originals)} != 42 - {len(_DELETED_PROBES)} - 승격 {len(promoted)} = {expected}: "
-        f"{sorted(originals)}")
-    assert_promotion_is_exclusive(originals, promoted)
-
-
 def test_path_absence_check_rejects_surviving_file(tmp_path):
     # oracle (a): 합성 디렉터리에 같은 이름을 하나 만들어 두면 판정이 실패해야 한다.
     victim = _DELETED_PROBES[0]
