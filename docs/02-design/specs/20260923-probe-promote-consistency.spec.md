@@ -5,6 +5,9 @@ evidence_type: test-only
 gate_change: no
 approval: 20260923-20-dead-code-dup-design
 ---
+
+> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 옛 Phase 폐기(DEC-86, 계획 N6.1 '옛 Phase 처리'), 옛 엔진 card라 재동결 없음(착수하지 않음).** 이 card는 옛 엔진 probe(`legacy/tests/probe_physical_consistency.py`) 승격 card이고 test 커밋·판정 기록이 없다. 새 엔진의 노드 KCL·전파 정합은 봉인 항목(계획 N3.6)이 맡고, 옛 엔진·test는 card LT-1(DEC-99)이 지운다. 본문은 기록이다(O-169).
+
 ## 의도
 
 TS6(계획 N3.11), design `20-dead-code-dup` v1.2 §5.1의 셋째 줄: `probe_physical_consistency`를 승격한다. 이 probe는 절이 셋이고
@@ -65,3 +68,7 @@ B9가 가리키는 문제(`vs`/`vsb` 정의, 레일이 아닌데 0인 소자 15�
 * 계약 5의 레일 전압 선언(`supplies_v`, U-26 주석이 가리키는 spec 쪽 선언)이 없다 -- 스칼라 `vdd`뿐이라 레일별 전압을 선언에서 읽을 수 없다(DEC-60).
 * 판정을 세우면 실패한다(관찰, 판정 아님): 파일럿 다중 도달 불일치 4건(M2a/M3a->Vom1, M2b/M3b->Vop1 0.6773 vs 0.9000 V), KCL 잔차 Vx 4.185 uA. folded_cascode는 순회 순서 의존(X 1.6 vs 0.0 V, out 1.4 vs -0.2 V)과 KCL 잔차 tail 50.5 uA.
 재착수 조건: (1) B8 허용 범위 선언 위치·값 (2) `supplies_v` 선언 또는 다른 레일 판별 규칙 (3) 위 실패가 엔진 결함인지 회로 해석인지 공동분석(Phase 4). 백로그 B21.
+
+## 변경 이력
+
+- 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20260923-probe-promote-consistency.spec.md`.

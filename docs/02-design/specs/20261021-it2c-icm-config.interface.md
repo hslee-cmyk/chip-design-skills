@@ -1,5 +1,8 @@
 # interface card: 20261021-it2c-icm-config
 
+> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 현행 계획 card IT-2c(계획 v6.38.3 N6.6 범위 1·6), 재동결 필요.** 이 판은 계획 v6.23~v6.28·design 41 v1.12.3~v1.12.7 동결본이다. 그 뒤 계획이 범위를 바꿨다: 측정 구성 = servo(v6.35 O-115 -- 반전 입력 식별 T_p·`inverting_port`·`tied_ports`·선언 되먹임 DC 판정·S-OS2 멈춤 갈래 삭제), 전도 행 R0·F 성분 함께 구동(v6.36 O-118), `graph.ss_circuit` writer 하나(v6.34.1), 커널 상태 이어받기 삭제(v6.34 O-109 D2), 출력 구조 분류 필드 `node.dc_output_structure` 삭제(v6.38.3 N6.35 E-09)·전도 행 건너뜀 문턱 = 행 단위 분해능(E-22)·θ 프레임 창 = KVL 순서 창(E-13). 재동결본 `card/it2c` `d95c8ff8`(계획 v6.37·design v1.14.1)도 v6.38.3 E-09·E-22·E-13 반영 전이다. 아래 본문은 기록이며 현행 계획에 맞춰 덧대지 않는다(O-169). 구현 상태: 미구현.
+
+
 card IT-2c -- 측정 구성. test 작성 주체는 소스를 보지 않고 이 문서와 공통 문서 `docs/02-design/specs/20261021-it2-common.md`의 '창 규칙'·'정의 불능 code' 절만 쓴다(DEC-38 -- 본문 코드 없음). 정본 문장 = design 41 v1.12.3(`41:n`). `E/` = `skills/analog-gmid-design/gmid_engine/`. 쓰기 경로 = `E/tests/**`(agent 정의의 옛 `assets/tests/**`가 아니다).
 
 ## 관찰 가능한 계약
@@ -64,3 +67,7 @@ red 예상 목록 = 엔진 동작·엔진 트리 구조를 보는 test(green 유
 ## 판정 측정(audit)
 
 I-1, I-2 G1·G2·G3·G6·G7, I-3 9회로 변화표(cfg 창 신설·offset 값 불변), I-4 G-10·WP-10, I-6, 착수 실측 C-1·C-2 기록(L10 (a)). (I-n 정의 = 공통 문서 interface 측정표.)
+
+## 변경 이력
+
+- 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20261021-it2c-icm-config.interface.md`.

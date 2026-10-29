@@ -5,6 +5,9 @@ evidence_type: red-green
 gate_change: no
 approval: 20261021-it1-o13-scope
 ---
+
+> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 현행 계획 card IT-1(범위 재작성) + card 0 IT-0b, 재동결 필요.** 이 card는 통합 브랜치 `integ/it12`에서 구현·판정됐다(판정 기록 `integ/it12:.ai/verification/20261021-it1-input-tie-removal.json`, master 미병합). 현행 계획 v6.38.3 N6.5 'IT-1 범위 재작성(v6.38.3, 사용자 결정 O-168·DEC-106)'이 이 card의 범위 2·범위 3 일부·범위 4, IT-Q1 (나)·X-IT5·순서 2 '다중 뿌리 정지 red'·완료 조건 7을 대체하고 범위 5(g = s 소자 한 규칙, N6.35 E-19)를 더한다. 범위 1(같은 DC 엣지 제거)은 그대로다. 아래 본문은 동결 당시(계획 v6.23·design 41 v1.12.3) 기록이며 현행 계획에 맞춰 덧대지 않는다(O-169). 계획 v6.38.4(승인 전)는 이 card에 범위 6(B4 S1v 파생 술어, 승인 대기 P9-M1a)을 더하는 안을 걸고 있어 재동결 범위는 그 승인 뒤 정한다.
+
 ## 의도
 
 - **절차(phase)**: 계획 DEC-86(285행)·N3.12 머리(669행)로 역할 분리 gate·spec card 흐름·merge_gate가 꺼졌다. 판정 = N6.3(매 변경 뒤 새 test 전체 실행, 작성자 ≠ test 작성자 WP-13, 약화 보고, 변경당 커밋 1) + 독립 측정·검증 agent이고 merge_gate가 아니다. 머리 블록은 형식 호환용이다.
@@ -174,3 +177,7 @@ scope: card IT-1(20261021-it1-input-tie-removal) -- design 41 v1.12.3 §4.7-1·�
 ## 범위 설명
 덮는 것: 위 동작 변경과 소비자 표 test 기대 갱신(이유 K-3), S0 기준선 u17_1b_s0_baseline.json 갱신. 덮지 않는 것: 그 밖 기준 약화(criteria_weakened), 다중 뿌리 y 묶음·뿌리별 창 구현(DEC-76 미구현), ls_swing 입력 창(IT-2), heldout 측정.
 ```
+
+## 변경 이력
+
+- 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20261021-it1-input-tie-removal.spec.md`.

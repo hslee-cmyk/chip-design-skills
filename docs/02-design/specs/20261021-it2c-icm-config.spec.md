@@ -5,6 +5,9 @@ evidence_type: red-green
 gate_change: no
 approval: 20261021-it2-o67-scope
 ---
+
+> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 현행 계획 card IT-2c(계획 v6.38.3 N6.6 범위 1·6), 재동결 필요.** 이 판은 계획 v6.23~v6.28·design 41 v1.12.3~v1.12.7 동결본이다. 그 뒤 계획이 범위를 바꿨다: 측정 구성 = servo(v6.35 O-115 -- 반전 입력 식별 T_p·`inverting_port`·`tied_ports`·선언 되먹임 DC 판정·S-OS2 멈춤 갈래 삭제), 전도 행 R0·F 성분 함께 구동(v6.36 O-118), `graph.ss_circuit` writer 하나(v6.34.1), 커널 상태 이어받기 삭제(v6.34 O-109 D2), 출력 구조 분류 필드 `node.dc_output_structure` 삭제(v6.38.3 N6.35 E-09)·전도 행 건너뜀 문턱 = 행 단위 분해능(E-22)·θ 프레임 창 = KVL 순서 창(E-13). 재동결본 `card/it2c` `d95c8ff8`(계획 v6.37·design v1.14.1)도 v6.38.3 E-09·E-22·E-13 반영 전이다. 아래 본문은 기록이며 현행 계획에 맞춰 덧대지 않는다(O-169). 구현 상태: 미구현.
+
 ## 의도
 
 - **절차(phase)**: 계획 DEC-86(285행)·N3.12 머리(669행)로 역할 분리 gate·spec card 흐름·merge_gate가 꺼졌다. 판정 = N6.3(매 변경 뒤 새 test 전체 실행, 작성자 ≠ test 작성자 WP-13, 약화 보고, 변경당 커밋 1) + 독립 측정·검증 agent이고 merge_gate가 아니다. 머리 블록은 형식 호환용이다(공통 문서 '절차 상태').
@@ -96,3 +99,7 @@ red-green. 새 이름은 존재 부재 red(`ImportError`·`AttributeError` -- 00
 ## 작성 전 실측
 
 공통 문서 '작성 전 실측' 1~13을 따른다. 이 card 사실(master `468e6e73`, 2026-10-21): `E/metrics/ss_evaluate.py:101·107`, `E/sizing/s2_values.py:173`(`SS_WRITES`), 세 factor 자리 `offset_analysis.py:69`·`offset_systematic.py:46`·`block_residual.py:73`, `E/search/kernel.py:136-138`·`E/search/noise_decl.py:33-43`·`E/search/search_context.py:184`(C-3 분석 F3~F6), `icm_config`·`ss_nodal` 엔진 0건. V3 규모(8): **미확인 (IT-1 code 뒤)** -- 착수 base(IT-1 code 뒤)에서 오케스트레이터가 `tools/gates/mutate_changed.py`로 채운 뒤 동결.
+
+## 변경 이력
+
+- 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20261021-it2c-icm-config.spec.md`.
