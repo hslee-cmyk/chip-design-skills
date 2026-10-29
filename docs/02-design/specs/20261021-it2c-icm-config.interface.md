@@ -1,6 +1,6 @@
 # interface card: 20261021-it2c-icm-config
 
-> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 현행 계획 card IT-2c(계획 v6.38.3 N6.6 범위 1·6), 재동결 필요.** 이 판은 계획 v6.23~v6.28·design 41 v1.12.3~v1.12.7 동결본이다. 그 뒤 계획이 범위를 바꿨다: 측정 구성 = servo(v6.35 O-115 -- 반전 입력 식별 T_p·`inverting_port`·`tied_ports`·선언 되먹임 DC 판정·S-OS2 멈춤 갈래 삭제), 전도 행 R0·F 성분 함께 구동(v6.36 O-118), `graph.ss_circuit` writer 하나(v6.34.1), 커널 상태 이어받기 삭제(v6.34 O-109 D2), 출력 구조 분류 필드 `node.dc_output_structure` 삭제(v6.38.3 N6.35 E-09)·전도 행 건너뜀 문턱 = 행 단위 분해능(E-22)·θ 프레임 창 = KVL 순서 창(E-13). 재동결본 `card/it2c` `d95c8ff8`(계획 v6.37·design v1.14.1)도 v6.38.3 E-09·E-22·E-13 반영 전이다. 아래 본문은 기록이며 현행 계획에 맞춰 덧대지 않는다(O-169). 구현 상태: 미구현.
+> **[대체 표지 2026-10-29 -- 검증 10 병합 가능 판정, master `07964dfe`] 대체됨 -- 현행 계획 card IT-2c(계획 v6.38.4 N6.6 범위 1·6), 재동결 필요.** 이 판은 계획 v6.23~v6.28·design 41 v1.12.3~v1.12.7 동결본이다. 그 뒤 계획이 범위를 바꿨다: 측정 구성 = servo(v6.35 O-115 -- 반전 입력 식별 T_p·`inverting_port`·`tied_ports`·선언 되먹임 DC 판정·S-OS2 멈춤 갈래 삭제), 전도 행 R0·F 성분 함께 구동(v6.36 O-118), `graph.ss_circuit` writer 하나(v6.34.1), 커널 상태 이어받기 삭제(v6.34 O-109 D2), 출력 구조 분류 필드 `node.dc_output_structure` 삭제(v6.38.3 N6.35 E-09)·전도 행 건너뜀 문턱 = 행 단위 분해능(E-22). (θ 프레임 창 = KVL 순서 창(N6.35 E-13)은 IT-2c가 아니라 card WB-1 범위 3a-0·3a 몫이다 -- 2026-10-29 정정.) 재동결본 `card/it2c` `d95c8ff8`(계획 v6.37·design v1.14.1)도 v6.38.3 E-09·E-22 반영 전이다. 계획 v6.38.4: 착수 실측 = (a) servo 피벗 a_e·δA_num (b) 진짜 A = 0 대칭 사례 하나; 옛 (c) 오라클 vntol·reltol은 엔진 착수 조건에서 뺐다(`67e7b182`, 승인 O-173 S-1). 재동결 착수 = design v1.15.x 승인 뒤(master design 40·41 = v1.14.2, v1.15.x는 미승인). 재동결 때 지킬 것(O-178: `IcmWindow.model_error_ref`·ME-1 인용 등 e_m 칸 옮기지 않음, O-181: library 13·held-out 0 동안 A' 판정 정지)은 IT-2 공통 문서 표지와 같다. 아래 본문은 기록이며 현행 계획에 맞춰 덧대지 않는다(O-169). 구현 상태: 미구현.
 
 
 card IT-2c -- 측정 구성. test 작성 주체는 소스를 보지 않고 이 문서와 공통 문서 `docs/02-design/specs/20261021-it2-common.md`의 '창 규칙'·'정의 불능 code' 절만 쓴다(DEC-38 -- 본문 코드 없음). 정본 문장 = design 41 v1.12.3(`41:n`). `E/` = `skills/analog-gmid-design/gmid_engine/`. 쓰기 경로 = `E/tests/**`(agent 정의의 옛 `assets/tests/**`가 아니다).
@@ -71,3 +71,4 @@ I-1, I-2 G1·G2·G3·G6·G7, I-3 9회로 변화표(cfg 창 신설·offset 값 �
 ## 변경 이력
 
 - 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20261021-it2c-icm-config.interface.md`.
+- 2026-10-29 `cards/revise-1029`: 대체 표지 내용 개정(E-13 귀속 정정 = WB-1 범위 3a, v6.38.4 착수 실측 (c) 삭제 반영, 재동결 착수 조건·지킬 것, '검증 대기' → 병합 표기) -- 본문 불변, 고치기 전 원문 = `git show 052465ed:docs/02-design/specs/20261021-it2c-icm-config.interface.md`.
