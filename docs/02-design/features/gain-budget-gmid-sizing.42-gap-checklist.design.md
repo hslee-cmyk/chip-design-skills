@@ -8,8 +8,7 @@ plan_version: 6.38.4
 
 > **Summary**: `bkit:gap-detector`가 설계 문서(40·41)와 구현을 대조할 때 쓰는 표다.
 > - **design v1.15.3 -- 계획 v6.38.4(승인 O-173) 맞춤, 검증 대기**(2026-10-29, 40·41과 같은 판 -- 40 Status; 이 문서: D-WB1·D-WB2(슬라이스 고정 P8·P3)·D-START(칸 0 조립 P4)·D-JDG(P1)·D-PW(P7) 확정, D-RMIN 추가) · **v1.15.2 -- 계획 v6.38.3 맞춤**(40 Status; 이 문서: §2 DEC-106 행 추가, D-WB1 정정, D-G4 삭제(N/A -- E-34), D-IT1·D-GL·D-CM·D-TBX 문구, §3 새 14행 D-IN1·D-E13·D-START·D-GS·D-JDG·D-SPX·D-GATE·D-CML·D-LOWN·D-MR·D-PW·D-AREA·D-LA1G·D-CAB, §4 집계)
-> - **design v1.15.1 -- 계획 v6.38.2 맞춤, 검증 대기**(2026-10-28, 40·41과 같은 판 -- 41 Status; 이 문서: §2 DEC-105 행, D-TB1a·D-TB1c·D-R6·D-R10·D-SI-cur·D-L0B85·D-SF1c·D-SF1d·D-TRK·D-STL·D-CMP1·D-P2 개정, 새 설계 항목 12행, §4 집계)
-> - **design v1.15.0 -- 계획 v6.38 맞춤, 검증 대기**(2026-10-26, 40·41과 같은 판 -- 41 Status; 이 문서: §2 DEC-104 행, 행 58·70·71·D-GB0a·D-GB8a·D-GB8d·D-K1·D-AP1 문구, §3 새 19행 D-TB1a~c·D-R6·D-R5p·D-R10·D-L0rpt·D-L0filt·D-L0B85·D-SI-cur·D-SF1a~d·D-TRK·D-SET·D-STL·D-CMP1·D-LA1rep, §4 집계) 이전 판: **design v1.14.2 -- 계획 v6.37 슬루 맞춤 -- 승인됨(사용자 O-136, 2026-10-26; 재검증 95/100·재 gap 97.8 %, 커밋 b9393e2e·95b41187·f4359e17·ca58c8a1; O-127·O-128 원칙 반영 design 정정은 계획 v6.38 승인 뒤 다음 판)**(2026-10-24, 40·41과 같은 변경 -- 41 Status; 이 문서는 행 58·70·D-GB8a·D-GB8c·D-AP1; 둘째 커밋 = 검증 87/100·gap 93.2 % 반영 -- 행 58 삭제 확인 패턴을 계획 DE-1 완료 조건 (1)의 다섯 개로, D-GB8a 영역 표기 DC 동작 범위, 새 행 D-GB8d(`load_dc_amp`), §4 집계 설계 항목 169·MISS 118; 넷째 커밋 = 재검증 95/100·재 gap 97.8 % 반영 -- D-GB8d 읽는 자리·fail-open 표지, §4 집계를 §3 재계수로(설계 항목 172 = 물리 행 167 + D-SIa~f 추가 5 -- '센 방법'). **v1.14.1 상태(대체됨)**: **v1.14.1 승인됨(사용자 O-124, 2026-10-24, 계획 v6.37)** -- 후속 정정 대상 design v1.14.2(O-124): 계획 v6.37과 다른 슬루 문장 13곳 -- 40 §3.8-3 1248·1249·1251행, 40 §3.8-6 1256행, 40 §3.8-8 metric 표·registry, 40 1722행 R9·2075행 U7, 40 1740행 R27, 40 §10.5, 41 795행, 41 831행, 41 892·924행, 42 101·110·264행 -- 본문은 v1.14.2에서 고친다(검증·gap 뒤 DE-1 전에 따로 승인).
+> - 옛 판 bullet(v1.15.1·v1.15.0) = design 이력 H42-01.
 > - 한 행이 FR·NFR·DEC·설계 항목 하나다.
 > - 열은 설계 절, 상태, 증거다. 증거는 `파일:행`, test 이름, 또는 재측정용 grep 패턴이다. 판 번호는 41에 맞춘다 -- v1.12.5는 41만 바꾼 판이라 이 문서는 v1.12.4에서 v1.12.6으로 건너뛰었다; v1.12.7 = 계획 v6.28(O-85·O-86) 맞춤, D-IT2 행; 둘째 커밋 = 사용자 O-87 (1)(차동 결합은 S-OS2 card 몫); 셋째 커밋 = 사용자 O-88(MOS 식별 = `device.element_class`); v1.13.0 = 계획 v6.34(사용자 O-106~O-110·DEC-103) 맞춤 -- D-ICM·D-IT2 행을 41 v1.13.0 §4.7에 맞춤(다듬은 창·`metrics_icm_front`·커널 미수렴 이어받기·출력 구조 분류·S-OS1 삭제, KCL 측정 구성 감도, E 칸; design 검증 `wt/_drafts/evidence/2026-10-22/design_v1130_validation.md` S-1), 재검증 90/100(`design_v1130_recheck.md`) 뒤; 계획 v6.34.1 `graph.ss_circuit`·용량만 결측 문언(재검증 3 S-B) 반영(41 v1.13.0과 같은 판); v1.14.0 = 계획 v6.35(사용자 O-114~O-116)·v6.34.2(O-111~O-113) 맞춤 -- D-ICM·D-IT2·D-J5 행을 41 v1.14.0 §4.7(servo 측정 구성, V_cm 좌표, B77)에 맞춤; v1.14.1 = 계획 v6.35.1(O-117)·v6.36(O-118·O-119) 맞춤 -- D-ICM·D-IT2(기본 포트 뷰·전도 행 R0·F 성분 포트 함께 구동·레일 자름)·D-J5(사실 정정), 검증 대기.
 >
@@ -335,7 +334,7 @@ plan_version: 6.38.4
 | D-MP0 | (card LA-1 범위 15 (b); E-31) 매크로 출발점 P = 0, 출발 gm 2배 사다리(끝 = gm 범위 상한), 끝 칸까지 P ≠ 0 = 정의된 값 출발 + `StartConflict(macro_target, rhp_open_loop)`(옛 `macro_rhp_start` 버림 대체), 망 N9 노드 | 41 §6.5-3a | MISS | as-built `E/search/macro_poles.py:316-328` 다중 출발(P 검사 없음) |
 | D-MV | (card LA-1 범위 15 (c)) 체계 오프셋 술어 인스턴스 S0 필드(P1s·P1c, 신호 경로 = R10 넷 술어의 부정 -- 술어 = `bias_fixed_net` 부정, 제작 = card IT-1 v6.38.3 범위 재작성 5, LA-1·SB-1이 부름 -- v1.15.2 정정)와 `mirror_vds` 목표 행(K-1 (i), R-1′ 위반 다음, B 밀도만, `StartConflict(mirror_vds)`) | 41 §6.7-4·§6.7-11 | MISS | -- |
 | D-AR | (card LA-1 범위 1·15 (e)) 면적 조건 → 입력 소자 gm/ID 하한(IDu(g, L) ≤ I·L²/A_min), matching L 하한 삭제(LR6 개정) | 41 §6.4-2·-6, §5.3.7 멈춤 | DEV | as-built matching L 하한 `E/search/iv_matching_l.py` |
-| D-CMB | (v1.15.1 D-CM → v1.15.2 ID 변경(D42:200 D-CM과 중복 해소), card LA-1 범위 15 (f); DEC-105 (7) v6.38.3·N6.35 E-11, 판별 밖 = `cm_reference_unclassified`) CM 되먹임 DC 평형 등식(오차 쌍 전류 같음 → `dc_current_basis`, 출력 CM = 기준 넷 DC → 쓰기 계획 고정 노드), CM 기준 = 내부 생성이면 KVL writer·외부면 선언 필수(`cm_reference_undeclared`)·선언 자리 하나(`cm_reference_double_declared`), 생략 예외 `cm_reference_undetermined` 삭제, 단일 출력 무동작 | 40 §5-6 | MISS | -- |
+| D-CMB | (v1.15.1 D-CM → v1.15.2 ID 변경(옛 D-CM 행(§3)과 중복 해소), card LA-1 범위 15 (f); DEC-105 (7) v6.38.3·N6.35 E-11, 판별 밖 = `cm_reference_unclassified`) CM 되먹임 DC 평형 등식(오차 쌍 전류 같음 → `dc_current_basis`, 출력 CM = 기준 넷 DC → 쓰기 계획 고정 노드), CM 기준 = 내부 생성이면 KVL writer·외부면 선언 필수(`cm_reference_undeclared`)·선언 자리 하나(`cm_reference_double_declared`), 생략 예외 `cm_reference_undetermined` 삭제, 단일 출력 무동작 | 40 §5-6 | MISS | -- |
 | D-RS1 | (card RS-1) 열별 Δp = \|∂ln p/∂VGS\|·tol_V·\|p\|(공통 ε_d 삭제), 최악 선형 유지, metrics CONTRACT 9.1 개정(기준 변경) | 40 §3.8-9 | DEV | as-built ε_d 공통 `E/metrics/ss_linearize.py` `lut_rel_tol`, `E/metrics/lut_parameters.py` |
 | D-CR | (card SF-1 범위 8) `human.counted_rails` 선언·로더 거부 셋·`supply_current_dc` + 미선언 = 보류 정지, 전력 축·oracle 레일 집합 같은 선언 | 40 §3.1-1 | PART | as-built 엔진 extras `counted_rails`(`E/metrics/dc_metrics.py:4·:95`) 있음, spec 로더 키·보류 정지 없음 |
 | D-TBX | (card SF-1 범위 9; DEC-105 (10) v6.38.3) θ 상자 출처 규칙 (a) 커패시터 공통 선언 `assets/theta_box_common.json`(값 = 2026-10-08 '10번') (b) 영점 상쇄 저항 = θ·상자 [1/max Σgm, 1/min Σgm](`zero_cancel_box`, U-134 (가)) (c) DC 경로 저항 = 회로별 선언 (d) 출처 없음 거부; 회로별 커패시터 사본 9개 삭제, 실행 설정 재정의 삭제 | 40 §3.1-1 | MISS | as-built 회로별 `human.search.theta_bounds` 사본(library 커패시터 9항목 -- v1.15.2 정정) |
@@ -351,6 +350,9 @@ plan_version: 6.38.4
 | D-MRD | (card SF-1 범위 10 -- ID: 기존 D-MR(`mirror_ratio_sigma_pct`)과 중복 해소) 선언 미러 비 `human.mirror_ratios`만 `dc_current_basis` 강제 행, 정지 `mirror_ratio_not_mirror`·`mirror_ratio_symmetry_conflict`, ρ θ 종류 없음 | 40 §3.1-1·§3.7-2 | MISS | as-built `E/sizing/current_basis.py:12`('강제하지 않는다') |
 | D-PW | (card SF-1 범위 8 정의 항목 -- O-172 A18) DUT 전력 `power_dc_w` = Σ 셈 레일 V·I, V_0 = 넷리스트 0 V, 측정 부하 가감 없음(계획 DEC-78 v6.38.4 P7, 승인 O-173 C5 -- 40 §3.1-1; oracle OP-11 = 레일 전압원 전류 − 측정 부하 원소 전류) | 40 §3.1-1 | MISS | as-built `E/metrics/supply.py`(레일 전체 전류) |
 | D-RMIN | (card SF-1 범위 9 -- 계획 v6.38.4 D18·D19) 저항 소신호 = 이상 R + 양 끝 C_par/2(l = R/r_l, 소신호 MNA만, 필드 `device: passive_parasitic`), 실현 범위 R ≥ R_min(종류) = 종류 선택 후보 조건(실현 종류 0이면 `resistor_kind_unrealizable`), 선언 칸 `r_min_ohm` | 40 §3.1-1 | MISS | as-built 종류 선택 `E/core/pdk_decl.py`(Ω당 면적 최소, R_min 없음) |
+| D-U12 | (40 §3.5 상태표에서 옮김) 단일단 gm_1 규칙(U-12, 계획상 확정 대기) | 40 §3.5 | MISS | -- |
+| D-PMCM | (40 §4 상태표에서 옮김) `pm_cm_ss_deg` oracle 측정 -- `[ng-cmfb-pm]`에 있고 `[ng-bridge]` `ORACLE_MEASURES`에는 없음 | 40 §4 | PART | `[ng-cmfb-pm]` |
+| D-FCOP | (40 §3.4 상태표에서 옮김) LUT 곡선 FC 위반 칸에서 `op_point`가 사유 기록 없이 선형으로 넘어감(분류는 있고 해법 매핑 없음) | 40 §3.4 | PART | `E/lut/lut_set.py`, `E/lut/curve_check.py` |
 | D-AREA | (card SF-1 범위 9 -- N6.35 E-12) 값 미정 수동소자가 있으면 면적 정의 불능 `area_undefined`, head 면적 미선언 0.0 대체 삭제 | 40 §3.11-8 | MISS | as-built `E/metrics/dc_metrics.py:115-118`, `E/layout/passives.py:21` |
 | D-LA1G | (card LA-1 범위 15 (g) -- N6.35 E-07·E-14·E-15·E-24·E-25·E-26·E-34·E-35) `kcl_row_underdetermined`·`tol_vdsat_table_missing`·`zc_start_undefined` 기록, 0 자리값(`E_refilter`·`reserve_evals`·N_T) 삭제, U-51 폴백 문언 삭제, `constraint_rows` `undefined` 반환 삭제 | 40 §3.11-6·§3.6, 41 §6.5 | MISS | 행별 as-built 자리 = 계획 N6.35 |
 | D-CAB | (계획 DEC-92 (3) '한계' design 판정) S = 연결 정의(규칙 변경 0, 출발값 R_S = 1/Σgm), 'AC 구동 소자 포함' 안 기각(근거 = evidence 실측), A–G 결합 용량 경로 = S 미정 fail-closed 초안(P2) | 40 §3.5 | N/A(규칙 변경 없음 -- 판정 기록) | 실측 `wt/_drafts/evidence/2026-10-29/design_v1152/class_ab_s/` |
@@ -364,60 +366,16 @@ plan_version: 6.38.4
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 2 | 1 | 7 | 5 | 0 |
 | DEC | 85 | 24 | 6 | 29 | 20 | 6 |
-| 설계 항목 | 213 | 6 | 30 | 17 | 155 | 5 |
-| **합계** | 313 | 32 | 37 | 53 | 180 | 11 |
+| 설계 항목 | 216 | 6 | 30 | 19 | 156 | 5 |
+| **합계** | 316 | 32 | 37 | 55 | 181 | 11 |
 
-v1.15.3(2026-10-29, 계획 v6.38.4 맞춤 -- 사용자 결정 O-173, 검증 대기): 설계 항목 1행 추가(D-RMIN, MISS) -- 설계 항목 213(MISS 155)·합계 313(MISS 180); 나머지는 행 문구 확정(D-WB1·D-WB2·D-START·D-JDG·D-PW, 상태 불변).
+v1.15.3(2026-10-29, 계획 v6.38.4 맞춤 -- 사용자 결정 O-173, 검증 대기): 설계 항목 4행 추가(D-RMIN MISS, 검증 2 m-C로 40 상태표에서 옮긴 D-U12 MISS·D-PMCM PART·D-FCOP PART) -- 설계 항목 216(PART 19·MISS 156)·합계 316(PART 55·MISS 181); 나머지는 행 문구 확정(D-WB1·D-WB2·D-START·D-JDG·D-PW, 상태 불변).
 
-v1.15.2 집계 정정(2026-10-29, gap 다름 3 -- 표 행 실측: '상태' 열 첫 낱말 계수): 설계 항목 표기는 v1.15.0 이전부터 실제보다 5행 많았다(물려받은 오차 -- `da96dadc` 186 실제/191 표기, `17d11bdc` 198/203); v1.15.2 증분(+14행, MISS +13 − 1, N/A +2)은 맞다. 정정 뒤 설계 항목 212(MISS 154)·합계 312(MISS 179). ID 중복 해소 = D-CM(v1.15.1 CM 평형) → D-CMB, D-MR(v1.15.2 선언 미러 비) → D-MRD.
-
-v1.15.2(2026-10-29, 계획 v6.38.3 맞춤 -- 사용자 결정 O-168~O-172, 검증 대기): DEC 행 1 추가(106 입력 공통모드 변수, MISS), 설계 항목 14행 추가(D-IN1·D-E13·D-START·D-GS·D-JDG·D-SPX·D-GATE·D-CML·D-LOWN·D-MR·D-PW·D-AREA·D-LA1G MISS 13, D-CAB N/A 1), D-G4 MISS → N/A(삭제 -- E-34). 집계: DEC 84 → 85·MISS 19 → 20, 설계 항목 203 → 217·MISS 147 → 159(−1 + 13)·N/A 3 → 5(+1 D-G4, +1 D-CAB), 합계 302 → 317·MISS 171 → 184·N/A 9 → 11.
-
-v1.15.1(2026-10-28, 계획 v6.38.2 맞춤 -- 사용자 결정 O-151~O-167, 검증 대기): DEC 행 1 추가(105 C′ 앞단 결정 묶음, MISS), 설계 항목 12행 추가(D-WB1·D-WB2·D-MP0·D-MV·D-CM·D-TBX·D-CPG MISS 7, D-WB3·D-GL·D-AR·D-RS1 DEV 4, D-CR PART 1), D-SI-cur DEV → MISS(규칙 정해짐 -- R3, 구현 전). 집계: DEC 83 → 84·MISS 18 → 19, 설계 항목 191 → 203·DEV 27 → 30·PART 16 → 17·MISS 139 → 147, 합계 289 → 302.
-
-v1.15.0(2026-10-26, 계획 v6.38 맞춤 -- 사용자 결정 O-125~O-150, 검증 대기): DEC 행 1 추가(104 θ 기저·손계산 순서, MISS), 설계 항목 19행 추가(D-TB1a~c, D-R6, D-R5p, D-R10, D-L0rpt, D-L0filt, D-L0B85, D-SF1a~d, D-TRK, D-SET, D-STL, D-CMP1, D-LA1rep -- MISS 18; D-SI-cur DEV 1), 행 58·70·71·D-GB0a·D-GB8a·D-GB8d·D-K1·D-AP1 문구(상태 불변). 집계: DEC 82 → 83·MISS 17 → 18, 설계 항목 172 → 191·DEV 26 → 27·MISS 121 → 139, 합계 269 → 289·DEV 33 → 34·MISS 143 → 162. 상태는 master `4604d993`(엔진은 옛 기준 시점 그대로)·integ/it12 `68b4e234` grep으로 잰 MISS다(새 이름 0건).
-
-v1.11.3(2026-10-16, XRUN-F1 card A 병합 직전, 판정 9930c28): D-XR1·D-XR2 DEV → OK. 집계: 설계 항목 OK 4 → 6, DEV 29 → 27(합계 OK 30 → 32, DEV 36 → 34).
-
-v1.11.2(2026-10-16, NFR-4 card 2 병합 직전, 판정 a18c6b2·사용자 결정 N-5·N-6): D-ND1 MISS → OK, D-ND2 DEV → OK, D-ND3 MISS → OK. NFR-4 행은 D-ND4(알려진 잔여 결함) 때문에 PART 유지. 집계: 설계 항목 OK 1 → 4, DEV 30 → 29, MISS 119 → 117(합계 OK 27 → 30, DEV 37 → 36, MISS 141 → 139).
-
-v1.11(2026-10-15, XRUN-F1 design, 사용자 결정 2026-10-15 "권고대로 진행해" X-1~X-5): 설계 항목 5행 추가(D-XR1·D-XR2·D-XR4·D-XR5 DEV -- 옛 구조가 as-built에 있음, D-XR3 MISS), D-GR4·5·6·9·12·15와 NFR-2 행 문구(상태 불변). D-PF1 대상 소멸(PART → N/A, → D-XR2)과 NFR-2·D-PF1 증거의 `from_sweep` 사실 정정. 집계(v1.10.1 증감을 함께 반영): 설계 항목 162 → 167, OK 0 → 1, DEV 26 → 29(v1.10.1 −1, 이번 +4), PART 16 → 15, MISS 118 → 119, N/A 2 → 3. 합계 OK 27, DEV 36, PART 51, MISS 141, N/A 9. 이어서 사용자 결정 X-8로 D-XR6(DEV) 추가: 설계 항목 168·DEV 30, 합계 265·DEV 37.
-
-v1.10.1(2026-10-15, card 1 xrun 구현 7e1b4be·판정 029f9b7 뒤, 사용자 결정 J-8 "권고대로 진행해"): D-GR3 DEV → OK(병합 직전 갱신, 증거는 판정 기록). 집계: 설계 항목 DEV 26 → 25, OK 0 → 1(합계 DEV 33 → 32, OK 26 → 27). 이 증감은 v1.11 표에 함께 반영했다(위 v1.11 줄).
-
-v1.10(2026-10-15, 사용자 결정 2026-10-15 "나로 해", 실행 사이 재사용 제거): D-GR3을 제거 항목으로 다시 씀(MISS → DEV, 옛 구조가 as-built에 있음), D-ND5 대상 소멸(MISS → N/A), D-GR1·D-GR11·D-GR12·D-ND1·D-ND3·D-PF2 문구. 집계: 설계 항목 DEV 25 → 26, MISS 120 → 118, N/A 1 → 2.
-
-v1.9.4(2026-10-15, 사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해"): 설계 항목 3행 추가(D-ND1 MISS, D-ND2 DEV, D-ND3 MISS -- 34932a9에서 잰, 40 §2.4.3·§2.4.13, 41 §5.13), NFR-4 증거 칸에 설계 절·행 추가(상태 불변). 집계: 설계 항목 157 → 160(DEV +1, MISS +2). 같은 v1.9.4에 사용자 결정 2026-10-15 "기본안대로 진행해"(Q-N1~Q-N10): D-ND3·D-ND4 문구를 결정으로, D-ND5(Q-N5 S3 실행 환경 지문, MISS) 추가. 집계: 설계 항목 161 → 162(MISS +1). 같은 v1.9.4에 독립 검증 지적 B-2 반영: D-ND4(알려진 잔여 결함, DEV) 추가, NFR-4 상태 OK → PART(근거 D-ND1·2·4). 집계: FR·NFR OK 3 → 2·PART 6 → 7, 설계 항목 160 → 161(DEV +1).
-
-40 v1.9.3 as-built 문서 정정 동기화(2026-10-14, 4차 판정 `wt/_audit_u17_1b_r4/audit_report.md` 988eef4·code_hash 판정 `wt/_audit_codehash/audit_report.md` ecda471의 경미 지적): D-GR3의 'N-1 반영 예정' 시점 문장을 구현 7eb4865로. 상태 칸(MISS, 증거 `rg "snapshot_codec"` 0)은 두 판정 모두 기준 시점 004b7d2 '상태 불변' 원칙의 옛 칸으로 일치 판정했으므로 바꾸지 않는다(재측정은 다음 기준 시점 갱신 때, 상태 불변, 행 수 불변, 이 문서 버전 번호 불변).
-
-40 v1.9.3 동기화(2026-10-14, 3차 판정 N-2, 사용자 결정 2026-10-14 "U-68은 권고대로 복구해"·"(가) 경로 인자 필수"·`decl=` "그대로 둠"): D-GR3 문구에 U-68 두 선언 파일 경로 인자·경로↔sha 일치 거부 추가(상태 불변, 행 수 불변, 이 문서 버전 번호 불변).
-
-v1.9.2(2026-10-14, 사용자 결정 2026-10-14 "3~9 모두 권고대로" 4·6·7·8): D-GR3 문구를 40 v1.9.2 §2.4.3에 맞춤, NFR-4 증거 칸에 결함 기록(상태 불변, 행 수 불변).
-
-v1.9.1(2026-10-13, 오케스트레이터 기본안 2026-10-13 U17 ①-b D1~D10, 사용자 결정 아님): D-GR2·D-GR3·D-GR13 문구를 40 v1.9.1 §2.4.3·§2.4.8에 맞춤(상태 불변, 행 수 불변).
-
-v1.9(2026-10-13, 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①): 설계 항목 1행 추가(D-AP1 A' 판정 기준, MISS -- master `3151392`에서 잰, 40 §10.5). 다른 행 불변.
-
-v1.8.2(2026-10-13, 사용자 결정 2026-10-13 "1은 권고" d/s 비트 동일 범위 (라)와 U17 ①-a·①-c·①-d 실측 정정): 설계 항목 1행 추가(D-SYg, MISS -- master `980d147`에서 잰), D-GR3(U-68 프로세스당 첫 실제 쓰기 1회·`GMID_S0_SNAPSHOT_DIR`)·D-GR4(분할 대상 GB5 `passive_values`, ② 이월)·D-GR11(허용 모듈 `core/snapshot_codec.py`) 문구 갱신(상태 불변).
-
-v1.8.1(2026-10-13, U17 ①-d·①-e 실측에 문구를 맞춘 정정, 사용자 결정 변경 아님): D-SYf (묶음 수, 변수 수) 정의 = `len(SearchDomain.ties)`·`len(SearchDomain.variables)`(파일럿 29/38, 전류 묶음 7)와 열 정렬 방향(비자명 궤도 원소를 뒤로 = 자유 열 우선), D-SYe 기록 코드 `diff_pair_orbit_split`, D-J8 folded M8 "해제" → "시작 셀 아님 유지". 상태·집계 불변.
-
-v1.8(2026-10-13, 사용자 결정 2026-10-12 "나'로 진행해"·"1, 가로 해"·"2번 승인."·"3번 권고대로"·"4번 권고대로"): 설계 항목 4행 추가(D-J10, D-SYe, D-SYf, D-LY5, 모두 MISS -- master `8e46548`에서 잰), D-J8·D-D1·D-SYb·D-GR3·D-GR12·D-GR13 문구 갱신(상태 불변).
-
-v1.7(2026-10-12, 사용자 결정 "다로 해"): DEC 행 55 = `budget_reference_device`의 역할을 S1 기둥이 흡수하고 `budget_ref` 엣지는 만들지 않는다(N/A 유지, 구현 단위 측정만). 직전 안("가로 해" 구조 유도, MISS)은 대체했다.
+판별 이력(v1.15.2 집계 정정 ~ v1.7) = design 이력 H42-02.
 
 **후속 항목**(코드 쪽, 이 문서 개정에서 고치지 않음): `E/graph/CONTRACT.md:226`의 "`same_as`·`budget_ref`(선언 전용)" 문구 중 `budget_ref`를 '만들지 않는다 -- 기둥이 흡수(DEC-55, 사용자 결정 2026-10-12 "다로 해")'로 고친다. 다음 graph 계약 개정 단위에서 처리한다.
 
-v1.6 최종검증(2026-10-12): 설계 항목 6행 추가(D-FV1~D-FV6, PART 1·MISS 5). 계획 N7 U-60~U-70은 모두 2026-10-12에 결정됐다(U-67 결정 뒤 D-FV7 추가, 설계 항목 MISS 1행). gap 재분석으로 U-71~U-74를 올렸고, U-72~U-74는 같은 날 결정됐다("K-2 권고대로, GQ1/GQ3/GQ4, ..."). U-71도 같은 날 결정됐다("U-71승인"). U-51도 결정됐다("U-51은 (나)로"). U-04도 결정됐다("U-04 권고대로"). 계획 N7에 남은 사용자 결정·확정 대기는 없다(D-G1~D-G3 추가).
-
-v1.6 P(2026-10-12, 사용자 승인(2026-10-12 P)): 설계 항목 9행 추가(D-P2·3·6·7·8·10·11·12·13, DEV 4·MISS 5), DEC-22 N/A → MISS(켜기 경로 설계). P-1·P-9·P-15의 행은 41 개정 몫이고 D-P1·D-P9·D-P15로 더했다.
-
-v1.6(2026-10-12, v1.6 graph 정본 개정 (사용자 결정 2026-10-12), 사용자 승인(2026-10-12 "design 승인")): 설계 항목 15행 추가(D-GR1~D-GR15, 40 §2.4·§11 U17. D-GR13~15는 design-validator 반영). 상태는 `u15-layer0-tests` bd19cc6에서 쟀다(DEV 8, PART 2, MISS 5). 다른 행의 기준 시점(master `004b7d2`)은 바꾸지 않았다.
-
-v1.5(2026-10-08, 사용자 결정 "j해석은 네의견에 모두 동의해."): 설계 항목 7행 추가(D-J1~D-J7, 모두 MISS, 구현 단위 U1b와 40 §11 'J 추가 범위'). D-J34 문구 갱신(해석 닫힘).
-
-v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, D-OF1~3, D-MR, D-SW, D-ICM, D-Q34, D-GB4f, D-SIg, D-OR5, D-J34, 모두 MISS), DEC-21을 N/A에서 MISS로(결정으로 닫혔고 spec 미반영), D-PG·D-GB8a·b·DEC-23·96 문구 갱신.
+판별 이력(v1.6 ~ v1.4) = design 이력 H42-03.
 
 센 방법:
 - D-SIa~f는 6행으로 센다.

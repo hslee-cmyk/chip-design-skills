@@ -533,3 +533,142 @@ date: 2026-10-29
 ## H41-20 -- design 41 §4.7-8 (9) 커널 A6 판정 tol 변경 항목(4.7-V로 대상 소멸)
 
 (9) **커널 A6 판정 tol을 매 측정 해에서 잼**(v1.15.2 대체 -- 4.7-V: 커널 A6 되풀이 삭제로 대상 소멸; v1.12.11 E-3 -- 원래 취지와 다름 아님: design 정의(v1.12.10 688·702) 회복): 바뀌는 것 = 되풀이 수렴 회차·마지막 창(θ y → V 사상), `measured`/`unsettled` 판정, `Window.tol_v` 값, 되풀이 중 tol None 갈래(A6 b 처리); 원인 = IT-2b 구현이 첫 해 tol 하나로 판정해 design 688·702와 달랐음(design↔구현 gap A5) -- as-built·base 대비 동작 변경; 판정 = red test 4.7-7 L12 (f)(해마다 tol이 다른 toy -- test 작성 주체 몫)와 검증자 9회로 변화표. 
+
+## H41-21 -- design 41 §4.7-1 2 뿌리와 y 키(옛 문언 -- 4.7-V 1행으로 대체)
+
+2. **뿌리와 y 키**: 뿌리 규칙은 그대로(F 없는 성분에 입력 포트가 있으면 그중 (구조 색, 이름) 최소, 같은 색 후보가 둘 이상이면 `TieBreak(w4_root)`). **y 키 = 뿌리 넷 이름**(입력 포트 뿌리도 다른 W4 뿌리와 같은 규칙). θ 성분 키는 `(y, <뿌리 넷>)`이고 결과 JSON 키 `y:input_common_mode`는 `y:<넷>`이 된다. 한 성분 안 뿌리가 아닌 입력 포트는 트리 경로(MOS VGS)로 쓰인다.
+
+## H41-22 -- design 41 §4.7-1 5 노드 풀이 블록 쪽(옛 문언 -- `_solve_input_window`·`_interior_solution`·'둘 이상이면 정지')
+
+5. **노드 풀이 블록 쪽**(같은 card): `members` = 자기 자신(사슬 없음), `input_roots()` = relation `free_window`이고 넷이 입력 포트인 W4 뿌리(`dc_columns` READS에 `("node", "port_direction")`을 더한다). **G_vgs 밖 고립 입력 포트**(MOS gate·source에도 저항에도 닿지 않아 쓰기 계획이 W4 y 키 = 넷으로 쓰는 넷, `writer_plan.py:236-238`)도 입력 포트인 W4 뿌리로 센다 -- 4의 '둘 이상이면 정지'에 들어간다(그 넷도 사용 환경이 DC를 정하는 입력이고, 세지 않으면 y가 둘인 회로가 정지 없이 지나간다; 코퍼스 발동은 IT-0 M-I1이 기록). `_solve_input_window`의 θ 키 = `(y, <입력 뿌리 넷>)`(뿌리는 4로 최대 하나 -- 같은 키를 `_interior_solution`에 넘긴다), `REL_TIE` 분기(writer 식·야코비안·path value) 삭제. `achievability`의 `tie:<넷>` 등식 삭제.
+
+## H41-23 -- design 41 §4.7-1 test interface 단언 (a)의 y 키·(d) 옛 `input_port_multiple_roots` 단언
+
+입력 포트 W4 뿌리의 y 키 = 그 넷 이름, 기대 종속 목록(같은 DC 엣지로 생긴 종속 0, 포트 경로가 둘 이상인 v1 고리의 ΔV 소거 `cycle_vgs` 포함)은 toy 연결에서 손으로 유도한다 (b) 종속 수 = 같은 DC 엣지 없는 G_vgs(F 한 점)의 순환 수(손계산) (c) 입력 DC 선언 toy의 쓰기 계획 = 손계산 오라클(base에서도 green -- 무동작 성질) (d) 두 입력 포트가 서로 다른 G_vgs 성분인 toy → `StructureUnresolvedError`, `detail["rule_branch"] == "input_port_multiple_roots"`(base는 정지하지 않아 red). 
+
+## H41-24 -- design 41 §4.7-3a 3 판정 점의 끊긴 참조
+
+4.7-3 1의 마지막 `override` 풀이 해 -- 그 해가 평가 스냅샷이 되어 봉인이 같은 점을 본다
+
+## H41-25 -- design 41 §4.7-7 L12 (a)·(e)·(f) 본문(커널 되풀이·`dc_window.tol_v` -- 4.7-V로 대상 소멸)
+
+(a) 커널 되풀이 `k_max` 소진 toy·tol 미정 toy(4.7-3 1 A6 b·c; **`k_max` 소진 toy에만 전제 단언: 그 점이 봉인을 통과함** -- 봉인되지 않으면 측정 구성 블록이 돌지 않아 아래 cfg 단언이 공허하므로 그 사례는 무효, 계획 재검증 N-5; tol 미정 toy는 봉인 통과가 불가능해 이 전제를 걸지 않고 커널 단언만 진다 -- 여섯째 커밋, gap N-1) -- 두 toy 모두 `node.dc_window` 뿌리 `input_status == "unsettled"`(사유 기록)이고 W4 y 범위로 그대로 쓰임(base는 수렴 표시 없이 마지막 창 값을 냄 -- red); **`k_max` 소진 toy에서 측정 구성 판정 창과 그 창을 읽는 세 metric·커널 ICMR 선언 제약은 미수렴 때문에 정의 불능이 되지 않음**(tol 미정 toy는 cfg 단언 **대상 없음** -- 그 점은 tol_V 미정 행이 undefined라서 봉인되지 않아(`sealed=None` -- fail과 다른 상태) 측정 구성 블록이 돌지 않는다, 죽은 갈래라 cfg test 없음; 커널 상태 `"unsettled"`·`tol_v is None`만 단언 -- 둘째 커밋, 계획 v6.34.1 (12)(a)와 같은 문언)(`node.dc_window_cfg` 항목 `input_status == "measured"`, 세 metric 값 있음 -- 이어받으면 red, v6.34 O-109 D2, **원래 취지와 다름**); **`k_max` 소진 toy의 주입 지점**(자연 toy는 창 끝의 y 의존이 2차라 수렴이 빨라 재현성 있게 만들기 어려움, R2 선례와 같은 수단): `gmid_engine.sizing.block_columns.k_max`(상한 1)만 허용(4.7-4 '모듈 수준 이름' 커널 쪽) -- 주입은 상한값만 바꾸고 검사 동작(소진 → `"unsettled"`)은 같으며, 전제 단언으로 `_solve_input_window`의 소진 분기 도달을 보인다; test 전제 단언 -- 요청 y ≠ 1/2, y = 1/2 풀이 성공(같은 이름을 읽는 `_interior_solution`에 들어가지 않음; 자기참조 bisection의 `SccLog.k_max` 칸도 같은 이름을 읽으므로(`_solve`가 `block_columns.py`에 남음 -- 4.7-4) 그 칸을 단언하지 않거나 자기참조 노드 없는 toy), 첫 회 창과 둘째 측정 창의 차 > tol(손계산); 기대 = 뿌리 `lo`·`hi` = 마지막으로 잰 창 ∩ 순서 창, V(뿌리) = lo + y(hi − lo); **tol 미정 toy**(A6 b) = 4.7-3 1 'A6 b 도달 조건'의 LUT 구성(VDSAT 열 출처 = 기준 LUT, 슬라이스 id_equivalent 셀 미정)과 비순환 쓰기 계획(`graph.dc_scc_order`로 전제 단언) -- 실패 예외의 `partial`로 읽지 않고 `dc_columns`까지 부른 스냅샷(test conftest `run_blocks(…, upto="columns")`)에서 본다; 선언 `icm_margin_v` 제약을 단 `k_max` 소진 toy(같은 주입)의 외층 실행에서 그 점이 미수렴 때문에 최종 `front`에서 빠지지 않음(옛 '미수렴 front 제외'는 대상 없음 -- 4.7-5) 
+
+## H41-26 -- design 41 §4.7-7 L12 (e)·(f) 본문(커널 y 끝점·판정 tol 매 해 -- 대상 소멸)
+
+(e) **커널 y 끝점 기대**(사용자 결정 O-103, 4.7-8 (8)): 영향받는 기존 test 둘 = `test_off_mid_window_maps_y_and_ends_saturated`(y = 0·1)·`test_mid_window_ends_have_nonnegative_saturation_slack`. 내부 y(0 < y < 1)는 기존 단언 그대로(봉인 7 pass, 독립 여유 ≥ −1e-12 -- `test_input_window.py`(`it2b-test` `88335ef6`), master `52b9dd81` `:278`·`:288`); 끝점 y는 '봉인되거나(그러면 기존 단언 그대로), 봉인 7 거부이면서 \|slack\| ≤ tol_V' -- slack = 봉인 7 기록의 `slack_v`, tol_V = 그 점 뿌리 항목의 `node.dc_window.tol_v`(graph 필드; None이면 그 사례는 무효이고 통과로 세지 않음); 상한 tol_V는 사용자 결정 O-103 값(유도는 B70); **거부 끝점은 엔진 `slack_v`만으로 닫지 않는다**(작성자≠검증자) -- 같은 점에서 기존 test의 독립 oracle 여유(`_oracle_slacks`)도 \|여유\| ≤ `node.dc_window.tol_v`로 함께 단언한다(둘 다 성립해야 통과). 기대 갱신은 test 작성 주체 몫. (f) **판정 tol 매 해**(v1.12.11 E-3, 4.7-8 (9)): 해마다 tol이 다른 toy에서 뿌리 `node.dc_window` `tol_v` = 마지막으로 잰 해의 tol_V 셀 최솟값(기대값은 공개 표 API `gmid_engine.lut.tol_v_table(memo, kind, w_key).at(L, VDS, "id_equivalent")`로 그 해의 소자마다 구해 최솟값 -- 피검 함수를 부르지 않음); 전제 단언 = 첫 해 tol ≠ 마지막 해 tol(같으면 그 사례는 무효; 첫 해 tol 하나로 판정·기록하면 red). 기대 작성은 test 작성 주체 몫.
+
+## H41-27 -- design 41 §4.7-8 (8) 커널 W4 입력 뿌리 y 끝(대상 소멸)
+
+(8) **커널 W4 입력 뿌리 y 끝**(사용자 결정 O-103 -- O-102 대체; **원래 취지와 다름(작음)**): IT-2b부터 커널 y 범위 끝은 끝 풀이로 다듬은 끝이 아니라 A6 선형 끝이다(4.7-3 1, O-33 (3)). 창 끝은 봉인 7 여유가 0인 경계에 놓이므로 θ y = 0·1 끝점은 봉인 7이 거부할 수 있다 -- 끝을 다듬던 옛 경로도 부동소수점 오차급(−7.9e-12 V, 1e-11급)으로 거부했고 '모든 y 봉인'은 옛 경로에서도 보장되지 않았다(common_gate y = 1, head·base 모두 6점 중 5점 거부, slack −7.95e-12 V). IT-2b가 더하는 것은 선형 외삽의 곡률 오차(two_stage_ota_sf y = 0, 6/6점, −6.55e-6 V)와 common_gate y = 0(6/6점, −4.8e-13 ~ −3.6e-12 V; base는 둘 다 봉인)이다. **같은 범위의 사례 추가**(백로그 E-4 -- IT-2b 감사 판정 기록 `wt/integ-it12/.ai/verification/20261021-it2b-kernel-window.json` V9(판정 커밋 `5221c8b2`)): two_stage_ota y = 1 끝점 head 6/12점 봉인 7 거부(\|slack_v\| ≤ 4.32e-6 V, 그 점 뿌리 `tol_v` 약 6.3e-3 V -- \|slack\| ≤ tol_V라 O-103 범위(선형 곡률)); 같은 감사의 common_gate는 11/12점(\|slack_v\| ≤ 7.95e-12 V), two_stage_ota_sf는 6/12점(y = 0, ≤ 6.55e-6 V -- 위와 같음), folded_cascode·nmcnr 12/12점 봉인. 9회로 탐색(eval_budget 40)의 y 끝점 방문은 head 0회·base 1회(base의 common_gate y = 1, 봉인됨 -- SLSQP가 y 상자 경계에 실제로 닿는다는 관측)이고, 봉인 7 실패 수는 9회로 모두 head = base(거부율 변화 0); head 0회는 탐색 궤적이 달라진 결과(common_gate 커널 호출 34 대 43)이지 구조적 보장이 아니며, 큰 예산·경계 최적점의 발생률은 미측정이다. **함께 바뀌는 값**(비트 동일 아님): 뿌리 `lo`·`hi`(다듬지 않은 끝 -- 예 common_gate src 4 vin hi head 1.6957364591335347, base 1.6957364591379647)와 그것을 읽는 θ y → V 사상, `fd_jacobian` y 스텝 값 -- card '무동작 판정 입력'에서 뺀다. 끝을 커널에서 다시 푸는 안은 끝 풀이를 어느 층에도 두지 않는 규칙(O-33 (3)·v6.34 O-109 C1)에 어긋나 두지 않고, A6 한쪽 수렴도 해결이 아니다(두 추정 모두 내부 해의 선형 끝이라 곡률 오차가 남는다). 봉인 7 경계 비교를 수치 분해능으로 하는 일은 백로그 B70(봉인 규칙 변경 -- 계획 몫). 측정 근거(head `85847b49`·base `53d50aea`) 두 파일 `wt/_drafts/evidence/2026-10-22/o103_yend/` -- `yends_9circuits_analyst.jsonl`(판정 agent, 9회로 탐색·끝점 재평가), `yends.jsonl`(오케스트레이터, 2회로 봉인점 6개 y 0·1 직접 재현); 끝점 test 기대는 4.7-7 L12 (e). 
+
+## H41-28 -- design 41 §4.7-8 (11) 커널 θ 프레임 창 미수렴 표시(대상 소멸)
+
+(11) **커널 θ 프레임 창 미수렴 표시**(O-61 P5)는 동작 변경이고 card 0(IT-0)이 library 9회로에서 발동률(되풀이 미수렴·tol 미정 평가 수 / 평가 수)을 IT-2 착수 전에 재고 기록한다(계획 완료 조건 (6); 옛 'front가 빈 회로 수'는 이어받기 삭제로 대상 없음) 
+
+## H41-29 -- design 41 §6.7-1a 옛 '개정' 항목(포트마다 W4 뿌리 후보·뿌리 둘 이상 정지)
+
+- 개정(정본 = §4.7-1 1~5; 이 항목의 '포트마다 W4 뿌리 후보'·'뿌리 둘 이상 정지'는 아래 v1.15.2 개정이 대체): 입력 DC 미선언이어도 '같은 DC' 엣지를 G_vgs 에 넣지 않는다. F 밖 입력 포트는 각자 성분의 W4 뿌리 후보로 남고(항목 5 의 뿌리 규칙 그대로), **y 키 = 뿌리 넷**(`INPUT_GROUP_KEY` 없음). 한 성분 안 뿌리가 아닌 입력 포트는 트리 경로(MOS VGS)로 쓰인다. 입력 포트인 W4 뿌리가 둘 이상이면 `unsupported_rule_branch`(rule_branch `input_port_multiple_roots`)로 탐색 전 정지한다(IT-Q1 (나), DEC-76).
+
+## H41-30 -- design 41 §9 §6.7-1a 쓰기 계획 행(옛 단언 + v1.15.2 대체 덧댐)
+
+| §6.7-1a 쓰기 계획(card IT-1, §4.7-1) | (a) 입력 DC 미선언 차동 입력 toy, 입력 DC 선언 toy, 두 입력 포트가 서로 다른 G_vgs 성분인 toy -- 기대 writer·종속 분류는 toy 연결에서 손으로 유도(손계산 오라클) | `tests/sizing/test_writer_plan.py` 안 새 test 함수(v1.12: 옛 경로 `test_writer_plan_no_input_tie.py`는 구조 규칙 H 위반이라 바꿈 -- 계획 F-IT4·X-IT3, 함수 이름은 test 주체가 `git grep`으로 겹침 확인) | **red 먼저**(검증자가 격리 복제본 base에서 실패 기록): relation `input_tie` 0, 같은 DC 엣지로 생긴 종속 0 + 종속 수 = 같은 DC 엣지 없는 G_vgs 순환 수(포트 경로가 둘 이상인 v1 고리의 ΔV 소거 `cycle_vgs`는 기대값에 포함), 입력 포트 W4 뿌리 y 키 = 뿌리 넷, 선언 toy 쓰기 계획 = 오라클(base에서도 green), 다중 입력 뿌리 toy = `unsupported_rule_branch`·`input_port_multiple_roots`(base는 정지하지 않음 -- red) -- **v1.15.2 대체**: 두 포트가 다른 성분인 차동 toy = 정지 없이 입력 점 한 점, 정의 불능 셋 = `input_cm_undefined`(§9 v1.15.2 IT-1 행·4.7-V) |
+
+## H41-31 -- design 41 §4.7-0 as-built 사실 표(A1~A10, master 9401e98f)
+
+**4.7-0 as-built 사실**(master `9401e98f`, 2026-10-20 이 design 작성 때 코드를 다시 읽음. `E` = `skills/analog-gmid-design/gmid_engine`):
+
+| # | 사실 | 근거 |
+|---|---|---|
+| A1 | 쓰기 계획: 입력 DC 미선언이면 F 밖 입력 포트를 (구조 색, 이름) 이웃 쌍마다 '같은 DC' 엣지로 잇고(순위 최상위 `_TIE`·`_KIND_TIE`), 트리 엣지면 `input_tie`(W2)로 쓴다. 포트가 있는 성분의 뿌리 y 키 = `INPUT_GROUP_KEY`(`"input_common_mode"`) | `E/sizing/writer_plan.py:76-77, :104-105, :157-159, :213-214, :228-234` |
+| A2 | `input_roots()` = relation `free_window`이고 y 키가 `INPUT_GROUP_KEY`인 W4 뿌리. `members`는 `input_tie` 사슬을 따라 뿌리에 묶인다. `dc_columns` READS에 `node.port_direction`이 없다 | `E/sizing/block_columns.py:179-184, :220-223, :82-86` |
+| A3 | `saturation_rows` = 전도 MOS마다 (d, s, 부호, VDS − VDsat − tol_VDsat), 선형 선언 소자 제외, VDSAT 열·tol 미정이면 None | `E/sizing/block_columns.py` |
+| A4 | `input_windows` = 뿌리마다 `saturation_window` 창 ∩ 순서 창(`kvl_window`, 레일 범위 포함) | `E/sizing/block_columns.py` |
+| A5 | `saturation_window`는 `_sensitivities`(s_n = dV_n/dx 선형 연립, VDS·VSB 결합 포함)로 창을 잰 뒤 감도를 버리고 (lo, hi)만 낸다. 연립 특이·정의역 밖이면 None | `E/sizing/input_window.py:26-45, :48-66` |
+| A6 | `_solve_input_window`: y = 1/2 풀이 → 창 측정 → 창을 y 범위(`override`)로 두고 다시 풀며 경계가 tol 안에서 같아질 때까지(상한 `k_max`) → `_refine_ends`(창 끝 x 고정 Newton) → 마지막 풀이. 갈래: (a) y = 1/2가 풀리지 않거나 창을 못 재면 `_interior_solution`이 이분 수준 y 열(`_dyadic_ys`, 시도 상한 `k_max`)에서 풀리고 창을 잴 수 있는 점을 찾고(θ 키는 호출자가 준 `key` -- as-built `(y, INPUT_GROUP_KEY)`), 못 찾으면 요청 y·순서 창으로 푼다(종래 사상) (b) `tolerance`가 미정(`SealViolationError`)이면 창을 한 번만 적용하고 되풀이 수렴 판정 없이 푼다 (c) 되풀이가 `k_max` 안에 tol 안으로 같아지지 않으면 마지막으로 잰 창을 그대로 쓴다(수렴 표시 없음) | `E/sizing/block_columns.py:691-735`(a `:713-717`·`:640-660`, b `:719-723`, c `:724-733`) |
+| A7 | `_refine_ends`의 끝 값이 풀린 x인 경우는 (i) `inside and close` (ii) 풀이 직후 `again is None` 둘뿐이고, (iii) 첫 반복 풀이 실패 (iv) 둘째 반복 이후 풀이 실패 (v) `k_max` 소진에서는 끝 = 풀지 않은 x다. 끝 풀이 해(`values`)는 버린다. 끝이 무한대면(제약 없음) 손대지 않고 멈춘다(`:672` -- 순서 창이 레일 범위로 시작하므로(`kvl_window` `:201`) 입력 뿌리 창 끝은 실제로는 늘 유한) | `E/sizing/block_columns.py` |
+| A8 | `dc_columns`는 relation `free_window`인 모든 넷에 `node.dc_window` = `Window(lo, hi, constraints)`(순서 창 ∩ `override`)를 쓴다 -- 입력 포트가 아닌 넷·뿌리 아닌 입력 포트·선언 입력 포트는 해당 없음 | `E/sizing/block_columns.py`, `E/sizing/s2_values.py`, `E/sizing/CONTRACT.md`(master `2e707d5d`에서 다시 잼, 옛 `:196`) |
+| A9 | metric 쪽 둘째 창: `ls_swing`이 입력 포트마다 경로 합 [lo, hi]의 교집합을 재고 `v_icm = volts[inputs[0]]`(첫 포트)로 margin을 낸다. 호출 `metrics_aux._swing` | `E/metrics/ls_swing.py`, `E/metrics/metrics_aux.py:214, :236, :256-264` |
+| A10 | **계획 소비자 표 밖 소비자**: `fd_jacobian._steps`가 `node.dc_window`를 그 넷 writer의 y 키로 색인해 y FD 스텝(창 폭)을 정한다 -- 창이 W4 뿌리에만 있다는 전제 | `E/search/fd_jacobian.py:52-55, :65-68` |
+
+
+## H41-32 -- design 41 §6.4-2 한계 기록(제안서 실측 한 슬라이스)
+
+   - 한계 기록: 제안서 실측은 W 5 µm·|VDS| 0.9 V·VS 0 한 슬라이스였다. 생성기는 DC LUT 축(VDS·VS·W 슬라이스) 전체에서 잰다.
+
+## H41-33 -- design 41 §4.7-9 후속 정정 목록 복원 자리(H41-15 원문은 그대로 -- 미결 항목만 본문으로)
+
+- 다른 계획·문서의 후속 정정 목록(helper 이동에 따른 경로·줄 번호 변경 -- 각 문서가 자기 개정에서 고침) = design 이력 H41-15.
+
+## H40-30 -- design 40 §11 ② search 상태·층 0 행의 선행 칸(완료 card 상태 기록)
+
+**XRUN-F1 card B**(위 행), ①(①-b 완료: 병합 eadb729, 4차 판정 988eef4 -- 차단 0), U15 design(41 §5 v1.6) 승인, **실행 사이 재사용 제거 card**(사용자 결정 2026-10-15 "나로 해": §2.4.3 삭제·변경 목록 전부, 옛 코드·test는 같은 변경에서 지운다. NFR-4 card보다 먼저 또는 같은 변경. LUT 파생표 디스크 캐시는 건드리지 않는다(Q9 유지). `code_hash`는 바꾸지 않는다(Q10 유지). S3 실행 사이 재사용은 지운다(Q11 제거). front 조회는 조회 전용 읽기 경로로 남긴다(U-90). 모두 사용자 결정 2026-10-15 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따라 유지. 나머지는 기본안대로"), **NFR-4 결정성 card**(사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해" -- v1.9.2 결정 8의 '엔진의 원인 연산 수정'을 이 결정으로 대체한다. 결함 자체는 v1.9.2 기록 그대로다: 스레드 수에 따라 출발 구간 필드 지문이 비트 단위로 달라진다. 범위: 1안 BLAS 스레드 고정·실행 환경 지문(§2.4.3, §2.4.13 (1)), 3안 판정 경계 배치 규칙(41 §5.13), ③ 검증 기준·필드 분류·비교기(§2.4.13 (2)~(5)). 2안(순수 Python SQP)은 하지 않는다. 순서: design → test·code → 독립 판정이다. ②의 기준선 측정 전에 끝낸다. Q-N1~Q-N10은 모두 결정됐다(사용자 결정 2026-10-15 "기본안대로 진행해", §2.4.13 (8)). 완료 조건은 §2.4.13 (5) '이 card의 완료 조건'이다. pushpull 다른 환경 결함은 후속 card NFR4-F1(완료를 막지 않음). test 환경의 스레드 1 고정은 이 card의 같은 변경에서 거둔다), **결정 10 code_hash card**(상태: 완료(af10c9b, 판정 ecda471 -- gap 15/15, 차단 0). 방식 v1.9.3(옛 §2.4.3 '블록 코드 해시' 행 -- v1.10에 history로 옮김). 순서: design 정정 → test·code → 독립 판정. v1.10: 옛 완료 조건 '그 행 (9)'와 '판정 2의 다른 checkout 부분 (9) (b)'는 판정 2·S0 재사용 폐지로 대상 소멸이다. checkout 무관 성질은 유지한다(Q10, U-88, 사용자 결정 2026-10-15 "U-87은 LUT는 관리복잡도가 없다는 네 판단근거에 따라 유지. 나머지는 기본안대로"). code 범위에 `E/core/engine_code_fp.py:8` 주석과 `E/core/CONTRACT.md:237,245` 갱신을 포함한다)
+
+## H40-31 -- design 40 머리 Planning Doc 판·as-built 기준(옛 메타)
+
+> **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v6.11
+> **as-built 기준**: master `004b7d2`(ng-perf-sizing 병합분 포함). 아직 병합되지 않은 브랜치도 함께 본다: `ng-cmfb-pm`(6a6e4c7), `ng-oracle-early`(d56ba66), `ng-tolv-cache`(674a6a1), `ng-layer0-canon`(0c5dc20), `ng-area-budget`(538eeab), `worktree-agent-a90dfb25fa6fe9f04`(7090b9f, LUT r2), `ng-bridge`(d529ea5).
+
+
+## H40-32 -- design 40 §2.4.13 (1) 대상 행의 BLAS 적재 실측 괄호
+
+(실측 2026-10-15: numpy 2.4.6 `libscipy_openblas64_`, scipy 1.18.0 `libscipy_openblas`. 실행 시 `get_config`는 각각 'OpenBLAS 0.3.31.188.0 … Haswell'·'OpenBLAS 0.3.31.dev … Haswell')
+
+## H42-01 -- design 42 머리 판 bullet v1.15.1·v1.15.0
+
+> - **design v1.15.1 -- 계획 v6.38.2 맞춤, 검증 대기**(2026-10-28, 40·41과 같은 판 -- 41 Status; 이 문서: §2 DEC-105 행, D-TB1a·D-TB1c·D-R6·D-R10·D-SI-cur·D-L0B85·D-SF1c·D-SF1d·D-TRK·D-STL·D-CMP1·D-P2 개정, 새 설계 항목 12행, §4 집계)
+> - **design v1.15.0 -- 계획 v6.38 맞춤, 검증 대기**(2026-10-26, 40·41과 같은 판 -- 41 Status; 이 문서: §2 DEC-104 행, 행 58·70·71·D-GB0a·D-GB8a·D-GB8d·D-K1·D-AP1 문구, §3 새 19행 D-TB1a~c·D-R6·D-R5p·D-R10·D-L0rpt·D-L0filt·D-L0B85·D-SI-cur·D-SF1a~d·D-TRK·D-SET·D-STL·D-CMP1·D-LA1rep, §4 집계) 이전 판: **design v1.14.2 -- 계획 v6.37 슬루 맞춤 -- 승인됨(사용자 O-136, 2026-10-26; 재검증 95/100·재 gap 97.8 %, 커밋 b9393e2e·95b41187·f4359e17·ca58c8a1; O-127·O-128 원칙 반영 design 정정은 계획 v6.38 승인 뒤 다음 판)**(2026-10-24, 40·41과 같은 변경 -- 41 Status; 이 문서는 행 58·70·D-GB8a·D-GB8c·D-AP1; 둘째 커밋 = 검증 87/100·gap 93.2 % 반영 -- 행 58 삭제 확인 패턴을 계획 DE-1 완료 조건 (1)의 다섯 개로, D-GB8a 영역 표기 DC 동작 범위, 새 행 D-GB8d(`load_dc_amp`), §4 집계 설계 항목 169·MISS 118; 넷째 커밋 = 재검증 95/100·재 gap 97.8 % 반영 -- D-GB8d 읽는 자리·fail-open 표지, §4 집계를 §3 재계수로(설계 항목 172 = 물리 행 167 + D-SIa~f 추가 5 -- '센 방법'). **v1.14.1 상태(대체됨)**: **v1.14.1 승인됨(사용자 O-124, 2026-10-24, 계획 v6.37)** -- 후속 정정 대상 design v1.14.2(O-124): 계획 v6.37과 다른 슬루 문장 13곳 -- 40 §3.8-3 1248·1249·1251행, 40 §3.8-6 1256행, 40 §3.8-8 metric 표·registry, 40 1722행 R9·2075행 U7, 40 1740행 R27, 40 §10.5, 41 795행, 41 831행, 41 892·924행, 42 101·110·264행 -- 본문은 v1.14.2에서 고친다(검증·gap 뒤 DE-1 전에 따로 승인).
+
+## H42-02 -- design 42 §4 판별 이력 v1.15.2 집계 정정 ~ v1.7
+
+v1.15.2 집계 정정(2026-10-29, gap 다름 3 -- 표 행 실측: '상태' 열 첫 낱말 계수): 설계 항목 표기는 v1.15.0 이전부터 실제보다 5행 많았다(물려받은 오차 -- `da96dadc` 186 실제/191 표기, `17d11bdc` 198/203); v1.15.2 증분(+14행, MISS +13 − 1, N/A +2)은 맞다. 정정 뒤 설계 항목 212(MISS 154)·합계 312(MISS 179). ID 중복 해소 = D-CM(v1.15.1 CM 평형) → D-CMB, D-MR(v1.15.2 선언 미러 비) → D-MRD.
+
+v1.15.2(2026-10-29, 계획 v6.38.3 맞춤 -- 사용자 결정 O-168~O-172, 검증 대기): DEC 행 1 추가(106 입력 공통모드 변수, MISS), 설계 항목 14행 추가(D-IN1·D-E13·D-START·D-GS·D-JDG·D-SPX·D-GATE·D-CML·D-LOWN·D-MR·D-PW·D-AREA·D-LA1G MISS 13, D-CAB N/A 1), D-G4 MISS → N/A(삭제 -- E-34). 집계: DEC 84 → 85·MISS 19 → 20, 설계 항목 203 → 217·MISS 147 → 159(−1 + 13)·N/A 3 → 5(+1 D-G4, +1 D-CAB), 합계 302 → 317·MISS 171 → 184·N/A 9 → 11.
+
+v1.15.1(2026-10-28, 계획 v6.38.2 맞춤 -- 사용자 결정 O-151~O-167, 검증 대기): DEC 행 1 추가(105 C′ 앞단 결정 묶음, MISS), 설계 항목 12행 추가(D-WB1·D-WB2·D-MP0·D-MV·D-CM·D-TBX·D-CPG MISS 7, D-WB3·D-GL·D-AR·D-RS1 DEV 4, D-CR PART 1), D-SI-cur DEV → MISS(규칙 정해짐 -- R3, 구현 전). 집계: DEC 83 → 84·MISS 18 → 19, 설계 항목 191 → 203·DEV 27 → 30·PART 16 → 17·MISS 139 → 147, 합계 289 → 302.
+
+v1.15.0(2026-10-26, 계획 v6.38 맞춤 -- 사용자 결정 O-125~O-150, 검증 대기): DEC 행 1 추가(104 θ 기저·손계산 순서, MISS), 설계 항목 19행 추가(D-TB1a~c, D-R6, D-R5p, D-R10, D-L0rpt, D-L0filt, D-L0B85, D-SF1a~d, D-TRK, D-SET, D-STL, D-CMP1, D-LA1rep -- MISS 18; D-SI-cur DEV 1), 행 58·70·71·D-GB0a·D-GB8a·D-GB8d·D-K1·D-AP1 문구(상태 불변). 집계: DEC 82 → 83·MISS 17 → 18, 설계 항목 172 → 191·DEV 26 → 27·MISS 121 → 139, 합계 269 → 289·DEV 33 → 34·MISS 143 → 162. 상태는 master `4604d993`(엔진은 옛 기준 시점 그대로)·integ/it12 `68b4e234` grep으로 잰 MISS다(새 이름 0건).
+
+v1.11.3(2026-10-16, XRUN-F1 card A 병합 직전, 판정 9930c28): D-XR1·D-XR2 DEV → OK. 집계: 설계 항목 OK 4 → 6, DEV 29 → 27(합계 OK 30 → 32, DEV 36 → 34).
+
+v1.11.2(2026-10-16, NFR-4 card 2 병합 직전, 판정 a18c6b2·사용자 결정 N-5·N-6): D-ND1 MISS → OK, D-ND2 DEV → OK, D-ND3 MISS → OK. NFR-4 행은 D-ND4(알려진 잔여 결함) 때문에 PART 유지. 집계: 설계 항목 OK 1 → 4, DEV 30 → 29, MISS 119 → 117(합계 OK 27 → 30, DEV 37 → 36, MISS 141 → 139).
+
+v1.11(2026-10-15, XRUN-F1 design, 사용자 결정 2026-10-15 "권고대로 진행해" X-1~X-5): 설계 항목 5행 추가(D-XR1·D-XR2·D-XR4·D-XR5 DEV -- 옛 구조가 as-built에 있음, D-XR3 MISS), D-GR4·5·6·9·12·15와 NFR-2 행 문구(상태 불변). D-PF1 대상 소멸(PART → N/A, → D-XR2)과 NFR-2·D-PF1 증거의 `from_sweep` 사실 정정. 집계(v1.10.1 증감을 함께 반영): 설계 항목 162 → 167, OK 0 → 1, DEV 26 → 29(v1.10.1 −1, 이번 +4), PART 16 → 15, MISS 118 → 119, N/A 2 → 3. 합계 OK 27, DEV 36, PART 51, MISS 141, N/A 9. 이어서 사용자 결정 X-8로 D-XR6(DEV) 추가: 설계 항목 168·DEV 30, 합계 265·DEV 37.
+
+v1.10.1(2026-10-15, card 1 xrun 구현 7e1b4be·판정 029f9b7 뒤, 사용자 결정 J-8 "권고대로 진행해"): D-GR3 DEV → OK(병합 직전 갱신, 증거는 판정 기록). 집계: 설계 항목 DEV 26 → 25, OK 0 → 1(합계 DEV 33 → 32, OK 26 → 27). 이 증감은 v1.11 표에 함께 반영했다(위 v1.11 줄).
+
+v1.10(2026-10-15, 사용자 결정 2026-10-15 "나로 해", 실행 사이 재사용 제거): D-GR3을 제거 항목으로 다시 씀(MISS → DEV, 옛 구조가 as-built에 있음), D-ND5 대상 소멸(MISS → N/A), D-GR1·D-GR11·D-GR12·D-ND1·D-ND3·D-PF2 문구. 집계: 설계 항목 DEV 25 → 26, MISS 120 → 118, N/A 1 → 2.
+
+v1.9.4(2026-10-15, 사용자 결정 2026-10-15 "1안·3안 진행하고 ③ 기준 변경도 승인해"): 설계 항목 3행 추가(D-ND1 MISS, D-ND2 DEV, D-ND3 MISS -- 34932a9에서 잰, 40 §2.4.3·§2.4.13, 41 §5.13), NFR-4 증거 칸에 설계 절·행 추가(상태 불변). 집계: 설계 항목 157 → 160(DEV +1, MISS +2). 같은 v1.9.4에 사용자 결정 2026-10-15 "기본안대로 진행해"(Q-N1~Q-N10): D-ND3·D-ND4 문구를 결정으로, D-ND5(Q-N5 S3 실행 환경 지문, MISS) 추가. 집계: 설계 항목 161 → 162(MISS +1). 같은 v1.9.4에 독립 검증 지적 B-2 반영: D-ND4(알려진 잔여 결함, DEV) 추가, NFR-4 상태 OK → PART(근거 D-ND1·2·4). 집계: FR·NFR OK 3 → 2·PART 6 → 7, 설계 항목 160 → 161(DEV +1).
+
+40 v1.9.3 as-built 문서 정정 동기화(2026-10-14, 4차 판정 `wt/_audit_u17_1b_r4/audit_report.md` 988eef4·code_hash 판정 `wt/_audit_codehash/audit_report.md` ecda471의 경미 지적): D-GR3의 'N-1 반영 예정' 시점 문장을 구현 7eb4865로. 상태 칸(MISS, 증거 `rg "snapshot_codec"` 0)은 두 판정 모두 기준 시점 004b7d2 '상태 불변' 원칙의 옛 칸으로 일치 판정했으므로 바꾸지 않는다(재측정은 다음 기준 시점 갱신 때, 상태 불변, 행 수 불변, 이 문서 버전 번호 불변).
+
+40 v1.9.3 동기화(2026-10-14, 3차 판정 N-2, 사용자 결정 2026-10-14 "U-68은 권고대로 복구해"·"(가) 경로 인자 필수"·`decl=` "그대로 둠"): D-GR3 문구에 U-68 두 선언 파일 경로 인자·경로↔sha 일치 거부 추가(상태 불변, 행 수 불변, 이 문서 버전 번호 불변).
+
+v1.9.2(2026-10-14, 사용자 결정 2026-10-14 "3~9 모두 권고대로" 4·6·7·8): D-GR3 문구를 40 v1.9.2 §2.4.3에 맞춤, NFR-4 증거 칸에 결함 기록(상태 불변, 행 수 불변).
+
+v1.9.1(2026-10-13, 오케스트레이터 기본안 2026-10-13 U17 ①-b D1~D10, 사용자 결정 아님): D-GR2·D-GR3·D-GR13 문구를 40 v1.9.1 §2.4.3·§2.4.8에 맞춤(상태 불변, 행 수 불변).
+
+v1.9(2026-10-13, 사용자 결정 2026-10-13 "1은 권고, 2도 권고, 3도 권고대로" (3)과 "①, ②, ③ 권고대로 진행해" ①): 설계 항목 1행 추가(D-AP1 A' 판정 기준, MISS -- master `3151392`에서 잰, 40 §10.5). 다른 행 불변.
+
+v1.8.2(2026-10-13, 사용자 결정 2026-10-13 "1은 권고" d/s 비트 동일 범위 (라)와 U17 ①-a·①-c·①-d 실측 정정): 설계 항목 1행 추가(D-SYg, MISS -- master `980d147`에서 잰), D-GR3(U-68 프로세스당 첫 실제 쓰기 1회·`GMID_S0_SNAPSHOT_DIR`)·D-GR4(분할 대상 GB5 `passive_values`, ② 이월)·D-GR11(허용 모듈 `core/snapshot_codec.py`) 문구 갱신(상태 불변).
+
+v1.8.1(2026-10-13, U17 ①-d·①-e 실측에 문구를 맞춘 정정, 사용자 결정 변경 아님): D-SYf (묶음 수, 변수 수) 정의 = `len(SearchDomain.ties)`·`len(SearchDomain.variables)`(파일럿 29/38, 전류 묶음 7)와 열 정렬 방향(비자명 궤도 원소를 뒤로 = 자유 열 우선), D-SYe 기록 코드 `diff_pair_orbit_split`, D-J8 folded M8 "해제" → "시작 셀 아님 유지". 상태·집계 불변.
+
+v1.8(2026-10-13, 사용자 결정 2026-10-12 "나'로 진행해"·"1, 가로 해"·"2번 승인."·"3번 권고대로"·"4번 권고대로"): 설계 항목 4행 추가(D-J10, D-SYe, D-SYf, D-LY5, 모두 MISS -- master `8e46548`에서 잰), D-J8·D-D1·D-SYb·D-GR3·D-GR12·D-GR13 문구 갱신(상태 불변).
+
+v1.7(2026-10-12, 사용자 결정 "다로 해"): DEC 행 55 = `budget_reference_device`의 역할을 S1 기둥이 흡수하고 `budget_ref` 엣지는 만들지 않는다(N/A 유지, 구현 단위 측정만). 직전 안("가로 해" 구조 유도, MISS)은 대체했다.
+
+
+## H42-03 -- design 42 §4 판별 이력 v1.6 최종검증 ~ v1.4
+
+v1.6 최종검증(2026-10-12): 설계 항목 6행 추가(D-FV1~D-FV6, PART 1·MISS 5). 계획 N7 U-60~U-70은 모두 2026-10-12에 결정됐다(U-67 결정 뒤 D-FV7 추가, 설계 항목 MISS 1행). gap 재분석으로 U-71~U-74를 올렸고, U-72~U-74는 같은 날 결정됐다("K-2 권고대로, GQ1/GQ3/GQ4, ..."). U-71도 같은 날 결정됐다("U-71승인"). U-51도 결정됐다("U-51은 (나)로"). U-04도 결정됐다("U-04 권고대로"). 계획 N7에 남은 사용자 결정·확정 대기는 없다(D-G1~D-G3 추가).
+
+v1.6 P(2026-10-12, 사용자 승인(2026-10-12 P)): 설계 항목 9행 추가(D-P2·3·6·7·8·10·11·12·13, DEV 4·MISS 5), DEC-22 N/A → MISS(켜기 경로 설계). P-1·P-9·P-15의 행은 41 개정 몫이고 D-P1·D-P9·D-P15로 더했다.
+
+v1.6(2026-10-12, v1.6 graph 정본 개정 (사용자 결정 2026-10-12), 사용자 승인(2026-10-12 "design 승인")): 설계 항목 15행 추가(D-GR1~D-GR15, 40 §2.4·§11 U17. D-GR13~15는 design-validator 반영). 상태는 `u15-layer0-tests` bd19cc6에서 쟀다(DEV 8, PART 2, MISS 5). 다른 행의 기준 시점(master `004b7d2`)은 바꾸지 않았다.
+
+v1.5(2026-10-08, 사용자 결정 "j해석은 네의견에 모두 동의해."): 설계 항목 7행 추가(D-J1~D-J7, 모두 MISS, 구현 단위 U1b와 40 §11 'J 추가 범위'). D-J34 문구 갱신(해석 닫힘).
+
+v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, D-OF1~3, D-MR, D-SW, D-ICM, D-Q34, D-GB4f, D-SIg, D-OR5, D-J34, 모두 MISS), DEC-21을 N/A에서 MISS로(결정으로 닫혔고 spec 미반영), D-PG·D-GB8a·b·DEC-23·96 문구 갱신.
+
