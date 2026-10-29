@@ -237,21 +237,3 @@ def test_real_cap_columns_loaded(real_lut, raw_cap):
         assert dict(ct.l_source)["sha256"] == __import__("json").loads(str(raw_cap["meta_json"]))["L_source"]["sha256"]
 
 
-@pytest.mark.lut_realdata
-def test_real_nocol_v2_slices_cap_table_only_at_1000(nocol_lut, raw_cap):
-    """결정 B 이전 v2 슬라이스(GMBS·VDSAT 없음): w_key 1000 만 "cap_table"(기준 LUT 폭 키 1000), 다른 폭은 lut_column_unavailable."""
-    assert all(dict(sl.columns) == {} for sl in nocol_lut.slice_map.values())
-    m = new_memo(nocol_lut)
-    for kind, suf in (("nmos", "_n"), ("pmos", "_p")):
-        assert tol_vdsat_table(m, kind, 1000).origin == "cap_table"
-        Lg = raw_cap["L"]
-        iL, iG, k, s = 11, 30, 30, 3
-        got = vdsat(m, kind, 1000, float(Lg[iL]), float(raw_cap["VGS"][iG]), float(raw_cap["VDS"][k]),
-                    float(raw_cap["VS"][s]))
-        assert got == float(raw_cap["VDSAT" + suf][iL, iG, k, s])
-        other = min(wk for (kd, wk) in nocol_lut.slice_map if kd == kind)
-        det = _unavailable(vdsat, m, kind, other, float(Lg[iL]), 0.9, 0.9, 0.0)
-        assert det["cap_w_key"] == 1000 and tuple(det["slice_columns"]) == ()
-        assert "VDSAT" in tuple(det["cap_columns"])
-
-

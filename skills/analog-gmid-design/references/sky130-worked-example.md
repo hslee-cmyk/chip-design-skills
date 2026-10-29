@@ -2,8 +2,8 @@
 
 > `references/gm-id-methodology.md`·`lut-generation-checklist.md`는 방법론과 절차를 다룬다.
 > 이 문서는 그 절차를 **실제로 오픈소스 PDK + SPICE 시뮬레이터로 끝까지 실행해본 결과**를 기록한다 —
-> `assets/sky130_lut_sweep.py`(재현 스크립트) + `assets/sky130_nfet_pfet_lut_sample.npz`(실행 결과
-> 샘플)가 짝이다.
+> `assets/sky130_lut_sweep.py`(재현 스크립트)가 짝이다. 실행 결과 LUT 는 `assets/lut_v2_location.json` 이
+> 고정한 v2 하나뿐이다(O-180, 옛 sample LUT 삭제).
 
 ## 1. 환경
 

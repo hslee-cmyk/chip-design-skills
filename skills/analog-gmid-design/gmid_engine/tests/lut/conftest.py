@@ -3,9 +3,8 @@
 - toy LUT: CONTRACT 7절 그대로(폭 1e-6·2e-6 슬라이스, 기준 LUT, LutSpec). 로드 거부 test 용으로 배열·manifest 를 바꿔 쓸 수 있다.
 - 실데이터: [r6] 기본 = LUT v2(CONTRACT 1.8 -- 저장소 설정 `assets/lut_v2_location.json` 을 `resolve_lut_location(설정,
   os.environ)` 으로 풀어 manifest·기준 LUT·검증 중점 파일·pdk_root 를 얻고 `load_lut_set` 에 `pdk_root`·`verify_midpoints` 를 넘긴다).
-  `GMID_LUT_MANIFEST`·`GMID_LUT_CAP_NPZ` 환경 덮어쓰기는 유지. PDK tech LEF(`GMID_PDK_TLEF`).
-  GMBS·VDSAT 열이 없던 결정 B 이전 v2 슬라이스(`nocol_*` 픽스처, `GMID_LUT_V2_NOCOL_MANIFEST`)는 계약이 여전히 다루는 경로(열 없는 세트 로드·`lut_column_unavailable`·
-  열 출처 "cap_table"·VS 할선 gmb)의 test 에만 쓴다.
+  LUT 파일은 위치 선언 하나로만 읽는다(O-180: LUT 를 가리키는 환경 덮어쓰기 없음. 데이터 루트 위치는 선언의 env 뿐이고
+  sha256 이 같은 파일만 받는다). PDK tech LEF(`GMID_PDK_TLEF`)는 LUT 가 아니라 유지.
   경로가 없으면 skip 이 아니라 명시적 FAIL(데이터가 없어 검증을 못 했다는 사실을 숨기지 않는다). 마커 `lut_realdata`.
 - 독립 경로: npz 를 numpy 로 직접 열어 격자점 값을 꺼내고, 보간·역보간·옛 `_solve_vgs` 규칙은 이 파일에서 따로 구현한다.
 """
@@ -39,8 +38,6 @@ REALDATA_MARKER = "lut_realdata"
 
 # [r6] CONTRACT 1.8 저장소 설정(LUT v2 위치, sha256 고정)
 LOCATION_CONFIG = SKILL_DIR / "assets" / "lut_v2_location.json"
-# 결정 B 이전 v2 슬라이스(18 L·VS 10, GMBS·VDSAT 열 없음 -- CONTRACT 4.3 '옛 슬라이스와 쓰면 w_key 1000 만 cap_table')
-_NOCOL_MANIFEST = r"C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\engine\lut_v2\manifest.json"
 _DEFAULT_TLEF = r"C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef"
 
 # 실데이터 선언(test 쪽 PDK 선언): manifest device 이름 -> kind, kind -> 기준 LUT 열 접미사(기준 npz 의 열 이름 ID_n·CGG_p 등)
@@ -1149,7 +1146,7 @@ def legacy_reference_functions():
 # ---------------------------------------------------------------------------
 
 def _need(env, default, what):
-    p = os.environ.get(env, default)
+    p = os.environ.get(env, default) if env else default
     if not p or not Path(p).is_file():
         pytest.fail("실데이터 없음: %s (%s=%r). 실데이터 test 는 skip 하지 않는다 -- 경로를 주거나 파일을 놓을 것"
                     % (what, env, p), pytrace=False)
@@ -1170,13 +1167,13 @@ def real_location():
 
 @pytest.fixture(scope="session")
 def real_paths(real_location):
-    """[r6] 기본 = LUT v2(설정 파일). GMID_LUT_MANIFEST·GMID_LUT_CAP_NPZ 로 덮어쓸 수 있다(1.8)."""
+    """[r6] LUT v2(위치 선언 파일) 하나. 다른 LUT 로 덮어쓰는 환경변수는 없다(O-180)."""
     loc = real_location
     if not loc.midpoints_path:
         pytest.fail("설정에 verify_midpoints 가 없다: %s" % LOCATION_CONFIG, pytrace=False)
     return {
-        "manifest": _need("GMID_LUT_MANIFEST", loc.manifest_path, "폭 슬라이스 manifest.json"),
-        "cap": _need("GMID_LUT_CAP_NPZ", loc.cap_npz_path, "기준 LUT npz"),
+        "manifest": _need(None, loc.manifest_path, "폭 슬라이스 manifest.json"),
+        "cap": _need(None, loc.cap_npz_path, "기준 LUT npz"),
         "midpoints": loc.midpoints_path,
         "pdk_root": loc.pdk_root,
         "tlef": _need("GMID_PDK_TLEF", _DEFAULT_TLEF, "PDK tech LEF"),
@@ -1285,28 +1282,6 @@ def raw_mid(real_paths):
 
 
 # --- 결정 B 이전 v2 슬라이스(GMBS·VDSAT 없음) + v2 기준 LUT (CONTRACT 4.3 열 출처 "cap_table" 경로) ----------
-
-@pytest.fixture(scope="session")
-def nocol_paths(real_paths):
-    return {"manifest": _need("GMID_LUT_V2_NOCOL_MANIFEST", _NOCOL_MANIFEST, "열 없는 v2 폭 슬라이스 manifest.json"),
-            "cap": real_paths["cap"], "midpoints": real_paths["midpoints"], "pdk_root": real_paths["pdk_root"],
-            "tlef": real_paths["tlef"]}
-
-
-@pytest.fixture(scope="session")
-def nocol_slice_files(nocol_paths):
-    return _slice_files(nocol_paths["manifest"], manufacturing_grid_m(nocol_paths["tlef"]))
-
-
-@pytest.fixture(scope="session")
-def nocol_lut(nocol_paths, real_spec):
-    return load_real(nocol_paths, real_spec)
-
-
-@pytest.fixture(scope="session")
-def nocol_raw_slice(nocol_slice_files):
-    return _raw_getter(nocol_slice_files)
-
 
 def copy_tree(src_dir, dst_dir):
     shutil.copytree(src_dir, dst_dir)
