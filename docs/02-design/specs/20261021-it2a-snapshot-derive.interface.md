@@ -1,5 +1,7 @@
 # interface card: 20261021-it2a-snapshot-derive
 
+> **[상태 표지 2026-10-29] 완료 이력** -- IT-2a 판정 PASS(`integ/it12:.ai/verification/20261021-it2a-snapshot-derive.json`, code `bddef887`), master 미병합. 이 master 사본은 판정 전 동결본이다 -- 판정한 판(approval `20261022-it2a-seal-signature-ext`·`20261022-it2a-o94-ext`, keep = base writer ∪ 봉인 4 호출 목록)은 `integ/it12`에 있고 통합 병합 때 그 판으로 바뀐다. 후속 = card IT-2e(계획 v6.38.4 N6.6 범위 5 -- 같은 집합식을 함수 하나로, spec card 미작성). 본문은 기록이며 덧대지 않는다(O-169).
+
 card IT-2a -- 스냅샷 파생 규칙. test 작성 주체는 소스를 보지 않고 이 문서와 공통 문서 `docs/02-design/specs/20261021-it2-common.md`의 '창 규칙'·'정의 불능 code' 절만 쓴다(DEC-38 -- 본문 코드 없음). 정본 문장 = design 41 v1.12.3(`41:n`). `E/` = `skills/analog-gmid-design/gmid_engine/`. 쓰기 경로 = `E/tests/**`(agent 정의의 옛 `assets/tests/**`가 아니다).
 
 ## 관찰 가능한 계약
@@ -26,3 +28,7 @@ red 예상 목록 = 엔진 동작·엔진 트리 구조를 보는 test(green 유
 ## 판정 측정(audit)
 
 I-1 red-green, I-2 G2·G5·G7(새 필드 없음 확인), I-3 9회로 결과 비트 동일(제외 칸 = 블록 계수·outcome -- 목록은 감사 소유), I-6 전체 suite·`tests/structure`. (I-n 정의 = 공통 문서 interface 측정표.)
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20261021-it2a-snapshot-derive.interface.md`.

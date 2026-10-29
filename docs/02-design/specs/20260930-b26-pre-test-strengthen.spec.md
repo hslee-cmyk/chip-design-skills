@@ -5,6 +5,9 @@ evidence_type: test-only
 gate_change: no
 approval: 20261001-b26-phase3-cards
 ---
+
+> **[상태 표지 2026-10-29] 실행·병합 완료 기록 -- 현행 규칙·절차 아님.** 판정 기록 `.ai/verification/20260930-b26-pre-test-strengthen.json`(FAIL 0)이 있고 이 card의 커밋은 master에 병합됐다. 옛 계획 Phase 3(모듈 분할) card이고 Phase 3은 폐기됐다(계획 N6.1 '옛 Phase 처리' 3행 -- 새 엔진은 처음부터 패키지로 나뉘고 옛 B26-1은 부품으로 이식). 본문의 spec card·interface card·auditor 판정(V1~V10)·DEC-40 승인·R1 절차는 DEC-86으로 폐기했다(계획 N3.12·N4.2, DEC-40 행) -- 현행 완료 조건은 계획 N6.3이다. 본문의 `A`(`skills/analog-gmid-design/assets`) 아래 옛 엔진·test는 `skills/analog-gmid-design/legacy/`로 옮겨졌고(`60727b06`) 새 test 체계(`gmid_engine/tests/`)에서 돌지 않는다. card LT-1(DEC-99)이 `legacy/`를 지운 뒤에는 tag `legacy-final`에만 남는다. 본문의 `device_roles` 등 topology 태그 입력은 옛 엔진 태그 동작을 고정한 test 입력이다 -- topology 태그는 DEC-99로 저장소 데이터에서 지운다. 본문은 기록이며 덧대지 않는다(O-169).
+
 ## 의도
 
 B26-1(`20260930-b26-rail-accessor-set`) 2차 검토(`_drafts/review2_b26_1.md` §3 E6·E7)가 찾은 경로를 이 card가 먼저 test로 고정한다. 이 경로들은 **기존 동작인데 기존 test가 실행하지 않거나 결과를 보지 않는다**.
@@ -539,3 +542,7 @@ auditor가 독립으로 잰다. 아래는 오케스트레이터 사전 측정이
    * `grep -rln "run_matching_safety_with_finger_growth\|_fixup_euler_blocked_rows\|run_full_circuit_audit_from_topology\|resolve_stack_layout\|propose_vertical_stack_id_gap_fill\|case_collisions" A/tests/contracts` → 0건이다(selftest 3파일에만 있다).
      `find_differential_pair_candidates`는 B34 계약 test(`test_b34_grammar_explicit.py`, B34 병합본)가 부른다 -- 이 card는 그 test를 바꾸지 않는다.
    * 기존 test는 바꾸지 않는다. V5 없음.
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20260930-b26-pre-test-strengthen.spec.md`.

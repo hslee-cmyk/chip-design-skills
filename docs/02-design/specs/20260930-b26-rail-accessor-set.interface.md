@@ -1,6 +1,6 @@
 # interface card: 20260930-b26-rail-accessor-set
 
-> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 현행 계획 N6.1 단위 2(`rail_declaration` 이식), 옛 엔진 card라 재동결 없음(착수하지 않음).** 이 card는 옛 엔진(`assets/sizing_recipe.py`·`stick_diagram.py`) Phase 3 card이고 code·test 커밋(`e92e6b84`·`212f76a9` 등)은 master에 병합되지 않았다(판정 기록 없음). 계획 N6.1 '옛 Phase 처리'가 Phase 3 모듈 분할을 폐기하고(DEC-86, 2026-10-07) '옛 B26-1은 부품으로 이식'으로 정했으며, 새 엔진은 `gmid_engine/authoring/rails.py`에 레일 선언 접근자를 둔다. 옛 엔진 삭제는 card LT-1(DEC-99). 본문은 기록이다(O-169).
+> **[대체 표지 2026-10-29 -- 검증 10 병합 가능 판정, master `07964dfe`] 대체됨 -- 현행 계획 N6.1 단위 2(`rail_declaration` 이식), 옛 엔진 card라 재동결 없음(착수하지 않음).** 이 card는 옛 엔진(`assets/sizing_recipe.py`·`stick_diagram.py`) Phase 3 card이고 code·test 커밋(`e92e6b84`·`212f76a9` 등)은 master에 병합되지 않았다(판정 기록 없음). 계획 N6.1 '옛 Phase 처리'가 Phase 3 모듈 분할을 폐기하고(DEC-86, 2026-10-07) '옛 B26-1은 부품으로 이식'으로 정했으며, 새 엔진은 `gmid_engine/authoring/rails.py`에 레일 선언 접근자를 둔다. 옛 엔진 삭제는 card LT-1(DEC-99). 본문은 기록이다(O-169).
 
 
 생성: `tools/gates/interface_card.py`(05-role-separation §11.1). 본문 코드는 넣지 않는다(DEC-38).
@@ -376,3 +376,4 @@
 ## 변경 이력
 
 - 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20260930-b26-rail-accessor-set.interface.md`.
+- 2026-10-29 `cards/revise-1029`: 대체 표지의 '검증 대기'를 병합 표기로 바꿈(표지 내용 점검 결과 유지) -- 본문 불변, 고치기 전 원문 = `git show 052465ed:docs/02-design/specs/20260930-b26-rail-accessor-set.interface.md`.
