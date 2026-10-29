@@ -187,6 +187,7 @@ date: 2026-10-15
 | 0.6.2 (둘째 커밋) | 2026-10-28 | 상위 gain-budget v6.38.3 열셋째 커밋(상위 독립 검증 11 L-4) 후속 정정, 검증 대기: N3.4 판정 W 행 머리의 'DEC-74 front 전용 예외를 따른다'를 같은 행 본문(커널 성분 (1)(2) + front 판정 W 재판정)과 상위 U-108에 맞춤. 옛 문언: ¦ 판정 W ¦ 보정 구간 판정의 V_id*는 gain-budget DEC-23·DEC-74 front 전용 예외를 따른다. 커널(θ 프레임 봉인점)에서는 판정 W = θ 유도  |
 | 0.6.2 (승인) | 2026-10-29 | 상위 gain-budget v6.38.3 승인(상위 사용자 결정 O-170(2026-10-29, AskUserQuestion 네 항목 모두 "(권고)", `_drafts/user_decisions.md` O-170 행; 승인 범위 `wt/_drafts/evidence/2026-10-28/plan_v6383_approval_items.md` 39행 기본안, 근거 독립 검증 1~19 `evidence/2026-10-28/plan_v6383_validation{1..19}.md`)): Status '검증 대기' → '승인됨(O-170)'; 승인 대기·정책 결정 표지 → '승인 O-170'. 규칙 변경 없음. |
 | 0.6.2 (셋째 커밋) | 2026-10-29 | 2026-10-29 상위 v6.38.4 열넷째 커밋 백로그 재감사 `wt/_drafts/evidence/2026-10-29/backlog_reaudit.md`(하위 판정 `wt/_drafts/evidence/2026-10-29/backlog_reaudit_parts/D_subplans.md` D5) 반영, 검증 대기: 삭제 7(OT-B1 N7.1 표제 기록용으로·B2 v0.5 결정 표제·B5 후속 2·B7 후속 4(oracle OP-B13 중복)·B8 후속 5·B9 N6.1 인용 규칙 닫음·B11 T-32 할 일 문장 없음 확인), 배정 4(OT-B3·B6·B10 → TR-0T design 개정 plan_version 0.6.2·B4 X-17 → 상위 DEC-96 (3) 예외 문장 상위 반영 필요), 질문 0. 원문 보존 = 아래 절 'v0.6.2 셋째 커밋 -- 백로그 재감사 원문 보존'. 옛 Status 머리: «> **Status**: **v0.6.2 -- » |
+| 0.6.2 (승인) | 2026-10-29 | 상위 gain-budget v6.38.4 승인(사용자 결정 O-173(2026-10-29, `wt/_drafts/user_decisions.md` O-173 행), 상정 `wt/_drafts/evidence/2026-10-29/plan_v6384_approval_items.md`) -- 이 판의 승인 대기 항목은 상위 B·C·D 묶음 일괄 승인에 포함; 이 판의 열린 사용자 질문은 열린 채. |
 
 
 ## 승인 마무리 (2026-10-16)
