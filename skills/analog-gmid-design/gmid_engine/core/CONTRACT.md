@@ -469,7 +469,7 @@ tnom 38, permod 69). 거부 실례: 식 `vth0`(bin 마다 값이 다름) -> `pdk
 `{...}` 식) -> `pdk_rule_not_numeric`, `dwj` -> `pdk_rule_missing`, `sky130_fd_pr__nfet_01v8__model.26.cjs` -> 0.001339749237(행 7199).
 
 **LUT 생성 규칙 선언** `skills/analog-gmid-design/assets/sky130_lut_rule_decl.json`(같은 스키마, 2026-10-08): 원본 `lut_generator` =
-`base: "decl_dir"` + `sky130_lut_sweep.py`(LUT 생성기), `newline: "lf"`, sha256 `735220532101...`(git blob -- [U3] 생성기에 `.noise`·mismatch 모드를 더해 바뀜; DUT 줄은 그대로 90행), `spice_instance_line`,
+`base: "decl_dir"` + `sky130_lut_sweep.py`(LUT 생성기), `newline: "lf"`, sha256 `54e2570b243c...`(git blob -- [U3] 생성기에 `.noise`·mismatch 모드를 더해 바뀜, O-180 앵커 경로 재배선(fix/lut-decl-sha feaf6ba2)으로 다시 바뀜; DUT 줄은 그대로 90행), `spice_instance_line`,
 `line_pattern` `^DUT_LINE\s*=\s*"([^"]*)"`(90행, 글자 `xdut d g s b sky130_fd_pr__{devcell} l={L_um}u w=5u ad=2.5p as=2.5p pd=7u ps=7u`),
 `units_m` `{"u": 1e-6, "p": 1e-12}`.
 
