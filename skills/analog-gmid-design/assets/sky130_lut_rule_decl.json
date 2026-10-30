@@ -8,7 +8,7 @@
       "path": "sky130_lut_sweep.py",
       "base": "decl_dir",
       "newline": "lf",
-      "sha256": "735220532101e8a5e7a864c448ad971effa5050eecdb97ead13575368cc35987",
+      "sha256": "54e2570b243c198c00804319806e26a7166c0fac733e892bb353c9f93616c5cc",
       "format": "spice_instance_line",
       "encoding": "utf-8",
       "line_pattern": "^DUT_LINE\\s*=\\s*\"([^\"]*)\"",

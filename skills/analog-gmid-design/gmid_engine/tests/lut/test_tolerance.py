@@ -690,7 +690,7 @@ QUANTS = ("id", "gm", "gds", "vth")
 GEN_GRID_TOL_V = None          # 슬라이스 생성기(manifest 폴더의 manifest["generator"])의 GRID_TOL_V 를 읽어 채운다
 
 
-_GEN_SEARCH = (r"C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\engine\lut_slices",)   # 계약 8절의 슬라이스 생성기 위치
+_GEN_SEARCH = (r"C:\Users\HSLEE\Documents\Todoc\fpga\lut_data\sky130_lut_v2\verification\slices_vdsat",)   # 계약 8절의 슬라이스 생성기 위치
 
 
 def _load_generator_grid_tol(manifest_path):

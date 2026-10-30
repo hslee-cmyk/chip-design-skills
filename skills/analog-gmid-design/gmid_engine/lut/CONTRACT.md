@@ -647,7 +647,7 @@ memo 에 저장 안 됨)·4.0·4.1 사유.
   정점 근처 평탄 목표가 있다(5.1 분포).
 - [r5] **환산 검증 test(ngspice 칸 중앙 표본, 계획 N3.6 -- test 작성자 구현, 실데이터 마커)**: 셀 표본(최소: nmos·pmos w_key 1000,
   L 앵커 0.15·0.35·1·4 µm, VS index 0·2, 모든 VDS 격자점)에서 ngspice 로 **VGS 칸 중앙**(VGS_j + h/2, VDS·VS 격자점)과
-  **VDS 칸 중앙**(VDS_k + h/2, VGS·VS 격자점)의 ID·GM 을 새로 잰다. 넷리스트는 슬라이스 생성기(`_drafts/engine/lut_slices/
+  **VDS 칸 중앙**(VDS_k + h/2, VGS·VS 격자점)의 ID·GM 을 새로 잰다. 넷리스트는 슬라이스 생성기(`lut_data/sky130_lut_v2/verification/slices_vdsat/
   sky130_dc_width_slices.py` `build_netlist`)와 같은 소자·기하·극성·바디 부호(dc 스윕 시작을 반 칸 옮김). 점마다
   e = |ln ID_op_point − ln ID_spice| / (GM/ID)_spice. 판정: (a) 강반전 분지(VGS ≥ 그 격자 곡선 정점)·VDS ≥ 2 격자칸 점에서 e ≤
   `tol_v_table(...).at(L, vds, "id_equivalent")` 가 **모든 점**에서 성립(셀 tol 은 상한이어야 한다) (b) VGS 칸 중앙 e 의 p50·p99 가
