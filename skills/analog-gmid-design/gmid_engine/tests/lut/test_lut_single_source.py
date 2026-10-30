@@ -57,7 +57,7 @@ DRAFT_RE = re.compile(r"_drafts/engine|lut_slices|lut_v2/", re.I)
 SLICE_RE = re.compile(r"sky130_fd_pr__\w*\.npz")
 # 허용 리터럴 한 개: tests/lut/test_tolerance.py 의 `_GEN_SEARCH` -- LUT 데이터가 아니라 슬라이스 생성기 소스 파일의 검색 폴더다
 # (git 밖 한 곳에만 있고 manifest 의 generator_sha256 이 같은 파일만 쓴다). 데이터(npz·manifest)는 이 폴더에서 읽지 않는다.
-ALLOWED_LITERALS = {"C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/engine/lut_slices"}
+ALLOWED_LITERALS = {"C:/Users/HSLEE/Documents/Todoc/fpga/lut_data/sky130_lut_v2/verification/slices_vdsat"}
 ALLOWED_PAIRS = {("skills/analog-gmid-design/gmid_engine/tests/lut/test_tolerance.py", lit) for lit in ALLOWED_LITERALS}
 
 
