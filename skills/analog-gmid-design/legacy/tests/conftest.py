@@ -19,12 +19,11 @@ C9(20260922-ts2-pytest-split, design §5.4 'C9에서 더하는 것')에서 더�
 
 * `--shuffle-seed=<int>`(기본 없음): `pytest_collection_modifyitems` 끝(xfail 표시 뒤)에서 값이 있으면
   `random.Random(seed).shuffle(items)`. 플러그인을 더하지 않는다(DEC-36).
-* `pytest_report_header`: `shuffle-seed: <값 또는 none>`, `real_lut: <npz 상대 경로> sha256=<파일 바이트 해시>`.
+* `pytest_report_header`: `shuffle-seed: <값 또는 none>` (O-180: real_lut 줄은 sample LUT 삭제로 없앴다).
   판정 문자열이 아니다.
 * 세션 fixture(불변 자원만): `assets_dir`(= A, 이 파일 위치에서 계산), `library_dir`(= `assets_dir/library`),
-  `toy_lut`(= `build_toy_lut()`, 이관본의 전역 `lut`), `real_lut`(`A/sky130_nfet_pfet_lut_sample.npz` 고정 경로).
+  `toy_lut`(= `build_toy_lut()`, 이관본의 전역 `lut`).
 """
-import hashlib
 import os
 import random
 import sys
@@ -39,7 +38,6 @@ _GATES_DIR = os.path.join(_REPO_ROOT, "tools", "gates")
 _ASSETS_DIR = os.path.dirname(_TESTS_DIR)
 # 공용 입력(library·LUT npz)은 assets/ 에 남았다(LEGACY.md)
 _SHARED_ASSETS_DIR = os.path.join(os.path.dirname(_ASSETS_DIR), "assets")
-_REAL_LUT_PATH = os.path.join(_SHARED_ASSETS_DIR, "sky130_nfet_pfet_lut_sample.npz")
 if _GATES_DIR not in sys.path:
     sys.path.append(_GATES_DIR)
 
@@ -139,10 +137,7 @@ def pytest_collection_modifyitems(session, config, items):
 
 def pytest_report_header(config):
     seed = config.getoption("shuffle_seed")
-    rel = os.path.relpath(_REAL_LUT_PATH, _REPO_ROOT).replace(os.sep, "/")
-    with open(_REAL_LUT_PATH, "rb") as fh:
-        digest = hashlib.sha256(fh.read()).hexdigest()
-    return [f"shuffle-seed: {'none' if seed is None else seed}", f"real_lut: {rel} sha256={digest}"]
+    return [f"shuffle-seed: {'none' if seed is None else seed}"]
 
 
 @pytest.fixture(scope="session")
@@ -161,8 +156,3 @@ def toy_lut(assets_dir):
         sys.path.insert(0, assets_dir)
     from sizing_recipe import build_toy_lut
     return build_toy_lut()
-
-
-@pytest.fixture(scope="session")
-def real_lut():
-    return _REAL_LUT_PATH

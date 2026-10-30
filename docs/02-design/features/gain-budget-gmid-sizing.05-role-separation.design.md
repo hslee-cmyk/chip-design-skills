@@ -6,10 +6,12 @@ plan_version: 5.19
 
 # gain-budget-gmid-sizing -- 05-role-separation Design Document
 
+> **[폐기 표지 2026-10-29] 폐기된 설계 -- 현행 절차 아님.** 이 문서는 옛 Phase 0.5 역할 분리 인프라(gate·spec card·interface card·auditor V1~V10·판정 기록·worktree 흐름) 설계다. 역할 분리 gate는 DEC-86(2026-10-07)으로 꺼졌고, 계획은 N3.12 역할 분리·N4.2 auditor V1~V10·N4.3 게이트 거부 증명을 폐기 절로 두며, N6.1 '옛 Phase 처리' 0.5행이 '폐기(gate 끔, DEC-86) -- 로드 게이트 공격 12·13·14만 단위 2 test로 이식'이다. 현행 절차는 계획 N6.3(가벼운 절차, DEC-86: 코드 작성 주체 ≠ test·기대값 작성 주체(WP-13), 깨진 test·기준 약화는 숨기지 않고 보고, 변경당 커밋 1, 매 변경 뒤 새 test 체계 `gmid_engine/tests/` 전체 실행)이다. `tools/gates/**`·`hooks/role_*`·`.githooks/`에 남은 파일은 꺼진 잔여물이다. 아래 머리의 'v3.6 승인됨'은 승인 당시 상태 기록이다. 본문은 기록이며 고치지 않는다(DEC-86 '지우지 않고 폐기 표시'; 표지 전 원문 = `git show 052465ed:docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md`).
+
 > **Summary**: Phase 0.5 역할 분리 인프라의 설계. 위협 범위는 계획 N3.12.0(사용자 결정 C)이다: **이력에 있던 자기 은폐 패턴은 막고, 같은 계정 권한으로 게이트를 부수는 의도적 행위는 막지 않고 드러나게 한다.** 겹은 EL1(도구 호출)·EL2(결과)·EL3(커밋)·EL4(로컬 gate 저장소의 `pre-receive`)이고, 무결성 대조가 게이트 훼손을 감지한다. 쓰기 경로표 파싱, 역할 판정, 판정 기록 로더, auditor 검사 도구(V3~V7), interface card·spec card·dispute, 변경 한 건의 명령 시퀀스, 부트스트랩, 공격 재생, agent 정의 3개.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (오케스트레이터)
-> **Date**: 2026-09-18 · **Status**: **v3.6 승인됨**(2026-09-21, 승인 기록 `20260921-05-role-separation-design` -- 아래 '사용자 승인 대기' 문구는 승인 전 상태 기록이다). v3.6 -- 독립 검증 review30~34를 반영했고, review35는 위협 범위(N3.12.0)로 재분류해 범위 안 항목만 고쳤다(§13.5). 마지막 좁은 확인 review36: **승인 가능**(S1 0·S2 0·S3 4, S3 중 둘을 반영). 문서 검토는 이 판으로 끝내고 남은 우려는 부트스트랩 공격 재생으로 판정한다. 사용자 승인 대기(DEC-51) V4 (2)는 사용자 결정 (c)(확실한 복사 검출기 + auditor oracle 대조). 독립 검증 전, 사용자 승인 대기(DEC-51)
+> **Date**: 2026-09-18 · **Status**: **v3.6 승인됨** **[폐기 -- DEC-86, 계획 N6.1 '옛 Phase 처리' 0.5행; 위 폐기 표지]**(2026-09-21, 승인 기록 `20260921-05-role-separation-design` -- 아래 '사용자 승인 대기' 문구는 승인 전 상태 기록이다). v3.6 -- 독립 검증 review30~34를 반영했고, review35는 위협 범위(N3.12.0)로 재분류해 범위 안 항목만 고쳤다(§13.5). 마지막 좁은 확인 review36: **승인 가능**(S1 0·S2 0·S3 4, S3 중 둘을 반영). 문서 검토는 이 판으로 끝내고 남은 우려는 부트스트랩 공격 재생으로 판정한다. 사용자 승인 대기(DEC-51) V4 (2)는 사용자 결정 (c)(확실한 복사 검출기 + auditor oracle 대조). 독립 검증 전, 사용자 승인 대기(DEC-51)
 > **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v5.19 · N3.12.0 위협 범위 · N6.1 `0.5` 행 · **공통 정의**: [00-common](gain-budget-gmid-sizing.00-common.design.md)(v1.7 승인 `20260918-00-common-design`, v1.8 개정은 이 문서의 승인이 덮는다)
 
 Context Anchor: 계획서에 `## Context Anchor` 절이 없어 옮기지 않는다.

@@ -26,7 +26,7 @@
 
 * `assets/library/*.topology.json`, `*.topology.md` -- 회로 토폴로지(유일한 토폴로지 소스)
   * library 는 공용 입력이라 2026-10-07 정정(TOPOLOGY_CORRECTION_QUEUE 일괄 반영: folded_cascode M1·M2 nmos, passive_elements·`_declared_target_spec.supplies_v` 추가) 이후 legacy 결과는 tag `legacy-engine-v1` 시점과 다를 수 있다.
-* `assets/sky130_nfet_pfet_lut_sample.npz` -- sky130 LUT
+* LUT 는 `assets/` 에 없다 -- 위치 선언 `assets/lut_v2_location.json`(LUT v2, git 밖 데이터를 sha256 으로 고정)만이 정본이다. 옛 sample LUT 는 O-180 으로 삭제했고 그것을 읽던 legacy 하네스·probe·test 도 지웠다(`legacy/workspaces/run_harness.py` 는 import 시 RuntimeError).
 * `assets/sky130_lut_sweep.py`, `assets/ac_sweep_checkpoints/` -- LUT 생성기와 그 재개용 체크포인트
   (생성기가 `OUTPUT_DIR/ac_sweep_checkpoints`를 읽고 쓰므로 생성기와 같이 둔다)
 * `assets/topology_to_markdown.py` -- topology.json -> .md 변환기

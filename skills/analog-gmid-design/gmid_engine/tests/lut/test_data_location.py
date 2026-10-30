@@ -270,11 +270,8 @@ def test_repo_config_feeds_load(real_location, real_lut):
 # ---------------------------------------------------------------------------
 
 L_GRID_FILE = LOCATION_CONFIG.parent / "sky130_lut_L_grid.json"
-# CONTRACT 8절: r2 파일 이름. 옛 기준 LUT = 같은 root 의 이 이름, 7090b9f 이전 설정이 고정한 sha256 (oracle (c) 기준선 -- 동작 보존 변경)
+# CONTRACT 8절: r2 파일 이름 (O-180: r1 원본 LUT 는 지웠다 -- 옛 대 새 비트 동일 대조 test 도 지웠다)
 R2_NAMES = {"cap_npz": "sky130_nfet_pfet_lut_v2_r2.npz", "verify_midpoints": "sky130_nfet_pfet_lut_v2_verify_midpoints_r2.npz"}
-ORIG_CAP_NAME = "sky130_nfet_pfet_lut_v2.npz"
-ORIG_CAP_SHA256 = "337bd058cda4001d608dd0eeb261920da7a7656028c1a8d276484541d74b1da0"
-ORIG_L_SOURCE_SHA256 = "0147c2623f69a862d89fce0de7ff6df1b80d65ed95277147eb472d72faba6f93"   # CONTRACT 1.7 실측의 옛 승인 L 파일 sha
 
 
 def _cfg_root(cfg):
@@ -305,26 +302,3 @@ def test_repo_config_r2_sha256_match_files_directly():
     assert _sha(os.path.join(root, cfg["files"]["manifest"]["path"])) == cfg["files"]["manifest"]["sha256"]
 
 
-@pytest.mark.lut_realdata
-def test_r2_cap_npz_bit_identical_to_original_except_l_source_sha():
-    """8절: r2 기준 LUT 는 옛 기준 LUT 와 배열이 비트 동일하고 meta 는 `L_source.sha256` 만 (옛 L 파일 sha -> 새 L 파일 sha) 다르다.
-    oracle: (c) 옛 기준 LUT(7090b9f 이전 설정이 sha256 으로 고정한 파일)를 기준선으로 키·dtype·모양·바이트를 직접 비교."""
-    cfg = json.loads(LOCATION_CONFIG.read_text(encoding="utf-8"))
-    root = _cfg_root(cfg)
-    orig_p = os.path.join(root, ORIG_CAP_NAME)
-    assert _sha(orig_p) == ORIG_CAP_SHA256                                 # 기준선이 옛 고정 파일 그대로
-    r2_p = os.path.join(root, cfg["files"]["cap_npz"]["path"])
-    a, b = _npz_raw(orig_p), _npz_raw(r2_p)
-    assert sorted(a) == sorted(b)
-    for k in sorted(a):
-        if k == "meta_json":
-            continue
-        assert a[k].dtype == b[k].dtype and a[k].shape == b[k].shape, k
-        assert a[k].tobytes() == b[k].tobytes(), k                          # 비트 동일(NaN 포함)
-    ma, mb = json.loads(str(a["meta_json"])), json.loads(str(b["meta_json"]))
-    assert ma["L_source"]["sha256"] == ORIG_L_SOURCE_SHA256
-    assert mb["L_source"]["sha256"] == _sha(L_GRID_FILE)
-    assert ma["L_source"]["sha256"] != mb["L_source"]["sha256"]
-    ma["L_source"].pop("sha256")
-    mb["L_source"].pop("sha256")
-    assert ma == mb                                                         # 다른 meta 는 모두 같다

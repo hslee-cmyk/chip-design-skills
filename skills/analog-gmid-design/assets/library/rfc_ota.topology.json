@@ -1,0 +1,337 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "rfc_ota",
+  "_topology_name_comment": "판독 작업 이름 A_rfc(wt/_heldout/A_rfc/A_rfc.topology.json) -> 저장소 이름 rfc_ota. connectivity는 판독본과 같다(이름·주석 키만 바꿈).",
+  "source": "P. J. I. Matibag (지도 J. Cosp Vilella), 'Design and test of a CMOS folded cascode OTA with current recycling', UPC 석사논문 2024 (upcommons). 코어 p.22 Fig.5(구조, 접점 점·hop 표기) + p.28 Fig.6(치수 부기, 교차 점 없음), 바이어스 p.34 Fig.9(치수 부기) + p.32 Fig.8(원 출처 Johns&Martin wide-swing constant-gm, 접점 점 표기), 치수 p.27 Table 2, 부하 p.37 Fig.11.",
+  "_status": "(2026-10-29 O-181: held-out에서 library로 이관 -- 아래 held-out 문언은 이력) held-out 시험 회로 A(2026-10-13). library 밖 assets/library/ 에 둔다(계획 DEC-98 (4)·U-76 (5) -- 엔진 개발 회로와 분리, test 픽스처로 쓰지 않는다). connectivity 사용자 확인 끝: user_decisions.md 2026-10-13 held-out A \"A-1~A-5은 네 판독으로\", \"held-out A는 나\"(A-6 CL 2.75 pF), \"A7~A9는 권고\"(A-7 (가) 바이어스·시동 회로 포함 전체, A-8, A-9), \"A-10도 권고대로\"(확인 항목 A-1~A-10 전부 종결). 사람 태그(sizing_roles·device_roles·symmetry·compensation) 없음. 판독 기록 wt/_heldout/A_rfc/VERIFY.md. | 2026-10-14 사용자 최종 확정: \"held-out 4개 연결성 모두 확정\" (연결성 확인 페이지 heldout_topology_review.html, 정본 json에서 생성한 소자·넷 표 대조). 이후 connectivity 수정은 사용자만.",
+  "_bulk_note": "Fig.5/6/9 모두 3단자 MOS 기호(bulk 단자 미표기) -> bulk 필드를 두지 않는다(기본 규칙 nmos=gnd, pmos=vdd). VERIFY A-5.",
+  "supply_nets": [
+    "vdd",
+    "gnd"
+  ],
+  "source_manifest": {
+    "figure": "UPC RFC 2024 p.28 Fig.6(코어 17 MOS) + p.34 Fig.9(바이어스 18 MOS + RB) + p.37 Fig.11(CL)",
+    "device_count": 35,
+    "passive_count": 2
+  },
+  "bias_inputs": [],
+  "ports": {
+    "_comment": "그림 표기 VIN+/VIN-/Vout 을 library 관례 넷 이름 vin_p/vin_n/out 으로 적었다(넷 이름만, 연결 동일). 극성: 손 해석 -- Vin+ 상승 -> M1a/M1b 전류 감소, M2a/M2b 증가 -> X 에서 M5 전류 증가(M3a 가 M2b 쪽 미러로 더 끌어감), Y 에서 M6 전류 감소 -> M9/M10 미러로 out 소싱 증가 -> Vout 상승 = 비반전. p.37 Fig.11 testbench(+ 단자에 신호원)와 일치.",
+    "vin_p": {
+      "role": "differential_input_p",
+      "direction": "input"
+    },
+    "vin_n": {
+      "role": "differential_input_n",
+      "direction": "input"
+    },
+    "out": {
+      "role": "single_ended_output",
+      "direction": "output"
+    }
+  },
+  "netlist": [
+    {
+      "name": "M0",
+      "kind": "pmos",
+      "drain": "tail",
+      "gate": "VBP1",
+      "source": "vdd",
+      "_src": "p.22 Fig.5 상단 중앙 / p.28 Fig.6 상단 중앙"
+    },
+    {
+      "name": "M1a",
+      "kind": "pmos",
+      "drain": "X",
+      "gate": "vin_p",
+      "source": "tail",
+      "_src": "p.22 Fig.5 좌상 / p.28 Fig.6 좌상"
+    },
+    {
+      "name": "M1b",
+      "kind": "pmos",
+      "drain": "G4",
+      "gate": "vin_p",
+      "source": "tail",
+      "_src": "p.22 Fig.5 중앙좌 / p.28 Fig.6 중앙좌 (drain은 X자 교차선으로 우측 M12 drain)"
+    },
+    {
+      "name": "M2b",
+      "kind": "pmos",
+      "drain": "G3",
+      "gate": "vin_n",
+      "source": "tail",
+      "_src": "p.22 Fig.5 중앙우 / p.28 Fig.6 중앙우 (drain은 X자 교차선으로 좌측 M11 drain)"
+    },
+    {
+      "name": "M2a",
+      "kind": "pmos",
+      "drain": "Y",
+      "gate": "vin_n",
+      "source": "tail",
+      "_src": "p.22 Fig.5 우상 / p.28 Fig.6 우상(좌측 블록)"
+    },
+    {
+      "name": "M3a",
+      "kind": "nmos",
+      "drain": "X",
+      "gate": "G3",
+      "source": "gnd",
+      "_src": "p.22 Fig.5 좌하 / p.28 Fig.6 좌하"
+    },
+    {
+      "name": "M3b",
+      "kind": "nmos",
+      "drain": "S11",
+      "gate": "G3",
+      "source": "gnd",
+      "_src": "p.22 Fig.5 하단 / p.28 Fig.6 하단"
+    },
+    {
+      "name": "M4b",
+      "kind": "nmos",
+      "drain": "S12",
+      "gate": "G4",
+      "source": "gnd",
+      "_src": "p.22 Fig.5 하단 / p.28 Fig.6 하단"
+    },
+    {
+      "name": "M4a",
+      "kind": "nmos",
+      "drain": "Y",
+      "gate": "G4",
+      "source": "gnd",
+      "_src": "p.22 Fig.5 우하 / p.28 Fig.6 하단 우"
+    },
+    {
+      "name": "M11",
+      "kind": "nmos",
+      "drain": "G3",
+      "gate": "VBN2",
+      "source": "S11",
+      "_src": "p.22 Fig.5 중앙 / p.28 Fig.6 중앙"
+    },
+    {
+      "name": "M12",
+      "kind": "nmos",
+      "drain": "G4",
+      "gate": "VBN2",
+      "source": "S12",
+      "_src": "p.22 Fig.5 중앙 / p.28 Fig.6 중앙"
+    },
+    {
+      "name": "M5",
+      "kind": "nmos",
+      "drain": "G9",
+      "gate": "VBN2",
+      "source": "X",
+      "_src": "p.22 Fig.5 우측 블록 / p.28 Fig.6 우측 블록"
+    },
+    {
+      "name": "M6",
+      "kind": "nmos",
+      "drain": "out",
+      "gate": "VBN2",
+      "source": "Y",
+      "_src": "p.22 Fig.5 우측 블록 / p.28 Fig.6 우측 블록"
+    },
+    {
+      "name": "M7",
+      "kind": "pmos",
+      "drain": "G9",
+      "gate": "VBP2",
+      "source": "S7",
+      "_src": "p.22 Fig.5 우측 블록 / p.28 Fig.6 우측 블록"
+    },
+    {
+      "name": "M8",
+      "kind": "pmos",
+      "drain": "out",
+      "gate": "VBP2",
+      "source": "S8",
+      "_src": "p.22 Fig.5 우측 블록 / p.28 Fig.6 우측 블록"
+    },
+    {
+      "name": "M9",
+      "kind": "pmos",
+      "drain": "S7",
+      "gate": "G9",
+      "source": "vdd",
+      "_src": "p.22 Fig.5 우상 / p.28 Fig.6 우상"
+    },
+    {
+      "name": "M10",
+      "kind": "pmos",
+      "drain": "S8",
+      "gate": "G9",
+      "source": "vdd",
+      "_src": "p.22 Fig.5 우상 / p.28 Fig.6 우상"
+    },
+    {
+      "name": "Q9",
+      "kind": "pmos",
+      "drain": "b_q9d",
+      "gate": "VBP1",
+      "source": "vdd",
+      "_src": "p.34 Fig.9 좌상 1행"
+    },
+    {
+      "name": "Q8",
+      "kind": "pmos",
+      "drain": "VBP1",
+      "gate": "VBP2",
+      "source": "b_q9d",
+      "_src": "p.34 Fig.9 좌 2행"
+    },
+    {
+      "name": "Q1",
+      "kind": "nmos",
+      "drain": "VBP1",
+      "gate": "VBN2",
+      "source": "b_q1s",
+      "_src": "p.34 Fig.9 좌 3행"
+    },
+    {
+      "name": "Q2",
+      "kind": "nmos",
+      "drain": "b_q1s",
+      "gate": "VBN1",
+      "source": "b_rb",
+      "_src": "p.34 Fig.9 좌 4행"
+    },
+    {
+      "name": "Q7",
+      "kind": "pmos",
+      "drain": "b_q7d",
+      "gate": "VBP1",
+      "source": "vdd",
+      "_src": "p.34 Fig.9 좌중 1행"
+    },
+    {
+      "name": "Q6",
+      "kind": "pmos",
+      "drain": "VBN1",
+      "gate": "VBP2",
+      "source": "b_q7d",
+      "_src": "p.34 Fig.9 좌중 2행"
+    },
+    {
+      "name": "Q4",
+      "kind": "nmos",
+      "drain": "VBN1",
+      "gate": "VBN2",
+      "source": "b_q4s",
+      "_src": "p.34 Fig.9 좌중 3행"
+    },
+    {
+      "name": "Q3",
+      "kind": "nmos",
+      "drain": "b_q4s",
+      "gate": "VBN1",
+      "source": "gnd",
+      "_src": "p.34 Fig.9 좌중 4행"
+    },
+    {
+      "name": "Q11",
+      "kind": "pmos",
+      "drain": "b_q11d",
+      "gate": "VBP1",
+      "source": "vdd",
+      "_src": "p.34 Fig.9 중앙 1행"
+    },
+    {
+      "name": "Q10",
+      "kind": "pmos",
+      "drain": "VBN2",
+      "gate": "VBP2",
+      "source": "b_q11d",
+      "_src": "p.34 Fig.9 중앙 2행 -- drain-VBN2 연결은 A-2 (Fig.9 점 없음, Fig.8 p.32 점 있음)"
+    },
+    {
+      "name": "Q5",
+      "kind": "nmos",
+      "drain": "VBN2",
+      "gate": "VBN2",
+      "source": "gnd",
+      "_src": "p.34 Fig.9 중앙 4행 -- drain=VBN2 는 A-2"
+    },
+    {
+      "name": "Q14",
+      "kind": "pmos",
+      "drain": "VBP2",
+      "gate": "VBP2",
+      "source": "vdd",
+      "_src": "p.34 Fig.9 중앙우 1행 -- drain-VBP2 연결은 A-1 (Fig.9 점 없음, Fig.8 p.32 점 있음)"
+    },
+    {
+      "name": "Q13",
+      "kind": "nmos",
+      "drain": "VBP2",
+      "gate": "VBN2",
+      "source": "b_q13s",
+      "_src": "p.34 Fig.9 중앙우 3행 -- drain=VBP2 는 A-1"
+    },
+    {
+      "name": "Q12",
+      "kind": "nmos",
+      "drain": "b_q13s",
+      "gate": "VBN1",
+      "source": "gnd",
+      "_src": "p.34 Fig.9 중앙우 4행"
+    },
+    {
+      "name": "Q15",
+      "kind": "nmos",
+      "drain": "VBP1",
+      "gate": "b_su",
+      "source": "gnd",
+      "_src": "p.34 Fig.9 우중 3행 (시동)"
+    },
+    {
+      "name": "Q16",
+      "kind": "nmos",
+      "drain": "VBP2",
+      "gate": "b_su",
+      "source": "gnd",
+      "_src": "p.34 Fig.9 우중 3행 (시동)"
+    },
+    {
+      "name": "Q17",
+      "kind": "nmos",
+      "drain": "b_su",
+      "gate": "VBN2",
+      "source": "gnd",
+      "_src": "p.34 Fig.9 우하 (시동)"
+    },
+    {
+      "name": "Q18",
+      "kind": "pmos",
+      "drain": "b_su",
+      "gate": "gnd",
+      "source": "vdd",
+      "_src": "p.34 Fig.9 우상 (시동, small W/L)"
+    }
+  ],
+  "passive_elements": [
+    {
+      "name": "CL",
+      "kind": "capacitor",
+      "value_farad": 2.75e-12,
+      "terminals": [
+        "out",
+        "gnd"
+      ],
+      "_comment": "p.37 Fig.11 AC testbench 부하 2.75 pF(out-gnd). p.11 요구사항은 2.25 pF, p.35 본문: PM 확보 위해 500 fF 추가해 2.75 pF -- VERIFY A-6."
+    },
+    {
+      "name": "RB",
+      "kind": "resistor",
+      "value_ohm": 1412.0,
+      "terminals": [
+        "b_rb",
+        "gnd"
+      ],
+      "_comment": "p.34 Fig.9 좌하 R_B = 1412 Ohm (Q2 source - gnd)."
+    }
+  ]
+}

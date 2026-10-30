@@ -477,28 +477,6 @@ def s155_state(library_dir):
 
 
 @pytest.fixture
-def s157_state(library_dir):
-    """섹션 S157(이관본 줄 2996-3065)의 입력(하네스 spec, 원본·변형 topology 경로)을 만드는 문장. 피검 호출
-    `optimize_full_circuit_budget()`은 ValueError(I-C11)를 내므로 test 본문에 둔다(spec card 계약 4)."""
-    _t49_lib = library_dir
-    _t53g_workspaces = _t49_os.path.normpath(_t49_os.path.join(_t49_lib, "..", "..", "legacy", "workspaces"))
-    _t53g_harness_path = _t49_os.path.join(_t53g_workspaces, "run_harness.py")
-    # contract 4: 이관본 `if not exists: SKIP` 조건을 먼저 단언한다 -- workspaces/run_harness.py는 추적되는 파일.
-    assert _t49_os.path.exists(_t53g_harness_path)
-    _t53g_spec_mod = _t53g_ilu.spec_from_file_location("_t53g_run_harness", _t53g_harness_path)
-    _t53g_harness = _t53g_ilu.module_from_spec(_t53g_spec_mod)
-    _t53g_spec_mod.loader.exec_module(_t53g_harness)
-
-    _t53g_two_stage_path = _t49_os.path.join(_t49_lib, "two_stage_ota.topology.json")
-    with open(_t53g_two_stage_path, encoding="utf-8") as _t53g_f:
-        _t53g_raw = json.load(_t53g_f)
-    _t53g_spec = _t53g_harness._spec_two_stage_ota()
-    _t53g_gp = _t53g_harness.SPECS["two_stage_ota"]["grid_points_per_theta"]
-    return types.SimpleNamespace(_t53g_two_stage_path=_t53g_two_stage_path, _t53g_raw=_t53g_raw,
-                                 _t53g_spec=_t53g_spec, _t53g_gp=_t53g_gp)
-
-
-@pytest.fixture
 def s161_state(library_dir):
     """섹션 S161(이관본 줄 3187-3213)이 만드는 이름 _t57_raw -- 읽는 섹션: S162. 그 이름을 만드는 문장만 옮겼다(design §6.8-3 (다))."""
     _t49_lib = library_dir
@@ -3792,87 +3770,6 @@ def test_s156_section(s155_state):
     assert any(r.get("device") in _t53_flat_stage and "compensation.stage_devices" in r.get("note", "")
                 for r in _t53_result_comp["review_needed"]), \
         "compensation 소속 소자의 참고 안내가 review_needed에 안 남음(회귀)"
-
-
-@pytest.mark.xfail(raises=ValueError, strict=True,
-                   reason="I-C11 two_stage_ota stage1_out KVL -- 담당 Phase 4")
-def test_s157_M1(s157_state):
-    """[실제로 M1(compensation.stage_devices 소속)에 gm_id_role을 채운 topology.json으로
-    optimize_full_circuit_budget()을 돌려도 sizing 결과가 안 채운 원본과 완전히 같은지
-    -- _AUTHORITATIVE_GM_ID_SOURCES 가드가 실제로 동작하는지, workspaces/run_harness.py의
-    실제 검증된 spec(_spec_two_stage_ota())을 그대로 재사용해 회귀 검증]
-
-    I-C11: before 호출이 ValueError(stage1_out KVL)라 성공 경로(가드 회귀 비교)에 닿지 못한다. 이관본 else 분기의
-    판정을 그대로 담고 strict xfail로 둔다(승인 20260922-c9-ic11-split).
-
-    oracle (c) 이관본 legacy/selftest_stick_diagram.py 섹션 S157(줄 2996-3065)의 성공 분기.
-    """
-    _t53g_two_stage_path = s157_state._t53g_two_stage_path
-    _t53g_raw = s157_state._t53g_raw
-    _t53g_spec = s157_state._t53g_spec
-    _t53g_gp = s157_state._t53g_gp
-
-    _t53g_before = optimize_full_circuit_budget(
-        _t53g_two_stage_path, dict(_t53g_spec), grid_points_per_theta=_t53g_gp)
-
-    with _t53g_tempfile.TemporaryDirectory() as _t53g_tmpdir:
-        _t53g_mut_path = _t49_os.path.join(_t53g_tmpdir, "two_stage_ota.mutated.topology.json")
-        _t53g_mut = dict(_t53g_raw)
-        _t53g_mut["device_roles"] = dict(_t53g_raw["device_roles"])
-        # 2026-08-14 -- M1은 원본에 device_roles 자체가 없다(compensation.stage_devices
-        # 소속이라 사람 저자가 의도적으로 비워둔 자리, 이 Test 53 앞부분에서 이미 확인됨) --
-        # 그 빈 자리에 gm_id_role만 새로 채워 넣는 게 정확히 이 회귀가 검증하려는 시나리오다.
-        _t53g_mut["device_roles"]["M1"] = {"gm_id_role": "matching"}
-        with open(_t53g_mut_path, "w", encoding="utf-8") as _t53g_f:
-            json.dump(_t53g_mut, _t53g_f)
-        _t53g_after = optimize_full_circuit_budget(
-            _t53g_mut_path, dict(_t53g_spec), grid_points_per_theta=_t53g_gp)
-        assert _t53g_before["sizing"]["M1"] == _t53g_after["sizing"]["M1"], \
-            f"M1에 gm_id_role='matching'을 채웠는데 sizing 결과가 바뀜(가드 실패, 진짜 회귀): " \
-            f"{_t53g_before['sizing']['M1']} vs {_t53g_after['sizing']['M1']}"
-        assert _t53g_before["theta_star"] == _t53g_after["theta_star"], \
-            "gm_id_role 추가가 theta_star까지 바꿈(가드가 전혀 안 먹힘)"
-
-
-def test_s157_M1_known_limitation(s157_state):
-    """[실제로 M1(compensation.stage_devices 소속)에 gm_id_role을 채운 topology.json으로
-    optimize_full_circuit_budget()을 돌려도 sizing 결과가 안 채운 원본과 완전히 같은지
-    -- _AUTHORITATIVE_GM_ID_SOURCES 가드가 실제로 동작하는지, workspaces/run_harness.py의
-    실제 검증된 spec(_spec_two_stage_ota())을 그대로 재사용해 회귀 검증]
-
-    I-C11 지금 동작: before(원본)와 after(M1 gm_id_role 채움) 호출이 둘 다 같은 이유(메시지에 'stage1_out'과
-    'KVL')의 ValueError다 -- 이관본 `_t53g_before is None` 분기의 판정 그대로.
-
-    oracle (c) 이관본 legacy/selftest_stick_diagram.py 섹션 S157(줄 2996-3065)의 except 분기 조건 + 거부 try.
-    """
-    _t53g_two_stage_path = s157_state._t53g_two_stage_path
-    _t53g_raw = s157_state._t53g_raw
-    _t53g_spec = s157_state._t53g_spec
-    _t53g_gp = s157_state._t53g_gp
-
-    with pytest.raises(ValueError) as _t53g_e_info:
-        optimize_full_circuit_budget(
-            _t53g_two_stage_path, dict(_t53g_spec), grid_points_per_theta=_t53g_gp)
-    _t53g_e = _t53g_e_info.value
-    assert "stage1_out" in str(_t53g_e) and "KVL" in str(_t53g_e), \
-        f"before가 known-limitation(I-C11)이 아닌 다른 이유로 실패함(회귀 의심): {_t53g_e}"
-
-    with _t53g_tempfile.TemporaryDirectory() as _t53g_tmpdir:
-        _t53g_mut_path = _t49_os.path.join(_t53g_tmpdir, "two_stage_ota.mutated.topology.json")
-        _t53g_mut = dict(_t53g_raw)
-        _t53g_mut["device_roles"] = dict(_t53g_raw["device_roles"])
-        # 2026-08-14 -- M1은 원본에 device_roles 자체가 없다(compensation.stage_devices
-        # 소속이라 사람 저자가 의도적으로 비워둔 자리, 이 Test 53 앞부분에서 이미 확인됨) --
-        # 그 빈 자리에 gm_id_role만 새로 채워 넣는 게 정확히 이 회귀가 검증하려는 시나리오다.
-        _t53g_mut["device_roles"]["M1"] = {"gm_id_role": "matching"}
-        with open(_t53g_mut_path, "w", encoding="utf-8") as _t53g_f:
-            json.dump(_t53g_mut, _t53g_f)
-        with pytest.raises(ValueError) as _t53g_e2_info:
-            optimize_full_circuit_budget(
-                _t53g_mut_path, dict(_t53g_spec), grid_points_per_theta=_t53g_gp)
-        _t53g_e2 = _t53g_e2_info.value
-        assert "stage1_out" in str(_t53g_e2) and "KVL" in str(_t53g_e2), \
-            f"after가 다른 이유로 실패함(회귀 의심): {_t53g_e2}"
 
 
 def test_s158_propose_device_roles_gap_fill(library_dir):

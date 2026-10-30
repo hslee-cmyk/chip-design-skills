@@ -248,8 +248,3 @@ def test_real_contract_anchor_bin_table(real_lut):
     assert same_bounds(real_lut.slice_map[("pmos", 110)].l_bins.w_bin, (4.2e-7, 5.5e-7))
 
 
-@pytest.mark.lut_realdata
-def test_old_set_contract_anchor_bin_table(old_lut):
-    """옛 12-L 세트(계약 1.4 r4 실측 표, 그대로 로드됨): 모든 슬라이스 anchor_bin = (0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 5, 5)."""
-    for key, sl in old_lut.slice_map.items():
-        assert sl.l_bins.anchor_bin == (0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 5, 5), key

@@ -67,7 +67,7 @@ PDK_ROOT = r"C:\pdk\sky130_fd_pr"          # sparse-checkout으로 받은 위치
 TLEF_PATH = r"C:\pdk\sky130_fd_sc_hd\tech\sky130_fd_sc_hd.tlef"   # MANUFACTURINGGRID 출처
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOD_SPICE = os.path.join(PDK_ROOT, "models", "parameters", "lod.spice")
-EXISTING_LUT = os.path.join(OUTPUT_DIR, "sky130_nfet_pfet_lut_sample.npz")   # candidates의 '기존 앵커' 출처
+LUT_LOCATION_JSON = os.path.join(OUTPUT_DIR, "lut_v2_location.json")   # candidates의 '기존 앵커' 출처 = 이 선언이 고정한 기준 LUT(O-180)
 L_GRID_JSON = os.path.join(OUTPUT_DIR, "sky130_lut_L_grid.json")   # 기본 L 입력(사용자 승인 목록, 출처는 파일 안)
 
 # ---------------------------------------------------------------------------
@@ -564,6 +564,10 @@ def candidates(a):
     grid = manufacturing_grid_um(a.tlef)
     devices = a.devices.split(",")
     vs_arr = vs_axis(a.vs_max)
+    if a.existing_npz is None:   # 기본 = 위치 선언(lut_v2_location.json)의 기준 LUT -- 엔진의 resolve_lut_location 만 쓴다
+        sys.path.insert(0, os.path.dirname(OUTPUT_DIR))
+        from gmid_engine.lut import resolve_lut_location
+        a.existing_npz = resolve_lut_location(LUT_LOCATION_JSON, os.environ).cap_npz_path
     old = np.load(a.existing_npz)
     existing = sorted({round(grid_key(float(x) * 1e6, grid) * grid, 9) for x in old["L"]})
     lmins, per_dev = set(), {}
@@ -1173,7 +1177,7 @@ def main(argv=None):
     dg.add_argument("--tol-v", type=float, help="VGS 환산 점프 최댓값이 이 값(V, tol_V)을 넘는 경계를 불연속으로")
     c.add_argument("--work", required=True)
     c.add_argument("--out", required=True)
-    c.add_argument("--existing-npz", default=EXISTING_LUT)
+    c.add_argument("--existing-npz", default=None, help="'기존 앵커' L 의 출처 npz (기본 = lut_v2_location.json 의 cap_npz)")
     c.add_argument("--compare-json", default=L_GRID_JSON, help="후보·중점을 대조할 L 목록 파일(기본 승인 목록)")
     c.add_argument("--devices", default="nfet_01v8,pfet_01v8")
     c.add_argument("--vs-max", type=float, default=None)

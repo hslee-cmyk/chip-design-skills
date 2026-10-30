@@ -375,28 +375,6 @@ def test_real_load(real_lut, real_slice_files, raw_cap, raw_slice):
 
 
 @pytest.mark.lut_realdata
-def test_old_set_load_slice_id_match(old_lut, old_slice_files, old_raw_cap, old_raw_slice):
-    """옛 12-L 세트(w_ref_m 기록 없음 -- 1.4 (2) slice_id_match): 계약 1.4 실측 nmos·pmos 모두 w_key 1000, 이웃 차 0.88·1.25."""
-    assert len(old_lut.slice_map) == len(old_slice_files) == 32
-    for kind, suf in (("nmos", "_n"), ("pmos", "_p")):
-        keys = [(k, wk) for (k, wk) in old_lut.slice_map if k == kind]
-        best, dw, near, second = _independent_width_choice(old_raw_cap, old_raw_slice, keys, suf)
-        assert best == 1000
-        cap = old_lut.cap_map[kind]
-        b = dict(cap.basis)
-        assert b["method"] == "slice_id_match" and b["w_key"] == best
-        assert rel_close(b["max_rel_diff"], dw, 1e-9)
-        assert dw < 1e-6
-        # [r2] sep = min over s ≠ w of max |ID_s − ID_w| / |ID_w| (분모 = 고른 슬라이스). 계약 실측 0.88(nmos)·1.25(pmos)
-        assert rel_close(b["nearest_other_rel_diff"], near, 1e-12), (kind, b, near, second)
-        assert rel_close(near, {"nmos": 0.8845524, "pmos": 1.2508113}[kind], 1e-6)
-        assert dw < b["nearest_other_rel_diff"] / 2
-        assert rel_close(cap.w_ref_m, old_lut.slice_map[(kind, best)].w_m, 1e-12)
-        assert cap.w_key == 1000                                            # [r6] 폭 키
-        assert cap.l_bins == old_lut.slice_map[(kind, 1000)].l_bins
-
-
-@pytest.mark.lut_realdata
 def test_real_hermite_fields_all_slices(real_lut, real_slice_files, raw_slice):
     """[r5] 모든 실 슬라이스의 vds_slope_ok·fc_ok_vgs·fc_ok_vds·hermite_fc = npz 독립 FC 계산.
     [r6] LUT v2(18 L·VS 10)의 칸 수는 독립 계산이 정한다(옛 12-L 실측 276360·276480 은 old_lut test)."""
@@ -406,14 +384,6 @@ def test_real_hermite_fields_all_slices(real_lut, real_slice_files, raw_slice):
         _check_hermite_fields(sl, raw_slice(kind, wk))
         seen.add(tuple(sl.hermite_fc))
     print("LUT v2 hermite_fc 종류: %r" % (sorted(seen),))
-
-
-@pytest.mark.lut_realdata
-def test_old_set_hermite_fields(old_lut, old_slice_files, old_raw_slice):
-    """옛 12-L 세트: 계약 1.4 [r5 실측] 모든 슬라이스 hermite_fc = (("VDS", 276360, 0), ("VGS", 276480, 0)) [r7: + ("VS", 0, 0) -- GMBS 열 없음]."""
-    for kind, _, _, wk, _ in old_slice_files[:3]:
-        _check_hermite_fields(old_lut.slice_map[(kind, wk)], old_raw_slice(kind, wk))
-    assert {tuple(sl.hermite_fc) for sl in old_lut.slice_map.values()} == {(("VDS", 276360, 0), ("VGS", 276480, 0), ("VS", 0, 0))}
 
 
 # ---------------------------------------------------------------------------

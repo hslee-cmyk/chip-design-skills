@@ -1,5 +1,7 @@
 # interface card: 20261021-it2b-kernel-window
 
+> **[상태 표지 2026-10-29, integ 판 2026-10-31] 완료 이력** -- IT-2b 판정 PASS(`integ/it12:.ai/verification/20261021-it2b-kernel-window.json`, code `431d2e7b`), 이 판이 판정본이다(integ/it12). 이 card 산출 가운데 `node.dc_output_structure`(와 그 writer)는 현행 IT-2c가 지우고(계획 v6.38.4 N6.6 범위 6·N6.35 E-09, O-109 D4), 입력 창 측정 되풀이 경로(`k_max`·`unmeasured`/`unsettled`)는 card WB-1 범위 3a가 KVL 순서 창으로 다시 쓴다(N6.35 E-13) -- 재작성 범위 기록이며 보존 근거가 아니다(원칙 8). 본문은 기록이며 덧대지 않는다(O-169).
+
 > **재동결 (design 41 v1.12.10, 계획 v6.33, base 2a4ab829)** -- 2026-10-22, 사용자 결정 O-98·O-100·O-101·O-103·O-104. 줄 인용 `41:n` = v1.12.10 줄(v1.12.8과 줄 같음). S4 갈래 = **(S4-나) 확정**(IT-2b~IT-2d 공통 -- spec card '의도'). 바뀐 것: `Window` 칸 다섯, `_helpers_dc_solve` 행 IT-2d로, `input_status` 어휘에서 `op_mismatch` 뺌, T-D 위치·내용, L12 (a)(e) test 기대, 판정 측정 I-5·분류표 대조.
 >
 > (옛 표시) **재동결 (design 41 v1.12.8, 계획 v6.31, base 0c048327)** -- 2026-10-22. 줄 인용 `41:n` = v1.12.8 줄(v1.12.3 대비 735행 이상 +1). 계약·test 목록 내용은 그대로이고 줄 번호와 test 위치 한 칸만 고쳤다.
@@ -49,3 +51,7 @@ red 예상 목록 = 엔진 동작·엔진 트리 구조를 보는 test(green 유
 I-1, I-2 G1·G2·G3·G6(소비자 미배선 상태 기록)·G7, I-6, I-7 회로 이름 0. (I-n 정의 = 공통 문서 interface 측정표.) I-5(θ 프레임 W4 창·FD 스텝 9회로 비트 동일)는 이 card에 적용하지 않는다 -- 뿌리 `lo`·`hi`, θ y 사상, `fd_jacobian` y 스텝은 동작 변경 4.7-8 (8)(41:817)이라 변화표 원인 칸 (8)로 적는다.
 
 - 출력 구조 분류표 대조(41:724, 감사 몫 -- test 작성 주체 몫 아님): 13회로 출력 15개 가운데 엔진 값이 있는 12출력은 `node.dc_output_structure`를 승인된 표(`C:/Users/HSLEE/Documents/Todoc/fpga/wt/_drafts/evidence/2026-10-21/de1_output_structure_13.md` §2 41-57행 '새 분류', 사용자 결정 O-66 (1) -- `wt/_drafts/user_decisions.md:687`)와 대조하고, 쓰기 계획이 정지하는 3출력(cnr_ota VOP·VON `dc_resistor_cycle`, erfc_ota out `mos_zero_current_structural`)은 정지 사유가 표 §0과 같은지 대조해 변화표에 출력별로 적는다. 불일치(값 다름·사유 다름·새 정지)면 구조 규칙을 고치기 전에 멈추고 보고, 병합 전에 W3 목표 선언(CI-15)·F 선언·코퍼스가 바뀌면 표를 다시 재고 승인받은 뒤 병합.
+
+## 변경 이력
+
+- 2026-10-31 `Merge master into integ/it12`: master `cards/revise-1029`의 상태 표지를 integ 판에 맞게 고쳐 더함('master 미병합·판정 전 동결본' 구절은 master 사본에만 해당해 뺌) -- 본문 불변(integ 재동결 판).

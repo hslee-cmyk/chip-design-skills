@@ -439,8 +439,8 @@ Worked example(Folded Cascode 등): `stick-diagram-euler-layout.md` §6. 이 절
 - `references/circuit-pattern-intents.md` — 회로 해석(소자 역할·의도된 영역) 때 쓰는 패턴 카탈로그.
   이름이 아니라 연결 서명으로 찾고, 해석은 연결·원문만으로 한다(topology 메타데이터는 근거 아님). 첫 항목
   P-1 gate 공유 직렬 적층(stacked diode / Sooch 셀 / self-cascode -- source 쪽 소자 triode 의도).
-- `references/sky130-worked-example.md` + `assets/sky130_lut_sweep.py` +
-  `assets/sky130_nfet_pfet_lut_sample.npz` — 실리콘 검증 사례(SkyWater sky130 + SPICE 시뮬레이터).
+- `references/sky130-worked-example.md` + `assets/sky130_lut_sweep.py` (LUT 생성기) --
+  실리콘 검증 사례(SkyWater sky130 + SPICE 시뮬레이터). 쓰는 LUT 는 `assets/lut_v2_location.json` 이 고정한 v2 하나뿐이다(O-180, 엔진은 `gmid_engine.lut.resolve_lut_location` 으로만 찾는다).
   LUT 실측 gm/ID 상한(§4), LUT↔SPICE 정규화 함정(§3) 포함.
 
 ## Cross-Skill 참조

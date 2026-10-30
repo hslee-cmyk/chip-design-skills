@@ -186,8 +186,8 @@ gain/GBW/SR 등)을 분리해두면 새 토폴로지를 추가해도 LUT 엔진�
 ### 7.6 실전 사례 — sky130 + SPICE 시뮬레이터로 실제로 끝까지 해본 결과
 
 이 §7 전체를 오픈소스 PDK(SkyWater sky130)와 SPICE 시뮬레이터로 실제 실행해본 기록·재현 스크립트·검증
-결과는 `sky130-worked-example.md` + `assets/sky130_lut_sweep.py` +
-`assets/sky130_nfet_pfet_lut_sample.npz` 참조 — toy 합성 데이터가 아닌 진짜 실리콘 4D LUT 사례.
+결과는 `sky130-worked-example.md` + `assets/sky130_lut_sweep.py` 참조 — toy 합성 데이터가 아닌 진짜 실리콘 LUT 사례.
+쓰는 LUT 는 `assets/lut_v2_location.json` 이 고정한 v2 하나뿐이다(O-180).
 
 ### 7.7 LUT 샘플링 범위 한계가 "물리적 이득 상한"으로 오인될 수 있다 (세션31 사고)
 
@@ -196,11 +196,11 @@ gain/GBW/SR 등)을 분리해두면 새 토폴로지를 추가해도 LUT 엔진�
 LUT 자체의 샘플링 범위 한계인지 헷갈리기 쉽다. 실제로 이 프로젝트에서 110분을 들여서야
 반증된 사례:
 
-**증상**: `two_stage_ota`의 `gain_db>=60` 제약이 toy LUT와 실제 sky130 LUT(`sky130_nfet_pfet_
-lut_sample.npz`) **둘 다에서** 거의 같은 위치(~50~51dB)에서 플래토 — "toy LUT가 부정확해서
+**증상**: `two_stage_ota`의 `gain_db>=60` 제약이 toy LUT와 실제 sky130 LUT(옛 sample LUT, O-180 으로
+삭제) **둘 다에서** 거의 같은 위치(~50~51dB)에서 플래토 — "toy LUT가 부정확해서
 그렇다"고 1차 오판.
 
-**근본원인**: `sky130_nfet_pfet_lut_sample.npz`("sample"이라는 파일명 그대로) 는 L을 **4개
+**근본원인**: 옛 sample LUT(O-180 으로 삭제, "sample"이라는 파일명 그대로)는 L을 **4개
 앵커점**(0.15/0.35/0.5/1.0µm)에서만 실측한 제한된 데이터셋이고, `SemiEmpiricalGmIdLUT`는
 보간만 하지 외삽은 안 하므로 L>1µm은 원천적으로 평가 불가능하다 — "L=1µm에서 이득 벽"은
 sky130 공정의 물리적 한계가 아니라 **이 LUT 파일의 생성 범위 한계**였다. toy LUT가 우연히

@@ -112,21 +112,6 @@ def test_real_cap_vs_axis_limit(real_memo, raw_cap):
         op_point(real_memo, "nmos", 1000, 1e-6, 0.9, 0.9, hi)
 
 
-@pytest.mark.lut_realdata
-def test_old_set_cap_vs_axis_limit_and_model(old_lut):
-    """옛 12-L 세트(4.1 caps '옛 세트 VS 0~0.8 -> vsb > 0.8 실패'): CGS·CGB 열 없음 -> "cgg_minus_cgd_at_gs", cdd·css None,
-    vsb 0.9 는 용량 실패·DC 성공."""
-    m = new_memo(old_lut, 64)
-    op_point(m, "nmos", 1000, 1e-6, 0.9, 0.9, 0.9)
-    with pytest.raises(SealViolationError) as ei:
-        caps(m, "nmos", 1e-6, 0.9, 0.9, 0.9, 1e-6)
-    det = detail_of(ei.value)
-    assert det["table"] == "cap" and det["axis"] == "VS" and det["hi"] == 0.8
-    c = caps(m, "nmos", 1e-6, 0.9, 0.9, 0.4, 2e-6)
-    assert c.model == "cgg_minus_cgd_at_gs" and c.cgb == 0.0 and c.cdd is None and c.css is None
-    assert rel_close(c.cgs, c.cgg - c.cgd, 1e-12)
-
-
 # ---------------------------------------------------------------------------
 # [r6] cdd·css 필드, 부호 보존 (toy)
 # ---------------------------------------------------------------------------

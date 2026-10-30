@@ -657,7 +657,7 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         `SID_1F`는 1Hz 기준·`W_ref`에서 측정된 값 — `W_ref/W_target`로 스케일링, 1/f
         특성이므로 최종적으로 `/freq`).
 
-        ⚠️ `SID_1F`가 없는 LUT(이 프로젝트의 toy LUT/`sky130_nfet_pfet_lut_sample.npz` 전부
+        ⚠️ `SID_1F`가 없는 LUT(이 프로젝트의 toy LUT 전부
         해당 — 아직 `.noise` 해석을 포함한 재스윕이 안 됨, do.md 배치 7-3g "검토 필요" 참고)
         에서 호출하면 즉시 `ValueError`를 낸다 — 데이터가 없다고 조용히 0을 반환하지 않는다
         (§1.5 원칙)."""
@@ -4787,7 +4787,7 @@ def lut_conditions_from_npz(npz_data) -> dict:
     가정하지 않고** `recorded=False`로 그 사실 자체를 돌려준다(§3.2 P1).
 
     `sky130_lut_sweep.py`는 2026-09-08부터 `corner`/`temp_c`를 함께 저장한다. 그 이전에
-    만들어진 npz(예: 저장소의 `sky130_nfet_pfet_lut_sample.npz`)에는 기록이 없다 -- 생성기
+    만들어진 npz(삭제된 옛 sample LUT 등)에는 기록이 없다 -- 생성기
     코드상 tt/27C인 것은 알지만, **파일이 스스로 말하지 않는 값을 엔진이 대신 지어내지는
     않는다**. 재생성하면 기록된다."""
     files = set(getattr(npz_data, "files", []) or [])

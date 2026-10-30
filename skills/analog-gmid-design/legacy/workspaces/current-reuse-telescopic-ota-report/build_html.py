@@ -162,7 +162,7 @@ BODY_HEAD = r"""
   <footer>
     Generated with the <code>analog-gmid-design</code> skill (chip-design-skills repo). Sizing:
     <code>sizing_recipe.py</code>'s <code>SemiEmpiricalGmIdLUT</code> loaded from
-    <code>sky130_nfet_pfet_lut_sample.npz</code> (W_ref=5&micro;m). Stick diagram:
+    the characterized sky130 LUT (W_ref=5&micro;m; the old sample LUT file was removed, O-180). Stick diagram:
     <code>stick_diagram.py</code>'s <code>build_stick_diagram()</code>/<code>check_box_shape()</code>/
     <code>find_hub_merge_candidates()</code>/<code>find_matching_candidates()</code>/
     <code>check_mirror_symmetry()</code>/<code>search_shared_finger_w()</code>/

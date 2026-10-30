@@ -6,6 +6,8 @@ plan_version: 5.19
 
 # gain-budget-gmid-sizing -- 10-test-separation Design Document
 
+> **[폐기 표지 2026-10-29] 폐기된 설계 -- 현행 절차 아님.** 이 문서는 옛 Phase 1 test 분리(인라인 self-test 이관·TS0~TS6·IC 계약 xfail) 설계다. 계획 N6.1 '옛 Phase 처리' 1행이 '폐기 -- 옛 test는 `legacy/tests/`에 동결했고 LT-1에서 삭제(tag `legacy-final`, DEC-99)'이고, N3.11은 TS0~TS6을 폐기로 적는다. 현행 test 체계는 N3.11(새 엔진 `gmid_engine/tests/`; IC1~IC11 강제 test는 담당 패키지 test 폴더에 새 API로 -- N4.1, TS7 = 담당 단위까지 xfail)이다. 이 문서가 기대는 spec card·auditor·DEC-40 승인 절차도 DEC-86으로 폐기했다. 현행 절차는 계획 N6.3(가벼운 절차, DEC-86: 코드 작성 주체 ≠ test·기대값 작성 주체(WP-13), 깨진 test·기준 약화는 숨기지 않고 보고, 변경당 커밋 1, 매 변경 뒤 새 test 체계 `gmid_engine/tests/` 전체 실행)이다. 본문의 `A`(`skills/analog-gmid-design/assets`) 아래 옛 엔진·test 경로는 `skills/analog-gmid-design/legacy/`로 옮겨졌고(`60727b06`), card LT-1(DEC-99)이 `legacy/`를 지운 뒤에는 tag `legacy-final`에만 남는다. 본문은 기록이며 고치지 않는다(DEC-86 '지우지 않고 폐기 표시'; 표지 전 원문 = `git show 052465ed:docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md`).
+
 > **Summary**: Phase 1 설계. 소스 안의 인라인 self-test 블록을 `tests/`의 pytest로 옮기고(DEC-46), print·stdout 기준선 판정을 assert로 바꾸고, IC1~IC11 계약 test를 xfail로 선언한 뒤 IC3·IC5를 활성화한다. 추출 도구 `tools/migrate/extract_selftest.py`(TS1), Test 16 fixture 정정(TS0, U-01), print 판정 제거(TS3), 기준선 퇴역(TS5), xfail 생성과 표식 대조(TS7, `00-common` CC-3), 섹션→test 분리와 셔플(TS2), IC5 docstring 검사, IC3 필드 완전성·이름 충돌 검사, 사례 caa970b 재생.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (오케스트레이터 -- 작성 agent)

@@ -115,7 +115,7 @@
      `topology-behavior-diagnosis-workflow.md`, `stick-diagram-euler-layout.md`,
      `sky130-worked-example.md`, `consistency-map.md`
    - `assets/report_template.html`, `sizing_recipe.py`, `topology_library.py`,
-     `stick_diagram.py`, `sky130_lut_sweep.py`, `sky130_nfet_pfet_lut_sample.npz`
+     `stick_diagram.py`, `sky130_lut_sweep.py`, `lut_v2_location.json`
 4. Cross-Skill 참조(verilog-a, chip-verification)가 실제로 존재하는 skill인지 확인
 5. **역방향 확인**: SKILL.md에 존재하는 원칙이 consistency-map에 누락되지 않았는지 확인
 6. **이 skill 고유**: consistency-map의 "이 skill 고유 검증 항목"(out-of-scope 오용 탐지)이

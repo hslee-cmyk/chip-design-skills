@@ -6,7 +6,7 @@ gate_change: no
 approval: 20261021-it2-o67-scope
 ---
 
-> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 현행 계획 card IT-2d(계획 v6.38.3 N6.6 범위 2·3, 'IT-2d -- B77'), 재동결 필요.** 이 판의 범위(다듬은 창 `dc_window_refine`·끝 풀이·`refine_front_windows`·`metrics_icm_front`·`IcmPort`의 `tied_ports` 제외)는 계획 v6.34 사용자 결정 O-109 C1('측정 구성 창 = 선형 감도 끝 하나', 다듬은 창·front 전용 블록 없음)과 v6.35 O-115(`tied_ports` 삭제)로 대상이 없어졌다. 현행 IT-2d 범위 = front·보고가 `node.dc_window_cfg`를 읽는 배선, `ls_swing` 입력 창 계산 삭제·`metrics_aux` 배선(V_cm 칸 READS), B77 결측 판정 영역 분리·metric 영역 칸 relabel(v6.34.2 O-111·O-112)뿐이다. 아래 본문은 기록이며 현행 계획에 맞춰 덧대지 않는다(O-169). 구현 상태: 미구현.
+> **[대체 표지 2026-10-29 -- 검증 10 병합 가능 판정, master `07964dfe`] 대체됨 -- 현행 계획 card IT-2d(계획 v6.38.4 N6.6 범위 2·3, 'IT-2d -- B77'), 재동결 필요.** 이 판의 범위(다듬은 창 `dc_window_refine`·끝 풀이·`refine_front_windows`·`metrics_icm_front`·`IcmPort`의 `tied_ports` 제외)는 계획 v6.34 사용자 결정 O-109 C1('측정 구성 창 = 선형 감도 끝 하나', 다듬은 창·front 전용 블록 없음)과 v6.35 O-115(`tied_ports` 삭제)로 대상이 없어졌다. 현행 IT-2d 범위 = front·보고가 `node.dc_window_cfg`를 읽는 배선, `ls_swing` 입력 창 계산 삭제·`metrics_aux` 배선(V_cm 칸 READS), B77 결측 판정 영역 분리·metric 영역 칸 relabel(v6.34.2 O-111·O-112)뿐이다(계획 v6.38.4 N6.6 '순서' 문단 'IT-2d 범위 = …'). 재동결 착수 = IT-2c 재동결 뒤, design v1.15.x 승인 뒤(master design 40·41 = v1.14.2, v1.15.x는 미승인). 재동결 때 지킬 것: 본문 `IcmWindow`의 `model_error_ref` 칸 등 e_m 칸은 옮기지 않는다(O-178), 코퍼스는 library 13·held-out 0이고 그동안 A' 판정은 정지(O-181). 아래 본문은 기록이며 현행 계획에 맞춰 덧대지 않는다(O-169). 구현 상태: 미구현.
 
 ## 의도
 
@@ -101,3 +101,4 @@ design 41 예시(41:780): `icm_window_metrics((IcmPort("vin_n", 0.90, 0.35, 1.20
 ## 변경 이력
 
 - 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20261021-it2d-refine-front.spec.md`.
+- 2026-10-29 `cards/revise-1029`: 대체 표지 문언 갱신(v6.38.4 출처 표기, 재동결 착수 조건·O-178·O-181 지킬 것, '검증 대기' → 병합 표기) -- 본문 불변, 고치기 전 원문 = `git show 052465ed:docs/02-design/specs/20261021-it2d-refine-front.spec.md`.

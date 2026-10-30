@@ -182,17 +182,8 @@ def _load_pilot_sizing() -> dict:
 # --------------------------------------------------------------------------------------
 def test_dead_probe_files_are_absent():
     # oracle (a): 삭제 목록은 spec card 계약 1이 이름을 댄 세 경로 그대로다.
+    # (O-180: probe 수 인벤토리 단언은 sample LUT 를 읽던 probe 를 지우면서 성립하지 않아 뺐다. 세 경로 부재 단언만 유지.)
     assert_paths_absent(_REPO_ROOT, _DELETED_PROBES)
-    # 공허한 판정 방지(계약 4): 지운 셋과 승격분 말고는 그대로 있다.
-    #   남는 수 = 실측 42 - DF-21 삭제 3 - 승격 완료분. 승격 완료분은 이름 규칙으로 세고(승격한 수를
-    #   여기 박지 않는다), 승격본이 있으면 원본은 트리 어디에도 없어야 한다(아래 배타 판정).
-    originals = probe_names_under(_TESTS_DIR)
-    promoted = promoted_probe_names(_UNIT_DIR)
-    expected = _PROBE_TOTAL_BEFORE - len(_DELETED_PROBES) - len(promoted)
-    assert len(originals) == expected, (
-        f"남은 probe 수 {len(originals)} != 42 - {len(_DELETED_PROBES)} - 승격 {len(promoted)} = {expected}: "
-        f"{sorted(originals)}")
-    assert_promotion_is_exclusive(originals, promoted)
 
 
 def test_path_absence_check_rejects_surviving_file(tmp_path):

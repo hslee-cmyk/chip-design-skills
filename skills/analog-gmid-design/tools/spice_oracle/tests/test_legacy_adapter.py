@@ -1,11 +1,13 @@
 """legacy_adapter.py -- 기본 실행: 커밋된 smoke 산출물 대조(스키마, finger 규칙, 넷리스트 재생성 일치).
---run-legacy: C12(같은 dump 두 번 변환 = 같은 입력, 엔진 새 실행 = --from-dump 결과) -- 옛 엔진 ~260 s.
+(O-180: 옛 엔진을 새로 돌리는 C12 test 는 sample LUT 삭제로 옛 하네스가 실행되지 않아 지웠다.)
 
 smoke 대조의 기대값은 smoke 입력 JSON 자체(finger_w, n_fingers, W)와 커밋된 넷리스트 파일이다.
 """
 import json
 import math
-
+import os
+import sys
+from pathlib import Path
 
 import jsonschema
 import pytest
@@ -16,7 +18,11 @@ SMOKE = ORACLE_DIR / "smoke"
 SCHEMA = json.loads((ORACLE_DIR / "oracle_input.schema.json").read_text(encoding="utf-8"))
 VARIANTS = ["sizing.engine", "layout.engine", "layout.topology"]
 CIRCUIT = "current_reuse_telescopic_ota"
-LUT = SKILL_DIR / "assets" / "sky130_nfet_pfet_lut_sample.npz"
+sys.path.insert(0, str(SKILL_DIR))
+from gmid_engine.lut import resolve_lut_location  # noqa: E402  (엔진 밖 사실만: 오라클은 LUT 의 corner·temp_c 메타만 읽는다)
+
+# LUT = 위치 선언(assets/lut_v2_location.json)이 고정한 기준 LUT 하나(O-180). 오라클 넷리스트는 npz 의 corner·temp_c 만 쓴다.
+LUT = Path(resolve_lut_location(str(SKILL_DIR / "assets" / "lut_v2_location.json"), os.environ).cap_npz_path)
 
 
 def smoke_input(v):
@@ -92,55 +98,3 @@ def test_smoke_loop_netlist_regenerates_identically(tmp_path, v, bias):
 
 
 # ------------------------------------------------------------------ C12 (옛 엔진 새 실행)
-def _strip(inp):
-    x = json.loads(json.dumps(inp))
-    x.pop("provenance", None)
-    return x
-
-
-def _adapter(args, cwd):
-    p = _run([ORACLE_DIR / "legacy_adapter.py", *args], cwd)
-    assert p.returncode == 0, (p.stdout + p.stderr)[-3000:]
-    return p
-
-
-@pytest.fixture(scope="module")
-def fresh(tmp_path_factory):
-    d = tmp_path_factory.mktemp("legacy_fresh")
-    _adapter([CIRCUIT, d, "--w-source", "sizing", "--isrc", "engine"], d)
-    dump = d / f"{CIRCUIT}.legacy_dump.json"
-    assert dump.exists(), sorted(x.name for x in d.iterdir())
-    return d, dump
-
-
-@pytest.mark.legacy_slow
-@pytest.mark.parametrize("ws,isrc", [("sizing", "engine"), ("layout", "engine"), ("layout", "topology")])
-def test_c12_same_dump_twice_same_input(fresh, tmp_path, ws, isrc):
-    _, dump = fresh
-    outs = []
-    for k in ("a", "b"):
-        o = tmp_path / k
-        o.mkdir()
-        _adapter([CIRCUIT, o, "--from-dump", dump, "--w-source", ws, "--isrc", isrc], o)
-        outs.append(json.loads((o / f"{CIRCUIT}.{ws}.{isrc}.oracle_input.json").read_text(encoding="utf-8")))
-    assert _strip(outs[0]) == _strip(outs[1])
-
-
-@pytest.mark.legacy_slow
-def test_c12_fresh_engine_equals_from_dump(fresh, tmp_path):
-    d, dump = fresh
-    a = json.loads((d / f"{CIRCUIT}.sizing.engine.oracle_input.json").read_text(encoding="utf-8"))
-    _adapter([CIRCUIT, tmp_path, "--from-dump", dump, "--w-source", "sizing", "--isrc", "engine"], tmp_path)
-    b = json.loads((tmp_path / f"{CIRCUIT}.sizing.engine.oracle_input.json").read_text(encoding="utf-8"))
-    assert _strip(a) == _strip(b)
-
-
-@pytest.mark.legacy_slow
-def test_c12_fresh_engine_equals_committed_smoke_input(fresh):
-    """옛 엔진이 결정론적이면 새 실행 결과 = 커밋된 smoke 입력(provenance, LUT 절대 경로 제외)."""
-    d, _ = fresh
-    a = _strip(json.loads((d / f"{CIRCUIT}.sizing.engine.oracle_input.json").read_text(encoding="utf-8")))
-    b = _strip(smoke_input("sizing.engine"))
-    for x in (a, b):
-        x["process"].pop("lut_npz", None)
-    assert a == b
