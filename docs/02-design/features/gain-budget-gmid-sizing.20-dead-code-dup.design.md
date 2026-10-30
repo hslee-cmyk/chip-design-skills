@@ -1,5 +1,7 @@
 # gain-budget-gmid-sizing -- Phase 2 `20-dead-code-dup` design
 
+> **[폐기 표지 2026-10-29] 폐기된 설계 -- 현행 절차 아님.** 이 문서는 옛 Phase 2 죽은 코드·DUP 정리(TS6 probe 정리·레지스트리 D 처리·DUP 통합·DF-23 목록) 설계다. 계획 N6.1 '옛 Phase 처리' 2행이 '폐기 -- 새 엔진은 모듈 지도(N3.10)로 처음부터 개념당 정본 하나'이고, DF 표는 v6.38.4 백로그 재감사로 계획에서 지웠다(같은 표 4행). 이 문서가 기대는 spec card·auditor·DEC-40 승인 절차도 DEC-86으로 폐기했다. 현행 절차는 계획 N6.3(가벼운 절차, DEC-86: 코드 작성 주체 ≠ test·기대값 작성 주체(WP-13), 깨진 test·기준 약화는 숨기지 않고 보고, 변경당 커밋 1, 매 변경 뒤 새 test 체계 `gmid_engine/tests/` 전체 실행)이다. 본문의 `A`(`skills/analog-gmid-design/assets`) 아래 옛 엔진·test 경로는 `skills/analog-gmid-design/legacy/`로 옮겨졌고(`60727b06`), card LT-1(DEC-99)이 `legacy/`를 지운 뒤에는 tag `legacy-final`에만 남는다. 옮긴 probe·`derive_achievable_bounds.py` 가운데 sample LUT를 읽는 것은 O-180의 삭제 대상이다 -- LUT 정리(브랜치 `data/lut-v2-only`) 병합 전에는 `legacy/` 아래 있고, 병합 뒤에는 git 이력에만 있다. 본문은 기록이며 고치지 않는다(DEC-86 '지우지 않고 폐기 표시'; 표지 전 원문 = `git show 052465ed:docs/02-design/features/gain-budget-gmid-sizing.20-dead-code-dup.design.md`).
+
 버전 v1.2 (2026-09-23. v1.2에서 §5.1 복제 제거·승격 경계(사용자 결정)와 §8 P2 행 판정 유형·oracle 정정 -- P2 실측 반영. v1.1은 승인됨(`20260923-20-dead-code-dup-design`). v1.1에서 §3 NEW-TOPO·§6.4 일반성 기준 추가 -- 사용자 지시 "현재에 있는 회로만으로 삭제여부를 결정하지 말고, 향후 추가되는 모든 topology를 커버할 수 있도록 설계되어야 해"). 정본 인용 규칙은 계획 N9.4 -- 이 문서는 계획서와 `00-common`의 정의를 재서술하지 않고 절 번호로 인용한다.
 읽은 계획 절(N9.1 표): N3.10, N3.11 TS6, N6.1·N6.2 Phase 2, N6.3, WP-14, DF-21·DF-23(DF-29~DF-34), U-02, N9.2·N9.4.
 

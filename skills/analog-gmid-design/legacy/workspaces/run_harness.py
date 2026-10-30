@@ -46,7 +46,7 @@ from stick_diagram import save_instance_json, run_full_circuit_audit_from_topolo
 from design_report import assemble_report_data, save_html_report
 
 LIBRARY_DIR = os.path.join(ASSETS_DIR, "library")
-LUTFILE = os.path.join(ASSETS_DIR, "sky130_nfet_pfet_lut_sample.npz")
+LUTFILE = None   # O-180: 옛 sample LUT 삭제 -- 이 legacy 하네스는 더 이상 실행되지 않는다(LUT = lut_v2_location.json)
 # sky130 tech LEF(sky130hs.tlef, OpenROAD-Project 배포)의 "MANUFACTURINGGRID 0.005 ;"
 # 원문으로 확인된 실제 제조그리드(um 단위) -- 이 값 자체는 추측이 아니라 웹에서 원문
 # 대조로 확보함(.ai/context.md 세션31 참고). 레이아웃에서 임의 소수점 L을 구현할 수
@@ -64,6 +64,7 @@ FLOORPLAN_MAX_ASPECT_RATIO = 1.5
 FLOORPLAN_MIN_PACKING_DENSITY = 0.5
 MAX_ITERS = 6
 
+raise RuntimeError("legacy run_harness: sample LUT removed (O-180). LUT v2 = gmid_engine.lut.resolve_lut_location only.")
 _d = np.load(LUTFILE)
 _W_REF = 5e-6
 _NMOS = SemiEmpiricalGmIdLUT(_d["L"], _d["VGS"], _d["VDS"], _d["VS"], _d["ID_n"], _d["GM_n"],

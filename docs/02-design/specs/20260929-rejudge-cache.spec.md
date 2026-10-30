@@ -5,6 +5,9 @@ evidence_type: red-green
 gate_change: yes
 approval: 20260929-rejudge-cache
 ---
+
+> **[상태 표지 2026-10-29] 실행·병합 완료 기록 -- 현행 규칙·절차 아님.** 판정 기록 `.ai/verification/20260929-rejudge-cache.json`(FAIL 0)이 있고 이 card의 커밋은 master에 병합됐다. 옛 계획 Phase 0.5(역할 분리 인프라) card다. 역할 분리 gate·auditor는 DEC-86으로 꺼졌다(계획 N6.1 '옛 Phase 처리' 0.5행; N3.12 역할 분리·N4.2 auditor V1~V10·N4.3 게이트 거부 증명은 폐기 절). 본문의 게이트 동작(EL1~EL4·V1~V10)·§13.4 재설치·승인(DEC-40·R1) 문장은 현행 절차가 아니다 -- 현행 완료 조건은 계획 N6.3(가벼운 절차)이다. `tools/gates/**`·`hooks/role_*`·`.githooks/`에 남은 파일은 꺼진 잔여물이다(DEC-86). 본문은 기록이며 덧대지 않는다(O-169).
+
 ## 의도
 
 세션 시작 hook(`hooks/role_session_start.py`)이 2026-09-29 실측으로 348초 걸린다(cProfile: 347초가 `integrity.row3b`, accept-log 86구간
@@ -79,3 +82,7 @@ design 05 §18: ⑤ 뒤 게이트 변경은 spec card로 한다.
 ## 결정 필요 항목
 
 없음(사용자 결정 2026-09-29 "응, 캐시로 진행해", 승인 기록 `20260929-rejudge-cache`).
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20260929-rejudge-cache.spec.md`.

@@ -514,8 +514,11 @@ from pathlib import Path  # noqa: E402
 import numpy as np  # noqa: E402
 
 _SKILL = Path(__file__).resolve().parents[3]
-REAL_MANIFEST = os.environ.get("GMID_LUT_MANIFEST", r"C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\engine\lut_slices\manifest.json")
-REAL_CAP = os.environ.get("GMID_LUT_CAP_NPZ", str(_SKILL / "assets" / "sky130_nfet_pfet_lut_sample.npz"))
+from gmid_engine.lut import resolve_lut_location  # noqa: E402
+
+# LUT 는 위치 선언(assets/lut_v2_location.json, lut CONTRACT 1.8) 하나뿐이다(O-180). 다른 LUT 를 가리키는 환경변수 덮어쓰기는 없다.
+def _real_loc():
+    return resolve_lut_location(str(_SKILL / "assets" / "lut_v2_location.json"), os.environ)
 REAL_TLEF = os.environ.get("GMID_PDK_TLEF", r"C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef")
 REAL_KEYS = (600, 1000)          # 실행 시간(슬라이스당 tol_V 표) 때문에 4.18 의 두 후보 키만 PDK 폭 키로 준다
 # 파일럿 소자(4.18; ID·gm/ID·VDS·VSB 는 tools/spice_oracle/smoke 의 sizing oracle_input, W_m = DM T1 표의 참고 W)
@@ -601,8 +604,9 @@ def test_m3a_regression_real_lut():
     from gmid_engine.layout import LayoutPdk
     from gmid_engine.lut import load_lut_set
     grid = _grid(_need(REAL_TLEF, "PDK tlef"))
-    manifest = _need(REAL_MANIFEST, "폭 슬라이스 manifest")
-    lut = load_lut_set(manifest, _need(REAL_CAP, "기준 LUT"), _real_spec(manifest, grid))
+    loc = _real_loc()
+    manifest = _need(loc.manifest_path, "폭 슬라이스 manifest")
+    lut = load_lut_set(manifest, _need(loc.cap_npz_path, "기준 LUT"), _real_spec(manifest, grid))
     full = toy_pdk(lut)
     pdk = LayoutPdk(full.manufacturing_grid_m, (("nmos", REAL_KEYS),), 0.0, 0.0, 0.0, 0.0, 0.0, full.rule_ids, lut.fp)
     ds = [dev(n, "s_" + n, "d_" + n, None, ID_A=ID, L=L, gm_id=gm, vds=vds, vsb=vsb, W=W) for n, L, ID, gm, vds, vsb, W in PILOT]

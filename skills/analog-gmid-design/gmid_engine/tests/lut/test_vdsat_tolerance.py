@@ -351,13 +351,3 @@ def test_real_contract_at_example(real_lut, raw_slice, raw_mid):
     assert v >= v0                                                   # 5.2: 외부 값은 셀 값과의 최댓값에만 들어간다
 
 
-@pytest.mark.lut_realdata
-def test_nocol_cap_table_origin(nocol_lut, raw_cap):
-    """결정 B 이전 v2 슬라이스: w_key 1000 은 기준 LUT 열("cap_table", 축·bin 지도 = 기준 LUT 의 것, on_mask = 기준 LUT ID·GM),
-    셀 = 기준 LUT VDSAT 의 독립 구현."""
-    t = tol_vdsat_table(new_memo(nocol_lut), "nmos", 1000, ())
-    assert t.origin == "cap_table"
-    ab = tuple(nocol_lut.cap_map["nmos"].l_bins.anchor_bin)
-    grids = tuple(tuple(float(x) for x in raw_cap[a]) for a in ("L", "VGS", "VDS", "VS"))
-    on = (raw_cap["ID_n"] > 0) & (raw_cap["GM_n"] > 0)
-    _check_cells(t, _ref_table(grids, raw_cap["VDSAT_n"], on, ab))

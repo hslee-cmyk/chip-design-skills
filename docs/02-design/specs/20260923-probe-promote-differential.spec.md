@@ -5,6 +5,9 @@ evidence_type: test-only
 gate_change: no
 approval: 20260923-20-dead-code-dup-design
 ---
+
+> **[상태 표지 2026-10-29] 실행·병합 완료 기록 -- 현행 규칙·절차 아님.** 판정 기록 `.ai/verification/20260923-probe-promote-differential.json`(FAIL 0)이 있고 이 card의 커밋은 master에 병합됐다. 옛 계획 Phase 2(죽은 코드·DUP 정리) card이고 Phase 2는 폐기됐다(계획 N6.1 '옛 Phase 처리' 2행 -- 새 엔진은 모듈 지도 N3.10으로 처음부터 개념당 정본 하나). 본문의 spec card·interface card·auditor 판정(V1~V10)·DEC-40 승인·R1 절차는 DEC-86으로 폐기했다(계획 N3.12·N4.2, DEC-40 행) -- 현행 완료 조건은 계획 N6.3이다. 본문의 `A`(`skills/analog-gmid-design/assets`) 아래 옛 엔진·test는 `skills/analog-gmid-design/legacy/`로 옮겨졌고(`60727b06`) 새 test 체계(`gmid_engine/tests/`)에서 돌지 않는다. card LT-1(DEC-99)이 `legacy/`를 지운 뒤에는 tag `legacy-final`에만 남는다. 이 card가 만들거나 옮긴 파일 가운데 `legacy/tests/unit/test_probe_gm_id_monotonicity.py`·`legacy/tests/unit/test_probe_prevention_wiring.py`는 O-180(LUT는 v2 r2 묶음만 남기고 sample LUT를 읽는 legacy test·probe도 지움)의 삭제 대상이다 -- LUT 정리(브랜치 `data/lut-v2-only`) 병합 전에는 `legacy/` 아래 있고, 병합 뒤에는 git 이력에만 있다(LUT 정리와 LT-1 가운데 먼저 병합되는 쪽에서 작업 트리에서 지워진다). 본문의 'C13이 연 `target_kind: decision` 면제'(V4)는 N4.2 폐기로 현행 절차가 아니다. 본문은 기록이며 덧대지 않는다(O-169).
+
 ## 의도
 
 TS6(계획 N3.11), design `20-dead-code-dup` v1.2 §5.1: 승격 후보 중 **엔진과 독립 재구현을 나란히 비교하는 대조형** 2개를 pytest test로
@@ -64,3 +67,7 @@ test-only: 대상 코드 불변, code 커밋·병합 없음.
 실패 -- 이 spec card 계약 1의 파일 이름이 P3a 승격 규칙(`unit/test_probe_*`)과 달랐다(오케스트레이터 spec card 결함). 계약 test 기대는 고치지 않고
 계약 1의 이름을 규칙에 맞춰 개정, 같은 id로 1부터 다시 한다. 1차 test의 본문은 2차 시도 입력으로 쓴다(이름만 바뀜).
 개정 커밋 d0650b7은 bash heredoc 덧붙이기가 이 파일 앞 13줄(머리 블록·의도)을 덮어써 깨졌고, 다음 커밋이 d0650b7^ 판에서 다시 고쳤다.
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20260923-probe-promote-differential.spec.md`.

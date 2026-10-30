@@ -227,7 +227,7 @@ REPORT = {
             "\"A 126uW Current-Reuse Telescopic OTA with Class-AB Output Stage\"",
         "process_note": "Original paper: generic 0.18um CMOS, Cadence ADE, 1.8V supply. This redesign: "
             "SkyWater sky130 (nfet_01v8/pfet_01v8), gm/ID via the analog-gmid-design skill's real "
-            "characterized 4D LUT (sky130_nfet_pfet_lut_sample.npz, W_ref=5um) + sizing_recipe.py + "
+            "characterized 4D LUT (old sample LUT, removed O-180; W_ref=5um) + sizing_recipe.py + "
             "stick_diagram.py + ngspice (sky130_fd_pr models, tt corner). Topology and spec targets "
             "(Table I, Eq.1-6) are taken from the paper verbatim (independently re-transcribed from the PDF "
             "figures before any sizing began); W/L numbers are freshly derived for sky130, not copied from "

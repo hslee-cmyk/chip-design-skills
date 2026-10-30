@@ -1,5 +1,7 @@
 # interface card: 20261021-it2b-kernel-window
 
+> **[상태 표지 2026-10-29] 완료 이력** -- IT-2b 판정 PASS(`integ/it12:.ai/verification/20261021-it2b-kernel-window.json`, code `431d2e7b`), master 미병합. 이 master 사본은 판정 전 동결본이다(판정본 = `integ/it12`: `Window` 칸 다섯, helper 이동 없음, (S4-나) 확정, 동작점 불일치 단언은 card EO-1). 이 card 산출 가운데 `node.dc_output_structure`(와 그 writer)는 현행 IT-2c가 지우고(계획 v6.38.4 N6.6 범위 6·N6.35 E-09, O-109 D4), 입력 창 측정 되풀이 경로(`k_max`·`unmeasured`/`unsettled`)는 card WB-1 범위 3a가 KVL 순서 창으로 다시 쓴다(N6.35 E-13) -- 재작성 범위 기록이며 보존 근거가 아니다(원칙 8). 본문은 기록이며 덧대지 않는다(O-169).
+
 card IT-2b -- 커널 창. test 작성 주체는 소스를 보지 않고 이 문서와 공통 문서 `docs/02-design/specs/20261021-it2-common.md`의 '창 규칙'·'정의 불능 code' 절만 쓴다(DEC-38 -- 본문 코드 없음). 정본 문장 = design 41 v1.12.3(`41:n`). `E/` = `skills/analog-gmid-design/gmid_engine/`. 쓰기 경로 = `E/tests/**`(agent 정의의 옛 `assets/tests/**`가 아니다).
 
 ## 관찰 가능한 계약
@@ -41,3 +43,7 @@ red 예상 목록 = 엔진 동작·엔진 트리 구조를 보는 test(green 유
 ## 판정 측정(audit)
 
 I-1, I-2 G1·G2·G3·G6(소비자 미배선 상태 기록)·G7, I-5 θ 프레임 W4 창·FD 스텝 9회로 비트 동일, I-6, I-7 회로 이름 0. (I-n 정의 = 공통 문서 interface 측정표.)
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20261021-it2b-kernel-window.interface.md`.

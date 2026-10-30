@@ -6,6 +6,9 @@ gate_change: no
 approval: 20261001-b26-backfill-interdig-fix
 approval: 20261001-b26-phase3-cards
 ---
+
+> **[상태 표지 2026-10-29] 실행·병합 완료 기록 -- 현행 규칙·절차 아님.** 판정 기록 `.ai/verification/20261001-b26-backfill-interdig-final-audit.json`(FAIL 0)이 있고 이 card의 커밋은 master에 병합됐다. 옛 계획 Phase 3(모듈 분할) card이고 Phase 3은 폐기됐다(계획 N6.1 '옛 Phase 처리' 3행 -- 새 엔진은 처음부터 패키지로 나뉘고 옛 B26-1은 부품으로 이식). 본문의 spec card·interface card·auditor 판정(V1~V10)·DEC-40 승인·R1 절차는 DEC-86으로 폐기했다(계획 N3.12·N4.2, DEC-40 행) -- 현행 완료 조건은 계획 N6.3이다. 본문의 `A`(`skills/analog-gmid-design/assets`) 아래 옛 엔진·test는 `skills/analog-gmid-design/legacy/`로 옮겨졌고(`60727b06`) 새 test 체계(`gmid_engine/tests/`)에서 돌지 않는다. card LT-1(DEC-99)이 `legacy/`를 지운 뒤에는 tag `legacy-final`에만 남는다. 본문은 기록이며 덧대지 않는다(O-169).
+
 ## 의도
 
 `run_matching_safety_with_finger_growth`(A/sizing_recipe.py, A = `skills/analog-gmid-design/assets`)가 돌려주는 `relaxed_pairs[i]["interdig_ok"]`가 **같은 반환의 `audit`과 어긋나는** 입력이 있다.
@@ -198,3 +201,7 @@ red-green이다. 관찰 가능한 반환값(`relaxed_pairs[i]["interdig_ok"]`)�
 6. 미배선: 새 def 없음.
 7. 기존 계약 test: `A/tests/contracts`에 `interdig_ok`·`relaxed_pairs` 참조 0건(selftest만). V5 없음.
 8. interface card 추출(gate 캐시 `interface_card.py`, `0f23786`): 이 card 사본으로 다시 돌려 추출 심볼을 확인했다(`_drafts/b26pre_revision_log.md` v2 → v3). 착수 키트 모의(승인 기록 커밋 뒤 이 card + `approval:` 줄)에서도 관찰 가능한 계약 4행(`run_matching_safety_with_finger_growth`·`size_transistor`·`GmIdLUT.gm_gds_ratio`·`SemiEmpiricalGmIdLUT.gm_gds_ratio`), 신규 시그니처 0행.
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20261001-b26-backfill-interdig-final-audit.spec.md`.

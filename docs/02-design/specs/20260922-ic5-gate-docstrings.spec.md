@@ -6,6 +6,9 @@ gate_change: no
 activated_ic_case: IC5:
 approval: 20260922-10-test-separation-design
 ---
+
+> **[상태 표지 2026-10-29] 실행·병합 완료 기록 -- 현행 규칙·절차 아님.** 판정 기록 `.ai/verification/20260922-ic5-gate-docstrings.json`(FAIL 0)이 있고 이 card의 커밋은 master에 병합됐다. 옛 계획 Phase 1 test 분리 card이고 Phase 1은 폐기됐다(계획 N6.1 '옛 Phase 처리' 1행; N3.11 'TS0~TS6 폐기'). 본문의 spec card·interface card·auditor 판정(V1~V10)·DEC-40 승인·R1 절차는 DEC-86으로 폐기했다(계획 N3.12·N4.2, DEC-40 행) -- 현행 완료 조건은 계획 N6.3이다. 본문의 `A`(`skills/analog-gmid-design/assets`) 아래 옛 엔진·test는 `skills/analog-gmid-design/legacy/`로 옮겨졌고(`60727b06`) 새 test 체계(`gmid_engine/tests/`)에서 돌지 않는다. card LT-1(DEC-99)이 `legacy/`를 지운 뒤에는 tag `legacy-final`에만 남는다. 현행 계획 N4.1의 IC5 강제 test는 새 엔진 담당 패키지 test 폴더에 새 API로 다시 쓴다(N4.1 머리·N3.11 -- 옛 `contracts/` 폴더는 만들지 않는다). 이 card의 구현은 옛 엔진용이며 IC5 충족 근거가 아니다. 본문은 기록이며 덧대지 않는다(O-169).
+
 ## 의도
 
 IC5(계획 N4.1 '게이트 사각'): 게이트 함수 docstring에 "검사하지 않는 것" 절과 `영역:` 한 줄(DEC-67, 값 규칙은 `00-common` §5 + 개정 C1
@@ -51,3 +54,7 @@ test가 판정기의 거부를 합성 docstring으로 보인다: 절 없음, `�
 ## 결정 필요 항목
 
 없음.
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20260922-ic5-gate-docstrings.spec.md`.

@@ -5,6 +5,9 @@ evidence_type: red-green
 gate_change: no
 approval: 20260923-u02-d-list
 ---
+
+> **[상태 표지 2026-10-29] 실행·병합 완료 기록 -- 현행 규칙·절차 아님.** 판정 기록 `.ai/verification/20260930-registry-grade-fix.json`(FAIL 0)이 있고 이 card의 커밋은 master에 병합됐다. 옛 계획 Phase 2(죽은 코드·DUP 정리) card이고 Phase 2는 폐기됐다(계획 N6.1 '옛 Phase 처리' 2행 -- 새 엔진은 모듈 지도 N3.10으로 처음부터 개념당 정본 하나). 본문의 spec card·interface card·auditor 판정(V1~V10)·DEC-40 승인·R1 절차는 DEC-86으로 폐기했다(계획 N3.12·N4.2, DEC-40 행) -- 현행 완료 조건은 계획 N6.3이다. 본문의 `A`(`skills/analog-gmid-design/assets`) 아래 옛 엔진·test는 `skills/analog-gmid-design/legacy/`로 옮겨졌고(`60727b06`) 새 test 체계(`gmid_engine/tests/`)에서 돌지 않는다. card LT-1(DEC-99)이 `legacy/`를 지운 뒤에는 tag `legacy-final`에만 남는다. 등급표가 있는 레지스트리(`docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`)는 '옛 엔진 부품을 새 엔진으로 가져올 때 보는 표'로 남는다(계획 관련 문서 표). 본문의 도구 `A/tests/tools/reg_check.py`는 지금 `legacy/tests/tools/reg_check.py`에 있다. 본문은 기록이며 덧대지 않는다(O-169).
+
 ## 의도
 
 design `20-dead-code-dup` v1.2 §3 REG·§7·§8 P7·§10 E0: 레지스트리 `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`를 Phase 2 결과에
@@ -99,3 +102,7 @@ red-green: 도구가 base에 없어 계약 6의 test가 base에서 ImportError(r
 비고("`find_diode_stacks`의 판단을 따른다", 그쪽은 Phase 3)와 불일치. 나머지(R-4 정정·삭제 이름 제거·§1 집계·도구·red-green)는 PASS. 계약 5를 §2 전 행으로
 명시하고 같은 id로 1부터 다시 한다. test는 1차 blob을 쓰되 1차 auditor V3 생존 변이 두 분기(§1에 §7 소절 파일 행 없음, §1 D≠0인데 §7 소절 없음)의
 합성 케이스를 더한다.
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20260930-registry-grade-fix.spec.md`.

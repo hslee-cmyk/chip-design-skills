@@ -5,6 +5,9 @@ evidence_type: red-green
 gate_change: no
 approval: 20260923-20-dead-code-dup-design
 ---
+
+> **[상태 표지 2026-10-29] 실행·병합 완료 기록 -- 현행 규칙·절차 아님.** 판정 기록 `.ai/verification/20260930-df36-instance-relpath.json`(FAIL 0)이 있고 이 card의 커밋은 master에 병합됐다. 옛 계획 Phase 2(죽은 코드·DUP 정리) card이고 Phase 2는 폐기됐다(계획 N6.1 '옛 Phase 처리' 2행 -- 새 엔진은 모듈 지도 N3.10으로 처음부터 개념당 정본 하나). 본문의 spec card·interface card·auditor 판정(V1~V10)·DEC-40 승인·R1 절차는 DEC-86으로 폐기했다(계획 N3.12·N4.2, DEC-40 행) -- 현행 완료 조건은 계획 N6.3이다. 본문의 `A`(`skills/analog-gmid-design/assets`) 아래 옛 엔진·test는 `skills/analog-gmid-design/legacy/`로 옮겨졌고(`60727b06`) 새 test 체계(`gmid_engine/tests/`)에서 돌지 않는다. card LT-1(DEC-99)이 `legacy/`를 지운 뒤에는 tag `legacy-final`에만 남는다. `run_harness.py`는 지금 `legacy/workspaces/`에 있다. 본문은 기록이며 덧대지 않는다(O-169).
+
 ## 의도
 
 계획 DF-36(담당 Phase 4, 순서 DF-35 다음 -- 사용자 지시 2026-09-30 "DF-36도 같이 진행해"로 앞당김): `instance.json`이 `topology_ref`에 topology의 **절대 경로**를 써서
@@ -76,3 +79,7 @@ library 회로(파일럿·`folded_cascode`·`two_stage_ota` 등)로 저장 → �
 5. 계획서 소비자: 바꾸는 이름 없음(키 이름 불변). 계획 DF-36·CC-8 순서 확인.
 6. 미배선: 새 def 없음(헬퍼를 만들면 `save_instance_json`이 부르므로 배선됨).
 7. 기존 계약 test: `test_ic3`(키 존재만)·`test_s088`(값 미판정) 조정 불필요.
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20260930-df36-instance-relpath.spec.md`.

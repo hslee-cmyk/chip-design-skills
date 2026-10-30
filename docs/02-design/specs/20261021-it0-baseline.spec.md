@@ -4,6 +4,9 @@ phase: 해당 없음 (DEC-86 -- merge_gate 미사용, N6.3 절차)
 evidence_type: test-only
 gate_change: no
 ---
+
+> **[상태 표지 2026-10-29] 완료 이력** -- card 0 IT-0 측정 완료(판정 기록 `integ/it12:.ai/verification/20261021-it0-baseline.json`, base `c237d96e`, V2·V4 PASS·나머지 N/A), master 미병합(IT-1 + IT-2 통합 병합 때 함께 들어감). 현행 계획의 후속 측정은 card 0 **IT-0b**(계획 v6.38.4 N6.5 'IT-1 범위 재작성' 완료 조건 2 -- spec card 미작성). 본문의 heldout 4회로는 O-181로 library로 옮겨졌고(지금 library 13회로·held-out 0, 새 held-out이 생길 때까지 A' 일반성 판정 정지), 'IT-2c 착수 실측 (c)'는 계획 v6.38.4가 착수 조건에서 뺐다(`67e7b182`). 본문은 동결 기록이며 덧대지 않는다(O-169).
+
 ## 의도
 
 - **절차(phase)**: 계획 DEC-86(285행)·N3.12 머리(669행)로 역할 분리 gate·spec card 흐름·merge_gate가 꺼졌다. 판정 = N6.3(매 변경 뒤 새 test 전체 실행, 작성자 ≠ test 작성자 WP-13, 약화 보고, 변경당 커밋 1) + 독립 측정·검증 agent이고 merge_gate가 아니다. 머리 블록은 형식 호환용이다.
@@ -162,3 +165,7 @@ test-only: 엔진 소스·test 변경 0이고 산출물은 측정 기록이다(�
 9. 승인 줄: 없음(계획 정의 범위의 측정). D-2는 사용자 결정 O-72 (3)으로 받아들여졌다(원래 취지와 다름 승인 -- 결정 원문 `_drafts/user_decisions.md` 693행이 근거, 측정 범위를 넓히거나 기준을 약화하지 않으므로 별도 decision 기록 없음). D-1은 오케스트레이터 확인 항목 그대로.
 10. 범위 계약: diff = 판정 기록 폴더만.
 11~13. 해당 없음(test 없음).
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20261021-it0-baseline.spec.md`.

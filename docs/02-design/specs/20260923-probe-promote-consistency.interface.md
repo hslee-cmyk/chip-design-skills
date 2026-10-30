@@ -1,6 +1,6 @@
 # interface card: 20260923-probe-promote-consistency
 
-> **[대체 표지 2026-10-29 -- 검증 대기] 대체됨 -- 옛 Phase 폐기(DEC-86, 계획 N6.1 '옛 Phase 처리'), 옛 엔진 card라 재동결 없음(착수하지 않음).** 이 card는 옛 엔진 probe(`legacy/tests/probe_physical_consistency.py`) 승격 card이고 test 커밋·판정 기록이 없다. 새 엔진의 노드 KCL·전파 정합은 봉인 항목(계획 N3.6)이 맡고, 옛 엔진·test는 card LT-1(DEC-99)이 지운다. 본문은 기록이다(O-169).
+> **[대체 표지 2026-10-29 -- 검증 10 병합 가능 판정, master `07964dfe`] 대체됨 -- 옛 Phase 폐기(DEC-86, 계획 N6.1 '옛 Phase 처리'), 옛 엔진 card라 재동결 없음(착수하지 않음).** 이 card는 옛 엔진 probe(`legacy/tests/probe_physical_consistency.py`) 승격 card이고 test 커밋·판정 기록이 없다. 새 엔진의 노드 KCL·전파 정합은 봉인 항목(계획 N3.6)이 맡고, 옛 엔진·test는 card LT-1(DEC-99)이 지운다. 본문은 기록이다(O-169).
 
 
 생성: `tools/gates/interface_card.py`(05-role-separation §11.1). 본문 코드는 넣지 않는다(DEC-38).
@@ -23,3 +23,4 @@
 ## 변경 이력
 
 - 2026-10-29 `cards/simplify`(검증 대기): 위 대체 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 07181524:docs/02-design/specs/20260923-probe-promote-consistency.interface.md`.
+- 2026-10-29 `cards/revise-1029`: 대체 표지의 '검증 대기'를 병합 표기로 바꿈(표지 내용 점검 결과 유지) -- 본문 불변, 고치기 전 원문 = `git show 052465ed:docs/02-design/specs/20260923-probe-promote-consistency.interface.md`.

@@ -984,7 +984,7 @@ b_P·θ 전류 상자·E_B 는 유도, θ 저항 상자는 미선언(그래서 �
 
 ### 10.1 r1 실측 (2026-10-07, 결정 전 -- 기록)
 
-조건: LUT = `_drafts/engine/lut_slices/manifest.json` + `assets/sky130_nfet_pfet_lut_sample.npz`(옛 LUT, VDSAT 열 없음),
+조건: LUT = `_drafts/engine/lut_slices/manifest.json` + 옛 기준 LUT(VDSAT 열 없음, 옛 sample LUT 는 O-180 으로 삭제 -- 기록),
 `pre_layout_lut_access`, spec = library(metric 이름표 = `metric_catalog()` + integration 픽스처의 mismatch_sigma_mv·
 mirror_ratio_error_mv·area_layout_m2). **시연 가정(결정 대기 값, 엔진 밖)**: B = 120 s, b_P = 1e-7 W, θ 전류 [1, 100] µA,
 θ 저항 [100 Ω, 100 kΩ](GB7 §10 탐침 범위), 시작점 = GB7 §10 탐침식(L = 1 µm, writer gm/ID U[6, 26] -> ln IDu, y U[0.05, 0.95],

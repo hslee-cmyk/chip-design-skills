@@ -121,7 +121,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   `ID<접미사>`(폭 판정용, 선택), `w_ref_m`(선택), `corner`·`temp_c`(선택).
 - [r6] 기준 LUT 선택 열: kind 마다 `CAP_TABLE_COLUMNS` = (`CDD`, `CSS`, `GDS`, `GM`, `GMBS`, `ID`, `SVG2_1HZ`, `SVG2_HF`, `VDSAT`,
   `VTH`) 각 `<이름><접미사>` 가 있으면 읽는다(모양 = 기준 LUT 축 모양, 다르면 `lut_cap_shape_mismatch`, detail `path, column`).
-  없는 열은 그냥 없다(로드 거부 아님 -- 옛 `assets/sky130_nfet_pfet_lut_sample.npz` 는 ID·GM·GDS 만 있다). `meta_json`(선택)의
+  없는 열은 그냥 없다(로드 거부 아님 -- 열이 없는 옛 세트는 ID·GM·GDS 만 있었다. 그 옛 sample LUT 파일은 O-180 으로 삭제했다). `meta_json`(선택)의
   `sign_convention`(문자열)·`L_source`(객체) 를 표에 싣는다. LUT v2 생성기 규약: ID·GM·GDS·GMBS·VTH·VDSAT 은 BSIM op 값의 크기,
   **용량은 부호 보존**(CGG = −Im(i(vgs))/ω 게이트 여기, C_gx = +Im(i(vgs))/ω x 여기, CDD = −Im(i(vds))/ω, CSS = −Im(i(vsrc))/ω --
   CGB·CGS·CSS·CGD(pfet) 에 음수 점이 있다), SVG2_* 는 게이트 환산 잡음 V²/Hz. 엔진은 용량에 로그·절댓값을 쓰지 않는다(4.1 caps).
@@ -222,7 +222,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   `lut_cap_width_unresolved`
   (슬라이스 1개뿐·동률·분리 조건 불충족·VS 값이 슬라이스 축에 없음·`w_ref_m`·`ID` 열 둘 다 없음),
   [r4] `lut_model_bin_incomplete`, `lut_model_bins_no_width`, `lut_model_bins_overlap`, `lut_l_anchor_outside_model_bins`.
-- [실측 2026-10-07, 생성 완료 슬라이스 32개 + `assets/sky130_nfet_pfet_lut_sample.npz`] 로드 1.5 s, nmos·pmos 모두 w_key 1000
+- [실측 2026-10-07 -- 기록, 그때 쓴 옛 sample LUT 는 O-180 으로 삭제, 생성 완료 슬라이스 32개 + 옛 기준 LUT] 로드 1.5 s, nmos·pmos 모두 w_key 1000
   (5 µm) 채택, d_w ≈ 5.0e-7, 이웃 차 0.88(nmos)·1.25(pmos).
 
 ### 1.5 `lut_fingerprint(provenance, cap_basis) -> str`
@@ -273,9 +273,10 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   (git 밖, `GMID_LUT_V2_ROOT` 로 덮어씀), pdk_root 기본 `C:/pdk/sky130_fd_pr`(`GMID_PDK_ROOT`), 세 파일 sha256 고정. 쓰는 법:
   `loc = resolve_lut_location(<설정>, os.environ)` → `load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
   verify_midpoints=loc.midpoints_path)`.
-- **test 기본 경로 전환(아직 안 함 -- `tests/lut/conftest.py` 는 test 작성자 몫)**: conftest 의 `_DEFAULT_MANIFEST`·`_DEFAULT_CAP`(옛 12-L
-  세트)를 위 설정의 `resolve_lut_location` 결과로 바꾸고 `load_lut_set` 에 `pdk_root`·`verify_midpoints` 를 넘긴다(`GMID_LUT_MANIFEST`·
-  `GMID_LUT_CAP_NPZ` 환경 덮어쓰기는 유지 가능). 옛 세트 기대값(12 앵커 bin 상태, VS 상한 0.8 V, `cgg_minus_cgd_at_gs` 모델 등)을
+- **test 기본 경로 전환(O-180 으로 완료)**: test 는 LUT 를 위 설정의 `resolve_lut_location` 결과로만 읽고 `load_lut_set` 에 `pdk_root`·
+  `verify_midpoints` 를 넘긴다. LUT 를 가리키는 환경 덮어쓰기(`GMID_LUT_MANIFEST`·`GMID_LUT_CAP_NPZ` 등)는 없다 -- 허용 env 는
+  설정 파일이 선언한 것(데이터 루트·캐시 폴더)뿐이고 루트 env 로 다른 폴더를 줘도 sha256 이 같은 파일만 받는다
+  (`tests/lut/test_lut_single_source.py` 가 지킨다). 옛 세트 기대값(12 앵커 bin 상태, VS 상한 0.8 V, `cgg_minus_cgd_at_gs` 모델 등)을
   쓰는 test 는 v2 값(18 앵커, VS 0~1.8, `lut_cgs_cgb`)으로 다시 써야 한다.
 
 ---

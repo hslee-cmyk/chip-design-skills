@@ -5,6 +5,9 @@ evidence_type: test-only
 gate_change: no
 approval: 20260921-u01-test16-intent
 ---
+
+> **[상태 표지 2026-10-29] 실행·병합 완료 기록 -- 현행 규칙·절차 아님.** 판정 기록 `.ai/verification/20260922-ts0-test16-fixture.json`(FAIL 0)이 있고 이 card의 커밋은 master에 병합됐다. 옛 계획 Phase 1 test 분리 card이고 Phase 1은 폐기됐다(계획 N6.1 '옛 Phase 처리' 1행; N3.11 'TS0~TS6 폐기'). 본문의 spec card·interface card·auditor 판정(V1~V10)·DEC-40 승인·R1 절차는 DEC-86으로 폐기했다(계획 N3.12·N4.2, DEC-40 행) -- 현행 완료 조건은 계획 N6.3이다. 본문의 `A`(`skills/analog-gmid-design/assets`) 아래 옛 엔진·test는 `skills/analog-gmid-design/legacy/`로 옮겨졌고(`60727b06`) 새 test 체계(`gmid_engine/tests/`)에서 돌지 않는다. card LT-1(DEC-99)이 `legacy/`를 지운 뒤에는 tag `legacy-final`에만 남는다. 본문은 기록이며 덧대지 않는다(O-169).
+
 ## 의도
 
 TS0(계획 N3.11, U-01 확정 `20260921-u01-test16-intent`): stick_diagram Test 16 (b)의 FAIL은 test fixture 누락이다. 이관본
@@ -52,3 +55,7 @@ test-only(계획 N3.12.3 개정 P5, N3.11 TS0 개정 P2): 대상 코드가 바�
 ## 결정 필요 항목
 
 기준선 `.log` 변경의 DEC-40 승인(V5) -- 1차 시도에서 auditor가 발견 경로와 diff 해시를 내면 사용자에게 diff를 보여 받는다(R1).
+
+## 변경 이력
+
+- 2026-10-29 `cards/revise-1029`: 위 상태 표지만 더함 -- 본문 불변, 표지 전 원문 = `git show 052465ed:docs/02-design/specs/20260922-ts0-test16-fixture.spec.md`.
