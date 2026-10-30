@@ -1,14 +1,14 @@
 ---
 template: design
-version: 1.16.0
+version: 1.16.1
 plan_version: 6.38.5
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
 
 > **Summary**: `bkit:gap-detector`가 설계 문서(40·41)와 구현을 대조할 때 쓰는 표다.
-> - **design v1.16.0 -- 계획 v6.38.5(승인 O-193) 맞춤, 검증 대기**(2026-10-31, 40·41과 같은 판 -- 40 Status; 이 문서: DEC 11행 OK → DEV(O-186), DEC-15·64·72·80·95·NFR-5 행 정정, D-GB7c → MISS, 새 7행 D-TB1d·D-TH1·D-L2·D-NM1·D-CL1·D-GL1·D-V9, D-TB1a~c·D-L0filt·D-SF1c·D-AR·D-AP1·D-P9·D-SYf·D-OR5·D-GB8c·D-P6 정정, §4 집계 323)
-> - 옛 판 bullet(v1.15.3·v1.15.2) = design 이력 H42-04, (v1.15.1·v1.15.0) = H42-01.
+> - **design v1.16.1 -- 검증 1·design↔계획 gap 반영, 재검증 대기**(2026-10-31, 40·41과 같은 판 -- 40 Status; 이 문서: D-IT1b(검증 1 M2)·D-DR1(gap M5) 신설 MISS, D-TB1c·D-TB1d·D-TBX·D-R10·D-LA1G·D-SF1d·D-CL1·D-V9·D-SYe·D-J1·D-J8·DEC-104 행 정정, §4 집계 325)
+> - 옛 판 bullet(v1.16.0) = design 이력 H42-05, (v1.15.3·v1.15.2) = H42-04, (v1.15.1·v1.15.0) = H42-01.
 > - 한 행이 FR·NFR·DEC·설계 항목 하나다.
 > - 열은 설계 절, 상태, 증거다. 증거는 `파일:행`, test 이름, 또는 재측정용 grep 패턴이다. 판 번호는 41에 맞춘다 -- v1.12.5는 41만 바꾼 판이라 이 문서는 v1.12.4에서 v1.12.6으로 건너뛰었다; v1.12.7 = 계획 v6.28(O-85·O-86) 맞춤, D-IT2 행; 둘째 커밋 = 사용자 O-87 (1)(차동 결합은 S-OS2 card 몫); 셋째 커밋 = 사용자 O-88(MOS 식별 = `device.element_class`); v1.13.0 = 계획 v6.34(사용자 O-106~O-110·DEC-103) 맞춤 -- D-ICM·D-IT2 행을 41 v1.13.0 §4.7에 맞춤(다듬은 창·`metrics_icm_front`·커널 미수렴 이어받기·출력 구조 분류·S-OS1 삭제, KCL 측정 구성 감도, E 칸; design 검증 `wt/_drafts/evidence/2026-10-22/design_v1130_validation.md` S-1), 재검증 90/100(`design_v1130_recheck.md`) 뒤; 계획 v6.34.1 `graph.ss_circuit`·용량만 결측 문언(재검증 3 S-B) 반영(41 v1.13.0과 같은 판); v1.14.0 = 계획 v6.35(사용자 O-114~O-116)·v6.34.2(O-111~O-113) 맞춤 -- D-ICM·D-IT2·D-J5 행을 41 v1.14.0 §4.7(servo 측정 구성, V_cm 좌표, B77)에 맞춤; v1.14.1 = 계획 v6.35.1(O-117)·v6.36(O-118·O-119) 맞춤 -- D-ICM·D-IT2(기본 포트 뷰·전도 행 R0·F 성분 포트 함께 구동·레일 자름)·D-J5(사실 정정), 검증 대기.
 >
@@ -323,7 +323,7 @@ plan_version: 6.38.5
 | D-SF1a | (card SF-1 범위 1·6) oracle 전용 `.tran` 항목: 이름표 `E/core/oracle_only.py` `ORACLE_ONLY_METRICS`(`slew_rate_v_per_s`·`slew_rise_v_per_s`·`slew_fall_v_per_s`·`settle_s`·`settle_static_error_pct`), 항목 형식 `{metric, op, value, direction?, tran?{config, epsilon_pct?}, source}` + 회로당 `.tran` step 한 자리(SR·정착 공용 -- O-157 S1), `SizingSpecDoc.oracle_tran`(`TranDecl`)·`tran_fp`, `judged_constraints` 밖, 단일 키·방향 키 동시 선언 거부 | 40 §3.1-1 | MISS | as-built: registry 밖 metric `metric_unknown`, `.tran` 영역 없음(`library_sr_from_sources.md` §4). 완료 조건 (1) toy |
 | D-SF1b | (card SF-1 범위 2·4·6 (c)) 삭제 키 거부: `human.driving_spec`·`load_peak_amp`·`load_dc_amp`·`compensation_targets.settling`(`linear_s`·`settling_order`), 전류원 부하 표지 AP-1까지 거부 | 40 §3.1·§3.1-1 | MISS | 완료 조건 (1) red(base는 받아들임) |
 | D-SF1c | (card SF-1 범위 3) 출력 절대 범위 `human.output_range_v`(필수 키 -- 범위 또는 `undeclared` 표지 + source, 누락 거부; 차동 = Vod + CM, 노드 범위는 S0 spec 블록 유도; 판정 꼴 칸 이득 저하·기준점), `undeclared` = 요구 행 없음·범위 끝 양 정의 불능 표시 -- 행동 소비자 = DE-1 (d)·SB-1·LA-1 R6, 병합 = 첫 소비자 LA-1과 같은 통합 병합(교체 커밋 -- 계획 표 #3, O-183; 옛 'DE-1·SB-1 가운데 먼저') | 40 §3.1-1 | MISS | -- |
-| D-SF1d | (card SF-1 범위 5·7) library spec data(nmcnr SR 0.36/0.31 V/µs·`settle_s` 3.03/3.04 µs·ε 0.1 %·step 0.4 → 0.9 V, ngcc SR 상승 6.3 V/µs·`settle_s` 120 ns·ε 1 %·step 0.14 → 0.54 V, current_reuse `settle_s`·static error·`gain_ss_db ≥ 54` 삭제·`linear_s` 삭제, 6회로 SR 미선언; 출력 범위 = current_reuse Vod [−1.2, 1.2] V + CM 0.9 V + 3 dB 판정 꼴, 나머지 8회로 `undeclared`; `swing_out_v` 제약 3개 삭제(교체 커밋 -- 첫 소비자 통합 병합), nmcnr `icmr_v ≥ 0.5` 유지), erfc·rfc spec 형식 이관(library -- O-181, 근거 사용 아님), oracle 스키마 이름 맞춤 | 40 §3.1-1 | MISS | 완료 조건 (2) data·source 칸 대조 |
+| D-SF1d | (card SF-1 범위 5·7) library spec data(파일럿 spec 제약 `classab_centering_dev_v ≤ 0.15` 삭제 -- 사용자 결정 O-182 Q-CA1, v1.16.1 gap 누락 반영; nmcnr SR 0.36/0.31 V/µs·`settle_s` 3.03/3.04 µs·ε 0.1 %·step 0.4 → 0.9 V, ngcc SR 상승 6.3 V/µs·`settle_s` 120 ns·ε 1 %·step 0.14 → 0.54 V, current_reuse `settle_s`·static error·`gain_ss_db ≥ 54` 삭제·`linear_s` 삭제, 6회로 SR 미선언; 출력 범위 = current_reuse Vod [−1.2, 1.2] V + CM 0.9 V + 3 dB 판정 꼴, 나머지 8회로 `undeclared`; `swing_out_v` 제약 3개 삭제(교체 커밋 -- 첫 소비자 통합 병합), nmcnr `icmr_v ≥ 0.5` 유지), erfc·rfc spec 형식 이관(library -- O-181, 근거 사용 아님), oracle 스키마 이름 맞춤 | 40 §3.1-1 | MISS | 완료 조건 (2) data·source 칸 대조 |
 | D-TRK | 슬루 추종 판정(기준 = 이상 폐루프 목표 step × 1/β, (가)~(다) 20 %·\|Δx\| 띠·0.8·Δx 통과·끝 시각 t_step + \|Δx\|/SR_req -- O-157 S3) + 과도 측정 유효성 조건(계단 ⊆ follower 사용 범위 -- O-157 S1 (3)), 이탈 = SR 정의 불능 → front 제외·기록 | 40 §4-9 | MISS | 구현 = oracle OP-10 |
 | D-SET | 정착 측정 `settle_s`(ε 띠, 실제 최종값 = 같은 구성 DC 해)·`settle_static_error_pct`, `tran.config = "application"`은 AP-1까지 판정 대기, measure 이름·구현 = oracle card | 40 §4-10·§3.8-6 | MISS | -- |
 | D-STL | (card LA-1) 정착 선언 대역폭 출발 목표 '추정'(필요조건 아님 -- O-157 S3; GBW_est = ω_c,est/(2π·β)) 필드 -- **이름·층·β 읽는 점 미정**(U-118 -- LA-1 design 실측 뒤), S 분류는 선언 사실만 | 41 §6.8-2 | MISS(미정) | -- |
@@ -362,9 +362,10 @@ plan_version: 6.38.5
 | D-TH1 | (v1.16.0 -- 사용자 결정 O-186 (A), card LA-1·LI-1·WB-1) θ 독립 좌표·역산 키 = ln IDu: gm/ID 역산(`vgs_for_gm_id`·'가장 큰 VGS 해'·gm/ID 축 곡선) 소비 0, gm/ID = `device.dc_op` 순방향 조회 칸(writer 하나), S 소자 ID = max(gm_req/g(ln IDu), R8), gm/ID 경계 = 순방향 제약 행(해 집합 = ln IDu 구간 여럿), 출발 구간·사다리·가드·tol_V 지표 = ln IDu 축 | 41 §4.1·§4.2·§4.5·§5.3·§6·§7.5, 40 §1·§3.10 | MISS | as-built gm/ID 역산 소비자 전수 = 계획 착수 실측 M-TH1c(LA-1·LI-1·WB-1 첫 design 착수 전), 해 집합 여럿 여부 = M-TH1a. 확인 toy = 41 §9 면적 조건 행(pfet 중간 반전 두 구간) |
 | D-L2 | (v1.16.0 -- 사용자 결정 O-186 (L2), card LI-1·MOD7) 레이아웃 보존량 = (ID, VGS, L), 실현 W = ID/J_slice(VGS) 순방향, 슬라이스 간 gm 이동은 DEC-89 (2) 레이아웃 뒤 재평가 | 40 §2.4.8 `ly_point`·`ly_slices`·`ly_attrs` 행, §3.10.2 | MISS | as-built `ConservedPoint.gm_id` 칸·`slice_density` gm/ID 역산. 착수 조건 = M-TH1L+·M-TH1g(MOD7·MOD8 design 전) |
 | D-NM1 | (v1.16.0 -- 사용자 결정 O-189) 이름 tie-break 여덟 자리의 마지막 키 = DEC-97 정준 위치: DEC-70·DEC-97 (2) 열 키(40 §6-3), DEC-71 (6) front 타이(41 §5.4), N3 루프 뷰 사이클 시작점(41 §1.8), DEC-17 L 주인(41 §1.12.5 `l_owner_position_order`), DEC-95 (3) 고리 밖(40 §3.7-4 (b)), 일곱째 R-1′ 변 순서(HC-D design), 여덟째 W4 뿌리(41 §4.7 -- 정의상 공허) | 40 §3.7-4·§6-3, 41 §1.8·§1.12.5·§4.7·§5.4 | MISS | as-built 이름 키(`writer_plan.py`·`current_basis.py:8`·`l_classes.py`·`block_columns.py:189`). 착수 실측 M-NM1 남은 실측(DEC-17·루프 물리 키 -- 6a design 착수 조건) |
-| D-CL1 | (v1.16.0 -- 계획 DEC-72 (3)·card CL-1, 사용자 결정 O-178·O-182 Q-CL1) oracle 닫기: 정의 동일성 관문 → 활성 제약 oracle 여유 [0, 분해능] 밖이면 (점, metric)별 Δ secant(metric별 독립 동시 갱신), 멈춤 = oracle 진전 ≤ 분해능 / E-0 실현 불가 / 선언 반복 상한; 대조 기록 = oracle 판정 기록 칸(record_id 참조), 엔진 `model_error` 필드·`model_error_ref`·ME-1 삭제 | 40 §3.6·§3.8-6·§10 검증 기준, 41 §4.7-2 | MISS | as-built `E/metrics/model_error.py`·`ss_constraints.py` e_m 분모(재작성 범위). 완료 조건 = 계획 CL-1(library 13 닫기 반복·oracle 실행 수·t_oracle·σ_in 닫기 비용 실측) |
+| D-CL1 | (v1.16.0 -- 계획 DEC-72 (3)·card CL-1, 사용자 결정 O-178·O-182 Q-CL1) oracle 닫기: 정의 동일성 관문 → 활성 제약 oracle 여유 [0, 분해능] 밖이면 (점, metric)별 Δ secant(metric별 독립 동시 갱신), 멈춤 = oracle 진전 ≤ 분해능 / E-0 실현 불가 / 선언 반복 상한; 대조 기록 = oracle 판정 기록 칸(record_id 참조), 엔진 `model_error` 필드·`model_error_ref`·ME-1 삭제 | 40 §3.6·§3.8-6·§10 검증 기준, 41 §4.7-2 | MISS | as-built `E/metrics/model_error.py`·`ss_constraints.py` e_m 분모(재작성 범위). 완료 조건 = 계획 CL-1(library 13 닫기 반복·oracle 실행 수·t_oracle·σ_in 닫기 비용 실측). 착수 = 계획 N5.3 Q-W1 결정 + Δ 정본 자리 계획 개정(DEC-72 (5)·O-178 (7) -- 정해지기 전 Δ 만들지 않음, graph 규칙 6) → design(40 §11 CL-1 행 -- v1.16.1) |
 | D-GL1 | (v1.16.0 -- card GL-1, 사용자 결정 O-182 Q-GL1 (가1)·O-183 #10) G 확장 lint·설계 값 타입 위치 검사·공유 호출 감사 도구, GL-1 병합 전 엔진 card 병합 금지, 기존 위반 기준선 래칫 | 40 §2.4.10 | MISS | `tests/structure/structure_checks.py` G-8·값 타입 위치 검사 0건(계획 N6.37 사실) |
-| D-V9 | (계획 V9 -- matching 멤버 (W/L, ln IDu) 일치, O-186) 짝 비교의 두 멤버 ln IDu 허용오차 합침 규칙·동작점이 VGS 노드 위일 때 쓰는 칸·옛 기준(gm/ID 격자 간격)과의 비교 방법(약화 금지 근거) | -- | MISS(design 공백) | 계획이 'design 몫'으로 넘겼으나 40·41·42에 V9(계약 test 6b) 자리가 없다 -- v1.16.0은 정하지 않고 6b 계약 test design 몫으로 표지(계획 검증 30 m29-1·n30-2) |
+| D-DR1 | (v1.16.1 신설 -- gap M5, card DR-1 계획 N6.36, 승인 O-173 BL-DR1·O-174·O-182 Q-S9·Q-ZG1·Q-CB1) 고정값 저항 망 노드(Ohm + KCL 선형 해 -- 저항 전류 = `dc_current_basis` writer가 노달 해 READS)·구조적 0 전류 MOS VDS = 0 묶음(writer = DC 블록)·봉인 9 Q-S9 (A′) 예외·결합 C 상자 갈래(`search_domain` S0 블록, SF-1 → DR-1)·Q-ZG1 (나) 기하(W_min·L_min)·f_HP·τ 출력 전용 칸·위험 기록 | 40 §11 card 표 DR-1 행(design 절 없음) | MISS(design 공백) | design 자리 지정 = 계획 개정 필요(41 §5.12.8 P7); 완료 조건 = 계획 N6.36 (1)~(12) |
+| D-V9 | (계획 V9 -- matching 멤버 (W/L, ln IDu) 일치, O-186) 짝 비교의 두 멤버 ln IDu 허용오차 합침 규칙·동작점이 VGS 노드 위일 때 쓰는 칸·옛 기준(gm/ID 격자 간격)과의 비교 방법(약화 금지 근거) | -- | MISS(design 공백) | 계획이 'design 몫'으로 넘겼으나 40·41·42에 V9(계약 test 6b) 자리가 없다 -- v1.16.0은 정하지 않고 6b 계약 test design 몫으로 표지(계획 검증 30 m29-1·n30-2); **design 자리 지정 = 계획 v6.38.6 대기**(41 §5.12.8 P3 -- v1.16.1) |
 
 ## 4. 상태 집계
 
@@ -374,8 +375,10 @@ plan_version: 6.38.5
 |---|---|---|---|---|---|---|
 | FR·NFR | 15 | 2 | 1 | 7 | 5 | 0 |
 | DEC | 85 | 23 | 7 | 29 | 20 | 6 |
-| 설계 항목 | 223 | 6 | 30 | 18 | 164 | 5 |
-| **합계** | 323 | 31 | 38 | 54 | 189 | 11 |
+| 설계 항목 | 225 | 6 | 30 | 18 | 166 | 5 |
+| **합계** | 325 | 31 | 38 | 54 | 191 | 11 |
+
+v1.16.1(2026-10-31, design 검증 1·design↔계획 gap 반영): 설계 항목 2행 추가(D-IT1b -- 검증 1 M2, D-DR1 -- gap M5, 모두 MISS) -- 설계 항목 225(MISS 166)·합계 325(MISS 191); 나머지는 행 문구 정정(상태 불변). 기계 계수(§3 상태 열 첫 낱말) = 225행: OK 6·DEV 30·PART 18·MISS 166·N/A 5.
 
 v1.16.0(2026-10-31, 계획 v6.38.5 맞춤 -- 사용자 결정 O-193): DEC 행 11 OK → DEV(O-186 규칙 철회 -- DEC OK 23·DEV 7); 설계 항목 7행 추가(D-TB1d·D-TH1·D-L2·D-NM1·D-CL1·D-GL1·D-V9, 모두 MISS), D-GB7c PART → MISS(행 정본 = D-TB1d) -- 설계 항목 223(PART 18·MISS 164)·합계 323(OK 31·DEV 38·PART 54·MISS 189); 나머지는 행 문구 정정(상태 불변). DEC 표 행 수 85: OK 23·DEV 7·PART 29·MISS 20·N/A 6.
 

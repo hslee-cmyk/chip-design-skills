@@ -691,3 +691,24 @@ v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, 
 - 감사 45항목 처리: T1(42 DEC 11 DEV + 계획 개정 필요 P1) · T2(41 §4.5) · T3·T4(41 §4.2 L0) · T5·T6·T7(41 §5.3.1·§5.3.3) · T8·T9·T10(41 §5.3.7) · T11(41 §5.3.8) · T12(41 §5.10 표) · T13(41 §5.11) · T14(41 E9) · T15(41 §4.1) · T16(41 §6.1 -- U3 = 41 §5.12.8 J1) · T17(41 §6.2·§6.3·§6.4-4) · T18·T19(41 §6.7-3·-4) · T20(41 §7.5) · T21(41 §9) · T22(40 §1 lut 행·U3 단위) · T23(40 tol_V 행) · T24(40 U-51) · T25(41 §6.4-2a·§6.7-11·E12·40 §2.4.8·42 D-TB1c -- U4 = J2) / L1·L2·L4(40 §2.4.8 `ly_point`·`ly_slices`·`ly_attrs` -- U5 = W_m = ID·L/IDu) · L3(40 §3.10.2) / K1·K2(40 §2.4.8) · K3·K4(40 §3.7-4·상태 표) · K5(40 R14) · K6·K7·K8(40 §11 U4·U15·TB-1 행) · K9(40 §3.2-3 `dependent_member` -- U6 = J8) · K10(40 J12-f) · K11(41 §4.7 IT-1 시점 한정 -- U1 = 나중 병합 card rebase) · K12~K15·K17·K18(41 §5.3.3·§5.3.4·§6.7) · K16(41 E11) · K19(41 §5.11) · K20(42 D-TB1a) · K21(42 DEC-95·D-GB7c) · K22(42 DEC-15·64). U2 = O-189 여덟째 자리(정의상 공허, 41 §4.7 정정), U7 = O-189 DEC-17(`l_owner_position_order`).
 - 이관 처리: 검증 33 D-1(HC-D design 몫 -- 40 §11 HC-1+GC-8 행 (a)), D-2(HC-D·GC-D design 몫 -- 40 §2.4.8 자기동형 궤도 행), D-3(41 `IcmPort`), D-4(40 §3.7-4 완료 단언 -- test 주체·TB-1 design 몫), D-5(40 §11 HC-1+GC-8 행); 검증 32 M-5(J10)·M-4a(구조 색 자리 = 40 §2.4.8); 검증 30 m29-1·n30-2(42 D-V9 -- 계획 개정 필요 P3); Q-TB1R (iii)-1·-2·-4(HC-D·GD-2), -3((η) 미채택 -- 해당 없음), -5(41 §5.3.4 + HC-D), -6(HC-1 design -- 41 §6.7-11 자리 표지); Q-GC8 (iii)-1(41 §6.7-11)·-2(40 §2.4.8)·-3(GC-D -- 40 §11 행 (b))·-4(J10)·-5(표지)·-6((d2) 미채택 -- 해당 없음).
 - 다른 design 몫으로 표지(이 판은 정하지 않음): HC-D(R-1′ 필드 형식·F_exist·J_point·P 서명·변 키·writer_root 구간·단좌표 자르기 함수), GC-D(`order_terms` 키·배선), HC-1(R6 없는 기간 7a 꼴), DR-1(KCL 항등 0 전류 MOS 예외 코드), EO-1(oracle 독립 유도 대조), CL-1(oracle 닫기 Δ 자리), GL-1(①② 검사), LI-1·MOD7((L2) 재배선·M-TH1L+·M-TH1g), 6b 계약 test(V9).
+
+## H40-35 -- design 40 머리 Status v1.16.0(v1.16.1이 대체)
+
+> **Date**: 2026-10-31 · **Status**: **design v1.16.0 -- 계획 v6.38.5(승인 O-193) 맞춤, 검증 대기**(브랜치 design/v115, master 병합 `31b042cd`; 40·41·42 같은 판). 반영: 사용자 결정 O-175~O-192(θ 좌표·역산 키 = ln IDu·gm/ID 순방향 조회(O-186 (A)), 레이아웃 보존량 (ID, VGS, L)(O-186 (L2)), 고리 종속 멤버 선택·R13 쓰기 계획 앞·X 칸 삭제(O-187), 이름 키 → DEC-97 정준 위치(O-189), R-1′ 묶음 = HC-1·HC-1 + GC-8 통합 병합·HC-S → TB-1 삭제(O-190~O-192), e_m 폐지·oracle 닫기(O-178·O-179), 병합 순서 규칙 표(O-183·O-185), library 13회로·held-out 0(O-175·O-181), GL-1·Q-S9·Q-CB·Q-LA16(O-182), O-32 금지 범위 정정(O-176 Ⅳ)), 낡음 감사 45항목(`wt/_drafts/evidence/2026-10-30/card_stale_audit_o186.md`), 계획 검증 33 이관 D-1~D-5와 Q-TB1R·Q-GC8 분석 (iii). design 판단·원래 취지와 다름·계획 개정 필요(3건)·착수 조건(열린 실측) = 41 §5.12.8. 남은 보류 = 계획이 보류한 Q-T0·Q-T3·Q-W1·Q-EM1·U-117·U-124와 열린 실측(41 §5.12.8). 판 이력 = design 이력 H40-01(v1.15.2~v1.4)·H40-33(v1.15.3)·H40-34(v1.16.0 경위)(`gain-budget-gmid-sizing.design.history.md` -- 이 문서들에서 옮긴 경위·옛 문언 전부의 자리).
+
+## H41-35 -- design 41 머리 Status v1.16.0(v1.16.1이 대체)
+
+> **Date**: 2026-10-31 · **Status**: **design v1.16.0 -- 계획 v6.38.5(승인 O-193) 맞춤, 검증 대기**(40·42와 같은 판 -- 40 Status). design 판단·계획 개정 필요·착수 조건 = §5.12.8, 옛 승인 질문 = §5.12.7. 판 이력(v1.15.2~v1.4) = design 이력 H41-16, v1.15.3 = H41-34(`gain-budget-gmid-sizing.design.history.md`).
+
+## H42-05 -- design 42 머리 판 bullet v1.16.0(v1.16.1이 대체)
+
+> - **design v1.16.0 -- 계획 v6.38.5(승인 O-193) 맞춤, 검증 대기**(2026-10-31, 40·41과 같은 판 -- 40 Status; 이 문서: DEC 11행 OK → DEV(O-186), DEC-15·64·72·80·95·NFR-5 행 정정, D-GB7c → MISS, 새 7행 D-TB1d·D-TH1·D-L2·D-NM1·D-CL1·D-GL1·D-V9, D-TB1a~c·D-L0filt·D-SF1c·D-AR·D-AP1·D-P9·D-SYf·D-OR5·D-GB8c·D-P6 정정, §4 집계 323)
+
+## H40-36 -- design v1.16.1 경위(design 검증 1·design↔계획 gap 반영, 2026-10-31)
+
+- 입력: design 검증 1 `wt/_drafts/evidence/2026-10-31/design_v116_validation1.md`(Major 2·minor 9), design↔계획 gap `design_v116_plan_gap.md`(+ parts `gap_gb1..5`·`gap_sub`). 진행 기록 `design_v1161_progress.md`.
+- 오케스트레이터 판정: 검증 1 M1 = `GuardRow`에 경계·sources만(해 집합은 R6가 자기 평가 점에서 같은 순수 함수로); M2 = `TieBreak(w4_root)` → 불변식 단언 + 주입 toy; gap M8 = Δ 자리 '계획 결정 대기'; gap M1(`ORACLE_ONLY_METRICS` 생산 card)·J1·J9·J14 계획 근거·P1~P3 = '계획 v6.38.6 대기' 표지만; 나머지 design 쪽은 계획 v6.38.5 문언대로, 계획이 자리를 정하지 않으면 '계획 개정 필요'로.
+- 커밋(브랜치 design/v115, base `bc3b3572`): 첫째 검증 1 M1·M2·m1~m9 + gap M8 / 둘째 gap 결정 문언(M2·M3·M4·M9·M10·M11 + 경미) / 셋째 누락 반영(M6 R9 결합 gate 규칙·M7 S3 평가 키 열거·계수 API·card 표 CL-1·GL-1·DR-1·PW-1a 행·TB-1·HC-1·WB-1·LA-1 행 보강·LA-1 완료 5·12·R-D 기록·M12 표지·42 D-DR1·머리 판·이 이력).
+- 계획 개정 필요로 올린 것(41 §5.12.8): P4(DEC-95 (3) 고리 밖 ② -- v6.38.6 대기), P5(SF-1 범위 9 본문 옛 공통 상자·E-15 조건부 문언), P6(J7 단언 card 귀속), P7(DR-1 design 자리), P8(보상 C spec max), P9(PW-1a design 단계), P10(N6.3 소비자 열 자리).
+- 열린 점(design, 정하지 않음): DE-1 R9 결합 gate 극단 상태 VSB·VDS 입력, 대조 기록 칸 이름, B 소자 출발 L 칸 자리.
+- 다른 design 몫: offset-strategy design §10(DS-1 (다) → (나) + 조건 (2)) -- 낡음 표지만 붙임(그 문서 판 불변, OS-5 착수 전 개정).
