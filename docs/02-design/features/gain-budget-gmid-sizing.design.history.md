@@ -672,3 +672,22 @@ v1.5(2026-10-08, 사용자 결정 "j해석은 네의견에 모두 동의해."): 
 
 v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, D-OF1~3, D-MR, D-SW, D-ICM, D-Q34, D-GB4f, D-SIg, D-OR5, D-J34, 모두 MISS), DEC-21을 N/A에서 MISS로(결정으로 닫혔고 spec 미반영), D-PG·D-GB8a·b·DEC-23·96 문구 갱신.
 
+## H40-33 -- design 40 머리 Status v1.15.3(v1.16.0이 대체)
+
+> **Date**: 2026-10-29 · **Status**: **design v1.15.3 -- 계획 v6.38.4(승인 O-173) 맞춤, 검증 대기**(브랜치 design/v115, master 병합 `2e926daf`; 40·41·42 같은 판). 옛 '계획 v6.38.4 대기' 표지 자리(P1~P9)는 승인된 계획 문언대로 확정했다 -- 남은 보류는 계획이 보류한 Q-T0·Q-T3(card WB-1 착수 실측 뒤)와 '계획 v6.38.5 대기' 두 자리(MJ-B cfg 공유 상수 삭제 범위, §3.7-A 2-5 재풀이 점 W/W′ 정본); 승인 질문 = 41 §5.12.7. 판 이력(v1.15.2~v1.4 커밋별 경위·승인 기록) = design 이력 H40-01(`gain-budget-gmid-sizing.design.history.md` -- 이 문서들에서 옮긴 경위·옛 문언 전부의 자리).
+
+## H41-34 -- design 41 머리 Status v1.15.3(v1.16.0이 대체)
+
+> **Date**: 2026-10-29 · **Status**: **design v1.15.3 -- 계획 v6.38.4(승인 O-173) 맞춤, 검증 대기**(40·42와 같은 판 -- 40 Status). 승인 질문 = §5.12.7. 판 이력(v1.15.2~v1.4) = design 이력 H41-16(`gain-budget-gmid-sizing.design.history.md`).
+
+## H42-04 -- design 42 머리 판 bullet v1.15.3·v1.15.2(v1.16.0이 대체)
+
+> - **design v1.15.3 -- 계획 v6.38.4(승인 O-173) 맞춤, 검증 대기**(2026-10-29, 40·41과 같은 판 -- 40 Status; 이 문서: D-WB1·D-WB2(슬라이스 고정 P8·P3)·D-START(칸 0 조립 P4)·D-JDG(P1)·D-PW(P7) 확정, D-RMIN 추가) · **v1.15.2 -- 계획 v6.38.3 맞춤**(40 Status; 이 문서: §2 DEC-106 행 추가, D-WB1 정정, D-G4 삭제(N/A -- E-34), D-IT1·D-GL·D-CM·D-TBX 문구, §3 새 14행 D-IN1·D-E13·D-START·D-GS·D-JDG·D-SPX·D-GATE·D-CML·D-LOWN·D-MR·D-PW·D-AREA·D-LA1G·D-CAB, §4 집계)
+
+## H40-34 -- design v1.16.0 경위(계획 v6.38.5 맞춤, 2026-10-31)
+
+- 근거: 사용자 결정 O-193(계획 v6.38.5 승인 -- 순서 '승인 커밋 → master → integ/it12 → design v1.15.3 개정(낡음 감사 45항목 + O-186~O-192 + 검증 33 이관 D-2~D-5 + 열린 실측) → design 검증 + design↔계획 gap'). 입력: 계획 diff `052465ed..0acb5e63`(gain-budget·headroom-chain·graph-consumption·offset-strategy·offset-trim·oracle-portability), 사용자 결정 O-175~O-193, 감사 `wt/_drafts/evidence/2026-10-30/card_stale_audit_o186.md`, 계획 검증 33·32·30, `q_tb1r_analysis_v3.md` (iii), `q_gc8_analysis_v2.md` (iii). 진행 기록 `wt/_drafts/evidence/2026-10-31/design_v116_progress.md`.
+- 커밋(브랜치 design/v115, base `31b042cd`): 첫째 41 Q-TH1 (A) / 둘째 40 Q-TH1·(L2)·Q-KV1·O-189·O-190~192 / 셋째 O-178·O-179·O-183·O-185·O-175·O-181 / 넷째 O-182 묶음·O-176 Ⅳ·이관 항목 / 다섯째 42·13회로 규칙 자리 / 여섯째 Q8 닫힘·MJ-B·Q-W1 표지·41 §5.12.8·머리 판.
+- 감사 45항목 처리: T1(42 DEC 11 DEV + 계획 개정 필요 P1) · T2(41 §4.5) · T3·T4(41 §4.2 L0) · T5·T6·T7(41 §5.3.1·§5.3.3) · T8·T9·T10(41 §5.3.7) · T11(41 §5.3.8) · T12(41 §5.10 표) · T13(41 §5.11) · T14(41 E9) · T15(41 §4.1) · T16(41 §6.1 -- U3 = 41 §5.12.8 J1) · T17(41 §6.2·§6.3·§6.4-4) · T18·T19(41 §6.7-3·-4) · T20(41 §7.5) · T21(41 §9) · T22(40 §1 lut 행·U3 단위) · T23(40 tol_V 행) · T24(40 U-51) · T25(41 §6.4-2a·§6.7-11·E12·40 §2.4.8·42 D-TB1c -- U4 = J2) / L1·L2·L4(40 §2.4.8 `ly_point`·`ly_slices`·`ly_attrs` -- U5 = W_m = ID·L/IDu) · L3(40 §3.10.2) / K1·K2(40 §2.4.8) · K3·K4(40 §3.7-4·상태 표) · K5(40 R14) · K6·K7·K8(40 §11 U4·U15·TB-1 행) · K9(40 §3.2-3 `dependent_member` -- U6 = J8) · K10(40 J12-f) · K11(41 §4.7 IT-1 시점 한정 -- U1 = 나중 병합 card rebase) · K12~K15·K17·K18(41 §5.3.3·§5.3.4·§6.7) · K16(41 E11) · K19(41 §5.11) · K20(42 D-TB1a) · K21(42 DEC-95·D-GB7c) · K22(42 DEC-15·64). U2 = O-189 여덟째 자리(정의상 공허, 41 §4.7 정정), U7 = O-189 DEC-17(`l_owner_position_order`).
+- 이관 처리: 검증 33 D-1(HC-D design 몫 -- 40 §11 HC-1+GC-8 행 (a)), D-2(HC-D·GC-D design 몫 -- 40 §2.4.8 자기동형 궤도 행), D-3(41 `IcmPort`), D-4(40 §3.7-4 완료 단언 -- test 주체·TB-1 design 몫), D-5(40 §11 HC-1+GC-8 행); 검증 32 M-5(J10)·M-4a(구조 색 자리 = 40 §2.4.8); 검증 30 m29-1·n30-2(42 D-V9 -- 계획 개정 필요 P3); Q-TB1R (iii)-1·-2·-4(HC-D·GD-2), -3((η) 미채택 -- 해당 없음), -5(41 §5.3.4 + HC-D), -6(HC-1 design -- 41 §6.7-11 자리 표지); Q-GC8 (iii)-1(41 §6.7-11)·-2(40 §2.4.8)·-3(GC-D -- 40 §11 행 (b))·-4(J10)·-5(표지)·-6((d2) 미채택 -- 해당 없음).
+- 다른 design 몫으로 표지(이 판은 정하지 않음): HC-D(R-1′ 필드 형식·F_exist·J_point·P 서명·변 키·writer_root 구간·단좌표 자르기 함수), GC-D(`order_terms` 키·배선), HC-1(R6 없는 기간 7a 꼴), DR-1(KCL 항등 0 전류 MOS 예외 코드), EO-1(oracle 독립 유도 대조), CL-1(oracle 닫기 Δ 자리), GL-1(①② 검사), LI-1·MOD7((L2) 재배선·M-TH1L+·M-TH1g), 6b 계약 test(V9).

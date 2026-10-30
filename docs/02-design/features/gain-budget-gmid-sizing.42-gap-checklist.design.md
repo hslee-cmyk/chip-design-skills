@@ -1,14 +1,14 @@
 ---
 template: design
-version: 1.15.3
-plan_version: 6.38.4
+version: 1.16.0
+plan_version: 6.38.5
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
 
 > **Summary**: `bkit:gap-detector`가 설계 문서(40·41)와 구현을 대조할 때 쓰는 표다.
-> - **design v1.15.3 -- 계획 v6.38.4(승인 O-173) 맞춤, 검증 대기**(2026-10-29, 40·41과 같은 판 -- 40 Status; 이 문서: D-WB1·D-WB2(슬라이스 고정 P8·P3)·D-START(칸 0 조립 P4)·D-JDG(P1)·D-PW(P7) 확정, D-RMIN 추가) · **v1.15.2 -- 계획 v6.38.3 맞춤**(40 Status; 이 문서: §2 DEC-106 행 추가, D-WB1 정정, D-G4 삭제(N/A -- E-34), D-IT1·D-GL·D-CM·D-TBX 문구, §3 새 14행 D-IN1·D-E13·D-START·D-GS·D-JDG·D-SPX·D-GATE·D-CML·D-LOWN·D-MR·D-PW·D-AREA·D-LA1G·D-CAB, §4 집계)
-> - 옛 판 bullet(v1.15.1·v1.15.0) = design 이력 H42-01.
+> - **design v1.16.0 -- 계획 v6.38.5(승인 O-193) 맞춤, 검증 대기**(2026-10-31, 40·41과 같은 판 -- 40 Status; 이 문서: DEC 11행 OK → DEV(O-186), DEC-15·64·72·80·95·NFR-5 행 정정, D-GB7c → MISS, 새 7행 D-TB1d·D-TH1·D-L2·D-NM1·D-CL1·D-GL1·D-V9, D-TB1a~c·D-L0filt·D-SF1c·D-AR·D-AP1·D-P9·D-SYf·D-OR5·D-GB8c·D-P6 정정, §4 집계 323)
+> - 옛 판 bullet(v1.15.3·v1.15.2) = design 이력 H42-04, (v1.15.1·v1.15.0) = H42-01.
 > - 한 행이 FR·NFR·DEC·설계 항목 하나다.
 > - 열은 설계 절, 상태, 증거다. 증거는 `파일:행`, test 이름, 또는 재측정용 grep 패턴이다. 판 번호는 41에 맞춘다 -- v1.12.5는 41만 바꾼 판이라 이 문서는 v1.12.4에서 v1.12.6으로 건너뛰었다; v1.12.7 = 계획 v6.28(O-85·O-86) 맞춤, D-IT2 행; 둘째 커밋 = 사용자 O-87 (1)(차동 결합은 S-OS2 card 몫); 셋째 커밋 = 사용자 O-88(MOS 식별 = `device.element_class`); v1.13.0 = 계획 v6.34(사용자 O-106~O-110·DEC-103) 맞춤 -- D-ICM·D-IT2 행을 41 v1.13.0 §4.7에 맞춤(다듬은 창·`metrics_icm_front`·커널 미수렴 이어받기·출력 구조 분류·S-OS1 삭제, KCL 측정 구성 감도, E 칸; design 검증 `wt/_drafts/evidence/2026-10-22/design_v1130_validation.md` S-1), 재검증 90/100(`design_v1130_recheck.md`) 뒤; 계획 v6.34.1 `graph.ss_circuit`·용량만 결측 문언(재검증 3 S-B) 반영(41 v1.13.0과 같은 판); v1.14.0 = 계획 v6.35(사용자 O-114~O-116)·v6.34.2(O-111~O-113) 맞춤 -- D-ICM·D-IT2·D-J5 행을 41 v1.14.0 §4.7(servo 측정 구성, V_cm 좌표, B77)에 맞춤; v1.14.1 = 계획 v6.35.1(O-117)·v6.36(O-118·O-119) 맞춤 -- D-ICM·D-IT2(기본 포트 뷰·전도 행 R0·F 성분 포트 함께 구동·레일 자름)·D-J5(사실 정정), 검증 대기.
 >
