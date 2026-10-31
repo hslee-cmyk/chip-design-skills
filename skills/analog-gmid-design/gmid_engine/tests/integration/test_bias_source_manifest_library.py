@@ -1,4 +1,4 @@
-"""9회로 교차 -- `bias_inputs`(authoring CONTRACT 9절)와 `source_manifest`(10절)를 assets/library 원본에 실제로 건다.
+"""13회로 교차(O-181: 9 -> 13) -- `bias_inputs`(authoring CONTRACT 9절)와 `source_manifest`(10절)를 assets/library 원본에 실제로 건다.
 
 oracle 두 가지를 함께 쓴다(서로 독립):
 - (a) gate 전용 넷 집합 = topology JSON 에서 9절 정의 문장대로 test 가 직접 센 것(MOS gate 에만 있고 d/s/선언 bulk·
@@ -31,6 +31,16 @@ USER_BIAS_INPUTS = {
     "sf_pushpull_output_opamp": set(),
     "two_stage_ota": {"bias"},
     "two_stage_ota_sf": {"bias"},
+    # [O-181 2026-10-31] library 이관 4회로 -- 출처 = held-out 판독 결정 기록(user_decisions.md), 엔진 호출 없음:
+    #   rfc_ota(held-out A) 2026-10-13 "A7~A9는 권고": A-7 (가) '바이어스·시동 회로 포함 전체 ..., bias_inputs 없음'
+    #   r2r_opamp(held-out C) 2026-10-13 "D1~D8은 권고대로": D-2 (가) 'Vb1·Vb3·Vb4·Vb5·Vb6 구동 넷 5개 bias_inputs',
+    #     D-7 에서 넷 이름 vb1·vb5n·vb3·vb4·vb6n (topology 의 소문자 넷 이름) -- C-3(2026-10-14) 'Vb 엔진 도출'
+    #   erfc_ota(held-out B)·cnr_ota(held-out D): 판독 결정(B-1~B-8, 9/10/13/14, U1~U9)에 gate 전용 외부 바이어스 선언 없음 -> 없음.
+    #     oracle (a) 의 JSON 직접 집계도 같은 결과다(아래 test 가 두 oracle 일치를 단언).
+    "cnr_ota": set(),
+    "erfc_ota": set(),
+    "r2r_opamp": {"vb1", "vb3", "vb4", "vb5n", "vb6n"},
+    "rfc_ota": set(),
 }
 # (d) 사용자 결정 Q7 (MOS 수, passive 수)
 USER_MANIFEST_COUNTS = {
@@ -43,6 +53,13 @@ USER_MANIFEST_COUNTS = {
     "sf_pushpull_output_opamp": (22, 5),
     "two_stage_ota": (7, 3),
     "two_stage_ota_sf": (9, 2),
+    # [O-181 2026-10-31] 새 4회로 (MOS, passive) -- 판독 결정 기록: rfc A-7 '코어 17 + 바이어스 18 MOS + RB'(MOS 35) + Fig.11 CL(passive 2),
+    #   r2r D-1 'MOS 31개 극성 판독 확정', erfc B ⚠13 '표 1과 Fig.6 이름 29/29 일치', cnr 도면 문구 'MOS 72 + R 6 + C 2 + TB C 2'(passive 10).
+    #   r2r passive 4 와 erfc passive 6 은 topology JSON 직접 집계(MOS 수는 위 결정 기록과 일치).
+    "cnr_ota": (72, 10),
+    "erfc_ota": (29, 6),
+    "r2r_opamp": (31, 4),
+    "rfc_ota": (35, 2),
 }
 CIRCUITS = sorted(USER_BIAS_INPUTS)
 WITH_BIAS = [c for c in CIRCUITS if USER_BIAS_INPUTS[c]]
@@ -80,7 +97,7 @@ def _rejected(path):
     return dict(ei.value.record.detail)
 
 
-def test_library_set_is_nine():
+def test_library_set_is_thirteen():
     names = sorted(p.name[:-len(".topology.json")] for p in LIBRARY.glob("*.topology.json")
                    if not p.name.startswith("_"))
     assert names == CIRCUITS
