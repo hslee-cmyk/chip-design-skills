@@ -17,7 +17,7 @@ def test_port_on_each_terminal_kind_is_known(ah, tmp_path, place):
     d = ah.base()
     net = "n_probe"
     if place in ("drain", "gate", "source", "bulk"):
-        d["netlist"].append({"name": "Q5", "kind": "nmos", "drain": "n_mid", "gate": "n_inp", "source": "rail_lo"})
+        d["netlist"].append({"name": "Mfx5", "kind": "nmos", "drain": "n_mid", "gate": "n_inp", "source": "rail_lo"})
         d["netlist"][-1][place] = net
     elif place == "passive":
         d["passive_elements"].append({"name": "Rp", "kind": "resistor", "terminals": [net, "n_mid"]})
@@ -31,7 +31,7 @@ def test_port_on_each_terminal_kind_is_known(ah, tmp_path, place):
 def test_port_on_tag_or_comment_only_net_is_unknown(ah, tmp_path):
     """태그·주석에만 적힌 이름은 단자가 아니다."""
     d = ah.base()
-    d["symmetry"] = {"matching_pairs": [["n_tagonly", "Q1"]]}
+    d["symmetry"] = {"matching_pairs": [["n_tagonly", "Mfx1"]]}
     d["_note"] = "n_tagonly"
     _add_port(d, "n_tagonly")
     exc, detail = ah.rejected(load_topology, ah.write(tmp_path, d))
@@ -39,7 +39,7 @@ def test_port_on_tag_or_comment_only_net_is_unknown(ah, tmp_path):
 
 
 def test_rail_terminal_kinds_count_as_connected():
-    devs = (DeviceDecl("Q1", "nmos", "r_d", "r_g", "r_s", "r_b"),)
+    devs = (DeviceDecl("Mfx1", "nmos", "r_d", "r_g", "r_s", "r_b"),)
     pas = (PassiveDecl("C1", "capacitor", ("r_d", "r_p")),)
     srcs = (SourceDecl("I1", "current_source", ("r_q", "r_s")),)
     rails = RailDeclaration(frozenset({"r_d", "r_g", "r_s", "r_b", "r_p", "r_q"}))
@@ -48,6 +48,6 @@ def test_rail_terminal_kinds_count_as_connected():
 
 def test_undeclared_bulk_is_not_a_terminal():
     """bulk 를 선언하지 않은 소자는 bulk 단자 넷을 만들지 않는다 -- 레일이 어디에도 없으면 rail_not_connected."""
-    devs = (DeviceDecl("Q1", "nmos", "n_d", "n_g", "r_s"),)
+    devs = (DeviceDecl("Mfx1", "nmos", "n_d", "n_g", "r_s"),)
     hits = check_hidden_rails(RailDeclaration(frozenset({"r_s", "r_sub"})), devs, (), ())
     assert [h.rule for h in hits] == ["rail_not_connected"] and "r_sub" in hits[0].elements

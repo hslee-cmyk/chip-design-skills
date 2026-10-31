@@ -35,8 +35,8 @@ CASES = [
     ("devices__missing_key", ["missing_key"], "devices", NE_ELEMENTS, ()),
     ("devices__netlist_type", ["netlist_type"], "devices", NE_ELEMENTS, ()),
     ("devices__element_type", ["element_type"], "devices", NE_ELEMENTS, ()),
-    ("devices__element_unknown_key", ["element_unknown_key"], "devices", NE_ELEMENTS, ("Q1",)),
-    ("devices__element_field", ["element_field"], "devices", NE_ELEMENTS, ("Q2",)),
+    ("devices__element_unknown_key", ["element_unknown_key"], "devices", NE_ELEMENTS, ("Mfx1",)),
+    ("devices__element_field", ["element_field"], "devices", NE_ELEMENTS, ("Mfx2",)),
     ("rails__missing_key", ["missing_key"], "rails", NE_RAILS, ()),
     ("rails__supply_nets_type", ["supply_nets_type"], "rails", NE_RAILS, ()),
     ("rails__supply_net_value", ["supply_net_value"], "rails", NE_RAILS, ()),
@@ -49,7 +49,7 @@ CASES = [
     ("passives__terminals", ["terminals"], "passives", NE_ELEMENTS, ("Cload",)),
     ("passives__element_value", ["element_value"], "passives", NE_ELEMENTS, ("Rf",)),
     ("ideal_sources__ideal_sources_type", ["ideal_sources_type"], "ideal_sources", NE_ELEMENTS, ()),
-    ("name_uniqueness__name_duplicate", ["name_duplicate"], None, set(), ("Q4",)),
+    ("name_uniqueness__name_duplicate", ["name_duplicate"], None, set(), ("Mfx4",)),
     ("name_uniqueness__name_case_collision", ["name_case_collision"], None, set(), ("Rf", "rf")),
     # ports missing_key / ports_type: 계약이 '그 hit 하나'라고 적지 않았다(no_input/no_output 동반 여부 미정) -> 포함만 본다
     ("ports__missing_key", ("contains", "missing_key"), "ports", set(), ()),
@@ -180,7 +180,7 @@ def test_contract_example_all_violations_in_one_exception(ah):
     assert len(hits) == 5
     # 게이트 순서(topology_schema -> devices -> rails -> ports), 게이트 안 문서 순서(n_mid 다음 n_rzn)
     assert ah.rules(hits) == ["unknown_key", "element_unknown_key", "supply_net_duplicate", "port_direction", "port_role"]
-    assert "Q1" in hits[1].elements and "rail_lo" in hits[2].elements
+    assert "Mfx1" in hits[1].elements and "rail_lo" in hits[2].elements
     assert "n_mid" in hits[3].elements and "n_rzn" in hits[4].elements
     assert detail["rejected_gates"] == ("devices", "ports", "rails", "topology_schema")
     assert set(detail["not_evaluated"]) == NE_ELEMENTS | NE_RAILS
@@ -196,13 +196,13 @@ def test_hits_not_truncated(ah, tmp_path):
 
 def test_doc_order_inside_gate(ah, tmp_path):
     doc = ah.base()
-    doc["netlist"].reverse()  # Q4, Q3, Q2, Q1
-    ah.dev(doc, "Q1")["w"] = 1.0
-    ah.dev(doc, "Q3")["n_fingers"] = 4
+    doc["netlist"].reverse()  # Mfx4, Mfx3, Mfx2, Mfx1
+    ah.dev(doc, "Mfx1")["w"] = 1.0
+    ah.dev(doc, "Mfx3")["n_fingers"] = 4
     exc, detail = ah.rejected(load_topology, ah.write(tmp_path, doc))
     hits = detail["hits"]
     assert ah.rules(hits) == ["element_unknown_key", "element_unknown_key"]
-    assert "Q3" in hits[0].elements and "Q1" in hits[1].elements
+    assert "Mfx3" in hits[0].elements and "Mfx1" in hits[1].elements
 
 
 def test_not_evaluated_empty_when_only_ports_and_schema_rejected(ah, tmp_path):
@@ -218,7 +218,7 @@ def test_not_evaluated_empty_when_only_ports_and_schema_rejected(ah, tmp_path):
 def test_ports_format_checks_still_run_when_elements_rejected(ah, tmp_path):
     """0절: ports.port_net_unknown 만 빠지고 포트 형식 검사는 그대로 한다. port_on_rail 은 rails 가 살아 있으면 돈다."""
     doc = ah.base()
-    ah.dev(doc, "Q2")["drain"] = 3                                      # devices 거부
+    ah.dev(doc, "Mfx2")["drain"] = 3                                      # devices 거부
     doc["ports"]["n_ghost"] = {"direction": "input", "role": "aux_input"}  # 넷 미지 -- 검사 안 됨
     doc["ports"]["rail_lo"] = {"direction": "output", "role": "aux_out"}   # 레일 위 포트 -- 검사됨
     doc["ports"]["n_mid"] = {"direction": "input", "role": 3}              # 형식 위반 -- 검사됨

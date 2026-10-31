@@ -5,8 +5,8 @@
   "linked_topology_files": [],
   "supply_nets": ["rail_hi", "rail_lo"],
   "netlist": [
-    {"name": "Q1", "kind": "nmos", "drain": "n_o", "gate": "n_i", "source": "rail_lo"},
-    {"name": "Q2", "kind": "pmos", "drain": "n_o", "gate": "n_b", "source": "rail_hi"}
+    {"name": "Mfx1", "kind": "nmos", "drain": "n_o", "gate": "n_i", "source": "rail_lo"},
+    {"name": "Mfx2", "kind": "pmos", "drain": "n_o", "gate": "n_b", "source": "rail_hi"}
   ],
   "passive_elements": [],
   "bias_inputs": ["n_b"],

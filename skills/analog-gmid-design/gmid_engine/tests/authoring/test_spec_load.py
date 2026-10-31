@@ -229,7 +229,7 @@ def test_rejected_record_is_immutable(sc):
 
 
 def test_spec_fixture_names_disjoint_from_library(sc):
-    """합성 회로 이름(회로·소자·넷·레일·포트)이 library 9회로 이름과 겹치지 않는다(JSON 직접 집계)."""
+    """합성 회로 이름(회로·소자·넷·레일·포트)이 library 13회로 이름과 겹치지 않는다(JSON 직접 집계)."""
     from pathlib import Path
 
     def names(t):

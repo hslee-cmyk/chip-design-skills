@@ -120,7 +120,7 @@ def test_fp_invariant_under_tags_comments_and_order(ah, tmp_path, base_doc):
         del d[t]
     d["_note"] = "changed note"
     d["_extra_comment"] = {"anything": 1}
-    ah.dev(d, "Q1")["_comment"] = "changed"
+    ah.dev(d, "Mfx1")["_comment"] = "changed"
     ah.pas(d, "Rf")["_why"] = "added"
     d["ports"]["_comment"] = "changed"
     d = _shuffle_everything(d, 7)
@@ -138,7 +138,7 @@ def test_fp_invariant_under_order_only(ah, tmp_path, base_doc, seed):
 
 def test_fp_invariant_under_tag_value_change(ah, tmp_path, base_doc):
     d = ah.base()
-    d["device_roles"] = {"Q1": "input_pair"}
+    d["device_roles"] = {"Mfx1": "input_pair"}
     d["symmetry"] = None
     d["sizing_roles"] = {"x": 1}
     d["compensation"] = "miller"
@@ -146,19 +146,19 @@ def test_fp_invariant_under_tag_value_change(ah, tmp_path, base_doc):
 
 
 def _m_net(ah, d):
-    ah.dev(d, "Q4")["drain"] = "n_mid"
+    ah.dev(d, "Mfx4")["drain"] = "n_mid"
 
 
 def _m_gate(ah, d):
-    ah.dev(d, "Q2")["gate"] = "n_inp"
+    ah.dev(d, "Mfx2")["gate"] = "n_inp"
 
 
 def _m_kind(ah, d):
-    ah.dev(d, "Q1")["kind"] = "pmos"
+    ah.dev(d, "Mfx1")["kind"] = "pmos"
 
 
 def _m_bulk(ah, d):
-    ah.dev(d, "Q2")["bulk"] = "rail_lo"
+    ah.dev(d, "Mfx2")["bulk"] = "rail_lo"
 
 
 def _m_role(ah, d):
@@ -194,7 +194,7 @@ def _m_src_value(ah, d):
 
 
 def _m_name(ah, d):
-    ah.dev(d, "Q4")["name"] = "Q5"
+    ah.dev(d, "Mfx4")["name"] = "Mfx5"
 
 
 def _m_topology_name(ah, d):
@@ -223,7 +223,7 @@ def test_unread_passive_and_source_keys_not_in_fp(ah, tmp_path, base_doc):
     """3.6·3.7: value_from_spec·nulling_reference_device·implementable 은 읽지 않는다(투영에 없음)."""
     d = ah.base()
     ah.pas(d, "Cf")["value_from_spec"] = "Other_spec"
-    ah.pas(d, "Rf")["nulling_reference_device"] = "Q3"
+    ah.pas(d, "Rf")["nulling_reference_device"] = "Mfx3"
     d["ideal_sources"][0]["implementable"] = True
     assert _load(ah, tmp_path, d).connectivity_fp == base_doc.connectivity_fp
 
