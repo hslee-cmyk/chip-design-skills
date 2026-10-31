@@ -63,9 +63,9 @@ def test_stage_a_library_circuit(circuit, real_lut, tmp_path):
 
 
 def _supplies(circuit):
-    raw = json.loads((LIBRARY / (circuit + ".topology.json")).read_text(encoding="utf-8"))
-    declared = raw.get("_declared_target_spec", {}).get("supplies_v")
-    return {k: v for k, v in declared.items() if not k.startswith("_")} if declared else {"vdd": 1.8, "gnd": 0.0}
+    """공급 전압 = 회로의 sizing_spec `human.supplies_v.values`(정본 하나). 기본값을 발명하지 않는다 -- 선언이 없으면 KeyError 로 이 회로만 실패한다."""
+    raw = json.loads((LIBRARY / (circuit + ".sizing_spec.json")).read_text(encoding="utf-8"))
+    return {k: float(v) for k, v in raw["human"]["supplies_v"]["values"].items()}
 
 
 def test_l_classes_reach_theta_schema(real_lut, tmp_path):

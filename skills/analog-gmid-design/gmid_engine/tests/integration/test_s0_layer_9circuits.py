@@ -177,8 +177,15 @@ def _run(env, circuit):
     return env.runs[circuit]
 
 
+def _baseline(circuit):
+    """회로의 기준선 항목. 기준선에 없는 회로는 수집 때 KeyError 로 모듈 전체를 죽이지 않고, 그 회로의 test 만 명시적으로 실패한다
+    (skip 금지 -- 원칙 10: 기준선이 없으면 이 회로는 회귀 보호가 없다는 사실을 red 로 둔다). 기준선 측정은 별도 판정 몫."""
+    assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정)" % circuit
+    return BASELINE[circuit]
+
+
 def _searched(circuit):
-    return BASELINE[circuit]["status"] == ["ok", "ok"]
+    return BASELINE.get(circuit, {}).get("status") == ["ok", "ok"]
 
 
 SEARCHED = [c for c in CIRCUITS if _searched(c)]
@@ -236,7 +243,7 @@ def test_s0_fields_present_with_single_block_writer(env, circuit):
         for w in row_writers:
             if w not in base.block_versions or w not in blocks:
                 problems.append("writer %r 가 계산 블록이 아니다(block_versions·ComputeBlock)" % w)
-    devices = set(BASELINE[circuit]["start"]["row_fp"])
+    devices = set(_baseline(circuit)["start"]["row_fp"])
     assert devices
     for field in DEVICE_START[0]:
         have = {k for (kind, k), f in records.items() if kind == "device" and field in f}
@@ -298,9 +305,22 @@ def _sha(value):
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
+def test_baseline_present_for_every_library_circuit(circuit):
+    """library 회로마다 기준선 항목이 있다(O-181: 새 4회로는 기준선이 아직 없어 이 test 가 red -- 측정은 별도 판정 몫)."""
+    assert _baseline(circuit)["status"]
+
+
+def test_baseline_lookup_fails_closed_for_unknown_circuit():
+    """기준선에 없는 이름은 KeyError 가 아니라 설명 있는 AssertionError 로 거부된다(skip·기본값으로 넘기지 않는다)."""
+    with pytest.raises(AssertionError, match="기준선"):
+        _baseline("no_such_circuit_in_baseline")
+    assert not _searched("no_such_circuit_in_baseline")
+
+
+@pytest.mark.parametrize("circuit", CIRCUITS)
 def test_stage_reports_unchanged_from_base(env, circuit):
+    want = _baseline(circuit)            # 기준선 없으면 실행 전에 이 회로만 실패
     run = _run(env, circuit)
-    want = BASELINE[circuit]
     assert run.first.status == want["status"]
     diff = [k for k, sha in want["stage_a_sha"].items() if _sha(run.first.report_a.get(k)) != sha]
     diff += ["stage_b." + k for k, sha in want["stage_b_sha"].items() if _sha(run.first.report_b.get(k)) != sha]
@@ -313,7 +333,7 @@ def test_stage_reports_unchanged_from_base(env, circuit):
 def test_s0_field_values_unchanged_from_base(env, circuit):
     run = _run(env, circuit)
     base = run.first.base
-    want = BASELINE[circuit]
+    want = _baseline(circuit)
     diff = []
     for device, fp in want["start"]["row_fp"].items():
         if base.field("device", device, "start.row") is None or base.field("device", device, "start.row").value_fp != fp:
@@ -369,7 +389,7 @@ def test_junction_source_content_unchanged_from_base(env, circuit):
     run = _run(env, circuit)
     got = run.first.base.field("graph", "kernel", "junction_source")
     assert got is not None
-    want = BASELINE[circuit]["kernel"]["junction_content"]
+    want = _baseline(circuit)["kernel"]["junction_content"]
     js = got.value
     assert fp_of(js.params) == want["params_fp"]
     assert float(js.temp_c).hex() == want["temp_c_hex"]
