@@ -9,7 +9,7 @@ plan_version: 0.7.9.9
 
 > **Summary**: 승인 계획 `headroom-chain.plan.md`의 HC-S(포화 기준 단일화)와 HC-1(R-1′ + R-3 + 선언 triode)을 card로 내릴 수 있게 필드·함수·배선·시험·재작성 범위를 정한다. GC-8·GC-1은 `graph-consumption.design.md`, HC-O는 이 판 밖이다.
 >
-> **Status**: v0.1 초안, design 승인 전. 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.8, master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
+> **Status**: v0.1, 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.8, master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
 >
 > **결정 입력**: O-190·O-191(R-1′ 묶음, HC-1 + GC-8 통합 병합), O-202~O-212(전도·포화 경계·`off`), O-214·O-217·O-218(LA-1a), O-220·O-224(칸별 판정 유지), O-225(구현 우선).
 >

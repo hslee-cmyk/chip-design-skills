@@ -14,7 +14,7 @@ plan_version: 6.38.8
 > - 스펙에서 θ 좌표(ln IDu -- O-186)·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-11-03 · **Status**: **design v1.16.3 -- 계획 기준 = v6.38.8(master `c0b41eee`, 승인 A-25). **design은 승인 전.** 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔) 검증 Major 7 반영, 재검증 대기. **부분 승인 표지: 승인 대상 = ②(승인 전 -- 계획 v6.38.8 승인 뒤 요청, 승인 행 없음), ① LA-1a(§6.9 -- 선택 유보·보류)·③④⑥ 미승인.** LA-1a 판단이 걸린 줄은 '보류 중' 표지. HC-S·HC-1 = `headroom-chain.design.md`, GC = `graph-consumption.design.md`(design/hcgc `f59a239d` 합침, 묶음 ④ -- 검증 전). design/eo1 `2b1750dc` 합침(41 §4.8·§4.9 = 묶음 ⑥ 초안), card C 정정 DF-1~DF-6(A-9) 반영**(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H41-38, 경위 = H40-40.
+> **Date**: 2026-11-03 · **Status**: **design v1.16.3 -- 계획 기준 = v6.38.8(master `c0b41eee`, 승인 A-25). 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04, design/v115 `6271a8b8`, 독립 재판정 + V5·V6 검증자 문언 반영): 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔), ④(HC-S·HC-1·GC-1·GC-8), ⑥(EO-1, SF-1 로더 조각), card C 정정. **미승인: ① LA-1a(§6.9 -- 선택 유보·보류 표지), ③ WB-1(Q-W1 기본안 뒤 재검증).** LA-1a 판단이 걸린 줄은 '보류 중' 표지. HC-S·HC-1 = `headroom-chain.design.md`, GC = `graph-consumption.design.md`(design/hcgc `f59a239d` 합침, 묶음 ④ -- 검증 전). design/eo1 `2b1750dc` 합침(41 §4.8·§4.9 = 묶음 ⑥ 초안), card C 정정 DF-1~DF-6(A-9) 반영**(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H41-38, 경위 = H40-40.
 >
 > 색인과 표기는 [40-engine](gain-budget-gmid-sizing.40-engine.design.md)을 따른다(`E/`, OK/DEV/PART/MISS). as-built 기준은 master `004b7d2`다.
 
