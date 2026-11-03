@@ -972,3 +972,7 @@ v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, 
 ## H41-46 -- v1.16.8(위임 A-50~A-52)이 바꾼 문언의 옛 원문
 
 - 40 §2.4.8 `chain_graph` 행: «`f_exist` 구간 칸의 R6 전 소비자 0 = 위임 A-18(기간 예외, toy로 잠금)». 나머지는 `headroom-chain.design.history.md` v0.1.4, `graph-consumption.design.history.md` v0.1.1.
+
+## H41-47 -- v1.16.9(위임 A-59)가 바꾼 문언의 옛 원문
+
+- 40 §2.4.8: «`f_exist` 구간 칸의 R6 전 엔진 판정 소비자 0 = 위임 A-18(기간 예외), 그 기간 reader = 보고 출력 함수(출력 전용 칸 선언, test로 잠금, R6 때 뺌 -- 위임 A-52)», «J_point·F_exist·R6·층 0 / `dc_seal_triode`.», «| 〃 | `graph: dc_seal_triode`, `device: dc_triode_region` | `dc_seal_triode`(새 블록). 제작 HC-1. 소비자: 봉인 판정 / **출력 전용**(`dc_triode_region`) | 평가 |». 나머지는 `headroom-chain.design.history.md` v0.1.5, `graph-consumption.design.history.md` v0.1.2.

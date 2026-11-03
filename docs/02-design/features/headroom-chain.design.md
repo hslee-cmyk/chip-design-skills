@@ -1,15 +1,15 @@
 ---
 template: design
-version: 0.1.4
+version: 0.1.5
 plan: ../../01-plan/features/headroom-chain.plan.md
-plan_version: 0.7.9.10
+plan_version: 0.7.9.11
 ---
 
 # headroom-chain Design Document (HC-D: card HC-S, HC-1)
 
 > **Summary**: 승인 계획 `headroom-chain.plan.md`의 HC-S(포화 기준 단일화)와 HC-1(R-1′ + R-3 + 선언 triode)을 card로 내릴 수 있게 필드·함수·배선·시험·재작성 범위를 정한다. GC-8·GC-1은 `graph-consumption.design.md`, HC-O는 이 판 밖이다.
 >
-> **Status**: v0.1.4(§2·§4·§5·§6·§7.4·§8~§10 HC-1 card 후보 채택, 위임 A-50~A-52, 계획 0.7.9.10, 독립 판정 전). v0.1.3(§3.4 관문 보정점, 재판정 R1). v0.1.2(§3.1·§3.4·§7.2·§9, 위임 A-49). v0.1.1(§2·§3 card 후속, 위임 A-46). v0.1 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.11, 승인 판 v6.38.8 master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
+> **Status**: v0.1.5(독립 판정 `cards_c_validation.md` V1~V13·minor, 위임 A-59, 계획 0.7.9.11, 재판정 전). v0.1.4(§2·§4·§5·§6·§7.4·§8~§10 HC-1 card 후보 채택, 위임 A-50~A-52, 계획 0.7.9.10, 독립 판정 전). v0.1.3(§3.4 관문 보정점, 재판정 R1). v0.1.2(§3.1·§3.4·§7.2·§9, 위임 A-49). v0.1.1(§2·§3 card 후속, 위임 A-46). v0.1 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.11, 승인 판 v6.38.8 master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
 >
 > **결정 입력**: O-190·O-191(R-1′ 묶음, HC-1 + GC-8 통합 병합), O-202~O-212(전도·포화 경계·`off`), O-214·O-217·O-218(LA-1a), O-220·O-224(칸별 판정 유지), O-225(구현 우선).
 >
@@ -41,17 +41,17 @@ plan_version: 0.7.9.10
 | `device: dc_vgs_edge` | `VgsEdge(lo_net, hi_net)` -- `off` 선언을 뺀 모든 MOS의 (gate, source) 변(쓰기 계획 열거와 같음, 41 §4.8), 비트리 포함 | `dc_writer_plan` | S0 | HC-1 | `iv_headroom`(HC-1), `headroom_bound._edges`(GC-8), `chain_graph`(`triode_protected`의 Gs⁺ 변) |
 | `graph: dc_current_symmetry` | `CurrentSymmetry(ties, negated, zeros)` | `dc_current_symmetry`(sizing 층, 새 블록) | S0 | HC-1 | `search_domain`(읽기만), `chain_graph`(구조적 0 전류 MOS) |
 | `graph: chain_graph` | `ChainGraph(nodes, edges, vr_edges, root_rows)` -- §5.1 | `chain_graph`(sizing 층, 새 블록 = R-1′ 블록) | S0 | HC-1 | `iv_headroom`, `order_terms`·`headroom_bound`(GC-8), `search_domain`(단좌표 자르기), J_point, F_exist, R6(LA-1a), 층 0(LA-1) |
-| `graph: triode_protected` | ((X, (Z, ...)), ...) -- 선언 triode X별 지켜지는 소자 | `chain_graph` | S0 | HC-1 | `dc_seal_triode`(기록) |
+| `graph: triode_protected` | ((X, (Z, ...)), ...) -- 선언 triode X별 지켜지는 소자 | `chain_graph` | S0 | HC-1 | `dc_seal_region`(기록, 위임 A-59) |
 | `graph: stack_candidates` | ((X, Y), ...) | `stack_candidates`(graph 층, 새 블록) | S1 | HC-1 | 봉인 7 사유 세분, 칸별 R-3 판정 |
 | `graph/start: loop_conflicts` | `LoopConflict` tuple -- §6.2, 위반 칸만 | `loop_dependents`(7a 블록, `E/search/iv_kvl_choice.py`) | S0 | **HC-1**(D42 D-LA1a 정정 -- §13) | 칸 번호 = 칸 거르기(엔진). 나머지 칸 = 출력 전용(§6.3) |
 | `graph/start: loop_stack_notes` | 칸별 R-3 기록 tuple | `loop_dependents` | S0 | HC-1 | **출력 전용**: 결과 JSON·단계 보고(U-H15 (가)) |
 | `graph: dc_seal_triode` | 봉인 항목(정의역 게이트) | `dc_seal_triode`(새 블록) | 평가 | HC-1 | 봉인 판정 |
-| `device: dc_triode_region` | `TriodeRegion(region, protected_none)`(VDS·VDsat 값 칸 없음 -- 보고가 `device.dc_op`·`device.dc_sat_v`를 읽는다, graph 규칙 3·4, 위임 A-50) | `dc_seal_triode` | 평가 | HC-1 | **출력 전용**: 보고(`_triode_rows`) |
+| `device: dc_triode_region` | `TriodeRegion(region, protected_none)`(VDS·VDsat 값 칸 없음 -- 보고가 `device.dc_op`·`device.dc_sat_v`를 읽는다, graph 규칙 3·4, 위임 A-50) | `dc_seal_region`(같은 순회의 `RegionJudgment.actual` -- `judge_region` 둘째 호출 금지, 위임 A-59. 41 §4.8-3의 WRITES에 HC-1이 더한다) | 평가 | HC-1 | **출력 전용**: 보고(`_triode_rows`) |
 | `graph: dc_seal_7`(바뀜) | 사유 어휘·`detail` 칸 추가 -- §7.2 | `dc_seal_region`(writer 변경 = card EO-1 범위 4 -- 41 §4.8-3, `dc_seal_saturation`·`seal_saturation.py` 삭제, EO-1 범위 4 → HC-S 표 #7이라 이 문서의 card는 처음부터 이 writer를 고친다) | 평가 | 칸 = HC-S·HC-1 | 그대로 |
 | `graph/kernel: search_domain`(바뀜) | 상자 + 칸 `chain_cuts` | `search_domain` 그대로 | S0 | HC-1 | 상자 = 기존 소비자, `chain_cuts` 칸 = 출력 전용 |
 | `gvgs_summary.vds_saturation`, `REL_VDS_SATURATION` | **삭제** | -- | -- | HC-1 | 엔진 소비자 0(HC:190), test 표 3곳 + metamorphic 1곳은 test 역할이 다시 씀 |
 
-**소비자 표지**(위임 A-18, O-226): `f_exist` 구간 칸(`node_lo`·`node_hi`·`vr_*`)과 `chain_cuts` 단좌표 자르기는 HC-1이 만들고 R6 전 엔진 판정 소비자가 0이다(판정 소비자 = 같은 LA-1 경로의 R6, 표 #16·#22). **구간 칸의 그 기간 reader = 보고 출력 함수**(§6.3, 위임 A-52): 규칙 L 출력 전용 칸 목록에 근거와 함께 넣고 test로 잠그며 LA-1 R6 때 목록에서 뺀다. reader 없는 면제로 쓰지 않는다. 기간 예외이고 사용자 보고 항목이다.
+**소비자 표지**(위임 A-18, O-226): `f_exist` 구간 칸(`node_lo`·`node_hi`·`vr_*`)과 `chain_cuts` 단좌표 자르기는 HC-1이 만들고 R6 전 엔진 판정 소비자가 0이다(판정 소비자 = 같은 LA-1 경로의 R6, 표 #16·#22). **구간 칸의 그 기간 reader = 보고 출력 함수**(§6.3, 위임 A-52·A-59): reader가 있어 규칙 L-4를 목록 없이 통과하므로 `output_only_slots`에 넣지 않고, reader 삭제는 L-4와 test가 잡는다. 기간 예외이고 사용자 보고 항목이다.
 
 **쓰지 않는 필드(R6 몫)**: `graph/start: loop_dep`, `reopen`, `start.guard`, `kvl_adjusted`·`kvl_macro_recheck`는 HC-1이 만들지 않는다. HC-1은 `graph/start: records`·`conflicts`에 쓰지 않는다(writer = `start_intervals`, M2 지적과 같은 규칙).
 
@@ -148,9 +148,9 @@ VrEdge(resistor, far_net, near_net, far_node, near_node)        # 값 미선언 
 RootRow(device, net)                       # dc_self_referential 소자의 writer_root 행
 ```
 
-- **변은 MOS마다 하나**(HC:332). `term_kind` ∈ {`sat`, `lut_floor`(선언 triode), `off`}. `on_structural` = `off` 선언도 구조적 0 전류도 아님. 변을 지우지 않고 표지하므로 VDS-1 포함 관계(HC:265)가 표지로 깨지지 않는다.
+- **변은 MOS마다 하나**(HC:332). `term_kind` ∈ {`sat`, `lut_floor`(선언 triode), `off`}. `on_structural` = `off` 선언도 구조적 0 전류도 아님. **구조적 0 전류 = 그 소자 `dc_current_basis.rows` 행의 항이 하나 이상이고 항의 source가 전부 `zeros` 성분(`("current", source)`)이다**(고정 전류 항이 하나라도 있으면 아님, 위임 A-59). 변을 지우지 않고 표지하므로 VDS-1 포함 관계(HC:265)가 표지로 깨지지 않는다.
 - **마디**: F*와 미지수 묶음(W4 뿌리 또는 고립 넷). `lo_node`·`hi_node`는 `dc_root_path.root`에서 읽는다.
-- **`coords`**: 변 가중치가 의존하는 θ 좌표 전부 -- 양 끝 넷의 `steps`에 든 MOS의 ln IDu(writer)·L, W4 y, θ 저항, 그 소자 자신의 ln IDu·L과 VSB를 정하는 source 넷의 좌표. 'VDS·VSB도 좌표에 든다'고 세어야 단좌표 부등식이 가정 동작점 없이 정말 1변수 함수가 된다(C-10, P-1).
+- **`coords`**: 변 가중치가 의존하는 θ 좌표 전부 -- 양 끝 넷의 `steps`에 든 MOS의 ln IDu(writer)·L, W4 y, θ 저항, 그 소자 자신의 ln IDu·L과 VSB를 정하는 source 넷의 좌표, **VGS를 정하는 gate 넷의 좌표**(gate 넷 뿌리 W4 y 포함, 위임 A-59). 'VDS·VSB도 좌표에 든다'고 세어야 단좌표 부등식이 가정 동작점 없이 정말 1변수 함수가 된다(C-10, P-1).
 - **`route`** = `cut`(좌표 1개) / `filter`(2개 이상) / `none`(0개, θ 무관 -- 판정은 J_point). 소자 자신의 L이 늘 좌표에 들므로 `cut`의 좌표는 그 소자의 L이고 `none`은 합성 입력에서만 나온다(코드 읽기, 13회로 수 미측정, 위임 A-51).
 - **`ends_theta`**(위임 A-50): 양 끝 넷의 `steps`에서 공통 앞부분을 뺀 나머지가 있으면 True. `ChainCycle.theta_free`(HC:232)의 입력이다. **`far_node`·`near_node`**: 저항 변 쌍이 잇는 마디. 뿌리 → 넷 경로에 값 미선언 저항이 있는 넷의 마디 = 넷에 가장 가까운 그 저항의 `far_net`이다(HC:220).
 - **결정성**: 변 순서 키 = 소자 `dc_colour`. **D40:2206 (a) 닫음**: 변 키가 소자 색이고 구조 색은 정점마다 유일(D40 §2.4.8 구조 색 행, 소자도 정점)하므로 평행 소자도 갈리고 DEC-97 마지막 키는 **공허**하다. `TieBreak` 기록은 만들지 않고 HC:237의 빌린 형식도 필요 없다(D40:2206 (g)와 충돌 없음). 그 결과 계획 M-NM1 일곱째 자리는 측정 대상으로 되돌아가지 않는다. **작성자 판단 J3**.
@@ -185,7 +185,7 @@ j_point(chain, point_view) -> ChainVerdict(state, rows, reason)      # chain_jud
 ### 5.3 점 풀이 자리: 커널 DC 접두 + S3 색인
 
 - **문제**: J_point의 '쓰기 계획 정확 풀이'를 따로 풀면, 통과한 칸을 커널이 다시 풀어 같은 입력 재계산이 된다(HC:571 위반). 새 슬롯으로 넘기면 graph 규칙 2 위반이다.
-- **결정**: `E/search/kernel.py`에 DC 접두 함수 `dc_prefix(sctx, theta, cells, origin)`를 둔다. `evaluate`가 쓰는 DC 블록 열(`dc_columns`, `dc_widths`까지)을 같은 `donors`·`counters`로 부르고, `evaluate`도 이 함수를 지나간다. 블록 호출이 S3 색인에 등록·graft·실패 재연을 하므로 **같은 θ는 한 번만 푼다**. 근 없음 실패도 `register_failure`로 재연된다.
+- **결정**: `E/search/kernel.py`에 DC 접두 함수 `dc_prefix(sctx, theta, geometry=None)`를 둔다(θ = `expand_ties`를 거친 값, `evaluate`와 같은 입력이라 graft가 성립한다, 위임 A-59). `evaluate`가 쓰는 DC 블록 열(`dc_columns`, `dc_widths`까지)을 같은 `donors`·`counters`로 부르고, `evaluate`도 이 함수를 지나간다. 블록 호출이 S3 색인에 등록·graft·실패 재연을 하므로 **같은 θ는 한 번만 푼다**. 근 없음 실패도 `register_failure`로 재연된다.
 - **반환**(위임 A-50): `dc_prefix(...) -> (snapshot | None, failure | None)`. 블록 열은 `E/sizing/kernel_run.py`의 앞부분을 나눠 쓴다.
 - **LUT memo 계수 창**(위임 A-50): `dc_prefix`가 `bound_state == "counting"`이면 창을 열고(`open_count`) 닫기는 첫 `evaluate` 끝 그대로다. 안 그러면 첫 평가의 DC 블록이 graft되어 U가 과소해진다. 창에 칸 수만큼 DC 키가 더 들어 상한은 커질 뿐이다(영향 미측정 `[재점검]`).
 - **색인 상한**: 접두 블록도 색인에 등록되어 칸 수만큼 항목이 는다. S0 블록 여유로 D40 §2.4.5 상한을 넘지 않는지는 G-10 판정 기준에서 본다.
@@ -205,7 +205,7 @@ j_point(chain, point_view) -> ChainVerdict(state, rows, reason)      # chain_jud
 ### 6.1 흐름
 
 1. S0 스냅샷 완성 직후, `find_front` 전에 드라이버 `judge_rungs(sctx)`(`E/search/iv_kvl_choice.py`)가 칸마다 `layer0_start`와 같은 θ 조립으로 `dc_prefix`를 부르고 `j_point`를 낸다. 호출 자리 = `build_search_context` 끝(`_wire_sweep_memo` 뒤, 위임 A-50).
-2. 위반 칸에서만 그 칸 동작점으로 `f_exist`를 불러 순환 출처를 얻는다(같은 입력 재호출 0).
+2. 위반 칸에서만 그 칸 동작점으로 `f_exist`를 불러 순환 출처를 얻는다(같은 입력 재호출 0). 입력(위임 A-59): V(net) = 레일이면 `node.dc_rail_v`, 아니면 `node.dc_v`. K(net) = V(net) − (넷의 마디가 `F_STAR`면 0, 아니면 V(마디 넷)). MOS 변 = `on_structural`이고 `op.current > 0`인 변, term = `vdsat_v` 또는 `vds_floor`. **`vdsat_v`가 None인 변은 넣지 않는다**(대체값 없음, 그 행은 `rows`에 있다). 저항 = (None, K(near), K(far)), `vr_bounds` = I·R의 (min, max), R ∈ θ 저항 상자, I = 그 칸 far → near 방향 전류(`device.dc_current`).
 3. 칸마다 §7.3 R-3 기록을 낸다. 풀이가 없는 칸은 그 사유만.
 4. `loop_dependents(projection)` 블록이 판정 묶음을 extras로 받아 두 필드를 쓴다. 판정은 이 블록 밖에서 처음 만들어지고 영속 자리는 이 필드 하나다(사본 아님). **드라이버는 base B0에서 칸을 판정하고 `loop_dependents`로 B1을 만든 뒤 `sctx`와 커널 컨텍스트의 base 참조를 B1로 한 번 바꾼다**(새 칸 0, 실행당 1회, `find_front` 전). DC 블록 READS에 `loop_conflicts`가 없어 입력 버전이 같고 색인 graft가 유효하다. 교체가 안 되면 멈추고 보고한다(graph 규칙 6).
 
@@ -223,7 +223,7 @@ j_point(chain, point_view) -> ChainVerdict(state, rows, reason)      # chain_jud
 ### 6.3 출력 전용 선언(O-224)
 
 - **칸별 기록의 내용 칸**(`state`, `rows`, `exist`, `reason`)과 `loop_stack_notes` 전체는 **출력 전용**이다. 판정 reader 0, 독자 = 결과 JSON·단계 A 보고·재측정 사람.
-- **보고 reader**(위임 A-50·A-52): `E/search/find_front.py`의 `_chain_start_note`(필드 `loop_conflicts`·`loop_stack_notes`, `exist`의 `cycle`·`node_lo`·`node_hi`·`vr_lo`·`vr_hi`, `chain_filtered`, `chain_cuts`를 notes 한 줄로), `_triode_rows`(`dc_triode_region` + `dc_op`·`dc_sat_v`). 둘 다 규칙 L 출력 함수 목록에 근거와 함께 넣는다. `ChainExist` 구간 칸 항목은 'LA-1 R6 소비자가 들어올 때 뺀다' 표지를 단다.
+- **보고 reader**(위임 A-50·A-52): `E/search/find_front.py`의 `_chain_start_note`(필드 `loop_conflicts`·`loop_stack_notes`, `exist`의 `feasible`·`cycle`(`ChainCycle` 네 칸)·`node_lo`·`node_hi`·`vr_lo`·`vr_hi`, `chain_filtered`, `chain_cuts`를 notes 한 줄로), `_triode_rows`(`dc_triode_region` + `dc_op`·`dc_sat_v`). 둘 다 규칙 L 출력 함수 목록에 근거와 함께 넣는다. `ChainExist` 칸은 reader가 있어 `output_only_slots`에 넣지 않는다(위임 A-59).
 - **칸 번호 칸**(`rung`)만 칸 거르기가 읽는다. 거르기가 J_point를 다시 부르면 같은 입력 재계산이고(HC:252·262), 거르기용 필드를 따로 두면 같은 사실이 두 필드다(graph 규칙 3). 그래서 규칙 L 표현은 **필드 reader = 칸 거르기, 내용 칸 = L-4 출력 전용 칸 목록**이다.
 - **작성자 판단 J6**: O-224 '칸별 기록 = 출력 전용'을 칸 단위로 읽었다. 필드 단위로 읽으면 위 둘 중 하나를 어긴다.
 - R6 첫 통과 칸 효력은 만들지 않는다.
@@ -239,8 +239,8 @@ j_point(chain, point_view) -> ChainVerdict(state, rows, reason)      # chain_jud
 
 ### 6.5 단좌표 자르기(HC:258, G-4 (2))
 
-- **자리**(위임 A-51 -- `cut`의 좌표는 L이고 L은 `variables`가 아니라 `SearchDomain.l_cells`에 있다, HC:258 '그 좌표의 구간' 그대로): `search_domain` 블록이 `chain_graph`를 READS하고 `route = cut` 변마다 `chain_cut(edge, component, cells, margin_of, tol) -> (cells′, records)`(`chain_cut.py`, 정의 1곳)를 불러 그 소자 L 칸을 좁힌다. 좌표가 L이 아니면(합성 입력) `chain_cuts`에 `coordinate_not_in_box`. 줄면 `chain_cuts` 칸에 (좌표, 방향, 값, 변)을 적는다(HC:253 관행).
-- **풀이**: 칸 위 1변수 함수 g(c) = V(hi) − V(lo) − term. 칸 안 VDSAT는 L 선형 보간이라 칸 끝 부호로 구간이 정해진다. 근 = `bracket_root`, 허용오차 = PDK 제조 격자 역할 값(`grid_m`, 새 상수 0).
+- **자리**(위임 A-51 -- 계획 LR3·DEC-95 (1): L은 칸 고정 뒤 칸 안 연속이다. `cut`의 좌표는 L이고 L은 `variables`가 아니라 `SearchDomain.l_cells`에 있다, HC:258 '그 좌표의 구간' 그대로): `search_domain` 블록이 `chain_graph`를 READS하고 `route = cut` 변마다 `chain_cut(edge, component, cells, anchors, margin_of, tol) -> (cells′, records)`(`chain_cut.py`, 정의 1곳)를 불러 그 소자 L 칸을 좁힌다. 대상 = `route = cut`이고 **`on_structural`인 변**(위임 A-59). 좌표가 L이 아니거나 그 소자가 `l_cells`에 없으면(묶음 구성원) `chain_cuts`에 `coordinate_not_in_box`. 줄면 `chain_cuts` 칸에 (좌표, 방향, 값, 변)을 적는다(HC:253 관행).
+- **풀이**: 칸 위 1변수 함수 g(c) = V(hi) − V(lo) − term. 칸 안 VDSAT는 같은 bin의 양옆 앵커 사이 L 선형이다. 앵커가 셋 이상이면 구간 선형이라 앵커 표본으로 구간을 정한다(칸 끝 ∪ 칸 안 앵커, 위임 A-59). 근 = `bracket_root`(`None`을 넘기지 않는다, 근 찾기 중 `None`이면 칸 불변 + `cut_undefined`), 허용오차 = PDK 제조 격자 역할 값(`grid_m`, 새 상수 0). `ChainCut` 값 형식 = sizing 층(`s2_values`, 층 규칙).
 - **만족 집합이 한 구간이 아니거나 비거나 g가 정의 불능이면** 상자를 바꾸지 않고 `chain_cuts`에 사유(`cut_not_interval`·`cut_empty`·`cut_undefined`)를 적는다. 그 점은 J_point가 거른다. 대체값 없음, 정지 없음(G-4 경계, U-H15 원리).
 - **두 호출 자리**: 이 자리는 모든 좌표가 상자에 열린 입력이다. R5′ (4)(iii)는 다른 좌표가 그 점에 고정된 입력이다. 입력이 다르고, 이미 자른 단좌표 행은 그 안에서 깨지지 않는다. 같은 입력을 두 번 자르지 않는다.
 - **발동**: VGS와 양 끝 전압이 θ에 안 걸리는 변에서만 일어나 회로가 적거나 없을 수 있다. 13회로 수 미측정 `[재점검]`. 0이면 toy로만 검증되는 코드이고 절대원칙 대상이라 §12-S3에 올렸다(사용자 보고 항목, A-18·A-51).
@@ -259,18 +259,18 @@ stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, 
 
 - max_{L, VGS(X) ∈ LUT 정의역} [VGS(X) − VDsat(X; VDS = VGS(X) − VGS(Y), VSB(X))] < VGS(Y). VDsat은 `sat_threshold_grid`에서 읽고 VDS가 음수인 점은 포화 불가로 센다.
 - **G-13**: 범위 = LUT 정의역 전체(H-14). 탐색 상자 ⊆ LUT 정의역이므로 상자로 좁힌 판정보다 덜 성립한다(보수적). 상자를 읽지 않는다.
-- **봉인**: `dc_seal_region`(41 §4.8-3 -- EO-1 범위 4가 만듦, 이 칸은 HC-1이 더함)이 extras 대신 `stack_candidates`를 READS한다. 위반 소자 X가 후보이고 Y가 전도(`dc_op.current > 0`)이며 선언 triode가 아니면 `stack_unsat`을 부른다. 성립하면 `detail`에 `reason = stack_unsaturable`, X·Y·VGS(Y)·좌우 값·VP 칸. 거부 여부는 그대로다. 위반 소자에서만 부른다.
+- **봉인**: `dc_seal_region`(41 §4.8-3 -- EO-1 범위 4가 만듦, 이 칸은 HC-1이 더함)이 extras 대신 `stack_candidates`를 READS한다. 위반 소자 X가 후보이고 Y가 전도(`dc_op.current > 0`)이며 선언 triode가 아니면 `stack_unsat`을 부른다. 성립하면 `detail`에 `reason = stack_unsaturable`, X·Y·`lhs_max`·`gap_v`(= VGS(Y) − `lhs_max`, `lhs_max` None이면 None)·`l_at_max`·`vgs_at_max`·VP 칸. VGS(Y) 값은 쓰지 않는다(HC:299, 규칙 L-5, 위임 A-59). 거부 여부는 그대로다. 위반 소자에서만 부른다.
 - **G-6**: Y 상태는 풀린 `dc_op`에서 읽는다. 노드 풀이 반복 안에서 부르지 않는다.
 - **사유 문언**(G-7): '이 Y 상태에서 X 크기로는 포화 불가, triode 선언 필요'. '또는 Y 크기 변경'은 **넣는다** -- 판정이 Y 고정 아래라 사실에 맞고 불가능 증명으로 읽히지 않게 한다. **작성자 판단 J7**.
 - **VP 보고 칸**: n = 1 + gmb/gm, VT0 = VS 축 0점의 VTH. VS 축에 0점이 없으면 칸 None + 사유(M-H1b 미측정 `[재점검]`).
 
 ### 7.3 출발 기록
 
-§6.1-3에서 후보마다 `dc_prefix` 결과로 같은 `stack_unsat`을 부르고, 성립하면 `loop_stack_notes`에 (칸, X, Y, 좌우 값)을 적는다. 정지 없음(U-H15 (가)). `off`·`triode` 선언 X, Y 꺼짐은 판정 안 함.
+§6.1-3에서 후보마다 `dc_prefix` 결과로 같은 `stack_unsat`을 부르고, 성립하면 `loop_stack_notes`에 (칸, X, Y, `lhs_max`, `gap_v`)를 적는다. 정지 없음(U-H15 (가)). `off`·`triode` 선언 X, Y 꺼짐은 판정 안 함.
 
 ### 7.4 선언 triode(HC:309~320)
 
-- **새 블록 `dc_seal_triode`**: READS `dc_op`·`dc_sat_v`·`triode_protected`. (i) 게이트: VDS ∈ [`vds_floor`, VDS 축 끝]이고 VGS 역산 정의. 어기면 소자 이름 + 사유 `triode_lut_domain`, 봉인 7 위반으로 분류하지 않음. (ii) `dc_triode_region` 기록(`region` = EO-1 `judge_region` 값, 값 칸 없음). (iii) 지켜지는 소자 없으면 `protected_none = True` 기록.
+- **새 블록 `dc_seal_triode`**: READS `dc_op`·`region_decl`, WRITES `graph.dc_seal_triode`만(위임 A-59). (i) 게이트: VDS ∈ [`vds_floor`, VDS 축 끝]이고 VGS 역산 정의. 어기면 소자 이름 + 사유 `triode_lut_domain`, 봉인 7 위반으로 분류하지 않음. (ii) `dc_triode_region` 기록은 `dc_seal_region`이 같은 순회에서 한다(`region` = `RegionJudgment.actual`, READS `triode_protected`, 값 칸 없음, `judge_region` 호출 자리 불변). (iii) 지켜지는 소자 없으면 `protected_none = True` 기록.
 - **`triode_protected` 계산**: Gs⁺(`dc_vgs_edge` + 저항 변)에서 X 변을 지우면 Z.d와 Z.s가 끊어지고 지우기 전에는 이어진 Z. 지우기 전에 안 이어진 Z는 넣지 않는다('모든 경로'가 공허한 경우).
 - **선언 대조**(`triode` 포화·꺼짐 = 선언 오류)는 EO-1 공용 영역 판정 함수 몫이다. 여기서 만들지 않는다.
 - **`off`**: R-1′ 항·R-3·출발 `sat_threshold` 호출 없음(HC:516). 효과 판정은 상위 N3.6 (5).
@@ -299,9 +299,10 @@ stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, 
 | `E/search/search_context.py`, `find_front.py` | `judge_rungs` 호출, 읽기 속성, 보고 reader `_chain_start_note`·`_triode_rows` |
 | `E/search/search_domain.py`, `current_symmetry.py`(옮김), `search_values.py` | 필드 읽기, 단좌표 자르기, `chain_cuts` |
 | `E/search/iv_headroom.py`, `s0_fields.py` | 정본 읽기, `_edge_nets` 삭제, 권한표 |
-| `E/sizing/seal_region.py`(EO-1 뒤), `seal_triode.py`(새) | 사유 세분, 게이트·영역 기록 |
+| `E/sizing/seal_region.py`(EO-1 뒤), `seal_triode.py`(새) | 사유 세분·영역 기록 / 게이트 |
 | `E/lut/stack_unsat.py` | 신규: `stack_unsat`·`StackJudge`(구조 규칙 A, 위임 A-49) |
 | `E/search/CONTRACT.md:866-870` | 열린 항목 닫기 |
+| `E/lut/CONTRACT.md:307·318`, `E/search/CONTRACT.md:457` | LUT memo 창 문장 '첫 커널 평가' 맞춤(§5.3) |
 
 - **선행**: TB-1, HC-S, IT-1, card C, GC-D design 승인, GC-1. **뒤따름**: GC-8 커밋(같은 통합 병합), LA-1a·LA-1.
 - **변경 종류** = 동작 변경. 다리: 출발 부분 = 시작점 ngspice, 정의역 게이트 = 발동 회로 있으면 front oracle, 없으면 계수 0 기록. 선언 triode 회로 다리 = HC-O까지 보류. EO-1 완료 판정 선행.
@@ -337,7 +338,7 @@ stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, 
 | H23 | J_point 위반·F_exist 가능 칸 | 보고 줄에 구간 값이 그대로 나오고 칸의 읽기는 출력 함수뿐(위임 A-52) | §6.3 |
 | H24 | `counting` memo에서 칸 판정 뒤 첫 평가 | 창이 칸 판정에서 열리고 첫 평가 끝에서 닫힘(위임 A-50) | §5.3 |
 
-자리: `E/tests/sizing/test_chain_graph.py`, `test_chain_judge.py`, `E/tests/search/test_iv_kvl_choice.py`, `E/tests/sizing/test_seal_triode.py`, `E/tests/graph/test_stack_candidates.py`. 파일명은 구조 규칙 H로 card에서 확정.
+자리(구조 규칙 H, 위임 A-59): `E/tests/sizing/test_chain_graph.py`, `test_chain_exist.py`, `test_chain_judge.py`, `test_chain_cut.py`, `test__helpers_polarity.py`, `test_current_symmetry.py`(search에서 이동), `test_seal_triode.py`, `E/tests/lut/test_stack_unsat.py`, `E/tests/search/test_iv_kvl_choice.py`, `E/tests/graph/test_stack_candidates.py`.
 
 **완료 판정**(검증자): HC:546~585 그대로. WP-10 cProfile·중복 인자 계측 포함.
 
@@ -378,6 +379,7 @@ stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, 
 | D41:1794·1799·1901 | writer·파일 이름은 이 문서와 같음. 드라이버 꼴과 §5.3 인계 |
 | D40:454, D40:2206, D42 D-TB1b | '미작성' → 이 문서, (a)(c)(d)(e)(g)(h) 닫힘 |
 | D40 §2.4.8 | §2 표 행 추가, `device: dc_sat_v` 행(M7) |
+| D40 §2.4.6 | LUT memo 창 '첫 커널 평가' → 칸 판정이 있으면 첫 `dc_prefix`부터 첫 `evaluate` 끝까지(§5.3, 위임 A-59) |
 | D42 D-NM1 | 일곱째 자리 = 공허(J3) |
 | D41 §6.7-1·§6.1, 40 봉인 7 절 | 계획 N3.8: 제약 그래프 판정·칸·거르기, 사유 세분·게이트 |
 | D40:2210, D41:686 | HC-S 인용 대상 = 이 문서 |
