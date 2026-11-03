@@ -607,11 +607,11 @@ as-built 실측(bd19cc6, tests 제외, 지금 파일 목록과 다름) 확장 �
 
 **④ library 회로 실행 test**(전부 -- O-181 뒤 13): §2.4.9의 `test_g10_no_recompute_9circuits`가 ①~③의 정적 검사가 못 보는 실행 중 중복을 잡는다. 같은 실행에서 SearchContext·커널 컨텍스트의 도달 가능한 객체를 훑어 설계 값 타입 인스턴스가 graph 스냅샷·S3 색인 밖에 없는지도 확인한다(②의 동적 짝).
 
-**GL-1 design**(계획 N6.37, 사용자 결정 O-182·O-183 #10, 위임 A-28 -- 검증 대기). 범위 = ①②와 공유 호출 감사 도구. ③④는 이 card 범위가 아니다.
+**GL-1 design**(계획 N6.37, 사용자 결정 O-182·O-183 #10, 위임 A-28, 승인됨(O-226 위임 A-29)). 범위 = ①②와 공유 호출 감사 도구. ③④는 이 card 범위가 아니다.
 
 *자리*: 검사기 = `E/tests/structure/structure_checks.py`의 `check_g8`, `check_value_types`, 기준선 함수 `baseline_doc`, `dump_baseline`, `load_baseline`, `ratchet`. 기존 `check_g`는 바꾸지 않는다(그 test는 위반 0을 단언하고 ①②는 기존 위반을 래칫으로 다루므로 나눈다). 도구 = 저장소 루트 `tools/audit/scan_shared_calls.py`. 기준선 = `E/tests/structure/g8_baseline.json`, 기록 id = 파일의 `id` 칸(첫 값 `20261103-gl1-baseline`). 판정 기록 = `.ai/verification/20261103-gl1.json`.
 
-*① kind*: 표 일곱 행을 `g8_attr_container`, `g8_class_container`, `g8_default_factory`, `g8_cached_property`, `g8_cache_call`, `g8_module_cache`, `g8_id_call`, `g8_memo_call_form`으로 나눈다. §2.4.6이 없애기로 한 클로저 호출은 `g8_memo_lookup_form`으로 잡아 기존 자리를 래칫한다. '등'으로 적힌 목록은 고정한다: 가변 값 = 규칙 G `MUTABLE_CONSTRUCTORS`와 같은 판정, 모듈 수준 캐시 객체 = `BoundedLRU`, `LutMemo`, `OrderedDict`, `WeakValueDictionary`.
+*① kind*: 표 일곱 행을 `g8_attr_container`, `g8_class_container`, `g8_default_factory`, `g8_cached_property`, `g8_cache_call`, `g8_module_cache`, `g8_id_call`, `g8_memo_call_form`으로 나눈다. §2.4.6이 없애기로 한 클로저 호출은 `g8_memo_lookup_form`으로 잡아 기존 자리를 래칫한다. '등'으로 적힌 목록은 고정한다: 가변 값 = 규칙 G `MUTABLE_CONSTRUCTORS`와 같은 판정, 모듈 수준 캐시 객체 = `BoundedLRU`, `LutMemo`, `OrderedDict`, `WeakValueDictionary`. 복사 등록부 면제는 적용하지 않는다.
 
 *② 타입 목록*: 엔진 전체(tests 제외) 클래스 중 `dataclass(frozen=True)` 이름의 AST 수집. 이름 단위다. 값 타입 등록부는 없다. 컨테이너에는 `tuple(...)` 등 생성자로 감싼 형태도 포함한다. frozen dataclass 본문은 제외하므로 결과 객체 값 칸은 ② 대상이 아니고 §2.4.8 소유표 대조가 맡는다.
 
@@ -2094,7 +2094,7 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | library 회로(13) E2E(T9) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration -q` |
 | 오라클 | `$PY -m pytest skills/analog-gmid-design/tools/spice_oracle/tests -q` |
 | G 확장·값 타입 래칫(N6.3 (a)(b)) | `$PY -P -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q` (`test_rule_g8_baseline_ratchet`) |
-| 기준선 줄임(판정자, stale ≠ 0일 때) | `structure_checks.baseline_doc` + `dump_baseline`을 병합본에서 실행, diff가 줄임뿐인지 확인 |
+| 기준선 줄임(판정자, stale ≠ 0일 때) | `structure_checks.baseline_doc` + `dump_baseline`을 병합본에서 실행, diff가 줄임뿐인지 확인. 판정 기록 `reproduced_numbers`에 판정 커밋 기준 `stale` 수를 적고, 0이 아니면 FAIL. |
 | 같은 입력 재계산 측정(N6.3 (iv), 판정자) | `$PY tools/audit/scan_shared_calls.py --engine skills/analog-gmid-design/gmid_engine --out <evidence> --touching <card 커밋들이 바꾼 엔진 파일>` 뒤 자리별 손 분류 |
 | graph 단일 정본 확인((a)(b) 정적, (d) 계수)과 계산값 재사용 확인((a)(b) `perf` 계수, (c) `--profile`, (d) 루프 불변식 대조) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q -k "rule_g or design_value_location"` 뒤 `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration -q -k "g10"`(건드린 회로). (c)는 변경 diff와 §2.4.8 소유표를 대조해 보고에 적는다 |
 | design ↔ 구현 gap 분석 | bkit gap-detector(42 기준표 기준), 일치율 90% 이상 |
