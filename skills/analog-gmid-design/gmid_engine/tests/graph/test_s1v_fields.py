@@ -83,24 +83,10 @@ def test_same_input_reuses_and_changed_extra_recomputes(tmp_path):
 
 
 # ---------------------------------------------------------------- [IT-1 T-6a] 파생 술어 네 필드
-# oracle (독립): 권한표 행 = 위 이름, 값은 이름 없는 손 회로에서 손으로 걷은 결과(jrules_hand 머리 주석의 걷기 표). 값의 모양(집합·tuple)은
-# 단언하지 않고 안에 든 이름(원자)만 본다. 필드 값을 만든 피검 함수(net_model)는 부르지 않는다.
+# oracle (독립): 권한표 행 = 위 이름, 값은 이름 없는 손 회로에서 손으로 걷은 결과(jrules_hand 머리 주석의 걷기 표)를 정확한 형식
+# (frozenset / tuple[frozenset], interface '값 형식')으로 비교한다. 필드 값을 만든 피검 함수(net_model)는 부르지 않는다.
 import gmid_engine.graph as _G                                                                  # noqa: E402
 import jrules_hand as J                                                                         # noqa: E402
-
-
-def _atoms(v):
-    """값 안의 문자열 원자 전부(tuple·list·set·frozenset·dict·dataclass 를 재귀로 푼다)."""
-    import dataclasses
-    if isinstance(v, str):
-        return {v}
-    if dataclasses.is_dataclass(v) and not isinstance(v, type):
-        return set().union(set(), *[_atoms(getattr(v, f.name)) for f in dataclasses.fields(v)])
-    if isinstance(v, dict):
-        return set().union(set(), *[_atoms(k) | _atoms(x) for k, x in v.items()])
-    if isinstance(v, (tuple, list, set, frozenset)):
-        return set().union(set(), *[_atoms(x) for x in v])
-    return set()
 
 
 def test_it1_s1v_write_rows_include_four_derived_fields():
