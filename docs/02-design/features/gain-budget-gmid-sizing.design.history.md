@@ -939,3 +939,32 @@ v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, 
 - D40: `E/sizing/writer_plan.py`(쓰기 계획 종속 멤버 선택 §3.7-4 -- card TB-1이 로더 사실을 READS로 배선, 만들면 배선).
 - D40:      - override 사실은 사용자가 다시 확인해야 한다.
 - D42: | D-UB1 | (v1.16.3 -- card UB-1 + NL-1) 블록 국소 모델 정본 규칙(미지수 집합·폐포·막다른 가지·FF), 조립 하나, 극한 식 하나 | 41 §2.5 | MISS | 두 번째 스탬프 조립 = `E/metrics/block_model.py`. UB-0·M-LA16 미측정(O-225) |
+
+## H41-43 -- v1.16.5(card 후속 E-1~E-4, 위임 A-45~A-47)가 바꾼 문언의 옛 원문
+
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: **4.8-2 공용 영역 판정 함수** -- `E/sizing/region_judge.py`(순수 함수, LUT·graph·oracle import 0):
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: 봉인 6(벌크 접합 순방향)은 물리 조건이라 `off` 소자도 판정한다(정본 (5) (가) '빼는 데만 쓴다'의 읽기 -- 작성자 판단).
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: (사유 `off_outside_lut`, 클램프 없음, 정본 (5) (다) '정의역 안일 때의 점값').
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: `E/search/off_judged.py` `check_off_judged_by(region_decl, constraint_classes)`. 입력 = `device.region_decl`과 `graph/kernel: constraint_classes`의 판정 제약 칸(그 칸의 값 그대로, 다시 유도하지 않음). EO-1 범위 4 시점 칸 = 지금의 판정 제약 목록이고, card SF-1 범위 8이 `judged_targets`를 만들 때 같은 변경에서 이 소비자를 그 칸으로 옮긴다(O-183 과도기 갈래 0).
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: VDSAT′ = VDSAT + Σ_X [vdsat(X + ΔX, 나머지 그대로) − vdsat(X)], X ∈ {VGS, VDS, VSB}, ΔX = 0이면 그 항 조회 0.
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: VDS < 0 → `off_outside_lut` | 통과 red |
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: | T-J1 | O-h: 칸 없음·빈 목록·판정 제약 아님·`spice_unverifiable`·`engine_only`·레지스트리 밖 → 각 사유로 탐색 전 정지, 평가 호출 0. 판정 제약 + `spice_oracle` → 진행 |
+- `gain-budget-gmid-sizing.40-engine.design.md`: 소비자: 봉인 7·`metrics_aux._sat_devices`·J_point | 평가 |
+- `gain-budget-gmid-sizing.40-engine.design.md`: 새 파일 `E/sizing/region_judge.py`·`seal_region.py`,
+
+## H41-44 -- v1.16.6(독립 판정 V1~V3, 위임 A-49)가 바꾼 문언의 옛 원문
+
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: | 계획 범위 (4)(a)~(d), 완료 (8)(a)~(g) |
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: 축 끝 읽기는 LUT 공개 함수 하나를 더한다(값 사본 0).
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: vdb = vds + vsb, 순방향 크기 = max(0, −vsb, −vdb), 크기 > 0이면 그 점 전체 E-0
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: 레지스트리 밖 oracle 전용 항목(슬루)은 VB-1 전까지 `unverified`로 정지하고 VB-1이 `verified_by` 정의를 넓힐 때 함께 받는다.
+- `gain-budget-gmid-sizing.40-engine.design.md`: `region_mismatch.py`(구조 규칙 A, 위임 A-46)·`seal_region.py`,
+- `gain-budget-gmid-sizing.40-engine.design.md`: `E/metrics/ss_off_op.py`·`ss_off_delta.py`·`ss_off_gate.py`, `E/search/off_judged.py`; 재작성 = 쓰기 계획·
+- `gain-budget-gmid-sizing.42-gap-checklist.design.md`: | 52 vsb | -- | OK | `E/sizing/seal_bulk_reverse.py` |
+
+## H41-45 -- v1.16.7(재판정 R1·r 문언)이 바꾼 문언의 옛 원문
+
+- 보정점 vdsat(X + ΔX) = `sat_threshold(...).vdsat_v`(`headroom-chain.design.md` §3.4).
+- VDS′ > 0 → `off_gate`. 그 소자 VDSAT 조회 0 | -- |
+- tol_V None → 항목 6 pass + `band_undefined`, 보고서 상태 ≠ sealed |
+- gain-budget-gmid-sizing.plan.md) v6.38.5
