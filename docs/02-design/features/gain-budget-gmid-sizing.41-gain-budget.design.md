@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.16.6
-plan_version: 6.38.10
+version: 1.16.7
+plan_version: 6.38.11
 ---
 
 # gain-budget-gmid-sizing -- 41-gain-budget Design Document
@@ -14,7 +14,7 @@ plan_version: 6.38.10
 > - 스펙에서 θ 좌표(ln IDu -- O-186)·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-11-04 · **Status**: **design v1.16.6(독립 판정 V1~V3 문언 반영, 위임 A-49. 앞 판 v1.16.5 = card 후속 E-1~E-4, 위임 A-45~A-47; v1.16.4) -- 계획 기준 = v6.38.10(v6.38.8 master `c0b41eee` 승인 A-25, v6.38.9 A-47, v6.38.10 A-49).** **승인(O-226 위임 A-27, v1.16.3)**: 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔), ④(HC-S·HC-1·GC-1·GC-8), ⑥(EO-1, SF-1 로더 조각), card C 정정. **v1.16.4 card 후속(UB-1 A-35·A-36, TB-1 A-34, IT A-33 J4, rule_hash 공통 규칙) = 독립 판정 `cards_batch_validation.md` 문언 반영 뒤 채택(위임 A-37).** **미승인**: ① LA-1a(§6.9, '보류 중' 표지), ③ WB-1(Q-W1 기본안 뒤 재검증). 자리: HC-S·HC-1 = `headroom-chain.design.md` v0.1, GC-1·GC-8 = `graph-consumption.design.md` v0.1, EO-1 = 41 §4.8·§4.9(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H41-38, 경위 = H40-40.
+> **Date**: 2026-11-04 · **Status**: **design v1.16.7(재판정 R1·r 문언 반영. 앞 판 v1.16.6 = 독립 판정 V1~V3, 위임 A-49; v1.16.5 = E-1~E-4, 위임 A-45~A-47; v1.16.4) -- 계획 기준 = v6.38.11(v6.38.8 master `c0b41eee` 승인 A-25, v6.38.9 A-47, v6.38.10 A-49, v6.38.11 재판정 r2·r4).** **승인(O-226 위임 A-27, v1.16.3)**: 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔), ④(HC-S·HC-1·GC-1·GC-8), ⑥(EO-1, SF-1 로더 조각), card C 정정. **v1.16.4 card 후속(UB-1 A-35·A-36, TB-1 A-34, IT A-33 J4, rule_hash 공통 규칙) = 독립 판정 `cards_batch_validation.md` 문언 반영 뒤 채택(위임 A-37).** **미승인**: ① LA-1a(§6.9, '보류 중' 표지), ③ WB-1(Q-W1 기본안 뒤 재검증). 자리: HC-S·HC-1 = `headroom-chain.design.md` v0.1, GC-1·GC-8 = `graph-consumption.design.md` v0.1, EO-1 = 41 §4.8·§4.9(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H41-38, 경위 = H40-40.
 >
 > 색인과 표기는 [40-engine](gain-budget-gmid-sizing.40-engine.design.md)을 따른다(`E/`, OK/DEV/PART/MISS). as-built 기준은 master `004b7d2`다.
 
@@ -890,7 +890,7 @@ def region_mismatch(judgment) -> bool                                       # �
 **4.8-7 ss 층 관문 G2-a** -- `E/metrics/ss_off_gate.py` `off_region_gate(snapshot, lut)`(판정만, 필드 쓰기 0). 자리: `ss_evaluate`에서 `ss_off_op` → G 조립 사슬(`passive_values`·`ss_dev`·`ss_circuit`·`ss_nodal`) → `ss_off_delta` → **관문** → 나머지 소비자(`icm_config`·잡음·`metrics_ss`·`metrics_aux`·`metrics_dc`). 관문 앞에서 `graph.ss_nodal`을 읽는 소비자는 ΔV 블록뿐이다.
 
 - **대상 = 선언 없는 소자 + `triode` 선언 소자**(O-222 일반형, 물리: off 전류가 만든 노드 ΔV는 모든 소자의 VDS·VDSAT에 똑같이 들어간다). `off` 소자는 대상 밖. **원래 취지와 다름(승인 O-222)**: 계획 N3.6 (5) (마) '선언 없는 소자만'·'남는 한계(기록)'·완료 (8)(d)(iii) 후반 문언과 다르다 -- 4.8-10 P1.
-- **보정값**: ΔV를 부호 규약에 맞춘다(`dc_op` 전압은 크기이므로 p = NMOS +1, PMOS −1을 곱함). ΔVDS = p·(ΔV_d − ΔV_s), ΔVGS = p·(ΔV_g − ΔV_s), ΔVSB = p·(ΔV_s − ΔV_b). VDS′ = VDS + ΔVDS. VDSAT′ = VDSAT + Σ_X [vdsat(X + ΔX, 나머지 그대로) − vdsat(X)], X ∈ {VGS, VDS, VSB}, ΔX = 0이면 그 항 조회 0. **HC-S 뒤**(위임 A-46, graph 규칙 1): 기준 VDSAT·vdsat(X) = `device.dc_sat_v.vdsat_v` READS, 보정점 vdsat(X + ΔX) = `sat_threshold(...).vdsat_v`(`headroom-chain.design.md` §3.4). 이 card는 그 재배선 전이라 lut `vdsat`을 부른다. **VDS < 0 소자**(`triode`만 봉인을 통과해 온다, 위임 A-49): 기준 VDSAT 조회 0, vdsat 입력 = `OUT_OF_DOMAIN`, 보정 조회 0. VDS′ < 0이면 4.8-2 VDS < 0 행으로 통과, VDS′ ≥ 0이면 `OUT_OF_DOMAIN` 행으로 거부. 수치 문턱 없음.
+- **보정값**: ΔV를 부호 규약에 맞춘다(`dc_op` 전압은 크기이므로 p = NMOS +1, PMOS −1을 곱함). ΔVDS = p·(ΔV_d − ΔV_s), ΔVGS = p·(ΔV_g − ΔV_s), ΔVSB = p·(ΔV_s − ΔV_b). VDS′ = VDS + ΔVDS. VDSAT′ = VDSAT + Σ_X [vdsat(X + ΔX, 나머지 그대로) − vdsat(X)], X ∈ {VGS, VDS, VSB}, ΔX = 0이면 그 항 조회 0. **HC-S 뒤**(위임 A-46, graph 규칙 1): 기준 VDSAT·vdsat(X) = `device.dc_sat_v.vdsat_v` READS, 보정점 vdsat(X + ΔX) = `sat_threshold(...).vdsat_v`, 사유 `lut_domain`·`reverse_vds` → `OUT_OF_DOMAIN`(`reverse_vds`는 LUT 조회 0, `headroom-chain.design.md` §3.4). 이 card는 그 재배선 전이라 lut `vdsat`을 부른다. **VDS < 0 소자**(`triode`만 봉인을 통과해 온다, 위임 A-49): 기준 VDSAT 조회 0, vdsat 입력 = `OUT_OF_DOMAIN`, 보정 조회 0. VDS′ < 0이면 4.8-2 VDS < 0 행으로 통과, VDS′ ≥ 0이면 `OUT_OF_DOMAIN` 행으로 거부. 수치 문턱 없음.
 - **∂VDSAT·Δ의 꼴**(작성자 판단): VDSAT 열은 축마다 선형 보간이라 ΔX가 한 격자 칸 안이면 위 항은 계획의 ∂VDSAT/∂X·ΔX와 정확히 같다. 칸을 넘으면 기울기 하나 대신 조각 선형 적분이 된다. 차분 폭 상수가 필요 없다(상수 발명 0). 조회는 LUT memo를 탄다.
 - **판정**: `judge_region(소자, 선언, op.current, VDS′, VDSAT′)` 뒤 `region_mismatch`. 그래서 선언 없는 소자 = 보정 s < 0 거부, `triode` 소자 = 보정 VDS′ ≥ VDSAT′ 거부(s = 0 포함, 선언 불일치), 보정 조회 축 밖 = 정의 불능이다. 규칙 표가 4.8-2 하나다. tol 미사용. 거부 = 봉인 실패와 같은 fail-closed(`CANDIDATE_FAILURE_CLASSES`, 부분 스냅샷, 사유 `off_gate`, 소자·s′, front·oracle로 가지 않음).
 - **G2-a는 oracle 왕복이 아니다**: 엔진 ss 층 판정이라 O-205 (2)·O-210 RR-2가 지운 2단계 호출과 다르다. 2단계 호출 자리·`stage2_judgment`·끝 괄호 재요청 없음.
@@ -947,7 +947,7 @@ def region_mismatch(judgment) -> bool                                       # �
 | T-S3 | 띠: VDSAT − tol < VDS < VDSAT → 거부 + `indistinct`; VDSAT < VDS < VDSAT + tol → 통과 + `indistinct` | 옛 +tol 거부 red |
 | T-S4 | tol 셀 미정 → 판정 불변, `indistinct_undefined`. 열 없음 LUT → 7 미정, `seal7_pending` 동작 유지. 축 밖 → 9 정의 불능. 표본 끝 → `domain_edge` | -- |
 | T-S6 | VDS < 0 전도 소자: 선언 없음 → 7 거부(사유 포화 아님), `vdsat` None이어도 같음. `triode` 선언 → 통과 | 빠져나감 red |
-| T-S8 | **A-49 봉인 6**: 순방향 크기 = tol_V/2 → fail. 역바이어스 tol_V/2 → pass + `indistinct`. 경계 vsb = 0·vdb = 0 → pass. tol_V None → 항목 6 pass + `band_undefined`, 보고서 상태 ≠ sealed | 옛 판정 통과 red |
+| T-S8 | **A-49 봉인 6**: 순방향 크기 = tol_V/2 → fail. 역바이어스 tol_V/2 → pass + `indistinct`. 경계 vsb = 0·vdb = 0 → pass. tol_V None → 항목 6 pass + `band_undefined`, 같은 주입 스냅샷의 `dc_seal_vgs_match` 항목 2 = undefined(보고서 sealed 불가의 근거) | 옛 판정 통과 red |
 | T-S9 | `junction_forward` 손계산, 호출 자리 grep = 봉인 6·`ss_off_op` 둘 | 함수 없음 red |
 | T-S10 | `lut_axis_bounds` 전 축 첫·끝 값 손으로, 없는 슬라이스 `KeyError` | 함수 없음 red |
 | T-S5 | 쓰기 필드 `dc_off_current`·`dc_conduction_floor` grep 0, 같은 입력 한 평가에서 `judge_region` 소자당 1회(봉인 쪽) | -- |
@@ -963,7 +963,7 @@ def region_mismatch(judgment) -> bool                                       # �
 | T-G2 | s′ = 0 정확히 → 선언 없는 소자 통과(판정 여유 0) | -- |
 | T-G3 | 호출 순서 기록: `ss_nodal` → `ss_off_delta` → 관문 → 첫 metric 블록. 거부 때 metric·`icm_config` 호출 0, 부분 스냅샷 있음 | -- |
 | T-G4 | **O-222**: `triode` 소자 s < 0(봉인 통과), PMOS off 전류가 ΔV_d > 0을 줘 s′ ≥ 0 → 선언 불일치 E-0(옛 규칙은 통과 -- red). s′ = 0 → 거부. ΔV 뒤에도 s′ < 0 → 통과 | 통과 red |
-| T-G6 | **A-49**: `triode` VDS < 0: ΔV로 VDS′ < 0 → 통과, VDS′ = 0 → `off_gate`, VDS′ > 0 → `off_gate`. 그 소자 VDSAT 조회 0 | -- |
+| T-G6 | **A-49**: `triode` VDS < 0: ΔV로 VDS′ < 0 → 통과, VDS′ = 0 → `off_gate`, VDS′ > 0 → `off_gate`. 그 소자 VDSAT 조회 0. 기준 VDS ≥ 0, VDS′ < 0: 선언 없음 → `off_gate`(행 3), `triode` → 통과(행 4), 보정 조회 축 밖은 `OUT_OF_DOMAIN` | -- |
 | T-G5 | VDSAT′ 항: 합성 LUT에서 Σ[vdsat(X+ΔX) − vdsat(X)] = 1차식 손계산, 격자 칸을 넘어도 조각 선형 손계산과 같음, ΔX = 0 조회 0 | -- |
 | T-J1 | O-h: 칸 없음·빈 목록·판정 제약 아님·`spice_unverifiable`·`engine_only`·레지스트리 밖 → 각 사유로 탐색 전 정지, 평가 호출 0. 판정 제약 + `spice_oracle` → 진행. `.ss` 위치 metric = 판정 제약, `.notes` metric = 판정 제약 아님(A-45) | 통과 red |
 | T-N1 | off 선언 없는 회로: `ss_off_delta`·관문 호출 0, `ss_nodal` 호출 조건 불변, 필드 없음 | -- |

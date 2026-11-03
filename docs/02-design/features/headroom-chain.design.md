@@ -1,6 +1,6 @@
 ---
 template: design
-version: 0.1.2
+version: 0.1.3
 plan: ../../01-plan/features/headroom-chain.plan.md
 plan_version: 0.7.9.9
 ---
@@ -9,7 +9,7 @@ plan_version: 0.7.9.9
 
 > **Summary**: 승인 계획 `headroom-chain.plan.md`의 HC-S(포화 기준 단일화)와 HC-1(R-1′ + R-3 + 선언 triode)을 card로 내릴 수 있게 필드·함수·배선·시험·재작성 범위를 정한다. GC-8·GC-1은 `graph-consumption.design.md`, HC-O는 이 판 밖이다.
 >
-> **Status**: v0.1.2(§3.1·§3.4·§7.2·§9, 위임 A-49). v0.1.1(§2·§3 card 후속, 위임 A-46). v0.1 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.10, 승인 판 v6.38.8 master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
+> **Status**: v0.1.3(§3.4 관문 보정점, 재판정 R1). v0.1.2(§3.1·§3.4·§7.2·§9, 위임 A-49). v0.1.1(§2·§3 card 후속, 위임 A-46). v0.1 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.11, 승인 판 v6.38.8 master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
 >
 > **결정 입력**: O-190·O-191(R-1′ 묶음, HC-1 + GC-8 통합 병합), O-202~O-212(전도·포화 경계·`off`), O-214·O-217·O-218(LA-1a), O-220·O-224(칸별 판정 유지), O-225(구현 우선).
 >
@@ -95,7 +95,7 @@ DC 블록이 `dc_op`를 쓰는 같은 평가에서 `sat_threshold`의 정의되�
 | `metrics_aux._sat_devices` | `dc_sat_v` READS, 직접 조회 삭제 | `sat_v` None | `sat_v` None | `sat_v` None | `sat_tol_v` None |
 | 커널 창 행 `saturation_rows`(WB-1 범위 3a가 지우기 전까지, 시도 전압) | `sat_threshold` 호출로 교체, 여유 = VDS − VDsat. 행 집합 그대로. HC:580의 `saturation_rows` 호출 문장은 이 행으로 읽는다 | None(창 안 좁힘, base와 같음) | None | None | 영향 없음 |
 | `icm_config`의 봉인점 `region_rows` 행 | **`device.dc_sat_v` READS**(HC-S가 배선 -- 같은 소자·같은 점 둘째 생산자 금지), 여유 = VDS − VDsat. 행 집합 그대로 | None(창 안 좁힘, base와 같음) | None | None | 영향 없음 |
-| 관문 `off_region_gate`(41 §4.8-7, 위임 A-46 -- 같은 소자·같은 점 둘째 생산자 금지) | 기준 VDSAT·vdsat(X) = `device.dc_sat_v.vdsat_v` READS. 보정점 vdsat(X + ΔX) = `sat_threshold(...).vdsat_v`(`lut_domain` → `OUT_OF_DOMAIN`). ΔX = 0이면 조회 0 | `triode`만 도달: `OUT_OF_DOMAIN`, 조회 0(41 §4.8-7, 위임 A-49) | 해당 없음(봉인 미정이면 ss에 안 옴) | `OUT_OF_DOMAIN` → `off_gate` 거부 | 영향 없음 |
+| 관문 `off_region_gate`(41 §4.8-7, 위임 A-46 -- 같은 소자·같은 점 둘째 생산자 금지) | 기준 VDSAT·vdsat(X) = `device.dc_sat_v.vdsat_v` READS. 보정점 vdsat(X + ΔX) = `sat_threshold(...).vdsat_v`(`lut_domain`·`reverse_vds` → `OUT_OF_DOMAIN`, `reverse_vds`는 LUT 조회 0). ΔX = 0이면 조회 0 | `triode`만 도달: `OUT_OF_DOMAIN`, 조회 0(41 §4.8-7, 위임 A-49) | 해당 없음(봉인 미정이면 ss에 안 옴) | `OUT_OF_DOMAIN` → `off_gate` 거부 | 영향 없음 |
 | `iv_domain`·`iv_headroom._lower_bound` | `tol_vdsat` 호출 삭제. VDsat은 곡선 묶음의 VDSAT 곡선 -- 곡선 생성이 `sat_threshold_grid`를 읽게 배선 | 해당 없음(곡선 VDS ≥ 0) | 그 경계 비활성, `inactive` 기록(대체값 없음, U-H15 원리) | 그 곡선 점 제외 | 해당 없음 |
 | `edge_costs` | `_tol_vdsat_grid` 삭제. 포화 술어 = `vds ≥ sat_threshold_grid`. VDS 비용 = 포화 가능 격자점의 VDSAT 최솟값(따로 잡은 tol 최솟값 합 삭제) | -- | VDSAT 열 없음 = 포화 거르기 없음(문턱 하한 0, DEC-67 상한 예외, HC:331) | 그 격자점은 on_mask가 이미 뺌 | 해당 없음 |
 | `block_columns` VDS 정의역 | `_vds_floor` 삭제, `vds_floor` 호출 | -- | -- | -- | -- |

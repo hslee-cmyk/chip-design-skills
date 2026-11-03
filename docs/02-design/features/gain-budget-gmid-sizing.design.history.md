@@ -961,3 +961,10 @@ v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, 
 - `gain-budget-gmid-sizing.40-engine.design.md`: `region_mismatch.py`(구조 규칙 A, 위임 A-46)·`seal_region.py`,
 - `gain-budget-gmid-sizing.40-engine.design.md`: `E/metrics/ss_off_op.py`·`ss_off_delta.py`·`ss_off_gate.py`, `E/search/off_judged.py`; 재작성 = 쓰기 계획·
 - `gain-budget-gmid-sizing.42-gap-checklist.design.md`: | 52 vsb | -- | OK | `E/sizing/seal_bulk_reverse.py` |
+
+## H41-45 -- v1.16.7(재판정 R1·r 문언)이 바꾼 문언의 옛 원문
+
+- 보정점 vdsat(X + ΔX) = `sat_threshold(...).vdsat_v`(`headroom-chain.design.md` §3.4).
+- VDS′ > 0 → `off_gate`. 그 소자 VDSAT 조회 0 | -- |
+- tol_V None → 항목 6 pass + `band_undefined`, 보고서 상태 ≠ sealed |
+- gain-budget-gmid-sizing.plan.md) v6.38.5
