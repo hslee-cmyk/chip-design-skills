@@ -165,6 +165,15 @@ red 예상 목록 = 엔진 동작·트리를 보는 test. 새 키워드 직접 �
 
 **쓰지 않는 옛 toy**(W5): 전도 행 R0 toy(옛 T-L8h), `off` 경계 toy, `triode` +tol 단언, 띠 거부·기록 toy(봉인 7 = card EO-1), E-22 단위 다른 행 toy(대상 소멸).
 
+### green·기준선 공통 규칙(test 작성자 빈칸 답, 2026-11-04)
+
+- **base green**: 표의 base 칸이 red여도 사례가 base에서 green이면, 그 사례가 옛 동작과 새 동작 모두에 성립하는 회귀 보호인지 확인하고 test는 유지한다. 그 사례는 red 예상 목록에서 빼고 판정자에게 나열한다. 사례 전체가 green이라 새 동작을 가르지 못하면 그 id에 red 사례가 하나는 남아야 한다.
+- **회귀 기준선 fixture**(`tests/integration/fixtures/*`, NFR-4 덤프): test 작성자는 고치지 않는다. 판정자가 code 병합본에서 재측정하고 원인 칸을 적으며, 값 변화표는 O-225 보류 표지로 둔다(A-39). 재측정 전 그 test 실패는 판정 전 상태로 보고하고 통과로 세지 않는다.
+- **폐기**: 정의가 바뀌어 전제가 깨진 test는 고치지 않고 지우며, 판정 기록 근거에 `retired_tests`(이름·사유)로 적는다. 판정자가 그 목록을 확인한다.
+- 봉인 통과가 전제인 toy는 EO-1 전 봉인(봉인 7 +tol_VDsat, 봉인 9 I_off ≤ ε·ID)을 지나는 동작점을 쓴다. 입력쌍 전류가 먼저 줄어드는 꼴(T-L8h)은 봉인점이 아니라 훑기 끝 상태라 해당 없다.
+- `Undefined` = `gmid_engine.metrics.Undefined(quantity, code, category, detail)`.
+- `k1_undeclared_input_ports_both_have_windows`·`k2_non_root_port_window`는 IT-1에서 폐기됨, 이 card에서 cfg로 옮기는 대상은 나머지 항목.
+
 ## 고칠 기존 test(test 주체 몫, 승인 동작 변경 O-109·O-115·O-118·O-204·O-205, 약화 아님)
 
 건수 = `scope_grep.txt`.
