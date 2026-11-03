@@ -1007,3 +1007,10 @@ v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, 
 - 40 §3.7-A 3 `residual`(R3) 첫 커밋: «graph-consumption L-2 목록 등록은 그 목록을 만드는 card GC-1이 기준선에 넣는다(GC-1은 WB-1 뒤 병합 -- 계획 N6.1 코드 card 진행 순서; WB-1 병합 때 `rule_l_*` 파일 없음).».
 - 40 §3.7-A 7 tol 표(r3) 첫 커밋: «도달 가능 슬라이스(L 앵커마다 `reachable_slices`의 합집합 -- 5)». memo U 계수 옛 문언: «그 조회의 (kind, L)에서 `reachable_slices`가 내는 슬라이스 수만큼». 판정 r3은 tol 표만 적었으나 '상한이 모자라는 경우가 정의상 없다' 문장이 같은 이유로 깨져 같이 고쳤다.
 - 41 §5.12.7 판정 칸 옛 문언: «판단 재료 충분 -- 사용자 판단», «맞음(비용 수용은 사용자 몫)». 질문의 사용자 판단이 위임 O-226 A-63으로 넘어감.
+
+## H41-51 -- v1.16.11 셋째 커밋(위임 A-64)
+
+최종 재판정 `wt/_drafts/evidence/2026-11-04/design_b3_validation.md` 499행 절 V-F1, f1~f6. A-63 D3 개정: off 소자 슬라이스 키 = `slice_of_finger(w_m)`. `OffOp` 칸, 넷리스트(41 §4.9 `devices[]`, T-P7)는 그대로다.
+
+- 41 §4.8-5 2 둘째 커밋: «`ss_off_op`은 `finger_slice(lut, kind, l_m, 상수 w_m).w_key`를 `OffOp.w_key`에 쓴다(`m`·`w_f_m`은 쓰지 않음, 넷리스트는 선언 기하; card WB-1 병합부터 -- 위임 A-63). ... 표지: W는 엔진·oracle이 같고 IDu가 슬라이스 값이라 남는 차는 손계산 오차다(슬라이스 폭이 선언 폭의 W-bin과 다를 수 있음). 크기 미측정, LA-1 재점검.»
+- 40 §3.7-A 5 `slice_of_finger` 둘째 커밋: «`width_key(w_f_m, grid)`가 격자 밖이거나 `(kind, key)` 슬라이스가 없으면». 부르는 곳: «넷». 그 밖의 문언은 `e5d2c980`.
