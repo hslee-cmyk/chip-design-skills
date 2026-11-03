@@ -1631,6 +1631,7 @@ U-38(`jsonschema` 의존성)을 Phase 0.5 착수 조건으로 올렸다.
 | **v6.38.8 여섯째 커밋** 위임 A-17 전파(계획 v6.38.8, 검증 대기) | 2026-11-03 | 근거: `wt/_drafts/la1_auto_decisions.md` A-17. headroom-chain 0.7.9.9 tol 잔재 정정; 옛 문언 = 그 계획 history. 이 계획 본문 변경 = Status 판 번호뿐 |
 | **v6.38.8 일곱째 커밋** 계획 독립 검증 Major 5·경미 반영(계획 v6.38.8, 검증 대기) | 2026-11-03 | 근거: `wt/_drafts/evidence/2026-11-03/plan_v6388_validation.md`(대상 `6462ac09`), 오케스트레이터 판정 전부 수용, 위임 A-20. M1 LA-1 완료 13 (a), M2 Q-W1 읽기 범위, M3 PG-1b·PG 항목, M4 OP-7 조각 재측정·근거 칸, M5 `device.off_op` 사본 제거. 경미 1·2·3·4·5·6·8 문언, 7 = 완료 13 입력. design 쪽 몫: `OffOp` 칸(M5). 옛 문언 = H2 'v6.38.8 일곱째 커밋' 행들 |
 | **v6.38.8 여덟째 커밋** 위임 A-21~A-23 반영(계획 v6.38.8, 검증 대기) | 2026-11-03 | 근거: `wt/_drafts/la1_auto_decisions.md` A-21~A-23, `wt/_drafts/evidence/2026-11-03/design_b56_validation.md` M5·M8·E1·E2. 반영: N3.8 추종 판정 β, N3.6 표 9행 다리 규칙, N6.20 범위 (2)·완료 (3), 코드 card 표, oracle-portability OP-5 배선·OP-10. E1 = 일곱째 커밋 (5) (라)와 일치, 변경 0. 다리 규칙 실측 = 검증자 인라인(파일 없음, 13회로 중 한 회로 소자 셋, 계획 Q-S9와 일치) |
+| **v6.38.8 (승인)** 사용자 결정 O-226 위임 A-25 | 2026-11-03 | 승인 대상 = plan/v6388 HEAD `28ec6bf6`(base master `c8ecc4e7`). 검증 = `wt/_drafts/evidence/2026-11-03/plan_v6388_validation.md` 재판정 Major 0. 사용자 승인 질문 없이 위임으로 채택, LA-1 완료 13에서 재검토. 반영: Status 승인 표기(계획 5개). 규칙 본문 변경 0. |
 
 ### 이전 판 Status 사슬 (v6.38.4 스물한째 커밋 분량 정리로 계획서 Status에서 옮김)
 
