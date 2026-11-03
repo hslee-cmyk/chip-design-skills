@@ -1196,8 +1196,8 @@ def _write_neg_lut(root):
 def _neg_doc():
     net = [mos("MA", "nmos", "vdd", "x", "t", "gnd"), mos("MB", "nmos", "vdd", "t", "u", "gnd"),
            mos("MT", "nmos", "d", "p", "u", "gnd"), mos("MS", "nmos", "u", "vs", "gnd")]
-    return topo("it2b_neg", net, {"x": ("input", "differential_input_p"), "p": ("input", "differential_input_n"), "u": ("output", "y")},
-                passives=[two("R", "resistor", "t", "d")], bias=["vs"])
+    return topo("it2b_neg", net, {"x": ("input", "single_ended_input"), "u": ("output", "y")},
+                passives=[two("R", "resistor", "t", "d")], bias=["vs", "p"])           # [IT-1 A-39] p = MT gate 전용 바이어스(입력 포트 아님)
 
 
 # θ 좌표: 소자 MA·MB 는 VGS 0.25 V, MT 는 VGS 0.8 V(VDS 0.1 V), MS 는 VGS 0.45 V 가 나오는 ln IDu(입력 값). 근사 동작점 t0 = 0.65, u0 = 0.4.
@@ -1228,46 +1228,7 @@ def _columns_with_declared(ctx, theta):
     return dc_columns(snap, items, *extras, **run)
 
 
-def test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages(tmp_path):
-    """oracle 대조: (손)+독립 풀이 P (a). 경로 위 triode 선언 소자 MT(gds/gm 큼)가 있으면 비F 성분에서도 s_p < 0 이 된다.
-    손 유도: |F_B| = 0.1/G′_B, η_B = KS/G′_B, |F_T| = S1/G′_T, η_T = KS/G′_T (G′ = B − CN·VGS: MB 0.25 V -> 19.5, MT 0.8 V -> 18.4)
-    => η_B + |F_B| ≈ 0.108, |F_T| ≈ 13.6 > (1 + η_T)/(η_B + |F_B|) ≈ 10.3 이므로 s_p = s_u(1 + |F_T| + η_T) − |F_T|·s_t < 0 (s_u = s_t/(1 + |F_B| + η_B)).
-    포트 창 = 뿌리 끝 [lo_x, hi_x] 를 같은 해의 감도로 옮긴 두 끝 전압의 [min, max]: 뿌리를 두 끝으로 고정한 독립 풀이의 V(p) 로
-    기대 끝을 만든다(감도 옮김은 선형 '추정' -- 이 toy 에서 끝 오차 ≈ 0.02 V, 허용 0.06 V; 두 끝 전압 차 ≈ 0.33 V).
-    감도 음수라 뿌리 아래 끝이 포트 위 끝이 된다: 옛 식 V_p + s_p·(끝 − x_k) 를 정렬 없이 쓰면 lo > hi(red)."""
-    acc = new_access(_write_neg_lut(tmp_path / "neg_lut"))
-    (tmp_path / "ctx").mkdir()
-    ctx = build_ctx(tmp_path / "ctx", _neg_doc(), acc, linear_devices=("MT",))[2]
-    writers = dict(ctx.base.column("node", "dc_writer"))
-    assert writers["x"].relation == "free_window" and writers["p"].relation == "vgs_gate"        # 전제: x = 뿌리, p = 트리 경로 포트
-    th = {("L", m): 1e-6 for m in ("MA", "MB", "MS", "MT")}
-    th.update({("ln_idu", m): NEG_LN[m] for m in ("MA", "MB", "MS", "MT")})
-    th.update({("resistance", "R"): NEG_R, ("y", "x"): 0.5})
-    th.update(free_currents(ctx, {"MA": NEG_I, "MB": NEG_I, "MT": NEG_I, "MS": 2 * NEG_I, "R": NEG_I}))
-    assert set(th) == set(kschema(ctx).components)
-    snap = _columns_with_declared(ctx, th)
-    V = node_voltages(snap)
-    win = _window_of(snap)
-    root = win["x"]
-    # --- 전제: 독립 풀이가 이 toy 의 해를 재현하고, 부등식 조건이 손계산으로 성립하며, 음수 감도다
-    t, u, d, p = _neg_solve(V["x"])
-    assert max(abs(V["t"] - t), abs(V["u"] - u), abs(V["d"] - d), abs(V["p"] - p)) <= 2e-3
-    g_b, g_t = _B - NEG_CN * 0.25, _B - NEG_CN * 0.8
-    f_t, eta_t, f_b, eta_b = NEG_S1 / g_t, NEG_KS / g_t, 0.1 / g_b, NEG_KS / g_b
-    assert f_t > (1 + eta_t) / (eta_b + f_b)                                  # 손 유도 조건 (≈ 13.6 > 10.3)
-    assert 0.0 < d - u < NEG_D1                                               # MT 의 VDS 가 가파른 구간 안
-    h_x = 1e-5
-    s_p = (_neg_solve(V["x"] + h_x)[3] - _neg_solve(V["x"] - h_x)[3]) / (2 * h_x)
-    assert s_p < -0.1                                                         # 전제: dV_p/dx 음수 (≈ −0.30)
-    p_at_lo, p_at_hi = _neg_solve(root.lo)[3], _neg_solve(root.hi)[3]
-    assert p_at_lo - p_at_hi > 0.2                                            # 뿌리 아래 끝에서 p 가 더 높다
-    assert 0.0 < p_at_hi < p_at_lo < 1.8                                      # 레일 교집합이 끝을 자르지 않는다
-    # --- 관측: 입력 포트 p 의 창
-    port = win["p"]
-    assert port.input_status == "measured"
-    assert port.lo <= port.hi
-    assert abs(port.lo - p_at_hi) <= 0.06 and abs(port.hi - p_at_lo) <= 0.06, (port, p_at_hi, p_at_lo)
-
+# [IT-1 A-39 retired_tests] 폐기: test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages -- 사유 = 뿌리 아닌 포트 창 전제가 DEC-106과 충돌.
 
 # ---------------------------------------------------------------------------------------------------------------------------
 # L12 (a) 커널 되풀이 k_max 소진 -> 뿌리 `unsettled` (design 41 4.7-7 L12 (a), A6 c) -- 주입 지점 `gmid_engine.sizing.block_columns.k_max` 하나만
@@ -1685,7 +1646,10 @@ def test_it1_t1h_input_point_touching_f_ports_share_voltage(tmp_path, toy_access
             th[(k, key)] = (Oracle.ln_idu("nmos", 0.6, 0.9, 0.0) if key in ("M1", "M2") else Oracle.ln_idu("pmos", 0.7, 0.9, 0.0))
         else:
             raise AssertionError((k, key))
-    V = node_voltages(run_blocks(ctx, th, upto="columns"))
+    snap = run_blocks(ctx, th, upto="columns")
+    V = node_voltages(snap)
+    win = _window_of(snap)
+    assert "inp" not in win and "inn" not in win                                         # F 에 닿는 입력 점은 창 항목이 없다
     assert abs(V["o1"] - 0.9) <= 1e-9 and abs(V["o2"] - 0.9) <= 1e-9
     assert abs(V["inp"] - V["inn"]) <= 1e-12
     assert abs(V["inp"] - 0.6) <= 1e-9

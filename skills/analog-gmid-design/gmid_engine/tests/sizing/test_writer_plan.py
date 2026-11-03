@@ -486,6 +486,7 @@ def test_it1_t1d_declared_input_plan_unchanged(tmp_path, toy_access):
     parallel 이 아니라 둘 중 하나가 cycle_vgs. 부하 M3·M4 는 게이트가 달라 둘 다 트리. 종속 수 = 순환수: F,t,vb,pb3,pb4 / 엣지 F-t 둘·vb-F·pb3-F·pb4-F = 1."""
     ctx = build_ctx(tmp_path, _it1_diff_doc(), toy_access, input_dc_v=0.7)[2]
     nw, co, _ties = plan(ctx)
+    assert tuple(_ties) == ()                                                            # dc_tie_breaks 비어 있음(구조 색이 정한다)
     assert strip(nw)["inp"] == ("W2", "input_dc", None, None, None) and strip(nw)["inn"] == ("W2", "input_dc", None, None, None)
     w12 = [m for m in ("M1", "M2") if co[m].role == "writer"]
     d12 = [m for m in ("M1", "M2") if co[m].role == "dependent"]
@@ -505,6 +506,7 @@ def test_it1_t1d_single_input_unchanged(tmp_path, toy_access):
     doc = topo("it1_follower", [mos("M1", "nmos", "vdd", "in", "out"), mos("M2", "nmos", "out", "vb", "gnd")],
                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}, bias=["vb"])
     nw, co, _ties = plan(build_ctx(tmp_path, doc, toy_access)[2])
+    assert tuple(_ties) == ()                                                            # dc_tie_breaks 비어 있음
     assert (nw["in"].tier, nw["in"].relation, nw["in"].y_key) == ("W4", "free_window", "in")
     assert co["M1"] == DeviceCoord("writer", "tree")
 
@@ -512,8 +514,36 @@ def test_it1_t1d_single_input_unchanged(tmp_path, toy_access):
 def test_it1_t1d_isolated_single_input_builds(tmp_path, toy_access):
     """T-1d (손, 무동작): 고립 입력 포트가 하나뿐이면 정지하지 않고 y 키 = 그 넷(옛 규칙 그대로)."""
     ctx = build_ctx(tmp_path, _it1_isolated_doc(with_other_root=False), toy_access)[2]
+    assert tuple(plan(ctx)[2]) == ()                                                     # dc_tie_breaks 비어 있음
     w = dict(ctx.base.column("node", "dc_writer"))["iso"]
     assert (w.tier, w.relation, w.y_key) == ("W4", "free_window", "iso")
+
+
+# [IT-1 A-39 폐기 기록] 옛 test_it1_ring_cycle_vgs_after_port_delta_elimination·test_it1_dependent_count_equals_cycle_rank 는 같은 DC 엣지 삭제(옛 IT-1)의
+# 전제(입력 포트를 따로 트리 경로로 씀)가 DEC-106 입력 점 묶음으로 바뀌어 폐기하고 T-1a/b/c/i 가 대신한다(retired_tests).
+
+def _it1_triangle_doc():
+    """입력 점 P 와 꼬리 t, u 가 삼각형을 이루는 toy: M1(o1, inp, t) M2(o2, inn, u) M3(o3, t, u), 꼬리 M5(t, vb, gnd)·M6(u, vb, gnd), 부하
+    MP1(o1, pb1, vdd)·MP2(o2, pb2, vdd)·MP3(o3, pb3, vdd). G_vgs(P = inp ∪ inn): P-t, P-u, t-u, vb-F 둘, pb1-F, pb2-F, pb3-F -> V=8 E=8 C=2 -> 2."""
+    return topo("it1_triangle",
+                [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "u"), mos("M3", "nmos", "o3", "t", "u"),
+                 mos("M5", "nmos", "t", "vb", "gnd"), mos("M6", "nmos", "u", "vb", "gnd"),
+                 mos("MP1", "pmos", "o1", "pb1", "vdd"), mos("MP2", "pmos", "o2", "pb2", "vdd"), mos("MP3", "pmos", "o3", "pb3", "vdd")],
+                _it1_ports("inp", "inn", outs=("o1", "o2", "o3")), bias=["vb", "pb1", "pb2", "pb3"])
+
+
+def test_it1_t1i_triangle_through_input_point_has_one_cycle_vgs(tmp_path, toy_access):
+    """T-1i (손): 입력 점으로 묶으면 P-t(M1), P-u(M2), t-u(M3) 삼각형이 생긴다 -> {M1, M2, M3} 중 정확히 하나만 cycle_vgs(비평행이라 parallel 아님),
+    꼬리 M5·M6 (vb, gnd) 평행 하나 parallel_vgs, 종속 수 = 순환수 2. 어느 소자가 종속인지는 단언하지 않는다."""
+    ctx = build_ctx(tmp_path, _it1_triangle_doc(), toy_access)[2]
+    nw, co, _ties = plan(ctx)
+    assert [(nw[x].tier, nw[x].relation, nw[x].y_key) for x in ("inp", "inn")] == [("W4", "input_point", "inp")] * 2
+    assert [m for m in ("M1", "M2", "M3") if co[m].relation == "cycle_vgs"] and len(
+        [m for m in ("M1", "M2", "M3") if co[m].relation == "cycle_vgs"]) == 1
+    assert len([m for m in ("M1", "M2", "M3") if co[m].role == "dependent"]) == 1
+    assert len([m for m in ("M5", "M6") if co[m].relation == "parallel_vgs"]) == 1
+    assert sum(1 for c in co.values() if c.role == "dependent") == _it1_rank(
+        [("P", "t"), ("P", "u"), ("t", "u"), ("vb", "F"), ("vb", "F"), ("pb1", "F"), ("pb2", "F"), ("pb3", "F")]) == 2
 
 
 def _it1_two_pairs_doc():
@@ -652,8 +682,10 @@ def test_it1_t5b_rail_gate_equals_source_same_plan_as_nonrail(tmp_path, toy_acce
     doc = topo("it1_gs_rail",
                [mos("M1", "nmos", "out", "in", "gnd"), mos("M2", "pmos", "out", "pb", "vdd"), mos("Moff", "nmos", "out", "gnd", "gnd")],
                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}, bias=["pb"])
-    _nw, co, _ties = plan(build_ctx(tmp_path, doc, toy_access)[2])
+    ctx = build_ctx(tmp_path, doc, toy_access)[2]
+    _nw, co, _ties = plan(ctx)
     assert co["Moff"] == DeviceCoord("dependent", "fixed_vgs")
+    assert ("ln_idu", "Moff") not in set(kschema(ctx).components)                       # 종속이라 θ ln_idu 성분 없음
     assert [m for m, c in co.items() if c.role == "dependent"] == ["Moff"]
 
 
@@ -744,7 +776,7 @@ def test_it2b_os_c_resistor_load_to_rail_is_kvl_fixed(tmp_path, toy_access):
     o2 는 출력 포트가 아니므로 항목이 없다."""
     doc = topo("os_diffres", [mos("M1", "nmos", "out", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"),
                               mos("M5", "nmos", "t", "vb", "gnd")],
-               {"inp": ("input", "x"), "inn": ("input", "x"), "out": ("output", "y")},
+               {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"), "out": ("output", "y")},   # [IT-1 DEC-106]
                passives=[two("R1", "resistor", "vdd", "out"), two("R2", "resistor", "vdd", "o2")], bias=["vb"])
     ctx = build_ctx(tmp_path, doc, toy_access)[2]
     assert _structure(ctx) == {"out": KVL}

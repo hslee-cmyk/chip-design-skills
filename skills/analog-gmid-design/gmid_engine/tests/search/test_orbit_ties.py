@@ -401,7 +401,9 @@ def test_it1_t1f_input_point_with_orbit_ties_no_double_subtraction(tmp_path, lut
     tied_y = [m for _rep, ms in d.ties for m in ms if m[0] == "y"]
     assert ("y", "inp") in var_y
     assert (len(var_y), len(tied_y), len(var_y) + len(tied_y)) == (2, 1, 3)
-    # rank = 묶음 등식 행렬의 구조 rank = 묶인 구성원 수(묶음마다 구성원 수만큼 등식 한 행), DOF = θ 성분 수 - rank (손 유도, interface T-1f)
-    rank = sum(len(g) - 1 for g in want)
-    assert rank == len(_members(d.ties))
-    assert len(comps) - rank == len(comps) - len(_members(d.ties))
+    # 손 유도 리터럴(interface T-1f): θ 성분 15 = L 5 + 커패시터 2 + 전류 2 + ln_idu 3 + y 3, 묶인 구성원 5, 정의역 변수 7(L 제외).
+    # 구조 rank·DOF(= 변수 수 - 구조 rank = 12, 커패시터 없는 toy)는 tests/pipeline/test_stage_b.py::test_it1_t1f_structural_dof_of_symmetric_pair.
+    assert dict(collections.Counter(k for k, _ in comps)) == {"L": 5, "capacitance": 2, "current": 2, "ln_idu": 3, "y": 3}
+    assert len(comps) == 15
+    assert len(_members(d.ties)) == 5
+    assert len(d.variables) == 7
