@@ -95,23 +95,36 @@ def test_no_unknowns_returns_drive():
     assert list(nodal_adjoint(f, 2, np.array([0.0, 1.0]))) == [0.0, 0.0]
 
 
-def test_it2c_conductance_matrix_bound_true_returns_pair_with_same_g():
-    """oracle 대조: (손) [IT-2c T-L10 `g_bound`] interface: `bound=True` 면 `(g, g_bound)`, g 는 bound=False 와 같은 행렬(손 식 대조: 위
-    test_conductance_matrix_one_mos_by_device_equation). g_bound 는 같은 모양·비음수·스탬프가 없는 행은 0, 연산 수 0 항목(gm 그대로)은 0,
-    연산 수 k 항목은 (0, 2k·u·|g|] (u = 2^-53, 반올림 오차 상계 -- 정확한 식은 단언하지 않는다)."""
-    u = 2.0 ** -53
-    gm, gmb, gds = 1e-3, 2e-4, 1e-5
-    ck = SmallSignalCircuit(mos=(MosSmallSignal(1, 2, 3, 0, gm, gmb, gds),))
-    g0 = conductance_matrix(ck, 4)
-    g, gb = conductance_matrix(ck, 4, bound=True)
-    assert np.array_equal(g, g0) and gb.shape == g.shape and (gb >= 0).all()
-    assert (gb[0, :] == 0).all() and (gb[2, :] == 0).all()                      # 행 0(b)·2(g) 에는 스탬프 없음
-    assert gb[1, 2] == 0.0 and gb[1, 0] == 0.0 and gb[1, 1] == 0.0               # 입력 값 그대로 (덧셈 0회)
-    for (r, c) in ((1, 3), (3, 3)):                                                # 덧셈 2회 항목
-        assert 0.0 < gb[r, c] <= 4.0 * u * abs(g[r, c])
-    r = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3),))
-    gr, gbr = conductance_matrix(r, 3, bound=True)
-    assert np.array_equal(gr, conductance_matrix(r, 3))
-    for (a, b) in ((1, 1), (1, 2), (2, 1), (2, 2)):                                # 1/R 나눗셈 한 번
-        assert 0.0 < gbr[a, b] <= 2.0 * u * abs(gr[a, b])
-    assert (gbr[0, :] == 0).all() and (gbr[:, 0] == 0).all()
+def _gamma(m, u=2.0 ** -53):
+    return m * u / (1.0 - m * u)
+
+
+def test_it2c_conductance_matrix_bound_true_matches_hand_formula():
+    """oracle 대조: (손) [IT-2c T-L10 `g_bound`, interface 빈칸 답 1·7] `conductance_matrix(circuit, n, bound=True) -> (g, g_bound)`, g 는 bound=False 와 같다
+    (위 손 식 test 로 g 확인). E_ij = γ_{max(k−1,0)}·S_ij + C_ij + γ_{n+1}·|Ĝ_ij|, S = Σ|ĝ_s|, k = 항목의 스탬프 항 수, C = Σ γ_{c_s}|ĝ_s|,
+    c_s = 스탬프 연산 수(MOS (d,s)·(s,s) 2, 그 밖 MOS 0, 저항 넷 각 1), γ_m = m·u/(1 − m·u), u = 2^-53, n = size.
+    회로: MOS(d 1, g 2, s 3, b 0) + 저항 R(1, 3) -- (1,1)·(1,3)·(3,1)·(3,3) 항목은 스탬프 두 항(k = 2)이다. 손으로 세어 같은 float 연산으로 계산한 값과 비교(상대 1e-12)."""
+    gm, gmb, gds, R = 1e-3, 2e-4, 1e-5, 1e3
+    n = 4
+    ck = SmallSignalCircuit(mos=(MosSmallSignal(1, 2, 3, 0, gm, gmb, gds),), resistors=(Resistor(1, 3, R),))
+    g, gb = conductance_matrix(ck, n, bound=True)
+    assert np.array_equal(g, conductance_matrix(ck, n))
+    tot = gm + gmb + gds
+    gr = 1.0 / R
+    stamps = {}                                              # (i, j) -> [(값, 연산 수)] -- 스탬프 항 손 목록
+    for (i, j, v, c) in ((1, 1, gds, 0), (1, 2, gm, 0), (1, 0, gmb, 0), (1, 3, -tot, 2),
+                         (3, 1, -gds, 0), (3, 2, -gm, 0), (3, 0, -gmb, 0), (3, 3, tot, 2),
+                         (1, 1, gr, 1), (1, 3, -gr, 1), (3, 1, -gr, 1), (3, 3, gr, 1)):
+        stamps.setdefault((i, j), []).append((v, c))
+    want = np.zeros((n, n))
+    for (i, j), terms in stamps.items():
+        S = sum(abs(v) for v, _ in terms)
+        k = len(terms)
+        C = sum(_gamma(c) * abs(v) for v, c in terms)
+        Ghat = sum(v for v, _ in terms)
+        want[i, j] = _gamma(max(k - 1, 0)) * S + C + _gamma(n + 1) * abs(Ghat)
+    assert gb.shape == (n, n)
+    for i in range(n):
+        for j in range(n):
+            assert abs(gb[i, j] - want[i, j]) <= 1e-12 * max(want[i, j], 1e-300), (i, j, gb[i, j], want[i, j])
+    assert (gb[0, :] == 0).all() and (gb[2, :] == 0).all()   # 스탬프가 없는 행 0

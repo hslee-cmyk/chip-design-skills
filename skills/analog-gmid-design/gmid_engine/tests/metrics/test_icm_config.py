@@ -386,6 +386,9 @@ def _two_stage(tmp, i1, r1, i2, r2, *, outputs_swapped=False, input_dc_v=VGS0):
     # 입력 DC 선언 -> gate 전압이 고정이라 ln_idu 는 θ 성분이 아니다(종속, O-127). θ = L, 저항 전류·값.
     th = {("L", "M1"): L0, ("L", "M2"): L0,
           ("current", "R1"): i1, ("resistance", "R1"): r1, ("current", "R2"): i2, ("resistance", "R2"): r2}
+    if input_dc_v is None:                                                  # 입력 DC 미선언 -> ln_idu 가 θ 성분
+        th[("ln_idu", "M1")] = lut_ln_idu("nmos", VGS0, 1.8 - i1 * r1, 0.0)
+        th[("ln_idu", "M2")] = lut_ln_idu("nmos", VGS0, 1.8 - i2 * r2, 0.0)
     return _evaluate(tmp, topo, els, th, (("power_dc_w", "<=", 1e-3, None),), input_dc_v=input_dc_v)
 
 
@@ -459,3 +462,317 @@ def test_it2c_swapping_output_roles_gives_same_window_and_vcm(tmp_path):
     ca, cb = _icm(a_snap), _icm(b_snap)
     assert ca.config == cb.config == "servo"
     assert _close(ca.vcm_lo, cb.vcm_lo, 1e-9) and _close(ca.vcm_hi, cb.vcm_hi, 1e-9)
+
+
+# ======================================================================================================================
+# 정의 불능 갈래(code) -- 갈래 순서표 2·3·4·4′·5 (interface '측정 구성 규칙'). 각 toy 는 입력 DC·θ 를 직접 선언한다.
+# oracle: (d) 갈래표가 선언한 code·detail. 포트 role·회로 이름은 결과를 정하지 않는다.
+# ======================================================================================================================
+
+def _undef(snap):
+    cfg = _icm(snap)
+    assert cfg.config is None and len(cfg.undefined) == 1, cfg
+    u = cfg.undefined[0]
+    return u.code, u.category, dict(u.detail)
+
+
+def _cs_stage(k, out_role="single_ended_output"):
+    return ("M%d" % k, "nmos", "o%d" % k, "i%d" % k, "gnd", "gnd"), ("R%d" % k, "resistor", "vdd", "o%d" % k)
+
+
+def _stages_topo(name, n, in_roles, out_roles):
+    mos, pas = zip(*[_cs_stage(k) for k in range(1, n + 1)])
+    ports = {"i%d" % k: ("input", in_roles[k - 1]) for k in range(1, n + 1)}
+    ports.update({"o%d" % k: ("output", r) for k, r in out_roles.items()})
+    topo = topo_doc(name, mos=list(mos), passives=list(pas), ports=ports, rails=("vdd", "gnd"))
+    th = {}
+    for k in range(1, n + 1):
+        th[("L", "M%d" % k)] = L0
+        th[("current", "R%d" % k)] = 1e-5
+        th[("resistance", "R%d" % k)] = 9e4
+    els = tuple(("R%d" % k, "resistor", None) for k in range(1, n + 1))
+    return topo, els, th
+
+
+PWR = (("power_dc_w", "<=", 1e-3, None),)
+
+
+def test_it2c_three_inputs_is_icm_inputs_unsupported(tmp_path):
+    """oracle 대조: (d) 갈래 2. 입력 포트 셋 -> config None, code `icm_inputs_unsupported`, category definitional, detail inputs = 포트 이름(정렬 비교)."""
+    topo, els, th = _stages_topo("it2c_three", 3, ["single_ended_input"] * 3, {1: "single_ended_output"})
+    snap, _ = _evaluate(tmp_path, topo, els, th, PWR, input_dc_v=VGS0)
+    code, cat, det = _undef(snap)
+    assert (code, cat) == ("icm_inputs_unsupported", "definitional")
+    assert sorted(det["inputs"]) == ["i1", "i2", "i3"]
+
+
+def test_it2c_two_single_ended_inputs_give_two_default_views_view_required(tmp_path):
+    """oracle 대조: (d) 갈래 4. 입력 둘이 차동 쌍이 아니면 입력마다 기본 포트 뷰 하나 -> 뷰 둘 -> `view_required`, detail default_views = 2."""
+    topo, els, th = _stages_topo("it2c_two_se", 2, ["single_ended_input"] * 2, {1: "single_ended_output"})
+    snap, _ = _evaluate(tmp_path, topo, els, th, PWR, input_dc_v=VGS0)
+    code, cat, det = _undef(snap)
+    assert (code, cat, det) == ("view_required", "definitional", {"default_views": 2})
+
+
+def test_it2c_two_nondifferential_outputs_is_view_required_with_sense(tmp_path):
+    """oracle 대조: (d) 갈래 4′. 차동 입력 쌍(뷰 하나)이지만 감지 = 출력 둘이 단일 출력도 차동 출력 쌍도 아니면 `view_required`, detail sense = 출력 넷 tuple."""
+    topo, els, th = _stages_topo("it2c_two_out", 2, ["differential_input_p", "differential_input_n"],
+                                 {1: "single_ended_output", 2: "single_ended_output"})
+    snap, _ = _evaluate(tmp_path, topo, els, th, PWR, input_dc_v=VGS0)
+    code, cat, det = _undef(snap)
+    assert (code, cat) == ("view_required", "definitional") and sorted(det["sense"]) == ["o1", "o2"]
+
+
+def test_it2c_zero_inputs_toy_is_rejected_at_topology_load(tmp_path):
+    """oracle 대조: (독립) 갈래 3(입력 포트 0 -> `view_required`, default_views 0)의 도달 가능성. topology 로더가 입력 포트 없는 회로를 먼저
+    `SchemaRejectedError`(gate topology_load, rule `no_input_port`)로 거부하므로 파이프라인으로는 갈래 3 에 닿지 않는다(실측 사실을 단언하고 갈래 3 의 값은
+    미시험으로 표지한다 -- 보고 항목). 로더가 입력 0 을 받게 바뀌면 이 test 가 red 가 되어 갈래 3 test 를 쓰도록 알린다."""
+    from gmid_engine.core import SchemaRejectedError
+    topo = topo_doc("it2c_zero", mos=[("M1", "nmos", "out", "vb", "gnd", "gnd")], passives=[("R1", "resistor", "vdd", "out")],
+                    ports={"out": ("output", "single_ended_output")}, rails=("vdd", "gnd"), bias=["vb"])
+    with pytest.raises(SchemaRejectedError) as ei:
+        load_case(tmp_path, topo, SUP, (("R1", "resistor", None),), (), PWR)
+    hits = dict(ei.value.record.detail)["hits"]
+    assert "no_input_port" in [h.rule for h in hits]
+
+
+def _cap_only_topo(name, connect):
+    """M1 (out, in, gnd) + R1 부하, M2 (o2, x, gnd) + R2 부하. 넷 x 는 용량 C1(x, in)과 M2 gate 에만 닿는다. connect 이면 저항 R3(x, vdd)로 DC 전도 경로를 낸다."""
+    pas = [("R1", "resistor", "vdd", "out"), ("R2", "resistor", "vdd", "o2"), ("C1", "capacitor", "x", "in")]
+    els = [("R1", "resistor", None), ("R2", "resistor", None), ("C1", "capacitor", 1e-12)]
+    th = {("L", "M1"): L0, ("L", "M2"): L0, ("current", "R1"): 1e-5, ("resistance", "R1"): 9e4,
+          ("current", "R2"): 1e-5, ("resistance", "R2"): 9e4}
+    if connect:
+        pas.append(("R3", "resistor", "vdd", "x"))
+        els.append(("R3", "resistor", 1e6))
+    else:
+        th[("ln_idu", "M2")] = lut_ln_idu("nmos", VGS0, 0.9, 0.0)
+    topo = topo_doc(name, mos=[("M1", "nmos", "out", "in", "gnd", "gnd"), ("M2", "nmos", "o2", "x", "gnd", "gnd")], passives=pas,
+                    ports={"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}, rails=("vdd", "gnd"))
+    return topo, tuple(els), th
+
+
+def test_it2c_capacitive_only_node_is_icm_capacitive_only_node(tmp_path):
+    """oracle 대조: (d) 갈래 5 / T-L8e′. 넷 x 가 커패시터와 MOS gate 에만 닿아 G 행이 모두 0 -> config None, code `icm_capacitive_only_node`, detail nets = ("x",)."""
+    topo, els, th = _cap_only_topo("it2c_cap_only", connect=False)
+    snap, _ = _evaluate(tmp_path, topo, els, th, PWR, input_dc_v=VGS0)
+    code, cat, det = _undef(snap)
+    assert (code, cat) == ("icm_capacitive_only_node", "definitional") and tuple(det["nets"]) == ("x",)
+
+
+def test_it2c_capacitive_only_node_connected_by_resistor_is_defined(tmp_path):
+    """oracle 대조: (d) T-L8e′ 대조: x 를 저항 R3 로 vdd 에 이으면 DC 전도 경로가 생겨 정의된다(단일 입력 -> as_is_single_input, 정의 불능 없음)."""
+    topo, els, th = _cap_only_topo("it2c_cap_conn", connect=True)
+    snap, _ = _evaluate(tmp_path, topo, els, th, PWR, input_dc_v=VGS0)
+    cfg = _icm(snap)
+    assert cfg.config == "as_is_single_input" and cfg.undefined == ()
+
+
+# ---------------------------------------------------------------- 입력 둘 servo: 레일 자름, F 성분 미선언(입력 DC 미선언)
+
+def test_it2c_servo_rail_clip_ends_share_one_end_state(tmp_path):
+    """oracle 대조: (손) T-L8g 레일 자름. 이득이 작아(R1 = 1e3, R2 = 2e3, I = 1e-5) 행 끝이 레일 끝보다 멀다: 전제 -- 행 끝 > 레일 끝.
+    Δhi = min_p (1.8 − V_p)/s_p (위 `_servo_window` 손 식에 같음). 두 포트의 위 끝 V_p + s_p·Δhi 중 하나는 1.8(레일에 닿은 포트), 다른 하나는 안쪽이고,
+    V_cm 위 끝 = vcm0 + s̄·Δhi (같은 끝 상태 평균)."""
+    snap, _ = _two_stage(tmp_path, 1e-5, 1e3, 1e-5, 2e3)
+    a1, a2, delta, s_o = _servo_hand(snap)
+    vp, s_p, dlo, dhi = _servo_window(snap)
+    row_hi = min((snap.value("device", m, "dc_op").vds - _vdsat(snap.value("device", m, "dc_op").vgs)) / abs(s_o) for m in ("M1", "M2"))
+    assert dhi < row_hi                                                  # 전제: 레일이 창을 정한다
+    ends = {}
+    for p in ("ip", "im"):
+        w = snap.value("node", p, "dc_window_cfg")
+        e_lo, e_hi = sorted((vp[p] + s_p[p] * dlo, vp[p] + s_p[p] * dhi))
+        assert w.input_status == "measured"
+        assert _close(w.lo, e_lo, 1e-8) and _close(w.hi, e_hi, 1e-8)
+        ends[p] = w.hi
+    assert abs(max(ends.values()) - SUP["vdd"]) <= 1e-9 or abs(min(vp[p] + s_p[p] * dlo for p in vp)) <= 1e-9
+    cfg = _icm(snap)
+    vcm0 = 0.5 * (vp["ip"] + vp["im"])
+    assert _close(cfg.vcm_hi, vcm0 + dhi, 1e-8) and _close(cfg.vcm_lo, vcm0 + dlo, 1e-8)
+
+
+def test_it2c_servo_undeclared_input_dc_drives_both_ports_together(tmp_path):
+    """oracle 대조: (손) T-L12 2입력 변형 + T-K. 입력 DC 미선언 두 입력 포트(F 성분 미선언, gate 전용 넷, source = gnd)도 구동에 든다: 같은 x 로 함께 훑은 창 =
+    위 손 식(V_p = 각 소자의 VGS). cfg 두 포트 `measured`, 커널 `node.dc_window` 에 입력 포트 항목 없음(두 입력 모두 W4 뿌리 아님)."""
+    snap, _ = _two_stage(tmp_path, 1e-5, 9e4, 1e-5, 5e4, input_dc_v=None)
+    vp, s_p, dlo, dhi = _servo_window(snap)
+    for p in ("ip", "im"):
+        w = snap.value("node", p, "dc_window_cfg")
+        e_lo, e_hi = sorted((vp[p] + s_p[p] * dlo, vp[p] + s_p[p] * dhi))
+        assert w.input_status == "measured" and _close(w.lo, e_lo, 1e-8) and _close(w.hi, e_hi, 1e-8)
+    assert not {"ip", "im"} & set(dict(snap.column("node", "dc_window")))
+
+
+def test_it2c_single_input_has_no_kernel_window_entry(tmp_path):
+    """oracle 대조: (독립) T-L12·T-K. 입력 DC 미선언 단일 입력 toy(F 성분 미선언: gate 전용 in, source = gnd): 커널 `node.dc_window` 에 in 항목이 없다
+    (cfg 가 대신 받는다)."""
+    snap, _ = _cs(tmp_path)
+    assert "in" not in dict(snap.column("node", "dc_window"))
+    assert snap.value("node", "in", "dc_window_cfg").input_status == "measured"
+
+
+# ---------------------------------------------------------------- 선언 뷰 병합 (T-S1V)
+
+def _ota_views(tmp, view):
+    from gmid_engine.graph import build_s1, build_s1v
+    topo = topo_doc("it2c_ota", mos=[("M1", "nmos", "x", "in_p", "tail", "gnd"), ("M2", "nmos", "out", "in_n", "tail", "gnd"),
+                                     ("M3", "pmos", "x", "x", "vdd", "vdd"), ("M4", "pmos", "out", "x", "vdd", "vdd"),
+                                     ("M0", "nmos", "tail", "vb", "gnd", "gnd")],
+                    ports={"in_p": ("input", "differential_input_p"), "in_n": ("input", "differential_input_n"),
+                           "out": ("output", "single_ended_output")}, rails=("vdd", "gnd"), bias=["vb"])
+    td, spec = load_case(tmp, topo, SUP, (), (), (("gain_ss_db", ">=", 20.0, view),))
+    run = fresh_run()
+    g = build_s1v(build_s1(td, dict(SUP), **run), spec, count_budget=10 ** 6, stop_on_unsupported=False, **run)
+    return g.value("graph", "s1v", "views")
+
+
+def test_it2c_declared_view_same_key_merges_into_default(tmp_path):
+    """oracle 대조: (손) T-S1V 같은 키 (interface 빈칸 답 4). 선언 뷰 excite (in_p 1/2, in_n −1/2)·감지 out 은 기본 포트 뷰와 같은 키 -> 뷰 하나로 합쳐지고
+    선언이 먼저라 source == "spec_constraint_view", default_port True."""
+    views = _ota_views(tmp_path, {"ac_excite": {"in_p": 0.5, "in_n": -0.5}, "sense_p": "out", "sense_n": None, "sense_mode": "single_ended"})
+    assert len(views) == 1
+    v = views[0]
+    assert v.excite == (("in_n", -0.5), ("in_p", 0.5)) and v.sense == ("out",)
+    assert v.source == "spec_constraint_view" and v.default_port is True
+
+
+def test_it2c_declared_view_other_key_coexists_with_default(tmp_path):
+    """oracle 대조: (손) T-S1V 다른 키. 선언 뷰 excite (in_p 1) 는 기본 키가 아니므로 뷰 둘 -- 기본 포트 뷰만 default_port True, 선언 뷰는 False(목록 순서 = 키 정렬)."""
+    views = _ota_views(tmp_path, {"ac_excite": {"in_p": 1.0}, "sense_p": "out", "sense_n": None, "sense_mode": "single_ended"})
+    assert len(views) == 2
+    by = {v.excite: v for v in views}
+    assert by[(("in_p", 1.0),)].source == "spec_constraint_view" and by[(("in_p", 1.0),)].default_port is False
+    assert by[(("in_n", -0.5), ("in_p", 0.5))].default_port is True
+    assert [v.excite for v in views] == sorted(v.excite for v in views)
+
+
+# ---------------------------------------------------------------- 용량 결측 (T-L10 결측 toy)
+
+def test_it2c_pending_capacitor_leaves_ss_nodal_defined_and_icm_config_defined(tmp_path):
+    """oracle 대조: (d) T-L10 결측 toy(용량만). interface: 용량만 결측이면 `NodalSystem`(용량은 DC 에서 개방이라 G 에 안 든다), icm_config 는 정의된다
+    (단일 입력 -> as_is_single_input). `graph.ss_nodal` 값은 Undefined 가 아니라 NodalSystem(ndarray 불변)이다."""
+    from gmid_engine.graph import build_s1
+    from gmid_engine.metrics.aux_types import NodalSystem
+    from .test_ss_evaluate import _spec_with_pending
+    topo = topo_doc("it2c_pend", mos=[("M1", "nmos", "out", "in", "gnd", "gnd")],
+                    passives=[("R1", "resistor", "vdd", "out"), ("CL", "capacitor", "out", "gnd")], rails=("vdd", "gnd"))
+    td, spec = _spec_with_pending(tmp_path / "p", "it2c_pend", topo, (("R1", "resistor", None),), (("CL", "SP-9"),),
+                                  (("gain_ss_db", ">=", 20.0, None), ("power_dc_w", "<=", 1e-3, None)))
+    inputs = dc_inputs_from_spec(spec)
+    lut = _lut_with_vdsat(tmp_path / "lut")
+    run = fresh_run()
+    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, lut_access(lut), **run)
+    th = {("L", "M1"): L0, ("ln_idu", "M1"): lut_ln_idu("nmos", VGS0, 0.9, 0.0), ("current", "R1"): 1e-5, ("resistance", "R1"): 9e4}
+    ev = size_and_seal(ctx, th)
+    js = toy_junction(tmp_path / "junction", ctx.lut.memo.lut)
+    snap = ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, th, spec.constraints, ("vdd",), junction=js).snapshot
+    nod = next(iter(dict(snap.column("graph", "ss_nodal")).values()))
+    assert isinstance(nod, NodalSystem)
+    for arr in (nod.g, nod.g_bound):
+        assert arr.flags.writeable is False
+        with pytest.raises(ValueError):
+            arr[0, 0] = 1.0
+    assert _icm(snap).config == "as_is_single_input"
+
+
+# ---------------------------------------------------------------- W3 목표 출력 toy (T-L8c)
+
+def test_it2c_w3_target_output_high_impedance_window_by_hand_kcl(tmp_path):
+    """oracle 대조: (손) T-L8c W3 목표 출력 toy. M1 nmos (out, in, gnd), 이상 전류원 I1(vdd -> out) 1e-5 A (소신호 개방), 출력 out 은 W3 목표 0.9 V.
+    out 노드 KCL(용량 개방): gds·v_out + gm·1 = 0 -> s_out = −gm/gds. 행 (out, gnd, +1, VDS − VDSAT): Δ <= slack/|s_out|, 레일 0 <= V_in + Δ <= 1.8.
+    포트 창 = [V_in + Δlo, V_in + Δhi], V_in = VGS. 전제: 목표 V(out) = 0.9 가 실제 동작점 VDS 와 같다."""
+    import json
+    from pathlib import Path
+    from gmid_engine.authoring import load_sizing_spec
+    from gmid_engine.graph import build_s1
+    from gmid_engine.metrics import metric_catalog
+    from .conftest import SS_SRC, spec_json, topo_only
+    topo = topo_doc("it2c_w3", mos=[("M1", "nmos", "out", "in", "gnd", "gnd")], passives=[("CL", "capacitor", "out", "gnd")],
+                    sources=[("I1", "current_source", "vdd", "out")], rails=("vdd", "gnd"))
+    td = topo_only(tmp_path, topo)
+    d = spec_json(td, SUP, (("I1", "current_source", 1e-5), ("CL", "capacitor", 1e-12)), (), PWR)
+    d["human"]["node_voltage_targets_v"] = {"out": {"value_v": 0.9, "source": SS_SRC}}
+    sp = Path(tmp_path) / "it2c_w3.sizing_spec.json"
+    sp.write_text(json.dumps(d), encoding="utf-8")
+    spec = load_sizing_spec(str(sp), td, metric_catalog())
+    inputs = dc_inputs_from_spec(spec)
+    run = fresh_run()
+    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, lut_access(_lut_with_vdsat(tmp_path / "lut")), **run)
+    th = {("L", "M1"): L0, ("ln_idu", "M1"): lut_ln_idu("nmos", VGS0, 0.9, 0.0)}
+    ev = size_and_seal(ctx, th)
+    js = toy_junction(tmp_path / "junction", ctx.lut.memo.lut)
+    snap = ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, th, spec.constraints, ("vdd",), junction=js).snapshot
+    ss = snap.value("device", "M1", "ss_dev")
+    op = snap.value("device", "M1", "dc_op")
+    assert abs(op.vds - 0.9) <= 1e-9                                         # 전제: W3 목표가 동작점
+    s_out = -ss.gm / ss.gds
+    slack = op.vds - _vdsat(op.vgs)
+    assert slack > 0 and s_out < 0
+    dhi = slack / abs(s_out)
+    assert op.vgs + dhi < SUP["vdd"]
+    w = snap.value("node", "in", "dc_window_cfg")
+    assert w.input_status == "measured"
+    assert abs(w.lo - 0.0) <= 1e-12 and _close(w.hi, op.vgs + dhi, 1e-9)
+    assert _icm(snap).config == "as_is_single_input"
+
+
+def test_it2c_servo_boundary_margin_is_zero_not_plus_tol(tmp_path):
+    """oracle 대조: (손) T-L8a′ (servo). 비대칭 두 단에서 행 끝을 여유 0 으로 내면 Δhi0 = min_k slack_k/|s_o|, +tol 로 내면 Δhi1 = min_k (slack_k − tol)/|s_o|,
+    tol = 봉인점 dc_tol_v(dc_coord MOS) 최솟값. 전제: tol > 0 이고 두 끝이 구별된다(차 > 1e-9). cfg 위 끝 = 여유 0 끝."""
+    snap, _ = _two_stage(tmp_path, 1e-5, 9e4, 1e-5, 5e4)
+    tol = _tol_v(snap)
+    assert tol is not None and tol > 0.0
+    a1, a2, delta, s_o = _servo_hand(snap)
+    slacks = [snap.value("device", m, "dc_op").vds - _vdsat(snap.value("device", m, "dc_op").vgs) for m in ("M1", "M2")]
+    d0 = min(slacks) / abs(s_o)
+    d1 = (min(slacks) - tol) / abs(s_o)
+    assert abs(d0 - d1) > 1e-9
+    vp, s_p, dlo, dhi = _servo_window(snap)
+    assert _close(dhi, d0, 1e-12) and dhi != d1                              # 전제: 위 끝은 행에서 나온다(레일 아님)
+    cfg = _icm(snap)
+    assert _close(cfg.vcm_hi, 0.5 * (vp["ip"] + vp["im"]) + dhi, 1e-8)
+
+
+# ---------------------------------------------------------------- triode 선언 소자 (T-D)
+
+def _evaluate_region(tmp, topo, els, theta, region_decl, constraints=PWR):
+    """_evaluate 와 같되 spec 의 `human.intended_region` 을 채운다(소자 이름 -> {"region": ..., "source": ...})."""
+    import json
+    from pathlib import Path
+    from gmid_engine.authoring import load_sizing_spec
+    from gmid_engine.graph import build_s1
+    from gmid_engine.metrics import metric_catalog
+    from .conftest import SS_SRC, spec_json, topo_only
+    td = topo_only(tmp, topo)
+    d = spec_json(td, SUP, els, (), constraints)
+    d["human"]["intended_region"] = {m: {"region": r, "source": SS_SRC} for m, r in region_decl.items()}
+    sp = Path(tmp) / (topo["topology_name"] + ".sizing_spec.json")
+    sp.write_text(json.dumps(d), encoding="utf-8")
+    spec = load_sizing_spec(str(sp), td, metric_catalog())
+    inputs = dc_inputs_from_spec(spec)
+    run = fresh_run()
+    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, lut_access(_lut_with_vdsat(tmp / "lut")), **run)
+    ev = size_and_seal(ctx, theta)
+    js = toy_junction(tmp / "junction", ctx.lut.memo.lut)
+    return ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, theta, spec.constraints, ("vdd",), junction=js).snapshot
+
+
+def test_it2c_triode_declared_device_row_zero_crossing_is_the_window_end(tmp_path):
+    """oracle 대조: (손) T-D. `triode` 선언 소자 M1 (out, in, gnd) + 저항 부하(R = 1.7e5, I = 1e-5 -> V(out) = 0.1 < VDSAT = 0.1 + 0.2·0.6 = 0.22, 동작점 triode 전제).
+    행 `(d, s, −1, VDSAT − VDS, "triode")`: slack_t = VDSAT − VDS > 0, 기울기 = −(s_out − 0) = |s_out| (s_out = −gm/(gds + 1/R)) -> Δ >= −slack_t/|s_out|
+    (VDS = VDSAT 에서 포화로 넘어가는 점, 판정 여유 0). 레일 위 끝 Δ <= 1.8 − V_in. 포트 창 = [V_in − slack_t/|s_out|, 1.8]. cfg 상태 measured."""
+    i, r = 1e-5, 1.7e5
+    topo = topo_doc("it2c_triode", mos=[("M1", "nmos", "out", "in", "gnd", "gnd")],
+                    passives=[("R1", "resistor", "vdd", "out"), ("CL", "capacitor", "out", "gnd")], rails=("vdd", "gnd"))
+    th = {("L", "M1"): L0, ("ln_idu", "M1"): lut_ln_idu("nmos", VGS0, 1.8 - i * r, 0.0), ("current", "R1"): i, ("resistance", "R1"): r}
+    snap = _evaluate_region(tmp_path, topo, (("R1", "resistor", None), ("CL", "capacitor", 1e-12)), th, {"M1": "triode"})
+    ss = snap.value("device", "M1", "ss_dev")
+    op = snap.value("device", "M1", "dc_op")
+    rv = snap.value("device", "R1", "passive_value")
+    slack_t = _vdsat(op.vgs) - op.vds
+    s_out = -ss.gm / (ss.gds + 1.0 / rv)
+    assert slack_t > 0 and s_out < 0                                           # 전제: 동작점 triode
+    w = snap.value("node", "in", "dc_window_cfg")
+    assert w.input_status == "measured"
+    assert _close(w.lo, op.vgs - slack_t / abs(s_out), 1e-9) and abs(w.hi - SUP["vdd"]) <= 1e-12

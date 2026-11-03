@@ -726,3 +726,43 @@ def test_it2a_same_theta_ss_reevaluation_from_child_grafts(base):
     # 이식한 값은 첫 평가 값과 같다
     assert again.snapshot.column("device", "ss_dev") == res.snapshot.column("device", "ss_dev")
     assert bundle_map(again.ss)["gain_ss_db"].value == bundle_map(res.ss)["gain_ss_db"].value
+
+
+# =====================================================================================================================
+# [IT-2c T-L11c] `ss_circuit`·`ss_nodal`·`icm_config` 블록 계수 (interface 20261104-it2c-icm-config, 부르는 순서 ss_dev -> ss_circuit -> metrics_ss -> ss_nodal -> icm_config)
+# oracle: (독립) 실행 계수(RunCounters) 행의 구간 증분. 같은 θ ss 재평가는 이식 1·계산 0·재사용 0, lineage 재사용은 계산 0·재사용 1.
+# =====================================================================================================================
+
+IT2C_BLOCKS = ("ss_circuit", "ss_nodal", "icm_config")
+
+
+def _rows(ctx):
+    return {n: block_row(ctx.counters, n) for n in IT2C_BLOCKS}
+
+
+def test_it2c_t_l11c_same_theta_reevaluation_grafts_new_blocks(base):
+    spec, ctx, _, _, res, js = base
+    before = _rows(ctx)
+    ev2 = size_and_seal(ctx, theta(), parent=res.lineage)
+    ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, theta(), spec.constraints, ("vdd",), junction=js)
+    for n, now in _rows(ctx).items():
+        d = dict(zip(COUNT_FIELDS, row_delta(now, before[n])))
+        assert (d["computes"], d["grafts"], d["reuses"]) == (0, 1, 0), (n, d)
+
+
+def test_it2c_t_l11c_lineage_reuse_zero_compute_for_new_blocks(base):
+    spec, ctx, _, _, res, js = base
+    before = _rows(ctx)
+    again = ss_evaluate(res.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",), junction=js)
+    assert again.snapshot is res.snapshot
+    for n, now in _rows(ctx).items():
+        d = dict(zip(COUNT_FIELDS, row_delta(now, before[n])))
+        assert (d["computes"], d["reuses"]) == (0, 1), (n, d)
+
+
+def test_it2c_new_graph_fields_present_after_ss_evaluate(base):
+    """oracle 대조: (d) interface '필드 -- writer 하나': 같은 평가 뒤 `graph.ss_circuit`·`graph.ss_nodal`·`graph.icm_config` 가 각각 값 하나, `node.dc_window_cfg` 에 입력 in 항목."""
+    _, _, _, _, res, _ = base
+    for f in ("ss_circuit", "ss_nodal", "icm_config"):
+        assert len(dict(res.snapshot.column("graph", f))) == 1, f
+    assert "in" in dict(res.snapshot.column("node", "dc_window_cfg"))
