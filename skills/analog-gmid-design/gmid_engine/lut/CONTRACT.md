@@ -164,6 +164,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   (상수 바닥 없음), `floors`·`nonpositive` 에 바닥값·0 이하 원소 수 기록, `on_mask = (ID > 0) & (GM > 0)`.
 - 불변식: 모든 슬라이스의 L·VGS·VDS·VS 가 float 단위로 같다. 측정 조건(`conditions`)이 모두 같다. 기준 LUT 조건이 기록돼
   있으면 corner·temp_c 가 슬라이스와 같다. 기준 LUT L·VGS·VDS 가 슬라이스와 같다(VS 는 달라도 됨).
+- **[개정 예정 -- design 40 v1.15.1 §3.7-A 5·8, card WB-1(계획 v6.38.2 DEC-105 (2))]** `w_ref_m`의 쓰임이 둘로 갈린다: (i) 용량·잡음·mismatch 열 조회 = 기준 폭 표 키(`CapTable.w_key`)와 W/w_ref_m 환산 그대로(9.3·10.4) (ii) DC 열 조회는 더 이상 기준 폭 슬라이스 하나가 아니라 소자 W-bin 슬라이스(새 순수 함수 `finger_slice`·`slice_of_finger`·`reachable_slices` -- `E/lut/finger_slice.py`); `w_ref_m`은 손가락 규칙의 w_hi(그 L에서 기준 폭 슬라이스가 속한 W-bin 위 끝)와 종속 소자 출발 키를 정하는 선언으로 쓰인다. bin 소속 판정은 제조 격자 정수 비교 + bin 경계 선언(시뮬레이터 판·호환 모드·모델 sha256) 방향으로 바뀐다(4.0.1 `_helpers_bins.bin_index` 결함 D1 정정).
 - **용량 기준 폭 `CapTable.w_ref_m`**: (1) 기준 npz 에 `w_ref_m` 이 있으면 그 값, `basis == (("method", "recorded_w_ref_m"),)`
   (2) 없으면 `ID<접미사>` 와 같은 kind 슬라이스 `ID` 를 기준 VS 값이 슬라이스 VS 축에 정확히 있는 열·기준 ID > 0 인 점에서 비교한다.
   d_s = max |ID_s − ID_ref| / |ID_ref|. 최소 d 인 슬라이스 w 를 고르되 **d_w < sep / 2** 일 때만 채택.
