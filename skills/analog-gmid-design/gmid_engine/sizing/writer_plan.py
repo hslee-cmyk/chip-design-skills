@@ -82,6 +82,7 @@ READS = (
 WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"),
           ("node", "dc_output_structure"))
 _SELF_RELATIONS = (REL_VGS_GATE, REL_VGS_SOURCE)
+_DIFF_ROLES = (ROLE_DIFFERENTIAL_INPUT_P, ROLE_DIFFERENTIAL_INPUT_N)     # 입력 점이 되는 차동 입력쌍 role
 _FIXED = ("",)                                          # F 한 점(넷 이름이 될 수 없는 tuple 키)
 _RES, _DIODE, _MOS = (1, 1 + 1, 1 + 1 + 1)              # 엣지 순위
 _KIND_RES, _KIND_MOS = (0, 1)                          # 엣지 키의 종류 칸(저항 < MOS)
@@ -317,10 +318,10 @@ def canon(net, point):
 def _input_point(free_inputs, roles):
     """입력 DC 미선언 입력 점(DEC-106): 자유 입력 포트가 둘이고 role 이 차동 입력 p·n 각 하나이면 (p 포트, n 포트), 하나 이하면 None(옛 규칙),
     그 밖(차동쌍 둘, 차동쌍 없는 입력 둘 이상, 차동쌍 + 다른 입력)은 탐색 전 정지 -- 입력 공통모드가 정해지지 않는다."""
-    if len(free_inputs) < 2:
+    if len(free_inputs) < len(_DIFF_ROLES):
         return None
     by_role = {roles.get(net): net for net in free_inputs}
-    if len(free_inputs) == 2 and set(by_role) == {ROLE_DIFFERENTIAL_INPUT_P, ROLE_DIFFERENTIAL_INPUT_N}:
+    if len(free_inputs) == len(_DIFF_ROLES) and set(by_role) == set(_DIFF_ROLES):
         return by_role[ROLE_DIFFERENTIAL_INPUT_P], by_role[ROLE_DIFFERENTIAL_INPUT_N]
     raise StructureUnresolvedError(devices=(), detail={"reason": UNSUPPORTED_RULE_BRANCH,
                                                        "rule_branch": BRANCH_INPUT_CM_UNDEFINED,
