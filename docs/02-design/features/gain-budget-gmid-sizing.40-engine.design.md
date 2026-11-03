@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.16.7
+version: 1.16.10
 plan_version: 6.38.11
 ---
 
@@ -9,7 +9,7 @@ plan_version: 6.38.11
 > **Summary**: 새 gm/ID 사이징 엔진(`skills/analog-gmid-design/gmid_engine/`)의 설계 정본이다. 계획서 N3.1 흐름 GB0~GB9를 패키지·파일에 대응시키고, 단계마다 알고리즘·입출력·불변식·실패 코드·as-built 상태를 적는다. 계획서가 요구하고 실행 로드맵에서 빠졌던 gain-budget 흐름(FR-1·FR-2·FR-4·FR-8)은 `41-gain-budget`에서 전부 설계한다. gap 분석 기준표는 `42-gap-checklist`다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Date**: 2026-11-04 · **Status**: **design v1.16.7(재판정 R1·r 문언 반영. 앞 판 v1.16.6 = 독립 판정 V1~V3, 위임 A-49; v1.16.5 = E-1~E-4, 위임 A-45~A-47; v1.16.4) -- 계획 기준 = v6.38.11(v6.38.8 master `c0b41eee` 승인 A-25, v6.38.9 A-47, v6.38.10 A-49, v6.38.11 재판정 r2·r4).** **승인(O-226 위임 A-27, v1.16.3)**: 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔), ④(HC-S·HC-1·GC-1·GC-8), ⑥(EO-1, SF-1 로더 조각), card C 정정. **v1.16.4 card 후속(UB-1 A-35·A-36, TB-1 A-34, IT A-33 J4, rule_hash 공통 규칙) = 독립 판정 `cards_batch_validation.md` 문언 반영 뒤 채택(위임 A-37).** **미승인**: ① LA-1a(§6.9, '보류 중' 표지), ③ WB-1(Q-W1 기본안 뒤 재검증). 자리: HC-S·HC-1 = `headroom-chain.design.md` v0.1, GC-1·GC-8 = `graph-consumption.design.md` v0.1, EO-1 = 41 §4.8·§4.9(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H40-39, 경위 = H40-40.
+> **Date**: 2026-11-04 · **Status**: **design v1.16.10(재판정 R1~R4·r 반영, 위임 A-60: `headroom-chain.design.md` v0.1.6, `graph-consumption.design.md` v0.1.3, 독립 판정 Major 0, 승인 위임 A-61. 앞 판 v1.16.9 = 독립 판정 V1~V13 반영, 위임 A-59: 40 소유표, `headroom-chain.design.md` v0.1.5, `graph-consumption.design.md` v0.1.2, 독립 판정 Major 0, 승인 위임 A-61. 앞 판 v1.16.8 = HC-1 card 후보 채택, 위임 A-50~A-52: 40 소유표 한 칸, `headroom-chain.design.md` v0.1.4, `graph-consumption.design.md` v0.1.1, 독립 판정 Major 0, 승인 위임 A-61. 앞 판 v1.16.7 = 재판정 R1·r 문언 반영. 앞 판 v1.16.6 = 독립 판정 V1~V3, 위임 A-49; v1.16.5 = E-1~E-4, 위임 A-45~A-47; v1.16.4) -- 계획 기준 = v6.38.11(v6.38.8 master `c0b41eee` 승인 A-25, v6.38.9 A-47, v6.38.10 A-49, v6.38.11 재판정 r2·r4).** **승인(O-226 위임 A-27, v1.16.3)**: 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔), ④(HC-S·HC-1·GC-1·GC-8), ⑥(EO-1, SF-1 로더 조각), card C 정정. **v1.16.4 card 후속(UB-1 A-35·A-36, TB-1 A-34, IT A-33 J4, rule_hash 공통 규칙) = 독립 판정 `cards_batch_validation.md` 문언 반영 뒤 채택(위임 A-37).** **미승인**: ① LA-1a(§6.9, '보류 중' 표지), ③ WB-1(Q-W1 기본안 뒤 재검증). 자리: HC-S·HC-1 = `headroom-chain.design.md` v0.1, GC-1·GC-8 = `graph-consumption.design.md` v0.1, EO-1 = 41 §4.8·§4.9(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H40-39, 경위 = H40-40.
 >
 > **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v6.38.11
 > **as-built 기준**: 절마다 인용한 커밋(최근 = integ/it12 `b12792ab`); 옛 기준 master `004b7d2`·브랜치 목록 = design 이력 H40-31.
@@ -455,10 +455,10 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 | HC 소유표(v1.16.3 -- 형식 정본 = `headroom-chain.design.md` §2, 검증 전) | `device: dc_sat_v` = `SatBound(vdsat_v, tol_v, reason)`(`sat_v` 칸 없음 -- 위임 A-17) | DC 블록(`device.dc_op`와 같은 블록). 제작 HC-S. 소비자: 봉인 7·`metrics_aux._sat_devices`·J_point·관문 `off_region_gate`(기준 VDSAT, 위임 A-46) | 평가 |
 | 〃 | `node: dc_root_path`, `device: dc_vgs_edge` | `dc_writer_plan`. 제작 HC-1. 소비자: `chain_graph`(둘 다), `iv_headroom`·`headroom_bound._edges`(`dc_vgs_edge`) | S0 |
 | 〃 | `graph: dc_current_symmetry` | `dc_current_symmetry`(새 블록). 제작 HC-1. 소비자: `search_domain`(읽기만)·`chain_graph` | S0 |
-| 〃 | `graph: chain_graph`, `graph: triode_protected` | `chain_graph`(R-1′ 블록). 제작 HC-1. 소비자: `iv_headroom`·`order_terms`·`headroom_bound`·`search_domain`·J_point·F_exist·R6·층 0 / `dc_seal_triode`. `f_exist` 구간 칸의 R6 전 소비자 0 = 위임 A-18(기간 예외, toy로 잠금) | S0 |
+| 〃 | `graph: chain_graph`, `graph: triode_protected` | `chain_graph`(R-1′ 블록). 제작 HC-1. 소비자: `iv_headroom`·`order_terms`·`headroom_bound`·`search_domain`·J_point·F_exist·R6·층 0 / `dc_seal_region`. `f_exist` 구간 칸의 R6 전 엔진 판정 소비자 0 = 위임 A-18(기간 예외), 그 기간 reader = 보고 출력 함수(규칙 L-4를 목록 없이 통과, test로 잠금 -- 위임 A-52·A-59) | S0 |
 | 〃 | `graph: stack_candidates` | `stack_candidates`(새 블록). 제작 HC-1. 소비자: 봉인 7 사유 세분·칸별 R-3 | S1 |
 | 〃 | `graph/start: loop_stack_notes` | `loop_dependents`. 제작 HC-1. **출력 전용** | S0 |
-| 〃 | `graph: dc_seal_triode`, `device: dc_triode_region` | `dc_seal_triode`(새 블록). 제작 HC-1. 소비자: 봉인 판정 / **출력 전용**(`dc_triode_region`) | 평가 |
+| 〃 | `graph: dc_seal_triode` / `device: dc_triode_region` | `dc_seal_triode`(새 블록) / `dc_seal_region`(같은 순회, `judge_region` 둘째 호출 금지 -- 위임 A-59). 제작 HC-1. 소비자: 봉인 판정 / **출력 전용** | 평가 |
 | 〃 | `graph/kernel: search_domain` 칸 `chain_cuts` | `search_domain` 그대로. 제작 HC-1. 칸 = 출력 전용 | S0 |
 | 〃 | 삭제: `gvgs_summary.vds_saturation`, `REL_VDS_SATURATION` | HC-1 | -- |
 | 층 0 보고 분류(v1.15.0 신설 -- 계획 v6.38 card LA-1 범위 9·완료 조건 6·7, 41 §5.1) | `graph/layer0: report_class` = 정렬 tuple, 원소 ∈ {`layer0_inactive`(블록 단위면 (`layer0_inactive`, 블록 키)), `assembly_failed_path`, `performance_judgement_deferred`} | `layer0_budget`. **출력 전용**(읽는 쪽 = 결과 JSON 보고 U16·notes) | L0 |
