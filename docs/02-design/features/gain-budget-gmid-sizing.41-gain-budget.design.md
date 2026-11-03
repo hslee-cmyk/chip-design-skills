@@ -1,7 +1,7 @@
 ---
 template: design
-version: 1.16.1
-plan_version: 6.38.5
+version: 1.16.2
+plan_version: 6.38.7
 ---
 
 # gain-budget-gmid-sizing -- 41-gain-budget Design Document
@@ -14,7 +14,7 @@ plan_version: 6.38.5
 > - 스펙에서 θ 좌표(ln IDu -- O-186)·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-10-31 · **Status**: **design v1.16.1 -- 계획 v6.38.5(승인 O-193) 맞춤 + 검증 1·design↔계획 gap 반영, 재검증 대기**(40·42와 같은 판 -- 40 Status). design 판단·계획 개정 필요·열린 점·착수 조건 = §5.12.8, 옛 승인 질문 = §5.12.7. 판 이력(v1.15.2~v1.4) = design 이력 H41-16, v1.15.3 = H41-34, v1.16.0 = H41-35(`gain-budget-gmid-sizing.design.history.md`).
+> **Date**: 2026-11-03 · **Status**: **design v1.16.2 -- card LA-1a design(41 §6.9) + 계획 v6.38.7 후속 정정 반영, 재검증 대기. **계획 공백 PG-1~PG-5(41 §6.9-11) -- PG-1~PG-4가 닫히기 전 card LA-1a 동결 금지****(40·42와 같은 판 -- 40 Status). 옛 Status v1.16.1 = design 이력 H41-36, 경위 = H40-38.
 >
 > 색인과 표기는 [40-engine](gain-budget-gmid-sizing.40-engine.design.md)을 따른다(`E/`, OK/DEV/PART/MISS). as-built 기준은 master `004b7d2`다.
 
@@ -915,6 +915,7 @@ P: "(b) 목표 이득에서 필요한 gm/gds를 구해 bin마다 LUT 곡선(같�
 - **bin마다**: L_c의 PDK 모델 bin(LR3 bin 지도) 중 feasible_L_window(§5.3.7) 안의 bin마다 따로 푼다. bin 안에서는 이웃 LUT L 점 사이 구간마다 끝값의 gain을 보고, T_b를 넘는 첫 구간을 bisection한다. 반복 상한은 N3.6 K_max이고 L 쪽 멈춤 폭은 PDK 제조 격자(DEC-80 (i)과 같은 선언)다. 결과는 gain ≥ T_b인 쪽 끝 L이다. bin 경계를 넘지 않고 LUT L 범위 밖으로 외삽하지 않는다.
 - **bin 고르기**: 근이 있는 L bin마다 후보 하나씩을 낸다. 고르는 것은 국소 front(§5.4, (전력, 면적) 비지배)다(L-6).
 - **실패 → 그 동치류만 격자 폴백**: `l_inverse_no_bracket`(창 안 어느 bin에서도 끝값이 T_b를 가르지 않음), `lut_axis_out_of_range`(DF-27). 폴백 격자는 그 동치류의 LR5 격자(§5.3.7)다.
+- **근 찾기 핵심 함수 공유**(계획 N6.39 범위 1 (d), 사용자 결정 O-217·O-218): bin 하나의 근 찾기 = card LA-1a의 `solve_l_in_bin`(§6.9-3)을 T_b로 부른다(둘째 생산자 0). 이 절의 bin별 후보·국소 front·격자 폴백은 LA-1 호출자의 실패 분기다. 출발 단계(LA-1a)는 같은 함수를 부르되 오름차순 첫 bin 최소 L 하나이고 실패 = DEC-105 (1) -- **원래 취지와 다름(승인 O-218 (1))**.
 - **국소 모델 평가**: L·VGS·VDS·VS는 격자 마디로 맞추지 않고 LUT 운영 보간(DEC-87, L은 bin 안 선형 LR3)으로 평가한다. 폐기: v1.5 as-built 1 '가장 가까운 LUT 격자 마디로 맞추고'.
 - **탐색 개방 후보에는 역산을 다시 걸지 않는다**(계획 DEC-104 R5′ (4)(iii) ② 재검증 6 H-6, 승인 O-162): '이득 행 재개방' 표지가 선 칸에서 생성된 후보(§5.3.4 (c-2) 탐색 개방 -- R·L(S 소자)·S 좌표 ln IDu)는 연 축 값을 고정 입력으로 받고 이 절의 L 역산을 다시 하지 않는다(역산은 개방이 푼 출발 구간 축소의 일부라 같은 후보에 다시 걸면 연 축이 닫힌다). toy = 계획 LA-1 완료 조건 9 (d) 탐색 개방 toy(§9 v1.15.2 행).
 - 폐기: v1.5 '(b) bin 안 L 다듬기'. 역산이 T_b를 맞추는 최소 L을 직접 내므로 따로 두지 않는다.
@@ -1215,7 +1216,7 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
 
 **실패**(계획 LA-1 후속 정정 v6.19 행·LA-Q2(O-38 (1)) 둘 갈래): (i) 결합 오차(봉인 통과·전회로 제약 미달)는 외층을 켜는 정상 경로(대체 경로 아님) (ii) 봉인 실패로 조합 소진은 '층 0 점 없음'·'성능 판정 보류' 표기 대체 경로(DEC-73 (3)(b) 한 규칙) -- 그 경로의 출발점은 40 §3.11-2 칸 0 한 규칙이고 모든 후보가 출발 불능이면 출발 불능 보고(E-32); 그 경로의 옛 출발점 생성기(`_box_centre`·`_current_centre`·`_halton_probe`·사다리 순회)는 지운다(계획 v6.38.4 P4 -- §5.10-3). 옛 '§6 시작점 → `SearchFailedError`'는 이 둘로 대체.
 
-**상태**: (기록 -- v1.14, U15: '`E/search/layer0_center.py`는 국소 기준점 생성, t_eval 첫 측정, 대체 시작점에만 쓰인다'; t_eval 첫 측정은 v1.15.2에서 §5.8로 바뀜, 남는 역할 = 수리 -- 계획 v6.38.4 P4) v1.15.2 -- 빈 사다리의 상자 중심 출발(`layer0_center.py:654-656`)은 계획 N6.35 E-32로 삭제(출발 불능 보고·성능 판정 보류 -- 40 §3.6·§3.11-2); `layer0_center`의 남는 역할 = `_repair` 수리(계획 후속 정정 v6.19 행 -- 수리 단계로 옮김), 층 0 점 없음 경로의 출발점 생성기는 삭제(계획 v6.38.4 P4 -- §5.10-3).
+**상태**: (기록 -- v1.14, U15: '`E/search/layer0_center.py`는 국소 기준점 생성, t_eval 첫 측정, 대체 시작점에만 쓰인다'; t_eval 첫 측정은 v1.15.2에서 §5.8로 바뀜, 남는 역할 = 수리 -- 계획 v6.38.4 P4) v1.15.2 -- 빈 사다리의 상자 중심 출발(`layer0_center.py:654-656`)은 계획 N6.35 E-32로 삭제(출발 불능 보고·성능 판정 보류 -- 40 §3.6·§3.11-2); `layer0_center`의 출발 휴리스틱과 `_repair`·`_repairable`은 card LA-1a가 지우고 진입점 자리만 남긴다(§6.9-10, 사용자 결정 O-214); 수리 단계의 수리 함수는 card LA-1이 수리점 규칙 (A)~(C)에서 다시 쓴다(계획 N6.14 범위 6).
 
 ### 5.10 as-built(U15) 대조와 구현 변경 목록
 
@@ -1253,7 +1254,7 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
     - 역할은 θ 조립에서의 KCL·미러 전류 전파와 최소 폭 보정이다(§6 '같은 식').
     - 층 0이 정한 θ 좌표 ln IDu(O-186)·L·W4·θ 전류는 placer의 선택을 덮어쓴다. §6.7-6 "U15 `placer.place`(덮어쓴 묶음은 고정, 나머지만 변수)"와 같은 규칙이다.
     - placer는 층 0 안에서 7a를 다시 돌리지 않는다.
-  - **`layer0_center` 출발점 경로 -- 삭제**(계획 LA-1 범위 6 v6.38.4 P4, 승인 O-173 B11 -- **원래 취지와 다름(O-43 D2 대체)**): 층 0 점 없음 경로의 출발점 = 40 §3.11-2 칸 0 조립 한 규칙이고, 칸 0이 정하지 않는 θ 독립 성분은 성분마다 계획 writer가 정한다(목록 = 40 §3.11-2; writer가 없으면 출발 정의 불능, 상자 중심으로 메우지 않음). 그래서 `_box_centre`·`_current_centre`·`centre_start`·`_halton_probe`·`_primes`·`_radical_inverse`·`_maxmin`·`layer0_start`(사다리 칸 순회·실패 사슬)는 같은 상황의 둘째 출발 경로라 지우고(O-169), `_repair`·`_repairable`은 수리 단계로 옮긴다(위 '수리'). 첫 t_eval = 첫 국소 봉인 또는 조립점 커널 평가(§5.8). 출발점 경로에서 정하는 것은 θ 독립 성분뿐이고 종속 성분은 R6 블록(§5.5 '수리'). 옛 문장 '§6.7-2의 저항 기하 중심은 `_box_centre`와 같은 값이다'는 삭제한다 -- §6.7-2는 값 미선언 저항을 V_R 미지수(R-1′ 차분 변)로 다룬다(계획 DEC-104 (4), O-127 (iii)). 위험 표지(계획): Halton 삭제 뒤 nmcnr 봉인 여부는 LA-1 뒤 측정(`macro_root_missing` 위험).
+  - **`layer0_center` 출발점 경로 -- 삭제**(card LA-1a 범위 2 -- 사용자 결정 O-214, 옛 LA-1 범위 6 v6.38.4 P4, 승인 O-173 B11 -- **원래 취지와 다름(O-43 D2 대체)**): 층 0 점 없음 경로의 출발점 = 40 §3.11-2 칸 0 조립 한 규칙이고, 칸 0이 정하지 않는 θ 독립 성분은 성분마다 계획 writer가 정한다(목록 = 40 §3.11-2; writer가 없으면 출발 정의 불능, 상자 중심으로 메우지 않음). 그래서 `_box_centre`·`_current_centre`·`centre_start`·`_halton_probe`·`_primes`·`_radical_inverse`·`_maxmin`·`layer0_start`(사다리 칸 순회·실패 사슬)는 같은 상황의 둘째 출발 경로라 지우고(O-169), `_repair`·`_repairable`도 지운다(LA-1이 수리 함수를 다시 씀 -- 계획 N6.39 범위 2, §6.9-10). 첫 t_eval = 첫 국소 봉인 또는 조립점 커널 평가(§5.8). 출발점 경로에서 정하는 것은 θ 독립 성분뿐이고 종속 성분은 R6 블록(§5.5 '수리'). 옛 문장 '§6.7-2의 저항 기하 중심은 `_box_centre`와 같은 값이다'는 삭제한다 -- §6.7-2는 값 미선언 저항을 V_R 미지수(R-1′ 차분 변)로 다룬다(계획 DEC-104 (4), O-127 (iii)). 위험 표지(계획): Halton 삭제 뒤 nmcnr 봉인 여부는 card LA-1a 변화표에서 잰다(N6.39 범위 2).
   - B1 "(a) 필요 gm -> gm/ID 역산, (c) VDS 배분(A1·A4 와 함께)"(사용자 결정 원문 -- (a)의 좌표는 v1.16.0에서 ln IDu 순방향, O-186)은 §5.3.3·§5.3.4와 같은 함수를 쓴다. §6.7-4 B3 매크로 재확인은 `macro_solve` 기본 호출이다(§5.3.6 불변 조건).
 - **A7 → P-15(결정됨)**: 섞인 회로의 버퍼 블록에도 rout 국소 제약(§5.1, §5.6).
 - **A8**: 차동쌍 완화. §5.3.3 입력 셀 (a)(필요 gm → S 전류)의 대상 집합이 바뀔 수 있다.
@@ -1273,7 +1274,7 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
 | DEC-71 (4)(c) v6.38, DEC-104 R5′·R6, IC4, WP-03 | R-1′ 구간 (c-1) → 무변화/재개방 (c-2, W4·V_R = R5′ (2) 행 여유 max-min) → 정확 풀이 판정 (c-3) -- (c-4) 삭제(O-155 M-2) | §5.3.4, §6.7-11 |
 | DEC-104 (0)·(1) | θ 기저·우선순위 P0~P6, 결정 순서(N1.1 v6.38) | §5 머리말, §6.1 |
 | DEC-104 R3·R4 | 필요 gm = 매크로 블록 하나, S의 ID = max(gm_req/(gm/ID), R8 하한) | §5.3.3, §6.5, §6.8 |
-| DEC-104 R7·(3)(b) | B 밀도 = (가) 선언 범위 고리는 R5′ (1) 나머지 경계(이득 저하 정의 시 공동 집합 끝), (나) 그 밖은 고리 나머지 ∩ 가드 안 K-1 max-min + '열린 결정'(U-124); 가드 필드(소자별 구간 + 합 행, card LA-1 범위 15 (d)) | §5.3.3, §6.7-11, 40 §2.4.8 `device: start.guard` |
+| DEC-104 R7·(3)(b) | B 밀도 = (가) 선언 범위 고리는 R5′ (1) 나머지 경계(이득 저하 정의 시 공동 집합 끝), (나) 그 밖은 고리 나머지 ∩ 가드 안 K-1 max-min + '열린 결정'(U-124); 가드 필드(소자별 구간 + 합 행, card LA-1a -- 사용자 결정 O-214) | §5.3.3, §6.7-11, 40 §2.4.8 `device: start.guard` |
 | DEC-104 R8·R10 | 공급 요구 하한(정상상태 + 동적) | §6.8, §5.3.1 |
 | DEC-104 R13·(3)(a) | S/B/F 분류 S0 필드(card TB-1 -- 범위 1 R13 단독, 쓰기 계획 앞 S0 블록; X 칸 삭제 -- O-187·O-190) | §5.3.3, 40 §2.4.8 `device: theta_class` |
 | DEC-104 (3)(d), headroom-chain N3.1·N3.4 | 고리와 변 좌표 집합 = R-1′ 제약 그래프 S0 필드 변 속성 | §5.3.4, §6.7-1·-3, 40 §2.4.8 R-1′ 행 |
@@ -1405,12 +1406,12 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
 | # | 정의 | 절 | 계획 근거 |
 |---|---|---|---|
 | E11 | S/B/F 분류 S0 필드 `device: theta_class` = `ThetaClass(kind ∈ {"S","B","F"})`, writer = 분류 블록 `theta_class`(`E/sizing/theta_class.py`, **쓰기 계획 앞** S0 블록 -- 입력 = S1v `Block.roles`·spec 선언·연결(`device.dc_coord` 읽지 않음), 첫 소비자 = 쓰기 계획 블록 `dc_writer_plan`의 종속 멤버 선택; v1.16.0 개정 -- 사용자 결정 O-187, **원래 취지와 다름(승인 O-187)**: 옛 'S/B/F/X·쓰기 계획 다음') | §5.3.3, 40 §2.4.8 | DEC-104 R13·(3)(a), card TB-1 범위 1 |
-| E12 | R7 matching·잡음 가드 필드 `device: start.guard` = B 소자별 `GuardRow(g_lo, g_hi, sources)`(ln IDu 축 위 순방향 제약 행 -- v1.16.0, O-186; 해 집합은 칸이 아니고 소비자가 자기 평가 점에서 낸다 -- v1.16.1 검증 1 M1; 옛 `GuardInterval(gm_id_lo, gm_id_hi, sources)`), + 합 행(DEC-105 (5)), writer = `start_intervals` 블록(기존 §6.4-2a·§7.5 가드 계산을 옮기면서 DEC-105 (5) 규칙으로 고쳐 씀 -- 결함 이전 금지) | §6.7-11, 40 §2.4.8 | DEC-104 R7·(3)(b), DEC-105 (5), card LA-1 범위 15 (d)(U-132, 옛 TB-1 범위 3) |
+| E12 | R7 matching·잡음 가드 필드 `device: start.guard` = B 소자별 `GuardRow(g_lo, g_hi, sources)`(ln IDu 축 위 순방향 제약 행 -- v1.16.0, O-186; 해 집합은 칸이 아니고 소비자가 자기 평가 점에서 낸다 -- v1.16.1 검증 1 M1; 옛 `GuardInterval(gm_id_lo, gm_id_hi, sources)`), + 합 행(DEC-105 (5)), writer = `start_intervals` 블록(기존 §6.4-2a·§7.5 가드 계산을 옮기면서 DEC-105 (5) 규칙으로 고쳐 씀 -- 결함 이전 금지) | §6.7-11, 40 §2.4.8 | DEC-104 R7·(3)(b), DEC-105 (5), card LA-1a(사용자 결정 O-214; 옛 LA-1 범위 15 (d)·TB-1 범위 3) |
 | E13 | 층 0 보고 분류 `graph/layer0: report_class`(원소 `layer0_inactive`·`assembly_failed_path`·`performance_judgement_deferred`), writer `layer0_budget`, 출력 전용 | §5.1 | LA-1 범위 9·완료 조건 6·7 |
 | E14 | 저항 상자 밖 탈락 기록 `resistor_out_of_box{element, R, box}`(층 0 후보 기록), 고리 위반 기록 = `local_infeasible{reason: "chain_violation"}`(층 0)·`StartConflict(quantity="kvl")`(출발, §6.6 기존 어휘) | §5.3.3, §5.3.4 | DEC-104 (0)·(4) |
 | E15 | R6 블록 출력 필드 `graph/start: loop_dep` = `LoopDep(b_ln_idu, w4, v_r, reopen)`(정렬 tuple 칸 넷 -- 소자·넷·저항·행 키별; `reopen` 값 ∈ {`domain_cut`(R-1′ 정의역 자르기), `gain_reopen`(이득 행 탐색 개방)}), writer = R6 블록 `loop_dependents` 하나, 소비자 = 커널 평가 입력 조립(층 0 후보·출발 시작점 -- 참조로 읽어 점 좌표 조립, 사본 아님)·DC 블록 W4 목표(40 §3.7-A 4) | §6.7-11 | DEC-104 (3)(c), O-151 DK1 |
 | E16 | 체계 오프셋 술어 인스턴스 S0 필드 `graph/start: mirror_vds_instances` = 정렬 tuple ((종류 ∈ {`P1s`, `P1c`}, 소자 키 넷 (d, o, g) 또는 (r, o, a, b), 노드 n), ...), writer = 구조 블록 `mirror_vds_instances` 하나(쓰기 계획 다음 S0 -- 연결·S1v만 읽음, topology 태그 READS 0), 신호 경로 판정 = 넷 술어 `bias_fixed_net`의 부정(S1v 순수 함수 하나 -- 'R10 모든 여기 뷰·되먹임 경로에서 신호 넷 아님', 자리 `E/graph/s1v_predicates.py`, 제작 = card IT-1 v6.38.3 범위 재작성 5(40 §3.11-5), 이 card와 SB-1은 부름 -- v1.15.2 정정, v1.15.1의 LA-1 제작 배정·옛 술어 이름은 삭제), 소비자 = R6 블록 `mirror_vds` 목표 행 | §6.7-4·§6.7-11 | DEC-105 (4), card LA-1 범위 15 (c) |
-| E17 | 이득 L 하한 목표 필드 `graph/ach: gain_target_first`(writer `gain_target_first`, 소비자 = 출발 이득 L 하한·층 0 첫 회차) | §6.4-1 | DEC-105 (1), card LA-1 범위 15 (a) |
+| E17 | 이득 L 하한 목표 필드 `graph/ach: gain_target_first`(writer `gain_target_first`, 소비자 = 출발 이득 L 하한·매크로 A_i 순서(§6.5)·층 0 첫 회차; 버퍼 블록 항목 없음 -- §6.9-2) | §6.4-1·§6.9-2 | DEC-105 (1), card LA-1a 범위 1(사용자 결정 O-217·O-218) |
 
 미정(근거 없음 -- 정하지 않음, 42 해당 행):
 - (v1.15.1 닫힘) R6 블록 출력 자리 = 출력 필드 하나 `graph/start: loop_dep`(E15, §6.7-11 -- 계획 DEC-104 (3)(c), O-151 DK1).
@@ -1605,13 +1606,13 @@ VDSAT_j,min은 그 소자 kind의 LUT `VDSAT` 열을 (ln IDu, L) 정의역 전�
 
 ### 6.4 L 구간
 
-1. **이득 하한**(v1.15.1 재작성 -- 계획 v6.38.2 DEC-105 (1)·card LA-1 범위 15 (a), 사용자 결정 2026-10-13 Q1-2 (ii)·L-2·O-164·O-165 (a)):
+1. **이득 하한**(v1.15.1 재작성 -- 계획 DEC-105 (1)·card LA-1a 범위 1(사용자 결정 O-217·O-218, 옛 LA-1 범위 15 (a)), 사용자 결정 2026-10-13 Q1-2 (ii)·L-2·O-164·O-165 (a); LA-1a 함수·호출·버퍼 처리 = §6.9-2~6):
    - **블록 목표** = 층 0 첫 회차 예산과 같은 found_db 비례 g_i^(1) = G·found_db_i / Σ_j found_db_j(§5.3.2, 사용자 결정 L-2). 옛 'g_i = G·A_i,max / Σ A_max'와 'A_max가 미상이면 비활성'은 삭제한다 -- gain 제약이 선언된 회로에서는 A_max 인증과 무관하게 활성이고, gain 제약이 없으면 비활성 그대로다(H3 중 gain 제약 갈래만 남음).
-   - **정본 필드**: g_i^(1)은 graph 필드 `graph/ach: gain_target_first` = 정렬 tuple ((블록 키, g_dB), ...)(writer = S0 블록 `gain_target_first`, 파일 `E/search/gain_target_first.py`; READS = `graph/ach` 블록 상한 행의 `found_db`·spec gain 목표 G; 단계 A, GB4 뒤·출발 구간 앞). 소비자 = 이 절(출발 구간 이득 L 하한)과 층 0 첫 회차(§5.3.2) -- 같은 양을 다시 계산하는 둘째 생산자 금지(graph 규칙 1·3; 지금 `layer0_budget`의 첫 배분 계산은 이 필드 READS로 바꾸고 옛 계산 삭제). **found_db가 없는 블록이 든 뷰**(gap A2: 단위 = 뷰): 그 뷰의 비례 정규화(Σ_j found_db_j)가 정의되지 않으므로 필드의 그 뷰 항목 = 정의 불능(사유 `found_db_missing{view, blocks}` -- 그 뷰의 블록 전부)이고 출발 이득 L 하한은 아래 '정의 불능'으로 간다. L-2 보완 규칙(층 0 기준점 블록 분해 gain)은 층 0 기준점(출발 구간 뒤)을 입력으로 하므로 출발 단계에서 부를 수 없다(층 역전) -- 층 0 첫 회차의 보완 예산은 정의 축이 다른 양(입력 = 층 0 기준점)이라 이 필드에 쓰지 않고 층 0 회차 기록(`graph/layer0: rounds` 1회차 예산)에만 남는다. (계획 v6.38.3 DEC-105 (1) 개정·U-133 기본안 (A) 승인 O-170과 같음, 옛 승인 질문 Q-GL1 삭제: 정의 불능의 단위 = found_db 없는 블록이 든 **이득 사슬 뷰의 블록 전부**(물리 결정자: g_i^(1)은 뷰 전체 도달 이득 추정 비로만 정의되는 몫 -- 아는 블록만으로 나누면 모르는 이득 블록의 몫을 얹어 L 하한을 부풀림); 영향 = 계획 실측 current_reuse·nmcnr·sf_pushpull(SF-1 범위 5 뒤 2회로); **원래 취지와 다름(U-133 -- 계획 표지)**: Q1-2 (ii) '활성'이 그 뷰의 출발 단계에서 정의 불능. 층 0 보완 예산의 필드 = `graph/layer0: rounds`의 1회차 `budget` 칸(writer = 층 0 블록 하나, 정의 축 = 입력이 층 0 기준점 -- g_i^(1)과 다른 양); 뷰 전부 found_db가 있으면 층 0은 g_i^(1) 필드를 READS(사본·재계산 0). found_db '기준점 미발견' 원인 조사 = card LA-1 범위 15 (h)).
-   - **L 찾기**: 블록 국소 모델 gain ≥ g_i^(1)을 만족하는 최소 L을 찾는다. bin은 오름차순으로 훑고, bin 안에서는 bisection한다(같은 bin 안 보간 -- LR3).
-   - **fail-closed**(DEC-105 (1) -- as-built 결함 `E/search/iv_gain_l.py`: 평가된 앵커가 없으면 가장 긴 앵커로 닫고 이득 0 dB를 가정한 margin): (i) 한 블록에서 평가되는 L 앵커가 하나도 없으면(표·값 미정의) 그 블록 이득 L 하한은 **정의 불능** -- 하한 값을 만들지 않고(어떤 앵커로도 닫지 않음) 사유와 margin `null`(N3.14)을 출발 기록(`graph/start: records`)·보고 표에 낸다. 원소 전류가 1회차 입력에 없으면 사유 = `gain_l_element_undetermined`('1회차 원소 미정' -- 자기 판정)이고 그 1회차 원소 키와 함께 기록한다(원인 추적은 원소 키로만 -- graph-consumption GC-5의 1회차 충돌 기록이 같은 원소 키를 가진다; 이 함수는 다른 card 기록을 읽지 않는다) (ii) 평가된 앵커가 있으나 목표에 못 미치면 `StartConflict(quantity="gain_l", margin = 목표 − 평가된 최선 이득)`, 하한 값 = **평가된 최선 앵커**(출발값 전용; as-built 마지막 평가 앵커 `previous[1]`에서 바뀌는 동작 변경 -- LR4 'L 증가가 늘 이득 증가는 아님', card LA-1 변화표 원인 항목). 거부는 커널 뒤 판정(gain 제약·DEC-104 R8 이득 행)만이다.
+   - **정본 필드**: g_i^(1)은 graph 필드 `graph/ach: gain_target_first` = 정렬 tuple ((블록 키, g_dB), ...)(writer = S0 블록 `gain_target_first`, 파일 `E/search/gain_target_first.py`; READS = `graph/ach` 블록 상한 행의 `found_db`·spec gain 목표 G; 단계 A, GB4 뒤·출발 구간 앞). 소비자 = 이 절(출발 구간 이득 L 하한)·매크로 A_i 순서(§6.5)·층 0 첫 회차(§5.3.2, card LA-1) -- 같은 양을 다시 계산하는 둘째 생산자 금지(graph 규칙 1·3; writer = card LA-1a; `layer0_budget` 첫 배분은 as-built에 없어 card LA-1이 처음부터 이 필드 READS로 만든다). **found_db가 없는 블록이 든 뷰**(gap A2: 단위 = 뷰): 그 뷰의 비례 정규화(Σ_j found_db_j)가 정의되지 않으므로 필드의 그 뷰 항목 = 정의 불능(사유 `found_db_missing{view, blocks}` -- 그 뷰의 블록 전부)이고 출발 이득 L 하한은 아래 '정의 불능'으로 간다. L-2 보완 규칙(층 0 기준점 블록 분해 gain)은 층 0 기준점(출발 구간 뒤)을 입력으로 하므로 출발 단계에서 부를 수 없다(층 역전) -- 층 0 첫 회차의 보완 예산은 정의 축이 다른 양(입력 = 층 0 기준점)이라 이 필드에 쓰지 않고 층 0 회차 기록(`graph/layer0: rounds` 1회차 예산)에만 남는다. (계획 v6.38.3 DEC-105 (1) 개정·U-133 기본안 (A) 승인 O-170과 같음, 옛 승인 질문 Q-GL1 삭제: 정의 불능의 단위 = found_db 없는 블록이 든 **이득 사슬 뷰의 블록 전부**(물리 결정자: g_i^(1)은 뷰 전체 도달 이득 추정 비로만 정의되는 몫 -- 아는 블록만으로 나누면 모르는 이득 블록의 몫을 얹어 L 하한을 부풀림); 영향 = 계획 실측 current_reuse·nmcnr·sf_pushpull(SF-1 범위 5 뒤 2회로); **원래 취지와 다름(U-133 -- 계획 표지)**: Q1-2 (ii) '활성'이 그 뷰의 출발 단계에서 정의 불능. 층 0 보완 예산의 필드 = `graph/layer0: rounds`의 1회차 `budget` 칸(writer = 층 0 블록 하나, 정의 축 = 입력이 층 0 기준점 -- g_i^(1)과 다른 양); 뷰 전부 found_db가 있으면 층 0은 g_i^(1) 필드를 READS(사본·재계산 0). found_db '기준점 미발견' 원인 조사 = card LA-1 범위 15 (h)).
+   - **L 찾기**: 블록 국소 모델 gain ≥ g_i^(1)을 만족하는 최소 L을 찾는다. bin은 오름차순으로 훑고, bin 안에서는 근 찾기 핵심 함수 `solve_l_in_bin`(§6.9-3 -- LA-1 층 0과 공유, 실패 분기는 호출 card 몫)을 부른다(같은 bin 안 보간 -- LR3). 첫 root에서 멈춘다(출발 bin 규칙, 승인 O-218 (1) -- 층 0의 bin별 후보·격자 폴백은 §5.3.5). 버퍼 블록은 목표가 없어 대상이 아니다(§6.9-2).
+   - **fail-closed**(DEC-105 (1) -- as-built 결함 `E/search/iv_gain_l.py`: 평가된 앵커가 없으면 가장 긴 앵커로 닫고 이득 0 dB를 가정한 margin): (i) 한 블록에서 평가되는 L 앵커가 하나도 없으면(표·값 미정의) 그 블록 이득 L 하한은 **정의 불능** -- 하한 값을 만들지 않고(어떤 앵커로도 닫지 않음) 사유와 margin `null`(N3.14)을 출발 기록(`graph/start: records`)·보고 표에 낸다. 원소 전류가 1회차 입력에 없으면 사유 = `gain_l_element_undetermined`('1회차 원소 미정' -- 자기 판정)이고 그 1회차 원소 키와 함께 기록한다(원인 추적은 원소 키로만 -- graph-consumption GC-5의 1회차 충돌 기록이 같은 원소 키를 가진다; 이 함수는 다른 card 기록을 읽지 않는다) (ii) 평가된 앵커가 있으나 목표에 못 미치면 `StartConflict(quantity="gain_l", margin = 목표 − 평가된 최선 이득)`, 하한 값 = **평가된 최선 앵커**(출발값 전용; as-built 마지막 평가 앵커 `previous[1]`에서 바뀌는 동작 변경 -- LR4 'L 증가가 늘 이득 증가는 아님', card LA-1a 변화표 원인 항목). 거부는 커널 뒤 판정(gain 제약·DEC-104 R8 이득 행)만이다.
    - **W가 없는 단계**: 이 하한은 전류 확정 전이라 국소 모델 파라미터를 도달 가능 슬라이스 포락에서 읽는다(40 §3.7-A 8 -- 상한 양은 최댓값; gain ≥ 목표 판정은 그 포락 상한으로 한다 -- 실현 가능한 L을 자르지 않음, 출발값 전용).
-   - **재작성 범위**(card LA-1 범위 15 (a) 단독 소유, O-165 (a)): `E/search/iv_gain_l.py` `gain_l_bounds` 함수 전체(목표·닫힘·최선 앵커·사유 분기 -- 원소 없음 경로 `:64-65`·`:117-119`, 닫힘 `:125-127`), `E/search/iv_context.py:49-51`의 인증 조건(A_max 인증 → 활성), `E/search/layer0_budget.py` 첫 배분 계산(필드 READS로), 새 `E/search/gain_target_first.py`. GC-5는 이 함수를 고치지 않는다(graph-consumption v0.14.3).
+   - **재작성 범위**(card LA-1a 범위 1 단독 소유 -- 사용자 결정 O-217·O-218 (2), **원래 취지와 다름(승인 O-218 (2))**: O-164·O-165 (a)·O-166 'LA-1 범위 15 (a)'): `E/search/iv_gain_l.py` `gain_l_bounds` 함수 전체(목표·닫힘·최선 앵커·사유 분기 -- 재구축 `:106`, 원소 없음 경로 `:64-65`·`:117-119`, 닫힘 `:125-127`), `E/search/iv_context.py`의 인증 조건·블록 이득 모형 재구축(`:55-56`, N3.3 B5), 새 `E/search/gain_target_first.py`·`E/search/l_bin_root.py`. GC-5는 이 함수를 고치지 않는다(graph-consumption v0.14.7). 층 0 쪽 READS·L-2 보완·격자 폴백 = card LA-1.
 2. **matching 면적 조건 → 입력 소자 ln IDu 상한 행**(사용자 결정 2026-10-08 Q3 "q3,q4는 네 제안대로 해", 근거 `_drafts/engine/matching_swing_spec_proposal.md` §0·§2.3; **v1.15.1 개정 -- 계획 v6.38.2 DEC-105 (6), 사용자 결정 2026-10-14 Q-N2 B, LR6 개정; 옛 제목 'matching 하한'(L 하한)**; v1.16.0 -- O-186 (A): 옛 '입력 소자 gm/ID 하한'): **절대 offset 제약**(`offset_in_sigma_mv <= 값`, 현재 파일럿 3.3 mV)이 있는 회로에서만 활성이다. 구조 가드(`offset_excess`, §6.4-2a)만 있는 회로는 부하 가드 행으로 간다. matching은 **L 하한을 만들지 않는다** -- 면적 조건은 (ln IDu, L) 결합 조건이고 L은 다른 경계(이득 역산·flicker·LR6 상한·LR3 bin)가 정한다(아래 '행').
    - **mismatch 모델(옛 식 대체)**: 옛 식 A_min = (A_VT² + A_β²/(gm/ID)²)/σ² 는 `vth0` 한 항과 β 한 항만 본다. ngspice 감도 실측(제안서 §0.3)에서 `toxe`는 β보다 Vth로 더 크게 들어가고(BSIM4 k1ox 경로, n 2.2–4.1·p 2.3–6.5 mV·µm로 `vth0` 항과 같은 크기), nfet 약반전에서는 `voff` 항이 `vth0` 항을 넘는다. 옛 식은 nfet을 1.2–2.4배, pfet을 1.05–1.4배 과소평가한다. 그래서 **유효 계수 A_eff**로 바꾼다.
      - 단일 소자 게이트 환산 σ: σ_VGS(W, L, 점) = √(Σ_k (DVGS_k(L, 점) · slope_k(bin(W, L)) / slope_k(bin_ref))²) · √(W_ref·L_ref) / √(W·L).
@@ -1626,7 +1627,7 @@ VDSAT_j,min은 그 소자 kind의 LUT `VDSAT` 열을 (ln IDu, L) 정의역 전�
    - **행**(v1.15.1 개정; v1.16.0 좌표 -- 계획 DEC-105 (6)·사용자 결정 O-186, **원래 취지와 다름(승인 O-186)**: 옛 'IDu(g, L) ≤ I·L²/A_min(L, g)를 만족하는 최소 g = 입력 소자 gm/ID 하한'은 gm/ID 비단조 곳에서 '최소 g'가 한 점을 정하지 않음): 출발 단계의 입력 셀 몫 σ_share = σ_target/√2(입력 셀 분산 = 나머지 분산, §6.4-2a 가드와 §7.5 잡음과 같은 등분 원칙 -- 새 상수가 아니라 '부하 기여 ≤ 입력쌍 기여'의 경계). 입력 셀 소자 면적 하한 A_min(L, ln IDu) = A_eff(L, ln IDu)² / σ_share². L은 §6.4-6이 다른 경계로 정한 값이고, 그 L에서 W·L = I·L²/IDu ≥ A_min이므로 입력 소자 θ 좌표에 **순방향 제약 행 IDu ≤ I·L²/A_min(L, ln IDu)**(입력 소자 ln IDu 상한)를 건다(해 집합 = LUT VGS 마디 순 순방향 조회와 칸 안 교차, §5.3.3; `idu_curve` bisection 삭제, 새 상수 없음; 전류 I = §6.1-4의 1회차 전류, 8에서 확정 전류로 다시 잰다). 그 해 집합과 속도 행(§6.3) 해 집합의 교집합이 비면 충돌 레코드(§6.6). 옛 'L ≥ √(A_min·IDu/I)'(matching L 하한)는 삭제한다(재작성 범위 = `E/search/iv_matching_l.py`의 L 하한 경로 -- card LA-1 범위 15 (e)·범위 1).
    - 판정은 이 하한이 아니라 봉인 스냅샷의 `offset_in_sigma_mv`(40 §3.8, MNA 전회로)가 한다(EP-7).
 2a. **offset 구조 가드 → 부하 gm/ID 가드 행**(`offset_excess <= √2` 회로; v1.16.0 -- ln IDu 축 위 순방향 제약 행, 계획 DEC-104 (3)(b)·DEC-105 (5) (a)·O-186): 부하 소자 k의 입력 환산 분산 비 Σ_k (gm_k·σ_VGS,k)² / Σ_in (gm_in·σ_VGS,in)² ≤ 1이 되도록 부하 소자 θ 좌표에 순방향 제약 행 g_k(ln IDu) ≤ 가드 상한을 둔다(해 집합 = ln IDu 구간 여럿일 수 있음; 옛 '부하 gm/ID 상한'). gm_k/gm_in은 §6.5 매크로 모델 전류 비로 쓴다(§7.5 잡음 가드와 같은 방법). §6.3 속도 행·§7.5 잡음 가드 행과 해 집합 교집합을 쓰고, 헤드룸 행(§6.2)과 교집합이 비면 충돌 레코드로 남긴다.
-   - **v1.15.1 -- R7 가드 필드 형식(계획 v6.38.2 DEC-105 (5)·DEC-104 (3)(b), 사용자 결정 2026-10-13 Q4-1·Q4-2·2026-10-14 Q-N2 D; 구현 = card LA-1 범위 15 (d), U-132 기본안 승인 O-166)**: 이 절과 §7.5의 가드는 R7 가드 필드 하나에 담긴다(§6.7-11) -- (a) B 소자별 gm/ID 가드 행(ln IDu 축 위 순방향 제약 행 -- 칸 = 가드 경계(gm/ID 값)와 출처, O-186; 해 집합은 칸이 아니고 읽는 쪽이 자기 평가 점 (L, VDS, VSB)에서 §5.3.3 해 집합 계산으로 낸다 -- v1.16.1 검증 1 M1) (b) **합 행** Σ_부하 기여 ≤ 가드 비 · Σ_입력 기여(이 절의 Σ_k 조건 그 자체 -- 소자별 상한을 각각 고르면 합이 넘으므로 합 행을 R6·R7의 K-1 공동 선택이 함께 읽는다(§6.7-4); R7 (가) 선언 범위 고리 B가 나머지 경계로 정해져 합 행을 어기면 `StartConflict`로 기록만 -- 재개방 촉발 행은 R-1′ 행뿐, O-158 (A′) ②). (c) **가드 입력 전류 = 매크로·KCL이 정한 전류만**(자리값 금지 -- DEC-104 R3과 같은 규칙; 전류가 정해지지 않은 소자는 가드 계산에서 빼고 사유 기록), W가 W_min으로 잘린 점(`start.row` 최소 폭 하한 점)은 가드 계산에서 뺀다, 분산 비 곡선(ln IDu 축 위 순방향 값)의 볼록 껍질(hull)은 단조 구간 안에서만 만든다(Q4-1 잔여; 축 = ln IDu, O-186). (d) **절대 offset·잡음 제약 회로에도** 부하 가드 '부하 기여 ≤ 입력 기여'(§6.4-2 등분 전제 E² − 1 = 1, 새 상수 없음)를 건다(Q-N2 D -- 구조 가드 metric 회로만이 아님). 기존 가드 계산을 이 필드 writer로 옮기면서 (b)~(d)를 고친다(결함을 정본 필드로 옮기지 않음, 사본 금지).
+   - **v1.15.1 -- R7 가드 필드 형식(계획 v6.38.2 DEC-105 (5)·DEC-104 (3)(b), 사용자 결정 2026-10-13 Q4-1·Q4-2·2026-10-14 Q-N2 D; 구현 = card LA-1a -- 사용자 결정 O-214, 옛 LA-1 범위 15 (d), U-132 기본안 승인 O-166)**: 이 절과 §7.5의 가드는 R7 가드 필드 하나에 담긴다(§6.7-11) -- (a) B 소자별 gm/ID 가드 행(ln IDu 축 위 순방향 제약 행 -- 칸 = 가드 경계(gm/ID 값)와 출처, O-186; 해 집합은 칸이 아니고 읽는 쪽이 자기 평가 점 (L, VDS, VSB)에서 §5.3.3 해 집합 계산으로 낸다 -- v1.16.1 검증 1 M1) (b) **합 행** Σ_부하 기여 ≤ 가드 비 · Σ_입력 기여(이 절의 Σ_k 조건 그 자체 -- 소자별 상한을 각각 고르면 합이 넘으므로 합 행을 R6·R7의 K-1 공동 선택이 함께 읽는다(§6.7-4); R7 (가) 선언 범위 고리 B가 나머지 경계로 정해져 합 행을 어기면 `StartConflict`로 기록만 -- 재개방 촉발 행은 R-1′ 행뿐, O-158 (A′) ②). (c) **가드 입력 전류 = 매크로·KCL이 정한 전류만**(자리값 금지 -- DEC-104 R3과 같은 규칙; 전류가 정해지지 않은 소자는 가드 계산에서 빼고 사유 기록), W가 W_min으로 잘린 점(`start.row` 최소 폭 하한 점)은 가드 계산에서 뺀다, 분산 비 곡선(ln IDu 축 위 순방향 값)의 볼록 껍질(hull)은 단조 구간 안에서만 만든다(Q4-1 잔여; 축 = ln IDu, O-186). (d) **절대 offset·잡음 제약 회로에도** 부하 가드 '부하 기여 ≤ 입력 기여'(§6.4-2 등분 전제 E² − 1 = 1, 새 상수 없음)를 건다(Q-N2 D -- 구조 가드 metric 회로만이 아님). 기존 가드 계산을 이 필드 writer로 옮기면서 (b)~(d)를 고친다(결함을 정본 필드로 옮기지 않음, 사본 금지).
 2b. **LUT mismatch 감도 열**(U3): 생성기 `assets/sky130_lut_sweep.py`에 mismatch 모드를 더한다.
    - 방법(제안서 §0.3과 같음): pm3 카드 복사본에서 변수 k의 `*_slope_spectre`를 0 → 1(인스턴스 기하의 1σ)로 바꾼 섭동 곡선과 기준 곡선을 같은 include·DUT 줄로 돌리고, 기준 곡선의 칸 ID에서 두 곡선의 VGS 차를 DVGS_k로 둔다(W_ref·각 L·DC LUT 축 격자).
    - **저장**: 새 버전 파일 `..._mismatch_r1.npz`(sha256, 생성 메타: 모델 경로·sha, ngspice 버전, 온도, 섭동 변수 목록)에 둔다. **공유 `lut_data`의 기존 v2 r2 파일은 고치지 않는다.** `lut_v2_location.json`에 새 항목으로 더한다. 로더는 v2 칸과 같은 키로 합쳐 노출한다.
@@ -1698,7 +1699,7 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
   아래 전원 전류 합 최소를 SLSQP 로 한 번에 푼다. 이 문제는 비볼록이다(주극점이 어느 단에 놓이는지가 국소 최소를 가른다; 3극점 C = 1·2·3 pF 에서 주극점을 1 pF 단에 둔 국소 최소는 전역 최소의 1.7 배).
   그래서 단마다 그 단을 주극점으로 하는 실행 가능한 출발점(나머지 단 gm 을 2 배씩 올리고 그 단 gm 으로 UGF = GBW)에서 다중 출발하고, 구조로 정한 주극점 노드(`dominant_node`, §6.3)의 단을 먼저 시도한다. 만족해 중 전류가 가장 작은 해를 쓴다.
   구조 주극점 노드의 극점을 강제로 가장 낮게 두지는 않는다(큰 커패시터 단이 구조 주극점이 아닌 회로에서 전류가 더 큰 해가 된다 -- 독립 test 의 2극점 닫힌 식 oracle 이 자유로운 단 선택의 최소를 기대한다).
-- **출력노드 컨덕턴스의 A_i 순서**(v1.15.1 개정 -- 계획 v6.38.2 DEC-105 (1)): 이득 제약이 있고 블록 목표 g_i^(1)(§6.4-1 필드 `graph/ach: gain_target_first`)이 정의되면 그 값, 아니면 입력 소자의 LUT 진성 이득 A_intr. 옛 'A_i,max가 인증되면 g_i'는 삭제(목표 정의가 A_max 비례에서 found_db 비례로 바뀜). 위 설계의 중간 단계 'g_i 가 없으면 A_i,max' 는 쓰지 않았다
+- **출력노드 컨덕턴스의 A_i 순서**(v1.15.1 개정 -- 계획 v6.38.2 DEC-105 (1)): 이득 제약이 있고 블록 목표 g_i^(1)(§6.4-1 필드 `graph/ach: gain_target_first`)이 정의되면 그 값, 아니면 입력 소자의 LUT 진성 이득 A_intr. 옛 'A_i,max가 인증되면 g_i'는 삭제(목표 정의가 A_max 비례에서 found_db 비례로 바뀜). 이 필드 READS는 card LA-1a가 배선하고(사용자 결정 O-217) 1회차 매크로 θ 전류가 바뀌므로 card LA-1a 변화표 원인 항목이다. 버퍼 블록은 필드 항목이 없다(§6.9-2). 위 설계의 중간 단계 'g_i 가 없으면 A_i,max' 는 쓰지 않았다
   -- 이득 제약이 없는 회로에서 인증 상한(최적 격자 점의 값)을 블록의 실제 이득으로 가정할 근거가 없다.
 - **PM 목표가 없으면** 매크로는 경계 PM_FLOOR_DEG = atan(1) = 45°(비주극점이 UGF 에 놓임)를 PM 하한으로 풀이 안에서만 쓰고 `pm_floor_pole_at_ugf` 로 기록한다. §6.3 속도 행·L 상한은 설계대로 PM 목표가 없으면 비활성이고 사유 `pm_target_missing` 을 보고한다.
 - §6.2: 출력 DC 가 선언되지 않은 창은 남는 여유를 위·아래 부분 기둥의 같은 몫으로 나누고, 최소 폭 W ≥ W_min 은 확정된 전류에서 gm/ID 를 올려 맞춘다(전류가 입력 소자를 따르는 미러 부하는 gm 고정 하한이 어긋난다 -- as-built 기록; v1.16.0 규칙은 θ 좌표 정의역 조건 ln IDu ≤ ln(ID·L/W_min), §6 머리 '좌표와 구간 꼴'이고 'gm/ID를 올림' 경로는 재작성 범위 M-TH1c). §6.4-1 은 U9 블록 국소 모델(`BlockModel`·`ParamTables`)로
@@ -1762,7 +1763,7 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 - 채택 점에서 종속 소자의 출발 ln IDu(와 순방향 gm/ID 보고 칸)는 고리가 정한 값으로 바꾼다(보고·면적 추정 일관).
 - **v1.15.1 -- K-1 (i) 위반 최소에 드는 행 추가(계획 v6.38.2 DEC-105 (4)(5), card LA-1 범위 15 (c)(d))**: (가) **체계 오프셋 목표 행 `mirror_vds`** -- 술어 인스턴스 S0 필드(아래 11 '술어 인스턴스')의 인스턴스마다 목표 등식 VDS_o − VDS_d = 0(P1s; n의 KVL로 VGS_g = VGS_d와 같음) 또는 VGS_a = VGS_b(P1c)를 위반 최소 단계의 목표 행으로 넣는다 -- 순위는 깨진 R-1′ 행 위반 **다음**(R-1′ 위반을 먼저 줄이고 같은 위반 수준 안에서 이 행 위반을 줄인다). 이 행이 움직이는 좌표는 R6 종속 성분 가운데 B 밀도뿐이다(기본안 (가) -- U-126 승인 O-166: R5′ (2) W4·V_R 선택('K-1 (ii) max-min'만)에는 넣지 않고, S 좌표(ln IDu·L -- O-186)는 바꾸지 않는다, X-LA8). R7 (가) 선언 범위 고리의 B는 나머지 경계로 정해져 이 행이 움직이지 않는다(남는 위반은 기록). 적용 = R7 (나) 그 밖 B 선택과 R5′ (4) 재개방의 K-1 (i). 해가 없으면 `StartConflict(quantity="mirror_vds", margin = 남은 |VDS_o − VDS_d|)` 기록(정지 아님, `graph/start: conflicts` 항목). 층 적용: 그 사슬(n을 지나는 VGS_g = VGS_d)의 구성원 좌표가 출발 단계에서 모두 정해지면 출발 스냅샷에서 한 번(graph reuse), 층 0 변수가 섞이면 층 0 후보 스냅샷마다 같은 R6 블록이 평가; 외층은 묶이지 않는다(EP-7). 판정은 계통 offset metric(DEC-23·O-53) (나) **R7 가드 합 행**(§6.4-2a v1.15.1 (b)) -- B 선택의 위반 최소 단계에서 소자별 가드 구간과 함께 읽는다.
 
-**5. 해가 없으면(fail-closed)**: 위반 최소화 결과에서도 행 < 0 이 남거나, 4 의 좁힘을 다 써도 매크로·면적과 행을 함께 만족하는 점이 없으면 `StartConflict(quantity="kvl")`(§6.6)를 남은 행마다 남기고 위반 최소 조합(매크로·면적이 실행 가능한 쪽 우선)을 출발점으로 넘긴다. 다른 경계를 조용히 넓히거나 행을 빼지 않는다.
+**5. 해가 없으면(fail-closed)**(card LA-1a 기간의 출발 결과와 기록 자리 = §6.9-7·9: 고리가 깨지면 출발 정의 불능, `StartConflict(kvl)`은 `graph/start: loop_conflicts`): 위반 최소화 결과에서도 행 < 0 이 남거나, 4 의 좁힘을 다 써도 매크로·면적과 행을 함께 만족하는 점이 없으면 `StartConflict(quantity="kvl")`(§6.6)를 남은 행마다 남기고 위반 최소 조합(매크로·면적이 실행 가능한 쪽 우선)을 출발점으로 넘긴다. 다른 경계를 조용히 넓히거나 행을 빼지 않는다.
 
 **6. 적용 위치(배선)**: `start_intervals` 블록의 선택점(사다리 칸 0)과 사다리 아래 칸 각각(칸의 t 위치가 출발, 구간 전체가 정의역). U15 `placer.place`는 덮어쓴 묶음을 고정하고 나머지만 바꾼다(§5.10-3). §6.1-7 의 t 괄호 탐색 안에서는 부르지 않는다(t 를 정한 뒤 한 번). 호출 경로: 단계 A `start_intervals`(7a 포함) -> S0 수준 필드 `start.row`·`start.point`·`graph/start` -> 단계 B `layer0_start` / `layer0_budget` -> `find_front`. 단계 B는 이 필드를 읽기만 한다.
 
@@ -1789,14 +1790,14 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 - (P1, 닫힘) 위 첫 항목. PQ5 결정(사용자 결정 2026-10-12 "3은 권고대로"·"L14부터 PQ5까지")으로 닫혔다.
 - (P9, v1.15.0) 계획 v6.38 DEC-104가 이 절의 원리·층 0 관계·1·2·3·4·7을 고쳤다(위 각 항목의 'v1.15.0' 표지). 원래 취지와 다름 승인 = O-127(R-1′ 쓰임 판정 → 구성, 출발 단계가 B 밀도 고리 정합)·O-128 Q2·O-142(R5′ 비용 순 재개방, writer = 7a 블록 하나).
 
-**11. DEC-104 R6 블록 -- 고리 종속 값의 writer 하나**(계획 DEC-104 R6·R7·(3)(b)(c)(d), 사용자 결정 O-142 (5)·O-144 J3·O-187·O-190; 구현 card = LA-1(U17 ② §6.7과 같은 통합 병합), 읽는 필드를 만드는 card = TB-1(분류 필드 `device: theta_class` -- R13 단독, O-190)·HC-1(R-1′ 제약 그래프 필드 -- O-190, 병합 순서 TB-1 → HC-1 → LA-1)):
+**11. DEC-104 R6 블록 -- 고리 종속 값의 writer 하나**(계획 DEC-104 R6·R7·(3)(b)(c)(d), 사용자 결정 O-142 (5)·O-144 J3·O-187·O-190; 구현 card = **LA-1a**(본체 -- 사용자 결정 O-214, 범위 나눔 = §6.9-1; 선언 범위 갈래·R8 재개방·`mirror_vds` 행은 LA-1이 같은 블록에 더함), 읽는 필드를 만드는 card = TB-1(분류 필드 `device: theta_class` -- R13 단독, O-190)·HC-1(R-1′ 제약 그래프 필드 -- O-190, 병합 순서 TB-1 → HC-1 → LA-1)):
 - **정체**: 7a(4·5)의 `kvl_choice`를 R5′ (1)~(5)로 확장한 `@compute_block` 하나 -- writer 이름 `loop_dependents`(파일 `E/search/iv_kvl_choice.py`, 진입점 `kvl_choice`). 출발 단계 스냅샷과 층 0 후보 스냅샷에서 **같은 블록으로** 불린다. 구성원이 모두 출발 단계에서 정해지는 고리는 입력 버전이 같아 graph reuse로 한 번 계산된다(40 §2.4.4 호출 규칙 1·2). 따로 두면 B 출발 ln IDu writer가 둘이 되므로 출발·층 0 공용 하나다(O-142 (5)).
-- **READS**: R-1′ 제약 그래프 S0 필드(고리·변·writer_root 행·변 좌표 집합 -- HC-1(O-190), 형식 = headroom-chain HC-D design), headroom-chain 판정 함수 J_point·F_exist와 방향 규칙 P(이름·자리·서명 = HC-D design 한 자리 -- headroom-chain N3.1-1; 이 블록은 부르기만 한다), 분류 필드 `device: theta_class`(TB-1), R7 가드 필드 `device: start.guard`(소자별 구간 + 합 행 -- card LA-1 범위 15 (d), writer = 출발 단계 블록 하나), 체계 오프셋 술어 인스턴스 S0 필드(DEC-105 (4) -- card LA-1 범위 15 (c)), spec 출력 범위 키(card SF-1 범위 3 -- 없으면 선언 범위 갈래 비활성), DE-1 (e) 범위 끝 증분 DC 이득 칸(봉인 스냅샷에서 master에 있을 때만, 재개방 여부 판정에만 -- O-159 E-1·E-2; 없으면 같은 순수 함수를 블록 안 값으로 부름), 쓰기 계획 필드(`node.dc_writer`·`device.dc_coord`), `graph/kernel: search_domain`·spec `search.theta_bounds`(V_R 구간), `dc_current_basis`(I_R), 그 스냅샷의 S·F θ 독립 성분과 LUT memo(40 §2.4.6). 층 0 후보 스냅샷에서는 후보 θ(독립 성분)가 extras다.
+- **READS**: R-1′ 제약 그래프 S0 필드(고리·변·writer_root 행·변 좌표 집합 -- HC-1(O-190), 형식 = headroom-chain HC-D design), headroom-chain 판정 함수 J_point·F_exist와 방향 규칙 P(이름·자리·서명 = HC-D design 한 자리 -- headroom-chain N3.1-1; 이 블록은 부르기만 한다), 분류 필드 `device: theta_class`(TB-1), R7 가드 필드 `device: start.guard`(소자별 구간 + 합 행 -- card LA-1a, writer = 출발 단계 블록 하나), 체계 오프셋 술어 인스턴스 S0 필드(DEC-105 (4) -- card LA-1 범위 15 (c)), spec 출력 범위 키(card SF-1 범위 3 -- 없으면 선언 범위 갈래 비활성), DE-1 (e) 범위 끝 증분 DC 이득 칸(봉인 스냅샷에서 master에 있을 때만, 재개방 여부 판정에만 -- O-159 E-1·E-2; 없으면 같은 순수 함수를 블록 안 값으로 부름), 쓰기 계획 필드(`node.dc_writer`·`device.dc_coord`), `graph/kernel: search_domain`·spec `search.theta_bounds`(V_R 구간), `dc_current_basis`(I_R), 그 스냅샷의 S·F θ 독립 성분과 LUT memo(40 §2.4.6). 층 0 후보 스냅샷에서는 후보 θ(독립 성분)가 extras다.
 - **값**: 고리 종속 성분(B ln IDu -- **대상 = 고리 B 멤버 가운데 쓰기 계획 writer 역할만**, `dc_coord` 종속 B 멤버의 ln IDu는 커널 고리 등식(DEC-64 (v2))이 내고 이 블록은 내지 않는다, 사용자 결정 O-187·graph 규칙 1 -- V_R, 종속 W4)과 R5′ (4)(iii) '재개방 표지'(값 = R-1′ 정의역 자르기 / 이득 행 탐색 개방 -- 이득 값은 층 0 거르기 소비자가 거부에 쓰지 않음) -- R5′ (1)~(4)(위 4의 개정과 §5.3.4 (c-1)~(c-3)). 수리·외층·Halton·상자 중심 경로는 이 값을 바꾸지 않고 독립 성분만 움직이며, 종속 성분은 같은 블록이 다시 파생한다(R6).
-- **출력 자리**(계획 DEC-104 (3)(c), O-151 DK1·O-162): R6 블록의 출력 필드 하나 `graph/start: loop_dep` = `LoopDep(b_ln_idu, w4, v_r, reopen)`(정렬 tuple 칸 넷 -- 소자·넷·저항·행 키별; 이름 = v1.15.1 확정) = (B ln IDu, 종속 W4, V_R, 재개방 표지). `b_ln_idu`의 키 = 쓰기 계획 writer 역할 B 소자만이다(`dc_coord` 종속 B 소자 키 0 -- 같은 소자 ln IDu의 writer가 커널 고리 등식과 이 블록 둘이 되지 않게, O-187). 출발 단계 스냅샷과 층 0 후보 스냅샷에서 같은 블록이 같은 필드에 쓰고(입력 버전이 같으면 graph reuse), 층 0 후보 스냅샷은 스냅샷 파생 규칙 5 하나로 정한다(검증 m-4: v1.15.1의 두 안을 한 규칙으로): 그 평가가 R6 블록(`loop_dependents`)을 부르므로 keep = base writer ∪ 부르는 블록에서 R6 writer는 부르는 블록 쪽이고, base(`ctx.base`)에는 R6 writer가 없어야 한다 -- 봉인 4 단언(base writer ∩ 부르는 블록 = ∅)이 이를 단언하고 어기면 fail-closed(O-155 m-10; 40 §2.4.4 규칙 5). `device: start.row`·`graph/start: rungs`는 θ 독립 성분만 담고(`start_intervals`가 writer 그대로), 커널 평가 입력 조립(층 0 후보·출발 시작점)이 두 필드를 참조로 읽어 점 좌표를 만든다(소비자 = card LA-1). 옛 '미정' 단락과 해소 후보 (가)(나)는 삭제(as-built writer 구조를 근거로 쓴 문단 -- DEC-104 (1′)).
+- **출력 자리**(계획 DEC-104 (3)(c), O-151 DK1·O-162): R6 블록의 출력 필드 하나 `graph/start: loop_dep` = `LoopDep(b_ln_idu, w4, v_r, reopen)`(정렬 tuple 칸 넷 -- 소자·넷·저항·행 키별; 이름 = v1.15.1 확정) = (B ln IDu, 종속 W4, V_R, 재개방 표지). `b_ln_idu`의 키 = 쓰기 계획 writer 역할 B 소자만이다(`dc_coord` 종속 B 소자 키 0 -- 같은 소자 ln IDu의 writer가 커널 고리 등식과 이 블록 둘이 되지 않게, O-187). 출발 단계 스냅샷과 층 0 후보 스냅샷에서 같은 블록이 같은 필드에 쓰고(입력 버전이 같으면 graph reuse), 층 0 후보 스냅샷은 스냅샷 파생 규칙 5 하나로 정한다(검증 m-4: v1.15.1의 두 안을 한 규칙으로): 그 평가가 R6 블록(`loop_dependents`)을 부르므로 keep = base writer ∪ 부르는 블록에서 R6 writer는 부르는 블록 쪽이고, base(`ctx.base`)에는 R6 writer가 없어야 한다 -- 봉인 4 단언(base writer ∩ 부르는 블록 = ∅)이 이를 단언하고 어기면 fail-closed(O-155 m-10; 40 §2.4.4 규칙 5). `device: start.row`·`graph/start: rungs`는 θ 독립 성분만 담고(`start_intervals`가 writer 그대로), 커널 평가 입력 조립(층 0 후보·출발 시작점)이 두 필드를 참조로 읽어 점 좌표를 만든다(소비자 = 출발 시작점 card LA-1a(§6.9-8)·층 0 후보 card LA-1; B 칸 삭제의 card = 계획 공백 PG-3). 옛 '미정' 단락과 해소 후보 (가)(나)는 삭제(as-built writer 구조를 근거로 쓴 문단 -- DEC-104 (1′)).
 - **술어 인스턴스**(계획 DEC-105 (4), card LA-1 범위 15 (c), U-132 기본안 승인 O-166): 체계 오프셋 술어 P1s(diode d / 미러 출력 o / n = o.drain에 diode 없음 / n에 gate가 닿는 g가 d와 같은 kind·같은 source)·P1c(미러 쌍 (r, o)의 drain을 각각 source로 쓰고 kind·gate가 같은 쌍 (a, b))의 인스턴스 가운데 **신호 경로 인스턴스**(n이 어느 여기 뷰 또는 되먹임 경로에서 신호 넷 -- 넷 술어의 부정, 바이어스 분배 쌍 제외 -- 기본 술어는 계획 오케스트레이터 원칙 기본안 그대로)를 S0 필드 `graph/start: mirror_vds_instances`(§5.12.6 E16)에 쓴다. 넷 술어는 `bias_fixed_net(views, net)`(S1v 순수 함수 하나, `E/graph/s1v_predicates.py` -- 제작 = card IT-1 v6.38.3 범위 재작성 5, 40 §3.11-5)이고 이 card(신호 경로 = 그 부정)와 card SB-1(R10 대상·C_lower '바이어스 고정 넷')이 부른다(사본 금지; v1.15.2 정정 -- v1.15.1의 옛 술어 이름·파일과 '이 card가 만들고 순서 LA-1 → SB-1'은 계획 v6.38.3 여덟째 커밋 배정과 달라 삭제, 기록 = git `ecd634d8` 판). 소비자 = 이 블록의 `mirror_vds` 목표 행(위 4 v1.15.1).
 - **출발 충돌 기록 자리**(v1.16.0 -- 사용자 결정 O-190 조건, headroom-chain N3.1-4 'HC-1 design 조건'): 출발 단계 R-1′ 충돌 판정은 J_point(그 점의 쓰기 계획 정확 풀이에서 R-1′ 행 평가 -- DEC-104 (0); F_exist는 재개방·W4·V_R 구간·순환 출처에만, 퇴화 등가라 판정 자리는 J_point만 부른다)이고, `StartConflict` 기록 자리 = 이 7a 블록(= R6 블록 자리 -- R6는 7a의 확장, writer = R6 -- O-142 (5)). HC-1이 LA-1보다 먼저 병합하므로(계획 표 #16) HC-1이 처음부터 이 자리에 기록을 둔다(v1.16.1 -- 옛 '아니면 LA-1 때 writer를 옮긴다' 갈래 삭제: 표 #16으로 일어나지 않음). HC-1 병합 ~ LA-1 병합 기간의 7a 블록 꼴(재개방 단계 없이 J_point 위반이면 곧바로 `StartConflict` -- 비활성 갈래 0, 새 슬롯·사본 0)은 HC-1 design 몫이다(Q-TB1R 분석 (iii)-6). LA-1이 R6 재개방을 더하면 그 기간 대비 `StartConflict` 수가 바뀔 수 있고, 그 변화는 card LA-1 변화표의 원인 항목 'R6 재개방 -- LA-1'로 적는다(계획 LA-1 완료 조건 5, 검증 32 m32-3 -- v1.16.1 gap 누락 반영). 방향 규칙 P는 하나이고 같은 실행에서 변마다 1회 부른다(커널 DC 블록은 R-1′ 필드를 문맥 생성 때 한 번 READS -- 새 memo·sctx 슬롯·사본 0; Q-GC8 분석 (iii)-1).
-- **R7 가드 필드 writer**: 출발 단계 블록 하나(`start_intervals`) -- §6.4-2a 부하 가드 행·§7.5 잡음 가드 계산을 `device: start.guard`로 옮기면서 DEC-105 (5) 규칙으로 고친다(가드 입력 전류 = 매크로·KCL 전류만, W_min 클램프 점 제외, 단조 구간 안 hull, 절대 offset·잡음 제약 회로에도 '부하 기여 ≤ 입력 기여'; 결함을 정본 필드로 옮기지 않음, 사본 금지). 값 형식 = B 소자별 `GuardRow(g_lo, g_hi, sources)` + 합 행(Σ 부하 기여 ≤ 가드 비 · Σ 입력 기여) -- g_lo·g_hi = 가드 경계(gm/ID 값, 없는 쪽 None)(계획 DEC-104 (3)(b)·DEC-105 (5) (a) 'ln IDu 축 위 순방향 제약 행', 사용자 결정 O-186 -- **v1.16.0 개정**: 옛 `GuardInterval(gm_id_lo, gm_id_hi, sources)`). **해 집합은 칸에 두지 않는다**(v1.16.1, 검증 1 M1 -- v1.16.0의 `ln_idu_set` 칸 삭제): 해 집합은 소자의 (L, VDS, VSB) 점 함수이고 이 필드 writer는 출발 단계 블록 하나라 칸에 담으면 출발점의 집합이 된다 -- 소비자(R6 블록)는 자기 평가 점(출발 스냅샷 / 층 0 후보 스냅샷)에서 g_lo·g_hi를 §5.3.3 '해 집합 계산'(순수 함수 정의 하나)으로 푼다(입력이 다른 호출이라 둘째 생산자가 아니다 -- 새 필드·사본 0; 같은 입력 버전이면 graph reuse). 소비자 = 이 블록(R7·R6 K-1). 필드·writer·R6 READS는 모두 card LA-1 범위 15 (d)가 만든다(U-132 기본안 승인 O-166 -- 필드와 소비자가 같은 card라 병합 순서 규칙 없음; 옛 'TB-1 자리·O-149 통합 병합' 삭제).
+- **R7 가드 필드 writer**: 출발 단계 블록 하나(`start_intervals`) -- §6.4-2a 부하 가드 행·§7.5 잡음 가드 계산을 `device: start.guard`로 옮기면서 DEC-105 (5) 규칙으로 고친다(가드 입력 전류 = 매크로·KCL 전류만, W_min 클램프 점 제외, 단조 구간 안 hull, 절대 offset·잡음 제약 회로에도 '부하 기여 ≤ 입력 기여'; 결함을 정본 필드로 옮기지 않음, 사본 금지). 값 형식 = B 소자별 `GuardRow(g_lo, g_hi, sources)` + 합 행(Σ 부하 기여 ≤ 가드 비 · Σ 입력 기여) -- g_lo·g_hi = 가드 경계(gm/ID 값, 없는 쪽 None)(계획 DEC-104 (3)(b)·DEC-105 (5) (a) 'ln IDu 축 위 순방향 제약 행', 사용자 결정 O-186 -- **v1.16.0 개정**: 옛 `GuardInterval(gm_id_lo, gm_id_hi, sources)`). **해 집합은 칸에 두지 않는다**(v1.16.1, 검증 1 M1 -- v1.16.0의 `ln_idu_set` 칸 삭제): 해 집합은 소자의 (L, VDS, VSB) 점 함수이고 이 필드 writer는 출발 단계 블록 하나라 칸에 담으면 출발점의 집합이 된다 -- 소비자(R6 블록)는 자기 평가 점(출발 스냅샷 / 층 0 후보 스냅샷)에서 g_lo·g_hi를 §5.3.3 '해 집합 계산'(순수 함수 정의 하나)으로 푼다(입력이 다른 호출이라 둘째 생산자가 아니다 -- 새 필드·사본 0; 같은 입력 버전이면 graph reuse). 소비자 = 이 블록(R7·R6 K-1). 필드·writer·R6 READS는 모두 card LA-1a가 만든다(사용자 결정 O-214; U-132 기본안 승인 O-166 -- 필드와 소비자가 같은 card라 병합 순서 규칙 없음; 옛 'TB-1 자리·O-149 통합 병합' 삭제).
 
 **12. 정착 선언과 대역폭 출발 목표**: §6.8-2.
 
@@ -1818,6 +1819,173 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 - static settling error의 손계산 출발값 = 개루프 이득 A ≥ 1/(β·ε)(루프 이득 βA ≥ 1/ε, '추정'; β 정의와 읽는 점은 U-118 한 자리 -- 계획 metric 표 static settling error 행). 같은 물리량의 gain 선언은 두지 않는다(O-133). 쓰임은 출발 목표(§6.4-1 이득 하한의 목표)이며 β가 미정인 동안 이 출발값도 미정이다.
 
 **6.8-3 LA-1 design 과제(계획 LA-1 착수 조건 'design 과제', 사용자 결정 O-142·O-139)**: (i) current_reuse 해결 선행 -- R7 가드 구간이 한 점으로 줄어 B 종속이 못 움직이는 문제와 입력 뿌리 W4 하나에 반대 방향 고리가 걸리는 문제(시제품 `r5r6_prototype.md` §수정판 B·J); current_reuse는 완료 조건 9에서 따로 보고 유지 (ii) β 읽는 점(U-118, 6.8-2). 둘 다 **미정 -- 실측 대기**(이 판은 정하지 않는다; LA-1 design 착수 실측 뒤 계획 결정으로 올린다). U-117(F 둘 이상 고리)도 같은 실측 뒤 결정이다(§5.3.3).
+
+### 6.9 card LA-1a -- 층 0 출발점 엔진 결함 정정 (계획 N6.39, 사용자 결정 O-214·O-217·O-218·O-219, v1.16.2)
+
+**이 절의 자리**: 규칙의 정본은 계획 N6.39·DEC-105 (1)·DEC-104 R5′·R6·R7과 이 문서 §6.4-1·§6.7-11이다. 이 절은 LA-1a 범위 나눔, 함수·필드 자리, 호출 card별 실패 분기, 커밋 순서, 완료 조건 대응, g60-2 답, 미룬 결정 분류, 계획 공백을 적는다. **as-built 인용은 재작성 범위와 엔진 밖 사실만이다**(원칙 8). 실측 = `wt/_drafts/evidence/2026-11-03/la1a_design/`(`summary.txt`·`q8_la1a.jsonl`·`uncovered.jsonl` -- as-built 측정 도구 값, 근거가 아니라 재작성 범위·실현 가능성 입력).
+
+**상태 표지**: 아래 11의 PG-1~PG-4는 계획이 정하지 않은 결정이다. 이 판은 그 자리를 결정하지 않고 '계획 공백'으로 둔다. **PG-1~PG-4가 닫히기 전에는 card LA-1a를 동결하지 않는다.**
+
+**1. 범위 나눔**(계획 N6.14 'card LA-1a로 뗀 부분', LA-1 후속 정정 표 O-214·v6.38.7 행):
+
+| 항목 | card LA-1a | card LA-1(뒤 -- 표 #22) |
+|---|---|---|
+| `graph/ach: gain_target_first` | writer·필드 전부 | 층 0 1회차 READS, found_db 없는 뷰의 L-2 보완(`graph/layer0: rounds`) |
+| 근 찾기 핵심 함수(아래 3) | 제작, 출발 호출자 `gain_l_bounds` | 층 0 L 역산이 T_b로 부름, bin별 후보·국소 front·격자 폴백 |
+| `gain_l_bounds` | 함수 전체(목표·닫힘·최선 앵커·사유 분기), N3.3 B5 | 없음 |
+| R6 블록 `loop_dependents` | 블록 본체, 출발 스냅샷 호출, R5′ (1)의 선언 범위 없는 쓰기 순서·(2)·(3)·(4)(i)(ii), (4)(iii) 값 `domain_cut`, R7 (나) | 같은 블록에 더함: R5′ (1)·R7 (가) 선언 범위 갈래, R8 이득 행·`gain_reopen`, `mirror_vds` 목표 행, 층 0 후보 스냅샷 호출 |
+| R7 가드 필드 `device: start.guard` | writer·필드·R6 READS | READS만 |
+| 출발점 | 한 규칙 조립, 옛 출발 휴리스틱·`_repair`·`_repairable` 삭제, R-a | 그 자리를 층 0 조립 경로로 대체, 수리 함수를 수리점 규칙 (A)~(C)에서 다시 씀 |
+
+**갈래 나눔 확인**(계획 N6.14 '갈래 나눔은 LA-1a design에서 확인'): 나눔은 writer 하나를 깨지 않는다. LA-1이 더하는 것은 같은 `@compute_block`의 READS·갈래이고 출력 필드는 `graph/start: loop_dep` 그대로다(`LoopDep` 칸 넷 불변). LA-1a 코드에는 선언 범위 갈래·`mirror_vds` 갈래가 **없다**. 비활성 분기로 두지 않는다(O-183 머리 규칙). 그 기간 출력 범위 키가 없으므로 모든 B는 R7 (나)이고 '열린 결정'(U-124) 표지를 단다. LA-1 병합 때 `reopen`에 `gain_reopen` 값이 생기는 것은 LA-1 변화표 원인이다.
+
+**2. `gain_target_first` -- S0 블록**(범위 1 (a); 정의 §6.4-1):
+- **READS**: `graph/ach` 블록 상한 행의 `found_db`, spec gain 제약 G, S1v 전달 뷰의 주경로 블록과 그 종류. 쓰는 때 = 단계 A, GB4 뒤·출발 구간 앞. 파일 `E/search/gain_target_first.py`.
+- **값**: 뷰마다 정렬 tuple ((블록 키, g_dB), ...) 또는 정의 불능 `found_db_missing{view, blocks}`(U-133 (A)). gain 제약이 없으면 필드 비활성(사유 `constraint_not_declared`).
+- **항목을 갖는 블록 = 이득 블록(복합 포함)만이다. 버퍼 블록은 항목이 없다** -- DEC-63 '버퍼 블록은 gain 목표를 받지 않는다'·DEC-71 (3) 'gain 예산을 받지 않는 블록(버퍼 블록)'·§5.1, 그리고 DEC-105 (1)이 g_i^(1)을 '층 0 첫 회차 예산과 같은' 양으로 정의하기 때문이다(**작성자 유도** -- 아래 6 (iii), 12 D1).
+- **Σ_j 범위 = 그 뷰의 주경로 블록 전부(버퍼 포함)** -- DEC-105 (1) 문언 그대로('이득 사슬(뷰) 블록들의 도달 이득 추정 비', 그 뷰 안 found_db 없는 블록이 있으면 전부 정의 불능). 물리: §5.6 누적 gain이 버퍼 몫을 더하므로 이득 블록 합이 버퍼 손실을 메워야 한다. 문언 그대로면 이득 블록 목표 합이 G보다 커지는 방향이라 맞는 방향이다(아래 6 표 대조). 새 규칙 0.
+- **Σ_j ≤ 0**: 비례 몫의 뜻이 없다(부호 뒤집힘). 뷰 정의 불능, 사유 `found_db_sum_nonpositive{view}`(fail-closed, 새 상수 0; 발동 회로는 측정에서 없음 -- 도달 6회로에서 Σ > 0, `plan_v6387_v60/sum_q8.txt`).
+- **소비자**: 출발 이득 L 하한(`gain_l_bounds`), 매크로 A_i 순서(§6.5 -- `macro_poles`의 블록 목표 입력을 이 필드 READS로), LA-1 층 0 1회차. 같은 양의 둘째 생산자 0.
+
+**3. 근 찾기 핵심 함수**(범위 1 (d)) -- 파일 `E/search/l_bin_root.py`, 진입점 하나:
+
+```
+solve_l_in_bin(gain_db_of_l, target_db, anchors_m, grid_m, k_max) -> LBinRoot(status, l_m, gain_db, best_l_m, best_db)
+# status ∈ {"root", "below", "undefined"}
+```
+
+- **입력**: `gain_db_of_l` = 부르는 쪽이 준 순수 함수 L → dB 또는 None(블록 국소 모델 UB-1 정본, 다른 변수는 호출자가 묶음 -- gm/ID 역산 없음, O-186), `anchors_m` = **한 bin 안**의 LUT L 점 오름차순, `grid_m` = PDK 제조 격자(역할 이름, O-197), `k_max` = N3.6 K_max.
+- **동작**: 앵커를 오름차순으로 평가해 처음 gain ≥ target인 앵커를 찾는다. 그것이 첫 평가 앵커면 그 L, 아니면 바로 앞 평가 앵커와의 구간에서 `sizing.bracket_root`로 근을 찾고 gain ≥ target 쪽 끝 L을 낸다(새 근 찾기 알고리즘 0 -- 레지스트리 '1변수 노드 근 찾기' 정본; 멈춤 폭 = 제조 격자). bin 경계를 넘지 않고 외삽하지 않는다(LR3). 비단조 구간에서는 첫 교차다(LR4는 호출자의 후보·최선 앵커가 다룬다). 근 찾기 중 값이 정의되지 않는 L이 나오면 위 앵커를 쓴다.
+- **결과**: `root`(근) / `below`(평가 앵커 있음, 모두 미달 -- `best_*` = 평가 앵커 중 최대 gain, 정확히 같으면 작은 L) / `undefined`(평가 앵커 0). **실패 처리를 하지 않는다**(사유·충돌·폴백은 호출 card 몫). 모듈 상태·memo·dict 캐시 0(LUT memo 승인 예외만 호출자 함수 안).
+- **블록 L의 bin**: 블록 소자 kind마다 bin 지도(LR3)의 경계 합집합으로 나눈 칸을 쓴다. 블록 L 하나가 어느 소자의 bin 경계도 넘지 않기 때문이다(LR3 귀결). kind 지도가 같은 PDK에서는 그 지도 그대로다(O-197 -- 특정 kind 하나의 지도를 쓰는 as-built `iv_gain_l.py` 첫 멤버 읽기는 재작성 범위).
+
+| 호출 card | 호출 | root | 전 bin `below`(또는 일부 `undefined`) | 전 bin `undefined` |
+|---|---|---|---|---|
+| LA-1a `gain_l_bounds` | bin **오름차순**, 첫 root에서 멈춤(O-218 (1)) | 그 L = 블록 이득 L 하한 | `StartConflict(quantity="gain_l", margin = 목표 − best_db)`, 하한 값 = 전 bin 최선 앵커 | 정의 불능(하한 값 없음, margin `null`) |
+| LA-1 층 0 §5.3.5 | 창 안 **bin마다**, 후보 하나씩 | 후보 → 국소 front | 그 bin 후보 없음, 전 bin이면 `l_inverse_no_bracket` → LR5 격자 폴백 | 같음(격자 폴백·사유) |
+
+둘째 생산자 0: 두 호출자의 결과는 입력 축이 다른 별개 필드다(`start.row` 대 층 0 후보, graph 규칙 3).
+
+**4. `gain_l_bounds` 재작성**(범위 1 (b); 블록이 아니라 `start_intervals` 블록 안 순수 함수 -- writer 불변):
+- **READS**: `graph/ach: gain_target_first`, `graph/ach: block_models`(N3.3 B5 -- 블록 대상·모형 칸, writer `achievability`, 이름 = 이 판; 재구축 `iv_context.py:55-56`·`iv_gain_l.py:106` 삭제, 평가 `row_gains`는 함수 공유 G4), `local_inputs`, WB-1 슬라이스 포락(W 없는 단계 §6.4-1), 1회차 전류 원소, 헤드룸 해 집합.
+- **분기**(하나뿐): 뷰 정의 불능이면 그 뷰 블록 전부 '정의 불능·사유·블록 키' → 항목 있는 블록마다 위 표 → 평가 앵커가 없는 원인이 1회차 원소 없음이면 사유 `gain_l_element_undetermined` + 원소 키(다른 card 기록 READS 0, GC-5는 이 함수를 고치지 않음).
+- **기록 자리**: 하한 없음 사유와 margin `null` = 기존 `graph/start: records`·보고 표(N3.14). 충돌 = `graph/start: conflicts`. 새 필드 0(`block_models` 칸 하나만 B5 정본).
+- **삭제**: `u9_value_not_certified`(`WHY_NO_CERT`)·`iv_context.py` 인증 조건, `iv_gain_l.py` 닫힘 `:125-127`·마지막 앵커 `previous`, 앵커 사이 dB 선형 근사 경로(위 3으로 대체).
+
+**5. L 선택과 상한 충돌 -- g60-2 (i)의 답**: **이득 L 하한이 상한을 이긴다. 충돌은 기록하고 자르지 않는다.** 유도: §6.4-6 선택 = 하한들의 최댓값(상한은 선택 식에 없음), §6.6 '하한 > 상한 → 충돌 레코드, 자르지 않는다', 계획 N6.39 완료 (2)(c) '출발점 L ≥ 하한', EP-7(상한은 출발 추정이고 거부는 커널 뒤 -- LR6 '격자 경계로 쓸 때는 봉인 전 추정'). 새 우선순위 규칙이 아니다. 자리:
+- 동치류 L = max(동치류 안 모든 하한, L 칸 하한)을 LR3 칸에 맞춘 값(§6.4-6). 상한은 선택을 바꾸지 않는다.
+- 하한 > 상한이면 `StartConflict(동치류 주인, quantity="L", bounds = 하한 출처·값 + 상한 출처·값, gap = 하한 − 상한)`을 `graph/start: conflicts`(writer `start_intervals`)에 쓴다. as-built처럼 출처를 `l_class_intersection` 하나로 뭉개지 않는다(어느 경계끼리 부딪혔는지가 변화표 입력).
+- §6.6의 '양 끝 후보를 층 0으로 넘긴다'는 층 0(LA-1) 몫이다. 출발점은 한 점이라 LA-1a는 위 값 하나를 쓴다(O-218 (1)과 같은 이유).
+- 그 결과 PM·GBW가 무너지면 판정은 커널 행이다(아래 6 (iv) 실측이 그 크기). 점검 파일 ⑨ '묶으면 완료 금지' 갈래는 이 규칙에서 생기지 않는다.
+
+**6. g60-2 (ii)(iii)(iv)의 답**:
+- **(iii) 음수 found_db 블록의 몫**: 물음의 대상은 음수가 아니라 **버퍼 블록**이다. 도달 회로에서 음수 found_db는 버퍼 블록 1건뿐이다(`plan_v6387_v60/sum_q8.txt`). 버퍼는 위 2로 목표 항목이 없고 이득 L 하한도 없다. 그 found_db는 Σ_j에만 든다. 물리: dB 몫 비례는 양의 이득에 쓰는 규칙이다. 음수에 G/Σ < 1을 곱하면 목표가 도달 추정보다 **위로** 간다(found −0.66 → 목표 −0.295 dB -- 정의상 닿을 수 없는 손실 예산). 그래서 측정 전제(q8·검증 60)의 그 블록 `StartConflict`는 규칙 귀결이 아니라 DEC-63을 빠뜨린 측정 전제의 산물이다. **버퍼가 아닌 이득 블록의 음수 found_db**(발동 0)는 식 그대로 몫을 받고 위 3 표로 간다 -- 그 목표가 도달 추정 위로 가는 문제가 남는지는 발동 회로가 없어 재지 못한다(규칙을 미리 두지 않음, 원칙 6·11).
+- **(ii) L에 평평한 블록의 최선 앵커**: 버퍼 블록은 위로 대상이 아니다. 일반 이득 블록은 DEC-105 (1)·위 3 그대로 평가 앵커 중 최대 gain, 정확히 같을 때만 작은 L이다. **분해능·허용오차로 '평평함'을 판정하지 않는다**(물리 경계를 수치 분해능으로 정하지 않음, 상수 발명 0). 평평하면 고른 L에 물리 결정자가 없지만 출발값 전용이고(EP-7), margin이 '이 블록은 L로 목표를 못 맞춤'을 기록하며 칸 안 이동은 외층이 맡는다. 이득 블록 발동은 측정에서 0이다.
+- **(iv) two_stage_ota_sf GBW**(as-built 외층, 칸 0 θ 그대로, 측정 도구 값 -- 판정 아님; `summary.txt`):
+
+| 모드 | 이득 블록 목표(dB) | M8 L | 봉인 | GBW 행 통과·c 최대 | gain 행 통과·c 최대 | PM 통과 | front |
+|---|---|---|---|---|---|---|---|
+| base(as-built, 하한 비활성) | -- | 150 nm | 39 | 19/39, +0.76 | 0/39, −2.25 | 19/39 | 0 |
+| **이 판 규칙**(버퍼 항목 없음, Σ 전부) | 27.19 / 30.10 | 150 nm | 39 | 1/39, +0.645 | 0/39, −1.68 | 19/39 | 0 |
+| 대조: 버퍼 목표 + 최선 앵커 | 27.19 / 30.10 | 500 nm | 39 | 0/39, −0.855 | 0/39, −2.08 | 39/39 | 0 |
+| 대조: 버퍼 목표 + as-built 마지막 앵커 | 27.19 / 30.10 | 20 µm | 54 | 0/54, −0.83 | 35/54, +1.44 | 54/54 | 0 |
+| 대조: Σ를 이득 블록만 | 27.05 / 29.95 | 150 nm | 38 | 0/38, −0.947 | 0/38, −2.26 | 38/38 | 0 |
+
+  이 판 규칙이 GBW c 최대를 유일하게 양수로 남긴다. 다만 통과 수는 base 19 → 1로 줄었다(이득 블록 L을 늘린 대가 -- O-217 (c)와 같은 꼴, ⚠ 원인 칸 '범위 1'). 버퍼 몫을 매크로 A_i에 남긴 요인 분리 측정은 이 판 규칙과 값이 같았다(매크로 영향 0, `da1m`). 20 µm 행의 gain 통과는 규칙 점이 아니라 재작성 대상 경로의 값이다. **LA-1a 변화표 항목으로 둔다**: 이 회로의 GBW 행 통과 수·c 최대를 base·병합본으로 기록(완료 조건 3에 '기록', 게이트 아님 -- 게이트로 넓히는 것은 결정 몫). 측정이 R6·조립 없는 as-built 외층이므로 병합본 값은 다시 잰다.
+
+**7. R6 블록의 LA-1a 꼴**(범위 2; 정본 §6.7-3·4·11):
+- **READS**: R-1′ 제약 그래프·J_point·F_exist·방향 규칙 P(HC-1), `sat_threshold`(HC-S), `device: theta_class`(TB-1), `device: start.guard`, 쓰기 계획 필드, `search_domain`·spec `theta_bounds`, `dc_current_basis`, `graph/start: rungs` 칸 0의 θ 독립 성분과 `start.point`. **순서**: `start_intervals`(§6.1의 8까지 끝난 칸 0) → R6. R5′ (1)이 S·θ 전류를 먼저 두므로 물리 순서와 같다. §6.1 번호의 7a는 '칸 0 확정 뒤 한 번'으로 읽는다(§6.1-8의 '7a 다시'는 §6.7-6 '값 고정 뒤 한 번'으로 대체 -- R6는 S·전류를 쓰지 않으므로 되돌아감이 없다, 순환 0).
+- **B3 매크로·면적 재확인**(§6.7-4): 블록 안 판정만이다. 값은 R6 출력 밖으로 나가지 않고 θ 전류를 바꾸지 않는다(R6는 독립 성분 writer가 아니다 -- DEC-104 R6). §6.7-4의 '매크로 결과가 바뀌면 전류가 바뀌므로' 문장은 이 범위에 적용되지 않는다.
+- **칸**: 출발 스냅샷의 칸 0만 부른다. §6.7-6 '사다리 아래 칸 각각'은 P4(사다리 칸 평가는 GC-5 후보 평가 한 자리) 뒤 소비자가 없어 LA-1a에서 부르지 않는다.
+- **`reopen`**: LA-1a 값 = `domain_cut`뿐. S 정의역을 `start.row`에 되쓰지 않는다(writer 하나). 그 기간 소비자 = 출발 결과 사유·변화표(출력 전용 선언), 층 0 소비는 LA-1.
+- **`StartConflict(kvl)` 자리**: `graph/start: conflicts`의 writer는 `start_intervals`이므로 R6가 같은 필드에 쓰면 writer 둘이다. **R6 출력 옆 필드 `graph/start: loop_conflicts`(writer `loop_dependents`, 소비자 = 출발 결과 사유·보고 표)**로 나눈다(정의 축 = 그 평가 점의 J_point; graph 규칙 1). 계획 DEC-104 (3)(c) '출력 필드 하나'는 값 자리의 규칙이라 어기지 않으나 **이름·자리 = design 판단**이고 HC-1 design이 같은 필드를 써야 한다(N6.14 'R6 블록 구현 card' -- 12 D3).
+- **§6.7-5 '위반 최소 조합을 출발점으로 넘긴다'**: 값은 `loop_dep`에 남기되 LA-1a 출발 결과는 계획 N6.39 범위 2 (c)를 따른다 -- 고리가 깨지면 그 점을 커널에 넘기지 않고 출발 정의 불능(깨진 행 이름)이다. 층 0 처리(`chain_violation`)는 LA-1.
+- **R7 가드 필드**: 형식·규칙 = §6.4-2a v1.15.1 (a)~(d) 그대로, writer `start_intervals`. 입력 전류 규칙 '매크로·KCL 전류만'은 PG-1의 영향을 받는다.
+
+**8. 출발점 조립 -- θ 스키마 일반 읽기와 실현 가능성**(범위 2, 착수 조건 (3), ⑩ C-1 (a)). 진입점 `layer0_start`가 순수 함수 `assemble_start_theta`(`E/search/layer0_center.py` 자리, 이름 = 이 판)를 불러 점 좌표를 만든다. θ 스키마의 성분을 차례로 읽고 종류별 writer에 간다. 영점 R 전용 갈래 0, 새 필드 0, 값 사본 0.
+
+| 성분 | writer | LA-1a 시점 실현 |
+|---|---|---|
+| S·F ln IDu | 칸 0(R4·R13) | 있음 |
+| B ln IDu | `loop_dep.b_ln_idu`, `dc_coord` 종속은 커널 등식 | R6 뒤 있음 -- **칸의 B 값 삭제 = PG-3** |
+| L | 칸 0 + 위 5(정의 불능이면 하한 없이 LR3·L 칸, 사유) | 있음 |
+| θ 전류 | DEC-104 R3(매크로·KCL 기저·하한 행 최대) | **칸 0 미정 7/9 회로(1~7개) -- PG-1** |
+| 값 미선언 저항 V_R → R = V_R/I_R | `loop_dep.v_r` | R6 뒤 있음(`R1c` 전류는 PG-1) |
+| θ점 DC 전류 0 저항 | DEC-104 (4) P4-R, 조립 함수 안 값(`theta_bounds` 안; U-118 미결이면 정착 행은 제외 갈래) | 있음 |
+| 보상 C | 매크로 풀이 | 미정 1회로(`Cc2`) -- E-15·LA-1 (g) 귀속이면 그 전 출발 정의 불능(N6.39 (c)) -- 변화표 |
+| 영점 상쇄 R | 그 성분의 출발 writer(DEC-92 (3)) -- 스키마에 있을 때만 | SF-1 선후 무관(C-1 (a)) |
+| 입력 포트 y·종속 W4 | `loop_dep.w4`(R5′ (2) 창 안 max-min, 입력 점 = W4 뿌리 -- DEC-106 **작성자 유도**) | 미정 8/9 -- **커널 전달 = PG-2** |
+| 값 선언 저항 가지 θ 전류 | 계획 '종속(R6·KCL 파생), as-built θ 성분은 재작성 범위' | **PG-4** |
+
+  실측(`uncovered.jsonl`, 칸 0 기준 -- 13회로 중 9회로 도달, 정지 4 = 단계 A·review 사유): 일반 읽기는 스키마를 그대로 도는 것이라 구현 가능하다. **그러나 위 표대로 계획이 적은 writer 가운데 넷은 LA-1a 범위에 구현 card가 없다.** 착수 조건 (3)의 답 = **조건부 -- PG-1~PG-4 닫힘이 조건**이다.
+
+**9. 출발 결과와 회귀 가드**(범위 2·3): 계획 N6.39 (a)~(d) 어휘 그대로다. `find_front` → `layer0_start`(조립점 1회 평가) → `start_points` → `sweep_front`. (a) 받아들일 상태 → 외층, 출발 경로 칸 = 한 규칙 점. (b) 정의되나 받아들일 상태 아님 → `fail.detail.item` 사유 출발 불능, 외층 없음. (c) writer 없는 성분·깨진 고리 → 출발 정의 불능(어느 성분·어느 행), 커널 평가 0. (d) 단계 A·B 정지 그대로. 출발 경로 칸 = 기존 층 0 진단 `Layer0Result.source`·notes 층 0 항목, 값 `one_rule_point`(이름 = 이 판, 새 칸 0). `layer0_minimal`·`seal_margin_maxmin_centre`·`centre_u`·`probes`·`repairs`·반복 칸은 같은 변경에서 지운다. '층 0 점 없음'·'성능 판정 보류' 표지는 이 기간에 붙이지 않는다. 빈 사다리는 (c)다(칸 0 없음). S0 출발 불능 기록 writer는 GC-5이고 이 card는 `rungs` 필드만 READS한다 -- 그래서 GC-5 병합 선후에 의존하지 않는다(12 D4).
+
+**10. 재작성 범위와 커밋 순서**:
+
+| 대상(엔진 `wt/integ-it12`, 착수 때 재조사) | 처리 |
+|---|---|
+| `E/search/layer0_center.py` `_box_centre`·`_current_centre`·`centre_start`·`_halton_probe`·`_primes`·`_radical_inverse`·`_maxmin`·`_repair`·`_repairable`·사다리 순회·실패 사슬 | 삭제, 진입점 자리만 남김 |
+| `E/search/search_context.py:137` n_θ | `search_domain` 변수 수 READS(N3.3 B7) |
+| `E/search/residual_probe.py:67` 전류 성분 | `assemble_start_theta` 읽기 |
+| `E/search/find_front.py:68·96`, `E/search/__init__.py` | 진입점 유지, notes 위 9 |
+| `E/search/macro_poles.py` `_declared_gains` | `gain_target_first` READS |
+| `E/search/iv_context.py`, `iv_gain_l.py`, `E/metrics/achievability.py` | 위 4(`block_models`) |
+| §6.4-1 '`layer0_budget` 첫 배분' | as-built에 없음 -- **LA-1 몫**(옛 재작성 범위 문장에서 옮김) |
+| tests(`test_blas_env.py`, `tests/generality/pipeline.py` 등 옛 층 0 단언) | test 저자가 판정, `retired_tests`(작성자 ≠ 검증자) |
+
+**커밋 순서**(O-38 (3) 커밋별 원인): 순서 0 card 0 LA-1a-0 기준선(검증자, base -- ngcc는 data 없이 그 정지 사유 기록) → ① **data 커밋**: `assets/library/ngcc_3stage_ff.structure.json` 신설(O-216: M8·M14 `dc_role` = signal, `topology_hash` = 그 회로 connectivity_fp, `rule_hash` = 이 base `structure_rule_fp`, 원문 근거 Lee 2007 Fig. 1(c) PDF p.2·p.3)과 IT-2c rule_hash 재기록 목록에 ngcc 추가 -- 코드 커밋과 섞지 않고 **대상 측정보다 먼저** → ② 범위 1 → ③ R7 가드·R6 → ④ 조립·삭제·R-a. 이 design은 그 파일을 만들지 않는다. 함수 레지스트리는 code 커밋이 같이 갱신한다.
+
+**완료 조건 대응**:
+
+| 완료 조건 | design 자리 | 확인 방법(판정 = 검증자) |
+|---|---|---|
+| 1 (a) 이득 L 하한 toy | 위 2·3·4 | 손계산 toy, 근 찾기 정의 1곳 `git grep`; **버퍼 toy 추가 제안**(목표 없음·하한 없음 -- 12 D1 승인 뒤) |
+| 1 (b) R6 toy, 1 (c) E-32 | 위 7·9 | KVL 만족·종속 파생, 깨진 고리 이름 |
+| 1 (d) P4 toy | 위 8·10 | 상자·전류 중심 평가 0, 정의 grep 0 -- **PG-1·PG-4 뒤에만 성립** |
+| 2 (a) 출발 회귀 가드 | 위 9, ① 커밋 먼저 | 대상 4회로 칸 0 조립 출발점 ≥ 1, 나머지 기준선 대비 0 되면 멈춤 |
+| 2 (b) 봉인점 | 위 9 | 대상 회로 봉인 전 항목 통과 ≥ 1 |
+| 2 (c) L 칸 | 위 2·4·5 | 출발 단계 도달 회로의 **이득 요구 블록**마다(버퍼 제외 -- DEC-63 '목표 받지 않음'과 문언 일치): found_db 전부면 하한 정의·L ≥ 하한, found_db 없는 블록이 든 뷰는 사유로 성립, 미도달 회로는 기록만 |
+| 2 (d) 측정 기록 | 위 6 (iv) | front·gain c·GBW·ICMR 정의 불능 수, O-214·(9) 재검토 입력 |
+| 2 (e) sf 봉인 재현 | 위 7 K-1 | 못 하면 계획으로 돌아감 |
+| 3 변화표 | 위 10 커밋별 | 매크로 θ 전류·버퍼 회로 GBW 포함 |
+| 4 SPICE 다리 | 선행 EO-1 | 13 참조 |
+| 5 N6.3 공통 | 1·2·7 | writer 하나, `git grep` B5·비θ 갈래 0, G-10 |
+
+**11. 계획 공백 -- 멈춤**(계획 먼저, 지어내지 않음; 선택지는 판단 재료이고 정하지 않음):
+
+- **PG-1 θ 전류 writer의 구현 card**: 계획 N6.39 범위 2는 칸 0 밖 θ 전류의 writer를 DEC-104 R3로 지목하고 완료 1 (d)가 상자·전류 중심 0을 요구한다. 그런데 R3 구현(미지 θ 전류 전파·남는 θ 전류 최소화 변수·하한 행 최대·자리값 삭제)은 N6.14 **범위 13에 남아 있고** LA-1a로 옮긴 목록에 없다. 실측: 칸 0 미정 θ 전류가 **대상 4회로 전부 포함 7/9 회로**다. 지금 문언대로면 그 회로들은 (c) 출발 정의 불능이고 완료 (2)(a)로 card가 멈춘다. 선택지: (가) 범위 13 전체를 LA-1a로 (나) 하한 행 갈래(W_min)만 LA-1a로 (다) 그대로 두고 (c)를 받아들임 ⚠ O-214 (ii) 취지 불성립.
+- **PG-2 W4 목표의 커널 배선 card**: `loop_dep.w4` 소비자는 DC 블록 W4 목표인데 배선은 DEC-71 (4)(c)·40 §3.7-A 4에서 'card LA-1'이다(40은 'R6 블록과 같은 card'라고도 적어 두 문장이 O-214 뒤 갈린다). 배선이 없으면 R6 W4 값이 커널에 닿지 않아 '만들면 배선' 위반이다. y를 창 비율로 역산해 넘기면 창의 둘째 계산이 생긴다 ⚠ graph 규칙 1. 작성자 유도 후보 = 배선도 LA-1a(R6와 같은 card).
+- **PG-3 `start.row`·`rungs` B 칸 삭제(DK1)**: 범위 13 끝 문장이 LA-1 몫으로 적는다. R6 본체가 LA-1a로 오면 그 사이 B 값 자리가 둘이다 ⚠ DEC-104 (3)(c)·O-153 (b). 작성자 유도 후보 = LA-1a로 이동.
+- **PG-4 값 선언 저항 가지 θ 전류**: N6.39가 '종속, as-built θ 성분은 재작성 범위'로 적지만 θ 스키마·커널 전류 기저를 고치는 card·방법을 정하지 않았다. 스키마에서 빼면 DOF·커널 KCL이 함께 바뀐다. 측정 대상 1/9.
+- **PG-5 착수 실측 귀속**: M-TH1a·M-KV1b+는 'card LA-1 출발 구간 design 전', M-TH1c는 'LA-1·LI-1·WB-1 첫 design 전'으로 적혀 있고 N6.39 착수 조건에 없다. LA-1a R6는 B를 가드 해 집합(ln IDu)으로 읽어 S_d 축에 직접 기대지 않지만 `loop_lo`·`loop_hi`는 S_m을 읽는다. `start_intervals`의 ln IDu 축 재작성 card가 LA-1이면 LA-1a 기간 `start.row` 축은 as-built다. 어느 card가 먼저인지 계획 확인 필요. 이 판은 값을 재지 않았다.
+
+**12. 설계에서 내린 판단**(검증 대상, 사용자 결정 아님):
+
+| ID | 판단 | 근거 | 표지 |
+|---|---|---|---|
+| D1 | 버퍼 블록은 목표·이득 L 하한 없음, Σ_j에는 듦 | DEC-63·DEC-71 (3)·§5.1·§5.6, DEC-105 (1) 문언, 위 6 표 | **원래 취지와 다름 후보**: O-217 근거 측정·검증 60은 버퍼에도 목표를 준 값(그 회로 수치만 바뀜, ngcc·two_stage 불변). 승인 질문에 올릴 것 |
+| D2 | 상한 충돌 = 하한 우선, 출처 분리 기록 | 위 5 | 새 규칙 아님 |
+| D3 | `graph/start: loop_conflicts` 신설 | graph 규칙 1, headroom-chain N3.1-4 'writer = R6' | HC-1 design과 맞출 것 |
+| D4 | GC-5 선후 무의존(`rungs`만 READS) | 계획 표에 GC-5 ↔ LA-1a 행 없음; 칸 0을 누가 고치든 소비자는 필드 하나 | GC-5 전에는 칸 0 = as-built 선택. 변화표 재측정 대상. 계획 확인 권함 |
+| D5 | 근 찾기 = 한 bin 함수 + 호출자 bin 순회, 블록 bin = kind 경계 합집합 | N6.39 범위 1 (d), LR3, O-197, 레지스트리 | -- |
+| D6 | R6 = 칸 0 뒤 한 번, B3 판정만, `reopen` 출력 전용 | R5′ (1), DEC-104 R6, 만들면 배선 | §6.1·§6.7 옛 문장 읽기 제한 |
+| D7 | 고리 깨짐 = 출발 정의 불능(§6.7-5 전달을 LA-1a에서 안 씀) | N6.39 범위 2 (c) | 옛 §6.7-5와 달라 표지 |
+| D8 | `graph/ach: block_models` 칸 | N3.3 B5 '`graph/ach` 칸', 이름 = design | UB-1 정본 형식과 대조 |
+
+**원래 취지와 다름**: 계획 승인 표지(O-214·O-217 (가)(나)(다)·O-218 (1)(2))는 그대로 옮김이다. 이 판이 새로 만든 후보 = D1, D7, 위 6 (iv) GBW 통과 수 감소. 앞선 판의 §6.1-7 J1은 LA-1a 변화표에도 원인 항목으로 둔다.
+
+**13. 미룬 결정 (1)~(4)·(6) 분류**(계획 Status P:12, N6.39 '순서' P:2526, N6.1 P:1312·P:1335):
+
+| 결정 | LA-1a design·code 착수 | 근거 | 완료 판정 |
+|---|---|---|---|
+| (1) oracle 범위 '확정 지목' 삭제 | 안 걸림 | 착수 조건 card = OP-5, LA-1a 선행 목록에 없음 | 안 걸림 |
+| (2) #21 ICMR 칸·`judged_by`·`off` | 안 걸림 | P:2526 '#21은 이 card를 막지 않는다', ICMR 판정 불변 | **간접**: 완료 조건 4 SPICE 다리 선행 EO-1이 `judged_by` 부분에서 #21을 기다린다(P:1335). **보고만 -- 결정하지 않음** |
+| (3) G2-a `triode` 비대칭 | 안 걸림 | 착수 조건 card = EO-1, `off` 선언 0/13 | **간접**: 같은 EO-1 경유 |
+| (4) `icm_margin_v` 존폐 | 안 걸림 | 착수 조건 card = LA-1(나머지)·DE-1·SF-1 | 안 걸림(2)(d)는 기록 |
+| (6) spec 새 결정 N1~N4 | 안 걸림 | 착수 조건 card = SF-1, LA-1a 선행에서 SF-1 제외(P:1312) | 안 걸림 |
+
+(9) O-215 재검토는 미룬 결정이 아니고 위 2 (d)가 입력을 낸다.
 
 ---
 

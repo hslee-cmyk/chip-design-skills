@@ -712,3 +712,21 @@ v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, 
 - 계획 개정 필요로 올린 것(41 §5.12.8): P4(DEC-95 (3) 고리 밖 ② -- v6.38.6 대기), P5(SF-1 범위 9 본문 옛 공통 상자·E-15 조건부 문언), P6(J7 단언 card 귀속), P7(DR-1 design 자리), P8(보상 C spec max), P9(PW-1a design 단계), P10(N6.3 소비자 열 자리).
 - 열린 점(design, 정하지 않음): DE-1 R9 결합 gate 극단 상태 VSB·VDS 입력, 대조 기록 칸 이름, B 소자 출발 L 칸 자리.
 - 다른 design 몫: offset-strategy design §10(DS-1 (다) → (나) + 조건 (2)) -- 낡음 표지만 붙임(그 문서 판 불변, OS-5 착수 전 개정).
+
+## H40-37 -- design 40 머리 Status v1.16.1(v1.16.2가 대체)
+
+> **Date**: 2026-10-31 · **Status**: **design v1.16.1 -- 계획 v6.38.5(승인 O-193) 맞춤 + design 검증 1(M1·M2·m1~m9)·design↔계획 gap(§6 Major·경미·누락/다름의 design 쪽) 반영, 재검증 대기**(브랜치 design/v115, base `31b042cd`; 40·41·42 같은 판). 계획 결정 대기 = 41 §5.12.8 P1~P4(계획 v6.38.6 대기)·P5~P10(계획 개정 필요)·닫기 Δ 자리(§3.10.6 -- 계획 DEC-72 (5)), 열린 점 = 41 §5.12.8. 옛 Status: v1.16.0 = design 이력 H40-35, v1.15.3 = H40-33.
+
+## H41-36 -- design 41 머리 Status v1.16.1(v1.16.2가 대체)
+
+> **Date**: 2026-10-31 · **Status**: **design v1.16.1 -- 계획 v6.38.5(승인 O-193) 맞춤 + 검증 1·design↔계획 gap 반영, 재검증 대기**(40·42와 같은 판 -- 40 Status). design 판단·계획 개정 필요·열린 점·착수 조건 = §5.12.8, 옛 승인 질문 = §5.12.7. 판 이력(v1.15.2~v1.4) = design 이력 H41-16, v1.15.3 = H41-34, v1.16.0 = H41-35(`gain-budget-gmid-sizing.design.history.md`).
+
+## H42-06 -- design 42 머리 판 bullet v1.16.1(v1.16.2가 대체)
+
+> - **design v1.16.1 -- 검증 1·design↔계획 gap 반영, 재검증 대기**(2026-10-31, 40·41과 같은 판 -- 40 Status; 이 문서: D-IT1b(검증 1 M2)·D-DR1(gap M5) 신설 MISS, D-TB1c·D-TB1d·D-TBX·D-R10·D-LA1G·D-SF1d·D-CL1·D-V9·D-SYe·D-J1·D-J8·DEC-104 행 정정, §4 집계 325)
+
+## H40-38 -- design v1.16.2 경위(card LA-1a design, 2026-11-03)
+
+- 입력: 승인 계획 v6.38.7(master `c8ecc4e7`, 사용자 결정 O-219)을 design/v115에 merge. 후보 `wt/_drafts/evidence/2026-11-02/q8_target_gain_candidates.md`, ⑩ `q8_consistency.md`, 검증 60 g60-2 `2026-11-03/plan_v6387_approval_validation.md`. 실측 `2026-11-03/la1a_design/`.
+- 쓴 것: 41 §6.9 신설, 41 §5.3.5·§5.9·§5.10-3·§6.4-1·§6.4-2a·§6.5·§6.7-5·§6.7-11·§5.12.6 E12·E17, 40 L477·L479·§3.7-A 4·§3.11-2·§11 U15·LA-1a·LA-1 행, 42 D-GL·D-R6·D-TB1c·D-LA1a·DEC 104·105 행·§4 집계.
+- 계획 공백으로 멈춘 것: 41 §6.9-11 PG-1~PG-5. 이 판은 그 자리를 결정하지 않는다.
