@@ -1,12 +1,13 @@
 ---
 template: design
-version: 1.16.7
+version: 1.16.8
 plan_version: 6.38.11
 ---
 
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
 
 > **Summary**: `bkit:gap-detector`가 설계 문서(40·41)와 구현을 대조할 때 쓰는 표다.
+> - **design v1.16.8 -- HC-1 card 후보 채택(위임 A-50~A-52).** 대조 자리 = `headroom-chain.design.md` v0.1.4, `graph-consumption.design.md` v0.1.1, 독립 판정 전.
 > - **design v1.16.7 -- 재판정 R1·r 문언, 계획 v6.38.11.** 41 §4.8-7·§4.8-12, 40 머리, `headroom-chain.design.md` v0.1.3 §3.4.
 > - **design v1.16.6 -- 독립 판정 V1~V3(위임 A-49), 계획 v6.38.10.** 41 §4.8-1·§4.8-3·§4.8-5·§4.8-6·§4.8-7·§4.8-12·§4.8-13·W8, 40 §11, `52 vsb` 행, `headroom-chain.design.md` v0.1.2.
 > - **design v1.16.5 -- card 후속 E-1~E-4(위임 A-45~A-47), 독립 판정 전.** 41 §4.8-2·§4.8-3·§4.8-5·§4.8-6·§4.8-7·§4.8-10·§4.8-12, 40 소유표·§11, `headroom-chain.design.md` v0.1.1 §2·§3.

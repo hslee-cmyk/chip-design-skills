@@ -968,3 +968,7 @@ v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, 
 - VDS′ > 0 → `off_gate`. 그 소자 VDSAT 조회 0 | -- |
 - tol_V None → 항목 6 pass + `band_undefined`, 보고서 상태 ≠ sealed |
 - gain-budget-gmid-sizing.plan.md) v6.38.5
+
+## H41-46 -- v1.16.8(위임 A-50~A-52)이 바꾼 문언의 옛 원문
+
+- 40 §2.4.8 `chain_graph` 행: «`f_exist` 구간 칸의 R6 전 소비자 0 = 위임 A-18(기간 예외, toy로 잠금)». 나머지는 `headroom-chain.design.history.md` v0.1.4, `graph-consumption.design.history.md` v0.1.1.
