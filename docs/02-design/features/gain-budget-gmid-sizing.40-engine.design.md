@@ -575,7 +575,7 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 | `cached_property` | 데코레이터 |
 | `lru_cache` 호출형 | `functools.lru_cache(...)(f)`, `cache(f)` 같은 호출 |
 | 모듈 수준 캐시 객체 | 모듈 수준 `BoundedLRU(...)`·`LutMemo(...)`·`OrderedDict()`·`WeakValueDictionary()` 등 |
-| `id(` 호출 | 허용 모듈 밖의 모든 `id(...)` 호출(쓰임과 무관하게. as-built 실측 tests 제외 0건) |
+| `id(` 호출 | 허용 모듈 밖의 모든 `id(...)` 호출(쓰임과 무관하게) |
 | memo 호출 형식 | `memo.call`의 첫 인자가 모듈 수준 이름이 아님(§2.4.6) |
 
 **허용 모듈 목록**(고정, 이 밖은 예외 없음):
@@ -588,7 +588,7 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 - `lut/sweep_memo.py`: XRUN-F1 card A가 지운다(§2.4.6 '첫 평가 버림 제거' -- 옛 '단계 ③'). 남아 있는 동안에도 허용하지 않는다.
 - `core/fingerprint.py`: 상태가 없다(as-built에 캐시·가변 속성 0). 목록에 넣을 이유가 없다.
 
-as-built 실측(bd19cc6, tests 제외) 확장 검사에 걸리는 곳은 다음과 같다. 단계 ③(§11 U17)이 전부 해소한다.
+as-built 실측(bd19cc6, tests 제외, 지금 파일 목록과 다름) 확장 검사에 걸리는 곳은 다음과 같다. 기존 위반은 GL-1 기준선으로 래칫하고, 해소 자리는 정하지 않는다(표지).
 - 속성 컨테이너: `graph/blocks.py`, `layout/pattern_select.py`, `layout/rows.py`, `metrics/block_param_tables.py`, `metrics/ss_metrics.py`, `search/iv_curves.py`, `search/macro_poles.py`, `search/search_context.py`, `sizing/block_columns.py`
 - `default_factory`: `layout/euler_graph.py`, `layout/mirror_trail.py`
 - `cached_property`: `layout/_helpers_alias.py`
@@ -606,6 +606,20 @@ as-built 실측(bd19cc6, tests 제외) 확장 검사에 걸리는 곳은 다음�
 - SC-b `setdefault`: 기본값 인자가 빈 리터럴 컨테이너나 상수가 아닌 `setdefault`(계산된 값을 '없을 때만' 넣는 형태)를 거부한다. 빈 컨테이너 그룹 묶기(`d.setdefault(k, []).append(x)`)는 허용한다. as-built 실측: `setdefault` 호출 147개 중 해당 16개(`convergence/place_layout.py`, `core/pdk_decl.py`, `graph/canonical_form.py`, `graph/composite_diode.py`, `graph/drive_kind.py`, `graph/feedforward_cells.py`, `graph/gvgs_cycles.py`, `graph/views.py`, `graph/view_analysis.py`, `layout/crossover.py`, `layout/diffusion.py`, `search/search_domain.py`, `sizing/writer_plan.py`). 단계 ③에서 각각 고치거나, 설계 값 재사용 건너뛰기가 아님을 보이고 허용 목록에 줄 단위로 근거를 적는다.
 
 **④ library 회로 실행 test**(전부 -- O-181 뒤 13): §2.4.9의 `test_g10_no_recompute_9circuits`가 ①~③의 정적 검사가 못 보는 실행 중 중복을 잡는다. 같은 실행에서 SearchContext·커널 컨텍스트의 도달 가능한 객체를 훑어 설계 값 타입 인스턴스가 graph 스냅샷·S3 색인 밖에 없는지도 확인한다(②의 동적 짝).
+
+**GL-1 design**(계획 N6.37, 사용자 결정 O-182·O-183 #10, 위임 A-28 -- 검증 대기). 범위 = ①②와 공유 호출 감사 도구. ③④는 이 card 범위가 아니다.
+
+*자리*: 검사기 = `E/tests/structure/structure_checks.py`의 `check_g8`, `check_value_types`, 기준선 함수 `baseline_doc`, `dump_baseline`, `load_baseline`, `ratchet`. 기존 `check_g`는 바꾸지 않는다(그 test는 위반 0을 단언하고 ①②는 기존 위반을 래칫으로 다루므로 나눈다). 도구 = 저장소 루트 `tools/audit/scan_shared_calls.py`. 기준선 = `E/tests/structure/g8_baseline.json`, 기록 id = 파일의 `id` 칸(첫 값 `20261103-gl1-baseline`). 판정 기록 = `.ai/verification/20261103-gl1.json`.
+
+*① kind*: 표 일곱 행을 `g8_attr_container`, `g8_class_container`, `g8_default_factory`, `g8_cached_property`, `g8_cache_call`, `g8_module_cache`, `g8_id_call`, `g8_memo_call_form`으로 나눈다. §2.4.6이 없애기로 한 클로저 호출은 `g8_memo_lookup_form`으로 잡아 기존 자리를 래칫한다. '등'으로 적힌 목록은 고정한다: 가변 값 = 규칙 G `MUTABLE_CONSTRUCTORS`와 같은 판정, 모듈 수준 캐시 객체 = `BoundedLRU`, `LutMemo`, `OrderedDict`, `WeakValueDictionary`.
+
+*② 타입 목록*: 엔진 전체(tests 제외) 클래스 중 `dataclass(frozen=True)` 이름의 AST 수집. 이름 단위다. 값 타입 등록부는 없다. 컨테이너에는 `tuple(...)` 등 생성자로 감싼 형태도 포함한다. frozen dataclass 본문은 제외하므로 결과 객체 값 칸은 ② 대상이 아니고 §2.4.8 소유표 대조가 맡는다.
+
+*래칫*: 행 키 = (kind, 경로, 안정 이름), 값 = 수. 줄 번호는 키가 아니다. 현재 수 > 기준선 수 = 새 위반(병합 정지). 현재 수 < 기준선 수 = 남은 칸(`stale`)이고 실패가 아니다. 판정자가 card마다 병합본에서 줄인 기준선을 판정 커밋에 넣는다. 기준선 생성·갱신은 판정자만 한다. 코드·test 작성 주체는 쓰지 않는다. 행 추가·수 증가는 기준 약화다(`criteria_weakened`, 사용자 승인). 파일 없음·형식 오류는 실패다.
+
+*감사 도구*: 입력 = 엔진 폴더, 출력 = `calls.json`, `shared.tsv`, `b_candidates.tsv`, `limits.json`. 대상 엔진을 import·실행하지 않는다. 호출을 정의 모듈로 해석하고(재수출 포함), 인자를 필드(`column`, `value`의 리터럴 종류·필드)·매개변수·리터럴·전역 잎으로 치환한다. 호출 모듈이 다른 두 자리의 쌍은 같은 치환 + 필드 잎 ≥ 1 = B, 다른 치환 + 양쪽 필드 잎 ≥ 1 + 매개변수 잎 0 = 아님, 그 밖 = D(판정 불가)다. `--touching`은 N6.3 (ii) 범위다. 도구는 확정 판정자가 아니다. D와 B는 판정자가 자리마다 G0~G7 근거로 손 분류한다(N6.3 (i)). 메서드 호출은 해석하지 않고 수를 기록한다.
+
+*판정*: 엔진 동작 불변. 다리 = 정의 toy, 나머지 '대상 없음'(증거 = 엔진 소스 diff 0). 결정성은 항상 잰다.
 
 #### 2.4.11 tol_I 정정 요약
 
@@ -2079,6 +2093,9 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | library 회로(13) 구조 표(S1v·A_max·Π·인증 비율) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration/test_structure_tables.py -q` |
 | library 회로(13) E2E(T9) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration -q` |
 | 오라클 | `$PY -m pytest skills/analog-gmid-design/tools/spice_oracle/tests -q` |
+| G 확장·값 타입 래칫(N6.3 (a)(b)) | `$PY -P -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q` (`test_rule_g8_baseline_ratchet`) |
+| 기준선 줄임(판정자, stale ≠ 0일 때) | `structure_checks.baseline_doc` + `dump_baseline`을 병합본에서 실행, diff가 줄임뿐인지 확인 |
+| 같은 입력 재계산 측정(N6.3 (iv), 판정자) | `$PY tools/audit/scan_shared_calls.py --engine skills/analog-gmid-design/gmid_engine --out <evidence> --touching <card 커밋들이 바꾼 엔진 파일>` 뒤 자리별 손 분류 |
 | graph 단일 정본 확인((a)(b) 정적, (d) 계수)과 계산값 재사용 확인((a)(b) `perf` 계수, (c) `--profile`, (d) 루프 불변식 대조) | `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q -k "rule_g or design_value_location"` 뒤 `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/integration -q -k "g10"`(건드린 회로). (c)는 변경 diff와 §2.4.8 소유표를 대조해 보고에 적는다 |
 | design ↔ 구현 gap 분석 | bkit gap-detector(42 기준표 기준), 일치율 90% 이상 |
 | 계산값 재사용 확인 (c) 중복 인자 호출 | `$PY -m gmid_engine.pipeline <spec> --profile runs/<run_id>/profile.out --instrument runs/<run_id>/dup_args.jsonl` 뒤 `$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/perf -q -k "duplicate_args or loop_invariant"`: 루프 안 같은 인자 반복 호출 수 = 0(WP-10), 루프 불변 입력이 S0 수준 필드에서 읽힘(WP-23 (3)). 결과 숫자는 단위 보고 `reuse_check`에 넣는다 (사용자 지시 2026-10-12 "coding시에 계산값 재사용원칙도 준수되었는지 확인하는 과정을 넣고 이 확인내용을 항상 보고해") |
@@ -2235,7 +2252,7 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 | **[선택 유보 -- 보류(O-220), 승인 대상 아님; 병합 단위 = LA-1과 같은 통합 병합, LA-1a 커밋 먼저 -- 위임 A-3]** LA-1a(N6.39, 사용자 결정 O-214·O-217·O-218) | 41 §6.9·§6.4-1·§6.7-11, 위 U15 행 v1.16.2 | 선행 = XRUN-F1 B·IT-1+IT-2·WB-1·UB-1+NL-1·HC-S·TB-1·HC-1(+ GC-8), SPICE 다리 선행 EO-1(완료 판정); 뒤따름 = LA-1(표 #22). 착수 조건 = 이 design 검증·승인, card 0 LA-1a-0, **계획 공백 PG-1~PG-4 닫힘**(41 §6.9-11) |
 | LA-1(N6.14, v6.38.2 개정 -- v6.38.7: 범위 15 (a)·(d)·범위 6 P4·R6 본체는 LA-1a) | 41 §5·§6.7-11·§6.8, 위 U15 행, 범위 15(DEC-105 (3)~(7)) | 선행 = LA-1a(표 #22)· IT-1+IT-2·UB-1+NL-1·HC-S·TB-1·**HC-1(+ GC-8 통합 병합)**·EO-1·WB-1·SF-1 범위 9(EO-1은 병합 선행 -- O-126·검증 m2; HC-1 선행 = 계획 표 #16·#17, 사용자 결정 O-190·O-191, **원래 취지와 다름(승인 O-190)**: 옛 'HC-1 선후 고정 없음'); DE-1·FX-1·GC-9 선행 아님; 뒤따름 = DE-1(표 #2)·OS-2(표 #8·#9). 착수 조건(이 판이 넘기는 실측 -- 값을 정하지 않음): M-TH1c(gm/ID 역산 소비자 전수 → 재작성 범위 표, LA-1·LI-1·WB-1 공통), M-TH1a(출발 구간 해 집합 여럿 여부), M-KV1b+(두 종속 선택의 front 차이 -- 차이가 나면 Q-KV1 (6) 대칭 상자 재개), M-LA16(C 열을 쓰지 않는 자리 -- 계획 N5.3, LA-1 design 전); LA-1 **완료 판정**은 CL-1 판정을 읽는다('CL-1 → LA-1 완료 → 단위 11' -- 계획 N6.1 단위 11, O-178; 병합과 완료 판정이 달라 순환 아님), 단위 11 착수 조건 = M-LB1(옮긴 4회로 단계 A·B 도달 -- O-182 Q-LB1)(v1.16.1 gap 누락 반영) |
 | CL-1(N6.19, v6.38.5 -- oracle 닫기, 사용자 결정 O-178; ME-1 대체) | 40 §3.6·§3.10.6(판정 위치·대조 기록 참조), 42 D-CL1 -- design 절은 착수 조건 뒤 | 선행 = oracle OP-3·OP-5·OP-10·OP-11, 엔진 EO-1·PW-1a·VB-1, metric 코드를 바꾸는 DE-1·NL-1·UB-1·IT-2(계획 N6.1 CL-1 행); 순서 = EO-1 뒤·LA-1 완료 판정 앞·단위 11 앞(계획 N6.19); 착수 = 계획 N5.3 Q-W1 결정 + Δ 정본 자리 계획 개정·검증·승인(graph 규칙 6) → design → design↔계획 gap. **이 판은 Δ 자리·목표 분해능/2·재풀이 = Q-W1 실현 평가·U-122 판정 항목의 design을 쓰지 않는다**(착수 조건 전 -- 계획 개정 뒤 반영; v1.16.1 gap A35·A38·A40 표지) |
-| GL-1(N6.37, v6.38.5 -- 검사 전용, 사용자 결정 O-182 Q-GL1 (가1)) | 40 §2.4.10 ①②(기준), 42 D-GL1 -- 도구 자리·이름·기준선 기록 id 자리 = GL-1 design(미작성, 계획 N6.37 범위 (3)) | 선행 없음; 공유 호출 감사 도구 생산(계획 표 #10, O-183); 다음 엔진 card 병합 앞(엔진 코드를 바꾸는 card는 GL-1 뒤에만 병합); 착수 = design 40 §2.4.10 ①② 기준 → GL-1 design → gap(v1.16.1 표 행 추가) |
+| GL-1(N6.37, v6.38.5 -- 검사 전용, 사용자 결정 O-182 Q-GL1 (가1)) | 40 §2.4.10 ①②(기준), 42 D-GL1 -- 도구 자리·이름·기준선 기록 id 자리 = 40 §2.4.10 'GL-1 design'(위임 A-28, 계획 N6.37 범위 (3)) | 선행 없음; 공유 호출 감사 도구 생산(계획 표 #10, O-183); 다음 엔진 card 병합 앞(엔진 코드를 바꾸는 card는 GL-1 뒤에만 병합); 착수 = design 40 §2.4.10 ①② 기준 → GL-1 design → gap(v1.16.1 표 행 추가) |
 | DR-1(N6.36, v6.38.4 -- 고정값 저항 망·구조적 0 전류 MOS 노드 writer, 승인 O-173 BL-DR1) | **design 절 없음**(v1.16.1 gap M5): 범위(저항 넷 노달 선형 해·VDS = 0 묶음(O-174)·Q-S9 (A′) 예외·결합 C 상자 갈래(Q-CB1)·Q-ZG1 (나) 기하·f_HP 칸)와 완료 (1)~(12)를 담을 design 자리를 계획이 지정하지 않았다 -- 계획 개정 필요(41 §5.12.8 P7), 42 D-DR1; 이 문서의 관련 자리 = §3.7-5 봉인 9 예외(Q-S9)·§3.1-1 결합 C 대상 밖 표지 | 선행 = IT-1 + IT-2 통합 병합(`E/sizing/writer_plan.py` 파일 겹침)·EO-1(Q-S9)·SF-1(Q-CB1 (Q) -- 표 #15); CPG-1과 무관; 착수 = held-out 처리(충족 O-175·O-181)·계획 개정(N3.4 W2 행 -- 충족 v6.38.5) → design → gap |
 | PW-1a(N6.17 -- 엔진 `power_dc_w` 대조 연결 정정) | design 단계 유무를 계획이 적지 않음(gap C11 -- 계획 개정 필요, 41 §5.12.8 P9); 관련 규칙 = 40 §3.6 정의 동일성 관문(DEC-72 (3)) | 선행 = oracle-portability OP-11; CL-1 앞; 착수 = OP-11 승인(oracle v0.6.9)(v1.16.1 표 행 추가) |
 - U16(오라클 입력)은 수동소자 값을 `device.passive_value` 필드에서 읽는다(①).
