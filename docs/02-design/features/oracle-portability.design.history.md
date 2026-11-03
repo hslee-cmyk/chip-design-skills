@@ -723,7 +723,7 @@ date: 2026-10-16
 
 ## v0.4.5 -- 재판정 반영 (2026-11-04, 브랜치 `docs/cards1104d`)
 
-근거: `wt/_drafts/evidence/2026-11-04/cards_d_validation.md` '재판정' R1·R2·r6, 위임 A-57. `model_includes` 줄은 판정 문언 `:220-228` 대신 이 브랜치 실측 `:218-226`으로 적었다.
+근거: `wt/_drafts/evidence/2026-11-04/cards_d_validation.md` '재판정' R1·R2·r6, 위임 A-57. `model_includes` 줄은 판정 문언 `:220-228` 대신 이 브랜치 실측 `:220-228`으로 적었다.
 
 ### 옛 문언
 
