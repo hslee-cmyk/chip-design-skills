@@ -494,3 +494,101 @@ date: 2026-10-16
 ### 옛 문언: 머리 Status (v0.3.10 판 전체)
 
 > > **Status**: **design v0.3.10 -- 개정 초안, 독립 검증 대기·사용자 승인 전**(2026-10-21; 넷째 커밋 = 사용자 결정 O-89 (2): `detail.also` 삭제(소비자 0), (b)(c) 함께 해당 시 기록 = `why = input_network_step_deferred` 하나; 셋째 커밋 = 사용자 결정 O-87: (2) X-R6 승인됨, (1) U-1 대응표 `differential_split` 행 -- 엔진 짝 = 예약 이름 `icm_config_feedback_outputs_split`(엔진 S-OS2 일반형 card), 그 전까지 엔진 `icm_config_differential_output_structure`, 갈리면 '정의 경계 불일치'; 둘째 커밋 = v0.3.10 검증(`_drafts/evidence/2026-10-21/oracle_design_v0310_validation.md`, 91/100, 필수 0) N1~N6: v6.28 문언 정렬(1865·481·F-14·1458), `bias_not_gate_only` 범주 = 입력 계약 전제(OP-3 이관 때 같은 변경에서 삭제), MOS kind 경계 대응 행, 출력을 건너는 경로 toy를 design 41에 알림, DV-1~DV-9 상태 표시, (x)(xi) toy 행 나눔; v0.3.10 = 계획 v0.6.17(승인 O-86, master `e87092b3`) DR-25 반영, 사용자 결정 O-85 (1)(3) -- DV-21 닫힘(차동 출력 두 출력 판정이 같을 때만, 갈리면 `dc_feedback_judgment_undefined` `why = differential_split`, gain-budget v6.28 N3.8 인용), 지원 밖 원소 사유 정렬(`why = voltage_source` → `element_unsupported`), §20 OP-5 막음 해소, §18.1 차동 결합 toy (x)(xi), 대응표·§19.6 F-15·F-16·graph 표; `bias_not_gate_only` 그대로; 열린 멈춤 없음; 이력 history v0.3.10; v0.3.9 문장: v0.3.9 둘째 커밋 = v0.3.9 검증(`_drafts/evidence/2026-10-21/oracle_design_v039_validation.md`, 85/100) M1(종류 문언 세 곳·OP-5 행 DV-19 모순)·M2(DV-21 = OP-5 그 갈래 구현 착수 조건, 닫는 경로 = gb N3.8 한 문장 -- 사용자 결정 대기)·N1~N5(toy DUT 조건·공통 게이트·R 분압, `/bias_voltages` 게이트 전용 규칙, 반대쪽 절단 넷, 'DC 전도 원소' 문언, bulk 백로그); v0.3.9 = 계획 v0.6.16(승인 O-83, master `dae968ec`) DR-24 반영, 사용자 결정 O-81 (2)·O-82 -- §21.2 2단계 'DC 성분' 소자 종류 분류를 gain-budget v6.27 N3.8 '선언 되먹임의 DC 되먹임 판정 -- 정의 하나' 인용 + 오라클 자기 구현(방향 의존 그래프, 시뮬레이터 호출 전, §21.2 2단계 (0))으로 바꿈, (a)(c)(e)·1b·§7·§11.6·점검표가 그 판정 하나를 읽음, `Inductor` 문언 삭제, 새 사유 `dc_feedback_judgment_undefined`(이상 전압원), 대응표·§18.1 'OP-5 (0)' 판정 toy 행·§19.6 F-13·F-14·graph 표, 1619행 포인터 닫힘, 새 멈춤 **DV-21**(차동 두 출력 판정이 갈리는 경우); 이력 history v0.3.9; v0.3.8 문장: v0.3.8 = 계획 v0.6.15(승인 O-80, master `93a9ff82`) DR-23 반영, 사용자 결정 O-78 (1)(2)·O-79·O-80 -- §21.6 1b(용량만 선언된 차동 출력 슬루의 t = 0 시작 동작점)와 1단계 입력 망 계단 갈래를 OP-10에서 빼고 gain-budget card AP-1 몫으로 표시(그때까지 `feedback_config_undeclared` `why = start_op_deferred`·`input_network_step_deferred`), `Tran.ic`·`tran_ic_bias_only`는 C10 소비자로 OP-4 소유(둘째 커밋 정정 -- 첫 커밋 'OP-3'은 계획 OP-4 행과 어긋남, v0.3.8 검증 M1; 둘째 커밋은 M1·M2·N1~N4도 반영), DV-19 닫힘(새 코드 `icmr_feedback_dc_absent`, 정의 = gain-budget v6.26 N3.8 인용, 단일 입력 먼저 -- R2), DV-20을 C10 몫으로 줄임; 이력 history v0.3.8 행; v0.3.7 문장: v0.3.7 = v0.3.6 design-validator 보고(`_drafts/evidence/2026-10-21/oracle_design_v036_validation.md`) 필수 2~6 반영, 사용자 결정 O-78 (3) -- `icmr_v` = 포트 창 교집합의 폭(정의 하나, m 좌표 hi − lo 삭제), DC 닫힘의 c 대칭 조건과 비대칭 c fail-closed(`closure_common_asymmetric`), 판별 가능한 닫힘 부호 test, 인용 위치 정정, `human.feedback.elements: []` → `unity_follower` 명시, graph 점검표 §19.6; 둘째 커밋 = v0.3.7 검증(`_drafts/evidence/2026-10-21/oracle_design_v037_validation.md`, 86/100) 필수 A·B와 N1~N8·C10 문장·r 백로그 메모(history v0.3.7 둘째 커밋 행); 필수 1·7(§21.6 1b)·DV-19는 O-78 (1)(2)로 계획 v0.6.15 대기라 손대지 않음; v0.3.6 문장: v0.3.6 = 계획 v0.6.14(승인 O-70 (2), 병합 `1b4a8536`) N7.5 DR-21·DR-22 반영 -- DV-17·DV-18 닫음, S-OS2 차동 모드 DC 닫힘 벤치, `icm_margin_v` 포트별 식, X-R3~X-R5 승인 표시, 슬루 t = 0 시작 동작점 벤치, 착수 실측(current_reuse 입력 망 없음 -- 사용자 보고), 설계 선택별 실현 가능성 표 §19.6(사용자 규칙 2026-10-21); 새 멈춤 DV-19·DV-20; v0.3.5 문장: v0.3.5 = v0.3.4 design-validator M1~M6·N1~N4와 design↔계획 gap(`_drafts/evidence/2026-10-21/oracle_design_v034_plan_gap.md`) 반영 -- `sim.a_dc`·`sim.offset_sys` 기록 자리(sim 단계, compare는 `sim_ref` 참조), 사유 집합·순서, 새 멈춤 DV-17(A 판정 분해능 식)·DV-18(OQ-10 (나) V_icm 동치 불성립), 사용자 확인 X-R3~X-R5; v0.3.4 문장: 승인된 계획 v0.6.13(O-65 -- DR-19·DR-20)·gain-budget v6.23(DEC-23 'A_dc 정의 불능 갈래'·N3.8 판정 분해능·N6.20 '2단계 판정 기록')과 사용자 결정 O-61~O-63으로 DV-14·DV-15·DV-16 닫음 -- §21.5 `a_dc` 기록(`.tf` A 한 측정, 갈래 먼저, 사유 셋), §21.4 4단계, §11.1 `swing_icmr` 두 칸 삭제·§21.2 V_icm, §11.6 `confirmed_range` 정의 불능 끝 `{undefined: true, record_id}`, §7 검사 (1) 범위, §11.7 `range_final.source`·`end_cause`, §19.4 X-R1·X-R2 승인 표시와 지문 축 차이; v0.3.4 당시 남은 멈춤 0 -- history 판 표 v0.3.4·v0.3.5). v0.3.0~v0.3.3 판의 Status 문장은 history H8로 옮겼다.
+
+---
+
+## v0.4.1 -- 검증 M1~M9 반영 (2026-11-03, 브랜치 `design/op0`)
+
+재판정: (1) M8 고칠 문언의 `role == 'circuit'`은 library topology에 그 키가 없어(netlist·passive_elements·ideal_sources 전부 None) IR 용어(`tb:`·`measurement_load` 제외)로 바꿈, 측정 결과는 재현 (2) M3에 없던 ε 눈금 정정: v0.4.0 ε = r은 옛 `S·f ≤ r²·cum`과 달라 동일성을 깸 → ε = r² (3) M3 비트 동일 갈래는 옛 확장 입력을 덮지 못함 → PG-5, 평탄 구간 거부 위험 → F-24. M5는 단일 입력과 겹치지 않게 입력 포트 둘 이상으로 좁힘, M4는 `slew_rate_v_per_s` 단일 선언 갈래를 더함.
+
+### 옛 문언: M1 test
+
+> | (v0.4.0) 10 정의 대조 -- OP-5 servo ICMR | `core/test_swing_icmr_def.py` | test 작성자 | 손 회로 차동·단일 입력: V_cm 좌표 세 metric 값, servo 부호 = `.tf`(role 이름을 뒤바꾼 변형도 같은 값), 고정 오차 초과 변형 → `icmr_output_lock_violated`, 입력 셋 → `icmr_input_ports_unsupported`, 선택 상대 항 칸 → E5 거부 |
+
+### 옛 문언: M2
+
+> free bias 실행이고 `offset_mc`·`offset_sys_mv`·PC-10 가운데 하나라도 요청됐을 때만 한 번(여기 방향 `tf_bench`(port 없음) 1회 -- 반전 입력 식별용 포트별 `tf_bench(port=p)`는 §21.2의 별도 측정); forced·iso bias, 셋 다 요청 없음,
+
+### 옛 문언: M2 정본 목록
+
+> §21.0~§21.3·§21.6·§21.7 일부
+
+### 옛 문언: M3 부등식
+
+> 바로 앞 구간 기울기 ≥ n̂(꼬리에서 완만해지지 않음)이고 n̂ > 1이어야 한다.
+
+### 옛 문언: M3 갈래
+
+> f_hi는 T(f_hi) ≤ ε·I(f_hi)(ε = `noise.rel_resolution`)를 푼 닫힌 식 f_hi = f0·(S(f0)·f0/((n̂ − 1)·ε·I))^(1/(n̂ − 1))로 직접 정하고,
+
+### 옛 문언: M3 test
+
+> | (v0.4.0) OP-B1 상한 | `core/test_bounds_derived.py` | test 작성자 | 상한 도달 toy마다 fail-closed 사유, 네 이름 + `NYQUIST_K_MAX` `git grep` 0, N4 비교(상한에 닿지 않은 입력 비트 동일) |
+
+### 옛 문언: M4·M5 4단계
+
+> 추종 판정 = 이상 폐루프 목표(계단 × 1/β) 양 끝 검사(상위 N3.8), 어기면 그 방향 정의 불능.
+
+### 옛 문언: M4~M6 test
+
+> | (v0.4.0) 10 정의 대조 -- OP-10 DR-27 | `core/test_slew_def.py` | test 작성자 | 해석해 슬루 회로: 20~80 % 기울기, 피드스루 가장자리 변형이 값을 바꾸지 않음, 계단 = 같은 덱 범위, 범위 정의 불능 → `follower_range_undefined`, 선언 step 범위 밖 → `slew_step_out_of_range`, 무릎 보고 칸 |
+
+### 옛 문언: M5·M6
+
+> **단일 출력 + DC 되먹임 없는 선언**(0단계 판정; v0.3.9 둘째 커밋 문언 -- 검증 M1-b, 옛 '용량만 선언'): 같은 입력의 ICMR이 `icmr_feedback_dc_absent`(§21.6 0단계 (e))라 확정 끝이 없어 2단계 `slew_step_end_undefined`로 끝난다(따로 사유를 두지 않음).
+
+### 옛 문언: M6 §7
+
+> (c) (v0.3.8, DR-23 (1)) 차동 출력 + DC 되먹임 없는 선언(
+
+### 옛 문언: M5 §7
+
+> 검사 순서 (a) → (b) → (c), 모두 어떤 시뮬레이터 호출보다 먼저
+
+### 옛 문언: M7
+
+> 같은 입력 `sim.swing_icmr.swing` 끝 기록(§11.7, 둘째 `.dc` 없음, 값 사본 없음) -- 밖이면
+
+### 옛 문언: M7 test
+
+> | (v0.4.0) 10 정의 대조 -- OP-5 DR-28 | `core/test_offset_sys.py` | test 작성자 | §21.4 toy, `.dc` 요청 0 단언, 엔진 U-107 toy와 같은 판정 |
+
+### 옛 문언: M8
+
+> 코어 `conduction.kcl_zero_current_devices(ir)`가 회로 IR 연결에서 집합을 독립 유도한다(엔진 값을 쓰지 않음).
+
+### 옛 문언: M8 test
+
+> | (v0.4.0) 10 정의 대조 -- OP-5 판정 한 단계 | `core/test_conduction.py` | test 작성자 | §21.1 깨진 변형 전부 |
+
+### 옛 문언: M9 §8.1
+
+> work_dir: str, timeout_s: float|None, cache_dir: str|None) -> ResultBundle
+
+### 옛 문언: M9 §9
+
+> 모델 묶음 sha256 정렬 목록 ∥ 실행 인자). 같은 키는
+
+### 옛 문언: M9 §11.7
+
+> `fingerprints = {adapter_fp, descriptor_fp, capability_record_id}`(계획 FR-P9.
+
+### 옛 문언: M9 §16
+
+> 찾으면 어댑터 실행 설정 `RunConfig.compat = 선언 compat`으로 실행하고,
+
+### 옛 문언: M9 완료
+
+> `_helpers_bins.py` 변경 0(`git diff`).
+
+### 옛 문언: M4 §7
+
+> | `bin_rule_undeclared` | (v0.4.0, OP-7, §16)
+
+### 옛 문언: version
+
+> version: 0.4.0
+
+### 옛 문언: Status
+
+> > **Status**: **design v0.4.0 -- 개정 초안, 독립 검증·design↔계획 gap·사용자 승인 대기**
