@@ -35,6 +35,7 @@ REL_VGS_GATE = "vgs_gate"                              # 쓰기 소자가 source
 REL_VGS_SOURCE = "vgs_source"                          # 쓰기 소자가 gate 에서 source 를 쓴다(소스 추종, W2)
 REL_RESISTOR = "resistor_drop"                         # V(far) = V(near) -/+ I*R (W2 (b))
 REL_WINDOW = "free_window"                             # W4: θ 의 y 성분 -> 창 안 위치
+REL_INPUT_POINT = "input_point"                        # 입력 DC 미선언 차동 입력쌍의 두 포트가 묶인 입력 점(DEC-106): W4 뿌리 하나, F 에 닿으면 KVL 종속
 
 # ---- path_values 관계 종류(봉인 1 입력의 relation[0])
 PATH_MOS = "vgs"                                       # MOS 좌표에서 VGS 역산으로 함의한 gate·source 전압
@@ -91,7 +92,7 @@ REPORT_UNDEFINED = "undefined"
 
 # ---- 실패 사유(detail reason) -- 정지(StructureUnresolvedError)는 graph 와 같은 reason 키 + rule_branch
 BRANCH_RESISTOR_CYCLE = "dc_resistor_cycle"
-BRANCH_INPUT_MULTIPLE_ROOTS = "input_port_multiple_roots"   # 입력 포트인 W4 뿌리가 둘 이상(DEC-76 미구현)
+BRANCH_INPUT_CM_UNDEFINED = "input_cm_undefined"       # 입력 DC 미선언 + 입력 포트가 차동쌍 하나가 아님(DEC-106): 탐색 전 정지
 BRANCH_MOS_ZERO_CURRENT = "mos_zero_current_structural"
 BRANCH_ORIENTATION = "mos_orientation_unsupported"
 REASON_DECLARED_KCL = "declared_source_kcl_conflict"

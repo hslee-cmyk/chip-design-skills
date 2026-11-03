@@ -18,6 +18,9 @@
    (diode 면 W1), gate 에서 source 를 쓰면 `vgs_source`(W2), 저항은 `resistor_drop`(W2).
 5. F 가 없는 성분의 뿌리 = 그 성분의 입력 포트가 있으면 그중 (구조 색, 이름) 최소(y 키 = 그 뿌리 넷), 없으면 성분 노드
    중 (구조 색, 이름) 최소(y 키 = 넷) -- W4. 최소 색 후보가 둘 이상이면 `w4_root` 기록. G_vgs 에 없는 노드 = W4(y 키 = 넷).
+   [DEC-106 입력 점] 입력 DC 미선언이고 입력 포트가 둘이며 role 이 `differential_input_p`·`differential_input_n` 각 하나이면 두 포트를 Kruskal·성분
+   계산에서 한 점으로 묶는다(`_input_point`). 점이 F 에 닿지 않으면 W4 뿌리 = p 포트 하나(두 포트 모두 relation `input_point`, y 키 = p 포트 넷), F 에
+   닿으면 v_cm 은 KVL 종속(y 성분 0): 먼저 쓰인 포트가 MOS·저항 관계를, 다른 포트가 `input_point`(known = 먼저 쓰인 포트)를 받는다.
 6. 비트리 MOS 엣지 = 종속 소자(좌표는 노드 VGS 순방향). 분류: gate·source 가 둘 다 고정 -> `fixed_vgs`, 같은 kind·같은
    (gate, source) 트리 엣지가 있으면 `parallel_vgs`(v0, partner), 나머지 `cycle_vgs`(v1·v2).
 7. [U17 ①-b, 설계 40 §2.4.8 '1변수 writer 집합'] `device.dc_self_referential` = MOS 마다 그 소자가 쓰는 노드가 자기 d·s·bulk 중 하나인가(diode 의 gate 쓰기,
@@ -25,18 +28,19 @@
 8. [카드 IT-2b, 설계 41 4.7-1a] `node.dc_output_structure` = 출력 포트 넷마다 `high_impedance`|`kvl_fixed`. 위 2의 G_vgs 엣지 목록(`_edges`, F 를 묶기 전)에서 출력 넷부터
    너비 우선으로 성분을 걸어 F′(= 레일 ∪ 입력 DC 선언이면 입력 포트; W3 목표 넷은 넣지 않는다)에 닿으면 `kvl_fixed`, 닿지 않거나 G_vgs 밖이면 `high_impedance`.
    θ 무관(S0 당 1회)이고 writer 는 이 블록 하나다 -- 소비자(측정 구성·다듬은 창)는 이 필드를 읽기만 하고 다시 분류하지 않는다.
-정지: 입력 포트인 W4 뿌리(G_vgs 밖 고립 입력 포트 포함)가 둘 이상 -> `StructureUnresolvedError`(rule_branch
-`input_port_multiple_roots`, nets = 뿌리 넷들 쓰기 순번 순; 뿌리별 y 묶음·창은 미구현 -- DEC-76). 비트리 저항 엣지(값이 정해진 저항 루프 -- 저항을 종속시키는 규칙이 없음) -> `StructureUnresolvedError`
+정지: 입력 DC 미선언이고 입력 포트(G_vgs 밖 고립 입력 포트 포함)가 둘 이상인데 차동쌍 하나가 아니다 -> `StructureUnresolvedError`(rule_branch
+`input_cm_undefined`, ports = 그 포트 넷들, 탐색 전 정지 -- DEC-106). 비트리 저항 엣지(값이 정해진 저항 루프 -- 저항을 종속시키는 규칙이 없음) -> `StructureUnresolvedError`
 (`unsupported_rule_branch`, rule_branch `dc_resistor_cycle`).
 """
 from collections import deque
 
-from gmid_engine.authoring import INPUT_DIRECTION, OUTPUT_DIRECTION
+from gmid_engine.authoring import (INPUT_DIRECTION, OUTPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_N,
+                                   ROLE_DIFFERENTIAL_INPUT_P)
 from gmid_engine.core import StructureUnresolvedError, compute_block
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, MOS_TERMINAL_NAMES, UNSUPPORTED_RULE_BRANCH
 
 from .s2_values import (
-    BRANCH_INPUT_MULTIPLE_ROOTS,
+    BRANCH_INPUT_CM_UNDEFINED,
     BRANCH_RESISTOR_CYCLE,
     COORD_DEPENDENT,
     COORD_WRITER,
@@ -49,6 +53,7 @@ from .s2_values import (
     OUTPUT_HIGH_IMPEDANCE,
     OUTPUT_KVL_FIXED,
     REL_INPUT_DC,
+    REL_INPUT_POINT,
     REL_RAIL,
     REL_RESISTOR,
     REL_TARGET,
@@ -71,7 +76,8 @@ from .s2_values import (
 
 READS = (
     ("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
-    ("node", "is_rail"), ("node", "port_direction"), ("node", "dc_colour"), ("device", "dc_colour"), ("device", "bulk"),
+    ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_colour"), ("device", "dc_colour"),
+    ("device", "bulk"),
 )
 WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"),
           ("node", "dc_output_structure"))
@@ -174,14 +180,16 @@ def dc_writer_plan(projection):
     for net in sorted(fixed, key=node_key):
         plan.put(net, *fixed[net])
     free_inputs = tuple(sorted((net for net in inputs if net not in fixed), key=node_key))
+    point = _input_point(free_inputs, dict(projection.column("node", "port_role")))     # (p 포트, n 포트) 또는 None
+    twin = {} if point is None else {point[0]: point[1], point[1]: point[0]}
     parent = {}
     tree = []
     coords = {}
     groups = {}
     edges = _edges(classes, kinds, pins, diode, dcolour, hints)
     for key, rank, name, a, b in edges:
-        ra = _find(parent, _FIXED if a in fixed else a)
-        rb = _find(parent, _FIXED if b in fixed else b)
+        ra = _find(parent, _FIXED if a in fixed else canon(a, point))
+        rb = _find(parent, _FIXED if b in fixed else canon(b, point))
         is_tree = ra != rb
         groups.setdefault(key[:-1], []).append((name, is_tree))
         if is_tree:
@@ -200,15 +208,16 @@ def dc_writer_plan(projection):
         if len(decided) > 1:
             ties.append(TieBreak(TIE_KRUSKAL, tuple(sorted(n for n, _t in members)),
                                  tuple(sorted(n for n, t in members if t))))
-    pairs = {(kinds[n], a, b): n for rank, n, a, b in tree if rank in (_DIODE, _MOS)}
+    pairs = {(kinds[n], canon(a, point), canon(b, point)): n for rank, n, a, b in tree if rank in (_DIODE, _MOS)}
     for name, value in tuple(coords.items()):
         if isinstance(value, DeviceCoord):
             continue
         gate, source = value
+        pair = (kinds[name], canon(gate, point), canon(source, point))
         if gate in fixed and source in fixed:
             coords[name] = DeviceCoord(COORD_DEPENDENT, DEP_FIXED)
-        elif (kinds[name], gate, source) in pairs:
-            coords[name] = DeviceCoord(COORD_DEPENDENT, DEP_PARALLEL, pairs[(kinds[name], gate, source)])
+        elif pair in pairs:
+            coords[name] = DeviceCoord(COORD_DEPENDENT, DEP_PARALLEL, pairs[pair])
         else:
             coords[name] = DeviceCoord(COORD_DEPENDENT, DEP_CYCLE)
     edge_key = {(rank, name, a, b): (rank, dcolour[name], name, a, b)
@@ -219,8 +228,19 @@ def dc_writer_plan(projection):
         adjacency.setdefault(a, []).append(edge)
         adjacency.setdefault(b, []).append(edge)
 
+    def settle(net, queue):
+        """`net` 을 큐에 넣고, 입력 점의 짝 포트가 아직 안 쓰였으면 같은 전압(KVL)으로 쓴다(known = net; 점이 W4 뿌리면 y 키도 같다)."""
+        queue.append(net)
+        mate = twin.get(net)
+        if mate is not None and mate not in plan.writes:
+            y_key = plan.writes[net].y_key if plan.writes[net].relation == REL_INPUT_POINT else None
+            plan.put(mate, TIER_W2 if y_key is None else TIER_W4, REL_INPUT_POINT, None, net, y_key)
+            queue.append(mate)
+
     def walk(start):
-        queue = deque(start)
+        queue = deque()
+        for net in start:
+            settle(net, queue)
         while queue:
             u = queue.popleft()
             for rank, name, a, b in adjacency.get(u, ()):
@@ -233,29 +253,32 @@ def dc_writer_plan(projection):
                     plan.put(v, TIER_W1 if diode.get(name) else TIER_W2, REL_VGS_GATE, name, u)
                 else:
                     plan.put(v, TIER_W2, REL_VGS_SOURCE, name, u)
-                queue.append(v)
+                settle(v, queue)
+
+    def root_write(root):
+        """F 에 닿지 않는 성분의 뿌리를 쓴다 -- 입력 점이면 뿌리는 p 포트(관계 `input_point`, y 키 = p 포트 넷), 그 밖은 `free_window`(y 키 = 넷)."""
+        if point is not None and root in point:
+            plan.put(point[0], TIER_W4, REL_INPUT_POINT, None, None, point[0])
+            return point[0]
+        plan.put(root, TIER_W4, REL_WINDOW, None, None, root)
+        return root
 
     walk(sorted(fixed, key=node_key))
     for net in sorted(adjacency, key=node_key):
         if net in plan.writes:
             continue
-        component = _component(adjacency, net)
+        component = _component(adjacency, net, twin)
         ports = sorted((n for n in component if n in free_inputs), key=node_key)
         candidates = ports or sorted(component, key=node_key)
         root = candidates[0]
-        tied = tuple(sorted(n for n in candidates if ncolour[n] == ncolour[root]))
-        if len(tied) > 1:
-            ties.append(TieBreak(TIE_ROOT, tied, (root,)))
-        plan.put(root, TIER_W4, REL_WINDOW, None, None, root)
-        walk((root,))
+        if point is None or root not in point:
+            tied = tuple(sorted(n for n in candidates if ncolour[n] == ncolour[root]))
+            if len(tied) > 1:
+                ties.append(TieBreak(TIE_ROOT, tied, (root,)))
+        walk((root_write(root),))
     for net in nodes:
         if net not in plan.writes:
-            plan.put(net, TIER_W4, REL_WINDOW, None, None, net)
-    input_roots = tuple(net for net, w in plan.writes.items() if w.relation == REL_WINDOW and net in free_inputs)
-    if len(input_roots) > 1:
-        raise StructureUnresolvedError(devices=(), detail={"reason": UNSUPPORTED_RULE_BRANCH,
-                                                           "rule_branch": BRANCH_INPUT_MULTIPLE_ROOTS,
-                                                           "nets": input_roots})
+            walk((root_write(net),))
     bulk = {n: b.net for n, b in projection.column("device", "bulk")}
     self_ref = {m: False for m, c in classes.items() if c == ELEMENT_MOS}
     for net, w in plan.writes.items():
@@ -269,14 +292,35 @@ def dc_writer_plan(projection):
             ("node", "dc_output_structure"): _output_structure(edges, outputs, fixed_prime)}
 
 
-def _component(adjacency, start):
+def _component(adjacency, start, twin):
+    """`start` 의 G_vgs 성분 -- 입력 점의 두 포트(`twin`)는 한 점이라 한쪽에 닿으면 다른 쪽 성분도 이어진다."""
     seen = {start}
     queue = deque((start,))
     while queue:
         u = queue.popleft()
-        for _rank, _name, a, b in adjacency.get(u, ()):
-            v = b if u == a else a
+        neighbours = [b if u == a else a for _rank, _name, a, b in adjacency.get(u, ())]
+        if u in twin:
+            neighbours.append(twin[u])
+        for v in neighbours:
             if v not in seen:
                 seen.add(v)
                 queue.append(v)
     return seen
+
+
+def canon(net, point):
+    """입력 점의 n 포트는 p 포트와 한 점이다(Kruskal·평행 판정의 대표 넷)."""
+    return point[0] if point is not None and net == point[1] else net
+
+
+def _input_point(free_inputs, roles):
+    """입력 DC 미선언 입력 점(DEC-106): 자유 입력 포트가 둘이고 role 이 차동 입력 p·n 각 하나이면 (p 포트, n 포트), 하나 이하면 None(옛 규칙),
+    그 밖(차동쌍 둘, 차동쌍 없는 입력 둘 이상, 차동쌍 + 다른 입력)은 탐색 전 정지 -- 입력 공통모드가 정해지지 않는다."""
+    if len(free_inputs) < 2:
+        return None
+    by_role = {roles.get(net): net for net in free_inputs}
+    if len(free_inputs) == 2 and set(by_role) == {ROLE_DIFFERENTIAL_INPUT_P, ROLE_DIFFERENTIAL_INPUT_N}:
+        return by_role[ROLE_DIFFERENTIAL_INPUT_P], by_role[ROLE_DIFFERENTIAL_INPUT_N]
+    raise StructureUnresolvedError(devices=(), detail={"reason": UNSUPPORTED_RULE_BRANCH,
+                                                       "rule_branch": BRANCH_INPUT_CM_UNDEFINED,
+                                                       "ports": tuple(free_inputs)})
