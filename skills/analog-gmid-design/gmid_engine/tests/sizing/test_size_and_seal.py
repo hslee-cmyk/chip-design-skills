@@ -525,3 +525,80 @@ def test_ic2_order_shuffle_invariance(tmp_path, r4_access):
     ea = size_and_seal(a, th, w_request={"M3": 1e-5, "M2": w2})
     eb = size_and_seal(b, th, w_request=(("M2", w2), ("M3", 1e-5)))
     assert ea.snapshot.fp == eb.snapshot.fp and ea.report == eb.report
+
+
+# =====================================================================================================================
+# [IT-2e 20261104-it2e-partial-snapshot, T-E2·T-E3·T-E4·T-E7] 실패 평가의 부분 스냅샷 -- 봉인 항목 블록, parent 유무 대조, 봉인 위반 경로.
+# oracle (변성): 부분 스냅샷은 (평가 키, 실패 지점)만으로 정해진다 -- parent 가 있든 없든 같은 θ·같은 주입이면 지문이 같다.
+# 기대 집합·주입·유효 조건 (가)(나)는 test_kernel_run 의 IT-2e 절과 같은 helper 를 쓴다(피검 함수로 기대값을 만들지 않는다).
+# =====================================================================================================================
+
+from .test_kernel_run import (IT2E_KERNEL, IT2E_SEAL, it2e_assert_parent_had_k_fields, it2e_assert_rule,  # noqa: E402
+                              it2e_record, it2e_run)
+
+
+@pytest.mark.parametrize("k", IT2E_SEAL)
+def test_it2e_seal_item_block_failure_with_parent_partial_rule(tmp_path_factory, toy_access, monkeypatch, k):
+    """T-E2: 봉인 항목 블록 k(봉인 7 항목 + dc_seal_report) 후보 실패 + parent -> 키 = base writer ∪ k 앞 블록, k 이후 없음."""
+    rec = it2e_record(tmp_path_factory, toy_access)
+    r = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, True, rec)
+    it2e_assert_parent_had_k_fields(r, k)
+    it2e_assert_rule(r, k)
+
+
+@pytest.mark.parametrize("k", IT2E_KERNEL + IT2E_SEAL)
+def test_it2e_partial_fingerprint_parent_independent(tmp_path_factory, toy_access, monkeypatch, k):
+    """T-E3: 같은 θ·같은 주입을 parent 없이(다른 컨텍스트, 평가 키 캐시를 거치지 않음) 부른 대조의 부분 스냅샷 지문 = parent 경로 지문.
+    대조도 규칙을 충족한다. (나) 두 결과는 같은 객체가 아니다. 지문 절대값은 단언하지 않는다(같음만)."""
+    rec = it2e_record(tmp_path_factory, toy_access)
+    rp = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, True, rec)
+    rc = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, False, rec)
+    assert rc.parent is None and rp.parent is not None
+    assert rp.ctx is not rc.ctx and rp.exc is not rc.exc and rp.exc.partial is not rc.exc.partial     # 사례 유효 (나)
+    it2e_assert_rule(rc, k)
+    assert set(rp.exc.partial.block_versions) == set(rc.exc.partial.block_versions)
+    assert rp.exc.partial.fp == rc.exc.partial.fp
+
+
+@pytest.mark.parametrize("k", [IT2E_KERNEL[0], IT2E_KERNEL[3], IT2E_SEAL[0], IT2E_SEAL[-1]])
+def test_it2e_parentless_partial_unchanged(tmp_path_factory, toy_access, monkeypatch, k):
+    """T-E7 (동작 보존): parent 없는 평가의 부분 스냅샷은 종래와 같다 -- 기존 규칙(키 = base writer ∪ k 앞 블록, k 이후 없음)이 그대로이고
+    같은 입력의 두 독립 실행이 같은 지문을 낸다(결정성). 지문 절대 기준선은 두지 않는다(interface '단언 금지')."""
+    rec = it2e_record(tmp_path_factory, toy_access)
+    a = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, False, rec)
+    b = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, False, rec)
+    assert a.ctx is not b.ctx and a.exc.partial is not b.exc.partial
+    it2e_assert_rule(a, k)
+    assert a.exc.partial.fp == b.exc.partial.fp
+
+
+def test_it2e_seal_violation_with_parent_keeps_report_fields(tmp_path_factory, r4_access):
+    """T-E4: 봉인 위반 경로 + parent -- 부분 스냅샷에 dc_seal_report 필드까지 남고(지우면 red) 커널 밖 writer(ss_dev) 필드는 없다.
+    키 = base writer ∪ 평가 13 블록, 지문 = parent 없는 대조 평가와 같다. 위반 θ = test_candidate_failure_recorded_and_cached 와 같은 구성
+    (y = 0.1, VGS1 = 1.5 -> 봉인 위반), parent = 봉인된 평가에 손 ss 를 실은 것(커널 밖 writer 필드가 실려 있음)."""
+    from .conftest import circuit_cs_pmos_load, theta_r4c, with_hand_ss
+
+    def mk(tag):
+        return build_ctx(tmp_path_factory.mktemp(tag), circuit_cs_pmos_load(), r4_access)[2]
+
+    bad = theta_r4c(y=0.1, v1=1.5)
+    ctx = mk("it2e_v_p")
+    e0 = size_and_seal(ctx, theta_r4c())
+    assert e0.sealed is not None                                                          # 전제
+    parent = with_hand_ss(e0)
+    assert parent.snapshot.column("device", "ss_dev") != ()                               # 전제: 지워질 낡은 필드가 실려 있다
+    with pytest.raises(SealViolationError) as ei:
+        size_and_seal(ctx, bad, parent=parent)
+    assert "items" in detail(ei.value)                                                    # 전제: 봉인 보고 위반 경로
+    ctx2 = mk("it2e_v_c")
+    with pytest.raises(SealViolationError) as ec:
+        size_and_seal(ctx2, bad)
+    assert "items" in detail(ec.value)
+    p, c = ei.value.partial, ec.value.partial
+    assert p is not None and c is not None and p is not c and ctx is not ctx2             # (나)
+    exp = set(ctx.base.block_versions) | {b.name for b in EVAL13}
+    assert set(p.block_versions) == exp and "ss_dev" not in p.block_versions
+    rep = [kf for kf, w in p.writers.entries if w == S.dc_seal_report.name]
+    assert rep and any(p.column(*kf) != () for kf in rep)                                 # 봉인 보고 필드가 남아 있다
+    assert p.column("device", "ss_dev") == ()
+    assert p.fp == c.fp
