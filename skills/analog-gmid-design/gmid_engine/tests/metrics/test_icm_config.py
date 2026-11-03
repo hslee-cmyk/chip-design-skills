@@ -263,10 +263,10 @@ def _lut_with_vdsat(root):
     return load_lut_set(str(manifest), str(cap), LutSpec(*LUT_SPEC_ARGS))
 
 
-def _evaluate(tmp, topo, els, theta, constraints, *, input_dc_v=None, with_vdsat=True):
+def _evaluate(tmp, topo, els, theta, constraints, *, input_dc_v=None, with_vdsat=True, feedback=()):
     """spec 로더 -> build_s1 -> 커널 -> size_and_seal -> ss_evaluate. 반환 (snapshot, ctx)."""
     from gmid_engine.graph import build_s1
-    td, spec = load_case(tmp / "case", topo, SUP, els, (), constraints, input_dc_v=input_dc_v)
+    td, spec = load_case(tmp / "case", topo, SUP, els, feedback, constraints, input_dc_v=input_dc_v)
     inputs = dc_inputs_from_spec(spec)
     if with_vdsat:
         lut = _lut_with_vdsat(tmp / "lut")
@@ -776,3 +776,192 @@ def test_it2c_triode_declared_device_row_zero_crossing_is_the_window_end(tmp_pat
     w = snap.value("node", "in", "dc_window_cfg")
     assert w.input_status == "measured"
     assert _close(w.lo, op.vgs - slack_t / abs(s_out), 1e-9) and abs(w.hi - SUP["vdd"]) <= 1e-12
+
+
+# ======================================================================================================================
+# 빈칸 답 2 (interface 24dc09d1): T-L8d(MOS 부하 toy)·T-L8e(정확 0, 단위 상쇄)·T-L8h·T-K 빈 창·값 test(region_rows, NodalSystem)
+# ======================================================================================================================
+
+def _l8d_run(tmp, feedback):
+    """M1 (x, ip, gnd), M2 (out, im, gnd), Mp pmos (out, vb, vdd). 저항 R1 (vdd, x), Rf (out, im), CL (out, gnd). 저항 고리 없음(Rf 한 끝 im 은 고정 넷)."""
+    topo = topo_doc("it2c_l8d", mos=[("M1", "nmos", "x", "ip", "gnd", "gnd"), ("M2", "nmos", "out", "im", "gnd", "gnd"),
+                                     ("Mp", "pmos", "out", "vb", "vdd", "vdd")],
+                    passives=[("R1", "resistor", "vdd", "x"), ("Rf", "resistor", "out", "im"), ("CL", "capacitor", "out", "gnd")],
+                    ports={"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),
+                           "out": ("output", "single_ended_output")}, rails=("vdd", "gnd"), bias=["vb"])
+    th = {("L", "M1"): L0, ("L", "M2"): L0, ("L", "Mp"): L0, ("current", "R1"): 1e-5, ("resistance", "R1"): 9e4,
+          ("resistance", "Rf"): 1e5, ("current", "Mp"): 1e-5, ("ln_idu", "Mp"): lut_ln_idu("pmos", 0.6, 1.2, 0.0)}
+    els = (("R1", "resistor", None), ("Rf", "resistor", None), ("CL", "capacitor", 1e-12))
+    return _evaluate(tmp, topo, els, th, PWR, input_dc_v=VGS0, feedback=feedback)[0]
+
+
+def test_it2c_l8d_resistor_feedback_declaration_does_not_change_window(tmp_path):
+    """oracle 대조: (손) T-L8d (빈칸 답 2-1). 선언 소자 Rf 는 봉인점 회로 소자로 G 에 든다; `human.feedback` 선언 유무는 창을 바꾸지 않는다(두 실행 같음)
+    그리고 창 = 손 감도. Gf = 1/Rf, A = (Gf − gm2)/(gds2 + gdsp + Gf) (out KCL: Rf 가 im 에서 들어옴), A1 = gm1/(gds1 + 1/R1).
+    c = e_out, c·vx = A, a_e = −A/2, (c·vx)/a_e = −2 -> s_ip = 2, s_im = 0, s_out = 0, s_x = −2·A1. 행 M1 (x, gnd): Δ <= slack/(2·A1);
+    M2·Mp 행 기울기 0 (건너뜀, slack > 0 전제). 레일 0 <= 0.6 + 2Δ <= 1.8. cfg ip = [0.6 + 2Δlo, 0.6 + 2Δhi], im = [0.6, 0.6]. config servo."""
+    snap_a = _l8d_run(tmp_path / "a", ("Rf",))
+    snap_b = _l8d_run(tmp_path / "b", ())
+    ss1, ss2, ssp = (snap_a.value("device", m, "ss_dev") for m in ("M1", "M2", "Mp"))
+    rf, r1 = snap_a.value("device", "Rf", "passive_value"), snap_a.value("device", "R1", "passive_value")
+    gf = 1.0 / rf
+    a = (gf - ss2.gm) / (ss2.gds + ssp.gds + gf)
+    a1 = ss1.gm / (ss1.gds + 1.0 / r1)
+    ops = {m: snap_a.value("device", m, "dc_op") for m in ("M1", "M2", "Mp")}
+    slack1 = ops["M1"].vds - _vdsat(ops["M1"].vgs)
+    assert slack1 > 0 and ops["M2"].vds - _vdsat(ops["M2"].vgs) > 0 and ops["Mp"].vds - _vdsat(ops["Mp"].vgs) > 0     # 전제: 건너뛴 행 slack > 0
+    assert a1 > 0 and abs(a) > 0
+    v0 = ops["M1"].vgs
+    dlo, dhi = -v0 / 2.0, min((SUP["vdd"] - v0) / 2.0, slack1 / (2.0 * a1))
+    for snap in (snap_a, snap_b):
+        assert _icm(snap).config == "servo"
+        wp, wm = snap.value("node", "ip", "dc_window_cfg"), snap.value("node", "im", "dc_window_cfg")
+        assert wp.input_status == wm.input_status == "measured"
+        assert abs(wp.lo - (v0 + 2.0 * dlo)) <= 1e-9 and _close(wp.hi, v0 + 2.0 * dhi, 1e-8)
+        assert abs(wm.lo - v0) <= 1e-9 and abs(wm.hi - v0) <= 1e-9
+    wa, wb = snap_a.value("node", "ip", "dc_window_cfg"), snap_b.value("node", "ip", "dc_window_cfg")
+    assert (wa.lo, wa.hi) == (wb.lo, wb.hi)
+
+
+def test_it2c_l8e_exact_zero_pivot_pipeline_toy(tmp_path):
+    """oracle 대조: (d) T-L8e (a) 정확 0 (빈칸 답 2-2). M1 (vdd, ip, t), M2 (vdd, im, t), M3 (t, vb, gnd), CL (t, gnd), 출력 t, 입력 DC 1.2.
+    M1·M2 gm 비트 동일(전제) -> t 행 구동 = (gm1 − gm2)/2 = 0 -> a_e 정확 0 -> `config is None`, code `icm_servo_pivot_unresolved`, cfg 항목 없음."""
+    topo = topo_doc("it2c_zero_ae", mos=[("M1", "nmos", "vdd", "ip", "t", "gnd"), ("M2", "nmos", "vdd", "im", "t", "gnd"),
+                                         ("M3", "nmos", "t", "vb", "gnd", "gnd")],
+                    passives=[("CL", "capacitor", "t", "gnd")],
+                    ports={"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),
+                           "t": ("output", "single_ended_output")}, rails=("vdd", "gnd"), bias=["vb"])
+    th = {("L", "M1"): L0, ("L", "M2"): L0, ("L", "M3"): L0, ("current", "M1"): 1e-5, ("current", "M2"): 1e-5,
+          ("ln_idu", "M1"): lut_ln_idu("nmos", 0.6, 1.2, 0.6), ("ln_idu", "M3"): lut_ln_idu("nmos", 0.6, 0.6, 0.0)}
+    snap, _ = _evaluate(tmp_path, topo, (("CL", "capacitor", 1e-12),), th, PWR, input_dc_v=1.2)
+    assert snap.value("device", "M1", "ss_dev").gm == snap.value("device", "M2", "ss_dev").gm       # 전제: gm 비트 동일
+    cfg = _icm(snap)
+    assert cfg.config is None and [u.code for u in cfg.undefined] == ["icm_servo_pivot_unresolved"]
+    assert not {"ip", "im"} & set(dict(snap.column("node", "dc_window_cfg")))
+
+
+def test_it2c_l8e_assembly_cancellation_pivot_resolution_unit():
+    """oracle 대조: (손) T-L8e (b) 조립 상쇄 (빈칸 답 2-2, `_transfer_resolution` 직접 호출 허용). 저항 스탬프만: R(1,3) 10 ∥ R(1,3) 5, R(2,3) 10/3, R(3,0) 1000,
+    고정 {0,1,2}, 구동 v1 = +0.9, v2 = −0.9, 감지 e_3. 참값 = fractions.Fraction 으로 같은 float 저항에서 낸 노드 3 KCL 해(0 이 아니다, ~2e-17).
+    단언: 전제 g[3,1] != g[3,2](조립이 정확히 상쇄하지 않는다), 풀이 x != 0, 판정 분해능 δ 가 있고 |x − 참값| <= δ 와 |x| <= δ (판정 불능이 맞다)."""
+    from fractions import Fraction
+    import numpy as np
+    from gmid_engine.metrics import Resistor, SmallSignalCircuit
+    from gmid_engine.metrics._helpers_nodal import conductance_matrix, nodal_factor, nodal_solve
+    from gmid_engine.metrics.aux_types import NodalSystem
+    from gmid_engine.metrics.icm_config import _transfer_resolution
+    rs = (10.0, 5.0, 10.0 / 3.0, 1000.0)
+    ck = SmallSignalCircuit(resistors=(Resistor(1, 3, rs[0]), Resistor(1, 3, rs[1]), Resistor(2, 3, rs[2]), Resistor(3, 0, rs[3])))
+    n, fixed = 4, {0, 1, 2}
+    g, gb = conductance_matrix(ck, n, bound=True)
+    assert g[3, 1] != g[3, 2]
+    sysm = NodalSystem(("gnd", "a", "b", "s"), frozenset(fixed), g, gb, nodal_factor(g, fixed))
+    for arr in (sysm.g, sysm.g_bound):
+        arr.flags.writeable = False
+    volt, _res = nodal_solve(sysm.factor, n, {1: 0.9, 2: -0.9})
+    sense = np.zeros(n)
+    sense[3] = 1.0
+    x = float(volt[3])
+    assert x != 0.0
+    delta = _transfer_resolution(sysm, volt, sense)
+    assert delta is not None and delta > 0.0
+    f = [Fraction(1) / Fraction(r) for r in rs]
+    true = (( f[0] + f[1]) * Fraction(0.9) + f[2] * Fraction(-0.9)) / (f[0] + f[1] + f[2] + f[3])
+    assert abs(Fraction(x) - true) <= Fraction(delta)
+    assert abs(x) <= delta
+
+
+def test_it2c_t_l8h_icmr_is_region_row_window_not_conduction_end(tmp_path):
+    """oracle 대조: (손) T-L8h (빈칸 답 2-4). `_two_stage(1e-5, 9e4, 2e-5, 4.5e4)`: 전도 끝(옛 R0 가 있었다면) Δc_k = −ID_k/(gm_k·s_p,k + gds_k·s_o),
+    영역 행 창의 아래 끝 Δlo = 레일 끝 max_p (0 − V_p)/s_p (포화 행은 Δ < 0 쪽에서 여유가 늘어 끝을 만들지 않는다). 전제: |Δc| < |Δlo|(전도 끝이 레일 끝보다
+    안쪽이라 옛 식이면 달라진다). cfg lo = V_p + s_p·Δlo (영역 행·레일 끝). 전도 끝이면 red."""
+    snap, _ = _two_stage(tmp_path, 1e-5, 9e4, 2e-5, 4.5e4)
+    a1, a2, delta, s_o = _servo_hand(snap)
+    vp, s_p, dlo, dhi = _servo_window(snap)
+    cond = []
+    for m, pn in (("M1", "ip"), ("M2", "im")):
+        ss, op = snap.value("device", m, "ss_dev"), snap.value("device", m, "dc_op")
+        cond.append(-op.current / (ss.gm * s_p[pn] + ss.gds * s_o))
+    assert dlo == max((0.0 - vp[p]) / s_p[p] for p in vp)                       # 전제: 아래 끝은 레일 끝
+    assert all(abs(c) < abs(dlo) for c in cond), (cond, dlo)                    # 전제: |Δc| < |Δlo|
+    for pn in ("ip", "im"):
+        w = snap.value("node", pn, "dc_window_cfg")
+        e_lo, e_hi = sorted((vp[pn] + s_p[pn] * dlo, vp[pn] + s_p[pn] * dhi))
+        assert _close(w.lo, e_lo, 1e-8) or abs(w.lo - e_lo) <= 1e-9
+        assert all(abs(w.lo - (vp[pn] + s_p[pn] * c)) > 1e-6 for c in cond)     # 전도 끝이 아니다
+
+
+def _tk_topo(extra_branch):
+    mos = [("M1", "nmos", "out", "in", "gnd", "gnd")]
+    pas = [("R1", "resistor", "vdd", "out"), ("CL", "capacitor", "out", "gnd")]
+    bias = []
+    if extra_branch:
+        mos.append(("Mb", "nmos", "b", "vb", "gnd", "gnd"))
+        pas.append(("Rb", "resistor", "vdd", "b"))
+        bias = ["vb"]
+    return topo_doc("it2c_tk%s" % ("b" if extra_branch else "a"), mos=mos, passives=pas, rails=("vdd", "gnd"), bias=bias)
+
+
+def test_it2c_tk_empty_window_dlo_gt_dhi_is_unmeasured(tmp_path):
+    """oracle 대조: (손) T-K 빈 창 (a) (빈칸 답 2-5). `triode` 선언 M1 이 봉인점에서 포화(EO-1 전까지 봉인 통과): 행 (out, gnd, −1, VDSAT − VDS) slack < 0,
+    |s_out| = gm/(gds + 1/R) -> Δlo = |slack|/|s_out|, 레일 Δhi = 1.8 − V_in. 전제 Δlo > Δhi -> 양수 폭 창이 아니다: cfg 모든 포트 `unmeasured`, V_cm 끝 None.
+    (EO-1 이 봉인 거부로 바꾸면 그 card 가 이 test 를 옮긴다 -- 표지.)"""
+    i, r = 1e-5, 5e3
+    th = {("L", "M1"): L0, ("ln_idu", "M1"): lut_ln_idu("nmos", 0.6, 1.8 - i * r, 0.0), ("current", "R1"): i, ("resistance", "R1"): r}
+    snap = _evaluate_region(tmp_path, _tk_topo(False), (("R1", "resistor", None), ("CL", "capacitor", 1e-12)), th, {"M1": "triode"})
+    ss, op = snap.value("device", "M1", "ss_dev"), snap.value("device", "M1", "dc_op")
+    rv = snap.value("device", "R1", "passive_value")
+    slack = _vdsat(op.vgs) - op.vds
+    s_out = ss.gm / (ss.gds + 1.0 / rv)
+    dlo_row, dhi_rail = abs(slack) / s_out, SUP["vdd"] - op.vgs
+    assert slack < 0 and dlo_row > dhi_rail                                          # 전제
+    w = snap.value("node", "in", "dc_window_cfg")
+    assert (w.lo, w.hi, w.constraints, w.input_status) == (None, None, 0, "unmeasured")
+    cfg = _icm(snap)
+    assert cfg.vcm_lo is None and cfg.vcm_hi is None
+
+
+def test_it2c_tk_skipped_row_with_negative_slack_is_unmeasured(tmp_path):
+    """oracle 대조: (손) T-K 빈 창 (b) (빈칸 답 2-5). 입력과 무관한 가지 Mb (b, vb, gnd) + Rb (vdd, b) 의 Mb 를 `triode` 로 선언하나 봉인점은 포화: 그 행의 기울기 = 0
+    (건너뜀)인데 slack = VDSAT − VDS < 0 -> 모든 입력 포트 `unmeasured`(건너뛴 행이 이미 위반)."""
+    i, r = 1e-5, 5e3
+    th = {("L", "M1"): L0, ("L", "Mb"): L0, ("ln_idu", "M1"): lut_ln_idu("nmos", 0.6, 0.9, 0.0),
+          ("ln_idu", "Mb"): lut_ln_idu("nmos", 0.6, 1.8 - i * r, 0.0),
+          ("current", "R1"): 1e-5, ("resistance", "R1"): 9e4, ("current", "Rb"): i, ("resistance", "Rb"): r}
+    topo = _tk_topo(True)
+    snap = _evaluate_region(tmp_path, topo, (("R1", "resistor", None), ("Rb", "resistor", None), ("CL", "capacitor", 1e-12)), th,
+                            {"Mb": "triode"})
+    opb = snap.value("device", "Mb", "dc_op")
+    assert _vdsat(opb.vgs) - opb.vds < 0                                              # 전제: 건너뛸 행의 slack < 0
+    w = snap.value("node", "in", "dc_window_cfg")
+    assert (w.lo, w.hi, w.input_status) == (None, None, "unmeasured")
+
+
+def test_it2c_region_rows_hand_values(tmp_path):
+    """oracle 대조: (손) 값 test (빈칸 답 2-8). 공통 소스 증폭기 봉인점(V(out) = 0.9, VGS = 0.6): 선언 없음 -> (("out", "gnd", +1, 0.9 − VDSAT, "sat"),),
+    VDSAT = 0.1 + 0.2·0.6 (LUT 열 닫힌 식). linear = {M1}(triode 선언) -> ("out", "gnd", −1, VDSAT − 0.9, "triode"). 판정 여유 0(tol 항 없음)."""
+    from gmid_engine.sizing._helpers_dc_solve import Circuit
+    snap, ctx = _cs(tmp_path, i=1e-5, r=9e4)
+    values = dict(snap.column("node", "dc_v"))
+    vdsat = _vdsat(0.6)
+    rows = Circuit(snap, lut=ctx.lut, linear=frozenset()).region_rows(values)
+    assert rows is not None and len(rows) == 1
+    a, b, sign, slack, kind = rows[0]
+    assert (a, b, sign, kind) == ("out", "gnd", 1, "sat") and abs(slack - (0.9 - vdsat)) <= 1e-9
+    rows = Circuit(snap, lut=ctx.lut, linear=frozenset({"M1"})).region_rows(values)
+    a, b, sign, slack, kind = rows[0]
+    assert (a, b, sign, kind) == ("out", "gnd", -1, "triode") and abs(slack - (vdsat - 0.9)) <= 1e-9
+
+
+def test_it2c_nodal_system_arrays_immutable_and_fp_sees_g_bound(tmp_path):
+    """oracle 대조: (d) 값 test (빈칸 답 2-8). `graph.ss_nodal` 값 `NodalSystem` 의 g·g_bound 는 쓰기 불가(ValueError), g_bound 만 다른 두 NodalSystem 의 `fp_of` 는 다르다."""
+    import dataclasses
+    from gmid_engine.core import fp_of
+    snap, _ = _cs(tmp_path)
+    sysm = next(iter(dict(snap.column("graph", "ss_nodal")).values()))
+    for arr in (sysm.g, sysm.g_bound):
+        assert arr.flags.writeable is False
+        with pytest.raises(ValueError):
+            arr[0, 0] = 1.0
+    other = dataclasses.replace(sysm, g_bound=sysm.g_bound * 2.0)
+    assert fp_of(other) != fp_of(sysm)
