@@ -237,3 +237,19 @@ def test_ub1_block_residual_passes_view_ac_ground():
                    ac_ground=("vb2",))
     got = block_residual(ss, H.transfer({"in": 1.0}, "out"), vs)
     assert got.blocks[0].gain == pytest.approx(-gm / (gds + 1 / rl + 1 / rb), rel=1e-12)
+
+
+def test_ub1_block_residual_passes_block_members():
+    """T-10a [UB-1] (a): 캐스코드 M1(d x, g in, s gnd), M2(d out, g vb, s x), R(vdd-out), 블록 nodes (in, out), members (M1, M2, R).
+    x 는 members 로만 U_b 에 든다. block_residual 이 members 를 블록 국소 풀이에 넘기면 분해 dB = T-7 (ii) 닫힌 식 dB
+    (gain = -gm1/[(gds1 + g2)(G + gds2)/g2 - gds2], g2 = gm2 + gmb2 + gds2)이고 blocks[0].node_v 에 x 가 든다."""
+    gm1, gds1, gm2, gds2, gmb2, rl = 1.0e-3, 2.0e-5, 0.8e-3, 1.5e-5, 2.0e-4, 3e4
+    nets = ("gnd", "vdd", "vb", "in", "x", "out")
+    m = (H.mos("M1", "x", "in", "gnd", "gnd", gm1, gds1), H.mos("M2", "out", "vb", "x", "gnd", gm2, gds2, gmb2))
+    ss = H.circuit(nets, m, (H.res("R", "vdd", "out", rl),), ("gnd", "vdd", "vb"), ("in",))
+    vs = H.vstruct("v", {"in": 1.0}, ("out",), (H.block(("out",), ("in",), ("out",), ("in", "out"), members=("M1", "M2", "R")),))
+    got = block_residual(ss, H.transfer({"in": 1.0}, "out"), vs)
+    g2, g = gm2 + gmb2 + gds2, 1 / rl
+    want = -gm1 / ((gds1 + g2) * (g + gds2) / g2 - gds2)
+    assert got.decomposed_gain_db == pytest.approx(H.db(want), rel=1e-12)
+    assert "x" in dict(got.blocks[0].node_v)

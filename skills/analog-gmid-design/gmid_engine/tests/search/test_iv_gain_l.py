@@ -45,3 +45,23 @@ def test_certified_a_max_and_gain_constraint_activates_l_lower_bound():
     got = {r.device: bound_values(r, SRC, "L", "lo") for r in st.rows}
     for dev in ("MN1", "MN2"):
         assert got[dev] and min(got[dev]) == 1e-6
+
+
+def test_ub1_omitted_load_block_adds_inactive_row():
+    """T-13 [UB-1 C-7] oracle (a) 구성: 2단 CS 사슬(MN1·MP1 / MN2·MP2)의 첫 블록 spec 에서 MP 로 시작하는 멤버를 빼면 MP1 은 비멤버 부하
+    (행 모드는 스탬프 안 함 -> omitted_load)다. 그 블록만 inactive 에 (SRC, "load_admittance_unfixed") 한 행이 붙고(둘째 블록 행 없음),
+    바운드 값은 그대로 낸다(MN1 키 유지). 손대지 않은 ctx 면 이 사유 행은 없다."""
+    import dataclasses
+    from gmid_engine.search.iv_gain_l import SRC_GAIN_L, gain_l_bounds
+    from .u13_hand import start_view_of
+    ctx = start_view_of(toy_case(cs_chain(2), elements=ELS, constraints=GAIN, count_budget=10 ** 6))
+    assert SRC_GAIN_L == SRC
+    plain = gain_l_bounds(ctx, {}, {}, {})
+    assert not [row for row in plain.inactive if row[1] == "load_admittance_unfixed"]
+    (spec0, target0), rest = ctx.gain.blocks[0], ctx.gain.blocks[1:]
+    spec1 = dataclasses.replace(spec0, members=tuple(n for n in spec0.members if not n.startswith("MP")))
+    assert spec1.members == ("MN1",)
+    g2 = dataclasses.replace(ctx.gain, blocks=((spec1, target0),) + tuple(rest))
+    got = gain_l_bounds(dataclasses.replace(ctx, gain=g2), {}, {}, {})
+    assert got.inactive == ((SRC, "load_admittance_unfixed"),)
+    assert "MN1" in got.bounds
