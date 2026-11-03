@@ -41,6 +41,19 @@ def test_defaults_are_empty_or_none():
     assert SatDevice("M", 1, "d", "g", "s", 0.5, 0.2).linear is False
 
 
+def test_ub1_new_fields_defaults():
+    """[UB-1 E-01] 새 칸은 끝에 기본값: BlockStruct.members (), ViewStruct.ac_ground (), GateResult.verdict "ok"·reason None·unmeasured ()
+    (옛 4칸 위치 인자 생성이 그대로 된다). oracle (a) 구성."""
+    b = BlockStruct(("out",), "gain", 1, ("in",), ("out",), ("in", "out"), ("M1",))
+    assert getattr(b, "members", "absent") == ()
+    assert getattr(ViewStruct("t", (("in", 1.0),), ("out",), (b,)), "ac_ground", "absent") == ()
+    g = GateResult(True, (), (), None)
+    assert (getattr(g, "verdict", "absent"), getattr(g, "reason", "absent"), getattr(g, "unmeasured", "absent")) == ("ok", None, ())
+    assert [f.name for f in dataclasses.fields(GateResult)][-3:] == ["verdict", "reason", "unmeasured"]
+    assert [f.name for f in dataclasses.fields(BlockStruct)][-1] == "members"
+    assert [f.name for f in dataclasses.fields(ViewStruct)][-1] == "ac_ground"
+
+
 def test_mismatch_source_canonical_and_from_decl():
     models = (("nmos", object()), ("pmos", object()))
     src = MismatchSource(models, "ab" * 32)

@@ -224,3 +224,16 @@ def test_library_residual_floor(name):
         assert got.undefined == (), (name, got.undefined)
         assert abs(got.gain_residual_db) <= 1e-9, (name, got.gain_residual_db)
         assert got.full_gain_db == pytest.approx(got.decomposed_gain_db, abs=1e-9)
+
+
+def test_ub1_block_residual_passes_view_ac_ground():
+    """T-10 [UB-1] (a): CS + Rb(out–vb2), vb2 는 ss.ground_nets 밖이고 뷰 구조 `ac_ground` 에만 있다. block_residual 이 그 뷰 접지를
+    블록 국소 풀이에 넘기면 블록 gain = −gm/(gds + G + 1/Rb) (ngcc·FF 없는 toy)."""
+    gm, gds, rl, rb = 1e-3, 2e-5, 3e4, 8e3
+    nets = ("gnd", "vdd", "vb2", "in", "out")
+    ss = H.circuit(nets, (H.mos("M1", "out", "in", "gnd", "gnd", gm, gds),),
+                   (H.res("RL", "vdd", "out", rl), H.res("Rb", "out", "vb2", rb)), ("gnd", "vdd"), ("in",))
+    vs = H.vstruct("v", {"in": 1.0}, ("out",), (H.block(("out",), ("in",), ("out",), ("in", "out"), members=("M1", "RL")),),
+                   ac_ground=("vb2",))
+    got = block_residual(ss, H.transfer({"in": 1.0}, "out"), vs)
+    assert got.blocks[0].gain == pytest.approx(-gm / (gds + 1 / rl + 1 / rb), rel=1e-12)

@@ -22,7 +22,8 @@ GR = sys.modules["gmid_engine.search.gate_run"]
 
 
 def _snapshot(dec, full, res=1e-13, read=("M1", "M2")):
-    report = (("view", "t"), ("gain_residual_db", full - dec), ("full_gain_db", full), ("decomposed_gain_db", dec),
+    report = (("view", "t"), ("gain_residual_db", None if dec is None or full is None else full - dec), ("full_gain_db", full),
+              ("decomposed_gain_db", dec),
               ("rout_residual_ohm", None), ("solve_residual", res), ("read_devices", read), ("block_gain", ()), ("ff_contrib", ()),
               ("undefined", ()))
     bundle = MetricBundle((), reports=((REPORT_BLOCK_RESIDUAL, report),))
@@ -75,17 +76,62 @@ def test_perturbs_only_unread_directions_and_flags_error(monkeypatch):
 
 
 def test_no_report_no_gate():
+    """[UB-1 E-01 뜻 교체, fail-open -> fail-closed] 보고가 없으면 None(= 통과로 읽힘)이 아니라 gate_empty/no_block_report 판정."""
     base = types.SimpleNamespace(evaluation=types.SimpleNamespace(snapshot=types.SimpleNamespace(
         value=lambda *a: (_ for _ in ()).throw(KeyError("metrics_aux")))))
-    assert run_sensitivity_gate(SCTX, base) is None
-    assert run_sensitivity_gate(SCTX, types.SimpleNamespace(evaluation=None)) is None
+    for b in (base, types.SimpleNamespace(evaluation=None)):
+        got = run_sensitivity_gate(SCTX, b)
+        assert got is not None
+        assert got.ok is False and got.verdict == "gate_empty" and got.reason == "no_block_report"
 
 
 def test_all_directions_read_no_gate(monkeypatch):
+    """[UB-1 E-01 뜻 교체] 모든 변수가 읽는 소자를 건드려 건너뛰면 gate_empty/no_unread_direction(평가 0)."""
     monkeypatch.setattr(GR, "fd_jacobian", lambda *a, **k: pytest.fail("평가하면 안 된다"))
     base = _result(60.0, 60.0)
     base.evaluation.snapshot = _snapshot(60.0, 60.0, read=("M1", "M2", "M3", "M9"))
-    assert run_sensitivity_gate(SCTX, base) is None
+    got = run_sensitivity_gate(SCTX, base)
+    assert got is not None
+    assert got.ok is False and got.verdict == "gate_empty" and got.reason == "no_unread_direction"
+
+
+def test_ub1_base_db_undefined_is_undeterminable_without_perturbation(monkeypatch):
+    """T-6a (a): 분해 dB 또는 전회로 dB 가 None 이면 섭동 평가 0, undeterminable/base_undefined."""
+    monkeypatch.setattr(GR, "fd_jacobian", lambda *a, **k: pytest.fail("섭동을 평가하면 안 된다"))
+    for dec, full in ((None, 60.0), (60.0, None)):
+        got = run_sensitivity_gate(SCTX, _result(dec, full))
+        assert got is not None
+        assert got.ok is False and got.verdict == "undeterminable" and got.reason == "base_undefined"
+
+
+def test_ub1_unmeasured_perturbations_are_rows_not_skips(monkeypatch):
+    """T-6a (a): skip 아닌 변수의 평가가 `res is base`·보고 없음·평가 없음이면 (이름, None, None, None) 행 -> unmeasured 에 든다.
+    손 입력: 섭동 대상 current:I2 와 ln_idu:M9 (skip = {0, 1, 4})."""
+    no_report = types.SimpleNamespace(evaluation=types.SimpleNamespace(snapshot=types.SimpleNamespace(
+        value=lambda *a: (_ for _ in ()).throw(KeyError("metrics_aux")))), theta=THETA, key=types.SimpleNamespace(cells=("c",)))
+    no_eval = types.SimpleNamespace(evaluation=None, theta=THETA, key=types.SimpleNamespace(cells=("c",)))
+
+    def make(second):
+        def fake(sctx, variables, x, base, cells, to_theta, origin, skip):
+            out = []
+            for i, v in enumerate(variables):
+                if i in skip:
+                    out.append((base, 0.0))
+                elif v.component == (THETA_CURRENT, "I2"):
+                    out.append((base, 0.01))                      # res is base
+                else:
+                    out.append((second(base), 0.01))
+            return out
+        return fake
+
+    for second, unmeasured in ((lambda b: _result(60.0, 60.0), ("current:I2",)),
+                               (lambda b: no_report, ("current:I2", "ln_idu:M9")),
+                               (lambda b: no_eval, ("current:I2", "ln_idu:M9"))):
+        monkeypatch.setattr(GR, "fd_jacobian", make(second))
+        got = run_sensitivity_gate(SCTX, _result(60.0, 60.0))
+        assert got.ok is False and got.verdict == "undeterminable" and got.reason == "perturbation_unmeasured"
+        assert got.unmeasured == unmeasured and got.errors == ()
+        assert [c[0] for c in got.checks if c[4] is None] == list(unmeasured)
 
 
 # =====================================================================================================================

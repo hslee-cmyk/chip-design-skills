@@ -44,12 +44,40 @@ def test_change_within_epsilon_is_not_error():
 
 
 def test_undefined_values_unchecked_not_error():
-    got = sensitivity_gate((40.0, 40.0, 1e-12), (("a", None, 41.0, 1e-12), ("b", 40.0, 41.0, None)))
-    assert got.ok is True and got.errors == ()
-    assert [c[4] for c in got.checks] == [None, None]
-    assert got.epsilon is None
-    assert sensitivity_gate((None, 40.0, 1e-12), (("a", 40.0, 41.0, 1e-12),)).ok is True
+    """[UB-1 E-01 뜻 교체, fail-open -> fail-closed] 값이 없는 섭동·기준은 '통과'가 아니라 undeterminable(ok False).
+    oracle (a): C-10 우선순위 -- 오류 없고 None 섭동 있음 -> undeterminable/perturbation_unmeasured, unmeasured = 그 이름;
+    base 에 None -> undeterminable/base_undefined, unmeasured = 전 이름."""
+    got = sensitivity_gate((40.0, 40.0, 1e-12), (("a", None, 41.0, 1e-12),))
+    assert got.ok is False and got.errors == ()
+    assert got.verdict == "undeterminable" and got.reason == "perturbation_unmeasured"
+    assert got.unmeasured == ("a",)
+    assert [c[4] for c in got.checks] == [None]
+    base_none = sensitivity_gate((None, 40.0, 1e-12), (("a", 40.0, 41.0, 1e-12), ("b", 40.0, 40.0, 1e-12)))
+    assert base_none.ok is False and base_none.verdict == "undeterminable" and base_none.reason == "base_undefined"
+    assert base_none.unmeasured == ("a", "b")
+    assert sensitivity_gate((40.0, None, 1e-12), (("a", 40.0, 41.0, 1e-12),)).reason == "base_undefined"
+    assert sensitivity_gate((40.0, 40.0, None), (("a", 40.0, 41.0, 1e-12),)).reason == "base_undefined"
 
 
 def test_no_runs():
-    assert sensitivity_gate((40.0, 40.0, 1e-12), ()) == GateResult(True, (), (), None)
+    """[UB-1 E-01 뜻 교체] 섭동이 없으면 통과가 아니다: gate_empty/no_perturbation(ok False). runs 빈 것이 base None 보다 먼저."""
+    got = sensitivity_gate((40.0, 40.0, 1e-12), ())
+    assert got.ok is False and got.verdict == "gate_empty" and got.reason == "no_perturbation"
+    assert got.errors == () and got.unmeasured == ()
+    assert sensitivity_gate((None, None, None), ()).reason == "no_perturbation"
+
+
+def test_ub1_verdict_priority_error_beats_unmeasured():
+    """T-6 (a): 오류 >= 1 이면 verdict error(reason None), None 섭동은 unmeasured 에 남는다."""
+    base = (60.0, 60.0, 1e-12)
+    got = sensitivity_gate(base, (("current:I1", 60.0, 60.5, 1e-12), ("b", None, 61.0, 1e-12)))
+    assert got.ok is False and got.verdict == "error" and got.reason is None
+    assert got.errors == ("current:I1",) and got.unmeasured == ("b",)
+
+
+def test_ub1_verdict_ok_branch():
+    """T-6 (a): 모두 측정되고 오류 없으면 ok(reason None, unmeasured 빈) -- ok 칸 == (verdict == "ok")."""
+    got = sensitivity_gate((60.0, 60.0, 1e-12), (("a", 60.0, 60.0, 1e-12), ("b", 60.3, 60.3, 1e-12)))
+    assert got.verdict == "ok" and got.reason is None and got.unmeasured == () and got.errors == ()
+    assert got.ok is True
+    assert got.epsilon == pytest.approx(1e-12 * K, rel=1e-12)

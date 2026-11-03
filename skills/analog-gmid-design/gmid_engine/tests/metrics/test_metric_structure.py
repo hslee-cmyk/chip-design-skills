@@ -90,3 +90,21 @@ def test_non_transfer_views_skipped(tmp_path):
     ms = N.structure_of(s1v)
     assert len(ms.views) == kinds.count("transfer")
     assert len(kinds) > len(ms.views)
+
+
+def test_ub1_block_members_and_view_ac_ground():
+    """T-12 [UB-1 C-14] oracle (d) ngcc 사실 표(설계 41 §1.13): 블록 `members` = 정렬된 소자 이름 tuple 이고 그 블록 input 셀을 담으며,
+    FF 묶음 셀(FF1 = {M5, M6A, M6B, M7}, FF2 = {M14})은 어느 블록 members 에도 없다. 뷰 `ac_ground` = 정렬 tuple 이고
+    레일 ∪ bias 입력(topology 선언)을 담고 여기 넷(Vinp·Vinn)은 없다."""
+    (v,) = N.structure_of(N.s1v()).views
+    ff_cells = {"M5", "M6A", "M6B", "M7", "M14"}
+    for b in v.blocks:
+        assert isinstance(b.members, tuple) and len(b.members) > 0
+        assert b.members == tuple(sorted(b.members))
+        assert set(b.input_cells) <= set(b.members), b.key
+        assert not ff_cells & set(b.members), b.key
+    doc = N.topology()
+    declared = set(doc["supply_nets"]) | set(doc.get("bias_inputs") or ())
+    assert isinstance(v.ac_ground, tuple) and v.ac_ground == tuple(sorted(v.ac_ground))
+    assert declared <= set(v.ac_ground)
+    assert not {"Vinp", "Vinn"} & set(v.ac_ground)

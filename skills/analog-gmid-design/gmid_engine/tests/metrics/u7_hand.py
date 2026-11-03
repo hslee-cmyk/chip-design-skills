@@ -114,17 +114,26 @@ def db(x):
     return 20.0 * math.log10(abs(x))
 
 
-def block(key, inputs, outputs, nodes, kind="gain", stage=1, input_cells=()):
-    return BlockStruct(tuple(key), kind, stage, tuple(inputs), tuple(outputs), tuple(nodes), tuple(input_cells))
+def _has_field(cls, name):
+    import dataclasses
+    return name in {f.name for f in dataclasses.fields(cls)}
+
+
+def block(key, inputs, outputs, nodes, kind="gain", stage=1, input_cells=(), members=()):
+    """[UB-1] `members` = S1v 블록 소자 이름(MOS·수동소자) 정렬. 칸이 없는 판(base)에서는 칸 없이 만든다(그 판의 단정이 AssertionError 로 빨갛다)."""
+    kw = {"members": tuple(sorted(members))} if members and _has_field(BlockStruct, "members") else {}
+    return BlockStruct(tuple(key), kind, stage, tuple(inputs), tuple(outputs), tuple(nodes), tuple(input_cells), **kw)
 
 
 def ff(fid, tap, merge, members, merge_block, bypassed, bypassed_input_cells):
     return FfStruct(fid, tap, merge, tuple(sorted(members)), tuple(merge_block), tuple(bypassed), tuple(bypassed_input_cells))
 
 
-def vstruct(vid, excite, sense, blocks, ffs=(), input_cells=(), signal_devices=(), pole_nets=(), directions=()):
+def vstruct(vid, excite, sense, blocks, ffs=(), input_cells=(), signal_devices=(), pole_nets=(), directions=(), ac_ground=()):
+    """[UB-1] `ac_ground` = 그 뷰 교류접지 넷 정렬(칸이 없는 판에서는 칸 없이 만든다)."""
+    kw = {"ac_ground": tuple(sorted(ac_ground))} if ac_ground and _has_field(ViewStruct, "ac_ground") else {}
     return ViewStruct(vid, tuple(sorted(excite.items())), tuple(sorted(sense)), tuple(blocks), tuple(ffs), tuple(input_cells),
-                      tuple(sorted(signal_devices)), tuple(sorted(pole_nets)), tuple(directions))
+                      tuple(sorted(signal_devices)), tuple(sorted(pole_nets)), tuple(directions), **kw)
 
 
 def MetricStructure_of(*views):  # noqa: N802
