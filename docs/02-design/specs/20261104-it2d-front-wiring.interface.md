@@ -78,6 +78,12 @@ VB-1이 먼저 병합되었으면 `offset_sys_mv`는 red 대상에서 뺀다(지
 | T-B77c | 같은 파일(AST)·`tests/metrics/test_registry.py` | 결측 판정 함수와 부르는 함수에 metric 이름 비교 0. `is_dc_conducting_passive` `metrics_aux` 호출 0. registry 영역 칸 표(metric 이름으로) | (독립) | red |
 | T-B77d | `tests/structure` 또는 같은 파일 | 새 결측 code 상수 0 | (독립) | green 후보(base에도 0이면 red 목록 제외) |
 
+### green·기준선 공통 규칙(test 작성자 빈칸 답, 2026-11-04)
+
+- **base green**: 표의 base 칸이 red여도 사례가 base에서 green이면, 그 사례가 옛 동작과 새 동작 모두에 성립하는 회귀 보호인지 확인하고 test는 유지한다. 그 사례는 red 예상 목록에서 빼고 판정자에게 나열한다. 사례 전체가 green이라 새 동작을 가르지 못하면 그 id에 red 사례가 하나는 남아야 한다.
+- **회귀 기준선 fixture**(`tests/integration/fixtures/*`, NFR-4 덤프): test 작성자는 고치지 않는다. 판정자가 code 병합본에서 재측정하고 원인 칸을 적으며, 값 변화표는 O-225 보류 표지로 둔다(A-39). 재측정 전 그 test 실패는 판정 전 상태로 보고하고 통과로 세지 않는다.
+- **폐기**: 정의가 바뀌어 전제가 깨진 test는 고치지 않고 지우며, 판정 기록 근거에 `retired_tests`(이름·사유)로 적는다. 판정자가 그 목록을 확인한다.
+
 ## 고칠 기존 test(test 주체 몫, 근거 O-109·O-112·U-106, 약화 아님)
 
 줄 = integ/it12 `b9351eac` 실측.
