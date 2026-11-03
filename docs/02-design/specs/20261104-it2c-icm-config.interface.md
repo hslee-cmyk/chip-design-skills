@@ -26,6 +26,69 @@ test 작성 주체는 엔진 소스를 보지 않고 이 문서와 기존 test �
 
 **7. `conductance_matrix(bound=True)` 호출 규칙**: `conductance_matrix(ss.circuit, len(ss.nodes), bound=True) -> (g, g_bound)`. `ss` = `graph.ss_circuit` 값, `bound`는 키워드 전용, 기본 `False`면 `g` 하나(옛 소비자 값 불변). test는 직접 불러 T-L10 (k)를 단언해도 되고 `graph.ss_nodal.g_bound`로 봐도 된다. 자리 단언은 AST로 한다: 비test 엔진 소스에서 `bound=True` 키워드 호출 = `ss_nodal` 하나. 글자 패턴(`conductance_matrix(ss.circuit`)이나 옛 소비자 `block_model`·`ff_gm_ratio`의 `bound` 없는 호출은 세지 않는다.
 
+## 빈칸 답 2(test 커밋 7173d864 보고, 2026-11-04)
+
+봉인 도달은 base 엔진에서 실측했다(`wt/_drafts/evidence/2026-11-04/it/it2c_gap_toys.jsonl`, toy LUT = 이 파일의 `_lut_with_vdsat`). icm 값은 코드 전이라 미측정이고 아래 기대값은 손 유도다. 수치는 참고용이고 test는 봉인점 값으로 식을 계산한다. 전제를 어기면 그 사례는 무효다.
+
+| # | 항목 | 처리 | 시점 |
+|---|---|---|---|
+| 1 | T-L8d | 부하를 MOS로 바꾼 toy(저항 고리 없음) | 코드 전 필수 |
+| 2 | T-L8e | 정확 0은 파이프라인 toy, 상쇄는 단위 호출 | 코드 전 필수 |
+| 3 | 갈래 3 | 로더 거부 사실만. **표지** | 지금 그대로 |
+| 4 | T-L8h | `_two_stage` 재사용 + 전제 | 코드 전 필수 |
+| 5 | T-K 빈 창 | 파이프라인 toy 둘 | 코드 전 필수 |
+| 6 | T-L12 | IT-1 code 위에서 작성 | IT-1 code 병합 뒤, IT-2c 판정 전 |
+| 7 | 옛 커널 창 단언 | 이동·폐기 표 | 코드 뒤 가능, 판정 전 필수 |
+| 8 | 행 값·불변·fp_of | test | 코드 전 필수 |
+| 8′ | `value_fp` 비트 동일 | 판정자 측정으로 옮김 | 판정 때 |
+| 9 | `_mss` 56개 | red로 세지 않음 | 정책 |
+
+**1. T-L8d.** `dc_resistor_cycle`은 저항 부하와 Rf가 F를 지나 저항 고리를 닫을 때 난다(실측). 저항 망 writer는 card DR-1 몫이고 그 꼴은 DR-1 toy로 간다. 이 card toy는 고리를 만들지 않는다(실측: 봉인 통과, `human.feedback` `("Rf",)` 로드 통과, V(out) = 0.6):
+- MOS: M1 (x, ip, gnd), M2 (out, im, gnd), Mp pmos (out, vb, vdd). 저항: R1 (vdd, x), Rf (out, im). CL (out, gnd). `bias=["vb"]`, 입력 role 차동쌍, out 단일 출력, `input_dc_v = 0.6`.
+- θ: L 셋, `("current","R1")` 1e-5, `("resistance","R1")` 9e4, `("resistance","Rf")` 1e5, `("current","Mp")` 1e-5, `("ln_idu","Mp")`. Rf 전류는 θ가 아니다.
+- 손 감도: Gf = 1/Rf, A = (Gf − gm2)/(gds2 + gdsp + Gf), A1 = gm1/(gds1 + 1/R1). c·vx = A, a_e = −A/2, (c·vx)/a_e = −2. 그래서 s_ip = 2, s_im = 0, s_out = 0, s_x = −2·A1.
+- 끝: 행 M1 slack = VDS1 − VDSAT1, Δ ≤ slack/(2·A1). M2·Mp 행은 기울기 0(건너뜀, slack > 0 전제). 레일 0 ≤ 0.6 + 2Δ ≤ 1.8. cfg ip = [0.6 + 2·Δlo, 0.6 + 2·Δhi], im = [0.6, 0.6].
+- 단언: 선언 있음·없음 두 실행의 창이 같고 위 손 끝과 같다. `config == "servo"`. 전제: 선언 구성으로 잴 때의 끝(반전 입력 노드 KCL 닫음, im 구동 제외)이 손 끝과 허용보다 크게 다르다.
+
+**2. T-L8e.**
+- **(a) 정확 0, 파이프라인**: M1 (vdd, ip, t), M2 (vdd, im, t), M3 (t, vb, gnd), CL (t, gnd). 출력 = t, `bias=["vb"]`, `input_dc_v = 1.2`, θ = L 셋, `("current","M1")`·`("current","M2")` 1e-5, `("ln_idu","M1")`·`("ln_idu","M3")`. 실측: 봉인 통과, M1·M2 gm 비트 동일. 손: t 행 구동 = (gm1 − gm2)/2 = 0. 단언: `config is None`, `icm_servo_pivot_unresolved`, cfg 항목 없음. detail 갈래는 단언하지 않는다. 전제: gm 비트 동일.
+- **(b) 조립 상쇄, 단위**: 저항 스탬프만이라 파이프라인에서는 저항 고리로 정지하므로 단위로 부른다. **`_transfer_resolution`은 이 사례에 한해 직접 부른다**(서명 `_transfer_resolution(system, volt, sense) -> float | None`, `gmid_engine.metrics.icm_config`).
+  - `ck = SmallSignalCircuit(resistors=(Resistor(1,3,10.0), Resistor(1,3,5.0), Resistor(2,3,10.0/3.0), Resistor(3,0,1000.0)))`, n = 4, fixed = {0, 1, 2}, 감지 3 = `sense` 길이 4 벡터 e_3.
+  - `g, gb = conductance_matrix(ck, 4, bound=True)`, `NodalSystem(nodes, frozenset({0,1,2}), g, gb, nodal_factor(g, {0,1,2}))`. `nodes` 이름은 toy가 정한다. 불변 표지가 필요하면 `flags.writeable = False`를 test가 건다.
+  - 구동 v = 1번 +0.9, 2번 −0.9로 `nodal_solve`.
+  - 전제(스크래치 값): G 조립 g[3,1] ≠ −g[3,2](`0x1.3333333333334p-2` 대 `...333p-2`), 풀이 x ≠ 0, 옛 식 |z|ᵀ|r| < |x|(스크래치 0 대 9.2e-17). 기대 근거: `fractions.Fraction`으로 같은 float 저항의 참값을 내고 |x − 참값| ≤ δ, |x| ≤ δ(스크래치 오차 7.2e-17, δ 약 5.5e-16). 참값은 0이 아니지만(2.0e-17) 판정 불능이 맞다.
+
+**3. 갈래 3.** 입력 포트 0은 로더가 먼저 거부해 측정 구성에 닿는 운영 경로가 없다. 단언 = 로더 거부 사실(기존 test 유지). 갈래 코드는 design대로 남긴다(fail-closed, `view_required`). **표지: 이 갈래의 직접 test 없음**(도달 경로 0이라 기준 약화가 아니라 대상 없음으로 본다, 판정자 확인). 갈래 4 test가 같은 code를 낸다.
+
+**4. T-L8h.** 새 회로 없음. `_two_stage(tmp, 1e-5, 9e4, 2e-5, 4.5e4)`(입력 DC 0.6).
+- 전도 끝(R0가 있었다면의 끝): Δc = −ID_k/(gm_k·s_p + gds_k·s_o), k마다 손 계산(수치 약 −0.07).
+- 영역 행 창의 아래 끝: Δlo = 레일 끝 (0 − V_p)/s_p(수치 약 −0.6). 포화 행은 Δ < 0 쪽에서 여유가 늘어 끝을 만들지 않는다.
+- 전제: |Δc| < |Δlo|. 단언: cfg lo = V_p + s_p·Δlo(손, `_servo_window`). Δc 끝이면 red. 행 kind {`"sat"`, `"triode"`}, READS에 전도 필드 없음.
+
+**5. T-K 빈 창.** `saturation_window`만으로는 규칙 자리(`icm_config`)를 못 보므로 파이프라인으로 간다. `triode` 선언 소자가 봉인점에서 포화인 점은 **EO-1 전까지** 봉인을 지난다(실측). EO-1이 봉인 거부로 바꾸면 그 card가 이 두 test를 옮긴다(표지).
+- **(a) Δlo > Δhi**: M1 (out, in, gnd), R1 (vdd, out) 5e3, 전류 1e-5, CL, `{"M1": "triode"}`, 입력 DC 미선언, θ `ln_idu` = `lut_ln_idu("nmos", 0.6, 1.75, 0.0)`(`_evaluate_region`). 손: slack = VDSAT − VDS(약 −1.53), |s_out| = gm/(gds + 1/R)(약 0.76), Δlo = |slack|/|s_out|(약 2.0), Δhi = 1.8 − V_in(1.2). 전제 Δlo > Δhi. 단언: cfg `"unmeasured"`, `vcm_lo`·`vcm_hi` None.
+- **(b) 건너뛴 행 slack < 0**: (a)에 입력과 무관한 가지 Mb (b, vb, gnd) + Rb (vdd, b)를 더하고 `{"Mb": "triode"}`, Mb 봉인점 포화, M1은 선언 없음, `bias=["vb"]`. 그 행 기울기 0. 단언: 모든 입력 포트 `"unmeasured"`. θ 키는 `check_theta` 오류 문구로 맞춘다.
+
+**6. T-L12.** `_two_stage(..., input_dc_v=None)` + `monkeypatch.setattr("gmid_engine.sizing.block_columns.k_max", lambda width, tol_: 1)`(기존 `test_block_columns.py:1354` 꼴). 입력 점 규칙이 있어야 하므로 **IT-1 code 위에서** 쓴다. 전제 둘(어기면 무효): `node.dc_window`의 p 포트 항목이 `"unsettled"`, 그 점이 봉인됨. 단언: cfg `"measured"`, V_cm 칸 있음, cfg 끝 = 그 봉인점 값으로 낸 손 끝. card WB-1이 되풀이를 지우면 그 card가 지운다.
+
+**7. 옛 커널 창 단언**(이 card 코드 뒤 실패하는 것은 정해진 처리다. code 작성자의 실패 목록에 예상으로 넣는다):
+| test | 처리 | 대체·근거 |
+|---|---|---|
+| `test_it2b_k1_declared_input_port_has_measured_window` | 폐기 | T-K(cfg), O-109 D1 |
+| `test_it2b_pb_declared_input_ports_share_one_shift_window` | 폐기 | T-P(cfg 일반·대칭 toy), O-49 P3 |
+| `test_it2b_d_triode_row_zero_crossing_is_the_window_end` | 폐기 | `test_it2c_triode_declared_device_row_zero_crossing_is_the_window_end` |
+| `test_it2b_k1_unmeasurable_root_is_unmeasured_with_order_window`, `test_it2b_l12a_*` 셋 | **유지**: 뿌리 항목은 WB-1까지 남는다. 깨지면 그 단언 수치만 여유 0으로 손 재유도, 재유도가 어려우면 폐기하고 사유 'WB-1 재작성 대상' | `l12a_tol_undefined`는 행이 tol을 안 읽게 되어 전제가 바뀔 수 있다. 실행으로 판단 |
+| `test_input_window.py`의 `node.dc_window` 포트 단언(`:260, :355, :370, :410` 부근) | 뿌리 항목은 위와 같음. 비뿌리·선언 포트 항목은 폐기 또는 cfg로 | O-109 D1 |
+
+폐기는 `RETIRED_TESTS_it2c.md`에 더한다. 커널 창 수치 단언을 줄이는 것은 **표지 대상**이다: ICMR 양은 cfg test가 맡고 커널 창은 WB-1이 재작성하므로 기준 약화로 보지 않지만 판정자가 목록을 확인한다.
+
+**8. 값 test.**
+- `region_rows`: `snap, ctx = _cs(tmp, i=1e-5, r=9e4)`(봉인 스냅샷 + `Circuit(snap, lut=ctx.lut, linear=frozenset())`). 기대 = `(("out", "gnd", +1, 0.9 − VDSAT(0.6), "sat"),)`, VDSAT = 0.1 + 0.2·0.6. `linear=frozenset({"M1"})`면 `("out", "gnd", −1, VDSAT − 0.9, "triode")`. pmos toy는 부호 −1.
+- `NodalSystem`: `sys = next(iter(dict(snap.column("graph", "ss_nodal")).values()))`. `sys.g[0, 0] = 1.0`, `sys.g_bound[...]`, `factor`의 ndarray 쓰기 = `ValueError`. `fp_of(dataclasses.replace(sys, g_bound=sys.g_bound * 2)) != fp_of(sys)`. `fp_of` = `gmid_engine.core`.
+- **`value_fp` 비트 동일은 test가 아니라 판정자 측정이다**(판정 측정 A8): 커밋 사이 비교라 test 안 기대값이 피검 출력 붙여넣기가 된다. 기준은 그대로이고 자리만 옮긴다.
+
+**9. `_mss` 56개.** `_mss` 픽스처가 새 이름을 부르는 탓에 base에서 나는 `ImportError`는 그 56개 test의 동작 red가 아니다. **red 목록에서 뺀다**(픽스처 이동). 판정자 확인: 같은 test 본문이 옛 픽스처(`d3590e7b`)로 base green, 병합본 green. 새 이름 import는 helper 함수 안에 두어 파일 수집 오류가 나지 않게 한다(지금처럼).
+
 ## 관찰 가능한 계약
 
 ### 공개 이름과 서명
@@ -222,4 +285,6 @@ red 예상 목록 = 엔진 동작·트리를 보는 test. 새 키워드 직접 �
 | A4 | `graph.ss_nodal`·`ss_circuit`·`icm_config` 같은 입력 버전 computes 0 | PASS |
 | A5 | **`rule_hash` 공통 규칙**(위임 A-33·A-34): rule 파일(`S1V_RULE_FILES` ∪ `STRUCTURE_RULE_EXTRA_FILES`)을 고치는 커밋은 같은 커밋에서 `assets/library/{current_reuse_telescopic_ota,nmcnr_amplifier}.structure.json`의 `rule_hash` 줄만 재기록한다. 재기록하지 않으면 사실이 `structure_fact_stale`로 조용히 안 쓰인다(fail-open). `git diff` 두 파일 = `rule_hash` 줄뿐, rule 파일을 고친 커밋 안, connectivity 변경 0, 값 비교 근거 기록(완료 (14)), T-RH·Stage A 두 회로 | PASS |
 | A6 | 13회로 변화표(N6.6 (3)), 착수 실측 (a)(b)(d)(e), SPICE 다리 | **미완료(보류 다리)** -- 통과로 세지 않음 |
+| A8 | `graph.metrics_ss`·`graph.metrics_aux` `value_fp` 비트 동일: 같은 toy를 base(IT-1 code head)와 병합본에서 실행해 비교(`offset_*`·`block_residual`, 빈칸 답 2의 8) | 같음 |
+| A9 | 폐기 목록, 갈래 3 직접 test 없음, `_mss` 56개 픽스처 이동 확인 | 근거 기록 |
 | A7 | 연기 시험(통합 병합 때): `graph.icm_config` 경로를 지나는 입력 둘 회로 + 단일 입력 또는 선언 회로 | 예외 없이 끝남 |
