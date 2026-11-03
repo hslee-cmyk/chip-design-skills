@@ -90,3 +90,59 @@ def test_curves_are_built_once_per_entry(toy):
     assert t.loads == first
     t.lookup("pmos", il[:5], idd[:5], iss[:5], iv[:5])
     assert first < t.loads <= 2 * len(L_GRID) * len(VDS_GRID) * len(VS_GRID)
+
+
+# ---- [UB-1 E-16, interface T-5e 실제 표] bin 지도 toy (lut/conftest 머리 표: L 앵커 1 1.5 2 | 3 4 | 7 8 | 9 µm,
+# anchor_bin = (0, 0, 0, 1, 1, 3, 3, 4) -- 손으로 정한 표). oracle (d)(c): 같은 bin 이웃 쌍만 참, 앵커 사이 L 조회는 앵커 두 값의 선형 중점.
+
+@pytest.fixture(scope="module")
+def bin_env(tmp_path_factory):
+    from lut.conftest import TOY_SPEC, BinToy, bin_model_text, new_memo
+    lut = BinToy(tmp_path_factory.mktemp("ub1_bin_tables"), bin_model_text()).load(TOY_SPEC)
+    memo = new_memo(lut)
+    grids = lut.slice_map[("nmos", 100)].grids
+    return memo, ParamTables(memo, {"nmos": 100}, grids), grids
+
+
+def test_ub1_same_l_bin_follows_anchor_bin_map(bin_env):
+    _memo, t, _grids = bin_env
+    bins = (0, 0, 0, 1, 1, 3, 3, 4)
+    for a in range(len(bins) - 1):
+        assert bool(t.same_l_bin("nmos", a, a + 1)) == (bins[a] == bins[a + 1]), a
+    assert [a for a in range(7) if t.same_l_bin("nmos", a, a + 1)] == [0, 1, 3, 5]
+
+
+def test_ub1_lookup_at_l_between_anchors_in_same_bin(bin_env):
+    from gmid_engine.lut import derived
+    memo, t, grids = bin_env
+    iv = np.arange(len(grids[1]))
+    zero = np.zeros_like(iv)
+    x, y, z = t.lookup_at_l("nmos", np.full(iv.shape, 1.25e-6), zero, zero, iv)
+    row = derived(memo, "param_row", "nmos", 100, 1.25e-6, grids[2][0], grids[3][0])          # 입력(피검 아님)
+    vgs, rx, ry, rz = row
+    assert np.isfinite(x).any()
+    for k in range(len(iv)):
+        j = [m for m, v in enumerate(vgs) if v == grids[1][k]]
+        if j:
+            assert (x[k], y[k], z[k]) == pytest.approx((rx[j[0]], ry[j[0]], rz[j[0]]), rel=1e-9, abs=1e-12)
+        else:
+            assert np.isnan(x[k])
+    a = t.lookup("nmos", np.zeros_like(iv), zero, zero, iv)              # L = 1.0 µm 앵커
+    b = t.lookup("nmos", np.ones_like(iv), zero, zero, iv)               # L = 1.5 µm 앵커
+    fin = np.isfinite(x)
+    assert np.allclose(x[fin], 0.5 * (a[0][fin] + b[0][fin]), rtol=1e-9)
+    at = t.lookup_at_l("nmos", np.full(iv.shape, grids[0][1]), zero, zero, iv)               # 앵커 L 이면 lookup 과 같다
+    assert np.allclose(at[0], b[0], rtol=1e-12, equal_nan=True) and np.allclose(at[1], b[1], rtol=1e-12, equal_nan=True)
+
+
+def test_ub1_lookup_at_l_across_bins_is_nan(bin_env):
+    _memo, t, grids = bin_env
+    iv = np.arange(len(grids[1]))
+    zero = np.zeros_like(iv)
+    for v in t.lookup_at_l("nmos", np.full(iv.shape, 2.5e-6), zero, zero, iv):                # 앵커 2 µm(bin A)과 3 µm(bin B) 사이
+        assert np.isnan(v).all()
+
+
+def test_ub1_map_less_table_has_no_same_bin_neighbours(toy):
+    t = ParamTables(memo_of(toy), W_KEYS, GRIDS)
+    assert [t.same_l_bin("nmos", a, a + 1) for a in range(len(L_GRID) - 1)] == [False] * (len(L_GRID) - 1)

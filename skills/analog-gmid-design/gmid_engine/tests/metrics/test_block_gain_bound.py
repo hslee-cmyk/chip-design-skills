@@ -12,6 +12,7 @@ oracle (a) 손 계산(해석식 toy LUT: x = 20 − 8·VGS, y = 0.1, z = 4·VS; 
 from __future__ import annotations
 
 import math
+import sys
 
 import numpy as np
 import pytest
@@ -149,6 +150,7 @@ def test_ub1_bound_decomposed_only_is_unknown(tables):
 UB1_L = (1e-6, 2e-6, 4e-6)
 UB1_X0, UB1_Y0, UB1_H = 12.0, 0.1, 0.5
 UB1_T0 = 1.0 / 16.0
+UB1_ABS = (20.0 / math.log(10.0)) * math.sqrt(sys.float_info.epsilon)      # 세분 허용 sqrt(eps) 의 dB 환산(interface T-5)
 
 
 def _ub1_parabola(t):
@@ -194,7 +196,7 @@ def test_ub1_e16_interior_maximum_of_same_bin_interval():
     """T-5 (a): 앵커 평탄, (La, Lb) 안 포물선 x = X0(1 + h·4t(1−t)) -> certified, a_max = db(X0(1 + h)/(2·Y0)), 최대 행 L 값 = 구간 중심."""
     bb = _ub1_bound(_Ub1Tables(_ub1_parabola))
     assert bb.status == "certified"
-    assert bb.a_max_db == pytest.approx(db(UB1_X0 * (1.0 + UB1_H) / (2.0 * UB1_Y0)), abs=1e-5)
+    assert bb.a_max_db == pytest.approx(db(UB1_X0 * (1.0 + UB1_H) / (2.0 * UB1_Y0)), abs=UB1_ABS)
     assert dict(bb.row_condition)["L:M1"] == pytest.approx(0.5 * (UB1_L[0] + UB1_L[1]), rel=1e-3)
 
 
@@ -224,4 +226,40 @@ def test_ub1_e16_extremum_near_interval_end():
     """T-5d (a): 극값이 구간 폭 ⅛ 이내(t = 1/16)인 단봉 -> a_max = db(X0(1 + h)/(2·Y0)). 구간을 ¼ 간격으로 표본하는 구현은 끝값(약 +0.14h)에 그쳐 red."""
     bb = _ub1_bound(_Ub1Tables(_ub1_near_end))
     assert bb.status == "certified"
-    assert bb.a_max_db == pytest.approx(db(UB1_X0 * (1.0 + UB1_H) / (2.0 * UB1_Y0)), abs=1e-5)
+    assert bb.a_max_db == pytest.approx(db(UB1_X0 * (1.0 + UB1_H) / (2.0 * UB1_Y0)), abs=UB1_ABS)
+
+
+def test_ub1_e16_real_tables_operating_path(tmp_path):
+    """T-5e (iii) [UB-1 C-13] 실제 `ParamTables`(bin 지도 toy: L 앵커 1·1.5·2 µm 모두 bin 0) 로 운영 경로: M1 nmos(out, in, gnd) 한 소자,
+    축 vgs·L·vds. 실제 `same_l_bin` 이 참이므로 `lookup_at_l` 이 불리고(호출 수 > 0, 넘긴 L 은 최대 행 L=2 µm 의 이웃 구간 [1.5, 2] µm 안),
+    이 toy 는 그 구간이 단조라 a_max = 최대 앵커 행의 db(x/y) (x, y = 격자 마디 값 `derived(param_row)` -- 입력, 피검 아님).
+    실제 `same_l_bin` 이 늘 거짓이면 호출 수 0 이라 red."""
+    from gmid_engine.lut import derived
+    from lut.conftest import TOY_SPEC, BinToy, bin_model_text, new_memo
+    L3 = (1e-6, 1.5e-6, 2e-6)
+    lut = BinToy(tmp_path, bin_model_text(), L=L3).load(TOY_SPEC)
+    memo = new_memo(lut)
+    grids = lut.slice_map[("nmos", 100)].grids
+
+    class CountTables(ParamTables):
+        def __init__(self, *a, **k):
+            super().__init__(*a, **k)
+            self.at_l = []
+
+        def lookup_at_l(self, kind, l_m, i_d, i_s, i_v):
+            self.at_l.append(np.asarray(l_m, dtype=float).copy())
+            return super().lookup_at_l(kind, l_m, i_d, i_s, i_v)
+
+    tb = CountTables(memo, {"nmos": 100}, grids)
+    axes = (axis("vgs", ("M1",), grids[1]), axis("L", ("M1",), grids[0]), axis("vds", ("M1",), grids[2]))
+    m = model(("out",), ("out",), ("in",), ((("in", 1.0),),), (("out", 1),),
+              (mosl("M1", "nmos", "out", "in", "gnd", "gnd", 0, 1, 2, -1),), axes, normalized=("I0",))
+    bb = block_gain_bound(m, tb, m.pi, ("M1",))
+    want = max(x / y for L in grids[0] for vds in grids[2]
+               for _vgs, xs, ys, _zs in [derived(memo, "param_row", "nmos", 100, float(L), float(vds), 0.0)]
+               for x, y in zip(xs, ys))
+    assert bb.status == "certified"
+    assert len(tb.at_l) > 0
+    ls = np.concatenate([np.ravel(a) for a in tb.at_l])
+    assert ls.min() >= 1.5e-6 * (1 - 1e-12) and ls.max() <= 2e-6 * (1 + 1e-12)
+    assert bb.a_max_db == pytest.approx(db(want), abs=1e-9)

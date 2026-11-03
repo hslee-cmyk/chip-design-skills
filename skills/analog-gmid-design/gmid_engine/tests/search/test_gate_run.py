@@ -126,7 +126,8 @@ def test_ub1_unmeasured_perturbations_are_rows_not_skips(monkeypatch):
 
     for second, unmeasured in ((lambda b: _result(60.0, 60.0), ("current:I2",)),
                                (lambda b: no_report, ("current:I2", "ln_idu:M9")),
-                               (lambda b: no_eval, ("current:I2", "ln_idu:M9"))):
+                               (lambda b: no_eval, ("current:I2", "ln_idu:M9")),
+                               (lambda b: None, ("current:I2", "ln_idu:M9"))):                 # 평가 실패 res is None
         monkeypatch.setattr(GR, "fd_jacobian", make(second))
         got = run_sensitivity_gate(SCTX, _result(60.0, 60.0))
         assert got.ok is False and got.verdict == "undeterminable" and got.reason == "perturbation_unmeasured"
