@@ -838,7 +838,7 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 
 ### 4.8 card EO-1 범위 4 개정판 -- 공용 영역 판정, 봉인 7·9, `off` 선언 처리 (승인 묶음 ⑥ 초안)
 
-**상태**: **초안 -- 독립 검증·design↔계획 gap·사용자 승인 전**(2026-11-03, 브랜치 `design/eo1`, base master `c8ecc4e7`, 계획 v6.38.7 + 결정 O-221·O-222). 이 절은 계획 N6.20 범위 (4)·완료 조건 (8)과 N3.6 '전도·포화 경계·`off` 선언 정본'을 구현 단위로 내린다. 정의는 계획이 정본이고 여기서는 인용만 한다. 엔진 파일 인용(`E/...`)은 재작성 범위 표시이고 근거가 아니다(원칙 8). **멈춤 항목 G1·G2(4.8-9)가 닫히기 전에는 4.8-5와 4.8-7을 card로 동결하지 않는다.**
+**상태**: **초안 -- 독립 검증·design↔계획 gap·사용자 승인 전**(2026-11-03, 브랜치 `design/eo1`, base master `c8ecc4e7`, 계획 v6.38.7 + 결정 O-221·O-222). 이 절은 계획 N6.20 범위 (4)·완료 조건 (8)과 N3.6 '전도·포화 경계·`off` 선언 정본'을 구현 단위로 내린다. 정의는 계획이 정본이고 여기서는 인용만 한다. 엔진 파일 인용(`E/...`)은 재작성 범위 표시이고 근거가 아니다(원칙 8). **G1·G2(4.8-9) = 채택(`wt/_drafts/la1_auto_decisions.md` A-1·A-2, 위임 O-226 -- LA-1 측정 시점 재점검 대상, 번복 가능). 이 절 전체를 card로 동결할 수 있다**(독립 검증 뒤).
 
 **이 절이 대체하는 옛 문언**(design/v115가 같은 줄을 고치고 있어 그 줄은 그대로 두고 이 절이 우선한다고 적는다 -- 4.8-11): 4.7-3a 2의 V_on·(다) `off` 행·(S4-가) 꼴, 4.7-3a 3의 `off` 갈래·'선언 `off` 소자 전도'·tol_VDsat 기준, 4.7-9 'card EO-1 범위' 행의 '공용 전도 판정 함수'·`off` 경계 행. 근거 = O-202 (1)·O-204·O-205·O-210.
 
@@ -886,21 +886,21 @@ def region_mismatch(judgment) -> bool                                       # �
 
 **4.8-4 영역 선언 필드와 로더 조각**
 
-- **SF-1 몫 로더 커밋**(O-221, O-144 J4 로더 단독 소유 유지, O-183 첫 소비 = 같은 통합 병합의 4.8-3·4.8-6): `E/authoring/spec_regions.py` `REGIONS`에 `"off"`, 항목 키에 `judged_by`, `spec_model.RegionDecl`에 칸 `judged_by: tuple = ()`, `SPEC_CONTRACT.md`. 꼴 = `{"region": "off", "judged_by": ["<metric>", ...], "source": ...}`. 로더 거부는 형식뿐이다: 목록·문자열이 아니면 `type`, `judged_by`를 `off` 아닌 소자에 적으면 `type`(소비자 0이라 받지 않음), 어휘 밖 `region`은 기존 거부. **칸 없음·빈 목록·metric 교차는 로더가 거부하지 않는다** -- O-h가 사유를 달아 정지한다(4.8-6, 정의 자리 하나). 커밋 표지 = `SF-1 로더 조각 -- O-221`. 이 커밋은 EO-1 통합 병합에만 든다(앞서 따로 병합 금지 -- O-183).
+- **SF-1 몫 로더 커밋**(O-221, O-144 J4 로더 단독 소유 유지, O-183 첫 소비 = 같은 통합 병합의 4.8-3·4.8-6): `E/authoring/spec_regions.py` `REGIONS`에 `"off"`, 항목 키에 `judged_by`·`w_m`·`l_m`(A-1), `spec_model.RegionDecl`에 칸 `judged_by: tuple = ()`·`w_m`·`l_m`, `SPEC_CONTRACT.md`. 꼴 = `{"region": "off", "w_m": <m>, "l_m": <m>, "judged_by": ["<metric>", ...], "source": ...}`. `off`에서 `w_m`·`l_m`은 필수이고 양수다(없으면 `type` -- 물리 출처가 없는 소자는 로드하지 않음), `off` 아닌 소자에 적으면 `type`. 로더 거부는 형식뿐이다: 목록·문자열이 아니면 `type`, `judged_by`를 `off` 아닌 소자에 적으면 `type`(소비자 0이라 받지 않음), 어휘 밖 `region`은 기존 거부. **칸 없음·빈 목록·metric 교차는 로더가 거부하지 않는다** -- O-h가 사유를 달아 정지한다(4.8-6, 정의 자리 하나). 커밋 표지 = `SF-1 로더 조각 -- O-221`. 이 커밋은 EO-1 통합 병합에만 든다(앞서 따로 병합 금지 -- O-183).
 - **술어 필드 하나**: S0 `device.region_decl`(writer `dc_region_decl`, 값 = 선언 소자만 `{소자: RegionDecl}`, 입력 = `DcInputs.regions`). '`intended_region` 위 술어 하나를 모든 소비자가 읽음, 둘째 거르기 없음'(O-53 B1)과 graph 규칙 3의 자리다. `DcInputs.linear_devices`와 그것을 넘기는 extras를 지운다(재작성 범위: `sizing/dc_inputs.py`, `kernel_run.py`, `seal.py`, `metrics/metrics_aux.py`, `metrics/ss_evaluate.py`; IT 통합 병합본에서 다시 grep). `symmetry_marks`는 `linear` 표지를 region 값 표지로 넓힌다 -- `off` 소자도 대칭을 깨는 선언이다(작성자 판단, 표지가 없으면 대칭 짝과 θ가 묶임).
 - **소자 열거 뿌리에서 거르기**: 다음 네 자리만 `off`를 뺀다 -- 쓰기 계획(`dc_writer_plan`), 전류 기저(`dc_current_basis`, off 전류 항 없음 = 0 모형), θ 스키마(`dc_theta_schema`), `search_domain` kind 목록(`off` 소자만 가진 kind는 상자 없음). W 계산·gm/ID 할당·층 0 역산·`device.dc_op`는 이 결과를 READS해 저절로 빠지고 자기 거르기를 두지 않는다. `off` 소자로만 정해지는 노드는 writer가 없어 기존 정지로 간다(fail-closed). `region_rows`는 `off` 소자 행을 내지 않는다(DC 범위 조건 제외, 옛 (다) 행 없음). 출발 구간·층 0이 소자를 따로 열거하면 착수 grep에서 찾아 이 필드를 읽게 한다.
 
-**4.8-5 ΔV 기록 블록** -- `E/metrics/ss_off_delta.py`, writer `ss_off_delta`, 필드 `graph.ss_off_delta` = `OffDelta(node_dv, sources)`(`node_dv` = ((넷, ΔV), ...), `sources` = ((off 소자, ΔI_off), ...)). READS `graph.ss_nodal`·`device.region_decl`·`node.dc_v`·`node.dc_rail_v`·`device.pins`·`device.kind`·`device.bulk`. extras `lut`.
+**4.8-5 ΔV 기록 블록** -- `E/metrics/ss_off_delta.py`, writer `ss_off_delta`, 필드 `graph.ss_off_delta` = `OffDelta(node_dv, sources)`(`node_dv` = ((넷, ΔV), ...), `sources` = ((off 소자, ΔI_off), ...)). READS `graph.ss_nodal`·`device.off_op`·`device.pins`. extras `lut`.
 
-1. **정지 검사**: 봉인점 전압으로 off 소자마다 VGS·VDS·VSB를 topology d/s 표기(DEC-97 (4))대로 낸다. VGS < 0인 off 소자가 하나라도 있으면 그 점 전체 E-0(사유 `off_vgs_negative`, 소자 전부 기록; 누설만 빼고 계속하는 갈래 없음 -- O-212). 그 밖 LUT 축 밖(역방향 VDS 포함)도 E-0(사유 `off_outside_lut`, 클램프 없음, 정본 (5) (다) '정의역 안일 때의 점값').
-2. **ΔI_off**: `op_point(memo, kind, w_key, L, vgs, vds, vsb).IDu · W/L`. **(W, L)의 출처 = G1**. `w_key`는 그 kind 슬라이스 규칙을 따른다(WB-1이 슬라이스 규칙을 바꾸면 이 블록도 그 card의 소비자 목록에 든다).
+1. **off 동작점 필드와 정지**: 봉인 직후 첫 ss 블록 `ss_off_op`(`E/metrics/ss_off_op.py`, 필드 `device.off_op` = `OffOp(kind, W, L, vgs, vds, vsb, w_key)`, READS `device.region_decl`·`node.dc_v`·`node.dc_rail_v`·`device.pins`·`device.kind`·`device.bulk`). 봉인점 전압에서 VGS·VDS·VSB를 topology d/s 표기(DEC-97 (4))대로 낸다. VGS < 0인 off 소자가 하나라도 있으면 그 점 전체 E-0(사유 `off_vgs_negative`, 소자 전부 기록; 누설만 빼고 계속하는 갈래 없음 -- O-212). 그 밖 LUT 축 밖(역방향 VDS 포함)도 E-0(사유 `off_outside_lut`, 클램프 없음, 정본 (5) (다) '정의역 안일 때의 점값'). `ss_dev`보다 앞이어야 축 밖 조회가 사유 없는 LUT 실패로 끝나지 않는다. 소비자 = `ss_dev`·ΔV 블록·oracle 생산자.
+2. **ΔI_off**: `op_point(memo, kind, w_key, L, vgs, vds, vsb).IDu · W/L`. **(W, L) = 선언 `w_m`·`l_m`**(A-1). `w_key`는 그 kind 슬라이스 규칙을 따른다(WB-1이 슬라이스 규칙을 바꾸면 이 블록도 그 card의 소비자 목록에 든다).
 3. **ΔV**: `graph.ss_nodal`의 인수분해에 `nodal_solve(factor, size, injection)` 한 번. 주입 = drain 넷 −ΔI_off, source 넷 +ΔI_off(MOS 극성에 맞춘 드레인 전류 방향) -- 정본 ΔV = −G⁻¹·ΔI_off와 같은 식. 새 행렬·반복 0. `graph.ss_nodal`이 `Undefined`이거나 `lu`가 None이거나 주입 넷이 `floating`이면 E-0(사유 `off_delta_undefined`, 값을 채우지 않음). 고정 넷(ac 접지 ∪ 입력)에 닿은 주입은 이상 전원이 흡수한다.
 4. **호출 조건**: off 선언 소자가 있을 때만. 없으면 이 블록·관문 호출 0, 필드 없음(빈 값 아님 -- 정본 (5) (라)). `ss_nodal` 호출 조건에 'off 선언 소자 있음'을 더한다.
 5. **소비자**: 4.8-7 관문(엔진) + 결과·oracle 대조 기록('추정' 표기, 점 레코드는 스냅샷 참조로 읽음 -- 값 칸·사본 0, 정확값 oracle `.dc`).
 
 **4.8-6 O-h 정지** -- `E/search/off_judged.py` `check_off_judged_by(region_decl, judged_constraints)`, 단계 A 머리에서 실행당 한 번(입력이 spec뿐이라 점마다 돌지 않음). 값을 저장하지 않고 정지만 한다. `off` 선언 소자마다: 칸 없음·빈 목록 = `off_judged_by_undeclared`; 목록의 metric이 `judged_constraints`에 없음 = `off_judged_by_not_judged`; `verified_by(metric).kind` ≠ `spice_oracle`이거나 레지스트리에 없음 = `off_judged_by_unverified`. 하나라도 걸리면 탐색 전 E-0 정지, 사유에 소자·metric. `spice_unverifiable`·`engine_only`를 '없음'으로 읽는 것은 '오라클이 그 꺼짐의 결과를 잰다'는 O-h 취지의 읽기다(작성자 판단). 레지스트리 밖 oracle 전용 항목(슬루)은 VB-1 전까지 `unverified`로 정지하고 VB-1이 `verified_by` 정의를 넓힐 때 함께 받는다.
 
-**4.8-7 ss 층 관문 G2-a** -- `E/metrics/ss_off_gate.py` `off_region_gate(snapshot, lut)`(판정만, 필드 쓰기 0). 자리: `ss_evaluate`에서 G 조립 사슬(`passive_values`·`ss_dev`·`ss_circuit`·`ss_nodal`) → `ss_off_delta` → **관문** → 나머지 소비자(`icm_config`·잡음·`metrics_ss`·`metrics_aux`·`metrics_dc`). 관문 앞에서 `graph.ss_nodal`을 읽는 소비자는 ΔV 블록뿐이다.
+**4.8-7 ss 층 관문 G2-a** -- `E/metrics/ss_off_gate.py` `off_region_gate(snapshot, lut)`(판정만, 필드 쓰기 0). 자리: `ss_evaluate`에서 `ss_off_op` → G 조립 사슬(`passive_values`·`ss_dev`·`ss_circuit`·`ss_nodal`) → `ss_off_delta` → **관문** → 나머지 소비자(`icm_config`·잡음·`metrics_ss`·`metrics_aux`·`metrics_dc`). 관문 앞에서 `graph.ss_nodal`을 읽는 소비자는 ΔV 블록뿐이다.
 
 - **대상 = 선언 없는 소자 + `triode` 선언 소자**(O-222 일반형, 물리: off 전류가 만든 노드 ΔV는 모든 소자의 VDS·VDSAT에 똑같이 들어간다). `off` 소자는 대상 밖. **원래 취지와 다름(승인 O-222)**: 계획 N3.6 (5) (마) '선언 없는 소자만'·'남는 한계(기록)'·완료 (8)(d)(iii) 후반 문언과 다르다 -- 4.8-10 P1.
 - **보정값**: ΔV를 부호 규약에 맞춘다(`dc_op` 전압은 크기이므로 p = NMOS +1, PMOS −1을 곱함). ΔVDS = p·(ΔV_d − ΔV_s), ΔVGS = p·(ΔV_g − ΔV_s), ΔVSB = p·(ΔV_s − ΔV_b). VDS′ = VDS + ΔVDS. VDSAT′ = VDSAT + Σ_X [vdsat(X + ΔX, 나머지 그대로) − vdsat(X)], X ∈ {VGS, VDS, VSB}, ΔX = 0이면 그 항 조회 0.
@@ -910,26 +910,26 @@ def region_mismatch(judgment) -> bool                                       # �
 
 **4.8-8 동작점 불일치 묶음**((S4-나), 범위 (4)(d), 완료 (8)(f)(g)). 불일치 종류 = 선언 `triode` 소자의 포화·꺼짐 둘. **결정: 불일치 상태 값·소자 열 칸·metric code `input_window_operating_point_mismatch`·노드 풀이 블록의 판정 호출을 만들지 않는다.** 근거: 실을 자리 `node.dc_window_cfg`는 봉인 뒤 측정 구성 블록이 쓰는데 그 점은 같은 점 봉인이 거부하므로 도달 0이다(계획 (f)(가)). 만들면 소비자 0이다(O-183, 원칙 9). 어긋난 소자는 `dc_seal_7`·`dc_seal_9` 거부 기록에 남는다. 그래서 공용 함수 호출 자리는 `dc_seal_region`과 관문 둘이다. **계획 문언과 다름 -- 4.8-10 P2.**
 
-**4.8-9 멈춤 항목(사용자 몫 -- 계획 없는 결정)**
+**4.8-9 채택 항목(위임 O-226 -- 계획 없던 결정, 기록 `la1_auto_decisions.md`)**
 
-**G1. off 소자의 (W, L) 출처.** 정본 (5)는 off 소자를 W 계산에서 빼면서 ΔI_off = LUT 점값(전류는 W/L 비례)을 요구한다. 계획·O-221 어디에도 W·L 자리가 없고, topology 소자 선언에도 기하 칸이 없다(`E/authoring/topology_model.py:38`). 물리 결정자: 꺼진 소자의 채널 전류는 W/L과 L 의존 Vth로 정해져 L만으로 자릿수가 움직인다(P:2481 R_ds 실측 문단). 임의 값은 원칙 11 위반이다.
+**G1. off 소자의 (W, L) 출처 -- 채택 (W-1), A-1.** 정본 (5)는 off 소자를 W 계산에서 빼면서 ΔI_off = LUT 점값(전류는 W/L 비례)을 요구한다. 계획·O-221 어디에도 W·L 자리가 없고, topology 소자 선언에도 기하 칸이 없다(`E/authoring/topology_model.py:38`). 물리 결정자: 꺼진 소자의 채널 전류는 W/L과 L 의존 Vth로 정해져 L만으로 자릿수가 움직인다(P:2481 R_ds 실측 문단). 임의 값은 원칙 11 위반이다.
 
 | 안 | 물리 | 원칙 | ⚠ |
 |---|---|---|---|
-| **(W-1) off 선언 항목에 `w_m`·`l_m` 필수 -- 작성자 기본안** | 사용자가 정한 기하로 점값 계산 | 상수 0, 로더 조각 안 | O-221 범위('`judged_by`·`off` 칸')에 칸 둘 추가. 첫 소비자 trim은 `trim_decl`과 같은 값이 두 곳에 놓일 수 있어 TR card에서 정리 필요 |
+| **(W-1) off 선언 항목에 `w_m`·`l_m` 필수 -- 채택** | 사용자가 정한 기하로 점값 계산 | 상수 0, 로더 조각 안 | O-221 범위('`judged_by`·`off` 칸')에 칸 둘 추가. 첫 소비자 trim은 `trim_decl`과 같은 값이 두 곳에 놓일 수 있어 TR card에서 정리 필요 |
 | (W-2) 자리를 만들지 않고 off 선언 = E-0 정지 | 판정 포기 | ⚠ ΔV·관문이 도달 0 -- O-183·원칙 9 위반, O-202 무력화 | toy도 못 돎 |
 | (W-3) 같은 kind 최소 폭·최소 L 대입 | ⚠ 그 소자의 전류가 아님 | ⚠ 원칙 11 | 근거 없는 기본값 |
 | (W-4) off 소자도 W를 θ로 탐색 | 물리 가능 | ⚠ O-53 B1·O-202 (1) 번복 | -- |
 
-**G2. off 소자의 소신호 스탬프.** `graph.ss_nodal`의 G와 AC 계에 off 소자가 어떻게 들어가는지 계획이 정하지 않았다. 원칙 1(O-179)은 C 열을 빼는 것을 정의 위반으로 본다.
+**G2. off 소자의 소신호 스탬프 -- 채택 (S-1), A-2.** `ss_dev`가 `device.off_op` 점에서 다른 MOS와 같은 열 규칙(DEC-91 (2))으로 gm·gmb·gds·C를 낸다. off 전류는 DC 0 모형 그대로이고 ΔV만 그 효과를 진다. `graph.ss_nodal`의 G와 AC 계에 off 소자가 어떻게 들어가는지 계획이 정하지 않았다. 원칙 1(O-179)은 C 열을 빼는 것을 정의 위반으로 본다.
 
 | 안 | 물리 | 원칙 | ⚠ |
 |---|---|---|---|
-| **(S-1) gm·gmb·gds·C 모두 LUT 순방향 점값으로 스탬프 -- 작성자 기본안** | 꺼진 소자의 C와 작은 gds가 그대로 들어감 | O-179 충족, G가 ΔV 점과 같은 정의 | G1 필요 |
+| **(S-1) gm·gmb·gds·C 모두 LUT 순방향 점값으로 스탬프 -- 채택** | 꺼진 소자의 C와 작은 gds가 그대로 들어감 | O-179 충족, G가 ΔV 점과 같은 정의 | G1 필요 |
 | (S-2) DC G에서만 빼고 C만 스탬프 | 0 모형과 맞음 | 정의가 두 갈래 | 노드가 off 소자로만 닿으면 `floating` |
 | (S-3) 전부 뺌 | ⚠ 스위치 노드 C 누락 | ⚠ O-179 위반 | -- |
 
-두 항목은 발동 0/13이라 지금 결과를 바꾸지 않고, 4.8-2·3·4·6·8의 착수를 막지 않는다. 막는 것은 4.8-5·4.8-7의 코드 동결과 그 toy다. 안 비교는 작성자 분석이고 LUT·SPICE로 재지 않았다(미측정).
+두 항목은 발동 0/13이라 지금 결과를 바꾸지 않는다. 안 비교는 작성자 분석이고 LUT·SPICE로 재지 않았다(미측정). **원래 취지와 다름**: O-221 범위에 칸 둘 추가, 계획에 없던 스탬프 자리를 채움.
 
 **4.8-10 계획 공백(계획 개정 입력)**
 
@@ -939,13 +939,13 @@ def region_mismatch(judgment) -> bool                                       # �
 | P2 | P:2171 (d), P:2175 (8)(b)·(f)(라) | '노드 풀이 블록 판정 호출 자리 하나'가 (f)(가) '대상 없음'과 함께 있다. 칸이 없으면 호출의 소비자가 0이므로 호출 자리 0으로 정정 요청. (f)(라)는 '행 여유 부호 판정 0'만 남김 |
 | P3 | P:654 '공용 함수가 그 집합을 READS' 대 P:2171 '예외 코드 = DR-1' | 어느 card가 READS를 넣는지 갈림. 이 design = DR-1이 넣음(O-183 과도기 0). 그 사이 빈 항 MOS는 봉인 9 거부이고 EO-1 변화표에 나온다. 빈 항 MOS 수는 **미측정** |
 | P4 | P:12 (2)·(3), P:1290, P:1335·1336·1341, 표 #21, P:1305, P:664 (바), P:2171 (b) '작성자 판단' | O-221·O-222 반영. `judged_by`·`off` = SF-1 로더 커밋 + EO-1 통합 병합, ICMR 칸은 첫 선언 회로 때 |
-| P5 | P:2177 착수 조건, P:2056 '§11 EO-1 행' | 범위 (1)~(3) 엔진 쪽 design 절과 40 §11 EO-1 행이 master·design/v115 어디에도 없다. 묶음 ⑥은 범위 4만 정함 -- 착수 전 별도 필요 |
+| P5 | P:2177 착수 조건, P:2056 '§11 EO-1 행' | **닫음** -- 범위 (1)~(3) = 4.9, 40 §11 EO-1 행 추가 |
 | P6 | 40 §4 v1.15.2 문단(design/v115 줄 1553) 'E-21 문턱 없으면 판정 불능' | O-210 RR-2 낡은 문언. 기준 폭만 남겨야 함(P:2459) |
-| P7 | G1·G2 | 위 4.8-9 |
+| P7 | P:664 (5) (라), P:2171 (b)(c) | 채택 A-1·A-2 반영: `w_m`·`l_m` 칸, `device.off_op` 필드, off 소자 스탬프 |
 
-**4.8-11 design/v115와의 겹침**: v115도 4.7-3a 2·3·4.7-9의 EO-1 줄과 40 소유표·§4 머리를 고쳤다. 이 판은 그 줄과 Status를 건드리지 않고 새 절만 더했다. **v115 병합 때 할 일**: (1) 4.7-3a 2·3·4.7-9의 낡은 EO-1 문언을 이 절 인용으로 교체 (2) 40 §2.4.8에 아래 소유표 행 (3) 40 §11에 EO-1 행 (4) 위 P6. oracle design의 `stage2_judgment`·`conduction.points`·K-5·K-6 문언은 묶음 ⑤ 몫이다.
+**4.8-11 design/v115와의 겹침**: v115도 4.7-3a 2·3·4.7-9의 EO-1 줄과 40 소유표·§4 머리를 고쳤다. 이 판은 그 줄과 Status를 건드리지 않고 새 절만 더했다. **v115 병합 때 할 일**: (1) 4.7-3a 2·3·4.7-9의 낡은 EO-1 문언을 이 절 인용으로 교체 (2) 40 §2.4.8에 아래 소유표 행 (3) 위 P6. oracle design의 `stage2_judgment`·`conduction.points`·K-5·K-6 문언은 묶음 ⑤ 몫이다.
 
-소유표 행 문안: `device.region_decl`(S0, writer `dc_region_decl`, 소비자 `dc_seal_region`·쓰기 계획·전류 기저·θ 스키마·`search_domain`·`region_rows`·`ss_off_delta`·관문·`check_off_judged_by`, 뒤 card HC-S) / `graph.dc_seal_7`·`graph.dc_seal_9`(writer `dc_seal_region`) / `graph.ss_off_delta`(ss, writer `ss_off_delta`, 소비자 관문 + 출력 기록) / 삭제 `device.dc_off_current`·`device.dc_conduction_floor`. 새 cache·memo·context 슬롯·결과 값 칸 0, LUT 조회 재사용은 승인 예외 LUT memo뿐.
+소유표 행 문안: `device.region_decl`(S0, writer `dc_region_decl`, 소비자 `dc_seal_region`·쓰기 계획·전류 기저·θ 스키마·`search_domain`·`region_rows`·`ss_off_op`·`ss_dev`·관문·`check_off_judged_by`·oracle 생산자, 뒤 card HC-S) / `graph.dc_seal_7`·`graph.dc_seal_9`(writer `dc_seal_region`) / `device.off_op`(ss, writer `ss_off_op`, 소비자 `ss_dev`·`ss_off_delta`·oracle 생산자) / `graph.ss_off_delta`(ss, writer `ss_off_delta`, 소비자 관문 + 출력 기록) / 삭제 `device.dc_off_current`·`device.dc_conduction_floor`. 새 cache·memo·context 슬롯·결과 값 칸 0, LUT 조회 재사용은 승인 예외 LUT memo뿐.
 
 **4.8-12 test 항목**(발동 0/13 -- `assets/library/*.sizing_spec.json` 13개에서 `"off"`·`"triode"` 문자열 0, 2026-11-03 grep -- **O-222대로 toy로만 검증**). 기대값은 손계산이고 피검 함수로 만들지 않는다. 회로 이름 0. 합성 LUT = VDSAT가 (VGS, VDS, VSB) 1차식인 표, IDu 표 값 지정.
 
@@ -959,12 +959,13 @@ def region_mismatch(judgment) -> bool                                       # �
 | T-S3 | 띠: VDSAT − tol < VDS < VDSAT → 거부 + `indistinct`; VDSAT < VDS < VDSAT + tol → 통과 + `indistinct` | 옛 +tol 거부 red |
 | T-S4 | tol 셀 미정 → 판정 불변, `indistinct_undefined`. 열 없음 LUT → 7 미정, `seal7_pending` 동작 유지. 축 밖 → 9 정의 불능. 표본 끝 → `domain_edge` | -- |
 | T-S5 | 쓰기 필드 `dc_off_current`·`dc_conduction_floor` grep 0, 같은 입력 한 평가에서 `judge_region` 소자당 1회(봉인 쪽) | -- |
-| T-L1 | `off` + `judged_by` 받음, `linear` 등 어휘 밖 거부, `judged_by` 꼴 위반 거부, `triode`에 `judged_by` 거부, 칸 없는 `off`는 로드 통과(O-h가 정지), 지문 `operating_fp`에 든다 | `off` 거부 red |
+| T-L1 | `off` + `judged_by` 받음, `linear` 등 어휘 밖 거부, `judged_by` 꼴 위반 거부, `triode`에 `judged_by` 거부, `judged_by` 칸 없는 `off`는 로드 통과(O-h가 정지), `w_m`·`l_m` 없거나 0 이하면 로드 거부, `off` 아닌 소자의 `w_m` 거부, 지문 `operating_fp`에 든다 | `off` 거부 red |
 | T-D1 | `off` 표지가 대칭 표지에 들어 짝과 θ가 안 묶임. `off` 소자만 가진 kind 상자 0, 호출 계수: off 소자가 LUT·gm/ID 사이징 경로에 0회 | -- |
 | T-O1 | 저항 부하 + 선언 없는 소자 + off 소자(VGS = 0) 한 노드 x: 봉인점 전압 = off 소자를 지운 회로 해와 같음. ΔV_x = −ΔI_off / G_xx 손계산 일치 | 필드 없음 red |
 | T-O2 | off 소자 극성 둘(NMOS 빼는 쪽 ΔV < 0, PMOS 넣는 쪽 ΔV > 0), source·drain 둘 다 고정 아닌 2노드에서 −G⁻¹·ΔI 손계산 | -- |
 | T-O3 | VGS < 0 off 소자 → 그 점 E-0, 사유 `off_vgs_negative`, front 후보 0, ΔI 계산 호출 0. VDS < 0 → `off_outside_lut` | 통과 red |
 | T-O4 | 주입 넷 floating·`lu` None·`ss_nodal` Undefined → `off_delta_undefined` | -- |
+| T-O5 | **A-2**: off 소자의 gm·gds·C가 `ss_nodal` G·AC 계에 든다(합성 LUT 값으로 G_xx·노드 C 손계산). W를 두 배로 선언하면 ΔI_off·스탬프가 두 배 | -- |
 | T-G1 | 선언 없는 소자 s > 0, ΔV로 s′ < 0 → 거부(1차식 손계산, PMOS 부호 변형 포함) | 통과 red |
 | T-G2 | s′ = 0 정확히 → 선언 없는 소자 통과(판정 여유 0) | -- |
 | T-G3 | 호출 순서 기록: `ss_nodal` → `ss_off_delta` → 관문 → 첫 metric 블록. 거부 때 metric·`icm_config` 호출 0, 부분 스냅샷 있음 | -- |
@@ -975,7 +976,7 @@ def region_mismatch(judgment) -> bool                                       # �
 | T-M1 | `triode` 포화·꺼짐 toy 각각: 같은 점 봉인 거부, 측정 구성 블록 호출 0, `node.dc_window_cfg` 항목 없음, 불일치 code 정의 0(AST), 행 여유 부호 판정 자리 0 | -- |
 | T-X1 | writer 하나·소비자 ≥ 1(G-8 소유표), 결정성 비트 동일, 변화표(library 13: 새 거부 점마다 소자·원인, 띠 안 점 통과 원인 = O-204). 값 = 검증자가 잼, **미측정** | -- |
 
-E-21 기준 폭 toy(P:2171 끝)는 생산자 경로라 범위 (1) 절이 받는다. **G1·G2 전 동결 가능**: T-R*, T-S*, T-L1, T-J1, T-M1, T-D1의 대칭·상자 부분. **G1·G2 뒤**: T-O*, T-G*, T-N1.
+E-21 기준 폭 toy(P:2171 끝)는 생산자 경로라 4.9 T-P6이 받는다. G1·G2 채택으로 모든 항목을 함께 동결한다.
 
 **4.8-13 계획 대응표**
 
@@ -1005,8 +1006,113 @@ E-21 기준 폭 toy(P:2171 끝)는 생산자 경로라 범위 (1) 절이 받는�
 | 완료 (8)(f) | T-M1(P2 정정 전제) |
 | O-202·O-204·O-205·O-210 RR-2·O-212 | 4.8-2~4.8-7 |
 | O-221 | 4.8-1, 4.8-4 |
+| A-1·A-2(O-226) | 4.8-4, 4.8-5, 4.8-9 / T-L1, T-O5 |
 | O-222 | 4.8-7, T-G4 |
 | O-144 J4·O-183 | 4.8-4 로더 커밋 |
+
+### 4.9 card EO-1 범위 (1)~(3) -- 엔진 점 → oracle 입력 생산자와 판정 배선 (초안)
+
+**상태**: **초안 -- 독립 검증·design↔계획 gap 전**(2026-11-03, 브랜치 `design/eo1`). 계약 = oracle design §11.1·§11.4·§11.7(판 = `design/op0` v0.4.0, 미승인 -- 칸 이름이 바뀌면 이 절 표를 따라 고친다). 정의 = 계획 N6.20, DEC-98·T4-pre(40 §10.5). 엔진 파일 인용은 재작성 범위 표시뿐이다(원칙 8). 40 §11 U17 ②의 나눔: 이 절 = 생산자·시작점 판정, front 판정 배선 = LA-1(범위 (3), LA-Q5).
+
+**4.9-1 파일과 함수**
+
+```python
+# E/search/oracle_input.py -- 생산자 하나(완료 (6): 엔진 점 → oracle 입력 변환 자리 하나)
+def oracle_input_of(snapshot, spec, topology_ref, run_decl, lut_files) -> dict        # 부수 효과 0, 스냅샷 안 바꿈
+# E/search/oracle_bridge.py -- 판정 배선
+def judge_point(snapshot, ...) -> OracleRef                                            # 입력 파일 쓰기 → oracle_run 외부 실행 → 참조
+def bridge_status(ref) -> str                                                          # 기록을 읽어 다리 상태
+```
+
+- oracle은 외부 단계다. `tools/spice_oracle` import 0, 엔진 쪽 LUT 재계산·판정 0.
+- **값은 직렬화만**: 봉인 스냅샷 필드·spec 선언·LUT 파일 기록의 참조에서 옮긴다. 다시 계산하지 않는다. 스냅샷 지문은 입력 전후 같다(완료 (2)).
+- 값이 없으면 채우지 않는다: 필수 칸의 출처가 없으면 입력을 쓰지 않고 `oracle_input_undefined`(사유: 칸 포인터)로 그 점을 '판정 안 함' 기록한다(fail-closed).
+
+**4.9-2 칸 출처표**(OP-3 칸까지, G-18 확장 칸은 내지 않음 -- O-45 U1, K-2)
+
+| 칸 | 출처 | 규칙 |
+|---|---|---|
+| `schema`·`circuit` | 상수 형식 이름·topology 이름 | `circuit` 패턴 위반 = undefined |
+| `process.descriptor`·`simulator`·`testbench` | 실행 선언 `run_decl`(4.9-5 R2) | 엔진이 값을 정하지 않음 |
+| `process.lut_files` | 그 점 `dc_op`가 쓴 슬라이스 파일(LUT 세트 기록의 경로·raw sha256·kind) | kind 전부 덮음(1d) |
+| `process.corner`·`temp_c` | 내지 않음 | LUT 기록에서 oracle이 확정(§11.2 2b) |
+| `rails` | spec `supplies_v` + topology `supply_nets`. `reference` = 0 V 레일 | 0 V 레일이 정확히 하나가 아니면 oracle `BLOCKED`로 둠 |
+| `devices[]` | topology 소자 핀·`device.bulk`(DEC-61 기본 레일), L·W = `dc_op`, off 소자 = `device.off_op`(선언 `w_m`·`l_m`) | T4-pre: `finger_w` = W, `n_fingers` = 1(40 §10.5). WB-1이 (m, w_f) 필드 READS로 바꿈(그 card 소비자) |
+| `devices[].diffusion` | `ss_dev`가 쓰는 LUT 규칙 선언과 같은 함수 호출(DEC-91 (2) '같은 값'). 기준 폭은 그 선언 | **기준 폭 선언 없음 = `reference_width_undeclared`로 판정 불능**(E-21, 대체값 0). 둘째 식 0. 같은 입력 호출이 둘이 되는지 G-10으로 재고, 되면 필드로 올리고 보고 |
+| `sources`·`passives` | topology·응용 망 선언 + `device.passive_value` | **출력 부하 한 번만**(B89, O-157 S6): 원소를 선언에서 한 번 낸다. 레일 판정은 `supply_nets` 전체. 부하를 덧붙이는 코드 없음 |
+| `bias_voltages` | 게이트 전용 넷의 봉인점 `node.dc_v` | oracle `bias_gate_nets_mismatch`와 맞음 |
+| `ports`·`feedback_passives`·`cm_output_loop` | spec·topology 선언 | 뷰가 없으면 칸 없음 |
+| `predictions.nodes` | `node.dc_v` ∪ `node.dc_rail_v` | -- |
+| `predictions.devices` | `dc_op`(ID·VGS·VDS·VSB·gm_id), `ss` 필드(gm·gds), `region` = `device.region_decl` 사상(없음 → `"sat"`, `triode`, `off`) | 봉인 통과 점이라 선언 = 실제. **`off_current_A`를 내지 않는다**(필드 삭제, R1). `tol` 없음 |
+| `predictions.metrics` | `graph/metrics` 값 + `verified_by(metric).measure` | 미측정 값은 칸 없음 |
+| `acceptance` | 판정 제약 ∩ `spice_oracle` → `constraints`, ∩ `spice_unverifiable` → `not_measurable` | 측정 불능을 조용히 빼지 않음(T5) |
+| `judge.sat_margin_V` | 0(O-204 판정 여유 없음 -- 값 발명 아니라 결정의 값) | `judge.off_current_A`·`tolerances` 없음 |
+| `noise`·`offset_mc`·`swing_icmr` | 해당 판정 제약이 있을 때만, `run_decl`의 실행 설정 | OP-3 판 `swing_icmr.input_dc_V`는 spec 입력 DC 참조 |
+| `topology` | 경로 + 파일 sha256 | `--require-topology`로 실행 |
+| `provenance` | 생산자 이름, `snapshot_fp` | 출력 전용 |
+
+**4.9-3 판정 배선(범위 (2))**
+
+- **대상 = 시작점**(N6.3 (iii)): 그 실행의 출발점 가운데 커널 평가가 봉인 통과인 점. 스냅샷은 S3 색인 참조로 읽고 재평가 0. 봉인 통과 점이 없으면 oracle을 부르지 않고 `no_sealed_start`를 기록한다.
+- **자리**: `find_front`가 탐색을 끝낸 뒤, 실행 기록을 쓰기 전. 탐색 궤적·front에 영향 0(front 판정은 범위 (3)이라 이 card에서 읽지 않음). 실행 설정은 `--bias free`, T4-pre 기하.
+- **`run_decl`이 없거나 기록 폴더(archive)가 없으면** 실행하지 않고 notes에 `oracle_undeclared`·`oracle_no_record_root`. 다리는 '보류'이고 통과로 세지 않는다.
+- **OP-7 거부**: 선언 호환 모드가 없으면 oracle이 실행을 거부한다(P:305 reader (ii)). 그 거부도 아래 거부 기록 경로로 온다. 별도 표 없음.
+- **점 레코드**(graph 규칙 4 -- 참조만): `starts[]` 행에 `oracle = OracleRef(record_id, compare_ref, input_sha256)` 또는 `oracle_reject = (reject_ref, code, stage)`. verdict·꺼짐 판은 기록 파일에 있고 `bridge_status`가 읽는다. 결과 객체(`EvalResult`·`SearchFront`)에 값 칸을 더하지 않는다.
+- **`bridge_status`**: `compare.json`의 `record_id`를 §11.7 식으로 대조(다르면 `record_mismatch`) 뒤 `summary.conduction_definition` 읽음. `channel_sign` = verdict 유효. `threshold_eps1` = '보류(채울 card = OP-5)'(N6.20, N6.3 (iv)). 그 밖 값 = 판정 불능. EO-1이 읽는 칸은 §11.7 목록 밖으로 나가지 않는다.
+- **2단계 없음**: `conduction.points[]` 재판정·`stage2_judgment`·재요청 자리 0(O-205 (2)·O-210 RR-2). 기록·대조용 읽기는 OP-5 통합 병합 몫이다.
+
+**4.9-4 뒤 card가 갱신하는 칸**(O-183 과도기 0 -- 그 card 같은 병합): OP-5·HC-O·OP-10 = G-18 확장 칸(`intended_region`, 훑기 등), WB-1 = `finger_w`·`n_fingers`·확산, SF-1 범위 3·8·9 = 출력 범위, `counted_rails`, DUT 저항 C_par/2, LA-1 = front 판정 호출(범위 (3)), DR-1 = KCL 항등 0 집합.
+
+**4.9-5 권고(오케스트레이터 기록용, O-226)** -- 사용자 질문이 아니다. EO-1 생산자 코드는 어느 쪽이든 같아서 두 항목 모두 **착수를 막지 않는다**.
+
+**R1. OP-3 판 합격 판정(oracle design v0.4.0 PG-1).** O-205로 `device.dc_off_current`가 지워지면 생산자는 `off_current_A`를 낼 수 없고, OP-3 판 oracle은 전도 예측 소자마다 `INCOMPLETE`를 낸다. 그러면 OP-5 전 모든 SPICE 다리가 보류인데 OP-5는 공통 선행 15 card 밖이다.
+
+| 안 | 물리·원칙 | LA-1까지 | ⚠ |
+|---|---|---|---|
+| **(a) 판정 한 단계(부호·VDS ≥ VDSAT)와 `off_current_A` 칸 삭제를 OP-3으로 앞당김 -- 권고** | O-205·O-210 그대로, 옛 식 기간 0 | 시작점 다리가 EO-1부터 유효 | OP-3 범위 증가, oracle·gain-budget 계획 개정. OP-1b 기준선과 비교할 칸이 동작 변경으로 바뀜 -- 변화표 필요 |
+| (b) 그대로: `INCOMPLETE`, 다리 보류 | fail-closed | OP-5 전 SPICE 다리 0, LA-1 앞 card가 전부 미완료 병합 | 보류 다리 병합 승인이 card마다 쌓임 |
+| (c) 필드 삭제를 OP-5 뒤로 | ⚠ O-200 위반 기간 유지 | 옛 식으로 판정 | ⚠ 옛 ε 식을 다시 재작성하고 다시 지움 |
+| (d) 생산자가 LUT VGS = 0으로 문턱 계산 | ⚠ 지운 정의의 둘째 생산자 | 옛 식으로 판정 | ⚠ 범위 (1) '직렬화만'·graph 규칙 위반 |
+
+**R2. 실행 선언 `run_decl`의 자리.** `testbench`(필수 칸)·`simulator`·`descriptor`는 봉인 스냅샷·spec·LUT 어디에도 없어 N6.20 '입력 출처'가 덮지 못한다. 지금 값은 `tools/spice_oracle/legacy_testbench.json`에 있고 그 파일은 LT-1이 지운다. **권고**: 회로 무관 실행 선언 파일 하나(oracle 도구 곁, 경로·sha256을 `provenance`에 기록)로 옮기고, 벤치 구성값의 근거 주석을 함께 옮기며, `find_front` 호출자가 경로를 넘긴다. 값은 판정 기준이 아니라 벤치 구성이다. 대안: spec 칸 ⚠ 회로마다 같은 값이 13벌, 생산자 상수 ⚠ 원칙 11. 계획 N6.20 '입력 출처'에 한 줄이 필요하다.
+
+**4.9-6 test 항목**(손 회로 2~4 소자, 회로 이름 0, 기대값 손작성)
+
+| id | 내용 | base |
+|---|---|---|
+| T-P1 | 칸별 일치: 출력 전 칸 = 픽스처 스냅샷·spec 값 그대로(완료 (1)) | 생산자 없음 red |
+| T-P2 | 생산자 출력의 칸 하나를 깨면 oracle이 거부하고 거부 기록 경로로 옴(§11.3 E 변형, 완료 (1) red) | -- |
+| T-P3 | G-18 확장 칸·`off_current_A` 키 0, oracle §11.2 1a~1d 통과 | -- |
+| T-P4 | 중간 레일에 닿은 선언 부하 C 하나 → 넷리스트 부하 하나, 0 V 레일 끝 C도 하나, 선언 없으면 부하 추가 0(B89) | 이중 계상 red(옛 어댑터 대조) |
+| T-P5 | 스냅샷 지문 입력 전후 같음(완료 (2)). 같은 입력 두 번 비트 동일(완료 (5)) | -- |
+| T-P6 | 기준 폭 선언 없음 → `reference_width_undeclared`, 입력 파일 0(E-21) | 대체값 red |
+| T-P7 | `off`·`triode` 선언 toy: `region` 사상, off 소자 W·L = 선언 값 | -- |
+| T-P8 | `git grep`: 입력 스키마 키를 만드는 자리 = `oracle_input_of` 하나, 엔진 안 `tools/spice_oracle` import 0(완료 (6)) | -- |
+| T-B1 | stub oracle로 시작점 판정: 기록 생기고 `starts[]` 행에 참조, 탐색 결과 비트 불변(완료 (3)) + 실제 oracle 1회(OP-3 뒤) | 칸 없음 red |
+| T-B2 | 거부 입력 → `oracle_reject`, 반환 코드 2 처리. 봉인 통과 점 없음 → `no_sealed_start`, 호출 0 | -- |
+| T-B3 | `run_decl` 없음·archive 없음 → notes 사유, 호출 0, 다리 '보류' | -- |
+| T-B4 | `bridge_status`: `channel_sign` 유효, `threshold_eps1` 보류, 모르는 값 판정 불능, `record_id` 불일치 거부 | -- |
+| T-B5 | 값 칸 0: `EvalResult`·`SearchFront` 필드 불변, 2단계 호출 자리 0 | -- |
+| T-X2 | 검증자 변화표: 결과에 판정 칸이 새로 생김, 원인 기록(완료 (4)). 값 **미측정** | -- |
+
+**4.9-7 계획 대응표**
+
+| 계획 | 이 절 |
+|---|---|
+| 범위 (1) 생산자 하나·칸 범위·입력 출처·직렬화 | 4.9-1, 4.9-2 / T-P1, T-P3, T-P8 |
+| 범위 (1) 확장 칸 갱신 담당 | 4.9-4 |
+| 범위 (1) 출력 부하 한 번만 | 4.9-2 / T-P4 |
+| 범위 (2) 판정 호출·점 레코드·시작점 | 4.9-3 / T-B1, T-B2 |
+| 범위 (3) front 판정 제외 | 머리, 4.9-3, 4.9-4 |
+| 끝 E-21 기준 폭 | 4.9-2 / T-P6 |
+| 완료 (1) | T-P1~P4 |
+| 완료 (2) | T-P5 |
+| 완료 (3) | T-B1 |
+| 완료 (4) | T-X2 |
+| 완료 (5) | T-P5 |
+| 완료 (6) | T-P8 |
+| 완료 (7) N6.3 공통 | 이 절 전체, 검증자 |
+| 순서 '꺼짐 정의 판' | 4.9-3 `bridge_status` / T-B4 |
 
 **상태**: 4.1은 PART(분류는 있고 매핑이 없다). 4.2~4.6은 MISS. 4.7은 MISS(J-E 창은 as-built `input_window`·`_solve_input_window`가 PART -- A1~A10).
 
