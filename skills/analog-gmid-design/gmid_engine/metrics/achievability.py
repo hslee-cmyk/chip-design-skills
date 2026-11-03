@@ -150,11 +150,16 @@ def _gain_target(spec):
     return max(values) if values else None
 
 
+def _others(view, nodes):
+    """같은 뷰 남의 블록 노드 넷(자기 `nodes` 제외) 정렬 tuple -- 미지수 집합 U_b 의 고정 집합 F(설계 41 §2.5-1)."""
+    return tuple(sorted({n for b in view.blocks for n in b.nodes} - set(nodes)))
+
+
 def _block_spec(view, block, local):
     members = tuple(sorted(n for n, _role in block.roles if local.cls.get(n) == ELEMENT_MOS))
     passives = tuple(sorted(n for n, _role in block.roles if local.cls.get(n) == ELEMENT_PASSIVE))
     return BlockSpec(block.key, ROLE_MAIN, members, passives, tuple(block.inputs), tuple(block.outputs), frozenset(view.ac_ground),
-                     tuple(view.excite), tuple(block.nodes))
+                     tuple(view.excite), tuple(block.nodes), others=_others(view, block.nodes))
 
 
 def _bound(local, tables, spec, budget, role=None):
@@ -209,10 +214,11 @@ def _gain(view, s1v_blocks, local, tables, spec, budget, target):
             members |= {n for n, _r in merge_block.roles if local.cls.get(n) == ELEMENT_MOS}
             passives |= {n for n, _r in merge_block.roles if local.cls.get(n) == ELEMENT_PASSIVE}
         mos_members = tuple(sorted(n for n in members if local.cls.get(n) == ELEMENT_MOS))
-        nodes = set(merge_block.nodes if merge_block is not None else ()) | {f.tap, f.merge}
+        nodes = (set(merge_block.nodes) - set(merge_block.inputs) if merge_block is not None else set()) | {f.tap, f.merge}      # merge 블록 입력 넷은 이 경로에서 구동되지 않는 남의 블록 넷(others)
         nodes |= {local.pins[n][t] for n in mos_members for t in ("d", "s")}
         ff_spec = BlockSpec((f.id,), ROLE_FF, mos_members, tuple(sorted(passives)), (f.tap,), (f.merge,), frozenset(view.ac_ground),
-                            ((f.tap, 1),), tuple(sorted(nodes)), drive=(f.tap,))
+                            ((f.tap, 1),), tuple(sorted(nodes)), drive=(f.tap,),
+                            others=_others(view, nodes))
         ff_specs.append(ff_spec)
         ff_bounds.append(_bound(local, tables, ff_spec, budget))
     chain_pure = _chain(view, s1v_blocks, bounds, local.node_colour)

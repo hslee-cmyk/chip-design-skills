@@ -20,7 +20,7 @@ import math
 import numpy as np
 
 from gmid_engine.core import AMPLITUDE_DB_PER_DECADE
-from gmid_engine.metrics import block_gain_model_of, row_gains
+from gmid_engine.metrics import REASON_DECOMPOSED_ONLY, REASON_LOAD_UNFIXED, block_gain_model_of, row_gains
 
 from ._helpers_curves import slice_of
 from .start_values import QUANTITY_L, SIDE_LO, SRC_GAIN_L, Bound, StartConflict
@@ -107,6 +107,11 @@ def gain_l_bounds(ctx, elements, resistors, gm_id_lo):
         if model is None:
             inactive.append((SRC_GAIN_L, reason))
             continue
+        if model.decomposed_only:                   # 되먹임 저항: 행 값은 상한이 아니라 L 하한으로 쓰지 않는다
+            inactive.append((SRC_GAIN_L, REASON_DECOMPOSED_ONLY))
+            continue
+        if model.omitted_load:                      # 비멤버 부하 어드미턴스 미정: 값은 내되 사유를 표에 남긴다
+            inactive.append((SRC_GAIN_L, REASON_LOAD_UNFIXED))
         if not members:
             continue
         bins = slice_of(ctx, ctx.by_name[members[0]].kind).l_bins

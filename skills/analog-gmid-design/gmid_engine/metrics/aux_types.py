@@ -38,8 +38,8 @@ class MismatchSource:
 @dataclasses.dataclass(frozen=True)
 class BlockStruct:
     """블록 하나의 구조 사실. `key` = 출력노드 정렬 tuple, `kind` ∈ {gain, buffer, composite}, `stage` = 정수, `inputs`·`outputs` = 넷 이름 tuple,
-    `nodes` = 블록 노드 집합(입력 넷 포함, 교류접지 제외), `input_cells` = 역할이 input 인 MOS 이름 tuple. 블록 국소 모델의 스탬프 소자는 이 노드 집합에 단자가
-    닿는 소자로 정한다(S1v `roles` 가 아니라 netlist 인접 -- 버퍼 블록도 같은 규칙)."""
+    `nodes` = 블록 노드 집합(입력 넷 포함, 교류접지 제외), `input_cells` = 역할이 input 인 MOS 이름 tuple, `members` = S1v 블록 소자 이름(MOS·수동소자) 정렬 tuple
+    (S1v `roles` 의 이름 -- 설계 41 §2.5 미지수 집합 U_b 의 블록 소자, 스탬프에는 저항만 쓰인다. S1v 값의 투영이다)."""
 
     key: tuple
     kind: str
@@ -48,6 +48,7 @@ class BlockStruct:
     outputs: tuple
     nodes: tuple
     input_cells: tuple = ()
+    members: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -68,7 +69,8 @@ class FfStruct:
 class ViewStruct:
     """전달 뷰 하나의 구조 사실. `excite` = ((넷, 가중), ...), `sense` = 감지 넷 정렬 tuple, `blocks` = 주경로 블록(stage 순, 같은 stage 는 키순),
     `ff` = FfStruct tuple, `input_cells` = 첫 이득 블록(최소 stage)의 input 셀, `signal_devices` = 순방향 신호 셀 MOS 이름 정렬 tuple (nqs_ratio 입력),
-    `pole_nets` = 극점 노드 넷 정렬 tuple, `directions` = ((넷, topology, charge ((소자, β|σ|κ), ...), discharge (...)), ...) -- ls_fields 입력(DEC-65)."""
+    `pole_nets` = 극점 노드 넷 정렬 tuple, `directions` = ((넷, topology, charge ((소자, β|σ|κ), ...), discharge (...)), ...) -- ls_fields 입력(DEC-65),
+    `ac_ground` = 그 뷰 교류접지 넷 정렬 tuple(S1v 뷰 값의 투영 -- 블록 국소 풀이의 고정 집합 F)."""
 
     id: str
     excite: tuple
@@ -79,6 +81,7 @@ class ViewStruct:
     signal_devices: tuple = ()
     pole_nets: tuple = ()
     directions: tuple = ()
+    ac_ground: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -272,14 +275,32 @@ class LsFields:
     undefined: tuple = ()
 
 
+# ---- 감도 게이트 판정(`GateResult.verdict`)과 사유(`GateResult.reason`) -- 못 잰 것을 통과로 읽지 않는다(설계 40 §3.11-6 E-01)
+GATE_OK = "ok"
+GATE_ERROR = "error"
+GATE_UNDETERMINABLE = "undeterminable"
+GATE_EMPTY = "gate_empty"
+GATE_REASON_BASE_UNDEFINED = "base_undefined"
+GATE_REASON_PERTURBATION_UNMEASURED = "perturbation_unmeasured"
+GATE_REASON_NO_PERTURBATION = "no_perturbation"
+GATE_REASON_NO_BLOCK_REPORT = "no_block_report"
+GATE_REASON_NO_UNREAD_DIRECTION = "no_unread_direction"
+GATE_REASON_FRONT_EMPTY = "front_empty"
+
+
 @dataclasses.dataclass(frozen=True)
 class GateResult:
-    """감도 게이트 결과(40 §3.8-2). `ok` = 오류 없음, `checks` = ((섭동 이름, 분해 변화, MNA 변화, ε, 오류 여부), ...), `errors` = 오류 섭동 이름 tuple."""
+    """감도 게이트 결과(40 §3.8-2). `ok` = (`verdict == "ok"`), `checks` = ((섭동 이름, 분해 변화, MNA 변화, ε, 오류 여부), ...), `errors` = 오류 섭동 이름 tuple,
+    `verdict` ∈ {ok, error, undeterminable, gate_empty}, `reason` = verdict 가 undeterminable·gate_empty 일 때의 사유 문자열(그 밖은 None),
+    `unmeasured` = 못 잰 섭동 이름 tuple(전 이름 = 기준이 정의되지 않음)."""
 
     ok: bool
     checks: tuple = ()
     errors: tuple = ()
     epsilon: object = None
+    verdict: str = "ok"
+    reason: object = None
+    unmeasured: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)

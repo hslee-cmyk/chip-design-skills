@@ -56,7 +56,7 @@ def _cascade(ss, vstruct, pairs, sense_nets, active, excluded):
             else:
                 reached = False
         found = block_local_gain(ss, block, drive, others=every - set(block.nodes), exclude=excluded,
-                                 extra=tuple(m for f in stamped for m in f.members))
+                                 extra=tuple(m for f in stamped for m in f.members), ground=vstruct.ac_ground)
         volts.update(dict(found.node_v))
         results.append(found)
     return _sense_value(volts, *sense_nets), tuple(results), reached

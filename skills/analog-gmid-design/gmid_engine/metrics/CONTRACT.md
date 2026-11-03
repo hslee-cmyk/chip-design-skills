@@ -1229,7 +1229,7 @@ max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미
 | 파일 | 진입점 | 내용 |
 |---|---|---|
 | `aux_types.py` | (데이터) | 결과·구조 입력 frozen 레코드(12.1) |
-| `_helpers_nodal.py` | `conductance_matrix`, `nodal_factor`, `nodal_solve`, `nodal_adjoint` | ω → 0 노달 풀이(용량 열린 회로, 전도 경로 있는 노드), LU 1회, 정방향·수반 |
+| `_helpers_nodal.py` | `conductance_matrix`, `capacitance_matrix`, `nodal_factor(g, fixed, *, c)`, `nodal_solve`, `nodal_adjoint` | ω → 0 노달 풀이(전도 노드는 G 행, 용량 전용 노드는 `_helpers_dc.limit_matrix` 의 전하 보존 행), LU 1회, 정방향·수반 |
 | `_helpers_view.py` | `view_system`, 상수 `PARAMETER_ORDER` | 전달 뷰 -> (고정 노드, 구동, 관측 벡터, 여기 쌍, 감지 쌍) |
 | `metric_structure.py` | `metric_structure(s1v) -> MetricStructure` | S1v -> 주경로 블록 사슬·FF 묶음·입력 셀·신호 셀·극점 노드·방향 셀 |
 | `device_sigma.py` | `device_sigmas(lut, mismatch, devices)` | 소자별 σ_VGS(U3 `mismatch_sigma_vgs`)와 tol_mismatch 1차 전파 |
@@ -1239,11 +1239,11 @@ max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미
 | `ls_swing.py` | `ls_swing(devices, rails, node_v, outputs, inputs, diff_outputs, input_dc_v) -> SwingIcmr` | `swing_out_v`·`icmr_v`·`icm_margin_v` |
 | `ls_fields.py` | `ls_fields(ss, vstruct, ops, volts, bounds, lut, rel_tols, driving, outputs) -> LsFields` | 슬루 등가 용량 `c_slew_farad`·방향별 최대 전류 |
 | `nqs_ratio.py` | `nqs_ratio(devices, ugf_hz) -> NqsRatio` | ugf / 신호 경로 최소 f_T |
-| `block_model.py` | `block_local_gain(ss, block, drive, others, exclude, extra) -> BlockGain` | 블록 국소 gain·Z_out·노드 전압 |
+| `block_model.py` | `block_local_gain(ss, block, drive, others, exclude, extra, ground) -> BlockGain` | 블록 국소 gain·Z_out·노드 전압(설계 41 §2.5 미지수 집합 U_b, 스탬프 조립 `block_gain_rows.block_stamp_matrix`) |
 | `block_residual.py` | `block_residual(ss, view, vstruct) -> BlockResidual` | 분해 합성 A_decomp·`gain_residual_db`·FF 기여·rout 잔차 |
 | `ff_gm_ratio.py` | `ff_gm_ratio(ss, vstruct, rel_tols) -> FfRatio` | `ff_gm_ratio` |
 | `coupled_residual.py` | `coupled_residual(residuals_db) -> CoupledResidual` | r̂(중앙값)·r̂_spread |
-| `sensitivity_gate.py` | `sensitivity_gate(base, runs) -> GateResult` | 감도 게이트 판정 |
+| `sensitivity_gate.py` | `sensitivity_gate(base, runs) -> GateResult` | 감도 게이트 판정(`verdict` ok·error·undeterminable·gate_empty -- 못 잰 것은 통과가 아니다) |
 | `verified_by.py` / `model_error.py` | `verified_by(metric)` / `model_error_pairs(derived)` | 검증 출처·모델 오차 읽기 |
 | `metrics_aux.py` | `metrics_aux`(`@compute_block`, writer `metrics_aux`, 필드 `graph.metrics_aux`) | 위 함수들을 봉인 스냅샷에 배선 |
 | (search) `residual_probe.py`, `gate_run.py`, `ls_constraints.py` | `residual_probe`, `run_sensitivity_gate`, `ls_constraint_rows` | 결합 잔차 측정, 게이트 실행, driving_spec 제약 행 |
@@ -1295,8 +1295,9 @@ V_icm = `input_dc_v`(선언) 또는 입력 DC 대기(SP-2)면 봉인 해의 입�
 
 ### 12.6 블록 모델·잔차·FF (41 §2, D-BM·D-J2)
 
-`block_local_gain`: 미지수 = 블록 소유 노드(블록 노드 − 입력), 입력 넷은 `drive` 로 구동(생략 = 단위 구동: 입력 하나 1 V, 둘 ±1/2 V 이름순), 블록 밖(`others` = 다른 블록 노드)·접지 = 0.
-스탬프 소자 = **netlist 인접**(소유 노드에 채널·저항 단자가 닿는 MOS·저항) -- S1v `roles` 가 아니다(버퍼 블록의 부하 소자도 같은 규칙으로 붙는다, 12.9 (3)). 소유도 접지도 다른 블록도 아닌 넷은 미지수로 폐포(Rz–Cc 중간 넷, FF 내부 넷).
+`block_local_gain`: 고정 집합 F = 교류접지(`ss.ground_nets` ∪ `ground`) ∪ 여기 넷(입력·`drive`) ∪ 남의 블록 넷(`others`), 입력 넷은 `drive` 로 구동(생략 = 단위 구동: 입력 하나 1 V, 둘 ±1/2 V 이름순).
+미지수 U_b = (블록 노드 ∪ 블록 소자(`BlockStruct.members`)·`extra` 의 d·s·저항 단자 ∪ 저항 폐포 ∪ 용량 전용 넷) − F. 스탬프 소자 = d 또는 s 가 U_b 에 닿는 MOS(멤버·비멤버 구분 없는 단자 스탬프, U_b 를 넓히지 않는다)·U_b 에 닿는 저항·`extra`;
+막다른 가지는 뺀다. 용량 전용 넷은 전하 보존 행(전회로 C, 전하 넷이 있을 때만 조립)으로 풀며 0 V 로 채우지 않는다(값 없는 수동소자가 있으면 `singular_dc`). 행 모드(`block_gain_model_of`)와 같은 U_b 규칙.
 `exclude` = FF 묶음 소자(주경로 블록에서 뺀다), `extra` = merge 블록에 합류시킬 FF 소자. 산출 `BlockGain(gain 부호 있음, gain_db, zout_ohm, node_v, members, decomposed_only, solve_residual)`.
 `block_residual`: 주경로 사슬을 **앞 블록의 해 전압을 다음 입력으로** 이어 푼다(`gain_residual_db` = 전회로 DC 이득 dB − 20·log10|A_decomp|). FF: A_decomp = FF 소자를 merge 블록 해에 넣고 탭 전압(사슬 해)으로 구동한 사슬의 감지값.
 FF 소자는 merge 블록 국소 모형에 항상 들어간다(gds 부하 = Z_merge 의 일부, 블록 gain·Z_out 에 반영). `ff_contrib` = 경로 항 A_in→tap·G_ff·Z_merge = (그 묶음 탭만 구동한 사슬 − 구동 없는 사슬) 감지값 (`gain_db`, `sign` 주경로와 같은 방향 +1/반대 −1). `rout_residual_ohm` = 전회로 rout − 감지 넷을 출력으로 갖는 마지막 블록의 Z_out(FF 부하는 이 잔차에 나타난다).

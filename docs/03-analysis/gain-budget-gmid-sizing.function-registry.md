@@ -665,8 +665,8 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 |---|---|---|
 | 계수 예산 N_S (kind 별 LUT 격자점 수 합 또는 spec 선언값) | `search.count_budget(lut, kinds, declared=None)` | `pipeline.structure_count_budget` 은 얇은 호출이다(공개 이름 유지). metrics 가 search 보다 아래 층이라 `achievability` 는 값을 인자로 받는다. 새 격자 곱 상한을 만들지 않는다 |
 | LUT 곡선 칸 분류 -> 해법(역산 허용 / 격자 전용 / 로드 거부) | `metrics.curve_checks` (`CurveChecks`) | 분류 자료는 `DcSlice.on_mask`·`vds_slope_ok`·`vs_slope_ok`·`fc_ok_*`(lut). 칸 분류를 다시 계산하지 않는다 |
-| 블록 국소 소신호 모델 + 행 풀이 | `metrics.block_gain_model_of` -> `metrics.row_gains`(`ParamTables`) | 소자 파라미터는 `lut.intrinsic_gain_curve`·`gmb`·`op_point` 에서 `ParamTables` 가 한 번 읽는다. 블록 gain 은 U7 `block_model`(봉인 스냅샷 기준) 과 다른 양이다(여기는 LUT 격자 행 기준 상한). U7 이 들어오면 MNA 조립 도우미는 공유를 검토 |
-| 블록 gain 상한 A_i,max (격자 전수 + 예산 게이트 + 비단조 축 세분) | `metrics.block_gain_bound` | 상한은 `certified` 만 판정에 쓴다. 좌표 상승 `found_db` 는 하한 추정(보고만) |
+| 블록 국소 소신호 모델 + 행 풀이 | `metrics.block_gain_model_of` -> `metrics.row_gains`(`ParamTables`) | 소자 파라미터는 `lut.intrinsic_gain_curve`·`gmb`·`op_point` 에서 `ParamTables` 가 한 번 읽는다. 블록 gain 은 U7 `block_model`(봉인 스냅샷 기준) 과 다른 양이다(여기는 LUT 격자 행 기준 상한). 두 모드는 미지수 집합 U_b 규칙과 스탬프 조립(`block_gain_rows.block_stamp_matrix` 하나)이 같고 값 출처만 다르다(41 §2.5). U7 이 들어오면 MNA 조립 도우미는 공유를 검토 |
+| 블록 gain 상한 A_i,max (격자 전수 + 예산 게이트 + 비단조 축 세분 + L bin 안쪽 최대) | `metrics.block_gain_bound` | 상한은 `certified` 만 판정에 쓴다. 좌표 상승 `found_db` 는 하한 추정(보고만) |
 | Σ gain 판정(feedforward 포함) | `metrics.achievability` 의 `GainCheck` | 주경로 블록만(U1b `ViewS1v.blocks`), FF 는 `ViewS1v.feedforward` |
 | 인증된 면적 하한 A_lb | `metrics.area_lower_bound` | 입력 면적 분해능 b_A·수동소자 단위 면적은 `search_domain`·`search.passive_area_decl`. U11 `front_diagnosis` 의 `A_lb` 가 이 값을 쓴다 |
 | 헤드룸 경로 엣지 비용의 LUT 최솟값 / 창 폭 상한 / 짧은 L bin 경고 | `metrics.edge_costs` / `metrics.headroom_bound` | 전도 봉인 9 의 식(`gm·tol_V >= I_off`)·포화 봉인 7(`VDS >= VDSAT + tol_vdsat`)을 그대로 쓴다. 새 임계값을 만들지 않는다 |
