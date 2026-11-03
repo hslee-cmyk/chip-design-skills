@@ -9,7 +9,7 @@ plan_version: 0.14.8
 
 > **Summary**: 승인 계획 `graph-consumption.plan.md`의 GC-1(구조 규칙 L·부채 목록)과 GC-8(`headroom_bound`·`order_terms` 정본 읽기)을 card로 내릴 수 있게 정한다. 공용 필드 정본은 `headroom-chain.design.md`다.
 >
-> **Status**: v0.1 초안, 독립 검증·gap·사용자 승인 전. base `design/v115` `8b9ec744`.
+> **Status**: v0.1 초안, design 승인 전. 계획 기준 = graph-consumption 0.14.8(상위 v6.38.8, master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
 >
 > **이 판 범위**: GD-1·GD-3·GD-9·GD-14(GC-1), GD-2(HC design 인용), GC-8. **범위 밖**: GD-4·5·7·8·10~13(GC-2·3·5·6·7·9). 그 card 착수 전 이 문서를 개정한다. GD-6 = 소유표에 reader 칸을 더하지 않는다(규칙 L이 기계 판정, 소비자 열로 충분).
 >
@@ -93,7 +93,7 @@ HC-1과 같은 통합 병합, GC-8 커밋이 HC-1 커밋 뒤(표 #17, O-191). �
 
 ### 5.1 `order_terms`(`E/sizing/block_columns.py`)
 
-- `_Circuit`(IT-2c 뒤 `Circuit`) 생성에서 `chain_graph`를 **한 번** READS한다. 새 memo·슬롯 0.
+- `order_terms` 호출자 `dc_columns`가 `chain_graph`를 **한 번** READS해 넘긴다(`Circuit`을 함께 쓰는 `icm_config` READS를 넓히지 않음). 새 memo·슬롯 0.
 - `on_structural`인 변마다 `hi_net`에 `(True, lo_net)`, `lo_net`에 `(False, hi_net)`를 쌓는다. 항은 쓰지 않는다. 선언 triode 변도 같은 변이다.
 - **항 순서 = 필드 변 순서**(D40:2206 (b)): `(colour, 이름)` 정렬·자체 방향 계산 삭제.
 - `_kind_sign` 방향 계산 삭제 범위는 이 자리만이다.
@@ -137,7 +137,7 @@ HC-1과 같은 통합 병합, GC-8 커밋이 HC-1 커밋 뒤(표 #17, O-191). �
 
 ## 7. 멈춤·승인 항목
 
-- **S1**: GC:637 GC-D 선행 GC-0a(GC-0b 일부)를 O-225로 미루는 항목은 계획 v6.38.8 승인이 필요하다. 미룬 측정: M-G2·M-G3 예비·M-G3c·M-G4·M-G5·M-G6·M-G9, M-G1·M-G1b·M-G7. 이 판은 GC-1·GC-8에서 값을 정할 때 이들을 쓰지 않는다. GC-0b 입력 항목은 범위 밖 GD로 남긴다.
+- **[v1.16.3 -- S1·S3은 계획 v6.38.8로 닫힘, 착수를 막지 않음]** **S1**: GC:637 GC-D 선행 GC-0a(GC-0b 일부)를 O-225로 미루는 항목은 계획 v6.38.8 승인이 필요하다. 미룬 측정: M-G2·M-G3 예비·M-G3c·M-G4·M-G5·M-G6·M-G9, M-G1·M-G1b·M-G7. 이 판은 GC-1·GC-8에서 값을 정할 때 이들을 쓰지 않는다. GC-0b 입력 항목은 범위 밖 GD로 남긴다.
 - **S2**: §3 J1(출력 전용 목록 추가와 지문).
 - **S3**: GC-1 공통 착수 조건 cProfile 기준선(엔진 card만, GC-8)의 미룸 여부 = v6.38.8.
 - **N3.10 상위 개정 대조**: 이 판에서 전수 대조하지 않았다. 검증자 대조 항목이다.

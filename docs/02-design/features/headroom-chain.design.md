@@ -9,7 +9,7 @@ plan_version: 0.7.9.9
 
 > **Summary**: 승인 계획 `headroom-chain.plan.md`의 HC-S(포화 기준 단일화)와 HC-1(R-1′ + R-3 + 선언 triode)을 card로 내릴 수 있게 필드·함수·배선·시험·재작성 범위를 정한다. GC-8·GC-1은 `graph-consumption.design.md`, HC-O는 이 판 밖이다.
 >
-> **Status**: v0.1 초안, 독립 검증·gap·사용자 승인 전. 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.8 `fab5e92e`, 승인 전), design v1.16.3에 병합됨(옛 base `8b9ec744`).
+> **Status**: v0.1 초안, design 승인 전. 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.8, master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
 >
 > **결정 입력**: O-190·O-191(R-1′ 묶음, HC-1 + GC-8 통합 병합), O-202~O-212(전도·포화 경계·`off`), O-214·O-217·O-218(LA-1a), O-220·O-224(칸별 판정 유지), O-225(구현 우선).
 >
@@ -38,7 +38,7 @@ plan_version: 0.7.9.9
 |---|---|---|---|---|---|
 | `device: dc_sat_v` | `SatBound(vdsat_v, tol_v, reason)` -- §3.2 | DC 블록(as-built 자리 `dc_widths`, `device.dc_op`와 같은 블록 -- P:577, WB-1이 재작성) | 평가 | HC-S | 봉인 7, `metrics_aux._sat_devices`, J_point(§5.3) |
 | `node: dc_root_path` | `RootPath(root_kind ∈ {F, W4}, root_net, steps)`; `steps` = ((변 참조, 부호), ...) -- 변 참조 = MOS 이름(방향은 `dc_vgs_edge`를 참조) 또는 저항 이름 | `dc_writer_plan` | S0 | HC-1 | `chain_graph` 블록 |
-| `device: dc_vgs_edge` | `VgsEdge(lo_net, hi_net)` -- 모든 MOS의 (gate, source) 변, 비트리 포함 | `dc_writer_plan` | S0 | HC-1 | `iv_headroom`(HC-1), `headroom_bound._edges`(GC-8), `chain_graph`(`triode_protected`의 Gs⁺ 변) |
+| `device: dc_vgs_edge` | `VgsEdge(lo_net, hi_net)` -- `off` 선언을 뺀 모든 MOS의 (gate, source) 변(쓰기 계획 열거와 같음, 41 §4.8), 비트리 포함 | `dc_writer_plan` | S0 | HC-1 | `iv_headroom`(HC-1), `headroom_bound._edges`(GC-8), `chain_graph`(`triode_protected`의 Gs⁺ 변) |
 | `graph: dc_current_symmetry` | `CurrentSymmetry(ties, negated, zeros)` | `dc_current_symmetry`(sizing 층, 새 블록) | S0 | HC-1 | `search_domain`(읽기만), `chain_graph`(구조적 0 전류 MOS) |
 | `graph: chain_graph` | `ChainGraph(nodes, edges, vr_edges, root_rows)` -- §5.1 | `chain_graph`(sizing 층, 새 블록 = R-1′ 블록) | S0 | HC-1 | `iv_headroom`, `order_terms`·`headroom_bound`(GC-8), `search_domain`(단좌표 자르기), J_point, F_exist, R6(LA-1a), 층 0(LA-1) |
 | `graph: triode_protected` | ((X, (Z, ...)), ...) -- 선언 triode X별 지켜지는 소자 | `chain_graph` | S0 | HC-1 | `dc_seal_triode`(기록) |
@@ -50,6 +50,8 @@ plan_version: 0.7.9.9
 | `graph: dc_seal_7`(바뀜) | 사유 어휘·`detail` 칸 추가 -- §7.2 | `dc_seal_region`(writer 변경 = card EO-1 범위 4 -- 41 §4.8-3, `dc_seal_saturation`·`seal_saturation.py` 삭제, EO-1 범위 4 → HC-S 표 #7이라 이 문서의 card는 처음부터 이 writer를 고친다) | 평가 | 칸 = HC-S·HC-1 | 그대로 |
 | `graph/kernel: search_domain`(바뀜) | 상자 + 칸 `chain_cuts` | `search_domain` 그대로 | S0 | HC-1 | 상자 = 기존 소비자, `chain_cuts` 칸 = 출력 전용 |
 | `gvgs_summary.vds_saturation`, `REL_VDS_SATURATION` | **삭제** | -- | -- | HC-1 | 엔진 소비자 0(HC:190), test 표 3곳 + metamorphic 1곳은 test 역할이 다시 씀 |
+
+**소비자 표지**(위임 A-18, O-226): `f_exist` 구간 칸(`node_lo`·`node_hi`·`vr_*`)과 `chain_cuts` 단좌표 자르기는 HC-1이 만들고 R6 전 엔진 소비자가 0이다(소비자 = 같은 LA-1 경로의 R6, 표 #16·#22). toy로 잠그는 기간 예외이고 사용자 보고 항목이다.
 
 **쓰지 않는 필드(R6 몫)**: `graph/start: loop_dep`, `reopen`, `start.guard`, `kvl_adjusted`·`kvl_macro_recheck`는 HC-1이 만들지 않는다. HC-1은 `graph/start: records`·`conflicts`에 쓰지 않는다(writer = `start_intervals`, M2 지적과 같은 규칙).
 
@@ -89,9 +91,10 @@ DC 블록이 `dc_op`를 쓰는 같은 평가에서 `sat_threshold`의 정의되�
 
 | 소비자 | 바꾸는 일 | `reverse_vds` | `vdsat_column_unavailable` | `lut_domain` | `tol_v` None |
 |---|---|---|---|---|---|
-| 봉인 7 `dc_seal_region`(EO-1 범위 4 뒤 -- 41 §4.8-3) | 공용 영역 판정의 VDSAT 입력을 `dc_sat_v` READS로(LUT 조회 삭제 -- HC-S). 판정 = VDS ≥ VDsat(EO-1 그대로, `2·tol` 항은 EO-1이 이미 지움). `|VDS − VDsat| < tol` 기록 = EO-1 `indistinct` 그대로 | 거부, 사유 '포화 아님(역방향 VDS)' | 판정 불가 거부(기존 `REASON_VDSAT_MISSING`) | E-0 정의 불능 거부 | 판정 그대로, 띠 '미정' 기록 |
+| 봉인 7 `dc_seal_region`(EO-1 범위 4 뒤 -- 41 §4.8-3) | 공용 영역 판정의 VDSAT 입력을 `dc_sat_v` READS로(LUT 조회 삭제 -- HC-S). 판정 = VDS ≥ VDsat(EO-1 그대로, `2·tol` 항은 EO-1이 이미 지움). `|VDS − VDsat| < tol` 기록 = EO-1 `indistinct` 그대로 | 선언 없음 = 거부, 사유 '포화 아님(역방향 VDS)', `triode` 선언 = 통과(41 §4.8-2 VDS < 0 행) | `vdsat` `None` → EO-1 `unresolved`, **항목 미정**(N3.6 7행, 통과로 세지 않음 -- HC:580 '거부' 문장은 계획 정정 표지) | `OUT_OF_DOMAIN` → E-0 정의 불능 거부 | 판정 그대로, 띠 '미정' 기록 |
 | `metrics_aux._sat_devices` | `dc_sat_v` READS, 직접 조회 삭제 | `sat_v` None | `sat_v` None | `sat_v` None | `sat_tol_v` None |
-| 커널 창 행 `saturation_rows`·IT-2c `region_rows`의 선언 없는 소자 행 | `sat_threshold` 호출로 교체, 여유 = VDS − VDsat. 행 집합 그대로 | None(창 안 좁힘, base와 같음) | None | None | 영향 없음 |
+| 커널 창 행 `saturation_rows`(WB-1 범위 3a가 지우기 전까지, 시도 전압) | `sat_threshold` 호출로 교체, 여유 = VDS − VDsat. 행 집합 그대로. HC:580의 `saturation_rows` 호출 문장은 이 행으로 읽는다 | None(창 안 좁힘, base와 같음) | None | None | 영향 없음 |
+| `icm_config`의 봉인점 `region_rows` 행 | **`device.dc_sat_v` READS**(HC-S가 배선 -- 같은 소자·같은 점 둘째 생산자 금지), 여유 = VDS − VDsat. 행 집합 그대로 | None(창 안 좁힘, base와 같음) | None | None | 영향 없음 |
 | `iv_domain`·`iv_headroom._lower_bound` | `tol_vdsat` 호출 삭제. VDsat은 곡선 묶음의 VDSAT 곡선 -- 곡선 생성이 `sat_threshold_grid`를 읽게 배선 | 해당 없음(곡선 VDS ≥ 0) | 그 경계 비활성, `inactive` 기록(대체값 없음, U-H15 원리) | 그 곡선 점 제외 | 해당 없음 |
 | `edge_costs` | `_tol_vdsat_grid` 삭제. 포화 술어 = `vds ≥ sat_threshold_grid`. VDS 비용 = 포화 가능 격자점의 VDSAT 최솟값(따로 잡은 tol 최솟값 합 삭제) | -- | VDSAT 열 없음 = 포화 거르기 없음(문턱 하한 0, DEC-67 상한 예외, HC:331) | 그 격자점은 on_mask가 이미 뺌 | 해당 없음 |
 | `block_columns` VDS 정의역 | `_vds_floor` 삭제, `vds_floor` 호출 | -- | -- | -- | -- |
@@ -102,7 +105,7 @@ DC 블록이 `dc_op`를 쓰는 같은 평가에서 `sat_threshold`의 정의되�
 
 ### 3.5 삭제(HC:515 재작성 범위)
 
-`E/search/_helpers_curves.py` `tol_vdsat`; `E/lut/derived_fns.py` `_tol_vdsat_max`·`DERIVED_FUNCTIONS` 항목·`_tol_vdsat_grid`; `E/sizing/block_columns.py` `_vds_floor`; `seal_saturation._row`·`metrics_aux`·`saturation_rows`의 직접 조회. SD-1은 WB-1 몫이라 건드리지 않는다.
+`E/search/_helpers_curves.py` `tol_vdsat`; `E/lut/derived_fns.py` `_tol_vdsat_max`·`DERIVED_FUNCTIONS` 항목·`_tol_vdsat_grid`; `E/sizing/block_columns.py` `_vds_floor`; `E/sizing/seal_region.py`(EO-1이 만든 파일 -- VDSAT 조회 쪽)·`metrics_aux`·`saturation_rows`의 직접 조회. SD-1은 WB-1 몫이라 건드리지 않는다.
 
 ### 3.6 HC-S 순서와 변경 종류
 
@@ -114,7 +117,7 @@ DC 블록이 `dc_op`를 쓰는 같은 평가에서 `sat_threshold`의 정의되�
 |---|---|---|---|
 | S1 | VDS < 0 | `reverse_vds`, LUT 조회 0 | LUT 축 오류 -- red |
 | S2 | L이 bin 경계를 넘음, 격자점 위 VDS | bin 안 앵커 값 | 옛 함수와 다름 -- red |
-| S3 | VDSAT 열 없음 | 사유, 0이 아님. `edge_costs`는 그 점 포함, 봉인은 거부 | 옛 0 대체 -- red |
+| S3 | VDSAT 열 없음 | 사유, 0이 아님. `edge_costs`는 그 점 포함, 봉인 = 미정(통과로 세지 않음) | 옛 0 대체 -- red |
 | S4 | VDS = VDSAT, VDS = VDSAT − ε < 띠 | 앞 = 통과 + 띠 기록, 뒤 = 거부 + 띠 기록 | 옛 tol 여유 -- red |
 | S5 | 선언 없음·`triode`·`off` 셋 | `off`만 사유, 나머지 값 | 필드 없음 -- red |
 | S6 | 격자점 | 점 입구 = 격자 입구 | -- |
@@ -180,6 +183,7 @@ j_point(chain, point_view) -> ChainVerdict(state, rows, reason)      # state ∈
 
 - **문제**: J_point의 '쓰기 계획 정확 풀이'를 따로 풀면, 통과한 칸을 커널이 다시 풀어 같은 입력 재계산이 된다(HC:571 위반). 새 슬롯으로 넘기면 graph 규칙 2 위반이다.
 - **결정**: `E/search/kernel.py`에 DC 접두 함수 `dc_prefix(sctx, theta, cells, origin)`를 둔다. `evaluate`가 쓰는 DC 블록 열(`dc_columns`, `dc_widths`까지)을 같은 `donors`·`counters`로 부르고, `evaluate`도 이 함수를 지나간다. 블록 호출이 S3 색인에 등록·graft·실패 재연을 하므로 **같은 θ는 한 번만 푼다**. 근 없음 실패도 `register_failure`로 재연된다.
+- **색인 상한**: 접두 블록도 색인에 등록되어 칸 수만큼 항목이 는다. S0 블록 여유로 D40 §2.4.5 상한을 넘지 않는지는 G-10 판정 기준에서 본다.
 - **'커널 평가 0'**(HC:259) = `kernel_calls`·평가 예산에 안 든다. 블록 계수는 `compute`로 잡히고 뒤 커널 평가에서 `graft`가 된다.
 - **작성자 판단 J5**. 대안 비교:
 
@@ -198,7 +202,7 @@ j_point(chain, point_view) -> ChainVerdict(state, rows, reason)      # state ∈
 1. S0 스냅샷 완성 직후, `find_front` 전에 드라이버 `judge_rungs(sctx)`(`E/search/iv_kvl_choice.py`)가 칸마다 `layer0_start`와 같은 θ 조립으로 `dc_prefix`를 부르고 `j_point`를 낸다. 호출 자리의 정확한 줄은 card 실측(`SearchContext` 생성 뒤 한 곳).
 2. 위반 칸에서만 그 칸 동작점으로 `f_exist`를 불러 순환 출처를 얻는다(같은 입력 재호출 0).
 3. 칸마다 §7.3 R-3 기록을 낸다. 풀이가 없는 칸은 그 사유만.
-4. `loop_dependents(projection)` 블록이 판정 묶음을 extras로 받아 두 필드를 쓴다. 판정은 이 블록 밖에서 처음 만들어지고 영속 자리는 이 필드 하나다(사본 아님).
+4. `loop_dependents(projection)` 블록이 판정 묶음을 extras로 받아 두 필드를 쓴다. 판정은 이 블록 밖에서 처음 만들어지고 영속 자리는 이 필드 하나다(사본 아님). **드라이버는 base B0에서 칸을 판정하고 `loop_dependents`로 B1을 만든 뒤 `sctx`와 커널 컨텍스트의 base 참조를 B1로 한 번 바꾼다**(새 칸 0, 실행당 1회, `find_front` 전). DC 블록 READS에 `loop_conflicts`가 없어 입력 버전이 같고 색인 graft가 유효하다. 교체가 안 되면 멈추고 보고한다(graph 규칙 6).
 
 **재개방 없음**(HC:255): J_point 위반이면 곧바로 기록한다. 비활성 갈래 0.
 
@@ -287,7 +291,7 @@ stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, 
 | `E/search/layer0_center.py` | 칸 거르기, 보고 칸 |
 | `E/search/search_domain.py`, `current_symmetry.py`(옮김), `search_values.py` | 필드 읽기, 단좌표 자르기, `chain_cuts` |
 | `E/search/iv_headroom.py`, `s0_fields.py` | 정본 읽기, `_edge_nets` 삭제, 권한표 |
-| `E/sizing/seal_saturation.py`, `seal_triode.py`(새) | 사유 세분, 게이트·영역 기록 |
+| `E/sizing/seal_region.py`(EO-1 뒤), `seal_triode.py`(새) | 사유 세분, 게이트·영역 기록 |
 | `E/lut/sat_threshold.py` | `stack_unsat` 추가 |
 | `E/search/CONTRACT.md:866-870` | 열린 항목 닫기 |
 
@@ -310,7 +314,7 @@ stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, 
 | H8 | 미지수 0 점 | J_point와 F_exist 같은 판정, 판정 자리 호출 = J_point만 | 등가 |
 | H9 | 위반 칸 + 통과 칸 사다리 | `rungs` 필드 비트 동일, `loop_conflicts` = 위반 칸만, 커널이 위반 칸 안 부름 | §1 |
 | H10 | 전 칸 위반 | 빈 평가 기록, 다음 단계로 감 | G-4 (1) |
-| H11 | 통과 칸 | `dc_columns` 계수 compute 1 + graft 1, `kernel_calls`에 접두 안 듦 | 6 |
+| H11 | 통과 칸 | `dc_columns` 계수 compute 1 + graft 1, `kernel_calls`에 접두 안 듦. B1 평가의 `dc_columns`가 B0 칸 판정을 graft | 6 |
 | H12 | 무동작 회로 | 새 칸 전부 빈 값 | 1 |
 | H13 | 적층 toy, 판정식 성립 | 봉인 거부 + 세분 사유, 출발 기록만·탐색 계속 | 5 (v) |
 | H14 | 판정식 불성립, Y 꺼짐 | 일반 사유, 면제 없음 | 5 (v) |
@@ -341,9 +345,11 @@ stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, 
 | M-H6 | 입력 창 비겹침, U-H3 | 사유 코드 정지 | 재점검 |
 | writer_root 한 구간 | 차분 변 단순화 | F_exist 밖 교집합 | 재점검 |
 | 칸당 시간 | O-224 비용 | 미측정 | 재점검 |
-| cProfile 기준선(HC:509) | WP-10 비교 | card 착수 때 base에서 잼. 미룸 여부는 v6.38.8 | 멈춤 §12-S2 |
+| cProfile 기준선(HC:509) | WP-10 비교 | 계획 v6.38.8 측정 게이트 표대로 | 닫힘 |
 
 ## 12. 멈춤·승인 항목
+
+**[v1.16.3 -- S1·S2·S3·S5는 계획 v6.38.8(master `c0b41eee`, 승인 A-25)·위임 A-16~A-18로 닫힘, 착수를 막지 않는다. 기록으로 남김. S4는 LA-1a 보류와 함께 남음]**
 
 - **S1 계획 정리(HC:42 착수 조건)**: HC-S·HC-1 착수 전 tol 잔재 줄 정리가 조건으로 적혀 있다. 이 design이 찾은 줄: HC:582(봉인 7·`sat_v` 순수 리팩터링), HC:331·515(`sat_v` 칸, J1), HC:420 D-1 '− tol'. O-224 '문언 변경 0'은 칸별 기록 범위이고 이 정리와 별개로 읽었다. 계획 v6.38.8에 넣을지 결정이 필요하다.
 - **S2 게이트 처리**: HC:514 HC-D 선행 = HC-0, HC:505·509. O-225는 '계획 v6.38.8에서 항목별로 적고 승인'이라 적었다. 이 design은 그 승인을 전제로 쓰였고, 승인 전에는 착수할 수 없다.
