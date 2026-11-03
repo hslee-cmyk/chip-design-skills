@@ -462,7 +462,7 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 | 〃 | `graph/kernel: search_domain` 칸 `chain_cuts` | `search_domain` 그대로. 제작 HC-1. 칸 = 출력 전용 | S0 |
 | 〃 | 삭제: `gvgs_summary.vds_saturation`, `REL_VDS_SATURATION` | HC-1 | -- |
 | 층 0 보고 분류(v1.15.0 신설 -- 계획 v6.38 card LA-1 범위 9·완료 조건 6·7, 41 §5.1) | `graph/layer0: report_class` = 정렬 tuple, 원소 ∈ {`layer0_inactive`(블록 단위면 (`layer0_inactive`, 블록 키)), `assembly_failed_path`, `performance_judgement_deferred`} | `layer0_budget`. **출력 전용**(읽는 쪽 = 결과 JSON 보고 U16·notes) | L0 |
-| metric 구조 입력 `metric_structure(s1v)`(`sctx.structure`) | `graph/s1v: metric_structure` | `metric_structure`(MOD5) | S0 |
+| metric 구조 입력 `metric_structure(s1v)`(`sctx.structure`) | `graph/s1v: metric_structure`(v1.16.4 칸 추가 -- 위임 A-36 G5, 41 §2.5-1: `BlockStruct.members`, `ViewStruct.ac_ground`; `BlockSpec.others`는 U9 블록 대상 값) | `metric_structure`(MOD5) | S0 |
 | 잡음 입력 셀 `noise_decl(spec, s1v)`(`sctx.noise_decl`) | `graph/s1v: noise_input_cells`. 값 = as-built `NoiseDecl` 전체(`E/metrics/noise_types.py`, v1.9.1 D7) | `noise_decl`(MOD5) | S0 |
 | 1변수 writer 집합(`sctx.cell_floors[("one_var_writers",)]`) | `device: dc_self_referential` | 쓰기 계획 블록(sizing) | S0 |
 | 블록 국소 모델 입력 `LocalInputs`(`achievability.py`, `iv_context.py`에서 두 번) | `graph/ach: local_inputs`. 값 형식(v1.9.1 D9): as-built `LocalInputs`(`E/metrics/achievability_types.py`)의 dict 칸을 tuple로 바꾸고 `memo` 칸을 뺀 형식으로 재정의한다(근거: graph 값은 불변이어야 한다 -- v1.10: 옛 근거 'S0 스냅샷 코덱 직렬화'는 사라졌다. memo는 LUT memo 참조, §2.4.6) | `achievability`(GB4). 출발 구간이 같은 필드를 읽는다 | S0 |
