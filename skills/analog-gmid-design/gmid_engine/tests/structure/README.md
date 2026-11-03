@@ -23,6 +23,10 @@ $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -m structure
 | `test_structure_rules.py` | 규칙 A~G·I·K·M(I 예외 목록이 실제로 쓰이는지, library 태그 하위 키 분류 포함)와 복사 등록부 대조(복사본·원본)를 진짜 엔진 트리에 건다 |
 | `test_structure_test_mapping.py` | 규칙 H(마커 `structure_test_mapping`) |
 | `test_structure_rules_reject_fixtures.py` | 규칙마다 위반 픽스처 거부 + 허용 픽스처 통과, 규칙 E 이름 집합 수집 확인, 복사 등록부 픽스처(`rule_copy`) |
+| `test_g8_lint.py` | GL-1 `check_g8`: kind 8종마다 위반과 바로 옆 경계, 허용 모듈 14개(같은 이름 다른 폴더 포함), 같은 키 여러 건, 첫 줄·끝 줄, 빈 트리, 결정성 (`fixtures/rule_g8`) |
+| `test_value_types_lint.py` | GL-1 `check_value_types`: `vt_annotation`·`vt_assign`, 자리(모듈 수준·클래스 본문·메서드 `self.a`)와 제외 (`fixtures/rule_vt`) |
+| `test_g8_baseline.py` | GL-1 `baseline_doc`·`dump_baseline`·`load_baseline`(형식 오류 전 항목)·`ratchet`(new·stale·줄 이동), 진짜 트리 `test_rule_g8_baseline_ratchet`(`g8_baseline.json` 없으면 실패) |
+| `test_scan_shared_calls_tool.py` | GL-1 `tools/audit/scan_shared_calls.py`를 프로세스로: 표본 toy 9종(`fixtures/shared_calls/<case>`), 종료 코드 2 입력, 다른 `PYTHONHASHSEED`·`--out` 바이트 동일 |
 | `fixtures/rule_<x>/{bad,good}/gmid_engine/` | 가짜 소스 트리. `fixtures/` 아래에 `__init__.py`가 없고 수집 제외라 import되지 않는다. `rule_copy/{bad,good}/legacy/old.py`는 엔진 밖 가짜 원본 |
 
 검사 대상 = `gmid_engine/` 아래 `*.py` 중 `tests/`·`__pycache__`·숨김 폴더 제외.
@@ -137,6 +141,14 @@ COPIED_DEFINITIONS = (
 | K | (K-a) `pipeline/run.py` `from gmid_engine.search import node_across_front`와 호출, `search/start_points.py` `read_front_entries(run_dir)`, `layout/view.py` `search.read_front_entries(d)`(속성), `report/table.py` `import node_across_front as across`(별칭); (K-b) `search/start_points.py` `from .front_entries import read_front_entries`, `search/kernel.py` `from . import front_query`(모듈 객체), `layout/view.py` `import gmid_engine.search.front_entries as fe`, `convergence/peek.py` `from gmid_engine.search.front_query import ...`; (K-c) `search/kernel.py` `reader = sctx.archive.read_snapshot`(호출 아닌 참조)·`front_query._read_snapshot_file(path)`, `convergence/peek.py` `import _read_snapshot_file as load`. bad 트리의 허용 파일(`search/__init__.py`·`search/front_query.py`)은 위반 0 | 허용 파일 셋 안의 정의·재수출·`_read_snapshot_file` 사용, 허용 파일 밖의 무관한 이름(`front_entries_count`), 문자열 안 언급(docstring의 `read_snapshot`, 값 `"front_query"`), 쓰기 메서드 `write_snapshot` |
 | M | 엔진: `pipeline/session.py`(M-a import·이름·속성), `search/kernel.py`(M-b `S3Index()`·별칭 `Counters()`). tests: `test_mb_construct.py`(M-b 이름·속성 꼴), `test_mc_sources.py`(M-c 매개변수·결과 칸·다른 호출 반환·순서 바뀜·다시 묶임·서로 다른 `open_run()`), `test_mc_loops.py`(M-c 반복문 밖 `open_run`·내포식·같은 이름 두 호출·안쪽 `def`/`lambda` 자유 변수·`**kw`/`*args`), `test_mc_indirect.py`(M-c import 별칭 호출의 대입 재사용·이름 대입 간접 호출의 매개변수 쌍·`getattr` 호출의 결과 칸 쌍·`if` 가지 안 대입), `conftest.py`(M-d 모듈 수준·session·module fixture·`pytest_configure` `config.stash`·`request.config`), `test_md_store.py`(M-d 클래스 속성·기본 인자값·`lru_cache`·호출형 `cache`·모듈 리스트 `append`·모듈 수준 객체 인스턴스 속성·session fixture `KernelContext`·helper 거친 package fixture·컨텍스트 칸 `case.sctx` 모듈 리스트 append), `test_mf_dump.py`(M-f `pickle.dump`·내부 칸 `json.dumps`·`shelve` 항목·결과 칸 `pickle.dumps`). 정의 모듈 넷은 bad 트리에서도 위반 0 | 튜플 풀기 1:1(결과 칸 `is` 확인), 호출마다 자기 `open_run()`, 반복문 안 `open_run`, function fixture 의 `open_run()` 반환, 단위 test 한 쌍으로 감쌈 함수 여러 번, 스스로 `open_run` 하는 helper, session fixture 가 지역 쌍으로 만든 S1 스냅샷 반환, 키워드 하나 빠진 꼴, `counters.snapshot()` 값의 json 출력, 엔진 진입이 두 객체를 받기만 함, docstring 안 언급, 실행 결과 스냅샷 칸(`res.s1`)의 모듈 캐시, 같은 이름을 새 `open_run()` 으로 다시 대입해 호출마다 하나, import 별칭 호출의 1:1 |
 | 복사 등록부(`rule_copy`) | 원본 `legacy/old.py`. 등록 안 된 정의(`graph/copied.py` `extra`의 7·`"B"`, 모듈 수준 `CACHE = {}`), 본문이 바뀐 등록 정의(`graph/changed.py`, 변수 이름만 바꿈 -> 해시 다름·면제 취소), 리터럴 목록 오기(`graph/miscount.py`, 실제 12·등록 ()), 없는 정의 등록(`gone`), 가짜 등록부(`lut/`: 새 코드 `invented`에 자기 해시 -> 원본 대조 실패, `../graph/copied.py` 경로), 원본이 엔진 안 자기 자신(`metrics/`), 짧은 항목·중복 항목(`search/`), 정적 tuple 아닌 표(`sizing/`), 엔진 루트 등록부. D·E·G 기대 위반은 면제가 없거나 취소된 정의 안의 것뿐 | `graph/`(규칙 D 밖 리터럴 3·4·40, 넷 이름 `"A"`·`"B"`, 모듈 수준 dict를 담은 등록 정의 2개 + 같은 파일의 미등록 정상 정의)와 `lut/`(리터럴 없는 등록 정의) -- 두 하위 패키지의 등록부. 면제가 없으면 D·E·G가 FAIL하므로 통과가 면제 동작의 증거 |
+
+GL-1 픽스처(기대 목록은 `test_g8_lint.py`·`test_value_types_lint.py`·`test_scan_shared_calls_tool.py`):
+
+| 자리 | `bad`/case가 담은 위반 | `good`이 보이는 허용 경우 |
+|---|---|---|
+| `rule_g8` | `attr.py`(self/cls 속성 가변 값, 중첩 def, 중첩 클래스), `classc.py`, `factory.py`(`default_factory`), `cached.py`, `cachecall.py`(`lru_cache(...)(f)` 한 건), `modcache.py`(if·try·with·for·match 안), `idcall.py`, `edges.py`(첫 줄·끝 줄·같은 키 둘), `memocall.py`·`memolookup.py`, `graph/registered.py`(유효한 복사 등록부에 등록된 정의도 위반), `metrics/run_counters.py`(허용 모듈과 이름만 같음), 허용 모듈 14개 파일(위반을 담지만 안 나옴) | `clean.py`(`None`·`()`·`tuple(x)`·`frozenset(x)`, 지역 `{}`, `memo.call(module_fn, 1)`, `x.id(1)`), 허용 `core/run_counters.py` |
+| `rule_vt` | `valtypes.py`(frozen 3종 + 아닌 것 3종), `use.py`(주석 8건), `assign.py`(대입 13건), `places.py`(클래스 본문·메서드 `self.a`), `use2.py`(허용 모듈에서 정의된 타입), `metrics/run_counters.py` | `ok.py`(함수 지역·인자·반환, frozen 본문, 원시 tuple, 클래스 자체 `R = Pt`) |
+| `shared_calls/<case>` | `same_input`·`diff_input`·`local_trace`·`helper_trace`·`reexport`·`param_only`·`one_caller`·`method`·`touching` | -- |
 
 ## 설계 문서에서 애매했던 점(이 test가 택한 해석)
 
