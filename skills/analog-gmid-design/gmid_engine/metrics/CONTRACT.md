@@ -911,6 +911,7 @@ sizing CONTRACT 6절 tol 행(`dc_tol_v`), search CONTRACT(ng-mod6) 3.20·9절 S-
 - 전력·면적(`metrics_dc`)과 `metric_value` 단독 호출의 `resolution` 은 None(7.5·3.15).
 
 ### 9.1 소자 불확실성 ε 와 파라미터 Δp -- `lut_parameters(circuit, rel_tol) -> ParameterSet`
+> **[개정 예정 -- design 40 v1.15.1 §3.8-9, card RS-1(계획 v6.38.2 DEC-105 (8), 사용자 결정 2026-10-14 Q-N11 B -- 기준 변경, 변화표 필수)]**: 공통 ε_d = (gm/ID)·tol_V와 Δp = ε_d·|p|는 폐기된다 -- 열마다 Δp = |∂ln p/∂VGS|(그 점 LUT 기울기)·tol_V·|p|(p ∈ gm·gmb·gds·cgs·cgd·cgb), 결합은 9.3 최악 선형 그대로. 아래는 as-built 계약이다.
 - **ε_d(`SsDevice.lut_rel_tol`) = (gm/ID)_d · tol_V,d**, tol_V,d = `device.dc_tol_v` = `tol_v_table(kind, w_key).at(L, vds, "id_equivalent")`
   (sizing 이 이미 쓴 셀, 봉인 2 와 같은 값), gm/ID = `dc_op.gm_id`. 유도: id_equivalent 셀 = |ln ID_LOO − ln ID|/(gm/ID)/2^p 의 최댓값(lut 5절)
   = 운영 보간이 ln ID 에 내는 오차를 VGS 로 환산한 값 -- 그 정의를 되돌리면 LUT 전류의 상대 불확실성 |ΔID/ID| = (gm/ID)·tol_V. 새 상수 0.
