@@ -2,7 +2,7 @@
 template: design
 version: 0.1
 plan: ../../01-plan/features/graph-consumption.plan.md
-plan_version: 0.14.7
+plan_version: 0.14.8
 ---
 
 # graph-consumption Design Document (GC-D 일부: card GC-1, GC-8)

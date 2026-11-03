@@ -2,14 +2,14 @@
 template: design
 version: 0.1
 plan: ../../01-plan/features/headroom-chain.plan.md
-plan_version: 0.7.9.7
+plan_version: 0.7.9.9
 ---
 
 # headroom-chain Design Document (HC-D: card HC-S, HC-1)
 
 > **Summary**: 승인 계획 `headroom-chain.plan.md`의 HC-S(포화 기준 단일화)와 HC-1(R-1′ + R-3 + 선언 triode)을 card로 내릴 수 있게 필드·함수·배선·시험·재작성 범위를 정한다. GC-8·GC-1은 `graph-consumption.design.md`, HC-O는 이 판 밖이다.
 >
-> **Status**: v0.1 초안, 독립 검증·gap·사용자 승인 전. base `design/v115` `8b9ec744`(계획 v6.38.7, design v1.16.2 재검증 대기).
+> **Status**: v0.1 초안, 독립 검증·gap·사용자 승인 전. 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.8 `fab5e92e`, 승인 전), design v1.16.3에 병합됨(옛 base `8b9ec744`).
 >
 > **결정 입력**: O-190·O-191(R-1′ 묶음, HC-1 + GC-8 통합 병합), O-202~O-212(전도·포화 경계·`off`), O-214·O-217·O-218(LA-1a), O-220·O-224(칸별 판정 유지), O-225(구현 우선).
 >
@@ -47,7 +47,7 @@ plan_version: 0.7.9.7
 | `graph/start: loop_stack_notes` | 칸별 R-3 기록 tuple | `loop_dependents` | S0 | HC-1 | **출력 전용**: 결과 JSON·단계 보고(U-H15 (가)) |
 | `graph: dc_seal_triode` | 봉인 항목(정의역 게이트) | `dc_seal_triode`(새 블록) | 평가 | HC-1 | 봉인 판정 |
 | `device: dc_triode_region` | `TriodeRegion(vds_v, vdsat_v, region, protected_none)` | `dc_seal_triode` | 평가 | HC-1 | **출력 전용**: 봉인 보고 |
-| `graph: dc_seal_7`(바뀜) | 사유 어휘·`detail` 칸 추가 -- §7.2 | `dc_seal_saturation` 그대로 | 평가 | HC-S·HC-1 | 그대로 |
+| `graph: dc_seal_7`(바뀜) | 사유 어휘·`detail` 칸 추가 -- §7.2 | `dc_seal_region`(writer 변경 = card EO-1 범위 4 -- 41 §4.8-3, `dc_seal_saturation`·`seal_saturation.py` 삭제, EO-1 범위 4 → HC-S 표 #7이라 이 문서의 card는 처음부터 이 writer를 고친다) | 평가 | 칸 = HC-S·HC-1 | 그대로 |
 | `graph/kernel: search_domain`(바뀜) | 상자 + 칸 `chain_cuts` | `search_domain` 그대로 | S0 | HC-1 | 상자 = 기존 소비자, `chain_cuts` 칸 = 출력 전용 |
 | `gvgs_summary.vds_saturation`, `REL_VDS_SATURATION` | **삭제** | -- | -- | HC-1 | 엔진 소비자 0(HC:190), test 표 3곳 + metamorphic 1곳은 test 역할이 다시 씀 |
 
@@ -89,7 +89,7 @@ DC 블록이 `dc_op`를 쓰는 같은 평가에서 `sat_threshold`의 정의되�
 
 | 소비자 | 바꾸는 일 | `reverse_vds` | `vdsat_column_unavailable` | `lut_domain` | `tol_v` None |
 |---|---|---|---|---|---|
-| 봉인 7 `dc_seal_saturation` | `_row`의 LUT 조회 삭제, `dc_sat_v` READS. 행 크기 = VDsat − VDS(`2·tol` 항 삭제), 판정 = VDS ≥ VDsat. `|VDS − VDsat| < tol`이면 `detail`에 소자를 기록 | 거부, 사유 '포화 아님(역방향 VDS)' | 판정 불가 거부(기존 `REASON_VDSAT_MISSING`) | E-0 정의 불능 거부 | 판정 그대로, 띠 '미정' 기록 |
+| 봉인 7 `dc_seal_region`(EO-1 범위 4 뒤 -- 41 §4.8-3) | 공용 영역 판정의 VDSAT 입력을 `dc_sat_v` READS로(LUT 조회 삭제 -- HC-S). 판정 = VDS ≥ VDsat(EO-1 그대로, `2·tol` 항은 EO-1이 이미 지움). `|VDS − VDsat| < tol` 기록 = EO-1 `indistinct` 그대로 | 거부, 사유 '포화 아님(역방향 VDS)' | 판정 불가 거부(기존 `REASON_VDSAT_MISSING`) | E-0 정의 불능 거부 | 판정 그대로, 띠 '미정' 기록 |
 | `metrics_aux._sat_devices` | `dc_sat_v` READS, 직접 조회 삭제 | `sat_v` None | `sat_v` None | `sat_v` None | `sat_tol_v` None |
 | 커널 창 행 `saturation_rows`·IT-2c `region_rows`의 선언 없는 소자 행 | `sat_threshold` 호출로 교체, 여유 = VDS − VDsat. 행 집합 그대로 | None(창 안 좁힘, base와 같음) | None | None | 영향 없음 |
 | `iv_domain`·`iv_headroom._lower_bound` | `tol_vdsat` 호출 삭제. VDsat은 곡선 묶음의 VDSAT 곡선 -- 곡선 생성이 `sat_threshold_grid`를 읽게 배선 | 해당 없음(곡선 VDS ≥ 0) | 그 경계 비활성, `inactive` 기록(대체값 없음, U-H15 원리) | 그 곡선 점 제외 | 해당 없음 |
@@ -249,7 +249,7 @@ stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, 
 
 - max_{L, VGS(X) ∈ LUT 정의역} [VGS(X) − VDsat(X; VDS = VGS(X) − VGS(Y), VSB(X))] < VGS(Y). VDsat은 `sat_threshold_grid`에서 읽고 VDS가 음수인 점은 포화 불가로 센다.
 - **G-13**: 범위 = LUT 정의역 전체(H-14). 탐색 상자 ⊆ LUT 정의역이므로 상자로 좁힌 판정보다 덜 성립한다(보수적). 상자를 읽지 않는다.
-- **봉인**: `dc_seal_saturation`이 extras 대신 `stack_candidates`를 READS한다. 위반 소자 X가 후보이고 Y가 전도(`dc_op.current > 0`)이며 선언 triode가 아니면 `stack_unsat`을 부른다. 성립하면 `detail`에 `reason = stack_unsaturable`, X·Y·VGS(Y)·좌우 값·VP 칸. 거부 여부는 그대로다. 위반 소자에서만 부른다.
+- **봉인**: `dc_seal_region`(41 §4.8-3 -- EO-1 범위 4가 만듦, 이 칸은 HC-1이 더함)이 extras 대신 `stack_candidates`를 READS한다. 위반 소자 X가 후보이고 Y가 전도(`dc_op.current > 0`)이며 선언 triode가 아니면 `stack_unsat`을 부른다. 성립하면 `detail`에 `reason = stack_unsaturable`, X·Y·VGS(Y)·좌우 값·VP 칸. 거부 여부는 그대로다. 위반 소자에서만 부른다.
 - **G-6**: Y 상태는 풀린 `dc_op`에서 읽는다. 노드 풀이 반복 안에서 부르지 않는다.
 - **사유 문언**(G-7): '이 Y 상태에서 X 크기로는 포화 불가, triode 선언 필요'. '또는 Y 크기 변경'은 **넣는다** -- 판정이 Y 고정 아래라 사실에 맞고 불가능 증명으로 읽히지 않게 한다. **작성자 판단 J7**.
 - **VP 보고 칸**: n = 1 + gmb/gm, VT0 = VS 축 0점의 VTH. VS 축에 0점이 없으면 칸 None + 사유(M-H1b 미측정 `[재점검]`).

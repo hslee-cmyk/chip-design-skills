@@ -1,7 +1,7 @@
 ---
 template: design
 version: 1.16.3
-plan_version: 6.38.7
+plan_version: 6.38.8
 ---
 
 # gain-budget-gmid-sizing -- 41-gain-budget Design Document
@@ -14,7 +14,7 @@ plan_version: 6.38.7
 > - 스펙에서 θ 좌표(ln IDu -- O-186)·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-11-03 · **Status**: **design v1.16.3 -- 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔) 검증 Major 7 반영, 재검증 대기. **부분 승인 표지: 승인 대상 = ②(승인 전 -- 계획 v6.38.8 승인 뒤 요청, 승인 행 없음), ① LA-1a(§6.9 -- 선택 유보·보류)·③④⑥ 미승인.** LA-1a 판단이 걸린 줄은 '보류 중' 표지. HC-S·HC-1 = `headroom-chain.design.md`, GC = `graph-consumption.design.md`(design/hcgc `f59a239d` 합침, 묶음 ④ -- 검증 전). design/eo1 `2b1750dc` 합침(41 §4.8·§4.9 = 묶음 ⑥ 초안), card C 정정 DF-1~DF-6(A-9) 반영**(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H41-38, 경위 = H40-40.
+> **Date**: 2026-11-03 · **Status**: **design v1.16.3 -- 계획 기준 = v6.38.8 `fab5e92e`(**계획·design 모두 승인 전**). 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔) 검증 Major 7 반영, 재검증 대기. **부분 승인 표지: 승인 대상 = ②(승인 전 -- 계획 v6.38.8 승인 뒤 요청, 승인 행 없음), ① LA-1a(§6.9 -- 선택 유보·보류)·③④⑥ 미승인.** LA-1a 판단이 걸린 줄은 '보류 중' 표지. HC-S·HC-1 = `headroom-chain.design.md`, GC = `graph-consumption.design.md`(design/hcgc `f59a239d` 합침, 묶음 ④ -- 검증 전). design/eo1 `2b1750dc` 합침(41 §4.8·§4.9 = 묶음 ⑥ 초안), card C 정정 DF-1~DF-6(A-9) 반영**(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H41-38, 경위 = H40-40.
 >
 > 색인과 표기는 [40-engine](gain-budget-gmid-sizing.40-engine.design.md)을 따른다(`E/`, OK/DEV/PART/MISS). as-built 기준은 master `004b7d2`다.
 
@@ -448,12 +448,12 @@ DEC-17 순서(`E/graph/l_classes.py`)의 3번째에 규칙 하나를 넣는다.
 8. **`graph.ss_nodal`과의 관계**: `graph.ss_nodal`은 봉인점 전회로 컨덕턴스 계(card IT-2c), 블록 모델은 U_b 위 계라 미지수 축이 다른 양이다(graph 규칙 3). 전회로 G 조립의 정본은 `ss_nodal`이고 IT-2c가 `block_residual`·`offset_analysis`의 전회로 쪽을 그 READS로 옮긴다. 극한 식은 양쪽이 같은 함수다. `_helpers_nodal.conductance_matrix`는 파일 겹침이라 나중 병합 card가 rebase한다(새 순서 규칙 0).
 9. **C 값**: ω → 0 정의라 gain·Z_out에 C가 직접 들지 않는다. 용량 전용 노드의 극한만 C 비를 읽고, 봉인 모드는 `ss` C, LUT 행 모드는 LUT C 열이다(O-179). 근사로 빼지 않는다.
 
-**측정 미룸 -- LA-1 측정 시점 재점검**(O-225; 적용 문언은 계획 v6.38.8 대기, 이 판은 읽기만 함):
+**측정 게이트**(O-225, 계획 v6.38.8 N6.1 측정 게이트 처리 표 -- 승인 전):
 
 | 입력 | 계획 자리 | 이 판 기본안 | 재점검 때 할 일 |
 |---|---|---|---|
-| UB-0(두 구현 규칙 차이) | UB-1 범위 (2), 착수 조건 | 위 1~5(물리 정의 ω → 0 KCL, 같은 미지수 집합 -- 계획이 적은 권고 그대로) | 13회로 차이·원인 기록, 위 규칙과 다른 자리가 나오면 §2.5 개정. **미측정** |
-| M-LA16 U9 칸 | N5.3 착수 실측, 측정 게이트 표 (나)(v6.38.8 검증 중) | 위 9 | card UB-1 착수 때 정의 자리별 코드 대조(엔진 평가 0), 어긋나면 그 card가 고침. **아직 안 함** |
+| UB-0(두 구현 규칙 차이) | UB-1 범위 (2), 게이트 표 (나) 코드 대조 + 값 차이 (가) | 위 1~5(물리 정의 ω → 0 KCL, 같은 미지수 집합 -- 계획이 적은 권고 그대로) | card UB-1 착수 때 두 구현 스탬프 규칙 코드 대조(엔진 평가 0), 다른 자리가 나오면 §2.5 개정. 13회로 값 차이는 LA-1 측정 시점. **둘 다 아직 안 함** |
+| M-LA16 U9 칸 | N5.3 착수 실측, 게이트 표 (나) | 위 9 | card UB-1 착수 때 정의 자리별 코드 대조(엔진 평가 0), 어긋나면 그 card가 고침. **아직 안 함** |
 | 회로 해석이 걸리는 블록 경계·FF 귀속 | UB-1 범위 (2) '공동분석' | 정하지 않음 -- 발동하면 멈추고 공동분석 | 위 UB-0 결과에서 발동 여부 확인 |
 | 판정 소비자 0 | UB-1 완료 (3) | 착수 때 `git grep`, 있으면 멈춤 | card 착수 시 |
 
@@ -1867,6 +1867,7 @@ N_T = floor((B − T_used − T_reserve) / t_eval)
 9. **출발 사다리**(as-built 0868ff5 `search/start_intervals.py`·`start_values.StartRung`, 층 0 `layer0_start`가 소비):
    - **t**: 출발 구간 S_d 안 위치다(v1.16.0 -- ln IDu 축, O-186). 소자마다 ln IDu(t) = S_d의 누적 길이 매개화 -- t = 1은 7의 선택 끝(아래 끝), t = 0은 반대 끝(위 끝)이고, S_d가 여러 구간이면 구간 사이 빈칸을 건너뛰는 누적 길이로 잰다(단조, 집합 밖 점 0 -- 새 상수 없음). 7의 선택은 t = 1에서 시작한다.
    - **steps** = ⌈log2(span / floor)⌉(span > 0일 때, 아니면 0). span = max_소자 (S_d 길이 합, ln IDu), floor = 그 소자들 S_d 안 LUT VGS 칸의 ln IDu 폭 최솟값(그 좌표의 LUT 격자 분해능 -- 계획 V9 'LUT VGS 칸의 ln IDu 폭'과 같은 칸 폭 정의; 옛 'LUT 곡선의 gm/ID 최솟값'). 구간 길이를 LUT 칸 폭 단위까지 반으로 가르는 횟수이고, t 탐색 분해능 2^−steps와 같다.
+   - **칸 판정**(v1.16.3 -- 계획 N3.8 제약 그래프, O-224, 위임 A-16·A-19, `headroom-chain.design.md` §6): card HC-1부터 모든 칸을 J_point로 판정해 위반 칸만 `graph/start: loop_conflicts`에 쓰고, 칸 거르기가 칸 번호를 읽어 그 칸을 뺀다(내용 칸은 출력 전용). `rungs` 값은 바꾸지 않는다. R6 첫 통과 칸 효력은 미룸(재질문 묶음).
    - **칸 0(선택점)**: 실행 가능(면적 ≤ 예산, 매크로 근 있음)한 최대 t*. t = 1이 실행 가능하면 t* = 1이고, 아니면 [0, 1]에서 `bracket_root`(허용오차 2^−steps)로 경계를 찾아 그보다 한 칸 아래를 쓴다. 칸 0은 매크로 확정 풀이(전원 전류 최소화 포함)의 전류를 쓴다. 7a(KVL 고리 공동 선택)는 칸 0에 적용한다.
    - **칸 k = 1..steps**(t* > 0일 때): t_k = t*/2^k. 매크로는 전원 전류 최소화 없이 실행 가능한 출발점(`refine=False`)만 풀고, 7a를 칸마다 다시 적용한다(§6.7-6).
    - **칸의 내용**(`StartRung`): t, θ(구간이 값을 정한 성분만: ln IDu, θ 전류, 보상 커패시터, L 동치류 L), L 칸 index, 기준 전류(매크로가 전류를 정하지 못한 소자의 자리값).
@@ -2044,7 +2045,7 @@ DEC-92 (2)의 근사를 회로별 식이 아닌 일반 매크로 모델로 둔�
 
 **왜**: §6.1-7 은 소자마다 출발 구간 끝(v1.16.0: ln IDu 아래 끝)을 따로 고른다. VGS 고리(DEC-64 v2)는 한 소자의 VGS 를 나머지 VGS 합·차로 정하고, VDS-1 고리는 한 소자의 VDS 를 VGS 합·차로 정한다. 따로 고른 끝점(모두 약반전 쪽, VGS 최소)은 그 합·차를 무너뜨린다. 실측(as-built bd19cc6, 사다리 칸 0): 파일럿 M4a VDS = −0.03 V(VDS = VGS(M63) − VGS(M3a) 꼴), sf_pushpull M10 노드 근 없음, nmcnr M301 VDS ≈ 0(사다리 7칸 모두 실패, Halton 시험 점에서만 출발).
 
-**1. 고리의 출처 -- 새 탐지기를 만들지 않는다**: 평가 커널의 쓰기 계획(`node.dc_writer` 나무 + `device.dc_coord`, GB7 `dc_writer_plan`, sizing CONTRACT 3절)을 읽는다. 쓰기 계획은 S1 G_vgs 고리(`graph.rel_kvl_branch`, DEC-64)를 레일·W3 선언 노드·입력 DC·저항 강하까지 넣어 컴파일한 것이고, 종속 소자는 계획 DEC-64 (v2) 종속 멤버 선택(고리에 R13 B 멤버가 있으면 B 멤버 -- B 안 순위 diode → 대칭 궤도 대표 → 소스 사슬 하류 → DEC-97 정준 위치; B 멤버가 없는 고리는 ① diode 독립 → ② 뒤 stage 독립 → 정준 위치 -- 사용자 결정 O-187·O-189, 40 §3.7-4)로 쓰기 계획 블록이 이미 정했다.
+**1. 고리의 출처 -- 새 탐지기를 만들지 않는다**(v1.16.3: 행·판정 정본 = `chain_graph`·J_point·F_exist, `headroom-chain.design.md` §5·§6; 판정 = J_point, F_exist는 재개방·구간·순환 출처만): 평가 커널의 쓰기 계획(`node.dc_writer` 나무 + `device.dc_coord`, GB7 `dc_writer_plan`, sizing CONTRACT 3절)을 읽는다. 쓰기 계획은 S1 G_vgs 고리(`graph.rel_kvl_branch`, DEC-64)를 레일·W3 선언 노드·입력 DC·저항 강하까지 넣어 컴파일한 것이고, 종속 소자는 계획 DEC-64 (v2) 종속 멤버 선택(고리에 R13 B 멤버가 있으면 B 멤버 -- B 안 순위 diode → 대칭 궤도 대표 → 소스 사슬 하류 → DEC-97 정준 위치; B 멤버가 없는 고리는 ① diode 독립 → ② 뒤 stage 독립 → 정준 위치 -- 사용자 결정 O-187·O-189, 40 §3.7-4)로 쓰기 계획 블록이 이미 정했다.
 - 비나무 MOS 엣지 중 `cycle_vgs`·`fixed_vgs` = **고리 등식**(DEC-64 v2 `Σ±VGS = ΔV`): 그 소자의 VGS 는 나무 경로가 정한다. `parallel_vgs`(v0)는 같은 VGS 묶음(§6.1-6)이라 대상이 아니다.
 - **v1(포트 차 고리)**(계획 DEC-64 v1, 사용자 결정 B2·O-13 (1)): 입력 포트끼리의 '같은 DC' 등식은 없다(아래 1a). 포트 경로가 둘 이상인 v1 고리는 ΔV를 소거한 KVL 하나가 남아 그 고리 멤버 하나가 `cycle_vgs` 종속이고(파일럿 VGS1a − VGS1b = VGS4a − VGS4b, M1b), 그 종속은 위 항목의 고리 등식과 같은 대상이다 -- 이 절의 행 생성 규칙은 바꾸지 않는다(계획 N6.5 '고치지 않는 것': §6.7 KVL 출발 제약은 U17 ② 몫이고 IT-1 뒤의 쓰기 계획을 읽는다). 대칭이면 그 등식은 대칭 묶음과 중복이다. (v1.12 정정: 옛 문장 'v1 고리는 이 절의 행을 만들지 않는다'는 O-13 (1)과 어긋나 고쳤다 -- 옛 문장은 계획 history H2 'IT-1·IT-2 design' 행.)
 - drain·source 가 같은 나무 성분에 있는 diode 아닌 MOS = **VDS-1 부등식**(`gvgs_summary.vds_saturation` 과 같은 뜻): VDS = 나무 경로 합·차 ≥ VDSAT(판정 여유 0 -- O-204). **v1.15.0 개정(계획 v6.38 후속 정정 표 '41 §6.7-1', headroom-chain v0.7.9 N3.4 '구성 소비자' -- VDS-1 자기 행과 `graph/start: kvl_rows`는 R-1′ 필드 읽기로 대체)**: 이 절은 VDS-1 행을 스스로 만들지 않는다. 포화 행·writer_root 행·행마다의 의존 묶음은 R-1′ 제약 그래프 S0 필드(card HC-1이 만든다 -- 사용자 결정 O-190 R-1′ 묶음, **원래 취지와 다름(승인 O-190)**: 옛 'card TB-1'; 정의 = headroom-chain N3.1·N3.4, 형식 = headroom-chain HC-D design)의 변·writer_root 행과 변 속성(변 좌표 집합, headroom-chain N3.1-5)을 READS한다(같은 사실 하나 -- 둘째 생산자 금지, graph 규칙 1). VDS-1 길이 1 변은 그 그래프의 부분집합이다(headroom-chain N3.1-6). `gvgs_summary.vds_saturation`은 HC-1이 같은 변경에서 지운다(headroom-chain N3.4, O-190).

@@ -1,7 +1,7 @@
 ---
 template: design
 version: 1.16.3
-plan_version: 6.38.7
+plan_version: 6.38.8
 ---
 
 # gain-budget-gmid-sizing -- 40-engine Design Document (새 엔진 `gmid_engine`, 색인·아키텍처)
@@ -9,7 +9,7 @@ plan_version: 6.38.7
 > **Summary**: 새 gm/ID 사이징 엔진(`skills/analog-gmid-design/gmid_engine/`)의 설계 정본이다. 계획서 N3.1 흐름 GB0~GB9를 패키지·파일에 대응시키고, 단계마다 알고리즘·입출력·불변식·실패 코드·as-built 상태를 적는다. 계획서가 요구하고 실행 로드맵에서 빠졌던 gain-budget 흐름(FR-1·FR-2·FR-4·FR-8)은 `41-gain-budget`에서 전부 설계한다. gap 분석 기준표는 `42-gap-checklist`다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Date**: 2026-11-03 · **Status**: **design v1.16.3 -- 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔) 검증 Major 7 반영, 재검증 대기. **부분 승인 표지: 승인 대상 = ②(승인 전 -- 계획 v6.38.8 승인 뒤 요청, 승인 행 없음), ① LA-1a(§6.9 -- 선택 유보·보류)·③④⑥ 미승인.** LA-1a 판단이 걸린 줄은 '보류 중' 표지. HC-S·HC-1 = `headroom-chain.design.md`, GC = `graph-consumption.design.md`(design/hcgc `f59a239d` 합침, 묶음 ④ -- 검증 전). design/eo1 `2b1750dc` 합침(41 §4.8·§4.9 = 묶음 ⑥ 초안), card C 정정 DF-1~DF-6(A-9) 반영**(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H40-39, 경위 = H40-40.
+> **Date**: 2026-11-03 · **Status**: **design v1.16.3 -- 계획 기준 = v6.38.8 `fab5e92e`(**계획·design 모두 승인 전**). 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔) 검증 Major 7 반영, 재검증 대기. **부분 승인 표지: 승인 대상 = ②(승인 전 -- 계획 v6.38.8 승인 뒤 요청, 승인 행 없음), ① LA-1a(§6.9 -- 선택 유보·보류)·③④⑥ 미승인.** LA-1a 판단이 걸린 줄은 '보류 중' 표지. HC-S·HC-1 = `headroom-chain.design.md`, GC = `graph-consumption.design.md`(design/hcgc `f59a239d` 합침, 묶음 ④ -- 검증 전). design/eo1 `2b1750dc` 합침(41 §4.8·§4.9 = 묶음 ⑥ 초안), card C 정정 DF-1~DF-6(A-9) 반영**(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H40-39, 경위 = H40-40.
 >
 > **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v6.38.5
 > **as-built 기준**: 절마다 인용한 커밋(최근 = integ/it12 `b12792ab`); 옛 기준 master `004b7d2`·브랜치 목록 = design 이력 H40-31.
@@ -475,7 +475,7 @@ graph 밖에 있던 값마다 갈 곳을 정한다. '층'의 S0 = S0 수준 층,
 | S1v 파생 술어(v1.16.3 -- 계획 N3.3 B4, card IT-1 범위 6, 승인 O-173 P9-M1a) | `graph/s1v`: `diode_nodes`·`composite_mos`·`composite_bundles`·`composite_internal` | `s1v_fields`(기존 writer, 새 블록 0). 소비자: `coupling_vars`(READS -- `net_model(` 호출 = `s1v_fields` 하나, 재작성 범위 `E/graph/coupling_vars.py:179`) | S1v |
 | 영역 선언(card EO-1 범위 4, 41 §4.8-4) | `device: region_decl` | `dc_region_decl`(S0). 소비자: `dc_seal_region`·쓰기 계획·전류 기저·θ 스키마·`search_domain`·`region_rows`·`ss_off_op`·`ss_dev`·관문·`check_off_judged_by`·oracle 생산자, 뒤 card HC-S | S0 |
 | off 소자 동작점(card EO-1, 41 §4.8-5, 위임 A-1·A-2) | `device: off_op` = `OffOp(kind, W, L, vgs, vds, vsb, w_key)` | `ss_off_op`(봉인 직후 첫 ss 블록). 소비자: `ss_dev`·`ss_off_delta`·oracle 생산자 | ss |
-| 봉인 7·9(41 §4.8-3; 삭제: `device.dc_off_current`·`device.dc_conduction_floor`, O-205) | `graph: dc_seal_7`·`dc_seal_9` | `dc_seal_region`(EO-1 범위 4가 HC-S보다 먼저라 HC-D §2 `dc_seal_7` 행의 '`dc_seal_saturation` 그대로'는 이 writer로 읽는다 -- HC 문서 정정 필요; 사유 어휘·`detail` 칸은 HC-S·HC-1이 더함) | S2 |
+| 봉인 7·9(41 §4.8-3; 삭제: `device.dc_off_current`·`device.dc_conduction_floor`, O-205) | `graph: dc_seal_7`·`dc_seal_9` | `dc_seal_region`(EO-1 범위 4; 사유 어휘·`detail` 칸은 HC-S·HC-1이 더함 -- `headroom-chain.design.md` §2·§7.2) | S2 |
 | off 전류 1차 ΔV 기록(41 §4.8-5, O-202) | `graph: ss_off_delta` | `ss_off_delta`(`graph.ss_nodal` 뒤). 소비자: 관문 + 출력 기록 | ss |
 | ~~출력 구조 분류~~ -- **삭제(계획 v6.34 N3.8 '출력 구조 분류(KVL 고정·고임피던스) -- 엔진 필드 없음', 사용자 결정 O-109 D4 -- 원래 취지와 다름, 승인 O-109)** | 없음 -- IT-2b가 만든 `node: dc_output_structure`(`"high_impedance"`\|`"kvl_fixed"`)와 그 writer 부분·`OUTPUT_*` 상수·권한표 원소·CONTRACT 소유표 행을 IT-2c가 지운다(41 §4.7-1a 기록); 측정 구성 감도·출력 스윙이 두 출력 꼴에서 같은 KCL 계라 갈래가 없다 | 없음(`dc_writer_plan` WRITES에서 빠짐 -- S0 base writer 출력 지문 변화 = 동작 변경, 41 §4.7-8 (6)) | -- |
 | ~~입력 포트 정의 창~~ -- **삭제**(v1.16.3 -- O-204 조건, 계획 N3.8 '창 필드') | 없음 -- `node: dc_window_def` 두지 않음, `node: dc_window_cfg` 하나 | 소비자 모두 그 필드 READS(DE-1 (a) 포함) | -- |
@@ -1142,7 +1142,7 @@ as-built 상태(OK/DEV/PART/MISS)·증거는 42 gap 기준표가 정본이다(�
 |---|---|---|
 | W0~W4 writer 계획 | DEV(계획 v6.38.3 DEC-106·card IT-1 범위 재작성, O-168): as-built는 입력 DC 미선언이면 입력 포트끼리 '같은 DC' 엣지(`input_tie`)로 같은 DC 등식을 커널이 푼다. card IT-1이 엣지·어휘를 지우고 선언된 차동 입력쌍의 두 포트를 G_vgs 한 점(입력 점)으로 묶는다(변수 공유 -- 같은 DC 엣지 없음; F에 닿으면 KVL 종속, 아니면 W4 뿌리 하나·y 키 하나); 그 밖 다중 입력은 `input_cm_undefined` 정지, 옛 `input_port_multiple_roots` 정지는 삭제(§3.11-4). 나머지(W3는 9회로 모두 0, CI-15·18 대기)는 그대로 | `E/sizing/writer_plan.py:76-77, :104-105, :157-159, :213-214, :228-234` |
 | SCC 고정점·K_max·NONCONVERGENT | OK(+ GS 실패 시 감쇠 Newton, Brent `bracket_root` -- master 병합됨) | `E/sizing/fixed_point.py`, `scc_newton.py` |
-| 봉인 1~8 | OK(v1.16.3: 봉인 9 전도 = 선언 방향 ID 부호 판정, 문턱·쓰기 필드 삭제 -- O-205 (1)(7); 봉인 6 경계 0 V·표 10행 tol_V 미정 = E-0 -- O-210 RR-7. 옛 + 봉인 9 '전도 여유'. v1.16.0: KCL 항등 0 전류 MOS(`graph.dc_current_basis` 빈 항 행)는 봉인 9 (i)(iv)·oracle 포화·꺼짐 판정 대상 밖 -- 계획 N3.6 봉인 9 행, 사용자 결정 O-182 Q-S9 (A′); 예외 코드 = card DR-1, oracle은 그 집합을 넷리스트에서 독립 유도해 대조하고 다르면 거부(card EO-1 공용 전도 판정 함수가 READS) -- 다른 card design 몫, 순서 EO-1 → DR-1) | `E/sizing/seal.py`(as-built 생략 `E/sizing/seal_conduction.py:41`은 재작성 범위) |
+| 봉인 1~8 | OK(v1.16.3 봉인 7 -- 사유 세분 `stack_unsaturable`은 위반 소자에서만 `stack_candidates`로 판정하고 거부 여부는 그대로, 선언 triode 정의역 게이트 = 새 블록 `dc_seal_triode`(봉인 7 위반으로 세지 않음), `headroom-chain.design.md` §7.2·§7.4; v1.16.3: 봉인 9 전도 = 선언 방향 ID 부호 판정, 문턱·쓰기 필드 삭제 -- O-205 (1)(7); 봉인 6 경계 0 V·표 10행 tol_V 미정 = E-0 -- O-210 RR-7. 옛 + 봉인 9 '전도 여유'. v1.16.0: KCL 항등 0 전류 MOS(`graph.dc_current_basis` 빈 항 행)는 봉인 9 (i)(iv)·oracle 포화·꺼짐 판정 대상 밖 -- 계획 N3.6 봉인 9 행, 사용자 결정 O-182 Q-S9 (A′); 예외 코드 = card DR-1, oracle은 그 집합을 넷리스트에서 독립 유도해 대조하고 다르면 거부(card EO-1 공용 전도 판정 함수가 READS) -- 다른 card design 몫, 순서 EO-1 → DR-1) | `E/sizing/seal.py`(as-built 생략 `E/sizing/seal_conduction.py:41`은 재작성 범위) |
 | tol_I | DEV(S2p gm/ID 또는 격자 최대 gm 상계. v1.6 정의 `dc_gm`과 다름) | `E/sizing/seal_tolerances.py`, `E/sizing/kernel_run.py`(bd19cc6) |
 | 미러 비율 강제 | MISS | `sizing/CONTRACT.md` |
 | 종속 멤버 선택(DEC-64 (v2)·DEC-95 (3) v6.38.5 -- O-187·O-189) | MISS(card TB-1): as-built는 ① 구조 색·이름 키와 OrderHints 경로뿐 -- TB-1이 B 멤버 순위·정준 위치·ratify 대조로 재작성하고 OrderHints를 지운다(§3.7-4) | `E/sizing/writer_plan.py`(재작성 범위) |
@@ -2213,13 +2213,13 @@ P N5.2의 DF는 옛 엔진의 결함 기록이고, 새 엔진에서는 재발 �
 **U17과 다른 단위의 관계**:
 - U15(층 0)는 ②와 한 변경이다. 41 §5.3.9의 `local_seal_memo` 문구는 41 개정이 §2.4.5를 인용해 바꾼다.
 - **v1.15.0 -- 계획 v6.38 새 card와 design 절**(아래 표):
-- **v1.16.3 -- 진행 순서 정본 = 계획 N6.1 '코드 card 진행 순서'(v6.38.8 `e7fdbc6f`, 검증 중 -- 위임 A-6·A-8·A-9·A-13·A-14)**: GL-1 → IT-1 + IT-2 → EO-1 범위 4 + 로더 → card C → TB-1 → HC-S → WB-1, UB-1 + NL-1, GC-1 → HC-1 + GC-8 → SF-1 → EO-1 범위 1~3 → LA-1a + LA-1. oracle 줄은 병렬(OP-7은 선언 기록 조각과 어댑터 실행 설정 둘로 나뉨 -- A-13). 아래 표의 선행은 이 순서와 같다.
+- **v1.16.3 -- 진행 순서 정본 = 계획 N6.1 '코드 card 진행 순서'(v6.38.8 `fab5e92e`, 승인 전 -- 위임 A-6·A-8·A-9·A-13·A-14)**: GL-1 → IT-1 + IT-2 → EO-1 범위 4 + 로더 → card C → TB-1 → HC-S → WB-1, UB-1 + NL-1, GC-1 → HC-1 + GC-8 → SF-1 → EO-1 범위 1~3 → LA-1a + LA-1. oracle 줄은 병렬(OP-7은 선언 기록 조각과 어댑터 실행 설정 둘로 나뉨 -- A-13). 아래 표의 선행은 이 순서와 같다.
 
 | card(계획 절) | design 절 | 선행·병합 규칙(계획 인용) |
 |---|---|---|
 | TB-1(N6.29) θ 기저 S0 필드 -- 범위 1(R13 S/B/F 분류) 단독 + 쓰기 계획 종속 멤버 선택 배선 + **범위 5 W4 뿌리 동률 불변식 단언**(O-194 K8, 41 §4.7-1 2, 완료 (8) -- v1.16.3)(v1.16.0 -- 사용자 결정 O-187·O-190·O-192) | §2.4.8 `device: theta_class` 행·쓰기 계획 필드 행, §3.7-4(종속 멤버 선택·OrderHints 삭제), §3.2-3 `dependent_member` concept, 41 §5.3.3 (`device: start.guard`는 LA-1a -- O-214, 술어 인스턴스 필드는 LA-1 범위 15 (c) -- U-132; R-1′ 제약 그래프 = HC-1, O-190) | 선행 = IT-1 + IT-2(`writer_plan.py` W4 뿌리 -- 범위 5, v6.38.8 작성자 유도), EO-1(SPICE 다리 -- 보류 다리); 옛 선행 HC-S는 삭제(O-192 -- 범위 1에 HC-S 산출 소비 0, **원래 취지와 다름(승인 O-192)**); 착수 = 계획 v6.38 승인 → 실측 M-KV1c(r2r 다이오드 없는 고리 포함 여부 -- 착수 조건, 이 판은 값을 정하지 않는다) → Q-TB1R 결정(충족 O-190) → 이 design(필드 이름·블록); 옛 착수 조건 'HC-D design 승인'은 O-192 원칙 유도 정정으로 삭제. **master 병합 = TB-1 단독**(계획 병합 순서 규칙 표 #5 -- 범위 1의 첫 행동 소비자 = 같은 card의 쓰기 계획 종속 멤버 선택, O-183 규칙; **원래 취지와 다름(승인 O-187)**: 옛 '행동 소비자 card(HC-1·LA-1) 가운데 먼저 들어가는 쪽과 같은 통합 병합(O-149)·병합 때 엔진 소비자 0(O-146 K2)'). 뒤따름 = HC-1 → LA-1(표 #16). 파일 겹침 card IT-1·DR-1(같은 통합 병합 금지, 나중 card가 rebase -- IT-1+IT-2 재동결 card의 `order_hints` 서명 줄·종속 기대값은 그 rebase 때 정한다, 감사 U1). 성격 = 동작 변경(쓰기 계획 종속 값 변화 -- 변화표 원인 항목); 착수 실측 GC-B7(library 13 θ 전류 기저 저항 수·양 끝 비레일 넷 수 -- 계획 N6.29); 완료 (5) = 변화표(손 판정 기대 종속 멤버 -- 계획 N6.29 목록) + E-0 단언(종속 다이오드 W가 LUT 정의역 안·모든 소자 포화) + I_Q 손계산 대 oracle(E-1) + 이름 전단사 metamorphic, 변화표 원인 귀속 칸 = 고리 안 종속 선택(O-187) / 고리 밖 비트리 관계 끝 키(O-189)(v1.16.1 gap 누락 반영) |
 | IT-1 + IT-2(N6.5·N6.6) | 위 'IT-1 + IT-2' 행, 41 §4.7·§4.7-W·§6.7-1a, 40 §3.11-4·-5 | 통합 병합 하나. 선행 = XRUN-F1 card B(병합됨)·GL-1(A-6). 뒤따름 = WB-1(O-223)·EO-1(표 #13)·HC-S. 착수 = 이 판 승인 → IT-0b → card 재동결. SPICE 다리는 보류 다리 병합(A-5·A-10) |
-| UB-1 + NL-1(N6.15·NL-1 절) | 41 §2.5, 40 §3.11-6 E-01·E-16 | 통합 병합 하나, LA-1 앞. UB-0·M-LA16은 O-225로 뒤로(§2.5 표 -- LA-1 측정 시점 재점검, 적용 문언 = 계획 v6.38.8 대기). 파일 겹침 IT-2c(`_helpers_nodal`) -- 나중 병합 card rebase |
+| UB-1 + NL-1(N6.15·NL-1 절) | 41 §2.5, 40 §3.11-6 E-01·E-16 | 통합 병합 하나, LA-1 앞. UB-0 규칙·M-LA16 = 착수 때 코드 대조, UB-0 값 차이 = LA-1 측정 시점(§2.5 표, 계획 v6.38.8 게이트 표). 파일 겹침 IT-2c(`_helpers_nodal`) -- 나중 병합 card rebase |
 | EO-1 범위 4 + SF-1 몫 로더 커밋(N6.20, 같은 통합 병합 -- O-221, 병합 분리 = 위임 A-14) | 41 §4.8. 새 파일 `E/sizing/region_judge.py`·`seal_region.py`, `E/metrics/ss_off_op.py`·`ss_off_delta.py`·`ss_off_gate.py`, `E/search/off_judged.py`; 재작성 = 쓰기 계획·전류 기저·θ 스키마·`search_domain`의 `off` 제외, `ss_dev`·`ss_evaluate` 순서, 로더 `spec_regions`·`spec_model`; 지움 = `E/sizing/seal_saturation.py`·`seal_conduction.py`, `device.dc_off_current`·`device.dc_conduction_floor`, `DcInputs.linear_devices`; 확인 = 41 §4.8-13, test = §4.8-12 | 선행 = IT-1 + IT-2(표 #13). 뒤따름 = card C·HC-S(표 #7)·DE-1·DR-1. 판정 = OP-5 뒤(A-8), 코드는 '미완료(보류 다리)' 병합(A-5·A-10) |
 | EO-1 범위 1~3(N6.20 -- 생산자·판정 배선, 위임 A-14) | 41 §4.9. 새 파일 `E/search/oracle_input.py`·`oracle_bridge.py`; 재작성 = `find_front` 뒤 판정; 확인 = 41 §4.9-7, test = §4.9-6 | 선행 = EO-1 범위 4·oracle OP-3(+ OP-2). 판정 실행 OP-7·OP-5 뒤. 뒤따름 = LA-1(front 판정 배선의 코드 의존, O-126) |
 | XRUN-F1 card C | §2.4.14 (5) C 행 | 선행 = card B(병합됨)·IT-1 + IT-2(파일 겹침), 자리 = EO-1 범위 4 뒤·HC-S 앞(A-9). 뒤따름 = HC-1 |
