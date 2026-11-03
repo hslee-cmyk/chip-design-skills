@@ -951,3 +951,13 @@ v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, 
 - `gain-budget-gmid-sizing.41-gain-budget.design.md`: | T-J1 | O-h: 칸 없음·빈 목록·판정 제약 아님·`spice_unverifiable`·`engine_only`·레지스트리 밖 → 각 사유로 탐색 전 정지, 평가 호출 0. 판정 제약 + `spice_oracle` → 진행 |
 - `gain-budget-gmid-sizing.40-engine.design.md`: 소비자: 봉인 7·`metrics_aux._sat_devices`·J_point | 평가 |
 - `gain-budget-gmid-sizing.40-engine.design.md`: 새 파일 `E/sizing/region_judge.py`·`seal_region.py`,
+
+## H41-44 -- v1.16.6(독립 판정 V1~V3, 위임 A-49)가 바꾼 문언의 옛 원문
+
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: | 계획 범위 (4)(a)~(d), 완료 (8)(a)~(g) |
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: 축 끝 읽기는 LUT 공개 함수 하나를 더한다(값 사본 0).
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: vdb = vds + vsb, 순방향 크기 = max(0, −vsb, −vdb), 크기 > 0이면 그 점 전체 E-0
+- `gain-budget-gmid-sizing.41-gain-budget.design.md`: 레지스트리 밖 oracle 전용 항목(슬루)은 VB-1 전까지 `unverified`로 정지하고 VB-1이 `verified_by` 정의를 넓힐 때 함께 받는다.
+- `gain-budget-gmid-sizing.40-engine.design.md`: `region_mismatch.py`(구조 규칙 A, 위임 A-46)·`seal_region.py`,
+- `gain-budget-gmid-sizing.40-engine.design.md`: `E/metrics/ss_off_op.py`·`ss_off_delta.py`·`ss_off_gate.py`, `E/search/off_judged.py`; 재작성 = 쓰기 계획·
+- `gain-budget-gmid-sizing.42-gap-checklist.design.md`: | 52 vsb | -- | OK | `E/sizing/seal_bulk_reverse.py` |

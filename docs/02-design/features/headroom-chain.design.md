@@ -1,6 +1,6 @@
 ---
 template: design
-version: 0.1.1
+version: 0.1.2
 plan: ../../01-plan/features/headroom-chain.plan.md
 plan_version: 0.7.9.9
 ---
@@ -9,7 +9,7 @@ plan_version: 0.7.9.9
 
 > **Summary**: 승인 계획 `headroom-chain.plan.md`의 HC-S(포화 기준 단일화)와 HC-1(R-1′ + R-3 + 선언 triode)을 card로 내릴 수 있게 필드·함수·배선·시험·재작성 범위를 정한다. GC-8·GC-1은 `graph-consumption.design.md`, HC-O는 이 판 밖이다.
 >
-> **Status**: v0.1.1(§2·§3 card 후속, 위임 A-46, 독립 판정 전). v0.1 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.8, master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
+> **Status**: v0.1.2(§3.1·§3.4·§7.2·§9, 위임 A-49). v0.1.1(§2·§3 card 후속, 위임 A-46). v0.1 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = headroom-chain 0.7.9.9(상위 v6.38.10, 승인 판 v6.38.8 master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
 >
 > **결정 입력**: O-190·O-191(R-1′ 묶음, HC-1 + GC-8 통합 병합), O-202~O-212(전도·포화 경계·`off`), O-214·O-217·O-218(LA-1a), O-220·O-224(칸별 판정 유지), O-225(구현 우선).
 >
@@ -70,7 +70,7 @@ plan_version: 0.7.9.9
 ```
 sat_threshold(memo, kind, w_key, L, vgs, vds, vsb) -> SatBound(vdsat_v, tol_v, reason)
 sat_threshold_grid(memo, kind, w_key) -> VDSAT 열 배열 또는 None   # edge_costs·곡선용, 같은 열 읽기 한 자리
-derived(memo, "vds_floor", kind, w_key) -> float                    # 옛 _vds_floor 이동, DERIVED_FUNCTIONS 항목(HC:515, 위임 A-46)
+derived(memo, "vds_floor", kind, w_key) -> float                    # 옛 _vds_floor 이동, DERIVED_FUNCTIONS·DERIVED_TABLES 항목(HC:515, 위임 A-46·A-49)
 ```
 
 - **VDSAT 열 읽기는 `column_source` 한 자리다**(두 입구가 같은 출처를 읽는다, 위임 A-46). 점 입구는 L bin을 지키는 보간(`vdsat`, lut CONTRACT 4.0), 격자 입구는 같은 열 원소다. 시험: 격자점에서 두 입구 값이 같다.
@@ -95,7 +95,7 @@ DC 블록이 `dc_op`를 쓰는 같은 평가에서 `sat_threshold`의 정의되�
 | `metrics_aux._sat_devices` | `dc_sat_v` READS, 직접 조회 삭제 | `sat_v` None | `sat_v` None | `sat_v` None | `sat_tol_v` None |
 | 커널 창 행 `saturation_rows`(WB-1 범위 3a가 지우기 전까지, 시도 전압) | `sat_threshold` 호출로 교체, 여유 = VDS − VDsat. 행 집합 그대로. HC:580의 `saturation_rows` 호출 문장은 이 행으로 읽는다 | None(창 안 좁힘, base와 같음) | None | None | 영향 없음 |
 | `icm_config`의 봉인점 `region_rows` 행 | **`device.dc_sat_v` READS**(HC-S가 배선 -- 같은 소자·같은 점 둘째 생산자 금지), 여유 = VDS − VDsat. 행 집합 그대로 | None(창 안 좁힘, base와 같음) | None | None | 영향 없음 |
-| 관문 `off_region_gate`(41 §4.8-7, 위임 A-46 -- 같은 소자·같은 점 둘째 생산자 금지) | 기준 VDSAT·vdsat(X) = `device.dc_sat_v.vdsat_v` READS. 보정점 vdsat(X + ΔX) = `sat_threshold(...).vdsat_v`(`lut_domain` → `OUT_OF_DOMAIN`). ΔX = 0이면 조회 0 | 해당 없음(봉인 통과 점) | 해당 없음(봉인 미정이면 ss에 안 옴) | `OUT_OF_DOMAIN` → `off_gate` 거부 | 영향 없음 |
+| 관문 `off_region_gate`(41 §4.8-7, 위임 A-46 -- 같은 소자·같은 점 둘째 생산자 금지) | 기준 VDSAT·vdsat(X) = `device.dc_sat_v.vdsat_v` READS. 보정점 vdsat(X + ΔX) = `sat_threshold(...).vdsat_v`(`lut_domain` → `OUT_OF_DOMAIN`). ΔX = 0이면 조회 0 | `triode`만 도달: `OUT_OF_DOMAIN`, 조회 0(41 §4.8-7, 위임 A-49) | 해당 없음(봉인 미정이면 ss에 안 옴) | `OUT_OF_DOMAIN` → `off_gate` 거부 | 영향 없음 |
 | `iv_domain`·`iv_headroom._lower_bound` | `tol_vdsat` 호출 삭제. VDsat은 곡선 묶음의 VDSAT 곡선 -- 곡선 생성이 `sat_threshold_grid`를 읽게 배선 | 해당 없음(곡선 VDS ≥ 0) | 그 경계 비활성, `inactive` 기록(대체값 없음, U-H15 원리) | 그 곡선 점 제외 | 해당 없음 |
 | `edge_costs` | `_tol_vdsat_grid` 삭제. 포화 술어 = `vds ≥ sat_threshold_grid`. VDS 비용 = 포화 가능 격자점의 VDSAT 최솟값(따로 잡은 tol 최솟값 합 삭제) | -- | VDSAT 열 없음 = 포화 거르기 없음(문턱 하한 0, DEC-67 상한 예외, HC:331) | 그 격자점은 on_mask가 이미 뺌 | 해당 없음 |
 | `block_columns` VDS 정의역 | `_vds_floor` 삭제, `vds_floor` 호출 | -- | -- | -- | -- |
@@ -250,7 +250,7 @@ j_point(chain, point_view) -> ChainVerdict(state, rows, reason)      # state ∈
 ### 7.2 판정 함수와 봉인(G-6, G-7, G-13)
 
 ```
-stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, l_at_max, vgs_at_max)   # E/lut/sat_threshold.py
+stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, l_at_max, vgs_at_max)   # E/lut/stack_unsat.py(구조 규칙 A, test tests/lut/test_stack_unsat.py, 위임 A-49)
 ```
 
 - max_{L, VGS(X) ∈ LUT 정의역} [VGS(X) − VDsat(X; VDS = VGS(X) − VGS(Y), VSB(X))] < VGS(Y). VDsat은 `sat_threshold_grid`에서 읽고 VDS가 음수인 점은 포화 불가로 센다.
@@ -294,7 +294,7 @@ stack_unsat(memo, kind, w_key, vgs_y, vsb_x) -> StackJudge(holds, lhs_max, rhs, 
 | `E/search/search_domain.py`, `current_symmetry.py`(옮김), `search_values.py` | 필드 읽기, 단좌표 자르기, `chain_cuts` |
 | `E/search/iv_headroom.py`, `s0_fields.py` | 정본 읽기, `_edge_nets` 삭제, 권한표 |
 | `E/sizing/seal_region.py`(EO-1 뒤), `seal_triode.py`(새) | 사유 세분, 게이트·영역 기록 |
-| `E/lut/sat_threshold.py` | `stack_unsat` 추가 |
+| `E/lut/stack_unsat.py` | 신규: `stack_unsat`·`StackJudge`(구조 규칙 A, 위임 A-49) |
 | `E/search/CONTRACT.md:866-870` | 열린 항목 닫기 |
 
 - **선행**: TB-1, HC-S, IT-1, card C, GC-D design 승인, GC-1. **뒤따름**: GC-8 커밋(같은 통합 병합), LA-1a·LA-1.
