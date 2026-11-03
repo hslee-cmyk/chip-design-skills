@@ -394,7 +394,8 @@ def test_declared_input_dc_same_theta_seals(tmp_path, r4_access):
     assert ev.sealed is not None and node_voltages(ev.snapshot)["in"] == 0.67
     # [IT-2b 갱신 -- 승인된 동작 변경 design 41 4.7-3 3·4.7-8 (1): 입력 DC 선언 포트도 창 항목을 갖는다] 옛 단언 `"in" not in dc_window`
     # ('선언 입력 DC 는 창 사상이 없다')을 새 계약으로 바꾼다: 항목이 있고 측정된 창(input_status "measured", lo ≤ 0.67 ≤ hi)이다.
-    w = dict(ev.snapshot.column("node", "dc_window"))["in"]
+    # [IT-2d O-109] expectation = window exists; per IT-2c the input-port window lives in node.dc_window_cfg (the kernel dc_window has no input item)
+    w = dict(ev.snapshot.column("node", "dc_window_cfg"))["in"]
     assert w.input_status == "measured" and w.lo <= 0.67 <= w.hi
 
 
