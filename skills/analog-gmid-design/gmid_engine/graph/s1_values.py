@@ -122,7 +122,6 @@ BRANCH_DC_SELF_LOOP = "dc_self_loop"
 BRANCH_DC_ISOLATED_LOOP = "dc_isolated_loop"
 BRANCH_COLUMN_BUDGET = "column_enumeration_over_budget"
 BRANCH_MOS_KIND = "mos_kind_unsupported"
-BRANCH_GVGS_SELF_EDGE = "gvgs_self_edge"
 BRANCH_DS_SELF_SWAP = "ds_self_swap_zero_current"     # 자기동형이 전도 MOS 하나를 자기 자신으로 보내며 d/s 를 맞바꿈 -> 구조적 0 전류(40 §6-8)
 
 # ---- 필드 (kind, field) 와 writer
@@ -393,7 +392,8 @@ class MatchingDisposition:
 @dataclasses.dataclass(frozen=True)
 class GvgsSummary:
     """G_vgs(DEC-64) 요약. `cyclomatic` = 단순 그래프 순환수, `v2_port0`·`v2_port1`·`v1` = 순환수 분해,
-    `fixed_vgs` = gate·source 가 둘 다 레일인 MOS, `port_diff` = v1 사이클(RelEdge), `vds_saturation` = VDS-1 사이클(RelEdge)."""
+    `fixed_vgs` = gate·source 가 둘 다 레일인 MOS, `port_diff` = v1 사이클(RelEdge), `vds_saturation` = VDS-1 사이클(RelEdge),
+    `gate_source_same` = gate 넷 == source 넷인 MOS 이름 전부(레일이든 아니든, 이름 정렬 -- O-210 RR-6; 레일 g = s 는 `fixed_vgs` 에도 든다)."""
 
     cyclomatic: int
     v2_port0: int
@@ -402,3 +402,4 @@ class GvgsSummary:
     fixed_vgs: tuple
     port_diff: tuple
     vds_saturation: tuple
+    gate_source_same: tuple

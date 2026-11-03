@@ -37,7 +37,7 @@ from collections import deque
 from gmid_engine.authoring import (INPUT_DIRECTION, OUTPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_N,
                                    ROLE_DIFFERENTIAL_INPUT_P)
 from gmid_engine.core import StructureUnresolvedError, compute_block
-from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, MOS_TERMINAL_NAMES, UNSUPPORTED_RULE_BRANCH
+from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, MOS_TERMINAL_NAMES, UNSUPPORTED_RULE_BRANCH
 
 from .s2_values import (
     BRANCH_INPUT_CM_UNDEFINED,
@@ -77,7 +77,7 @@ from .s2_values import (
 READS = (
     ("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
     ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_colour"), ("device", "dc_colour"),
-    ("device", "bulk"),
+    ("device", "bulk"), ("graph", "gvgs_summary"),
 )
 WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"),
           ("node", "dc_output_structure"))
@@ -182,6 +182,7 @@ def dc_writer_plan(projection):
     free_inputs = tuple(sorted((net for net in inputs if net not in fixed), key=node_key))
     point = _input_point(free_inputs, dict(projection.column("node", "port_role")))     # (p 포트, n 포트) 또는 None
     twin = {} if point is None else {point[0]: point[1], point[1]: point[0]}
+    same_gs = frozenset(projection.value("graph", GRAPH_KEY, "gvgs_summary").gate_source_same)   # g = s 판정 정본 = s1_gvgs (O-210 RR-6)
     parent = {}
     tree = []
     coords = {}
@@ -214,7 +215,7 @@ def dc_writer_plan(projection):
             continue
         gate, source = value
         pair = (kinds[name], canon(gate, point), canon(source, point))
-        if gate in fixed and source in fixed:
+        if name in same_gs or (gate in fixed and source in fixed):        # g = s 소자: VGS = 0 으로 고정(좌표 ln_idu 성분 없음)
             coords[name] = DeviceCoord(COORD_DEPENDENT, DEP_FIXED)
         elif pair in pairs:
             coords[name] = DeviceCoord(COORD_DEPENDENT, DEP_PARALLEL, pairs[pair])
