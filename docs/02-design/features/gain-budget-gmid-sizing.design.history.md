@@ -901,3 +901,18 @@ v1.4(2026-10-08, 사용자 결정 Q3·Q4): 설계 항목 13행 추가(D-MM1·2, 
 - D42:368 | D-NM1 | (v1.16.0 -- 사용자 결정 O-189) 이름 tie-break 여덟 자리의 마지막 키 = DEC-97 정준 위치: DEC-70·DEC-97 (2) 열 키(40 §6-3), DEC-71 (6) front 타이(41 §5.4), N3 루프 뷰 사이클 시작점(41 §1.8), DEC-17 L 주인(41 §1.12.5 `l_owner_position_order`), DEC-95 (3) 고리 밖(40 §3.7-4 (b)), 일곱째 R-1′ 변 순서(HC-D design), 여덟째 W4 뿌리(41 §4.7 -- 정의상 공허) | 40 §3.7-4·§6-3, 41 §1.8·§1.12.5·§4.7·§5.4 | MISS | as-built 이름 키(`writer_plan.py`·`current_basis.py:8`·`l_classes.py`·`block_columns.py:189`). 착수 실측 M-NM1 남은 실측(DEC-17·루프 물리 키 -- 6a design 착수 조건) |
 - D42:320 | D-LA1a | (card LA-1a, 계획 N6.39) 근 찾기 핵심 함수 `solve_l_in_bin`, `graph/ach: block_models`(B5), 출발점 조립 `assemble_start_theta`(θ 스키마 일반 읽기), 옛 출발 휴리스틱·`_repair`·`_repairable` 삭제, 출발 결과 (a)~(d)·R-a, `graph/start: loop_conflicts`, ngcc structure.json data 커밋 | 41 §6.9 | MISS | `rg "solve_l_in_bin\|assemble_start_theta\|loop_conflicts"` 0. 착수 = 계획 공백 PG-1~PG-4 닫힘 |
 - D42:320 | D-LA1a | (card LA-1a, 계획 N6.39) 근 찾기 핵심 함수 `solve_l_in_bin`, `graph/ach: block_models`(B5), 출발점 조립 `assemble_start_theta`(θ 스키마 일반 읽기), 옛 출발 휴리스틱·`_repair`·`_repairable` 삭제, 출발 결과 (a)~(d)·R-a, ngcc structure.json data 커밋 | 41 §6.9 | MISS | `rg "solve_l_in_bin\|assemble_start_theta\|loop_conflicts"` 0. 착수 = 계획 공백 PG-1~PG-4 닫힘 |
+
+## H41-41 -- 41 §4.9-5 옛 권고 문단(v1.16.3이 채택 사실로 대체)
+
+**4.9-5 권고(오케스트레이터 기록용, O-226)** -- 사용자 질문이 아니다. EO-1 생산자 코드는 어느 쪽이든 같아서 두 항목 모두 **착수를 막지 않는다**.
+
+**R1. OP-3 판 합격 판정(oracle design v0.4.0 PG-1).** O-205로 `device.dc_off_current`가 지워지면 생산자는 `off_current_A`를 낼 수 없고, OP-3 판 oracle은 전도 예측 소자마다 `INCOMPLETE`를 낸다. 그러면 OP-5 전 모든 SPICE 다리가 보류인데 OP-5는 공통 선행 15 card 밖이다.
+
+| 안 | 물리·원칙 | LA-1까지 | ⚠ |
+|---|---|---|---|
+| **(a) 판정 한 단계(부호·VDS ≥ VDSAT)와 `off_current_A` 칸 삭제를 OP-3으로 앞당김 -- 권고** | O-205·O-210 그대로, 옛 식 기간 0 | 시작점 다리가 EO-1부터 유효 | OP-3 범위 증가, oracle·gain-budget 계획 개정. OP-1b 기준선과 비교할 칸이 동작 변경으로 바뀜 -- 변화표 필요 |
+| (b) 그대로: `INCOMPLETE`, 다리 보류 | fail-closed | OP-5 전 SPICE 다리 0, LA-1 앞 card가 전부 미완료 병합 | 보류 다리 병합 승인이 card마다 쌓임 |
+| (c) 필드 삭제를 OP-5 뒤로 | ⚠ O-200 위반 기간 유지 | 옛 식으로 판정 | ⚠ 옛 ε 식을 다시 재작성하고 다시 지움 |
+| (d) 생산자가 LUT VGS = 0으로 문턱 계산 | ⚠ 지운 정의의 둘째 생산자 | 옛 식으로 판정 | ⚠ 범위 (1) '직렬화만'·graph 규칙 위반 |
+
+**R2. 실행 선언 `run_decl`의 자리.** `testbench`(필수 칸)·`simulator`·`descriptor`는 봉인 스냅샷·spec·LUT 어디에도 없어 N6.20 '입력 출처'가 덮지 못한다. 지금 값은 `tools/spice_oracle/legacy_testbench.json`에 있고 그 파일은 LT-1이 지운다. **권고**: 회로 무관 실행 선언 파일 하나(oracle 도구 곁, 경로·sha256을 `provenance`에 기록)로 옮기고, 벤치 구성값의 근거 주석을 함께 옮기며, `find_front` 호출자가 경로를 넘긴다. 값은 판정 기준이 아니라 벤치 구성이다. 대안: spec 칸 ⚠ 회로마다 같은 값이 13벌, 생산자 상수 ⚠ 원칙 11. 계획 N6.20 '입력 출처'에 한 줄이 필요하다.

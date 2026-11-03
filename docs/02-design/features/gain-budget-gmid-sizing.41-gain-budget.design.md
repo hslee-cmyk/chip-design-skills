@@ -825,6 +825,8 @@ A_lb = Σ_k I_k,cert · L_min,k² / IDu_max,k + Σ_c C_c,min / ρ_MIM
 
 **4.8-1 범위 경계**
 
+**병합 둘**(위임 A-14): (i) 범위 4 + SF-1 로더 조각 -- 선행 IT-1 + IT-2(표 #13), 뒤따름 card C·HC-S(표 #7) (ii) 범위 1~3 -- 선행 (i)·OP-3(+ OP-2), 뒤따름 LA-1·DE-1. 판정 실행 = OP-5 뒤(+ OP-7 선언, A-8). 범위 4 test는 oracle 호출 0을 단언한다.
+
 | 포함 | 제외 |
 |---|---|
 | 계획 범위 (4)(a)~(d), 완료 (8)(a)~(g) | 범위 (1)~(3) 생산자·판정 배선 -- 계약은 oracle design §11.4, 엔진 쪽 절은 이 절 밖(4.8-10 P5) |
@@ -995,6 +997,8 @@ E-21 기준 폭 toy(P:2171 끝)는 생산자 경로라 4.9 T-P6이 받는다. G1
 
 **상태**: **초안 -- 독립 검증·design↔계획 gap 전**(2026-11-03, 브랜치 `design/eo1`). 계약 = oracle design §11.1·§11.4·§11.7(판 = `design/op0` v0.4.0, 미승인 -- 칸 이름이 바뀌면 이 절 표를 따라 고친다). 정의 = 계획 N6.20, DEC-98·T4-pre(40 §10.5). 엔진 파일 인용은 재작성 범위 표시뿐이다(원칙 8). 40 §11 U17 ②의 나눔: 이 절 = 생산자·시작점 판정, front 판정 배선 = LA-1(범위 (3), LA-Q5).
 
+**병합 둘**(위임 A-14): (i) 범위 4 + SF-1 로더 조각 -- 선행 IT-1 + IT-2(표 #13), 뒤따름 card C·HC-S(표 #7) (ii) 범위 1~3 -- 선행 (i)·OP-3(+ OP-2), 뒤따름 LA-1·DE-1. 판정 실행 = OP-5 뒤(+ OP-7 선언, A-8).
+
 **4.9-1 파일과 함수**
 
 ```python
@@ -1027,7 +1031,7 @@ def bridge_status(ref) -> str                                                   
 | `predictions.devices` | `dc_op`(ID·VGS·VDS·VSB·gm_id), `ss` 필드(gm·gds), `region` = `device.region_decl` 사상(없음 → `"sat"`, `triode`, `off`) | 봉인 통과 점이라 선언 = 실제. **`off_current_A`를 내지 않는다**(필드 삭제, R1). `tol` 없음 |
 | `predictions.metrics` | `graph/metrics` 값 + `verified_by(metric).measure` | 미측정 값은 칸 없음 |
 | `acceptance` | 판정 제약 ∩ `spice_oracle` → `constraints`, ∩ `spice_unverifiable` → `not_measurable` | 측정 불능을 조용히 빼지 않음(T5) |
-| `judge.sat_margin_V` | 0(O-204 판정 여유 없음 -- 값 발명 아니라 결정의 값) | `judge.off_current_A`·`tolerances` 없음 |
+| `judge.sat_margin_V` | OP-3 판 스키마 몫 0(O-204 판정 여유 없음 -- 값 발명 아니라 결정의 값). **OP-5 통합 병합에서 칸 삭제**(4.9-4) | `judge.off_current_A`·`tolerances` 없음 |
 | `noise`·`offset_mc`·`swing_icmr` | 해당 판정 제약이 있을 때만, `run_decl`의 실행 설정 | OP-3 판 `swing_icmr.input_dc_V`는 spec 입력 DC 참조 |
 | `topology` | 경로 + 파일 sha256 | `--require-topology`로 실행 |
 | `provenance` | 생산자 이름, `snapshot_fp` | 출력 전용 |
@@ -1037,25 +1041,19 @@ def bridge_status(ref) -> str                                                   
 - **대상 = 시작점**(N6.3 (iii)): 그 실행의 출발점 가운데 커널 평가가 봉인 통과인 점. 스냅샷은 S3 색인 참조로 읽고 재평가 0. 봉인 통과 점이 없으면 oracle을 부르지 않고 `no_sealed_start`를 기록한다.
 - **자리**: `find_front`가 탐색을 끝낸 뒤, 실행 기록을 쓰기 전. 탐색 궤적·front에 영향 0(front 판정은 범위 (3)이라 이 card에서 읽지 않음). 실행 설정은 `--bias free`, T4-pre 기하.
 - **`run_decl`이 없거나 기록 폴더(archive)가 없으면** 실행하지 않고 notes에 `oracle_undeclared`·`oracle_no_record_root`. 다리는 '보류'이고 통과로 세지 않는다.
+- **`run_decl` 파일과 호출자의 경로 전달은 OP-5 통합 병합의 엔진 커밋에서 처음 넣는다**(위임 A-23, A-8). 범위 1~3 병합에는 생산자·`judge_point`·`bridge_status`와 stub test만 있고 다리는 항상 `oracle_undeclared` 보류다. `threshold_eps1` 분기는 인자로 직접 준 경로에 대한 방어로 남긴다(보류, 통과로 세지 않음). 계획 N6.20 완료 (3)의 'OP-3 코어 판정' 문언은 'OP-5 판'으로 고칠 계획 표지(A-23).
 - **OP-7 거부**: 선언 호환 모드가 없으면 oracle이 실행을 거부한다(P:305 reader (ii)). 그 거부도 아래 거부 기록 경로로 온다. 별도 표 없음.
 - **점 레코드**(graph 규칙 4 -- 참조만): `starts[]` 행에 `oracle = OracleRef(record_id, compare_ref, input_sha256)` 또는 `oracle_reject = (reject_ref, code, stage)`. verdict·꺼짐 판은 기록 파일에 있고 `bridge_status`가 읽는다. 결과 객체(`EvalResult`·`SearchFront`)에 값 칸을 더하지 않는다.
 - **`bridge_status`**: `compare.json`의 `record_id`를 §11.7 식으로 대조(다르면 `record_mismatch`) 뒤 `summary.conduction_definition` 읽음. `channel_sign` = verdict 유효. `threshold_eps1` = '보류(채울 card = OP-5)'(N6.20, N6.3 (iv)). 그 밖 값 = 판정 불능. EO-1이 읽는 칸은 §11.7 목록 밖으로 나가지 않는다.
 - **2단계 없음**: `conduction.points[]` 재판정·`stage2_judgment`·재요청 자리 0(O-205 (2)·O-210 RR-2). 기록·대조용 읽기는 OP-5 통합 병합 몫이다.
 
-**4.9-4 뒤 card가 갱신하는 칸**(O-183 과도기 0 -- 그 card 같은 병합): OP-5·HC-O·OP-10 = G-18 확장 칸(`intended_region`, 훑기 등), WB-1 = `finger_w`·`n_fingers`·확산, SF-1 범위 3·8·9 = 출력 범위, `counted_rails`, DUT 저항 C_par/2, LA-1 = front 판정 호출(범위 (3)), DR-1 = KCL 항등 0 집합.
+**4.9-4 뒤 card가 갱신하는 칸**(O-183 과도기 0 -- 그 card 같은 병합): **OP-5 통합 병합 = `/kcl_zero_current_devices`(`graph.dc_current_basis` 빈 항 행 직렬화 -- DR-1 전에는 빈 배열), `/intended_region`, `/dc_sweep`(`input_dc` 포함) 생산, `judge.sat_margin_V`·`swing_icmr.input_dc_V`·`input_dc_pending` 삭제**, HC-O·OP-10 = G-18 나머지 확장 칸, WB-1 = `finger_w`·`n_fingers`·확산, SF-1 범위 3·8·9 = 출력 범위, `counted_rails`, DUT 저항 C_par/2, LA-1 = front 판정 호출(범위 (3)), DR-1 = 빈 항 행 생산 card(생산자 코드 변경 0). 귀결(표지): OP-5 뒤 DR-1 전에는 엔진 빈 집합이라 oracle과 `kcl_zero_set_mismatch`가 날 수 있으나, 그런 소자가 있는 점은 봉인 9 거부(N3.6 표 9행)라 oracle까지 오지 않는다.
 
-**4.9-5 권고(오케스트레이터 기록용, O-226)** -- 사용자 질문이 아니다. EO-1 생산자 코드는 어느 쪽이든 같아서 두 항목 모두 **착수를 막지 않는다**.
+**4.9-5 채택 사실**(위임, O-226 -- LA-1 측정 시점 재검토 대상; 안 비교 원문 = design 이력 H41-41)
 
-**R1. OP-3 판 합격 판정(oracle design v0.4.0 PG-1).** O-205로 `device.dc_off_current`가 지워지면 생산자는 `off_current_A`를 낼 수 없고, OP-3 판 oracle은 전도 예측 소자마다 `INCOMPLETE`를 낸다. 그러면 OP-5 전 모든 SPICE 다리가 보류인데 OP-5는 공통 선행 15 card 밖이다.
+**R1. OP-3 판 합격 판정 = (b) 채택(A-8).** `off_current_A` 칸이 없어 OP-5 전 판정을 실행하지 않고 다리는 보류다. 옛 식 판정 기록을 두지 않는다. 통과로 세지 않아 fail-open이 아니다.
 
-| 안 | 물리·원칙 | LA-1까지 | ⚠ |
-|---|---|---|---|
-| **(a) 판정 한 단계(부호·VDS ≥ VDSAT)와 `off_current_A` 칸 삭제를 OP-3으로 앞당김 -- 권고** | O-205·O-210 그대로, 옛 식 기간 0 | 시작점 다리가 EO-1부터 유효 | OP-3 범위 증가, oracle·gain-budget 계획 개정. OP-1b 기준선과 비교할 칸이 동작 변경으로 바뀜 -- 변화표 필요 |
-| (b) 그대로: `INCOMPLETE`, 다리 보류 | fail-closed | OP-5 전 SPICE 다리 0, LA-1 앞 card가 전부 미완료 병합 | 보류 다리 병합 승인이 card마다 쌓임 |
-| (c) 필드 삭제를 OP-5 뒤로 | ⚠ O-200 위반 기간 유지 | 옛 식으로 판정 | ⚠ 옛 ε 식을 다시 재작성하고 다시 지움 |
-| (d) 생산자가 LUT VGS = 0으로 문턱 계산 | ⚠ 지운 정의의 둘째 생산자 | 옛 식으로 판정 | ⚠ 범위 (1) '직렬화만'·graph 규칙 위반 |
-
-**R2. 실행 선언 `run_decl`의 자리.** `testbench`(필수 칸)·`simulator`·`descriptor`는 봉인 스냅샷·spec·LUT 어디에도 없어 N6.20 '입력 출처'가 덮지 못한다. 지금 값은 `tools/spice_oracle/legacy_testbench.json`에 있고 그 파일은 LT-1이 지운다. **권고**: 회로 무관 실행 선언 파일 하나(oracle 도구 곁, 경로·sha256을 `provenance`에 기록)로 옮기고, 벤치 구성값의 근거 주석을 함께 옮기며, `find_front` 호출자가 경로를 넘긴다. 값은 판정 기준이 아니라 벤치 구성이다. 대안: spec 칸 ⚠ 회로마다 같은 값이 13벌, 생산자 상수 ⚠ 원칙 11. 계획 N6.20 '입력 출처'에 한 줄이 필요하다.
+**R2. 실행 선언 `run_decl` 자리 = 채택(A-11), 시점 = OP-5 통합 병합(A-23).** 회로 무관 실행 선언 파일 하나(oracle 도구 곁, 경로·sha256을 `provenance`에 기록)이고 `find_front` 호출자가 경로를 넘긴다. 값은 판정 기준이 아니라 벤치 구성이다.
 
 **4.9-6 test 항목**(손 회로 2~4 소자, 회로 이름 0, 기대값 손작성)
 
@@ -1069,7 +1067,7 @@ def bridge_status(ref) -> str                                                   
 | T-P6 | 기준 폭 선언 없음 → `reference_width_undeclared`, 입력 파일 0(E-21) | 대체값 red |
 | T-P7 | `off`·`triode` 선언 toy: `region` 사상, off 소자 W·L = 선언 값 | -- |
 | T-P8 | `git grep`: 입력 스키마 키를 만드는 자리 = `oracle_input_of` 하나, 엔진 안 `tools/spice_oracle` import 0(완료 (6)) | -- |
-| T-B1 | stub oracle로 시작점 판정: 기록 생기고 `starts[]` 행에 참조, 탐색 결과 비트 불변(완료 (3)) + 실제 oracle 1회(OP-3 뒤) | 칸 없음 red |
+| T-B1 | stub oracle로 시작점 판정: 기록 생기고 `starts[]` 행에 참조, 탐색 결과 비트 불변(완료 (3)). 실제 oracle 1회는 OP-5 통합 병합 판정으로 옮김(범위 1~3 병합 = '미완료(보류 다리)', A-10) | 칸 없음 red |
 | T-B2 | 거부 입력 → `oracle_reject`, 반환 코드 2 처리. 봉인 통과 점 없음 → `no_sealed_start`, 호출 0 | -- |
 | T-B3 | `run_decl` 없음·archive 없음 → notes 사유, 호출 0, 다리 '보류' | -- |
 | T-B4 | `bridge_status`: `channel_sign` 유효, `threshold_eps1` 보류, 모르는 값 판정 불능, `record_id` 불일치 거부 | -- |
