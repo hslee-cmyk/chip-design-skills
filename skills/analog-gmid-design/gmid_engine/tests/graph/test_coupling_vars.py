@@ -496,3 +496,45 @@ def test_determinism_across_hashseed_and_repeat(lib):
     assert outs[0] == outs[1]
     here_fp = [x for n in names for x in (n, fp_of(C.coupling(*lib[n]).fields))]
     assert outs[0] == here_fp
+
+
+# ---------------------------------------------------------------- [IT-1 T-6b·T-6c] 파생 술어 필드 소비 (범위 6)
+import ast as _ast                                                                               # noqa: E402
+
+import gmid_engine as _gmid_engine                                                               # noqa: E402
+
+_IT1_DERIVED = ("diode_nodes", "composite_mos", "composite_bundles", "composite_internal")
+
+
+def test_it1_coupling_vars_reads_four_derived_fields():
+    """T-6b (독립): coupling_vars 의 READS 에 S1v 파생 술어 네 필드가 있다(net_model 을 다시 부르는 대신 필드를 읽는다)."""
+    for f in _IT1_DERIVED:
+        assert ("graph", f) in set(coupling_vars.reads), f
+
+
+def test_it1_net_model_has_single_call_site_in_s1v_fields():
+    """T-6b (독립, AST): tests/ 밖 엔진 소스에서 `net_model(` 호출 자리(정의 줄 제외) = graph/s1v_fields.py 하나뿐 -- 둘째 생산자 없음."""
+    root = Path(_gmid_engine.__file__).resolve().parent
+    sites = []
+    for p in sorted(root.rglob("*.py")):
+        rel = p.relative_to(root).as_posix()
+        if rel.startswith("tests/"):
+            continue
+        for n in _ast.walk(_ast.parse(p.read_text(encoding="utf-8"))):
+            if isinstance(n, _ast.Call):
+                f = n.func
+                name = f.id if isinstance(f, _ast.Name) else (f.attr if isinstance(f, _ast.Attribute) else None)
+                if name == "net_model":
+                    sites.append((rel, n.lineno))
+    assert [rel for rel, _ln in sites] == ["graph/s1v_fields.py"], sites
+
+
+def test_it1_coupling_vars_values_unchanged_miller(tmp_path):
+    """T-6c (손, 무동작): 기존 손 회로 MILLER 의 결합 변수 레코드가 파생 술어 필드 이전과 같다 -- 위 test_miller_k1_k2_across_stages 의 손 유도
+    리터럴(꼬리 M5 와 2단 전류원 M7 이 같은 (vb, gnd) gs 묶음 -> K1 dc·geom, K2 nets (vb, gnd))을 그대로 다시 단언한다."""
+    s1, s1v = H.build(tmp_path, H.MILLER)
+    assert recs(C.coupling(s1, s1v)) == sorted([
+        ("K1", ("M5", "M7"), "dc", "class_owner_value", ()),
+        ("K1", ("M5", "M7"), "geom", "class_owner_value", ()),
+        ("K2", ("M5", "M7"), "dc", "common_vgs_candidates", ("vb", "gnd")),
+    ], key=repr)

@@ -30,7 +30,7 @@ def sym_doc(name="hand_sym_canon", caps=True):
                 [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"),
                  mos("M5", "nmos", "t", "vb", "gnd"), mos("M3", "pmos", "o1", "pb", "vdd"),
                  mos("M4", "pmos", "o2", "pb", "vdd")],
-                {"inp": ("input", "differential_input"), "inn": ("input", "differential_input"),
+                {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"),          # [IT-1 DEC-106] 입력 점 규칙의 차동쌍 role
                  "o1": ("output", "differential_output"), "o2": ("output", "differential_output")},
                 passives=pas, bias=["pb", "vb"])
 

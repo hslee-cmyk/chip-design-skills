@@ -1103,7 +1103,7 @@ def test_it2b_k2_non_root_port_window_is_root_ends_moved_by_the_same_solution_se
 def _dp_doc():
     return topo("it2b_dp", [mos("M1", "nmos", "o1", "ina", "t", "gnd"), mos("M2", "nmos", "o2", "inb", "t", "gnd"),
                             mos("M5", "nmos", "t", "vb", "gnd")],
-                {"ina": ("input", "x"), "inb": ("input", "x"), "o1": ("output", "y")},
+                {"ina": ("input", "differential_input_p"), "inb": ("input", "differential_input_n"), "o1": ("output", "y")},   # [IT-1 DEC-106]
                 passives=[two("R1", "resistor", "vdd", "o1"), two("R2", "resistor", "vdd", "o2")], bias=["vb"])
 
 
@@ -1114,9 +1114,11 @@ DP_TD = r4_ln_idu("nmos", 0.5, 0.6, 0.4)                        # 쌍 소자 wri
 DP_T5 = r4_ln_idu("nmos", 0.6, 0.4, 0.0)
 
 
-def _dp_theta(ctx):
+def _dp_theta(ctx, y=None):
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M5"): 1e-6, ("ln_idu", "M5"): DP_T5,
           ("resistance", "R1"): DP_R, ("resistance", "R2"): DP_R}
+    if y is not None:                                                  # [IT-1] 입력 DC 미선언: 입력 점 뿌리의 y 성분
+        th.update({(k, key): y for k, key in kschema(ctx).components if k == "y"})
     th.update({("ln_idu", m): DP_TD for t, m in kschema(ctx).components if t == "ln_idu" and m != "M5"})
     th.update(free_currents(ctx, {"M1": DP_I, "M2": DP_I, "M5": 2 * DP_I, "R1": DP_I, "R2": DP_I}))
     assert set(th) == set(kschema(ctx).components)
@@ -1690,3 +1692,58 @@ def test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution(t
     assert w.tol_v is not None
     assert abs(w.tol_v - tol_last) <= 0.02 * tol_last, (w.tol_v, tol_last, tol_first)
     assert abs(w.tol_v - tol_first) > 0.1 * tol_last
+
+
+# ===========================================================================
+# [IT-1 T-1h] 입력 점의 열 -- `dc_columns`: 입력 DC 미선언 차동 toy 의 두 포트 node.dc_v 가 같고 node.dc_window 키에 n 포트가 없다
+# (card 20261104-it1-input-point, 설계 41 v1.16.3 §4.7-2). oracle: (손) 두 포트는 한 점이라 같은 전압; 뿌리 전압 = 창 하한 + y·(창 폭)(회로 C 손 test
+# `test_circuit_c_hand` 의 out = 0 + y·(1.8 − 0) 와 같은 규칙). `node.dc_window` 수치는 card WB-1 몫이라 단언하지 않는다(키와 포함 관계만).
+# ===========================================================================
+
+def test_it1_t1h_input_point_ports_share_voltage_and_window_key(tmp_path, r4_access):
+    """T-1h (손): `_dp_doc`(입력 DC 미선언, p ina · n inb) -- 두 포트가 한 입력 점이라 node.dc_v 가 같고, 뿌리 전압은 창 [lo, hi] 와 y = 0.5 로
+    lo + 0.5(hi - lo). 독립 풀이로 구한 꼬리 전압 t 는 입력이 그 전압일 때의 해(`_dp_t`). node.dc_window 키에 p 포트 ina 가 있고 n 포트 inb 는 없다."""
+    ctx = build_ctx(tmp_path, _dp_doc(), r4_access)[2]
+    nw = dict(ctx.base.column("node", "dc_writer"))
+    assert nw["ina"].relation == nw["inb"].relation == "input_point"                          # 전제
+    snap = run_blocks(ctx, _dp_theta(ctx, y=0.5), upto="columns")
+    V = node_voltages(snap)
+    win = _window_of(snap)
+    assert "ina" in win and "inb" not in win
+    assert abs(V["ina"] - V["inb"]) <= 1e-12
+    assert abs(V["ina"] - (win["ina"].lo + 0.5 * (win["ina"].hi - win["ina"].lo))) <= 1e-9
+    assert abs(V["t"] - _dp_t(V["ina"])) <= 1e-5
+
+
+def _it1_ftouch_doc():
+    """입력쌍 source 가 레일: M1(o1, inp, gnd)·M2(o2, inn, gnd) (p inp, n inn), 부하 M3(o1, pb3, vdd)·M4(o2, pb4, vdd). G_vgs: P-F 둘 -> 입력 점이 F 에 닿는다."""
+    return topo("it1_ftouch_cols",
+                [mos("M1", "nmos", "o1", "inp", "gnd"), mos("M2", "nmos", "o2", "inn", "gnd"),
+                 mos("M3", "pmos", "o1", "pb3", "vdd"), mos("M4", "pmos", "o2", "pb4", "vdd")],
+                {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"),
+                 "o1": ("output", "b"), "o2": ("output", "b")}, bias=["pb3", "pb4"])
+
+
+def test_it1_t1h_input_point_touching_f_ports_share_voltage(tmp_path, toy_access):
+    """T-1h (손): 입력쌍 source 가 레일인 toy -- y 성분 없음, 두 포트 전압이 같고 (구성) 트리 소자의 VGS 와 같다. 출력 o1·o2 는 y = 0.5 -> 창 [0, 1.8] 의
+    0.9 V, 트리 입력 소자의 좌표를 (VGS 0.6, VDS 0.9, VSB 0) 으로 잡았으므로 V(inp) = V(inn) = 0 + 0.6."""
+    ctx = build_ctx(tmp_path, _it1_ftouch_doc(), toy_access)[2]
+    assert not any(k == "y" and key in ("inp", "inn") for k, key in kschema(ctx).components)           # 전제: 입력 점 y 성분 0
+    ln_keys = {key for k, key in kschema(ctx).components if k == "ln_idu"}
+    assert len(ln_keys & {"M1", "M2"}) == 1                                                            # 전제: 입력쌍은 평행 하나 -> ln_idu 성분 하나
+    th = {}
+    for k, key in kschema(ctx).components:
+        if k == "L":
+            th[(k, key)] = 1e-6
+        elif k == "y":
+            th[(k, key)] = 0.5
+        elif k == "current":
+            th[(k, key)] = 1e-5
+        elif k == "ln_idu":
+            th[(k, key)] = (Oracle.ln_idu("nmos", 0.6, 0.9, 0.0) if key in ("M1", "M2") else Oracle.ln_idu("pmos", 0.7, 0.9, 0.0))
+        else:
+            raise AssertionError((k, key))
+    V = node_voltages(run_blocks(ctx, th, upto="columns"))
+    assert abs(V["o1"] - 0.9) <= 1e-9 and abs(V["o2"] - 0.9) <= 1e-9
+    assert abs(V["inp"] - V["inn"]) <= 1e-12
+    assert abs(V["inp"] - 0.6) <= 1e-9

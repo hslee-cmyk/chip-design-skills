@@ -120,7 +120,7 @@ def test_fixed_values_w3_and_input_dc(tmp_path, toy_access):
                [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "out", "inn", "t"),
                 mos("M3", "pmos", "o1", "o1", "vdd"), mos("M4", "pmos", "out", "o1", "vdd"),
                 mos("M5", "nmos", "t", "vb", "gnd")],
-               {"inp": ("input", "a"), "inn": ("input", "b"), "out": ("output", "c")},
+               {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"), "out": ("output", "c")},   # [IT-1 DEC-106] role 만
                bias=["vb"])                                                                  # vb: M5 gate 에만(o1 은 M3 drain)
     # input_dc 만
     _, _, ctx = build_ctx(tmp_path, doc, toy_access, input_dc_v=0.9)

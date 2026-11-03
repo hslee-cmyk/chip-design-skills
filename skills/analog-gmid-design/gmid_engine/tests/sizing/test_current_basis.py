@@ -242,7 +242,8 @@ def test_symmetric_pair_basis_matches_oracle(tmp_path, toy_access):
                [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"),
                 mos("M5", "nmos", "t", "vb", "gnd"), mos("M3", "pmos", "o1", "pb", "vdd"),
                 mos("M4", "pmos", "o2", "pb", "vdd")],
-               {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")},
+               {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"),          # [IT-1 DEC-106] role 만 바꿨다(단언 불변)
+                "o1": ("output", "b"), "o2": ("output", "b")},
                bias=["pb", "vb"])                                                            # vb: M5 gate, pb: M3·M4 gate
     _, _, ctx = build_ctx(tmp_path, doc, toy_access)
     _, ecol = wl_colours(ctx.base)

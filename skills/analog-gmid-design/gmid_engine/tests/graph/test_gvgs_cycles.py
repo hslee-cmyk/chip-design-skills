@@ -175,25 +175,43 @@ def test_parallel_vgs_edges_counted_once(gh, tmp_path):
     assert s.cyclomatic == base == gh.oracle(raw).cyclomatic
 
 
-def test_gate_equals_source_stops(gh, tmp_path):
-    # 7.6: gate == source(비레일 tail 넷) MOS 추가 -> gvgs_self_edge
+def _same_summary(gh, tmp_path, net, name):
+    """two_stage_ota 에 gate 넷 == source 넷 MOS 하나(drain OUT)를 더한 변형의 (summary, oracle, 기준 oracle, raw)."""
     raw = gh.raw("two_stage_ota")
-    tail = next(e["source"] for e in raw["netlist"] if e["source"] not in raw["supply_nets"])
-    raw["netlist"].append({"name": "Mgs", "kind": "nmos", "drain": "OUT", "gate": tail, "source": tail})
-    o_err = pytest.raises(gh.StopExpected, gh.oracle, raw).value
+    base = gh.oracle(raw)
+    raw["netlist"].append({"name": name, "kind": "nmos", "drain": "OUT", "gate": net, "source": net})
+    o = gh.oracle(raw)                                       # 독립 oracle: 정지하지 않고 gate_source_same 에 적는다
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    d, devices = gh.stop(lambda: _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
-    assert d["rule_branch"] == o_err.branch == "gvgs_self_edge"
-    assert devices == ("Mgs",)
-    assert d["nets"] == (tail,)
+    return _summary(gh, _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0})), o, base, raw
 
 
-def test_gate_equals_source_on_rail_is_fixed_not_stop(gh, tmp_path):
-    raw = gh.raw("two_stage_ota")
-    raw["netlist"].append({"name": "Moff", "kind": "nmos", "drain": "OUT", "gate": "gnd", "source": "gnd"})
-    raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
-    s = _summary(gh, _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
+def test_it1_gate_equals_source_nonrail_recorded_not_stop(gh, tmp_path):
+    """T-5a (손, O-210 RR-6): 비레일 gate == source 넷 -> 정지 없음, gate_source_same = (그 소자,), fixed_vgs(옛 뜻: 둘 다 레일)에는 없음,
+    자기 고리라 G_vgs 엣지가 아니어서 순환수 불변."""
+    raw0 = gh.raw("two_stage_ota")
+    tail = next(e["source"] for e in raw0["netlist"] if e["source"] not in raw0["supply_nets"])      # 비레일 넷(구성으로 고름)
+    assert tail not in raw0["supply_nets"]                                                            # 전제
+    s, o, base, _raw = _same_summary(gh, tmp_path, tail, "Mgs")
+    assert tuple(s.gate_source_same) == ("Mgs",) == o.gate_source_same
+    assert "Mgs" not in s.fixed_vgs
+    assert s.cyclomatic == base.cyclomatic == o.cyclomatic
+
+
+def test_it1_gate_equals_source_rail_in_both_fields(gh, tmp_path):
+    """T-5a (손): 레일 gate == source 넷 -> 비레일과 같은 처리(정지 없음) + 옛 뜻 fixed_vgs 에도 든다(두 칸 모두)."""
+    s, o, base, _raw = _same_summary(gh, tmp_path, "gnd", "Moff")
+    assert tuple(s.gate_source_same) == ("Moff",) == o.gate_source_same
     assert "Moff" in s.fixed_vgs
+    assert s.cyclomatic == base.cyclomatic
+
+
+def test_it1_gate_source_same_matches_oracle_on_nine(gh):
+    """T-5a (손): 아홉 회로에서 칸 = oracle 이 netlist 에서 직접 센 값(이름 정렬 tuple)."""
+    for name in NINE:
+        o = gh.oracle(gh.raw(name))
+        s = _summary(gh, _s1(gh, name))
+        assert isinstance(s.gate_source_same, tuple)
+        assert tuple(s.gate_source_same) == tuple(sorted(s.gate_source_same)) == o.gate_source_same
 
 
 def test_block_declaration():

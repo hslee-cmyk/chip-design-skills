@@ -460,7 +460,7 @@ def test_context_without_area_constraint_has_no_budget(tmp_path, lut_sealed):
 #     "다른 모듈은 U2 결과를 그대로 소비한다" -> 필드가 graph 레코드 key `s1`(GRAPH_KEY)에 있고, 소비자 search_domain 은 정준형·궤도·전류
 #     대칭을 다시 계산하지 않는다(관찰: 그 이름의 함수 호출 수 = 0).
 
-_P_PORTS = {"ip": ("input", "differential_input"), "im": ("input", "differential_input"),
+_P_PORTS = {"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),          # [IT-1 DEC-106]
             "op": ("output", "differential_output"), "om": ("output", "differential_output")}
 _P_R = (("R1", "resistor", 1e5), ("R2", "resistor", 1e5))
 
@@ -555,7 +555,7 @@ def test_search_domain_does_not_recompute_symmetry(tmp_path, lut_sealed, monkeyp
 # 같은 궤도 안 불일치는 기존 test_bounds_differ_rejected(test_orbit_ties.py)가 tied_orbit_bounds_differ 로 본다.
 # (design 이 적은 toy 'U11 pass_device 변형'(통과 MOS Mx 포함)은 §6-8 자기 맞바꿈 정지에 먼저 걸려 search_domain 에 닿지 않는다 -- 결함 후보로 보고.)
 
-_X_PORTS = {"ip": ("input", "differential_input"), "im": ("input", "differential_input"),
+_X_PORTS = {"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),          # [IT-1 DEC-106]
             "op": ("output", "differential_output"), "om": ("output", "differential_output")}
 _ALL4 = {"M1", "M2", "M3", "M4"}
 

@@ -16,7 +16,6 @@ from gmid_engine.graph import (
     BRANCH_COLUMN_BUDGET,
     BRANCH_DC_ISOLATED_LOOP,
     BRANCH_DC_SELF_LOOP,
-    BRANCH_GVGS_SELF_EDGE,
     BRANCH_MOS_KIND,
     BRANCH_MULTI_DOMAIN,
     BRANCH_POTENTIAL_TIE,
@@ -139,7 +138,8 @@ def test_u2_u4_vocabulary_matches_contract():
     assert (DOMAIN_DC, DOMAIN_DC_TO_SS, DOMAIN_GEOM) == ("dc", "dc_to_ss", "geom")
     assert (BRANCH_DC_SELF_LOOP, BRANCH_DC_ISOLATED_LOOP) == ("dc_self_loop", "dc_isolated_loop")
     assert BRANCH_COLUMN_BUDGET == "column_enumeration_over_budget"
-    assert BRANCH_GVGS_SELF_EDGE == "gvgs_self_edge"
+    import gmid_engine.graph.s1_values as _s1v
+    assert not hasattr(_s1v, "BRANCH_GVGS_SELF_EDGE")             # [IT-1 O-210 RR-6] 정지 분기 삭제
     assert BRANCH_MOS_KIND == "mos_kind_unsupported"
     assert COLUMN_RULE == "rail_pair_simple_path"
     assert (CYCLE_V2_RAIL, CYCLE_V2_ZERO) == ("v2_rail", "v2_zero")
@@ -209,12 +209,18 @@ def test_writer_table_is_exactly_contract_fields():
     (GsGroup, ["kind", "gate", "source", "members"]),
     (DcRole, ["role", "status", "evidence"]),
     (RelEdge, ["type", "domain", "members", "status", "evidence"]),
-    (GvgsSummary, ["cyclomatic", "v2_port0", "v2_port1", "v1", "fixed_vgs", "port_diff", "vds_saturation"]),
 ])
 def test_value_types_are_frozen_dataclasses(cls, fields):
     assert dataclasses.is_dataclass(cls)
     assert [f.name for f in dataclasses.fields(cls)] == fields
     assert cls.__dataclass_params__.frozen
+
+
+def test_it1_gvgs_summary_fields():
+    """[IT-1 O-210 RR-6] (독립) 칸 집합 = 옛 일곱 칸 + gate_source_same (칸 순서는 단언하지 않는다), frozen."""
+    assert dataclasses.is_dataclass(GvgsSummary) and GvgsSummary.__dataclass_params__.frozen
+    assert {f.name for f in dataclasses.fields(GvgsSummary)} == {
+        "cyclomatic", "v2_port0", "v2_port1", "v1", "fixed_vgs", "port_diff", "vds_saturation", "gate_source_same"}
 
 
 def test_evidence_defaults_and_immutability():

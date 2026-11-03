@@ -15,6 +15,9 @@ import pytest
 import s1v_hand as H
 
 D1_FIELDS = ("views", "l_classes", "findings", "declared", "applied_facts")
+# [IT-1 범위 6] net_model 파생 술어 네 필드가 S1v 필드로 늘었다(설계 40 §2.4.8 S1v 행) -- 권한표 행 아홉
+IT1_FIELDS = ("diode_nodes", "composite_mos", "composite_bundles", "composite_internal")
+ALL_FIELDS = D1_FIELDS + IT1_FIELDS
 
 
 def _run(s1, *, declared=(), cuts=(), budget=H.BIG_BUDGET, run=None):
@@ -25,14 +28,14 @@ def _run(s1, *, declared=(), cuts=(), budget=H.BIG_BUDGET, run=None):
 
 def test_block_name_and_writes_are_design_fields():
     assert s1v_fields.name == "build_s1v"
-    assert set(s1v_fields.writes) == {("graph", f) for f in D1_FIELDS}
+    assert set(s1v_fields.writes) == {("graph", f) for f in ALL_FIELDS}
 
 
 def test_writes_exactly_d1_fields_no_copies(tmp_path):
     s1, _ = H.build(tmp_path, H.MILLER)
     snap = _run(s1)
     fields = {name for name, _fv in snap.record("graph", "s1v").fields}
-    assert fields == set(D1_FIELDS)
+    assert fields == set(ALL_FIELDS)
     assert not fields & {"blocks", "composite_blocks", "pole_nodes", "loops", "cuts", "coverage"}
 
 
@@ -77,3 +80,64 @@ def test_same_input_reuses_and_changed_extra_recomputes(tmp_path):
     other = s1v_fields(first, (), H.BIG_BUDGET + 1, (), (), (), (), **run)
     assert row()[2] == 1
     assert other.block_version("build_s1v") != first.block_version("build_s1v")
+
+
+# ---------------------------------------------------------------- [IT-1 T-6a] 파생 술어 네 필드
+# oracle (독립): 권한표 행 = 위 이름, 값은 이름 없는 손 회로에서 손으로 걷은 결과(jrules_hand 머리 주석의 걷기 표). 값의 모양(집합·tuple)은
+# 단언하지 않고 안에 든 이름(원자)만 본다. 필드 값을 만든 피검 함수(net_model)는 부르지 않는다.
+import gmid_engine.graph as _G                                                                  # noqa: E402
+import jrules_hand as J                                                                         # noqa: E402
+
+
+def _atoms(v):
+    """값 안의 문자열 원자 전부(tuple·list·set·frozenset·dict·dataclass 를 재귀로 푼다)."""
+    import dataclasses
+    if isinstance(v, str):
+        return {v}
+    if dataclasses.is_dataclass(v) and not isinstance(v, type):
+        return set().union(set(), *[_atoms(getattr(v, f.name)) for f in dataclasses.fields(v)])
+    if isinstance(v, dict):
+        return set().union(set(), *[_atoms(k) | _atoms(x) for k, x in v.items()])
+    if isinstance(v, (tuple, list, set, frozenset)):
+        return set().union(set(), *[_atoms(x) for x in v])
+    return set()
+
+
+def test_it1_s1v_write_rows_include_four_derived_fields():
+    """T-6a: S1V_WRITES 에 네 행이 늘고 옛 다섯 행은 그대로다."""
+    rows = set(_G.S1V_WRITES)
+    for f in ALL_FIELDS:
+        assert ("graph", f) in rows, f
+
+
+def test_it1_derived_fields_in_record(tmp_path):
+    """T-6a: 손 회로 하나를 만들면 s1v 기록에 네 필드가 모두 있다."""
+    s1, _ = H.build(tmp_path, H.CS)
+    snap = _run(s1)
+    assert {name for name, _fv in snap.record("graph", "s1v").fields} >= set(IT1_FIELDS)
+
+
+def test_it1_derived_fields_empty_without_diode_or_composite(tmp_path):
+    """T-6a (손): CS(M1 nmos out,in,gnd + M2 pmos out,vb,vdd) -- gate = drain 인 MOS 도 복합 diode 걷기도 없다 -> 네 필드 값에 원자 0."""
+    s1, _ = H.build(tmp_path, H.CS)
+    snap = _run(s1)
+    for f in IT1_FIELDS:
+        assert _atoms(snap.value("graph", "s1v", f)) == set(), f
+
+
+def test_it1_diode_nodes_hand_value(tmp_path):
+    """T-6a (손): CSDIODE 의 M2 pmos (drain out, gate out, source vdd) 는 gate = drain 인 단순 diode -- diode 넷 out 이 값에 든다.
+    M1 의 gate 넷 in 은 diode 가 아니다."""
+    s1, _ = H.build(tmp_path, H.CSDIODE)
+    atoms = _atoms(_run(s1).value("graph", "s1v", "diode_nodes"))
+    assert "out" in atoms and "in" not in atoms
+
+
+def test_it1_composite_fields_hand_value(tmp_path):
+    """T-6a (손): RSELF 손 걷기(jrules_hand 머리 주석) -- Ma -> {Mb}, Mb -> {Rx} 로 한 묶음 {Ma, Mb, Rx}. 복합 MOS 에 Ma·Mb 가 들고
+    Mc·Md·Mi 는 들지 않으며 묶음에 Ma·Mb·Rx 가 든다."""
+    s1, _ = H.build(tmp_path, J.RSELF)
+    snap = _run(s1)
+    mos_atoms = _atoms(snap.value("graph", "s1v", "composite_mos"))
+    assert {"Ma", "Mb"} <= mos_atoms and not mos_atoms & {"Mc", "Md", "Mi"}
+    assert {"Ma", "Mb", "Rx"} <= _atoms(snap.value("graph", "s1v", "composite_bundles"))

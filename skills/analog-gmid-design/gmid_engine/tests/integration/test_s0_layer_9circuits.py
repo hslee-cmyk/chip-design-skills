@@ -58,7 +58,8 @@ CAP_SUFFIX = (("nmos", "_n"), ("pmos", "_p"))
 
 # 설계 40 v1.9 §2.4.8 S0 행 + 기본안 D1·D2·D3·D7·D8 -- (record key, 필드들, design 이 적은 writer 이름 또는 None(이름 미정)).
 GRAPH_ROWS = (
-    ("s1v", ("views", "l_classes", "findings", "declared", "applied_facts"), "build_s1v"),            # D1
+    ("s1v", ("views", "l_classes", "findings", "declared", "applied_facts", "diode_nodes", "composite_mos", "composite_bundles",
+             "composite_internal"), "build_s1v"),            # D1 + [IT-1 범위 6] 파생 술어 네 필드
     ("s1v", ("metric_structure",), "metric_structure"),
     ("s1v", ("noise_input_cells",), "noise_decl"),                                                     # D7 값 = NoiseDecl
     ("coupling", ("vars", "column_block_map", "bias_columns"), "coupling_vars"),                       # D8
