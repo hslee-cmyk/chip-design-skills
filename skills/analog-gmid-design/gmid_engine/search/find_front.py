@@ -23,7 +23,7 @@ import statistics
 import time
 
 from gmid_engine.core import blas_environment, fp_of
-from gmid_engine.metrics import verified_by
+from gmid_engine.metrics import GATE_EMPTY, GATE_REASON_FRONT_EMPTY, GateResult, verified_by
 
 from .eps_sweep import sweep_front
 from .gate_run import run_sensitivity_gate
@@ -69,10 +69,11 @@ def find_front(sctx, given_starts):
     starts, start_log = start_points(sctx, tuple(given_starts), () if layer0.start is None else (layer0.start,))
     out = sweep_front(sctx, starts)
     notes = [dict(n) for n in sctx.constraint_notes]
-    gate = run_sensitivity_gate(sctx, out["front"][0].result) if out["front"] else None      # [U7] 최종 해의 감도 게이트(40 §3.8-2)
-    if gate is not None:
-        notes.append({"verdict": "ok" if gate.ok else "error", "rule": "sensitivity_gate", "errors": list(gate.errors),
-                      "checks": len(gate.checks), "unchecked": sum(1 for c in gate.checks if c[4] is None), "epsilon_db": gate.epsilon})
+    gate = (run_sensitivity_gate(sctx, out["front"][0].result) if out["front"]       # [U7] 최종 해의 감도 게이트(40 §3.8-2) -- 언제나 한 행(E-01)
+            else GateResult(False, (), (), None, GATE_EMPTY, GATE_REASON_FRONT_EMPTY, ()))
+    notes.append({"verdict": gate.verdict, "reason": gate.reason, "rule": "sensitivity_gate", "errors": list(gate.errors),
+                  "checks": len(gate.checks), "unchecked": sum(1 for c in gate.checks if c[4] is None), "unmeasured": list(gate.unmeasured),
+                  "epsilon_db": gate.epsilon})
     probe = next((s.best for _p, s in out["solves"] if s.best is not None), None)
     if probe is not None and (probe.objectives.passive_value_undetermined or probe.objectives.passive_area_undeclared):
         notes.append({"verdict": "review_needed", "rule": "DEC-79",
