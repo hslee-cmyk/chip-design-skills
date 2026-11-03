@@ -4,6 +4,28 @@ card IT-2c(측정 구성) 재동결. 입력 = 계획 v6.38.8 N6.6, N3.6 정본, 
 
 test 작성 주체는 엔진 소스를 보지 않고 이 문서와 기존 test 하네스(`E/tests/**`)만 쓴다. 피검 함수를 불러 기대값을 만들지 않는다. 공개 이름만 import한다. `E/` = `skills/analog-gmid-design/gmid_engine/`. base = 통합 브랜치에서 IT-1 범위 재작성(`20261104-it1-input-point`) 병합 head.
 
+## 빈칸 답(test 작성자 보고, 2026-11-04)
+
+**1. `g_bound` 수치 식**(design 41 §4.7-3b `graph.ss_nodal`). 스탬프 s마다 값 ĝ_s,ij와 연산 수 c_s(`StampSet.g_ops`)를 손으로 세어:
+- S_ij = Σ_s |ĝ_s,ij|, k_ij = 항목 (i, j)의 스탬프 항 수, C_ij = Σ_s γ_{c_s}·|ĝ_s,ij|
+- **E_ij = γ_{max(k_ij−1, 0)}·S_ij + C_ij + γ_{n+1}·|Ĝ_ij|**
+- n = `size`, γ_m = m·u/(1 − m·u), γ_0 = 0, u = `sys.float_info.epsilon` / 2 = 2⁻⁵³. 값 0 항목은 스탬프에서 빠지므로 세지 않는다.
+- 비교는 float 그대로 이 식을 계산한 값과 한다. 피검 함수로 기대값을 만들지 않는다.
+
+**2. `Circuit.port_window`**: 인스턴스 메서드다(정적 아님). 레일 끝을 그 `Circuit`의 `node.dc_rail_v` 최소·최대에서 읽으므로 인스턴스가 필요하다. 레일 자름을 뺀 포트 창 단언은 `icm_config_window` 결과의 cfg로 한다.
+
+**3. `region_rows` 행 값 test의 projection**: `Circuit(projection, *, lut, linear)`의 `projection`은 `.column(kind, field)`·`.value(kind, key, field)` 질의만 쓴다. `extras`를 읽지 않는다. 봉인된 toy 스냅샷을 그대로 넘긴다(`build_ctx` + `size_and_seal`, `.snapshot`). 손 조립이면 열 = `node.dc_writer`, `node.dc_rail_v`, `node.port_direction`, `device.pins`, `device.kind`, `device.bulk`, `device.dc_L`, `device.dc_colour`, `device.dc_coord`. `values` = `dict(snapshot.column("node", "dc_v"))`(레일 포함), `lut` = 커널 `LutAccess`, `linear` = `frozenset` 소자 이름. 기대값은 `mos_point`가 아니라 손 VDS·VSB·VGS와 `gmid_engine.lut.vdsat(memo, kind, w_key, L, vgs, vds, vsb)` 직접 호출로 낸다.
+
+**4. 선언 뷰 병합 spec 예**: 제약의 `view` JSON은 `{"ac_excite": {<넷>: <가중>}, "sense_p": <넷>, "sense_n": <넷 또는 null>, "sense_mode": "single_ended" 또는 "differential"}`다(기존 `tests/authoring/test_spec_views.py:16`·`:213` 꼴, 포트 `in_p`·`in_n`, 출력 `out`).
+- 같은 키: `{"ac_excite": {"in_p": 0.5, "in_n": -0.5}, "sense_p": "out", "sense_n": null, "sense_mode": "single_ended"}` → 뷰 하나, `source == "spec_constraint_view"`, `default_port is True`.
+- 다른 키: `{"ac_excite": {"in_p": 1.0}, "sense_p": "out", "sense_n": null, "sense_mode": "single_ended"}` → 뷰 둘, 기본 뷰만 `default_port is True`.
+
+**5. T-RN 도달 toy**: 지원 밖 kind(인덕터, 이상 전압원, 지원 밖 MOS kind)는 S1 `s1_dc_conduction`이 먼저 정지하므로(`SUPPORTED_SOURCE_KINDS = ("current_source",)`) 파이프라인과 `ss_evaluate`로는 닿지 않는다. T-RN은 **`ss_circuit_field`를 손 조립 스냅샷으로 직접 부른다**(위 READS 열, 소자 하나를 `voltage_source`·`inductor`·bulk None으로, 값은 기존 `tests/metrics/test_ss_circuit.py:99-119` 사례). 단언 = `StructureUnresolvedError`, `reason == "unsupported_rule_branch"`, `rule_branch == "ss_element_kind"`, 그 소자 이름. `metrics_ss` 소스·READS에서 조립 호출 0은 T-L10이 본다. '블록 계수 행'은 단언하지 않는다. 위치 = `tests/metrics/test_ss_circuit.py`.
+
+**6. `INPUT_STATUS_UNSETTLED`**: card WB-1까지 정의가 남고 `"unsettled"` 문자열도 커널 `node.dc_window`에 남는다. T-L8f 소스 grep에서 **뺀다**. cfg 쪽은 행동으로만 단언한다: `node.dc_window_cfg` 항목 `input_status` ∈ {`"measured"`, `"unmeasured"`}. 커널 항목 상태는 단언 금지. 위 '없음' 목록의 `"unsettled"`는 cfg 상태를 뜻한다.
+
+**7. `conductance_matrix(bound=True)` 호출 규칙**: `conductance_matrix(ss.circuit, len(ss.nodes), bound=True) -> (g, g_bound)`. `ss` = `graph.ss_circuit` 값, `bound`는 키워드 전용, 기본 `False`면 `g` 하나(옛 소비자 값 불변). test는 직접 불러 T-L10 (k)를 단언해도 되고 `graph.ss_nodal.g_bound`로 봐도 된다. 자리 단언은 AST로 한다: 비test 엔진 소스에서 `bound=True` 키워드 호출 = `ss_nodal` 하나. 글자 패턴(`conductance_matrix(ss.circuit`)이나 옛 소비자 `block_model`·`ff_gm_ratio`의 `bound` 없는 호출은 세지 않는다.
+
 ## 관찰 가능한 계약
 
 ### 공개 이름과 서명
@@ -147,17 +169,17 @@ oracle: (손) 소자 스탬프 손 조립, (독립) AST·grep·READS, (식) 위 
 | T-L8d | 같은 파일 | 저항 되먹임 선언 2입력 단일 출력 toy: `"servo"`, 창 = 같은 회로 servo 손계산. 단일 입력 + 선언: `"as_is_single_input"`(spec 로더가 받지 않으면 멈추고 보고) | (손) | red |
 | T-L8e | 같은 파일 | 조립 상쇄 toy(a_e 설계상 0): None, `icm_servo_pivot_unresolved`. 전제: 옛 식 |z_u|ᵀ|r|로는 판정 가능. 기대 근거 = 정확 산술 참값 오차가 새 δV_out 안. 입력 셋·입력 0·2입력 비차동·출력 둘 비차동 toy는 위 표 code. role 맞바꿈 toy 같은 창. 선언 뷰 키가 기본과 달라도 창 = 기본 포트 뷰 손계산 | (손) | red |
 | T-L8e′ | 같은 파일 | 용량 전용 노드 toy(넷이 커패시터와 MOS gate에만 닿음): None, `icm_capacitive_only_node`, 그 넷. 그 넷을 저항으로 이으면 정의됨 | (손) | red |
-| T-L8f | 같은 파일(AST) | 비test 엔진 소스(docstring·주석 제외)에 `"declared_feedback"`·`"follower_beta1"`·`inverting_port`·`tied_ports`·위 '없음' code 전부·`_dc_feedback_reaches`·`_conduction_rows`·`INPUT_STATUS_F_COMPONENT_UNDECLARED`·`writer_head`·`icmr_view`·`icm_view`·`dc_output_structure`·`_output_structure`·`dc_window_def` 0. `kvl_sensitivity` 서명에 `closure` 없음 | (독립) | red |
+| T-L8f | 같은 파일(AST) | 비test 엔진 소스(docstring·주석 제외)에 `"declared_feedback"`·`"follower_beta1"`·`inverting_port`·`tied_ports`·위 '없음' code 전부(`"unsettled"` 제외 -- 빈칸 답 6)·`_dc_feedback_reaches`·`_conduction_rows`·`INPUT_STATUS_F_COMPONENT_UNDECLARED`·`writer_head`·`icmr_view`·`icm_view`·`dc_output_structure`·`_output_structure`·`dc_window_def` 0. `kvl_sensitivity` 서명에 `closure` 없음 | (독립) | red |
 | T-L8g | 같은 파일 | V_cm 칸: 끝 = 같은 끝 상태 입력 전압 평균(손). 양수 감도 toy는 cfg 끝 평균과도 일치. 음수 감도 포트 toy: 손 평균(짝지은 평균이면 red, 전제 둘). 레일 자름 toy: 두 포트 끝과 V_cm 끝이 같은 끝 상태 | (손) | red |
 | T-L8h | 같은 파일 | ICMR = 영역 행: 입력쌍 한쪽 전류가 먼저 줄어드는 toy에서 끝 = 영역 행 끝(전도 끝 아님). 경계 행 kind 집합 = {`"sat"`, `"triode"`}. `icm_config` READS에 전도 필드 0(READS 단언). `icmr_v`·`icm_margin_v` 값 판정은 IT-2d T-M | (손)+(독립) | red |
 | T-D | `tests/metrics/test_icm_config.py`·`tests/sizing/test__helpers_dc_solve.py` | `triode` 선언 소자가 훑기 중 포화로 가는 toy: 행 영 교차 = cfg 끝(VDS = VDSAT, 여유 0). 전제: 동작점 triode. `region_rows` 소스에 VGS 상수 0 `op_point` 0, 전도 필드 읽기 0, EO-1 모듈 import 0(AST) | (손)+(독립) | red |
 | T-P | `tests/metrics/test_icm_config.py`·`tests/sizing/test_input_window.py` | 음수 감도 포트 lo ≤ hi. 입력 DC 둘 선언: 일반 toy 끝 = servo 손계산, 대칭 toy(전제 둘)에서 포트 끝 차 = 선언 차. `saturation_window` 새 서명·`root` 하나·`slope` 갈래 | (손)+(식) | red |
 | T-K | `tests/sizing/test_block_columns.py`·`test_icm_config.py` | 입력 DC 선언 toy: cfg 항목 `"measured"`, 커널 `node.dc_window` 입력 항목 없음. 미선언 2입력: 커널 뿌리 하나, cfg 두 포트. VDSAT 열 없는 LUT: cfg `"unmeasured"`. 행 교집합이 Δlo > Δhi인 합성 행: cfg `"unmeasured"`(양수 폭 창이면 red) | (손)+(독립) | red |
-| T-L10 | `tests/metrics/test_ss_nodal.py`·`test_icm_config.py`·`test_ss_circuit.py`·`test__helpers_nodal.py`·`test_stamp_mos.py`·`test_stamp_two_terminal.py`·`test_records.py` | writer 하나씩. `conductance_matrix(ss.circuit` = `ss_nodal` 하나, `bound=True` 자리 하나, `ss_circuit(` 호출 = 블록 하나, `SsCircuit(` 생성 = 하나, `def _ss_of` 0, `kvl_sensitivity` 호출 자리 하나, θ 감도 호출 0. 결측 toy: 저항 / 용량만 / 둘 다. `def is_dc_conducting_passive` 1곳, 호출 = `ss_circuit`·`ss_nodal`. 불변 ndarray `ValueError`. `g_bound`만 다른 두 `NodalSystem`의 `fp_of` 다름. `g_ops` AST·항목 손 기대. `g_bound` 손 식(u = 2⁻⁵³). `graph.metrics_ss`·`metrics_aux` `value_fp` 비트 동일 | (손)+(독립) | red |
+| T-L10 | `tests/metrics/test_ss_nodal.py`·`test_icm_config.py`·`test_ss_circuit.py`·`test__helpers_nodal.py`·`test_stamp_mos.py`·`test_stamp_two_terminal.py`·`test_records.py` | writer 하나씩. `bound=True` 키워드 호출 = `ss_nodal` 하나(AST, 빈칸 답 7), `ss_circuit(` 호출 = 블록 하나, `SsCircuit(` 생성 = 하나, `def _ss_of` 0, `kvl_sensitivity` 호출 자리 하나, θ 감도 호출 0. 결측 toy: 저항 / 용량만 / 둘 다. `def is_dc_conducting_passive` 1곳, 호출 = `ss_circuit`·`ss_nodal`. 불변 ndarray `ValueError`. `g_bound`만 다른 두 `NodalSystem`의 `fp_of` 다름. `g_ops` AST·항목 손 기대. `g_bound` 손 식(u = 2⁻⁵³). `graph.metrics_ss`·`metrics_aux` `value_fp` 비트 동일 | (손)+(독립) | red |
 | T-L11c | `tests/metrics/test_ss_evaluate.py` | 같은 θ ss 재평가: `ss_circuit`(aux 요청이면 `ss_nodal`·`icm_config`)의 (computes, grafts, reuses) = (0, 1, 0) | (독립) | red |
 | T-L12 | `tests/metrics/test_icm_config.py` | `k_max` 소진 커널 toy(전제: 봉인): cfg `"measured"`, V_cm 있음. F 성분 미선언 포트 toy(입력 = gate 전용 넷, source = gnd)와 2입력 변형: 함께 구동한 창 = 손계산, `node.dc_window` 항목 없음. READS에 `node.dc_window` 없음 | (손)+(독립) | red |
 | T-S1V | `tests/graph/test_views.py` 또는 `test_s1v_build.py` | `build_s1v` 경유. 위 '기본 포트 뷰' 규칙 전부 | (손)+(식) | red |
-| T-RN | `tests/metrics/test_ss_evaluate.py` | 지원 밖 원소: 예외가 블록 `ss_circuit`에서 난다 | (독립) | red |
+| T-RN | `tests/metrics/test_ss_circuit.py` | 지원 밖 원소: `ss_circuit_field` 직접 호출에서 예외(빈칸 답 5) | (독립) | red(`ImportError`, 신규 함수) |
 | T-RH | `tests/integration/test_stage_a_library.py` 또는 `tests/graph/test_s1v_build.py` | library 두 회로: 사실이 여전히 적용됨(`graph.applied_facts` 비지 않음, `structure_fact_stale` 0). 기대 사실 = 그 `structure.json` `facts` | (독립) | green(회귀 -- 재기록을 빼면 red) |
 | T-E9 | `tests/sizing/test_writer_plan.py` | `node.dc_output_structure`·`OUTPUT_*`가 필드·어휘에 없음 | (독립) | red |
 
