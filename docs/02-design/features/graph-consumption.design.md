@@ -33,35 +33,26 @@ plan_version: 0.14.8
 | `E/tests/structure/test_rule_l.py` | 현재 코드 판정, 부채 (a)(b)(c) |
 | `E/tests/structure/test_rule_l_reject_fixtures.py`, `fixtures/rule_l/` | 거부 먼저 |
 
-엔진 운영 코드 변경 0, Role = test. `test_structure_test_mapping.py`가 새 파일을 요구하면 test 역할이 그 표에 더한다.
+엔진 운영 코드 변경 0. `rule_l_checks.py` = code, `rule_l_tables.py`·`rule_l_debt.py`·test·픽스처 = test(A-32 J-1). **병합 자리** = HC-1 + GC-8 바로 앞(A-32 S-8), 기준선 재측정은 검증자 독립 스크립트로 한다. `7620f5ee` 390항목 대비 늘어난 키마다 원인 card와 근거(소유표 소비자 또는 출력 전용 행)를 판정 기록에 적고, 근거 없는 새 `L-1`·`L-2`·`L-4` 키는 부채로 넣지 않고 멈춰 그 card로 되돌린다(위임 A-37). 줄어든 키는 사유만 적는다. `test_structure_test_mapping.py`가 새 파일을 요구하면 test 역할이 그 표에 더한다.
 
 ## 2. 진입점과 출력 함수(GD-1)
 
 **도달 판정**: 모듈 AST로 함수 정의 표를 만들고, 호출을 (i) 같은 모듈 이름 (ii) import 이름 (iii) 패키지 `__all__` 재수출로 푼다. `@compute_block` 함수는 그 블록 객체 호출을 호출로 센다. 속성 호출 `x.f()`는 그 이름의 정의가 엔진에 하나일 때만 풀고, 둘 이상이면 후보 전부에 도달로 센다(넓게). 함수 값 전달은 그 이름의 Load를 호출로 센다. **풀지 못한 호출은 L-1 대상 읽기에 영향을 줄 때 위반**이다(fail-closed).
 
-**진입점 초기안**(`_module_map` 'entry'는 근거가 아니다 -- F-G27):
+**진입점 11개 = card interface `PARAMS.entry_points`**(A-32 S-1, 측정 근거 spec S-1). 초기안 4개는 이력으로(`_module_map` 'entry'는 근거가 아니다 -- F-G27). OS-2 `run_plan`은 그 card 병합 때 더한다(기준 변경 아님 -- 대상 넓힘).
 
-| 진입점 | 근거 |
-|---|---|
-| `pipeline/stage_a.py: run_stage_a` | 단계 A 사용자 입구 |
-| `pipeline/stage_b.py: run_stage_b` | 단계 B 사용자 입구 |
-| `search/find_front.py: find_front` | 탐색 입구 |
-| `search/front_query.py: node_across_front` | 사용자 S3 조회(N3.1-5 출력 함수 면제 자리) |
+**출력 함수 5개** = `_ach_body`, `_coupling_report`, `structure_tables`, `orbit_matching_crosstab`, `_from_snapshot`(A-32 S-2). `node_across_front`는 진입점이다. 기준은 N3.1-2다.
 
-OS-2 `run_plan`은 그 card 병합 때 더한다(기준 변경 아님 -- 대상 넓힘).
-
-**출력 함수 초기안**: `run_stage_a`·`run_stage_b` 안의 보고 함수와 `node_across_front`. 기준은 N3.1-2다.
-
-이 두 목록은 **미측정 초기안**이다(M-G9 미룸). 검증자가 GC-1에서 독립 스크립트로 재고, 다르면 GC-1을 멈춘다(N3.1-2). 이 절차가 그대로라 O-225로 약해지지 않는다.
+이 두 목록은 `7620f5ee` 실측, 병합 base에서 재측정한다.
 
 ## 3. 부채·기준선·지문(GD-3), 호출자 0(GD-14)
 
-- **항목 키**: `(규칙 id, 대상)` 문자열 tuple. L-1 = `("L-1", "kind.field")`, L-3 = `("L-3", "블록.kind.field")`, L-4 = `("L-4", "모듈.클래스.칸")`, L-5 = `("L-5", "개념", "파일", "함수")`, L-1x = `("L-1x", "모듈.함수")`. 줄 번호를 키에 쓰지 않는다.
+- **항목 키**: `(규칙 id, 대상)` 문자열 tuple. L-1 = `("L-1", "kind.field")`, L-3 = `("L-3", "블록.kind.field")`, L-4 = `("L-4", "모듈.클래스.칸")`, L-5 = `("L-5", "개념", "파일", "함수")`, L-1x = `("L-1x", "모듈.함수")`, L-1d = `("L-1d", "모듈.함수")`. 줄 번호를 키에 쓰지 않는다. 키 표 정본 = interface '위반 키와 code'.
 - **항목 값**: `DebtItem(처리 종류, card id, 사유)`. 처리 어휘는 N3.1-6 그대로. card id는 계획 card 표의 id만(GC-B9 규칙).
 - **기준선 상수**: `rule_l_tables.BASELINE`, 정렬 tuple. 검증자가 독립 스크립트로 재고 test 주체가 넣는다.
 - **지문**: 정렬 JSON(UTF-8, 구분자 고정)의 sha256. 대상 = N3.1-6 (d) 목록 + `rule_l_checks.py`·`rule_l_tables.py`의 파일 바이트(줄바꿈 정규화). 기록 = `.ai/verification/GC-1.json`.
-- **동적 접근 허용 파일**: core 접근자와 봉인 판 검사 2곳 고정(N3.1-1). 늘리지 않는다.
-- **GD-14**: AST 호출 그래프에서 진입점 밖이고 호출자 0인 함수 = 위반 `no_caller`(블록 데코레이터 함수는 블록 호출로 센다, `test_` 밖 tests는 대상 아님). `size_and_seal_local` 항목 = 배선 대기, card LA-1. 대상 사전 측정(M-G9) 미룸 -- GC-1 기준선이 그 자리를 잰다.
+- **동적 접근 허용 파일**: 넷 = `core/graph_snapshot.py`, `core/projection.py`, `core/graft.py`(core 접근자), `sizing/seal_versions.py`(봉인 판 검사) -- 계획 N3.1-1의 두 부류. 늘리지 않는다. 기존 9함수는 키 `("L-1d", "모듈.함수")` 부채, card GC-7(A-32 S-3).
+- **GD-14**: 함수·메서드·클래스(A-32 S-5). **L-4 대상** = spec 계약 6(S-7). AST 호출 그래프에서 진입점 밖이고 호출자 0인 함수 = 위반 `no_caller`(블록 데코레이터 함수는 블록 호출로 센다, `test_` 밖 tests는 대상 아님). `size_and_seal_local` 항목 = 배선 대기, card LA-1. 대상 사전 측정(M-G9) 미룸 -- GC-1 기준선이 그 자리를 잰다.
 - **규칙 L-5 '동작점 사본'**: N3.1-5 정의 그대로. 추적이 안 풀리면 위반.
 
 **HC-1과의 경계(GC:663)**: 새 필드에 부채 항목을 줄 수 없다. HC-1 design의 출력 전용 항목(`graph/start: loop_stack_notes`, `device: dc_triode_region`, `LoopConflict` 내용 칸, `chain_cuts` 칸)은 목록 추가라 지문이 바뀐다. N3.1-6 (d)에서 '대상 축소·허용 확대'는 기준 약화다. 판정: **항목마다 승인된 design 소유표 행을 근거로 적으면 기록된 기준 변경이고, 근거 없는 추가는 `criteria_weakened`**. 검증자가 HC-1 판정에서 대조한다. **작성자 판단 J1**(§7-S2).
