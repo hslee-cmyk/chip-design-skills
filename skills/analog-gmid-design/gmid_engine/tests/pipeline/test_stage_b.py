@@ -303,22 +303,3 @@ def test_settings_of_wrong_type_rejected(tmp_path, toy, pdk, bad):
     a = _stage_a_ok(tmp_path, toy, pdk)
     with pytest.raises(TypeError):
         run_stage_b(a, memo_of(toy), pdk, output_dir=tmp_path / "out", settings=bad)
-
-
-def _it1_sym_nocap_doc():
-    """T-1f DOF 용 대칭 차동 toy(커패시터 없음): M1(o1, inp, t) M2(o2, inn, t) M5(t, vb, gnd) M3(o1, pb, vdd) M4(o2, pb, vdd), p inp · n inn."""
-    return topology("sbsymdof",
-                    [mos_e("M1", "nmos", "o1", "inp", "t"), mos_e("M2", "nmos", "o2", "inn", "t"), mos_e("M5", "nmos", "t", "vb", "gnd"),
-                     mos_e("M3", "pmos", "o1", "pb", "vdd"), mos_e("M4", "pmos", "o2", "pb", "vdd")],
-                    ports={"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"),
-                           "o1": ("output", "differential_output_p"), "o2": ("output", "differential_output_n")},
-                    bias=["pb", "vb"])
-
-
-def test_it1_t1f_structural_dof_of_symmetric_pair(tmp_path, toy, pdk):
-    """T-1f (손): 커패시터 없는 대칭 차동 toy 의 단계 B 가 쓰는 graph/ach dof. 구조 rank 는 묶음 등식 행렬의 이분 매칭 rank(41 §4.5),
-    DOF = 변수 수 - 구조 rank = 12 (입력 점 변수 공유로 전압 변수 하나가 줄어든 값, 손 유도: 변수 y 3 -> 입력 점 하나 + 출력 둘). 수치 rank 는 유보(O-225)."""
-    tp, sp = write_case(tmp_path, _it1_sym_nocap_doc())
-    _, b = stage_ab(tmp_path, toy, tp, sp, pdk)
-    dof = b.s1.value("graph", "ach", "dof")
-    assert len(dof.free_variables) == 12

@@ -1646,7 +1646,10 @@ def test_it1_t1h_input_point_touching_f_ports_share_voltage(tmp_path, toy_access
             th[(k, key)] = (Oracle.ln_idu("nmos", 0.6, 0.9, 0.0) if key in ("M1", "M2") else Oracle.ln_idu("pmos", 0.7, 0.9, 0.0))
         else:
             raise AssertionError((k, key))
-    V = node_voltages(run_blocks(ctx, th, upto="columns"))
+    snap = run_blocks(ctx, th, upto="columns")
+    V = node_voltages(snap)
+    win = _window_of(snap)
+    assert "inp" not in win and "inn" not in win                                         # F 에 닿는 입력 점은 창 항목이 없다
     assert abs(V["o1"] - 0.9) <= 1e-9 and abs(V["o2"] - 0.9) <= 1e-9
     assert abs(V["inp"] - V["inn"]) <= 1e-12
     assert abs(V["inp"] - 0.6) <= 1e-9

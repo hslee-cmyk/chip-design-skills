@@ -514,6 +514,7 @@ def test_it1_t1d_single_input_unchanged(tmp_path, toy_access):
 def test_it1_t1d_isolated_single_input_builds(tmp_path, toy_access):
     """T-1d (손, 무동작): 고립 입력 포트가 하나뿐이면 정지하지 않고 y 키 = 그 넷(옛 규칙 그대로)."""
     ctx = build_ctx(tmp_path, _it1_isolated_doc(with_other_root=False), toy_access)[2]
+    assert tuple(plan(ctx)[2]) == ()                                                     # dc_tie_breaks 비어 있음
     w = dict(ctx.base.column("node", "dc_writer"))["iso"]
     assert (w.tier, w.relation, w.y_key) == ("W4", "free_window", "iso")
 
