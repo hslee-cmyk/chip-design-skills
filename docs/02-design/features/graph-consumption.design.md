@@ -9,7 +9,7 @@ plan_version: 0.14.9
 
 > **Summary**: 승인 계획 `graph-consumption.plan.md`의 GC-1(구조 규칙 L·부채 목록)과 GC-8(`headroom_bound`·`order_terms` 정본 읽기)을 card로 내릴 수 있게 정한다. 공용 필드 정본은 `headroom-chain.design.md`다.
 >
-> **Status**: v0.1.3(§3 J1 목록, 위임 A-60, 재판정 전). v0.1.2(§3 J1 목록, 위임 A-59, 재판정 전). v0.1.1(§3·§5·§6 HC-1 card 후보 채택, 위임 A-50~A-52, 계획 0.14.9, 독립 판정 전). v0.1, 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = graph-consumption 0.14.8(상위 v6.38.8, master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
+> **Status**: v0.1.3(§3 J1 목록, 위임 A-60, 독립 판정 Major 0, 승인 위임 A-61). v0.1.2(§3 J1 목록, 위임 A-59, 독립 판정 Major 0, 승인 위임 A-61). v0.1.1(§3·§5·§6 HC-1 card 후보 채택, 위임 A-50~A-52, 계획 0.14.9, 독립 판정 Major 0, 승인 위임 A-61). v0.1, 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = graph-consumption 0.14.8(상위 v6.38.8, master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
 >
 > **이 판 범위**: GD-1·GD-3·GD-9·GD-14(GC-1), GD-2(HC design 인용), GC-8. **범위 밖**: GD-4·5·7·8·10~13(GC-2·3·5·6·7·9). 그 card 착수 전 이 문서를 개정한다. GD-6 = 소유표에 reader 칸을 더하지 않는다(규칙 L이 기계 판정, 소비자 열로 충분).
 >
