@@ -7,7 +7,7 @@ plan_version: 6.38.13
 # gain-budget-gmid-sizing -- 42-gap-checklist (gap 분석 기준표)
 
 > **Summary**: `bkit:gap-detector`가 설계 문서(40·41)와 구현을 대조할 때 쓰는 표다.
-> - **design v1.16.12 -- D-TH1·D-WB3에 M-TH1c 배정 반영, 계획 v6.38.14(위임 A-66). 둘째 커밋 = O-207 묶음 LA-1(위임 A-67).** **design v1.16.11 -- 묶음 ③ WB-1 독립 판정 V1~V8·후보 D1~D6 반영(위임 A-62), 둘째 커밋 재판정 R1~R3·r1~r8(위임 A-63), 셋째 커밋 최종 재판정 V-F1·f1~f6(위임 A-64), 계획 v6.38.13.** 대조 자리 = D-WB1·D-WB2·D-EO1, 독립 판정 전.
+> - **design v1.16.12 -- D-TH1·D-WB3에 M-TH1c 배정 반영, 계획 v6.38.14(위임 A-66). 둘째 커밋 = O-207 묶음 LA-1(위임 A-67). 셋째 커밋 = GB4 포락 정본 40 §3.7-A 8(위임 A-68).** **design v1.16.11 -- 묶음 ③ WB-1 독립 판정 V1~V8·후보 D1~D6 반영(위임 A-62), 둘째 커밋 재판정 R1~R3·r1~r8(위임 A-63), 셋째 커밋 최종 재판정 V-F1·f1~f6(위임 A-64), 계획 v6.38.13.** 대조 자리 = D-WB1·D-WB2·D-EO1, 독립 판정 전.
 > - **design v1.16.10 -- 재판정 R1~R4·r 반영(위임 A-60).** 대조 자리 = `headroom-chain.design.md` v0.1.6, `graph-consumption.design.md` v0.1.3, 재판정 전.
 > - **design v1.16.9 -- 독립 판정 V1~V13 반영(위임 A-59).** 대조 자리 = `headroom-chain.design.md` v0.1.5, `graph-consumption.design.md` v0.1.2, 재판정 전.
 > - **design v1.16.8 -- HC-1 card 후보 채택(위임 A-50~A-52).** 대조 자리 = `headroom-chain.design.md` v0.1.4, `graph-consumption.design.md` v0.1.1, 독립 판정 전.
