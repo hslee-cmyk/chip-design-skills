@@ -13,7 +13,7 @@
 """
 from gmid_engine.core import MV_PER_V
 
-from ._helpers_nodal import conductance_matrix, nodal_factor, nodal_solve
+from ._helpers_nodal import capacitance_matrix, conductance_matrix, nodal_factor, nodal_solve
 from ._helpers_view import view_system
 from .aux_types import OffsetSystematic
 from .mna_types import Undefined
@@ -43,7 +43,7 @@ def offset_systematic(ss, view, node_v, targets, node_tol_v=None):
         error = volts[sense_p] - reference
         nets = (sense_p,)
     size = len(ss.nodes)
-    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed, c=capacitance_matrix(ss.circuit, size))
     volt, _residual = nodal_solve(factor, size, drive)
     if volt is None:
         return _bare("singular_dc", output_error_v=error)

@@ -27,7 +27,7 @@ import scipy.linalg
 
 from gmid_engine.core import MV_PER_V
 
-from ._helpers_nodal import conductance_matrix, nodal_adjoint, nodal_factor, nodal_solve
+from ._helpers_nodal import capacitance_matrix, conductance_matrix, nodal_adjoint, nodal_factor, nodal_solve
 from ._helpers_view import PARAMETER_ORDER, view_system
 from .aux_types import OffsetAnalysis, OffsetContribution
 from .mna_types import Undefined
@@ -66,7 +66,7 @@ def offset_analysis(ss, view, sigmas, input_cells=(), rel_tols=None, matching=No
     if missing:
         return _bare("sigma_missing", (("devices", missing),))
     size = len(ss.nodes)
-    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed, c=capacitance_matrix(ss.circuit, size))
     volt, residual = nodal_solve(factor, size, drive)
     z = nodal_adjoint(factor, size, sense)
     if volt is None or z is None:

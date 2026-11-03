@@ -88,7 +88,7 @@ def _path_gains(ss, block, index, size, mos_labels, res_labels, unknown, outputs
         zeroed = tuple(dataclasses.replace(m, gm=0.0, gmb=0.0) if ss.nodes[m.g] in others else m
                        for m in ss.circuit.mos if m.label in mos_labels)
         sub = SmallSignalCircuit(mos=zeroed, resistors=tuple(r for r in ss.circuit.resistors if r.label in res_labels))
-        volt, _residual = nodal_solve(nodal_factor(conductance_matrix(sub, size), set(range(size)) - unknown), size, {index[net]: 1.0})
+        volt, _residual = nodal_solve(nodal_factor(conductance_matrix(sub, size), set(range(size)) - unknown, c=numpy.zeros((size, size))), size, {index[net]: 1.0})
         if volt is None:
             return ()
         out.append((net, float(_difference({n: volt[index[n]] for n in outputs}, outputs))))
@@ -110,7 +110,7 @@ def block_local_gain(ss, block, drive=None, others=(), exclude=(), extra=()):
                              resistors=tuple(r for r in ss.circuit.resistors if r.label in res_labels))
     members = tuple(sorted(mos_labels | res_labels))
     g = conductance_matrix(sub, size)
-    factor = nodal_factor(g, set(range(size)) - unknown)
+    factor = nodal_factor(g, set(range(size)) - unknown, c=numpy.zeros((size, size)))
     volt, residual = nodal_solve(factor, size, {index[n]: v for n, v in drive.items()})
     if volt is None:
         return BlockGain(block.key, None, None, None, undefined=_undefined("singular_dc"), members=members)

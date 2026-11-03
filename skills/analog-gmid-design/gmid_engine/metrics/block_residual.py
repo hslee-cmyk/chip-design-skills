@@ -18,7 +18,7 @@ import math
 
 from gmid_engine.core import AMPLITUDE_DB_PER_DECADE
 
-from ._helpers_nodal import conductance_matrix, nodal_factor, nodal_solve
+from ._helpers_nodal import capacitance_matrix, conductance_matrix, nodal_factor, nodal_solve
 from ._helpers_view import view_system
 from .aux_types import BlockResidual, FfContribution
 from .block_model import block_local_gain
@@ -70,7 +70,7 @@ def block_residual(ss, view, vstruct):
         return _bare(vstruct.id, "no_blocks")
     fixed, drive_idx, sense, pairs, sense_nets = system
     size = len(ss.nodes)
-    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed, c=capacitance_matrix(ss.circuit, size))
     volt, residual = nodal_solve(factor, size, drive_idx)
     if volt is None:
         return _bare(vstruct.id, "singular_dc")
