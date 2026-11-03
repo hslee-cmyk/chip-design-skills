@@ -269,3 +269,25 @@ def test_invariant2_rename_on_u1b_toys(tmp_path, doc):
     assert _canon(base, nm, dm) == _canon(moved, {}, {})
     roles = lambda s1v, n, d: {(r.role, r.view.split(":")[0]) for v in s1v.views for r in v.loop_roles}  # noqa: E731
     assert roles(base, nm, dm) == roles(moved, {}, {})
+
+
+# ---------------------------------------------------------------- [IT-2c T-RH, A-33·A-34] rule 파일을 고친 뒤에도 library 사실이 여전히 적용된다
+# rule 파일(S1V_RULE_FILES ∪ STRUCTURE_RULE_EXTRA_FILES)을 고치는 커밋은 같은 커밋에서 library `structure.json` 의 rule_hash 줄을 재기록해야 한다.
+# 재기록을 빼면 사실이 `structure_fact_stale` 로 조용히 적용되지 않는다(fail-open). oracle: (독립) 그 structure.json 자신의 `facts`(기대 사실 수)와
+# 현재 트리의 `structure_rule_fp()` 비교 -- 피검 함수 값으로 기대값을 만들지 않고, 파일에 적힌 rule_hash 와 현재 지문이 같은지를 본다.
+# 기준선이 존재하고 동작 보존인 경우라 green 이 정상(재기록을 빼면 red).
+
+@pytest.mark.parametrize("name", ["current_reuse_telescopic_ota", "nmcnr_amplifier"])
+def test_it2c_rh_library_structure_facts_still_apply(name):
+    import json
+    from gmid_engine.graph import load_structure_facts, structure_rule_fp
+    path = H.LIBRARY / (name + ".structure.json")
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    assert len(doc["facts"]) >= 1
+    s1, _ = H.build_lib(name)
+    facts = load_structure_facts(str(path), s1.key.topology_fp, structure_rule_fp())
+    assert [f.code for f in facts.findings] == [], "structure_fact_stale -- rule_hash 줄을 재기록하지 않았다"
+    assert len(facts.facts) == len(doc["facts"])
+    _, s1v = H.build_lib(name, structure=facts)
+    assert s1v.facts_applied != ()
+    assert "structure_fact_stale" not in [f.code for f in s1v.findings]

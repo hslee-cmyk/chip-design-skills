@@ -101,8 +101,11 @@ def test_s2_writer_table_has_ss_fields():
     # writer -> 필드 묶음의 대응(집합)을 단언한다(옛 tuple 순서 단언은 CONTRACT 2절 표 오라클이었고 그 표는 이 변경에서 갱신되지 않았다).
     assert dict(SS_WRITES) == {"ss_dev": (("device", "ss_dev"),), "metrics_ss": (("graph", "metrics_ss"),),
                                "metrics_dc": (("graph", "metrics_dc"), ("graph", "gate_area_m2"), ("graph", "power_resolution_w")),
-                               "passive_values": (("device", "passive_value"),), "metrics_aux": (("graph", "metrics_aux"),)}
-    assert len(SS_WRITES) == 5
+                               "passive_values": (("device", "passive_value"),), "metrics_aux": (("graph", "metrics_aux"),),
+                               # [IT-2c 갱신, 승인 동작 변경 O-109·O-205] interface 20261104-it2c-icm-config '권한표': 5 -> 8 (oracle (d))
+                               "ss_circuit": (("graph", "ss_circuit"),), "ss_nodal": (("graph", "ss_nodal"),),
+                               "icm_config": (("node", "dc_window_cfg"), ("graph", "icm_config"))}
+    assert len(SS_WRITES) == 8
     assert S2_WRITERS.writer_of("device", "ss_dev") == SS_DEV_WRITER == ss_dev.name
     assert S2_WRITERS.writer_of("graph", "metrics_ss") == METRICS_SS_WRITER == metrics_ss.name
     assert S2_WRITERS.writer_of("graph", "metrics_dc") == METRICS_DC_WRITER == metrics_dc.name
@@ -110,14 +113,20 @@ def test_s2_writer_table_has_ss_fields():
     assert S2_WRITERS.writer_of("graph", "metrics_aux") == METRICS_AUX_WRITER == metrics_aux.name
     assert S2_WRITERS.writer_of("device", "passive_value") == PASSIVE_VALUES_WRITER == passive_values.name == "passive_values"
     assert METRICS_KEY == "metrics"
+    from gmid_engine.metrics.icm_config import icm_config_window
+    from gmid_engine.metrics.ss_circuit import ss_circuit_field
+    from gmid_engine.metrics.ss_nodal import ss_nodal_system
     for writer, fields in SS_WRITES:
-        blk = {b.name: b for b in (ss_dev, metrics_ss, metrics_dc, metrics_aux, passive_values)}[writer]
-        assert tuple(blk.writes) == fields
-    # 필드마다 writer 하나 -- 다섯 writer 가 쓰는 필드는 정확히 그 7개
+        blk = {b.name: b for b in (ss_dev, metrics_ss, metrics_dc, metrics_aux, passive_values, ss_circuit_field, ss_nodal_system,
+                                   icm_config_window)}[writer]
+        assert set(blk.writes) == set(fields) and len(blk.writes) == len(fields)
+    # 필드마다 writer 하나 -- 여덟 writer 가 쓰는 필드는 정확히 그 11개([IT-2c 갱신] 7 + ss_circuit·ss_nodal·dc_window_cfg·icm_config)
     owned = {kf for kf, w in S2_WRITERS.entries
-             if w in (SS_DEV_WRITER, METRICS_SS_WRITER, METRICS_DC_WRITER, METRICS_AUX_WRITER, PASSIVE_VALUES_WRITER)}
+             if w in (SS_DEV_WRITER, METRICS_SS_WRITER, METRICS_DC_WRITER, METRICS_AUX_WRITER, PASSIVE_VALUES_WRITER,
+                      "ss_circuit", "ss_nodal", "icm_config")}
     assert owned == {("device", "ss_dev"), ("graph", "metrics_ss"), ("graph", "metrics_dc"), ("graph", "gate_area_m2"),
-                     ("graph", "power_resolution_w"), ("graph", "metrics_aux"), ("device", "passive_value")}
+                     ("graph", "power_resolution_w"), ("graph", "metrics_aux"), ("device", "passive_value"),
+                     ("graph", "ss_circuit"), ("graph", "ss_nodal"), ("node", "dc_window_cfg"), ("graph", "icm_config")}
 
 
 def test_s2_writer_table_rejects_other_writer():

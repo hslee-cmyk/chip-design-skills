@@ -93,3 +93,25 @@ def test_no_unknowns_returns_drive():
     v, residual = nodal_solve(f, 2, {1: 0.3})
     assert list(v) == [0.0, 0.3] and residual == 0.0
     assert list(nodal_adjoint(f, 2, np.array([0.0, 1.0]))) == [0.0, 0.0]
+
+
+def test_it2c_conductance_matrix_bound_true_returns_pair_with_same_g():
+    """oracle 대조: (손) [IT-2c T-L10 `g_bound`] interface: `bound=True` 면 `(g, g_bound)`, g 는 bound=False 와 같은 행렬(손 식 대조: 위
+    test_conductance_matrix_one_mos_by_device_equation). g_bound 는 같은 모양·비음수·스탬프가 없는 행은 0, 연산 수 0 항목(gm 그대로)은 0,
+    연산 수 k 항목은 (0, 2k·u·|g|] (u = 2^-53, 반올림 오차 상계 -- 정확한 식은 단언하지 않는다)."""
+    u = 2.0 ** -53
+    gm, gmb, gds = 1e-3, 2e-4, 1e-5
+    ck = SmallSignalCircuit(mos=(MosSmallSignal(1, 2, 3, 0, gm, gmb, gds),))
+    g0 = conductance_matrix(ck, 4)
+    g, gb = conductance_matrix(ck, 4, bound=True)
+    assert np.array_equal(g, g0) and gb.shape == g.shape and (gb >= 0).all()
+    assert (gb[0, :] == 0).all() and (gb[2, :] == 0).all()                      # 행 0(b)·2(g) 에는 스탬프 없음
+    assert gb[1, 2] == 0.0 and gb[1, 0] == 0.0 and gb[1, 1] == 0.0               # 입력 값 그대로 (덧셈 0회)
+    for (r, c) in ((1, 3), (3, 3)):                                                # 덧셈 2회 항목
+        assert 0.0 < gb[r, c] <= 4.0 * u * abs(g[r, c])
+    r = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3),))
+    gr, gbr = conductance_matrix(r, 3, bound=True)
+    assert np.array_equal(gr, conductance_matrix(r, 3))
+    for (a, b) in ((1, 1), (1, 2), (2, 1), (2, 2)):                                # 1/R 나눗셈 한 번
+        assert 0.0 < gbr[a, b] <= 2.0 * u * abs(gr[a, b])
+    assert (gbr[0, :] == 0).all() and (gbr[:, 0] == 0).all()

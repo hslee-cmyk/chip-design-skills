@@ -20,9 +20,6 @@ DC_TABLE = {
     ("node", "dc_writer"): "dc_writer_plan",
     ("device", "dc_coord"): "dc_writer_plan",
     ("graph", "dc_tie_breaks"): "dc_writer_plan",           # [r2]
-    # [IT-2b 갱신 -- 표 확대, 약화 아님] design 41 v1.12.8 4.7-1a: 출력 구조 분류 필드의 writer 는 쓰기 계획 블록 하나(DC_WRITES 의
-    # DC_WRITER_PLAN_WRITER 행에 더함, 계획 N3.8 '출력 구조 분류 -- 규칙 하나').
-    ("node", "dc_output_structure"): "dc_writer_plan",
     # [U17 ①-b] 설계 40 v1.9.1 §2.4.8 '1변수 writer 집합(sctx.cell_floors[("one_var_writers",)]) -> device: dc_self_referential, writer 쓰기 계획 블록(sizing)'
     ("device", "dc_self_referential"): "dc_writer_plan",
     # [U17 ①-b] §2.4.8 '커널 컨텍스트 구조 파생 -> graph/kernel: fixed_values·resistor_values·l_ties, writer build_kernel_context 를 블록으로(sizing)'
@@ -70,13 +67,13 @@ BLOCKS = {
 }
 
 
-def test_dc_table_has_34_fields():
+def test_dc_table_has_33_fields():
     # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28, [r8] dc_seal_9·dc_off_current·dc_conduction_floor 3 = 31,
     # [r11] 3.0b node.dc_orbit·device.dc_orbit 2 = 33, [U2] graph.dc_symmetry 1 = 34, [U17 ①-d] 대칭 블록 graph 이동 −5
     # (node/device dc_colour·dc_orbit, graph.dc_symmetry) = 29, [U17 ①-b] 설계 40 v1.9.1 §2.4.8 S0 행 +4: device.dc_self_referential(1변수 writer 집합),
     # graph/kernel fixed_values·resistor_values·l_ties(커널 컨텍스트 구조 파생) = 33. theta_schema 는 dc_theta_schema 를 옮긴 것이라 ±0).
-    # [IT-2b 갱신] node.dc_output_structure(writer dc_writer_plan, design 41 4.7-1a) +1 = 34.
-    assert len(DC_TABLE) == 34
+    # [IT-2c 갱신, 승인 동작 변경 O-109·O-205] node.dc_output_structure 삭제(계획 v6.38.8 N3.8, design 41 v1.16.3 §4.7-W) −1 = 33.
+    assert len(DC_TABLE) == 33
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -95,6 +92,11 @@ SS_TABLE = {
     # [U17 ①] 설계 40 §2.4.8 소유표 행 '수동소자 값 | device: passive_value | GB5 수동소자 블록(passive_values 를 블록으로)' -- 블록
     # 이름 = writer 이름 규약(위 metrics_* 행과 같음)이라 writer 는 `passive_values`(구현 공개 이름 PASSIVE_VALUES_WRITER 와 같다).
     ("device", "passive_value"): "passive_values",
+    # [IT-2c 갱신] interface 20261104-it2c-icm-config '권한표': SS_WRITES 에 아래 네 행(writer 이름 = 블록 이름 규약).
+    ("graph", "ss_circuit"): "ss_circuit",
+    ("graph", "ss_nodal"): "ss_nodal",
+    ("node", "dc_window_cfg"): "icm_config",
+    ("graph", "icm_config"): "icm_config",
 }
 
 
@@ -215,17 +217,14 @@ def test_vocabulary_constants():
         "cs_cell_direction_mixed")
 
 
-def test_it2b_output_structure_vocabulary_and_window_status_defaults():
-    """oracle 대조: (d) 사용자 선언 스펙값 -- design 41 v1.12.8 4.7-1a·4.7-2: 출력 구조 분류 값은 두 문자열뿐이고(상수 `OUTPUT_HIGH_IMPEDANCE`·
-    `OUTPUT_KVL_FIXED`, 모듈 `gmid_engine.sizing.s2_values`), `Window` 의 새 칸 기본값은 (input_status None, tol_v None).
-    [O-98 반영] `status_detail` 칸은 (S4-나)에서 IT-2b 에 없다 -- 동작점 불일치 묶음은 EO-1 card 몫(계획 v6.33)."""
+def test_it2b_window_status_defaults():
+    """oracle 대조: (d) 사용자 선언 스펙값 -- design 41 4.7-2: `Window` 의 새 칸 기본값은 (input_status None, tol_v None). [IT-2c 갱신] 출력 구조 분류
+    어휘 상수와 상태 'f_component_undeclared' 단언은 삭제(대상 소멸, O-205·interface 20261104-it2c-icm-config); cfg 상태는 measured·unmeasured 뿐."""
     from gmid_engine.sizing import s2_values
-    assert s2_values.OUTPUT_HIGH_IMPEDANCE == "high_impedance"
-    assert s2_values.OUTPUT_KVL_FIXED == "kvl_fixed"
     w = s2_values.Window(0.31, 1.12, 2, input_status="measured", tol_v=1.2e-4)         # 설계 예시 리터럴 (41 4.7-2)
     assert (w.lo, w.hi, w.constraints, w.input_status, w.tol_v) == (0.31, 1.12, 2, "measured", 1.2e-4)
-    undefined = s2_values.Window(None, None, 0, input_status="f_component_undeclared")
-    assert (undefined.lo, undefined.hi, undefined.input_status) == (None, None, "f_component_undeclared")
+    undefined = s2_values.Window(None, None, 0, input_status="unmeasured")
+    assert (undefined.lo, undefined.hi, undefined.input_status, undefined.tol_v) == (None, None, "unmeasured", None)
 
 
 def test_value_defaults():
