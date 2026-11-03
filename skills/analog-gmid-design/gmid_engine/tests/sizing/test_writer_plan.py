@@ -643,6 +643,7 @@ def test_it1_t5b_nonrail_gate_equals_source_is_fixed_vgs_dependent(tmp_path, toy
     assert co["Mgs"] == DeviceCoord("dependent", "fixed_vgs")
     assert [m for m, c in co.items() if c.role == "dependent"] == ["Mgs"]
     assert ("ln_idu", "Mgs") not in set(kschema(ctx).components)
+    assert "Mgs" not in ctx.inputs.linear_devices                      # 영역 선언 입력에 없음 = 포화 기본·전도(선언 없음). 꺼짐 분류 칸은 쓰기 계획에 없다
     assert all(co[m] == DeviceCoord("writer", "tree") for m in ("M1", "M2", "M4"))
 
 

@@ -117,27 +117,32 @@ def test_it1_derived_fields_in_record(tmp_path):
     assert {name for name, _fv in snap.record("graph", "s1v").fields} >= set(IT1_FIELDS)
 
 
+def _it1_vals(snap):
+    return {f: snap.value("graph", "s1v", f) for f in IT1_FIELDS}
+
+
 def test_it1_derived_fields_empty_without_diode_or_composite(tmp_path):
-    """T-6a (손): CS(M1 nmos out,in,gnd + M2 pmos out,vb,vdd) -- gate = drain 인 MOS 도 복합 diode 걷기도 없다 -> 네 필드 값에 원자 0."""
+    """T-6a (손): CS(M1 nmos out,in,gnd + M2 pmos out,vb,vdd) -- gate = drain 인 MOS 도 복합 diode 걷기도 없다 -> 네 필드 모두 빈 값
+    (frozenset / 빈 tuple, 형식은 interface '값 형식')."""
     s1, _ = H.build(tmp_path, H.CS)
-    snap = _run(s1)
-    for f in IT1_FIELDS:
-        assert _atoms(snap.value("graph", "s1v", f)) == set(), f
+    assert _it1_vals(_run(s1)) == {"diode_nodes": frozenset(), "composite_mos": frozenset(), "composite_bundles": (),
+                                   "composite_internal": frozenset()}
 
 
 def test_it1_diode_nodes_hand_value(tmp_path):
-    """T-6a (손): CSDIODE 의 M2 pmos (drain out, gate out, source vdd) 는 gate = drain 인 단순 diode -- diode 넷 out 이 값에 든다.
-    M1 의 gate 넷 in 은 diode 가 아니다."""
+    """T-6a (손): CSDIODE 의 M2 pmos (drain out, gate out, source vdd) 는 gate == drain -> diode_nodes = {out}. M1 의 gate 넷 in 은 아니다.
+    복합 diode 는 없으므로 나머지 셋은 빈 값."""
     s1, _ = H.build(tmp_path, H.CSDIODE)
-    atoms = _atoms(_run(s1).value("graph", "s1v", "diode_nodes"))
-    assert "out" in atoms and "in" not in atoms
+    assert _it1_vals(_run(s1)) == {"diode_nodes": frozenset({"out"}), "composite_mos": frozenset(), "composite_bundles": (),
+                                   "composite_internal": frozenset()}
 
 
 def test_it1_composite_fields_hand_value(tmp_path):
-    """T-6a (손): RSELF 손 걷기(jrules_hand 머리 주석) -- Ma -> {Mb}, Mb -> {Rx} 로 한 묶음 {Ma, Mb, Rx}. 복합 MOS 에 Ma·Mb 가 들고
-    Mc·Md·Mi 는 들지 않으며 묶음에 Ma·Mb·Rx 가 든다."""
+    """T-6a (손): RSELF = Ma pmos (p1, gate p2, vdd), Mb pmos (p2, gate p3, p1), Mc nmos (p3, vb, gnd), Md pmos (out, p2, vdd), Mi nmos (out, in, gnd),
+    Rx (p2, p3). 손 걷기(jrules_hand 머리 주석): Ma -> {Mb}, Mb -> {Rx} 한 묶음 {Ma, Mb, Rx}.
+    composite_mos = {Ma, Mb}. composite_bundles = (frozenset({Ma, Mb, Rx}),). diode_nodes = gate == drain 인 MOS 없음 ∪ 묶음 MOS 멤버의 gate 넷 {p2(Ma), p3(Mb)}.
+    composite_internal = 묶음 멤버 단자만 닿는 비레일 넷: p1 (Ma.d·Mb.s) 만 -- p2 는 Md gate, p3 는 Mc drain 도 닿는다."""
     s1, _ = H.build(tmp_path, J.RSELF)
-    snap = _run(s1)
-    mos_atoms = _atoms(snap.value("graph", "s1v", "composite_mos"))
-    assert {"Ma", "Mb"} <= mos_atoms and not mos_atoms & {"Mc", "Md", "Mi"}
-    assert {"Ma", "Mb", "Rx"} <= _atoms(snap.value("graph", "s1v", "composite_bundles"))
+    assert _it1_vals(_run(s1)) == {"diode_nodes": frozenset({"p2", "p3"}), "composite_mos": frozenset({"Ma", "Mb"}),
+                                   "composite_bundles": (frozenset({"Ma", "Mb", "Rx"}),),
+                                   "composite_internal": frozenset({"p1"})}
