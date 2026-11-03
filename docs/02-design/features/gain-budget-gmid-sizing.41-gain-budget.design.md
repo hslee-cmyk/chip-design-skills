@@ -14,7 +14,7 @@ plan_version: 6.38.8
 > - 스펙에서 θ 좌표(ln IDu -- O-186)·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-11-04 · **Status**: **design v1.16.4 -- card 후속(UB-1 A-35·A-36, TB-1 A-34, IT A-33 J4, rule_hash 공통 규칙) **미승인, 독립 검증 대기**; 그 밖은 v1.16.3 승인(A-27) 그대로. 계획 기준 = v6.38.8(master `c0b41eee`, 승인 A-25). 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04, design/v115 `6271a8b8`, 독립 재판정 + V5·V6 검증자 문언 반영): 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔), ④(HC-S·HC-1·GC-1·GC-8), ⑥(EO-1, SF-1 로더 조각), card C 정정. **미승인: ① LA-1a(§6.9 -- 선택 유보·보류 표지), ③ WB-1(Q-W1 기본안 뒤 재검증).** LA-1a 판단이 걸린 줄은 '보류 중' 표지. HC-S·HC-1 = `headroom-chain.design.md`, GC = `graph-consumption.design.md`(design/hcgc `f59a239d` 합침, 묶음 ④ -- 검증 전). design/eo1 `2b1750dc` 합침(41 §4.8·§4.9 = 묶음 ⑥ 초안), card C 정정 DF-1~DF-6(A-9) 반영**(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H41-38, 경위 = H40-40.
+> **Date**: 2026-11-04 · **Status**: **design v1.16.4 -- 계획 기준 = v6.38.8(master `c0b41eee`, 승인 A-25).** **승인(O-226 위임 A-27, v1.16.3)**: 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔), ④(HC-S·HC-1·GC-1·GC-8), ⑥(EO-1, SF-1 로더 조각), card C 정정. **v1.16.4 card 후속(UB-1 A-35·A-36, TB-1 A-34, IT A-33 J4, rule_hash 공통 규칙) = 독립 판정 `cards_batch_validation.md` 문언 반영 뒤 채택(위임 A-37).** **미승인**: ① LA-1a(§6.9, '보류 중' 표지), ③ WB-1(Q-W1 기본안 뒤 재검증). 자리: HC-S·HC-1 = `headroom-chain.design.md` v0.1, GC-1·GC-8 = `graph-consumption.design.md` v0.1, EO-1 = 41 §4.8·§4.9(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H41-38, 경위 = H40-40.
 >
 > 색인과 표기는 [40-engine](gain-budget-gmid-sizing.40-engine.design.md)을 따른다(`E/`, OK/DEV/PART/MISS). as-built 기준은 master `004b7d2`다.
 
@@ -446,7 +446,7 @@ DEC-17 순서(`E/graph/l_classes.py`)의 3번째에 규칙 하나를 넣는다.
 6. **조립 하나**: 스탬프 조립은 U9 모델 하나다. `block_local_gain`은 그 모델을 봉인 `ss`(gm·gmb·gds) 값으로 평가하는 진입점이고 둘째 컨덕턴스 조립은 지운다(UB-1 범위 (1); 재작성 범위 = `E/metrics/block_model.py`, `_helpers_nodal`의 블록 쪽). 소비자 `block_residual`·`ff_gm_ratio`는 진입점만 바뀐다.
 7. **NL-1 -- 극한 식 하나**: 용량 전용 노드(DC 경로 없음)의 ω → 0은 전하 보존 극한이고 식은 `dc_limit` 한 자리다. `_helpers_nodal` 풀이와 블록 국소 풀이가 같은 함수를 부른다(입력 (G, C), 순수 함수, 새 memo 0).
 8. **`graph.ss_nodal`과의 관계**: `graph.ss_nodal`은 봉인점 전회로 컨덕턴스 계(card IT-2c), 블록 모델은 U_b 위 계라 미지수 축이 다른 양이다(graph 규칙 3). 전회로 G 조립의 정본은 `ss_nodal`이고 IT-2c가 `block_residual`·`offset_analysis`의 전회로 쪽을 그 READS로 옮긴다. 극한 식은 양쪽이 같은 함수다. `_helpers_nodal.conductance_matrix`는 파일 겹침이라 나중 병합 card가 rebase한다(새 순서 규칙 0).
-9. **C 값**: ω → 0 정의라 gain·Z_out에 C가 직접 들지 않는다. 용량 전용 노드의 극한만 C 비를 읽는다. 봉인 모드는 `ss` C다. **LUT 행 모드에서 용량 전용 노드가 있으면 그 블록은 미상**(`charge_node_row_mode`, G4 -- 전하 보존 행에 닿는 모든 소자 C가 행 모드에 없다; 미상은 근사로 빼는 것이 아니다, O-179; library 발동 0/13). **E-16 세분**(G7) = 최대 행 L 축의 같은 bin 구간 전부, 구간 안 단봉 가정(§4.2 N5와 같은 한계, 13회로 인증 수 변화 미측정).
+9. **C 값**: ω → 0 정의라 gain·Z_out에 C가 직접 들지 않는다. 용량 전용 노드의 극한만 C 비를 읽는다. 봉인 모드는 `ss` C다. **LUT 행 모드에서 용량 전용 노드가 있으면 그 블록은 미상**(`charge_node_row_mode`, G4 -- 전하 보존 행에 닿는 모든 소자 C가 행 모드에 없다; 미상은 근사로 빼는 것이 아니다, O-179; library 발동 0/13). **E-16 세분**(G7, 위임 A-37): 연속 축 세분 뒤 최대 행의 각 L 축에서 같은 bin의 이웃 앵커 구간(그 축 소자 kind 모두에 같은 bin)마다 기존 연속 축 세분과 같은 단봉 최대 찾기(새 상수 0)를 **늘** 돌린다. 결과 > 끝값이면 상한과 그 행의 L 값을 올린다. 찾기 중 NaN이면 미상(`bin_interior_unchecked`). bin이 다른 구간은 안 본다. 구간 안 단봉 가정(§4.2 N5, 13회로 인증 수 변화 미측정).
 
 **측정 게이트**(O-225, 계획 v6.38.8 N6.1 측정 게이트 처리 표):
 
