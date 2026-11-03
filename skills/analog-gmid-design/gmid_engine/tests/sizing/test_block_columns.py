@@ -1615,7 +1615,12 @@ def test_it1_t1h_input_point_ports_share_voltage_and_window_key(tmp_path, r4_acc
     assert "ina" in win and "inb" not in win
     assert abs(V["ina"] - V["inb"]) <= 1e-12
     assert abs(V["ina"] - (win["ina"].lo + 0.5 * (win["ina"].hi - win["ina"].lo))) <= 1e-9
-    assert abs(V["t"] - _dp_t(V["ina"])) <= 1e-5
+    from gmid_engine.lut import tol_v_table
+    from gmid_engine.sizing import dc_widths
+    ops = dict(dc_widths(snap, ctx.lut, donors=ctx.donors, counters=ctx.counters).column("device", "dc_op"))
+    writer = next(m for m, c in ctx.base.column("device", "dc_coord") if m in ("M1", "M2") and c.role == "writer")
+    tol = tol_v_table(r4_access.memo, ops[writer].kind, ops[writer].w_key).at(ops[writer].L, ops[writer].vds, "id_equivalent")
+    assert tol is not None and abs(V["t"] - _dp_t(V["ina"])) <= tol                           # 노드 풀이 수렴 정의(봉인 2 와 같은 tol_V), 숫자 상수 아님
 
 
 def _it1_ftouch_doc():
@@ -1649,7 +1654,7 @@ def test_it1_t1h_input_point_touching_f_ports_share_voltage(tmp_path, toy_access
     snap = run_blocks(ctx, th, upto="columns")
     V = node_voltages(snap)
     win = _window_of(snap)
-    assert "inp" not in win and "inn" not in win                                         # F 에 닿는 입력 점은 창 항목이 없다
+    assert all(win[x].lo is None and win[x].hi is None for x in ("inp", "inn") if x in win)   # F 에 닿는 입력 점은 창 값이 없다(항목 삭제는 IT-2c)
     assert abs(V["o1"] - 0.9) <= 1e-9 and abs(V["o2"] - 0.9) <= 1e-9
     assert abs(V["inp"] - V["inn"]) <= 1e-12
     assert abs(V["inp"] - 0.6) <= 1e-9

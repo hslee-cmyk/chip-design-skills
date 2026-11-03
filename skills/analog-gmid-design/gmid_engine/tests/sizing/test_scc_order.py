@@ -47,6 +47,17 @@ def deps_of(snap):
                     d.add(p["s"])
                 if p["s"] == n:
                     d.add(p["d"])
+        elif w.relation == "input_point" and w.known is not None:
+            d = {w.known}                                             # 짝 포트 = 같은 전압(KVL)
+        elif w.relation == "input_point":
+            point = {n} | {x for x, o in writers.items() if o.relation == "input_point" and o.known == n}
+            d = set()                                                 # 뿌리: 한 점의 두 넷에 채널이 닿는 소자의 건너편(4.7-3 순서 창)
+            for p in pins.values():
+                if p["d"] in point:
+                    d.add(p["s"])
+                if p["s"] in point:
+                    d.add(p["d"])
+            d -= point
         else:
             raise AssertionError("unknown relation %r" % (w.relation,))
         deps[n] = {x for x in d if x not in fixed}

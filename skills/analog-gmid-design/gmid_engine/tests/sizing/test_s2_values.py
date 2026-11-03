@@ -143,7 +143,7 @@ READS = {
                          ("device", "dc_colour"), ("node", "is_rail"), ("graph", "dc_pruned"), ("graph", "orbits")},
     "dc_writer_plan": {("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
                        ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
-                       ("node", "dc_colour"),
+                       ("node", "dc_colour"), ("node", "port_role"), ("graph", "gvgs_summary"),
                        ("device", "bulk")},      # [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
     "dc_scc_order": {("node", "dc_writer"), ("device", "pins"), ("device", "bulk"), ("device", "element_class"),
                      ("graph", "columns"), ("graph", "branches")},

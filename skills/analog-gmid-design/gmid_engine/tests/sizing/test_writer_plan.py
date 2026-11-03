@@ -154,13 +154,16 @@ def test_renamed_diffpair_plan_follows_colour_correspondence(tmp_path, toy_acces
         nw, co, ties = plan(ctx)
         nc = dict(ctx.base.column("node", "dc_colour"))
         ec = dict(ctx.base.column("device", "dc_colour"))
-        f = lambda x: ec.get(x, nc.get(x, x)) if x is not None else None          # noqa: E731
+        pair = {"inp", "inn"}                                                     # 입력 점: τ 는 연결 자기동형이라 p·n 을 맞바꿀 수 있다(DC 는 p·n 을 가르지 않는다)
+        f = lambda x: "P" if x in pair else (ec.get(x, nc.get(x, x)) if x is not None else None)   # noqa: E731
         nodes = {nc[n]: (w.tier, w.relation, f(w.element), f(w.known), f(w.y_key))
-                 for n, w in nw.items()}
+                 for n, w in nw.items() if n not in pair}
+        point = sorted((nw[n].tier, nw[n].relation, f(nw[n].y_key)) for n in pair)
         coords = {ec[m]: (c.role, c.relation, f(c.partner)) for m, c in co.items()}
-        return nodes, coords, tuple(ties)
+        return nodes, point, coords, tuple(ties)
     assert by_colour(a) == by_colour(b)
-    assert by_colour(b)[2] == ()
+    assert by_colour(b)[3] == ()
+    assert plan(a)[0]["inp"].y_key == plan(a)[0]["inn"].y_key == plan(b)[0]["inp"].y_key == plan(b)[0]["inn"].y_key == "inp"   # y 키 = role p 포트(이름 맞바꿈과 무관)
 
 
 def test_resistor_cycle_stop(tmp_path, toy_access):
@@ -206,11 +209,12 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
     # [r11] 3.0b 성질 (7): 이름 대신 정준 위치가 선택을 정하고 TieBreak 기록은 비므로, 비교는 σ 가 아니라 τ(두 사례의 같은 dc_colour 짝) 아래서 한다
     assert tuple(ctx2.base.value("graph", DC_KEY, "dc_tie_breaks")) == ()
 
-    def tau(c):
+    def tau(c, doc):
         ec = dict(c.base.column("device", "dc_colour"))
         nc = dict(c.base.column("node", "dc_colour"))
-        return lambda x: ("d", ec[x]) if x in ec else (("n", nc[x]) if x in nc else ("k", x))
-    t1, t2 = tau(ctx), tau(ctx2)
+        pair = {k for k, v in doc["ports"].items() if isinstance(v, dict) and v.get("role") in ("differential_input_p", "differential_input_n")}
+        return lambda x: ("P",) if x in pair else (("d", ec[x]) if x in ec else (("n", nc[x]) if x in nc else ("k", x)))
+    t1, t2 = tau(ctx, raw), tau(ctx2, d2)
     w1 = {t1(m) for m, c in ctx.base.column("device", "dc_coord") if c.role == "writer"}
     w2 = {t2(m) for m, c in ctx2.base.column("device", "dc_coord") if c.role == "writer"}
     assert w1 == w2, "정준 대응 아래 writer 선택이 다르다"
@@ -219,6 +223,10 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
     assert k1 == k2, "정준 대응 아래 θ 키가 다르다"
     # 개수 구조는 항상 같다
     assert len(w1) == len(w2) and len(k1) == len(k2)
+    # y 키는 role 을 따른다: σ 로 옮기면 같은 입력 점 키
+    pk = [k for k, v in raw["ports"].items() if isinstance(v, dict) and v.get("role") == "differential_input_p"]
+    if pk and ("y", pk[0]) in set(kschema(ctx).components):
+        assert ("y", sn[pk[0]]) in set(kschema(ctx2).components)
     tiers = lambda c: sorted(w.tier for _, w in c.base.column("node", "dc_writer"))   # noqa: E731
     assert tiers(ctx) == tiers(ctx2)
     # [r5] 수동소자 θ 성분과 영점 상쇄 판정(연결만으로 정해짐 -- 동률 기록 없음)은 σ 를 그대로 따른다(9절 + 4.4)
