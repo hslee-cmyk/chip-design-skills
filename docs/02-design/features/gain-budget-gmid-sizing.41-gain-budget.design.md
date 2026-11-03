@@ -14,7 +14,7 @@ plan_version: 6.38.7
 > - 스펙에서 θ 좌표(ln IDu -- O-186)·L·전류 출발 구간을 topology와 무관하게 유도한다.
 > - 잡음 경로를 만든다. spec 제약, LUT 잡음 데이터, MNA adjoint 잡음 해석, 오라클 `.noise` 대조를 포함한다.
 >
-> **Date**: 2026-11-03 · **Status**: **design v1.16.3 -- 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔) 검증 Major 7 반영, 재검증 대기. **부분 승인 표지: 승인 대상 = ②(승인 전 -- 계획 v6.38.8 승인 뒤 요청, 승인 행 없음), ① LA-1a(§6.9 -- 선택 유보·보류)·③④⑥ 미승인.** LA-1a 판단이 걸린 줄은 '보류 중' 표지. HC-S = `headroom-chain.design.md`(이 묶음 밖). design/eo1 `39d19ad4` 합침(41 §4.8 = 묶음 ⑥ 초안), card C 정정 DF-1~DF-6(A-9) 반영**(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H41-38, 경위 = H40-40.
+> **Date**: 2026-11-03 · **Status**: **design v1.16.3 -- 묶음 ②(IT-1·IT-2·TB-1·UB-1 + NL-1·범위 나눔) 검증 Major 7 반영, 재검증 대기. **부분 승인 표지: 승인 대상 = ②(승인 전 -- 계획 v6.38.8 승인 뒤 요청, 승인 행 없음), ① LA-1a(§6.9 -- 선택 유보·보류)·③④⑥ 미승인.** LA-1a 판단이 걸린 줄은 '보류 중' 표지. HC-S = `headroom-chain.design.md`(이 묶음 밖). design/eo1 `2b1750dc` 합침(41 §4.8·§4.9 = 묶음 ⑥ 초안), card C 정정 DF-1~DF-6(A-9) 반영**(40·41·42 같은 판). 옛 Status v1.16.2 = design 이력 H41-38, 경위 = H40-40.
 >
 > 색인과 표기는 [40-engine](gain-budget-gmid-sizing.40-engine.design.md)을 따른다(`E/`, OK/DEV/PART/MISS). as-built 기준은 master `004b7d2`다.
 
@@ -453,7 +453,7 @@ DEC-17 순서(`E/graph/l_classes.py`)의 3번째에 규칙 하나를 넣는다.
 | 입력 | 계획 자리 | 이 판 기본안 | 재점검 때 할 일 |
 |---|---|---|---|
 | UB-0(두 구현 규칙 차이) | UB-1 범위 (2), 착수 조건 | 위 1~5(물리 정의 ω → 0 KCL, 같은 미지수 집합 -- 계획이 적은 권고 그대로) | 13회로 차이·원인 기록, 위 규칙과 다른 자리가 나오면 §2.5 개정. **미측정** |
-| M-LA16 U9 칸 | N5.3 착수 실측 | 위 9 | 자리별 C 열 대조표. **미측정** |
+| M-LA16 U9 칸 | N5.3 착수 실측, 측정 게이트 표 (나)(v6.38.8 검증 중) | 위 9 | card UB-1 착수 때 정의 자리별 코드 대조(엔진 평가 0), 어긋나면 그 card가 고침. **아직 안 함** |
 | 회로 해석이 걸리는 블록 경계·FF 귀속 | UB-1 범위 (2) '공동분석' | 정하지 않음 -- 발동하면 멈추고 공동분석 | 위 UB-0 결과에서 발동 여부 확인 |
 | 판정 소비자 0 | UB-1 완료 (3) | 착수 때 `git grep`, 있으면 멈춤 | card 착수 시 |
 
@@ -893,13 +893,7 @@ def region_mismatch(judgment) -> bool                                       # �
 
 **4.8-9 채택 항목(위임 O-226 -- 계획 없던 결정, 기록 `la1_auto_decisions.md`)**
 
-<<<<<<< HEAD
-**[v1.16.3 -- G1 = (W-1), G2 = (S-1)을 위임 A-1·A-2(O-226)로 채택, LA-1 측정 시점 재검토(독립 검증 전, 미측정). 4.8-5·4.8-7 동결을 더 막지 않는다]**
-
-**G1. off 소자의 (W, L) 출처.** 정본 (5)는 off 소자를 W 계산에서 빼면서 ΔI_off = LUT 점값(전류는 W/L 비례)을 요구한다. 계획·O-221 어디에도 W·L 자리가 없고, topology 소자 선언에도 기하 칸이 없다(`E/authoring/topology_model.py:38`). 물리 결정자: 꺼진 소자의 채널 전류는 W/L과 L 의존 Vth로 정해져 L만으로 자릿수가 움직인다(P:2481 R_ds 실측 문단). 임의 값은 원칙 11 위반이다.
-=======
 **G1. off 소자의 (W, L) 출처 -- 채택 (W-1), A-1.** 정본 (5)는 off 소자를 W 계산에서 빼면서 ΔI_off = LUT 점값(전류는 W/L 비례)을 요구한다. 계획·O-221 어디에도 W·L 자리가 없고, topology 소자 선언에도 기하 칸이 없다(`E/authoring/topology_model.py:38`). 물리 결정자: 꺼진 소자의 채널 전류는 W/L과 L 의존 Vth로 정해져 L만으로 자릿수가 움직인다(P:2481 R_ds 실측 문단). 임의 값은 원칙 11 위반이다.
->>>>>>> design/eo1
 
 | 안 | 물리 | 원칙 | ⚠ |
 |---|---|---|---|
@@ -930,7 +924,7 @@ def region_mismatch(judgment) -> bool                                       # �
 | P6 | 40 §4 v1.15.2 문단(design/v115 줄 1553) 'E-21 문턱 없으면 판정 불능' | O-210 RR-2 낡은 문언. 기준 폭만 남겨야 함(P:2459) |
 | P7 | P:664 (5) (라), P:2171 (b)(c) | 채택 A-1·A-2 반영: `w_m`·`l_m` 칸, `device.off_op` 필드, off 소자 스탬프 |
 
-**4.8-11 design/v115와의 겹침**: v115도 4.7-3a 2·3·4.7-9의 EO-1 줄과 40 소유표·§4 머리를 고쳤다. 이 판은 그 줄과 Status를 건드리지 않고 새 절만 더했다. **v115 병합 때 할 일**: (1) 4.7-3a 2·3·4.7-9의 낡은 EO-1 문언을 이 절 인용으로 교체 (2) 40 §2.4.8에 아래 소유표 행 (3) 위 P6. oracle design의 `stage2_judgment`·`conduction.points`·K-5·K-6 문언은 묶음 ⑤ 몫이다.
+**4.8-11 design/v115와의 겹침**(v1.16.3: 아래 할 일 처리됨 -- 41 §4.7-3a·§4.7-9, 40 소유표·§11, §4 머리 E-21): v115도 4.7-3a 2·3·4.7-9의 EO-1 줄과 40 소유표·§4 머리를 고쳤다. 이 판은 그 줄과 Status를 건드리지 않고 새 절만 더했다. **v115 병합 때 할 일**: (1) 4.7-3a 2·3·4.7-9의 낡은 EO-1 문언을 이 절 인용으로 교체 (2) 40 §2.4.8에 아래 소유표 행 (3) 위 P6. oracle design의 `stage2_judgment`·`conduction.points`·K-5·K-6 문언은 묶음 ⑤ 몫이다.
 
 소유표 행 문안: `device.region_decl`(S0, writer `dc_region_decl`, 소비자 `dc_seal_region`·쓰기 계획·전류 기저·θ 스키마·`search_domain`·`region_rows`·`ss_off_op`·`ss_dev`·관문·`check_off_judged_by`·oracle 생산자, 뒤 card HC-S) / `graph.dc_seal_7`·`graph.dc_seal_9`(writer `dc_seal_region`) / `device.off_op`(ss, writer `ss_off_op`, 소비자 `ss_dev`·`ss_off_delta`·oracle 생산자) / `graph.ss_off_delta`(ss, writer `ss_off_delta`, 소비자 관문 + 출력 기록) / 삭제 `device.dc_off_current`·`device.dc_conduction_floor`. 새 cache·memo·context 슬롯·결과 값 칸 0, LUT 조회 재사용은 승인 예외 LUT memo뿐.
 
