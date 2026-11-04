@@ -58,7 +58,8 @@ class Adapter:
         caps = {k: False for k in CAP_KEYS}
         caps.update({"op": True, "ac": True, "temperature": True, "instance_geometry_readback": True,
                      "case_insensitive_names": True, "mc_enable_kinds": {}, "mc_distributions": [],
-                     "geometry_unit_application": ["global_directive"], "model_families": sorted(dialect.OP_PARAM_TABLES)})
+                     "geometry_unit_application": ["global_directive"], "model_families": sorted(dialect.OP_PARAM_TABLES),
+                     "compat_modes": dialect.compat_modes()})
         return caps
 
     def calibration(self) -> dict:
@@ -103,9 +104,14 @@ class Adapter:
         bundle = self.model_bundle(circuit, descriptor, cond)
         fp = {"code_sha256": _code_fingerprint(), "exe_sha256": self._exe_sha()}
         adapter_fp = canonical_sha256(fp)
-        key = cache_key(adapter_fp, text, [h["lf"] for h in bundle.values()], runner.ARGS, "")
+        init_text = "" if compat is None else compat.spiceinit_text      # compat None(도구 실행)도 빈 설정 글을 쓴다 -- 홈 설정 격리(B-3)
+        key = cache_key(adapter_fp, text, [h["lf"] for h in bundle.values()], runner.ARGS, raw_sha256(init_text.encode("utf-8")))
         files = [dialect.data_file(r.id) for r in requests if isinstance(r, Ac)]
-        rc, log, state, timed_out = runner.execute(self.exe, text, str(work_dir), files, timeout_s, cache_dir, key)
+        rc, log, state, timed_out = runner.execute(self.exe, text, str(work_dir), files, timeout_s, cache_dir, key, init_text)
+        if compat is not None and not timed_out:         # 실행 뒤 대조(캐시 적중 포함): 로그 문장의 모드가 선언 모드와 다르면 그 벤치 결과를 쓰지 않는다
+            actual = read.compat_mode_of(log, self.capabilities()["compat_modes"])
+            if actual != compat.mode:
+                raise OracleError("bin_rule_compat_mismatch", {"declared": compat.mode, "actual": actual}, "8b")
         by_request, present = {}, False
         digits = self.calibration()["data_digits"]["value"]
         if not timed_out:

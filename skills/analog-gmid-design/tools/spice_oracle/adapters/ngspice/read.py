@@ -25,6 +25,13 @@ def _grab(text, expr):
     return float(m.group(1)) if m else None
 
 
+def compat_mode_of(log, compat_modes):
+    """로그의 한 줄이 줄 정규식에 맞는 모드 이름 하나. 맞는 모드가 없거나 둘 이상이면 None(통과로 세지 않는다)."""
+    lines = str(log).splitlines()
+    hit = [m for m, e in compat_modes.items() if any(re.search(e["log_line"], ln) for ln in lines)]
+    return hit[0] if len(hit) == 1 else None
+
+
 def signed_id(op_id, op_vds):
     """크기 규칙 ID(부호 포함) = @id x sign(@vds). @vds = 0 이면 0, 둘 중 하나가 없으면 None."""
     if op_id is None or op_vds is None:

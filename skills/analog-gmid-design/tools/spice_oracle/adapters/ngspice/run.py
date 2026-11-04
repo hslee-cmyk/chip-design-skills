@@ -67,8 +67,9 @@ def collect_bundle(roots):
     return out
 
 
-def execute(exe, text, work_dir, data_files, timeout_s, cache_dir, key):
-    """text 를 work_dir/bench.cir 로 쓰고 `exe -b bench.cir` 를 돌린다. 반환 (rc | None, 로그 글, 캐시 상태, 시간 초과 여부).
+def execute(exe, text, work_dir, data_files, timeout_s, cache_dir, key, spiceinit_text):
+    """spiceinit_text 를 work_dir/.spiceinit 로 **언제나** 쓰고(빈 글 포함, 캐시 적중에도 같다 -- 실행 폴더 파일이 있으면 사용자 홈·환경 변수 쪽
+    설정을 읽지 않는다, F-22), text 를 work_dir/bench.cir 로 쓰고 `exe -b bench.cir` 를 돌린다. 반환 (rc | None, 로그 글, 캐시 상태, 시간 초과 여부).
     캐시 상태 None(캐시 폴더 없음) | 'hit' | 'miss'. data_files = 넷리스트가 work_dir 에 쓰는 데이터 파일 이름(캐시에 함께 저장·복원)."""
     os.makedirs(work_dir, exist_ok=True)
     cir, log_path = os.path.join(work_dir, "bench.cir"), os.path.join(work_dir, "bench.log")
@@ -76,6 +77,8 @@ def execute(exe, text, work_dir, data_files, timeout_s, cache_dir, key):
         p = os.path.join(work_dir, n)
         if os.path.exists(p):
             os.remove(p)
+    with open(os.path.join(work_dir, ".spiceinit"), "wb") as f:
+        f.write(spiceinit_text.encode("utf-8"))
     with open(cir, "wb") as f:
         f.write(text.encode("utf-8"))
     state = None if not cache_dir else "miss"

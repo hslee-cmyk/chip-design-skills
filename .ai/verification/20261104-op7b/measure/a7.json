@@ -1,0 +1,307 @@
+{
+ "A7-2": {
+  "decl_n": 7,
+  "rows": {
+   "R1": {
+    "records": 3,
+    "subset": true,
+    "direct_record_in_decl": 0
+   },
+   "R2": {
+    "records": 3,
+    "subset": true,
+    "direct_record_in_decl": 0
+   },
+   "R3": {
+    "records": 7,
+    "subset": true,
+    "direct_record_in_decl": 0
+   },
+   "R4": {
+    "records": 3,
+    "subset": true,
+    "direct_record_in_decl": 0
+   },
+   "R5": {
+    "records": 7,
+    "subset": true,
+    "direct_record_in_decl": 0
+   },
+   "R6": {
+    "records": 3,
+    "subset": true,
+    "direct_record_in_decl": 0
+   },
+   "R7": {
+    "records": 3,
+    "subset": true,
+    "direct_record_in_decl": 0
+   },
+   "R8": {
+    "records": 3,
+    "subset": true,
+    "direct_record_in_decl": 0
+   },
+   "R9": {
+    "records": 3,
+    "subset": true,
+    "direct_record_in_decl": 0
+   },
+   "R10": {
+    "records": 7,
+    "subset": true,
+    "direct_record_in_decl": 0
+   }
+  },
+  "found": 10,
+  "compat": {
+   "mode": "default",
+   "spiceinit_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "spiceinit_text": ""
+  },
+  "simulator": {
+   "name": "ngspice",
+   "version": "46"
+  },
+  "compat_sha_ok": true
+ },
+ "A7-3": {
+  "T7-9a_declared_default_poisoned_home": {
+   "state": null,
+   "error": "sim_failed_other",
+   "V_a": 1.0,
+   "spiceinit": "",
+   "home_read": false,
+   "mode": "default",
+   "lines": [
+    "Note: No compatibility mode selected!"
+   ]
+  },
+  "T7-9b_none_poisoned_home": {
+   "state": null,
+   "error": "sim_failed_other",
+   "V_a": 1.0,
+   "spiceinit": "",
+   "home_read": false,
+   "mode": "default",
+   "lines": [
+    "Note: No compatibility mode selected!"
+   ]
+  },
+  "hsa_mode_table": {
+   "state": null,
+   "error": "sim_failed_other",
+   "V_a": 1.0,
+   "spiceinit": "set ngbehavior=hsa\n",
+   "home_read": false,
+   "mode": "hsa",
+   "lines": [
+    "Note: Compatibility modes selected: hs a"
+   ]
+  },
+  "T7-9c_text_hsa_declared_default": {
+   "reject": "bin_rule_compat_mismatch",
+   "detail": {
+    "declared": "default",
+    "actual": "hsa"
+   },
+   "stage": "8b",
+   "spiceinit": "set ngbehavior=hsa\n",
+   "home_read": false,
+   "mode": "hsa",
+   "lines": [
+    "Note: Compatibility modes selected: hs a"
+   ]
+  },
+  "userinit_dir_set_declared_default": {
+   "state": null,
+   "error": "sim_failed_other",
+   "V_a": 1.0,
+   "spiceinit": "",
+   "home_read": false,
+   "mode": "default",
+   "lines": [
+    "Note: No compatibility mode selected!"
+   ]
+  },
+  "control_no_run_folder_file": {
+   "home_read": true,
+   "lines": [
+    "Note: Compatibility modes selected: hs a"
+   ]
+  },
+  "cache": {
+   "first": {
+    "state": "miss",
+    "error": "sim_failed_other",
+    "V_a": 1.0,
+    "spiceinit": "",
+    "home_read": false,
+    "mode": "default",
+    "lines": [
+     "Note: No compatibility mode selected!"
+    ]
+   },
+   "hit": {
+    "state": "hit",
+    "error": "sim_failed_other",
+    "V_a": 1.0,
+    "spiceinit": "",
+    "home_read": false,
+    "mode": "default",
+    "lines": [
+     "Note: No compatibility mode selected!"
+    ]
+   },
+   "hit_with_tampered_log": {
+    "reject": "bin_rule_compat_mismatch",
+    "detail": {
+     "declared": "default",
+     "actual": "hsa"
+    },
+    "stage": "8b",
+    "spiceinit": "",
+    "home_read": false,
+    "mode": "hsa",
+    "lines": [
+     "Note: Compatibility modes selected: hs a"
+    ]
+   },
+   "keys_differ_by_mode_slots": null,
+   "hsa_same_bench_state": "miss",
+   "slots": 2
+  }
+ },
+ "reject_paths": {
+  "control_real_decl": {
+   "rc": 0,
+   "files": [
+    "tfb_cs_rfeedback.free",
+    "tfb_cs_rfeedback.free.compare.json",
+    "tfb_cs_rfeedback.free.compare.md",
+    "tfb_cs_rfeedback.free.sim.json"
+   ],
+   "stderr": ""
+  },
+  "mode_unknown": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "bin_rule_compat_mismatch",
+   "stage": "8b",
+   "detail": "{'declared': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'actual': None}"
+  },
+  "mode_name_default_text_hsa": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "bin_rule_compat_mismatch",
+   "stage": "8b",
+   "detail": "{'declared': '4f989b2ccc180f50d329b9eae44b2269f2241303c57fa94cc008dc7e3cd4e6e5', 'actual': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}"
+  },
+  "sha_self_mismatch": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "bin_rule_compat_mismatch",
+   "stage": "8b",
+   "detail": "{'declared': '0000000000000000000000000000000000000000000000000000000000000000', 'actual': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}"
+  },
+  "simulator_version": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "bin_rule_undeclared",
+   "stage": "8b",
+   "detail": "{'why': 'simulator', 'declared': 'ngspice-45', 'actual': 'ngspice-46'}"
+  },
+  "model_set_one_removed": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "bin_rule_undeclared",
+   "stage": "8b",
+   "detail": "{'why': 'model_set', 'missing': ['24a3b29d7d7f26f99098811c31eb5497950a3aed520ab83768a96f35467fe818']}"
+  },
+  "model_empty": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "bin_rule_undeclared",
+   "stage": "8b",
+   "detail": "{'why': 'decl_invalid', 'item': 'model_files_sha256'}"
+  },
+  "decl_file_empty_object": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "bin_rule_undeclared",
+   "stage": "8b",
+   "detail": "{'why': 'decl_invalid', 'item': 'schema'}"
+  },
+  "decl_file_not_json": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "bin_rule_undeclared",
+   "stage": "8b",
+   "detail": "{'why': 'decl_invalid', 'item': 'schema'}"
+  },
+  "no_decl_field": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "bin_rule_undeclared",
+   "stage": "8b",
+   "detail": "{'why': 'no_decl_ref'}"
+  },
+  "descriptor_field_empty_object": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "descriptor_schema_invalid",
+   "stage": "2",
+   "detail": "[{'pointer': '/bin_rule_decl/path', 'rule': 'required'}, {'pointer': '/bin_rule_decl/sha256', 'rule': 'required'}]"
+  },
+  "descriptor_sha_wrong": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "stderr": "",
+   "code": "pdk_descriptor_stale",
+   "stage": "2",
+   "detail": "{'ref': 'bin_rule_decl', 'path': 'C:\\\\Users\\\\HSLEE\\\\AppData\\\\Local\\\\Temp\\\\la1s_op7b_audit\\\\iso\\\\skills\\\\analog-gmid-design\\\\assets\\\\lut_v2_bin_rule.json', 'expected_sha256': '000000000000000000000000000000000000000000000"
+  },
+  "hsa_decl_consistent_runs_in_hsa": {
+   "rc": 0,
+   "files": [
+    "tfb_cs_rfeedback.free",
+    "tfb_cs_rfeedback.free.compare.json",
+    "tfb_cs_rfeedback.free.compare.md",
+    "tfb_cs_rfeedback.free.sim.json"
+   ],
+   "stderr": ""
+  }
+ }
+}

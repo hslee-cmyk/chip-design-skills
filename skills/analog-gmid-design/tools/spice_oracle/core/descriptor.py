@@ -103,7 +103,7 @@ def _text_spec(node, ptr, errs, nullable=False):
 def _schema_errors(doc) -> list:
     errs: list = []
     if not _closed(doc, "", ("schema", "engine_decl", "lut_record_root", "model_family", "kinds", "corners", "temperature",
-                             "diffusion"), ("extra_engine_decls", "extra_sources", "lut_file_roles"), errs):
+                             "diffusion"), ("extra_engine_decls", "extra_sources", "lut_file_roles", "bin_rule_decl"), errs):
         return errs
     if doc.get("schema") != "oracle_pdk_descriptor/1":
         errs.append({"pointer": "/schema", "rule": "const"})
@@ -134,6 +134,8 @@ def _schema_errors(doc) -> list:
             _ref(lr["location_decl"], "/lut_record_root/location_decl", errs)
         if "key" in lr and not (isinstance(lr["key"], str) and lr["key"]):
             errs.append({"pointer": "/lut_record_root/key", "rule": "minLength"})
+    if "bin_rule_decl" in doc:
+        _ref(doc["bin_rule_decl"], "/bin_rule_decl", errs)
     roles = doc.get("lut_file_roles", [])
     if not isinstance(roles, list):
         errs.append({"pointer": "/lut_file_roles", "rule": "type"})
@@ -409,6 +411,7 @@ class Descriptor:
     record_root_source: str
     machine_dependent_refs: tuple
     roles_docs: tuple = ()
+    bin_rule_doc: dict | None = None      # 기술자 `bin_rule_decl` 이 가리키는 구간 규칙 선언 파일의 읽은 내용(칸 없음 = None, 읽을 수 없는 JSON = {})
     _decls: dict = field(default_factory=dict, repr=False, compare=False)       # {"main": _Decl, "extra": {key: _Decl}}
     _extra_src: dict = field(default_factory=dict, repr=False, compare=False)   # {key: 절대 경로}
 
@@ -567,6 +570,14 @@ def load_descriptor(path, *, env: Mapping, expected_lf_sha256: str | None = None
     for i, ent in enumerate(doc.get("lut_file_roles") or []):
         roles_files.append(check_ref(f"lut_file_roles[{i}]", ent))
 
+    bin_rule_doc = None
+    if "bin_rule_decl" in doc:
+        _, brb = check_ref("bin_rule_decl", doc["bin_rule_decl"])
+        try:
+            bin_rule_doc = json.loads(brb.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            bin_rule_doc = {}
+
     # 3. 중복(규칙 (iii)): 경로, 그리고 파일 바이트를 다시 잰 LF 값. 엔진 `sources` 는 기술자가 안 쓰는 것까지 전부
     norm = lambda p: os.path.normcase(os.path.abspath(p))   # noqa: E731
     eng_paths = {k: main.src_path(k) for k in main.doc["sources"]}
@@ -608,7 +619,7 @@ def load_descriptor(path, *, env: Mapping, expected_lf_sha256: str | None = None
         roles_docs.append(rd)
     _check_cross(doc, main, extras, extra_src)
     desc = Descriptor(path=path, doc=doc, fp="", record_root=rroot, record_root_source=rsrc,
-                      machine_dependent_refs=tuple(mdep), roles_docs=tuple(roles_docs),
+                      machine_dependent_refs=tuple(mdep), roles_docs=tuple(roles_docs), bin_rule_doc=bin_rule_doc,
                       _decls={"main": main, "extra": extras}, _extra_src=extra_src)
     for kd in doc["kinds"].values():           # 식은 원본에서 풀려야 한다(못 풀면 형식 오류)
         for spec in (kd["name"], kd.get("inner_device")):
@@ -623,7 +634,7 @@ def load_descriptor(path, *, env: Mapping, expected_lf_sha256: str | None = None
                 desc.text(t["name"])
     fp = canonical_sha256({"descriptor": me, "engine_decls": sorted(decls_lf), "extra_files": sorted(extra_lf.values())})
     return Descriptor(path=path, doc=doc, fp=fp, record_root=rroot, record_root_source=rsrc,
-                      machine_dependent_refs=tuple(mdep), roles_docs=tuple(roles_docs),
+                      machine_dependent_refs=tuple(mdep), roles_docs=tuple(roles_docs), bin_rule_doc=bin_rule_doc,
                       _decls={"main": main, "extra": extras}, _extra_src=extra_src)
 
 
