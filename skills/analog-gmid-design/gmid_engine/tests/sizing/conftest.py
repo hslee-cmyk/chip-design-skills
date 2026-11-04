@@ -968,8 +968,8 @@ def kplan(ctx):
     return tuple((w, ctx.base.block_version(w)) for w in PLAN_WRITERS)
 
 
-def build_ctx_u4(tmp_path, doc, access, l_classes=(), order_hints=None, supplies=None, **inputs_kw):
-    """`build_ctx` 와 같되 U4 인자(l_classes·order_hints)를 넘긴다. order_hints None = 인자를 주지 않는다(기본값 경로).
+def build_ctx_u4(tmp_path, doc, access, l_classes=(), supplies=None, **inputs_kw):
+    """`build_ctx` 와 같되 U4 인자(l_classes)를 넘긴다. [TB-1] 순서 힌트 인자는 없어졌다(종속 멤버는 θ 분류·구조 위치가 정한다).
     [U17 ①-b] l_classes 는 `inject_l_classes` 로 S1 의 `graph/s1v: l_classes` 필드에 넣는다. 반환 (S1Graph, KernelContext)."""
     Path(tmp_path).mkdir(parents=True, exist_ok=True)
     donors, counters = open_run()          # [card B C0] 실행 하나 = 이 호출 하나
@@ -977,10 +977,7 @@ def build_ctx_u4(tmp_path, doc, access, l_classes=(), order_hints=None, supplies
     sup = dict(SUPPLIES if supplies is None else supplies)
     s1 = inject_l_classes(build_s1(td, sup, donors=donors, counters=counters), tuple(l_classes))
     inputs = DcInputs(tuple(sorted(sup.items())), **inputs_kw)
-    kw = {}
-    if order_hints is not None:
-        kw["order_hints"] = order_hints
-    return s1, build_kernel_context(s1, inputs, access, donors=donors, counters=counters, **kw)
+    return s1, build_kernel_context(s1, inputs, access, donors=donors, counters=counters)
 
 
 def circuit_mirror(names=("M1", "M2", "M3", "I1"), nets=("nb", "out", "in")):

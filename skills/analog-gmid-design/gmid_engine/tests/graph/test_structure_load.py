@@ -183,3 +183,27 @@ def test_structure_rule_fp_is_the_stale_key(tmp_path):
     assert got.facts == () and [f.code for f in got.findings] == ["structure_fact_stale"]
     new = J.write_structure(tmp_path / "new.json", TOPO_FP, structure_rule_fp(), [_fact()])
     assert len(load_structure_facts(new, TOPO_FP, structure_rule_fp()).facts) == 1
+
+
+# ---------------------------------------------------------------- [card 20261104-tb1-theta-class, T-T8] concept `dependent_member`
+# oracle (식): interface §2 ratify 표 -- concept `dependent_member`, subject = 멤버 이름 정렬 JSON 배열(l_owner 와 같은 꼴), value = 종속 소자 이름.
+
+def test_dependent_member_concept_is_in_the_closed_vocabulary(tmp_path):
+    """oracle (식): concept 어휘에 `dependent_member` 가 들고(적재 findings 0, 사실 1개), 어휘 밖 이름 `Dependent_member` 는 거부된다."""
+    p = J.write_structure(tmp_path / "dm.json", TOPO_FP, structure_rule_fp(), [J.fact_dict("dependent_member", '["M1","M2"]', "M2", "V-dm")])
+    got = load_structure_facts(p, TOPO_FP, structure_rule_fp(), ("a", "b"))
+    assert got.findings == () and [(f.concept, f.subject, f.value) for f in got.facts] == [("dependent_member", '["M1","M2"]', "M2")]
+    assert _rejected_rules(tmp_path, [J.fact_dict("Dependent_member", '["M1","M2"]', "M2")]) == ["structure_concept_unknown"]
+
+
+def test_library_structure_files_are_applied_not_stale():
+    """oracle (식): `<회로>.structure.json` 이 있는 library 회로 전수 -- 규칙 파일이 바뀌어도 rule_hash 줄을 다시 써서 사실이 stale 없이 적용된다
+    (A-34: 입력 rule 파일을 고치는 card 는 같은 변경에서 rule_hash 만 재기록). 사실 파일 이름은 glob 으로 센다(0개면 실패)."""
+    files = sorted(H.LIBRARY.glob("*.structure.json"))
+    assert files, "library 사실 파일이 하나도 없다"
+    for f in files:
+        name = f.name[: -len(".structure.json")]
+        s1 = H.build_lib(name)[0]
+        got = load_structure_facts(str(f), s1.key.topology_fp, structure_rule_fp())
+        assert got.findings == (), (name, [x.code for x in got.findings])
+        assert len(got.facts) >= 1, name

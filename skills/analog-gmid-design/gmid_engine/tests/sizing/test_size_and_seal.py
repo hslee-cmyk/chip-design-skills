@@ -401,7 +401,6 @@ def test_determinism_hashseed_and_netlist_order(tmp_path):
 
 import math as _math                                                                       # noqa: E402
 
-from gmid_engine.sizing import OrderHints                                                  # noqa: E402
 
 from .conftest import (B as _B, C as _C, LClassStub, build_ctx_u4, circuit_mirror, mirror_w_request, mos_table,  # noqa: E402
                        node_voltages, r4_ln_idu, rel_close, terminal_mag, theta_mirror, theta_r4c, with_hand_ss)
@@ -443,13 +442,15 @@ def test_owner_l_perturbation_moves_member(mir_tied):
 # ===========================================================================
 # [U4] IC1 -- 모든 소자 VGS 정합 (설계 40 §10.3 IC1, 계획 N3.6 봉인 2·'tol_V 를 IC1 test 의 허용오차로')
 # ===========================================================================
-# 9회로 봉인 해는 탐색(U15/U16)이 만든다 -- 이 단위의 IC1 은 U4 경로(L 동치류·W_request·S2p·입력 창·OrderHints)로 봉인된 toy
+# 9회로 봉인 해는 탐색(U15/U16)이 만든다 -- 이 단위의 IC1 은 U4 경로(L 동치류·W_request·S2p·입력 창)로 봉인된 toy
 # 점 전부에 같은 단언을 건다. oracle (a): 노드전압에서 다시 만든 VGS·VDS·VSB 로 r4 닫힌 식 ln IDu 를 계산하고, 쓰기 소자의 좌표
 # (θ ln_idu, W 요청이 있으면 ln(ID·L/W_req) -- CONTRACT 14.3)와의 차를 gm/ID = B − C·VGS 로 나눈 값이 tol_V(그 소자 dc_tol_v) 이하.
 # 종속 소자는 DeviceOp.ln_idu 가 같은 닫힌 식의 순방향 값과 tol_V 안에서 같다.
 
 
-def _ic1_points(ctx_r4c, mir_tied, mir_plain, mir_hint):
+# [TB-1 retired/broken] 옛 mir_hint 점(순서 힌트 independent=M2 로 M2 를 writer 로 만든 점)은 지웠다: 힌트가 없어졌고 평행 관계의 독립 유지는
+# diode(M1)라 그 점은 mir_plain 과 같아진다 -- 이유 O-187·O-189·O-194. 거울 점은 5개에서 4개(tied 1 + plain 의 W 요청 3)가 된다.
+def _ic1_points(ctx_r4c, mir_tied, mir_plain):
     pts = []
     e0 = size_and_seal(ctx_r4c, theta_r4c())
     pts.append((ctx_r4c, theta_r4c(), {}, e0))
@@ -462,9 +463,6 @@ def _ic1_points(ctx_r4c, mir_tied, mir_plain, mir_hint):
     # 자기 동작점 gm 의 tol_I(설계 40 §3.7-3)에서 봉인 3 위반이라 봉인 점이 아니다(판정 변화).
     for wr in ({"M3": 1e-5}, {"M1": 2e-5}, {"M2": mirror_w_request()}):
         pts.append((mir_plain, th, wr, size_and_seal(mir_plain, th, w_request=wr)))
-    th = theta_mirror()
-    th[("ln_idu", "M2")] = th.pop(("ln_idu", "M1"))
-    pts.append((mir_hint, th, {}, size_and_seal(mir_hint, th)))
     return pts
 
 
@@ -473,15 +471,9 @@ def mir_plain(tmp_path_factory, r4_access):
     return build_ctx_u4(tmp_path_factory.mktemp("ss_plain"), circuit_mirror(), r4_access, element_values=(("I1", 1e-5),))[1]
 
 
-@pytest.fixture
-def mir_hint(tmp_path_factory, r4_access):
-    return build_ctx_u4(tmp_path_factory.mktemp("ss_hint"), circuit_mirror(), r4_access,
-                        order_hints=OrderHints(independent=("M2",)), element_values=(("I1", 1e-5),))[1]
-
-
-def test_ic1_vgs_consistency_all_devices(ctx_r4c, mir_tied, mir_plain, mir_hint):
+def test_ic1_vgs_consistency_all_devices(ctx_r4c, mir_tied, mir_plain):
     n = 0
-    for ctx, th, wr, ev in _ic1_points(ctx_r4c, mir_tied, mir_plain, mir_hint):
+    for ctx, th, wr, ev in _ic1_points(ctx_r4c, mir_tied, mir_plain):
         assert ev.sealed is not None
         snap = ev.snapshot
         V = node_voltages(snap)
@@ -497,7 +489,7 @@ def test_ic1_vgs_consistency_all_devices(ctx_r4c, mir_tied, mir_plain, mir_hint)
                 coord = ops[m].ln_idu
             assert abs(fwd - coord) / (_B - _C * vgs) <= tolv[m], (m, role, fwd, coord)
             n += 1
-    assert n == 2 * 2 + 5 * 3                                          # 회로 C 점 2개 × 2 + 거울 점 5개 × 3
+    assert n == 2 * 2 + 4 * 3                                          # 회로 C 점 2개 × 2 + 거울 점 4개 × 3 (mir_hint 점 폐기, 위 주석)
 
 
 # ===========================================================================
@@ -505,7 +497,7 @@ def test_ic1_vgs_consistency_all_devices(ctx_r4c, mir_tied, mir_plain, mir_hint)
 # ===========================================================================
 
 def test_ic2_order_shuffle_invariance(tmp_path, r4_access):
-    """netlist 순서·L 동치류 목록/멤버 순서·OrderHints tuple 순서·W_request 순서를 섞은 두 입력 -> 계획·평가 스냅샷 지문 같음
+    """netlist 순서·L 동치류 목록/멤버 순서·순서 힌트 tuple 순서·W_request 순서를 섞은 두 입력 -> 계획·평가 스냅샷 지문 같음
     (이산 필드 동일, 연속 필드 비트 동일)."""
     import random as _random
     doc_a = circuit_mirror()
@@ -514,12 +506,10 @@ def test_ic2_order_shuffle_invariance(tmp_path, r4_access):
     assert [e["name"] for e in doc_b["netlist"]] != [e["name"] for e in doc_a["netlist"]]
     lc_a = (LClassStub("M1", ("M1", "M2")), LClassStub("M3", ("M3",)))
     # [U17 ①-b] L 동치류 목록 순서는 이제 S0 수준 필드 graph/s1v: l_classes(writer build_s1v)의 값이다(설계 40 v1.9.1 §2.4.8 D1) -- 그 정준 순서는
-    # build_s1v 몫이라 이 test 의 입력 주입(inject_l_classes)은 같은 정준 순서로 준다. 나머지 섞기(netlist·OrderHints·W_request)는 그대로.
+    # build_s1v 몫이라 이 test 의 입력 주입(inject_l_classes)은 같은 정준 순서로 준다. 나머지 섞기(netlist·순서 힌트·W_request)는 그대로.
     lc_b = (LClassStub("M1", ("M1", "M2")), LClassStub("M3", ("M3",)))
-    h_a = OrderHints(gm_required=("M2", "M3"), stage=(("M1", 1), ("M2", 2)))
-    h_b = OrderHints(gm_required=("M3", "M2"), stage=(("M2", 2), ("M1", 1)))
-    _, a = build_ctx_u4(tmp_path / "a", doc_a, r4_access, l_classes=lc_a, order_hints=h_a, element_values=(("I1", 1e-5),))
-    _, b = build_ctx_u4(tmp_path / "b", doc_b, r4_access, l_classes=lc_b, order_hints=h_b, element_values=(("I1", 1e-5),))
+    _, a = build_ctx_u4(tmp_path / "a", doc_a, r4_access, l_classes=lc_a, element_values=(("I1", 1e-5),))     # [TB-1] 순서 힌트 입력 폐기(O-187·O-189·O-194)
+    _, b = build_ctx_u4(tmp_path / "b", doc_b, r4_access, l_classes=lc_b, element_values=(("I1", 1e-5),))
     assert a.base.fp == b.base.fp and kschema(a) == kschema(b) and kties(a) == kties(b)
     th = _tied_theta(2e-6)
     w2 = mirror_w_request(l=2e-6)                             # [U17 ①] 종속 소자 M2 요청 = 봉인 3 허용오차 안(L = 주인 2e-6; 옛 3e-5 는 위반)
