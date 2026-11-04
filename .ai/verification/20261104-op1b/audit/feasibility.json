@@ -1,0 +1,40 @@
+{
+ "lut": "C:/Users/HSLEE/Documents/Todoc/fpga/lut_data/sky130_lut_v2/sky130_nfet_pfet_lut_v2_r2.npz",
+ "f4_sha_equal": true,
+ "f1": {
+  "corner": "tt",
+  "temp_c": 27.0
+ },
+ "f3_shape": "nested",
+ "roles_declared": [
+  "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+  "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+  "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+  "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+  "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+  "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+  "models/parameters/lod.spice"
+ ],
+ "f2": {
+  "nmos": {
+   "meta_key": "nfet_01v8",
+   "reasons": [],
+   "raw_only": [
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+   ],
+   "bundle_files": 2
+  },
+  "pmos": {
+   "meta_key": "pfet_01v8",
+   "reasons": [],
+   "raw_only": [
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+    "models/parameters/lod.spice"
+   ],
+   "bundle_files": 3
+  }
+ },
+ "failures": []
+}

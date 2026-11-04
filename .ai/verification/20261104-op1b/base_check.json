@@ -1,0 +1,9 @@
+{
+ "T": "ac8810941db44205163aec3ad55bc4ff01de8570",
+ "code": "7f48a20e9f0cc105fd6f3e28f69d1000ebbd4f21",
+ "base_commit": "c21b34cece03cc21a2a308e801417073faa16cf3",
+ "old_oracle_commit": "5fea301e35c1461be10d9969bfccdd827b668c98",
+ "equivalence": "해당 없음",
+ "toy_red": "base에는 scripts 폴더와 모듈이 없다(git cat-file -e c21b34ce:.ai/verification/20261104-op1b/scripts/op1b_lib.py 실패). interface A-1 'ImportError가 red(새 파일)'",
+ "schema_note": "evidence_type test-only는 스키마상 code_commit null이라 code 커밋은 이 파일과 V2 basis에 적는다"
+}
