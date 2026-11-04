@@ -1,0 +1,1104 @@
+{
+"cases": 182,
+"unexpected": [],
+"all": [
+{
+"case": "real/cnr_ota/test_block_grid_products_and_budget_gate",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "real/cnr_ota/test_gain_target_and_verdict",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "real/cnr_ota/test_area_lower_bound_from_declared_values",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "real/cnr_ota/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "real/erfc_ota/test_block_grid_products_and_budget_gate",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "real/erfc_ota/test_gain_target_and_verdict",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "real/erfc_ota/test_area_lower_bound_from_declared_values",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "real/erfc_ota/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "real/r2r/block_grid",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "real/rfc/test_block_grid_products_and_budget_gate",
+"want": "PASS",
+"got": "PASS",
+"ok": true
+},
+{
+"case": "real/rfc/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "PASS",
+"got": "PASS",
+"ok": true
+},
+{
+"case": "real/r2r/diagnostic",
+"want": "PASS",
+"got": "PASS",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/branch_differs/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/branch_differs/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/branch_differs/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/branch_differs/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/reason_differs/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/reason_differs/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/reason_differs/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/reason_differs/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/class_differs/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/class_differs/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/class_differs/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/class_differs/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_added/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_added/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_added/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_added/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_removed/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_removed/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_removed/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_removed/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_renamed/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_renamed/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_renamed/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_renamed/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/devices_empty/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/devices_empty/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/devices_empty/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/devices_empty/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/net_added/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/net_added/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/net_added/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/net_added/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/second_reason/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/second_reason/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/second_reason/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/second_reason/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/duplicate/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/duplicate/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/duplicate/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/duplicate/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/empty/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/empty/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/empty/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/empty/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/not_json/test_block_grid_products_and_budget_gate",
+"want": "EXC",
+"got": "EXC:JSONDecodeError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/not_json/test_gain_target_and_verdict",
+"want": "EXC",
+"got": "EXC:JSONDecodeError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/not_json/test_area_lower_bound_from_declared_values",
+"want": "EXC",
+"got": "EXC:JSONDecodeError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/not_json/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "EXC",
+"got": "EXC:JSONDecodeError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_detail/test_block_grid_products_and_budget_gate",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_detail/test_gain_target_and_verdict",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_detail/test_area_lower_bound_from_declared_values",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_detail/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_devices/test_block_grid_products_and_budget_gate",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_devices/test_gain_target_and_verdict",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_devices/test_area_lower_bound_from_declared_values",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_devices/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_branch/test_block_grid_products_and_budget_gate",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_branch/test_gain_target_and_verdict",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_branch/test_area_lower_bound_from_declared_values",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/no_branch/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/cnr_ota/device_order_only",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "notstop/cnr_ota/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "notstop/cnr_ota/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "notstop/cnr_ota/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "notstop/cnr_ota/diagnostic",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "s1_none/cnr_ota/diagnostic",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "m1/cnr_ota/exit_code_differs",
+"want": "ASSERT",
+"got": "ASSERT:('stopped', 'stopped')",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/branch_differs/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/branch_differs/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/branch_differs/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/branch_differs/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/reason_differs/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/reason_differs/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/reason_differs/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/reason_differs/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/class_differs/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/class_differs/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/class_differs/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/class_differs/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_added/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_added/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_added/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_added/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_removed/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_removed/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_removed/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_removed/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_renamed/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_renamed/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_renamed/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_renamed/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/devices_empty/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/devices_empty/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/devices_empty/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/devices_empty/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/net_added/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/net_added/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/net_added/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/net_added/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/second_reason/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/second_reason/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/second_reason/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/second_reason/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/duplicate/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/duplicate/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/duplicate/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/duplicate/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/empty/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/empty/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/empty/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/empty/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/not_json/test_block_grid_products_and_budget_gate",
+"want": "EXC",
+"got": "EXC:JSONDecodeError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/not_json/test_gain_target_and_verdict",
+"want": "EXC",
+"got": "EXC:JSONDecodeError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/not_json/test_area_lower_bound_from_declared_values",
+"want": "EXC",
+"got": "EXC:JSONDecodeError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/not_json/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "EXC",
+"got": "EXC:JSONDecodeError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_detail/test_block_grid_products_and_budget_gate",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_detail/test_gain_target_and_verdict",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_detail/test_area_lower_bound_from_declared_values",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_detail/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_devices/test_block_grid_products_and_budget_gate",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_devices/test_gain_target_and_verdict",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_devices/test_area_lower_bound_from_declared_values",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_devices/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_branch/test_block_grid_products_and_budget_gate",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_branch/test_gain_target_and_verdict",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_branch/test_area_lower_bound_from_declared_values",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/no_branch/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "EXC",
+"got": "EXC:KeyError",
+"ok": true
+},
+{
+"case": "stop/erfc_ota/device_order_only",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "notstop/erfc_ota/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "notstop/erfc_ota/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "notstop/erfc_ota/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "notstop/erfc_ota/diagnostic",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "s1_none/erfc_ota/diagnostic",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "m1/erfc_ota/exit_code_differs",
+"want": "ASSERT",
+"got": "ASSERT:('stopped', 'stopped')",
+"ok": true
+},
+{
+"case": "fake/empty_dict/cnr/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "fake/empty_dict/erfc_untouched/test_block_grid_products_and_budget_gate",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "fake/empty_dict/cnr/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "fake/empty_dict/erfc_untouched/test_gain_target_and_verdict",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "fake/empty_dict/cnr/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "fake/empty_dict/erfc_untouched/test_area_lower_bound_from_declared_values",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "fake/empty_dict/cnr/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "fake/empty_dict/erfc_untouched/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "fake/empty_dict/cnr/with_empty_reasons",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "fake/status_only/cnr/test_block_grid_products_and_budget_gate",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "fake/status_only/erfc_untouched/test_block_grid_products_and_budget_gate",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "fake/status_only/cnr/test_gain_target_and_verdict",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "fake/status_only/erfc_untouched/test_gain_target_and_verdict",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "fake/status_only/cnr/test_area_lower_bound_from_declared_values",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "fake/status_only/erfc_untouched/test_area_lower_bound_from_declared_values",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "fake/status_only/cnr/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "fake/status_only/erfc_untouched/test_diagnostic_mode_keeps_stage_a_exit_code",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "fake/status_only/cnr/with_empty_reasons",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "block/second_bad_other_key_same_reason",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "block/second_bad_other_reason",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "block/duplicate_same_key",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "block/other_block_goes_bad",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "block/key_changed",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "block/reason_changed",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "block/fixed_no_bad",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "m2/other_axes_size_wrong",
+"want": "ASSERT",
+"got": "ASSERT:[['vgs', 7]]",
+"ok": true
+},
+{
+"case": "m2/other_over_budget_reason",
+"want": "ASSERT",
+"got": "ASSERT:",
+"ok": true
+},
+{
+"case": "m2/other_over_budget_status",
+"want": "ASSERT",
+"got": "ASSERT:",
+"ok": true
+},
+{
+"case": "m2/other_over_budget_amax",
+"want": "ASSERT",
+"got": "ASSERT:",
+"ok": true
+},
+{
+"case": "m2/pinned_block_axes_size_wrong",
+"want": "ASSERT",
+"got": "ASSERT:[['vgs', 7]]",
+"ok": true
+},
+{
+"case": "m2/pinned_block_certified_no_amax",
+"want": "ASSERT",
+"got": "ASSERT:",
+"ok": true
+},
+{
+"case": "m2/added_ok_block_certified_no_amax",
+"want": "ASSERT",
+"got": "ASSERT:",
+"ok": true
+},
+{
+"case": "unpinned/rfc_pi_zero_not_absorbed",
+"want": "ASSERT",
+"got": "ASSERT:",
+"ok": true
+},
+{
+"case": "table/stop_circuits",
+"want": [
+"cnr_ota,erfc_ota"
+],
+"got": "cnr_ota,erfc_ota",
+"ok": true
+},
+{
+"case": "table/block_circuits",
+"want": [
+"r2r_opamp"
+],
+"got": "r2r_opamp",
+"ok": true
+},
+{
+"case": "table/stage_b_pinned",
+"want": [
+"9"
+],
+"got": "9",
+"ok": true
+}
+]
+}

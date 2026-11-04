@@ -1,0 +1,325 @@
+{
+"cases": 51,
+"unexpected": [],
+"all": [
+{
+"case": "cnr_ota/real",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "cnr_ota/ns_removed",
+"want": "ASSERT",
+"got": "ASSERT:('cnr_ota', 'stopped', 'stopped')",
+"ok": true
+},
+{
+"case": "cnr_ota/count_recompute_injected",
+"want": "ASSERT",
+"got": "ASSERT:cnr_ota 단계 A·B 실행 계수 위반: [('recomputes_same_input', {'block': 'build_s1v', 'part",
+"ok": true
+},
+{
+"case": "cnr_ota/count_identity_injected",
+"want": "ASSERT",
+"got": "ASSERT:cnr_ota 단계 A·B 실행 계수 위반: [('calls_identity', {'block': 'build_s1v', 'part': '*',",
+"ok": true
+},
+{
+"case": "cnr_ota/s0_writer_missing_injected",
+"want": "ASSERT",
+"got": "ASSERT:cnr_ota 단계 A·B 실행 계수 위반: [('s0_computes_not_1', 'no_such_block', None)]",
+"ok": true
+},
+{
+"case": "cnr_ota/writers_empty",
+"want": "ASSERT",
+"got": "ASSERT:전제: S0 수준 블록이 있다",
+"ok": true
+},
+{
+"case": "cnr_ota/s1_none",
+"want": "ASSERT",
+"got": "ASSERT:",
+"ok": true
+},
+{
+"case": "cnr_ota/b_status_ok_only",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "cnr_ota/class_differs",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "cnr_ota/branch_differs",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "cnr_ota/device_added",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "cnr_ota/device_removed",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "cnr_ota/duplicate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "cnr_ota/empty",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "cnr_ota/not_json",
+"want": "EXC",
+"got": "EXC:JSONDecodeError",
+"ok": true
+},
+{
+"case": "cnr_ota/achievability_present",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "cnr_ota/baseline_appears",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "cnr_ota/baseline_and_empty_reasons",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "cnr_ota/baseline_and_count_violation",
+"want": "ASSERT",
+"got": "ASSERT:cnr_ota 단계 A·B 실행 계수 위반: [('recomputes_same_input', {'block': 'build_s1v', 'part",
+"ok": true
+},
+{
+"case": "erfc_ota/real",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "erfc_ota/ns_removed",
+"want": "ASSERT",
+"got": "ASSERT:('erfc_ota', 'stopped', 'stopped')",
+"ok": true
+},
+{
+"case": "erfc_ota/count_recompute_injected",
+"want": "ASSERT",
+"got": "ASSERT:erfc_ota 단계 A·B 실행 계수 위반: [('recomputes_same_input', {'block': 'build_s1v', 'par",
+"ok": true
+},
+{
+"case": "erfc_ota/count_identity_injected",
+"want": "ASSERT",
+"got": "ASSERT:erfc_ota 단계 A·B 실행 계수 위반: [('calls_identity', {'block': 'build_s1v', 'part': '*'",
+"ok": true
+},
+{
+"case": "erfc_ota/s0_writer_missing_injected",
+"want": "ASSERT",
+"got": "ASSERT:erfc_ota 단계 A·B 실행 계수 위반: [('s0_computes_not_1', 'no_such_block', None)]",
+"ok": true
+},
+{
+"case": "erfc_ota/writers_empty",
+"want": "ASSERT",
+"got": "ASSERT:전제: S0 수준 블록이 있다",
+"ok": true
+},
+{
+"case": "erfc_ota/s1_none",
+"want": "ASSERT",
+"got": "ASSERT:",
+"ok": true
+},
+{
+"case": "erfc_ota/b_status_ok_only",
+"want": "XFAIL",
+"got": "XFAIL",
+"ok": true
+},
+{
+"case": "erfc_ota/class_differs",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "erfc_ota/branch_differs",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "erfc_ota/device_added",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "erfc_ota/device_removed",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "erfc_ota/duplicate",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "erfc_ota/empty",
+"want": "FAILED",
+"got": "FAILED:differs",
+"ok": true
+},
+{
+"case": "erfc_ota/not_json",
+"want": "EXC",
+"got": "EXC:JSONDecodeError",
+"ok": true
+},
+{
+"case": "erfc_ota/achievability_present",
+"want": "FAILED",
+"got": "FAILED:notstop",
+"ok": true
+},
+{
+"case": "erfc_ota/baseline_appears",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "erfc_ota/baseline_and_empty_reasons",
+"want": "FAILED",
+"got": "FAILED:baseline",
+"ok": true
+},
+{
+"case": "erfc_ota/baseline_and_count_violation",
+"want": "ASSERT",
+"got": "ASSERT:erfc_ota 단계 A·B 실행 계수 위반: [('recomputes_same_input', {'block': 'build_s1v', 'par",
+"ok": true
+},
+{
+"case": "r2r_opamp/real",
+"want": "PASS",
+"got": "PASS",
+"ok": true
+},
+{
+"case": "r2r_opamp/ns_removed",
+"want": "ASSERT",
+"got": "ASSERT:('r2r_opamp', 'stopped', 'stopped')",
+"ok": true
+},
+{
+"case": "r2r_opamp/count_recompute_injected",
+"want": "ASSERT",
+"got": "ASSERT:r2r_opamp 단계 A·B 실행 계수 위반: [('recomputes_same_input', {'block': 'achievability',",
+"ok": true
+},
+{
+"case": "rfc_ota/real",
+"want": "PASS",
+"got": "PASS",
+"ok": true
+},
+{
+"case": "rfc_ota/ns_removed",
+"want": "ASSERT",
+"got": "ASSERT:('rfc_ota', 'review_needed', 'review_needed')",
+"ok": true
+},
+{
+"case": "rfc_ota/count_recompute_injected",
+"want": "ASSERT",
+"got": "ASSERT:rfc_ota 단계 A·B 실행 계수 위반: [('recomputes_same_input', {'block': 'achievability', '",
+"ok": true
+},
+{
+"case": "ngcc_3stage_ff/real",
+"want": "PASS",
+"got": "PASS",
+"ok": true
+},
+{
+"case": "ngcc_3stage_ff/ns_removed",
+"want": "ASSERT",
+"got": "ASSERT:('ngcc_3stage_ff', 'review_needed', 'review_needed')",
+"ok": true
+},
+{
+"case": "ngcc_3stage_ff/count_recompute_injected",
+"want": "ASSERT",
+"got": "ASSERT:ngcc_3stage_ff 단계 A·B 실행 계수 위반: [('recomputes_same_input', {'block': 'achievabil",
+"ok": true
+},
+{
+"case": "common_gate_amplifier/real_unpinned",
+"want": "PASS",
+"got": "PASS",
+"ok": true
+},
+{
+"case": "common_gate_amplifier/GAP_pinned_and_searched_baseline_present",
+"want": "PASS",
+"got": "PASS",
+"ok": true
+},
+{
+"case": "common_gate_amplifier/GAP_pinned_and_searched_baseline_absent",
+"want": "PASS",
+"got": "PASS",
+"ok": true
+},
+{
+"case": "common_gate_amplifier/pinned_searched_still_registered",
+"want": "ASSERT",
+"got": "ASSERT:('common_gate_amplifier', 'ok', 'ok')",
+"ok": true
+}
+],
+"docstring": {
+"list_only_stop/block_grid": "EXC:TypeError",
+"table_only_stop/block_grid": "EXC:TypeError",
+"list_only_stop/gain": "EXC:TypeError",
+"table_only_stop/gain": "EXC:TypeError",
+"list_only_stop/area": "EXC:TypeError",
+"table_only_stop/area": "EXC:TypeError",
+"list_only_stop/diag": "ASSERT:",
+"table_only_stop/diag": "ASSERT:",
+"list_only_block/block_grid": "ASSERT:",
+"table_only_block/block_grid": "ASSERT:",
+"list_only_stop/g10": "ASSERT:기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'cnr_ota' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정"
+}
+}

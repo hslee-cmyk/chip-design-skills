@@ -37,9 +37,11 @@ def test_rule_d_numeric_literals(checks, engine_root, report):
 def test_rule_e_no_circuit_name_literals(checks, engine_root, library, report):
     circuits, names = library
     # 이름 집합이 비면 이 test 는 공허하다 -- library 9회로(설계 1.4)와 레일 선언이 실제로 모였는지 먼저 본다.
-    assert len(circuits) >= 9, "library topology 회로 %d개(설계 1.4: 9회로)" % len(circuits)
+    assert len(circuits) >= 13, "library topology 회로 %d개(O-181: 13회로)" % len(circuits)
     assert any(o.endswith(":supply_net") for origins in names.values() for o in origins), "레일 이름 수집 0"
-    n, v = checks.check_e(engine_root, names)
+    # O-198: 엔진이 선언한 어휘(LUT 축 AXES, spec 키 상수, _module_map plan_ids 칸)는 선언 자리에서 읽어 이름 집합에서 뺀다.
+    # 거부 능력은 test_structure_rules_reject_fixtures.py::test_rule_e_vocabulary_* 가 확인한다.
+    n, v = checks.check_e(engine_root, checks.without_engine_vocabulary(names))
     _assert_clean(n, v, report, "E")
 
 

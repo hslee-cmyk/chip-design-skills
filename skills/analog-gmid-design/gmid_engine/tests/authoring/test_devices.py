@@ -23,12 +23,12 @@ def test_base_decls_match_json(ah):
 
 def test_bulk_defaults_to_none(ah):
     got = {d.name: d for d in device_declaration(ah.base())}
-    assert got["Q1"].bulk is None and got["Q2"].bulk == "rail_hi"
+    assert got["Mfx1"].bulk is None and got["Mfx2"].bulk == "rail_hi"
 
 
 def test_kind_unrestricted(ah):
     d = ah.base()
-    ah.dev(d, "Q1")["kind"] = "npn_whatever"
+    ah.dev(d, "Mfx1")["kind"] = "npn_whatever"
     assert any(x.kind == "npn_whatever" for x in device_declaration(d))
 
 
@@ -45,7 +45,7 @@ def test_missing_netlist_single_hit(ah):
     assert ah.rules(detail["hits"]) == ["missing_key"]
 
 
-@pytest.mark.parametrize("val", [{}, "Q1", None, 3])
+@pytest.mark.parametrize("val", [{}, "Mfx1", None, 3])
 def test_netlist_type_single_hit(ah, val):
     d = ah.base()
     d["netlist"] = val
@@ -63,15 +63,15 @@ def test_element_type_each(ah):
 @pytest.mark.parametrize("key", ["n_fingers", "w", "l", "Name", "terminals"])
 def test_element_unknown_key(ah, key):
     d = ah.base()
-    ah.dev(d, "Q3")[key] = 1
+    ah.dev(d, "Mfx3")[key] = 1
     hits = _reject(ah, d)["hits"]
     assert ah.rules(hits) == ["element_unknown_key"]
-    assert "Q3" in hits[0].elements
+    assert "Mfx3" in hits[0].elements
 
 
 def test_element_underscore_keys_ok(ah):
     d = ah.base()
-    ah.dev(d, "Q3")["_anything"] = {"x": [1]}
+    ah.dev(d, "Mfx3")["_anything"] = {"x": [1]}
     assert len(device_declaration(d)) == 4
 
 
@@ -79,7 +79,7 @@ def test_element_underscore_keys_ok(ah):
 @pytest.mark.parametrize("bad", ["<missing>", "", 3, None, ["n_x"]])
 def test_element_field(ah, field, bad):
     d = ah.base()
-    e = ah.dev(d, "Q4")
+    e = ah.dev(d, "Mfx4")
     if bad == "<missing>":
         del e[field]
     else:
@@ -90,22 +90,22 @@ def test_element_field(ah, field, bad):
 @pytest.mark.parametrize("bad", ["", 0, None, ["rail_hi"]])
 def test_bulk_present_but_bad(ah, bad):
     d = ah.base()
-    ah.dev(d, "Q2")["bulk"] = bad
+    ah.dev(d, "Mfx2")["bulk"] = bad
     assert ah.rules(_reject(ah, d)["hits"]) == ["element_field"]
 
 
 def test_duplicate_names_not_checked_here(ah):
     d = ah.base()
-    ah.dev(d, "Q2")["name"] = "Q1"
-    assert [x.name for x in device_declaration(d)].count("Q1") == 2
+    ah.dev(d, "Mfx2")["name"] = "Mfx1"
+    assert [x.name for x in device_declaration(d)].count("Mfx1") == 2
 
 
 def test_all_element_hits_in_doc_order(ah):
     d = ah.base()
-    d["netlist"].reverse()  # Q4 Q3 Q2 Q1
-    ah.dev(d, "Q4")["w"] = 1
-    ah.dev(d, "Q2")["gate"] = ""
-    ah.dev(d, "Q1")["n_fingers"] = 2
+    d["netlist"].reverse()  # Mfx4 Mfx3 Mfx2 Mfx1
+    ah.dev(d, "Mfx4")["w"] = 1
+    ah.dev(d, "Mfx2")["gate"] = ""
+    ah.dev(d, "Mfx1")["n_fingers"] = 2
     hits = _reject(ah, d)["hits"]
     assert ah.rules(hits) == ["element_unknown_key", "element_field", "element_unknown_key"]
-    assert "Q4" in hits[0].elements and "Q2" in hits[1].elements and "Q1" in hits[2].elements
+    assert "Mfx4" in hits[0].elements and "Mfx2" in hits[1].elements and "Mfx1" in hits[2].elements

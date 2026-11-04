@@ -7,7 +7,7 @@
   source}(그 밖 `unknown_key`), element 는 topology 수동소자 중 kind capacitor(`noise_cap_unknown`), 같은 이름 둘 `noise_cap_duplicate`,
   출처 없음 `source_missing`, kind user_spec 만, `{"pending": ...}` 는 `unknown_key` + `type`. 결과 `NoiseTestbenchDecl` 이름순 또는 None.
 * (d) 41 §7.1 '샘플링 커패시터' -- 대상은 커패시터뿐(저항·MOS·이상 전원은 kT/C 대상이 아니다).
-* (a) 합성 입력: 픽스처 fx_spec_amp 의 수동소자(Cfb·Cld = capacitor, Rfb = resistor, test 쪽 JSON 직접 확인), MOS Q1, 이상 전원 Vcm.
+* (a) 합성 입력: 픽스처 fx_spec_amp 의 수동소자(Cfb·Cld = capacitor, Rfb = resistor, test 쪽 JSON 직접 확인), MOS Mfx1, 이상 전원 Vcm.
 * (a) metamorphic: 지문 격리(이 섹션만 바꾸면 noise_testbench_fp·spec_fp 만), 출처 record 는 지문 밖, 항목 순서 무관,
   넷 이름 전단사·소자 이름 전단사에서 결과가 사상된 이름 그대로.
 """
@@ -38,12 +38,12 @@ def _fps(doc):
 
 
 def test_fixture_passive_kinds():
-    """입력 전제(합성 입력 확인 -- 기대값 아님): 픽스처에 커패시터 2개·저항 1개, MOS Q1, 이상 전원 Vcm."""
+    """입력 전제(합성 입력 확인 -- 기대값 아님): 픽스처에 커패시터 2개·저항 1개, MOS Mfx1, 이상 전원 Vcm."""
     from authoring.conftest import SPEC_FIXTURES
     topo = json.loads((SPEC_FIXTURES / "fx_spec_amp.topology.json").read_text(encoding="utf-8"))
     kinds = {e["name"]: e["kind"] for e in topo["passive_elements"]}
     assert kinds == {"Rfb": "resistor", "Cfb": "capacitor", "Cld": "capacitor"}
-    assert "Q1" in {e["name"] for e in topo["netlist"]}
+    assert "Mfx1" in {e["name"] for e in topo["netlist"]}
     assert "Vcm" in {e["name"] for e in topo["ideal_sources"]}
 
 
@@ -147,7 +147,7 @@ def test_pending_marker_rejected_unknown_key_and_type(sc):
     assert d["rejected_gates"] == (GATE,)
 
 
-@pytest.mark.parametrize("name", ["Cxx", "cld", "Rfb", "Q1", "Vcm"],
+@pytest.mark.parametrize("name", ["Cxx", "cld", "Rfb", "Mfx1", "Vcm"],
                          ids=["absent", "case_mismatch", "resistor", "mos", "ideal_source"])
 def test_noise_cap_unknown(sc, name):
     _set(sc, name)

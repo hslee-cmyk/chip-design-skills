@@ -1,0 +1,612 @@
+{
+  "base_commit": "f50bc916e3f76290363d113d7e3a14f9fdfd319f",
+  "id": "20261103-gl1-baseline",
+  "rows": [
+    {
+      "count": 1,
+      "detail": "_Owners.conflicts",
+      "kind": "g8_attr_container",
+      "path": "graph/blocks.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Owners.owner",
+      "kind": "g8_attr_container",
+      "path": "graph/blocks.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Owners.parent",
+      "kind": "g8_attr_container",
+      "path": "graph/blocks.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Owners.shared",
+      "kind": "g8_attr_container",
+      "path": "graph/blocks.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Union.parent",
+      "kind": "g8_attr_container",
+      "path": "graph/canonical_form.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Forest.adjacency",
+      "kind": "g8_attr_container",
+      "path": "graph/gvgs_cycles.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Source._columns",
+      "kind": "g8_attr_container",
+      "path": "layout/canon_block.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Sum.area",
+      "kind": "g8_attr_container",
+      "path": "layout/diffusion.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Sum.perimeter",
+      "kind": "g8_attr_container",
+      "path": "layout/diffusion.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Evaluator.attempts",
+      "kind": "g8_attr_container",
+      "path": "layout/pattern_select.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Evaluator.calls",
+      "kind": "g8_attr_container",
+      "path": "layout/pattern_select.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Evaluator.ends",
+      "kind": "g8_attr_container",
+      "path": "layout/pattern_select.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Evaluator.pairs",
+      "kind": "g8_attr_container",
+      "path": "layout/pattern_select.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Evaluator.sens",
+      "kind": "g8_attr_container",
+      "path": "layout/pattern_select.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Rows.areas",
+      "kind": "g8_attr_container",
+      "path": "layout/rows.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Rows.bodies",
+      "kind": "g8_attr_container",
+      "path": "layout/rows.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Rows.euler",
+      "kind": "g8_attr_container",
+      "path": "layout/rows.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Rows.layout_groups",
+      "kind": "g8_attr_container",
+      "path": "layout/rows.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Rows.matched",
+      "kind": "g8_attr_container",
+      "path": "layout/rows.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Rows.pairs",
+      "kind": "g8_attr_container",
+      "path": "layout/rows.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Rows.sens",
+      "kind": "g8_attr_container",
+      "path": "layout/rows.py"
+    },
+    {
+      "count": 1,
+      "detail": "ParamTables._loaded",
+      "kind": "g8_attr_container",
+      "path": "metrics/block_param_tables.py"
+    },
+    {
+      "count": 1,
+      "detail": "ParamTables._values",
+      "kind": "g8_attr_container",
+      "path": "metrics/block_param_tables.py"
+    },
+    {
+      "count": 1,
+      "detail": "ParamTables._w_keys",
+      "kind": "g8_attr_container",
+      "path": "metrics/block_param_tables.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Ledger.index",
+      "kind": "g8_attr_container",
+      "path": "metrics/ss_metrics.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Ledger.rows",
+      "kind": "g8_attr_container",
+      "path": "metrics/ss_metrics.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Network.a_intr",
+      "kind": "g8_attr_container",
+      "path": "search/macro_poles.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Network.fixed",
+      "kind": "g8_attr_container",
+      "path": "search/macro_poles.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Network.index",
+      "kind": "g8_attr_container",
+      "path": "search/macro_poles.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Network.records",
+      "kind": "g8_attr_container",
+      "path": "search/macro_poles.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Network.stamps",
+      "kind": "g8_attr_container",
+      "path": "search/macro_poles.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Network.variables",
+      "kind": "g8_attr_container",
+      "path": "search/macro_poles.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Network.zc_fallback",
+      "kind": "g8_attr_container",
+      "path": "search/macro_poles.py"
+    },
+    {
+      "count": 1,
+      "detail": "SearchContext.cache",
+      "kind": "g8_attr_container",
+      "path": "search/search_context.py"
+    },
+    {
+      "count": 1,
+      "detail": "SearchContext.cell_floors",
+      "kind": "g8_attr_container",
+      "path": "search/search_context.py"
+    },
+    {
+      "count": 1,
+      "detail": "SearchContext.computed_keys",
+      "kind": "g8_attr_container",
+      "path": "search/search_context.py"
+    },
+    {
+      "count": 1,
+      "detail": "SearchContext.counters",
+      "kind": "g8_attr_container",
+      "path": "search/search_context.py"
+    },
+    {
+      "count": 1,
+      "detail": "SearchContext.eval_times",
+      "kind": "g8_attr_container",
+      "path": "search/search_context.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.L",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.bulk",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.classes",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.coord",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.current",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.device_colour",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.fixed",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.kinds",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.ln_idu",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.members",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.nbrs",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.net_colour",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.order_terms",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.override",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.pins",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.rail_v",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.resistance",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.theta",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.tol_cells",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.writers",
+      "kind": "g8_attr_container",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Plan.writes",
+      "kind": "g8_attr_container",
+      "path": "sizing/writer_plan.py"
+    },
+    {
+      "count": 1,
+      "detail": "Canon.forward",
+      "kind": "g8_cached_property",
+      "path": "layout/_helpers_alias.py"
+    },
+    {
+      "count": 1,
+      "detail": "Canon.inverse",
+      "kind": "g8_cached_property",
+      "path": "layout/_helpers_alias.py"
+    },
+    {
+      "count": 1,
+      "detail": "Canon.member_order",
+      "kind": "g8_cached_property",
+      "path": "layout/_helpers_alias.py"
+    },
+    {
+      "count": 1,
+      "detail": "StackGraph.edges",
+      "kind": "g8_default_factory",
+      "path": "layout/euler_graph.py"
+    },
+    {
+      "count": 1,
+      "detail": "StackGraph.nodes",
+      "kind": "g8_default_factory",
+      "path": "layout/euler_graph.py"
+    },
+    {
+      "count": 1,
+      "detail": "WalkVerdict.finger_count_mismatch",
+      "kind": "g8_default_factory",
+      "path": "layout/mirror_trail.py"
+    },
+    {
+      "count": 1,
+      "detail": "WalkVerdict.node_path",
+      "kind": "g8_default_factory",
+      "path": "layout/mirror_trail.py"
+    },
+    {
+      "count": 1,
+      "detail": "_reference",
+      "kind": "g8_id_call",
+      "path": "metrics/noise_analysis.py"
+    },
+    {
+      "count": 1,
+      "detail": "_sens",
+      "kind": "g8_id_call",
+      "path": "metrics/resolution.py"
+    },
+    {
+      "count": 1,
+      "detail": "_load_source",
+      "kind": "g8_memo_lookup_form",
+      "path": "core/pdk_decl.py"
+    },
+    {
+      "count": 1,
+      "detail": "axis_curve",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/_helpers_gmid_axis.py"
+    },
+    {
+      "count": 1,
+      "detail": "caps",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/cap_query.py"
+    },
+    {
+      "count": 1,
+      "detail": "curve_report",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/curve_check.py"
+    },
+    {
+      "count": 1,
+      "detail": "_lookup",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/derived_fns.py"
+    },
+    {
+      "count": 1,
+      "detail": "gm_id_curve",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/gm_id_curve.py"
+    },
+    {
+      "count": 1,
+      "detail": "gmb",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/gmb.py"
+    },
+    {
+      "count": 1,
+      "detail": "gm_id_for_target",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/id_inverse.py"
+    },
+    {
+      "count": 1,
+      "detail": "midpoint_l_bin_checks",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/midpoint_checks.py"
+    },
+    {
+      "count": 1,
+      "detail": "mismatch_dvgs",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/mismatch_query.py"
+    },
+    {
+      "count": 1,
+      "detail": "mismatch_sigma_vgs",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/mismatch_sigma.py"
+    },
+    {
+      "count": 1,
+      "detail": "tol_mismatch_table",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/mismatch_tolerance.py"
+    },
+    {
+      "count": 1,
+      "detail": "noise_planes",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/noise_planes.py"
+    },
+    {
+      "count": 1,
+      "detail": "noise_params",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/noise_query.py"
+    },
+    {
+      "count": 1,
+      "detail": "tol_noise_table",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/noise_tolerance.py"
+    },
+    {
+      "count": 1,
+      "detail": "op_point",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/point_query.py"
+    },
+    {
+      "count": 1,
+      "detail": "tol_v_table",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/tolerance.py"
+    },
+    {
+      "count": 1,
+      "detail": "vdsat",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/vdsat_query.py"
+    },
+    {
+      "count": 1,
+      "detail": "tol_vdsat_table",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/vdsat_tolerance.py"
+    },
+    {
+      "count": 1,
+      "detail": "vgs_for_current_density",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/vgs_current_density.py"
+    },
+    {
+      "count": 1,
+      "detail": "vgs_for_gm_id",
+      "kind": "g8_memo_lookup_form",
+      "path": "lut/vgs_root.py"
+    },
+    {
+      "count": 1,
+      "detail": "_Circuit.solve_self",
+      "kind": "g8_memo_lookup_form",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "_vds_floor",
+      "kind": "g8_memo_lookup_form",
+      "path": "sizing/block_columns.py"
+    },
+    {
+      "count": 1,
+      "detail": "MODULES:ModuleEntry",
+      "kind": "vt_assign",
+      "path": "_module_map.py"
+    },
+    {
+      "count": 1,
+      "detail": "NO_MARKS:SymmetryMarks",
+      "kind": "vt_assign",
+      "path": "graph/s1_values.py"
+    },
+    {
+      "count": 1,
+      "detail": "S1V_WRITERS:WriterTable",
+      "kind": "vt_assign",
+      "path": "graph/s1_values.py"
+    },
+    {
+      "count": 1,
+      "detail": "S1_WRITERS:WriterTable",
+      "kind": "vt_assign",
+      "path": "graph/s1_values.py"
+    },
+    {
+      "count": 1,
+      "detail": "LY_WRITERS:WriterTable",
+      "kind": "vt_assign",
+      "path": "layout/_ly_fields.py"
+    },
+    {
+      "count": 1,
+      "detail": "NO_BINS:LBinMap",
+      "kind": "vt_assign",
+      "path": "lut/lut_set.py"
+    },
+    {
+      "count": 1,
+      "detail": "METRICS_S0_WRITERS:WriterTable",
+      "kind": "vt_assign",
+      "path": "metrics/s0_fields.py"
+    },
+    {
+      "count": 1,
+      "detail": "SEARCH_S0_WRITERS:WriterTable",
+      "kind": "vt_assign",
+      "path": "search/s0_fields.py"
+    },
+    {
+      "count": 1,
+      "detail": "NO_ORDER_HINTS:OrderHints",
+      "kind": "vt_assign",
+      "path": "sizing/s2_values.py"
+    },
+    {
+      "count": 1,
+      "detail": "S2_WRITERS:WriterTable",
+      "kind": "vt_assign",
+      "path": "sizing/s2_values.py"
+    }
+  ]
+}

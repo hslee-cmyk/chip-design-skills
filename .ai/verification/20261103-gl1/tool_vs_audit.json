@@ -1,0 +1,410 @@
+{
+ "n_new": 2194,
+ "n_old": 4209,
+ "old_same_module_sites": 2013,
+ "only_old_nonsamemod": 81,
+ "only_new": 79,
+ "sample_only_old": [
+  [
+   "gmid_engine.core.graph_record",
+   "GraphRecord",
+   "gmid_engine.core.graph_snapshot",
+   165
+  ],
+  [
+   "gmid_engine.core.determinism",
+   "sorted_items",
+   "gmid_engine.core.graph_snapshot",
+   191
+  ],
+  [
+   "gmid_engine.core.determinism",
+   "sorted_items",
+   "gmid_engine.core.graph_snapshot",
+   204
+  ],
+  [
+   "gmid_engine.core.field_value",
+   "FieldValue",
+   "gmid_engine.core.graph_snapshot",
+   208
+  ],
+  [
+   "gmid_engine.core.graph_record",
+   "GraphRecord",
+   "gmid_engine.core.graph_snapshot",
+   218
+  ],
+  [
+   "gmid_engine.metrics.dof_report",
+   "dof_report",
+   "gmid_engine.metrics.achievability",
+   315
+  ],
+  [
+   "gmid_engine.metrics.curve_checks",
+   "curve_checks",
+   "gmid_engine.metrics.achievability",
+   346
+  ],
+  [
+   "gmid_engine.metrics.block_param_tables",
+   "ParamTables",
+   "gmid_engine.metrics.achievability",
+   352
+  ],
+  [
+   "gmid_engine.search.kernel",
+   "evaluate",
+   "gmid_engine.search.fd_jacobian",
+   109
+  ],
+  [
+   "gmid_engine.sizing._helpers_lut",
+   "w_key_of",
+   "gmid_engine.sizing.block_columns",
+   122
+  ],
+  [
+   "gmid_engine.sizing._helpers_lut",
+   "terminal_voltages",
+   "gmid_engine.sizing.block_columns",
+   147
+  ],
+  [
+   "gmid_engine.sizing._helpers_lut",
+   "w_key_of",
+   "gmid_engine.sizing.block_columns",
+   152
+  ],
+  [
+   "gmid_engine.lut.vgs_current_density",
+   "vgs_for_current_density",
+   "gmid_engine.sizing.block_columns",
+   154
+  ],
+  [
+   "gmid_engine.sizing._helpers_lut",
+   "with_device",
+   "gmid_engine.sizing.block_columns",
+   156
+  ],
+  [
+   "gmid_engine.sizing._helpers_lut",
+   "terminal_voltages",
+   "gmid_engine.sizing.block_columns",
+   200
+  ]
+ ],
+ "sample_only_new": [
+  [
+   "gmid_engine.core.determinism",
+   "sorted_items",
+   "gmid_engine.core.graph_snapshot",
+   170
+  ],
+  [
+   "gmid_engine.core.determinism",
+   "sorted_items",
+   "gmid_engine.core.graph_snapshot",
+   183
+  ],
+  [
+   "gmid_engine.core.failure_errors",
+   "NonconvergentError",
+   "gmid_engine.sizing.block_columns",
+   556
+  ],
+  [
+   "gmid_engine.core.failure_errors",
+   "SealViolationError",
+   "gmid_engine.sizing.block_columns",
+   379
+  ],
+  [
+   "gmid_engine.core.failure_errors",
+   "SealViolationError",
+   "gmid_engine.sizing.block_columns",
+   403
+  ],
+  [
+   "gmid_engine.core.failure_errors",
+   "SealViolationError",
+   "gmid_engine.sizing.block_columns",
+   439
+  ],
+  [
+   "gmid_engine.core.failure_errors",
+   "SealViolationError",
+   "gmid_engine.sizing.block_columns",
+   495
+  ],
+  [
+   "gmid_engine.core.failure_errors",
+   "SealViolationError",
+   "gmid_engine.sizing.block_columns",
+   546
+  ],
+  [
+   "gmid_engine.core.failure_errors",
+   "SealViolationError",
+   "gmid_engine.sizing.seal",
+   65
+  ],
+  [
+   "gmid_engine.core.failure_errors",
+   "StructureUnresolvedError",
+   "gmid_engine.sizing.writer_plan",
+   177
+  ],
+  [
+   "gmid_engine.core.failure_partial",
+   "attach_partial",
+   "gmid_engine.sizing.seal",
+   50
+  ],
+  [
+   "gmid_engine.core.failure_partial",
+   "attach_partial",
+   "gmid_engine.sizing.seal",
+   58
+  ],
+  [
+   "gmid_engine.core.failure_partial",
+   "attach_partial",
+   "gmid_engine.sizing.seal",
+   68
+  ],
+  [
+   "gmid_engine.core.field_value",
+   "FieldValue",
+   "gmid_engine.core.graph_snapshot",
+   187
+  ],
+  [
+   "gmid_engine.core.graph_record",
+   "GraphRecord",
+   "gmid_engine.core.graph_snapshot",
+   197
+  ]
+ ],
+ "class_counts_all": {
+  "D": 199,
+  "B": 2
+ },
+ "n_shared": 201,
+ "audit_B_function_table": {
+  "B1:ss_circuit": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B1:mos_stamps": [
+   [
+    "D",
+    "4",
+    "0",
+    "0",
+    "6"
+   ]
+  ],
+  "B1:two_terminal_stamps": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B1:admittance_pair": [
+   [
+    "D",
+    "3",
+    "0",
+    "0",
+    "2"
+   ]
+  ],
+  "B2:vdsat": [
+   [
+    "D",
+    "4",
+    "0",
+    "0",
+    "6"
+   ]
+  ],
+  "B2:tol_vdsat_table": [
+   [
+    "D",
+    "5",
+    "0",
+    "0",
+    "9"
+   ]
+  ],
+  "B3:op_point": [
+   [
+    "D",
+    "10",
+    "0",
+    "0",
+    "44"
+   ]
+  ],
+  "B3:forward_point": [
+   [
+    "D",
+    "3",
+    "0",
+    "0",
+    "2"
+   ]
+  ],
+  "B4:net_model": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B5:block_gain_model_of": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B5:ParamTables": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B6:current_box": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B7:centre_start": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B8:input_terminal_nets": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B9_B10:mos_terminal_nets": [
+   [
+    "D",
+    "6",
+    "0",
+    "0",
+    "15"
+   ]
+  ],
+  "B9_B10:two_terminal_nets": [
+   [
+    "D",
+    "9",
+    "0",
+    "0",
+    "35"
+   ]
+  ],
+  "B11:dc_edges_unpruned": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B12:supplies_declaration": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B13:dc_inputs_from_spec": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "B15:offsets": [
+   [
+    "D",
+    "3",
+    "0",
+    "0",
+    "2"
+   ]
+  ],
+  "B15:orient": [
+   [
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ]
+ },
+ "audit_B_function_classes": {
+  "D": 21
+ },
+ "class_B_rows": [
+  {
+   "callee_mod": "gmid_engine.core.determinism",
+   "callee": "sorted_items",
+   "class": "B",
+   "n_sites": "92",
+   "pairs_b": "2",
+   "pairs_not_b": "15",
+   "pairs_d": "4023"
+  },
+  {
+   "callee_mod": "gmid_engine.sizing.theta_check",
+   "callee": "check_theta",
+   "class": "B",
+   "n_sites": "2",
+   "pairs_b": "1",
+   "pairs_not_b": "0",
+   "pairs_d": "0"
+  }
+ ]
+}
