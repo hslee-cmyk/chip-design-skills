@@ -8,6 +8,9 @@
 """
 import json
 import random
+from pathlib import Path
+
+import gmid_engine
 
 import pytest
 
