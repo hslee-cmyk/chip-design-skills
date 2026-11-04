@@ -1,0 +1,55 @@
+{
+ "cap_bind": {
+  "mismatch": "ok",
+  "noise": "ok"
+ },
+ "combined_bins": {
+  "cap_npz:nfet_01v8": "ok",
+  "cap_npz:pfet_01v8": "ok",
+  "verify_midpoints:nfet_01v8": "ok",
+  "verify_midpoints:pfet_01v8": "ok"
+ },
+ "controls": [
+  "ok",
+  "home_read_isolated"
+ ],
+ "empty_init": [
+  "ok",
+  null
+ ],
+ "real_home_spiceinit": {
+  "exists": false
+ },
+ "record_only_files": {
+  "nfet_01v8": [
+   "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv"
+  ],
+  "pfet_01v8": [
+   "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv"
+  ]
+ },
+ "rules": {
+  "cwd": [
+   "upper",
+   null
+  ],
+  "default": [
+   "lower",
+   null
+  ],
+  "empty": [
+   "lower",
+   null
+  ],
+  "home": [
+   "upper",
+   null
+  ]
+ },
+ "simulator": [
+  "ngspice",
+  "46"
+ ],
+ "source_mode": "default",
+ "unrecorded_sets": []
+}

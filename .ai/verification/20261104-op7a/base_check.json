@@ -1,0 +1,25 @@
+{
+ "T": "434075c3",
+ "base_commit": "8d77b801d28ffd6cb57ec3ad36c2e77e298a8a4e",
+ "decl_sha256": "fa4c4c277a735fb5b353b9e72678115f061a836f1b7831543989b7a27a9f8b79",
+ "equivalence": "해당 없음",
+ "evidence_sha256": {
+  ".gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+  "audit2/a2b_sum.py": "40eceb9b2c9b629d3216e4012743ab31dca1760d461366d2e194d7f72a3e5992",
+  "audit2/a2b_summary.json": "dee17b2321c8af2d7d45a12bcc3e5d57581c7950246b679387db7ebc84d3862f",
+  "audit2/a4_result.json": "ea762ec8e48b0c9d769fca3eefc12591a0bfbb7147a56cbcffdd9654d45f5e77",
+  "audit2/hand_a4.py": "4d25943a70eb5d0f45309858f90c6402f7e73635335df094f6b5a1dfc0620328",
+  "audit2/make_plan2.py": "fd0300c166d161a5c92560945c3b11e233bd92b7ef632f22ef753eb7e12e86c0",
+  "audit2/mode_diffs.py": "e6a535cf06d56f21099d4762ba8dbc74c2f3eb693f131cf51dd68161ba11a707",
+  "audit2/plan2.json": "66ee368237b5c1528015447f731f0ff9be67293ca3b5e7e3796dce8b43199132",
+  "audit2/rejects.jsonl": "72b1efd07c9fca7a881b9986fc227254aed88226b5bb74cc436965fb0d239c91",
+  "audit2/rejects.py": "960f38d0b6682ea0c3664a4fde8f2e979c32cbcbf1ee4ad5edd56c5647493073",
+  "controls.json": "584fa4d3550d37f0fe27f753322f8a3da4b93863248b383599d35796920aa06c",
+  "mode_value_diffs.jsonl": "7a068dd16c6c7c0268ce66667b7ca9d46f298cb8430a95492a2eeb6015643224",
+  "points.jsonl": "824c8706fc52d7c91120d28c68a7cf542101f898e84ef5ba7cbd96118a925719",
+  "source_modes.jsonl": "e193c4dcba0636b8a98935a3e7d51d756ed9ddf00e5e1826b8e067f26b7d4ac8"
+ },
+ "previous_audit": "0d1f8631d2f2d34877dce25c1647613da52b70e5",
+ "schema_note": "재판정 base 대조(순서 3)",
+ "toy_red": "base에는 scripts 폴더·모듈이 없다. interface A-1 'ImportError가 red(새 파일)'"
+}
