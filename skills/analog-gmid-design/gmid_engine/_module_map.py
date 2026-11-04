@@ -426,7 +426,7 @@ MODULES = (
     ModuleEntry("authoring/spec_node_targets.py", "entry", "node_target_declaration",
                 "노드전압 목표(W3)", ("N3.4", "CI-15")),
     ModuleEntry("authoring/spec_regions.py", "entry", "intended_region_declaration",
-                "의도 영역 소자 선언", ("CI-18",)),
+                "의도 영역 소자 선언(triode·off)", ("CI-18", "O-221")),
     ModuleEntry("authoring/spec_settings.py", "entry", "settings_declaration",
                 "objective 예산·search·spice_check·front_refilter(닫힌 규칙 어휘, 숫자 거부)",
                 ("DEC-34", "DEC-73", "DEC-75", "DEC-77")),
