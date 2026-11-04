@@ -1,0 +1,307 @@
+{
+ "value_leaf": {
+  "rc": 0,
+  "keys": [
+   [
+    "a",
+    3,
+    [
+     "F[device.dc_op]"
+    ],
+    [
+     "F[device.dc_op]"
+    ]
+   ],
+   [
+    "b",
+    3,
+    [
+     "F[device.dc_op]"
+    ],
+    [
+     "F[device.dc_op]"
+    ]
+   ]
+  ],
+  "cand": [
+   [
+    "f",
+    "B",
+    "2",
+    "1",
+    "0",
+    "0"
+   ]
+  ],
+  "shared": 1,
+  "n_calls": 2,
+  "limits": {
+   "method_calls_unresolved": 2,
+   "sites_with_param_leaf": 0
+  }
+ },
+ "import_as": {
+  "rc": 0,
+  "keys": [
+   [
+    "a",
+    3,
+    [
+     "F[device.dc_op]"
+    ],
+    [
+     "F[device.dc_op]"
+    ]
+   ],
+   [
+    "b",
+    3,
+    [
+     "F[device.dc_op]"
+    ],
+    [
+     "F[device.dc_op]"
+    ]
+   ]
+  ],
+  "cand": [
+   [
+    "f",
+    "B",
+    "2",
+    "1",
+    "0",
+    "0"
+   ]
+  ],
+  "shared": 1,
+  "n_calls": 2,
+  "limits": {
+   "method_calls_unresolved": 2,
+   "sites_with_param_leaf": 0
+  }
+ },
+ "for_comp": {
+  "rc": 0,
+  "keys": [
+   [
+    "a",
+    4,
+    [
+     "F[device.dc_op]"
+    ],
+    [
+     "F[device.dc_op]"
+    ]
+   ],
+   [
+    "b",
+    3,
+    [
+     "F[device.dc_op]"
+    ],
+    [
+     "F[device.dc_op]"
+    ]
+   ]
+  ],
+  "cand": [
+   [
+    "f",
+    "B",
+    "2",
+    "1",
+    "0",
+    "0"
+   ]
+  ],
+  "shared": 1,
+  "n_calls": 2,
+  "limits": {
+   "method_calls_unresolved": 2,
+   "sites_with_param_leaf": 0
+  }
+ },
+ "literal_global": {
+  "rc": 0,
+  "keys": [
+   [
+    "a",
+    4,
+    [
+     "G[K]"
+    ],
+    [
+     "G[K]"
+    ]
+   ],
+   [
+    "b",
+    3,
+    [
+     "3"
+    ],
+    [
+     "3"
+    ]
+   ]
+  ],
+  "cand": [
+   [
+    "f",
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "shared": 1,
+  "n_calls": 2,
+  "limits": {
+   "method_calls_unresolved": 0,
+   "sites_with_param_leaf": 0
+  }
+ },
+ "two_same_module_callers": {
+  "rc": 0,
+  "keys": [
+   [
+    "a",
+    3,
+    [
+     "P[x]"
+    ],
+    [
+     "P[x]"
+    ]
+   ],
+   [
+    "b",
+    3,
+    [
+     "F[device.dc_op]"
+    ],
+    [
+     "F[device.dc_op]"
+    ]
+   ]
+  ],
+  "cand": [
+   [
+    "f",
+    "D",
+    "2",
+    "0",
+    "0",
+    "1"
+   ]
+  ],
+  "shared": 1,
+  "n_calls": 2,
+  "limits": {
+   "method_calls_unresolved": 3,
+   "sites_with_param_leaf": 1
+  }
+ },
+ "touching_invariance": {
+  "same_calls": true,
+  "same_shared": true,
+  "cand_all": [
+   [
+    "f",
+    "B",
+    "2",
+    "1",
+    "0",
+    "0"
+   ],
+   [
+    "h",
+    "not_B",
+    "2",
+    "0",
+    "1",
+    "0"
+   ]
+  ],
+  "cand_c": [
+   [
+    "h",
+    "not_B",
+    "2",
+    "0",
+    "1",
+    "0"
+   ]
+  ]
+ },
+ "touching_repo_style_rc": 0,
+ "vt_wrappers": [
+  [
+   "vt_annotation",
+   "u.py",
+   9,
+   "K.x:T"
+  ],
+  [
+   "vt_annotation",
+   "u.py",
+   12,
+   "K.z:T"
+  ],
+  [
+   "vt_assign",
+   "u.py",
+   3,
+   "A:T"
+  ],
+  [
+   "vt_assign",
+   "u.py",
+   4,
+   "B:T"
+  ],
+  [
+   "vt_assign",
+   "u.py",
+   5,
+   "C:T"
+  ],
+  [
+   "vt_assign",
+   "u.py",
+   6,
+   "D:T"
+  ],
+  [
+   "vt_assign",
+   "u.py",
+   7,
+   "E:T"
+  ],
+  [
+   "vt_assign",
+   "u.py",
+   11,
+   "K.y:T"
+  ]
+ ],
+ "g8_edges": [
+  [
+   "g8_class_container",
+   9,
+   "X.y"
+  ],
+  [
+   "g8_class_container",
+   9,
+   "X.z"
+  ],
+  [
+   "g8_memo_call_form",
+   8,
+   "X.m"
+  ]
+ ]
+}
