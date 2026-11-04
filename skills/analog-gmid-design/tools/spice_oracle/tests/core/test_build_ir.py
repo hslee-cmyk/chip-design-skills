@@ -7,7 +7,7 @@ oracle (a)(d): 입력 I(손으로 정한 회로: NMOS 하나 + 부하 저항 하
 import pytest
 
 from core import ir
-from core.build_benches import main_requests
+from core.build_benches import cm_loop_bench, loop_bench, main_requests
 from core.build_circuit import circuit_ir
 from core import requests as rq
 
@@ -107,3 +107,51 @@ def test_t3_11_same_input_passes_when_adapter_is_case_sensitive(w):
     stub = StubAdapter({"M1": {"gm": 6e-4, "gds": 1 / 60000.0}}, case_insensitive=False)
     rc, out = w.run(stub, inp=collide_input(w))
     assert not (out / "cs_toy.reject.json").exists() and len(stub.calls) >= 1
+
+
+# ------------------------------------------------------------------ 루프 벤치의 입력 AC 경계 (판정 M-2)
+# oracle (d): 옛 정의 metrics CONTRACT 7.11 / README C27 -- 루프 이득(β 루프, CM 루프)을 잴 때 입력 AC 는 접지(크기 0)이고
+# 루프 주입원만 AC 를 가진다. 일반 AC 벤치에서는 입력 AC(testbench.ac 의 input_p_ac/input_n_ac)가 살아 있다.
+# 손 유도: 입력 p/n 의 AC 크기 = 입력 선언 0.5, -0.5 (합 0, 절대값 합 1). 입력 AC 원은 IR 에서 이름 `tb:vac:<넷>` 인 전압원이다.
+def diff_input(w):
+    inp = deep(w.inp)
+    d = inp["devices"][0]
+    inp["devices"] = [
+        dict(d, name="M1", drain="outp", gate="inp"), dict(d, name="M2", drain="outn", gate="inn")]
+    inp["passives"] = [{"name": "RLp", "kind": "resistor", "terminals": ["vdd", "outp"], "value": 20000.0},
+                       {"name": "RLn", "kind": "resistor", "terminals": ["vdd", "outn"], "value": 20000.0},
+                       {"name": "Rfp", "kind": "resistor", "terminals": ["outp", "inp"], "value": 1e6},
+                       {"name": "Rfn", "kind": "resistor", "terminals": ["outn", "inn"], "value": 1e6}]
+    inp["feedback_passives"] = ["Rfp", "Rfn"]
+    inp["ports"] = {"input_p": "inp", "input_n": "inn", "output_p": "outp", "output_n": "outn"}
+    inp["cm_output_loop"] = {"drivers": ["M1", "M2"]}
+    inp["predictions"] = {"nodes": {"inp": 0.6, "inn": 0.6, "outp": 0.9, "outn": 0.9}, "devices": {}, "metrics": []}
+    inp["testbench"]["ac"].update(input_p_ac=0.5, input_n_ac=-0.5, diff_feedback_gain=0.5)
+    inp["testbench"]["ac"].pop("input_ac", None)
+    inp["testbench"]["loop_dc_choke_H"] = 1e20
+    inp.pop("acceptance", None)
+    return inp
+
+
+def input_ac(circuit):
+    """루프 주입원(tb:lb:, tb:ilb:)을 뺀, AC 크기가 0 이 아닌 독립원 {이름: 크기}. 입력 원이 있든 아예 없든 '입력 AC 0' 을 같게 본다."""
+    return {e.name: e.ac_mag for e in circuit.elements
+            if type(e).__name__ in ("VSource", "ISource") and not e.name.startswith(("tb:lb:", "tb:ilb:")) and e.ac_mag != 0}
+
+
+def test_general_ac_bench_input_ac_is_alive(w):
+    circuit, blockers = circuit_ir(diff_input(w), "free")
+    assert blockers == []
+    assert input_ac(circuit) == {"tb:vac:inp": 0.5, "tb:vac:inn": -0.5}
+
+
+def test_beta_loop_bench_input_ac_is_zero(w):
+    circuit, _reqs, blockers = loop_bench(diff_input(w), "free")
+    assert blockers == []
+    assert input_ac(circuit) == {}                                  # 루프 주입원만 AC 를 가진다
+
+
+def test_cm_loop_bench_input_ac_is_zero(w):
+    circuit, _reqs, blockers = cm_loop_bench(diff_input(w), "free")
+    assert blockers == []
+    assert input_ac(circuit) == {}                                  # CONTRACT 7.11: CM 루프 때 입력 AC 접지
