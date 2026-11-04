@@ -1,0 +1,45 @@
+{
+ "n_cm_baseline_cirs": 8,
+ "cases": [
+  {
+   "baseline": "pytest/tmp/cmfb0/out/tcm_cmfb.free.cmloop.cir",
+   "rc": 0,
+   "only_old": [
+    "XM1 lbx_op ip 0 0 sky130_fd_pr__nfet_01v8 ad=0 as=0 l=0.5 m=2 pd=0 ps=0 w=2 mult=2",
+    "XM2 lbx_om im 0 0 sky130_fd_pr__nfet_01v8 ad=0 as=0 l=0.5 m=2 pd=0 ps=0 w=2 mult=2",
+    "XM3 lbx_op c vdd vdd sky130_fd_pr__pfet_01v8 ad=0 as=0 l=0.5 m=2 pd=0 ps=0 w=2 mult=2",
+    "XM4 lbx_om c vdd vdd sky130_fd_pr__pfet_01v8 ad=0 as=0 l=0.5 m=2 pd=0 ps=0 w=2 mult=2"
+   ],
+   "only_new": [
+    "XM1 lbx_op ip 0 0 sky130_fd_pr__nfet_01v8 ad=0 as=0 l=0.5 m=2 mult=2 pd=0 ps=0 w=2",
+    "XM2 lbx_om im 0 0 sky130_fd_pr__nfet_01v8 ad=0 as=0 l=0.5 m=2 mult=2 pd=0 ps=0 w=2",
+    "XM3 lbx_op c vdd vdd sky130_fd_pr__pfet_01v8 ad=0 as=0 l=0.5 m=2 mult=2 pd=0 ps=0 w=2",
+    "XM4 lbx_om c vdd vdd sky130_fd_pr__pfet_01v8 ad=0 as=0 l=0.5 m=2 mult=2 pd=0 ps=0 w=2"
+   ],
+   "cm_measures_diff": {},
+   "cm_pm": {
+    "raw": 32.84699194740443,
+    "pm_deg": null,
+    "pm_undefined": "stability_unverified",
+    "weights": [
+     0.5,
+     0.5
+    ]
+   },
+   "cm_status_old_new": [
+    0,
+    0
+   ]
+  },
+  {
+   "baseline": "pytest/tmp/test_cmloop_cuts_only_listed_d0/t.free.cmloop.cir",
+   "rc": 0,
+   "no_cm_bench": true
+  },
+  {
+   "baseline": "pytest/tmp/test_cmloop_driver_not_on_outp0/t.free.cmloop.cir",
+   "rc": 2,
+   "no_cm_bench": true
+  }
+ ]
+}

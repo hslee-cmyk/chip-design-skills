@@ -1,0 +1,177 @@
+{
+ "nominal_with_roles": {
+  "rc": 0,
+  "files": [
+   "tcs_nmos_rload.free",
+   "tcs_nmos_rload.free.compare.json",
+   "tcs_nmos_rload.free.compare.md",
+   "tcs_nmos_rload.free.sim.json"
+  ],
+  "code": null,
+  "verdict": "INCOMPLETE",
+  "machine_dependent_refs_n": 16,
+  "machine_dependent_refs": [
+   "engine_source:nfet_01v8_mismatch_slopes",
+   "engine_source:nfet_01v8_tt_model_card",
+   "engine_source:pfet_01v8_mismatch_slopes",
+   "engine_source:pfet_01v8_tt_model_card",
+   "engine_source:scale_option",
+   "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+   "lut_aux_input:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+   "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+   "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+   "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+   "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+   "lut_model_file:pmos:models/parameters/lod.spice",
+   "lut_record_root:nfet_01v8_mismatch_slopes",
+   "lut_record_root:nfet_01v8_tt_model_card",
+   "lut_record_root:pfet_01v8_mismatch_slopes",
+   "lut_record_root:pfet_01v8_tt_model_card"
+  ]
+ },
+ "root_copy_unchanged": {
+  "rc": 0,
+  "files": [
+   "tcs_nmos_rload.free",
+   "tcs_nmos_rload.free.compare.json",
+   "tcs_nmos_rload.free.compare.md",
+   "tcs_nmos_rload.free.sim.json"
+  ],
+  "code": null,
+  "verdict": "INCOMPLETE",
+  "machine_dependent_refs_n": 16,
+  "machine_dependent_refs": [
+   "engine_source:nfet_01v8_mismatch_slopes",
+   "engine_source:nfet_01v8_tt_model_card",
+   "engine_source:pfet_01v8_mismatch_slopes",
+   "engine_source:pfet_01v8_tt_model_card",
+   "engine_source:scale_option",
+   "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+   "lut_aux_input:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+   "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+   "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+   "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+   "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+   "lut_model_file:pmos:models/parameters/lod.spice",
+   "lut_record_root:nfet_01v8_mismatch_slopes",
+   "lut_record_root:nfet_01v8_tt_model_card",
+   "lut_record_root:pfet_01v8_mismatch_slopes",
+   "lut_record_root:pfet_01v8_tt_model_card"
+  ]
+ },
+ "aux_content_changed": {
+  "rc": 2,
+  "files": [
+   "tcs_nmos_rload.reject.json"
+  ],
+  "code": "lut_aux_input_mismatch",
+  "stage": "8",
+  "detail": "{'path': 'cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv', 'recorded_sha256': 'f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf', 'actual_sha256': {'lf': '643240edfe3820c4ebbebf0be30d176f18d9fc402cebf6ae599a53a9c75b215a', 'raw': 'd01e26c658a248faffde599b63202535c3576306a6d0a6ce8ad196ba3a45518b'}}"
+ },
+ "aux_file_deleted": {
+  "rc": 2,
+  "files": [
+   "tcs_nmos_rload.reject.json"
+  ],
+  "code": "lut_aux_input_mismatch",
+  "stage": "8",
+  "detail": "{'path': 'cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv', 'recorded_sha256': 'f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf', 'actual_sha256': 'missing'}"
+ },
+ "record_root_model_changed": {
+  "rc": 2,
+  "files": [
+   "tcs_nmos_rload.reject.json"
+  ],
+  "code": "lut_record_root_mismatch",
+  "stage": "8",
+  "detail": "{'path': 'cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice', 'engine_source_key': 'nfet_01v8_tt_model_card', 'root_file_lf_sha256': '485a72d79fe68b2f6c30d1e85b2f4206c242e425bbef925ad256161a05d1c6c9', 'engine_file_lf_sha256': '3d706d50cf2e57175aea78bcf27e4ee07d9f750b154a4b06e6090531364a831b'}"
+ },
+ "role_pair_sha_changed": {
+  "rc": 2,
+  "files": [
+   "tcs_nmos_rload.reject.json"
+  ],
+  "code": "model_bundle_mismatch",
+  "stage": "8",
+  "detail": "{'rule': 'i', 'kind': 'nmos', 'missing': [{'sha256': 'f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf', 'path': 'cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv'}], 'undeclared_role_paths': ['cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv']}"
+ },
+ "roles_removed": {
+  "rc": 2,
+  "files": [
+   "tcs_nmos_rload.reject.json"
+  ],
+  "code": "model_bundle_mismatch",
+  "stage": "8",
+  "detail": "{'rule': 'i', 'kind': 'nmos', 'missing': [{'sha256': 'f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf', 'path': 'cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv'}], 'undeclared_role_paths': ['cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv', 'cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice', 'cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice']}"
+ },
+ "slices_nominal": {
+  "rc": 0,
+  "files": [
+   "tcs_nmos_rload.free",
+   "tcs_nmos_rload.free.compare.json",
+   "tcs_nmos_rload.free.compare.md",
+   "tcs_nmos_rload.free.sim.json"
+  ],
+  "code": null,
+  "verdict": "INCOMPLETE",
+  "machine_dependent_refs_n": 16,
+  "machine_dependent_refs": [
+   "engine_source:nfet_01v8_mismatch_slopes",
+   "engine_source:nfet_01v8_tt_model_card",
+   "engine_source:pfet_01v8_mismatch_slopes",
+   "engine_source:pfet_01v8_tt_model_card",
+   "engine_source:scale_option",
+   "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+   "lut_aux_input:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+   "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+   "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+   "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+   "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+   "lut_model_file:pmos:models/parameters/lod.spice",
+   "lut_record_root:nfet_01v8_mismatch_slopes",
+   "lut_record_root:nfet_01v8_tt_model_card",
+   "lut_record_root:pfet_01v8_mismatch_slopes",
+   "lut_record_root:pfet_01v8_tt_model_card"
+  ]
+ },
+ "slices_all_32": {
+  "rc": 0,
+  "files": [
+   "tcs_nmos_rload.free",
+   "tcs_nmos_rload.free.compare.json",
+   "tcs_nmos_rload.free.compare.md",
+   "tcs_nmos_rload.free.sim.json"
+  ],
+  "code": null,
+  "verdict": "INCOMPLETE",
+  "machine_dependent_refs_n": 16,
+  "machine_dependent_refs": [
+   "engine_source:nfet_01v8_mismatch_slopes",
+   "engine_source:nfet_01v8_tt_model_card",
+   "engine_source:pfet_01v8_mismatch_slopes",
+   "engine_source:pfet_01v8_tt_model_card",
+   "engine_source:scale_option",
+   "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+   "lut_aux_input:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+   "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+   "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+   "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+   "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+   "lut_model_file:pmos:models/parameters/lod.spice",
+   "lut_record_root:nfet_01v8_mismatch_slopes",
+   "lut_record_root:nfet_01v8_tt_model_card",
+   "lut_record_root:pfet_01v8_mismatch_slopes",
+   "lut_record_root:pfet_01v8_tt_model_card"
+  ],
+  "n_files": 32
+ },
+ "slices_roles_removed": {
+  "rc": 2,
+  "files": [
+   "tcs_nmos_rload.reject.json"
+  ],
+  "code": "model_bundle_mismatch",
+  "stage": "8",
+  "detail": "{'rule': 'i', 'kind': 'nmos', 'missing': [{'sha256': 'f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf', 'path': 'cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv'}], 'undeclared_role_paths': ['cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv', 'cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice', 'cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice']}"
+ }
+}

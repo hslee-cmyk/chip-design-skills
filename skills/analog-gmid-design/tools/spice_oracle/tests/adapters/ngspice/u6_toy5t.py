@@ -23,7 +23,8 @@ from pathlib import Path
 import numpy as np
 
 import conftest
-from conftest import NFET, PFET, _includes, make_lut, zero_diffusion
+from conftest import NFET, PFET, make_lut, zero_diffusion
+from independent_ref import _includes             # 같은 폴더로 옮긴 손 넷리스트 독립 기준(card 20261104-op23, D §18.2)
 
 T5 = dict(vdd=1.8, vin=0.9, it=20e-6, L=1e-6, fw=2e-6, n=2, cl=1e-12)
 DEV = {"M1": ("nmos", "d1", "inp", "tail", "gnd"), "M2": ("nmos", "out", "inn", "tail", "gnd"),
