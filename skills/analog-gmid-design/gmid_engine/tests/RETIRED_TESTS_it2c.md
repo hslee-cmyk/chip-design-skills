@@ -18,6 +18,11 @@ interface '빈칸 답'의 폐기 규칙: 정의가 바뀌어 전제가 깨진 te
 | `test_it2b_output_structure_vocabulary_and_window_status_defaults` (tests/sizing/test_s2_values.py) | `OUTPUT_*` 어휘·`f_component_undeclared` 상태 삭제. 남은 `Window` 기본값 단언은 `test_it2b_window_status_defaults` 로 유지(이름만 바뀜) |
 | `test_it2b_sw_several_roots_move_together` (tests/sizing/test_input_window.py) | `saturation_window` 의 `root` 는 넷 하나(묶음 없음). 대체 = `test_it2c_sw_root_is_a_single_net` |
 | `test_it2b_sw_root_pair_replaces_row_equation_by_fixed_net` | 쌍 root 삭제. 대체 = `test_it2c_sw_pair_root_is_not_accepted` |
+| `test_it2b_k1_declared_input_port_has_measured_window` (tests/sizing/test_block_columns.py) | 커널 `node.dc_window` 는 W4 뿌리 넷만(선언 입력 포트 항목 없음, interface 7번 표 폐기). 대체 = T-K(cfg), O-109 D1 (A-83) |
+| `test_it2b_pb_declared_input_ports_share_one_shift_window` | 위와 같음. 대체 = T-P(cfg 일반·대칭 toy), O-49 P3 (A-83) |
+| `test_it2b_d_triode_row_zero_crossing_is_the_window_end` | interface 7번 표 폐기. 대체 = `test_it2c_triode_declared_device_row_zero_crossing_is_the_window_end` (A-83) |
+| `test_it2b_l12a_tol_undefined_root_window_is_unsettled_and_y_range_kept` 의 소사례 (d)만 (test 는 유지) | 창 행이 tol 을 읽지 않아 '슬라이스에 VDSAT 가 있으면 두 표가 함께 None -> unmeasured' 전제 소멸(실측 "unsettled"). (a)(c) 단언 유지 (A-83) |
+| `test_declared_input_dc_same_theta_seals` 의 `node.dc_window["in"]` 단언 줄만 (test 는 유지) | 선언 포트 커널 창 항목 없음. cfg 는 `icm_config`(metrics) writer 라 `size_and_seal` 스냅샷에 없어 옮기지 않음. cfg 측 단언은 tests/metrics (A-83) |
 | `test_it2b_l12b_f_component_port_without_declared_dc_has_undefined_window` (tests/sizing/test_block_columns.py) | 상태 `f_component_undeclared` 삭제: F 성분 미선언 포트도 구동에 든다. 대체 = `test_it2c_single_input_as_is_window_by_hand_kcl`·`test_it2c_servo_undeclared_input_dc_drives_both_ports_together` |
 
 이동(폐기 아님): `test_it2b_d_region_rows_kinds_are_sat_and_triode_only`·`test_it2b_d_region_rows_has_no_zero_vgs_op_point_conduction_columns_or_eo1_import` 는 `tests/sizing/test__helpers_dc_solve.py` 로 옮겼다(대상 모듈 `Circuit.region_rows` 의 새 자리).

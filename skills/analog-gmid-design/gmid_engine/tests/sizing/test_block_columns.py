@@ -1007,21 +1007,6 @@ def _window_of(snap):
 # solution_sensitivity -- 사유 = 뿌리 아닌 포트 창 전제가 DEC-106(입력 점은 항목 하나, n 포트 항목 없음)과 충돌. 새 동작은 test_it1_t1h_* 가 본다.
 
 
-def test_it2b_k1_declared_input_port_has_measured_window(tmp_path, r4_access):
-    """oracle 대조: (손) K1 입력 DC 선언 toy(회로 C, in = 0.7 V 선언). 입력 포트 in 의 창 항목이 있고 input_status == "measured".
-    out 은 W4 뿌리(y 로 고정, 레일 사이)라 in 이 움직여도 out·VDS(M1)·VSD(M2)가 변하지 않는다 -> 어느 행도 x 에 기울지 않아 창 = 레일 [0, 1.8].
-    뿌리 아닌 포트·선언 포트의 constraints 는 0, 입력 포트가 아닌 W4 뿌리 out 의 input_status 는 None."""
-    ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), r4_access, input_dc_v=0.7)[2]
-    snap = run_blocks(ctx, theta_r4c(), upto="columns")
-    win = _window_of(snap)
-    assert set(win) == {"in", "out"}
-    w = win["in"]
-    assert w.input_status == "measured"
-    assert (w.lo, w.hi, w.constraints) == (0.0, 1.8, 0)
-    assert w.tol_v is not None and w.tol_v > 0
-    assert win["out"].input_status is None
-
-
 def test_it2b_k1_unmeasurable_root_is_unmeasured_with_order_window(tmp_path, toy_access):
     """oracle 대조: (손) K1 창을 잴 수 없는 toy(VDSAT 열 없는 LUT). source follower M1 nmos (vdd, in, out) + M2 nmos (out, vb, gnd):
     in = 입력 DC 미선언 뿌리, 게이트에만 닿아 순서 창 = 레일 [0, 1.8]. 측정 못 함 -> input_status "unmeasured" 이고 창은 순서 창 그대로
@@ -1070,34 +1055,6 @@ def _dp_theta(ctx, y=None):
 def _dp_t(vin):
     """독립 풀이: t = vin − VGS(TD; vds = DP_VO − t, vsb = t)."""
     return _bisect(lambda t: vin - r4_vgs_of("nmos", DP_TD, DP_VO - t, t) - t, 1e-9, vin - 1e-9)
-
-
-def test_it2b_pb_declared_input_ports_share_one_shift_window(tmp_path, r4_access):
-    """oracle 대조: (손) P(b) 입력 DC 둘 선언 toy -- 두 포트 창 끝의 차 = 선언 차(둘 다 0.9 V 선언 -> 0), 즉 같은 x 이동량 Δ 로 함께 움직인 하나의 창.
-    포트별로 따로 훑으면 다른 포트가 서 있어 t 가 덜 움직여 끝이 달라진다(red). 손계산(독립 풀이로 t0 = t(0.9), 감도 s_t = dt/dV_in 은 중심 차분):
-    행 M_d(o, t, +1): 여유 (o − t) − VDsat(vgs = 0.9 − t, vsb = t) − tol, 율 −s_t -> Δ ≤ 여유/s_t.  행 M5(t, gnd, +1): 여유 t − VDsat(vgs5, 0) − tol,
-    율 +s_t -> Δ ≥ −여유/s_t. o 는 저항 강하라 x 에 무관(s_o = 0). 창 = [0.9 + Δlo, 0.9 + Δhi] ∩ 레일 [0, 1.8]."""
-    ctx = build_ctx(tmp_path, _dp_doc(), r4_access, input_dc_v=0.9)[2]
-    th = _dp_theta(ctx)
-    snap = run_blocks(ctx, th, upto="columns")
-    V = node_voltages(snap)
-    t0 = _dp_t(0.9)
-    assert abs(V["t"] - t0) <= 1e-5 and abs(V["o1"] - DP_VO) <= 1e-9                             # 전제: 독립 풀이가 이 toy 의 해를 재현
-    h = 1e-5
-    s_t = (_dp_t(0.9 + h) - _dp_t(0.9 - h)) / (2 * h)
-    tol = r4_tol_vdsat("nmos")
-    vgs_d = 0.9 - t0
-    slack_d = (DP_VO - t0) - r4_vdsat_at("nmos", 1e-6, vgs_d, t0) - tol
-    vgs5 = r4_vgs_of("nmos", DP_T5, t0, 0.0)
-    slack_5 = t0 - r4_vdsat_at("nmos", 1e-6, vgs5, 0.0) - tol
-    lo_e, hi_e = 0.9 - slack_5 / s_t, 0.9 + slack_d / s_t
-    assert 0.0 < lo_e < 0.9 < hi_e < 1.8                                                         # 전제: 두 끝 모두 행에서 나온다(레일 아님)
-    win = _window_of(snap)
-    assert set(win) == {"ina", "inb"}
-    for p in ("ina", "inb"):
-        assert win[p].input_status == "measured" and win[p].constraints == 0
-        assert abs(win[p].lo - lo_e) <= 1e-5 and abs(win[p].hi - hi_e) <= 1e-5, (p, win[p], lo_e, hi_e)
-    assert abs(win["ina"].lo - win["inb"].lo) <= 1e-12 and abs(win["ina"].hi - win["inb"].hi) <= 1e-12     # 끝의 차 = 선언 차(0)
 
 
 # ---------------------------------------------------------------------------------------------------------------------------
@@ -1303,33 +1260,6 @@ def _tri_theta(ctx, y, vsg2):
     return th
 
 
-def test_it2b_d_triode_row_zero_crossing_is_the_window_end(tmp_path, r4_access):
-    """oracle 대조: (손) D (a) -- `triode` 선언 소자가 훑기 중 포화로 가는 toy: 그 점이 창 끝. 행 `(d, s, −부호, VDsat − VDS − tol_VDsat, "triode")` 의 영 교차.
-    y = 0.4: V(out) = 0.8 + 0.4·(1.8 − 0.8) = 1.2 (뿌리 식), 소스 in 이 움직이면 s_out = 1 − y = 0.6.
-    M1(triode): VDS = out − in = 0.4, VDsat = r4_vdsat_at(vgs 0.8, vsb 0.8); 여유 = VDsat − VDS − tol, 율 = −(s_out − s_in) = y -> Δ ≥ −여유/y (아래 끝).
-    M2(pmos 포화): VSD = 1.8 − out = 0.6; 여유 = VSD − VDsat(vsg 0.4, vsb 0) − tol_p, 율 = −s_out -> Δ ≤ 여유/(1 − y) (위 끝).
-    M3(nmos 포화, d = in, s = gnd): VDS = in; 여유 = in − VDsat(vgs 0.6, 0) − tol, 율 +1 -> Δ ≥ −여유 (더 느슨).
-    전제 단언: 세 소자 모두 선언 영역 안(M1 은 동작점에서 triode). base 는 선언 소자 행이 없어 M1 아래 끝을 놓친다(red)."""
-    y, vsg2 = 0.4, 0.4
-    (tmp_path / "t").mkdir()
-    ctx = build_ctx(tmp_path / "t", _tri_doc(), r4_access, input_dc_v=TRI_VIN, linear_devices=("M1",))[2]
-    snap = _columns_with_declared(ctx, _tri_theta(ctx, y, vsg2))
-    V = node_voltages(snap)
-    out = TRI_VIN + y * (1.8 - TRI_VIN)
-    assert abs(V["out"] - out) <= 1e-9 and V["in"] == TRI_VIN                                   # 전제: 뿌리 식 손계산
-    tol_n, tol_p = r4_tol_vdsat("nmos"), r4_tol_vdsat("pmos")
-    slack1 = r4_vdsat_at("nmos", 1e-6, TRI_VGS1, TRI_VIN) - (out - TRI_VIN) - tol_n
-    slack2 = (1.8 - out) - r4_vdsat_at("pmos", 1e-6, vsg2, 0.0) - tol_p
-    slack3 = TRI_VIN - r4_vdsat_at("nmos", 1e-6, TRI_VGS3, 0.0) - tol_n
-    assert slack1 > 0 and slack2 > 0 and slack3 > 0                                              # 전제: 세 소자 모두 선언 영역 안
-    dlo = max(-slack1 / y, -slack3)
-    dhi = slack2 / (1.0 - y)
-    assert dlo == -slack1 / y                                                                    # 전제: 아래 끝은 triode 행에서 나온다
-    w = _window_of(snap)["in"]
-    assert w.input_status == "measured"
-    assert abs(w.lo - (TRI_VIN + dlo)) <= 1e-9 and abs(w.hi - (TRI_VIN + dhi)) <= 1e-9, (w, TRI_VIN + dlo, TRI_VIN + dhi)
-
-
 def _docstring_ids(tree):
     ids = set()
     for node in _ast.walk(tree):
@@ -1437,8 +1367,8 @@ def test_it2b_l12a_tol_undefined_root_window_is_unsettled_and_y_range_kept(tmp_p
     # 대조군 -- 창을 잴 수 없다
     _, snap_c = _a6b_window(tmp_path / "c", slice_vdsat=(), cap_vdsat=())
     assert _window_of(snap_c)["in"].input_status == "unmeasured"
-    _, snap_d = _a6b_window(tmp_path / "d", slice_vdsat=("nmos", "pmos"), cap_vdsat=())
-    assert _window_of(snap_d)["in"].input_status == "unmeasured"
+    # [IT-2c 갱신 -- A-83] 소사례 (d)(슬라이스에 VDSAT 가 있으면 두 표가 함께 None -> "unmeasured")를 뺀다: 창 행이 tol 을 읽지 않게 되어(판정 여유 0, spec '재작성 범위'
+    # `region_rows` tol 항 삭제) 이 전제가 소멸했다(실측: 이제 "unsettled"). interface 7번 표 'l12a_tol_undefined 는 전제가 바뀔 수 있다. 실행으로 판단'.
 
 
 def test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution(tmp_path):

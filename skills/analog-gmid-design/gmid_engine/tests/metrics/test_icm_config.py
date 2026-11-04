@@ -387,8 +387,8 @@ def _two_stage(tmp, i1, r1, i2, r2, *, outputs_swapped=False, input_dc_v=VGS0):
     th = {("L", "M1"): L0, ("L", "M2"): L0,
           ("current", "R1"): i1, ("resistance", "R1"): r1, ("current", "R2"): i2, ("resistance", "R2"): r2}
     if input_dc_v is None:                                                  # 입력 DC 미선언 -> ln_idu 가 θ 성분
+        # [A-83] IT-1 입력 점 규칙: 차동 입력쌍 두 포트는 한 점으로 묶여 M2 는 parallel_vgs 종속 -> M1 만 θ 성분(M2 의 ln_idu 는 스키마 밖).
         th[("ln_idu", "M1")] = lut_ln_idu("nmos", VGS0, 1.8 - i1 * r1, 0.0)
-        th[("ln_idu", "M2")] = lut_ln_idu("nmos", VGS0, 1.8 - i2 * r2, 0.0)
     return _evaluate(tmp, topo, els, th, (("power_dc_w", "<=", 1e-3, None),), input_dc_v=input_dc_v)
 
 
@@ -614,8 +614,11 @@ def test_it2c_single_input_has_no_kernel_window_entry(tmp_path):
 
 # ---------------------------------------------------------------- 선언 뷰 병합 (T-S1V)
 
-def _ota_views(tmp, view):
+def _ota_views(tmp, view, seeds=False):
+    """seeds False: graph.views 의 ViewS1v 튜플. seeds True: (ViewS1v 튜플, `collect_views` 가 돌려주는 ViewSeed 튜플) -- 출처(source)는 ViewSeed 에만 있다(A-83)."""
     from gmid_engine.graph import build_s1, build_s1v
+    from gmid_engine.graph.net_model import net_model
+    from gmid_engine.graph.views import collect_views
     topo = topo_doc("it2c_ota", mos=[("M1", "nmos", "x", "in_p", "tail", "gnd"), ("M2", "nmos", "out", "in_n", "tail", "gnd"),
                                      ("M3", "pmos", "x", "x", "vdd", "vdd"), ("M4", "pmos", "out", "x", "vdd", "vdd"),
                                      ("M0", "nmos", "tail", "vb", "gnd", "gnd")],
@@ -623,26 +626,32 @@ def _ota_views(tmp, view):
                            "out": ("output", "single_ended_output")}, rails=("vdd", "gnd"), bias=["vb"])
     td, spec = load_case(tmp, topo, SUP, (), (), (("gain_ss_db", ">=", 20.0, view),))
     run = fresh_run()
-    g = build_s1v(build_s1(td, dict(SUP), **run), spec, count_budget=10 ** 6, stop_on_unsupported=False, **run)
-    return g.value("graph", "s1v", "views")
+    s1 = build_s1(td, dict(SUP), **run)
+    g = build_s1v(s1, spec, count_budget=10 ** 6, stop_on_unsupported=False, **run)
+    views = g.value("graph", "s1v", "views")
+    if not seeds:
+        return views
+    return views, collect_views(net_model(s1), spec)[0]
 
 
 def test_it2c_declared_view_same_key_merges_into_default(tmp_path):
     """oracle 대조: (손) T-S1V 같은 키 (interface 빈칸 답 4). 선언 뷰 excite (in_p 1/2, in_n −1/2)·감지 out 은 기본 포트 뷰와 같은 키 -> 뷰 하나로 합쳐지고
     선언이 먼저라 source == "spec_constraint_view", default_port True."""
-    views = _ota_views(tmp_path, {"ac_excite": {"in_p": 0.5, "in_n": -0.5}, "sense_p": "out", "sense_n": None, "sense_mode": "single_ended"})
-    assert len(views) == 1
+    # [A-83] 출처는 `collect_views` 의 ViewSeed.source 로 단언한다(ViewS1v 에는 source 칸이 없다). 합치기 뜻(뷰 하나, 선언 출처, default_port)은 그대로.
+    views, seeds = _ota_views(tmp_path, {"ac_excite": {"in_p": 0.5, "in_n": -0.5}, "sense_p": "out", "sense_n": None, "sense_mode": "single_ended"}, seeds=True)
+    assert len(views) == 1 and len(seeds) == 1
     v = views[0]
     assert v.excite == (("in_n", -0.5), ("in_p", 0.5)) and v.sense == ("out",)
-    assert v.source == "spec_constraint_view" and v.default_port is True
+    assert seeds[0].source == "spec_constraint_view" and v.default_port is True and seeds[0].default_port is True
 
 
 def test_it2c_declared_view_other_key_coexists_with_default(tmp_path):
     """oracle 대조: (손) T-S1V 다른 키. 선언 뷰 excite (in_p 1) 는 기본 키가 아니므로 뷰 둘 -- 기본 포트 뷰만 default_port True, 선언 뷰는 False(목록 순서 = 키 정렬)."""
-    views = _ota_views(tmp_path, {"ac_excite": {"in_p": 1.0}, "sense_p": "out", "sense_n": None, "sense_mode": "single_ended"})
-    assert len(views) == 2
+    views, seeds = _ota_views(tmp_path, {"ac_excite": {"in_p": 1.0}, "sense_p": "out", "sense_n": None, "sense_mode": "single_ended"}, seeds=True)
+    assert len(views) == 2 and len(seeds) == 2
     by = {v.excite: v for v in views}
-    assert by[(("in_p", 1.0),)].source == "spec_constraint_view" and by[(("in_p", 1.0),)].default_port is False
+    seed_by = {v.excite: v for v in seeds}                                  # [A-83] 출처는 ViewSeed.source
+    assert seed_by[(("in_p", 1.0),)].source == "spec_constraint_view" and by[(("in_p", 1.0),)].default_port is False
     assert by[(("in_n", -0.5), ("in_p", 0.5))].default_port is True
     assert [v.excite for v in views] == sorted(v.excite for v in views)
 

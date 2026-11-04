@@ -291,12 +291,18 @@ def test_interior_y_maps_into_saturation_window(pend, y):
 @pytest.mark.parametrize("y", [0.0, 1.0])
 def test_window_ends_are_saturated(pend, y):
     """설계 41 §4.6: y_icm 범위 = 입력 창이고 '경계는 봉인 시점 값이며 tol 을 포함한다' -> θ 정의역의 끝 y = 0·1 도 창 안이라
-    포화 여유 ≥ 0(봉인 7 pass). 정확한 창 끝에서의 독립 풀이 여유는 0(전제)."""
+    포화 여유 ≥ 0(봉인 7 pass). 정확한 창 끝에서의 독립 풀이 여유는 0(전제).
+    [IT-2c 갱신 -- A-83, O-103 꼴] 창 행이 판정 여유 0(VDS − VDSAT)이 되고 봉인 7 은 EO-1 까지 +tol_VDsat 라 더 엄격하다(card '원래 취지와 다름' 넷째 줄,
+    fail-open 아님) -> 정확한 끝 점은 '봉인'이거나 '봉인 7 거부이면서 |slack_v| ≤ tol_v'(`test_mid_window_ends_have_nonnegative_saturation_slack` 와 같은 허용,
+    넓히지 않음). 다른 거부 사유는 실패. EO-1 뒤 경계가 통일되면 이 단언을 다시 조인다(봉인만 허용). oracle: (a) 물리 불변식(포화 여유) + (b) Follower 독립 풀이."""
     f = Follower(0.9, 0.3)
     lo_e, hi_e = f.window(0.9)
     assert abs(f.solve(lo_e)[2]) <= 1e-9 and abs(f.solve(hi_e)[3]) <= 1e-9            # 전제
-    ev = size_and_seal(pend, _theta(pend, 0.9, 0.3, y))
-    assert ev.sealed is not None
+    snap, sealed, slack_v = _evaluate_point(pend, _theta(pend, 0.9, 0.3, y), True)     # 봉인 7 외 거부 사유는 _evaluate_point 가 실패시킨다
+    if sealed:
+        assert seal_item(snap, 7).status == "pass"
+    else:
+        assert abs(slack_v) <= _tol_of_window(snap), slack_v
 
 
 def test_window_found_when_rail_midpoint_is_outside(pend):
@@ -407,8 +413,9 @@ def test_declared_input_dc_same_theta_seals(tmp_path, r4_access):
     assert ev.sealed is not None and node_voltages(ev.snapshot)["in"] == 0.67
     # [IT-2b 갱신 -- 승인된 동작 변경 design 41 4.7-3 3·4.7-8 (1): 입력 DC 선언 포트도 창 항목을 갖는다] 옛 단언 `"in" not in dc_window`
     # ('선언 입력 DC 는 창 사상이 없다')을 새 계약으로 바꾼다: 항목이 있고 측정된 창(input_status "measured", lo ≤ 0.67 ≤ hi)이다.
-    w = dict(ev.snapshot.column("node", "dc_window"))["in"]
-    assert w.input_status == "measured" and w.lo <= 0.67 <= w.hi
+    # [IT-2c 갱신 -- A-83] 커널 `node.dc_window` 는 W4 뿌리 넷만 갖는다(interface 'node.dc_window(바뀜)') -> 선언 포트 `dc_window["in"]` 단언은 지운다.
+    # cfg 로 옮기지 않는 사유: `node.dc_window_cfg` 의 writer 는 metrics 블록 `icm_config`(ss_evaluate 단계)라 `size_and_seal` 스냅샷에는 항목이 없고(KeyError 실측),
+    # sizing 층 test 에서 metrics 층을 부르는 근거가 interface 에 없다. 선언 입력 DC 포트의 cfg `measured` 창 단언은 tests/metrics/test_icm_config*.py 가 맡는다.
 
 
 def test_empty_window_rejected(pend):
