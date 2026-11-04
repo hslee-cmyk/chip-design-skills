@@ -205,6 +205,7 @@ class World:
         out = Path(out) if out is not None else self.tmp / "out"
         out.mkdir(parents=True, exist_ok=True)
         inp = self.inp if inp is None else inp
+        (self.tmp / "inputs").mkdir(parents=True, exist_ok=True)         # 입력 폴더는 호출자(test)가 만든다
         ip = conftest.write_json(self.tmp / "inputs" / f"{out.name}.input.json", inp)   # 입력은 출력 폴더 밖(산출물만 센다)
         sim = ["--simulator", cli_simulator] if cli_simulator else []
         rc = oracle_run.main([str(ip), str(out), "--bias", "free", *sim, *map(str, extra)], adapters={"stub": stub})
