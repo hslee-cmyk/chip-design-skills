@@ -1,0 +1,19 @@
+{"start": "17:21:02", "avail_GB": 2.7586746215820312, "ids": ["R1", "R10", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9"]}
+{"id": "R1", "waiting_avail_GB": 2.7586021423339844, "t": "17:21:02"}
+{"id": "R1", "waiting_avail_GB": 2.7848243713378906, "t": "17:21:22"}
+{"id": "R1", "waiting_avail_GB": 2.759410858154297, "t": "17:21:42"}
+{"id": "R1", "waiting_avail_GB": 2.771343231201172, "t": "17:22:02"}
+{"id": "R1", "waiting_avail_GB": 2.7851600646972656, "t": "17:22:22"}
+{"id": "R1", "waiting_avail_GB": 2.856975555419922, "t": "17:22:42"}
+{"id": "R1", "waiting_avail_GB": 2.6637725830078125, "t": "17:23:02"}
+{"id": "R1", "rc": 0, "seconds": 3.0, "min_avail_GB": 4.049346923828125, "killed_low_mem": false, "spiceinit_out": false, "home_files": []}
+{"id": "R10", "rc": 0, "seconds": 42.5, "min_avail_GB": 3.899333953857422, "killed_low_mem": false, "spiceinit_out": false, "home_files": []}
+{"id": "R2", "rc": 0, "seconds": 3.0, "min_avail_GB": 3.930755615234375, "killed_low_mem": false, "spiceinit_out": false, "home_files": []}
+{"id": "R3", "rc": 0, "seconds": 5.5, "min_avail_GB": 3.891948699951172, "killed_low_mem": false, "spiceinit_out": false, "home_files": []}
+{"id": "R4", "rc": 0, "seconds": 2.5, "min_avail_GB": 3.880901336669922, "killed_low_mem": false, "spiceinit_out": false, "home_files": []}
+{"id": "R5", "rc": 0, "seconds": 2.0, "min_avail_GB": 3.926116943359375, "killed_low_mem": false, "spiceinit_out": false, "home_files": []}
+{"id": "R6", "rc": 0, "seconds": 3.0, "min_avail_GB": 3.973541259765625, "killed_low_mem": false, "spiceinit_out": false, "home_files": []}
+{"id": "R7", "rc": 0, "seconds": 8.0, "min_avail_GB": 3.9059600830078125, "killed_low_mem": false, "spiceinit_out": false, "home_files": []}
+{"id": "R8", "rc": 0, "seconds": 30.5, "min_avail_GB": 3.912555694580078, "killed_low_mem": false, "spiceinit_out": false, "home_files": []}
+{"id": "R9", "rc": 0, "seconds": 7.5, "min_avail_GB": 3.6131439208984375, "killed_low_mem": false, "spiceinit_out": false, "home_files": []}
+{"done": true, "min_avail_all_GB": 2.7586746215820312, "end": "17:25:09"}

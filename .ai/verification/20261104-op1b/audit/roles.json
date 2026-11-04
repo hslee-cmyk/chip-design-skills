@@ -1,0 +1,9 @@
+{
+ "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv": "generation_aux_input",
+ "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice": "model_file",
+ "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice": "model_file",
+ "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv": "generation_aux_input",
+ "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice": "model_file",
+ "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice": "model_file",
+ "models/parameters/lod.spice": "model_file"
+}

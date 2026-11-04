@@ -1,0 +1,41 @@
+{
+ "devices": {
+  "M1": {
+   "id": 8.698091e-06,
+   "gm": 0.0001405304,
+   "gds": 9.465575e-07,
+   "vth": 0.6319825,
+   "vdsat": 0.09519572,
+   "vgs": 0.7,
+   "vds": 0.9,
+   "vbs": 1.76496e-13
+  },
+  "MP1": {
+   "id": 1.647928e-05,
+   "gm": 0.0001524849,
+   "gds": 1.245049e-06,
+   "vth": 1.025879,
+   "vdsat": 0.1965646,
+   "vgs": 1.2,
+   "vds": 1.34,
+   "vbs": -0.3
+  }
+ },
+ "nodes": {},
+ "rail_current_A": {},
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:/Users/HSLEE/AppData/Local/Temp/la1s_op1b_audit/run/work/R5/o\\tcs_nmos_rload.iso.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": null,
+ "ac_file": null,
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null
+}

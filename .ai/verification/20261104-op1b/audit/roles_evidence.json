@@ -1,0 +1,54 @@
+{
+ "generator": {
+  "commit": "00085057d94e1f058be4c1a15808747d6aeec764",
+  "path": "skills/analog-gmid-design/assets/sky130_lut_sweep.py",
+  "file_sha256": "605846960b6a5afde2997aac5de57d63c5a49fecb42d477625c2e566d5bd1d8d",
+  "matched": "raw",
+  "aux_append_lines": [
+   677
+  ],
+  "model_includes_lines": [
+   220,
+   228
+  ],
+  "lod_spice_decl": "os.path.join(PDK_ROOT, \"models\", \"parameters\", \"lod.spice\")"
+ },
+ "include_graph": {
+  "nfet_01v8": {
+   "start": [
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+   ],
+   "files": [
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+   ]
+  },
+  "pfet_01v8": {
+   "start": [
+    "models/parameters/lod.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+   ],
+   "files": [
+    "models/parameters/lod.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+   ]
+  }
+ },
+ "measured_by": "verifier(판정자)",
+ "date": "2026-11-04",
+ "aux_sha": {
+  "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv": {
+   "record": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+   "disk_raw": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+   "equal": true
+  },
+  "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv": {
+   "record": "3de00ee9acb32d2c7eae36be3f24521dbb9f53a4c50d965f76d35e5ebb2504a9",
+   "disk_raw": "3de00ee9acb32d2c7eae36be3f24521dbb9f53a4c50d965f76d35e5ebb2504a9",
+   "equal": true
+  }
+ }
+}

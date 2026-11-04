@@ -1,0 +1,13 @@
+{
+ "raw_root": "C:/Users/HSLEE/AppData/Local/Temp/la1s_op1b_audit/run/work",
+ "groups": {
+  "sim_data_txt": {
+   "n": 44,
+   "bytes": 10676250
+  },
+  "sim_log": {
+   "n": 42,
+   "bytes": 1303205
+  }
+ }
+}
