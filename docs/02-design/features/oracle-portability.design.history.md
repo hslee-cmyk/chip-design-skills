@@ -764,3 +764,16 @@ date: 2026-10-16
 > 문장 형태는 R6 매뉴얼 원문 보관(OP-2 병합 조건, X-D4) 뒤 원문에서 옮기고,
 >
 > (`/noise`) 있을 때만 noise 측정(옛 U6) / (`/offset_mc`) 있을 때만 MC(OP-5에서 네이티브 MC·`.tf` A로 바뀜, §21.5) / (`/swing_icmr`) 있을 때만 swing·ICMR 측정(OP-5에서 §11.6 `dc_sweep`을 함께 요구).
+
+## v0.4.9 -- OP-7 어댑터 조각 + OP-5 card 결정 반영 (2026-11-04, 브랜치 `docs/op75`)
+
+근거: 상위 위임 A-84(B-1~B-5, C-1~C-10), card `20261104-op7b`·`20261104-op5` `ae2e5622`, 독립 판정 전. **원래 취지와 다름** = X-R14. 측정 수치는 계획 history 0.6.31 행. C-2·C-3·C-6은 card·위임 기록 몫이고 design은 §20 표지만 바꾼다.
+
+### 옛 문언
+
+- §7 `sweep_end_unresolved`: '반복 상한 `ZOOM_ROUNDS` 도달, 실행 시간 상한'.
+- §7 `conduction_undefined`: '판정 점에서 어떤 소자의 1단계 값(ID·gm·VDS·VSB·VGS·VDSAT) 가운데 하나라도 없음(점 기록 `stage1 = undefined`). I_off·tol_V가 정의되지 않는 경우는 엔진 쪽 2단계의 판정 불능이고 이 코드가 아니다(§21.1). 합격 판정이면 그 소자 전도 확인 = '판정 불능' → `INCOMPLETE`(옛 'off_current_A 없음 → N/A'와 같은 자리)'.
+- §16: '규칙 (i)(ii)·시뮬레이터 판으로 선언을 찾는다', '격리한다(방법은 어댑터, 실측 대기)'.
+- §18.3: 'n̂ ≥ n̂_앞', '최대 점 수는 어댑터 능력(비용 선택)'.
+- §20 OP-5 선행: 'OP-4, gain-budget EO-1 병합'.
+- §21.3: '소자 행에 `region_point`와 `conduction.points[]`'.

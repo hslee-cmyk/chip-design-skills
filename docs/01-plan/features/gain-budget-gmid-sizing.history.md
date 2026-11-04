@@ -8180,3 +8180,7 @@ card `20261104-op7a` 멈춤 항목 S-2·S-3 답. oracle-portability OP-7 행(v0.
 ## v6.38.15 (2026-11-04, 위임 O-226 A-75)
 
 oracle-portability v0.6.29 전파. 측정 게이트 표 OP-7 행(P:1393)의 출처 식별 문언만 바꾼다. 경위·측정 = oracle-portability history 0.6.29 행. 독립 판정 전. **원래 취지와 다름**: 독립 재측정 → 생성기 자기 기록(oracle X-38). 옛 문언: «LUT 생성 모드 출처 식별(경계 L마다 LUT `ID` 한 칸 대조, 한 프로세스 순차)과 선언 칸». front matter `version`이 6.38.13에 머물러 있어 이 판으로 맞췄다.
+
+## v6.38.16 (2026-11-04, 위임 O-226 A-84)
+
+oracle-portability v0.6.31 전파. N6.1 oracle 병렬 줄에 OP-4 표지 한 문장만 더한다. 경위·측정 = oracle-portability history 0.6.31 행. 독립 판정 전. **원래 취지와 다름**: 옛 oracle OP-5 행 선행 'OP-4' 해제(oracle X-40), LA-1까지 card 목록에 없던 OP-4가 LA-1 측정 전 필요 항목으로 드러남(위임 A-84 사용자 보고 항목).
