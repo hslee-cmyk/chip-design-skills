@@ -854,11 +854,34 @@ def test_dependent_member_name_bijection_in_loop(tmp_path, toy_access, make, nam
     assert len(db) == 1 and da == db
 
 
+def _same_up_to_automorphism(mapped, other, automorphisms):
+    """종속 집합 `mapped`(= σ 로 옮긴 원래 종속)와 `other` 가 회로의 자기동형 하나(이름 사상 dict)로 옮겨 같으면 True. 자기동형은 test 가 손으로 준다."""
+    return any({tau.get(m, m) for m in mapped} == set(other) for tau in automorphisms)
+
+
+def test_dependent_member_automorphism_comparison_rejects_other_orbit():
+    """oracle (손): 비교 함수 자체의 시험 -- 위 `_sym4` 의 자기동형은 항등과 분기 맞바꿈(MA<->MB, MC<->MD) 둘뿐(대칭 쌍이 둘, nmos/pmos 는 서로 다른 궤도).
+    σ(MA)=Z1, σ(MB)=A1 이름 아래 자기동형은 {Z1<->A1, MC<->MD}. 분기 대응이 뒤집힌 같은 회로는 같다고 보고, 궤도가 다른 소자가 들어가거나
+    한 분기가 어긋난 선택은 같다고 보지 않는다."""
+    swap = {"Z1": "A1", "A1": "Z1", "MC": "MD", "MD": "MC"}
+    autos = ({}, swap)
+    mapped = {"A1", "MD"}                                                  # 원 입력 종속 {MB, MD} 의 σ 이미지 (분기 b 의 nmos·pmos)
+    assert _same_up_to_automorphism(mapped, {"A1", "MD"}, autos)         # 같은 분기 (항등)
+    assert _same_up_to_automorphism(mapped, {"Z1", "MC"}, autos)         # 분기 대응이 뒤집힌 같은 회로 (맞바꿈)
+    assert not _same_up_to_automorphism(mapped, {"Z1", "MD"}, autos)     # 분기가 어긋난 선택(nmos 는 a 분기, pmos 는 b 분기)
+    assert not _same_up_to_automorphism(mapped, {"MC", "MD"}, autos)     # 궤도가 다른 소자(pmos 둘, nmos 쌍에서 종속 없음)
+    assert not _same_up_to_automorphism(mapped, {"A1"}, autos)           # 쌍 하나의 종속이 빠짐
+
+
 def test_dependent_member_name_bijection_outside_loop(tmp_path, toy_access):
-    """oracle (비교): 고리 밖(평행 쌍 둘) -- 이름 순서를 뒤집은 전단사 뒤에도 각 쌍의 종속 멤버가 σ(원래 종속). base 는 이름순 동률 해소로 red."""
+    """oracle (비교): 고리 밖(평행 쌍 둘) -- 평행 쌍 둘은 서로 자기동형(분기 맞바꿈)이라 이름 전단사 뒤 대표 분기가 뒤집혀도 같은 회로다. 종속 집합은
+    '이름 대응으로 같음'이 아니라 '자기동형 하나로 옮겨 같음'(손 자기동형 항등·분기 맞바꿈)이어야 한다. base 는 이름순 동률 해소로 분기와 무관하게 갈려 red."""
     names_a, names_b = ("MA", "MB", "MC", "MD"), ("Z1", "A1", "MC", "MD")
     da, db = _dep_by_rename(tmp_path, toy_access, _sym4, names_a, names_b, set(names_a))
-    assert len(db) == 2 and da == db
+    assert len(db) == 2 and len(da) == 2
+    # 쌍마다 하나씩(nmos 쌍에서 하나, pmos 쌍에서 하나): nmos 는 {Z1, A1}, pmos 는 {MC, MD}
+    assert len(db & {"Z1", "A1"}) == 1 and len(db & {"MC", "MD"}) == 1
+    assert _same_up_to_automorphism(da, db, ({}, {"Z1": "A1", "A1": "Z1", "MC": "MD", "MD": "MC"}))
 
 
 # ---------------------------------------------------------------- T-T7: ratify (dependent_member)
@@ -887,8 +910,10 @@ def _stop_reason(tmp_path, doc, access, rows):
 def test_dependent_member_ratify_agreeing_fact_is_noop_and_disagreeing_stops(tmp_path, toy_access):
     """oracle (식): interface §2 ratify 표 -- 고리 사실 = 유도 결과 -> 무동작(사실 없음과 같은 좌표), 고리 사실 != 유도 결과 -> 정지 structure_fact_mismatch.
     인버터 고리 {Mn, Mp} 의 사실 둘(value Mn / value Mp) 가운데 정확히 하나가 유도 결과와 같아 무동작이고 다른 하나는 정지한다."""
+    # 일치 단계의 사실 값은 같은 컨텍스트(S1v 있음, 사실 없음)의 유도 결과다 -- S1v 없는 컨텍스트(전부 B)와 있는 컨텍스트(인버터 두 MOS 는 input -> F)는
+    # 인버터 고리의 유도가 반대이므로 섞어 쓰지 않는다.
     (tmp_path / "plain").mkdir()
-    plain = build_ctx(tmp_path / "plain", _inv(), toy_access)[2]
+    plain = _ctx_with_facts(tmp_path / "plain", _inv(), toy_access, [])
     derived = [m for m, c in _co(plain.base).items() if c.role == "dependent" and m in ("Mn", "Mp")]
     assert len(derived) == 1
     other = "Mp" if derived[0] == "Mn" else "Mn"
@@ -936,14 +961,14 @@ def _two_roots():
 
 def test_w4_root_tie_stops_with_dc_colour_not_unique(tmp_path, toy_access):
     """oracle (식): interface §2 W4 뿌리 -- 최소 (구조 색, 정준 위치) 후보가 둘 이상이면 정지, rule_branch dc_colour_not_unique.
-    주입: 두 W4 후보 넷 o1·o2 의 node.dc_colour 를 같게(writer = 대칭 블록) 한 S1 로 커널 컨텍스트를 짓는다."""
-    donors, counters = open_run()
-    run = dict(donors=donors, counters=counters)
-    s1 = build_s1(load_doc(tmp_path, _two_roots()), dict(SUPPLIES), **run)
-    col = dict(s1.snapshot.column("node", "dc_colour"))
-    snap = tamper(s1.snapshot, s1_symmetry.name, "node", "dc_colour", {"o2": col["o1"]})
+    주입: 정상 컨텍스트를 지은 뒤 두 W4 후보 넷 o1·o2 의 node.dc_colour 를 같게(writer = 대칭 블록) 덮고 쓰기 계획 블록을 직접 부른다.
+    (커널 컨텍스트 전체를 다시 지으면 같은 실행 donors 의 대칭 블록 결과 graft 가 주입을 되돌리므로 판정 블록을 단위로 부른다.)"""
+    ctx = build_ctx(tmp_path, _two_roots(), toy_access)[2]
+    col = dict(ctx.base.column("node", "dc_colour"))
+    assert col["o1"] != col["o2"]                                          # 주입 전: 정점마다 유일
+    snap = tamper(ctx.base, s1_symmetry.name, "node", "dc_colour", {"o2": col["o1"]})
     with pytest.raises(StructureUnresolvedError) as ei:
-        build_kernel_context(S1Graph(s1.key, snap), DcInputs(tuple(sorted(SUPPLIES.items()))), toy_access, **run)
+        dc_writer_plan(snap, (), False, **run_of(ctx))
     d = detail(ei.value)
     assert d["rule_branch"] == "dc_colour_not_unique"
 

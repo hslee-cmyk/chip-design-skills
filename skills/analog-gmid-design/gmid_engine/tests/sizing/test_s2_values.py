@@ -17,6 +17,7 @@ DC_TABLE = {
     # [U17 ①-d] 40 v1.8 §6-8 D-2·§2.4.8: 구조 색 dc_colour·궤도·전류 부호는 graph 대칭 블록(s1_symmetry, S1 권한표)으로 옮겼고 dc_orbit·
     # dc_symmetry 는 graph/s1 orbits·current_symmetry 로 대체됐다 -- dc 표에서 다섯 행을 지운다(S1 권한표 쪽은 tests/graph/test_s1_values.py).
     ("graph", "dc_current_basis"): "dc_current_basis",
+    ("device", "theta_class"): "theta_class",               # [TB-1 interface §1] 새 필드 device.theta_class, writer = 블록 theta_class(이름 규약)
     ("node", "dc_writer"): "dc_writer_plan",
     ("device", "dc_coord"): "dc_writer_plan",
     ("graph", "dc_tie_breaks"): "dc_writer_plan",           # [r2]
@@ -74,7 +75,8 @@ def test_dc_table_has_32_fields():
     # graph/kernel fixed_values·resistor_values·l_ties(커널 컨텍스트 구조 파생) = 33. theta_schema 는 dc_theta_schema 를 옮긴 것이라 ±0).
     # [IT-2c 갱신, 승인 동작 변경 O-109·O-205] node.dc_output_structure 삭제(계획 v6.38.8 N3.8, design 41 v1.16.3 §4.7-W) −1 = 33.
     # [EO-1 범위 4] dc_off_current·dc_conduction_floor −2, device.region_decl +1 (S0 행) = 32.
-    assert len(DC_TABLE) == 32
+    # [TB-1] device.theta_class +1 = 33.
+    assert len(DC_TABLE) == 33
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -151,7 +153,9 @@ READS = {
     "dc_writer_plan": {("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
                        ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
                        ("node", "dc_colour"), ("node", "port_role"), ("graph", "gvgs_summary"),
-                       ("device", "bulk"), ("device", "region_decl")},      # [EO-1 범위 4, A-88] region_decl READS; [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
+                       ("device", "bulk"), ("device", "region_decl"),
+                       ("device", "theta_class"), ("graph", "orbits"), ("graph", "views"), ("graph", "dependent_facts")},   # [TB-1 interface §2 입력: 분류·궤도 대표·stage 순위용 뷰·ratify 사실]
+                                                                             # [EO-1 범위 4, A-88] region_decl READS; [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
     "dc_scc_order": {("node", "dc_writer"), ("device", "pins"), ("device", "bulk"), ("device", "element_class"),
                      ("graph", "columns"), ("graph", "branches")},
     "dc_currents": {("graph", "dc_current_basis")},

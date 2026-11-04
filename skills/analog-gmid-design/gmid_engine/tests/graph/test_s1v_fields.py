@@ -17,7 +17,8 @@ import s1v_hand as H
 D1_FIELDS = ("views", "l_classes", "findings", "declared", "applied_facts")
 # [IT-1 A-76 M-3] net_model 파생 술어 네 필드는 graph 필드로 만들지 않는다(소비자 0 -- 삭제). 권한표 행은 다섯뿐이다.
 REMOVED_FIELDS = ("diode_nodes", "composite_mos", "composite_bundles", "composite_internal")
-ALL_FIELDS = D1_FIELDS
+# [TB-1 spec J-T2] S1v 필드 하나 추가: dependent_facts(ratify 사실 concept `dependent_member` 의 적용 결과, 쓰기 계획 블록이 읽는다). 표 전체는 여섯.
+ALL_FIELDS = D1_FIELDS + ("dependent_facts",)
 
 
 def _run(s1, *, declared=(), cuts=(), budget=H.BIG_BUDGET, run=None):

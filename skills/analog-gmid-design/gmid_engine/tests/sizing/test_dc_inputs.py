@@ -47,7 +47,15 @@ def expected_projection(spec):
     pend = tuple(sorted((p.path, p.decision) for p in spec.pending))
     # [r5] engine_elements = element_values 중 mode == "engine" 인 원소 이름 정렬 tuple(pending 은 들지 않는다)
     eng = tuple(sorted(e.name for e in spec.element_values if e.mode == "engine"))
-    return DcInputs(tuple(spec.supplies_v), input_dc_v, nt, ev, regions, pend, eng)
+    # [TB-1 interface §1·J-T1] 세 bool 칸 = spec 선언 유무(값은 읽지 않는다). oracle (손): library spec 에서 손으로 센 선언 --
+    # gbw_target_hz·settling 은 compensation_targets 에 결정 대기 아닌 항목이 있으면 True, has_rout_limit 은 제약 metric 중 정확히 rout_ss_ohm 이 있으면 True.
+    # (two_stage_ota 류 gbw 선언, current_reuse_telescopic_ota 만 settling 선언, pushpull·sf_pushpull·two_stage_ota_sf 만 rout 제약)
+    ct = dict(spec.compensation_targets) if isinstance(spec.compensation_targets, tuple) else {}
+    declared = lambda k: k in ct and getattr(ct[k], "decision", None) is None            # noqa: E731
+    cons = spec.constraints if isinstance(spec.constraints, tuple) else ()
+    return DcInputs(tuple(spec.supplies_v), input_dc_v, nt, ev, regions, pend, eng,
+                    has_gbw_target=declared("gbw_target_hz"), has_rout_limit=any(getattr(c, "metric", None) == "rout_ss_ohm" for c in cons),
+                    has_settling=declared("settling"))
 
 
 @pytest.mark.parametrize("name", NINE)
