@@ -3,7 +3,7 @@
  "spec_card": "docs/02-design/specs/20261104-it1-input-point.spec.md",
  "evidence_type": "red-green",
  "base_commit": "d3590e7b51acc8af6bc917d8901899cb66566e0f",
- "test_commit": "e5885726af6d7e464663cc913f7a467955595e91",
+ "test_commit": "df564bc797b1b83649c8dafc85e27aa5c6765ab7",
  "code_commit": "ff61b5255deca17b8f34b63536ae1bb6f94c4a8d",
  "red": {
   "test_ids": [
@@ -51,7 +51,8 @@
    "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_writer_block_owns_plan_fields",
    "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t5b_nonrail_gate_equals_source_is_fixed_vgs_dependent",
    "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t5c_writer_plan_source_has_no_gate_source_equality",
-   "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_it1_removed_stop_names_absent_from_engine_and_contracts"
+   "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_it1_removed_stop_names_absent_from_engine_and_contracts",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_coupling_vars.py::test_it1_net_model_has_single_call_site_in_s1v_fields"
   ],
   "failure_hashes": [
    "ecbf16bb1a558a4e0c431d02270c6eed63e260401c37bb71eb296c40ad129468",
@@ -98,29 +99,30 @@
    "282d6c3e9c9803dd9fc8800e10c70d19e80fa85e89829dd85909a272ffe8a932",
    "ff4048b41b132e14649474081e8a6046a6432cee57c6735f38c01ff233a0c408",
    "8e043bb6e47af0196f4c0f7d32102c6473fb459f89e1e8eedf3e1bf29a3a81f0",
-   "822fe4b8c7c9d66a2958aaf1eab3c6ecc88f804812071a28fbcc6e155645648d"
+   "822fe4b8c7c9d66a2958aaf1eab3c6ecc88f804812071a28fbcc6e155645648d",
+   "539156496c978a77d61922ac4c4807e09b4725b76c04395b476dd67554fe4cbd"
   ]
  },
  "checks": {
   "V1": {
    "verdict": "N/A",
-   "basis": "전체 test 안 돌림, 임시 규칙 O-229, 잰 범위 = 재판정 병합본 f62d4ed1(rule_hash 줄 재기록, 격리 복제본) card test 24 파일 839개, tests/structure 171개(deselected 1), 2회로 연기 stage_b 10·s0 11·g10 2, 실패 0. 그 밖 test 는 통과로 세지 않는다."
+   "basis": "전체 test 안 돌림, 임시 규칙 O-229, 잰 범위 = 재판정 병합본 f62d4ed1(rule_hash 줄 재기록, 격리 복제본) card test 24 파일 839개, tests/structure 171개(deselected 1), 2회로 연기 stage_b 10·s0 11·g10 2, 실패 0. 그 밖 test 는 통과로 세지 않는다. M-4 확인 머리 b36782bf: graph/test_coupling_vars.py 만 다시 재어 80 통과(이전 79 + 복원 1), 그 밖 범위는 재지 않았고 앞 수치(card 24 파일 839 + 복원 1 = 840, structure 171, 연기 23)를 재사용한다. 복원 커밋 변경은 그 test 파일 21줄뿐, 엔진·assets diff 0."
   },
   "V2": {
    "verdict": "PASS",
-   "basis": "red: 앞 측정 재사용(base + 동결 test), 이번에 지운 test 7개 뺀 45개가 병합본 전부 통과. 새 test test_it1_input_target_one_port_stops 2사례는 X1(정지 코드 제거)로 실패 확인, base red 는 재측정 안 함. M-2 해소: os_k 삭제, 필수 test 실패 0."
+   "basis": "red: 앞 측정 재사용(base + 동결 test), 이번에 지운 test 7개 뺀 45개가 병합본 전부 통과. 새 test test_it1_input_target_one_port_stops 2사례는 X1(정지 코드 제거)로 실패 확인, base red 는 재측정 안 함. M-2 해소: os_k 삭제, 필수 test 실패 0. 복원 test 1개를 red 목록에 되돌려 46개(red 측정 재사용), 병합본 통과."
   },
   "V3": {
    "verdict": "PASS",
-   "basis": "재판정 손 뮤턴트 6(scripts/mutate2.py, 커밋 없음): X1 input_target_one_port 정지 제거 -> only_p·only_n 실패, X2 입력 DC 선언 가드 제거 -> test_fixed_values_w3_and_input_dc 실패, X3 두 포트 다 정지 -> 대조 test 실패, X6 rule_hash 되돌림 -> T-RH 실패. 생존 X4 = Major-4(V5), X5 terms 짝 제약 = 앞 M13 과 같은 test 빈틈 minor(동작은 탐침 p5·s0 연기로 확인). 앞 판정 뮤턴트 17 은 재사용, 그중 M17 은 필드 삭제로 대상 소멸."
+   "basis": "재판정 손 뮤턴트 6(scripts/mutate2.py, 커밋 없음): X1 input_target_one_port 정지 제거 -> only_p·only_n 실패, X2 입력 DC 선언 가드 제거 -> test_fixed_values_w3_and_input_dc 실패, X3 두 포트 다 정지 -> 대조 test 실패, X6 rule_hash 되돌림 -> T-RH 실패. X4 = 복원 뒤 killed(test_it1_net_model_has_single_call_site_in_s1v_fields 1 실패, 복원 전 생존), 생존 X5 terms 짝 제약 = 앞 M13 과 같은 test 빈틈 minor(동작은 탐침 p5·s0 연기로 확인). 앞 판정 뮤턴트 17 은 재사용, 그중 M17 은 필드 삭제로 대상 소멸."
   },
   "V4": {
    "verdict": "PASS",
    "basis": "test_lint.py 안 돌림: 대상이 assets/tests 라 공허, DEC-86 merge_gate 미사용(UNJUDGED 아님, 대조는 손으로). oracle 대조: T-1a G = P-t 둘·vb-F·pb3-F·pb4-F, V6 E5 C2 -> 순환 1 일치. T-1b V7 E6 C2 -> 1 일치. T-1c V4 E4 C1 -> 1, y = {o1,o2} 일치. T-1i V8 E8 C2 -> 2, cycle_vgs 하나 + parallel 하나 일치. T-1f θ 15 = L5 C2 I2 ln3 y3, DOF 17·5·5·12 일치(판정자 재유도, 변수 V:inn 하나 제거, 등식 수 불변). T-5a 넷 동등 판정, 평행 단순 그래프 순환수 불변 일치. T-5b 자기 고리 1 = fixed_vgs, ln_idu 성분 없음 일치. T-1h 두 포트 같은 전압, y=0.5 창 중점, F toy V=0.6 일치. T-6a 는 필드 삭제로 소멸(A-76), 대체 부재 단언은 어휘 대조. 재판정 새 test: input_target_one_port 는 계약 문장(A-76 m1)과 일치, 기대값이 피검 함수 출력이 아니다. A8: 작성자의 gvgs_cycles 본문 1회 열람(자기 보고)은 기대값에 복사 흔적 없음: 칸 판정이 넷 동등이라 노드 비교와 다르고 계약 문장에서 재유도된다. 기대값을 피검 함수로 만든 자리 0."
   },
   "V5": {
-   "verdict": "FAIL",
-   "basis": "Major-4 기준 약화: 커밋 e5885726 이 test_it1_net_model_has_single_call_site_in_s1v_fields(T-6b AST)를 지웠다. 필드 삭제와 무관하게 유효한 기준이고 계획 P:1766 완료 7 (i)·design 41 '`net_model(` 호출 = `s1v_fields` 하나'가 그대로 있다. 대체 test 없음: 뮤턴트 X4(coupling_vars 가 net_model(s1) 재호출)가 test_coupling_vars 79·test_net_model 40·tests/structure 171 전부 통과로 생존, 앞 판정 M10b 는 그 test 로 killed. A-76 폐기 목록에 없다. 현재 코드 호출 자리는 s1v_fields 하나로 위반은 없다. test 주체가 그 test 하나를 되살리면 된다. 그 밖 약화 0: 래칫 new 0을 기준선 수정 없이 달성(g8_baseline.json diff 0, 재판정 범위), T-6a 네 값 test·READS test 삭제는 필드 삭제의 귀결(A-76, 계획 P:586·P:1756(b)·design 40 행 개정과 일치, 부재 단언으로 대체), os_k 폐기 = A-42, T-1h 는 O-227 (3) 유지."
+   "verdict": "PASS",
+   "basis": "M-4 해소: df564bc7 이 test_it1_net_model_has_single_call_site_in_s1v_fields 를 복원, 03e4eab9 대비 diff 에 그 test 본문·import 변경 0(원문 그대로). 뮤턴트 X4 killed, 원복 뒤 80 통과. 그 밖 약화 0: 래칫 new 0을 기준선 수정 없이 달성, T-6a 네 값 test·READS test 삭제는 필드 삭제의 귀결(A-76, 계획·design 40 개정과 일치, 부재 단언으로 대체), os_k 폐기 = A-42, T-1h 는 O-227 (3) 유지."
   },
   "V6": {
    "verdict": "PASS",
@@ -146,8 +148,8 @@
  "reproduced_numbers": [
   {
    "name": "card test 수",
-   "value": 839,
-   "command": "scripts/run_tests.py iso2 res/head2 all"
+   "value": 840,
+   "command": "scripts/run_tests.py iso2 res/head2 all + graph/test_coupling_vars.py 재실행(80)"
   },
   {
    "name": "tests/structure 수",
@@ -171,23 +173,24 @@
   },
   {
    "name": "재판정 뮤턴트 생존 수",
-   "value": 2,
-   "command": "scripts/mutate2.py mut2 res/mutations3.jsonl"
+   "value": 1,
+   "command": "scripts/mutate2.py mut2 res/mutations3.jsonl + X4 재측정 m4.json"
   },
   {
    "name": "red 수",
-   "value": 45,
+   "value": 46,
    "command": "scripts/run_red.py red_tree res/red.jsonl plug (앞 측정 재사용)"
   }
  ],
  "approvals": [],
  "auditor_run": {
-  "time": "2026-11-04T08:27:44Z",
+  "time": "2026-11-04T08:32:56Z",
   "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-it1-input-point-audit",
   "commands": [
    "V1: 전체 실행 안 함(임시 규칙 O-229), 범위 실행 = python scripts/run_tests.py iso2 res/head2 all",
    "git clone --no-hardlinks --no-local <worktree> la1s_it1_audit6/iso2; git -C iso2 remote remove origin (뮤턴트는 같은 방식 복제본 mut2)",
-   "python scripts/rehash.py <복제본> 5c0b84c5... ca0fde40...; python scripts/mutate2.py mut2 res/mutations3.jsonl; PROBE_OUT=res/probes2.jsonl pytest scripts/test_zz_audit_probe2.py"
+   "python scripts/rehash.py <복제본> 5c0b84c5... ca0fde40...; python scripts/mutate2.py mut2 res/mutations3.jsonl; PROBE_OUT=res/probes2.jsonl pytest scripts/test_zz_audit_probe2.py",
+   "M-4 확인: git clone --no-hardlinks --no-local <worktree> iso3; pytest gmid_engine/tests/graph/test_coupling_vars.py; X4 임시 수정 후 같은 test, 원복 후 같은 test(m4.json)"
   ]
  }
 }
