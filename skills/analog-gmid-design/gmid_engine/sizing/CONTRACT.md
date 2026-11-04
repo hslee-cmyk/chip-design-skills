@@ -329,6 +329,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 6a. 입력 점·정지(DEC-106, IT-1): 입력 DC 미선언이고 입력 포트(G_vgs 밖 고립 입력 포트 포함)가 둘이며 role 이 `differential_input_p`·`differential_input_n` 각 하나이면 두 포트를
    Kruskal·성분 계산에서 한 점(입력 점)으로 묶는다 -- 평행·종속 판정도 묶은 뒤의 (gate, source)로 한다. 그 밖 둘 이상(차동쌍 둘, 차동쌍 없는 입력 둘 이상, 차동쌍 + 다른 입력)은 탐색 전에
    `StructureUnresolvedError`(detail reason `unsupported_rule_branch`, rule_branch `BRANCH_INPUT_CM_UNDEFINED`("input_cm_undefined"), ports = 그 포트 넷들). 입력 포트 하나 또는 입력 DC 선언이면 무동작.
+   같은 층의 둘째 정지: 입력 DC 미선언이고 차동 입력 두 포트(p·n 각 하나) 중 한 포트만 `node_voltage_targets_v` 로 선언하면(입력 점이 안 묶여 ΔV 가 θ 함수) `StructureUnresolvedError`(rule_branch `BRANCH_INPUT_TARGET_ONE_PORT`("input_target_one_port"), ports = 두 포트, declared = 선언한 포트).
 7. `order` = 배정 순번(0부터, 1→4→5→6 순서). 모든 노드가 writer 하나를 받는다. order 의 같은 색 안 이름 순서는 SCC 안 갱신
    순서·시작값에만 쓰이고 수렴값(허용오차 안)을 바꾸지 않으므로 기록하지 않는다.
 

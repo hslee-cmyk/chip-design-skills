@@ -618,6 +618,28 @@ def test_it1_t1e_declared_input_dc_disables_the_table(tmp_path, toy_access, doc_
     assert ins and all(nw[n].relation == "input_dc" for n in ins)
 
 
+@pytest.mark.parametrize("targets", [(("inp", 0.7),), (("inn", 0.7),)], ids=["only_p", "only_n"])
+def test_it1_input_target_one_port_stops(tmp_path, toy_access, targets):
+    """A-76 m1 (식, 물리 정합): 입력 DC 미선언 차동 입력의 두 포트 중 한 포트만 node_voltage_targets_v 로 선언하면 입력 점이 안 묶여 ΔV 가
+    θ 함수가 되므로 탐색 전 정지. 분류는 input_cm_undefined 정지와 같은 꼴(reason unsupported_rule_branch + rule_branch)."""
+    with pytest.raises(StructureUnresolvedError) as ei:
+        build_ctx(tmp_path, _it1_diff_doc(), toy_access, node_targets=targets)
+    d = detail(ei.value)
+    assert d["reason"] == "unsupported_rule_branch"
+    assert d["rule_branch"] == "input_target_one_port"
+
+
+def test_it1_input_target_both_or_neither_does_not_stop(tmp_path, toy_access):
+    """A-76 m1 대조 (식): 두 포트 다 선언 / 둘 다 안 선언은 정지하지 않는다. 안 선언은 입력 점(input_point) 그대로, 다 선언은 입력 점이 아니다."""
+    (tmp_path / "none").mkdir()
+    (tmp_path / "both").mkdir()
+    nw0, _c0, _t0 = plan(build_ctx(tmp_path / "none", _it1_diff_doc(), toy_access)[2])
+    assert nw0["inp"].relation == nw0["inn"].relation == "input_point"
+    nw1, _c1, _t1 = plan(build_ctx(tmp_path / "both", _it1_diff_doc(), toy_access, node_targets=(("inn", 0.7), ("inp", 0.7)))[2])
+    assert nw1["inp"].relation in _IT1_RELATIONS and nw1["inn"].relation in _IT1_RELATIONS
+    assert "input_point" not in {nw1["inp"].relation, nw1["inn"].relation}
+
+
 def test_it1_t1g_renamed_diffpair_same_structure(tmp_path, toy_access):
     """T-1g (손): 넷·소자 이름 맞바꿈과 새 이름 -> 같은 구조 결과, y 키는 맞바꾼 이름(p role 이 옮겨 간 넷). role 이 구조를 정하고 이름 판별은 없다."""
     for sub in "abc":
@@ -869,11 +891,8 @@ def test_it2b_os_i_value_is_theta_independent_and_not_recomputed(tmp_path, toy_a
     assert row_delta(block_row(ctx.counters, dc_writer_plan.name), computes0)[4] == 0
 
 
-def test_it2b_os_k_no_same_dc_edge_between_input_ports(tmp_path, toy_access):
-    """oracle 대조: (손) OS (k). 입력 DC 미선언 두 입력 포트 가운데 in 만 출력 성분 {in, out} 에 있고 in2 의 성분 {in2, gnd} 는 레일에 닿는다.
-    '같은 DC' 엣지(옛 `_TIE`)가 두 성분을 이으면 out 이 레일에 닿아 kvl_fixed 가 되지만, 그 엣지는 없다 -> high_impedance."""
-    ctx = build_ctx(tmp_path, _follower(extra_input=True), toy_access)[2]
-    assert _structure(ctx) == {"out": HI}
+# [IT-1 A-76 폐기 기록] 옛 test_it2b_os_k_no_same_dc_edge_between_input_ports 는 폐기(A-42 이행, retired_tests): 입력 DC 미선언 두 입력 포트의 전제
+# (role 없는 두 입력, 따로 선 성분)가 DEC-106 입력 점 규칙(차동쌍 아닌 입력 둘은 input_cm_undefined 정지)으로 바뀌어 성립하지 않는다.
 
 
 # ---------------------------------------------------------------- OS (j) 둘째 생산자 부재 (텍스트 수 -- git grep 과 같은 뜻)

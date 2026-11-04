@@ -31,11 +31,8 @@ def _group(items, net_of):
     return types.MappingProxyType({net: tuple(group) for net, group in sorted_items(table)})
 
 
-DERIVED_FIELDS = ("diode_nodes", "composite_mos", "composite_bundles", "composite_internal")    # S1v 필드(writer s1v_fields)
-
-
 def net_model(s1):
-    """전체 모형 -- 파생 술어 넷(`DERIVED_FIELDS`)을 여기서 계산한다. 부르는 자리는 그 필드의 writer `s1v_fields` 하나다."""
+    """전체 모형 -- 파생 술어 넷(diode_nodes·composite_*)은 여기서 계산한다. graph 필드가 아니라 `build_s1v` 안 local 모형이다."""
     base = net_index(s1)
     dc_role = dict(s1.column("device", "dc_role"))
     mos, passives, rails = base.mos, base.passives, base.rails
@@ -58,7 +55,7 @@ def net_model(s1):
 
 
 def net_index(s1):
-    """S1 색인 모형 -- 파생 술어 네 칸(`DERIVED_FIELDS`)은 비어 있다(채우는 자리: `net_model` 계산, 소비자는 S1v 필드 읽기)."""
+    """S1 색인 모형 -- 파생 술어 네 칸은 비어 있다(채우는 자리: `net_model`)."""
     element_class = dict(s1.column("device", "element_class"))
     kind = dict(s1.column("device", "kind"))
     pins = {name: dict(value) for name, value in s1.column("device", "pins")}
@@ -85,7 +82,7 @@ def net_index(s1):
         for net in (passive.a, passive.b):
             by_passive.setdefault(net, []).append(passive)
     mos_by_name = types.MappingProxyType({m.name: m for m in mos})
-    return NetModel(                                   # 파생 술어 네 칸은 비워 둔다 -- 채우는 자리는 `net_model`(계산)·`net_model_from_fields`(읽기)
+    return NetModel(                                   # 파생 술어 네 칸은 비워 둔다 -- 채우는 자리는 `net_model`
         mos=mos, passives=passives, sources=sources, rails=rails, static_ground=static_ground,
         inputs=inputs, outputs=outputs, nets=tuple(net for net, _ in s1.column("node", "is_rail")),
         by_gate=_group(mos, lambda m: m.g), by_drain=_group(mos, lambda m: m.d), by_source=_group(mos, lambda m: m.s),
