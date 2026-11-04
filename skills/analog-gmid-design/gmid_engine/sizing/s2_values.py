@@ -92,6 +92,7 @@ REPORT_UNDEFINED = "undefined"
 BRANCH_RESISTOR_CYCLE = "dc_resistor_cycle"
 BRANCH_INPUT_CM_UNDEFINED = "input_cm_undefined"       # 입력 DC 미선언 + 입력 포트가 차동쌍 하나가 아님(DEC-106): 탐색 전 정지
 BRANCH_INPUT_TARGET_ONE_PORT = "input_target_one_port"   # 입력 DC 미선언 + 차동 입력 두 포트 중 한 포트만 node_voltage_targets_v 선언: 입력 점이 안 묶여 ΔV 가 θ 함수(DEC-106): 탐색 전 정지
+BRANCH_DC_COLOUR_NOT_UNIQUE = "dc_colour_not_unique"   # W4 뿌리 후보의 구조 색이 같다(대칭 블록이 정점마다 유일하게 정하는 정준 위치가 깨졌다, TB-1): 이름으로 깨지 않고 정지
 BRANCH_MOS_ZERO_CURRENT = "mos_zero_current_structural"
 BRANCH_OFF_ONLY_NODE = "off_only_node"                   # 닿는 소자가 모두 `off` 선언인 비고정 노드: 전도 경로 없이 θ 변수가 되는 것을 막는다(EO-1 범위 4)
 BRANCH_ORIENTATION = "mos_orientation_unsupported"
@@ -116,11 +117,11 @@ INPUT_STATUS_MEASURED = "measured"                     # `Window.input_status`(�
 INPUT_STATUS_UNSETTLED = "unsettled"                   # 창은 잰 해에서 쟀으나 되풀이가 k_max 안에 수렴하지 않았거나 tol 미정 (커널 창 전용 -- card WB-1 이 지운다)
 INPUT_STATUS_UNMEASURED = "unmeasured"                 # 창을 잴 수 없다(커널 뿌리 항목 / cfg 자기 측정 실패)
 TIE_KRUSKAL = "writer_edge"                           # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
-TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
 TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원소 열이 θ 전류 기저/종속으로 갈림
 
 # ---- 필드 writer(= 계산 블록 이름)
 DC_REGION_DECL_WRITER = "dc_region_decl"                # S0: device.region_decl (의도 영역 선언 술어 필드, 쓰기 계획 앞)
+THETA_CLASS_WRITER = "theta_class"                      # S0: device.theta_class (θ 분류 S·B·F, 쓰기 계획 앞)
 DC_RAILS_WRITER = "dc_rails"
 DC_CURRENT_BASIS_WRITER = "dc_current_basis"
 DC_WRITER_PLAN_WRITER = "dc_writer_plan"
@@ -143,6 +144,7 @@ DC_SEAL_REPORT_WRITER = "dc_seal_report"
 # ---- 블록별 writes (reads 는 각 블록 파일에 둔다)
 DC_WRITES = (
     (DC_REGION_DECL_WRITER, (("device", "region_decl"),)),
+    (THETA_CLASS_WRITER, (("device", "theta_class"),)),
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
     (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))),
@@ -203,7 +205,8 @@ class DcInputs:
     None(미선언·engine·결정 대기 -> W4, 입력 포트인 뿌리의 y 키 = 그 뿌리 넷), `node_targets` = ((넷, V), ...) W3, `element_values` =
     ((원소, 값 또는 None), ...) 저항(Ω)·이상 전류원(A), `regions` = 의도 영역 선언 `RegionDecl` tuple(이름순, triode·off),
     `pending` = 결정 대기로 '미선언' 취급한 칸 ((경로, 결정 ID), ...), `engine_elements` = spec 값 mode 가 `engine` 인 원소
-    이름(정렬) -- 그중 수동소자가 DEC-92 θ 연속 성분·구조 규칙 대상이다(결정 대기 원소는 들지 않는다)."""
+    이름(정렬) -- 그중 수동소자가 DEC-92 θ 연속 성분·구조 규칙 대상이다(결정 대기 원소는 들지 않는다),
+    `has_gbw_target`·`has_rout_limit`·`has_settling` = spec 에 GBW 목표·출력 저항 제약·정착 목표가 선언됐는가(유무만, 값은 읽지 않는다 -- `theta_class` 입력, TB-1 J-T1)."""
 
     supplies_v: tuple
     input_dc_v: object = None
@@ -212,21 +215,21 @@ class DcInputs:
     regions: tuple = ()
     pending: tuple = ()
     engine_elements: tuple = ()
+    has_gbw_target: bool = False
+    has_rout_limit: bool = False
+    has_settling: bool = False
+
+
+# ---- θ 분류 어휘(`ThetaClass.kind`): S = 이득·출력 임피던스를 정하는 소자, F = 신호 경로 보조(cascode·pass·follower·매크로 비활성 입력), B = 바이어스·부하·블록 밖
+THETA_CLASS_B, THETA_CLASS_F, THETA_CLASS_S = "BFS"      # 한 글자 값 셋(문자열 한 덩이에서 풀어 쓴다 -- 한 글자 리터럴은 library 넷 이름과 겹쳐 규칙 E 가 오탐한다)
+THETA_CLASS_KINDS = (THETA_CLASS_B, THETA_CLASS_F, THETA_CLASS_S)
 
 
 @dataclasses.dataclass(frozen=True)
-class OrderHints:
-    """DEC-95 (3) 종속 소자 선택 앞 단계 입력 (설계 40 §3.7-4) -- 구조 색·이름보다 먼저 쓰이는 순서 정보.
-    `independent` = ratified 선택(`structure.json`)이 독립(트리)으로 정한 MOS 이름, `gm_required` = GB5 가 gm 을 요구하는 MOS 이름,
-    `stage` = ((MOS, S1v stage 번호), ...) -- 번호가 큰(뒤 stage) 소자가 독립으로 남는다. 셋 다 이름은 소자 식별일 뿐 순서는 값이
-    정한다. 출처는 U1 의 S1v·ratified 로더이고 비어 있으면(`NO_ORDER_HINTS`) 구조 색·이름 순서 그대로다."""
+class ThetaClass:
+    """`device.theta_class` 값(R13): MOS 하나의 θ 분류. `kind` ∈ `THETA_CLASS_KINDS`. 쓰기 계획이 종속 멤버를 고르는 순위에만 쓴다(값 선언은 읽지 않는다)."""
 
-    independent: tuple = ()
-    gm_required: tuple = ()
-    stage: tuple = ()
-
-
-NO_ORDER_HINTS = OrderHints()
+    kind: str
 
 
 @dataclasses.dataclass(frozen=True)

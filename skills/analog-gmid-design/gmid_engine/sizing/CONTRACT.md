@@ -1,11 +1,11 @@
 # gmid_engine.sizing 동작 계약 (MOD4 GB7 DC 정본 풀이 + 봉인, test 작성용)
 
 > **[U17 ①-b] S0 수준 필드 이동**(설계 40 §2.4.7 `KernelContext` 행·§2.4.8 v1.9.1 D8, 2026-10-13) -- 이 단락이 아래 옛 서술보다 우선한다.
-> * [XRUN-F1 B] `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext` -- `donors`·`counters` 는 필수 키워드(기본값 없음, 빠지면 `TypeError`)이고
+> * [XRUN-F1 B, TB-1] `build_kernel_context(s1graph, inputs, lut, *, donors, counters) -> KernelContext` -- `donors`·`counters` 는 필수 키워드(기본값 없음, 빠지면 `TypeError`)이고
 >   7개 블록에 넘긴다. 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수다(단계 B 는 `StageAResult` 의 두 칸을 넘긴다). 결과 `KernelContext.donors`·`.counters` 는 넘긴 객체 그대로(`is`)다.
 >   커널 단계의 블록 호출(`run_kernel` 의 ②~⑤, `seal_dc` 의 봉인 블록)과 `metrics.ss_evaluate`·search 평가 커널은 이 두 칸으로 부른다.
-> * `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext` -- `l_classes` 인자는 없다: L 동치류는 S1v 필드 `graph/s1v: l_classes`(있으면)에서 읽는다.
->   순서 = lift(`widen(S2_WRITERS)` -- 권한표가 S1_WRITERS 를 덮는 S0 수준 스냅샷도 받는다) -> `dc_rails` -> `s1_symmetry` -> `dc_current_basis` -> `dc_writer_plan` -> `dc_scc_order` ->
+> * `build_kernel_context(s1graph, inputs, lut) -> KernelContext` -- `l_classes` 인자·순서 힌트 인자는 없다: L 동치류는 S1v 필드 `graph/s1v: l_classes`(있으면)에서 읽는다.
+>   순서 = lift(`widen(S2_WRITERS)` -- 권한표가 S1_WRITERS 를 덮는 S0 수준 스냅샷도 받는다) -> `dc_rails` -> `s1_symmetry` -> `dc_current_basis` -> **`theta_class`**(TB-1, S0 `device.theta_class`) -> `dc_writer_plan` -> `dc_scc_order` ->
 >   **`kernel_fields`**(writer `kernel_context`, 새 계산 블록: `graph/kernel(KERNEL_KEY="kernel")`: `fixed_values`·`resistor_values`·`l_ties` -- L 묶음 검사 `ValueError` 포함) ->
 >   `dc_theta_schema`(extras = engine 수동소자만; reads 에 `resistor_values`·`l_ties` 필드).
 > * `KernelContext(base, inputs, lut, donors, counters)` -- **참조만**(`donors`·`counters` = XRUN-F1 card B 의 과도기 참조 칸, U17 ② G-7 재작성에서 정리). 옛 칸 `schema`·`fixed_values`·`resistor_values`·`plan_versions`·`l_ties` 는 없다: θ 스키마 = `base.value("graph", KERNEL_KEY, "theta_schema")`
@@ -240,8 +240,8 @@ metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여�
 - `DeviceCoord(role, relation, partner=None)` -- role ∈ `COORD_WRITER`("writer")·`COORD_DEPENDENT`("dependent"), relation ∈
   `DEP_TREE`("tree", writer 전용)·`DEP_PARALLEL`("parallel_vgs")·`DEP_CYCLE`("cycle_vgs")·`DEP_FIXED`("fixed_vgs").
 - `CurrentTerm(source, num, den)`, `CurrentBasis(ends, mos, free, fixed, rows, pruned, resistors, ties)`(4.2).
-- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
-  `TIE_CURRENT_PIVOT`("current_pivot"), candidates·chosen 이름순 tuple.
+- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·
+  `TIE_CURRENT_PIVOT`("current_pivot") [TB-1: W4 뿌리 동률 기록 어휘는 없다 -- 동률은 정지(`dc_colour_not_unique`)], candidates·chosen 이름순 tuple.
 - `ColumnNeighbor(rails, pred, succ, position, length)`, `SccEntry(index, nodes, cyclic, devices)`,
   `ThetaSchema(components, current_cone=(), fixed=(), zero_cancel=())`([r5] 4.4),
   [r5] `ZeroCancel(resistor, end_net, far_nets, cells, reason=None)`(4.4), `Theta(values)`, `PathValue(relation, value)`, `Window(lo, hi, constraints, input_status=None, tol_v=None)`,
@@ -324,7 +324,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
    vgs_gate, element, known = source), source 를 쓰면 (W2, vgs_source, element, known = gate).
 5. F 없는 성분(G_vgs 넷을 (색, 이름)순으로 훑어 처음 만나는 미배정 넷의 성분): 성분 안 F 밖 입력 포트가 있으면 그중 (색, 이름)
    최소를 뿌리, 없으면 성분 노드 중 (색, 이름) 최소를 뿌리; y 키 = 뿌리 넷.
-   뿌리와 같은 색인 후보가 둘 이상이면 `TieBreak(w4_root, 그 후보들, (뿌리,))`. 뿌리 = (W4, free_window). 그다음 4 와 같은 BFS.
+   뿌리와 같은 색인 후보가 둘 이상이면 [TB-1] `StructureUnresolvedError`(rule_branch `dc_colour_not_unique`, 14.4). 뿌리 = (W4, free_window). 그다음 4 와 같은 BFS.
 6. G_vgs 에 없는 남은 노드((색, 이름)순) = (W4, free_window, y_key = 넷).
 6a. 입력 점·정지(DEC-106, IT-1): 입력 DC 미선언이고 입력 포트(G_vgs 밖 고립 입력 포트 포함)가 둘이며 role 이 `differential_input_p`·`differential_input_n` 각 하나이면 두 포트를
    Kruskal·성분 계산에서 한 점(입력 점)으로 묶는다 -- 평행·종속 판정도 묶은 뒤의 (gate, source)로 한다. 그 밖 둘 이상(차동쌍 둘, 차동쌍 없는 입력 둘 이상, 차동쌍 + 다른 입력)은 탐색 전에
@@ -638,7 +638,7 @@ SealedSnapshot 이 된다(10.2절 실측). 열이 없는 LUT 세트에서는 항
   불변식(test 대상): 전단사 σ 로 이름을 바꾼 topology 의 (writer 집합, θ 스키마 키 집합) = σ(원래 것), 차이가 있으면 그 원소는
   모두 원래 계획의 `dc_tie_breaks`·`CurrentBasis.ties` 후보에 든다. 작성자 측 실측(generality `random_renaming` seed 1·2):
   9회로 모두 계획 구조 요약 동일, 8회로 writer 집합·θ 키 동일, current_reuse 만 차이 -- 차이는 전부 기록된 동률 후보 안
-  (`writer_edge` {M1a, M1b}·{M4a, M4b}, `w4_root` {Vim, Vip}, `current_pivot` {R1, R2}). 통과 θ 를 σ 로 옮긴
+  (`writer_edge` {M1a, M1b}·{M4a, M4b}, [옛 기록 어휘 -- TB-1 에서 정지로 바뀜] {Vim, Vip}, `current_pivot` {R1, R2}). 통과 θ 를 σ 로 옮긴
   7회로의 dc_v 최대 차 = 0.0(비트 동일).
 
 ## 10. 9회로 실측 (2026-10-07, 이 커밋 코드, 작성자 측 시연 -- 정본 아님)
@@ -890,7 +890,7 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 - **O2 (해결)** 레이아웃 전 폭 = LUT 생성 규칙 폭(`pre_layout_lut_access`, DEC-91 (2), 1.3절).
 - **O3 DEC-95 (3) ②**(GB5 gm 요구·뒤 stage): 그 정보를 내는 S1v·GB5 가 없어 아직 적용하지 않는다(① diode, ③ 대칭 궤도 =
   구조 색은 적용). 남은 동률은 `TieBreak` 로 기록(9회로 중 current_reuse 만 5건). front 정규화 해시 metamorphic 은 탐색 뒤.
-- **O4 (해결)** F 없는 성분 뿌리 = (구조 색, 이름) 최소, 같은 색 후보는 `w4_root` 기록.
+- **O4 (해결)** F 없는 성분 뿌리 = (구조 색, 이름) 최소, 같은 색 후보는 [TB-1] `dc_colour_not_unique` 정지(옛: 기록).
 - **O5 결정 대기 입력 DC(SP-2, 7회로)**: IT-1 규칙대로 W4(입력 포트인 뿌리의 y 키 = 그 뿌리 넷; 같은 DC 엣지·input_tie 없음). 노드 목표(CI-15)·의도 영역(CI-18)은 9회로 모두
   결정 대기 -> W3 0개, 선형 선언 0개.
 - **O6 (해결)** θ 전류 정의역 = `ThetaSchema.current_cone`(KCL 기저에서 유도한 선형 부등식), 밖이면 `check_theta` 가 거부.
@@ -978,7 +978,7 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 대상 확인 행: DEC-17 (θ 쪽)·32·70 (일부)·95 (3), D-GB7a·c·d, D-LS, D-J5 (U4 몫). **미러 비 강제(D-GB7b, DEC-70)는 구현하지 않았다** -- 15절.
 
 ### 14.1 L 동치류 L 공유 (D-GB7a)
-* `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS)`. `l_classes` = U1 `S1v.l_classes` (LClass: `owner`, `members`,
+* `build_kernel_context(s1graph, inputs, lut, l_classes=())`(옛 서술 -- l_classes 인자는 U17 ①-b 에서 S1v 필드로 이동, 순서 힌트 인자는 TB-1 에서 삭제). `l_classes` = U1 `S1v.l_classes` (LClass: `owner`, `members`,
   `status`; 이 모듈은 속성만 읽는다). `status == derived` 인 동치류만 묶고 `review_needed`·proposed 는 묶지 않는다(소자마다 L). 멤버·주인 이름이
   S1 원소가 아니거나 MOS 가 아니거나, 주인이 다른 동치류의 멤버이거나, 한 소자가 두 동치류의 멤버면 `ValueError`.
 * `KernelContext.l_ties` = ((멤버, 주인), ...) 정렬(비주인 멤버만; 동치류가 없으면 `()`).
@@ -1001,12 +1001,27 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   `DeviceOp.W` = 요청값 (`dc_widths(snapshot, lut, w_request=())`). 종속 소자의 ID 어긋남은 봉인 3 이 판정한다(순방향 IDu × W/L 로 다시 센 KCL).
 * 요청이 없으면 블록 extras 가 종래와 같다(재사용 계약 유지).
 
-### 14.4 DEC-95 (3) 전체 순서 (D-GB7c)
-* `OrderHints(independent, gm_required, stage)`(모두 MOS 이름 tuple 또는 ((MOS, 번호), ...)), `NO_ORDER_HINTS`. `dc_writer_plan(snapshot, target_nets, input_dc_declared,
-  order_hints=NO_ORDER_HINTS)`: 엣지 키 = (종류: 저항 < MOS, [MOS] ratified 독립 < 그 밖, diode < 그 밖, gm 요구 < 그 밖, 뒤 stage(번호 큰 쪽) < 앞, 구조 색, 이름).
-  Kruskal 에서 키가 작은 엣지가 트리(독립), 큰 쪽이 종속. 힌트가 비면 종래 순서(diode < 그 밖, 색, 이름)와 같고 TieBreak 기록도 같다.
-* **스텁**: 힌트의 출처(U1 S1v stage 번호, GB5 gm 요구, `structure.json` ratified 로더)는 U1 이 채운다. 지금은 `build_kernel_context(..., order_hints=)` 로 넣는
-  호출부가 없다(기본값만 쓴다).
+### 14.4 종속 멤버 선택 -- θ 분류 순위 + 정준 위치 (D-GB7c, card 20261104-tb1-theta-class, 계획 N6.29)
+* 종속 멤버 선택 힌트 값 형식·인자와 W4 뿌리 동률 기록 어휘는 삭제됐다(TB-1, 엔진 grep 0 -- 이름은 이 문서에 적지 않는다). `dc_writer_plan(snapshot, target_nets, input_dc_declared)`,
+  `build_kernel_context(s1graph, inputs, lut, *, donors, counters)`. 엣지 키에 이름이 없다.
+* 입력은 graph 필드뿐이다: `device.theta_class`(아래 14.5)·`device.dc_colour`(정준 위치 = 오름차순)·`graph.orbits`(궤도 대표 = 크기 ≥ 2 궤도의 `dc_colour` 최소 멤버)·S1v `graph.views`(블록 stage,
+  없으면 stage 순위 없음)·S1v `graph.dependent_facts`(ratified 사실).
+* **평행 관계**(같은 kind·같은 (gate, source), 입력 점 병합 뒤): 독립 유지 순위 '(ratified override 의 value 는 마지막) -> diode -> S -> 뒤 stage -> 궤도 대표 -> 정준 위치(작은 쪽)' 첫째가
+  대표(독립), 나머지는 종속 `parallel_vgs`(짝 = 대표). 대표는 이후 Kruskal 에서 가장 먼저 트리에 든다(이미 독립으로 묶였다).
+* **고리**(대표만 남은 G_vgs 다중 그래프의 기본 사이클; 레일 둘이 한 점 F): 키가 가장 큰 엣지가 비트리(종속). B 가 아닌 엣지의 키 = `diode < 그 밖`, 뒤 stage < 앞, 정준 위치 작은 쪽 < 큰 쪽;
+  고리 안 B 엣지의 키 = (diode, 궤도 대표, 소스 사슬 하류, -정준 위치) 가 클수록 먼저 종속 -- B 엣지는 모든 비 B 엣지보다 크다. 결과: 고리에 B 멤버가 있으면 B 가 종속(diode -> 궤도 대표 -> 소스 사슬 하류 ->
+  정준 위치 앞쪽), 없으면 독립 유지 순위(diode -> 뒤 stage -> 정준 위치 앞쪽)의 마지막이 종속. 소스 사슬 하류 = source 넷(고정 노드 아님)이 다른 MOS 의 gate 넷이다.
+* **ratify**(S1v `dependent_facts` = 사실 그대로 ((멤버 정렬 tuple, 종속 소자, approval_id), ...)): 평행 관계 사실 = override(value 가 종속, 대표 = 나머지 중 순위 첫째), 고리 사실(그 기본 사이클의 멤버와 같은
+  subject) = confirm(유도 종속과 다르면 `structure_fact_mismatch` 정지), value 가 멤버가 아니면 `structure_fact_mismatch`, 어느 관계와도 멤버가 다르면 `structure_fact_orphan`(모두 `StructureUnresolvedError`, `detail["reason"]`).
+* **W4 뿌리**: 뿌리 후보의 구조 색(`node.dc_colour`)이 둘 이상 같으면(성분 안 후보 사이, 성분 뿌리 사이, G_vgs 밖 노드 사이) `StructureUnresolvedError`(`reason` unsupported_rule_branch, `rule_branch`
+  `dc_colour_not_unique`). `dc_tie_breaks` 에 W4 뿌리 동률 기록은 없다. 입력 점 뿌리(p 포트)는 해당 없음.
+
+### 14.5 θ 분류 필드 `device.theta_class` (card 20261104-tb1-theta-class, 설계 41 §5.3.3)
+* `theta_class(snapshot, has_gbw_target, has_rout_limit, has_settling)`(`@compute_block`, writer `theta_class`, S0, `dc_writer_plan` 앞) -> `device.theta_class` = {MOS: `ThetaClass(kind)}, kind ∈ `THETA_CLASS_KINDS`(S·B·F).
+  extras 는 `DcInputs` 의 유무 칸 셋(값은 읽지 않는다; `dc_inputs_from_spec` 가 `gbw_target_hz` 선언·`rout_ss_ohm` 판정 제약·정착 선언의 유무로 채운다). reads = `device.element_class`·`device.pins`·S1v `graph.views`.
+* 분류: 매크로 활성 = GBW 선언 또는 정착 선언. S = 매크로 활성 회로의 첫 전달 뷰 이득·복합 블록의 AC 역할 `input` + rout 선언 회로의 전달 뷰 버퍼 블록 출력노드에 source 가 닿는 `follower`.
+  F = AC 역할 `cascode`·`pass`·`follower`, S 가 아닌 `input`. B = 그 밖(`load`·`mirror`·`diode_load`·`tail_source`, 블록 밖 MOS, feedforward 묶음 셀, S1v 없음, `off` 선언 MOS).
+* 알려진 대용(LA-1 재점검 입력): 'gain 제약 전달 뷰'를 가리키는 S1v 칸이 없어 첫 전달 뷰로 대신한다(L 동치류 주인 규칙 `main_path_signal` 의 대용과 같다).
 
 ### 14.5 국소 봉인 (D-LS, 41 §5.3)
 * `size_and_seal_local(ctx, theta_block, fixed, columns) -> LocalSeal`; `theta_name(kind, key)` = `"kind:key"`. `LocalSeal{ok, failures, snapshot_fragment, gain_db, power_w, area_m2}`,

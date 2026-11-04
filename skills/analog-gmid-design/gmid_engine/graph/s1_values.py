@@ -209,7 +209,8 @@ S1V_KEY = "s1v"                                        # graph/s1v: views·l_cla
 COUPLING_KEY = "coupling"                              # graph/coupling: vars·column_block_map·bias_columns (writer coupling_vars, GB3)
 BUILD_S1V_WRITER = "build_s1v"
 COUPLING_VARS_WRITER = "coupling_vars"
-S1V_WRITES = (("graph", "views"), ("graph", "l_classes"), ("graph", "findings"), ("graph", "declared"), ("graph", "applied_facts"))
+S1V_WRITES = (("graph", "views"), ("graph", "l_classes"), ("graph", "findings"), ("graph", "declared"), ("graph", "applied_facts"),
+              ("graph", "dependent_facts"))
 COUPLING_WRITES = (("graph", "vars"), ("graph", "column_block_map"), ("graph", "bias_columns"))
 S1V_WRITERS = WriterTable(
     tuple((kind, field, writer) for (kind, field), writer in S1_WRITERS.entries)

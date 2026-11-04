@@ -29,8 +29,9 @@ CONCEPT_FEEDFORWARD_CELL = "feedforward_cell"
 CONCEPT_AC_GROUND_EXCEPTION = "ac_ground_exception"
 CONCEPT_MATCHING_PAIR = "matching_pair"
 CONCEPT_L_OWNER = "l_owner"         # L 동치류 주인(override, 41 §1.12.5, C-3): subject = 동치류 멤버 이름 정렬 JSON 배열, value = 주인 소자 이름
+CONCEPT_DEPENDENT_MEMBER = "dependent_member"   # 종속 멤버(KVL 고리 confirm / 고리 밖 평행 관계 override, TB-1): subject = 관계 멤버 이름 정렬 JSON 배열, value = 종속 소자 이름
 CONCEPTS = (CONCEPT_DRIVE_KIND, CONCEPT_STAGE_MEMBERS, CONCEPT_DC_ROLE, CONCEPT_LOOP_ROLE, CONCEPT_FEEDFORWARD_CELL,
-            CONCEPT_AC_GROUND_EXCEPTION, CONCEPT_MATCHING_PAIR, CONCEPT_L_OWNER)
+            CONCEPT_AC_GROUND_EXCEPTION, CONCEPT_MATCHING_PAIR, CONCEPT_L_OWNER, CONCEPT_DEPENDENT_MEMBER)
 FF_ARROW = "->"                     # `feedforward_cell` 값 `<종류>:<탭>-><merge>` 의 탭·merge 구분(넷 이름에 들어 있으면 로드 거부)
 FF_SEPARATOR = ":"
 FF_CELL = "ff"
