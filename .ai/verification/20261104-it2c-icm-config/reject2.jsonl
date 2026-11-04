@@ -1,0 +1,6 @@
+{"case": "servo_pivot_below_resolution_rejected", "ok": true, "got": "Undefined(quantity='icm_config', code='icm_servo_pivot_unresolved', category='definitional', detail=(('a_e', 5.1313691284209486e-17), ('resolution', 3.6022211281515085e-16)))"}
+{"case": "default_view_filter_keeps_default_only", "ok": true, "got": [[["a", 0.5], ["b", -0.5]]]}
+{"case": "view_factor_other_fixed_is_new_factor", "ok": true, "unknown": []}
+{"case": "view_factor_same_fixed_reuses_field", "ok": true}
+{"case": "archive_nodal_system_plain", "ok": true, "keys": ["__type__", "factor", "fixed", "g", "g_bound", "nodes"]}
+{"case": "symmetric_port_ends_equal", "ok": true, "a": [0.0, 0.6541812865497076], "b": [0.0, 0.6541812865497076]}
