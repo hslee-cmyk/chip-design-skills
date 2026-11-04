@@ -1,0 +1,28 @@
+....................................................
+[g8 ratchet] stale 0 건: []
+.................... [ 42%]
+........................................................................ [ 84%]
+...........................                                              [100%]
+======================== gmid_engine 구조 규칙 -- 검사 대상 수 =========================
+엔진 루트: C:\Users\HSLEE\AppData\Local\Temp\la1s_op23_audit\iso2\skills\analog-gmid-design\gmid_engine
+test_rule_g8_baseline_ratchet            대상 420개, 위반 100건
+test_g8_rejects_bad_fixture_exactly      대상  27개, 위반 56건
+test_g8_accepts_good_fixture             대상   2개, 위반 0건
+test_removed_names_absent_from_engine    대상 420개, 위반 0건
+test_local_inputs_not_rebuilt_in_search  대상  58개, 위반 0건
+test_it1_removed_stop_names_absent_from_engine_and_contracts 대상 430개, 위반 0건
+test_rule_a_one_entry_point_per_file     대상 408개, 위반 0건
+test_rule_b_no_private_name_import       대상 420개, 위반 0건
+test_rule_c_layering_public_api_no_cycles 대상 420개, 위반 0건
+test_rule_d_numeric_literals             대상 419개, 위반 0건
+test_rule_e_no_circuit_name_literals     대상 420개, 위반 0건
+test_rule_f_no_broad_except              대상 420개, 위반 0건
+test_rule_g_no_module_level_mutable_cache 대상 420개, 위반 0건
+test_rule_i_no_circuit_specific_behavior 대상 420개, 위반 0건
+test_rule_k_front_query_not_called_in_engine 대상 417개, 위반 0건
+test_rule_m_run_pair_not_shared          대상 917개, 위반 0건
+test_rule_copy_manifest_matches_copies   대상  60개, 위반 0건
+test_rule_copy_manifest_matches_original 대상  60개, 위반 0건
+test_value_types_rejects_bad_fixture_exactly 대상   7개, 위반 31건
+test_value_types_accepts_good_fixture    대상   2개, 위반 0건
+171 passed, 1 deselected in 89.53s (0:01:29)
