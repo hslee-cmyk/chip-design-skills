@@ -233,8 +233,10 @@ metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여�
 
 값 형식(모두 frozen dataclass, `s2_values`):
 - `NodeWrite(tier, relation, element=None, known=None, y_key=None, order=0)` -- tier ∈ `TIER_W0..W4`("W0".."W4"),
-  relation ∈ `REL_RAIL`·`REL_TARGET`·`REL_INPUT_DC`·`REL_VGS_GATE`·`REL_VGS_SOURCE`·`REL_RESISTOR`·`REL_WINDOW`
-  ("rail", "declared_target", "input_dc", "vgs_gate", "vgs_source", "resistor_drop", "free_window"). 입력 포트인 W4 뿌리의 `y_key` = 그 뿌리 넷(계획 K-3, IT-1).
+  relation ∈ `REL_RAIL`·`REL_TARGET`·`REL_INPUT_DC`·`REL_VGS_GATE`·`REL_VGS_SOURCE`·`REL_RESISTOR`·`REL_WINDOW`·`REL_INPUT_POINT`
+  ("rail", "declared_target", "input_dc", "vgs_gate", "vgs_source", "resistor_drop", "free_window", "input_point"). 입력 포트인 W4 뿌리의 `y_key` = 그 뿌리 넷(계획 K-3, IT-1).
+  `input_point`(DEC-106) = 입력 DC 미선언 차동 입력쌍의 두 포트(한 점): 점이 F 에 닿지 않으면 두 항목 모두 tier W4·`y_key` = role `differential_input_p` 포트 넷, p 포트가
+  뿌리(known 없음)·n 포트는 known = p 포트(같은 전압); F 에 닿으면 y 성분이 없고(y_key 없음) 먼저 쓰인 포트가 MOS 관계를, 다른 포트가 `input_point`(known = 그 포트)를 받는다.
 - `DeviceCoord(role, relation, partner=None)` -- role ∈ `COORD_WRITER`("writer")·`COORD_DEPENDENT`("dependent"), relation ∈
   `DEP_TREE`("tree", writer 전용)·`DEP_PARALLEL`("parallel_vgs")·`DEP_CYCLE`("cycle_vgs")·`DEP_FIXED`("fixed_vgs").
 - `CurrentTerm(source, num, den)`, `CurrentBasis(ends, mos, free, fixed, rows, pruned, resistors, ties)`(4.2).
@@ -324,9 +326,10 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
    최소를 뿌리, 없으면 성분 노드 중 (색, 이름) 최소를 뿌리; y 키 = 뿌리 넷.
    뿌리와 같은 색인 후보가 둘 이상이면 `TieBreak(w4_root, 그 후보들, (뿌리,))`. 뿌리 = (W4, free_window). 그다음 4 와 같은 BFS.
 6. G_vgs 에 없는 남은 노드((색, 이름)순) = (W4, free_window, y_key = 넷).
-6a. 정지(K-3, IT-1): 입력 포트인 W4 뿌리(G_vgs 밖 고립 입력 포트 포함)가 둘 이상이면 탐색 전에 `StructureUnresolvedError`(detail reason
-   `unsupported_rule_branch`, rule_branch `BRANCH_INPUT_MULTIPLE_ROOTS`("input_port_multiple_roots"), nets = 그 뿌리 넷들 쓰기 순번 순).
-   **미구현(발동 0, DEC-76)**: 뿌리별 y 묶음(`domain.ties`)·뿌리별 포화 창은 만들지 않는다.
+6a. 입력 점·정지(DEC-106, IT-1): 입력 DC 미선언이고 입력 포트(G_vgs 밖 고립 입력 포트 포함)가 둘이며 role 이 `differential_input_p`·`differential_input_n` 각 하나이면 두 포트를
+   Kruskal·성분 계산에서 한 점(입력 점)으로 묶는다 -- 평행·종속 판정도 묶은 뒤의 (gate, source)로 한다. 그 밖 둘 이상(차동쌍 둘, 차동쌍 없는 입력 둘 이상, 차동쌍 + 다른 입력)은 탐색 전에
+   `StructureUnresolvedError`(detail reason `unsupported_rule_branch`, rule_branch `BRANCH_INPUT_CM_UNDEFINED`("input_cm_undefined"), ports = 그 포트 넷들). 입력 포트 하나 또는 입력 DC 선언이면 무동작.
+   같은 층의 둘째 정지: 입력 DC 미선언이고 차동 입력 두 포트(p·n 각 하나) 중 한 포트만 `node_voltage_targets_v` 로 선언하면(입력 점이 안 묶여 ΔV 가 θ 함수) `StructureUnresolvedError`(rule_branch `BRANCH_INPUT_TARGET_ONE_PORT`("input_target_one_port"), ports = 두 포트, declared = 선언한 포트).
 7. `order` = 배정 순번(0부터, 1→4→5→6 순서). 모든 노드가 writer 하나를 받는다. order 의 같은 색 안 이름 순서는 SCC 안 갱신
    순서·시작값에만 쓰이고 수렴값(허용오차 안)을 바꾸지 않으므로 기록하지 않는다.
 
@@ -354,7 +357,8 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 ### 4.3 `dc_scc_order(snapshot)` -- 읽기 의존과 SCC
 - reads node.dc_writer, device.{pins, bulk, element_class}, graph(S1).{columns, branches}.
 - 의존(고정 relation rail/declared_target/input_dc 노드는 제외): vgs_gate = {source, drain, bulk 넷, known}, vgs_source =
-  {gate(known), drain, bulk, 자기 자신}, resistor_drop = {known}, free_window = 그 노드에 d 또는 s 가 닿는 MOS 의 반대 채널 단자.
+  {gate(known), drain, bulk, 자기 자신}, resistor_drop = {known}, free_window = 그 노드에 d 또는 s 가 닿는 MOS 의 반대 채널 단자,
+  input_point(known 있음) = {known}, input_point 뿌리 = 뿌리와 그 짝 포트 둘 다에 d 또는 s 가 닿는 MOS 의 반대 채널 단자.
 - Tarjan(반복형) SCC, 의존이 먼저인 순서 = 풀이 순서. `SccEntry.nodes` = order 순, `cyclic` = 크기 > 1 또는 자기 의존,
   `devices` = d·g·s 중 하나가 SCC 노드인 MOS 이름순.
 - `dc_column_nbrs` = S1 `Column` 경로(r1 에서 걷기)마다 내부 노드의 (rails, pred, succ, position, length) -- 시작값 전용.

@@ -6,11 +6,11 @@
   "linked_topology_files": [],
   "supply_nets": ["rail_hi", "rail_lo"],
   "netlist": [
-    {"name": "Q1", "kind": "nmos", "drain": "n_mid", "gate": "n_inp", "source": "n_tail"},
-    {"name": "Q2", "kind": "nmos", "drain": "n_outp", "gate": "n_inn", "source": "n_tail"},
-    {"name": "Q3", "kind": "pmos", "drain": "n_mid", "gate": "n_mid", "source": "rail_hi"},
-    {"name": "Q4", "kind": "pmos", "drain": "n_outp", "gate": "n_mid", "source": "rail_hi"},
-    {"name": "Q5", "kind": "nmos", "drain": "n_tail", "gate": "n_bias", "source": "rail_lo"}
+    {"name": "Mfx1", "kind": "nmos", "drain": "n_mid", "gate": "n_inp", "source": "n_tail"},
+    {"name": "Mfx2", "kind": "nmos", "drain": "n_outp", "gate": "n_inn", "source": "n_tail"},
+    {"name": "Mfx3", "kind": "pmos", "drain": "n_mid", "gate": "n_mid", "source": "rail_hi"},
+    {"name": "Mfx4", "kind": "pmos", "drain": "n_outp", "gate": "n_mid", "source": "rail_hi"},
+    {"name": "Mfx5", "kind": "nmos", "drain": "n_tail", "gate": "n_bias", "source": "rail_lo"}
   ],
   "passive_elements": [
     {"name": "Rfb", "kind": "resistor", "terminals": ["n_outp", "n_fbk"]},

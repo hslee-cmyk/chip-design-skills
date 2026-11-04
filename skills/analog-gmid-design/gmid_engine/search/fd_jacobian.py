@@ -25,7 +25,7 @@ import math
 
 import numpy as np
 
-from gmid_engine.sizing import (KERNEL_KEY, REL_WINDOW, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_PASSIVE_KINDS, THETA_RESISTANCE,
+from gmid_engine.sizing import (KERNEL_KEY, REL_INPUT_POINT, REL_WINDOW, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_PASSIVE_KINDS, THETA_RESISTANCE,
                                 THETA_Y)
 
 from .kernel import evaluate
@@ -53,7 +53,7 @@ def _steps(sctx, variables, base):
     windows = {}
     writers = dict(snap.column("node", "dc_writer"))
     for node, win in snap.column("node", "dc_window"):
-        if writers[node].relation == REL_WINDOW:      # y 스텝은 W4 뿌리 창 폭만(입력 포트 항목이 늘어도 y 키 색인이 바뀌지 않게, 설계 41 4.7-6)
+        if writers[node].relation in (REL_WINDOW, REL_INPUT_POINT):      # y 스텝은 W4 뿌리 창 폭만(입력 점은 p 포트 항목 하나 -- n 포트 항목 없음, 설계 41 4.7-6)
             windows[writers[node].y_key] = win.hi - win.lo
     currents = dict(snap.column("device", "dc_drop_current"))
     theta = dict(base.theta)

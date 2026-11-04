@@ -1,0 +1,99 @@
+{
+ "default": {
+  "points": 972,
+  "tie_points": 944,
+  "outside": 0,
+  "per_axis": {
+   "W:lower": 928,
+   "L:lower": 272
+  },
+  "per_kind": {
+   "nfet_01v8:W:lower": 581,
+   "nfet_01v8:L:lower": 168,
+   "pfet_01v8:W:lower": 347,
+   "pfet_01v8:L:lower": 104
+  },
+  "rule": "lower"
+ },
+ "cwd": {
+  "points": 972,
+  "tie_points": 944,
+  "outside": 0,
+  "per_axis": {
+   "W:upper": 928,
+   "L:upper": 272
+  },
+  "per_kind": {
+   "nfet_01v8:W:upper": 581,
+   "nfet_01v8:L:upper": 168,
+   "pfet_01v8:W:upper": 347,
+   "pfet_01v8:L:upper": 104
+  },
+  "rule": "upper"
+ },
+ "home": {
+  "points": 972,
+  "tie_points": 944,
+  "outside": 0,
+  "per_axis": {
+   "W:upper": 928,
+   "L:upper": 272
+  },
+  "per_kind": {
+   "nfet_01v8:W:upper": 581,
+   "nfet_01v8:L:upper": 168,
+   "pfet_01v8:W:upper": 347,
+   "pfet_01v8:L:upper": 104
+  },
+  "rule": "upper"
+ },
+ "empty": {
+  "points": 972,
+  "tie_points": 944,
+  "outside": 0,
+  "per_axis": {
+   "W:lower": 928,
+   "L:lower": 272
+  },
+  "per_kind": {
+   "nfet_01v8:W:lower": 581,
+   "nfet_01v8:L:lower": 168,
+   "pfet_01v8:W:lower": 347,
+   "pfet_01v8:L:lower": 104
+  },
+  "rule": "lower"
+ },
+ "source": {
+  "n": 16,
+  "rederived": {
+   "None": 16
+  },
+  "recorded": {
+   "None": 16
+  },
+  "identical_pair": 16
+ },
+ "model_sha": {
+  "n_records": 7,
+  "lf": [
+   "24a3b29d7d7f26f99098811c31eb5497950a3aed520ab83768a96f35467fe818",
+   "3c62fe5ffe59ee08890837816b15d91764b7441d9f122054556d2f825ab6f090",
+   "3d706d50cf2e57175aea78bcf27e4ee07d9f750b154a4b06e6090531364a831b",
+   "6200b50c14eebb68d8009ca68e452d4c045e2d25d7438ee417c155883527fd7c",
+   "7001ec520a1244d56c66d89423f0a8a56e3010891283966e3bef4d675b0ac969",
+   "bf40d8c358fc11998f60f3734208dce44c206b0007a51c7bb5680f55d41a5c55",
+   "f4d560668712678ea60641de923fce7691e64acda951949f840986837c31741a"
+  ],
+  "machine_dep": [
+   "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8.bins.csv",
+   "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+   "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+   "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8.bins.csv",
+   "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+   "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+   "C:\\pdk\\sky130_fd_pr\\models\\parameters\\lod.spice"
+  ],
+  "mismatch": [],
+  "same_as_lib": true
+ }
+}

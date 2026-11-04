@@ -143,3 +143,23 @@ def test_local_inputs_not_rebuilt_in_search(checks, engine_root, report):
                                     ("x = s.value('graph', 'ach', 'local_inputs')\n", 0)])
 def test_local_inputs_scanner(src, n):
     assert len(local_inputs_rebuild_hits(ast.parse(src))) == n
+
+
+# ---------------------------------------------------------------- [IT-1 T-G] 옛 정지 사유 이름 잔재 0 (DEC-106·O-210 RR-6)
+# oracle (독립): 비test 엔진 소스(`*.py`)와 CONTRACT 문서 글자 그대로 0 -- 이름이 지워졌는지 문자열로 본다(주석·docstring 포함: A4 잔재 grep 과 같은 뜻).
+IT1_REMOVED_TEXT = ("input_port_multiple_roots", "BRANCH_INPUT_MULTIPLE_ROOTS", "gvgs_self_edge", "BRANCH_GVGS_SELF_EDGE",
+                    "off_device_on_signal_path")
+
+
+def test_it1_removed_stop_names_absent_from_engine_and_contracts(checks, engine_root, report):
+    files = list(checks.engine_files(engine_root))
+    docs = sorted(p for p in engine_root.rglob("CONTRACT*.md") if "tests" not in p.relative_to(engine_root).parts)
+    assert docs                                                                                  # 전제: 계약 문서가 있다(공허한 검사 아님)
+    hits = []
+    for p in list(files) + docs:
+        text = p.read_text(encoding="utf-8")
+        for name in IT1_REMOVED_TEXT:
+            if name in text:
+                hits.append("%s %s" % (p.relative_to(engine_root).as_posix(), name))
+    report(len(files) + len(docs), len(hits))
+    assert hits == []

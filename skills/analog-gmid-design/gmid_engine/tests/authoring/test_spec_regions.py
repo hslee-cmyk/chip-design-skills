@@ -31,7 +31,7 @@ def test_element_is_not_a_device(sc, name):
 
 
 def test_region_vocab(sc):
-    sc.human["intended_region"] = {"Q1": {"region": "zz_not_a_region", "source": dict(US)}}
+    sc.human["intended_region"] = {"Mfx1": {"region": "zz_not_a_region", "source": dict(US)}}
     sc.reject_only("type", "intended_region")
 
 

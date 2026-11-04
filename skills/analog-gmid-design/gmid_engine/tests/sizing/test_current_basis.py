@@ -242,7 +242,8 @@ def test_symmetric_pair_basis_matches_oracle(tmp_path, toy_access):
                [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"),
                 mos("M5", "nmos", "t", "vb", "gnd"), mos("M3", "pmos", "o1", "pb", "vdd"),
                 mos("M4", "pmos", "o2", "pb", "vdd")],
-               {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")},
+               {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"),          # [IT-1 DEC-106] role 만 바꿨다(단언 불변)
+                "o1": ("output", "b"), "o2": ("output", "b")},
                bias=["pb", "vb"])                                                            # vb: M5 gate, pb: M3·M4 gate
     _, _, ctx = build_ctx(tmp_path, doc, toy_access)
     _, ecol = wl_colours(ctx.base)
@@ -309,10 +310,7 @@ def test_structural_zero_current_mos(tmp_path, toy_access):
 # [IT-1 K-3, O-84 승인 20261021-it1-k3-ext] "8e46548 값 + IT-1 Δ": 같은 DC 엣지 제거로 입력쌍 경로가 나무가 되어 옛 cycle_vgs 종속 소자가 writer 가 된다
 # (승인된 동작 변경 O-72 (2)) -> 그 소자의 ln_idu 변수가 +1(current_reuse 는 새 tie ln_idu M4a~M4b +1). 값 출처 = 감사 9회로 변화표
 # (.ai/verification/20261021-it1-input-tie-removal/change_table_summary.json baseline_8e46548_delta, 설명되지 않는 변화 0). 8e46548 원값은 왼쪽에 둔다.
-_IT1_DELTA = {
-    "current_reuse_telescopic_ota": (1, 0), "folded_cascode": (0, 1), "ngcc_3stage_ff": (0, 1), "nmcnr_amplifier": (0, 1),
-    "two_stage_ota": (0, 1), "two_stage_ota_sf": (0, 1),
-}
+_IT1_DELTA = {}   # [IT-1 DEC-106 판정자 재측정] 입력 점으로 옛 Δ 가 사라져 8e46548 원값과 같다
 _BASELINE_8E46548_ORIGINAL = {
     "current_reuse_telescopic_ota": (29, 38), "common_gate_amplifier": (0, 6), "folded_cascode": (0, 16), "ngcc_3stage_ff": (0, 21),
     "nmcnr_amplifier": (0, 23), "pushpull_follower_buffer": (0, 8), "sf_pushpull_output_opamp": (0, 26), "two_stage_ota": (0, 10),

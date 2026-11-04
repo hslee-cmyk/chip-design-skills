@@ -145,7 +145,7 @@ READS = {
                          ("device", "dc_colour"), ("node", "is_rail"), ("graph", "dc_pruned"), ("graph", "orbits")},
     "dc_writer_plan": {("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
                        ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
-                       ("node", "dc_colour"),
+                       ("node", "dc_colour"), ("node", "port_role"), ("graph", "gvgs_summary"),
                        ("device", "bulk")},      # [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
     "dc_scc_order": {("node", "dc_writer"), ("device", "pins"), ("device", "bulk"), ("device", "element_class"),
                      ("graph", "columns"), ("graph", "branches")},
@@ -186,8 +186,8 @@ def test_vocabulary_constants():
     assert S.DC_KEY == "dc"
     assert (S.TIER_W0, S.TIER_W1, S.TIER_W2, S.TIER_W3, S.TIER_W4) == ("W0", "W1", "W2", "W3", "W4")
     assert (S.REL_RAIL, S.REL_TARGET, S.REL_INPUT_DC, S.REL_VGS_GATE, S.REL_VGS_SOURCE, S.REL_RESISTOR,
-            S.REL_WINDOW) == ("rail", "declared_target", "input_dc", "vgs_gate", "vgs_source", "resistor_drop",
-                              "free_window")
+            S.REL_WINDOW, S.REL_INPUT_POINT) == ("rail", "declared_target", "input_dc", "vgs_gate", "vgs_source",
+                                                 "resistor_drop", "free_window", "input_point")        # [IT-1 DEC-106] 여덟째 relation
     assert (S.COORD_WRITER, S.COORD_DEPENDENT) == ("writer", "dependent")
     assert (S.DEP_TREE, S.DEP_PARALLEL, S.DEP_CYCLE, S.DEP_FIXED) == ("tree", "parallel_vgs", "cycle_vgs", "fixed_vgs")
     assert not hasattr(S, "INPUT_GROUP_KEY") and not hasattr(S, "REL_TIE")          # [IT-1 K-3] 어휘 제거
@@ -203,7 +203,10 @@ def test_vocabulary_constants():
     assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_CURRENT_PIVOT) == (
         "writer_edge", "w4_root", "current_pivot")
     assert not hasattr(S, "TIE_INPUT_ORDER")
-    assert S.BRANCH_INPUT_MULTIPLE_ROOTS == "input_port_multiple_roots"
+    assert not hasattr(S, "BRANCH_INPUT_MULTIPLE_ROOTS")                             # [IT-1 DEC-106] 옛 사유 삭제
+    from gmid_engine.sizing import s2_values as _s2v
+    assert _s2v.BRANCH_INPUT_CM_UNDEFINED == "input_cm_undefined"
+    assert not hasattr(_s2v, "BRANCH_INPUT_MULTIPLE_ROOTS")
     assert S.BRANCH_RESISTOR_CYCLE == "dc_resistor_cycle"
     assert S.BRANCH_MOS_ZERO_CURRENT == "mos_zero_current_structural"
     # [r5] 4.4: capacitance(engine 커패시터)·ss_resistance(DC 전류 0 engine 저항 중 구조 규칙 밖) 추가, 둘 다 DC 블록이 읽지 않는

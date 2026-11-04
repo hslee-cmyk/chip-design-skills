@@ -1,0 +1,10 @@
+{
+ "note": "판정자 부정 대조, 입력 R1, 격리 복제본에서 실행. 기대 = 멈춤",
+ "cases": [
+  {"name": "선언 판 47", "rc": 3, "stop": "ngspice_version_differs"},
+  {"name": "compat sha 틀림", "rc": 3, "stop": "compat_decl_sha_wrong"},
+  {"name": "compat 칸 없음", "rc": 1, "stop": "KeyError compat (traceback, 실행 전 멈춤)"},
+  {"name": "실행 파일 없음", "rc": 3, "stop": "sim_json_missing"},
+  {"name": "역할 없음 feasibility", "rc": 3, "stop": "feasibility_failed F-2:nmos F-2:pmos, reasons model_bundle_mismatch (feasibility_noroles.json)"}
+ ]
+}

@@ -1,0 +1,15 @@
+{"case": "no_per_l", "rc": 2, "stderr_last": "STOP source_record_missing model_bin_per_L", "decl_written": false, "expect": "source_record_missing", "hit": true}
+{"case": "cell_key_gone", "rc": 2, "stderr_last": "STOP source_record_missing {'l_m': 1.8e-07, 'w_m': 3.6e-07, 'recorded': None, 'default': 'sky130_fd_pr__nfet_01v8__model.179', 'hsa': 'sky130_fd_pr__nfet_01v8__model.178'}", "decl_written": false, "expect": "source_record_missing", "hit": true}
+{"case": "no_mode", "rc": 2, "stderr_last": "STOP source_record_no_mode {'l_m': 1.8e-07, 'w_m': 3.6e-07, 'recorded': 'bogus', 'default': 'sky130_fd_pr__nfet_01v8__model.179', 'hsa': 'sky130_fd_pr__nfet_01v8__model.178'}", "decl_written": false, "expect": "source_record_no_mode", "hit": true}
+{"case": "mixed", "rc": 2, "stderr_last": "STOP source_record_mixed ['default', 'hsa']", "decl_written": false, "expect": "source_record_mixed", "hit": true}
+{"case": "differs", "rc": 2, "stderr_last": "STOP source_mode_differs ('hsa', 'default')", "decl_written": false, "expect": "source_mode_differs", "hit": true}
+{"case": "include", "rc": 2, "stderr_last": "STOP include_not_recorded C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__tt.pm3.spice", "decl_written": false, "expect": "include_not_recorded", "hit": true}
+{"case": "combined_differs", "rc": 2, "stderr_last": "STOP combined_bin_differs ('0.15', 'bogus', 'sky130_fd_pr__nfet_01v8__model.26')", "decl_written": false, "expect": "combined_bin_differs", "hit": true}
+{"case": "combined_kind_gone", "rc": 2, "stderr_last": "STOP combined_bin_missing None", "decl_written": false, "expect": "combined_bin_missing", "hit": true}
+{"case": "cap_differs", "rc": 2, "stderr_last": "STOP cap_bind_differs ('0000000000000000000000000000000000000000000000000000000000000000', '938e95b9b101d45140720c0655ecebed96e62c664de7121dbf399f6b1aa1efe2')", "decl_written": false, "expect": "cap_bind_differs", "hit": true}
+{"case": "cap_gone", "rc": 2, "stderr_last": "STOP cap_bind_missing None", "decl_written": false, "expect": "cap_bind_missing", "hit": true}
+{"case": "both_modes", "rc": 2, "stderr_last": "STOP control_undetermined None", "decl_written": false, "expect": "control_undetermined", "hit": true}
+{"case": "empty_lists", "rc": 0, "stderr_last": "", "decl_written": true, "expect": "ok", "hit": true}
+{"case": "partial_slices", "rc": 0, "stderr_last": "", "decl_written": true, "expect": "ok", "hit": true}
+{"case": "kind_slice_gone", "rc": 2, "stderr_last": "STOP source_record_missing pfet_01v8", "decl_written": false, "expect": "source_record_missing", "hit": true}
+{"case": "plan_field_gone", "rc": 2, "stderr_last": "STOP source_condition_unresolved plan.combined_sets", "decl_written": false, "expect": "source_condition_unresolved", "hit": true}

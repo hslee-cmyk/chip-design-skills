@@ -1,0 +1,500 @@
+{
+ "current_reuse_telescopic_ota": {
+  "base_diff_vs_fixture": [],
+  "head_diff": [
+   "achievability.dof",
+   "graph/kernel: theta_schema",
+   "graph/kernel: search_domain"
+  ],
+  "n_vars": [
+   146,
+   145
+  ],
+  "n_eq": [
+   54,
+   53
+  ],
+  "rank": [
+   54,
+   53
+  ],
+  "status": [
+   "free_dof",
+   "free_dof"
+  ],
+  "free_removed": [],
+  "free_added": [],
+  "theta_removed": [
+   [
+    "y",
+    "input_common_mode"
+   ]
+  ],
+  "theta_added": [
+   [
+    "y",
+    "Vip"
+   ]
+  ],
+  "inputs_base": {
+   "Vim": [
+    "W2",
+    "input_tie",
+    "Vip",
+    null
+   ],
+   "Vip": [
+    "W4",
+    "free_window",
+    null,
+    "input_common_mode"
+   ]
+  },
+  "inputs_head": {
+   "Vim": [
+    "W4",
+    "input_point",
+    "Vip",
+    "Vip"
+   ],
+   "Vip": [
+    "W4",
+    "input_point",
+    null,
+    "Vip"
+   ]
+  },
+  "coord_changed": {
+   "M1b": [
+    [
+     "dependent",
+     "cycle_vgs",
+     null
+    ],
+    [
+     "dependent",
+     "parallel_vgs",
+     "M1a"
+    ]
+   ],
+   "M4b": [
+    [
+     "dependent",
+     "cycle_vgs",
+     null
+    ],
+    [
+     "dependent",
+     "parallel_vgs",
+     "M4a"
+    ]
+   ]
+  },
+  "vars_removed": [
+   "('y', 'input_common_mode')"
+  ],
+  "vars_added": [
+   "('y', 'Vip')"
+  ]
+ },
+ "folded_cascode": {
+  "base_diff_vs_fixture": [],
+  "head_diff": [
+   "achievability.dof",
+   "graph/start: rungs",
+   "graph/kernel: theta_schema",
+   "graph/kernel: search_domain"
+  ],
+  "n_vars": [
+   39,
+   38
+  ],
+  "n_eq": [
+   14,
+   13
+  ],
+  "rank": [
+   14,
+   13
+  ],
+  "status": [
+   "free_dof",
+   "free_dof"
+  ],
+  "free_removed": [],
+  "free_added": [],
+  "theta_removed": [
+   [
+    "y",
+    "input_common_mode"
+   ]
+  ],
+  "theta_added": [
+   [
+    "y",
+    "vin_p"
+   ]
+  ],
+  "inputs_base": {
+   "vin_n": [
+    "W2",
+    "input_tie",
+    "vin_p",
+    null
+   ],
+   "vin_p": [
+    "W4",
+    "free_window",
+    null,
+    "input_common_mode"
+   ]
+  },
+  "inputs_head": {
+   "vin_n": [
+    "W4",
+    "input_point",
+    "vin_p",
+    "vin_p"
+   ],
+   "vin_p": [
+    "W4",
+    "input_point",
+    null,
+    "vin_p"
+   ]
+  },
+  "coord_changed": {
+   "M1": [
+    [
+     "dependent",
+     "cycle_vgs",
+     null
+    ],
+    [
+     "dependent",
+     "parallel_vgs",
+     "M2"
+    ]
+   ]
+  },
+  "vars_removed": [
+   "('y', 'input_common_mode')"
+  ],
+  "vars_added": [
+   "('y', 'vin_p')"
+  ]
+ },
+ "ngcc_3stage_ff": {
+  "base_diff_vs_fixture": [],
+  "head_diff": [
+   "achievability.dof"
+  ],
+  "n_vars": [
+   46,
+   45
+  ],
+  "n_eq": [
+   17,
+   16
+  ],
+  "rank": [
+   17,
+   16
+  ],
+  "status": [
+   "free_dof",
+   "free_dof"
+  ],
+  "free_removed": [],
+  "free_added": []
+ },
+ "nmcnr_amplifier": {
+  "base_diff_vs_fixture": [],
+  "head_diff": [
+   "achievability.dof",
+   "graph/start: rungs",
+   "graph/kernel: theta_schema",
+   "graph/kernel: search_domain"
+  ],
+  "n_vars": [
+   51,
+   50
+  ],
+  "n_eq": [
+   17,
+   16
+  ],
+  "rank": [
+   17,
+   16
+  ],
+  "status": [
+   "free_dof",
+   "free_dof"
+  ],
+  "free_removed": [],
+  "free_added": [],
+  "theta_removed": [
+   [
+    "y",
+    "input_common_mode"
+   ]
+  ],
+  "theta_added": [
+   [
+    "y",
+    "Vin_p"
+   ]
+  ],
+  "inputs_base": {
+   "Vin_n": [
+    "W2",
+    "input_tie",
+    "Vin_p",
+    null
+   ],
+   "Vin_p": [
+    "W4",
+    "free_window",
+    null,
+    "input_common_mode"
+   ]
+  },
+  "inputs_head": {
+   "Vin_n": [
+    "W4",
+    "input_point",
+    "Vin_p",
+    "Vin_p"
+   ],
+   "Vin_p": [
+    "W4",
+    "input_point",
+    null,
+    "Vin_p"
+   ]
+  },
+  "coord_changed": {
+   "M102": [
+    [
+     "dependent",
+     "cycle_vgs",
+     null
+    ],
+    [
+     "dependent",
+     "parallel_vgs",
+     "M103"
+    ]
+   ]
+  },
+  "vars_removed": [
+   "('y', 'input_common_mode')"
+  ],
+  "vars_added": [
+   "('y', 'Vin_p')"
+  ]
+ },
+ "r2r_opamp": {
+  "base_diff_vs_fixture": [],
+  "head_diff": [
+   "achievability.dof"
+  ],
+  "n_vars": [
+   99,
+   98
+  ],
+  "n_eq": [
+   33,
+   32
+  ],
+  "rank": [
+   33,
+   32
+  ],
+  "status": [
+   "free_dof",
+   "free_dof"
+  ],
+  "free_removed": [
+   "V:Vinp"
+  ],
+  "free_added": [
+   "V:Vinn"
+  ]
+ },
+ "two_stage_ota": {
+  "base_diff_vs_fixture": [],
+  "head_diff": [
+   "achievability.dof",
+   "graph/start: rungs",
+   "graph/kernel: theta_schema",
+   "graph/kernel: search_domain"
+  ],
+  "n_vars": [
+   23,
+   22
+  ],
+  "n_eq": [
+   8,
+   7
+  ],
+  "rank": [
+   8,
+   7
+  ],
+  "status": [
+   "free_dof",
+   "free_dof"
+  ],
+  "free_removed": [],
+  "free_added": [],
+  "theta_removed": [
+   [
+    "y",
+    "input_common_mode"
+   ]
+  ],
+  "theta_added": [
+   [
+    "y",
+    "vin_p"
+   ]
+  ],
+  "inputs_base": {
+   "vin_n": [
+    "W2",
+    "input_tie",
+    "vin_p",
+    null
+   ],
+   "vin_p": [
+    "W4",
+    "free_window",
+    null,
+    "input_common_mode"
+   ]
+  },
+  "inputs_head": {
+   "vin_n": [
+    "W4",
+    "input_point",
+    "vin_p",
+    "vin_p"
+   ],
+   "vin_p": [
+    "W4",
+    "input_point",
+    null,
+    "vin_p"
+   ]
+  },
+  "coord_changed": {
+   "M1": [
+    [
+     "dependent",
+     "cycle_vgs",
+     null
+    ],
+    [
+     "dependent",
+     "parallel_vgs",
+     "M2"
+    ]
+   ]
+  },
+  "vars_removed": [
+   "('y', 'input_common_mode')"
+  ],
+  "vars_added": [
+   "('y', 'vin_p')"
+  ]
+ },
+ "two_stage_ota_sf": {
+  "base_diff_vs_fixture": [],
+  "head_diff": [
+   "achievability.dof",
+   "graph/start: rungs",
+   "graph/kernel: theta_schema",
+   "graph/kernel: search_domain"
+  ],
+  "n_vars": [
+   27,
+   26
+  ],
+  "n_eq": [
+   10,
+   9
+  ],
+  "rank": [
+   10,
+   9
+  ],
+  "status": [
+   "free_dof",
+   "free_dof"
+  ],
+  "free_removed": [],
+  "free_added": [],
+  "theta_removed": [
+   [
+    "y",
+    "input_common_mode"
+   ]
+  ],
+  "theta_added": [
+   [
+    "y",
+    "vin_p"
+   ]
+  ],
+  "inputs_base": {
+   "vin_n": [
+    "W2",
+    "input_tie",
+    "vin_p",
+    null
+   ],
+   "vin_p": [
+    "W4",
+    "free_window",
+    null,
+    "input_common_mode"
+   ]
+  },
+  "inputs_head": {
+   "vin_n": [
+    "W4",
+    "input_point",
+    "vin_p",
+    "vin_p"
+   ],
+   "vin_p": [
+    "W4",
+    "input_point",
+    null,
+    "vin_p"
+   ]
+  },
+  "coord_changed": {
+   "M1": [
+    [
+     "dependent",
+     "cycle_vgs",
+     null
+    ],
+    [
+     "dependent",
+     "parallel_vgs",
+     "M2"
+    ]
+   ]
+  },
+  "vars_removed": [
+   "('y', 'input_common_mode')"
+  ],
+  "vars_added": [
+   "('y', 'vin_p')"
+  ]
+ }
+}

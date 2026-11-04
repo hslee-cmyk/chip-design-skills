@@ -271,23 +271,28 @@ def test_invariant2_rename_on_u1b_toys(tmp_path, doc):
     assert roles(base, nm, dm) == roles(moved, {}, {})
 
 
-# ---------------------------------------------------------------- [IT-2c T-RH, A-33·A-34] rule 파일을 고친 뒤에도 library 사실이 여전히 적용된다
-# rule 파일(S1V_RULE_FILES ∪ STRUCTURE_RULE_EXTRA_FILES)을 고치는 커밋은 같은 커밋에서 library `structure.json` 의 rule_hash 줄을 재기록해야 한다.
-# 재기록을 빼면 사실이 `structure_fact_stale` 로 조용히 적용되지 않는다(fail-open). oracle: (독립) 그 structure.json 자신의 `facts`(기대 사실 수)와
-# 현재 트리의 `structure_rule_fp()` 비교 -- 피검 함수 값으로 기대값을 만들지 않고, 파일에 적힌 rule_hash 와 현재 지문이 같은지를 본다.
-# 기준선이 존재하고 동작 보존인 경우라 green 이 정상(재기록을 빼면 red).
+# ------------------------------------------------------------------ [IT-1 T-RH] library structure.json 사실이 여전히 적용된다 (A-33·A-34 rule_hash 공통 규칙)
+# oracle (독립): 기대 사실 = 그 library `<회로>.structure.json` 의 `facts` 를 직접 읽은 (concept, subject, value). rule 파일을 고치는 커밋이
+# rule_hash 줄을 같은 커밋에서 재기록하지 않으면 사실이 `structure_fact_stale` 로 조용히 안 쓰인다(fail-open) -- 이 test 가 그것을 잡는다.
+import json as _json                                                                             # noqa: E402
+
+from gmid_engine.authoring import load_topology as _load_topology                                # noqa: E402
+from gmid_engine.graph import build_s1 as _build_s1, load_structure_facts as _load_facts, structure_rule_fp as _rule_fp   # noqa: E402
+
 
 @pytest.mark.parametrize("name", ["current_reuse_telescopic_ota", "nmcnr_amplifier"])
-def test_it2c_rh_library_structure_facts_still_apply(name):
-    import json
-    from gmid_engine.graph import load_structure_facts, structure_rule_fp
+def test_it1_rh_library_structure_facts_still_apply(name):
     path = H.LIBRARY / (name + ".structure.json")
-    doc = json.loads(path.read_text(encoding="utf-8"))
-    assert len(doc["facts"]) >= 1
-    s1, _ = H.build_lib(name)
-    facts = load_structure_facts(str(path), s1.key.topology_fp, structure_rule_fp())
-    assert [f.code for f in facts.findings] == [], "structure_fact_stale -- rule_hash 줄을 재기록하지 않았다"
-    assert len(facts.facts) == len(doc["facts"])
-    _, s1v = H.build_lib(name, structure=facts)
-    assert s1v.facts_applied != ()
-    assert "structure_fact_stale" not in [f.code for f in s1v.findings]
+    expected = {(f["concept"], f["subject"], f["value"]) for f in _json.loads(path.read_text(encoding="utf-8"))["facts"]}
+    assert expected                                                                              # 전제: 파일에 사실이 있다
+    run = H.fresh_run()
+    s1 = _build_s1(_load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), **run)
+    got = _load_facts(str(path), s1.key.topology_fp, _rule_fp())
+    assert "structure_fact_stale" not in [f.code for f in got.findings]
+    assert {(f.concept, f.subject, f.value) for f in got.facts} == expected
+    run2 = H.fresh_run()
+    s1 = _build_s1(_load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), structure=got, **run2)
+    s1v = H.read_s1v(build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=got, **run2))
+    assert s1v.applied_facts                                                                     # graph.applied_facts 가 비지 않는다
+    assert {(c, s) for c, s in map(tuple, s1v.applied_facts)} >= {(c, s) for c, s, _v in expected}
+    assert "structure_fact_stale" not in [f.code for f in s1v.all_findings]

@@ -1,0 +1,229 @@
+{
+ "devices": {
+  "M1": {
+   "id": 8.500172e-06,
+   "gm": 0.0001378065,
+   "gds": 1.042636e-06,
+   "vth": 0.6326438,
+   "vdsat": 0.09483317,
+   "vgs": 0.7,
+   "vds": 0.7,
+   "vbs": 1.338124e-13
+  },
+  "M2": {
+   "id": 8.500177e-06,
+   "gm": 0.0001378066,
+   "gds": 1.042637e-06,
+   "vth": 0.6326438,
+   "vdsat": 0.09483319,
+   "vgs": 0.7,
+   "vds": 0.6999994,
+   "vbs": 1.338124e-13
+  },
+  "M3": {
+   "id": 8.500094e-06,
+   "gm": 0.0001378056,
+   "gds": 1.04262e-06,
+   "vth": 0.6326438,
+   "vdsat": 0.09483284,
+   "vgs": 0.6999994,
+   "vds": 0.7000101,
+   "vbs": 1.338126e-13
+  }
+ },
+ "nodes": {
+  "n1": 0.7,
+  "nin": 0.7,
+  "n2": 0.6999994,
+  "n3": 0.7000101,
+  "vdd": 1.8
+ },
+ "rail_current_A": {
+  "vdd": 2.55004e-05
+ },
+ "hold_current_A": {},
+ "ngspice_rc": 0,
+ "cache": {
+  "main": null,
+  "loop": null
+ },
+ "log": "C:/Users/HSLEE/AppData/Local/Temp/la1s_op1b_audit/run/work/R6/o\\t3stage.free.log",
+ "log_errors": [],
+ "op_ok": true,
+ "ac": {
+  "f_first_hz": 0.01,
+  "gain_dc": 3879.7041800999796,
+  "dc_gain_db": 71.7759722549357,
+  "phase_dc_deg": 179.99958866706268,
+  "reference_point": "first",
+  "f3db_hz": 1412.53754,
+  "ugf_hz": 1885382.6175244942,
+  "phase_lag_at_ugf_deg": 197.28422809631962,
+  "pm_deg": -17.284228096319623,
+  "a0_f3db_hz": 5480227.798486142,
+  "pm_open_loop_deg": -17.284228096319623,
+  "dc_path_isolation": [
+   {
+    "net": "nin",
+    "choke_H": 1000000000000.0,
+    "couple_F": 1.0,
+    "f_hz": 0.01,
+    "omega2_LC": 3947841760.4357433,
+    "output_feedback": false
+   }
+  ],
+  "pm_definition": "beta_1",
+  "loop_break_nets": [],
+  "loop_weights": {
+   "nin": 1.0
+  },
+  "loop_choke_ratio": null,
+  "pm_crosscheck_deg": null,
+  "pm_crosscheck_note": "peaking 없음(Mp-1 = 1.58e-13, 데이터 분해능 2e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+  "pm_crosscheck_method": "closed_loop_peaking_2nd_order",
+  "pm_crosscheck_mp_resolution": 2e-08,
+  "closed_loop_peaking_db": null,
+  "closed_loop_peak_hz": null,
+  "pm_crosscheck_gap_deg": null,
+  "pm_undefined": null,
+  "pm_deg_raw": -17.284228096319623,
+  "stability": {
+   "method": "nyquist_count + closed_loop_transient",
+   "loop": "beta_1",
+   "closure_sign": -1.0,
+   "nyquist": {
+    "encirclements_cw": 2,
+    "reason": null,
+    "max_step_deg": 29.392800027313136,
+    "max_step_hz": 1883649.09,
+    "f_first_hz": 0.01,
+    "f_last_hz": 10000000000.0,
+    "L_first": [
+     3879.70418,
+     -0.0278528389
+    ],
+    "L_last": [
+     -1.1968753e-11,
+     -1.02308914e-10
+    ],
+    "bad_intervals_hz": [],
+    "closing_step_deg": [
+     0.0008224538858835641,
+     1.1723728111374136e-08
+    ],
+    "refinement": {
+     "rounds": 0,
+     "samples_added": 0,
+     "k_max": 10,
+     "history": []
+    }
+   },
+   "pz": {
+    "status": "failed",
+    "P": null,
+    "rhp": [],
+    "beyond_sweep": [],
+    "n_poles": 7,
+    "reason": "Warning: Pole-zero iteration limit reached; giving up after 364 trials",
+    "netlist": "t3stage.free.pz.cir",
+    "ngspice_rc": 0,
+    "method": "ngspice .pz (cur, pol) on the open-loop testbench (bias from the operating-point pass)",
+    "open_loop": "main netlist, inputs driven (beta=1)"
+   },
+   "transient": {
+    "status": "unstable",
+    "reason": "창 3 에서 분해능을 넘는 연속 증가(g↑(M_1,M_2)·g↑(M_2,M_3)·g↑(M_1,M_3), reltol 0.0001, floor' 7.01e-05)",
+    "op_pass": {
+     "netlist": "t3stage.free.stabop.cir",
+     "ngspice_rc": 0,
+     "choke_current_A": {
+      "ldc_nin": 0.0
+     },
+     "node_V": {
+      "nin": 0.7,
+      "n3": 0.7000101
+     }
+    },
+    "plan": {
+     "kick_V": 0.025864925786328753,
+     "td": 8.441519594620303e-08,
+     "tr": 8.441519594620303e-08,
+     "pw": 8.441519594620303e-08,
+     "tmax": 2.5217099784872536e-09,
+     "window_s": 5.303963188718686e-07,
+     "windows": 6,
+     "windows_planned": 6,
+     "t_kick_end": 3.3766078378481213e-07,
+     "tstop": 3.5200386970160236e-06,
+     "f_lo_hz": 1885382.6175244942,
+     "f_hi_hz": 1885382.6175244942,
+     "f_crit_hz": 1778279.41,
+     "n_pp": 223,
+     "reltol": 0.0001,
+     "floor_V": 7.01e-05,
+     "wall_cap_s": 1836.6000000000001,
+     "sign": -1.0,
+     "observe": [
+      [
+       "nin",
+       1
+      ]
+     ]
+    },
+    "M": [
+     0.05455410100000002,
+     0.10901920399999998,
+     0.23275197099999995
+    ],
+    "floor_V": 7.0104001335135e-05,
+    "windows_run": 3,
+    "early_stop": {
+     "window": 3,
+     "M": [
+      0.05455410100000002,
+      0.10901920399999998,
+      0.23275197099999995
+     ],
+     "reason": "창 3 에서 분해능을 넘는 연속 증가(g↑(M_1,M_2)·g↑(M_2,M_3)·g↑(M_1,M_3), reltol 0.0001, floor' 7.01e-05)",
+     "kind": "growth"
+    },
+    "netlist": "t3stage.free.stab.cir",
+    "file": "t3stage.free.stab.txt",
+    "ngspice_rc": 0,
+    "wall_cap_s": 1836.6000000000001,
+    "first_status": "unstable"
+   },
+   "closed_loop": "unstable",
+   "open_loop_rhp_poles": 0,
+   "open_loop_rhp_poles_bound": "== (Z = N 과 일치)",
+   "pm_valid": true,
+   "pm_undefined": null,
+   "Z": null,
+   "P_pz": null,
+   "P_eff": null,
+   "pz_conflict": null,
+   "conditionally_stable": false,
+   "verdict": "unstable",
+   "verdict_basis": "transient+nyquist",
+   "low_side_gain_margin_db": null,
+   "low_side_crossings": [
+    -1.9348752786565022
+   ],
+   "low_side_crossing_hz": [
+    1387536.9861116393
+   ],
+   "gain_crossings_hz": [
+    1885382.6175244942
+   ]
+  }
+ },
+ "ac_file": "C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_op1b_audit\\run\\work\\R6\\o\\t3stage.free.ac.txt",
+ "ratio": [],
+ "rout": [],
+ "loop": null,
+ "cm_loop": null,
+ "stability_cache": {
+  "op_pass": null,
+  "transient": null
+ }
+}

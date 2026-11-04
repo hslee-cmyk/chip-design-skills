@@ -238,7 +238,8 @@ def _rload(flip):
     from .conftest import mos, topo
     return topo("hand_rload" + ("_flip" if flip else ""),
                 [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"), mos("M5", "nmos", "t", "vb", "gnd")],
-                {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")},
+                {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"),               # [IT-1 DEC-106]
+                 "o1": ("output", "b"), "o2": ("output", "b")},
                 passives=[two("R1", "resistor", "vdd", "o1"),
                           two("R2", "resistor", "o2", "vdd") if flip else two("R2", "resistor", "vdd", "o2")],
                 bias=["vb"])
@@ -368,11 +369,41 @@ def test_ds_flip_symmetry_bit_identical(names, tmp_path, lut_sealed):
     assert _sign_rows(flip.dc, names) == _sign_rows(base.dc)
 
 
-def test_ds_flip_m1_kernel_context_stops_at_s0(tmp_path, lut_sealed):
-    """[IT-1 K-3 ext, O-84] M1 의 d/s 를 뒤집은 선언은 물리적으로 다른 선언 -- 커널 컨텍스트(S0)는 입력 포트 뿌리 둘 이상으로 정지한다."""
-    from gmid_engine.core import StructureUnresolvedError
-    with pytest.raises(StructureUnresolvedError) as ei:
-        make_case(tmp_path / "f", _flip_ds(sym_doc(), ("M1",), "hand_sym_canon_ds"), lut_sealed, elements=SYM_ELEMENTS,
-                  boxes=BOXES, build_sctx=False)
-    d = dict(ei.value.record.detail)
-    assert d["reason"] == "unsupported_rule_branch" and d["rule_branch"] == "input_port_multiple_roots"
+def test_ds_flip_m1_kernel_context_builds_one_input_point(tmp_path, lut_sealed):
+    """[IT-1 DEC-106] M1 의 d/s 를 뒤집은 선언: 입력 포트 둘(p inp, n inn)이 한 입력 점 P 라 커널 컨텍스트(S0)는 정지하지 않는다(옛
+    input_port_multiple_roots 삭제). (손) 뒤집은 G_vgs: P-o1(M1), P-t(M2) -> 성분 {P,o1,t} 에 F 없음 -> W4 뿌리 = 입력 점, 두 포트 모두 input_point.
+    물리적으로 틀린 선언은 봉인 7 이 거부한다(tests/sizing/test_block_columns.py::test_reversed_ds_declaration_rejected_by_seal7)."""
+    case = make_case(tmp_path / "f", _flip_ds(sym_doc(), ("M1",), "hand_sym_canon_ds"), lut_sealed, elements=SYM_ELEMENTS,
+                     boxes=BOXES, build_sctx=False)
+    nw = dict(case.dc.base.column("node", "dc_writer"))
+    assert [(nw[x].tier, nw[x].relation, nw[x].y_key) for x in ("inp", "inn")] == [("W4", "input_point", "inp")] * 2
+
+
+# ---------------------------------------------------------------- [IT-1 T-1f] 입력 점 + 자기동형 궤도 묶음 (이중 차감 0)
+
+def test_it1_t1f_input_point_with_orbit_ties_no_double_subtraction(tmp_path, lut_sealed):
+    """T-1f (손): 대칭 차동 toy(sym_doc: p inp, n inn). (1) 입력 점 규칙: y 성분 = 입력 점 하나(inp)와 출력 o1·o2 = 3 (n 포트 inn 의 y 키 없음).
+    ln_idu 성분 3 = 입력쌍 트리 하나·꼬리 M5·부하쌍 트리 하나(평행 종속 둘은 θ 성분이 아니다). (2) 자기동형 σ 의 짝: y 에서는 (o1, o2) 뿐 --
+    (inp, inn) 짝은 inn 이 스키마에 없어 묶음 대상이 아니다. domain.ties = σ 짝(`expected_sym_groups`, 구성) 그대로. (3) 이중 차감 0: y 성분 3 =
+    정의역 변수 y 2(inp, 궤도 대표 하나) + 묶인 구성원 y 1 -- 입력 점 병합과 궤도 묶음이 같은 성분을 두 번 줄이지 않는다."""
+    import collections
+    case = _sym(tmp_path, lut_sealed)
+    d = case.sctx.domain
+    comps = schema_of(case.dc).components
+    kinds = collections.Counter(k for k, _ in comps)
+    assert {n for k, n in comps if k == "y"} == {"inp", "o1", "o2"}
+    assert kinds["ln_idu"] == 3
+    want = expected_sym_groups(comps)
+    assert frozenset({("y", "o1"), ("y", "o2")}) in want
+    assert not any(("y", "inp") in g or ("y", "inn") in g for g in want)
+    assert tie_groups(d.ties) == want
+    var_y = [v.component for v in d.variables if v.component[0] == "y"]
+    tied_y = [m for _rep, ms in d.ties for m in ms if m[0] == "y"]
+    assert ("y", "inp") in var_y
+    assert (len(var_y), len(tied_y), len(var_y) + len(tied_y)) == (2, 1, 3)
+    # 손 유도 리터럴(interface T-1f): θ 성분 15 = L 5 + 커패시터 2 + 전류 2 + ln_idu 3 + y 3, 묶인 구성원 5, 정의역 변수 7(L 제외).
+    # 구조 rank·DOF(= 변수 수 - 구조 rank = 12, 커패시터 없는 toy)는 tests/pipeline/test_stage_b.py::test_it1_t1f_structural_dof_of_symmetric_pair.
+    assert dict(collections.Counter(k for k, _ in comps)) == {"L": 5, "capacitance": 2, "current": 2, "ln_idu": 3, "y": 3}
+    assert len(comps) == 15
+    assert len(_members(d.ties)) == 5
+    assert len(d.variables) == 7

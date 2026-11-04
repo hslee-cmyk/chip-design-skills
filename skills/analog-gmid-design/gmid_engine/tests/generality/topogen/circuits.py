@@ -67,8 +67,8 @@ def _diffpair5():
     ], [], [
         _two("Idp", "current_source", RAIL_HI, "dp_bn", "value_amp", 1e-5),
     ], [
-        ("dp_ip", "input", "noninverting_input"),
-        ("dp_im", "input", "inverting_input"),
+        ("dp_ip", "input", "differential_input_p"),            # [IT-1 DEC-106] 입력 점 규칙의 차동쌍 role(옛 noninverting/inverting 은 차동쌍 아님)
+        ("dp_im", "input", "differential_input_n"),
         ("dp_o", "output", "single_ended_output"),
     ])
 
