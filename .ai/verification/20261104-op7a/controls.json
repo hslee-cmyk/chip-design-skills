@@ -1,0 +1,36 @@
+{
+ "controls": [
+  "ok",
+  "home_read_isolated"
+ ],
+ "empty_init": [
+  "ok",
+  null
+ ],
+ "real_home_spiceinit": {
+  "exists": false
+ },
+ "rules": {
+  "cwd": [
+   "upper",
+   null
+  ],
+  "default": [
+   "lower",
+   null
+  ],
+  "empty": [
+   "lower",
+   null
+  ],
+  "home": [
+   "upper",
+   null
+  ]
+ },
+ "simulator": [
+  "ngspice",
+  "46"
+ ],
+ "unrecorded_sets": []
+}

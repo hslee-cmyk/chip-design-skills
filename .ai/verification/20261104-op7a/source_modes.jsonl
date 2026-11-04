@@ -1,0 +1,16 @@
+{"default_id": -0.000140382, "hsa_id": -0.000140382, "kind": "nfet_01v8", "l_m": 1.8e-07, "lut_id": 0.00014037603495981984, "mode": null, "probe": 0, "w_m": 3.6e-07}
+{"default_id": -0.000123846, "hsa_id": -0.000123846, "kind": "nfet_01v8", "l_m": 2.5e-07, "lut_id": 0.00012384461189643377, "mode": null, "probe": 1, "w_m": 3.6e-07}
+{"default_id": -7.89273e-05, "hsa_id": -7.89273e-05, "kind": "nfet_01v8", "l_m": 5e-07, "lut_id": 7.892718841479861e-05, "mode": null, "probe": 2, "w_m": 3.6e-07}
+{"default_id": -4.92112e-05, "hsa_id": -4.92112e-05, "kind": "nfet_01v8", "l_m": 1e-06, "lut_id": 4.9211220628012164e-05, "mode": null, "probe": 3, "w_m": 3.6e-07}
+{"default_id": -2.35205e-05, "hsa_id": -2.35205e-05, "kind": "nfet_01v8", "l_m": 2e-06, "lut_id": 2.3520478814193042e-05, "mode": null, "probe": 4, "w_m": 3.6e-07}
+{"default_id": -1.16977e-05, "hsa_id": -1.16977e-05, "kind": "nfet_01v8", "l_m": 4e-06, "lut_id": 1.169767419836665e-05, "mode": null, "probe": 5, "w_m": 3.6e-07}
+{"default_id": -5.879e-06, "hsa_id": -5.879e-06, "kind": "nfet_01v8", "l_m": 8e-06, "lut_id": 5.8789943427497215e-06, "mode": null, "probe": 6, "w_m": 3.6e-07}
+{"default_id": -2.39199e-06, "hsa_id": -2.39199e-06, "kind": "nfet_01v8", "l_m": 1.9999999999999998e-05, "lut_id": 2.3919931549595597e-06, "mode": null, "probe": 7, "w_m": 3.6e-07}
+{"default_id": 6.929065e-05, "hsa_id": 6.929065e-05, "kind": "pfet_01v8", "l_m": 1.8e-07, "lut_id": 6.929063954858917e-05, "mode": null, "probe": 8, "w_m": 4.1999999999999995e-07}
+{"default_id": 4.843601e-05, "hsa_id": 4.843601e-05, "kind": "pfet_01v8", "l_m": 2.5e-07, "lut_id": 4.843600780725232e-05, "mode": null, "probe": 9, "w_m": 4.1999999999999995e-07}
+{"default_id": 2.426084e-05, "hsa_id": 2.426084e-05, "kind": "pfet_01v8", "l_m": 5e-07, "lut_id": 2.4260839781063135e-05, "mode": null, "probe": 10, "w_m": 4.1999999999999995e-07}
+{"default_id": 1.192234e-05, "hsa_id": 1.192234e-05, "kind": "pfet_01v8", "l_m": 1e-06, "lut_id": 1.1922335556900892e-05, "mode": null, "probe": 11, "w_m": 4.1999999999999995e-07}
+{"default_id": 5.8493e-06, "hsa_id": 5.8493e-06, "kind": "pfet_01v8", "l_m": 2e-06, "lut_id": 5.849297818115109e-06, "mode": null, "probe": 12, "w_m": 4.1999999999999995e-07}
+{"default_id": 2.877664e-06, "hsa_id": 2.877664e-06, "kind": "pfet_01v8", "l_m": 4e-06, "lut_id": 2.8776613441154467e-06, "mode": null, "probe": 13, "w_m": 4.1999999999999995e-07}
+{"default_id": 1.399941e-06, "hsa_id": 1.399941e-06, "kind": "pfet_01v8", "l_m": 8e-06, "lut_id": 1.399939107980705e-06, "mode": null, "probe": 14, "w_m": 4.1999999999999995e-07}
+{"default_id": 5.454363e-07, "hsa_id": 5.454363e-07, "kind": "pfet_01v8", "l_m": 1.9999999999999998e-05, "lut_id": 5.454344892206891e-07, "mode": null, "probe": 15, "w_m": 4.1999999999999995e-07}

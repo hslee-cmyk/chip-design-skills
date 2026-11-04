@@ -1,0 +1,29 @@
+{
+ "T": "75cbdfc451a59f9b386cff0e7f7f3b72a77e7fd8",
+ "base_commit": "8d77b801d28ffd6cb57ec3ad36c2e77e298a8a4e",
+ "equivalence": "해당 없음",
+ "evidence_sha256": {
+  ".gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+  "audit/a4_result.json": "bac60f3e05453ccc1f0946c756c8c68070bf1b6370ce07808e5229e2a7a3b1a1",
+  "audit/bins.py": "4456c4b6128bc57c81507adf4b6c7a6f74586651cec9cc57dd975670f7ce5c0c",
+  "audit/hand_a4.py": "b0b92e8063762ea12514dcb9bbbbeb41958ef0bf20182bad07745c10de5acbdb",
+  "audit/hand_c10.jsonl": "94fd573f6508f32ae811c19d9d9ef64d7841cf6655c93029f71317571895849c",
+  "audit/hand_c10.py": "179c76ed709cddd2fd6497a633e8a484eb65e8bd19caa72825ae59cd840ece80",
+  "audit/hand_c10b.jsonl": "123a86ca7c1f0a1025cd204008a4aaaa6bccc3af21237ab770d80ef6d1c91537",
+  "audit/hand_c10b.py": "f103f4217a73113e31193801d89227d15ca6b36814323d6d4ad837f067a61f6d",
+  "audit/hand_wtie.jsonl": "e30039cbd9323282eaa038f052bdbabd678e4661e1c91c70516ce021d2924454",
+  "audit/hand_wtie.py": "23284cfd9c2b6ba39f02c2c090bbcbeacf28a888b700f5c7947a71ad41305255",
+  "audit/make_plan.py": "e409e8486cd321fb3a0c9d1b0145c27b102dc5c11183d24335b41e84d656f79d",
+  "audit/meta_dump.py": "6dd71c1b06983a8122098ceedcce848e3d2c3cedad93bd5033c2d639a648f1c1",
+  "audit/plan.json": "318aea063140a621be605e8ca14fd7726b06d7cc23eee28cff8239e40c2722e7",
+  "audit/record_bin_check.json": "0e7de19d93e95b32ba382e07d49cd71decd13bcfa41f32a12e468db6d066dd82",
+  "audit/watch_run.py": "acbe634fb148448a199a670e7b8bfc1c6e5714bf3d56e7af0b7331350c0352f4",
+  "audit/would_decl.py": "36c150bdddc74a2515a52f7043746cec5b139b2b2f4f621600714fa5b873f41e",
+  "base_check.json": "35da9cef34384157cc810830e329c6648f386a0b552c2d326d957d10e2e1dc8b",
+  "controls.json": "5c4857a635693e4ba53c8c2720dbf6e316137a7ae7edb963b453d2ceadc44149",
+  "points.jsonl": "824c8706fc52d7c91120d28c68a7cf542101f898e84ef5ba7cbd96118a925719",
+  "source_modes.jsonl": "bf9558cc9a1760d295c2ad5328fc9f5160f455c999efca73f8a53e7faa66fd94"
+ },
+ "schema_note": "test-only 판정 base 대조(순서 3)",
+ "toy_red": "base에는 scripts 폴더·모듈이 없다(git diff 8d77b801..75cbdfc4 전부 새 파일 3). interface A-1 'ImportError가 red(새 파일)'"
+}

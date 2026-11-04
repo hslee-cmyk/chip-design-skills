@@ -1,0 +1,73 @@
+{
+ "id": "20261104-op7a",
+ "spec_card": "docs/02-design/specs/20261104-op7a.spec.md",
+ "evidence_type": "test-only",
+ "base_commit": "8d77b801d28ffd6cb57ec3ad36c2e77e298a8a4e",
+ "test_commit": "75cbdfc451a59f9b386cff0e7f7f3b72a77e7fd8",
+ "code_commit": null,
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "임시 규칙 O-229: 전체 test 안 돌림, 통과로 세지 않음. 잰 범위 = toy test_bin_rule_lib.py 70 passed(A-1), tests/structure 170 passed 1 deselected(A-7). 2회로 연기는 spec 연기 시험 항목대로 kind 둘 smoke로 대신(A-8), 회로 연기는 첫 reader WB-1 병합 때."
+  },
+  "V2": {
+   "verdict": "FAIL",
+   "basis": "A-2 멈춤(card 미완료). measure_bin_rule.py가 두 번 다 STOP source_mode_undetermined(rc 2), 16/16 점이 None(default_id == hsa_id, 7자리 출력)이라 선언을 쓰지 않았다. 원인 = 물리: 두 모드는 16/16 점에서 서로 다른 bin을 고르지만(hand_c10.jsonl) bin 경계에서 binned 모델이 연속이다. @m[id] 15자리 두 모드 상대차 nfet 5.4e-11~4.0e-10, pfet 1.4e-15~1.1e-14(hand_c10b.jsonl, W 동률도 nfet 9.2e-11~4.5e-9, pfet 8.5e-16~4.8e-14, hand_wtie.jsonl). 그래서 C-10의 ID 대조는 값이 아니라 수치 잡음을 고른다(pfet @m[id] 15자리 identify = hsa 6/8, 기록 bin은 default). 나머지 관문: controls ok home_read_isolated, empty ok, 판 기록 없는 세트 0. 추가로 Major 3건: (M2) C-10 넷리스트에 meta geometry·nf가 없고 계획 스키마에 자리도 없다. (M3) 측정이 i(vds)인데 LUT ID 정의는 BSIM @m[id]다(LUT 대 @m[id] 상대차 최대 5.6e-12, LUT 대 i(vds) 6.2e-8~4.0e-5로 모드 차보다 크다). 7자리 출력의 반올림 하나가 모드를 정하면 judge_source_modes가 ok를 낸다. (M4) spec C-10 결합 세트 대조(model_bin_per_L_at_w_ref, cap_npz_sha256)와 기록에만 있는 파일 기록이 스크립트에 없어 그 멈춤 경로가 닿지 않는다. 판정자 손 대조는 r2 36/36, midpoints 8/8, cap 묶음 2/2 일치(record_bin_check.json)지만 스크립트 결함을 대신하지 않는다."
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "뮤테이션 안 돌림. 임시 규칙 O-229와 interface §6 측정 표에 없음. 통과로 세지 않음."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: test_lint 도구는 안 돌렸고 test 파일을 interface §4와 손으로 대조했다; T-1~T-15 전 행 기대값이 interface 표와 같다(기대값을 피검 함수로 만들지 않음, sha256은 hashlib 직접 계산); T-1f·T-12a 격자 정수 (30,36,40)·(33,1000),(43,1000) 손 유도 일치; T-14 거리 0.1/1.0, 0.9/0.1, 0.5/0.5 일치; 표 밖 추가 test는 정의 재확인 수준(grid_index, split 마지막 하이픈, t4 정렬)이고 test_binrulestop_attrs 마지막 줄 math.isnan은 의미 없는 채움이다(minor)."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "git diff 8d77b801..75cbdfc4 = 새 파일 3개(.ai/verification/20261104-op7a/scripts), 기존 test·기준 변경 0. 판정 측 완화 0: 기록 없는 세트 완화 안 함, C-10 관문을 바꾸지 않았고 멈춤을 그대로 적음."
+  },
+  "V6": {
+   "verdict": "N/A",
+   "basis": "source_lint 대상 없음: gmid_engine diff 0. 잠금 grep(A-5) 0: scripts에 import gmid_engine·spice_oracle·oracle_run 0, numpy는 measure_bin_rule.py의 numpy.load뿐, skills 안 변경 0(선언 미작성이라 새 파일 1도 없음). A-6: 이 card diff는 S1V_RULE_FILES·STRUCTURE_RULE_EXTRA_FILES를 건드리지 않음(graph 파일 변경 0). A-7: structure 170 passed, g8 ratchet stale 0, new 0, 바뀐 엔진 파일 0이라 scan_shared_calls --touching 미실행."
+  },
+  "V7": {
+   "verdict": "N/A",
+   "basis": "선언 파일을 쓰지 않아 배선 대상 없음(다음 소비자 = WB-1 범위 0, 기간 예외 P:1375). graph 점검 수치: 필드 수 0 / 소비자 0 결함 0 / 정본 우회 의심 0 / KVL·KCL 관계 미적용 0(회로 계산 없음) / graph 밖 저장 자리 0(diff grep·코드 읽기, 엔진 diff 0, 값은 판정 폴더 산출물만). 계산식 재계산 없음. 정본 자리 assets/lut_v2_bin_rule.json 미생성."
+  },
+  "V8": {
+   "verdict": "PASS",
+   "basis": "폴백 발동 0: 멈춤에서 lower 기본값을 쓰지 않았고 선언 파일이 없다(ls 없음). 측정 스크립트는 rc 2로 끝났다. 판정 코드 확인: judge_controls 사유 셋 home_read_isolated·home_not_read·control_not_discriminating 등 interface T-8과 같고 None은 stop. w_boundary_points lmin=lmax는 w_boundary_no_interior로 멈춤. point_direction tie_interior는 멈춤. 포함 파일 재귀는 닿는 파일 2~3개 기록 일치(nfet pm3·corner, pfet lod·pm3·corner)이나 없는 파일 건너뜀·따옴표 없는 include 건너뜀·.inc 미처리는 minor(실제 파일에서 발동 0)."
+  },
+  "V9": {
+   "verdict": "PASS",
+   "basis": "물리 측정 자체는 일관: default 972점 중 동률 944점, L 272점 W 928점 전부 lower, bin_outside 0, 축 사이 갈림 0. hsa 대조 cwd·home 전부 upper, 빈 .spiceinit은 파일 없음과 전 점 같음, HOME의 .spiceinit을 ngspice가 읽음(home_read_isolated, 격리로 막음), 실제 홈 .spiceinit 없음. 손 스크립트 재유도 같음(a4_result.json). 슬라이스 기록 bin 대 측정: 576칸 중 동률 556칸 default 556/556, hsa 0/556. 물리 판단: bin 경계 연속이라 경계값 ID는 어느 bin이든 같고 규칙이 정하는 것은 bin 소속이다."
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "spec 재현할 수치 없음(미측정 칸만). 측정값은 reproduced_numbers. A-3: 측정 두 번 points.jsonl·controls.json·source_modes.jsonl 바이트 같음(선언은 두 번 다 없음, 선언 비교는 미측정). A-4: rule·출처 모드·model_files_sha256 손 스크립트 재유도가 산출물·union_model_sha와 같음, 기록 7개 전부 raw 일치(기계 의존 7), mismatch 0."
+  }
+ },
+ "reproduced_numbers": [
+  {"name": "측정 점 전체", "value": 972, "command": "measure_bin_rule.py --plan audit/plan.json, points.jsonl 줄 수(nfet 603, pfet 369)"},
+  {"name": "동률 점", "value": 944, "command": "audit/hand_a4.py default tie_points"},
+  {"name": "L 동률 lower", "value": 272, "command": "audit/hand_a4.py default per_axis"},
+  {"name": "W 동률 lower", "value": 928, "command": "audit/hand_a4.py default per_axis"},
+  {"name": "C-10 판별 안 된 점(전체 16)", "value": 16, "command": "source_modes.jsonl mode null 수"},
+  {"name": "슬라이스 기록 bin 동률 칸 default 일치(전체 556)", "value": 556, "command": "audit/hand_c10b.py record_bin_check.json"},
+  {"name": "슬라이스 기록 bin 동률 칸 hsa 일치(전체 556)", "value": 0, "command": "audit/hand_c10b.py record_bin_check.json"},
+  {"name": "toy passed", "value": 70, "command": "python -m pytest .ai/verification/20261104-op7a/scripts/test_bin_rule_lib.py -q"},
+  {"name": "tests/structure passed", "value": 170, "command": "python -P -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q"}
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-04T16:27:29+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op7a-audit",
+  "commands": [
+   "git clone --no-hardlinks --no-local <audit worktree> C:/Users/HSLEE/AppData/Local/Temp/la1s_op7a_audit/op7a-iso; git -C <iso> remote remove origin",
+   "V1: 전체 test 미실행(O-229). python -m pytest .ai/verification/20261104-op7a/scripts/test_bin_rule_lib.py -q ; python -P -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q",
+   "python <iso>/.ai/verification/20261104-op7a/scripts/measure_bin_rule.py --plan audit/plan.json --out <abs> --smoke",
+   "python <iso>/.ai/verification/20261104-op7a/scripts/measure_bin_rule.py --plan audit/plan.json --out <abs>/run1 --decl-out <temp>; 같은 명령 run2",
+   "audit/hand_a4.py, audit/hand_c10.py, audit/hand_c10b.py, audit/hand_wtie.py"
+  ]
+ }
+}
