@@ -6,7 +6,6 @@ oracle: 전부 (d) 선언된 스펙값 + (a) 구성으로 정해진 합성 입�
 """
 import copy
 import hashlib
-import math
 
 import pytest
 
@@ -420,36 +419,173 @@ def test_t12c_not_product():
     assert e.value.reason == "w_boundary_not_product"
 
 
-# ---------------------------------------------------------------- T-13..15
-def test_t13_source_point():
-    # 0.18 um에서 4 um는 ("L",), 5 um는 ("L","W") -> 4 um 선택
-    r = B.source_point(0.18e-6, [5e-6, 4e-6], T, G)
-    assert round(r / G) == 800
+# ---------------------------------------------------------------- T-16 slice_tie_cells
+# oracle (d)+(a): interface T-16 표. 격자 정수는 손 유도(0.18um/5nm=36, 0.2um=40, 4um=800, 5um=1000).
+_M16 = {(36, 800): ("m.0", "m.1"), (40, 800): ("m.1", "m.1")}
+_PER16 = {"0.18": "m.0", "0.2": "m.1"}
 
 
-def test_t13_no_slice():
+def test_t16a_cells():
+    # 0.18은 L 동률 칸, 0.2는 동률 아님 -> 칸 하나. 기록 m.0, 기본 m.0, 대조 m.1
+    got = B.slice_tie_cells([0.18e-6, 0.2e-6], 4e-6, dict(_PER16), dict(_M16), T, G)
+    assert got == [{"l_m": 0.18e-6, "w_m": 4e-6, "recorded": "m.0", "default": "m.0", "hsa": "m.1"}]
+
+
+def test_t16b_recorded_key_absent():
+    got = B.slice_tie_cells([0.18e-6, 0.2e-6], 4e-6, {"0.2": "m.1"}, dict(_M16), T, G)
+    assert len(got) == 1
+    assert got[0]["recorded"] is None
+
+
+def test_t16b_unmeasured():
+    got = B.slice_tie_cells([0.18e-6, 0.2e-6], 4e-6, dict(_PER16), {}, T, G)
+    assert len(got) == 1
+    assert got[0]["default"] is None and got[0]["hsa"] is None
+    assert got[0]["recorded"] == "m.0"
+
+
+@pytest.mark.parametrize("per_l", [
+    None,                                  # per_l 없음
+    {"x": "m.0"},                          # 키가 숫자 아님
+    {"0.18": "m.0", "0.1800000001": "m.1"},  # 두 키가 같은 격자 정수 36
+    {"0.18": 7},                           # 값이 문자열 아님
+])
+def test_t16c_source_record_missing(per_l):
     with pytest.raises(BinRuleStop) as e:
-        B.source_point(0.18e-6, [5e-6], T, G)
-    assert e.value.reason == "source_no_slice"
+        B.slice_tie_cells([0.18e-6, 0.2e-6], 4e-6, per_l, dict(_M16), T, G)
+    assert e.value.reason == "source_record_missing"
 
 
-def test_t14_identify_mode():
-    # 손 유도 거리: (0.1 vs 1.0) default / (0.9 vs 0.1) hsa / (0.5 vs 0.5) None / NaN None
-    assert B.identify_mode(1.0, 1.1, 2.0) == "default"
-    assert B.identify_mode(-2.0, 1.1, 2.1) == "hsa"
-    assert B.identify_mode(1.0, 1.5, 0.5) is None
-    assert B.identify_mode(float("nan"), 1.0, 2.0) is None
+def test_t16c_not_dict():
+    # 구성: dict 아닌 per_l(리스트)
+    with pytest.raises(BinRuleStop) as e:
+        B.slice_tie_cells([0.18e-6], 4e-6, [("0.18", "m.0")], dict(_M16), T, G)
+    assert e.value.reason == "source_record_missing"
 
 
-def test_t15_judge_source_modes():
-    assert B.judge_source_modes(["default", None], "default") == ("ok", None)
-    assert B.judge_source_modes([None], "default") == ("stop", "source_mode_undetermined")
-    assert B.judge_source_modes([], "default") == ("stop", "source_mode_undetermined")
-    assert B.judge_source_modes(["default", "hsa"], "default") == ("stop", "source_mode_differs")
+def test_t16d_W_tie_is_cell():
+    # L=0.2 um 안, W=5 um = m.1.wmax = m.3.wmin -> W 동률도 칸. 격자 정수 (40, 1000)
+    got = B.slice_tie_cells([0.2e-6], 5e-6, {"0.2": "m.1"}, {(40, 1000): ("m.1", "m.3")}, T, G)
+    assert got == [{"l_m": 0.2e-6, "w_m": 5e-6, "recorded": "m.1", "default": "m.1", "hsa": "m.3"}]
+
+
+def test_t16_no_tie_cells_empty():
+    # 구성: 0.2 um, 4 um는 동률 아님 -> 칸 없음
+    assert B.slice_tie_cells([0.2e-6], 4e-6, {"0.2": "m.1"}, dict(_M16), T, G) == []
+
+
+# ---------------------------------------------------------------- T-17 record_source_mode
+# oracle (d): interface T-17 표(이름 비교, 합성 칸)
+def _c(r, d, h):
+    return {"l_m": 1.0, "w_m": 1.0, "recorded": r, "default": d, "hsa": h}
+
+
+def test_t17a_default():
+    # 칸1: 기록=기본(a), 칸2: 기록=기본(x) -> "default"
+    assert B.record_source_mode([_c("a", "a", "b"), _c("x", "x", "y")], "default") == "default"
+
+
+def test_t17b_hsa():
+    assert B.record_source_mode([_c("b", "a", "b")], "hsa") == "hsa"
+
+
+@pytest.mark.parametrize("cells,declared,reason", [
+    ([], "default", "source_no_tie_cell"),
+    ([_c(None, "a", "b")], "default", "source_record_missing"),
+    ([_c("a", None, "b")], "default", "source_cell_unmeasured"),
+    ([_c("a", "a", None)], "default", "source_cell_unmeasured"),
+    ([_c("a", "a", "a")], "default", "source_record_both_modes"),
+    ([_c("z", "a", "b")], "default", "source_record_no_mode"),
+    ([_c("a", "a", "b"), _c("b", "a", "b")], "default", "source_record_mixed"),
+    ([_c("b", "a", "b")], "default", "source_mode_differs"),
+    ([_c("b", "a", "b"), _c(None, "a", "b")], "default", "source_record_missing"),  # 칸 사유가 먼저
+])
+def test_t17_stops(cells, declared, reason):
+    with pytest.raises(BinRuleStop) as e:
+        B.record_source_mode(cells, declared)
+    assert e.value.reason == reason
+
+
+def test_t17_detail_is_cell():
+    # interface: detail = 그 칸
+    cell = _c("z", "a", "b")
+    with pytest.raises(BinRuleStop) as e:
+        B.record_source_mode([cell], "default")
+    assert e.value.detail == cell
+
+
+# ---------------------------------------------------------------- T-18 combined_bin_check
+def test_t18_ok():
+    assert B.combined_bin_check({"p0": {"model": "m.0"}}, {"p0": "m.0"}) is None
+
+
+@pytest.mark.parametrize("recorded,reason", [
+    (None, "combined_bin_missing"),
+    ({}, "combined_bin_missing"),
+    ({"p0": {"lmin": 1}}, "combined_bin_unparsed"),     # model 키 없음
+    ({"p0": "m.0"}, "combined_bin_unparsed"),            # 칸이 dict 아님
+    ({"p1": {"model": "m.0"}}, "combined_bin_unmeasured"),
+    ({"p0": {"model": "m.1"}}, "combined_bin_differs"),
+])
+def test_t18b_stops(recorded, reason):
+    with pytest.raises(BinRuleStop) as e:
+        B.combined_bin_check(recorded, {"p0": "m.0"})
+    assert e.value.reason == reason
+
+
+# ---------------------------------------------------------------- T-19 cap_bind_check
+def test_t19_ok():
+    assert B.cap_bind_check("a", "a") is None
+
+
+@pytest.mark.parametrize("rec,pin,reason", [
+    (None, "a", "cap_bind_missing"),
+    ("a", None, "cap_bind_missing"),
+    ("a", "b", "cap_bind_differs"),
+])
+def test_t19_stops(rec, pin, reason):
+    with pytest.raises(BinRuleStop) as e:
+        B.cap_bind_check(rec, pin)
+    assert e.value.reason == reason
+
+
+# ---------------------------------------------------------------- T-20 record_only_files
+def test_t20a_record_only():
+    # 기록 a/p = LF 값 l (닿는 파일 p와 같음), a/q = z (어느 값과도 다름) -> 기록 전용 a/q
+    assert B.record_only_files({"p": ("l", "r")}, {"a/p": "l", "a/q": "z"}) == ("a/q",)
+
+
+def test_t20a_record_is_raw():
+    # 기록이 raw 값이어도 닿는 파일과 같으므로 기록 전용 없음
+    assert B.record_only_files({"p": ("l", "r")}, {"a/p": "r"}) == ()
+
+
+def test_t20_sorted():
+    # 구성: 기록 전용 둘, 입력 순서와 무관하게 오름차순
+    got = B.record_only_files({"p": ("l", "r")}, {"a/z": "9", "a/p": "l", "a/q": "8"})
+    assert got == ("a/q", "a/z")
+
+
+@pytest.mark.parametrize("reached,recorded", [
+    ({"p": ("l", "r")}, {"a/q": "z"}),   # 닿는 파일 값이 기록에 없음
+    ({"p": ("l", "r")}, None),
+    ({"p": ("l", "r")}, {}),
+    ({}, {"a/q": "z"}),                  # reached 빔
+])
+def test_t20b_include_not_recorded(reached, recorded):
+    with pytest.raises(BinRuleStop) as e:
+        B.record_only_files(reached, recorded)
+    assert e.value.reason == "include_not_recorded"
+
+
+def test_t20b_detail_path_when_file_unrecorded():
+    # interface: 닿는 파일 값이 기록에 없으면 detail = 그 파일 경로
+    with pytest.raises(BinRuleStop) as e:
+        B.record_only_files({"p": ("l", "r")}, {"a/q": "z"})
+    assert e.value.detail == "p"
 
 
 def test_binrulestop_attrs():
     e = BinRuleStop("r", "d")
     assert e.reason == "r" and e.detail == "d"
     assert isinstance(e, Exception)
-    assert not math.isnan(1.0)
