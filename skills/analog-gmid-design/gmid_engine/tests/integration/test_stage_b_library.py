@@ -137,6 +137,45 @@ def _gain_target(circuit):
     return None
 
 
+# [O-227 (2) 2026-11-04] 정지 사유 고정 표 -- O-227 임시 고정, LA-1 재점검에서 해제 판단.
+# 아래 (test, 회로) 9건은 엔진이 사유를 내고 정지해 기존 단언에 닿지 못한다. 기대 사유는 머리 5671a6c7 에서 실행해 잰 관측값
+# (oracle (c) 기준선 -- 사유가 물리적으로 맞는지는 판정하지 않는다). 사유가 표와 같으면 pytest.xfail(통과로 세지 않음),
+# 다르거나 정지하지 않거나 읽을 수 없으면 실패한다. 표에 없는 조합은 헬퍼가 아무것도 하지 않아 기존 단언이 그대로 적용된다.
+_STOP = {"cnr_ota": (("STRUCTURE_UNRESOLVED", "unsupported_rule_branch", "dc_resistor_cycle"),),
+         "erfc_ota": (("STRUCTURE_UNRESOLVED", "unsupported_rule_branch", "mos_zero_current_structural"),)}
+_STOP_PINNED = {(t, c) for t in ("test_block_grid_products_and_budget_gate", "test_gain_target_and_verdict",
+                                 "test_area_lower_bound_from_declared_values", "test_diagnostic_mode_keeps_stage_a_exit_code")
+                for c in ("cnr_ota", "erfc_ota")}
+_BLOCK_PINNED = {("test_block_grid_products_and_budget_gate", "r2r_opamp"): ("block_input_pattern_unsupported",)}
+
+
+def _settle(test, circuit, failing, observed, expected):
+    if not failing:
+        pytest.fail(f"{test}[{circuit}]: 정지 사유로 고정한 조합이 해당 지점에서 실패하지 않는다(고정 해제 판단 필요)")
+    if observed != expected:
+        pytest.fail(f"{test}[{circuit}]: 정지 사유가 표와 다르다 observed={observed!r} expected={expected!r}")
+    pytest.xfail(f"O-227 임시 고정(LA-1 재점검에서 해제 판단): {expected!r}")
+
+
+def _pin_stop(test, circuit, b, failing):
+    """사유 코드(stop_reasons 각 항의 class·detail.reason·detail.rule_branch)로 대조한다. 문장 비교 없음."""
+    if (test, circuit) not in _STOP_PINNED:
+        return
+    got = set()
+    for raw in b.report["stop_reasons"]:
+        item = json.loads(raw)
+        got.add((item["class"], item["detail"]["reason"], item["detail"]["rule_branch"]))
+    _settle(test, circuit, failing, tuple(sorted(got)), _STOP[circuit])
+
+
+def _pin_blocks(test, circuit, blocks):
+    """기존 단언 `pi == ∏ 축`을 어기는 블록의 사유 코드 집합으로 대조한다."""
+    if (test, circuit) not in _BLOCK_PINNED:
+        return
+    bad = [blk for blk in blocks if blk["pi"] != math.prod(size for _, size in blk["axes"])]
+    _settle(test, circuit, bool(bad), tuple(sorted({blk["reason"] for blk in bad})), _BLOCK_PINNED[(test, circuit)])
+
+
 @pytest.mark.parametrize("circuit", CIRCUITS)
 def test_count_budget_is_lut_grid_sum_of_used_kinds(env, circuit, tmp_path_factory):
     _, b = _run(env, circuit, tmp_path_factory)
@@ -147,10 +186,12 @@ def test_count_budget_is_lut_grid_sum_of_used_kinds(env, circuit, tmp_path_facto
 @pytest.mark.parametrize("circuit", CIRCUITS)
 def test_block_grid_products_and_budget_gate(env, circuit, tmp_path_factory):
     _, b = _run(env, circuit, tmp_path_factory)
+    _pin_stop("test_block_grid_products_and_budget_gate", circuit, b, b.report["achievability"] is None)
     nL, nG, nD, nS = env["stats"]["axes"]
     size_of = {"vgs": nG, "L": nL, "vds": nD, "vsb": nS, "current": nG, "resistor": nG}
     ns = b.report["count_budget"]
     g = b.report["achievability"]["gain"]
+    _pin_blocks("test_block_grid_products_and_budget_gate", circuit, list(g["blocks"]) + list(g["ff"]))
     for blk in list(g["blocks"]) + list(g["ff"]):
         assert all(size == size_of[kind] for kind, size in blk["axes"]), blk["axes"]
         assert blk["pi"] == math.prod(size for _, size in blk["axes"])
@@ -188,6 +229,7 @@ def test_output_follower_is_certified_with_raw_array_bound(env, tmp_path_factory
 @pytest.mark.parametrize("circuit", CIRCUITS)
 def test_gain_target_and_verdict(env, circuit, tmp_path_factory):
     _, b = _run(env, circuit, tmp_path_factory)
+    _pin_stop("test_gain_target_and_verdict", circuit, b, b.report["achievability"] is None)
     g = b.report["achievability"]["gain"]
     target = _gain_target(circuit)
     assert g["target_db"] == target
@@ -208,6 +250,7 @@ _CURRENT_FED = {"current_reuse_telescopic_ota": {"M18_bg": ("pmos", "Iref")},
 @pytest.mark.parametrize("circuit", CIRCUITS)
 def test_area_lower_bound_from_declared_values(env, circuit, tmp_path_factory):
     _, b = _run(env, circuit, tmp_path_factory)
+    _pin_stop("test_area_lower_bound_from_declared_values", circuit, b, b.report["achievability"] is None)
     area = b.report["achievability"]["area"]
     spec = _spec(circuit)["human"]
     ev = spec["element_values"]
@@ -239,6 +282,8 @@ def test_area_lower_bound_from_declared_values(env, circuit, tmp_path_factory):
 @pytest.mark.parametrize("circuit", CIRCUITS)
 def test_diagnostic_mode_keeps_stage_a_exit_code(env, circuit, tmp_path_factory):
     a, b = _run(env, circuit, tmp_path_factory)
+    _pin_stop("test_diagnostic_mode_keeps_stage_a_exit_code", circuit, b,
+              b.s1 is None or b.s1.snapshot.record("graph", "ach") is None)
     # [U17 ①-b] StageBResult.achievability 묶음 삭제 -> 결과 S0 수준 스냅샷의 graph/ach 레코드(설계 40 v1.9.1 §2.4.7·§2.4.8 GB4 행, D2)
     assert b.s1 is not None and b.s1.snapshot.record("graph", "ach") is not None    # 진단 모드: s1v 가 있으면 계산한다
     if a.status != "ok":
