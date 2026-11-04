@@ -41,13 +41,13 @@ TABLE = {
     "noise_out_int_vrms": (NoiseAnalysis, "out_int_vrms", "v", "ss", "transfer", None),
     # [U7] CONTRACT 10.0 옮긴 8행: 결과 형식.필드 = 10.0 문장, (단위, 영역, 뷰) = 설계 40 §3.8-8 표(mirror 뷰 없음 = cc91068 정정,
     # 스윙·ICMR 'ls', offset_sys 'dc→ss' 는 최종 영역 ss)
-    "offset_in_sigma_mv": (OffsetAnalysis, "sigma_in_mv", "mv", "ss", "transfer", None),
-    "offset_excess": (OffsetAnalysis, "excess", "ratio", "ss", "transfer", None),
-    "offset_sys_mv": (OffsetSystematic, "sys_mv", "mv", "ss", "transfer", None),
-    "mirror_ratio_sigma_pct": (MirrorRatio, "sigma_pct", "pct", "ss", None, None),
-    "swing_out_v": (SwingIcmr, "swing_out_v", "v", "ls", None, None),
-    "icmr_v": (SwingIcmr, "icmr_v", "v", "ls", None, None),
-    "icm_margin_v": (SwingIcmr, "icm_margin_v", "v", "ls", None, None),
+    "offset_in_sigma_mv": (OffsetAnalysis, "sigma_in_mv", "mv", "dc", "transfer", None),
+    "offset_excess": (OffsetAnalysis, "excess", "ratio", "dc", "transfer", None),
+    "offset_sys_mv": (OffsetSystematic, "sys_mv", "mv", "dc", "transfer", None),
+    "mirror_ratio_sigma_pct": (MirrorRatio, "sigma_pct", "pct", "dc", None, None),
+    "swing_out_v": (SwingIcmr, "swing_out_v", "v", "dc", None, None),
+    "icmr_v": (SwingIcmr, "icmr_v", "v", "dc", None, None),
+    "icm_margin_v": (SwingIcmr, "icm_margin_v", "v", "dc", None, None),
     "ff_gm_ratio": (FfRatio, "ratio", "ratio", "ss", "transfer", None),
 }
 
@@ -73,3 +73,20 @@ def test_entry(name):
 def test_unknown_name_key_error():
     with pytest.raises(KeyError):
         metric_registry()["gain_db"]
+
+
+# [IT-2d 재동결 20261104-it2d-front-wiring] 영역 칸 relabel -- oracle (d) interface '영역 칸 relabel' 표(metric 이름 -> domain). 스윙·ICMR·offset·미러비는
+# DC 양이라 `dc`, 이득 비 `ff_gm_ratio` 는 소신호 `ss`(O-109·O-111~O-113·U-106). B77 결측 판정은 이 칸만 읽는다.
+IT2D_DOMAINS = {"offset_in_sigma_mv": "dc", "offset_excess": "dc", "offset_sys_mv": "dc", "mirror_ratio_sigma_pct": "dc",
+                "swing_out_v": "dc", "icmr_v": "dc", "icm_margin_v": "dc", "ff_gm_ratio": "ss"}
+
+
+@pytest.mark.parametrize("name", sorted(IT2D_DOMAINS))
+def test_it2d_registry_domain_label(name):
+    # VB-1 이 먼저 병합되었으면 offset_sys_mv 는 red 대상에서 뺀다(interface) -- 여기서는 미병합 가정으로 `dc` 를 요구한다
+    assert metric_registry()[name].signature.domain == IT2D_DOMAINS[name]
+
+
+def test_it2d_registry_has_no_ls_domain_left():
+    """영역 'ls' 는 사라졌다(DC 양은 dc, 소신호는 ss): 어느 metric 도 domain 'ls' 가 아니다."""
+    assert {n for n, e in metric_registry().items() if e.signature.domain == "ls"} == set()

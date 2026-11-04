@@ -52,7 +52,7 @@ def test_catalog_contents():
 def test_mirror_ratio_sigma_pct_unit_domain():
     """설계 40 §3.8-8: 단위 pct, 'dc→ss' -- 판정·보고 metric 이지 목적 축이 아니다."""
     s = metric_catalog()["mirror_ratio_sigma_pct"]
-    assert (s.unit, s.domain, s.objective_axis) == ("pct", "ss", None)
+    assert (s.unit, s.domain, s.objective_axis) == ("pct", "dc", None)
 
 
 def test_catalog_read_only():
