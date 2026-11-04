@@ -51,7 +51,7 @@ def test_topology_comment_change_keeps_spec_valid(sc):
     """지문은 연결 투영이라 topology 주석만 바꾸면 spec 은 그대로 통과(파일 sha256 아님)."""
     t = sc.read_topo("fx_spec_amp")
     t["_note"] = "changed comment only"
-    t["device_roles"] = {"Q1": "anything"}
+    t["device_roles"] = {"Mfx1": "anything"}
     sc.write_topo(t)
     sc.load()
 

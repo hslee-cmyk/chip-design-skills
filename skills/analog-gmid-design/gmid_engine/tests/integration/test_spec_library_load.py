@@ -1,4 +1,4 @@
-"""9회로 교차 -- library 의 `<회로>.sizing_spec.json` 을 `load_sizing_spec` 에 실제로 건다 (authoring SPEC_CONTRACT 5절).
+"""13회로 교차(O-181: 9 -> 13) -- library 의 `<회로>.sizing_spec.json` 을 `load_sizing_spec` 에 실제로 건다 (authoring SPEC_CONTRACT 5절).
 
 기대값: 계약 5절 표(제약 수·판정 수·pending 수, ID 별 합계)와 spec/topology JSON 직접 집계. 피검 함수로 기대값을 만들지 않는다.
 이름표 = 5절 '픽스처 이름표'(단위·domain 은 이 test 가 정함).
@@ -81,6 +81,17 @@ TABLE = {
     "two_stage_ota": (6, 6, 6),
     "two_stage_ota_sf": (7, 7, 6),
 }
+# [O-181 2026-10-31] library 이관 4회로: spec JSON 직접 집계(제약 수, test 의 _judged_of 로 센 판정 수, 주석 밖 pending 표지 수).
+# 엔진 로더 출력이 아니라 JSON 을 센 값이다. U-75 표지는 cnr·r2r 에 1개씩(spec 이 선언한 결정 대기 ID).
+# 위 9회로 TABLE 은 결정 8~11·U5 표처럼 9회로 사용자 결정에 묶인 test 가 쓴다(새 4회로에는 그 결정 표가 없다) -- 새 4회로는
+# 회로 수·로드·표지 집계 test 에만 ALL_TABLE 로 들어간다. 집합 단언(test_library_has_thirteen_specs)은 ALL_TABLE 전체와 정확히 같아야 한다.
+NEW_TABLE = {
+    "cnr_ota": (3, 3, 6),
+    "erfc_ota": (3, 3, 5),
+    "r2r_opamp": (3, 3, 6),
+    "rfc_ota": (3, 3, 5),
+}
+ALL_TABLE = {**TABLE, **NEW_TABLE}
 # oracle (d) 사용자 결정 11 문장(_drafts/user_decisions.md 2026-10-08 "B으로 표의 값을 그대로 써. Cl을 빼는 것에 동의해")의 표 값 [mm²].
 # m² 환산은 1 mm² = 1e-6 m² (단위 정의, 피검 식 아님).
 DEC11_BUDGET_MM2 = {
@@ -101,9 +112,10 @@ MEASUREMENT_LOADS = {
 # 파일럿 뷰 4·metric 1 + ngcc metric 1). 5절 문장 '남은 표지 61개' 와 JSON 직접 집계가 같음.
 # [U5] ngcc metric 표지 MOD5 해소(설계 40 §9 Q5 ngcc 'icmr_v >= 0.6 V(값 유지, 이름 부여)') -> MOD5 6 -> 5, 합계 61 -> 60.
 # [library spec card, 2026-10-14] Q-S2 로 SP-3 표지 2개(sf_pushpull·two_stage_ota 의 pm_target_deg)가 해소 -> SP-3 키 없음, 합계 60 -> 58.
-ID_TOTALS = {"AC-3": 9, "PA-1": 9, "PA-2": 9, "CI-15": 9, "CI-18": 9, "SP-2": 7, "MOD5": 5,
-             "CI-17": 1}
-ID_TOTAL_SUM = 58
+# [O-181 2026-10-31] 새 4회로(cnr·erfc·r2r·rfc) JSON 직접 집계: AC-3·PA-1·PA-2·CI-15·CI-18 각 +4, U-75 +2(cnr·r2r) -> 합계 58 + 22 = 80.
+ID_TOTALS = {"AC-3": 13, "PA-1": 13, "PA-2": 13, "CI-15": 13, "CI-18": 13, "SP-2": 7, "MOD5": 5,
+             "CI-17": 1, "U-75": 2}
+ID_TOTAL_SUM = 80
 PILOT = "current_reuse_telescopic_ota"
 SP10_ELEMENTS = ("CL1", "CL2")
 SP10_FARAD = 1e-12  # 사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF"
@@ -153,12 +165,12 @@ def _judged_of(name, c, seen=()):
     return _judged_from_json(circuit, target, seen + (name,))
 
 
-def test_library_has_nine_specs():
+def test_library_has_thirteen_specs():
     names = sorted(p.name[: -len(".sizing_spec.json")] for p in LIBRARY.glob("*.sizing_spec.json"))
-    assert names == sorted(TABLE)
+    assert names == sorted(ALL_TABLE)
 
 
-@pytest.mark.parametrize("name", sorted(TABLE))
+@pytest.mark.parametrize("name", sorted(ALL_TABLE))
 def test_spec_loads_and_matches_json(name):
     doc = _load(name)
     raw = _spec(name)
@@ -169,7 +181,7 @@ def test_spec_loads_and_matches_json(name):
     assert [e.name for e in doc.element_values] == sorted(k for k in raw["human"]["element_values"] if not k.startswith("_"))
     assert {e.name for e in doc.element_values} == {e["name"] for e in topo.get("passive_elements", []) + topo.get("ideal_sources", [])}
     # 제약 수·판정 수 (JSON 집계 + 5절 표)
-    n_cons, n_judged, n_pending = TABLE[name]
+    n_cons, n_judged, n_pending = ALL_TABLE[name]
     assert len(doc.constraints) == len(raw["human"]["constraints"]) == n_cons
     want_judged = sum(_judged_of(name, c) for c in raw["human"]["constraints"])
     assert want_judged == n_judged
@@ -177,17 +189,17 @@ def test_spec_loads_and_matches_json(name):
     assert len(doc.judged_constraints) == n_judged
 
 
-@pytest.mark.parametrize("name", sorted(TABLE))
+@pytest.mark.parametrize("name", sorted(ALL_TABLE))
 def test_remaining_pending_equals_json_markers(name):
     doc = _load(name)
     want = sorted(_markers(_spec(name)))
     assert sorted(p.decision for p in doc.pending) == want
-    assert len(want) == TABLE[name][2]
+    assert len(want) == ALL_TABLE[name][2]
 
 
 def test_pending_id_totals():
-    json_total = Counter(x for name in TABLE for x in _markers(_spec(name)))
-    doc_total = Counter(p.decision for name in TABLE for p in _load(name).pending)
+    json_total = Counter(x for name in ALL_TABLE for x in _markers(_spec(name)))
+    doc_total = Counter(p.decision for name in ALL_TABLE for p in _load(name).pending)
     assert json_total == doc_total
     assert dict(json_total) == ID_TOTALS
     assert sum(ID_TOTALS.values()) == ID_TOTAL_SUM
@@ -208,7 +220,7 @@ def test_sp10_resolved_pilot_load_caps():
     assert "SP-10" not in {p.decision for n in TABLE for p in _load(n).pending}
 
 
-@pytest.mark.parametrize("name", sorted(TABLE))
+@pytest.mark.parametrize("name", sorted(ALL_TABLE))
 def test_spec_fp_deterministic(name):
     assert _load(name).spec_fp == _load(name).spec_fp
 
@@ -229,7 +241,7 @@ def test_cross_file_reference_value():
 
 
 def test_every_spec_meta_fp_matches_topology():
-    for name in TABLE:
+    for name in ALL_TABLE:
         topo = load_topology(str(LIBRARY / (name + ".topology.json")))
         assert _spec(name)["meta"]["topology_fp"] == topo.connectivity_fp, name
 

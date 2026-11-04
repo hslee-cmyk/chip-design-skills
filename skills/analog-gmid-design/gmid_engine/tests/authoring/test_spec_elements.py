@@ -53,7 +53,7 @@ def test_element_unknown(sc):
 
 def test_device_name_is_not_an_element(sc):
     """MOS 소자는 값 선언 대상(수동·이상원)이 아니다."""
-    sc.human["element_values"]["Q1"] = {"engine": True, "source": SRC}
+    sc.human["element_values"]["Mfx1"] = {"engine": True, "source": SRC}
     sc.reject_only("element_unknown", "elements")
 
 
@@ -156,7 +156,7 @@ def test_feedback_element_unknown(sc):
     sc.reject_only("feedback_element_unknown", "elements")
 
 
-@pytest.mark.parametrize("name", ["Ibs", "Q1"])
+@pytest.mark.parametrize("name", ["Ibs", "Mfx1"])
 def test_feedback_must_be_passive(sc, name):
     sc.human["feedback"]["elements"] = [name]
     sc.reject_only("feedback_element_unknown", "elements")

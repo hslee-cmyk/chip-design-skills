@@ -842,6 +842,26 @@ def library_names(library_dir: Path) -> tuple[list[str], dict[str, list[str]]]:
     return circuits, {k: sorted(v) for k, v in names.items()}
 
 
+def engine_vocabulary() -> frozenset[str]:
+    """엔진이 자기 어휘로 선언한 문자열(O-198 규칙 E 이름 집합에서 뺄 대상) -- 하드코딩 목록이 아니라 선언 자리에서 읽는다.
+
+    세 선언 자리: (1) LUT 축 선언 `gmid_engine.lut.lut_types.AXES`(npz 키 형식 사실) (2) spec 키 상수
+    `gmid_engine.authoring._spec_fields.CIRCUIT_SPECIFIC_KEYS`(옛 회로 전용 spec 키, 거부용 어휘)
+    (3) `gmid_engine._module_map.MODULES` 각 항목의 `plan_ids` 칸(계획·설계 ID 메타데이터).
+    library 이름과 우연히 같은 짧은 어휘(VS·Z·Q4·Q8·Q9)가 규칙 E 를 오탐시키는 것을 정의로 푼다."""
+    from gmid_engine._module_map import MODULES
+    from gmid_engine.authoring._spec_fields import CIRCUIT_SPECIFIC_KEYS
+    from gmid_engine.lut.lut_types import AXES
+    plan_ids = {pid for m in MODULES for pid in m.plan_ids}
+    return frozenset(AXES) | frozenset(CIRCUIT_SPECIFIC_KEYS) | frozenset(plan_ids)
+
+
+def without_engine_vocabulary(names: dict[str, list[str]], vocabulary=None) -> dict[str, list[str]]:
+    """규칙 E 이름 집합에서 엔진 선언 어휘만 뺀다(그 밖 이름은 그대로 -- 진짜 회로 이름 리터럴은 계속 잡힌다)."""
+    vocab = engine_vocabulary() if vocabulary is None else frozenset(vocabulary)
+    return {k: v for k, v in names.items() if k not in vocab}
+
+
 def check_e(root: Path, names: dict[str, list[str]]) -> tuple[int, list[Violation]]:
     root = Path(root)
     targets = engine_files(root)

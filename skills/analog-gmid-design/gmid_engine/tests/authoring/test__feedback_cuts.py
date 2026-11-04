@@ -74,7 +74,7 @@ def test_single_ended_input_weight_one(sc):
     t = sc.read_topo("fx_spec_amp")
     del t["ports"]["n_inp"]
     t["ports"]["n_inn"] = {"direction": "input", "role": "single_ended_input"}
-    # 포트에서 뺀 n_inp 는 Q1 gate 에만 남아 gate 전용 넷이 된다 -> bias_inputs 선언 필요(CONTRACT 9절, Q6).
+    # 포트에서 뺀 n_inp 는 Mfx1 gate 에만 남아 gate 전용 넷이 된다 -> bias_inputs 선언 필요(CONTRACT 9절, Q6).
     t["bias_inputs"] = ["n_inp"]
     sc.write_topo(t)
     sc.resync_fp()
