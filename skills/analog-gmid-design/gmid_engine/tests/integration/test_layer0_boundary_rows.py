@@ -21,6 +21,7 @@ from pathlib import Path
 
 import pytest
 
+import o227_stop_pin      # 정지 사유 고정 헬퍼·표(O-227 임시) -- tests/integration/o227_stop_pin.py
 from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a, run_stage_b
@@ -65,9 +66,21 @@ def _hard_rows(ev):
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
-def test_layer0_baseline_present_for_every_library_circuit(circuit):
+def test_layer0_baseline_present_for_every_library_circuit(circuit, tmp_path):
     """기준선에 없는 회로는 아래 경계 test 의 대상에서 조용히 빠진다 -- 회로별로 명시적으로 실패시킨다(skip 금지, 원칙 10).
-    새 4회로의 기준선 측정은 별도 판정 몫."""
+    새 4회로의 기준선 측정은 별도 판정 몫.
+    [O-227 (2)] 단계 B 가 정지하는 회로(cnr_ota·erfc_ota)는 기준선을 만들지 않고 정지 사유 고정(o227_stop_pin, 임시)으로 xfail 한다 --
+    기준선 항목이 생기면 고정이 실패해 지우게 한다."""
+    if o227_stop_pin.is_stop_pinned(circuit):
+        lut, pdk, _rule = _env()
+        donors, counters = open_run()
+        a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), lut, output_dir=tmp_path,
+                        donors=donors, counters=counters)
+        memo = LutMemo(lut, point=1 << 16, curve=1 << 14, root=1 << 16)
+        b = run_stage_b(a, memo, pdk, output_dir=tmp_path, diagnostic=True, settings=_settings())
+        rep_b = json.loads(Path(b.report_paths[0]).read_text(encoding="utf-8"))
+        o227_stop_pin.pin_stop("test_layer0_baseline_present_for_every_library_circuit[%s]" % circuit, circuit, rep_b,
+                               rep_b["achievability"] is None)
     assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 층 0 경계 test 대상에서 빠짐" % circuit
 
 

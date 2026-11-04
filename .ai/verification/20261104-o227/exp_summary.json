@@ -1,0 +1,128 @@
+{
+ "base": {
+  "args": [
+   "skills/analog-gmid-design/gmid_engine/tests/integration/test_stage_b_library.py",
+   "-k",
+   "cnr_ota or erfc_ota or r2r_opamp"
+  ],
+  "rc": 1,
+  "sec": 29,
+  "min_free_mb": 2808,
+  "failed": [
+   "test_area_lower_bound_from_declared_values[cnr_ota]",
+   "test_area_lower_bound_from_declared_values[erfc_ota]",
+   "test_block_grid_products_and_budget_gate[cnr_ota]",
+   "test_block_grid_products_and_budget_gate[erfc_ota]",
+   "test_block_grid_products_and_budget_gate[r2r_opamp]",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota]",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota]",
+   "test_gain_target_and_verdict[cnr_ota]",
+   "test_gain_target_and_verdict[erfc_ota]"
+  ],
+  "xfailed": [],
+  "passed": 6
+ },
+ "head": {
+  "args": [
+   "skills/analog-gmid-design/gmid_engine/tests/integration/test_stage_b_library.py",
+   "-k",
+   "cnr_ota or erfc_ota or r2r_opamp"
+  ],
+  "rc": 0,
+  "sec": 23,
+  "min_free_mb": 3202,
+  "failed": [],
+  "xfailed": [
+   "test_area_lower_bound_from_declared_values[cnr_ota]",
+   "test_area_lower_bound_from_declared_values[erfc_ota]",
+   "test_block_grid_products_and_budget_gate[cnr_ota]",
+   "test_block_grid_products_and_budget_gate[erfc_ota]",
+   "test_block_grid_products_and_budget_gate[r2r_opamp]",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota]",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota]",
+   "test_gain_target_and_verdict[cnr_ota]",
+   "test_gain_target_and_verdict[erfc_ota]"
+  ],
+  "passed": 6
+ },
+ "reason": {
+  "args": [
+   "skills/analog-gmid-design/gmid_engine/tests/integration/test_stage_b_library.py",
+   "-k",
+   "cnr_ota or erfc_ota or r2r_opamp"
+  ],
+  "rc": 1,
+  "sec": 24,
+  "min_free_mb": 2852,
+  "failed": [
+   "test_area_lower_bound_from_declared_values[cnr_ota]",
+   "test_area_lower_bound_from_declared_values[erfc_ota]",
+   "test_block_grid_products_and_budget_gate[cnr_ota]",
+   "test_block_grid_products_and_budget_gate[erfc_ota]",
+   "test_block_grid_products_and_budget_gate[r2r_opamp]",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota]",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota]",
+   "test_gain_target_and_verdict[cnr_ota]",
+   "test_gain_target_and_verdict[erfc_ota]"
+  ],
+  "xfailed": [],
+  "passed": 6
+ },
+ "unreadable": {
+  "args": [
+   "skills/analog-gmid-design/gmid_engine/tests/integration/test_stage_b_library.py",
+   "-k",
+   "cnr_ota or erfc_ota or r2r_opamp"
+  ],
+  "rc": 1,
+  "sec": 24,
+  "min_free_mb": 2846,
+  "failed": [
+   "test_area_lower_bound_from_declared_values[cnr_ota]",
+   "test_area_lower_bound_from_declared_values[erfc_ota]",
+   "test_block_grid_products_and_budget_gate[cnr_ota]",
+   "test_block_grid_products_and_budget_gate[erfc_ota]",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota]",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota]",
+   "test_gain_target_and_verdict[cnr_ota]",
+   "test_gain_target_and_verdict[erfc_ota]"
+  ],
+  "xfailed": [
+   "test_block_grid_products_and_budget_gate[r2r_opamp]"
+  ],
+  "passed": 6
+ },
+ "notstop": {
+  "args": [
+   "skills/analog-gmid-design/gmid_engine/tests/integration/test_stage_b_library.py",
+   "-k",
+   "common_gate_amplifier or two_stage_ota"
+  ],
+  "rc": 1,
+  "sec": 80,
+  "min_free_mb": 2520,
+  "failed": [
+   "test_area_lower_bound_from_declared_values[common_gate_amplifier]",
+   "test_block_grid_products_and_budget_gate[common_gate_amplifier]",
+   "test_block_grid_products_and_budget_gate[two_stage_ota]",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[common_gate_amplifier]",
+   "test_gain_target_and_verdict[common_gate_amplifier]"
+  ],
+  "xfailed": [],
+  "passed": 12
+ },
+ "g10_ext": {
+  "args": [
+   "skills/analog-gmid-design/gmid_engine/tests/integration/test_g10_no_recompute_9circuits.py",
+   "--run-slow",
+   "-k",
+   "cnr_ota or erfc_ota or r2r_opamp or rfc_ota"
+  ],
+  "rc": 0,
+  "sec": 44,
+  "min_free_mb": 2721,
+  "failed": [],
+  "xfailed": [],
+  "passed": 4
+ }
+}

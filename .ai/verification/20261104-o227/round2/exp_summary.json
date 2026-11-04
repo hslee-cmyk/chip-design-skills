@@ -1,0 +1,130 @@
+{
+ "devices_G": {
+  "rc": 1,
+  "min_free_mb": 4194,
+  "cases": {
+   "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+   "test_no_same_input_recompute_in_one_run[erfc_ota]": "failed"
+  }
+ },
+ "devices_L": {
+  "rc": 1,
+  "min_free_mb": 4185,
+  "cases": {
+   "test_layer0_baseline_present_for_every_library_circuit[cnr_ota]": "failed",
+   "test_layer0_baseline_present_for_every_library_circuit[erfc_ota]": "failed"
+  }
+ },
+ "devices_Z": {
+  "rc": 1,
+  "min_free_mb": 4178,
+  "cases": {
+   "test_baseline_present_for_every_library_circuit[cnr_ota]": "failed",
+   "test_baseline_present_for_every_library_circuit[erfc_ota]": "failed",
+   "test_stage_reports_unchanged_from_base[cnr_ota]": "failed",
+   "test_stage_reports_unchanged_from_base[erfc_ota]": "failed"
+  }
+ },
+ "fake_G": {
+  "rc": 1,
+  "min_free_mb": 4079,
+  "cases": {
+   "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+   "test_no_same_input_recompute_in_one_run[erfc_ota]": "xfailed"
+  }
+ },
+ "fake_L": {
+  "rc": 1,
+  "min_free_mb": 4035,
+  "cases": {
+   "test_layer0_baseline_present_for_every_library_circuit[cnr_ota]": "failed",
+   "test_layer0_baseline_present_for_every_library_circuit[erfc_ota]": "xfailed"
+  }
+ },
+ "fake_S": {
+  "rc": 1,
+  "min_free_mb": 4144,
+  "cases": {
+   "test_count_budget_is_lut_grid_sum_of_used_kinds[cnr_ota]": "passed",
+   "test_count_budget_is_lut_grid_sum_of_used_kinds[erfc_ota]": "passed",
+   "test_block_grid_products_and_budget_gate[cnr_ota]": "failed",
+   "test_block_grid_products_and_budget_gate[erfc_ota]": "xfailed",
+   "test_gain_target_and_verdict[cnr_ota]": "failed",
+   "test_gain_target_and_verdict[erfc_ota]": "xfailed",
+   "test_area_lower_bound_from_declared_values[cnr_ota]": "failed",
+   "test_area_lower_bound_from_declared_values[erfc_ota]": "xfailed",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota]": "failed",
+   "test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota]": "xfailed"
+  }
+ },
+ "fake_Z": {
+  "rc": 1,
+  "min_free_mb": 4171,
+  "cases": {
+   "test_baseline_present_for_every_library_circuit[cnr_ota]": "failed",
+   "test_baseline_present_for_every_library_circuit[erfc_ota]": "xfailed",
+   "test_stage_reports_unchanged_from_base[cnr_ota]": "failed",
+   "test_stage_reports_unchanged_from_base[erfc_ota]": "xfailed"
+  }
+ },
+ "g10_counts_bad": {
+  "rc": 1,
+  "min_free_mb": 3706,
+  "cases": {
+   "test_no_same_input_recompute_in_one_run[erfc_ota]": "xfailed",
+   "test_no_same_input_recompute_in_one_run[r2r_opamp]": "failed",
+   "test_no_same_input_recompute_in_one_run[rfc_ota]": "failed"
+  }
+ },
+ "g10_pin_off": {
+  "rc": 0,
+  "min_free_mb": 3967,
+  "cases": {
+   "test_no_same_input_recompute_in_one_run[cnr_ota]": "passed",
+   "test_no_same_input_recompute_in_one_run[erfc_ota]": "passed"
+  }
+ },
+ "ns_drop_cnr_erfc": {
+  "rc": 0,
+  "min_free_mb": 4168,
+  "cases": {
+   "test_no_same_input_recompute_in_one_run[cnr_ota]": "xfailed",
+   "test_no_same_input_recompute_in_one_run[erfc_ota]": "xfailed"
+  }
+ },
+ "ns_drop_r2r_rfc": {
+  "rc": 1,
+  "min_free_mb": 3929,
+  "cases": {
+   "test_no_same_input_recompute_in_one_run[erfc_ota]": "xfailed",
+   "test_no_same_input_recompute_in_one_run[r2r_opamp]": "failed",
+   "test_no_same_input_recompute_in_one_run[rfc_ota]": "failed"
+  }
+ },
+ "reason_G": {
+  "rc": 1,
+  "min_free_mb": 4205,
+  "cases": {
+   "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+   "test_no_same_input_recompute_in_one_run[erfc_ota]": "failed"
+  }
+ },
+ "reason_L": {
+  "rc": 1,
+  "min_free_mb": 4201,
+  "cases": {
+   "test_layer0_baseline_present_for_every_library_circuit[cnr_ota]": "failed",
+   "test_layer0_baseline_present_for_every_library_circuit[erfc_ota]": "failed"
+  }
+ },
+ "reason_Z": {
+  "rc": 1,
+  "min_free_mb": 4185,
+  "cases": {
+   "test_baseline_present_for_every_library_circuit[cnr_ota]": "failed",
+   "test_baseline_present_for_every_library_circuit[erfc_ota]": "failed",
+   "test_stage_reports_unchanged_from_base[cnr_ota]": "failed",
+   "test_stage_reports_unchanged_from_base[erfc_ota]": "failed"
+  }
+ }
+}

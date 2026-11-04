@@ -45,6 +45,7 @@ from types import SimpleNamespace
 
 import pytest
 
+import o227_stop_pin      # 정지 사유 고정 헬퍼·표(O-227 임시) -- tests/integration/o227_stop_pin.py
 from gmid_engine.core import BoundedLRU, ComputeBlock, fp_of, read_pdk_decl
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a, run_stage_b
@@ -305,8 +306,13 @@ def _sha(value):
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
-def test_baseline_present_for_every_library_circuit(circuit):
-    """library 회로마다 기준선 항목이 있다(O-181: 새 4회로는 기준선이 아직 없어 이 test 가 red -- 측정은 별도 판정 몫)."""
+def test_baseline_present_for_every_library_circuit(env, circuit):
+    """library 회로마다 기준선 항목이 있다(O-181: 새 4회로는 기준선이 아직 없어 이 test 가 red -- 측정은 별도 판정 몫).
+    [O-227 (2)] 단계 B 가 정지하는 회로(cnr_ota·erfc_ota)는 기준선을 만들지 않고 정지 사유 고정(o227_stop_pin, 임시)으로 xfail 한다 --
+    기준선 항목이 생기면 고정이 실패해 지우게 한다."""
+    if o227_stop_pin.is_stop_pinned(circuit):
+        o227_stop_pin.pin_stop("test_baseline_present_for_every_library_circuit[%s]" % circuit, circuit, _run(env, circuit).first.report_b,
+                               _run(env, circuit).first.report_b["achievability"] is None)
     assert _baseline(circuit)["status"]
 
 
@@ -319,6 +325,9 @@ def test_baseline_lookup_fails_closed_for_unknown_circuit():
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
 def test_stage_reports_unchanged_from_base(env, circuit):
+    if o227_stop_pin.is_stop_pinned(circuit):        # [O-227 (2)] 정지 회로: 기준선 없이 정지 사유 고정(임시), 기준선이 생기면 실패
+        rep_b = _run(env, circuit).first.report_b
+        o227_stop_pin.pin_stop("test_stage_reports_unchanged_from_base[%s]" % circuit, circuit, rep_b, rep_b["achievability"] is None)
     want = _baseline(circuit)            # 기준선 없으면 실행 전에 이 회로만 실패
     run = _run(env, circuit)
     assert run.first.status == want["status"]
