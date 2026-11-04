@@ -1159,19 +1159,15 @@ def _neg_solve(x):
 
 
 def _columns_with_declared(ctx, theta):
-    """`dc_columns` 를 커널과 같은 호출로 부른다: 5번째 extras = 선언 영역 소자 tuple(비어 있지 않을 때만, sizing CONTRACT 5.4). conftest `run_blocks` 는
-    이 extras 를 주지 않으므로 triode 선언 toy 는 이 함수로 부른다."""
+    """`dc_columns` 를 커널과 같은 호출로 부른다: 선언 영역(triode)은 extras 가 아니라 ctx.base 의 device.region_decl 필드로 온다(A-88)."""
     from gmid_engine.sizing import dc_columns, dc_currents, dc_lengths
     run = dict(donors=ctx.donors, counters=ctx.counters)
     th = dict(theta)
     snap = dc_currents(ctx.base, tuple(sorted((k, v) for (t, k), v in th.items() if t == "current")), **run)
     snap = dc_lengths(snap, tuple(sorted((k, v) for (t, k), v in th.items() if t == "L")), **run)
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
-    extras = (kfixed(ctx), kres(ctx), ctx.lut)
-    triode = tuple(r.device for r in ctx.inputs.regions if r.region == "triode")      # [EO-1 범위 4] 옛 linear_devices = regions 중 triode 이름
-    if triode:
-        extras += (triode,)
-    return dc_columns(snap, items, *extras, **run)
+    # [EO-1 범위 4, A-88] 다섯째 extras 없음 -- triode 선언은 S0 필드 device.region_decl 로 ctx.base 에 실려 있다(dc_columns 가 READS 로 읽음).
+    return dc_columns(snap, items, kfixed(ctx), kres(ctx), ctx.lut, **run)
 
 
 # [IT-1 A-39 retired_tests] 폐기: test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages -- 사유 = 뿌리 아닌 포트 창 전제가 DEC-106과 충돌.

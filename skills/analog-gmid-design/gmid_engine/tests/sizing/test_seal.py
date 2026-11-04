@@ -143,8 +143,10 @@ def test_no_sealed_snapshot_when_item7_fails(ctx_r4c, y, dev):
     assert st[7] == "fail" and all(st[n] == "pass" for n in st if n != 7)
     assert d["item"] == 7 and rec.devices == (dev,)
     m7 = {x[0]: x[2] for x in d["items"]}[7]
-    assert rec.margin == m7 and m7 > 1.0
-    assert dict(d["item_detail"])["worst"] == dev
+    # [EO-1 범위 4, interface §2 / A-88] 봉인 7·9 의 tol·margin 은 None(판정에 문턱이 없다), detail 키는 slack_v·reverse_vds·indistinct… (worst 없음).
+    # fail 과 devices 단언은 그대로. 여유는 slack_v: VDS < vdsat 인 fail 소자라 음수.
+    assert rec.margin is None and m7 is None
+    assert dict(d["item_detail"])["slack_v"] < 0.0
     with pytest.raises(SealViolationError):
         size_and_seal(ctx_r4c, th)
 

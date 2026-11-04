@@ -68,9 +68,10 @@ def test_region_decl_precedes_the_write_plan(tmp_path_factory, r4_access):
 def test_region_decl_off_device_absent_from_plan_schema_and_basis(tmp_path_factory, r4_access):
     ctx = build_ctx(tmp_path_factory.mktemp("rd5"), circuit_twin(), r4_access, regions=(OFF_MB,))[2]
     base = ctx.base
-    for field in ("dc_L", "dc_coord", "dc_colour"):
-        assert "Mb" not in dict(base.column("device", field)), field
-        assert "Ma" in dict(base.column("device", field)), field
+    # [A-88] 쓰기 계획 필드는 dc_coord(S0). dc_L 은 S2 평가 블록(dc_lengths)의 필드라 S0 base 에 값이 없고, dc_colour 는 graph 대칭 블록이
+    # 모든 원소에 쓰는 필드(Mb 도 든다)라 둘은 '쓰기 계획에 없다'의 증거가 아니어서 뺐다 -- 뜻(off 가 쓰기 계획·θ·전류 기저에 없다)은 아래 단언이 유지.
+    assert "Mb" not in dict(base.column("device", "dc_coord"))
+    assert "Ma" in dict(base.column("device", "dc_coord"))
     writers = dict(base.column("node", "dc_writer"))
     assert all(w.element != "Mb" for w in writers.values())
     assert "Mb" not in repr(kschema(ctx))                           # θ 스키마
@@ -97,7 +98,12 @@ def test_region_decl_pair_splits_orbit_only_when_one_is_off(tmp_path_factory, r4
 def test_region_decl_both_off_stay_in_one_orbit(tmp_path_factory, r4_access):
     """짝 둘 다 같은 선언이면 갈리지 않는다(표시가 같다). 같은 폭·길이일 때."""
     both = (RegionDecl("Ma", "off", None, ("gain_ss_db",), 1e-6, 1e-6), OFF_MB)
-    ctx = build_ctx(tmp_path_factory.mktemp("rd8"), circuit_twin(), r4_access, regions=both)[2]
+    # [A-88] 게이트 넷 g 가 off 소자로만 정해지면 off_only_node 로 정지한다 -- g 에 도통 소자(다이오드 연결 Md, 저항 R2 부하)를 하나 이어 입력을 고친다.
+    doc = topo("rd_twin_anchor",
+               [mos("Ma", "nmos", "out", "g", "gnd"), mos("Mb", "nmos", "out", "g", "gnd"), mos("Md", "nmos", "g", "g", "gnd")],
+               {"g": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
+               passives=[two("R1", "resistor", "vdd", "out"), two("R2", "resistor", "vdd", "g")])
+    ctx = build_ctx(tmp_path_factory.mktemp("rd8"), doc, r4_access, regions=both)[2]
     orb = orbit_of(ctx)
     assert orb["Ma"] == orb["Mb"]
 

@@ -57,7 +57,8 @@ def test_off_op_pmos_vgs_negative(tmp_path):
 
 
 def test_off_op_vgs_exactly_zero_is_not_negative(tmp_path):
-    case = make(tmp_path, [("Moff", "nmos", "gnd", "gnd", "gnd", "gnd")])
+    # [A-88] drain 은 gnd 와 같은 0 V 의 다른 레일 vz (drain = source 같은 넷이면 S1 의 dc_self_loop 정지)
+    case = make(tmp_path, [("Moff", "nmos", "vz", "gnd", "gnd", "gnd")], {"vz": 0.0})
     res = evaluate(case)
     assert res.snapshot.value("device", "Moff", "off_op").vgs == 0.0
 
@@ -65,7 +66,7 @@ def test_off_op_vgs_exactly_zero_is_not_negative(tmp_path):
 # ---- 표 순서 ----------------------------------------------------------------------------------------------------------
 
 def test_off_op_vgs_negative_outranks_bulk_forward(tmp_path):
-    pins = [("Mx", "nmos", "vh", "gnd", "vh", "vdd")]              # vgs = -0.5, vsb = 0.5 - 1.8 = -1.3 (순방향 1.3)
+    pins = [("Mx", "nmos", "gnd", "gnd", "vh", "vdd")]             # vgs = -0.5, vds = -0.5, vsb = 0.5 - 1.8 = -1.3 (순방향 max(1.3, 1.8) = 1.8)
     reason, _ = stop(make(tmp_path, pins, {"vh": 0.5}))
     assert reason == "off_vgs_negative"
 
@@ -99,11 +100,11 @@ def test_off_op_bulk_forward_both_polarities(tmp_path, pin, rails):
     assert lookups(case) == before                                  # 축 안이어도 LUT 조회 전에 걸린다
 
 
-@pytest.mark.parametrize("kind,pin", [("nmos", ("Mx", "nmos", "gnd", "gnd", "gnd", "gnd")),
-                                      ("pmos", ("Mx", "pmos", "vdd", "vdd", "vdd", "vdd"))])
-def test_off_op_bulk_boundary_zero_volt_is_not_a_stop(tmp_path, kind, pin):
+@pytest.mark.parametrize("kind,pin,rails", [("nmos", ("Mx", "nmos", "vz", "gnd", "gnd", "gnd"), {"vz": 0.0}),
+                                            ("pmos", ("Mx", "pmos", "vy", "vs3", "vs3", "vs3"), {"vy": 0.75, "vs3": 0.75})])
+def test_off_op_bulk_boundary_zero_volt_is_not_a_stop(tmp_path, kind, pin, rails):
     """vsb = 0, vds = 0 (vdb = 0): 경계 0 V 정확히 -> 정지 아님. ΔI = IDu(0, 0, 0)·w/l = I0·w/l (VDS = 0 열 켜짐)."""
-    case = make(tmp_path, [pin], name="oo_b_" + kind)
+    case = make(tmp_path, [pin], rails, name="oo_b_" + kind)       # [A-88] drain 은 source 와 같은 전위의 다른 레일(vz = 0 V, vy = vs3 = 0.75 V; 1.8 V 는 최상위 레일 중복이라 쓰지 않는다)
     snap = evaluate(case).snapshot
     o = snap.value("device", "Mx", "off_op")
     assert (o.vgs, o.vds, o.vsb) == (0.0, 0.0, 0.0)
@@ -125,7 +126,7 @@ def test_off_op_outside_lut_vds_negative_with_nonnegative_vdb(tmp_path, pin, rai
 
 def test_off_op_outside_lut_axis_end(tmp_path):
     """vgs 가 VGS 축 끝(2.0) 밖: 게이트 레일 2.5 V, source gnd -> vgs = 2.5 (순방향 접합 아님)."""
-    case = make(tmp_path, [("Mx", "nmos", "gnd", "vg", "gnd", "gnd")], {"vg": 2.5})
+    case = make(tmp_path, [("Mx", "nmos", "vz", "vg", "gnd", "gnd")], {"vg": 2.5, "vz": 0.0})
     reason, devices = stop(case)
     assert reason == "off_outside_lut" and devices == ("Mx",)
 

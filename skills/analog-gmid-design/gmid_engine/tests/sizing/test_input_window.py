@@ -382,7 +382,12 @@ def test_off_mid_window_maps_y_and_ends_saturated(pend, off_mid_windows, key, y)
     oracle = min(_oracle_slacks(SimpleNamespace(snapshot=snap)))
     if sealed:
         assert seal_item(snap, 7).status == "pass"
-        assert oracle >= -1e-12, oracle
+        if end:
+            # [EO-1 범위 4, A-88] 새 판정(VDS >= VDSAT, 문턱 없음)에서 창 끝점(판정 여유 0)은 봉인된다. 독립 oracle 여유는 LUT 보간 대 독립 해석의 차
+            # (tol_V 규모)라 O-103 꼴 |여유| <= tol_v 로 본다(엔진 slack_v 도 같은 허용; 허용을 넓히지 않는다).
+            assert abs(oracle) <= tv and abs(dict(seal_item(snap, 7).detail)["slack_v"]) <= tv, (oracle, tv)
+        else:
+            assert oracle >= -1e-12, oracle
     else:
         assert abs(slack_v) <= tv and abs(oracle) <= tv, (slack_v, oracle, tv)
 
@@ -397,7 +402,8 @@ def test_mid_window_ends_have_nonnegative_saturation_slack(pend, y):
     tv = _tol_v(SimpleNamespace(snapshot=snap)) if sealed else _tol_of_window(snap)
     if sealed:
         assert seal_item(snap, 7).status == "pass"
-        assert min(sa, sb) >= -1e-12
+        # [EO-1 범위 4, A-88] 창 끝은 새 판정에서 봉인되고, 독립 oracle 여유는 O-103 꼴 |여유| <= tol_v (위 test 와 같은 허용).
+        assert abs(min(sa, sb)) <= tv and abs(dict(seal_item(snap, 7).detail)["slack_v"]) <= tv, (sa, sb, tv)
     else:
         assert abs(slack_v) <= tv and abs(min(sa, sb)) <= tv, (slack_v, sa, sb, tv)
     lo_e, hi_e = Follower(0.9, 0.3).window(0.9)

@@ -146,22 +146,23 @@ READS = {
     "dc_rails": {("node", "is_rail")},
     # [U17 ①-d] 40 §6-3 전류 기저 열 순서 규칙: current_basis 는 graph/s1 orbits 를 읽는다
     "dc_current_basis": {("device", "dc_nets"), ("device", "element_class"), ("device", "kind"), ("device", "pins"),
-                         ("device", "dc_colour"), ("node", "is_rail"), ("graph", "dc_pruned"), ("graph", "orbits")},
+                         ("device", "dc_colour"), ("node", "is_rail"), ("graph", "dc_pruned"), ("graph", "orbits"),
+                         ("device", "region_decl")},  # [EO-1 범위 4, A-88] off·triode 목록은 extras 가 아니라 S0 필드 device.region_decl READS
     "dc_writer_plan": {("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
                        ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
                        ("node", "dc_colour"), ("node", "port_role"), ("graph", "gvgs_summary"),
-                       ("device", "bulk")},      # [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
+                       ("device", "bulk"), ("device", "region_decl")},      # [EO-1 범위 4, A-88] region_decl READS; [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
     "dc_scc_order": {("node", "dc_writer"), ("device", "pins"), ("device", "bulk"), ("device", "element_class"),
                      ("graph", "columns"), ("graph", "branches")},
     "dc_currents": {("graph", "dc_current_basis")},
-    "dc_lengths": {("device", "element_class")},
+    "dc_lengths": {("device", "element_class"), ("device", "region_decl")},  # [EO-1 범위 4, A-88] off·triode 목록은 extras 가 아니라 S0 필드 device.region_decl READS
     "dc_columns": {("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"),
                    ("device", "dc_drop_current"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"),
                    ("device", "bulk"), ("device", "element_class"), ("device", "dc_coord"),
                    ("graph", "dc_scc_order"),
                    ("device", "dc_self_referential"),   # [U17 ①-b] §2.4.8 1변수 writer 집합은 S0 필드 -- 기둥 블록이 읽는다
                    ("device", "dc_colour"), ("node", "dc_colour"),
-                   ("node", "port_direction")},   # [IT-1 K-3 ext, O-84] 41:672 -- 입력 포트 판정은 S1 포트 방향 READS     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
+                   ("node", "port_direction"), ("device", "region_decl")},   # [EO-1 범위 4, A-88] region_decl READS; [IT-1 K-3 ext, O-84] 41:672 -- 입력 포트 판정은 S1 포트 방향 READS     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
     "dc_widths": {("node", "dc_v"), ("node", "dc_rail_v"), ("device", "dc_current"), ("device", "dc_L"),
                   ("device", "dc_ln_idu"), ("device", "pins"), ("device", "kind"), ("device", "bulk")},
 }
