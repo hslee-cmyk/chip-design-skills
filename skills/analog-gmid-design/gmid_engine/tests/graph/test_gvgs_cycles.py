@@ -161,6 +161,7 @@ def test_fixed_vgs(gh, tmp_path):
     raw.pop("source_manifest", None)    # 변형 문서: 소자 수가 출처 그림과 달라졌다 -- 출처 개수 선언을 뗀다(authoring 10절, 키 없으면 검사 안 함)
     s = _summary(gh, _build(gh.load_raw(tmp_path, raw), {"vdd": 1.8, "gnd": 0.0}))
     assert tuple(sorted(s.fixed_vgs)) == o.fixed_vgs == ("Mfix",)
+    assert tuple(s.gate_source_same) == o.gate_source_same == ()      # [IT-1 T-5a] gate = vdd, source = gnd: 넷이 달라 gate_source_same 에 들지 않는다
     assert s.cyclomatic == o.cyclomatic
 
 
