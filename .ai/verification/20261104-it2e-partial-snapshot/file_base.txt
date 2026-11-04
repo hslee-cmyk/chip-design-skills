@@ -1,0 +1,11 @@
+F.                                                                       [100%]
+================================== FAILURES ===================================
+________ test_it2e_s3_failure_line_fp_parent_independent[dc_seal_kcl] _________
+gmid_engine\tests\search\test_it2e_partial_snapshot.py:79: in test_it2e_s3_failure_line_fp_parent_independent
+    assert target not in ra.partial.block_versions and target not in rb.partial.block_versions
+E   AssertionError: assert ('dc_seal_kcl' not in mappingproxy({'s1_structure': '07bfbf017abf1893e3567ec62b06742ba6c6f1399f5e3da97eda9475b1ad9b2c', 's1_bulk': '05498943...2cdf31f08bd481fd38c2e66af6', 'dc_seal_conduction': 'e031aa34da6f41230c108dd51f5d4e6bc357bd02924beb6d3383c5374f3017d0'}))
+E    +  where mappingproxy({'s1_structure': '07bfbf017abf1893e3567ec62b06742ba6c6f1399f5e3da97eda9475b1ad9b2c', 's1_bulk': '05498943...2cdf31f08bd481fd38c2e66af6', 'dc_seal_conduction': 'e031aa34da6f41230c108dd51f5d4e6bc357bd02924beb6d3383c5374f3017d0'}) = GraphSnapshot(writers=WriterTable(entries=((('device', 'bulk'), 's1_bulk'), (('device', 'bulk_declared'), 's1_structur...8dd51f5d4e6bc357bd02924beb6d3383c5374f3017d0'}), fp='c7438362e946ffa65de0b5ee2fc1ad488240732df51f2c21233238164e80af59').block_versions
+E    +    where GraphSnapshot(writers=WriterTable(entries=((('device', 'bulk'), 's1_bulk'), (('device', 'bulk_declared'), 's1_structur...8dd51f5d4e6bc357bd02924beb6d3383c5374f3017d0'}), fp='c7438362e946ffa65de0b5ee2fc1ad488240732df51f2c21233238164e80af59') = EvalResult(key=EvalKey(context_fp='2aa2e5ab17e9bc3e1751dde267093136b9ba9d1e8aee116231f0c5359e298d8a', schema_fp='96bcd...dd51f5d4e6bc357bd02924beb6d3383c5374f3017d0'}), fp='c7438362e946ffa65de0b5ee2fc1ad488240732df51f2c21233238164e80af59')).partial
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/search/test_it2e_partial_snapshot.py::test_it2e_s3_failure_line_fp_parent_independent[dc_seal_kcl]
+1 failed, 1 passed in 1.68s

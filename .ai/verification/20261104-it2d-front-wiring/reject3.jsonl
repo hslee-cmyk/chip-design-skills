@@ -1,0 +1,13 @@
+{"case": "unavailable_unknown_domain_ls", "ok": true, "exc": "ValueError"}
+{"case": "unavailable_unknown_domain_geom", "ok": true, "exc": "ValueError"}
+{"case": "unavailable_dc_resistor_missing", "ok": true}
+{"case": "unavailable_dc_cap_only", "ok": true}
+{"case": "unavailable_ss_cap_only", "ok": true}
+{"case": "unavailable_ss_none", "ok": true}
+{"case": "icm_input_dc_vocab", "ok": true, "exc": "ValueError"}
+{"case": "icm_config_none_empty_undefined", "ok": true, "exc": "ValueError"}
+{"case": "icm_no_ports", "ok": true, "exc": "ValueError"}
+{"case": "icm_vcm_none_with_measured_ports", "ok": true, "exc": "ValueError"}
+{"case": "icm_unmeasured_numeric", "ok": true}
+{"case": "icm_seal_outside_window_negative_margin", "ok": true, "margin": -0.09999999999999998}
+{"case": "writers_in_scope_none", "ok": true, "exc": "TypeError"}

@@ -1,0 +1,101 @@
+{
+ "verdict": "PASS (Major 0, M-1 확인 뒤. minor 는 LA-1 재점검 입력)",
+ "major": [],
+ "measures": {
+  "A7-1": [
+   "PASS",
+   "T7 + OP-3 회귀 219 passed. base 코드 + 새 test red 10건"
+  ],
+  "A7-2": [
+   "PASS",
+   "R1~R10 10/10 판정자 파일 LF ⊆ 선언 7개, 기록값 직접 일치 0(정의가 달라 비교 안 함이 맞음). 선언 compat default, 글 빈 값 sha e3b0c442 자기 일치"
+  ],
+  "A7-3": [
+   "PASS",
+   "707cade3 뒤 test_spiceinit_isolation 3 passed(복제본). 판정자 변형은 1차 그대로"
+  ],
+  "A7-4": [
+   "PASS",
+   "R1~R5 7 bias 1회: rc 7/7, verdict 7/7, blockers 같음, pm_deg_raw 같음. sim 칸 차 6칸(끝자리, OP-3 때와 같은 칸), 데이터 파일 30개 기준선과 바이트 동일, 로그 8/8 default 문장, .spiceinit 8/8 빈 파일, compat_sha256 전부 e3b0c442. OP-3 판정 실행과 sim 7/7 동일, bench.cir 8/8 동일. 제외 칸 추가 0"
+  ],
+  "A7-5": [
+   "PASS",
+   "bin_rule import 어댑터·subprocess·엔진 0, 키 리터럴 빈 값 0, compat_sha256 None 0, 엔진·assets diff 0"
+  ],
+  "A7-6": [
+   "PASS",
+   "tests/structure 171 passed 1 deselected, g8 ratchet stale 0. X-13·test_verified_by 48 passed"
+  ],
+  "A7-7": [
+   "미측정",
+   "2회로 연기 생략(엔진 diff 0, 브리핑 허용). 이름 불변성 test_canonical_order 도 생략. 통과로 세지 않음"
+  ],
+  "A7-8": [
+   "기록",
+   "엔진 .py 시뮬레이터 이름: _helpers_bins 1, junction_cap 6, lut_parameters 1, noise_devices 1, verified_by 1(test 제외, B-5)"
+  ],
+  "넘김": "13회로 비트 동일(B-4), test_independent(이번 미측정), 시스템 초기화 스크립트로 모드 바꾸기 직접 측정. 통과로 세지 않음"
+ },
+ "reject_paths_real_oracle_run": {
+  "mode_unknown": "bin_rule_compat_mismatch 8b",
+  "mode_default_text_hsa": "bin_rule_compat_mismatch 8b",
+  "sha_self": "bin_rule_compat_mismatch 8b",
+  "simulator_45": "bin_rule_undeclared why simulator",
+  "model_set": "bin_rule_undeclared why model_set",
+  "model_empty": "decl_invalid",
+  "decl_file_{}": "decl_invalid",
+  "decl_not_json": "decl_invalid",
+  "no_field": "no_decl_ref",
+  "field_{}": "descriptor_schema_invalid stage 2",
+  "field_sha": "pdk_descriptor_stale ref bin_rule_decl stage 2",
+  "control": "rc 0",
+  "hsa_consistent": "rc 0 (선언대로 hsa)",
+  "all_rejects_rc": 2,
+  "sim_runs_in_rejects": 0
+ },
+ "physics": {
+  "isolation": "막는다(A7-3 변형). 뮤턴트(.spiceinit 쓰기 삭제) + 독 HOME 으로 실제 oracle_run R1 -> bin_rule_compat_mismatch declared default actual hsa: 실행 뒤 대조가 실제 경로에서 닿는다",
+  "mode_table": "측정값이다: 어댑터 run 으로 빈 글 -> 'Note: No compatibility mode selected!', 'set ngbehavior=hsa' -> 'Note: Compatibility modes selected: hs a'. 표와 같다",
+  "cache_hit": "대조한다: 미스·적중 통과, 슬롯 로그를 hs a 로 바꾸면 적중에서 bin_rule_compat_mismatch. 모드만 다른 실행은 슬롯 2개(키 다름)",
+  "values": "OP-3 와 같다(A7-4)",
+  "definitions": "모드·묶음 LF·판 정의 D §16·§8.1 과 코드 일치"
+ },
+ "dispute": "2건 처리 맞음: test_result_contract:83 = spec 소비자 표대로, T7-10e 는 기대 코드 유지하고 입력을 8단계 규칙 (i)까지 가게 고침. 기준 약화 아님",
+ "graph_single_source": {
+  "new_graph_fields": 0,
+  "engine_consumer_zero": 0,
+  "canonical_bypass_suspects": 0,
+  "kvl_kcl_relation_skipped": 0,
+  "out_of_graph_storage": 0,
+  "note": "엔진 diff 0. 선언 정본 파일 하나, 기술자는 경로·sha 만. compat_modes 는 대조 상대이고 어긋나면 거부. Descriptor.bin_rule_doc 은 읽은 내용이고 값 판정 사본 아님"
+ },
+ "doc_v0631_v049": "OP-7b 쪽: 계획 bin 선언 참조 칸, N3.4 (i), D §7.2 8b, §8.1 끝, §10.2, §16 B-1·B-2·B-3 이 코드와 일치. OP-5 쪽 문언은 그 card 판정 때. 어긋남: minor m1",
+ "minor": [
+  "m1 순서: D §7.2 = 8 -> 8b -> 9 인데 oracle_run 은 ir_name_collision(9)을 8b 앞에서 낸다. 두 결함 동시 입력에서 코드가 다르다",
+  "m2 실행 뒤 거부는 reject 외에 벤치 폴더(bench.cir, bench.log, bench.ac.txt)가 남아 D §11.7 'reject 하나만'과 다르다. 결과 sim·compare 는 없다",
+  "m3 bin_rule._sha_text 가 hashlib 직접(raw_sha256 있음), 해시 정의 한 곳 어긋남",
+  "m4 calibration.json compat_modes 출처가 저장소 밖 wt/_drafts/evidence 파일을 가리킨다. 이번 판정 a7.json 이 같은 문장을 다시 쟀다",
+  "m5 interface 에 '## 신규 시그니처' 절이 없음(op23 m10 과 같음)",
+  "m6 T7-9c 는 선언 글·모드 어긋남을 CompatDecl 직접 생성으로 만든다(H-16, interface '어댑터 표 조작'과 방법 다름, 뜻 같음)",
+  "m7 T7-9 bench 가 MOS·PDK 를 쓰게 되어 interface '어댑터 격리' 문언 'PDK 없는 저항 넷리스트'와 다르다. 어댑터 present 가 MOS id 만 보는 것은 그대로다(A-86)"
+ ],
+ "round_1": {
+  "verdict": "FAIL (Major 1)",
+  "major": [
+   {
+    "id": "M-1",
+    "what": "card test test_spiceinit_isolation.py 2/3 실패(T7-9a, T7-9b). 코드의 격리 동작 자체는 판정자 측정으로 맞다",
+    "cause": [
+     "(1) test log_of 가 status.log_path='bench.log' 를 cwd 기준으로 연다. FileNotFoundError. log_path 는 실행 폴더 기준 상대 경로이고(oracle_run.py:314-315, 출력 폴더 경로를 결과에 넣지 않음, D §6.1 출력 전용) test 쪽 결함이다(test 해석 H-15)",
+     "(2) log_of 만 고친 사본에서 T7-9b·9c 통과, T7-9a 는 assert status.error is None 에서 실패: sim_failed_other. 어댑터 __init__.py 의 present 가 MOS id 만 보므로 MOS 없는 저항 넷리스트는 V(a)=1 이 있어도 결과 없음으로 분류한다. interface T7-9a '결과 있음'과 어긋남. oracle_run 경로는 devices minItems 1 이고 R1~R5 status.error None 이라 닿지 않는다. test bench 에 MOS 를 넣거나 present 정의를 고치는 결정이 필요"
+    ],
+    "repro": "pytest tests/adapters/ngspice/test_spiceinit_isolation.py; 사본 tools/patch_iso_test.py"
+   }
+  ]
+ },
+ "rejudge": {
+  "test_commit": "707cade374dd09276c1e59db067e09f794ead6c8",
+  "scope": "test_spiceinit_isolation.py 와 그 커밋 diff 만. 다른 측정은 1차 재사용",
+  "diff_check": "단언 약화 없음: status.error is None, .spiceinit 바이트, 로그 모드 단언 유지. V(a)=1 은 V(vdd)=FB vdd 로 같은 KVL 단언, 'M1' in devices 추가. log_of 만 실행 폴더 기준으로 고침. T7-9c 단언 변경 0. 코드 변경 0"
+ }
+}

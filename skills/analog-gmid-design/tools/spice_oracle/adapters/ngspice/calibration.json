@@ -20,5 +20,11 @@
   "power": {"Mos.L": 1, "Mos.finger_w": 1, "Mos.diffusion.ad": 2, "Mos.diffusion.as_": 2, "Mos.diffusion.pd": 1, "Mos.diffusion.ps": 1,
             "Mos.lod.sa": 1, "Mos.lod.sb": 1, "Mos.lod.sd": 1},
   "source": "ngspice-46 사용자 매뉴얼 p.320 .options SCALE: MOSFET 의 W L AS AD PS PD SA SB SC SD 에 곱해지는 전역 배율(면적 AS·AD 는 배율의 제곱, 길이는 1 제곱). IR 에 있는 칸만 적었다. 이상 R·C·L 값과 전원 값은 지시의 영향을 받지 않는다"
+ },
+ "compat_modes": {
+  "default": {"spiceinit_text": "", "log_line": "^\\s*Note: No compatibility mode selected!\\s*$",
+              "source": "ngspice-46 실측(2026-11-04, F-22): 설정 글이 빈 실행에서 로그가 `Note: No compatibility mode selected!` 를 찍는다(wt/_drafts/evidence/2026-11-04/op75/m1.jsonl `none`, `cwd_empty_home_hsa`)"},
+  "hsa": {"spiceinit_text": "set ngbehavior=hsa\n", "log_line": "^\\s*Note: Compatibility modes selected: hs a\\s*$",
+          "source": "ngspice-46 실측(2026-11-04, F-22): 설정 글 `set ngbehavior=hsa` 에서 로그가 `Note: Compatibility modes selected: hs a` 를 찍는다(같은 파일 `cwd_hsa_only`)"}
  }
 }

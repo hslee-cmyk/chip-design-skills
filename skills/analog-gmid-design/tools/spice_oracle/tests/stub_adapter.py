@@ -38,6 +38,7 @@ class StubAdapter:
                  case_insensitive=False):
         self.devices = devices or {}
         self.calls = []                 # run 호출 기록(시뮬레이터 호출 0 단언용)
+        self.compats = []               # run 이 받은 compat 인자 기록(card 20261104-op7b T7-10c)
         self.force_timeout = False
         self._geometry_application = list(geometry_application)
         self._calibration_extra = dict(calibration_extra or {})
@@ -49,7 +50,9 @@ class StubAdapter:
         caps = {k: False for k in CAP_KEYS}
         caps.update({"op": True, "ac": True, "case_insensitive_names": self._case_insensitive,
                      "mc_enable_kinds": {}, "mc_distributions": [],
-                     "geometry_unit_application": list(self._geometry_application), "model_families": ["toy"]})
+                     "geometry_unit_application": list(self._geometry_application), "model_families": ["toy"],
+                     # card 20261104-op7b interface §2: 기본 호환 모드 하나(interface 의 toy 표 값)
+                     "compat_modes": {"m": {"spiceinit_text": "T", "log_line": "^MODE m$"}}})
         caps.update(self._caps_extra)
         return caps
 
@@ -79,12 +82,13 @@ class StubAdapter:
         from core import results
         from core.cache import cache_key
         self.calls.append((circuit, requests))
+        self.compats.append(compat)
         fp = self.fingerprint()
         bundle = self.model_bundle(circuit, descriptor, requests[0].cond)
         state, by_request, status_kw = None, None, {}
         if cache_dir is not None:
             key = cache_key(fp["code_sha256"], repr((circuit, requests)), sorted(v["lf"] for v in bundle.values()),
-                            ("-b",), "")
+                            ("-b",), "" if compat is None else _sha(compat.spiceinit_text.encode("utf-8")))
             slot = Path(cache_dir) / f"{key}.pkl"
             if slot.exists() and not self.force_timeout:
                 by_request = pickle.loads(slot.read_bytes())

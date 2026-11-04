@@ -80,7 +80,9 @@ def test_t3_8d_compare_json_new_fields_and_deleted_u6(w):
     assert "u6" not in cj["summary"]                                      # X-R5 사본 삭제
     fp = cj["fingerprints"]
     assert set(fp) == {"adapter_fp", "descriptor_fp", "capability_record_id", "compat_sha256"}
-    assert fp["capability_record_id"] is None and fp["compat_sha256"] is None
+    # spec C-6: compat_sha256 = 선언 글 sha. oracle (d): World toy 선언 글 "T" 의 sha256 을 hashlib 로 직접 손 유도(null 인 결과는 없다)
+    assert fp["capability_record_id"] is None
+    assert fp["compat_sha256"] == hashlib.sha256(b"T").hexdigest()
     assert isinstance(cj["machine_dependent_refs"], list)                 # 빈 목록이어도 칸은 있다
     assert cj["summary"]["conduction_definition"] == "threshold_eps1"
     inp_file = w.tmp / "inputs" / "out.input.json"

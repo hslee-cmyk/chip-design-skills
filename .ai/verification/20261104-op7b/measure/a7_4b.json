@@ -1,0 +1,91 @@
+{
+ "logs": {
+  "R1/o/tfb_cs_rfeedback.free/bench.log": {
+   "default_line": true,
+   "spiceinit_bytes": 0
+  },
+  "R2/o/tfb_cs_rfeedback.free.loop/bench.log": {
+   "default_line": true,
+   "spiceinit_bytes": 0
+  },
+  "R2/o/tfb_cs_rfeedback.free/bench.log": {
+   "default_line": true,
+   "spiceinit_bytes": 0
+  },
+  "R3/o/tcs_nmos_rload.forced/bench.log": {
+   "default_line": true,
+   "spiceinit_bytes": 0
+  },
+  "R3/o/tcs_nmos_rload.free/bench.log": {
+   "default_line": true,
+   "spiceinit_bytes": 0
+  },
+  "R4/o/tsf_rout.forced/bench.log": {
+   "default_line": true,
+   "spiceinit_bytes": 0
+  },
+  "R4/o/tsf_rout.free/bench.log": {
+   "default_line": true,
+   "spiceinit_bytes": 0
+  },
+  "R5/o/tcs_nmos_rload.iso/bench.log": {
+   "default_line": true,
+   "spiceinit_bytes": 0
+  }
+ },
+ "compat_sha": {
+  "tfb_cs_rfeedback.free.compare.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tcs_nmos_rload.forced.compare.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tcs_nmos_rload.free.compare.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tsf_rout.forced.compare.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tsf_rout.free.compare.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tcs_nmos_rload.iso.compare.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+ },
+ "sim_vs_op3": {
+  "tfb_cs_rfeedback.free.sim.json": {
+   "equal": true,
+   "status_error": null,
+   "loop_error": null
+  },
+  "tcs_nmos_rload.forced.sim.json": {
+   "equal": true,
+   "status_error": null,
+   "loop_error": null
+  },
+  "tcs_nmos_rload.free.sim.json": {
+   "equal": true,
+   "status_error": null,
+   "loop_error": null
+  },
+  "tsf_rout.forced.sim.json": {
+   "equal": true,
+   "status_error": null,
+   "loop_error": null
+  },
+  "tsf_rout.free.sim.json": {
+   "equal": true,
+   "status_error": null,
+   "loop_error": null
+  },
+  "tcs_nmos_rload.iso.sim.json": {
+   "equal": true,
+   "status_error": null,
+   "loop_error": null
+  }
+ },
+ "cir_vs_op3": {
+  "R1/o/tfb_cs_rfeedback.free/bench.log": true,
+  "R2/o/tfb_cs_rfeedback.free.loop/bench.log": true,
+  "R2/o/tfb_cs_rfeedback.free/bench.log": true,
+  "R3/o/tcs_nmos_rload.forced/bench.log": true,
+  "R3/o/tcs_nmos_rload.free/bench.log": true,
+  "R4/o/tsf_rout.forced/bench.log": true,
+  "R4/o/tsf_rout.free/bench.log": true,
+  "R5/o/tcs_nmos_rload.iso/bench.log": true
+ },
+ "data_vs_baseline": {
+  "same": 30,
+  "diff": [],
+  "missing": []
+ }
+}
