@@ -1,0 +1,163 @@
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_first_evaluation_dc_gm_is_own_operating_point", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_tol_i_parent_independent", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_seal_3_violation_margin_parent_independent[none]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_seal_3_violation_margin_parent_independent[s2p]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_seal_3_violation_margin_parent_independent[stale]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_passive_only_child_of_first_evaluation_reuses", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_passive_only_child_of_s2p_evaluation_reuses", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_passive_only_chain_bit_identical_dc_gm", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_writer_fixes_w_and_rewrites_coordinate", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_diode_writer", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_dependent_keeps_coordinate", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_forms_equivalent", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_empty_w_request_same_as_none", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad4]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad5]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad6]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_duplicate_name_rejected[dup0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_duplicate_name_rejected[dup1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_duplicate_name_rejected[dup2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_ic10_w_request_change_not_served_from_parent", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_determinism_hashseed_u4_paths", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2a_child_drops_fields_of_writer_outside_kernel", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2a_child_keeps_every_base_writer_field", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2a_parentless_evaluation_passes_seal_4", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2a_parent_with_other_base_writer_version_rejected", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_kernel_block_failure_with_parent_partial_rule[dc_currents]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_columns', 'dc_currents', 'dc_lengths', 'dc_seal_bulk_reverse', 'dc_seal_conduction', 'dc_seal_kcl', ...]\nassert {'dc_columns'...c_order', ...} == {'dc_current_...context', ...}\n  \n  Extra items i"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_kernel_block_failure_with_parent_partial_rule[dc_lengths]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_columns', 'dc_lengths', 'dc_seal_bulk_reverse', 'dc_seal_conduction', 'dc_seal_kcl', 'dc_seal_kvl_branch', ...]\nassert {'dc_columns'...c_order', ...} == {'dc_current_...er_plan', ...}\n  \n  Extra "}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_kernel_block_failure_with_parent_partial_rule[dc_columns]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_columns', 'dc_seal_bulk_reverse', 'dc_seal_conduction', 'dc_seal_kcl', 'dc_seal_kvl_branch', 'dc_seal_node_conflict', ...]\nassert {'dc_columns'...c_order', ...} == {'dc_current_..._schema', ...}\n"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_kernel_block_failure_with_parent_partial_rule[dc_widths]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_seal_bulk_reverse', 'dc_seal_conduction', 'dc_seal_kcl', 'dc_seal_kvl_branch', 'dc_seal_node_conflict', 'dc_seal_saturation', ...]\nassert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_kernel_block_failure_with_parent_partial_rule[dc_tolerances]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_seal_bulk_reverse', 'dc_seal_conduction', 'dc_seal_kcl', 'dc_seal_kvl_branch', 'dc_seal_node_conflict', 'dc_seal_saturation', ...]\nassert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_currents]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_lengths]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_columns]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_widths]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_tolerances]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_seal_node_conflict]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_seal_vgs_match]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_seal_kcl]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_seal_bulk_reverse]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_seal_saturation]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_seal_kvl_branch]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_seal_conduction]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_failure_attach_adds_no_block_calls[dc_seal_report]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_pass_and_independent_version_formula", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_input_changed_after_compute_is_violation", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_output_written_with_other_version_is_violation", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_empty_calls_pass", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_it2a_seal_4_passes_when_fields_are_base_or_call_writers", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_it2a_seal_4_rejects_field_of_writer_outside_base_and_calls", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_it2a_seal_4_rejects_base_writer_that_is_also_a_call", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_it2a_seal_4_existing_checks_still_reject_with_base_argument", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_writers_in_scope_value", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'writers_in_scope' from 'gmid_engine.sizing.seal_versions' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\r2\\skills\\analog-gmid-design\\gmid_engine\\sizing\\seal_versions.py)"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_writers_in_scope_overlap_and_iterable", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'writers_in_scope' from 'gmid_engine.sizing.seal_versions' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\r2\\skills\\analog-gmid-design\\gmid_engine\\sizing\\seal_versions.py)"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_writers_in_scope_rejects_none_base", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'writers_in_scope' from 'gmid_engine.sizing.seal_versions' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\r2\\skills\\analog-gmid-design\\gmid_engine\\sizing\\seal_versions.py)"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_coverage_violation_still_fails", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_union_definition_site_is_single", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "[]\nassert [] == [('seal_versi...rs_in_scope')]\n  \n  Right contains one more item: ('seal_versions.py', 'writers_in_scope')\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_writers_in_scope_call_sites", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "set()\nassert set() == {'kernel_run'...eal_versions'}\n  \n  Extra items in the right set:\n  'seal_versions'\n  'seal'\n  'kernel_run'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_returns_evaluation", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_theta_object_equivalent", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_type_error_ctx", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_bad_theta_is_value_error", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_parent_not_evaluation", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_parent_from_other_plan", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_same_theta_with_parent_zero_compute", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_current_perturbation_skips_columns", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_coordinate_perturbation_recomputes_columns_only_downstream[key0--14.376036022934503]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_coordinate_perturbation_recomputes_columns_only_downstream[key1--13.181583203494448]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_coordinate_perturbation_recomputes_columns_only_downstream[key2-0.55]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_resistance_perturbation", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_current_through_resistor_recomputes_columns", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_components_present", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_only_change_zero_dc_compute[key0-1.1e-12]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_only_change_zero_dc_compute[key1-11000.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_only_change_zero_dc_compute[both-None]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_not_in_dc_values", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_domain[0.0-key0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_domain[0.0-key1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_domain[-1e-12-key0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_domain[-1e-12-key1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_key_required", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_parent_chain_then_back_reuses_nothing_wrongly", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_resistor_cycle", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_zero_current_mos", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_declared_kcl", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_mos_current_nonpositive", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_empty_window", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_lut[target-lut_target_out_of_range]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_lut[anchor-lut_l_not_anchor]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_lut[axis-lut_axis_out_of_range]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_seal_violation", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_diode_mirror_full_evaluation", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_no_root_in_window", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_candidate_failure_classes_exact", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_determinism_hashseed_and_netlist_order", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_member_l_is_owner_theta_l[1e-06]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_member_l_is_owner_theta_l[2e-06]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_owner_l_perturbation_moves_member", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_ic1_vgs_consistency_all_devices", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_ic2_order_shuffle_invariance", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_node_conflict]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_seal_bulk_reverse', 'dc_seal_conduction', 'dc_seal_kcl', 'dc_seal_kvl_branch', 'dc_seal_node_conflict', 'dc_seal_saturation', ...]\nassert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_vgs_match]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_seal_bulk_reverse', 'dc_seal_conduction', 'dc_seal_kcl', 'dc_seal_kvl_branch', 'dc_seal_saturation', 'dc_seal_vgs_match']\nassert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n "}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_kcl]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_seal_bulk_reverse', 'dc_seal_conduction', 'dc_seal_kcl', 'dc_seal_kvl_branch', 'dc_seal_saturation']\nassert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in th"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_bulk_reverse]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_seal_bulk_reverse', 'dc_seal_conduction', 'dc_seal_kvl_branch', 'dc_seal_saturation']\nassert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  '"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_saturation]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_seal_conduction', 'dc_seal_kvl_branch', 'dc_seal_saturation']\nassert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_seal_kvl_branch'\n  'd"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_kvl_branch]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_seal_conduction', 'dc_seal_kvl_branch']\nassert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_seal_kvl_branch'\n  'dc_seal_conduction'\n  U"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_conduction]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "['dc_seal_conduction']\nassert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_seal_conduction'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_report]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_currents]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_current_...context', ...}\n  \n  Extra items in the left set:\n  'dc_tolerances'\n  'dc_widths'\n  'dc_seal_kcl'\n  'dc_seal_node_conflict'\n  'dc_seal_vgs_match"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_lengths]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_current_...er_plan', ...}\n  \n  Extra items in the left set:\n  'dc_tolerances'\n  'dc_widths'\n  'dc_seal_kcl'\n  'dc_seal_node_conflict'\n  'dc_seal_vgs_match"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_columns]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_current_..._schema', ...}\n  \n  Extra items in the left set:\n  'dc_tolerances'\n  'dc_widths'\n  'dc_seal_kcl'\n  'dc_seal_node_conflict'\n  'dc_seal_vgs_match"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_widths]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_tolerances'\n  'dc_widths'\n  'dc_seal_kcl'\n  'dc_seal_node_conflict'\n  'dc_seal_vgs_match"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_tolerances]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_tolerances'\n  'dc_seal_kcl'\n  'dc_seal_node_conflict'\n  'dc_seal_vgs_match'\n  'dc_seal_b"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_node_conflict]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_seal_kcl'\n  'dc_seal_node_conflict'\n  'dc_seal_vgs_match'\n  'dc_seal_bulk_reverse'\n  'dc"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_vgs_match]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_seal_kcl'\n  'dc_seal_vgs_match'\n  'dc_seal_bulk_reverse'\n  'dc_seal_kvl_branch'\n  'dc_se"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_kcl]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_seal_kcl'\n  'dc_seal_bulk_reverse'\n  'dc_seal_kvl_branch'\n  'dc_seal_conduction'\n  'dc_s"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_bulk_reverse]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_seal_bulk_reverse'\n  'dc_seal_kvl_branch'\n  'dc_seal_conduction'\n  'dc_seal_saturation'\n"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_saturation]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_seal_kvl_branch'\n  'dc_seal_conduction'\n  'dc_seal_saturation'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_kvl_branch]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_seal_kvl_branch'\n  'dc_seal_conduction'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_conduction]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'dc_columns'...c_order', ...} == {'dc_columns'...c_order', ...}\n  \n  Extra items in the left set:\n  'dc_seal_conduction'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_report]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_parentless_partial_unchanged[dc_currents]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_parentless_partial_unchanged[dc_widths]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_parentless_partial_unchanged[dc_seal_node_conflict]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_parentless_partial_unchanged[dc_seal_report]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_violation_with_parent_keeps_report_fields", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_it2e_partial_snapshot.py::test_it2e_s3_failure_line_fp_parent_independent[dc_seal_kcl]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('dc_seal_kcl' not in mappingproxy({'s1_structure': '07bfbf017abf1893e3567ec62b06742ba6c6f1399f5e3da97eda9475b1ad9b2c', 's1_bulk': '05498943...2cdf31f08bd481fd38c2e66af6', 'dc_seal_conduction':"}
+{"id": "gmid_engine/tests/search/test_it2e_partial_snapshot.py::test_it2e_s3_failure_line_fp_parent_independent[dc_seal_report]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'e1197cb52122...4e75c23d8f8f0' == 'b7cee5b04b77...270c3318310c0'\n  \n  - b7cee5b04b7706d127506f61c69c9d56dc9cbf91f029f2ecbb5270c3318310c0\n  + e1197cb5212299b8767a38fffee823bd5e7c54dae997e4e3e764"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_sealed_point_objectives_and_constraint_rows", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_cache_hit_returns_same_object_no_kernel_no_s3", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_outside_domain_no_kernel_no_s3_cached", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_candidate_failure_recorded_and_cached", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_hand_written_failure_line_is_not_read_by_new_context", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_kernel_value_error_propagates", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_pending_point_ss_all_unmeasured", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_sealed_point_with_undeclared_passive_is_unmeasured", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_power_resolution_none_is_undefined", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_evals_record_fields", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_eval_budget_derived_once_after_n_plus_one", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_parent_reuses_lineage", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_repeated_requests_kernel_equals_unique_keys", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_pending_point_passive_values_include_passive_theta", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_sealed_point_with_passive_theta_has_ss_row", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_u7_structure_writes_block_residual_to_evals", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_u7_without_structure_no_block_residual_record", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_pending_point_passive_values_reused_on_mos_theta_only_change", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_graft_across_lineage_without_parent", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_dc_block_failure", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_seal_violation", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_ss_stage_failure", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_seal_stage_block_failure[dc_seal_node_conflict]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_seal_stage_block_failure[dc_seal_vgs_match]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_seal_stage_block_failure[dc_seal_kcl]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_seal_stage_block_failure[dc_seal_bulk_reverse]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_seal_stage_block_failure[dc_seal_saturation]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_seal_stage_block_failure[dc_seal_kvl_branch]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_seal_stage_block_failure[dc_seal_conduction]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_seal_stage_block_failure[dc_seal_report]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_none_on_success_and_outside_domain", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_kernel.py::test_partial_snapshot_results_reused_by_later_evaluation", "outcome": "passed"}
