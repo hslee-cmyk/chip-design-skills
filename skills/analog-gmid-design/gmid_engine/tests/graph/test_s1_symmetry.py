@@ -132,7 +132,7 @@ def test_block_declaration():
     assert s1_symmetry.name == "s1_symmetry"
     assert set(s1_symmetry.writes) == {("node", "dc_colour"), ("device", "dc_colour"), ("graph", "orbits"), ("graph", "current_symmetry")}
     assert set(s1_symmetry.reads) == {("device", "bulk"), ("device", "element_class"), ("device", "is_diode"), ("device", "kind"),
-                                      ("device", "pins"), ("node", "is_rail"), ("node", "port_direction"), ("graph", "dc_pruned")}
+                                      ("device", "pins"), ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("graph", "dc_pruned")}
 
 
 @pytest.mark.parametrize("name", NINE)
