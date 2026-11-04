@@ -1,0 +1,202 @@
+{
+ "P1": {
+  "hold_lines_new": [
+   "Vhold_nout nout hs_nout DC 0.8",
+   "Lhold_nout hs_nout 0 1e+12",
+   "Vhold_pout pout hs_pout DC 0.2",
+   "Lhold_pout hs_pout 0 1e+12"
+  ],
+  "hold_lines_old": [
+   "Vhold_nout hs_nout 0 DC 0.8",
+   "Lhold_nout hs_nout nout 1e+12",
+   "Vhold_pout hs_pout 0 DC 0.2",
+   "Lhold_pout hs_pout pout 1e+12"
+  ],
+  "printed_values_equal": true,
+  "n_values": 36,
+  "diff": {},
+  "hold_current_A": {
+   "nout": 1.398494e-06,
+   "pout": -3.57078e-06
+  },
+  "nodes": {
+   "nout": 0.8,
+   "nin": 0.7,
+   "pout": 0.2,
+   "pb": 0.3,
+   "vsp": 1.5,
+   "vdd": 1.8
+  },
+  "ids": {
+   "M1": 8.601506e-06,
+   "MP1": 1.642922e-05
+  },
+  "ac_files_equal": {
+   "bench.ac.txt": true,
+   "bench.ratio0.den.txt": true,
+   "bench.ratio0.num.txt": true,
+   "bench.ratio1.den.txt": true,
+   "bench.ratio1.num.txt": true,
+   "bench.ratio2.den.txt": true,
+   "bench.ratio2.num.txt": true,
+   "bench.ratio3.den.txt": true,
+   "bench.ratio3.num.txt": true,
+   "bench.ratio4.den.txt": true,
+   "bench.ratio4.num.txt": true
+  },
+  "hand_hold_nout": 1.3984940000000005e-06,
+  "hand_hold_pout": -3.5707800000000017e-06
+ },
+ "P2_margins": {
+  "M1": 0.83234628,
+  "MP1": 1.1387165000000001
+ },
+ "P2_real_path": {
+  "below_all": {
+   "margin": 0.0,
+   "rc": 0,
+   "verdict": "PASS",
+   "reason": "선언 제약 전부 만족, 전도 MOS 전부 포화, 엔진 예측 전도 MOS 전부 SPICE 에서도 전도",
+   "unsat": [],
+   "unknown": [],
+   "conducting": 2
+  },
+  "between": {
+   "margin": 0.98553139,
+   "rc": 1,
+   "verdict": "FAIL",
+   "reason": "포화 아닌 전도 MOS ['M1']",
+   "unsat": [
+    "M1"
+   ],
+   "unknown": [],
+   "conducting": 2
+  },
+  "above_all": {
+   "margin": 1.2387165000000002,
+   "rc": 1,
+   "verdict": "FAIL",
+   "reason": "포화 아닌 전도 MOS ['M1', 'MP1']",
+   "unsat": [
+    "M1",
+    "MP1"
+   ],
+   "unknown": [],
+   "conducting": 2
+  }
+ },
+ "P2_off": {
+  "M1": {
+   "id": 3.029329e-13,
+   "gm": 8.118964e-12,
+   "gds": 4.438633e-14,
+   "vth": 0.6290064,
+   "vdsat": 0.04002003,
+   "vgs": 0.0,
+   "vds": 1.8,
+   "vbs": 1.493289e-13
+  },
+  "verdict": "FAIL",
+  "unsat": [],
+  "unknown": []
+ },
+ "P2_grab_nan": {
+  "nan": null,
+  "num": 0.1,
+  "inf": null
+ },
+ "P2_synthetic": {
+  "vdsat_none_one_device": {
+   "verdict": "INCOMPLETE",
+   "reason": "VDSAT 값이 없어 포화 여유를 못 잰 전도 MOS ['M1']",
+   "unsat": [],
+   "unknown": [
+    "M1"
+   ]
+  },
+  "vdsat_none_and_other_fails": {
+   "verdict": "FAIL",
+   "reason": "포화 아닌 전도 MOS ['MP1']",
+   "unsat": [
+    "MP1"
+   ],
+   "unknown": [
+    "M1"
+   ]
+  },
+  "vdsat_none_margin_unset": {
+   "verdict": "INCOMPLETE",
+   "reason": "sat_margin_V 미설정 -- 포화 조건 판정 불가",
+   "unsat": null,
+   "unknown": []
+  },
+  "control_no_patch": {
+   "verdict": "PASS",
+   "reason": "선언 제약 전부 만족, 전도 MOS 전부 포화, 엔진 예측 전도 MOS 전부 SPICE 에서도 전도",
+   "unsat": [],
+   "unknown": []
+  }
+ },
+ "P3_rejects": {
+  "noise": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "code": "adapter_capability_missing",
+   "detail": "noise",
+   "stage": "5",
+   "mods": "MODS=[\"oracle_run\"]"
+  },
+  "swing_icmr": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "code": "adapter_capability_missing",
+   "detail": "op_sweep",
+   "stage": "5",
+   "mods": "MODS=[\"oracle_run\"]"
+  },
+  "offset_mc": {
+   "rc": 2,
+   "files": [
+    "tfb_cs_rfeedback.reject.json"
+   ],
+   "code": "mc_method_unsupported",
+   "detail": {
+    "side": "descriptor",
+    "block": "offset_mc"
+   },
+   "stage": "4",
+   "mods": "MODS=[\"oracle_run\"]"
+  }
+ },
+ "P3_pm": {
+  "ac": {
+   "pm_deg": null,
+   "pm_deg_raw": 34.09587936700507,
+   "pm_undefined": "stability_unverified",
+   "pm_definition": "beta_loop",
+   "pm_crosscheck_deg": null,
+   "pm_crosscheck_deg_raw": 31.574874149249844,
+   "stability": {
+    "pm_valid": null,
+    "pm_undefined": "stability_unverified",
+    "reason": "P = 0(개루프 RHP 극 없음) 증명이 없어 PM 이 안정 여유인지 정할 수 없다 -- 안정성 검사(Nyquist 감은 수, 개루프 극점, 폐루프 과도)는 OP-4 에서 오고 그 전에는 PM 을 값으로 두지 않는다(원값은 pm_deg_raw)"
+   }
+  },
+  "constraints": [
+   {
+    "measure": "pm_deg",
+    "spice": null,
+    "judge": "N/A(정의 불가: stability_unverified)",
+    "undefined": "stability_unverified"
+   }
+  ],
+  "verdict": "INCOMPLETE",
+  "reason": "SPICE 로 값을 못 얻은 제약 ['pmc']",
+  "mods": "MODS=[\"oracle_run\"]",
+  "rc": 0
+ }
+}

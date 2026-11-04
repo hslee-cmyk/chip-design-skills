@@ -1,0 +1,150 @@
+{
+ "verdict": "FAIL (Major 3)",
+ "OP-2": {
+  "A2-1": [
+   "PASS",
+   "T2 전부 통과(toy 179 passed 안), T 판 test 를 base 코드에 돌리면 test_descriptor·test_lut_record_root 수집 오류(ModuleNotFoundError core.descriptor)"
+  ],
+  "A2-2": [
+   "PASS",
+   "X-13 + test_verified_by 48 passed. 판정자 직접 재측정: engine_decl·lut_rule·location LF = 기술자 칸, 경로 겹침 0, LF 겹침 0(9 + 1 파일)"
+  ],
+  "A2-3": [
+   "PASS",
+   "실제 기술자 load 성공(CRLF 체크아웃). machine_dependent_refs 5개 = 직접 잰 raw 전용 5개(모델 카드 둘, slope 둘, scale_option), 불일치 0"
+  ],
+  "A2-4": [
+   "PASS",
+   "kind 이름·내부 소자·극성·level 54·u = 1e-6(.option scale=1.0u)·diffusion(ad 5e-7, pd_extra 2.0000000000000003e-06 = 옛 2e-06 의 1 ulp)·PDK HEAD f62031a1 = provenance. 숫자 값 칸 0"
+  ],
+  "A2-5": [
+   "FAIL",
+   "외부 PDF sha b5bc7c4f..., 2660636 바이트, p.317 ABSTOL 1e-12, p.318 RELTOL 0.001·VNTOL 1 uV, p.320 SCALE 대상 = calibration.json 값과 같다. 그러나 저장소 assets/simulator_sources/ngspice_46_manual/source.pdf 가 없다(C-7, D-4 미이행) -> Major M-1"
+  ]
+ },
+ "OP-3": {
+  "A3-1": [
+   "PASS",
+   "toy + 입력·결과 계약 179 passed. 새 모듈 없는 base 에서 red 10건(수집)"
+  ],
+  "A3-2": [
+   "PASS",
+   "T3-1c~f 통과(test_geometry_undeclared)"
+  ],
+  "A3-3": [
+   "FAIL",
+   "커밋 머리: 옆 선언 없음, lut_file_roles = [] -> R1 model_bundle_mismatch(rule i, bins.csv). 판정자가 근거 (a)(b)를 직접 재서 만든 옆 선언 둘로는 공칭 통과, 역할 지움·쌍 sha 변경 = model_bundle_mismatch, 보조 입력 내용 변경·삭제 = lut_aux_input_mismatch, 기록 뿌리 모델 변경 = lut_record_root_mismatch, 슬라이스 1쌍·32개 전부 통과, 슬라이스 역할 지움 거부. 근거: 결합 생성기 00085057 blob CRLF sha = 60584696, :677 include 밖 추가, :220-228 include. 슬라이스 생성기 sha = 8df35d2e(LF = raw), :73-79 include, :298 기록 추가 -> Major M-1(커밋 없음)"
+  ],
+  "A3-4": [
+   "PASS(옆 선언 사본 위에서)",
+   "R1~R5 7 bias: status.rc 7/7 같음, verdict 7/7 같음, blockers 수 같음, pm_deg_raw 같음. sim 칸 비트 차 6칸(R2 루프 측정 5, R3 forced ratio mag 1), 모두 1~2 ulp, D §18.3 안. 데이터 파일 28개 + 루프 2개 바이트 동일. 2회 비트 동일 7/7. 제외 칸 추가 0. R4 는 PM 없음 -> pm_crosscheck_deg_raw 칸 없이 pm_crosscheck_deg 가 기준선과 비트 동일(card 비교 칸 문언 밖, minor)"
+  ],
+  "A3-5": [
+   "FAIL",
+   "소자·수동·원천 줄 잔차 = forced 의 Vhold·Lhold 만: R3.forced 4줄, R4.forced 2줄. .control 은 분석 순서·인자·acmag 상태 같음(R2.loop 은 옛 쪽이 let 없이 wrdata 라 대조 도구 표시 차, 데이터 바이트 동일). name_map 8벤치 84원소 단사·덮음 -> Major M-3"
+  ],
+  "A3-6": [
+   "PASS",
+   "944/944(nmos 589, pmos 355) showmod bin = chosen_bin, 미대응 0, 격리 환경 'No compatibility mode selected' = 선언 default, 보고 l·w 944점 SI 일치, m·ad·as·pd·ps SI 일치(m=3, ad=1e-12, pd=4e-6)"
+  ],
+  "A3-7": [
+   "PASS(문언 minor)",
+   "593: 8단계 lut_model_provenance_missing 475, 1c 93, 1d 7, 5단계 11(noise·swing, D-1), 4단계 2(MC, D-1), 2b 4(LUT 에 corner·temp_c 없는 C2 입력), 변환 대상 아님 1(converted/sizing.engine.new.json, 이미 새 형식 초안). 통과 0, 시뮬레이션 0(버전 조회만). 원인 미설명 0. 단 D-5 문언은 1c·1d 만 적어 D-1·2b 17건이 '다른 사유' 문언에 걸린다: 여기 보고"
+  ],
+  "A3-8": [
+   "PASS(예외 1)",
+   "core import 0, .py 밖 0, 어댑터 측정·판정 import 0, 토큰 목록 12개(기준선 적중 D1 36, D5 89 등) core 적중 = D10 대소문자 무시 오탐뿐(lbx_, fbs_, fbd_, hs_ 넷 이름, 'x' 표지), PDK·시뮬레이터 이름 0. pred.get(g) 0. 옛 파일 호출자 0(런타임 sys.modules 도 oracle_run 하나). 엔진 diff = X-13 + 한 줄. ngspice_exe·lut_npz 는 oracle_run.py:38 OLD_PROCESS_MARKERS: 옛 형식 거부 표지(D §11.2 1b 가 요구), 값으로 읽지 않음 -> 예외 인정, 잠금 문언 고칠 것(minor)"
+  ],
+  "A3-9": [
+   "PASS",
+   "tests/structure 171 passed 1 deselected(slow), g8 ratchet 통과 stale 0, g8_baseline diff 0, rule 파일 diff 0, X-13·test_verified_by 통과"
+  ],
+  "A3-10": [
+   "PASS",
+   "stage_b·s0·g10 --run-slow -k 'folded_cascode or ngcc_3stage_ff': 23 passed, 158 deselected"
+  ],
+  "A3-11": [
+   "PASS",
+   "test_independent 3 passed(손 넷리스트 대 새 어댑터 op·ac, 허용 1e-3)"
+  ],
+  "A3-12": [
+   "PASS",
+   "칸 변화 원인: u6 삭제(X-R5), ngspice_rc -> status.rc, D-1 칸(pm_*, R2 constraint PASS -> N/A), 새 칸 record_id·fingerprints·machine_dependent_refs·input_sha256·sim_ref·conduction_definition·saturation_unknown, ID_spice_op_id 삭제(signed_id 한 곳, 소비자 0), 문장 표기 둘(.tran -> 과도해석, 넷리스트 -> 회로), R5 pd/ps 기록 1 ulp(소자 줄은 같음). 원인 미설명 0"
+  ],
+  "extra_CM": [
+   "FAIL",
+   "R1~R5 에 없는 벤치라 OP-1 기준선으로 따로 쟀다 -> Major M-2. OP-1 기준선 넷리스트 550개 대조(시뮬레이터 없음): 같음 472, 잔차 78 = Vhold·Lhold, CM Vac, 기술자 diffusion 이 생긴 입력의 ad/as/pd/ps, OP-B3 Vbias, 이름 충돌 입력(Vrail_VDD_2), iso 소자 생성"
+  ]
+ },
+ "major": [
+  {
+   "id": "M-1",
+   "what": "옆 선언 둘과 R6 원문 PDF 가 커밋에 없다. 기술자 lut_file_roles = [].",
+   "effect": "커밋 머리로 실제 LUT 입력을 돌리면 전부 model_bundle_mismatch. 병합 조건 (c)·C-7 미충족, calibration.json 출처가 없는 파일을 가리킴",
+   "repro": "tools/a3_run.py <iso> <work> <exe> R1 -> reject",
+   "close": "verifier_artifacts/lut_file_roles/ 두 파일(판정자 측정)을 descriptors/lut_file_roles/ 로, 기술자 칸에 LF sha(5e5c02a5..., fbf38fd9...), PDF(sha b5bc7c4f...)를 assets 로. auditor 쓰기 범위 밖이라 커밋하지 않았다"
+  },
+  {
+   "id": "M-2",
+   "what": "CM 루프 벤치에서 입력 AC 가 켜져 있다. core/build_circuit.py:390 `0.0 if loop else ...` 의 loop 는 BETA_LOOP 만 참이라 CM 모드에서 Vac_ip AC 0.5, Vac_im AC -0.5 가 남는다. 옛 코드 oracle_netlist.py:359 '입력은 전부 AC 접지(Vac AC 0)', metrics CONTRACT 7.11 '입력 AC 접지'",
+   "effect": "물리 정합 위반: Middlebrook 이중 주입 T 에 입력 차동 여기가 섞인다. tcm_cmfb: gain_dc 62.67439653 대 기준선 62.67435096(상대 7.27e-7, 데이터 분해능 5e-9 의 약 145 배), pm_deg_raw 32.846991993 대 32.846991947. Vac 를 AC 0 으로만 고치면 세 값 비트 동일로 돌아온다",
+   "repro": "tools/a3_cm.py, tools/a3_cm2.py",
+   "why_missed": "test_oracle_cm_loop.py(D-6 제외)가 'Vac_<넷> AC 0' 을 단언하던 유일한 test. R1~R5·T3 에 CM 없음"
+  },
+  {
+   "id": "M-3",
+   "what": "forced 전압원 직렬 재배치(core/build_circuit.py:423-424)가 N4-3 남은 차이다. card·design 어디에도 없는 변경",
+   "effect": "A3-5 합격 기준 '남은 차이 0' 불충족(R3.forced 4줄, R4.forced 2줄). 물리는 같다(아래 physics.1). 옛 stability 코드가 쓰는 choke 꼴(<tb 노드> <회로 노드>)과도 달라져 OP-4 에 영향",
+   "repro": "tools/a3_n43.py",
+   "close": "옛 배치로 되돌리거나 design·card 에 선언 변경으로 올린다"
+  }
+ ],
+ "physics": {
+  "1_forced_series": "같다. 잔차 있는 예측(nout 0.8, pout 0.2)으로 새 배치와 옛 배치를 직접 돌림: 인쇄값 36개 전부 같음, AC 파일 11개 바이트 동일, i(V) nout +1.398494e-06 = 손 (VDD-0.8)/RL - ID_M1, pout -3.57078e-06 = 손 ID_MP1 - 0.2/RP. 부호 = 넷에서 전압원으로 들어가는 전류, 옛 배치와 같다",
+  "2_vdsat_incomplete": "fail-open 아님. PASS 불가 유지, 다른 소자 FAIL 있으면 FAIL 우선(합성 확인). 실제 경로 전도 MOS VDSAT 없음 0건(R1~R5, 끈 소자도 vdsat 인쇄), 여유 초과는 FAIL 유지(margin 0.986 -> FAIL M1, 1.239 -> FAIL 둘). 다만 옛 판정은 FAIL 이었고 반환 코드가 1 -> 0 으로 바뀌며 card 에 표지가 없다: minor. stub 이 vdsat None 을 내서 생긴 변경이다. nan·inf 인쇄도 None 으로 읽혀 여기로 온다",
+  "3_D1": "noise·swing_icmr -> adapter_capability_missing(noise, op_sweep) stage 5, offset_mc -> mc_method_unsupported(side descriptor) stage 4, 반환 2, reject 파일 하나, 실행 0. PM: pm_deg None, pm_deg_raw 값, stability_unverified, 제약 N/A, verdict INCOMPLETE(PASS 불가). sys.modules 에 옛 모듈 0. MC 손 유도 맞음: 카드 vth0_slope/sqrt(l*w*mult), 옛 V = z·1e-6/√m(oracle_offset_mc.py:23,153) -> 옛 항 z/(√m·√(lw)), 새 줄(µm 숫자, mult = m) 항 z·1e-6/(m·√(lw)), 비 = 1e-6/√m",
+  "4_definitions": "op·ac·β 루프·ratio·rout·iso 는 데이터 바이트 동일로 정의 같음. ID 부호·포화 여유·전도 문턱 식 같음, conduction_definition threshold_eps1 = D §11.7. CM 루프만 다름(M-2). L·W·확산 보고값 = SI(A3-6)"
+ },
+ "graph_single_source": {
+  "new_graph_fields": 0,
+  "engine_consumer_zero": 0,
+  "canonical_bypass_suspects": 0,
+  "kvl_kcl_relation_skipped": 0,
+  "out_of_graph_storage": 0,
+  "note": "엔진 소스 diff 0. 수치 칸은 엔진 graph 밖 오라클 결과 칸이다. 기술자 숫자 칸 0(엔진 선언 키만). 해시: LF·canonical 정의 core/results.py 한 곳(X-13 test 정규화 한 줄은 승인 사본), raw 는 hashlib 직접 4곳(minor). gate_only_nets 한 함수 소비자 둘. signed_id 어댑터 read 한 곳. 기간 예외 표지 둘(record_id·conduction_definition·fingerprints, instance_geometry_reported) 그대로. saturation_unknown 은 소비자 표에 없음(minor). ResultBundle.adapter_fp(2키)와 fingerprints.adapter_fp(4키)는 같은 이름 다른 정의, bundle_files 는 소비자 0(minor)."
+ },
+ "excluded_old_tests": {
+  "count": "26파일 344 함수(def test_ 기준), 통과로 세지 않음. 사유 표 = tests/conftest.py IGNORED_OLD_TESTS",
+  "reason_check": "사유는 파일 내용과 맞다(지운 CLI·옛 입력 생성기 의존). test_oracle_diagnosis.py·test_oracle_simulate_cache.py 는 D-6 표에 이름이 없고 spec 문언 'run_oracle 경유 파일만 유지'와 달리 뺐다. 실제로 run_oracle 경유 21파일 전부 빠졌고 순수 수학 import 교체 0, conftest 옛 입력 생성기 새 형식 전환 안 함(spec 재작성 범위 줄과 다름). A-80 문언('나머지는 collect_ignore')은 덮는다 -> minor, LA-1 재점검",
+  "lost_physics_definition_checks": [
+   "CM 루프 정의·손 극점(test_oracle_cm_loop 11) -- 빠져서 M-2 를 못 잡음",
+   "합격 판정 사다리 실제 실행(test_oracle_compare 25, compare_device_tol 6)",
+   "전도 문턱·포화 C23(test_oracle_conduction 16)",
+   "forced KCL 잔차 대 tol_I·원인 분류 C19(test_oracle_diagnosis 10)",
+   "C27 가중·루프 정의(22), Middlebrook 특이(7), pm 교차(1)",
+   "접합 용량 C22 값(11), rout·ratio 독립 대조(24, 13)",
+   "Z1·C15·iso 줄(6, 25, 7)",
+   "캐시 모델 파일·중첩 include 변경 miss(test_oracle_simulate_cache 6, toy 키 test 로 일부 대체)"
+  ],
+  "note": "이 판정의 R1~R5 바이트 동일과 OP-1 넷리스트 550개 대조가 그 일부를 이번 한 번 대신했을 뿐 test 로 남아 있지 않다"
+ },
+ "criteria_weakened": [
+  "test_legacy_adapter.py test_smoke_netlist_regenerates_identically, test_smoke_loop_netlist_regenerates_identically 삭제(spec C-3.10, 같은 비교 = N4-3)",
+  "옛 test 26파일 수집 제외(A-80 D-6)",
+  "compare VDSAT 없음 FAIL -> INCOMPLETE(card 표지 없음, minor)"
+ ],
+ "doc_C8": "계획 v0.6.30·design v0.4.8 ↔ card ↔ 코드 정의 일치: D-2 칸, D-3 근거 출처, D-4 쪽, J-2, J-3, J-6 일치. 어긋남: D-5 문언이 D-1·2b 거부를 빠뜨림, §7 잠금에 거부 표지 예외 없음, D-6 표 문언 대 구현, interface D-1 'PM 값이 있으면' 조건으로 R4 형 비교 칸 빠짐, spec 소비자 표에 saturation_unknown 없음. 전부 minor",
+ "minor": [
+  "m1 VDSAT 없음 FAIL -> INCOMPLETE(compare.py:369,400) card 표지 없음, '함수 이동만'과 다름, 반환 코드 1 -> 0. fail-open 아님",
+  "m2 D-6 표 문언 대 구현(위 excluded_old_tests)",
+  "m3 593 표 문언: D-1 13건·2b 4건, 변환 대상 아닌 1건. 1c 2건은 pointer '' rule None 으로 사유 칸이 빔(test_schema_rejects_old_cm_loo0)",
+  "m4 §7 잠금 문언에 OLD_PROCESS_MARKERS 예외 없음",
+  "m5 PM 없는 입력은 pm_crosscheck_deg 값이 그대로 남아 D-1 설명과 다르다(R4 59.01). 판정 소비 없음",
+  "m6 raw sha hashlib 직접 4곳, adapter_fp 두 정의, bundle_files 소비자 0, saturation_unknown 소비자 표 없음",
+  "m7 Descriptor.quantity 가 tnom 을 못 푼다(quantity_format_unsupported). 기간 소비 0, OP-6 입력",
+  "m8 캐시 키 spiceinit 칸이 늘 빈 값이고 어댑터가 .spiceinit 을 격리하지 않는다(J-5 기간, OP-7 입력)",
+  "m9 gate_only_nets 는 IR 노드 '0' 을 protected 와 대조하지 못한다(게이트만 닿은 기준 레일 -> 거부, fail-closed). Z1 omit 으로 새로 게이트 전용이 된 넷은 구동 없이 뜬다(진단 실행, INCOMPLETE)",
+  "m10 interface 에 '## 신규 시그니처' 절이 없어 merge_gate red 플러그인이 읽지 못한다",
+  "m11 T 커밋이 code 뒤다(dispute 처리, 기대값 변경 0)"
+ ]
+}
