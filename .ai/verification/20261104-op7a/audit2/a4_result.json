@@ -1,0 +1,60 @@
+{
+ "points": 972,
+ "default": {
+  "outside": 0,
+  "tie": 944,
+  "W_lower": 928,
+  "L_lower": 272
+ },
+ "cwd": {
+  "outside": 0,
+  "tie": 944,
+  "W_upper": 928,
+  "L_upper": 272
+ },
+ "home": {
+  "outside": 0,
+  "tie": 944,
+  "W_upper": 928,
+  "L_upper": 272
+ },
+ "empty": {
+  "outside": 0,
+  "tie": 944,
+  "W_lower": 928,
+  "L_lower": 272
+ },
+ "source": {
+  "cells": 556,
+  "rec_default": 556,
+  "rec_hsa": 0,
+  "modes_differ": 556,
+  "file_row_same": 556
+ },
+ "combined": {
+  "cap_npz": {
+   "cells": 36,
+   "same": 36
+  },
+  "verify_midpoints": {
+   "cells": 8,
+   "same": 8
+  }
+ },
+ "cap_bind": {
+  "noise": true,
+  "mismatch": true
+ },
+ "model_sha": {
+  "records": 7,
+  "same_as_decl": true,
+  "machine_dep": 7,
+  "mismatch": []
+ },
+ "decl_points": {
+  "n": 944,
+  "same_as_points": 944,
+  "rule": "lower",
+  "source_basis": "generator_record"
+ }
+}

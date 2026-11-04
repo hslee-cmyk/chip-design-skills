@@ -1,0 +1,73 @@
+{
+ "id": "20261104-op7a",
+ "spec_card": "docs/02-design/specs/20261104-op7a.spec.md",
+ "evidence_type": "test-only",
+ "base_commit": "8d77b801d28ffd6cb57ec3ad36c2e77e298a8a4e",
+ "test_commit": "434075c35fc8526f67fec7ae83357376cb552751",
+ "code_commit": null,
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "임시 규칙 O-229: 전체 test 안 돌림, 통과로 세지 않음. 잰 범위 = toy test_bin_rule_lib.py 107 passed(A-1), tests/structure 170 passed 1 deselected(A-7, 선언 파일을 둔 복제본). 2회로 연기는 spec 연기 시험 항목대로 kind 둘 smoke로 대신(A-8), 회로 연기는 첫 reader WB-1 병합 때."
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "재판정(앞 판정 0d1f8631 FAIL M1~M4, 처리 A-75, 머리 434075c3). A-2: 관문 전부 ok. controls ok home_read_isolated, empty ok, source_mode default(동률 556칸 기록 = default 556, hsa 0), combined_bins 4/4 ok, cap_bind 2/2 ok, record_only_files kind마다 bins.csv 하나, 판 기록 없는 세트 0, validate_decl []. 점 972, 동률 944, L 272·W 928 전부 lower, 대조 cwd·home 전부 upper. C-10 밖 points.jsonl은 앞 판정과 바이트 같고 관문은 다시 통과시켜 선언을 썼다(세 번 실행, 선언 sha256 fa4c4c277a735fb5b353b9e72678115f061a836f1b7831543989b7a27a9f8b79). 앞 M1~M3은 값 시뮬레이션 삭제로 대상이 없어졌고 M4 세 항목은 스크립트에 있음. 거부 경로 실측 15건(audit2/rejects.jsonl): 기록 칸 없음·칸 키 없음 source_record_missing, 어느 모드도 아님 source_record_no_mode, 혼합 source_record_mixed, 선언과 다름 source_mode_differs, 포함 파일 include_not_recorded, 결합 combined_bin_differs·combined_bin_missing, cap cap_bind_differs·cap_bind_missing, 슬라이스 kind 없음 source_record_missing, plan 칸 없음 source_condition_unresolved 전부 rc 2 선언 없음. 두 모드 다 가리킴은 측정 경로에서 앞 관문 control_undetermined로 멈춰 source_record_both_modes에 닿지 않는다(toy T-17f만). 빈 combined_sets·bound_sets와 kind당 슬라이스 하나는 rc 0으로 선언을 쓴다: minor로 판정(plan 작성자 = 판정자이고 이번 plan은 전 세트 포함, hand_a4 재확인), 보고에 판단 표지."
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "뮤테이션 도구 안 돌림. 임시 규칙 O-229와 interface §6 측정 표에 없음. 통과로 세지 않음. 거부 경로는 V2 입력 변형 실측."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: test_lint 도구는 안 돌렸고 test 파일을 interface §4와 손으로 대조했다; T-1~T-15(살아 있는 행)는 앞 판정 대조 유지; T-16a~d 격자 정수 (36,800),(40,800),(40,1000) 손 유도와 칸 기대값이 표와 같다; T-17a~j 사유 이름과 순서가 표와 같다; T-18·T-18b·T-19·T-20a·T-20b 표와 같다; 기대값을 피검 함수로 만들지 않음."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "판정자 독립 의견: 증거의 독립성은 약해졌으나(값 대조 -> 생성기 자기 기록) 기준 약화로 Major는 아니다. 옛 관문은 7자리 i(vds)에서 16/16 None이고 물리적으로 pfet 모드 차가 수치 잡음(1e-14)이라 통과 가능한 합격선이 없었다. 새 관문은 fail-closed이고 표지 source_basis가 선언에 있다. 다만 두 문언은 정확하지 않다: (1) '값으로 독립 판별 불가'는 pfet에만 맞다. nfet는 @m[id] 15자리로 앞 판정 L 8/8, W 19/19 default(audit/hand_c10b.jsonl, hand_wtie.jsonl). (2) A-75의 '값 영향이 그 크기뿐'은 ID 크기에 한해 맞고 gds·C는 더 크다(A-2b). 이 판정이 기록을 값으로 입증한 것은 아니다. 기존 test·기준 완화 0, 기록 없는 세트 완화 안 함."
+  },
+  "V6": {
+   "verdict": "N/A",
+   "basis": "source_lint 대상 없음: gmid_engine diff 0. 잠금 grep(A-5) 0: scripts에 import gmid_engine·spice_oracle·oracle_run 0, numpy는 measure_bin_rule.py의 numpy.load뿐(L·meta_json 멤버), skills 안 변경은 이 커밋의 assets/lut_v2_bin_rule.json 새 파일 하나. A-6: S1V_RULE_FILES·STRUCTURE_RULE_EXTRA_FILES 변경 0. A-7: structure 170 passed, g8 ratchet stale 0, new 0(test가 r.new == () 단언), 바뀐 엔진 파일 0이라 scan_shared_calls --touching 미실행."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "선언 파일 작성, 기간 예외 표지 있음: 병합 때 운영 소비자 0, 다음 소비자 WB-1 범위 0(P:1375), 이 판정에서 소비자 미측정. graph 점검 수치: 필드 수 0(선언 칸 source_basis는 고정 표지, 출력 전용 선언, 엔진 판정 미사용) / 소비자 0 결함 0 / 정본 우회 의심 0 / KVL·KCL 관계 미적용 0(회로 계산 없음) / graph 밖 저장 자리 0(엔진 diff 0, 값은 선언 정본 하나와 판정 산출물, 판정 폴더에는 선언 사본 없이 sha256만)."
+  },
+  "V8": {
+   "verdict": "PASS",
+   "basis": "폴백 발동 0: 거부 경로 13건 전부 선언 없음(V2). 작성자 자체 결정 확인: MODE = default 상수는 spec C-5·J-1과 같고 PDK 값 아님; 슬라이스 없는 kind는 source_record_missing 실측; 경로 말고 값으로 맞춤은 내용 해시 비교라 fail-open 아님; plan 칸 없음은 폐기 이름 source_condition_unresolved로 멈춤 실측(minor)."
+  },
+  "V9": {
+   "verdict": "PASS",
+   "basis": "기본 972점 bin_outside 0, 축 사이 갈림 0, 전 동률 lower; hsa 대조 전 동률 upper; 빈 .spiceinit 전 점 동일; HOME의 .spiceinit을 ngspice가 읽음(격리로 막음), 실제 홈 파일 없음. A-2b(기록 전용, 문턱 없음, 556칸 null 0, VGS·VDS 최대·VS 0 한 바이어스만): 최대 상대차 nfet id 9.8e-9, gm 4.8e-9, gds 1.1e-7, CGG 2.1e-10, CGD 1.4e-8, CGS 7.5e-8, CGB 7.3e-7, CDD 1.9e-9, CSS 3.9e-8; pfet id 4.8e-14, gm 5.4e-14, gds 1.5e-13, CGB 2.0e-12, CGD 6.1e-12. nfet gds는 id 최대의 11배, CGB는 75배. 다른 바이어스, GMBS·VDSAT·잡음·mismatch는 미측정."
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "spec 재현할 수치 없음(미측정 칸만). 측정값은 reproduced_numbers. A-3: 두 번 실행 points.jsonl·source_modes.jsonl·선언 바이트 같음(셋째 쓰기 실행도 같음). A-4: hand_a4.py(피검 코드 안 부름)로 rule, 출처 모드 556/556, 결합 36/36·8/8, cap 2/2, model_files_sha256 7개 같음, 기록 전부 raw 일치(기계 의존 7), 불일치 0, 선언 점 944/944 일치."
+  }
+ },
+ "reproduced_numbers": [
+  {"name": "측정 점 전체", "value": 972, "command": "measure_bin_rule.py --plan audit2/plan2.json, points.jsonl 줄 수"},
+  {"name": "동률 점 = 선언 evidence 점", "value": 944, "command": "audit2/hand_a4.py decl_points"},
+  {"name": "슬라이스 동률 칸 기록 default 일치(전체 556)", "value": 556, "command": "audit2/hand_a4.py source.rec_default"},
+  {"name": "슬라이스 동률 칸 기록 hsa 일치", "value": 0, "command": "audit2/hand_a4.py source.rec_hsa"},
+  {"name": "A-2b nfet gds 최대 상대차", "value": 1.12e-07, "command": "audit2/mode_diffs.py, audit2/a2b_sum.py"},
+  {"name": "A-2b nfet CGB 최대 상대차", "value": 7.34e-07, "command": "audit2/mode_diffs.py, audit2/a2b_sum.py"},
+  {"name": "A-2b nfet id 최대 상대차", "value": 9.75e-09, "command": "audit2/mode_diffs.py, audit2/a2b_sum.py"},
+  {"name": "toy passed", "value": 107, "command": "python -m pytest .ai/verification/20261104-op7a/scripts/test_bin_rule_lib.py -q"},
+  {"name": "tests/structure passed", "value": 170, "command": "python -P -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q"}
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-04T17:12:09+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op7a2-audit",
+  "commands": [
+   "git clone --no-hardlinks --no-local <audit worktree> C:/Users/HSLEE/AppData/Local/Temp/la1s_op7a_audit/op7a-iso2; git -C <iso> remote remove origin",
+   "V1: 전체 test 미실행(O-229). python -m pytest .ai/verification/20261104-op7a/scripts/test_bin_rule_lib.py -q ; python -P -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q",
+   "python <iso>/.ai/verification/20261104-op7a/scripts/measure_bin_rule.py --plan audit2/plan2.json --out <abs> --smoke",
+   "python <iso>/.ai/verification/20261104-op7a/scripts/measure_bin_rule.py --plan audit2/plan2.json --out <abs>/run1, run2 --decl-out <temp>; run3 --decl-out skills/analog-gmid-design/assets/lut_v2_bin_rule.json",
+   "audit2/hand_a4.py, audit2/mode_diffs.py, audit2/rejects.py"
+  ]
+ }
+}
