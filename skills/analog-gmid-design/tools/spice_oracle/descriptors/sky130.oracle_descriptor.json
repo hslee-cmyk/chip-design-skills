@@ -1,0 +1,153 @@
+{
+ "schema": "oracle_pdk_descriptor/1",
+ "engine_decl": {
+  "path": "../../../assets/sky130_pdk_decl.json",
+  "sha256": "5f32257b419b0a5f33e0766dfb4cc5a84885da03a909060ea6cf9938fc16f7bf"
+ },
+ "extra_engine_decls": {
+  "lut_rule": {
+   "path": "../../../assets/sky130_lut_rule_decl.json",
+   "sha256": "8e706bb7da681be4335f93b7378452877ad807756d5091c9ea86113490d0e6b6"
+  }
+ },
+ "extra_sources": {
+  "pfet_lod": {
+   "path": "sky130_fd_pr/models/parameters/lod.spice",
+   "sha256": "6200b50c14eebb68d8009ca68e452d4c045e2d25d7438ee417c155883527fd7c",
+   "base": "pdk_root",
+   "provenance": "pfet 모델 카드(pfet_01v8_tt_model_card)가 .include 를 요구하는 lod.spice. 출처 https://github.com/google/skywater-pdk-libs-sky130_fd_pr/blob/f62031a1be9aefe902d6d54cddd6f59b57627436/models/parameters/lod.spice (저장소 커밋 f62031a1be9aefe902d6d54cddd6f59b57627436 = C:/pdk/sky130_fd_pr 체크아웃 HEAD)"
+  }
+ },
+ "lut_record_root": {
+  "location_decl": {
+   "path": "../../../assets/lut_v2_location.json",
+   "sha256": "07299556e51e4d5eb1f4e2fd34b5cb9e11329a8e2162ee26fb74616d4027e27c"
+  },
+  "key": "pdk_root"
+ },
+ "lut_file_roles": [],
+ "model_family": "bsim4",
+ "kinds": {
+  "nmos": {
+   "call_form": "subckt_wrapper",
+   "name": {
+    "expr": {
+     "source": "nfet_01v8_tt_model_card",
+     "regex": "^\\.subckt\\s+(sky130_fd_pr__nfet_01v8)\\s"
+    }
+   },
+   "inner_device": {
+    "expr": {
+     "source": "nfet_01v8_tt_model_card",
+     "regex": "^\\.subckt\\s+sky130_fd_pr__nfet_01v8\\s[^\\n]*\\n(?:(?!\\.ends)[^\\n]*\\n)*?(m\\S*)\\s"
+    }
+   },
+   "geometry_unit": {
+    "source": "mismatch_slope_geometry_unit_m"
+   },
+   "parallel_multiplier": {
+    "to": [
+     {
+      "target": "instance_multiplier"
+     },
+     {
+      "target": "model_param",
+      "name": {
+       "value": "mult"
+      }
+     }
+    ],
+    "source": {
+     "expr": {
+      "source": "nfet_01v8_tt_model_card",
+      "regex": "(sqrt\\(l\\*w\\*mult\\))"
+     }
+    }
+   },
+   "includes": [
+    {
+     "source": "nfet_01v8_tt_model_card"
+    },
+    {
+     "source": "nfet_01v8_mismatch_slopes"
+    }
+   ],
+   "polarity": "n"
+  },
+  "pmos": {
+   "call_form": "subckt_wrapper",
+   "name": {
+    "expr": {
+     "source": "pfet_01v8_tt_model_card",
+     "regex": "^\\.subckt\\s+(sky130_fd_pr__pfet_01v8)\\s"
+    }
+   },
+   "inner_device": {
+    "expr": {
+     "source": "pfet_01v8_tt_model_card",
+     "regex": "^\\.subckt\\s+sky130_fd_pr__pfet_01v8\\s[^\\n]*\\n(?:(?!\\.ends)[^\\n]*\\n)*?(m\\S*)\\s"
+    }
+   },
+   "geometry_unit": {
+    "source": "mismatch_slope_geometry_unit_m"
+   },
+   "parallel_multiplier": {
+    "to": [
+     {
+      "target": "instance_multiplier"
+     },
+     {
+      "target": "model_param",
+      "name": {
+       "value": "mult"
+      }
+     }
+    ],
+    "source": {
+     "expr": {
+      "source": "pfet_01v8_tt_model_card",
+      "regex": "(sqrt\\(l\\*w\\*mult\\))"
+     }
+    }
+   },
+   "includes": [
+    {
+     "source": "pfet_lod"
+    },
+    {
+     "source": "pfet_01v8_tt_model_card"
+    },
+    {
+     "source": "pfet_01v8_mismatch_slopes"
+    }
+   ],
+   "polarity": "p"
+  }
+ },
+ "corners": {
+  "names": [
+   "tt"
+  ],
+  "select": {
+   "how": "include_path"
+  }
+ },
+ "temperature": {
+  "tnom": {
+   "nmos": {
+    "source": "junction_nmos_tnom"
+   },
+   "pmos": {
+    "source": "junction_pmos_tnom"
+   }
+  },
+  "range_source": "spec"
+ },
+ "diffusion": {
+  "decl": "lut_rule",
+  "ad_per_w": "lut_diffusion_ad_per_w_m",
+  "as_per_w": "lut_diffusion_as_per_w_m",
+  "pd_extra": "lut_diffusion_pd_extra_m",
+  "ps_extra": "lut_diffusion_ps_extra_m"
+ }
+}
