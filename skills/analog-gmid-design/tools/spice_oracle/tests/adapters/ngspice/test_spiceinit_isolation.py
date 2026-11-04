@@ -20,11 +20,11 @@ from adapters.ngspice import Adapter
 from adapters.ngspice.read import compat_mode_of
 from core.bin_rule import CompatDecl, check_compat
 from core.descriptor import load_descriptor
-from core.ir import Circuit, Resistor, VSource
+from core.ir import Circuit, Mos, Resistor, VSource
 from core.requests import Condition, Op, OpOutputs
 from core.results import OracleError
 
-from conftest import NGSPICE, ORACLE_DIR
+from conftest import FB, NGSPICE, ORACLE_DIR
 
 POISON = "set ngbehavior=ps\n"
 
@@ -49,10 +49,15 @@ def adapter():
 
 
 def bench():
-    ckt = Circuit(elements=(VSource("V1", "a", "0", 1.0), Resistor("R1", "a", "0", 1000.0)),
-                  role={"V1": "testbench", "R1": "circuit"}, meta={})
+    # 어댑터의 결과 있음(present)은 MOS 의 id 를 본다(위임 A-86) -> 소자 하나를 둔 공통소스(test_independent 의 되먹임 회로에서 Rf 뺀 것).
+    # 실제 sky130 기술자·모델을 쓰므로 PDK 가 필요하다(판정자가 돌린다). 손 값은 전원 노드 vdd = 1.8 V (전원이 직접 구동, KVL).
+    c = FB
+    els = (VSource("Vdd", "vdd", "0", c["vdd"]), VSource("Vin", "nin", "0", c["vin"]),
+           Mos("M1", "nmos", "nout", "nin", "0", "0", c["L"], c["finger_w"], c["n"], None, None),
+           Resistor("RL", "vdd", "nout", c["rload"]))
+    ckt = Circuit(elements=els, role={e.name: "circuit" for e in els}, meta={})
     req = (Op(id="op", cond=Condition(temp_c=27.0, corner="tt"), exc=(),
-              outputs=OpOutputs(devices="all", nodes=("a",), currents=())),)
+              outputs=OpOutputs(devices="all", nodes=("vdd", "nout"), currents=())),)
     return ckt, req
 
 
@@ -67,10 +72,10 @@ def spiceinit_files(work):
     return [p for p in Path(work).rglob(".spiceinit") if p.is_file()]
 
 
-def log_of(res):
+def log_of(res, work):
     p = res.status.log_path
     assert p is not None
-    return Path(p).read_text(encoding="utf-8", errors="replace")
+    return (Path(work) / p).read_text(encoding="utf-8", errors="replace")      # log_path = 실행 폴더 기준 상대 경로
 
 
 def test_t7_9a_declared_text_in_run_folder_and_log_shows_declared_mode(poisoned_home, descriptor, tmp_path):
@@ -80,10 +85,12 @@ def test_t7_9a_declared_text_in_run_folder_and_log_shows_declared_mode(poisoned_
     res = ad.run(ckt, req, descriptor, str(tmp_path / "work"), None, None, compat)
     files = spiceinit_files(tmp_path / "work")
     assert len(files) == 1 and files[0].read_bytes() == compat.spiceinit_text.encode("utf-8")
-    assert compat_mode_of(log_of(res), ad.capabilities()["compat_modes"]) == compat.mode
+    assert compat_mode_of(log_of(res, tmp_path / "work"), ad.capabilities()["compat_modes"]) == compat.mode
     assert res.status.error is None
-    # 손 계산: V1 = 1 V 가 노드 a 를 직접 구동 -> V(a) = 1 V (KVL), 사용자 HOME 의 설정과 무관
-    assert res.by_request["op"].nodes["a"] == pytest.approx(1.0, rel=1e-6)
+    # 손 계산: Vdd = 1.8 V 가 노드 vdd 를 직접 구동 -> V(vdd) = 1.8 V (KVL), 사용자 HOME 의 설정과 무관. 결과 있음 = MOS 소자 항목
+    op = res.by_request["op"]
+    assert op.nodes["vdd"] == pytest.approx(FB["vdd"], rel=1e-6)
+    assert "M1" in op.devices
 
 
 def test_t7_9b_compat_none_gives_empty_spiceinit_and_default_mode_log(poisoned_home, descriptor, tmp_path):
@@ -93,7 +100,7 @@ def test_t7_9b_compat_none_gives_empty_spiceinit_and_default_mode_log(poisoned_h
     res = ad.run(ckt, req, descriptor, str(tmp_path / "work"), None, None, None)
     files = spiceinit_files(tmp_path / "work")
     assert len(files) == 1 and files[0].read_bytes() == b""        # [B-3] 빈 파일
-    assert compat_mode_of(log_of(res), ad.capabilities()["compat_modes"]) == declared.mode
+    assert compat_mode_of(log_of(res, tmp_path / "work"), ad.capabilities()["compat_modes"]) == declared.mode
 
 
 def test_t7_9c_text_and_mode_name_disagree_is_compat_mismatch_and_no_result(poisoned_home, descriptor, tmp_path):
