@@ -1903,3 +1903,351 @@ def check_m(root: Path) -> tuple[int, list[Violation]]:
         for (kind, line), details in merged.items():
             out.add(Violation(kind, r, line, "; ".join(details)))
     return len(targets), sorted(out)
+
+
+# ---------------------------------------------------------------- (G 확장 · 값 타입 · 래칫) GL-1
+# 출처: design 40 §2.4.10 ①② 와 GL-1 interface card(20261103-gl1) §1~§3. 기존 `check_g` 는 바꾸지 않는다
+#   (그 test 는 위반 0 을 단언하고, 아래 검사는 기존 위반을 기준선 래칫으로 다룬다). 복사 등록부 면제는 적용하지 않는다.
+
+# design 40 §2.4.10 ① '이 밖은 예외 없음' 허용 모듈 14개(엔진 루트 기준 상대 경로).
+G8_ALLOWED_MODULES = (
+    "core/graph_snapshot.py", "core/compute_block.py", "core/projection.py", "core/graft.py",
+    "core/donors.py", "core/field_value.py", "core/graph_record.py", "core/writer_table.py",
+    "lut/lut_memo.py", "lut/table_cache.py", "core/bounded_lru.py", "search/archive.py",
+    "search/s3_index.py", "core/run_counters.py",
+)
+G8_MODULE_CACHE_CLASSES = ("BoundedLRU", "LutMemo", "OrderedDict", "WeakValueDictionary")   # ① '모듈 수준 캐시 객체'
+G8_FACTORY_CONTAINERS = ("dict", "list", "set")                                           # ① default_factory 대상
+G8_CACHE_FUNCS = ("lru_cache", "cache")                                                   # ① 호출형 cache
+G8_MEMO_LOOKUPS = ("lookup", "lookup_persistent")                                        # §2.4.6 '없앤다'
+G8_LIST_CONTAINER_CALLS = ("tuple", "list", "set", "frozenset", "dict", "MappingProxyType")   # ② 감싸는 생성자
+BASELINE_KEYS = ("base_commit", "id", "rows")
+BASELINE_ROW_KEYS = ("count", "detail", "kind", "path")
+BASELINE_SHA = re.compile(r"^[0-9a-f]{40}$")
+
+
+@dataclass(frozen=True)
+class _Scope:
+    qual: str                  # 둘러싼 클래스·함수 이름을 '.'로 이은 이름, 모듈 수준 = <module>
+    kind: str                  # module | class | func (가장 안쪽 def/class)
+    cls: str | None            # kind == class 일 때 그 클래스 이름
+    cls_frozen: bool
+    mclass: str | None         # 메서드(와 그 안 중첩 def)의 클래스 이름
+    mparam: str | None         # 메서드 첫 매개변수 이름
+    mfrozen: bool
+    local: frozenset           # 둘러싼 함수들의 지역 이름
+
+
+def _join_qual(outer: str, name: str) -> str:
+    return name if outer == "<module>" else outer + "." + name
+
+
+def _is_frozen_dataclass(c: ast.ClassDef) -> bool:
+    for d in c.decorator_list:
+        if isinstance(d, ast.Call) and _decorator_name(d) == "dataclass":
+            for k in d.keywords:
+                if k.arg == "frozen" and isinstance(k.value, ast.Constant) and k.value.value is True:
+                    return True
+    return False
+
+
+def _scoped_nodes(tree: ast.Module):
+    """(노드, 범위) 쌍을 부모 먼저 순서로 낸다. 반복 구현(깊은 식에서 재귀 한도에 걸리지 않는다)."""
+    top = _Scope("<module>", "module", None, False, None, None, False, frozenset())
+    stack = [(tree, top)]
+    while stack:
+        node, sc = stack.pop()
+        yield node, sc
+        kids = []
+        if isinstance(node, ast.ClassDef):
+            outer = list(node.decorator_list) + list(node.bases) + [k.value for k in node.keywords]
+            inner = _Scope(_join_qual(sc.qual, node.name), "class", node.name, _is_frozen_dataclass(node),
+                           None, None, False, sc.local)
+            kids = [(c, sc) for c in outer] + [(c, inner) for c in node.body]
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            a = node.args
+            outer = (list(node.decorator_list) + list(a.defaults) + [d for d in a.kw_defaults if d is not None]
+                     + [x.annotation for x in list(a.posonlyargs) + list(a.args) + list(a.kwonlyargs)
+                        + [a.vararg, a.kwarg] if x is not None and x.annotation is not None]
+                     + ([node.returns] if node.returns is not None else []))
+            mclass, mparam, mfrozen = sc.mclass, sc.mparam, sc.mfrozen
+            if sc.kind == "class":
+                first = (list(a.posonlyargs) + list(a.args))
+                mclass, mparam, mfrozen = sc.cls, (first[0].arg if first else None), sc.cls_frozen
+            inner = _Scope(_join_qual(sc.qual, node.name), "func", None, False, mclass, mparam, mfrozen,
+                           sc.local | frozenset(_bindings(node)))
+            kids = [(c, sc) for c in outer] + [(c, inner) for c in node.body]
+        elif isinstance(node, ast.Lambda):
+            inner = _Scope(sc.qual, sc.kind, sc.cls, sc.cls_frozen, sc.mclass, sc.mparam, sc.mfrozen,
+                           sc.local | frozenset(_bindings(node)))
+            a = node.args
+            outer = list(a.defaults) + [d for d in a.kw_defaults if d is not None]
+            kids = [(c, sc) for c in outer] + [(node.body, inner)]
+        else:
+            kids = [(c, sc) for c in ast.iter_child_nodes(node)]
+        stack.extend(reversed(kids))
+
+
+def _end_name(f: ast.expr) -> str:
+    return f.attr if isinstance(f, ast.Attribute) else (f.id if isinstance(f, ast.Name) else "")
+
+
+def _assign_parts(n: ast.stmt):
+    """(대입 대상들, 값) -- Assign·AnnAssign 만, 아니면 None."""
+    if isinstance(n, ast.Assign):
+        return list(n.targets), n.value
+    if isinstance(n, ast.AnnAssign):
+        return [n.target], n.value
+    return None
+
+
+def _is_memo_receiver(e: ast.expr) -> bool:
+    return (isinstance(e, ast.Name) and e.id == "memo") or (isinstance(e, ast.Attribute) and e.attr == "memo")
+
+
+def _chain_root_node(e: ast.expr):
+    while isinstance(e, ast.Attribute):
+        e = e.value
+    return e
+
+
+def _memo_call_bad(n: ast.Call, local: frozenset) -> bool:
+    if not n.args:
+        return True
+    a = n.args[0]
+    if not isinstance(a, (ast.Name, ast.Attribute)):
+        return True
+    root = _chain_root_node(a)
+    return not isinstance(root, ast.Name) or root.id in local
+
+
+def _factory_call(v) -> bool:
+    if not (isinstance(v, ast.Call) and _end_name(v.func) == "field"):
+        return False
+    return any(k.arg == "default_factory" and _end_name(k.value) in G8_FACTORY_CONTAINERS for k in v.keywords)
+
+
+def _g8_file(tree: ast.Module, r: str) -> list[Violation]:
+    out: list[Violation] = []
+    deco_calls: set[int] = set()
+    handled: set[int] = set()
+    for node, sc in _scoped_nodes(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            deco_calls.update(id(d) for d in node.decorator_list if isinstance(d, ast.Call))
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for d in node.decorator_list:
+                if _decorator_name(d) == "cached_property":
+                    name = _join_qual(sc.cls, node.name) if sc.kind == "class" else _join_qual(sc.qual, node.name)
+                    out.append(Violation("g8_cached_property", r, d.lineno, name))
+        parts = _assign_parts(node)
+        if parts is not None:
+            targets, value = parts
+            if sc.kind == "class":
+                for t in targets:
+                    if isinstance(t, ast.Name):
+                        if _mutable_value(value):
+                            out.append(Violation("g8_class_container", r, node.lineno, "%s.%s" % (sc.cls, t.id)))
+                        if _factory_call(value):
+                            out.append(Violation("g8_default_factory", r, value.lineno, "%s.%s" % (sc.cls, t.id)))
+                            handled.add(id(value))
+            elif sc.kind == "func" and sc.mparam is not None and _mutable_value(value):
+                for t in targets:
+                    if isinstance(t, ast.Attribute) and isinstance(t.value, ast.Name) and t.value.id == sc.mparam:
+                        out.append(Violation("g8_attr_container", r, node.lineno, "%s.%s" % (sc.mclass, t.attr)))
+        if isinstance(node, ast.Call):
+            f = node.func
+            if _factory_call(node) and id(node) not in handled:
+                out.append(Violation("g8_default_factory", r, node.lineno, sc.qual))
+            if id(node) not in deco_calls and (
+                    (isinstance(f, ast.Name) and f.id in G8_CACHE_FUNCS)
+                    or (isinstance(f, ast.Attribute) and f.attr in G8_CACHE_FUNCS
+                        and isinstance(f.value, ast.Name) and f.value.id == "functools")):
+                out.append(Violation("g8_cache_call", r, node.lineno, sc.qual))
+            if isinstance(f, ast.Name) and f.id == "id":
+                out.append(Violation("g8_id_call", r, node.lineno, sc.qual))
+            if isinstance(f, ast.Attribute) and _is_memo_receiver(f.value):
+                if f.attr == "call" and _memo_call_bad(node, sc.local):
+                    out.append(Violation("g8_memo_call_form", r, node.lineno, sc.qual))
+                elif f.attr in G8_MEMO_LOOKUPS:
+                    out.append(Violation("g8_memo_lookup_form", r, node.lineno, sc.qual))
+    for s in _module_level(tree.body):
+        parts = _assign_parts(s)
+        if parts is None:
+            continue
+        targets, value = parts
+        if isinstance(value, ast.Call) and _end_name(value.func) in G8_MODULE_CACHE_CLASSES:
+            names = [t.id for t in targets if isinstance(t, ast.Name)]
+            out.append(Violation("g8_module_cache", r, s.lineno, ", ".join(names) or "<target>"))
+    return out
+
+
+def check_g8(root: Path) -> tuple[int, list[Violation]]:
+    """규칙 G 확장(design 40 §2.4.10 ①): 허용 모듈 14개 밖의 가변 컨테이너 칸·cache·id·memo 호출 형태. 결과는 정렬."""
+    root = Path(root)
+    targets = engine_files(root)
+    out: list[Violation] = []
+    for p in targets:
+        r = rel(root, p)
+        if r in G8_ALLOWED_MODULES:
+            continue
+        out.extend(_g8_file(parse(p), r))
+    return len(targets), sorted(out)
+
+
+def _annotation_types(a: ast.expr, types: frozenset) -> set[str]:
+    found: set[str] = set()
+    stack = [a]
+    while stack:
+        n = stack.pop()
+        if isinstance(n, ast.Name) and n.id in types:
+            found.add(n.id)
+        elif isinstance(n, ast.Attribute) and n.attr in types:
+            found.add(n.attr)
+        elif isinstance(n, ast.Constant) and isinstance(n.value, str):
+            try:
+                stack.append(ast.parse(n.value, mode="eval").body)
+            except SyntaxError:
+                pass                      # 식이 아닌 문자열(예: Literal 값)은 타입 이름이 아니다
+        stack.extend(ast.iter_child_nodes(n))
+    return found
+
+
+def _assigned_types(v: ast.expr | None, types: frozenset) -> set[str]:
+    if v is None:
+        return set()
+    if isinstance(v, ast.Call):
+        name = _end_name(v.func)
+        if name in types:
+            return {name}
+        if name in G8_LIST_CONTAINER_CALLS:
+            out: set[str] = set()
+            for e in list(v.args) + [k.value for k in v.keywords]:
+                out |= _assigned_types(e, types)
+            return out
+        return set()
+    if isinstance(v, (ast.Tuple, ast.List, ast.Set)):
+        subs = list(v.elts)
+    elif isinstance(v, ast.Dict):
+        subs = [k for k in v.keys if k is not None] + list(v.values)
+    elif isinstance(v, (ast.ListComp, ast.SetComp, ast.GeneratorExp)):
+        subs = [v.elt]
+    elif isinstance(v, ast.DictComp):
+        subs = [v.key, v.value]
+    else:
+        return set()
+    out = set()
+    for e in subs:
+        out |= _assigned_types(e, types)
+    return out
+
+
+def check_value_types(root: Path) -> tuple[int, list[Violation]]:
+    """설계 값 타입 위치(design 40 §2.4.10 ②): frozen dataclass 타입을 허용 모듈 밖 모듈 수준·non-frozen 클래스 칸에 쥐지 않는다.
+    타입 목록은 엔진 전체(tests 제외)의 `@dataclass(frozen=True)` 클래스 이름을 AST 로 모은 것이다. 결과는 정렬."""
+    root = Path(root)
+    targets = engine_files(root)
+    trees = [(rel(root, p), parse(p)) for p in targets]
+    types = frozenset(n.name for _, t in trees for n in ast.walk(t)
+                      if isinstance(n, ast.ClassDef) and _is_frozen_dataclass(n))
+    out: list[Violation] = []
+    for r, tree in trees:
+        if r in G8_ALLOWED_MODULES:
+            continue
+        for node, sc in _scoped_nodes(tree):
+            parts = _assign_parts(node)
+            if parts is None:
+                continue
+            targets_, value = parts
+            labels = []
+            for t in targets_:
+                if sc.kind == "module" and isinstance(t, ast.Name):
+                    labels.append(t.id)
+                elif sc.kind == "class" and not sc.cls_frozen and isinstance(t, ast.Name):
+                    labels.append("%s.%s" % (sc.cls, t.id))
+                elif (sc.kind == "func" and sc.mparam is not None and not sc.mfrozen and isinstance(t, ast.Attribute)
+                      and isinstance(t.value, ast.Name) and t.value.id == sc.mparam):
+                    labels.append("%s.%s" % (sc.mclass, t.attr))
+            if not labels:
+                continue
+            ann = _annotation_types(node.annotation, types) if isinstance(node, ast.AnnAssign) else set()
+            if ann:
+                kind, found = "vt_annotation", ann
+            else:
+                kind, found = "vt_assign", _assigned_types(value, types)
+            if found:
+                for label in labels:
+                    out.append(Violation(kind, r, node.lineno, "%s:%s" % (label, min(found))))
+    return len(targets), sorted(out)
+
+
+@dataclass(frozen=True)
+class RatchetResult:
+    new: tuple
+    stale: tuple
+
+
+def _baseline_key(v: Violation) -> tuple[str, str, str]:
+    return (v.kind, v.path, v.detail)
+
+
+def baseline_doc(violations, record_id: str, base_commit: str) -> dict:
+    if not isinstance(record_id, str) or not record_id:
+        raise ValueError("g8_baseline_malformed: record_id 가 비어 있다")
+    if not isinstance(base_commit, str) or not BASELINE_SHA.match(base_commit):
+        raise ValueError("g8_baseline_malformed: base_commit 은 40자리 소문자 hex")
+    counts = Counter(_baseline_key(v) for v in violations)
+    rows = [{"kind": k, "path": p, "detail": d, "count": n} for (k, p, d), n in sorted(counts.items())]
+    return {"id": record_id, "base_commit": base_commit, "rows": rows}
+
+
+def dump_baseline(doc: dict) -> bytes:
+    return (json.dumps(doc, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+
+
+def _malformed(why: str) -> ValueError:
+    return ValueError("g8_baseline_malformed: " + why)
+
+
+def _check_baseline_doc(doc) -> dict:
+    if not isinstance(doc, dict):
+        raise _malformed("최상위가 객체가 아니다")
+    if sorted(doc) != list(BASELINE_KEYS):
+        raise _malformed("최상위 키가 정확히 %s 가 아니다" % (list(BASELINE_KEYS),))
+    if not isinstance(doc["id"], str) or not doc["id"]:
+        raise _malformed("id 가 비어 있다")
+    if not isinstance(doc["base_commit"], str) or not BASELINE_SHA.match(doc["base_commit"]):
+        raise _malformed("base_commit 이 40자리 소문자 hex 가 아니다")
+    if not isinstance(doc["rows"], list):
+        raise _malformed("rows 가 목록이 아니다")
+    seen = set()
+    for row in doc["rows"]:
+        if not isinstance(row, dict) or sorted(row) != list(BASELINE_ROW_KEYS):
+            raise _malformed("행 키가 정확히 %s 가 아니다" % (list(BASELINE_ROW_KEYS),))
+        if not all(isinstance(row[k], str) for k in ("kind", "path", "detail")):
+            raise _malformed("kind·path·detail 이 문자열이 아니다")
+        c = row["count"]
+        if isinstance(c, bool) or not isinstance(c, int) or c < 1:
+            raise _malformed("count 가 1 이상 정수가 아니다")
+        key = (row["kind"], row["path"], row["detail"])
+        if key in seen:
+            raise _malformed("같은 키 행이 중복이다: %s" % (key,))
+        seen.add(key)
+    return doc
+
+
+def load_baseline(path) -> dict:
+    raw = Path(path).read_bytes()                 # 파일 없음 = FileNotFoundError (조용히 비우지 않는다)
+    try:
+        doc = json.loads(raw.decode("utf-8"))
+    except ValueError as e:                       # JSONDecodeError·UnicodeDecodeError 는 ValueError
+        raise _malformed("JSON 이 아니다: %s" % e) from e
+    return _check_baseline_doc(doc)
+
+
+def ratchet(violations, doc: dict) -> RatchetResult:
+    """현재 수 > 기준선 수 = new, 현재 수 < 기준선 수 = stale(실패 아님). 줄 번호는 키가 아니다."""
+    now = Counter(_baseline_key(v) for v in violations)
+    base = {(r["kind"], r["path"], r["detail"]): r["count"] for r in doc["rows"]}
+    new = tuple((k[0], k[1], k[2], now[k] - base.get(k, 0)) for k in sorted(now) if now[k] > base.get(k, 0))
+    stale = tuple((k[0], k[1], k[2], base[k] - now.get(k, 0)) for k in sorted(base) if base[k] > now.get(k, 0))
+    return RatchetResult(new=new, stale=stale)

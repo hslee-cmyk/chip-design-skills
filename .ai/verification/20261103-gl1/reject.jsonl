@@ -1,0 +1,18 @@
+{"case": "add:g8_attr_container", "new": [["g8_attr_container", "metrics/_gl1_probe_host.py", "P1.probe", 1]], "stale": [], "ok": true}
+{"case": "add:g8_class_container", "new": [["g8_class_container", "metrics/_gl1_probe_host.py", "P2.probe", 1]], "stale": [], "ok": true}
+{"case": "add:g8_default_factory", "new": [["g8_default_factory", "metrics/_gl1_probe_host.py", "P3.probe", 1]], "stale": [], "ok": true}
+{"case": "add:g8_cached_property", "new": [["g8_cached_property", "metrics/_gl1_probe_host.py", "P4.probe", 1]], "stale": [], "ok": true}
+{"case": "add:g8_cache_call", "new": [["g8_cache_call", "metrics/_gl1_probe_host.py", "<module>", 1]], "stale": [], "ok": true}
+{"case": "add:g8_module_cache", "new": [["g8_module_cache", "metrics/_gl1_probe_host.py", "PROBE", 1]], "stale": [], "ok": true}
+{"case": "add:g8_id_call", "new": [["g8_id_call", "metrics/_gl1_probe_host.py", "probe", 1]], "stale": [], "ok": true}
+{"case": "add:g8_memo_call_form", "new": [["g8_memo_call_form", "metrics/_gl1_probe_host.py", "probe", 1]], "stale": [], "ok": true}
+{"case": "add:g8_memo_lookup_form", "new": [["g8_memo_lookup_form", "metrics/_gl1_probe_host.py", "probe", 1]], "stale": [], "ok": true}
+{"case": "add:vt_annotation", "new": [["vt_annotation", "metrics/_gl1_probe_host.py", "PROBE:PV", 1]], "stale": [], "ok": true}
+{"case": "add:vt_assign", "new": [["vt_assign", "metrics/_gl1_probe_host.py", "PROBE:PV", 1]], "stale": [], "ok": true}
+{"case": "count+1:g8_id_call", "new": [["g8_id_call", "metrics/resolution.py", "_sens", 1]], "stale": [], "ok": true}
+{"case": "remove:g8_id_call", "new": [], "stale": [["g8_id_call", "metrics/resolution.py", "_sens", 1]], "ok": true}
+{"case": "shift_lines", "new": [], "stale": [], "ok": true}
+{"case": "delete_baseline", "rc": 1, "tail": "FoundError: [Errno 2] No such file or directory: 'C:\\\\Users\\\\HSLEE\\\\AppData\\\\Local\\\\Temp\\\\la1s_gl1_audit\\\\iso6p\\\\skills\\\\analog-gmid-design\\\\gmid_engine\\\\tests\\\\structure\\\\g8_baseline.json'\n=========================== short test summary info ===========================\nFAILED skills\\analog-gmid-design\\gmid_engine\\tests\\structure\\test_g8_baseline.py::test_rule_g8_baseline_ratchet\n1 failed in 4.21s\n", "ok": true}
+{"case": "malformed_baseline", "rc": 1, "tail": "l\\Temp\\la1s_gl1_audit\\iso6p\\skills\\analog-gmid-design\\gmid_engine\\tests\\structure\\structure_checks.py:2215: ValueError: g8_baseline_malformed: 최상위 키가 정확히 ['base_commit', 'id', 'rows'] 가 아니다\n=========================== short test summary info ===========================\nFAILED skills\\analog-gmid-design\\gmid_engine\\tests\\structure\\test_g8_baseline.py::test_rule_g8_baseline_ratchet\n1 failed in 4.06s\n", "ok": true}
+{"case": "real_test_red_on_new", "rc": 1, "tail": " 대상 수 =========================\n엔진 루트: C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_gl1_audit\\iso6p\\skills\\analog-gmid-design\\gmid_engine\ntest_rule_g8_baseline_ratchet            대상 421개, 위반 102건\n=========================== short test summary info ===========================\nFAILED skills\\analog-gmid-design\\gmid_engine\\tests\\structure\\test_g8_baseline.py::test_rule_g8_baseline_ratchet\n1 failed in 4.09s\n", "ok": true}
+{"case": "real_test_green_restored", "rc": 0, "tail": "\n[g8 ratchet] stale 0 건: []\n.                                                                        [100%]\n======================== gmid_engine 구조 규칙 -- 검사 대상 수 =========================\n엔진 루트: C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_gl1_audit\\iso6p\\skills\\analog-gmid-design\\gmid_engine\ntest_rule_g8_baseline_ratchet            대상 420개, 위반 101건\n1 passed in 4.14s\n", "ok": true}

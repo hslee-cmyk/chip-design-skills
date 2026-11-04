@@ -1,0 +1,26 @@
+{
+ "n_targets_g8": 420,
+ "n_targets_vt": 420,
+ "n_viol_g8": 91,
+ "n_viol_vt": 10,
+ "rows_by_kind": {
+  "g8_attr_container": 59,
+  "g8_cached_property": 3,
+  "g8_default_factory": 4,
+  "g8_id_call": 2,
+  "g8_memo_lookup_form": 23,
+  "vt_assign": 10
+ },
+ "viol_by_kind": {
+  "g8_attr_container": 59,
+  "g8_cached_property": 3,
+  "g8_default_factory": 4,
+  "g8_id_call": 2,
+  "g8_memo_lookup_form": 23,
+  "vt_assign": 10
+ },
+ "n_rows": 101,
+ "new": 0,
+ "stale": 0,
+ "sha256": "84218cfba009f71ae418af1731de601ac41bc65e914b793fa075e8bd4f418e44"
+}
