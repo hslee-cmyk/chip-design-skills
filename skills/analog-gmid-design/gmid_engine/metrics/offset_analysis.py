@@ -1,7 +1,8 @@
 """입력 환산 랜덤 offset 1σ·구조 가드·소자별 기여 표 -- MNA ω → 0 수반 해석 (설계 40 §3.8-8 `offset_in_sigma_mv`·`offset_excess`·`offset_contrib`,
 41 §6.4-2, 체크리스트 D-OF1·D-OF2).
 
-진입점: `offset_analysis(ss, view, sigmas, input_cells=(), rel_tols=None, matching=None) -> OffsetAnalysis`.
+진입점: `offset_analysis(ss, view, sigmas, input_cells=(), rel_tols=None, matching=None, nodal=None) -> OffsetAnalysis`. `nodal` = 필드 `graph.ss_nodal` 값 (G 조립 자리는 그 블록 하나 --
+`metrics_aux` 가 넘긴다, 단위 호출은 생략하면 같은 조립 함수를 부른다).
 
 식(40 §3.8-8 표): 회로의 **모든 MOS** i 에 독립 게이트 전압 오차원 σ_VGS,i 를 두고 DC 극한 전달로 출력(감지 쌍이면 차)까지 보내 합친 분산을 차동 이득
 A_dm 으로 나눈다:  σ²_in = Σ_i (Z_i·gm_i·σ_VGS,i)² / A_dm².  Z_i = 소자 i 채널 전류(d -> s) 단위 -> 출력 전달 = z[s_i] − z[d_i], z = 수반 풀이
@@ -27,8 +28,8 @@ import scipy.linalg
 
 from gmid_engine.core import MV_PER_V
 
-from ._helpers_nodal import conductance_matrix, nodal_adjoint, nodal_factor, nodal_solve
-from ._helpers_view import PARAMETER_ORDER, view_system
+from ._helpers_nodal import nodal_adjoint, nodal_solve
+from ._helpers_view import PARAMETER_ORDER, view_factor, view_system
 from .aux_types import OffsetAnalysis, OffsetContribution
 from .mna_types import Undefined
 from .records import MosSmallSignal
@@ -53,7 +54,7 @@ def _unit_entries(mos, parameter):
     return mos_stamps(MosSmallSignal(mos.d, mos.g, mos.s, mos.b, args[0], args[1], args[2])).g
 
 
-def offset_analysis(ss, view, sigmas, input_cells=(), rel_tols=None, matching=None):
+def offset_analysis(ss, view, sigmas, input_cells=(), rel_tols=None, matching=None, nodal=None):
     system = view_system(ss, view)
     if system is None:
         return _bare("unsupported_view", (("mode", getattr(view, "mode", None)),))
@@ -66,7 +67,7 @@ def offset_analysis(ss, view, sigmas, input_cells=(), rel_tols=None, matching=No
     if missing:
         return _bare("sigma_missing", (("devices", missing),))
     size = len(ss.nodes)
-    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+    factor = view_factor(ss, nodal, fixed)
     volt, residual = nodal_solve(factor, size, drive)
     z = nodal_adjoint(factor, size, sense)
     if volt is None or z is None:

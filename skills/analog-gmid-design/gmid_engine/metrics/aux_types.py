@@ -15,8 +15,11 @@
 * `FfRatio` -- `ratio`.
 * 보고 전용: `BlockGain`·`BlockResidual`·`FfContribution`·`NqsRatio`·`LsNode`·`LsFields`·`GateResult`·`CoupledResidual`.
 * `MismatchSource` -- offset·미러비 σ 의 PDK mismatch 모델 입력, `SatDevice` -- 스윙·ICMR 경로 합의 MOS 하나.
+* `NodalSystem` -- 필드 `graph.ss_nodal` 값(봉인점 노달 계: G·g_bound·인수분해), `IcmConfig` -- 필드 `graph.icm_config` 값(ICMR 측정 구성).
 """
 import dataclasses
+
+import numpy
 
 
 @dataclasses.dataclass(frozen=True)
@@ -289,3 +292,41 @@ class CoupledResidual:
     median_db: object
     spread_db: object
     count: int
+
+
+@dataclasses.dataclass(frozen=True, eq=False)       # ndarray 칸이라 값 비교(==)는 `fp_of`(내용 지문)로 한다 -- 필드 단위 == 는 모호한 진리값 오류
+class NodalSystem:
+    """봉인점 소신호 DC 극한(용량 개방)의 노달 계 -- 필드 `graph.ss_nodal` 값(writer `ss_nodal`, 계획 N3.8 '봉인점 DC 야코비안').
+    `nodes` = 노드 이름 tuple(인덱스 = 위치, `ss_circuit.nodes`), `fixed` = 고정 노드 색인 frozenset(교류접지 ∪ 입력 넷), `g` = 컨덕턴스 행렬 G(S),
+    `g_bound` = G 조립 오차의 항목별 상계 E(S, `conductance_matrix(bound=True)`), `factor` = `nodal_factor(g, fixed)` 튜플.
+    ndarray 는 모두 읽기 전용(`writeable=False`)이다 -- 생성할 때 건 배열을 잠근다(소유권을 이 값에 넘긴다). 지문(`__canonical__`)은 (nodes, fixed, g, g_bound) 바이트 --
+    `factor` 는 (g, fixed) 의 결정적 파생이라 따로 싣지 않는다."""
+
+    nodes: tuple
+    fixed: frozenset
+    g: object
+    g_bound: object
+    factor: tuple
+
+    def __post_init__(self):
+        for array in (self.g, self.g_bound) + tuple(part for part in self.factor if isinstance(part, numpy.ndarray)):
+            array.flags.writeable = False
+
+    def __canonical__(self):
+        return (self.nodes, tuple(sorted(self.fixed)), self.g.shape, self.g.tobytes(), self.g_bound.shape, self.g_bound.tobytes())
+
+
+@dataclasses.dataclass(frozen=True)
+class IcmConfig:
+    """ICMR 측정 구성 결과 -- 필드 `graph.icm_config` 값(writer `icm_config`, 계획 N3.8 'ICMR 측정 구성').
+    `config` ∈ {"servo", "as_is_single_input"} 또는 None(정의 불능). `pivot_a_e` = 여기 방향 → 감지의 봉인점 DC 극한 전달(V/V), `pivot_resolution` = 그 판정 분해능
+    δA_num(V/V) -- 두 칸은 출력 전용(결과 JSON). `vcm0`·`vcm_lo`·`vcm_hi` = V_cm 칸(입력 포트 전압 평균의 봉인점·두 끝 상태 값, V; 한 포트라도 측정 실패면 끝은 None).
+    `undefined` = `Undefined` tuple(구성이 None 이면 원소 하나, quantity `"icm_config"`)."""
+
+    config: object
+    pivot_a_e: object
+    pivot_resolution: object
+    vcm0: object
+    vcm_lo: object
+    vcm_hi: object
+    undefined: tuple = ()

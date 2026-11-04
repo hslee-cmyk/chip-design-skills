@@ -125,6 +125,9 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 ### 3.1 `mos_stamps(dev) -> StampSet`, `two_terminal_stamps(elem) -> StampSet`
 - (행 노드, 열 노드, 값) tuple. KCL 행 = 노드에서 나가는 전류. MOS G 행: drain (d,d,gds)(d,g,gm)(d,b,gmb)(d,s,−(gm+gmb+gds)),
   source 는 부호 반대. 값 0 항목은 내지 않는다. 저항 = 1/R 의 2단자 4항목, 커패시터 = C 의 4항목. 다른 형식은 `TypeError`.
+- [IT-2c] `StampSet(g=(), c=(), g_ops=())`: `g_ops` = `g` 와 같은 길이·순서의 연산 수(길이가 다르면 `ValueError`). MOS (d, s)·(s, s) 항목 2(gm + gmb + gds 의 덧셈 2회), 나머지 6항목 0;
+  저항 네 항목 각 1(1/R 나눗셈); 커패시터는 g 가 비어 g_ops 도 빈 값. `conductance_matrix(circuit, size, *, bound=False)` 가 `bound=True` 면 `(g, g_bound)` 를 낸다:
+  E_ij = γ_{max(k_ij−1, 0)}·S_ij + C_ij + γ_{n+1}·|Ĝ_ij| (S = Σ|ĝ_s|, k = 스탬프 항 수, C = Σ γ_{c_s}|ĝ_s|, γ_m = m·u/(1 − m·u), u = ε/2, n = size).
 
 ### 3.2 `build_mna(circuit, excitations, senses) -> MnaSystem`
 - 소자마다 스탬프 함수를 **정확히 한 번** 부른다. 결과는 ω 와 무관한 실수 `G`·`C`(n×n), `BG`·`BC`(n×m, 전하 열 항은 `BC` 에),
@@ -496,7 +499,9 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 | 0 | `ss_types.py` | (데이터) `SsDevice`·`SsCircuit`·`MetricRequest`·`MetricBundle`·`SsEvaluation` | -- | -- |
 | 1 | `junction_source.py` | `JunctionSource` | -- | -- (접합 용량 입력 묶음, 7.2·7.6) |
 | 1 | `ss_linearize.py` | `ss_dev` | `ss_dev` | `device.ss_dev`(MOS 마다 `SsDevice`) |
-| 1 | `ss_circuit.py` | `ss_circuit` | -- | -- |
+| 1 | `ss_circuit.py` [IT-2c] | `ss_circuit_field`(순수 조립 함수 `ss_circuit`·`is_dc_conducting_passive`·`CODE_PASSIVE_MISSING`) | `ss_circuit` | `graph.ss_circuit`(key `METRICS_KEY`) = `SsCircuit` |
+| 3 | `ss_nodal.py` [IT-2c] | `ss_nodal_system`(조립 함수 `nodal_of`) | `ss_nodal` | `graph.ss_nodal`(key `METRICS_KEY`) = `NodalSystem` 또는 `Undefined` |
+| 3 | `icm_config.py` [IT-2c] | `icm_config_window`(`kvl_sensitivity`·`_transfer_resolution`) | `icm_config` | `node.dc_window_cfg`(입력 포트마다 `Window`)·`graph.icm_config`(`IcmConfig`) |
 | 3 | `dc_metrics.py` | `metrics_dc` | `metrics_dc` | `graph.metrics_dc`(key `METRICS_KEY` = `"metrics"`) |
 | 6 | `ss_metrics.py` | `metrics_ss` | `metrics_ss` | `graph.metrics_ss`(key `METRICS_KEY`) |
 | 7 | `ss_evaluate.py` | `ss_evaluate` | -- | -- |
@@ -562,6 +567,16 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
   -> 위와 같은 `StructureUnresolvedError`(devices = 그 원소, detail element_class·kind).
 - `circuit.ac_ground == ()`(뷰가 정한다), `ground_nets`·`input_nets` 정렬.
 
+### 7.3b [IT-2c] 블록 `ss_circuit`·`ss_nodal`·`icm_config` -- 소신호 회로 조립 자리와 ICMR 측정 구성
+- `ss_circuit_field(snapshot, donors=, counters=)`(writer `ss_circuit`): 위 7.3 의 조립(`ss_circuit`)을 **한 번** 해 `graph.ss_circuit` 에 쓴다. `metrics_ss`·`ss_nodal`·`metrics_aux` 는 이 필드를 READS 로 읽는다(조립 사본 없음).
+  노드 순서 = (`node.dc_colour`, 이름), 소자 순서 = (`device.dc_colour`, 이름). 지원 밖 원소·bulk 미정 MOS 는 이 블록이 `StructureUnresolvedError`(`ss_element_kind`).
+  `is_dc_conducting_passive(kind)` = `kind == "resistor"`(용량은 DC 에서 개방).
+- `ss_nodal_system(snapshot, donors=, counters=)`(writer `ss_nodal`, reads `graph.ss_circuit`·`device.kind`): `NodalSystem(nodes, fixed, g, g_bound, factor)` -- G·g_bound(`conductance_matrix(bound=True)`)와
+  `nodal_factor`(고정 = 교류접지 ∪ 입력 넷). ndarray 는 읽기 전용, 지문은 (nodes, fixed, g, g_bound). 값 없는 **저항**이 있으면 `Undefined("ss_nodal", "passive_value_undeclared", "definitional", (("elements", 이름들),))`,
+  용량만 결측이면 `NodalSystem`. `metrics_aux` 의 offset·systematic·블록 잔차는 이 필드의 G·인수분해를 읽는다.
+- `icm_config_window(snapshot, lut, linear_frozenset, donors=, counters=)`(writer `icm_config`): 봉인점 KCL 선형 감도(servo: 입력 둘, 감지 행 δs = 0 을 Schur 1칸으로; 단일 입력은 회로 그대로)와 영역 행(`Circuit.region_rows`, 여유 0)의
+  교집합으로 `node.dc_window_cfg`·`IcmConfig(config, pivot_a_e, pivot_resolution, vcm0, vcm_lo, vcm_hi, undefined)` 를 쓴다. 정의 불능 갈래·창·V_cm·판정 분해능은 `icm_config.py` 머리말과 설계 41 §4.7-3b. 피벗 두 칸은 출력 전용.
+
 ### 7.4 `metrics_ss(snapshot, requests[, noise])` -- 뷰 -> 계 -> metric
 [U17 ①, 설계 40 §2.4.8] 수동소자 값은 extras 가 아니라 GB5 필드 `device.passive_value`(reads 에 추가)를 읽는다.
 reads `device.{ss_dev, element_class, kind, pins, bulk, dc_colour}`, `node.{ac_ground_class, port_direction, dc_colour}`. **[r12, 2026-10-08]** 노드·소자 순서 = (`dc_colour` -- 정점마다 유일, 이름은 색 없는 이름만)(이름 치환에 불변한 선형계 행·스탬프 순서; dc_colour 가 없는 이름은 -1). `requests` = `MetricRequest`
@@ -621,7 +636,7 @@ reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v,
 - [9절] 전력·면적 결과의 `resolution` 은 None(LUT 소신호 불확실성 전파 대상이 아니다 -- 전력 축 분해능 b_P 는 같은 블록의 `power_resolution_w` 필드).
 
 ### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, ..., diffusion=()) -> SsEvaluation`
-[XRUN-F1 B] 서명은 그대로다. 다섯 블록(`passive_values`·`ss_dev`·`metrics_ss`·`metrics_aux`·`metrics_dc`)은 `ctx.donors`·`ctx.counters`(KernelContext 의 실행 하나 색인·계수)로 부른다 -- 같은 입력은 계보와
+[XRUN-F1 B] 서명은 그대로다. [IT-2c] 부르는 순서 `passive_values` -> `ss_dev` -> `ss_circuit` -> `metrics_ss` -> `ss_nodal` -> `icm_config` -> `metrics_aux` -> `metrics_dc`(`ss_nodal`·`icm_config` 는 요청과 무관하게 늘). 여덟 블록은 `ctx.donors`·`ctx.counters`(KernelContext 의 실행 하나 색인·계수)로 부른다 -- 같은 입력은 계보와
 무관하게 이식·재연된다. **ss 실패의 부분 스냅샷**: 후보 실패 클래스(`NonconvergentError`·`SealViolationError`, 이름으로 잡는다)가 나면 그 블록에 들어간 스냅샷(적어도 `sealed.snapshot`)을
 `core.attach_partial(exc, snapshot)` 로 붙인 뒤 같은 예외를 다시 낸다(`exc.partial`, 이미 있으면 바꾸지 않는다).
 [U14] `diffusion` = ((MOS, `DiffusionGeometry`), ...) -- 레이아웃 뒤 실현 확산 기하(MOD7 `ly.diffusion`). 있는 소자의 `ss_dev` cdb·csb 는 그 기하로, `junction_model` = `JUNCTION_LAYOUT_DIFFUSION`

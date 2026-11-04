@@ -5,6 +5,8 @@
 KCL 행 = 노드에서 나가는 전류. 채널 전류 I(d→s) = gm·(vg − vs) + gmb·(vb − vs) + gds·(vd − vs) 는 drain 행에 +, source 행에 −.
 용량은 단자 쌍마다 2단자 스탬프(cgs g–s, cgd g–d, cgb g–b, cdb d–b, csb s–b). CS·CG·CD·pass 를 분기하지 않는다
 (단자 스탬프가 전부 같다). bulk 가 source 와 같은 노드면 gmb 항은 스탬프 합에서 저절로 상쇄된다.
+`StampSet.g_ops` = `g` 항목마다 그 값을 만든 부동소수 연산 수: (d, s)·(s, s) 항목은 gm + gmb + gds 의 덧셈 2회, 나머지 여섯 항목은 입력 값 그대로(0회)
+-- `conductance_matrix(bound=True)` 의 g_bound 가 읽는다.
 """
 from ._helpers_stamp import admittance_pair
 from .records import MosSmallSignal, StampSet
@@ -17,10 +19,12 @@ def mos_stamps(device):
     d, g, s, b = device.d, device.g, device.s, device.b
     gm, gmb, gds = device.gm, device.gmb, device.gds
     total = gm + gmb + gds
+    adds = len((gm, gmb, gds)) - 1                  # total 은 세 항의 합 -- 덧셈 (항 수 − 1)회, (d, s)·(s, s) 항목만 그 연산을 거친다
     g_entries = (
-        (d, d, gds), (d, g, gm), (d, b, gmb), (d, s, -total),
-        (s, d, -gds), (s, g, -gm), (s, b, -gmb), (s, s, total),
+        (d, d, gds, 0), (d, g, gm, 0), (d, b, gmb, 0), (d, s, -total, adds),
+        (s, d, -gds, 0), (s, g, -gm, 0), (s, b, -gmb, 0), (s, s, total, adds),
     )
+    kept = tuple(e for e in g_entries if e[-2])      # 값 0 항목은 스탬프에서 빠진다 -- 연산 수도 같이
     c_entries = ()
     for (x, y), value in (
         ((g, s), device.cgs),
@@ -31,4 +35,4 @@ def mos_stamps(device):
     ):
         if value:
             c_entries += admittance_pair(x, y, value)
-    return StampSet(g=tuple(e for e in g_entries if e[-1]), c=c_entries)
+    return StampSet(g=tuple(e[:-1] for e in kept), c=c_entries, g_ops=tuple(e[-1] for e in kept))
