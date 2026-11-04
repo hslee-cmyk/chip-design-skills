@@ -1,0 +1,1129 @@
+{
+ "block_counters": {
+  "rows": [
+   [
+    "achievability",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "build_s1v",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "constraint_classes",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "coupling_vars",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_columns",
+    "*",
+    53,
+    12,
+    0,
+    0,
+    41,
+    0
+   ],
+   [
+    "dc_current_basis",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_currents",
+    "*",
+    53,
+    39,
+    0,
+    0,
+    14,
+    0
+   ],
+   [
+    "dc_lengths",
+    "*",
+    53,
+    33,
+    0,
+    0,
+    20,
+    0
+   ],
+   [
+    "dc_rails",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_scc_order",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_seal_bulk_reverse",
+    "*",
+    52,
+    3,
+    0,
+    0,
+    49,
+    0
+   ],
+   [
+    "dc_seal_conduction",
+    "*",
+    52,
+    3,
+    0,
+    0,
+    49,
+    0
+   ],
+   [
+    "dc_seal_kcl",
+    "*",
+    52,
+    3,
+    0,
+    0,
+    49,
+    0
+   ],
+   [
+    "dc_seal_kvl_branch",
+    "*",
+    52,
+    3,
+    0,
+    0,
+    49,
+    0
+   ],
+   [
+    "dc_seal_node_conflict",
+    "*",
+    52,
+    12,
+    0,
+    0,
+    40,
+    0
+   ],
+   [
+    "dc_seal_report",
+    "*",
+    52,
+    9,
+    3,
+    0,
+    40,
+    0
+   ],
+   [
+    "dc_seal_saturation",
+    "*",
+    52,
+    3,
+    0,
+    0,
+    49,
+    0
+   ],
+   [
+    "dc_seal_vgs_match",
+    "*",
+    52,
+    3,
+    0,
+    0,
+    49,
+    0
+   ],
+   [
+    "dc_theta_schema",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "dc_tolerances",
+    "*",
+    52,
+    3,
+    0,
+    0,
+    49,
+    0
+   ],
+   [
+    "dc_widths",
+    "*",
+    52,
+    3,
+    0,
+    0,
+    49,
+    0
+   ],
+   [
+    "dc_writer_plan",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "junction_source",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "kernel_context",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "metric_structure",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "metrics_aux",
+    "*",
+    52,
+    0,
+    0,
+    0,
+    52,
+    0
+   ],
+   [
+    "metrics_dc",
+    "*",
+    51,
+    0,
+    0,
+    0,
+    51,
+    0
+   ],
+   [
+    "metrics_ss",
+    "*",
+    52,
+    0,
+    0,
+    0,
+    52,
+    0
+   ],
+   [
+    "mismatch_source",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "model_error",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "noise_decl",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "passive_area_decl",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "passive_values",
+    "*",
+    52,
+    0,
+    0,
+    0,
+    52,
+    0
+   ],
+   [
+    "s1_branches",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_bulk",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_columns",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_dc_conduction",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_dc_roles",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_gs_groups",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_gvgs",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_matching_groups",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_rel_kcl",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_rel_matching",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_rel_vgs",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_structure",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "s1_symmetry",
+    "*",
+    3,
+    2,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "search_domain",
+    "*",
+    2,
+    1,
+    0,
+    0,
+    1,
+    0
+   ],
+   [
+    "ss_dev",
+    "*",
+    52,
+    3,
+    0,
+    0,
+    49,
+    0
+   ],
+   [
+    "start_intervals",
+    "*",
+    1,
+    0,
+    0,
+    0,
+    1,
+    0
+   ]
+  ],
+  "totals": {
+   "calls": 979,
+   "computes": 834,
+   "grafts": 3,
+   "recomputes_same_input": 0,
+   "replays": 0,
+   "reuses": 142
+  }
+ },
+ "circuit": "two_stage_ota",
+ "drive_pair_nets": {
+  "failing_views": 0,
+  "n_views": 2,
+  "views": [
+   {
+    "mode": "port",
+    "outside": [],
+    "pair_nets": [
+     "vin_n",
+     "vin_p"
+    ],
+    "view": "ViewDecl(mode='port', transfer=None, num=None, den=None, decision=None, beta=None, cuts=(), weights=(('vin_n', -0.5), ('vin_p', 0.5)), sense=SenseDecl(sense_p='OUT', sense_n=None, sense_mode='single_e"
+   },
+   {
+    "mode": "loop",
+    "outside": [],
+    "pair_nets": [
+     "vin_n",
+     "vin_p"
+    ],
+    "view": "ViewDecl(mode='loop', transfer=None, num=None, den=None, decision=None, beta='unity', cuts=(), weights=(('vin_n', -0.5), ('vin_p', 0.5)), sense=SenseDecl(sense_p='OUT', sense_n=None, sense_mode='singl"
+   }
+  ]
+ },
+ "feedback_slot": {
+  "kind": "empty_tuple",
+  "noise_decl_feedback": [],
+  "spec_feedback": []
+ },
+ "front_empty": {
+  "after_refilter": 0,
+  "aux_after": 0,
+  "aux_unmeasured_excluded": [],
+  "empty": false,
+  "excluded": [],
+  "front_was_empty_before": true,
+  "icmr_constraints": [],
+  "n_front": 0,
+  "undefined_for_report": []
+ },
+ "kernel_window_status": {
+  "counts": {
+   "settled": 41
+  },
+  "defined": true,
+  "interior_aux": 0,
+  "n_evals": 41,
+  "n_with_root": 41,
+  "rates": {
+   "settled": 1.0
+  },
+  "trace_first3": [
+   "{'roots': ('vin_p',), 'phase': 'refine', 'iw': [('first', False), ('loop', False), ('loop', False), ('refine', False), ('refine', False)], 'interior': None, 'refine': True, 'kmax': 9, 'tol': 0.00634713209181814}",
+   "{'roots': ('vin_p',), 'phase': 'refine', 'iw': [('first', False), ('loop', False), ('loop', False), ('refine', False), ('refine', False)], 'interior': None, 'refine': True, 'kmax': 9, 'tol': 0.006930897309426829}",
+   "{'roots': ('vin_p',), 'phase': 'refine', 'iw': [('first', False), ('loop', False), ('loop', False), ('refine', False), ('refine', False)], 'interior': None, 'refine': True, 'kmax': 9, 'tol': 0.00634713209181814}"
+  ]
+ },
+ "loop_cut": {
+  "input_terminal_nets_calls": {
+   "after_stage_a": 0,
+   "stage_a": 0
+  },
+  "interval": "build_kernel_context..find_front..재평가 전 구간(dc_writer_plan·run_kernel·seal_dc 구간을 포함하는 상위 구간)",
+  "wrapped": true
+ },
+ "m_i1": {
+  "coords": [
+   [
+    "M1",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M2",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M3",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M4",
+    {
+     "partner": "M3",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M5",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M6",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M7",
+    {
+     "partner": "M5",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ]
+  ],
+  "dependent": [
+   [
+    "M4",
+    {
+     "partner": "M3",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M7",
+    {
+     "partner": "M5",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ]
+  ],
+  "fields_fp": {
+   "dc_coord": "5c1bd6532cc6c267ac2583cb16a0ce9affaa52ab6742d5f972b975a6650c683b",
+   "dc_tie_breaks": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
+   "dc_writer": "fcddf181d0cb7ebf648d24c2aad59e4c8467382f96deecbe1a4854c4984d4b66"
+  },
+  "input_port_writer": {
+   "vin_n": [
+    "W2",
+    "vgs_gate",
+    "M1",
+    "CS",
+    null
+   ],
+   "vin_p": [
+    "W4",
+    "free_window",
+    null,
+    null,
+    "vin_p"
+   ]
+  },
+  "tie_breaks": [],
+  "w4": [
+   [
+    "OUT",
+    "OUT"
+   ],
+   [
+    "vin_p",
+    "vin_p"
+   ]
+  ],
+  "writers": [
+   [
+    "CS",
+    {
+     "element": "M2",
+     "known": "vin_p",
+     "order": 7,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "D3",
+    {
+     "element": "M3",
+     "known": "vdd",
+     "order": 3,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "N_cc_rz",
+    {
+     "element": "Rz",
+     "known": "O1",
+     "order": 5,
+     "relation": "resistor_drop",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "O1",
+    {
+     "element": "M6",
+     "known": "vdd",
+     "order": 4,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "OUT",
+    {
+     "element": null,
+     "known": null,
+     "order": 9,
+     "relation": "free_window",
+     "tier": "W4",
+     "y_key": "OUT"
+    }
+   ],
+   [
+    "bias",
+    {
+     "element": "M5",
+     "known": "gnd",
+     "order": 2,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "gnd",
+    {
+     "element": null,
+     "known": null,
+     "order": 0,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vdd",
+    {
+     "element": null,
+     "known": null,
+     "order": 1,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vin_n",
+    {
+     "element": "M1",
+     "known": "CS",
+     "order": 8,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "vin_p",
+    {
+     "element": null,
+     "known": null,
+     "order": 6,
+     "relation": "free_window",
+     "tier": "W4",
+     "y_key": "vin_p"
+    }
+   ]
+  ]
+ },
+ "m_i1_r": {
+  "f_component_undeclared": [
+   "vin_n"
+  ],
+  "input_w4_roots": [
+   "vin_p"
+  ],
+  "isolated_input": [],
+  "multi_root": false,
+  "n_input_w4_roots": 1
+ },
+ "m_i2": {
+  "hard_ok": true,
+  "kernel_calls": 17,
+  "origin_point": "centre",
+  "probes": 0,
+  "start": {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "theta": [
+    [
+     [
+      "L",
+      "M1"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M2"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M3"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M5"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "L",
+      "M6"
+     ],
+     1.5e-07
+    ],
+    [
+     [
+      "capacitance",
+      "Cc"
+     ],
+     3.8417660008417153e-13
+    ],
+    [
+     [
+      "current",
+      "M3"
+     ],
+     9.005108923997329e-07
+    ],
+    [
+     [
+      "current",
+      "M4"
+     ],
+     9.005108923997329e-07
+    ],
+    [
+     [
+      "current",
+      "M6"
+     ],
+     2.4828960507132635e-05
+    ],
+    [
+     [
+      "ln_idu",
+      "M1"
+     ],
+     -17.957198447104858
+    ],
+    [
+     [
+      "ln_idu",
+      "M2"
+     ],
+     -17.957198447104858
+    ],
+    [
+     [
+      "ln_idu",
+      "M3"
+     ],
+     -15.689556403501749
+    ],
+    [
+     [
+      "ln_idu",
+      "M5"
+     ],
+     -17.601779767756874
+    ],
+    [
+     [
+      "ln_idu",
+      "M6"
+     ],
+     -15.935909375379056
+    ],
+    [
+     [
+      "y",
+      "OUT"
+     ],
+     0.5
+    ],
+    [
+     [
+      "y",
+      "vin_p"
+     ],
+     0.5
+    ]
+   ]
+  },
+  "start_failure": null,
+  "start_status": "sealed",
+  "stop": "converged",
+  "t": 0.9841759292487328
+ },
+ "m_i3": {
+  "domain_tied_y": [],
+  "failed_eps": 2,
+  "front_fp": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+  "fronts": {
+   "front": [],
+   "pending": [],
+   "unmeasured": []
+  },
+  "n_front": 0,
+  "n_pending": 0,
+  "n_theta_y": 2,
+  "n_unmeasured": 0,
+  "perf": {
+   "block_index_bound": 3087,
+   "block_index_entries": 834,
+   "eval_budget": 40,
+   "eval_budget_source": "declared",
+   "eval_time_median_s": 0.057574299979023635,
+   "fail_hits": 0,
+   "frozen_columns": 0,
+   "hits": 50,
+   "kernel_calls": 53,
+   "lut_memo_bound": "fixed",
+   "lut_memo_evictions": 2081,
+   "n_solves": 2,
+   "n_starts": 1,
+   "outside_domain": 0,
+   "recompute_same_key": 0,
+   "requests": 103,
+   "stops_eval_budget": 1,
+   "stops_wall_budget": 0,
+   "unique_keys": 53
+  },
+  "result_y_keys": [],
+  "theta_y_components": [
+   [
+    "y",
+    "OUT"
+   ],
+   [
+    "y",
+    "vin_p"
+   ]
+  ]
+ },
+ "m_i4": {
+  "exceed_points": [
+   "theta0_layer0"
+  ],
+  "has_diff": true,
+  "pairs": {
+   "theta0_layer0": [
+    {
+     "diff": 0.002299027574351964,
+     "exceed": true,
+     "p": "vin_n",
+     "q": "vin_p",
+     "rule": "bit_identical",
+     "tol_p": null,
+     "tol_q": null
+    }
+   ]
+  },
+  "points": 1
+ },
+ "m_i5": {
+  "dof": {
+   "competing_pairs": [],
+   "free_variables": [
+    "I:M3",
+    "I:M4",
+    "I:M6",
+    "V:N_cc_rz",
+    "V:O1",
+    "V:OUT",
+    "V:bias",
+    "V:vin_n",
+    "V:vin_p",
+    "u:M1",
+    "u:M2",
+    "u:M3",
+    "u:M4",
+    "u:M5",
+    "u:M6",
+    "u:M7"
+   ],
+   "n_equations": 7,
+   "n_variables": 23,
+   "numeric_ranks": [],
+   "status": "free_dof",
+   "structural_rank": 7,
+   "unmatched_equations": []
+  },
+  "tie_equations": 0
+ },
+ "m_i6": {
+  "E": 8,
+  "V": 8,
+  "components": 2,
+  "cycles": 2,
+  "dependent": 2,
+  "equal": true,
+  "tie_edges": 0
+ },
+ "output_structure": {
+  "input_dc_declared": false,
+  "n_outputs": 1,
+  "plan_stop": null,
+  "rows": [
+   {
+    "class": "high_impedance",
+    "component_size": 1,
+    "engine_path": "plan_ok",
+    "fprime_hit": [],
+    "output": "OUT",
+    "s_os1": false,
+    "w3": false,
+    "writer_chain": [
+     [
+      "OUT",
+      "W4",
+      "free_window"
+     ]
+    ]
+   }
+  ],
+  "s_os2_empty": false,
+  "s_os2_tuple": false,
+  "spec_feedback_kind": "empty_tuple",
+  "w3_declared": [],
+  "w3_outputs_on_hard_path": 0
+ },
+ "reeval": {
+  "front": [],
+  "theta0": [
+   {
+    "kw": [
+     "settled"
+    ],
+    "label": "theta0_layer0",
+    "port_pairs": [
+     {
+      "diff": 0.002299027574351964,
+      "exceed": true,
+      "p": "vin_n",
+      "q": "vin_p",
+      "rule": "bit_identical",
+      "tol_p": null,
+      "tol_q": null
+     }
+    ],
+    "s_p": [
+     {
+      "dVp_dx": 1.0021954615250175,
+      "port": "vin_n",
+      "root": "vin_p",
+      "sign": 1
+     }
+    ],
+    "status": "sealed",
+    "tol_source": "no_rows_attr:SealItem"
+   }
+  ]
+ },
+ "repo": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_it2a_audit/b",
+ "s_p_sign": {
+  "negative": [],
+  "o49_p2_fires": false,
+  "rows": {
+   "theta0_layer0": [
+    {
+     "dVp_dx": 1.0021954615250175,
+     "port": "vin_n",
+     "root": "vin_p",
+     "sign": 1
+    }
+   ]
+  }
+ },
+ "set": "library",
+ "side": "BASE",
+ "stage_a": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "stage_b": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "tag": "",
+ "wall_s": 33.48840969998855,
+ "wrapped": true
+}

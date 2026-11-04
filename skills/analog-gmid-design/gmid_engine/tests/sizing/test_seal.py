@@ -18,7 +18,7 @@ from .conftest import (eval_calls, node_voltages, resistances_of, run_of, tamper
 
 
 def _seal(ctx, snap, calls, th, lin=()):
-    return seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), tuple(lin), **run_of(ctx))
+    return seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), tuple(lin), base=ctx.base, **run_of(ctx))
 
 
 def test_undefined_evaluation(ctx_c):
@@ -160,4 +160,27 @@ def test_seal_dc_run_pair_keywords_required(ctx_c, missing):
     snap, calls = eval_calls(ctx, th)
     kw = {k: v for k, v in run_of(ctx).items() if missing != "both" and k != missing}
     with pytest.raises(TypeError):
-        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), **kw)
+        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), base=ctx.base, **kw)
+
+
+# [IT-2a T-L11e, design 41 v1.12.8 L11 (d); oracle (a)/(d) 계약 선언: base 는 필수 -- None·생략은 건너뛰어 pass 하지 않고 TypeError]
+def test_it2a_seal_versions_base_none_type_error(ctx_c):
+    from gmid_engine.sizing import seal_versions
+    snap, calls = eval_calls(ctx_c[2], theta_c())
+    with pytest.raises(TypeError):
+        seal_versions(snap, calls, None)
+
+
+def test_it2a_seal_dc_base_none_type_error(ctx_c):
+    ctx, th = ctx_c[2], theta_c()
+    snap, calls = eval_calls(ctx, th)
+    with pytest.raises(TypeError):
+        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), base=None, **run_of(ctx))
+
+
+def test_it2a_seal_dc_base_keyword_required(ctx_c):
+    """B-T16 꼴: donors·counters 는 넘기고 base 만 생략 -> TypeError."""
+    ctx, th = ctx_c[2], theta_c()
+    snap, calls = eval_calls(ctx, th)
+    with pytest.raises(TypeError):
+        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), **run_of(ctx))

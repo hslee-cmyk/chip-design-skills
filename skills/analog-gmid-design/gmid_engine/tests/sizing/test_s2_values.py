@@ -20,6 +20,9 @@ DC_TABLE = {
     ("node", "dc_writer"): "dc_writer_plan",
     ("device", "dc_coord"): "dc_writer_plan",
     ("graph", "dc_tie_breaks"): "dc_writer_plan",           # [r2]
+    # [IT-2b 갱신 -- 표 확대, 약화 아님] design 41 v1.12.8 4.7-1a: 출력 구조 분류 필드의 writer 는 쓰기 계획 블록 하나(DC_WRITES 의
+    # DC_WRITER_PLAN_WRITER 행에 더함, 계획 N3.8 '출력 구조 분류 -- 규칙 하나').
+    ("node", "dc_output_structure"): "dc_writer_plan",
     # [U17 ①-b] 설계 40 v1.9.1 §2.4.8 '1변수 writer 집합(sctx.cell_floors[("one_var_writers",)]) -> device: dc_self_referential, writer 쓰기 계획 블록(sizing)'
     ("device", "dc_self_referential"): "dc_writer_plan",
     # [U17 ①-b] §2.4.8 '커널 컨텍스트 구조 파생 -> graph/kernel: fixed_values·resistor_values·l_ties, writer build_kernel_context 를 블록으로(sizing)'
@@ -67,12 +70,13 @@ BLOCKS = {
 }
 
 
-def test_dc_table_has_33_fields():
+def test_dc_table_has_34_fields():
     # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28, [r8] dc_seal_9·dc_off_current·dc_conduction_floor 3 = 31,
     # [r11] 3.0b node.dc_orbit·device.dc_orbit 2 = 33, [U2] graph.dc_symmetry 1 = 34, [U17 ①-d] 대칭 블록 graph 이동 −5
     # (node/device dc_colour·dc_orbit, graph.dc_symmetry) = 29, [U17 ①-b] 설계 40 v1.9.1 §2.4.8 S0 행 +4: device.dc_self_referential(1변수 writer 집합),
     # graph/kernel fixed_values·resistor_values·l_ties(커널 컨텍스트 구조 파생) = 33. theta_schema 는 dc_theta_schema 를 옮긴 것이라 ±0).
-    assert len(DC_TABLE) == 33
+    # [IT-2b 갱신] node.dc_output_structure(writer dc_writer_plan, design 41 4.7-1a) +1 = 34.
+    assert len(DC_TABLE) == 34
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -139,7 +143,7 @@ READS = {
                          ("device", "dc_colour"), ("node", "is_rail"), ("graph", "dc_pruned"), ("graph", "orbits")},
     "dc_writer_plan": {("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
                        ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
-                       ("node", "dc_colour"),
+                       ("node", "dc_colour"), ("node", "port_role"), ("graph", "gvgs_summary"),
                        ("device", "bulk")},      # [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
     "dc_scc_order": {("node", "dc_writer"), ("device", "pins"), ("device", "bulk"), ("device", "element_class"),
                      ("graph", "columns"), ("graph", "branches")},
@@ -150,7 +154,8 @@ READS = {
                    ("device", "bulk"), ("device", "element_class"), ("device", "dc_coord"),
                    ("graph", "dc_scc_order"),
                    ("device", "dc_self_referential"),   # [U17 ①-b] §2.4.8 1변수 writer 집합은 S0 필드 -- 기둥 블록이 읽는다
-                   ("device", "dc_colour"), ("node", "dc_colour")},     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
+                   ("device", "dc_colour"), ("node", "dc_colour"),
+                   ("node", "port_direction")},   # [IT-1 K-3 ext, O-84] 41:672 -- 입력 포트 판정은 S1 포트 방향 READS     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
     "dc_widths": {("node", "dc_v"), ("node", "dc_rail_v"), ("device", "dc_current"), ("device", "dc_L"),
                   ("device", "dc_ln_idu"), ("device", "pins"), ("device", "kind"), ("device", "bulk")},
 }
@@ -178,12 +183,12 @@ def test_theta_schema_reads_include_structural_rule_fields():
 def test_vocabulary_constants():
     assert S.DC_KEY == "dc"
     assert (S.TIER_W0, S.TIER_W1, S.TIER_W2, S.TIER_W3, S.TIER_W4) == ("W0", "W1", "W2", "W3", "W4")
-    assert (S.REL_RAIL, S.REL_TARGET, S.REL_INPUT_DC, S.REL_VGS_GATE, S.REL_VGS_SOURCE, S.REL_RESISTOR, S.REL_TIE,
-            S.REL_WINDOW) == ("rail", "declared_target", "input_dc", "vgs_gate", "vgs_source", "resistor_drop",
-                              "input_tie", "free_window")
+    assert (S.REL_RAIL, S.REL_TARGET, S.REL_INPUT_DC, S.REL_VGS_GATE, S.REL_VGS_SOURCE, S.REL_RESISTOR,
+            S.REL_WINDOW, S.REL_INPUT_POINT) == ("rail", "declared_target", "input_dc", "vgs_gate", "vgs_source",
+                                                 "resistor_drop", "free_window", "input_point")        # [IT-1 DEC-106] 여덟째 relation
     assert (S.COORD_WRITER, S.COORD_DEPENDENT) == ("writer", "dependent")
     assert (S.DEP_TREE, S.DEP_PARALLEL, S.DEP_CYCLE, S.DEP_FIXED) == ("tree", "parallel_vgs", "cycle_vgs", "fixed_vgs")
-    assert S.INPUT_GROUP_KEY == "input_common_mode"
+    assert not hasattr(S, "INPUT_GROUP_KEY") and not hasattr(S, "REL_TIE")          # [IT-1 K-3] 어휘 제거
     assert (S.REPORT_VIOLATED, S.REPORT_UNDEFINED, S.REPORT_SEALED) == ("violated", "undefined", "sealed")
     assert (S.SEAL_NODE_CONFLICT, S.SEAL_VGS_MATCH, S.SEAL_KCL, S.SEAL_VERSIONS, S.SEAL_WRITER_UNIQUE,
             S.SEAL_BULK_REVERSE, S.SEAL_SATURATION, S.SEAL_KVL_BRANCH, S.SEAL_CONDUCTION) == (1, 2, 3, 4, 5, 6, 7, 8, 9)
@@ -193,8 +198,13 @@ def test_vocabulary_constants():
         "lut_vdsat_column_missing", "declared_source_kcl_conflict", "no_root_in_window", "strict_recheck_residual")
     # [r2] 옛 device_current_nonpositive 는 없어졌다(정의역 밖 = ValueError)
     assert not hasattr(S, "REASON_CURRENT_NONPOSITIVE")
-    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_INPUT_ORDER, S.TIE_CURRENT_PIVOT) == (
-        "writer_edge", "w4_root", "input_tie_order", "current_pivot")
+    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_CURRENT_PIVOT) == (
+        "writer_edge", "w4_root", "current_pivot")
+    assert not hasattr(S, "TIE_INPUT_ORDER")
+    assert not hasattr(S, "BRANCH_INPUT_MULTIPLE_ROOTS")                             # [IT-1 DEC-106] 옛 사유 삭제
+    from gmid_engine.sizing import s2_values as _s2v
+    assert _s2v.BRANCH_INPUT_CM_UNDEFINED == "input_cm_undefined"
+    assert not hasattr(_s2v, "BRANCH_INPUT_MULTIPLE_ROOTS")
     assert S.BRANCH_RESISTOR_CYCLE == "dc_resistor_cycle"
     assert S.BRANCH_MOS_ZERO_CURRENT == "mos_zero_current_structural"
     # [r5] 4.4: capacitance(engine 커패시터)·ss_resistance(DC 전류 0 engine 저항 중 구조 규칙 밖) 추가, 둘 다 DC 블록이 읽지 않는
@@ -206,6 +216,19 @@ def test_vocabulary_constants():
     assert (S.ZC_NO_CAPACITOR, S.ZC_MULTIPLE_RESISTORS, S.ZC_RESISTOR_END, S.ZC_NO_CELL, S.ZC_MIXED_DIRECTION) == (
         "network_without_capacitor", "network_multiple_resistors", "resistor_end_not_unique", "no_cs_cell",
         "cs_cell_direction_mixed")
+
+
+def test_it2b_output_structure_vocabulary_and_window_status_defaults():
+    """oracle 대조: (d) 사용자 선언 스펙값 -- design 41 v1.12.8 4.7-1a·4.7-2: 출력 구조 분류 값은 두 문자열뿐이고(상수 `OUTPUT_HIGH_IMPEDANCE`·
+    `OUTPUT_KVL_FIXED`, 모듈 `gmid_engine.sizing.s2_values`), `Window` 의 새 칸 기본값은 (input_status None, tol_v None).
+    [O-98 반영] `status_detail` 칸은 (S4-나)에서 IT-2b 에 없다 -- 동작점 불일치 묶음은 EO-1 card 몫(계획 v6.33)."""
+    from gmid_engine.sizing import s2_values
+    assert s2_values.OUTPUT_HIGH_IMPEDANCE == "high_impedance"
+    assert s2_values.OUTPUT_KVL_FIXED == "kvl_fixed"
+    w = s2_values.Window(0.31, 1.12, 2, input_status="measured", tol_v=1.2e-4)         # 설계 예시 리터럴 (41 4.7-2)
+    assert (w.lo, w.hi, w.constraints, w.input_status, w.tol_v) == (0.31, 1.12, 2, "measured", 1.2e-4)
+    undefined = s2_values.Window(None, None, 0, input_status="f_component_undeclared")
+    assert (undefined.lo, undefined.hi, undefined.input_status) == (None, None, "f_component_undeclared")
 
 
 def test_value_defaults():
@@ -260,7 +283,11 @@ def test_value_fields_as_contract():
     assert S.ZeroCancel("Rz", "out", ("in",), ("M1",)).reason is None
     assert names(S.ColumnNeighbor) == ("rails", "pred", "succ", "position", "length")
     assert names(S.SccEntry) == ("index", "nodes", "cyclic", "devices")
-    assert names(S.Window) == ("lo", "hi", "constraints")
+    # [IT-2b 갱신 -- 칸 확대] design 41 4.7-2: 기본값 있는 칸 둘(input_status·tol_v)을 뒤에 더한다(옛 3칸 생성 호환).
+    # [O-98 반영] `status_detail` 칸은 IT-2b 에 없다(동작점 불일치 묶음 = EO-1 card, 계획 v6.33).
+    assert names(S.Window) == ("lo", "hi", "constraints", "input_status", "tol_v")
+    old_window = S.Window(0.0, 1.8, 2)
+    assert (old_window.input_status, old_window.tol_v) == (None, None)
     # [r6] method·fallback 필드 추가(옛 6칸 뒤, 6칸 생성 호환). [r7] 2절: 기본값 method="direct", fallback=None.
     assert names(S.SccLog) == ("index", "nodes", "iterations", "deltas", "tol", "k_max", "method", "fallback")
     old = S.SccLog(0, ("x",), 1, (0.0,), 1e-3, 11)

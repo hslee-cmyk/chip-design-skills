@@ -286,17 +286,21 @@ class U2Oracle:
 
     def _gvgs(self):
         fixed = []
+        same = []
         rep = {}               # frozenset(끝점) -> 대표 소자(이름순 첫)
         for n in sorted(self.mos):
             e = self.mos[n]
             g, s = self._node(e["gate"]), self._node(e["source"])
+            if e["gate"] == e["source"]:
+                same.append(n)                                   # [IT-1 O-210 RR-6] gate 넷 == source 넷: 정지하지 않고 기록
             if g == F and s == F:
                 fixed.append(n)
                 continue
             if g == s:
-                raise StopExpected("gvgs_self_edge", (n,), nets=(e["gate"],))
+                continue                                         # 비레일 g = s: 자기 고리라 G 엣지 아님
             rep.setdefault(frozenset((g, s)), n)
         self.fixed_vgs = tuple(fixed)
+        self.gate_source_same = tuple(same)
         self.gs_edges = {n: tuple(k) for k, n in rep.items()}           # 대표 소자 -> 끝점 2개
         E = list(rep)
         P = set(self.input_ports)

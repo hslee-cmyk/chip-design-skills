@@ -1,0 +1,1007 @@
+{
+ "circuit": "nmcnr_amplifier",
+ "drive_pair_nets": {
+  "failing_views": 0,
+  "n_views": 2,
+  "views": [
+   {
+    "mode": "port",
+    "outside": [],
+    "pair_nets": [
+     "Vin_n",
+     "Vin_p"
+    ],
+    "view": "ViewDecl(mode='port', transfer=None, num=None, den=None, decision=None, beta=None, cuts=(), weights=(('Vin_n', -0.5), ('Vin_p', 0.5)), sense=SenseDecl(sense_p='Vout', sense_n=None, sense_mode='single_"
+   },
+   {
+    "mode": "loop",
+    "outside": [],
+    "pair_nets": [
+     "Vin_n",
+     "Vin_p"
+    ],
+    "view": "ViewDecl(mode='loop', transfer=None, num=None, den=None, decision=None, beta='unity', cuts=(), weights=(('Vin_n', -0.5), ('Vin_p', 0.5)), sense=SenseDecl(sense_p='Vout', sense_n=None, sense_mode='sing"
+   }
+  ]
+ },
+ "feedback_slot": {
+  "kind": "empty_tuple",
+  "noise_decl_feedback": [],
+  "spec_feedback": []
+ },
+ "front_empty": {
+  "after_refilter": 0,
+  "aux_after": 0,
+  "aux_unmeasured_excluded": [],
+  "empty": false,
+  "excluded": [],
+  "front_was_empty_before": true,
+  "icmr_constraints": [
+   "icmr_v"
+  ],
+  "n_front": 0,
+  "undefined_for_report": []
+ },
+ "kernel_window_status": {
+  "counts": {
+   "settled": 32,
+   "unmeasured": 2
+  },
+  "defined": true,
+  "interior_aux": 0,
+  "n_evals": 34,
+  "n_with_root": 34,
+  "rates": {
+   "settled": 0.9411764705882353,
+   "unmeasured": 0.058823529411764705
+  },
+  "trace_first3": [
+   "{'roots': ('Vin_p',), 'phase': 'refine', 'iw': [('first', False), ('loop', False), ('refine', False), ('refine', False)], 'interior': None, 'refine': True, 'kmax': 9, 'tol': 0.006930897309426829}",
+   "{'roots': ('Vin_p',), 'phase': 'refine', 'iw': [('first', False), ('loop', False), ('loop', False), ('loop', False), ('refine', False), ('refine', False), ('refine', False)], 'interior': None, 'refine': True, 'kmax': 8, 'tol': 0.007140967570490426}",
+   "{'roots': ('Vin_p',), 'phase': 'refine', 'iw': [('first', False), ('loop', False), ('loop', False), ('refine', False), ('refine', False), ('refine', False), ('refine', False)], 'interior': None, 'refine': True, 'kmax': 9, 'tol': 0.006782662840306187}"
+  ]
+ },
+ "loop_cut": {
+  "input_terminal_nets_calls": {
+   "after_stage_a": 0,
+   "stage_a": 0
+  },
+  "interval": "build_kernel_context..find_front..재평가 전 구간(dc_writer_plan·run_kernel·seal_dc 구간을 포함하는 상위 구간)",
+  "wrapped": true
+ },
+ "m_i1": {
+  "coords": [
+   [
+    "M101",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M102",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M103",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M104",
+    {
+     "partner": "M105",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M105",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M106",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M107",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M108",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M109",
+    {
+     "partner": "M108",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M201",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M202",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M203",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M204",
+    {
+     "partner": "M203",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M301",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M302",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  ],
+  "dependent": [
+   [
+    "M104",
+    {
+     "partner": "M105",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M109",
+    {
+     "partner": "M108",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M204",
+    {
+     "partner": "M203",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ]
+  ],
+  "fields_fp": {
+   "dc_coord": "b8774cb10c0798cf86a451e361250ff8382574f5edf99b42a9d3653e3e12158f",
+   "dc_tie_breaks": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
+   "dc_writer": "1e73c3be9f29eb8d235bc358541524511832d3e81ac2f0dfae1c8646de9cc44c"
+  },
+  "input_port_writer": {
+   "Vin_n": [
+    "W2",
+    "vgs_gate",
+    "M102",
+    "NodeTail",
+    null
+   ],
+   "Vin_p": [
+    "W4",
+    "free_window",
+    null,
+    null,
+    "Vin_p"
+   ]
+  },
+  "tie_breaks": [],
+  "w4": [
+   [
+    "NodeF2",
+    "NodeF2"
+   ],
+   [
+    "Vin_p",
+    "Vin_p"
+   ]
+  ],
+  "writers": [
+   [
+    "NodeC",
+    {
+     "element": "M203",
+     "known": "vss",
+     "order": 3,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "NodeCM",
+    {
+     "element": "Rm",
+     "known": "Vout",
+     "order": 12,
+     "relation": "resistor_drop",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "NodeF1",
+    {
+     "element": "M106",
+     "known": "VB3",
+     "order": 15,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "NodeF2",
+    {
+     "element": null,
+     "known": null,
+     "order": 13,
+     "relation": "free_window",
+     "tier": "W4",
+     "y_key": "NodeF2"
+    }
+   ],
+   [
+    "NodeM1",
+    {
+     "element": "M108",
+     "known": "vdd",
+     "order": 7,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "NodeM2",
+    {
+     "element": "M201",
+     "known": "vdd",
+     "order": 9,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "NodeS2",
+    {
+     "element": "M301",
+     "known": "vss",
+     "order": 5,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "NodeTail",
+    {
+     "element": "M103",
+     "known": "Vin_p",
+     "order": 17,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "VB1",
+    {
+     "element": "M101",
+     "known": "vdd",
+     "order": 10,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "VB2",
+    {
+     "element": "M105",
+     "known": "vss",
+     "order": 4,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "VB3",
+    {
+     "element": "M107",
+     "known": "NodeF2",
+     "order": 14,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "VB4",
+    {
+     "element": "M202",
+     "known": "vdd",
+     "order": 8,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "VB5",
+    {
+     "element": "M302",
+     "known": "vdd",
+     "order": 11,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vin_n",
+    {
+     "element": "M102",
+     "known": "NodeTail",
+     "order": 18,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vin_p",
+    {
+     "element": null,
+     "known": null,
+     "order": 16,
+     "relation": "free_window",
+     "tier": "W4",
+     "y_key": "Vin_p"
+    }
+   ],
+   [
+    "Vout",
+    {
+     "element": "RL",
+     "known": "agnd",
+     "order": 6,
+     "relation": "resistor_drop",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "agnd",
+    {
+     "element": null,
+     "known": null,
+     "order": 1,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vdd",
+    {
+     "element": null,
+     "known": null,
+     "order": 2,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vss",
+    {
+     "element": null,
+     "known": null,
+     "order": 0,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ]
+  ]
+ },
+ "m_i1_r": {
+  "f_component_undeclared": [
+   "Vin_n"
+  ],
+  "input_w4_roots": [
+   "Vin_p"
+  ],
+  "isolated_input": [],
+  "multi_root": false,
+  "n_input_w4_roots": 1
+ },
+ "m_i2": {
+  "hard_ok": true,
+  "kernel_calls": 67,
+  "origin_point": "halton:23",
+  "probes": 23,
+  "start": {
+   "cells": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "theta": [
+    [
+     [
+      "L",
+      "M101"
+     ],
+     1.549640287769784e-07
+    ],
+    [
+     [
+      "L",
+      "M102"
+     ],
+     1.5543307086614172e-07
+    ],
+    [
+     [
+      "L",
+      "M103"
+     ],
+     1.561061946902655e-07
+    ],
+    [
+     [
+      "L",
+      "M105"
+     ],
+     1.566990291262136e-07
+    ],
+    [
+     [
+      "L",
+      "M106"
+     ],
+     1.5683168316831683e-07
+    ],
+    [
+     [
+      "L",
+      "M107"
+     ],
+     1.5711340206185565e-07
+    ],
+    [
+     [
+      "L",
+      "M108"
+     ],
+     1.5456953642384104e-07
+    ],
+    [
+     [
+      "L",
+      "M201"
+     ],
+     1.5503649635036495e-07
+    ],
+    [
+     [
+      "L",
+      "M202"
+     ],
+     1.5526717557251908e-07
+    ],
+    [
+     [
+      "L",
+      "M203"
+     ],
+     1.563302752293578e-07
+    ],
+    [
+     [
+      "L",
+      "M301"
+     ],
+     1.5644859813084112e-07
+    ],
+    [
+     [
+      "L",
+      "M302"
+     ],
+     1.5463087248322146e-07
+    ],
+    [
+     [
+      "capacitance",
+      "Cm1"
+     ],
+     3.593813663804617e-11
+    ],
+    [
+     [
+      "capacitance",
+      "Cm2"
+     ],
+     5.23299114681494e-11
+    ],
+    [
+     [
+      "current",
+      "M101"
+     ],
+     0.001005251340996203
+    ],
+    [
+     [
+      "current",
+      "M102"
+     ],
+     7.344828198749983e-05
+    ],
+    [
+     [
+      "current",
+      "M108"
+     ],
+     0.00030029455666059587
+    ],
+    [
+     [
+      "current",
+      "M109"
+     ],
+     0.00026960616359543725
+    ],
+    [
+     [
+      "current",
+      "M201"
+     ],
+     0.000251551879388706
+    ],
+    [
+     [
+      "current",
+      "M202"
+     ],
+     0.0001909403768245626
+    ],
+    [
+     [
+      "current",
+      "M302"
+     ],
+     0.0011536892227069623
+    ],
+    [
+     [
+      "current",
+      "RL"
+     ],
+     3.0329585699612373e-05
+    ],
+    [
+     [
+      "ln_idu",
+      "M101"
+     ],
+     -19.76776455224852
+    ],
+    [
+     [
+      "ln_idu",
+      "M102"
+     ],
+     -18.853301357055038
+    ],
+    [
+     [
+      "ln_idu",
+      "M103"
+     ],
+     -18.240783556500915
+    ],
+    [
+     [
+      "ln_idu",
+      "M105"
+     ],
+     -17.433978532580042
+    ],
+    [
+     [
+      "ln_idu",
+      "M106"
+     ],
+     -16.229267033098793
+    ],
+    [
+     [
+      "ln_idu",
+      "M107"
+     ],
+     -13.839274864773092
+    ],
+    [
+     [
+      "ln_idu",
+      "M108"
+     ],
+     -20.223066902598013
+    ],
+    [
+     [
+      "ln_idu",
+      "M201"
+     ],
+     -19.499340032266353
+    ],
+    [
+     [
+      "ln_idu",
+      "M202"
+     ],
+     -19.030697222789293
+    ],
+    [
+     [
+      "ln_idu",
+      "M203"
+     ],
+     -18.85656338835045
+    ],
+    [
+     [
+      "ln_idu",
+      "M301"
+     ],
+     -17.952284642821976
+    ],
+    [
+     [
+      "ln_idu",
+      "M302"
+     ],
+     -19.8909456675828
+    ],
+    [
+     [
+      "y",
+      "NodeF2"
+     ],
+     0.27710843373493976
+    ],
+    [
+     [
+      "y",
+      "Vin_p"
+     ],
+     0.2584269662921348
+    ]
+   ]
+  },
+  "start_failure": {
+   "detail": [
+    [
+     "bounds",
+     [
+      "vs_axis",
+      "vds_axis"
+     ]
+    ],
+    [
+     "h_hi",
+     "inf"
+    ],
+    [
+     "h_lo",
+     "inf"
+    ],
+    [
+     "hi",
+     0.2014907860707201
+    ],
+    [
+     "item",
+     7
+    ],
+    [
+     "lo",
+     0.0
+    ],
+    [
+     "node",
+     "NodeF1"
+    ],
+    [
+     "reason",
+     "no_root_in_window"
+    ]
+   ],
+   "devices": [
+    "M106"
+   ],
+   "failure_class": "SEAL_VIOLATION",
+   "margin": null
+  },
+  "start_status": "failed",
+  "stop": "converged",
+  "t": 0.8148148148148149
+ },
+ "m_i3": {
+  "domain_tied_y": [],
+  "failed_eps": 2,
+  "front_fp": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+  "fronts": {
+   "front": [],
+   "pending": [],
+   "unmeasured": []
+  },
+  "n_front": 0,
+  "n_pending": 0,
+  "n_theta_y": 2,
+  "n_unmeasured": 0,
+  "perf": {
+   "block_index_bound": 4361,
+   "block_index_entries": 722,
+   "eval_budget": 40,
+   "eval_budget_source": "declared",
+   "eval_time_median_s": 0.3998208000557497,
+   "fail_hits": 1,
+   "frozen_columns": 0,
+   "hits": 38,
+   "kernel_calls": 67,
+   "lut_memo_bound": "fixed",
+   "lut_memo_evictions": 0,
+   "n_solves": 2,
+   "n_starts": 1,
+   "outside_domain": 0,
+   "recompute_same_key": 0,
+   "requests": 105,
+   "stops_eval_budget": 0,
+   "stops_wall_budget": 0,
+   "unique_keys": 67
+  },
+  "result_y_keys": [],
+  "theta_y_components": [
+   [
+    "y",
+    "NodeF2"
+   ],
+   [
+    "y",
+    "Vin_p"
+   ]
+  ]
+ },
+ "m_i4": {
+  "exceed_points": [
+   "theta0_layer0"
+  ],
+  "has_diff": true,
+  "pairs": {
+   "theta0_layer0": [
+    {
+     "diff": 0.028983640649508202,
+     "exceed": true,
+     "p": "Vin_n",
+     "q": "Vin_p",
+     "rule": "bit_identical",
+     "tol_p": null,
+     "tol_q": null
+    }
+   ]
+  },
+  "points": 1
+ },
+ "m_i5": {
+  "dof": {
+   "competing_pairs": [],
+   "free_variables": [
+    "I:M101",
+    "I:M102",
+    "I:M108",
+    "I:M109",
+    "I:M201",
+    "I:M202",
+    "I:M302",
+    "V:NodeCM",
+    "V:NodeF2",
+    "V:NodeM2",
+    "V:NodeS2",
+    "V:NodeTail",
+    "V:VB1",
+    "V:VB2",
+    "V:VB3",
+    "V:VB4",
+    "V:VB5",
+    "V:Vin_n",
+    "V:Vin_p",
+    "V:Vout",
+    "u:M101",
+    "u:M102",
+    "u:M103",
+    "u:M104",
+    "u:M105",
+    "u:M106",
+    "u:M107",
+    "u:M108",
+    "u:M109",
+    "u:M201",
+    "u:M202",
+    "u:M203",
+    "u:M204",
+    "u:M301",
+    "u:M302"
+   ],
+   "n_equations": 16,
+   "n_variables": 51,
+   "numeric_ranks": [],
+   "status": "free_dof",
+   "structural_rank": 16,
+   "unmatched_equations": []
+  },
+  "tie_equations": 0
+ },
+ "m_i6": {
+  "E": 17,
+  "V": 17,
+  "components": 3,
+  "cycles": 3,
+  "dependent": 3,
+  "equal": true,
+  "tie_edges": 0
+ },
+ "output_structure": {
+  "input_dc_declared": false,
+  "n_outputs": 1,
+  "plan_stop": null,
+  "rows": [
+   {
+    "class": "kvl_fixed",
+    "component_size": 3,
+    "engine_path": "plan_ok",
+    "fprime_hit": [
+     "agnd"
+    ],
+    "output": "Vout",
+    "s_os1": null,
+    "w3": false,
+    "writer_chain": []
+   }
+  ],
+  "s_os2_empty": false,
+  "s_os2_tuple": false,
+  "spec_feedback_kind": "empty_tuple",
+  "w3_declared": [],
+  "w3_outputs_on_hard_path": 0
+ },
+ "reeval": {
+  "front": [],
+  "theta0": [
+   {
+    "kw": [
+     "settled"
+    ],
+    "label": "theta0_layer0",
+    "port_pairs": [
+     {
+      "diff": 0.028983640649508202,
+      "exceed": true,
+      "p": "Vin_n",
+      "q": "Vin_p",
+      "rule": "bit_identical",
+      "tol_p": null,
+      "tol_q": null
+     }
+    ],
+    "s_p": [
+     {
+      "dVp_dx": 1.0051829999399515,
+      "port": "Vin_n",
+      "root": "Vin_p",
+      "sign": 1
+     }
+    ],
+    "status": "sealed",
+    "tol_source": "no_rows_attr:SealItem"
+   }
+  ]
+ },
+ "repo": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922/scratchpad/it1-audit/it1-iso",
+ "s_p_sign": {
+  "negative": [],
+  "o49_p2_fires": false,
+  "rows": {
+   "theta0_layer0": [
+    {
+     "dVp_dx": 1.0051829999399515,
+     "port": "Vin_n",
+     "root": "Vin_p",
+     "sign": 1
+    }
+   ]
+  }
+ },
+ "set": "library",
+ "side": "IT1",
+ "stage_a": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "stage_b": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "tag": "_rep2",
+ "wall_s": 127.05813469993882,
+ "wrapped": true
+}

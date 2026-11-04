@@ -1,0 +1,397 @@
+{
+ "calls": {
+  "Circuit.input_windows": {
+   "calls": 6,
+   "distinct": 6,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "Circuit.saturation_rows": {
+   "calls": 6,
+   "distinct": 6,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "Circuit.tolerance": {
+   "calls": 72,
+   "distinct": 53,
+   "repeat_calls": 19,
+   "repeated": [
+    {
+     "fp": "0a0c7165e91f8dd2",
+     "n": 7,
+     "sites": {
+      "block_columns.py:377": 63
+     }
+    },
+    {
+     "fp": "0b6082ad3fa81ab3",
+     "n": 3,
+     "sites": {
+      "block_columns.py:377": 27
+     }
+    },
+    {
+     "fp": "d5c705b2eb5e88ba",
+     "n": 3,
+     "sites": {
+      "block_columns.py:377": 27
+     }
+    },
+    {
+     "fp": "77e953607bdb64cc",
+     "n": 3,
+     "sites": {
+      "block_columns.py:377": 27
+     }
+    },
+    {
+     "fp": "532733124ab2b686",
+     "n": 2,
+     "sites": {
+      "block_columns.py:579": 18
+     }
+    },
+    {
+     "fp": "00223ab9751af703",
+     "n": 2,
+     "sites": {
+      "block_columns.py:377": 18
+     }
+    },
+    {
+     "fp": "27ef882b130a2545",
+     "n": 2,
+     "sites": {
+      "block_columns.py:377": 18
+     }
+    },
+    {
+     "fp": "3a65afba3f75581f",
+     "n": 2,
+     "sites": {
+      "block_columns.py:377": 18
+     }
+    },
+    {
+     "fp": "c5f2350cd9e4cca1",
+     "n": 2,
+     "sites": {
+      "block_columns.py:579": 18
+     }
+    },
+    {
+     "fp": "36731c2b46684983",
+     "n": 2,
+     "sites": {
+      "block_columns.py:579": 18
+     }
+    },
+    {
+     "fp": "e75dbdd26dad4355",
+     "n": 2,
+     "sites": {
+      "block_columns.py:377": 18
+     }
+    }
+   ]
+  },
+  "_solve": {
+   "calls": 7,
+   "distinct": 7,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "lut.op_point": {
+   "calls": 108,
+   "distinct": 36,
+   "repeat_calls": 72,
+   "repeated": [
+    {
+     "fp": "ad83f461a9260c29",
+     "n": 7,
+     "sites": {
+      "_helpers_lut.py:44": 54,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "7a5163897ae5b4fa",
+     "n": 7,
+     "sites": {
+      "_helpers_lut.py:44": 54,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "a959268da5bdd73c",
+     "n": 7,
+     "sites": {
+      "_helpers_lut.py:44": 54,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "bbed8663b8fe10e5",
+     "n": 7,
+     "sites": {
+      "_helpers_lut.py:44": 54,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "76011f61abc9b8aa",
+     "n": 7,
+     "sites": {
+      "_helpers_lut.py:44": 54,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "0cad8ae6223f6fe7",
+     "n": 7,
+     "sites": {
+      "_helpers_lut.py:44": 54,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "1ef2299033001730",
+     "n": 4,
+     "sites": {
+      "_helpers_lut.py:44": 27,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "3cb6f18b4b8eae26",
+     "n": 4,
+     "sites": {
+      "_helpers_lut.py:44": 27,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "de1271b0115f7211",
+     "n": 4,
+     "sites": {
+      "_helpers_lut.py:44": 27,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "2b6f8e24d96b0486",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "88b373ac4162f60d",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "5335e9b6278746e2",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    }
+   ]
+  },
+  "lut.vdsat": {
+   "calls": 90,
+   "distinct": 42,
+   "repeat_calls": 48,
+   "repeated": [
+    {
+     "fp": "ecf4bf1ce375300b",
+     "n": 6,
+     "sites": {
+      "block_columns.py:230": 54
+     }
+    },
+    {
+     "fp": "7a5163897ae5b4fa",
+     "n": 6,
+     "sites": {
+      "block_columns.py:230": 54
+     }
+    },
+    {
+     "fp": "8c303cfe86879489",
+     "n": 6,
+     "sites": {
+      "block_columns.py:230": 54
+     }
+    },
+    {
+     "fp": "c1eea95d5fb7e4d1",
+     "n": 6,
+     "sites": {
+      "block_columns.py:230": 54
+     }
+    },
+    {
+     "fp": "55ff93c98bfe2bc9",
+     "n": 6,
+     "sites": {
+      "block_columns.py:230": 54
+     }
+    },
+    {
+     "fp": "417c5a8ecfe1edaf",
+     "n": 6,
+     "sites": {
+      "block_columns.py:230": 54
+     }
+    },
+    {
+     "fp": "0cad8ae6223f6fe7",
+     "n": 6,
+     "sites": {
+      "block_columns.py:230": 54
+     }
+    },
+    {
+     "fp": "2e1c38d82ccc0765",
+     "n": 6,
+     "sites": {
+      "block_columns.py:230": 54
+     }
+    },
+    {
+     "fp": "3cb6f18b4b8eae26",
+     "n": 3,
+     "sites": {
+      "block_columns.py:230": 27
+     }
+    },
+    {
+     "fp": "154ab972c655da5a",
+     "n": 3,
+     "sites": {
+      "block_columns.py:230": 27
+     }
+    },
+    {
+     "fp": "1ef2299033001730",
+     "n": 3,
+     "sites": {
+      "block_columns.py:230": 27
+     }
+    },
+    {
+     "fp": "672dfc0b6a524a86",
+     "n": 3,
+     "sites": {
+      "block_columns.py:230": 27
+     }
+    }
+   ]
+  },
+  "tol_v_cell": {
+   "calls": 46,
+   "distinct": 46,
+   "repeat_calls": 0,
+   "repeated": []
+  }
+ },
+ "circuit": "nmcnr_amplifier",
+ "cprofile": {
+  "_helpers_lut.py:49:tol_v_cell": {
+   "cumtime": 0.4467454,
+   "ncalls": 61,
+   "tottime": 0.00025990000000000003
+  },
+  "block_columns.py:218:saturation_rows": {
+   "cumtime": 0.0500291,
+   "ncalls": 6,
+   "tottime": 0.000705
+  },
+  "block_columns.py:239:input_windows": {
+   "cumtime": 0.0981568,
+   "ncalls": 6,
+   "tottime": 8.350000000000001e-05
+  },
+  "block_columns.py:524:tolerance": {
+   "cumtime": 0.4411991,
+   "ncalls": 72,
+   "tottime": 0.00030890000000000003
+  },
+  "block_columns.py:549:_solve": {
+   "cumtime": 0.7497619000000001,
+   "ncalls": 7,
+   "tottime": 0.0007749
+  },
+  "block_columns.py:578:tolerance": {
+   "cumtime": 0.0125973,
+   "ncalls": 18,
+   "tottime": 3.0600000000000005e-05
+  },
+  "block_columns.py:652:_refine_ends": {
+   "cumtime": 0.15274410000000002,
+   "ncalls": 1,
+   "tottime": 7.500000000000001e-05
+  },
+  "block_columns.py:680:_solve_input_window": {
+   "cumtime": 0.8608263,
+   "ncalls": 1,
+   "tottime": 6.340000000000001e-05
+  },
+  "block_columns.py:727:dc_columns": {
+   "cumtime": 0.8715966,
+   "ncalls": 1,
+   "tottime": 0.0001952
+  },
+  "kernel.py:94:evaluate": {
+   "cumtime": 1.9517911000000001,
+   "ncalls": 1,
+   "tottime": 0.0001588
+  },
+  "noise_analysis.py:59:_solve": {
+   "cumtime": 0.0032012000000000004,
+   "ncalls": 10,
+   "tottime": 8.33e-05
+  },
+  "noise_sources.py:28:_tolerance": {
+   "cumtime": 5e-06,
+   "ncalls": 30,
+   "tottime": 5e-06
+  },
+  "point_query.py:22:op_point": {
+   "cumtime": 0.014417000000000001,
+   "ncalls": 169,
+   "tottime": 0.0005087000000000001
+  },
+  "size_and_seal.py:27:size_and_seal": {
+   "cumtime": 0.9125471,
+   "ncalls": 1,
+   "tottime": 2e-05
+  },
+  "vdsat_query.py:20:vdsat": {
+   "cumtime": 0.0049762,
+   "ncalls": 120,
+   "tottime": 0.00042290000000000003
+  }
+ },
+ "dc_columns_calls": 1,
+ "eval_s": [
+  1.9937444999814034,
+  1.9621216000523418,
+  1.8840850999113172,
+  2.0675020999042317,
+  1.64505759999156,
+  1.7274157999781892,
+  1.7123028000351042
+ ],
+ "eval_s_median": 1.8840850999113172,
+ "side": "BASE",
+ "status": "sealed"
+}

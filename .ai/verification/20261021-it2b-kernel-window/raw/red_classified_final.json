@@ -1,0 +1,537 @@
+[
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k1_declared_input_port_has_measured_window",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {'out'} == {'in', 'out'}",
+  "E_lines": [
+   "E   AssertionError: assert {'out'} == {'in', 'out'}",
+   "E     ",
+   "E     Extra items in the right set:",
+   "E     'in'",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "df74afc3b1dc37a667c68c119d28e724ee77e11a68396a9d648f1947c3b53bbe"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k1_undeclared_input_ports_both_have_windows",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {'in'} == {'in', 'z'}",
+  "E_lines": [
+   "E   AssertionError: assert {'in'} == {'in', 'z'}",
+   "E     ",
+   "E     Extra items in the right set:",
+   "E     'z'",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "3b506882d81cbd1d37c9bb27a0727658968f0f36125b1d2daeabd8e377c465fc"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k1_unmeasurable_root_is_unmeasured_with_order_window",
+  "type": "AttributeError",
+  "class": "absent_name",
+  "message": "AttributeError: 'Window' object has no attribute 'input_status'",
+  "E_lines": [
+   "E   AttributeError: 'Window' object has no attribute 'input_status'"
+  ],
+  "hash": "3d91737d5e81eeef231d98009fc5ab4f4ee57d999b22501c3b2934ef06aacc6d"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k2_non_root_port_window_is_root_ends_moved_by_the_same_solution_sensitivity",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'z'",
+  "E_lines": [
+   "E   KeyError: 'z'"
+  ],
+  "hash": "9c02cb698fd5e014a0fea1562435300b40c8fb3c89aa40d16b9cdabdd6f98d27"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_pb_declared_input_ports_share_one_shift_window",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert set() == {'ina', 'inb'}",
+  "E_lines": [
+   "E   AssertionError: assert set() == {'ina', 'inb'}",
+   "E     ",
+   "E     Extra items in the right set:",
+   "E     'ina'",
+   "E     'inb'",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "1d1e984af6cfda65ab6d1788442fbf32678a7346720ab8ad5d5eafba6bb6f479"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12b_f_component_port_without_declared_dc_has_undefined_window",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {'out'} == {'in', 'out'}",
+  "E_lines": [
+   "E   AssertionError: assert {'out'} == {'in', 'out'}",
+   "E     ",
+   "E     Extra items in the right set:",
+   "E     'in'",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "a6f9356ec3f217193c13004a26ab3015a131811f124a9d3821bbf5c781ee133a"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'p'",
+  "E_lines": [
+   "E   KeyError: 'p'"
+  ],
+  "hash": "01c568470b08949b31e3de30c4a37e9b499d9648478ae2d376138f02be851808"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_k_max_exhausted_root_window_is_unsettled_and_y_range_kept",
+  "type": "AttributeError",
+  "class": "absent_name",
+  "message": "AttributeError: 'Window' object has no attribute 'tol_v'",
+  "E_lines": [
+   "E   AttributeError: 'Window' object has no attribute 'tol_v'"
+  ],
+  "hash": "9a03a9f0fbe0d171bfcfd67bb6ba29b307e1188466404dd8ca1f98a477f2c2ed"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_d_triode_row_zero_crossing_is_the_window_end",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'in'",
+  "E_lines": [
+   "E   KeyError: 'in'"
+  ],
+  "hash": "b2410183d42565d3a23dbf92d177998217bdd6b25c36d224cdbc85943b17bc7b"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_d_region_rows_kinds_are_sat_and_triode_only",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: block_columns 에 region_rows 정의가 없다",
+  "E_lines": [
+   "E   AssertionError: block_columns 에 region_rows 정의가 없다",
+   "E   assert 'region_rows' in {'__init__': [FunctionDef(name='__init__', args=arguments(posonlyargs=[], args=[arg(arg='self', annotation=None, type_... Return(value=Name(id='x', ctx=Load(...)))], decorator_list=[], returns=None, type_comment=None, type_params=[])], ...}"
+  ],
+  "hash": "454a89a461e37a919c5db310beb4e37ba1fd3d15dbbdc2847b7bd094499d3b45"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_d_region_rows_has_no_zero_vgs_op_point_conduction_columns_or_eo1_import",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: block_columns 에 region_rows 정의가 없다",
+  "E_lines": [
+   "E   AssertionError: block_columns 에 region_rows 정의가 없다",
+   "E   assert 'region_rows' in {'__init__': [FunctionDef(name='__init__', args=arguments(posonlyargs=[], args=[arg(arg='self', annotation=None, type_... Return(value=Name(id='x', ctx=Load(...)))], decorator_list=[], returns=None, type_comment=None, type_params=[])], ...}"
+  ],
+  "hash": "b5d5db72837725b064c2abd33d678e7c413e44ff20a814a338ff82d825ba3beb"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_tol_undefined_root_window_is_unsettled_and_y_range_kept",
+  "type": "AttributeError",
+  "class": "absent_name",
+  "message": "AttributeError: 'Window' object has no attribute 'input_status'",
+  "E_lines": [
+   "E   AttributeError: 'Window' object has no attribute 'input_status'"
+  ],
+  "hash": "f72e39f7da5f1d3e9b8707c82d7c8560aaf41a2fa026e7a333b3161f6d589b97"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution",
+  "type": "AttributeError",
+  "class": "absent_name",
+  "message": "AttributeError: 'Window' object has no attribute 'tol_v'",
+  "E_lines": [
+   "E   AttributeError: 'Window' object has no attribute 'tol_v'"
+  ],
+  "hash": "d5332091bd1e351cbeefe0c7f1f34877aa1f1c16752a382e529a233870e9301e"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_hand_linear_system",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'x'",
+  "E_lines": [
+   "E   KeyError: 'x'"
+  ],
+  "hash": "8e6c45b689a5e650e16c339f0c919ccd02bc69058871f18c54255036d6e0277b"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_kind_is_not_used_for_window_end",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'x'",
+  "E_lines": [
+   "E   KeyError: 'x'"
+  ],
+  "hash": "2a6911a03ab43debf1e626bf3ee6323398b652d680dd8af26fb9c73aea0dd55a"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_several_roots_move_together",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'w'",
+  "E_lines": [
+   "E   KeyError: 'w'"
+  ],
+  "hash": "ebffa6aaaf7b089c101bde82a4e337ca8c5375794fb1dd2f400df9d115aafcbc"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_root_pair_replaces_row_equation_by_fixed_net",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: (('r', 'a'),)",
+  "E_lines": [
+   "E   KeyError: (('r', 'a'),)"
+  ],
+  "hash": "5e6cc58d35d9258194d70d72eb771d092d633bf98521113c26b4c193856188c0"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_given_slope_skips_the_sensitivity_system",
+  "type": "TypeError",
+  "class": "typeerror_excluded",
+  "message": "TypeError: saturation_window() got an unexpected keyword argument 'slope'",
+  "E_lines": [
+   "E   TypeError: saturation_window() got an unexpected keyword argument 'slope'"
+  ],
+  "hash": "3443416ada4b70b016c0749aaa797586b62c7534dcc485363e7a3dacbda06092"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[0]",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'x'",
+  "E_lines": [
+   "E   KeyError: 'x'"
+  ],
+  "hash": "a618be0b52c6991134c63260ca459e7e24f2d0cda23a167dd76a34c534a91aeb"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[1]",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'x'",
+  "E_lines": [
+   "E   KeyError: 'x'"
+  ],
+  "hash": "b1d5e0c77cd9fc2aa1b2b71ec3c5107c7e3d63480c5290c77186234242741b45"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[2]",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'x'",
+  "E_lines": [
+   "E   KeyError: 'x'"
+  ],
+  "hash": "65b62b18cd2ca68eae8eb91965e31bd7c6746aff19e9c7aa805cd685d498ea27"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[3]",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'x'",
+  "E_lines": [
+   "E   KeyError: 'x'"
+  ],
+  "hash": "9397aa5af20d1c1b6d30c1df740224ee1854faafb0cef79a11de7e1c468cce9d"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[4]",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'x'",
+  "E_lines": [
+   "E   KeyError: 'x'"
+  ],
+  "hash": "729b5c0bcea7d24c1cd0d14db62732e314156ed054cd5c618917d9d6a1a76a32"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[5]",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'x'",
+  "E_lines": [
+   "E   KeyError: 'x'"
+  ],
+  "hash": "6fb1ec21a75d1ac1a8d562ccd6e688d83d49272b43ddb8a6a0057eb8ece6067c"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_singular_system_is_none",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'x'",
+  "E_lines": [
+   "E   KeyError: 'x'"
+  ],
+  "hash": "7cef340749eb8001ab0453a036d1413400b0a70c2edf9c2589cf6a5905a7d491"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_input_window.py::test_declared_input_dc_same_theta_seals",
+  "type": "KeyError",
+  "class": "absent_name",
+  "message": "KeyError: 'in'",
+  "E_lines": [
+   "E   KeyError: 'in'"
+  ],
+  "hash": "6745e3a2b4e74834a875270898ced0388d65464fc55e69d93cb0146ba379410b"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_a_drain_only_output_is_high_impedance",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'out': 'high_impedance'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'out': 'high_impedance'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'out': 'high_impedance'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "d008203dc25acf597afa520f37928e376910d462a1c735737851586f56bd19f9"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_b_follower_output_without_fixed_end_is_high_impedance",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'out': 'high_impedance'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'out': 'high_impedance'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'out': 'high_impedance'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "7c3b0529b775998fc40663579fec2afda1d49d32a8f620fd425e7077d405bc29"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_c_resistor_load_to_rail_is_kvl_fixed",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'out': 'kvl_fixed'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'out': 'kvl_fixed'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'out': 'kvl_fixed'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "c3e7340e0db40f1adf1c07b6c8b18e2b0dae5fc20e3fe9dc9969e2ed012c327a"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_d_w3_output_without_fixed_end_is_high_impedance",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'out': 'high_impedance'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'out': 'high_impedance'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'out': 'high_impedance'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "e764b7f836b5297f2d4a92d264f426919e30f44717464472072396ddb0cfa440"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_e_w3_output_on_hard_path_is_kvl_fixed[diode_load]",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'out': 'kvl_fixed'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'out': 'kvl_fixed'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'out': 'kvl_fixed'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "3eaac3393ce15c59a91400f5b468d18f3dd7ecde69d3d501d5c5d0f0cc1d2eeb"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_e_w3_output_on_hard_path_is_kvl_fixed[gate_at_rail_source_out]",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'out': 'kvl_fixed'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'out': 'kvl_fixed'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'out': 'kvl_fixed'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "31db54088efcfddd7d9a1e5d3768c9170e8729ad6b9e9be60580af5ac3aaee70"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_f_other_w3_node_in_component_is_not_a_fixed_end",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'out': 'high_impedance'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'out': 'high_impedance'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'out': 'high_impedance'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "55d42f928cabc7c4564855b0e7e6aded274703c6fcdb16e0b134e736e3fb3276"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_g_declared_input_dc_reaches_output_through_gate_source",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'out': 'kvl_fixed'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'out': 'kvl_fixed'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'out': 'kvl_fixed'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "142ca5729f3ca9e1fe4004110e8d1c4af0f847a8768a3699579dcf14704e1d3f"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_h_swapped_names_give_same_values[undeclared]",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'in': 'high_impedance'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'in': 'high_impedance'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'in': 'high_impedance'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "bfdbab39ba02fb8c376e7b160f1c13add30b46df61c67a3e482d0626e5b8d7cf"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_h_swapped_names_give_same_values[declared]",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'in': 'kvl_fixed'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'in': 'kvl_fixed'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'in': 'kvl_fixed'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "71e29e58d11bd3e348a2b5573728b78c4fbcddf1037b4b34a79de1ec656f9fb3"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_i_value_is_theta_independent_and_not_recomputed",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'out': 'high_impedance'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'out': 'high_impedance'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'out': 'high_impedance'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "0c4e03b4ead2497be3e725e8876ec113ea0af7b42c218e30395a1451fd342070"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_k_no_same_dc_edge_between_input_ports",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {} == {'out': 'high_impedance'}",
+  "E_lines": [
+   "E   AssertionError: assert {} == {'out': 'high_impedance'}",
+   "E     ",
+   "E     Right contains 1 more item:",
+   "E     {'out': 'high_impedance'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "3763dbe8c8a70952d30cced1c4b92d1a61cf6fef44dd33cf2711985da1e7d539"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_output_structure.py::test_it2b_os_j_single_writer_site_and_no_second_producer",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "assert 0 == 1",
+  "E_lines": [
+   "E   assert 0 == 1",
+   "E    +  where 0 = _count('sizing/s2_values.py', '\"dc_output_structure\"')"
+  ],
+  "hash": "e20f2aa636cf64d3aa4c1c537f2eb89422fdecab840e47b2f19f4824043986bb"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_s2_writers_is_s1_plus_dc_table_exactly",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {('device', '...ymmetry', ...} == {('device', '...ymmetry', ...}",
+  "E_lines": [
+   "E   AssertionError: assert {('device', '...ymmetry', ...} == {('device', '...ymmetry', ...}",
+   "E     ",
+   "E     Omitting 78 identical items, use -vv to show",
+   "E     Right contains 1 more item:",
+   "E     {('node', 'dc_output_structure'): 'dc_writer_plan'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "06963b5ee557d71e990c98ceecece900480f2dfefe0ca1486389bfd2b752a89f"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_one_writer_per_field_and_permission_enforced",
+  "type": "gmid_engine.core.writer_error.WriterPermissionError",
+  "class": "other",
+  "message": "gmid_engine.core.writer_error.WriterPermissionError: 권한표에 없는 필드 ('node', 'dc_output_structure') (writer 'dc_writer_plan')",
+  "E_lines": [
+   "E   gmid_engine.core.writer_error.WriterPermissionError: 권한표에 없는 필드 ('node', 'dc_output_structure') (writer 'dc_writer_plan')"
+  ],
+  "hash": "5ad124888d6d4f277e53da930101ae4351b13cea8a3af60fc6652ed50fd658b4"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_dc_writes_constant_matches_table",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {('device', '...urrents', ...} == {('device', '...urrents', ...}",
+  "E_lines": [
+   "E   AssertionError: assert {('device', '...urrents', ...} == {('device', '...urrents', ...}",
+   "E     ",
+   "E     Omitting 33 identical items, use -vv to show",
+   "E     Right contains 1 more item:",
+   "E     {('node', 'dc_output_structure'): 'dc_writer_plan'}",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "9b8a047dafa6ffa3cfe95c567ded44f9784a0a474b45a6c1b6be6448c8be013a"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_writer_plan]",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert {('device', '... 'dc_writer')} == {('device', '... 'dc_writer')}",
+  "E_lines": [
+   "E   AssertionError: assert {('device', '... 'dc_writer')} == {('device', '... 'dc_writer')}",
+   "E     ",
+   "E     Extra items in the right set:",
+   "E     ('node', 'dc_output_structure')",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "6d051b0e0f4ef19d262aba9b5e0ed195abb1ccf85436c5f35d87ade35f8b4a3b"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_it2b_output_structure_vocabulary_and_window_status_defaults",
+  "type": "AttributeError",
+  "class": "absent_name",
+  "message": "AttributeError: module 'gmid_engine.sizing.s2_values' has no attribute 'OUTPUT_HIGH_IMPEDANCE'",
+  "E_lines": [
+   "E   AttributeError: module 'gmid_engine.sizing.s2_values' has no attribute 'OUTPUT_HIGH_IMPEDANCE'"
+  ],
+  "hash": "788efb13eddccb4c8dfa9ca8d261419d50fc07d266f4f39e3d8f02b330d3a2e3"
+ },
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_value_fields_as_contract",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: assert ('lo', 'hi', 'constraints') == ('lo', 'hi', ...tus', 'tol_v')",
+  "E_lines": [
+   "E   AssertionError: assert ('lo', 'hi', 'constraints') == ('lo', 'hi', ...tus', 'tol_v')",
+   "E     ",
+   "E     Right contains 2 more items, first extra item: 'input_status'",
+   "E     Use -v to get more diff"
+  ],
+  "hash": "3330364d4f2c4c19dfef0fb4b470744d0870a0f3d496ad06b70894f217b18c5e"
+ }
+]

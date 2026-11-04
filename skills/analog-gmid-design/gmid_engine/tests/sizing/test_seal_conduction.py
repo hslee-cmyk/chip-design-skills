@@ -215,7 +215,7 @@ def test_linear_declared_devices_included(ctx_r4c):
     th = theta_r4c(v1=0.02)
     snap, calls = eval_calls(ctx_r4c, th)
     with pytest.raises(SealViolationError) as ei:
-        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), ("M1",), **run_of(ctx_r4c))
+        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), ("M1",), base=ctx_r4c.base, **run_of(ctx_r4c))
     d = detail(ei.value)
     assert d["item"] == 9 and ei.value.record.devices == ("M1",)
     assert dict(d["item_detail"])["n_checked"] == 2
@@ -224,7 +224,7 @@ def test_linear_declared_devices_included(ctx_r4c):
     # 통과 θ 에서도 n_checked 는 linear 선언과 무관하게 2(봉인 7 은 1)
     th2 = theta_r4c()
     snap2, calls2 = eval_calls(ctx_r4c, th2)
-    ev = seal_dc(snap2, calls2, ctx_r4c.lut, resistances_of(ctx_r4c, th2), ("M1",), **run_of(ctx_r4c))
+    ev = seal_dc(snap2, calls2, ctx_r4c.lut, resistances_of(ctx_r4c, th2), ("M1",), base=ctx_r4c.base, **run_of(ctx_r4c))
     assert dict(ev.report.items[8].detail)["n_checked"] == 2
     assert dict(ev.report.items[6].detail)["n_checked"] == 1
 
@@ -300,7 +300,7 @@ def test_two_point_axes_lut_all_undefined(tmp_path):
     assert exp["status"] == "undefined" and exp["n_undefined"] == 2
     assert_item(item9(out), exp, 9)
     check_fields(out, offs, floors)
-    ev = seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), **run_of(ctx))
+    ev = seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), base=ctx.base, **run_of(ctx))
     assert ev.report.items[8].status == "undefined" and ev.sealed is None
 
 
@@ -372,7 +372,7 @@ def test_no_sealed_snapshot_when_item9_fails(ctx_r4c, v1, v2, dev):
     exp = judge_expect(expected(s_tol, R4_ARR.get)[0])
     assert exp["status"] == "fail" and exp["devices"] == (dev,)
     with pytest.raises(SealViolationError) as ei:
-        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), (), **run_of(ctx_r4c))
+        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), (), base=ctx_r4c.base, **run_of(ctx_r4c))
     rec = ei.value.record
     d = dict(rec.detail)
     st = {x[0]: x[1] for x in d["items"]}

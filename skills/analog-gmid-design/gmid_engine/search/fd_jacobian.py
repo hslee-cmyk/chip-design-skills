@@ -7,7 +7,7 @@
   계산한다(전류 성분은 ④ 노드전압을 건드리지 않는다, 설계 2.2). 같은 x 는 키가 같아 캐시 적중(커널 0).
 * 스텝 hᵢ(상수 없음 -- 그 좌표의 LUT 해상도, 설계 3절):
   - `ln_idu`(쓰기 소자 m): 동작점 VGS 를 품는 VGS 격자 칸 폭 × gm/ID(d ln ID = (gm/ID)·dVGS).
-  - `y`: VDS 격자 최소 칸 폭 / 그 W4 창 폭(창 = 그 y 키를 쓰는 뿌리 노드의 `dc_window`).
+  - `y`: VDS 격자 최소 칸 폭 / 그 W4 창 폭(창 = 그 y 키를 쓰는 뿌리 노드의 `dc_window`; writer 관계 `free_window` 항목만 -- 입력 포트 항목은 y 키를 만들지 않는다).
   - `current`(ln 좌표): 그 기저 원소를 항으로 갖는 MOS 들의 tol_V(id_eq)·gm/ID 최솟값(상대 스텝 -- M7 L1 W 허용 상대오차와 같은 식).
   - `resistance`(ln 좌표): tol_V 최솟값 / (I·R)(I·R 강하가 tol_V 만큼 움직이는 상대 ΔR). I = 0 이면 그 저항은 DC 에 닿지 않아
     열 = 0(평가 없음).
@@ -25,7 +25,8 @@ import math
 
 import numpy as np
 
-from gmid_engine.sizing import KERNEL_KEY, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_PASSIVE_KINDS, THETA_RESISTANCE, THETA_Y
+from gmid_engine.sizing import (KERNEL_KEY, REL_INPUT_POINT, REL_WINDOW, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_PASSIVE_KINDS, THETA_RESISTANCE,
+                                THETA_Y)
 
 from .kernel import evaluate
 from .search_values import ACCEPTED_STATUSES, STAGE_FD
@@ -52,7 +53,8 @@ def _steps(sctx, variables, base):
     windows = {}
     writers = dict(snap.column("node", "dc_writer"))
     for node, win in snap.column("node", "dc_window"):
-        windows[writers[node].y_key] = win.hi - win.lo
+        if writers[node].relation in (REL_WINDOW, REL_INPUT_POINT):      # y 스텝은 W4 뿌리 창 폭만(입력 점은 p 포트 항목 하나 -- n 포트 항목 없음, 설계 41 4.7-6)
+            windows[writers[node].y_key] = win.hi - win.lo
     currents = dict(snap.column("device", "dc_drop_current"))
     theta = dict(base.theta)
     steps = []

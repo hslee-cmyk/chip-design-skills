@@ -1,0 +1,98 @@
+diff --git a/skills/analog-gmid-design/gmid_engine/sizing/block_columns.py b/skills/analog-gmid-design/gmid_engine/sizing/block_columns.py
+index 1e964335..67eb86af 100644
+--- a/skills/analog-gmid-design/gmid_engine/sizing/block_columns.py
++++ b/skills/analog-gmid-design/gmid_engine/sizing/block_columns.py
+@@ -80,7 +80,7 @@ from .s2_values import (
+ )
+ 
+ READS = (
+-    ("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"),
++    ("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"), ("node", "port_direction"),
+     ("device", "dc_drop_current"), ("node", "dc_colour"), ("device", "dc_colour"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"), ("device", "bulk"),
+     ("device", "element_class"), ("device", "dc_coord"), ("graph", "dc_scc_order"), ("device", "dc_self_referential"),
+ )
+@@ -151,6 +151,7 @@ class _Circuit:
+         self.fixed = dict(fixed_values)
+         self.lut = lut
+         self.writers = dict(projection.column("node", "dc_writer"))
++        self.input_ports = frozenset(n for n, d in projection.column("node", "port_direction") if d == "input")   # [IT0-SIM]
+         self.rail_v = dict(projection.column("node", "dc_rail_v"))
+         self.nbrs = dict(projection.column("node", "dc_column_nbrs"))
+         self.pins = {n: dict(p) for n, p in projection.column("device", "pins")}
+@@ -220,7 +221,7 @@ class _Circuit:
+     def input_roots(self):
+         """입력 DC 미선언 입력 묶음의 W4 뿌리 넷(y 키 `input_common_mode`) -- 이름순이 아니라 쓰기 순번 순."""
+         return tuple(net for net, w in self.canonical_writers()
+-                     if w.relation == REL_WINDOW and w.y_key == INPUT_GROUP_KEY)
++                     if w.relation == REL_WINDOW and net in self.input_ports and w.y_key == net)   # [IT0-SIM]
+ 
+     def saturation_rows(self, values):
+         """전도 MOS 마다 ((d, s, 부호, 포화 여유)): 여유 = VDS − VDsat − tol_VDsat (봉인 7 의 판정식, 선형 영역 선언 소자 제외). LUT 에 VDSAT 열이
+@@ -647,13 +648,14 @@ def _interior_solution(c, key, requested):
+     budget = k_max(c.hi - c.lo, min(tols))
+     roots = c.input_roots()
+     for y in _dyadic_ys(budget):
+-        c.theta[key] = y
++        for k in key:                                   # [IT0-SIM] 모든 입력 뿌리 y 를 같이 훑는다
++            c.theta[k] = y
+         try:
+             values, logs = _solve(c)
+         except _FAILURES:
+             continue
+         finally:
+-            c.theta[key] = requested
++            c.theta.update(requested)
+         windows = c.input_windows(values, roots)
+         if windows is not None:
+             return values, logs, windows
+@@ -699,9 +701,10 @@ def _solve_input_window(c):
+     roots = c.input_roots()
+     if not roots:
+         return _solve(c)
+-    key = (THETA_Y, INPUT_GROUP_KEY)
+-    requested = c.theta[key]
+-    c.theta[key] = _MID
++    key = tuple((THETA_Y, r) for r in roots)          # [IT0-SIM] 뿌리마다 자기 y
++    requested = {k: c.theta[k] for k in key}
++    for k in key:
++        c.theta[k] = _MID
+     try:
+         values, logs = _solve(c)
+         windows = c.input_windows(values, roots)
+@@ -709,7 +712,7 @@ def _solve_input_window(c):
+         windows = None
+         found = None
+     finally:
+-        c.theta[key] = requested
++        c.theta.update(requested)
+     if windows is None:
+         found = _interior_solution(c, key, requested)
+         if found is None:
+diff --git a/skills/analog-gmid-design/gmid_engine/sizing/writer_plan.py b/skills/analog-gmid-design/gmid_engine/sizing/writer_plan.py
+index fa8e659c..38dd399f 100644
+--- a/skills/analog-gmid-design/gmid_engine/sizing/writer_plan.py
++++ b/skills/analog-gmid-design/gmid_engine/sizing/writer_plan.py
+@@ -155,13 +155,11 @@ def dc_writer_plan(projection):
+     for net in sorted(fixed, key=node_key):
+         plan.put(net, *fixed[net])
+     free_inputs = tuple(sorted((net for net in inputs if net not in fixed), key=node_key))
+-    for group in _same_colour_groups(ncolour, free_inputs):
+-        ties.append(TieBreak(TIE_INPUT_ORDER, group, group))
+     parent = {}
+     tree = []
+     coords = {}
+     groups = {}
+-    for key, rank, name, a, b in _edges(classes, kinds, pins, diode, dcolour, free_inputs, hints):
++    for key, rank, name, a, b in _edges(classes, kinds, pins, diode, dcolour, (), hints):
+         ra = _find(parent, _FIXED if a in fixed else a)
+         rb = _find(parent, _FIXED if b in fixed else b)
+         is_tree = ra != rb
+@@ -231,7 +229,7 @@ def dc_writer_plan(projection):
+         tied = tuple(sorted(n for n in candidates if ncolour[n] == ncolour[root]))
+         if len(tied) > 1:
+             ties.append(TieBreak(TIE_ROOT, tied, (root,)))
+-        plan.put(root, TIER_W4, REL_WINDOW, None, None, INPUT_GROUP_KEY if ports else root)
++        plan.put(root, TIER_W4, REL_WINDOW, None, None, root)
+         walk((root,))
+     for net in nodes:
+         if net not in plan.writes:

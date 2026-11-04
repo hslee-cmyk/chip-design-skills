@@ -1,0 +1,341 @@
+........................................................................ [ 31%]
+........FFFF..FF...................................FFFF..FFFFFF..FF..... [ 62%]
+........................................................................ [ 93%]
+..............                                                           [100%]
+================================== FAILURES ===================================
+_ test_current_ties_and_variables_match_8e46548[current_reuse_telescopic_ota] _
+gmid_engine\tests\sizing\test_current_basis.py:349: in test_current_ties_and_variables_match_8e46548
+    assert (len(dom.ties), len(dom.variables)) == BASELINE_8E46548[name]
+E   assert (30, 38) == (29, 38)
+E     
+E     At index 0 diff: 30 != 29
+E     Use -v to get more diff
+________ test_current_ties_and_variables_match_8e46548[folded_cascode] ________
+gmid_engine\tests\sizing\test_current_basis.py:349: in test_current_ties_and_variables_match_8e46548
+    assert (len(dom.ties), len(dom.variables)) == BASELINE_8E46548[name]
+E   assert (0, 17) == (0, 16)
+E     
+E     At index 1 diff: 17 != 16
+E     Use -v to get more diff
+________ test_current_ties_and_variables_match_8e46548[ngcc_3stage_ff] ________
+gmid_engine\tests\sizing\test_current_basis.py:349: in test_current_ties_and_variables_match_8e46548
+    assert (len(dom.ties), len(dom.variables)) == BASELINE_8E46548[name]
+E   assert (0, 22) == (0, 21)
+E     
+E     At index 1 diff: 22 != 21
+E     Use -v to get more diff
+_______ test_current_ties_and_variables_match_8e46548[nmcnr_amplifier] ________
+gmid_engine\tests\sizing\test_current_basis.py:349: in test_current_ties_and_variables_match_8e46548
+    assert (len(dom.ties), len(dom.variables)) == BASELINE_8E46548[name]
+E   assert (0, 24) == (0, 23)
+E     
+E     At index 1 diff: 24 != 23
+E     Use -v to get more diff
+________ test_current_ties_and_variables_match_8e46548[two_stage_ota] _________
+gmid_engine\tests\sizing\test_current_basis.py:349: in test_current_ties_and_variables_match_8e46548
+    assert (len(dom.ties), len(dom.variables)) == BASELINE_8E46548[name]
+E   assert (0, 11) == (0, 10)
+E     
+E     At index 1 diff: 11 != 10
+E     Use -v to get more diff
+_______ test_current_ties_and_variables_match_8e46548[two_stage_ota_sf] _______
+gmid_engine\tests\sizing\test_current_basis.py:349: in test_current_ties_and_variables_match_8e46548
+    assert (len(dom.ties), len(dom.variables)) == BASELINE_8E46548[name]
+E   assert (0, 13) == (0, 12)
+E     
+E     At index 1 diff: 13 != 12
+E     Use -v to get more diff
+____ test_stage_reports_unchanged_from_base[current_reuse_telescopic_ota] _____
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:309: in test_stage_reports_unchanged_from_base
+    assert not diff, "base 와 다른 보고서 키: %r" % diff
+E   AssertionError: base 와 다른 보고서 키: ['stage_b.achievability.dof']
+E   assert not ['stage_b.achievability.dof']
+___________ test_stage_reports_unchanged_from_base[folded_cascode] ____________
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:309: in test_stage_reports_unchanged_from_base
+    assert not diff, "base 와 다른 보고서 키: %r" % diff
+E   AssertionError: base 와 다른 보고서 키: ['stage_b.achievability.dof']
+E   assert not ['stage_b.achievability.dof']
+___________ test_stage_reports_unchanged_from_base[ngcc_3stage_ff] ____________
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:309: in test_stage_reports_unchanged_from_base
+    assert not diff, "base 와 다른 보고서 키: %r" % diff
+E   AssertionError: base 와 다른 보고서 키: ['stage_b.achievability.dof']
+E   assert not ['stage_b.achievability.dof']
+___________ test_stage_reports_unchanged_from_base[nmcnr_amplifier] ___________
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:309: in test_stage_reports_unchanged_from_base
+    assert not diff, "base 와 다른 보고서 키: %r" % diff
+E   AssertionError: base 와 다른 보고서 키: ['stage_b.achievability.dof']
+E   assert not ['stage_b.achievability.dof']
+____________ test_stage_reports_unchanged_from_base[two_stage_ota] ____________
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:309: in test_stage_reports_unchanged_from_base
+    assert not diff, "base 와 다른 보고서 키: %r" % diff
+E   AssertionError: base 와 다른 보고서 키: ['stage_b.achievability.dof']
+E   assert not ['stage_b.achievability.dof']
+__________ test_stage_reports_unchanged_from_base[two_stage_ota_sf] ___________
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:309: in test_stage_reports_unchanged_from_base
+    assert not diff, "base 와 다른 보고서 키: %r" % diff
+E   AssertionError: base 와 다른 보고서 키: ['stage_b.achievability.dof']
+E   assert not ['stage_b.achievability.dof']
+_______ test_s0_field_values_unchanged_from_base[common_gate_amplifier] _______
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:338: in test_s0_field_values_unchanged_from_base
+    assert not diff, "base 와 다른 S0 필드 값: %r" % diff
+E   AssertionError: base 와 다른 S0 필드 값: ['graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+E   assert not ['graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+___ test_s0_field_values_unchanged_from_base[current_reuse_telescopic_ota] ____
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:338: in test_s0_field_values_unchanged_from_base
+    assert not diff, "base 와 다른 S0 필드 값: %r" % diff
+E   AssertionError: base 와 다른 S0 필드 값: ['graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+E   assert not ['graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+__________ test_s0_field_values_unchanged_from_base[folded_cascode] ___________
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:338: in test_s0_field_values_unchanged_from_base
+    assert not diff, "base 와 다른 S0 필드 값: %r" % diff
+E   AssertionError: base 와 다른 S0 필드 값: ['graph/start: rungs', 'graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+E   assert not ['graph/start: rungs', 'graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+__________ test_s0_field_values_unchanged_from_base[nmcnr_amplifier] __________
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:338: in test_s0_field_values_unchanged_from_base
+    assert not diff, "base 와 다른 S0 필드 값: %r" % diff
+E   AssertionError: base 와 다른 S0 필드 값: ['graph/start: rungs', 'graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+E   assert not ['graph/start: rungs', 'graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+___________ test_s0_field_values_unchanged_from_base[two_stage_ota] ___________
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:338: in test_s0_field_values_unchanged_from_base
+    assert not diff, "base 와 다른 S0 필드 값: %r" % diff
+E   AssertionError: base 와 다른 S0 필드 값: ['graph/start: rungs', 'graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+E   assert not ['graph/start: rungs', 'graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+_________ test_s0_field_values_unchanged_from_base[two_stage_ota_sf] __________
+gmid_engine\tests\integration\test_s0_layer_9circuits.py:338: in test_s0_field_values_unchanged_from_base
+    assert not diff, "base 와 다른 S0 필드 값: %r" % diff
+E   AssertionError: base 와 다른 S0 필드 값: ['graph/start: rungs', 'graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+E   assert not ['graph/start: rungs', 'graph/start: uncovered', 'graph/kernel: theta_schema', 'graph/kernel: search_domain']
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_circuit_c
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_resistor_drop_writer
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_diode_tree_mirror_parallel
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_fixed_vgs
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_cycle_vgs_behind_resistor
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_input_dc_declared_makes_fixed
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_target_priority_over_input_dc
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_symmetric_diffpair_choices_by_canonical_position
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_renamed_diffpair_plan_follows_colour_correspondence
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_resistor_cycle_stop
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[common_gate_amplifier]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[current_reuse_telescopic_ota]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[folded_cascode]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[ngcc_3stage_ff]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[nmcnr_amplifier]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[pushpull_follower_buffer]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[sf_pushpull_output_opamp]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[two_stage_ota]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[two_stage_ota_sf]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[common_gate_amplifier-1]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[common_gate_amplifier-2]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[current_reuse_telescopic_ota-1]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[current_reuse_telescopic_ota-2]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[folded_cascode-1]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[folded_cascode-2]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[ngcc_3stage_ff-1]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[ngcc_3stage_ff-2]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[nmcnr_amplifier-1]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[nmcnr_amplifier-2]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[pushpull_follower_buffer-1]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[pushpull_follower_buffer-2]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[sf_pushpull_output_opamp-1]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[sf_pushpull_output_opamp-2]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[two_stage_ota-1]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[two_stage_ota-2]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[two_stage_ota_sf-1]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[two_stage_ota_sf-2]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_block_is_theta_free_and_reused
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[none]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[ratified]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[gm]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[stage_b]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[stage_a]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[ratified_over_gm]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[gm_over_stage]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_diode_pair[none]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_diode_pair[ratified_over_diode]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_diode_pair[diode_over_gm]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_diode_pair[diode_over_stage]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_empty_hints_identical_to_default
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_hint_on_tree_only_device_changes_nothing
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_name_bijection[ab]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_name_bijection[swapped_order]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_undeclared_diffpair_no_input_tie
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_ring_cycle_vgs_after_port_delta_elimination
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_dependent_count_equals_cycle_rank[diff_undeclared]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_dependent_count_equals_cycle_rank[diff_declared]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_dependent_count_equals_cycle_rank[ring_undeclared]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_dependent_count_equals_cycle_rank[ring_declared]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_declared_input_plan_unchanged
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_multiple_input_roots_stop[two_components]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_multiple_input_roots_stop[isolated_plus_component]
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_isolated_single_root_builds
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_vocabulary_removed
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_renamed_diffpair_same_structure
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_theta_schema_y_components_follow_writers
+PASSED gmid_engine/tests/sizing/test_writer_plan.py::test_it1_writer_block_owns_plan_fields
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_circuit_c
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_resistor_orientation_t0_t1
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_resistor_reversed_gives_negative_coefficient
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_mirror_free_source
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_mirror_declared_source_fixed
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_declared_none_source_stays_free
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_pruned_leaf_resistor_and_capacitor_not_dc
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_two_fixed_sources_share_net
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_symmetric_pair_basis_matches_oracle
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_identical_parallel_pair_no_tie_canonical_pivot
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_declared_kcl_conflict
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_structural_zero_current_mos
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[common_gate_amplifier]
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[pushpull_follower_buffer]
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[sf_pushpull_output_opamp]
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_pilot_current_groups_m1a_m1b_and_m19_m10
+PASSED gmid_engine/tests/sizing/test_current_basis.py::test_column_order_invariant_under_renaming
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_fields_present_with_single_block_writer[common_gate_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_fields_present_with_single_block_writer[current_reuse_telescopic_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_fields_present_with_single_block_writer[folded_cascode]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_fields_present_with_single_block_writer[nmcnr_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_fields_present_with_single_block_writer[pushpull_follower_buffer]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_fields_present_with_single_block_writer[sf_pushpull_output_opamp]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_fields_present_with_single_block_writer[two_stage_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_fields_present_with_single_block_writer[two_stage_ota_sf]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_cold_run_computes_each_s0_block_once[common_gate_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_cold_run_computes_each_s0_block_once[current_reuse_telescopic_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_cold_run_computes_each_s0_block_once[folded_cascode]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_cold_run_computes_each_s0_block_once[nmcnr_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_cold_run_computes_each_s0_block_once[pushpull_follower_buffer]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_cold_run_computes_each_s0_block_once[sf_pushpull_output_opamp]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_cold_run_computes_each_s0_block_once[two_stage_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_cold_run_computes_each_s0_block_once[two_stage_ota_sf]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[common_gate_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[current_reuse_telescopic_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[folded_cascode]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[nmcnr_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[pushpull_follower_buffer]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[sf_pushpull_output_opamp]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[two_stage_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_computes_each_s0_block_once_again[two_stage_ota_sf]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_outputs_bit_identical[common_gate_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_outputs_bit_identical[current_reuse_telescopic_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_outputs_bit_identical[folded_cascode]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_outputs_bit_identical[nmcnr_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_outputs_bit_identical[pushpull_follower_buffer]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_outputs_bit_identical[sf_pushpull_output_opamp]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_outputs_bit_identical[two_stage_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_second_run_outputs_bit_identical[two_stage_ota_sf]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[common_gate_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[pushpull_follower_buffer]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[sf_pushpull_output_opamp]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[pushpull_follower_buffer]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[sf_pushpull_output_opamp]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_content_unchanged_from_base[common_gate_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_content_unchanged_from_base[current_reuse_telescopic_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_content_unchanged_from_base[folded_cascode]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_content_unchanged_from_base[nmcnr_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_content_unchanged_from_base[pushpull_follower_buffer]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_content_unchanged_from_base[sf_pushpull_output_opamp]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_content_unchanged_from_base[two_stage_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_content_unchanged_from_base[two_stage_ota_sf]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_value_has_no_checkout_path[common_gate_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_value_has_no_checkout_path[current_reuse_telescopic_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_value_has_no_checkout_path[folded_cascode]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_value_has_no_checkout_path[nmcnr_amplifier]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_value_has_no_checkout_path[pushpull_follower_buffer]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_value_has_no_checkout_path[sf_pushpull_output_opamp]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_value_has_no_checkout_path[two_stage_ota]
+PASSED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_junction_source_value_has_no_checkout_path[two_stage_ota_sf]
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_symmetric_pairs_tied_as_constructed
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_variables_plus_tied_equal_schema_components
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_representative_in_variables_members_not
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_representative_is_min_dc_colour
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_orbit_ties_reps_are_components_minus_members
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_asymmetric_circuit_no_ties
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_dc_orbit_pairs_follow_construction
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_bounds_differ_rejected
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_bounds_differ_rejected_by_build_search_context
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_bounds_differ_accepted_when_untied
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_untie_unknown_element_rejected
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_untie_trivial_orbit_rejected
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_orbit_ties_direct_rejections
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_untie_member_unties_whole_orbit_increases_variables
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_spec_untie_orbits_feeds_search_context
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_untied_members_move_separately
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_renaming_transports_tie_groups[1]
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_renaming_transports_tie_groups[2]
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_b_reversed_resistor_same_ties_as_drawn_alike
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_b_reversed_resistor_current_tie_sign_minus_one
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_b_pilot_current_reuse_r1_r2_tied
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_ds_flip_symmetry_bit_identical[names0]
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_ds_flip_symmetry_bit_identical[names1]
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_ds_flip_symmetry_bit_identical[names2]
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_ds_flip_symmetry_bit_identical[names3]
+PASSED gmid_engine/tests/search/test_orbit_ties.py::test_ds_flip_m1_kernel_context_stops_at_s0
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_dc_table_has_33_fields
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_s2_writers_is_s1_plus_dc_table_exactly
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_one_writer_per_field_and_permission_enforced
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_dc_writes_constant_matches_table
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_columns]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_current_basis]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_currents]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_lengths]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_rails]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_scc_order]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_bulk_reverse]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_conduction]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_kcl]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_kvl_branch]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_node_conflict]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_report]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_saturation]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_vgs_match]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_theta_schema]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_tolerances]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_widths]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_writer_plan]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_seal_conduction_reads_cover_contract_inputs
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_columns]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_current_basis]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_currents]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_lengths]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_rails]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_scc_order]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_widths]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_writer_plan]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_theta_schema_reads_include_structural_rule_fields
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_vocabulary_constants
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_value_defaults
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[NodeWrite]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[DeviceCoord]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[CurrentTerm]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[ColumnNeighbor]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[SccEntry]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[PathValue]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[Window]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[SealItem]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[DeviceOp]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[DcInputs0]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[DcInputs1]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[ZeroCancel]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[ThetaSchema]
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_value_fields_as_contract
+PASSED gmid_engine/tests/sizing/test_s2_values.py::test_kernel_context_holds_only_references
+FAILED gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[current_reuse_telescopic_ota]
+FAILED gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[folded_cascode]
+FAILED gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[ngcc_3stage_ff]
+FAILED gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[nmcnr_amplifier]
+FAILED gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[two_stage_ota]
+FAILED gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[two_stage_ota_sf]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[current_reuse_telescopic_ota]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[folded_cascode]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[ngcc_3stage_ff]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[nmcnr_amplifier]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[two_stage_ota]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[two_stage_ota_sf]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[common_gate_amplifier]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[current_reuse_telescopic_ota]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[folded_cascode]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[nmcnr_amplifier]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[two_stage_ota]
+FAILED gmid_engine/tests/integration/test_s0_layer_9circuits.py::test_s0_field_values_unchanged_from_base[two_stage_ota_sf]
+18 failed, 212 passed in 331.46s (0:05:31)
+exit=1

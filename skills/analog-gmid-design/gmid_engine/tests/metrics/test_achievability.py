@@ -146,3 +146,27 @@ def test_feedforward_unknown_bound_prevents_verdict(ff_case):
     g = _ach(b, "gain_checks")
     assert g.verdict == "undetermined" and g.sum_db is None
     assert (b.status, b.exit_code) == ("ok", 0)
+
+
+def _it1_sym_nocap_doc():
+    """T-1f DOF 용 대칭 차동 toy(커패시터 없음): M1(o1, inp, t) M2(o2, inn, t) M5(t, vb, gnd) M3(o1, pb, vdd) M4(o2, pb, vdd), p inp · n inn."""
+    return topology("achsymdof",
+                    [mos_e("M1", "nmos", "o1", "inp", "t"), mos_e("M2", "nmos", "o2", "inn", "t"), mos_e("M5", "nmos", "t", "vb", "gnd"),
+                     mos_e("M3", "pmos", "o1", "pb", "vdd"), mos_e("M4", "pmos", "o2", "pb", "vdd")],
+                    ports={"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"),
+                           "o1": ("output", "differential_output_p"), "o2": ("output", "differential_output_n")},
+                    bias=["pb", "vb"])
+
+
+def test_it1_t1f_structural_dof_of_symmetric_pair(tmp_path):
+    """T-1f (손): 커패시터 없는 대칭 차동 toy 의 단계 B graph/ach dof. 구조 rank 는 이분 매칭 rank(41 §4.5). 손 유도: 입력 점 병합으로 노드전압 변수
+    V:inn 하나가 줄어 변수 17 (base 18), 방정식 5, 구조 rank 5, 매칭 안 된 방정식 없음, 자유 변수 = 17 - 5 = 12."""
+    root = tmp_path
+    lut = write_lut(root / "lut")
+    pdk = toy_pdk(root / "pdk")
+    tp, sp = write_case(root / "case", _it1_sym_nocap_doc())
+    _, b = stage_ab(root / "case", lut, tp, sp, pdk)
+    d = _ach(b, "dof")
+    assert (d.status, d.n_variables, d.n_equations, d.structural_rank) == ("free_dof", 17, 5, 5)
+    assert len(d.free_variables) == 12 and d.unmatched_equations == ()
+    assert "V:inn" not in d.free_variables

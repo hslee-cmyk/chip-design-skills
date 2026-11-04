@@ -1,0 +1,29 @@
+{"group": "card", "path": "graph/test_coupling_vars.py", "rc": 0, "sec": 19.6, "free": 4.55, "tail": ["79 passed in 17.32s"]}
+{"group": "card", "path": "graph/test_gvgs_cycles.py", "rc": 0, "sec": 4.2, "free": 4.61, "tail": ["61 passed in 2.11s"]}
+{"group": "card", "path": "graph/test_s1_values.py", "rc": 0, "sec": 2.8, "free": 4.64, "tail": ["19 passed in 0.37s"]}
+{"group": "card", "path": "graph/test_s1v_build.py", "rc": 0, "sec": 8.8, "free": 4.63, "tail": ["54 passed in 4.79s"]}
+{"group": "card", "path": "graph/test_s1v_fields.py", "rc": 0, "sec": 4.9, "free": 4.65, "tail": ["8 passed in 2.51s"]}
+{"group": "card", "path": "graph/test_net_model.py", "rc": 0, "sec": 6.5, "free": 4.65, "tail": ["40 passed in 3.37s"]}
+{"group": "card", "path": "metrics/test_achievability.py", "rc": 0, "sec": 10.9, "free": 4.66, "tail": ["9 passed in 7.78s"]}
+{"group": "card", "path": "search/test_current_symmetry.py", "rc": 0, "sec": 6.0, "free": 4.66, "tail": ["8 passed in 1.58s"]}
+{"group": "card", "path": "search/test_orbit_ties.py", "rc": 0, "sec": 8.1, "free": 4.7, "tail": ["27 passed in 4.79s"]}
+{"group": "card", "path": "search/test_search_domain.py", "rc": 0, "sec": 8.5, "free": 4.68, "tail": ["37 passed in 4.67s"]}
+{"group": "card", "path": "search/test_fd_jacobian.py", "rc": 0, "sec": 9.4, "free": 4.38, "tail": ["10 passed in 3.14s"]}
+{"group": "card", "path": "sizing/test_block_columns.py", "rc": 0, "sec": 24.6, "free": 3.67, "tail": ["70 passed in 19.35s"]}
+{"group": "card", "path": "sizing/test_current_basis.py", "rc": 0, "sec": 23.9, "free": 3.83, "tail": ["23 passed in 20.79s"]}
+{"group": "card", "path": "sizing/test_kernel_context.py", "rc": 0, "sec": 6.3, "free": 3.98, "tail": ["53 passed in 3.22s"]}
+{"group": "card", "path": "sizing/test_kernel_fields.py", "rc": 0, "sec": 2.8, "free": 3.9, "tail": ["9 passed in 0.26s"]}
+{"group": "card", "path": "sizing/test_s2_values.py", "rc": 0, "sec": 2.6, "free": 3.93, "tail": ["50 passed in 0.16s"]}
+{"group": "card", "path": "sizing/test_scc_order.py", "rc": 0, "sec": 2.7, "free": 3.9, "tail": ["15 passed in 0.47s"]}
+{"group": "card", "path": "sizing/test_writer_plan.py", "rc": 0, "sec": 6.6, "free": 3.94, "tail": ["90 passed in 3.75s"]}
+{"group": "card", "path": "sizing/test_input_window.py", "rc": 0, "sec": 12.5, "free": 3.92, "tail": ["41 passed in 9.31s"]}
+{"group": "card", "path": "sizing/test_scc_newton.py", "rc": 0, "sec": 7.0, "free": 3.84, "tail": ["36 passed, 3 warnings in 3.49s"]}
+{"group": "card", "path": "sizing/test_kernel_run.py", "rc": 0, "sec": 14.5, "free": 3.96, "tail": ["29 passed in 11.35s"]}
+{"group": "card", "path": "sizing/test_size_and_seal.py", "rc": 0, "sec": 13.2, "free": 3.92, "tail": ["42 passed in 10.18s"]}
+{"group": "card", "path": "sizing/test_size_and_seal_local.py", "rc": 0, "sec": 3.0, "free": 3.9, "tail": ["14 passed in 0.51s"]}
+{"group": "card", "path": "integration/test_stage_a_library.py", "rc": 0, "sec": 22.3, "free": 3.89, "tail": ["15 passed in 21.32s"]}
+{"group": "structure", "path": "structure", "rc": 0, "sec": 97.7, "free": 4.04, "tail": ["171 passed, 1 deselected in 96.80s (0:01:36)"]}
+{"group": "smoke", "path": "integration/test_stage_b_library.py", "rc": 0, "sec": 47.7, "free": 4.05, "tail": ["10 passed, 58 deselected in 46.72s"]}
+{"group": "smoke", "path": "integration/test_s0_layer_9circuits.py", "rc": 0, "sec": 80.8, "free": 4.04, "tail": ["11 passed, 72 deselected in 79.62s (0:01:19)"]}
+{"group": "smoke", "path": "integration/test_g10_no_recompute_9circuits.py", "rc": 0, "sec": 50.2, "free": 4.13, "tail": ["2 passed, 11 deselected in 48.52s"]}
+{"done": true, "min_free": 3.67}

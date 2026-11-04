@@ -1,0 +1,19 @@
+{
+ "head": [
+  0,
+  [],
+  "80 passed in 12.14s"
+ ],
+ "X4": [
+  1,
+  [
+   "test_it1_net_model_has_single_call_site_in_s1v_fields"
+  ],
+  "1 failed, 79 passed in 13.21s"
+ ],
+ "restored": [
+  0,
+  [],
+  "80 passed in 14.49s"
+ ]
+}

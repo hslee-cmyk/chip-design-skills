@@ -34,14 +34,12 @@ REL_INPUT_DC = "input_dc"                              # W2 (d): spec input_dc �
 REL_VGS_GATE = "vgs_gate"                              # 쓰기 소자가 source 에서 gate 를 쓴다(diode 면 W1)
 REL_VGS_SOURCE = "vgs_source"                          # 쓰기 소자가 gate 에서 source 를 쓴다(소스 추종, W2)
 REL_RESISTOR = "resistor_drop"                         # V(far) = V(near) -/+ I*R (W2 (b))
-REL_TIE = "input_tie"                                  # 입력 DC 동일 가정(DEC-64 v1): 입력 포트끼리 같은 전압
 REL_WINDOW = "free_window"                             # W4: θ 의 y 성분 -> 창 안 위치
-INPUT_GROUP_KEY = "input_common_mode"                  # 입력 DC 미선언 입력 포트 묶음의 y 키(U2 기본안 (a))
+REL_INPUT_POINT = "input_point"                        # 입력 DC 미선언 차동 입력쌍의 두 포트가 묶인 입력 점(DEC-106): W4 뿌리 하나, F 에 닿으면 KVL 종속
 
 # ---- path_values 관계 종류(봉인 1 입력의 relation[0])
 PATH_MOS = "vgs"                                       # MOS 좌표에서 VGS 역산으로 함의한 gate·source 전압
 PATH_RESISTOR = "resistor"
-PATH_TIE = "tie"
 PATH_Y = "y"
 PATH_FIXED = "fixed"
 
@@ -94,6 +92,8 @@ REPORT_UNDEFINED = "undefined"
 
 # ---- 실패 사유(detail reason) -- 정지(StructureUnresolvedError)는 graph 와 같은 reason 키 + rule_branch
 BRANCH_RESISTOR_CYCLE = "dc_resistor_cycle"
+BRANCH_INPUT_CM_UNDEFINED = "input_cm_undefined"       # 입력 DC 미선언 + 입력 포트가 차동쌍 하나가 아님(DEC-106): 탐색 전 정지
+BRANCH_INPUT_TARGET_ONE_PORT = "input_target_one_port"   # 입력 DC 미선언 + 차동 입력 두 포트 중 한 포트만 node_voltage_targets_v 선언: 입력 점이 안 묶여 ΔV 가 θ 함수(DEC-106): 탐색 전 정지
 BRANCH_MOS_ZERO_CURRENT = "mos_zero_current_structural"
 BRANCH_ORIENTATION = "mos_orientation_unsupported"
 REASON_DECLARED_KCL = "declared_source_kcl_conflict"
@@ -113,9 +113,14 @@ SCC_BISECTION = "bisection"
 SCC_DIRECT = "direct"
 
 # ---- 남은 동률(구조 색이 같은 후보)을 이름 순서로 깬 결정의 종류(`TieBreak.decision`)
-TIE_KRUSKAL = "writer_edge"                            # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
+OUTPUT_HIGH_IMPEDANCE = "high_impedance"               # `node.dc_output_structure` 분류 값 둘(설계 41 4.7-1a) -- 출력 포트 넷에만 쓴다
+OUTPUT_KVL_FIXED = "kvl_fixed"
+INPUT_STATUS_MEASURED = "measured"                     # `Window.input_status`(설계 41 4.7-2): 입력 포화 창을 재고 되풀이가 tol 안에서 수렴
+INPUT_STATUS_UNSETTLED = "unsettled"                   # 창은 잰 해에서 쟀으나 되풀이가 k_max 안에 수렴하지 않았거나 tol 미정
+INPUT_STATUS_UNMEASURED = "unmeasured"                 # 창을 잴 수 없다(뿌리 항목만)
+INPUT_STATUS_F_COMPONENT_UNDECLARED = "f_component_undeclared"   # F 성분에 속한 입력 DC 미선언 포트(lo·hi None)
+TIE_KRUSKAL = "writer_edge"                           # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
 TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
-TIE_INPUT_ORDER = "input_tie_order"                    # 같은 DC 엣지를 잇는 입력 포트 순서(같은 구조 색)
 TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원소 열이 θ 전류 기저/종속으로 갈림
 
 # ---- 필드 writer(= 계산 블록 이름)
@@ -143,7 +148,8 @@ DC_SEAL_REPORT_WRITER = "dc_seal_report"
 DC_WRITES = (
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
-    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))),
+    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"),
+                             ("node", "dc_output_structure"))),
     (KERNEL_CONTEXT_WRITER, (("graph", "fixed_values"), ("graph", "resistor_values"), ("graph", "l_ties"))),
     (DC_SCC_ORDER_WRITER, (("graph", "dc_scc_order"), ("node", "dc_column_nbrs"))),
     (DC_THETA_SCHEMA_WRITER, (("graph", "theta_schema"),)),          # graph/kernel: theta_schema (옛 graph/dc: dc_theta_schema 를 옮김, v1.9.1 D8)
@@ -186,7 +192,7 @@ S2_WRITERS = WriterTable(
 @dataclasses.dataclass(frozen=True)
 class DcInputs:
     """GB7 이 읽는 사람 선언(spec)의 투영. `supplies_v` = ((레일, V), ...) 이름순, `input_dc_v` = 입력 포트 공통 DC(V) 또는
-    None(미선언·engine·결정 대기 -> U2 기본안 (a) W4), `node_targets` = ((넷, V), ...) W3, `element_values` =
+    None(미선언·engine·결정 대기 -> W4, 입력 포트인 뿌리의 y 키 = 그 뿌리 넷), `node_targets` = ((넷, V), ...) W3, `element_values` =
     ((원소, 값 또는 None), ...) 저항(Ω)·이상 전류원(A), `linear_devices` = 선형 영역 선언 소자(봉인 7 제외),
     `pending` = 결정 대기로 '미선언' 취급한 칸 ((경로, 결정 ID), ...), `engine_elements` = spec 값 mode 가 `engine` 인 원소
     이름(정렬) -- 그중 수동소자가 DEC-92 θ 연속 성분·구조 규칙 대상이다(결정 대기 원소는 들지 않는다)."""
@@ -354,11 +360,15 @@ class PathValue:
 
 @dataclasses.dataclass(frozen=True)
 class Window:
-    """W4 노드 창 [lo, hi](V). `constraints` = 창을 만든 인접 전도 MOS 순서 제약 수(0 이면 레일 전압 범위)."""
+    """노드 창 [lo, hi](V) -- W4 뿌리와 모든 입력 포트(설계 41 4.7-2). `constraints` = 창을 만든 인접 전도 MOS 순서 제약 수(0 이면 레일 전압
+    범위; 뿌리 아닌 입력 포트·선언 포트는 순서 창이 없어 0). `input_status` = None(입력 포트가 아닌 W4 뿌리) 또는 `INPUT_STATUS_*` 넷 중 하나,
+    `tol_v` = 그 창을 잰 해의 tolerance(미정이면 None). (`op_mismatch`·`status_detail` 은 EO-1 묶음 몫 -- 사용자 결정 O-98.)"""
 
     lo: float
     hi: float
     constraints: int
+    input_status: object = None
+    tol_v: object = None
 
 
 @dataclasses.dataclass(frozen=True)

@@ -28,7 +28,8 @@ from .conftest import schema_of  # [U17 ①-b] graph/kernel 필드 읽기
 from .conftest import mos, topo, two
 
 DIFF = [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "o2", "inn", "t"), mos("M5", "nmos", "t", "vb", "gnd")]
-DIFF_PORTS = {"inp": ("input", "a"), "inn": ("input", "a"), "o1": ("output", "b"), "o2": ("output", "b")}
+DIFF_PORTS = {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"),          # [IT-1 DEC-106]
+              "o1": ("output", "b"), "o2": ("output", "b")}
 R_BOX = (1e3, 1e6)
 
 

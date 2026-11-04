@@ -1,0 +1,12 @@
+......................................................................F  [100%]
+================================== FAILURES ===================================
+_ test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution __
+gmid_engine\tests\sizing\test_block_columns.py:1678: in test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution
+    assert abs(w.tol_v - tol_last) <= 2e-6, (w.tol_v, tol_last, tol_first)
+E   AssertionError: (0.00011230468750006434, 0.0001459960937499893, 0.00011230468750006434)
+E   assert 3.369140624992495e-05 <= 2e-06
+E    +  where 3.369140624992495e-05 = abs((0.00011230468750006434 - 0.0001459960937499893))
+E    +    where 0.00011230468750006434 = Window(lo=0.6873085209168385, hi=1.8, constraints=0, input_status='measured', tol_v=0.00011230468750006434).tol_v
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution
+1 failed, 70 passed in 16.67s

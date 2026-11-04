@@ -649,7 +649,9 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 
 | 개념 | 정본 | 비고 |
 |---|---|---|
-| 복합 diode(DC 가지 걷기로 자기 gate 에 닿는 MOS)·묶음·기준/캐스코드 기준 | `graph.composite_diode.composite_diodes` | DC 역할 규칙 1c 가 부르고, `net_model` 이 evidence 에서 `diode_nodes`·`composite_mos`·`composite_bundles`·`composite_internal` 을 만든다. 다른 곳에서 복합 diode 를 다시 찾지 않는다 |
+| 복합 diode(DC 가지 걷기로 자기 gate 에 닿는 MOS)·묶음·기준/캐스코드 기준 | `graph.composite_diode.composite_diodes` | DC 역할 규칙 1c 가 부르고, `net_model` 이 evidence 에서 `diode_nodes`·`composite_mos`·`composite_bundles`·`composite_internal` 을 만든다(graph 필드가 아니라 `build_s1v` 안 local 모형 -- `net_model(` 호출 자리는 이 하나). `coupling_vars` 는 `net_index` 만 쓴다. 다른 곳에서 복합 diode 를 다시 찾지 않는다 |
+| 입력 점(입력 DC 미선언 차동 입력쌍 한 점)·`input_cm_undefined` 정지 [IT-1, DEC-106] | graph 필드 `node.dc_writer`(relation `input_point`) -- writer `dc_writer_plan` 하나(`sizing/writer_plan.py` `_input_point`·`canon`) | 소비자: `block_columns`(노드 풀이), `scc_order`, `theta_schema`, `fd_jacobian`, `achievability._dof`(변수 공유). 포트 둘을 한 점으로 묶는 판정은 `writer_plan.py` 에만 |
+| g = s MOS(gate 넷 == source 넷) [IT-1, O-210 RR-6] | graph 필드 `graph.gvgs_summary.gate_source_same` -- writer `s1_gvgs` 하나 | 쓰기 계획은 READS 로만 읽어 `fixed_vgs` 종속으로 둔다. 둘째 판정 없음 |
 | 주경로(D_max·slack)·feedforward 묶음 | `graph.feedforward_cells.feedforward_cells` | 비용 정의는 `stage_bfs` 의 `StageResult.edges` 하나. 주경로 블록 재구성은 `view_analysis._without` |
 | 루프 역할(루프 뷰 \| 중첩 Miller 내부 \| 복합 diode 내부 \| 바이어스 SCC) | `graph.loop_roles.loop_roles` | 복합 diode 내부 분류는 `loop_classify`(1.6), 중첩 Miller 판정은 이 함수 |
 | 사이클 극성(DC)·`ac_only` | `graph.polarity.loop_polarity`, 루프 뷰 극성은 `s1v_build._polarity` | 커패시터 경유 = 0 = `ac_only` |
@@ -670,7 +672,7 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | Σ gain 판정(feedforward 포함) | `metrics.achievability` 의 `GainCheck` | 주경로 블록만(U1b `ViewS1v.blocks`), FF 는 `ViewS1v.feedforward` |
 | 인증된 면적 하한 A_lb | `metrics.area_lower_bound` | 입력 면적 분해능 b_A·수동소자 단위 면적은 `search_domain`·`search.passive_area_decl`. U11 `front_diagnosis` 의 `A_lb` 가 이 값을 쓴다 |
 | 헤드룸 경로 엣지 비용의 LUT 최솟값 / 창 폭 상한 / 짧은 L bin 경고 | `metrics.edge_costs` / `metrics.headroom_bound` | 전도 봉인 9 의 식(`gm·tol_V >= I_off`)·포화 봉인 7(`VDS >= VDSAT + tol_vdsat`)을 그대로 쓴다. 새 임계값을 만들지 않는다 |
-| 구조 DOF 이분 매칭 | `metrics.dof_report` | 변수·등식 조립은 `achievability` 의 `_dof`(비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ 저항 / 소자 식·저항 강하·선언 노드 목표·입력 동일 DC) |
+| 구조 DOF 이분 매칭 | `metrics.dof_report` | 변수·등식 조립은 `achievability` 의 `_dof`(비레일 노드 전압·MOS 반전 좌표·L 동치류·θ 전류·θ 저항 / 소자 식·저항 강하·선언 노드 목표) |
 | 단계 B 진입점 | `pipeline.run_stage_b` | 단계 A 결과 위에서 한 번. exit 3 정지와 보고서 `<회로>.stage_b.json` |
 
 ## 11. 새 엔진 잡음 metric 정본 (2026-10-09, 구현 단위 U8 -- 설계 41 §7.1·7.3, 계약 `gmid_engine/metrics/CONTRACT.md` 11절)
@@ -728,4 +730,9 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 |---|---|---|
 | 계산 블록 코드 해시(checkout 경로·줄 정보 무관, `__wrapped__` 사슬 포함) | `core.compute_block._code_hash` (`ComputeBlock.code_hash`, 데코레이트 시점 1회) | 옛 `hashlib.sha256(marshal.dumps(fn.__code__))` 는 삭제했다(경로 의존·참조 수 의존). 지문 인코더는 `core.fp_of` 하나 -- 코드 지문용 인코더를 새로 만들지 않는다 |
 | 엔진 코드 지문(S3 줄 `code_fp`·`run_id` 의 출처 칸 -- 실행 사이 재사용 키 아님) | `core.engine_code_fp` | 블록 코드 해시가 덮지 않는 것(부르는 함수·전역·closure·기본 인자)을 덮는다 |
+| 평가 스냅샷 파생(parent 에서 keep = base writer ∪ 봉인 4 호출 목록 블록 밖 writer 필드 제거) [IT-2a] | `GraphSnapshot.derive_child(keep_writers)` -- `run_kernel` 이 keep = `ctx.base.block_versions` 키 ∪ 커널 블록 이름(`steps`·`later`) ∪ `sizing/seal.py` `SEAL_ITEM_BLOCKS`(봉인 항목 블록 여덟, 블록 객체 tuple -- 구성원·순서 정의 하나, `seal_dc` 호출 순서도 이것)의 블록 이름으로 부른다(`dc_seal_report` 는 keep 밖) | 옛 parent 검사(`PLAN_WRITERS` 만, 스냅샷 통째 출발)는 삭제. `_CONTEXT_WRITERS` 는 `context_fp` 전용(keep 정본 아님). 봉인 4 `seal_versions(snapshot, calls, base)` 가 coverage·서로소를 항상 단언(`base` 필수, None 이면 `TypeError`; `seal_dc` 도 `base` 기본값 없는 필수 키워드) |
+| 출력 포트 구조 분류(`high_impedance`\|`kvl_fixed`) [IT-2b] | graph 필드 `node.dc_output_structure` -- writer `dc_writer_plan` 하나(`sizing/writer_plan.py` `_output_structure`, G_vgs 엣지 `_edges` 목록 위 너비 우선 걷기) | 소비자(측정 구성·다듬은 창)는 이 필드를 READS 로만 읽고 다시 분류하지 않는다. `_edges` 호출·G_vgs 걷기는 `writer_plan.py` 에만. IT-2c 전까지 출력 전용 |
+| 입력 포트 창 끝 식(영역 경계 행 교집합, 이동량 창 + 감도) [IT-2b] | `sizing.input_window.saturation_window(unknown, roots, values, gradient, rows, *, slope=None) -> (dlo, dhi, slope)\|None` | 옛 4원소 행·위치 인자 `root` 서명은 삭제. 행 = `Circuit.region_rows`(5원소, kind ∈ sat·triode). 창 끝 식을 가진 함수는 이것 하나 |
+| 창 경계 행 셋(`sat`·`triode` 5원소 행) [IT-2b] | `sizing/block_columns.py` `_Circuit.region_rows` | 옛 `saturation_rows` 는 대체·삭제. 노드 풀이 helper(`_Circuit`·`_solve`·`_FAILURES`)는 `block_columns.py` 에 남는다 -- `_helpers_dc_solve.py` 로의 이동은 IT-2d(설계 41 4.7-4, 규칙 A). 옛 `_refine_ends`·`_root_windows` 는 IT-2b 에서 삭제(커널 호출 0; 끝 풀이는 IT-2d 가 `window_refine.py` 에 새로 쓴다) |
+| 입력 포트 창 `node.dc_window` (모든 입력 포트 + W4 뿌리) [IT-2b] | writer `dc_columns`(`sizing/block_columns.py` `_windows`) | 소비자 `search.fd_jacobian._steps`(`free_window` 항목만 y 스텝). 새 칸 `input_status`·`tol_v` 의 소비자는 IT-2c·IT-2d |
 | 계산 블록 입력 버전 `fp_of((name, code_hash, 투영 지문))` [XRUN-F1 card B] | `core.ComputeBlock.input_version(snapshot, *extras)` (`ComputeBlock.__call__` 과 같은 비공개 helper 하나로 (투영, 버전)을 한 번만 만든다) | `sizing/seal_versions.py` 의 같은 식 사본은 삭제했다 -- 입력 버전 식을 호출부에서 다시 적지 않는다 |

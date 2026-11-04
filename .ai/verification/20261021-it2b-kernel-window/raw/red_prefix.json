@@ -1,0 +1,15 @@
+[
+ {
+  "test_id": "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution",
+  "type": "AssertionError",
+  "class": "behavior",
+  "message": "AssertionError: (0.00011230468750006434, 0.0001459960937499893, 0.00011230468750006434)",
+  "E_lines": [
+   "E   AssertionError: (0.00011230468750006434, 0.0001459960937499893, 0.00011230468750006434)",
+   "E   assert 3.369140624992495e-05 <= 2e-06",
+   "E    +  where 3.369140624992495e-05 = abs((0.00011230468750006434 - 0.0001459960937499893))",
+   "E    +    where 0.00011230468750006434 = Window(lo=0.6873085209168385, hi=1.8, constraints=0, input_status='measured', tol_v=0.00011230468750006434).tol_v"
+  ],
+  "hash": "56a3c390b2d4f60b96fd66dfbe6b153f8fb22dad88947c9fd01b394f657bcd07"
+ }
+]

@@ -1,0 +1,86 @@
+{
+ "common_gate_amplifier": {
+  "refactor_diff_columns": [],
+  "n_solve": [
+   146,
+   146
+  ],
+  "kernel_calls_with_fewer_solves": 0,
+  "kernel_calls_with_more_solves": 0,
+  "determinism_diff_columns": []
+ },
+ "current_reuse_telescopic_ota": {
+  "refactor_diff_columns": [],
+  "n_solve": [
+   0,
+   0
+  ],
+  "kernel_calls_with_fewer_solves": 0,
+  "kernel_calls_with_more_solves": 0,
+  "determinism_diff_columns": []
+ },
+ "folded_cascode": {
+  "refactor_diff_columns": [],
+  "n_solve": [
+   173,
+   173
+  ],
+  "kernel_calls_with_fewer_solves": 0,
+  "kernel_calls_with_more_solves": 0,
+  "determinism_diff_columns": []
+ },
+ "nmcnr_amplifier": {
+  "refactor_diff_columns": [],
+  "n_solve": [
+   157,
+   156
+  ],
+  "kernel_calls_with_fewer_solves": 1,
+  "kernel_calls_with_more_solves": 0,
+  "determinism_diff_columns": []
+ },
+ "pushpull_follower_buffer": {
+  "refactor_diff_columns": [],
+  "n_solve": [
+   34,
+   34
+  ],
+  "kernel_calls_with_fewer_solves": 0,
+  "kernel_calls_with_more_solves": 0,
+  "determinism_diff_columns": []
+ },
+ "sf_pushpull_output_opamp": {
+  "refactor_diff_columns": [],
+  "n_solve": [
+   0,
+   0
+  ],
+  "kernel_calls_with_fewer_solves": 0,
+  "kernel_calls_with_more_solves": 0,
+  "determinism_diff_columns": []
+ },
+ "two_stage_ota": {
+  "refactor_diff_columns": [],
+  "n_solve": [
+   143,
+   143
+  ],
+  "kernel_calls_with_fewer_solves": 0,
+  "kernel_calls_with_more_solves": 0,
+  "determinism_diff_columns": []
+ },
+ "two_stage_ota_sf": {
+  "refactor_diff_columns": [],
+  "n_solve": [
+   121,
+   120
+  ],
+  "kernel_calls_with_fewer_solves": 1,
+  "kernel_calls_with_more_solves": 0,
+  "determinism_diff_columns": []
+ },
+ "ngcc_3stage_ff": {
+  "refactor_diff_columns": [],
+  "determinism_diff_columns": []
+ }
+}

@@ -1,0 +1,466 @@
+diff --git a/skills/analog-gmid-design/gmid_engine/tests/core/test_graph_snapshot.py b/skills/analog-gmid-design/gmid_engine/tests/core/test_graph_snapshot.py
+index 1ef79fea..93ad4939 100644
+--- a/skills/analog-gmid-design/gmid_engine/tests/core/test_graph_snapshot.py
++++ b/skills/analog-gmid-design/gmid_engine/tests/core/test_graph_snapshot.py
+@@ -767,3 +767,66 @@ def test_column_after_extend_writers_then_write_not_stale():
+     assert e3.column("node", "v") == (("z", 4.0),)
+     assert tuple(k for k, _ in e3.column_fields("node", "v")) == ("z",)
+     assert e2.column("node", "v") == (("a", 1.0), ("b", 3.0))
++
++
++# =====================================================================================================================
++# [IT-2a 20261021-it2a-snapshot-derive, T-L11a] `GraphSnapshot.derive_child(keep_writers)` -- design 41 4.7-3c.
++# oracle 종류: (a) 구성으로 정답이 정해진 합성 입력 -- `_populated()` 의 write 순서로 어느 writer 가 어느 필드를 썼는지 정해진다.
++# 기대값(남는 열·메타·block_version)은 그 write 순서의 손 읽기이고 피검 함수 출력으로 만들지 않는다. base: AttributeError(존재 부재 red).
++# =====================================================================================================================
++
++def test_it2a_derive_child_keeps_only_keep_writers_fields_and_versions():
++    # oracle (a): _populated 의 writer = bias(node v), other(node u), sizer(device w·l), search(graph theta).
++    s = _populated()
++    c = s.derive_child(frozenset({"bias", "sizer"}))
++    # keep 안 writer 의 필드는 값·메타 그대로 남는다(손 읽기: node a 의 v = write 두 번 -> input_version i2·write_count 2)
++    assert c.column("node", "v") == (("a", 1.0), ("b", 3.0))
++    fv = c.field("node", "a", "v")
++    assert (fv.value, fv.writer, fv.input_version, fv.write_count) == (1.0, "bias", "i2", 2)
++    assert c.column("device", "w") == (("m1", 0.5),)
++    assert c.column("device", "l") == (("m1", 1e-6),)
++    # keep 밖 writer 의 필드는 없다('없음'이 '낡은 값'보다 안전)
++    assert c.column("node", "u") == ()
++    assert c.column("graph", "theta") == ()
++    assert c.field("node", "a", "u") is None
++    # block_version 도 keep 안 writer 것만 남는다
++    assert c.block_version("bias") == "i2" and c.block_version("sizer") == "z1"
++    assert c.block_version("other") is None and c.block_version("search") is None
++    assert set(c.block_versions) == {"bias", "sizer"}
++    # 권한표는 그대로
++    assert c.writers == TABLE
++
++
++def test_it2a_derive_child_leaves_parent_unchanged_and_is_a_new_snapshot():
++    # oracle (a): 원본 불변(§5.6) -- 파생 전후 모든 읽기 결과가 같다.
++    s = _populated()
++    before = _reads(s)
++    c = s.derive_child(frozenset({"bias"}))
++    assert c is not s
++    assert _reads(s) == before
++    assert s.column("node", "u") == (("a", 5.0), ("c", 6.0))
++    assert s.block_version("other") == "o1"
++    assert c.column("device", "w") == ()
++
++
++def test_it2a_derive_child_keep_nothing_and_unknown_names():
++    # oracle (a): keep 이 비면 모든 열과 block_version 이 없다. 스냅샷에 없는 writer 이름이 keep 에 있어도 거부하지 않는다(교집합).
++    s = _populated()
++    empty = s.derive_child(frozenset())
++    for kind, f in (("node", "v"), ("node", "u"), ("device", "w"), ("device", "l"), ("graph", "theta")):
++        assert empty.column(kind, f) == ()
++    assert dict(empty.block_versions) == {}
++    c = s.derive_child(frozenset({"bias", "nobody"}))
++    assert c.column("node", "v") == (("a", 1.0), ("b", 3.0))
++    assert c.column("node", "u") == ()
++    assert set(c.block_versions) == {"bias"}
++
++
++def test_it2a_derive_child_result_accepts_later_writes():
++    # oracle (a): 파생 스냅샷에 keep 밖 writer 가 다시 쓰면 그 열은 새 값만(낡은 값과 섞이지 않음), 다른 열은 그대로.
++    s = _populated()
++    c = s.derive_child(frozenset({"bias", "sizer"}))
++    c2 = c.write("other", "o9", {("node", "u"): {"z": 9.0}})
++    assert c2.column("node", "u") == (("z", 9.0),)
++    assert c2.block_version("other") == "o9"
++    assert c2.column("node", "v") == (("a", 1.0), ("b", 3.0))
+diff --git a/skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py b/skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py
+index 29a1ae31..adc12b5d 100644
+--- a/skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py
++++ b/skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py
+@@ -650,7 +650,9 @@ def test_s16_passive_theta_fd_reuses_dc_and_ss_dev(zc_cell, zc_nocell, which):
+     assert all(s.computes == 0 for s in st_dc.values()), {n: s.computes for n, s in st_dc.items()}
+     r2 = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, th2, spec.constraints, ("vdd",), junction=js)
+     st = _since(ctx, before, BLOCKS)
+-    assert (st[ss_dev.name].computes, st[ss_dev.name].reuses) == (0, 1)
++    # [IT-2a 20261021-it2a-snapshot-derive, design 41:756 (i)·승인 20261021-it2-o67-scope 'ss 블록 reuse -> graft 계수'] child 스냅샷은 keep 밖
++    # writer(ss_dev)의 필드를 지우므로 입력 버전이 같은 ss_dev 는 S3 색인에서 이식(graft)한다: computes 0·grafts 1·reuses 0 (옛: reuses 1).
++    assert (st[ss_dev.name].computes, st[ss_dev.name].grafts, st[ss_dev.name].reuses) == (0, 1, 0)
+     assert st[metrics_ss.name].computes == 1 and st[metrics_dc.name].computes == 1
+     assert all(s.recomputes_same_input == 0 for s in st.values())
+     assert all(s.computes == 0 for s in _since(ctx, before, dc).values())
+@@ -703,3 +705,24 @@ def test_passive_values_reused_on_mos_theta_only_change(zc_cell, zc_nocell, whic
+     st = _since(ctx, before, (passive_values,))[passive_values.name]
+     assert (st.computes, st.recomputes_same_input) == (1, 0), st
+     assert dict(r2.snapshot.column("device", "passive_value"))[key[1]] == th[key] * 1.1
++
++
++# =====================================================================================================================
++# [IT-2a 20261021-it2a-snapshot-derive, T-L11c] 같은 θ ss 재평가 -> ss 블록 outcome graft, computes 증분 0 (design 41 4.7-3c).
++# child 스냅샷은 keep 밖 writer(ss 블록)의 필드를 지우므로, 같은 θ 의 ss 블록은 같은 입력 버전의 S3 색인 결과를 이식(graft)한다 -- 재계산 0.
++# oracle: (독립) 실행 계수(RunCounters) 행의 구간 증분 + 값 대조(첫 ss_evaluate 결과와 같은 열). 피검 함수로 기대값을 만들지 않는다.
++# base(parent.snapshot 통째 출발): child 가 ss_dev 필드를 이미 가져 outcome reuse -> red.
++# =====================================================================================================================
++
++def test_it2a_same_theta_ss_reevaluation_from_child_grafts(base):
++    spec, ctx, _, _, res, js = base
++    before = _counts(ctx)
++    ev2 = size_and_seal(ctx, theta(), parent=res.lineage)                   # 같은 θ, parent = ss 가 실린 lineage
++    again = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, theta(), spec.constraints, ("vdd",), junction=js)
++    st = _since(ctx, before)
++    assert (st[ss_dev.name].computes, st[ss_dev.name].grafts, st[ss_dev.name].reuses) == (0, 1, 0), st[ss_dev.name]
++    assert (st[metrics_ss.name].computes, st[metrics_ss.name].grafts, st[metrics_ss.name].reuses) == (0, 1, 0), st[metrics_ss.name]
++    assert all(s.computes == 0 and s.recomputes_same_input == 0 for s in st.values()), st
++    # 이식한 값은 첫 평가 값과 같다
++    assert again.snapshot.column("device", "ss_dev") == res.snapshot.column("device", "ss_dev")
++    assert bundle_map(again.ss)["gain_ss_db"].value == bundle_map(res.ss)["gain_ss_db"].value
+diff --git a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py
+index 46ba9ad1..0d000ce5 100644
+--- a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py
++++ b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py
+@@ -374,3 +374,87 @@ def test_determinism_hashseed_u4_paths(tmp_path):
+         assert r.returncode == 0, r.stderr[-3000:]
+         outs.append(json.loads(r.stdout.strip().splitlines()[-1]))
+     assert outs[0] == outs[1] == outs[2]
++
++
++# =====================================================================================================================
++# [IT-2a 20261021-it2a-snapshot-derive, T-L11a] parent 분기 = `parent.snapshot.derive_child(keep)` (design 41 4.7-3c).
++# keep = base writer(ctx.base.block_versions 키) ∪ 그 평가 커널 호출 블록. 시그니처 불변 진입점 `size_and_seal(ctx, theta, parent=)` 로 잰다.
++# oracle:
++# - (a) 구성으로 정한 parent -- `with_hand_ss`(커널 밖 writer `ss_dev` 의 필드를 손으로 실은 parent).
++# - (a) 독립 기준 -- 같은 θ 를 parent 없이 평가한 스냅샷(= 커널 호출 블록 + base writer 필드만 가진다)과 ctx.base(S1·계획 등 base writer 필드).
++# - 피검 함수(derive_child·run_kernel 내부)로 기대값을 만들지 않는다.
++# =====================================================================================================================
++
++def _it2a_nonempty_fields(snap):
++    """권한표의 (kind, field) 가운데 열이 비어 있지 않은 것(스냅샷 읽기만)."""
++    return {kf for kf, _w in snap.writers.entries if snap.column(*kf) != ()}
++
++
++def _it2a_theta():
++    return theta_r4c(v1=0.62)
++
++
++def _it2a_ss_writer():
++    from gmid_engine.sizing import S2_WRITERS
++    return S2_WRITERS.writer_of("device", "ss_dev")
++
++
++def test_it2a_child_drops_fields_of_writer_outside_kernel(ctx_r4c):
++    """parent 에 커널 밖 writer(ss_dev) 필드를 실은 픽스처 -> child 스냅샷에 그 필드·block_version 없음. 기준 = 같은 θ 의 parent 없는 평가.
++    base(parent.snapshot 통째 출발): ss_dev 열이 child 에 남아 red."""
++    ss_writer = _it2a_ss_writer()
++    e0 = size_and_seal(ctx_r4c, theta_r4c())
++    assert e0.sealed is not None                                           # 전제
++    parent = with_hand_ss(e0)
++    assert parent.snapshot.column("device", "ss_dev") != ()                # 전제: parent 에 낡은 커널 밖 필드가 실려 있다
++    assert parent.snapshot.block_version(ss_writer) == "hand_ss"
++    child = size_and_seal(ctx_r4c, _it2a_theta(), parent=parent)
++    free = size_and_seal(ctx_r4c, _it2a_theta())                           # 기준: parent 없는 평가
++    assert child.snapshot.column("device", "ss_dev") == ()
++    assert child.snapshot.block_version(ss_writer) is None
++    assert set(child.snapshot.block_versions) == set(free.snapshot.block_versions)
++    assert _it2a_nonempty_fields(child.snapshot) == _it2a_nonempty_fields(free.snapshot)
++
++
++def test_it2a_child_keeps_every_base_writer_field(ctx_r4c):
++    """base writer(ctx.base.block_versions 키) 필드는 child 에 남는다(지우면 red) -- 기대값 = ctx.base 의 같은 열·같은 block_version."""
++    e0 = size_and_seal(ctx_r4c, theta_r4c())
++    assert e0.sealed is not None
++    child = size_and_seal(ctx_r4c, _it2a_theta(), parent=with_hand_ss(e0))
++    base = ctx_r4c.base
++    base_fields = [(kf, w) for kf, w in base.writers.entries if w in base.block_versions and base.column(*kf) != ()]
++    assert len(base_fields) > 0                                            # 전제: 비교 대상이 있다
++    for (kind, field), w in base_fields:
++        assert child.snapshot.column(kind, field) == base.column(kind, field), (kind, field, w)
++        assert child.snapshot.block_version(w) == base.block_version(w), w
++
++
++def test_it2a_parentless_evaluation_passes_seal_4(ctx_r4c):
++    """parent 없는 평가(스냅샷 = ctx.base)는 봉인 4 를 통과한다(keep 을 옛 _CONTEXT_WRITERS 로 구현하면 base writer 필드가 빠져 red).
++    parent 가 있는 평가도 같다."""
++    e0 = size_and_seal(ctx_r4c, theta_r4c())
++    assert e0.sealed is not None
++    assert e0.report.items[3].item == 4 and e0.report.items[3].status == "pass"
++    e1 = size_and_seal(ctx_r4c, _it2a_theta(), parent=with_hand_ss(e0))
++    assert e1.sealed is not None
++    assert e1.report.items[3].item == 4 and e1.report.items[3].status == "pass"
++
++
++def test_it2a_parent_with_other_base_writer_version_rejected(ctx_r4c):
++    """base writer 버전이 ctx.base 와 다른 parent -> ValueError. base writer 마다(옛 검사는 PLAN_WRITERS 만 봤다) 그 writer 필드를 다른
++    input_version 으로 다시 쓴 parent 를 만들어 하나씩 거부를 확인한다. 거부 전 전제: 어긋나지 않은 parent 는 받아들여진다."""
++    from gmid_engine.sizing import DcEvaluation
++    e0 = size_and_seal(ctx_r4c, theta_r4c())
++    assert e0.sealed is not None
++    size_and_seal(ctx_r4c, _it2a_theta(), parent=with_hand_ss(e0))        # 전제: 일치하는 parent 는 거부되지 않는다
++    base = ctx_r4c.base
++    tried = []
++    for (kind, field), w in base.writers.entries:
++        if w not in base.block_versions or w in tried or base.column(kind, field) == ():
++            continue
++        bad = e0.snapshot.write(w, "tampered_it2a", {(kind, field): dict(e0.snapshot.column(kind, field))})
++        assert bad.block_version(w) != base.block_version(w)               # 전제: 어긋남이 실제로 만들어졌다
++        tried.append(w)
++        with pytest.raises(ValueError):
++            size_and_seal(ctx_r4c, _it2a_theta(), parent=DcEvaluation(bad, e0.report, None))
++    assert len(tried) >= 2                                                 # 전제: base writer 여럿을 시험했다
+diff --git a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_scc_newton.py b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_scc_newton.py
+index b91a5dcf..e0e8da21 100644
+--- a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_scc_newton.py
++++ b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_scc_newton.py
+@@ -788,7 +788,7 @@ def test_q_ill_conditioned_point_rejected_by_seal_9(ctx_q):
+     assert abs(math.log(it9.margin) - math.log(m_star)) <= sens * tol
+     assert 2.5 < m_star < 2.7
+     with pytest.raises(SealViolationError) as ei:
+-        seal_dc(snap, calls, ctx_q.lut, resistances_of(ctx_q, th), (), **run_of(ctx_q))
++        seal_dc(snap, calls, ctx_q.lut, resistances_of(ctx_q, th), (), base=ctx_q.base, **run_of(ctx_q))
+     d = detail(ei.value)
+     st = {x[0]: x[1] for x in d["items"]}
+     assert len(st) == 9 and st[9] == "fail" and st[7] == "undefined"
+diff --git a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal.py b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal.py
+index b82efc99..9cf8a44c 100644
+--- a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal.py
++++ b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal.py
+@@ -18,7 +18,7 @@ from .conftest import (eval_calls, node_voltages, resistances_of, run_of, tamper
+ 
+ 
+ def _seal(ctx, snap, calls, th, lin=()):
+-    return seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), tuple(lin), **run_of(ctx))
++    return seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), tuple(lin), base=ctx.base, **run_of(ctx))
+ 
+ 
+ def test_undefined_evaluation(ctx_c):
+@@ -160,4 +160,27 @@ def test_seal_dc_run_pair_keywords_required(ctx_c, missing):
+     snap, calls = eval_calls(ctx, th)
+     kw = {k: v for k, v in run_of(ctx).items() if missing != "both" and k != missing}
+     with pytest.raises(TypeError):
+-        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), **kw)
++        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), base=ctx.base, **kw)
++
++
++# [IT-2a T-L11e, design 41 v1.12.8 L11 (d); oracle (a)/(d) 계약 선언: base 는 필수 -- None·생략은 건너뛰어 pass 하지 않고 TypeError]
++def test_it2a_seal_versions_base_none_type_error(ctx_c):
++    from gmid_engine.sizing import seal_versions
++    snap, calls = eval_calls(ctx_c[2], theta_c())
++    with pytest.raises(TypeError):
++        seal_versions(snap, calls, None)
++
++
++def test_it2a_seal_dc_base_none_type_error(ctx_c):
++    ctx, th = ctx_c[2], theta_c()
++    snap, calls = eval_calls(ctx, th)
++    with pytest.raises(TypeError):
++        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), base=None, **run_of(ctx))
++
++
++def test_it2a_seal_dc_base_keyword_required(ctx_c):
++    """B-T16 꼴: donors·counters 는 넘기고 base 만 생략 -> TypeError."""
++    ctx, th = ctx_c[2], theta_c()
++    snap, calls = eval_calls(ctx, th)
++    with pytest.raises(TypeError):
++        seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), **run_of(ctx))
+diff --git a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_conduction.py b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_conduction.py
+index 957c9b46..9ea99b1c 100644
+--- a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_conduction.py
++++ b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_conduction.py
+@@ -215,7 +215,7 @@ def test_linear_declared_devices_included(ctx_r4c):
+     th = theta_r4c(v1=0.02)
+     snap, calls = eval_calls(ctx_r4c, th)
+     with pytest.raises(SealViolationError) as ei:
+-        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), ("M1",), **run_of(ctx_r4c))
++        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), ("M1",), base=ctx_r4c.base, **run_of(ctx_r4c))
+     d = detail(ei.value)
+     assert d["item"] == 9 and ei.value.record.devices == ("M1",)
+     assert dict(d["item_detail"])["n_checked"] == 2
+@@ -224,7 +224,7 @@ def test_linear_declared_devices_included(ctx_r4c):
+     # 통과 θ 에서도 n_checked 는 linear 선언과 무관하게 2(봉인 7 은 1)
+     th2 = theta_r4c()
+     snap2, calls2 = eval_calls(ctx_r4c, th2)
+-    ev = seal_dc(snap2, calls2, ctx_r4c.lut, resistances_of(ctx_r4c, th2), ("M1",), **run_of(ctx_r4c))
++    ev = seal_dc(snap2, calls2, ctx_r4c.lut, resistances_of(ctx_r4c, th2), ("M1",), base=ctx_r4c.base, **run_of(ctx_r4c))
+     assert dict(ev.report.items[8].detail)["n_checked"] == 2
+     assert dict(ev.report.items[6].detail)["n_checked"] == 1
+ 
+@@ -300,7 +300,7 @@ def test_two_point_axes_lut_all_undefined(tmp_path):
+     assert exp["status"] == "undefined" and exp["n_undefined"] == 2
+     assert_item(item9(out), exp, 9)
+     check_fields(out, offs, floors)
+-    ev = seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), **run_of(ctx))
++    ev = seal_dc(snap, calls, ctx.lut, resistances_of(ctx, th), (), base=ctx.base, **run_of(ctx))
+     assert ev.report.items[8].status == "undefined" and ev.sealed is None
+ 
+ 
+@@ -372,7 +372,7 @@ def test_no_sealed_snapshot_when_item9_fails(ctx_r4c, v1, v2, dev):
+     exp = judge_expect(expected(s_tol, R4_ARR.get)[0])
+     assert exp["status"] == "fail" and exp["devices"] == (dev,)
+     with pytest.raises(SealViolationError) as ei:
+-        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), (), **run_of(ctx_r4c))
++        seal_dc(snap, calls, ctx_r4c.lut, resistances_of(ctx_r4c, th), (), base=ctx_r4c.base, **run_of(ctx_r4c))
+     rec = ei.value.record
+     d = dict(rec.detail)
+     st = {x[0]: x[1] for x in d["items"]}
+diff --git a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_versions.py b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_versions.py
+index 4c9afcc0..3cf8e193 100644
+--- a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_versions.py
++++ b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_versions.py
+@@ -19,7 +19,7 @@ def test_pass_and_independent_version_formula(ctx_c):
+     snap, calls = eval_calls(ctx_c[2], theta_c())
+     for blk, ex in calls:
+         assert snap.block_version(blk.name) == expected_version(snap, blk, ex)
+-    item = seal_versions(snap, calls)
++    item = seal_versions(snap, calls, ctx_c[2].base)
+     assert isinstance(item, SealItem) and item.item == 4
+     assert item.status == "pass"
+     assert item.magnitude == 0 and item.tol == 0
+@@ -34,7 +34,7 @@ def test_input_changed_after_compute_is_violation(ctx_c):
+     exp = sorted(b.name for b, ex in calls if bad.block_version(b.name) != expected_version(bad, b, ex))
+     assert {"dc_columns", "dc_widths"} <= set(exp)
+     assert "dc_currents" not in exp
+-    item = seal_versions(bad, calls)
++    item = seal_versions(bad, calls, ctx_c[2].base)
+     assert item.status == "fail"
+     assert tuple(dict(item.detail)["blocks"]) == tuple(exp)
+     assert item.magnitude == len(exp) and item.tol == 0
+@@ -44,7 +44,7 @@ def test_output_written_with_other_version_is_violation(ctx_c):
+     """dc_op 를 다른 input_version 으로 다시 쓰면 block_version(dc_widths) 이 계산 버전과 다르다."""
+     snap, calls = eval_calls(ctx_c[2], theta_c())
+     bad = tamper(snap, "dc_widths", "device", "dc_op", {}, version="tampered")
+-    item = seal_versions(bad, calls)
++    item = seal_versions(bad, calls, ctx_c[2].base)
+     assert item.status == "fail"
+     assert dict(item.detail)["blocks"] == ("dc_widths",)
+     assert item.magnitude == 1
+@@ -52,5 +52,75 @@ def test_output_written_with_other_version_is_violation(ctx_c):
+ 
+ def test_empty_calls_pass(ctx_c):
+     snap, _ = eval_calls(ctx_c[2], theta_c())
+-    item = seal_versions(snap, ())
++    item = seal_versions(snap, (), snap)       # [승인 20261022-it2a-o94-ext 범위 1] base = 이 test 의 4 호출 뒤 스냅샷 자신
+     assert item.status == "pass" and dict(item.detail)["n_checked"] == 0
++
++
++# =====================================================================================================================
++# [IT-2a 20261021-it2a-snapshot-derive, T-L11b] 봉인 4 `seal_versions(snapshot, calls, base)` 단언 (3) coverage·(4) 서로소 (design 41 4.7-3c).
++# oracle: (식) 단언 문장 그대로 -- (3) 스냅샷 모든 필드의 writer ∈ base writer ∪ {calls 블록 이름}, 위반 detail ("foreign_writers", 정렬 tuple);
++# (4) base writer ∩ {calls 블록 이름} = ∅, 위반 detail ("base_call_overlap", 정렬 tuple). 위반 = status "fail"(SEAL_FAIL).
++# 픽스처는 구성으로 정한다: (3) 위반 = 4 호출 뒤 스냅샷에 호출 목록 밖 블록(dc_tolerances)의 필드를 더한 것, (4) 위반 = base 를 4 호출 뒤 스냅샷
++# 자체로 준 것(base writer 가 호출 블록 넷을 모두 포함). 통과 픽스처를 먼저 보이고(거부가 실제로 일어남을 대조), 기존 (1)(2) 결과는 그대로여야 한다.
++# 피검 함수 출력으로 기대값을 만들지 않는다. base(seal_versions(snapshot, calls) 2 인자): 새 인자 TypeError(존재 부재 red).
++# =====================================================================================================================
++
++from .conftest import with_tol  # noqa: E402
++
++
++def _it2a_names(calls):
++    return tuple(sorted(b.name for b, _ex in calls))
++
++
++def _it2a_extra(item, key):
++    return dict(item.detail).get(key, ())
++
++
++def test_it2a_seal_4_passes_when_fields_are_base_or_call_writers(ctx_c):
++    """통과 대조: 4 호출 뒤 스냅샷, base = ctx.base -> pass, (1)(2) blocks 비어 있음, 새 detail 은 없거나 빈 tuple."""
++    ctx = ctx_c[2]
++    snap, calls = eval_calls(ctx, theta_c())
++    item = seal_versions(snap, calls, ctx.base)
++    assert item.item == 4 and item.status == "pass"
++    assert dict(item.detail)["blocks"] == ()
++    assert _it2a_extra(item, "foreign_writers") == ()
++    assert _it2a_extra(item, "base_call_overlap") == ()
++
++
++def test_it2a_seal_4_rejects_field_of_writer_outside_base_and_calls(ctx_c):
++    """(3) coverage 위반: 호출 목록 밖 블록 dc_tolerances 의 필드가 스냅샷에 있다 -> 'fail', detail foreign_writers = ('dc_tolerances',).
++    실제 거부를 먼저 확인(통과면 red)."""
++    ctx = ctx_c[2]
++    snap, calls = eval_calls(ctx, theta_c())
++    assert seal_versions(snap, calls, ctx.base).status == "pass"            # 대조: 위반 없는 픽스처는 통과
++    snap_tol, _ = with_tol(ctx, theta_c())                                  # 호출 넷 + dc_tolerances(호출 목록 밖)
++    assert snap_tol.block_version("dc_tolerances") is not None              # 전제: 호출 밖 writer 의 필드가 실제로 있다
++    assert "dc_tolerances" not in ctx.base.block_versions                   # 전제: base writer 도 아니다
++    item = seal_versions(snap_tol, calls, ctx.base)
++    assert item.status == "fail"
++    assert _it2a_extra(item, "foreign_writers") == ("dc_tolerances",)
++    assert _it2a_extra(item, "base_call_overlap") == ()
++    assert dict(item.detail)["blocks"] == ()                                # 기존 (1)(2) 는 따로 위반 없음 -- 새 단언만이 거부한다
++
++
++def test_it2a_seal_4_rejects_base_writer_that_is_also_a_call(ctx_c):
++    """(4) 서로소 위반: base 스냅샷의 writer 가 호출 블록과 겹친다 -> 'fail', detail base_call_overlap = 겹치는 이름의 정렬 tuple.
++    base = 4 호출 뒤 스냅샷 자체 -> base writer ⊇ 호출 블록 넷 -> 겹침 = 호출 블록 넷 전부(손 읽기)."""
++    ctx = ctx_c[2]
++    snap, calls = eval_calls(ctx, theta_c())
++    assert seal_versions(snap, calls, ctx.base).status == "pass"            # 대조
++    item = seal_versions(snap, calls, snap)
++    assert item.status == "fail"
++    assert _it2a_extra(item, "base_call_overlap") == ("dc_columns", "dc_currents", "dc_lengths", "dc_widths")
++    assert _it2a_extra(item, "foreign_writers") == ()
++    assert dict(item.detail)["blocks"] == ()
++
++
++def test_it2a_seal_4_existing_checks_still_reject_with_base_argument(ctx_c):
++    """기존 (1)(2) 는 그대로 -- dc_op 를 다른 input_version 으로 다시 쓰면 base 인자가 있어도 blocks = ('dc_widths',) 로 fail."""
++    ctx = ctx_c[2]
++    snap, calls = eval_calls(ctx, theta_c())
++    bad = tamper(snap, "dc_widths", "device", "dc_op", {}, version="tampered")
++    item = seal_versions(bad, calls, ctx.base)
++    assert item.status == "fail"
++    assert dict(item.detail)["blocks"] == ("dc_widths",)
+diff --git a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py
+index b9d45481..4c4b061a 100644
+--- a/skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py
++++ b/skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py
+@@ -1,6 +1,6 @@
+ """`size_and_seal(ctx, theta, parent=None) -> DcEvaluation` -- CONTRACT 7절(API·재사용 계약), 8절(실패 규약), 9절(결정론).
+ 
+-재사용은 실행 계수(XRUN-F1 card B C1 `RunCounters`, ctx 의 실행)로 잰다. 기대값은 계약 7절 문장(같은 θ·parent -> computes 0·reuses 13, 한 성분 섭동 ->
++재사용은 실행 계수(XRUN-F1 card B C1 `RunCounters`, ctx 의 실행)로 잰다. 기대값은 계약 7절 문장(같은 θ·parent -> computes 0·reuse 12·dc_seal_report graft 1, 한 성분 섭동 ->
+ 지정 블록만 다시)이다. 9회로 §10 숫자는 쓰지 않는다.
+ """
+ import json
+@@ -30,6 +30,20 @@ EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerance
+ PLAN5 = (S.dc_rails, s1_symmetry, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
+ 
+ 
++def _assert_dc_outcomes(st):
++    """[IT-2a T-L11d, 승인 20261022-it2a-o94-ext 범위 2; oracle (d) 사용자 선언 design 41 v1.12.8 L11 (d)] 같은 입력 재평가의 DC 열세 블록:
++    computes 0, 커널 4 + 봉인 항목 8 = 블록마다 outcome reuse 1회(합 12), dc_seal_report = outcome graft 1회(keep 밖 -> S3 graft)."""
++    kernel4 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths)
++    items8 = EVAL13[4:12]
++    assert len(kernel4) + len(items8) == 12 and EVAL13[12] is S.dc_seal_report
++    for b in kernel4 + items8:
++        r = st[b.name]
++        assert (r.reuses, r.grafts, r.replays, r.computes) == (1, 0, 0, 0), (b.name, r)
++    rep = st[S.dc_seal_report.name]
++    assert (rep.reuses, rep.grafts, rep.replays, rep.computes) == (0, 1, 0, 0), rep
++    assert sum(st[b.name].reuses for b in EVAL13) == 12 and sum(st[b.name].grafts for b in EVAL13) == 1
++
++
+ def stats(ctx):
+     """[XRUN-F1 card B C1·C4] ctx 실행 계수의 블록 행(옛 블록 객체 stats 대체 -- 블록은 상태가 없다)."""
+     return {b.name: block_row(ctx.counters, b.name) for b in EVAL13 + PLAN5}
+@@ -93,7 +107,7 @@ def test_same_theta_with_parent_zero_compute(ctx_c):
+     ev2 = size_and_seal(ctx, theta_c(y=0.45), parent=ev1)
+     st = stats_since(ctx, before)
+     assert all(st[b.name].computes == 0 for b in EVAL13)
+-    assert sum(st[b.name].reuses for b in EVAL13) == 13
++    _assert_dc_outcomes(st)
+     assert all(st[b.name].calls == 0 for b in PLAN5)          # 계획 블록은 평가에서 부르지 않는다
+     assert ev2.snapshot.fp == ev1.snapshot.fp
+     assert ev2.report == ev1.report
+@@ -163,7 +177,7 @@ def test_passive_theta_components_present(ctx_passive):
+ 
+ @pytest.mark.parametrize("key,val", [(("capacitance", "Cz"), 1.1e-12), (("ss_resistance", "Rz"), 1.1e4), ("both", None)])
+ def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
+-    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuses 13), 계획 블록
++    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuse 12 + dc_seal_report graft 1), 계획 블록
+     호출 0, 결과는 parent 와 같은 봉인 상태(스냅샷 지문·report 같음)."""
+     ctx = ctx_passive
+     ev1 = size_and_seal(ctx, theta_passive())
+@@ -172,7 +186,7 @@ def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
+     ev2 = size_and_seal(ctx, th, parent=ev1)
+     st = stats_since(ctx, before)
+     assert all(st[b.name].computes == 0 for b in EVAL13), {b.name: st[b.name].computes for b in EVAL13}
+-    assert sum(st[b.name].reuses for b in EVAL13) == 13
++    _assert_dc_outcomes(st)
+     assert all(st[b.name].calls == 0 for b in PLAN5)
+     assert ev2.snapshot.fp == ev1.snapshot.fp and ev2.report == ev1.report
+ 
