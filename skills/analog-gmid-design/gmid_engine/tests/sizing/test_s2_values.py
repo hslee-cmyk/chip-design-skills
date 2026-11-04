@@ -198,8 +198,8 @@ def test_vocabulary_constants():
         "lut_vdsat_column_missing", "declared_source_kcl_conflict", "no_root_in_window", "strict_recheck_residual")
     # [r2] 옛 device_current_nonpositive 는 없어졌다(정의역 밖 = ValueError)
     assert not hasattr(S, "REASON_CURRENT_NONPOSITIVE")
-    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_CURRENT_PIVOT) == (
-        "writer_edge", "w4_root", "current_pivot")
+    assert (S.TIE_KRUSKAL, S.TIE_CURRENT_PIVOT) == ("writer_edge", "current_pivot")
+    # [TB-1] W4 뿌리 동률 기록 이름 폐기 -- 동률은 정지(dc_colour_not_unique). 이름 부재 단언은 test_writer_plan 의 test_w4_root_tie_* 가 한다.
     assert not hasattr(S, "TIE_INPUT_ORDER")
     assert not hasattr(S, "BRANCH_INPUT_MULTIPLE_ROOTS")                             # [IT-1 DEC-106] 옛 사유 삭제
     from gmid_engine.sizing import s2_values as _s2v
@@ -308,10 +308,12 @@ def test_value_fields_as_contract():
     # [U4] 국소 봉인 값 형식(41 §5.3 LocalSeal{ok, failures, snapshot_fragment, gain_db, power_w, area_m2})
     assert names(S.LocalSeal) == ("ok", "failures", "snapshot_fragment", "gain_db", "power_w", "area_m2")
     assert names(S.SnapshotFragment) == ("devices", "nodes")
-    assert names(S.OrderHints) == ("independent", "gm_required", "stage")
-    assert S.NO_ORDER_HINTS == S.OrderHints((), (), ())
-    assert names(S.DcInputs) == ("supplies_v", "input_dc_v", "node_targets", "element_values", "linear_devices",
-                                 "pending", "engine_elements")                                   # [r5]
+    # [TB-1] 종속 멤버 선택 힌트 값 형식 폐기(이름 부재는 test_writer_plan 의 test_dependent_member_* 가 단언)
+    # [TB-1 broken_tests O-187] DcInputs 에 θ 분류 입력 bool 셋(has_gbw_target·has_rout_limit·has_settling)이 늘었다. 앞 7칸은 그대로, 뒤 셋은 순서를 단언하지 않는다.
+    got = names(S.DcInputs)
+    assert got[:7] == ("supplies_v", "input_dc_v", "node_targets", "element_values", "linear_devices",
+                       "pending", "engine_elements")                                             # [r5]
+    assert len(got) == 10 and set(got[7:]) == {"has_gbw_target", "has_rout_limit", "has_settling"}
 
 
 def test_kernel_context_holds_only_references():
