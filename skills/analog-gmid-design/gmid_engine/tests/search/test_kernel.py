@@ -232,22 +232,9 @@ def test_evals_record_fields(case_c):
     assert [c["name"] for c in rec["constraints"]] == [x.name for x in r.constraints]
 
 
-def test_eval_budget_derived_once_after_n_plus_one(tmp_path, lut_sealed):
-    """1.1·3.10 7: eval_budget None -> 평가 시간 수가 n(정의역 연속 변수 수)을 넘는 순간 한 번 E_B 를 정하고 기록."""
-    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=None, budget_s=30.0)
-    s = case.sctx
-    n = len(s.domain.variables)
-    assert s.eval_budget is None
-    for k in range(n + 1):
-        evaluate(s, th_sorted(theta_r4c(i2=1e-5 * (1 + 0.01 * k))), CELLS_C)
-        if k < n:
-            assert s.eval_budget is None, k
-    eb = s.eval_budget
-    assert isinstance(eb, int) and eb > 0
-    m = re.fullmatch(r"derived_once:floor\(B/median_t_eval\)@n_evals=(\d+)", s.eval_budget_source)
-    assert m and int(m.group(1)) == n + 1
-    evaluate(s, th_sorted(theta_r4c(i2=3e-5)), CELLS_C)
-    assert s.eval_budget == eb                      # 한 번만
+# [XRUN-F1 card C] 삭제: test_eval_budget_derived_once_after_n_plus_one -- evaluate 가 n_θ+1 번째 평가에서 E_B 를 유도한다는 옛 계약이다.
+# 계약 C6 은 evaluate 가 eval_times 만 기록한다고 정한다. 대체: test_evaluate_does_not_derive_or_change_eval_budget(이 파일, 불변 단언),
+# 유도 자체는 test_search_ceiling.py 가 본다.
 
 
 def test_parent_reuses_lineage(case_c):
