@@ -79,10 +79,12 @@ def test_size_and_seal_raises_item6(ctx_bulk_out):
     assert rel_close(ei.value.record.margin, 0.3 / Oracle.tol_v(), 1e-9)
 
 
-def test_small_reverse_within_tol_passes(ctx_bulk_out):
-    """vsb = −0.01 (< tol_v 0.018) -> pass."""
+def test_small_forward_below_tol_now_fails(ctx_bulk_out):
+    """vsb = −0.01 (순방향 0.01 < tol_v 0.018) -> fail. [EO-1 범위 4 A-49] 옛 '순방향 ≤ tol_v 통과' 전제를 지웠다 -- 봉인 6 경계는 0 V 이고
+    tol_v 는 띠 기록(indistinct)에만 쓴다(card §2). 기준을 강화하는 방향."""
     snap, _ = with_tol(ctx_bulk_out, theta_bulk(0.01))
-    assert run(snap).status == "pass"
+    item = run(snap)
+    assert item.status == "fail" and item.devices == ("M1",)
 
 
 # ---------------------------------------------------------------------------------------------------------------

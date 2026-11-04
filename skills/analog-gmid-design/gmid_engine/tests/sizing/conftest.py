@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import bisect
+import dataclasses
 import hashlib
 import json
 import math
@@ -1057,11 +1058,12 @@ def rename(doc, seed):
 
 
 def rename_inputs(inputs, sn, se):
-    """DcInputs 의 이름 자리(레일·노드 목표·원소 값·선형 소자·engine 원소)를 σ 로 옮긴다(입력 구성, 기대값 아님)."""
+    """DcInputs 의 이름 자리(레일·노드 목표·원소 값·영역 선언 regions·engine 원소)를 σ 로 옮긴다(입력 구성, 기대값 아님)."""
     return DcInputs(tuple(sorted((sn[k], v) for k, v in inputs.supplies_v)), inputs.input_dc_v,
                     tuple(sorted((sn[k], v) for k, v in inputs.node_targets)),
                     tuple(sorted((se[k], v) for k, v in inputs.element_values)),
-                    tuple(sorted(se[k] for k in inputs.linear_devices)), inputs.pending,
+                    tuple(sorted((dataclasses.replace(r, device=se[r.device]) for r in inputs.regions), key=lambda r: r.device)),
+                    inputs.pending,
                     tuple(sorted(se[k] for k in inputs.engine_elements)))
 
 
