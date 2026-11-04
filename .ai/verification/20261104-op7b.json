@@ -3,7 +3,7 @@
  "spec_card": "docs/02-design/specs/20261104-op7b.spec.md",
  "evidence_type": "red-green",
  "base_commit": "377e2c58257f72436bd8081a1ed15320c3f60718",
- "test_commit": "73699801cf25f4353da629ae12261d35db7062f8",
+ "test_commit": "707cade374dd09276c1e59db067e09f794ead6c8",
  "code_commit": "29505b7ac2a4ab1cbf245aff6c44ce0c873fbfa0",
  "red": {
   "test_ids": [
@@ -34,11 +34,11 @@
  "checks": {
   "V1": {
    "verdict": "N/A",
-   "basis": "임시 규칙 O-229·O-232: 전체 test 안 돌림, 통과로 세지 않음. 잰 범위 = card toy 219 passed, test_spiceinit_isolation 2 failed 1 passed, X-13·test_verified_by 48 passed, tests/structure 171 passed 1 deselected, R1~R5 7 bias 1회. 미측정(LA-1 재점검) = 2회로 연기(엔진 diff 0), test_canonical_order, test_independent, 13회로(B-4)."
+   "basis": "임시 규칙 O-229·O-232: 전체 test 안 돌림, 통과로 세지 않음. 잰 범위 = card toy 219 passed, test_spiceinit_isolation 3 passed(707cade3 뒤, 1차 2 failed 1 passed), X-13·test_verified_by 48 passed, tests/structure 171 passed 1 deselected, R1~R5 7 bias 1회. 미측정(LA-1 재점검) = 2회로 연기(엔진 diff 0), test_canonical_order, test_independent, 13회로(B-4)."
   },
   "V2": {
-   "verdict": "FAIL",
-   "basis": "A7-1 219 passed, red 10건. A7-2 10/10. A7-3 FAIL: test_spiceinit_isolation T7-9a·9b 실패(log_path 상대 경로, 고쳐도 T7-9a status.error sim_failed_other). A7-4 PASS. 표 = .ai/verification/20261104-op7b/sections.json."
+   "verdict": "PASS",
+   "basis": "A7-1 219 passed, red 10건. A7-2 10/10. A7-3 test_spiceinit_isolation 3 passed(707cade3, 단언 약화 없음을 diff 로 확인). A7-4 PASS. 표 = .ai/verification/20261104-op7b/sections.json."
   },
   "V3": {
    "verdict": "N/A",
@@ -80,8 +80,8 @@
    "command": "pytest tests/core tests/test_bin_rule_run.py tests/test_input_contract.py tests/test_result_contract.py test_dialect test_errors test_legacy_adapter"
   },
   {
-   "name": "격리 test 실패",
-   "value": 2,
+   "name": "격리 test 통과",
+   "value": 3,
    "command": "pytest tests/adapters/ngspice/test_spiceinit_isolation.py"
   },
   {
@@ -122,12 +122,13 @@
  ],
  "approvals": [],
  "auditor_run": {
-  "time": "2026-11-04T21:02:34+09:00",
+  "time": "2026-11-04T21:06:15+09:00",
   "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op7b-audit",
   "commands": [
    "git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op7b-audit C:/Users/HSLEE/AppData/Local/Temp/la1s_op7b_audit/iso; git -C C:/Users/HSLEE/AppData/Local/Temp/la1s_op7b_audit/iso remote remove origin",
    "V1: 전체 test 미실행(O-229). 잰 범위 = card toy, test_spiceinit_isolation, X-13, tests/structure",
-   "tools/a7.py, a3_run.py, a3_cmp.py, a7_4b.py, a7_mut.py, patch_iso_test.py (.ai/verification/20261104-op7b/tools)"
+   "tools/a7.py, a3_run.py, a3_cmp.py, a7_4b.py, a7_mut.py, patch_iso_test.py (.ai/verification/20261104-op7b/tools)",
+   "M-1 확인: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op7b-audit C:/Users/HSLEE/AppData/Local/Temp/la1s_op7b_audit/iso3; pytest tests/adapters/ngspice/test_spiceinit_isolation.py"
   ]
  }
 }
