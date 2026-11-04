@@ -204,7 +204,8 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
     inputs2 = type(inputs)(tuple(sorted((sn[k], v) for k, v in inputs.supplies_v)), inputs.input_dc_v,
                            tuple((sn[k], v) for k, v in inputs.node_targets),
                            tuple(sorted((se.get(k, k), v) for k, v in inputs.element_values)),
-                           tuple(sorted(se[k] for k in inputs.linear_devices)), inputs.pending,
+                           tuple(sorted((__import__("dataclasses").replace(r, device=se[r.device]) for r in inputs.regions), key=lambda r: r.device)),
+                           inputs.pending,
                            tuple(sorted(se[k] for k in inputs.engine_elements)))          # [r5] 7번째 칸도 σ 로
     donors, counters = open_run()                     # 이름 바꾼 회로 = 다른 실행
     ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d2), dict(inputs2.supplies_v), donors=donors, counters=counters),
@@ -706,7 +707,7 @@ def test_it1_t5b_nonrail_gate_equals_source_is_fixed_vgs_dependent(tmp_path, toy
     assert co["Mgs"] == DeviceCoord("dependent", "fixed_vgs")
     assert [m for m, c in co.items() if c.role == "dependent"] == ["Mgs"]
     assert ("ln_idu", "Mgs") not in set(kschema(ctx).components)
-    assert "Mgs" not in ctx.inputs.linear_devices                      # 영역 선언 입력에 없음 = 포화 기본·전도(선언 없음). 꺼짐 분류 칸은 쓰기 계획에 없다
+    assert "Mgs" not in [r.device for r in ctx.inputs.regions]                      # 영역 선언 입력에 없음 = 포화 기본·전도(선언 없음). 꺼짐 분류 칸은 쓰기 계획에 없다
     assert all(co[m] == DeviceCoord("writer", "tree") for m in ("M1", "M2", "M4"))
 
 

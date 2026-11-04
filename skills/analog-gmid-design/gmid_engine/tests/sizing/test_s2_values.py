@@ -47,11 +47,11 @@ DC_TABLE = {
     ("graph", "dc_seal_2"): "dc_seal_vgs_match",
     ("graph", "dc_seal_3"): "dc_seal_kcl",
     ("graph", "dc_seal_6"): "dc_seal_bulk_reverse",
-    ("graph", "dc_seal_7"): "dc_seal_saturation",
+    ("graph", "dc_seal_7"): "dc_seal_region",                     # [EO-1 범위 4] 봉인 7·9 = 영역 판정 블록 하나
     ("graph", "dc_seal_8"): "dc_seal_kvl_branch",
-    ("graph", "dc_seal_9"): "dc_seal_conduction",                 # [r8]
-    ("device", "dc_off_current"): "dc_seal_conduction",           # [r8]
-    ("device", "dc_conduction_floor"): "dc_seal_conduction",      # [r8]
+    ("graph", "dc_seal_9"): "dc_seal_region",
+    # [EO-1 범위 4] 필드 dc_off_current·dc_conduction_floor 삭제(interface 20261104-eo1r4-sf1l §2 '없어지는 것'), S0 필드 device.region_decl 추가(§3)
+    ("device", "region_decl"): "dc_region_decl",
     ("graph", "dc_seal_report"): "dc_seal_report",
 }
 
@@ -61,19 +61,20 @@ BLOCKS = {
     "dc_lengths": S.dc_lengths, "dc_columns": S.dc_columns, "dc_widths": S.dc_widths,
     "dc_tolerances": S.dc_tolerances, "dc_seal_node_conflict": S.dc_seal_node_conflict,
     "dc_seal_vgs_match": S.dc_seal_vgs_match, "dc_seal_kcl": S.dc_seal_kcl,
-    "dc_seal_bulk_reverse": S.dc_seal_bulk_reverse, "dc_seal_saturation": S.dc_seal_saturation,
-    "dc_seal_kvl_branch": S.dc_seal_kvl_branch, "dc_seal_conduction": S.dc_seal_conduction,
+    "dc_seal_bulk_reverse": S.dc_seal_bulk_reverse, "dc_seal_region": S.dc_seal_region, "dc_region_decl": S.dc_region_decl,
+    "dc_seal_kvl_branch": S.dc_seal_kvl_branch,
     "dc_seal_report": S.dc_seal_report,
 }
 
 
-def test_dc_table_has_33_fields():
+def test_dc_table_has_32_fields():
     # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28, [r8] dc_seal_9·dc_off_current·dc_conduction_floor 3 = 31,
     # [r11] 3.0b node.dc_orbit·device.dc_orbit 2 = 33, [U2] graph.dc_symmetry 1 = 34, [U17 ①-d] 대칭 블록 graph 이동 −5
     # (node/device dc_colour·dc_orbit, graph.dc_symmetry) = 29, [U17 ①-b] 설계 40 v1.9.1 §2.4.8 S0 행 +4: device.dc_self_referential(1변수 writer 집합),
     # graph/kernel fixed_values·resistor_values·l_ties(커널 컨텍스트 구조 파생) = 33. theta_schema 는 dc_theta_schema 를 옮긴 것이라 ±0).
     # [IT-2c 갱신, 승인 동작 변경 O-109·O-205] node.dc_output_structure 삭제(계획 v6.38.8 N3.8, design 41 v1.16.3 §4.7-W) −1 = 33.
-    assert len(DC_TABLE) == 33
+    # [EO-1 범위 4] dc_off_current·dc_conduction_floor −2, device.region_decl +1 (S0 행) = 32.
+    assert len(DC_TABLE) == 32
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -97,6 +98,9 @@ SS_TABLE = {
     ("graph", "ss_nodal"): "ss_nodal",
     ("node", "dc_window_cfg"): "icm_config",
     ("graph", "icm_config"): "icm_config",
+    # [EO-1 범위 4] interface 20261104-eo1r4-sf1l §4: ss_off_op 이 device.off_op, ss_off_delta 가 graph.ss_off_delta 를 쓴다(writer 이름 = 블록 이름 규약).
+    ("device", "off_op"): "ss_off_op",
+    ("graph", "ss_off_delta"): "ss_off_delta",
 }
 
 
@@ -163,10 +167,10 @@ READS = {
 }
 
 
-def test_seal_conduction_reads_cover_contract_inputs():
-    """[r8] 6절 9행: 판정은 device.dc_op(kind·w_key·L·vds·vsb·W·current·gm_id)와 device.dc_tol_v 를 읽는다
-    (계약이 reads 를 전부 열거하지 않아 부분집합으로만 확인)."""
-    assert {("device", "dc_op"), ("device", "dc_tol_v")} <= set(S.dc_seal_conduction.reads)
+def test_seal_region_reads_cover_contract_inputs():
+    """[EO-1 범위 4] interface §2: dc_seal_region 은 device.dc_op 과 device.region_decl 을 읽고 graph.dc_seal_7·9 를 쓴다
+    (옛 dc_seal_conduction 의 dc_op·dc_tol_v 읽기 단언을 이어받음; tol 은 이제 판정에 안 쓰여 dc_tol_v 는 요구하지 않는다)."""
+    assert {("device", "dc_op"), ("device", "region_decl")} <= set(S.dc_seal_region.reads)
 
 
 @pytest.mark.parametrize("name", sorted(READS))
@@ -238,7 +242,7 @@ def test_value_defaults():
     assert (si.magnitude, si.tol, si.margin, si.devices, si.nodes, si.detail) == (None, None, None, (), (), ())
     assert S.DcEvaluation(None, None).sealed is None
     di = S.DcInputs((("gnd", 0.0),))
-    assert (di.input_dc_v, di.node_targets, di.element_values, di.linear_devices, di.pending) == (None, (), (), (), ())
+    assert (di.input_dc_v, di.node_targets, di.element_values, di.regions, di.pending) == (None, (), (), (), ())
 
 
 VALUE_INSTANCES = [
@@ -309,7 +313,7 @@ def test_value_fields_as_contract():
     assert names(S.SnapshotFragment) == ("devices", "nodes")
     assert names(S.OrderHints) == ("independent", "gm_required", "stage")
     assert S.NO_ORDER_HINTS == S.OrderHints((), (), ())
-    assert names(S.DcInputs) == ("supplies_v", "input_dc_v", "node_targets", "element_values", "linear_devices",
+    assert names(S.DcInputs) == ("supplies_v", "input_dc_v", "node_targets", "element_values", "regions",
                                  "pending", "engine_elements")                                   # [r5]
 
 

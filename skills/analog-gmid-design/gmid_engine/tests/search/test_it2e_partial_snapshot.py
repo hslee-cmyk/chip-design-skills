@@ -76,7 +76,7 @@ def test_it2e_s3_failure_line_fp_parent_independent(tmp_path, lut_sealed, monkey
     assert ra is not rb and ra.partial is not rb.partial                                # (나)
     assert target not in ra.partial.block_versions and target not in rb.partial.block_versions
     later = [getattr(sizing, a).name for a in ("dc_seal_node_conflict", "dc_seal_vgs_match", "dc_seal_kcl", "dc_seal_bulk_reverse",
-                                               "dc_seal_saturation", "dc_seal_kvl_branch", "dc_seal_conduction", "dc_seal_report")]
+                                               "dc_seal_region", "dc_seal_kvl_branch", "dc_seal_report")]
     cut = later.index(target)
     assert all(b not in ra.partial.block_versions for b in later[cut:])
     assert la["snapshot_fp"] == ra.partial.fp and lb["snapshot_fp"] == rb.partial.fp

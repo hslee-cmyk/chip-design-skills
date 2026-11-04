@@ -9,6 +9,8 @@ import math
 
 import pytest
 
+from gmid_engine.authoring import RegionDecl
+
 from gmid_engine.core import NonconvergentError, SealViolationError
 from gmid_engine.lut import LutMemo
 from gmid_engine.sizing import (DC_KEY, REASON_NO_ROOT, REASON_TOL_UNDEFINED, SCC_GAUSS_SEIDEL, LutAccess, PathValue, SccLog,
@@ -931,7 +933,7 @@ def test_non_transient_lut_failure_before_convergence_propagates(tmp_path, toy_l
 # (하나만 뒤집으면 KCL 이 I_M1 = −I_M2 < 0 을 요구해 전류 원뿔에서 먼저 거부되고, 둘 다 뒤집어야 선언 방향 전류가 양수로 맞는다.)
 # 선언 방향의 VDS: M1 = V(gnd) − V(out) = −V(out), M2(pmos VSD) = V(out) − V(vdd). out 은 레일 창 [0, 1.8] V 안이므로 M1 의 VDS ≤ 0 이고
 # VDS ≥ VDsat + tol > 0 을 만족하는 V(out) 이 창 안에 없다 -> 봉인 7(item 7) 거부, 소자 M1, 노드 out(M1 의 vgs_source 로 쓰는 노드), 원인 축 VDS.
-# 대조: 바르게 선언한 같은 회로·같은 θ 값은 봉인 7 을 통과한다(test_seal_saturation R4_SCENARIOS (0.5, 0.6, 0.7) 과 같은 동작점).
+# 대조: 바르게 선언한 같은 회로·같은 θ 값은 봉인 7 을 통과한다(test_seal_region 의 통과 점 (y, v1, v2) = (0.5, 0.6, 0.7) 과 같은 동작점).
 
 def _reversed_c():
     return topo("hand_cs_pload_rev", [mos("M1", "nmos", "gnd", "in", "out"), mos("M2", "pmos", "vdd", "pb", "out")],
@@ -969,11 +971,11 @@ def test_reversed_ds_declaration_rejected_by_seal7(tmp_path, r4_access):
 
 
 def test_correct_ds_declaration_same_point_passes_seal7(tmp_path, r4_access):
-    from gmid_engine.sizing import dc_seal_saturation
+    from gmid_engine.sizing import dc_seal_region
     from .conftest import circuit_cs_pmos_load, seal_item, theta_r4c, with_tol
     ctx = build_ctx(tmp_path, circuit_cs_pmos_load(), r4_access)[2]
     snap, _ = with_tol(ctx, theta_r4c(y=0.5, v1=0.6, v2=0.7))
-    assert seal_item(dc_seal_saturation(snap, (), ctx.lut, **run_of(ctx)), 7).status == "pass"
+    assert seal_item(dc_seal_region(snap, ctx.lut, **run_of(ctx)), 7).status == "pass"
 
 
 # ===========================================================================
@@ -1166,8 +1168,9 @@ def _columns_with_declared(ctx, theta):
     snap = dc_lengths(snap, tuple(sorted((k, v) for (t, k), v in th.items() if t == "L")), **run)
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     extras = (kfixed(ctx), kres(ctx), ctx.lut)
-    if ctx.inputs.linear_devices:
-        extras += (tuple(ctx.inputs.linear_devices),)
+    triode = tuple(r.device for r in ctx.inputs.regions if r.region == "triode")      # [EO-1 범위 4] 옛 linear_devices = regions 중 triode 이름
+    if triode:
+        extras += (triode,)
     return dc_columns(snap, items, *extras, **run)
 
 
@@ -1180,7 +1183,7 @@ def _columns_with_declared(ctx, theta):
 def _neg_ctx(tmp_path):
     acc = new_access(_write_neg_lut(tmp_path / "neg_lut"))
     (tmp_path / "ctx").mkdir()
-    return acc, build_ctx(tmp_path / "ctx", _neg_doc(), acc, linear_devices=("MT",))[2]
+    return acc, build_ctx(tmp_path / "ctx", _neg_doc(), acc, regions=(RegionDecl("MT", "triode"),))[2]
 
 
 def _neg_theta(ctx, y):

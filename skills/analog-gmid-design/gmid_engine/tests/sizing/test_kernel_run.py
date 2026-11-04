@@ -33,14 +33,14 @@ from .conftest import (B, C, HERE, MIRROR_W_DELTA, SKILL_DIR, build_ctx, build_c
                        seal_item, theta_mirror, theta_r4c, two, with_hand_ss)
 from .conftest import block_row  # [XRUN-F1 card B C1] 실행 계수 행
 
-EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
-          S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
-          S.dc_seal_conduction, S.dc_seal_report)
+EVAL12 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
+          S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_region, S.dc_seal_kvl_branch,
+          S.dc_seal_report)         # [EO-1 범위 4] 봉인 7·9 블록 둘 -> dc_seal_region 하나(자리는 옛 봉인 7 자리, 해석)
 
 
 def computes(ctx):
-    """[XRUN-F1 card B C1] ctx 실행 계수에서 평가 블록 13개의 computes(옛 블록 객체 stats 대체 -- 블록은 상태가 없다, C4)."""
-    return {b.name: block_row(ctx.counters, b.name)[4] for b in EVAL13}
+    """[XRUN-F1 card B C1] ctx 실행 계수에서 평가 블록 12개의 computes(옛 블록 객체 stats 대체 -- 블록은 상태가 없다, C4)."""
+    return {b.name: block_row(ctx.counters, b.name)[4] for b in EVAL12}
 
 
 def computes_since(ctx, before):
@@ -465,7 +465,7 @@ def test_it2a_parent_with_other_base_writer_version_rejected(ctx_r4c):
 # 규칙(interface '규칙'): block_versions 키 = base writer ∪ k 앞 블록, 필드 writer ⊆ 같은 집합, k 와 그 뒤 블록 필드 없음(parent 값이 남으면 red).
 # oracle (변성): 같은 θ 를 parent 가 있을 때/없을 때 부르는 변환에도 부분 스냅샷 규칙이 같다. 기대 집합은 이 test 가 독립 관찰로 만든다 --
 #   base writer = 실행 컨텍스트 ctx.base.block_versions 의 키(입력), k 앞 블록 = `ComputeBlock.__call__` 감쌈이 센 호출 순서.
-#   피검 함수(writers_in_scope·derive_child·run_kernel)로 기대값을 만들지 않는다. 고정 블록 목록은 쓰지 않는다(k 는 EVAL13 상수, 앞 블록은 관찰).
+#   피검 함수(writers_in_scope·derive_child·run_kernel)로 기대값을 만들지 않는다. 고정 블록 목록은 쓰지 않는다(k 는 EVAL12 상수, 앞 블록은 관찰).
 # 실패 주입: test_partial_snapshot_seal_stage_block_failure 와 같은 공개 경로 -- 대상 블록 호출에서 실제 봉인 위반 기록(구성)으로 만든
 #   SealViolationError.from_record 를 올린다. 사례 유효 조건 (가): 주입 직전 같은 입력으로 그 블록 함수를 실제로 한 번 돌려 계수 증분이
 #   (calls 1, reuses 0, grafts 0, replays 0, computes 1, 재계산 0)임을 확인한다 -- 아니면 사례 무효(단언 실패). (나): 대조 평가는 다른 컨텍스트·다른 객체.
@@ -477,8 +477,8 @@ from gmid_engine.core import ComputeBlock  # noqa: E402
 
 from .conftest import COUNT_FIELDS, Oracle, circuit_cs_pmos_load, row_delta, theta_c  # noqa: E402
 
-IT2E_KERNEL = tuple(b.name for b in EVAL13[:5])          # 평가 커널 4 + dc_tolerances (EVAL13 상수에서 읽음)
-IT2E_SEAL = tuple(b.name for b in EVAL13[5:])            # 봉인 항목 블록 7 + dc_seal_report
+IT2E_KERNEL = tuple(b.name for b in EVAL12[:5])          # 평가 커널 4 + dc_tolerances (EVAL12 상수에서 읽음)
+IT2E_SEAL = tuple(b.name for b in EVAL12[5:])            # 봉인 항목 블록 6 + dc_seal_report
 
 
 def it2e_theta_parent():
@@ -552,7 +552,7 @@ def it2e_assert_rule(r, k):
     for kf, w in partial.writers.entries:                         # 필드 writer ⊆ 같은 집합 (parent 값이 남으면 red)
         if partial.column(*kf) != ():
             assert w in exp, (kf, w)
-    later = [b.name for b in EVAL13 if b.name not in exp]         # k 와 그 뒤 블록
+    later = [b.name for b in EVAL12 if b.name not in exp]         # k 와 그 뒤 블록
     assert k in later
     for kf, w in partial.writers.entries:
         if w in later:

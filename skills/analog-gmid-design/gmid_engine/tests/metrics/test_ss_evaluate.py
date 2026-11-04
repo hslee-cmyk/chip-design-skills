@@ -627,7 +627,7 @@ def test_s15_rule_equals_spec_declared_value(zc_cell, tmp_path):
 def _dc_blocks():
     from gmid_engine import sizing as S
     return (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
-            S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
+            S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_region, S.dc_seal_kvl_branch,
             S.dc_seal_report)
 
 

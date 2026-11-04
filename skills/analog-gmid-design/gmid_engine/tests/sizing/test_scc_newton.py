@@ -757,46 +757,25 @@ def test_gauss_seidel_not_contracting_newton_converges(ctx_q, y, z_star):
     assert ev.report.items[8].item == 9 and ev.report.items[8].status == "pass"
 
 
-def test_q_ill_conditioned_point_rejected_by_seal_9(ctx_q):
-    """[r8] r7 의 나쁜 조건 구성 (y, z*) = (0.99, 0.3): DC 풀이(Newton)는 되지만 M1 VGS = c = z*(1 − y)/y ≈ 3 mV 라 VGS = 0 누설이
-    ε·ID 보다 크다 -> 봉인 9 fail(devices ("M1",)) -> size_and_seal 은 SealViolationError(DcEvaluation 없음), 봉인 1~8 은 r7 과 같은
-    판정(7 undefined -- toy 에 VDSAT 열 없음, 나머지 pass).
-    기대 margin 은 평가 블록 4개 결과(dc_op·dc_tol_v = 블록 입력)에서 이 파일이 npz 식으로 다시 계산한 I_off/(gm_id·tol_V·ID), 그리고
-    해에서의 닫힌 식 exp(−f(c))/((B − C·c)·tol_V)(≈ 2.61, 계약 10.6) 과 노드전압 오차 tol 이 주는 범위 안."""
-    from gmid_engine.sizing import dc_seal_conduction, dc_tolerances, seal_dc
-    from .conftest import eval_calls, resistances_of, run_of
+def test_q_ill_conditioned_point_no_longer_rejected_by_seal_9(ctx_q):
+    """[EO-1 범위 4] 옛 test_q_ill_conditioned_point_rejected_by_seal_9: r8 의 VGS = 0 누설 대 ε·ID 판정(전도 바닥)은 interface 20261104-eo1r4-sf1l §2 가
+    없앴다(봉인 9 = 영역 판정, 선언 없는 소자는 ID <= 0 일 때만 fail). 같은 구성 (y, z*) = (0.99, 0.3): DC 풀이(Newton)는 그대로 되고
+    M1 의 ID > 0 이라 봉인 9 는 pass, 봉인 7 은 toy 에 VDSAT 열이 없어 undefined -> size_and_seal 은 위반이 아니라 미정(undefined) 평가를 낸다.
+    (옛 margin 닫힌 식 단언은 retired -- 그 판정이 없다.)"""
+    from gmid_engine.sizing import dc_seal_region, dc_tolerances
+    from .conftest import eval_calls, run_of
     y, z_star = 0.99, 0.3
     th, (zs, xs), T = theta_q(ctx_q, y, z_star)
-    tol = toy_tol()
     snap, calls = eval_calls(ctx_q, th)
     log = scc_log(snap, ("z", "x"))
     assert log.method == SCC_NEWTON                                       # 풀이 자체는 r7 그대로 Newton
-    snap9 = dc_seal_conduction(dc_tolerances(snap, ctx_q.lut, **run_of(ctx_q)), ctx_q.lut, **run_of(ctx_q))
-    it9 = snap9.value("graph", DC_KEY, "dc_seal_9")
-    assert it9.status == "fail" and it9.devices == ("M1",)
-    op = snap.value("device", "M1", "dc_op")
-    ln_off = math.log(I0["nmos"]) + LAM * op.vds + Oracle.vs_term(op.vsb)  # toy: VGS = 0 마디·VDS Hermite(1차 정확)·VS 선형
-    i_off = math.exp(ln_off) * op.W / op.L
-    eps = op.gm_id * tol
-    m_exp = i_off / (eps * op.current)
-    assert m_exp > 1.0 and abs(it9.margin - m_exp) <= 1e-9 * m_exp
-    # 해에서의 닫힌 식과의 일치: ln margin 의 노드전압 민감도 ≤ 2·LAM + max|VS 기울기| + 2·C/(B − C·VGS) (VGS·VDS 는 두 노드 차,
-    # VSB 는 한 노드) -> |Δ ln m| ≤ 그 값 × 노드 오차(≤ tol, 5.5b [r7])
-    c = zs * (1.0 - y) / y
-    m_star = math.exp(-Oracle.f(c)) / (Oracle.gm_id(c) * tol)
-    sens = 2 * LAM + max(abs(vs_slope(v)) for v in TOY_VS[:-1]) + 2 * C / (B - C * 0.2)
-    assert abs(math.log(it9.margin) - math.log(m_star)) <= sens * tol
-    assert 2.5 < m_star < 2.7
-    with pytest.raises(SealViolationError) as ei:
-        seal_dc(snap, calls, ctx_q.lut, resistances_of(ctx_q, th), (), base=ctx_q.base, **run_of(ctx_q))
-    d = detail(ei.value)
-    st = {x[0]: x[1] for x in d["items"]}
-    assert len(st) == 9 and st[9] == "fail" and st[7] == "undefined"
-    assert all(st[n] == "pass" for n in st if n not in (7, 9))
-    assert d["item"] == 9 and ei.value.record.devices == ("M1",) and ei.value.record.margin == it9.margin
-    with pytest.raises(SealViolationError) as ei2:
-        size_and_seal(ctx_q, th)
-    assert detail(ei2.value)["item"] == 9 and ei2.value.record.margin == it9.margin
+    snap9 = dc_seal_region(dc_tolerances(snap, ctx_q.lut, **run_of(ctx_q)), ctx_q.lut, **run_of(ctx_q))
+    assert snap9.value("graph", DC_KEY, "dc_seal_9").status == "pass"
+    assert snap9.value("graph", DC_KEY, "dc_seal_7").status == "undefined"
+    assert snap.value("device", "M1", "dc_op").current > 0.0
+    ev = size_and_seal(ctx_q, th)
+    assert ev.sealed is None and ev.report.status == "undefined"
+    assert ev.report.items[8].item == 9 and ev.report.items[8].status == "pass"
 
 
 def test_newton_failure_in_case_one_is_raised(ctx_q):

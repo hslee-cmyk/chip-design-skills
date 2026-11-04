@@ -24,29 +24,30 @@ from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circu
 from .conftest import COUNT_FIELDS, block_row, row_delta  # [XRUN-F1 card B C1] 실행 계수 행
 from .conftest import kschema, kties  # [U17 ①-b] graph/kernel 필드 읽기(설계 40 v1.9.1 §2.4.7 KernelContext 행)
 
-EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
-          S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
-          S.dc_seal_conduction, S.dc_seal_report)       # [r8] 4 평가 + 8 봉인(tol·1·2·3·6·7·8·9) + report = 13
+EVAL12 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
+          S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_region, S.dc_seal_kvl_branch,
+          S.dc_seal_report)       # [EO-1 범위 4] 4 평가 + 7 봉인(tol·1·2·3·6·7/9 영역 판정 하나·8) + report = 12 (옛 13 에서 봉인 7·9 블록이 하나로)
+# 해석: dc_seal_region 의 자리는 옛 봉인 7 자리(6 다음, 8 앞) -- interface 는 순서를 적지 않았다.
 PLAN5 = (S.dc_rails, s1_symmetry, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
 
 
 def _assert_dc_outcomes(st):
     """[IT-2a T-L11d, 승인 20261022-it2a-o94-ext 범위 2; oracle (d) 사용자 선언 design 41 v1.12.8 L11 (d)] 같은 입력 재평가의 DC 열세 블록:
-    computes 0, 커널 4 + 봉인 항목 8 = 블록마다 outcome reuse 1회(합 12), dc_seal_report = outcome graft 1회(keep 밖 -> S3 graft)."""
+    computes 0, 커널 4 + 봉인 항목 7 = 블록마다 outcome reuse 1회(합 11), dc_seal_report = outcome graft 1회(keep 밖 -> S3 graft)."""
     kernel4 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths)
-    items8 = EVAL13[4:12]
-    assert len(kernel4) + len(items8) == 12 and EVAL13[12] is S.dc_seal_report
-    for b in kernel4 + items8:
+    items7 = EVAL12[4:11]
+    assert len(kernel4) + len(items7) == 11 and EVAL12[11] is S.dc_seal_report
+    for b in kernel4 + items7:
         r = st[b.name]
         assert (r.reuses, r.grafts, r.replays, r.computes) == (1, 0, 0, 0), (b.name, r)
     rep = st[S.dc_seal_report.name]
     assert (rep.reuses, rep.grafts, rep.replays, rep.computes) == (0, 1, 0, 0), rep
-    assert sum(st[b.name].reuses for b in EVAL13) == 12 and sum(st[b.name].grafts for b in EVAL13) == 1
+    assert sum(st[b.name].reuses for b in EVAL12) == 11 and sum(st[b.name].grafts for b in EVAL12) == 1
 
 
 def stats(ctx):
     """[XRUN-F1 card B C1·C4] ctx 실행 계수의 블록 행(옛 블록 객체 stats 대체 -- 블록은 상태가 없다)."""
-    return {b.name: block_row(ctx.counters, b.name) for b in EVAL13 + PLAN5}
+    return {b.name: block_row(ctx.counters, b.name) for b in EVAL12 + PLAN5}
 
 
 def stats_since(ctx, before):
@@ -106,7 +107,7 @@ def test_same_theta_with_parent_zero_compute(ctx_c):
     before = stats(ctx)
     ev2 = size_and_seal(ctx, theta_c(y=0.45), parent=ev1)
     st = stats_since(ctx, before)
-    assert all(st[b.name].computes == 0 for b in EVAL13)
+    assert all(st[b.name].computes == 0 for b in EVAL12)
     _assert_dc_outcomes(st)
     assert all(st[b.name].calls == 0 for b in PLAN5)          # 계획 블록은 평가에서 부르지 않는다
     assert ev2.snapshot.fp == ev1.snapshot.fp
@@ -128,7 +129,7 @@ def test_current_perturbation_skips_columns(ctx_c):
     c, _, _ = _perturb(ctx_c[2], theta_c(), ("current", "M2"), 2e-5)
     assert c["dc_currents"] == 1 and c["dc_widths"] == 1 and c["dc_tolerances"] == 1
     assert c["dc_lengths"] == 0 and c["dc_columns"] == 0 and c["dc_seal_node_conflict"] == 0
-    assert c["dc_seal_conduction"] == 1          # [r8] dc_op(W·current) 가 바뀌어 하류 봉인 9 도 다시
+    assert c["dc_seal_region"] == 1          # [EO-1 범위 4] dc_op(W·current) 가 바뀌어 하류 영역 판정(봉인 7·9)도 다시
 
 
 @pytest.mark.parametrize("key,val", [(("ln_idu", "M1"), Oracle.ln_idu("nmos", 0.62, 0.9, 0.0)),
@@ -185,7 +186,7 @@ def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
     before = stats(ctx)
     ev2 = size_and_seal(ctx, th, parent=ev1)
     st = stats_since(ctx, before)
-    assert all(st[b.name].computes == 0 for b in EVAL13), {b.name: st[b.name].computes for b in EVAL13}
+    assert all(st[b.name].computes == 0 for b in EVAL12), {b.name: st[b.name].computes for b in EVAL12}
     _assert_dc_outcomes(st)
     assert all(st[b.name].calls == 0 for b in PLAN5)
     assert ev2.snapshot.fp == ev1.snapshot.fp and ev2.report == ev1.report
@@ -574,7 +575,7 @@ def test_it2e_parentless_partial_unchanged(tmp_path_factory, toy_access, monkeyp
 
 def test_it2e_seal_violation_with_parent_keeps_report_fields(tmp_path_factory, r4_access):
     """T-E4: 봉인 위반 경로 + parent -- 부분 스냅샷에 dc_seal_report 필드까지 남고(지우면 red) 커널 밖 writer(ss_dev) 필드는 없다.
-    키 = base writer ∪ 평가 13 블록, 지문 = parent 없는 대조 평가와 같다. 위반 θ = test_candidate_failure_recorded_and_cached 와 같은 구성
+    키 = base writer ∪ 평가 12 블록, 지문 = parent 없는 대조 평가와 같다. 위반 θ = test_candidate_failure_recorded_and_cached 와 같은 구성
     (y = 0.1, VGS1 = 1.5 -> 봉인 위반), parent = 봉인된 평가에 손 ss 를 실은 것(커널 밖 writer 필드가 실려 있음)."""
     from .conftest import circuit_cs_pmos_load, theta_r4c, with_hand_ss
 
@@ -596,7 +597,7 @@ def test_it2e_seal_violation_with_parent_keeps_report_fields(tmp_path_factory, r
     assert "items" in detail(ec.value)
     p, c = ei.value.partial, ec.value.partial
     assert p is not None and c is not None and p is not c and ctx is not ctx2             # (나)
-    exp = set(ctx.base.block_versions) | {b.name for b in EVAL13}
+    exp = set(ctx.base.block_versions) | {b.name for b in EVAL12}
     assert set(p.block_versions) == exp and "ss_dev" not in p.block_versions
     rep = [kf for kf, w in p.writers.entries if w == S.dc_seal_report.name]
     assert rep and any(p.column(*kf) != () for kf in rep)                                 # 봉인 보고 필드가 남아 있다

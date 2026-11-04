@@ -533,12 +533,12 @@ def test_partial_snapshot_ss_stage_failure(tmp_path, short_root):
 
 
 SEAL_STAGE_BLOCK_ATTRS = ("dc_seal_node_conflict", "dc_seal_vgs_match", "dc_seal_kcl", "dc_seal_bulk_reverse",
-                          "dc_seal_saturation", "dc_seal_kvl_branch", "dc_seal_conduction", "dc_seal_report")
+                          "dc_seal_region", "dc_seal_kvl_branch", "dc_seal_report")      # [EO-1 범위 4] 7·9 블록 하나
 
 
 @pytest.mark.parametrize("block_attr", SEAL_STAGE_BLOCK_ATTRS)
 def test_partial_snapshot_seal_stage_block_failure(tmp_path, lut_sealed, short_root, monkeypatch, block_attr):
-    """B-T19 (4) C5·C7: 봉인 단계 블록(봉인 항목 블록 7개·dc_seal_report) 자체가 후보 실패 예외를 내면 -- (a) 실패에 partial 이 붙고
+    """B-T19 (4) C5·C7: 봉인 단계 블록(봉인 항목 블록 6개·dc_seal_report) 자체가 후보 실패 예외를 내면 -- (a) 실패에 partial 이 붙고
     (b) 그 partial 은 그 블록에 들어가기 직전 스냅샷(앞 단계 블록 필드까지 있고 그 블록·이후 블록 필드 없음) (c) S3 실패 줄
     snapshot_fp == partial.fp.
 
