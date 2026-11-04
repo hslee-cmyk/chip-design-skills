@@ -633,3 +633,21 @@ def test_cross_orbit_current_tie_empty_box_rejected(tmp_path):
     assert (det["gate"], det["reason"]) == ("search_domain", "tied_current_box_empty")
     names = {x[1] for x in det["elements"]}
     assert names <= _ALL4 and names & {"M1", "M2"} and names & {"M3", "M4"}
+
+
+# ---------------------------------------------------------------- [EO-1 범위 4, interface card 20261104-eo1r4-sf1l §3 T-D1] off 만 가진 kind 는 상자 없음
+# oracle (식): card §3 '`search_domain` kind 목록: `off` 소자만 가진 kind 는 상자 없음'. 회로: nmos M1 (out, in, gnd) + R1 (vdd, out) +
+# pmos Mp (out, vdd, vdd) 를 off 로 선언 -> pmos 는 off 소자만 가진 kind.
+
+def test_off_only_kind_has_no_current_box(tmp_path, lut_sealed):
+    from gmid_engine.authoring import RegionDecl
+    from sizing.conftest import build_ctx
+    from .conftest import new_access
+    doc = topo("hand_offkind", [mos("M1", "nmos", "out", "in", "gnd"), mos("Mp", "pmos", "out", "vdd", "vdd")],
+               {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
+               passives=[two("R1", "resistor", "vdd", "out")])
+    off = RegionDecl("Mp", "off", None, ("gain_ss_db",), 1e-6, 1e-6)
+    dc = build_ctx(tmp_path, doc, new_access(lut_sealed), regions=(off,))[2]
+    d = domain_of(dc, _settings((1e3, 1e6)), write_pdk(tmp_path / "pdk"))
+    assert [k for k, _ in d.current_box] == ["nmos"]                       # pmos 상자 없음
+    assert all(v.component[1] != "Mp" for v in d.variables)

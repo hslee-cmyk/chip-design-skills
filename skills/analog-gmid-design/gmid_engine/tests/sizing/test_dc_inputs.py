@@ -148,6 +148,38 @@ def test_linear_devices_from_intended_region_sorted():
 
 
 # ---------------------------------------------------------------------------
+# [EO-1 범위 4, interface card 20261104-eo1r4-sf1l §3 T-L2] DcInputs.regions = RegionDecl tuple(이름순, 옛 linear_devices 자리)
+# oracle (식): card §3 'DcInputs 칸 regions = RegionDecl tuple (이름순, linear_devices 자리)'. 손으로 만든 RegionDecl 은 로더를 거치지 않는다.
+# ---------------------------------------------------------------------------
+
+def test_region_dc_inputs_field_regions_replaces_linear_devices():
+    names = [f.name for f in dataclasses.fields(DcInputs)]
+    assert "regions" in names and "linear_devices" not in names
+    assert not hasattr(DcInputs((("gnd", 0.0),)), "linear_devices")
+    assert DcInputs((("gnd", 0.0),)).regions == ()
+
+
+def test_region_dc_inputs_projects_all_declared_regions_sorted():
+    """triode·off 모두 투영(off 를 떨구지 않는다), 이름순 tuple, 원소는 RegionDecl 그대로."""
+    r7 = RegionDecl("M7", TRIODE, None)
+    r2 = RegionDecl("M2", "off", None, ("gain_ss_db",), 1e-6, 2e-6)
+    r5 = RegionDecl("M5", TRIODE, None)
+    spec = dataclasses.replace(_base(), intended_region=(r7, r2, r5))
+    got = dc_inputs_from_spec(spec).regions
+    assert isinstance(got, tuple)
+    assert [r.device for r in got] == ["M2", "M5", "M7"]
+    assert got == (r2, r5, r7)
+    assert (got[0].w_m, got[0].l_m, got[0].judged_by) == (1e-6, 2e-6, ("gain_ss_db",))
+
+
+def test_region_dc_inputs_pending_or_empty_is_empty_tuple():
+    from gmid_engine.authoring import PendingMark
+    for v in (PendingMark("human.intended_region", "CI-18"), ()):
+        spec = dataclasses.replace(_base(), intended_region=v)
+        assert dc_inputs_from_spec(spec).regions == ()
+
+
+# ---------------------------------------------------------------------------
 # [r9] spec 경로 끝까지: JSON spec -> load_sizing_spec -> dc_inputs_from_spec
 # ---------------------------------------------------------------------------
 

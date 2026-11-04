@@ -83,3 +83,93 @@ def test_small_reverse_within_tol_passes(ctx_bulk_out):
     """vsb = −0.01 (< tol_v 0.018) -> pass."""
     snap, _ = with_tol(ctx_bulk_out, theta_bulk(0.01))
     assert run(snap).status == "pass"
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# [EO-1 범위 4, interface card 20261104-eo1r4-sf1l §2 '봉인 6'] 순방향은 문턱 없이 거부, tol_V 는 띠 기록(`indistinct`)에만 쓴다.
+# oracle (손): 입력 dc_op 의 (vds, vsb) 를 2진 분수로 직접 정하고 max(0, -vsb, -(vds+vsb)) 를 손으로 셈한다. tol_V 는 스냅샷의 dc_tol_v 칸(입력).
+# 단언 금지: tol·margin 값. (위 test_small_reverse_within_tol_passes 는 옛 판정 '순방향 ≤ tol_V 통과'를 전제한다 -- 새 계약과 충돌, 판정자 몫.)
+# ---------------------------------------------------------------------------------------------------------------
+
+def _ops_of(snap):
+    return dict(snap.column("device", "dc_op"))
+
+
+def _put(snap, m1_vds, m1_vsb, m2_vds=0.5, m2_vsb=0.25):
+    """M1·M2 의 dc_op (vds, vsb) 를 정해 넣는다(M2 는 기본으로 깊은 역바이어스 -- 띠·순방향 모두 아님)."""
+    ops = _ops_of(snap)
+    upd = {"M1": dataclasses.replace(ops["M1"], vds=m1_vds, vsb=m1_vsb),
+           "M2": dataclasses.replace(ops["M2"], vds=m2_vds, vsb=m2_vsb)}
+    return tamper(snap, "dc_widths", "device", "dc_op", upd)
+
+
+def _tol_m1(snap):
+    return dict(snap.column("device", "dc_tol_v"))["M1"]
+
+
+def _pairs(value):
+    return tuple((d, v) for d, v in value)
+
+
+def test_region_bulk_forward_half_tol_now_fails(ctx_c):
+    """순방향 크기 = tol_V/2 (< tol_V) -> fail. 옛 판정(크기 ≤ tol_V 통과)이면 pass 라 red."""
+    snap, _ = with_tol(ctx_c[2], theta_c())
+    tol = _tol_m1(snap)
+    assert tol > 0
+    s = _put(snap, 0.5, -tol / 2)                # source-bulk 순방향 tol/2: max(0, tol/2, -(0.5 - tol/2)) = tol/2
+    item = run(s)
+    assert item.status == "fail" and item.devices == ("M1",)
+    s2 = _put(snap, -0.25, 0.25 - tol / 2)       # drain-bulk 순방향: -(vds+vsb) = tol/2, -vsb < 0
+    item2 = run(s2)
+    assert item2.status == "fail" and item2.devices == ("M1",)
+
+
+def test_region_bulk_forward_smallest_positive_fails_and_zero_passes(ctx_c):
+    """경계 0 V 양쪽: 순방향 0 정확히 = pass, 0 바로 위(5e-324) = fail (수치 문턱 없음)."""
+    import math
+    snap, _ = with_tol(ctx_c[2], theta_c())
+    assert run(_put(snap, 0.5, 0.0)).status == "pass"
+    assert run(_put(snap, 0.5, -math.ulp(0.0))).status == "fail"
+    assert run(_put(snap, -0.25, 0.25)).status == "pass"                 # vdb = 0 정확히
+    assert run(_put(snap, -0.25, 0.25 - math.ulp(0.25))).status == "fail"  # vdb < 0
+
+
+def test_region_bulk_reverse_half_tol_passes_with_indistinct(ctx_c):
+    """역바이어스 tol_V/2 -> pass + detail indistinct = ((M1, 역바이어스 크기),) -- min(vsb, vds+vsb) = tol/2 < tol_V."""
+    snap, _ = with_tol(ctx_c[2], theta_c())
+    tol = _tol_m1(snap)
+    item = run(_put(snap, 0.5, tol / 2))
+    assert item.status == "pass"
+    assert _pairs(dict(item.detail)["indistinct"]) == (("M1", tol / 2),)
+    # 띠 밖(역바이어스 0.25 >= tol_V)인 M2 는 목록에 없다(_put 의 M2 기본값).
+
+
+def test_region_bulk_boundary_zero_is_pass_and_in_band(ctx_c):
+    """경계 vsb = 0 및 vdb = 0 -> pass. 값 0 < tol_V 라 띠 안(indistinct)에 든다."""
+    snap, _ = with_tol(ctx_c[2], theta_c())
+    for vds, vsb in ((0.5, 0.0), (-0.25, 0.25)):
+        item = run(_put(snap, vds, vsb))
+        assert item.status == "pass"
+        assert _pairs(dict(item.detail)["indistinct"]) == (("M1", 0.0),)
+
+
+def test_region_bulk_tol_none_keeps_judgment_and_marks_band_undefined(ctx_c):
+    """tol_V None: 항목 6 은 판정 그대로(순방향 0 -> pass) + band_undefined, 같은 주입 스냅샷에서 봉인 2 는 undefined(보고서가 sealed 일 수 없다)."""
+    from gmid_engine.search import open_run
+    from gmid_engine.sizing import dc_seal_vgs_match
+    snap, _ = with_tol(ctx_c[2], theta_c())
+    s = tamper(snap, "dc_tolerances", "device", "dc_tol_v", {"M1": None})
+    item = run(s)
+    assert item.status == "pass"
+    assert tuple(dict(item.detail)["band_undefined"]) == ("M1",)
+    donors, counters = open_run()
+    item2 = seal_item(dc_seal_vgs_match(s, donors=donors, counters=counters), 2)
+    assert item2.status == "undefined" and "M1" in item2.devices
+
+
+def test_region_bulk_tol_none_does_not_hide_forward(ctx_c):
+    """tol_V None 이어도 순방향 > 0 이면 fail (문턱이 없으니 띠 정의 여부와 무관)."""
+    snap, _ = with_tol(ctx_c[2], theta_c())
+    s = tamper(_put(snap, 0.5, -0.25), "dc_tolerances", "device", "dc_tol_v", {"M1": None})
+    item = run(s)
+    assert item.status == "fail" and item.devices == ("M1",)
