@@ -187,7 +187,7 @@ GVGS_READS = (
 GVGS_WRITES = (("graph", "gvgs_summary"), ("graph", "rel_kvl_branch"))
 SYMMETRY_READS = (
     ("device", "bulk"), ("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
-    ("node", "is_rail"), ("node", "port_direction"), ("graph", "dc_pruned"),
+    ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("graph", "dc_pruned"),
 )
 SYMMETRY_WRITES = (("node", "dc_colour"), ("device", "dc_colour"), ("graph", "orbits"), ("graph", "current_symmetry"))
 S1_WRITERS = WriterTable(

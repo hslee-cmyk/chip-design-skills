@@ -19,7 +19,7 @@
   닿는 생성자)로 탐색 전에 멈춘다. 판정은 생성자 하나가 아니라 군 전체에서 한다: (원소, 방향) 쌍의 궤도를 생성자로 union-find 하고 (e, +)·(e, −) 가 같은 궤도면
   자기 맞바꿈이다.
 """
-from gmid_engine.authoring import INPUT_DIRECTION
+from gmid_engine.authoring import INPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_P
 from gmid_engine.core import StructureUnresolvedError, compute_block
 
 from .automorphism_orbits import automorphism_orbits
@@ -56,6 +56,28 @@ def _node_marks(projection, supplies, marks):
             if direction == INPUT_DIRECTION:
                 nodes.setdefault(net, []).append(("input_dc_v", float(marks.input_dc_v)))
     return _pack(nodes)
+
+
+def _p_port_first(position, generators, p_port):
+    """차동 입력 p 포트(role 로 정해진 정점)가 자기 궤도에서 가장 앞선 정준 위치를 갖게, 위치 함수를 자기동형 h(p 포트 -> 궤도 최소 위치 정점)로 다시 쓴다.
+    h 가 자기동형이라 증명서 cert·정준 그래프는 그대로이고, p·n 이 같은 궤도일 때 이름 전단사가 p 의 위치를 n 과 맞바꾸지 못한다(role 은 이름이 아니다)."""
+    reach = {p_port: {}}                              # 정점 x -> h_x(움직인 정점만), h_x(p 포트) = x
+    queue = [p_port]
+    for x in queue:
+        for generator in generators:
+            step = dict(generator)
+            image = step.get(x, x)
+            if image not in reach:
+                moved = {v: step.get(w, w) for v, w in reach[x].items()}
+                for v, w in step.items():
+                    moved.setdefault(v, w)
+                reach[image] = moved
+                queue.append(image)
+    best = min(reach, key=position.get)              # p 포트 궤도에서 가장 앞선 위치의 정점
+    if position[best] >= position[p_port]:
+        return position
+    h = reach[best]
+    return {v: position[h.get(v, v)] for v in position}
 
 
 def _rank(signature):
@@ -119,7 +141,11 @@ def s1_symmetry(projection):
     supplies, marks = projection.extras
     canon = canonical_form(projection, marks.elements, _node_marks(projection, supplies, marks))   # 그래프 하나(D-2)
     orbit = automorphism_orbits(canon)
-    colour = _rank({v: (canon.wl[v], canon.position[v]) for v in canon.wl})
+    p_ports = [net for net, role in projection.column("node", "port_role") if role == ROLE_DIFFERENTIAL_INPUT_P]
+    position = canon.position
+    if len(p_ports) == 1:
+        position = _p_port_first(position, canon.generators, (_NODE, p_ports[0]))
+    colour = _rank({v: (canon.wl[v], position[v]) for v in canon.wl})
     classes = dict(projection.column("device", "element_class"))
     pins = {name: dict(p) for name, p in projection.column("device", "pins")}
     signs = _signs(classes, pins, canon.generators)
