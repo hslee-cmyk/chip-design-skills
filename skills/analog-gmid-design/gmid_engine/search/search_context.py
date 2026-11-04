@@ -18,7 +18,7 @@
   한 번 재 `StageAResult.code_fp` 로 넘긴다 -- 여기서 다시 재지 않는다).
 * **평가 캐시**(설계 7.2): `cache` = {EvalKey: EvalResult}(그 실행에서 평가한 성공·실패만 -- S3 기록은 출력이고 시작할 때 읽지 않는다, U-89). 계수 `counters`(설계 7.4):
   requests, kernel_calls, hits, fail_hits, outside_domain, recompute_same_key.
-* 예산: `eval_budget`(커널 평가 수 E_B, 선언 또는 find_front 가 한 번 유도), `deadline`(벽시계 바깥 정지).
+* 예산: `eval_budget`(선언 실행 = 탐색 예산 E_B, 유도 실행 = D -- 뜻이 갈리고 `eval_budget_source` 가 구분한다; 유도는 `search_ceiling` 한 자리가 쓴다), `deadline`(벽시계 바깥 정지).
 """
 import dataclasses
 
@@ -62,7 +62,7 @@ class SearchContext:
                                          "outside_domain", "recompute_same_key")}
         self.eval_times = []
         self.seq = 0
-        self.eval_budget = settings.eval_budget          # None 이면 evaluate 가 n + 1 평가 뒤 한 번 유도해 기록
+        self.eval_budget = settings.eval_budget          # None 이면 search_ceiling 이 평가 시간 n + 1 개 뒤 한 번 유도해 기록(evaluate 는 쓰지 않는다)
         self.eval_budget_source = "declared" if settings.eval_budget is not None else None
         self.deadline = None                             # 벽시계 바깥 정지(perf_counter 기준) -- find_front 가 정한다
         self.cell_floors = {}                            # [r8] `cell_floor` 의 (kind, w_key, L 칸) -> 칸 정점 하한 등 LUT 파생(U17 ③에서 LUT memo 함수로)
