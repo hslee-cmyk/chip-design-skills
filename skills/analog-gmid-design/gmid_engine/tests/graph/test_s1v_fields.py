@@ -15,9 +15,9 @@ import pytest
 import s1v_hand as H
 
 D1_FIELDS = ("views", "l_classes", "findings", "declared", "applied_facts")
-# [IT-1 범위 6] net_model 파생 술어 네 필드가 S1v 필드로 늘었다(설계 40 §2.4.8 S1v 행) -- 권한표 행 아홉
-IT1_FIELDS = ("diode_nodes", "composite_mos", "composite_bundles", "composite_internal")
-ALL_FIELDS = D1_FIELDS + IT1_FIELDS
+# [IT-1 A-76 M-3] net_model 파생 술어 네 필드는 graph 필드로 만들지 않는다(소비자 0 -- 삭제). 권한표 행은 다섯뿐이다.
+REMOVED_FIELDS = ("diode_nodes", "composite_mos", "composite_bundles", "composite_internal")
+ALL_FIELDS = D1_FIELDS
 
 
 def _run(s1, *, declared=(), cuts=(), budget=H.BIG_BUDGET, run=None):
@@ -82,53 +82,22 @@ def test_same_input_reuses_and_changed_extra_recomputes(tmp_path):
     assert other.block_version("build_s1v") != first.block_version("build_s1v")
 
 
-# ---------------------------------------------------------------- [IT-1 T-6a] 파생 술어 네 필드
-# oracle (독립): 권한표 행 = 위 이름, 값은 이름 없는 손 회로에서 손으로 걷은 결과(jrules_hand 머리 주석의 걷기 표)를 정확한 형식
-# (frozenset / tuple[frozenset], interface '값 형식')으로 비교한다. 필드 값을 만든 피검 함수(net_model)는 부르지 않는다.
+# ---------------------------------------------------------------- [IT-1 A-76 M-3] 파생 술어 네 필드 부재
+# oracle (독립): 필드 이름은 A-76 삭제 목록, 권한표·기록은 어휘 대조.
 import gmid_engine.graph as _G                                                                  # noqa: E402
-import jrules_hand as J                                                                         # noqa: E402
 
 
-def test_it1_s1v_write_rows_include_four_derived_fields():
-    """T-6a: S1V_WRITES 에 네 행이 늘고 옛 다섯 행은 그대로다."""
+def test_it1_s1v_write_rows_exclude_removed_fields():
+    """A-76 M-3 (독립): S1V_WRITES 에 네 필드 행이 없고 옛 다섯 행만 있다."""
     rows = set(_G.S1V_WRITES)
-    for f in ALL_FIELDS:
+    for f in REMOVED_FIELDS:
+        assert ("graph", f) not in rows, f
+    for f in D1_FIELDS:
         assert ("graph", f) in rows, f
 
 
-def test_it1_derived_fields_in_record(tmp_path):
-    """T-6a: 손 회로 하나를 만들면 s1v 기록에 네 필드가 모두 있다."""
+def test_it1_removed_fields_not_in_s1v_record(tmp_path):
+    """A-76 M-3 (독립): 손 회로의 s1v 기록에 네 필드가 없다."""
     s1, _ = H.build(tmp_path, H.CS)
     snap = _run(s1)
-    assert {name for name, _fv in snap.record("graph", "s1v").fields} >= set(IT1_FIELDS)
-
-
-def _it1_vals(snap):
-    return {f: snap.value("graph", "s1v", f) for f in IT1_FIELDS}
-
-
-def test_it1_derived_fields_empty_without_diode_or_composite(tmp_path):
-    """T-6a (손): CS(M1 nmos out,in,gnd + M2 pmos out,vb,vdd) -- gate = drain 인 MOS 도 복합 diode 걷기도 없다 -> 네 필드 모두 빈 값
-    (frozenset / 빈 tuple, 형식은 interface '값 형식')."""
-    s1, _ = H.build(tmp_path, H.CS)
-    assert _it1_vals(_run(s1)) == {"diode_nodes": frozenset(), "composite_mos": frozenset(), "composite_bundles": (),
-                                   "composite_internal": frozenset()}
-
-
-def test_it1_diode_nodes_hand_value(tmp_path):
-    """T-6a (손): CSDIODE 의 M2 pmos (drain out, gate out, source vdd) 는 gate == drain -> diode_nodes = {out}. M1 의 gate 넷 in 은 아니다.
-    복합 diode 는 없으므로 나머지 셋은 빈 값."""
-    s1, _ = H.build(tmp_path, H.CSDIODE)
-    assert _it1_vals(_run(s1)) == {"diode_nodes": frozenset({"out"}), "composite_mos": frozenset(), "composite_bundles": (),
-                                   "composite_internal": frozenset()}
-
-
-def test_it1_composite_fields_hand_value(tmp_path):
-    """T-6a (손): RSELF = Ma pmos (p1, gate p2, vdd), Mb pmos (p2, gate p3, p1), Mc nmos (p3, vb, gnd), Md pmos (out, p2, vdd), Mi nmos (out, in, gnd),
-    Rx (p2, p3). 손 걷기(jrules_hand 머리 주석): Ma -> {Mb}, Mb -> {Rx} 한 묶음 {Ma, Mb, Rx}.
-    composite_mos = {Ma, Mb}. composite_bundles = (frozenset({Ma, Mb, Rx}),). diode_nodes = gate == drain 인 MOS 없음 ∪ 묶음 MOS 멤버의 gate 넷 {p2(Ma), p3(Mb)}.
-    composite_internal = 묶음 멤버 단자만 닿는 비레일 넷: p1 (Ma.d·Mb.s) 만 -- p2 는 Md gate, p3 는 Mc drain 도 닿는다."""
-    s1, _ = H.build(tmp_path, J.RSELF)
-    assert _it1_vals(_run(s1)) == {"diode_nodes": frozenset({"p2", "p3"}), "composite_mos": frozenset({"Ma", "Mb"}),
-                                   "composite_bundles": (frozenset({"Ma", "Mb", "Rx"}),),
-                                   "composite_internal": frozenset({"p1"})}
+    assert not {name for name, _fv in snap.record("graph", "s1v").fields} & set(REMOVED_FIELDS)

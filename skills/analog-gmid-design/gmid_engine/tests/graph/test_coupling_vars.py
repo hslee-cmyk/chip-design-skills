@@ -499,34 +499,13 @@ def test_determinism_across_hashseed_and_repeat(lib):
 
 
 # ---------------------------------------------------------------- [IT-1 T-6b·T-6c] 파생 술어 필드 소비 (범위 6)
-import ast as _ast                                                                               # noqa: E402
-
-import gmid_engine as _gmid_engine                                                               # noqa: E402
-
 _IT1_DERIVED = ("diode_nodes", "composite_mos", "composite_bundles", "composite_internal")
 
 
-def test_it1_coupling_vars_reads_four_derived_fields():
-    """T-6b (독립): coupling_vars 의 READS 에 S1v 파생 술어 네 필드가 있다(net_model 을 다시 부르는 대신 필드를 읽는다)."""
+def test_it1_coupling_vars_does_not_read_removed_fields():
+    """A-76 M-3 (독립): coupling_vars 의 READS 에 S1v 파생 술어 네 필드가 없다(필드 자체를 만들지 않는다)."""
     for f in _IT1_DERIVED:
-        assert ("graph", f) in set(coupling_vars.reads), f
-
-
-def test_it1_net_model_has_single_call_site_in_s1v_fields():
-    """T-6b (독립, AST): tests/ 밖 엔진 소스에서 `net_model(` 호출 자리(정의 줄 제외) = graph/s1v_fields.py 하나뿐 -- 둘째 생산자 없음."""
-    root = Path(_gmid_engine.__file__).resolve().parent
-    sites = []
-    for p in sorted(root.rglob("*.py")):
-        rel = p.relative_to(root).as_posix()
-        if rel.startswith("tests/"):
-            continue
-        for n in _ast.walk(_ast.parse(p.read_text(encoding="utf-8"))):
-            if isinstance(n, _ast.Call):
-                f = n.func
-                name = f.id if isinstance(f, _ast.Name) else (f.attr if isinstance(f, _ast.Attribute) else None)
-                if name == "net_model":
-                    sites.append((rel, n.lineno))
-    assert [rel for rel, _ln in sites] == ["graph/s1v_fields.py"], sites
+        assert ("graph", f) not in set(coupling_vars.reads), f
 
 
 def test_it1_coupling_vars_values_unchanged_miller(tmp_path):
