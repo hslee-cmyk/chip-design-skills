@@ -43,6 +43,7 @@ from .s1v_build import build_s1v
 from .s1v_fields import s1v_fields
 from .s1v_findings import s1v_findings
 from .s1v_key import s1v_rule_fp, structure_rule_fp
+from .views import default_port_seeds
 from .s1_values import (
     AC_GROUND_GATE_ONLY,
     AC_GROUND_RAIL,
@@ -180,6 +181,7 @@ from .s1v_values import (
     ROLE_INPUT,
     VIEW_TRANSFER,
     F_LOOP_CUT_UNMATCHED,
+    F_VIEW_REQUIRED,
     SEVERITY_REVIEW,
     ViewS1v,
     ViewSeed,
@@ -350,6 +352,7 @@ __all__ = (
     "automorphism_orbits",
     "canonical_form",
     "build_s1v",
+    "default_port_seeds",
     "load_structure_facts",
     "s1v_rule_fp",
     "structure_rule_fp",
@@ -367,6 +370,7 @@ __all__ = (
     "S1V_RULE_FILES",
     "SPEC_VIEW_LOOP",
     "F_LOOP_CUT_UNMATCHED",
+    "F_VIEW_REQUIRED",
     "SEVERITY_REVIEW",
     "ViewS1v",
     "ViewSeed",
