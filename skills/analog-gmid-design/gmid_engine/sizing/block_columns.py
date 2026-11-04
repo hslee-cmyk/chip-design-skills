@@ -191,10 +191,6 @@ class _Circuit:
         self.ln_idu = {key: v for (kind, key), v in self.theta.items() if kind == THETA_LN_IDU}
         volts = tuple(self.rail_v.values())
         self.lo, self.hi = min(volts), max(volts)
-        self.mates = {}                                                # 입력 점 뿌리 -> 같은 전압인 짝 포트들(쓰기 계획의 known)
-        for net, w in self.writers.items():
-            if w.relation == REL_INPUT_POINT and w.known is not None:
-                self.mates.setdefault(w.known, []).append(net)
         self.order_terms = {}
         for m in sorted(self.coord, key=lambda x: (self.device_colour.get(x, 0), x)):     # 구조 색 순서 -- 이름 치환이 항 순서(동률 tie-break)를 바꾸지 않게
             d, _g, s = (self.pins[m][t] for t in MOS_TERMINAL_NAMES)
@@ -230,8 +226,9 @@ class _Circuit:
     def terms(self, net):
         """x 에 채널이 닿는 MOS 의 순서 제약 항 -- 입력 점 뿌리는 짝 포트에 채널이 닿는 MOS 의 항까지(두 포트가 한 점)."""
         found = list(self.order_terms.get(net, ()))
-        for mate in self.mates.get(net, ()):
-            found.extend(self.order_terms.get(mate, ()))
+        for mate, w in self.writers.items():                          # 쓰기 계획(node.dc_writer)에서 읽는다 -- 입력 점 뿌리의 짝 포트
+            if w.relation == REL_INPUT_POINT and w.known == net:
+                found.extend(self.order_terms.get(mate, ()))
         return found
 
     def window(self, net, values):

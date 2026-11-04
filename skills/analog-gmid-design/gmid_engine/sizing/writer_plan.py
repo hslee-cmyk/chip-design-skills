@@ -41,6 +41,7 @@ from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, MOS_TERMI
 
 from .s2_values import (
     BRANCH_INPUT_CM_UNDEFINED,
+    BRANCH_INPUT_TARGET_ONE_PORT,
     BRANCH_RESISTOR_CYCLE,
     COORD_DEPENDENT,
     COORD_WRITER,
@@ -181,7 +182,10 @@ def dc_writer_plan(projection):
     for net in sorted(fixed, key=node_key):
         plan.put(net, *fixed[net])
     free_inputs = tuple(sorted((net for net in inputs if net not in fixed), key=node_key))
-    point = _input_point(free_inputs, dict(projection.column("node", "port_role")))     # (p 포트, n 포트) 또는 None
+    roles = dict(projection.column("node", "port_role"))
+    if not input_dc_declared:
+        _stop_if_one_port_targeted(inputs, target_nets, roles)
+    point = _input_point(free_inputs, roles)     # (p 포트, n 포트) 또는 None
     twin = {} if point is None else {point[0]: point[1], point[1]: point[0]}
     same_gs = frozenset(projection.value("graph", GRAPH_KEY, "gvgs_summary").gate_source_same)   # g = s 판정 정본 = s1_gvgs (O-210 RR-6)
     parent = {}
@@ -313,6 +317,19 @@ def _component(adjacency, start, twin):
 def canon(net, point):
     """입력 점의 n 포트는 p 포트와 한 점이다(Kruskal·평행 판정의 대표 넷)."""
     return point[0] if point is not None and net == point[1] else net
+
+
+def _stop_if_one_port_targeted(inputs, target_nets, roles):
+    """입력 DC 미선언에서 차동 입력 두 포트(p·n 각 하나) 중 한 포트만 `node_voltage_targets_v` 로 선언 -> 탐색 전 정지(입력 점이 안 묶여 ΔV 가
+    θ 함수가 된다 -- DEC-106). `input_cm_undefined` 와 같은 층·같은 분류 꼴, detail ports = 선언한 포트·선언 안 한 포트."""
+    diff = {roles.get(net): net for net in inputs if roles.get(net) in _DIFF_ROLES}
+    if len(diff) != len(_DIFF_ROLES) or sum(1 for net in inputs if roles.get(net) in _DIFF_ROLES) != len(_DIFF_ROLES):
+        return
+    declared = tuple(net for net in sorted(diff.values()) if net in target_nets)
+    if len(declared) == 1:
+        raise StructureUnresolvedError(devices=(), detail={"reason": UNSUPPORTED_RULE_BRANCH,
+                                                           "rule_branch": BRANCH_INPUT_TARGET_ONE_PORT,
+                                                           "ports": tuple(sorted(diff.values())), "declared": declared})
 
 
 def _input_point(free_inputs, roles):
