@@ -7,7 +7,7 @@
 이 규칙은 아래 원칙과 계획 문언(예: P:1511 '매 변경 뒤 전체')보다 앞선다. card LA-1a + LA-1이 병합되면 끝나고, 그때 LA-1 재점검(O-225)으로 넘어간다. 모든 agent 브리핑에 넣는다.
 
 1. **반드시 지킨다(완화 금지):** 물리 정합(원칙 1·6, E-0 물리 관문, fail-closed)과 graph 단일 정본·단일화(원칙 7, 상위 `fpga/CLAUDE.md`). 이 둘의 위반은 언제나 멈춤 사유다.
-2. **test는 원인을 규명할 수 있는 만큼만 돌린다:** 그 card의 test(toy·회귀) + `tests/structure` + 2회로 연기(`folded_cascode`, `ngcc_3stage_ff`; stage_b·s0·g10 파일을 `--run-slow -k`로). 전체 test는 card마다 돌리지 않고 LA-1 측정 시점에 한 번 돌린다. 판정 기록에 돌린 범위를 그대로 적고, 안 돌린 것을 통과로 세지 않는다. 엔진 card는 ngspice를 돌리지 않는다. 오라클 card(OP-3, OP-7 어댑터, OP-5)는 ngspice 기준선 대조 1회만 돌린다(O-232).
+2. **test는 원인을 규명할 수 있는 만큼만 돌린다:** 그 card의 test(toy·회귀) + `tests/structure` + 2회로 연기(`folded_cascode`, `ngcc_3stage_ff`; stage_b·s0·g10 파일을 `--run-slow -k`로) + 이름 불변성 `search/test_canonical_order.py`. 전체 test는 card마다 돌리지 않고 LA-1 측정 시점에 한 번 돌린다. 판정 기록에 돌린 범위를 그대로 적고, 안 돌린 것을 통과로 세지 않는다. 엔진 card는 ngspice를 돌리지 않는다. 오라클 card(OP-3, OP-7 어댑터, OP-5)는 ngspice 기준선 대조 1회만 돌린다(O-232).
 3. **card 구현이 끝난 뒤에는 필수만 한다:** 독립 판정 1회(작성자 ≠ 검증자). 다시 판정하는 것은 Major를 고쳤을 때뿐이다. Major = 물리 정합 위반, graph 정본 위반, fail-open, 기준 약화, 엔진 변경 누출, 범위 위반, 2번 test 실패. 그 밖의 지적은 왕복하지 않고 LA-1 재점검 입력(`wt/_drafts/la1_auto_decisions.md`)으로 넘긴다.
 4. **새 검증 도구·인프라·부가 측정을 만들거나 제안하지 않는다.** 그 일이 LA-1을 실제로 막을 때만 예외다.
 5. **그대로 유지:** O-226 위임과 위임 밖 항목(push, 저장소 밖 공유, 근본원칙 변경, topology connectivity, 기준 약화로 test 통과), bkit 순서, 안전 규칙(F절).
