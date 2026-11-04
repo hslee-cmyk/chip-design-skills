@@ -1,0 +1,176 @@
+{
+ "id": "20261104-it2e-partial-snapshot",
+ "spec_card": "docs/02-design/specs/20261104-it2e-partial-snapshot.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "9798e5c1a81a86720e7fcbee43ca193f60dde649",
+ "test_commit": "5b00180b700499ee60638356cc81f90dd88996d7",
+ "code_commit": "8b9e861dcc3230452a3d0bf9cb0ec4743f525077",
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_kernel_block_failure_with_parent_partial_rule[dc_currents]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_kernel_block_failure_with_parent_partial_rule[dc_lengths]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_kernel_block_failure_with_parent_partial_rule[dc_columns]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_kernel_block_failure_with_parent_partial_rule[dc_widths]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_run.py::test_it2e_kernel_block_failure_with_parent_partial_rule[dc_tolerances]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_writers_in_scope_value",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_writers_in_scope_overlap_and_iterable",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_writers_in_scope_rejects_none_base",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_union_definition_site_is_single",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_seal_versions.py::test_it2e_writers_in_scope_call_sites",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_node_conflict]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_vgs_match]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_kcl]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_bulk_reverse]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_saturation]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_kvl_branch]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_seal_item_block_failure_with_parent_partial_rule[dc_seal_conduction]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_currents]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_lengths]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_columns]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_widths]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_tolerances]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_node_conflict]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_vgs_match]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_kcl]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_bulk_reverse]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_saturation]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_kvl_branch]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_size_and_seal.py::test_it2e_partial_fingerprint_parent_independent[dc_seal_conduction]",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_it2e_partial_snapshot.py::test_it2e_s3_failure_line_fp_parent_independent[dc_seal_kcl]",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_it2e_partial_snapshot.py::test_it2e_s3_failure_line_fp_parent_independent[dc_seal_report]"
+  ],
+  "failure_hashes": [
+   "39ac8767110e69b7370881b66c8895f477c3c969e8457f318e00b41de2d4aae0",
+   "7c79981e626f21d9b8a3658cb8259aa9d95c8826bdfaa88374236a8db671aed4",
+   "9407a8f3080165475bbe70eac701458f385b63579790ae059b554f5186780279",
+   "9739b8219f3cb18f2f52d7459652174a9d452c914aac494ce3b9440c7a05dd79",
+   "c25b2a13e5b3bd2ae1a611bd785ebb3d7645ac080f50e994e900ec10add487fb",
+   "bc1f32f540c7de53ec396ed1a20991d043fef6365e556e297f43a2d245755910",
+   "97f791c8e1b6eebe3536f56803247a3649920c0745d0f50cc32c6d1e64b10413",
+   "1969c10268dbd9771241d274dc4a1ca1ba7502ae8f9f1ab2119e8819899c27b8",
+   "58f4af1fff18f273179b5b8ea015fc0888e6961d5cd83f6006cf0fe9cf01c9a8",
+   "b1c9fa1addf3c0390ff4ec5d5985baa1d6ab3860fd765d1cbe60664a7621fc2e",
+   "cf0f1648d6c2610d8ff2cab2e5995482932dc82d6a4d09917a5b7792414552c9",
+   "2b283dc49de2f7ce3a43ee801bc8857266557ff290ff6cf3713e957d247d9f3f",
+   "ad69b9fc91acc85feaa5167abbe169cf5b48562cd84e0c60a2fde913850f89fc",
+   "ec1ebd3dea37e600630975e9cfabb0d931b17a070fbe1383d364a03076d44f9c",
+   "d202823a5e28c274efffa4ce1d4a8f555c56b934a584f2a9b03cabc5f57f4424",
+   "4abbcac0a13f70dc7b1a3e8e410bcb0500098943f2032e95c45fd3ccb59ac7c9",
+   "c95fdb7fde868ca7acdb5d052884076c4f78efbd19b56e9b15e1197c34d1da74",
+   "cefb1a498847a611df441ebd86e93c560b67fc264a2419e25625c3e83f6d9f04",
+   "2b5aeb4f2b097636dd459cf21357eb2d1b5f67dfa5d1056cc2d79a4c38cb7182",
+   "1d79abb40978d8109fc844b40580e46f7fb796e2b0953e83924b1aa58cd89916",
+   "644406306ced562c1c40865e24eb57b4ba26c46574b2dcfec3638d9ace12112d",
+   "3ac44b07ae29ce183f113c3603427ccff0feb9784644796e6701625e88063f5b",
+   "ade5e4d32d5304c92bfdedd5aafb2cc7d138fecbc016e568511716291db2145b",
+   "85559ef3484ca6bc674b151c4f7921f7e09fedc3402e8ff17df6ebc7159b1f55",
+   "f7706f32abe9561a0987fc53b2763c2a042e544f1cdac72d468068d016f873fe",
+   "4b32ff66a3b750e1160c663fa5659b18954809149fae19de3e12b4b6b46501fc",
+   "761288d9ce9a16788e6dfedaebd644ee77263efa99a7811861986a5161c4de21",
+   "107900aef27a56d66c31d3f79e34a6bde23eb4086268d516f96b2edde824275d",
+   "cef5844839256ad6e19015cc4450515290c784ba6cc7748b0d8ed39a37f0a1c2",
+   "96c48bf5774dd4c448e4e5ac766e086c3040f6cfaf0e4649adfb5ba21bd2b552",
+   "c2026823a68da6fd653c08f062697f47cdb11f5b546680d403682346690cdd2e"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "전체 test 안 돌림, 임시 규칙 O-229. 잰 범위 = 통합 병합본 d5f5b8e6(격리 복제본): 두 card test·영향 test 15파일 453개 실패 2, tests/structure 171 실패 0(래칫 new 0·stale 0, 규칙 H 1 deselected), canonical_order 12 실패 0, 2회로 연기 stage_b·s0·g10 23 실패 0, 기준선 11회로 재측정 차이 0."
+  },
+  "V2": {
+   "verdict": "FAIL",
+   "basis": "Major-1(필수 test 실패, 엔진 결함 아님): search/test_it2e_partial_snapshot.py::test_it2e_s3_failure_line_fp_parent_independent[dc_seal_kcl, dc_seal_report] 2건 FAILED, ra.partial.fp != rb.partial.fp. 원인 실측(e3diag.jsonl): 두 부분 스냅샷의 필드 차이는 graph/kernel junction_source·mismatch_source 두 칸의 pdk_decl sha256 뿐이고 writer·block_versions·나머지 필드는 같다. test 가 `_failed(tmp_path/\"a\")`·`_failed(tmp_path/\"b\")`로 PDK 선언을 자리마다 새로 써서(`write_decls(tmp/\"pdk\")`) 선언 sha 가 달라진다. 같은 자리(tmp_path/a 를 지우고 다시)로 만들면 단언 그대로 fp·S3 줄 지문 모두 같다(e3same.jsonl 2/2). 처리: test 주체가 두 case 에 같은 pdk·rule 을 넘긴다(build_case 인자 있음). 판정자는 고치지 않았다. 엔진 코드 수정 불필요. 이 test 는 코드 머리 8b9e861d(엔진 동일)에서도 같은 이유로 깨지는 값이고 dispute 없이 넘어왔다. red: 엔진 9798e5c1(IT-2d 머리) + 머리 test 트리에서 31 {\"AssertionError\": 28, \"ImportError\": 3}, 해당 2건 포함. base green 21 = attach_adds_no_block_calls·parentless_unchanged·coverage_violation·dc_seal_report 사례(마지막 블록이라 keep 과 범위가 같음)·violation_keeps_report -- 회귀 보호. 나머지 card test 통과, 역할 분리 8b9e861d test 0 파일, 5b00180b 엔진 0 파일."
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "손 뮤턴트 7: E1~E6 kill, E7(보고서 블록 실패 부착 옛 꼴) 생존 = 그 자리에서는 keep 이 이미 같은 범위라 값이 같은 동치 뮤턴트."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 변성: parent 없는 대조 fp == parent 경로 fp(test_size_and_seal 13+ 사례 통과, 같은 ctx 선언), writers_in_scope 손 집합, base None TypeError. 유효 조건 (가)(나) test 안 단언. S3 줄 사례만 Major-1 하네스 문제."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "기준 약화 없음, 이 card 는 기존 test 변경 0(추가만). 실패 test 를 판정자가 고치거나 빼지 않음."
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "tests/structure 171 통과, 래칫 new 0. T-E6 정의 자리 1·호출 자리 AST 통과. 규칙 H 새 위반 1 = tests/search/test_it2e_partial_snapshot.py 원본 없음 orphan(minor, 기본 deselected). rule 파일 변경 0."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "writers_in_scope 소비자 = kernel_run keep·부착, seal 부착 3, seal_versions coverage. 규칙 5 파생과 같음: keep 집합 = base writer ∪ steps ∪ later ∪ SEAL_ITEM_BLOCKS 로 옛 식과 동일(diff), 봉인 4 foreign = used - 같은 함수, overlap 은 그대로 base·called 교집합(서로소 단언 유지, coverage 위반 픽스처 FAIL 유지). 새 필드·cache·값 사본·블록 호출 0(attach_adds_no_block_calls 통과). 부분 스냅샷 소비자 = kernel._record snapshot_fp 뿐, 판정·재사용 입력 0(grep, N6.3 (ii)). 필드 수 0 / 소비자 0 0 / 정본 우회 0 / KVL·KCL 해당 없음 / graph 밖 저장 0."
+  },
+  "V8": {
+   "verdict": "PASS",
+   "basis": "폴백 0. writers_in_scope(None) TypeError 직접 확인. seal_dc 앞 블록 = calls 생성식(커널 steps·later + 이미 돈 봉인 항목), 실패 블록 제외 맞음. dc_seal_report 범위: 블록 자체 실패는 제외, 위반 예외는 보고서 포함 -- interface '봉인 위반 경로: dc_seal_report 필드까지 남음'과 일치(E3 kill)."
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 해당 없음: 물리 값 변경 0, 부분 스냅샷 집합 규칙뿐. G-10 계수 변화 0(T-E8, 연기 g10 통과)."
+  },
+  "V10": {
+   "verdict": "N/A",
+   "basis": "spec '재현할 수치' 없음. 미완료(보류 다리: 13회로 바뀐 실패 줄 수, O-225·A-7, 통과로 세지 않음). 기준선: 11회로 재측정 차이 0(사슬 두 번 비트 동일, IT-2c 값 그대로), fixture 변경 0. 메모리 2 GB 아래 1회 자기 프로세스 정지·재개."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "test 수(두 card + 영향)",
+   "value": 453,
+   "command": "res/i2/jobs.json i2_card"
+  },
+  {
+   "name": "test 실패 수",
+   "value": 2,
+   "command": "res/i2/jobs.json i2_card"
+  },
+  {
+   "name": "tests/structure 수",
+   "value": 171,
+   "command": "res/i2/jobs2.json i2_structure2"
+  },
+  {
+   "name": "ratchet new 수",
+   "value": 0,
+   "command": "test_rule_g8_baseline_ratchet"
+  },
+  {
+   "name": "canonical_order 수",
+   "value": 12,
+   "command": "res/i2/jobs.json i2_canon"
+  },
+  {
+   "name": "2회로 연기 수",
+   "value": 23,
+   "command": "res/i2/jobs.json i2_smoke"
+  },
+  {
+   "name": "기준선 차이 회로 수",
+   "value": 0,
+   "command": "test_zz_remeasure 11회로"
+  },
+  {
+   "name": "red 수",
+   "value": 31,
+   "command": "scripts/run_red2.py r2 9798e5c1"
+  },
+  {
+   "name": "같은 선언 자리 지문 같음 사례 수",
+   "value": 2,
+   "command": "scripts/test_zz_e3same.py"
+  }
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-04T13:10:39Z",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-it2c-audit",
+  "commands": [
+   "V1: 전체 실행 안 함(임시 규칙 O-229), 범위 실행 = python scripts/driver.py res/i2/jobs.json",
+   "git clone --no-hardlinks --no-local <worktree> la1s_it2c_audit/i2; git -C i2 remote remove origin (m2·r2 도 같은 방식)",
+   "python scripts/driver.py res/i2/jobs2.json (structure 재실행, test_zz_remeasure 11회로, test_zz_i2flow, run_red2 2회, mutate2)",
+   "PROBE_OUT=... pytest test_zz_e3diag.py, test_zz_e3same.py, test_zz_reject3.py"
+  ]
+ }
+}
