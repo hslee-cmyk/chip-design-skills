@@ -38,6 +38,12 @@ def load_calibration() -> dict:
         return json.load(f)
 
 
+def compat_modes() -> dict:
+    """호환 모드 표 {모드 이름: {spiceinit_text, log_line}} -- 어댑터 보정값 파일의 `compat_modes`(출처 칸은 표에 싣지 않는다)."""
+    return {m: {"spiceinit_text": e["spiceinit_text"], "log_line": e["log_line"]}
+            for m, e in load_calibration()["compat_modes"].items()}
+
+
 def _text(descriptor, spec):
     return spec["value"] if "value" in spec else descriptor.text(spec)
 

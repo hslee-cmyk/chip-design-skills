@@ -25,6 +25,10 @@
   },
   "key": "pdk_root"
  },
+ "bin_rule_decl": {
+  "path": "../../../assets/lut_v2_bin_rule.json",
+  "sha256": "fa4c4c277a735fb5b353b9e72678115f061a836f1b7831543989b7a27a9f8b79"
+ },
  "lut_file_roles": [
   {
    "path": "lut_file_roles/605846960b6a5afd.lut_file_roles.json",

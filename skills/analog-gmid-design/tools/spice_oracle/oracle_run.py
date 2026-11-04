@@ -26,6 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from core import compare as cmp                                              # noqa: E402
 from core.build_benches import cm_loop_bench, iso_bench, loop_bench, main_requests    # noqa: E402
 from core.build_circuit import BIASES, circuit_ir, fold_collisions           # noqa: E402
+from core.bin_rule import check_compat, find_decl, recorded_lf_set          # noqa: E402
 from core.bundle import check_bundle, check_provenance, check_record_root    # noqa: E402
 from core.descriptor import load_descriptor                                  # noqa: E402
 from core.identity import topology_identity                                  # noqa: E402
@@ -214,16 +215,30 @@ def check_descriptor_use(inp, desc, adapter):
         raise OracleError("dc_tolerance_undeclared", {"missing": need or ["data_digits"]}, "6")
 
 
+def lut_records(lut, kinds):
+    """입력 LUT 들의 모델 기록 {상대 경로: 기록 sha} (kind 들을 합친 것)."""
+    out = {}
+    for k in kinds:
+        for _, _, t, _ in lut.tables(k):
+            out.update(t)
+    return out
+
+
+def check_bin_rule(inp, desc, adapter, lut, fp):
+    """§7.2 8b단계(8단계 통과 뒤): 기술자가 가리키는 구간 규칙 선언 찾기(모델 기록 파일 LF 집합 ⊆ 선언, 판 일치) -> 선언 모드 대 어댑터 표.
+    반환 = 어댑터 `run` 에 넘기는 CompatDecl. 시뮬레이터 호출 0."""
+    lf_set = recorded_lf_set(lut_records(lut, used_kinds(inp)), lambda rel: _read(os.path.join(desc.record_root, rel)))
+    decl = find_decl(desc.bin_rule_doc, lf_set, fp)
+    return check_compat(decl, adapter.capabilities().get("compat_modes") or {})
+
+
 def check_bundles(inp, desc, adapter, lut, circuit, cond):
     """§7.2 8단계: LUT 기록 빈 표 -> 기록 뿌리 교차 -> 역할 적용 -> 규칙 (i)(ii) -> (iii). 반환 = 기계 의존 항목 목록."""
     kinds = used_kinds(inp)
     tables = {k: lut.tables(k) for k in kinds}
     for k in kinds:
         check_provenance(k, [(i, p, t) for i, p, t, _ in tables[k]])
-    all_recs = {}
-    for k in kinds:
-        for _, _, t, _ in tables[k]:
-            all_recs.update(t)
+    all_recs = lut_records(lut, kinds)
     mdep = list(check_record_root(all_recs, desc.engine_source_files(), lambda rel: _read(os.path.join(desc.record_root, rel))))
     for k in kinds:
         recs, roles = {}, {}
@@ -278,14 +293,14 @@ def blocked_sim(blockers):
             "loop": None, "cm_loop": None, "ratio": [], "rout": []}
 
 
-def execute(plan, desc, adapter, out_dir, a):
+def execute(plan, desc, adapter, out_dir, a, compat):
     """어댑터로 벤치를 순차 실행해 (sim, 작업 폴더 이름 목록)을 돌려준다. 막힘이면 벤치를 실행하지 않는다."""
     if plan.blockers:
         return blocked_sim(plan.blockers), []
     names = [plan.stem]
 
     def go(name, circuit, reqs):
-        return adapter.run(circuit, reqs, desc, os.path.join(out_dir, name), a.timeout_s, a.cache_dir, None)
+        return adapter.run(circuit, reqs, desc, os.path.join(out_dir, name), a.timeout_s, a.cache_dir, compat)
     main = go(plan.stem, plan.circuit, plan.requests)
     loop = cm = None
     if plan.loop:
@@ -372,6 +387,7 @@ def main(argv=None, *, adapters=None) -> int:
                     col = fold_collisions(c)
                     if col:
                         raise OracleError("ir_name_collision", col, "9")
+        compat = check_bin_rule(inp, desc, adapter, lut, fp)       # 8b: 8단계를 모든 bias 가 지난 뒤 한 번
         # 실행·판정
         os.makedirs(a.out_dir, exist_ok=True)
         file_judge = None
@@ -381,7 +397,7 @@ def main(argv=None, *, adapters=None) -> int:
         judge = cmp.merge_judge(inp.get("judge"), file_judge, a.sat_margin_v)
         results = {}
         for pl in plans:
-            sim, names = execute(pl, desc, adapter, a.out_dir, a)
+            sim, names = execute(pl, desc, adapter, a.out_dir, a, compat)
             res = cmp.compare(inp, compare_meta(pl, lut), sim, judge)
             res["stem"] = pl.stem
             res["netlist"] = next((f"{n}/bench.cir" for n in names if n == pl.stem and os.path.exists(os.path.join(a.out_dir, n, "bench.cir"))), None)
@@ -392,7 +408,7 @@ def main(argv=None, *, adapters=None) -> int:
         fr = results["free"][0]
         fr["diagnosis_free"] = cmp.diagnose(fr, (results.get("forced") or (None,))[0])
     dedup = {r["ref"]: r for r in mdep}
-    fpr = {"adapter_fp": canonical_sha256(dict(fp)), "descriptor_fp": desc.fp, "capability_record_id": None, "compat_sha256": None}
+    fpr = {"adapter_fp": canonical_sha256(dict(fp)), "descriptor_fp": desc.fp, "capability_record_id": None, "compat_sha256": compat.spiceinit_sha256}
     in_sha = hashlib.sha256(raw).hexdigest()
     worst = 0
     for bias, (res, sim, pl) in results.items():
