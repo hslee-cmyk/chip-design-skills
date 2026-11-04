@@ -25,7 +25,29 @@ from gmid_engine.metrics import ss_metrics as sm  # noqa: E402
 from gmid_engine.metrics._helpers_product import product_at  # noqa: E402
 from gmid_engine.metrics.records import Capacitor, MosSmallSignal, Resistor, SmallSignalCircuit  # noqa: E402
 from gmid_engine.metrics.ss_types import MetricRequest, SsCircuit  # noqa: E402
-from oracle_simulate import ac_measures, loop_gain  # noqa: E402
+from core.measures_ac import ac_measures  # noqa: E402
+from core.measures_ac import loop_gain as _loop_gain  # noqa: E402
+from core.results import FreqSeries, Resolution  # noqa: E402
+
+
+def loop_gain(v_file, i_file, weights):
+    """wrdata 파일 호출 모양을 유지하는 얇은 어댑터(smoke 기록 스크립트용): 열을 FreqSeries 로 감싸 core.measures_ac.loop_gain 에 넘긴다.
+    v 파일 열 = [v(lbx_k), v(k)] 쌍, i 파일 열 = [i(Vlb_k)...] 뒤에 [v(k)...]. 끊은 넷 이름은 k0, k1, ... 로 붙인다. 반환 (f, 실수부, 허수부) 또는 None."""
+    import numpy as np
+
+    def cols(path):
+        rows = [[float(x) for x in ln.split()] for ln in open(path) if ln.strip()]
+        a = np.array(rows)
+        return a[:, 0], [a[:, 1 + 2 * k] + 1j * a[:, 2 + 2 * k] for k in range((a.shape[1] - 1) // 2)]
+    n = len(weights)
+    nets = [f"k{k}" for k in range(n)]
+    res = Resolution(None, {}, None, "adapter_declared")
+    (f, vc), (_, ic) = cols(v_file), cols(i_file)
+    v = FreqSeries(f=f, values={**{f"v(lbx_{x})": vc[2 * k] for k, x in enumerate(nets)}, **{f"v({x})": vc[2 * k + 1] for k, x in enumerate(nets)}},
+                   resolution=res, error=None)
+    i = FreqSeries(f=f, values={**{f"i(tb:lb:{x})": ic[k] for k, x in enumerate(nets)}, **{f"v({x})": ic[n + k] for k, x in enumerate(nets)}},
+                   resolution=res, error=None)
+    return _loop_gain(v, i, list(weights), nets)
 
 EXE = os.environ.get("NGSPICE", "C:/ngspice/Spice64/bin/ngspice_con.exe")
 WORK = os.environ.get("WORK", os.environ.get("TEMP", "."))

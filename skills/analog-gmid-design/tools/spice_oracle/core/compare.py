@@ -1,27 +1,16 @@
 # -*- coding: utf-8 -*-
-"""oracle_compare.py -- 엔진 예측(오라클 입력) 대 SPICE 결과 비교표(JSON + Markdown).
+"""core/compare.py -- 엔진 예측(오라클 입력) 대 SPICE 결과 비교표(JSON + Markdown) 판정 (design §3.1, card 20261104-op23).
 
-진입점(단독 실행):
-    python oracle_compare.py <oracle_input.json> <netlist.cir> <sim.json> <out_prefix>
-                             [--judge judge.json] [--sat-margin-v V]
-
-  <netlist.cir>.meta.json(오라클 넷리스트 메타)과 sim.json(oracle_simulate.py)을 읽어
-  <out_prefix>.compare.json, <out_prefix>.compare.md 를 쓴다.
-
+옛 oracle_compare.py 를 코어로 옮긴 것이다(함수 이름 유지). 시뮬레이터를 모른다: 입력 = 오라클 입력(inp), 벤치 메타(meta, 코어가 IR 에서 모음),
+측정 결과(sim, core.measures_ac.build_sim), 판정 설정(judge).
 공개 함수: compare(inp, meta, sim, judge) -> dict, to_markdown(result) -> str, merge_judge(inp_judge, file_judge, sat_margin),
           device_tolerance(inp, judge, name, key), iso_summary(rows, meta), forced_diagnosis(inp, rows, kcl),
           diagnose(free_res, forced_res), conduction_check(pred, idv), measure_value(measure, sim, item),
           measure_undefined(measure, sim, item)
-[신규] C26 rout_ohm: 제약은 C9 그대로 판정, SPICE 값이 정의 불가(음의 실수부)면 'N/A(정의 불가: negative_real_part)'
-       -> INCOMPLETE(PASS 불가). summary.spice_rout = sim.rout, summary.pm_loop = PM 루프 정의 기록(C12 보충·C27).
-[신규 C10] pm_deg: ac.pm_undefined(개루프 RHP 극·불안정 폐루프·안정성 근거 부족)이면 'N/A(정의 불가: <이유>)' ->
-       INCOMPLETE(PASS 불가). summary.stability = PM 안정성 근거 요약.
-[신규] 소자별 허용오차(C16): predictions.devices[].tol 이 한 소자라도 있으면 ID·gm 판정은 소자별 값만 쓴다(스칼라 폴백 없음).
-[신규] iso(C17): summary.iso = 소자별 ID 오차가 그 소자 허용오차 안인가(K3 판정), verdict 는 진단 모드라 INCOMPLETE.
-[신규] Z1(C18): 넷리스트를 --omit/--short 로 바꾼 실행은 합격 판정을 하지 않는다(INCOMPLETE).
-[신규] diagnosis(C19): forced 는 넷별 KCL 잔차 대 소자 tol_I 합, 게이트 공유 넷의 등가 dVGS = dID/gm 퍼짐을 기록,
-       diagnose() 가 free FAIL 원인을 '경계조건 쪽'/'엔진 DC 비정합'으로 분류(기록만).
-
+[신규 OP-3] summary.conduction_definition = "threshold_eps1"(전도 문턱 ε = off_current_A 식, OP-5 전 판). summary.u6 는 지웠다(사본 -- compare 는
+  sim 결과를 복사하지 않고 `sim_ref`(진입점이 넣는 같은 줄기 .sim.json 의 정규 JSON sha256)로 가리킨다, X-R5).
+[기간 동작 D-1] pm_deg: ac.pm_undefined = stability_unverified 이면 'N/A(정의 불가: stability_unverified)' -> INCOMPLETE(PASS 불가).
+  포화 여유를 잴 수 없는(VDSAT 없음) 전도 MOS 는 FAIL 이 아니라 판정 불가(INCOMPLETE): 모르는 값으로 '포화 아님'을 주장하지 않는다.
 합격 판정(summary.verdict, 사용자 확정 2026-10-07, Q5 보강) -- free 모드에서만:
   PASS = acceptance 선언 제약(ratio_db 포함, C24) 전부 만족 + ID > 그 소자 문턱인 전 MOS 가 VDS-VDSAT >= sat_margin_V
          + 엔진 예측 전도 MOS 가 SPICE 에서도 ID > 그 소자 off_current_A(C23).
@@ -35,19 +24,14 @@
               kcl_abs_A, dc_gain_db_abs, pm_deg_abs, ugf_hz_rel, f3db_hz_rel, supply_current_A_rel
   sat_margin_V: 포화 판정 VDS >= VDSAT + sat_margin_V. 없으면 영역 판정 N/A(여유 값은 보고).
   off_current_A: 선택. |ID| 가 이보다 작으면 영역 'off'(포화 여유와 무관). 없으면 off 분류 안 함(ID 판정·below_vth 로 드러남).
-크기 규칙: ngspice BSIM4 의 @ 동작점 값은 소자 극성으로 정규화돼 나온다 -- PMOS 도 켜져 포화면 id, vgs, vds,
+크기 규칙: 시뮬레이터 BSIM4 의 @ 동작점 값은 소자 극성으로 정규화돼 나온다 -- PMOS 도 켜져 포화면 id, vgs, vds,
   vth, vdsat 가 양수이고 vbs = type*(Vb-Vs)(2026-10-07 실측: PMOS M1a 소스 1.55 V·바디 1.8 V 에서 vbs=-0.25,
   vgs=+0.912). [정정 2026-10-07] 단 @id 는 소스/드레인 역할이 뒤바뀐(역방향 전도) 소자에서도 양수다(채널 전류 크기) --
   @vds 는 선언 단자 방향 부호를 유지하므로 ID = @id x sign(@vds)(signed_id), VGS=vgs, VDS=vds, VSB=-vbs(엔진 예측도 크기 규칙).
-  오차 = SPICE - 예측(abs) 또는 (SPICE - 예측)/|예측|(rel).
-"""
-import argparse
+  오차 = SPICE - 예측(abs) 또는 (SPICE - 예측)/|예측|(rel)."""
 import json
-import os
-import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from oracle_netlist import sense_key  # noqa: E402
+from core.build_circuit import sense_key
 
 # measure -> (오차 종류, tolerance 키)
 MEASURES = {
@@ -84,7 +68,7 @@ NA_TOL = "N/A(tol 미설정)"
 # C25: 기록 전용 과도 measure -- SPICE 정의가 계약에 없어 재지 않는다(추측 금지). 정의가 정해지면 측정으로 바꾼다.
 TRANSIENT_MEASURES = ("slew_rate_v_per_s", "settle_s")
 TRANSIENT_NOT_MEASURED_REASON = (
-    "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 "
+    "β 루프 과도해석 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 "
     "(gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, "
     "driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)")
 
@@ -223,15 +207,6 @@ def cm_loop_ineffective(sim):
     return bool(m) and cl.get("pm_deg") is None and cl.get("pm_undefined") is None and m.get("ugf_hz") is None         and m.get("gain_dc", 0) <= 1
 
 
-def signed_id(op_id, op_vds):
-    """크기 규칙 ID(부호 포함: 선언 드레인 기준 정상 방향 전도 = 양수, 역방향 = 음수) = @id x sign(@vds).
-    ngspice BSIM4 의 @id 는 소스/드레인 역할이 뒤바뀌어도 양수(채널 전류 크기)이고, @vds = type*(V(d)-V(s)) 는 선언 단자
-    방향의 부호를 유지한다(2026-10-07 실측, 0 V 감지원 대조 -- README 크기 규칙). @vds = 0 이면 0, 둘 중 하나가 없으면 None."""
-    if op_id is None or op_vds is None:
-        return None
-    return op_id * (1.0 if op_vds > 0 else (-1.0 if op_vds < 0 else 0.0))
-
-
 def conduction_check(pred, idv):
     """C23: 엔진 예측 전도 소자가 SPICE 에서 꺼졌는가. 반환 (predicted_conducting, 판정 문자열).
     pred = predictions.devices[이름](없으면 None), idv = SPICE ID(크기 규칙, 부호 포함)."""
@@ -271,7 +246,7 @@ def compare(inp, meta, sim, judge):
         t_gm, _ = device_tolerance(inp, judge, n, "gm_rel")
         gm, gds = o.get("gm"), o.get("gds")
         vgs, vds, vth, vdsat = o.get("vgs"), o.get("vds"), o.get("vth"), o.get("vdsat")
-        idv = signed_id(o.get("id"), vds)  # 선언 단자 방향 부호(역방향 전도 = 음수)
+        idv = o.get("id")  # 어댑터 read 가 이미 선언 단자 방향 부호(역방향 전도 = 음수)로 정규화했다(signed_id 는 어댑터 한 곳)
         vsb = _mul(o.get("vbs"), -1.0)
         sat_m = None if vds is None or vdsat is None else vds - vdsat
         region = None if sat_m is None or margin is None else ("sat" if sat_m >= margin else "triode")
@@ -284,7 +259,7 @@ def compare(inp, meta, sim, judge):
         r = {"name": n, "kind": k, "L": g["L"], "finger_w": g["finger_w"], "n_fingers": g["n_fingers"],
              "W_from_fingers": g["W_from_fingers"], "W_declared": g["W_declared"],
              "W_rel": rel_err(g["W_from_fingers"], g["W_declared"]),
-             "ID_pred": p.get("ID"), "ID_spice": idv, "ID_spice_op_id": o.get("id"),
+             "ID_pred": p.get("ID"), "ID_spice": idv,
              "ID_rel": rel_err(idv, p.get("ID")),
              "VGS_pred": p.get("VGS"), "VGS_spice": vgs, "VGS_err_V": abs_err(vgs, p.get("VGS")),
              "VDS_pred": p.get("VDS"), "VDS_spice": vds, "VDS_err_V": abs_err(vds, p.get("VDS")),
@@ -376,7 +351,7 @@ def compare(inp, meta, sim, judge):
                "N/A": sum(1 for v in recs if v not in ("PASS", "FAIL"))}
     blockers = list(meta.get("blockers") or [])
     if not sim.get("op_ok") and not sim.get("skipped"):
-        blockers.append("ngspice .op 결과 없음: " + " | ".join(sim.get("log_errors") or [])[:600])
+        blockers.append("동작점(op) 결과 없음: " + " | ".join(sim.get("log_errors") or [])[:600])
     loop = sim.get("loop")
     # [신규] 루프 T 가 정의 불가(Middlebrook 분모 0, sim.loop.singular)면 측정 실패가 아니다 -> 막힘 아님, PM 은
     # ac.pm_undefined = loop_probe_singular 로 N/A(정의 불가) -> PASS 불가(C10)
@@ -390,7 +365,8 @@ def compare(inp, meta, sim, judge):
     conducting = [r for r in rows if r["ID_spice"] is not None and r["ID_spice"] >
                   (r["conduction_threshold_A"] if r["conduction_threshold_A"] is not None else 0)]
     unsat = None if margin is None else [r["name"] for r in conducting
-                                         if r["sat_margin_spice_V"] is None or r["sat_margin_spice_V"] < margin]
+                                         if r["sat_margin_spice_V"] is not None and r["sat_margin_spice_V"] < margin]
+    sat_unknown = [] if margin is None else [r["name"] for r in conducting if r["sat_margin_spice_V"] is None]
     cons_fail = [c.get("name") or c["measure"] for c in cons if c["judge"] == "FAIL"]
     cons_na = [c.get("name") or c["measure"] for c in cons if c["judge"] not in ("PASS", "FAIL")]
     # [신규 U6, 사용자 결정 B·Q10] 폐루프 불안정(Nyquist Z = N + P >= 1 또는 폐루프 과도 unstable -- limit_cycle 포함)은 pm 제약이 있든
@@ -421,9 +397,10 @@ def compare(inp, meta, sim, judge):
                                      f"엔진 예측 전도인데 SPICE 에서 꺼진 MOS {off_spice}" if off_spice else "",
                                      (f"폐루프 불안정(Z = {stab_sum.get('Z')}, 과도 {stab_sum.get('transient_status')}, "
                                       f"근거 {stab_sum.get('verdict_basis')})" if stab_fail else "")) if x)
-    elif margin is None or cons_na or cond_na:
+    elif margin is None or cons_na or cond_na or sat_unknown:
         verdict = "INCOMPLETE"
         why = "; ".join(x for x in ("sat_margin_V 미설정 -- 포화 조건 판정 불가" if margin is None else "",
+                                     f"VDSAT 값이 없어 포화 여유를 못 잰 전도 MOS {sat_unknown}" if sat_unknown else "",
                                      f"SPICE 로 값을 못 얻은 제약 {cons_na}" if cons_na else "",
                                      f"전도 확인(C23)을 판정 못 한 소자 {cond_na}" if cond_na else "") if x)
     else:
@@ -435,7 +412,7 @@ def compare(inp, meta, sim, judge):
                "limit_cycle_vs_slow_decay_unresolved": (stab_sum or {}).get("limit_cycle_vs_slow_decay_unresolved"),
                "acceptance": {"constraints_failed": cons_fail, "constraints_unmeasured": cons_na,
                               "closed_loop_unstable": stab_fail,
-                              "conducting_devices": len(conducting), "unsaturated_conducting": unsat,
+                              "conducting_devices": len(conducting), "unsaturated_conducting": unsat, "saturation_unknown": sat_unknown,
                               "sat_margin_V": margin, "off_current_A": off_i,
                               "off_in_spice": off_spice, "conduction_not_evaluated": cond_na},
                "junction_capacitance": {"included": bool(jsrc) and all(jsrc),
@@ -461,7 +438,7 @@ def compare(inp, meta, sim, judge):
                            "loop_weights": (sim.get("ac") or {}).get("loop_weights")},
                "stability": stab_sum,
                "cm_loop": _cm_loop_summary(sim.get("cm_loop")),
-               "u6": {k: sim.get(k) for k in ("noise", "offset_mc", "swing_icmr") if sim.get(k) is not None} or None,
+               "conduction_definition": "threshold_eps1",
                "rail_current_A": sim.get("rail_current_A")}
     ti = meta.get("topology_identity") or {"status": "unverified", "diffs": [], "notes": ["넷리스트 meta 에 C15 결과 없음"]}
     summary["topology_identity"] = {"status": ti.get("status"), "required": ti.get("required", False),
@@ -680,33 +657,12 @@ def to_markdown(res):
                  + (f"({sb['nyquist_reason']})" if sb.get("nyquist_reason") else "")
                  + f", 폐루프 과도 {sb.get('transient_status')}, 개루프 RHP 극 {_f(sb.get('open_loop_rhp_poles'))}"
                  + (f" ({sb['open_loop_rhp_poles_bound']})" if sb.get("open_loop_rhp_poles_bound") else "")
-                 + f"; .pz P = {_f(sb.get('pz_P'))}({sb.get('pz_status')}{', 개루프 과도 확인 ' + str(sb['pz_validated']) if sb.get('pz_validated') is not None else ''}), Z = N + P = {_f(sb.get('Z'))}"
-                 + (f" [.pz 무시: {sb['pz_conflict']}]" if sb.get("pz_conflict") else "")
+                 + f"; 개루프 극점 P = {_f(sb.get('pz_P'))}({sb.get('pz_status')}{', 개루프 과도 확인 ' + str(sb['pz_validated']) if sb.get('pz_validated') is not None else ''}), Z = N + P = {_f(sb.get('Z'))}"
+                 + (f" [극점 계산 무시: {sb['pz_conflict']}]" if sb.get("pz_conflict") else "")
                  + f" -> 안정성 판정 **{sb.get('verdict')}**({sb.get('verdict_basis')})"
                  + (" [조건부 안정" + (f", 하측 이득 여유 {_f(sb.get('low_side_gain_margin_db'))} dB" if sb.get("low_side_gain_margin_db") is not None else "") + "]"
                     if sb.get("conditionally_stable") else "")
                  + (f", 조기 종결 창 {sb['early_stop']['window']}({sb['early_stop'].get('kind')})" if sb.get("early_stop") else ""))
-    u6 = s.get("u6") or {}
-    nzr = u6.get("noise")
-    if nzr:
-        ol, cl_ = nzr.get("open_loop") or {}, nzr.get("closed_loop") or {}
-        L.append(f"- U6 .noise 개루프: {ol.get('status')} -- 열잡음 입력환산 {_f(ol.get('th_in_v2hz'))} V²/Hz (f = {_f(ol.get('f_eval_hz'))} Hz), "
-                 f"flicker 코너 {_f(ol.get('fc_in_hz'))} Hz{('(' + ol['fc_reason'] + ')') if ol.get('fc_reason') else ''}, "
-                 f"excess {_f(ol.get('excess_th'))}" + (f" -- {ol['reason']}" if ol.get("reason") else ""))
-        if nzr.get("closed_loop") is not None:
-            L.append(f"- U6 .noise 폐루프 적분 출력 잡음: {_f(cl_.get('out_int_vrms'))} Vrms ([{_f(cl_.get('f_lo_hz'))}, {_f(cl_.get('f_hi_hz'))}] Hz, "
-                     f"꼬리 수렴 {cl_.get('converged')}, 스위치 kT/C {((cl_.get('ktc_sampling') or {}).get('status'))})"
-                     + (f" -- {cl_['reason']}" if cl_.get("reason") else ""))
-    mc = u6.get("offset_mc")
-    if mc:
-        L.append(f"- U6 offset Monte-Carlo: {mc.get('status')} -- σ_in = {_f(mc.get('sigma_in_mV'))} mV (표본 {mc.get('n_samples')}, "
-                 f"목표 상대 표준오차 {_f(mc.get('rel_resolution'))}, 평균 {_f(mc.get('mean_in_mV'))} mV, 시드 {mc.get('seed')})"
-                 + (f" -- {mc['reason']}" if mc.get("reason") else ""))
-    sw = u6.get("swing_icmr")
-    if sw:
-        L.append(f"- U6 스윙·ICMR: {sw.get('status')} -- swing_out_v {_f(sw.get('swing_out_v'))} V, icmr_v {_f(sw.get('icmr_v'))} V, "
-                 f"icm_margin_v {_f(sw.get('icm_margin_v'))} V (포화 여유 {_f(sw.get('margin_V'))} V, ngspice {sw.get('ngspice_runs')} 회)"
-                 + (f" -- {sw['reason']}" if sw.get("reason") else ""))
     tr = s.get("transient") or {}
     if tr:
         L.append(f"- C25 슬루·정착: {tr.get('status')} -- {tr.get('reason')}")
@@ -766,49 +722,3 @@ def to_markdown(res):
     for n in res["nodes"]:
         L.append(f"| {n['net']} | {_f(n['V_pred'], '{:.4f}')} | {_f(n['V_spice'], '{:.4f}')} | {_f(n['err_V'], '{:+.4f}')} | {n['judge']} |")
     return "\n".join(L) + "\n"
-
-
-def main(argv=None):
-    ap = argparse.ArgumentParser(description="엔진 예측 대 SPICE 비교표")
-    ap.add_argument("oracle_input")
-    ap.add_argument("netlist")
-    ap.add_argument("sim_json")
-    ap.add_argument("out_prefix")
-    ap.add_argument("--judge", default=None, help="판정 설정 JSON(tolerances, sat_margin_V)")
-    ap.add_argument("--sat-margin-v", type=float, default=None)
-    ap.add_argument("--forced-compare", default=None,
-                    help="[신규] 같은 입력의 forced compare.json -- free 결과에 diagnosis_free(C19)를 붙인다")
-    a = ap.parse_args(argv)
-    with open(a.oracle_input, encoding="utf-8") as f:
-        inp = json.load(f)
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from oracle_netlist import validate_input
-    errs = validate_input(inp)
-    if errs:
-        print("입력이 oracle_input.schema.json 위반 -- 거부(비교표를 쓰지 않음):")
-        for e in errs:
-            print("  ", e)
-        return 2
-    with open(a.netlist + ".meta.json", encoding="utf-8") as f:
-        meta = json.load(f)
-    with open(a.sim_json, encoding="utf-8") as f:
-        sim = json.load(f)
-    fj = None
-    if a.judge:
-        with open(a.judge, encoding="utf-8") as f:
-            fj = json.load(f)
-    res = compare(inp, meta, sim, merge_judge(inp.get("judge"), fj, a.sat_margin_v))
-    if a.forced_compare and res["bias"] == "free":
-        with open(a.forced_compare, encoding="utf-8") as f:
-            res["diagnosis_free"] = diagnose(res, json.load(f))
-    with open(a.out_prefix + ".compare.json", "w", encoding="utf-8") as f:
-        json.dump(res, f, ensure_ascii=False, indent=1)
-    with open(a.out_prefix + ".compare.md", "w", encoding="utf-8") as f:
-        f.write(to_markdown(res))
-    print("verdict:", res["summary"]["verdict"], "--", res["summary"]["verdict_reason"])
-    return 0
-
-
-if __name__ == "__main__":
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.exit(main())

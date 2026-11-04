@@ -1,0 +1,186 @@
+{
+ "A2-2": {
+  "engine_decl": {
+   "descriptor": "5f32257b419b0a5f33e0766dfb4cc5a84885da03a909060ea6cf9938fc16f7bf",
+   "file_lf": "5f32257b419b0a5f33e0766dfb4cc5a84885da03a909060ea6cf9938fc16f7bf",
+   "file_raw": "24f970d5652242d12e505de62fdd418b3e2bd65736fc0f4f94bdab7cd7816c25",
+   "equal": true
+  },
+  "extra:lut_rule": {
+   "descriptor": "8e706bb7da681be4335f93b7378452877ad807756d5091c9ea86113490d0e6b6",
+   "file_lf": "8e706bb7da681be4335f93b7378452877ad807756d5091c9ea86113490d0e6b6",
+   "file_raw": "25165f8fa353e62e7406530da9c7cf1ac31cd63633d338ffe3c22877fb6d4548",
+   "equal": true
+  },
+  "location": {
+   "descriptor": "07299556e51e4d5eb1f4e2fd34b5cb9e11329a8e2162ee26fb74616d4027e27c",
+   "file_lf": "07299556e51e4d5eb1f4e2fd34b5cb9e11329a8e2162ee26fb74616d4027e27c",
+   "file_raw": "c7ebb3c79ec7c5063857443657b26ecb84cedab9d089f5f12b077a34e9383705",
+   "equal": true
+  },
+  "overlap": {
+   "path": [],
+   "sha": []
+  },
+  "n_sources": [
+   9,
+   1
+  ]
+ },
+ "A2-3": {
+  "record_root": "C:\\pdk\\sky130_fd_pr",
+  "source": "config_default",
+  "used_keys": [
+   "nfet_01v8_mismatch_slopes",
+   "nfet_01v8_tt_model_card",
+   "pfet_01v8_mismatch_slopes",
+   "pfet_01v8_tt_model_card",
+   "scale_option"
+  ],
+  "direct_raw_only": [
+   "nfet_01v8_mismatch_slopes",
+   "nfet_01v8_tt_model_card",
+   "pfet_01v8_mismatch_slopes",
+   "pfet_01v8_tt_model_card",
+   "scale_option"
+  ],
+  "direct_bad": [],
+  "loader_machine_dep": [
+   "nfet_01v8_mismatch_slopes",
+   "nfet_01v8_tt_model_card",
+   "pfet_01v8_mismatch_slopes",
+   "pfet_01v8_tt_model_card",
+   "scale_option"
+  ],
+  "equal": true,
+  "fp": "5f110d8e9d8649d641c402f7bd829499557183248ea0d774ab71ef783c15df4b"
+ },
+ "A2-4": {
+  "nmos": {
+   "direct_name": "sky130_fd_pr__nfet_01v8",
+   "loader_name": "sky130_fd_pr__nfet_01v8",
+   "subckt_params": "d g s b",
+   "direct_inner": "msky130_fd_pr__nfet_01v8",
+   "loader_inner": "msky130_fd_pr__nfet_01v8",
+   "polarity_card": "nmos",
+   "polarity_desc": "n",
+   "level": "54.0",
+   "version": "4.5",
+   "unit": 1e-06,
+   "tnom_card": [],
+   "tnom_quantity_key_in_decl": true,
+   "sqrt_lwmult_hits": 540,
+   "includes": [
+    "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+    "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+   ]
+  },
+  "pmos": {
+   "direct_name": "sky130_fd_pr__pfet_01v8",
+   "loader_name": "sky130_fd_pr__pfet_01v8",
+   "subckt_params": "d g s b",
+   "direct_inner": "msky130_fd_pr__pfet_01v8",
+   "loader_inner": "msky130_fd_pr__pfet_01v8",
+   "polarity_card": "pmos",
+   "polarity_desc": "p",
+   "level": "54.0",
+   "version": "4.5",
+   "unit": 1e-06,
+   "tnom_card": [],
+   "tnom_quantity_key_in_decl": true,
+   "sqrt_lwmult_hits": 432,
+   "includes": [
+    "C:\\pdk\\sky130_fd_pr\\models\\parameters\\lod.spice",
+    "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+    "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+   ]
+  },
+  "scale_line": ".option scale=1.0u",
+  "model_family": "bsim4",
+  "diffusion": {
+   "ad_per_w": 5e-07,
+   "as_per_w": 5e-07,
+   "pd_extra": 2.0000000000000003e-06,
+   "ps_extra": 2.0000000000000003e-06
+  },
+  "lut_rule_sources": {
+   "lut_generator": {
+    "path": "sky130_lut_sweep.py",
+    "format": "spice_instance_line"
+   }
+  },
+  "numeric_values_in_descriptor": [],
+  "extra_source": {
+   "pfet_lod": {
+    "path": "sky130_fd_pr/models/parameters/lod.spice",
+    "desc_sha": "6200b50c14eebb68d8009ca68e452d4c045e2d25d7438ee417c155883527fd7c",
+    "file_lf": "6200b50c14eebb68d8009ca68e452d4c045e2d25d7438ee417c155883527fd7c",
+    "provenance": "pfet 모델 카드(pfet_01v8_tt_model_card)가 .include 를 요구하는 lod.spice. 출처 https://github.com/google/skywater-pdk-libs-sky130_fd_pr/blob/f62031a1be9aefe902d6d54cddd6f59b57627436/models/parameters/lod.spice (저장소 커밋 f62031a1be9aefe902d6d54cddd6f59b57627436 = C:/pdk/sky130_fd_pr 체크아웃 HEAD)"
+   }
+  },
+  "pdk_repo_head": ""
+ },
+ "old_process_diffusion": {
+  "R1": null,
+  "R2": null,
+  "R3": null,
+  "R4": {
+   "ad_per_w_m": 5e-07,
+   "pd_extra_m": 2e-06
+  },
+  "R5": {
+   "ad_per_w_m": 5e-07,
+   "pd_extra_m": 2e-06
+  }
+ },
+ "A2-5": {
+  "repo_pdf_exists": false,
+  "ext_pdf_sha": "b5bc7c4f3aac00e670b01b1d1ab64ec87055a491014af1de828764bf98faf766",
+  "ext_pdf_size": 2660636,
+  "pages": {
+   "317": [
+    "TEMP=x Resets the operating temperature of the circuit. The default value is 27 C (300K).",
+    "WARN=1|0 enables or turns of SOA (Safe Operating Area) voltage warning messages (default:",
+    "sages per model (default: 5).",
+    "ABSTOL=x resets the absolute current error tolerance of the program. The default value is 1",
+    "default value is 1.0e-12.",
+    "ITL1=x resets the dc iteration limit. The default is 100.",
+    "ITL2=x resets the dc transfer curve iteration limit. The default is 50."
+   ],
+   "318": [
+    "value. The default value is 1.0e-3. In the numerical pivoting algorithm the allowed min-",
+    "The default value is 1.0e-13.",
+    "RELTOL=x resets the relative error tolerance of the program. The default value is 0.001",
+    "VNTOL=x resets the absolute voltage error tolerance of the program. The default value is 1"
+   ],
+   "320": [
+    "`Gear' or `trapezoidal' (or just `trap'). The default is trapezoidal.",
+    "TRTOL=x resets the transient error tolerance. The default value is 7. This parameter is an es-",
+    "XMU=x sets the damping factor for trapezoidal integration. The default value is XMU=0.5. A",
+    "DEFAD=x resets the value for MOS drain diffusion area; the default is 0.",
+    "DEFAS=x resets the value for MOS source diffusion area; the default is 0.",
+    "DEFL=x resets the value for MOS channel length; the default is 100 �m.",
+    "DEFW=x resets the value for MOS channel width; the default is 100 �m.",
+    "SCALE=x set the element scaling factor for geometric element parameters whose default unit",
+    "is meters. As an example: scale=1u and a MOSFET instance parameter W=10 will result",
+    "Following instance parameters are scaled:"
+   ]
+  },
+  "cal_tolerances": {
+   "reltol": 0.001,
+   "vntol": 1e-06,
+   "abstol": 1e-12
+  },
+  "cal_affects": [
+   "Mos.L",
+   "Mos.finger_w",
+   "Mos.diffusion.ad",
+   "Mos.diffusion.as_",
+   "Mos.diffusion.pd",
+   "Mos.diffusion.ps",
+   "Mos.lod.sa",
+   "Mos.lod.sb",
+   "Mos.lod.sd"
+  ]
+ }
+}

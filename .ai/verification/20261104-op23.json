@@ -1,0 +1,154 @@
+{
+ "id": "20261104-op23",
+ "spec_card": "docs/02-design/specs/20261104-op23.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "c223d47d0ac29b1d7d8b403bd30ad02219c14bdc",
+ "test_commit": "4ef7c20bc71b1e702f2115b0d1ec35e6e073a557",
+ "code_commit": "93e84ab2d9db9d301c45cf991f0887ba74f57bd7",
+ "red": {
+  "test_ids": [
+   "tests/core/test_build_ir.py",
+   "tests/core/test_bundle_roles.py",
+   "tests/core/test_cache_key.py",
+   "tests/core/test_descriptor.py",
+   "tests/core/test_lut_record_root.py",
+   "tests/core/test_lut_record_root_cross.py",
+   "tests/test_input_contract.py",
+   "tests/adapters/ngspice/test_dialect.py",
+   "tests/adapters/ngspice/test_errors.py",
+   "tests/adapters/ngspice/test_independent.py"
+  ],
+  "failure_hashes": [
+   "d64fde19f36ebe81b9ed6f5fb4881323c2895b2113c66b4adbbe948e9954145e",
+   "435c103c1d4b69cbd002f5dbe9d62856ae57ee51db4fa73cee09f119b6db158e",
+   "e52a4d9036f5e02617a0f7a7fc08d14074f22552fb786ee5ff116e901856952b",
+   "67980d49e4967e90a8c12a52ce51e8b2c5fb979cad618b54bcb51834ae846228",
+   "d0843e4a537aff0a8ffc152148fdddaf49e0bba62c3a18b04eba20498e7aa43b",
+   "f41a4670d7791c5caba7de67f19a6b3056ab6e4213f1e4ad129c6b4bd77186ad",
+   "f0bdac27f8ccd2c5628aaae3f02c802d3fa0d5d6c46401770dc5c7ae8300901b",
+   "62b96069cce5cff1b622f00001510ed4748120d600bf8c6a5cf10d3faa75b5b0",
+   "7de1d2112d7041cbb1f388bf3f934171bd9db11f20d5268a7f6f14222cb3a79c",
+   "ce2a88c67c2c8fdfd4e14df6477121ca0e9844676ef5589ae0644ca1465e6d58"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "임시 규칙 O-229: 전체 test 안 돌림, 통과로 세지 않음. 재판정 범위 = card test 182 passed, X-13·test_verified_by 48 passed, tests/structure 171 passed 1 deselected(머리 302b4bc6). 재사용(1차) = test_independent 3 passed, 2회로 연기 23 passed 158 deselected. 옛 test 26파일 344 함수 미실행(A-80 D-6)."
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "재판정 머리 302b4bc6. OP-2 구역 A2-1~A2-5 PASS(PDF sha b5bc7c4f). OP-3 구역 A3-1~A3-12 PASS: 머리 R1 reject 없음, A3-5 잔차 6줄 = 기대 차이(A-81), A3-4·A3-6·A3-7 은 1차 재사용. red = 1차 새 모듈 ImportError 10건 + M-2 뮤턴트에서 test_cm_loop_bench_input_ac_is_zero AssertionError, green = 182 passed. 구역별 표 = .ai/verification/20261104-op23/sections.json."
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "뮤테이션 안 돌림: O-229, 엔진 소스 diff 0, interface §8 측정 표에 없음. 거부 경로는 A3-3 변형 6종과 toy 로만 확인했고 통과로 세지 않는다."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: test_lint 미실행(O-229). 표본 대조: T2-1·T2-2 hashlib 구성값; T3-1a 손 대입(0.5, 1, 2, 0.5, 3); T3-6·T3-7 구성 sha; T3-12d 손 유도 96.3794; T3-13 9.0, T3-14 19.0848502, T3-15 15000 닫힌 식; test_independent 손 넷리스트(옛 오라클·새 어댑터 코드 안 거침). 피검 함수 출력을 옮긴 기대값 표본 0. 전 행 대조는 아니다. 재판정: test_cm_loop_bench_input_ac_is_zero 기대값 = CONTRACT 7.11 입력 AC 접지, 뮤턴트로 거부 확인."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "기준 약화 목록: test_legacy_adapter 재생성 일치 test 2함수 삭제(spec C-3.10, 같은 비교 = N4-3), 옛 test 26파일 수집 제외(A-80 D-6 안, ⚠ 표지 그대로), VDSAT 없음 FAIL -> INCOMPLETE(card 표지 없음, PASS 집합 불변이라 minor). 제외 칸 추가 0. weakening_diff 미실행(O-229). 제외가 M-2 를 가렸음을 sections.json 에 적었다. 재판정: M-3 forced 배치 차이를 A3-5 기대 차이로 올림(A-81, 물리 측정 근거, 제외 칸 추가 아님)."
+  },
+  "V6": {
+   "verdict": "N/A",
+   "basis": "source_lint 대상 없음: gmid_engine 소스 diff 0(X-13 새 test, test_verified_by 한 줄뿐). A3-8 잠금 grep·AST 로 대신 쟀다: core import 0, 토큰 적중 = 넷 이름 오탐뿐, PDK·시뮬레이터 이름 0. OLD_PROCESS_MARKERS 는 옛 형식 거부 표지라 예외."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "배선: oracle_run -> load_descriptor·check_input_cross·read_lut_files·circuit_ir·main_requests·loop/cm/iso bench·check_bundle·check_record_root·Adapter.run·build_sim·compare 실제 실행으로 확인(R1~R5). 옛 경로 sys.modules 0. graph 점검 수치: 새 graph 필드 0 / 소비자 0 결함 0 / 정본 우회 의심 0 / KVL·KCL 관계 미적용 0(엔진 계산 변경 없음) / graph 밖 저장 자리 0(엔진 diff 0, 실행 캐시 키 재정의는 오라클 C21). 오라클 칸: 기간 예외 표지 그대로, saturation_unknown 소비자 표 없음(minor)."
+  },
+  "V8": {
+   "verdict": "PASS",
+   "basis": "대체 입력·기본값 폴백 0: 예측값 게이트 바이어스 대체 갈래 삭제(pred.get(g) 0, 1d 거부 7건), 기하 미선언 거부, 모델 묶음 불일치 거부, 593 입력 통과 0. 측정 멈춤 발동 없음, 재시도 0."
+  },
+  "V9": {
+   "verdict": "PASS",
+   "basis": "재판정: CM 루프 입력 AC 0(build_circuit.py:390), tcm_cmfb gain_dc·ugf·pm_deg_raw 기준선 비트 동일. 나머지는 1차: forced 재배치 DC·AC·i(V) 부호 같음, VDSAT 경로 fail-open 아님, D-1 거부·PM 동작 맞음, 944 bin 소속·SI 보고값 같음."
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "재현: R1~R5 verdict INCOMPLETE 7/7·rc 0, bin 944/944, 데이터 파일 30개 바이트 동일, card '재현할 수치' 저자 예비 측정(944, 보고 SI)을 직접 다시 잼. reproduced_numbers 참조."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "toy 통과",
+   "value": 182,
+   "command": "pytest tests/core tests/test_input_contract.py tests/test_result_contract.py tests/adapters/ngspice/test_dialect.py tests/adapters/ngspice/test_errors.py tests/test_legacy_adapter.py"
+  },
+  {
+   "name": "test_independent 통과",
+   "value": 3,
+   "command": "pytest tests/adapters/ngspice/test_independent.py"
+  },
+  {
+   "name": "tests/structure 통과",
+   "value": 171,
+   "command": "pytest gmid_engine/tests/structure"
+  },
+  {
+   "name": "2회로 연기 통과",
+   "value": 23,
+   "command": "stage_b·s0·g10 --run-slow -k 'folded_cascode or ngcc_3stage_ff'"
+  },
+  {
+   "name": "R1~R5 bias 수(rc·verdict 같음, 2회 동일)",
+   "value": 7,
+   "command": "tools/a3_run.py, tools/a3_cmp.py"
+  },
+  {
+   "name": "기준선과 바이트 동일 데이터 파일",
+   "value": 30,
+   "command": "cmp 기준선 원자료 대 bench.*.txt"
+  },
+  {
+   "name": "bin 소속 일치 점",
+   "value": 944,
+   "command": "tools/a3_6.py"
+  },
+  {
+   "name": "593 표 8단계 거부",
+   "value": 475,
+   "command": "tools/a3_7.py"
+  },
+  {
+   "name": "N4-3 Vhold·Lhold 남은 줄(한쪽)",
+   "value": 6,
+   "command": "tools/a3_n43.py"
+  },
+  {
+   "name": "CM gain_dc 새",
+   "value": 62.67435095845278,
+   "command": "tools/a3_cm2.py (재판정 머리)"
+  },
+  {
+   "name": "CM gain_dc 기준선",
+   "value": 62.67435095845278,
+   "command": "tools/a3_cm2.py"
+  },
+  {
+   "name": "forced hold nout A",
+   "value": 1.398494e-06,
+   "command": "tools/a_phys.py P1"
+  },
+  {
+   "name": "최저 메모리 여유 MB(표본)",
+   "value": 4267,
+   "command": "Win32_OperatingSystem FreePhysicalMemory 표본 7회"
+  }
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-04T20:01:19+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op23-audit",
+  "commands": [
+   "git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op23-audit C:/Users/HSLEE/AppData/Local/Temp/la1s_op23_audit/iso; git -C C:/Users/HSLEE/AppData/Local/Temp/la1s_op23_audit/iso remote remove origin; 같은 방법 C:/Users/HSLEE/AppData/Local/Temp/la1s_op23_audit/iso_v",
+   "V1: 전체 test 미실행(O-229). 잰 범위 = tools/run_tests.sh + toy pytest",
+   "tools/a3_roles.py, a3_run.py, a3_cmp.py, a3_n43.py, a3_5b.py, a3_5nm.py, a3_6.py, a3_7.py, a3_3b.py, a3_8.py, a3_8b.py, a3_cm.py, a3_cm2.py, a2.py, a_phys.py (.ai/verification/20261104-op23/tools)",
+   "재판정: git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op23-audit C:/Users/HSLEE/AppData/Local/Temp/la1s_op23_audit/iso2; 머리 R1 a3_run.py, a3_cm.py, a3_cm2.py, a3_5b.py, 뮤턴트 사본 C:/Users/HSLEE/AppData/Local/Temp/la1s_op23_audit/mut, pytest card·X-13·structure"
+  ]
+ }
+}

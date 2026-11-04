@@ -1,0 +1,106 @@
+{
+ "combined": {
+  "generator_sha256": "605846960b6a5afde2997aac5de57d63c5a49fecb42d477625c2e566d5bd1d8d",
+  "blob_lf": "dcb3b6fd85cf62a44094a29c2f594fecec8ee2ee1c9aa61c4f7215d536054a58",
+  "blob_crlf": "605846960b6a5afde2997aac5de57d63c5a49fecb42d477625c2e566d5bd1d8d",
+  "cat_file_filters": "605846960b6a5afde2997aac5de57d63c5a49fecb42d477625c2e566d5bd1d8d",
+  "append_lines": [
+   15,
+   155,
+   157,
+   161,
+   677
+  ],
+  "model_includes": [
+   "def model_includes(devcell):",
+   "    \"\"\"DUT 넷리스트의 include 줄(오라클 어댑터가 이 함수 안의 f-string을 정규식으로 읽는다).\"\"\"",
+   "    lod_include = LOD_SPICE if devcell.startswith(\"pfet\") else \"\"",
+   "    L = []",
+   "    if lod_include:",
+   "        L.append(f'.include \"{lod_include}\"')",
+   "    L.append(f'.include \"{PDK_ROOT}\\\\cells\\\\{devcell}\\\\sky130_fd_pr__{devcell}__tt.pm3.spice\"')",
+   "    L.append(f'.include \"{PDK_ROOT}\\\\cells\\\\{devcell}\\\\sky130_fd_pr__{devcell}__mismatch.corner.spice\"')",
+   "    return L"
+  ]
+ },
+ "slices": {
+  "n": 32,
+  "generator_values": [
+   "8df35d2ea405a0f53a836f7ce6cccc26e0db82ad2f82838588991afdcfb319df"
+  ],
+  "file_raw": "8df35d2ea405a0f53a836f7ce6cccc26e0db82ad2f82838588991afdcfb319df",
+  "file_lf": "8df35d2ea405a0f53a836f7ce6cccc26e0db82ad2f82838588991afdcfb319df",
+  "lines_73_79": [
+   "def model_files(pdk_root, devcell, corner):",
+   "    c = os.path.join(pdk_root, \"cells\", devcell)",
+   "    files = [os.path.join(c, f\"sky130_fd_pr__{devcell}__{corner}.pm3.spice\"),",
+   "             os.path.join(c, f\"sky130_fd_pr__{devcell}__mismatch.corner.spice\")]",
+   "    if DEVICES[devcell][2]:",
+   "        files.insert(0, os.path.join(pdk_root, \"models\", \"parameters\", \"lod.spice\"))",
+   "    return files"
+  ],
+  "line_175": "        L.append(f'.include \"{f}\"')",
+  "lines_177_178": [
+   "          f\"xdut d g 0 b sky130_fd_pr__{devcell} l={l_um}u w={w_um}u \"",
+   "          f\"ad={ad:.6g}p as={ad:.6g}p pd={pd:.6g}u ps={pd:.6g}u nf=1\","
+  ],
+  "lines_296_299": [
+   "        mfiles = model_files(a.pdk, devcell, a.corner)",
+   "        mf_meta = {os.path.relpath(f, a.pdk).replace(os.sep, \"/\"): sha256(f) for f in mfiles}",
+   "        mf_meta[os.path.relpath(csv_path, a.pdk).replace(os.sep, \"/\")] = sha256(csv_path)",
+   "        jobs = [(w, l) for w in widths for l in L_um]"
+  ],
+  "record_conflicts": [],
+  "record_paths": [
+   "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+   "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+   "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+   "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+   "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+   "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+   "models/parameters/lod.spice"
+  ]
+ },
+ "files": {
+  "605846960b6a5afd.lut_file_roles.json": {
+   "lf": "5d5e6bfc9768a493199f56c5001ae3e24caf3cf931a9a3f7e0a7368e78393053",
+   "aux": [
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv"
+   ],
+   "model": [
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+    "models/parameters/lod.spice"
+   ]
+  },
+  "8df35d2ea405a0f5.lut_file_roles.json": {
+   "lf": "fbf38fd9ff9a07d48b2711ff860f4942cf7fea1676b0fff12078708f00dad0ef",
+   "aux": [
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv"
+   ],
+   "model": [
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+    "models/parameters/lod.spice"
+   ]
+  }
+ },
+ "aux_disk": {
+  "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv": {
+   "record": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+   "raw": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+   "lf": "7001ec520a1244d56c66d89423f0a8a56e3010891283966e3bef4d675b0ac969"
+  },
+  "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv": {
+   "record": "3de00ee9acb32d2c7eae36be3f24521dbb9f53a4c50d965f76d35e5ebb2504a9",
+   "raw": "3de00ee9acb32d2c7eae36be3f24521dbb9f53a4c50d965f76d35e5ebb2504a9",
+   "lf": "3c62fe5ffe59ee08890837816b15d91764b7441d9f122054556d2f825ab6f090"
+  }
+ }
+}

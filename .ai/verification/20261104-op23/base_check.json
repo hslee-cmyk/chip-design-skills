@@ -1,0 +1,30 @@
+{
+ "id": "20261104-op23",
+ "order": "순서 3 freeze",
+ "isolation": "C:/Users/HSLEE/AppData/Local/Temp/la1s_op23_audit/iso (git clone --no-hardlinks --no-local, origin 제거), 측정 복제본 C:/Users/HSLEE/AppData/Local/Temp/la1s_op23_audit/iso_v(같은 HEAD + 옆 선언 두 파일과 기술자 한 칸만 판정자가 더함)",
+ "freeze": {
+  "test_end_commit_T": "bfded828b155eb5ec84e1efe86e86b539e7c7f99",
+  "test_commits": [
+   "26a1f156",
+   "bfded828"
+  ],
+  "code_commits": [
+   "9ba76ae2",
+   "f2e75147"
+  ],
+  "note": "T(bfded828)는 code 뒤 test 커밋이다: disputes/20261104-op23.md 처리(op23_support.py 한 줄 mkdir) + 엔진 test 두 건(X-13 새 파일, test_verified_by 한 줄). 기대값 변경 0."
+ },
+ "base_commit": "c223d47d0ac29b1d7d8b403bd30ad02219c14bdc",
+ "red_tree": "git archive 26a1f156 + bfded828 판 op23_support.py = base 코드 + T 판 test",
+ "red": {
+  "collected": 30,
+  "by_exc": {
+   "builtins.ImportError": 2,
+   "builtins.ModuleNotFoundError": 8,
+   "builtins.TypeError": 20
+  },
+  "counted_as_red": 10,
+  "note": "새 모듈 ImportError·ModuleNotFoundError 10건만 red 로 센다. TypeError 20건(main 에 adapters 인자 없음)은 허용 타입 밖이라 세지 않는다. merge_gate 플러그인은 interface 에 '## 신규 시그니처' 절이 없어 읽지 못해 같은 해시 정의의 판정자 플러그인(tools/redcap.py)을 썼다."
+ },
+ "equivalence": "해당 없음(red-green)"
+}

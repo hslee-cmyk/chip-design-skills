@@ -7,31 +7,39 @@
 
 > **시뮬레이터·공정 무관화(2026-10-16, oracle-portability 계획 승인 -- 사용자 결정 T-31·T-33·O-1~O-3)**: 이 오라클은 코어(시뮬레이터·PDK 모름)·시뮬레이터 어댑터·오라클 기술자 세 층으로 재구성된다(design `docs/02-design/features/oracle-portability.design.md`). 아래 본문의 ngspice·sky130 문구는 **첫 어댑터·첫 PDK 사례**이고 지금 코드의 동작을 적은 것이다. 판정 규칙의 뜻은 시뮬레이터와 무관하다. 절별 다시 쓰기는 구현 card OP-3~OP-6에서 그 card의 코드와 함께 한다.
 
-## 파일 (파일마다 독립 진입점 1개, 다른 파일의 `_` 이름 import 없음)
+## 구조와 파일 (card 20261104-op23, OP-2 + OP-3 이후 -- 설계 정본 `docs/02-design/features/oracle-portability.design.md` §3·§10~§12)
 
-| 파일 | 진입점 | 역할 |
-|---|---|---|
-| `oracle_input.schema.json` | - | 입력 형식(JSON Schema 2020-12). 진입점은 입력을 이것으로 먼저 검증한다 |
-| `oracle_netlist.py` | `python oracle_netlist.py <input.json> <out.cir> --bias free\|forced\|iso [--topology T] [--require-topology] [--omit N..] [--short N..]` | 넷리스트 + `<out.cir>.meta.json`, feedback_passives 가 있으면 `<stem>.loop.cir` |
-| `oracle_simulate.py` | `python oracle_simulate.py <netlist.cir> <sim.json> --ngspice EXE [--timeout-s S] [--cache-dir D]` | `ngspice -b` 실행, .op/.ac(+β 루프) 추출, **[신규 C10]** PM 안정성 근거(Nyquist N(위상 펼침 + 적응 세분화) + 독립 `.pz` P + 폐루프 `.tran` 창 단위 조기 종결, `<stem>.stab.cir`·`<stem>.pz.cir`) |
-| `oracle_config.json` | - | **[신규 U6]** `stability_transient.wall_s_per_window`(폐루프 과도 창당 ngspice 실행 시간 상한 -- 기본 시간 상한의 근거 `measured_*`·`safety_factor`·`justification` 포함) |
-| `oracle_noise.py` | `python oracle_noise.py <input.json> <netlist.cir> <out.json> --ngspice EXE [--timeout-s S] [--cache-dir D]` | **[신규 U6]** ngspice `.noise` 대조: 개루프 입력 환산 열잡음·flicker 코너·excess·소자별 기여, 폐루프 적분 출력 잡음 |
-| `oracle_offset_mc.py` | `python oracle_offset_mc.py <input.json> <netlist.cir> <out.json> --ngspice EXE [--timeout-s S] [--cache-dir D]` | **[신규 U6]** 소자별 독립 mismatch Monte-Carlo 입력 환산 offset 1σ |
-| `oracle_swing.py` | `python oracle_swing.py <input.json> <netlist.cir> <out.json> --ngspice EXE [--timeout-s S] [--cache-dir D] [--sat-margin-v V]` | **[신규 U6]** 출력 스윙·입력 공통모드 범위(ICMR) `.op` 스윕 |
-| `oracle_compare.py` | `python oracle_compare.py <input.json> <netlist.cir> <sim.json> <out_prefix> [--judge J] [--sat-margin-v V] [--forced-compare F]` | 합격 판정 + 비교 기록 |
-| `oracle_run.py` | `python oracle_run.py <input.json> <out_dir> --bias free [forced] [iso] [--judge J] [--sat-margin-v V] [--ngspice EXE] [--tag T] [--topology T] [--require-topology] [--omit N..] [--short N..] [--cache-dir D]` | 위 셋을 한 번에(bias 마다). **[신규 U6]** free 에서 입력에 `noise`·`offset_mc`·`swing_icmr` 블록이 있으면 같이 돈다 |
-| `legacy_adapter.py` | `python legacy_adapter.py <circuit_key> <out_dir> --w-source layout\|sizing --isrc topology\|engine [--from-dump D] [--instance I] [--topology T]` | 옛 엔진 실행(또는 dump) -> 오라클 입력 |
-| `legacy_testbench.json` | - | 어댑터가 넣는 테스트벤치 구성값 |
-| `smoke/` | - | 스모크 실행 산출물과 보고서(`smoke/SMOKE_REPORT.md`), **[신규 U6]** 구현 기록 `smoke/U6_REPORT.md`, 자체 점검 `smoke/u6_selfchecks.py`, 시간 상한 근거 측정 `smoke/measure_wall_s_per_window.py` |
+3층이다. 코어(`core/`)는 시뮬레이터·PDK 를 모르고(방언 토큰·PDK 이름 0, 엔진 import 0), 어댑터(`adapters/<이름>/`)만 방언을 알며,
+PDK 값은 오라클 기술자(`descriptors/<pdk>.oracle_descriptor.json`)와 그것이 가리키는 엔진 선언에만 있다. 회로는 넷리스트 텍스트가 아니라
+**IR**(`core/ir.py`)로, 해석은 **요청**(`core/requests.py`)으로 어댑터에 넘기고, 결과는 정규화 자료형(`core/results.py`)으로 받는다.
+
+| 파일 | 역할 |
+|---|---|
+| `oracle_run.py` | 진입점(CLI) `python oracle_run.py <input.json> <out_dir> --bias free [forced] [iso] [--simulator 이름] [--sim-exe 경로] [--judge J] [--sat-margin-v V] [--timeout-s S] [--tag T] [--topology T] [--require-topology] [--omit N..] [--short N..] [--cache-dir D]`. 입력 검사 1a~1e -> 기술자 2 -> LUT 파일 2b -> IR·요청 -> 실행 전 검사 3~9 -> 어댑터 실행 -> 판정 -> 출력. 거부면 `<circuit>.reject.json` 하나만 쓰고 반환 2 |
+| `oracle_input.schema.json` | 입력 형식 `spice_oracle_input/2`(JSON Schema 2020-12, 닫힌 키 집합). 정본은 design §11.1 |
+| `core/descriptor.py` | 기술자 읽기·검사·지문(OP-2): sha256 정의(LF 값/raw 값), 위치 선언 해석, 엔진 선언 식 읽기 |
+| `core/ir.py`, `requests.py`, `results.py`, `adapter_api.py` | IR 자료형, 해석 요청, 정규화 결과·실패 신호(`OracleError`), 어댑터 계약 |
+| `core/input_check.py` | 입력 교차 칸 검사(1d: `lut_kind_coverage`·`reference_rail_voltage`·`bias_gate_nets_mismatch`)와 LUT 파일 읽기(2b) |
+| `core/build_circuit.py`, `build_benches.py`, `identity.py` | 입력 -> IR(free/forced, Z1, 막힘 문장), 벤치 요청(op·ac·β 루프·CM 루프·ratio·rout·iso), C15 topology 대조(IR 역할 표) |
+| `core/measures_ac.py`, `compare.py` | AC 측정 수학과 결과 조립(기간 동작: PM 은 `stability_unverified`), 합격 판정·비교표(옛 `oracle_compare`) |
+| `core/bundle.py`, `cache.py` | 모델 묶음 비교 규칙 (i)(ii)(iii)·기록 뿌리 교차 검사, 실행 캐시 키(D §9) |
+| `adapters/ngspice/` | 첫 어댑터: `dialect.py`(IR·요청 -> 방언, 소자 줄은 기술자 단위 u 로 나눈 숫자 + `.option scale`), `run.py`(프로세스·모델 묶음·캐시 슬롯), `read.py`(로그·데이터 파일 읽기, `signed_id`), `errors.py`(로그 -> 오류 코드), `calibration.json`(보정값, 값마다 출처) |
+| `descriptors/sky130.oracle_descriptor.json` | sky130 기술자(엔진 선언을 키로 가리킴, 값 사본 없음) |
+| `oracle_netlist.py`, `oracle_simulate.py` | **OP-4 소유 잔여**(C10 안정성·pz 코드만 남음, 호출자 0). OP-4 가 새 계약으로 옮기고 지운다 |
+| `oracle_noise.py`, `oracle_offset_mc.py`, `oracle_swing.py`, `oracle_config.json` | **OP-4·OP-5 소유**, 실행 경로에서 빠짐(호출자 0). 기간 동안 noise·swing_icmr 입력은 `adapter_capability_missing`, offset_mc 입력은 `mc_method_unsupported` 로 거부 |
+| `legacy_adapter.py`, `legacy_testbench.json` | 옛 엔진 출력 변환(LT-1 순서 3 이 삭제) |
+| `smoke/` | 스모크 기록과 점검 스크립트(판정 증거 아님) |
+
+옛 입력 형식(`spice_oracle_input/1`)은 이중 지원하지 않는다(`oracle_input_format_old`). 시뮬레이터는 `--simulator`(없으면 입력 `simulator.adapter`)로 고르고
+실행 파일은 `--sim-exe`(없으면 `simulator.exe`)로 준다.
 
 `python -P` 로 실행해도 된다(진입점이 자기 디렉터리를 sys.path 에 넣는다). numpy, jsonschema 필요.
 
 ## 입력 스키마 요약 (`oracle_input.schema.json` 이 정본)
 
-* `process`: `lut_npz`(코너 `corner`·온도 `temp_c` 메타를 여기서 읽음), `models[kind]`(`subckt`, `includes`(경로의
-  `{corner}` 를 npz corner 로 채움), `op_probe`(`@m.{inst}.<내부소자>[{param}]` 틀)), `diffusion`
-  (`ad_per_w_m`, `pd_extra_m`, LUT 생성 규칙 -- free 에서는 소자별 `devices[].diffusion` 이 없는 소자가 있으면 필수, C22),
-  선택 `ngspice_exe`.
+* `schema`: `"spice_oracle_input/2"`. `process`: `descriptor{path, sha256(LF)}`(오라클 기술자 참조), `lut_files[{path, sha256(raw), kinds{kind: null|meta 키}}]`
+  (이 설계점의 동작점을 정한 LUT 슬라이스; 코너·온도·모델 기록은 여기서 읽음), 선택 `corner`·`temp_c`. 모델 호출 형식(subckt·include·극성·기하 단위·배수)과
+  확산 기하 규칙은 입력이 아니라 기술자에 있다(소자별 `devices[].diffusion` 이 우선). `simulator`: `adapter`, 선택 `exe`, `options`(문자열 값).
 * `rails`: `[{net, voltage, reference?}]` -- reference 하나가 SPICE 0.
 * `devices`: `[{name, kind, drain, gate, source, bulk, L, finger_w, n_fingers, W, diffusion?}]`. 인스턴스는
   `X<name> d g s b <subckt> l=L w=finger_w m=n_fingers`(nf 금지). `W` 는 엔진이 선언한 총폭(finger 곱과의 차를 `W_rel` 로 기록).
@@ -46,7 +54,7 @@
 * `acceptance.constraints`: `[{name, measure, op(>=|<=), limit, view?}]` -- 회로 성능 스펙. 합격 판정에 쓰인다
   (measure 에 `ratio_db`·**[신규 C26]** `rout_ohm`·**[신규 U6]** 위 U6 measure 포함, 과도 measure 제외).
 * `testbench`: `dc_choke_H`, `ac_couple_F`, `ac{fstart_hz, fstop_hz, points_per_decade, input_*_ac, diff_feedback_gain}`,
-  `options`, `nodeset_from_predictions`, **[신규]** `loop_dc_choke_H`(β 루프 측정용 입력 DC 경로, feedback_passives 가 있으면 필요).
+  `nodeset_from_predictions`, **[신규]** `loop_dc_choke_H`(β 루프 측정용 입력 DC 경로, feedback_passives 가 있으면 필요).
 * **[신규 U6]** 선택 측정 블록 `noise`, `offset_mc`, `swing_icmr` (아래 "U6" 절).
 * `judge`: `sat_margin_V`(합격 판정의 포화 여유), `off_current_A`(선택), `tolerances{ID_rel, VGS_abs_V, VDS_abs_V, VSB_abs_V,
   gm_rel, gds_rel, gm_id_rel, node_abs_V, W_rel, kcl_abs_A, dc_gain_db_abs, pm_deg_abs, ugf_hz_rel, f3db_hz_rel,
@@ -55,8 +63,7 @@
   ID 는 **부호 포함**: 선언 드레인 기준 정상 방향 전도(NMOS 드레인으로 들어감, PMOS 드레인에서 나옴) = 양수, 역방향 = 음수.
   **[정정 2026-10-07]** ngspice BSIM4 `@` 값 중 vgs·vds·vth·vdsat 는 이 규칙이지만(`@vds = type*(V(d)-V(s))`, 선언 단자
   방향 부호 유지) **`@id` 는 소스/드레인 역할이 뒤바뀌어도 양수**(채널 전류 크기)다. 그래서 SPICE 쪽은
-  `ID = @id x sign(@vds)`(@vds = 0 이면 0, 둘 중 하나 없으면 None), `VSB = -vbs`, 나머지는 그대로다. 원값은 소자 행
-  `ID_spice_op_id` 에 남긴다. 실측(ngspice-46 sky130 tt, L=0.5 µm W=2 µm m=2, 드레인에 0 V 감지원): NMOS 역방향
+  `ID = @id x sign(@vds)`(@vds = 0 이면 0, 둘 중 하나 없으면 None), `VSB = -vbs`, 나머지는 그대로다. 부호 정규화(`signed_id`)는 어댑터 `read.py` 한 곳에서 한다(코어는 이미 정규화된 ID 를 받는다). 실측(ngspice-46 sky130 tt, L=0.5 µm W=2 µm m=2, 드레인에 0 V 감지원): NMOS 역방향
   (V(d)=0, V(s)=0.3, VG=1.8) @id = +4.981e-4, @vds = -0.3, 감지원 드레인 유입 전류 -4.981e-4; PMOS 역방향(V(d)=1.6,
   V(s)=1.0) @id = +8.991e-5, @vds = -0.6, 드레인 유입 +8.991e-5(크기 규칙 -8.991e-5); 정상 방향 NMOS/PMOS, VDS 1 mV 경우도
   `@id x sign(@vds)` = 극성 x 감지원 전류(상대차 1e-6 이하). 꺼진 소자(VGS=0)에서는 감지원 전류가 접합 누설을 포함해 @id 와
@@ -708,7 +715,7 @@ swing_out_v, icmr_v, icm_margin_v`), 제약은 `>=`/`<=` 로 판정하며 값이
   수동소자·MOS gate·소비자(감지망) MOS 는 원래 넷(n 쪽)에 남는다(Middlebrook 관례 n = 받는 쪽, x = 되돌림을 내는 쪽; 엔진 `cm_cuts` 와 같은 분할). 넷마다 직렬 전압원
   `Vlb_<넷>`(수신 쪽 +, AC 1/2, DC 0)과 수신 쪽 주입 전류원 `Ilb_<넷>` 을 넣어 두 출력에 **동일 부호** 가중(1/2, 1/2)으로 Middlebrook 이중 주입한다. 입력 포트는 **전부 AC 접지**(`Vac_*` AC 0, DC 는 Vlb 0 V 가 이어 준다). `.ac` 2회 + `loop_gain`
   (DM 과 같은 식). `feedback_passives`·`cm_output_loop` 가 없는 입력은 이 파일들을 만들지 않는다(기존 출력 비트 동일).
-* 시뮬레이션: `sim.cm_loop` = {ngspice_rc, break_nets, weights, measures(`ac_measures`), singular, pm_deg, pm_deg_raw, pm_undefined, stability,
+* 시뮬레이션: `sim.cm_loop` = {status, break_nets, weights, measures(`ac_measures`), singular, pm_deg, pm_deg_raw, pm_undefined, stability,
   stability_cache}. PM 값이 있으면 DM 과 같은 C10 안정성 근거(Nyquist 감은 수 + 폐루프 .tran `<stem>.cmloop.stab*.cir/txt`)를 건다: P = 0 이 증명되지 않으면
   `pm_deg = None` + `pm_undefined`(이유), 원값 `pm_deg_raw`. Middlebrook 분모 0 은 `loop_probe_singular`(정의 불가, 막힘 아님).
 * 비교: measure `cm_pm_deg` 의 SPICE 값 = `sim.cm_loop.pm_deg`; 정의 불가 이유 = `sim.cm_loop.pm_undefined`(제약이면 N/A -> PASS 불가);
