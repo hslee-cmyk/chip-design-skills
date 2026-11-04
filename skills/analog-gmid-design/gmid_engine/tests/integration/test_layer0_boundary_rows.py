@@ -19,6 +19,8 @@ import json
 import os
 from pathlib import Path
 
+import pytest
+
 from gmid_engine.core import BoundedLRU, read_pdk_decl
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 from gmid_engine.pipeline import run_stage_a, run_stage_b
@@ -29,7 +31,7 @@ SKILL = Path(__file__).resolve().parents[3]
 LIBRARY = SKILL / "assets" / "library"
 CIRCUITS = sorted(p.name.removesuffix(".topology.json") for p in LIBRARY.glob("*.topology.json") if not p.name.startswith("_"))
 BASELINE = json.loads((Path(__file__).resolve().parent / "fixtures" / "u17_1b_s0_baseline.json").read_text(encoding="utf-8"))
-SEARCHED = [c for c in CIRCUITS if BASELINE[c]["status"] == ["ok", "ok"]]     # 층 0 이 있는 회로(기준선 단계 A·B 상태)
+SEARCHED = [c for c in CIRCUITS if BASELINE.get(c, {}).get("status") == ["ok", "ok"]]     # 층 0 이 있는 회로(기준선 단계 A·B 상태)
 DEVICE_KINDS = (("nfet_01v8", "nmos"), ("pfet_01v8", "pmos"))
 CAP_SUFFIX = (("nmos", "_n"), ("pmos", "_p"))
 BAND = 1.0                      # 경계 대역 = ConstraintRow.c 분해능 1 칸(설계 40 §2.4.13 (4))
@@ -60,6 +62,13 @@ def _settings():
 def _hard_rows(ev):
     """경성 행(C4 BP2): w_min·inversion_floor 제약 행 + 원뿔 행."""
     return [c for c in ev.constraints if c.name.startswith("w_min:") or c.name.startswith("inversion_floor:")] + list(ev.cone)
+
+
+@pytest.mark.parametrize("circuit", CIRCUITS)
+def test_layer0_baseline_present_for_every_library_circuit(circuit):
+    """기준선에 없는 회로는 아래 경계 test 의 대상에서 조용히 빠진다 -- 회로별로 명시적으로 실패시킨다(skip 금지, 원칙 10).
+    새 4회로의 기준선 측정은 별도 판정 몫."""
+    assert circuit in BASELINE, "기준선(fixtures/u17_1b_s0_baseline.json)에 회로 %r 없음 -- 층 0 경계 test 대상에서 빠짐" % circuit
 
 
 def test_layer0_boundary_rows_positive_9circuits(tmp_path):

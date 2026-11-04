@@ -9,7 +9,7 @@
 - 0절: test 는 rule·where·elements 로 판정(message 문구는 판정하지 않는다).
 
 oracle: (a) 구성으로 정답이 정해진 합성 입력 -- base_valid 픽스처(gate 전용 넷 없음, 손으로 확인: n_inp 는 입력 포트,
-n_bias 는 Ib terminals, n_mid 는 drain)에 MOS 하나(Q5, gate `n_gb`)를 더해 gate 전용 넷을 정확히 하나 만든다. 기대 넷
+n_bias 는 Ib terminals, n_mid 는 drain)에 MOS 하나(Mfx5, gate `n_gb`)를 더해 gate 전용 넷을 정확히 하나 만든다. 기대 넷
 집합은 test 쪽 `gate_only_nets`(JSON 직접 집계, 9절 정의 문장 그대로)로 계산한다.
 """
 from __future__ import annotations
@@ -44,9 +44,9 @@ _ABSENT = object()                    # 키를 쓰지 않음(None 은 JSON null 
 
 
 def with_gate_only(ah, declared=_ABSENT):
-    """base_valid + Q5(gate n_gb, drain n_outp, source rail_lo) -> gate 전용 넷 정확히 {n_gb}(구성)."""
+    """base_valid + Mfx5(gate n_gb, drain n_outp, source rail_lo) -> gate 전용 넷 정확히 {n_gb}(구성)."""
     doc = ah.base()
-    doc["netlist"].append({"name": "Q5", "kind": "nmos", "drain": "n_outp", "gate": "n_gb", "source": "rail_lo"})
+    doc["netlist"].append({"name": "Mfx5", "kind": "nmos", "drain": "n_outp", "gate": "n_gb", "source": "rail_lo"})
     if declared is not _ABSENT:
         doc["bias_inputs"] = declared
     return doc
@@ -64,7 +64,7 @@ def bias_hits(detail):
 
 # ---------------------------------------------------------------------------------------------------- 픽스처 확인
 def test_fixture_construction(ah):
-    """구성 확인: base 는 gate 전용 넷이 없고 Q5 를 더하면 정확히 {n_gb}(oracle 이 의도대로인가)."""
+    """구성 확인: base 는 gate 전용 넷이 없고 Mfx5 를 더하면 정확히 {n_gb}(oracle 이 의도대로인가)."""
     assert gate_only_nets(ah.base()) == set()
     assert gate_only_nets(with_gate_only(ah)) == {"n_gb"}
 
@@ -125,12 +125,12 @@ def test_gate_only_undeclared_one_of_two(ah, tmp_path):
 # 각 넷이 gate 전용이 아닌 이유(base_valid 픽스처를 손으로 읽음):
 NOT_GATE_ONLY = {
     "rail": "rail_hi",            # supply_nets
-    "port_input": "n_inp",        # ports 의 실제 input 포트(Q1 gate 에만 물리지만 포트라 gate 전용 아님)
+    "port_input": "n_inp",        # ports 의 실제 input 포트(Mfx1 gate 에만 물리지만 포트라 gate 전용 아님)
     "port_output": "n_outp",      # ports 의 output 포트(drain 이기도 함)
-    "drain_and_gate": "n_mid",    # Q1·Q2 drain, Q3 gate
+    "drain_and_gate": "n_mid",    # Mfx1·Mfx2 drain, Mfx3 gate
     "nonexistent": "n_ghost",     # 어느 단자에도 없음
     "passive_only": "n_rzn",      # Rf·Cf terminals 에만
-    "gate_and_source_terminal": "n_bias",  # Q2·Q4 gate + 이상원 Ib terminals
+    "gate_and_source_terminal": "n_bias",  # Mfx2·Mfx4 gate + 이상원 Ib terminals
 }
 
 

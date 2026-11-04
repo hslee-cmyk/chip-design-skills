@@ -27,7 +27,7 @@ from gmid_engine.pipeline import run_stage_a, run_stage_b
 from gmid_engine.search import SearchSettings, build_search_context, find_front, open_run
 from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec, pre_layout_lut_access
 
-from test_s0_layer_9circuits import DEVICE_START, GRAPH_ROWS  # noqa: E402  S0 수준 블록 정의 한 곳
+from test_s0_layer_9circuits import DEVICE_START, GRAPH_ROWS, _baseline  # noqa: E402  S0 수준 블록 정의·기준선 조회 한 곳
 
 pytestmark = pytest.mark.slow
 
@@ -95,7 +95,7 @@ def _check_rows(rows, writers):
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
 def test_no_same_input_recompute_in_one_run(env, circuit, tmp_path):
-    assert len(CIRCUITS) == 9, CIRCUITS                                   # 전제: library 9회로
+    _baseline(circuit)                       # 전제: card B 회로 구분(NOT_SEARCHED)은 기준선이 있는 회로에만 정의됨 -- 없으면 이 회로만 실패
     out = tmp_path / "out"
     donors, counters = open_run()
     a = run_stage_a(LIBRARY / (circuit + ".topology.json"), LIBRARY / (circuit + ".sizing_spec.json"), env.lut, output_dir=out,

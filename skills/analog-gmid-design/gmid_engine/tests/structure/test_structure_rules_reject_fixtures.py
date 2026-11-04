@@ -278,6 +278,60 @@ def test_rule_e_accepts_good_fixture(checks, fixture_tree, library):
     assert v == [], "\n".join(str(x) for x in v)
 
 
+def test_rule_e_vocabulary_is_read_from_declarations(checks):
+    """O-198: 뺄 어휘는 하드코딩 목록이 아니라 선언 자리(AXES·CIRCUIT_SPECIFIC_KEYS·_module_map plan_ids)에서 읽힌다.
+    세 자리의 대표 원소가 들어 있고, 진짜 회로 이름(레일·회로·소자·포트)은 들어 있지 않다."""
+    from gmid_engine._module_map import MODULES
+    from gmid_engine.authoring._spec_fields import CIRCUIT_SPECIFIC_KEYS
+    from gmid_engine.lut.lut_types import AXES
+    vocab = checks.engine_vocabulary()
+    assert set(AXES) <= vocab and set(CIRCUIT_SPECIFIC_KEYS) <= vocab
+    assert {pid for m in MODULES for pid in m.plan_ids} <= vocab
+    assert vocab == set(AXES) | set(CIRCUIT_SPECIFIC_KEYS) | {pid for m in MODULES for pid in m.plan_ids}
+    assert not {"vdd", "gnd", "two_stage_ota", "M1", "vin_p"} & vocab
+
+
+def test_rule_e_vocabulary_removal_is_limited_to_declared_words(checks, library):
+    """이름 집합에서 빠지는 것은 (library 이름 ∩ 엔진 어휘)뿐이고, 그 밖 이름은 출처 목록까지 그대로다."""
+    _, names = library
+    vocab = checks.engine_vocabulary()
+    kept = checks.without_engine_vocabulary(names)
+    removed = set(names) - set(kept)
+    assert removed == set(names) & vocab
+    assert removed, "빼는 어휘가 0이면 O-198 이전과 같다 -- 현재 library 와 엔진 사이 우연 일치(VS·Z·Q4·Q8·Q9)가 있어야 한다"
+    assert all(kept[k] == names[k] for k in kept)
+    assert {"vdd", "gnd", "two_stage_ota", "M1", "vin_p"} <= set(kept)
+
+
+def test_rule_e_still_rejects_circuit_names_after_vocabulary_removal(checks, fixture_tree, library):
+    """거부 fixture(엔진 코드에 진짜 회로 이름 리터럴을 넣은 toy)는 어휘를 뺀 이름 집합에서도 같은 위반을 낸다."""
+    _, names = library
+    n, v = checks.check_e(fixture_tree("rule_e", "bad"), checks.without_engine_vocabulary(names))
+    assert n > 0
+    assert sorted((x.kind, x.path, x.line) for x in v) == [
+        ("name_literal", "core/names.py", 2),
+        ("name_literal", "core/names.py", 3),
+        ("name_literal", "core/names.py", 4),
+        ("name_literal", "core/names.py", 5),
+        ("name_literal", "core/names.py", 5),
+    ], "\n".join(str(x) for x in v)
+
+
+def test_rule_e_vocabulary_word_excused_but_circuit_name_in_same_file_rejected(checks, library, tmp_path):
+    """한 파일에 엔진 어휘(LUT 축 'VS'·spec 키 'Z'·plan ID 'Q8')와 진짜 회로 이름('vin_p'·'M1')이 같이 있으면 어휘만 면제된다."""
+    _, names = library
+    assert {"VS", "Z", "Q8"} <= set(names)                 # 세 어휘가 library 이름과 실제로 겹친다(그렇지 않으면 이 test 가 공허)
+    root = tmp_path / "gmid_engine"
+    (root / "core").mkdir(parents=True)
+    (root / "core" / "toy.py").write_text(
+        'AXIS = "VS"\nKEY = "Z"\nPLAN = "Q8"\nBAD = {"M1": "vin_p"}\n', encoding="utf-8")
+    n, v = checks.check_e(root, checks.without_engine_vocabulary(names))
+    assert n == 1
+    assert sorted(x.detail.split(" = ")[0] for x in v) == ["'M1'", "'vin_p'"], "\n".join(str(x) for x in v)
+    _, v_all = checks.check_e(root, names)                  # 어휘를 안 뺀 옛 정의는 다섯 개 모두 잡는다(대조)
+    assert len(v_all) == 5
+
+
 def test_rule_e_name_set_covers_declared_kinds(library):
     """이름 집합에 회로·소자·넷·포트·레일·수동소자 출처가 모두 들어 있다(수집이 빠지면 E 가 공허해진다)."""
     circuits, names = library

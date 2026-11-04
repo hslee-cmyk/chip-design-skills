@@ -2,7 +2,7 @@
   "schema_version": "2.0",
   "topology_name": "fx_base_amp",
   "source": "hand-made test fixture (not a library circuit)",
-  "_note": "Valid base for the authoring tests. Names are disjoint from assets/library. n_rzn sits only on 2-terminal elements but reaches rail_lo through Rf -> Q3 (resistor DC path). rail_ac is used only by Cload (a capacitor), so removing it from supply_nets makes it a hidden rail.",
+  "_note": "Valid base for the authoring tests. Names are disjoint from assets/library. n_rzn sits only on 2-terminal elements but reaches rail_lo through Rf -> Mfx3 (resistor DC path). rail_ac is used only by Cload (a capacitor), so removing it from supply_nets makes it a hidden rail.",
   "linked_topology_files": [],
   "supply_nets": [
     "rail_hi",
@@ -21,8 +21,8 @@
   "symmetry": {
     "matching_pairs": [
       [
-        "Q1",
-        "Q3"
+        "Mfx1",
+        "Mfx3"
       ]
     ],
     "_comment": "never read"
@@ -34,7 +34,7 @@
   ],
   "netlist": [
     {
-      "name": "Q1",
+      "name": "Mfx1",
       "kind": "nmos",
       "drain": "n_mid",
       "gate": "n_inp",
@@ -43,7 +43,7 @@
       "n_fingers": 2
     },
     {
-      "name": "Q2",
+      "name": "Mfx2",
       "kind": "pmos",
       "drain": "n_mid",
       "gate": "n_bias",
@@ -51,14 +51,14 @@
       "bulk": "rail_hi"
     },
     {
-      "name": "Q3",
+      "name": "Mfx3",
       "kind": "nmos",
       "drain": "n_outp",
       "gate": "n_mid",
       "source": "rail_lo"
     },
     {
-      "name": "Q4",
+      "name": "Mfx4",
       "kind": "pmos",
       "drain": "n_outp",
       "gate": "n_bias",

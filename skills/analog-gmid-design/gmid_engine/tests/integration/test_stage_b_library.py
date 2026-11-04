@@ -198,8 +198,11 @@ def test_gain_target_and_verdict(env, circuit, tmp_path_factory):
         assert g["verdict"] == "undetermined" and g["sum_db"] is None
 
 
+# [O-196 2026-10-31] r2r_opamp: M21·M22(pmos)는 Ib5, M23·M24(nmos)는 Ib2 하나로 전류가 정해진다(회로 해석 -- 연결: n_abp·n_abn 에 전류원,
+# 직렬 diode, 게이트만 닿는다. 사용자 "둘 다 그렇게 (Recommended)"). 소자·전류원 이름은 topology 연결에서 읽은 해석 표다.
 _CURRENT_FED = {"current_reuse_telescopic_ota": {"M18_bg": ("pmos", "Iref")},
-                "sf_pushpull_output_opamp": {"M4": ("nmos", "IBias")}}
+                "sf_pushpull_output_opamp": {"M4": ("nmos", "IBias")},
+                "r2r_opamp": {"M21": ("pmos", "Ib5"), "M22": ("pmos", "Ib5"), "M23": ("nmos", "Ib2"), "M24": ("nmos", "Ib2")}}
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
