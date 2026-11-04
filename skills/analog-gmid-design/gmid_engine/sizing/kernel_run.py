@@ -5,13 +5,14 @@
 머리 설명과 같다. 함께 있는 도우미: `normalize_w_request`(W_request 검증·정렬). 봉인 3 tol_I 의 gm 은 `dc_tolerances` 가 쓰는 자기 동작점
 `dc_gm` 이라 parent 에서 넘기는 입력이 없다(설계 40 §3.7-3) -- `parent` 는 같은 lineage 재사용(필드가 곧 캐시)에만 쓴다.
 θ 스키마·고정 노드·DC 저항 선언값·L 묶음은 커널 컨텍스트 `base` 의 S0 수준 필드 `graph/kernel` 에서 읽고, parent 가 같은 컨텍스트에서 나왔는지는 base writer
-(`ctx.base.block_versions` 키 전부)의 `block_version` 이 `base` 와 같은지로 본다. parent 스냅샷은 `derive_child(base writer ∪ 커널 블록 ∪ 봉인 항목 블록 여덟)` 로 파생한다
+(`ctx.base.block_versions` 키 전부)의 `block_version` 이 `base` 와 같은지로 본다. parent 스냅샷은 `derive_child(base writer ∪ 커널 블록 ∪ 봉인 항목 블록 일곱)` 로 파생한다
 (계획 v6.31 N3.3, 설계 41 4.7-3c, 설계 40 §2.4.7 `KernelContext` 행 -- 사본 없음). keep 은 봉인 4 호출 목록과 같은 집합이고 base writer 밖 writer 의 낡은 필드는 뺀다.
 모든 블록 호출은 `ctx.donors`·`ctx.counters` 로 부른다(같은 입력은 계보와 무관하게 이식·재연). 블록 단계마다 후보 실패 클래스를 이름으로 잡아 그 블록에 들어간 스냅샷을
 부분 스냅샷(`exc.partial`)으로 붙인 뒤 다시 낸다(`core.attach_partial`, 설계 40 §2.4.7 -- 재연한 예외도 같다).
 """
 import math
 
+from gmid_engine.authoring import REGION_OFF, REGION_TRIODE
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, attach_partial
 from gmid_engine.graph import ELEMENT_MOS
 
@@ -82,7 +83,8 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     lengths += tuple((member, owner_length[owner]) for member, owner in base.value("graph", KERNEL_KEY, "l_ties"))     # L 동치류: 멤버 L = 주인 θ L (LR1)
     column_items = tuple(((kind, key), v) for (kind, key), v in items if kind in _COLUMN_KINDS)
     requested = normalize_w_request(ctx, w_request)
-    steps = [(dc_currents, (currents,)), (dc_lengths, (lengths,))]
+    off = tuple(sorted(m for m, r in base.column("device", "region_decl") if r.region == REGION_OFF))      # `off` 선언 소자 -- L 은 선언 l_m, θ 에 L 성분이 없다
+    steps = [(dc_currents, (currents,)), (dc_lengths, (lengths,) + ((off,) if off else ()))]
     later_blocks = (dc_columns, dc_widths)      # steps 뒤에 부르는 블록의 구성원 정의(extras 는 아래에서 붙인다)
     if parent is not None:      # 스냅샷 파생: keep = base writer ∪ 커널 블록(steps·later_blocks) ∪ 봉인 항목 블록 여덟(seal.py 상수) -- 봉인 4 의 호출 목록과 같은 집합(계획 N3.3, 설계 41 4.7-3c)
         snapshot = parent.snapshot.derive_child(writers_in_scope(base, later_blocks + tuple(b for b, _ in steps) + SEAL_ITEM_BLOCKS))
@@ -98,12 +100,13 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
         column_items = tuple((key, override.get(key, v)) for key, v in column_items)
     resistor_values = base.value("graph", KERNEL_KEY, "resistor_values")
     columns_extras = (column_items, base.value("graph", KERNEL_KEY, "fixed_values"), resistor_values, ctx.lut)
-    later = list(zip(later_blocks, (columns_extras + ((ctx.inputs.linear_devices,) if ctx.inputs.linear_devices else ()),
+    triode = tuple(sorted(m for m, r in base.column("device", "region_decl") if r.region == REGION_TRIODE))      # 영역 선언 술어 필드 `device.region_decl` 의 triode 소자 -- 창 경계 행(dc_columns)이 읽는다
+    later = list(zip(later_blocks, (columns_extras + ((triode,) if triode else ()),
                                     (ctx.lut, requested) if requested else (ctx.lut,))))
     for block, extras in later:
         snapshot = _call_block(ctx, block, snapshot, extras, done)
         done.append(block)
     steps = tuple(steps + later)
     resistances = resistor_values + tuple((key, v) for (kind, key), v in items if kind == THETA_RESISTANCE)
-    return seal_dc(snapshot, steps, ctx.lut, resistances, ctx.inputs.linear_devices, raise_on_violation,
+    return seal_dc(snapshot, steps, ctx.lut, resistances, raise_on_violation,
                    base=base, donors=ctx.donors, counters=ctx.counters)

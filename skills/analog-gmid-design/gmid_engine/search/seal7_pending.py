@@ -8,7 +8,7 @@
   `SearchFront.pending_front` 에 '봉인 7 대기'로만 남는다. 봉인 7 을 통과로 치거나 2/(gm/ID) 로 대신하지 않는다(우회 없음).
 * `STATUS_UNDEFINED`: 그 밖 미정(봉인 7 이 다른 사유로 미정이거나 다른 항목이 미정) -> front 후보 아님.
 
-**스위치가 꺼지는 조건(코드 변경 없음)**: lut 에 VDSAT 접근자가 생겨 `dc_seal_saturation` 이 판정식을 실제로 재면 봉인 7 이
+**스위치가 꺼지는 조건(코드 변경 없음)**: lut 에 VDSAT 접근자가 생겨 `dc_seal_region` 이 봉인 7 판정을 실제로 재면 봉인 7 이
 pass/fail 을 내고 `REASON_VDSAT_MISSING` 사유가 사라진다 -> 이 함수는 `STATUS_PENDING_SEAL7` 을 더 내지 않고(발동 0),
 모든 점이 `STATUS_SEALED` 또는 실패로 갈린다. 그때 이 파일은 지워도 되는 무동작 상태가 된다.
 """

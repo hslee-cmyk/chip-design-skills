@@ -496,11 +496,14 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 
 | 층 | 파일 | 진입점 | 계산 블록(writer) | 쓰는 필드 |
 |---|---|---|---|---|
-| 0 | `ss_types.py` | (데이터) `SsDevice`·`SsCircuit`·`MetricRequest`·`MetricBundle`·`SsEvaluation` | -- | -- |
+| 0 | `ss_types.py` | (데이터) `SsDevice`·`SsCircuit`·`MetricRequest`·`MetricBundle`·`SsEvaluation`·[EO-1 범위 4] `OffOp`·`OffDelta` | -- | -- |
 | 1 | `junction_source.py` | `JunctionSource` | -- | -- (접합 용량 입력 묶음, 7.2·7.6) |
 | 1 | `ss_linearize.py` | `ss_dev` | `ss_dev` | `device.ss_dev`(MOS 마다 `SsDevice`) |
+| 1 | `ss_off_op.py` [EO-1 범위 4] | `ss_off_op` | `ss_off_op` | `device.off_op` = `OffOp(vgs, vds, vsb, w_key)`(`off` 선언 소자만) |
+| 1 | `ss_off_gate.py` [EO-1 범위 4] | `off_region_gate`(필드를 쓰지 않는 함수) | -- | -- |
 | 1 | `ss_circuit.py` [IT-2c] | `ss_circuit_field`(순수 조립 함수 `ss_circuit`·`is_dc_conducting_passive`·`CODE_PASSIVE_MISSING`) | `ss_circuit` | `graph.ss_circuit`(key `METRICS_KEY`) = `SsCircuit` |
 | 3 | `ss_nodal.py` [IT-2c] | `ss_nodal_system`(조립 함수 `nodal_of`) | `ss_nodal` | `graph.ss_nodal`(key `METRICS_KEY`) = `NodalSystem` 또는 `Undefined` |
+| 4 | `ss_off_delta.py` [EO-1 범위 4] | `ss_off_delta` | `ss_off_delta` | `graph.ss_off_delta`(key `METRICS_KEY`) = `OffDelta(node_dv, sources)` |
 | 3 | `icm_config.py` [IT-2c] | `icm_config_window`(`kvl_sensitivity`·`_transfer_resolution`) | `icm_config` | `node.dc_window_cfg`(입력 포트마다 `Window`)·`graph.icm_config`(`IcmConfig`) |
 | 3 | `dc_metrics.py` | `metrics_dc` | `metrics_dc` | `graph.metrics_dc`(key `METRICS_KEY` = `"metrics"`) |
 | 6 | `ss_metrics.py` | `metrics_ss` | `metrics_ss` | `graph.metrics_ss`(key `METRICS_KEY`) |
@@ -636,7 +639,7 @@ reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v,
 - [9절] 전력·면적 결과의 `resolution` 은 None(LUT 소신호 불확실성 전파 대상이 아니다 -- 전력 축 분해능 b_P 는 같은 블록의 `power_resolution_w` 필드).
 
 ### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, ..., diffusion=()) -> SsEvaluation`
-[XRUN-F1 B] 서명은 그대로다. [IT-2c] 부르는 순서 `passive_values` -> `ss_dev` -> `ss_circuit` -> `metrics_ss` -> `ss_nodal` -> `icm_config` -> `metrics_aux` -> `metrics_dc`(`ss_nodal`·`icm_config` 는 요청과 무관하게 늘). 여덟 블록은 `ctx.donors`·`ctx.counters`(KernelContext 의 실행 하나 색인·계수)로 부른다 -- 같은 입력은 계보와
+[XRUN-F1 B] 서명은 그대로다. [IT-2c] 부르는 순서 `passive_values` -> `ss_dev` -> `ss_circuit` -> `metrics_ss` -> `ss_nodal` -> `icm_config` -> `metrics_aux` -> `metrics_dc`(`ss_nodal`·`icm_config` 는 요청과 무관하게 늘). **[EO-1 범위 4 갱신]** 순서 = [`off` 선언이 있으면 `ss_off_op`] -> `passive_values` -> `ss_dev`(off 소자 스탬프 포함) -> `ss_circuit` -> `ss_nodal` -> [`off` 선언이 있으면 `ss_off_delta` -> 관문 `off_region_gate`] -> `metrics_ss` -> `icm_config` -> `metrics_aux` -> `metrics_dc`. off 선언이 없으면 앞 둘과 관문의 호출이 0이고 `device.off_op`·`graph.ss_off_delta` 필드가 없다. 아래 7.12. 여덟 블록은 `ctx.donors`·`ctx.counters`(KernelContext 의 실행 하나 색인·계수)로 부른다 -- 같은 입력은 계보와
 무관하게 이식·재연된다. **ss 실패의 부분 스냅샷**: 후보 실패 클래스(`NonconvergentError`·`SealViolationError`, 이름으로 잡는다)가 나면 그 블록에 들어간 스냅샷(적어도 `sealed.snapshot`)을
 `core.attach_partial(exc, snapshot)` 로 붙인 뒤 같은 예외를 다시 낸다(`exc.partial`, 이미 있으면 바꾸지 않는다).
 [U14] `diffusion` = ((MOS, `DiffusionGeometry`), ...) -- 레이아웃 뒤 실현 확산 기하(MOD7 `ly.diffusion`). 있는 소자의 `ss_dev` cdb·csb 는 그 기하로, `junction_model` = `JUNCTION_LAYOUT_DIFFUSION`
@@ -1353,3 +1356,16 @@ FF 소자는 merge 블록 국소 모형에 항상 들어간다(gds 부하 = Z_me
 5. `ff_gm_ratio` 값은 크기 비 |G_ff|/gm_in 이다(경로 부호는 `ff_contrib.sign`), 묶음이 여럿이면 최댓값(제약 연산자와 무관) -- 묶음별 값은 `per_ff`/보고.
 6. `icm_margin_v` 의 SP-2 대기: 설계 D-ICM 표('input_dc_pending')와 41 §4.6 J-E('y_icm 으로 계산 + required_input_cm_v')가 다르다 -- J-E 를 따른다.
 7. `residual_probe` 의 표본 수율: 상자 전체 Halton 점은 대부분 봉인되지 않는다(two_stage_ota 38 평가 0 봉인) -- 앵커(층 0 시작점) 주변 표본이 필요하다(U13·U15).
+
+### 7.12 [EO-1 범위 4] `off` 선언 소자의 동작점·1차 ΔV·관문 (card 20261104-eo1r4-sf1l §4, 계획 O-221·O-222, 위임 A-1·A-2·A-47·A-49)
+- `ss_off_op(snapshot, lut)` -- reads `device.{region_decl, kind, pins, bulk}`, `node.{dc_v, dc_rail_v}`; writes `device.off_op` = `OffOp(vgs, vds, vsb, w_key)`(`off` 선언 소자만). p = nmos +1 / pmos −1(sizing
+  `terminal_voltages` 의 부호 정의): vgs = p(Vg − Vs), vds = p(Vd − Vs), vsb = p(Vs − Vb). 정지(E-0, `SealViolationError`, 표 순서대로 첫 맞는 행, 소자 전부 기록): `off_vgs_negative`(vgs < 0) ->
+  `off_bulk_forward`(`junction_forward(vds, vsb)` > 0 -- 봉인 6 과 같은 식, 경계 0 V, tol 없음, LUT 조회 전) -> `off_outside_lut`(그 밖 LUT 밖; vds < 0 ∧ vdb ≥ 0 포함, 클램프 없음).
+- `ss_dev` -- 추가 인자 `off_items`(= ((소자, kind, `OffOp`, `RegionDecl`), ...) -- `ss_evaluate` 가 필드에서 꺼내 넘긴다)로 off 소자의 `SsDevice` 도 낸다: gm = (gm/ID)·ΔI_off, gmb·gds·용량 = `off_op`
+  점 LUT 값 × 소자 폭 W(`w_m`)·길이 L(`l_m`) 환산(다른 MOS 와 같은 열 규칙). `lut_rel_tol` None. 그래서 `ss_circuit`·`ss_nodal` 이 off 스탬프를 G 와 AC 계에 넣는다(DC 전류는 0 모형).
+- `ss_off_delta(snapshot, lut)` -- reads `device.{off_op, region_decl, kind, pins}`, `graph.{ss_circuit, ss_nodal}`; writes `graph.ss_off_delta` = `OffDelta(node_dv, sources)`. ΔI_off = `off_current` =
+  IDu(`op_point`, L = `l_m`)·w_m/l_m. 주입(노드로 들어가는 전류): drain −p·ΔI, source +p·ΔI. G·ΔV = 주입(`ss_nodal` 인수분해 위 `nodal_solve` 한 번; 고정 넷 주입은 ΔV 를 만들지 않는다).
+  정지 `off_delta_undefined`: `ss_nodal` 이 `Undefined`·인수분해 특이·주입 넷이 floating.
+- `off_region_gate(snapshot, lut)` -- 필드를 쓰지 않는 함수, 거부 = `SealViolationError`(reason `off_gate`, detail `s_prime` = ((소자, s′), ...), 정의 불능 None). 대상 = `device.dc_op` MOS(선언 없음 +
+  `triode`). ΔVGS·ΔVDS·ΔVSB = `terminal_voltages(kind, ΔV_d, ΔV_g, ΔV_s, ΔV_b)`, VDS′ = VDS + ΔVDS, VDSAT′ = VDSAT + Σ_X [vdsat(X + ΔX) − vdsat(X)](ΔX = 0 이면 조회 0, 축 밖 `OUT_OF_DOMAIN`),
+  VDS < 0 소자는 조회 0·vdsat `OUT_OF_DOMAIN`. 판정 = 공용 `judge_region` + `region_mismatch`(수치 문턱 없음). 닫힌 식 s′ = s + (1 − a2)ΔVDS − a1ΔVGS − a3ΔVSB.

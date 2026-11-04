@@ -1,6 +1,6 @@
 """원소 단위 KCL 해 공간 -- θ 전류 기저와 모든 DC 원소 전류의 선형식 (계획 DEC-70 전류 변수 정의, DEC-08, 설계 3.2 ②).
 
-진입점: `dc_current_basis`(`@compute_block`) -- `dc_current_basis(snapshot, declared_sources)`.
+진입점: `dc_current_basis`(`@compute_block`) -- `dc_current_basis(snapshot, declared_sources[, off_devices])`.
 
 * 미지수 = DC 원소(S1 `device.dc_nets` 가 있는 MOS·저항·이상원, 잎 가지치기된 저항 제외) 전류. 양의 방향 = nmos d->s,
   pmos s->d(전도 방향), 2단자 t0->t1(이상 전류원은 SPICE 규약: t0 에서 source 를 지나 t1 로).
@@ -76,7 +76,8 @@ def _rref(rows, n_cols):
 
 @compute_block(DC_CURRENT_BASIS_WRITER, reads=READS, writes=WRITES)
 def dc_current_basis(projection):
-    (declared,) = projection.extras
+    declared, *rest = projection.extras
+    off = frozenset(rest[0]) if rest else frozenset()           # `off` 선언 소자(필드 `device.region_decl`) -- 전류 기저 항이 없다(꺼짐 모형: DC 전류 0)
     declared = {name: value for name, value in declared if value is not None}
     pruned = tuple(sorted({element for element, _round in projection.value("graph", GRAPH_KEY, "dc_pruned")}))
     classes = dict(projection.column("device", "element_class"))
@@ -84,7 +85,7 @@ def dc_current_basis(projection):
     pins = dict(projection.column("device", "pins"))
     rails = {net for net, is_rail in projection.column("node", "is_rail") if is_rail}
     elements = tuple(name for name, nets in projection.column("device", "dc_nets")
-                     if nets is not None and name not in pruned)
+                     if nets is not None and name not in pruned and name not in off)
     ends = tuple((name,) + _ends(name, classes[name], kinds[name], pins[name]) for name in elements)
     fixed = tuple((name, float(declared[name])) for name in elements
                   if classes[name] == ELEMENT_SOURCE and kinds[name] == CURRENT_SOURCE and name in declared)

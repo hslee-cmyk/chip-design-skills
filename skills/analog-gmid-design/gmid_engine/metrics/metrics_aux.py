@@ -1,14 +1,14 @@
 """봉인 점 -> offset·미러비·스윙·ICMR·FF 비 metric + 블록 잔차 보고 계산 블록 (설계 40 §3.8, §3.8-8, 41 §2, 단위 U7).
 
-진입점: `metrics_aux`(`@compute_block`) -- `metrics_aux(snapshot, requests, lut, mismatch, structure, targets, input_dc_v, linear_devices,
+진입점: `metrics_aux`(`@compute_block`) -- `metrics_aux(snapshot, requests, lut, mismatch, structure, targets, input_dc_v,
 transfer_views, ugf_hz, driving)`.
 
 * reads `graph.{ss_circuit, ss_nodal, icm_config, matching_groups, matching_dispositions}`(조립된 소신호 회로·봉인점 노달 계·ICMR 측정 구성 -- 조립 자리는 블록 `ss_circuit`·`ss_nodal`·
-  `icm_config` 하나씩, 이 블록은 다시 만들지 않는다), `device.{ss_dev, dc_op, dc_tol_v, kind, pins, dc_role, dc_colour}`, `node.{port_direction, port_role, dc_v, dc_rail_v, dc_window_cfg, dc_colour}`.
+  `icm_config` 하나씩, 이 블록은 다시 만들지 않는다), `device.{ss_dev, dc_op, dc_tol_v, kind, pins, dc_role, dc_colour, region_decl}`(`triode` 선언 소자는 `region_decl` 에서), `node.{port_direction, port_role, dc_v, dc_rail_v, dc_window_cfg, dc_colour}`.
   writes `graph.metrics_aux`(key `METRICS_KEY`) = `MetricBundle`.
 * extras: `requests` = `MetricRequest` tuple(레지스트리 결과 형식이 `AUX_TYPES` 인 metric 만), `lut` = sizing `LutAccess`,
   `mismatch` = `MismatchSource`(또는 None -- offset·미러비는 `mismatch_source_missing`), `structure` = `MetricStructure`(또는 None -- offset_excess·FF·블록 잔차는 구조 입력 없음),
-  `targets` = spec 노드 목표 ((넷, V), ...), `input_dc_v` = 선언 입력 DC 또는 None(SP-2 대기 -> 해의 y_icm), `linear_devices` = 선형 영역 선언 소자,
+  `targets` = spec 노드 목표 ((넷, V), ...), `input_dc_v` = 선언 입력 DC 또는 None(SP-2 대기 -> 해의 y_icm),
   `transfer_views` = 판정 제약의 전달 뷰 `ViewDecl` tuple(블록 잔차 보고가 짝을 찾는 뷰), `ugf_hz` = 같은 평가의 `ugf_ss_hz` 값(nqs_ratio 입력, 없으면 None),
   `driving` = spec `DrivingDecl` 또는 None(선언되면 `ls_fields` 슬루·방향별 전류 보고 -- 제약 행은 search 가 만든다).
 * 회로: 필드 `graph.ss_circuit`(구조 색 정준 순서, 이름 치환 불변)과 `graph.ss_nodal`(offset·systematic·블록 잔차의 조립 자리 셋이 읽는 G·인수분해).
@@ -24,7 +24,7 @@ transfer_views, ugf_hz, driving)`.
 """
 import dataclasses
 
-from gmid_engine.authoring import (INPUT_DIRECTION, OUTPUT_DIRECTION, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P)
+from gmid_engine.authoring import (INPUT_DIRECTION, OUTPUT_DIRECTION, REGION_TRIODE, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P)
 from gmid_engine.core import SealViolationError, compute_block
 from gmid_engine.graph import (DISPOSITION_BIAS_DISTRIBUTION, GRAPH_KEY, MATCH_MIRROR, MOS_TERMINAL_NAMES, NMOS)
 from gmid_engine.lut import tol_vdsat_table, vdsat
@@ -50,7 +50,7 @@ from .ss_types import MetricBundle
 READS = (
     ("graph", "ss_circuit"), ("graph", "ss_nodal"), ("graph", "icm_config"),
     ("device", "ss_dev"), ("device", "dc_op"), ("device", "dc_tol_v"), ("device", "kind"), ("device", "pins"),
-    ("device", "dc_role"), ("device", "dc_colour"),
+    ("device", "dc_role"), ("device", "dc_colour"), ("device", "region_decl"),
     ("node", "port_direction"), ("node", "port_role"), ("node", "dc_v"), ("node", "dc_rail_v"), ("node", "dc_window_cfg"), ("node", "dc_colour"),
     ("graph", "matching_groups"), ("graph", "matching_dispositions"),
 )
@@ -151,7 +151,8 @@ def _tags(projection):
 
 @compute_block(METRICS_AUX_WRITER, reads=READS, writes=WRITES)
 def metrics_aux(projection):
-    (requests, lut, mismatch, structure, targets, input_dc_v, linear_devices, transfer_views, ugf_hz, driving) = projection.extras
+    (requests, lut, mismatch, structure, targets, input_dc_v, transfer_views, ugf_hz, driving) = projection.extras
+    triode_devs = frozenset(m for m, r in projection.column("device", "region_decl") if r.region == REGION_TRIODE)      # `triode` 선언 소자 -- 술어 필드 `device.region_decl` (경계 행·채널 제약 면제)
     ss = projection.value("graph", METRICS_KEY, "ss_circuit")        # 조립 자리는 블록 `ss_circuit`·`ss_nodal` 하나씩 -- 여기서 다시 조립하지 않는다
     nodal = projection.value("graph", METRICS_KEY, "ss_nodal")        # 저항 결측이면 `Undefined` -- 영역 `dc` 요청이 `_unavailable` 로 막힌다
     ss_values = dict(projection.column("device", "ss_dev"))
@@ -174,7 +175,7 @@ def metrics_aux(projection):
                 cache["sigma"] = None
             else:
                 rows = tuple((m.label, ops[m.label].kind, ops[m.label].w_key, ops[m.label].L, ops[m.label].W, ops[m.label].vgs,
-                              ops[m.label].vds, ops[m.label].vsb) for m in mos)
+                              ops[m.label].vds, ops[m.label].vsb) for m in mos if m.label in ops)      # `off` 선언 소자는 dc_op 가 없다 -- σ 행이 없어 offset 계열은 `sigma_missing` 정의 불가
                 cache["sigma"] = device_sigmas(lut, mismatch, rows)
         return cache["sigma"]
 
@@ -204,12 +205,12 @@ def metrics_aux(projection):
             if sigmas() is None:
                 results[request] = _fail(request, CODE_MISMATCH_MISSING if mismatch is None else CODE_MISMATCH_LUT)
                 continue
-            gmid = tuple((m.label, ops[m.label].gm_id) for m in mos)
+            gmid = tuple((m.label, ops[m.label].gm_id) for m in mos if m.label in ops)
             found = once("mirror", lambda: mirror_ratio(mirrors, roles, gmid, sigmas()))
             results[request] = _result(request, found)
             continue
         if name in ("swing_out_v", "icmr_v", "icm_margin_v"):
-            found = once("swing", lambda: _swing(projection, lut, linear_devices, canonical, node_v, input_dc_v))
+            found = once("swing", lambda: _swing(projection, lut, triode_devs, canonical, node_v, input_dc_v))
             results[request] = _result(request, found)
             continue
         if name == "ff_gm_ratio":
@@ -231,7 +232,7 @@ def metrics_aux(projection):
             reports.append(("nqs_ratio", (("view", vstruct.id), ("ratio", nqs.ratio), ("min_ft_hz", nqs.min_ft_hz), ("device", nqs.limiting_device),
                                           ("undefined", tuple(sorted(u.code for u in nqs.undefined))))))
             if driving is not None:
-                swing = once("swing", lambda: _swing(projection, lut, linear_devices, canonical, node_v, input_dc_v))
+                swing = once("swing", lambda: _swing(projection, lut, triode_devs, canonical, node_v, input_dc_v))
                 if swing.bounds:
                     outs = tuple(n for n, d in projection.column("node", "port_direction") if d == OUTPUT_DIRECTION)
                     fields = ls_fields(ss, vstruct, ops, node_v, swing.bounds, lut, rel_tols, driving, outs)

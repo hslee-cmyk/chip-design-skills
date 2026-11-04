@@ -1,6 +1,6 @@
 """쓰기 계획 컴파일 -- 노드마다 writer 하나, MOS 마다 좌표 역할(쓰기/종속) (설계 3.1 1~3, 계획 N3.4·DEC-64·DEC-95 (3)).
 
-진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINTS)`. θ 무관(S0 당 1회).
+진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINTS, off_devices=())`. θ 무관(S0 당 1회).
 
 모든 순서 결정의 키는 **구조 색 먼저**(`dc_colour` -- graph 대칭 블록 `s1_symmetry`, 이름을 읽지 않는 1-WL 색 + 정준 위치) 그다음 이름이다. 이름이 실제로
 결정을 가른 경우(같은 구조 색 후보가 서로 다른 결과로 갈린 경우)는 `graph.dc_tie_breaks` 에 `TieBreak` 로 남긴다.
@@ -125,7 +125,8 @@ def _edges(classes, kinds, pins, diode, colour, hints):
 def dc_writer_plan(projection):
     target_nets, input_dc_declared, *rest = projection.extras
     hints = rest[0] if rest else NO_ORDER_HINTS
-    classes = dict(projection.column("device", "element_class"))
+    off = frozenset(rest[1]) if len(rest) > 1 else frozenset()       # `off` 선언 소자(필드 `device.region_decl`) -- 쓰기 계획 엣지·좌표가 없다
+    classes = {n: c for n, c in projection.column("device", "element_class") if n not in off}
     kinds = dict(projection.column("device", "kind"))
     pins = dict(projection.column("device", "pins"))
     diode = dict(projection.column("device", "is_diode"))

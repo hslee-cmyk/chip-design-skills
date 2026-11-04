@@ -7,8 +7,8 @@ WP-23 (3) 루프 불변 입력은 S0 수준 필드로, 설계 3.1, 40 §2.4.7 `K
 `order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
 
 순서: 인자 검사 -> `supplies_declaration`(graph, 레일 집합과 대조) + S1 키의 supplies 지문 대조 -> `lift_s1` ->
-`dc_rails` -> graph 대칭 블록 `s1_symmetry`(구조 색·궤도·전류 부호 -- S1 이 같은 선언 표시로 이미 계산했으면 재사용, 표시 = `symmetry_marks(inputs)`)
--> `dc_current_basis`(값 선언 이상 전류원) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부; `device.dc_self_referential` 도 쓴다) -> `dc_scc_order` ->
+`dc_rails` -> `dc_region_decl`(S0 `device.region_decl`, 의도 영역 선언 술어 필드 -- 쓰기 계획 앞) -> graph 대칭 블록 `s1_symmetry`(구조 색·궤도·전류 부호 -- S1 이 같은 선언 표시로 이미 계산했으면 재사용, 표시 = `symmetry_marks(inputs)`)
+-> `dc_current_basis`(값 선언 이상 전류원; `off` 소자는 열거에서 뺀다) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부; `off` 소자는 쓰기 계획에서 뺀다; `device.dc_self_referential` 도 쓴다) -> `dc_scc_order` ->
 `kernel_fields`(writer `kernel_context`: `graph/kernel: fixed_values·resistor_values·l_ties` -- L 동치류는 S1v 필드 `graph/s1v: l_classes` 에서 읽는다(derived 와
 ratified(`l_owner` 사실) 만 L 공유), S1v 필드가 없으면 소자마다 L) -> `dc_theta_schema`(`graph/kernel: theta_schema` -- engine 수동소자, DEC-92).
 계획 블록의 정지(`StructureUnresolvedError`)·KCL 선언 충돌(`InfeasibleTargetError`)은 그대로 전파된다(탐색 전 정지).
@@ -20,16 +20,19 @@ ratified(`l_owner` 사실) 만 L 공유), S1v 필드가 없으면 소자마다 L
 * `inputs.engine_elements` 이름은 S1 원소여야 한다(`ValueError`, 같은 이유). 그중 수동소자만 `dc_theta_schema` 로 간다.
 * L 동치류가 S1 원소가 아니거나 MOS 만의 서로소 묶음이 아니면 `ValueError`(`kernel_fields`).
 """
+from gmid_engine.authoring import REGION_OFF
 from gmid_engine.core import fp_of
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE, S1_SYMMETRY_WRITER, S1Graph, s1_symmetry, supplies_declaration
 
 from .current_basis import dc_current_basis
 from .kernel_fields import kernel_fields
+from .region_decl import dc_region_decl
 from .s2_lift import lift_s1
 from .s2_values import (
     CURRENT_SOURCE,
     DC_CURRENT_BASIS_WRITER,
     DC_RAILS_WRITER,
+    DC_REGION_DECL_WRITER,
     DC_SCC_ORDER_WRITER,
     DC_THETA_SCHEMA_WRITER,
     DC_WRITER_PLAN_WRITER,
@@ -46,7 +49,7 @@ from .theta_schema import dc_theta_schema
 from .w0_rails import dc_rails
 from .writer_plan import dc_writer_plan
 
-PLAN_WRITERS = (DC_RAILS_WRITER, S1_SYMMETRY_WRITER, DC_CURRENT_BASIS_WRITER, DC_WRITER_PLAN_WRITER, DC_SCC_ORDER_WRITER,
+PLAN_WRITERS = (DC_RAILS_WRITER, DC_REGION_DECL_WRITER, S1_SYMMETRY_WRITER, DC_CURRENT_BASIS_WRITER, DC_WRITER_PLAN_WRITER, DC_SCC_ORDER_WRITER,
                 KERNEL_CONTEXT_WRITER, DC_THETA_SCHEMA_WRITER)
 
 
@@ -81,9 +84,11 @@ def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, do
     base = lift_s1(s1graph)
     base = dc_rails(base, supplies, donors=donors, counters=counters)
     base = s1_symmetry(base, supplies, symmetry_marks(inputs), donors=donors, counters=counters)     # S1 의 대칭 블록 -- 같은 표시면 재사용(계산 0)
-    base = dc_current_basis(base, sources, donors=donors, counters=counters)
-    base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None,
-                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)), donors=donors, counters=counters)      # 힌트 없음 = 생략(블록 입력 버전 불변)
+    base = dc_region_decl(base, tuple(inputs.regions), donors=donors, counters=counters)        # S0 술어 필드 -- 소자 열거 뿌리(전류 기저·쓰기 계획·θ 스키마)가 `off` 를 뺀다
+    off = tuple(sorted(m for m, r in base.column("device", "region_decl") if r.region == REGION_OFF))      # 필드 `device.region_decl` 에서 읽은 `off` 소자 -- 없으면 인자 생략(블록 입력 버전 불변)
+    base = dc_current_basis(base, sources, *((off,) if off else ()), donors=donors, counters=counters)
+    plan_tail = (order_hints, off) if off else (() if order_hints == NO_ORDER_HINTS else (order_hints,))      # 힌트·off 없음 = 생략(블록 입력 버전 불변)
+    base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None, *plan_tail, donors=donors, counters=counters)
     base = dc_scc_order(base, donors=donors, counters=counters)
     base = kernel_fields(base, tuple(sorted(targets.items())), inputs.input_dc_v, tuple(inputs.element_values), donors=donors, counters=counters)
     engine_passives = tuple(n for n in sorted(inputs.engine_elements) if classes[n] == ELEMENT_PASSIVE)

@@ -9,7 +9,6 @@ S2 `dc` 는 S1 과 **같은** core `GraphSnapshot` 위에 산다: 권한표 `S2_
 """
 import dataclasses
 
-from gmid_engine.authoring import REGION_TRIODE
 from gmid_engine.core import WriterTable
 from gmid_engine.graph import S1_WRITERS
 
@@ -20,7 +19,6 @@ KERNEL_KEY = "kernel"                                  # S0 수준 graph/kernel 
 RESISTOR = "resistor"
 CAPACITOR = "capacitor"
 CURRENT_SOURCE = "current_source"
-LINEAR_REGION = REGION_TRIODE                          # [r9] spec intended_region 의 선형 영역 낱말 = authoring 정본 "triode"(봉인 7 제외 대상)
 
 # ---- 노드 writer 티어(계획 N3.4) 와 쓰는 관계
 TIER_W0 = "W0"
@@ -121,6 +119,7 @@ TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 �
 TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원소 열이 θ 전류 기저/종속으로 갈림
 
 # ---- 필드 writer(= 계산 블록 이름)
+DC_REGION_DECL_WRITER = "dc_region_decl"                # S0: device.region_decl (의도 영역 선언 술어 필드, 쓰기 계획 앞)
 DC_RAILS_WRITER = "dc_rails"
 DC_CURRENT_BASIS_WRITER = "dc_current_basis"
 DC_WRITER_PLAN_WRITER = "dc_writer_plan"
@@ -136,13 +135,13 @@ DC_SEAL_NODE_CONFLICT_WRITER = "dc_seal_node_conflict"
 DC_SEAL_VGS_MATCH_WRITER = "dc_seal_vgs_match"
 DC_SEAL_KCL_WRITER = "dc_seal_kcl"
 DC_SEAL_BULK_WRITER = "dc_seal_bulk_reverse"
-DC_SEAL_SATURATION_WRITER = "dc_seal_saturation"
+DC_SEAL_REGION_WRITER = "dc_seal_region"                # 봉인 7·9: 소자마다 공용 영역 판정 한 번 (EO-1 범위 4)
 DC_SEAL_KVL_WRITER = "dc_seal_kvl_branch"
-DC_SEAL_CONDUCTION_WRITER = "dc_seal_conduction"
 DC_SEAL_REPORT_WRITER = "dc_seal_report"
 
 # ---- 블록별 writes (reads 는 각 블록 파일에 둔다)
 DC_WRITES = (
+    (DC_REGION_DECL_WRITER, (("device", "region_decl"),)),
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
     (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))),
@@ -159,9 +158,8 @@ DC_WRITES = (
     (DC_SEAL_VGS_MATCH_WRITER, (("graph", "dc_seal_2"),)),
     (DC_SEAL_KCL_WRITER, (("graph", "dc_seal_3"),)),
     (DC_SEAL_BULK_WRITER, (("graph", "dc_seal_6"),)),
-    (DC_SEAL_SATURATION_WRITER, (("graph", "dc_seal_7"),)),
+    (DC_SEAL_REGION_WRITER, (("graph", "dc_seal_7"), ("graph", "dc_seal_9"))),
     (DC_SEAL_KVL_WRITER, (("graph", "dc_seal_8"),)),
-    (DC_SEAL_CONDUCTION_WRITER, (("graph", "dc_seal_9"), ("device", "dc_off_current"), ("device", "dc_conduction_floor"))),
     (DC_SEAL_REPORT_WRITER, (("graph", "dc_seal_report"),)),
 )
 # ---- S2 ss·metric 필드(writer = MOD5 계산 블록, metrics CONTRACT 7절). 권한표가 S2 한 곳이라 여기서 선언한다
@@ -174,6 +172,8 @@ PASSIVE_VALUES_WRITER = "passive_values"               # device.passive_value: G
 METRICS_AUX_WRITER = "metrics_aux"                     # graph.metrics_aux: offset·미러비·스윙·ICMR·FF 비 metric 묶음 + 블록 잔차 보고 (U7)
 SS_CIRCUIT_WRITER = "ss_circuit"                       # graph.ss_circuit: S2 열 -> 정수 인덱스 소신호 회로(`SsCircuit`) -- 조립 자리 하나 (card IT-2c)
 SS_NODAL_WRITER = "ss_nodal"                           # graph.ss_nodal: 봉인점 소신호 DC 극한 노달 계(`NodalSystem`: G·g_bound·인수분해) (card IT-2c)
+SS_OFF_OP_WRITER = "ss_off_op"                       # device.off_op: `off` 선언 소자의 동작점 (EO-1 범위 4)
+SS_OFF_DELTA_WRITER = "ss_off_delta"                   # graph.ss_off_delta: off 소자 전류 효과의 1차 ΔV (EO-1 범위 4)
 ICM_CONFIG_WRITER = "icm_config"                       # node.dc_window_cfg + graph.icm_config: ICMR 측정 구성·창·V_cm 칸 (card IT-2c)
 SS_WRITES = (
     (SS_DEV_WRITER, (("device", "ss_dev"),)),
@@ -185,9 +185,14 @@ SS_WRITES = (
     (SS_NODAL_WRITER, (("graph", "ss_nodal"),)),
     (ICM_CONFIG_WRITER, (("node", "dc_window_cfg"), ("graph", "icm_config"))),
 )
+# EO-1 범위 4: `off` 선언 소자 층의 필드 -- ss 층(위 SS_WRITES)과 별도 묶음(off 선언이 있을 때만 쓰인다)
+SS_OFF_WRITES = (
+    (SS_OFF_OP_WRITER, (("device", "off_op"),)),
+    (SS_OFF_DELTA_WRITER, (("graph", "ss_off_delta"),)),
+)
 S2_WRITERS = WriterTable(
     tuple((kind, field, writer) for (kind, field), writer in S1_WRITERS.entries)
-    + tuple((kind, field, writer) for writer, writes in DC_WRITES + SS_WRITES for kind, field in writes)
+    + tuple((kind, field, writer) for writer, writes in DC_WRITES + SS_WRITES + SS_OFF_WRITES for kind, field in writes)
 )
 
 
@@ -195,7 +200,7 @@ S2_WRITERS = WriterTable(
 class DcInputs:
     """GB7 이 읽는 사람 선언(spec)의 투영. `supplies_v` = ((레일, V), ...) 이름순, `input_dc_v` = 입력 포트 공통 DC(V) 또는
     None(미선언·engine·결정 대기 -> W4, 입력 포트인 뿌리의 y 키 = 그 뿌리 넷), `node_targets` = ((넷, V), ...) W3, `element_values` =
-    ((원소, 값 또는 None), ...) 저항(Ω)·이상 전류원(A), `linear_devices` = 선형 영역 선언 소자(봉인 7 제외),
+    ((원소, 값 또는 None), ...) 저항(Ω)·이상 전류원(A), `regions` = 의도 영역 선언 `RegionDecl` tuple(이름순, triode·off),
     `pending` = 결정 대기로 '미선언' 취급한 칸 ((경로, 결정 ID), ...), `engine_elements` = spec 값 mode 가 `engine` 인 원소
     이름(정렬) -- 그중 수동소자가 DEC-92 θ 연속 성분·구조 규칙 대상이다(결정 대기 원소는 들지 않는다)."""
 
@@ -203,7 +208,7 @@ class DcInputs:
     input_dc_v: object = None
     node_targets: tuple = ()
     element_values: tuple = ()
-    linear_devices: tuple = ()
+    regions: tuple = ()
     pending: tuple = ()
     engine_elements: tuple = ()
 

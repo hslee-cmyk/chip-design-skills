@@ -32,6 +32,7 @@ from gmid_engine.sizing import KERNEL_KEY, PLAN_WRITERS, LutAccess
 from .archive import S3Archive
 from .area_decl import passive_area_decl
 from .constraint_classes import constraint_classes
+from .off_judged import check_off_judged_by
 from .layer0_center import centre_start
 from .noise_decl import noise_decl
 from .s0_fields import S0_WRITERS, START_KEY
@@ -177,6 +178,8 @@ def _s0_blocks(dc_ctx, spec, settings, pdk_decl, lut_rule_decl, model_error):
     base = mismatch_field(base, pdk_decl, donors=donors, counters=counters)
     base = model_error_field(base, tuple(model_error), donors=donors, counters=counters)
     base = constraint_classes(base, tuple(spec.judged_constraints), donors=donors, counters=counters)
+    check_off_judged_by(dict(base.column("device", "region_decl")), base.value("graph", KERNEL_KEY, "constraint_classes"),
+                        tuple(spec.judged_constraints))       # O-h: off 선언의 judged_by 검사 -- 탐색 전 실행당 한 번(평가 호출 0)
     base = passive_area_decl(base, tuple(sorted(e.name for e in spec.element_values if e.measurement_load)), pdk_decl,
                              donors=donors, counters=counters)
     base = metric_structure(base, donors=donors, counters=counters)

@@ -65,6 +65,7 @@
 | 1 | `_helpers_columns.py` [r6] | helper: `column_source(lut, kind, w_key, column, required=True)`(열 출처, 4.3) |
 | 1 | `_helpers_grids.py` [r7] | helper: `npz_grids`(npz 축 읽기)·`npz_condition_mismatch`(측정 조건 대조) -- lut_set·noise_set·mismatch_set 공용 |
 | 1 | `_helpers_root.py` [r5, r7] | helper: `peak_index`, `strong_inversion_root`(곡선 묶음, 칸 안 Hermite 근 -- `hermite_root` 를 쓴다), [r7] `monotone_end`(분지에서 엄격 증가 구간 끝) |
+| 1 | `axis_bounds.py` [EO-1 범위 4] | `lut_axis_bounds(memo, kind, w_key) -> ((축, 첫 값, 끝 값), ...)`(`AXES` 순서, 슬라이스 격자 끝을 읽을 뿐 값 사본·memo 없음, 없는 슬라이스 `KeyError`) |
 | 1 | `axis_guard.py` | `check_axes` |
 | 1 | `curve_check.py` | `curve_report` |
 | 1 | `data_location.py` [r6] | `resolve_lut_location`(1.8) |

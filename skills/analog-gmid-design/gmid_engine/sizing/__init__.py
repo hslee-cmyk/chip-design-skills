@@ -1,5 +1,5 @@
-"""MOD4 sizing -- GB7 DC 정본 풀이(노드전압·가지전류·소자 op)와 봉인 8항목 (계획 N3.4~N3.6·N3.10, 설계
-design_gb7_dc_canonical; [r8] 9 = 전도 여유). 계약: `CONTRACT.md`.
+"""MOD4 sizing -- GB7 DC 정본 풀이(노드전압·가지전류·소자 op)와 봉인 9항목 (계획 N3.4~N3.6·N3.10, 설계
+design_gb7_dc_canonical; 7·9 = 영역 판정 `dc_seal_region`). 계약: `CONTRACT.md`.
 
 다른 패키지와 test 는 이 `__all__` 만 쓴다. 공개 흐름:
 `dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, pre_layout_lut_access(memo))` (S0 당 1회) ->
@@ -15,10 +15,15 @@ from .current_basis import dc_current_basis
 from .dc_inputs import dc_inputs_from_spec
 from .fixed_point import gauss_seidel
 from .input_window import saturation_window
+from ._helpers_lut import terminal_voltages
+from .junction_forward import junction_forward
 from .k_max import k_max
 from .kernel_context import PLAN_WRITERS, build_kernel_context
 from .kernel_fields import kernel_fields
 from .pre_layout_widths import pre_layout_lut_access
+from .region_decl import dc_region_decl
+from .region_judge import OUT_OF_DOMAIN, RegionJudgment, judge_region
+from .region_mismatch import region_mismatch
 from .s2_lift import lift_s1
 from .s2_values import (
     BRANCH_MOS_ZERO_CURRENT,
@@ -37,7 +42,6 @@ from .s2_values import (
     ICM_CONFIG_WRITER,
     INPUT_STATUS_MEASURED,
     INPUT_STATUS_UNMEASURED,
-    LINEAR_REGION,
     METRICS_AUX_WRITER,
     METRICS_DC_WRITER,
     METRICS_KEY,
@@ -90,6 +94,8 @@ from .s2_values import (
     SEAL_WRITER_UNIQUE,
     SS_CIRCUIT_WRITER,
     SS_DEV_WRITER,
+    SS_OFF_DELTA_WRITER,
+    SS_OFF_OP_WRITER,
     SS_NODAL_WRITER,
     SS_WRITES,
     TIE_CURRENT_PIVOT,
@@ -143,12 +149,11 @@ from .scc_newton import newton_solve
 from .scc_order import dc_scc_order
 from .seal import seal_dc
 from .seal_bulk_reverse import dc_seal_bulk_reverse
-from .seal_conduction import dc_seal_conduction
 from .seal_kcl import dc_seal_kcl
 from .seal_kvl_branch import dc_seal_kvl_branch
 from .seal_node_conflict import dc_seal_node_conflict
+from .seal_region import dc_seal_region
 from .seal_report import dc_seal_report
-from .seal_saturation import dc_seal_saturation
 from .seal_tolerances import dc_tolerances
 from .seal_versions import seal_versions
 from .seal_vgs_match import dc_seal_vgs_match
@@ -189,16 +194,17 @@ __all__ = (
     "INPUT_STATUS_MEASURED",
     "INPUT_STATUS_UNMEASURED",
     "KernelContext",
-    "LINEAR_REGION",
     "LocalSeal",
     "LutAccess",
     "NO_ORDER_HINTS",
+    "OUT_OF_DOMAIN",
     "METRICS_AUX_WRITER",
     "METRICS_DC_WRITER",
     "METRICS_KEY",
     "METRICS_SS_WRITER",
     "NodeWrite",
     "OrderHints",
+    "RegionJudgment",
     "PASSIVE_VALUES_WRITER",
     "PATH_FIXED",
     "PATH_MOS",
@@ -248,6 +254,8 @@ __all__ = (
     "SEAL_WRITER_UNIQUE",
     "SS_CIRCUIT_WRITER",
     "SS_DEV_WRITER",
+    "SS_OFF_DELTA_WRITER",
+    "SS_OFF_OP_WRITER",
     "SS_NODAL_WRITER",
     "SS_WRITES",
     "TIE_CURRENT_PIVOT",
@@ -293,25 +301,29 @@ __all__ = (
     "dc_inputs_from_spec",
     "dc_lengths",
     "dc_rails",
+    "dc_region_decl",
     "dc_scc_order",
     "dc_seal_bulk_reverse",
-    "dc_seal_conduction",
     "dc_seal_kcl",
     "dc_seal_kvl_branch",
     "dc_seal_node_conflict",
+    "dc_seal_region",
     "dc_seal_report",
-    "dc_seal_saturation",
     "dc_seal_vgs_match",
     "symmetry_marks",
+    "terminal_voltages",
     "dc_theta_schema",
     "dc_tolerances",
     "dc_widths",
     "dc_writer_plan",
     "gauss_seidel",
+    "judge_region",
+    "junction_forward",
     "k_max",
     "lift_s1",
     "newton_solve",
     "pre_layout_lut_access",
+    "region_mismatch",
     "saturation_window",
     "seal_dc",
     "seal_versions",

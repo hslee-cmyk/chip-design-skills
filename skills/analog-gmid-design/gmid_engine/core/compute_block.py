@@ -125,6 +125,7 @@ class ComputeBlock:
         self.writes = writes
         self.code_hash = _code_hash(fn)
         self.__doc__ = fn.__doc__
+        self.__module__ = fn.__module__      # 블록은 그 함수가 정의된 모듈에 산다(모듈 안 이름을 바꿔 끼우는 호출 계수 test 가 모듈을 찾는다)
 
     def _prepare(self, snapshot, extras):
         """(투영, 입력 버전) -- 한 번만 만든다. extras 불변 검사(`TypeError`)는 이 투영에서 한 번."""

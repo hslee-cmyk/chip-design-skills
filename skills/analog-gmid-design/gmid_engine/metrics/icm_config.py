@@ -1,7 +1,7 @@
 """ICMR 측정 구성 계산 블록 -- 봉인점 KCL 선형 감도 끝 (계획 N3.8 'ICMR 측정 구성'·'ICMR servo 감도 -- KCL'·'창 필드', 설계 41 §4.7-3b·4.7-W W1·W2, 사용자 결정
 O-58·O-108·O-115·O-204·O-205, 카드 IT-2c).
 
-진입점: `icm_config_window`(`@compute_block`, writer `icm_config`) -- `icm_config_window(snapshot, lut, linear_frozenset, donors=, counters=)`.
+진입점: `icm_config_window`(`@compute_block`, writer `icm_config`) -- `icm_config_window(snapshot, lut, donors=, counters=)`.
 reads `node.{dc_writer, dc_rail_v, port_direction, port_role, dc_v}`, `device.{pins, kind, bulk, dc_L, dc_colour, dc_coord, dc_tol_v}`, `graph.{ss_nodal, views}`;
 writes `node.dc_window_cfg`(입력 포트마다 `Window`, 구성이 None 이면 항목 없음)·`graph.icm_config`(key `METRICS_KEY`) = `IcmConfig`.
 
@@ -34,7 +34,7 @@ writes `node.dc_window_cfg`(입력 포트마다 `Window`, 구성이 None 이면 
 """
 import numpy
 
-from gmid_engine.authoring import INPUT_DIRECTION, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P
+from gmid_engine.authoring import INPUT_DIRECTION, REGION_TRIODE, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P
 from gmid_engine.core import compute_block
 from gmid_engine.graph import F_VIEW_REQUIRED, S1V_KEY, VIEW_TRANSFER, default_port_seeds
 from gmid_engine.sizing import (ICM_CONFIG_WRITER, INPUT_STATUS_MEASURED, INPUT_STATUS_UNMEASURED, METRICS_KEY, Circuit, Window,
@@ -47,7 +47,7 @@ from .mna_types import Undefined
 READS = (
     ("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_v"),
     ("device", "pins"), ("device", "kind"), ("device", "bulk"), ("device", "dc_L"), ("device", "dc_colour"), ("device", "dc_coord"),
-    ("device", "dc_tol_v"),
+    ("device", "dc_tol_v"), ("device", "region_decl"),
     ("graph", "ss_nodal"), ("graph", "views"),
 )
 WRITES = (("node", "dc_window_cfg"), ("graph", "icm_config"))
@@ -221,7 +221,8 @@ def _vcm(inputs, slope, volts, ends):
 
 @compute_block(ICM_CONFIG_WRITER, reads=READS, writes=WRITES)
 def icm_config_window(projection):
-    lut, linear = projection.extras
+    (lut,) = projection.extras
+    linear = frozenset(m for m, r in projection.column("device", "region_decl") if r.region == REGION_TRIODE)                  # `triode` 선언 소자 -- 영역 선언 술어 필드 `device.region_decl` 에서(경계 행이 triode 행)
     nodal = projection.value("graph", METRICS_KEY, "ss_nodal")
     directions = dict(projection.column("node", "port_direction"))
     inputs = tuple(sorted(net for net, d in directions.items() if d == INPUT_DIRECTION))

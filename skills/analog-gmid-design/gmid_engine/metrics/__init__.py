@@ -166,14 +166,17 @@ from .sensitivity import response_sensitivity
 from .ss_circuit import ss_circuit, ss_circuit_field
 from .ss_evaluate import ss_evaluate
 from .ss_nodal import ss_nodal_system
+from .ss_off_delta import ss_off_delta
+from .ss_off_gate import off_region_gate
+from .ss_off_op import ss_off_op
 from .ss_linearize import GMB_COLUMN, GMB_VS_CELL_SECANT, JUNCTION_LAYOUT_DIFFUSION, JUNCTION_LUT_RULE, ss_dev
 from .ss_metrics import metrics_ss
-from .ss_types import MetricBundle, MetricRequest, SsCircuit, SsDevice, SsEvaluation
+from .ss_types import MetricBundle, MetricRequest, OffDelta, OffOp, SsCircuit, SsDevice, SsEvaluation
 from .stamp_mos import mos_stamps
 from .sensitivity_gate import sensitivity_gate
 from .stamp_two_terminal import two_terminal_stamps
 from .supply import supply_currents
-from .verified_by import VerifiedBy, verified_by
+from .verified_by import SPICE_ORACLE, VerifiedBy, verified_by
 from .block_gain_model import block_gain_model_of
 
 __all__ = (
@@ -281,6 +284,8 @@ __all__ = (
     "SliceCurveCheck",
     "SmallSignalCircuit",
     "SsCircuit",
+    "OffDelta",
+    "OffOp",
     "SsDevice",
     "SsEvaluation",
     "StampSet",
@@ -348,6 +353,9 @@ __all__ = (
     "ss_circuit",
     "ss_circuit_field",
     "ss_nodal_system",
+    "ss_off_delta",
+    "ss_off_op",
+    "off_region_gate",
     "icm_config_window",
     "icm_window_metrics",
     "kvl_sensitivity",
@@ -356,5 +364,6 @@ __all__ = (
     "supply_currents",
     "theta_passive_pairs",
     "two_terminal_stamps",
+    "SPICE_ORACLE",
     "verified_by",
 )
