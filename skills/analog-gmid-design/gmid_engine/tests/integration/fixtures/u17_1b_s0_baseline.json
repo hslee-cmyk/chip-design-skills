@@ -1,5 +1,6 @@
 {
  "_source": "U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). stage_a_sha = 단계 A 보고서 키별 정준 JSON sha256(기준선에 적힌 키만 대조한다 -- 측정 때 빼 둔 옛 S0 적중 칸은 실행 사이 재사용 제거로 보고서에서 없어졌고, NFR-4 card 2 의 최상위 키 env_fp 는 실행 환경 지문이라 기준선 대상이 아니다), stage_b_sha = 단계 B 보고서 achievability 밖 키, achievability_sha = achievability 키별, start·kernel = StartIntervals·KernelContext·SearchContext 칸의 core fp_of. [U17 ①-b 판정 후 2026-10-14] stage_a_sha.tables 는 옛 기준선 표에서 설계 40 v1.9.1 D1(최상위 key 칸 폐기)과 추가 결정 (c)(facts_applied -> applied_facts 이름 변경)만큼 변환한 값의 sha256(wt/_scratch_u17_1b_fix_tests/transform_tables_baseline.py). junction_source 는 경로를 뺀 내용 투영(kernel.junction_content -- params fp_of·temp_c·pdk_decl_sha256, wt/_scratch_u17_1b_fix_tests/junction_content_base.py)으로 대조한다. [library spec card 2026-10-14, 사용자 U-3 '4회로만 재측정'] spec 이 바뀐 4회로(Q-S2 pm_ss_deg >= 70: sf_pushpull_output_opamp·two_stage_ota·two_stage_ota_sf, Q-S3 잡음 450 uVrms: current_reuse_telescopic_ota) 항목은 base 41a2c4a 코드(master 34932a9 + spec 커밋)로 test 작성 주체가 다시 잰 값(wt/_scratch_libspec_tests/remeasure.py + merge.py, OPENBLAS_NUM_THREADS=1, 빈 S0 폴더, start·kernel 은 S0 필드 .value 에 core fp_of). 나머지 5회로 항목은 바이트 그대로(같은 스크립트 재측정값과 일치 확인).",
+ "_source_o227": "[O-227 (2) 2026-11-04] r2r_opamp, rfc_ota 항목: 판정자(audit)가 master 5671a6c7 + test 커밋 ede4f440 격리 복제본에서 잰 값. 재는 법 = 이 파일 ngcc_3stage_ff 항목과 같은 꼴(status != [ok, ok] 회로: stage_a_sha = 단계 A 보고서에서 env_fp 뺀 키, stage_b_sha = 단계 B 보고서에서 achievability 뺀 키, achievability_sha = achievability 키, sha = test_s0_layer_9circuits._sha, 사슬 두 번 비트 동일 확인, OPENBLAS_NUM_THREADS=1). 같은 도구가 ngcc_3stage_ff·common_gate_amplifier·two_stage_ota 항목을 그대로 재현함을 대조했다. 두 회로의 status 는 [ok, ok] 가 아니다(r2r = stopped: 단계 A 정지 3건, rfc = review_needed) -- 회귀 기준선이지 '회로 정상' 표지가 아니다. cnr_ota, erfc_ota 는 단계 B 정지(achievability 없음)라 넣지 않았다. 판정 기록 .ai/verification/20261104-o227/verdict.json.",
  "common_gate_amplifier": {
   "achievability_sha": {
    "area": "e96ca496e169d2666be95d163fd5a61754526cb08de8b72e7a2bdcc540d484a2",
@@ -487,6 +488,88 @@
   "status": [
    "ok",
    "ok"
+  ]
+ },
+ "r2r_opamp": {
+  "achievability_sha": {
+   "area": "499b1cd3542692dc7b7641b5d12b4ede9fdb1449c216e611234091c2a1a58a8e",
+   "buffer_window_report": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
+   "curves": "756c3e0c504410b57933676dcb03a3c8e0b0ae98da19e43ebd116d31d331907a",
+   "dof": "3f884bf1c42799c98c27f80cf6221fc003964342aa6852d37492a3def8044cf9",
+   "gain": "570c57ec076d665bf1c22052d9752f3a444ec04c333b0a52acdb6e925b4aa978",
+   "headroom": "d78191f0f06afc47ae7ec09063a418020081a186ce472c319af2dbdd77da1c91",
+   "reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "verdict": "c48b5b1a9776c84602de2306d7903a7241158a5077e7a8519af75c33441b8334",
+   "warnings": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "stage_a_sha": {
+   "applied_facts": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "circuit": "d3b26d3c321e7181c8a6aa5d68dabd3db1f7acbf0a6028dfeb33952d8bae17a1",
+   "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
+   "coupling": "754f7fc555af74cc30275d50fc22d5a0835df109a4ff2995d8c74bb644886986",
+   "declared_comparison": "5a8042d834243fb2c1af7276d58f81e74116d519ae1ed5ebaee29b07248c3517",
+   "exit_code": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+   "ff_ratio_candidates": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "orbit_matching_crosstab": "55fb026f884798f6456da963b82c821ffdf26449925dd1de0ff507a22106d3da",
+   "review_needed": "3fd2ceea8df86d53a7b1c0b3a1ca8efe9d17ff13c9452972b0849a4d83fd8166",
+   "status": "15b0fb141b7672221ecefd53ca5a29ea042e3bc3bad9e08c11df0cebce279c2e",
+   "stop_reasons": "4d7e5a81748b63117515bf115f26039f7b323631fdec01b321b05be4489fcd99",
+   "tables": "61686d06211c80aaae83e1a1c9196d6f6ed245177e37e8c39116543fd85ace3a",
+   "views": "fd5aaa0f3a6e78f39336cd1b0ccae39b760a8244799059fb636e368b861e6f73"
+  },
+  "stage_b_sha": {
+   "circuit": "d3b26d3c321e7181c8a6aa5d68dabd3db1f7acbf0a6028dfeb33952d8bae17a1",
+   "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
+   "diagnostic": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+   "exit_code": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+   "status": "15b0fb141b7672221ecefd53ca5a29ea042e3bc3bad9e08c11df0cebce279c2e",
+   "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "status": [
+   "stopped",
+   "stopped"
+  ]
+ },
+ "rfc_ota": {
+  "achievability_sha": {
+   "area": "8b81acc44009c46f04148adc8b2f4f5cf1d64ad83984c7fbdaae00004dee20bb",
+   "buffer_window_report": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
+   "curves": "756c3e0c504410b57933676dcb03a3c8e0b0ae98da19e43ebd116d31d331907a",
+   "dof": "db15b05432b3e9b31045e50666c2a7fba727bc2a250a9aa76016db19632582b9",
+   "gain": "f081eef722f119d85c2fd5353f0bb2e553c02576c97b84941c7fd5cb6566c040",
+   "headroom": "b004d9cc2a800145b017de2b50063906f94e48cd969561b02b3ad108f270a3b5",
+   "reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "verdict": "c48b5b1a9776c84602de2306d7903a7241158a5077e7a8519af75c33441b8334",
+   "warnings": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "stage_a_sha": {
+   "applied_facts": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "circuit": "c85a6b420fa4cb65d912ff5965a6d6f99cbcf9e6ac75676e5471ffd8e73a47b1",
+   "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
+   "coupling": "78994a0d9ea2e958e45d76e513dc90430958d5bd6d4ce1ac4e2106020f34ff54",
+   "declared_comparison": "9cfaa9c5d6f8a3c91dea36fe3b6b762550f30361ed763797488704de9b735799",
+   "exit_code": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+   "ff_ratio_candidates": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "orbit_matching_crosstab": "ffcf13c8f372873227af6696daeb96de7e86cec2f166ed4fd44dfe20a49c25cf",
+   "review_needed": "1cd91be33abc262353830103be30d85c64158e5db7093fe5f975337667549c92",
+   "status": "5551b2c0438de94bf1abf46d19675fefc0efe062044a885e1f0b3bd35deee6e2",
+   "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "tables": "ac88f81dbce194d717f8d041a88f81494543a5c46ba0215aad7bd54878d2baa0",
+   "views": "889fe405f46a8c82e2998621c2e38db8b7d51fa0eefa32e782b886cc946691a5"
+  },
+  "stage_b_sha": {
+   "circuit": "c85a6b420fa4cb65d912ff5965a6d6f99cbcf9e6ac75676e5471ffd8e73a47b1",
+   "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
+   "diagnostic": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+   "exit_code": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+   "status": "5551b2c0438de94bf1abf46d19675fefc0efe062044a885e1f0b3bd35deee6e2",
+   "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "status": [
+   "review_needed",
+   "review_needed"
   ]
  },
  "sf_pushpull_output_opamp": {

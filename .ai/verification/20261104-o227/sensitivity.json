@@ -1,0 +1,26 @@
+{
+ "cnr_ota": {
+  "stage_a_sha": [],
+  "stage_b_sha": [],
+  "achievability_sha": []
+ },
+ "erfc_ota": {
+  "stage_a_sha": [],
+  "stage_b_sha": [],
+  "achievability_sha": []
+ },
+ "r2r_opamp": {
+  "stage_a_sha": [],
+  "stage_b_sha": [],
+  "achievability_sha": [
+   "gain"
+  ]
+ },
+ "rfc_ota": {
+  "stage_a_sha": [],
+  "stage_b_sha": [],
+  "achievability_sha": [
+   "gain"
+  ]
+ }
+}
