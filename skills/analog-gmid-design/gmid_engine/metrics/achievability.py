@@ -36,7 +36,7 @@ from gmid_engine.authoring import (
 from gmid_engine.core import AMPLITUDE_DB_PER_DECADE, compute_block
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, S1V_KEY, STATUS_DERIVED, STATUS_RATIFIED
 from gmid_engine.lut import derived
-from gmid_engine.sizing import DC_KEY, KERNEL_KEY, THETA_CURRENT
+from gmid_engine.sizing import DC_KEY, KERNEL_KEY, REL_INPUT_POINT, THETA_CURRENT
 
 from .achievability_types import (
     REASON_AREA,
@@ -290,10 +290,14 @@ def _dof(p, local, element_values):
     nets = [n for n, _flag in p.column("node", "is_rail") if n not in rails]
     owner = dict(p.value("graph", KERNEL_KEY, "l_ties"))
 
+    # 입력 점(DEC-106): 짝 포트는 뿌리와 한 변수다(KVL ΔV = 0) -- 쓰기 계획 필드 `node.dc_writer` 의 input_point known 을 읽는다
+    same_point = {n: w.known for n, w in p.column("node", "dc_writer") if w.relation == REL_INPUT_POINT and w.known is not None}
+
     def v(net):
+        net = same_point.get(net, net)
         return () if net in rails else ("V:" + net,)
 
-    variables = ["V:" + n for n in nets]
+    variables = ["V:" + n for n in nets if n not in same_point]
     equations = {}
     free = set(basis.free)
     for name in sorted(n for n, c in local.cls.items() if c == ELEMENT_MOS):
@@ -329,7 +333,7 @@ def _reasons(gain, area, headroom_stops, dof):
 
 READS = (
     ("device", "element_class"), ("device", "kind"), ("device", "pins"), ("device", "bulk"), ("device", "dc_colour"),
-    ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_colour"),
+    ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_colour"), ("node", "dc_writer"),
     ("graph", "orbits"), ("graph", "dc_current_basis"), ("graph", "fixed_values"), ("graph", "l_ties"),
     ("graph", "views"), ("graph", "l_classes"), ("graph", "search_domain"), ("graph", "passive_area_decl"),
 )

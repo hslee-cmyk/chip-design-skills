@@ -295,4 +295,7 @@ def s1v_fields(projection):
     return {("graph", "views"): {S1V_KEY: tuple(views)}, ("graph", "l_classes"): {S1V_KEY: l_classes},
             ("graph", "findings"): {S1V_KEY: findings},
             ("graph", "declared"): {S1V_KEY: tuple((source, len(stages)) for source, stages in declared)},
-            ("graph", "applied_facts"): {S1V_KEY: applied}}
+            ("graph", "applied_facts"): {S1V_KEY: applied},
+            ("graph", "diode_nodes"): {S1V_KEY: model.diode_nodes}, ("graph", "composite_mos"): {S1V_KEY: model.composite_mos},
+            ("graph", "composite_bundles"): {S1V_KEY: model.composite_bundles},
+            ("graph", "composite_internal"): {S1V_KEY: model.composite_internal}}

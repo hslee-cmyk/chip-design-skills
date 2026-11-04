@@ -20,7 +20,6 @@ from .pre_layout_widths import pre_layout_lut_access
 from .s2_lift import lift_s1
 from .s2_values import (
     BRANCH_MOS_ZERO_CURRENT,
-    BRANCH_INPUT_MULTIPLE_ROOTS,
     BRANCH_RESISTOR_CYCLE,
     COORD_DEPENDENT,
     COORD_WRITER,
@@ -55,6 +54,7 @@ from .s2_values import (
     REASON_TOL_UNDEFINED,
     REASON_VDSAT_MISSING,
     REL_INPUT_DC,
+    REL_INPUT_POINT,
     REL_RAIL,
     REL_RESISTOR,
     REL_TARGET,
@@ -157,7 +157,6 @@ from .writer_plan import dc_writer_plan
 
 __all__ = (
     "BRANCH_MOS_ZERO_CURRENT",
-    "BRANCH_INPUT_MULTIPLE_ROOTS",
     "BRANCH_RESISTOR_CYCLE",
     "COORD_DEPENDENT",
     "COORD_WRITER",
@@ -207,6 +206,7 @@ __all__ = (
     "REASON_TOL_UNDEFINED",
     "REASON_VDSAT_MISSING",
     "REL_INPUT_DC",
+    "REL_INPUT_POINT",
     "REL_RAIL",
     "REL_RESISTOR",
     "REL_TARGET",

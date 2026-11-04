@@ -649,7 +649,9 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 
 | 개념 | 정본 | 비고 |
 |---|---|---|
-| 복합 diode(DC 가지 걷기로 자기 gate 에 닿는 MOS)·묶음·기준/캐스코드 기준 | `graph.composite_diode.composite_diodes` | DC 역할 규칙 1c 가 부르고, `net_model` 이 evidence 에서 `diode_nodes`·`composite_mos`·`composite_bundles`·`composite_internal` 을 만든다. 다른 곳에서 복합 diode 를 다시 찾지 않는다 |
+| 복합 diode(DC 가지 걷기로 자기 gate 에 닿는 MOS)·묶음·기준/캐스코드 기준 | `graph.composite_diode.composite_diodes` | DC 역할 규칙 1c 가 부르고, `net_model` 이 evidence 에서 `diode_nodes`·`composite_mos`·`composite_bundles`·`composite_internal` 을 만든다(S1v 필드, writer `s1v_fields` -- `net_model(` 호출 자리는 이 하나). `coupling_vars` 는 `net_model_from_fields` 로 그 필드를 읽는다. 다른 곳에서 복합 diode 를 다시 찾지 않는다 |
+| 입력 점(입력 DC 미선언 차동 입력쌍 한 점)·`input_cm_undefined` 정지 [IT-1, DEC-106] | graph 필드 `node.dc_writer`(relation `input_point`) -- writer `dc_writer_plan` 하나(`sizing/writer_plan.py` `_input_point`·`canon`) | 소비자: `block_columns`(노드 풀이), `scc_order`, `theta_schema`, `fd_jacobian`, `achievability._dof`(변수 공유). 포트 둘을 한 점으로 묶는 판정은 `writer_plan.py` 에만 |
+| g = s MOS(gate 넷 == source 넷) [IT-1, O-210 RR-6] | graph 필드 `graph.gvgs_summary.gate_source_same` -- writer `s1_gvgs` 하나 | 쓰기 계획은 READS 로만 읽어 `fixed_vgs` 종속으로 둔다. 둘째 판정 없음 |
 | 주경로(D_max·slack)·feedforward 묶음 | `graph.feedforward_cells.feedforward_cells` | 비용 정의는 `stage_bfs` 의 `StageResult.edges` 하나. 주경로 블록 재구성은 `view_analysis._without` |
 | 루프 역할(루프 뷰 \| 중첩 Miller 내부 \| 복합 diode 내부 \| 바이어스 SCC) | `graph.loop_roles.loop_roles` | 복합 diode 내부 분류는 `loop_classify`(1.6), 중첩 Miller 판정은 이 함수 |
 | 사이클 극성(DC)·`ac_only` | `graph.polarity.loop_polarity`, 루프 뷰 극성은 `s1v_build._polarity` | 커패시터 경유 = 0 = `ac_only` |

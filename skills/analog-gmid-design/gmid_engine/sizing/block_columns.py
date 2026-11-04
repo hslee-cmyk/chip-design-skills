@@ -74,6 +74,7 @@ from .s2_values import (
     REASON_STRICT_RECHECK,
     REASON_TOL_UNDEFINED,
     REL_INPUT_DC,
+    REL_INPUT_POINT,
     REL_RESISTOR,
     REL_TARGET,
     REL_VGS_GATE,
@@ -101,6 +102,11 @@ READS = (
 WRITES = (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), ("device", "dc_ln_idu"),
           ("graph", "dc_scc_log"))
 _REL_MOS, _REL_RES, _REL_FIXED, _REL_Y = PATH_MOS, PATH_RESISTOR, PATH_FIXED, PATH_Y
+def _is_root(w):
+    """W4 뿌리 writer 인가 -- `free_window` 또는 입력 점의 뿌리(`input_point` 이고 known 없음; known 이 있으면 뿌리와 같은 전압인 짝 포트)."""
+    return w.relation == REL_WINDOW or (w.relation == REL_INPUT_POINT and w.known is None)
+
+
 _ROW_SAT = "sat"                                      # `region_rows` 행 종류: 선언 없음(포화)
 _ROW_TRIODE = "triode"                                # `intended_region: triode` 선언 소자
 _TARGET_OUT_OF_RANGE = "lut_target_out_of_range"       # lut CONTRACT 4.1·3.1 vgs_for_current_density·gm_id_for_target 사유 키
@@ -185,6 +191,10 @@ class _Circuit:
         self.ln_idu = {key: v for (kind, key), v in self.theta.items() if kind == THETA_LN_IDU}
         volts = tuple(self.rail_v.values())
         self.lo, self.hi = min(volts), max(volts)
+        self.mates = {}                                                # 입력 점 뿌리 -> 같은 전압인 짝 포트들(쓰기 계획의 known)
+        for net, w in self.writers.items():
+            if w.relation == REL_INPUT_POINT and w.known is not None:
+                self.mates.setdefault(w.known, []).append(net)
         self.order_terms = {}
         for m in sorted(self.coord, key=lambda x: (self.device_colour.get(x, 0), x)):     # 구조 색 순서 -- 이름 치환이 항 순서(동률 tie-break)를 바꾸지 않게
             d, _g, s = (self.pins[m][t] for t in MOS_TERMINAL_NAMES)
@@ -208,7 +218,7 @@ class _Circuit:
     def kvl_window(self, net, values):
         """W4 순서 창: x 에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이 되는 쪽 -- x 가 전류가 나가는 단자면
         lo ≥ V(반대 단자), 들어오는 단자면 hi ≤ V(반대 단자). 제약이 없는 쪽은 레일 전압 범위 끝."""
-        terms = self.order_terms.get(net, ())
+        terms = self.terms(net)
         lo, hi = self.lo, self.hi
         for is_lower, other in terms:
             if is_lower:
@@ -216,6 +226,13 @@ class _Circuit:
             else:
                 hi = min(hi, values[other])
         return lo, hi, len(terms)
+
+    def terms(self, net):
+        """x 에 채널이 닿는 MOS 의 순서 제약 항 -- 입력 점 뿌리는 짝 포트에 채널이 닿는 MOS 의 항까지(두 포트가 한 점)."""
+        found = list(self.order_terms.get(net, ()))
+        for mate in self.mates.get(net, ()):
+            found.extend(self.order_terms.get(mate, ()))
+        return found
 
     def window(self, net, values):
         """W4 창 = 순서 창 ∩ (입력 뿌리면) 입력 포화 창 `override`(y_icm 범위, `input_windows`가 정한다)."""
@@ -229,8 +246,8 @@ class _Circuit:
         return sorted(self.writers.items(), key=lambda kv: kv[1].order)
 
     def input_roots(self):
-        """입력 포트인 W4 뿌리 넷(y 키 = 그 넷; 입력 DC 미선언 회로, `dc_writer_plan` 이 둘 이상이면 정지시킨다 -- 최대 하나) -- 쓰기 순번 순."""
-        return tuple(net for net, w in self.canonical_writers() if w.relation == REL_WINDOW and net in self.inputs)
+        """입력 포트인 W4 뿌리 넷(y 키 = 그 넷; 입력 DC 미선언 회로 -- 단일 입력 뿌리 또는 입력 점의 p 포트, `dc_writer_plan` 이 그 밖은 정지시킨다 -- 최대 하나) -- 쓰기 순번 순."""
+        return tuple(net for net, w in self.canonical_writers() if _is_root(w) and net in self.inputs)
 
     def declared_inputs(self):
         """입력 DC 가 선언된 입력 포트 넷(writer 관계 `input_dc` -- x 를 따로 두는 포트) -- 쓰기 순번 순."""
@@ -239,7 +256,7 @@ class _Circuit:
     def writer_head(self, net):
         """net 의 writer 사슬(`known` 을 거슬러) 끝 넷과 그 관계: 고정 노드(F)면 F 성분, `free_window` 면 그 W4 뿌리의 성분."""
         w = self.writers[net]
-        while w.relation not in FIXED_RELATIONS and w.relation != REL_WINDOW:
+        while w.relation not in FIXED_RELATIONS and not _is_root(w):
             net = w.known
             w = self.writers[net]
         return net, w.relation
@@ -458,6 +475,8 @@ class _Circuit:
             return values[w.known] + sign * vgs if w.relation == REL_VGS_GATE else values[w.known] - sign * vgs
         if w.relation == REL_RESISTOR:
             return values[w.known] + self.drop(w.element, w.known, net)
+        if w.relation == REL_INPUT_POINT and w.known is not None:      # 입력 점의 짝 포트 -- 뿌리와 같은 전압(KVL)
+            return values[w.known]
         lo, hi, ncols = self.window(net, values)
         if lo > hi and not strict:
             return values[net]
@@ -503,7 +522,9 @@ class _Circuit:
             return values[w.known] + sign * sigma * vgs, grad
         if w.relation == REL_RESISTOR:
             return values[w.known] + self.drop(w.element, w.known, net), {w.known: 1.0}
-        terms = self.order_terms.get(net, ())
+        if w.relation == REL_INPUT_POINT and w.known is not None:
+            return values[w.known], {w.known: 1.0}
+        terms = self.terms(net)
         lo, hi, lo_node, hi_node = self.lo, self.hi, None, None
         for is_lower, other in terms:
             if is_lower and values[other] > lo:
@@ -784,7 +805,7 @@ def _windows(c, values, kernel):
     """`node.dc_window` -- W4 뿌리 + 모든 입력 포트(설계 41 4.7-2·4.7-3). 뿌리 아닌 입력 포트·입력 DC 선언 포트는 순서 창이 없어 `constraints` 0."""
     out = {}
     for net, w in c.writers.items():
-        if w.relation == REL_WINDOW:
+        if _is_root(w):
             lo, hi, ncols = c.window(net, values)
             out[net] = Window(lo, hi, ncols, kernel.status, kernel.tol) if net in c.inputs else Window(lo, hi, ncols)
     group = c.declared_inputs()
@@ -798,7 +819,7 @@ def _windows(c, values, kernel):
                 lo, hi = c.port_window(values[net], slope[net], dlo, dhi)
                 out[net] = Window(lo, hi, 0, status, tol)
     for net, w in c.canonical_writers():               # 입력 DC 미선언인 뿌리 아닌 입력 포트
-        if net not in c.inputs or w.relation in (REL_WINDOW, REL_INPUT_DC):
+        if net not in c.inputs or w.relation in (REL_WINDOW, REL_INPUT_DC, REL_INPUT_POINT):    # 입력 점: p 포트는 뿌리 항목, n 포트 항목은 없다
             continue
         head, relation = c.writer_head(net)
         if relation in FIXED_RELATIONS:                # F 성분에 속한 포트 -- 창이 정의되지 않는다(fail-closed)
@@ -836,7 +857,7 @@ def dc_columns(projection):
             far_from_near = c.drop(w.element, w.known, net)
             paths[net].append(PathValue((_REL_RES, w.element), values[w.known] + far_from_near))
             paths[w.known].append(PathValue((_REL_RES, w.element), values[net] - far_from_near))
-        elif w.relation == REL_WINDOW:
+        elif _is_root(w):
             paths[net].append(PathValue((_REL_Y, w.y_key), values[net]))
         elif w.relation not in (REL_VGS_GATE, REL_VGS_SOURCE):
             paths[net].append(PathValue((_REL_FIXED, w.relation), values[net]))

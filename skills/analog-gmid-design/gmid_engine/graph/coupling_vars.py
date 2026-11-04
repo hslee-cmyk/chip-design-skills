@@ -19,6 +19,8 @@ writes `graph/coupling`(key `COUPLING_KEY`): `vars`(CouplingVar tuple), `column_
 결과 `vars` 는 (kind, members, nets, domain) 순 정렬이고 같은 (kind, members, nets, domain)은 한 번만 낸다. 호출자: 파이프라인 단계 A4(`run_stage_a` -- 필드를 읽어 보고서
 `coupling` 키를 쓴다). 소비자는 U15 층 0 조립(41 §5.5)이다.
 """
+import dataclasses
+
 from gmid_engine.core import compute_block
 
 from .column_block_map import column_block_map
@@ -40,7 +42,7 @@ from .coupling_values import (
     BlockRef,
     CouplingVar,
 )
-from .net_model import net_model
+from .net_model import DERIVED_FIELDS, net_index
 from .s1_values import (COUPLING_KEY, COUPLING_VARS_WRITER, COUPLING_WRITES, DOMAIN_DC, DOMAIN_GEOM, GRAPH_KEY, MATCH_MIRROR, REL_EQUAL_VGS, ROLE_BIAS,
                         S1_READS, S1V_KEY)
 from .s1v_values import BLOCK_GAIN, CELL_CD, CELL_CS, ROLE_DIODE_LOAD, ROLE_LOAD, ROLE_MIRROR, ROLE_TAIL
@@ -167,7 +169,8 @@ def _k8(model, views, keys):
     return out
 
 
-READS = S1_READS + (("graph", "views"), ("graph", "l_classes"))
+READS = S1_READS + (("graph", "views"), ("graph", "l_classes"), ("graph", "diode_nodes"), ("graph", "composite_mos"),
+                    ("graph", "composite_bundles"), ("graph", "composite_internal"))
 
 
 @compute_block(COUPLING_VARS_WRITER, reads=READS, writes=COUPLING_WRITES)
@@ -176,7 +179,7 @@ def coupling_vars(projection):
     views = projection.value("graph", S1V_KEY, "views")
     l_classes = projection.value("graph", S1V_KEY, "l_classes")
     rows, bias_columns = column_block_map(s1, views)
-    model = net_model(s1)
+    model = dataclasses.replace(net_index(s1), **{f: s1.value("graph", S1V_KEY, f) for f in DERIVED_FIELDS})   # 파생 술어 네 칸은 S1v 필드 읽기(둘째 계산 없음)
     keys = _keys_by_view(rows, views)
     found = _k1_k2(s1, l_classes, keys, _roles(views)) + _k3(model, keys) + _k4(s1, keys) + _k7(rows, model) + _k8(model, views, keys)
     unique = {(v.kind, v.members, v.nets, v.domain): v for v in found}
