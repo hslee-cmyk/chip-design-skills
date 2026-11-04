@@ -15,7 +15,7 @@ import gmid_engine.sizing as sizing
 from gmid_engine.core import ComputeBlock, SealViolationError
 from gmid_engine.search import STATUS_FAILED, STATUS_SEALED, evaluate
 
-from .conftest import CELLS_C, build_case, circuit_c, theta_r4c
+from .conftest import CELLS_C, build_case, circuit_c, theta_r4c, write_decls
 from .conftest import COUNT_FIELDS, block_row, row_delta
 from .test_kernel import read_evals, th_sorted
 
@@ -31,8 +31,9 @@ def _theta_child():
     return theta_r4c(y=0.45, v1=0.62, i2=3e-5)
 
 
-def _failed(tmp_path, lut, root, record, target, with_parent, monkeypatch):
-    case = build_case(tmp_path, circuit_c(), lut, archive_root=root)
+def _failed(tmp_path, lut, root, record, target, with_parent, monkeypatch, pdk, rule):
+    # pdk·rule 은 두 case 가 같은 선언을 쓴다(선언 sha 가 graph/kernel 지문에 들어가므로 case 마다 따로 쓰면 지문이 달라진다; 이 test 는 parent 독립만 본다)
+    case = build_case(tmp_path, circuit_c(), lut, archive_root=root, pdk=pdk, rule=rule)
     s = case.sctx
     parent = None
     if with_parent:
@@ -66,10 +67,11 @@ def test_it2e_s3_failure_line_fp_parent_independent(tmp_path, lut_sealed, monkey
     src = build_case(tmp_path / "src", circuit_c(), lut_sealed)
     bad = evaluate(src.sctx, th_sorted(theta_r4c(y=0.1, v1=1.5)), CELLS_C)
     assert bad.status == STATUS_FAILED and bad.failure is not None                      # 전제: 실제 봉인 위반 기록
+    pdk, rule = write_decls(tmp_path / "decls")
     root_a, root_b = tempfile.mkdtemp(prefix="s6e"), tempfile.mkdtemp(prefix="s6f")
     try:
-        ra, la = _failed(tmp_path / "a", lut_sealed, root_a, bad.failure, target, True, monkeypatch)
-        rb, lb = _failed(tmp_path / "b", lut_sealed, root_b, bad.failure, target, False, monkeypatch)
+        ra, la = _failed(tmp_path / "a", lut_sealed, root_a, bad.failure, target, True, monkeypatch, pdk, rule)
+        rb, lb = _failed(tmp_path / "b", lut_sealed, root_b, bad.failure, target, False, monkeypatch, pdk, rule)
     finally:
         shutil.rmtree(root_a, ignore_errors=True)
         shutil.rmtree(root_b, ignore_errors=True)
