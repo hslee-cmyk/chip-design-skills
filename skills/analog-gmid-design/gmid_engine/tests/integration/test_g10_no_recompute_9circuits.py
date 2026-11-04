@@ -108,8 +108,6 @@ def test_no_same_input_recompute_in_one_run(env, circuit, tmp_path):
                     donors=donors, counters=counters)
     memo = LutMemo(env.lut, point=1 << 16, curve=1 << 14, root=1 << 16)
     b = run_stage_b(a, memo, env.pdk, output_dir=out, diagnostic=True, settings=_settings())
-    if pinned:                               # 정지 사유가 표와 같으면 xfail, 다르거나 정지하지 않거나 기준선이 생겼으면 실패
-        o227_stop_pin.pin_stop("test_no_same_input_recompute_in_one_run[%s]" % circuit, circuit, b.report, b.report["achievability"] is None)
     searched = (a.status, b.status) == ("ok", "ok")
     assert searched == (circuit not in NOT_SEARCHED), (circuit, a.status, b.status)     # 전제: card B 의 회로 구분
     if not searched:
@@ -121,6 +119,8 @@ def test_no_same_input_recompute_in_one_run(env, circuit, tmp_path):
         assert writers, "전제: S0 수준 블록이 있다"
         bad = _check_rows(rows, writers)
         assert not bad, "%s 단계 A·B 실행 계수 위반: %r" % (circuit, bad)
+        if pinned:                           # [O-227 M3] 등록·계수 단언을 다 돈 뒤에만: 정지 사유가 표와 같으면 xfail, 다르거나 정지하지 않거나 기준선이 생겼으면 실패
+            o227_stop_pin.pin_stop("test_no_same_input_recompute_in_one_run[%s]" % circuit, circuit, b.report, b.report["achievability"] is None)
         return
     root = tempfile.mkdtemp(prefix="g10", dir=os.environ.get("TEMP") or None)     # 짧은 경로(지문 64자 + 파일 이름)
     try:

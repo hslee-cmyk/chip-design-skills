@@ -7,7 +7,10 @@ test_layer0_boundary_rows.py(layer0 존재 1건 x 2회로), test_g10_no_recomput
 - 관측한 정지 사유 목록이 표와 **정확히** 같으면 `pytest.xfail`(통과로 세지 않음). 다르거나(사유·소자 집합·넷·개수), 정지하지 않거나,
   읽을 수 없으면 실패한다. except·skip·`@pytest.mark.xfail` 없음.
 - 정지 사유로 고정한 회로의 기준선 항목이 fixture 에 생기면 실패한다(기준선이 생겼으면 고정을 지우라는 뜻) -- 고정이 남아 있지 못하게 한다.
-표는 이 파일 한 자리다(회로 이름은 표 안에만). 어느 (test, 회로) 가 고정 대상인지는 쓰는 test 파일이 정한다.
+사유·소자 집합·불량 블록의 **값 표**(`STOP`·`BLOCK`)는 이 파일 한 자리다. 회로 이름은 이 표들과, 어느 (test, 회로) 가 고정 대상인지 정하는
+쓰는 test 파일의 대상 목록(test_stage_b_library.py 의 `_STOP_PINNED`·`_BLOCK_PINNED`)에 나뉘어 있다 -- 두 곳이 어긋나도 조용히 통과하지 않는다:
+대상 목록에만 있고 표에 없는 회로는 KeyError 로 실패하고, 표에만 있고 대상 목록에 없는 (test, 회로) 는 고정이 적용되지 않아 기존 단언이
+그대로 실패한다(fail-closed, 판정 측정).
 """
 from __future__ import annotations
 
