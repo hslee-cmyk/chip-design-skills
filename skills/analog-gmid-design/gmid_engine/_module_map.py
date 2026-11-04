@@ -608,7 +608,7 @@ MODULES = (
     ModuleEntry("sizing/block_currents.py", "entry", "dc_currents", "② 원소 전류 계산 블록", ("DEC-70",),
                 compute_block="dc_currents"),
     ModuleEntry("sizing/block_lengths.py", "entry", "dc_lengths", "③ L 계산 블록", ("N3.9",), compute_block="dc_lengths"),
-    ModuleEntry("sizing/seal_versions.py", "entry", "seal_versions", "봉인 4 버전 일치(함수)", ("N3.6", "SC-b")),
+    ModuleEntry("sizing/seal_versions.py", "entry", "seal_versions", "봉인 4 버전 일치(함수) + writers_in_scope(base writer ∪ 블록 이름, 정의 하나)", ("N3.6", "SC-b")),
     ModuleEntry("sizing/seal_writers.py", "entry", "seal_writers", "봉인 5 writer 유일(함수)", ("N3.6", "SC-a")),
     ModuleEntry("sizing/seal_saturation.py", "entry", "dc_seal_saturation",
                 "봉인 7 포화 여유(VDSAT 열 대기 -> undefined) 계산 블록", ("N3.6", "DEC-88"),
