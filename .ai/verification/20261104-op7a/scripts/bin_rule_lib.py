@@ -7,6 +7,7 @@ import hashlib
 import math
 
 SCHEMA = "lut_bin_rule/1"
+SOURCE_BASIS = "generator_record"
 _RULES = ("lower", "upper")
 _SHOWMOD_KEYS = ("lmin", "lmax", "wmin", "wmax")
 _HEX = frozenset("0123456789abcdef")
@@ -127,7 +128,7 @@ def build_decl(model_files_sha256, simulator, mode, spiceinit_text, rule, points
                    "spiceinit_sha256": spiceinit_sha(spiceinit_text)},
         "rule": rule,
         "evidence": {"points": [{"L": l, "W": w, "chosen_bin": m} for l, w, m in points],
-                     "mode": mode, "measured_by": "verifier", "date": date},
+                     "mode": mode, "source_basis": SOURCE_BASIS, "measured_by": "verifier", "date": date},
     }
 
 
@@ -183,9 +184,11 @@ def validate_decl(d):
         bad.add("/rule")
     if "evidence" in d:
         e = d["evidence"]
-        if not _keys(e, ("points", "mode", "measured_by", "date")):
+        if not (isinstance(e, dict) and set(e) - {"source_basis"} == {"points", "mode", "measured_by", "date"}):
             bad.add("/evidence")
         else:
+            if e.get("source_basis") != SOURCE_BASIS:
+                bad.add("/evidence/source_basis")
             p = e["points"]
             if not (isinstance(p, list) and p):
                 bad.add("/evidence/points")
@@ -249,33 +252,93 @@ def w_boundary_points(bins, grid_m):
     return tuple(found[k] for k in sorted(found))
 
 
-def source_point(l_m, widths_m, bins, grid_m):
-    ok = [w for w in widths_m if tie_axes(l_m, w, bins, grid_m) == ("L",)]
-    if not ok:
-        raise BinRuleStop("source_no_slice", l_m)
-    return min(ok, key=lambda w: grid_index(w, grid_m))
+def _parse_um_key(k):
+    try:
+        v = float(k)
+    except (TypeError, ValueError):
+        raise BinRuleStop("source_record_missing", k)
+    if not math.isfinite(v):
+        raise BinRuleStop("source_record_missing", k)
+    return v * 1e-6
 
 
-def identify_mode(lut_id, default_id, hsa_id):
-    vals = (lut_id, default_id, hsa_id)
-    if any(isinstance(v, float) and math.isnan(v) for v in vals):
-        return None
-    dd = abs(abs(lut_id) - abs(default_id))
-    dh = abs(abs(lut_id) - abs(hsa_id))
-    if dd < dh:
-        return "default"
-    if dd > dh:
-        return "hsa"
-    return None
+def slice_tie_cells(l_axis_m, w_m, per_l, measured, bins, grid_m):
+    if not isinstance(per_l, dict):
+        raise BinRuleStop("source_record_missing", "model_bin_per_L")
+    by_idx = {}
+    for k, v in per_l.items():
+        if not isinstance(v, str):
+            raise BinRuleStop("source_record_missing", k)
+        i = grid_index(_parse_um_key(k), grid_m)
+        if i in by_idx:
+            raise BinRuleStop("source_record_missing", k)
+        by_idx[i] = v
+    wi = grid_index(w_m, grid_m)
+    out = []
+    for l in l_axis_m:
+        if not tie_axes(l, w_m, bins, grid_m):
+            continue
+        li = grid_index(l, grid_m)
+        d, h = measured.get((li, wi), (None, None))
+        out.append({"l_m": l, "w_m": w_m, "recorded": by_idx.get(li), "default": d, "hsa": h})
+    return out
 
 
-def judge_source_modes(modes, declared):
-    got = [m for m in modes if m is not None]
-    if not got:
-        return "stop", "source_mode_undetermined"
-    if any(m != declared for m in got):
-        return "stop", "source_mode_differs"
-    return "ok", None
+def record_source_mode(cells, declared):
+    if not cells:
+        raise BinRuleStop("source_no_tie_cell")
+    modes = set()
+    for c in cells:
+        r, d, h = c["recorded"], c["default"], c["hsa"]
+        if r is None:
+            raise BinRuleStop("source_record_missing", c)
+        if d is None or h is None:
+            raise BinRuleStop("source_cell_unmeasured", c)
+        if r == d == h:
+            raise BinRuleStop("source_record_both_modes", c)
+        if r == d:
+            modes.add("default")
+        elif r == h:
+            modes.add("hsa")
+        else:
+            raise BinRuleStop("source_record_no_mode", c)
+    if len(modes) > 1:
+        raise BinRuleStop("source_record_mixed", sorted(modes))
+    mode = next(iter(modes))
+    if mode != declared:
+        raise BinRuleStop("source_mode_differs", (mode, declared))
+    return mode
+
+
+def combined_bin_check(recorded, measured):
+    if not isinstance(recorded, dict) or not recorded:
+        raise BinRuleStop("combined_bin_missing")
+    for k, cell in recorded.items():
+        if not isinstance(cell, dict) or not isinstance(cell.get("model"), str):
+            raise BinRuleStop("combined_bin_unparsed", k)
+        if k not in measured:
+            raise BinRuleStop("combined_bin_unmeasured", k)
+        if cell["model"] != measured[k]:
+            raise BinRuleStop("combined_bin_differs", (k, cell["model"], measured[k]))
+
+
+def cap_bind_check(recorded, pinned):
+    if recorded is None or pinned is None:
+        raise BinRuleStop("cap_bind_missing")
+    if recorded != pinned:
+        raise BinRuleStop("cap_bind_differs", (recorded, pinned))
+
+
+def record_only_files(reached, recorded):
+    if not reached or not isinstance(recorded, dict) or not recorded:
+        raise BinRuleStop("include_not_recorded")
+    rec_vals = set(recorded.values())
+    reached_vals = set()
+    for path, (lf, raw) in reached.items():
+        if lf not in rec_vals and raw not in rec_vals:
+            raise BinRuleStop("include_not_recorded", path)
+        reached_vals.update((lf, raw))
+    return tuple(sorted(p for p, v in recorded.items() if v not in reached_vals))
 
 
 def netlist_lines(subckt, includes, points):

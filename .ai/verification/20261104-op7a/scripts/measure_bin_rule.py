@@ -1,4 +1,4 @@
-"""card 20261104-op7a 측정 스크립트 (spec C-2~C-10). 판정자가 ngspice로 돌린다. toy 대상 아님.
+"""card 20261104-op7a 측정 스크립트 (spec C-2~C-14). 판정자가 ngspice로 돌린다. toy 대상 아님.
 
 입력 = 계획 파일(JSON, --plan). 이 스크립트는 PDK 값·경로·bin 표를 코드에 두지 않고 계획 파일에서 읽는다:
 {
@@ -10,15 +10,18 @@
             "bins": [{"model","lmin","lmax","wmin","wmax"}],   # m
             "l_axes": [{"npz": "...", "scale_to_m": <float>}] | [[<m>...]],
             "widths_m": [...], "w_ref_m": <m>}],
- "source": {"declared": "default",
-            "probes": [{"kind","l_m","widths_m"(슬라이스 폭 목록),
-                        "lut": {"npz","member","index":[...],"scale_to_A"},
-                        "sim": {"vgs","vds","vb","vs","temp_c","mult","include_records":[[경로,sha],...]}}]}
+ "slices": [{"set","kind","npz","scale_to_m"}],          # C-10·C-13: 폭 슬라이스(npz `L`·`meta_json`만 읽음)
+ "combined_sets": [{"set","npz"}],                       # C-11: cap_npz·verify_midpoints
+ "bound_sets": [{"set","npz"}],                          # C-12: noise·mismatch
+ "location": "<lut_v2_location.json 경로>"               # C-12: files.cap_npz.sha256
 }
+kinds[*]에 "meta_key"(결합 세트 meta의 kind 키)가 더 필요하다.
+출처 모드는 생성기 기록 bin 이름 대조이고(C-10) 값 시뮬레이션은 없다. 선언 `evidence.source_basis` = generator_record(C-14).
 칸이 없거나 뜻을 못 정하면 BinRuleStop으로 멈춘다(값을 짓지 않음). 선언 파일은 --decl-out이 주어지고
 모든 관문이 ok이며 validate_decl이 []일 때만 쓴다.
 """
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -30,6 +33,7 @@ import bin_rule_lib as B  # noqa: E402
 from bin_rule_lib import BinRuleStop  # noqa: E402
 
 HSA_TEXT = "set ngbehavior=hsa\n"
+MODE = "default"  # 본 측정 모드(C-5 1), 선언 compat.mode
 
 
 def _need(d, key, where):
@@ -141,52 +145,100 @@ def _included(path, seen, out):
                 _included(sub, seen, out)
 
 
-def check_includes(sim, includes):
-    rec = {r[1] for r in _need(sim, "include_records", "sim")}
+def _num(v, where):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        raise BinRuleStop("source_record_missing", where)
+
+
+def read_meta(npz_path):
+    import numpy  # npz `meta_json` 멤버만 읽는다
+    with numpy.load(npz_path) as z:
+        return json.loads(str(z["meta_json"]))
+
+
+def read_l_axis_m(npz_path, scale_to_m):
+    import numpy  # npz `L` 멤버만 읽는다
+    with numpy.load(npz_path) as z:
+        return [float(v) * scale_to_m for v in z["L"]]
+
+
+def reached_files(kind):
+    """kind의 include 줄에서 재귀로 닿는 파일 -> (LF sha256, raw sha256)."""
     files = []
-    for ln in includes:
+    for ln in kind["includes"]:
         m = re.search(r'"(.*)"', ln)
         if m:
             _included(m.group(1).replace("\\\\", "\\"), set(), files)
-    import hashlib
+    out = {}
     for f in files:
         b = open(f, "rb").read()
-        if not ({hashlib.sha256(b).hexdigest(), hashlib.sha256(b.replace(b"\r\n", b"\n")).hexdigest()} & rec):
-            raise BinRuleStop("source_condition_unresolved", f)
-    return files
+        out[f] = (hashlib.sha256(b.replace(b"\r\n", b"\n")).hexdigest(), hashlib.sha256(b).hexdigest())
+    return out
 
 
-def source_modes(plan, g, base, kinds):
-    src = _need(plan, "source", "plan")
-    declared = _need(src, "declared", "source")
-    import numpy
-    rows, modes = [], []
-    for k, pr in enumerate(_need(src, "probes", "source")):
-        kind = kinds[pr["kind"]]
-        w = B.source_point(pr["l_m"], pr["widths_m"], kind["bins"], g)
-        lut, sim = _need(pr, "lut", "probe"), _need(pr, "sim", "probe")
-        with numpy.load(lut["npz"], mmap_mode="r") as z:
-            lut_id = float(z[lut["member"]][tuple(lut["index"])]) * lut["scale_to_A"]
-        check_includes(sim, kind["includes"])
-        vals = []
-        for mname, init, mk in (("default", "", None), ("hsa", HSA_TEXT, "cwd")):
-            cwd, env = _modes(base, f"src{k}_{mname}", init, mk)
-            m = _need(sim, "mult", "sim")
-            lines = [f"* source {k}", *kind["includes"], f".temp {_need(sim, 'temp_c', 'sim')}",
-                     f"vgs g 0 dc {_need(sim, 'vgs', 'sim')}", f"vds d 0 dc {_need(sim, 'vds', 'sim')}",
-                     f"vsrc s 0 dc {_need(sim, 'vs', 'sim')}", f"vb b 0 dc {_need(sim, 'vb', 'sim')}",
-                     f"xp d g s b {kind['subckt']} l={pr['l_m'] * 1e6:g}u w={w * 1e6:g}u m={m:g}",
-                     ".control", "op", "print i(vds)", "quit", ".endc", ".end"]
-            log = run_ngspice(plan["ngspice_exe"], lines, cwd, env, "src")
-            mm = re.search(r"i\(vds\)\s*=\s*([0-9.eE+-]+)", log)
-            if not mm:
-                raise BinRuleStop("source_condition_unresolved", "i(vds) 출력 없음")
-            vals.append(float(mm.group(1)))
-        mode = B.identify_mode(lut_id, vals[0], vals[1])
-        modes.append(mode)
-        rows.append({"probe": k, "kind": pr["kind"], "l_m": pr["l_m"], "w_m": w, "lut_id": lut_id,
-                     "default_id": vals[0], "hsa_id": vals[1], "mode": mode})
-    return B.judge_source_modes(modes, declared), rows
+def source_gate(plan, g, kinds, pts_of, runs, out_dir):
+    """C-10 + C-13: 슬라이스 기록 bin 이름 대조와 기록 전용 파일. source_modes.jsonl을 쓴다."""
+    reached = {n: reached_files(k) for n, k in kinds.items()}
+    cells_all, ro, seen = [], {}, set()
+    with open(os.path.join(out_dir, "source_modes.jsonl"), "w", encoding="utf-8", newline="\n") as f:
+        for sl in _need(plan, "slices", "plan"):
+            name = _need(sl, "kind", "slice")
+            kind = kinds[name]
+            meta = read_meta(_need(sl, "npz", "slice"))
+            l_axis = read_l_axis_m(sl["npz"], _need(sl, "scale_to_m", "slice"))
+            w = _num(_need(meta, "w_m", "meta"), "w_m")
+            measured = {}
+            for i, (l, wp) in enumerate(pts_of[name]):
+                measured[(B.grid_index(l, g), B.grid_index(wp, g))] = (runs["default"][name][f"p{i}"],
+                                                                        runs["cwd"][name][f"p{i}"])
+            cells = B.slice_tie_cells(l_axis, w, meta.get("model_bin_per_L"), measured, kind["bins"], g)
+            for c in cells:
+                f.write(json.dumps({"set": sl["set"], "kind": name, **c}, sort_keys=True) + "\n")
+            cells_all += cells
+            only = B.record_only_files(reached[name], meta.get("model_files_sha256"))
+            ro.setdefault(name, set()).update(only)
+            seen.add(name)
+        for name in kinds:
+            if name not in seen:
+                raise BinRuleStop("source_record_missing", name)
+            f.write(json.dumps({"kind": name, "record_only_files": sorted(ro[name])}, sort_keys=True) + "\n")
+        return B.record_source_mode(cells_all, MODE), {n: sorted(v) for n, v in ro.items()}
+
+
+def combined_gate(plan, g, kinds, pts_of, runs):
+    """C-11: 결합 세트 meta의 (kind, L)별 model을 본 측정 (L, w_ref_m) bin과 대조."""
+    res = {}
+    for cs in _need(plan, "combined_sets", "plan"):
+        meta = read_meta(_need(cs, "npz", "combined_set"))
+        wi = B.grid_index(_num(_need(meta, "w_ref_m", "meta"), "w_ref_m"), g)
+        rec_all = _need(meta, "model_bin_per_L_at_w_ref", "meta")
+        for name, kind in kinds.items():
+            rec = rec_all.get(_need(kind, "meta_key", "kind")) if isinstance(rec_all, dict) else None
+            measured = {}
+            for k in (rec if isinstance(rec, dict) else {}):
+                try:
+                    li = B.grid_index(float(k) * 1e-6, g)
+                except ValueError:
+                    continue
+                for i, (l, w) in enumerate(pts_of[name]):
+                    if B.grid_index(l, g) == li and B.grid_index(w, g) == wi:
+                        measured[k] = runs["default"][name][f"p{i}"]
+            B.combined_bin_check(rec if isinstance(rec, dict) else None, measured)
+            res[f"{cs['set']}:{name}"] = "ok"
+    return res
+
+
+def cap_bind_gate(plan):
+    """C-12: noise·mismatch meta `cap_npz_sha256`을 위치 선언 `files.cap_npz.sha256`과 대조."""
+    loc = json.load(open(_need(plan, "location", "plan"), encoding="utf-8"))
+    pinned = _need(_need(_need(loc, "files", "location"), "cap_npz", "files"), "sha256", "cap_npz")
+    res = {}
+    for bs in _need(plan, "bound_sets", "plan"):
+        B.cap_bind_check(read_meta(_need(bs, "npz", "bound_set")).get("cap_npz_sha256"), pinned)
+        res[bs["set"]] = "ok"
+    return res
 
 
 def main(argv=None):
@@ -235,9 +287,13 @@ def main(argv=None):
     verdict_e = B.judge_empty_init(flat["default"], flat["empty"])
     controls = {"rules": {n: rules[n] for n in rules}, "controls": verdict_c, "empty_init": verdict_e,
                 "real_home_spiceinit": read_real_home_spiceinit()}
+    def dump_controls():
+        with open(os.path.join(a.out, "controls.json"), "w", encoding="utf-8", newline="\n") as cf:
+            json.dump(controls, cf, indent=1, sort_keys=True, default=str)
+
     ver_res = B.set_versions(plan["set_versions"])
     controls["simulator"], controls["unrecorded_sets"] = ver_res[0], list(ver_res[1])
-    json.dump(controls, open(os.path.join(a.out, "controls.json"), "w"), indent=1, sort_keys=True)
+    dump_controls()
     if controls["unrecorded_sets"]:
         raise BinRuleStop("simulator_version_unrecorded", controls["unrecorded_sets"])
     if verdict_c[0] != "ok":
@@ -247,14 +303,17 @@ def main(argv=None):
     rule, why = rules["default"]
     if rule is None:
         raise BinRuleStop(why)
-    (sv, srows) = source_modes(plan, g, a.out, kinds)
-    with open(os.path.join(a.out, "source_modes.jsonl"), "w", encoding="utf-8", newline="\n") as f:
-        for r in srows:
-            f.write(json.dumps(r, sort_keys=True) + "\n")
-    if sv[0] != "ok":
-        raise BinRuleStop(sv[1])
+    try:
+        controls["source_mode"], controls["record_only_files"] = source_gate(plan, g, kinds, pts_of, runs, a.out)
+        controls["combined_bins"] = combined_gate(plan, g, kinds, pts_of, runs)
+        controls["cap_bind"] = cap_bind_gate(plan)
+    except BinRuleStop as e:
+        controls["stop"] = {"reason": e.reason, "detail": e.detail}
+        dump_controls()
+        raise
+    dump_controls()
     lf, md = B.union_model_sha([tuple(r) for r in plan["model_records"]], lambda p: open(p, "rb").read())
-    decl = B.build_decl(lf, ver_res[0], "default", "", rule, ev_all, plan["date"])
+    decl = B.build_decl(lf, ver_res[0], MODE, "", rule, ev_all, plan["date"])
     bad = B.validate_decl(decl)
     if bad:
         raise BinRuleStop("decl_invalid", bad)
