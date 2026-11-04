@@ -1,0 +1,90 @@
+FF.                                                                      [100%]
+================================== FAILURES ===================================
+_____ test_t7_9a_declared_text_in_run_folder_and_log_shows_declared_mode ______
+
+poisoned_home = WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-9169/test_t7_9a_declared_text_in_ru0/home')
+descriptor = Descriptor(path='C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_op7b_audit\\iso\\skills\\analog-gmid-design\\tools\\spic...49f840986837c31741a'], 'rule': 'lower', 'schema': 'lut_bin_rule/1', 'simulator': {'name': 'ngspice', 'version': '46'}})
+tmp_path = WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-9169/test_t7_9a_declared_text_in_ru0')
+
+    def test_t7_9a_declared_text_in_run_folder_and_log_shows_declared_mode(poisoned_home, descriptor, tmp_path):
+        ad = adapter()
+        compat = default_compat(descriptor, ad)
+        ckt, req = bench()
+        res = ad.run(ckt, req, descriptor, str(tmp_path / "work"), None, None, compat)
+        files = spiceinit_files(tmp_path / "work")
+        assert len(files) == 1 and files[0].read_bytes() == compat.spiceinit_text.encode("utf-8")
+>       assert compat_mode_of(log_of(res), ad.capabilities()["compat_modes"]) == compat.mode
+                              ^^^^^^^^^^^
+
+tests\adapters\ngspice\test_spiceinit_isolation.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\adapters\ngspice\test_spiceinit_isolation.py:73: in log_of
+    return Path(p).read_text(encoding="utf-8", errors="replace")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\pathlib\__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('bench.log'), mode = 'r', buffering = -1, encoding = 'utf-8'
+errors = 'replace', newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: 'bench.log'
+
+C:\Python314\Lib\pathlib\__init__.py:771: FileNotFoundError
+______ test_t7_9b_compat_none_gives_empty_spiceinit_and_default_mode_log ______
+
+poisoned_home = WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-9169/test_t7_9b_compat_none_gives_e0/home')
+descriptor = Descriptor(path='C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_op7b_audit\\iso\\skills\\analog-gmid-design\\tools\\spic...49f840986837c31741a'], 'rule': 'lower', 'schema': 'lut_bin_rule/1', 'simulator': {'name': 'ngspice', 'version': '46'}})
+tmp_path = WindowsPath('C:/Users/HSLEE/AppData/Local/Temp/pytest-of-HSLEE/pytest-9169/test_t7_9b_compat_none_gives_e0')
+
+    def test_t7_9b_compat_none_gives_empty_spiceinit_and_default_mode_log(poisoned_home, descriptor, tmp_path):
+        ad = adapter()
+        declared = default_compat(descriptor, ad)                      # 기대 모드 이름을 얻기 위한 선언(실행에는 쓰지 않음)
+        ckt, req = bench()
+        res = ad.run(ckt, req, descriptor, str(tmp_path / "work"), None, None, None)
+        files = spiceinit_files(tmp_path / "work")
+        assert len(files) == 1 and files[0].read_bytes() == b""        # [B-3] 빈 파일
+>       assert compat_mode_of(log_of(res), ad.capabilities()["compat_modes"]) == declared.mode
+                              ^^^^^^^^^^^
+
+tests\adapters\ngspice\test_spiceinit_isolation.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\adapters\ngspice\test_spiceinit_isolation.py:73: in log_of
+    return Path(p).read_text(encoding="utf-8", errors="replace")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\pathlib\__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('bench.log'), mode = 'r', buffering = -1, encoding = 'utf-8'
+errors = 'replace', newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: 'bench.log'
+
+C:\Python314\Lib\pathlib\__init__.py:771: FileNotFoundError
+=========================== short test summary info ===========================
+FAILED tests\adapters\ngspice\test_spiceinit_isolation.py::test_t7_9a_declared_text_in_run_folder_and_log_shows_declared_mode
+FAILED tests\adapters\ngspice\test_spiceinit_isolation.py::test_t7_9b_compat_none_gives_empty_spiceinit_and_default_mode_log
+2 failed, 1 passed in 0.59s

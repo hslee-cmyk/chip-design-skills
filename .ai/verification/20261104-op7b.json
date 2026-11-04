@@ -1,0 +1,133 @@
+{
+ "id": "20261104-op7b",
+ "spec_card": "docs/02-design/specs/20261104-op7b.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "377e2c58257f72436bd8081a1ed15320c3f60718",
+ "test_commit": "73699801cf25f4353da629ae12261d35db7062f8",
+ "code_commit": "29505b7ac2a4ab1cbf245aff6c44ce0c873fbfa0",
+ "red": {
+  "test_ids": [
+   "tests/core/test_bin_rule.py",
+   "tests/adapters/ngspice/test_spiceinit_isolation.py",
+   "tests/test_bin_rule_run.py::test_positive_control_normal_world_passes",
+   "tests/test_bin_rule_run.py::test_t7_10a_no_decl_ref_rejected_at_8b_without_run",
+   "tests/test_bin_rule_run.py::test_t7_10b_declared_mode_absent_in_adapter_table",
+   "tests/test_bin_rule_run.py::test_t7_10b_table_text_differs_from_declared",
+   "tests/test_bin_rule_run.py::test_t7_10c_normal_records_compat_sha_and_passes_text_to_adapter",
+   "tests/test_bin_rule_run.py::test_t7_10d_decl_file_changed_is_descriptor_stale_at_stage_2",
+   "tests/test_bin_rule_run.py::test_t7_10f_decl_must_cover_recorded_models",
+   "tests/test_bin_rule_run.py::test_t7_10f_decl_simulator_version_mismatch"
+  ],
+  "failure_hashes": [
+   "c073d4ea8cafe4dce6f0ce54dc98beea5349842fa651d702bc8e421a6289e351",
+   "67519c423776086300897f2ecf3ae20287b6a330dcaa368d2bd44f59ac162d87",
+   "4ffc0b5fc59a29aa5953daa9f40a3518a7832ba066e1752dee8b98621a6d08ab",
+   "f81b42b90eb8f01bf218adc7eb5c6bbd377d96c9773c196ddeb74c49833572af",
+   "58a3b98733cf434707f266af3cefc8cf41a67e5b5ac77602212eb1965902dd27",
+   "de71422a24a3b017b74e2a2c0365981ad24616e95b00421a3e8a751df1938d5a",
+   "c0d7271aa27a019a205f36bde88c6ad6d1740f434c834eac1a7c032514d9bd8f",
+   "c982e9a6689865ed8b1fb45dcdbaa1c55210ff019eaef6a7e80a050f668441c3",
+   "bbbf9f6b75d876fedb9d17aae446510ab956507e34e6695cadf65a594f9a7550",
+   "68d81b6ae40ee8f3eb462f175d1841273fbf2ba285f5d68ebd2f76d52ecef062"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "임시 규칙 O-229·O-232: 전체 test 안 돌림, 통과로 세지 않음. 잰 범위 = card toy 219 passed, test_spiceinit_isolation 2 failed 1 passed, X-13·test_verified_by 48 passed, tests/structure 171 passed 1 deselected, R1~R5 7 bias 1회. 미측정(LA-1 재점검) = 2회로 연기(엔진 diff 0), test_canonical_order, test_independent, 13회로(B-4)."
+  },
+  "V2": {
+   "verdict": "FAIL",
+   "basis": "A7-1 219 passed, red 10건. A7-2 10/10. A7-3 FAIL: test_spiceinit_isolation T7-9a·9b 실패(log_path 상대 경로, 고쳐도 T7-9a status.error sim_failed_other). A7-4 PASS. 표 = .ai/verification/20261104-op7b/sections.json."
+  },
+  "V3": {
+   "verdict": "N/A",
+   "basis": "뮤테이션 도구 안 돌림(O-229, 엔진 diff 0). 손 뮤턴트 1회: .spiceinit 쓰기 삭제 + 독 HOME -> 실제 oracle_run 거부. 통과로 세지 않는다."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: test_lint 미실행. 표본: T7-1a hashlib 구성값, T7-5 missing L3, T7-7 toy sha, T3-8d compat_sha256 = sha(T) 손 유도, T7-9 V(a)=1 KVL. 피검 함수 출력을 옮긴 기대값 표본 0, 전 행 대조 아님."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "약화 없음: test_result_contract:83 전환은 spec 소비자 표(J-5 기간 끝), T7-10e 는 기대 코드 유지, A7-4 제외 칸 추가 0. 13회로 미측정은 B-4(A-84) 표지, 통과로 세지 않음. weakening_diff 미실행(O-229)."
+  },
+  "V6": {
+   "verdict": "N/A",
+   "basis": "source_lint 대상 없음: gmid_engine diff 0줄, assets diff 0. §5 잠금 grep 0건."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "배선: oracle_run -> recorded_lf_set·find_decl·check_compat -> Adapter.run(compat) -> .spiceinit·compat_mode_of, 실제 실행과 거부 11종으로 확인. compat_sha256 소비 칸 채움. graph 점검 수치: 필드 수 0 / 소비자 0 결함 0 / 정본 우회 의심 0 / KVL·KCL 관계 미적용 0 / graph 밖 저장 자리 0(엔진 diff 0)."
+  },
+  "V8": {
+   "verdict": "PASS",
+   "basis": "폴백 0: 선언 없으면 기본 모드로 돌지 않음(no_decl_ref), 로그 모드 못 읽으면 거부, 캐시 적중도 대조, 거부 11종 시뮬레이션 0."
+  },
+  "V9": {
+   "verdict": "PASS",
+   "basis": "격리: 독 HOME·SPICE_USERINIT_DIR 막음, 표지 echo 안 찍힘, 파일 없으면 찍힘. 모드 표 default·hsa 실행 로그와 같음. 값: 데이터 30파일 기준선 바이트 동일, OP-3 sim 동일. 시스템 초기화 스크립트 직접 측정은 없음(로그 대조로 막는 경로만 뮤턴트로 확인)."
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "재현: 저자 예비 모드 표를 어댑터 경로로 다시 잼, R1~R5 verdict 7/7. reproduced_numbers 참조."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "card toy 통과",
+   "value": 219,
+   "command": "pytest tests/core tests/test_bin_rule_run.py tests/test_input_contract.py tests/test_result_contract.py test_dialect test_errors test_legacy_adapter"
+  },
+  {
+   "name": "격리 test 실패",
+   "value": 2,
+   "command": "pytest tests/adapters/ngspice/test_spiceinit_isolation.py"
+  },
+  {
+   "name": "tests/structure 통과",
+   "value": 171,
+   "command": "pytest gmid_engine/tests/structure"
+  },
+  {
+   "name": "R1~R10 선언 찾음",
+   "value": 10,
+   "command": "tools/a7.py A7-2"
+  },
+  {
+   "name": "R1~R5 bias rc·verdict 같음",
+   "value": 7,
+   "command": "tools/a3_run.py, a3_cmp.py"
+  },
+  {
+   "name": "기준선과 바이트 동일 데이터 파일",
+   "value": 30,
+   "command": "tools/a7_4b.py"
+  },
+  {
+   "name": "로그 default 문장",
+   "value": 8,
+   "command": "tools/a7_4b.py"
+  },
+  {
+   "name": "OP-3 와 같은 sim",
+   "value": 7,
+   "command": "tools/finalize.py"
+  },
+  {
+   "name": "최저 메모리 여유 MB(표본, 시작 전 포함)",
+   "value": 3451,
+   "command": "FreePhysicalMemory 표본"
+  }
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-04T21:02:34+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op7b-audit",
+  "commands": [
+   "git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op7b-audit C:/Users/HSLEE/AppData/Local/Temp/la1s_op7b_audit/iso; git -C C:/Users/HSLEE/AppData/Local/Temp/la1s_op7b_audit/iso remote remove origin",
+   "V1: 전체 test 미실행(O-229). 잰 범위 = card toy, test_spiceinit_isolation, X-13, tests/structure",
+   "tools/a7.py, a3_run.py, a3_cmp.py, a7_4b.py, a7_mut.py, patch_iso_test.py (.ai/verification/20261104-op7b/tools)"
+  ]
+ }
+}
