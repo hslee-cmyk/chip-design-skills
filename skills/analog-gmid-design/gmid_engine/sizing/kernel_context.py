@@ -20,7 +20,6 @@ ratified(`l_owner` 사실) 만 L 공유), S1v 필드가 없으면 소자마다 L
 * `inputs.engine_elements` 이름은 S1 원소여야 한다(`ValueError`, 같은 이유). 그중 수동소자만 `dc_theta_schema` 로 간다.
 * L 동치류가 S1 원소가 아니거나 MOS 만의 서로소 묶음이 아니면 `ValueError`(`kernel_fields`).
 """
-from gmid_engine.authoring import REGION_OFF
 from gmid_engine.core import fp_of
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, ELEMENT_SOURCE, S1_SYMMETRY_WRITER, S1Graph, s1_symmetry, supplies_declaration
 
@@ -85,10 +84,9 @@ def build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, do
     base = dc_rails(base, supplies, donors=donors, counters=counters)
     base = s1_symmetry(base, supplies, symmetry_marks(inputs), donors=donors, counters=counters)     # S1 의 대칭 블록 -- 같은 표시면 재사용(계산 0)
     base = dc_region_decl(base, tuple(inputs.regions), donors=donors, counters=counters)        # S0 술어 필드 -- 소자 열거 뿌리(전류 기저·쓰기 계획·θ 스키마)가 `off` 를 뺀다
-    off = tuple(sorted(m for m, r in base.column("device", "region_decl") if r.region == REGION_OFF))      # 필드 `device.region_decl` 에서 읽은 `off` 소자 -- 없으면 인자 생략(블록 입력 버전 불변)
-    base = dc_current_basis(base, sources, *((off,) if off else ()), donors=donors, counters=counters)
-    plan_tail = (order_hints, off) if off else (() if order_hints == NO_ORDER_HINTS else (order_hints,))      # 힌트·off 없음 = 생략(블록 입력 버전 불변)
-    base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None, *plan_tail, donors=donors, counters=counters)
+    base = dc_current_basis(base, sources, donors=donors, counters=counters)
+    base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None,
+                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)), donors=donors, counters=counters)      # 힌트 없음 = 생략(블록 입력 버전 불변)
     base = dc_scc_order(base, donors=donors, counters=counters)
     base = kernel_fields(base, tuple(sorted(targets.items())), inputs.input_dc_v, tuple(inputs.element_values), donors=donors, counters=counters)
     engine_passives = tuple(n for n in sorted(inputs.engine_elements) if classes[n] == ELEMENT_PASSIVE)

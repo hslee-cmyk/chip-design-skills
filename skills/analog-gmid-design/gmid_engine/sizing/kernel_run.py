@@ -12,7 +12,6 @@
 """
 import math
 
-from gmid_engine.authoring import REGION_OFF, REGION_TRIODE
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, attach_partial
 from gmid_engine.graph import ELEMENT_MOS
 
@@ -83,8 +82,7 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     lengths += tuple((member, owner_length[owner]) for member, owner in base.value("graph", KERNEL_KEY, "l_ties"))     # L 동치류: 멤버 L = 주인 θ L (LR1)
     column_items = tuple(((kind, key), v) for (kind, key), v in items if kind in _COLUMN_KINDS)
     requested = normalize_w_request(ctx, w_request)
-    off = tuple(sorted(m for m, r in base.column("device", "region_decl") if r.region == REGION_OFF))      # `off` 선언 소자 -- L 은 선언 l_m, θ 에 L 성분이 없다
-    steps = [(dc_currents, (currents,)), (dc_lengths, (lengths,) + ((off,) if off else ()))]
+    steps = [(dc_currents, (currents,)), (dc_lengths, (lengths,))]
     later_blocks = (dc_columns, dc_widths)      # steps 뒤에 부르는 블록의 구성원 정의(extras 는 아래에서 붙인다)
     if parent is not None:      # 스냅샷 파생: keep = base writer ∪ 커널 블록(steps·later_blocks) ∪ 봉인 항목 블록 여덟(seal.py 상수) -- 봉인 4 의 호출 목록과 같은 집합(계획 N3.3, 설계 41 4.7-3c)
         snapshot = parent.snapshot.derive_child(writers_in_scope(base, later_blocks + tuple(b for b, _ in steps) + SEAL_ITEM_BLOCKS))
@@ -100,8 +98,7 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
         column_items = tuple((key, override.get(key, v)) for key, v in column_items)
     resistor_values = base.value("graph", KERNEL_KEY, "resistor_values")
     columns_extras = (column_items, base.value("graph", KERNEL_KEY, "fixed_values"), resistor_values, ctx.lut)
-    triode = tuple(sorted(m for m, r in base.column("device", "region_decl") if r.region == REGION_TRIODE))      # 영역 선언 술어 필드 `device.region_decl` 의 triode 소자 -- 창 경계 행(dc_columns)이 읽는다
-    later = list(zip(later_blocks, (columns_extras + ((triode,) if triode else ()),
+    later = list(zip(later_blocks, (columns_extras,
                                     (ctx.lut, requested) if requested else (ctx.lut,))))
     for block, extras in later:
         snapshot = _call_block(ctx, block, snapshot, extras, done)

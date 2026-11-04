@@ -27,6 +27,7 @@ from .region_mismatch import region_mismatch
 from .s2_lift import lift_s1
 from .s2_values import (
     BRANCH_MOS_ZERO_CURRENT,
+    BRANCH_OFF_ONLY_NODE,
     BRANCH_RESISTOR_CYCLE,
     COORD_DEPENDENT,
     COORD_WRITER,
@@ -169,6 +170,7 @@ from .writer_plan import dc_writer_plan
 
 __all__ = (
     "BRANCH_MOS_ZERO_CURRENT",
+    "BRANCH_OFF_ONLY_NODE",
     "BRANCH_RESISTOR_CYCLE",
     "COORD_DEPENDENT",
     "COORD_WRITER",

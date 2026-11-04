@@ -1,6 +1,6 @@
 """원소 단위 KCL 해 공간 -- θ 전류 기저와 모든 DC 원소 전류의 선형식 (계획 DEC-70 전류 변수 정의, DEC-08, 설계 3.2 ②).
 
-진입점: `dc_current_basis`(`@compute_block`) -- `dc_current_basis(snapshot, declared_sources[, off_devices])`.
+진입점: `dc_current_basis`(`@compute_block`) -- `dc_current_basis(snapshot, declared_sources)`.
 
 * 미지수 = DC 원소(S1 `device.dc_nets` 가 있는 MOS·저항·이상원, 잎 가지치기된 저항 제외) 전류. 양의 방향 = nmos d->s,
   pmos s->d(전도 방향), 2단자 t0->t1(이상 전류원은 SPICE 규약: t0 에서 source 를 지나 t1 로).
@@ -15,6 +15,7 @@
 """
 from fractions import Fraction
 
+from gmid_engine.authoring import REGION_OFF
 from gmid_engine.core import InfeasibleTargetError, StructureUnresolvedError, compute_block
 from gmid_engine.graph import (
     ELEMENT_MOS,
@@ -39,7 +40,7 @@ from .s2_values import (
 
 READS = (
     ("device", "dc_nets"), ("device", "element_class"), ("device", "kind"), ("device", "pins"),
-    ("node", "is_rail"), ("graph", "dc_pruned"), ("device", "dc_colour"), ("graph", "orbits"),
+    ("node", "is_rail"), ("graph", "dc_pruned"), ("device", "dc_colour"), ("graph", "orbits"), ("device", "region_decl"),
 )
 WRITES = (("graph", "dc_current_basis"),)
 _PMOS = "pmos"
@@ -76,8 +77,8 @@ def _rref(rows, n_cols):
 
 @compute_block(DC_CURRENT_BASIS_WRITER, reads=READS, writes=WRITES)
 def dc_current_basis(projection):
-    declared, *rest = projection.extras
-    off = frozenset(rest[0]) if rest else frozenset()           # `off` 선언 소자(필드 `device.region_decl`) -- 전류 기저 항이 없다(꺼짐 모형: DC 전류 0)
+    (declared,) = projection.extras
+    off = frozenset(m for m, r in projection.column("device", "region_decl") if r.region == REGION_OFF)      # `off` 선언 소자(READS `device.region_decl`) -- 전류 기저 항이 없다(꺼짐 모형: DC 전류 0)
     declared = {name: value for name, value in declared if value is not None}
     pruned = tuple(sorted({element for element, _round in projection.value("graph", GRAPH_KEY, "dc_pruned")}))
     classes = dict(projection.column("device", "element_class"))

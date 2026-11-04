@@ -93,6 +93,7 @@ BRANCH_RESISTOR_CYCLE = "dc_resistor_cycle"
 BRANCH_INPUT_CM_UNDEFINED = "input_cm_undefined"       # 입력 DC 미선언 + 입력 포트가 차동쌍 하나가 아님(DEC-106): 탐색 전 정지
 BRANCH_INPUT_TARGET_ONE_PORT = "input_target_one_port"   # 입력 DC 미선언 + 차동 입력 두 포트 중 한 포트만 node_voltage_targets_v 선언: 입력 점이 안 묶여 ΔV 가 θ 함수(DEC-106): 탐색 전 정지
 BRANCH_MOS_ZERO_CURRENT = "mos_zero_current_structural"
+BRANCH_OFF_ONLY_NODE = "off_only_node"                   # 닿는 소자가 모두 `off` 선언인 비고정 노드: 전도 경로 없이 θ 변수가 되는 것을 막는다(EO-1 범위 4)
 BRANCH_ORIENTATION = "mos_orientation_unsupported"
 REASON_DECLARED_KCL = "declared_source_kcl_conflict"
 REASON_EMPTY_WINDOW = "empty_window"

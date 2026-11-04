@@ -43,7 +43,7 @@
 import dataclasses
 import math
 
-from gmid_engine.authoring import INPUT_DIRECTION
+from gmid_engine.authoring import INPUT_DIRECTION, REGION_TRIODE
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
 from gmid_engine.graph import MOS_TERMINAL_NAMES
 from gmid_engine.lut import AXES, gmb, vgs_for_current_density
@@ -95,7 +95,7 @@ READS = (
     ("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"),
     ("device", "dc_drop_current"), ("node", "dc_colour"), ("device", "dc_colour"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"), ("device", "bulk"),
     ("device", "element_class"), ("device", "dc_coord"), ("graph", "dc_scc_order"), ("device", "dc_self_referential"),
-    ("node", "port_direction"),
+    ("node", "port_direction"), ("device", "region_decl"),
 )
 WRITES = (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), ("device", "dc_ln_idu"),
           ("graph", "dc_scc_log"))
@@ -157,8 +157,8 @@ class _Circuit(Circuit):
     """블록 한 번의 입력 묶음과 writer 식 -- 읽기 전용 공용 부분(`Circuit`)에 θ·고정 값·`override` 등 이 블록이 쓰는 상태를 더한다."""
 
     def __init__(self, projection):
-        theta_items, fixed_values, resistor_values, lut, *rest = projection.extras
-        super().__init__(projection, lut=lut, linear=rest[0] if rest else ())      # `triode` 선언 소자 -- 창 경계 행이 triode 행(`region_rows`)
+        theta_items, fixed_values, resistor_values, lut = projection.extras
+        super().__init__(projection, lut=lut, linear=frozenset(m for m, r in projection.column("device", "region_decl") if r.region == REGION_TRIODE))      # `triode` 선언 소자 -- 창 경계 행이 triode 행(`region_rows`)
         self.override = {}                                             # {W4 입력 뿌리 넷: (lo, hi)} 입력 포화 창 (y_icm 범위)
         self.theta = dict(theta_items)
         self.fixed = dict(fixed_values)

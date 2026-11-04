@@ -1,6 +1,6 @@
 """쓰기 계획 컴파일 -- 노드마다 writer 하나, MOS 마다 좌표 역할(쓰기/종속) (설계 3.1 1~3, 계획 N3.4·DEC-64·DEC-95 (3)).
 
-진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINTS, off_devices=())`. θ 무관(S0 당 1회).
+진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINTS)`. θ 무관(S0 당 1회).
 
 모든 순서 결정의 키는 **구조 색 먼저**(`dc_colour` -- graph 대칭 블록 `s1_symmetry`, 이름을 읽지 않는 1-WL 색 + 정준 위치) 그다음 이름이다. 이름이 실제로
 결정을 가른 경우(같은 구조 색 후보가 서로 다른 결과로 갈린 경우)는 `graph.dc_tie_breaks` 에 `TieBreak` 로 남긴다.
@@ -32,13 +32,14 @@
 """
 from collections import deque
 
-from gmid_engine.authoring import INPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_N, ROLE_DIFFERENTIAL_INPUT_P
+from gmid_engine.authoring import REGION_OFF, INPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_N, ROLE_DIFFERENTIAL_INPUT_P
 from gmid_engine.core import StructureUnresolvedError, compute_block
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, MOS_TERMINAL_NAMES, UNSUPPORTED_RULE_BRANCH
 
 from .s2_values import (
     BRANCH_INPUT_CM_UNDEFINED,
     BRANCH_INPUT_TARGET_ONE_PORT,
+    BRANCH_OFF_ONLY_NODE,
     BRANCH_RESISTOR_CYCLE,
     COORD_DEPENDENT,
     COORD_WRITER,
@@ -73,7 +74,7 @@ from .s2_values import (
 READS = (
     ("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
     ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_colour"), ("device", "dc_colour"),
-    ("device", "bulk"), ("graph", "gvgs_summary"),
+    ("device", "bulk"), ("graph", "gvgs_summary"), ("device", "region_decl"),
 )
 WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))
 _SELF_RELATIONS = (REL_VGS_GATE, REL_VGS_SOURCE)
@@ -125,7 +126,7 @@ def _edges(classes, kinds, pins, diode, colour, hints):
 def dc_writer_plan(projection):
     target_nets, input_dc_declared, *rest = projection.extras
     hints = rest[0] if rest else NO_ORDER_HINTS
-    off = frozenset(rest[1]) if len(rest) > 1 else frozenset()       # `off` 선언 소자(필드 `device.region_decl`) -- 쓰기 계획 엣지·좌표가 없다
+    off = frozenset(m for m, r in projection.column("device", "region_decl") if r.region == REGION_OFF)      # `off` 선언 소자(READS `device.region_decl`) -- 쓰기 계획 엣지·좌표가 없다
     classes = {n: c for n, c in projection.column("device", "element_class") if n not in off}
     kinds = dict(projection.column("device", "kind"))
     pins = dict(projection.column("device", "pins"))
@@ -149,6 +150,14 @@ def dc_writer_plan(projection):
     if input_dc_declared:
         for net in inputs:
             fixed.setdefault(net, (TIER_W2, REL_INPUT_DC))
+    touching = {}
+    for name, terminals in pins.items():
+        for _t, net in terminals.items() if isinstance(terminals, dict) else terminals:
+            touching.setdefault(net, set()).add(name)
+    only_off = sorted(net for net, who in touching.items() if net not in fixed and who <= off)
+    if only_off:      # 닿는 소자가 모두 off 선언인 노드는 전도 경로 없이 θ 변수가 된다 -- W4 로 두지 않고 정지(물리 관문)
+        raise StructureUnresolvedError(devices=tuple(sorted({d for net in only_off for d in touching[net]})),
+                                       detail={"reason": UNSUPPORTED_RULE_BRANCH, "rule_branch": BRANCH_OFF_ONLY_NODE, "nets": tuple(only_off)})
     for net in sorted(fixed, key=node_key):
         plan.put(net, *fixed[net])
     free_inputs = tuple(sorted((net for net in inputs if net not in fixed), key=node_key))

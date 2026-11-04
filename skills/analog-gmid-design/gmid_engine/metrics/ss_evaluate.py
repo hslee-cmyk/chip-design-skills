@@ -106,13 +106,10 @@ def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, 
     snapshot = sealed.snapshot
     off = any(r.region == REGION_OFF for _m, r in ctx.base.column("device", "region_decl"))                         # `off` 선언 소자가 있는가 -- 술어 필드 `device.region_decl`(없으면 off 층 블록 호출 0, 필드 없음)
     try:
-        off_items = ()
         if off:
             snapshot = ss_off_op(snapshot, ctx.lut, **keys)       # off 소자 동작점 -- 정지 사유 셋(off_vgs_negative·off_bulk_forward·off_outside_lut)
-            kinds, decl = dict(snapshot.column("device", "kind")), dict(snapshot.column("device", "region_decl"))
-            off_items = tuple((m, kinds[m], point, decl[m]) for m, point in snapshot.column("device", "off_op"))      # 필드 값 참조 -- ss_dev 가 스탬프 값을 만든다
         snapshot = passive_values(snapshot, ctx.inputs.element_values, schema.zero_cancel, theta_passive_pairs(theta.values), **keys)
-        snapshot = ss_dev(snapshot, ctx.lut, junction, *((diffusion, off_items) if off_items else ((diffusion,) if diffusion else ())), **keys)
+        snapshot = ss_dev(snapshot, ctx.lut, junction, *((diffusion,) if diffusion else ()), **keys)
         snapshot = ss_circuit_field(snapshot, **keys)         # 소신호 회로 조립 자리 하나 -- metrics_ss·ss_nodal·metrics_aux 가 필드를 읽는다
         snapshot = ss_nodal_system(snapshot, **keys)          # 봉인점 노달 계(G·g_bound·인수분해) -- 측정 구성과 metrics_aux 의 세 조립 자리가 읽는다
         if off:

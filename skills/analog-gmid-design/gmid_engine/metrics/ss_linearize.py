@@ -21,10 +21,8 @@
   `approximations` 로 매 결과에 실린다). [U14] 레이아웃 뒤(MOD8 재검증)에는 추가 extra `diffusion` = ((MOS, `DiffusionGeometry`), ...)(MOD7
   `ly.diffusion` 실현 기하: finger_w·ad·as·pd·ps·m = n_fingers)가 그 소자의 규칙 기하를 대체하고 `junction_model` = `JUNCTION_LAYOUT_DIFFUSION`.
   extra 가 없거나 비면 입력 버전이 종래와 같다.
-* **`off` 선언 소자**(EO-1 범위 4, A-2): 추가 인자 `off_items` = ((소자, kind, `OffOp`, `RegionDecl`), ...) (`ss_evaluate` 가 `device.off_op`·`device.kind`·`device.region_decl` 필드에서 꺼내 넘긴다 --
-  없으면 생략, 입력 버전 불변)로 그 소자의 `SsDevice` 도 낸다: gm·gmb·gds·용량 모두 `off_op` 점의 LUT 값(다른 MOS 와 같은 열 규칙, `w_m` = 소자 폭 W·`l_m` = 길이 L 환산).
+* **`off` 선언 소자**(EO-1 범위 4, A-2): READS `device.off_op`·`device.kind`·`device.region_decl` 로 그 소자의 `SsDevice` 도 낸다: gm·gmb·gds·용량 모두 `off_op` 점의 LUT 값(다른 MOS 와 같은 열 규칙, `w_m` = 소자 폭 W·`l_m` = 길이 L 환산).
   DC 전류는 0 모형이라 `dc_op`·`dc_gm` 필드가 없고 gm = (gm/ID)·`off_current`(ΔI_off = IDu·W/L, `ss_off_delta` 가 부르는 같은 함수). `lut_rel_tol` 은 None(tol_V 셀이 없다).
-  extras 순서: `(lut, junction[, diffusion[, off_items]])` -- off 소자가 있으면 `diffusion` 자리를 (비었어도) 채운다.
 * `gmb_model` = `GMB_COLUMN`(GMBS 열) 또는 `GMB_VS_CELL_SECANT`(열 없는 옛 LUT -- 임시 근사, 설계 2.8).
 * 접합 용량 정본이 PDK 파라미터라 LUT v2 의 CDD·CSS 열(`Caps.cdd`·`css`)은 쓰지 않는다(DEC-91 '대조 test 전용').
 * LUT 실패(용량 VS 축 0~0.8 V 밖 등)는 소자 이름을 붙인 `SealViolationError`(reason `lut_query_failed`, `lut_reason` = 원래
@@ -39,7 +37,7 @@ from gmid_engine.sizing import REASON_LUT_QUERY, SS_DEV_WRITER
 from .junction_cap import junction_caps
 from .ss_types import SsDevice
 
-READS = (("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm"))
+READS = (("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm"), ("device", "off_op"), ("device", "region_decl"), ("device", "kind"))
 WRITES = (("device", "ss_dev"),)
 GMB_COLUMN = "lut_gmbs_column"                        # lut gmb: GMBS 열(정본, lut CONTRACT r6 4.4)
 GMB_VS_CELL_SECANT = "lut_vs_cell_secant"              # lut gmb: VS 선형 칸 할선(GMBS 열 없는 옛 LUT, 설계 MOD1 2.8 임시)
@@ -97,8 +95,10 @@ def ss_dev(projection):
     realized = dict(rest[0]) if rest else {}                 # [U14] 실현 확산 기하 ((MOS, DiffusionGeometry), ...) -- 없으면 LUT 생성 규칙 기하
     out = {m: _linearize(lut, junction, m, op, gm[m], None if tols.get(m) is None else op.gm_id * tols[m], realized.get(m))
            for m, op in projection.column("device", "dc_op")}
-    off_items = rest[1] if len(rest) > 1 else ()
-    for m, kind, point, decl in off_items:      # `off` 선언 소자 -- 점 = `off_op`, 폭·길이 = 선언 (tol_V 셀 없음 -> lut_rel_tol None)
+    kinds = dict(projection.column("device", "kind"))
+    decl_of = dict(projection.column("device", "region_decl"))
+    for m, point in projection.column("device", "off_op"):
+        kind, decl = kinds[m], decl_of[m]      # `off` 선언 소자 -- 점 = `off_op`, 폭·길이 = 선언 (tol_V 셀 없음 -> lut_rel_tol None)
         view = types.SimpleNamespace(kind=kind, w_key=point.w_key, L=decl.l_m, W=decl.w_m, vgs=point.vgs, vds=point.vds, vsb=point.vsb)
         out[m] = _linearize(lut, junction, m, view, None, None, realized.get(m))
     return {("device", "ss_dev"): out}
