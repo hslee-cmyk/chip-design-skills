@@ -1,0 +1,601 @@
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_block_declaration", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {('device', '...pruned'), ...} == {('device', '...pruned'), ...}\n  \n  Extra items in the right set:\n  ('node', 'port_role')\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_fields_and_colour_contract[common_gate_amplifier]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_fields_and_colour_contract[current_reuse_telescopic_ota]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_fields_and_colour_contract[folded_cascode]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_fields_and_colour_contract[ngcc_3stage_ff]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_fields_and_colour_contract[nmcnr_amplifier]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_fields_and_colour_contract[pushpull_follower_buffer]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_fields_and_colour_contract[sf_pushpull_output_opamp]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_fields_and_colour_contract[two_stage_ota]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_fields_and_colour_contract[two_stage_ota_sf]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_symmetric_pair_same_orbit_and_port_separates", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_declared_values_split_orbits", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_node_target_splits_orbits", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_input_dc_mark_keeps_input_symmetry", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_current_source_direction_matters", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_b_dc_resistor_is_undirected", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_b_resistor_terminal_order_irrelevant", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_transports_orbits[two_stage_ota-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_transports_orbits[two_stage_ota-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_transports_orbits[two_stage_ota-3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_transports_orbits[folded_cascode-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_transports_orbits[folded_cascode-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_transports_orbits[folded_cascode-3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_transports_orbits[current_reuse_telescopic_ota-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_transports_orbits[current_reuse_telescopic_ota-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_transports_orbits[current_reuse_telescopic_ota-3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_colours_equal_for_trivial_orbits[1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_renaming_colours_equal_for_trivial_orbits[2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_reordering_identical[two_stage_ota]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_reordering_identical[sf_pushpull_output_opamp]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_reordering_identical[current_reuse_telescopic_ota]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_deterministic", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_block_reuse_with_same_marks", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_ds_flip_colours_and_orbits_bit_identical[names0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_ds_flip_colours_and_orbits_bit_identical[names1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_ds_flip_colours_and_orbits_bit_identical[names2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_ds_flip_colours_and_orbits_bit_identical[names3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_ds_flip_library_bit_identical", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_drain_to_source_pair_sign_is_minus_one", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_symmetric_pair_sign_is_plus_one", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_pilot_r1_r2_one_orbit_sign_minus_one", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_ds_self_swap_zero_current_stops", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_without_self_swap_device_builds", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_self_swap_on_rail_anchored_loop_stops", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_no_self_swap[common_gate_amplifier]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_no_self_swap[current_reuse_telescopic_ota]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_no_self_swap[folded_cascode]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_no_self_swap[ngcc_3stage_ff]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_no_self_swap[nmcnr_amplifier]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_no_self_swap[pushpull_follower_buffer]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_no_self_swap[sf_pushpull_output_opamp]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_no_self_swap[two_stage_ota]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_s1_symmetry.py::test_library_no_self_swap[two_stage_ota_sf]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_differential_input_pair_gives_one_half_weight_view", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_sense_is_every_output_port", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_single_ended_inputs_give_one_view_each_in_name_order", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_single_input_circuit_single_excitation", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_loop_view_id_excite_and_sense_are_the_cut_gate", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_no_loop_view_without_loop_view_loops", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_sense_only_spec_constraints_make_no_extra_view", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_view_ids_unique_transfer_views_first_in_number_order[ota5]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_view_ids_unique_transfer_views_first_in_number_order[cmfb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_view_ids_unique_transfer_views_first_in_number_order[replica_se]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_view_ids_unique_transfer_views_first_in_number_order[folded]", "outcome": "passed"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_it2c_default_port_diff_pair_view_is_flagged", "when": "call", "outcome": "failed", "exc": "builtins.AttributeError", "msg": "'ViewS1v' object has no attribute 'default_port'"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_it2c_default_port_single_ended_inputs_one_view_each_flagged", "when": "call", "outcome": "failed", "exc": "builtins.AttributeError", "msg": "'ViewS1v' object has no attribute 'default_port'"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_it2c_default_port_single_input_cs_flagged", "when": "call", "outcome": "failed", "exc": "builtins.AttributeError", "msg": "'ViewS1v' object has no attribute 'default_port'"}
+{"id": "gmid_engine/tests/graph/test_views.py::test_it2c_default_port_false_for_loop_views", "when": "call", "outcome": "failed", "exc": "builtins.AttributeError", "msg": "'ViewS1v' object has no attribute 'default_port'"}
+{"id": "gmid_engine/tests/metrics/test__helpers_nodal.py::test_conductance_matrix_one_mos_by_device_equation", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test__helpers_nodal.py::test_conductance_matrix_resistor_and_capacitor_open", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test__helpers_nodal.py::test_solve_divider_and_injection", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test__helpers_nodal.py::test_adjoint_matches_per_node_forward_injection", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test__helpers_nodal.py::test_floating_node_excluded_and_zero", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test__helpers_nodal.py::test_singular_returns_none", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test__helpers_nodal.py::test_no_unknowns_returns_drive", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test__helpers_nodal.py::test_it2c_conductance_matrix_bound_true_matches_hand_formula", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "conductance_matrix() got an unexpected keyword argument 'bound'"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_t_l8f_removed_vocabulary_is_absent_from_engine_source", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "삭제 어휘가 엔진 소스에 남았다:\n  sizing/block_columns.py:64 alias 'INPUT_STATUS_F_COMPONENT_UNDECLARED'\n  sizing/block_columns.py:253 def 'writer_head'\n  sizing/block_columns.py:821 attr 'writer_head'\n  sizing/bl"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_t_l8f_kvl_sensitivity_signature_has_no_closure", "when": "call", "outcome": "failed", "exc": "builtins.ModuleNotFoundError", "msg": "No module named 'gmid_engine.metrics.icm_config'"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_public_status_and_writer_names", "when": "call", "outcome": "failed", "exc": "builtins.AttributeError", "msg": "module 'gmid_engine.sizing' has no attribute 'INPUT_STATUS_MEASURED'"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_dc_conducting_passive_is_resistor_only", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'CODE_PASSIVE_MISSING' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_icm_config_value_fields_and_frozen", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'IcmConfig' from 'gmid_engine.metrics.aux_types' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\aux_types.py)"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_view_seed_and_view_s1v_have_default_port_flag_default_false", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "ViewSeed\nassert 'default_port' in {'cut': Field(name='cut',type=<class 'tuple'>,default=(),default_factory=<dataclasses._MISSING_TYPE object at 0x000001...>,init=True,repr=True,hash=None,compare=True,"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_t_l10_single_producer_sites", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "[]\nassert [] == ['metrics/ss_nodal.py']\n  \n  Right contains one more item: 'metrics/ss_nodal.py'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_reads_sets_contain_required_fields", "when": "call", "outcome": "failed", "exc": "builtins.ModuleNotFoundError", "msg": "No module named 'gmid_engine.metrics.icm_config'"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_single_input_as_is_window_by_hand_kcl", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "{}\nassert 0 == 1\n +  where 0 = len({})"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_boundary_margin_is_zero_not_plus_tol", "when": "call", "outcome": "failed", "exc": "builtins.KeyError", "msg": "('node', 'in', 'dc_window_cfg')"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_vdsat_column_missing_gives_unmeasured", "when": "call", "outcome": "failed", "exc": "builtins.KeyError", "msg": "('node', 'in', 'dc_window_cfg')"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_servo_window_two_inputs_hand_kcl", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "{}\nassert 0 == 1\n +  where 0 = len({})"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_swapping_output_roles_gives_same_window_and_vcm", "when": "call", "outcome": "failed", "exc": "builtins.KeyError", "msg": "('node', 'ip', 'dc_window_cfg')"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_three_inputs_is_icm_inputs_unsupported", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "{}\nassert 0 == 1\n +  where 0 = len({})"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_two_single_ended_inputs_give_two_default_views_view_required", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "{}\nassert 0 == 1\n +  where 0 = len({})"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_two_nondifferential_outputs_is_view_required_with_sense", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "{}\nassert 0 == 1\n +  where 0 = len({})"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_zero_inputs_toy_is_rejected_at_topology_load", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_capacitive_only_node_is_icm_capacitive_only_node", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "{}\nassert 0 == 1\n +  where 0 = len({})"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_capacitive_only_node_connected_by_resistor_is_defined", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "{}\nassert 0 == 1\n +  where 0 = len({})"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_servo_rail_clip_ends_share_one_end_state", "when": "call", "outcome": "failed", "exc": "builtins.KeyError", "msg": "('node', 'ip', 'dc_window_cfg')"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_servo_undeclared_input_dc_drives_both_ports_together", "when": "call", "outcome": "failed", "exc": "builtins.KeyError", "msg": "('node', 'ip', 'dc_window_cfg')"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_single_input_has_no_kernel_window_entry", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'in' not in {'in': Window(lo=None, hi=None, constraints=0, input_status='f_component_undeclared', tol_v=None)}\n +  where {'in': Window(lo=None, hi=None, constraints=0, input_status='f_component"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_declared_view_same_key_merges_into_default", "when": "call", "outcome": "failed", "exc": "builtins.AttributeError", "msg": "'ViewS1v' object has no attribute 'default_port'"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_declared_view_other_key_coexists_with_default", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert (1 == 2)\n +  where 1 = len((ViewS1v(id='transfer:0', kind='transfer', excite=(('in_p', 1.0),), sense=('out',), ac_ground=('gnd', 'in_n', 'vb', 'v...edforward=(), ff_ratio_candidates=(), loop_ro"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_pending_capacitor_leaves_ss_nodal_defined_and_icm_config_defined", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'NodalSystem' from 'gmid_engine.metrics.aux_types' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\aux_types.py)"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_w3_target_output_high_impedance_window_by_hand_kcl", "when": "call", "outcome": "failed", "exc": "builtins.KeyError", "msg": "('node', 'in', 'dc_window_cfg')"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_servo_boundary_margin_is_zero_not_plus_tol", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "{}\nassert 0 == 1\n +  where 0 = len({})"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_triode_declared_device_row_zero_crossing_is_the_window_end", "when": "call", "outcome": "failed", "exc": "builtins.KeyError", "msg": "('node', 'in', 'dc_window_cfg')"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_l8d_resistor_feedback_declaration_does_not_change_window", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "{}\nassert 0 == 1\n +  where 0 = len({})"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_l8e_exact_zero_pivot_pipeline_toy", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "{}\nassert 0 == 1\n +  where 0 = len({})"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_l8e_assembly_cancellation_pivot_resolution_unit", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'NodalSystem' from 'gmid_engine.metrics.aux_types' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\aux_types.py)"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_t_l8h_icmr_is_region_row_window_not_conduction_end", "when": "call", "outcome": "failed", "exc": "builtins.KeyError", "msg": "('node', 'ip', 'dc_window_cfg')"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_tk_empty_window_dlo_gt_dhi_is_unmeasured", "when": "call", "outcome": "failed", "exc": "builtins.KeyError", "msg": "('node', 'in', 'dc_window_cfg')"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_tk_skipped_row_with_negative_slack_is_unmeasured", "when": "call", "outcome": "failed", "exc": "builtins.KeyError", "msg": "('node', 'in', 'dc_window_cfg')"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_region_rows_hand_values", "when": "call", "outcome": "failed", "exc": "builtins.ModuleNotFoundError", "msg": "No module named 'gmid_engine.sizing._helpers_dc_solve'"}
+{"id": "gmid_engine/tests/metrics/test_icm_config.py::test_it2c_nodal_system_arrays_immutable_and_fp_sees_g_bound", "when": "call", "outcome": "failed", "exc": "builtins.StopIteration", "msg": ""}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_valid_records_construct", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_resistor_none_value_type_error", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_resistor_missing_value_type_error", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_capacitor_none_value_type_error", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_resistor_nonpositive_or_nonfinite_value_error[0.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_resistor_nonpositive_or_nonfinite_value_error[0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_resistor_nonpositive_or_nonfinite_value_error[-1000.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_resistor_nonpositive_or_nonfinite_value_error[nan]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_resistor_nonpositive_or_nonfinite_value_error[inf]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_resistor_nonpositive_or_nonfinite_value_error[-inf]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_capacitor_nonpositive_or_nonfinite_value_error[0.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_capacitor_nonpositive_or_nonfinite_value_error[-1e-12]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_capacitor_nonpositive_or_nonfinite_value_error[nan]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_capacitor_nonpositive_or_nonfinite_value_error[inf]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[R_a]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[R_b]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[C_a]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[mos_d]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[mos_b]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[sense_pos]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[sense_neg]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[exc_v]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[exc_i]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[ac_ground]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[rail]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[channel]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[source]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_string_node_type_error[node_v]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_negative_value_error[gm]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_negative_value_error[gmb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_negative_value_error[gds]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_negative_cap_accepted[cgs]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_negative_cap_accepted[cgd]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_negative_cap_accepted[cgb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_negative_cap_accepted[cdb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_negative_cap_accepted[csb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[nan-cgs]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[nan-cgd]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[nan-cgb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[nan-cdb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[nan-csb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[inf-cgs]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[inf-cgd]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[inf-cgb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[inf-cdb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[inf-csb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[-inf-cgs]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[-inf-cgd]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[-inf-cgb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[-inf-cdb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_cap_nonfinite_still_rejected[-inf-csb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_nonfinite_value_error[nan-gm]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_nonfinite_value_error[nan-gmb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_nonfinite_value_error[nan-gds]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_nonfinite_value_error[nan-cgd]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_nonfinite_value_error[inf-gm]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_nonfinite_value_error[inf-gmb]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_nonfinite_value_error[inf-gds]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_nonfinite_value_error[inf-cgd]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_mos_zero_values_allowed", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_nonfinite_value_error[exc_v]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_nonfinite_value_error[exc_i]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_nonfinite_value_error[rail]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_nonfinite_value_error[channel]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_nonfinite_value_error[source]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_nonfinite_value_error[gate_w]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_nonfinite_value_error[gate_l]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_nonfinite_value_error[passive]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_nonfinite_value_error[node_v]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_passive_area_decl_default_empty", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_passive_area_decl_valid", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_passive_area_decl_overlap_value_error", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_passive_area_decl_unit_area_not_positive_finite[0.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_passive_area_decl_unit_area_not_positive_finite[-500.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_passive_area_decl_unit_area_not_positive_finite[nan]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_passive_area_decl_unit_area_not_positive_finite[inf]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_passive_area_decl_unit_area_not_positive_finite[-inf]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_records.py::test_it2c_stampset_g_ops_length_mismatch_value_error", "when": "call", "outcome": "failed", "exc": "builtins.AttributeError", "msg": "'StampSet' object has no attribute 'g_ops'"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_mos_record_from_columns", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_negative_caps_stamped_as_is", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_passives_with_values_and_order", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_ideal_current_source_is_open", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_missing_passive_values_recorded", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_ground_input_sorted_and_ac_ground_empty", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_unsupported_element_rejected[voltage_source]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_unsupported_element_rejected[bulk_none]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_unsupported_element_rejected[ss_none]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_unsupported_element_rejected[other_passive_kind]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_negative_check_base_is_accepted", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_it2c_rn_control_untouched_snapshot_is_accepted", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_it2c_rn_unsupported_element_rejected_by_ss_circuit_field[voltage_source]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_it2c_rn_unsupported_element_rejected_by_ss_circuit_field[inductor]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_circuit.py::test_it2c_rn_unsupported_element_rejected_by_ss_circuit_field[bulk_none]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_input_dc_evaluation_is_dc_evaluation", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_result_shape_and_lineage", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_requests_split_and_dedup", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_values_against_closed_form", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s11_junction_caps_and_approximation", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_junction_enters_frequency_metrics", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_counted_rails_default_undeclared", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_only_sealed_snapshot_accepted[dc_evaluation]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_only_sealed_snapshot_accepted[snapshot]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_only_sealed_snapshot_accepted[none]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_ctx_must_be_kernel_context", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_keyword_required", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[none]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[params_tuple]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[junction_params]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[pdk_decl]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[dict]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[positional_only]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_negative_check_valid_junction_accepted", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_theta_checked", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_passive_theta_argument_removed", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[spec_valued]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[not_passive]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[unknown]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[theta_resistance_too]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[rule_and_theta]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s14_engine_capacitor_value_from_theta", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_pending_capacitor_stays_missing", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s6_lineage_reuse_zero_compute", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s12_junction_change_recomputes_ss_blocks_only", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_fd_step_recomputes_and_no_same_input_recompute", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_only_changed_blocks_recompute", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_determinism", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_sky130_decls_ss_dev_junction_matches_reference", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_zc_schema_premise", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_zc_rule_value_enters_small_signal", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_zc_fallback_theta_enters_small_signal", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s15_rule_equals_spec_declared_value", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[cell]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[nocell_c]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[nocell_r]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_values_reused_on_mos_theta_only_change[cell]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_values_reused_on_mos_theta_only_change[nocell]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2a_same_theta_ss_reevaluation_from_child_grafts", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2c_t_l11c_same_theta_reevaluation_grafts_new_blocks", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "('ss_circuit', {'calls': 0, 'computes': 0, 'grafts': 0, 'recomputes_same_input': 0, ...})\nassert (0, 0, 0) == (0, 1, 0)\n  \n  At index 1 diff: 0 != 1\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2c_t_l11c_lineage_reuse_zero_compute_for_new_blocks", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "('ss_circuit', {'calls': 0, 'computes': 0, 'grafts': 0, 'recomputes_same_input': 0, ...})\nassert (0, 0) == (0, 1)\n  \n  At index 1 diff: 0 != 1\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2c_new_graph_fields_present_after_ss_evaluate", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "ss_circuit\nassert 0 == 1\n +  where 0 = len({})\n +    where {} = dict(())\n +      where () = column('graph', 'ss_circuit')\n +        where column = GraphSnapshot(writers=WriterTable(entries=((('device'"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_block_declaration", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {('device', '...'ss_circuit')} <= {('device', '... 'pins'), ...}\n  \n  Extra items in the left set:\n  ('graph', 'ss_circuit')"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_views_derived_as_expected", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s1_beta_loop_pm_example7", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s2_port_gain_and_rout", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_port_view_ugf_gbw_parasitic_pm", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_loop_cut_probe_differs_from_port_factor", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s3_unity_pm_bit_identical_to_parasitic", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_values_are_float_and_entries_in_request_order", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_ratio_view", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_ratio_sense_mismatch_raises", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_unregistered_metric_keyerror", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s4_missing_passive_value_all_undefined", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s4_negative_all_values_present_are_defined", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s5_pending_view", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s5_pending_precedes_missing", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_systems_shared_by_fixed_net_set", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_approximations_and_empty_requests", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s6_reuse_and_recompute", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s8_net_rename_invariance[names0]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s8_net_rename_invariance[names1]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_example7c_mixed_cut_undefined_not_exception", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_determinism", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s16_beta_loop_pm_resolution_closed_form", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s15_rout_resolution_bit_identical_to_direct_call", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s15_beta_loop_resolution_matches_direct_call", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_s15_one_mos_undetermined_all_none_values_unchanged", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_resolution_none_for_undefined_pending_missing", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_resolution_reused_with_block", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_resolution_computed_once_per_call", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_epsilon_change_recomputes_and_scales_exactly", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_unity_beta_pm_and_parasitic_share_resolution", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_ex8_unity_both_pm_metrics_undefined_rhp", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_ex8a_beta_loop_and_port_pm_both_undefined_rhp", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_no_rhp_ex7_pm_values_unchanged_with_rhp_neighbour", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_view_derived_from_output_pair", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_direct_closed_form_s23", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[direct]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[ref_rc]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[err_amp]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[sf_buffer]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[dda]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[triode]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[cascode_ideal]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_variants_match_independent_middlebrook[degen]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_pass_device_variant_stops_ds_self_swap", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_triode_average_equals_resistor_average", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_ambiguous_report_only_s32", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_ambiguous_with_declaration_s30_s32", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_low_gain_violation_detail_s25", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_report_only_and_warning_without_declaration_s26_s27", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_no_report_for_single_ended", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_no_warning_when_dc_not_above_one[low_gain]", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_reuse_and_shared_system_s28", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_inputs_are_ac_ground_s24", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_net_rename_invariance", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_cm_report_only_adds_one_system_s28", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_noise_metrics_through__mss", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_noise_inputs_missing_reason", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_metrics.py::test_noise_net_rename_invariance", "when": "call", "outcome": "failed", "exc": "builtins.ImportError", "msg": "cannot import name 'ss_circuit_field' from 'gmid_engine.metrics.ss_circuit' (C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\base\\skills\\analog-gmid-design\\gmid_engine\\metrics\\ss_circuit.py)"}
+{"id": "gmid_engine/tests/metrics/test_ss_types.py::test_field_names_and_order", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_types.py::test_defaults", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_types.py::test_frozen_and_immutable[SsDevice]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_types.py::test_frozen_and_immutable[MetricRequest]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_types.py::test_frozen_and_immutable[MetricBundle]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_types.py::test_fp_follows_values", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_types.py::test_junction_model_constant", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_types.py::test_s2_writer_table_has_ss_fields", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'metrics_aux...alue'),), ...} == {'icm_config'...s_ss'),), ...}\n  \n  Omitting 5 identical items, use -vv to show\n  Right contains 3 more items:\n  {'icm_config': (('node', 'dc_window_cfg'), ('g"}
+{"id": "gmid_engine/tests/metrics/test_ss_types.py::test_s2_writer_table_rejects_other_writer", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_returns_stampset_of_triples", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_g_entries_exact_contract", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_g_rows_sum_to_zero_and_source_is_negated_drain", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_capacitance_entries", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_zero_values_not_emitted", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_all_zero_device_emits_nothing", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_pmos_same_formula_positive_magnitudes", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_other_type_rejected[bad0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_other_type_rejected[bad1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_other_type_rejected[bad2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_other_type_rejected[None]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_multiset_has_no_duplicate_g_entries_for_distinct_nodes", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_mos.py::test_it2c_g_ops_hand_counts_per_entry", "when": "call", "outcome": "failed", "exc": "builtins.AttributeError", "msg": "'StampSet' object has no attribute 'g_ops'"}
+{"id": "gmid_engine/tests/metrics/test_stamp_two_terminal.py::test_resistor_four_entries", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_two_terminal.py::test_capacitor_four_entries", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_two_terminal.py::test_large_node_numbers", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_two_terminal.py::test_other_type_rejected[bad0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_two_terminal.py::test_other_type_rejected[bad1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_two_terminal.py::test_other_type_rejected[R]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_two_terminal.py::test_other_type_rejected[None]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_stamp_two_terminal.py::test_it2c_g_ops_resistor_one_per_net_and_capacitor_empty", "when": "call", "outcome": "failed", "exc": "builtins.AttributeError", "msg": "'StampSet' object has no attribute 'g_ops'"}
+{"id": "gmid_engine/tests/sizing/test__helpers_dc_solve.py::test_it2b_d_region_rows_kinds_are_sat_and_triode_only", "when": "call", "outcome": "failed", "exc": "builtins.FileNotFoundError", "msg": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\HSLEE\\\\AppData\\\\Local\\\\Temp\\\\la1s_it2c_audit\\\\base\\\\skills\\\\analog-gmid-design\\\\gmid_engine\\\\sizing\\\\_helpers_dc_solve.py'"}
+{"id": "gmid_engine/tests/sizing/test__helpers_dc_solve.py::test_it2b_d_region_rows_has_no_zero_vgs_op_point_conduction_columns_or_eo1_import", "when": "call", "outcome": "failed", "exc": "builtins.FileNotFoundError", "msg": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\HSLEE\\\\AppData\\\\Local\\\\Temp\\\\la1s_it2c_audit\\\\base\\\\skills\\\\analog-gmid-design\\\\gmid_engine\\\\sizing\\\\_helpers_dc_solve.py'"}
+{"id": "gmid_engine/tests/sizing/test__helpers_dc_solve.py::test_it2c_region_rows_has_no_tolerance_term", "when": "call", "outcome": "failed", "exc": "builtins.FileNotFoundError", "msg": "[Errno 2] No such file or directory: 'C:\\\\Users\\\\HSLEE\\\\AppData\\\\Local\\\\Temp\\\\la1s_it2c_audit\\\\base\\\\skills\\\\analog-gmid-design\\\\gmid_engine\\\\sizing\\\\_helpers_dc_solve.py'"}
+{"id": "gmid_engine/tests/sizing/test__helpers_dc_solve.py::test_it2c_circuit_has_no_writer_head_or_declared_inputs", "when": "call", "outcome": "failed", "exc": "builtins.ModuleNotFoundError", "msg": "No module named 'gmid_engine.sizing._helpers_dc_solve'"}
+{"id": "gmid_engine/tests/sizing/test__helpers_dc_solve.py::test_it2c_circuit_requires_lut_and_linear_keywords[lut]", "when": "call", "outcome": "failed", "exc": "builtins.ModuleNotFoundError", "msg": "No module named 'gmid_engine.sizing._helpers_dc_solve'"}
+{"id": "gmid_engine/tests/sizing/test__helpers_dc_solve.py::test_it2c_circuit_requires_lut_and_linear_keywords[linear]", "when": "call", "outcome": "failed", "exc": "builtins.ModuleNotFoundError", "msg": "No module named 'gmid_engine.sizing._helpers_dc_solve'"}
+{"id": "gmid_engine/tests/sizing/test__helpers_dc_solve.py::test_it2c_circuit_requires_lut_and_linear_keywords[both]", "when": "call", "outcome": "failed", "exc": "builtins.ModuleNotFoundError", "msg": "No module named 'gmid_engine.sizing._helpers_dc_solve'"}
+{"id": "gmid_engine/tests/sizing/test__helpers_dc_solve.py::test_it2c_kind_sign_is_plus_minus_one[nmos-1]", "when": "call", "outcome": "failed", "exc": "builtins.ModuleNotFoundError", "msg": "No module named 'gmid_engine.sizing._helpers_dc_solve'"}
+{"id": "gmid_engine/tests/sizing/test__helpers_dc_solve.py::test_it2c_kind_sign_is_plus_minus_one[pmos--1]", "when": "call", "outcome": "failed", "exc": "builtins.ModuleNotFoundError", "msg": "No module named 'gmid_engine.sizing._helpers_dc_solve'"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_circuit_c_hand[0.5-0.6-0.7]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_circuit_c_hand[0.3-0.55-0.95]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_circuit_c_hand[0.8-0.43-0.61]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_circuit_c_path_values", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_writer_ln_idu_is_theta", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_scc_log_matches_order", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_resistor_drop_known_t0[1e-05-90000.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_resistor_drop_known_t0[2e-06-300000.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_resistor_drop_known_t0[5e-05-10000.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_resistor_drop_known_t1", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_declared_resistor_value_used", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_zero_current_drop_is_zero_and_cycle_dependent", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_parallel_dependent_ln_idu", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_window_with_declared_target", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_empty_window", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_lut_target_out_of_range", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_lut_l_not_anchor", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_lut_axis_out_of_range_vsb", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_diode_one_variable_bisection[0.35]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_diode_one_variable_bisection[0.6]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_diode_one_variable_bisection[1.1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_source_follower_one_variable", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_no_root_in_window[2.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_no_root_in_window[-0.3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_vdsat_not_in_window", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_vdsat_not_in_window_even_with_column", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_floor_oracle_values", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_floor_is_interval_lo_nmos_diode[F]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_floor_is_interval_lo_nmos_diode[F2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_floor_is_interval_hi_pmos_diode", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_root_below_floor_is_no_root", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_root_above_floor_solved[nmos-0.3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_root_above_floor_solved[nmos-0.6]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_root_above_floor_solved[pmos-1.2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_floor_cached_in_lut_memo", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_no_fully_on_suffix_falls_back_to_vds_min", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_interval_end_nextafter_inside_axis", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_acyclic_writer_below_floor_is_strict_failure[0.1-False]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_acyclic_writer_below_floor_is_strict_failure[0.24-False]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_acyclic_writer_below_floor_is_strict_failure[0.26-True]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_acyclic_writer_below_floor_is_strict_failure[0.5-True]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_cyclic_transient_below_floor_tolerated", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_cyclic_strict_recheck_below_floor_fails[0.7-False]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_cyclic_strict_recheck_below_floor_fails[0.75-False]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_cyclic_strict_recheck_below_floor_fails[0.9-True]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_solve_self_identical_inputs_reused_zero_h_evaluations", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_solve_self_key_sensitive[ln_idu]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_solve_self_key_sensitive[L]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_solve_self_log_fields_unchanged", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_no_root_strict_failure_and_not_cached_as_exception", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_tol_v_cell_once_per_device_vds_within_one_evaluation", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_tol_v_cell_values_identical_across_evaluations", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_tol_undefined_before_convergence_propagates[0.6-0.4]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_tol_undefined_before_convergence_propagates[0.98-0.3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_non_transient_lut_failure_before_convergence_propagates", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_reversed_ds_declaration_rejected_by_seal7", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_correct_ds_declaration_same_point_passes_seal7", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k1_unmeasurable_root_is_unmeasured_with_order_window", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_k_max_exhausted_root_window_is_unsettled_and_y_range_kept", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_it2b_d_no_operating_point_mismatch_vocabulary_in_engine_sources", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_tol_undefined_root_window_is_unsettled_and_y_range_kept", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_window_tol_v_is_the_tolerance_of_the_last_measured_solution", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_it1_t1h_input_point_ports_share_voltage_and_window_key", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_block_columns.py::test_it1_t1h_input_point_touching_f_ports_share_voltage", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_hand_linear_system", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_kind_is_not_used_for_window_end", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_given_slope_skips_the_sensitivity_system", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_root_is_a_single_net", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_pair_root_is_not_accepted", "when": "call", "outcome": "failed", "exc": "builtins.Failed", "msg": "DID NOT RAISE any of (<class 'TypeError'>, <class 'ValueError'>, <class 'KeyError'>)"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_rows_with_slope_at_or_below_float_eps_are_skipped[0.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_rows_with_slope_at_or_below_float_eps_are_skipped[1e-17]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_rows_with_slope_at_or_below_float_eps_are_skipped[-1e-17]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_rows_with_slope_at_or_below_float_eps_are_skipped[2e-16]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_row_just_above_float_eps_is_kept", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[4]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[5]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_singular_system_is_none", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_gradient_outside_domain_is_none", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_follower_oracle_window", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_interior_y_maps_into_saturation_window[0.02]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_interior_y_maps_into_saturation_window[0.25]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_interior_y_maps_into_saturation_window[0.5]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_interior_y_maps_into_saturation_window[0.75]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_interior_y_maps_into_saturation_window[0.98]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_window_ends_are_saturated[0.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_window_ends_are_saturated[1.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_window_found_when_rail_midpoint_is_outside", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.0-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.0-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.125-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.125-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.25-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.25-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.5-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.5-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.75-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.75-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.875-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.875-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[1.0-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[1.0-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_mid_window_ends_have_nonnegative_saturation_slack[0.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_mid_window_ends_have_nonnegative_saturation_slack[1.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_declared_input_dc_same_theta_seals", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_empty_window_rejected", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_repeat_identical", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_dc_table_has_33_fields", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_s2_writers_is_s1_plus_dc_table_exactly", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {('device', '...ymmetry', ...} == {('device', '...ymmetry', ...}\n  \n  Omitting 78 identical items, use -vv to show\n  Left contains 1 more item:\n  {('node', 'dc_output_structure'): 'dc_writer_pl"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_one_writer_per_field_and_permission_enforced", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_dc_writes_constant_matches_table", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {('device', '...urrents', ...} == {('device', '...urrents', ...}\n  \n  Omitting 33 identical items, use -vv to show\n  Left contains 1 more item:\n  {('node', 'dc_output_structure'): 'dc_writer_pl"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_columns]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_current_basis]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_currents]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_lengths]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_rails]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_scc_order]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_bulk_reverse]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_conduction]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_kcl]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_kvl_branch]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_node_conflict]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_report]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_saturation]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_seal_vgs_match]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_theta_schema]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_tolerances]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_widths]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_name_and_writes_match_table[dc_writer_plan]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {('device', '... 'dc_writer')} == {('device', '... 'dc_writer')}\n  \n  Extra items in the left set:\n  ('node', 'dc_output_structure')\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_seal_conduction_reads_cover_contract_inputs", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_columns]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_current_basis]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_currents]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_lengths]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_rails]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_scc_order]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_widths]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_writer_plan]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_theta_schema_reads_include_structural_rule_fields", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_vocabulary_constants", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_it2b_window_status_defaults", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_value_defaults", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[NodeWrite]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[DeviceCoord]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[CurrentTerm]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[ColumnNeighbor]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[SccEntry]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[PathValue]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[Window]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[SealItem]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[DeviceOp]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[DcInputs0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[DcInputs1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[ZeroCancel]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_values_frozen_and_immutable[ThetaSchema]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_value_fields_as_contract", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_s2_values.py::test_kernel_context_holds_only_references", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_circuit_c", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_resistor_drop_writer", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_diode_tree_mirror_parallel", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_fixed_vgs", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_cycle_vgs_behind_resistor", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_input_dc_declared_makes_fixed", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_target_priority_over_input_dc", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_symmetric_diffpair_choices_by_canonical_position", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_renamed_diffpair_plan_follows_colour_correspondence", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_resistor_cycle_stop", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[common_gate_amplifier]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[current_reuse_telescopic_ota]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[folded_cascode]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[ngcc_3stage_ff]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[nmcnr_amplifier]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[pushpull_follower_buffer]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[sf_pushpull_output_opamp]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[two_stage_ota]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_reorder_bit_identical[two_stage_ota_sf]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[common_gate_amplifier-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[common_gate_amplifier-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[current_reuse_telescopic_ota-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[current_reuse_telescopic_ota-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[folded_cascode-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[folded_cascode-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[ngcc_3stage_ff-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[ngcc_3stage_ff-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[nmcnr_amplifier-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[nmcnr_amplifier-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[pushpull_follower_buffer-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[pushpull_follower_buffer-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[sf_pushpull_output_opamp-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[sf_pushpull_output_opamp-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[two_stage_ota-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[two_stage_ota-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[two_stage_ota_sf-1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[two_stage_ota_sf-2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_block_is_theta_free_and_reused", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[none]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[ratified]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[gm]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[stage_b]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[stage_a]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[ratified_over_gm]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_symmetric_pair[gm_over_stage]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_diode_pair[none]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_diode_pair[ratified_over_diode]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_diode_pair[diode_over_gm]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_order_diode_pair[diode_over_stage]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_empty_hints_identical_to_default", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_hint_on_tree_only_device_changes_nothing", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_name_bijection[ab]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_dec95_name_bijection[swapped_order]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1a_undeclared_diffpair_one_input_point", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1b_two_gvgs_components_become_one_point", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1c_input_point_touching_f_has_no_y_component", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1d_declared_input_plan_unchanged", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1d_single_input_unchanged", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1d_isolated_single_input_builds", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1i_triangle_through_input_point_has_one_cycle_vgs", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_unsupported_input_combinations_stop[two_pairs]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_unsupported_input_combinations_stop[no_pair_two_inputs]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_unsupported_input_combinations_stop[pair_plus_single]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_unsupported_input_combinations_stop[pair_plus_isolated]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_declared_input_dc_disables_the_table[two_pairs]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_declared_input_dc_disables_the_table[no_pair]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_declared_input_dc_disables_the_table[pair_plus_single]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_input_target_one_port_stops[only_p]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_input_target_one_port_stops[only_n]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_input_target_both_or_neither_does_not_stop", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1g_renamed_diffpair_same_structure", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1g_swapped_roles_follow_role_not_name", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_vocabulary_and_branch_codes", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_writer_block_owns_plan_fields", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t5b_nonrail_gate_equals_source_is_fixed_vgs_dependent", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t5b_rail_gate_equals_source_same_plan_as_nonrail", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t5c_writer_plan_source_has_no_gate_source_equality", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t5c_gvgs_is_only_gate_source_same_writer", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_writer_plan.py::test_it2c_e9_output_structure_not_in_field_or_vocabulary", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('node', 'dc_output_structure') not in {('device', 'bulk'), ('device', 'bulk_declared'), ('device', 'dc_L'), ('device', 'dc_colour'), ('device', 'dc_conduction_floor'), ('device', 'dc_coord'), "}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_shape_and_key_order[sym]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_shape_and_key_order[asym]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_shape_and_key_order[sym_untied]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_unique_keys_when_tied", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_untied_orbit_shares_dimension", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_input_order_invariance[0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_input_order_invariance[1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_input_order_invariance[2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_input_order_invariance[3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_renaming_keeps_kind_key_dim_sequence[1]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert [('capacitanc...n', 10)), ...] == [('capacitanc...n', 11)), ...]\n  \n  At index 5 diff: ('y', ('n', 10)) != ('y', ('n', 11))\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_renaming_keeps_kind_key_dim_sequence[2]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert [('capacitanc...n', 10)), ...] == [('capacitanc...n', 11)), ...]\n  \n  At index 5 diff: ('y', ('n', 10)) != ('y', ('n', 11))\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/search/test_canonical_order.py::test_renaming_keeps_kind_key_dim_sequence[3]", "outcome": "passed"}

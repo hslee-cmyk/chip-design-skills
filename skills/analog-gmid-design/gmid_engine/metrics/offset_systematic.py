@@ -1,6 +1,6 @@
 """계통 offset -- 봉인 DC 동작점의 입력 0 출력 오차 / 차동 이득 (설계 40 §3.8-8 `offset_sys_mv`, 체크리스트 D-OF3).
 
-진입점: `offset_systematic(ss, view, node_v, targets, node_tol_v=None) -> OffsetSystematic`.
+진입점: `offset_systematic(ss, view, node_v, targets, node_tol_v=None, nodal=None) -> OffsetSystematic`. `nodal` = 필드 `graph.ss_nodal` 값(생략하면 같은 조립 함수).
 
 * 출력 오차(입력 차 0): 감지가 쌍(p, n)이면 **차동 출력** = V_dc(p) − V_dc(n). 감지가 하나면 **단일 출력** = V_dc(out) − 선언된 출력 기준 DC
   (`targets` = spec `node_voltage_targets_v` 의 (넷, V) -- 그 출력 넷에 선언이 없으면 값을 내지 않고 `reference_undeclared`로 보고한다).
@@ -13,8 +13,8 @@
 """
 from gmid_engine.core import MV_PER_V
 
-from ._helpers_nodal import conductance_matrix, nodal_factor, nodal_solve
-from ._helpers_view import view_system
+from ._helpers_nodal import nodal_solve
+from ._helpers_view import view_factor, view_system
 from .aux_types import OffsetSystematic
 from .mna_types import Undefined
 
@@ -25,7 +25,7 @@ def _bare(code, detail=(), **fields):
     return OffsetSystematic(None, undefined=(Undefined(QUANTITY, code, "definitional", detail),), **fields)
 
 
-def offset_systematic(ss, view, node_v, targets, node_tol_v=None):
+def offset_systematic(ss, view, node_v, targets, node_tol_v=None, nodal=None):
     system = view_system(ss, view)
     if system is None:
         return _bare("unsupported_view", (("mode", getattr(view, "mode", None)),))
@@ -43,7 +43,7 @@ def offset_systematic(ss, view, node_v, targets, node_tol_v=None):
         error = volts[sense_p] - reference
         nets = (sense_p,)
     size = len(ss.nodes)
-    factor = nodal_factor(conductance_matrix(ss.circuit, size), fixed)
+    factor = view_factor(ss, nodal, fixed)
     volt, _residual = nodal_solve(factor, size, drive)
     if volt is None:
         return _bare("singular_dc", output_error_v=error)

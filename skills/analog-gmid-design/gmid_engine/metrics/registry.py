@@ -11,7 +11,8 @@ metric 하나 = 이미 한 번 계산된 값 묶음(`LoopAnalysis`·`OutputResis
 * view_kind: `transfer`(선언 전달 뷰), `loop`(β 루프 -- 되먹임 수동소자 없으면 β = 1, N3.8 PM), `cm_loop`(공통 모드 루프 -- 차동 출력 포트 쌍 동일 부호 주입, `pm_cm_ss_deg`), `output_port`(출력 포트
   전류 주입 열), `ratio`(같은 계의 num·den 두 여기 열). DC·면적 metric 은 None(뷰 없음). 어휘 정본은
   `core.metric_signature.VIEW_KINDS`.
-* domain: 면적 `area_search_m2` 는 레이아웃 기하 `geom`(DM 3.4 영역 열).
+* domain: 면적 `area_search_m2` 는 레이아웃 기하 `geom`(DM 3.4 영역 열). offset(`offset_in_sigma_mv`·`offset_excess`·`offset_sys_mv`)·`mirror_ratio_sigma_pct`·스윙·ICMR 세 metric 은
+  DC 양이라 `dc`(O-112, 카드 IT-2d) -- 용량이 DC 망에 들지 않으므로 용량만 결측인 점에서도 정의된다. `metrics_aux` 의 결측 판정이 이 칸만 읽는다.
 * objective_axis: `supply_current_dc` = `power`(DEC-77·78). 면적 판정 축 `area_layout_m2`(MOD7 이후)는 아직 없고,
   탐색 축 `area_search_m2` 는 예산 대상이 아니므로 None.
 """
@@ -53,13 +54,13 @@ _ROWS = (
     ("noise_excess_th", "ratio", "ss", "transfer", None, NoiseAnalysis, "excess_th"),
     ("noise_out_int_vrms", "v", "ss", "transfer", None, NoiseAnalysis, "out_int_vrms"),
     # [U7] offset·미러비·스윙·ICMR·FF 비(설계 40 §3.8-8) -- 계산 대기 표(pending_metrics)에서 옮겨 왔다(서명 동일)
-    ("offset_in_sigma_mv", "mv", "ss", "transfer", None, OffsetAnalysis, "sigma_in_mv"),
-    ("offset_excess", "ratio", "ss", "transfer", None, OffsetAnalysis, "excess"),
-    ("offset_sys_mv", "mv", "ss", "transfer", None, OffsetSystematic, "sys_mv"),
-    ("mirror_ratio_sigma_pct", "pct", "ss", None, None, MirrorRatio, "sigma_pct"),
-    ("swing_out_v", "v", "ls", None, None, SwingIcmr, "swing_out_v"),
-    ("icmr_v", "v", "ls", None, None, SwingIcmr, "icmr_v"),
-    ("icm_margin_v", "v", "ls", None, None, SwingIcmr, "icm_margin_v"),
+    ("offset_in_sigma_mv", "mv", "dc", "transfer", None, OffsetAnalysis, "sigma_in_mv"),
+    ("offset_excess", "ratio", "dc", "transfer", None, OffsetAnalysis, "excess"),
+    ("offset_sys_mv", "mv", "dc", "transfer", None, OffsetSystematic, "sys_mv"),
+    ("mirror_ratio_sigma_pct", "pct", "dc", None, None, MirrorRatio, "sigma_pct"),
+    ("swing_out_v", "v", "dc", None, None, SwingIcmr, "swing_out_v"),
+    ("icmr_v", "v", "dc", None, None, SwingIcmr, "icmr_v"),
+    ("icm_margin_v", "v", "dc", None, None, SwingIcmr, "icm_margin_v"),
     ("ff_gm_ratio", "ratio", "ss", "transfer", None, FfRatio, "ratio"),
 )
 

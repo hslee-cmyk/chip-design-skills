@@ -1,0 +1,31 @@
+{
+ "id": "20261104-it2c-icm-config",
+ "order": "순서 3 freeze",
+ "isolation": "C:/Users/HSLEE/AppData/Local/Temp/la1s_it2c_audit/iso (git clone --no-hardlinks --no-local, origin 제거), base 복제본 동일",
+ "freeze": {
+  "test_end_commit_T": "dc8ccefe62244e335256f95bb74cc9cb09135112",
+  "base_commit": "4d39eaf5550127b6ac1fc74464a5c36c670c1630",
+  "code_commit": "4e985989c7e8b93c01a5cf80d17b2fa40ef518b8",
+  "head": "37a2cf5c83c9c6ef15eabee12cbcc7b36589ef81",
+  "tests_tree_lsTree_sha256": "b3a43c93720a5c9ff0722701836c847f256f5eb648d535fe383372af2fcbad18",
+  "tests_diff_base_T_sha256": "58d14b28f76d9d5001b3c6a22b0344ae0ff8b1077a4d2cf20f81755ba3b974bd"
+ },
+ "red": {
+  "count": 69,
+  "types": {
+   "AssertionError": 27,
+   "AttributeError": 9,
+   "TypeError": 1,
+   "ModuleNotFoundError": 9,
+   "ImportError": 8,
+   "KeyError": 10,
+   "StopIteration": 1,
+   "FileNotFoundError": 3,
+   "Failed": 1
+  },
+  "mss_fixture_excluded": 55,
+  "base_green_new": 7
+ },
+ "retired_tests_file": "skills/analog-gmid-design/gmid_engine/tests/RETIRED_TESTS_it2c.md",
+ "collect_views_private_call": "test_icm_config.py _ota_views: 비공개 collect_views·net_model 호출, A-83 지시대로(기록만)"
+}

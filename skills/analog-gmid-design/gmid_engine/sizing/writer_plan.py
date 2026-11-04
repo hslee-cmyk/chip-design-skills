@@ -25,17 +25,14 @@
    (gate, source) 트리 엣지가 있으면 `parallel_vgs`(v0, partner), 나머지 `cycle_vgs`(v1·v2).
 7. [U17 ①-b, 설계 40 §2.4.8 '1변수 writer 집합'] `device.dc_self_referential` = MOS 마다 그 소자가 쓰는 노드가 자기 d·s·bulk 중 하나인가(diode 의 gate 쓰기,
    소스 추종의 source 쓰기 -- 1변수 방정식 노드). 쓰기 계획의 파생이라 S0 수준 필드이고(θ 무관), 평가 커널 `dc_columns`·탐색 상자 `cell_floor` 가 읽기만 한다.
-8. [카드 IT-2b, 설계 41 4.7-1a] `node.dc_output_structure` = 출력 포트 넷마다 `high_impedance`|`kvl_fixed`. 위 2의 G_vgs 엣지 목록(`_edges`, F 를 묶기 전)에서 출력 넷부터
-   너비 우선으로 성분을 걸어 F′(= 레일 ∪ 입력 DC 선언이면 입력 포트; W3 목표 넷은 넣지 않는다)에 닿으면 `kvl_fixed`, 닿지 않거나 G_vgs 밖이면 `high_impedance`.
-   θ 무관(S0 당 1회)이고 writer 는 이 블록 하나다 -- 소비자(측정 구성·다듬은 창)는 이 필드를 읽기만 하고 다시 분류하지 않는다.
+(출력 포트 구조 분류 필드는 두지 않는다 -- 측정 구성은 출력 꼴과 무관하게 봉인점 KCL 로 잰다, 계획 N3.8 'ICMR servo 감도 -- KCL', 카드 IT-2c.)
 정지: 입력 DC 미선언이고 입력 포트(G_vgs 밖 고립 입력 포트 포함)가 둘 이상인데 차동쌍 하나가 아니다 -> `StructureUnresolvedError`(rule_branch
 `input_cm_undefined`, ports = 그 포트 넷들, 탐색 전 정지 -- DEC-106). 비트리 저항 엣지(값이 정해진 저항 루프 -- 저항을 종속시키는 규칙이 없음) -> `StructureUnresolvedError`
 (`unsupported_rule_branch`, rule_branch `dc_resistor_cycle`).
 """
 from collections import deque
 
-from gmid_engine.authoring import (INPUT_DIRECTION, OUTPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_N,
-                                   ROLE_DIFFERENTIAL_INPUT_P)
+from gmid_engine.authoring import INPUT_DIRECTION, ROLE_DIFFERENTIAL_INPUT_N, ROLE_DIFFERENTIAL_INPUT_P
 from gmid_engine.core import StructureUnresolvedError, compute_block
 from gmid_engine.graph import ELEMENT_MOS, ELEMENT_PASSIVE, GRAPH_KEY, MOS_TERMINAL_NAMES, UNSUPPORTED_RULE_BRANCH
 
@@ -51,8 +48,6 @@ from .s2_values import (
     DEP_FIXED,
     DEP_PARALLEL,
     DEP_TREE,
-    OUTPUT_HIGH_IMPEDANCE,
-    OUTPUT_KVL_FIXED,
     REL_INPUT_DC,
     REL_INPUT_POINT,
     REL_RAIL,
@@ -80,8 +75,7 @@ READS = (
     ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"), ("node", "dc_colour"), ("device", "dc_colour"),
     ("device", "bulk"), ("graph", "gvgs_summary"),
 )
-WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"),
-          ("node", "dc_output_structure"))
+WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))
 _SELF_RELATIONS = (REL_VGS_GATE, REL_VGS_SOURCE)
 _DIFF_ROLES = (ROLE_DIFFERENTIAL_INPUT_P, ROLE_DIFFERENTIAL_INPUT_N)     # 입력 점이 되는 차동 입력쌍 role
 _FIXED = ("",)                                          # F 한 점(넷 이름이 될 수 없는 tuple 키)
@@ -125,31 +119,6 @@ def _edges(classes, kinds, pins, diode, colour, hints):
                    -stage[name] if name in stage else 1, (colour[name],), name)
             edges.append((key, rank, name, gate, source))
     return sorted(edges)
-
-
-def _output_structure(edges, outputs, fixed):
-    """출력 포트 넷마다 구조 분류(설계 41 4.7-1a): G_vgs 엣지 목록 `edges`(`_edges` 의 결과 -- F 를 한 점으로 묶기 전의 넷 사이 엣지)에서 출력 넷부터 너비 우선으로
-    성분을 걷는다. F′(`fixed`) 넷에 닿으면 `kvl_fixed`, 성분을 다 걸어도 닿지 않거나 출력 넷이 엣지의 끝점이 아니면(G_vgs 밖) `high_impedance`. W3 목표 넷은 F′ 가
-    아니라 걷기를 멈추지 않는 보통 노드다."""
-    adjacency = {}
-    for _key, _rank, _name, a, b in edges:
-        adjacency.setdefault(a, []).append(b)
-        adjacency.setdefault(b, []).append(a)
-    structure = {}
-    for output in outputs:
-        seen = {output}
-        queue = deque((output,))
-        reached = output in fixed
-        while queue and not reached:
-            for v in adjacency.get(queue.popleft(), ()):
-                if v in fixed:
-                    reached = True
-                    break
-                if v not in seen:
-                    seen.add(v)
-                    queue.append(v)
-        structure[output] = OUTPUT_KVL_FIXED if reached else OUTPUT_HIGH_IMPEDANCE
-    return structure
 
 
 @compute_block(DC_WRITER_PLAN_WRITER, reads=READS, writes=WRITES)
@@ -291,11 +260,8 @@ def dc_writer_plan(projection):
         if w.relation in _SELF_RELATIONS:
             terminals = dict(pins[w.element])
             self_ref[w.element] = self_ref[w.element] or net in (terminals["d"], terminals["s"], bulk[w.element])
-    outputs = tuple(net for net, d in projection.column("node", "port_direction") if d == OUTPUT_DIRECTION)
-    fixed_prime = frozenset(rails) | (frozenset(inputs) if input_dc_declared else frozenset())      # F′ -- W3 목표 넷은 넣지 않는다
     return {("node", "dc_writer"): plan.writes, ("device", "dc_coord"): coords,
-            ("graph", "dc_tie_breaks"): {DC_KEY: tuple(ties)}, ("device", "dc_self_referential"): self_ref,
-            ("node", "dc_output_structure"): _output_structure(edges, outputs, fixed_prime)}
+            ("graph", "dc_tie_breaks"): {DC_KEY: tuple(ties)}, ("device", "dc_self_referential"): self_ref}
 
 
 def _component(adjacency, start, twin):

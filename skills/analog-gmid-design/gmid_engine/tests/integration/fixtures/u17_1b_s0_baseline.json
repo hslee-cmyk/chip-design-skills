@@ -2,6 +2,7 @@
  "_source": "U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). stage_a_sha = 단계 A 보고서 키별 정준 JSON sha256(기준선에 적힌 키만 대조한다 -- 측정 때 빼 둔 옛 S0 적중 칸은 실행 사이 재사용 제거로 보고서에서 없어졌고, NFR-4 card 2 의 최상위 키 env_fp 는 실행 환경 지문이라 기준선 대상이 아니다), stage_b_sha = 단계 B 보고서 achievability 밖 키, achievability_sha = achievability 키별, start·kernel = StartIntervals·KernelContext·SearchContext 칸의 core fp_of. [U17 ①-b 판정 후 2026-10-14] stage_a_sha.tables 는 옛 기준선 표에서 설계 40 v1.9.1 D1(최상위 key 칸 폐기)과 추가 결정 (c)(facts_applied -> applied_facts 이름 변경)만큼 변환한 값의 sha256(wt/_scratch_u17_1b_fix_tests/transform_tables_baseline.py). junction_source 는 경로를 뺀 내용 투영(kernel.junction_content -- params fp_of·temp_c·pdk_decl_sha256, wt/_scratch_u17_1b_fix_tests/junction_content_base.py)으로 대조한다. [library spec card 2026-10-14, 사용자 U-3 '4회로만 재측정'] spec 이 바뀐 4회로(Q-S2 pm_ss_deg >= 70: sf_pushpull_output_opamp·two_stage_ota·two_stage_ota_sf, Q-S3 잡음 450 uVrms: current_reuse_telescopic_ota) 항목은 base 41a2c4a 코드(master 34932a9 + spec 커밋)로 test 작성 주체가 다시 잰 값(wt/_scratch_libspec_tests/remeasure.py + merge.py, OPENBLAS_NUM_THREADS=1, 빈 S0 폴더, start·kernel 은 S0 필드 .value 에 core fp_of). 나머지 5회로 항목은 바이트 그대로(같은 스크립트 재측정값과 일치 확인).",
  "_source_o227": "[O-227 (2) 2026-11-04] r2r_opamp, rfc_ota 항목: 판정자(audit)가 master 5671a6c7 + test 커밋 ede4f440 격리 복제본에서 잰 값. 재는 법 = 이 파일 ngcc_3stage_ff 항목과 같은 꼴(status != [ok, ok] 회로: stage_a_sha = 단계 A 보고서에서 env_fp 뺀 키, stage_b_sha = 단계 B 보고서에서 achievability 뺀 키, achievability_sha = achievability 키, sha = test_s0_layer_9circuits._sha, 사슬 두 번 비트 동일 확인, OPENBLAS_NUM_THREADS=1). 같은 도구가 ngcc_3stage_ff·common_gate_amplifier·two_stage_ota 항목을 그대로 재현함을 대조했다. 두 회로의 status 는 [ok, ok] 가 아니다(r2r = stopped: 단계 A 정지 3건, rfc = review_needed) -- 회귀 기준선이지 '회로 정상' 표지가 아니다. cnr_ota, erfc_ota 는 단계 B 정지(achievability 없음)라 넣지 않았다. 판정 기록 .ai/verification/20261104-o227/verdict.json.",
  "_source_it1": "[IT-1 2026-11-04, 원인 칸 DEC-106(O-168·O-170), 위임 A-39·A-42] 판정자(audit)가 병합본 f2278b9a(격리 복제본, OPENBLAS_NUM_THREADS=1, 사슬 두 번 비트 동일 확인, 회로마다 프로세스 하나)에서 잰 값으로 다음 행만 바꿨다: 7회로 achievability_sha.dof(입력 점이 V:<n 포트> 변수 하나를 없앰), 5회로 kernel.schema_fp·search_domain_fp(옛 IT-1 의 ln_idu 하나가 사라지고 y 키 = p 포트 넷), 4회로 start.ladder_fp(옛 IT-1 갱신분에서 master 8d77b801 값으로 복귀, value_fp 같음 실측). 값 변화표는 O-225 보류 표지, 판정 기록 .ai/verification/20261104-it1-input-point.json.",
+ "_source_it2c": "[IT-2c 2026-11-04, 원인 칸 ViewS1v.default_port(O-118 6번, 계획 N6.6), 위임 A-39] 판정자(audit)가 병합본 37a2cf5c(격리 복제본, OPENBLAS_NUM_THREADS=1, 사슬 두 번 비트 동일 확인)에서 잰 값으로 11회로의 stage_a_sha.tables 만 바꿨다. 회로마다 base 4d39eaf5 tables 와 대조해 차이가 views[].default_port 칸 추가뿐임을 단언했다(칸을 지우면 비트 동일). 값 변화표는 O-225 보류 표지, 판정 기록 .ai/verification/20261104-it2c-icm-config.json. cnr_ota·erfc_ota 는 O-228 고정 유지(기준선 없음).",
  "common_gate_amplifier": {
   "achievability_sha": {
    "area": "e96ca496e169d2666be95d163fd5a61754526cb08de8b72e7a2bdcc540d484a2",
@@ -44,7 +45,7 @@
    "review_needed": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "status": "c48b5b1a9776c84602de2306d7903a7241158a5077e7a8519af75c33441b8334",
    "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-   "tables": "d32163321493de70ad66df67d00022130720d14daa667caeeafb8b77697ee67f",
+   "tables": "803220b74ce5ec020e3246e740cb0887f35de02a927f56d1ff5bb8cbbc18a6ff",
    "views": "c9a72142d08b728d72e2b85ae068e9c6cd5750271743b314270180630f1aadd0"
   },
   "stage_b_sha": {
@@ -119,7 +120,7 @@
    "review_needed": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "status": "c48b5b1a9776c84602de2306d7903a7241158a5077e7a8519af75c33441b8334",
    "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-   "tables": "1f7f064af5eb9c171d38e0a602cc5b115bc107d40deb76a8629f295b2203aa70",
+   "tables": "fd3dfd7fc0d5f4901df957d38d084f2bdc6da09b1a269598ad284fe9692a52ba",
    "views": "b2792b4d6d7feef0cc848019369f758a702726d6c2a086257a1b7d68f41bbbc1"
   },
   "stage_b_sha": {
@@ -242,7 +243,7 @@
    "review_needed": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "status": "c48b5b1a9776c84602de2306d7903a7241158a5077e7a8519af75c33441b8334",
    "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-   "tables": "0b1703c621d208fdf6d6d3c33e8982f9078717328012591fd6fc16074840f753",
+   "tables": "6f4efd7d336eb96cafa36c4fca599fa8c91ea7ad0b34d5f505d4cfb5902166a5",
    "views": "889fe405f46a8c82e2998621c2e38db8b7d51fa0eefa32e782b886cc946691a5"
   },
   "stage_b_sha": {
@@ -310,7 +311,7 @@
    "review_needed": "0af1ede9aff71ab910a8cb44dca8b78ca66b4499e80d1a28245e222adabc9a1c",
    "status": "5551b2c0438de94bf1abf46d19675fefc0efe062044a885e1f0b3bd35deee6e2",
    "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-   "tables": "a581aebea71811c416961f7e17d08b006fa7a29abc31cf34d44e3e79465e7ca3",
+   "tables": "ae0140c5bb99b1df5eb5af010b767a35ab1214e11854b7ab1bab4dffbf77cd66",
    "views": "63731b4f8f460272ab7f2751ce24855b3f6e52d653671086a38792e81974b823"
   },
   "stage_b_sha": {
@@ -368,7 +369,7 @@
    "review_needed": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "status": "c48b5b1a9776c84602de2306d7903a7241158a5077e7a8519af75c33441b8334",
    "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-   "tables": "6f55957f3e189459a6efc8813c30214618a97e297a445ff4ca1113faa8280693",
+   "tables": "089b63075e08f5ec5169052fd45668199df0e5862ef1f51ee2bb08dc63317dfb",
    "views": "391748cf5461f23644ed9e69739f59f3e11b30a0544b4199905e47022d83c8db"
   },
   "stage_b_sha": {
@@ -455,7 +456,7 @@
    "review_needed": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "status": "c48b5b1a9776c84602de2306d7903a7241158a5077e7a8519af75c33441b8334",
    "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-   "tables": "e2f013479d07b5b2e3cac1b29c1826faa1ed452bdfada793eca12f4351a0b42f",
+   "tables": "397b87cd6e8df3cc245e5e561c1d648825ceb188276bde27aefc92d9d177de20",
    "views": "f62c4ed96173ff544c2b6444afeaf3b3c559154e495ab13d494f077dea26c7a5"
   },
   "stage_b_sha": {
@@ -516,7 +517,7 @@
    "review_needed": "3fd2ceea8df86d53a7b1c0b3a1ca8efe9d17ff13c9452972b0849a4d83fd8166",
    "status": "15b0fb141b7672221ecefd53ca5a29ea042e3bc3bad9e08c11df0cebce279c2e",
    "stop_reasons": "4d7e5a81748b63117515bf115f26039f7b323631fdec01b321b05be4489fcd99",
-   "tables": "61686d06211c80aaae83e1a1c9196d6f6ed245177e37e8c39116543fd85ace3a",
+   "tables": "09bc61c9a62bc7ff5bf817853a0c74f160bbecc1bea904a6bbab1913201cd9df",
    "views": "fd5aaa0f3a6e78f39336cd1b0ccae39b760a8244799059fb636e368b861e6f73"
   },
   "stage_b_sha": {
@@ -557,7 +558,7 @@
    "review_needed": "1cd91be33abc262353830103be30d85c64158e5db7093fe5f975337667549c92",
    "status": "5551b2c0438de94bf1abf46d19675fefc0efe062044a885e1f0b3bd35deee6e2",
    "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-   "tables": "ac88f81dbce194d717f8d041a88f81494543a5c46ba0215aad7bd54878d2baa0",
+   "tables": "ea0a34b5ec65b15638f8b8a0ca866c20ab5f18079957c58bd177242c2586e954",
    "views": "889fe405f46a8c82e2998621c2e38db8b7d51fa0eefa32e782b886cc946691a5"
   },
   "stage_b_sha": {
@@ -615,7 +616,7 @@
    "review_needed": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "status": "c48b5b1a9776c84602de2306d7903a7241158a5077e7a8519af75c33441b8334",
    "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-   "tables": "601eaaf508db9afdbc5dd38ba63b5f6032188338b78ac11243d253238a1b2c38",
+   "tables": "1c34cba882f5b8eae353ef44950207bb2122a0a80be8d2f2401ced2568279fe2",
    "views": "a44aca726dfbe7e4eb418eac6d7aa2239e36ba4fc17e333340534fae13fc0f1f"
   },
   "stage_b_sha": {
@@ -709,7 +710,7 @@
    "review_needed": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "status": "c48b5b1a9776c84602de2306d7903a7241158a5077e7a8519af75c33441b8334",
    "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-   "tables": "d1a373bb52ea5e44660ce470c2c2c92ba9bee50e4794c21af35d8daf035ab63a",
+   "tables": "6da01fc4f7d88deeb3a1c8578a5a16faa6577d35e1900dad266879542fbb0366",
    "views": "96cae9b7216dcf536424467c2385294f0560ea105e5102c42ac80246aba14d52"
   },
   "stage_b_sha": {
@@ -788,7 +789,7 @@
    "review_needed": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "status": "c48b5b1a9776c84602de2306d7903a7241158a5077e7a8519af75c33441b8334",
    "stop_reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-   "tables": "38157585daf10242c2cd77dc6becfc3740094514c48a9250dcd7c6ec02508360",
+   "tables": "85bda03390a90e1277dd58ce5465960418ba275734f4b7d9940171403f270b41",
    "views": "6b39c037730a6f8fe076963d1922820d2095810e7ce0863462540fb72b2bb39e"
   },
   "stage_b_sha": {

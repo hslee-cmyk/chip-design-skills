@@ -23,14 +23,34 @@ from .stamp_mos import mos_stamps
 from .stamp_two_terminal import two_terminal_stamps
 
 
-def conductance_matrix(circuit, size):
-    """`SmallSignalCircuit`(정수 노드 < size) -> (size, size) 실수 G -- MOS(gm·gmb·gds)와 저항. 용량은 DC 극한에서 열린 회로라 넣지 않는다."""
+def _gamma(count, unit_roundoff):
+    """γ_m = m·u / (1 − m·u) (m = 연산 수, γ_0 = 0) -- 부동소수 연산 m 번 누적 오차의 상대 상계(Higham 식 γ_m)."""
+    return count * unit_roundoff / (1 - count * unit_roundoff)
+
+
+def conductance_matrix(circuit, size, *, bound=False):
+    """`SmallSignalCircuit`(정수 노드 < size) -> (size, size) 실수 G -- MOS(gm·gmb·gds)와 저항. 용량은 DC 극한에서 열린 회로라 넣지 않는다.
+
+    `bound=True` 면 `(G, g_bound)`: g_bound 는 G 조립 오차의 항목별 상계 E_ij = γ_{max(k_ij−1, 0)}·S_ij + C_ij + γ_{n+1}·|Ĝ_ij|
+    (S_ij = Σ|ĝ_s|, k_ij = 항목의 스탬프 항 수, C_ij = Σ γ_{c_s}·|ĝ_s|, c_s = 스탬프 항의 연산 수 `StampSet.g_ops`, n = size, Ĝ = 계산된 G, u = ε/2;
+    값 0 항목은 스탬프에서 빠지므로 세지 않는다). 스탬프가 없는 항목은 0. 기본 `False` 면 G 하나(옛 소비자 값 불변)."""
     g = numpy.zeros((size, size))
     stamps = tuple(mos_stamps(m) for m in circuit.mos) + tuple(two_terminal_stamps(r) for r in circuit.resistors)
+    terms = {}
     for stamp in stamps:
-        for row, col, value in stamp.g:
+        for (row, col, value), ops in zip(stamp.g, stamp.g_ops):
             g[row, col] += value
-    return g
+            terms.setdefault((row, col), []).append((value, ops))
+    if not bound:
+        return g
+    unit_roundoff = sys.float_info.epsilon / 2
+    g_bound = numpy.zeros((size, size))
+    for (row, col), items in terms.items():
+        magnitude = sum(abs(value) for value, _ops in items)
+        stamp_error = sum(_gamma(ops, unit_roundoff) * abs(value) for value, ops in items)
+        g_bound[row, col] = (_gamma(max(len(items) - 1, 0), unit_roundoff) * magnitude + stamp_error
+                             + _gamma(size + 1, unit_roundoff) * abs(g[row, col]))
+    return g, g_bound
 
 
 def nodal_factor(g, fixed):

@@ -458,3 +458,131 @@ def test_it2a_parent_with_other_base_writer_version_rejected(ctx_r4c):
         with pytest.raises(ValueError):
             size_and_seal(ctx_r4c, _it2a_theta(), parent=DcEvaluation(bad, e0.report, None))
     assert len(tried) >= 2                                                 # 전제: base writer 여럿을 시험했다
+
+
+# =====================================================================================================================
+# [IT-2e 20261104-it2e-partial-snapshot, T-E1·T-E8] parent 있는 평가에서 커널 블록 k 의 후보 실패 -> 부분 스냅샷(EvalResult.partial = exc.partial)
+# 규칙(interface '규칙'): block_versions 키 = base writer ∪ k 앞 블록, 필드 writer ⊆ 같은 집합, k 와 그 뒤 블록 필드 없음(parent 값이 남으면 red).
+# oracle (변성): 같은 θ 를 parent 가 있을 때/없을 때 부르는 변환에도 부분 스냅샷 규칙이 같다. 기대 집합은 이 test 가 독립 관찰로 만든다 --
+#   base writer = 실행 컨텍스트 ctx.base.block_versions 의 키(입력), k 앞 블록 = `ComputeBlock.__call__` 감쌈이 센 호출 순서.
+#   피검 함수(writers_in_scope·derive_child·run_kernel)로 기대값을 만들지 않는다. 고정 블록 목록은 쓰지 않는다(k 는 EVAL13 상수, 앞 블록은 관찰).
+# 실패 주입: test_partial_snapshot_seal_stage_block_failure 와 같은 공개 경로 -- 대상 블록 호출에서 실제 봉인 위반 기록(구성)으로 만든
+#   SealViolationError.from_record 를 올린다. 사례 유효 조건 (가): 주입 직전 같은 입력으로 그 블록 함수를 실제로 한 번 돌려 계수 증분이
+#   (calls 1, reuses 0, grafts 0, replays 0, computes 1, 재계산 0)임을 확인한다 -- 아니면 사례 무효(단언 실패). (나): 대조 평가는 다른 컨텍스트·다른 객체.
+# =====================================================================================================================
+
+from types import SimpleNamespace  # noqa: E402
+
+from gmid_engine.core import ComputeBlock  # noqa: E402
+
+from .conftest import COUNT_FIELDS, Oracle, circuit_cs_pmos_load, row_delta, theta_c  # noqa: E402
+
+IT2E_KERNEL = tuple(b.name for b in EVAL13[:5])          # 평가 커널 4 + dc_tolerances (EVAL13 상수에서 읽음)
+IT2E_SEAL = tuple(b.name for b in EVAL13[5:])            # 봉인 항목 블록 7 + dc_seal_report
+
+
+def it2e_theta_parent():
+    return theta_c()
+
+
+def it2e_theta_child():
+    """parent 와 전류·L·좌표·y 가 모두 다른 θ -- 어느 블록이든 입력 버전이 parent 와 달라 실제로 계산된다(가)."""
+    return theta_c(y=0.45, i2=3e-5, l1=2e-6, l2=1e-6)
+
+
+def it2e_record(tmp_path_factory, toy_access):
+    """주입할 FailureRecord = 실제 봉인 위반 평가가 낸 기록(구성: test_failure_seal_violation 과 같은 θ)."""
+    doc = circuit_cs_res(bulk_m1="out")
+    doc["topology_name"] = "it2e_record"
+    ctx = build_ctx(tmp_path_factory.mktemp("it2e_rec"), doc, toy_access)[2]
+    th = {("L", "M1"): 1e-6, ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.3, -0.3),
+          ("current", "R1"): 1e-5, ("resistance", "R1"): 1.5e5}
+    with pytest.raises(SealViolationError) as ei:
+        size_and_seal(ctx, th)
+    return ei.value.record
+
+
+def it2e_rows(ctx):
+    return {r.block: tuple(getattr(r, f) for f in COUNT_FIELDS) for r in ctx.counters.snapshot().blocks if r.part == "*"}
+
+
+def it2e_run(tmp_path_factory, toy_access, monkeypatch, k, with_parent, rec):
+    """새 실행 하나(회로 C, toy)에서 θ_child 를 평가하며 블록 k 에서 후보 실패를 주입한다. with_parent 면 같은 컨텍스트에서 먼저 평가한
+    θ_parent 의 평가를 parent 로 준다. 반환 SimpleNamespace(exc, seen, entered, probe, parent, ctx, delta)."""
+    ctx = build_ctx(tmp_path_factory.mktemp("it2e_run"), circuit_cs_pmos_load(), toy_access)[2]
+    parent = size_and_seal(ctx, it2e_theta_parent()) if with_parent else None
+    seen, entered, probe = [], [], []
+    orig = ComputeBlock.__call__
+
+    def wrapped(self, snapshot, *extras, **kw):
+        seen.append(self.name)
+        if self.name == k:
+            entered.append(snapshot)
+            row0 = block_row(ctx.counters, k)
+            orig(self, snapshot, *extras, **kw)                    # (가) 실제로 계산되는지 계수로 확인
+            probe.append(row_delta(block_row(ctx.counters, k), row0))
+            raise SealViolationError.from_record(rec)
+        return orig(self, snapshot, *extras, **kw)
+
+    rows0 = it2e_rows(ctx)
+    with monkeypatch.context() as mp:
+        mp.setattr(ComputeBlock, "__call__", wrapped)
+        with pytest.raises(SealViolationError) as ei:
+            size_and_seal(ctx, it2e_theta_child(), parent=parent)
+    rows1 = it2e_rows(ctx)
+    zero = (0,) * len(COUNT_FIELDS)
+    delta = {n: row_delta(rows1[n], rows0.get(n, zero)) for n in rows1}
+    # 전제 (가): 대상 블록에 정확히 한 번 들어갔고, 마지막 호출이 k 이며, 재사용·이식 없이 계산됐다. 부분 스냅샷이 붙어 있다.
+    assert len(entered) == 1 and seen[-1] == k, (k, seen)
+    assert probe[0] == (1, 0, 0, 0, 1, 0), (k, dict(zip(COUNT_FIELDS, probe[0])))
+    assert ei.value.partial is not None
+    return SimpleNamespace(exc=ei.value, seen=seen, entered=entered, probe=probe, parent=parent, ctx=ctx, delta=delta)
+
+
+def it2e_expected_keys(r):
+    """base writer ∪ k 앞 블록 -- base writer = ctx.base.block_versions 키(입력), k 앞 = 관찰한 호출 순서."""
+    return set(r.ctx.base.block_versions) | set(r.seen[:-1])
+
+
+def it2e_assert_rule(r, k):
+    partial = r.exc.partial
+    exp = it2e_expected_keys(r)
+    assert set(partial.block_versions) == exp, sorted(set(partial.block_versions) ^ exp)
+    assert k not in partial.block_versions
+    for kf, w in partial.writers.entries:                         # 필드 writer ⊆ 같은 집합 (parent 값이 남으면 red)
+        if partial.column(*kf) != ():
+            assert w in exp, (kf, w)
+    later = [b.name for b in EVAL13 if b.name not in exp]         # k 와 그 뒤 블록
+    assert k in later
+    for kf, w in partial.writers.entries:
+        if w in later:
+            assert partial.column(*kf) == (), (kf, w)
+
+
+def it2e_assert_parent_had_k_fields(r, k):
+    """전제: parent 스냅샷은 k 의 필드를 실제로 갖고 있다 -- 안 지우면 남는 값이 있는 사례만 유효."""
+    assert r.parent is not None
+    ps = r.parent.snapshot
+    assert any(ps.column(*kf) != () for kf, w in ps.writers.entries if w == k), k
+
+
+@pytest.mark.parametrize("k", IT2E_KERNEL)
+def test_it2e_kernel_block_failure_with_parent_partial_rule(tmp_path_factory, toy_access, monkeypatch, k):
+    """T-E1: parent 있는 평가의 커널 블록 k 후보 실패 -> 부분 스냅샷 규칙 충족, k 이후 필드 없음."""
+    rec = it2e_record(tmp_path_factory, toy_access)
+    r = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, True, rec)
+    it2e_assert_parent_had_k_fields(r, k)
+    it2e_assert_rule(r, k)
+
+
+@pytest.mark.parametrize("k", IT2E_KERNEL + IT2E_SEAL)
+def test_it2e_failure_attach_adds_no_block_calls(tmp_path_factory, toy_access, monkeypatch, k):
+    """T-E8 (G-10): 부분 스냅샷 부착이 블록을 더 부르지 않는다 -- 실행 계수 호출 증분 = 감쌈이 센 호출 수, 같은 입력 재계산 0,
+    블록당 계산 ≤ 1. oracle (독립): 감쌈이 센 호출(피검 출력이 아닌 관찰)."""
+    rec = it2e_record(tmp_path_factory, toy_access)
+    r = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, True, rec)
+    for name, row in r.delta.items():
+        d = dict(zip(COUNT_FIELDS, row))
+        assert d["calls"] == r.seen.count(name), (name, d, r.seen)
+        assert d["recomputes_same_input"] == 0, (name, d)
+        assert d["computes"] <= 1, (name, d)

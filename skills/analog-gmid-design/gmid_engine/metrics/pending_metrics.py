@@ -13,9 +13,9 @@ front 를 거르는 행이 아니다(레지스트리 밖 제약의 기존 처리
 잡음 4행(U8)도 옮겨져 이 표는 비었다(계산 대기 이름 없음). 아래 뜻풀이는 옮긴 행의 정의 출처 기록으로 남긴다.
 
 행 = (metric 이름, 단위, 영역, view_kind, objective_axis). 이름 정의·쓰임은 설계 40 §3.8-8 표(offset·미러비·스윙·ICMR)와 41 §7.1 표(잡음).
-* offset_in_sigma_mv / offset_excess / offset_sys_mv: ss 영역, `transfer` 뷰(gain 제약 전달 뷰의 A_dm 으로 나눈다).
-* mirror_ratio_sigma_pct: matching 그룹별 보고 metric -- 뷰를 받지 않는다(설계 표의 `ratio` 는 '전류비'이지 `ratio` 뷰({num, den})가 아니다).
-* swing_out_v / icmr_v / icm_margin_v: `ls` 영역(P N3.8 경로 합), 뷰 없음(출력·입력 포트는 topology ports 에서 읽는다).
+* offset_in_sigma_mv / offset_excess / offset_sys_mv: `dc` 영역 [IT-2d relabel, 옛 ss], `transfer` 뷰(gain 제약 전달 뷰의 A_dm 으로 나눈다).
+* mirror_ratio_sigma_pct: `dc` 영역 [IT-2d relabel], matching 그룹별 보고 metric -- 뷰를 받지 않는다(설계 표의 `ratio` 는 '전류비'이지 `ratio` 뷰({num, den})가 아니다).
+* swing_out_v / icmr_v / icm_margin_v: DC 양이라 `dc` 영역(O-112, IT-2d; 옛 `ls`), 뷰 없음(출력·입력 포트는 topology ports 에서 읽는다). offset·미러비도 `dc` 로 relabel.
 * ff_gm_ratio: ss 영역, `transfer` 뷰(40 §3.8-8 표 'ratio / ss / transfer'). feedforward 묶음마다 r_ff = G_ff / gm_in(B_b)(41 §1.12.2-5), 묶음 없는 회로는 값 없음 -- 계산은 U7.
 * [U8] noise_* 4개는 계산이 들어와 `registry._ROWS` 로 옮겨졌다(서명 그대로: ss 영역, `transfer` 뷰 -- 41 §7.1 '공통 규칙'. `noise_out_int_vrms` 의 폐루프 β 는 spec feedback 에서 유도한다, 뷰에 적지 않는다).
 """

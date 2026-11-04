@@ -101,3 +101,13 @@ def test_other_type_rejected(bad):
 def test_multiset_has_no_duplicate_g_entries_for_distinct_nodes():
     st = mos_stamps(MosSmallSignal(D, G, S, B, GM, GMB, GDS))
     assert max(Counter((r, c) for r, c, _ in st.g).values()) == 1
+
+
+def test_it2c_g_ops_hand_counts_per_entry():
+    """oracle 대조: (손) [IT-2c T-L10 `g_ops`] interface: `g_ops` = `g` 와 같은 길이·순서, MOS 는 (d, s)·(s, s) 항목만 2(그 둘이 gm+gmb+gds 세 항의 합이라
+    덧셈 2회), 나머지 6항목 0(입력 값 그대로)."""
+    st = mos_stamps(MosSmallSignal(D, G, S, B, GM, GMB, GDS))
+    assert len(st.g_ops) == len(st.g) == 8
+    ops = {(r, c): n for (r, c, _v), n in zip(st.g, st.g_ops)}
+    assert ops == {(D, D): 0, (D, G): 0, (D, B): 0, (D, S): 2, (S, D): 0, (S, G): 0, (S, B): 0, (S, S): 2}
+    assert st.c == () and st.g_ops == tuple(st.g_ops)

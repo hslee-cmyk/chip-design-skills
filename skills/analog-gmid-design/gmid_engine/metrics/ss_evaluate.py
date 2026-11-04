@@ -27,7 +27,8 @@
   (결정 대기 등)는 `metrics_ss` 가 `passive_value_undeclared` 로 보고한다.
 * 요청 = 제약의 (metric, view) 중복 제거(문서 순서). view_kind 가 있는 metric -> `metrics_ss`, 없는 metric(전력·면적)은
   `metrics_dc` 묶음이 늘 낸다(목적 축). 미등록 metric 은 `KeyError`(spec 로드가 `metric_unknown` 으로 먼저 거른다).
-* 블록 순서: `passive_values(element_values, zero_cancel, theta_passive_pairs(θ))` -> `ss_dev(lut)` -> `metrics_ss(requests)` -> `metrics_dc(counted_rails)`.
+* 블록 순서: `passive_values(element_values, zero_cancel, theta_passive_pairs(θ))` -> `ss_dev(lut)` -> `ss_circuit` -> `metrics_ss(requests)` -> `ss_nodal` -> `icm_config(lut, 선형 선언 소자)`
+  -> (aux 요청 또는 전달 뷰가 있으면) `metrics_aux` -> `metrics_dc(counted_rails)`. `ss_nodal`·`icm_config` 는 요청과 무관하게 늘 부른다(측정 구성은 봉인 뒤 모든 점의 필드다).
   입력 버전이 같으면 재사용, FD 로 θ 한 성분이 바뀌면 그 성분을 읽는 블록만 다시: DC 성분이면 dc_op·dc_gm 을 읽는 블록(바뀌지 않은 소자의
   LUT 조회는 memo 적중), θ 수동소자 성분이면 `ss_dev` 재사용·`passive_values`·`metrics_ss`·`metrics_dc` 만.
 * 블록 호출은 모두 `ctx.donors`·`ctx.counters`(`KernelContext` 의 실행 하나 색인·계수)로 부른다. 후보 실패 클래스(이름으로 잡는다)가 나면 그 블록에 들어간 스냅샷을
@@ -40,14 +41,17 @@ from gmid_engine.core import CANDIDATE_FAILURE_CLASSES, attach_partial
 from gmid_engine.sizing import KERNEL_KEY, METRICS_KEY, DcEvaluation, KernelContext, SealedSnapshot, Theta, check_theta
 
 from .dc_metrics import metrics_dc
+from .icm_config import icm_config_window
 from .junction_source import JunctionSource
 from .metrics_aux import AUX_TYPES, metrics_aux
 from .noise_devices import noise_devices
 from .noise_types import NoiseAnalysis, NoiseDecl
 from .passive_values import passive_values, theta_passive_pairs
 from .registry import metric_registry
+from .ss_circuit import ss_circuit_field
 from .ss_linearize import ss_dev
 from .ss_metrics import metrics_ss
+from .ss_nodal import ss_nodal_system
 from .ss_types import MetricBundle, MetricRequest, SsEvaluation
 
 def _requests(constraints):
@@ -99,10 +103,13 @@ def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, 
     try:
         snapshot = passive_values(snapshot, ctx.inputs.element_values, schema.zero_cancel, theta_passive_pairs(theta.values), **keys)
         snapshot = ss_dev(snapshot, ctx.lut, junction, *((diffusion,) if diffusion else ()), **keys)
+        snapshot = ss_circuit_field(snapshot, **keys)         # 소신호 회로 조립 자리 하나 -- metrics_ss·ss_nodal·metrics_aux 가 필드를 읽는다
         noisy = any(registry[r.metric].source_type is NoiseAnalysis for r in ss_requests)
         extra = (noise_devices(snapshot, ctx.lut, junction, NoiseDecl() if noise_decl is None else noise_decl),) if noisy else ()
         snapshot = metrics_ss(snapshot, ss_requests, *extra, **keys)
         bundle = snapshot.value("graph", METRICS_KEY, "metrics_ss")
+        snapshot = ss_nodal_system(snapshot, **keys)          # 봉인점 노달 계(G·g_bound·인수분해) -- 측정 구성과 metrics_aux 의 세 조립 자리가 읽는다
+        snapshot = icm_config_window(snapshot, ctx.lut, frozenset(ctx.inputs.linear_devices), **keys)    # ICMR 측정 구성·창(node.dc_window_cfg)·V_cm 칸
         views = () if structure is None else _transfer_views(requests, registry)
         if aux_requests or views:
             ugf = next((res.value for req, res in bundle.entries if req.metric == UGF_METRIC and res.value is not None), None)

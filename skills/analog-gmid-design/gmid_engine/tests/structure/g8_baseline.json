@@ -232,25 +232,7 @@
     },
     {
       "count": 1,
-      "detail": "_Circuit.L",
-      "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
-      "detail": "_Circuit.bulk",
-      "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
       "detail": "_Circuit.classes",
-      "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
-      "detail": "_Circuit.coord",
       "kind": "g8_attr_container",
       "path": "sizing/block_columns.py"
     },
@@ -262,19 +244,7 @@
     },
     {
       "count": 1,
-      "detail": "_Circuit.device_colour",
-      "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
       "detail": "_Circuit.fixed",
-      "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
-      "detail": "_Circuit.kinds",
       "kind": "g8_attr_container",
       "path": "sizing/block_columns.py"
     },
@@ -310,18 +280,6 @@
     },
     {
       "count": 1,
-      "detail": "_Circuit.pins",
-      "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
-      "detail": "_Circuit.rail_v",
-      "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
       "detail": "_Circuit.resistance",
       "kind": "g8_attr_container",
       "path": "sizing/block_columns.py"
@@ -335,12 +293,6 @@
     {
       "count": 1,
       "detail": "_Circuit.tol_cells",
-      "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
-      "detail": "_Circuit.writers",
       "kind": "g8_attr_container",
       "path": "sizing/block_columns.py"
     },
