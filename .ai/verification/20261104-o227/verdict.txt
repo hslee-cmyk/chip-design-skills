@@ -1,2 +1,2 @@
-판정 기록 본문 = verdict.json (round_2가 최신)
-verdict: Major 1
+판정 기록 본문 = verdict.json (round_3이 최신)
+verdict: Major 0

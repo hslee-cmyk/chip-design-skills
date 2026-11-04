@@ -1,5 +1,262 @@
 {
  "id": "20261104-o227",
+ "round_3": {
+  "target": "7c21fc75 (role/test/20261104-o227c) 병합, 머지 커밋 ff7fad2d. 이번 수정 범위만 재고 앞 판정 측정은 재사용",
+  "user_decision": "O-228 원문 확인(wt/_drafts/user_decisions.md 1209행, 사용자 '나'): cnr·erfc 8건 xfail 고정, 통과로 세지 않음, 달라지거나 기준선이 생기면 실패, 해제는 LA-1 재점검. round_2 user_decision_item은 닫힌다.",
+  "majors": [],
+  "closed": {
+   "M3": "g10 고정이 not-searched 분기 _check_rows 단언 뒤로 갔고, 등록·계수 단언이 cnr·erfc 각각에서 실제로 돈다"
+  },
+  "minors": [
+   {
+    "id": "m8",
+    "title": "o227_stop_pin docstring의 'KeyError' 문언이 사실과 다르다",
+    "fact": "대상 목록에만 있고 표에 없는 회로는 KeyError가 아니다. pin_stop·pin_blocks는 표에 없으면 아무것도 안 하고 기존 단언으로 내려간다. 실측: block_grid·gain·area TypeError, diagnostic·r2r block_grid AssertionError, g10 _baseline AssertionError. 실패한다는 결론(fail-closed)은 맞고 예외 이름만 틀렸다. 표에만 있는 방향의 문장은 맞다.",
+    "also": "'판정 측정'이라는 인용: round_2의 m7 fail-closed 문장은 내가 코드를 읽고 쓴 것이고 측정이 아니었다. 이번 round에서 처음 쟀다.",
+    "fix": "문언을 '기존 단언이 실패한다(TypeError 또는 AssertionError)'로 고친다. 동작 변경 없음."
+   },
+   {
+    "id": "m9",
+    "title": "이번 수정으로 생긴 빈틈: 고정 회로가 탐색 경로로 가면 g10이 고정에 닿지 않고 passed",
+    "fact": "pin_stop은 not-searched 분기 안에만 있고 pinned면 _baseline도 건너뛴다. 그래서 STOP에 있으면서 [ok, ok]이고 NOT_SEARCHED에서 빠진 회로는 기준선 유무와 무관하게 g10이 passed다.",
+    "measured": "common_gate_amplifier를 STOP에 넣어 잼: 기준선 있음 PASS, 기준선 없음 PASS, NOT_SEARCHED에 남겨 두면 전제 단언 AssertionError.",
+    "reach": "엔진이 고쳐져 [ok, ok]가 되고 NOT_SEARCHED까지 손으로 뺐을 때만 닿는다. 이때 탐색 G-10은 실제로 돌고, 그 회로의 다른 고정 test는 정지 안 함·기준선 있음으로 실패하므로(round_2 측정) suite 전체로는 fail-closed다. 그래서 Minor.",
+    "fix_option": "탐색 분기 들머리에 pinned면 실패시키는 단언 한 줄. 또는 그대로 두고 LA-1 재점검 해제 때 STOP과 함께 지운다."
+   }
+  ],
+  "checks": {
+   "not_searched_and_counts_before_pin": "cnr·erfc 각각: 등록 제거, recomputes 주입, calls 항등 위반 주입, S0 writer 누락 주입, writers 빈 목록, s1 None -> 모두 AssertionError (xfail 아님). 종단: 등록 제거 2/2 failed, 계수 위반 2/2 failed, 수정 전(round_2)에는 xfail이던 경로",
+   "new_gap_review": {
+    "baseline_appears_not_searched": "cnr·erfc FAILED(기준선 메시지). 사유 빈 목록 동반도 FAILED",
+    "baseline_and_count_violation": "AssertionError(어느 쪽이든 실패)",
+    "achievability_present": "cnr·erfc FAILED(정지 안 함)",
+    "b_status_ok_only": "a.status가 stopped라 not-searched 유지, XFAIL(정상)",
+    "searched_path": "m9"
+   },
+   "reason_devices_g10": "하네스: class·분지·소자 추가/제거·중복·빈 목록 FAILED, JSON 아님 예외. 종단: 사유 표 변경 2/2, 소자 표 변경 2/2 failed",
+   "r2r_rfc_and_unpinned": "r2r·rfc·ngcc real PASS, 등록 제거·계수 주입 모두 AssertionError, common_gate 표 밖 real PASS. g10 diff는 pin 호출 이동뿐이고 추가 2줄이 if pinned 아래",
+   "harness": {
+    "cases": 51,
+    "unexpected": 0,
+    "gap_cases_expected_pass": 2
+   },
+   "docstring": {
+    "list_only_stop/block_grid": "EXC:TypeError",
+    "table_only_stop/block_grid": "EXC:TypeError",
+    "list_only_stop/gain": "EXC:TypeError",
+    "table_only_stop/gain": "EXC:TypeError",
+    "list_only_stop/area": "EXC:TypeError",
+    "table_only_stop/area": "EXC:TypeError",
+    "list_only_stop/diag": "ASSERT:",
+    "table_only_stop/diag": "ASSERT:",
+    "list_only_block/block_grid": "ASSERT:",
+    "table_only_block/block_grid": "ASSERT:",
+    "list_only_stop/g10": "ASSERT:기준선(fixtures/u17_1b_s0_baseline.json)에 회로 'cnr_ota' 없음 -- 회귀 보호 없음(기준선 측정은 별도 판정"
+   },
+   "graph_canonical": "엔진 diff 0, fixture diff 0, 새 cache·필드 0"
+  },
+  "files": [
+   {
+    "file": "test_g10_no_recompute_9circuits.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 13,
+    "passed": 11,
+    "xfailed": 2,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 192,
+    "min_free_mb": 3073,
+    "failed_ids": []
+   },
+   {
+    "file": "test_layer0_boundary_rows.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 14,
+    "passed": 12,
+    "xfailed": 2,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 168,
+    "min_free_mb": 3070,
+    "failed_ids": []
+   },
+   {
+    "file": "test_s0_layer_9circuits.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 83,
+    "passed": 79,
+    "xfailed": 4,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 292,
+    "min_free_mb": 3414,
+    "failed_ids": []
+   },
+   {
+    "file": "test_stage_b_library.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 68,
+    "passed": 59,
+    "xfailed": 9,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 112,
+    "min_free_mb": 3520,
+    "failed_ids": []
+   },
+   {
+    "file": "test_removed_names.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 16,
+    "passed": 16,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 4,
+    "min_free_mb": 5086,
+    "failed_ids": []
+   },
+   {
+    "file": "test_structure_rules.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 14,
+    "passed": 14,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 52,
+    "min_free_mb": 4983,
+    "failed_ids": []
+   },
+   {
+    "file": "test_structure_rules_reject_fixtures.py",
+    "status": "done",
+    "rc": 0,
+    "tests": 41,
+    "passed": 41,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 2,
+    "min_free_mb": 5108,
+    "failed_ids": []
+   },
+   {
+    "file": "test_structure_test_mapping.py",
+    "status": "done",
+    "rc": 5,
+    "tests": 0,
+    "passed": 0,
+    "xfailed": 0,
+    "skipped_other": 0,
+    "failed": 0,
+    "errors": 0,
+    "sec": 2,
+    "min_free_mb": 5100,
+    "failed_ids": []
+   }
+  ],
+  "total": {
+   "tests": 249,
+   "passed": 232,
+   "xfailed": 17,
+   "skipped_other": 0,
+   "failed": 0,
+   "errors": 0
+  },
+  "xfail_ids": [
+   "test_g10_no_recompute_9circuits.py::test_no_same_input_recompute_in_one_run[cnr_ota]",
+   "test_g10_no_recompute_9circuits.py::test_no_same_input_recompute_in_one_run[erfc_ota]",
+   "test_layer0_boundary_rows.py::test_layer0_baseline_present_for_every_library_circuit[cnr_ota]",
+   "test_layer0_boundary_rows.py::test_layer0_baseline_present_for_every_library_circuit[erfc_ota]",
+   "test_s0_layer_9circuits.py::test_baseline_present_for_every_library_circuit[cnr_ota]",
+   "test_s0_layer_9circuits.py::test_baseline_present_for_every_library_circuit[erfc_ota]",
+   "test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[cnr_ota]",
+   "test_s0_layer_9circuits.py::test_stage_reports_unchanged_from_base[erfc_ota]",
+   "test_stage_b_library.py::test_area_lower_bound_from_declared_values[cnr_ota]",
+   "test_stage_b_library.py::test_area_lower_bound_from_declared_values[erfc_ota]",
+   "test_stage_b_library.py::test_block_grid_products_and_budget_gate[cnr_ota]",
+   "test_stage_b_library.py::test_block_grid_products_and_budget_gate[erfc_ota]",
+   "test_stage_b_library.py::test_block_grid_products_and_budget_gate[r2r_opamp]",
+   "test_stage_b_library.py::test_diagnostic_mode_keeps_stage_a_exit_code[cnr_ota]",
+   "test_stage_b_library.py::test_diagnostic_mode_keeps_stage_a_exit_code[erfc_ota]",
+   "test_stage_b_library.py::test_gain_target_and_verdict[cnr_ota]",
+   "test_stage_b_library.py::test_gain_target_and_verdict[erfc_ota]"
+  ],
+  "structure_note": "test_structure_test_mapping.py rc 5, 0 tests(규칙 H 마커로 deselected), round_2와 같게 판정 안 함",
+  "experiments": {
+   "devices": {
+    "rc": 1,
+    "min_free_mb": 3498,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "failed"
+    }
+   },
+   "g10_counts_bad": {
+    "rc": 1,
+    "min_free_mb": 3493,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "failed"
+    }
+   },
+   "head": {
+    "rc": 0,
+    "min_free_mb": 3397,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[cnr_ota]": "xfailed",
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "xfailed"
+    }
+   },
+   "ns_drop_cnr_erfc": {
+    "rc": 1,
+    "min_free_mb": 3434,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "failed"
+    }
+   },
+   "ns_drop_r2r_rfc": {
+    "rc": 1,
+    "min_free_mb": 3262,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "xfailed",
+     "test_no_same_input_recompute_in_one_run[r2r_opamp]": "failed",
+     "test_no_same_input_recompute_in_one_run[rfc_ota]": "failed"
+    }
+   },
+   "reason": {
+    "rc": 1,
+    "min_free_mb": 3381,
+    "cases": {
+     "test_no_same_input_recompute_in_one_run[cnr_ota]": "failed",
+     "test_no_same_input_recompute_in_one_run[erfc_ota]": "failed"
+    }
+   }
+  },
+  "min_free_mb_watched": 3070,
+  "external_kills": 0,
+  "not_run": "전체 test는 지시대로 돌리지 않았다. reject_c.py는 메모리 감시 없이 돌렸다.",
+  "evidence": [
+   "round3/results.jsonl",
+   "round3/reject_c.json",
+   "round3/reject_c.py"
+  ]
+ },
  "round_2": {
   "target": "869e614b (role/test/20261104-o227b) 병합, 머지 커밋 e88651f4",
   "decision": "A-71 (오케스트레이터 결정, wt/_drafts/la1_auto_decisions.md)",
@@ -445,12 +702,11 @@
    "add_entries.py"
   ]
  },
- "open_majors": [
-  "M3"
- ],
+ "open_majors": [],
  "closed_majors": {
   "M1": "r2r·rfc 등록 실재, cnr·erfc는 M3로 이어짐",
-  "M2": "A-71: 기준선 없이 고정, 가짜·실제 기준선 모두 거부 확인"
+  "M2": "A-71: 기준선 없이 고정, 가짜·실제 기준선 모두 거부 확인",
+  "M3": "g10 고정이 not-searched 분기 _check_rows 단언 뒤로 갔고, 등록·계수 단언이 cnr·erfc 각각에서 실제로 돈다"
  },
- "verdict_line": "verdict: Major 1"
+ "verdict_line": "verdict: Major 0"
 }
