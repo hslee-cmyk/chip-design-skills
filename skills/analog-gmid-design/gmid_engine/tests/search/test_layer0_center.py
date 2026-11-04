@@ -755,10 +755,10 @@ def _record_fd(monkeypatch, module, store, coords_log=None):
     """module.fd_jacobian 을 진짜 함수를 부르는 기록기로 바꾼다. store 에 (variables, x 사본, base, to_theta, 그 시점 ThetaCoords 객체)."""
     real = module.fd_jacobian
 
-    def rec(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()):
+    def rec(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset(), **kw):  # [XRUN-F1 card C] ceiling 키워드 통과
         store.append((tuple(variables), [float(v) for v in x], base, to_theta,
                       coords_log[-1] if coords_log else None))
-        return real(sctx, variables, x, base, cells, to_theta, origin, skip)
+        return real(sctx, variables, x, base, cells, to_theta, origin, skip, **kw)
     monkeypatch.setattr(module, "fd_jacobian", rec)
 
 
@@ -811,3 +811,30 @@ def test_theta_coords_used_by_layer0(tmp_path, lut4, roots, monkeypatch):
     assert all(v.lo <= xi <= v.hi for v, xi in zip(variables, x))                  # 전제: 시작 좌표가 상자 안(자르기 = 항등)
     a, b = to_theta(x), coords.to_theta(x)
     assert {k: float(v).hex() for k, v in a.items()} == {k: float(v).hex() for k, v in b.items()}
+
+
+# =====================================================================================================================
+# [XRUN-F1 card C] interface card xrunf1c C5 (C-T6) 층 0 행 -- 단일 평가는 kernel_calls = 탐색 예산이면 평가 안 함, 정지 사유 eval_budget,
+# 호출 전후 kernel_calls <= 탐색 예산.
+# oracle: (구성) 기준 실행 = 같은 입력에 넉넉한 예산(400)으로 돌려 층 0 이 쓰는 커널 평가 수 K 를 관찰한다(r.kernel_calls). 그보다 작은 선언 예산 b
+# (0 < b < K, 구성)로 돌리면 층 0 은 예산이 닿아 멈춰야 한다: 정지 사유 eval_budget, 호출 뒤 kernel_calls <= b.
+# =====================================================================================================================
+
+@pytest.mark.parametrize("frac", [0.25, 0.5, 0.9])
+def test_layer0_stops_at_search_budget_never_exceeds(tmp_path, lut4, roots, frac):
+    _, full, _ = run_l0(tmp_path / "full", circuit_c(), lut4, roots(), eval_budget=400)
+    big_k = full.kernel_calls
+    assert big_k >= 4                                                        # 전제: 줄일 여지가 있다
+    b = max(1, int(big_k * frac))
+    assert 0 < b < big_k
+    case, r, _ = run_l0(tmp_path / "cut", circuit_c(), lut4, roots(), eval_budget=b)
+    assert dict(case.sctx.counters)["kernel_calls"] <= b                    # 호출 전후 kernel_calls <= 탐색 예산
+    assert r.stop == "eval_budget"
+    assert r.kernel_calls <= b
+
+
+def test_layer0_budget_one_evaluates_at_most_one(tmp_path, lut4, roots):
+    # oracle (구성): 선언 예산 1 -> 첫 평가(kernel_calls 0 = 예산 − 1)만 허용, 그 뒤 도달: 평가 안 함. 정지 사유 eval_budget.
+    case, r, _ = run_l0(tmp_path, circuit_c(), lut4, roots(), eval_budget=1)
+    assert dict(case.sctx.counters)["kernel_calls"] <= 1
+    assert r.stop == "eval_budget"

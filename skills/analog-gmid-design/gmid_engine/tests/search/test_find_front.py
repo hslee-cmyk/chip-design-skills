@@ -431,3 +431,103 @@ def test_lut_memo_bound_unfixed_without_kernel_eval(tmp_path, lut_sealed, monkey
     assert perf["kernel_calls"] == 0 and perf["outside_domain"] >= 1          # 전제: 커널 평가 0, 원뿔 밖 판정은 있었다
     assert perf["lut_memo_bound"] == "unfixed_no_kernel_eval"
     assert set(perf) == set(PERF_KEYS_C7)
+
+
+# =====================================================================================================================
+# [XRUN-F1 card C] interface card xrunf1c C8 (C-T11·C-T13) -- 감도 게이트 진입 때 kernel_calls <= 탐색 예산, 게이트 안 커널 평가 수 <= R,
+# front 점이 있으면 탐색 예산을 다 써도 게이트가 돈다, 끝 확인(kernel_calls > E_total -> RuntimeError), perf.block_index_bound 식.
+# 관찰 지점(J-3) = find_front 모듈의 전역 이름 run_sensitivity_gate. oracle: (손) 정의 -- 선언 E_B 에서 R = 2 n_θ, E_total = E_B + R.
+# 구성: 회로 C(n_θ = 4, R = 8), 선언 E_B ∈ {8, 12, 24, 40} -- 탐색 묶음(층 0·끝점·ε·L-b)이 이 예산을 넘기는 합성 입력(옛 동작은 한 묶음을 끝까지
+# 쓴 뒤 예산을 확인해 게이트 진입 때 kernel_calls 가 E_B 를 넘었다).
+# =====================================================================================================================
+
+def _gated_run(tmp_path, lut, monkeypatch, e_b, inject=None):
+    ff_mod = importlib.import_module("gmid_engine.search.find_front")
+    case = build_case(tmp_path, circuit_c(), lut, eval_budget=e_b, constraints=SS)
+    s = case.sctx
+    seen = []
+    real = ff_mod.run_sensitivity_gate
+
+    def wrapped(sctx, *a, **k):
+        entry = dict(sctx.counters)["kernel_calls"]
+        out = real(sctx, *a, **k)
+        seen.append((entry, dict(sctx.counters)["kernel_calls"]))
+        if inject is not None:
+            sctx.counters["kernel_calls"] += inject
+        return out
+    monkeypatch.setattr(ff_mod, "run_sensitivity_gate", wrapped)
+    return case, s, seen
+
+
+@pytest.mark.parametrize("e_b", [8, 12, 24, 40])
+def test_gate_entry_budget_kernel_calls_within_search_budget(tmp_path, lut_sealed, monkeypatch, e_b):
+    case, s, seen = _gated_run(tmp_path, lut_sealed, monkeypatch, e_b)
+    fr = find_front(s, [theta_r4c()])
+    r = 2 * len(s.domain.variables)
+    assert len(fr.front) >= 1                                                   # 전제: front 점이 있다
+    assert len(seen) == 1, seen                                                 # 탐색 예산을 다 써도 게이트가 돈다
+    assert not [n for n in fr.notes if dict(n).get("verdict") == "not_run" and "gate" in repr(n).lower()]   # 게이트 not_run 없음
+    entry, after = seen[0]
+    assert entry <= e_b, (entry, e_b)                                           # 진입 때 kernel_calls <= 탐색 예산
+    assert after - entry <= r                                                   # 게이트 안 커널 평가 수 <= R
+    assert dict(fr.perf)["kernel_calls"] <= e_b + r                             # <= E_total
+
+
+def test_gate_entry_budget_end_check_violation_runtime_error(tmp_path, lut_sealed, monkeypatch):
+    # 주입: 게이트가 끝난 직후 kernel_calls 를 E_total + 1 이상으로 올린다 -> 끝 확인(kernel_calls > E_total)이 RuntimeError.
+    e_b = 24
+    case, s, seen = _gated_run(tmp_path, lut_sealed, monkeypatch, e_b, inject=10 ** 6)
+    with pytest.raises(RuntimeError):
+        find_front(s, [theta_r4c()])
+    assert len(seen) == 1
+
+
+def test_gate_entry_budget_perf_declared_and_block_index_bound(tmp_path, lut_sealed, short_root):
+    case, fr = _run(tmp_path, lut_sealed, constraints=SS, eval_budget=12, archive_root=short_root)
+    perf = dict(fr.perf)
+    assert set(perf) == set(PERF_KEYS_C7) and len(perf) == 22                   # perf 키 22개 그대로
+    assert perf["eval_budget_source"] == "declared" and perf["eval_budget"] == 12
+    e_total = 12 + 2 * len(case.sctx.domain.variables)                          # 손: E_B + R
+    assert perf["block_index_bound"] == len(perf["blocks"]) * (e_total + 1)
+
+
+def test_gate_entry_budget_donors_bound_opened_and_closed(tmp_path, lut_sealed, monkeypatch):
+    # oracle (손): C8 '진입에서 donors.open_bound(...), 끝 확인 뒤 donors.close_bound()' -- 같은 실행 색인의 두 메서드를 감싸 호출 수·순서를 본다.
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=12, constraints=SS)
+    s = case.sctx
+    cls = type(s.dc.donors)
+    log = []
+    real_open, real_close = cls.open_bound, cls.close_bound
+
+    def op(self, total_of):
+        log.append(("open", total_of()))
+        return real_open(self, total_of)
+
+    def cl(self):
+        log.append(("close", None))
+        return real_close(self)
+    monkeypatch.setattr(cls, "open_bound", op)
+    monkeypatch.setattr(cls, "close_bound", cl)
+    find_front(s, [theta_r4c()])
+    e_total = 12 + 2 * len(s.domain.variables)
+    assert [k for k, _ in log] == ["open", "close"]
+    assert log[0][1] == e_total                                                 # total_of() = E_total
+
+
+# ---------------------------------------------------------------- C-T13 무동작 (green 유지)
+
+def test_gate_entry_budget_same_input_same_trajectory_and_no_shortfall_escape(tmp_path, lut_sealed, monkeypatch):
+    """C-T13 무동작(해석 -- 보고 참조): 이 toy 는 ε 격자가 선언 예산에 비례해 늘어 어떤 E_B 로도 예산을 다 쓰므로 "예산이 안 닿는 실행"을 못 만든다.
+    그래서 같은 입력 두 번의 궤적(front 서명 = θ·seq, 커널 수, 요청 수, notes)이 같고, 새 예외(FdBudgetShortfall)가 실행 밖으로 나오지 않고, 게이트가
+    돌았음(감싼 run_sensitivity_gate 호출 1)을 본다. 합성 구성이라 피검 출력으로 기대값을 만들지 않는다(두 실행끼리의 비교 -- oracle (c) 꼴)."""
+    ff_mod = importlib.import_module("gmid_engine.search.find_front")
+    real, calls = ff_mod.run_sensitivity_gate, []
+    monkeypatch.setattr(ff_mod, "run_sensitivity_gate", lambda *a, **k: (calls.append(1), real(*a, **k))[1])
+    sigs = []
+    for name in ("a", "b"):
+        del calls[:]
+        _, fr = _run(tmp_path / name, lut_sealed, constraints=SS, eval_budget=30)
+        perf = dict(fr.perf)
+        assert len(calls) == 1
+        sigs.append((front_signature(fr), perf["kernel_calls"], perf["requests"], json.dumps(_notes(fr), sort_keys=True, default=str)))
+    assert sigs[0] == sigs[1]

@@ -131,3 +131,96 @@ def test_s3_index_two_open_runs_share_nothing():
     assert d2.find("blk", "*", "v1") is None
     assert d2.find_failure("blk", "*", "v2") is None
     assert d2.entry_count() == 0
+
+
+# =====================================================================================================================
+# [XRUN-F1 card C] interface card xrunf1c C9 -- open_bound(total_of)·close_bound()·index_bound(total) (C-T12).
+# oracle: (손) 정의 -- index_bound(total) = (등록된 서로 다른 (블록, 분할) 수) × (total + 1). 등록 직후 entry_count() > index_bound(total_of())
+# 이면 RuntimeError, 같은 값이면 통과. 한 쌍(blk, "*")만 등록하면 total = 2 -> 상한 = 1 × 3 = 3: 항목 3개까지 통과, 네 번째 RuntimeError.
+# 메시지 전문·내부 자료 구조는 단언하지 않는다(C11).
+# =====================================================================================================================
+
+def _fill(donors, n, writer="blk", part="*", start=1):
+    for k in range(start, start + n):
+        v = "v%d" % k
+        donors.register(writer, part, v, _snap(writer=writer, version=v))
+
+
+def test_open_bound_exact_bound_passes_and_one_more_raises():
+    donors, _c = open_run()
+    donors.open_bound(lambda: 2)                       # 한 쌍 -> 상한 1 × (2 + 1) = 3
+    _fill(donors, 3)                                   # 항목 1, 2, 3 -- 3 은 상한과 같다: 통과
+    assert donors.entry_count() == 3
+    with pytest.raises(RuntimeError):
+        _fill(donors, 1, start=4)                      # 항목 4 > 3
+
+
+def test_open_bound_failures_count_as_entries():
+    donors, _c = open_run()
+    donors.open_bound(lambda: 2)                       # 상한 3
+    donors.register("blk", "*", "v1", _snap(version="v1"))
+    donors.register_failure("blk", "*", "v2", _record())
+    donors.register_failure("blk", "*", "v3", _record())      # 성공 1 + 실패 2 = 3: 통과
+    with pytest.raises(RuntimeError):
+        donors.register_failure("blk", "*", "v4", _record())  # 4 > 3
+
+
+def test_open_bound_bound_grows_with_distinct_block_part_pairs():
+    donors, _c = open_run()
+    donors.open_bound(lambda: 1)                       # 쌍 하나당 1 × 2 = 2
+    _fill(donors, 2, writer="blk")                     # 쌍 1 -> 상한 2, 항목 2: 통과
+    _fill(donors, 2, writer="oth")                     # 쌍 2 -> 상한 4, 항목 4: 통과
+    assert donors.entry_count() == 4
+    donors.register("oth", "p2", "v1", _snap(writer="oth", version="v1"))   # 쌍 3(분할이 다르면 다른 쌍) -> 상한 6, 항목 5: 통과
+    donors.register("oth", "p2", "v2", _snap(writer="oth", version="v2"))   # 항목 6 = 상한 6: 통과
+    assert donors.entry_count() == 6
+    with pytest.raises(RuntimeError):
+        donors.register("oth", "p2", "v3", _snap(writer="oth", version="v3"))   # 항목 7 > 6
+
+
+def test_open_bound_total_none_means_no_check_until_set():
+    donors, _c = open_run()
+    holder = [None]
+    donors.open_bound(lambda: holder[0])
+    _fill(donors, 10)                                  # total None: 검사 없음 (상한 3 을 한참 넘는다)
+    assert donors.entry_count() == 10
+    holder[0] = 2                                      # 정해진 뒤 첫 등록에서 잰다: 상한 3, 항목 11 > 3
+    with pytest.raises(RuntimeError):
+        _fill(donors, 1, start=11)
+
+
+def test_open_bound_outside_open_window_no_check():
+    donors, _c = open_run()
+    _fill(donors, 5)                                   # 열기 전: 검사 없음
+    donors.open_bound(lambda: 100)
+    donors.close_bound()
+    _fill(donors, 3, start=6)                          # 닫은 뒤: 검사 없음
+    assert donors.entry_count() == 8
+    donors.open_bound(lambda: 0)                       # 다시 열 수 있다: 상한 1 × 1 = 1, 항목 8 -> 다음 등록에서 검사
+    with pytest.raises(RuntimeError):
+        _fill(donors, 1, start=9)
+    donors.close_bound()
+
+
+def test_open_bound_second_open_before_close_value_error():
+    donors, _c = open_run()
+    donors.open_bound(lambda: 2)
+    with pytest.raises(ValueError):
+        donors.open_bound(lambda: 2)
+    donors.close_bound()
+    donors.open_bound(lambda: 2)                       # 닫은 뒤에는 다시 열린다
+    donors.close_bound()
+
+
+def test_open_bound_index_bound_value_is_pairs_times_total_plus_one():
+    donors, _c = open_run()
+    assert donors.index_bound(5) == 0                  # 등록된 쌍 0
+    _fill(donors, 1, writer="blk")
+    assert donors.index_bound(5) == 1 * 6
+    _fill(donors, 2, writer="blk", start=2)            # 같은 쌍의 다른 버전: 쌍 수 그대로
+    assert donors.index_bound(5) == 1 * 6
+    _fill(donors, 1, writer="oth")
+    assert donors.index_bound(5) == 2 * 6
+    donors.register("oth", "p2", "v1", _snap(writer="oth", version="v1"))
+    assert donors.index_bound(0) == 3 * 1
+    assert donors.index_bound(7) == 3 * 8
