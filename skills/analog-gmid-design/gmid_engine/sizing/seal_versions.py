@@ -13,6 +13,16 @@
 from .s2_values import SEAL_FAIL, SEAL_PASS, SEAL_VERSIONS, SealItem
 
 
+def writers_in_scope(base, blocks):
+    """평가 범위의 writer 집합 = `base.block_versions` 키(base writer) ∪ `blocks` 의 `.name` (정의 자리 하나, 계획 N3.3 스냅샷 파생 규칙).
+
+    파생 keep(`run_kernel`)·봉인 4 coverage(`seal_versions`)·실패 부분 스냅샷 부착(`run_kernel`·`seal_dc`)이 모두 이 함수를 읽는다. 순수 집합 함수.
+    """
+    if base is None:
+        raise TypeError("writers_in_scope: base 는 필수다(ctx.base)")
+    return frozenset(base.block_versions) | frozenset(block.name for block in blocks)
+
+
 def seal_versions(snapshot, calls, base):
     if base is None:
         raise TypeError("seal_versions: base 는 필수다(ctx.base)")
@@ -33,7 +43,7 @@ def seal_versions(snapshot, calls, base):
     called = {block.name for block, _extras in calls}
     overlap = tuple(sorted(base_writers & called))
     used = {fv.writer for records in snapshot.tables.values() for record in records.values() for _name, fv in record.fields}
-    foreign = tuple(sorted(used - base_writers - called))
+    foreign = tuple(sorted(used - writers_in_scope(base, (block for block, _extras in calls))))
     status = SEAL_FAIL if stale or foreign or overlap else SEAL_PASS
     return SealItem(SEAL_VERSIONS, status, len(stale) + len(foreign) + len(overlap), 0, None, (), (),
                     (("blocks", stale), ("n_checked", len(calls)))

@@ -27,7 +27,7 @@ from .seal_node_conflict import dc_seal_node_conflict
 from .seal_report import dc_seal_report
 from .seal_saturation import dc_seal_saturation
 from .seal_tolerances import dc_tolerances
-from .seal_versions import seal_versions
+from .seal_versions import seal_versions, writers_in_scope
 from .seal_vgs_match import dc_seal_vgs_match
 from .seal_writers import seal_writers
 
@@ -66,7 +66,7 @@ def seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violatio
         try:
             snapshot = block(snapshot, *extras, donors=donors, counters=counters)
         except CANDIDATE_FAILURE_CLASSES as exc:
-            attach_partial(exc, snapshot)      # 봉인 항목 블록 단계 실패: 그 블록에 들어간 스냅샷이 부분 스냅샷(X-3)
+            attach_partial(exc, snapshot.derive_child(writers_in_scope(base, (b for b, _ in calls))))      # 봉인 항목 블록 단계 실패: 그 블록에 들어간 스냅샷을 앞 블록 범위로 줄인 것이 부분 스냅샷(X-3)
             raise
         calls += ((block, extras),)
     item4 = seal_versions(snapshot, calls, base)
@@ -74,7 +74,7 @@ def seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violatio
     try:
         snapshot = dc_seal_report(snapshot, item4, item5, donors=donors, counters=counters)
     except CANDIDATE_FAILURE_CLASSES as exc:
-        attach_partial(exc, snapshot)
+        attach_partial(exc, snapshot.derive_child(writers_in_scope(base, (b for b, _ in calls))))
         raise
     report = snapshot.value("graph", DC_KEY, "dc_seal_report")
     if report.status == REPORT_VIOLATED and raise_on_violation:
@@ -84,7 +84,7 @@ def seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violatio
         violation = SealViolationError(devices=worst.devices, margin=worst.margin,
                                        detail={"item": worst.item, "nodes": worst.nodes, "items": summary,
                                                "item_detail": worst.detail})
-        attach_partial(violation, snapshot)      # 실패 평가의 부분 스냅샷 = 보고서까지 쓴 스냅샷(X-3)
+        attach_partial(violation, snapshot.derive_child(writers_in_scope(base, [b for b, _ in calls] + [dc_seal_report])))      # 부분 스냅샷 = 보고서까지 쓴 스냅샷을 평가 범위로 줄인 것(X-3)
         raise violation
     sealed = SealedSnapshot(snapshot, report) if report.status == REPORT_SEALED else None
     return DcEvaluation(snapshot, report, sealed)

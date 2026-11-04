@@ -766,3 +766,119 @@ def test_it2c_new_graph_fields_present_after_ss_evaluate(base):
     for f in ("ss_circuit", "ss_nodal", "icm_config"):
         assert len(dict(res.snapshot.column("graph", f))) == 1, f
     assert "in" in dict(res.snapshot.column("node", "dc_window_cfg"))
+
+
+# =====================================================================================================================
+# [IT-2d 재동결 20261104-it2d-front-wiring] T-F: front·보고·판정 행의 icm_margin_v 는 같은 칸(graph.icm_config V_cm)에서 나온 같은 값.
+# T-O215: icmr_v 제약 = 영역 행 창 값으로 판정(O-215 임시 결정 -- 번복 가능), 기능 기준 칸을 읽지 않고, 정의 불능이 아니다.
+# oracle (손): margin = min(vcm0 − vcm_lo, vcm_hi − vcm0), icmr = vcm_hi − vcm_lo (interface 세 metric 정의) -- 입력 칸 graph.icm_config
+# 숫자에서 test 가 손 산술로 낸다. 구성 둘: as_is_single_input(회로 C) · servo(차동쌍 + CMFB 저항, 탐색이 낸 봉인 점). 13회로 값은 쓰지 않는다.
+# =====================================================================================================================
+
+from . import it2d_toys as T2
+
+_ICM = (("icm_margin_v", ">=", 0.0, None), ("icmr_v", ">=", 0.0, None))
+
+
+@pytest.fixture(scope="module")
+def r4_lut_f(tmp_path_factory):
+    from sizing.conftest import write_r4_lut
+    return write_r4_lut(tmp_path_factory.mktemp("it2d_f_r4"))
+
+
+def _theta_decl():
+    """입력 DC 를 선언(0.6 V)하면 M1 gate 가 선언 값이라 ln_idu(M1)는 θ 성분이 아니다(스키마)."""
+    from search.conftest import theta_r4c
+    th = dict(theta_r4c())
+    del th[("ln_idu", "M1")]
+    return th
+
+
+def _hand_icm(ref):
+    cfg = ref.snapshot.value("graph", METRICS_KEY, "icm_config")
+    assert None not in (cfg.vcm0, cfg.vcm_lo, cfg.vcm_hi), cfg                      # 전제: V_cm 창 측정됨
+    return cfg, min(cfg.vcm0 - cfg.vcm_lo, cfg.vcm_hi - cfg.vcm0), cfg.vcm_hi - cfg.vcm_lo
+
+
+CM_PORTS_D = {"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),
+              "op": ("output", "differential_output_p"), "om": ("output", "differential_output_n")}
+CM_GAIN_VIEW = {"ac_excite": {"ip": 0.5, "im": -0.5}, "sense_p": "op", "sense_n": "om", "sense_mode": "differential"}
+
+
+def circuit_cmfb_diff():
+    """test_find_front 의 CMFB 차동 toy 와 같은 손 회로(완전 차동 CS 쌍 + PMOS 부하, 부하 gate c = 출력 저항 평균)."""
+    from search.conftest import mos, topo, two
+    return topo("hand_cmfb_diff", [mos("M1", "nmos", "op", "ip", "gnd"), mos("M2", "nmos", "om", "im", "gnd"),
+                                   mos("M3", "pmos", "op", "c", "vdd"), mos("M4", "pmos", "om", "c", "vdd")],
+                CM_PORTS_D, passives=[two("R1", "resistor", "op", "c"), two("R2", "resistor", "c", "om")])
+
+
+def _diff_sealed_point(tmp, lut):
+    """차동쌍 + CMFB 저항 toy 의 봉인 점 하나: find_front 가 평가한 점 중 첫 봉인 점(test_find_front 의 I-22 방식)을 (θ, 칸)으로 쓴다."""
+    import json
+    import tempfile
+    from pathlib import Path
+    import shutil
+    from gmid_engine.search import STATUS_SEALED, find_front
+    root = tempfile.mkdtemp(prefix="s6", dir=None)
+    try:
+        case = T2.build(tmp, lut, circuit_cmfb_diff(), elements=(("R1", "resistor", 1e6), ("R2", "resistor", 1e6)),
+                        constraints=(("gain_ss_db", ">=", 0.0, CM_GAIN_VIEW),) + _ICM, archive_root=root)
+        find_front(case.sctx, [])
+        lines = [json.loads(x) for x in (Path(root) / case.sctx.context_fp / "evals.jsonl").read_text(encoding="utf-8").splitlines()
+                 if x.strip()]
+        sealed = [x for x in lines if x["status"] == STATUS_SEALED]
+        assert sealed                                                                 # 전제: 봉인 점이 있다
+        return case, {tuple(k): v for k, v in sealed[0]["theta"]}, tuple(sealed[0]["cells"])
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def _assert_same_value_everywhere(r, ref):
+    cfg, margin, icmr = _hand_icm(ref)
+    got = T2.by_metric(ref.ss)
+    assert got["icm_margin_v"].value == pytest.approx(margin, abs=1e-12)               # 판정 값
+    # [A-85 D3] 보고(swing_icmr)에 icm_margin_v 키를 요구하지 않는다(값 사본 금지, interface 보고 키 불변): 같은 칸 = graph.icm_config 의 V_cm 칸.
+    # 판정 값(위)과 front 행(아래)이 모두 그 칸에서 손으로 낸 margin 과 같으면 두 소비처의 값이 같다.
+    rows = [x for x in r.constraints if "icm_margin_v" in x.name]                      # front 가 보는 제약 행
+    assert len(rows) == 1
+    res = got["icm_margin_v"].resolution
+    assert res is not None and res > 0
+    assert rows[0].c == pytest.approx((margin - 0.0) / res, rel=1e-9)
+    assert rows[0].c * res == pytest.approx(got["icm_margin_v"].value, rel=1e-9)        # front 행 값 = 판정 값 = graph.icm_config 칸에서 낸 margin
+    return got, icmr
+
+
+def test_it2d_f_icm_margin_same_value_in_report_and_front_row_as_is(tmp_path, r4_lut_f):
+    """as_is_single_input toy(회로 C, 입력 DC 선언 0.6): 판정 값 = 보고 값 = front 제약 행의 (값 − 0)/분해능 -- 손 margin."""
+    from search.conftest import CELLS_C, circuit_c, theta_r4c
+    case = T2.build(tmp_path, r4_lut_f, circuit_c(), constraints=_ICM, input_dc=0.6)
+    r, ref = T2.sealed_ss(case, _theta_decl(), CELLS_C)
+    assert ref.snapshot.value("graph", METRICS_KEY, "icm_config").config == "as_is_single_input"
+    _assert_same_value_everywhere(r, ref)
+
+
+def test_it2d_f_icm_margin_same_value_in_report_and_front_row_servo(tmp_path, r4_lut_f):
+    """servo toy(입력 둘, 차동쌍 + CMFB 저항): 같은 불변식."""
+    case, th, cells = _diff_sealed_point(tmp_path, r4_lut_f)
+    r, ref = T2.sealed_ss(case, th, cells)
+    assert ref.snapshot.value("graph", METRICS_KEY, "icm_config").config == "servo"
+    _assert_same_value_everywhere(r, ref)
+
+
+def test_it2d_o215_icmr_judged_by_region_row_window(tmp_path, r4_lut_f):
+    """O-215 임시: icmr_v 제약은 영역 행 창 값(vcm_hi − vcm_lo)으로 판정한다 -- 값이 있고 정의 불능이 아니며, 제약 행의 c 는
+    (값 − 기준)/분해능. 기능 기준 칸을 읽지 않는다(spec 에 기능 기준 칸을 두지 않은 toy 에서 정의된다). 기준을 창 폭 바로 위로 두면 위반."""
+    from search.conftest import CELLS_C, circuit_c, theta_r4c
+    case0 = T2.build(tmp_path / "a", r4_lut_f, circuit_c(), constraints=_ICM, input_dc=0.6)
+    r0, ref0 = T2.sealed_ss(case0, _theta_decl(), CELLS_C)
+    cfg, margin, icmr = _hand_icm(ref0)
+    got = T2.by_metric(ref0.ss)["icmr_v"]
+    assert got.value == pytest.approx(icmr, abs=1e-12) and not T2.undefined_codes(got)
+    bound = icmr + 0.1                                                                # 창 폭보다 큰 요구 -> 위반(c < 0)
+    case1 = T2.build(tmp_path / "b", r4_lut_f, circuit_c(), constraints=(("icmr_v", ">=", bound, None),), input_dc=0.6)
+    r1, ref1 = T2.sealed_ss(case1, _theta_decl(), CELLS_C)
+    row = [x for x in r1.constraints if "icmr_v" in x.name]
+    assert len(row) == 1 and row[0].c < 0.0
+    res = T2.by_metric(ref1.ss)["icmr_v"]
+    assert row[0].c == pytest.approx((icmr - bound) / res.resolution, rel=1e-9)

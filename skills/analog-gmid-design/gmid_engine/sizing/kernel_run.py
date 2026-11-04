@@ -32,6 +32,7 @@ from .s2_values import (
     Theta,
 )
 from .seal import SEAL_ITEM_BLOCKS, seal_dc
+from .seal_versions import writers_in_scope
 from .theta_check import check_theta
 
 _COLUMN_KINDS = (THETA_LN_IDU, THETA_RESISTANCE, THETA_Y)
@@ -53,12 +54,13 @@ def normalize_w_request(ctx, w_request):
     return tuple(sorted(out.items()))
 
 
-def _call_block(ctx, block, snapshot, extras):
-    """블록 하나를 `ctx` 의 색인·계수로 부른다. 후보 실패면 그 블록에 들어간 `snapshot` 을 부분 스냅샷으로 붙여 다시 낸다."""
+def _call_block(ctx, block, snapshot, extras, before):
+    """블록 하나를 `ctx` 의 색인·계수로 부른다. 후보 실패면 그 블록에 들어간 `snapshot` 을 base writer ∪ `before`(앞 블록) 로 줄여 부분 스냅샷으로 붙여 다시 낸다
+    (parent 의 낡은 필드를 지워 지문이 (평가 키, 실패 지점)만으로 정해진다 -- 계획 N3.3 실패 평가의 부분 스냅샷)."""
     try:
         return block(snapshot, *extras, donors=ctx.donors, counters=ctx.counters)
     except CANDIDATE_FAILURE_CLASSES as exc:
-        attach_partial(exc, snapshot)
+        attach_partial(exc, snapshot.derive_child(writers_in_scope(ctx.base, before)))
         raise
 
 
@@ -83,10 +85,11 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     steps = [(dc_currents, (currents,)), (dc_lengths, (lengths,))]
     later_blocks = (dc_columns, dc_widths)      # steps 뒤에 부르는 블록의 구성원 정의(extras 는 아래에서 붙인다)
     if parent is not None:      # 스냅샷 파생: keep = base writer ∪ 커널 블록(steps·later_blocks) ∪ 봉인 항목 블록 여덟(seal.py 상수) -- 봉인 4 의 호출 목록과 같은 집합(계획 N3.3, 설계 41 4.7-3c)
-        snapshot = parent.snapshot.derive_child(set(base_writers) | {b.name for b in later_blocks} | {b.name for b, _ in steps}
-                                                | {b.name for b in SEAL_ITEM_BLOCKS})
+        snapshot = parent.snapshot.derive_child(writers_in_scope(base, later_blocks + tuple(b for b, _ in steps) + SEAL_ITEM_BLOCKS))
+    done = []       # 이 평가에서 이미 부른 블록 -- 실패 부분 스냅샷의 범위(`writers_in_scope`)
     for block, extras in steps:
-        snapshot = _call_block(ctx, block, snapshot, extras)
+        snapshot = _call_block(ctx, block, snapshot, extras, done)
+        done.append(block)
     if requested:
         # LY3: 쓰기 소자의 좌표를 요청 W 에서 정한다 -- ln IDu = ln(ID·L/W). 종속 소자는 좌표가 노드 VGS 순방향이라 건드리지 않는다
         writers = {m for m, coord in base.column("device", "dc_coord") if coord.role == COORD_WRITER}
@@ -98,7 +101,8 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
     later = list(zip(later_blocks, (columns_extras + ((ctx.inputs.linear_devices,) if ctx.inputs.linear_devices else ()),
                                     (ctx.lut, requested) if requested else (ctx.lut,))))
     for block, extras in later:
-        snapshot = _call_block(ctx, block, snapshot, extras)
+        snapshot = _call_block(ctx, block, snapshot, extras, done)
+        done.append(block)
     steps = tuple(steps + later)
     resistances = resistor_values + tuple((key, v) for (kind, key), v in items if kind == THETA_RESISTANCE)
     return seal_dc(snapshot, steps, ctx.lut, resistances, ctx.inputs.linear_devices, raise_on_violation,

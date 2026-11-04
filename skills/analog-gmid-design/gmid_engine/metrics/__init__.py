@@ -54,6 +54,8 @@ from .aux_types import (
     FfStruct,
     GateResult,
     IcmConfig,
+    IcmPort,
+    IcmWindow,
     LsFields,
     LsNode,
     MetricStructure,
@@ -80,6 +82,7 @@ from .evaluate import metric_value
 from .ff_gm_ratio import ff_gm_ratio
 from .junction_cap import DiffusionGeometry, JunctionCaps, JunctionParams, junction_caps
 from .icm_config import icm_config_window, kvl_sensitivity
+from .icm_window import icm_window_metrics
 from .junction_source import JunctionSource
 from .loop_analysis import analyze_loop
 from .loop_cut import cut_circuit
@@ -218,6 +221,8 @@ __all__ = (
     "GateArea",
     "GateResult",
     "IcmConfig",
+    "IcmPort",
+    "IcmWindow",
     "HeadroomResult",
     "HeadroomRow",
     "JUNCTION_LAYOUT_DIFFUSION",
@@ -344,6 +349,7 @@ __all__ = (
     "ss_circuit_field",
     "ss_nodal_system",
     "icm_config_window",
+    "icm_window_metrics",
     "kvl_sensitivity",
     "ss_dev",
     "ss_evaluate",

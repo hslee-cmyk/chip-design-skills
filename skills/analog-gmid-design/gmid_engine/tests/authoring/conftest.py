@@ -102,13 +102,13 @@ def u5_design_signatures():
     """
     from gmid_engine.core import MetricSignature as M
     return {
-        "offset_in_sigma_mv": M("mv", "ss", "transfer"),
-        "offset_excess": M("ratio", "ss", "transfer"),
-        "offset_sys_mv": M("mv", "ss", "transfer"),
-        "mirror_ratio_sigma_pct": M("pct", "ss", None),
-        "swing_out_v": M("v", "ls", None),
-        "icmr_v": M("v", "ls", None),
-        "icm_margin_v": M("v", "ls", None),
+        "offset_in_sigma_mv": M("mv", "dc", "transfer"),
+        "offset_excess": M("ratio", "dc", "transfer"),
+        "offset_sys_mv": M("mv", "dc", "transfer"),
+        "mirror_ratio_sigma_pct": M("pct", "dc", None),
+        "swing_out_v": M("v", "dc", None),
+        "icmr_v": M("v", "dc", None),
+        "icm_margin_v": M("v", "dc", None),
         "ff_gm_ratio": M("ratio", "ss", "transfer"),
         "noise_th_in_v2hz": M("v2_per_hz", "ss", "transfer"),
         "noise_fc_in_hz": M("hz", "ss", "transfer"),
