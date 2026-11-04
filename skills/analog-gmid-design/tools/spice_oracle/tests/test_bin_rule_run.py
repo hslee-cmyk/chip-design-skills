@@ -16,7 +16,7 @@ from core.descriptor import load_descriptor
 from core.ir import Circuit, Resistor, VSource
 from core.requests import Condition, Op, OpOutputs
 
-from op23_support import World, dump, lf_of, make_lut_toy, read_reject, sha, M_LIB, write, bin_rule_doc, build_toy
+from op23_support import World, dump, lf_of, make_lut_toy, read_reject, sha, M_LIB, B_LIB, write, bin_rule_doc, build_toy
 from stub_adapter import StubAdapter
 
 DEV = {"M1": {"gm": 6e-4, "gds": 1.0 / 60000.0}}
@@ -112,7 +112,9 @@ def test_t7_10d_decl_file_changed_is_descriptor_stale_at_stage_2(tmp_path):
 
 def test_t7_10e_model_bundle_mismatch_comes_before_undeclared(tmp_path):
     w = World(tmp_path, bin_rule=False)                             # 기술자 칸 없음
-    make_lut_toy(w.lut, model_sha={"m.lib": "f" * 64})             # 기록 sha 가 묶음 파일(m.lib)과 다름
+    # 기록 뿌리 교차는 통과(m.lib·b.lib 모두 엔진 선언 sources 이고 기록 sha 가 실제 파일과 같음)하되, b.lib 의 sha 는 묶음(m.lib 만 포함)에
+    # 없고 역할 선언도 없어 규칙 (i)에서 걸린다(D §7.2 8단계 순서: 빈 표 -> 기록 뿌리 교차 -> 역할 -> 규칙)
+    make_lut_toy(w.lut, model_sha={"m.lib": sha(M_LIB), "b.lib": sha(B_LIB)})
     w.refresh_input_hashes()
     rc, out, stub = run_world(w)
     rec = read_reject(out)
