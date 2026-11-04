@@ -1,0 +1,229 @@
+{
+ "id": "20261104-it1-input-point",
+ "spec_card": "docs/02-design/specs/20261104-it1-input-point.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "d3590e7b51acc8af6bc917d8901899cb66566e0f",
+ "test_commit": "4562d53ed27ddeb52906d7c7be287815bfaebf50",
+ "code_commit": "888d28a8f77862fb4db35eaceba0436461eef602",
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_coupling_vars.py::test_it1_coupling_vars_reads_four_derived_fields",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_coupling_vars.py::test_it1_net_model_has_single_call_site_in_s1v_fields",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_gvgs_cycles.py::test_fixed_vgs",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_gvgs_cycles.py::test_it1_gate_equals_source_nonrail_recorded_not_stop",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_gvgs_cycles.py::test_it1_gate_equals_source_rail_in_both_fields",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_gvgs_cycles.py::test_it1_gate_source_same_matches_oracle_on_nine",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_values.py::test_u2_u4_vocabulary_matches_contract",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1_values.py::test_it1_gvgs_summary_fields",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_fields.py::test_block_name_and_writes_are_design_fields",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_fields.py::test_writes_exactly_d1_fields_no_copies",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_fields.py::test_it1_s1v_write_rows_include_four_derived_fields",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_fields.py::test_it1_derived_fields_in_record",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_fields.py::test_it1_derived_fields_empty_without_diode_or_composite",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_fields.py::test_it1_diode_nodes_hand_value",
+   "skills/analog-gmid-design/gmid_engine/tests/graph/test_s1v_fields.py::test_it1_composite_fields_hand_value",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_achievability.py::test_it1_t1f_structural_dof_of_symmetric_pair",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_orbit_ties.py::test_ds_flip_m1_kernel_context_builds_one_input_point",
+   "skills/analog-gmid-design/gmid_engine/tests/search/test_orbit_ties.py::test_it1_t1f_input_point_with_orbit_ties_no_double_subtraction",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it1_t1h_input_point_ports_share_voltage_and_window_key",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_block_columns.py::test_it1_t1h_input_point_touching_f_ports_share_voltage",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[current_reuse_telescopic_ota]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[folded_cascode]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[ngcc_3stage_ff]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[nmcnr_amplifier]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[two_stage_ota]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548[two_stage_ota_sf]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py::test_library_plan_invariants[current_reuse_telescopic_ota]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py::test_library_plan_invariants[folded_cascode]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py::test_library_plan_invariants[ngcc_3stage_ff]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py::test_library_plan_invariants[nmcnr_amplifier]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py::test_library_plan_invariants[two_stage_ota]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_kernel_context.py::test_library_plan_invariants[two_stage_ota_sf]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_block_reads_declared_as_contract[dc_writer_plan]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_s2_values.py::test_vocabulary_constants",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_symmetric_diffpair_choices_by_canonical_position",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_renamed_diffpair_plan_follows_colour_correspondence",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[current_reuse_telescopic_ota-1]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1a_undeclared_diffpair_one_input_point",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1b_two_gvgs_components_become_one_point",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1c_input_point_touching_f_has_no_y_component",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1i_triangle_through_input_point_has_one_cycle_vgs",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_unsupported_input_combinations_stop[two_pairs]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_unsupported_input_combinations_stop[no_pair_two_inputs]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_unsupported_input_combinations_stop[pair_plus_single]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1e_unsupported_input_combinations_stop[pair_plus_isolated]",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1g_renamed_diffpair_same_structure",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t1g_swapped_roles_follow_role_not_name",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_vocabulary_and_branch_codes",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_writer_block_owns_plan_fields",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t5b_nonrail_gate_equals_source_is_fixed_vgs_dependent",
+   "skills/analog-gmid-design/gmid_engine/tests/sizing/test_writer_plan.py::test_it1_t5c_writer_plan_source_has_no_gate_source_equality",
+   "skills/analog-gmid-design/gmid_engine/tests/structure/test_removed_names.py::test_it1_removed_stop_names_absent_from_engine_and_contracts"
+  ],
+  "failure_hashes": [
+   "9d4aab8e11b18ff0318db32cffb5299260574ff64760c62f4eee97c02fb2ea20",
+   "539156496c978a77d61922ac4c4807e09b4725b76c04395b476dd67554fe4cbd",
+   "ecbf16bb1a558a4e0c431d02270c6eed63e260401c37bb71eb296c40ad129468",
+   "abfd1279ce0d2135b7d696b8246af1c32b099f7354f046d533d575c3899a66b3",
+   "bddd95884ac9c7aaae630119445e461ee1f30c5862e28c003ed86bea2de5b3db",
+   "34456b72d6b84f58d155b818d293b2dde9897342a274416fdcd61e87cd41780e",
+   "9cf8e6d134fec59cd170d754475593511be6edb4a3e90d526c6698d885b42e38",
+   "cf56c91d242b82e3288985d2f2e1648c0d111ec368103fe6eb4a342d1e900bc1",
+   "9c4013642ae45929050d69a2cb4f8c7dd63bee48922980dabaf20c2df3da25d9",
+   "38e769601a36b86e175b775433cb4d6ab5fb080356c35994be8cb9d0839eb4db",
+   "1d33fd04174e4d58a866efa94d936737b3459113dd47030928abdf2ea6e65c1c",
+   "7150a7a29f869cc7fb3be20b6f8b1a9b55d1d263c388a33173a68dab4497bd59",
+   "0318ea543571b049fee474218d266c51478863120f4803a09b9b671256110798",
+   "f1a030465b4d6a0466449662c5841f420ed4a58f6aa02bd52cbcbb47c1592e76",
+   "47d32dd5ed87a0a23f88e24a721e81d095393a5b5de708793d9cee78715ee9c5",
+   "224bf2d5f7482a7310ae1d46c81c791c809313683318d6b4ef84d916bb8efcdc",
+   "e5cc1b114812163d884020a9e29c165af4b0db7c425cec66c1f04623b1546127",
+   "f8d95e521a9dd8d63fcf408caecfb09f8750b84957ed708a785f2dd506d103c4",
+   "a9b554dd0eae6edcc640ef4a90ff8fe52aaca29f148991bb2462494ab413b9fd",
+   "220888426be8b59b0a322fd81542221b653cb6668ac3d30ff10d8c351ddbab42",
+   "8964249381055ed283116825a75bacd7ceb22eac71ae5d8d81262422d75e0d8f",
+   "ddfb349e62109a9f810b915e0b9957124ba35718f2eff374537466d85a747fec",
+   "db298e01f39a8b937f1eebe4e46f68165c4edb34f9cd719ccdf8c3695f6a10f7",
+   "a286b39e3aea5fb5ad7e68be1cbed66a2234dc412221ae61330dcb3f00791af0",
+   "e0206f4ed90e15eda693f560ce1adc3ae8b79b58b34cd62fae19b0acb33c55d0",
+   "6b0b458c441a6a1dba49fa1675fe09cf2eefc76d689e46be96fcc43a69ba2aae",
+   "c8d3cefb41a158c9fe77a32b463fe8ee78e3ffbe45424a3896a00c8d261c95a6",
+   "86586b326fa4ce623483f3611715b738f83b5daa11d758d6cec8eeec74fe54ac",
+   "95cd1bcb2a7eb339df99347dadbcc9fed1d600f8be3ae7b7d6c26cf25bdf2e76",
+   "861bbf44c2fee5e38c92109fbc16f70b67f071d8f851c87523390907219b0be3",
+   "e9e06a76fc97bd14299901db70b07df7e4eae87cedf59362dd0a9e9b7884b3e5",
+   "79b1315fa2b379599fc3d7976445b1389a20b65b89fc6792e34c4261d3bc94af",
+   "7344a60a5a87d823238b074ed4aa9755db46e65cfea3f139543f613f161a2af9",
+   "009ff0db006ac8ed1881611087ea57704ffce8c2e55d683a06b5aa275a648465",
+   "ff55df29528512550a2760a30954743d2a69cb87d0d07160cc8f9b153aaac6ad",
+   "aa4934e6adc3a64f7254e65acec2bd792422e12be2f675e9c25c9ca18cc28d5a",
+   "3774b200c4e9243e7ce4be871eb029354aec7f5fdaec5fc3a2d4d6644dedc257",
+   "af29ca98737822104daf2110d4e0dbc0772eaeeab076e0239b79dc793427d859",
+   "28fdcf45d819df7bdae63cc7c5bd7dc342d2f5f3cd7736c9a750f29a91330494",
+   "bc1b9eab9c0018a2afbac93f83890a23109237db618f0736648887887851a27f",
+   "7a615c1085b769932b53d022f876b1077861687cd75e5d5c7a55dd3eabbaf6c0",
+   "0bd1d9a925377bff5b642db5375096666a7717b9c7777752b24daea55504b178",
+   "eed0f532a033d34ebd74ef678738a2d199356577c92316d6ffcae1d70ec017f8",
+   "97bf9b9097d696a876e2fd579515594ee49557b839e683e7aee94298b6c26384",
+   "c921707298055d8f978605c4a792c3996782382943319721ad7c1c5210548ae4",
+   "1ab730176d61c1500ffb814315d0e09070c9ad504b6826d87ba424f620cf1766",
+   "d4ca390718484fb0e627157347f75cf29fbfd69ee8421396cd8867db08cb703b",
+   "52f8d96016d7e2da22f835124d392c25daf482ba25a64483e0a85670467e62a2",
+   "282d6c3e9c9803dd9fc8800e10c70d19e80fa85e89829dd85909a272ffe8a932",
+   "ff4048b41b132e14649474081e8a6046a6432cee57c6735f38c01ff233a0c408",
+   "8e043bb6e47af0196f4c0f7d32102c6473fb459f89e1e8eedf3e1bf29a3a81f0",
+   "822fe4b8c7c9d66a2958aaf1eab3c6ecc88f804812071a28fbcc6e155645648d"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "전체 test 안 돌림, 임시 규칙 O-229, 잰 범위 = card test 24 파일 841개(실패 1), tests/structure 171개(실패 1, deselected 1), 2회로 연기 stage_b 10·s0 11·g10 2(기준선 재측정 전 s0 실패 3, 후 0). 그 밖 test 는 통과로 세지 않는다. 파일마다 프로세스 하나, OPENBLAS_NUM_THREADS=1, 격리 복제본 f2278b9a."
+  },
+  "V2": {
+   "verdict": "FAIL",
+   "basis": "red: base d3590e7b 엔진 + 동결 test 4562d53e(엔진 diff 0) 25 파일에서 red 52 = {\"AssertionError\": 38, \"AttributeError\": 5, \"StructureUnresolvedError\": 4, \"KeyError\": 3, \"Failed\": 2}. test_stage_a_library 실패 3(cnr·erfc·r2r)은 입력 점·g = s 와 무관한 단계 A 정지(exit 7) 실패라 red 에서 뺐다(병합본 통과, 원인은 master 병합분으로 추정, 미분석). green: 병합본에서 red 52 전부 통과. FAIL 사유: Major-2 test_writer_plan.py::test_it2b_os_k_no_same_dc_edge_between_input_ports FAILED(StructureUnresolvedError input_cm_undefined). A-42·커밋 4562d53e 제목이 'os_k 폐기'인데 test 가 그대로 남았다. 엔진 동작이 맞고(역할 x 입력 둘 = T-1e 정지) test 가 낡았다. test 주체가 지워야 한다"
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "mutate_changed.py 는 대상이 assets/tests 라 안 썼다. 손 뮤턴트 17(복제본 임시 수정, 커밋 없음, scripts/mutate.py): killed 13 = M10b,M11,M15,M3,M4,M5,M6,M7,M8,M9,R1,R16,R2, 생존 4 = M12,M13,M14,M17. 새 거부 경로 input_cm_undefined: R1 정지 제거 -> T-1e 4사례 전부 실패, R2 role 무시 -> 6 실패. KVL: M5 짝 포트 +0.05 V -> T-1h 2 실패. rule_hash: R16 재기록 되돌림 -> T-RH 실패. 생존 M12(SCC 뿌리 짝 의존)·M13(창 짝 제약)·M14(fd y 스텝) = test 빈틈 minor, M13 은 탐침 p5 로 head 동작 정상(constraints 2). M17 = Major-3."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "test_lint.py 안 돌림: 대상이 assets/tests 라 공허, DEC-86 merge_gate 미사용(UNJUDGED 아님, 대조는 손으로). oracle 대조: T-1a G = P-t 둘·vb-F·pb3-F·pb4-F, V6 E5 C2 -> 순환 1 일치. T-1b V7 E6 C2 -> 1 일치. T-1c V4 E4 C1 -> 1, y = {o1,o2} 일치. T-1i V8 E8 C2 -> 2, cycle_vgs 하나 + parallel 하나 일치. T-1f θ 15 = L5 C2 I2 ln3 y3, DOF 17·5·5·12 일치(판정자 재유도, 변수 V:inn 하나 제거, 등식 수 불변). T-5a 넷 동등 판정, 평행 단순 그래프 순환수 불변 일치. T-5b 자기 고리 1 = fixed_vgs, ln_idu 성분 없음 일치. T-1h 두 포트 같은 전압, y=0.5 창 중점, F toy V=0.6 일치. T-6a 손 정의 일치. A8: 작성자의 gvgs_cycles 본문 1회 열람(자기 보고)은 기대값에 복사 흔적 없음: 칸 판정이 넷 동등이라 노드 비교와 다르고 계약 문장에서 재유도된다. 기대값을 피검 함수로 만든 자리 0."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "약화 없음, 기록할 항목: (1) T-1h 허용오차 1e-5 -> tol_V(약 781배) = 사용자 O-227 (3) 유지 결정. (2) 폐기 test 확인: k1·k2·pa·ring·dependent_count_ring·ds_flip_m1 정지·옛 stop 2건 = 전제가 DEC-106·O-210 RR-6 과 충돌, 대체 test 있음(T-1a/b/c/e/g/h/i, T-5a/b). 그 밖 삭제 test 0 중 os_k 는 폐기 미이행(Major-2). (3) 판정자 기준선 변경 diff sha256 = 32ad3106fa9c66568b6e129668c9a7511d27c226dc4bd04227f1c073783eecb1: u17_1b_s0_baseline.json 행 재측정(아래 V10)과 g8_baseline.json stale 1행(_Circuit.members, 옛 IT-1 이 지운 칸) 제거. new 행 추가 0(criteria_weakened 0)."
+  },
+  "V6": {
+   "verdict": "FAIL",
+   "basis": "source_lint.py 안 돌림(대상 assets/tests, 공허). 구조 규칙 A~I·K·M·값 타입 위반 0, 회로 이름 0, 광범위 except 추가 0, 숫자 상수 추가 0(role 상수는 authoring 어휘 참조), 범위 밖 엔진 변경 0(card 커밋 16 파일 = spec 재작성 범위·소비자 표 안). FAIL 사유: Major-1 ratchet new = 1: ('g8_attr_container', 'sizing/block_columns.py', '_Circuit.mates', 1). 코드 2b7c7c71 이 _Circuit 에 새 dict 칸을 넣었다(interface A3 'new 0', spec '새 dict·context 슬롯 0'). 행 추가는 criteria_weakened 라 안 했다. 재현: pytest tests/structure/test_g8_baseline.py::test_rule_g8_baseline_ratchet"
+  },
+  "V7": {
+   "verdict": "FAIL",
+   "basis": "reachability.py 안 돌림(공허). 손 판정 소비자: REL_INPUT_POINT = writer_plan·block_columns·scc_order·theta_schema·achievability·fd_jacobian, BRANCH_INPUT_CM_UNDEFINED = dc_writer_plan 정지, gate_source_same = dc_writer_plan READS(g = s 재판정 0). graph 수치: 새 필드 4 + 새 칸 1, 소비자 0 = 필드 4(칸 1 은 소비자 있음), 정본 우회 의심 0, KVL·KCL 관계 미적용 0, graph 밖 저장 자리 1(_Circuit.mates, 블록 수명 구조 색인, 값 사본 아님; scc_order 지역 변수 mates 는 세지 않음). 둘째 생산자 0: net_model( 호출 = s1v_fields 하나(M10b killed), 필드 writer = s1v_fields 하나. FAIL 사유: Major-3 새 S1v 필드 넷(diode_nodes·composite_mos·composite_bundles·composite_internal) 실제 소비자 0. coupling_vars 는 READS 에 적고 model 에 채우지만 _k3·_k7·_k8·_cd_reach 가 쓰는 칸은 mos·rails·by_source·mos_by_name 뿐이고 column_block_map 은 s1 을 받는다. 뮤턴트 M17(model = net_index(s1), READS 유지)이 test_coupling_vars 80·test_stage_a_library 15 전부 통과로 생존. 쓰는 곳 blocks·cells·drive_kind·stage_bfs·view_analysis 는 s1v_fields 안 model 을 읽어 필드를 안 읽는다. 계획 N3.3 B4·design 40 S1v 행이 정한 소비자 전제가 틀렸다(값 영향 0, writer 하나는 지킴, 재작성 범위는 계획부터)"
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 해당 없음: card diff 에 폴백·우회 경로 추가 0(diff 코드 읽기), 옛 정지 2개 삭제는 계약(DEC-106·O-210 RR-6), 새 정지 1개"
+  },
+  "V9": {
+   "verdict": "PASS",
+   "basis": "탐침(복제본, scripts/test_zz_audit_probe.py, probes.jsonl). p1 저항 부하 차동 toy: V(inp) = V(inn) = 1.3466953592937765(잔차 0), VGS(M1) = VGS(M2) = 0.6593376497806217, KCL t: 1e-5 + 1e-5 = 2e-5, 봉인 전 항목 통과. p2 비레일 g = s toy: fixed_vgs, ln_idu 성분 없음, VGS = 0.0, 봉인 9 거부(Mgs, 봉인 1~8 통과) = fail-closed, 판정 EO-1 까지 유지(interface 표지). p4 꼬리 W3: 뿌리 없이 inp vgs_gate·inn input_point known = inp(F 닿으면 KVL 종속). p5 n 포트에 채널: 창 constraints 2 = 짝 포트 제약 포함, n 포트 항목 없음. DC·AC 분리 위반 0. 물리 결정자 일치(DEC-106: 한 차동쌍 공통모드 변수 하나, DC 차는 설계 자유도 아님). 경계 minor: p3 아래 V10 끝. SPICE 다리 미완료(보류 다리: 13회로 변화표·IT-0b·SPICE, 채울 card = EO-1·OP-5·CL-1, base = d3590e7b51acc8af6bc917d8901899cb66566e0f), 통과로 세지 않음."
+  },
+  "V10": {
+   "verdict": "N/A",
+   "basis": "spec '재현할 수치' 없음. 13회로 변화표·IT-0b·SPICE = 미완료(보류 다리: 13회로 변화표·IT-0b·SPICE, 채울 card = EO-1·OP-5·CL-1, base = d3590e7b51acc8af6bc917d8901899cb66566e0f). 기준선 재측정(O-225 보류 표지, 값 표 아님, 원인 칸 DEC-106, 격리 복제본, 사슬 두 번 비트 동일 7/7): current_reuse dof·schema·domain; folded dof·rungs·schema·domain; ngcc dof; nmcnr dof·rungs·schema·domain; r2r dof; two_stage dof·rungs·schema·domain; two_stage_sf dof·rungs·schema·domain. 무변화 4 = common_gate·pushpull·rfc·sf_pushpull. cnr·erfc 는 O-228 xfail 고정이라 안 쟀다. 행 근거(cause_table.json, master 8d77b801 엔진과 같은 키 대조): dof n_variables·n_equations 각 -1(옛 tie 등식 + V:n 변수 삭제), θ y:input_common_mode -> y:<p 포트>, 입력쌍 종속 cycle_vgs -> parallel_vgs, rungs = master 값 복귀. _IT1_DELTA = {} 도 master 원값 복귀와 맞음. minor 입력(LA-1 재점검): p3 차동 한 포트만 node_voltage_targets_v 선언이면 입력 점이 안 묶이고 둘째 포트가 vgs_gate 로 쓰여 ΔV 가 θ 함수(-8.1e-5 V 실측), 정지도 없음. library 발동 0/13."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "card test 수",
+   "value": 841,
+   "command": "scripts/run_tests.py iso res/head card"
+  },
+  {
+   "name": "card test 실패 수",
+   "value": 1,
+   "command": "scripts/run_tests.py iso res/head card"
+  },
+  {
+   "name": "tests/structure 수",
+   "value": 171,
+   "command": "scripts/run_tests.py iso res/head structure"
+  },
+  {
+   "name": "ratchet new 수",
+   "value": 1,
+   "command": "pytest tests/structure/test_g8_baseline.py::test_rule_g8_baseline_ratchet"
+  },
+  {
+   "name": "ratchet stale 수(줄인 뒤)",
+   "value": 0,
+   "command": "scripts/apply_baseline.py 뒤 같은 test"
+  },
+  {
+   "name": "2회로 연기 수",
+   "value": 23,
+   "command": "--run-slow -k folded_cascode or ngcc_3stage_ff, stage_b·s0·g10"
+  },
+  {
+   "name": "기준선 재측정 전 s0 실패 수",
+   "value": 3,
+   "command": "같은 연기"
+  },
+  {
+   "name": "기준선 재측정 후 s0 실패 수",
+   "value": 0,
+   "command": "scripts/apply_baseline.py 뒤 test_s0_layer_9circuits"
+  },
+  {
+   "name": "red 수",
+   "value": 52,
+   "command": "scripts/run_red.py red_tree res/red.jsonl plug"
+  },
+  {
+   "name": "손 뮤턴트 생존 수",
+   "value": 4,
+   "command": "scripts/mutate.py"
+  },
+  {
+   "name": "입력 점 포트 전압 잔차 V",
+   "value": 0.0,
+   "command": "scripts/test_zz_audit_probe.py p1"
+  }
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-04T07:51:22Z",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-it1-input-point-audit",
+  "commands": [
+   "V1: 전체 실행 안 함(임시 규칙 O-229), 범위 실행 = python scripts/run_tests.py iso res/head all",
+   "git clone --no-hardlinks --no-local <worktree> la1s_it1_audit6/iso; git -C iso remote remove origin (뮤턴트는 같은 방식 복제본 mut)",
+   "python -m pytest gmid_engine/tests/<file> -q -p no:cacheprovider --junitxml (파일마다 프로세스 하나, cwd = iso/skills/analog-gmid-design, OPENBLAS_NUM_THREADS=1)",
+   "python scripts/run_remeasure.py iso res/rm_head <11회로>; python scripts/run_remeasure.py base_master res/rm_base <7회로>",
+   "python scripts/mutate.py mut res/mutations.jsonl; python scripts/run_red.py red_tree res/red.jsonl plug"
+  ]
+ }
+}

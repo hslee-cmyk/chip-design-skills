@@ -1,6 +1,7 @@
 {
  "_source": "U17 ①-b 기준선: base master a5d8ccb 코드로 test 작성 주체가 잰 값(wt/_scratch_u17_1b_tests/baseline.py, 2026-10-13). stage_a_sha = 단계 A 보고서 키별 정준 JSON sha256(기준선에 적힌 키만 대조한다 -- 측정 때 빼 둔 옛 S0 적중 칸은 실행 사이 재사용 제거로 보고서에서 없어졌고, NFR-4 card 2 의 최상위 키 env_fp 는 실행 환경 지문이라 기준선 대상이 아니다), stage_b_sha = 단계 B 보고서 achievability 밖 키, achievability_sha = achievability 키별, start·kernel = StartIntervals·KernelContext·SearchContext 칸의 core fp_of. [U17 ①-b 판정 후 2026-10-14] stage_a_sha.tables 는 옛 기준선 표에서 설계 40 v1.9.1 D1(최상위 key 칸 폐기)과 추가 결정 (c)(facts_applied -> applied_facts 이름 변경)만큼 변환한 값의 sha256(wt/_scratch_u17_1b_fix_tests/transform_tables_baseline.py). junction_source 는 경로를 뺀 내용 투영(kernel.junction_content -- params fp_of·temp_c·pdk_decl_sha256, wt/_scratch_u17_1b_fix_tests/junction_content_base.py)으로 대조한다. [library spec card 2026-10-14, 사용자 U-3 '4회로만 재측정'] spec 이 바뀐 4회로(Q-S2 pm_ss_deg >= 70: sf_pushpull_output_opamp·two_stage_ota·two_stage_ota_sf, Q-S3 잡음 450 uVrms: current_reuse_telescopic_ota) 항목은 base 41a2c4a 코드(master 34932a9 + spec 커밋)로 test 작성 주체가 다시 잰 값(wt/_scratch_libspec_tests/remeasure.py + merge.py, OPENBLAS_NUM_THREADS=1, 빈 S0 폴더, start·kernel 은 S0 필드 .value 에 core fp_of). 나머지 5회로 항목은 바이트 그대로(같은 스크립트 재측정값과 일치 확인).",
  "_source_o227": "[O-227 (2) 2026-11-04] r2r_opamp, rfc_ota 항목: 판정자(audit)가 master 5671a6c7 + test 커밋 ede4f440 격리 복제본에서 잰 값. 재는 법 = 이 파일 ngcc_3stage_ff 항목과 같은 꼴(status != [ok, ok] 회로: stage_a_sha = 단계 A 보고서에서 env_fp 뺀 키, stage_b_sha = 단계 B 보고서에서 achievability 뺀 키, achievability_sha = achievability 키, sha = test_s0_layer_9circuits._sha, 사슬 두 번 비트 동일 확인, OPENBLAS_NUM_THREADS=1). 같은 도구가 ngcc_3stage_ff·common_gate_amplifier·two_stage_ota 항목을 그대로 재현함을 대조했다. 두 회로의 status 는 [ok, ok] 가 아니다(r2r = stopped: 단계 A 정지 3건, rfc = review_needed) -- 회귀 기준선이지 '회로 정상' 표지가 아니다. cnr_ota, erfc_ota 는 단계 B 정지(achievability 없음)라 넣지 않았다. 판정 기록 .ai/verification/20261104-o227/verdict.json.",
+ "_source_it1": "[IT-1 2026-11-04, 원인 칸 DEC-106(O-168·O-170), 위임 A-39·A-42] 판정자(audit)가 병합본 f2278b9a(격리 복제본, OPENBLAS_NUM_THREADS=1, 사슬 두 번 비트 동일 확인, 회로마다 프로세스 하나)에서 잰 값으로 다음 행만 바꿨다: 7회로 achievability_sha.dof(입력 점이 V:<n 포트> 변수 하나를 없앰), 5회로 kernel.schema_fp·search_domain_fp(옛 IT-1 의 ln_idu 하나가 사라지고 y 키 = p 포트 넷), 4회로 start.ladder_fp(옛 IT-1 갱신분에서 master 8d77b801 값으로 복귀, value_fp 같음 실측). 값 변화표는 O-225 보류 표지, 판정 기록 .ai/verification/20261104-it1-input-point.json.",
  "common_gate_amplifier": {
   "achievability_sha": {
    "area": "e96ca496e169d2666be95d163fd5a61754526cb08de8b72e7a2bdcc540d484a2",
@@ -82,7 +83,7 @@
    "buffer_window_report": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
    "curves": "756c3e0c504410b57933676dcb03a3c8e0b0ae98da19e43ebd116d31d331907a",
-   "dof": "1033c44c5d2f097ce949ad675e898a03fcfe1fc78c27a65b352e19606da350e5",
+   "dof": "80d3a5b563cce5f3da774e1ed2d49091161ada68bb4af0a9fb5b835905564d00",
    "gain": "e6f21e53622f17403f655a9781de6959c602a1be5c03cdd12ccc1056c194e5ab",
    "headroom": "c6b7f5b3bf0980371740db68b48dab5e4c509376f6bce93d2e0491e0d0e0f58d",
    "reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -103,8 +104,8 @@
    "noise_input_cells_fp": "1f9b6745c9f4c4b59663d1c5d7aea6335b65d638c33b492e14f957ac426e5181",
    "passive_area_decl_fp": "bc00bc9cf715663a2f9aab31b8a60adc1539147b4a31e315242674676a0e367c",
    "resistor_values_fp": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
-   "schema_fp": "8f6bc2283bef3b2d97d855c2fdfb17317b32a0ca616f3ea1b1e2c608e1b6088e",
-   "search_domain_fp": "051a06cfbf297f1190911cd0e59f3b9a75797a68086fe8bbfa7abff87bb58f92"
+   "schema_fp": "d1836ca037f6752ab8764711016b0f73504c06b82999c8515e1d8c0ee3525890",
+   "search_domain_fp": "8b90cf2d1401f523428c731d4f7c226142881c6eb3c4af307e36b8dd8b51a9ee"
   },
   "stage_a_sha": {
    "applied_facts": "66f8b7385c708607fa52bc872bdac9f62b54624b01b4b7657f0b6db4bfa24336",
@@ -205,7 +206,7 @@
    "buffer_window_report": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
    "curves": "756c3e0c504410b57933676dcb03a3c8e0b0ae98da19e43ebd116d31d331907a",
-   "dof": "22a84fc2677c6434e52b96351aa073b3952bcd8e88c4fa0fbc3e5cbd32bdb61a",
+   "dof": "fd6e00c3067944b9c6e5f1d5a2f8414719f9558f30f05f291bcb4d4c7096d03c",
    "gain": "80cb498e02ebd88838a851c974f978b95e44ac9e3e0d8775a35ae8d6e575d6b6",
    "headroom": "66ea3a5d0d99c2c3255d4bdb99469966d9b53c9b1650629ab2ab74a99d5b8b9e",
    "reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -226,8 +227,8 @@
    "noise_input_cells_fp": "d0d563367792d1f23a41c6c6f490d070d870d295e3e60d62eaff292b69d95347",
    "passive_area_decl_fp": "06e0c5cb432925de658347ff2ee089a227ec3c43a2982a756c39a56a9cc6a3a2",
    "resistor_values_fp": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
-   "schema_fp": "25d63ce9c1114891ef30f3e66010da1455a76cbbce3d52a1794109d053a0e319",
-   "search_domain_fp": "3d9add7eec93e4551242174af60aae42b161921b74ca90d19096e3f1778826b2"
+   "schema_fp": "3146b0829d5d8946b94b34811805d156b0fa2be95d24ef9aa63c3ef1b0194161",
+   "search_domain_fp": "e82486d8aa24058497dbd130f144e42b289ef93d9a1c7b5cb5265d9129ce2e0e"
   },
   "stage_a_sha": {
    "applied_facts": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -257,7 +258,7 @@
    "area_fraction_fp": "f8e463367e8c691422e517eb728ab0c9df54a2f56fddaa035bfc3461140ed0c1",
    "conflicts_fp": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
    "inactive_fp": "85c34ac920bc7b58a192923817788f924f5afade80e70cc5489bce5d338fb262",
-   "ladder_fp": "e36f6f06eff74e868bee282a9b7d7e9b1f9f473e4bafd12b78258f829666b20f",
+   "ladder_fp": "90a57c658c92590c475aa76b3d6112d8dc0259f24a39d617a42648ed420f1af8",
    "macro_fp": "be93fe027a7688b94108d1016906dfe93385b00cf6d2b91d35639f13d0954ff1",
    "n_ladder": 7,
    "n_rows": 13,
@@ -290,7 +291,7 @@
    "buffer_window_report": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
    "curves": "756c3e0c504410b57933676dcb03a3c8e0b0ae98da19e43ebd116d31d331907a",
-   "dof": "c42e589005680fd95669dc9b0497cf83c0c953e8012f307a2ecbbf2b1113d133",
+   "dof": "b6efad19160196db8cf5d152a85c71e18ad0b8e0b07b784c6d72ef9a525b97bb",
    "gain": "bb7b0bbe506ff1f8db63293427dea0d8299588345f1223c8087a87a82f8f98b4",
    "headroom": "f9ac8356859cac6b5ed808762d2b2a2e230c0ab4f323f7f66d676f0bfe0a1192",
    "reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -331,7 +332,7 @@
    "buffer_window_report": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
    "curves": "756c3e0c504410b57933676dcb03a3c8e0b0ae98da19e43ebd116d31d331907a",
-   "dof": "934db592dfebe1da533e28eeb227cf25b283d5c7fe770cd72da5f50e9ebabef9",
+   "dof": "329a88077703a05338d09a020fb9d4f2b2f16b2e9fd47554b2de4d1f319d496e",
    "gain": "6d0ab0c559ef9ae3f61f6bf10fde9ea116c84dc7ea4b87bb64c94304369f0d17",
    "headroom": "5822cf708109db7f994bdb678935453e0aaabca1afcd3ea5a554c29b58a4f522",
    "reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -352,8 +353,8 @@
    "noise_input_cells_fp": "da8ea14ca17a3a3ef773366ae3deaf8fc73f39279bbf07343fb433c1faa6a38e",
    "passive_area_decl_fp": "21bd47349d9c2dfd8b675b9d5d19d5748f10f9231f32cdb0aab1941e3dfdfd02",
    "resistor_values_fp": "e5bac357c84c90804be05963ab9e359459e52aada08df0ff29fda9e051b64805",
-   "schema_fp": "17909777cd00435fea47de09513a5181e821c39b006a3ef5f39cb174cf7c1229",
-   "search_domain_fp": "782b2e91e742a64ffd24722689f3c76f5c8893e3c3aad30d0db5ca8d3cc07b19"
+   "schema_fp": "d41886fd9262422422efe9837b039ef6497a31f676b6e7e715630328c98adbb8",
+   "search_domain_fp": "ddd2a989842beebbb4edd6e45892deaa5370992b49653b92c90d3616d349c613"
   },
   "stage_a_sha": {
    "applied_facts": "091c9a492bd23e83795e54b5bd7f36b7a940f083a5017d0acabe366ac96c5ea0",
@@ -383,7 +384,7 @@
    "area_fraction_fp": "5060af287ca93f638967be95ec98c5ca6387e8d647540908661cd157bc951282",
    "conflicts_fp": "2cfa3d6a645ad98afe0dc76da2a4c5cb87b8c87f09492a83501361be14131697",
    "inactive_fp": "edffc8937588e97657061cced3266afcf802be7c936e2a3263b6921ac52b8ca6",
-   "ladder_fp": "646ef2439c9b6ce57c5de0e5ff6c8445f4d33bd5356c5793f86d28a2aa79048c",
+   "ladder_fp": "1e3a994a8ece753d15ff68a901f773d4e55ec393f3e6be4d9578406ebe828cb6",
    "macro_fp": "8fb8279e7ea46bdda48eb8b2e41fd68fa958d71d4d9a6dcabea522f36b7d3dbd",
    "n_ladder": 7,
    "n_rows": 15,
@@ -496,7 +497,7 @@
    "buffer_window_report": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
    "curves": "756c3e0c504410b57933676dcb03a3c8e0b0ae98da19e43ebd116d31d331907a",
-   "dof": "3f884bf1c42799c98c27f80cf6221fc003964342aa6852d37492a3def8044cf9",
+   "dof": "f1104cc8026776c806114014de7db2296fd8516a34ee3734ba75ab771ccd0179",
    "gain": "570c57ec076d665bf1c22052d9752f3a444ec04c333b0a52acdb6e925b4aa978",
    "headroom": "d78191f0f06afc47ae7ec09063a418020081a186ce472c319af2dbdd77da1c91",
    "reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -672,7 +673,7 @@
    "buffer_window_report": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
    "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
    "curves": "756c3e0c504410b57933676dcb03a3c8e0b0ae98da19e43ebd116d31d331907a",
-   "dof": "f09d95501b037a311750485425d481122cbc8ecb2dbd0ca633cfe9430b37bb61",
+   "dof": "55ac2686dd035e2fcd24b45b1f238718233af8d616ad59e48beb2d968a501b4d",
    "gain": "c9dcb3e8033541f199792b7203b529c6f9fc3f05f562268bbdfc80736e4309f0",
    "headroom": "baa69cc860b358c8fe4a7f3df8273caf7167bdeb1b2149207f8f11246f6b1635",
    "reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -693,8 +694,8 @@
    "noise_input_cells_fp": "f6eccbdd488cd87c6b2a119e016fae6f5db062cf7c7e5ef58a10fd2fb458a1a7",
    "passive_area_decl_fp": "7d81687fca0f520edecd18ca3a171d5d6ba484429ca9cabf6af28b0bb10b83bd",
    "resistor_values_fp": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
-   "schema_fp": "cbc2f898779962a83a0c9e0ae0389702ece7f6e86b2badd3a7c541c36f12fbca",
-   "search_domain_fp": "4b0d54ca5ed97d8adc9aa3496b44e50dfac35abd01777a967dc6875e75a0cad4"
+   "schema_fp": "ab9e022014fb2bb3192be606414fbe8e34202a9aa547c556b349b495051dc2f5",
+   "search_domain_fp": "c7b1c508b8f60990551b469619fbac3b74a542ed32cc9a84aee354efee7de802"
   },
   "stage_a_sha": {
    "applied_facts": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -724,7 +725,7 @@
    "area_fraction_fp": "828dadca21e102273734818ae1d646ccb8967daca212cc6f6d0109ca22287934",
    "conflicts_fp": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
    "inactive_fp": "5c0c7c93900cb28dafb5fee878ba52c2f3653c7b66126a5372469ffb22ec7eda",
-   "ladder_fp": "5f3390b8e0592492cda7796c166e2be484b084c6537584915c14e658beb1013c",
+   "ladder_fp": "855f47ca0059bceac7028f913b371d47f29a39f4b36684d5f4f6afbb945fda7b",
    "macro_fp": "659e0e354b1f708bd53e069847a71a6dc46e12407a989be5a1802b596f1b228e",
    "n_ladder": 6,
    "n_rows": 7,
@@ -751,7 +752,7 @@
    "buffer_window_report": "d74aab47c93bb60e1539438b96e18b88bbd965132343a6134da4c722b5bc33c8",
    "count_budget": "43ee74d6de10ef8e3c56c3b3898621a21bc6818b9f47087600d47fdf9773461c",
    "curves": "756c3e0c504410b57933676dcb03a3c8e0b0ae98da19e43ebd116d31d331907a",
-   "dof": "00421275aaf52d74c7f26c327e0b66611b619d82c578eba14a8af5490de93602",
+   "dof": "3bf78dd42ca94315f3b6999a717333488afd1f6a7104c6de0920096112e70412",
    "gain": "5a5b967aa43c78280ab7e580bcf72ddf00555736243f370e75b4049ca015cb85",
    "headroom": "40a90c09623f80fe91aecd04247386bcaf0f714fdc94323a284b16b895a37dbd",
    "reasons": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -772,8 +773,8 @@
    "noise_input_cells_fp": "294220522dae4deef7fcc8b23d631702d29571dc3e3a0959b1f1e34929185320",
    "passive_area_decl_fp": "c63e8359b43e2f3806db36e21d48e606e859d06e40468a8986a565bb47c9a688",
    "resistor_values_fp": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
-   "schema_fp": "5c0de22226b3d4a4c864bbc532ae81d1497a01a14e9eee8d40be65cf16b950ef",
-   "search_domain_fp": "d5ea68edb374d449033cb57a43e639b0d0c8bd592f3f16727eba71357a0ab00f"
+   "schema_fp": "72be0cabfa857be50c3b118b94c402555a6f595757c33cd3f75604c72c8fecdf",
+   "search_domain_fp": "9d5a00522d312768cd8311db38743699147af653af40fc951b6ecf53e8b9b456"
   },
   "stage_a_sha": {
    "applied_facts": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
@@ -803,7 +804,7 @@
    "area_fraction_fp": "c8759a182c51d59b9238acff1273d46efd03dd2b467121b13b3235696f3ddb3e",
    "conflicts_fp": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
    "inactive_fp": "5c0c7c93900cb28dafb5fee878ba52c2f3653c7b66126a5372469ffb22ec7eda",
-   "ladder_fp": "8cdaf2979dc9e3e68552e19be7f12157bd52184150ccc76f587854c45ccb0415",
+   "ladder_fp": "b82a5a3a1a81f3dcfd34c06a2e2a367d6fd4aa43c8304e2ff966e3193b01abfb",
    "macro_fp": "b530506303a97d2a32007570592deec049769278a2ae0ac636d1c21603c77d2d",
    "n_ladder": 7,
    "n_rows": 9,

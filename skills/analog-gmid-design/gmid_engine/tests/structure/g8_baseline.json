@@ -286,12 +286,6 @@
     },
     {
       "count": 1,
-      "detail": "_Circuit.members",
-      "kind": "g8_attr_container",
-      "path": "sizing/block_columns.py"
-    },
-    {
-      "count": 1,
       "detail": "_Circuit.nbrs",
       "kind": "g8_attr_container",
       "path": "sizing/block_columns.py"
