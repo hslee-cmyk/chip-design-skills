@@ -87,8 +87,17 @@ def toy_kind(*, includes, name="mod", geometry_unit="si", multiplier=True) -> di
     return k
 
 
+def bin_rule_doc(lf_list, *, sim_name="stub", sim_version="1", mode="m", text="T") -> dict:
+    """card 20261104-op7b interface §4 의 선언 D(`lut_bin_rule/1`). 값은 호출자가 손으로 정한 것을 받는다.
+    `evidence` 칸 내용은 interface 에 '{...}' 로만 있어 형식만 채운다(해석 H-4: 값을 소비하지 않는 자유 사전)."""
+    return {"schema": "lut_bin_rule/1", "model_files_sha256": list(lf_list),
+            "simulator": {"name": sim_name, "version": sim_version},
+            "compat": {"mode": mode, "spiceinit_text": text, "spiceinit_sha256": sha(text.encode("utf-8"))},
+            "rule": "lower", "evidence": {"basis": "toy: 형식만(값 소비 없음)"}}
+
+
 def build_toy(F, *, kind="nk", with_model=False, includes=None, e_crlf=False, x_bytes=X_LIB, geometry_unit="si",
-              multiplier=True, tnom_quantity=True) -> Toy:
+              multiplier=True, tnom_quantity=True, bin_rule=False) -> Toy:
     """interface §4 공통 toy. with_model=True 면 pdk/m.lib(.subckt mod)를 엔진 `sources.m` 으로 더한다(T3 world)."""
     F = Path(F)
     pdk = F / "pdk"
@@ -130,7 +139,17 @@ def build_toy(F, *, kind="nk", with_model=False, includes=None, e_crlf=False, x_
     }
     if tnom_quantity:
         doc["temperature"]["tnom"] = {kind: {"source": "tnom_q"}}
+    br_path = F / "br.json"
+    br = None
+    if bin_rule:
+        # 해석 H-5: 묶음 = m.lib 하나(with_model 일 때) -- 선언 = 그 파일 LF, 판 = stub("stub", "1" -> "stub-1"), 모드 m / 글 T
+        assert with_model, "bin_rule 선언은 with_model toy 에서만(묶음 파일이 있어야 함)"
+        br = bin_rule_doc([lf_of(M_LIB)])
+        br_b = dump(br)
+        write(br_path, br_b)
+        doc["bin_rule_decl"] = {"path": "br.json", "sha256": lf_of(br_b)}
     toy = Toy(F, doc, e, d=F / "d.json", e_path=e_path, dl_path=dl_path, l_path=l_path, pdk=pdk, kind=kind)
+    toy.br_path, toy.br = br_path, br
     toy.write_descriptor()
     return toy
 
@@ -187,9 +206,10 @@ def base_input(toy: Toy, lut: Path, *, kind="nmos", circuit="cs_toy") -> dict:
 class World:
     """with_model toy + 모델 기록을 가진 LUT + 입력 I. `run(...)` 이 stub 로 진입점을 돈다."""
 
-    def __init__(self, tmp: Path, *, kind="nmos", **toy_kw):
+    def __init__(self, tmp: Path, *, kind="nmos", bin_rule=True, **toy_kw):
+        # bin_rule=True: 기술자에 `bin_rule_decl` 칸을 둔다(card 20261104-op7b 이후 진입점 8b 가 요구, 원래 취지 변화 없음)
         self.tmp = Path(tmp)
-        self.toy = build_toy(self.tmp / "world", kind=kind, with_model=True, **toy_kw)
+        self.toy = build_toy(self.tmp / "world", kind=kind, with_model=True, bin_rule=bin_rule, **toy_kw)
         self.kind = kind
         self.lut = make_lut_toy(self.tmp / "world" / "lut.npz", model_sha={"m.lib": sha(M_LIB)})
         self.inp = base_input(self.toy, self.lut, kind=kind)
