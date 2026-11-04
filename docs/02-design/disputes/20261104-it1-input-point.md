@@ -11,6 +11,7 @@ test_id: gmid_engine/tests/sizing/test_block_columns.py::test_it1_t1h_input_poin
 test_id: gmid_engine/tests/sizing/test_scc_order.py::test_library_order_valid
 test_id: gmid_engine/tests/sizing/test_kernel_context.py::test_library_plan_invariants
 test_id: gmid_engine/tests/sizing/test_current_basis.py::test_current_ties_and_variables_match_8e46548
+test_id: gmid_engine/tests/graph/test_s1_symmetry.py::test_block_declaration
 ---
 ## 문제의 test
 
@@ -31,3 +32,7 @@ interface card '입력 점 규칙(DEC-106 -- 손 판정 기준)': y 키 = role p
 ## 요청
 
 위 test 를 계약에 맞게 갱신(role·oracle 어휘·READS 기대·허용오차·기준선). 코드 주체는 test 를 고치지 않았다. 1·5 번은 기대값 선택이 필요하다(1: 색 대응 단언을 role 대응으로, 5: 허용오차 또는 입력 전압).
+
+## 추가(fix/it1-canon): test_s1_symmetry.py::test_block_declaration
+
+master 회귀 `search/test_canonical_order.py::test_renaming_keeps_kind_key_dim_sequence[1],[2]`(위 1번과 같은 원인: p 포트 dc_colour 가 p·n 자기동형으로 이름 전단사에서 뒤바뀜)를 정본 자리(`dc_colour` writer `s1_symmetry`)에서 고쳤다: role p 포트의 정준 위치를 자기 궤도의 최소 위치로 자기동형 h 로 다시 쓴다(cert 불변). 이를 위해 `s1_symmetry` 가 `("node", "port_role")` 을 READS 로 읽는다. 그 결과 canonical_order 12/12, tests/structure, sizing/test_writer_plan.py, tests/graph 2202건 통과, 단 `test_block_declaration`(test_s1_symmetry.py:134-135)이 reads 를 8개 집합으로 고정해 1건 실패한다. 요청: reads 기대값에 `("node", "port_role")` 추가. role 을 marks 로 우회하는 안은 같은 필드의 둘째 경로라 권하지 않는다.
