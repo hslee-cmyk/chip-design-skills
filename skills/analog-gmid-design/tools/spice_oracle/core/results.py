@@ -7,7 +7,24 @@
 """
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass, field
+
+
+# ---------------------------------------------------------------- sha256 정의 (코어·어댑터가 같은 정의 하나를 쓴다)
+def lf_sha256(b: bytes) -> str:
+    """LF 정규화 sha256: 왼쪽부터 CRLF 를 LF 로 한 번(홀로 있는 CR·BOM 은 그대로). 기술자 칸·어댑터 지문·묶음 지문이 쓰는 정의."""
+    return hashlib.sha256(b.replace(b"\r\n", b"\n")).hexdigest()
+
+
+def raw_sha256(b: bytes) -> str:
+    return hashlib.sha256(b).hexdigest()
+
+
+def canonical_sha256(obj) -> str:
+    """정규 JSON(키 정렬, 구분자 (",", ":"), ensure_ascii=False, UTF-8)의 sha256."""
+    return hashlib.sha256(json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
 class OracleError(Exception):

@@ -12,30 +12,19 @@
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import re
 from dataclasses import dataclass, field
 from typing import Mapping
 
-from core.results import OracleError
+from core.results import OracleError, canonical_sha256, lf_sha256, raw_sha256  # noqa: F401
 
 STAGE = "2"
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
 
-# ---------------------------------------------------------------- 해시 정의
-def lf_sha256(b: bytes) -> str:
-    return hashlib.sha256(b.replace(b"\r\n", b"\n")).hexdigest()
-
-
-def raw_sha256(b: bytes) -> str:
-    return hashlib.sha256(b).hexdigest()
-
-
-def canonical_sha256(obj) -> str:
-    return hashlib.sha256(json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")).hexdigest()
+# ---------------------------------------------------------------- 해시 정의 (정의 하나는 core.results, 여기서는 같은 이름으로 내놓는다)
 
 
 def match_recorded(recorded: str, data: bytes):
@@ -450,6 +439,18 @@ class Descriptor:
             rules = _instance_line_rules(d, q["source"])
             return _eval_expr(q["expression"], rules, d.doc["sources"][q["source"]].get("units_m", {}), f"/quantities/{key}")
         raise OracleError("descriptor_schema_invalid", [{"pointer": f"/quantities/{key}", "rule": "quantity_undeclared"}], STAGE)
+
+    def engine_source_files(self) -> dict:
+        """엔진 선언 `sources` 전부의 {키: (선언 상대 경로, 바이트)} -- 기록 뿌리 교차 검사(§7)의 엔진 원본 쪽. 파일은 로드 때 모두 있음을 확인했다."""
+        main = self._decls["main"]
+        out = {}
+        for k, s in main.doc["sources"].items():
+            b = _read(main.src_path(k))
+            if b is None:
+                raise OracleError("pdk_descriptor_stale", {"ref": f"engine_source:{k}", "path": main.src_path(k),
+                                                           "expected_sha256": s.get("sha256"), "actual_sha256": "missing"}, STAGE)
+            out[k] = (s["path"], b)
+        return out
 
     def text(self, spec: dict) -> str:
         """{"value": s} 또는 {"expr": {source, regex}} -> 문자열(식은 원본 파일에서 풀고, 못 찾으면 거부)."""

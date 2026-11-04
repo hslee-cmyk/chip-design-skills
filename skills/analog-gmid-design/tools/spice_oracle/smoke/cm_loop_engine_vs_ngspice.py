@@ -101,7 +101,7 @@ def engine_metrics(topo, devices, passive_values, feedback):
 def ngspice_T(out_dir, stem, key):
     """oracle sim.json 의 루프 파일에서 Middlebrook T(f) (loop_gain) 를 다시 읽는다."""
     sys.path.insert(0, os.path.dirname(HERE))
-    from oracle_simulate import loop_gain
+    from cm_loop_variants import loop_gain
     meta = json.load(open(os.path.join(out_dir, stem + ".cir.meta.json"), encoding="utf-8"))
     lm = meta[key]
     f, re_, im = loop_gain(os.path.join(out_dir, lm["v_file"]), os.path.join(out_dir, lm["i_file"]), lm["weights"])
@@ -112,7 +112,7 @@ def linear_reference(topo, inp, ng, exe, work, kind):
     """엔진과 같은 소신호 값(VCCS gm·gmb·gds + 5용량 + 수동소자)을 ngspice 선형 넷리스트로 옮기고 같은 Middlebrook 이중 주입
     (오라클 `loop_gain`)을 건다 -- BSIM 모형 차이를 뺀 '엔진 MNA 대 ngspice' 대조 기준. kind = "cm"(차동 출력 쌍 동일 부호 주입, 소비자 쪽
     단자를 lbx 로) | "dm"(입력 포트 β 루프, feedback_passives). 반환 (f, T)."""
-    from oracle_simulate import loop_gain
+    from cm_loop_variants import loop_gain
     bulk = {d["name"]: d["bulk"] for d in inp["devices"]}
     values = {p["name"]: p["value"] for p in inp["passives"]}
     ports = {pt.net: pt for pt in topo.ports}
