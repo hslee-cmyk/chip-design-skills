@@ -8176,3 +8176,7 @@ card `20261104-op7a` 멈춤 항목 S-2·S-3 답. oracle-portability OP-7 행(v0.
 ## v6.38.14 셋째 커밋 (2026-11-04, 위임 O-226 A-68)
 
 재판정 `wt/_drafts/evidence/2026-11-04/card_wb1_validation.md` 189행 절 minor. 규칙 변경 0. N6.32 범위 4 (a)에 `branch_targets`·`strong_inversion_root` 처리(design에만 있었다), LI-1 완료에 `layout/contract_output.py`·`layout/w_tolerance.py`(표 밖 누락, 소유 같음). N6.14 완료의 옛 문언 «`CON_INVERSION`·`_peak_floor`·`peak_index` 소비 0»은 LI-1과 선후 고정 없음과 어긋나 고쳤다(`lut/vgs_root.py`가 `peak_index`를 읽음). 깊은 약반전 toy는 r4 LUT에서 정점이 VGS 0이라 정점 아래 점이 없어 '정점이 곡선 안쪽인 합성 곡선'을 적었다.
+
+## v6.38.15 (2026-11-04, 위임 O-226 A-75)
+
+oracle-portability v0.6.29 전파. 측정 게이트 표 OP-7 행(P:1393)의 출처 식별 문언만 바꾼다. 경위·측정 = oracle-portability history 0.6.29 행. 독립 판정 전. **원래 취지와 다름**: 독립 재측정 → 생성기 자기 기록(oracle X-38). 옛 문언: «LUT 생성 모드 출처 식별(경계 L마다 LUT `ID` 한 칸 대조, 한 프로세스 순차)과 선언 칸». front matter `version`이 6.38.13에 머물러 있어 이 판으로 맞췄다.
