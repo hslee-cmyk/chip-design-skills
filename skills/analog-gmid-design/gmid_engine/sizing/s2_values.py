@@ -113,12 +113,9 @@ SCC_BISECTION = "bisection"
 SCC_DIRECT = "direct"
 
 # ---- 남은 동률(구조 색이 같은 후보)을 이름 순서로 깬 결정의 종류(`TieBreak.decision`)
-OUTPUT_HIGH_IMPEDANCE = "high_impedance"               # `node.dc_output_structure` 분류 값 둘(설계 41 4.7-1a) -- 출력 포트 넷에만 쓴다
-OUTPUT_KVL_FIXED = "kvl_fixed"
-INPUT_STATUS_MEASURED = "measured"                     # `Window.input_status`(설계 41 4.7-2): 입력 포화 창을 재고 되풀이가 tol 안에서 수렴
-INPUT_STATUS_UNSETTLED = "unsettled"                   # 창은 잰 해에서 쟀으나 되풀이가 k_max 안에 수렴하지 않았거나 tol 미정
-INPUT_STATUS_UNMEASURED = "unmeasured"                 # 창을 잴 수 없다(뿌리 항목만)
-INPUT_STATUS_F_COMPONENT_UNDECLARED = "f_component_undeclared"   # F 성분에 속한 입력 DC 미선언 포트(lo·hi None)
+INPUT_STATUS_MEASURED = "measured"                     # `Window.input_status`(설계 41 4.7-2): 입력 포화 창을 재고 되풀이가 tol 안에서 수렴 / cfg: 선형 감도 끝을 쟀다
+INPUT_STATUS_UNSETTLED = "unsettled"                   # 창은 잰 해에서 쟀으나 되풀이가 k_max 안에 수렴하지 않았거나 tol 미정 (커널 창 전용 -- card WB-1 이 지운다)
+INPUT_STATUS_UNMEASURED = "unmeasured"                 # 창을 잴 수 없다(커널 뿌리 항목 / cfg 자기 측정 실패)
 TIE_KRUSKAL = "writer_edge"                           # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
 TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
 TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원소 열이 θ 전류 기저/종속으로 갈림
@@ -148,8 +145,7 @@ DC_SEAL_REPORT_WRITER = "dc_seal_report"
 DC_WRITES = (
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
-    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"),
-                             ("node", "dc_output_structure"))),
+    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"), ("device", "dc_self_referential"))),
     (KERNEL_CONTEXT_WRITER, (("graph", "fixed_values"), ("graph", "resistor_values"), ("graph", "l_ties"))),
     (DC_SCC_ORDER_WRITER, (("graph", "dc_scc_order"), ("node", "dc_column_nbrs"))),
     (DC_THETA_SCHEMA_WRITER, (("graph", "theta_schema"),)),          # graph/kernel: theta_schema (옛 graph/dc: dc_theta_schema 를 옮김, v1.9.1 D8)
@@ -176,12 +172,18 @@ METRICS_SS_WRITER = "metrics_ss"                       # graph.metrics_ss: 뷰 �
 METRICS_DC_WRITER = "metrics_dc"                       # graph.metrics_dc: 레일 전류·전력·탐색 축 면적 묶음 + graph.gate_area_m2·power_resolution_w(설계 40 §2.4.8)
 PASSIVE_VALUES_WRITER = "passive_values"               # device.passive_value: GB5 수동소자 값(spec ∪ θ ∪ 영점 상쇄 R = 1/Σdc_gm, 설계 40 §2.4.8)
 METRICS_AUX_WRITER = "metrics_aux"                     # graph.metrics_aux: offset·미러비·스윙·ICMR·FF 비 metric 묶음 + 블록 잔차 보고 (U7)
+SS_CIRCUIT_WRITER = "ss_circuit"                       # graph.ss_circuit: S2 열 -> 정수 인덱스 소신호 회로(`SsCircuit`) -- 조립 자리 하나 (card IT-2c)
+SS_NODAL_WRITER = "ss_nodal"                           # graph.ss_nodal: 봉인점 소신호 DC 극한 노달 계(`NodalSystem`: G·g_bound·인수분해) (card IT-2c)
+ICM_CONFIG_WRITER = "icm_config"                       # node.dc_window_cfg + graph.icm_config: ICMR 측정 구성·창·V_cm 칸 (card IT-2c)
 SS_WRITES = (
     (SS_DEV_WRITER, (("device", "ss_dev"),)),
     (METRICS_SS_WRITER, (("graph", "metrics_ss"),)),
     (METRICS_DC_WRITER, (("graph", "metrics_dc"), ("graph", "gate_area_m2"), ("graph", "power_resolution_w"))),
     (PASSIVE_VALUES_WRITER, (("device", "passive_value"),)),
     (METRICS_AUX_WRITER, (("graph", "metrics_aux"),)),
+    (SS_CIRCUIT_WRITER, (("graph", "ss_circuit"),)),
+    (SS_NODAL_WRITER, (("graph", "ss_nodal"),)),
+    (ICM_CONFIG_WRITER, (("node", "dc_window_cfg"), ("graph", "icm_config"))),
 )
 S2_WRITERS = WriterTable(
     tuple((kind, field, writer) for (kind, field), writer in S1_WRITERS.entries)
@@ -360,9 +362,10 @@ class PathValue:
 
 @dataclasses.dataclass(frozen=True)
 class Window:
-    """노드 창 [lo, hi](V) -- W4 뿌리와 모든 입력 포트(설계 41 4.7-2). `constraints` = 창을 만든 인접 전도 MOS 순서 제약 수(0 이면 레일 전압
-    범위; 뿌리 아닌 입력 포트·선언 포트는 순서 창이 없어 0). `input_status` = None(입력 포트가 아닌 W4 뿌리) 또는 `INPUT_STATUS_*` 넷 중 하나,
-    `tol_v` = 그 창을 잰 해의 tolerance(미정이면 None). (`op_mismatch`·`status_detail` 은 EO-1 묶음 몫 -- 사용자 결정 O-98.)"""
+    """노드 창 [lo, hi](V) -- 커널 `node.dc_window`(W4 뿌리 항목, 설계 41 4.7-2)와 측정 구성 `node.dc_window_cfg`(입력 포트 항목, `constraints` 0)의 값 꼴.
+    `constraints` = 창을 만든 인접 전도 MOS 순서 제약 수(0 이면 레일 전압 범위). `input_status` = None(입력 포트가 아닌 W4 뿌리) 또는 `INPUT_STATUS_*` 중 하나
+    (cfg 는 measured·unmeasured 뿐), `tol_v` = 그 창을 잰 해의 tolerance(cfg: 봉인점 `device.dc_tol_v` 최솟값, 미정이면 None).
+    (`op_mismatch`·`status_detail` 은 EO-1 묶음 몫 -- 사용자 결정 O-98.)"""
 
     lo: float
     hi: float

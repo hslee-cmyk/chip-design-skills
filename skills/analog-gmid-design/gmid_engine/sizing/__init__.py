@@ -5,6 +5,7 @@ design_gb7_dc_canonical; [r8] 9 = 전도 여유). 계약: `CONTRACT.md`.
 `dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, pre_layout_lut_access(memo))` (S0 당 1회) ->
 `size_and_seal(ctx, theta, parent=None)` (θ 마다).
 """
+from ._helpers_dc_solve import Circuit
 from .bracket_root import bracket_root
 from .block_columns import dc_columns
 from .block_currents import dc_currents
@@ -13,6 +14,7 @@ from .block_widths import dc_widths
 from .current_basis import dc_current_basis
 from .dc_inputs import dc_inputs_from_spec
 from .fixed_point import gauss_seidel
+from .input_window import saturation_window
 from .k_max import k_max
 from .kernel_context import PLAN_WRITERS, build_kernel_context
 from .kernel_fields import kernel_fields
@@ -32,6 +34,9 @@ from .s2_values import (
     DEP_FIXED,
     DEP_PARALLEL,
     DEP_TREE,
+    ICM_CONFIG_WRITER,
+    INPUT_STATUS_MEASURED,
+    INPUT_STATUS_UNMEASURED,
     LINEAR_REGION,
     METRICS_AUX_WRITER,
     METRICS_DC_WRITER,
@@ -83,7 +88,9 @@ from .s2_values import (
     SEAL_VERSIONS,
     SEAL_VGS_MATCH,
     SEAL_WRITER_UNIQUE,
+    SS_CIRCUIT_WRITER,
     SS_DEV_WRITER,
+    SS_NODAL_WRITER,
     SS_WRITES,
     TIE_CURRENT_PIVOT,
     TIE_KRUSKAL,
@@ -161,6 +168,7 @@ __all__ = (
     "COORD_DEPENDENT",
     "COORD_WRITER",
     "CURRENT_SOURCE",
+    "Circuit",
     "ColumnNeighbor",
     "CurrentBasis",
     "CurrentTerm",
@@ -177,6 +185,9 @@ __all__ = (
     "DcInputs",
     "DeviceCoord",
     "DeviceOp",
+    "ICM_CONFIG_WRITER",
+    "INPUT_STATUS_MEASURED",
+    "INPUT_STATUS_UNMEASURED",
     "KernelContext",
     "LINEAR_REGION",
     "LocalSeal",
@@ -235,7 +246,9 @@ __all__ = (
     "SEAL_VERSIONS",
     "SEAL_VGS_MATCH",
     "SEAL_WRITER_UNIQUE",
+    "SS_CIRCUIT_WRITER",
     "SS_DEV_WRITER",
+    "SS_NODAL_WRITER",
     "SS_WRITES",
     "TIE_CURRENT_PIVOT",
     "TIE_KRUSKAL",
@@ -299,6 +312,7 @@ __all__ = (
     "lift_s1",
     "newton_solve",
     "pre_layout_lut_access",
+    "saturation_window",
     "seal_dc",
     "seal_versions",
     "seal_writers",

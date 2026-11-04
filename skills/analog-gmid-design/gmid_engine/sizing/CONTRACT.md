@@ -13,8 +13,7 @@
 >   `base.block_version(w)`(`PLAN_WRITERS` = 위 계획 블록 + `kernel_context`·`dc_theta_schema`). `run_kernel` 의 parent 검사는 `ctx.base` writer 전부(`base.block_versions` 키)의 block_version 이 `base` 와 같은지로 하고 어긋나면 `ValueError`, 통과한 parent 는 `parent.snapshot.derive_child(keep)` 로 파생해 출발한다(IT-2a, 계획 N3.3, 설계 41 4.7-3c). keep = base writer(`base.block_versions` 키) ∪ 커널 블록 이름(`steps`·`later`) ∪ `seal.py` 모듈 상수 `SEAL_ITEM_BLOCKS`(봉인 항목 블록 여덟, 블록 객체 tuple)의 블록 이름 -- 봉인 4 가 받는 호출 목록과 같은 집합이다. `dc_seal_report` 는 keep 밖이라 같은 입력이면 S3 graft 다. `PLAN_WRITERS` 는 `context_fp` 전용이다.
 > * `dc_writer_plan` 은 `device.dc_self_referential`(MOS 마다 bool -- 그 소자가 쓰는 노드가 자기 d·s·bulk 중 하나인가: diode gate 쓰기·소스 추종 source 쓰기)도 쓴다(S0 수준 필드,
 >   설계 40 §2.4.8 '1변수 writer 집합'). `dc_columns` 의 1변수 노드 판정과 search `cell_floor` 가 이 필드를 읽는다(reads 에 `device.dc_self_referential`).
-> * `dc_writer_plan` 은 `node.dc_output_structure`(출력 포트 넷마다 `high_impedance`|`kvl_fixed` -- G_vgs 엣지 목록에서 출력 넷부터 걸어 F′(레일 ∪ 입력 DC 선언이면 입력 포트; W3 목표 넷 제외)에 닿는지, 설계 41 4.7-1a)도 쓴다.
->   writer 는 이 블록 하나이고 `DC_WRITES` 행도 하나다.
+> * (카드 IT-2c) `node.dc_output_structure`(출력 포트 구조 분류)는 삭제됐다 -- 측정 구성은 출력 꼴과 무관하게 봉인점 KCL 로 잰다(계획 N3.8, 설계 41 §4.7-W).
 > * 권한표: `S2_WRITERS` 에 `kernel_context` 필드·`theta_schema`·`dc_self_referential` 이 든다. sizing `__init__` 이 S0 수준 스냅샷 값 형식(`CurrentBasis`·`CurrentTerm`·`NodeWrite`·`DeviceCoord`·
 >   `TieBreak`·`SccEntry`·`ColumnNeighbor`·`ThetaSchema`·`ZeroCancel`)을 core 타입 등록부에 올린다.
 
@@ -101,17 +100,18 @@
 | 1 | `seal_saturation.py` | `dc_seal_saturation` | `dc_seal_saturation` |
 | 1 | `seal_conduction.py` [r8] | `dc_seal_conduction` | `dc_seal_conduction` |
 | 1 | `seal_report.py` | `dc_seal_report` | `dc_seal_report` |
-| 2 | `block_columns.py` [IT-2b: `_Circuit.region_rows`·`input_windows`, 커널 창, `_refine_ends` 삭제] | `dc_columns` | `dc_columns` |
-| 2 | `block_widths.py` | `dc_widths` | `dc_widths` |
-| 2 | `kernel_context.py` | `build_kernel_context` | -- |
-| 2 | `seal_tolerances.py` | `dc_tolerances` | `dc_tolerances` |
-| 2 | `seal_node_conflict.py` | `dc_seal_node_conflict` | `dc_seal_node_conflict` |
-| 2 | `seal_vgs_match.py` | `dc_seal_vgs_match` | `dc_seal_vgs_match` |
-| 2 | `seal_kcl.py` | `dc_seal_kcl` | `dc_seal_kcl` |
-| 2 | `seal_bulk_reverse.py` | `dc_seal_bulk_reverse` | `dc_seal_bulk_reverse` |
-| 2 | `seal_kvl_branch.py` | `dc_seal_kvl_branch` | `dc_seal_kvl_branch` |
-| 3 | `seal.py` | `seal_dc` | -- |
-| 4 | `size_and_seal.py` | `size_and_seal` | -- |
+| 2 | `_helpers_dc_solve.py` [IT-2c] | helper: `Circuit`(읽기 전용 열·`region_rows`·`port_window`·`kind_sign`) | -- |
+| 3 | `block_columns.py` [IT-2c: `_Circuit` 은 `Circuit` 을 잇고 θ·`override` 만 더한다, 커널 창 = W4 뿌리 항목만] | `dc_columns` | `dc_columns` |
+| 3 | `block_widths.py` | `dc_widths` | `dc_widths` |
+| 3 | `kernel_context.py` | `build_kernel_context` | -- |
+| 3 | `seal_tolerances.py` | `dc_tolerances` | `dc_tolerances` |
+| 3 | `seal_node_conflict.py` | `dc_seal_node_conflict` | `dc_seal_node_conflict` |
+| 3 | `seal_vgs_match.py` | `dc_seal_vgs_match` | `dc_seal_vgs_match` |
+| 3 | `seal_kcl.py` | `dc_seal_kcl` | `dc_seal_kcl` |
+| 3 | `seal_bulk_reverse.py` | `dc_seal_bulk_reverse` | `dc_seal_bulk_reverse` |
+| 3 | `seal_kvl_branch.py` | `dc_seal_kvl_branch` | `dc_seal_kvl_branch` |
+| 4 | `seal.py` | `seal_dc` | -- |
+| 5 | `size_and_seal.py` | `size_and_seal` | -- |
 
 계산 블록은 모두 core `compute_block`(core CONTRACT 6절)이다: 블록 함수는 선언 reads 투영 + 불변 extras 만 받고, 입력 버전 =
 fp_of((이름, 코드 해시, 투영 지문)) = `block.input_version(snapshot, *extras)`(정본), 같으면 재사용(스냅샷 `is` 반환), 결과는 `snapshot.write` 로만 쓴다(열 교체 의미).
@@ -202,8 +202,7 @@ graph 레코드 key: `DC_KEY`(`"dc"`). 값은 모두 불변(frozen dataclass·tu
 | device.dc_L | dc_lengths | 모든 MOS | float m |
 | node.dc_v | dc_columns | 레일 아닌 모든 노드 | float V |
 | node.dc_path_values | dc_columns | 모든 노드 | tuple[`PathValue`] relation 순 |
-| node.dc_output_structure [IT-2b] | dc_writer_plan | 출력 포트 넷 | str `"high_impedance"`\|`"kvl_fixed"`(`OUTPUT_HIGH_IMPEDANCE`·`OUTPUT_KVL_FIXED`; θ 무관 S0, 소비자는 IT-2c·IT-2d -- 그 전까지 출력 전용) |
-| node.dc_window | dc_columns | W4 뿌리 노드 + 모든 입력 포트 [IT-2b] | `Window`(칸 `input_status`·`tol_v` 추가) |
+| node.dc_window | dc_columns | W4 뿌리 노드(입력 포트인 뿌리 포함) [IT-2c: 뿌리 아닌 입력 포트·선언 포트 항목 없음 -- 측정 구성 `node.dc_window_cfg` 가 받는다] | `Window`(칸 `input_status`·`tol_v`) |
 | device.dc_ln_idu | dc_columns | 모든 MOS | float |
 | graph.dc_scc_log | dc_columns | DC_KEY | tuple[`SccLog`] |
 | device.dc_op | dc_widths | 모든 MOS | `DeviceOp` |
@@ -1018,16 +1017,17 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 
 ### 14.6 y_icm = 입력 포화 창 (J-E SP-2 (c), D-J5 U4 몫)
 * 입력 DC 미선언이라 입력 포트인 W4 뿌리(최대 하나, y 키 = 그 넷)가 있으면 `dc_columns` 가 풀이를 되풀이한다: (1) y = 1/2 로 푼 해에서 (2) `input_window.saturation_window` 로
-  입력 공통모드 x 의 포화 창(x 를 따라 움직이는 노드의 VDS 변화율 = 노드 writer 식 야코비안 연립의 해, 소자별 포화 여유 VDS − VDsat − tol_VDsat 의 1차 외삽)을 재고
+  입력 공통모드 x 의 포화 창(x 를 따라 움직이는 노드의 VDS 변화율 = 노드 writer 식 야코비안 연립의 해, 소자별 포화 여유 VDS − VDsat 의 1차 외삽 -- [IT-2c] 판정 여유 0, tol 항 없음)을 재고
   (3) 순서 창과 교집합을 y_icm 범위로 삼아 요청 y 로 다시 풀며 (4) 경계가 tol_V 안에서 변하지 않을 때까지 되풀이(상한 `k_max(레일 폭, tol_V)`). `node.dc_window` 는 마지막 범위를 낸다.
 * (1)이 풀리지 않거나 VDSAT 열 없음·tol 미정이면 종래 사상(순서 창 = 레일 범위). `dc_columns(..., linear_devices)` 5번째 extras 는 비어 있지 않을 때만 준다.
 * 효과(toy 차동쌍): 종래 y ∈ [0.05, 0.95] 무작위 60점 중 봉인 19, 이후 60. 평가 시간 약 3배(IT-2b 전 측정, `_refine_ends` 경로).
 * (1)이 y = 1/2 에서 풀리지 않으면 순서 창 안을 1/4, 3/4, 1/8, 3/8, ... 순으로 훑어(시도 수 ≤ k_max(레일 폭, 레일 폭 절반 VDS 셀의 최소 tol_V)) 풀리고 창을 잴 수 있는 첫 점의 해로 (2)를 시작한다. 어디서도 안 풀릴 때만 종래 사상이다.
 * (5) [IT-2b 개정, 설계 41 4.7-3 1] 커널은 창 끝을 다듬지 않는다(`_refine_ends` 를 부르지 않음 -- 끝 x 고정 풀이는 다듬은 창 블록 몫). 커널 `node.dc_window` 뿌리 항목 = 순서 창 ∩ 마지막 `override`(선형 감도 끝),
   `input_status` = 수렴 `measured` / 미수렴·tol 미정 `unsettled`(y 범위로는 그대로 쓴다) / 창을 못 잼 `unmeasured`(순서 창). 따라서 y = 0·1 끝 점의 봉인 7 여유는 1차 외삽 오차만큼 음수일 수 있다.
-* (6) [IT-2b] `node.dc_window` 는 모든 입력 포트에도 항목을 둔다: 뿌리 아닌 입력 포트 = 뿌리 창 끝을 마지막 `override` 를 잰 같은 해의 감도로 옮긴 두 끝 전압 [min, max] ∩ 레일, 입력 DC 선언 포트 = 묶음 전부가 같은
-  x 이동량 Δ 로 움직이는 창(`saturation_window` roots = 선언 포트 묶음), F 성분 미선언 포트 = `Window(None, None, 0, "f_component_undeclared")`. 측정 실패면 뿌리 항목만 `unmeasured`. 창 경계 행은 `Circuit.region_rows`(`sat`·`triode`).
-  동작점 불일치(`op_mismatch`)는 이 card 밖(EO-1 묶음, 사용자 결정 O-98).
+* (6) [IT-2c, 설계 41 4.7-W W1·4.7-3 2·3] `node.dc_window` 의 항목은 **W4 뿌리뿐**이다(입력 점 뿌리 포함). 뿌리 아닌 입력 포트·입력 DC 선언 포트·F 성분 미선언 포트의 창은 이 필드가 아니라 측정 구성
+  블록 `icm_config`(metrics)의 `node.dc_window_cfg` 가 받는다(모든 입력 포트를 함께 구동한 봉인점 KCL 선형 감도 끝). 창 경계 행은 공용 `Circuit.region_rows`(`sat`·`triode`, 여유 0)이고 끝 식은
+  `saturation_window(unknown, root, ...)` 하나다(`root` = 넷 하나, 쌍·묶음 없음). 동작점 불일치(`op_mismatch`)는 이 card 밖(EO-1 묶음, 사용자 결정 O-98).
+  커널 입력 창 측정(`_measure`·`_interior_solution`·`_dyadic_ys`·`INPUT_STATUS_UNSETTLED`)은 card WB-1 범위 3a 가 재작성한다.
 
 ## 15. 구현하지 않은 것 (정지 후 보고)
 
