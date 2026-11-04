@@ -161,6 +161,7 @@
   "tests": "플러그인 없이 그대로: card test 182 passed(1차 179 + 3), World.run 입력 폴더 문제 닫힘(op23_support.py:208 mkdir, 저장소에 mkdirfix 0). X-13·test_verified_by 48 passed, tests/structure 171 passed 1 deselected",
   "new_minor": [
    "m12 M-3 예외가 spec '원래 취지와 다름' 목록에 없고, design §10.6 3단계 '남은 차이 0, 아니면 멈춤' 문언이 그대로이며 design 판·history 도 그대로다. card A3-5 기준과 design §10.6 이 다르다. LA-1 재점검 입력"
-  ]
+  ],
+  "descriptor_bytes_note": "머리 기술자와 1차 측정 복제본 기술자는 바이트가 다르다(공백 표기). JSON 파싱 값 같음 = True. 1차 A3-4·A3-3 재사용 근거는 이 값 동일이다"
  }
 }
