@@ -838,13 +838,14 @@ def _assert_same_value_everywhere(r, ref):
     cfg, margin, icmr = _hand_icm(ref)
     got = T2.by_metric(ref.ss)
     assert got["icm_margin_v"].value == pytest.approx(margin, abs=1e-12)               # 판정 값
-    rep = dict(ref.ss.reports)["swing_icmr"]
-    assert T2.field(rep, "icm_margin_v") == got["icm_margin_v"].value                  # 보고 값: 같은 칸
+    # [A-85 D3] 보고(swing_icmr)에 icm_margin_v 키를 요구하지 않는다(값 사본 금지, interface 보고 키 불변): 같은 칸 = graph.icm_config 의 V_cm 칸.
+    # 판정 값(위)과 front 행(아래)이 모두 그 칸에서 손으로 낸 margin 과 같으면 두 소비처의 값이 같다.
     rows = [x for x in r.constraints if "icm_margin_v" in x.name]                      # front 가 보는 제약 행
     assert len(rows) == 1
     res = got["icm_margin_v"].resolution
     assert res is not None and res > 0
     assert rows[0].c == pytest.approx((margin - 0.0) / res, rel=1e-9)
+    assert rows[0].c * res == pytest.approx(got["icm_margin_v"].value, rel=1e-9)        # front 행 값 = 판정 값 = graph.icm_config 칸에서 낸 margin
     return got, icmr
 
 

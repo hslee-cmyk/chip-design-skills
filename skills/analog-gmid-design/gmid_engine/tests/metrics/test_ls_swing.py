@@ -173,7 +173,8 @@ def test_undefined_codes_swing_only():
     for args, want in (((CS, RAILS, (("out", 1.0),), ()), "no_output_port"),
                        (((n("M1", "out", "in", "gnd", 0.6, None),), RAILS, (("out", 1.0), ("in", 0.6)), ("out",)),
                         "sat_unavailable"),
-                       ((CS, RAILS, (("out", 1.0),), ("out",)), "node_v_missing")):
+                       # [A-85 D1] 옛 셋째 사례의 전제(입력 인자 ("in",)의 node_v 없음)는 입력 인자와 함께 사라졌다. 출력 넷 out 의 전압이 node_v 에 없는 입력으로 재현한다.
+                       ((CS, RAILS, (), ("out",)), "node_v_missing")):
         got = ls_swing(*args)
         assert got.swing_out_v is None
         assert {(u.quantity, u.code) for u in got.undefined} == {("swing_out_v", want)}

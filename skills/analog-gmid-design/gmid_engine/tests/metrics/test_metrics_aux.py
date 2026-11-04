@@ -202,15 +202,16 @@ def test_it2d_m2_config_none_same_definitional_code_for_metrics(tmp_path):
                                      ("M3", "nmos", "out", "in3", "gnd", "gnd")],
                     passives=[("R1", "resistor", "vdd", "out"), ("CL", "capacitor", "out", "gnd")], rails=("vdd", "gnd"), ports=ports)
     td, spec = load_case(tmp_path / "case", topo, {"vdd": 1.8, "gnd": 0.0}, (("R1", "resistor", None), ("CL", "capacitor", 1e-12)), (),
-                         (("icm_margin_v", ">=", 0.0, None), ("icmr_v", ">=", 0.0, None)))
+                         (("icm_margin_v", ">=", 0.0, None), ("icmr_v", ">=", 0.0, None)), input_dc_v=0.6)
     inputs = dc_inputs_from_spec(spec)
     run = fresh_run()
     ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v), **run), inputs, lut_access(load_lut_v2(tmp_path / "lut")), **run)
     i_each, r_load = 1e-5, 3e4                                    # V(out) = 1.8 − 3·1e-5·3e4 = 0.9 (손 KCL)
-    ln = lut_ln_idu("nmos", 0.6, 1.8 - 3 * i_each * r_load, 0.0)
+    # [A-85 D2] 입력 DC 미선언 + 단일 입력 셋은 DEC-106 로 사이징이 먼저 정지(input_cm_undefined)하므로 입력 DC 0.6 을 선언한다: 게이트 전압이 고정이라
+    # ln_idu 는 θ 성분이 아니다(O-127). 구성 None 은 icm_config 가 입력 포트 셋을 지원하지 않는 갈래 2 로 파이프라인이 실제로 닿는다.
     th = {("resistance", "R1"): r_load}
     for m in ("M1", "M2", "M3"):
-        th.update({("L", m): 1e-6, ("ln_idu", m): ln, ("current", m): i_each})
+        th.update({("L", m): 1e-6, ("current", m): i_each})
     ev = size_and_seal(ctx, th)
     res = ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, th, spec.constraints, junction=toy_junction(tmp_path / "j", ctx.lut.memo.lut))
     cfg = res.snapshot.value("graph", METRICS_KEY, "icm_config")
