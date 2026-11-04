@@ -387,7 +387,7 @@ def circuit_ir(inp, bias, omit=(), short=(), *, descriptor=None, mode=None):
             add(ISource(f"tb:ilb:{net}", "0", N(net), 0.0, ac_mag=0.0), "testbench")
         else:
             add(Capacitor(f"tb:cac:{net}", N(net), f"acs_{net}", coup), "testbench")
-            add(VSource(f"tb:vac:{net}", f"acs_{net}", "0", 0.0, ac_mag=0.0 if loop else float(ac_mag.get(net, 0))), "testbench")
+            add(VSource(f"tb:vac:{net}", f"acs_{net}", "0", 0.0, ac_mag=0.0 if (loop or cm) else float(ac_mag.get(net, 0))), "testbench")
             ac_src[net] = f"tb:vac:{net}"
 
     if cm and breaks:

@@ -1,0 +1,64 @@
+{
+ "schema": "lut_file_roles/1",
+ "generator_sha256": "8df35d2ea405a0f53a836f7ce6cccc26e0db82ad2f82838588991afdcfb319df",
+ "roles": {
+  "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv": {
+   "sha256": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+   "role": "generation_aux_input"
+  },
+  "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice": {
+   "sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+   "role": "model_file"
+  },
+  "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice": {
+   "sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+   "role": "model_file"
+  },
+  "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv": {
+   "sha256": "3de00ee9acb32d2c7eae36be3f24521dbb9f53a4c50d965f76d35e5ebb2504a9",
+   "role": "generation_aux_input"
+  },
+  "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice": {
+   "sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+   "role": "model_file"
+  },
+  "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice": {
+   "sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+   "role": "model_file"
+  },
+  "models/parameters/lod.spice": {
+   "sha256": "20874af1fcb2d2ce70c65f5f2f7d6500b9e852e2507b7a4014ad2b66b8ce45e9",
+   "role": "model_file"
+  }
+ },
+ "evidence": {
+  "generator": {
+   "commit": null,
+   "data_path": "verification/slices_vdsat/sky130_dc_width_slices.py",
+   "path": "sky130_dc_width_slices.py",
+   "file_sha256": "8df35d2ea405a0f53a836f7ce6cccc26e0db82ad2f82838588991afdcfb319df",
+   "matched": "lf",
+   "aux_append_lines": [
+    298
+   ]
+  },
+  "include_graph": {
+   "start": [
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+    "models/parameters/lod.spice"
+   ],
+   "files": [
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+    "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+    "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+    "models/parameters/lod.spice"
+   ]
+  },
+  "measured_by": "verifier(판정자, card 20261104-op23 A3-3)",
+  "date": "2026-11-04"
+ }
+}

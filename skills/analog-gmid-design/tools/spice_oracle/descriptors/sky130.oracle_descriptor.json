@@ -25,7 +25,16 @@
   },
   "key": "pdk_root"
  },
- "lut_file_roles": [],
+ "lut_file_roles": [
+  {
+   "path": "lut_file_roles/605846960b6a5afd.lut_file_roles.json",
+   "sha256": "5e5c02a5ca148731234e098c5a0d47abdadf832094ce4c91a0ccee51f7ed8996"
+  },
+  {
+   "path": "lut_file_roles/8df35d2ea405a0f5.lut_file_roles.json",
+   "sha256": "fbf38fd9ff9a07d48b2711ff860f4942cf7fea1676b0fff12078708f00dad0ef"
+  }
+ ],
  "model_family": "bsim4",
  "kinds": {
   "nmos": {
