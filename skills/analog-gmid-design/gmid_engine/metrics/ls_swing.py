@@ -1,7 +1,7 @@
-"""포화 기준 출력 스윙·입력 공통모드 창·창 여유 -- 레일에서 노드까지 DC 경로 합 (설계 40 §3.8-8 `swing_out_v`·`icmr_v`·`icm_margin_v`, 41 §4.6, 계획 N3.8 '스윙·입력 범위',
-체크리스트 D-SW·D-ICM).
+"""포화 기준 출력 스윙 -- 레일에서 노드까지 DC 경로 합 (설계 40 §3.8-8 `swing_out_v`, 41 §4.6, 계획 N3.8 '스윙·입력 범위', 체크리스트 D-SW).
 
-진입점: `ls_swing(devices, rails, node_v, outputs, inputs, diff_outputs=False, input_dc_v=None) -> SwingIcmr`.
+진입점: `ls_swing(devices, rails, node_v, outputs, diff_outputs=False) -> SwingIcmr`. 입력 공통모드 창·창 여유(`icmr_v`·`icm_margin_v`)는 이 함수의 일이 아니다 --
+`icm_window_metrics`(`graph.icm_config` V_cm 칸, 카드 IT-2d, O-109 C1)가 내고 `metrics_aux` 가 한 `SwingIcmr` 로 합친다. 이 함수 출력의 입력 쪽 칸은 기본값이다.
 
 **경로 합 = 차분 제약계의 가장 긴 경로.** 노드 전압 V_n 에 대한 제약:
 * 채널 포화(VDS 엣지, 사용자 SPICE 포화 규칙 + LUT `tol_vdsat`): NMOS V_d − V_s ≥ sat, PMOS V_s − V_d ≥ sat, sat = VDSAT + tol_vdsat(`SatDevice.sat_v`).
@@ -17,12 +17,8 @@ V_a − V_b ≥ c 에서 lo(a) ≥ lo(b) + c, hi(b) ≤ hi(a) − c 를 노드 �
 
 * `swing_out_v`: 출력 포트 넷마다 반폭 = min(hi − V_dc, V_dc − lo), 단일 출력(들) = 2·min 반폭, 차동 출력 쌍(`diff_outputs`) = 출력마다 반폭 최솟값 × 4(차동 p-p).
   구간 [lo, hi, V_dc] 를 `out_ranges` 로 낸다. 빈 구간(반폭 음수)은 음수 폭 그대로.
-* `icmr_v`: 입력 포트 넷들의 창 [max lo, min hi] 폭(빈 창은 음수 폭 그대로). 경계는 입력 경로 소자 전부 VDS ≥ VDSAT + tol_vdsat 와 VGS 엣지의 경로 합이다.
-* `icm_margin_v`: V_icm = `input_dc_v`(선언 입력 DC) 가 있으면 그 값, 없으면(입력 DC 대기 SP-2 = W4 자유 변수 y_icm) 봉인 해의 입력 넷 전압 -- 이때 `input_dc` = "pending" 이고
-  `required_input_cm_v` = (V_icm, lo, hi) 를 함께 보고한다(41 §4.6 J-E, '창 중앙값'은 선언하지 않는다). margin = min(V_icm − lo, hi − V_icm).
-* 분해능(`*_resolution`): 가장 긴 경로를 따라 엣지 허용오차(채널 = tol_vdsat, VGS 엣지 = 그 소자 tol_V)를 누적한 값. swing = 계수(2 또는 4) × 구속 쪽 누적,
-  icmr = 구속 하한 누적 + 구속 상한 누적, margin = 구속 쪽 누적. 엣지 허용오차가 없으면 None.
-* 정의 불가: 출력·입력 포트 없음(`no_output_port`·`no_input_port`), 포화 판정 열이 없는 소자(`sat_unavailable`, 근사하지 않는다 DEC-88), 노드 전압 없음(`node_v_missing`).
+* 분해능(`swing_resolution`): 가장 긴 경로를 따라 엣지 허용오차(채널 = tol_vdsat, VGS 엣지 = 그 소자 tol_V)를 누적한 값 × 계수(2 또는 4). 엣지 허용오차가 없으면 None.
+* 정의 불가(`swing_out_v` 하나): 출력 포트 없음(`no_output_port`), 포화 판정 열이 없는 소자(`sat_unavailable`, 근사하지 않는다 DEC-88), 노드 전압 없음(`node_v_missing`).
 """
 import sys
 
@@ -77,23 +73,20 @@ def _relax(nets, cons, rails):
 
 
 def _bare(code, detail=()):
-    return SwingIcmr(None, None, None, undefined=tuple(Undefined(field, code, "definitional", detail)
-                                                      for field in ("swing_out_v", "icmr_v", "icm_margin_v")))
+    return SwingIcmr(None, None, None, undefined=(Undefined("swing_out_v", code, "definitional", detail),))
 
 
-def ls_swing(devices, rails, node_v, outputs, inputs, diff_outputs=False, input_dc_v=None):
+def ls_swing(devices, rails, node_v, outputs, diff_outputs=False):
     if not outputs:
         return _bare("no_output_port")
-    if not inputs:
-        return _bare("no_input_port")
     missing = tuple(m.label for m in devices if not m.linear and m.sat_v is None)
     if missing:
         return _bare("sat_unavailable", (("devices", missing),))
     volts = dict(node_v)
-    lacking = tuple(n for n in tuple(outputs) + tuple(inputs) if n not in volts)
+    lacking = tuple(n for n in outputs if n not in volts)
     if lacking:
         return _bare("node_v_missing", (("nets", lacking),))
-    nets = sorted({n for m in devices for n in (m.d, m.g, m.s)} | {n for n, _v in rails} | set(outputs) | set(inputs))
+    nets = sorted({n for m in devices for n in (m.d, m.g, m.s)} | {n for n, _v in rails} | set(outputs))
     lo, hi, ulo, uhi = _relax(nets, _constraints(devices, frozenset(n for n, _v in rails)), rails)
     # 출력 스윙
     ranges = tuple((n, lo[n], hi[n], volts[n]) for n in outputs)
@@ -104,17 +97,4 @@ def ls_swing(devices, rails, node_v, outputs, inputs, diff_outputs=False, input_
     worst, worst_u = min(halves, key=lambda h: h[0])
     factor = 2 * (1 + int(diff_outputs and len(outputs) == PAIR))
     swing_res = None if worst_u is None else factor * worst_u
-    # 입력 창
-    low = max(inputs, key=lambda n: lo[n])
-    high = min(inputs, key=lambda n: hi[n])
-    window = (lo[low], hi[high])
-    width = window[1] - window[0]
-    icmr_res = _add(ulo[low], uhi[high])
-    declared = input_dc_v is not None
-    v_icm = input_dc_v if declared else volts[inputs[0]]
-    room_low, room_high = v_icm - window[0], window[1] - v_icm
-    margin = min(room_low, room_high)
-    margin_res = ulo[low] if room_low <= room_high else uhi[high]
-    required = None if declared else (v_icm, window[0], window[1])
-    return SwingIcmr(factor * worst, width, margin, ranges, window, v_icm, required, "declared" if declared else "pending",
-                     swing_res, icmr_res, margin_res, tuple((n, lo[n], hi[n]) for n in nets))
+    return SwingIcmr(factor * worst, None, None, ranges, swing_resolution=swing_res, bounds=tuple((n, lo[n], hi[n]) for n in nets))

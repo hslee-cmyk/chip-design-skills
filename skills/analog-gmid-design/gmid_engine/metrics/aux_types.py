@@ -164,7 +164,9 @@ class SwingIcmr:
 
     `out_ranges` = ((출력 넷, V_lo, V_hi, V_dc), ...), `window` = (Vin,min, Vin,max)(레일로 자른 입력 창), `v_icm` = 판정에 쓴 입력 DC(선언값 또는 해의 y_icm),
     `required_input_cm_v` = (value, lo, hi) 또는 None(입력 DC 대기 SP-2 회로에서 보고), `input_dc` = 'declared' | 'pending'(대기 -- 해의 y_icm 으로 계산),
-    `bounds` = ((넷, lo, hi), ...) 모든 넷의 경로 합 구간(`ls_fields` 의 신호 셀 VGS_max 입력)."""
+    `bounds` = ((넷, lo, hi), ...) 모든 넷의 경로 합 구간(`ls_fields` 의 신호 셀 VGS_max 입력).
+    입력 쪽 칸(`icmr_v`·`icm_margin_v`·`window`·`v_icm`·`required_input_cm_v`·`input_dc`·`icmr_resolution`·`margin_resolution`)은 `ls_swing` 이 아니라
+    `icm_window_metrics`(`IcmWindow`, `graph.icm_config` V_cm 칸)가 채운다 -- `ls_swing` 출력에서는 기본값이다 (card IT-2d)."""
 
     swing_out_v: object
     icmr_v: object
@@ -178,6 +180,35 @@ class SwingIcmr:
     icmr_resolution: object = None
     margin_resolution: object = None
     bounds: tuple = ()
+    undefined: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True)
+class IcmPort:
+    """입력 포트 하나의 `icm_window_metrics` 입력. `v` = 봉인점 포트 전압, `lo`·`hi` = 그 포트 창(`node.dc_window_cfg`, **보고 열 전용** -- metric 산술에 쓰지 않는다),
+    `tol_v` = 창을 잰 해의 tolerance, `missing` = 측정되지 않은 사유 tuple(빈 tuple = 측정됨)."""
+
+    net: str
+    v: object
+    lo: object
+    hi: object
+    tol_v: object
+    missing: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True)
+class IcmWindow:
+    """`icm_window_metrics` 결과 -- 세 metric(`icmr_v`·`icm_margin_v`·`required_input_cm_v`)을 `graph.icm_config` V_cm 칸에서 낸 값 묶음(`SwingIcmr` 로 합쳐진다, 필드 아님).
+    `window` = (vcm_lo, vcm_hi), `v_icm` = vcm0, `input_dc` = 'declared' | 'pending', `*_resolution` = 첫 포트 `tol_v`(margin)·2·`tol_v`(icmr), `undefined` = `Undefined` tuple."""
+
+    icmr_v: object
+    icm_margin_v: object
+    required_input_cm_v: object = None
+    window: tuple = ()
+    v_icm: object = None
+    input_dc: str = ""
+    icmr_resolution: object = None
+    margin_resolution: object = None
     undefined: tuple = ()
 
 

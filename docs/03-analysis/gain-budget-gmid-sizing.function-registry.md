@@ -699,7 +699,9 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 |---|---|---|
 | offset σ_in·초과·계통 offset | `metrics.offset_analysis`·`metrics.offset_systematic` | 소자 σ 는 `metrics.device_sigmas`(lut `mismatch_sigma_vgs`) |
 | 미러비 σ | `metrics.mirror_ratio` | matching 그룹별 |
-| 출력 스윙·ICMR | `metrics.ls_swing`, 대신호 필드 `metrics.ls_fields` | 제약 `ls_constraints`(`search.ls_constraints`) |
+| 출력 스윙 | `metrics.ls_swing`(입력 창 계산 없음 [IT-2d]), 대신호 필드 `metrics.ls_fields` | 제약 `ls_constraints`(`search.ls_constraints`) |
+| ICMR 세 metric(`icmr_v`·`icm_margin_v`·`required_input_cm_v`) [IT-2d] | `metrics.icm_window.icm_window_metrics`(순수 함수; 입력 = `graph.icm_config` V_cm 칸) | 소비자 `metrics_aux._swing`(포트 열 `_icm_ports` = `node.dc_window_cfg`, `lo`·`hi` 는 보고 열 전용)가 `ls_swing` 출력과 한 `SwingIcmr` 로 합친다. 옛 `ls_swing` 입력 창 계산 삭제 |
+| 수동소자 결측 판정(B77) [IT-2d] | `metrics.metrics_aux._unavailable`(영역 = `MetricSignature.domain` 하나, 결측 = `SsCircuit.missing`·`graph.ss_nodal`) | metric 이름 분기 0. 영역 칸 정본 = `metrics.registry._ROWS` |
 | FF 비·블록 잔차·NQS 비 | `metrics.ff_gm_ratio`·`metrics.block_residual`·`metrics.nqs_ratio` | 블록 국소 모델은 `metrics.block_model.block_local_gain`(서브모듈; U9 의 블록 국소 모델 함수는 충돌을 피하려고 `metrics.block_gain_model_of`(`block_gain_model.py`)로 이름을 달리했다) |
 | 구조 사실(offset 입력 셀·FF·블록) | `metrics.metric_structure` | S1v 에서 파생 |
 | 모델 오차 쌍 | `metrics.model_error_pairs` | `build_search_context(model_error=)` |
@@ -740,6 +742,6 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 봉인점 소신호 DC 극한 노달 계(G·g_bound·인수분해) [IT-2c] | graph 필드 `graph.ss_nodal` -- writer `ss_nodal`(`metrics/ss_nodal.py`; 조립 함수 `nodal_of`) | `icm_config` 와 `metrics_aux` 의 세 조립 자리(`offset_analysis`·`offset_systematic`·`block_residual`)가 `_helpers_view.view_factor` 로 읽는다. 필드를 거치지 않는 단위 호출만 `nodal_of(ss)` 를 부른다. `conductance_matrix(bound=True)` 호출 자리는 `ss_nodal.py` 하나 |
 | DC 전도 경로를 이루는 수동소자 판정 [IT-2c] | `metrics/ss_circuit.py` `is_dc_conducting_passive(kind)` (저항뿐) | `ss_circuit`·`ss_nodal` 이 부른다. 용량은 DC 에서 개방 |
 | 컨덕턴스 조립 오차 상계 `g_bound` [IT-2c] | `metrics/_helpers_nodal.py` `conductance_matrix(circuit, size, *, bound=True)` -- `StampSet.g_ops`(연산 수) 입력 | 소비자 `icm_config._transfer_resolution` |
-| ICMR 측정 구성·창·V_cm 칸 [IT-2c] | graph 필드 `node.dc_window_cfg`·`graph.icm_config` -- writer `icm_config`(`metrics/icm_config.py`) | 감도 식은 `kvl_sensitivity` 하나(호출 자리 하나), 판정 분해능 식은 `_transfer_resolution` 하나. 소비자 `metrics_aux._icm_ports`·세 metric = card IT-2d(같은 통합 병합). 피벗 두 칸은 출력 전용 |
+| ICMR 측정 구성·창·V_cm 칸 [IT-2c] | graph 필드 `node.dc_window_cfg`·`graph.icm_config` -- writer `icm_config`(`metrics/icm_config.py`) | 감도 식은 `kvl_sensitivity` 하나(호출 자리 하나), 판정 분해능 식은 `_transfer_resolution` 하나. 소비자 `metrics_aux._icm_ports`·`icm_window_metrics` [IT-2d 이행]. 피벗 두 칸은 출력 전용 |
 | 기본 포트 뷰 규칙(입력 role -> 여기 가중·감지 넷) [IT-2c] | `graph/views.py` `default_port_seeds(inputs, outputs)` | `collect_views` 와 `icm_config`(S1v 필드가 없는 스냅샷) 가 같은 함수를 부른다. S1v 가 있으면 `ViewS1v.default_port` 를 읽는다 |
 | 계산 블록 입력 버전 `fp_of((name, code_hash, 투영 지문))` [XRUN-F1 card B] | `core.ComputeBlock.input_version(snapshot, *extras)` (`ComputeBlock.__call__` 과 같은 비공개 helper 하나로 (투영, 버전)을 한 번만 만든다) | `sizing/seal_versions.py` 의 같은 식 사본은 삭제했다 -- 입력 버전 식을 호출부에서 다시 적지 않는다 |
