@@ -1,0 +1,56 @@
+# 도구 안쪽 표를 읽기만 해서 위반 자리별 sink 발생 줄을 뽑는다(규칙 L 코드 수정 없음).
+import sys, json, ast
+from pathlib import Path
+ISO = Path(r"C:/Users/HSLEE/AppData/Local/Temp/la1s_gc1_audit3/iso")
+E = ISO/"skills/analog-gmid-design/gmid_engine"
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(E/"tests/structure"))
+from rule_l_checks import _Engine,_Blocks,_analyse_reads,_reachable,_spec_sid,_OpCopy,_qual,_is_block_dec
+from rule_l_tables import PARAMS
+eng=_Engine(E); blocks=_Blocks(eng); kinds={k for k,_ in blocks.table}; _analyse_reads(eng,kinds)
+entry={_spec_sid(s) for s in PARAMS.entry_points}; reach=_reachable(eng,entry)
+outs={_spec_sid(s) for s in PARAMS.output_functions}
+op=_OpCopy(eng,reach,("device","dc_op"),outs,"sizing/block_widths.py")
+found=op.copies()
+print("nonconv",op.nonconverged,"cands",len(op.cands))
+res=[]
+def lt(sid,labs): return sorted(l for l in labs if op._s_tainted(sid,[l]))
+for sid in sorted(found):
+    sc=eng.scopes[sid]; lines=[]
+    src=[ (r[2],r[3]) for r in sc.reads if (r[0],r[1])==("device","dc_op")]
+    for root in sc.body_nodes:
+        for node in ast.walk(root):
+            if isinstance(node,(ast.Assign,ast.AnnAssign,ast.AugAssign)) and getattr(node,"value",None) is not None:
+                t=op.labels(sid,node.value,False)
+                for tgt in (node.targets if isinstance(node,ast.Assign) else [node.target]):
+                    for leaf in op._leaf_targets(tgt):
+                        if isinstance(leaf,ast.Attribute) or (isinstance(leaf,ast.Subscript) and not op._local_container(sid,leaf)):
+                            x=lt(sid,t)
+                            if x: lines.append((node.lineno,"store",ast.unparse(leaf)[:60],x[:6]))
+            elif isinstance(node,ast.Return) and node.value is not None and op._is_block(sc):
+                x=lt(sid,op.labels(sid,node.value,False))
+                if x: lines.append((node.lineno,"block_ret","",x[:6]))
+            elif isinstance(node,ast.Call):
+                fn=node.func; args=list(node.args)+[k.value for k in node.keywords]
+                al=set().union(*(op.labels(sid,a,False) for a in args)) if args else set()
+                if isinstance(fn,ast.Attribute) and fn.attr=="write":
+                    x=lt(sid,al)
+                    if x: lines.append((node.lineno,"write",ast.unparse(node)[:80],x[:6]))
+                elif id(node) not in op.read_ids[sid] and not op._resolved_call(sid,node):
+                    rl=op.labels(sid,fn.value,False) if isinstance(fn,ast.Attribute) else set()
+                    x=lt(sid,al|rl)
+                    if x: lines.append((node.lineno,"unresolved",ast.unparse(node)[:90],x[:6]))
+    by=[]
+    for s2 in op.cands:
+        for lab in op.sink[s2]:
+            b=op._split(lab)[1]
+            if b=="R:"+sid: by.append((s2,lab))
+    res.append(dict(sid=sid,src=src,recv=sorted(op.recv[sid]),ret_sample=sorted(op.ret[sid])[:6],nret=len(op.ret[sid]),
+        sinks=sorted(set(map(tuple,[(a,b,c,tuple(d)) for a,b,c,d in lines]))),rby=sorted({s for s,_ in by}),paths=sorted(found[sid])[:8],npaths=len(found[sid]),file=eng.modules[sc.module]))
+Path(sys.argv[1]).write_text(json.dumps(res,ensure_ascii=False,indent=1),encoding="utf-8")
+txt=[]
+for r in res:
+    txt.append("== %s npaths %d recv %s src %s Rby %s"%(r["sid"],r["npaths"],r["recv"][:8],r["src"][:3],r["rby"][:6]))
+    for s in r["sinks"][:14]:
+        txt.append("    %s %s %s %s"%(s[0],s[1],s[2],list(s[3])[:3]))
+Path(sys.argv[2]).write_text("\n".join(txt),encoding="utf-8")

@@ -1,0 +1,22 @@
+"""iso_tab 복제본에만 제안 표를 넣는다(검증자 시험용). 대상 = rule_l_tables.py 의 op_copy_cleared·BASELINE, rule_l_debt.py 의 DEBT."""
+import json, re, sys
+from pathlib import Path
+T = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+S = Path(sys.argv[2]) / "skills/analog-gmid-design/gmid_engine/tests/structure"
+CR = bytes([13, 10]).decode("ascii")
+tp = S / "rule_l_tables.py"
+tx = tp.read_bytes().decode("utf-8").replace(CR, "\n")
+head, sep, _ = tx.partition("\nBASELINE = (")
+assert sep
+rows = "".join("        (%r, %r, %r),\n" % (tuple(a), tuple(b), c) for a, b, c in T["rows"])
+assert head.count("    op_copy_cleared=(),\n") == 1, head[-200:]
+head = head.replace("    op_copy_cleared=(),\n", "    op_copy_cleared=(\n" + rows + "    ),\n")
+base = "".join("    %r,\n" % (tuple(k),) for k in T["baseline"])
+tp.write_bytes((head + "\nBASELINE = (\n" + base + ")\n").encode("utf-8"))
+dp = S / "rule_l_debt.py"
+dx = dp.read_bytes().decode("utf-8").replace(CR, "\n")
+m = re.search(r"^DEBT[^\n]*\{\n", dx, re.M)
+assert m
+items = "".join("    %r: DebtItem(%r, %r, %r),\n" % (tuple(k), v[0], v[1], v[2]) for k, v in T["debt"])
+dp.write_bytes((dx[:m.end()] + items + "}\n").encode("utf-8"))
+print("rows", len(T["rows"]), "baseline", len(T["baseline"]), "debt", len(T["debt"]))

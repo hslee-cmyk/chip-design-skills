@@ -1,0 +1,106 @@
+"""O-241 재판정 주입(검증자 작성, 규칙 L 코드 수정 없음). 기대는 N3.1-5 '사본의 정의'·'fail-closed'에서 손으로 적었다.
+catch = 출처 값이 변형 없이 영속 자리에 닿거나 추적을 못 푸는 꼴, clean = 산술로 끊기거나 지역 임시 묶음."""
+import json, pathlib, shutil, sys
+E = pathlib.Path(sys.argv[1]); WORK = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+S = E / "tests" / "structure"
+sys.path.insert(0, str(S))
+sys.dont_write_bytecode = True
+from rule_l_checks import check_rule_l
+from rule_l_tables import RuleLParams
+BASE = S / "fixtures" / "rule_l" / "L5b-1" / "gmid_engine"
+OP = {"op_copy": ("device.dc_op", "graph/op_block.py")}
+P = RuleLParams(("pipeline/stage_a.py:run_stage_a",), (), (), OP, (), (), ())
+O = '    op = snapshot.value("device", "m1", "dc_op")\n'
+C = '    ops = dict(snapshot.column("device", "dc_op"))\n'
+W = '    return snapshot.write("lay", "iv", {("graph", "ly_point"): {"m1": v}})\n'
+G = 'STORE = []\n\n\n'
+V = [
+ # BUILTIN_FLOW_FUNCS 인데 라벨이 안 흐르는 꼴(값을 그대로 돌려주는 내장)
+ ("flow_max", "", O + '    v = max(op.current, 0.0)\n' + W, "", "catch", "max: 값 그대로일 수 있음(목록 주석 '라벨 흐름')"),
+ ("flow_min_one", "", C + '    v = min(ops.values(), key=id).current\n' + W, "", "catch", "min 으로 DeviceOp 그대로 꺼냄"),
+ ("flow_next_iter", "", C + '    v = next(iter(ops.values())).current\n' + W, "", "catch", "next(iter()) 로 꺼냄"),
+ ("flow_enumerate", "", C + '    for _i, o in enumerate(ops.values()):\n        v = o.current\n' + W, "", "catch", "enumerate 루프"),
+ ("flow_zip", "", C + '    for o, _n in zip(ops.values(), ("a",)):\n        v = o.current\n' + W, "", "catch", "zip 루프"),
+ ("flow_zip_write", "", C + '    v = dict(zip(ops, ops.values()))\n' + W, "", "catch", "dict(zip()) 통째"),
+ ("flow_filter", "", C + '    v = tuple(filter(None, ops.values()))\n' + W, "", "catch", "filter"),
+ ("flow_map_engine", G + 'def _keep(o):\n    STORE.append(o.current)\n\n\n', C + '    v = list(map(_keep, ops.values()))\n' + W, "", "catch", "map(엔진 함수) -> 전역 저장"),
+ ("flow_map_ext", "", C + '    v = list(map(snapshot.ctx.rows.append, ops.values()))\n' + W, "", "catch", "map(넘겨받은 객체 메서드)"),
+ ("flow_sorted_key_cb", "", C + '    v = sorted(ops.values(), key=snapshot.ctx.rows.append)\n' + W, "", "catch", "sorted key= 콜백이 보관"),
+ ("flow_iter_store", "", C + '    snapshot.ctx.it = iter(ops.values())\n    v = 1.0\n' + W, "", "catch", "iter 결과를 컨텍스트에"),
+ # 이름 하나로 도는 루프(_iter_bind 가 S 를 지움)
+ ("loop_list_values", "", C + '    for o in list(ops.values()):\n        snapshot.ctx.rows.append(o.current)\n    v = 1.0\n' + W, "", "catch", "list(.values()) 루프"),
+ ("loop_named_values", "", C + '    vals = tuple(ops.values())\n    for o in vals:\n        snapshot.ctx.rows.append(o.current)\n    v = 1.0\n' + W, "", "catch", "변수에 담은 값 열 루프"),
+ ("comp_named_values", "", C + '    vals = tuple(ops.values())\n    v = tuple(o.current for o in vals)\n' + W, "", "catch", "변수에 담은 값 열 컴프리헨션"),
+ ("loop_pair_left", "", O + '    for o, _n in [(op, "m1")]:\n        v = o.current\n' + W, "", "catch", "두 칸 풀기의 왼쪽"),
+ # 클로저·람다·with·워러스·match
+ ("closure_read", "", O + '    def g():\n        return op.current\n    v = g()\n' + W, "", "catch", "클로저로 읽어 반환"),
+ ("closure_store", "", O + '    def g():\n        snapshot.ctx.rows.append(op.current)\n    g()\n    v = 1.0\n' + W, "", "catch", "클로저 안 저장"),
+ ("lambda_immediate", "", O + '    v = (lambda: op.current)()\n' + W, "", "catch", "람다 본문"),
+ ("lambda_store", "", O + '    f = lambda: snapshot.ctx.rows.append(op.current)\n    f()\n    v = 1.0\n' + W, "", "catch", "람다 안 저장"),
+ ("lambda_param_map", "", C + '    v = list(map(lambda o: o.current, ops.values()))\n' + W, "", "catch", "map(람다)"),
+ ("once_cache", "", O + '    cache = {}\n    def once(k, make):\n        cache[k] = make()\n        return cache[k]\n    v = once("a", lambda: op.current)\n' + W, "", "catch", "엔진 관용구 once(key, lambda)"),
+ ("with_as", "import contextlib\n@contextlib.contextmanager\ndef hold(x):\n    yield x\n\n\n", O + '    with hold(op) as h:\n        v = h.current\n' + W, "", "catch", "with as"),
+ ("walrus", "", O + '    if (v := op.current) > 0:\n        pass\n' + W, "", "catch", "워러스"),
+ ("walrus_store", "", '    if (op := snapshot.value("device", "m1", "dc_op")) is not None:\n        v = op.current\n' + W, "", "catch", "워러스로 출처를 받음"),
+ ("match_case", "", O + '    match op:\n        case x:\n            v = x.current\n' + W, "", "catch", "match 묶음"),
+ ("except_as_none", "", O + '    v = op.current if op else None\n' + W, "", "catch", "IfExp(대조)"),
+ # 함수 경계
+ ("star_args", G + 'def keep(*a):\n    STORE.append(a)\n\n\n', O + '    keep(op.current)\n    v = 1.0\n' + W, "", "catch", "*args 로 받아 전역 저장"),
+ ("star_kwargs", G + 'def keep(**k):\n    STORE.append(k)\n\n\n', O + '    keep(i=op.current)\n    v = 1.0\n' + W, "", "catch", "**kwargs 로 받아 전역 저장"),
+ ("star_args_ret", 'def keep(*a):\n    return a\n\n\n', O + '    v = keep(op.current)\n' + W, "", "catch", "*args 그대로 반환"),
+ ("default_kw_ret", 'def keep(x=None, **k):\n    return k["i"]\n\n\n', O + '    v = keep(i=op.current)\n' + W, "", "catch", "**k 첨자 반환"),
+ ("init_stores_global", G + 'class K:\n    def __init__(self, x):\n        STORE.append(x)\n\n\n', O + '    K(op.current)\n    v = 1.0\n' + W, "", "catch", "__init__ 이 전역에 저장"),
+ ("post_init_store", 'import dataclasses\n' + G + '@dataclasses.dataclass\nclass K:\n    x: float\n    def __post_init__(self):\n        STORE.append(self.x)\n\n\n', O + '    K(op.current)\n    v = 1.0\n' + W, "", "catch", "__post_init__ 이 전역에 저장"),
+ ("lru_decorator", 'import functools\n@functools.lru_cache(maxsize=None)\ndef f(x):\n    return 1.0\n\n\n', O + '    f(op.current)\n    v = 1.0\n' + W, "", "catch", "memo 데코레이터(인자를 보관)"),
+ ("async_await", 'async def f(x):\n    return x\n\n\n', '    return None\n', 'async def g(snapshot):\n    op = snapshot.value("device", "m1", "dc_op")\n    v = await f(op.current)\n    return snapshot.write("lay", "iv", {("graph", "ly_point"): {"m1": v}})\n', "skip", "await(엔진에 async 없음, 기록만)"),
+ # 언어 정의 내장 목록 공격
+ ("type_3arg", "", O + '    v = type("T", (), {"i": op.current})\n' + W, "", "catch", "type 3인자: 값을 클래스에 보관"),
+ ("str_flow_control", "", O + '    v = str(op.current)\n' + W, "", "catch", "str 흐름(대조)"),
+ ("repr_form", "", O + '    v = repr(op.current)\n' + W, "", "catch", "repr: str 과 같은 표현"),
+ ("format_form", "", O + '    v = format(op.current)\n' + W, "", "catch", "format: str 과 같은 표현"),
+ ("fstring_form", "", O + '    v = f"{op.current}"\n' + W, "", "catch", "f-string"),
+ ("str_format_method", "", O + '    v = "{}".format(op.current)\n' + W, "", "catch", "str.format"),
+ ("dict_key", "", O + '    v = {op.current: 1}\n' + W, "", "catch", "dict 키에 담기"),
+ ("dict_key_comp", "", C + '    v = {o.current: 1 for o in ops.values()}\n' + W, "", "catch", "dict 컴프리헨션 키"),
+ ("set_value", "", O + '    v = {op.current}\n' + W, "", "catch", "set(대조)"),
+ ("print_file", "", O + '    print(op.current, file=snapshot.fh)\n    v = 1.0\n' + W, "", "catch", "print(file=)"),
+ ("print_plain", "", O + '    print(op.current)\n    v = 1.0\n' + W, "", "catch", "print: 목록 밖이라 위반이 맞다"),
+ ("setattr_ctx", "", O + '    setattr(snapshot.ctx, "x", op.current)\n    v = 1.0\n' + W, "", "catch", "setattr"),
+ ("vars_op", "", O + '    v = vars(op)\n' + W, "", "catch", "vars"),
+ ("slice_list", "", C + '    v = list(ops.values())[0:1]\n' + W, "", "catch", "슬라이스(대조)"),
+ ("shadow_list_name", "class list:\n    def __init__(self, x):\n        STORE.append(x)\n\n\n" + G, O + '    list(op.current)\n    v = 1.0\n' + W, "", "catch", "내장 이름을 가린 list"),
+ ("local_alias_add", "", O + '    rows = []\n    other = rows\n    other.append(op.current)\n    snapshot.ctx.k = rows\n    v = 1.0\n' + W, "", "catch", "별칭 추가"),
+ ("local_then_escape", "", O + '    rows = []\n    snapshot.ctx.k = rows\n    rows.append(op.current)\n    v = 1.0\n' + W, "", "catch", "먼저 넘긴 뒤 추가"),
+ ("nested_fresh", "", O + '    rows = {"a": []}\n    rows["a"].append(op.current)\n    snapshot.ctx.k = rows\n    v = 1.0\n' + W, "", "catch", "지역 묶음 안 list 에 추가"),
+ # 출처 접근 꼴
+ ("src_kw_field", "", '    op = snapshot.value("device", "m1", field="dc_op")\n    v = op.current\n' + W, "", "catch", "키워드 인자 필드"),
+ ("src_kw_all", "", '    ops = snapshot.column(kind="device", field="dc_op")\n    v = ops\n' + W, "", "catch", "키워드 인자 column"),
+ ("src_alias_method", "", '    col = snapshot.column\n    v = col("device", "dc_op")\n' + W, "", "catch", "메서드 별칭"),
+ ("src_getattr_method", "", '    v = getattr(snapshot, "column")("device", "dc_op")\n' + W, "", "catch", "getattr 메서드"),
+ ("src_partial", "import functools\n", '    col = functools.partial(snapshot.column, "device")\n    v = col("dc_op")\n' + W, "", "catch", "partial"),
+ # 대조(지역 계산 입력·산술: 잡히면 오탐)
+ ("clean_arith", "", O + '    v = op.current * 2.0\n' + W, "", "clean", "산술"),
+ ("clean_temp_abs", "", O + '    v = abs(op.current)\n' + W, "", "clean", "내장 산술"),
+ ("clean_local_sum", "", C + '    rows = []\n    for o in ops.values():\n        rows.append(o.current)\n    v = sum(rows)\n' + W, "", "clean", "지역 list 후 sum"),
+ ("clean_name_only", "", C + '    v = tuple(sorted(ops))\n' + W, "", "clean_key", "키(이름)만: 도구는 값 라벨 유지(참고)"),
+ ("clean_ctor_other_slot", "class Row:\n    def __init__(self, i, n):\n        self.i = i\n        self.n = n\n\n\n", O + '    v = Row(op.current, 1.0).n\n' + W, "", "clean", "다른 칸"),
+]
+res = []
+for name, head, body, extra, want, why in V:
+    d = WORK / name
+    if d.exists():
+        shutil.rmtree(d)
+    shutil.copytree(BASE, d)
+    (d / "graph" / "op_user.py").write_text(head + extra + ("\n\n" if extra else "") + "def place(snapshot):\n" + body, encoding="utf-8")
+    try:
+        got = [(v.key, v.code) for v in check_rule_l(d, P) if v.key[0] in ("L-5", "L-1d")]
+        err = None
+    except Exception as exc:
+        got, err = [], repr(exc)
+    caught = bool(got)
+    ok = None if want in ("skip", "clean_key") else caught == (want == "catch")
+    res.append({"name": name, "want": want, "why": why, "got": [list(k) + [c] for k, c in got], "ok": ok, "err": err})
+    print("%-4s %-20s %-6s got=%s | %s %s" % ({True: "OK", False: "DIFF", None: "--"}[ok], name, want, sorted({k[-1] for k, _c in got}), why, err or ""))
+catch_all = [r for r in res if r["want"] == "catch"]
+print("catch 기대", len(catch_all), "미탐", sum(1 for r in catch_all if not r["ok"]), "clean 오탐", sum(1 for r in res if r["want"] == "clean" and not r["ok"]))
+OUT.write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")

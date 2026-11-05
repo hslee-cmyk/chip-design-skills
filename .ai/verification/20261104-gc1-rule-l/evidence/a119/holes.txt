@@ -1,0 +1,258 @@
+## H1_closure n=82 real_S=9
+  - convergence/converge_point.py:76 converge_point.done | start | outer=convergence.converge_point:converge_point
+  - convergence/converge_point.py:78 converge_point.done | start | outer=convergence.converge_point:converge_point
+  - convergence/converge_point.py:83 converge_point.done | point | outer=convergence.converge_point:converge_point
+  S convergence/converge_point.py:86 converge_point.done | excluded | outer=convergence.converge_point:converge_point
+  - convergence/converge_point.py:83 converge_point.done | start | outer=convergence.converge_point:converge_point
+  - convergence/converge_point.py:86 converge_point.done | narrowed | outer=convergence.converge_point:converge_point
+  - lut/cap_query.py:38 caps.compute | lo | outer=lut.cap_query:caps
+  - lut/cap_query.py:38 caps.compute | hi | outer=lut.cap_query:caps
+  - lut/cap_query.py:43 caps.compute | rest | outer=lut.cap_query:caps
+  - lut/cap_query.py:43 caps.compute | l_val | outer=lut.cap_query:caps
+  - lut/gm_id_curve.py:33 gm_id_curve.compute | lo | outer=lut.gm_id_curve:gm_id_curve
+  - lut/gm_id_curve.py:33 gm_id_curve.compute | hi | outer=lut.gm_id_curve:gm_id_curve
+  - lut/gm_id_curve.py:33 gm_id_curve.compute | l_val | outer=lut.gm_id_curve:gm_id_curve
+  - lut/gm_id_curve.py:33 gm_id_curve.compute | vds | outer=lut.gm_id_curve:gm_id_curve
+  - lut/gm_id_curve.py:33 gm_id_curve.compute | vsb | outer=lut.gm_id_curve:gm_id_curve
+  - lut/gmb.py:53 gmb.compute | kind | outer=lut.gmb:gmb
+  - lut/gmb.py:53 gmb.compute | w_key | outer=lut.gmb:gmb
+  - lut/gmb.py:53 gmb.compute | L | outer=lut.gmb:gmb
+  - lut/gmb.py:54 gmb.compute | l_val | outer=lut.gmb:gmb
+  - lut/gmb.py:55 gmb.compute | ratio_src | outer=lut.gmb:gmb
+  - lut/gmb.py:56 gmb.compute | kind | outer=lut.gmb:gmb
+  - lut/gmb.py:56 gmb.compute | w_key | outer=lut.gmb:gmb
+  - lut/gmb.py:56 gmb.compute | L | outer=lut.gmb:gmb
+  - lut/gmb.py:56 gmb.compute | ratio_src | outer=lut.gmb:gmb
+  - lut/gmb.py:59 gmb.compute | kind | outer=lut.gmb:gmb
+  - lut/gmb.py:59 gmb.compute | w_key | outer=lut.gmb:gmb
+  - lut/gmb.py:59 gmb.compute | L | outer=lut.gmb:gmb
+  - lut/midpoint_checks.py:93 midpoint_l_bin_checks.compute | kind | outer=lut.midpoint_checks:midpoint_l_bin_checks
+  - lut/midpoint_checks.py:95 midpoint_l_bin_checks.compute | kind | outer=lut.midpoint_checks:midpoint_l_bin_checks
+  - lut/midpoint_checks.py:95 midpoint_l_bin_checks.compute | w_key | outer=lut.midpoint_checks:midpoint_l_bin_checks
+  - lut/midpoint_checks.py:100 midpoint_l_bin_checks.compute | w_key | outer=lut.midpoint_checks:midpoint_l_bin_checks
+  - lut/midpoint_checks.py:128 midpoint_l_bin_checks.compute | kind | outer=lut.midpoint_checks:midpoint_l_bin_checks
+  - lut/midpoint_checks.py:128 midpoint_l_bin_checks.compute | w_key | outer=lut.midpoint_checks:midpoint_l_bin_checks
+  - lut/midpoint_checks.py:136 midpoint_l_bin_checks.compute | kind | outer=lut.midpoint_checks:midpoint_l_bin_checks
+  - lut/midpoint_checks.py:136 midpoint_l_bin_checks.compute | w_key | outer=lut.midpoint_checks:midpoint_l_bin_checks
+  - lut/noise_planes.py:73 noise_planes.compute | kind | outer=lut.noise_planes:noise_planes
+  - lut/noise_query.py:36 noise_params.compute | lo | outer=lut.noise_query:noise_params
+  - lut/noise_query.py:36 noise_params.compute | hi | outer=lut.noise_query:noise_params
+  - lut/noise_query.py:40 noise_params.compute | rest | outer=lut.noise_query:noise_params
+  - lut/noise_query.py:40 noise_params.compute | l_val | outer=lut.noise_query:noise_params
+  - lut/noise_tolerance.py:52 tol_noise_table.compute | kind | outer=lut.noise_tolerance:tol_noise_table
+  - lut/point_query.py:36 op_point.compute | rest | outer=lut.point_query:op_point
+  - lut/point_query.py:37 op_point.compute | lo | outer=lut.point_query:op_point
+  - lut/point_query.py:37 op_point.compute | hi | outer=lut.point_query:op_point
+  - lut/point_query.py:37 op_point.compute | l_val | outer=lut.point_query:op_point
+  - lut/point_query.py:37 op_point.compute | rest | outer=lut.point_query:op_point
+  - lut/point_query.py:53 op_point.compute | lo | outer=lut.point_query:op_point
+  - lut/point_query.py:53 op_point.compute | hi | outer=lut.point_query:op_point
+  - lut/point_query.py:55 op_point.compute | rest | outer=lut.point_query:op_point
+  - lut/point_query.py:55 op_point.compute | l_val | outer=lut.point_query:op_point
+  - lut/point_query.py:57 op_point.compute | l_val | outer=lut.point_query:op_point
+  - lut/tolerance.py:282 tol_v_table.compute | kind | outer=lut.tolerance:tol_v_table
+  - lut/vdsat_query.py:33 vdsat.compute | lo | outer=lut.vdsat_query:vdsat
+  - lut/vdsat_query.py:33 vdsat.compute | hi | outer=lut.vdsat_query:vdsat
+  - lut/vdsat_query.py:34 vdsat.compute | l_val | outer=lut.vdsat_query:vdsat
+  - lut/vdsat_query.py:34 vdsat.compute | src | outer=lut.vdsat_query:vdsat
+  - lut/vdsat_tolerance.py:110 tol_vdsat_table.compute | src | outer=lut.vdsat_tolerance:tol_vdsat_table
+  - lut/vdsat_tolerance.py:112 tol_vdsat_table.compute | src | outer=lut.vdsat_tolerance:tol_vdsat_table
+  - lut/vdsat_tolerance.py:113 tol_vdsat_table.compute | src | outer=lut.vdsat_tolerance:tol_vdsat_table
+  - lut/vdsat_tolerance.py:118 tol_vdsat_table.compute | src | outer=lut.vdsat_tolerance:tol_vdsat_table
+  - lut/vdsat_tolerance.py:117 tol_vdsat_table.compute | src | outer=lut.vdsat_tolerance:tol_vdsat_table
+  - lut/vdsat_tolerance.py:120 tol_vdsat_table.compute | kind | outer=lut.vdsat_tolerance:tol_vdsat_table
+  - lut/vdsat_tolerance.py:120 tol_vdsat_table.compute | w_key | outer=lut.vdsat_tolerance:tol_vdsat_table
+  - lut/vdsat_tolerance.py:120 tol_vdsat_table.compute | src | outer=lut.vdsat_tolerance:tol_vdsat_table
+  S metrics/metrics_aux.py:171 metrics_aux.sigmas | ops | outer=metrics.metrics_aux:metrics_aux
+  S metrics/metrics_aux.py:170 metrics_aux.sigmas | ops | outer=metrics.metrics_aux:metrics_aux
+## H2_lambda n=8 real_S=1
+  - convergence/admission.py:34 admit_candidates | lambda a, b: max(power_tie[a], power_tie[b]) | 
+  - convergence/refilter.py:21 refilter | lambda a, b: max(power_tie[a], power_tie[b]) | 
+  S metrics/metrics_aux.py:202 metrics_aux | lambda: mirror_ratio(mirrors, roles, gmid, sigmas()) | 
+  - metrics/ss_linearize.py:75 _linearize | lambda: op_point(memo, op.kind, op.w_key, *args) | 
+  - metrics/ss_linearize.py:76 _linearize | lambda: gmb(memo, op.kind, op.w_key, *args) | 
+  - metrics/ss_linearize.py:77 _linearize | lambda: caps(memo, op.kind, *args, op.W) | 
+  - search/pareto.py:37 nondominated | lambda i: (points[i][1][0], -points[i][2], points[i][0]) | 
+  - search/pareto.py:62 nondominated | lambda i: (points[i][1][0], -points[i][2], points[i][0]) | 
+## H3_flow_enumerate n=1 real_S=0
+  - metrics/ss_off_gate.py:41 _shifted | enumerate(point) | 
+## H3_flow_max n=4 real_S=0
+  - convergence/admission.py:34 admit_candidates | max(power_tie[a], power_tie[b]) | 
+  - convergence/alternation_bound.py:17 alternation_bound | max(areas) | 
+  - convergence/refilter.py:21 refilter | max(power_tie[a], power_tie[b]) | 
+  - metrics/ls_fields.py:58 _signal_current | max(op.current, point.IDu * op.W / op.L) | 
+## H3_flow_min n=9 real_S=3
+  - convergence/alternation_bound.py:17 alternation_bound | min(areas) | 
+  - convergence/converge_point.py:61 _margin | min((row.c for row in result.constraints), default=None) | 
+  - convergence/kernel_keys.py:21 kernel_keys | min(found) | 
+  - convergence/place_layout.py:56 place_layout | min(scored) | 
+  - convergence/w_loop_bound.py:19 w_loop_bound | min((p.tol_effective for p in placements)) | 
+  - metrics/ls_fields.py:100 ls_fields | min(n.i_charge_a, n.i_discharge_a) | 
+  S search/constraints.py:42 constraint_rows | min(op.vsb, op.vds + op.vsb) | 
+  S sizing/seal_bulk_reverse.py:34 dc_seal_bulk_reverse | min(op.vsb, op.vds + op.vsb) | 
+  S sizing/seal_bulk_reverse.py:35 dc_seal_bulk_reverse | min(op.vsb, op.vds + op.vsb) | 
+## H3_flow_zip n=4 real_S=0
+  - convergence/key_exclusion.py:24 key_exclusion | zip(pdk.slice_width_keys, remaining) | 
+  - lut/axis_guard.py:14 check_axes | zip(grids, names, point) | 
+  - search/pareto.py:22 _relation | zip(p[1], q[1], ties) | 
+  - sizing/kernel_run.py:101 run_kernel | zip(later_blocks, (columns_extras, (ctx.lut, requested) if requested else (ctx.lut,))) | 
+## H4_iter_name_drop_S n=68 real_S=3
+  - convergence/admission.py:19 admit_candidates | survivors | 
+  - convergence/admission.py:20 admit_candidates | survivors | 
+  - convergence/admission.py:21 admit_candidates | candidates | 
+  - convergence/admission.py:31 admit_candidates | survivors | 
+  - convergence/admission.py:31 admit_candidates | p.result.constraints | 
+  - convergence/admission.py:33 admit_candidates | candidates | 
+  - convergence/admission.py:33 admit_candidates | c.result.constraints | 
+  - convergence/admission.py:36 admit_candidates | candidates | 
+  - convergence/alternation_bound.py:16 alternation_bound | points | 
+  - convergence/alternation_bound.py:18 alternation_bound | points | 
+  - convergence/converge.py:47 _eligible | result.constraints | 
+  - convergence/converge.py:64 converge | todo | 
+  - convergence/converge.py:82 converge | candidates | 
+  - convergence/converge.py:68 converge | order | 
+  - convergence/converge.py:72 converge | kept | 
+  - convergence/converge.py:81 converge | candidates | 
+  - convergence/converge.py:78 converge | candidates | 
+  - convergence/converge.py:84 converge | kept | 
+  - convergence/converge.py:87 converge | order | 
+  - convergence/converge.py:88 converge | nonconverged | 
+  - convergence/converge.py:96 converge | order | 
+  - convergence/converge.py:97 converge | order | 
+  - convergence/converge_point.py:54 _accepted | result.unmeasured | 
+  - convergence/converge_point.py:54 _accepted | start.unmeasured | 
+  - convergence/converge_point.py:55 _accepted | result.constraints | 
+  - convergence/converge_point.py:61 _margin | result.constraints | 
+  - convergence/converge_point.py:125 converge_point | placed.placements | 
+  - convergence/converge_point.py:115 converge_point | iterations | 
+  - convergence/converge_point.py:129 converge_point | placed.placements | 
+  - convergence/key_exclusion.py:16 key_exclusion | placements | 
+  - convergence/key_exclusion.py:21 key_exclusion | ks | 
+  S convergence/layout_input.py:66 layout_input_of | sorted(ops) | S지움
+  S convergence/layout_input.py:98 layout_input_of | members | S지움
+  - convergence/place_layout.py:50 place_layout | used | 
+  - convergence/realized_geometry.py:20 realized_geometry | placements | 
+  - convergence/realized_geometry.py:24 realized_geometry | placements | 
+  - convergence/refilter.py:16 refilter | points | 
+  - convergence/refilter.py:17 refilter | points | 
+  - convergence/refilter.py:18 refilter | points | 
+  - convergence/refilter.py:20 refilter | points | 
+  - convergence/refilter.py:19 refilter | p.result.constraints | 
+  - convergence/relaxation_records.py:18 relaxation_records | sorted(first_seen) | 
+  - convergence/w_loop_bound.py:18 w_loop_bound | placements | 
+  - convergence/w_loop_bound.py:19 w_loop_bound | placements | 
+  - core/fingerprint.py:35 _encode | obj | 
+  - core/fingerprint.py:65 _encode | obj | 
+  - core/fingerprint.py:71 _encode | obj | 
+  - layout/run.py:58 _input_columns | layout_input.devices | 
+  - layout/run.py:59 _input_columns | layout_input.devices | 
+  - layout/run.py:60 _input_columns | layout_input.devices | 
+  - layout/run.py:61 _input_columns | layout_input.devices | 
+  - metrics/area.py:16 area_search | gates | 
+  - metrics/area.py:22 area_search | gates | 
+  - metrics/ls_fields.py:71 _direction | rows | 
+  - metrics/ls_fields.py:73 _direction | rows | 
+  - metrics/ls_fields.py:100 ls_fields | nodes | 
+  - metrics/ls_swing.py:38 _constraints | devices | 
+  - metrics/ls_swing.py:82 ls_swing | devices | 
+  - metrics/ls_swing.py:89 ls_swing | devices | 
+  - metrics/ls_swing.py:89 ls_swing | (m.d, m.g, m.s) | 
+  - metrics/metrics_aux.py:295 _ls_report | fields.nodes | 
+  - metrics/noise_devices.py:43 _f_lo | kinds | 
+  - metrics/passive_values.py:29 theta_passive_pairs | theta | 
+  - search/eval_key.py:17 eval_key | theta | 
+  S search/fd_jacobian.py:51 _steps | ops | S지움
+  - search/kernel.py:79 _record | result.constraints | 
+  - search/kernel.py:80 _record | result.unmeasured | 
+  - sizing/theta_check.py:34 check_theta | sorted(pairs) | 
+## H4b_pair_left_drop n=48 real_S=17
+  - convergence/converge.py:85 converge | dominated | (i, by)
+  - convergence/converge.py:86 converge | folded | (i, by)
+  S convergence/converge_point.py:67 converge_point | ops.items() | (m, op)
+  S convergence/converge_point.py:68 converge_point | ops.items() | (m, op)
+  S convergence/converge_point.py:90 converge_point | ops.items() | (m, op)
+  - convergence/converge_point.py:117 converge_point | geometry.w_request | (m, _w)
+  - convergence/kernel_keys.py:19 kernel_keys | sorted(current) | (kind, old)
+  - convergence/key_exclusion.py:21 key_exclusion | pdk.slice_width_keys | (name, ks)
+  - convergence/key_exclusion.py:22 key_exclusion | pdk.slice_width_keys | (name, _ks)
+  S convergence/layout_input.py:75 layout_input_of | body_of.items() | (name, key)
+  S convergence/layout_input.py:78 layout_input_of | sorted(row_members.items()) | (key, members)
+  - convergence/place_layout.py:29 _narrow | pdk.slice_width_keys | (kind, ks)
+  - convergence/place_layout.py:48 place_layout | conflicts | (kind, used)
+  - core/fingerprint.py:68 _encode | obj.items() | (k, v)
+  - layout/run.py:103 _base | design_point.block_versions.items() | (w, v)
+  - layout/run.py:104 _base | snapshot.block_versions.items() | (w, v)
+  S metrics/dc_metrics.py:113 metrics_dc | sorted(projection.column('device', 'dc_op'), key=lambda r: device_key(r[0])) | (m, o)
+  S metrics/metrics_aux.py:109 _sat_devices | sorted(projection.column('device', 'dc_op'), key=lambda r: canonical(r[0])) | (label, op)
+  S metrics/noise_devices.py:51 noise_devices | ops | (name, op)
+  S metrics/noise_devices.py:53 noise_devices | ops | (_name, op)
+  S metrics/ss_linearize.py:97 ss_dev | projection.column('device', 'dc_op') | (m, op)
+  S metrics/ss_off_gate.py:55 off_region_gate | sorted(snapshot.column('device', 'dc_op')) | (m, op)
+  - search/cone_rows.py:18 cone_rows | theta | ((kind, key), v)
+  S search/constraints.py:36 constraint_rows | snapshot.column('device', 'dc_op') | (m, op)
+  - search/eval_key.py:19 eval_key | theta | (k, _v)
+  - search/eval_key.py:22 eval_key | theta | (_k, v)
+  S search/gate_run.py:63 run_sensitivity_gate | base.evaluation.snapshot.column('device', 'dc_op') | (m, _)
+  - search/kernel.py:73 _record | result.theta | (k, v)
+  - sizing/kernel_run.py:46 normalize_w_request | pairs | (name, width)
+  - sizing/kernel_run.py:79 run_kernel | items | ((kind, key), v)
+  - sizing/kernel_run.py:80 run_kernel | items | ((kind, key), v)
+  - sizing/kernel_run.py:83 run_kernel | items | ((kind, key), v)
+  - sizing/kernel_run.py:88 run_kernel | steps | (b, _)
+  - sizing/kernel_run.py:90 run_kernel | steps | (block, extras)
+  - sizing/kernel_run.py:97 run_kernel | requested | (m, w)
+  - sizing/kernel_run.py:98 run_kernel | column_items | (key, v)
+  - sizing/kernel_run.py:107 run_kernel | items | ((kind, key), v)
+  - sizing/seal.py:66 seal_dc | calls | (b, _)
+  - sizing/seal.py:74 seal_dc | calls | (b, _)
+  - sizing/seal.py:84 seal_dc | calls | (b, _)
+  S sizing/seal_bulk_reverse.py:27 dc_seal_bulk_reverse | projection.column('device', 'dc_op') | (m, op)
+  S sizing/seal_region.py:85 dc_seal_region | sorted(projection.column('device', 'dc_op')) | (m, op)
+  S sizing/seal_tolerances.py:28 dc_tolerances | projection.column('device', 'dc_op') | (m, op)
+  - sizing/seal_versions.py:30 seal_versions | calls | (block, extras)
+  - sizing/seal_versions.py:43 seal_versions | calls | (block, _extras)
+  - sizing/seal_versions.py:46 seal_versions | calls | (block, _extras)
+  S sizing/seal_vgs_match.py:24 dc_seal_vgs_match | projection.column('device', 'dc_op') | (m, op)
+  - sizing/theta_check.py:45 check_theta | out | ((kind, key), v)
+## H5_repr n=5 real_S=0
+  - convergence/converge.py:57 converge | repr(p.point_id) | 
+  - sizing/kernel_run.py:50 normalize_w_request | repr((name, width)) | 
+  - sizing/theta_check.py:37 check_theta | repr((key, value)) | 
+  - sizing/theta_check.py:41 check_theta | repr((key, value)) | 
+  - sizing/theta_check.py:43 check_theta | repr((key, value)) | 
+## H5_str_join n=1 real_S=0
+  - convergence/layout_input.py:58 _gid | '+'.join(sorted(members)) | 
+## H5_type n=3 real_S=0
+  - core/fingerprint.py:30 _encode | type(obj) | 
+  - core/fingerprint.py:81 _encode | type(obj) | 
+  - core/fingerprint.py:25 _type_name | type(obj) | 
+## H6_init_body_untracked n=6 real_S=5
+  S convergence/layout_input.py:72 layout_input_of | LayoutDevice(name, op.kind, d, g, s, body, float(op.W), float(op.L), float(op.current), float(op.gm_id), float | layout.contract_input:LayoutDevice
+  S convergence/layout_input.py:77 layout_input_of | RowGroup(key[0] + '|' + key[1], key[0], key[1], tuple(sorted(members))) | layout.contract_input:RowGroup
+  S convergence/layout_input.py:102 layout_input_of | MatchingGroup(gid, members, role, hub, patterns) | layout.contract_input:MatchingGroup
+  S convergence/layout_input.py:103 layout_input_of | LayoutInput(tuple(devices), tuple(matching), row_groups, pdk, tuple(sorted(rejected)), tuple(passives)) | layout.contract_input:LayoutInput
+  S metrics/dc_metrics.py:113 metrics_dc | GateArea(o.W, o.L, label=m) | metrics.records:GateArea
+  - metrics/ls_swing.py:76 _bare | Undefined('swing_out_v', code, 'definitional', detail) | metrics.mna_types:Undefined
+## H6_star_params n=7 real_S=0
+  - lut/_helpers_anchor.py:34 l_position | seal_violation('lut_l_not_anchor', bins='unavailable', **detail) | lut._helpers_fail:seal_violation
+  - lut/_helpers_anchor.py:41 l_position | seal_violation('lut_l_outside_model_bins', **detail) | lut._helpers_fail:seal_violation
+  - lut/_helpers_anchor.py:45 l_position | seal_violation('lut_l_bin_unbracketed' if len(members) <= 1 else 'lut_l_cross_bin', **detail) | lut._helpers_fail:seal_violation
+  - lut/_helpers_columns.py:28 column_source | seal_violation('lut_column_unavailable', column=column, kind=kind, w_key=w_key, cap_w_key=None if cap is None  | lut._helpers_fail:seal_violation
+  - lut/axis_guard.py:17 check_axes | seal_violation('lut_axis_out_of_range', axis=name, value=float(value), lo=float(lo), hi=float(hi), **dict(cont | lut._helpers_fail:seal_violation
+  - lut/noise_query.py:26 noise_params | seal_violation('lut_noise_unavailable', kind=kind, w_key=w_key) | lut._helpers_fail:seal_violation
+  - lut/noise_query.py:28 noise_params | seal_violation('lut_column_unavailable', column='SVG2', kind=kind, w_key=w_key, cap_w_key=table.w_key) | lut._helpers_fail:seal_violation
+## H7_block_extra n=4 real_S=0
+  - layout/run.py:116 run_layout | _slice_block(snapshot, _LutHandle(memo), donors=donors, counters=counters) | layout.run:_slice_block
+  - metrics/ss_evaluate.py:111 ss_evaluate | passive_values(snapshot, ctx.inputs.element_values, schema.zero_cancel, theta_passive_pairs(theta.values), **k | metrics.passive_values:passive_values
+  - metrics/ss_evaluate.py:112 ss_evaluate | ss_dev(snapshot, ctx.lut, junction, *((diffusion,) if diffusion else ()), **keys) | metrics.ss_linearize:ss_dev
+  - search/kernel.py:143 evaluate | passive_values(evaluation.snapshot, dc.inputs.element_values, schema.zero_cancel, theta_passive_pairs(pairs),  | metrics.passive_values:passive_values
+## H8_dict_key n=9 real_S=0
+  - convergence/admission.py:19 admit_candidates | {p.point_id: p.layout.snapshot.value('graph', LAYOUT_KEY, F_FLOORPLAN) for p in survivors} | 
+  - convergence/admission.py:20 admit_candidates | {p.point_id: p.power_resolution_w for p in survivors} | 
+  - convergence/refilter.py:17 refilter | {p.point_id: p.layout.snapshot.value('graph', LAYOUT_KEY, F_FLOORPLAN) for p in points} | 
+  - convergence/refilter.py:18 refilter | {p.point_id: p.power_resolution_w for p in points} | 
+  - layout/run.py:58 _input_columns | {d.name: ConservedPoint(d.kind, d.L_m, d.ID_A, d.gm_id, d.vds_V, d.vsb_V) for d in layout_input.devices} | 
+  - layout/run.py:59 _input_columns | {d.name: DevicePins(d.drain, d.gate, d.source) for d in layout_input.devices} | 
+  - layout/run.py:60 _input_columns | {d.name: d.W_adjustable for d in layout_input.devices} | 
+  - layout/run.py:61 _input_columns | {d.name: DeviceAttrs(d.W_m, d.body, d.diode) for d in layout_input.devices} | 
+  - sizing/theta_check.py:45 check_theta | {key: Fraction(v) for (kind, key), v in out if kind == THETA_CURRENT} | 

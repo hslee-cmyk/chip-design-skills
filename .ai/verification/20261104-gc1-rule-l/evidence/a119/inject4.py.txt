@@ -1,0 +1,48 @@
+"""추가 주입 + 실패 기록 경로 실측. 기대는 N3.1-5 에서 손으로 적었다."""
+import json, pathlib, shutil, sys
+E = pathlib.Path(sys.argv[1]); WORK = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+S = E / "tests" / "structure"
+sys.path.insert(0, str(S))
+sys.path.insert(0, str(E.parent))
+sys.dont_write_bytecode = True
+from rule_l_checks import check_rule_l
+from rule_l_tables import RuleLParams
+BASE = S / "fixtures" / "rule_l" / "L5b-1" / "gmid_engine"
+OP = {"op_copy": ("device.dc_op", "graph/op_block.py")}
+P = RuleLParams(("pipeline/stage_a.py:run_stage_a",), (), (), OP, (), (), ())
+O = '    op = snapshot.value("device", "m1", "dc_op")\n'
+W = '    return snapshot.write("lay", "iv", {("graph", "ly_point"): {"m1": v}})\n'
+G = 'STORE = []\n\n\n'
+BLOCK = 'from gmid_engine.core.compute_block import compute_block\n\n\n@compute_block("keep", reads=(), writes=(("graph", "k"),))\ndef keep_block(projection):\n    (v,) = projection.extras\n    return {("graph", "k"): {"g": v}}\n\n\n'
+V = [
+ ("param_dict_called", 'def keep(cache, op):\n    cache["m1"] = op.current\n\n\n', O + '    keep(snapshot.ctx, op)\n    v = 1.0\n' + W, "catch", "(iv) 호출자가 넘긴 객체(도달하는 호출)"),
+ ("dict_kw_ctor", "", O + '    v = dict(i=op.current)\n' + W, "catch", "dict(키워드)"),
+ ("dict_merge_kw", "", O + '    v = dict({}, i=op.current)\n' + W, "catch", "dict(a, 키워드)"),
+ ("min_key_engine", G + 'def _keep(o):\n    STORE.append(o)\n    return 0\n\n\n', O + '    min([op], key=_keep)\n    v = 1.0\n' + W, "catch", "min key= 엔진 함수가 보관"),
+ ("block_extra", BLOCK, O + '    return keep_block(snapshot, op.current)\n', "catch", "블록 extras 로 넘겨 graph 쓰기"),
+ ("ctor_no_args_via_star", 'class R:\n    def __init__(self, *a):\n        self.a = a\n\n\n', O + '    v = R(op.current)\n' + W, "catch", "*a 생성자(대조)"),
+ ("exc_detail", 'class Bad(Exception):\n    pass\n\n\n', O + '    raise Bad(op.current)\n', "catch", "예외에 담아 올림(실패 기록 경로)"),
+ ("exc_kw_helper", 'def fail(**detail):\n    return ValueError(detail)\n\n\n', O + '    raise fail(value=float(op.vds))\n', "catch", "엔진 check_axes 꼴: **detail 로 실패 기록"),
+]
+res = []
+for name, head, body, want, why in V:
+    d = WORK / name
+    if d.exists():
+        shutil.rmtree(d)
+    shutil.copytree(BASE, d)
+    (d / "graph" / "op_user.py").write_text(head + "def place(snapshot):\n" + body, encoding="utf-8")
+    got = [v.key for v in check_rule_l(d, P) if v.key[0] == "L-5"]
+    ok = bool(got) == (want == "catch")
+    res.append({"name": name, "want": want, "why": why, "got": [list(k) for k in got], "ok": ok})
+    print("%-4s %-20s got=%s | %s" % ("OK" if ok else "DIFF", name, [k[3] for k in got], why))
+# 실패 기록: check_axes 가 동작점 값을 detail 에 float 로 그대로 담고 to_json 이 그대로 내는지 실행으로 본다
+from gmid_engine.lut.axis_guard import check_axes
+from gmid_engine.core import SealViolationError
+vds = 1.2345678901234567
+try:
+    check_axes(((0.0, 1.0),), ("VDS",), (vds,), (("kind", "nmos"),))
+    rec = None
+except SealViolationError as exc:
+    rec = exc.record.to_json()
+print("failure_detail", rec, "same_value", None if rec is None else rec["detail"]["value"] == vds)
+OUT.write_text(json.dumps({"inject": res, "failure_record": rec}, ensure_ascii=False, indent=1), encoding="utf-8")

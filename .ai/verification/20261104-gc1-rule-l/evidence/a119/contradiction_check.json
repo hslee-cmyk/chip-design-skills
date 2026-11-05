@@ -1,0 +1,67 @@
+{
+ "checker": "gmid-verification-auditor(개정 작성자 오케스트레이터와 다름)",
+ "target": "graph-consumption v0.14.10 N3.1-5 fail-closed·손 분류 표, O-241, A-119",
+ "items": [
+  {
+   "against": "N3.1-5 '산술 결과는 새 값'",
+   "result": "모순 없음",
+   "basis": "math.log(op.L) 결과는 새 값이라 분류는 '사본 아님'이고, 규칙은 못 푼 외부 호출에 값을 넘긴 것을 위반으로 낸다. 위반 = 사본 판정이 아니라 추적 실패다. L5m-ext-math 는 fail-closed 문언과 맞고 표 행으로 처리한다. 닫힌 목록은 '내장'이라 math 를 넣으려면 계획 개정이 필요하고 지금은 불필요."
+  },
+  {
+   "against": "N3.1-5 추적 범위 (a)(b)(c)",
+   "result": "문언 공백(minor)",
+   "basis": "fail-closed 문장의 '못 푼 것 =' 열거가 호출·객체 저장만 적고 클로저·람다·with·워러스·**kwargs·raise 를 적지 않는다. 앞 문장 '정적으로 풀지 못하면 위반'과 spec 계약 7 '추적 실패는 위반'이 일반 규칙이므로 판정은 위반 쪽. 구문 꼴을 열거에 더한다."
+  },
+  {
+   "against": "N3.1-5 출력 함수 면제",
+   "result": "도구와 불일치",
+   "basis": "계획은 영속 자리 (iii) 한정인데 도구는 출력 함수를 후보에서 통째로 뺀다(inject5 output_fn_graph_write 미탐). 계획 문언은 옳고 도구 결함(M-5)."
+  },
+  {
+   "against": "N3.1-5 정본 쓰기 ↔ '판정: writer 파일 밖'",
+   "result": "문언 긴장(minor)",
+   "basis": "정본 쓰기는 '블록 자신의 생성'만 대상 밖인데 판정 줄은 파일 단위다. 도구는 파일 단위(inject5 writer_file_helper 미탐). 엔진 영향 0(block_widths.py 다른 dc_op 읽기 0). op_copy 는 블록 단위로 좁힌다."
+  },
+  {
+   "against": "N3.1-6 (d)",
+   "result": "문언 누락(minor)",
+   "basis": "N3.1-5 가 op_copy_cleared·닫힌 목록을 (d) 지문 대상이라 적으나 (d) 열거에 없다. '판정을 바꿀 수 있는 모든 것'에 들고 코드도 지문에 넣는다(params 전체 + checks 바이트, 뮤턴트 Fingerprint-cleared-off 잡힘). (d) 열거에 더한다."
+  },
+  {
+   "against": "N3.1-6 (e)",
+   "result": "모순 없음, 비용 표지",
+   "basis": "표 행 추가 = 기준 변경 = 허용 확대이므로 첫 지문 뒤에는 기준 약화 절차(사용자 승인, O-229 5번 위임 밖)다. converge 계열 칸 경로는 생성자 칸의 곱이라(converge 92) 칸 하나 늘면 행 수십 개가 사용자 승인으로 간다. A-119 가 함수 지문을 기각한 이유(재분류 부담)가 칸 경로에도 남는다."
+  },
+  {
+   "against": "N3.1-6 (c)",
+   "result": "모순 없음, 적용 표지",
+   "basis": "표는 검증자 손 분류이고 op_copy 독립 측정은 dc_op 읽기 20자리 손 스캔이다. 차이 = STOP-1 한 곳(손 스캔에만 있음) -> (c) '다르면 적고 멈춘다'에 해당."
+  },
+  {
+   "against": "N3.2 layout 동작점 사본 행, O-27",
+   "result": "모순 없음",
+   "basis": "LI-1 키 셋(layout_input_of, _input_columns, run_layout)은 N3.2 행의 자리와 ly_point 쓰기다. N3.1-5 '이 둘이 부채 항목' 문언은 자리 두 곳이고 함수 키 셋으로 갈라진다(새 사본 아님)."
+  },
+  {
+   "against": "N3.2 / N3.1-5 분류 size_and_seal_local",
+   "result": "모순 없음",
+   "basis": "도달 밖이라 53키에 없고 L-1x 부채(LA-1) 유지."
+  },
+  {
+   "against": "O-33",
+   "result": "모순 없음",
+   "basis": "O-33 범위 정의를 바꾸지 않았다. 판정 방식만 fail-closed."
+  },
+  {
+   "against": "O-226, O-229",
+   "result": "모순 없음, 2건 표지",
+   "basis": "(1) 계획 개정을 독립 판정 전에 master 에 병합했다(A-119 는 판정을 재판정에 포함). 원칙 17 순서 위반 표지, 이번 대조가 그 판정이다. (2) O-229 4번 '새 인프라 금지'와 M-5·M-6 수정: 기존 도구 수정이고 GC-1 Major 라 금지 대상 아님."
+  },
+  {
+   "against": "A-119 칸 경로 대조 선택",
+   "result": "근거 일부 실측으로 무너짐",
+   "basis": "A-119 는 '칸 경로 없는 키 단위 표 ⚠ 같은 함수의 새 사본을 가림'을 기각했다. 그러나 표 키 45 중 칸 경로 () 행이 있는 44 키에서 통째 새 사본이 가려진다(attack_table.json). 그 44 키에서 키 단위 표와 같다. 새 이름 칸 경로는 45/45 잡힌다. '새 칸 경로는 위반으로 잡힘'은 맞지만 () 와 ? 는 새 경로로 나타나지 않는다."
+  }
+ ],
+ "evidence": "attack_table.json, inject3.txt, inject4.json, inject5.json"
+}

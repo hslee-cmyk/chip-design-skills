@@ -1,0 +1,21 @@
+OK   ctx_subscript catch got ['place'] | (iv) 컨텍스트 객체 첨자
+OK   ctx_append catch got ['place'] | (iv) 컨텍스트 컨테이너 append
+OK   ctx_update catch got ['place'] | (iv) 컨텍스트 컨테이너 update
+DIFF param_dict catch got [] | (iv) 호출자가 넘긴 dict 에 담기
+OK   self_attr catch got ['_K.keep'] | (iv) 인스턴스 속성
+OK   s3_append_eval catch got ['place'] | (ii) S3 기록(이름이 엔진에 정의된 메서드)
+OK   from_json_dumps catch got ['place'] | (iii) 이름 import
+OK   yaml_safe_dump catch got ['place'] | (iii) SERIALIZERS 밖 외부 모듈
+OK   numpy_save catch got ['place'] | (iii) SERIALIZERS 밖 외부 모듈
+OK   pickle_dump catch got ['place'] | (iii) 목록 안
+OK   writelines catch got ['place'] | (iii) 목록 안
+OK   dc_replace catch got ['place'] | 객체 칸: replace
+OK   copy_copy catch got ['place'] | 객체 자체 복사
+OK   ctor_rename catch got ['place'] | 칸 이름 ≠ 인자 이름
+OK   ctor_base_field catch got ['place'] | 상속 칸
+OK   pop_bag catch got ['place'] | dict.pop
+OK   method_getter catch got ['place'] | 메서드 반환
+OK   three_layers catch got ['place'] | 두 겹 칸 접두 넘김(@?)
+OK   three_layers_stored catch got ['place'] | 깊은 묶음을 통째 저장
+OK   field_other_clean clean got [] | 다른 칸
+DIFF ext_math_clean clean got ['place'] | 산술

@@ -1,0 +1,17 @@
+('build_s1v', 'unv', False) 34
+('coupling_vars', 'unv', False) 26
+('coupling_vars', 'unv', True) 1
+('dc_columns', 'unv', False) 8
+('icm_config', 'unv', False) 6
+('icm_config', 'unv', True) 1
+('ly_canonical_naming', 'unv', False) 3
+('ly_pattern_select', 'not', False) 1
+('ly_rows', 'not', False) 1
+('metrics_aux', 'unv', True) 4
+('metrics_dc', 'unv', False) 2
+('s1_dc_conduction', 'not', False) 1
+('s1_gvgs', 'not', False) 1
+('s1_symmetry', 'unv', False) 4
+('ss_off_delta', 'not', False) 1
+('start_intervals', 'unv', False) 2
+not_read but read in the same file:

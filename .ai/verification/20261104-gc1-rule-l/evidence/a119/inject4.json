@@ -1,0 +1,87 @@
+{
+ "inject": [
+  {
+   "name": "param_dict_called",
+   "want": "catch",
+   "why": "(iv) 호출자가 넘긴 객체(도달하는 호출)",
+   "got": [
+    [
+     "L-5",
+     "op_copy",
+     "graph/op_user.py",
+     "keep"
+    ]
+   ],
+   "ok": true
+  },
+  {
+   "name": "dict_kw_ctor",
+   "want": "catch",
+   "why": "dict(키워드)",
+   "got": [],
+   "ok": false
+  },
+  {
+   "name": "dict_merge_kw",
+   "want": "catch",
+   "why": "dict(a, 키워드)",
+   "got": [],
+   "ok": false
+  },
+  {
+   "name": "min_key_engine",
+   "want": "catch",
+   "why": "min key= 엔진 함수가 보관",
+   "got": [],
+   "ok": false
+  },
+  {
+   "name": "block_extra",
+   "want": "catch",
+   "why": "블록 extras 로 넘겨 graph 쓰기",
+   "got": [],
+   "ok": false
+  },
+  {
+   "name": "ctor_no_args_via_star",
+   "want": "catch",
+   "why": "*a 생성자(대조)",
+   "got": [
+    [
+     "L-5",
+     "op_copy",
+     "graph/op_user.py",
+     "place"
+    ]
+   ],
+   "ok": true
+  },
+  {
+   "name": "exc_detail",
+   "want": "catch",
+   "why": "예외에 담아 올림(실패 기록 경로)",
+   "got": [],
+   "ok": false
+  },
+  {
+   "name": "exc_kw_helper",
+   "want": "catch",
+   "why": "엔진 check_axes 꼴: **detail 로 실패 기록",
+   "got": [],
+   "ok": false
+  }
+ ],
+ "failure_record": {
+  "class": "SEAL_VIOLATION",
+  "devices": [],
+  "margin": null,
+  "detail": {
+   "axis": "VDS",
+   "hi": 1.0,
+   "kind": "nmos",
+   "lo": 0.0,
+   "reason": "lut_axis_out_of_range",
+   "value": 1.2345678901234567
+  }
+ }
+}

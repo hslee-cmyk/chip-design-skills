@@ -1,0 +1,28 @@
+{
+ "inject": [
+  {
+   "name": "output_fn_graph_write",
+   "want": "catch",
+   "got": []
+  },
+  {
+   "name": "pass_to_output_fn",
+   "want": "catch",
+   "got": []
+  },
+  {
+   "name": "writer_file_helper",
+   "want": "catch",
+   "got": []
+  }
+ ],
+ "sink_forms_total": 72,
+ "no_local_sink": [
+  "convergence/converge_point.py:_margin",
+  "convergence/converge_point.py:converge_point.done",
+  "convergence/realized_geometry.py:realized_geometry",
+  "convergence/relaxation_records.py:relaxation_records",
+  "metrics/ls_swing.py:ls_swing",
+  "metrics/metrics_aux.py:_sat_devices"
+ ]
+}

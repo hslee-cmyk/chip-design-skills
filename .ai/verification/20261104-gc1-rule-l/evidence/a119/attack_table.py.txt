@@ -1,0 +1,55 @@
+"""제안 표를 넣은 도구로, 표에 적힌(사본 아님) 함수마다 진짜 새 사본을 하나씩 넣어 가려지는지 잰다. 엔진 사본 트리에만 쓴다."""
+import ast, json, shutil, sys
+from pathlib import Path
+ROOT = Path(r"C:/Users/HSLEE/AppData/Local/Temp/la1s_gc1_audit3")
+E = ROOT/"iso_tab/skills/analog-gmid-design/gmid_engine"
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(E/"tests/structure"))
+from rule_l_checks import check_rule_l
+from rule_l_tables import PARAMS
+WORK = ROOT/"out/attack"
+SRC = '_LEAK_OBJ.column("device", "dc_op")'
+FORMS = {
+  "direct_path_empty": '_LEAK["k"] = ' + SRC,                                   # 칸 경로 () : 통째 저장
+  "deep_wild_path_q": '_LEAK["k"] = _LeakBox(_LeakBox(_LeakBox(' + SRC + ')))',  # 칸 경로 ('?',) : 세 겹 이상이 합쳐진다
+  "named_new_path": '_LEAK["k"] = _LeakBox(' + SRC + ')',                        # 칸 경로 ('x',) : 새 칸 경로
+}
+BOX = "\n\nclass _LeakBox:\n    def __init__(self, x):\n        self.x = x\n"
+cleared = sorted({tuple(r[0]) for r in PARAMS.op_copy_cleared})
+res = {}
+def find(tree, qual):
+    cur = tree
+    for part in qual.split("."):
+        cur = next(n for n in cur.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and n.name == part)
+    return cur
+for name, stmt in FORMS.items():
+    d = WORK/name
+    if d.exists():
+        shutil.rmtree(d)
+    shutil.copytree(E, d, ignore=shutil.ignore_patterns("tests", "__pycache__"))
+    by_file = {}
+    for k in cleared:
+        by_file.setdefault(k[2], []).append(k[3])
+    for rel, funcs in by_file.items():
+        p = d/rel
+        text = p.read_text(encoding="utf-8")
+        lines = text.split("\n")
+        tree = ast.parse(text)
+        spots = []
+        for q in funcs:
+            fn = find(tree, q)
+            first = fn.body[0]
+            if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant) and isinstance(first.value.value, str):
+                # docstring 뒤에 넣는다(본문이 docstring 뿐이면 그 뒤)
+                spots.append((first.end_lineno, first.col_offset))
+            else:
+                spots.append((first.lineno - 1, first.col_offset))
+        for line, col in sorted(spots, reverse=True):
+            lines.insert(line, " " * col + stmt)
+        p.write_text("\n".join(lines) + BOX, encoding="utf-8")
+    got = {v.key: v for v in check_rule_l(d, PARAMS)}
+    hidden = [k for k in cleared if k not in got]
+    res[name] = {"n_cleared_keys": len(cleared), "hidden": len(hidden), "caught": len(cleared) - len(hidden),
+                 "hidden_keys": [k[2] + ":" + k[3] for k in hidden]}
+    print(name, "표 키", len(cleared), "가려짐", len(hidden), "잡힘", len(cleared) - len(hidden), flush=True)
+Path(sys.argv[1]).write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")

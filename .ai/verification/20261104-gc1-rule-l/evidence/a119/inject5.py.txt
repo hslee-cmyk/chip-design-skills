@@ -1,0 +1,59 @@
+"""출력 함수 면제·writer 파일 면제 범위 + 표 sink 꼴 비용 추정."""
+import json, pathlib, shutil, sys
+E = pathlib.Path(sys.argv[1]); WORK = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+S = E / "tests" / "structure"
+sys.path.insert(0, str(S))
+sys.dont_write_bytecode = True
+from rule_l_checks import check_rule_l
+from rule_l_tables import RuleLParams
+BASE = S / "fixtures" / "rule_l" / "L5b-1" / "gmid_engine"
+OP = {"op_copy": ("device.dc_op", "graph/op_block.py")}
+O = '    op = snapshot.value("device", "m1", "dc_op")\n'
+W = '    return snapshot.write("lay", "iv", {("graph", "ly_point"): {"m1": v}})\n'
+res = []
+# 1. 출력 함수가 graph 쓰기(N3.1-5 면제는 영속 자리 (iii) 한정)
+d = WORK / "output_fn_graph_write"
+if d.exists():
+    shutil.rmtree(d)
+shutil.copytree(BASE, d)
+(d / "graph" / "op_user.py").write_text("def place(snapshot):\n" + O + "    v = op.current\n" + W, encoding="utf-8")
+P = RuleLParams(("pipeline/stage_a.py:run_stage_a",), ("graph/op_user.py:place",), (), OP, (), (), ())
+got = [v.key for v in check_rule_l(d, P) if v.key[0] == "L-5"]
+res.append({"name": "output_fn_graph_write", "want": "catch", "got": [list(k) for k in got]})
+# 2. 값을 출력 함수에 넘기고 그 함수가 전역에 저장
+d = WORK / "pass_to_output_fn"
+if d.exists():
+    shutil.rmtree(d)
+shutil.copytree(BASE, d)
+(d / "graph" / "op_user.py").write_text("STORE = []\n\n\ndef rep(x):\n    STORE.append(x)\n\n\ndef place(snapshot):\n" + O + "    rep(op.current)\n    v = 1.0\n" + W, encoding="utf-8")
+P = RuleLParams(("pipeline/stage_a.py:run_stage_a",), ("graph/op_user.py:rep",), (), OP, (), (), ())
+got = [v.key for v in check_rule_l(d, P) if v.key[0] == "L-5"]
+res.append({"name": "pass_to_output_fn", "want": "catch", "got": [list(k) for k in got]})
+# 3. writer 파일 안 블록 아닌 함수가 dc_op 를 읽어 전역에 저장(N3.1-5 '정본 쓰기'는 블록 자신의 생성만)
+d = WORK / "writer_file_helper"
+if d.exists():
+    shutil.rmtree(d)
+shutil.copytree(BASE, d)
+wf = d / "graph" / "op_block.py"
+wf.write_text(wf.read_text(encoding="utf-8") + "\n\nSTORE = []\n\n\ndef stash(snapshot):\n    STORE.append(snapshot.value(\"device\", \"m1\", \"dc_op\"))\n", encoding="utf-8")
+(d / "graph" / "op_user.py").write_text("from .op_block import stash\n\n\ndef place(snapshot):\n    stash(snapshot)\n    v = 1.0\n" + W, encoding="utf-8")
+P = RuleLParams(("pipeline/stage_a.py:run_stage_a",), (), (), OP, (), (), ())
+got = [v.key for v in check_rule_l(d, P) if v.key[0] == "L-5"]
+res.append({"name": "writer_file_helper", "want": "catch", "got": [list(k) for k in got]})
+for r in res:
+    print(r["name"], r["want"], "got", r["got"])
+# 4. 표에 sink 꼴을 더할 때 행 수 추정(trace.json 의 지역 sink 문장 수)
+T = json.loads(pathlib.Path(sys.argv[4]).read_text(encoding="utf-8"))
+Tb = json.loads(pathlib.Path(sys.argv[5]).read_text(encoding="utf-8"))
+cl = set(Tb["cleared"])
+n = 0; empty = []
+for r in T:
+    k = r["file"] + ":" + r["sid"].split(":", 1)[1]
+    if k not in cl:
+        continue
+    forms = {(s[1], s[2]) for s in r["sinks"]}
+    n += len(forms)
+    if not forms:
+        empty.append(k)
+print("표 키", len(cl), "지역 sink 꼴 합", n, "지역 sink 없음(호출자에서 R: 로 잡힘)", len(empty), empty)
+OUT.write_text(json.dumps({"inject": res, "sink_forms_total": n, "no_local_sink": empty}, ensure_ascii=False, indent=1), encoding="utf-8")

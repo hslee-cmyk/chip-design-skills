@@ -1,0 +1,29 @@
+import sys, json, time
+from pathlib import Path
+ISO = Path(r"C:/Users/HSLEE/AppData/Local/Temp/la1s_gc1_audit3/iso")
+E = ISO/"skills/analog-gmid-design/gmid_engine"
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(E/"tests/structure"))
+from rule_l_checks import check_rule_l, _Engine, _Blocks, _analyse_reads, _reachable, _spec_sid, _OpCopy
+from rule_l_tables import PARAMS, BASELINE
+from rule_l_debt import DEBT
+t=time.time()
+vs = check_rule_l(E, PARAMS)
+print("sec", time.time()-t, "viol", len(vs))
+ops=[v for v in vs if v.code=="op_copy"]
+print("op_copy keys", len(ops), "pairs", sum(len(v.paths) for v in ops))
+out=[{"key":list(v.key),"paths":[list(p) for p in v.paths]} for v in ops]
+Path(sys.argv[1]).write_text(json.dumps(out,ensure_ascii=False,indent=0),encoding="utf-8")
+old=json.load(open(ISO/".ai/verification/20261104-gc1-rule-l/opcopy_failclosed_sites.json",encoding="utf-8"))
+o={tuple(s["key"]):{tuple(p) for p in s["paths"]} for s in old["sites"]}
+n={tuple(v.key):set(v.paths) for v in ops}
+print("same as file:", o==n, "note:", old["note"])
+for k in sorted(n):
+    q=sum(1 for p in n[k] if "?" in p)
+    print(len(n[k]), q, k[2]+":"+k[3], "DEBT" if k in DEBT else "", sorted(n[k])[:5] if len(n[k])<=6 else "...")
+keys={v.key for v in vs}
+print("not op_copy", len([v for v in vs if v.code!="op_copy"]))
+by={}
+for v in vs: by.setdefault(v.key[0],set()).add(v.key)
+print({k:len(s) for k,s in by.items()})
+print("base-keys", len(BASELINE), "stale vs current", len(set(BASELINE)-keys), "new", len(keys-set(BASELINE)))

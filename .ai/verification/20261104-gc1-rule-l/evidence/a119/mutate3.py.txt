@@ -1,0 +1,48 @@
+"""O-241 수정 자리 뮤턴트. 픽스처 test 만(엔진 판정 없음), 케이스마다 파일에 쓴다."""
+import json, os, pathlib, re, shutil, subprocess, sys
+E = pathlib.Path(sys.argv[1]); WORK = pathlib.Path(sys.argv[2]); OUT = pathlib.Path(sys.argv[3])
+S = E / "tests" / "structure"
+SRC = (S / "rule_l_checks.py").read_text(encoding="utf-8")
+M = [
+ ("Resolved-always", 'def _resolved_call(self, sid, node):\n', 'def _resolved_call(self, sid, node):\n        return True\n'),
+ ("Pure-add-print", '"isinstance", "issubclass", "len", "oct"', '"isinstance", "issubclass", "len", "print", "oct"'),
+ ("Pure-add-setattr", '"isinstance", "issubclass", "len", "oct"', '"isinstance", "issubclass", "len", "setattr", "oct"'),
+ ("Shadow-off", 'return (fn.id in BUILTIN_PURE_FUNCS or fn.id in BUILTIN_FLOW_FUNCS) and not self._shadowed(scope, fn.id)', 'return (fn.id in BUILTIN_PURE_FUNCS or fn.id in BUILTIN_FLOW_FUNCS)'),
+ ("Btype-any", 'return kind is not None and (fn.attr in BUILTIN_TYPE_METHODS.get(kind, ()) or fn.attr in BUILTIN_TYPE_ADD.get(kind, ()))', 'return True'),
+ ("Local-container-always", 'return isinstance(expr, ast.Name) and self._name_types(sid).get(expr.id) in ("list", "dict", "set")', 'return True'),
+ ("Param-typed", 'seen, bad = {}, set(scope.locals)', 'seen, bad = {}, set()'),
+ ("Attr-sink-off", 'sink(set(t))                              # 속성: 객체', 'pass  # 속성: 객체'),
+ ("Sub-sink-off", 'sink(set(t))                              # 첨자: 이 함수', 'pass  # 첨자: 이 함수'),
+ ("Global-sink-off", 'sink(set(t))                          # 전역·바깥 함수 변수에 담는다', 'pass  # 전역'),
+ ("Recv-sink-drop", 'sink(arg_labs | recv_labs)', 'sink(arg_labs)'),
+ ("Unresolved-off", 'sink(arg_labs | recv_labs)', 'pass'),
+ ("Write-off", 'sink(arg_labs)                                    # 정본 쓰기', 'pass  # 정본 쓰기'),
+ ("Cleared-whole-key", 'left = tuple(sorted(pa for pa in found[sid] if (key, pa) not in {(r[0], tuple(r[1])) for r in cleared}))', 'left = () if key in {r[0] for r in cleared} else tuple(sorted(found[sid]))'),
+ ("Stale-off", 'if path not in op_found.get(key, ()):', 'if False:'),
+ ("Nonconv-off", 'self.nonconverged = True ', 'self.nonconverged = False '),
+ ("Path-drop", 'found.setdefault(sid, set()).add(self._path(lab))', 'found.setdefault(sid, set()).add(())'),
+ ("Callee-path-drop", 'found.setdefault(callee, set()).update(self._path(lab) + path for path in inner)', 'found.setdefault(callee, set()).add(())'),
+ ("Fingerprint-cleared-off", '"params": dict(params._asdict()),', '"params": {k: v for k, v in params._asdict().items() if k != "op_copy_cleared"},'),
+]
+d = WORK / "m3"
+if d.exists():
+    shutil.rmtree(d)
+d.mkdir(parents=True)
+for f in ("rule_l_tables.py", "rule_l_debt.py", "test_rule_l_reject_fixtures.py"):
+    shutil.copy(S / f, d / f)
+shutil.copytree(S / "fixtures" / "rule_l", d / "fixtures" / "rule_l")
+env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", PYTHONIOENCODING="utf-8", OPENBLAS_NUM_THREADS="1")
+with open(OUT, "w", encoding="utf-8") as fh:
+    for name, a, b in M:
+        n = SRC.count(a)
+        if n != 1:
+            row = {"name": name, "error": "occurrences=%d" % n}
+        else:
+            (d / "rule_l_checks.py").write_text(SRC.replace(a, b), encoding="utf-8")
+            r = subprocess.run([sys.executable, "-B", "-m", "pytest", "test_rule_l_reject_fixtures.py", "-q", "--tb=no", "-p", "no:cacheprovider", "--rootdir", str(d.resolve()), "-c", os.devnull],
+                               cwd=d, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace")
+            fails = re.findall(r"^(?:FAILED|ERROR) \S*?(?:::)?(\S+)", r.stdout, re.M)
+            tail = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr[-160:]
+            row = {"name": name, "killed": r.returncode != 0, "n_fail": len(fails), "fails": fails[:3], "tail": tail[:80]}
+        fh.write(json.dumps(row, ensure_ascii=False) + "\n"); fh.flush()
+        print(name, row.get("killed"), row.get("n_fail"), row.get("error", ""), row.get("fails", [])[:1])

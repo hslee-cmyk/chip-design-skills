@@ -1,0 +1,116 @@
+"""도구가 라벨을 끊는 구문이 실제 엔진에 얼마나 있고 거기로 출처 값이 들어가는지 잰다(도구 안쪽 표는 읽기만)."""
+import ast, json, sys
+from pathlib import Path
+ISO = Path(r"C:/Users/HSLEE/AppData/Local/Temp/la1s_gc1_audit3/iso")
+E = ISO/"skills/analog-gmid-design/gmid_engine"
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(E/"tests/structure"))
+from rule_l_checks import _Engine,_Blocks,_analyse_reads,_reachable,_spec_sid,_OpCopy
+from rule_l_tables import PARAMS
+eng=_Engine(E); blocks=_Blocks(eng); kinds={k for k,_ in blocks.table}; _analyse_reads(eng,kinds)
+entry={_spec_sid(s) for s in PARAMS.entry_points}; reach=_reachable(eng,entry)
+outs={_spec_sid(s) for s in PARAMS.output_functions}
+op=_OpCopy(eng,reach,("device","dc_op"),outs,"sizing/block_widths.py")
+op.run()
+def real(labs):
+    """직접 출처 라벨(S)·칸을 꺼낸 라벨만: 넓은 R:/P: 전파를 빼고 본다."""
+    return sorted(l for l in labs if op._split(l)[1]=="S")
+def tainted(sid,labs):
+    return sorted(l for l in labs if op._s_tainted(sid,[l]))
+H={}
+def add(h,sid,node,labs,extra=""):
+    H.setdefault(h,[]).append(dict(sid=sid,file=eng.modules[eng.scopes[sid].module],line=getattr(node,"lineno",0),src=ast.unparse(node)[:110],real=len(real(labs))>0,labs=sorted(labs)[:3],extra=extra))
+FLOW={"zip","enumerate","min","max","iter","next","filter","map"}
+for sid in op.cands:
+    sc=eng.scopes[sid]; T=op.T[sid]
+    # H1 클로저: 부모 함수의 라벨 달린 이름을 안쪽 함수가 읽는다
+    p=sc.parent
+    while p is not None:
+        if p.sid in op.T:
+            for root in sc.body_nodes:
+                for n in ast.walk(root):
+                    if isinstance(n,ast.Name) and isinstance(n.ctx,ast.Load) and n.id not in sc.local_names:
+                        labs=op.T[p.sid].get(n.id,set())
+                        t=tainted(p.sid,labs)
+                        if t: add("H1_closure",sid,n,t,"outer="+p.sid)
+        p=p.parent
+    for root in sc.body_nodes:
+        for n in ast.walk(root):
+            if isinstance(n,ast.Lambda):
+                names={m.id for m in ast.walk(n.body) if isinstance(m,ast.Name)}
+                params={a.arg for a in n.args.args}
+                labs=set().union(*(T.get(x,set()) for x in names-params)) if names-params else set()
+                t=tainted(sid,labs)
+                if t: add("H2_lambda",sid,n,t)
+            elif isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id in FLOW:
+                labs=set().union(*(op.labels(sid,a,False) for a in n.args)) if n.args else set()
+                t=tainted(sid,labs)
+                if t: add("H3_flow_"+n.func.id,sid,n,t)
+                for k in n.keywords:
+                    if k.arg=="key" and t and not isinstance(k.value,ast.Lambda):
+                        add("H3b_key_callback",sid,n,t)
+                if n.func.id in("map","filter") and t and n.args and not isinstance(n.args[0],ast.Lambda):
+                    add("H3c_map_callback",sid,n,t)
+            elif isinstance(n,(ast.For,ast.comprehension)):
+                got=op.labels(sid,n.iter,False)
+                t=tainted(sid,got)
+                view=n.iter.func.attr if isinstance(n.iter,ast.Call) and isinstance(n.iter.func,ast.Attribute) else None
+                if t and isinstance(n.target,ast.Name) and view!="values":
+                    add("H4_iter_name_drop_S",sid,n.iter,[l for l in t if op._split(l)[1]=="S"] or t, "S지움" if "S" in {op._split(l)[1] for l in t} else "")
+                if t and isinstance(n.target,(ast.Tuple,ast.List)) and len(n.target.elts)==2:
+                    add("H4b_pair_left_drop",sid,n.iter,t,ast.unparse(n.target))
+            elif isinstance(n,ast.NamedExpr):
+                t=tainted(sid,op.labels(sid,n.value,False))
+                if t: add("H5_walrus",sid,n,t)
+            elif isinstance(n,ast.withitem):
+                t=tainted(sid,op.labels(sid,n.context_expr,False))
+                if t: add("H5_with",sid,n.context_expr,t)
+            elif isinstance(n,ast.Match):
+                t=tainted(sid,op.labels(sid,n.subject,False))
+                if t: add("H5_match",sid,n,t)
+            elif isinstance(n,ast.JoinedStr):
+                labs=set().union(*(op.labels(sid,v.value,False) for v in n.values if isinstance(v,ast.FormattedValue))) if n.values else set()
+                t=tainted(sid,labs)
+                if t: add("H5_fstring",sid,n,t)
+            elif isinstance(n,ast.Dict):
+                labs=set().union(*(op.labels(sid,k,False) for k in n.keys if k is not None)) if n.keys else set()
+                t=tainted(sid,labs)
+                if t: add("H8_dict_key",sid,n,t)
+            elif isinstance(n,ast.DictComp):
+                more={}
+                for g in n.generators:
+                    for x,l in op._iter_bind(g.target,g.iter,op.labels(sid,g.iter,False)).items(): more[x]=l
+                t=tainted(sid,op.labels(sid,n.key,False,more))
+                if t: add("H8_dict_key",sid,n,t)
+            if isinstance(n,ast.Call):
+                args=list(n.args)+[k.value for k in n.keywords]
+                labs=set().union(*(op.labels(sid,a,False) for a in args)) if args else set()
+                t=tainted(sid,labs)
+                if not t: continue
+                fn=n.func
+                if isinstance(fn,ast.Name) and fn.id in("repr","format","ascii","type") and not op._shadowed(sc,fn.id): add("H5_"+fn.id,sid,n,t)
+                if isinstance(fn,ast.Attribute) and fn.attr in("format","join") and op._btype(sid,fn.value)=="str": add("H5_str_"+fn.attr,sid,n,t)
+                for callee in op._precise(sc,fn):
+                    if callee in eng.classes:
+                        init=eng.scopes.get(callee+".__init__") or eng.scopes.get(callee+".__post_init__")
+                        if init is not None: add("H6_init_body_untracked",sid,n,t,callee)
+                        continue
+                    cs=eng.scopes.get(callee)
+                    if cs is None: continue
+                    a=cs.node.args
+                    if op._is_block(cs): add("H7_block_extra",sid,n,t,callee)
+                    if a.vararg or a.kwarg: add("H6_star_params",sid,n,t,callee)
+                    if callee not in op.cset and not op._is_block(cs): add("H9_callee_outside_cands",sid,n,t,callee)
+res={h:v for h,v in sorted(H.items())}
+Path(sys.argv[1]).write_text(json.dumps(res,ensure_ascii=False,indent=0),encoding="utf-8")
+lines=[]
+for h,v in res.items():
+    lines.append("## %s n=%d real_S=%d"%(h,len(v),sum(1 for x in v if x["real"])))
+    seen=set()
+    for x in v:
+        k=(x["file"],x["line"],x["src"])
+        if k in seen: continue
+        seen.add(k)
+        lines.append("  %s %s:%s %s | %s | %s"%("S" if x["real"] else "-",x["file"],x["line"],x["sid"].split(":")[1],x["src"],x["extra"]))
+Path(sys.argv[2]).write_text("\n".join(lines),encoding="utf-8")
+print("\n".join(l for l in lines if l.startswith("##")))

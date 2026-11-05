@@ -1,0 +1,117 @@
+"""O-241 재판정: 손 분류(코드를 직접 읽은 결과)를 표로 만든다. 분류는 이 파일의 CLEARED·COPY 에 손으로 적었고 도구 출력은 칸 경로 목록만 쓴다."""
+import json, sys, hashlib
+from pathlib import Path
+ISO = Path(r"C:/Users/HSLEE/AppData/Local/Temp/la1s_gc1_audit3/iso")
+OUTD = Path(r"C:/Users/HSLEE/AppData/Local/Temp/la1s_gc1_audit3/out")
+E = ISO/"skills/analog-gmid-design/gmid_engine"
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(E/"tests/structure"))
+from rule_l_tables import PARAMS, BASELINE
+from rule_l_debt import DEBT
+from rule_l_checks import check_rule_l
+
+# (사본) N3.1-5 정의의 진짜 사본 -> 부채
+COPY = {
+ ("convergence/layout_input.py", "layout_input_of"): ("LI-1", "정본 읽기로 교체", "convergence/layout_input.py:72 LayoutDevice 에 op.W·L·current·gm_id·vds·vsb 를 float() 만 거쳐 담아 반환 (O-27)"),
+ ("layout/run.py", "_input_columns"): ("LI-1", "정본 읽기로 교체", "layout/run.py:58,61 ConservedPoint·DeviceAttrs 로 ly_point·ly_attrs 칸에 그대로 담음"),
+ ("layout/run.py", "run_layout"): ("LI-1", "정본 읽기로 교체", "layout/run.py:115 snapshot.write(WRITER_INPUT, ..., _input_columns(...)) = ly_point 영속 쓰기 자리. layout_input_of·_input_columns 와 함께 LI-1 로 사라진다"),
+ ("metrics/ls_fields.py", "_cell_current"): ("GC-7", "정본 읽기로 교체", "metrics/ls_fields.py:63 ops[label].current 그대로 반환 (S-4)"),
+ ("metrics/ls_fields.py", "_signal_current"): ("GC-7", "정본 읽기로 교체", "metrics/ls_fields.py:53 op.current 그대로 반환 (S-4)"),
+ ("metrics/ls_fields.py", "ls_fields"): ("GC-7", "정본 읽기로 교체", "metrics/ls_fields.py:70,96-97 그 값을 LsNode.sources 행에 담음 (S-4)"),
+ ("metrics/metrics_aux.py", "_ls_report"): ("GC-7", "정본 읽기로 교체", "metrics/metrics_aux.py:292-295 n.sources 를 보고 tuple 에 담음 (S-4)"),
+ ("metrics/metrics_aux.py", "metrics_aux"): ("GC-7", "정본 읽기로 교체", "metrics/metrics_aux.py:246 graph.metrics_aux 쓰기(reports 안 ls_fields 행) = S-4 영속 자리"),
+}
+# (사본 아님) (근거 파일:행, 왜)
+CLEARED = {
+ ("convergence/converge.py", "converge"): ("convergence/converge.py:65,97", "dc_op 칸을 꺼내지 않는다. done·order·notes·admitted 는 지역 묶음이고 ConvergedPoint 안 값은 평가 결과 참조·레이아웃 산출·판정 문자열뿐이다. 칸 경로는 ConvergedPoint 생성자 칸 이름의 조합"),
+ ("convergence/converge_point.py", "_margin"): ("convergence/converge_point.py:60-61", "result.failure.margin(정규화 여유) 또는 제약 행 c 의 min: 산술로 끊긴 값"),
+ ("convergence/converge_point.py", "converge_point"): ("convergence/converge_point.py:67-68,129,146", "ops 에서 꺼낸 kinds·sized_w 는 지역 표(kernel_keys·key_exclusion·w_loop_bound 계산 입력). Iteration 칸은 배치 이름·키·nf·면적·dlnw(산술)"),
+ ("convergence/converge_point.py", "converge_point.done"): ("convergence/converge_point.py:83-88", "ConvergedPoint 칸 = FrontPoint·EvalResult·LayoutResult 참조, objectives 값, 레이아웃 산출, junction_change(ss_dev 읽기). dc_op 칸 없음"),
+ ("convergence/kernel_keys.py", "kernel_keys"): ("convergence/kernel_keys.py:17,19-23", "kinds 값은 지역 used 의 키로만 쓴다. 반환 tuple 의 kind 는 current(폭 키 표)에서 오고 값은 p.key(레이아웃 산출)"),
+ ("convergence/key_exclusion.py", "key_exclusion"): ("convergence/key_exclusion.py:18,24", "sized_w 는 math.log 비로 끊긴다. replace 값은 pdk.slice_width_keys 자신에서 온다"),
+ ("convergence/place_layout.py", "_narrow"): ("convergence/place_layout.py:28-30", "chosen = (kind, 레이아웃 폭 키), pdk 자기 칸만 좁힘"),
+ ("convergence/place_layout.py", "place_layout"): ("convergence/place_layout.py:39-40,64,66,68", "layout_input_of 결과는 run_layout 인자로만 나가고 PlacedLayout 에 담지 않는다. first_seen 값은 ly_groups 의 GroupLayout, relaxed 는 gid"),
+ ("convergence/realized_geometry.py", "realized_geometry"): ("convergence/realized_geometry.py:21,24", "ly_diffusion 칸과 placement W_m(nf x finger_w, effective_placement.py:34,38): 레이아웃 산출이지 dc_op 아님"),
+ ("convergence/relaxation_records.py", "relaxation_records"): ("convergence/relaxation_records.py:21,26-28", "GroupLayout(ly_groups) 칸만 담음"),
+ ("core/fingerprint.py", "_encode"): ("core/fingerprint.py:32,38,56,62", "값을 바이트로 부호화해 지문을 만든다. 값 보관 없음"),
+ ("layout/run.py", "_base"): ("layout/run.py:100-107", "writers·block_versions 비교와 GraphSnapshot 참조 반환(graph 규칙 4)"),
+ ("lut/_helpers_anchor.py", "l_position"): ("lut/_helpers_anchor.py:26,31", "bisect 는 격자 index 를 돌려주고 L 을 보관하지 않는다. 다만 실패 detail value=L 은 아래 stop_new_sites 별도 항목"),
+ ("lut/_helpers_columns.py", "column_source"): ("lut/_helpers_columns.py:22", "kind 로 읽기 전용 표 조회"),
+ ("lut/gm_id_curve.py", "gm_id_curve"): ("lut/gm_id_curve.py:43", "LUT memo 키(승인 예외 N3.3 (a)). 값 칸이 아니라 조회 색인이고 reader 는 memo 적중 판정뿐(lut/lut_memo.py:149-151)"),
+ ("lut/midpoint_checks.py", "midpoint_l_bin_checks"): ("lut/midpoint_checks.py:138", "LUT memo 키 (kind, w_key)"),
+ ("lut/noise_planes.py", "noise_planes"): ("lut/noise_planes.py:75", "LUT memo·디스크 표 키 (kind,)"),
+ ("lut/noise_query.py", "noise_params"): ("lut/noise_query.py:24", "kind 로 읽기 전용 표 조회"),
+ ("lut/noise_tolerance.py", "tol_noise_table"): ("lut/noise_tolerance.py:54", "LUT memo·디스크 표 키 (kind,)"),
+ ("lut/sat_threshold.py", "sat_threshold"): ("lut/sat_threshold.py:56", ".at(L, vds) 격자 조회 결과(허용오차 새 값)"),
+ ("lut/tolerance.py", "tol_v_table"): ("lut/tolerance.py:285", "LUT memo·디스크 표 키 (kind, w_key, checks)"),
+ ("lut/vdsat_tolerance.py", "tol_vdsat_table"): ("lut/vdsat_tolerance.py:123", "LUT memo 키, 칸 kind·w_key 는 LUT 표 식별자(이름)"),
+ ("metrics/junction_cap.py", "_finite"): ("metrics/junction_cap.py:32,160-161", "math.isfinite 검사. 값은 접합 용량 산술 입력으로만 쓰여 JunctionCaps 에 담기지 않는다"),
+ ("metrics/ls_fields.py", "_direction"): ("metrics/ls_fields.py:76", "잡힌 sink 는 (rel_tols or {}).get(label): 소자 이름 조회. 4칸 행 풀기가 label 까지 오염시킨 도구 근사. 행 값 자체는 _cell_current 부채가 잡는다"),
+ ("metrics/ls_swing.py", "ls_swing"): ("metrics/ls_swing.py:43,65,92,100", "SatDevice.vgs_v 는 shift 산술로만 쓴다(43). SwingIcmr 칸은 레일 + 산술 경로 합(65,100)이고 op 칸 없음 (N3.1-5 분류)"),
+ ("metrics/metrics_aux.py", "_sat_devices"): ("metrics/metrics_aux.py:113-115 + metrics/ls_swing.py:43", "SatDevice 는 ls_swing 계산 입력 임시 묶음(N3.1-5 분류). 칸 경로 bounds.vgs_v 는 반환 묶음의 도구 근사"),
+ ("metrics/metrics_aux.py", "_swing"): ("metrics/metrics_aux.py:287", "replace 값은 icm 칸(icm_config) + swing 칸: dc_op 칸 없음"),
+ ("metrics/noise_devices.py", "_device"): ("metrics/noise_devices.py:33-34,39-40", "table.at 는 허용오차 조회. NoiseDevice 칸은 params 산술"),
+ ("metrics/ss_linearize.py", "_gmb_model"): ("metrics/ss_linearize.py:59-62", "kind 로 표 조회 후 모델 이름 문자열 반환"),
+ ("metrics/ss_linearize.py", "_linearize"): ("metrics/ss_linearize.py:79,82-86", "params_of(op.kind) 표 조회. SsDevice 칸은 산술 결과 (N3.1-5 분류)"),
+ ("search/cone_rows.py", "cone_rows"): ("search/cone_rows.py:18-19", "θ(탐색 변수)를 Fraction 으로 잰다. dc_op 아님"),
+ ("search/constraints.py", "constraint_rows"): ("search/constraints.py:37,42,48-49", "math.log(op.L) 는 산술. 행 c 는 산술 결과"),
+ ("search/eval_key.py", "eval_key"): ("search/eval_key.py:22", "θ 의 float.hex 키. dc_op 아님"),
+ ("search/fd_jacobian.py", "_cell_width"): ("search/fd_jacobian.py:41-42", "bisect index 로 격자 폭 반환. value 보관 없음"),
+ ("search/kernel.py", "_record"): ("search/kernel.py:71-90", "S3 줄 칸 = θ·키·objectives·제약 c·지문·잔차 보고. dc_op 칸 없음. 다만 fail 칸은 아래 stop_new_sites 별도 항목"),
+ ("search/kernel.py", "evaluate"): ("search/kernel.py:95-115,159,163", "cells·θ·w_keys 는 탐색 변수·레이아웃 키. EvalResult 는 스냅샷 참조와 산술 값(dc_op 칸 없음)"),
+ ("search/pareto.py", "_width"): ("search/pareto.py:16", "tie(p, q) 인자는 point_id, 반환은 폭 float"),
+ ("sizing/_helpers_lut.py", "tol_v_cell"): ("sizing/_helpers_lut.py:52", ".at 격자 조회 결과(새 값)"),
+ ("sizing/kernel_run.py", "_call_block"): ("sizing/kernel_run.py:61", "extras = θ 항목·LUT 손잡이. 블록 입력이고 dc_op 아님"),
+ ("sizing/kernel_run.py", "normalize_w_request"): ("sizing/kernel_run.py:43,49", "w_request = 레이아웃 실현 W, 검사 후 재포장. dc_op 아님"),
+ ("sizing/kernel_run.py", "run_kernel"): ("sizing/kernel_run.py:76,88", "block_version 조회·derive_child 는 graph 참조"),
+ ("sizing/seal_kvl_branch.py", "dc_seal_kvl_branch"): ("sizing/seal_kvl_branch.py:29,32", "math.log 산술 잔차"),
+ ("sizing/seal_versions.py", "seal_versions"): ("sizing/seal_versions.py:32", "input_version 비교. 값 보관 없음"),
+ ("sizing/seal_vgs_match.py", "dc_seal_vgs_match"): ("sizing/seal_vgs_match.py:25-26", "math.log 산술 불일치"),
+ ("sizing/theta_check.py", "check_theta"): ("sizing/theta_check.py:27,36,45-46", "θ 검사·Fraction 계산. dc_op 아님"),
+}
+assert not set(COPY) & set(CLEARED)
+vs = check_rule_l(E, PARAMS)
+ops = {v.key: v for v in vs if v.code == "op_copy"}
+assert len(ops) == 53, len(ops)
+miss = [k for k in ops if (k[2], k[3]) not in COPY and (k[2], k[3]) not in CLEARED]
+extra = [k for k in list(COPY) + list(CLEARED) if ("L-5", "op_copy") + k not in ops]
+assert not miss and not extra, (miss, extra)
+rows = []
+for k, v in sorted(ops.items()):
+    if (k[2], k[3]) in CLEARED:
+        basis, why = CLEARED[(k[2], k[3])]
+        rows += [(k, tuple(p), basis) for p in sorted(v.paths)]
+all_keys = {v.key for v in vs}
+target = all_keys - {("L-5", "op_copy") + k for k in CLEARED}
+P = json.loads((ISO/".ai/verification/20261104-gc1-rule-l/baseline_proposal.json").read_text(encoding="utf-8"))
+old_target = {tuple(k) for k in P["target_keys"]}
+print("target", len(target), "same as A-117 target", target == old_target, sorted(target ^ old_target)[:5])
+# DEBT = 옛 DEBT - remove + add + change_how
+debt = {k: tuple(i) for k, i in DEBT.items()}
+for r in P["remove"]:
+    debt.pop(tuple(r["key"]))
+for a in P["add"]:
+    debt[tuple(a["key"])] = (a["how"], a["card"], a["why"])
+for c in P["change_how"]:
+    k = tuple(c["key"]); assert debt[k][0] == c["from"], k
+    debt[k] = (c["to"], debt[k][1], debt[k][2] + " | " + c["why"] if c.get("why") else debt[k][2])
+for (f, fn), (card, how, why) in COPY.items():
+    k = ("L-5", "op_copy", f, fn)
+    assert k in debt, k
+    assert debt[k][1] == card, (k, debt[k])
+    debt[k] = (how, card, why)
+assert set(debt) == target, sorted(set(debt) ^ target)[:8]
+# L-3 처리 어휘 대조(READS 삭제가 stale 을 만드는 안내가 있는가)
+l3 = {v.key: v.code for v in vs if v.key[0] == "L-3"}
+how_by = {}
+for k, c in l3.items():
+    how_by.setdefault((c, debt[k][0]), []).append(k[1])
+print({str(a): len(b) for a, b in how_by.items()})
+print("reads_not_read", sorted(k[1] for k, c in l3.items() if c == "reads_not_read"))
+sha = hashlib.sha256(json.dumps(sorted(list(k) for k in target), ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
+print("target sha", sha, "rows", len(rows), "cleared keys", len(CLEARED), "copy keys", len(COPY))
+q = sum(1 for r in rows if "?" in r[1]); e = sum(1 for r in rows if r[1] == ())
+print("rows with ?", q, "rows ()", e, "keys only ()", sum(1 for k in CLEARED if {tuple(p) for p in ops[("L-5", "op_copy") + k].paths} == {()}))
+out = dict(rows=[[list(a), list(b), c] for a, b, c in rows], baseline=sorted(list(k) for k in target), debt=[[list(k), list(v)] for k, v in sorted(debt.items())],
+           copy={f + ":" + fn: dict(card=c, how=h, why=w) for (f, fn), (c, h, w) in COPY.items()}, cleared={f + ":" + fn: dict(basis=b, why=w, n_paths=len(ops[("L-5", "op_copy", f, fn)].paths)) for (f, fn), (b, w) in CLEARED.items()}, target_sha=sha)
+(OUTD/"table.json").write_text(json.dumps(out, ensure_ascii=False, indent=0), encoding="utf-8")

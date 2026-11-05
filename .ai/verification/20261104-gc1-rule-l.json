@@ -4,7 +4,7 @@
  "evidence_type": "red-green",
  "base_commit": "2ee99d5d85652942313f9e2c72fc29fe4f8a66f5",
  "test_commit": "9af5d86749ef4c7b614852da8ca29f6fc4a76e89",
- "code_commit": "bf35e30a943b4522aa69b26c60caec3ea6633277",
+ "code_commit": "9f5de500ed6cb8720c9a04301804bc4339a60cf7",
  "red": {
   "test_ids": [
    "skills/analog-gmid-design/gmid_engine/tests/structure/test_rule_l.py",
@@ -18,120 +18,130 @@
  "checks": {
   "V1": {
    "verdict": "N/A",
-   "basis": "A-117 재판정, 전체 test 안 돌림(O-229). 격리 복제본 iso2 머리 f201b2ab: GC-1 test + test_s2_values + test_canonical_order 147 통과 2 실패, tests/structure 나머지 171 통과 1 deselected. 엔진 diff 0, 2회로 연기 생략. ngspice 없음. 실패 2 = test_rule_l 1·3이고 BASELINE·DEBT 미갱신이 원인(표지)이나 test 1은 표를 넣어도 M-2 6키 때문에 통과 못 한다."
+   "basis": "O-241 재판정, 전체 test 안 돌림(O-229). 격리 복제본 iso_tab(머리 5b57866a + 제안 표)에서 tests/structure + test_canonical_order + test_s2_values 360 통과 1 deselected(evidence/a119/t_scope.txt). 표 없는 머리 그대로는 GC-1 test 125 통과 2 실패(test 1·3, 표 미적용이 원인). 엔진 diff 0 이라 2회로 연기·ngspice 생략. 안 돌린 전체 test 는 통과로 세지 않는다."
   },
   "V2": {
    "verdict": "FAIL",
-   "basis": "Major M-2 잔여. red 는 앞 기록 그대로. 도구 382 대 target 376, 차이 정확히 6키(_margin, converge_point.done, place_layout, realized_geometry, relaxation_records, _base). 코드를 읽은 결과 6개 모두 dc_op 칸 사본 아님(baseline_proposal.json 칸별 근거). 부채 불가: 엔진 코드를 고쳐서 사라지는 위반이 아니라 N3.1-6 (e) 위반. 작성자 주장('빼면 _input_columns 가 빠진다')의 뿌리는 recv 가 매개변수 이름 단위라 함수 경계에서 칸 단위가 끊기는 것이다. 칸 단위 추적은 함수 안에서만 구현됐다(N3.1-5 (c) 일부). 내 사본 시험 3종(setdefault 키 제외, R: 칸 접두 유지, kind 칸 끊기 조합) 결과 14 -> 14, 14, 13이고 픽스처 82 통과: 작은 수정으로는 6키가 안 빠져 작성자 충돌 주장을 반증하지 못했다."
+   "basis": "Major M-6. 앞 M-2(6키)는 해소: 53키 손 분류 = 사본 8, 사본 아님 45(행 456), target 376 sha cdf3752d 가 앞 target 과 같다. 그러나 표가 넓게 가린다. 표를 넣은 도구로 표 키 45 함수마다 진짜 새 사본을 넣으면 통째 저장(칸 경로 ()) 44/45 가려짐, 세 겹 묶음(칸 경로 ?) 8/45 가려짐, 새 이름 칸 경로 0/45 가려짐(evidence/a119/attack_table.json). 칸 경로 () 는 '어떤 값이든'이라 33키는 () 만 있어 키 단위 표와 같다. 계획 '표가 가리는 것은 적힌 칸 경로뿐'은 문언상 맞지만 O-241·A-119 가 막으려던 '같은 함수의 새 사본을 가림'이 남아 fail-open 이다. 처리안: 행에 sink 꼴(종류 + 대상 식 문자열, 줄 번호 아님)을 더한다. 이 꼴이 지역 sink 72개로 관리 범위이고 호출자에서 잡히는 6키는 호출자 sink 꼴을 쓴다. 계획 N3.1-5 문언을 먼저 고친다. red 는 앞 기록 그대로."
   },
   "V3": {
    "verdict": "FAIL",
-   "basis": "Major M-3 잔여. 앞 5꼴은 모두 잡음(evidence/a117/inject.txt). 그러나 새 주입 21꼴 중 catch 기대 19에서 15꼴 미탐(evidence/a117/inject2.txt): (iv) 컨텍스트 첨자·append·update, 넘겨받은 dict 첨자, 인스턴스 속성 / (ii) S3 append_eval(엔진에 같은 이름 메서드가 있으면 site_map 이 추적도 sink 도 안 함) / (iii) from json import dumps, yaml.safe_dump, np.save / 흐름 dataclasses.replace, copy.copy, 칸 이름 다른 생성자, 상속 칸 생성자, dict.pop, 메서드 반환. BENIGN_METHODS(CONTAINER_ADD 포함)·외부 수신자 면제·SERIALIZERS 이름 목록이 새 구멍이다. 계약 7 '추적 실패는 위반'과 반대 방향의 허용 목록이다. 엔진 dc_op 읽기 손 스캔 범위에서 이 꼴로 새는 실제 자리는 찾지 못했다(도구 공백). 두 겹 칸 접두는 fail-open 아님: 네 겹 생성자·통째 저장 모두 잡음, 고정점 15회(상한 24), 피크 0.121 GB, 28 s. range(24) 초과 시 조용히 멈추는 것은 minor. 뮤턴트: 앞 생존 10 중 9 잡힘, Read-kindfilter 생존. 수정 자리 10 중 Cap-drop-deep·Pin-unwrap-off·Pin-builtin-unwrap·Pin-diode-unwrap 생존, 뒤 둘은 단독으로 동작 차이가 없는 뮤턴트로 본다. L5k-canon 은 canon((g,s)) 꼴이라 _edges 꼴 canon(g), canon(s)를 시험하지 않는다(minor)."
+   "basis": "Major M-5 fail-open. 앞 19꼴은 모두 잡힘(inject2_rerun: 18 + 도달하게 고친 param_dict_called). 새 주입 67꼴 중 52 미탐: inject3 43/56, inject4 6/8, inject5 3/3, 대조 clean 오탐 0. 묶음: (1) BUILTIN_FLOW_FUNCS 의 min·max·zip·enumerate·iter·next·filter·map 이 추적 불능에서 빠지지만 _call_labels 는 라벨을 안 넘긴다. 목록 주석('라벨 흐름')과 코드가 다르고 이름 면제가 다른 이름으로 되살아났다. (2) type 3인자는 값을 보관한다. 닫힌 목록 '언어 정의로 보관하지 않음'에 어긋난다. map·filter·key= 콜백도 같다. (3) 클로저·once(key, lambda)·람다 본문 반환·with as·워러스·match 는 라벨이 끊긴다. (4) *args·**kwargs·__init__·__post_init__ 본문·블록 extras·raise 는 추적하지 않는다. (5) 이름 하나 루프·두 칸 풀기 왼쪽이 S 를 지운다(list(.values()) 루프 미탐). dict 키, dict(키워드)도 끊긴다. (6) 키워드 인자·메서드 별칭·getattr·partial 로 읽는 출처는 읽기로도 동적 접근으로도 안 잡힌다(L-1 에도 해당). (7) 출력 함수 면제가 (iii) 한정이 아니다. print 제외는 맞다(print·print(file=) 잡힘). 계약 7 '추적 실패는 위반'과 반대이고 labels() 기본값 set() 이 뿌리다. 실제 엔진: 이 구문에 출처 라벨이 닿는 자리를 스캔했고(evidence/a119/holes.txt) 실제 샌 자리는 STOP-1(**detail) 한 곳이다. 처리안: 모델 밖 구문에 라벨 값이 닿으면 sink, 산술(BinOp·UnaryOp·Compare)만 끊음, FLOW 는 전 인자 합, 닫힌 목록에서 type·repr·format·ascii 제외, 콜백 인자는 sink. 뮤턴트 19 중 16 잡힘, 생존 Pure-add-print·Pure-add-setattr·Param-typed(minor: 닫힌 목록 내용을 고정하는 픽스처 없음, 지문으로만 묶임)."
   },
   "V4": {
    "verdict": "PASS",
-   "basis": "M-4 해소(절차). measure_rule_l.py 를 기준선 증거로 쓰지 않는다. 유사도 재측정: rule_l_checks 1225줄 중 388 동일, 옛 측정 스크립트와의 관계는 그대로라 그 스크립트는 증거에서 뺀다. 독립 증거 = evidence 측정 사본: 토큰 측정(L-4 칸 2118 일치, 도구 204 = 토큰 0 164 + 함수 안 문자열뿐 40, L-1x 사용 0 정의 전부 도구 키), l3_hand(not_read 5 중 같은 파일 읽기 0), 코드 읽기 op_copy 8. 한계: L-1d·L-3 unverifiable 은 표본과 도구 값이다. A-117 픽스처 기대는 손으로 적힌 값이다. 단 L5j-reach 는 도달 밖 함수를 위반으로 기대해 N3.1-5 '도달 조건'과 반대다. 엔진 키 영향 0, 더 엄격한 쪽이라 약화 아님(minor, 도구 수정 때 되돌림)."
+   "basis": "test_lint 미실행(DEC-86 N6.3 절차, merge_gate 미사용). oracle 대조: L5m-ext-math 기대 위반 = N3.1-5 fail-closed '외부 라이브러리 포함'과 맞다. L5p·cleared 픽스처 기대는 구성으로 손으로 적힌 값이고 계획 표 문단과 맞다. L5j-reach 는 앞 minor 대로 기대 위반 없음으로 되돌아왔다(도달 조건과 맞다). test_rule_l_op_copy_has_no_name_allowlists 는 옛 이름 셋만 본다(minor, 다른 이름 부활을 못 막음, V3 (1)). 독립 측정(N3.1-6 (c)): 토큰 측정 L-4 칸 2118, 도구 204 = 토큰 0 164 + 함수 안 문자열뿐 40, 토큰 0 인데 도구에 없는 25 = 값 선언 모듈 밖 22 + output_only_slots 3(pivot 2, magnitude; load_note 는 이름이 다른 곳에 있어 토큰 0 아님), L-1x 사용 0 정의 전부 도구 키, L-3 not_read 5 같은 파일 읽기 0(l3_hand.txt). op_copy 독립 = dc_op 읽기 20자리 손 스캔, 차이 = STOP-1 하나."
   },
   "V5": {
    "verdict": "PASS",
-   "basis": "기준 약화 0. BASELINE·DEBT 는 판정 뒤 몫이라 미변경, F_G13 은 코드 줄 333 근거로 _edges 교체(판정 지시). output_only_slots 4행은 첫 지문 전 값이다. 'Class.slot' 접미 일치라 다른 모듈 같은 이름 클래스도 면제되고 (출력 함수, 근거) 칸이 없다(minor). magnitude 는 EO-1 문서에 출력 전용 행이 없다(minor, LA-1 재점검 입력)."
+   "basis": "도구 변경은 엄격해지는 쪽이다. BENIGN_METHODS·SERIALIZERS·외부 수신자 면제 삭제 확인. 표 456행은 첫 지문 전 값이라 기준 약화가 아니고 판정 뒤 적용 몫이다(지문 뒤 추가는 N3.1-6 (e)). output_only_slots 4행 유지, 'Class.slot' 접미 일치·(함수, 근거) 칸 없음은 앞 minor 그대로. magnitude 는 엔진 읽기 0 재확인, EO-1 문서에 출력 전용 행 없음은 앞 minor 그대로(LA-1 재점검 입력)."
   },
   "V6": {
    "verdict": "PASS",
-   "basis": "tests/structure 나머지 171 통과 1 deselected. diff 04a88cae..f201b2ab 는 tests/structure 와 .ai/verification 뿐, 엔진 운영 코드 0. check_rule_l 29.79 s(앞 16.87 s), structure 나머지 117.30 s, 허용 범위."
+   "basis": "tests/structure 포함 360 통과 1 deselected. diff 2ee99d5d..5b57866a 는 엔진 운영 코드 0(git diff 빈 출력). check_rule_l 25.9 s, 피크 0.12 GB. 범위 위반 0."
   },
   "V7": {
    "verdict": "PASS",
-   "basis": "배선 그대로. graph 수치: 필드 0 / 소비자 0 칸 0 / 정본 우회 의심 0 / KVL·KCL 해당 없음 / graph 밖 저장 0. 이 card가 낸 graph 위반 0. M-1 해소: L-3 129 -> 96, not_read 99 -> 5(ly_pattern_select, ly_rows, s1_dc_conduction, s1_gvgs, ss_off_delta), unverifiable 61 전환이 내 alias 측정과 일치."
+   "basis": "배선: op_copy_cleared 소비자 = _rule_l5, 기본 구조 test 에서 실행. graph 수치: 필드 수 0 / 소비자 0 칸 0 / 정본 우회 의심 0(이 card 코드) / KVL·KCL 관계 미적용 해당 없음 / graph 밖 저장 자리 0(이 card 코드). 엔진 쪽 발견: 동작점 값 graph 밖 저장 후보 1 = STOP-1(FailureRecord.detail -> S3). L-3 안내: reads_not_read 5 = '삭제 승인 대기', reads_unverifiable 91 = '정적 해석 형태로 바꾸기'로 READS 삭제 stale 위험 안내 없음."
   },
   "V8": {
    "verdict": "N/A",
-   "basis": "도구 card, 엔진 경로 폴백 없음. 도구 쪽 fail-closed 공백은 V3에 적었다."
+   "basis": "도구 card, 엔진 경로 폴백 없음. 도구 쪽 fail-open 은 V3."
   },
   "V9": {
    "verdict": "N/A",
-   "basis": "구조 규칙 도구라 물리 양 없음. 다만 M-1 부채 안내를 따라 READS를 지우면 입력이 바뀌어도 블록이 재계산되지 않아 stale 값이 생기므로 graph 정본·물리 정합 위험으로 Major 처리."
+   "basis": "구조 규칙 도구라 물리 양 없음."
   },
   "V10": {
-   "verdict": "FAIL",
-   "basis": "도구 2ee99d5d 382, target 376 불일치(M-2 6키). 현재 지문 af737da440f0cb88016b33faa72a3b377a079d3734d9142c7e62b0781866d0ad 는 수정 뒤 다시 잰다. target sha cdf3752d4c4f5bcfc8ec7dc088daa4ac6cb1a7e5b3f2809fd06133cdfb7467b5 (baseline_proposal.json 최종판)."
+   "verdict": "PASS",
+   "basis": "표를 넣은 도구 = target 376, sha cdf3752d4c4f5bcfc8ec7dc088daa4ac6cb1a7e5b3f2809fd06133cdfb7467b5, 53키·645쌍이 opcopy_failclosed_sites.json 과 일치. 지문 4a3b8868... 은 잠정이고 M-5·M-6 수정 뒤 다시 잰다. 멈춤: STOP-1 은 card 가 없는 새 사본이라 N3.1-5 기준선 절차로 GC-1 을 멈추고 보고한다(baseline_proposal.json stop_new_sites). 결정 간 모순 점검 = evidence/a119/contradiction_check.json."
   }
  },
  "reproduced_numbers": [
   {
-   "name": "A-117 도구 위반 키",
-   "value": 382,
-   "command": "evidence/a117/dump.txt"
+   "name": "도구 op_copy 키",
+   "value": 53,
+   "command": "evidence/a119/dump_tool.py.txt"
+  },
+  {
+   "name": "도구 키·칸 경로 쌍",
+   "value": 645,
+   "command": "evidence/a119/dump_tool.py.txt"
+  },
+  {
+   "name": "손 분류 사본 키",
+   "value": 8,
+   "command": "baseline_proposal.json op_copy_classification"
+  },
+  {
+   "name": "손 분류 사본 아님 키",
+   "value": 45,
+   "command": "baseline_proposal.json op_copy_classification"
+  },
+  {
+   "name": "표 행",
+   "value": 456,
+   "command": "baseline_proposal.json op_copy_cleared"
   },
   {
    "name": "target 키",
    "value": 376,
-   "command": "baseline_proposal.json"
+   "command": "evidence/a119/build_prop.py.txt"
+  },
+  {
+   "name": "표 넣은 GC-1 test 통과",
+   "value": 127,
+   "command": "iso_tab pytest test_rule_l.py test_rule_l_reject_fixtures.py"
+  },
+  {
+   "name": "O-229 범위 통과",
+   "value": 360,
+   "command": "evidence/a119/t_scope.txt"
+  },
+  {
+   "name": "주입 67꼴 미탐",
+   "value": 52,
+   "command": "evidence/a119/inject3.txt, inject4.json, inject5.json"
+  },
+  {
+   "name": "표 공격 통째 저장 가려짐 / 45",
+   "value": 44,
+   "command": "evidence/a119/attack_table.json"
+  },
+  {
+   "name": "표 공격 세 겹 묶음 가려짐 / 45",
+   "value": 8,
+   "command": "evidence/a119/attack_table.json"
+  },
+  {
+   "name": "표 공격 새 칸 경로 가려짐 / 45",
+   "value": 0,
+   "command": "evidence/a119/attack_table.json"
+  },
+  {
+   "name": "뮤턴트 잡힘 / 19",
+   "value": 16,
+   "command": "evidence/a119/mut3.jsonl"
   },
   {
    "name": "L-3 not_read",
    "value": 5,
-   "command": "evidence/a117/l3_hand.txt"
+   "command": "evidence/a119/l3_hand.txt"
   },
   {
-   "name": "L-3 unverifiable 전환",
-   "value": 61,
-   "command": "out/alias.txt, evidence/a117/dump.txt"
-  },
-  {
-   "name": "실제 사본 아닌 op_copy",
-   "value": 6,
-   "command": "evidence/a117/opdump2.txt + 코드 읽기"
-  },
-  {
-   "name": "op_copy 실제 키",
-   "value": 8,
-   "command": "코드 읽기"
-  },
-  {
-   "name": "앞 주입 5꼴 잡음",
-   "value": 5,
-   "command": "evidence/a117/inject.txt"
-  },
-  {
-   "name": "새 주입 미탐 꼴",
-   "value": 15,
-   "command": "evidence/a117/inject2.txt"
-  },
-  {
-   "name": "앞 생존 뮤턴트 중 잡힘",
-   "value": 9,
-   "command": "evidence/a117/mut2.jsonl"
-  },
-  {
-   "name": "고정점 반복",
-   "value": 15,
-   "command": "evidence/a117/opdump2.txt"
-  },
-  {
-   "name": "check_rule_l 피크 GB",
-   "value": 0.121,
-   "command": "evidence/a117/final.txt"
-  },
-  {
-   "name": "GC-1·s2·canonical 통과",
-   "value": 147,
-   "command": "evidence/a117/t_gc1.txt"
-  },
-  {
-   "name": "structure 나머지 통과",
-   "value": 171,
-   "command": "evidence/a117/t_struct.txt"
+   "name": "L-4 토큰 칸",
+   "value": 2118,
+   "command": "evidence/a119/indep.txt"
   }
  ],
  "approvals": [],
  "auditor_run": {
-  "time": "2026-11-05T22:25:01+09:00",
+  "time": "2026-11-06T01:30:00+09:00",
   "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261105-gc1-audit",
   "commands": [
-   "V1: N/A(O-229), 범위 = python -m pytest gmid_engine/tests/structure, gmid_engine/tests/sizing/test_s2_values.py, gmid_engine/tests/search/test_canonical_order.py (skills/analog-gmid-design에서, -k·-x 없음)",
-   "격리: git clone --no-hardlinks --no-local <audit worktree> C:/Users/HSLEE/AppData/Local/Temp/la1s_gc1_audit/iso2 && git -C iso2 remote remove origin, 머리 f201b2ab",
-   "증거 사본: .ai/verification/20261104-gc1-rule-l/evidence/a117/"
+   "V1: N/A(O-229), 범위 = python -m pytest gmid_engine/tests/structure gmid_engine/tests/search/test_canonical_order.py gmid_engine/tests/sizing/test_s2_values.py -q (skills/analog-gmid-design에서, -k·-x 없음)",
+   "격리: git clone --no-hardlinks --no-local <audit worktree> C:/Users/HSLEE/AppData/Local/Temp/la1s_gc1_audit3/iso && git -C iso remote remove origin, 머리 5b57866a. 표 시험은 같은 방식 복제본 iso_tab",
+   "증거 사본: .ai/verification/20261104-gc1-rule-l/evidence/a119/"
   ]
  }
 }
