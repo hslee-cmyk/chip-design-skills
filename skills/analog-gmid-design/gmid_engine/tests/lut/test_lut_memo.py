@@ -179,7 +179,8 @@ def test_same_content_other_folder_same_fp(toy_build, tmp_path):
     b = toy_build("orig")
     lut1 = b.load()
     d = copy_tree(b.root, tmp_path / "moved")
-    lut2 = load_lut_set(str(d / "manifest.json"), str(d / "cap_ref.npz"), TOY_SPEC)
+    lut2 = load_lut_set(str(d / "manifest.json"), str(d / "cap_ref.npz"), TOY_SPEC, bin_rule=str(d / "bin_rule.json"),
+                        pdk_root=str(d / "pdk"))
     assert lut1.fp == lut2.fp
     m1, m2 = new_memo(lut1), new_memo(lut2)
     assert op_point(m1, "nmos", 100, 1e-6, 0.5, 0.5, 0.0) == op_point(m2, "nmos", 100, 1e-6, 0.5, 0.5, 0.0)

@@ -229,7 +229,7 @@ def test_real_slice_scaled_column_rejected(tmp_path, real_paths, real_manifest, 
     man, pick = _real_two_slice_lut(tmp_path / "lut", real_paths, real_manifest, edit)
     spec = _real_two_slice_spec(real_spec)
     with pytest.raises(SchemaRejectedError) as ei:
-        load_lut_set(str(man), real_paths["cap"], spec, pdk_root=real_paths["pdk_root"])
+        load_lut_set(str(man), real_paths["cap"], spec, pdk_root=real_paths["pdk_root"], bin_rule=real_paths["bin_rule"])
     d = detail_of(ei.value)
     fname = next(s["file"] for s in pick if s["device"] == edit[0])
     exp = _outside_counts(_real_arrays(man.parent / fname), edit[1])
@@ -243,5 +243,6 @@ def test_real_slice_scaled_column_rejected(tmp_path, real_paths, real_manifest, 
 def test_real_two_slice_control_loads(tmp_path, real_paths, real_manifest, real_spec):
     """음성 대조: 같은 두 장을 바꾸지 않고 복사하면 로드된다(위 거부가 복사·manifest 때문이 아님)."""
     man, _ = _real_two_slice_lut(tmp_path / "lut", real_paths, real_manifest)
-    lut = load_lut_set(str(man), real_paths["cap"], _real_two_slice_spec(real_spec), pdk_root=real_paths["pdk_root"])
+    lut = load_lut_set(str(man), real_paths["cap"], _real_two_slice_spec(real_spec), pdk_root=real_paths["pdk_root"],
+                       bin_rule=real_paths["bin_rule"])
     assert set(lut.slice_map) == {("nmos", 1000), ("pmos", 1000)}

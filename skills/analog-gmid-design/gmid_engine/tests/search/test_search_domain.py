@@ -592,7 +592,9 @@ def _scaled_r4_lut(root, pmos_scale):
         cap["CGG" + SUFFIX[kind]] = _np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = _np.full(shp, 2e-16)
     _np.savez(root / "cap.npz", **cap)
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC), arrays
+    from toy_bins import retrofit_bins as _retro
+    _tb = _retro(root)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC, bin_rule=_tb.bin_rule, pdk_root=_tb.pdk_root), arrays
 
 
 def _bridge_case(tmp_path, lut):

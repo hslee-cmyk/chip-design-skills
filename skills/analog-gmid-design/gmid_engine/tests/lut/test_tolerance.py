@@ -82,7 +82,8 @@ def test_contract_toy_cells(toy_memo):
     assert rel_close(abs(0.5 * (0.0 + 14.0) - 8.5) / 14.0, 0.107, 2e-3)
 
 
-def test_contract_toy_at(toy_memo):
+def test_contract_toy_at(toy_empty_memo):
+    toy_memo = toy_empty_memo            # [WB-1 §4] 앵커 전용(빈 지도) toy
     t = tol_v_table(toy_memo, "nmos", 100)
     rs = RefSlice(toy_slice_arrays(1e-6))
     for metric, key in (("gm_id_inverse", "inv_bound"), ("id_equivalent", "eq_bound")):
@@ -131,9 +132,10 @@ def test_r4_toy_cells(r4toy_memo):
     assert c.gm_id_inverse_v > 0.0
 
 
-def test_at_rejects_non_anchor_l(toy_memo):
+def test_at_rejects_non_anchor_l(toy_empty_memo):
+    toy_memo = toy_empty_memo            # [WB-1 §4] 앵커 전용(빈 지도) toy
     t = tol_v_table(toy_memo, "nmos", 100)
-    for L in (1.5e-6, 1e-6 + 2 * math.ulp(1e-6)):
+    for L in (1.5e-6, 1e-6 + 1e-8):      # [WB-1 §1] 옛 '1e-6 + 2 ulp' -> 한 격자 간격 위(2 ulp 는 같은 격자 정수라 앵커)
         with pytest.raises(SealViolationError) as ei:
             t.at(L, 0.75, "id_equivalent")
         det = detail_of(ei.value)
@@ -573,7 +575,8 @@ def test_bin_toy_upper_width_rows(bin_toy, bin_memo):
                                    ("toyn__model.6", (5, 6, 7), "computed"))
 
 
-def test_empty_map_statuses(toy_memo):
+def test_empty_map_statuses(toy_empty_memo):
+    toy_memo = toy_empty_memo            # [WB-1 §4] 빈 지도 = bin 블록 없는 합성 모델 파일
     t = tol_v_table(toy_memo, "nmos", 100)
     assert tuple(t.l_loo) == ("bins_unavailable",) * 3
     assert tuple(t.l_loo_bins) == ()
@@ -667,7 +670,8 @@ def test_at_rejects_across_bins(bin_memo, L, reason):
     assert det["table"] == "tol_v" and det["kind"] == "nmos" and det["w_key"] == 100
 
 
-def test_at_empty_map_detail(toy_memo):
+def test_at_empty_map_detail(toy_empty_memo):
+    toy_memo = toy_empty_memo            # [WB-1 §4] 빈 지도 = bin 블록 없는 합성 모델 파일
     t = tol_v_table(toy_memo, "nmos", 100)
     with pytest.raises(SealViolationError) as ei:
         t.at(1.5e-6, 0.75, "gm_id_inverse")

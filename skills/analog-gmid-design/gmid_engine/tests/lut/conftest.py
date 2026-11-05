@@ -26,7 +26,10 @@ import numpy as np
 import pytest
 
 from gmid_engine.core import SchemaRejectedError
+from types import SimpleNamespace
+
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
+from toy_bins import write_decl as _write_decl, write_toy_bins as _write_toy_bins
 
 HERE = Path(__file__).resolve().parent
 ENGINE_ROOT = HERE.parents[1]                       # .../gmid_engine
@@ -244,14 +247,50 @@ def sha256_file(path):
     return h.hexdigest()
 
 
-class ToyBuild:
-    """toy LUT 를 폴더에 쓴다. slices: [(file 이름, device, 배열 dict)], cap: 배열 dict 또는 None(파일 안 씀)."""
+DEFAULT_META_TEXT = '{"model_files_sha256": {}}'
+_TOY_KIND_OF = {"toyn": "nmos", "toyp": "pmos"}
 
-    def __init__(self, root, slices, cap, generator_sha256="0" * 64, sha_override=None, manifest_slices=None):
+
+class ToyBuild:
+    """toy LUT 를 폴더에 쓴다. slices: [(file 이름, device, 배열 dict)], cap: 배열 dict 또는 None(파일 안 씀).
+
+    [WB-1 §4] 모든 합성 LUT 는 합성 모델 파일과 bin 선언을 함께 쓴다. bins="auto"(기본): 슬라이스 폭·L 앵커에서
+    `toy_bins.write_toy_bins` 로 모델 파일·선언을 쓰고, meta 가 기본값('{"model_files_sha256": {}}')이거나 없는 슬라이스·기준 LUT 에
+    그 기록을 채운다(직접 meta 를 준 배열은 그대로). bins=<bin_rule 속성이 있는 객체>: 호출자가 모델 파일·선언을 직접 쓴 경우
+    (선언 경로만 받는다, cap_meta 로 기준 LUT meta 기본값). bins=None: 선언 없음(거부 test)."""
+
+    def __init__(self, root, slices, cap, generator_sha256="0" * 64, sha_override=None, manifest_slices=None,
+                 bins="auto", rule="lower", simulator="ngspice-46", cap_meta=None, empty_bins=False):
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
+        self.tb = None
+        self.bin_rule = None
+        slice_meta = None
+        if isinstance(bins, str) and bins == "auto":
+            real = [a for _, _, a in slices if a is not None]
+            kinds = tuple(dict.fromkeys(_TOY_KIND_OF.get(d, "nmos") for _, d, a in slices if a is not None)) or ("nmos",)
+            widths = sorted({float(a["W"]) for a in real if "W" in a}) or [1e-6]
+            src = real[0] if real else (cap or {})
+            anchors = tuple(float(x) for x in np.asarray(src["L"]).ravel()) if "L" in src else TOY_L
+            self.tb = _write_toy_bins(self.root, kinds, anchors, widths, rule=rule, simulator=simulator, empty=empty_bins)
+            self.bin_rule = self.tb.bin_rule
+            slice_meta = lambda dev: self.tb.meta(_TOY_KIND_OF.get(dev, "nmos"), root=False)     # 폴더 무관 내용(pdk_root 는 적재 인자)
+            cap_meta = self.tb.cap_meta(root=False)
+        elif bins is not None:
+            self.bin_rule = bins.bin_rule
+        if cap is not None and cap_meta is not None:
+            # 기준 LUT meta: 없으면 합성 모델 기록을 채우고, 직접 준 meta(L_source 등)에는 모델 기록 칸만 더한다(그 밖의 칸은 그대로)
+            own = json.loads(str(cap["meta_json"])) if "meta_json" in cap else {}
+            if not own.get("model_files_sha256"):
+                own.pop("model_files_sha256", None)
+                cap = dict(cap, meta_json=np.str_(json.dumps(dict(cap_meta, **own) if own else cap_meta)))
         entries = []
         for fname, device, arrays in slices:
+            if (arrays is not None and slice_meta is not None
+                    and not json.loads(str(arrays.get("meta_json", DEFAULT_META_TEXT))).get("model_files_sha256")):
+                own = json.loads(str(arrays.get("meta_json", DEFAULT_META_TEXT)))
+                own.pop("model_files_sha256", None)
+                arrays = dict(arrays, meta_json=np.str_(json.dumps(dict(slice_meta(device), **own))))
             p = self.root / fname
             if arrays is not None:
                 np.savez(p, **arrays)
@@ -269,8 +308,11 @@ class ToyBuild:
         if cap is not None:
             np.savez(self.cap, **cap)
 
-    def load(self, spec=TOY_SPEC):
-        return load_lut_set(str(self.manifest), str(self.cap), spec)
+    def load(self, spec=TOY_SPEC, **kw):
+        kw.setdefault("bin_rule", self.bin_rule)
+        if self.tb is not None:
+            kw.setdefault("pdk_root", self.tb.pdk_root)
+        return load_lut_set(str(self.manifest), str(self.cap), spec, **kw)
 
 
 def standard_toy_slices():
@@ -310,6 +352,17 @@ def toy_memo(toy):
 
 
 @pytest.fixture
+def toy_empty(toy_build):
+    """[WB-1 §4] bin 블록 없는 합성 모델 파일 -> 빈 bin 지도(앵커 전용 toy). 비앵커 L 사유가 `lut_l_not_anchor` 로 남는다."""
+    return toy_build("toy_empty", empty_bins=True).load()
+
+
+@pytest.fixture
+def toy_empty_memo(toy_empty):
+    return new_memo(toy_empty)
+
+
+@pytest.fixture
 def r4toy(toy_build):
     """[r5] CONTRACT 7.2 r4 toy(FC 위반 예시) LutSet."""
     return toy_build("r4toy", slices=r4_toy_slices()).load()
@@ -318,6 +371,17 @@ def r4toy(toy_build):
 @pytest.fixture
 def r4toy_memo(r4toy):
     return new_memo(r4toy)
+
+
+@pytest.fixture
+def r4toy_empty(toy_build):
+    """[WB-1 §4] r4 toy 의 빈 bin 지도판(앵커 전용)."""
+    return toy_build("r4toy_empty", slices=r4_toy_slices(), empty_bins=True).load()
+
+
+@pytest.fixture
+def r4toy_empty_memo(r4toy_empty):
+    return new_memo(r4toy_empty)
 
 
 # ---------------------------------------------------------------------------
@@ -1176,13 +1240,15 @@ def real_paths(real_location):
         "cap": _need(None, loc.cap_npz_path, "기준 LUT npz"),
         "midpoints": loc.midpoints_path,
         "pdk_root": loc.pdk_root,
+        "bin_rule": loc.bin_rule_path,
         "tlef": _need("GMID_PDK_TLEF", _DEFAULT_TLEF, "PDK tech LEF"),
     }
 
 
 def load_real(paths, spec, **kw):
     """[r6] 1.8 '쓰는 법': load_lut_set(manifest, cap, spec, pdk_root=, verify_midpoints=). kw 로 덮어쓴다."""
-    args = {"pdk_root": paths.get("pdk_root"), "verify_midpoints": paths.get("midpoints")}
+    args = {"pdk_root": paths.get("pdk_root"), "verify_midpoints": paths.get("midpoints"),
+            "bin_rule": paths.get("bin_rule")}
     args.update(kw)
     return load_lut_set(paths["manifest"], paths["cap"], spec, **args)
 
@@ -1408,17 +1474,19 @@ class BinToy:
         self.model_path = self.pdk / BIN_MODEL_REL
         self.model_path.parent.mkdir(parents=True, exist_ok=True)
         if model_text is not None:
-            self.model_path.write_text(model_text, encoding="utf-8")
+            self.model_path.write_bytes(model_text.encode("utf-8"))     # LF 바이트(OS 줄바꿈 변환 회피 -- 선언 sha 와 같은 값)
             sha = sha256_file(self.model_path)
         else:
             sha = "e" * 64
-        meta = {"pdk_root": str(self.pdk), "model_files_sha256": {BIN_MODEL_REL: sha}}
+        meta = {"pdk_root": str(self.pdk), "model_files_sha256": {BIN_MODEL_REL: sha}, "ngspice": "ngspice-46"}
+        self.bin_rule = _write_decl(self.root / "bin_rule.json", [sha], l0=L[0])
         if meta_fn is not None:
             meta = meta_fn(meta)
         self.meta = meta
         slices = [("bin_w%d.npz" % i, "toyn", bin_slice_arrays(W, sc, meta, L, n_vgs, consistent))
                   for i, (W, sc) in enumerate(widths)]
-        self.build = ToyBuild(self.root / "lut", slices, bin_cap_arrays(L, n_vgs))
+        self.build = ToyBuild(self.root / "lut", slices, bin_cap_arrays(L, n_vgs),
+                              bins=SimpleNamespace(bin_rule=self.bin_rule), cap_meta=meta)
         self.slice_paths = [self.build.root / s[0] for s in slices]
 
     def load(self, spec=TOY_SPEC):
@@ -1691,8 +1759,9 @@ class MidToy:
         self.pdk = self.root / "pdk"
         mp = self.pdk / BIN_MODEL_REL
         mp.parent.mkdir(parents=True, exist_ok=True)
-        mp.write_text(bin_model_text() if model_text is None else model_text, encoding="utf-8")
-        meta = {"pdk_root": str(self.pdk), "model_files_sha256": {BIN_MODEL_REL: sha256_file(mp)}}
+        mp.write_bytes((bin_model_text() if model_text is None else model_text).encode("utf-8"))
+        meta = {"pdk_root": str(self.pdk), "model_files_sha256": {BIN_MODEL_REL: sha256_file(mp)}, "ngspice": "ngspice-46"}
+        self.bin_rule = _write_decl(self.root / "bin_rule.json", [sha256_file(mp)])
         slices = [("mid_w%d.npz" % i, "toyn", mid_toy_arrays(W, sc, meta, cols=slice_cols))
                   for i, (W, sc) in enumerate(widths)]
         if slice_mod is not None:
@@ -1703,7 +1772,8 @@ class MidToy:
             cap.update(cap_extra)
         if cap_meta is not None:
             cap["meta_json"] = np.str_(json.dumps(cap_meta))
-        self.build = ToyBuild(self.root / "lut", slices, cap)
+        self.build = ToyBuild(self.root / "lut", slices, cap, bins=SimpleNamespace(bin_rule=self.bin_rule),
+                              cap_meta=meta)
         self.mid_path = None
         if mid is not None:
             self.mid_path = self.root / "lut" / "midpoints.npz"
@@ -1712,6 +1782,7 @@ class MidToy:
     def load(self, spec=TOY_SPEC, **kw):
         if self.mid_path is not None and "verify_midpoints" not in kw:
             kw["verify_midpoints"] = str(self.mid_path)
+        kw.setdefault("bin_rule", self.bin_rule)
         return load_lut_set(str(self.build.manifest), str(self.build.cap), spec, **kw)
 
 
@@ -1947,7 +2018,7 @@ class NoiseToy:
     """잡음 toy 를 폴더에 쓴다. A·B: TOY_SHAPE 배열(점마다 A0·B0), cgd·gm: 상수, f_mid: 이분 점."""
 
     def __init__(self, root, A, B, cgd=0.0, gm=1e-3, f_mid=NOISE_F_MID, f_hi=NOISE_F_HI, ef=1.0,
-                 cap_mutate=None, noise_mutate=None, meta_mutate=None, write_noise=True):
+                 cap_mutate=None, noise_mutate=None, meta_mutate=None, write_noise=True, empty_bins=False):
         self.root = Path(root)
         cap = toy_cap_arrays()
         cap["CGD_n"] = np.full(TOY_SHAPE, float(cgd))
@@ -1956,11 +2027,11 @@ class NoiseToy:
         cap["SVG2_HF_n"] = noise_spectrum(A, B, f_hi, ef, cgd, gm)
         if cap_mutate:
             cap_mutate(cap)
-        self.build = ToyBuild(self.root, standard_toy_slices(), cap)
+        self.build = ToyBuild(self.root, standard_toy_slices(), cap, empty_bins=empty_bins)
         self.cap_arrays = cap
         self.path = self.root / "noise_r1.npz"
         S = np.stack([noise_spectrum(A, B, f, ef, cgd, gm) for f in f_mid])
-        meta = {"cap_npz_sha256": sha256_file(self.build.cap),
+        meta = {"cap_npz_sha256": sha256_file(self.build.cap), **self.build.tb.cap_meta(root=False),
                 "base_frequencies_hz": {"NOISE_F_PROBE": NOISE_F_LO, "F_TEST": f_hi}}
         if meta_mutate:
             meta_mutate(meta)
@@ -1974,6 +2045,8 @@ class NoiseToy:
             np.savez(self.path, **arrays)
 
     def load(self, spec=TOY_NOISE_SPEC, **kw):
+        kw.setdefault("bin_rule", self.build.bin_rule)
+        kw.setdefault("pdk_root", self.build.tb.pdk_root)
         return load_lut_set(str(self.build.manifest), str(self.build.cap), spec, noise_npz=str(self.path), **kw)
 
 
@@ -1999,7 +2072,7 @@ class MismatchToy:
             cap_mutate(cap)
         self.build = ToyBuild(self.root, standard_toy_slices(), cap)
         self.path = self.root / "mismatch_r1.npz"
-        meta = {"cap_npz_sha256": sha256_file(self.build.cap), "sigma_unit": 1e-6,
+        meta = {"cap_npz_sha256": sha256_file(self.build.cap), **self.build.tb.cap_meta(root=False), "sigma_unit": 1e-6,
                 "variables": {"toyn": sorted(dvgs)},
                 "slope_ref": mismatch_slope_ref_meta(slope_ref)}
         if meta_mutate:
@@ -2014,6 +2087,8 @@ class MismatchToy:
         np.savez(self.path, **arrays)
 
     def load(self, spec=TOY_SPEC, **kw):
+        kw.setdefault("bin_rule", self.build.bin_rule)
+        kw.setdefault("pdk_root", self.build.tb.pdk_root)
         return load_lut_set(str(self.build.manifest), str(self.build.cap), spec, mismatch_npz=str(self.path), **kw)
 
 

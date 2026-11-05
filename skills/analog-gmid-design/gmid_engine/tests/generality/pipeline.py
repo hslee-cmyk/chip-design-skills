@@ -100,7 +100,7 @@ class Env:
         spec = LutSpec(grid, tuple(sorted(mins.items())), REAL_DEVICE_KINDS, REAL_CAP_SUFFIX, noise_ef=noise_ef)
         self.lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
                                 verify_midpoints=loc.midpoints_path, noise_npz=loc.noise_path,
-                                mismatch_npz=loc.mismatch_path)
+                                mismatch_npz=loc.mismatch_path, bin_rule=loc.bin_rule_path)
         self.memo = LutMemo(self.lut, point=MEMO_POINT, curve=MEMO_CURVE, root=MEMO_ROOT)
         self.access = pre_layout_lut_access(self.memo)
         self.lut_rule = read_pdk_decl(str(LUT_RULE_DECL), decl_memo)

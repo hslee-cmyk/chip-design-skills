@@ -262,7 +262,8 @@ def test_lut_target_out_of_range(ctx_c):
 def test_lut_l_not_anchor(ctx_c):
     e = _lut_fail(ctx_c[2], theta_c(l2=1.5e-6))
     d = detail(e)
-    assert d["reason"] == "lut_query_failed" and d["lut_reason"] == "lut_l_not_anchor"
+    # [WB-1 §4] 합성 LUT 에 bin 지도가 생겼다: 1.5 µm 은 앵커 1 µm 의 bin 안 비앵커 점(bin 안 앵커 1개) -> 사유 어휘 변경(card 목록)
+    assert d["reason"] == "lut_query_failed" and d["lut_reason"] == "lut_l_bin_unbracketed"
     assert e.record.devices == ("M2",)
 
 
@@ -920,7 +921,8 @@ def test_non_transient_lut_failure_before_convergence_propagates(tmp_path, toy_l
             call()
         e = ei.value
         d = dict(e.record.detail)
-        assert d["reason"] == "lut_query_failed" and d["lut_reason"] == "lut_l_not_anchor"
+        # [WB-1 §4] 합성 bin 지도 도입 -> lut_l_not_anchor 가 lut_l_bin_unbracketed 로(card 목록)
+        assert d["reason"] == "lut_query_failed" and d["lut_reason"] == "lut_l_bin_unbracketed"
         assert d["device_query"] in ("vgs_of_coordinate", "tol_v_cell")
         assert e.record.devices == ("MA",)
         assert not isinstance(e.__cause__, NonconvergentError)
@@ -1075,6 +1077,7 @@ import json as _json  # noqa: E402
 import numpy as _np  # noqa: E402
 
 from gmid_engine.lut import load_lut_set as _load_lut_set  # noqa: E402
+from toy_bins import write_toy_bins as _write_toy_bins  # noqa: E402
 
 from .conftest import (A as _A, B as _B, DEVICE_OF as _DEVICE_OF, I0 as _I0, R4_VDSAT as _R4_VDSAT, R4_VGS as _R4_VGS,  # noqa: E402
                        R4_VS as _R4_VS, SUFFIX as _SUFFIX, TOY_SPEC as _TOY_SPEC, W_M as _W_M, _sha as _file_sha)
@@ -1113,6 +1116,7 @@ def _write_neg_lut(root):
     lg, g, s = g_l[:, None, None, None], g_g[None, :, None, None], g_s[None, None, None, :]
     h_d = _np.vectorize(_neg_h)(g_d)[None, None, :, None]
     s_d = _np.vectorize(_neg_slope)(g_d)[None, None, :, None]
+    tb = _write_toy_bins(root, ("nmos", "pmos"), tuple(R4_L), (_W_M,), grid_m=1e-8)
     entries = []
     for kind in ("nmos", "pmos"):
         idc = (_W_M / lg) * _I0[kind] * _np.exp(_B * g - 0.5 * NEG_CN * g * g + h_d - NEG_KS * s
@@ -1121,7 +1125,7 @@ def _write_neg_lut(root):
         c0, c1, c2, cs, cl = _R4_VDSAT[kind]
         il = _np.arange(len(g_l), dtype=float)[:, None, None, None]
         arr = {"W": _np.float64(_W_M), "L": g_l, "VGS": g_g, "VDS": g_d, "VS": g_s, "ID": idc, "GM": idc * (_B - NEG_CN * g),
-               "GDS": idc * s_d, "VTH": _np.full(idc.shape, 0.4), "meta_json": _np.str_('{"model_files_sha256": {}}'),
+               "GDS": idc * s_d, "VTH": _np.full(idc.shape, 0.4), "meta_json": _np.str_(_json.dumps(tb.meta(kind))),
                "corner": _np.str_("tt"), "temp_c": _np.float64(27.0),
                "VDSAT": (c0 + c1 * g + c2 * g * g + cs * s + cl * il) + _np.zeros(idc.shape)}
         path = root / ("neg_%s.npz" % kind)
@@ -1130,12 +1134,12 @@ def _write_neg_lut(root):
     (root / "manifest.json").write_text(_json.dumps({"generator_sha256": "0" * 64, "slices": entries}), encoding="utf-8")
     shape = (len(g_l), len(g_g), len(g_d), len(g_s))
     cap = {"L": g_l, "VGS": g_g, "VDS": g_d, "VS": g_s, "w_ref_m": _np.float64(_W_M), "corner": _np.str_("tt"),
-           "temp_c": _np.float64(27.0)}
+           "temp_c": _np.float64(27.0), "meta_json": _np.str_(_json.dumps(tb.cap_meta()))}
     for kind in ("nmos", "pmos"):
         cap["CGG" + _SUFFIX[kind]] = _np.full(shape, 1e-15)
         cap["CGD" + _SUFFIX[kind]] = _np.full(shape, 2e-16)
     _np.savez(root / "cap.npz", **cap)
-    return _load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), _TOY_SPEC)
+    return _load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), _TOY_SPEC, bin_rule=tb.bin_rule)
 
 
 def _neg_doc():

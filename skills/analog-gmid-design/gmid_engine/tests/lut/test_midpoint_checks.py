@@ -139,10 +139,11 @@ def test_width_differs_for_other_width(mid_toy):
 
 def test_bins_unavailable(toy_build, tmp_path):
     """bin 지도 없는 슬라이스(r5 toy) -> 모든 중점 "bins_unavailable". (중점 파일 축 = toy 축)"""
-    b = toy_build("plainmid")
+    b = toy_build("plainmid", empty_bins=True)       # [WB-1 §4] bin 블록 없는 합성 모델 파일 = 빈 지도
     p = tmp_path / "plain_mid.npz"
     np.savez(p, **mid_point_arrays((1.5e-6, 2.5e-6), l_source=MID_L_SOURCE))
-    lut = load_lut_set(str(b.manifest), str(b.cap), TOY_SPEC, verify_midpoints=str(p))
+    lut = load_lut_set(str(b.manifest), str(b.cap), TOY_SPEC, verify_midpoints=str(p), bin_rule=b.bin_rule,
+                        pdk_root=b.tb.pdk_root)
     mc = midpoint_l_bin_checks(new_memo(lut), "nmos", 100)
     assert tuple(mc.rows) == ()
     assert [s[1] for s in mc.skipped] == ["bins_unavailable", "bins_unavailable"]

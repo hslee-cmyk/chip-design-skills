@@ -42,7 +42,7 @@ def real_lut():
         mins[kind] = min(entry["w_um"] * 1e-6, mins.get(kind, float("inf")))
     grid = float(manifest.get("manufacturing_grid_m", 5e-9))
     spec = LutSpec(grid, tuple(sorted(mins.items())), DEVICE_KINDS, CAP_SUFFIX)
-    return load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path)
+    return load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path, bin_rule=loc.bin_rule_path)
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)

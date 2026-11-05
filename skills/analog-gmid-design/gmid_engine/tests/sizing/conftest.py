@@ -30,6 +30,7 @@ from gmid_engine.graph import build_s1
 from gmid_engine.lut import LutMemo, LutSpec, load_lut_set
 from gmid_engine.search import open_run
 from gmid_engine.sizing import KERNEL_KEY, PLAN_WRITERS, DcInputs, LutAccess, build_kernel_context
+from toy_bins import write_toy_bins
 
 HERE = Path(__file__).resolve().parent
 SKILL_DIR = HERE.parents[2]
@@ -78,15 +79,28 @@ def _sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def _stamp(a, tb, kind):
+    """[WB-1 §4] 합성 모델 기록(meta)을 배열 dict 에 적는다."""
+    a["meta_json"] = np.str_(json.dumps(tb.meta(kind)))
+    return a
+
+
+def bin_rule_of(manifest):
+    """합성 LUT 폴더의 bin 선언 경로(`write_toy_bins` 가 manifest 와 같은 폴더에 쓴다)."""
+    return str(Path(manifest).parent / "bin_rule.json")
+
+
 def write_toy_lut(root: Path, w_ref_m=W_M, extra_width=None):
     root.mkdir(parents=True, exist_ok=True)
+    tb = write_toy_bins(root, ("nmos", "pmos"), TOY_L, (W_M,) if extra_width is None else (W_M, extra_width),
+                        grid_m=GRID_M)
     entries = []
     for kind in ("nmos", "pmos"):
         p = root / ("toy_%s.npz" % kind)
-        np.savez(p, **toy_arrays(kind))
+        np.savez(p, **_stamp(toy_arrays(kind), tb, kind))
         entries.append({"device": DEVICE_OF[kind], "file": p.name, "sha256": _sha(p)})
         if extra_width is not None:                      # 같은 식, 폭만 다른 슬라이스(ID·GM·GDS × 폭 비)
-            a = toy_arrays(kind)
+            a = _stamp(toy_arrays(kind), tb, kind)
             k = extra_width / W_M
             a.update(W=np.float64(extra_width), ID=a["ID"] * k, GM=a["GM"] * k, GDS=a["GDS"] * k)
             p2 = root / ("toy_%s_w2.npz" % kind)
@@ -96,7 +110,8 @@ def write_toy_lut(root: Path, w_ref_m=W_M, extra_width=None):
                                         encoding="utf-8")
     shp = (len(TOY_L), len(TOY_VGS), len(TOY_VDS), len(TOY_VS))
     cap = {"L": np.asarray(TOY_L), "VGS": np.asarray(TOY_VGS), "VDS": np.asarray(TOY_VDS), "VS": np.asarray(TOY_VS),
-           "w_ref_m": np.float64(w_ref_m), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+           "w_ref_m": np.float64(w_ref_m), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
+           "meta_json": np.str_(json.dumps(tb.cap_meta()))}
     for kind in ("nmos", "pmos"):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
@@ -177,24 +192,27 @@ def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=N
     root.mkdir(parents=True, exist_ok=True)
     off_cols = dict(off_cols or {})
     off_points = dict(off_points or {})
+    tb = write_toy_bins(root, ("nmos", "pmos"), tuple(grids[0]), (W_M,), grid_m=GRID_M)
     entries = []
     for kind in ("nmos", "pmos"):
         p = root / ("r4_%s.npz" % kind)
-        np.savez(p, **r4_arrays(kind, kind in vdsat, off_cols.get(kind, 0), off_points.get(kind, ()), grids))
+        np.savez(p, **_stamp(r4_arrays(kind, kind in vdsat, off_cols.get(kind, 0), off_points.get(kind, ()), grids),
+                             tb, kind))
         entries.append({"device": DEVICE_OF[kind], "file": p.name, "sha256": _sha(p)})
     (root / "manifest.json").write_text(json.dumps({"generator_sha256": "0" * 64, "slices": entries}),
                                         encoding="utf-8")
     gL, gG, gD, gS = (np.asarray(g, dtype=float) for g in grids)
     shp = (len(gL), len(gG), len(gD), len(gS))
     cap = {"L": gL, "VGS": gG, "VDS": gD, "VS": gS,
-           "w_ref_m": np.float64(W_M), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+           "w_ref_m": np.float64(W_M), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
+           "meta_json": np.str_(json.dumps(tb.cap_meta()))}
     for kind in ("nmos", "pmos"):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
     for kind in cap_vdsat:
         cap["VDSAT" + SUFFIX[kind]] = r4_arrays(kind, True, 0, (), grids)["VDSAT"]
     np.savez(root / "cap.npz", **cap)
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC, bin_rule=tb.bin_rule)
 
 
 def r4_vs_term(vsb):
@@ -336,7 +354,7 @@ def real_lut_v2():
         mins[kind] = min(W, mins.get(kind, W))
     spec = LutSpec(grid, tuple(sorted(mins.items())), REAL_DEVICE_KINDS, REAL_CAP_SUFFIX)
     lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
-                       verify_midpoints=loc.midpoints_path)
+                       verify_midpoints=loc.midpoints_path, bin_rule=loc.bin_rule_path)
     return lut, files
 
 
@@ -348,7 +366,7 @@ def toy_lut_paths(tmp_path_factory):
 @pytest.fixture(scope="session")
 def toy_lut(toy_lut_paths):
     m, c = toy_lut_paths
-    return load_lut_set(str(m), str(c), TOY_SPEC)
+    return load_lut_set(str(m), str(c), TOY_SPEC, bin_rule=bin_rule_of(m))
 
 
 def new_access(lut, n=4096):

@@ -221,7 +221,7 @@ def real_lut():
         mins[kind] = min(entry["w_um"] * 1e-6, mins.get(kind, float("inf")))
     spec = LutSpec(float(manifest.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), tuple(kinds.items()),
                    (("nmos", "_n"), ("pmos", "_p")))
-    return load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path)
+    return load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root, verify_midpoints=loc.midpoints_path, bin_rule=loc.bin_rule_path)
 
 
 # ------------------------------------------------------------------ 이름 전단사 불변(41 1.11 불변식, 9회로 전부)

@@ -698,7 +698,8 @@ def test_data_id_follows_file_contents_not_folder(TC, toy_build, mid_toy_build, 
     moved = copy_tree(b.root, tmp_path / "moved")
     from .conftest import TOY_SPEC
     from gmid_engine.lut import load_lut_set
-    same = load_lut_set(str(moved / "manifest.json"), str(moved / "cap_ref.npz"), TOY_SPEC)
+    same = load_lut_set(str(moved / "manifest.json"), str(moved / "cap_ref.npz"), TOY_SPEC,
+                        bin_rule=str(moved / "bin_rule.json"), pdk_root=str(moved / "pdk"))
     assert TC.data_id(same.provenance) == a
     other_manifest = toy_build("gen", generator_sha256="1" * 64).load()
     from .conftest import toy_cap_arrays

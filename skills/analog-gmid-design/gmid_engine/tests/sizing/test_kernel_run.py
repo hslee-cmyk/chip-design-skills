@@ -346,7 +346,7 @@ def test_ic10_w_request_change_not_served_from_parent(mir):
 _SCRIPT = r'''
 import json, sys, tempfile
 from pathlib import Path
-sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
+sys.path.insert(0, sys.argv[3]); sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
 import conftest as C
 from gmid_engine.sizing import size_and_seal, size_and_seal_local, theta_name
 tmp = Path(tempfile.mkdtemp())
@@ -369,7 +369,7 @@ def test_determinism_hashseed_u4_paths(tmp_path):
     outs = []
     for seed in ("0", "1", "4242"):
         env = dict(os.environ, PYTHONHASHSEED=seed)
-        r = subprocess.run([sys.executable, str(script), str(SKILL_DIR), str(HERE)], capture_output=True, text=True,
+        r = subprocess.run([sys.executable, str(script), str(SKILL_DIR), str(HERE), str(HERE.parent)], capture_output=True, text=True,
                            env=env, timeout=300)
         assert r.returncode == 0, r.stderr[-3000:]
         outs.append(json.loads(r.stdout.strip().splitlines()[-1]))

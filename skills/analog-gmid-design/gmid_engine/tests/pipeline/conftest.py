@@ -43,4 +43,4 @@ def real_lut(lut_location, manifest):
         mins[kind] = min(entry["w_um"] * 1e-6, mins.get(kind, float("inf")))
     spec = LutSpec(float(manifest.get("manufacturing_grid_m", 5e-9)), tuple(sorted(mins.items())), DEVICE_KINDS, CAP_SUFFIX)
     return load_lut_set(lut_location.manifest_path, lut_location.cap_npz_path, spec, pdk_root=lut_location.pdk_root,
-                        verify_midpoints=lut_location.midpoints_path)
+                        verify_midpoints=lut_location.midpoints_path, bin_rule=lut_location.bin_rule_path)

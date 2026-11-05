@@ -55,7 +55,9 @@ def write_lut(root, grids=R4_GRIDS, extra_nmos_w=None, off_vgs0=False):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
     np.savez(root / "cap.npz", **cap)
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC), arrays
+    from toy_bins import retrofit_bins as _retro
+    _tb = _retro(root)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC, bin_rule=_tb.bin_rule, pdk_root=_tb.pdk_root), arrays
 
 
 @pytest.mark.parametrize("kind", ["nmos", "pmos"])

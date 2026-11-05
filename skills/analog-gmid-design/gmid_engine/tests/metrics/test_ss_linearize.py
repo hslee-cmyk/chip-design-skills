@@ -248,7 +248,7 @@ def test_lut_failure_is_seal_violation(tmp_path, tmp_path_factory, decl_paths, c
         ops = {"M1": ("nmos", 1e-6, 0.63, 2.0, 0.2, 3.7e-6), "M2": OPS["M2"]}
         want = ("op_point", "lut_axis_out_of_range")
     else:
-        lut = load_lut_v2(tmp_path_factory.mktemp("lut_l"))
+        lut = load_lut_v2(tmp_path_factory.mktemp("lut_l"), empty_bins=True)       # [WB-1 §4] 앵커 전용(빈 지도) 합성 LUT
         ops = {"M1": ("nmos", 1.5e-6, 0.63, 0.85, 0.2, 3.7e-6), "M2": OPS["M2"]}
         want = ("op_point", "lut_l_not_anchor")          # 모델 bin 지도 없음 -> 앵커 아닌 L 거부(lut 4.0)
     snap, _ = _snap(tmp_path, ops)

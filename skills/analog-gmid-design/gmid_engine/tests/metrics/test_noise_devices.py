@@ -47,7 +47,8 @@ def _access(tmp_path, cgd=0.0, with_noise=True):
 def _no_noise(toy):
     from gmid_engine.lut import load_lut_set
     from lut.conftest import TOY_NOISE_SPEC
-    return load_lut_set(str(toy.build.manifest), str(toy.build.cap), TOY_NOISE_SPEC)
+    return load_lut_set(str(toy.build.manifest), str(toy.build.cap), TOY_NOISE_SPEC, bin_rule=toy.build.bin_rule,
+                         pdk_root=toy.build.tb.pdk_root)
 
 
 JUNCTION = SimpleNamespace(temp_c=27.0)

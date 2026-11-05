@@ -6,6 +6,7 @@
   LUT v2 의 w_ref_m 5e-06 대 슬라이스 W 4.9999999999999996e-06 에서 빈 지도 -> 비앵커 L 의 caps 가 lut_l_not_anchor).
 - 기대값: conftest `width_key_ref`(1.3 규칙의 독립 구현), bin toy 손계산 bin 표(conftest 머리), 실데이터 npz 의 W·w_ref_m.
 """
+import json
 import math
 
 import numpy as np
@@ -23,6 +24,7 @@ def _bin_toy_with_wref(bin_toy_build, sub, w_ref):
     bt = bin_toy_build(sub)
     cap = bin_cap_arrays()
     cap["w_ref_m"] = np.float64(w_ref)
+    cap["meta_json"] = np.str_(json.dumps(bt.meta))               # [WB-1 §4] 기준 LUT 도 합성 모델 기록을 가진다
     np.savez(bt.build.cap, **cap)
     return bt.load()
 

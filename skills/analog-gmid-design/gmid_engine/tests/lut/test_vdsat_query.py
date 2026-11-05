@@ -99,7 +99,7 @@ def test_axis_out_of_range_context(toy_build):
     det = detail_of(ei.value)
     assert (det["reason"], det["axis"], det["lo"], det["hi"]) == ("lut_axis_out_of_range", "VS", 0.0, 0.5)
     assert det["table"] == "slice" and det["kind"] == "nmos" and det["w_key"] == 100
-    m2 = new_memo(toy_build("ax2", cap=r6_toy_cap_arrays()).load())
+    m2 = new_memo(toy_build("ax2", cap=r6_toy_cap_arrays(), empty_bins=True).load())
     with pytest.raises(SealViolationError) as ei:
         vdsat(m2, "nmos", 100, 1e-6, 1.2, 0.5, 0.0)
     det = detail_of(ei.value)

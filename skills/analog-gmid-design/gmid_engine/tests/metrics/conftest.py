@@ -698,7 +698,7 @@ def _sha_of(path):
     return _hashlib.sha256(_Path(path).read_bytes()).hexdigest()
 
 
-def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs=LUT_VS, temp_c=27.0):
+def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs=LUT_VS, temp_c=27.0, empty_bins=False):
     """toy LUT(npz 직접 작성). slice_gmbs: 슬라이스 GMBS 열. cap_cgs_cgb: 기준 LUT CGS·CGB 열. cap_gmbs: 기준 LUT GMBS·ID 열.
     cap_vs: 기준 LUT VS 축(슬라이스와 달라도 됨, lut 1.4). temp_c: 측정 온도(슬라이스·기준 LUT 같은 값, None 이면 기록 안 함)."""
     root = _Path(root)
@@ -738,13 +738,16 @@ def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs
             cap["ID" + suf] = idc
             cap["GMBS" + suf] = idc * (c0 + c1 * np.asarray(cap_vs)[None, None, None, :])
     np.savez(root / "cap.npz", **cap)
+    from toy_bins import retrofit_bins
+    retrofit_bins(root, empty=empty_bins)    # 합성 모델 파일·bin 선언(`root/bin_rule.json`)·meta 기록 (WB-1 §4)
     return root / "manifest.json", root / "cap.npz"
 
 
 def load_lut_v2(root, **kw):
     from gmid_engine.lut import LutSpec, load_lut_set
     m, c = write_lut_v2(root, **kw)
-    return load_lut_set(str(m), str(c), LutSpec(*LUT_SPEC_ARGS))
+    return load_lut_set(str(m), str(c), LutSpec(*LUT_SPEC_ARGS), bin_rule=str(_Path(m).parent / "bin_rule.json"),
+                        pdk_root=str(_Path(m).parent / "pdk"))
 
 
 def lut_access(lut, n=4096):

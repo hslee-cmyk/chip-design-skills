@@ -49,10 +49,12 @@ def test_toy_bin_map_structure(bin_toy):
     assert bin_toy.cap_map["nmos"].l_bins == lo              # 용량 표 = w_ref_m(1e-6) 폭 슬라이스의 지도
 
 
-def test_toy_empty_map_without_model_record(toy):
+def test_toy_empty_map_without_model_record(toy_empty):
+    # [WB-1 §4] 빈 지도는 bin 블록 없는 모델 파일(`toy_empty`)로 만든다(기록 없는 toy 는 이제 거부)
+    toy = toy_empty
     for sl in toy.slice_map.values():
-        assert sl.l_bins == LBinMap((), None, (), ())
-    assert toy.cap_map["nmos"].l_bins == LBinMap((), None, (), ())
+        assert sl.l_bins.bins == () and sl.l_bins.w_bin is None and sl.l_bins.anchor_bin == ()
+    assert toy.cap_map["nmos"].l_bins.bins == ()
 
 
 def test_toy_bin_order_independent_of_file_order(bin_toy_build):
@@ -62,7 +64,8 @@ def test_toy_bin_order_independent_of_file_order(bin_toy_build):
     assert lo.anchor_bin == BIN_ANCHOR_BIN_LO
 
 
-@pytest.mark.parametrize("steps,expect_lower", [(1, True), (2, False)])
+# [WB-1 §1 격자 정수 비교] 2 ulp 도 round(x/g) 가 같은 격자 정수라 1 ulp 와 같은 소속이다(oracle (손): round(x/1e-8) 가 둘 다 경계의 정수).
+@pytest.mark.parametrize("steps,expect_lower", [(1, True), (2, True)])
 def test_toy_shared_l_boundary_one_ulp(bin_toy_build, steps, expect_lower):
     """경계 b = 2e-6 − n·ulp(A 의 lmax = B 의 lmin): 앵커 2e-6 은 b 의 1 ulp 이내면 경계로 보아 아래 bin(A), 2 ulp 면 위 bin(B)."""
     b = 2e-6 - steps * math.ulp(2e-6)
@@ -73,7 +76,8 @@ def test_toy_shared_l_boundary_one_ulp(bin_toy_build, steps, expect_lower):
     assert ab[:2] == (0, 0) and ab[3:] == BIN_ANCHOR_BIN_LO[3:]
 
 
-@pytest.mark.parametrize("steps,ok", [(1, True), (2, False)])
+# [WB-1 §1 격자 정수 비교] 2 ulp 도 round(x/g) 가 같은 격자 정수라 1 ulp 와 같은 소속이다(oracle (손): round(x/1e-8) 가 둘 다 경계의 정수).
+@pytest.mark.parametrize("steps,ok", [(1, True), (2, True)])
 def test_toy_bottom_lmin_one_ulp(bin_toy_build, steps, ok):
     """맨 아래 bin lmin = 1e-6 + n·ulp: 앵커 1e-6 은 1 ulp 면 그 bin, 2 ulp 면 어느 bin 에도 없음(로드 거부)."""
     lmin = 1e-6 + steps * math.ulp(1e-6)
@@ -88,7 +92,8 @@ def test_toy_bottom_lmin_one_ulp(bin_toy_build, steps, ok):
     assert det["L"] == 1e-6 and det["w_m"] == 1e-6
 
 
-@pytest.mark.parametrize("steps,ok", [(1, True), (2, False)])
+# [WB-1 §1 격자 정수 비교] 2 ulp 도 round(x/g) 가 같은 격자 정수라 1 ulp 와 같은 소속이다(oracle (손): round(x/1e-8) 가 둘 다 경계의 정수).
+@pytest.mark.parametrize("steps,ok", [(1, True), (2, True)])
 def test_toy_top_lmax_one_ulp(bin_toy_build, steps, ok):
     lmax = 9e-6 - steps * math.ulp(9e-6)
     bt = bin_toy_build(blocks=blocks_with({"toyn__model.4": {"lmax": lmax}}))
@@ -101,7 +106,8 @@ def test_toy_top_lmax_one_ulp(bin_toy_build, steps, ok):
     assert det["reason"] == "lut_l_anchor_outside_model_bins" and det["L"] == 9e-6
 
 
-@pytest.mark.parametrize("steps,expect_lower", [(1, True), (2, False)])
+# [WB-1 §1 격자 정수 비교] 2 ulp 도 round(x/g) 가 같은 격자 정수라 1 ulp 와 같은 소속이다(oracle (손): round(x/1e-8) 가 둘 다 경계의 정수).
+@pytest.mark.parametrize("steps,expect_lower", [(1, True), (2, True)])
 def test_toy_shared_w_boundary_one_ulp(bin_toy_build, steps, expect_lower):
     """W 경계 wb = 1e-6 − n·ulp(아래 범위 wmax = 위 범위 wmin): 슬라이스 W 1e-6 은 1 ulp 면 아래 범위, 2 ulp 면 위 범위."""
     wb = 1e-6 - steps * math.ulp(1e-6)
@@ -118,11 +124,11 @@ def test_toy_shared_w_boundary_one_ulp(bin_toy_build, steps, expect_lower):
 @pytest.mark.parametrize("L,reason,bin_name", [
     (5e-6, "lut_l_bin_unbracketed", "toyn__model.2"),                         # C 의 lmax 그 자체(닫힘), C 앵커 0개
     (5e-6 + math.ulp(5e-6), "lut_l_bin_unbracketed", "toyn__model.2"),        # 1 ulp 위 = 경계
-    (5e-6 + 2 * math.ulp(5e-6), "lut_l_outside_model_bins", None),           # 2 ulp 위 = 빈틈
+    (5e-6 + 2 * math.ulp(5e-6), "lut_l_bin_unbracketed", "toyn__model.2"),    # [WB-1] 2 ulp 위도 같은 격자 정수 = 경계(빈틈 아님)
     (5.5e-6, "lut_l_outside_model_bins", None),
     (6e-6, "lut_l_cross_bin", "toyn__model.3"),                               # D 의 lmin(공유 안 한 경계 -- 닫힘)
     (6e-6 - math.ulp(6e-6), "lut_l_cross_bin", "toyn__model.3"),
-    (6e-6 - 2 * math.ulp(6e-6), "lut_l_outside_model_bins", None),
+    (6e-6 - 2 * math.ulp(6e-6), "lut_l_cross_bin", "toyn__model.3"),          # [WB-1] 2 ulp 아래도 같은 격자 정수 = 경계
 ])
 def test_toy_query_bin_membership(bin_memo, L, reason, bin_name):
     with pytest.raises(SealViolationError) as ei:

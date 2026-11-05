@@ -296,7 +296,7 @@ def test_failure_empty_window(tmp_path, toy_access):
     assert ei.value.record.devices == () and ei.value.record.margin is None
 
 
-@pytest.mark.parametrize("which,lut_reason", [("target", "lut_target_out_of_range"), ("anchor", "lut_l_not_anchor"),
+@pytest.mark.parametrize("which,lut_reason", [("target", "lut_target_out_of_range"), ("anchor", "lut_l_bin_unbracketed"),
                                               ("axis", "lut_axis_out_of_range")])
 def test_failure_lut(ctx_c, tmp_path, toy_access, which, lut_reason):
     if which == "target":
@@ -357,13 +357,13 @@ def test_candidate_failure_classes_exact():
 _SCRIPT = r'''
 import json, random, sys, tempfile
 from pathlib import Path
-sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
+sys.path.insert(0, sys.argv[3]); sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
 import conftest as C
 from gmid_engine.lut import load_lut_set
 from gmid_engine.sizing import size_and_seal
 tmp = Path(tempfile.mkdtemp())
 m, c = C.write_toy_lut(tmp / "lut")
-acc = C.new_access(load_lut_set(str(m), str(c), C.TOY_SPEC))
+acc = C.new_access(load_lut_set(str(m), str(c), C.TOY_SPEC, bin_rule=C.bin_rule_of(m)))
 out = {}
 for tag, doc, th in (("C", C.circuit_cs_pmos_load(), C.theta_c()), ("A", C.circuit_cs_res(), C.theta_a())):
     for k, seed in enumerate((None, 1, 2)):
@@ -385,7 +385,7 @@ def test_determinism_hashseed_and_netlist_order(tmp_path):
     results = []
     for seed in ("0", "1", "4242"):
         env = dict(os.environ, PYTHONHASHSEED=seed)
-        r = subprocess.run([sys.executable, str(script), str(SKILL_DIR), str(HERE)], capture_output=True, text=True,
+        r = subprocess.run([sys.executable, str(script), str(SKILL_DIR), str(HERE), str(HERE.parent)], capture_output=True, text=True,
                            env=env, timeout=300)
         assert r.returncode == 0, r.stderr[-2000:]
         results.append(json.loads(r.stdout.strip().splitlines()[-1]))

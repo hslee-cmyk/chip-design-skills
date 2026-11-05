@@ -260,7 +260,8 @@ def _lut_with_vdsat(root):
         np.savez(p, **d)
         e["sha256"] = hashlib.sha256(p.read_bytes()).hexdigest()
     manifest.write_text(json.dumps(mj), encoding="utf-8")
-    return load_lut_set(str(manifest), str(cap), LutSpec(*LUT_SPEC_ARGS))
+    return load_lut_set(str(manifest), str(cap), LutSpec(*LUT_SPEC_ARGS),
+                        bin_rule=str(manifest.parent / "bin_rule.json"), pdk_root=str(manifest.parent / "pdk"))
 
 
 def _evaluate(tmp, topo, els, theta, constraints, *, input_dc_v=None, with_vdsat=True, feedback=()):

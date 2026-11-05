@@ -74,7 +74,9 @@ def write_toy_lut(root, cap_scale=1.0, grids=GRIDS):
     np.savez(root / "cap.npz", **cap)
     spec = LutSpec(GRID_M, (("nmos", W_M), ("pmos", W_M)), (("toyn", "nmos"), ("toyp", "pmos")),
                    (("nmos", "_n"), ("pmos", "_p")))
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), spec)
+    from toy_bins import retrofit_bins as _retro
+    _tb = _retro(root)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), spec, bin_rule=_tb.bin_rule, pdk_root=_tb.pdk_root)
 
 
 def toy_decls(root):

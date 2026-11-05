@@ -13,6 +13,8 @@ import pytest
 from gmid_engine.core import SchemaRejectedError
 from gmid_engine.lut import LutProvenance, LutSpec, SliceSource, load_lut_set, lut_provenance
 
+from toy_bins import write_decl
+
 from .conftest import (BIN_MODEL_REL, LEGACY_SR, LUT_SRC, MID_L_SOURCE, TOY_SPEC, ast_sha, detail_of, function_body,
                        mid_point_arrays, sha256_file, standard_toy_slices, toy_slice_arrays)
 
@@ -29,7 +31,7 @@ def test_copy_ast_hash():
 
 
 def _prov(b, spec=TOY_SPEC):
-    return lut_provenance(str(b.manifest), str(b.cap), spec)
+    return lut_provenance(str(b.manifest), str(b.cap), spec, bin_rule=b.bin_rule, pdk_root=b.tb.pdk_root)
 
 
 def test_toy_provenance(toy_build):
@@ -68,7 +70,8 @@ def _reject(b, spec=TOY_SPEC):
 
 def test_reject_manifest_missing(tmp_path):
     with pytest.raises(SchemaRejectedError) as ei:
-        lut_provenance(str(tmp_path / "none.json"), str(tmp_path / "c.npz"), TOY_SPEC)
+        lut_provenance(str(tmp_path / "none.json"), str(tmp_path / "c.npz"), TOY_SPEC,
+                       bin_rule=write_decl(tmp_path / "rule.json", ["0" * 64]))
     assert detail_of(ei.value)["reason"] == "lut_manifest_missing"
 
 
@@ -174,7 +177,7 @@ def test_w_key_is_rounded_ratio_with_other_grid(toy_build):
 
 @pytest.mark.lut_realdata
 def test_real_provenance(real_paths, real_spec, real_manifest, real_slice_files):
-    p = lut_provenance(real_paths["manifest"], real_paths["cap"], real_spec)
+    p = lut_provenance(real_paths["manifest"], real_paths["cap"], real_spec, bin_rule=real_paths["bin_rule"])
     assert p.manifest_sha256 == sha256_file(real_paths["manifest"])
     assert p.generator_sha256 == real_manifest["generator_sha256"]
     assert p.cap_sha256 == sha256_file(real_paths["cap"])
@@ -198,18 +201,20 @@ def _same_path(a, b):
 
 def test_model_paths_recorded(bin_toy_build, toy_build):
     bt = bin_toy_build()
-    p = lut_provenance(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC)
+    p = lut_provenance(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, bin_rule=bt.bin_rule)
     for s in p.slices:
         assert len(s.model_paths) == 1
         rel, path = s.model_paths[0]
         assert rel == BIN_MODEL_REL and _same_path(path, bt.model_path)
-    assert all(s.model_paths == () for s in _prov(toy_build()).slices)     # 기록 없는 toy -> ()
+    # [WB-1 §4] 모든 합성 LUT 가 합성 모델 파일을 가진다(기록 없는 toy 는 model_unrecorded 로 거부 -- 아래 test)
+    assert all(len(s.model_paths) == 1 and s.model_paths[0][0] == "models/toy_nmos.spice" for s in _prov(toy_build()).slices)
 
 
 def _reject_both(bt):
     """lut_provenance 와 load_lut_set 둘 다 같은 사유로 거부."""
     out = []
-    for call in (lambda: lut_provenance(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC), bt.load):
+    for call in (lambda: lut_provenance(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, bin_rule=bt.bin_rule),
+                 bt.load):
         with pytest.raises(SchemaRejectedError) as ei:
             call()
         out.append(detail_of(ei.value))
@@ -229,9 +234,12 @@ def test_reject_model_root_missing(bin_toy_build):
 
 
 def test_empty_model_record_without_root_is_fine(bin_toy_build):
-    """기록이 비어 있으면 pdk_root 가 없어도 된다(빈 지도)."""
-    lut = bin_toy_build(meta_fn=lambda meta: {"model_files_sha256": {}}).load()
-    assert all(sl.l_bins.bins == () for sl in lut.slice_map.values())
+    """[WB-1 §1 적재 적용] 세트 meta 의 모델 기록이 0개면(옛: 빈 지도로 적재) `model_unrecorded` 로 거부된다. 빈 지도는 bin 블록 없는
+    모델 파일로 만든다(`toy_empty`)."""
+    with pytest.raises(SchemaRejectedError) as ei:
+        bin_toy_build(meta_fn=lambda meta: {"model_files_sha256": {}, "ngspice": "ngspice-46"}).load()
+    det = detail_of(ei.value)
+    assert det["reason"] == "bin_tie_undeclared" and det["why"] == "model_unrecorded"
 
 
 def test_reject_model_file_missing(bin_toy_build):
@@ -272,11 +280,11 @@ def test_pdk_root_override_replaces_meta_root(bin_toy_build, tmp_path):
     with pytest.raises(SchemaRejectedError) as ei:              # 음성: 덮어쓰지 않으면 meta 경로 -> 파일 없음
         bt.load()
     assert detail_of(ei.value)["reason"] == "lut_model_file_missing"
-    p = lut_provenance(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(new))
+    p = lut_provenance(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(new), bin_rule=bt.bin_rule)
     for s in p.slices:
         rel, path = s.model_paths[0]
         assert rel == BIN_MODEL_REL and _same_path(path, os.path.join(str(new), BIN_MODEL_REL))
-    lut1 = load_lut_set(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(new))
+    lut1 = load_lut_set(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(new), bin_rule=bt.bin_rule)
     assert lut1.fp == lut0.fp                                   # 같은 모델 파일 -> 같은 지문(경로는 지문에 없다)
     assert all(lut1.slice_map[k].l_bins == lut0.slice_map[k].l_bins for k in lut0.slice_map)
 
@@ -290,7 +298,7 @@ def test_pdk_root_override_used_for_root_missing(bin_toy_build):
     bt = bin_toy_build("nr", meta_fn=drop_root)
     with pytest.raises(SchemaRejectedError):
         bt.load()
-    lut = load_lut_set(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(bt.pdk))
+    lut = load_lut_set(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(bt.pdk), bin_rule=bt.bin_rule)
     assert lut.slice_map[("nmos", 100)].l_bins.bins != ()
 
 
@@ -302,7 +310,7 @@ def test_pdk_root_override_sha_still_checked(bin_toy_build, tmp_path):
     f = other / BIN_MODEL_REL
     f.write_text(f.read_text(encoding="utf-8") + "* other\n", encoding="utf-8")
     with pytest.raises(SchemaRejectedError) as ei:
-        load_lut_set(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(other))
+        load_lut_set(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(other), bin_rule=bt.bin_rule)
     det = detail_of(ei.value)
     assert det["reason"] == "lut_model_file_sha256_mismatch" and det["actual"] == sha256_file(f)
 
@@ -313,12 +321,13 @@ def test_pdk_root_override_sha_still_checked(bin_toy_build, tmp_path):
 
 def test_midpoints_recorded_in_provenance(mid_toy_build):
     mt = mid_toy_build("pm", mid=mid_point_arrays((3.5e-6,), l_source=MID_L_SOURCE))
-    p = lut_provenance(str(mt.build.manifest), str(mt.build.cap), TOY_SPEC, verify_midpoints=str(mt.mid_path))
+    p = lut_provenance(str(mt.build.manifest), str(mt.build.cap), TOY_SPEC, verify_midpoints=str(mt.mid_path),
+                       bin_rule=mt.bin_rule)
     assert _same_path(p.midpoints_path, mt.mid_path)
     assert p.midpoints_sha256 == sha256_file(mt.mid_path)
     assert tuple(p.midpoints_l_source) == tuple(sorted(MID_L_SOURCE.items()))
     assert tuple(p.midpoints_conditions) == COND_TT
-    q = lut_provenance(str(mt.build.manifest), str(mt.build.cap), TOY_SPEC)
+    q = lut_provenance(str(mt.build.manifest), str(mt.build.cap), TOY_SPEC, bin_rule=mt.bin_rule)
     assert (q.midpoints_path, q.midpoints_sha256, tuple(q.midpoints_l_source), tuple(q.midpoints_conditions)) == \
         (None, None, (), ())
 
@@ -326,7 +335,8 @@ def test_midpoints_recorded_in_provenance(mid_toy_build):
 def test_midpoints_missing(mid_toy_build, tmp_path):
     mt = mid_toy_build("pmm")
     missing = tmp_path / "nope_mid.npz"
-    for call in (lambda: lut_provenance(str(mt.build.manifest), str(mt.build.cap), TOY_SPEC, verify_midpoints=str(missing)),
+    for call in (lambda: lut_provenance(str(mt.build.manifest), str(mt.build.cap), TOY_SPEC, verify_midpoints=str(missing),
+                                        bin_rule=mt.bin_rule),
                  lambda: mt.load(verify_midpoints=str(missing))):
         with pytest.raises(SchemaRejectedError) as ei:
             call()

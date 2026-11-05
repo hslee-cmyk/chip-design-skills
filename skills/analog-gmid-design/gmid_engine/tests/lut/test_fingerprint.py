@@ -28,7 +28,8 @@ def test_path_independent(toy_build, tmp_path):
     b = toy_build("a")
     lut1 = b.load()
     dst = copy_tree(b.root, tmp_path / "elsewhere" / "deeper")
-    lut2 = load_lut_set(str(dst / "manifest.json"), str(dst / "cap_ref.npz"), TOY_SPEC)
+    lut2 = load_lut_set(str(dst / "manifest.json"), str(dst / "cap_ref.npz"), TOY_SPEC, bin_rule=str(dst / "bin_rule.json"),
+                        pdk_root=str(dst / "pdk"))
     assert lut1.provenance.manifest_path != lut2.provenance.manifest_path
     assert lut1.fp == lut2.fp
 
@@ -68,13 +69,13 @@ import sys
 sys.path.insert(0, {skill!r})
 from gmid_engine.lut import LutSpec, load_lut_set
 spec = LutSpec(1e-8, (("nmos", 1.5e-6),), (("toyn", "nmos"),), (("nmos", "_n"),))
-print(load_lut_set({man!r}, {cap!r}, spec).fp)
+print(load_lut_set({man!r}, {cap!r}, spec, bin_rule={rule!r}, pdk_root={pdk!r}).fp)
 """
 
 
 def test_fp_deterministic_across_hashseed(toy_build, toy):
     b = toy_build("seed")
-    code = _SUB.format(skill=str(SKILL_DIR), man=str(b.manifest), cap=str(b.cap))
+    code = _SUB.format(skill=str(SKILL_DIR), man=str(b.manifest), cap=str(b.cap), rule=b.bin_rule, pdk=b.tb.pdk_root)
     outs = set()
     for seed in ("0", "1", "12345"):
         env = dict(os.environ, PYTHONHASHSEED=seed)

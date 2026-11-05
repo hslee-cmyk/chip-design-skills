@@ -12,8 +12,10 @@ def test_contract_toy(toy):
     assert widths(toy, "nmos") == (200,)
 
 
-@pytest.mark.parametrize("min_w,expect", [(1e-6, (100, 200)), (0.5e-6, (100, 200)), (1.0000001e-6, (200,)),
-                                          (2e-6, (200,)), (2.0000001e-6, ())])
+# [WB-1 §1 widths] w_key >= round(w_min / grid) 정수 비교(oracle (식)): 1.0000001e-6 / 1e-8 = 100.00001 -> 100 -> 키 100 포함,
+# 2.0000001e-6 / 1e-8 = 200.00001 -> 200 -> 키 200 포함. (옛 float 비교 기대 (200,)·() 는 반올림 규칙과 충돌 -- 격자 밖 1e-13 m 은 격자 정수를 못 바꾼다)
+@pytest.mark.parametrize("min_w,expect", [(1e-6, (100, 200)), (0.5e-6, (100, 200)), (1.0000001e-6, (100, 200)),
+                                          (2e-6, (200,)), (2.0000001e-6, (200,))])
 def test_threshold_inclusive(toy_build, min_w, expect):
     spec = LutSpec(1e-8, (("nmos", min_w),), (("toyn", "nmos"),), (("nmos", "_n"),))
     assert widths(toy_build().load(spec), "nmos") == expect

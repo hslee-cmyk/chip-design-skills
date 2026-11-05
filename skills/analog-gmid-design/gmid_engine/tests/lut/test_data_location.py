@@ -41,6 +41,10 @@ class Cfg:
                     "root": {"env": "T_LUT_ROOT", "default": str(self.root)},
                     "pdk_root": {"env": "T_PDK_ROOT", "default": str(self.pdk)},
                     "files": {item: {"path": rel, "sha256": _sha(self.root / rel)} for item, rel in self.files.items()}}
+        # [WB-1 §1 위치 선언] 최상위 키 bin_rule (files 밖, path 는 설정 파일 폴더 기준, sha256 = LF 값)
+        decl = b"{}\n"
+        (self.tmp / ("rule_" + name + ".json")).write_bytes(decl)
+        self.cfg["bin_rule"] = {"path": "rule_" + name + ".json", "sha256": hashlib.sha256(decl).hexdigest()}
         self.path = self.tmp / (name + ".json")
 
     def write(self, cfg=None):

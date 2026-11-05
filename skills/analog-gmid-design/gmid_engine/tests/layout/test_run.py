@@ -606,7 +606,8 @@ def test_m3a_regression_real_lut():
     grid = _grid(_need(REAL_TLEF, "PDK tlef"))
     loc = _real_loc()
     manifest = _need(loc.manifest_path, "폭 슬라이스 manifest")
-    lut = load_lut_set(manifest, _need(loc.cap_npz_path, "기준 LUT"), _real_spec(manifest, grid))
+    lut = load_lut_set(manifest, _need(loc.cap_npz_path, "기준 LUT"), _real_spec(manifest, grid),
+                       bin_rule=loc.bin_rule_path)
     full = toy_pdk(lut)
     pdk = LayoutPdk(full.manufacturing_grid_m, (("nmos", REAL_KEYS),), 0.0, 0.0, 0.0, 0.0, 0.0, full.rule_ids, lut.fp)
     ds = [dev(n, "s_" + n, "d_" + n, None, ID_A=ID, L=L, gm_id=gm, vds=vds, vsb=vsb, W=W) for n, L, ID, gm, vds, vsb, W in PILOT]

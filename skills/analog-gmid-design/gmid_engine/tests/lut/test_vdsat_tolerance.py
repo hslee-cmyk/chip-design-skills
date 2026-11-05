@@ -193,7 +193,7 @@ def test_external_invalid(mid_toy_build, checks):
 
 
 def test_external_on_empty_map_invalid(toy_build):
-    m = new_memo(toy_build("emp", cap=r6_toy_cap_arrays()).load())
+    m = new_memo(toy_build("emp", cap=r6_toy_cap_arrays(), empty_bins=True).load())
     with pytest.raises(ValueError):
         tol_vdsat_table(m, "nmos", 100, (("anything", 0.1),))
     t = tol_vdsat_table(m, "nmos", 100)

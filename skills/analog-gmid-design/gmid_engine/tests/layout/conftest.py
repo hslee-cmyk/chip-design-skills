@@ -67,6 +67,7 @@ def run_with_seed(code: str, seed: int) -> object:
     prelude = (
         "import sys, json\n"
         f"sys.path.insert(0, {str(SKILL_DIR)!r})\n"
+        f"sys.path.insert(0, {str(Path(__file__).resolve().parent.parent)!r})\n"      # tests 루트(toy_bins)
         f"sys.path.insert(0, {str(Path(__file__).resolve().parent)!r})\n"
         "from conftest import load_sd, ser\n"
     )
@@ -176,7 +177,9 @@ def build_toy_lut(root, id_scale=1.0, variant="r5"):
              VS=np.asarray(TOY_VS), CGG_n=np.full(shp, 1e-15), CGD_n=np.full(shp, 2e-16), w_ref_m=np.float64(1e-6),
              corner=np.str_("tt"), temp_c=np.float64(27.0))
     spec = LutSpec(GRID, (("nmos", 1e-6),), (("toyn", "nmos"),), (("nmos", "_n"),))
-    return load_lut_set(str(root / "manifest.json"), str(root / "cap_ref.npz"), spec)
+    from toy_bins import retrofit_bins as _retro
+    _tb = _retro(root, cap="cap_ref.npz")
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap_ref.npz"), spec, bin_rule=_tb.bin_rule, pdk_root=_tb.pdk_root)
 
 
 def new_memo(lut, n=4096):
