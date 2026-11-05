@@ -113,9 +113,8 @@ SCC_BISECTION = "bisection"
 SCC_DIRECT = "direct"
 
 # ---- 남은 동률(구조 색이 같은 후보)을 이름 순서로 깬 결정의 종류(`TieBreak.decision`)
-INPUT_STATUS_MEASURED = "measured"                     # `Window.input_status`(설계 41 4.7-2): 입력 포화 창을 재고 되풀이가 tol 안에서 수렴 / cfg: 선형 감도 끝을 쟀다
-INPUT_STATUS_UNSETTLED = "unsettled"                   # 창은 잰 해에서 쟀으나 되풀이가 k_max 안에 수렴하지 않았거나 tol 미정 (커널 창 전용 -- card WB-1 이 지운다)
-INPUT_STATUS_UNMEASURED = "unmeasured"                 # 창을 잴 수 없다(커널 뿌리 항목 / cfg 자기 측정 실패)
+INPUT_STATUS_MEASURED = "measured"                     # `Window.input_status`(cfg 창 전용, 설계 41 4.7-2): 선형 감도 끝을 쟀다
+INPUT_STATUS_UNMEASURED = "unmeasured"                 # 창을 잴 수 없다(cfg 자기 측정 실패)
 TIE_KRUSKAL = "writer_edge"                           # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
 TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원소 열이 θ 전류 기저/종속으로 갈림
 

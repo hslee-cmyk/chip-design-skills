@@ -104,7 +104,7 @@
 | 1 | `seal_report.py` | `dc_seal_report` | `dc_seal_report` |
 | 3 | `seal_region.py` [r10] | `dc_seal_region` | `dc_seal_region` |
 | 2 | `_helpers_dc_solve.py` [IT-2c] | helper: `Circuit`(읽기 전용 열·`region_rows`·`port_window`·`kind_sign`) | -- |
-| 3 | `block_columns.py` [IT-2c: `_Circuit` 은 `Circuit` 을 잇고 θ·`override` 만 더한다, 커널 창 = W4 뿌리 항목만] | `dc_columns` | `dc_columns` |
+| 3 | `block_columns.py` [WB-1 범위 3a: `_Circuit` 은 `Circuit` 을 잇고 θ 만 더한다, 커널 창 = W4 뿌리 KVL 순서 창] | `dc_columns` | `dc_columns` |
 | 3 | `block_widths.py` | `dc_widths` | `dc_widths` |
 | 3 | `kernel_context.py` | `build_kernel_context` | -- |
 | 3 | `seal_tolerances.py` | `dc_tolerances` | `dc_tolerances` |
@@ -204,7 +204,7 @@ graph 레코드 key: `DC_KEY`(`"dc"`). 값은 모두 불변(frozen dataclass·tu
 | device.dc_L | dc_lengths | 모든 MOS | float m |
 | node.dc_v | dc_columns | 레일 아닌 모든 노드 | float V |
 | node.dc_path_values | dc_columns | 모든 노드 | tuple[`PathValue`] relation 순 |
-| node.dc_window | dc_columns | W4 뿌리 노드(입력 포트인 뿌리 포함) [IT-2c: 뿌리 아닌 입력 포트·선언 포트 항목 없음 -- 측정 구성 `node.dc_window_cfg` 가 받는다] | `Window`(칸 `input_status`·`tol_v`) |
+| node.dc_window | dc_columns | W4 뿌리 노드(입력 포트인 뿌리 포함) [IT-2c: 뿌리 아닌 입력 포트·선언 포트 항목 없음 -- 측정 구성 `node.dc_window_cfg` 가 받는다] | `Window`(칸 `input_status`·`tol_v` 는 None -- 순서 창) |
 | device.dc_ln_idu | dc_columns | 모든 MOS | float |
 | graph.dc_scc_log | dc_columns | DC_KEY | tuple[`SccLog`] |
 | device.dc_op | dc_widths | 모든 MOS | `DeviceOp` |
@@ -1030,19 +1030,12 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 * 판정 대상 = 봉인 1·2·3(KCL)·6·7·8(KVL) 중 위반 소자·넷이 덮는 집합과 겹치는 것. 4·5·9 는 국소 판정이 아니다. ②~⑤ 중 후보 실패 예외는 `ok = False` 와 그 FailureRecord 1건.
 * **스텁**: `gain_db` 는 항상 None (`metrics.block_local_gain`, U7). 전회로를 푸는 커널이라 계산이 블록 크기에 비례하지 않는다 -- 결과 캐시는 U15(N_T,i 상한) 몫.
 
-### 14.6 y_icm = 입력 포화 창 (J-E SP-2 (c), D-J5 U4 몫)
-* 입력 DC 미선언이라 입력 포트인 W4 뿌리(최대 하나, y 키 = 그 넷)가 있으면 `dc_columns` 가 풀이를 되풀이한다: (1) y = 1/2 로 푼 해에서 (2) `input_window.saturation_window` 로
-  입력 공통모드 x 의 포화 창(x 를 따라 움직이는 노드의 VDS 변화율 = 노드 writer 식 야코비안 연립의 해, 소자별 포화 여유 VDS − VDsat 의 1차 외삽 -- [IT-2c] 판정 여유 0, tol 항 없음)을 재고
-  (3) 순서 창과 교집합을 y_icm 범위로 삼아 요청 y 로 다시 풀며 (4) 경계가 tol_V 안에서 변하지 않을 때까지 되풀이(상한 `k_max(레일 폭, tol_V)`). `node.dc_window` 는 마지막 범위를 낸다.
-* (1)이 풀리지 않거나 VDSAT 열 없음·tol 미정이면 종래 사상(순서 창 = 레일 범위). `dc_columns(...)` 5번째 extras 는 `triode` 선언 소자 이름 tuple(필드 `device.region_decl` 에서)이고 비어 있지 않을 때만 준다.
-* 효과(toy 차동쌍): 종래 y ∈ [0.05, 0.95] 무작위 60점 중 봉인 19, 이후 60. 평가 시간 약 3배(IT-2b 전 측정, `_refine_ends` 경로).
-* (1)이 y = 1/2 에서 풀리지 않으면 순서 창 안을 1/4, 3/4, 1/8, 3/8, ... 순으로 훑어(시도 수 ≤ k_max(레일 폭, 레일 폭 절반 VDS 셀의 최소 tol_V)) 풀리고 창을 잴 수 있는 첫 점의 해로 (2)를 시작한다. 어디서도 안 풀릴 때만 종래 사상이다.
-* (5) [IT-2b 개정, 설계 41 4.7-3 1] 커널은 창 끝을 다듬지 않는다(`_refine_ends` 를 부르지 않음 -- 끝 x 고정 풀이는 다듬은 창 블록 몫). 커널 `node.dc_window` 뿌리 항목 = 순서 창 ∩ 마지막 `override`(선형 감도 끝),
-  `input_status` = 수렴 `measured` / 미수렴·tol 미정 `unsettled`(y 범위로는 그대로 쓴다) / 창을 못 잼 `unmeasured`(순서 창). 따라서 y = 0·1 끝 점의 봉인 7 여유는 1차 외삽 오차만큼 음수일 수 있다.
-* (6) [IT-2c, 설계 41 4.7-W W1·4.7-3 2·3] `node.dc_window` 의 항목은 **W4 뿌리뿐**이다(입력 점 뿌리 포함). 뿌리 아닌 입력 포트·입력 DC 선언 포트·F 성분 미선언 포트의 창은 이 필드가 아니라 측정 구성
-  블록 `icm_config`(metrics)의 `node.dc_window_cfg` 가 받는다(모든 입력 포트를 함께 구동한 봉인점 KCL 선형 감도 끝). 창 경계 행은 공용 `Circuit.region_rows`(`sat`·`triode`, 여유 0)이고 끝 식은
-  `saturation_window(unknown, root, ...)` 하나다(`root` = 넷 하나, 쌍·묶음 없음). 동작점 불일치(`op_mismatch`)는 이 card 밖(EO-1 묶음, 사용자 결정 O-98).
-  커널 입력 창 측정(`_measure`·`_interior_solution`·`_dyadic_ys`·`INPUT_STATUS_UNSETTLED`)은 card WB-1 범위 3a 가 재작성한다.
+### 14.6 θ y 범위 = KVL 순서 창 하나 (WB-1 범위 3a, 계획 N6.35 E-13, 설계 40 3.11-1)
+* `node.dc_window` 의 항목은 W4 뿌리마다 **KVL 순서 창 하나**다(뿌리 넷에 채널이 닿는 전도 MOS 마다 채널 전도 방향 전압 ≥ 0 인 y 구간의 교집합, 제약 없는 쪽은 레일 끝; VDSAT·tol 읽기 0).
+  입력 점 뿌리 포함. `Window.input_status`·`tol_v` 는 이 필드에서 쓰지 않는다(None). 입력 창(ICMR) 측정은 측정 구성 블록 `icm_config`(metrics)의 `node.dc_window_cfg` 한 자리다
+  (모든 입력 포트를 함께 구동한 봉인점 KCL 선형 감도 끝, 창 경계 행 = 공용 `Circuit.region_rows`, 끝 식 `saturation_window`).
+* `dc_columns` 는 풀이를 되풀이하지 않는다(입력 뿌리 창 되풀이·커널 쪽 상태 쓰기 삭제). 입력 포화 밖 점은 봉인 7 이 거부한다.
+* `dc_columns(...)` 5번째 extras 는 `triode` 선언 소자 이름 tuple(필드 `device.region_decl` 에서)이고 비어 있지 않을 때만 준다.
 
 ## 15. 구현하지 않은 것 (정지 후 보고)
 

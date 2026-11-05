@@ -29,21 +29,14 @@
   표현할 수 없다(설계 3.3 4). 쓰기 소자 좌표 = θ.
 * `path_values`(봉인 1 입력): 노드에 닿는 관계마다 그 관계가 함의하는 노드 전압(MOS = 좌표에서 VGS 역산, 저항 = 강하,
   W4·고정 = 값).
-* **창 경계 행 `Circuit.region_rows`**(`_helpers_dc_solve`, 설계 41 4.7-3a·4.7-W W2, 카드 IT-2c): 이 블록이 쓰는 입력 포화 창 측정(`input_windows`)도 같은 행을 쓴다 --
-  판정 여유 0(VDS = VDSAT, tol 항 없음; VDSAT = 시도 전압의 `lut.sat_threshold`).
-* **커널 창 `node.dc_window`**(설계 41 4.7-2·4.7-3 1, 카드 IT-2c 뒤): **W4 뿌리 항목만**. 입력 포트가 아닌 W4 뿌리는 순서 창(`input_status` None).
-  입력 포트인 W4 뿌리(최대 하나): A6 -- y = 1/2 풀이 → 창 측정 → 창을 y 범위(`override`)로 두고 다시 풀며 경계가 tol 안에서 같아질 때까지(상한 `k_max`)
-  되풀이. 수렴하면 `measured`, 수렴하지 않았거나(c) tol 미정(b)이면 `unsettled`(y 범위는 그대로 쓴다), 창을 못 재면(a) `unmeasured`(순서 창). 뿌리 아닌 입력 포트·입력 DC
-  선언 포트·F 성분 미선언 포트의 창은 이 블록의 항목이 아니다 -- 측정 구성 블록 `icm_config` 가 모든 입력 포트를 함께 구동해 잰다(`node.dc_window_cfg`).
-  이 입력 창 측정(`_measure`·`_interior_solution`·`_dyadic_ys`·`INPUT_STATUS_UNSETTLED`)은 card WB-1 범위 3a 가 재작성한다.
-  `k_max` 는 이 모듈 수준 이름이다(L12 (a) 주입 지점).
-* writes `node.dc_v`(레일 밖 모든 노드), `node.dc_path_values`(모든 노드), `node.dc_window`(W4 뿌리 + 입력 포트),
+* **커널 창 `node.dc_window`**(설계 40 3.11-1, 계획 N6.35 E-13, card WB-1 범위 3a): W4 뿌리 항목마다 **KVL 순서 창 하나**(`kvl_window`) -- 상태 칸
+  `input_status`·`tol_v` 는 쓰지 않는다(None). 입력 창(ICMR) 측정은 측정 구성 블록 `icm_config`(`node.dc_window_cfg`) 한 자리다.
+* writes `node.dc_v`(레일 밖 모든 노드), `node.dc_path_values`(모든 노드), `node.dc_window`(W4 뿌리),
   `device.dc_ln_idu`(모든 MOS), `graph.dc_scc_log`.
 """
-import dataclasses
 import math
 
-from gmid_engine.authoring import INPUT_DIRECTION, REGION_TRIODE
+from gmid_engine.authoring import REGION_TRIODE
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
 from gmid_engine.graph import MOS_TERMINAL_NAMES
 from gmid_engine.lut import AXES, derived, gmb, vgs_for_current_density
@@ -52,17 +45,12 @@ from ._helpers_dc_solve import Circuit
 from ._helpers_lut import forward_point, tol_v_cell, w_key_of, with_device
 from .bracket_root import bracket_root
 from .fixed_point import gauss_seidel
-from .input_window import saturation_window
 from .k_max import k_max
 from .scc_newton import newton_solve
-from .scc_order import FIXED_RELATIONS
 from .s2_values import (
     COORD_WRITER,
     DC_COLUMNS_WRITER,
     DC_KEY,
-    INPUT_STATUS_MEASURED,
-    INPUT_STATUS_UNMEASURED,
-    INPUT_STATUS_UNSETTLED,
     PATH_FIXED,
     PATH_MOS,
     PATH_RESISTOR,
@@ -111,8 +99,6 @@ _CURVE_UNDEFINED = "lut_curve_undefined"     # lut CONTRACT 4.1 -- VDS 정의역
 _VDS_AXIS, _VS_AXIS = AXES.index("VDS"), AXES.index("VS")
 _BOUND_RAIL, _BOUND_VDS, _BOUND_VS = "rail", "vds_axis", "vs_axis"
 _SOLVE_SELF_MEMO = "solve_self"            # LUT memo root 영역의 함수 이름 칸(1변수 풀이 재사용)
-_MID = 1 / 2                                         # y_icm 창을 재기 시작하는 해의 위치(순서 창 한가운데)
-_HALVING = round(1 / _MID)                          # 분모가 늘어나는 비 -- 구간을 이분하는 수(1/2 다음 후보 열)
 _GS_STOPPED = "gauss_seidel_stopped"                  # SccLog.fallback[0]: GS 가 K_max 안 tol 도달 불가로 멈춤
 
 
@@ -134,12 +120,11 @@ def _vgs_of_coordinate(lut, device, kind, L, vds, vsb, ln_idu):
 
 
 class _Circuit(Circuit):
-    """블록 한 번의 입력 묶음과 writer 식 -- 읽기 전용 공용 부분(`Circuit`)에 θ·고정 값·`override` 등 이 블록이 쓰는 상태를 더한다."""
+    """블록 한 번의 입력 묶음과 writer 식 -- 읽기 전용 공용 부분(`Circuit`)에 θ·고정 값 등 이 블록이 쓰는 상태를 더한다."""
 
     def __init__(self, projection):
         theta_items, fixed_values, resistor_values, lut = projection.extras
         super().__init__(projection, lut=lut, linear=frozenset(m for m, r in projection.column("device", "region_decl") if r.region == REGION_TRIODE))      # `triode` 선언 소자 -- 창 경계 행이 triode 행(`region_rows`)
-        self.override = {}                                             # {W4 입력 뿌리 넷: (lo, hi)} 입력 포화 창 (y_icm 범위)
         self.theta = dict(theta_items)
         self.fixed = dict(fixed_values)
         self.nbrs = dict(projection.column("node", "dc_column_nbrs"))
@@ -158,7 +143,6 @@ class _Circuit(Circuit):
             self.order_terms.setdefault(source_side, []).append((True, sink_side))
             self.order_terms.setdefault(sink_side, []).append((False, source_side))
         self.tol_cells = {}                        # (소자, VDS) -> tol_V 또는 None -- `tolerance` 의 한 평가 안 재사용
-        self.inputs = frozenset(net for net, d in projection.column("node", "port_direction") if d == INPUT_DIRECTION)
 
     def kvl_window(self, net, values):
         """W4 순서 창: x 에 채널이 닿는 전도 MOS 마다 VDS ≥ 0 이 되는 쪽 -- x 가 전류가 나가는 단자면
@@ -181,24 +165,8 @@ class _Circuit(Circuit):
         return found
 
     def window(self, net, values):
-        """W4 창 = 순서 창 ∩ (입력 뿌리면) 입력 포화 창 `override`(y_icm 범위, `input_windows`가 정한다)."""
-        lo, hi, ncols = self.kvl_window(net, values)
-        if net in self.override:
-            lo, hi = max(lo, self.override[net][0]), min(hi, self.override[net][1])
-        return lo, hi, ncols
-
-    def input_roots(self):
-        """입력 포트인 W4 뿌리 넷(y 키 = 그 넷; 입력 DC 미선언 회로 -- 단일 입력 뿌리 또는 입력 점의 p 포트, `dc_writer_plan` 이 그 밖은 정지시킨다 -- 최대 하나) -- 쓰기 순번 순."""
-        return tuple(net for net, w in self.canonical_writers() if _is_root(w) and net in self.inputs)
-
-    def input_windows(self, values, root):
-        """해 `values` 에서 잰 이동량 창과 감도 `(dlo, dhi, slope)`(`saturation_window`) -- `root` = x 로 움직이는 커널 뿌리 넷 하나(설계 41 4.7-3 1). 고정 노드 가운데
-        root 는 미지수로 넣는다(그 행은 s = 1). 잴 수 없으면 None."""
-        rows = self.region_rows(values)
-        if rows is None:
-            return None
-        unknown = tuple(net for net, w in self.canonical_writers() if w.relation not in FIXED_RELATIONS or net == root)     # 쓰기 순번 순 -- 선형 연립 행 순서가 이름을 따르지 않게
-        return saturation_window(unknown, root, values, self.writer_grad, rows)
+        """W4 창 = KVL 순서 창(`kvl_window`) 하나 -- 입력 뿌리도 같다(입력 창 측정은 `icm_config`)."""
+        return self.kvl_window(net, values)
 
     def start(self, net):
         cols = list(self.nbrs.get(net, ()))
@@ -428,11 +396,6 @@ class _Circuit(Circuit):
                 lo, lo_node = values[other], other
             elif not is_lower and values[other] < hi:
                 hi, hi_node = values[other], other
-        if net in self.override:                    # 입력 포화 창이 순서 창보다 좁으면 그 끝은 상수(이웃 노드 항 없음)
-            if self.override[net][0] > lo:
-                lo, lo_node = self.override[net][0], None
-            if self.override[net][1] < hi:
-                hi, hi_node = self.override[net][1], None
         if lo > hi:
             raise SealViolationError(devices=(), margin=None,
                                      detail={"item": SEAL_SATURATION, "reason": REASON_EMPTY_WINDOW, "node": net,
@@ -500,7 +463,7 @@ def _strict_recheck(c, entry, values, tol):
 
 
 def _solve(c):
-    """쓰기 계획 위상 순서로 SCC 를 풀어 (노드전압, SccLog 열)을 낸다 -- 현재 `c.theta`·`c.override` 한 벌에 대한 풀이 한 번."""
+    """쓰기 계획 위상 순서로 SCC 를 풀어 (노드전압, SccLog 열)을 낸다 -- 현재 `c.theta` 한 벌에 대한 풀이 한 번."""
     values = dict(c.rail_v)
     for net, w in c.writers.items():
         if w.relation in (REL_TARGET, REL_INPUT_DC):
@@ -567,149 +530,21 @@ def _solve(c):
     return values, tuple(logs)
 
 
-_FAILURES = (SealViolationError, NonconvergentError)
-
-
-@dataclasses.dataclass(frozen=True)
-class _Measured:
-    """한 해에서 잰 입력 뿌리 창: `window` = (순서 창 ∩ 잰 창) 끝 전압, `values` = 그 해(되풀이 판정의 tol 을 같은 해에서 잰다). 한 `dc_columns` 호출 안에서만 산다."""
-
-    window: tuple
-    values: dict
-
-
-@dataclasses.dataclass(frozen=True)
-class _Kernel:
-    """커널 풀이 결과: 마지막 풀이 `values`·`logs`, 입력 뿌리의 `status`(뿌리가 없으면 None)와 `tol`."""
-
-    values: dict
-    logs: tuple
-    status: object
-    tol: object
-
-
-def _dyadic_ys(count):
-    """y 후보 열 1/4, 3/4, 1/8, 3/8, 5/8, 7/8, ... (앞 `count` 개) -- 구간을 이분 수준마다 훑는 순서(1/2 는 이미 해 봤다)."""
-    out, level = [], _HALVING
-    while len(out) < count:
-        out.extend(k / level for k in range(1, level, _HALVING))
-        level *= _HALVING
-    return out[:count]
-
-
-def _measure(c, root, values):
-    """해 `values` 에서 입력 뿌리 `root` 의 입력 포화 창 -- 순서 창 ∩ (뿌리 전압 + 잰 이동량 창). 잴 수 없으면 None."""
-    found = c.input_windows(values, root)
-    if found is None:
-        return None
-    dlo, dhi, _slope = found
-    lo, hi, _ncols = c.kvl_window(root, values)
-    return _Measured((max(lo, values[root] + dlo), min(hi, values[root] + dhi)), values)
-
-
-def _tolerance(c, values):
-    """해 `values` 의 소자 전부 tol_V 셀 최솟값(A6 되풀이 판정·`Window.tol_v`). 어느 소자에서도 미정이면 None."""
-    devices = tuple(sorted(c.coord, key=lambda m: (c.device_colour.get(m, 0), m)))
-    try:
-        return c.tolerance(devices, values)
-    except SealViolationError:
-        return None
-
-
-def _interior_solution(c, key, requested):
-    """y_icm = 1/2 가 풀리지 않을 때 입력 창을 재려고 순서 창 안에서 풀리고 창을 잴 수 있는 점을 찾는다 (설계 41 §4.6 '범위 = 입력 창').
-    1/2 에서 이분 수준마다 y 를 훑되 시도 수는 `k_max`(레일 폭, 그 점 근처 tol) 이내. 반환 (값, 로그, 잰 창) 또는 None (못 찾음 -- 종래 사상)."""
-    middle = (c.hi - c.lo) / 2                         # 풀이가 없어 VDS 를 모른다 -- 레일 폭의 절반 VDS 셀의 tol_V 로 시도 수 상한을 잰다
-    tols = [tol for m in c.coord for tol in (tol_v_cell(c.lut, m, c.kinds[m], c.L[m], middle),) if tol is not None]
-    if not tols:
-        return None
-    budget = k_max(c.hi - c.lo, min(tols))
-    (root,) = c.input_roots()
-    for y in _dyadic_ys(budget):
-        c.theta[key] = y
-        try:
-            values, logs = _solve(c)
-        except _FAILURES:
-            continue
-        finally:
-            c.theta[key] = requested
-        measured = _measure(c, root, values)
-        if measured is not None:
-            return values, logs, measured
-    return None
-
-
-def _solve_input_window(c):
-    """입력 DC 대기 회로의 y_icm 범위 = 입력 포화 창 (사용자 결정 J-E, 설계 41 §4.6 SP-2 (c), 4.7-3 1).
-
-    입력 포트인 W4 뿌리가 없으면 풀이 한 번(종래). 있으면: (1) y_icm = 1/2 로 풀어 해를 얻고(순서 창 사상; 풀리지 않으면 순서 창 안에서 풀리는
-    점을 찾는다) (2) 그 해에서 잰 포화 창 [Vin,min, Vin,max] ∩ 순서 창을 y_icm 범위로 삼아 요청 y_icm 으로 다시 풀며 (3) 새 해에서 창을 다시 재
-    경계가 tol 안에서 같아질 때까지 되풀이한다(상한 K_max = `k_max`(레일 폭, tol)). 끝 다듬기는 하지 않는다(커널 창은 선형 감도 끝, 설계 41 4.7-3 1).
-    (1) 이 어디서도 풀리지 않거나 창을 잴 수 없으면(VDSAT 열 없음·tol 미정) 종래 사상(요청 y_icm, 순서 창)으로 푼다 -- 종래보다 나빠지지 않는다.
-    tol = 창을 잰 해의 `tolerance`(되풀이 판정은 새 창을 잰 해, `Window.tol_v` 는 마지막 창을 잰 해 -- 설계 41 4.7-2·4.7-3 5; 해마다 한 번 계산, 저장 없음).
-    상태: 되풀이가 tol 안에서 수렴하면 `measured`, 수렴하지 않았거나 tol 미정이면 `unsettled`(창은 잰 해에서 쟀으니 y 범위로는 쓴다), 창을 못 재면 `unmeasured`."""
-    roots = c.input_roots()
-    if not roots:
-        values, logs = _solve(c)
-        return _Kernel(values, logs, None, None)
-    (root,) = roots
-    key = (THETA_Y, c.writers[root].y_key)
-    requested = c.theta[key]
-    c.theta[key] = _MID
-    try:
-        values, logs = _solve(c)
-        measured = _measure(c, root, values)
-    except _FAILURES:
-        measured = None
-    finally:
-        c.theta[key] = requested
-    if measured is None:
-        found = _interior_solution(c, key, requested)
-        if found is None:
-            values, logs = _solve(c)
-            return _Kernel(values, logs, INPUT_STATUS_UNMEASURED, None)
-        values, logs, measured = found
-    tol = _tolerance(c, values)
-    if tol is None:                                    # tol 이 어느 소자에서도 미정 -- 되풀이 수렴 판정을 할 수 없다(창은 한 번만 적용)
-        c.override = {root: measured.window}
-        values, logs = _solve(c)
-        return _Kernel(values, logs, INPUT_STATUS_UNSETTLED, None)
-    settled = False
-    solved_with = None                                 # 마지막으로 푼 override -- 최종 override 가 같으면 같은 인자를 다시 풀지 않고 그 (values, logs) 를 쓴다(블록 안 지역 변수)
-    for _ in range(k_max(c.hi - c.lo, tol)):          # 상한은 첫 해의 tol 로 정한다(설계 L12 상한식); 판정·tol_v 는 창을 잰 해마다의 tolerance
-        c.override = {root: measured.window}
-        values, logs = _solve(c)
-        solved_with = c.override
-        again = _measure(c, root, values)
-        if again is None:
-            break
-        previous, measured, tol = measured, again, _tolerance(c, again.values)
-        if tol is None:                                # 되풀이 중간에 tol 미정 -- A6 b 와 같이 수렴 판정 불가(마지막으로 잰 창을 y 범위로 쓴다)
-            break
-        settled = all(abs(a - b) <= tol for a, b in zip(again.window, previous.window))
-        if settled:
-            break
-    c.override = {root: measured.window}
-    if c.override != solved_with:
-        values, logs = _solve(c)
-    return _Kernel(values, logs, INPUT_STATUS_MEASURED if settled else INPUT_STATUS_UNSETTLED, tol)
-
-
-def _windows(c, values, kernel):
-    """`node.dc_window` -- W4 뿌리 항목만(입력 점 뿌리 포함, 설계 41 4.7-2). 입력 포트인 뿌리는 커널 입력 창 상태(`kernel.status`·`tol`)를 싣고, 아닌 뿌리는 순서 창이다."""
+def _windows(c, values):
+    """`node.dc_window` -- W4 뿌리 항목마다 KVL 순서 창 하나(`Window(lo, hi, constraints)`, 상태·`tol_v` 없음)."""
     out = {}
     for net, w in c.writers.items():
         if _is_root(w):
             lo, hi, ncols = c.window(net, values)
-            out[net] = Window(lo, hi, ncols, kernel.status, kernel.tol) if net in c.inputs else Window(lo, hi, ncols)
+            out[net] = Window(lo, hi, ncols)
     return out
 
 
 @compute_block(DC_COLUMNS_WRITER, reads=READS, writes=WRITES)
 def dc_columns(projection):
     c = _Circuit(projection)
-    kernel = _solve_input_window(c)
-    values, logs = kernel.values, list(kernel.logs)
+    values, logs = _solve(c)
+    logs = list(logs)
     ln_idu = {}
     for m, coord in c.coord.items():
         if coord.role == COORD_WRITER:
@@ -737,7 +572,7 @@ def dc_columns(projection):
     return {
         ("node", "dc_v"): {net: v for net, v in values.items() if net not in c.rail_v},
         ("node", "dc_path_values"): {net: tuple(sorted(p, key=lambda x: x.relation)) for net, p in paths.items()},
-        ("node", "dc_window"): _windows(c, values, kernel),
+        ("node", "dc_window"): _windows(c, values),
         ("device", "dc_ln_idu"): ln_idu,
         ("graph", "dc_scc_log"): {DC_KEY: tuple(logs)},
     }
