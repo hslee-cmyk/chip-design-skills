@@ -16,7 +16,7 @@
 
 **블록 순서와 입력**: 전달 뷰의 이득·버퍼·복합 블록을 (stage, 출력 넷 구조 색) 순으로 둔다. 블록 출력 넷 = 출력노드 중 색이 가장 작은 것, 입력 넷 = 다른 블록의 출력 넷인 블록 입력(가장 앞 stage 의 것),
 없으면 포트 구동(None). (버퍼 블록의 stage 는 입력 넷의 거리라 앞 블록과 같을 수 있어 stage 대소로 거르지 않고 자기 출력 넷만 뺀다.) 블록 부호 = 셀 부호의 곱(CS·미러의 CS 읽기 = −1, 그 밖 +1)을 입력 소자 하나·미러 역할 하나만 센 것. 전체 부호는 맞추지 않는다 -- 위상 여유는 T(0) 위상을 기준으로 재므로(metrics `analyze_loop`) 되먹임 부호 관례와 무관하다.
-**소자 용량 계수**: (gm/ID, L) 의 W/I = L / IDu 와 기준 (VDS, VSB) 의 `caps` 로, 전류 1 A 당 cgg·cdrain(cdd 가 있으면 cdd, 없으면 cgd)을 `per_amp` 에 둔다 -- 노드 용량이 gm_b 에 선형이 된다.
+**소자 용량 계수**: (gm/ID, L) 의 W/I = L / IDu 와 기준 (VDS, VSB) 의 `caps` 로, 전류 1 A 당 cgg·cdrain(= cdd; CDD 열이 없는 기준 표는 `lut_column_unavailable`{column = "CDD"} -- cgd 로 대체하지 않는다, E-18)을 `per_amp` 에 둔다 -- 노드 용량이 gm_b 에 선형이 된다.
 """
 import dataclasses
 
@@ -109,7 +109,9 @@ def _per_amp(ctx, gm_id, lengths):
         except _LUT_ERRORS:
             lacking.append(d.name)
             continue
-        out[d.name] = (float(c.cgg), float(c.cdd if c.cdd is not None else c.cgd), float(w_per_a))
+        if c.cdd is None:      # E-18: drain 노드 용량은 CDD 열의 양이다(cgd 는 다른 정의의 양 -- 대체하지 않는다)
+            raise SealViolationError(devices=(d.name,), detail={"reason": "lut_column_unavailable", "column": "CDD", "kind": d.kind, "w_key": d.w_key})
+        out[d.name] = (float(c.cgg), float(c.cdd), float(w_per_a))
     return out, tuple(lacking)
 
 

@@ -778,4 +778,8 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | tol_V 지표 [M-TH1c] | `lut/tolerance.py` `TOL_V_METRICS = ("id_equivalent",)` | `gm_id_inverse` 지표·`branch_targets`·`MidpointRow.gm_id_inverse_v` 삭제. `strong_inversion_root` 정의는 `lut/vgs_root.py` 로 옮김 |
 | 풀이 정지 사유 집계 [범위 3a-0] | `search/find_front.py` `_stop_counts` -> `perf.solver_stops`(출력 전용) | 소비자: 3a 변화표 측정·CPG-1 기록 |
 | bin 규칙 기록 notes [DC 블록] | `search/find_front.py` `_bin_rule_note` | 결과 JSON notes `DEC-105 (2)` 한 항목(기계 의존 파일·중점 미검증 슬라이스) |
-| 실현 평가·`realize_front`·servo 재풀이 [DC 블록] | **미구현**(보고) | `RealizedFinger`·`evaluate(realized=)`·`search/realize_front.py` 는 아직 없다 |
+| 실현 평가(W' 고정 KCL 재풀이, servo 입력 차 미지수) [DC 블록] | `sizing/block_dc.py` `dc_solve(realized=RealizedFinger)` (`_realized`·`_servo_system`) | 입력 = 탐색 스냅샷 `device.dc_finger`·`node.dc_v`·`graph.icm_config`(피벗 판정 읽기 = `_helpers_dc_solve.pivot_config` 하나). 기본 포트 뷰·감지 부호 = `_helpers_dc_solve.default_port_views`·`sense_signs`(`icm_config` 와 같은 정의 한 곳, 옛 `icm_config._default_port_views`·`_sense_signs` 삭제) |
+| front 점 실현 관문 [DC 블록] | `search/realize_front.py` `realize_front` -> `find_front` 가 front 출력 전에 호출 | 재필터 = `pareto.nondominated_results`(탐색 front `eps_sweep._filter` 와 같은 함수 한 곳). `evaluate(realized=)`·`size_and_seal(realized=)`. 결과 JSON `front[i].finger_residual`·`slice_rounds`, `realize` |
+| 레이아웃 키 제외(행 그룹 단위) [DC 블록] | `convergence/key_exclusion.py` `key_exclusion` | 행 그룹 후보 = `layout.RowGroup.excluded_keys`(`finger_candidates` 가 읽는다). 옛 kind 단위·`kernel_keys` 삭제 |
+| CDD 용량 계수 [E-18] | `search/iv_currents.py` `_per_amp` | CDD 열이 없는 기준 표 = `lut_column_unavailable`{column "CDD"} (cgd 대체 삭제) |
+| mismatch σ 의 폭 두 개 [범위 2b] | `lut/mismatch_sigma.py` `mismatch_sigma_vgs(..., w_bin_m, w_area_m)` | slope bin = 손가락 폭, 면적 항 = 총 폭. 소비자: `metrics/device_sigma.py`(finger 분할 삭제), `search/iv_matching_l.py`(출발 단계 `finger_slice` 한 번) |

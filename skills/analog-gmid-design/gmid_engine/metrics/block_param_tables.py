@@ -61,7 +61,10 @@ class ParamTables:
                 continue
             vgs, x, y, z = (np.asarray(part, dtype=float) for part in row)
             nodes = np.searchsorted(self.grids[1], vgs)
-            one = np.full((self.shape[1], len(PARAMETERS)), np.nan)
+            if nodes.size and (nodes.max() >= self.shape[1] or not np.array_equal(self.grids[1][nodes], vgs)):
+                # 표 격자 `grids[1]`(기준 폭 슬라이스의 VGS 축)과 이 슬라이스의 VGS 마디가 다르면 index 대응이 거짓이다 -- 슬라이스마다 축 일치를 재고 다르면 거부한다(s3)
+                raise SealViolationError(devices=(), detail={"reason": "slice_vgs_grid_mismatch", "kind": kind, "w_key": key, "L": l_value})
+            one =np.full((self.shape[1], len(PARAMETERS)), np.nan)
             one[nodes, 0], one[nodes, 1], one[nodes, 2] = x, y, z
             upper = self._side == "upper"                                  # x: upper = 최댓값, y: upper = 최솟값 (lower 는 반대)
             table[:, 0] = (np.fmax if upper else np.fmin)(table[:, 0], one[:, 0])

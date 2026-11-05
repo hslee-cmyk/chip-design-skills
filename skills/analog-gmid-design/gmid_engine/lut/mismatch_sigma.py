@@ -2,7 +2,7 @@
 
 진입점: `mismatch_sigma_vgs`.
 
-  σ_VGS(W, L, 점) = √(Σ_k (DVGS_k(L, 점) · slope_k(bin(W, L)) / slope_k(bin_ref)))² · √(W_ref / W)
+  σ_VGS(w_f, W, L, 점) = √(Σ_k (DVGS_k(L, 점) · slope_k(bin(w_f, L)) / slope_k(bin_ref)))² · √(W_ref / W)     (w_f = 손가락 폭 = slope bin 폭, W = 총 폭 = 면적 항; WB-1 범위 2b)
 
 * DVGS_k·slope_ref = `mismatch_dvgs`(기준 폭 W_ref = `MismatchSens.w_m`, 그 L 의 bin_ref 에서 잰 1σ 감도 -- 1σ 는 인스턴스 기하의 1σ 라 이미 1/√(W_ref·L) 를 품는다).
 * slope_k(bin(W, L)) = PDK 선언의 mismatch 모델(`core.PdkMismatchModel`: `.model` 블록마다 변수별 slope)에서 소자 폭 W·길이 L 이 든 블록의 값 -- W bin 을 먼저,
@@ -31,15 +31,16 @@ def _block_of(model, W, L, grid_m, rule):
     return None if i is None else row[i]
 
 
-def mismatch_sigma_vgs(memo, model, kind, w_key, L, vgs, vds, vsb, W):
-    """폭 `W`(m)·길이 `L`(m) 소자의 `MismatchSigma`(σ_VGS V, 변수별 기여 V). `model` = `core.PdkMismatchModel`(kind 의 것). memo 영역 point. memo 키에 소자 bin 의 변수별 slope 를 넣는다(같은 LUT 에 다른 PDK 선언 -> 다른 값)."""
-    W = float(W)
-    if not W > 0:
-        raise ValueError("mismatch_sigma_vgs: W 는 양수여야 한다")
+def mismatch_sigma_vgs(memo, model, kind, w_key, L, vgs, vds, vsb, w_bin_m, w_area_m):
+    """손가락 폭 `w_bin_m`(m, slope bin 을 고르는 폭 = w_f)·총 폭 `w_area_m`(m, 면적 항 = `DeviceOp.W`)·길이 `L`(m) 소자의 `MismatchSigma`(σ_VGS V, 변수별 기여 V).
+    `model` = `core.PdkMismatchModel`(kind 의 것). memo 영역 point. memo 키에 소자 bin 의 변수별 slope 를 넣는다(같은 LUT 에 다른 PDK 선언 -> 다른 값)."""
+    W, w_area = float(w_bin_m), float(w_area_m)
+    if not (W > 0 and w_area > 0):
+        raise ValueError("mismatch_sigma_vgs: w_bin_m·w_area_m 는 양수여야 한다")
     L = float(L)
     sens = mismatch_dvgs(memo, kind, w_key, L, vgs, vds, vsb)
     block = _block_of(model, W, L, memo.lut.spec.manufacturing_grid_m, memo.lut.bin_rule)
-    detail = dict(kind=kind, w_key=w_key, W=W, L=L)
+    detail = dict(kind=kind, w_key=w_key, w_bin_m=W, w_area_m=w_area, L=L)
     if block is None:
         raise seal_violation("lut_mismatch_no_block", **detail)
     actual = {param: (0.0 if value is None else value) for param, _ident, value, _line in block.slopes}
@@ -54,8 +55,8 @@ def mismatch_sigma_vgs(memo, model, kind, w_key, L, vgs, vds, vsb, W):
                 raise seal_violation("lut_mismatch_slope_unscalable", parameter=param, slope_ref=ref, slope=now, **detail)
             else:
                 parts.append((param, abs(dvgs) * now / ref))
-        scale = math.sqrt(sens.w_m / W)
+        scale = math.sqrt(sens.w_m / w_area)
         return MismatchSigma(scale * math.sqrt(sum(v * v for _p, v in parts)), tuple((p, scale * v) for p, v in parts), block.model)
 
-    return memo.lookup("point", "mismatch_sigma_vgs", (kind, w_key, L, float(vgs), float(vds), float(vsb), W, block.model,
+    return memo.lookup("point", "mismatch_sigma_vgs", (kind, w_key, L, float(vgs), float(vds), float(vsb), W, w_area, block.model,
                                                             tuple(sorted(actual.items()))), compute)

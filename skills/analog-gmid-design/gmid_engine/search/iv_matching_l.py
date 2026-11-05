@@ -20,7 +20,7 @@ import math
 import sys
 
 from gmid_engine.core import MILLI, SchemaRejectedError, SealViolationError
-from gmid_engine.lut import mismatch_sigma_vgs
+from gmid_engine.lut import finger_slice, mismatch_sigma_vgs
 from gmid_engine.sizing import bracket_root
 
 from ._helpers_curves import QUANTITY_IDU, QUANTITY_VGS, curve_bundle_of, curve_value, l_anchors, slice_of
@@ -63,7 +63,8 @@ def _sigma_vgs(ctx, name, g, L, current):
     w = max(current * L / curve_value(bundle, QUANTITY_IDU, g), ctx.w_min_m)      # 실현 폭은 PDK 최소 finger 폭 W_min 이상(W 하한 제약 S-18): 그 아래 폭은 mismatch 모델 bin 밖이다
     vgs = curve_value(bundle, QUANTITY_VGS, g)
     curve = bundle[QUANTITY_IDU]
-    return mismatch_sigma_vgs(ctx.memo, ctx.pdk.mismatch_model(d.kind), d.kind, d.w_key, L, vgs, curve.vds, curve.vsb, w).sigma_v
+    pick = finger_slice(ctx.memo.lut, d.kind, L, lambda _key: w)         # 출발 단계 선택 함수 한 번(상수 W -- 결과는 이 출발 블록 안 값, 필드 없음): slope bin 은 손가락 폭, 면적은 총 폭
+    return mismatch_sigma_vgs(ctx.memo, ctx.pdk.mismatch_model(d.kind), d.kind, d.w_key, L, vgs, curve.vds, curve.vsb, pick.w_f_m, w).sigma_v
 
 
 def _sigma_from(ctx, name, g, L, current):

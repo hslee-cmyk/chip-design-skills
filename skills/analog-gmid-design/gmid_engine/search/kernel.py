@@ -20,7 +20,6 @@
 * 평가 시간은 `sctx.eval_times` 에 기록만 한다. 예산(E_B·D)은 이 함수가 쓰지 않는다 -- 유도는 `search_ceiling` 한 자리, 정지는 `search_stop`(탐색 단계의 단일 평가는 평가 전에 본다).
 * 커널을 부른 평가만 S3 evals 에 한 줄(설계 8절). 같은 키를 두 번 계산하면 `recompute_same_key` +1(정상 0).
 """
-import statistics
 import time
 from collections.abc import Mapping
 

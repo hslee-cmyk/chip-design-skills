@@ -37,7 +37,7 @@ from gmid_engine.sizing import REASON_LUT_QUERY, SS_DEV_WRITER
 from .junction_cap import junction_caps
 from .ss_types import SsDevice
 
-READS = (("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm"), ("device", "off_op"), ("device", "region_decl"), ("device", "kind"))
+READS = (("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm"), ("device", "dc_finger"), ("device", "off_op"), ("device", "region_decl"), ("device", "kind"))
 WRITES = (("device", "ss_dev"),)
 GMB_COLUMN = "lut_gmbs_column"                        # lut gmb: GMBS 열(정본, lut CONTRACT r6 4.4)
 GMB_VS_CELL_SECANT = "lut_vs_cell_secant"              # lut gmb: VS 선형 칸 할선(GMBS 열 없는 옛 LUT, 설계 MOD1 2.8 임시)
@@ -67,15 +67,16 @@ def off_current(point, width, length):
     return point.IDu * width / length
 
 
-def _linearize(lut, junction, device, op, gm, rel_tol, realized):
-    """op = kind·w_key·L·W·vgs·vds·vsb 를 가진 점(`DeviceOp` 또는 off 소자의 읽기 전용 view). gm None 이면 off 소자: (gm/ID)·ΔI_off."""
+def _linearize(lut, junction, device, op, gm, rel_tol, realized, finger):
+    """op = kind·w_key·L·W·vgs·vds·vsb 를 가진 점(`DeviceOp` 또는 off 소자의 읽기 전용 view). gm None 이면 off 소자: (gm/ID)·ΔI_off.
+    `finger` = (손가락 폭 w_f, 손가락 수 m) -- 레이아웃 전 접합 기하의 입력(`device.dc_finger`; off 소자는 (선언 폭, 1)), 실현 확산 기하(`realized`)가 있으면 읽지 않는다."""
     memo = lut.memo
     w_m = memo.lut.slice_map[(op.kind, op.w_key)].w_m
     args = (op.L, op.vgs, op.vds, op.vsb)
     point = _query(device, "op_point", lambda: op_point(memo, op.kind, op.w_key, *args))
     body = _query(device, "gmb", lambda: gmb(memo, op.kind, op.w_key, *args))
     cap = _query(device, "caps", lambda: caps(memo, op.kind, *args, op.W))
-    geometry = junction.pre_layout_geometry(w_m, op.W / w_m) if realized is None else realized
+    geometry = junction.pre_layout_geometry(*finger()) if realized is None else realized
     jc = junction_caps(junction.params_of(op.kind), geometry, op.vds + op.vsb, op.vsb, junction.temp_c)
     if gm is None:
         gm = point.gm_over_id * off_current(point, op.W, op.L)
@@ -93,12 +94,14 @@ def ss_dev(projection):
     tols = dict(projection.column("device", "dc_tol_v"))
     gm = dict(projection.column("device", "dc_gm"))
     realized = dict(rest[0]) if rest else {}                 # [U14] 실현 확산 기하 ((MOS, DiffusionGeometry), ...) -- 없으면 LUT 생성 규칙 기하
-    out = {m: _linearize(lut, junction, m, op, gm[m], None if tols.get(m) is None else op.gm_id * tols[m], realized.get(m))
+    fingers = dict(projection.column("device", "dc_finger"))            # 빈 열(레이아웃 뒤 평가)을 실현 확산 기하 없이 읽으면 행 없음 오류(KeyError) -- 대체하지 않는다
+    out = {m: _linearize(lut, junction, m, op, gm[m], None if tols.get(m) is None else op.gm_id * tols[m], realized.get(m),
+                         lambda m=m: (fingers[m].w_f_m, fingers[m].m))
            for m, op in projection.column("device", "dc_op")}
     kinds = dict(projection.column("device", "kind"))
     decl_of = dict(projection.column("device", "region_decl"))
     for m, point in projection.column("device", "off_op"):
         kind, decl = kinds[m], decl_of[m]      # `off` 선언 소자 -- 점 = `off_op`, 폭·길이 = 선언 (tol_V 셀 없음 -> lut_rel_tol None)
         view = types.SimpleNamespace(kind=kind, w_key=point.w_key, L=decl.l_m, W=decl.w_m, vgs=point.vgs, vds=point.vds, vsb=point.vsb)
-        out[m] = _linearize(lut, junction, m, view, None, None, realized.get(m))
+        out[m] = _linearize(lut, junction, m, view, None, None, realized.get(m), lambda decl=decl: (decl.w_m, 1))
     return {("device", "ss_dev"): out}
