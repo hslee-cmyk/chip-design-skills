@@ -16,8 +16,7 @@
 | `layout_input.py` | 1 | `layout_input_of` | 봉인 스냅샷 -> `LayoutInput` (1절) |
 | `effective_placement.py` | 1 | `effective_placement` | 레이아웃 필드(설계점 스냅샷) -> 소자별 실효 배치 (2절) |
 | `key_exclusion.py` | 1 | `key_exclusion` | 거절된 기하의 폭 후보를 행 그룹 단위로 제외 (7절, WB-1) |
-| `layout_score.py` | 1 | `layout_score` | 레이아웃 후보 점수 (3절; WB-1 뒤 프로덕션 호출처 없음 -- 정리는 gap 판정 몫) |
-| `realized_geometry.py` | 1 | `realized_geometry` | `search.RealizedGeometry` (4절) |
+| `realized_geometry.py` | 1 | `realized_geometry` | `sizing.RealizedGeometry` (4절) |
 | `w_loop_bound.py` | 1 | `w_loop_bound` | W_request 루프 `K_max` (5절) |
 | `junction_change.py` | 1 | `junction_change` | 접합 용량 전·후 (4절) |
 | `relaxation.py` | 1 | `relaxation_decision` | LY5 완화 판정 (6절) |
@@ -67,17 +66,16 @@
   (레이아웃이 후보 실현 W 를 만드는 식과 같아 다음 레이아웃의 실현 W 와 비트가 같다), `pending=True`.
 * `unplaced` = `ly_finger` 값이 없는(사용 가능한 폭 슬라이스가 없는) 소자 이름, 이름순.
 
-## 3. `layout_score(snapshot, unplaced) -> tuple`
+## 3. (삭제) kind 키 좁히기 점수 `layout_score`
 
 * [WB-1 반영] 평가 커널 폭 슬라이스는 kind 마다 하나가 아니다 -- 실현 기하 입력은 레이아웃 lineage의 S2 `layout` 필드 열을 가리키는 지문 달린 참조 `RealizedGeometry(layout_ref, w_request)`(값 칸 `finger`·`diffusion`·`w_keys` 없음 -- graph 규칙 4)이고 슬라이스는 DC 블록이 참조로 읽은 finger_w로 `lut.slice_of_finger`가 정한다. kind 키 운반(`kernel_keys`)과 `place_layout` kind 키 좁히기는 삭제됐고, `key_exclusion`은 레이아웃 행 그룹 단위다(7절). 이 루프의 수렴 판정·상한은 바꾸지 않는다(계획 WB-1 범위 5).
-* `layout_score` = 작을수록 좋은 사전식 점수 `(놓지 못한 소자 수, 배치 못 한 common-centroid 요구 그룹 수(CC_REQUIRED_ROLES, pattern None, pending 아님),
-  pending 그룹 수, ly_floorplan.outline_area_m2)` -- `snapshot` = `LayoutResult.snapshot`.
+* `layout_score`(좁히기 후보 비교 점수)는 호출처가 없어져 같은 변경에서 삭제했다(`layout_score.py`, `convergence.__all__`, `_module_map`). 이 절 번호는 다른 절 인용을 위해 남긴다.
 
-## 4. `realized_geometry(snapshot, placements, keys) -> search.RealizedGeometry` · `junction_change(before, after)`
+## 4. `realized_geometry(snapshot, placements) -> sizing.RealizedGeometry(layout_ref, w_request)` · `junction_change(before, after)`
 
 * `w_request` = ((소자, `Placement.W_m`), ...) 이름순 -- 배치된 **모든** 소자(LY7: W_request 유무와 관계없이 실현 기하로 재평가).
-* `w_keys` = `keys` 그대로. `diffusion` = ((소자, `metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, float(n_fingers))`), ...) 이름순 -- `ly_diffusion` 필드
-  (= `RealizedDevice.diffusion`, LY8) 중 **`pending` 이 아닌** 소자. pending 소자는 레이아웃의 잠정 기하가 요청한 (키, nf) 와 달라 LUT 생성 규칙 기하로 둔다.
+* `layout_ref` = ((소자, `metrics.DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, float(n_fingers))`), ...) 이름순 -- `ly_diffusion` 필드
+  (= `RealizedDevice.diffusion`, LY8) 중 **`pending` 이 아닌** 소자. pending 소자는 레이아웃의 잠정 기하가 요청한 (키, nf) 와 달라 LUT 생성 규칙 기하와 탐색 규칙 슬라이스를 쓴다. 폭 키(`w_keys`) 칸은 없다 -- 슬라이스는 `dc_solve` 가 `slice_of_finger` 로 정한다.
 * `junction_change(before, after)` = `ss_dev` 가 든 두 스냅샷의 소자(이름순, 둘에 모두 있는 것)마다 `JunctionChange(device, cdb_before, csb_before, cdb_after, csb_after)`.
 
 ## 5. `w_loop_bound(placements, sized_w) -> (k_max, max_dlnw, tol)`
@@ -101,7 +99,7 @@
    `unplaced` 가 있으면 멈춘다. `PlacedLayout` 은 입력 사본(`layout_input`)을 두지 않는다(입력은 스냅샷의 `ly_*` 입력 필드).
 2. (WB-1: kind 키 충돌 좁히기 삭제 -- 소자마다 실현 기하의 슬라이스가 따로다.)
 3. `relaxation_decision` 의 `relax` 가 있으면 `relaxed` 에 더하고 1 로. `not_relaxable`·`relax` 의 완화 전 `GroupLayout` 은 `first_seen` 에 gid 별로 처음 한 번만 남긴다.
-`PlacedLayout.layout_calls` = 이 호출의 `run_layout` 횟수(좁히기 시험 포함), `narrowed` = ((kind, 키), ...).
+`PlacedLayout.layout_calls` = 이 호출의 `run_layout` 횟수(완화 재시도 포함).
 
 `converge_point(sctx, pdk, point) -> ConvergedPoint` -- front 점 하나 (`point` = `search.FrontPoint`, `point.result` = 봉인된 `EvalResult`):
 ```
@@ -112,26 +110,26 @@ loop:
   geometry = realized_geometry(placed...)
   geometry == previous_geometry          -> STATUS_CONVERGED      # 고정점: 마지막 재평가 점으로 놓은 레이아웃이 같은 기하를 낳는다
   K = w_loop_bound(첫 레이아웃에서 한 번)
-  (w_request, w_keys) 가 같은 상태(PDK 후보·거부·완화)에서 직전보다 앞서 이미 평가한 것 -> STATUS_NONCONVERGENT (주기; detail cycle=True) -- 다음 레이아웃은 평가 점의 DC 상태만 읽는 결정론적 사상이라 K 까지 돌아도 벗어나지 못한다(확산 기하는 출력이라 키에 넣지 않는다; 직전과 DC 상태가 같고 확산만 다르면 주기가 아니라 확산 재평가)
+  w_request 가 같은 상태(PDK 후보·거부·완화)에서 직전보다 앞서 이미 평가한 것 -> STATUS_NONCONVERGENT (주기; detail cycle=True) -- 다음 레이아웃은 평가 점의 DC 상태만 읽는 결정론적 사상이라 K 까지 돌아도 벗어나지 못한다(확산 기하는 출력이라 키에 넣지 않는다; 직전과 DC 상태가 같고 확산만 다르면 주기가 아니라 확산 재평가)
   재평가 횟수(제외 재시도 제외) >= K     -> STATUS_NONCONVERGENT (FailureRecord NONCONVERGENT, margin = max_dlnw / tol)
   result = search.evaluate(sctx, θ, cells, parent=current, geometry=geometry)   # 커널 1회 + 봉인 1~8 + spec 제약 행 (LY7)
   accepted(status SEALED, 제약 행 c >= 0 전부, 출발 점이 재던 (metric, 연산) 을 잃지 않음) -> current = result ; previous_geometry = geometry ; previous_layout = None (새 설계점 -- 레이아웃은 그 스냅샷 위에 다시 쓴다)
   아니면 W_request 응답 대기 소자가 있고 아직 거부 안 했으면 -> rejected += 그 소자들 (같은 current 로 반복)
-  아니면 key_exclusion(...) 이 뺄 폭 키를 주면          -> pdk 에서 그 (kind, 키) 를 뺀다 (Iteration.status "excluded", 같은 current 로 반복)
+  아니면 key_exclusion(...) 이 뺄 폭 키를 주면          -> 그 레이아웃 행 그룹의 후보에서 그 키를 뺀다 (Iteration.status "excluded", 같은 current 로 반복)
   아니면                                   -> STATUS_INFEASIBLE
 ```
 * 평가 커널은 `evaluate(geometry=)` 한 곳에서만 불린다. `ConvergedPoint.kernel_calls` = 이 점이 새로 부른 커널 호출 수(`sctx.counters["kernel_calls"]` 차이, 캐시 적중 제외),
   `layout_calls` = `run_layout` 횟수 합. **레이아웃 안 재시도(좁히기·완화)는 커널을 부르지 않는다.**
 * `ConvergedPoint.result` = 마지막으로 통과한 재검증 점(수렴이면 최종 freeze 점; 통과가 없었으면 None), `layout`·`geometry`·`layout_area_m2` = 마지막 레이아웃·기하(수렴이면
   `result` 의 기하와 같다), `search_area_m2` = 출발 점의 탐색 축 면적, `power_w`·`power_resolution_w` = `result.objectives`, `iterations` = 재평가마다 `Iteration`,
-  `rejected` = 거부한 소자 이름순, `narrowed` = 좁힌 ((kind, 키), ...), `junction` = `junction_change(출발 스냅샷, result 스냅샷)`, `unmatched` = 패턴 없는 그룹 ((gid, role, reason), ...),
+  `rejected` = 거부한 소자 이름순, `narrowed` = 항상 빈 tuple(kind 키 좁히기 삭제 -- 칸만 남았다, 정리는 test 개정과 함께), `junction` = `junction_change(출발 스냅샷, result 스냅샷)`, `unmatched` = 패턴 없는 그룹 ((gid, role, reason), ...),
   `undelivered`, `relaxations` = `relaxation_records`.
 * 출발 점에 전류 ≤ 0 인 MOS 가 있으면 레이아웃하지 않고 `STATUS_UNPLACEABLE`(notes `nonpositive_current`).
 * W_request 처리: 그룹 요청(`cc_nf`)은 `Placement.pending` 소자의 (키, nf) 로 평가한다. `finger_quantization` 요청은 `W_new = W_realized` 라 재평가가 그대로 이행한다.
   거부 -> 다음 레이아웃에서 그 그룹은 조정 불가가 되어 pattern None -> 완화 판정으로 간다(LY5: nf 조정, W 조정이 모두 불가능할 때만 완화).
 
-`key_exclusion(pdk, placements, kinds, sized_w, keys) -> ((kind, 키), narrower_pdk)`: 재검증이 거절한 기하에서 사이징 W 대비 실현 W 어긋남 `max |ln(W_m / sized_w)|` 가 가장 큰
-kind(동률은 kind 이름순)의 지금 폭 키(`keys`)를 뺀 `LayoutPdk`. 그 kind 에 남는 키가 없으면 `narrower_pdk = None`(더 시도할 폭이 없다 -> `STATUS_INFEASIBLE`).
+`key_exclusion(pdk, row_groups, placements, sized_w, excluded, colour) -> ((행 그룹 rid, 키), new_excluded | None)`: 재검증이 거절한 기하에서 사이징 W 대비 실현 W 어긋남 `|ln(W_m / sized_w)|` 가 가장 큰
+소자(동률은 구조 색 순)가 속한 레이아웃 행 그룹의 지금 폭 후보를 그 행 그룹 후보에서만 뺀다. 그 행 그룹에 남는 후보가 없거나 그 소자가 어느 행 그룹에도 속하지 않으면 `new_excluded = None`(더 시도할 폭이 없다 -> `STATUS_INFEASIBLE`, 새 사유 없음; 속하지 않는 경우 rid = None).
 제외 재시도 수는 PDK 폭 키 수 이하(단조 감소)라서 `K_max` 로 세지 않는다(`Iteration.status != "excluded"` 인 반복만 `K_max` 에 센다).
 
 ## 8. `refilter(points) -> (kept, dominated, folded)`
@@ -158,8 +156,8 @@ kind(동률은 kind 이름순)의 지금 폭 키(`keys`)를 뺀 `LayoutPdk`. 그
 
 | 위치 | 변경 |
 |---|---|
-| `search.RealizedGeometry(w_request, w_keys, diffusion=())` | 새 데이터 타입(`search_values.py`, `search.__all__`) |
-| `search.evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None)` | `geometry` 가 있으면 `size_and_seal(w_request=geometry.w_request)`·`LutAccess(memo, geometry.w_keys)`·`ss_evaluate(diffusion=geometry.diffusion)` 로 평가하고 평가 키의 `w_fixed_fp = fp_of(geometry)`. 없으면 종전과 같다 |
+| `sizing.RealizedGeometry(layout_ref, w_request)` | 새 데이터 타입(`sizing/s2_values.py`, `sizing.__all__`) -- 참조 + 값(`w_keys`·`diffusion` 칸 없음) |
+| `search.evaluate(sctx, theta, cells, parent=None, origin=(), geometry=None)` | `geometry` 가 있으면 `size_and_seal(w_request=geometry.w_request, geometry=geometry)`·`ss_evaluate(diffusion=geometry.layout_ref)` 로 평가하고 평가 키의 기하 칸은 `layout_ref` 지문과 `w_request`. 없으면 종전과 같다 |
 | `metrics.ss_evaluate(..., diffusion=())` · `metrics.ss_dev(snapshot, lut, junction, diffusion)` | 있는 소자의 cdb·csb 를 실현 확산 기하로(`junction_model` = `JUNCTION_LAYOUT_DIFFUSION`), 없는 소자는 LUT 생성 규칙. 빈 `diffusion` 은 입력 버전이 종전과 같다 |
 | `metrics.passive_values(snapshot, ctx, theta)` | `ss_evaluate._passive_values` 를 새 파일로 옮겨 공개(수동소자 값 정본 -- 판정 축 면적 입력과 공유) |
 | `layout.__all__` | `area_tie_m2`·`passives_from_decl`·role·패턴 이름 상수 추가 |
@@ -177,8 +175,8 @@ kind(동률은 kind 이름순)의 지금 폭 키(`keys`)를 뺀 `LayoutPdk`. 그
 
 ## 12. 열린 항목·설계 gap (본문 §40 §3.9 에 기록)
 
-- 평가 커널의 폭 슬라이스는 kind 당 하나라서(`LutAccess.w_keys`) MOD8 이 레이아웃의 PDK 폭 키를 kind 당 하나로 좁힌다(`place_layout`). 소자별 슬라이스를 받는 sizing 확장이 있으면 좁히기가 필요 없다.
+- (WB-1로 닫힘) 평가 커널의 폭 슬라이스가 소자별이 되어 kind 당 폭 키 좁히기(`place_layout`·`kernel_keys`·`layout_score`)는 없다.
 - 종속 소자(미러 출력·차동쌍 입력 등)는 W 를 고정 입력으로 받을 수 없어 `W_adjustable=False`: 차동쌍이 `cc_same_W` 로 서지 못하면 곧바로 완화 판정으로 간다.
-- LY1 소자별 W 허용오차는 소자 사이 전류비(미러 비)를 보장하지 않아, 재평가 봉인 3 이 KCL 로 거부할 수 있다. 그때 `key_exclusion` 이 폭 키를 하나씩 빼며 다시 시도하지만(탐욕 -- 어긋남이 가장 큰 kind 부터),
-  다른 kind 의 키 조합까지 완전 탐색하지는 않는다.
+- LY1 소자별 W 허용오차는 소자 사이 전류비(미러 비)를 보장하지 않아, 재평가 봉인 3 이 KCL 로 거부할 수 있다. 그때 `key_exclusion` 이 행 그룹의 폭 키를 하나씩 빼며 다시 시도하지만(탐욕 -- 어긋남이 가장 큰 소자의 행 그룹부터),
+  다른 행 그룹의 키 조합까지 완전 탐색하지는 않는다.
 - 판정 축 면적 모델 오차 선언값(DEC-80 (ii))이 없어 `review_needed` 승격은 기록(탐색 축 대 판정 축 차)만 한다.

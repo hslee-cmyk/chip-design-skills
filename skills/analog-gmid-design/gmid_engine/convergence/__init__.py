@@ -33,7 +33,6 @@ from .effective_placement import effective_placement
 from .junction_change import junction_change
 from .key_exclusion import key_exclusion
 from .layout_input import layout_input_of
-from .layout_score import layout_score
 from .place_layout import place_layout
 from .realized_geometry import realized_geometry
 from .refilter import refilter
@@ -69,7 +68,6 @@ __all__ = (
     "junction_change",
     "key_exclusion",
     "layout_input_of",
-    "layout_score",
     "place_layout",
     "realized_geometry",
     "refilter",

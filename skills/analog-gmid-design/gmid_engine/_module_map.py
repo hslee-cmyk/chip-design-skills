@@ -179,7 +179,7 @@ LAYERS = (
         "convergence",
         (
             ("convergence_values.py",),
-            ("admission.py", "alternation_bound.py", "effective_placement.py", "junction_change.py", "key_exclusion.py", "layout_input.py", "layout_score.py",
+            ("admission.py", "alternation_bound.py", "effective_placement.py", "junction_change.py", "key_exclusion.py", "layout_input.py",
              "realized_geometry.py", "refilter.py", "relaxation.py", "relaxation_records.py", "w_loop_bound.py"),
             ("place_layout.py",),
             ("converge_point.py",),
@@ -1102,8 +1102,6 @@ MODULES = (
                 ("N3.17-LY3", "N3.17-LY5", "N3.17-LY7", "DEC-79", "DEC-84", "D-M8")),
     ModuleEntry("convergence/layout_input.py", "entry", "layout_input_of",
                 "봉인 스냅샷 -> LayoutInput 어댑터(dc_op 보존량·S1 pins/bulk/is_diode·matching 그룹 전달 정책·행 그룹 (kind, body)·완화 role 전환)", ("N3.17", "U12-handoff", "D-M8")),
-    ModuleEntry("convergence/layout_score.py", "entry", "layout_score",
-                "레이아웃 후보 비교 점수(놓지 못한 소자, 배치 못 한 CC 그룹, 응답 대기 그룹, 외곽 면적) -- 커널 슬라이스 키 선택", ("N3.17-LY5", "N3.17-LY7", "D-M8")),
     ModuleEntry("convergence/key_exclusion.py", "entry", "key_exclusion",
                 "재검증이 거절한 기하에서 사이징 W 어긋남이 가장 큰 소자가 속한 레이아웃 행 그룹의 지금 폭 후보를 그 행 그룹 후보에서 제외(WB-1 그룹 단위)", ("N3.17-LY3", "N3.17-LY7", "D-M8")),
     ModuleEntry("convergence/effective_placement.py", "entry", "effective_placement",
