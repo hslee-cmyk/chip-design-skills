@@ -16,7 +16,7 @@
   읽어야 해서 W4 의존(`dc_scc_order`)을 바꿔야 한다(계약 12절 O1 잔여, 결정 대기) -- 창은 KVL 순서 창이고 포화는 봉인 7 이
   판정한다. 창이 비면(lo > hi) `SealViolationError`(item 7, reason `empty_window`).
 * 1변수 노드(diode gate·소스 추종 source)는 구간 bisection(`solve_self`, 설계 3.4). VDS 쪽 구간 끝 = writer 슬라이스의 VDS
-  정의역 하한(`_vds_floor`, 데이터 유도), 끝점은 부동소수 반올림으로 축 밖에 떨어지지 않게 안쪽으로 맞춘다(`_inward`). 다변수 순환 SCC 는 `gauss_seidel`
+  정의역 하한(`vds_floor`(LUT 파생), 데이터 유도), 끝점은 부동소수 반올림으로 축 밖에 떨어지지 않게 안쪽으로 맞춘다(`_inward`). 다변수 순환 SCC 는 `gauss_seidel`
   (N3.6 q 규칙·K_max) -- 반복 중에는 정의역 이탈을 투영하고(`update(strict=False)`) 수렴 뒤 strict 검증 바퀴로 확인한다.
   Gauss-Seidel 이 K_max 안에 tol 에 닿지 못하면(측정한 수축비 q 로 판정 -- q ≥ 1 또는 q < 1 이지만 남은 상한 안 도달 불가)
   같은 시작값에서 SCC 잔차 r = V − g(V) 에 감쇠 Newton(`newton_solve`, 야코비안 = `writer_grad` 의 LUT 미분)으로 바꾼다.
@@ -30,7 +30,7 @@
 * `path_values`(봉인 1 입력): 노드에 닿는 관계마다 그 관계가 함의하는 노드 전압(MOS = 좌표에서 VGS 역산, 저항 = 강하,
   W4·고정 = 값).
 * **창 경계 행 `Circuit.region_rows`**(`_helpers_dc_solve`, 설계 41 4.7-3a·4.7-W W2, 카드 IT-2c): 이 블록이 쓰는 입력 포화 창 측정(`input_windows`)도 같은 행을 쓴다 --
-  판정 여유 0(VDS = VDSAT, tol 항 없음).
+  판정 여유 0(VDS = VDSAT, tol 항 없음; VDSAT = 시도 전압의 `lut.sat_threshold`).
 * **커널 창 `node.dc_window`**(설계 41 4.7-2·4.7-3 1, 카드 IT-2c 뒤): **W4 뿌리 항목만**. 입력 포트가 아닌 W4 뿌리는 순서 창(`input_status` None).
   입력 포트인 W4 뿌리(최대 하나): A6 -- y = 1/2 풀이 → 창 측정 → 창을 y 범위(`override`)로 두고 다시 풀며 경계가 tol 안에서 같아질 때까지(상한 `k_max`)
   되풀이. 수렴하면 `measured`, 수렴하지 않았거나(c) tol 미정(b)이면 `unsettled`(y 범위는 그대로 쓴다), 창을 못 재면(a) `unmeasured`(순서 창). 뿌리 아닌 입력 포트·입력 DC
@@ -46,7 +46,7 @@ import math
 from gmid_engine.authoring import INPUT_DIRECTION, REGION_TRIODE
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
 from gmid_engine.graph import MOS_TERMINAL_NAMES
-from gmid_engine.lut import AXES, gmb, vgs_for_current_density
+from gmid_engine.lut import AXES, derived, gmb, vgs_for_current_density
 
 from ._helpers_dc_solve import Circuit
 from ._helpers_lut import forward_point, tol_v_cell, w_key_of, with_device
@@ -107,33 +107,13 @@ def _is_root(w):
 
 _TARGET_OUT_OF_RANGE = "lut_target_out_of_range"       # lut CONTRACT 4.1·3.1 vgs_for_current_density·gm_id_for_target 사유 키
 _TRANSIENT_LUT_REASONS = (_TARGET_OUT_OF_RANGE, "lut_axis_out_of_range")   # 반복 중 정의역 이탈(검증 바퀴가 다시 잰다)
-_CURVE_UNDEFINED = "lut_curve_undefined"     # lut CONTRACT 4.1 -- VDS 정의역 하한(`_vds_floor`) 아래에서만 반복 중 이탈로 본다
+_CURVE_UNDEFINED = "lut_curve_undefined"     # lut CONTRACT 4.1 -- VDS 정의역 하한(`vds_floor`(LUT 파생)) 아래에서만 반복 중 이탈로 본다
 _VDS_AXIS, _VS_AXIS = AXES.index("VDS"), AXES.index("VS")
 _BOUND_RAIL, _BOUND_VDS, _BOUND_VS = "rail", "vds_axis", "vs_axis"
 _SOLVE_SELF_MEMO = "solve_self"            # LUT memo root 영역의 함수 이름 칸(1변수 풀이 재사용)
 _MID = 1 / 2                                         # y_icm 창을 재기 시작하는 해의 위치(순서 창 한가운데)
 _HALVING = round(1 / _MID)                          # 분모가 늘어나는 비 -- 구간을 이분하는 수(1/2 다음 후보 열)
 _GS_STOPPED = "gauss_seidel_stopped"                  # SccLog.fallback[0]: GS 가 K_max 안 tol 도달 불가로 멈춤
-
-
-def _vds_floor(lut, kind):
-    """writer 슬라이스의 VDS 정의역 하한 = on_mask((ID > 0) & (GM > 0))가 그 VDS 격자 열부터 끝 열까지 모든 (L, VGS, VS)
-    점에서 켜진 첫 VDS 격자점(그런 열이 없으면 VDS 격자 최소 -- 축 범위 그대로). 그보다 작은 VDS 는 꺼진 열(LUT v2 는
-    VDS = 0 열: 전류 0)과 보간되어 gm/ID 곡선 마디가 정의되지 않는다(lut `lut_curve_undefined`) -- LUT 가 그 VDS 의 동작점을
-    표현하지 못한다는 데이터 사실이다. 상수 없음(데이터에서 유도). LUT memo derived 영역에 슬라이스당 1회(다른 캐시 없음)."""
-    w_key = w_key_of(lut, kind)
-    sl = lut.memo.lut.slice_map[(kind, w_key)]
-
-    def compute():
-        on = sl.on_mask
-        full = on.all(axis=tuple(a for a in range(on.ndim) if a != _VDS_AXIS))
-        axis = sl.grids[_VDS_AXIS]
-        for j in range(len(axis)):
-            if bool(full[j:].all()):
-                return float(axis[j])
-        return float(axis[0])
-
-    return lut.memo.lookup("derived", "sizing_vds_floor", (kind, w_key), compute)
 
 
 def _inward(x, toward, a, b, axis):
@@ -242,11 +222,11 @@ class _Circuit(Circuit):
 
     def transient(self, exc, m, vds):
         """반복 중(시작값 둘째 단계 포함, strict=False) 현재 값을 유지할 LUT 정의역 이탈인가: `lut_axis_out_of_range`·
-        `lut_target_out_of_range`, 또는 VDS 정의역 하한(`_vds_floor`) 아래에서 난 `lut_curve_undefined`."""
+        `lut_target_out_of_range`, 또는 VDS 정의역 하한(`vds_floor`(LUT 파생)) 아래에서 난 `lut_curve_undefined`."""
         lut_reason = dict(exc.record.detail).get("lut_reason")
         if lut_reason in _TRANSIENT_LUT_REASONS:
             return True
-        return lut_reason == _CURVE_UNDEFINED and vds < _vds_floor(self.lut, self.kinds[m])
+        return lut_reason == _CURVE_UNDEFINED and vds < derived(self.lut.memo, "vds_floor", self.kinds[m], w_key_of(self.lut, self.kinds[m]))
 
     def start_writer(self, net, values):
         """시작값 둘째 단계(쓰기 계획 순서): MOS writer 노드는 writer 식을 VDS = 레일 범위 절반에서 한 번 평가한 값
@@ -320,7 +300,7 @@ class _Circuit(Circuit):
 
         (vds0, vsb0), (vds1, vsb1) = channel(0.0), channel(1.0)
         bounds = [(self.lo, self.hi, _BOUND_RAIL)]
-        vds_domain = (_vds_floor(self.lut, kind), grids[_VDS_AXIS][-1])
+        vds_domain = (derived(self.lut.memo, "vds_floor", kind, w_key_of(self.lut, kind)), grids[_VDS_AXIS][-1])
         for a, b, axis, label in ((vds0, vds1 - vds0, vds_domain, _BOUND_VDS),
                                   (vsb0, vsb1 - vsb0, grids[_VS_AXIS], _BOUND_VS)):
             if b != 0:

@@ -2,12 +2,12 @@
 40 §2.4.7 `CurveBook` 행 v1.9.1 D10 -- 옛 `CurveBook` 객체를 없애고 LUT 파생은 LUT memo 함수 `lut.derived`, 소자 동작점은 S0 수준 필드 `device: start.point`).
 
 곡선 읽기 함수는 출발 구간 블록의 작업 값 `v`(`StartView` -- `memo`·`w_keys`·`points` 칸)를 첫 인자로 받는다. 상태를 담지 않는다: 곡선은 `LutMemo` curve 영역이,
-기준 VDS·tol_vdsat·엣지 비용은 LUT 파생(`lut.derived`)이 memo 한다.
+기준 VDS·엣지 비용은 LUT 파생(`lut.derived`)이 memo 한다.
 
 * `_curve_of(v, quantity, kind, L, vds=None, vsb=None)` -> `GmIdAxisCurve` | None: vds 를 안 주면 VDS 격자 중 엣지 비용 VDS 이상에서 처음 정의된 곡선, vsb 를 안 주면 첫 VS 격자점.
 * `_ref_vds(v, kind, L)`: (kind, L) 의 기준 VDS(포화 경계 이상 격자점 중 vdsat 곡선이 처음 정의된 점) -- `lut.derived("reference_vds")`. 없으면 None.
 * `curve_bundle(v, kind, L, vds=None, vsb=None)` -> {양: 곡선} | None, `curve_bundle_of(v, name, kind, L)` -> 소자 동작점(`v.points`)의 묶음(없거나 정의 안 되면 기준 점 묶음).
-* `edge_cost(v, kind)`(`lut.derived("edge_costs")`), `tol_vdsat(v, kind, L, vds)`(`lut.derived("tol_vdsat_max")`), `slice_of`·`l_anchors`·`vds_grid`·`vsb_ref`·`snap_vds`·`snap_up_vds`.
+* `edge_cost(v, kind)`(`lut.derived("edge_costs")`), `_has_vdsat_column(v, kind)`(VDSAT 격자 입구 `lut.sat_threshold_grid` 가 있는가 -- 없으면 VDSAT 경계 비활성, 대체값 없음), `slice_of`·`l_anchors`·`vds_grid`·`vsb_ref`·`snap_vds`·`snap_up_vds`.
 * `curve_value(bundle, quantity, g)`(idu·ft 는 log 보간, 나머지는 선형, `QUANTITY_VGS` 는 VGS 마디), `curve_range(bundle)` = 분지 gm/ID (최솟값, 최댓값).
 * `_at_gm_id(gm_id, values, g, log=False)`: 곡선 마디 값을 gm/ID = g 에서 선형(또는 log) 보간. 마디 gm/ID 는 분지에서 내려가는 순서(`GmIdAxisCurve`), 정의역 밖은 끝 값.
   비단조 곡선(중반전 상승)은 g 를 품는 칸 중 가장 오른쪽(강반전 쪽)에서 읽는다(lut 3절).
@@ -19,7 +19,7 @@ import math
 import numpy as np
 
 from gmid_engine.core import SchemaRejectedError, SealViolationError
-from gmid_engine.lut import derived, ft_curve, idu_curve, intrinsic_gain_curve, vdsat_curve
+from gmid_engine.lut import derived, ft_curve, idu_curve, intrinsic_gain_curve, sat_threshold_grid, vdsat_curve
 
 QUANTITY_FT = "ft"
 QUANTITY_GAIN = "intrinsic_gain"
@@ -89,9 +89,9 @@ def snap_vds(v, kind, target):
     return min(grid, key=lambda x: (abs(x - target), -x))
 
 
-def tol_vdsat(v, kind, L, vds):
-    """VDSAT 허용오차 tol_vdsat(L, VDS 칸) -- L 을 감싸는 두 앵커와 VDS 가 든 격자 칸 중 정의된 것의 최댓값(보수). 표를 못 만들면 0."""
-    return derived(v.memo, "tol_vdsat_max", kind, v.w_keys[kind], float(L), float(vds))
+def _has_vdsat_column(v, kind):
+    """그 kind 슬라이스에 VDSAT 격자 입구가 있는가(열 없음 = False). VDSAT 곡선·경계의 존재 조건이다 -- 없으면 그 경계는 비활성이고 대체값을 만들지 않는다."""
+    return sat_threshold_grid(v.memo, kind, v.w_keys[kind]) is not None
 
 
 # ---------------------------------------------------------------- 곡선
@@ -124,12 +124,14 @@ def _ref_vds(v, kind, L):
 
 
 def curve_bundle(v, kind, L, vds=None, vsb=None):
-    """같은 (L, VDS, VSB) 의 곡선 묶음 {양: GmIdAxisCurve}. 하나라도 정의되지 않으면 None. (vds, vsb) 를 안 주면 기준 점(포화 경계 VDS, 첫 VS 격자점)."""
+    """같은 (L, VDS, VSB) 의 곡선 묶음 {양: GmIdAxisCurve}. 하나라도 정의되지 않으면 None(VDSAT 열이 없는 kind 는 `QUANTITY_VDSAT` 곡선만 빠진다). (vds, vsb) 를 안 주면 기준 점(포화 경계 VDS, 첫 VS 격자점)."""
     vds = _ref_vds(v, kind, L) if vds is None else vds
     if vds is None:
         return None
     out = {}
     for quantity, _fn in _CURVE_FN:
+        if quantity == QUANTITY_VDSAT and not _has_vdsat_column(v, kind):      # 열 없음 = VDSAT 곡선 없음(그 경계만 비활성, 대체값 없음)
+            continue
         curve = _curve_of(v, quantity, kind, L, vds, vsb)
         if curve is None:
             return None

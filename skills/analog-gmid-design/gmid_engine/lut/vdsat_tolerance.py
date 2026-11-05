@@ -62,7 +62,7 @@ class TolVdsatTable:
         """
         if metric not in TOL_VDSAT_METRICS:
             raise ValueError("TolVdsatTable.at: metric 은 %s 중 하나" % (TOL_VDSAT_METRICS,))
-        context = (("kind", self.kind), ("table", "tol_vdsat"), ("w_key", self.w_key))
+        context = (("kind", self.kind), ("table", "tol_" + TOL_VDSAT_METRICS[0]), ("w_key", self.w_key))
         return table_at(self, metric + "_v", L, vds, context)
 
 

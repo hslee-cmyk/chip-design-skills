@@ -4,7 +4,7 @@
 `icm_window_metrics`(`graph.icm_config` V_cm 칸, 카드 IT-2d, O-109 C1)가 내고 `metrics_aux` 가 한 `SwingIcmr` 로 합친다. 이 함수 출력의 입력 쪽 칸은 기본값이다.
 
 **경로 합 = 차분 제약계의 가장 긴 경로.** 노드 전압 V_n 에 대한 제약:
-* 채널 포화(VDS 엣지, 사용자 SPICE 포화 규칙 + LUT `tol_vdsat`): NMOS V_d − V_s ≥ sat, PMOS V_s − V_d ≥ sat, sat = VDSAT + tol_vdsat(`SatDevice.sat_v`).
+* 채널 포화(VDS 엣지, 사용자 SPICE 포화 규칙 VDS ≥ VDSAT, 여유 tol 을 경계에서 빼지 않는다 O-204): NMOS V_d − V_s ≥ sat, PMOS V_s − V_d ≥ sat, sat = VDSAT(`SatDevice.sat_v`).
   선형 영역 선언 소자(`linear`)는 채널 제약이 없다.
 * 게이트-소스(VGS 엣지, 그 전류에서 VSB 를 포함한 |VGS|): NMOS V_g − V_s = +|VGS|, PMOS V_g − V_s = −|VGS| (등식 -- 양쪽 부등식). 전류가 바깥 회로로 고정되는
   소자에만 건다: source 가 레일이 아닌 소자(follower·차동쌍 -- source 가 gate 를 따라 움직인다)와 gate = drain 인 diode 연결 소자(VDS 엣지가 아니라 VGS 엣지 하나로
@@ -17,7 +17,7 @@ V_a − V_b ≥ c 에서 lo(a) ≥ lo(b) + c, hi(b) ≤ hi(a) − c 를 노드 �
 
 * `swing_out_v`: 출력 포트 넷마다 반폭 = min(hi − V_dc, V_dc − lo), 단일 출력(들) = 2·min 반폭, 차동 출력 쌍(`diff_outputs`) = 출력마다 반폭 최솟값 × 4(차동 p-p).
   구간 [lo, hi, V_dc] 를 `out_ranges` 로 낸다. 빈 구간(반폭 음수)은 음수 폭 그대로.
-* 분해능(`swing_resolution`): 가장 긴 경로를 따라 엣지 허용오차(채널 = tol_vdsat, VGS 엣지 = 그 소자 tol_V)를 누적한 값 × 계수(2 또는 4). 엣지 허용오차가 없으면 None.
+* 분해능(`swing_resolution`): 가장 긴 경로를 따라 엣지 허용오차(채널 = tol_vdsat 기록값 `sat_tol_v`, VGS 엣지 = 그 소자 tol_V)를 누적한 값 × 계수(2 또는 4). 엣지 허용오차가 없으면 None.
 * 정의 불가(`swing_out_v` 하나): 출력 포트 없음(`no_output_port`), 포화 판정 열이 없는 소자(`sat_unavailable`, 근사하지 않는다 DEC-88), 노드 전압 없음(`node_v_missing`).
 """
 import sys

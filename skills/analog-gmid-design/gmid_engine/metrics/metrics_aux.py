@@ -17,7 +17,7 @@ transfer_views, ugf_hz, driving)`.
   어휘 밖 영역은 fail-closed(ValueError).
 * metric → 계산 함수 (정의·식은 각 파일 머리말):
   `offset_in_sigma_mv`·`offset_excess` → `offset_analysis`(σ 는 `device_sigmas`), `offset_sys_mv` → `offset_systematic`, `mirror_ratio_sigma_pct` → `mirror_ratio`,
-  `swing_out_v` → `ls_swing`(채널 포화 `vdsat + tol_vdsat`), `icmr_v`·`icm_margin_v` → `icm_window_metrics`(`graph.icm_config` V_cm 칸, `node.dc_window_cfg` 포트 열), 둘은 한
+  `swing_out_v` → `ls_swing`(채널 포화 VDSAT = 필드 `device.dc_sat_v`, tol 은 분해능 기록만), `icmr_v`·`icm_margin_v` → `icm_window_metrics`(`graph.icm_config` V_cm 칸, `node.dc_window_cfg` 포트 열), 둘은 한
   `SwingIcmr` 로 합친다(`undefined` = 스윙 사유 + ICMR 사유). `ff_gm_ratio` → `ff_gm_ratio`. 같은 (함수, 뷰) 는 한 번만 부른다.
 * 보고(`MetricBundle.reports`, 요청과 무관하게 구조 입력이 있으면 항상): 전달 뷰마다 `block_residual`(gain_residual_db·block_gain·ff_contrib·rout_residual_ohm, 41 §2.2),
   `nqs_ratio`(ugf 가 있을 때) -- 결측이 하나라도 있으면 전달 뷰 보고는 내지 않는다. metric 이 계산된 만큼 `offset_contrib`·`swing_icmr`·`mirror_ratio`·`ff_gm_ratio` 보고.
@@ -25,9 +25,8 @@ transfer_views, ugf_hz, driving)`.
 import dataclasses
 
 from gmid_engine.authoring import (INPUT_DIRECTION, OUTPUT_DIRECTION, REGION_TRIODE, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P)
-from gmid_engine.core import SealViolationError, compute_block
+from gmid_engine.core import compute_block
 from gmid_engine.graph import (DISPOSITION_BIAS_DISTRIBUTION, GRAPH_KEY, MATCH_MIRROR, MOS_TERMINAL_NAMES, NMOS)
-from gmid_engine.lut import tol_vdsat_table, vdsat
 from gmid_engine.sizing import INPUT_STATUS_MEASURED, METRICS_AUX_WRITER, METRICS_KEY
 
 from .aux_types import (FfRatio, IcmPort, MirrorRatio, OffsetAnalysis, OffsetSystematic, SatDevice, SwingIcmr)
@@ -49,7 +48,7 @@ from .ss_types import MetricBundle
 
 READS = (
     ("graph", "ss_circuit"), ("graph", "ss_nodal"), ("graph", "icm_config"),
-    ("device", "ss_dev"), ("device", "dc_op"), ("device", "dc_tol_v"), ("device", "kind"), ("device", "pins"),
+    ("device", "ss_dev"), ("device", "dc_op"), ("device", "dc_sat_v"), ("device", "dc_tol_v"), ("device", "kind"), ("device", "pins"),
     ("device", "dc_role"), ("device", "dc_colour"), ("device", "region_decl"),
     ("node", "port_direction"), ("node", "port_role"), ("node", "dc_v"), ("node", "dc_rail_v"), ("node", "dc_window_cfg"), ("node", "dc_colour"),
     ("graph", "matching_groups"), ("graph", "matching_dispositions"),
@@ -100,24 +99,18 @@ def _structure_of(structure, view):
     return next((v for v in structure.views if frozenset(n for n, _w in v.excite) == excite and frozenset(v.sense) == sense), None)
 
 
-def _sat_devices(projection, lut, linear, canonical):
-    """`SatDevice` tuple(정준 순서). VDSAT 열이 없는 LUT 이거나 tol 이 정해지지 않은 소자는 `sat_v` None(근사하지 않는다)."""
+def _sat_devices(projection, linear, canonical):
+    """`SatDevice` tuple(정준 순서). `sat_v` = 필드 `device.dc_sat_v` 의 `vdsat_v`(tol 을 더하지 않는다, O-204), `sat_tol_v` = 그 `tol_v`(분해능 기록). 값이 없는 사유(열 없음·정의역 밖·역방향 VDS)는 둘 다 None(근사하지 않는다)."""
     kinds = dict(projection.column("device", "kind"))
     pins = dict(projection.column("device", "pins"))
     tols = dict(projection.column("device", "dc_tol_v"))
+    bounds = dict(projection.column("device", "dc_sat_v"))
     rows = []
     for label, op in sorted(projection.column("device", "dc_op"), key=lambda r: canonical(r[0])):
         terminal = dict(pins[label])
         drain, gate, source = (terminal[t] for t in MOS_TERMINAL_NAMES)
-        sat = sat_tol = None
-        try:
-            base = vdsat(lut.memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb)
-            sat_tol = tol_vdsat_table(lut.memo, op.kind, op.w_key).at(op.L, op.vds)
-            sat = None if sat_tol is None else base + sat_tol
-        except SealViolationError as exc:
-            if dict(exc.record.detail).get("reason") != "lut_column_unavailable":
-                raise
-        rows.append(SatDevice(label, 1 if kinds[label] == NMOS else -1, drain, gate, source, op.vgs, sat, sat_tol,
+        bound = bounds[label]
+        rows.append(SatDevice(label, 1 if kinds[label] == NMOS else -1, drain, gate, source, op.vgs, bound.vdsat_v, bound.tol_v,
                               tols.get(label), label in linear))
     return tuple(rows)
 
@@ -210,7 +203,7 @@ def metrics_aux(projection):
             results[request] = _result(request, found)
             continue
         if name in ("swing_out_v", "icmr_v", "icm_margin_v"):
-            found = once("swing", lambda: _swing(projection, lut, triode_devs, canonical, node_v, input_dc_v))
+            found = once("swing", lambda: _swing(projection, triode_devs, canonical, node_v, input_dc_v))
             results[request] = _result(request, found)
             continue
         if name == "ff_gm_ratio":
@@ -232,7 +225,7 @@ def metrics_aux(projection):
             reports.append(("nqs_ratio", (("view", vstruct.id), ("ratio", nqs.ratio), ("min_ft_hz", nqs.min_ft_hz), ("device", nqs.limiting_device),
                                           ("undefined", tuple(sorted(u.code for u in nqs.undefined))))))
             if driving is not None:
-                swing = once("swing", lambda: _swing(projection, lut, triode_devs, canonical, node_v, input_dc_v))
+                swing = once("swing", lambda: _swing(projection, triode_devs, canonical, node_v, input_dc_v))
                 if swing.bounds:
                     outs = tuple(n for n, d in projection.column("node", "port_direction") if d == OUTPUT_DIRECTION)
                     fields = ls_fields(ss, vstruct, ops, node_v, swing.bounds, lut, rel_tols, driving, outs)
@@ -281,8 +274,8 @@ def _icm_ports(projection):
     return tuple(rows)
 
 
-def _swing(projection, lut, linear, canonical, node_v, input_dc_v):
-    devices = _sat_devices(projection, lut, frozenset(linear), canonical)
+def _swing(projection, linear, canonical, node_v, input_dc_v):
+    devices = _sat_devices(projection, frozenset(linear), canonical)
     rails = tuple((n, v) for n, v in projection.column("node", "dc_rail_v") if v is not None)
     ports = projection.column("node", "port_direction")
     outputs = tuple(n for n, d in ports if d == OUTPUT_DIRECTION)
