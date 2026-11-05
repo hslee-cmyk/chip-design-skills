@@ -126,7 +126,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - (행 노드, 열 노드, 값) tuple. KCL 행 = 노드에서 나가는 전류. MOS G 행: drain (d,d,gds)(d,g,gm)(d,b,gmb)(d,s,−(gm+gmb+gds)),
   source 는 부호 반대. 값 0 항목은 내지 않는다. 저항 = 1/R 의 2단자 4항목, 커패시터 = C 의 4항목. 다른 형식은 `TypeError`.
 - [IT-2c] `StampSet(g=(), c=(), g_ops=())`: `g_ops` = `g` 와 같은 길이·순서의 연산 수(길이가 다르면 `ValueError`). MOS (d, s)·(s, s) 항목 2(gm + gmb + gds 의 덧셈 2회), 나머지 6항목 0;
-  저항 네 항목 각 1(1/R 나눗셈); 커패시터는 g 가 비어 g_ops 도 빈 값. `conductance_matrix(circuit, size, *, bound=False)` 가 `bound=True` 면 `(g, g_bound)` 를 낸다:
+  저항 네 항목 각 1(1/R 나눗셈); 커패시터는 g 가 비어 g_ops 도 빈 값. `conductance_matrix(circuit, size, *, bound=False)`(`ss_nodal.py` 에 정의) 가 `bound=True` 면 `(g, g_bound)` 를 낸다:
   E_ij = γ_{max(k_ij−1, 0)}·S_ij + C_ij + γ_{n+1}·|Ĝ_ij| (S = Σ|ĝ_s|, k = 스탬프 항 수, C = Σ γ_{c_s}|ĝ_s|, γ_m = m·u/(1 − m·u), u = ε/2, n = size).
 
 ### 3.2 `build_mna(circuit, excitations, senses) -> MnaSystem`
@@ -502,7 +502,7 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 | 1 | `ss_off_op.py` [EO-1 범위 4] | `ss_off_op` | `ss_off_op` | `device.off_op` = `OffOp(vgs, vds, vsb, w_key)`(`off` 선언 소자만) |
 | 1 | `ss_off_gate.py` [EO-1 범위 4] | `off_region_gate`(필드를 쓰지 않는 함수) | -- | -- |
 | 1 | `ss_circuit.py` [IT-2c] | `ss_circuit_field`(순수 조립 함수 `ss_circuit`·`is_dc_conducting_passive`·`CODE_PASSIVE_MISSING`) | `ss_circuit` | `graph.ss_circuit`(key `METRICS_KEY`) = `SsCircuit` |
-| 3 | `ss_nodal.py` [IT-2c] | `ss_nodal_system`(조립 함수 `nodal_of`) | `ss_nodal` | `graph.ss_nodal`(key `METRICS_KEY`) = `NodalSystem` 또는 `Undefined` |
+| 3 | `ss_nodal.py` [IT-2c] | `ss_nodal_system`(조립 함수 `nodal_of`), `conductance_matrix`(G·g_bound 조립, A-105 에서 `_helpers_nodal` 로부터 이동) | `ss_nodal` | `graph.ss_nodal`(key `METRICS_KEY`) = `NodalSystem` 또는 `Undefined` |
 | 4 | `ss_off_delta.py` [EO-1 범위 4] | `ss_off_delta` | `ss_off_delta` | `graph.ss_off_delta`(key `METRICS_KEY`) = `OffDelta(node_dv, sources)` |
 | 3 | `icm_config.py` [IT-2c] | `icm_config_window`(`kvl_sensitivity`·`_transfer_resolution`) | `icm_config` | `node.dc_window_cfg`(입력 포트마다 `Window`)·`graph.icm_config`(`IcmConfig`) |
 | 3 | `dc_metrics.py` | `metrics_dc` | `metrics_dc` | `graph.metrics_dc`(key `METRICS_KEY` = `"metrics"`) |
@@ -1247,7 +1247,7 @@ max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미
 | 파일 | 진입점 | 내용 |
 |---|---|---|
 | `aux_types.py` | (데이터) | 결과·구조 입력 frozen 레코드(12.1) |
-| `_helpers_nodal.py` | `conductance_matrix`, `capacitance_matrix`, `nodal_factor(g, fixed, *, c)`, `nodal_solve`, `nodal_adjoint` | ω → 0 노달 풀이(전도 노드는 G 행, 용량 전용 노드는 `_helpers_dc.limit_matrix` 의 전하 보존 행), LU 1회, 정방향·수반 |
+| `_helpers_nodal.py` | `capacitance_matrix`, `nodal_factor(g, fixed, *, c)`, `nodal_solve`, `nodal_adjoint` | ω → 0 노달 풀이(전도 노드는 G 행, 용량 전용 노드는 `_helpers_dc.limit_matrix` 의 전하 보존 행), LU 1회, 정방향·수반 |
 | `_helpers_view.py` | `view_system`, 상수 `PARAMETER_ORDER` | 전달 뷰 -> (고정 노드, 구동, 관측 벡터, 여기 쌍, 감지 쌍) |
 | `metric_structure.py` | `metric_structure(s1v) -> MetricStructure` | S1v -> 주경로 블록 사슬·FF 묶음·입력 셀·신호 셀·극점 노드·방향 셀 |
 | `device_sigma.py` | `device_sigmas(lut, mismatch, devices)` | 소자별 σ_VGS(U3 `mismatch_sigma_vgs`)와 tol_mismatch 1차 전파 |
