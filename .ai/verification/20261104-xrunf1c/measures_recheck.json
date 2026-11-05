@@ -1,0 +1,137 @@
+{
+ "target_head": "2819930f2dce6d2470fb8ca04e394ecbb1889f09",
+ "base_for_trajectory": "6b21ede5",
+ "card_summary": "385 passed, 2 deselected, 3 warnings in 180.72s (0:03:00)",
+ "smoke_summary": "23 passed, 141 deselected in 170.19s (0:02:50)",
+ "mutants": [
+  {
+   "mutant": "M1_final_call_removed",
+   "exit": 1,
+   "killed": true,
+   "failed": [
+    "FAILED gmid_engine/tests/search/test_find_front.py::test_gate_entry_derives_budget_when_evaluations_at_most_n_theta"
+   ],
+   "summary": "1 failed, 29 passed, 1 deselected, 3 warnings in 40.07s"
+  },
+  {
+   "mutant": "M2_ladder_stop_removed",
+   "exit": 1,
+   "killed": true,
+   "failed": [
+    "FAILED gmid_engine/tests/search/test_layer0_center.py::test_layer0_ladder_rung_at_budget_not_evaluated_start_status_eval_budget"
+   ],
+   "summary": "1 failed, 27 passed in 10.02s"
+  },
+  {
+   "mutant": "M7_start_status_changed",
+   "exit": 1,
+   "killed": true,
+   "failed": [
+    "FAILED gmid_engine/tests/search/test_layer0_center.py::test_layer0_ladder_rung_at_budget_not_evaluated_start_status_eval_budget"
+   ],
+   "summary": "1 failed, 27 passed in 10.21s"
+  }
+ ],
+ "ct13_split": [
+  {
+   "e_b": 20000,
+   "gate_calls": 1,
+   "front": 3,
+   "stops_eval": 0,
+   "stops_wall": 0,
+   "kernel": 7892,
+   "requests": 9365,
+   "kernel_lt_eb": true,
+   "eval_budget_in_notes": false,
+   "sig_sha256": "a2212e4b45a345f20f8f66e7b205f40c5c2154d040feb4c4dd147ada4e354fa6"
+  },
+  {
+   "e_b": 100000,
+   "gate_calls": 1,
+   "front": 3,
+   "stops_eval": 0,
+   "stops_wall": 0,
+   "kernel": 7892,
+   "requests": 9365,
+   "kernel_lt_eb": true,
+   "eval_budget_in_notes": false,
+   "sig_sha256": "a2212e4b45a345f20f8f66e7b205f40c5c2154d040feb4c4dd147ada4e354fa6"
+  }
+ ],
+ "ct13_base_vs_head_e_b_20000": {
+  "seq_len": 7892,
+  "identical": true,
+  "kernel": 7892,
+  "requests": 9365,
+  "base_stops_eval": 0,
+  "base_shortfalls": 0,
+  "base_front": 3
+ },
+ "ct13_whole_test": "완주 관측 없음: 한 프로세스 두 실행이 2 GB 감시에 두 번 걸려 자기 정지(첫 실행 E_B=20000 은 끝남). 같은 단언을 프로세스를 나눠 잼.",
+ "driver": [
+  {
+   "job": "card",
+   "exit": 0,
+   "stopped_low_mem": false,
+   "start_gb": 3.72,
+   "low_gb": 2.64,
+   "s": 202
+  },
+  {
+   "job": "smoke",
+   "exit": 0,
+   "stopped_low_mem": false,
+   "start_gb": 4.37,
+   "low_gb": 2.36,
+   "s": 181
+  },
+  {
+   "job": "mutants",
+   "exit": 0,
+   "stopped_low_mem": false,
+   "start_gb": 3.96,
+   "low_gb": 2.36,
+   "s": 76
+  },
+  {
+   "job": "ct13_slow",
+   "exit": 1,
+   "stopped_low_mem": true,
+   "start_gb": 3.7,
+   "low_gb": 1.97,
+   "s": 372
+  },
+  {
+   "job": "base_traj",
+   "exit": 0,
+   "stopped_low_mem": false,
+   "start_gb": 4.14,
+   "low_gb": 2.95,
+   "s": 232
+  },
+  {
+   "job": "ct13_slow",
+   "exit": 1,
+   "stopped_low_mem": true,
+   "start_gb": 4.25,
+   "low_gb": 1.95,
+   "s": 351
+  },
+  {
+   "job": "ct13_split_20000",
+   "exit": 0,
+   "stopped_low_mem": false,
+   "start_gb": 3.84,
+   "low_gb": 2.36,
+   "s": 244
+  },
+  {
+   "job": "ct13_split_100000",
+   "exit": 0,
+   "stopped_low_mem": false,
+   "start_gb": 3.7,
+   "low_gb": 2.36,
+   "s": 244
+  }
+ ]
+}
