@@ -338,7 +338,9 @@ def test_ic10_w_request_change_not_served_from_parent(mir):
 
 
 # ===========================================================================
-# 결정론 (CONTRACT 9절) -- U4 경로(L 동치류·OrderHints·W_request·S2p·국소 봉인)
+# 결정론 (CONTRACT 9절) -- U4 경로(L 동치류·W_request·S2p·국소 봉인)
+# [TB-1 retired/broken] 옛 순서 힌트(independent=M2) 입력과 M2 writer θ 키 바꿈을 지웠다: 평행 관계의 독립 유지는 diode(M1)이고
+# 종속 멤버는 θ 분류·구조 위치가 정한다(이름 키 없음) -- 이유 O-187·O-189·O-194.
 # ===========================================================================
 
 _SCRIPT = r'''
@@ -346,15 +348,13 @@ import json, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
 import conftest as C
-from gmid_engine.sizing import OrderHints, size_and_seal, size_and_seal_local, theta_name
+from gmid_engine.sizing import size_and_seal, size_and_seal_local, theta_name
 tmp = Path(tempfile.mkdtemp())
 acc = C.new_access(C.write_r4_lut(tmp / "lut"))
 lc = (C.LClassStub("M1", ("M2", "M1")),)
-_, ctx = C.build_ctx_u4(tmp / "m", C.circuit_mirror(), acc, l_classes=lc, order_hints=OrderHints(independent=("M2",)),
-                        element_values=(("I1", 1e-5),))
+_, ctx = C.build_ctx_u4(tmp / "m", C.circuit_mirror(), acc, l_classes=lc, element_values=(("I1", 1e-5),))
 th = C.theta_mirror()
 del th[("L", "M2")]
-th[("ln_idu", "M2")] = th.pop(("ln_idu", "M1"))
 e0 = size_and_seal(ctx, th)
 e1 = size_and_seal(ctx, th, parent=C.with_hand_ss(e0), w_request={"M3": 1e-5})
 cols = ["0", "1"]                                   # circuit_mirror 의 기둥 id 둘(S1 graph.columns)

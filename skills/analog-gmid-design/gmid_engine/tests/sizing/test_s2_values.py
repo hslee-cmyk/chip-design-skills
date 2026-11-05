@@ -17,6 +17,7 @@ DC_TABLE = {
     # [U17 ①-d] 40 v1.8 §6-8 D-2·§2.4.8: 구조 색 dc_colour·궤도·전류 부호는 graph 대칭 블록(s1_symmetry, S1 권한표)으로 옮겼고 dc_orbit·
     # dc_symmetry 는 graph/s1 orbits·current_symmetry 로 대체됐다 -- dc 표에서 다섯 행을 지운다(S1 권한표 쪽은 tests/graph/test_s1_values.py).
     ("graph", "dc_current_basis"): "dc_current_basis",
+    ("device", "theta_class"): "theta_class",               # [TB-1 interface §1] 새 필드 device.theta_class, writer = 블록 theta_class(이름 규약)
     ("node", "dc_writer"): "dc_writer_plan",
     ("device", "dc_coord"): "dc_writer_plan",
     ("graph", "dc_tie_breaks"): "dc_writer_plan",           # [r2]
@@ -74,7 +75,8 @@ def test_dc_table_has_32_fields():
     # graph/kernel fixed_values·resistor_values·l_ties(커널 컨텍스트 구조 파생) = 33. theta_schema 는 dc_theta_schema 를 옮긴 것이라 ±0).
     # [IT-2c 갱신, 승인 동작 변경 O-109·O-205] node.dc_output_structure 삭제(계획 v6.38.8 N3.8, design 41 v1.16.3 §4.7-W) −1 = 33.
     # [EO-1 범위 4] dc_off_current·dc_conduction_floor −2, device.region_decl +1 (S0 행) = 32.
-    assert len(DC_TABLE) == 32
+    # [TB-1] device.theta_class +1 = 33.
+    assert len(DC_TABLE) == 33
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -151,7 +153,10 @@ READS = {
     "dc_writer_plan": {("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
                        ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
                        ("node", "dc_colour"), ("node", "port_role"), ("graph", "gvgs_summary"),
-                       ("device", "bulk"), ("device", "region_decl")},      # [EO-1 범위 4, A-88] region_decl READS; [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
+                       ("device", "bulk"), ("device", "region_decl"),
+                       ("device", "dc_nets"), ("node", "ac_ground_class"),  # [EO-1 A-92·A-93] off_only_node 전도 엣지·선언 bias 시작점
+                       ("device", "theta_class"), ("graph", "orbits"), ("graph", "views"), ("graph", "dependent_facts")},   # [TB-1 interface §2 입력: 분류·궤도 대표·stage 순위용 뷰·ratify 사실]
+                                                                             # [EO-1 범위 4, A-88] region_decl READS; [U17 ①-b] dc_self_referential(§2.4.8) = 쓰는 노드가 자기 d·s·bulk 중 하나 -- bulk 를 읽는다
     "dc_scc_order": {("node", "dc_writer"), ("device", "pins"), ("device", "bulk"), ("device", "element_class"),
                      ("graph", "columns"), ("graph", "branches")},
     "dc_currents": {("graph", "dc_current_basis")},
@@ -205,8 +210,8 @@ def test_vocabulary_constants():
         "lut_vdsat_column_missing", "declared_source_kcl_conflict", "no_root_in_window", "strict_recheck_residual")
     # [r2] 옛 device_current_nonpositive 는 없어졌다(정의역 밖 = ValueError)
     assert not hasattr(S, "REASON_CURRENT_NONPOSITIVE")
-    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_CURRENT_PIVOT) == (
-        "writer_edge", "w4_root", "current_pivot")
+    assert (S.TIE_KRUSKAL, S.TIE_CURRENT_PIVOT) == ("writer_edge", "current_pivot")
+    # [TB-1] W4 뿌리 동률 기록 이름 폐기 -- 동률은 정지(dc_colour_not_unique). 이름 부재 단언은 test_writer_plan 의 test_w4_root_tie_* 가 한다.
     assert not hasattr(S, "TIE_INPUT_ORDER")
     assert not hasattr(S, "BRANCH_INPUT_MULTIPLE_ROOTS")                             # [IT-1 DEC-106] 옛 사유 삭제
     from gmid_engine.sizing import s2_values as _s2v
@@ -312,10 +317,12 @@ def test_value_fields_as_contract():
     # [U4] 국소 봉인 값 형식(41 §5.3 LocalSeal{ok, failures, snapshot_fragment, gain_db, power_w, area_m2})
     assert names(S.LocalSeal) == ("ok", "failures", "snapshot_fragment", "gain_db", "power_w", "area_m2")
     assert names(S.SnapshotFragment) == ("devices", "nodes")
-    assert names(S.OrderHints) == ("independent", "gm_required", "stage")
-    assert S.NO_ORDER_HINTS == S.OrderHints((), (), ())
-    assert names(S.DcInputs) == ("supplies_v", "input_dc_v", "node_targets", "element_values", "regions",
-                                 "pending", "engine_elements")                                   # [r5]
+    # [TB-1] 종속 멤버 선택 힌트 값 형식 폐기(이름 부재는 test_writer_plan 의 test_dependent_member_* 가 단언)
+    # [TB-1 broken_tests O-187] DcInputs 에 θ 분류 입력 bool 셋(has_gbw_target·has_rout_limit·has_settling)이 늘었다. 앞 7칸은 그대로, 뒤 셋은 순서를 단언하지 않는다.
+    got = names(S.DcInputs)
+    assert got[:7] == ("supplies_v", "input_dc_v", "node_targets", "element_values", "regions",
+                       "pending", "engine_elements")                                             # [r5]
+    assert len(got) == 10 and set(got[7:]) == {"has_gbw_target", "has_rout_limit", "has_settling"}
 
 
 def test_kernel_context_holds_only_references():

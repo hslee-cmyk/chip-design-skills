@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "topology_hash": "887747d29064aa37f03aecf3c251b385431b4930f2b1b9a6260c2d0ea8036999",
-  "rule_hash": "87455b1b2c661149768cbdf83b1539763a7a0d3433081d9ccc691622c1d13f68",
+  "rule_hash": "25e4f104c72e1b9a76822b3e0c866c94a352e86455362a26cc25e73536126378",
   "facts": [
     {
       "concept": "l_owner",

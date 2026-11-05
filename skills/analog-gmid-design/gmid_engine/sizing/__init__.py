@@ -26,6 +26,7 @@ from .region_judge import OUT_OF_DOMAIN, RegionJudgment, judge_region
 from .region_mismatch import region_mismatch
 from .s2_lift import lift_s1
 from .s2_values import (
+    BRANCH_DC_COLOUR_NOT_UNIQUE,
     BRANCH_MOS_ZERO_CURRENT,
     BRANCH_OFF_ONLY_NODE,
     BRANCH_RESISTOR_CYCLE,
@@ -101,8 +102,12 @@ from .s2_values import (
     SS_WRITES,
     TIE_CURRENT_PIVOT,
     TIE_KRUSKAL,
-    TIE_ROOT,
     THETA_CAPACITANCE,
+    THETA_CLASS_B,
+    THETA_CLASS_F,
+    THETA_CLASS_KINDS,
+    THETA_CLASS_S,
+    THETA_CLASS_WRITER,
     THETA_CURRENT,
     THETA_KINDS,
     THETA_L,
@@ -131,9 +136,7 @@ from .s2_values import (
     DeviceOp,
     KernelContext,
     LutAccess,
-    NO_ORDER_HINTS,
     NodeWrite,
-    OrderHints,
     PathValue,
     SccEntry,
     SccLog,
@@ -141,6 +144,7 @@ from .s2_values import (
     SealItem,
     SealReport,
     Theta,
+    ThetaClass,
     TieBreak,
     ThetaSchema,
     Window,
@@ -164,11 +168,13 @@ from .size_and_seal import size_and_seal
 from .size_and_seal_local import size_and_seal_local, theta_name
 from .symmetry_marks import symmetry_marks
 from .theta_check import check_theta
+from .theta_class import theta_class
 from .theta_schema import dc_theta_schema
 from .w0_rails import dc_rails
 from .writer_plan import dc_writer_plan
 
 __all__ = (
+    "BRANCH_DC_COLOUR_NOT_UNIQUE",
     "BRANCH_MOS_ZERO_CURRENT",
     "BRANCH_OFF_ONLY_NODE",
     "BRANCH_RESISTOR_CYCLE",
@@ -198,14 +204,12 @@ __all__ = (
     "KernelContext",
     "LocalSeal",
     "LutAccess",
-    "NO_ORDER_HINTS",
     "OUT_OF_DOMAIN",
     "METRICS_AUX_WRITER",
     "METRICS_DC_WRITER",
     "METRICS_KEY",
     "METRICS_SS_WRITER",
     "NodeWrite",
-    "OrderHints",
     "RegionJudgment",
     "PASSIVE_VALUES_WRITER",
     "PATH_FIXED",
@@ -262,7 +266,6 @@ __all__ = (
     "SS_WRITES",
     "TIE_CURRENT_PIVOT",
     "TIE_KRUSKAL",
-    "TIE_ROOT",
     "SccEntry",
     "SccLog",
     "SealItem",
@@ -273,6 +276,13 @@ __all__ = (
     "THETA_CURRENT",
     "THETA_KINDS",
     "THETA_L",
+    "THETA_CLASS_B",
+    "THETA_CLASS_F",
+    "THETA_CLASS_KINDS",
+    "THETA_CLASS_S",
+    "THETA_CLASS_WRITER",
+    "ThetaClass",
+    "theta_class",
     "THETA_LN_IDU",
     "THETA_PASSIVE_KINDS",
     "THETA_RESISTANCE",

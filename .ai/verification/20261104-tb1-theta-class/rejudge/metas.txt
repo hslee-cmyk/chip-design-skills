@@ -1,0 +1,35 @@
+canon.log 12 passed in 1.02s
+canon.meta rc=0 start_free=4.75 min_free=4.68 secs=4 stopped=False
+card.log 1 failed, 379 passed in 23.21s
+card.meta rc=1 start_free=4.73 min_free=4.60 secs=26 stopped=False
+icm.log 36 passed in 14.86s
+icm.meta rc=0 start_free=4.70 min_free=4.52 secs=18 stopped=False
+imp2.meta rc=0 start_free=5.39 min_free=5.30 secs=4 stopped=False
+mst_reads.log 1 failed, 7 passed in 0.15s
+mst_reads.meta rc=1 start_free=4.78 min_free=4.69 secs=6 stopped=False
+mut.log 
+mut.meta rc=0 start_free=4.87 min_free=4.73 secs=84 stopped=False
+new_tests.log 11 passed in 0.33s
+new_tests.meta rc=0 start_free=4.71 min_free=4.71 secs=2 stopped=False
+red.log 19 failed, 105 passed, 1 error in 6.10s
+red.meta rc=1 start_free=4.82 min_free=4.73 secs=12 stopped=False
+s0h.log 
+s0h.meta rc=0 start_free=4.90 min_free=4.82 secs=4 stopped=False
+smoke_g10.log 2 passed, 11 deselected in 48.46s
+smoke_g10.meta rc=0 start_free=4.71 min_free=3.30 secs=50 stopped=False
+smoke_s0.log 11 passed, 72 deselected in 104.46s (0:01:44)
+smoke_s0.meta rc=0 start_free=4.93 min_free=3.41 secs=106 stopped=False
+smoke_stageb.log 10 passed, 58 deselected in 53.88s
+smoke_stageb.meta rc=0 start_free=4.84 min_free=3.65 secs=56 stopped=False
+structure.log [g8 ratchet] stale 1 건: [('vt_assign', 'sizing/s2_values.py', 'NO_ORDER_HINTS:OrderHints', 1)] | 171 passed, 1 deselected in 81.73s (0:01:21)
+structure.meta rc=0 start_free=4.76 min_free=4.66 secs=84 stopped=False
+toys1.log 
+toys1.meta rc=0 start_free=4.91 min_free=4.81 secs=6 stopped=False
+toys2b.log 
+toys2b.meta rc=0 start_free=4.75 min_free=4.66 secs=4 stopped=False
+toys4.log 
+toys4.meta rc=0 start_free=5.45 min_free=5.45 secs=2 stopped=False
+toys5.log 
+toys5.meta rc=0 start_free=4.68 min_free=4.62 secs=4 stopped=False
+toys6.log 
+toys6.meta rc=0 start_free=4.71 min_free=4.71 secs=2 stopped=False
