@@ -33,14 +33,14 @@ from .conftest import (B, C, HERE, MIRROR_W_DELTA, SKILL_DIR, build_ctx, build_c
                        seal_item, theta_mirror, theta_r4c, two, with_hand_ss)
 from .conftest import block_row  # [XRUN-F1 card B C1] 실행 계수 행
 
-EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
-          S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
-          S.dc_seal_conduction, S.dc_seal_report)
+EVAL12 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
+          S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_region, S.dc_seal_kvl_branch,
+          S.dc_seal_report)         # [EO-1 범위 4] 봉인 7·9 블록 둘 -> dc_seal_region 하나(자리는 옛 봉인 7 자리, 해석)
 
 
 def computes(ctx):
-    """[XRUN-F1 card B C1] ctx 실행 계수에서 평가 블록 13개의 computes(옛 블록 객체 stats 대체 -- 블록은 상태가 없다, C4)."""
-    return {b.name: block_row(ctx.counters, b.name)[4] for b in EVAL13}
+    """[XRUN-F1 card B C1] ctx 실행 계수에서 평가 블록 12개의 computes(옛 블록 객체 stats 대체 -- 블록은 상태가 없다, C4)."""
+    return {b.name: block_row(ctx.counters, b.name)[4] for b in EVAL12}
 
 
 def computes_since(ctx, before):
@@ -338,7 +338,9 @@ def test_ic10_w_request_change_not_served_from_parent(mir):
 
 
 # ===========================================================================
-# 결정론 (CONTRACT 9절) -- U4 경로(L 동치류·OrderHints·W_request·S2p·국소 봉인)
+# 결정론 (CONTRACT 9절) -- U4 경로(L 동치류·W_request·S2p·국소 봉인)
+# [TB-1 retired/broken] 옛 순서 힌트(independent=M2) 입력과 M2 writer θ 키 바꿈을 지웠다: 평행 관계의 독립 유지는 diode(M1)이고
+# 종속 멤버는 θ 분류·구조 위치가 정한다(이름 키 없음) -- 이유 O-187·O-189·O-194.
 # ===========================================================================
 
 _SCRIPT = r'''
@@ -346,15 +348,13 @@ import json, sys, tempfile
 from pathlib import Path
 sys.path.insert(0, sys.argv[1]); sys.path.insert(0, sys.argv[2])
 import conftest as C
-from gmid_engine.sizing import OrderHints, size_and_seal, size_and_seal_local, theta_name
+from gmid_engine.sizing import size_and_seal, size_and_seal_local, theta_name
 tmp = Path(tempfile.mkdtemp())
 acc = C.new_access(C.write_r4_lut(tmp / "lut"))
 lc = (C.LClassStub("M1", ("M2", "M1")),)
-_, ctx = C.build_ctx_u4(tmp / "m", C.circuit_mirror(), acc, l_classes=lc, order_hints=OrderHints(independent=("M2",)),
-                        element_values=(("I1", 1e-5),))
+_, ctx = C.build_ctx_u4(tmp / "m", C.circuit_mirror(), acc, l_classes=lc, element_values=(("I1", 1e-5),))
 th = C.theta_mirror()
 del th[("L", "M2")]
-th[("ln_idu", "M2")] = th.pop(("ln_idu", "M1"))
 e0 = size_and_seal(ctx, th)
 e1 = size_and_seal(ctx, th, parent=C.with_hand_ss(e0), w_request={"M3": 1e-5})
 cols = ["0", "1"]                                   # circuit_mirror 의 기둥 id 둘(S1 graph.columns)
@@ -374,3 +374,215 @@ def test_determinism_hashseed_u4_paths(tmp_path):
         assert r.returncode == 0, r.stderr[-3000:]
         outs.append(json.loads(r.stdout.strip().splitlines()[-1]))
     assert outs[0] == outs[1] == outs[2]
+
+
+# =====================================================================================================================
+# [IT-2a 20261021-it2a-snapshot-derive, T-L11a] parent 분기 = `parent.snapshot.derive_child(keep)` (design 41 4.7-3c).
+# keep = base writer(ctx.base.block_versions 키) ∪ 그 평가 커널 호출 블록. 시그니처 불변 진입점 `size_and_seal(ctx, theta, parent=)` 로 잰다.
+# oracle:
+# - (a) 구성으로 정한 parent -- `with_hand_ss`(커널 밖 writer `ss_dev` 의 필드를 손으로 실은 parent).
+# - (a) 독립 기준 -- 같은 θ 를 parent 없이 평가한 스냅샷(= 커널 호출 블록 + base writer 필드만 가진다)과 ctx.base(S1·계획 등 base writer 필드).
+# - 피검 함수(derive_child·run_kernel 내부)로 기대값을 만들지 않는다.
+# =====================================================================================================================
+
+def _it2a_nonempty_fields(snap):
+    """권한표의 (kind, field) 가운데 열이 비어 있지 않은 것(스냅샷 읽기만)."""
+    return {kf for kf, _w in snap.writers.entries if snap.column(*kf) != ()}
+
+
+def _it2a_theta():
+    return theta_r4c(v1=0.62)
+
+
+def _it2a_ss_writer():
+    from gmid_engine.sizing import S2_WRITERS
+    return S2_WRITERS.writer_of("device", "ss_dev")
+
+
+def test_it2a_child_drops_fields_of_writer_outside_kernel(ctx_r4c):
+    """parent 에 커널 밖 writer(ss_dev) 필드를 실은 픽스처 -> child 스냅샷에 그 필드·block_version 없음. 기준 = 같은 θ 의 parent 없는 평가.
+    base(parent.snapshot 통째 출발): ss_dev 열이 child 에 남아 red."""
+    ss_writer = _it2a_ss_writer()
+    e0 = size_and_seal(ctx_r4c, theta_r4c())
+    assert e0.sealed is not None                                           # 전제
+    parent = with_hand_ss(e0)
+    assert parent.snapshot.column("device", "ss_dev") != ()                # 전제: parent 에 낡은 커널 밖 필드가 실려 있다
+    assert parent.snapshot.block_version(ss_writer) == "hand_ss"
+    child = size_and_seal(ctx_r4c, _it2a_theta(), parent=parent)
+    free = size_and_seal(ctx_r4c, _it2a_theta())                           # 기준: parent 없는 평가
+    assert child.snapshot.column("device", "ss_dev") == ()
+    assert child.snapshot.block_version(ss_writer) is None
+    assert set(child.snapshot.block_versions) == set(free.snapshot.block_versions)
+    assert _it2a_nonempty_fields(child.snapshot) == _it2a_nonempty_fields(free.snapshot)
+
+
+def test_it2a_child_keeps_every_base_writer_field(ctx_r4c):
+    """base writer(ctx.base.block_versions 키) 필드는 child 에 남는다(지우면 red) -- 기대값 = ctx.base 의 같은 열·같은 block_version."""
+    e0 = size_and_seal(ctx_r4c, theta_r4c())
+    assert e0.sealed is not None
+    child = size_and_seal(ctx_r4c, _it2a_theta(), parent=with_hand_ss(e0))
+    base = ctx_r4c.base
+    base_fields = [(kf, w) for kf, w in base.writers.entries if w in base.block_versions and base.column(*kf) != ()]
+    assert len(base_fields) > 0                                            # 전제: 비교 대상이 있다
+    for (kind, field), w in base_fields:
+        assert child.snapshot.column(kind, field) == base.column(kind, field), (kind, field, w)
+        assert child.snapshot.block_version(w) == base.block_version(w), w
+
+
+def test_it2a_parentless_evaluation_passes_seal_4(ctx_r4c):
+    """parent 없는 평가(스냅샷 = ctx.base)는 봉인 4 를 통과한다(keep 을 옛 _CONTEXT_WRITERS 로 구현하면 base writer 필드가 빠져 red).
+    parent 가 있는 평가도 같다."""
+    e0 = size_and_seal(ctx_r4c, theta_r4c())
+    assert e0.sealed is not None
+    assert e0.report.items[3].item == 4 and e0.report.items[3].status == "pass"
+    e1 = size_and_seal(ctx_r4c, _it2a_theta(), parent=with_hand_ss(e0))
+    assert e1.sealed is not None
+    assert e1.report.items[3].item == 4 and e1.report.items[3].status == "pass"
+
+
+def test_it2a_parent_with_other_base_writer_version_rejected(ctx_r4c):
+    """base writer 버전이 ctx.base 와 다른 parent -> ValueError. base writer 마다(옛 검사는 PLAN_WRITERS 만 봤다) 그 writer 필드를 다른
+    input_version 으로 다시 쓴 parent 를 만들어 하나씩 거부를 확인한다. 거부 전 전제: 어긋나지 않은 parent 는 받아들여진다."""
+    from gmid_engine.sizing import DcEvaluation
+    e0 = size_and_seal(ctx_r4c, theta_r4c())
+    assert e0.sealed is not None
+    size_and_seal(ctx_r4c, _it2a_theta(), parent=with_hand_ss(e0))        # 전제: 일치하는 parent 는 거부되지 않는다
+    base = ctx_r4c.base
+    tried = []
+    for (kind, field), w in base.writers.entries:
+        if w not in base.block_versions or w in tried or base.column(kind, field) == ():
+            continue
+        bad = e0.snapshot.write(w, "tampered_it2a", {(kind, field): dict(e0.snapshot.column(kind, field))})
+        assert bad.block_version(w) != base.block_version(w)               # 전제: 어긋남이 실제로 만들어졌다
+        tried.append(w)
+        with pytest.raises(ValueError):
+            size_and_seal(ctx_r4c, _it2a_theta(), parent=DcEvaluation(bad, e0.report, None))
+    assert len(tried) >= 2                                                 # 전제: base writer 여럿을 시험했다
+
+
+# =====================================================================================================================
+# [IT-2e 20261104-it2e-partial-snapshot, T-E1·T-E8] parent 있는 평가에서 커널 블록 k 의 후보 실패 -> 부분 스냅샷(EvalResult.partial = exc.partial)
+# 규칙(interface '규칙'): block_versions 키 = base writer ∪ k 앞 블록, 필드 writer ⊆ 같은 집합, k 와 그 뒤 블록 필드 없음(parent 값이 남으면 red).
+# oracle (변성): 같은 θ 를 parent 가 있을 때/없을 때 부르는 변환에도 부분 스냅샷 규칙이 같다. 기대 집합은 이 test 가 독립 관찰로 만든다 --
+#   base writer = 실행 컨텍스트 ctx.base.block_versions 의 키(입력), k 앞 블록 = `ComputeBlock.__call__` 감쌈이 센 호출 순서.
+#   피검 함수(writers_in_scope·derive_child·run_kernel)로 기대값을 만들지 않는다. 고정 블록 목록은 쓰지 않는다(k 는 EVAL12 상수, 앞 블록은 관찰).
+# 실패 주입: test_partial_snapshot_seal_stage_block_failure 와 같은 공개 경로 -- 대상 블록 호출에서 실제 봉인 위반 기록(구성)으로 만든
+#   SealViolationError.from_record 를 올린다. 사례 유효 조건 (가): 주입 직전 같은 입력으로 그 블록 함수를 실제로 한 번 돌려 계수 증분이
+#   (calls 1, reuses 0, grafts 0, replays 0, computes 1, 재계산 0)임을 확인한다 -- 아니면 사례 무효(단언 실패). (나): 대조 평가는 다른 컨텍스트·다른 객체.
+# =====================================================================================================================
+
+from types import SimpleNamespace  # noqa: E402
+
+from gmid_engine.core import ComputeBlock  # noqa: E402
+
+from .conftest import COUNT_FIELDS, Oracle, circuit_cs_pmos_load, row_delta, theta_c  # noqa: E402
+
+IT2E_KERNEL = tuple(b.name for b in EVAL12[:5])          # 평가 커널 4 + dc_tolerances (EVAL12 상수에서 읽음)
+IT2E_SEAL = tuple(b.name for b in EVAL12[5:])            # 봉인 항목 블록 6 + dc_seal_report
+
+
+def it2e_theta_parent():
+    return theta_c()
+
+
+def it2e_theta_child():
+    """parent 와 전류·L·좌표·y 가 모두 다른 θ -- 어느 블록이든 입력 버전이 parent 와 달라 실제로 계산된다(가)."""
+    return theta_c(y=0.45, i2=3e-5, l1=2e-6, l2=1e-6)
+
+
+def it2e_record(tmp_path_factory, toy_access):
+    """주입할 FailureRecord = 실제 봉인 위반 평가가 낸 기록(구성: test_failure_seal_violation 과 같은 θ)."""
+    doc = circuit_cs_res(bulk_m1="out")
+    doc["topology_name"] = "it2e_record"
+    ctx = build_ctx(tmp_path_factory.mktemp("it2e_rec"), doc, toy_access)[2]
+    th = {("L", "M1"): 1e-6, ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.3, -0.3),
+          ("current", "R1"): 1e-5, ("resistance", "R1"): 1.5e5}
+    with pytest.raises(SealViolationError) as ei:
+        size_and_seal(ctx, th)
+    return ei.value.record
+
+
+def it2e_rows(ctx):
+    return {r.block: tuple(getattr(r, f) for f in COUNT_FIELDS) for r in ctx.counters.snapshot().blocks if r.part == "*"}
+
+
+def it2e_run(tmp_path_factory, toy_access, monkeypatch, k, with_parent, rec):
+    """새 실행 하나(회로 C, toy)에서 θ_child 를 평가하며 블록 k 에서 후보 실패를 주입한다. with_parent 면 같은 컨텍스트에서 먼저 평가한
+    θ_parent 의 평가를 parent 로 준다. 반환 SimpleNamespace(exc, seen, entered, probe, parent, ctx, delta)."""
+    ctx = build_ctx(tmp_path_factory.mktemp("it2e_run"), circuit_cs_pmos_load(), toy_access)[2]
+    parent = size_and_seal(ctx, it2e_theta_parent()) if with_parent else None
+    seen, entered, probe = [], [], []
+    orig = ComputeBlock.__call__
+
+    def wrapped(self, snapshot, *extras, **kw):
+        seen.append(self.name)
+        if self.name == k:
+            entered.append(snapshot)
+            row0 = block_row(ctx.counters, k)
+            orig(self, snapshot, *extras, **kw)                    # (가) 실제로 계산되는지 계수로 확인
+            probe.append(row_delta(block_row(ctx.counters, k), row0))
+            raise SealViolationError.from_record(rec)
+        return orig(self, snapshot, *extras, **kw)
+
+    rows0 = it2e_rows(ctx)
+    with monkeypatch.context() as mp:
+        mp.setattr(ComputeBlock, "__call__", wrapped)
+        with pytest.raises(SealViolationError) as ei:
+            size_and_seal(ctx, it2e_theta_child(), parent=parent)
+    rows1 = it2e_rows(ctx)
+    zero = (0,) * len(COUNT_FIELDS)
+    delta = {n: row_delta(rows1[n], rows0.get(n, zero)) for n in rows1}
+    # 전제 (가): 대상 블록에 정확히 한 번 들어갔고, 마지막 호출이 k 이며, 재사용·이식 없이 계산됐다. 부분 스냅샷이 붙어 있다.
+    assert len(entered) == 1 and seen[-1] == k, (k, seen)
+    assert probe[0] == (1, 0, 0, 0, 1, 0), (k, dict(zip(COUNT_FIELDS, probe[0])))
+    assert ei.value.partial is not None
+    return SimpleNamespace(exc=ei.value, seen=seen, entered=entered, probe=probe, parent=parent, ctx=ctx, delta=delta)
+
+
+def it2e_expected_keys(r):
+    """base writer ∪ k 앞 블록 -- base writer = ctx.base.block_versions 키(입력), k 앞 = 관찰한 호출 순서."""
+    return set(r.ctx.base.block_versions) | set(r.seen[:-1])
+
+
+def it2e_assert_rule(r, k):
+    partial = r.exc.partial
+    exp = it2e_expected_keys(r)
+    assert set(partial.block_versions) == exp, sorted(set(partial.block_versions) ^ exp)
+    assert k not in partial.block_versions
+    for kf, w in partial.writers.entries:                         # 필드 writer ⊆ 같은 집합 (parent 값이 남으면 red)
+        if partial.column(*kf) != ():
+            assert w in exp, (kf, w)
+    later = [b.name for b in EVAL12 if b.name not in exp]         # k 와 그 뒤 블록
+    assert k in later
+    for kf, w in partial.writers.entries:
+        if w in later:
+            assert partial.column(*kf) == (), (kf, w)
+
+
+def it2e_assert_parent_had_k_fields(r, k):
+    """전제: parent 스냅샷은 k 의 필드를 실제로 갖고 있다 -- 안 지우면 남는 값이 있는 사례만 유효."""
+    assert r.parent is not None
+    ps = r.parent.snapshot
+    assert any(ps.column(*kf) != () for kf, w in ps.writers.entries if w == k), k
+
+
+@pytest.mark.parametrize("k", IT2E_KERNEL)
+def test_it2e_kernel_block_failure_with_parent_partial_rule(tmp_path_factory, toy_access, monkeypatch, k):
+    """T-E1: parent 있는 평가의 커널 블록 k 후보 실패 -> 부분 스냅샷 규칙 충족, k 이후 필드 없음."""
+    rec = it2e_record(tmp_path_factory, toy_access)
+    r = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, True, rec)
+    it2e_assert_parent_had_k_fields(r, k)
+    it2e_assert_rule(r, k)
+
+
+@pytest.mark.parametrize("k", IT2E_KERNEL + IT2E_SEAL)
+def test_it2e_failure_attach_adds_no_block_calls(tmp_path_factory, toy_access, monkeypatch, k):
+    """T-E8 (G-10): 부분 스냅샷 부착이 블록을 더 부르지 않는다 -- 실행 계수 호출 증분 = 감쌈이 센 호출 수, 같은 입력 재계산 0,
+    블록당 계산 ≤ 1. oracle (독립): 감쌈이 센 호출(피검 출력이 아닌 관찰)."""
+    rec = it2e_record(tmp_path_factory, toy_access)
+    r = it2e_run(tmp_path_factory, toy_access, monkeypatch, k, True, rec)
+    for name, row in r.delta.items():
+        d = dict(zip(COUNT_FIELDS, row))
+        assert d["calls"] == r.seen.count(name), (name, d, r.seen)
+        assert d["recomputes_same_input"] == 0, (name, d)
+        assert d["computes"] <= 1, (name, d)

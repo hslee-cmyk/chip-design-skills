@@ -29,8 +29,9 @@ CONCEPT_FEEDFORWARD_CELL = "feedforward_cell"
 CONCEPT_AC_GROUND_EXCEPTION = "ac_ground_exception"
 CONCEPT_MATCHING_PAIR = "matching_pair"
 CONCEPT_L_OWNER = "l_owner"         # L 동치류 주인(override, 41 §1.12.5, C-3): subject = 동치류 멤버 이름 정렬 JSON 배열, value = 주인 소자 이름
+CONCEPT_DEPENDENT_MEMBER = "dependent_member"   # 종속 멤버(KVL 고리 confirm / 고리 밖 평행 관계 override, TB-1): subject = 관계 멤버 이름 정렬 JSON 배열, value = 종속 소자 이름
 CONCEPTS = (CONCEPT_DRIVE_KIND, CONCEPT_STAGE_MEMBERS, CONCEPT_DC_ROLE, CONCEPT_LOOP_ROLE, CONCEPT_FEEDFORWARD_CELL,
-            CONCEPT_AC_GROUND_EXCEPTION, CONCEPT_MATCHING_PAIR, CONCEPT_L_OWNER)
+            CONCEPT_AC_GROUND_EXCEPTION, CONCEPT_MATCHING_PAIR, CONCEPT_L_OWNER, CONCEPT_DEPENDENT_MEMBER)
 FF_ARROW = "->"                     # `feedforward_cell` 값 `<종류>:<탭>-><merge>` 의 탭·merge 구분(넷 이름에 들어 있으면 로드 거부)
 FF_SEPARATOR = ":"
 FF_CELL = "ff"
@@ -223,13 +224,16 @@ class NetModel:
 @dataclasses.dataclass(frozen=True)
 class ViewSeed:
     """수집한 뷰 하나. `excite` = (넷, 가중) 이름순, `sense` = 감지 넷 이름순, `source` = 출처 문자열(spec 제약 지문 또는 기본).
-    루프 뷰는 `cut` = (끊는 소자, gate 넷)이고 여기 = 그 gate 넷(소자 gate 에만 주입), 감지 = 같은 넷(되먹임으로 돌아온 응답)이다."""
+    루프 뷰는 `cut` = (끊는 소자, gate 넷)이고 여기 = 그 gate 넷(소자 gate 에만 주입), 감지 = 같은 넷(되먹임으로 돌아온 응답)이다.
+    `default_port` = 이 씨앗의 (여기, 감지) 키가 기본 포트 뷰 키 집합 안인가(선언 씨앗이 같은 키로 합쳐졌으면 그것도 True) -- `source`(출처, `_constrained_keys` 가 DECLARED 로
+    gain·pm 키를 모으는 칸)와 다른 뜻의 식별 칸이다(측정 구성 블록 `icm_config` 가 ICMR 전달 뷰를 고른다, 카드 IT-2c)."""
 
     kind: str
     excite: tuple
     sense: tuple
     source: str
     cut: tuple = ()
+    default_port: bool = False
 
 
 @dataclasses.dataclass(frozen=True)
@@ -388,7 +392,8 @@ class ViewS1v:
 
     J 공동분석 필드(41 §1.12, 모두 기본값 있음): `main_path` = 주경로 셀 이름순(§1.12.2, 전달 뷰만; 루프 뷰는 빈 tuple), `feedforward` = `FeedforwardCell` 목록,
     `ff_ratio_candidates` = `FfRatioCandidate` 목록, `loop_roles` = 이 전달 뷰의 `LoopRole` 목록, `polarity` = 루프 뷰의 극성(그 뷰의 DC 사이클 극성, §1.12.4,
-    루프 뷰 아니면 0), `compensation_candidates` = `ac_only` 사이클의 수동소자 이름(GB5 보상 후보), `ac_ground_exceptions` = 이 뷰에 적용한 `ac_ground_exception` 넷."""
+    루프 뷰 아니면 0), `compensation_candidates` = `ac_only` 사이클의 수동소자 이름(GB5 보상 후보), `ac_ground_exceptions` = 이 뷰에 적용한 `ac_ground_exception` 넷, `default_port` = 기본 포트 뷰 키 집합 안의 뷰인가(`ViewSeed.default_port` 를 옮긴다 --
+    `icm_config` 가 읽는다)."""
 
     id: str
     kind: str
@@ -423,6 +428,7 @@ class ViewS1v:
     polarity: int = 0
     compensation_candidates: tuple = ()
     ac_ground_exceptions: tuple = ()
+    default_port: bool = False
 
 
 @dataclasses.dataclass(frozen=True)

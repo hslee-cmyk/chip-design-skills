@@ -38,20 +38,20 @@ def test_base_edges(ah):
     assert all(isinstance(e, DcEdge) for e in edges)
     assert [(e.element, e.nets) for e in edges] == _expected_from_json(raw)
     # 손 확인: Cf·Cload(커패시터)·gate·bulk 는 엣지가 아님
-    assert [e.element for e in edges] == ["Ib", "Q1", "Q2", "Q3", "Q4", "Rf"]
+    assert [e.element for e in edges] == ["Ib", "Mfx1", "Mfx2", "Mfx3", "Mfx4", "Rf"]
     assert all(isinstance(e.element_kind, str) for e in edges)
     for e in edges:
         require_immutable(e)
 
 
 def test_non_resistor_passive_kinds_not_edges():
-    devs = (DeviceDecl("Q1", "nmos", "n_b", "n_g", "n_a", "n_bulk"),)
+    devs = (DeviceDecl("Mfx1", "nmos", "n_b", "n_g", "n_a", "n_bulk"),)
     pas = (PassiveDecl("L1", "inductor", ("n_a", "n_c")), PassiveDecl("C1", "capacitor", ("n_a", "n_d")),
            PassiveDecl("R1", "resistor", ("n_e", "n_a"), "value_ohm", 5.0))
     srcs = (SourceDecl("V1", "voltage_source", ("n_f", "n_a"), "value_volt", 1.0),)
     edges = dc_edges_unpruned(devs, pas, srcs)
     assert [(e.element, e.nets) for e in edges] == [
-        ("Q1", ("n_a", "n_b")), ("R1", ("n_a", "n_e")), ("V1", ("n_a", "n_f"))]
+        ("Mfx1", ("n_a", "n_b")), ("R1", ("n_a", "n_e")), ("V1", ("n_a", "n_f"))]
 
 
 def test_any_device_kind_is_edge():

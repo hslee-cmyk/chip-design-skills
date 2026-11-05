@@ -1,0 +1,252 @@
+{
+ "id": "20261104-it2d-front-wiring",
+ "spec_card": "docs/02-design/specs/20261104-it2d-front-wiring.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "0e6449f7dfc9a300c5da8930ef6460ba2ab9c9f7",
+ "test_commit": "9798e5c1a81a86720e7fcbee43ca193f60dde649",
+ "code_commit": "70325cd6485ce59cea51bd4c763d8b8cf50bb521",
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_cs_current_source_load",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_cascode_raises_low_bound",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_nmos_follower_and_input_window",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_differential_pair_four_times_min_half_width",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_linear_device_has_no_channel_edge",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_resolution_follows_binding_side",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_bounds_match_linear_program[cascode]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_bounds_match_linear_program[cs]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_bounds_match_linear_program[follower_stack]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_bounds_match_linear_program[telescopic]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_undefined_codes_swing_only",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_sat_unavailable_ignored_for_linear_device",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_name_bijection_and_order_invariance",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_deterministic",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_it2d_ls_swing_signature_has_no_input_arguments",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_it2d_ls_swing_input_fields_keep_defaults",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_it2d_ls_swing_circuit_without_inputs_has_swing_value",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ls_swing.py::test_it2d_g2_ls_swing_source_has_no_input_window_computation",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m1_declared_input_values_from_icm_config",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m1_undeclared_input_gives_required_tuple[engine]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m1_undeclared_input_gives_required_tuple[pending]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m2_config_none_same_definitional_code_for_metrics",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m2_unmeasured_window_is_numeric_input_window_unmeasured",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m3_no_lo_hi_arithmetic_in_icm_window_functions",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m3_metrics_aux_reads_icm_config_not_kernel_window",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_b77a_capacitor_only_missing_dc_defined_ss_undefined",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_b77c_missing_judgement_has_no_metric_name_branch",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2d_f_icm_margin_same_value_in_report_and_front_row_as_is",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2d_f_icm_margin_same_value_in_report_and_front_row_servo",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2d_o215_icmr_judged_by_region_row_window",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_entry[icm_margin_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_entry[icmr_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_entry[mirror_ratio_sigma_pct]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_entry[offset_excess]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_entry[offset_in_sigma_mv]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_entry[offset_sys_mv]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_entry[swing_out_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[icm_margin_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[icmr_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[mirror_ratio_sigma_pct]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[offset_excess]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[offset_in_sigma_mv]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[offset_sys_mv]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[swing_out_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_has_no_ls_domain_left",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_catalog.py::test_catalog_contents",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_catalog.py::test_mirror_ratio_sigma_pct_unit_domain",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[icm_margin_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[icmr_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[mirror_ratio_sigma_pct]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[offset_excess]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[offset_in_sigma_mv]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[offset_sys_mv]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[swing_out_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_large_signal_metrics_have_no_view[swing_out_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_large_signal_metrics_have_no_view[icmr_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_large_signal_metrics_have_no_view[icm_margin_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_offset_metrics_transfer_view[offset_in_sigma_mv]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_offset_metrics_transfer_view[offset_excess]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_offset_metrics_transfer_view[offset_sys_mv]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[icm_margin_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[icmr_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[mirror_ratio_sigma_pct]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[offset_excess]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[offset_in_sigma_mv]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[offset_sys_mv]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[swing_out_v]",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_pending_metrics.py::test_mirror_ratio_sigma_pct_has_no_view",
+   "skills/analog-gmid-design/gmid_engine/tests/metrics/test_icm_window.py"
+  ],
+  "failure_hashes": [
+   "4aa36b7b420044fc5bd7ff69e52065823d835a0ce535be5c56c2d9b1cc12ccea",
+   "88e8d9540bf19289c95324db5b1c9d1f5692d092134a6d3452b87605aaf2ef48",
+   "d274be0cfdbf25c1761d00179079f0431c60656b387b46463bbdcb38752e7c60",
+   "be157e896773f04978cd8b72a461f6a45a4f174145d734f21198a0bea56bd28a",
+   "0a5ca61757761bb9576e07e6e35c39af44df9a98064e01b70a3c7d252bf5d772",
+   "ac967f558e0068c1cf841164b961a5e10f54d05ebb530921fe33cc1bd0463477",
+   "fbf8db6bb8826e2c688f9cde36e129457aa3c4e011e5141f18e2578cee8d143d",
+   "bdfe7356648168770308150cce7c9ebeae04b05d5735b7fdcd88889f90ec3a9a",
+   "2a0f8d6b18a9bb52dd4d8edfda12fcf013847b2c34ade3c8a5762897c5855a67",
+   "b5e4e4a86f96000a71e46fcada265e18909bf41c1c9294808b1655c30fbbd9f3",
+   "d44f20a42e54b2f0cf45e084a4bf1d2022368ee633d52156a0d256f843cf9dda",
+   "6096e755637dc5c1f8c9ddb0f0520c426f213d26037d20de58a72002041250fb",
+   "1fe1e10b2007f12bd2659079ce01b2a8a575d816355a8e3484e4fc6464a207e4",
+   "e42a7a8043506568ce10076672e48a99223de35b9219e89a08374935f28420c2",
+   "893729badf49a6e2973e7ada5b275d1b4062c58c423a4f7b55f7c74b6e03fb94",
+   "2df67c127e4a0791ba8f2648c08cfa29007830f9e42b77f204c7b7d8b79529e8",
+   "24fea83ffe1e60fbf1d315a33a6cb78a0470270418a479ae7823b95ff6ce1ddd",
+   "8401491683ffa9649234128430324ae941970738cb4885b93ba7d5d95868fb83",
+   "b04573f89053e35b7cc4e724e909c1e1e405fd7522aecb8885e8177c83ed32c8",
+   "1cfcbb7334693add28aa6bbfb0435a4e5a8ecdea646d2bdea325a57127599098",
+   "e134d352c2d577696f5b6f33c00d29c39e02a7e4b74a99cd2d7152e2c18a9fa1",
+   "db582b56f0f9f02e55163fd7d5fdc70fb84ff82c57420936c7e13adaef24e333",
+   "713c80a47fb6a985f94fe4455f9e30b1d562f5b705fc6acf283aa12e801e5a93",
+   "1cdc2693b6b3369a30c0f591c69fd352a7c35ebfa9f6c9299370f51f6536a545",
+   "362014fc90e8be1e988efd8dfd1ae3ed097b4476cff324db238df7ee690f5f44",
+   "85d3a9761e69a0869fb8f366262725e2269a51d8159582703c570f49489141fc",
+   "0a7c7e7929266bdd111d8f2d82a9f99dd5a4c788f90b7c5853aad87166a5b63b",
+   "a61cca7789e45bcd39eaa58f460adea16651920258276e80f922f8cfe1f5e818",
+   "5d1baae12254dc46b16e1f371700325684183472c263feab7770958bd750e1a9",
+   "a3ba555cb478a97d0d21b87424c6e20b0e5ac9f7f7dbd77fe61f503da22e11e1",
+   "037fcf83cf38c845fb55db6314bf146003160b3ff620df703b21124a1761b254",
+   "8d3fbd984b5f8c0ce2dea1b34877cd3fb3c236572ed74d86d94f07fd2b4292cf",
+   "1bd5ae4a10a450b4eabd8e7ae318696bcc45cf02e654afe63483e0736ba3f06a",
+   "63902a716d65d1d42395a8f922322c5dc22c65a7fea0ef75c17ce8e6cb1995d7",
+   "c18bbdbf533a4a00ac9767908a71244b099def3107714428f33887ab31acf45f",
+   "515e872662f0f4ee95b2ac5751b45941cb4fdbc0a52a8843b8ed5b5c23b1e51a",
+   "bc7eb9a57a2e941ac68246520df844da77df4ca9d420da1d960464970632c0cd",
+   "c415f16cc4e70d12009dc0cde0d8dd2f6e7442478e1198675c30a1e835b2d31f",
+   "d0e65ba1aa0c977fe45c0b1dd50b619d192af93a84e750c30d602217e48c5b1b",
+   "cadf29a2b3c21b35565ab261280fc3aab0c6a0bd1403e8e512176b1b0a0c0de6",
+   "ebff4569f8240957e79f6f3941363158169b650954f7cb2177f1e21bfa8e197f",
+   "59ee803af5c8e94df9b00c63d84d81e9c1c7e6f646846e1a0e8c6bf9dcfb93c1",
+   "ecf689da41c4ef5ba657dff151b91cc46b8cd78cca69cf83c917b11ed8e80b74",
+   "a7645c42a22cf0bd21a78cf1dec4c577f5ecf69b2269cc7ddd0c9932244a0139",
+   "93332f30f0982e3c402f6fe55cb29a1614dffdc6abd1e34755fb6e5b5c39d80c",
+   "ce2cfb411c2707c1a309203926b57ea65959b2ec2b439aa7ab2ba5cdabe5c2f5",
+   "084c4c28564f1f12e3656bed42ba69a8104e884439b07cfb512fc7bcdb2970c4",
+   "d5c11876ad232b8a635eba7f1fa48d0b16d8f1164cfb413f492d63292e5352e9",
+   "bfefc6292b44afcaf65ee8615483ab73eac7d846a50d0d866cad68a93a00c622",
+   "b7cdde69140e81f449766fc89cb7e80ccdc0739459e8fd32356496aa7d94c333",
+   "a5adfbff9855d9389a26504c3f6f42d7d23d734b71890f6c2e53a7f52d1adeba",
+   "11b0eeb7658a73753159b52dd1014e744a9587c78cb35a63357c90dbe812a58e",
+   "50cd048ede1ac2d372a7525195d0718399ef02669bae1b59c9d40f4dcdb03f43",
+   "8a4b7ad77b2016ba19e22d8b768fdee5d323c96caa85bf6fbea55b59386541c3",
+   "2c9d66f9f33c60ade693aa96c143e81039b3ad3114c915e82ede7752af2da764",
+   "e2ce387222dfe1848e1c34149ce272eb93fe33066c972e0345fd1ffdb9a7ed38",
+   "17fcf4fc1446977094b42887e7ddb0b8beadc8a5f199a37948223f4084d05342",
+   "c8f956c967861ac9c5ba886aeac0221202a86d4bbc93b68de0207a543c3b851d",
+   "a78d3bf0a5721187885b30c973883c336b46022174ad736e32b5e7c4bd515d8f",
+   "20b3af905fa08099388d52f7f612b92e596533b3c35d314c4b036147bf0dbe69",
+   "7862c8e19fa9e3eba22628d6b1d507c9101869e0dfc26be80d68c68e0e99c97f",
+   "fcc322a171d7ed1fe02ba93a7405a515c92e3bdc83f0285b2f379ac0b8c1cabb",
+   "9476c4dc513d881400fdd3b5355628f5d8cc8a629e6744699f6bc24414e38368",
+   "dfbc915e16d19390e18c8f9fac978f9de8e0d9bf6ca7d6912a910b04c407f399",
+   "ed62075e1d210445530e8d88a83a45321207be918463c95e53864c2918cbff8a",
+   "256734701105203861f711f114d3e9a90b232a19e844a907d83661f97caf3871",
+   "3b5bfe9857245ffe01f8ed7512c9fb41aea3086515a7bfe946fe817fd527b3cc",
+   "fe6a69f745fa66b8599f85b984ce925ed5f3b16eabaea538709c7022583f65eb",
+   "fe5cd69eb5d31c747b0a2b8d1239f468f7e2b0339cbc88c79e0bfeb52647b9e7"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "N/A",
+   "basis": "전체 test 안 돌림, 임시 규칙 O-229. 잰 범위 = 통합 병합본 d5f5b8e6(격리 복제본): 두 card test·영향 test 15파일 453개 실패 2, tests/structure 171 실패 0(래칫 new 0·stale 0, 규칙 H 1 deselected), canonical_order 12 실패 0, 2회로 연기 stage_b·s0·g10 23 실패 0, 기준선 11회로 재측정 차이 0. 실패 2 는 IT-2e 몫(그 기록 V2). 그 밖 test 는 통과로 세지 않는다."
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "red: 엔진 0e6449f7(IT-2c 판정 머리) + 머리 test 트리 d5f5b8e6 에서 69 {\"TypeError\": 16, \"AssertionError\": 52, \"ImportError\": 1}(test_icm_window 수집 ImportError 1 = 신규 함수, TypeError 16 = ls_swing 새 서명). base green 새 test 5 나열: g2_no_old_front_names, g2_saturation_window 자리, b77b 저항 결측, b77d 새 code 0, registry ff_gm_ratio -- 회귀 보호(interface green 규칙), 같은 id 에 red 사례 있음. green: IT-2d test 병합본 전부 통과. 역할 분리: 70325cd6 test 0 파일, e12f5f60·9798e5c1 엔진 0 파일."
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "손 뮤턴트 15(scripts/mutate2.py): D1~D3·D5~D14 kill, 생존 D4·D15. D4 어휘 밖 영역 ValueError, D15 V_cm None 불일치 ValueError 는 test 없음(minor), 직접 호출로 거부 확인(reject3.jsonl)."
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: T-IW 예시 0.90/0.34/1.19 -> margin 0.29, icmr 0.85 손 값. T-M1 cfg V_cm 손 식과 보고 window·v_icm 비교. T-B77a 커패시터 값만 다른 대조 비트 동일(용량이 DC 망에 안 든다는 불변식). T-O215 영역 행 창 값. 판정자 독립 재계산: nmcnr_amplifier 실회로 36평가 모두 icmr = hi-lo, margin = min(...) 비트 일치(flow.jsonl bad 0). 피검 함수를 기대값에 쓰지 않음."
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "A-85 약화 아님. D1 `node_v=()`로 node_v_missing 재현, 옛 전제(입력 인자)만 소멸. D2 input_dc_v=0.6: 구성 None 갈래 2 icm_inputs_unsupported 로 파이프라인이 실제로 닿고 code·definitional·포트 셋 단언 유지, 미선언은 DEC-106 test_writer_plan 이 그대로 지킴, 뜻 유지(M: D8·D11 kill). D3 보고 키 추가 거부(값 사본 금지), 같은 칸 비교는 T-M1(보고 window·v_icm == cfg)과 T-F(판정 값·front 행 == 손 margin)로 유지. 폐기: test_two_polarity_input_empty_window_negative(입력 창 삭제), test_undefined_codes_shared_by_three_metrics -> swing_only(재명명) -- RETIRED 목록에 없음(minor), 빈 창은 음수 폭 대신 unmeasured + unmeasured_front 분리로 fail-closed 유지."
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "tests/structure 171 통과, 래칫 new 0·stale 0. 회로 이름 0, 광범위 except 0, 엔진 추가에 cache·memo·dict 슬롯 0(diff grep). `RESOLUTION_ENDS = 1 + 1`, DOMAIN_DC·SS 문자열 지역 상수는 minor(`core.units.DOMAINS` 어휘 재선언). 규칙 H 새 위반 0(test_icm_window 짝). rule 파일 변경 0, structure.json diff 0."
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "IT-2c 조건부 항목 닫음: `node.dc_window_cfg`(_icm_ports: input_status·tol_v 읽음)·`graph.icm_config`(_swing)가 metrics_aux READS 에 있고 실회로 nmcnr_amplifier 36평가 36회 실제 호출, 값 소비 확인. folded_cascode 는 ICMR·스윙 요청이 없어 0회(요청 구동). 필드 수 신규 0 / 소비자 0 필드 0 / 정본 우회 의심 0(세 metric 산술 = V_cm 칸뿐, T-M3·D9 kill) / KVL·KCL 미적용 0 / graph 밖 저장 0. 칸 수준 minor: IcmPort.v·lo·hi 와 cfg lo·hi 는 엔진 소비 0, 보고 키 불변이라 '보고 열'에도 안 나감(interface 문언과 다름, S3 스냅샷 JSON 출력만). swing_icmr 보고 window·v_icm·required_input_cm_v 는 graph.metrics_aux 안 V_cm 칸 사본(기존 키, interface 불변 조항, LA-1 재점검). IcmWindow 는 _swing 안 반환 전용, 필드 아님. MetricSignature.domain 소비자 = metrics_aux 하나 + catalog 검증, search 는 domain 안 읽음(relabel 파급 0, grep)."
+  },
+  "V8": {
+   "verdict": "PASS",
+   "basis": "폴백 0. 거부 13건 직접 계약대로(reject3.jsonl): 어휘 밖 영역 ls·geom ValueError, input_dc 어휘, 구성 None + undefined 빈 값, 포트 0, 측정됐는데 V_cm None, 미측정 numeric. 구성 불일치 ValueError 는 CANDIDATE_FAILURE 밖이라 실행 중단 = fail-closed, 불변식 깨짐 표시로 합당. IcmPort.missing \"window\" 는 사유 문자열뿐, code 는 input_window_unmeasured, 소비 없음(detail 기록)."
+  },
+  "V9": {
+   "verdict": "PASS",
+   "basis": "물리 정합: 세 metric = graph.icm_config V_cm(DC 풀이 양)만 입력, lo·hi 산술 0(AST·D9). ls_swing 입력 제거로 잃은 정의: no_input_port -> 구성 갈래 view_required(입력 0 은 로더 거부), 입력 node_v_missing -> 대상 없음, sat_unavailable -> cfg unmeasured numeric, 음수 폭 빈 창 -> unmeasured(front 에서 분리, kernel unmeasured_front), 봉인점이 창 밖이면 margin 음수 유지(직접 -0.1), 경로 합 창은 O-205 로 영역 행 창 대체 -- 잃은 정의 0, swing 값 불변(기준선·toy). relabel: offset·mirror·스윙·ICMR = dc 는 용량 값만 바꾼 대조 비트 동일(T-B77a), ff_gm_ratio = ss(O-112, 표기 재검토는 보류 A5). B77 _unavailable: dc = ss_nodal Undefined(저항 결측) 만, ss = 결측 하나라도, 어휘 밖 ValueError, 전달 뷰 보고 결측 시 없음 -- fail-closed(D1·D2·D3·D5 kill). 실회로 nmcnr: servo, V_cm [0.0487, 1.4413] V."
+  },
+  "V10": {
+   "verdict": "N/A",
+   "basis": "spec '재현할 수치' 없음. 미완료(보류 다리: 13회로 값 변화표·용량만 결측 봉인점 수·ff_gm_ratio 표기·SPICE, O-225·A-5·A-7, 통과로 세지 않음). 기준선: 11회로 재측정 차이 0(사슬 두 번 비트 동일, IT-2c 값 그대로), fixture 변경 0. 메모리 2 GB 아래 1회 자기 프로세스 정지·재개."
+  }
+ },
+ "reproduced_numbers": [
+  {
+   "name": "test 수(두 card + 영향)",
+   "value": 453,
+   "command": "res/i2/jobs.json i2_card"
+  },
+  {
+   "name": "test 실패 수",
+   "value": 2,
+   "command": "res/i2/jobs.json i2_card"
+  },
+  {
+   "name": "tests/structure 수",
+   "value": 171,
+   "command": "res/i2/jobs2.json i2_structure2"
+  },
+  {
+   "name": "ratchet new 수",
+   "value": 0,
+   "command": "test_rule_g8_baseline_ratchet"
+  },
+  {
+   "name": "canonical_order 수",
+   "value": 12,
+   "command": "res/i2/jobs.json i2_canon"
+  },
+  {
+   "name": "2회로 연기 수",
+   "value": 23,
+   "command": "res/i2/jobs.json i2_smoke"
+  },
+  {
+   "name": "기준선 차이 회로 수",
+   "value": 0,
+   "command": "test_zz_remeasure 11회로"
+  },
+  {
+   "name": "red 수",
+   "value": 69,
+   "command": "scripts/run_red2.py r2 0e6449f7"
+  },
+  {
+   "name": "실회로 icm 호출 수 nmcnr",
+   "value": 36,
+   "command": "scripts/test_zz_i2flow.py"
+  }
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-04T13:10:39Z",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-it2c-audit",
+  "commands": [
+   "V1: 전체 실행 안 함(임시 규칙 O-229), 범위 실행 = python scripts/driver.py res/i2/jobs.json",
+   "git clone --no-hardlinks --no-local <worktree> la1s_it2c_audit/i2; git -C i2 remote remove origin (m2·r2 도 같은 방식)",
+   "python scripts/driver.py res/i2/jobs2.json (structure 재실행, test_zz_remeasure 11회로, test_zz_i2flow, run_red2 2회, mutate2)",
+   "PROBE_OUT=... pytest test_zz_e3diag.py, test_zz_e3same.py, test_zz_reject3.py"
+  ]
+ }
+}

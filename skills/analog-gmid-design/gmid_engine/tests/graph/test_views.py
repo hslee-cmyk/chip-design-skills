@@ -90,3 +90,36 @@ def test_view_ids_unique_transfer_views_first_in_number_order(tmp_path, doc):
     n = sum(1 for v in s1v.views if v.kind == "transfer")
     assert ids[:n] == ["transfer:%d" % i for i in range(n)]
     assert all(v.kind == "loop" and v.id.startswith("loop:") for v in s1v.views[n:])
+
+
+# ---------------------------------------------------------------- [IT-2c T-S1V] 기본 포트 뷰 (`default_port`)
+# interface 20261104-it2c-icm-config 'S1v 기본 포트 뷰': 입력 둘이 differential_input_p/_n 한 쌍이면 뷰 하나(p +1/2, n −1/2, 감지 = 출력 넷 전부), 그 밖은 입력
+# 포트마다 뷰 하나(여기 가중 1, 감지 = 출력 넷 전부). 기본 포트 뷰 키 집합 안의 뷰는 `default_port == True`. 전달 뷰 순서 = 키 정렬.
+# oracle: (손) 위 규칙을 손 회로(OTA5·CS·REPLICA_SE·CMFB)에 적용한 리터럴. spec 없음(선언 뷰 없음).
+
+def test_it2c_default_port_diff_pair_view_is_flagged(tmp_path):
+    _, s1v = H.build(tmp_path, H.OTA5)
+    v = H.view(s1v)
+    assert (v.excite, v.sense) == ((("inn", -0.5), ("inp", 0.5)), ("out",))
+    assert v.default_port is True
+
+
+def test_it2c_default_port_single_ended_inputs_one_view_each_flagged(tmp_path):
+    _, s1v = H.build(tmp_path, H.REPLICA_SE)
+    transfer = [v for v in s1v.views if v.kind == "transfer"]
+    assert [(v.excite, v.sense, v.default_port) for v in transfer] == [
+        ((("in1", 1.0),), ("om", "op"), True),
+        ((("in2", 1.0),), ("om", "op"), True),
+    ]
+
+
+def test_it2c_default_port_single_input_cs_flagged(tmp_path):
+    _, s1v = H.build(tmp_path, H.CS)
+    assert [(v.excite, v.sense, v.default_port) for v in s1v.views] == [((("in", 1.0),), ("out",), True)]
+
+
+def test_it2c_default_port_false_for_loop_views(tmp_path):
+    """oracle 대조: (손) 루프 뷰 `loop:M5:cm` 의 키(여기 = 끊은 gate 넷)는 기본 포트 뷰 키 집합 밖이라 default_port == False, 전달 뷰는 True."""
+    _, s1v = H.build(tmp_path, H.CMFB)
+    assert H.view(s1v, "transfer:0").default_port is True
+    assert H.view(s1v, "loop:M5:cm").default_port is False

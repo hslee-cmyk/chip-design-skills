@@ -65,11 +65,15 @@ from .aux_types import (
     FfRatio,
     FfStruct,
     GateResult,
+    IcmConfig,
+    IcmPort,
+    IcmWindow,
     LsFields,
     LsNode,
     MetricStructure,
     MirrorRatio,
     MismatchSource,
+    NodalSystem,
     NqsRatio,
     OffsetAnalysis,
     OffsetContribution,
@@ -89,6 +93,8 @@ from .dc_limit import solve_dc_limit
 from .evaluate import metric_value
 from .ff_gm_ratio import ff_gm_ratio
 from .junction_cap import DiffusionGeometry, JunctionCaps, JunctionParams, junction_caps
+from .icm_config import icm_config_window, kvl_sensitivity
+from .icm_window import icm_window_metrics
 from .junction_source import JunctionSource
 from .loop_analysis import analyze_loop
 from .loop_cut import cut_circuit
@@ -169,16 +175,20 @@ from .registry import RegisteredMetric, metric_registry
 from .resolution import metric_resolutions
 from .rout import output_resistance
 from .sensitivity import response_sensitivity
-from .ss_circuit import ss_circuit
+from .ss_circuit import ss_circuit, ss_circuit_field
 from .ss_evaluate import ss_evaluate
+from .ss_nodal import ss_nodal_system
+from .ss_off_delta import ss_off_delta
+from .ss_off_gate import off_region_gate
+from .ss_off_op import ss_off_op
 from .ss_linearize import GMB_COLUMN, GMB_VS_CELL_SECANT, JUNCTION_LAYOUT_DIFFUSION, JUNCTION_LUT_RULE, ss_dev
 from .ss_metrics import metrics_ss
-from .ss_types import MetricBundle, MetricRequest, SsCircuit, SsDevice, SsEvaluation
+from .ss_types import MetricBundle, MetricRequest, OffDelta, OffOp, SsCircuit, SsDevice, SsEvaluation
 from .stamp_mos import mos_stamps
 from .sensitivity_gate import sensitivity_gate
 from .stamp_two_terminal import two_terminal_stamps
 from .supply import supply_currents
-from .verified_by import VerifiedBy, verified_by
+from .verified_by import SPICE_ORACLE, VerifiedBy, verified_by
 from .block_gain_model import block_gain_model_of
 
 __all__ = (
@@ -237,6 +247,9 @@ __all__ = (
     "GATE_UNDETERMINABLE",
     "REASON_DECOMPOSED_ONLY",
     "REASON_LOAD_UNFIXED",
+    "IcmConfig",
+    "IcmPort",
+    "IcmWindow",
     "HeadroomResult",
     "HeadroomRow",
     "JUNCTION_LAYOUT_DIFFUSION",
@@ -257,6 +270,7 @@ __all__ = (
     "MetricStructure",
     "MirrorRatio",
     "MismatchSource",
+    "NodalSystem",
     "MnaSystem",
     "MosLocal",
     "MosSmallSignal",
@@ -294,6 +308,8 @@ __all__ = (
     "SliceCurveCheck",
     "SmallSignalCircuit",
     "SsCircuit",
+    "OffDelta",
+    "OffOp",
     "SsDevice",
     "SsEvaluation",
     "StampSet",
@@ -359,10 +375,19 @@ __all__ = (
     "solve_point",
     "solve_responses",
     "ss_circuit",
+    "ss_circuit_field",
+    "ss_nodal_system",
+    "ss_off_delta",
+    "ss_off_op",
+    "off_region_gate",
+    "icm_config_window",
+    "icm_window_metrics",
+    "kvl_sensitivity",
     "ss_dev",
     "ss_evaluate",
     "supply_currents",
     "theta_passive_pairs",
     "two_terminal_stamps",
+    "SPICE_ORACLE",
     "verified_by",
 )

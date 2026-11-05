@@ -117,7 +117,7 @@ def test_both_counts_mismatch_all_reported(ah, tmp_path):
 def test_mismatch_follows_netlist_edit(ah, tmp_path):
     """MOS 하나를 더 넣고 manifest 는 그대로 -> 불일치(대조가 실제 개수를 본다, 고정값이 아님)."""
     doc = with_manifest(ah)
-    doc["netlist"].append({"name": "Q5", "kind": "nmos", "drain": "n_outp", "gate": "n_mid", "source": "rail_lo"})
+    doc["netlist"].append({"name": "Mfx5", "kind": "nmos", "drain": "n_outp", "gate": "n_mid", "source": "rail_lo"})
     detail = load_rejected(ah, tmp_path, doc)
     assert ah.rules(detail["hits"]) == ["source_manifest_mismatch"]
     assert has_number(detail["hits"][0].message, 5)

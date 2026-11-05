@@ -1,15 +1,15 @@
 ---
 template: design
-version: 0.1
+version: 0.1.3
 plan: ../../01-plan/features/graph-consumption.plan.md
-plan_version: 0.14.8
+plan_version: 0.14.9
 ---
 
 # graph-consumption Design Document (GC-D 일부: card GC-1, GC-8)
 
 > **Summary**: 승인 계획 `graph-consumption.plan.md`의 GC-1(구조 규칙 L·부채 목록)과 GC-8(`headroom_bound`·`order_terms` 정본 읽기)을 card로 내릴 수 있게 정한다. 공용 필드 정본은 `headroom-chain.design.md`다.
 >
-> **Status**: v0.1, 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = graph-consumption 0.14.8(상위 v6.38.8, master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
+> **Status**: v0.1.3(§3 J1 목록, 위임 A-60, 독립 판정 Major 0, 승인 위임 A-61). v0.1.2(§3 J1 목록, 위임 A-59, 독립 판정 Major 0, 승인 위임 A-61). v0.1.1(§3·§5·§6 HC-1 card 후보 채택, 위임 A-50~A-52, 계획 0.14.9, 독립 판정 Major 0, 승인 위임 A-61). v0.1, 승인됨 -- 사용자 결정 O-226 위임 A-27(2026-11-04). 계획 기준 = graph-consumption 0.14.8(상위 v6.38.8, master `c0b41eee` 승인 A-25), design v1.16.3에 병합됨(옛 base `8b9ec744`).
 >
 > **이 판 범위**: GD-1·GD-3·GD-9·GD-14(GC-1), GD-2(HC design 인용), GC-8. **범위 밖**: GD-4·5·7·8·10~13(GC-2·3·5·6·7·9). 그 card 착수 전 이 문서를 개정한다. GD-6 = 소유표에 reader 칸을 더하지 않는다(규칙 L이 기계 판정, 소비자 열로 충분).
 >
@@ -55,7 +55,7 @@ plan_version: 0.14.8
 - **GD-14**: 함수·메서드·클래스(A-32 S-5). **L-4 대상** = spec 계약 6(S-7). AST 호출 그래프에서 진입점 밖이고 호출자 0인 함수 = 위반 `no_caller`(블록 데코레이터 함수는 블록 호출로 센다, `test_` 밖 tests는 대상 아님). `size_and_seal_local` 항목 = 배선 대기, card LA-1. 대상 사전 측정(M-G9) 미룸 -- GC-1 기준선이 그 자리를 잰다.
 - **규칙 L-5 '동작점 사본'**: N3.1-5 정의 그대로. 추적이 안 풀리면 위반.
 
-**HC-1과의 경계(GC:663)**: 새 필드에 부채 항목을 줄 수 없다. HC-1 design의 출력 전용 항목(`graph/start: loop_stack_notes`, `device: dc_triode_region`, `LoopConflict` 내용 칸, `chain_cuts` 칸)은 목록 추가라 지문이 바뀐다. N3.1-6 (d)에서 '대상 축소·허용 확대'는 기준 약화다. 판정: **항목마다 승인된 design 소유표 행을 근거로 적으면 기록된 기준 변경이고, 근거 없는 추가는 `criteria_weakened`**. 검증자가 HC-1 판정에서 대조한다. **작성자 판단 J1**(§7-S2).
+**HC-1과의 경계(GC:663)**: 새 필드에 부채 항목을 줄 수 없다. HC-1 design의 출력 전용 항목(`graph/start: loop_stack_notes`, `device: dc_triode_region`)과 출력 함수 `_chain_start_note`·`_triode_rows`는 목록 추가라 지문이 바뀐다. 칸(`LoopConflict` 내용 칸, `ChainExist`·`ChainCycle` 칸, `chain_cuts` 칸)은 reader가 있어 L-4를 목록 없이 통과하므로 `output_only_slots`에 넣지 않는다(빈 tuple 유지, 위임 A-59·A-60). N3.1-6 (d)에서 '대상 축소·허용 확대'는 기준 약화다. 판정: **항목마다 승인된 design 소유표 행을 근거로 적으면 기록된 기준 변경이고, 근거 없는 추가는 `criteria_weakened`**. 검증자가 HC-1 판정에서 대조한다. **작성자 판단 J1**(§7-S2).
 
 ## 4. GC-1 toy(거부 먼저)
 
@@ -97,7 +97,8 @@ HC-1과 같은 통합 병합, GC-8 커밋이 HC-1 커밋 뒤(표 #17, O-191). �
 - VDS 변: `chain.edges`에서 `device ∈ local`이고 `on_structural`. 비용 = `term_kind == sat`이면 `vds_edge_floor_v`, `lut_floor`이면 0.
 - VGS 변: `dc_vgs_edge`. 같은 구조적 전도 집합. 비용 = `vgs_min_v`.
 - **`lut_floor` 값은 쓰지 않는다**(O-33 (9)). DC 범위 개념과 LUT 표현 범위를 섞지 않는다.
-- 창 미상 처리: `STATUS_UNKNOWN` 그대로, `iv_headroom` 예산은 HC design §8.
+- 창 미상 처리(위임 A-51, HC:342): `on_structural` False 변의 끝 넷이고 위쪽 또는 아래쪽 경로가 없으면 그 행만 `STATUS_UNKNOWN`. 전역 순환이면 지금처럼 전부 `STATUS_UNKNOWN`. 다른 넷의 경로 없음은 `STATUS_CERTIFIED` + 레일 끝(유효한 상한) 그대로. `iv_headroom` 예산은 HC design §8.
+- 호출자 둘(위임 A-50): `metrics/achievability.py`, `search/iv_headroom.py`(`_budgets`).
 - 상한 건전성: 비용을 줄이기만 하므로 상한이다. 정지 집합 단조는 요구하지 않는다(O-44 (2)). 새로 정지한 회로는 검증자 하네스(엔진 안 우회 스위치 금지).
 
 ### 5.3 이름(GC-8 (4))
@@ -114,7 +115,7 @@ HC-1과 같은 통합 병합, GC-8 커밋이 HC-1 커밋 뒤(표 #17, O-191). �
 |---|---|---|
 | G1 | 선언 triode 변 toy | `headroom_bound` 비용 0 방향 변, `lut_floor` 값 미사용(손계산 창) |
 | G2 | 같은 toy | `order_terms`에 같은 변 있음, 항 순서 = 필드 순서 |
-| G3 | `off` 선언·구조적 0 전류 | 두 소비자 모두 변 없음 |
+| G3 | `off` 선언·구조적 0 전류 | 두 소비자 모두 변 없음, 끝 넷 한쪽 경로 없으면 그 행 `STATUS_UNKNOWN` |
 | G4 | 작은 격자 LUT | `vds_edge_floor_v` 손계산 |
 | G5 | 이름 전단사 | 항 순서 불변(base 이름 키 -- red) |
 | G6 | `git grep` | `_edges` 핀 분기·`order_terms` 방향·`vds_min_v` 0 |
@@ -122,7 +123,7 @@ HC-1과 같은 통합 병합, GC-8 커밋이 HC-1 커밋 뒤(표 #17, O-191). �
 
 **완료**: HC:585와 GC-8 행. 같은 개념에 소비자별 다른 규칙 0(검증자), 커밋별 변화표(O-38 (3)), WP-10 계측.
 
-**재작성 범위**: `E/sizing/block_columns.py`, `E/metrics/headroom_bound.py`, `E/metrics/achievability.py`, `E/lut/derived_fns.py`(이름), `E/search/start_intervals.py`, `E/search/_helpers_curves.py`, CONTRACT 해당 줄.
+**재작성 범위**: `E/sizing/block_columns.py`, `E/metrics/headroom_bound.py`, `E/metrics/achievability.py`, `E/search/iv_headroom.py`(둘째 호출자), `E/lut/derived_fns.py`(이름), `E/search/start_intervals.py`, `E/search/_helpers_curves.py`, CONTRACT 해당 줄.
 
 **새 필드**: 0. 새 소비자만 있다.
 

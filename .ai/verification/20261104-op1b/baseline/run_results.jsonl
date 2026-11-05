@@ -1,0 +1,10 @@
+{"id": "R1", "ngspice_rc": {"free": 0}, "categories": {"op": true, "ac": true, "rail": true, "stable": true}, "run_diffs": {"free": []}, "mc_run_diffs": null, "python": null, "numpy": null}
+{"id": "R10", "ngspice_rc": {"free": 0}, "categories": {"op": true, "ac": true, "mc": true}, "run_diffs": {"free": []}, "mc_run_diffs": [], "python": "3.14.2", "numpy": "2.4.6"}
+{"id": "R2", "ngspice_rc": {"free": 0}, "categories": {"op": true, "ac": true, "beta_loop": true, "rail": true}, "run_diffs": {"free": []}, "mc_run_diffs": null, "python": null, "numpy": null}
+{"id": "R3", "ngspice_rc": {"free": 0, "forced": 0}, "categories": {"op": true, "ac": true, "ratio": true, "rail": true}, "run_diffs": {"free": [], "forced": []}, "mc_run_diffs": null, "python": null, "numpy": null}
+{"id": "R4", "ngspice_rc": {"free": 0, "forced": 0}, "categories": {"op": true, "ac": true, "rout": true, "rail": true}, "run_diffs": {"free": [], "forced": []}, "mc_run_diffs": null, "python": null, "numpy": null}
+{"id": "R5", "ngspice_rc": {"iso": 0}, "categories": {"op": true}, "run_diffs": {"iso": []}, "mc_run_diffs": null, "python": null, "numpy": null}
+{"id": "R6", "ngspice_rc": {"free": 0}, "categories": {"op": true, "ac": true, "unstable": true}, "run_diffs": {"free": []}, "mc_run_diffs": null, "python": null, "numpy": null}
+{"id": "R7", "ngspice_rc": {"free": 0, "forced": 0}, "categories": {"op": true, "ac": true, "stability": true}, "run_diffs": {"free": [], "forced": []}, "mc_run_diffs": null, "python": null, "numpy": null}
+{"id": "R8", "ngspice_rc": {"free": 0}, "categories": {"op": true, "ac": true, "stability": true}, "run_diffs": {"free": []}, "mc_run_diffs": null, "python": null, "numpy": null}
+{"id": "R9", "ngspice_rc": {"free": 0}, "categories": {"op": true, "ac": true, "noise": true}, "run_diffs": {"free": []}, "mc_run_diffs": null, "python": null, "numpy": null}

@@ -225,9 +225,9 @@ _SO = importlib.import_module("gmid_engine.search.slsqp_outer")
 def _record_outer_fd(monkeypatch, store, coords_log=None):
     real = _SO.fd_jacobian
 
-    def rec(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()):
+    def rec(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset(), **kw):  # [XRUN-F1 card C] ceiling 키워드 통과
         store.append((tuple(variables), [float(v) for v in x], to_theta, coords_log[-1] if coords_log else None))
-        return real(sctx, variables, x, base, cells, to_theta, origin, skip)
+        return real(sctx, variables, x, base, cells, to_theta, origin, skip, **kw)
     monkeypatch.setattr(_SO, "fd_jacobian", rec)
 
 
@@ -299,3 +299,44 @@ def test_theta_coords_used_by_outer(tmp_path, lut_sealed, monkeypatch):
     assert all(v.lo <= xi <= v.hi for v, xi in zip(variables, x))
     a, b = to_theta(x), coords.to_theta(x)
     assert {k: float(v).hex() for k, v in a.items()} == {k: float(v).hex() for k, v in b.items()}
+
+
+# =====================================================================================================================
+# [XRUN-F1 card C] interface card xrunf1c C5 (C-T6) 외층 행 -- 첫 스텝 FdBudgetShortfall: 반복 0, 재시작 0, 정지 사유 eval_budget,
+# aborts == ("eval_budget",), best = c ≥ 0이면 시작점 아니면 None. 반복 중 shortfall: 정지 사유 eval_budget. 호출 전후 kernel_calls <= 탐색 예산.
+# oracle: (손) 구성 -- 선언 예산을 시작점 평가(캐시 적중) 뒤 kernel_calls + m 으로 맞춘다. 유한차분 한 묶음의 상계 = 2 n_θ (C4 정의).
+#   m = 1 < 2 n_θ(n_θ ≥ 1): 첫 묶음이 못 시작 -> 첫 스텝 shortfall.
+#   m = 2 n_θ + 1: 첫 묶음은 시작하고 곧 예산이 닿는다 -> 정지 사유 eval_budget (SLSQP 가 이 예산 안에서 수렴하지 않음은 구성 전제로 단언).
+# =====================================================================================================================
+
+def _cut_case(tmp_path, lut_sealed, m):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
+    s = case.sctx
+    sp = _start(case, theta_r4c())
+    start_res = evaluate(s, sp.theta, sp.cells)
+    s.eval_budget = dict(s.counters)["kernel_calls"] + m
+    return s, sp, start_res
+
+
+def test_outer_first_step_shortfall_zero_iterations_best_is_start(tmp_path, lut_sealed):
+    s, sp, start_res = _cut_case(tmp_path, lut_sealed, 1)
+    assert 1 < 2 * len(s.domain.variables)                                  # 전제: 한 묶음 상계(2 n_θ)보다 작은 남은 한도
+    r = solve_eps(s, sp, AXIS_POWER, None, ("t",))
+    assert r.iterations == 0 and r.restarts == 0
+    assert r.stop == "eval_budget"
+    assert tuple(r.aborts) == ("eval_budget",)
+    if _feasible(start_res):
+        assert r.best is start_res                                          # c ≥ 0 이면 시작점
+    else:
+        assert r.best is None
+    assert dict(s.counters)["kernel_calls"] <= s.eval_budget
+
+
+def test_outer_mid_iteration_budget_stop_keeps_kernel_calls_within_budget(tmp_path, lut_sealed):
+    s, sp, start_res = _cut_case(tmp_path, lut_sealed, 2 * 4 + 1)
+    assert len(s.domain.variables) == 4                                     # 전제: 이 회로 n_θ = 4 -> m = 2 n_θ + 1
+    r = solve_eps(s, sp, AXIS_POWER, None, ("t",))
+    assert r.stop == "eval_budget"
+    assert dict(s.counters)["kernel_calls"] <= s.eval_budget
+    if r.best is not None:
+        assert r.best.status in ACCEPTED_STATUSES and _feasible(r.best)

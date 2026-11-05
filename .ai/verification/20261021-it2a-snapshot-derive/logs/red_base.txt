@@ -1,0 +1,429 @@
+.....................................................................FFF [ 25%]
+F......................................FFF..F.........................F. [ 50%]
+.F.............................F......FFFFFFFFFFFFFFFFFFF.....F......... [ 76%]
+.F.....F.......FF.FFFFFFFF......F.......FFF.........................     [100%]
+================================== FAILURES ===================================
+E   AttributeError: derive_child
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\core\graph_snapshot.py:67: AttributeError: derive_child
+E   AttributeError: derive_child
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\core\graph_snapshot.py:67: AttributeError: derive_child
+E   AttributeError: derive_child
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\core\graph_snapshot.py:67: AttributeError: derive_child
+E   AttributeError: derive_child
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\core\graph_snapshot.py:67: AttributeError: derive_child
+E   assert (0, 0, 1) == (0, 1, 0)
+      
+      At index 1 diff: 0 != 1
+      Use -v to get more diff
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\metrics\test_ss_evaluate.py:655: assert (0, 0, 1) == (0, 1, 0)
+E   assert (0, 0, 1) == (0, 1, 0)
+      
+      At index 1 diff: 0 != 1
+      Use -v to get more diff
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\metrics\test_ss_evaluate.py:655: assert (0, 0, 1) == (0, 1, 0)
+E   assert (0, 0, 1) == (0, 1, 0)
+      
+      At index 1 diff: 0 != 1
+      Use -v to get more diff
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\metrics\test_ss_evaluate.py:655: assert (0, 0, 1) == (0, 1, 0)
+E   AssertionError: namespace(calls=1, reuses=1, grafts=0, replays=0, computes=0, recomputes_same_input=0)
+    assert (0, 0, 1) == (0, 1, 0)
+      
+      At index 1 diff: 0 != 1
+      Use -v to get more diff
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\metrics\test_ss_evaluate.py:723: AssertionError: namespace(calls=1, reuses=1, grafts=0, replays=0, computes=0, recomputes_same_input=0)
+E   AssertionError: assert (('M1', SsDev...el_tol=None))) == ()
+      
+      Left contains 2 more items, first extra item: ('M1', SsDevice(gm=0.0001519999999999999, gmb=0.0, gds=0.0, cgg=0.0, cgs=0.0, cgd=0.0, cgb=0.0, cdb=0.0, csb=0.0, cap_model='hand', gmb_model='hand', junction_model='hand', lut_rel_tol=None))
+      Use -v to get more diff
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_kernel_run.py:413: AssertionError: assert (('M1', SsDev...el_tol=None))) == ()
+E   Failed: DID NOT RAISE <class 'ValueError'>
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_kernel_run.py:458: Failed: DID NOT RAISE <class 'ValueError'>
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_scc_newton.py:791: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:21: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   Failed: DID NOT RAISE <class 'TypeError'>
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal.py:185: Failed: DID NOT RAISE <class 'TypeError'>
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_conduction.py:218: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_conduction.py:303: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_conduction.py:375: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_dc() got an unexpected keyword argument 'base'
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_conduction.py:375: TypeError: seal_dc() got an unexpected keyword argument 'base'
+E   TypeError: seal_versions() takes 2 positional arguments but 3 were given
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_versions.py:22: TypeError: seal_versions() takes 2 positional arguments but 3 were given
+E   TypeError: seal_versions() takes 2 positional arguments but 3 were given
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_versions.py:37: TypeError: seal_versions() takes 2 positional arguments but 3 were given
+E   TypeError: seal_versions() takes 2 positional arguments but 3 were given
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_versions.py:47: TypeError: seal_versions() takes 2 positional arguments but 3 were given
+E   TypeError: seal_versions() takes 2 positional arguments but 3 were given
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_versions.py:55: TypeError: seal_versions() takes 2 positional arguments but 3 were given
+E   TypeError: seal_versions() takes 2 positional arguments but 3 were given
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_versions.py:83: TypeError: seal_versions() takes 2 positional arguments but 3 were given
+E   TypeError: seal_versions() takes 2 positional arguments but 3 were given
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_versions.py:95: TypeError: seal_versions() takes 2 positional arguments but 3 were given
+E   TypeError: seal_versions() takes 2 positional arguments but 3 were given
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_versions.py:111: TypeError: seal_versions() takes 2 positional arguments but 3 were given
+E   TypeError: seal_versions() takes 2 positional arguments but 3 were given
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_seal_versions.py:124: TypeError: seal_versions() takes 2 positional arguments but 3 were given
+E   AssertionError: namespace(calls=1, reuses=1, grafts=0, replays=0, computes=0, recomputes_same_input=0)
+    assert (1, 0, 0, 0) == (0, 1, 0, 0)
+      
+      At index 0 diff: 1 != 0
+      Use -v to get more diff
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_size_and_seal.py:43: AssertionError: namespace(calls=1, reuses=1, grafts=0, replays=0, computes=0, recomputes_same_input=0)
+E   AssertionError: namespace(calls=1, reuses=1, grafts=0, replays=0, computes=0, recomputes_same_input=0)
+    assert (1, 0, 0, 0) == (0, 1, 0, 0)
+      
+      At index 0 diff: 1 != 0
+      Use -v to get more diff
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_size_and_seal.py:43: AssertionError: namespace(calls=1, reuses=1, grafts=0, replays=0, computes=0, recomputes_same_input=0)
+E   AssertionError: namespace(calls=1, reuses=1, grafts=0, replays=0, computes=0, recomputes_same_input=0)
+    assert (1, 0, 0, 0) == (0, 1, 0, 0)
+      
+      At index 0 diff: 1 != 0
+      Use -v to get more diff
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_size_and_seal.py:43: AssertionError: namespace(calls=1, reuses=1, grafts=0, replays=0, computes=0, recomputes_same_input=0)
+E   AssertionError: namespace(calls=1, reuses=1, grafts=0, replays=0, computes=0, recomputes_same_input=0)
+    assert (1, 0, 0, 0) == (0, 1, 0, 0)
+      
+      At index 0 diff: 1 != 0
+      Use -v to get more diff
+C:\Users\HSLEE\Documents\Todoc\fpga\wt\_scratch_it2a_audit\r\skills\analog-gmid-design\gmid_engine\tests\sizing\test_size_and_seal.py:43: AssertionError: namespace(calls=1, reuses=1, grafts=0, replays=0, computes=0, recomputes_same_input=0)
+============================== warnings summary ===============================
+gmid_engine/tests/sizing/test_scc_newton.py::test_singular_jacobian[rank_one_2x2]
+gmid_engine/tests/sizing/test_scc_newton.py::test_r7_singular_checked_before_acceptance
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 2 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+gmid_engine/tests/sizing/test_scc_newton.py::test_singular_jacobian[zero_derivative_1d]
+  C:\Users\HSLEE\AppData\Roaming\Python\Python314\site-packages\scipy\_lib\_util.py:1136: LinAlgWarning: Diagonal number 1 is exactly zero. Singular matrix.
+    return f(*arrays, *other_args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_empty_has_no_records
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_empty_requires_writer_table[None]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_empty_requires_writer_table[bad1]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_empty_requires_writer_table[bad2]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_empty_requires_writer_table[table]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_write_and_read_back
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_value_missing_field_key_error
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_kinds_sorted_multiple
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_writer_writes_multiple_columns_at_once
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_original_unchanged_after_write
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_column_replace_removes_unlisted_keys
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_column_replace_keeps_record_with_other_fields
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_empty_column_removes_all
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_write_count_increments_on_rewrite
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_same_value_same_version_keeps_fieldvalue_object
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_same_value_new_version_is_new_field
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_removed_then_rewritten_counts_from_one
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_block_version_per_writer
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_no_change_returns_self
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_new_version_same_values_not_self
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_structural_sharing_unchanged_records_same_object
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_new_input_version_makes_new_record_even_if_value_same
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_fp_path_independent
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_fp_ignores_block_versions
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_fp_differs_on_any_value
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_empty_fp_stable
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_tables_and_block_versions_read_only
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_permission_violation_rejected_and_snapshot_unchanged
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_bad_input_version_rejected[]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_bad_input_version_rejected[1]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_bad_input_version_rejected[None]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_non_mapping_columns_rejected[columns_list]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_non_mapping_columns_rejected[columns_str]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_non_mapping_columns_rejected[column_value_list]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_non_mapping_columns_rejected[column_value_scalar]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_non_str_key_rejected[1]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_non_str_key_rejected[None]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_non_str_key_rejected[key2]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_mutable_value_rejected[value0]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_mutable_value_rejected[value1]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_mutable_value_rejected[value2]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_mutable_value_rejected[value3]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_column_fields_same_keys_and_order_as_column_with_fieldvalues
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_column_fields_meta_from_construction
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_column_fields_omits_records_lacking_field
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_new_table_shared_records_and_meta
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_then_write_uses_new_table_and_carried_meta
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_equal_table_returns_self
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_on_empty_snapshot
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_requires_writer_table[none]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_requires_writer_table[str]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_requires_writer_table[triples_tuple]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_requires_writer_table[triples_list]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_requires_writer_table[entries_like]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_rejects_non_superset[missing_theta]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_rejects_non_superset[missing_l]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_rejects_non_superset[other_writer]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_extend_writers_rejects_non_superset[disjoint]
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_one_write_many_fields_same_record_equals_field_by_field_reference
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_one_write_many_fields_record_equals_direct_graphrecord
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_one_write_many_fields_structural_sharing
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_one_write_many_fields_no_change_returns_self
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_one_write_many_fields_removal_and_creation
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_snapshot_fp_stable_and_independent_of_read_order
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_snapshot_fp_old_snapshot_unchanged_after_write_regardless_of_read_timing
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_snapshot_fp_matches_pre_change_baseline
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_column_repeated_calls_identical
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_column_after_write_never_stale
+PASSED gmid_engine/tests/core/test_graph_snapshot.py::test_column_after_extend_writers_then_write_not_stale
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_input_dc_evaluation_is_dc_evaluation
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_result_shape_and_lineage
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_requests_split_and_dedup
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_values_against_closed_form
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s11_junction_caps_and_approximation
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_junction_enters_frequency_metrics
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_counted_rails_default_undeclared
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_only_sealed_snapshot_accepted[dc_evaluation]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_only_sealed_snapshot_accepted[snapshot]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_only_sealed_snapshot_accepted[none]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_ctx_must_be_kernel_context
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_keyword_required
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[none]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[params_tuple]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[junction_params]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[pdk_decl]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[dict]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[positional_only]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_negative_check_valid_junction_accepted
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_theta_checked
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_passive_theta_argument_removed
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[spec_valued]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[not_passive]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[unknown]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[theta_resistance_too]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[rule_and_theta]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s14_engine_capacitor_value_from_theta
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_pending_capacitor_stays_missing
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s6_lineage_reuse_zero_compute
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s12_junction_change_recomputes_ss_blocks_only
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_fd_step_recomputes_and_no_same_input_recompute
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_only_changed_blocks_recompute
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_determinism
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_sky130_decls_ss_dev_junction_matches_reference
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_zc_schema_premise
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_zc_rule_value_enters_small_signal
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_zc_fallback_theta_enters_small_signal
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s15_rule_equals_spec_declared_value
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_values_reused_on_mos_theta_only_change[cell]
+PASSED gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_values_reused_on_mos_theta_only_change[nocell]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_first_evaluation_dc_gm_is_own_operating_point
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_tol_i_parent_independent
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_seal_3_violation_margin_parent_independent[none]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_seal_3_violation_margin_parent_independent[s2p]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_seal_3_violation_margin_parent_independent[stale]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_passive_only_child_of_first_evaluation_reuses
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_passive_only_child_of_s2p_evaluation_reuses
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_passive_only_chain_bit_identical_dc_gm
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_writer_fixes_w_and_rewrites_coordinate
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_diode_writer
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_dependent_keeps_coordinate
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_forms_equivalent
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_empty_w_request_same_as_none
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad0]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad1]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad2]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad3]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad4]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad5]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_rejects[bad6]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_duplicate_name_rejected[dup0]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_duplicate_name_rejected[dup1]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_w_request_duplicate_name_rejected[dup2]
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_ic10_w_request_change_not_served_from_parent
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_determinism_hashseed_u4_paths
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_it2a_child_keeps_every_base_writer_field
+PASSED gmid_engine/tests/sizing/test_kernel_run.py::test_it2a_parentless_evaluation_passes_seal_4
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_linear_system_exact_in_one_step
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_already_within_tolerance_zero_steps
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_nonlinear_known_root
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_damped_step_backtracks
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_singular_jacobian[rank_one_2x2]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_singular_jacobian[zero_derivative_1d]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_start_outside_domain
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_line_search_domain_failure
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_line_search_stops_at_float_resolution
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_iteration_cap
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_tolerance_and_kmax_reevaluated_each_iteration
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_r7_small_residual_large_step_not_accepted
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_r7_accepted_point_is_current_not_stepped
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_r7_singular_checked_before_acceptance
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_mos_jacobian_columns_vs_central_difference[nmos_bulk_in_scc]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_mos_jacobian_columns_vs_central_difference[nmos_diode_self]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_mos_jacobian_columns_vs_central_difference[nmos_gate]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_mos_jacobian_columns_vs_central_difference[nmos_source]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_mos_jacobian_columns_vs_central_difference[pmos_gate]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_mos_jacobian_columns_vs_central_difference[pmos_source]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_jacobian_tolerance_discriminates[nmos_bulk_in_scc]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_jacobian_tolerance_discriminates[pmos_source]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_slow_contraction_switches_to_newton[0.98-0.3]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_slow_contraction_switches_to_newton[0.95-0.2]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_contracting_gauss_seidel_does_not_run_newton[0.6-0.4]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_contracting_gauss_seidel_does_not_run_newton[0.9-0.2]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_methods_direct_and_bisection
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_gauss_seidel_not_contracting_newton_converges[0.9-1.0]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_gauss_seidel_not_contracting_newton_converges[0.93-0.8]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_newton_failure_in_case_one_is_raised
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_r7_q_close_to_one_projection_not_accepted
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_case_two_seal_violation_kept_with_newton_cause
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_newton_converged_then_strict_recheck_failure_raised
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_newton_path_deterministic[S]
+PASSED gmid_engine/tests/sizing/test_scc_newton.py::test_newton_path_deterministic[Q]
+PASSED gmid_engine/tests/sizing/test_seal.py::test_seal_dc_run_pair_keywords_required[donors]
+PASSED gmid_engine/tests/sizing/test_seal.py::test_seal_dc_run_pair_keywords_required[counters]
+PASSED gmid_engine/tests/sizing/test_seal.py::test_seal_dc_run_pair_keywords_required[both]
+PASSED gmid_engine/tests/sizing/test_seal.py::test_it2a_seal_versions_base_none_type_error
+PASSED gmid_engine/tests/sizing/test_seal.py::test_it2a_seal_dc_base_none_type_error
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_item_number
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_values_and_judge_r4[0.5-0.6-0.7]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_values_and_judge_r4[0.4-0.8-0.55]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_values_and_judge_r4[0.5-0.3-0.25]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_values_and_judge_r4[0.5-0.02-0.7]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_values_and_judge_toy[0.5-1e-05]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_values_and_judge_toy[0.3-0.0001]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_values_and_judge_toy[0.7-1e-06]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_closed_form_ratio_toy
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_margin_exactly_one_passes_one_ulp_above_fails
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_nonconducting_devices_excluded[0.0]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_nonconducting_devices_excluded[-1e-06]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_all_nonconducting_no_rows_pass
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_tol_none_row_undefined
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_fail_takes_precedence_over_undefined
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_condition_independent_of_width[0.6-0.25]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_condition_independent_of_width[0.6-3.0]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_condition_independent_of_width[0.6-1000.0]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_condition_independent_of_width[0.02-0.25]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_condition_independent_of_width[0.02-3.0]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_condition_independent_of_width[0.02-1000.0]
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_off_current_lookup_failure
+PASSED gmid_engine/tests/sizing/test_seal_conduction.py::test_block_reuse
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_returns_evaluation
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_theta_object_equivalent
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_type_error_ctx
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_bad_theta_is_value_error
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_parent_not_evaluation
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_parent_from_other_plan
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_current_perturbation_skips_columns
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_coordinate_perturbation_recomputes_columns_only_downstream[key0--14.376036022934503]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_coordinate_perturbation_recomputes_columns_only_downstream[key1--13.181583203494448]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_coordinate_perturbation_recomputes_columns_only_downstream[key2-0.55]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_resistance_perturbation
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_current_through_resistor_recomputes_columns
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_components_present
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_not_in_dc_values
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_domain[0.0-key0]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_domain[0.0-key1]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_domain[-1e-12-key0]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_domain[-1e-12-key1]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_key_required
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_parent_chain_then_back_reuses_nothing_wrongly
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_resistor_cycle
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_zero_current_mos
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_declared_kcl
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_mos_current_nonpositive
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_empty_window
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_lut[target-lut_target_out_of_range]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_lut[anchor-lut_l_not_anchor]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_lut[axis-lut_axis_out_of_range]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_seal_violation
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_diode_mirror_full_evaluation
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_failure_no_root_in_window
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_candidate_failure_classes_exact
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_determinism_hashseed_and_netlist_order
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_member_l_is_owner_theta_l[1e-06]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_member_l_is_owner_theta_l[2e-06]
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_owner_l_perturbation_moves_member
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_ic1_vgs_consistency_all_devices
+PASSED gmid_engine/tests/sizing/test_size_and_seal.py::test_ic2_order_shuffle_invariance
+FAILED gmid_engine/tests/core/test_graph_snapshot.py::test_it2a_derive_child_keeps_only_keep_writers_fields_and_versions
+FAILED gmid_engine/tests/core/test_graph_snapshot.py::test_it2a_derive_child_leaves_parent_unchanged_and_is_a_new_snapshot
+FAILED gmid_engine/tests/core/test_graph_snapshot.py::test_it2a_derive_child_keep_nothing_and_unknown_names
+FAILED gmid_engine/tests/core/test_graph_snapshot.py::test_it2a_derive_child_result_accepts_later_writes
+FAILED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[cell]
+FAILED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[nocell_c]
+FAILED gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[nocell_r]
+FAILED gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2a_same_theta_ss_reevaluation_from_child_grafts
+FAILED gmid_engine/tests/sizing/test_kernel_run.py::test_it2a_child_drops_fields_of_writer_outside_kernel
+FAILED gmid_engine/tests/sizing/test_kernel_run.py::test_it2a_parent_with_other_base_writer_version_rejected
+FAILED gmid_engine/tests/sizing/test_scc_newton.py::test_q_ill_conditioned_point_rejected_by_seal_9
+FAILED gmid_engine/tests/sizing/test_seal.py::test_undefined_evaluation - Typ...
+FAILED gmid_engine/tests/sizing/test_seal.py::test_linear_devices_reach_item7
+FAILED gmid_engine/tests/sizing/test_seal.py::test_never_sealed_snapshot[1e-06-0.2]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_never_sealed_snapshot[1e-06-0.5]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_never_sealed_snapshot[1e-06-0.8]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_never_sealed_snapshot[1e-05-0.2]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_never_sealed_snapshot[1e-05-0.5]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_never_sealed_snapshot[1e-05-0.8]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_never_sealed_snapshot[0.0001-0.2]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_never_sealed_snapshot[0.0001-0.5]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_never_sealed_snapshot[0.0001-0.8]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_violation_reports_worst_item
+FAILED gmid_engine/tests/sizing/test_seal.py::test_violation_item6_devices - ...
+FAILED gmid_engine/tests/sizing/test_seal.py::test_circuit_a_undefined - Type...
+FAILED gmid_engine/tests/sizing/test_seal.py::test_sealed_snapshot_when_all_pass[0.5-0.6-0.7]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_sealed_snapshot_when_all_pass[0.4-0.8-0.55]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_no_sealed_snapshot_when_item7_fails[0.1-M1]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_no_sealed_snapshot_when_item7_fails[0.9-M2]
+FAILED gmid_engine/tests/sizing/test_seal.py::test_linear_declared_failing_device_still_sealed
+FAILED gmid_engine/tests/sizing/test_seal.py::test_it2a_seal_dc_base_keyword_required
+FAILED gmid_engine/tests/sizing/test_seal_conduction.py::test_linear_declared_devices_included
+FAILED gmid_engine/tests/sizing/test_seal_conduction.py::test_two_point_axes_lut_all_undefined
+FAILED gmid_engine/tests/sizing/test_seal_conduction.py::test_no_sealed_snapshot_when_item9_fails[0.02-0.7-M1]
+FAILED gmid_engine/tests/sizing/test_seal_conduction.py::test_no_sealed_snapshot_when_item9_fails[0.6-0.01-M2]
+FAILED gmid_engine/tests/sizing/test_seal_versions.py::test_pass_and_independent_version_formula
+FAILED gmid_engine/tests/sizing/test_seal_versions.py::test_input_changed_after_compute_is_violation
+FAILED gmid_engine/tests/sizing/test_seal_versions.py::test_output_written_with_other_version_is_violation
+FAILED gmid_engine/tests/sizing/test_seal_versions.py::test_empty_calls_pass
+FAILED gmid_engine/tests/sizing/test_seal_versions.py::test_it2a_seal_4_passes_when_fields_are_base_or_call_writers
+FAILED gmid_engine/tests/sizing/test_seal_versions.py::test_it2a_seal_4_rejects_field_of_writer_outside_base_and_calls
+FAILED gmid_engine/tests/sizing/test_seal_versions.py::test_it2a_seal_4_rejects_base_writer_that_is_also_a_call
+FAILED gmid_engine/tests/sizing/test_seal_versions.py::test_it2a_seal_4_existing_checks_still_reject_with_base_argument
+FAILED gmid_engine/tests/sizing/test_size_and_seal.py::test_same_theta_with_parent_zero_compute
+FAILED gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_only_change_zero_dc_compute[key0-1.1e-12]
+FAILED gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_only_change_zero_dc_compute[key1-11000.0]
+FAILED gmid_engine/tests/sizing/test_size_and_seal.py::test_passive_theta_only_change_zero_dc_compute[both-None]
+47 failed, 237 passed, 3 warnings in 45.34s

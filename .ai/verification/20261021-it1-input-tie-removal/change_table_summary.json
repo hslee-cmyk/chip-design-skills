@@ -1,0 +1,140 @@
+{
+ "note": "IT-1 9회로 변화표 요약(감사 소유, 커밋 3 산출물). 원자료: change_table.json(IT-0 AB/SIM 대 HEAD, IT-0 하네스 경로), probe_diff.json(e98d0b0f 코드 대 HEAD, test_current_basis·test_s0_layer 경로 -- ngcc 포함). 원인 코드: R1 같은 DC 엣지 제거, R2 input_tie 제거, R3 y 키 = 뿌리 넷, R4 다중 뿌리 정지.",
+ "rows": {
+  "common_gate_amplifier": {
+   "writer_plan": "vin y_key input_common_mode -> vin (R3)",
+   "dependents": "0 -> 0",
+   "theta_y": "[input_common_mode, vout] -> [vin, vout] (R3)",
+   "domain_ties_vars": "(0,6) -> (0,6)",
+   "achievability_dof": "불변",
+   "start": "uncovered y 키 이름만 (R3)",
+   "stops": "없음",
+   "unexplained": 0
+  },
+  "current_reuse_telescopic_ota": {
+   "writer_plan": "Vim input_tie(known Vip) -> vgs_gate M4b(known Vy) (R1+R2); Vip y_key -> Vip (R3); Vx·Vy·Vbias3·Vim 쓰기 순번 이동(BFS 경로 변화, R1)",
+   "dependents": "22 -> 21: M4b cycle_vgs -> writer tree (R1)",
+   "theta_y": "[input_common_mode] -> [Vip] (R3)",
+   "domain_ties_vars": "(29,38) -> (30,38): 새 tie ln_idu M4a~M4b(M4b가 writer가 되어 기존 궤도 묶음 규칙이 묶음, R1)",
+   "achievability_dof": "n_equations 54 -> 53, rank 54 -> 53 (R2 tie: 등식 제거)",
+   "start": "uncovered y 키 이름만, rungs 같음",
+   "stops": "없음",
+   "unexplained": 0
+  },
+  "folded_cascode": {
+   "writer_plan": "vin_n input_tie -> vgs_gate M1(known tail) (R1+R2); vin_p y_key -> vin_p (R3); tail 순번 이동",
+   "dependents": "5 -> 4: M1 -> writer (R1)",
+   "theta_y": "[Y, input_common_mode, out] -> [Y, out, vin_p] (R3)",
+   "domain_ties_vars": "(0,16) -> (0,17): +ln_idu:M1 (R1)",
+   "achievability_dof": "n_equations 14 -> 13 (R2)",
+   "start": "rungs에 ln_idu:M1 사다리 추가(R1), uncovered y 키 이름(R3) -- 확인(둘째 판): base [..,(y,Y),(y,input_common_mode),(y,out)] -> HEAD [..,(y,Y),(y,out),(y,vin_p)], 이름 치환 뒤 집합 같음, (종류,이름) 정렬 순서만 다름(probe_diff false는 순서 민감 비교 탓) = R3",
+   "stops": "없음",
+   "unexplained": 0
+  },
+  "ngcc_3stage_ff": {
+   "writer_plan": "Vinn input_tie -> vgs_gate M1(known TAIL) (R1+R2); Vinp y_key -> Vinp (R3); TAIL 순번 이동",
+   "dependents": "M1 cycle_vgs -> writer (R1)",
+   "theta_y": "단계 A review_needed라 θ 스키마 없음(탐침에서 같음)",
+   "domain_ties_vars": "(0,21) -> (0,22): +ln_idu:M1 (R1)",
+   "achievability_dof": "n_equations 17 -> 16 (R2)",
+   "start": "해당 없음(단계 A·B review_needed)",
+   "stops": "단계 A review_needed 불변(IT-0 하네스는 이 회로를 재지 않음 -- 탐침으로 따로 잼)",
+   "unexplained": 0
+  },
+  "nmcnr_amplifier": {
+   "writer_plan": "Vin_n input_tie -> vgs_gate M102(known NodeTail) (R1+R2); Vin_p y_key -> Vin_p (R3); NodeTail 순번 이동",
+   "dependents": "4 -> 3: M102 -> writer (R1)",
+   "theta_y": "[NodeF2, input_common_mode] -> [NodeF2, Vin_p] (R3)",
+   "domain_ties_vars": "(0,23) -> (0,24): +ln_idu:M102 (R1)",
+   "achievability_dof": "n_equations 17 -> 16 (R2)",
+   "start": "rungs에 ln_idu:M102 추가(R1)",
+   "stops": "없음",
+   "unexplained": 0
+  },
+  "pushpull_follower_buffer": {
+   "writer_plan": "같음(입력 DC 선언)",
+   "dependents": "1 -> 1",
+   "theta_y": "같음",
+   "domain_ties_vars": "(0,8) 같음",
+   "achievability_dof": "같음",
+   "start": "같음",
+   "stops": "없음",
+   "unexplained": 0
+  },
+  "sf_pushpull_output_opamp": {
+   "writer_plan": "같음(입력 DC 선언)",
+   "dependents": "8 -> 8",
+   "theta_y": "같음",
+   "domain_ties_vars": "(0,26) 같음",
+   "achievability_dof": "같음",
+   "start": "같음",
+   "stops": "없음",
+   "unexplained": 0
+  },
+  "two_stage_ota": {
+   "writer_plan": "vin_n input_tie -> vgs_gate M1(known CS) (R1+R2); vin_p y_key -> vin_p (R3); CS 순번 이동",
+   "dependents": "3 -> 2: M1 -> writer (R1)",
+   "theta_y": "[OUT, input_common_mode] -> [OUT, vin_p] (R3)",
+   "domain_ties_vars": "(0,10) -> (0,11): +ln_idu:M1 (R1)",
+   "achievability_dof": "n_equations 8 -> 7 (R2)",
+   "start": "rungs에 ln_idu:M1 추가(R1)",
+   "stops": "없음",
+   "unexplained": 0
+  },
+  "two_stage_ota_sf": {
+   "writer_plan": "vin_n input_tie -> vgs_gate M1(known CS) (R1+R2); vin_p y_key -> vin_p (R3); CS 순번 이동",
+   "dependents": "4 -> 3: M1 -> writer (R1)",
+   "theta_y": "[OUT, input_common_mode] -> [OUT, vin_p] (R3)",
+   "domain_ties_vars": "(0,12) -> (0,13): +ln_idu:M1 (R1)",
+   "achievability_dof": "n_equations 10 -> 9 (R2)",
+   "start": "rungs에 ln_idu:M1 추가(R1)",
+   "stops": "없음",
+   "unexplained": 0
+  }
+ },
+ "R4_multi_root_stop_library": 0,
+ "total_unexplained": 0,
+ "baseline_8e46548_delta": {
+  "current_reuse_telescopic_ota": "(29,38) -> (30,38)",
+  "folded_cascode": "(0,16) -> (0,17)",
+  "ngcc_3stage_ff": "(0,21) -> (0,22)",
+  "nmcnr_amplifier": "(0,23) -> (0,24)",
+  "two_stage_ota": "(0,10) -> (0,11)",
+  "two_stage_ota_sf": "(0,12) -> (0,13)",
+  "unchanged": [
+   "common_gate_amplifier (0,6)",
+   "pushpull_follower_buffer (0,8)",
+   "sf_pushpull_output_opamp (0,26)"
+  ]
+ },
+ "s0_baseline_test_diffs": {
+  "stage_reports": "stage_b.achievability.dof 6회로(R2)",
+  "s0_fields": "theta_schema·search_domain·start.uncovered(common_gate·current_reuse: y 키 이름 R3), + start.rungs(2입력 4회로: 새 writer ln_idu R1)"
+ },
+ "heldout": "cnr_ota·erfc_ota·r2r_opamp 단계 A stopped, rfc_ota review_needed -- IT-0과 같음(쓰기 계획까지 가지 않아 변화 없음)",
+ "graph_check": {
+  "new_fields": 0,
+  "changed_fields": [
+   "node.dc_writer (relation 어휘·y_key)",
+   "device.dc_coord (값)",
+   "graph.dc_tie_breaks (decision 어휘)"
+  ],
+  "engine_consumers": {
+   "node.dc_writer": "dc_columns·scc_order·theta_schema·fd_jacobian·front_query·layer0_center·seal_writers (achievability는 READS에서 빠짐, achievability*.py에 dc_writer 읽기 0)",
+   "device.dc_coord": "dc_columns·theta_schema·kernel_run·start_intervals·constraints·iv_context·layout_input (achievability 아님)",
+   "graph.dc_tie_breaks": "엔진 소비자 0 -- IT-1 전부터 결과 기록 전용(변화 아님)",
+   "node.port_direction": "dc_columns READS 추가, _Circuit.inputs 가 소비"
+  },
+  "consumer_zero": 0,
+  "canonical_bypass_suspect": {
+   "count": 0,
+   "history": "bd468eaf에서 1건(key = (THETA_Y, roots[0])) -> ee3d8187에서 c.writers[roots[0]].y_key 로 수정 확인(41faebe0)"
+  },
+  "input_root_selection_in_dc_columns": "input_roots() = W4 writer ∩ port_direction 입력 -- 저장 없는 평가 안 필터(새 필드·cache 아님), 다중 뿌리 판정은 dc_writer_plan 한 자리",
+  "kvl_kcl_relation_not_applied": 0,
+  "storage_outside_graph": 0,
+  "note": "옛 _Circuit.members dict 삭제, 새 self.inputs = 평가 객체 안 frozenset(포트 방향 필드 읽기)"
+ },
+ "spec_card_stale": "master spec card graph 표의 node.dc_writer 소비자에 achievability, device.dc_coord 소비자에 achievability가 남아 있음 -- 코드 실측과 다름(k3-ext #4 정정 대기, design agent 재동결 몫)",
+ "baseline_3b_check": "aa3d1075: u17_1b_s0_baseline.json 바뀐 JSON 경로 28 = achievability dof 6 + schema_fp 6 + search_domain_fp 6 + uncovered_fp 6 + ladder_fp 4, 다른 바이트 변화 0(크기 같음); BASELINE_8E46548 = 원값 + _IT1_DELTA(Δ 6개 일치)"
+}

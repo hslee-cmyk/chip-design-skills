@@ -1,0 +1,30 @@
+{
+ "bench_lines": [
+  "Vac_ip acs_ip 0 DC 0 AC 0",
+  "Vac_im acs_im 0 DC 0 AC 0",
+  "Vlb_op op lbx_op DC 0 AC 0.5",
+  "Ilb_op 0 op DC 0 AC 0",
+  "Vlb_om om lbx_om DC 0 AC 0.5",
+  "Ilb_om 0 om DC 0 AC 0"
+ ],
+ "baseline": {
+  "gain_dc": 62.67435095845278,
+  "ugf_hz": 133510.7841970794,
+  "pm_deg": 32.84699194740443,
+  "f3db_hz": 4216.96503
+ },
+ "new_as_committed": {
+  "gain_dc": 62.67435095845278,
+  "ugf_hz": 133510.7841970794,
+  "pm_deg": 32.84699194740443,
+  "f3db_hz": 4216.96503
+ },
+ "new_with_input_ac_0": {
+  "gain_dc": 62.67435095845278,
+  "ugf_hz": 133510.7841970794,
+  "pm_deg": 32.84699194740443,
+  "f3db_hz": 4216.96503
+ },
+ "rel_gain_committed_vs_baseline": 0.0,
+ "rel_gain_fixed_vs_baseline": 0.0
+}

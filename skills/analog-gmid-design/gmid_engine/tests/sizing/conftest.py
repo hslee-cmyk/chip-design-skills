@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import bisect
+import dataclasses
 import hashlib
 import json
 import math
@@ -170,8 +171,9 @@ def r4_vds_floor(arrays):
     return float(vds[0])
 
 
-def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=None, grids=R4_GRIDS):
-    """vdsat = VDSAT 슬라이스 열을 가진 kind. off_cols / off_points = {kind: ...}(r4_arrays 인자). -> LutSet."""
+def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=None, grids=R4_GRIDS, cap_vdsat=()):
+    """vdsat = VDSAT 슬라이스 열을 가진 kind. off_cols / off_points = {kind: ...}(r4_arrays 인자).
+    cap_vdsat = 기준 LUT(cap.npz)에 `VDSAT<접미사>` 열(r4 VDSAT 식)을 더할 kind(기본 () = 더하지 않음 -- 기존 호출 동작 그대로). -> LutSet."""
     root.mkdir(parents=True, exist_ok=True)
     off_cols = dict(off_cols or {})
     off_points = dict(off_points or {})
@@ -189,6 +191,8 @@ def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=N
     for kind in ("nmos", "pmos"):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
+    for kind in cap_vdsat:
+        cap["VDSAT" + SUFFIX[kind]] = r4_arrays(kind, True, 0, (), grids)["VDSAT"]
     np.savez(root / "cap.npz", **cap)
     return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC)
 
@@ -707,8 +711,6 @@ def expected_columns(snap, theta, fixed_values=(), resistor_values=()):
             t0 = dict(snap.value("device", w.element, "pins"))["t0"]
             delta = 0.0 if i == 0 else (-i * r if w.known == t0 else i * r)
             V[x] = V[w.known] + delta
-        elif w.relation == "input_tie":
-            V[x] = V[w.known]
         elif w.relation == "free_window":
             lo, hi = min(rails), max(rails)
             for m, (kind, d, g, s, b) in mt.items():
@@ -966,8 +968,8 @@ def kplan(ctx):
     return tuple((w, ctx.base.block_version(w)) for w in PLAN_WRITERS)
 
 
-def build_ctx_u4(tmp_path, doc, access, l_classes=(), order_hints=None, supplies=None, **inputs_kw):
-    """`build_ctx` 와 같되 U4 인자(l_classes·order_hints)를 넘긴다. order_hints None = 인자를 주지 않는다(기본값 경로).
+def build_ctx_u4(tmp_path, doc, access, l_classes=(), supplies=None, **inputs_kw):
+    """`build_ctx` 와 같되 U4 인자(l_classes)를 넘긴다. [TB-1] 순서 힌트 인자는 없어졌다(종속 멤버는 θ 분류·구조 위치가 정한다).
     [U17 ①-b] l_classes 는 `inject_l_classes` 로 S1 의 `graph/s1v: l_classes` 필드에 넣는다. 반환 (S1Graph, KernelContext)."""
     Path(tmp_path).mkdir(parents=True, exist_ok=True)
     donors, counters = open_run()          # [card B C0] 실행 하나 = 이 호출 하나
@@ -975,10 +977,7 @@ def build_ctx_u4(tmp_path, doc, access, l_classes=(), order_hints=None, supplies
     sup = dict(SUPPLIES if supplies is None else supplies)
     s1 = inject_l_classes(build_s1(td, sup, donors=donors, counters=counters), tuple(l_classes))
     inputs = DcInputs(tuple(sorted(sup.items())), **inputs_kw)
-    kw = {}
-    if order_hints is not None:
-        kw["order_hints"] = order_hints
-    return s1, build_kernel_context(s1, inputs, access, donors=donors, counters=counters, **kw)
+    return s1, build_kernel_context(s1, inputs, access, donors=donors, counters=counters)
 
 
 def circuit_mirror(names=("M1", "M2", "M3", "I1"), nets=("nb", "out", "in")):
@@ -1056,11 +1055,12 @@ def rename(doc, seed):
 
 
 def rename_inputs(inputs, sn, se):
-    """DcInputs 의 이름 자리(레일·노드 목표·원소 값·선형 소자·engine 원소)를 σ 로 옮긴다(입력 구성, 기대값 아님)."""
+    """DcInputs 의 이름 자리(레일·노드 목표·원소 값·영역 선언 regions·engine 원소)를 σ 로 옮긴다(입력 구성, 기대값 아님)."""
     return DcInputs(tuple(sorted((sn[k], v) for k, v in inputs.supplies_v)), inputs.input_dc_v,
                     tuple(sorted((sn[k], v) for k, v in inputs.node_targets)),
                     tuple(sorted((se[k], v) for k, v in inputs.element_values)),
-                    tuple(sorted(se[k] for k in inputs.linear_devices)), inputs.pending,
+                    tuple(sorted((dataclasses.replace(r, device=se[r.device]) for r in inputs.regions), key=lambda r: r.device)),
+                    inputs.pending,
                     tuple(sorted(se[k] for k in inputs.engine_elements)))
 
 

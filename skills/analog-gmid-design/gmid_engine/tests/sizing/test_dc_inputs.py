@@ -12,7 +12,7 @@ import pytest
 from gmid_engine.authoring import (REGION_TRIODE, InputDc, PendingMark, RegionDecl, ElementValue, load_sizing_spec,
                                    load_topology)
 from gmid_engine.core import SchemaRejectedError
-from gmid_engine.sizing import LINEAR_REGION, DcInputs, dc_inputs_from_spec
+from gmid_engine.sizing import DcInputs, dc_inputs_from_spec
 
 from .conftest import LIBRARY, NINE, spec_catalog
 
@@ -40,13 +40,22 @@ def expected_projection(spec):
         input_dc_v = None
     nt = spec.node_voltage_targets_v if isinstance(spec.node_voltage_targets_v, tuple) else ()
     ev = tuple((e.name, e.value if e.mode == "value" else None) for e in spec.element_values)
-    lin = ()
+    regions = ()
     if isinstance(spec.intended_region, tuple):
-        lin = tuple(sorted(r.device for r in spec.intended_region if r.region == TRIODE))   # [r9]
+        # [EO-1 범위 4] card §3: DcInputs.regions = RegionDecl tuple 이름순(옛 linear_devices 자리 -- triode 만 거르던 투영이 선언 전체로)
+        regions = tuple(sorted(spec.intended_region, key=lambda r: r.device))
     pend = tuple(sorted((p.path, p.decision) for p in spec.pending))
     # [r5] engine_elements = element_values 중 mode == "engine" 인 원소 이름 정렬 tuple(pending 은 들지 않는다)
     eng = tuple(sorted(e.name for e in spec.element_values if e.mode == "engine"))
-    return DcInputs(tuple(spec.supplies_v), input_dc_v, nt, ev, lin, pend, eng)
+    # [TB-1 interface §1·J-T1] 세 bool 칸 = spec 선언 유무(값은 읽지 않는다). oracle (손): library spec 에서 손으로 센 선언 --
+    # gbw_target_hz·settling 은 compensation_targets 에 결정 대기 아닌 항목이 있으면 True, has_rout_limit 은 제약 metric 중 정확히 rout_ss_ohm 이 있으면 True.
+    # (two_stage_ota 류 gbw 선언, current_reuse_telescopic_ota 만 settling 선언, pushpull·sf_pushpull·two_stage_ota_sf 만 rout 제약)
+    ct = dict(spec.compensation_targets) if isinstance(spec.compensation_targets, tuple) else {}
+    declared = lambda k: k in ct and getattr(ct[k], "decision", None) is None            # noqa: E731
+    cons = spec.constraints if isinstance(spec.constraints, tuple) else ()
+    return DcInputs(tuple(spec.supplies_v), input_dc_v, nt, ev, regions, pend, eng,
+                    has_gbw_target=declared("gbw_target_hz"), has_rout_limit=any(getattr(c, "metric", None) == "rout_ss_ohm" for c in cons),
+                    has_settling=declared("settling"))
 
 
 @pytest.mark.parametrize("name", NINE)
@@ -134,17 +143,52 @@ def test_engine_elements_default_empty():
 
 
 def test_region_vocabulary_single_source():
-    """[r9] 1.2: LINEAR_REGION = authoring REGION_TRIODE = "triode"(같은 개념 한 정의)."""
-    assert LINEAR_REGION == REGION_TRIODE == TRIODE
+    """[r9] 1.2: authoring REGION_TRIODE = "triode"(같은 개념 한 정의). [EO-1 범위 4] sizing `LINEAR_REGION` 은 interface card 에 없어
+    (영역 어휘 정본 = authoring REGION_TRIODE·REGION_OFF) 이 단언에서 뺐다 -- 뜻(어휘가 한 정의)은 authoring 쪽에서 유지."""
+    assert REGION_TRIODE == TRIODE
 
 
-def test_linear_devices_from_intended_region_sorted():
-    """[r9] region == "triode" 인 소자만 이름순. 다른 낱말("linear" 포함 -- r8 까지의 낱말)은 들지 않는다(손으로 만든
-    RegionDecl 은 로더를 거치지 않아 어휘 검사 없이 투영 규칙만 본다)."""
+def test_triode_devices_from_intended_region_sorted():
+    """[r9 -> EO-1 범위 4] 투영은 이제 선언 전체(regions, 이름순)이고, 그중 region == "triode" 인 소자 이름은 ("M3", "M7")
+    (손으로 만든 RegionDecl 은 로더를 거치지 않아 어휘 검사 없이 투영 규칙만 본다)."""
     regions = (RegionDecl("M7", TRIODE, None), RegionDecl("M1", "saturation", None),
                RegionDecl("M3", TRIODE, None), RegionDecl("M5", "linear", None))
     spec = dataclasses.replace(_base(), intended_region=regions)
-    assert dc_inputs_from_spec(spec).linear_devices == ("M3", "M7")
+    got = dc_inputs_from_spec(spec).regions
+    assert [r.device for r in got] == ["M1", "M3", "M5", "M7"]
+    assert tuple(r.device for r in got if r.region == TRIODE) == ("M3", "M7")
+
+
+# ---------------------------------------------------------------------------
+# [EO-1 범위 4, interface card 20261104-eo1r4-sf1l §3 T-L2] DcInputs.regions = RegionDecl tuple(이름순, 옛 linear_devices 자리)
+# oracle (식): card §3 'DcInputs 칸 regions = RegionDecl tuple (이름순, linear_devices 자리)'. 손으로 만든 RegionDecl 은 로더를 거치지 않는다.
+# ---------------------------------------------------------------------------
+
+def test_region_dc_inputs_field_regions_replaces_linear_devices():
+    names = [f.name for f in dataclasses.fields(DcInputs)]
+    assert "regions" in names and "linear_devices" not in names
+    assert not hasattr(DcInputs((("gnd", 0.0),)), "linear_devices")
+    assert DcInputs((("gnd", 0.0),)).regions == ()
+
+
+def test_region_dc_inputs_projects_all_declared_regions_sorted():
+    """triode·off 모두 투영(off 를 떨구지 않는다), 이름순 tuple, 원소는 RegionDecl 그대로."""
+    r7 = RegionDecl("M7", TRIODE, None)
+    r2 = RegionDecl("M2", "off", None, ("gain_ss_db",), 1e-6, 2e-6)
+    r5 = RegionDecl("M5", TRIODE, None)
+    spec = dataclasses.replace(_base(), intended_region=(r7, r2, r5))
+    got = dc_inputs_from_spec(spec).regions
+    assert isinstance(got, tuple)
+    assert [r.device for r in got] == ["M2", "M5", "M7"]
+    assert got == (r2, r5, r7)
+    assert (got[0].w_m, got[0].l_m, got[0].judged_by) == (1e-6, 2e-6, ("gain_ss_db",))
+
+
+def test_region_dc_inputs_pending_or_empty_is_empty_tuple():
+    from gmid_engine.authoring import PendingMark
+    for v in (PendingMark("human.intended_region", "CI-18"), ()):
+        spec = dataclasses.replace(_base(), intended_region=v)
+        assert dc_inputs_from_spec(spec).regions == ()
 
 
 # ---------------------------------------------------------------------------
@@ -166,18 +210,18 @@ def _spec_with_regions(tmp_path, regions):
     return load_sizing_spec(str(p), topo, CATALOG)
 
 
-def test_spec_path_triode_populates_linear_devices(tmp_path):
-    """spec JSON 에 triode 선언 -> linear_devices 가 그 소자들(이름순). r8 까지는 spec 경로로 늘 비었다(O19)."""
+def test_spec_path_triode_populates_regions(tmp_path):
+    """spec JSON 에 triode 선언 -> regions 가 그 소자들(이름순). r8 까지는 spec 경로로 늘 비었다(O19)."""
     spec = _spec_with_regions(tmp_path, {"M7": TRIODE, "M5": TRIODE})
     assert {(r.device, r.region) for r in spec.intended_region} == {("M7", TRIODE), ("M5", TRIODE)}
     got = dc_inputs_from_spec(spec)
-    assert got.linear_devices == ("M5", "M7")
+    assert [(r.device, r.region) for r in got.regions] == [("M5", TRIODE), ("M7", TRIODE)]
     assert got == expected_projection(spec)
 
 
 def test_spec_path_empty_declaration(tmp_path):
     spec = _spec_with_regions(tmp_path, {})
-    assert spec.intended_region == () and dc_inputs_from_spec(spec).linear_devices == ()
+    assert spec.intended_region == () and dc_inputs_from_spec(spec).regions == ()
 
 
 @pytest.mark.parametrize("word", ["linear", "saturation"])
@@ -190,9 +234,9 @@ def test_spec_loader_rejects_non_triode_region(tmp_path, word):
     assert d["rejected_gates"] == ("intended_region",)
 
 
-def test_linear_devices_pending_region_is_empty():
+def test_regions_pending_region_is_empty():
     spec = dataclasses.replace(_base(), intended_region=PendingMark("human.intended_region", "CI-18"))
-    assert dc_inputs_from_spec(spec).linear_devices == ()
+    assert dc_inputs_from_spec(spec).regions == ()
 
 
 @pytest.mark.parametrize("bad", [None, {}, "spec", DcInputs((("gnd", 0.0),))])

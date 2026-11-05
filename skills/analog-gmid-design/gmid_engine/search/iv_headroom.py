@@ -8,14 +8,15 @@
   예산_k = U(b) − L(a)        (다른 소자는 최솟값 비용, 즉 '나머지는 최소로 두고 k 가 가질 수 있는 최대 전압')
 
 이다. 41 §6.2 식 `VDSAT_k(gm/ID) ≤ V_part − Σ_{j≠k}(VDSAT_j,min + tol_j)` 의 V_part − Σ 가 이 예산이다(기둥별 가용 폭 − 다른 소자 최소 비용).
-* **VDS 엣지**: VDSAT_k(gm/ID, L) + tol_vdsat ≤ 예산(VDS) -> `hull` 의 최소 gm/ID 가 하한(`vdsat_curve`). VDSAT 는 gm/ID 가 낮을수록(강반전) 커지므로 하한이다.
+* **VDS 엣지**: VDSAT_k(gm/ID, L) ≤ 예산(VDS) -> `hull` 의 최소 gm/ID 가 하한(`vdsat_curve`). VDSAT 는 gm/ID 가 낮을수록(강반전) 커지므로 하한이다.
 * **VGS 엣지**: |VGS_k|(gm/ID, L) ≤ 예산(VGS) -> 같은 방식(VGS 도 강반전일수록 커진다). 다이오드 연결 소자는 VGS 예산이 지배한다.
 * **스윙·ICMR·입력 DC 분할**(Q4): 선언 제약(`swing_out_v`·`icmr_v`·`icm_margin_v`)이 걸린 창에서, 창 경로 위 소자의 예산을 `min(기둥 예산, 최소 비용 + 창 여유)` 로 줄인다.
   창 여유 = 창 폭 − 요구 폭(`swing_out_v`: 차동 출력 포트면 폭 × 2 가 p-p 라 요구 폭 = 값/2, 단일은 값 그대로; `icmr_v`: 값). 출력 DC V_o 가 선언된 노드면 위·아래를 따로 나눈다 --
   위쪽 여유 = U(n) − (V_o + 요구/2), 아래쪽 여유 = (V_o − 요구/2) − L(n). 선언이 없으면 남는 여유(창 폭 − 요구)를 위·아래 부분 기둥의 남는 여유 중 최솟값이 가장 크도록 -- 두 부분 기둥이 같은 몫(여유/2) -- 나눈다
   (설계 41 §6.2; 위·아래가 한 여유를 모두 공유한다는 이전 CONTRACT 규칙은 위·아래 예산 합이 창 폭을 넘어 요구를 못 지킨다). `icm_margin_v >= m` + 입력 DC 선언이면 위쪽 여유 = U − V_icm − m,
   아래쪽 여유 = V_icm − L − m.
-* 경계의 여유는 사용자 SPICE 포화 규칙 VDS ≥ VDSAT 에 LUT `tol_vdsat` 를 더한 것뿐이다(3σ 같은 통계 관례 없음).
+* 경계의 여유는 없다: 사용자 SPICE 포화 규칙 VDS ≥ VDSAT 그대로이고 LUT `tol_vdsat` 을 경계에서 빼지 않는다(O-204, 3σ 같은 통계 관례 없음). VDSAT 열이 없는 kind 의 소자는 이 경계가 비활성이다
+  (`HeadroomBounds.inactive` 에 (`SRC_HEADROOM_VDSAT`, `vdsat_column_unavailable`), 대체값 없음).
 * 요구 > 가용(예산 < 최소 비용)이면 그 경계는 자르지 않고 충돌 레코드로 남긴다(41 §6.6; 같은 사실의 정지 판정은 U9 의 몫). 경로에 양수 사이클이 있어 창이 미상이면 비활성.
 출발값 전용(EP-7): 판정은 외층 봉인·metric 이 한다.
 """
@@ -23,9 +24,10 @@ import dataclasses
 import types
 
 from gmid_engine.authoring import INPUT_DIRECTION, OUTPUT_DIRECTION, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P
+from gmid_engine.lut import REASON_VDSAT_COLUMN_UNAVAILABLE
 from gmid_engine.metrics import headroom_bound
 
-from ._helpers_curves import QUANTITY_FT, QUANTITY_VDSAT, curve_bundle, edge_cost, hull, tol_vdsat
+from ._helpers_curves import QUANTITY_FT, QUANTITY_VDSAT, curve_bundle, edge_cost, hull
 from .start_values import (
     EDGE_VDS,
     EDGE_VGS,
@@ -136,12 +138,11 @@ def _budgets(ctx, edges):
     return {key: min(value, window.get(key, value)) for key, value in column.items()}
 
 
-def _lower_bound(ctx, d, bundle, edge, budget, L):
+def _lower_bound(bundle, edge, budget):
     """엣지 예산 -> (하한 gm/ID 또는 None, 출처 식 이름, 어긋남 V). 어긋남 = 곡선 전체에서 가장 가까운 값이 예산을 넘는 크기(하한이 없을 때만 양수)."""
     if edge == EDGE_VDS:
         curve = bundle[QUANTITY_VDSAT]
-        level = budget - tol_vdsat(ctx, d.kind, L, curve.vds)
-        values, source = curve.values, SRC_HEADROOM_VDSAT
+        level, values, source = budget, curve.values, SRC_HEADROOM_VDSAT
     else:
         curve = bundle[QUANTITY_FT]
         level, values, source = budget, curve.vgs, SRC_HEADROOM_VGS
@@ -154,7 +155,7 @@ def headroom_bounds(ctx, lengths, budgets=None):
         return HeadroomBounds({}, (), ((SRC_HEADROOM_VDSAT, WHY_NO_RAILS),), {})
     edges = {k: edge_cost(ctx, k) for k in sorted({d.kind for d in ctx.devices})}
     budgets = _budgets(ctx, edges) if budgets is None else budgets
-    out, conflicts = {}, []
+    out, conflicts, inactive = {}, [], []
     for d in ctx.devices:
         bundle = curve_bundle(ctx, d.kind, lengths[d.name])
         if bundle is None:
@@ -164,10 +165,14 @@ def headroom_bounds(ctx, lengths, budgets=None):
             budget = budgets.get((d.name, edge))
             if budget is None:
                 continue
-            value, source, gap = _lower_bound(ctx, d, bundle, edge, budget, lengths[d.name])
+            if edge == EDGE_VDS and QUANTITY_VDSAT not in bundle:               # VDSAT 열 없음: 이 경계는 비활성, 대체값 없음
+                if (SRC_HEADROOM_VDSAT, REASON_VDSAT_COLUMN_UNAVAILABLE) not in inactive:
+                    inactive.append((SRC_HEADROOM_VDSAT, REASON_VDSAT_COLUMN_UNAVAILABLE))
+                continue
+            value, source, gap = _lower_bound(bundle, edge, budget)
             if value is None:
                 conflicts.append(StartConflict(d.name, QUANTITY_GM_ID, ((source, budget),), gap))
             else:
                 found.append(Bound(QUANTITY_GM_ID, SIDE_LO, source, value))
         out[d.name] = tuple(found)
-    return HeadroomBounds(out, tuple(conflicts), (), budgets)
+    return HeadroomBounds(out, tuple(conflicts), tuple(inactive), budgets)

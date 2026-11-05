@@ -2,10 +2,10 @@
 
 진입점: `metrics_ss`(`@compute_block`) -- `metrics_ss(snapshot, requests[, noise])`.
 
-* reads `device.{ss_dev, element_class, kind, pins, bulk, passive_value}`(수동소자 값 = GB5 필드 `passive_value`), `node.{ac_ground_class, port_direction}`;
+* reads `graph.ss_circuit`(조립된 소신호 회로 -- 조립 자리는 블록 `ss_circuit` 하나), `device.{ss_dev, element_class, pins}`, `node.{port_role, is_rail}`;
   extras `requests` = `MetricRequest` tuple(view_kind 가 있는 metric 만).
   writes `graph.metrics_ss`(key `METRICS_KEY`) = `MetricBundle`.
-* 회로: `ss_circuit`(노드 인덱스 = S1 노드 이름 정렬 위치). 값 없는 수동소자가 있으면 계를 만들지 않고 모든 요청을 정의 불가
+* 회로: 필드 `graph.ss_circuit`(노드 인덱스 = 구조 색 정준 순서). 값 없는 수동소자가 있으면 계를 만들지 않고 모든 요청을 정의 불가
   `passive_value_undeclared`(definitional, detail elements)로 낸다 -- 회로 일부를 빼고 푸는 것은 다른 회로를 푸는 것이다.
 * 뷰 -> 계(7a 2.2 L4·2.5·3.2, 설계 MOD5 3.3 '같은 뷰 = 같은 MnaSystem'):
   - 고정 넷 집합 F = 교류접지(레일 ∪ gate 전용 미구동) ∪ 입력 포트 ∪ 그 뷰의 전압 구동 넷. F 가 같은 뷰는 **한 계**를 쓴다
@@ -32,7 +32,7 @@
 """
 import dataclasses
 
-from gmid_engine.authoring import (BETA_DECLARED, INPUT_DIRECTION, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P,
+from gmid_engine.authoring import (BETA_DECLARED, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P,
                                    SENSE_DIFFERENTIAL, ViewDecl, cm_partition)
 from gmid_engine.core import compute_block
 from gmid_engine.graph import ELEMENT_SOURCE
@@ -56,19 +56,16 @@ from .records import (LOOP_CUT_KINDS, LOOP_CUT_MOS, LOOP_CUT_TERMINALS, Excitati
 from .registry import metric_registry
 from .resolution import metric_resolutions
 from .rout import output_resistance
-from .ss_circuit import ss_circuit
+from .ss_circuit import CODE_PASSIVE_MISSING
 from .ss_types import MetricBundle, MetricRequest
 
 READS = (
-    ("device", "ss_dev"), ("device", "element_class"), ("device", "kind"), ("device", "pins"), ("device", "bulk"),
-    ("device", "passive_value"),
-    ("node", "ac_ground_class"), ("node", "port_direction"), ("node", "port_role"), ("node", "is_rail"),
-    ("node", "dc_colour"), ("device", "dc_colour"),
+    ("graph", "ss_circuit"), ("device", "ss_dev"), ("device", "element_class"), ("device", "pins"),
+    ("node", "port_role"), ("node", "is_rail"),
 )
 WRITES = (("graph", "metrics_ss"),)
 UNIT = 1.0                                              # 단위 시험 전류(rout_ohm = 관측 / 이 값)
 CODE_VIEW_PENDING = "view_pending"
-CODE_PASSIVE_MISSING = "passive_value_undeclared"
 CODE_NOISE_INPUTS = "noise_inputs_missing"             # 잡음 요청이 있는데 NoiseInput(extras)이 오지 않았다
 CODE_NOISE_VIEW = "noise_view_unsupported"            # 잡음 metric 은 port·transfer 뷰만 읽는다
 CM_OUTPUT_MODE = "cm_output"                          # authoring ViewDecl.mode: 출력 포트 CM 주입 루프
@@ -379,19 +376,9 @@ def metrics_ss(projection):
     requests, *optional = projection.extras
     noise = optional[0] if optional else None                  # [U8] NoiseInput -- 잡음 요청이 없으면 안 온다
     classes = dict(projection.column("device", "element_class"))
-    kinds = dict(projection.column("device", "kind"))
     pins = dict(projection.column("device", "pins"))
-    bulk = {m: b.net for m, b in projection.column("device", "bulk")}
     ss_values = dict(projection.column("device", "ss_dev"))
-    ground = tuple(n for n, c in projection.column("node", "ac_ground_class") if c is not None)
-    node_orbit = dict(projection.column("node", "dc_colour"))
-    device_orbit = dict(projection.column("device", "dc_colour"))
-    # 정준 순서(구조 색 dc_colour -- 정점마다 유일, 이름은 색 없는 이름만): 선형계 행·소자 스탬프 순서가 이름 치환에 불변
-    nodes = tuple(sorted((n for n, _c in projection.column("node", "ac_ground_class")), key=lambda n: (node_orbit.get(n, -1), n)))
-    inputs = tuple(n for n, d in projection.column("node", "port_direction") if d == INPUT_DIRECTION)
-    devices = tuple((name, classes[name], kinds[name], pins[name], bulk.get(name), ss_values.get(name))
-                    for name in sorted(classes, key=lambda n: (device_orbit.get(n, -1), n)))
-    ss = ss_circuit(nodes, ground, inputs, devices, projection.column("device", "passive_value"))
+    ss = projection.value("graph", METRICS_KEY, "ss_circuit")      # 조립 자리는 블록 `ss_circuit` 하나 -- 여기서 다시 조립하지 않는다
     pending = {r: _undefined(r, CODE_VIEW_PENDING, (("decision", r.view.decision),))
                for r in requests if r.view.mode == "pending"}
     results = dict(pending)

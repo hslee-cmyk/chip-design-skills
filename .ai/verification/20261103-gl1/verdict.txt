@@ -1,0 +1,1 @@
+PASS Major 0, minor 7 + 뮤턴트 생존 15 (LA-1 재점검), 전체 test 미실행(A-73)

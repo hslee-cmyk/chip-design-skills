@@ -185,3 +185,17 @@ def test_passive_area_decl_unit_area_not_positive_finite(u):
     from gmid_engine.metrics import PassiveAreaDecl
     with pytest.raises(ValueError):
         PassiveAreaDecl(unit_area=(("Cc", u),))
+
+
+def test_it2c_stampset_g_ops_length_mismatch_value_error():
+    """oracle 대조: (d) [IT-2c] interface: `StampSet(g=(), c=(), g_ops=())`, `len(g_ops) != len(g)` 이면 생성 때 ValueError. 기본값 생성은 통과."""
+    from gmid_engine.metrics import StampSet
+    ok = StampSet()
+    assert (ok.g, ok.c, ok.g_ops) == ((), (), ())
+    assert StampSet(g=((1, 1, 2.0),), g_ops=(1,)).g_ops == (1,)
+    with pytest.raises(ValueError):
+        StampSet(g=((1, 1, 2.0),), g_ops=())
+    with pytest.raises(ValueError):
+        StampSet(g=(), g_ops=(1,))
+    with pytest.raises(ValueError):
+        StampSet(g=((1, 1, 2.0), (1, 2, -2.0)), g_ops=(1,))

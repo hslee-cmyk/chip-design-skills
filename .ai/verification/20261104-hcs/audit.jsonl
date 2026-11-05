@@ -1,0 +1,11 @@
+{"case": "rows_1_5", "r1": "SatBound(vdsat_v=None, tol_v=None, reason='reverse_vds')", "r2": "SatBound(vdsat_v=None, tol_v=None, reason='vdsat_column_unavailable')", "r3": "SatBound(vdsat_v=None, tol_v=None, reason='lut_domain')", "r4": "SatBound(vdsat_v=0.0625, tol_v=None, reason=None)", "r5": "SatBound(vdsat_v=0.25, tol_v=0.0009765625, reason=None)"}
+{"case": "seal7_boundary", "eq": ["pass", [], 0.0, [["M1", 0.0]], "pass"], "minus_half": ["fail", ["M1"], -0.0625, [["M1", -0.0625]], "pass"], "plus_half": ["pass", [], 0.0625, [["M1", 0.0625]], "pass"], "minus_ulp": ["fail", ["M1"], -1.1102230246251565e-16, [["M1", -1.1102230246251565e-16]], "pass"]}
+{"case": "real_chain", "field": {"M1": [0.3031249999999999, 0.0009765625, null], "M2": [0.6718749999999999, 0.001953125, null]}, "ops": {"M1": [0.5999999999999999, 0.9, 0.0, 1e-06], "M2": [0.7, 0.9, -0.0, 2e-06]}}
+{"case": "s13_rows", "rows": {"out/gnd": [1.0, 0.596875, "sat"], "out/vdd": [-1.0, 0.22812500000000013, "sat"]}, "expect": [0.22812500000000013, 0.596875], "tol_absent": true}
+{"case": "s13_no_column", "rows": null}
+{"case": "s12", "A": [0.25, 0.0009765625], "B": [null, null], "C": [null, null], "D": [null, null], "E": [0.25, null]}
+{"case": "s10", "tol": 0.0009765625000000139, "ref_vds": 0.25, "node_vdsat": 0.2495, "probes": [0.25, 0.5, 0.75, 1.0], "expect": [0.25, 0.5, 0.75, 1.0], "bounds": "{'M1': (Bound(quantity='gm_id', side='lo', source='lut_inverse_domain', value=4.0), Bound(quantity='gm_id', side='hi', source='lut_inverse_domain', value=18.99999999999996))}", "contains_grid_025": true}
+{"case": "s10_no_col", "bounds": "{}", "edge_vds": 0.0, "reference_vds_no_column": 0.0}
+{"case": "edge_eq", "vds_min_v": 0.25}
+{"case": "reverse_writer", "outcome": "raised", "detail": {"axis": "VDS", "device_query": "forward_point", "hi": 2.0, "kind": "nmos", "lo": 0.0, "lut_reason": "lut_axis_out_of_range", "reason": "lut_query_failed", "value": -0.25, "w_key": 100}, "devices": ["M1"]}
+{"case": "edge_eq2", "vds_min_v": 0.25}

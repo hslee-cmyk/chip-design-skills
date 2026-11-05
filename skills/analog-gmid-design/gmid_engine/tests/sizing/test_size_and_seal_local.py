@@ -72,7 +72,7 @@ def w_writer(th, m):
 
 def test_theta_name():
     assert theta_name("L", "M1") == "L:M1"
-    assert theta_name("y", "input_common_mode") == "y:input_common_mode"
+    assert theta_name("y", "vin") == "y:vin"
     assert theta_name("current", "R1") == "current:R1"
 
 
@@ -153,7 +153,7 @@ def test_whole_circuit_candidate_failure(tmp_path, r4_access):
     doc = topo("loc_empty", net, {"in": ("input", "x"), "y": ("output", "y")}, sources=src)
     s1, ctx = build_ctx_u4(tmp_path, doc, r4_access)
     th = {("L", "MA"): 1e-6, ("L", "MB"): 1e-6, ("ln_idu", "MA"): r4_ln_idu("nmos", 0.5, 0.3, 0.0),
-          ("ln_idu", "MB"): r4_ln_idu("nmos", 0.6, 0.3, 0.0), ("y", "input_common_mode"): 0.5}
+          ("ln_idu", "MB"): r4_ln_idu("nmos", 0.6, 0.3, 0.0), ("y", "in"): 0.5}
     from .conftest import free_currents
     th.update(free_currents(ctx, {"MA": ID, "MB": ID, "IX": ID, "IY": ID}))
     assert set(th) == set(kschema(ctx).components)

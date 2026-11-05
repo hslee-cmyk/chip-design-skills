@@ -253,7 +253,7 @@ domain 어휘 `DOMAIN_DC`(`"dc"`)·`DOMAIN_DC_TO_SS`(`"dc_to_ss"`)·`DOMAIN_GEOM
 **`s1_gvgs`** (reads `device.{element_class, is_diode, kind, pins}`, `node.{is_rail, port_direction}`; writes `graph.rel_kvl_branch`,
 `graph.gvgs_summary`):
 - G = MOS 마다 (gate, source) 무향 엣지, 모든 레일 = 고정 노드 F 하나. gate·source 둘 다 레일 -> `fixed_vgs` 에만.
-  같은 비레일 넷(g == s) -> `gvgs_self_edge` 정지(devices = 그 소자, `nets` = 그 넷). 평행 엣지는 이름순 첫 소자 하나만 남긴
+  gate 넷 == source 넷(g == s) -> 정지하지 않고 `gvgs_summary.gate_source_same` 에 적는다(레일 g = s 는 `fixed_vgs` 에도 든다, O-210 RR-6; 자기 고리라 G 엣지 아님). 평행 엣지는 이름순 첫 소자 하나만 남긴
   단순 그래프 Gs(v0 = equal_vgs).
 - 개수(기저·이름과 무관): P = 입력 포트 넷. c(H) = |E| − |V| + 성분 수. `v2_port0` = c(Gs − P), `v2_port1` =
   Σ_p [c(Gs − (P − {p})) − c(Gs − P)], `v1` = c(Gs) − v2_port0 − v2_port1, `cyclomatic` = c(Gs).
@@ -264,7 +264,7 @@ domain 어휘 `DOMAIN_DC`(`"dc"`)·`DOMAIN_DC_TO_SS`(`"dc_to_ss"`)·`DOMAIN_GEOM
 - VDS-1: diode 아닌 MOS 중 drain·source(레일 병합 후)가 다르고 Gs 의 같은 성분에 있는 소자마다 사이클 1개(그 VDS 엣지 +
   Gs 최단 경로, 이웃 이름순). members = (그 소자,) + 경로 소자(drain 쪽부터) -- 경로가 그 소자 자신의 VGS 엣지를 지나면 같은
   이름이 두 번 나온다.
-- `gvgs_summary` = `GvgsSummary(cyclomatic, v2_port0, v2_port1, v1, fixed_vgs, port_diff, vds_saturation)`; `port_diff` =
+- `gvgs_summary` = `GvgsSummary(cyclomatic, v2_port0, v2_port1, v1, fixed_vgs, port_diff, vds_saturation, gate_source_same)`; `port_diff` =
   `RelEdge("port_diff", dc, 멤버, derived, basis (J12-c,))`(제약 없음, 대조만), `vds_saturation` = `RelEdge("vds_saturation", dc,
   members, derived, basis (J12-c,))`(포화 하한 부등식).
 
@@ -396,7 +396,6 @@ matching 그룹은 한 가지 안의 짝만 본다)와 수동소자 쌍 R1/R2·C
 | `dc_isolated_loop` | s1_branches | 닻 없는 고리 segment 잔존 | 그 원소 / `nets` |
 | `column_enumeration_over_budget` | s1_columns | 기둥 누적 수 > column_limit | () / `limit`, `rails` |
 | `mos_kind_unsupported` | s1_dc_roles | 지원 밖 MOS kind(블록 단독 호출 시) | 그 소자 |
-| `gvgs_self_edge` | s1_gvgs | MOS gate == source(비레일) | 그 소자 / `nets` |
 
 review_needed 는 정지가 아니라 기록이다(DcRole 묶음·matching_offset 3개 이상·column_orphans). `s1_matching_groups` 는 정지 분기가
 없다(분류 못 하는 경우는 mirror 그대로 또는 disposition 기록).
@@ -553,7 +552,7 @@ VDS-1 22/1/6/4/0/0/1/1 = DU 3.4 표(J12-c 재측정)와 일치. matching_offset 
 - 정지 실제 발동(two_stage_ota 메모리 변형): 인덕터 추가 -> `passive_kind_unsupported`(Lx); 이상 전압원 -> `source_kind_unsupported`;
   MOS kind njfet -> `mos_kind_unsupported`; MOS d == s -> `dc_self_loop`; 새 넷 la·lb·lc 위 MOS 3개 고리(la→lb→lc→la, gate 는
   첫 netlist 소자의 gate 넷) -> `dc_isolated_loop`(저항만의 고리는 authoring `hidden_rail` 로 먼저 거부된다); `column_limit=1` ->
-  `column_enumeration_over_budget`(3 은 통과); gate == source(비레일 tail 넷) MOS 추가 -> `gvgs_self_edge`; `column_limit` 없이
+  `column_enumeration_over_budget`(3 은 통과); gate == source(비레일 tail 넷) MOS 추가 -> 정지 없음, `gvgs_summary.gate_source_same` 에 기록; `column_limit` 없이
   만든 S1 을 previous 로 `column_limit=1` -> 반환하지 않고 정지, `column_limit=3` -> 같은 객체.
 
 ## 8. 다음 단계 (이번 단계에서 만들지 않음 -- 호출자가 생길 때 그 단계에서 만든다)

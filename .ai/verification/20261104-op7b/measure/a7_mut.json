@@ -1,0 +1,20 @@
+{
+ "rc": 2,
+ "files": [
+  "tfb_cs_rfeedback.free/bench.ac.txt",
+  "tfb_cs_rfeedback.free/bench.cir",
+  "tfb_cs_rfeedback.free/bench.log",
+  "tfb_cs_rfeedback.reject.json"
+ ],
+ "reject": {
+  "schema": "oracle_reject/1",
+  "code": "bin_rule_compat_mismatch",
+  "detail": {
+   "declared": "default",
+   "actual": "hsa"
+  },
+  "stage": "8b",
+  "input_path": "C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_op7b_audit\\out\\mut\\t.input.json",
+  "input_sha256": "9a4676c9ec92160b697500661d9f7c5176c80f3ba73bed9ddfe8ccf47407cb7a"
+ }
+}

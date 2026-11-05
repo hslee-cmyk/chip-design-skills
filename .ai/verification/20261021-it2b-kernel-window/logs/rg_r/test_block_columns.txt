@@ -1,0 +1,95 @@
+.........................................................FFFFFFFFFFF.F   [100%]
+================================== FAILURES ===================================
+____________ test_it2b_k1_declared_input_port_has_measured_window _____________
+gmid_engine\tests\sizing\test_block_columns.py:1046: in test_it2b_k1_declared_input_port_has_measured_window
+    assert set(win) == {"in", "out"}
+E   AssertionError: assert {'out'} == {'in', 'out'}
+E     
+E     Extra items in the right set:
+E     'in'
+E     Use -v to get more diff
+____________ test_it2b_k1_undeclared_input_ports_both_have_windows ____________
+gmid_engine\tests\sizing\test_block_columns.py:1061: in test_it2b_k1_undeclared_input_ports_both_have_windows
+    assert set(win) == {"in", "z"}
+E   AssertionError: assert {'in'} == {'in', 'z'}
+E     
+E     Extra items in the right set:
+E     'z'
+E     Use -v to get more diff
+_______ test_it2b_k1_unmeasurable_root_is_unmeasured_with_order_window ________
+gmid_engine\tests\sizing\test_block_columns.py:1079: in test_it2b_k1_unmeasurable_root_is_unmeasured_with_order_window
+    assert win["in"].input_status == "unmeasured"
+           ^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'Window' object has no attribute 'input_status'
+_ test_it2b_k2_non_root_port_window_is_root_ends_moved_by_the_same_solution_sensitivity _
+gmid_engine\tests\sizing\test_block_columns.py:1093: in test_it2b_k2_non_root_port_window_is_root_ends_moved_by_the_same_solution_sensitivity
+    root, port = win["in"], win["z"]
+                            ^^^^^^^^
+E   KeyError: 'z'
+__________ test_it2b_pb_declared_input_ports_share_one_shift_window ___________
+gmid_engine\tests\sizing\test_block_columns.py:1152: in test_it2b_pb_declared_input_ports_share_one_shift_window
+    assert set(win) == {"ina", "inb"}
+E   AssertionError: assert set() == {'ina', 'inb'}
+E     
+E     Extra items in the right set:
+E     'inb'
+E     'ina'
+E     Use -v to get more diff
+__ test_it2b_l12b_f_component_port_without_declared_dc_has_undefined_window ___
+gmid_engine\tests\sizing\test_block_columns.py:1166: in test_it2b_l12b_f_component_port_without_declared_dc_has_undefined_window
+    assert set(win) == {"in", "out"}
+E   AssertionError: assert {'out'} == {'in', 'out'}
+E     
+E     Extra items in the right set:
+E     'in'
+E     Use -v to get more diff
+_ test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages _
+gmid_engine\tests\sizing\test_block_columns.py:1320: in test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages
+    port = win["p"]
+           ^^^^^^^^
+E   KeyError: 'p'
+__ test_it2b_l12a_k_max_exhausted_root_window_is_unsettled_and_y_range_kept ___
+gmid_engine\tests\sizing\test_block_columns.py:1360: in test_it2b_l12a_k_max_exhausted_root_window_is_unsettled_and_y_range_kept
+    assert star.input_status == "measured"
+           ^^^^^^^^^^^^^^^^^
+E   AttributeError: 'Window' object has no attribute 'input_status'
+___________ test_it2b_d_triode_row_zero_crossing_is_the_window_end ____________
+gmid_engine\tests\sizing\test_block_columns.py:1422: in test_it2b_d_triode_row_zero_crossing_is_the_window_end
+    w = _window_of(snap)["in"]
+        ^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'in'
+____________ test_it2b_d_region_rows_kinds_are_sat_and_triode_only ____________
+gmid_engine\tests\sizing\test_block_columns.py:1538: in test_it2b_d_region_rows_kinds_are_sat_and_triode_only
+    tree, fns = _region_rows_scope()
+                ^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_block_columns.py:1468: in _region_rows_scope
+    assert "region_rows" in defs, "block_columns 에 region_rows 정의가 없다"
+E   AssertionError: block_columns 에 region_rows 정의가 없다
+E   assert 'region_rows' in {'__init__': [FunctionDef(name='__init__', args=arguments(posonlyargs=[], args=[arg(arg='self', annotation=None, type_... Return(value=Name(id='x', ctx=Load(...)))], decorator_list=[], returns=None, type_comment=None, type_params=[])], ...}
+_ test_it2b_d_region_rows_has_no_zero_vgs_op_point_conduction_columns_or_eo1_import _
+gmid_engine\tests\sizing\test_block_columns.py:1555: in test_it2b_d_region_rows_has_no_zero_vgs_op_point_conduction_columns_or_eo1_import
+    tree, fns = _region_rows_scope()
+                ^^^^^^^^^^^^^^^^^^^^
+gmid_engine\tests\sizing\test_block_columns.py:1468: in _region_rows_scope
+    assert "region_rows" in defs, "block_columns 에 region_rows 정의가 없다"
+E   AssertionError: block_columns 에 region_rows 정의가 없다
+E   assert 'region_rows' in {'__init__': [FunctionDef(name='__init__', args=arguments(posonlyargs=[], args=[arg(arg='self', annotation=None, type_... Return(value=Name(id='x', ctx=Load(...)))], decorator_list=[], returns=None, type_comment=None, type_params=[])], ...}
+___ test_it2b_l12a_tol_undefined_root_window_is_unsettled_and_y_range_kept ____
+gmid_engine\tests\sizing\test_block_columns.py:1644: in test_it2b_l12a_tol_undefined_root_window_is_unsettled_and_y_range_kept
+    assert w.input_status == "unsettled"
+           ^^^^^^^^^^^^^^
+E   AttributeError: 'Window' object has no attribute 'input_status'
+=========================== short test summary info ===========================
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k1_declared_input_port_has_measured_window
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k1_undeclared_input_ports_both_have_windows
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k1_unmeasurable_root_is_unmeasured_with_order_window
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_k2_non_root_port_window_is_root_ends_moved_by_the_same_solution_sensitivity
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_pb_declared_input_ports_share_one_shift_window
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12b_f_component_port_without_declared_dc_has_undefined_window
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_pa_negative_sensitivity_port_window_is_min_max_of_the_two_end_voltages
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_k_max_exhausted_root_window_is_unsettled_and_y_range_kept
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_d_triode_row_zero_crossing_is_the_window_end
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_d_region_rows_kinds_are_sat_and_triode_only
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_d_region_rows_has_no_zero_vgs_op_point_conduction_columns_or_eo1_import
+FAILED gmid_engine/tests/sizing/test_block_columns.py::test_it2b_l12a_tol_undefined_root_window_is_unsettled_and_y_range_kept
+12 failed, 58 passed in 17.08s

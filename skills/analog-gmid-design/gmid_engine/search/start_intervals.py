@@ -5,7 +5,7 @@
 **쓰임**: 출발값과 보고에만 쓴다(EP-7 -- 판정은 외층 봉인·metric 이 한다). 층 0(`layer0_start`)이 상자 중심 대신 이 구간의 선택점(`graph/start: rungs` 칸 0)을 출발 θ 로 쓴다.
 **입력**(설계 40 §2.4.7 `StartContext` 행 -- 블록이 선언한 S0 수준 필드를 투영으로 읽는다, `READS`): S1 소자·노드 열, 대칭 블록 `dc_colour`, 쓰기 계획 `dc_coord`·`dc_current_basis`,
 `graph/kernel: theta_schema·l_ties·search_domain(L 칸·θ 상자)·passive_area_decl`, S1v `graph/s1v: views`(전달 뷰·블록·극점 노드), GB4 `graph/ach: gain_checks·local_inputs`(없으면 이득 L 하한 비활성).
-extras: `spec`, `inputs`(sizing `DcInputs`), `pdk_decl`(core `PdkDecl`), `lut`(sizing `LutAccess` -- 곡선은 LUT memo, 기준 VDS·tol_vdsat·엣지 비용은 LUT 파생 `lut.derived`).
+extras: `spec`, `inputs`(sizing `DcInputs`), `pdk_decl`(core `PdkDecl`), `lut`(sizing `LutAccess` -- 곡선은 LUT memo, 기준 VDS·엣지 비용은 LUT 파생 `lut.derived`).
 블록 안 읽기 묶음은 `iv_context.start_view`(`StartView`, 호출 안에서 만들고 버린다).
 **출력**(S0 수준 필드, 설계 40 §2.4.8 v1.9.1 D3, 묶음 객체 없음): `device: start.row`(`StartRow`)·`start.point`((VDS, VSB) -- 곡선을 읽은 소자 동작점),
 `graph/start`(key `START_KEY`): `conflicts`, `inactive`, `macro`, `rungs`(출발 사다리 `StartRung` tuple, 칸 0 = 선택점), `records`(매크로 모델 기록), `area_est_m2`, `area_fraction`(t),

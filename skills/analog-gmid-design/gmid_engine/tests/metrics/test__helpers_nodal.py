@@ -214,3 +214,38 @@ def test_no_unknowns_returns_drive():
     v, residual = nodal_solve(f, 2, {1: 0.3})
     assert list(v) == [0.0, 0.3] and residual == 0.0
     assert list(nodal_adjoint(f, 2, np.array([0.0, 1.0]))) == [0.0, 0.0]
+
+
+def _gamma(m, u=2.0 ** -53):
+    return m * u / (1.0 - m * u)
+
+
+def test_it2c_conductance_matrix_bound_true_matches_hand_formula():
+    """oracle 대조: (손) [IT-2c T-L10 `g_bound`, interface 빈칸 답 1·7] `conductance_matrix(circuit, n, bound=True) -> (g, g_bound)`, g 는 bound=False 와 같다
+    (위 손 식 test 로 g 확인). E_ij = γ_{max(k−1,0)}·S_ij + C_ij + γ_{n+1}·|Ĝ_ij|, S = Σ|ĝ_s|, k = 항목의 스탬프 항 수, C = Σ γ_{c_s}|ĝ_s|,
+    c_s = 스탬프 연산 수(MOS (d,s)·(s,s) 2, 그 밖 MOS 0, 저항 넷 각 1), γ_m = m·u/(1 − m·u), u = 2^-53, n = size.
+    회로: MOS(d 1, g 2, s 3, b 0) + 저항 R(1, 3) -- (1,1)·(1,3)·(3,1)·(3,3) 항목은 스탬프 두 항(k = 2)이다. 손으로 세어 같은 float 연산으로 계산한 값과 비교(상대 1e-12)."""
+    gm, gmb, gds, R = 1e-3, 2e-4, 1e-5, 1e3
+    n = 4
+    ck = SmallSignalCircuit(mos=(MosSmallSignal(1, 2, 3, 0, gm, gmb, gds),), resistors=(Resistor(1, 3, R),))
+    g, gb = conductance_matrix(ck, n, bound=True)
+    assert np.array_equal(g, conductance_matrix(ck, n))
+    tot = gm + gmb + gds
+    gr = 1.0 / R
+    stamps = {}                                              # (i, j) -> [(값, 연산 수)] -- 스탬프 항 손 목록
+    for (i, j, v, c) in ((1, 1, gds, 0), (1, 2, gm, 0), (1, 0, gmb, 0), (1, 3, -tot, 2),
+                         (3, 1, -gds, 0), (3, 2, -gm, 0), (3, 0, -gmb, 0), (3, 3, tot, 2),
+                         (1, 1, gr, 1), (1, 3, -gr, 1), (3, 1, -gr, 1), (3, 3, gr, 1)):
+        stamps.setdefault((i, j), []).append((v, c))
+    want = np.zeros((n, n))
+    for (i, j), terms in stamps.items():
+        S = sum(abs(v) for v, _ in terms)
+        k = len(terms)
+        C = sum(_gamma(c) * abs(v) for v, c in terms)
+        Ghat = sum(v for v, _ in terms)
+        want[i, j] = _gamma(max(k - 1, 0)) * S + C + _gamma(n + 1) * abs(Ghat)
+    assert gb.shape == (n, n)
+    for i in range(n):
+        for j in range(n):
+            assert abs(gb[i, j] - want[i, j]) <= 1e-12 * max(want[i, j], 1e-300), (i, j, gb[i, j], want[i, j])
+    assert (gb[0, :] == 0).all() and (gb[2, :] == 0).all()   # 스탬프가 없는 행 0

@@ -1,0 +1,1398 @@
+{
+ "pairs": {
+  "R1.free": {
+   "rc_ok": true,
+   "rc_old": 0,
+   "rc_new": 0,
+   "pm_ok": true,
+   "xc_ok": true,
+   "pm": [
+    94.87252446498344,
+    94.87252446498344
+   ],
+   "xc": [
+    null,
+    null
+   ],
+   "verdict": [
+    "INCOMPLETE",
+    "INCOMPLETE"
+   ],
+   "blockers": [
+    0,
+    0
+   ],
+   "sim_diffs": [],
+   "compare_diffs": [
+    [
+     "only_old",
+     "/devices/0/ID_spice_op_id",
+     8.706154e-06,
+     null
+    ],
+    [
+     "only_new",
+     "/input_sha256",
+     null,
+     "67489ba5a0a3f4ae18b16d89a3f508786aa3ca0da901245f3f25ad2e686b2457"
+    ],
+    [
+     "only_new",
+     "/machine_dependent_refs",
+     null,
+     [
+      {
+       "ref": "engine_source:nfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:nfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:scale_option",
+       "path": "C:\\pdk\\sky130_fd_pr\\models\\all.spice",
+       "recorded_sha256": "63a430b91d8936a3b0eb80a1b9421c7482572da055f6b7ef00ead36dad0fe498",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_mismatch_slopes",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_tt_model_card",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "recorded_sha256": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+       "matched": "raw"
+      }
+     ]
+    ],
+    [
+     "only_new",
+     "/record_id",
+     null,
+     "eed20ff4fe01e5fe5703721166879ec6f35f37d24fa3290cc4803687d03c7418"
+    ],
+    [
+     "only_new",
+     "/sim_ref",
+     null,
+     {
+      "sha256": "1bb9488420088a769647298a2deed58bd5b8604bcd475fde04ee2cf72202d8f5"
+     }
+    ],
+    [
+     "only_new",
+     "/summary/acceptance/saturation_unknown",
+     null,
+     []
+    ],
+    [
+     "only_new",
+     "/summary/conduction_definition",
+     null,
+     "threshold_eps1"
+    ],
+    [
+     "only_new",
+     "/summary/spice_ac/pm_crosscheck_deg_raw",
+     null,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_crosscheck_note",
+     "peaking 없음(Mp-1 = 6.42e-10, 데이터 분해능 2e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+     "정의 불가(stability_unverified) -- P = 0 증명 없이는 peaking 역산이 위상여유가 아니다(원값 None)"
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_deg",
+     94.87252446498344,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_open_loop_deg",
+     94.87252446498344,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_undefined",
+     null,
+     "stability_unverified"
+    ],
+    [
+     "other",
+     "/summary/transient/reason",
+     "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)",
+     "β 루프 과도해석 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)"
+    ],
+    [
+     "only_old",
+     "/summary/u6",
+     null,
+     null
+    ]
+   ]
+  },
+  "R2.free": {
+   "rc_ok": true,
+   "rc_old": 0,
+   "rc_new": 0,
+   "pm_ok": true,
+   "xc_ok": true,
+   "pm": [
+    34.09587936700507,
+    34.09587936700507
+   ],
+   "xc": [
+    31.574874149249844,
+    31.574874149249844
+   ],
+   "verdict": [
+    "INCOMPLETE",
+    "INCOMPLETE"
+   ],
+   "blockers": [
+    0,
+    0
+   ],
+   "sim_diffs": [
+    [
+     "num",
+     "/ac/loop_gain_dc_db",
+     22.178921475258875,
+     22.17892147525887
+    ],
+    [
+     "num",
+     "/loop/measures/a0_f3db_hz",
+     1285127.0761288744,
+     1285127.0761288742
+    ],
+    [
+     "num",
+     "/loop/measures/dc_gain_db",
+     22.178921475258875,
+     22.17892147525887
+    ],
+    [
+     "num",
+     "/loop/measures/gain_dc",
+     12.851270761288744,
+     12.851270761288742
+    ],
+    [
+     "num",
+     "/loop/measures/phase_dc_deg",
+     -7.310700660027693e-06,
+     -7.310700660027695e-06
+    ]
+   ],
+   "compare_diffs": [
+    [
+     "other",
+     "/constraints/0/judge",
+     "PASS",
+     "N/A(정의 불가: stability_unverified)"
+    ],
+    [
+     "other",
+     "/constraints/0/spice",
+     34.09587936700507,
+     null
+    ],
+    [
+     "other",
+     "/constraints/0/undefined",
+     null,
+     "stability_unverified"
+    ],
+    [
+     "only_old",
+     "/devices/0/ID_spice_op_id",
+     8.706154e-06,
+     null
+    ],
+    [
+     "only_new",
+     "/input_sha256",
+     null,
+     "ae17c543cd31cd0d25c88cb89730a439dc08cd3da8702df2846ef12d8452030e"
+    ],
+    [
+     "only_new",
+     "/machine_dependent_refs",
+     null,
+     [
+      {
+       "ref": "engine_source:nfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:nfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:scale_option",
+       "path": "C:\\pdk\\sky130_fd_pr\\models\\all.spice",
+       "recorded_sha256": "63a430b91d8936a3b0eb80a1b9421c7482572da055f6b7ef00ead36dad0fe498",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_mismatch_slopes",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_tt_model_card",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "recorded_sha256": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+       "matched": "raw"
+      }
+     ]
+    ],
+    [
+     "only_new",
+     "/record_id",
+     null,
+     "a855eb226dd090e15a6467b1a31db835d2ab1b552d2fe71b95b19aeb06370176"
+    ],
+    [
+     "only_new",
+     "/sim_ref",
+     null,
+     {
+      "sha256": "b4a49c06f9393785912442d92887e1d31bfcfdb952ef9157be743c1ef54c4432"
+     }
+    ],
+    [
+     "len",
+     "/summary/acceptance/constraints_unmeasured",
+     0,
+     1
+    ],
+    [
+     "only_new",
+     "/summary/acceptance/saturation_unknown",
+     null,
+     []
+    ],
+    [
+     "only_new",
+     "/summary/conduction_definition",
+     null,
+     "threshold_eps1"
+    ],
+    [
+     "num",
+     "/summary/spice_ac/loop_gain_dc_db",
+     22.178921475258875,
+     22.17892147525887
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_crosscheck_deg",
+     31.574874149249844,
+     null
+    ],
+    [
+     "only_new",
+     "/summary/spice_ac/pm_crosscheck_deg_raw",
+     null,
+     31.574874149249844
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_crosscheck_gap_deg",
+     -2.5210052177552242,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_crosscheck_note",
+     null,
+     "정의 불가(stability_unverified) -- P = 0 증명 없이는 peaking 역산이 위상여유가 아니다(원값 31.574874149249844)"
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_deg",
+     34.09587936700507,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_undefined",
+     null,
+     "stability_unverified"
+    ],
+    [
+     "other",
+     "/summary/transient/reason",
+     "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)",
+     "β 루프 과도해석 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)"
+    ],
+    [
+     "only_old",
+     "/summary/u6",
+     null,
+     null
+    ],
+    [
+     "other",
+     "/summary/verdict_reason",
+     "sat_margin_V 미설정 -- 포화 조건 판정 불가",
+     "sat_margin_V 미설정 -- 포화 조건 판정 불가; SPICE 로 값을 못 얻은 제약 ['pmc']"
+    ]
+   ]
+  },
+  "R3.free": {
+   "rc_ok": true,
+   "rc_old": 0,
+   "rc_new": 0,
+   "pm_ok": true,
+   "xc_ok": true,
+   "pm": [
+    94.21526206564565,
+    94.21526206564565
+   ],
+   "xc": [
+    null,
+    null
+   ],
+   "verdict": [
+    "INCOMPLETE",
+    "INCOMPLETE"
+   ],
+   "blockers": [
+    0,
+    0
+   ],
+   "sim_diffs": [],
+   "compare_diffs": [
+    [
+     "only_old",
+     "/devices/0/ID_spice_op_id",
+     8.724078e-06,
+     null
+    ],
+    [
+     "only_old",
+     "/devices/1/ID_spice_op_id",
+     1.647339e-05,
+     null
+    ],
+    [
+     "only_new",
+     "/input_sha256",
+     null,
+     "2ee97985ad5f73869048d58bace78bb1b79d217d9257f499b79e02965e14acf4"
+    ],
+    [
+     "only_new",
+     "/machine_dependent_refs",
+     null,
+     [
+      {
+       "ref": "engine_source:nfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:nfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:scale_option",
+       "path": "C:\\pdk\\sky130_fd_pr\\models\\all.spice",
+       "recorded_sha256": "63a430b91d8936a3b0eb80a1b9421c7482572da055f6b7ef00ead36dad0fe498",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_mismatch_slopes",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_tt_model_card",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:pfet_01v8_mismatch_slopes",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:pfet_01v8_tt_model_card",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "recorded_sha256": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:pmos:models/parameters/lod.spice",
+       "path": "models/parameters/lod.spice",
+       "recorded_sha256": "20874af1fcb2d2ce70c65f5f2f7d6500b9e852e2507b7a4014ad2b66b8ce45e9",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_aux_input:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+       "recorded_sha256": "3de00ee9acb32d2c7eae36be3f24521dbb9f53a4c50d965f76d35e5ebb2504a9",
+       "matched": "raw"
+      }
+     ]
+    ],
+    [
+     "only_new",
+     "/record_id",
+     null,
+     "5b3f76076b756d3be292defd9f13ae48ce98bd7d2b4ca8b2691b9e282fefe83f"
+    ],
+    [
+     "only_new",
+     "/sim_ref",
+     null,
+     {
+      "sha256": "ed82390c7cbd9c55bc77285c60c9ac20abef1ff8f7b5b5ff71d62b9d7396ed78"
+     }
+    ],
+    [
+     "only_new",
+     "/summary/acceptance/saturation_unknown",
+     null,
+     []
+    ],
+    [
+     "only_new",
+     "/summary/conduction_definition",
+     null,
+     "threshold_eps1"
+    ],
+    [
+     "only_new",
+     "/summary/spice_ac/pm_crosscheck_deg_raw",
+     null,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_crosscheck_note",
+     "peaking 없음(Mp-1 = 2.88e-10, 데이터 분해능 2e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+     "정의 불가(stability_unverified) -- P = 0 증명 없이는 peaking 역산이 위상여유가 아니다(원값 None)"
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_deg",
+     94.21526206564565,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_open_loop_deg",
+     94.21526206564565,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_undefined",
+     null,
+     "stability_unverified"
+    ],
+    [
+     "other",
+     "/summary/transient/reason",
+     "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)",
+     "β 루프 과도해석 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)"
+    ],
+    [
+     "only_old",
+     "/summary/u6",
+     null,
+     null
+    ]
+   ]
+  },
+  "R3.forced": {
+   "rc_ok": true,
+   "rc_old": 0,
+   "rc_new": 0,
+   "pm_ok": true,
+   "xc_ok": true,
+   "pm": [
+    94.21517872127808,
+    94.21517872127808
+   ],
+   "xc": [
+    null,
+    null
+   ],
+   "verdict": [
+    "INCOMPLETE",
+    "INCOMPLETE"
+   ],
+   "blockers": [
+    0,
+    0
+   ],
+   "sim_diffs": [
+    [
+     "num",
+     "/ratio/2/num/mag",
+     11.966491000012569,
+     11.966491000012567
+    ]
+   ],
+   "compare_diffs": [
+    [
+     "only_old",
+     "/devices/0/ID_spice_op_id",
+     8.724078e-06,
+     null
+    ],
+    [
+     "only_old",
+     "/devices/1/ID_spice_op_id",
+     1.647339e-05,
+     null
+    ],
+    [
+     "only_new",
+     "/input_sha256",
+     null,
+     "2ee97985ad5f73869048d58bace78bb1b79d217d9257f499b79e02965e14acf4"
+    ],
+    [
+     "only_new",
+     "/machine_dependent_refs",
+     null,
+     [
+      {
+       "ref": "engine_source:nfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:nfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:scale_option",
+       "path": "C:\\pdk\\sky130_fd_pr\\models\\all.spice",
+       "recorded_sha256": "63a430b91d8936a3b0eb80a1b9421c7482572da055f6b7ef00ead36dad0fe498",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_mismatch_slopes",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_tt_model_card",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:pfet_01v8_mismatch_slopes",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:pfet_01v8_tt_model_card",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "recorded_sha256": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:pmos:models/parameters/lod.spice",
+       "path": "models/parameters/lod.spice",
+       "recorded_sha256": "20874af1fcb2d2ce70c65f5f2f7d6500b9e852e2507b7a4014ad2b66b8ce45e9",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_aux_input:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+       "recorded_sha256": "3de00ee9acb32d2c7eae36be3f24521dbb9f53a4c50d965f76d35e5ebb2504a9",
+       "matched": "raw"
+      }
+     ]
+    ],
+    [
+     "only_new",
+     "/record_id",
+     null,
+     "ccae06453e3fbd8b704de4630677f9651b02a5f38708b02cb02138c93bcc0782"
+    ],
+    [
+     "only_new",
+     "/sim_ref",
+     null,
+     {
+      "sha256": "e0f091a9bec82fa46be8ce34c470409998bfe08ce08b968c0a66b5eef1b001be"
+     }
+    ],
+    [
+     "only_new",
+     "/summary/acceptance/saturation_unknown",
+     null,
+     []
+    ],
+    [
+     "only_new",
+     "/summary/conduction_definition",
+     null,
+     "threshold_eps1"
+    ],
+    [
+     "only_new",
+     "/summary/spice_ac/pm_crosscheck_deg_raw",
+     null,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_crosscheck_note",
+     "peaking 없음(Mp-1 = 1.37e-10, 데이터 분해능 2e-08 이하) -- 2차 근사로 PM >= 65.53 deg",
+     "정의 불가(stability_unverified) -- P = 0 증명 없이는 peaking 역산이 위상여유가 아니다(원값 None)"
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_deg",
+     94.21517872127808,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_open_loop_deg",
+     94.21517872127808,
+     null
+    ],
+    [
+     "other",
+     "/summary/spice_ac/pm_undefined",
+     null,
+     "stability_unverified"
+    ],
+    [
+     "num",
+     "/summary/spice_ratio/2/num/mag",
+     11.966491000012569,
+     11.966491000012567
+    ],
+    [
+     "other",
+     "/summary/transient/reason",
+     "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)",
+     "β 루프 과도해석 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)"
+    ],
+    [
+     "only_old",
+     "/summary/u6",
+     null,
+     null
+    ]
+   ]
+  },
+  "R4.free": {
+   "rc_ok": true,
+   "rc_old": 0,
+   "rc_new": 0,
+   "pm_ok": true,
+   "xc_ok": false,
+   "pm": [
+    null,
+    null
+   ],
+   "xc": [
+    59.01146654443623,
+    null
+   ],
+   "verdict": [
+    "INCOMPLETE",
+    "INCOMPLETE"
+   ],
+   "blockers": [
+    0,
+    0
+   ],
+   "sim_diffs": [],
+   "compare_diffs": [
+    [
+     "only_old",
+     "/devices/0/ID_spice_op_id",
+     3.328003e-05,
+     null
+    ],
+    [
+     "only_new",
+     "/input_sha256",
+     null,
+     "ec55d6d27c70d697a5d53508f701af54d7bb05f36f8bdf0b0b4c45bed6e9c156"
+    ],
+    [
+     "only_new",
+     "/machine_dependent_refs",
+     null,
+     [
+      {
+       "ref": "engine_source:nfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:nfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:scale_option",
+       "path": "C:\\pdk\\sky130_fd_pr\\models\\all.spice",
+       "recorded_sha256": "63a430b91d8936a3b0eb80a1b9421c7482572da055f6b7ef00ead36dad0fe498",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_mismatch_slopes",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_tt_model_card",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "recorded_sha256": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+       "matched": "raw"
+      }
+     ]
+    ],
+    [
+     "only_new",
+     "/record_id",
+     null,
+     "ad3bd7997e93a6bc12df942a35243a9f27c6917dffc172412058fbca74aa5669"
+    ],
+    [
+     "only_new",
+     "/sim_ref",
+     null,
+     {
+      "sha256": "c2dc0177fac6209aca177b85b1e080a5330ff34f88b38a72cedf233e7d90ec2e"
+     }
+    ],
+    [
+     "only_new",
+     "/summary/acceptance/saturation_unknown",
+     null,
+     []
+    ],
+    [
+     "only_new",
+     "/summary/conduction_definition",
+     null,
+     "threshold_eps1"
+    ],
+    [
+     "other",
+     "/summary/transient/reason",
+     "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)",
+     "β 루프 과도해석 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)"
+    ],
+    [
+     "only_old",
+     "/summary/u6",
+     null,
+     null
+    ]
+   ]
+  },
+  "R4.forced": {
+   "rc_ok": true,
+   "rc_old": 0,
+   "rc_new": 0,
+   "pm_ok": true,
+   "xc_ok": false,
+   "pm": [
+    null,
+    null
+   ],
+   "xc": [
+    59.01146481696347,
+    null
+   ],
+   "verdict": [
+    "INCOMPLETE",
+    "INCOMPLETE"
+   ],
+   "blockers": [
+    0,
+    0
+   ],
+   "sim_diffs": [],
+   "compare_diffs": [
+    [
+     "only_old",
+     "/devices/0/ID_spice_op_id",
+     3.328002e-05,
+     null
+    ],
+    [
+     "only_new",
+     "/input_sha256",
+     null,
+     "ec55d6d27c70d697a5d53508f701af54d7bb05f36f8bdf0b0b4c45bed6e9c156"
+    ],
+    [
+     "only_new",
+     "/machine_dependent_refs",
+     null,
+     [
+      {
+       "ref": "engine_source:nfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:nfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:scale_option",
+       "path": "C:\\pdk\\sky130_fd_pr\\models\\all.spice",
+       "recorded_sha256": "63a430b91d8936a3b0eb80a1b9421c7482572da055f6b7ef00ead36dad0fe498",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_mismatch_slopes",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_tt_model_card",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "recorded_sha256": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+       "matched": "raw"
+      }
+     ]
+    ],
+    [
+     "only_new",
+     "/record_id",
+     null,
+     "1d6c308c053551dc9321805e4a1ee1753806e2eeb1fc339db3dc9b61a8d984cb"
+    ],
+    [
+     "only_new",
+     "/sim_ref",
+     null,
+     {
+      "sha256": "c46c982d8779c1cf6f176dd729f693c06381d1a3928e7a0924344aa3566384e2"
+     }
+    ],
+    [
+     "only_new",
+     "/summary/acceptance/saturation_unknown",
+     null,
+     []
+    ],
+    [
+     "only_new",
+     "/summary/conduction_definition",
+     null,
+     "threshold_eps1"
+    ],
+    [
+     "other",
+     "/summary/transient/reason",
+     "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)",
+     "β 루프 과도해석 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)"
+    ],
+    [
+     "only_old",
+     "/summary/u6",
+     null,
+     null
+    ]
+   ]
+  },
+  "R5.iso": {
+   "rc_ok": true,
+   "rc_old": 0,
+   "rc_new": 0,
+   "pm_ok": null,
+   "xc_ok": null,
+   "pm": [
+    null,
+    null
+   ],
+   "xc": [
+    null,
+    null
+   ],
+   "verdict": [
+    "INCOMPLETE",
+    "INCOMPLETE"
+   ],
+   "blockers": [
+    0,
+    0
+   ],
+   "sim_diffs": [],
+   "compare_diffs": [
+    [
+     "only_old",
+     "/devices/0/ID_spice_op_id",
+     8.698091e-06,
+     null
+    ],
+    [
+     "num",
+     "/devices/0/diffusion/pd",
+     4e-06,
+     4.000000000000001e-06
+    ],
+    [
+     "num",
+     "/devices/0/diffusion/ps",
+     4e-06,
+     4.000000000000001e-06
+    ],
+    [
+     "only_old",
+     "/devices/1/ID_spice_op_id",
+     1.647928e-05,
+     null
+    ],
+    [
+     "num",
+     "/devices/1/diffusion/pd",
+     4e-06,
+     4.000000000000001e-06
+    ],
+    [
+     "num",
+     "/devices/1/diffusion/ps",
+     4e-06,
+     4.000000000000001e-06
+    ],
+    [
+     "only_new",
+     "/input_sha256",
+     null,
+     "3d61cf40defb4f7e2760580d6765850b78ee82e27c75fa63a2a69e9433b77474"
+    ],
+    [
+     "only_new",
+     "/machine_dependent_refs",
+     null,
+     [
+      {
+       "ref": "engine_source:nfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:nfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:scale_option",
+       "path": "C:\\pdk\\sky130_fd_pr\\models\\all.spice",
+       "recorded_sha256": "63a430b91d8936a3b0eb80a1b9421c7482572da055f6b7ef00ead36dad0fe498",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_tt_model_card",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "engine_source:pfet_01v8_mismatch_slopes",
+       "path": "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_mismatch_slopes",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:nfet_01v8_tt_model_card",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:pfet_01v8_mismatch_slopes",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_record_root:pfet_01v8_tt_model_card",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "c4497c6260040355557854eede155d1e4cb121fcd294e70904841fe0bdb2a4e5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "eec2f478f729ef95be392963277ccf9d91f9d51fbeea7d87611b52c99a3d8223",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_aux_input:nmos:cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "path": "cells/nfet_01v8/sky130_fd_pr__nfet_01v8.bins.csv",
+       "recorded_sha256": "f5822ffdce70c2271193a6a3b9edb23b2c4359ecda30fa5a7c97b0e2a55663cf",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice",
+       "recorded_sha256": "fa51eb64b015abd43878b65b134675c0d0269e826ec8895cd3229d1490153a99",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice",
+       "recorded_sha256": "3ecdcb8c2ae06f304e3e9bcbf4b370bcb8913a5e85c8fc03f3b270ead0708cd5",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_model_file:pmos:models/parameters/lod.spice",
+       "path": "models/parameters/lod.spice",
+       "recorded_sha256": "20874af1fcb2d2ce70c65f5f2f7d6500b9e852e2507b7a4014ad2b66b8ce45e9",
+       "matched": "raw"
+      },
+      {
+       "ref": "lut_aux_input:pmos:cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+       "path": "cells/pfet_01v8/sky130_fd_pr__pfet_01v8.bins.csv",
+       "recorded_sha256": "3de00ee9acb32d2c7eae36be3f24521dbb9f53a4c50d965f76d35e5ebb2504a9",
+       "matched": "raw"
+      }
+     ]
+    ],
+    [
+     "only_new",
+     "/record_id",
+     null,
+     "baf4563429229a7c9a9911e6c662039459debfe8af98ad42d77495d1c7681222"
+    ],
+    [
+     "only_new",
+     "/sim_ref",
+     null,
+     {
+      "sha256": "cae9e49ee01628904db8cb3f8c39f12f75548ebc5f8a73418774ac53e9af28dd"
+     }
+    ],
+    [
+     "only_new",
+     "/summary/acceptance/saturation_unknown",
+     null,
+     []
+    ],
+    [
+     "only_new",
+     "/summary/conduction_definition",
+     null,
+     "threshold_eps1"
+    ],
+    [
+     "other",
+     "/summary/transient/reason",
+     "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)",
+     "β 루프 과도해석 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)"
+    ],
+    [
+     "only_old",
+     "/summary/u6",
+     null,
+     null
+    ],
+    [
+     "other",
+     "/topology_identity/notes/0",
+     "iso 는 회로 연결이 없는 단독 소자 넷리스트 -- C15 대상 아님",
+     "iso 는 회로 연결이 없는 단독 소자 회로 -- C15 대상 아님"
+    ]
+   ]
+  }
+ },
+ "two_runs": {
+  "R1.free": {
+   "sim": [],
+   "compare": []
+  },
+  "R2.free": {
+   "sim": [],
+   "compare": []
+  },
+  "R3.free": {
+   "sim": [],
+   "compare": []
+  },
+  "R3.forced": {
+   "sim": [],
+   "compare": []
+  },
+  "R4.free": {
+   "sim": [],
+   "compare": []
+  },
+  "R4.forced": {
+   "sim": [],
+   "compare": []
+  },
+  "R5.iso": {
+   "sim": [],
+   "compare": []
+  }
+ },
+ "summary": {}
+}

@@ -11,8 +11,9 @@
 * `fun`·`jac`·`constraints` 는 모두 같은 x 의 같은 평가를 읽는다(x 의 float.hex 로 묶음 -- 커널 1회). jac 은 `fd_jacobian`
   (parent = 그 x 의 평가). x 평가의 parent = 직전 수락 반복(callback).
 * **한도는 평가 수로 센다(결정론)**: SLSQP 반복 상한 = Σᵢ ⌈log2((hiᵢ − loᵢ)/hᵢ)⌉(좌표마다 bounds 폭을 FD 스텝 hᵢ 까지 반으로
-  가르는 수의 합 -- K_max 와 같은 bisection 논리, hᵢ = 시작점 FD 스텝). 평가 예산: `sctx.counters["kernel_calls"] ≥
-  sctx.eval_budget` 이면 끝(`eval_budget`). 벽시계 `sctx.deadline` 은 바깥 정지(`wall_budget`, 기록 -- 이것으로 끝난 실행만
+  가르는 수의 합 -- K_max 와 같은 bisection 논리, hᵢ = 시작점 FD 스텝). 평가 예산: `search_stop`(`kernel_calls` ≥ 탐색 예산 `search_ceiling`)이면
+  끝(`eval_budget`) -- 단일 평가는 평가 전에 보고, FD 묶음은 시작 전에 상계를 `ceiling` 으로 확인한다(못 시작하면 `FdBudgetShortfall` -> 반복 중이면 `_Abort("eval_budget")`,
+  첫 스텝이면 반복 0·재시작 0·정지 `eval_budget`·`aborts` = (`eval_budget`,)·best = 시작점이 c ≥ 0 이면 그것, 아니면 None). 벽시계 `sctx.deadline` 은 바깥 정지(`wall_budget`, 기록 -- 이것으로 끝난 실행만
   결정론 밖).
 * 실패 처리(설계 6.2): x 가 받아들일 상태가 아니거나 제약 행 이름 집합이 시작점과 달라지면 마지막 수락 반복을 중심으로 상자 반경을
   절반으로 줄여 다시 시작한다(반경 = 정의역 bounds 반폭 -- 설계 '격자 반경 × 2^m' 의 m 은 U-47 보류, S-7). 재시작 상한 =
@@ -23,7 +24,6 @@
 * `best` = 수락 반복 중 모든 제약 c ≥ 0 인 점에서 목적 최소(동률은 seq 작은 쪽). 없으면 None.
 """
 import math
-import time
 
 import numpy as np
 from scipy.optimize import minimize as scipy_minimize
@@ -34,8 +34,10 @@ from gmid_engine.sizing import THETA_L
 from .canonical_order import canonical_order
 from .canonical_rows import canonical_row_key
 from .cell_floor import ln_idu_floors
-from .fd_jacobian import fd_jacobian
+from .fd_jacobian import FdBudgetShortfall, fd_jacobian
 from .kernel import evaluate
+from .search_ceiling import search_ceiling
+from .search_stop import search_stop
 from .search_values import ACCEPTED_STATUSES, AXIS_AREA, AXIS_POWER, CON_EPS, STAGE_SLSQP, SolveResult, Variable
 from .theta_coords import ThetaCoords
 
@@ -83,14 +85,6 @@ def _rows(result, eps, scales, row_key):
     return names, np.asarray(values, dtype=float)
 
 
-def _budget_stop(sctx):
-    if sctx.eval_budget is not None and sctx.counters["kernel_calls"] >= sctx.eval_budget:
-        return "eval_budget"
-    if sctx.deadline is not None and time.perf_counter() > sctx.deadline:
-        return "wall_budget"
-    return None
-
-
 def solve_eps(sctx, start, minimize, eps, origin):
     blas_environment()      # [NFR-4 재확인 (e)] ε 풀이 한 번마다 시작할 때 -- 끝점·ε 풀이·L-b 모두 이 함수. 무상태, 값은 기록하지 않는다
     row_key = canonical_row_key(sctx)
@@ -112,7 +106,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
         hit = state["points"].get(hx)
         if hit is not None:
             return hit
-        stop = _budget_stop(sctx)
+        stop = search_stop(sctx)
         if stop is not None:
             raise _Abort(stop, x)
         res = evaluate(sctx, theta_of(x), start.cells, parent=state["parent"], origin=tag)
@@ -134,7 +128,10 @@ def solve_eps(sctx, start, minimize, eps, origin):
         entry = point(x)
         if entry["jac"] is None or entry["jac"][2] != frozenset(state["frozen"]):
             skip = frozenset(state["frozen"])
-            cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], start.cells, theta_of, tag, skip)
+            try:
+                cols = fd_jacobian(sctx, variables, entry["x"], entry["res"], start.cells, theta_of, tag, skip, ceiling=search_ceiling(sctx))
+            except FdBudgetShortfall:
+                raise _Abort("eval_budget", entry["x"]) from None          # 묶음이 못 시작 -- 평가 0개로 예산 정지
             gf = np.zeros(len(variables))
             gc = np.zeros((len(entry["c"]), len(variables)))
             for i, (col, step) in enumerate(cols):
@@ -162,7 +159,12 @@ def solve_eps(sctx, start, minimize, eps, origin):
     accept(first["x"])
     n = len(variables)
     radius = (hi - lo) / 2
-    steps0 = fd_jacobian(sctx, variables, first["x"], first["res"], start.cells, theta_of, tag, frozenset())
+    try:
+        steps0 = fd_jacobian(sctx, variables, first["x"], first["res"], start.cells, theta_of, tag, frozenset(), ceiling=search_ceiling(sctx))
+    except FdBudgetShortfall:
+        # 첫 스텝 야코비안이 못 시작 -- 반복 0, 재시작 0. 수락 목록은 시작점 하나라 아래 `best` 규칙은 '시작점이 c ≥ 0 이면 그것, 아니면 None'
+        return SolveResult(first["res"] if np.all(first["c"] >= 0) else None, eps, minimize, 0, 0, "eval_budget", (first["res"],),
+                           ("eval_budget",), ())
     h = np.asarray([abs(step) for _col, step in steps0], dtype=float)
     resolved = [int(math.ceil(math.log2((hi[i] - lo[i]) / h[i]))) for i in range(n) if h[i] > 0]
     maxiter = max(1, sum(max(r, 1) for r in resolved))

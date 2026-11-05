@@ -1,0 +1,47 @@
+{
+ "id": "20261104-op1b",
+ "spec_card": "docs/02-design/specs/20261104-op1b.spec.md",
+ "evidence_type": "test-only",
+ "base_commit": "c21b34cece03cc21a2a308e801417073faa16cf3",
+ "test_commit": "ac8810941db44205163aec3ad55bc4ff01de8570",
+ "code_commit": null,
+ "checks": {
+  "V1": {"verdict": "N/A", "basis": "임시 규칙 O-229: 전체 test 안 돌림, 통과로 세지 않음. 잰 범위 = toy test_op1b_lib.py 41 passed(A-1), tests/structure 170 passed 1 deselected(A-8, skills diff 0), g8 ratchet 1 passed. 2회로 연기는 안 돌림: 엔진·오라클 diff 0이고 이 card 범위가 아니다."},
+  "V2": {"verdict": "PASS", "basis": "test ac881094, code 7f48a20e, 판정 대상 머리 4c73bfed(master c21b34ce 병합). 섹션 매핑: T-1a~T-9f 전 행이 test 함수로 있음(판정자 대조). A-1 41 passed, base에 모듈 없음(red = 새 파일). A-2: F-1 corner tt, temp_c 27, F-3 nested, F-4 sha 같음, F-2 nmos·pmos reasons [] (roles = 판정자 측정, audit/roles.json), raw_only nmos 2·pmos 3(기계 의존). 부정 대조: roles 없으면 두 kind model_bundle_mismatch로 멈춤. 역할 근거 (a): 생성기 00085057 blob을 CRLF로 바꾼 바이트·cat-file --filters 바이트 sha = meta generator_sha256 60584696(raw 일치), bins.csv는 그 판 677행에서 include 목록 밖으로 기록에 더해짐. 근거 (b): model_includes 220-228행에서 시작한 재귀 그래프에 bins.csv 없음, 모델 파일 5개 include·lib 줄 0(audit/roles_evidence.json). A-9·A-3: R1·R10 먼저, 뒤이어 R2~R9, 10/10 ngspice_rc 0, 범주 전부 참, 2회 compare_runs [] (baseline/run_results.jsonl). 도구 부정 대조 5건 전부 멈춤(audit/controls.json). A-4·A-5·A-6은 V10."},
+  "V3": {"verdict": "N/A", "basis": "뮤테이션 안 돌림: 임시 규칙 O-229, 엔진 diff 0, 판정 도구라 interface §5 측정 표에 없음. 거부 경로는 toy와 부정 대조 5건으로만 확인했고 통과로 세지 않는다."},
+  "V4": {"verdict": "PASS", "basis": "oracle 대조: test_lint 미실행(새 도구 안 만듦, O-229). 기대값을 interface §4와 한 행씩 대조: T-1 구성값, T-2 표 값, T-3a 해시는 바이트 구성으로 hashlib 계산, T-4 S1~S4 구성값과 표 결과, T-5 비트·포인터 표 값, T-6 술어 표, T-7·T-7a 손 유도(1e-3, -1e-3), T-8·T-9 표 값. 피검 함수 출력을 옮긴 기대값 없음. test는 소스를 보지 않고 쓰도록 규정된 card이고 작성 주체 분리는 커밋 Role 트레일러로만 확인했다."},
+  "V5": {"verdict": "PASS", "basis": "기준 약화 없음: 새 파일만, 기존 test·기준선 diff 0(A-7 빈 출력). 제외 칸은 card가 정한 cache, stability_cache 둘뿐이고 2회 비교에서 더 늘리지 않았다. compare_runs 타입 차이는 포인터로 보고해 card보다 엄격하다(fail-closed)."},
+  "V6": {"verdict": "N/A", "basis": "source_lint 대상 없음: gmid_engine diff 0. 정적 grep: scripts에 gmid_engine·spice_oracle·oracle_* import 0, legacy·저장소 밖 고정 경로 0, PDK 이름·값 0(입력 목록의 sha와 상대 경로는 판정 기록). A-34 rule 파일 diff 0(skills diff 0). scan_shared_calls --touching은 바뀐 엔진 파일 0이라 사실만 적고 미실행."},
+  "V7": {"verdict": "PASS", "basis": "op1b_lib 10함수 모두 run_op1b 또는 vos_recompute가 부름: rewrite_lut_ref, provenance_shape, include_bundle, bundle_rules, comparable(compare_runs 경유), compare_runs, category_present, vos_samples, lut_files_row, convert_input. baseline 소비자 = OP-3 병합 조건 (b) 이후, 기간 예외 표지 있음(spec '소비자'), 병합 때 test 소비자 0. graph 점검 수치: 필드 수 0 / 소비자 0 결함 0 / 정본 우회 의심 0 / KVL·KCL 관계 미적용 0(엔진 계산 없음, 엔진 안 부름) / graph 밖 저장 자리 0(엔진 diff 0, 기준선은 판정 기록, 값 정본은 옛 오라클 출력). isolated_env는 op7a와 중복이나 graph 밖 판정 도구이고 7키 입력에 대해 같은 결과(audit/a3_scan.json)."},
+  "V8": {"verdict": "PASS", "basis": "대체 입력·폴백 0: 10건 모두 지정 입력 sha 대조 뒤 실행, 멈춤 발동 0, 재시도 0. 입력 변경은 process.lut_npz 하나(10/10 값 대조). 옛 오라클은 git archive 5fea301e 사본으로 실행(worktree 조작 금지 때문), oracle_*.py 7개 blob 같음. rc 1·2를 오라클 판정값으로 받는 경로는 R6·R7·R8 FAIL에서 실제로 쓰였고 값 판정이 아니므로 card대로이다."},
+  "V9": {"verdict": "PASS", "basis": "값 판정 없음(엔진 대 SPICE 아님). 물리·정의 확인: op_ok 10/10, skipped None, log_errors 빈 값, 하위 실행 ngspice_rc 43건 전부 0, 넷리스트 .temp 27만 있고 LUT temp_c 27·corner tt와 같음, 호환: 로그 43/43에 'No compatibility mode selected'(선언 mode default와 맞음), 출력 폴더·HOME에 .spiceinit 없음, 판 43/43 ngspice-46 = 선언 46. 로그 경고 pz iteration limit은 R6·R10 둘, 값은 OP-1과 같다. R6·R7·R8의 compare FAIL은 test 회로가 일부러 불안정한 경우로 범주 unstable·stability와 맞고 기준선 칸일 뿐 결함이 아니다."},
+  "V10": {"verdict": "PASS", "basis": "A-5: OP-1a verify_sha256 committed ok(3512/5133), dv5_vos_recompute 재실행 cases 비트 동일(python 3.14.2, numpy 2.4.6). A-4: R10 σ 3.6758284804311394·mean 0.2481398885434242·A 99.8785243·n 201, 2회 비트 동일, sim.json과 비트 동일, OP-1 mc5t0 per_sample_vos·σ·mean과 비트 동일, 판 기록 version_differs 둘 다 false(f6). 커밋 텍스트만으로 재실행해도 같음(audit/vos_r10_committed_1.json). A-6: 새 폴더 committed ok 108/194, raw ok 194/194, git 색인 blob 108건 sha 불일치 0, verify_sha256.py는 OP-1a와 같은 바이트. A-7: skills·OP-1 기록 diff 빈 출력, 밖 변경 0. A-8: tests/structure 170 passed, g8 ratchet new 0(test 단언), stale 0. 측정 사실: 경로 칸(ac_file, log, netlist, transient/file) 말고 10/10 sim.json 값이 OP-1과 비트 동일, 넷리스트 9건 차이 0(R1은 파일 이름이 달라 넷리스트 미대조, sim 대조만). 옛 오라클이 LUT에서 corner·temp_c만 읽고 두 LUT가 값이 같기 때문이다."}
+ },
+ "reproduced_numbers": [
+  {"name": "toy passed", "value": 41, "command": "python -m pytest .ai/verification/20261104-op1b/scripts/test_op1b_lib.py -q"},
+  {"name": "tests/structure passed", "value": 170, "command": "python -P -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q"},
+  {"name": "기준선 입력 수(rc 0, 범주 참, 2회 차이 0)", "value": 10, "command": "audit/tools/driver.py -> run_op1b.py run, baseline/run_results.jsonl"},
+  {"name": "하위 실행 ngspice_rc 0 건수", "value": 43, "command": "audit/tools/scan.py, audit/a3_scan.json"},
+  {"name": "R10 sigma_in_mV", "value": 3.6758284804311394, "command": "vos_recompute.py, audit/vos_r10_committed_1.json"},
+  {"name": "R10 mean_in_mV", "value": 0.2481398885434242, "command": "vos_recompute.py, audit/vos_r10_committed_1.json"},
+  {"name": "R10 표본 수", "value": 201, "command": "vos_recompute.py, audit/vos_r10_committed_1.json"},
+  {"name": "보관 원자료 파일", "value": 194, "command": "verify_sha256.py raw"},
+  {"name": "보관 커밋 파일", "value": 108, "command": "verify_sha256.py committed, audit/tools/blobcheck.py"},
+  {"name": "실행 중 최저 메모리 여유 GB", "value": 3.61, "command": "audit/driver.jsonl min_avail_GB"}
+ ],
+ "approvals": [],
+ "auditor_run": {
+  "time": "2026-11-04T17:32:00+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261104-op1b-audit",
+  "commands": [
+   "git clone --no-hardlinks --no-local <audit worktree> C:/Users/HSLEE/AppData/Local/Temp/la1s_op1b_audit/iso; git -C <iso> remote remove origin",
+   "V1: 전체 test 미실행(O-229). python -m pytest .ai/verification/20261104-op1b/scripts/test_op1b_lib.py -q ; python -P -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -q",
+   "git -C <iso> archive 5fea301e skills/analog-gmid-design/tools/spice_oracle | tar -x -C <temp>/old",
+   "python <iso>/.ai/verification/20261104-op1b/scripts/run_op1b.py feasibility --repo <iso> --location skills/analog-gmid-design/assets/lut_v2_location.json --out <temp>/a2/feasibility.json --roles <temp>/roles/roles.json",
+   "python audit/tools/driver.py <temp> <iso> C:/ngspice/Spice64/bin/ngspice_con.exe <iso>/skills/analog-gmid-design/assets/lut_v2_bin_rule.json R1 R10 R2 R3 R4 R5 R6 R7 R8 R9",
+   "python -P <OP-1 기록>/dv5/dv5_vos_recompute.py <OP-1 기록> <temp>/a5/dv5_again.json ; python vos_recompute.py <결과> <폴더> t5ota.free.mc.log t5ota.free.cir.meta.json <입력> --sim <sim> --dv5 dv5_result.json pytest/mc5t0",
+   "python -I baseline/verify_sha256.py committed baseline/files ; raw <temp>/run/work ; audit/tools/blobcheck.py <worktree> :",
+   "git diff c21b34ce..HEAD -- skills .ai/verification/20261016-op1-baseline"
+  ]
+ }
+}

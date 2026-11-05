@@ -221,7 +221,7 @@ def analyze_view(model, seed, view_id, count_budget, ratified, exceptions=frozen
         main.stage.starts, main.drive.mirror_inputs, composite.blocks, composite.composites, poles, directions,
         info.loops, cuts, False, _cell_diff(model, primary, base) if virtual else (), _unique_findings(findings),
         () if ff is None else ff.main_path, () if ff is None else ff.cells, () if ff is None else ff.ratio_candidates,
-        info.roles, 0, info.capacitors, ag.exceptions)
+        info.roles, 0, info.capacitors, ag.exceptions, seed.default_port)
     seeds = () if is_loop else tuple(ViewSeed(VIEW_LOOP, ((cut[1], 1.0),), (cut[1],), LOOP_SOURCE, cut) for cut in sorted(info.groups))
     return ViewResult(view, seeds, types.MappingProxyType({cut: tuple(sorted(nodes)) for cut, nodes in sorted_items(info.groups)}),
                       info.polarity)

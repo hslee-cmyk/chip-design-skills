@@ -120,7 +120,7 @@ def test_fixed_values_w3_and_input_dc(tmp_path, toy_access):
                [mos("M1", "nmos", "o1", "inp", "t"), mos("M2", "nmos", "out", "inn", "t"),
                 mos("M3", "pmos", "o1", "o1", "vdd"), mos("M4", "pmos", "out", "o1", "vdd"),
                 mos("M5", "nmos", "t", "vb", "gnd")],
-               {"inp": ("input", "a"), "inn": ("input", "b"), "out": ("output", "c")},
+               {"inp": ("input", "differential_input_p"), "inn": ("input", "differential_input_n"), "out": ("output", "c")},   # [IT-1 DEC-106] role 만
                bias=["vb"])                                                                  # vb: M5 gate 에만(o1 은 M3 drain)
     # input_dc 만
     _, _, ctx = build_ctx(tmp_path, doc, toy_access, input_dc_v=0.9)
@@ -191,11 +191,12 @@ def gvgs_counts(raw, input_dc_declared, targets=()):
     F = rails | set(targets) | (set(ports_in) if input_dc_declared else set())
     edges = [(e["gate"], e["source"]) for e in raw["netlist"]]
     edges += [tuple(e["terminals"]) for e in raw.get("passive_elements", []) if e["kind"] == "resistor"]
-    if not input_dc_declared:
-        free_in = [p for p in ports_in if p not in F]
-        edges += list(zip(free_in, free_in[1:]))
+    # [IT-1 DEC-106] 입력 DC 미선언 차동 입력쌍은 한 점(role 로 판별): 같은 DC 엣지가 아니라 정점 묶음
     fp = "\0F"
-    rep = lambda n: fp if n in F else n                             # noqa: E731
+    ip = "\0P"
+    roles = sorted(raw["ports"][k].get("role", "") for k in ports_in)
+    pair = set(ports_in) if not input_dc_declared and roles == ["differential_input_n", "differential_input_p"] else set()
+    rep = lambda n: fp if n in F else (ip if n in pair else n)      # noqa: E731
     E = [(rep(a), rep(b)) for a, b in edges]
     V = {x for ab in E for x in ab}
     parent = {v: v for v in V}
@@ -218,7 +219,7 @@ def gvgs_counts(raw, input_dc_declared, targets=()):
         for e in raw.get(key, []) or []:
             nodes |= set(e["terminals"])
     nodes |= rails
-    outside = len([n for n in nodes if n not in F and n not in V])
+    outside = len({rep(n) for n in nodes if rep(n) != fp and rep(n) not in V})
     return cyclomatic, f_less + outside, nodes, F
 
 
@@ -239,7 +240,7 @@ def test_library_plan_invariants(name, toy_access):
     dep = sum(1 for c in coords.values() if c.role == "dependent")
     assert n_mos == dep + sum(1 for c in coords.values() if c.role == "writer")
     assert dep == cyc, "종속 수 %d ≠ G_vgs 순환수 %d" % (dep, cyc)
-    assert sum(1 for w in writers.values() if w.tier == "W4") == w4
+    assert len({w.y_key for w in writers.values() if w.tier == "W4"}) == w4     # 입력 점 두 포트는 y 키 하나
     check(base.value("graph", DC_KEY, "dc_current_basis"), expected_basis(raw, inputs.element_values, base))
 
 

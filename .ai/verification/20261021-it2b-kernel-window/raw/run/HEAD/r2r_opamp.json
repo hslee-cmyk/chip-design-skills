@@ -1,0 +1,41 @@
+{
+ "circuit": "r2r_opamp",
+ "os": {
+  "engine": {
+   "Vo": "kvl_fixed"
+  },
+  "engine_keys_not_outputs": [],
+  "input_dc_declared": false,
+  "input_dc_v": null,
+  "inputs": [
+   "Vinn",
+   "Vinp"
+  ],
+  "out_in_fprime": [],
+  "outputs": [
+   "Vo"
+  ],
+  "rails": [
+   "VDD",
+   "VSS"
+  ],
+  "stop": {
+   "stage_a": "stopped",
+   "writer_plan": "ok"
+  },
+  "w3": []
+ },
+ "repo": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/_scratch_it2b_audit/h",
+ "set": "heldout",
+ "side": "HEAD",
+ "stage_a": {
+  "exit_code": 2,
+  "status": "stopped",
+  "stop_reasons": [
+   "unsupported_rule_branch|loop_record_only|transfer:0|n_fn1,n_mn|global_feedback_or_cross_coupled",
+   "unsupported_rule_branch|loop_record_only|transfer:0|n_fp1,n_mp|global_feedback_or_cross_coupled",
+   "unsupported_rule_branch|loop_record_only|transfer:0|n_m6,n_m9,tail_n,tail_p|global_feedback_or_cross_coupled"
+  ]
+ },
+ "wall_s": 0.42024280002806336
+}

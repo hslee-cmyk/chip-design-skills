@@ -61,5 +61,5 @@ def test_noise_measure_key_equals_metric_name(name):
 @pytest.mark.parametrize("name", ["offset_in_sigma_mv", "swing_out_v", "icmr_v", "icm_margin_v"] + NOISE)
 def test_oracle_measure_key_exists_in_oracle_sources(name):
     measure = verified_by(name).measure
-    text = "".join(p.read_text(encoding="utf-8") for p in ORACLE.glob("oracle_*.py"))
+    text = "".join(p.read_text(encoding="utf-8") for p in [*ORACLE.glob("oracle_*.py"), *(ORACLE / "core").rglob("*.py")])
     assert '"%s"' % measure in text or "'%s'" % measure in text, (name, measure)

@@ -125,6 +125,9 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 ### 3.1 `mos_stamps(dev) -> StampSet`, `two_terminal_stamps(elem) -> StampSet`
 - (행 노드, 열 노드, 값) tuple. KCL 행 = 노드에서 나가는 전류. MOS G 행: drain (d,d,gds)(d,g,gm)(d,b,gmb)(d,s,−(gm+gmb+gds)),
   source 는 부호 반대. 값 0 항목은 내지 않는다. 저항 = 1/R 의 2단자 4항목, 커패시터 = C 의 4항목. 다른 형식은 `TypeError`.
+- [IT-2c] `StampSet(g=(), c=(), g_ops=())`: `g_ops` = `g` 와 같은 길이·순서의 연산 수(길이가 다르면 `ValueError`). MOS (d, s)·(s, s) 항목 2(gm + gmb + gds 의 덧셈 2회), 나머지 6항목 0;
+  저항 네 항목 각 1(1/R 나눗셈); 커패시터는 g 가 비어 g_ops 도 빈 값. `conductance_matrix(circuit, size, *, bound=False)` 가 `bound=True` 면 `(g, g_bound)` 를 낸다:
+  E_ij = γ_{max(k_ij−1, 0)}·S_ij + C_ij + γ_{n+1}·|Ĝ_ij| (S = Σ|ĝ_s|, k = 스탬프 항 수, C = Σ γ_{c_s}|ĝ_s|, γ_m = m·u/(1 − m·u), u = ε/2, n = size).
 
 ### 3.2 `build_mna(circuit, excitations, senses) -> MnaSystem`
 - 소자마다 스탬프 함수를 **정확히 한 번** 부른다. 결과는 ω 와 무관한 실수 `G`·`C`(n×n), `BG`·`BC`(n×m, 전하 열 항은 `BC` 에),
@@ -256,7 +259,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 
 - `metric_catalog()` = {이름: MetricSignature} 읽기 전용(spec 로더 `metric_catalog` 인자). [U5 2026-10-08] = 레지스트리 서명(11개) + **계산 대기
   서명 12개**(`pending_metrics.PENDING_METRIC_ROWS`, 총 23개; [U5 후속] `ff_gm_ratio`(ratio, ss, transfer) 추가 -- 계산은 U7): offset_in_sigma_mv(mv, ss, transfer)·offset_excess(ratio, ss, transfer)·
-  offset_sys_mv(mv, ss, transfer)·mirror_ratio_sigma_pct(pct, ss, None)·swing_out_v·icmr_v·icm_margin_v(v, ls, None)·noise_th_in_v2hz(v2_per_hz,
+  offset_sys_mv(mv, ss, transfer)·mirror_ratio_sigma_pct(pct, ss, None)·swing_out_v·icmr_v·icm_margin_v(v, ls, None) [옛 U5 서명 -- IT-2d 에서 offset·미러비·스윙·ICMR 은 dc 로 relabel, 12.5]·noise_th_in_v2hz(v2_per_hz,
   ss, transfer)·noise_fc_in_hz(hz, ss, transfer)·noise_excess_th(ratio, ss, transfer)·noise_out_int_vrms(v, ss, transfer). [U8 2026-10-09] 잡음 4개는 계산이 들어와 레지스트리로 옮겨졌다(11절; 레지스트리 15개, 계산 대기 8개, 카탈로그 23개 그대로). 나머지 계산 대기 이름은 레지스트리에
   없다(결과 형식·필드 없음) -- `metric_value` 는 KeyError. 서명만이며 계산은 U7(offset·스윙)·U8(잡음)이 레지스트리로 옮긴다(`ValueError`:
   카탈로그가 레지스트리와 겹치면). 탐색 문맥(`build_search_context`)은 판정 제약 중 카탈로그에만 있는 이름을 `constraint_notes` 에
@@ -493,10 +496,15 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 
 | 층 | 파일 | 진입점 | 계산 블록(writer) | 쓰는 필드 |
 |---|---|---|---|---|
-| 0 | `ss_types.py` | (데이터) `SsDevice`·`SsCircuit`·`MetricRequest`·`MetricBundle`·`SsEvaluation` | -- | -- |
+| 0 | `ss_types.py` | (데이터) `SsDevice`·`SsCircuit`·`MetricRequest`·`MetricBundle`·`SsEvaluation`·[EO-1 범위 4] `OffOp`·`OffDelta` | -- | -- |
 | 1 | `junction_source.py` | `JunctionSource` | -- | -- (접합 용량 입력 묶음, 7.2·7.6) |
 | 1 | `ss_linearize.py` | `ss_dev` | `ss_dev` | `device.ss_dev`(MOS 마다 `SsDevice`) |
-| 1 | `ss_circuit.py` | `ss_circuit` | -- | -- |
+| 1 | `ss_off_op.py` [EO-1 범위 4] | `ss_off_op` | `ss_off_op` | `device.off_op` = `OffOp(vgs, vds, vsb, w_key)`(`off` 선언 소자만) |
+| 1 | `ss_off_gate.py` [EO-1 범위 4] | `off_region_gate`(필드를 쓰지 않는 함수) | -- | -- |
+| 1 | `ss_circuit.py` [IT-2c] | `ss_circuit_field`(순수 조립 함수 `ss_circuit`·`is_dc_conducting_passive`·`CODE_PASSIVE_MISSING`) | `ss_circuit` | `graph.ss_circuit`(key `METRICS_KEY`) = `SsCircuit` |
+| 3 | `ss_nodal.py` [IT-2c] | `ss_nodal_system`(조립 함수 `nodal_of`) | `ss_nodal` | `graph.ss_nodal`(key `METRICS_KEY`) = `NodalSystem` 또는 `Undefined` |
+| 4 | `ss_off_delta.py` [EO-1 범위 4] | `ss_off_delta` | `ss_off_delta` | `graph.ss_off_delta`(key `METRICS_KEY`) = `OffDelta(node_dv, sources)` |
+| 3 | `icm_config.py` [IT-2c] | `icm_config_window`(`kvl_sensitivity`·`_transfer_resolution`) | `icm_config` | `node.dc_window_cfg`(입력 포트마다 `Window`)·`graph.icm_config`(`IcmConfig`) |
 | 3 | `dc_metrics.py` | `metrics_dc` | `metrics_dc` | `graph.metrics_dc`(key `METRICS_KEY` = `"metrics"`) |
 | 6 | `ss_metrics.py` | `metrics_ss` | `metrics_ss` | `graph.metrics_ss`(key `METRICS_KEY`) |
 | 7 | `ss_evaluate.py` | `ss_evaluate` | -- | -- |
@@ -562,6 +570,16 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
   -> 위와 같은 `StructureUnresolvedError`(devices = 그 원소, detail element_class·kind).
 - `circuit.ac_ground == ()`(뷰가 정한다), `ground_nets`·`input_nets` 정렬.
 
+### 7.3b [IT-2c] 블록 `ss_circuit`·`ss_nodal`·`icm_config` -- 소신호 회로 조립 자리와 ICMR 측정 구성
+- `ss_circuit_field(snapshot, donors=, counters=)`(writer `ss_circuit`): 위 7.3 의 조립(`ss_circuit`)을 **한 번** 해 `graph.ss_circuit` 에 쓴다. `metrics_ss`·`ss_nodal`·`metrics_aux` 는 이 필드를 READS 로 읽는다(조립 사본 없음).
+  노드 순서 = (`node.dc_colour`, 이름), 소자 순서 = (`device.dc_colour`, 이름). 지원 밖 원소·bulk 미정 MOS 는 이 블록이 `StructureUnresolvedError`(`ss_element_kind`).
+  `is_dc_conducting_passive(kind)` = `kind == "resistor"`(용량은 DC 에서 개방).
+- `ss_nodal_system(snapshot, donors=, counters=)`(writer `ss_nodal`, reads `graph.ss_circuit`·`device.kind`): `NodalSystem(nodes, fixed, g, g_bound, factor)` -- G·g_bound(`conductance_matrix(bound=True)`)와
+  `nodal_factor`(고정 = 교류접지 ∪ 입력 넷). ndarray 는 읽기 전용, 지문은 (nodes, fixed, g, g_bound). 값 없는 **저항**이 있으면 `Undefined("ss_nodal", "passive_value_undeclared", "definitional", (("elements", 이름들),))`,
+  용량만 결측이면 `NodalSystem`. `metrics_aux` 의 offset·systematic·블록 잔차는 이 필드의 G·인수분해를 읽는다.
+- `icm_config_window(snapshot, lut, linear_frozenset, donors=, counters=)`(writer `icm_config`): 봉인점 KCL 선형 감도(servo: 입력 둘, 감지 행 δs = 0 을 Schur 1칸으로; 단일 입력은 회로 그대로)와 영역 행(`Circuit.region_rows`, 여유 0)의
+  교집합으로 `node.dc_window_cfg`·`IcmConfig(config, pivot_a_e, pivot_resolution, vcm0, vcm_lo, vcm_hi, undefined)` 를 쓴다. 정의 불능 갈래·창·V_cm·판정 분해능은 `icm_config.py` 머리말과 설계 41 §4.7-3b. 피벗 두 칸은 출력 전용.
+
 ### 7.4 `metrics_ss(snapshot, requests[, noise])` -- 뷰 -> 계 -> metric
 [U17 ①, 설계 40 §2.4.8] 수동소자 값은 extras 가 아니라 GB5 필드 `device.passive_value`(reads 에 추가)를 읽는다.
 reads `device.{ss_dev, element_class, kind, pins, bulk, dc_colour}`, `node.{ac_ground_class, port_direction, dc_colour}`. **[r12, 2026-10-08]** 노드·소자 순서 = (`dc_colour` -- 정점마다 유일, 이름은 색 없는 이름만)(이름 치환에 불변한 선형계 행·스탬프 순서; dc_colour 가 없는 이름은 -1). `requests` = `MetricRequest`
@@ -621,7 +639,7 @@ reads `device.{dc_op, dc_current, element_class, pins, dc_colour}`, `node.{dc_v,
 - [9절] 전력·면적 결과의 `resolution` 은 None(LUT 소신호 불확실성 전파 대상이 아니다 -- 전력 축 분해능 b_P 는 같은 블록의 `power_resolution_w` 필드).
 
 ### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction, ..., diffusion=()) -> SsEvaluation`
-[XRUN-F1 B] 서명은 그대로다. 다섯 블록(`passive_values`·`ss_dev`·`metrics_ss`·`metrics_aux`·`metrics_dc`)은 `ctx.donors`·`ctx.counters`(KernelContext 의 실행 하나 색인·계수)로 부른다 -- 같은 입력은 계보와
+[XRUN-F1 B] 서명은 그대로다. [IT-2c] 부르는 순서 `passive_values` -> `ss_dev` -> `ss_circuit` -> `metrics_ss` -> `ss_nodal` -> `icm_config` -> `metrics_aux` -> `metrics_dc`(`ss_nodal`·`icm_config` 는 요청과 무관하게 늘). **[EO-1 범위 4 갱신]** 순서 = [`off` 선언이 있으면 `ss_off_op`] -> `passive_values` -> `ss_dev`(off 소자 스탬프 포함) -> `ss_circuit` -> `ss_nodal` -> [`off` 선언이 있으면 `ss_off_delta` -> 관문 `off_region_gate`] -> `metrics_ss` -> `icm_config` -> `metrics_aux` -> `metrics_dc`. off 선언이 없으면 앞 둘과 관문의 호출이 0이고 `device.off_op`·`graph.ss_off_delta` 필드가 없다. 아래 7.12. 여덟 블록은 `ctx.donors`·`ctx.counters`(KernelContext 의 실행 하나 색인·계수)로 부른다 -- 같은 입력은 계보와
 무관하게 이식·재연된다. **ss 실패의 부분 스냅샷**: 후보 실패 클래스(`NonconvergentError`·`SealViolationError`, 이름으로 잡는다)가 나면 그 블록에 들어간 스냅샷(적어도 `sealed.snapshot`)을
 `core.attach_partial(exc, snapshot)` 로 붙인 뒤 같은 예외를 다시 낸다(`exc.partial`, 이미 있으면 바꾸지 않는다).
 [U14] `diffusion` = ((MOS, `DiffusionGeometry`), ...) -- 레이아웃 뒤 실현 확산 기하(MOD7 `ly.diffusion`). 있는 소자의 `ss_dev` cdb·csb 는 그 기하로, `junction_model` = `JUNCTION_LAYOUT_DIFFUSION`
@@ -648,7 +666,7 @@ extras 의 θ 칸은 블록이 읽는 수동소자 성분(θ `resistance`·`capa
   `metrics_ss(..., ss_requests)` -> `metrics_dc(..., tuple(counted_rails))`. `ss`·`dc` = 그 필드 값,
   `lineage` = 7.1.
 - [r5] θ `capacitance`·`ss_resistance` 성분만 바꾼 θ' 로 `size_and_seal(ctx, θ', parent=res.lineage)` -> dc 블록 computes 0(sizing 7절
-  r5), 이어 `ss_evaluate(그 결과 sealed, ctx, θ', ..., junction=같은 묶음)` -> `ss_dev` reuse(dc_op·junction 불변), `metrics_ss`·
+  r5), 이어 `ss_evaluate(그 결과 sealed, ctx, θ', ..., junction=같은 묶음)` -> `ss_dev` graft(IT-2a 뒤 parent 경로, dc_op·junction 불변), `metrics_ss`·
   `metrics_dc` 각 computes 1(수동 값이 입력). 구조 규칙 값은 gm 의 함수라 dc_op 가 같으면 같다.
 - 재사용: `ss_evaluate(res.lineage.sealed, 같은 인자)` -> 세 블록 computes 0·reuses 3, 결과 `snapshot is res.snapshot`.
   `size_and_seal(ctx, θ', parent=res.lineage)` 뒤 `ss_evaluate` -> dc_op 가 바뀌었으면 세 블록 재계산(바뀌지 않은 소자 LUT 조회는
@@ -677,7 +695,7 @@ extras 의 θ 칸은 블록이 읽는 수동소자 성분(θ `resistance`·`capa
 | S-16 | (9절) 손 S2 예 7(ε = 0.02 가 되도록 gm/ID·dc_tol_v 를 쓴 스냅샷)의 β 루프 `pm_ss_deg` 분해능 = 9.5 폐형식 0.0917466739° (상대 ≤ 1e-9), 같은 입력 두 번째 평가는 블록 재사용(분해능 재계산 0 -- S-6) |
 | S-17 | [r5] (DEC-92, 옛 r5 번호 S-11, 병합 전 S-14) spec mode engine 커패시터는 θ `capacitance` 로 값이 들어가 소신호 요청이 값을 갖는다(같은 값을 spec 에 선언한 회로와 metric 값 같음) |
 | S-18 | [r5] (DEC-92, 옛 r5 번호 S-12, 병합 전 S-15) 구조 규칙 저항(`zero_cancel` reason None) 값 = 1/Σ_{c∈cells} `ss_dev[c].gm` -- 같은 값을 spec 에 선언한 회로와 metric 값 같음 |
-| S-19 | [r5] (DEC-92, 옛 r5 번호 S-13, 병합 전 S-16) θ `capacitance`·`ss_resistance` 만 바꾼 FD: dc 블록 computes 0, `ss_dev` reuse, `metrics_ss`·`metrics_dc` computes 1. `gain_ss_db`(용량 무관 DC 이득)는 **수치상** 불변(상대 차 ≤ 수 ulp -- 비트 동일 아님: `ss_resistance` 만 바꾼 경우 MNA 조립·풀이 순서 때문에 1 ulp 차가 실측됨) |
+| S-19 | [r5] (DEC-92, 옛 r5 번호 S-13, 병합 전 S-16) θ `capacitance`·`ss_resistance` 만 바꾼 FD: dc 블록 computes 0, `ss_dev` graft, `metrics_ss`·`metrics_dc` computes 1. `gain_ss_db`(용량 무관 DC 이득)는 **수치상** 불변(상대 차 ≤ 수 ulp -- 비트 동일 아님: `ss_resistance` 만 바꾼 경우 MNA 조립·풀이 순서 때문에 1 ulp 차가 실측됨) |
 | S-20 | [CM] 레지스트리·어휘: `metric_registry()` 이름 11개(`pm_cm_ss_deg` 추가, 단위 deg·영역 ss·view_kind `cm_loop`·objective_axis None·필드 `LoopAnalysis.phase_margin_deg`), `metric_catalog()` 도 11개, core `VIEW_KINDS` == ("transfer", "loop", "cm_loop", "output_port", "ratio") |
 | S-21 | [CM] 뷰 유도(authoring `default_views().cm_loop`): 파일럿에서 `ViewDecl("cm_output", weights=(("Vom", 0.5), ("Vop", 0.5)), cuts=(("M15", "Vom"), ("M16", "Vom"), ("M25", "Vop"), ("M26", "Vop")))`; 나머지 8회로는 view_required 사유(차동 출력쌍 없음). 스위치드 선언(수동소자·이상원 kind "switch"/"clock")이 있는 차동 출력 회로는 `cm_switched` 정지 사유. 넷·소자 이름 전단사 뒤 유도 결과가 이름만 옮겨진 같은 뷰 |
 | S-22 | [CM] 절단(`_Ledger.cm_cuts`): 뷰 `cuts` 각 (MOS, 출력 넷) 마다 `LoopCut("mos", 그 MOS 위치, 출력 넷에 물린 단자 "d" | "s")` 정확히 하나; 수동소자·gate·소비자 MOS 는 절단 0; `cuts` 가 비면 `cm_partition` 을 소신호 회로에서 직접 불러 같은 구동자 집합. 구동자가 하나도 없으면 보고 전용 계산을 하지 않는다(`reports == ()`) |
@@ -1114,7 +1132,7 @@ toy 확인(스크래치): 두 극성 입력이 같은 gate 인 4소자 회로에
 ### 10.7 구조 DOF (41 §4.5)
 
 변수: 비레일 노드 전압 `V:`, MOS 반전 좌표 `u:`, L 동치류 `L:`(`kctx.l_ties` 의 주인 또는 자기), θ 전류 `I:`(전류 기저 자유 원소), θ DC 경로 저항 `R:`(값 미선언). 등식: `dev:<MOS>`(u, L, 비레일 d·g·s 전압), `res:<저항>`(양 끝 전압·그 저항 전류식의
-자유 전류·R), `fix:<넷>`(`kctx.fixed_values`: 선언 노드 목표·입력 DC), `tie:<넷>`(쓰기 계획 `input_tie`). 최대 이분 매칭: 매칭 안 되는 등식이 있으면 `overconstrained`(정지 사유 `overconstrained`, `competing_pairs`),
+자유 전류·R), `fix:<넷>`(`kctx.fixed_values`: 선언 노드 목표·입력 DC). 최대 이분 매칭: 매칭 안 되는 등식이 있으면 `overconstrained`(정지 사유 `overconstrained`, `competing_pairs`),
 매칭 안 되는 변수 = `free_variables`(탐색의 자유도). 수치 rank(41 §4.5 B2, FD Jacobian)는 평가 커널 표본이 필요한 단계 B 몫 -- `numeric_ranks = ()`.
 
 ### 10.8 설계와 다르게 정한 점 / 위임한 점
@@ -1236,7 +1254,8 @@ max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미
 | `offset_analysis.py` | `offset_analysis(ss, view, sigmas, input_cells, rel_tols, matching) -> OffsetAnalysis` | `offset_in_sigma_mv`·`offset_excess`·`offset_contrib` |
 | `offset_systematic.py` | `offset_systematic(ss, view, node_v, targets, node_tol_v) -> OffsetSystematic` | `offset_sys_mv` |
 | `mirror_ratio.py` | `mirror_ratio(groups, roles, gm_id, sigmas) -> MirrorRatio` | `mirror_ratio_sigma_pct` |
-| `ls_swing.py` | `ls_swing(devices, rails, node_v, outputs, inputs, diff_outputs, input_dc_v) -> SwingIcmr` | `swing_out_v`·`icmr_v`·`icm_margin_v` |
+| `ls_swing.py` | `ls_swing(devices, rails, node_v, outputs, diff_outputs=False) -> SwingIcmr` [IT-2d: 입력 인자 삭제] | `swing_out_v` |
+| `icm_window.py` [IT-2d] | `icm_window_metrics(config, ports, input_dc) -> IcmWindow` (순수) | `icmr_v`·`icm_margin_v`·`required_input_cm_v` (`graph.icm_config` V_cm 칸) |
 | `ls_fields.py` | `ls_fields(ss, vstruct, ops, volts, bounds, lut, rel_tols, driving, outputs) -> LsFields` | 슬루 등가 용량 `c_slew_farad`·방향별 최대 전류 |
 | `nqs_ratio.py` | `nqs_ratio(devices, ugf_hz) -> NqsRatio` | ugf / 신호 경로 최소 f_T |
 | `block_model.py` | `block_local_gain(ss, block, drive, others, exclude, extra, ground) -> BlockGain` | 블록 국소 gain·Z_out·노드 전압(설계 41 §2.5 미지수 집합 U_b, 스탬프 조립 `block_gain_rows.block_stamp_matrix`) |
@@ -1250,7 +1269,7 @@ max(LUT 몫, (이분 오차 + 꼬리 상계)/2v). 어느 한 불확실성이 미
 
 레지스트리(`registry._ROWS`)에 옮긴 8행(서명은 `pending_metrics` 와 같다): `offset_in_sigma_mv`(mv, ss, transfer) -> `OffsetAnalysis.sigma_in_mv`, `offset_excess`(ratio, ss, transfer) -> `.excess`,
 `offset_sys_mv`(mv, ss, transfer) -> `OffsetSystematic.sys_mv`, `mirror_ratio_sigma_pct`(pct, ss, 뷰 없음) -> `MirrorRatio.sigma_pct`, `swing_out_v`·`icmr_v`·`icm_margin_v`(v, ls, 뷰 없음) ->
-`SwingIcmr.*`, `ff_gm_ratio`(ratio, ss, transfer) -> `FfRatio.ratio`. `pending_metrics.PENDING_METRIC_ROWS` 에는 잡음 4행만 남는다(U8).
+`SwingIcmr.*`[IT-2d 영역 칸 relabel: `offset_in_sigma_mv`·`offset_excess`·`offset_sys_mv`·`mirror_ratio_sigma_pct`·스윙·ICMR 세 metric = `dc`, `ff_gm_ratio` = `ss`, 영역 `ls` 는 쓰는 metric 없음 (O-112)], `ff_gm_ratio`(ratio, ss, transfer) -> `FfRatio.ratio`. `pending_metrics.PENDING_METRIC_ROWS` 에는 잡음 4행만 남는다(U8).
 `core.units`: `MV_PER_V = 1000.0`, `PCT_PER_UNIT = 100.0`(정의 환산 계수) 추가, `core.__all__` 에 내보냄. `graph.__all__` 에 `BLOCK_BUFFER`·`BLOCK_GAIN`·`CELL_OFF`·`DIR_BETA`·`DIR_KAPPA`·`DIR_SIGMA`·`NMOS`·
 `PMOS`·`ROLE_INPUT`·`VIEW_TRANSFER` 추가. sizing: S2 writer `metrics_aux`(`METRICS_AUX_WRITER`, 필드 `("graph", "metrics_aux")`) 추가.
 
@@ -1282,13 +1301,13 @@ Z_i = z[s_i] − z[d_i], z = 관측 벡터의 수반 풀이(LU 1회 -- 소자마
 그룹마다 기준 diode(DC 역할 `ROLE_DIODE` 또는 복합 diode 의 기준 멤버 `ROLE_DIODE_COMPOSITE`; 복합 캐스코드 멤버 `ROLE_DIODE_COMPOSITE_CASCODE` 는 기준이 아님)가 있으면 (기준, 나머지) 쌍, 없으면 멤버 전쌍. σ(ΔI/I) = √((gm/ID_a·σ_a)² + (gm/ID_b·σ_b)²) -- 두 gm/ID 가 같으면 설계 표의 (gm/ID)·√2·σ 와 같다.
 값 = 모든 그룹·쌍의 최댓값 [pct]. `groups` 표 = (표지, 멤버, 기준 소자들, 그룹 최대 σ pct). 사유: `no_mirror_group`, `sigma_missing`.
 
-### 12.5 `ls_swing` (D-SW·D-ICM·D-J5)
+### 12.5 `ls_swing` (D-SW·D-J5) · `icm_window_metrics` [IT-2d]
 
 경로 합 = 차분 제약계의 가장 긴 경로. 제약: 채널 NMOS V_d − V_s ≥ sat, PMOS V_s − V_d ≥ sat(`linear` 소자 제외); VGS 엣지 V_g − V_s = polarity·|VGS|(양쪽) -- 전류가 바깥 회로로 고정되는 소자
 (source 가 레일이 아닌 소자 = follower·차동쌍, 또는 gate = drain diode)에만; 수동소자 엣지 없음. 모든 노드의 출발 구간 = [rail_min, rail_max](레일 밖 불허). Bellman–Ford 노드 수 + 1 회.
-`swing_out_v` = 단일 2·min 반폭, 차동 출력 쌍 4·min 반폭(출력마다 min(hi − V_dc, V_dc − lo)); `icmr_v` = min hi − max lo(입력 포트 넷들, 빈 창은 음수 폭); `icm_margin_v` = min(V_icm − lo, hi − V_icm),
-V_icm = `input_dc_v`(선언) 또는 입력 DC 대기(SP-2)면 봉인 해의 입력 넷 전압(y_icm) -- 이때 `input_dc == "pending"` 이고 `required_input_cm_v = (V_icm, lo, hi)` 도 낸다. `out_ranges`·`window`·`bounds` 레코드.
-사유: `no_output_port`, `no_input_port`, `sat_unavailable`(devices), `node_v_missing`(nets) -- 세 metric 모두 같은 사유.
+`swing_out_v` = 단일 2·min 반폭, 차동 출력 쌍 4·min 반폭(출력마다 min(hi − V_dc, V_dc − lo)); `out_ranges`·`bounds` 레코드. 사유(`swing_out_v` 하나): `no_output_port`, `sat_unavailable`(devices), `node_v_missing`(nets).
+**[IT-2d] 입력 창은 `ls_swing` 의 일이 아니다.** `icm_window_metrics(config, ports, input_dc)` 가 `graph.icm_config` V_cm 칸에서 낸다: `icm_margin_v` = min(vcm0 − vcm_lo, vcm_hi − vcm0), `icmr_v` = vcm_hi − vcm_lo, `required_input_cm_v` = `input_dc == "pending"` 이면 (vcm0, vcm_lo, vcm_hi) 아니면 None, `window` = (vcm_lo, vcm_hi), `v_icm` = vcm0; 분해능 margin = 첫 포트 `tol_v`, icmr = 2·`tol_v`. `IcmPort(net, v, lo, hi, tol_v, missing)` 의 `lo`·`hi` 는 보고 열 전용(산술 0). 정의 불능: 구성 None 이면 `icm_config.undefined` 의 code 를 옮김(definitional), 어느 포트든 `missing` 이면 `input_window_unmeasured`(numeric, detail `port`). `metrics_aux` 가 두 결과를 한 `SwingIcmr` 로 합친다(`undefined` = 스윙 사유 + ICMR 사유).
+**[IT-2d] 결측 판정(B77)**: `metrics_aux` 는 요청 metric 의 `MetricSignature.domain` 만 읽는다(이름 분기 0). `dc`: `graph.ss_nodal` 이 `Undefined`(저항 결측)일 때만 `passive_value_undeclared`, 용량만 결측이면 결측 없는 회로와 같은 계산. `ss`: `SsCircuit.missing` ≠ ∅ 이면 `passive_value_undeclared`. 어휘 밖 영역은 ValueError. 전달 뷰 보고(`block_residual`·`nqs_ratio`·`ls_fields`·FF)는 결측이 하나라도 있으면 내지 않고, metric별 보고(`offset_contrib`·`swing_icmr`·`mirror_ratio`)는 그 metric 이 정의되면 함께 낸다. `metrics_ss` 결측 처리 불변(7.4 (2)).
 **분해능**: 가장 긴 경로를 따라 엣지 허용오차(채널 = tol_vdsat, VGS 엣지 = 그 소자 `dc_tol_v`) 누적; swing = (2 또는 4) × 구속 쪽, icmr = 하한 누적 + 상한 누적, margin = 구속 쪽.
 손계산 toy(작성자 측): CS+전류원 부하(sat 0.2/0.25, V_o 0.9, 레일 0~1.8) -> 구간 [0.2, 1.55] swing 1.3; 캐스코드(0.2, 0.3) -> lo 0.5 swing 0.8; NMOS follower(VGS 0.5, 싱크 sat 0.15) -> [0.15, 1.3] swing 1.0,
 입력 창 [0.65, 1.8]; 차동 쌍 대칭 -> swing = 4 × 0.65.
@@ -1338,3 +1357,16 @@ FF 소자는 merge 블록 국소 모형에 항상 들어간다(gds 부하 = Z_me
 5. `ff_gm_ratio` 값은 크기 비 |G_ff|/gm_in 이다(경로 부호는 `ff_contrib.sign`), 묶음이 여럿이면 최댓값(제약 연산자와 무관) -- 묶음별 값은 `per_ff`/보고.
 6. `icm_margin_v` 의 SP-2 대기: 설계 D-ICM 표('input_dc_pending')와 41 §4.6 J-E('y_icm 으로 계산 + required_input_cm_v')가 다르다 -- J-E 를 따른다.
 7. `residual_probe` 의 표본 수율: 상자 전체 Halton 점은 대부분 봉인되지 않는다(two_stage_ota 38 평가 0 봉인) -- 앵커(층 0 시작점) 주변 표본이 필요하다(U13·U15).
+
+### 7.12 [EO-1 범위 4] `off` 선언 소자의 동작점·1차 ΔV·관문 (card 20261104-eo1r4-sf1l §4, 계획 O-221·O-222, 위임 A-1·A-2·A-47·A-49)
+- `ss_off_op(snapshot, lut)` -- reads `device.{region_decl, kind, pins, bulk}`, `node.{dc_v, dc_rail_v}`; writes `device.off_op` = `OffOp(vgs, vds, vsb, w_key)`(`off` 선언 소자만). p = nmos +1 / pmos −1(sizing
+  `terminal_voltages` 의 부호 정의): vgs = p(Vg − Vs), vds = p(Vd − Vs), vsb = p(Vs − Vb). 정지(E-0, `SealViolationError`, 표 순서대로 첫 맞는 행, 소자 전부 기록): `off_vgs_negative`(vgs < 0) ->
+  `off_bulk_forward`(`junction_forward(vds, vsb)` > 0 -- 봉인 6 과 같은 식, 경계 0 V, tol 없음, LUT 조회 전) -> `off_outside_lut`(그 밖 LUT 밖; vds < 0 ∧ vdb ≥ 0 포함, 클램프 없음).
+- `ss_dev` -- 추가 인자 `off_items`(= ((소자, kind, `OffOp`, `RegionDecl`), ...) -- `ss_evaluate` 가 필드에서 꺼내 넘긴다)로 off 소자의 `SsDevice` 도 낸다: gm = (gm/ID)·ΔI_off, gmb·gds·용량 = `off_op`
+  점 LUT 값 × 소자 폭 W(`w_m`)·길이 L(`l_m`) 환산(다른 MOS 와 같은 열 규칙). `lut_rel_tol` None. 그래서 `ss_circuit`·`ss_nodal` 이 off 스탬프를 G 와 AC 계에 넣는다(DC 전류는 0 모형).
+- `ss_off_delta(snapshot, lut)` -- reads `device.{off_op, region_decl, kind, pins}`, `graph.{ss_circuit, ss_nodal}`; writes `graph.ss_off_delta` = `OffDelta(node_dv, sources)`. ΔI_off = `off_current` =
+  IDu(`op_point`, L = `l_m`)·w_m/l_m. 주입(노드로 들어가는 전류): drain −p·ΔI, source +p·ΔI. G·ΔV = 주입(`ss_nodal` 인수분해 위 `nodal_solve` 한 번; 고정 넷 주입은 ΔV 를 만들지 않는다).
+  정지 `off_delta_undefined`: `ss_nodal` 이 `Undefined`·인수분해 특이·주입 넷이 floating.
+- `off_region_gate(snapshot, lut)` -- 필드를 쓰지 않는 함수, 거부 = `SealViolationError`(reason `off_gate`, detail `s_prime` = ((소자, s′), ...), 정의 불능 None). 대상 = `device.dc_op` MOS(선언 없음 +
+  `triode`). ΔVGS·ΔVDS·ΔVSB = `terminal_voltages(kind, ΔV_d, ΔV_g, ΔV_s, ΔV_b)`, VDS′ = VDS + ΔVDS, VDSAT′ = VDSAT + Σ_X [vdsat(X + ΔX) − vdsat(X)](ΔX = 0 이면 조회 0, 축 밖 `OUT_OF_DOMAIN`),
+  VDS < 0 소자는 조회 0·vdsat `OUT_OF_DOMAIN`. 판정 = 공용 `judge_region` + `region_mismatch`(수치 문턱 없음). 닫힌 식 s′ = s + (1 − a2)ΔVDS − a1ΔVGS − a3ΔVSB.

@@ -579,7 +579,7 @@ class MismatchSigma:
 @dataclasses.dataclass(frozen=True)
 class EdgeCost:
     """kind 하나의 헤드룸 경로 엣지 비용 최솟값(41 §4.6). `vgs_min_v` = 전도 봉인(9)을 지키는 격자 행의 |VGS| 최솟값, `vgs_min_by_bin` = ((L bin 번호, 그 bin 의 최솟값), ...),
-    `vds_min_v` = VDSAT 최솟값 + tol_vdsat 최솟값, `best_row` = ((키, 값), ...) VGS 최솟값을 낸 행(gm/ID·L·VSB)."""
+    `vds_min_v` = 포화 가능 격자점(전도·분지 마디이고 VDS ≥ VDSAT)의 VDSAT 최솟값(tol 합 없음, 열 없음 = 0.0), `best_row` = ((키, 값), ...) VGS 최솟값을 낸 행(gm/ID·L·VSB)."""
 
     kind: str
     w_key: int

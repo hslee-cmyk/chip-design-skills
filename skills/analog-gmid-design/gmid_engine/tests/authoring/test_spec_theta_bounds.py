@@ -4,7 +4,7 @@
 1절(형식: {원소: {min, max, source}}, 단위 = kind SI, 원소 = topology 저항·커패시터 중 spec 값 mode engine), 2절(위반 규칙 표),
 3절(결과 SettingValue("theta_bounds", (ThetaBound(element, kind, lo, hi, source), ...) 원소 이름순) 맨 앞, 지문) 만 쓴다.
 피검 함수로 기대값을 만들지 않는다 -- 기대값은 픽스처 JSON(fx_spec_amp: Rfb 고정 저항·Cfb engine 커패시터·Cld 고정 커패시터·
-Ibs 이상 전류원·Vcm 결정 대기 전압원·Q1~Q5 MOS)과 계약 문장(oracle (d) 계약·사용자 결정 문장 + 구성으로 정해진 합성 입력 (a)).
+Ibs 이상 전류원·Vcm 결정 대기 전압원·Mfx1~Mfx5 MOS)과 계약 문장(oracle (d) 계약·사용자 결정 문장 + 구성으로 정해진 합성 입력 (a)).
 """
 from __future__ import annotations
 
@@ -175,7 +175,7 @@ def test_source_record_missing(sc):
     "Nope",     # topology 에 없는 이름
     "Cld",      # 고정 값 커패시터
     "Rfb",      # 고정 값 저항
-    "Q1",       # MOS
+    "Mfx1",       # MOS
     "Ibs",      # 이상 전류원(값 있음)
     "Vcm",      # 이상 전압원(결정 대기)
 ])

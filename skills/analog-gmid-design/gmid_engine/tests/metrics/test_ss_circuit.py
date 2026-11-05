@@ -123,3 +123,54 @@ def test_negative_check_base_is_accepted():
     """위 거부 test 의 대조: 같은 원소 목록에서 문제 원소만 없으면 예외가 없다."""
     _call(BASE)
     _call(BASE + (_two("I2", "ideal_source", "current_source", "x", "gnd"),))
+
+
+# ---------------------------------------------------------------- [IT-2c T-RN] 지원 밖 원소 -- `ss_circuit_field` 직접 호출 (interface 빈칸 답 5)
+# 지원 밖 kind 는 S1 `s1_dc_conduction` 이 먼저 정지시켜 파이프라인으로는 닿지 않으므로, 봉인 toy 스냅샷의 열을 손으로 바꿔 블록을 직접 부른다.
+# oracle: (독립) 기존 `ss_circuit` 거부 사례(위 test_unsupported_element_rejected)와 같은 계약 -- reason unsupported_rule_branch, rule_branch ss_element_kind, 그 소자 이름.
+
+def _sealed_ss_snapshot(tmp):
+    from gmid_engine.metrics import ss_evaluate
+    from gmid_engine.sizing import SealedSnapshot
+    from .test_ss_evaluate import build, theta
+    spec, ctx, ev, js = build(tmp)
+    return ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, theta(), spec.constraints, ("vdd",), junction=js).snapshot
+
+
+def _tamper(snap, field, name, value, version):
+    from .conftest import hand_write
+    col = dict(snap.column("device", field))
+    col[name] = value
+    return hand_write(snap, "device", field, col, version=version)
+
+
+def _field_call(snap):
+    from gmid_engine.metrics.ss_circuit import ss_circuit_field
+    from .conftest import fresh_run
+    return ss_circuit_field(snap, **fresh_run())
+
+
+def test_it2c_rn_control_untouched_snapshot_is_accepted(tmp_path):
+    """oracle 대조: (독립) T-RN 대조 -- 열을 바꾸지 않은 봉인 스냅샷은 블록이 거부하지 않는다."""
+    _field_call(_sealed_ss_snapshot(tmp_path))
+
+
+@pytest.mark.parametrize("case", ["voltage_source", "inductor", "bulk_none"])
+def test_it2c_rn_unsupported_element_rejected_by_ss_circuit_field(tmp_path, case):
+    snap = _sealed_ss_snapshot(tmp_path)
+    if case == "voltage_source":
+        snap = _tamper(snap, "element_class", "R1", "ideal_source", "t_rn_cls")
+        snap = _tamper(snap, "kind", "R1", "voltage_source", "t_rn_kind")
+        bad = "R1"
+    elif case == "inductor":
+        snap = _tamper(snap, "kind", "R1", "inductor", "t_rn_kind")
+        bad = "R1"
+    else:
+        snap = _tamper(snap, "bulk", "M1", None, "t_rn_bulk")
+        bad = "M1"
+    with pytest.raises(StructureUnresolvedError) as ei:
+        _field_call(snap)
+    rec = ei.value.record
+    det = dict(rec.detail)
+    assert det["reason"] == "unsupported_rule_branch" and det["rule_branch"] == "ss_element_kind"
+    assert bad in rec.devices

@@ -201,11 +201,14 @@ class ObjectiveBudget:
 
 @dataclasses.dataclass(frozen=True)
 class RegionDecl:
-    """의도 영역 선언 하나: 소자 이름, 영역."""
+    """의도 영역 선언 하나: 소자 이름, 영역. `off` 소자만 `judged_by`(그 off 전류 효과를 판정하는 metric 이름 tuple)·`w_m`·`l_m`(m)을 가진다."""
 
     device: str
     region: str
     source: object = None
+    judged_by: tuple = ()
+    w_m: object = None
+    l_m: object = None
 
 
 @dataclasses.dataclass(frozen=True)

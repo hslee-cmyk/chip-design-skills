@@ -1,0 +1,134 @@
+[
+ {
+  "circuit": "common_gate_amplifier",
+  "row": "stage_a_sha.tables",
+  "old": "d32163321493de70ad66df67d00022130720d14daa667caeeafb8b77697ee67f",
+  "new": "803220b74ce5ec020e3246e740cb0887f35de02a927f56d1ff5bb8cbbc18a6ff",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 1,
+  "status": [
+   "ok",
+   "ok"
+  ]
+ },
+ {
+  "circuit": "current_reuse_telescopic_ota",
+  "row": "stage_a_sha.tables",
+  "old": "1f7f064af5eb9c171d38e0a602cc5b115bc107d40deb76a8629f295b2203aa70",
+  "new": "fd3dfd7fc0d5f4901df957d38d084f2bdc6da09b1a269598ad284fe9692a52ba",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 2,
+  "status": [
+   "ok",
+   "ok"
+  ]
+ },
+ {
+  "circuit": "folded_cascode",
+  "row": "stage_a_sha.tables",
+  "old": "0b1703c621d208fdf6d6d3c33e8982f9078717328012591fd6fc16074840f753",
+  "new": "6f4efd7d336eb96cafa36c4fca599fa8c91ea7ad0b34d5f505d4cfb5902166a5",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 1,
+  "status": [
+   "ok",
+   "ok"
+  ]
+ },
+ {
+  "circuit": "ngcc_3stage_ff",
+  "row": "stage_a_sha.tables",
+  "old": "a581aebea71811c416961f7e17d08b006fa7a29abc31cf34d44e3e79465e7ca3",
+  "new": "ae0140c5bb99b1df5eb5af010b767a35ab1214e11854b7ab1bab4dffbf77cd66",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 1,
+  "status": [
+   "review_needed",
+   "review_needed"
+  ]
+ },
+ {
+  "circuit": "nmcnr_amplifier",
+  "row": "stage_a_sha.tables",
+  "old": "6f55957f3e189459a6efc8813c30214618a97e297a445ff4ca1113faa8280693",
+  "new": "089b63075e08f5ec5169052fd45668199df0e5862ef1f51ee2bb08dc63317dfb",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 1,
+  "status": [
+   "ok",
+   "ok"
+  ]
+ },
+ {
+  "circuit": "pushpull_follower_buffer",
+  "row": "stage_a_sha.tables",
+  "old": "e2f013479d07b5b2e3cac1b29c1826faa1ed452bdfada793eca12f4351a0b42f",
+  "new": "397b87cd6e8df3cc245e5e561c1d648825ceb188276bde27aefc92d9d177de20",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 1,
+  "status": [
+   "ok",
+   "ok"
+  ]
+ },
+ {
+  "circuit": "r2r_opamp",
+  "row": "stage_a_sha.tables",
+  "old": "61686d06211c80aaae83e1a1c9196d6f6ed245177e37e8c39116543fd85ace3a",
+  "new": "09bc61c9a62bc7ff5bf817853a0c74f160bbecc1bea904a6bbab1913201cd9df",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 1,
+  "status": [
+   "stopped",
+   "stopped"
+  ]
+ },
+ {
+  "circuit": "rfc_ota",
+  "row": "stage_a_sha.tables",
+  "old": "ac88f81dbce194d717f8d041a88f81494543a5c46ba0215aad7bd54878d2baa0",
+  "new": "ea0a34b5ec65b15638f8b8a0ca866c20ab5f18079957c58bd177242c2586e954",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 1,
+  "status": [
+   "review_needed",
+   "review_needed"
+  ]
+ },
+ {
+  "circuit": "sf_pushpull_output_opamp",
+  "row": "stage_a_sha.tables",
+  "old": "601eaaf508db9afdbc5dd38ba63b5f6032188338b78ac11243d253238a1b2c38",
+  "new": "1c34cba882f5b8eae353ef44950207bb2122a0a80be8d2f2401ced2568279fe2",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 1,
+  "status": [
+   "ok",
+   "ok"
+  ]
+ },
+ {
+  "circuit": "two_stage_ota",
+  "row": "stage_a_sha.tables",
+  "old": "d1a373bb52ea5e44660ce470c2c2c92ba9bee50e4794c21af35d8daf035ab63a",
+  "new": "6da01fc4f7d88deeb3a1c8578a5a16faa6577d35e1900dad266879542fbb0366",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 1,
+  "status": [
+   "ok",
+   "ok"
+  ]
+ },
+ {
+  "circuit": "two_stage_ota_sf",
+  "row": "stage_a_sha.tables",
+  "old": "38157585daf10242c2cd77dc6becfc3740094514c48a9250dcd7c6ec02508360",
+  "new": "85bda03390a90e1277dd58ce5465960418ba275734f4b7d9940171403f270b41",
+  "cause": "views[].default_port 칸 추가(O-118 6번) -- 칸을 지운 head tables == base tables(비트)",
+  "default_port_cells": 1,
+  "status": [
+   "ok",
+   "ok"
+  ]
+ }
+]

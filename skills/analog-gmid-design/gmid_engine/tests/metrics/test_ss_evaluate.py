@@ -627,7 +627,7 @@ def test_s15_rule_equals_spec_declared_value(zc_cell, tmp_path):
 def _dc_blocks():
     from gmid_engine import sizing as S
     return (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
-            S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
+            S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_region, S.dc_seal_kvl_branch,
             S.dc_seal_report)
 
 
@@ -650,7 +650,9 @@ def test_s16_passive_theta_fd_reuses_dc_and_ss_dev(zc_cell, zc_nocell, which):
     assert all(s.computes == 0 for s in st_dc.values()), {n: s.computes for n, s in st_dc.items()}
     r2 = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, th2, spec.constraints, ("vdd",), junction=js)
     st = _since(ctx, before, BLOCKS)
-    assert (st[ss_dev.name].computes, st[ss_dev.name].reuses) == (0, 1)
+    # [IT-2a 20261021-it2a-snapshot-derive, design 41:756 (i)·승인 20261021-it2-o67-scope 'ss 블록 reuse -> graft 계수'] child 스냅샷은 keep 밖
+    # writer(ss_dev)의 필드를 지우므로 입력 버전이 같은 ss_dev 는 S3 색인에서 이식(graft)한다: computes 0·grafts 1·reuses 0 (옛: reuses 1).
+    assert (st[ss_dev.name].computes, st[ss_dev.name].grafts, st[ss_dev.name].reuses) == (0, 1, 0)
     assert st[metrics_ss.name].computes == 1 and st[metrics_dc.name].computes == 1
     assert all(s.recomputes_same_input == 0 for s in st.values())
     assert all(s.computes == 0 for s in _since(ctx, before, dc).values())
@@ -703,3 +705,240 @@ def test_passive_values_reused_on_mos_theta_only_change(zc_cell, zc_nocell, whic
     st = _since(ctx, before, (passive_values,))[passive_values.name]
     assert (st.computes, st.recomputes_same_input) == (1, 0), st
     assert dict(r2.snapshot.column("device", "passive_value"))[key[1]] == th[key] * 1.1
+
+
+# =====================================================================================================================
+# [IT-2a 20261021-it2a-snapshot-derive, T-L11c] 같은 θ ss 재평가 -> ss 블록 outcome graft, computes 증분 0 (design 41 4.7-3c).
+# child 스냅샷은 keep 밖 writer(ss 블록)의 필드를 지우므로, 같은 θ 의 ss 블록은 같은 입력 버전의 S3 색인 결과를 이식(graft)한다 -- 재계산 0.
+# oracle: (독립) 실행 계수(RunCounters) 행의 구간 증분 + 값 대조(첫 ss_evaluate 결과와 같은 열). 피검 함수로 기대값을 만들지 않는다.
+# base(parent.snapshot 통째 출발): child 가 ss_dev 필드를 이미 가져 outcome reuse -> red.
+# =====================================================================================================================
+
+def test_it2a_same_theta_ss_reevaluation_from_child_grafts(base):
+    spec, ctx, _, _, res, js = base
+    before = _counts(ctx)
+    ev2 = size_and_seal(ctx, theta(), parent=res.lineage)                   # 같은 θ, parent = ss 가 실린 lineage
+    again = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, theta(), spec.constraints, ("vdd",), junction=js)
+    st = _since(ctx, before)
+    assert (st[ss_dev.name].computes, st[ss_dev.name].grafts, st[ss_dev.name].reuses) == (0, 1, 0), st[ss_dev.name]
+    assert (st[metrics_ss.name].computes, st[metrics_ss.name].grafts, st[metrics_ss.name].reuses) == (0, 1, 0), st[metrics_ss.name]
+    assert all(s.computes == 0 and s.recomputes_same_input == 0 for s in st.values()), st
+    # 이식한 값은 첫 평가 값과 같다
+    assert again.snapshot.column("device", "ss_dev") == res.snapshot.column("device", "ss_dev")
+    assert bundle_map(again.ss)["gain_ss_db"].value == bundle_map(res.ss)["gain_ss_db"].value
+
+
+# =====================================================================================================================
+# [IT-2c T-L11c] `ss_circuit`·`ss_nodal`·`icm_config` 블록 계수 (interface 20261104-it2c-icm-config, 부르는 순서 ss_dev -> ss_circuit -> metrics_ss -> ss_nodal -> icm_config)
+# oracle: (독립) 실행 계수(RunCounters) 행의 구간 증분. 같은 θ ss 재평가는 이식 1·계산 0·재사용 0, lineage 재사용은 계산 0·재사용 1.
+# =====================================================================================================================
+
+IT2C_BLOCKS = ("ss_circuit", "ss_nodal", "icm_config")
+
+
+def _rows(ctx):
+    return {n: block_row(ctx.counters, n) for n in IT2C_BLOCKS}
+
+
+def test_it2c_t_l11c_same_theta_reevaluation_grafts_new_blocks(base):
+    spec, ctx, _, _, res, js = base
+    before = _rows(ctx)
+    ev2 = size_and_seal(ctx, theta(), parent=res.lineage)
+    ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, theta(), spec.constraints, ("vdd",), junction=js)
+    for n, now in _rows(ctx).items():
+        d = dict(zip(COUNT_FIELDS, row_delta(now, before[n])))
+        assert (d["computes"], d["grafts"], d["reuses"]) == (0, 1, 0), (n, d)
+
+
+def test_it2c_t_l11c_lineage_reuse_zero_compute_for_new_blocks(base):
+    spec, ctx, _, _, res, js = base
+    before = _rows(ctx)
+    again = ss_evaluate(res.lineage.sealed, ctx, theta(), spec.constraints, ("vdd",), junction=js)
+    assert again.snapshot is res.snapshot
+    for n, now in _rows(ctx).items():
+        d = dict(zip(COUNT_FIELDS, row_delta(now, before[n])))
+        assert (d["computes"], d["reuses"]) == (0, 1), (n, d)
+
+
+def test_it2c_new_graph_fields_present_after_ss_evaluate(base):
+    """oracle 대조: (d) interface '필드 -- writer 하나': 같은 평가 뒤 `graph.ss_circuit`·`graph.ss_nodal`·`graph.icm_config` 가 각각 값 하나, `node.dc_window_cfg` 에 입력 in 항목."""
+    _, _, _, _, res, _ = base
+    for f in ("ss_circuit", "ss_nodal", "icm_config"):
+        assert len(dict(res.snapshot.column("graph", f))) == 1, f
+    assert "in" in dict(res.snapshot.column("node", "dc_window_cfg"))
+
+
+# =====================================================================================================================
+# [IT-2d 재동결 20261104-it2d-front-wiring] T-F: front·보고·판정 행의 icm_margin_v 는 같은 칸(graph.icm_config V_cm)에서 나온 같은 값.
+# T-O215: icmr_v 제약 = 영역 행 창 값으로 판정(O-215 임시 결정 -- 번복 가능), 기능 기준 칸을 읽지 않고, 정의 불능이 아니다.
+# oracle (손): margin = min(vcm0 − vcm_lo, vcm_hi − vcm0), icmr = vcm_hi − vcm_lo (interface 세 metric 정의) -- 입력 칸 graph.icm_config
+# 숫자에서 test 가 손 산술로 낸다. 구성 둘: as_is_single_input(회로 C) · servo(차동쌍 + CMFB 저항, 탐색이 낸 봉인 점). 13회로 값은 쓰지 않는다.
+# =====================================================================================================================
+
+from . import it2d_toys as T2
+
+_ICM = (("icm_margin_v", ">=", 0.0, None), ("icmr_v", ">=", 0.0, None))
+
+
+@pytest.fixture(scope="module")
+def r4_lut_f(tmp_path_factory):
+    from sizing.conftest import write_r4_lut
+    return write_r4_lut(tmp_path_factory.mktemp("it2d_f_r4"))
+
+
+def _theta_decl():
+    """입력 DC 를 선언(0.6 V)하면 M1 gate 가 선언 값이라 ln_idu(M1)는 θ 성분이 아니다(스키마)."""
+    from search.conftest import theta_r4c
+    th = dict(theta_r4c())
+    del th[("ln_idu", "M1")]
+    return th
+
+
+def _hand_icm(ref):
+    cfg = ref.snapshot.value("graph", METRICS_KEY, "icm_config")
+    assert None not in (cfg.vcm0, cfg.vcm_lo, cfg.vcm_hi), cfg                      # 전제: V_cm 창 측정됨
+    return cfg, min(cfg.vcm0 - cfg.vcm_lo, cfg.vcm_hi - cfg.vcm0), cfg.vcm_hi - cfg.vcm_lo
+
+
+CM_PORTS_D = {"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),
+              "op": ("output", "differential_output_p"), "om": ("output", "differential_output_n")}
+CM_GAIN_VIEW = {"ac_excite": {"ip": 0.5, "im": -0.5}, "sense_p": "op", "sense_n": "om", "sense_mode": "differential"}
+
+
+def circuit_cmfb_diff():
+    """test_find_front 의 CMFB 차동 toy 와 같은 손 회로(완전 차동 CS 쌍 + PMOS 부하, 부하 gate c = 출력 저항 평균)."""
+    from search.conftest import mos, topo, two
+    return topo("hand_cmfb_diff", [mos("M1", "nmos", "op", "ip", "gnd"), mos("M2", "nmos", "om", "im", "gnd"),
+                                   mos("M3", "pmos", "op", "c", "vdd"), mos("M4", "pmos", "om", "c", "vdd")],
+                CM_PORTS_D, passives=[two("R1", "resistor", "op", "c"), two("R2", "resistor", "c", "om")])
+
+
+def _diff_sealed_point(tmp, lut):
+    """차동쌍 + CMFB 저항 toy 의 봉인 점 하나: find_front 가 평가한 점 중 첫 봉인 점(test_find_front 의 I-22 방식)을 (θ, 칸)으로 쓴다."""
+    import json
+    import tempfile
+    from pathlib import Path
+    import shutil
+    from gmid_engine.search import STATUS_SEALED, find_front
+    root = tempfile.mkdtemp(prefix="s6", dir=None)
+    try:
+        case = T2.build(tmp, lut, circuit_cmfb_diff(), elements=(("R1", "resistor", 1e6), ("R2", "resistor", 1e6)),
+                        constraints=(("gain_ss_db", ">=", 0.0, CM_GAIN_VIEW),) + _ICM, archive_root=root)
+        find_front(case.sctx, [])
+        lines = [json.loads(x) for x in (Path(root) / case.sctx.context_fp / "evals.jsonl").read_text(encoding="utf-8").splitlines()
+                 if x.strip()]
+        sealed = [x for x in lines if x["status"] == STATUS_SEALED]
+        assert sealed                                                                 # 전제: 봉인 점이 있다
+        return case, {tuple(k): v for k, v in sealed[0]["theta"]}, tuple(sealed[0]["cells"])
+    finally:
+        shutil.rmtree(root, ignore_errors=True)
+
+
+def _assert_same_value_everywhere(r, ref):
+    cfg, margin, icmr = _hand_icm(ref)
+    got = T2.by_metric(ref.ss)
+    assert got["icm_margin_v"].value == pytest.approx(margin, abs=1e-12)               # 판정 값
+    # [A-85 D3] 보고(swing_icmr)에 icm_margin_v 키를 요구하지 않는다(값 사본 금지, interface 보고 키 불변): 같은 칸 = graph.icm_config 의 V_cm 칸.
+    # 판정 값(위)과 front 행(아래)이 모두 그 칸에서 손으로 낸 margin 과 같으면 두 소비처의 값이 같다.
+    rows = [x for x in r.constraints if "icm_margin_v" in x.name]                      # front 가 보는 제약 행
+    assert len(rows) == 1
+    res = got["icm_margin_v"].resolution
+    assert res is not None and res > 0
+    assert rows[0].c == pytest.approx((margin - 0.0) / res, rel=1e-9)
+    assert rows[0].c * res == pytest.approx(got["icm_margin_v"].value, rel=1e-9)        # front 행 값 = 판정 값 = graph.icm_config 칸에서 낸 margin
+    return got, icmr
+
+
+def test_it2d_f_icm_margin_same_value_in_report_and_front_row_as_is(tmp_path, r4_lut_f):
+    """as_is_single_input toy(회로 C, 입력 DC 선언 0.6): 판정 값 = 보고 값 = front 제약 행의 (값 − 0)/분해능 -- 손 margin."""
+    from search.conftest import CELLS_C, circuit_c, theta_r4c
+    case = T2.build(tmp_path, r4_lut_f, circuit_c(), constraints=_ICM, input_dc=0.6)
+    r, ref = T2.sealed_ss(case, _theta_decl(), CELLS_C)
+    assert ref.snapshot.value("graph", METRICS_KEY, "icm_config").config == "as_is_single_input"
+    _assert_same_value_everywhere(r, ref)
+
+
+def test_it2d_f_icm_margin_same_value_in_report_and_front_row_servo(tmp_path, r4_lut_f):
+    """servo toy(입력 둘, 차동쌍 + CMFB 저항): 같은 불변식."""
+    case, th, cells = _diff_sealed_point(tmp_path, r4_lut_f)
+    r, ref = T2.sealed_ss(case, th, cells)
+    assert ref.snapshot.value("graph", METRICS_KEY, "icm_config").config == "servo"
+    _assert_same_value_everywhere(r, ref)
+
+
+def test_it2d_o215_icmr_judged_by_region_row_window(tmp_path, r4_lut_f):
+    """O-215 임시: icmr_v 제약은 영역 행 창 값(vcm_hi − vcm_lo)으로 판정한다 -- 값이 있고 정의 불능이 아니며, 제약 행의 c 는
+    (값 − 기준)/분해능. 기능 기준 칸을 읽지 않는다(spec 에 기능 기준 칸을 두지 않은 toy 에서 정의된다). 기준을 창 폭 바로 위로 두면 위반."""
+    from search.conftest import CELLS_C, circuit_c, theta_r4c
+    case0 = T2.build(tmp_path / "a", r4_lut_f, circuit_c(), constraints=_ICM, input_dc=0.6)
+    r0, ref0 = T2.sealed_ss(case0, _theta_decl(), CELLS_C)
+    cfg, margin, icmr = _hand_icm(ref0)
+    got = T2.by_metric(ref0.ss)["icmr_v"]
+    assert got.value == pytest.approx(icmr, abs=1e-12) and not T2.undefined_codes(got)
+    bound = icmr + 0.1                                                                # 창 폭보다 큰 요구 -> 위반(c < 0)
+    case1 = T2.build(tmp_path / "b", r4_lut_f, circuit_c(), constraints=(("icmr_v", ">=", bound, None),), input_dc=0.6)
+    r1, ref1 = T2.sealed_ss(case1, _theta_decl(), CELLS_C)
+    row = [x for x in r1.constraints if "icmr_v" in x.name]
+    assert len(row) == 1 and row[0].c < 0.0
+    res = T2.by_metric(ref1.ss)["icmr_v"]
+    assert row[0].c == pytest.approx((icmr - bound) / res.resolution, rel=1e-9)
+# ---------------------------------------------------------------------------------------------------------------
+# [EO-1 범위 4, interface card 20261104-eo1r4-sf1l §4 T-O5·T-O6·T-N1] off 소자 스탬프·완주·off 없음
+# oracle (손): sizing conftest r4 합성 LUT 해석식(VGS = 0·VSB = 0 에서 IDu = I0·exp(LAM·VDS), off 소자 gds = LAM·ΔI), 다른 MOS 의 gm·gds 는 npz 독립 보간.
+# 회로 A + off 소자(Moff nmos (out, gnd, gnd, gnd)): out 의 출력 컨덕턴스 g_out = 1/R + gds(M1) + gds(off), 이득 = 20·log10(gm1/g_out), rout = 1/g_out.
+# ---------------------------------------------------------------------------------------------------------------
+
+def _off_a(tmp, w_m=1e-6, with_off=True, cons=None, name="ev_off_a"):
+    from .off_cases import CONS, build_case, circuit_a, off_entry, theta_a as theta_off_a
+    off = [("Moff", "nmos", "out", "gnd", "gnd", "gnd")] if with_off else []
+    return build_case(tmp, circuit_a(off, name=name), {"Moff": off_entry(w_m, 1e-6)} if with_off else {}, theta_off_a,
+                      constraints=CONS if cons is None else cons)
+
+
+@pytest.mark.parametrize("w_m", [1e-6, 2e-6])
+def test_off_stamp_enters_output_conductance(tmp_path, w_m):
+    """off 소자 gds 가 out 노드 G 에 든다: rout·이득이 off 소자 gds 를 포함한 손계산과 같다. w_m 이 배가 되면 스탬프도 배가 된다."""
+    from .off_cases import evaluate, gds_lut, gds_off, graph_field
+    case = _off_a(tmp_path, w_m)
+    res = evaluate(case)
+    snap = res.snapshot
+    op = snap.value("device", "M1", "dc_op")
+    dI = dict(graph_field(snap, "ss_off_delta").sources)["Moff"]
+    g_off = gds_off(dI)
+    g_out = 1.0 / 9e4 + gds_lut("nmos", op.L, op.vgs, op.vds, op.vsb, op.W) + g_off
+    m = bundle_map(res.ss)
+    assert rel_close(m["rout_ss_ohm"].value, 1.0 / g_out, 1e-9)
+    assert rel_close(m["gain_ss_db"].value, 20.0 * math.log10(op.gm_id * op.current / g_out), 1e-9)
+    assert rel_close(dI, 1e-11 * math.exp(0.1 * snap.value("node", "out", "dc_v")) * w_m / 1e-6, 1e-9)   # 손계산 ΔI = I0·e^(LAM·VDS)·w/l
+
+
+def test_off_stamp_w_double_doubles_delta_and_stamp(tmp_path):
+    from .off_cases import evaluate, graph_field
+    a = graph_field(evaluate(_off_a(tmp_path / "a", 1e-6)).snapshot, "ss_off_delta")
+    b = graph_field(evaluate(_off_a(tmp_path / "b", 2e-6)).snapshot, "ss_off_delta")
+    assert rel_close(dict(b.sources)["Moff"], 2.0 * dict(a.sources)["Moff"], 1e-12)
+
+
+def test_off_circuit_runs_all_requested_ss_metrics(tmp_path):
+    """T-O6(부분): off 소자가 있는 회로에서 ss metric 요청 전체(이득·rout·PM·기생 PM·전력·면적)가 KeyError 없이 완주한다.
+    잡음·offset 등 aux metric 은 이 파일의 회로에 noise 선언이 없어 포함하지 않았다(보고)."""
+    from .off_cases import CONS_FULL, evaluate
+    res = evaluate(_off_a(tmp_path, cons=CONS_FULL))
+    names = [q.metric for q, _ in res.ss.entries]
+    assert names == ["gain_ss_db", "rout_ss_ohm", "pm_ss_deg", "parasitic_pm_ss_deg"]
+    m = bundle_map(res.ss)
+    assert all(m[n].value is not None for n in names)
+    assert m["pm_ss_deg"].value == m["parasitic_pm_ss_deg"].value
+    assert [q.metric for q, _ in res.dc.entries] == ["power_dc_w", "supply_current_dc", "area_search_m2"]
+
+
+def test_no_off_declaration_means_no_off_layer(tmp_path):
+    """T-N1: off 선언이 없으면 off 블록 호출 0, 필드 없음(값이 아니라 필드 부재)."""
+    from .off_cases import evaluate, graph_field
+    case = _off_a(tmp_path, with_off=False, name="ev_off_none")
+    res = evaluate(case)
+    snap = res.snapshot
+    assert all(snap.field("device", d, "off_op") is None for d in snap.keys("device"))
+    assert graph_field(snap, "ss_off_delta") is None
+    for blk in ("ss_off_op", "ss_off_delta"):
+        assert block_row(case.ctx.counters, blk)[0] == 0

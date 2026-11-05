@@ -1,0 +1,603 @@
+{
+ "circuits": {
+  "common_gate_amplifier": {
+   "base2_vs_head2_diffs": [],
+   "counter_changes_base2_head2": [],
+   "eval_fps_column_present": {
+    "BASE2": true,
+    "HEAD2": true
+   },
+   "fps_base2_vs_head2": {
+    "evaluation.report_fp_without_new_keys": {
+     "compared": 90,
+     "equal": 90
+    },
+    "evaluation.report_value_fp": {
+     "compared": 90,
+     "equal": 90
+    },
+    "evaluation.snapshot_fp": {
+     "compared": 90,
+     "equal": 90
+    },
+    "n": [
+     92,
+     92
+    ],
+    "partial.report_fp_without_new_keys": {
+     "compared": 2,
+     "equal": 0
+    },
+    "partial.report_value_fp": {
+     "compared": 2,
+     "equal": 0
+    },
+    "partial.snapshot_fp": {
+     "compared": 2,
+     "equal": 0
+    },
+    "status_theta_equal": true
+   },
+   "head2_recomputes_same_input": 0,
+   "head2_vs_head_old_counters_equal": true,
+   "head2_vs_head_old_diffs": [],
+   "n_unexplained": 0,
+   "present": {
+    "BASE2": true,
+    "HEAD2": true,
+    "HEAD2_rep2": false,
+    "HEAD_old": true
+   }
+  },
+  "current_reuse_telescopic_ota": {
+   "base2_vs_head2_diffs": [],
+   "counter_changes_base2_head2": [],
+   "eval_fps_column_present": {
+    "BASE2": true,
+    "HEAD2": true
+   },
+   "fps_base2_vs_head2": {
+    "evaluation.report_fp_without_new_keys": {
+     "compared": 0,
+     "equal": 0
+    },
+    "evaluation.report_value_fp": {
+     "compared": 0,
+     "equal": 0
+    },
+    "evaluation.snapshot_fp": {
+     "compared": 0,
+     "equal": 0
+    },
+    "n": [
+     40,
+     40
+    ],
+    "partial.report_fp_without_new_keys": {
+     "compared": 0,
+     "equal": 0
+    },
+    "partial.report_value_fp": {
+     "compared": 0,
+     "equal": 0
+    },
+    "partial.snapshot_fp": {
+     "compared": 40,
+     "equal": 40
+    },
+    "status_theta_equal": true
+   },
+   "head2_recomputes_same_input": 0,
+   "head2_vs_head_old_counters_equal": true,
+   "head2_vs_head_old_diffs": [],
+   "n_unexplained": 0,
+   "present": {
+    "BASE2": true,
+    "HEAD2": true,
+    "HEAD2_rep2": false,
+    "HEAD_old": true
+   }
+  },
+  "folded_cascode": {
+   "base2_vs_head2_diffs": [],
+   "counter_changes_base2_head2": [
+    {
+     "base": {
+      "calls": 65,
+      "computes": 49,
+      "grafts": 1,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 15
+     },
+     "block": "dc_seal_report",
+     "cause": "허용: dc_seal_report keep 밖 -> reuse->graft (O-94 (2))",
+     "head": {
+      "calls": 65,
+      "computes": 49,
+      "grafts": 16,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 15
+    }
+   ],
+   "eval_fps_column_present": {
+    "BASE2": true,
+    "HEAD2": true
+   },
+   "fps_base2_vs_head2": {
+    "evaluation.report_fp_without_new_keys": {
+     "compared": 134,
+     "equal": 134
+    },
+    "evaluation.report_value_fp": {
+     "compared": 134,
+     "equal": 134
+    },
+    "evaluation.snapshot_fp": {
+     "compared": 134,
+     "equal": 134
+    },
+    "n": [
+     155,
+     155
+    ],
+    "partial.report_fp_without_new_keys": {
+     "compared": 21,
+     "equal": 20
+    },
+    "partial.report_value_fp": {
+     "compared": 21,
+     "equal": 20
+    },
+    "partial.snapshot_fp": {
+     "compared": 21,
+     "equal": 0
+    },
+    "status_theta_equal": true
+   },
+   "head2_recomputes_same_input": 0,
+   "head2_vs_head_old_counters_equal": true,
+   "head2_vs_head_old_diffs": [],
+   "n_unexplained": 0,
+   "present": {
+    "BASE2": true,
+    "HEAD2": true,
+    "HEAD2_rep2": false,
+    "HEAD_old": true
+   }
+  },
+  "ngcc_3stage_ff": {
+   "base2_vs_head2_diffs": [],
+   "counter_changes_base2_head2": [],
+   "eval_fps_column_present": {
+    "BASE2": false,
+    "HEAD2": false
+   },
+   "fps_base2_vs_head2": {
+    "present": [
+     false,
+     false
+    ]
+   },
+   "head2_recomputes_same_input": 0,
+   "head2_vs_head_old_counters_equal": true,
+   "head2_vs_head_old_diffs": [],
+   "n_unexplained": 0,
+   "present": {
+    "BASE2": true,
+    "HEAD2": true,
+    "HEAD2_rep2": false,
+    "HEAD_old": true
+   }
+  },
+  "nmcnr_amplifier": {
+   "base2_vs_head2_diffs": [],
+   "counter_changes_base2_head2": [
+    {
+     "base": {
+      "calls": 41,
+      "computes": 31,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 10
+     },
+     "block": "dc_seal_report",
+     "cause": "허용: dc_seal_report keep 밖 -> reuse->graft (O-94 (2))",
+     "head": {
+      "calls": 41,
+      "computes": 31,
+      "grafts": 10,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 10
+    },
+    {
+     "base": {
+      "calls": 37,
+      "computes": 35,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 2
+     },
+     "block": "ss_dev",
+     "cause": "허용: keep 밖 블록(ss·metric) reuse->graft (design 41 4.7-3c, 756 (i))",
+     "head": {
+      "calls": 37,
+      "computes": 35,
+      "grafts": 2,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 2
+    }
+   ],
+   "eval_fps_column_present": {
+    "BASE2": true,
+    "HEAD2": true
+   },
+   "fps_base2_vs_head2": {
+    "evaluation.report_fp_without_new_keys": {
+     "compared": 74,
+     "equal": 74
+    },
+    "evaluation.report_value_fp": {
+     "compared": 74,
+     "equal": 74
+    },
+    "evaluation.snapshot_fp": {
+     "compared": 74,
+     "equal": 74
+    },
+    "n": [
+     105,
+     105
+    ],
+    "partial.report_fp_without_new_keys": {
+     "compared": 6,
+     "equal": 4
+    },
+    "partial.report_value_fp": {
+     "compared": 6,
+     "equal": 4
+    },
+    "partial.snapshot_fp": {
+     "compared": 31,
+     "equal": 29
+    },
+    "status_theta_equal": true
+   },
+   "head2_recomputes_same_input": 0,
+   "head2_vs_head_old_counters_equal": true,
+   "head2_vs_head_old_diffs": [],
+   "n_unexplained": 0,
+   "present": {
+    "BASE2": true,
+    "HEAD2": true,
+    "HEAD2_rep2": false,
+    "HEAD_old": true
+   }
+  },
+  "pushpull_follower_buffer": {
+   "base2_vs_head2_diffs": [],
+   "counter_changes_base2_head2": [
+    {
+     "base": {
+      "calls": 38,
+      "computes": 30,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 8
+     },
+     "block": "dc_seal_report",
+     "cause": "허용: dc_seal_report keep 밖 -> reuse->graft (O-94 (2))",
+     "head": {
+      "calls": 38,
+      "computes": 30,
+      "grafts": 8,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 8
+    }
+   ],
+   "eval_fps_column_present": {
+    "BASE2": true,
+    "HEAD2": true
+   },
+   "fps_base2_vs_head2": {
+    "evaluation.report_fp_without_new_keys": {
+     "compared": 81,
+     "equal": 81
+    },
+    "evaluation.report_value_fp": {
+     "compared": 81,
+     "equal": 81
+    },
+    "evaluation.snapshot_fp": {
+     "compared": 81,
+     "equal": 81
+    },
+    "n": [
+     84,
+     84
+    ],
+    "partial.report_fp_without_new_keys": {
+     "compared": 3,
+     "equal": 1
+    },
+    "partial.report_value_fp": {
+     "compared": 3,
+     "equal": 1
+    },
+    "partial.snapshot_fp": {
+     "compared": 3,
+     "equal": 0
+    },
+    "status_theta_equal": true
+   },
+   "head2_recomputes_same_input": 0,
+   "head2_vs_head_old_counters_equal": true,
+   "head2_vs_head_old_diffs": [],
+   "n_unexplained": 0,
+   "present": {
+    "BASE2": true,
+    "HEAD2": true,
+    "HEAD2_rep2": false,
+    "HEAD_old": true
+   }
+  },
+  "sf_pushpull_output_opamp": {
+   "base2_vs_head2_diffs": [],
+   "counter_changes_base2_head2": [],
+   "eval_fps_column_present": {
+    "BASE2": true,
+    "HEAD2": true
+   },
+   "fps_base2_vs_head2": {
+    "evaluation.report_fp_without_new_keys": {
+     "compared": 0,
+     "equal": 0
+    },
+    "evaluation.report_value_fp": {
+     "compared": 0,
+     "equal": 0
+    },
+    "evaluation.snapshot_fp": {
+     "compared": 0,
+     "equal": 0
+    },
+    "n": [
+     40,
+     40
+    ],
+    "partial.report_fp_without_new_keys": {
+     "compared": 0,
+     "equal": 0
+    },
+    "partial.report_value_fp": {
+     "compared": 0,
+     "equal": 0
+    },
+    "partial.snapshot_fp": {
+     "compared": 40,
+     "equal": 40
+    },
+    "status_theta_equal": true
+   },
+   "head2_recomputes_same_input": 0,
+   "head2_vs_head_old_counters_equal": true,
+   "head2_vs_head_old_diffs": [],
+   "n_unexplained": 0,
+   "present": {
+    "BASE2": true,
+    "HEAD2": true,
+    "HEAD2_rep2": false,
+    "HEAD_old": true
+   }
+  },
+  "two_stage_ota": {
+   "base2_vs_head2_diffs": [],
+   "counter_changes_base2_head2": [
+    {
+     "base": {
+      "calls": 52,
+      "computes": 40,
+      "grafts": 3,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 9
+     },
+     "block": "dc_seal_report",
+     "cause": "허용: dc_seal_report keep 밖 -> reuse->graft (O-94 (2))",
+     "head": {
+      "calls": 52,
+      "computes": 40,
+      "grafts": 12,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 9
+    },
+    {
+     "base": {
+      "calls": 52,
+      "computes": 49,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 3
+     },
+     "block": "ss_dev",
+     "cause": "허용: keep 밖 블록(ss·metric) reuse->graft (design 41 4.7-3c, 756 (i))",
+     "head": {
+      "calls": 52,
+      "computes": 49,
+      "grafts": 3,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 3
+    }
+   ],
+   "eval_fps_column_present": {
+    "BASE2": true,
+    "HEAD2": true
+   },
+   "fps_base2_vs_head2": {
+    "evaluation.report_fp_without_new_keys": {
+     "compared": 101,
+     "equal": 101
+    },
+    "evaluation.report_value_fp": {
+     "compared": 101,
+     "equal": 101
+    },
+    "evaluation.snapshot_fp": {
+     "compared": 101,
+     "equal": 101
+    },
+    "n": [
+     103,
+     103
+    ],
+    "partial.report_fp_without_new_keys": {
+     "compared": 2,
+     "equal": 1
+    },
+    "partial.report_value_fp": {
+     "compared": 2,
+     "equal": 1
+    },
+    "partial.snapshot_fp": {
+     "compared": 2,
+     "equal": 0
+    },
+    "status_theta_equal": true
+   },
+   "head2_recomputes_same_input": 0,
+   "head2_vs_head_old_counters_equal": true,
+   "head2_vs_head_old_diffs": [],
+   "n_unexplained": 0,
+   "present": {
+    "BASE2": true,
+    "HEAD2": true,
+    "HEAD2_rep2": false,
+    "HEAD_old": true
+   }
+  },
+  "two_stage_ota_sf": {
+   "base2_vs_head2_diffs": [],
+   "counter_changes_base2_head2": [
+    {
+     "base": {
+      "calls": 46,
+      "computes": 35,
+      "grafts": 3,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 8
+     },
+     "block": "dc_seal_report",
+     "cause": "허용: dc_seal_report keep 밖 -> reuse->graft (O-94 (2))",
+     "head": {
+      "calls": 46,
+      "computes": 35,
+      "grafts": 11,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 8
+    },
+    {
+     "base": {
+      "calls": 46,
+      "computes": 44,
+      "grafts": 0,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 2
+     },
+     "block": "ss_dev",
+     "cause": "허용: keep 밖 블록(ss·metric) reuse->graft (design 41 4.7-3c, 756 (i))",
+     "head": {
+      "calls": 46,
+      "computes": 44,
+      "grafts": 2,
+      "recomputes_same_input": 0,
+      "replays": 0,
+      "reuses": 0
+     },
+     "part": "*",
+     "reuse_to_graft": 2
+    }
+   ],
+   "eval_fps_column_present": {
+    "BASE2": true,
+    "HEAD2": true
+   },
+   "fps_base2_vs_head2": {
+    "evaluation.report_fp_without_new_keys": {
+     "compared": 99,
+     "equal": 99
+    },
+    "evaluation.report_value_fp": {
+     "compared": 99,
+     "equal": 99
+    },
+    "evaluation.snapshot_fp": {
+     "compared": 99,
+     "equal": 99
+    },
+    "n": [
+     110,
+     110
+    ],
+    "partial.report_fp_without_new_keys": {
+     "compared": 11,
+     "equal": 9
+    },
+    "partial.report_value_fp": {
+     "compared": 11,
+     "equal": 9
+    },
+    "partial.snapshot_fp": {
+     "compared": 11,
+     "equal": 0
+    },
+    "status_theta_equal": true
+   },
+   "head2_recomputes_same_input": 0,
+   "head2_vs_head_old_counters_equal": true,
+   "head2_vs_head_old_diffs": [],
+   "n_unexplained": 0,
+   "present": {
+    "BASE2": true,
+    "HEAD2": true,
+    "HEAD2_rep2": false,
+    "HEAD_old": true
+   }
+  }
+ },
+ "g10_head2_total": 0,
+ "total_unexplained": 0
+}

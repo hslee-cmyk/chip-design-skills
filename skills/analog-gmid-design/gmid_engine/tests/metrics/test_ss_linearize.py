@@ -135,9 +135,10 @@ def _check(ss, exp, op, js, rtol=1e-12, temp_c=27.0, params=None, rule=None):
 
 
 def test_block_declaration():
-    """reads device.dc_op·[9절] device.dc_tol_v·[U17 ①, 설계 40 §3.7-3] device.dc_gm, writes device.ss_dev, writer = 권한표 writer_of."""
+    """reads device.dc_op·[9절] device.dc_tol_v·[U17 ①, 설계 40 §3.7-3] device.dc_gm·[EO-1 범위 4, A-88] device.off_op·device.region_decl·device.kind, writes device.ss_dev, writer = 권한표 writer_of."""
     assert ss_dev.name == SS_DEV_WRITER == S2_WRITERS.writer_of("device", "ss_dev") == "ss_dev"
-    assert set(ss_dev.reads) == {("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm")}
+    assert set(ss_dev.reads) == {("device", "dc_op"), ("device", "dc_tol_v"), ("device", "dc_gm"), ("device", "off_op"),
+                                    ("device", "region_decl"), ("device", "kind")}
     assert tuple(ss_dev.writes) == (("device", "ss_dev"),)
 
 

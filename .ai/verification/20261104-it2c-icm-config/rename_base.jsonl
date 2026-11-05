@@ -1,0 +1,50 @@
+{"circuit": "cnr_ota", "seed": 1, "node_mismatch": [], "device_mismatch": ["x13[0].M1", "x13[1].M1", "x14[0].M1", "x14[1].M1", "x16[0].M1", "x16[1].M1", "x1[0].M1", "x1[3].M1", "x23[1].M1", "x23[2].M1", "x23[3].M1", "x28[0].M1", "x28[1].M1", "x28[2].M1", "x28[3].M1", "x28[4].M1", "x28[5].M1", "x2[0].M1", "x2[1].M1", "x36[0].M1", "x36[1].M1", "x36[2].M1", "x36[3].M1", "x4[1].M1", "x4[3].M1", "x5[0].M1", "x5[1].M1"], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "common_gate_amplifier", "seed": 1, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [], "orbits_same": true}
+{"circuit": "current_reuse_telescopic_ota", "seed": 1, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "erfc_ota", "seed": 1, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "folded_cascode", "seed": 1, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "ngcc_3stage_ff", "seed": 1, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "r2r_opamp", "seed": 1, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "rfc_ota", "seed": 1, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "two_stage_ota", "seed": 1, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "two_stage_ota_sf", "seed": 1, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "cnr_ota", "seed": 2, "node_mismatch": [], "device_mismatch": ["x14[0].M1", "x14[1].M1", "x17[0].M1", "x17[1].M1", "x1[1].M1", "x1[2].M1", "x1[3].M1", "x23[0].M1", "x23[1].M1", "x23[2].M1", "x28[0].M1", "x28[1].M1", "x28[2].M1", "x28[3].M1", "x28[4].M1", "x28[5].M1", "x36[0].M1", "x36[1].M1", "x36[3].M1", "x4[0].M1", "x4[1].M1", "x4[2].M1", "x5[0].M1", "x5[1].M1"], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "common_gate_amplifier", "seed": 2, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [], "orbits_same": true}
+{"circuit": "current_reuse_telescopic_ota", "seed": 2, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "erfc_ota", "seed": 2, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "folded_cascode", "seed": 2, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "ngcc_3stage_ff", "seed": 2, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "r2r_opamp", "seed": 2, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "rfc_ota", "seed": 2, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "two_stage_ota", "seed": 2, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "two_stage_ota_sf", "seed": 2, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "cnr_ota", "seed": 3, "node_mismatch": [], "device_mismatch": ["x14[0].M1", "x14[1].M1", "x1[0].M1", "x1[1].M1", "x1[2].M1", "x1[3].M1", "x23[0].M1", "x23[1].M1", "x23[2].M1", "x23[3].M1", "x28[1].M1", "x28[2].M1", "x28[3].M1", "x28[4].M1", "x28[5].M1", "x2[0].M1", "x2[1].M1", "x36[0].M1", "x36[3].M1", "x3[0].M1", "x3[1].M1", "x4[0].M1", "x4[1].M1", "x4[2].M1", "x6[0].M1", "x6[1].M1"], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "common_gate_amplifier", "seed": 3, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [], "orbits_same": true}
+{"circuit": "current_reuse_telescopic_ota", "seed": 3, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "erfc_ota", "seed": 3, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "folded_cascode", "seed": 3, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "ngcc_3stage_ff", "seed": 3, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "r2r_opamp", "seed": 3, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "rfc_ota", "seed": 3, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "two_stage_ota", "seed": 3, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "two_stage_ota_sf", "seed": 3, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "cnr_ota", "seed": 4, "node_mismatch": ["VBN1", "VBN2", "VBP1", "VBP2", "VCON", "VCONN", "VCONP", "VCOP", "VCOPN", "VCOPP", "VIN", "VIP", "VON", "VOP", "net1", "net2", "net3", "net4", "net5", "net6"], "device_mismatch": ["C1", "C2", "CL1", "CL2", "x1.M1", "x10.M1", "x11.M1", "x12.M1", "x13[0].M1", "x13[1].M1", "x14[0].M1", "x14[1].M1", "x15.M1", "x16[0].M1", "x16[1].M1", "x17[0].M1", "x17[1].M1", "x18.M1", "x19.M1", "x1[0].M1", "x1[1].M1", "x1[2].M1", "x1[3].M1", "x2.M1", "x20.M1", "x21.M1", "x22.M1", "x23[0].M1", "x23[1].M1", "x23[2].M1", "x23[3].M1", "x28[0].M1", "x28[1].M1", "x28[2].M1", "x28[3].M1", "x28[4].M1", "x28[5].M1", "x2[0].M1", "x2[1].M1", "x33.M1", "x35.M1", "x36[0].M1", "x36[1].M1", "x36[2].M1", "x36[3].M1", "x37", "x38", "x3[0].M1", "x3[1].M1", "x4.M1", "x47.M1", "x48.M1", "x49.M1", "x4[0].M1", "x4[1].M1", "x4[2].M1", "x4[3].M1", "x50.M1", "x5[0].M1", "x5[1].M1", "x6[0].M1", "x6[1].M1", "x7.M1", "x8.M1"], "p_port_colour_same": [false], "orbits_same": true}
+{"circuit": "common_gate_amplifier", "seed": 4, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [], "orbits_same": true}
+{"circuit": "current_reuse_telescopic_ota", "seed": 4, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "erfc_ota", "seed": 4, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "folded_cascode", "seed": 4, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "ngcc_3stage_ff", "seed": 4, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "r2r_opamp", "seed": 4, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "rfc_ota", "seed": 4, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "two_stage_ota", "seed": 4, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "two_stage_ota_sf", "seed": 4, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "cnr_ota", "seed": 5, "node_mismatch": ["VBN1", "VBN2", "VBP1", "VBP2", "VCON", "VCONN", "VCONP", "VCOP", "VCOPN", "VCOPP", "VIN", "VIP", "VON", "VOP", "net1", "net2", "net3", "net4", "net5", "net6"], "device_mismatch": ["C1", "C2", "CL1", "CL2", "x1.M1", "x10.M1", "x11.M1", "x12.M1", "x13[0].M1", "x13[1].M1", "x14[0].M1", "x14[1].M1", "x15.M1", "x16[0].M1", "x16[1].M1", "x17[0].M1", "x17[1].M1", "x18.M1", "x19.M1", "x1[0].M1", "x1[1].M1", "x1[2].M1", "x1[3].M1", "x2.M1", "x20.M1", "x21.M1", "x22.M1", "x28[0].M1", "x28[1].M1", "x28[2].M1", "x28[3].M1", "x28[4].M1", "x28[5].M1", "x2[0].M1", "x2[1].M1", "x33.M1", "x35.M1", "x36[0].M1", "x36[1].M1", "x36[2].M1", "x36[3].M1", "x37", "x38", "x3[0].M1", "x3[1].M1", "x4.M1", "x47.M1", "x48.M1", "x49.M1", "x4[0].M1", "x4[1].M1", "x4[2].M1", "x4[3].M1", "x50.M1", "x5[0].M1", "x5[1].M1", "x6[0].M1", "x6[1].M1", "x7.M1", "x8.M1"], "p_port_colour_same": [false], "orbits_same": true}
+{"circuit": "common_gate_amplifier", "seed": 5, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [], "orbits_same": true}
+{"circuit": "current_reuse_telescopic_ota", "seed": 5, "node_mismatch": ["N11a11b", "N11b", "N14a14b", "N14a_14b", "N1a2a", "N1b2b", "N20a20b", "N20b", "N23a24b", "N24b23a", "N3a4a", "N3b4b", "N_cc_rz1", "N_cc_rz2", "Vg15", "Vg25", "Vim", "Vip", "Vom", "Vom1", "Vop", "Vop1"], "device_mismatch": ["CL1", "CL2", "Cc1", "Cc2", "Cf1", "Cf2", "Cs1", "Cs2", "M10", "M11a", "M11b", "M12", "M13", "M14a", "M14b", "M15", "M16", "M17", "M18a", "M18b", "M19", "M1a", "M1b", "M20a", "M20b", "M21", "M22", "M23a", "M24b", "M25", "M26", "M2a", "M2b", "M3a", "M3b", "M4a", "M4b", "M8", "M9a", "M9b", "R1", "R2", "Rz1", "Rz2"], "p_port_colour_same": [false], "orbits_same": true}
+{"circuit": "erfc_ota", "seed": 5, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "folded_cascode", "seed": 5, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "ngcc_3stage_ff", "seed": 5, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "r2r_opamp", "seed": 5, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "rfc_ota", "seed": 5, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "two_stage_ota", "seed": 5, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}
+{"circuit": "two_stage_ota_sf", "seed": 5, "node_mismatch": [], "device_mismatch": [], "p_port_colour_same": [true], "orbits_same": true}

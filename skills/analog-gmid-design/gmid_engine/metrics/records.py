@@ -212,10 +212,17 @@ class LoopCut:
 
 @dataclasses.dataclass(frozen=True)
 class StampSet:
-    """스탬프 결과. `g`·`c`: (행 노드, 열 노드, 값) 의 tuple -- 노드 인덱스 공간(아직 미지수/고정 분할 전)."""
+    """스탬프 결과. `g`·`c`: (행 노드, 열 노드, 값) 의 tuple -- 노드 인덱스 공간(아직 미지수/고정 분할 전).
+    `g_ops`: `g` 와 같은 길이·순서의 연산 수(그 항목 값을 만드는 데 쓴 부동소수 연산 횟수 -- `conductance_matrix(bound=True)` 의 g_bound 가 읽는다).
+    길이가 다르면 `ValueError`(항목마다 연산 수가 하나여야 한다)."""
 
     g: tuple = ()
     c: tuple = ()
+    g_ops: tuple = ()
+
+    def __post_init__(self):
+        if len(self.g_ops) != len(self.g):
+            raise ValueError("StampSet.g_ops 길이(%d)가 g 길이(%d)와 다르다" % (len(self.g_ops), len(self.g)))
 
 
 @dataclasses.dataclass(frozen=True)

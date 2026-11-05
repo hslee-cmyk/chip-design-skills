@@ -460,7 +460,7 @@ def test_context_without_area_constraint_has_no_budget(tmp_path, lut_sealed):
 #     "다른 모듈은 U2 결과를 그대로 소비한다" -> 필드가 graph 레코드 key `s1`(GRAPH_KEY)에 있고, 소비자 search_domain 은 정준형·궤도·전류
 #     대칭을 다시 계산하지 않는다(관찰: 그 이름의 함수 호출 수 = 0).
 
-_P_PORTS = {"ip": ("input", "differential_input"), "im": ("input", "differential_input"),
+_P_PORTS = {"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),          # [IT-1 DEC-106]
             "op": ("output", "differential_output"), "om": ("output", "differential_output")}
 _P_R = (("R1", "resistor", 1e5), ("R2", "resistor", 1e5))
 
@@ -555,7 +555,7 @@ def test_search_domain_does_not_recompute_symmetry(tmp_path, lut_sealed, monkeyp
 # 같은 궤도 안 불일치는 기존 test_bounds_differ_rejected(test_orbit_ties.py)가 tied_orbit_bounds_differ 로 본다.
 # (design 이 적은 toy 'U11 pass_device 변형'(통과 MOS Mx 포함)은 §6-8 자기 맞바꿈 정지에 먼저 걸려 search_domain 에 닿지 않는다 -- 결함 후보로 보고.)
 
-_X_PORTS = {"ip": ("input", "differential_input"), "im": ("input", "differential_input"),
+_X_PORTS = {"ip": ("input", "differential_input_p"), "im": ("input", "differential_input_n"),          # [IT-1 DEC-106]
             "op": ("output", "differential_output"), "om": ("output", "differential_output")}
 _ALL4 = {"M1", "M2", "M3", "M4"}
 
@@ -633,3 +633,21 @@ def test_cross_orbit_current_tie_empty_box_rejected(tmp_path):
     assert (det["gate"], det["reason"]) == ("search_domain", "tied_current_box_empty")
     names = {x[1] for x in det["elements"]}
     assert names <= _ALL4 and names & {"M1", "M2"} and names & {"M3", "M4"}
+
+
+# ---------------------------------------------------------------- [EO-1 범위 4, interface card 20261104-eo1r4-sf1l §3 T-D1] off 만 가진 kind 는 상자 없음
+# oracle (식): card §3 '`search_domain` kind 목록: `off` 소자만 가진 kind 는 상자 없음'. 회로: nmos M1 (out, in, gnd) + R1 (vdd, out) +
+# pmos Mp (out, vdd, vdd) 를 off 로 선언 -> pmos 는 off 소자만 가진 kind.
+
+def test_off_only_kind_has_no_current_box(tmp_path, lut_sealed):
+    from gmid_engine.authoring import RegionDecl
+    from sizing.conftest import build_ctx
+    from .conftest import new_access
+    doc = topo("hand_offkind", [mos("M1", "nmos", "out", "in", "gnd"), mos("Mp", "pmos", "out", "vdd", "vdd")],
+               {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")},
+               passives=[two("R1", "resistor", "vdd", "out")])
+    off = RegionDecl("Mp", "off", None, ("gain_ss_db",), 1e-6, 1e-6)
+    dc = build_ctx(tmp_path, doc, new_access(lut_sealed), regions=(off,))[2]
+    d = domain_of(dc, _settings((1e3, 1e6)), write_pdk(tmp_path / "pdk"))
+    assert [k for k, _ in d.current_box] == ["nmos"]                       # pmos 상자 없음
+    assert all(v.component[1] != "Mp" for v in d.variables)

@@ -14,8 +14,10 @@
   `{"verdict": "l_search", "rule": "LR10", "stops": [...]}` 가 언제나 한 줄 더해진다(`sweep_front` 의 `lb_stops`, L-b 가 돌지 않았으면 빈 목록).
 * 계측 `perf`(설계 7.4): requests·kernel_calls·hits·fail_hits·outside_domain·recompute_same_key, 고유 키 수,
   평가 시간 중앙값, LUT memo 퇴출 수, 블록 계수(`blocks` = 실행 하나가 단계 A 부터 부른 모든 (블록, 분할)의 행 -- `sctx.dc.counters.snapshot()`,
-  `block_totals` = 여섯 계수 칸의 합), 블록 결과 색인 크기(`block_index_entries` = `entry_count()`, `block_index_bound` = `len(blocks) × (E_total + 1)` 또는 null -- card B 보고용 식,
-  E_total 은 `_e_total`).
+  `block_totals` = 여섯 계수 칸의 합), 블록 결과 색인 크기(`block_index_entries` = `entry_count()`, `block_index_bound` = `donors.index_bound(E_total)` 또는 null,
+  E_total 은 `_helpers_ceiling.e_total`). `eval_budget` 칸의 뜻은 선언 실행 = E_B, 유도 실행 = D 로 갈린다(`eval_budget_source` 가 구분, 결과 JSON 칸 이름은 그대로).
+* [XRUN-F1 card C] 예산: 진입에서 `donors.open_bound(E_total)`(색인 항목 수 상한 검사 열기), `sweep_front` 뒤 감도 게이트 전에 `search_ceiling(sctx, final=True)` 한 번(평가가 적어
+  유도 전이가 없었던 실행의 D 를 정한다), 게이트 뒤 끝 확인(`kernel_calls` > E_total 또는 색인 항목 수 > 상한이면 `RuntimeError`)과 `close_bound()`. 게이트는 탐색 예산을 다 써도 front 점이 있으면 언제나 돈다.
   합격 기준(NFR-2): kernel_calls == 고유 키 수, recompute_same_key == 0, 모든 행 recomputes_same_input == 0, LUT memo 퇴출 0.
 """
 import dataclasses
@@ -27,7 +29,9 @@ from gmid_engine.metrics import GATE_EMPTY, GATE_REASON_FRONT_EMPTY, GateResult,
 
 from .eps_sweep import sweep_front
 from .gate_run import run_sensitivity_gate
+from ._helpers_ceiling import e_total, gate_reserve
 from .layer0_center import layer0_start
+from .search_ceiling import search_ceiling
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, SearchFront
 from .start_points import start_points
 
@@ -36,16 +40,6 @@ from .start_points import start_points
 _LAYER0_REFINEMENTS_OUT_OF_SCOPE = ("GB3 블록 분해·GB4 블록 gain 상한표(블록 gain 예산, DEC-71 (3)(6)·DEC-73)",
                                     "LR5 knee 앵커(집계·측정점·격자 의존 열린 항목)",
                                     "GB5 층 0 근사식(DEC-92 (2), comp_approx_gap)")
-
-
-def _e_total(sctx):
-    """card B 의 E_total(설계 40 §2.4.5 '상한', card C 가 계산 자리 하나로 정하며 이 식을 지운다): 예산 선언이면 `eval_budget` + N_T(as-built 0) + R(= 2 × 변수 수),
-    한 번 유도했으면 `eval_budget`(= D), 정해지지 않았으면 None."""
-    if sctx.eval_budget is None:
-        return None
-    if sctx.eval_budget_source == "declared":
-        return sctx.eval_budget + 2 * len(sctx.domain.variables)
-    return sctx.eval_budget
 
 
 def _point_record(sctx, point):
@@ -65,12 +59,23 @@ def find_front(sctx, given_starts):
     env_fp = fp_of(blas_environment())      # [NFR-4 재확인 (c)] 진입에서 한 번 -- 확인 실패는 RuntimeError, 반환값 지문이 runs 줄 `env_fp`
     t_start = time.perf_counter()
     sctx.deadline = t_start + sctx.settings.front_budget_s
+    sctx.dc.donors.open_bound(lambda: e_total(sctx))      # 색인 항목 수 상한 검사 열기 -- E_total 은 참조로 읽는다(값 사본 없음)
     layer0 = layer0_start(sctx)
     starts, start_log = start_points(sctx, tuple(given_starts), () if layer0.start is None else (layer0.start,))
     out = sweep_front(sctx, starts)
+    search_ceiling(sctx, final=True)      # 게이트 전: 평가가 n_θ + 1 개 미만이라 유도 전이가 없었다면 지금 D 를 정한다(D − R 보다 탐색이 더 썼으면 ValueError)
     notes = [dict(n) for n in sctx.constraint_notes]
-    gate = (run_sensitivity_gate(sctx, out["front"][0].result) if out["front"]       # [U7] 최종 해의 감도 게이트(40 §3.8-2) -- 언제나 한 행(E-01)
+    k_gate = sctx.counters["kernel_calls"]
+    gate = (run_sensitivity_gate(sctx, out["front"][0].result) if out["front"]       # [U7] 최종 해의 감도 게이트(40 §3.8-2), 탐색 예산을 다 써도 돈다 -- 언제나 한 행(E-01)
             else GateResult(False, (), (), None, GATE_EMPTY, GATE_REASON_FRONT_EMPTY, ()))
+    if sctx.counters["kernel_calls"] - k_gate > gate_reserve(sctx):
+        raise RuntimeError("find_front: 감도 게이트가 예약 R=" + str(gate_reserve(sctx)) + " 보다 많은 커널 평가를 썼다: " + str(sctx.counters["kernel_calls"] - k_gate))
+    total = e_total(sctx)
+    if total is not None and sctx.counters["kernel_calls"] > total:
+        raise RuntimeError("find_front: kernel_calls=" + str(sctx.counters["kernel_calls"]) + " 가 E_total=" + str(total) + " 를 넘었다")
+    if total is not None and sctx.dc.donors.entry_count() > sctx.dc.donors.index_bound(total):
+        raise RuntimeError("find_front: 블록 결과 색인 항목 수 " + str(sctx.dc.donors.entry_count()) + " 가 상한 " + str(sctx.dc.donors.index_bound(total)) + " 를 넘었다")
+    sctx.dc.donors.close_bound()
     notes.append({"verdict": gate.verdict, "reason": gate.reason, "rule": "sensitivity_gate", "errors": list(gate.errors),
                   "checks": len(gate.checks), "unchecked": sum(1 for c in gate.checks if c[4] is None), "unmeasured": list(gate.unmeasured),
                   "epsilon_db": gate.epsilon})
@@ -115,7 +120,6 @@ def find_front(sctx, given_starts):
                       "pending_points": len(out["pending_front"])})
     memo_evictions = sum(s.evictions for _r, s in sctx.dc.lut.memo.stats())
     block_counts = sctx.dc.counters.snapshot()        # 실행 하나의 계수 -- 단계 A 부터 불린 모든 (블록, 분할), 구간 차를 계산하지 않는다
-    e_total = _e_total(sctx)
     perf = dict(sctx.counters)
     perf.update(unique_keys=len(sctx.computed_keys),
                 eval_time_median_s=statistics.median(sctx.eval_times) if sctx.eval_times else None,
@@ -124,7 +128,7 @@ def find_front(sctx, given_starts):
                 blocks=[dataclasses.asdict(row) for row in block_counts.blocks],
                 block_totals=dataclasses.asdict(block_counts.block_totals),
                 block_index_entries=sctx.dc.donors.entry_count(),
-                block_index_bound=None if e_total is None else len(block_counts.blocks) * (e_total + 1), n_starts=len(starts),
+                block_index_bound=None if total is None else sctx.dc.donors.index_bound(total), n_starts=len(starts),
                 n_solves=len(out["solves"]), eval_budget=sctx.eval_budget, eval_budget_source=sctx.eval_budget_source,
                 frozen_columns=sum(len(s.frozen) for _p, s in out["solves"]),
                 stops_eval_budget=sum(1 for _p, s in out["solves"] if s.stop == "eval_budget"),

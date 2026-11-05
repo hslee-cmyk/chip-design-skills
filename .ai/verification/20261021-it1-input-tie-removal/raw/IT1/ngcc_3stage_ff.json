@@ -1,0 +1,37 @@
+{
+ "circuit": "ngcc_3stage_ff",
+ "output_structure": {
+  "input_dc_declared": false,
+  "n_outputs": 1,
+  "plan_stop": "stage_a_review_needed",
+  "rows": [
+   {
+    "class": "high_impedance",
+    "component_size": 1,
+    "engine_path": {
+     "stop": "stage_a_review_needed"
+    },
+    "fprime_hit": [],
+    "output": "Vout",
+    "s_os1": null,
+    "w3": false,
+    "writer_chain": []
+   }
+  ],
+  "s_os2_empty": false,
+  "s_os2_tuple": false,
+  "spec_feedback_kind": "empty_tuple",
+  "w3_declared": [],
+  "w3_outputs_on_hard_path": 0
+ },
+ "repo": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922/scratchpad/it1-audit/it1-iso",
+ "set": "library",
+ "side": "IT1",
+ "stage_a": {
+  "exit_code": 2,
+  "status": "review_needed"
+ },
+ "tag": "",
+ "wall_s": 0.7029838999733329,
+ "wrapped": true
+}

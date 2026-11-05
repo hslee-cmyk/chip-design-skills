@@ -76,14 +76,14 @@ def test_noise_signatures_ss_transfer(name):
 def test_large_signal_metrics_have_no_view(name):
     """40 §3.8-8 표: 스윙·ICMR 은 'ls'(뷰 없음) -- 뷰 칸이 없다."""
     sig = metric_catalog()[name]
-    assert (sig.unit, sig.domain, sig.view_kind) == ("v", "ls", None)
+    assert (sig.unit, sig.domain, sig.view_kind) == ("v", "dc", None)  # [IT-2d O-109 U-106] DC quantity: domain dc
 
 
 @pytest.mark.parametrize("name", ["offset_in_sigma_mv", "offset_excess", "offset_sys_mv"])
 def test_offset_metrics_transfer_view(name):
     """40 §3.8-8 표: offset 3개는 'ss / transfer'(gain 제약 전달 뷰) -- offset_sys_mv 의 'dc→ss' 는 최종 영역 ss 로 읽는다."""
     sig = metric_catalog()[name]
-    assert (sig.domain, sig.view_kind) == ("ss", "transfer")
+    assert (sig.domain, sig.view_kind) == ("dc", "transfer")  # [IT-2d O-109 U-106] offset three are DC quantities
 
 
 def test_empty_pending_table_catalog_equals_registry():
@@ -161,4 +161,4 @@ def test_ff_gm_ratio_signature():
 def test_mirror_ratio_sigma_pct_has_no_view():
     """[2026-10-09 master cc91068] 40 §3.8-8 표 정정: mirror_ratio_sigma_pct 'dc→ss / 없음'(뷰 불필요). oracle (d)."""
     sig = metric_catalog()["mirror_ratio_sigma_pct"]
-    assert (sig.unit, sig.domain, sig.view_kind) == ("pct", "ss", None)
+    assert (sig.unit, sig.domain, sig.view_kind) == ("pct", "dc", None)  # [IT-2d O-109 U-106]

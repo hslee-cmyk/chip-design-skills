@@ -1,0 +1,243 @@
+{"id": "gmid_engine/tests/metrics/test_icm_window.py", "outcome": "collect_error", "msg": "ImportError while importing test module 'C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_it2c_audit\\r2\\skills\\analog-gmid-design\\gmid_engine\\tests\\metrics\\test_icm_window.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\nC:\\Python314\\Lib\\importlib\\__init__.py:88: in import_m"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_cs_current_source_load", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_cascode_raises_low_bound", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_nmos_follower_and_input_window", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_differential_pair_four_times_min_half_width", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "'bool' object is not iterable"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_linear_device_has_no_channel_edge", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_resolution_follows_binding_side", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_bounds_match_linear_program[cascode]", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_bounds_match_linear_program[cs]", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_bounds_match_linear_program[follower_stack]", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_bounds_match_linear_program[telescopic]", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_undefined_codes_swing_only", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_sat_unavailable_ignored_for_linear_device", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_name_bijection_and_order_invariance", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "'bool' object is not iterable"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_deterministic", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "'bool' object is not iterable"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_it2d_ls_swing_signature_has_no_input_arguments", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ['devices', '...outputs', ...] == ['devices', '...diff_outputs']\n  \n  At index 4 diff: 'inputs' != 'diff_outputs'\n  Left contains 2 more items, first extra item: 'diff_outputs'\n  Use -v to get "}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_it2d_ls_swing_input_fields_keep_defaults", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "'bool' object is not iterable"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_it2d_ls_swing_circuit_without_inputs_has_swing_value", "when": "call", "outcome": "failed", "exc": "builtins.TypeError", "msg": "ls_swing() missing 1 required positional argument: 'inputs'"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_it2d_g2_ls_swing_source_has_no_input_window_computation", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert not ({'input_dc_v', 'inputs', 'required_input_cm_v', 'saturation_window', 'v_icm'} & {'PAIR', 'SwingIcmr', '_add', '_bare', '_constraints', '_relax', ...})\n +  where {'PAIR', 'SwingIcmr', '_add"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_it2d_g2_no_old_front_names_in_engine_sources", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ls_swing.py::test_it2d_g2_saturation_window_called_only_from_kernel_and_icm_config", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_aux_entries_merged_after_ss_entries_and_field_written", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_missing_inputs_are_undefined_not_silent", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_mismatch_source_without_lut_table", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_structure_gives_block_residual_and_nqs_reports", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_aux_does_not_change_ss_metric_values", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_no_aux_request_no_structure_keeps_metrics_ss_bundle", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_deterministic", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m1_declared_input_values_from_icm_config", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 0.6 == 0.002964366970697241 ± 1.0e-12\n  \n  comparison failed\n  Obtained: 0.6\n  Expected: 0.002964366970697241 ± 1.0e-12"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m1_undeclared_input_gives_required_tuple[engine]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 0.5999999999999999 == 0.002964366970697241 ± 1.0e-12\n  \n  comparison failed\n  Obtained: 0.5999999999999999\n  Expected: 0.002964366970697241 ± 1.0e-12"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m1_undeclared_input_gives_required_tuple[pending]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 0.5999999999999999 == 0.002964366970697241 ± 1.0e-12\n  \n  comparison failed\n  Obtained: 0.5999999999999999\n  Expected: 0.002964366970697241 ± 1.0e-12"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m2_config_none_same_definitional_code_for_metrics", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {('sat_unavai...efinitional')} == {('icm_inputs...efinitional')}\n  \n  Extra items in the left set:\n  ('sat_unavailable', 'definitional')\n  Extra items in the right set:\n  ('icm_inputs_unsupport"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m2_unmeasured_window_is_numeric_input_window_unmeasured", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {('sat_unavai...efinitional')} == {('input_wind...', 'numeric')}\n  \n  Extra items in the left set:\n  ('sat_unavailable', 'definitional')\n  Extra items in the right set:\n  ('input_window_unmeasu"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m3_no_lo_hi_arithmetic_in_icm_window_functions", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 0 == 1\n +  where 0 = len([])"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_m3_metrics_aux_reads_icm_config_not_kernel_window", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {('graph', 'i..._window_cfg')} <= {('device', '... 'pins'), ...}\n  \n  Extra items in the left set:\n  ('node', 'dc_colour')\n  ('node', 'dc_window_cfg')\n  ('graph', 'icm_config')"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_b77a_capacitor_only_missing_dc_defined_ss_undefined", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "swing_out_v\nassert (None is not None)\n +  where None = MetricResult(name='swing_out_v', value=None, undefined=(Undefined(quantity='swing_out_v', code='passive_value_undeclared', category='definitional"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_b77b_resistor_missing_dc_and_ss_undefined", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_b77c_missing_judgement_has_no_metric_name_branch", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "결측 판정 함수가 metrics_aux 에 없다(전제)\nassert []"}
+{"id": "gmid_engine/tests/metrics/test_metrics_aux.py::test_it2d_b77d_no_new_missing_code_constant", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_input_dc_evaluation_is_dc_evaluation", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_result_shape_and_lineage", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_requests_split_and_dedup", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_values_against_closed_form", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s11_junction_caps_and_approximation", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_junction_enters_frequency_metrics", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_counted_rails_default_undeclared", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_only_sealed_snapshot_accepted[dc_evaluation]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_only_sealed_snapshot_accepted[snapshot]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_only_sealed_snapshot_accepted[none]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_ctx_must_be_kernel_context", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_keyword_required", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[none]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[params_tuple]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[junction_params]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[pdk_decl]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[dict]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_junction_must_be_junction_source[positional_only]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s13_negative_check_valid_junction_accepted", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_theta_checked", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s10_passive_theta_argument_removed", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[spec_valued]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[not_passive]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[unknown]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[theta_resistance_too]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_value_two_sources_or_non_passive_rejected[rule_and_theta]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s14_engine_capacitor_value_from_theta", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_pending_capacitor_stays_missing", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s6_lineage_reuse_zero_compute", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s12_junction_change_recomputes_ss_blocks_only", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_fd_step_recomputes_and_no_same_input_recompute", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_only_changed_blocks_recompute", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_determinism", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_sky130_decls_ss_dev_junction_matches_reference", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_zc_schema_premise", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_zc_rule_value_enters_small_signal", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_zc_fallback_theta_enters_small_signal", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s15_rule_equals_spec_declared_value", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[cell]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[nocell_c]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_s16_passive_theta_fd_reuses_dc_and_ss_dev[nocell_r]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_values_reused_on_mos_theta_only_change[cell]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_passive_values_reused_on_mos_theta_only_change[nocell]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2a_same_theta_ss_reevaluation_from_child_grafts", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2c_t_l11c_same_theta_reevaluation_grafts_new_blocks", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2c_t_l11c_lineage_reuse_zero_compute_for_new_blocks", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2c_new_graph_fields_present_after_ss_evaluate", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2d_f_icm_margin_same_value_in_report_and_front_row_as_is", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 0.6 == 0.002964366970697241 ± 1.0e-12\n  \n  comparison failed\n  Obtained: 0.6\n  Expected: 0.002964366970697241 ± 1.0e-12"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2d_f_icm_margin_same_value_in_report_and_front_row_servo", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 0.7392572012022065 == 0.02998208492472343 ± 1.0e-12\n  \n  comparison failed\n  Obtained: 0.7392572012022065\n  Expected: 0.02998208492472343 ± 1.0e-12"}
+{"id": "gmid_engine/tests/metrics/test_ss_evaluate.py::test_it2d_o215_icmr_judged_by_region_row_window", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert (1.8 == 0.010720450414576255 ± 1.0e-12\n  \n  comparison failed\n  Obtained: 1.8\n  Expected: 0.010720450414576255 ± 1.0e-12)"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_names_exactly_contract_table", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[area_search_m2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[ff_gm_ratio]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[gain_ss_db]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[gbw_ss_hz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[icm_margin_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('v', 'ls', None, None) == ('v', 'dc', None, None)\n  \n  At index 1 diff: 'ls' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[icmr_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('v', 'ls', None, None) == ('v', 'dc', None, None)\n  \n  At index 1 diff: 'ls' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[mirror_ratio_sigma_pct]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('pct', 'ss', None, None) == ('pct', 'dc', None, None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[noise_excess_th]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[noise_fc_in_hz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[noise_out_int_vrms]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[noise_th_in_v2hz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[offset_excess]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('ratio', 'ss...ansfer', None) == ('ratio', 'dc...ansfer', None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[offset_in_sigma_mv]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('mv', 'ss', 'transfer', None) == ('mv', 'dc', 'transfer', None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[offset_sys_mv]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('mv', 'ss', 'transfer', None) == ('mv', 'dc', 'transfer', None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[parasitic_pm_ss_deg]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[pm_cm_ss_deg]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[pm_ss_deg]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[power_dc_w]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[ratio_ss_db]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[rout_ss_ohm]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[supply_current_dc]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[swing_out_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('v', 'ls', None, None) == ('v', 'dc', None, None)\n  \n  At index 1 diff: 'ls' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_entry[ugf_ss_hz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_unknown_name_key_error", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[ff_gm_ratio]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[icm_margin_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ls' == 'dc'\n  \n  - dc\n  + ls"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[icmr_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ls' == 'dc'\n  \n  - dc\n  + ls"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[mirror_ratio_sigma_pct]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ss' == 'dc'\n  \n  - dc\n  + ss"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[offset_excess]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ss' == 'dc'\n  \n  - dc\n  + ss"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[offset_in_sigma_mv]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ss' == 'dc'\n  \n  - dc\n  + ss"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[offset_sys_mv]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ss' == 'dc'\n  \n  - dc\n  + ss"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_domain_label[swing_out_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ls' == 'dc'\n  \n  - dc\n  + ls"}
+{"id": "gmid_engine/tests/metrics/test_registry.py::test_it2d_registry_has_no_ls_domain_left", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert {'icm_margin_...'swing_out_v'} == set()\n  \n  Extra items in the left set:\n  'swing_out_v'\n  'icmr_v'\n  'icm_margin_v'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_catalog.py::test_catalog_contents", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "offset_in_sigma_mv\nassert ('mv', 'ss', 'transfer', None) == ('mv', 'dc', 'transfer', None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_catalog.py::test_mirror_ratio_sigma_pct_unit_domain", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('pct', 'ss', None) == ('pct', 'dc', None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_catalog.py::test_catalog_read_only", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_design_names_are_exactly_the_pending_set", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_registry_holds_moved_rows_and_disjoint_from_still_pending", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_catalog_is_disjoint_union", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[ff_gm_ratio]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[icm_margin_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ls' == 'dc'\n  \n  - dc\n  + ls"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[icmr_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ls' == 'dc'\n  \n  - dc\n  + ls"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[mirror_ratio_sigma_pct]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ss' == 'dc'\n  \n  - dc\n  + ss"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[noise_excess_th]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[noise_fc_in_hz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[noise_out_int_vrms]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[noise_th_in_v2hz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[offset_excess]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ss' == 'dc'\n  \n  - dc\n  + ss"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[offset_in_sigma_mv]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ss' == 'dc'\n  \n  - dc\n  + ss"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[offset_sys_mv]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ss' == 'dc'\n  \n  - dc\n  + ss"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_pending_signature_units_in_vocabulary[swing_out_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert 'ls' == 'dc'\n  \n  - dc\n  + ls"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_noise_signatures_ss_transfer[noise_th_in_v2hz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_noise_signatures_ss_transfer[noise_fc_in_hz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_noise_signatures_ss_transfer[noise_excess_th]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_noise_signatures_ss_transfer[noise_out_int_vrms]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_large_signal_metrics_have_no_view[swing_out_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('v', 'ls', None) == ('v', 'dc', None)\n  \n  At index 1 diff: 'ls' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_large_signal_metrics_have_no_view[icmr_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('v', 'ls', None) == ('v', 'dc', None)\n  \n  At index 1 diff: 'ls' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_large_signal_metrics_have_no_view[icm_margin_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('v', 'ls', None) == ('v', 'dc', None)\n  \n  At index 1 diff: 'ls' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_offset_metrics_transfer_view[offset_in_sigma_mv]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('ss', 'transfer') == ('dc', 'transfer')\n  \n  At index 0 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_offset_metrics_transfer_view[offset_excess]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('ss', 'transfer') == ('dc', 'transfer')\n  \n  At index 0 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_offset_metrics_transfer_view[offset_sys_mv]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('ss', 'transfer') == ('dc', 'transfer')\n  \n  At index 0 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_empty_pending_table_catalog_equals_registry", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_name_outside_catalog_has_no_registry_value", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_noise_name_reads_noise_analysis[noise_th_in_v2hz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_noise_name_reads_noise_analysis[noise_fc_in_hz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_noise_name_reads_noise_analysis[noise_excess_th]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_noise_name_reads_noise_analysis[noise_out_int_vrms]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[ff_gm_ratio]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[icm_margin_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('v', 'ls', None, None) == ('v', 'dc', None, None)\n  \n  At index 1 diff: 'ls' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[icmr_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('v', 'ls', None, None) == ('v', 'dc', None, None)\n  \n  At index 1 diff: 'ls' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[mirror_ratio_sigma_pct]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('pct', 'ss', None, None) == ('pct', 'dc', None, None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[offset_excess]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('ratio', 'ss...ansfer', None) == ('ratio', 'dc...ansfer', None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[offset_in_sigma_mv]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('mv', 'ss', 'transfer', None) == ('mv', 'dc', 'transfer', None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[offset_sys_mv]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('mv', 'ss', 'transfer', None) == ('mv', 'dc', 'transfer', None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_moved_name_signature_unchanged_in_registry[swing_out_v]", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('v', 'ls', None, None) == ('v', 'dc', None, None)\n  \n  At index 1 diff: 'ls' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_names_outside_closed_vocabulary_absent[noise_in_density_ss_v_rthz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_names_outside_closed_vocabulary_absent[noise_in_integrated_ss_v]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_names_outside_closed_vocabulary_absent[noise_v_rthz]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_names_outside_closed_vocabulary_absent[mismatch_sigma_mv]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_names_outside_closed_vocabulary_absent[mirror_ratio_error_mv]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_names_outside_closed_vocabulary_absent[mismatch_sigma_v]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_catalog_read_only_includes_pending", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_ff_gm_ratio_signature", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_pending_metrics.py::test_mirror_ratio_sigma_pct_has_no_view", "when": "call", "outcome": "failed", "exc": "builtins.AssertionError", "msg": "assert ('pct', 'ss', None) == ('pct', 'dc', None)\n  \n  At index 1 diff: 'ss' != 'dc'\n  Use -v to get more diff"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[BlockGain]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[BlockResidual]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[BlockStruct]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[CoupledResidual]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[FfContribution]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[FfRatio]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[FfStruct]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[GateResult]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[LsFields]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[LsNode]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[MetricStructure]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[MirrorRatio]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[MismatchSource]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[NqsRatio]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[OffsetAnalysis]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[OffsetContribution]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[OffsetSystematic]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[SatDevice]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[SwingIcmr]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_frozen_dataclass[ViewStruct]", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_records_hashable_and_immutable", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_defaults_are_empty_or_none", "outcome": "passed"}
+{"id": "gmid_engine/tests/metrics/test_aux_types.py::test_mismatch_source_canonical_and_from_decl", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_hand_linear_system", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_kind_is_not_used_for_window_end", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2b_sw_given_slope_skips_the_sensitivity_system", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_root_is_a_single_net", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_pair_root_is_not_accepted", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_rows_with_slope_at_or_below_float_eps_are_skipped[0.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_rows_with_slope_at_or_below_float_eps_are_skipped[1e-17]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_rows_with_slope_at_or_below_float_eps_are_skipped[-1e-17]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_rows_with_slope_at_or_below_float_eps_are_skipped[2e-16]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_it2c_sw_row_just_above_float_eps_is_kept", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[1]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[2]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[3]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[4]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_random_linear_systems_against_numpy[5]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_singular_system_is_none", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_gradient_outside_domain_is_none", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_follower_oracle_window", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_interior_y_maps_into_saturation_window[0.02]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_interior_y_maps_into_saturation_window[0.25]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_interior_y_maps_into_saturation_window[0.5]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_interior_y_maps_into_saturation_window[0.75]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_interior_y_maps_into_saturation_window[0.98]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_window_ends_are_saturated[0.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_window_ends_are_saturated[1.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_window_found_when_rail_midpoint_is_outside", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.0-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.0-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.125-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.125-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.25-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.25-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.5-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.5-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.75-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.75-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.875-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[0.875-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[1.0-above]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_off_mid_window_maps_y_and_ends_saturated[1.0-below]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_mid_window_ends_have_nonnegative_saturation_slack[0.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_mid_window_ends_have_nonnegative_saturation_slack[1.0]", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_declared_input_dc_same_theta_seals", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_empty_window_rejected", "outcome": "passed"}
+{"id": "gmid_engine/tests/sizing/test_input_window.py::test_repeat_identical", "outcome": "passed"}

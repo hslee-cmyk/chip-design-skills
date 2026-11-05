@@ -28,3 +28,11 @@ def test_large_node_numbers():
 def test_other_type_rejected(bad):
     with pytest.raises(TypeError):
         two_terminal_stamps(bad)
+
+
+def test_it2c_g_ops_resistor_one_per_net_and_capacitor_empty():
+    """oracle 대조: (손) [IT-2c T-L10 `g_ops`] interface: 저항 g_ops = 넷 각 1(1/R 나눗셈 한 번), 용량은 g 가 비어 g_ops 도 빈 값."""
+    st = two_terminal_stamps(Resistor(1, 2, 1e3))
+    assert len(st.g_ops) == len(st.g) == 4 and set(st.g_ops) == {1} and st.g_ops == (1, 1, 1, 1)
+    cs = two_terminal_stamps(Capacitor(3, 0, 2e-12))
+    assert cs.g == () and cs.g_ops == ()

@@ -1,0 +1,15 @@
+{"tag": "lib", "circuit": "cnr_ota", "stop": "dc_resistor_cycle"}
+{"tag": "lib", "circuit": "common_gate_amplifier", "all_F_to_S": [], "each": [], "B_to_S": [], "n_F": 1, "n_B": 2}
+{"tag": "lib", "circuit": "current_reuse_telescopic_ota", "all_F_to_S": [], "each": [], "B_to_S": [["M11b", ["M11a"], ["M11b"]], ["M14a", ["M14b"], ["M14a"]], ["M20b", ["M20a"], ["M20b"]], ["M23a", ["M24b"], ["M23a"]], ["M40", ["M39"], ["M40"]]], "n_F": 8, "n_B": 35}
+{"tag": "lib", "circuit": "erfc_ota", "stop": "mos_zero_current_structural"}
+{"tag": "lib", "circuit": "folded_cascode", "all_F_to_S": [], "each": [["M1", ["M1", "M2"]]], "B_to_S": [], "n_F": 4, "n_B": 9}
+{"tag": "lib", "circuit": "ngcc_3stage_ff", "all_F_to_S": [], "each": [], "B_to_S": [["M0", ["M12"], ["M0"]], ["M5", ["M12"], ["M5"]]], "n_F": 0, "n_B": 12}
+{"tag": "lib", "circuit": "nmcnr_amplifier", "all_F_to_S": [], "each": [], "B_to_S": [["M104", ["M105"], ["M104"]]], "n_F": 2, "n_B": 9}
+{"tag": "lib", "circuit": "pushpull_follower_buffer", "all_F_to_S": [], "each": [], "B_to_S": [], "n_F": 2, "n_B": 2}
+{"tag": "lib", "circuit": "r2r_opamp", "all_F_to_S": [], "each": [["M12", ["M11", "M12"]], ["M18", ["M17", "M18"]], ["M2", ["M1", "M2"]], ["M4", ["M3", "M4"]]], "B_to_S": [["M22", ["M21"], ["M22"]], ["M23", ["M24"], ["M23"]]], "n_F": 20, "n_B": 11}
+{"tag": "lib", "circuit": "rfc_ota", "all_F_to_S": [], "each": [["M1b", ["M1a", "M1b"]], ["M2a", ["M1a", "M2a"]], ["M2b", ["M1a", "M2b"]]], "B_to_S": [["M10", ["M9"], ["M10"]], ["M3a", ["M3b"], ["M3a"]], ["M4a", ["M4b"], ["M4a"]], ["Q11", ["M0"], ["Q11"]], ["Q16", ["Q15"], ["Q16"]], ["Q3", ["Q12"], ["Q3"]], ["Q7", ["M0"], ["Q7"]], ["Q9", ["M0"], ["Q9"]]], "n_F": 7, "n_B": 28}
+{"tag": "lib", "circuit": "sf_pushpull_output_opamp", "all_F_to_S": [], "each": [], "B_to_S": [["M14", ["M16"], ["M14"]], ["M17", ["M9"], ["M17"]], ["M20", ["M16"], ["M20"]], ["M6", ["M9"], ["M6"]], ["M8", ["M11"], ["M8"]]], "n_F": 2, "n_B": 16}
+{"tag": "lib", "circuit": "two_stage_ota", "all_F_to_S": [], "each": [], "B_to_S": [["M5", ["M7"], ["M5"]]], "n_F": 0, "n_B": 4}
+{"tag": "lib", "circuit": "two_stage_ota_sf", "all_F_to_S": [], "each": [], "B_to_S": [["M5", ["M7"], ["M5"]], ["M9", ["M7"], ["M9"]]], "n_F": 0, "n_B": 5}
+{"tag": "lib_total", "circuits": 11, "stop": 2, "all_F_to_S_dep_changed": 0, "each_F_to_S_changed": 8, "each_F_to_S_cases": 46, "S_to_F_dep_changed": 0, "B_to_S_dep_changed": 26, "B_to_S_cases": 133, "n_dep_changed": 0}
+{"tag": "T1_full_rename", "base": {"M1": "S", "M2": "S", "M3": "B", "M4": "B", "M6": "B", "M7": "B"}, "dep": ["M1", "M3", "M4"], "tc_equal": 10, "dep_equal": 10, "n": 10}

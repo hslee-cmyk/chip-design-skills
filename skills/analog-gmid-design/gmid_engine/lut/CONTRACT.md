@@ -1,7 +1,7 @@
 # gmid_engine.lut 동작 계약 (MOD1, test 작성용)
 
 > **[U17 ①-b] LUT 파생 함수**(설계 40 §2.4.6 'memo 로 옮기는 것'·§2.4.8 (a) 행, v1.9.1 D10, 2026-10-13): `derived(memo, name, *args)` -- `DERIVED_FUNCTIONS` 의 `edge_costs`(kind, w_key)
-> -> `EdgeCost`(옛 metrics `edge_cost_bounds`, 영역 derived -- `DERIVED_TABLES` 에 `edge_costs` 추가), `reference_vds`(kind, w_key, L), `tol_vdsat_max`(kind, w_key, L, vds), `param_row`(kind, w_key, L, vds, vsb)
+> -> `EdgeCost`(옛 metrics `edge_cost_bounds`, 영역 derived -- `DERIVED_TABLES` 에 `edge_costs` 추가), `reference_vds`(kind, w_key, L), `vds_floor`(kind, w_key) -> float(영역 derived, `DERIVED_TABLES` 맨 뒤; 카드 HC-S -- 옛 `tol_vdsat_max` 는 삭제), `param_row`(kind, w_key, L, vds, vsb)
 > -> ((VGS 마디), x, y, z) | None(영역 curve)를 `memo.lookup` 으로 담는다(같은 인자 재계산 0). `memo.call` 형식 전환은 U17 ③. `EdgeCost` 는 `lut_types.py` 값 형식이다.
 
 - 대상: `gmid_engine/lut/` 공개 API(`gmid_engine.lut.__all__`). test 는 `from gmid_engine.lut import ...` 만 쓴다
@@ -65,6 +65,7 @@
 | 1 | `_helpers_columns.py` [r6] | helper: `column_source(lut, kind, w_key, column, required=True)`(열 출처, 4.3) |
 | 1 | `_helpers_grids.py` [r7] | helper: `npz_grids`(npz 축 읽기)·`npz_condition_mismatch`(측정 조건 대조) -- lut_set·noise_set·mismatch_set 공용 |
 | 1 | `_helpers_root.py` [r5, r7] | helper: `peak_index`, `strong_inversion_root`(곡선 묶음, 칸 안 Hermite 근 -- `hermite_root` 를 쓴다), [r7] `monotone_end`(분지에서 엄격 증가 구간 끝) |
+| 1 | `axis_bounds.py` [EO-1 범위 4] | `lut_axis_bounds(memo, kind, w_key) -> ((축, 첫 값, 끝 값), ...)`(`AXES` 순서, 슬라이스 격자 끝을 읽을 뿐 값 사본·memo 없음, 없는 슬라이스 `KeyError`) |
 | 1 | `axis_guard.py` | `check_axes` |
 | 1 | `curve_check.py` | `curve_report` |
 | 1 | `data_location.py` [r6] | `resolve_lut_location`(1.8) |
@@ -96,6 +97,8 @@
 | 6 | `noise_query.py` [r7] | `noise_params`(9.3) |
 | 6 | `noise_tolerance.py` [r7] | `tol_noise_table`(9.4; `TolNoiseTable` 비진입 공개 이름) |
 | 6 | `tolerance.py` [r6 층 3 → 5] | `tol_v_table` (`TolVTable` 은 비진입 공개 이름, 상수 `LOO_ORDERS`) |
+| 6 | `sat_threshold.py` [HC-S] | `sat_threshold`(포화 기준 정본: `SatBound(vdsat_v, tol_v, reason)`, 사유 상수 `REASON_*`; vds < 0 = `reverse_vds` 조회 0, 열 없음 = `vdsat_column_unavailable`, 축·L 밖 = `lut_domain`, tol 은 기록 전용) |
+| 6 | `sat_threshold_grid.py` [HC-S] | `sat_threshold_grid`(VDSAT 격자 입구, 축 (L, VGS, VDS, VS), 열 없음 None) |
 | 6 | `vdsat_curve.py` [r7] | `vdsat_curve`(4.5) |
 | 6 | `vdsat_tolerance.py` [r6] | `tol_vdsat_table` (`TolVdsatTable` 비진입 공개 이름, 상수 `LOO_ORDERS`, 5.2) |
 

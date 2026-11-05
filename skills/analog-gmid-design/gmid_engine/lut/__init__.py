@@ -3,6 +3,7 @@
 계약: lut/CONTRACT.md. 조회 함수는 첫 인자로 `LutMemo`(LutSet + 상한 LRU memo) 를 받는다.
 """
 
+from .axis_bounds import lut_axis_bounds
 from .axis_guard import check_axes
 from .cap_query import caps
 from .curve_check import curve_report
@@ -71,6 +72,15 @@ from .noise_query import noise_params
 from .noise_tolerance import TolNoiseTable, tol_noise_table
 from .point_query import op_point
 from .provenance import lut_provenance
+from .sat_threshold import (
+    REASON_LUT_DOMAIN,
+    REASON_OFF_DECLARED,
+    REASON_REVERSE_VDS,
+    REASON_VDSAT_COLUMN_UNAVAILABLE,
+    SatBound,
+    sat_threshold,
+)
+from .sat_threshold_grid import sat_threshold_grid
 from .table_cache import TableCache
 from .tolerance import TolVTable, tol_v_table
 from .vdsat_curve import vdsat_curve
@@ -117,8 +127,13 @@ __all__ = (
     "NoisePlanes",
     "NoiseTable",
     "OpPoint",
+    "REASON_LUT_DOMAIN",
+    "REASON_OFF_DECLARED",
+    "REASON_REVERSE_VDS",
+    "REASON_VDSAT_COLUMN_UNAVAILABLE",
     "REGIONS",
     "SLICE_OPTIONAL_COLUMNS",
+    "SatBound",
     "SliceSource",
     "TOL_NOISE_METRICS",
     "TOL_VDSAT_METRICS",
@@ -152,11 +167,14 @@ __all__ = (
     "noise_planes",
     "op_point",
     "require_lut_data",
+    "sat_threshold",
+    "sat_threshold_grid",
     "resolve_lut_location",
     "tol_mismatch_table",
     "tol_noise_table",
     "tol_v_table",
     "tol_vdsat_table",
+    "lut_axis_bounds",
     "vdsat",
     "vdsat_curve",
     "vgs_for_current_density",

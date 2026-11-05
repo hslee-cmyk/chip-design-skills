@@ -7,7 +7,8 @@
   `declared` = declared stage 묶음 ((출처, (소자 이름 tuple, ...)), ...)(대조용, U-50), `facts`·`stale` = `structure.json` 의 적용 가능한 ratified 사실·해시 불일치 기록,
   `declared_loop_cuts` = 안정도 제약이 선언된 루프 뷰의 끊는 gate 넷 이름들.
 * writes `graph/s1v`(key `S1V_KEY`): `views`(ViewS1v tuple -- 블록·복합 블록·극점 노드·루프·끊는 점은 뷰 안 칸), `l_classes`, `findings`(뷰 밖 기록),
-  `declared`(declared 대조 요약 ((출처, stage 묶음 수), ...)), `applied_facts`(적용한 ratified 사실 (개념, 대상)). 묶음 객체는 없다(v1.9.1 D1, 사본 금지).
+  `declared`(declared 대조 요약 ((출처, stage 묶음 수), ...)), `applied_facts`(적용한 ratified 사실 (개념, 대상)), `dependent_facts`(`dependent_member` 사실 그대로
+  ((멤버 이름 정렬 tuple, 종속 소자, approval_id), ...) -- 소비자 = `dc_writer_plan`, 대조·정지는 그쪽). 묶음 객체는 없다(v1.9.1 D1, 사본 금지).
 * 순서: 뷰 수집(`collect_views`) -> 전달 뷰마다 `analyze_view` -> 전달 뷰의 (3) 루프가 만든 루프 뷰(끊는 점마다 하나, 중첩 Miller 내부 루프는 제외)를 같은 `analyze_view` 로 분석
   -> 루프 뷰 판정(포트쌍 CM 루프 대응 R31, 선언 안 된 안정도 제약, 루프 뷰 극성 = 그 뷰의 DC 사이클 극성) -> L 동치류(`l_equivalence_classes`) -> declared 대조(`declared_compare`)
   -> ratified 사실 대조(override 적용 기록·confirm 일치·`structure_fact_mismatch`·`structure_fact_orphan`, 40 §3.2-3).
@@ -39,6 +40,7 @@ from .s1_values import (
 from .s1v_values import (
     CONCEPT_AC_GROUND_EXCEPTION,
     CONCEPT_DC_ROLE,
+    CONCEPT_DEPENDENT_MEMBER,
     CONCEPT_DRIVE_KIND,
     CONCEPT_FEEDFORWARD_CELL,
     CONCEPT_L_OWNER,
@@ -287,6 +289,7 @@ def s1v_fields(projection):
     all_roles = tuple(r for v in views for r in v.loop_roles)
     applied, fact_findings, confirmed = _fact_findings(s1, model, facts, views, all_roles, l_classes)
     views = _ratify_derived(views, confirmed)
+    dependent_facts = tuple((tuple(json.loads(f.subject)), f.value, f.approval_id) for f in facts if f.concept == CONCEPT_DEPENDENT_MEMBER)    # 사실 그대로(대조·정지는 쓰기 계획 `dc_writer_plan`)
     owner_order = tuple(Finding(F_L_OWNER_NAME_ORDER, SEVERITY_REVIEW, "", c.members,
                                 "L 동치류 주인을 tail·전류 출처·주경로 규칙으로 못 정해 이름 순서로 골랐다: " + c.owner, ("41 §1.12.5", "DEC-17"))
                         for c in l_classes if c.owner_rule == RULE_NAME_ORDER and c.status == STATUS_REVIEW_NEEDED)
@@ -295,4 +298,5 @@ def s1v_fields(projection):
     return {("graph", "views"): {S1V_KEY: tuple(views)}, ("graph", "l_classes"): {S1V_KEY: l_classes},
             ("graph", "findings"): {S1V_KEY: findings},
             ("graph", "declared"): {S1V_KEY: tuple((source, len(stages)) for source, stages in declared)},
-            ("graph", "applied_facts"): {S1V_KEY: applied}}
+            ("graph", "applied_facts"): {S1V_KEY: applied},
+            ("graph", "dependent_facts"): {S1V_KEY: dependent_facts}}

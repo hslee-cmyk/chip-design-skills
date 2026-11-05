@@ -1,0 +1,356 @@
+{
+ "calls": {
+  "Circuit.input_windows": {
+   "calls": 3,
+   "distinct": 3,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "Circuit.region_rows": {
+   "calls": 3,
+   "distinct": 3,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "Circuit.tolerance": {
+   "calls": 45,
+   "distinct": 36,
+   "repeat_calls": 9,
+   "repeated": [
+    {
+     "fp": "0a0c7165e91f8dd2",
+     "n": 4,
+     "sites": {
+      "block_columns.py:412": 36
+     }
+    },
+    {
+     "fp": "0b6082ad3fa81ab3",
+     "n": 3,
+     "sites": {
+      "block_columns.py:412": 27
+     }
+    },
+    {
+     "fp": "532733124ab2b686",
+     "n": 2,
+     "sites": {
+      "block_columns.py:614": 18
+     }
+    },
+    {
+     "fp": "00223ab9751af703",
+     "n": 2,
+     "sites": {
+      "block_columns.py:412": 18
+     }
+    },
+    {
+     "fp": "27ef882b130a2545",
+     "n": 2,
+     "sites": {
+      "block_columns.py:412": 18
+     }
+    },
+    {
+     "fp": "b7e56814cdfd4d0a",
+     "n": 2,
+     "sites": {
+      "block_columns.py:412": 18
+     }
+    }
+   ]
+  },
+  "_measure": {
+   "calls": 3,
+   "distinct": 3,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "_solve": {
+   "calls": 4,
+   "distinct": 4,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "_tolerance": {
+   "calls": 3,
+   "distinct": 3,
+   "repeat_calls": 0,
+   "repeated": []
+  },
+  "lut.op_point": {
+   "calls": 60,
+   "distinct": 24,
+   "repeat_calls": 36,
+   "repeated": [
+    {
+     "fp": "ad83f461a9260c29",
+     "n": 4,
+     "sites": {
+      "_helpers_lut.py:44": 27,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "7a5163897ae5b4fa",
+     "n": 4,
+     "sites": {
+      "_helpers_lut.py:44": 27,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "a959268da5bdd73c",
+     "n": 4,
+     "sites": {
+      "_helpers_lut.py:44": 27,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "bbed8663b8fe10e5",
+     "n": 4,
+     "sites": {
+      "_helpers_lut.py:44": 27,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "76011f61abc9b8aa",
+     "n": 4,
+     "sites": {
+      "_helpers_lut.py:44": 27,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "0cad8ae6223f6fe7",
+     "n": 4,
+     "sites": {
+      "_helpers_lut.py:44": 27,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "1ef2299033001730",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "2b6f8e24d96b0486",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "3cb6f18b4b8eae26",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "de1271b0115f7211",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "88b373ac4162f60d",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    },
+    {
+     "fp": "5335e9b6278746e2",
+     "n": 2,
+     "sites": {
+      "_helpers_lut.py:44": 9,
+      "gmb.py:53": 9
+     }
+    }
+   ]
+  },
+  "lut.vdsat": {
+   "calls": 45,
+   "distinct": 29,
+   "repeat_calls": 16,
+   "repeated": [
+    {
+     "fp": "ecf4bf1ce375300b",
+     "n": 3,
+     "sites": {
+      "block_columns.py:257": 27
+     }
+    },
+    {
+     "fp": "7a5163897ae5b4fa",
+     "n": 3,
+     "sites": {
+      "block_columns.py:257": 27
+     }
+    },
+    {
+     "fp": "8c303cfe86879489",
+     "n": 3,
+     "sites": {
+      "block_columns.py:257": 27
+     }
+    },
+    {
+     "fp": "c1eea95d5fb7e4d1",
+     "n": 3,
+     "sites": {
+      "block_columns.py:257": 27
+     }
+    },
+    {
+     "fp": "55ff93c98bfe2bc9",
+     "n": 3,
+     "sites": {
+      "block_columns.py:257": 27
+     }
+    },
+    {
+     "fp": "417c5a8ecfe1edaf",
+     "n": 3,
+     "sites": {
+      "block_columns.py:257": 27
+     }
+    },
+    {
+     "fp": "0cad8ae6223f6fe7",
+     "n": 3,
+     "sites": {
+      "block_columns.py:257": 27
+     }
+    },
+    {
+     "fp": "2e1c38d82ccc0765",
+     "n": 3,
+     "sites": {
+      "block_columns.py:257": 27
+     }
+    }
+   ]
+  },
+  "tol_v_cell": {
+   "calls": 50,
+   "distinct": 50,
+   "repeat_calls": 0,
+   "repeated": []
+  }
+ },
+ "circuit": "nmcnr_amplifier",
+ "cprofile": {
+  "_helpers_lut.py:49:tol_v_cell": {
+   "cumtime": 0.4268504,
+   "ncalls": 65,
+   "tottime": 0.00024870000000000003
+  },
+  "block_columns.py:247:region_rows": {
+   "cumtime": 0.0365891,
+   "ncalls": 3,
+   "tottime": 0.00040720000000000003
+  },
+  "block_columns.py:270:input_windows": {
+   "cumtime": 0.0684897,
+   "ncalls": 3,
+   "tottime": 4.58e-05
+  },
+  "block_columns.py:559:tolerance": {
+   "cumtime": 0.42260610000000004,
+   "ncalls": 45,
+   "tottime": 0.00026670000000000003
+  },
+  "block_columns.py:584:_solve": {
+   "cumtime": 0.6983496,
+   "ncalls": 4,
+   "tottime": 0.0004968
+  },
+  "block_columns.py:613:tolerance": {
+   "cumtime": 0.008690100000000001,
+   "ncalls": 11,
+   "tottime": 1.87e-05
+  },
+  "block_columns.py:685:_measure": {
+   "cumtime": 0.06874820000000001,
+   "ncalls": 3,
+   "tottime": 2.3500000000000002e-05
+  },
+  "block_columns.py:695:_tolerance": {
+   "cumtime": 0.017782700000000002,
+   "ncalls": 3,
+   "tottime": 1.22e-05
+  },
+  "block_columns.py:727:_solve_input_window": {
+   "cumtime": 0.7860949,
+   "ncalls": 1,
+   "tottime": 5.69e-05
+  },
+  "block_columns.py:783:_windows": {
+   "cumtime": 4.99e-05,
+   "ncalls": 1,
+   "tottime": 1.7800000000000002e-05
+  },
+  "block_columns.py:814:dc_columns": {
+   "cumtime": 0.7969036,
+   "ncalls": 1,
+   "tottime": 0.00019170000000000002
+  },
+  "kernel.py:94:evaluate": {
+   "cumtime": 1.8170001,
+   "ncalls": 1,
+   "tottime": 0.000161
+  },
+  "noise_analysis.py:59:_solve": {
+   "cumtime": 0.0036982000000000004,
+   "ncalls": 9,
+   "tottime": 0.00010240000000000001
+  },
+  "noise_sources.py:28:_tolerance": {
+   "cumtime": 4.000000000000001e-06,
+   "ncalls": 30,
+   "tottime": 4.000000000000001e-06
+  },
+  "point_query.py:22:op_point": {
+   "cumtime": 0.012882600000000001,
+   "ncalls": 121,
+   "tottime": 0.00040530000000000004
+  },
+  "size_and_seal.py:27:size_and_seal": {
+   "cumtime": 0.8479410000000001,
+   "ncalls": 1,
+   "tottime": 2.1700000000000002e-05
+  },
+  "vdsat_query.py:20:vdsat": {
+   "cumtime": 0.0037796,
+   "ncalls": 75,
+   "tottime": 0.0003109
+  }
+ },
+ "dc_columns_calls": 1,
+ "eval_s": [
+  1.7993984000058845,
+  2.1890498000429943,
+  1.8186429000925273,
+  1.5862824999494478,
+  1.6207079999148846,
+  1.5951275000115857,
+  1.6731966999359429
+ ],
+ "eval_s_median": 1.6731966999359429,
+ "side": "HEAD",
+ "status": "sealed"
+}

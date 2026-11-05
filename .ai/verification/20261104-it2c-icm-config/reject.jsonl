@@ -1,0 +1,29 @@
+{"case": "sw_skip_negative_slack_none", "ok": true}
+{"case": "sw_skip_zero_slack_not_none", "ok": true}
+{"case": "sw_skip_positive_slack_inf", "ok": true}
+{"case": "sw_nonskip_negative_slack_window_excludes_zero", "ok": true, "lo": 0.1, "hi": Infinity}
+{"case": "sw_empty_dlo_gt_dhi", "ok": true, "lo": 0.1, "hi": 0.05}
+{"case": "sw_root_pair_typeerror", "ok": true, "exc": "TypeError", "msg": "saturation_window: root 는 넷 이름 하나여야 한다(쌍·묶음 없음): ('x', 'y')"}
+{"case": "sw_root_not_unknown_valueerror", "ok": true, "exc": "ValueError", "msg": "saturation_window: root 'z' 가 unknown 에 없다"}
+{"case": "end_state_empty_none", "ok": true}
+{"case": "end_state_skip_negative_none", "ok": true}
+{"case": "kvl_drive_not_fixed_valueerror", "ok": true, "exc": "ValueError", "msg": "kvl_sensitivity: 구동 넷은 고정 노드(입력 포트)여야 한다: ('n2',)"}
+{"case": "kvl_closure_typeerror", "ok": true, "exc": "TypeError", "msg": "kvl_sensitivity() got an unexpected keyword argument 'closure'"}
+{"case": "kvl_singular_none", "ok": true, "floating": []}
+{"case": "servo_rail_span_zero", "ok": true, "got": "Undefined(quantity='icm_config', code='icm_servo_pivot_unresolved', category='definitional', detail=(('rail_span', 0.0),))"}
+{"case": "servo_rail_span_none", "ok": true, "got": "Undefined(quantity='icm_config', code='icm_servo_pivot_unresolved', category='definitional', detail=(('rail_span', None),))"}
+{"case": "servo_singular", "ok": true, "got": "Undefined(quantity='icm_config', code='icm_servo_pivot_unresolved', category='definitional', detail=(('singular', True),))"}
+{"case": "as_is_singular_slope_none", "ok": true, "got": [null, null, null]}
+{"case": "kvl_ae_exact_zero_none", "ok": true}
+{"case": "stampset_len_valueerror", "ok": true, "exc": "ValueError", "msg": "StampSet.g_ops 길이(0)가 g 길이(1)와 다르다"}
+{"case": "nodal_system_write_valueerror", "ok": true, "exc": "ValueError", "msg": "assignment destination is read-only"}
+{"case": "nodal_system_bound_write_valueerror", "ok": true, "exc": "ValueError", "msg": "assignment destination is read-only"}
+{"case": "circuit_keyword_typeerror", "ok": true, "exc": "TypeError", "msg": "Circuit.__init__() missing 2 required keyword-only arguments: 'lut' and 'linear'"}
+{"case": "select_1_undefined_propagates", "ok": true, "got": "Undefined(quantity='icm_config', code='passive_value_undeclared', category='definitional', detail=(('elements', ('R1',)),))"}
+{"case": "select_2_three_inputs", "ok": true, "got": "Undefined(quantity='icm_config', code='icm_inputs_unsupported', category='definitional', detail=(('inputs', ('a', 'b', 'c')),))"}
+{"case": "select_3_zero_inputs", "ok": true, "got": "Undefined(quantity='icm_config', code='view_required', category='definitional', detail=(('default_views', 0),))"}
+{"case": "select_4_two_views", "ok": true, "got": "Undefined(quantity='icm_config', code='view_required', category='definitional', detail=(('default_views', 2),))"}
+{"case": "select_4p_sense", "ok": true, "got": "Undefined(quantity='icm_config', code='view_required', category='definitional', detail=(('sense', ('a', 'b')),))"}
+{"case": "select_5_capacitive_only", "ok": true, "got": "Undefined(quantity='icm_config', code='icm_capacitive_only_node', category='definitional', detail=(('nets', ('n2',)),))"}
+{"case": "select_6_as_is", "ok": true, "got": ["as_is_single_input", [["n1", 1.0]], [["n2", 1.0]]]}
+{"case": "select_7_servo", "ok": true, "got": ["servo", [["n1", 1.0]], [["n2", 1.0]]]}

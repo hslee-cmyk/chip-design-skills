@@ -1,0 +1,1481 @@
+{
+ "toy_trajectory_base_vs_head": [
+  {
+   "e_b": 30,
+   "base_kernel": 32,
+   "head_kernel": 27,
+   "base_gate_entry": 32,
+   "head_gate_entry": 27,
+   "base_stops_eval": 1,
+   "head_stops_eval": 5,
+   "head_shortfalls": 7,
+   "first_shortfall_k": 23,
+   "seq_len_base": 32,
+   "seq_len_head": 27,
+   "common_prefix": 23
+  },
+  {
+   "e_b": 40,
+   "base_kernel": 45,
+   "head_kernel": 38,
+   "base_gate_entry": 45,
+   "head_gate_entry": 38,
+   "base_stops_eval": 1,
+   "head_stops_eval": 3,
+   "head_shortfalls": 5,
+   "first_shortfall_k": 34,
+   "seq_len_base": 45,
+   "seq_len_head": 38,
+   "common_prefix": 34
+  },
+  {
+   "e_b": 200,
+   "base_kernel": 201,
+   "head_kernel": 200,
+   "base_gate_entry": 201,
+   "head_gate_entry": 200,
+   "base_stops_eval": 1,
+   "head_stops_eval": 2,
+   "head_shortfalls": 2,
+   "first_shortfall_k": 197,
+   "seq_len_base": 201,
+   "seq_len_head": 200,
+   "common_prefix": 197
+  },
+  {
+   "e_b": 1000,
+   "base_kernel": 1000,
+   "head_kernel": 1000,
+   "base_gate_entry": 1000,
+   "head_gate_entry": 1000,
+   "base_stops_eval": 1,
+   "head_stops_eval": 1,
+   "head_shortfalls": 0,
+   "first_shortfall_k": null,
+   "seq_len_base": 1000,
+   "seq_len_head": 1000,
+   "common_prefix": 1000
+  },
+  {
+   "e_b": 5000,
+   "base_kernel": 5000,
+   "head_kernel": 5000,
+   "base_gate_entry": 5000,
+   "head_gate_entry": 5000,
+   "base_stops_eval": 0,
+   "head_stops_eval": 26,
+   "head_shortfalls": 26,
+   "first_shortfall_k": 4996,
+   "seq_len_base": 5000,
+   "seq_len_head": 5000,
+   "common_prefix": 4996
+  },
+  {
+   "e_b": 20000,
+   "base_kernel": 7892,
+   "head_kernel": 7892,
+   "base_gate_entry": 7892,
+   "head_gate_entry": 7892,
+   "base_stops_eval": 0,
+   "head_stops_eval": 0,
+   "head_shortfalls": 0,
+   "first_shortfall_k": null,
+   "seq_len_base": 7892,
+   "seq_len_head": 7892,
+   "common_prefix": 7892
+  },
+  {
+   "e_b": 100000,
+   "base_kernel": 7892,
+   "head_kernel": 7892,
+   "base_gate_entry": 7892,
+   "head_gate_entry": 7892,
+   "base_stops_eval": 0,
+   "head_stops_eval": 0,
+   "head_shortfalls": 0,
+   "first_shortfall_k": null,
+   "seq_len_base": 7892,
+   "seq_len_head": 7892,
+   "common_prefix": 7892
+  }
+ ],
+ "toy_head_detail": [
+  {
+   "blocks": 47,
+   "bound": 1833,
+   "e_b": 30,
+   "entries": 487,
+   "entry_k": 27,
+   "entry_req": 56,
+   "front": 2,
+   "kernel": 27,
+   "n_solves": 6,
+   "res": {
+    "E_B": 30,
+    "E_fixed": 23,
+    "E_refilter": 0,
+    "N_eps": 2,
+    "b_A_m2": 5e-15,
+    "b_P_grid_w": 1.7477621490497387e-09,
+    "b_P_rule": "sum_rails_abs_V_times_tol_I",
+    "coarse_factor": 16,
+    "e_eps": 3.0,
+    "estimated": true,
+    "refilter": "mod8_not_implemented"
+   },
+   "s": 1.5185517999343574,
+   "shortfalls": [
+    [
+     23,
+     8,
+     7
+    ],
+    [
+     23,
+     8,
+     7
+    ],
+    [
+     23,
+     8,
+     7
+    ],
+    [
+     23,
+     8,
+     7
+    ],
+    [
+     23,
+     8,
+     7
+    ],
+    [
+     26,
+     8,
+     4
+    ],
+    [
+     27,
+     8,
+     3
+    ]
+   ],
+   "stops_eval": 5,
+   "stops_wall": 0,
+   "tag": "traj"
+  },
+  {
+   "blocks": 47,
+   "bound": 2303,
+   "e_b": 40,
+   "entries": 675,
+   "entry_k": 38,
+   "entry_req": 66,
+   "front": 2,
+   "kernel": 38,
+   "n_solves": 5,
+   "res": {
+    "E_B": 40,
+    "E_fixed": 34,
+    "E_refilter": 0,
+    "N_eps": 1,
+    "b_A_m2": 5e-15,
+    "b_P_grid_w": 1.7477621490497387e-09,
+    "b_P_rule": "sum_rails_abs_V_times_tol_I",
+    "coarse_factor": 32,
+    "e_eps": 5.5,
+    "estimated": true,
+    "refilter": "mod8_not_implemented"
+   },
+   "s": 1.512396699981764,
+   "shortfalls": [
+    [
+     34,
+     8,
+     6
+    ],
+    [
+     34,
+     8,
+     6
+    ],
+    [
+     34,
+     8,
+     6
+    ],
+    [
+     37,
+     8,
+     3
+    ],
+    [
+     38,
+     8,
+     2
+    ]
+   ],
+   "stops_eval": 3,
+   "stops_wall": 0,
+   "tag": "traj"
+  },
+  {
+   "blocks": 47,
+   "bound": 9823,
+   "e_b": 200,
+   "entries": 3387,
+   "entry_k": 200,
+   "entry_req": 256,
+   "front": 2,
+   "kernel": 200,
+   "n_solves": 8,
+   "res": {
+    "E_B": 200,
+    "E_fixed": 89,
+    "E_refilter": 0,
+    "N_eps": 6,
+    "b_A_m2": 5e-15,
+    "b_P_grid_w": 9.723295555830472e-08,
+    "b_P_rule": "sum_rails_abs_V_times_tol_I",
+    "coarse_factor": 32,
+    "e_eps": 17.5,
+    "estimated": true,
+    "refilter": "mod8_not_implemented"
+   },
+   "s": 8.46947590005584,
+   "shortfalls": [
+    [
+     197,
+     8,
+     3
+    ],
+    [
+     197,
+     8,
+     3
+    ]
+   ],
+   "stops_eval": 2,
+   "stops_wall": 0,
+   "tag": "traj"
+  },
+  {
+   "blocks": 47,
+   "bound": 47423,
+   "e_b": 1000,
+   "entries": 17270,
+   "entry_k": 1000,
+   "entry_req": 1298,
+   "front": 2,
+   "kernel": 1000,
+   "n_solves": 44,
+   "res": {
+    "E_B": 1000,
+    "E_fixed": 89,
+    "E_refilter": 0,
+    "N_eps": 52,
+    "b_A_m2": 5e-15,
+    "b_P_grid_w": 9.723295555830472e-08,
+    "b_P_rule": "sum_rails_abs_V_times_tol_I",
+    "coarse_factor": 4,
+    "e_eps": 17.5,
+    "estimated": true,
+    "refilter": "mod8_not_implemented"
+   },
+   "s": 45.5256595001556,
+   "shortfalls": [],
+   "stops_eval": 1,
+   "stops_wall": 0,
+   "tag": "traj"
+  },
+  {
+   "blocks": 47,
+   "bound": 235423,
+   "e_b": 5000,
+   "entries": 86777,
+   "entry_k": 5000,
+   "entry_req": 6275,
+   "front": 2,
+   "kernel": 5000,
+   "n_solves": 166,
+   "res": {
+    "E_B": 5000,
+    "E_fixed": 89,
+    "E_refilter": 0,
+    "N_eps": 280,
+    "b_A_m2": 5e-15,
+    "b_P_grid_w": 9.723295555830472e-08,
+    "b_P_rule": "sum_rails_abs_V_times_tol_I",
+    "coarse_factor": 1,
+    "e_eps": 17.5,
+    "estimated": true,
+    "refilter": "mod8_not_implemented"
+   },
+   "s": 237.66645599994808,
+   "shortfalls": [
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ],
+    [
+     4996,
+     8,
+     4
+    ]
+   ],
+   "stops_eval": 26,
+   "stops_wall": 0,
+   "tag": "traj"
+  },
+  {
+   "blocks": 47,
+   "bound": 940423,
+   "e_b": 20000,
+   "entries": 136146,
+   "entry_k": 7892,
+   "entry_req": 9365,
+   "front": 3,
+   "kernel": 7892,
+   "n_solves": 168,
+   "res": {
+    "E_B": 20000,
+    "E_fixed": 89,
+    "E_refilter": 0,
+    "N_eps": 1137,
+    "b_A_m2": 5e-15,
+    "b_P_grid_w": 9.723295555830472e-08,
+    "b_P_rule": "sum_rails_abs_V_times_tol_I",
+    "coarse_factor": 1,
+    "e_eps": 17.5,
+    "estimated": true,
+    "refilter": "mod8_not_implemented"
+   },
+   "s": 336.1838505999185,
+   "shortfalls": [],
+   "stops_eval": 0,
+   "stops_wall": 0,
+   "tag": "traj"
+  },
+  {
+   "blocks": 47,
+   "bound": 4700423,
+   "e_b": 100000,
+   "entries": 136146,
+   "entry_k": 7892,
+   "entry_req": 9365,
+   "front": 3,
+   "kernel": 7892,
+   "n_solves": 168,
+   "res": {
+    "E_B": 100000,
+    "E_fixed": 89,
+    "E_refilter": 0,
+    "N_eps": 5709,
+    "b_A_m2": 5e-15,
+    "b_P_grid_w": 9.723295555830472e-08,
+    "b_P_rule": "sum_rails_abs_V_times_tol_I",
+    "coarse_factor": 1,
+    "e_eps": 17.5,
+    "estimated": true,
+    "refilter": "mod8_not_implemented"
+   },
+   "s": 313.03399779996835,
+   "shortfalls": [],
+   "stops_eval": 0,
+   "stops_wall": 0,
+   "tag": "traj"
+  }
+ ],
+ "folded_cascode_head_first": [
+  {
+   "R": 32,
+   "bound": 3796,
+   "bound_by_blocks": null,
+   "circuit": "folded_cascode",
+   "e_b": "40",
+   "entries": 52,
+   "entries_before": 32,
+   "eval_budget": 40,
+   "front": 0,
+   "gate_notes": [],
+   "kernel": 1,
+   "n_blocks": 52,
+   "n_solves": 2,
+   "n_theta": 16,
+   "pending": 0,
+   "rec": {},
+   "recompute_same_key": 0,
+   "recomputes_same_input": 0,
+   "s": 4.081762799993157,
+   "searched": true,
+   "source": "declared",
+   "stops_eval": 2,
+   "stops_wall": 0,
+   "unique": 1,
+   "unmeasured": 0
+  },
+  {
+   "R": 32,
+   "bound": 1768,
+   "bound_by_blocks": null,
+   "circuit": "folded_cascode",
+   "e_b": "1",
+   "entries": 52,
+   "entries_before": 32,
+   "eval_budget": 1,
+   "front": 0,
+   "gate_notes": [],
+   "kernel": 1,
+   "n_blocks": 52,
+   "n_solves": 2,
+   "n_theta": 16,
+   "pending": 0,
+   "rec": {},
+   "recompute_same_key": 0,
+   "recomputes_same_input": 0,
+   "s": 2.598303599981591,
+   "searched": true,
+   "source": "declared",
+   "stops_eval": 0,
+   "stops_wall": 0,
+   "unique": 1,
+   "unmeasured": 0
+  },
+  {
+   "R": 32,
+   "bound": 1976,
+   "bound_by_blocks": null,
+   "circuit": "folded_cascode",
+   "e_b": "5",
+   "entries": 52,
+   "entries_before": 32,
+   "eval_budget": 5,
+   "front": 0,
+   "gate_notes": [],
+   "kernel": 1,
+   "n_blocks": 52,
+   "n_solves": 2,
+   "n_theta": 16,
+   "pending": 0,
+   "rec": {},
+   "recompute_same_key": 0,
+   "recomputes_same_input": 0,
+   "s": 2.663289199816063,
+   "searched": true,
+   "source": "declared",
+   "stops_eval": 2,
+   "stops_wall": 0,
+   "unique": 1,
+   "unmeasured": 0
+  },
+  {
+   "R": 32,
+   "bound": 12220,
+   "bound_by_blocks": null,
+   "circuit": "folded_cascode",
+   "e_b": "derived",
+   "entries": 3107,
+   "entries_before": 32,
+   "eval_budget": 234,
+   "front": 0,
+   "gate_notes": [],
+   "kernel": 171,
+   "n_blocks": 52,
+   "n_solves": 2,
+   "n_theta": 16,
+   "pending": 0,
+   "rec": {},
+   "recompute_same_key": 0,
+   "recomputes_same_input": 0,
+   "s": 28.69078280008398,
+   "searched": true,
+   "source": "derived_once:floor(B/median_t_eval)@n_evals=29",
+   "stops_eval": 2,
+   "stops_wall": 0,
+   "unique": 171,
+   "unmeasured": 0
+  },
+  {
+   "circuit": "folded_cascode",
+   "e_b": "derived",
+   "entries": 552,
+   "entries_before": 32,
+   "kernel": 29,
+   "msg": "time_budget_below_search_reserve: kernel_calls=29 가 탐색 예산 D − R = -32 에 이미 닿았다(D=0, R=32)",
+   "n_theta": 16,
+   "raised": "ValueError",
+   "rec": {},
+   "s": 6.3319767999928445,
+   "searched": true
+  }
+ ],
+ "folded_cascode_base_head_fdlog": [
+  {
+   "R": 32,
+   "bound": 3796,
+   "bound_by_blocks": null,
+   "circuit": "folded_cascode",
+   "e_b": "40",
+   "entries": 1164,
+   "entries_before": 32,
+   "eval_budget": 40,
+   "front": 0,
+   "gate_notes": [],
+   "kernel": 64,
+   "layer0_notes": [
+    "{'verdict': 'layer0_minimal', 'rule': 'DEC-71', 'reason': 'seal_margin_maxmin_centre', 'stop': 'converged', 't': 0.9779648952192499, 'hard_ok': True, 'start_status': 'sealed', 'centre_u': 5.1256614822284305, 'kernel_calls': 29, 'probes': 0, 'origin_point': 'centre', 'meaning': 'feasibility_only', 'm"
+   ],
+   "n_blocks": 52,
+   "n_solves": 2,
+   "n_theta": 16,
+   "pending": 0,
+   "rec": {
+    "fd_log": [
+     [
+      "layer0_center",
+      25,
+      1,
+      "absent"
+     ],
+     [
+      "layer0_center",
+      25,
+      29,
+      "absent"
+     ],
+     [
+      "slsqp_outer",
+      25,
+      29,
+      "absent"
+     ],
+     [
+      "slsqp_outer",
+      25,
+      29,
+      "absent"
+     ],
+     [
+      "slsqp_outer",
+      25,
+      35,
+      "absent"
+     ]
+    ]
+   },
+   "recompute_same_key": 0,
+   "recomputes_same_input": 0,
+   "s": 10.151456099934876,
+   "searched": true,
+   "source": "declared",
+   "stops_eval": 1,
+   "stops_wall": 0,
+   "unique": 64,
+   "unmeasured": 0
+  },
+  {
+   "R": 32,
+   "bound": 3796,
+   "bound_by_blocks": null,
+   "circuit": "folded_cascode",
+   "e_b": "40",
+   "entries": 52,
+   "entries_before": 32,
+   "eval_budget": 40,
+   "front": 0,
+   "gate_notes": [],
+   "kernel": 1,
+   "layer0_notes": [
+    "{'verdict': 'layer0_minimal', 'rule': 'DEC-71', 'reason': 'seal_margin_maxmin_centre', 'stop': 'eval_budget', 't': 0.9779648952192499, 'hard_ok': True, 'start_status': 'sealed', 'centre_u': 5.1256614822284305, 'kernel_calls': 1, 'probes': 0, 'origin_point': 'centre', 'meaning': 'feasibility_only', '"
+   ],
+   "n_blocks": 52,
+   "n_solves": 2,
+   "n_theta": 16,
+   "pending": 0,
+   "rec": {
+    "fd_log": [
+     [
+      "layer0_center",
+      25,
+      1,
+      40,
+      "FdBudgetShortfall:50:39"
+     ],
+     [
+      "slsqp_outer",
+      25,
+      1,
+      40,
+      "FdBudgetShortfall:50:39"
+     ],
+     [
+      "slsqp_outer",
+      25,
+      1,
+      40,
+      "FdBudgetShortfall:50:39"
+     ]
+    ]
+   },
+   "recompute_same_key": 0,
+   "recomputes_same_input": 0,
+   "s": 2.607478699879721,
+   "searched": true,
+   "source": "declared",
+   "stops_eval": 2,
+   "stops_wall": 0,
+   "unique": 1,
+   "unmeasured": 0
+  },
+  {
+   "R": 32,
+   "bound": 79716,
+   "bound_by_blocks": null,
+   "circuit": "folded_cascode",
+   "e_b": "1500",
+   "entries": 5947,
+   "entries_before": 32,
+   "eval_budget": 1500,
+   "front": 0,
+   "gate_notes": [],
+   "kernel": 330,
+   "layer0_notes": [
+    "{'verdict': 'layer0_minimal', 'rule': 'DEC-71', 'reason': 'seal_margin_maxmin_centre', 'stop': 'converged', 't': 0.9779648952192499, 'hard_ok': True, 'start_status': 'sealed', 'centre_u': 5.1256614822284305, 'kernel_calls': 29, 'probes': 0, 'origin_point': 'centre', 'meaning': 'feasibility_only', 'm"
+   ],
+   "n_blocks": 52,
+   "n_solves": 2,
+   "n_theta": 16,
+   "pending": 0,
+   "rec": {
+    "fd_log": [
+     [
+      "layer0_center",
+      25,
+      1,
+      1500
+     ],
+     [
+      "layer0_center",
+      25,
+      29,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      29,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      29,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      35,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      65,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      96,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      132,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      171,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      210,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      238,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      238,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      241,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      273,
+      1500
+     ],
+     [
+      "slsqp_outer",
+      25,
+      301,
+      1500
+     ]
+    ]
+   },
+   "recompute_same_key": 0,
+   "recomputes_same_input": 0,
+   "s": 59.21805980009958,
+   "searched": true,
+   "source": "declared",
+   "stops_eval": 0,
+   "stops_wall": 0,
+   "unique": 330,
+   "unmeasured": 0
+  }
+ ],
+ "two_stage_common_gate_head": [
+  {
+   "R": 20,
+   "bound": 11492,
+   "bound_by_blocks": null,
+   "circuit": "two_stage_ota",
+   "e_b": "200",
+   "entries": 1187,
+   "entries_before": 32,
+   "eval_budget": 200,
+   "front": 0,
+   "gate_notes": [],
+   "kernel": 68,
+   "layer0_notes": [
+    "{'verdict': 'layer0_minimal', 'rule': 'DEC-71', 'reason': 'seal_margin_maxmin_centre', 'stop': 'converged', 't': 0.9841759292487587, 'hard_ok': True, 'start_status': 'sealed', 'centre_u': None, 'kernel_calls': 16, 'probes': 0, 'origin_point': 'centre', 'meaning': 'feasibility_only', 'meaning_reason'"
+   ],
+   "n_blocks": 52,
+   "n_solves": 2,
+   "n_theta": 10,
+   "pending": 0,
+   "rec": {
+    "fd_log": [
+     [
+      "layer0_center",
+      15,
+      1,
+      200
+     ],
+     [
+      "layer0_center",
+      15,
+      16,
+      200
+     ],
+     [
+      "slsqp_outer",
+      15,
+      16,
+      200
+     ],
+     [
+      "slsqp_outer",
+      15,
+      16,
+      200
+     ],
+     [
+      "slsqp_outer",
+      15,
+      19,
+      200
+     ],
+     [
+      "slsqp_outer",
+      15,
+      35,
+      200
+     ],
+     [
+      "slsqp_outer",
+      15,
+      51,
+      200
+     ],
+     [
+      "slsqp_outer",
+      15,
+      66,
+      200
+     ],
+     [
+      "slsqp_outer",
+      15,
+      66,
+      200
+     ]
+    ]
+   },
+   "recompute_same_key": 0,
+   "recomputes_same_input": 0,
+   "s": 14.567814799956977,
+   "searched": true,
+   "source": "declared",
+   "stops_eval": 0,
+   "stops_wall": 0,
+   "unique": 68,
+   "unmeasured": 0
+  },
+  {
+   "R": 12,
+   "bound": 11076,
+   "bound_by_blocks": null,
+   "circuit": "common_gate_amplifier",
+   "e_b": "200",
+   "entries": 1223,
+   "entries_before": 32,
+   "eval_budget": 200,
+   "front": 1,
+   "gate_notes": [
+    {
+     "checks": 1,
+     "epsilon_db": 1.9286549331065743e-15,
+     "errors": [],
+     "rule": "sensitivity_gate",
+     "unchecked": 0,
+     "verdict": "ok"
+    }
+   ],
+   "kernel": 66,
+   "layer0_notes": [
+    "{'verdict': 'layer0_minimal', 'rule': 'DEC-71', 'reason': 'seal_margin_maxmin_centre', 'stop': 'converged', 't': 0.9999999999999812, 'hard_ok': True, 'start_status': 'sealed', 'centre_u': 0.43243433317252206, 'kernel_calls': 10, 'probes': 0, 'origin_point': 'centre', 'meaning': 'feasibility_only', '"
+   ],
+   "n_blocks": 52,
+   "n_solves": 19,
+   "n_theta": 6,
+   "pending": 0,
+   "rec": {
+    "fd_log": [
+     [
+      "layer0_center",
+      9,
+      1,
+      200
+     ],
+     [
+      "layer0_center",
+      9,
+      10,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      10,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      10,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      11,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      11,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      12,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      22,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      31,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      32,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      41,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      42,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      51,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      52,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      61,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      62,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      62,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      63,
+      200
+     ],
+     [
+      "slsqp_outer",
+      9,
+      63,
+      200
+     ],
+     [
+      "gate_run",
+      6,
+      66,
+      212
+     ]
+    ],
+    "gate_after": 66,
+    "gate_entry": 66
+   },
+   "recompute_same_key": 0,
+   "recomputes_same_input": 0,
+   "s": 5.322902899933979,
+   "searched": true,
+   "source": "declared",
+   "stops_eval": 0,
+   "stops_wall": 0,
+   "unique": 66,
+   "unmeasured": 0
+  },
+  {
+   "R": 20,
+   "bound": 23400,
+   "bound_by_blocks": null,
+   "circuit": "two_stage_ota",
+   "e_b": "derived",
+   "entries": 1187,
+   "entries_before": 32,
+   "eval_budget": 449,
+   "front": 0,
+   "gate_notes": [],
+   "kernel": 68,
+   "layer0_notes": [
+    "{'verdict': 'layer0_minimal', 'rule': 'DEC-71', 'reason': 'seal_margin_maxmin_centre', 'stop': 'converged', 't': 0.9841759292487587, 'hard_ok': True, 'start_status': 'sealed', 'centre_u': None, 'kernel_calls': 16, 'probes': 0, 'origin_point': 'centre', 'meaning': 'feasibility_only', 'meaning_reason'"
+   ],
+   "n_blocks": 52,
+   "n_solves": 2,
+   "n_theta": 10,
+   "pending": 0,
+   "rec": {
+    "fd_log": [
+     [
+      "layer0_center",
+      15,
+      1,
+      null
+     ],
+     [
+      "layer0_center",
+      15,
+      16,
+      429
+     ],
+     [
+      "slsqp_outer",
+      15,
+      16,
+      429
+     ],
+     [
+      "slsqp_outer",
+      15,
+      16,
+      429
+     ],
+     [
+      "slsqp_outer",
+      15,
+      19,
+      429
+     ],
+     [
+      "slsqp_outer",
+      15,
+      35,
+      429
+     ],
+     [
+      "slsqp_outer",
+      15,
+      51,
+      429
+     ],
+     [
+      "slsqp_outer",
+      15,
+      66,
+      429
+     ],
+     [
+      "slsqp_outer",
+      15,
+      66,
+      429
+     ]
+    ]
+   },
+   "recompute_same_key": 0,
+   "recomputes_same_input": 0,
+   "s": 7.756709499983117,
+   "searched": true,
+   "source": "derived_once:floor(B/median_t_eval)@n_evals=16",
+   "stops_eval": 0,
+   "stops_wall": 0,
+   "unique": 68,
+   "unmeasured": 0
+  }
+ ],
+ "mutants": [
+  {
+   "mutant": "M1_final_call_removed",
+   "exit": 0,
+   "killed": false,
+   "tail": [
+    "",
+    "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+    "30 passed, 3 warnings in 34.33s"
+   ]
+  },
+  {
+   "mutant": "M2_ladder_stop_removed",
+   "exit": 0,
+   "killed": false,
+   "tail": [
+    "",
+    "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+    "57 passed, 3 warnings in 49.31s"
+   ]
+  },
+  {
+   "mutant": "M3_l0_mid_shortfall_escapes",
+   "exit": 1,
+   "killed": true,
+   "tail": [
+    "FAILED gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_kernel_calls_within_search_budget[12]",
+    "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!",
+    "1 failed, 50 passed, 3 warnings in 42.88s"
+   ]
+  },
+  {
+   "mutant": "M4_outer_mid_shortfall_escapes",
+   "exit": 1,
+   "killed": true,
+   "tail": [
+    "FAILED gmid_engine/tests/search/test_slsqp_outer.py::test_outer_mid_iteration_budget_stop_keeps_kernel_calls_within_budget",
+    "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!",
+    "1 failed, 17 passed in 8.25s"
+   ]
+  },
+  {
+   "mutant": "M5_end_index_check_removed",
+   "exit": 0,
+   "killed": false,
+   "tail": [
+    "",
+    "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+    "46 passed, 3 warnings in 35.82s"
+   ]
+  },
+  {
+   "mutant": "M6_gate_reserve_check_removed",
+   "exit": 0,
+   "killed": false,
+   "tail": [
+    "",
+    "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+    "38 passed, 3 warnings in 37.93s"
+   ]
+  },
+  {
+   "mutant": "M7_start_points_status_wall",
+   "exit": 0,
+   "killed": false,
+   "tail": [
+    "",
+    "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+    "57 passed, 3 warnings in 49.78s"
+   ]
+  }
+ ],
+ "ladder": [
+  {
+   "case": "budget_0",
+   "kernel": 0,
+   "start_status": "eval_budget",
+   "stop": "start_eval_budget+probe_eval_budget"
+  },
+  {
+   "case": "wall_passed",
+   "kernel": 0,
+   "start_status": "eval_budget",
+   "stop": "start_eval_budget+probe_wall_budget"
+  }
+ ],
+ "driver": [
+  {
+   "job": "two_stage_200",
+   "exit": 0,
+   "stopped_low_mem": false,
+   "low_gb": 3.29
+  },
+  {
+   "job": "common_gate_200",
+   "exit": 0,
+   "stopped_low_mem": false,
+   "low_gb": 3.29
+  },
+  {
+   "job": "two_stage_derived",
+   "exit": 0,
+   "stopped_low_mem": false,
+   "low_gb": 3.29
+  },
+  {
+   "job": "mutants",
+   "exit": 0,
+   "stopped_low_mem": false,
+   "low_gb": 3.29
+  }
+ ],
+ "red_tail": [
+  "C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_xrunf1c_audit\\red\\skills\\analog-gmid-design\\gmid_engine\\tests\\search\\test_gate_run.py:204: AssertionError: assert (1 == 1 and {} == {'ceiling': 50}",
+  "E   AttributeError: module 'gmid_engine.search.fd_jacobian' has no attribute 'FdBudgetShortfall'",
+  "C:\\Users\\HSLEE\\AppData\\Local\\Temp\\la1s_xrunf1c_audit\\red\\skills\\analog-gmid-design\\gmid_engine\\tests\\search\\test_gate_run.py:212: AttributeError: module 'gmid_engine.search.fd_jacobian' has no attribute 'FdBudgetShortfall'",
+  "=========================== short test summary info ===========================",
+  "FAILED gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_kernel_calls_within_search_budget[8]",
+  "FAILED gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_kernel_calls_within_search_budget[12]",
+  "FAILED gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_kernel_calls_within_search_budget[24]",
+  "FAILED gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_kernel_calls_within_search_budget[40]",
+  "FAILED gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_end_check_violation_runtime_error",
+  "FAILED gmid_engine/tests/search/test_find_front.py::test_gate_entry_budget_donors_bound_opened_and_closed",
+  "FAILED gmid_engine/tests/search/test_gate_run.py::test_gate_entry_budget_ceiling_is_e_total",
+  "FAILED gmid_engine/tests/search/test_gate_run.py::test_gate_entry_budget_shortfall_propagates",
+  "ERROR gmid_engine/tests/search/test__helpers_ceiling.py",
+  "ERROR gmid_engine/tests/search/test_search_ceiling.py",
+  "ERROR gmid_engine/tests/search/test_search_stop.py",
+  "8 failed, 3 passed, 165 deselected, 3 errors in 21.69s"
+ ],
+ "card_summary": "384 passed, 1 deselected, 3 warnings in 309.01s (0:05:09)",
+ "smoke_summary": "23 passed, 141 deselected in 297.51s (0:04:57)",
+ "test_diff_sha256": "7137d7b1635ce81b628a0ebc5902e0e4b6e38686f85dd7271cd5003f7445dbd8"
+}

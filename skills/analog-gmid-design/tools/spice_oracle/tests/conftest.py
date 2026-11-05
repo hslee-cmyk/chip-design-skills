@@ -24,6 +24,8 @@ import pytest
 
 ORACLE_DIR = Path(__file__).resolve().parents[1]
 SKILL_DIR = ORACLE_DIR.parents[1]
+if str(ORACLE_DIR) not in sys.path:             # 새 구조 test 가 `core.*`, `adapters.ngspice.*`, `oracle_run` 을 import 한다
+    sys.path.insert(0, str(ORACLE_DIR))
 PY = sys.executable
 NGSPICE = Path(os.environ.get("SPICE_ORACLE_NGSPICE", r"C:\ngspice\Spice64\bin\ngspice_con.exe"))
 PDK = Path(os.environ.get("SPICE_ORACLE_PDK", r"C:\pdk\sky130_fd_pr"))
@@ -52,8 +54,45 @@ def pytest_collection_modifyitems(config, items):
 
 
 def require_spice():
-    if not NGSPICE.exists() or not PDK.exists():
-        pytest.skip(f"ngspice({NGSPICE}) 또는 PDK({PDK}) 없음")
+    # fail-closed (card 20261104-op23): 시뮬레이터·PDK 가 없으면 skip 으로 넘어가지 않고 실패한다.
+    assert NGSPICE.exists() and PDK.exists(), f"ngspice({NGSPICE}) 또는 PDK({PDK}) 없음"
+
+
+# ---------------------------------------------------------------- 수집에서 뺀 옛 test (card 20261104-op23, 위임 A-80 D-6)
+# 계획 D §18.2 이전표의 '이 card 몫을 toy·독립 기준 이동·순수 수학 import 교체로 줄인다'(O-229 기간). 아래 파일은 지워지는 CLI 나 옛 입력 형식
+# (`spice_oracle_input/1`)·옛 넷리스트 텍스트·옛 모듈을 쓰므로 새 구조에서 돌 수 없다. **통과로 세지 않는다.** 이전·재작성·폐기는
+# LA-1 재점검에서 파일별로 정한다(원래 취지와 다름 X-R13, 기준 약화 소지 표지). 사유와 소유 card:
+#   OP4 = 안정성·과도(stability_check, pz, C10), OP5 = noise·offset MC·swing·ICMR·전도 판정, OP3 = 이 card 소유이나 D-6 으로 이전 보류,
+#   LT1 = gain-budget card LT-1 순서 3 이 삭제.
+IGNORED_OLD_TESTS = {
+    "test_oracle_c10_stability.py": ("OP4", "C10 안정성: oracle_simulate.early_unstable 등 옛 모듈 import, run_netlist/run_simulate/run_compare 사용"),
+    "test_oracle_u6_stability.py": ("OP4", "U6 C10 최종 안정성·pz: oracle_simulate import, 옛 입력 형식"),
+    "test_oracle_transient.py": ("OP4", "C25 슬루·정착 기록 칸: 옛 입력 형식 생성기 + 옛 결과 칸 (슬루 = OP-10 포함)"),
+    "test_oracle_noise.py": ("OP5", "noise: oracle_noise import, 옛 입력 형식 (기간 동안 noise 입력은 adapter_capability_missing 로 거부)"),
+    "test_oracle_offset_mc.py": ("OP5", "offset MC: oracle_offset_mc import, sky130 변수 집합 기대값 삭제 대상(D §18.2) (기간 동안 mc_method_unsupported)"),
+    "test_oracle_swing_icmr.py": ("OP5", "swing·ICMR: 정의를 바꾼 칸(D §18.2), 옛 입력 형식 (기간 동안 adapter_capability_missing)"),
+    "test_oracle_conduction.py": ("OP5", "C23 전도 문턱(off_current_A) 단언: OP-5 가 §21.3 식 test 로 바꿈, run_netlist/run_simulate/run_compare 사용"),
+    "test_oracle_compare.py": ("OP3->LA1", "코어 compare 이동 test: Case 가 run_netlist/run_simulate/run_compare(지워진 CLI) 사용"),
+    "test_oracle_compare_device_tol.py": ("OP3->LA1", "test_oracle_compare.Case 의존"),
+    "test_oracle_diagnosis.py": ("OP3->LA1", "run_oracle 경유이나 옛 입력 형식 생성기(cs_input 등)에 의존: 새 형식 생성기는 실제 기술자·LUT 모델 기록이 필요"),
+    "test_oracle_input_schema.py": ("OP3", "새 형식 + 옛 형식 거부 test 로 다시 씀 -> tests/test_input_contract.py"),
+    "test_oracle_iso.py": ("OP3->LA1", "iso 넷리스트 텍스트 단언: IR 단언은 core/test_build_*.py, 방언 줄은 어댑터 test 로 다시 쓸 대상"),
+    "test_oracle_netlist.py": ("OP3->LA1", "넷리스트 텍스트 단언(run_netlist): IR 단언 core/test_build_ir.py, 방언 줄 adapters/ngspice/test_dialect.py 로 이전"),
+    "test_oracle_netlist_topology.py": ("OP3->LA1", "C15 topology 대조: IR 기준으로 다시 씀 (core/identity)"),
+    "test_oracle_z1.py": ("OP3->LA1", "Z1 omit/short 넷리스트 텍스트 단언: IR 단언은 core/test_build_ir.py"),
+    "test_oracle_c27_loop_defs.py": ("OP3->LA1", "C27 루프 정의 넷리스트 텍스트 단언(run_netlist)"),
+    "test_oracle_junction_cap.py": ("OP3->LA1", "접합 용량 넷리스트·run_netlist/run_simulate 사용"),
+    "test_oracle_cm_loop.py": ("OP3->LA1", "CM 루프 넷리스트 텍스트(run_netlist) + 엔진 대 ngspice 대조"),
+    "test_oracle_loop_singular.py": ("OP3->LA1", "루프 특이 판정: 옛 입력 형식 + run_netlist"),
+    "test_oracle_ratio_db.py": ("OP3->LA1", "ratio/rout 넷리스트·실행: 옛 입력 형식 + run_netlist"),
+    "test_oracle_rout.py": ("OP3->LA1", "C26 rout: 옛 입력 형식 + run_netlist"),
+    "test_oracle_run.py": ("OP3->LA1", "진입점 test: 옛 입력 형식 + run_netlist"),
+    "test_oracle_simulate.py": ("OP3->LA1", "oracle_simulate CLI(지워짐) 직접 실행"),
+    "test_oracle_simulate_cache.py": ("OP3->LA1", "캐시: 새 캐시 키(D §9)로 core/test_cache_key.py 에 toy 로 다시 씀, 옛 입력 형식"),
+    "test_oracle_simulate_pm_crosscheck.py": ("OP3->LA1", "pm_crosscheck: run_netlist/run_simulate 사용, 수학은 core.measures_ac 로 이동"),
+    "test_legacy_testbench.py": ("LT1", "legacy_testbench.json 의 options 칸은 새 스키마 testbench 에 없음(옛 형식). LT-1 순서 3 이 파일째 삭제"),
+}
+collect_ignore = sorted(IGNORED_OLD_TESTS)
 
 
 # ---------------------------------------------------------------- 입력 만들기
@@ -220,23 +259,7 @@ def fb_input(lut: Path, *, feedback=("Rf", "Cin"), circuit="tfb_cs_rfeedback", l
     return inp
 
 
-@lru_cache(maxsize=4)
-def _independent_fb_cached(workdir: str):
-    c = FB
-    body = [f"Vdd vdd 0 DC {c['vdd']}", f"Vin nin 0 DC {c['vin']}", f"RL vdd nout {c['rload']}",
-            f"Rf nout nin {c['rf']}"]
-    for i in range(c["n"]):
-        body.append(f"XM1_{i} nout nin 0 0 {NFET} l={c['L']} w={c['finger_w']}")
-    prints = ["v(nout)"] + [probe("nmos", f"xm1_{i}", q) for i in range(c["n"]) for q in ("gm", "gds", "id")]
-    op = run_spice("\n".join(body), Path(workdir), prints)["op"]
-    gm = sum(op[probe("nmos", f"xm1_{i}", "gm").lower()] for i in range(c["n"]))
-    gds = sum(op[probe("nmos", f"xm1_{i}", "gds").lower()] for i in range(c["n"]))
-    return {"gm": gm, "gds": gds, "vout": op["v(nout)"]}
-
-
-def independent_fb(root: Path):
-    """되먹임 회로 DC 동작점(손 넷리스트: 입력 넷을 이상 전압원 0.7 V 로) -> gm, gds."""
-    return _independent_fb_cached(str(root / "ind_fb"))
+# (`_independent_fb_cached`·`independent_fb` 는 `tests/adapters/ngspice/independent_ref.py` 로 옮겼다 -- card 20261104-op23, D §18.2)
 
 
 def fb_loop_gain(f, gm, gds, cin=None, cl=None):
@@ -264,40 +287,13 @@ def _run(args, cwd):
                           encoding="utf-8", errors="replace", cwd=str(cwd))
 
 
-def run_netlist(inp: dict, tmp: Path, bias="free", name="t", extra=()):
-    """oracle_netlist.py -> (proc, 넷리스트 텍스트 또는 None, meta 또는 None)."""
-    tmp.mkdir(parents=True, exist_ok=True)
-    ip = write_json(tmp / f"{name}.input.json", inp)
-    cir = tmp / f"{name}.{bias}.cir"
-    p = _run([ORACLE_DIR / "oracle_netlist.py", ip, cir, "--bias", bias, *extra], tmp)
-    text = cir.read_text(encoding="utf-8", errors="replace") if cir.exists() else None
-    mp = Path(str(cir) + ".meta.json")
-    meta = json.loads(mp.read_text(encoding="utf-8")) if mp.exists() else None
-    return p, text, meta
-
-
-def run_simulate(cir: Path, sim: Path, cwd: Path, extra=()):
-    return _run([ORACLE_DIR / "oracle_simulate.py", cir, sim, "--ngspice", NGSPICE, *extra], cwd)
-
-
-def run_compare(inp: dict, cir: Path, sim: Path, prefix: Path, judge=None, sat_margin=None, extra=()):
-    """oracle_compare.py -> (proc, compare.json dict 또는 None)."""
-    ip = write_json(Path(str(prefix) + ".input.json"), inp)
-    args = [ORACLE_DIR / "oracle_compare.py", ip, cir, sim, prefix]
-    if judge is not None:
-        args += ["--judge", write_json(Path(str(prefix) + ".judge.json"), judge)]
-    if sat_margin is not None:
-        args += ["--sat-margin-v", repr(sat_margin)]
-    p = _run([*args, *extra], prefix.parent)
-    cj = Path(str(prefix) + ".compare.json")
-    return p, (json.loads(cj.read_text(encoding="utf-8")) if cj.exists() else None)
-
-
+# (`run_netlist`·`run_simulate`·`run_compare` 는 지워지는 CLI(oracle_netlist·oracle_simulate·oracle_compare)를 부르므로 지웠다 -- D-6, A-80.
+#  그것을 쓰던 옛 test 는 아래 `collect_ignore` 에 사유와 함께 있다.)
 def run_oracle(inp: dict, out: Path, biases=("free",), judge=None, sat_margin=None, tag=None, name="t", extra=()):
-    """oracle_run.py -> (proc, {bias: compare.json dict 또는 None})."""
+    """oracle_run.py(새 CLI: `--simulator`·`--sim-exe`, D §11.7) -> (proc, {bias: compare.json dict 또는 None})."""
     out.mkdir(parents=True, exist_ok=True)
     ip = write_json(out / f"{name}.input.json", inp)
-    args = [ORACLE_DIR / "oracle_run.py", ip, out, "--bias", *biases, "--ngspice", NGSPICE]
+    args = [ORACLE_DIR / "oracle_run.py", ip, out, "--bias", *biases, "--simulator", "ngspice", "--sim-exe", NGSPICE]
     if judge is not None:
         args += ["--judge", write_json(out / f"{name}.judge.json", judge)]
     if sat_margin is not None:
@@ -347,100 +343,8 @@ def by_name(rows, key, val):
 
 
 # ---------------------------------------------------------------- 독립 ngspice(손으로 쓴 넷리스트)
-def _includes(corner="tt"):
-    p = PDK.as_posix()
-    return "\n".join(f'.include "{x}"' for x in [
-        f"{p}/cells/nfet_01v8/{NFET}__{corner}.pm3.spice", f"{p}/cells/nfet_01v8/{NFET}__mismatch.corner.spice",
-        f"{p}/models/parameters/lod.spice", f"{p}/cells/pfet_01v8/{PFET}__{corner}.pm3.spice",
-        f"{p}/cells/pfet_01v8/{PFET}__mismatch.corner.spice"])
-
-
-def run_spice(body: str, workdir: Path, prints=(), ac_out=None, ac=None, corner="tt", temp_c=27.0) -> dict:
-    """손으로 쓴 소자 줄 body 를 감싸 ngspice -b 로 돌린다. prints 의 각 식을 print 해 {식: 값},
-    ac_out 이면 f, H(복소)도."""
-    workdir.mkdir(parents=True, exist_ok=True)
-    lines = ["* independent reference", _includes(corner), f".temp {temp_c}",
-             ".option gmin=1e-15 reltol=1e-4 abstol=1e-14 vntol=1e-7", body, ".control", "set noaskquit", "op"]
-    lines += [f"print {e}" for e in prints]
-    if ac_out:
-        f0, f1, ppd = ac
-        lines += [f"ac dec {ppd} {f0} {f1}", f"let hr = real(v({ac_out}))", f"let hi = imag(v({ac_out}))",
-                  "set wr_singlescale", "wrdata ref_ac.txt hr hi"]
-    lines += ["quit", ".endc", ".end"]
-    (workdir / "ref.cir").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    p = subprocess.run([str(NGSPICE), "-b", "ref.cir"], capture_output=True, text=True, cwd=str(workdir),
-                       encoding="utf-8", errors="replace", timeout=120)
-    out = {}
-    for ln in p.stdout.splitlines():
-        if " = " in ln:
-            k, v = ln.split(" = ", 1)
-            try:
-                out[k.strip().lower()] = float(v.split()[0])
-            except ValueError:
-                pass
-    for e in prints:
-        assert e.lower() in out, f"독립 ngspice print 실패 {e}\n{p.stdout[-2000:]}\n{p.stderr[-2000:]}"
-    res = {"op": out}
-    if ac_out:
-        a = np.loadtxt(workdir / "ref_ac.txt")
-        res["f"] = a[:, 0]
-        res["H"] = a[:, 1] + 1j * a[:, 2]
-    return res
-
-
-def probe(kind, inst, param):
-    return f"@m.{inst}.m{NFET if kind == 'nmos' else PFET}[{param}]"
-
-
-PARAMS = ("id", "gm", "gds", "vgs", "vds", "vbs", "vdsat")
-
-
-@lru_cache(maxsize=16)
-def _independent_cs_cached(workdir: str, vout_hold=None, pout_hold=None, corner="tt", temp_c=27.0):
-    c = CS
-    body = [f"Vdd vdd 0 DC {c['vdd']}", f"Vsp vsp 0 DC {c['vsp']}", f"Vin nin 0 DC {c['vin']} AC 1",
-            f"Vpb pb 0 DC {c['pb']}"]
-    # finger 규칙의 독립 표현: finger 마다 인스턴스 하나(w=finger_w), m/nf 없이 병렬 n 개.
-    for i in range(c["n"]):
-        body.append(f"XM1_{i} nout nin 0 0 {NFET} l={c['L']} w={c['finger_w']}")
-    for i in range(c["pn"]):
-        body.append(f"XMP1_{i} pout pb vsp vdd {PFET} l={c['pL']} w={c['pfinger_w']}")
-    if vout_hold is None:
-        body += [f"RL vdd nout {c['rload']}", f"CL nout 0 {c['cl']}"]
-    else:
-        body += [f"Vh nout 0 DC {vout_hold}"]
-    if pout_hold is None:
-        body += [f"RP pout 0 {c['rp']}"]
-    else:
-        body += [f"Vhp pout 0 DC {pout_hold}"]
-    prints = ["v(nout)", "v(pout)"]
-    for i in range(c["n"]):
-        prints += [probe("nmos", f"xm1_{i}", q) for q in PARAMS]
-    for i in range(c["pn"]):
-        prints += [probe("pmos", f"xmp1_{i}", q) for q in PARAMS]
-    ac = None if vout_hold is not None else (0.01, 1e10, 40)
-    r = run_spice("\n".join(body), Path(workdir), prints, ac_out="nout" if ac else None, ac=ac,
-                  corner=corner, temp_c=temp_c)
-    op = r["op"]
-
-    def dev(kind, inst, n):
-        d = {q: op[probe(kind, f"{inst}_0", q).lower()] for q in PARAMS}
-        for q in ("id", "gm", "gds"):  # 병렬 finger 총합
-            d[q] = sum(op[probe(kind, f"{inst}_{i}", q).lower()] for i in range(n))
-        return d
-
-    return {"V": {"nout": op["v(nout)"], "pout": op["v(pout)"]},
-            "M1": dev("nmos", "xm1", c["n"]), "MP1": dev("pmos", "xmp1", c["pn"]),
-            "f": r.get("f"), "H": r.get("H")}
-
-
-def independent_cs(root: Path, vout_hold=None, pout_hold=None, corner="tt", temp_c=27.0):
-    """손으로 쓴 독립 넷리스트(finger 마다 인스턴스 1개, m/nf 없음)로 CS 회로를 직접 ngspice 에 돌린 값.
-    vout_hold/pout_hold 를 주면 그 넷을 이상 전압원으로 묶는다(forced KCL 손계산용)."""
-    tag = f"ind_cs_{vout_hold}_{pout_hold}_{corner}_{temp_c}".replace(".", "p").replace("-", "m")
-    return _independent_cs_cached(str(root / tag), vout_hold, pout_hold, corner, temp_c)
-
-
+# (`_includes`·`run_spice`·`probe`·`PARAMS`·`independent_cs` 는 `tests/adapters/ngspice/independent_ref.py` 로 옮겼다
+#  -- card 20261104-op23, D §18.2 '손 넷리스트 독립 기준 이동')
 @pytest.fixture(scope="session")
 def ref_root(tmp_path_factory):
     require_spice()

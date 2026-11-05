@@ -1,18 +1,19 @@
 # gmid_engine.sizing 동작 계약 (MOD4 GB7 DC 정본 풀이 + 봉인, test 작성용)
 
 > **[U17 ①-b] S0 수준 필드 이동**(설계 40 §2.4.7 `KernelContext` 행·§2.4.8 v1.9.1 D8, 2026-10-13) -- 이 단락이 아래 옛 서술보다 우선한다.
-> * [XRUN-F1 B] `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS, *, donors, counters) -> KernelContext` -- `donors`·`counters` 는 필수 키워드(기본값 없음, 빠지면 `TypeError`)이고
+> * [XRUN-F1 B, TB-1] `build_kernel_context(s1graph, inputs, lut, *, donors, counters) -> KernelContext` -- `donors`·`counters` 는 필수 키워드(기본값 없음, 빠지면 `TypeError`)이고
 >   7개 블록에 넘긴다. 호출자가 `search.open_run()` 으로 만든 실행 하나의 블록 결과 색인·계수다(단계 B 는 `StageAResult` 의 두 칸을 넘긴다). 결과 `KernelContext.donors`·`.counters` 는 넘긴 객체 그대로(`is`)다.
 >   커널 단계의 블록 호출(`run_kernel` 의 ②~⑤, `seal_dc` 의 봉인 블록)과 `metrics.ss_evaluate`·search 평가 커널은 이 두 칸으로 부른다.
-> * `build_kernel_context(s1graph, inputs, lut, order_hints=NO_ORDER_HINTS) -> KernelContext` -- `l_classes` 인자는 없다: L 동치류는 S1v 필드 `graph/s1v: l_classes`(있으면)에서 읽는다.
->   순서 = lift(`widen(S2_WRITERS)` -- 권한표가 S1_WRITERS 를 덮는 S0 수준 스냅샷도 받는다) -> `dc_rails` -> `s1_symmetry` -> `dc_current_basis` -> `dc_writer_plan` -> `dc_scc_order` ->
+> * `build_kernel_context(s1graph, inputs, lut) -> KernelContext` -- `l_classes` 인자·순서 힌트 인자는 없다: L 동치류는 S1v 필드 `graph/s1v: l_classes`(있으면)에서 읽는다.
+>   순서 = lift(`widen(S2_WRITERS)` -- 권한표가 S1_WRITERS 를 덮는 S0 수준 스냅샷도 받는다) -> `dc_rails` -> `s1_symmetry` -> `dc_current_basis` -> **`theta_class`**(TB-1, S0 `device.theta_class`) -> `dc_writer_plan` -> `dc_scc_order` ->
 >   **`kernel_fields`**(writer `kernel_context`, 새 계산 블록: `graph/kernel(KERNEL_KEY="kernel")`: `fixed_values`·`resistor_values`·`l_ties` -- L 묶음 검사 `ValueError` 포함) ->
 >   `dc_theta_schema`(extras = engine 수동소자만; reads 에 `resistor_values`·`l_ties` 필드).
 > * `KernelContext(base, inputs, lut, donors, counters)` -- **참조만**(`donors`·`counters` = XRUN-F1 card B 의 과도기 참조 칸, U17 ② G-7 재작성에서 정리). 옛 칸 `schema`·`fixed_values`·`resistor_values`·`plan_versions`·`l_ties` 는 없다: θ 스키마 = `base.value("graph", KERNEL_KEY, "theta_schema")`
 >   (옛 `graph/dc: dc_theta_schema` 를 `graph/kernel: theta_schema` 로 옮김, writer `dc_theta_schema` 그대로), 고정 노드·저항·L 묶음 = 같은 레코드의 필드, 계획 블록 입력 버전 =
->   `base.block_version(w)`(`PLAN_WRITERS` = 위 계획 블록 + `kernel_context`·`dc_theta_schema`). `run_kernel` 의 parent 검사는 `PLAN_WRITERS` block_version 이 `base` 와 같은지로 한다.
+>   `base.block_version(w)`(`PLAN_WRITERS` = 위 계획 블록 + `kernel_context`·`dc_theta_schema`). `run_kernel` 의 parent 검사는 `ctx.base` writer 전부(`base.block_versions` 키)의 block_version 이 `base` 와 같은지로 하고 어긋나면 `ValueError`, 통과한 parent 는 `parent.snapshot.derive_child(keep)` 로 파생해 출발한다(IT-2a, 계획 N3.3, 설계 41 4.7-3c). keep = base writer(`base.block_versions` 키) ∪ 커널 블록 이름(`steps`·`later`) ∪ `seal.py` 모듈 상수 `SEAL_ITEM_BLOCKS`(봉인 항목 블록 여덟, 블록 객체 tuple)의 블록 이름 -- 봉인 4 가 받는 호출 목록과 같은 집합이다. `dc_seal_report` 는 keep 밖이라 같은 입력이면 S3 graft 다. `PLAN_WRITERS` 는 `context_fp` 전용이다.
 > * `dc_writer_plan` 은 `device.dc_self_referential`(MOS 마다 bool -- 그 소자가 쓰는 노드가 자기 d·s·bulk 중 하나인가: diode gate 쓰기·소스 추종 source 쓰기)도 쓴다(S0 수준 필드,
 >   설계 40 §2.4.8 '1변수 writer 집합'). `dc_columns` 의 1변수 노드 판정과 search `cell_floor` 가 이 필드를 읽는다(reads 에 `device.dc_self_referential`).
+> * (카드 IT-2c) `node.dc_output_structure`(출력 포트 구조 분류)는 삭제됐다 -- 측정 구성은 출력 꼴과 무관하게 봉인점 KCL 로 잰다(계획 N3.8, 설계 41 §4.7-W).
 > * 권한표: `S2_WRITERS` 에 `kernel_context` 필드·`theta_schema`·`dc_self_referential` 이 든다. sizing `__init__` 이 S0 수준 스냅샷 값 형식(`CurrentBasis`·`CurrentTerm`·`NodeWrite`·`DeviceCoord`·
 >   `TieBreak`·`SccEntry`·`ColumnNeighbor`·`ThetaSchema`·`ZeroCancel`)을 core 타입 등록부에 올린다.
 
@@ -35,7 +36,7 @@
   봉인 8 worst 이름·봉인 3 행 범위·margin 동률 규칙·`Window.constraints` 뜻·실패 최소 구성을 명시. S2 dc 필드는 r2 그대로
   28개(+ S1 필드).
 - **개정 r4(2026-10-08, GB7 열린 질문 O1 처리 -- lut r6 `vdsat`·`tol_vdsat_table` 배선)**: `[r4]`. 요지 -- (1) 봉인 7 이 VDSAT 열로
-  실제 판정한다(6절 표): `dc_seal_saturation(snapshot, linear_devices, lut)`, 열 없는 LUT 세트(옛 12-L 등)만 undefined + reason
+  실제 판정한다(6절 표): (옛 포화 여유 블록. [EO-1 범위 4] 아래 개정 r10 이 영역 판정 `dc_seal_region` 하나로 대체했다), 열 없는 LUT 세트(옛 12-L 등)만 undefined + reason
   `lut_vdsat_column_missing`. 이제 1~8 이 모두 pass 인 점은 `SealedSnapshot` 이 된다. (2) 1변수 bisection 구간의 VDS 쪽 끝 =
   writer 슬라이스의 **VDS 정의역 하한**(on_mask 가 끝 열까지 모두 켜진 첫 VDS 격자점, 데이터 유도 -- LUT v2 는 VDS = 0 열이 전류
   0 이라 그 열과 보간되는 첫 칸의 gm/ID 곡선이 `lut_curve_undefined`) + 구간 끝 부동소수 안쪽 보정(5.4). 반복 중(strict=False)
@@ -60,14 +61,14 @@
 - **개정 r7(2026-10-08, 오케스트레이터 결정 -- 수렴 판정 = 노드전압 오차 상계)**: `[r7]`. Gauss-Seidel 은 Δk ≤ tol 에 사후 상계
   q/(1−q)·Δk ≤ tol 을 더한다(둘 다; q < 1, k ≥ 3; q ≥ 1 이면 받지 않음, Δk = 0 은 받음), Newton 은 ‖r‖∞ ≤ tol 에 더해 온전한 걸음 ‖Δ‖∞ ≤ tol.
   새 상수 없음(tol = 기존 노드 허용오차). 2절 SccLog 필드 목록 정정. 5.5·5.5b·10.5절.
-- **개정 r8(2026-10-08, 오케스트레이터 결정 -- '봉인한 동작점은 모델이 분해하는 점이어야 한다')**: `[r8]`. **봉인 9 전도 여유**
-  (`seal_conduction.py`, `dc_seal_conduction`, `SEAL_CONDUCTION` = 9): 전도 MOS 마다 VGS = 0 누설 I_off ≤ ε·ID, ε = (gm/ID)·tol_V
-  (metrics 9절 ε_d 와 같은 양). 소자별 `device.dc_off_current`·`device.dc_conduction_floor`(ID 하한 I_off/ε) 필드 -- search 가 θ 전류
-  상자·제약을 같은 식으로 조일 때 읽는다(12절 O17). 봉인 항목 8 -> 9개. 2·6·8·10.6절. 계기: two_stage_ota 첫 최종 front 점이 pA
-  전류(0.07~0.27 pA)에서 봉인돼 SPICE free 에서 M2/M6 이 꺼짐.
-- **개정 r9(2026-10-08, 오케스트레이터 결정 -- 영역 어휘 하나로)**: `[r9]`. `LINEAR_REGION` = authoring `REGION_TRIODE`("triode").
-  spec 로더는 `intended_region` 영역으로 "triode" 만 받는데 sizing 이 "linear" 를 찾아 spec 경로로는 `linear_devices` 가 늘 비었다.
-  1.2절·12절 O19.
+- **개정 r8(2026-10-08, 오케스트레이터 결정 -- '봉인한 동작점은 모델이 분해하는 점이어야 한다')**: `[r8]`. 봉인 항목 8 -> 9개(봉인 9 = 전도 여유). 계기: two_stage_ota 첫
+  최종 front 점이 pA 전류(0.07~0.27 pA)에서 봉인돼 SPICE free 에서 M2/M6 이 꺼짐. **[r10] 이 항목의 판정식(VGS = 0 누설 대 분해능)·소자별 하한 필드는 폐기**하고 봉인 9 는 영역 판정(선언 없는 소자 ID > 0)이 됐다.
+- **개정 r9(2026-10-08, 오케스트레이터 결정 -- 영역 어휘 하나로)**: `[r9]`. 영역 낱말 정본 = authoring `REGION_TRIODE`("triode"). [r10] sizing 은 낱말을 따로 정의하지 않고 authoring `REGION_TRIODE`·`REGION_OFF` 를 읽는다.
+- **개정 r10(2026-11-04, card 20261104-eo1r4-sf1l -- EO-1 범위 4, 계획 v6.38.11 O-202·O-204·O-205·O-210·O-221·O-222, 위임 A-1·A-2·A-45~A-49)**: `[r10]`. 요지 -- (1) **공용 영역 판정**
+  `judge_region`/`region_mismatch`(`region_judge.py`·`region_mismatch.py`)가 전류와 VDS 대 VDSAT 만으로(수치 문턱 없음) 영역을 가르고 봉인 7·9 블록 하나 `dc_seal_region`(`seal_region.py`,
+  소자마다 한 번)이 두 항목을 쓴다. 옛 포화·전도 블록 둘, 옛 소자별 누설·바닥 필드 둘, 봉인 9 의 VGS = 0 조회, 행 여유 부호 판정은 삭제. (2) 봉인 6 경계 0 V:
+  `junction_forward` 식 하나. (3) S0 술어 필드 `device.region_decl`(writer `dc_region_decl`, `DcInputs.regions`) -- 옛 선형 영역 소자 칸은 `regions` 로 대체, 소자 열거 뿌리 넷(쓰기 계획·전류 기저·θ 스키마·
+  search_domain kind 목록)은 `off` 소자를 뺀다. (4) `off` 소자의 동작점·1차 ΔV·관문은 metrics `ss_off_op`·`ss_off_delta`·`off_region_gate`. 1.1·1.2·2·6절.
 
 ---
 
@@ -96,27 +97,31 @@
 | 1 | `block_lengths.py` | `dc_lengths` | `dc_lengths` |
 | 1 | `seal_versions.py` | `seal_versions`(함수) | -- |
 | 1 | `seal_writers.py` | `seal_writers`(함수) | -- |
-| 1 | `seal_saturation.py` | `dc_seal_saturation` | `dc_seal_saturation` |
-| 1 | `seal_conduction.py` [r8] | `dc_seal_conduction` | `dc_seal_conduction` |
+| 0 | `junction_forward.py` [r10] | `junction_forward`(순수 함수 -- 봉인 6 과 `ss_off_op` 이 부른다) | -- |
+| 0 | `region_judge.py` [r10] | `judge_region`(+ `RegionJudgment`·`OUT_OF_DOMAIN`) | -- |
+| 1 | `region_mismatch.py` [r10] | `region_mismatch` | -- |
+| 1 | `region_decl.py` [r10] | `dc_region_decl` | `dc_region_decl` |
 | 1 | `seal_report.py` | `dc_seal_report` | `dc_seal_report` |
-| 2 | `block_columns.py` | `dc_columns` | `dc_columns` |
-| 2 | `block_widths.py` | `dc_widths` | `dc_widths` |
-| 2 | `kernel_context.py` | `build_kernel_context` | -- |
-| 2 | `seal_tolerances.py` | `dc_tolerances` | `dc_tolerances` |
-| 2 | `seal_node_conflict.py` | `dc_seal_node_conflict` | `dc_seal_node_conflict` |
-| 2 | `seal_vgs_match.py` | `dc_seal_vgs_match` | `dc_seal_vgs_match` |
-| 2 | `seal_kcl.py` | `dc_seal_kcl` | `dc_seal_kcl` |
-| 2 | `seal_bulk_reverse.py` | `dc_seal_bulk_reverse` | `dc_seal_bulk_reverse` |
-| 2 | `seal_kvl_branch.py` | `dc_seal_kvl_branch` | `dc_seal_kvl_branch` |
-| 3 | `seal.py` | `seal_dc` | -- |
-| 4 | `size_and_seal.py` | `size_and_seal` | -- |
+| 3 | `seal_region.py` [r10] | `dc_seal_region` | `dc_seal_region` |
+| 2 | `_helpers_dc_solve.py` [IT-2c] | helper: `Circuit`(읽기 전용 열·`region_rows`·`port_window`·`kind_sign`) | -- |
+| 3 | `block_columns.py` [IT-2c: `_Circuit` 은 `Circuit` 을 잇고 θ·`override` 만 더한다, 커널 창 = W4 뿌리 항목만] | `dc_columns` | `dc_columns` |
+| 3 | `block_widths.py` | `dc_widths` | `dc_widths` |
+| 3 | `kernel_context.py` | `build_kernel_context` | -- |
+| 3 | `seal_tolerances.py` | `dc_tolerances` | `dc_tolerances` |
+| 3 | `seal_node_conflict.py` | `dc_seal_node_conflict` | `dc_seal_node_conflict` |
+| 3 | `seal_vgs_match.py` | `dc_seal_vgs_match` | `dc_seal_vgs_match` |
+| 3 | `seal_kcl.py` | `dc_seal_kcl` | `dc_seal_kcl` |
+| 3 | `seal_bulk_reverse.py` | `dc_seal_bulk_reverse` | `dc_seal_bulk_reverse` |
+| 3 | `seal_kvl_branch.py` | `dc_seal_kvl_branch` | `dc_seal_kvl_branch` |
+| 4 | `seal.py` | `seal_dc` | -- |
+| 5 | `size_and_seal.py` | `size_and_seal` | -- |
 
 계산 블록은 모두 core `compute_block`(core CONTRACT 6절)이다: 블록 함수는 선언 reads 투영 + 불변 extras 만 받고, 입력 버전 =
 fp_of((이름, 코드 해시, 투영 지문)) = `block.input_version(snapshot, *extras)`(정본), 같으면 재사용(스냅샷 `is` 반환), 결과는 `snapshot.write` 로만 쓴다(열 교체 의미).
 [XRUN-F1 B] 호출은 `block(snapshot, *extras, donors, counters)`(필수 키워드 둘)이고 계수는 실행 하나의 `RunCounters`(`counters.snapshot()` 의 `blocks` 행)가 잰다 -- 블록 객체에 계수 메서드는 없다.
 **봉인 4**(`seal_versions`)는 입력 버전 식을 사본으로 두지 않고 `block.input_version(snapshot, *extras)` 를 부른다(판정은 그대로). **부분 스냅샷**: `run_kernel` 은 블록 단계마다 후보 실패 클래스
-(`NonconvergentError`·`SealViolationError`)를 이름으로 잡아 그 블록에 들어간 스냅샷을 `core.attach_partial` 로 붙인 뒤 다시 낸다. `seal_dc` 는 봉인 항목 블록(`dc_tolerances` ~ `dc_seal_conduction`)과 `dc_seal_report` 단계마다 후보 실패 클래스를 이름으로 잡아 그 블록에 들어간 스냅샷을 붙여 다시 내고,
-스스로 내는 `SealViolationError` 에는 `dc_seal_report` 까지 쓴 스냅샷을 붙여 낸다(`exc.partial`). `seal_dc(snapshot, calls, lut, resistances, linear_devices, raise_on_violation=True, *, donors, counters)`: 필수 키워드 둘.
+(`NonconvergentError`·`SealViolationError`)를 이름으로 잡아 그 블록에 들어간 스냅샷을 `core.attach_partial` 로 붙인 뒤 다시 낸다. `seal_dc` 는 봉인 항목 블록(`dc_tolerances` ~ `dc_seal_kvl_branch`)과 `dc_seal_report` 단계마다 후보 실패 클래스를 이름으로 잡아 그 블록에 들어간 스냅샷을 붙여 다시 내고,
+스스로 내는 `SealViolationError` 에는 `dc_seal_report` 까지 쓴 스냅샷을 붙여 낸다(`exc.partial`). [IT-2e] 부분 스냅샷은 붙이기 전에 `derive_child(writers_in_scope(base, 앞 블록))` 로 줄인다 -- `writers_in_scope(base, blocks) -> frozenset` = `base.block_versions` 키 ∪ 블록 이름(`seal_versions.py`, 정의 하나; `base` None 이면 `TypeError`). 그래서 `exc.partial` 의 writer = base writer ∪ 실패 블록 앞 블록 (parent 의 낡은 필드 0)이고 지문은 (평가 키, 실패 지점)만으로 정해진다. 부르는 자리 = 파생 keep(`run_kernel`)·봉인 4 coverage(`seal_versions`)·부착(`run_kernel` `_call_block(…, before)`·`seal_dc`). ss 단계 부착은 변경 없음. `seal_dc(snapshot, calls, lut, resistances, raise_on_violation=True, *, base, donors, counters)`: `base`·`donors`·`counters` 필수 키워드, `base` = `ctx.base`(None 이면 `TypeError`; 봉인 4 (3)(4)는 항상 잰다). 봉인 항목 블록 일곱의 구성원·순서는 `seal.py` `SEAL_ITEM_BLOCKS`(정의 하나) -- `seal_dc` 는 그 순서로 부르고 extras 는 호출마다 만드는 블록 객체 키 지역 매핑에서 찾으며, 키가 빠지거나 상수 밖 키가 있으면 `ValueError`(fail-closed).
 
 ## 1. 공개 흐름과 입력
 
@@ -127,9 +132,9 @@ ctx    = build_kernel_context(s1, inputs, pre_layout_lut_access(memo))         #
 ev     = size_and_seal(ctx, theta, parent=None)                                # θ 마다 -> DcEvaluation
 ```
 
-### 1.1 `DcInputs(supplies_v, input_dc_v=None, node_targets=(), element_values=(), linear_devices=(), pending=(), engine_elements=())` -- frozen
+### 1.1 `DcInputs(supplies_v, input_dc_v=None, node_targets=(), element_values=(), regions=(), pending=(), engine_elements=())` -- frozen
 - `supplies_v` ((레일, V), ...) / `input_dc_v` 입력 포트 공통 DC(V) 또는 None / `node_targets` ((넷, V), ...) W3 /
-  `element_values` ((원소, 값 또는 None), ...) / `linear_devices` 소자 이름 tuple / `pending` ((경로, 결정 ID), ...) /
+  `element_values` ((원소, 값 또는 None), ...) / [r10] `regions` authoring `RegionDecl` tuple(이름순, triode·off -- 옛 선형 영역 소자 칸 자리) / `pending` ((경로, 결정 ID), ...) /
   [r5] `engine_elements` 원소 이름 tuple(정렬) -- spec 값 mode 가 `engine` 인 원소(수동소자·이상원 모두; 수동소자만 4.4 가 쓴다).
 
 ### 1.2 `dc_inputs_from_spec(spec) -> DcInputs`
@@ -137,8 +142,7 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
 - `supplies_v` = `spec.supplies_v` 그대로. `input_dc_v`: InputDc mode `net` -> `dict(spec.supplies_v)[net]`, `value` ->
   `value_v`, `engine`·`pending`(또는 None) -> None. `node_targets` = `spec.node_voltage_targets_v` 가 tuple 이면 그것, 아니면
   (PendingMark·None) (). `element_values` = `spec.element_values` 각 원소의 (name, mode == "value" 면 value 아니면 None).
-  `linear_devices` = intended_region 이 tuple 일 때 region == `LINEAR_REGION` 인 소자(이름순). [r9] `LINEAR_REGION` = authoring
-  `REGION_TRIODE` = `"triode"`(spec 어휘 정본을 그대로 읽는다 -- r8 까지 `"linear"` 라 spec 경로로는 비어 있었다, 12절 O19). `pending` = `spec.pending` 의
+  [r10] `regions` = intended_region 이 tuple 일 때 그 `RegionDecl` 전부(소자 이름순; pending·미선언은 ()). 영역 어휘 정본 = authoring `REGION_TRIODE`·`REGION_OFF`. `pending` = `spec.pending` 의
   (path, decision) 이름순 -- **결정 대기 칸은 '미선언'으로 투영하고 막지 않는다**(정지는 MOD10 몫, SPEC_CONTRACT 3절).
   [r5] `engine_elements` = `spec.element_values` 중 mode == `"engine"` 인 원소 이름 정렬 tuple. mode `pending` 은 들지 않는다
   (결정 대기 값은 엔진이 고르지 않는다 -- 그런 수동소자는 θ 도 구조 규칙도 아니고 소신호에서 `passive_value_undeclared`).
@@ -200,16 +204,15 @@ graph 레코드 key: `DC_KEY`(`"dc"`). 값은 모두 불변(frozen dataclass·tu
 | device.dc_L | dc_lengths | 모든 MOS | float m |
 | node.dc_v | dc_columns | 레일 아닌 모든 노드 | float V |
 | node.dc_path_values | dc_columns | 모든 노드 | tuple[`PathValue`] relation 순 |
-| node.dc_window | dc_columns | W4 뿌리 노드 | `Window` |
+| node.dc_window | dc_columns | W4 뿌리 노드(입력 포트인 뿌리 포함) [IT-2c: 뿌리 아닌 입력 포트·선언 포트 항목 없음 -- 측정 구성 `node.dc_window_cfg` 가 받는다] | `Window`(칸 `input_status`·`tol_v`) |
 | device.dc_ln_idu | dc_columns | 모든 MOS | float |
 | graph.dc_scc_log | dc_columns | DC_KEY | tuple[`SccLog`] |
 | device.dc_op | dc_widths | 모든 MOS | `DeviceOp` |
 | device.dc_tol_v | dc_tolerances | 모든 MOS | float V 또는 None |
 | device.dc_gm | dc_tolerances | 모든 MOS | float S (= dc_op.gm_id × dc_op.current, 자기 동작점 gm -- 설계 40 §3.7-3 v1.6) |
-| graph.dc_seal_1/2/3/6/7/8 | dc_seal_node_conflict / vgs_match / kcl / bulk_reverse / saturation / kvl_branch | DC_KEY | `SealItem` |
-| [r8] graph.dc_seal_9 | dc_seal_conduction | DC_KEY | `SealItem` |
-| [r8] device.dc_off_current | dc_seal_conduction | `dc_op.current > 0` 인 MOS | float A(VGS = 0 누설) |
-| [r8] device.dc_conduction_floor | dc_seal_conduction | `dc_op.current > 0` 인 MOS | float A(ID 하한 I_off/ε) 또는 None(tol_V 미정) |
+| graph.dc_seal_1/2/3/6/8 | dc_seal_node_conflict / vgs_match / kcl / bulk_reverse / kvl_branch | DC_KEY | `SealItem` |
+| [r10] graph.dc_seal_7, graph.dc_seal_9 | dc_seal_region | DC_KEY | `SealItem` |
+| [r10] device.region_decl | dc_region_decl (S0) | 영역을 선언한 소자만 | authoring `RegionDecl` |
 | graph.dc_seal_report | dc_seal_report | DC_KEY | `SealReport` |
 
 [ss_linearize 2026-10-08] 권한표 `S2_WRITERS` 에는 위 dc 필드 뒤에 ss·metric 필드(`SS_WRITES`)가 더 있다 -- writer 는
@@ -230,16 +233,18 @@ metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여�
 
 값 형식(모두 frozen dataclass, `s2_values`):
 - `NodeWrite(tier, relation, element=None, known=None, y_key=None, order=0)` -- tier ∈ `TIER_W0..W4`("W0".."W4"),
-  relation ∈ `REL_RAIL`·`REL_TARGET`·`REL_INPUT_DC`·`REL_VGS_GATE`·`REL_VGS_SOURCE`·`REL_RESISTOR`·`REL_TIE`·`REL_WINDOW`
-  ("rail", "declared_target", "input_dc", "vgs_gate", "vgs_source", "resistor_drop", "input_tie", "free_window").
+  relation ∈ `REL_RAIL`·`REL_TARGET`·`REL_INPUT_DC`·`REL_VGS_GATE`·`REL_VGS_SOURCE`·`REL_RESISTOR`·`REL_WINDOW`·`REL_INPUT_POINT`
+  ("rail", "declared_target", "input_dc", "vgs_gate", "vgs_source", "resistor_drop", "free_window", "input_point"). 입력 포트인 W4 뿌리의 `y_key` = 그 뿌리 넷(계획 K-3, IT-1).
+  `input_point`(DEC-106) = 입력 DC 미선언 차동 입력쌍의 두 포트(한 점): 점이 F 에 닿지 않으면 두 항목 모두 tier W4·`y_key` = role `differential_input_p` 포트 넷, p 포트가
+  뿌리(known 없음)·n 포트는 known = p 포트(같은 전압); F 에 닿으면 y 성분이 없고(y_key 없음) 먼저 쓰인 포트가 MOS 관계를, 다른 포트가 `input_point`(known = 그 포트)를 받는다.
 - `DeviceCoord(role, relation, partner=None)` -- role ∈ `COORD_WRITER`("writer")·`COORD_DEPENDENT`("dependent"), relation ∈
   `DEP_TREE`("tree", writer 전용)·`DEP_PARALLEL`("parallel_vgs")·`DEP_CYCLE`("cycle_vgs")·`DEP_FIXED`("fixed_vgs").
 - `CurrentTerm(source, num, den)`, `CurrentBasis(ends, mos, free, fixed, rows, pruned, resistors, ties)`(4.2).
-- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
-  `TIE_INPUT_ORDER`("input_tie_order")·`TIE_CURRENT_PIVOT`("current_pivot"), candidates·chosen 이름순 tuple.
+- [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·
+  `TIE_CURRENT_PIVOT`("current_pivot") [TB-1: W4 뿌리 동률 기록 어휘는 없다 -- 동률은 정지(`dc_colour_not_unique`)], candidates·chosen 이름순 tuple.
 - `ColumnNeighbor(rails, pred, succ, position, length)`, `SccEntry(index, nodes, cyclic, devices)`,
   `ThetaSchema(components, current_cone=(), fixed=(), zero_cancel=())`([r5] 4.4),
-  [r5] `ZeroCancel(resistor, end_net, far_nets, cells, reason=None)`(4.4), `Theta(values)`, `PathValue(relation, value)`, `Window(lo, hi, constraints)`,
+  [r5] `ZeroCancel(resistor, end_net, far_nets, cells, reason=None)`(4.4), `Theta(values)`, `PathValue(relation, value)`, `Window(lo, hi, constraints, input_status=None, tol_v=None)`,
   `SccLog(index, nodes, iterations, deltas, tol, k_max, method="direct", fallback=None)`([r6] method·fallback 5.4),
   `DeviceOp(kind, current, ln_idu, gm_id, L, W, vgs, vds, vsb, w_key, idu_forward)`,
   `SealItem(item, status, magnitude=None, tol=None, margin=None, devices=(), nodes=(), detail=())`, `SealReport(items, status)`,
@@ -278,7 +283,7 @@ device.dc_colour.
 - **extras 둘 = 선언 표시**(호출자 `build_kernel_context` 가 `DcInputs`·`dc_rails` 에서 만든다). 형식: `element_marks`·`node_marks` = `((이름, ((표시 이름, float), ...)), ...)`,
   이름순 바깥 tuple, 안쪽 쌍은 표시 이름순, 모두 불변 값(`require_immutable`). 표시 이름 어휘:
   * 노드 표시: `rail_v`(레일 전위 V -- `node.dc_rail_v`), `target_v`(W3 노드 목표 전압 V), `input_dc_v`(입력 포트 노드의 입력 DC 공통 전압 V).
-  * 원소 표시: `value`(spec 값 mode `value` 의 선언 값 -- 단위는 그 원소 kind 의 SI), `engine`(값 mode `engine`, 값 0.0), `linear`(선형 영역 소자, 값 0.0).
+  * 원소 표시: `value`(spec 값 mode `value` 의 선언 값 -- 단위는 그 원소 kind 의 SI), `engine`(값 mode `engine`, 값 0.0), [EO-1 범위 4] `triode`(`triode` 선언 소자, 값 0.0), `off_l`·`off_w`(`off` 선언 소자의 `l_m`·`w_m` -- 짝 두 소자 중 하나만 `off` 거나 길이·폭이 다르면 `graph.orbits` 에서 갈려 θ 가 묶이지 않는다).
   표시가 없는 이름은 목록에 없다(빈 표시). 값이 다르게 선언된 두 원소·전위가 다른 두 넷은 같은 궤도가 아니다. 표시는 처음 색에만 들어가고 `dc_colour` 의 서로 다른 1-WL 색
   사이 순서(아래)에는 영향이 없다.
 - **계산**: graph `canonical_form(projection, element_marks, node_marks)`(graph CONTRACT 4.7)가 1-WL 색 `wl`·정준 위치 `position`·자기동형 생성자를 돌려준다(2단자 수동소자
@@ -302,31 +307,34 @@ device.dc_colour.
 
 ## 3. 쓰기 계획 `dc_writer_plan(snapshot, target_nets, input_dc_declared)` (θ 무관)
 
-reads: device.{element_class, is_diode, kind, pins, dc_colour}, node.{is_rail, port_direction, dc_colour}.
+reads: device.{element_class, is_diode, kind, pins, dc_colour, dc_nets, region_decl}, node.{is_rail, port_direction, dc_colour, ac_ground_class}. (`off_only_node` 관문: 전도 엣지 = `dc_nets` 에서 off 소자·전류원을 뺀 것, 전압 결정 넷(레일·고정 넷·입력 포트·켜진 소자 gate 가 닿는 선언 bias = `ac_ground_class` gate_only_undriven)에 안 닿는 넷에 off d·g·s 가 닿으면 정지. 게이트 예외 없음, off 선언 없으면 무동작)
 writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 키 = (구조 색, 이름) -- 이름은 같은 색 안에서만.
 
 1. 고정 노드 F 와 writer: 레일 -> (W0, rail), `target_nets` -> (W3, declared_target), `input_dc_declared` 면 입력 포트
    (`port_direction == INPUT_DIRECTION`) -> (W2, input_dc). 우선순위 W0 > W3 > W2(이미 배정된 노드는 건너뜀).
 2. G_vgs 엣지: MOS 마다 (gate, source), 저항(`element_class == passive`, kind `"resistor"`, **잎 가지치기된 저항 포함**)마다
-   (t0, t1), `input_dc_declared` 가 거짓이면 F 밖 입력 포트를 (색, 이름) 순으로 놓고 이웃 쌍마다 '같은 DC' 엣지(같은 색 포트가
-   둘 이상이면 `TieBreak(input_tie_order, 그 포트들, 그 포트들)`). 커패시터·이상원은 엣지가 아님.
-3. 엣지 키 = (순위: 같은 DC 엣지 < 저항 < diode MOS < 그 밖 MOS, 원소 구조 색, 이름). F 를 한 점으로 묶고 Kruskal 최소
+   (t0, t1), 커패시터·이상원은 엣지가 아님. '같은 DC' 엣지는 없다(K-3, IT-1) --
+   입력 DC 가 선언되지 않아도 입력 포트는 MOS·저항으로만 G_vgs 에 닿는다.
+3. 엣지 키 = (순위: 저항 < diode MOS < 그 밖 MOS, 원소 구조 색, 이름). F 를 한 점으로 묶고 Kruskal 최소
    신장 숲. 같은 (순위, 색) 원소 묶음이 트리/비트리로 갈리면 `TieBreak(writer_edge, 묶음, 트리로 간 원소들)`(묶음을 다 처리한
    뒤의 성분 분할은 묶음 안 순서와 무관하므로 이름이 가르는 것은 그 묶음 안의 선택뿐이다). 트리 MOS = `DeviceCoord(writer, tree)`. 비트리 MOS = dependent: gate·source 가 둘 다 F 면 `fixed_vgs`, 같은 kind·
    같은 (gate, source) 의 트리 MOS 가 있으면 `parallel_vgs`(partner = 그 소자), 그 밖 `cycle_vgs`. 비트리 저항 ->
    `StructureUnresolvedError`(detail reason `unsupported_rule_branch`, rule_branch `dc_resistor_cycle`, nets, devices = 저항).
-4. 방향(BFS, 트리 엣지 인접 목록은 (순위, 색, 이름)순): F 넷 전부((색, 이름)순)에서 시작, 아직 안 쓴 끝 노드를 쓴다 -- 같은 DC 엣지 ->
-   (W2, input_tie, known = 아는 쪽), 저항 -> (W2, resistor_drop, element, known), MOS 가 gate 를 쓰면 (W1 if is_diode else W2,
+4. 방향(BFS, 트리 엣지 인접 목록은 (순위, 색, 이름)순): F 넷 전부((색, 이름)순)에서 시작, 아직 안 쓴 끝 노드를 쓴다 -- 저항 -> (W2, resistor_drop, element, known), MOS 가 gate 를 쓰면 (W1 if is_diode else W2,
    vgs_gate, element, known = source), source 를 쓰면 (W2, vgs_source, element, known = gate).
 5. F 없는 성분(G_vgs 넷을 (색, 이름)순으로 훑어 처음 만나는 미배정 넷의 성분): 성분 안 F 밖 입력 포트가 있으면 그중 (색, 이름)
-   최소를 뿌리, y 키 `INPUT_GROUP_KEY`("input_common_mode"), 없으면 성분 노드 중 (색, 이름) 최소를 뿌리, y 키 = 그 넷.
-   뿌리와 같은 색인 후보가 둘 이상이면 `TieBreak(w4_root, 그 후보들, (뿌리,))`. 뿌리 = (W4, free_window). 그다음 4 와 같은 BFS.
+   최소를 뿌리, 없으면 성분 노드 중 (색, 이름) 최소를 뿌리; y 키 = 뿌리 넷.
+   뿌리와 같은 색인 후보가 둘 이상이면 [TB-1] `StructureUnresolvedError`(rule_branch `dc_colour_not_unique`, 14.4). 뿌리 = (W4, free_window). 그다음 4 와 같은 BFS.
 6. G_vgs 에 없는 남은 노드((색, 이름)순) = (W4, free_window, y_key = 넷).
+6a. 입력 점·정지(DEC-106, IT-1): 입력 DC 미선언이고 입력 포트(G_vgs 밖 고립 입력 포트 포함)가 둘이며 role 이 `differential_input_p`·`differential_input_n` 각 하나이면 두 포트를
+   Kruskal·성분 계산에서 한 점(입력 점)으로 묶는다 -- 평행·종속 판정도 묶은 뒤의 (gate, source)로 한다. 그 밖 둘 이상(차동쌍 둘, 차동쌍 없는 입력 둘 이상, 차동쌍 + 다른 입력)은 탐색 전에
+   `StructureUnresolvedError`(detail reason `unsupported_rule_branch`, rule_branch `BRANCH_INPUT_CM_UNDEFINED`("input_cm_undefined"), ports = 그 포트 넷들). 입력 포트 하나 또는 입력 DC 선언이면 무동작.
+   같은 층의 둘째 정지: 입력 DC 미선언이고 차동 입력 두 포트(p·n 각 하나) 중 한 포트만 `node_voltage_targets_v` 로 선언하면(입력 점이 안 묶여 ΔV 가 θ 함수) `StructureUnresolvedError`(rule_branch `BRANCH_INPUT_TARGET_ONE_PORT`("input_target_one_port"), ports = 두 포트, declared = 선언한 포트).
 7. `order` = 배정 순번(0부터, 1→4→5→6 순서). 모든 노드가 writer 하나를 받는다. order 의 같은 색 안 이름 순서는 SCC 안 갱신
    순서·시작값에만 쓰이고 수렴값(허용오차 안)을 바꾸지 않으므로 기록하지 않는다.
 
 불변식(test 가 JSON 으로 셀 수 있는 것): MOS 수 = writer 수 + dependent 수; dependent 수 = G_vgs(F 를 한 점으로 묶은 다중
-그래프, 엣지 = MOS·저항·같은 DC)의 순환수 = |E| − |V| + 성분 수(저항 비트리 0 일 때); W4 수 = F 없는 성분 수 + G_vgs 밖 노드 수.
+그래프, 엣지 = MOS·저항)의 순환수 = |E| − |V| + 성분 수(저항 비트리 0 일 때); W4 수 = F 없는 성분 수 + G_vgs 밖 노드 수.
 
 ## 4. θ 무관 계획 블록
 
@@ -349,8 +357,8 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 ### 4.3 `dc_scc_order(snapshot)` -- 읽기 의존과 SCC
 - reads node.dc_writer, device.{pins, bulk, element_class}, graph(S1).{columns, branches}.
 - 의존(고정 relation rail/declared_target/input_dc 노드는 제외): vgs_gate = {source, drain, bulk 넷, known}, vgs_source =
-  {gate(known), drain, bulk, 자기 자신}, resistor_drop·input_tie = {known}, free_window = 그 노드(입력 묶음 뿌리면 input_tie 로
-  이어진 묶음 전원)에 d 또는 s 가 닿는 MOS 의 반대 채널 단자.
+  {gate(known), drain, bulk, 자기 자신}, resistor_drop = {known}, free_window = 그 노드에 d 또는 s 가 닿는 MOS 의 반대 채널 단자,
+  input_point(known 있음) = {known}, input_point 뿌리 = 뿌리와 그 짝 포트 둘 다에 d 또는 s 가 닿는 MOS 의 반대 채널 단자.
 - Tarjan(반복형) SCC, 의존이 먼저인 순서 = 풀이 순서. `SccEntry.nodes` = order 순, `cyclic` = 크기 > 1 또는 자기 의존,
   `devices` = d·g·s 중 하나가 SCC 노드인 MOS 이름순.
 - `dc_column_nbrs` = S1 `Column` 경로(r1 에서 걷기)마다 내부 노드의 (rails, pred, succ, position, length) -- 시작값 전용.
@@ -411,21 +419,20 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 ### 5.3 `dc_lengths(snapshot, theta_lengths)` -- reads device.element_class; 키 ≠ MOS 집합 -> `ValueError`; writes dc_L.
 
 ### 5.4 `dc_columns(snapshot, theta_items, fixed_values, resistor_values, lut)` -- 노드전압 정본
-- reads node.{dc_writer, dc_rail_v, dc_column_nbrs}, device.{dc_drop_current, dc_L, pins, kind, bulk, element_class,
+- reads node.{dc_writer, dc_rail_v, dc_column_nbrs, port_direction}, device.{dc_drop_current, dc_L, pins, kind, bulk, element_class,
   dc_coord}, graph.dc_scc_order. `theta_items` = θ 중 ln_idu·y·resistance 성분.
 - 부호 s = +1(nmos)/−1(pmos). 크기: vgs = s(V(g)−V(s)), vds = s(V(d)−V(s)), vsb = s(V(s)−V(b)).
 - VGS(좌표) = lut `vgs_for_current_density(memo, kind, w_key, ln_idu, L, vds, vsb)` ([U3 2026-10-08] 옛 임시 우회
   `gm_id_for_target(W = w_m, current = exp(ln_idu)·w_m/L).vgs` 를 대체 -- `_vgs_of_coordinate`·`_vgs_signed` 두 곳; 같은 곡면의 칸 안 Hermite 근, 분지 끝 마디 좌표는 반올림 2 ulp 허용, lut CONTRACT 3.1).
   `lut_target_out_of_range` 의 `target`·`branch_max` 는 ln ID 단위로 서로 같아 `target > branch_max` 가 '필요한 VGS 가 격자 위'다.
 - writer 식: vgs_gate V(x) = V(known) + s·VGS / vgs_source V(x) = V(known) − s·VGS / resistor_drop V(x) = V(known) + Δ,
-  Δ = 0 (전류 0), 아니면 known 이 t0 이면 −I·R, t1 이면 +I·R(I = dc_drop_current, R = θ 또는 선언값) / input_tie
-  V(x) = V(known) / free_window V = lo + y·(hi − lo).
-- 창 [lo, hi]: 레일 전압 범위 [min, max] 에서 시작, x(입력 묶음이면 묶음 전원)에 채널이 닿는 MOS 마다 전류가 나가는 단자
+  Δ = 0 (전류 0), 아니면 known 이 t0 이면 −I·R, t1 이면 +I·R(I = dc_drop_current, R = θ 또는 선언값) / free_window V = lo + y·(hi − lo).
+- 창 [lo, hi]: 레일 전압 범위 [min, max] 에서 시작, x 에 채널이 닿는 MOS 마다 전류가 나가는 단자
   (nmos d, pmos s)면 lo = max(lo, V(반대 단자)), 들어오는 단자면 hi = min(hi, V(반대 단자)). lo > hi -> `SealViolationError`
   (devices (), margin None, detail item 7·reason `empty_window`·node·lo·hi·constraints). **VDsat 항 없음**(12절 O1 -- [r4] 열은
   생겼지만 창에 넣으려면 인접 MOS 의 gate·bulk·자기 노드를 W4 의존에 더해야 해서(4.3 변경) 결정 대기. 포화는 봉인 7 이 판정한다).
   [r3] `Window.constraints`(그리고 empty_window detail 의 `constraints`) = 창을 만든 순서 제약의 **개수**(위 MOS 마다 lo 또는
-  hi 하나씩 -- x 와 입력 묶음 전원에 채널(d 또는 s)이 닿는 MOS 수, 같은 MOS 가 두 묶음 전원에 닿으면 둘). 0 이면 창 = 레일 전압
+  hi 하나씩 -- x 에 채널(d 또는 s)이 닿는 MOS 수). 0 이면 창 = 레일 전압
   범위. 값이 lo·hi 를 실제로 좁혔는지는 뜻하지 않는다.
 - [r2] **1변수 노드**(self-referential: writer MOS 의 d·s·bulk 중 하나가 x 자신 -- diode 의 gate 쓰기, 소스 추종의 source
   쓰기)는 **구간 bisection**(설계 3.4): h(x) = x − g(x). 구간 = 레일 전압 범위 ∩ {writer 의 vds ∈ [VDS 정의역 하한, VDS 격자
@@ -447,7 +454,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 - SCC 순서대로: 비순환 -> 한 번 평가. 크기 1 순환(= 1변수 노드) -> 위 bisection(`SccLog.iterations` = 반복 수, tol·k_max 기록).
   다변수 순환 -> 시작값(1단계: 기둥 위치 비례 평균 V(r1) + (V(r2) − V(r1))·position/length, 기둥 없으면 레일 중앙; 2단계 order
   순: 1변수 노드는 투영 bisection, 그 밖 MOS writer 는 VDS = 레일 범위/2, VSB = vgs_gate 면 현재값·vgs_source 면 0 에서 writer
-  식 1회, 저항·같은 DC 는 writer 식, W4 그대로) 뒤 `gauss_seidel`(width = 레일 범위, devices = entry.devices, 허용오차 =
+  식 1회, 저항은 writer 식, W4 그대로) 뒤 `gauss_seidel`(width = 레일 범위, devices = entry.devices, 허용오차 =
   SCC 의 writer MOS(없으면 d·s·bulk 값이 있는 entry.devices)의 `tol_v_cell` 최솟값; 모두 None -> `SealViolationError`
   reason `tol_v_undefined`). [r2] **반복 중(strict=False) 투영**: 1변수 노드는 근이 없거나 구간이 비면 |h| 가 작은 구간 끝
   (빈 구간이면 두 끝 가운데), 그 밖 MOS writer 의 `lut_axis_out_of_range`·`lut_target_out_of_range`·[r4] VDS 정의역 하한 아래에서
@@ -475,7 +482,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   MOS writer(부호 s, gate 쓰기 σ = +1, source 쓰기 σ = −1, g = V(known) + s·σ·VGS): VGS 는 lnID(VGS, VDS, VSB) = 목표의 음함수라
   ∂VGS/∂VDS = −1/(gm/gds), ∂VGS/∂VSB = gmb/gm -- 역산 VGS 점의 lut `op_point`(gm_over_id·gm_gds)와 lut `gmb`(같은 점, 폭 w_m,
   gm = gm_over_id·IDu·w_m/L). ∂g/∂V(known) += 1, ∂g/∂V(d) += σ·∂VGS/∂VDS, ∂g/∂V(s) += σ·(∂VGS/∂VSB − ∂VGS/∂VDS),
-  ∂g/∂V(b) += −σ·∂VGS/∂VSB(같은 노드는 더한다). 저항 강하·같은 DC: ∂g/∂V(known) = 1. W4: lo 를 정한 이웃(그 이웃 값이 lo 를 엄격히
+  ∂g/∂V(b) += −σ·∂VGS/∂VSB(같은 노드는 더한다). 저항 강하: ∂g/∂V(known) = 1. W4: lo 를 정한 이웃(그 이웃 값이 lo 를 엄격히
   올린 마지막 항)에 1 − y, hi 를 정한 이웃에 y(레일 끝이면 없음). 한 노드라도 writer 식이 정의역 밖(`SealViolationError` -- LUT 조회
   실패·빈 창)이면 None. 작성자 측 대조(LUT v2, folded·nmcnr·common_gate 통과 점): 중앙 차분과의 열별 최대 차 ≤ 1.0e−2
   (|J| ≈ 1.2 -- 역산이 쓰는 칸 보간과 순방향 미분의 차), W4 선형 SCC 는 6.6e−12.
@@ -495,8 +502,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
     (12절 O12) -- test 가 덮지 못하는 것을 숨기지 않으려고 적는다.
 - 종속 MOS: ln_idu = ln(op_point(노드 vgs, vds, vsb).IDu). writer: θ 값.
 - path_values: MOS 마다 VGS(좌표 역산, 최종 vds·vsb) 로 gate 에 (`PATH_MOS`, m) V(s) + s·VGS, source 에 V(g) − s·VGS;
-  resistor_drop writer 마다 두 끝에 (`PATH_RESISTOR`, r) 상대 끝 ± Δ; input_tie 마다 두 끝에 (`PATH_TIE`, 그 노드);
-  free_window 에 (`PATH_Y`, y_key) 자기 값; 고정 relation 에 (`PATH_FIXED`, relation) 자기 값.
+  resistor_drop writer 마다 두 끝에 (`PATH_RESISTOR`, r) 상대 끝 ± Δ; free_window 에 (`PATH_Y`, y_key) 자기 값; 고정 relation 에 (`PATH_FIXED`, relation) 자기 값.
 - LUT 실패는 `SealViolationError`(devices = 소자, reason `lut_query_failed`, `lut_reason` = 원래 사유(`lut_axis_out_of_range`·
   `lut_target_out_of_range`·`lut_l_not_anchor` …), `device_query` = "vgs_of_coordinate"·"forward_point"·"tol_v_cell"). 계속
   (근사·클램프)하지 않는다.
@@ -553,17 +559,16 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 - reads node.{dc_v, dc_rail_v}, device.{dc_current, dc_L, dc_ln_idu, pins, kind, bulk}. MOS 마다 vgs·vds·vsb(크기),
   op = lut op_point(노드 점), W = ID·L/exp(ln_idu), gm_id = op.gm_over_id, idu_forward = op.IDu, w_key = `w_keys[kind]`.
 
-## 6. 봉인 (`seal_dc(snapshot, calls, lut, resistances, linear_devices) -> DcEvaluation`)
+## 6. 봉인 (`seal_dc(snapshot, calls, lut, resistances, raise_on_violation=True, *, base, donors, counters) -> DcEvaluation`)
 
 순서: `dc_tolerances(lut)` -> 1 `dc_seal_node_conflict()` -> 2 `dc_seal_vgs_match()` -> 3 `dc_seal_kcl(resistances)` -> 6
-`dc_seal_bulk_reverse()` -> 7 `dc_seal_saturation(linear_devices, lut)`([r4] lut 추가) -> 8 `dc_seal_kvl_branch()` -> [r8] 9
-`dc_seal_conduction(lut)` -> 4 `seal_versions(snapshot, calls + 위 8개)` -> 5 `seal_writers(snapshot)` -> `dc_seal_report(item4, item5)`.
+`dc_seal_bulk_reverse()` -> 7·9 `dc_seal_region(lut)`([r10] 영역 판정 한 블록 -- 소자마다 `judge_region` 한 번, 두 항목) -> 8 `dc_seal_kvl_branch()` ->
+4 `seal_versions(snapshot, calls + 위 7개, base)` -> 5 `seal_writers(snapshot)` -> `dc_seal_report(item4, item5)`.
 
 [r3] **`calls` 형식**(`seal_dc`·`seal_versions` 공통): ((ComputeBlock, extras), ...) -- extras = 그 블록을 부를 때 넘긴 추가 인자
 tuple(블록 함수 호출 `block(snapshot, *extras)` 의 `extras` 그대로, 없으면 ()). `size_and_seal` 은 `((dc_currents,
 (θ 전류 쌍 tuple,)), (dc_lengths, (θ L 쌍 tuple,)), (dc_columns, (θ 쌍, fixed_values, resistor_values, lut)), (dc_widths,
-(lut,)))` 를 넘기고 `seal_dc` 가 봉인 블록 8개([r8] 9 포함)를 같은 형식으로 덧붙여 `seal_versions` 에 넘긴다. 계획 블록(rails·struct_colour·
-current_basis·writer_plan·scc_order·theta_schema)은 calls 에 들지 않는다(parent 검사가 plan_versions 로 대신한다).
+(lut,)))` 를 넘기고 `seal_dc` 가 봉인 블록 7개([r10] 7·9 는 블록 하나)를 같은 형식으로 덧붙여 `seal_versions` 에 넘긴다. base writer(`ctx.base.block_versions`)는 calls 에 들지 않는다 -- 봉인 4 (4) 서로소 단언, parent 검사 = base writer 전부.
 
 `judge(item, rows)`(rows = (대상, 크기, tol 또는 None, devices, nodes)): tol 이 정의된 행 중 크기 > tol 이 있으면 fail(대상 = 그
 행들), 없고 tol None 행이 있으면 undefined(대상 = 그 행들), 그 밖 pass. magnitude·tol·margin = margin 최대 행(fail 이면 fail 행
@@ -578,15 +583,15 @@ None 을 주지만 봉인에서는 '허용오차 0 을 넘은 위반' = 무한 �
 | 1 | `dc_seal_node_conflict` | 노드마다 spread = max − min of {노드 값} ∪ path_values; tol = 닿는 PATH_MOS 소자 tol_v 최댓값(정의된 것), 없으면 None; MOS 관계가 없는 노드는 n·eps·max|V|(n = 값 수) |
 | 2 | `dc_seal_vgs_match` | MOS 마다 |ln idu_forward − ln_idu| / gm_id ≤ tol_v |
 | 3 | `dc_seal_kcl` | [r3] 행 = DC 원소(`basis.ends` -- MOS·DC 저항·이상원, 가지치기 저항 제외)의 from·to 로 한 번이라도 나오는 레일 아닌 넷마다(DC 원소가 닿지 않는 넷 -- gate 전용 넷·커패시터만 닿는 넷 -- 은 행이 없고 n_checked 에 들지 않는다) |Σ from − Σ to|, MOS = idu_forward·W/L, 저항 = (V(from) − V(to))/R, 이상원 = dc_current; tol = tol_I = 채널이 닿는 MOS 의 tol_V·dc_gm 최댓값(설계 40 §3.7-3 v1.6 -- `dc_gm` = 자기 동작점 gm, `dc_tolerances` 필드; 정의된 것; MOS 는 있는데 모두 None 이면 None), MOS 없는 넷은 n·eps·Σ|I| |
-| 4 | `seal_versions` | calls 의 블록마다 fp_of((이름, code_hash, Projection.from_snapshot(snapshot, reads, extras).fp)) == block_version 이고 그 블록 writes 필드의 input_version == block_version. 위반 블록 = detail `blocks`. magnitude = 위반 수, tol 0 |
+| 4 | `seal_versions` | calls 의 블록마다 fp_of((이름, code_hash, Projection.from_snapshot(snapshot, reads, extras).fp)) == block_version 이고 그 블록 writes 필드의 input_version == block_version. 위반 블록 = detail `blocks`. 추가 단언 [IT-2a] (3) coverage: 스냅샷 모든 필드의 writer ∈ base writer(`base.block_versions` 키) ∪ calls 블록 이름, 위반 = detail `foreign_writers`(정렬 tuple); (4) 서로소: base writer ∩ calls 블록 이름 = ∅, 위반 = detail `base_call_overlap`(정렬 tuple). 두 키는 위반일 때만(해당 tuple 이 비어 있지 않을 때만) detail 에 더한다 -- 평소 detail 은 `blocks`·`n_checked` 둘. magnitude = 위반 이름 수 합, tol 0 |
 | 5 | `seal_writers` | 모든 필드 writer == 권한표 writer; 노드마다 dc_writer 있음, (tier == W0) == is_rail, dc_rail_v·dc_v 중 정확히 하나, dc_rail_v 있음 == is_rail. 위반 노드 = nodes, 위반 필드 = detail `fields` |
-| 6 | `dc_seal_bulk_reverse` | MOS 마다 max(0, −vsb, −(vds + vsb)) ≤ tol_v |
-| 7 | `dc_seal_saturation` | [r4] 행 = `dc_op.current > 0` 이고 linear_devices 밖인 MOS(이름순), n_checked = 그 수(0 이면 행 없음 -> pass). 행마다 VDsat = lut `vdsat(memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb)`, tol = lut `tol_vdsat_table(memo, op.kind, op.w_key).at(op.L, op.vds)`(None 가능 -> 그 행 undefined). 요구 = VDS − VDsat ≥ +tol(DEC-88). **크기 = VDsat − VDS + 2·tol, tol = tol** -> margin = 1 − (VDS − VDsat − tol)/tol(N3.14 방향: 클수록 나쁨, > 1 ⇔ VDS − VDsat < tol ⇔ fail; 계획 N3.6 의 margin(VDS − VDsat − tol)/tol 은 1 − margin). tol None 행의 크기 = VDsat − VDS(보고용, 판정에 안 씀). 대표 행이 있으면 detail `slack_v` = 그 행 VDS − VDsat − tol(V). VDSAT 열이 없는 소자(lut `lut_column_unavailable`)는 tol None 행(undefined)이고 detail `reason` = `lut_vdsat_column_missing`(열이 있으면 이 키가 없다). 그 밖 lut 실패 -> `SealViolationError`(devices (소자,), reason `lut_query_failed`, lut_reason 원래 사유, device_query `vdsat`·`tol_vdsat_cell`) |
+| 6 | `dc_seal_bulk_reverse` | [r10] MOS 마다 `junction_forward(vds, vsb)` = max(0, −vsb, −(vds + vsb)) **> 0 이면 fail**(크기 무관 -- 경계 0 V, 문턱 없음), 0 이면 pass. `tol_V`(`dc_tol_v`)는 판정에 쓰지 않고 띠 기록만: detail `indistinct` = 순방향 0 이고 min(vsb, vds + vsb) < tol_V 인 ((소자, 값), ...), `band_undefined` = tol_V 미정 소자(항목을 미정으로 만들지 않는다). magnitude·tol·margin·worst·n_checked 는 `judge` 보고 형식 그대로(크기/tol_V -- 판정에 쓰지 않는다) |
+| 7 | `dc_seal_region` | [r10] `device.dc_op` 의 MOS 마다 `judge_region(소자, 선언, 전류, VDS, vdsat)`(선언 = `device.region_decl` 의 region, 없으면 None)을 한 번 부르고 거부 판정 `region_mismatch` 중 triode/saturation 쪽(표 행 3·8·10)이 하나라도 있으면 fail(devices = 그 소자), 아니고 행 6(`unresolved` -- VDSAT 열 없음, lut `lut_column_unavailable`)이 있으면 undefined(devices = 그 소자, detail `reason` = `lut_vdsat_column_missing`), 아니면 pass. vdsat 입력: VDS < 0 이면 LUT 조회 없이 None, 아니면 그 점 LUT `vdsat`(열 없음 None, 축·L 위치 밖 `OUT_OF_DOMAIN`). 수치 문턱 없음(VDS = VDSAT 정확히는 포화). **출력 전용 기록**(판정을 바꾸지 않는다): detail `slack_v`(vdsat 이 수인 소자 중 최소 VDS − vdsat), `reverse_vds`(행 3 소자), `indistinct`(|VDS − vdsat| < tol_VDsat 인 ((소자, VDS − vdsat), ...), tol = lut `tol_vdsat_table(...).at(L, vds)`), `indistinct_undefined`(tol 미정·조회 실패 소자). magnitude·tol·margin 은 None |
 | 8 | `dc_seal_kvl_branch` | S1 rel_kvl_branch 엣지마다 Σ_멤버 |ln idu_forward − ln_idu|/gm_id ≤ Σ 멤버 tol_v(하나라도 None 이면 None). [r3] 행 대상 이름(= detail `worst` 값) = 엣지 `members`(S1 이 정한 순서 그대로)를 `"+"` 로 이은 문자열(예 `"M1+M2+M3+M4"`), devices = members |
-| 9 | `dc_seal_conduction` | [r8] 행 = `dc_op.current > 0` 인 MOS(이름순, linear_devices 포함 -- 전도면 영역과 무관), n_checked = 그 수. 행마다 I_off = lut `op_point(memo, op.kind, op.w_key, op.L, 0, op.vds, op.vsb).IDu·op.W/op.L`(VGS = 0 누설 -- 오라클 `off_current_A`(C23, pipeline `oracle_input`)와 같은 식), ε = `op.gm_id`·`dc_tol_v`(metrics 9절 ε_d). **크기 = I_off, tol = ε·ID(= ε·`op.current`)** -> margin = I_off/(ε·ID)(> 1 ⇔ 누설이 소자 자기 전류 분해능보다 큼 ⇔ fail). dc_tol_v None 이면 그 행 tol None(undefined). writes `device.dc_off_current` = I_off, `device.dc_conduction_floor` = I_off/ε(ID 하한, tol None 이면 None) -- 행이 있는 소자만. VGS = 0 조회 lut 실패 -> `SealViolationError`(devices (소자,), reason `lut_query_failed`, lut_reason 원래 사유, device_query `off_current`). 새 상수 없음 |
+| 9 | `dc_seal_region` | [r10] 같은 블록의 둘째 항목: `cutoff`(선언 없음·triode 소자의 ID ≤ 0, 표 행 2)가 하나라도 있으면 fail(devices = 그 소자), 아니고 `out_of_domain`(행 5)이 있으면 undefined(devices = 그 소자, detail `reason` = `out_of_domain`), 아니면 pass. 출력 전용 기록 detail `domain_edge` = LUT 표본 끝에 닿은 ((소자, 축), ...)(`lut_axis_bounds`, 축 ∈ L·VGS·VDS·VS, 닿음 = 값 ≤ 축 첫 값 또는 ≥ 끝 값). 옛 VGS = 0 누설 조회와 소자별 누설·바닥 필드 둘은 삭제. magnitude·tol·margin 은 None. 통과한 봉인점의 선언 없는 MOS 는 모두 ID > 0, VDS ≥ VDSAT |
 
 `SealReport.status`: fail 있으면 `REPORT_VIOLATED`("violated"), 아니고 undefined 있으면 `REPORT_UNDEFINED`, 아니면
-`REPORT_SEALED`. items = item 번호순 9개([r8], r7 까지 8개). 결과: violated -> `SealViolationError`(devices = margin 최대 fail 항목의 devices,
+`REPORT_SEALED`. items = item 번호순 9개([r8]; 7·9 는 writer `dc_seal_region` 하나). 결과: violated -> `SealViolationError`(devices = margin 최대 fail 항목의 devices,
 margin = 그 margin, detail = item·nodes·items((번호, 상태, margin) 9개)·item_detail). [r3] fail 항목 선택 키 = (margin, 항목
 번호) 최대 -- margin None(봉인 4·5 처럼 정규화가 없는 항목)은 +inf 로 치고, 동률이면 번호가 큰 항목. undefined -> `DcEvaluation(sealed=None)`.
 sealed -> `DcEvaluation(sealed=SealedSnapshot(snapshot, report))`. [r4] VDSAT 열이 있는 LUT(v2)에서는 1~8([r8] 1~9)이 모두 pass 인 점이
@@ -595,17 +600,17 @@ SealedSnapshot 이 된다(10.2절 실측). 열이 없는 LUT 세트에서는 항
 ## 7. `size_and_seal(ctx, theta, parent=None) -> DcEvaluation`
 
 - ctx 가 KernelContext 아님 -> `TypeError`. theta = Mapping 또는 `Theta` -> `check_theta`. parent 가 DcEvaluation 이 아니거나
-  `plan_versions` 의 block_version 이 하나라도 다르면 `ValueError`.
-- 시작 스냅샷 = parent.snapshot 또는 ctx.base. 호출 = `dc_currents((θ current 키, 값) ...)` -> `dc_lengths((L ...))` ->
+  base writer 전부(`ctx.base.block_versions` 키)의 block_version 이 하나라도 다르면 `ValueError`.
+- 시작 스냅샷 = `parent.snapshot.derive_child(keep)`(keep = base writer ∪ 커널 블록 ∪ `SEAL_ITEM_BLOCKS`) 또는 ctx.base. 호출 = `dc_currents((θ current 키, 값) ...)` -> `dc_lengths((L ...))` ->
   `dc_columns((((kind, key), v) for ln_idu·resistance·y), ctx.fixed_values, ctx.resistor_values, ctx.lut)` ->
-  `dc_widths(ctx.lut)` -> `seal_dc(..., resistances = ctx.resistor_values + θ resistance 쌍, ctx.inputs.linear_devices)`.
-- **재사용 계약**(확정 사항 1·5): 같은 θ·parent 로 부르면 모든 dc 블록 computes 0(reuses 13: 4 평가 + 8 봉인 + report; r7 까지 12).
+  `dc_widths(ctx.lut)` -> `seal_dc(..., resistances = ctx.resistor_values + θ resistance 쌍)`. [r10] `off` 선언 소자가 있으면 `dc_lengths` 둘째 인자로 그 이름 tuple 을 준다(L 은 선언 `l_m`, θ 에 L 성분 없음), `dc_columns` 다섯째 인자 = `triode` 선언 소자 tuple(없으면 생략).
+- **재사용 계약**(확정 사항 1·5): 같은 θ·parent 로 부르면 DC 13블록 computes 0, 커널 4·봉인 항목 8 outcome `reuse`(합 12), `dc_seal_report` outcome `graft` 1(keep 밖 -- 같은 입력이면 S3 graft, design 41 v1.12.8 753·756).
   θ 한 성분만 다른 parent 에서: `current` 성분 -> dc_currents·dc_widths·dc_tolerances 와 그 하류 봉인만 다시(DC 저항 전류가
   바뀌지 않으면 dc_columns·봉인 1 은 reuse), `ln_idu`·`y`·`resistance` -> dc_columns 와 하류(dc_currents·dc_lengths reuse).
-  하류 봉인 블록은 입력 값이 같으면 reuse(예: 값이 같은 SealItem 이면 dc_seal_report reuse).
-  [r5] `capacitance`·`ss_resistance`(`THETA_PASSIVE_KINDS`) 성분만 다른 θ 를 parent 에서 부르면 **dc 블록 전부 computes 0**
+  하류 봉인 항목 블록은 입력 값이 같으면 reuse, `dc_seal_report` 는 parent 경로에서 입력이 같으면 graft(reuse 아님).
+  [r5] `capacitance`·`ss_resistance`(`THETA_PASSIVE_KINDS`) 성분만 다른 θ 를 parent 에서 부르면 **dc 블록 전부 computes 0**(커널 4·봉인 항목 8 `reuse` 12, `dc_seal_report` `graft` 1)
   (어느 블록의 extras 에도 들지 않는다 -- `seal_dc` 의 `resistances` 도 θ `resistance` 만). 결과는 parent 와 같은 봉인 상태이고,
-  소신호 쪽은 metrics `ss_evaluate` 에서 `ss_dev` reuse·`metrics_ss`·`metrics_dc` 만 계산(metrics CONTRACT 7.6).
+  소신호 쪽은 metrics `ss_evaluate` 에서 `ss_dev` graft(parent 경로 -- 입력 같음)·`metrics_ss`·`metrics_dc` 만 계산(metrics CONTRACT 7.6).
 - 후보 실패(`CANDIDATE_FAILURE_CLASSES`) = SealViolationError·NonconvergentError. ValueError·TypeError 는 호출 계약 위반.
 
 ## 8. 실패 규약 요약 (N3.14)
@@ -633,7 +638,7 @@ SealedSnapshot 이 된다(10.2절 실측). 열이 없는 LUT 세트에서는 항
   불변식(test 대상): 전단사 σ 로 이름을 바꾼 topology 의 (writer 집합, θ 스키마 키 집합) = σ(원래 것), 차이가 있으면 그 원소는
   모두 원래 계획의 `dc_tie_breaks`·`CurrentBasis.ties` 후보에 든다. 작성자 측 실측(generality `random_renaming` seed 1·2):
   9회로 모두 계획 구조 요약 동일, 8회로 writer 집합·θ 키 동일, current_reuse 만 차이 -- 차이는 전부 기록된 동률 후보 안
-  (`writer_edge` {M1a, M1b}·{M4a, M4b}, `w4_root`·`input_tie_order` {Vim, Vip}, `current_pivot` {R1, R2}). 통과 θ 를 σ 로 옮긴
+  (`writer_edge` {M1a, M1b}·{M4a, M4b}, [옛 기록 어휘 -- TB-1 에서 정지로 바뀜] {Vim, Vip}, `current_pivot` {R1, R2}). 통과 θ 를 σ 로 옮긴
   7회로의 dc_v 최대 차 = 0.0(비트 동일).
 
 ## 10. 9회로 실측 (2026-10-07, 이 커밋 코드, 작성자 측 시연 -- 정본 아님)
@@ -880,13 +885,13 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   VDSAT 열을 읽은 뒤): (a) `vdsat(memo, kind, w_key, L, vgs, vds, vsb) -> float`(V, 크기, point 영역 memo, 축 규칙·실패는 op_point
   와 같음 -- 오라클 `@m[vdsat]` 과 같은 양, DEC-88), (b) `tol_v_table(...).at(L, vds, "vdsat")` 처럼 `TOL_V_METRICS` 에 VDSAT 열
   leave-one-out 지표 `"vdsat"` 를 더하거나 별도 `tol_vdsat_table` -- 셀 = (kind, w_key, L, VDS), 셀 값 = VDSAT 열 LOO 최댓값
-  (DEC-87 방법). 생기면 `dc_seal_saturation` 이 (a)·(b) 로 ID > 0 MOS 마다 `VDS − VDsat ≥ +tol_VDsat`(margin =
+  (DEC-87 방법). 생기면 봉인 7(현재 `dc_seal_region`)이 (a)·(b) 로 ID > 0 MOS 마다 `VDS − VDsat ≥ +tol_VDsat`(margin =
   (VDS − VDsat − tol_VDsat)/tol_VDsat)을 재고, `dc_columns` 의 W4 창과 1변수 구간에 VDsat 항을 더한다. 지금은 `DcEvaluation(sealed=None)`.
 - **O2 (해결)** 레이아웃 전 폭 = LUT 생성 규칙 폭(`pre_layout_lut_access`, DEC-91 (2), 1.3절).
 - **O3 DEC-95 (3) ②**(GB5 gm 요구·뒤 stage): 그 정보를 내는 S1v·GB5 가 없어 아직 적용하지 않는다(① diode, ③ 대칭 궤도 =
   구조 색은 적용). 남은 동률은 `TieBreak` 로 기록(9회로 중 current_reuse 만 5건). front 정규화 해시 metamorphic 은 탐색 뒤.
-- **O4 (해결)** F 없는 성분 뿌리 = (구조 색, 이름) 최소, 같은 색 후보는 `w4_root` 기록.
-- **O5 결정 대기 입력 DC(SP-2, 7회로)**: U2 기본안 (a)대로 W4(입력 공통모드 y). 노드 목표(CI-15)·의도 영역(CI-18)은 9회로 모두
+- **O4 (해결)** F 없는 성분 뿌리 = (구조 색, 이름) 최소, 같은 색 후보는 [TB-1] `dc_colour_not_unique` 정지(옛: 기록).
+- **O5 결정 대기 입력 DC(SP-2, 7회로)**: IT-1 규칙대로 W4(입력 포트인 뿌리의 y 키 = 그 뿌리 넷; 같은 DC 엣지·input_tie 없음). 노드 목표(CI-15)·의도 영역(CI-18)은 9회로 모두
   결정 대기 -> W3 0개, 선형 선언 0개.
 - **O6 (해결)** θ 전류 정의역 = `ThetaSchema.current_cone`(KCL 기저에서 유도한 선형 부등식), 밖이면 `check_theta` 가 거부.
 - **O7 (닫음, 2026-10-08 사용자 승인)** core `GraphSnapshot.extend_writers` 로 `lift_s1` 이 S1 레코드를 공유한다(1.5).
@@ -929,13 +934,12 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   (봉인 점과 같은 입력 -> 재사용). **[U17 ① 폐기됨]** `spec_passive_values` 칸과 그 합산은 지웠다 -- 봉인·봉인 아닌 점 모두 GB5 블록
   `passive_values` 가 쓴 `device.passive_value` 필드를 읽는다(설계 40 §2.4.8). `search_domain` 은 지금 모르는 θ 종류를 조용히 건너뛴다(코드 읽기로 확인, 변수 없음) --
   그 θ 가 빠진 후보는 `check_theta` 키 불일치가 될 것으로 본다(ng-mod6 에서 실행해 보지는 않았다). O13 상자 배선이 필요하다.
-- **O17 [r8] search 쪽 일관 조임 (search 몫 기록 -- search 는 고치지 않았다)**: 봉인 9 가 내는 소자별 ID 하한
-  `device.dc_conduction_floor` = I_off/ε 는 **그 점의 W 에 비례**한다(I_off = IDu(VGS=0)·W/L, ID = IDu(VGS)·W/L). 그래서
+- **O17 [r8] search 쪽 일관 조임 (search 몫 기록 -- search 는 고치지 않았다. [r10] 그 필드는 폐기됐고 이 기록은 history)**: 봉인 9 가 냈던 소자별 ID 하한(I_off/ε)은 **그 점의 W 에 비례**한다(I_off = IDu(VGS=0)·W/L, ID = IDu(VGS)·W/L). 그래서
   ID ≥ floor ⇔ IDu(VGS)·(gm/ID)·tol_V ≥ IDu(VGS = 0) 로 **전류 크기가 지워진다** -- 실제 제약은 θ `ln_idu` 좌표(= VGS, 같은 L·VDS·
   VSB)의 하한이다. (1) `search/current_box.py` 의 I_off(격자 전체 VGS = 0 ID 최솟값, nmos 2.7e-19·pmos 2.4e-26 A)를 올려도 이
   조건은 지켜지지 않는다(W 가 따라 작아지면 같은 VGS). (2) 일관된 조임 = 소자마다 ln_idu ≥ ln IDu(VGS*) 인 VGS*(L, VDS, VSB) --
   margin(VGS*) = 1 의 근(10.6: L 1 µm 에서 nmos ≈ 0.14 V, pmos ≈ 0.12 V). VDS·VSB 가 θ 로 정해지기 전이라 search 는 (L 격자, VDS 축)
-  위에서 VGS* 최댓값(보수) 또는 봉인 뒤 `dc_conduction_floor`/ID(= margin) 를 쓰는 사후 제약을 고를 수 있다 -- 선택은 search 결정.
+  위에서 VGS* 최댓값(보수) 또는 봉인 뒤 하한/ID(= margin) 를 쓰는 사후 제약을 고를 수 있다 -- 선택은 search 결정.
   pA 전류 자체(전력 0.6 pW)는 W 최소값(MOD6 W_min)이 막을 몫이다.
 - **O18 [r8] 이 개정과 어긋나게 된 기존 test (test 작성자 갱신 몫 -- 작성자는 test 를 고치지 않았다)**, 16건(전체 suite 16 failed,
   5655 passed): 봉인 항목 수 8 고정 -- `test_seal.py::test_undefined_evaluation`·`test_violation_reports_worst_item`·
@@ -949,7 +953,7 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   표 1.6)이 `{"region": "triode"}` 로 정했으며 spec 로더(authoring 23b45c4)가 그것을 구현했다. sizing(b1b3a37, 설계
   design_gb7_dc_canonical 봉인 7 행)은 계획 기본안 낱말을 그대로 옮겨 어긋났다. spec 이 사용자 어휘라 sizing 이 spec 상수를 읽게
   했다(같은 개념 두 정의 금지 -- 값을 복사하지 않고 `from gmid_engine.authoring import REGION_TRIODE`). 오라클 `predictions.devices[].region`
-  어휘(sat|triode|off)와도 같아진다. 바뀌는 test: `tests/sizing/test_dc_inputs.py::test_linear_devices_from_intended_region_sorted`
+  어휘(sat|triode|off)와도 같아진다. 바뀌는 test: `tests/sizing/test_dc_inputs.py` 의 영역 투영 test
   (손으로 만든 `RegionDecl("M7", "linear")` 를 linear 로 기대 -- 이제 "triode" 여야 한다, 실패). 같은 파일 42행 9회로 spec 경로
   비교도 `"linear"` 로 걸러 기대값을 만들지만 9회로 spec 의 intended_region 이 모두 pending(결정 대기 CI-18)이라 양쪽 다 빈 tuple
   로 지금은 통과한다(triode 선언이 생기면 틀린다 -- 같이 고칠 것).
@@ -974,7 +978,7 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 대상 확인 행: DEC-17 (θ 쪽)·32·70 (일부)·95 (3), D-GB7a·c·d, D-LS, D-J5 (U4 몫). **미러 비 강제(D-GB7b, DEC-70)는 구현하지 않았다** -- 15절.
 
 ### 14.1 L 동치류 L 공유 (D-GB7a)
-* `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS)`. `l_classes` = U1 `S1v.l_classes` (LClass: `owner`, `members`,
+* `build_kernel_context(s1graph, inputs, lut, l_classes=())`(옛 서술 -- l_classes 인자는 U17 ①-b 에서 S1v 필드로 이동, 순서 힌트 인자는 TB-1 에서 삭제). `l_classes` = U1 `S1v.l_classes` (LClass: `owner`, `members`,
   `status`; 이 모듈은 속성만 읽는다). `status == derived` 인 동치류만 묶고 `review_needed`·proposed 는 묶지 않는다(소자마다 L). 멤버·주인 이름이
   S1 원소가 아니거나 MOS 가 아니거나, 주인이 다른 동치류의 멤버이거나, 한 소자가 두 동치류의 멤버면 `ValueError`.
 * `KernelContext.l_ties` = ((멤버, 주인), ...) 정렬(비주인 멤버만; 동치류가 없으면 `()`).
@@ -997,12 +1001,27 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   `DeviceOp.W` = 요청값 (`dc_widths(snapshot, lut, w_request=())`). 종속 소자의 ID 어긋남은 봉인 3 이 판정한다(순방향 IDu × W/L 로 다시 센 KCL).
 * 요청이 없으면 블록 extras 가 종래와 같다(재사용 계약 유지).
 
-### 14.4 DEC-95 (3) 전체 순서 (D-GB7c)
-* `OrderHints(independent, gm_required, stage)`(모두 MOS 이름 tuple 또는 ((MOS, 번호), ...)), `NO_ORDER_HINTS`. `dc_writer_plan(snapshot, target_nets, input_dc_declared,
-  order_hints=NO_ORDER_HINTS)`: 엣지 키 = (종류: 같은 DC < 저항 < MOS, [MOS] ratified 독립 < 그 밖, diode < 그 밖, gm 요구 < 그 밖, 뒤 stage(번호 큰 쪽) < 앞, 구조 색, 이름).
-  Kruskal 에서 키가 작은 엣지가 트리(독립), 큰 쪽이 종속. 힌트가 비면 종래 순서(diode < 그 밖, 색, 이름)와 같고 TieBreak 기록도 같다.
-* **스텁**: 힌트의 출처(U1 S1v stage 번호, GB5 gm 요구, `structure.json` ratified 로더)는 U1 이 채운다. 지금은 `build_kernel_context(..., order_hints=)` 로 넣는
-  호출부가 없다(기본값만 쓴다).
+### 14.4 종속 멤버 선택 -- θ 분류 순위 + 정준 위치 (D-GB7c, card 20261104-tb1-theta-class, 계획 N6.29)
+* 종속 멤버 선택 힌트 값 형식·인자와 W4 뿌리 동률 기록 어휘는 삭제됐다(TB-1, 엔진 grep 0 -- 이름은 이 문서에 적지 않는다). `dc_writer_plan(snapshot, target_nets, input_dc_declared)`,
+  `build_kernel_context(s1graph, inputs, lut, *, donors, counters)`. 엣지 키에 이름이 없다.
+* 입력은 graph 필드뿐이다: `device.theta_class`(아래 14.5)·`device.dc_colour`(정준 위치 = 오름차순)·`graph.orbits`(궤도 대표 = 크기 ≥ 2 궤도의 `dc_colour` 최소 멤버)·S1v `graph.views`(블록 stage,
+  없으면 stage 순위 없음)·S1v `graph.dependent_facts`(ratified 사실).
+* **평행 관계**(같은 kind·같은 (gate, source), 입력 점 병합 뒤): 독립 유지 순위 '(ratified override 의 value 는 마지막) -> diode -> S -> 뒤 stage -> 궤도 대표 -> 정준 위치(작은 쪽)' 첫째가
+  대표(독립), 나머지는 종속 `parallel_vgs`(짝 = 대표). 대표는 이후 Kruskal 에서 가장 먼저 트리에 든다(이미 독립으로 묶였다).
+* **고리**(대표만 남은 G_vgs 다중 그래프의 기본 사이클; 레일 둘이 한 점 F): 키가 가장 큰 엣지가 비트리(종속). B 가 아닌 엣지의 키 = `diode < 그 밖`, 뒤 stage < 앞, 정준 위치 작은 쪽 < 큰 쪽;
+  고리 안 B 엣지의 키 = (diode, 궤도 대표, 소스 사슬 하류, -정준 위치) 가 클수록 먼저 종속 -- B 엣지는 모든 비 B 엣지보다 크다. 결과: 고리에 B 멤버가 있으면 B 가 종속(diode -> 궤도 대표 -> 소스 사슬 하류 ->
+  정준 위치 앞쪽), 없으면 독립 유지 순위(diode -> 뒤 stage -> 정준 위치 앞쪽)의 마지막이 종속. 소스 사슬 하류 = source 넷(고정 노드 아님)이 다른 MOS 의 gate 넷이다.
+* **ratify**(S1v `dependent_facts` = 사실 그대로 ((멤버 정렬 tuple, 종속 소자, approval_id), ...)): 평행 관계 사실 = override(value 가 종속, 대표 = 나머지 중 순위 첫째), 고리 사실(그 기본 사이클의 멤버와 같은
+  subject) = confirm(유도 종속과 다르면 `structure_fact_mismatch` 정지), value 가 멤버가 아니면 `structure_fact_mismatch`, 어느 관계와도 멤버가 다르면 `structure_fact_orphan`(모두 `StructureUnresolvedError`, `detail["reason"]`).
+* **W4 뿌리**: 뿌리 후보의 구조 색(`node.dc_colour`)이 둘 이상 같으면(성분 안 후보 사이, 성분 뿌리 사이, G_vgs 밖 노드 사이) `StructureUnresolvedError`(`reason` unsupported_rule_branch, `rule_branch`
+  `dc_colour_not_unique`). `dc_tie_breaks` 에 W4 뿌리 동률 기록은 없다. 입력 점 뿌리(p 포트)는 해당 없음.
+
+### 14.5 θ 분류 필드 `device.theta_class` (card 20261104-tb1-theta-class, 설계 41 §5.3.3)
+* `theta_class(snapshot, has_gbw_target, has_rout_limit, has_settling)`(`@compute_block`, writer `theta_class`, S0, `dc_writer_plan` 앞) -> `device.theta_class` = {MOS: `ThetaClass(kind)}, kind ∈ `THETA_CLASS_KINDS`(S·B·F).
+  extras 는 `DcInputs` 의 유무 칸 셋(값은 읽지 않는다; `dc_inputs_from_spec` 가 `gbw_target_hz` 선언·`rout_ss_ohm` 판정 제약·정착 선언의 유무로 채운다). reads = `device.element_class`·`device.pins`·S1v `graph.views`.
+* 분류: 매크로 활성 = GBW 선언 또는 정착 선언. S = 매크로 활성 회로의 첫 전달 뷰 이득·복합 블록의 AC 역할 `input` + rout 선언 회로의 전달 뷰 버퍼 블록 출력노드에 source 가 닿는 `follower`.
+  F = AC 역할 `cascode`·`pass`·`follower`, S 가 아닌 `input`. B = 그 밖(`load`·`mirror`·`diode_load`·`tail_source`, 블록 밖 MOS, feedforward 묶음 셀, S1v 없음, `off` 선언 MOS).
+* 알려진 대용(LA-1 재점검 입력): 'gain 제약 전달 뷰'를 가리키는 S1v 칸이 없어 첫 전달 뷰로 대신한다(L 동치류 주인 규칙 `main_path_signal` 의 대용과 같다).
 
 ### 14.5 국소 봉인 (D-LS, 41 §5.3)
 * `size_and_seal_local(ctx, theta_block, fixed, columns) -> LocalSeal`; `theta_name(kind, key)` = `"kind:key"`. `LocalSeal{ok, failures, snapshot_fragment, gain_db, power_w, area_m2}`,
@@ -1012,13 +1031,18 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 * **스텁**: `gain_db` 는 항상 None (`metrics.block_local_gain`, U7). 전회로를 푸는 커널이라 계산이 블록 크기에 비례하지 않는다 -- 결과 캐시는 U15(N_T,i 상한) 몫.
 
 ### 14.6 y_icm = 입력 포화 창 (J-E SP-2 (c), D-J5 U4 몫)
-* 입력 DC 미선언 입력 묶음 W4 뿌리(`y_key == INPUT_GROUP_KEY`)가 있으면 `dc_columns` 가 풀이를 되풀이한다: (1) y = 1/2 로 푼 해에서 (2) `input_window.saturation_window` 로
-  입력 공통모드 x 의 포화 창(x 를 따라 움직이는 노드의 VDS 변화율 = 노드 writer 식 야코비안 연립의 해, 소자별 포화 여유 VDS − VDsat − tol_VDsat 의 1차 외삽)을 재고
+* 입력 DC 미선언이라 입력 포트인 W4 뿌리(최대 하나, y 키 = 그 넷)가 있으면 `dc_columns` 가 풀이를 되풀이한다: (1) y = 1/2 로 푼 해에서 (2) `input_window.saturation_window` 로
+  입력 공통모드 x 의 포화 창(x 를 따라 움직이는 노드의 VDS 변화율 = 노드 writer 식 야코비안 연립의 해, 소자별 포화 여유 VDS − VDsat 의 1차 외삽 -- [IT-2c] 판정 여유 0, tol 항 없음)을 재고
   (3) 순서 창과 교집합을 y_icm 범위로 삼아 요청 y 로 다시 풀며 (4) 경계가 tol_V 안에서 변하지 않을 때까지 되풀이(상한 `k_max(레일 폭, tol_V)`). `node.dc_window` 는 마지막 범위를 낸다.
-* (1)이 풀리지 않거나 VDSAT 열 없음·tol 미정이면 종래 사상(순서 창 = 레일 범위). `dc_columns(..., linear_devices)` 5번째 extras 는 비어 있지 않을 때만 준다.
-* 효과(toy 차동쌍): 종래 y ∈ [0.05, 0.95] 무작위 60점 중 봉인 19, 이후 60. 평가 시간 약 3배.
+* (1)이 풀리지 않거나 VDSAT 열 없음·tol 미정이면 종래 사상(순서 창 = 레일 범위). `dc_columns(...)` 5번째 extras 는 `triode` 선언 소자 이름 tuple(필드 `device.region_decl` 에서)이고 비어 있지 않을 때만 준다.
+* 효과(toy 차동쌍): 종래 y ∈ [0.05, 0.95] 무작위 60점 중 봉인 19, 이후 60. 평가 시간 약 3배(IT-2b 전 측정, `_refine_ends` 경로).
 * (1)이 y = 1/2 에서 풀리지 않으면 순서 창 안을 1/4, 3/4, 1/8, 3/8, ... 순으로 훑어(시도 수 ≤ k_max(레일 폭, 레일 폭 절반 VDS 셀의 최소 tol_V)) 풀리고 창을 잴 수 있는 첫 점의 해로 (2)를 시작한다. 어디서도 안 풀릴 때만 종래 사상이다.
-* (5) 창 끝은 끝에서 다듬는다: 끝 x 에 입력을 고정해 풀고 그 해에서 창을 다시 재(뉴턴) x 가 잰 창 안이고 잰 끝과 tol_V 이내이면 x 를 끝으로 삼는다(상한 k_max). 그래서 y = 0·1 도 봉인 7 포화 여유 ≥ 0 이다. VDsat 의 x 의존은 그 점의 해에서 잰 값이다.
+* (5) [IT-2b 개정, 설계 41 4.7-3 1] 커널은 창 끝을 다듬지 않는다(`_refine_ends` 를 부르지 않음 -- 끝 x 고정 풀이는 다듬은 창 블록 몫). 커널 `node.dc_window` 뿌리 항목 = 순서 창 ∩ 마지막 `override`(선형 감도 끝),
+  `input_status` = 수렴 `measured` / 미수렴·tol 미정 `unsettled`(y 범위로는 그대로 쓴다) / 창을 못 잼 `unmeasured`(순서 창). 따라서 y = 0·1 끝 점의 봉인 7 여유는 1차 외삽 오차만큼 음수일 수 있다.
+* (6) [IT-2c, 설계 41 4.7-W W1·4.7-3 2·3] `node.dc_window` 의 항목은 **W4 뿌리뿐**이다(입력 점 뿌리 포함). 뿌리 아닌 입력 포트·입력 DC 선언 포트·F 성분 미선언 포트의 창은 이 필드가 아니라 측정 구성
+  블록 `icm_config`(metrics)의 `node.dc_window_cfg` 가 받는다(모든 입력 포트를 함께 구동한 봉인점 KCL 선형 감도 끝). 창 경계 행은 공용 `Circuit.region_rows`(`sat`·`triode`, 여유 0)이고 끝 식은
+  `saturation_window(unknown, root, ...)` 하나다(`root` = 넷 하나, 쌍·묶음 없음). 동작점 불일치(`op_mismatch`)는 이 card 밖(EO-1 묶음, 사용자 결정 O-98).
+  커널 입력 창 측정(`_measure`·`_interior_solution`·`_dyadic_ys`·`INPUT_STATUS_UNSETTLED`)은 card WB-1 범위 3a 가 재작성한다.
 
 ## 15. 구현하지 않은 것 (정지 후 보고)
 

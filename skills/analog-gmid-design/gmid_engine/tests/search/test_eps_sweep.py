@@ -147,3 +147,22 @@ def test_unmeasured_never_in_final_front(tmp_path, lut_sealed):
     assert len(out["unmeasured_front"]) >= 1
     for p in out["unmeasured_front"]:
         assert p.result.status == STATUS_SEALED and len(tuple(p.result.unmeasured)) >= 1
+
+
+# =====================================================================================================================
+# [XRUN-F1 card C] interface card xrunf1c C6 (C-T8) -- eps_sweep: 해상도 기록 칸 `E_B` = 탐색 예산, N_ε = ⌊(탐색 예산 − E_fixed)/e_ε⌋.
+# oracle: (손) 구성 -- 유도 실행(전이 뒤) 상태: D = 60 + R, R = 2 n_θ -> 탐색 예산 = D − R = 60. 선언 E_B = 60 실행(위 test_resolution_record)과
+# 같은 기대 `E_B == 60`. N_ε 식은 위와 같은 정의 식을 기록된 칸으로 계산한다.
+# =====================================================================================================================
+
+def test_eps_sweep_derived_run_records_search_budget_not_d(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=60, constraints=SS)
+    s = case.sctx
+    starts, _ = start_points(s, [theta_r4c()])
+    r = 2 * len(s.domain.variables)
+    s.eval_budget = 60 + r                                                  # D
+    s.eval_budget_source = "derived_once:floor(B/median_t_eval)@n_evals=%d" % (len(s.domain.variables) + 1)
+    out = sweep_front(s, starts)
+    res = dict(out["resolution"])
+    assert res["E_B"] == 60                                                 # D − R
+    assert res["N_eps"] == math.floor((res["E_B"] - res["E_fixed"]) / res["e_eps"])

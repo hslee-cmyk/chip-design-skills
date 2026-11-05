@@ -1,0 +1,110 @@
+{
+ "common_gate_amplifier": {
+  "ab_rep_equal": true,
+  "front_fp": {
+   "AB": "7917b9c388e1f8256f4f2ae4b5a39f97f603e6473d2724a6f56bca479771eba6",
+   "AB_nowrap": "7917b9c388e1f8256f4f2ae4b5a39f97f603e6473d2724a6f56bca479771eba6",
+   "AB_rep2": "7917b9c388e1f8256f4f2ae4b5a39f97f603e6473d2724a6f56bca479771eba6",
+   "SIM": "6f579f106a88993ee0ddfb18d6460456a911433bc96391adb6eeb0b40d66bf1e",
+   "SIM_rep2": "6f579f106a88993ee0ddfb18d6460456a911433bc96391adb6eeb0b40d66bf1e"
+  },
+  "sim_rep_equal": true,
+  "wrap_front_fp_equal": true
+ },
+ "current_reuse_telescopic_ota": {
+  "ab_rep_equal": true,
+  "front_fp": {
+   "AB": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_nowrap": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb"
+  },
+  "sim_rep_equal": true,
+  "wrap_front_fp_equal": true
+ },
+ "folded_cascode": {
+  "ab_rep_equal": true,
+  "front_fp": {
+   "AB": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_nowrap": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb"
+  },
+  "sim_rep_equal": true,
+  "wrap_front_fp_equal": true
+ },
+ "ngcc_3stage_ff": {
+  "ab_rep_equal": true,
+  "front_fp": {
+   "AB": null,
+   "AB_nowrap": null,
+   "AB_rep2": null,
+   "SIM": null,
+   "SIM_rep2": null
+  },
+  "sim_rep_equal": true,
+  "wrap_front_fp_equal": null
+ },
+ "nmcnr_amplifier": {
+  "ab_rep_equal": true,
+  "front_fp": {
+   "AB": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_nowrap": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb"
+  },
+  "sim_rep_equal": true,
+  "wrap_front_fp_equal": true
+ },
+ "pushpull_follower_buffer": {
+  "ab_rep_equal": true,
+  "front_fp": {
+   "AB": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_nowrap": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb"
+  },
+  "sim_rep_equal": true,
+  "wrap_front_fp_equal": true
+ },
+ "sf_pushpull_output_opamp": {
+  "ab_rep_equal": true,
+  "front_fp": {
+   "AB": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_nowrap": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb"
+  },
+  "sim_rep_equal": true,
+  "wrap_front_fp_equal": true
+ },
+ "two_stage_ota": {
+  "ab_rep_equal": true,
+  "front_fp": {
+   "AB": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_nowrap": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb"
+  },
+  "sim_rep_equal": true,
+  "wrap_front_fp_equal": true
+ },
+ "two_stage_ota_sf": {
+  "ab_rep_equal": true,
+  "front_fp": {
+   "AB": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_nowrap": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "AB_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+   "SIM_rep2": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb"
+  },
+  "sim_rep_equal": true,
+  "wrap_front_fp_equal": true
+ }
+}

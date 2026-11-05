@@ -6,8 +6,8 @@ writes `graph.rel_kvl_branch`·`graph.gvgs_summary`).
     snapshot = s1_gvgs(snapshot)
 
 * G = MOS 마다 (gate, source) 무향 엣지, 모든 레일을 고정 노드 F 하나로 병합. gate·source 가 둘 다 레일인 소자는 VGS 가
-  레일 차로 고정 -> `fixed_vgs` 에만 기록. 같은 비레일 넷(g == s)이면 `gvgs_self_edge` 정지(core `StructureUnresolvedError`,
-  detail reason `unsupported_rule_branch`). 평행 엣지는 v0(= equal_vgs, `rel_vgs` 가 이미 기록)이라 이름순 첫 소자 하나만
+  레일 차로 고정 -> `fixed_vgs` 에 기록. gate 넷 == source 넷(g == s, 레일이든 아니든)은 정지하지 않고 `gate_source_same` 에 적는다(자기 고리 -- G 엣지가 아니라 순환수 불변;
+  레일 g = s 는 `fixed_vgs` 에도 든다, O-210 RR-6). 평행 엣지는 v0(= equal_vgs, `rel_vgs` 가 이미 기록)이라 이름순 첫 소자 하나만
   남긴 단순 그래프 Gs 를 쓴다.
 * 개수(기저와 무관): P = 입력 포트 넷, c(H) = |E| − |V| + 성분 수. v2_port0 = c(Gs − P), v2_port1 = Σ_p [c(Gs − (P − {p}))
   − c(Gs − P)], v1 = c(Gs) − v2_port0 − v2_port1, cyclomatic = c(Gs).
@@ -23,10 +23,9 @@ writes `graph.rel_kvl_branch`·`graph.gvgs_summary`).
 * 모든 G_vgs 기록은 evidence.basis = (J12-c,) -- 판독(v1 제외·v2 대응·VDS-1 목록)은 공동분석 기본안(계획 DEC-64 그대로).
 """
 from gmid_engine.authoring import INPUT_DIRECTION
-from gmid_engine.core import StructureUnresolvedError, compute_block, sorted_items
+from gmid_engine.core import compute_block, sorted_items
 
 from .s1_values import (
-    BRANCH_GVGS_SELF_EDGE,
     CYCLE_V2_RAIL,
     CYCLE_V2_ZERO,
     DOMAIN_DC,
@@ -43,7 +42,6 @@ from .s1_values import (
     REL_VDS_SATURATION,
     S1_GVGS_WRITER,
     STATUS_DERIVED,
-    UNSUPPORTED_RULE_BRANCH,
     Evidence,
     GvgsSummary,
     RelEdge,
@@ -65,18 +63,17 @@ def s1_gvgs(projection):
         return _FIXED if net in rails else (1, net)
 
     fixed = []
-    self_edges = []
+    same = []                                          # gate 넷 == source 넷 -- 레일이든 아니든 정지 없이 기록(쓰기 계획이 읽는다)
     simple = {}                                        # (u, v) 정렬 -> 대표 소자(이름순 첫)
     for name in mos:
         g, s = node(pins[name][MOS_GATE]), node(pins[name][MOS_SOURCE])
+        if pins[name][MOS_GATE] == pins[name][MOS_SOURCE]:
+            same.append(name)
         if g == s:
-            (fixed if g == _FIXED else self_edges).append(name)
+            if g == _FIXED:
+                fixed.append(name)
             continue
         simple.setdefault(tuple(sorted((g, s))), name)
-    if self_edges:
-        raise StructureUnresolvedError(
-            devices=tuple(self_edges), detail={"reason": UNSUPPORTED_RULE_BRANCH, "rule_branch": BRANCH_GVGS_SELF_EDGE,
-                                               "nets": sorted_items({pins[n][MOS_GATE] for n in self_edges})})
     edges = sorted_items(simple)
     port_set = frozenset(ports)
     stage0 = tuple(e for e in edges if not port_set.intersection(e[0]))
@@ -114,7 +111,7 @@ def s1_gvgs(projection):
             vds.append(RelEdge(REL_VDS_SATURATION, DOMAIN_DC, (name,) + members, STATUS_DERIVED,
                                Evidence(REL_VDS_SATURATION, _nets(nodes), (), (J_GVGS_READING,))))
     summary = GvgsSummary(len(v2) + len(v1), len(base.cycles_seen), v2_port1, len(v1), tuple(fixed), port_diff,
-                          tuple(vds))
+                          tuple(vds), tuple(sorted(same)))
     return {("graph", "rel_kvl_branch"): {GRAPH_KEY: kvl}, ("graph", "gvgs_summary"): {GRAPH_KEY: summary}}
 
 

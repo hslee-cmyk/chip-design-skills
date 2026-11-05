@@ -1,0 +1,8 @@
+test_conftest_slow_marker exit=0 2 passed in 3.35s
+authoring exit=0 1547 passed in 42.49s
+convergence exit=0 96 passed in 621.13s (0:10:21)
+core exit=0 1085 passed in 41.23s
+generality exit=0 802 passed in 161.28s (0:02:41)
+graph exit=0 1934 passed in 80.00s (0:01:20)
+integration exit=0 471 passed, 19 deselected in 660.74s (0:11:00)
+layout exit=0 527 passed, 2 xfailed in 52.14s

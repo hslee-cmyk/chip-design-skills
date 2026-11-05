@@ -25,7 +25,8 @@ from gmid_engine.metrics.mna_build import build_mna  # noqa: E402
 from gmid_engine.metrics.mna_solve import solve_responses  # noqa: E402
 from gmid_engine.metrics.probe_loop import probe_factor  # noqa: E402
 from gmid_engine.metrics.records import Capacitor, LoopCut, MosSmallSignal, Resistor, SmallSignalCircuit  # noqa: E402
-from oracle_simulate import ac_measures, loop_gain  # noqa: E402
+from core.measures_ac import ac_measures  # noqa: E402
+from cm_loop_variants import loop_gain  # noqa: E402
 
 GM, GDS, CL, CG, RF = 1e-3, 1e-5, 1e-12, 1e-12, 1e5
 

@@ -1,0 +1,1368 @@
+{
+ "circuit": "current_reuse_telescopic_ota",
+ "drive_pair_nets": {
+  "failing_views": 0,
+  "n_views": 1,
+  "views": [
+   {
+    "mode": "port",
+    "outside": [],
+    "pair_nets": [
+     "Vim",
+     "Vip"
+    ],
+    "view": "ViewDecl(mode='port', transfer=None, num=None, den=None, decision=None, beta=None, cuts=(), weights=(('Vim', -0.5), ('Vip', 0.5)), sense=SenseDecl(sense_p='Vop', sense_n='Vom', sense_mode='differentia"
+   }
+  ]
+ },
+ "feedback_slot": {
+  "kind": "tuple_nonempty",
+  "noise_decl_feedback": [
+   "Cf1",
+   "Cf2"
+  ],
+  "spec_feedback": [
+   "Cf1",
+   "Cf2"
+  ]
+ },
+ "front_empty": {
+  "after_refilter": 0,
+  "aux_after": 0,
+  "aux_unmeasured_excluded": [],
+  "empty": false,
+  "excluded": [],
+  "front_was_empty_before": true,
+  "icmr_constraints": [
+   "icm_margin_v"
+  ],
+  "n_front": 0,
+  "undefined_for_report": []
+ },
+ "kernel_window_status": {
+  "counts": {},
+  "defined": true,
+  "interior_aux": 0,
+  "n_evals": 0,
+  "n_with_root": 0,
+  "rates": {},
+  "trace_first3": []
+ },
+ "loop_cut": {
+  "input_terminal_nets_calls": {
+   "after_stage_a": 0,
+   "stage_a": 4
+  },
+  "interval": "build_kernel_context..find_front..재평가 전 구간(dc_writer_plan·run_kernel·seal_dc 구간을 포함하는 상위 구간)",
+  "wrapped": true
+ },
+ "m_i1": {
+  "coords": [
+   [
+    "M10",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M11a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M11b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M12",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M13",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M14a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M14b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M15",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M16",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M17",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M18_bg",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M18a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M18b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M19",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M1a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M1b",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M20a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M20b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M21",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M22",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M23a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M24b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M25",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M26",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M2a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M2b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M36a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M36b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M37a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M37b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M38",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M39",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M3a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M3b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M40",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M4a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M4b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M5",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M57",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M58",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M6",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M60",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M61",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M63",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M64",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M66",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M68",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M7",
+    {
+     "partner": "M36a",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M8",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M9a",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ],
+   [
+    "M9b",
+    {
+     "partner": null,
+     "relation": "tree",
+     "role": "writer"
+    }
+   ]
+  ],
+  "dependent": [
+   [
+    "M10",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M12",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M13",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M15",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M16",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M17",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M19",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M1b",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M21",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M22",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M25",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M26",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M38",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M39",
+    {
+     "partner": null,
+     "relation": "cycle_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M5",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M6",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M60",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M61",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M68",
+    {
+     "partner": "M66",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M7",
+    {
+     "partner": "M36a",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ],
+   [
+    "M8",
+    {
+     "partner": "M18_bg",
+     "relation": "parallel_vgs",
+     "role": "dependent"
+    }
+   ]
+  ],
+  "fields_fp": {
+   "dc_coord": "04ae0a5ea4f19048b8bb41ed8d762a5868fded6d1fa35877af42b68e3615ce00",
+   "dc_tie_breaks": "cbe8f1e75e355108b9d490d167749b94f622a6337e5e4f2e921a5ff58ce4bf24",
+   "dc_writer": "c679db180ea946d31aab787612aac1bf49a3b31738e514b1686a32e96fc68746"
+  },
+  "input_port_writer": {
+   "Vim": [
+    "W2",
+    "vgs_gate",
+    "M4b",
+    "Vy",
+    null
+   ],
+   "Vip": [
+    "W4",
+    "free_window",
+    null,
+    null,
+    "Vip"
+   ]
+  },
+  "tie_breaks": [],
+  "w4": [
+   [
+    "Vip",
+    "Vip"
+   ]
+  ],
+  "writers": [
+   [
+    "N11a11b",
+    {
+     "element": "M11a",
+     "known": "vdd",
+     "order": 9,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "N11b",
+    {
+     "element": "M11b",
+     "known": "N11a11b",
+     "order": 15,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "N14a14b",
+    {
+     "element": "M14a",
+     "known": "N14a_14b",
+     "order": 12,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "N14a_14b",
+    {
+     "element": "M14b",
+     "known": "gnd",
+     "order": 3,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "N1a2a",
+    {
+     "element": "M2a",
+     "known": "Vbias2",
+     "order": 35,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N1b2b",
+    {
+     "element": "M2b",
+     "known": "Vbias2",
+     "order": 36,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N20a20b",
+    {
+     "element": "M20a",
+     "known": "vdd",
+     "order": 8,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "N20b",
+    {
+     "element": "M20b",
+     "known": "N20a20b",
+     "order": 14,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "N23a24b",
+    {
+     "element": "M24b",
+     "known": "gnd",
+     "order": 2,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "N24b23a",
+    {
+     "element": "M23a",
+     "known": "N23a24b",
+     "order": 11,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "N36b",
+    {
+     "element": "M36b",
+     "known": "vdd",
+     "order": 7,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "N3a4a",
+    {
+     "element": "M3a",
+     "known": "Vbias3",
+     "order": 32,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N3b4b",
+    {
+     "element": "M3b",
+     "known": "Vbias3",
+     "order": 33,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N58_57",
+    {
+     "element": "M57",
+     "known": "Vbias2",
+     "order": 34,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N64_63",
+    {
+     "element": "M64",
+     "known": "Vbias3",
+     "order": 31,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N_cc_rz1",
+    {
+     "element": "Rz1",
+     "known": "Vop1",
+     "order": 22,
+     "relation": "resistor_drop",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "N_cc_rz2",
+    {
+     "element": "Rz2",
+     "known": "Vom1",
+     "order": 21,
+     "relation": "resistor_drop",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Ncmfb_tail",
+    {
+     "element": "M37b",
+     "known": "Voc_des",
+     "order": 13,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vbias1",
+    {
+     "element": "M18_bg",
+     "known": "vdd",
+     "order": 10,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "Vbias2",
+    {
+     "element": "M58",
+     "known": "Vx",
+     "order": 30,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vbias3",
+    {
+     "element": "M63",
+     "known": "Vy",
+     "order": 28,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vbias4",
+    {
+     "element": "M66",
+     "known": "gnd",
+     "order": 4,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "Vcmfb",
+    {
+     "element": "M36a",
+     "known": "vdd",
+     "order": 6,
+     "relation": "vgs_gate",
+     "tier": "W1",
+     "y_key": null
+    }
+   ],
+   [
+    "Vg15",
+    {
+     "element": "M9a",
+     "known": "N11b",
+     "order": 20,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vg25",
+    {
+     "element": "M18a",
+     "known": "N20b",
+     "order": 19,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vim",
+    {
+     "element": "M4b",
+     "known": "Vy",
+     "order": 29,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vip",
+    {
+     "element": null,
+     "known": null,
+     "order": 25,
+     "relation": "free_window",
+     "tier": "W4",
+     "y_key": "Vip"
+    }
+   ],
+   [
+    "Voc",
+    {
+     "element": "M37a",
+     "known": "Ncmfb_tail",
+     "order": 18,
+     "relation": "vgs_gate",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Voc_des",
+    {
+     "element": "M40",
+     "known": "gnd",
+     "order": 5,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vom",
+    {
+     "element": "R1",
+     "known": "Voc",
+     "order": 24,
+     "relation": "resistor_drop",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vom1",
+    {
+     "element": "M18b",
+     "known": "N24b23a",
+     "order": 16,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vop",
+    {
+     "element": "R2",
+     "known": "Voc",
+     "order": 23,
+     "relation": "resistor_drop",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vop1",
+    {
+     "element": "M9b",
+     "known": "N14a14b",
+     "order": 17,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vx",
+    {
+     "element": "M1a",
+     "known": "Vip",
+     "order": 27,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "Vy",
+    {
+     "element": "M4a",
+     "known": "Vip",
+     "order": 26,
+     "relation": "vgs_source",
+     "tier": "W2",
+     "y_key": null
+    }
+   ],
+   [
+    "gnd",
+    {
+     "element": null,
+     "known": null,
+     "order": 0,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ],
+   [
+    "vdd",
+    {
+     "element": null,
+     "known": null,
+     "order": 1,
+     "relation": "rail",
+     "tier": "W0",
+     "y_key": null
+    }
+   ]
+  ]
+ },
+ "m_i1_r": {
+  "f_component_undeclared": [
+   "Vim"
+  ],
+  "input_w4_roots": [
+   "Vip"
+  ],
+  "isolated_input": [],
+  "multi_root": false,
+  "n_input_w4_roots": 1
+ },
+ "m_i2": {
+  "hard_ok": false,
+  "kernel_calls": 40,
+  "origin_point": null,
+  "probes": 27,
+  "start": null,
+  "start_failure": {
+   "detail": [
+    [
+     "bounds",
+     [
+      "vs_axis",
+      "vds_axis"
+     ]
+    ],
+    [
+     "h_hi",
+     "inf"
+    ],
+    [
+     "h_lo",
+     0.11194861617690233
+    ],
+    [
+     "hi",
+     0.24796223435642392
+    ],
+    [
+     "item",
+     7
+    ],
+    [
+     "lo",
+     0.0
+    ],
+    [
+     "node",
+     "Ncmfb_tail"
+    ],
+    [
+     "reason",
+     "no_root_in_window"
+    ]
+   ],
+   "devices": [
+    "M37b"
+   ],
+   "failure_class": "SEAL_VIOLATION",
+   "margin": 11.485905990623731
+  },
+  "start_status": "failed",
+  "stop": "start_no_root_in_window+probe_eval_budget",
+  "t": null
+ },
+ "m_i3": {
+  "domain_tied_y": [],
+  "failed_eps": 0,
+  "front_fp": "97528d195c58ac555c76a72a5546db025ebb62db2fa7dddfca62250f93c1c3eb",
+  "fronts": {
+   "front": [],
+   "pending": [],
+   "unmeasured": []
+  },
+  "n_front": 0,
+  "n_pending": 0,
+  "n_theta_y": 1,
+  "n_unmeasured": 0,
+  "perf": {
+   "block_index_bound": 3978,
+   "block_index_entries": 133,
+   "eval_budget": 40,
+   "eval_budget_source": "declared",
+   "eval_time_median_s": 0.31677759997546673,
+   "fail_hits": 0,
+   "frozen_columns": 0,
+   "hits": 0,
+   "kernel_calls": 40,
+   "lut_memo_bound": "fixed",
+   "lut_memo_evictions": 8814,
+   "n_solves": 0,
+   "n_starts": 0,
+   "outside_domain": 0,
+   "recompute_same_key": 0,
+   "requests": 40,
+   "stops_eval_budget": 0,
+   "stops_wall_budget": 0,
+   "unique_keys": 40
+  },
+  "result_y_keys": [],
+  "theta_y_components": [
+   [
+    "y",
+    "Vip"
+   ]
+  ]
+ },
+ "m_i4": {
+  "exceed_points": [],
+  "has_diff": false,
+  "pairs": {},
+  "points": 0
+ },
+ "m_i5": {
+  "dof": {
+   "competing_pairs": [],
+   "free_variables": [
+    "I:M10",
+    "I:M11a",
+    "I:M13",
+    "I:M15",
+    "I:M17",
+    "I:M18a",
+    "I:M19",
+    "I:M1a",
+    "I:M1b",
+    "I:M20a",
+    "I:M22",
+    "I:M25",
+    "I:M36a",
+    "I:M36b",
+    "I:M39",
+    "I:M57",
+    "I:M6",
+    "I:M60",
+    "I:M61",
+    "I:M8",
+    "I:M9a",
+    "R:R2",
+    "V:N11a11b",
+    "V:N14a_14b",
+    "V:N1a2a",
+    "V:N1b2b",
+    "V:N20a20b",
+    "V:N23a24b",
+    "V:N36b",
+    "V:N3a4a",
+    "V:N3b4b",
+    "V:N58_57",
+    "V:N64_63",
+    "V:N_cc_rz1",
+    "V:N_cc_rz2",
+    "V:Vbias3",
+    "V:Vg15",
+    "V:Vim",
+    "V:Vip",
+    "V:Voc",
+    "V:Voc_des",
+    "V:Vom",
+    "V:Vop",
+    "u:M10",
+    "u:M11a",
+    "u:M11b",
+    "u:M12",
+    "u:M13",
+    "u:M14a",
+    "u:M14b",
+    "u:M15",
+    "u:M16",
+    "u:M17",
+    "u:M18a",
+    "u:M18b",
+    "u:M19",
+    "u:M1a",
+    "u:M1b",
+    "u:M20a",
+    "u:M20b",
+    "u:M21",
+    "u:M22",
+    "u:M23a",
+    "u:M24b",
+    "u:M25",
+    "u:M26",
+    "u:M2a",
+    "u:M2b",
+    "u:M36a",
+    "u:M36b",
+    "u:M37a",
+    "u:M37b",
+    "u:M38",
+    "u:M39",
+    "u:M3a",
+    "u:M3b",
+    "u:M40",
+    "u:M4a",
+    "u:M4b",
+    "u:M5",
+    "u:M57",
+    "u:M58",
+    "u:M6",
+    "u:M60",
+    "u:M61",
+    "u:M63",
+    "u:M64",
+    "u:M66",
+    "u:M68",
+    "u:M7",
+    "u:M8",
+    "u:M9a",
+    "u:M9b"
+   ],
+   "n_equations": 53,
+   "n_variables": 146,
+   "numeric_ranks": [],
+   "status": "free_dof",
+   "structural_rank": 53,
+   "unmatched_equations": []
+  },
+  "tie_equations": 0
+ },
+ "m_i6": {
+  "E": 55,
+  "V": 36,
+  "components": 2,
+  "cycles": 21,
+  "dependent": 21,
+  "equal": true,
+  "tie_edges": 0
+ },
+ "output_structure": {
+  "input_dc_declared": false,
+  "n_outputs": 2,
+  "plan_stop": null,
+  "rows": [
+   {
+    "class": "kvl_fixed",
+    "component_size": 25,
+    "engine_path": "plan_ok",
+    "fprime_hit": [
+     "gnd",
+     "vdd"
+    ],
+    "output": "Vom",
+    "s_os1": null,
+    "w3": false,
+    "writer_chain": []
+   },
+   {
+    "class": "kvl_fixed",
+    "component_size": 25,
+    "engine_path": "plan_ok",
+    "fprime_hit": [
+     "gnd",
+     "vdd"
+    ],
+    "output": "Vop",
+    "s_os1": null,
+    "w3": false,
+    "writer_chain": []
+   }
+  ],
+  "s_os2_empty": false,
+  "s_os2_tuple": true,
+  "spec_feedback_kind": "tuple_nonempty",
+  "w3_declared": [],
+  "w3_outputs_on_hard_path": 0
+ },
+ "reeval": {
+  "front": [],
+  "theta0": []
+ },
+ "repo": "C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/63c6146a-ab1d-4035-a169-bae810986922/scratchpad/it0/it0-sim",
+ "s_p_sign": {
+  "negative": [],
+  "o49_p2_fires": false,
+  "rows": {}
+ },
+ "set": "library",
+ "side": "SIM",
+ "stage_a": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "stage_b": {
+  "exit_code": 0,
+  "status": "ok"
+ },
+ "tag": "_rep2",
+ "wall_s": 28.355042099952698,
+ "wrapped": true
+}
